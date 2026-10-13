@@ -456,6 +456,7 @@ if __name__ == "__main__":
                     ident, k = mutate(ident)
                     change += f", {k}"
             elif not first or passes > 1:
+                queued = bool(STYLE_QUEUE)
                 style = STYLE_QUEUE.pop(0) if STYLE_QUEUE else (journey_style(j.get("h", 0), ident["style"]) if j.get("on") else random.choice([k for k in STYLES if k != ident["style"]]))
                 prev_bpm = ident.get("tempo", 120)
                 fav_songs = []
@@ -465,7 +466,7 @@ if __name__ == "__main__":
                     pass
                 for _ in range(8):  # keep tempos moving: at least 14 BPM from the last song
                     cand = identity(style)
-                    if fav_songs and random.random() < 0.15:  # a favourite returns, moved
+                    if fav_songs and not queued and random.random() < 0.15:  # a favourite returns, moved
                         fs = dict(random.choice(fav_songs))
                         bpm = max(90, min(150, fs["base_tempo"] + random.choice([-16, -10, 10, 16])))
                         cand = dict(fs, tempo=bpm, base_tempo=bpm, chapter=0, key=random.choice([-2, -1, 1, 2]), comp=random.choice(COMP_STYLES))
