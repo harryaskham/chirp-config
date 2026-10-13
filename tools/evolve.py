@@ -18,10 +18,10 @@ STYLES = {
   "djent":      dict(form="rock", tempo=(110, 150), off=0, riff=["riff-chug7", "riff-chug5", "riff-332", "riff-gallop"], riff_off=0,
                      low=["beat-sparse"], mid=["beat-poly7", "beat-euclid", "beat-ghost"], high=["beat-djent", "beat-blast", "beat-doom"],
                      half=["beat-halftime"], brk=["beat-doom"], hook=["lead-hook", "lead-solo"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["riff-hold"]),
-  "prog-clean": dict(form="rock", tempo=(104, 126), off=1, riff=["riff-thump", "riff-taps"], riff_off=-1,
+  "prog-clean": dict(form="rock", tempo=(104, 126), off=1, riff=["riff-thump", "riff-taps"], riff_off=0,
                      low=["beat-sparse"], mid=["beat-ghost", "beat-ride", "beat-euclid"], high=["beat-djent", "beat-ghost"],
                      half=["beat-halftime"], brk=["beat-sparse"], hook=["lead-hook"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["riff-hold"]),
-  "poly":       dict(form="rock", tempo=(88, 100), off=-1, riff=["riff-nylon", "riff-funk"], riff_off=1,
+  "poly":       dict(form="rock", tempo=(88, 100), off=-1, riff=["riff-nylon", "riff-funk"], riff_off=0,
                      low=["beat-sparse"], mid=["beat-trap", "beat-ghost"], high=["beat-trap", "beat-euclid"],
                      half=["beat-halftime"], brk=["beat-lofi"], hook=["lead-hook"], pad=["pad-dark", "bass-808"], soft=["pad-swell"], arp=["arp-16th"], hold=["riff-hold"]),
   "house":      dict(form="edm", tempo=(120, 126), off=0, riff=["bass-house"], riff_off=0,
@@ -212,7 +212,7 @@ def write_form(name, ident):
         rx = ident.get("xf", {})
         riff_role = next((l for l in layers if l.startswith("riff")), None)
         part = (ident.get(riff_role) or ident.get("riff")) if riff_role else None
-        fav = favorite_for(riff_role, ident) if riff_role == "riffBrk" else None
+        fav = favorite_for(riff_role, ident) if riff_role else None
         if fav:
             t = ident["key"] + fav[1]
             tracks["riff"].append(f"tr={t} @{fav[0]} tr=0" if t else f"@{fav[0]}")
@@ -330,6 +330,25 @@ def steer(ident, cmd):
         raise ValueError(f"unknown steer command {cmd!r}")
     return ident, cmd
 
+ARCHIVE = os.path.expanduser("~/.cache/chirp/played")
+
+def archive(name, ident):
+    """Keep a copy of every chapter that starts playing (form + its generated parts), so a
+    "this slaps" can be saved later by time with tools/fav.py."""
+    if not name or not ident:
+        return
+    try:
+        import glob, shutil
+        d = os.path.join(ARCHIVE, time.strftime("%Y%m%d-%H%M%S") + f"-{name}")
+        os.makedirs(d, exist_ok=True)
+        for f in [f"{SONGS}/{name}.yaml"] + glob.glob(f"{SONGS}/gen-{name}-*.yaml"):
+            shutil.copy(f, d)
+        open(os.path.join(d, "ident.json"), "w").write(json.dumps(ident, indent=1))
+        for old in sorted(glob.glob(os.path.join(ARCHIVE, "*")))[:-200]:
+            shutil.rmtree(old, ignore_errors=True)
+    except Exception as e:
+        print(time.strftime("%T"), f"archive failed: {e}", flush=True)
+
 def save_state(**kw):
     open(STATE, "w").write(json.dumps(kw, indent=1, default=str) + "\n")
 
@@ -383,6 +402,7 @@ if __name__ == "__main__":
             seen = li
             if not first and nxt:
                 playing, playing_ident = nxt, nxt_ident
+            archive(playing, playing_ident)
             passes += 1
             j = journey_load()
             if j.get("on") and not first:
@@ -402,8 +422,17 @@ if __name__ == "__main__":
             elif not first or passes > 1:
                 style = journey_style(j.get("h", 0), ident["style"]) if j.get("on") else random.choice([k for k in STYLES if k != ident["style"]])
                 prev_bpm = ident.get("tempo", 120)
+                fav_songs = []
+                try:
+                    fav_songs = [f["song"] for f in json.load(open("/home/harry/.config/chirp/tools/favorites.json")) if "song" in f]
+                except Exception:
+                    pass
                 for _ in range(8):  # keep tempos moving: at least 14 BPM from the last song
                     cand = identity(style)
+                    if fav_songs and random.random() < 0.15:  # a favourite returns, moved
+                        fs = dict(random.choice(fav_songs))
+                        bpm = max(90, min(150, fs["base_tempo"] + random.choice([-16, -10, 10, 16])))
+                        cand = dict(fs, tempo=bpm, base_tempo=bpm, chapter=0, key=random.choice([-2, -1, 1, 2]), comp=random.choice(COMP_STYLES))
                     if abs(cand["tempo"] - prev_bpm) >= 14:
                         break
                 ident, passes, change = cand, 1, f"new song h={j.get('h', 0):.2f}" if j.get("on") else "new song"

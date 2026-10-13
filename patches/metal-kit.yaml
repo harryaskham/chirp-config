@@ -1,0 +1,59 @@
+about: "Fat modern metal kit (extends prog-kit): punchy triggered-style kick (fast big pitch punch, loud beater click and tick, tight decay for double kick, weight below 80 Hz), a rimshot-thick snare (more body and shell plus rim ring), the prog-kit cymbals, toms, ghosts (g), rimshot (rs), stack (st), splash (sp), china (x). Kit bus: slower-attack compressor so transients punch, light saturation, fat/click EQ, small room."
+extends: prog-kit
+gain: -8dB
+fx:
+  - {type: compressor, threshold: -20dB, ratio: 4, attack: 9ms, release: 80ms, makeup: 4dB}
+  - {type: drive, drive: 0.18, mix: 0.5}
+  - type: eq
+    bands: ["hp cutoff=30", "peak cutoff=62 q=1.1 gain=2.5dB", "peak cutoff=420 q=1 gain=-3.5dB", "peak cutoff=4.2k q=1 gain=2.5dB", "highshelf cutoff=10k gain=1.5dB"]
+  - "reverb kind=room decay=0.7s mix=0.09 predelay=8ms"
+kit:
+  k:
+    pitch: A1
+    gain: 2dB
+    patch:
+      synth:
+        layers:
+          - {name: body, wave: sine}
+          - {name: knock, wave: sine, ratio: 2.1, level: {value: -60dB, mod: [{src: env.knock, amount: 56}, {src: rand, amount: 2}]}}
+          - {name: click, type: noise, level: {value: -64dB, mod: [{src: env.click, amount: 60}, {src: vel, amount: 14}, {src: rand, amount: 2}]}}
+          - {name: tick, wave: triangle, fixed: 4400, level: {value: -64dB, mod: [{src: env.click, amount: 58}, {src: vel, amount: 12}]}}
+        pitch: {value: 0, mod: [{src: env.p, amount: 31}, {src: rand, amount: 0.3}]}
+        env:
+          p: {a: 0.2ms, d: 26ms, s: 0, curve: 6}
+          click: {a: 0.1ms, d: 4ms, s: 0, curve: 3}
+          knock: {a: 0.2ms, d: 22ms, s: 0}
+        filters:
+          - {kind: peak, cutoff: {value: 4.2k, mod: [{src: rand, amount: 0.1}]}, q: 1, gain: {value: 3dB, mod: [{src: vel, amount: 5}]}}
+          - "lowshelf cutoff=75 gain=4dB"
+        amp: {a: 0.2ms, d: 210ms, s: 0, r: 25ms, curve: 4}
+        drive: 0.35
+      play: {vel_sens: 0.45}
+  s:
+    pitch: A3
+    gain: 1dB
+    patch:
+      synth:
+        layers:
+          - {name: body, wave: triangle, level: {value: -60dB, mod: [{src: env.body, amount: 60}, {src: vel, amount: 8}]}}
+          - {name: shell, ratio: 1.62, level: {value: -60dB, mod: [{src: env.body, amount: 52}, {src: vel, amount: 6}, {src: rand, amount: 2}]}}
+          - {name: rim, wave: square, fixed: 1650, level: {value: -66dB, mod: [{src: env.rim, amount: 56}, {src: vel, amount: 6}, {src: rand, amount: 2}]}}
+          - {name: ring, wave: sine, fixed: 3100, level: {value: -66dB, mod: [{src: env.ring, amount: 50}]}}
+          - {name: wires, type: noise, level: {value: -66dB, mod: [{src: env.wires, amount: 62}, {src: vel, amount: 6}]}}
+          - {name: crack, type: noise, level: {value: -70dB, mod: [{src: env.crack, amount: 66}, {src: vel, amount: 10}]}}
+        pitch: {value: 0, mod: [{src: env.p, amount: 5}, {src: rand, amount: 0.25}]}
+        env:
+          p: {a: 0.2ms, d: 16ms, s: 0}
+          body: {a: 0.2ms, d: 140ms, s: 0, curve: 4}
+          rim: {a: 0.1ms, d: 30ms, s: 0}
+          ring: {a: 0.2ms, d: 160ms, s: 0}
+          wires: {a: 0.4ms, d: 220ms, s: 0, curve: 4}
+          crack: {a: 0.1ms, d: 10ms, s: 0}
+        filters:
+          - "hp cutoff=120"
+          - {kind: peak, cutoff: {value: 4.5k, mod: [{src: rand, amount: 0.15}]}, q: 0.8, gain: {value: 1dB, mod: [{src: vel, amount: 6}]}}
+          - "peak cutoff=220 q=1 gain=3dB"
+          - {kind: lp, cutoff: {value: 7k, mod: [{src: vel, amount: 1.6}]}}
+        amp: {a: 0.2ms, d: 320ms, s: 0, r: 30ms}
+        drive: 0.28
+      play: {vel_sens: 0.7}

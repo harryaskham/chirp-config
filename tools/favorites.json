@@ -1,3 +1,51 @@
 [
-  {"part": "fav-brk-g-phrygian", "role": "riffBrk", "pc": 7, "mode": "phrygian", "bpm": 92, "note": "user: this last breakdown was sick"}
+ {
+  "part": "fav-brk-g-phrygian",
+  "role": "riffBrk",
+  "pc": 7,
+  "mode": "phrygian",
+  "bpm": 92,
+  "note": "user: this last breakdown was sick"
+ },
+ {
+  "part": "fav-space-b-neapolitan",
+  "role": "riffX",
+  "pc": 11,
+  "mode": "neapolitan",
+  "bpm": 136,
+  "note": "user 23:40: this one slaps"
+ },
+ {
+  "song": {
+   "style": "meshuggah",
+   "tempo": 136,
+   "base_tempo": 130,
+   "chapter": 0,
+   "key": 0,
+   "gen": {
+    "pc": 11,
+    "mode": "neapolitan",
+    "prog": [
+     0,
+     1,
+     0,
+     4
+    ],
+    "seed": 424671181
+   },
+   "comp": "glue",
+   "riff": "riff-chug7",
+   "low": "beat-sparse",
+   "mid": "beat-poly7",
+   "high": "beat-doom",
+   "half": "beat-halftime",
+   "brk": "beat-doom",
+   "hook": "lead-solo",
+   "pad": "pad-dark",
+   "soft": "pad-swell",
+   "arp": "arp-16th",
+   "hold": "riff-hold"
+  },
+  "note": "user 23:40: this one slaps (B neapolitan meshuggah, cycles 7/8 9/8 10/8)"
+ }
 ]

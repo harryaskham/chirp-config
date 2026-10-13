@@ -67,3 +67,17 @@ evolver if `evolve.py`/`compose.py` changed upstream, and when `tools` origin/ma
 commits rebuilds in a detached worktree and restarts the groove on the new build (resuming the
 queued song). `favorites.json` lists saved parts (`songs/fav-*`) that forms recall — breakdowns
 re-use a favourite ~⅓ of the time, transposed into the song's key.
+
+## Favourites
+
+`tools/fav.py 23:40 [ROLE]` (or `fav.py now`) saves what was playing at that time — evolve.py archives
+every chapter to `~/.cache/chirp/played` — as `songs/fav-ROLE-KEY-HHMM.yaml` parts plus the song identity
+in `favorites.json`. Forms recall saved parts for the matching role ~⅓ of the time (transposed into the
+song's key; kits don't transpose) and saved songs return now and then with a new tempo and key.
+
+## Kit and guitar detail
+
+`metal-kit` (default kit): punchy triggered-style kick, rimshot-thick snare, compressed/saturated bus.
+Generated parts add ghosts and flams; guitars get pinch squeals, tremolo-picked stabs, machine-gun
+double chugs, whammy dives and natural harmonics on twangs, and per-section inserts (phaser/chorus in
+space sections, a 1/16 stutter gate in some breakdowns).

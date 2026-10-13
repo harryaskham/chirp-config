@@ -5,7 +5,12 @@
 #   CHIRP_OUT  output device (default: music)
 set -u
 here=$(cd "$(dirname "$0")" && pwd)
-src=${CHIRP_SRC:-${CHIRP_BIN:-$(command -v chirp)}}
+# Never fall back to an installed (Nix) chirp: it can be far older than the library needs.
+src=${CHIRP_SRC:-}
+for c in "${CHIRP_MAIN:-/tmp/lt/chirp-main}/cli/chirp/target/release/chirp" "$HOME/.herdr/worktrees/tools/chirp/cli/chirp/target/release/chirp"; do
+  [ -z "$src" ] && [ -x "$c" ] && src=$c
+done
+[ -n "$src" ] || { echo "restart-groove: set CHIRP_SRC to a chirp build from tools origin/main"; exit 1; }
 C=${XDG_RUNTIME_DIR:-/tmp}/chirp-groove
 log=${TMPDIR:-/tmp}/chirp-evolve.log
 pgrep -f "python3 $here/evolve.py" | xargs -r kill

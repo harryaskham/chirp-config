@@ -1,0 +1,12 @@
+about: "Favourite space riff (user at 23:40: \"this one slaps\") — Meshuggah song in B Neapolitan minor at 136 BPM: ringing open twangs (m8-twang) with gaps for the tails, short chug bursts, half-time drums, crash/china on the hits; tempo-inheriting part, 16 beats."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "gtr-l", "patch": "m8-rhythm-l", "score": "R/8 R/8 R/8 R/8 R/8 R/8 R/8 R/8 R/8 expr.pm=1 B1/8@100 expr.pm=1 B1/8@108 R/8 R/8 R/8 R/8 R/8 R/8 R/8 R/8 R/8 R/8 R/8 R/8 expr.pm=1 B1/8@100 expr.pm=1 B1/8@100 R/8 R/8 R/8 R/8 R/8 R/8 R/8", "pan": "L90", "seed": 7}
+  - {"name": "gtr-r", "patch": "m8-rhythm-r", "score": "R/8 R/8 R/8 R/8 R/8 R/8 R/8 R/8 R/8 expr.pm=1 B1/8@100 expr.pm=1 B1/8@108 R/8 R/8 R/8 R/8 R/8 R/8 R/8 R/8 R/8 R/8 R/8 R/8 expr.pm=1 B1/8@100 expr.pm=1 B1/8@100 R/8 R/8 R/8 R/8 R/8 R/8 R/8", "pan": "R90", "seed": 13}
+  - {"name": "twang", "patch": "m8-twang", "score": "C2,F#2/8@124^gate=3.5 R/8 R/8 R/8 B1,Bb2/8@125^gate=3.5 R/8 R/8 R/8 R/8 R/8 R/8 B1/8@124^gate=3.5 R/8 R/8 C2,F#2/8@120^gate=3.5 R/8 R/8 R/8 B1,Bb2/8@124^gate=3.5 R/8 R/8 R/8 R/8 R/8 R/8 B1/8@121^gate=3.5 R/8 R/8 C2,F#2/8@123^gate=3.5 R/8 R/8 R/8"}
+  - {"name": "bass", "patch": "bass-fat", "score": "C2/8@124^gate=3.5 R/8 R/8 R/8 B1/8@125^gate=3.5 R/8 R/8 R/8 R/8 B1/8@92 B1/8@100 B1/8@124^gate=3.5 R/8 R/8 C2/8@120^gate=3.5 R/8 R/8 R/8 B1/8@124^gate=3.5 R/8 R/8 R/8 R/8 B1/8@92 B1/8@92 B1/8@121^gate=3.5 R/8 R/8 C2/8@123^gate=3.5 R/8 R/8 R/8", "seed": 7}
+  - {"name": "sub", "patch": "sub-sine", "score": "C2/8@124^gate=3.5 R/8 R/8 R/8 B1/8@125^gate=3.5 R/8 R/8 R/8 R/8 B1/8@92 B1/8@100 B1/8@124^gate=3.5 R/8 R/8 C2/8@120^gate=3.5 R/8 R/8 R/8 B1/8@124^gate=3.5 R/8 R/8 R/8 R/8 B1/8@92 B1/8@92 B1/8@121^gate=3.5 R/8 R/8 C2/8@123^gate=3.5 R/8 R/8 R/8", "seed": 7}
+  - {"name": "kick", "patch": "prog-kit", "score": "k/8@124 R/8 R/8 R/8 k/8@125 R/8 R/8 R/8 R/8 k/8@92 k/8@100 k/8@124 R/8 R/8 k/8@120 R/8 R/8 R/8 k/8@124 R/8 R/8 R/8 R/8 k/8@92 k/8@92 k/8@121 R/8 R/8 k/8@123 R/8 R/8 R/8"}
+  - {"name": "snare", "patch": "prog-kit", "score": "R/8 R/8 R/8 R/8 s/8@112 R/8 R/8 R/8 R/8 R/8 R/8 R/8 s/8@112 R/8 R/8 R/8 R/8 R/8 R/8 R/8 s/8@112 R/8 R/8 R/8 R/8 R/8 R/8 R/8 s/8@112 R/8 R/8 R/8"}
+  - {"name": "cym", "patch": "prog-kit", "score": "c/8@118 R/8 h/8@70 R/8 x/8@119 R/8 h/8@60 R/8 h/8@70 R/8 h/8@70 x/8@118 h/8@70 R/8 c/8@114 R/8 h/8@70 R/8 x/8@118 R/8 h/8@60 R/8 h/8@60 R/8 h/8@70 c/8@115 h/8@60 R/8 x/8@117 R/8 h/8@70 R/8"}

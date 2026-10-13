@@ -50,7 +50,7 @@ def have(patch):
     if patch not in _HAVE:
         import os, subprocess
         c = os.environ.get("CHIRP_BIN") or "chirp"
-        _HAVE[patch] = subprocess.run([c, "plan", "-p", patch, "C2/4"], capture_output=True).returncode == 0
+        _HAVE[patch] = any(subprocess.run([c, "plan", "-p", patch, note], capture_output=True).returncode == 0 for note in ("C2/4", "k/4"))
     return _HAVE[patch]
 
 
@@ -69,7 +69,7 @@ RIGS = {
     "sub": ("sub-sine", "sub"),
     "twang": ("m8-twang", "m8"),
     "lead": ("lead-monster", "synth-lead"),
-    "drums": ("prog-kit",),
+    "drums": ("metal-kit", "prog-kit"),
 }
 
 
@@ -93,11 +93,24 @@ def rig(role):
     return pick_patch(*opts)
 
 
-def rhythm_tracks(score, *, pair=None, pan=90, seeds=(7, 13)):
+def rhythm_tracks(score, *, pair=None, pan=90, seeds=(7, 13), fx=None):
     """A real double-tracked rhythm guitar: the same part on two rigs played by two "players"
-    (own seeds, the right looser), hard-panned. `pair` overrides the (left, right) rigs."""
+    (own seeds, the right looser), hard-panned. `pair` overrides the (left, right) rigs; `fx`
+    adds per-part inserts after the rigs (a phaser, chorus or stutter gate for this section)."""
     left, right = pair or rig("rhythm")
-    return [track("gtr-l", left, score, pan=f"L{pan}", seed=seeds[0]), track("gtr-r", right, score, pan=f"R{pan}", seed=seeds[1])]
+    extra = {"fx": fx} if fx else {}
+    return [track("gtr-l", left, score, pan=f"L{pan}", seed=seeds[0], **extra), track("gtr-r", right, score, pan=f"R{pan}", seed=seeds[1], **extra)]
+
+
+# Section inserts for variety (post-rig): picked per part.
+SECTION_FX = {
+    "space": [None, None, ["phaser rate=0.25 depth=0.7 mix=0.45"], ["chorus rate=0.5 depth=0.5 mix=0.35"]],
+    "break": [None, None, None, ["tremolo rate=1/16 depth=0.85"]],
+}
+
+
+def section_fx(r, kind):
+    return r.choice(SECTION_FX.get(kind, [None]))
 
 
 def mname(m):
@@ -382,11 +395,17 @@ def gen_meshuggah(r, k, low, gp, cycle, grid="16", mode="riff"):
         elif kind == "acc":
             v = min(127, (126 if restart else r.choice([110, 116, 120])) + bar_off)
             art = "^gate=1.6" if ring else "^gate=0.9"
+            x = r.random()
+            if x < 0.12:
+                art = "^ph^gate=1.4"          # pinch squeal
+            elif x < 0.2 and not ring:
+                art = "^r=4^gate=1"           # tremolo-picked stab
             gtr.append(f"expr.pm=0 {chordhead(pc)}{dur}@{v}{art}"); bass.append(f"{mname(pc[0])}{dur}@{v}")
             kick.append(f"k,ft{dur}@{v}" if mode == "toms" else f"k{dur}@{v}")
         elif kind == "chug":
             v = max(70, min(124, [112, 98, 106, 92][min(run - 1, 3)] + r.randint(-6, 6) + bar_off))  # runs swell and decay
-            gtr.append(f"expr.pm=1 {mname(pc)}{dur}@{v}"); bass.append(f"{mname(pc)}{dur}@{v}")
+            mg = "^r=2" if r.random() < 0.08 else ""  # machine-gun double chug
+            gtr.append(f"expr.pm=1 {mname(pc)}{dur}@{v}{mg}"); bass.append(f"{mname(pc)}{dur}@{v}")
             # Tom grooves: chug runs walk down the toms (high → floor) instead of the kick.
             kick.append(f"{['t1', 't2', 't3', 'ft'][min(run - 1, 3)]}{dur}@{v}" if mode == "toms" else f"k{dur}@{v - 6}")
         elif kind == "dead":
@@ -394,8 +413,8 @@ def gen_meshuggah(r, k, low, gp, cycle, grid="16", mode="riff"):
         else:
             gtr.append(f"R{dur}"); bass.append(f"R{dur}"); kick.append(f"R{dur}")
         beat_pos, beat = i % per_beat, i // per_beat
-        snare.append(f"s{dur}@{116 if beat % 4 == 2 else 0}" if beat_pos == 0 and beat % 4 == 2 else
-                     (f"g{dur}@{r.choice([34, 40])}" if r.random() < 0.06 else f"R{dur}"))
+        snare.append((f"s{dur}@118" + ("^flam" if r.random() < 0.2 else "")) if beat_pos == 0 and beat % 4 == 2 else
+                     (f"g{dur}@{r.choice([30, 36, 42])}" if r.random() < 0.16 else f"R{dur}"))
         if kind == "stop":
             cym.append(f"R{dur}")
         elif beat_pos == 0:
@@ -413,7 +432,7 @@ def gen_meshuggah(r, k, low, gp, cycle, grid="16", mode="riff"):
         restarts = [i * scale for i in range(0, steps, cycle)]
         k16, s16, c16 = garstka(r, hit_steps, 64, restarts)
         kit = rig("drums")
-        return rhythm_tracks(" ".join(gtr)) + [track("bass", rig("bass"), " ".join(bass), seed=7), track("sub", rig("sub"), " ".join(bass), seed=7),
+        return rhythm_tracks(" ".join(gtr), fx=section_fx(r, "break")) + [track("bass", rig("bass"), " ".join(bass), seed=7), track("sub", rig("sub"), " ".join(bass), seed=7),
                 track("kick", kit, k16), track("snare", kit, s16), track("cym", kit, c16)] + (
                 [track("reese", "reese", " ".join(f"{mname(pc[0] + 12)}/{grid}@100^gate=2" if kind == "acc" else f"R/{grid}" for kind, pc in (cyc[i % cycle] for i in range(steps))), gain="-8dB")]
                 if have("reese") else [])
@@ -440,12 +459,23 @@ def gen_space(r, k, low, gp, cycle):
             cyc += [("chug",)] * r.choice([1, 2, 3])
     cyc = cyc[:cycle]
     gtr, twang, bass, kick, snare, cym = [], [], [], [], [], []
+    dives = []
     for i in range(steps):
         ev = cyc[i % cycle]
         beat = i // 2
         if ev[0] == "ring":
             v = 120 + r.randint(0, 6)
-            twang.append(f"{chordhead(ev[1])}{dur}@{v}^gate={ev[2]}"); gtr.append(f"R{dur}")
+            x = r.random()
+            if x < 0.25 and i + 3 < steps and all(cyc[(i + d) % cycle][0] == "rest" for d in (1, 2, 3)):
+                dives.append(i)               # whammy dive: hold and bend down over the gap
+                twang.append(f"{mname(ev[1][0])}{dur}@{v}")
+            elif x < 0.42:
+                twang.append(f"{mname(ev[1][0] + 12)}{dur}@{v}^nh={r.choice([2, 3])}^gate={ev[2]}")  # natural harmonic
+            elif x < 0.55:
+                twang.append(f"{chordhead(ev[1])}{dur}@{v}^ph^gate={ev[2]}")  # pinch squeal
+            else:
+                twang.append(f"{chordhead(ev[1])}{dur}@{v}^gate={ev[2]}")
+            gtr.append(f"R{dur}")
             bass.append(f"{mname(ev[1][0])}{dur}@{v}^gate={ev[2]}"); kick.append(f"k{dur}@{v}")
             cym.append(f"{r.choice(['c', 'x'])}{dur}@{v - 6}")
         else:
@@ -456,10 +486,17 @@ def gen_space(r, k, low, gp, cycle):
             else:
                 gtr.append(f"R{dur}"); bass.append(f"R{dur}"); kick.append(f"R{dur}")
             cym.append(f"h{dur}@{r.choice([60, 70])}" if i % 2 == 0 else f"R{dur}")
-        snare.append(f"s{dur}@112" if i % 8 == 4 else f"R{dur}")
+        snare.append(f"s{dur}@116" if i % 8 == 4 else (f"g{dur}@{r.choice([30, 38])}" if r.random() < 0.14 else f"R{dur}"))
+    for i in dives:  # turn the rests after a dive note into held, bending steps
+        for d, b in zip((1, 2, 3), (-1, -4, -9)):
+            twang[i + d] = f"bend={b} _"
+        if i + 4 < steps:
+            twang[i + 4] = "bend= " + twang[i + 4]
+        else:
+            twang[i + 3] += " bend="
     j = lambda xs: " ".join(xs)
     kit = rig("drums")
-    return rhythm_tracks(j(gtr)) + [track("twang", rig("twang"), j(twang)), track("bass", rig("bass"), j(bass), seed=7),
+    return rhythm_tracks(j(gtr), fx=section_fx(r, "space")) + [track("twang", rig("twang"), j(twang)), track("bass", rig("bass"), j(bass), seed=7),
             track("sub", rig("sub"), j(bass), seed=7), track("kick", kit, j(kick)), track("snare", kit, j(snare)), track("cym", kit, j(cym))]
 
 
@@ -508,8 +545,8 @@ def garstka(r, hits, steps=64, restarts=()):
     for i in range(steps):
         if i % 16 == 8 and snare[i] == "R":
             snare[i] = "s@118" + ("^flam" if r.random() < 0.3 else "")
-        elif snare[i] == "R" and kick[i] == "R" and r.random() < 0.08:
-            snare[i] = f"g@{r.choice([34, 42])}"
+        elif snare[i] == "R" and kick[i] == "R" and r.random() < 0.18:
+            snare[i] = f"g@{r.choice([30, 36, 42])}"
         if cym[i] == "R" and i % 4 == 0 and r.random() < 0.5:
             cym[i] = "rb@70"
     f = lambda xs: " ".join(x.replace("@", "/16@", 1) if x != "R" else "R/16" for x in xs)
@@ -539,7 +576,8 @@ def gen_blast(r, k, prog, low, kind="trad"):
                     gtr.append(f"expr.pm=1 {mname(rt - 12)}/16@{v}" if r.random() < 0.85 else f"expr.pm=0 {chordhead([rt - 12, rt - 5])}/16@118")
                 else:
                     m = k.deg(root + cell[j] + seqs[beat], low + 12)
-                    gtr.append(f"expr.pm=0 {mname(m)}/16@{108 if j % 2 == 0 else 94}")
+                    art = "^ph" if (beat == 3 and j == 3 and r.random() < 0.4) else ("^h" if j % 2 == 1 and r.random() < 0.15 else "")
+                    gtr.append(f"expr.pm=0 {mname(m)}/16@{108 if j % 2 == 0 else 94}{art}")
                 bass.append(f"{mname(rt - 12)}/16@{100 if j % 2 == 0 else 88}")
     kick, snare, cym = [], [], []
     for i in range(steps):
