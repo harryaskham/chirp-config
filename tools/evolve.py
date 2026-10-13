@@ -403,6 +403,8 @@ if __name__ == "__main__":
                         print(time.strftime("%T"), f"steer: next → {nxt} {nxt_ident['style']} {nxt_ident['tempo']}bpm {nxt_ident.get('gen')}", flush=True)
                         continue
                     if playing and playing_ident:
+                        # Only carry the change into the queued pass if it continues the same song.
+                        same = bool(nxt_ident) and nxt_ident.get("gen") == playing_ident.get("gen") and nxt_ident.get("style") == playing_ident.get("style")
                         playing_ident, desc = steer(playing_ident, cmd)
                         write_form(playing, playing_ident)
                         gen = (live("status") or {}).get("generation", 0)
@@ -410,6 +412,8 @@ if __name__ == "__main__":
                         applied = ok and wait_generation(gen)
                         if cmd.split()[0] == "style":
                             nxt_ident = dict(playing_ident)
+                        elif not same:
+                            pass
                         elif cmd.split()[0] in ("compose", "melody", "rekey"):
                             nxt_ident = dict(nxt_ident, gen=playing_ident["gen"], key=playing_ident["key"])
                         else:
