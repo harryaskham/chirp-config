@@ -8,7 +8,8 @@ import json, math, os, random, subprocess, sys, time
 sys.path.insert(0, "/home/harry/.config/chirp/tools")
 import compose as composer
 
-C = "/tmp/lt/chirp-groove"
+# The binary that talks to the groove: $CHIRP_BIN, the pinned copy restart-groove.sh made, or PATH.
+C = os.environ.get("CHIRP_BIN") or next((p for p in [os.path.join(os.environ.get("XDG_RUNTIME_DIR", "/tmp"), "chirp-groove"), "/tmp/lt/chirp-groove"] if os.path.exists(p)), "chirp")
 SONGS = "/home/harry/.config/chirp/songs"
 REST = "R/1 R/1 R/1 R/1"
 
@@ -306,6 +307,15 @@ if __name__ == "__main__":
             open(STEER, "w").close()
             for cmd in cmds:
                 try:
+                    if cmd.split()[0] == "next":
+                        # Replace only the queued song with a fresh one in STYLE (playing untouched).
+                        words = cmd.split()
+                        nxt_ident = identity(words[1] if len(words) > 1 else None)
+                        write_form(nxt, nxt_ident)
+                        ident, passes = dict(nxt_ident), 0
+                        live("set", f"tracks.arrangement.score=@{nxt}")
+                        print(time.strftime("%T"), f"steer: next → {nxt} {nxt_ident['style']} {nxt_ident['tempo']}bpm {nxt_ident.get('gen')}", flush=True)
+                        continue
                     if playing and playing_ident:
                         playing_ident, desc = steer(playing_ident, cmd)
                         write_form(playing, playing_ident)

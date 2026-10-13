@@ -223,3 +223,7 @@ songs/form-*.yaml
 songs/gen-*.yaml
 songs/jam-*.yaml
 tools/state.json
+tools/steer.txt
+tools/journey.json
+tools/*.bak*
+tools/__pycache__/
