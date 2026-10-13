@@ -378,6 +378,7 @@ def archive(name, ident):
         print(time.strftime("%T"), f"archive failed: {e}", flush=True)
 
 def save_state(**kw):
+    kw["queue"] = list(STYLE_QUEUE)
     open(STATE, "w").write(json.dumps(kw, indent=1, default=str) + "\n")
 
 def wait_generation(after, timeout=8.0):
@@ -414,6 +415,10 @@ if __name__ == "__main__":
             print(time.strftime("%T"), f"resumed: playing {playing} {ident['style']}", flush=True)
         except Exception as e:
             print(time.strftime("%T"), f"resume failed: {e}", flush=True)
+    try:
+        STYLE_QUEUE.extend(json.load(open(STATE)).get("queue", []))
+    except Exception:
+        pass
     open(STEER, "a").close()
     while True:
         st = live("status")
