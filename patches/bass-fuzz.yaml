@@ -1,0 +1,9 @@
+about: "Fuzz bass: the heavy bass string DI through a folding fuzz blended back with the clean DI (mix 0.5) into a 4x10 — growling low end for slams and sludge."
+extends: "m8-bass layers.0.decay.value=5s layers.0.bright.value=0.55 layers.1.level=-3dB"
+fx:
+  - {type: drive, drive: 0.7, shape: fold, mix: 0.5}
+  - {type: amp, model: crunch, gain: 0.5, tight: 40, boost: 2dB, bass: 0.7, mid: 0.6, treble: 0.4, presence: 0.3, resonance: 0.7, sag: 0.4, mix: 0.4}
+  - {type: cab, model: 4x10, mic: 0.4, distance: 0.12}
+  - {type: eq, bands: ["lowshelf cutoff=90 gain=2dB", "peak cutoff=3000 q=1 gain=-4dB", "highshelf cutoff=4500 gain=-6dB"]}
+  - {type: compressor, threshold: -22dB, ratio: 5, attack: 8ms, release: 130ms, makeup: 2dB}
+gain: -12dB

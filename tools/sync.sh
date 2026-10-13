@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# sync.sh — keep the live groove on the latest shared config, evolver and chirp build.
+#  1. pull chirp-config (rebase, autostash); restart the evolver (keeping the playing song) if
+#     evolve.py/compose.py changed upstream
+#  2. if tools origin/main has new chirp commits, rebuild in a detached worktree and restart the
+#     groove on a fresh pinned copy (resuming the queued song)
+#   CHIRP_REPO  tools checkout (default ~/tools)   CHIRP_MAIN  build worktree (default /tmp/lt/chirp-main)
+set -u
+here=$(cd "$(dirname "$0")" && pwd); cfg=$(dirname "$here")
+repo=${CHIRP_REPO:-$HOME/tools}; main=${CHIRP_MAIN:-/tmp/lt/chirp-main}
+pinned=${XDG_RUNTIME_DIR:-/tmp}/chirp-groove; log=${TMPDIR:-/tmp}/chirp-evolve.log
+py=$(command -v python3)
+
+before=$(git -C "$cfg" rev-parse HEAD)
+git -C "$cfg" pull -q --rebase --autostash origin main || echo "sync: config pull failed (local changes?)"
+after=$(git -C "$cfg" rev-parse HEAD)
+tools_changed=$(git -C "$cfg" diff --name-only "$before" "$after" -- tools/evolve.py tools/compose.py | wc -l)
+[ "$before" != "$after" ] && echo "sync: config $before → $after ($(git -C "$cfg" log --oneline "$before..$after" | wc -l) commits)"
+
+rebuilt=0
+git -C "$repo" fetch -q origin
+[ -d "$main" ] || git -C "$repo" worktree add -f --detach "$main" origin/main >/dev/null 2>&1
+cur=$(git -C "$main" rev-parse HEAD); head=$(git -C "$repo" rev-parse origin/main)
+if [ "$cur" != "$head" ] && [ -n "$(git -C "$repo" log --format=%H "$cur..$head" -- cli/chirp)" ] || [ ! -x "$main/cli/chirp/target/release/chirp" ]; then
+  git -C "$main" checkout -q --detach "$head"
+  echo "sync: building chirp $(git -C "$main" log --oneline -1 | cut -c1-80)"
+  if (cd "$main/cli/chirp" && nix develop -c cargo build --release -p chirp-cli >/tmp/chirp-sync-build.log 2>&1); then rebuilt=1; else echo "sync: build failed (see /tmp/chirp-sync-build.log)"; fi
+else
+  git -C "$main" checkout -q --detach "$head" 2>/dev/null
+fi
+
+new="$main/cli/chirp/target/release/chirp"
+if [ "$rebuilt" = 1 ] && ! cmp -s "$new" "$pinned"; then
+  nxt=$("$py" -c "import json;print(json.load(open('$here/state.json')).get('next') or 'form-1')" 2>/dev/null || echo form-1)
+  echo "sync: restarting groove on the new build (resuming @$nxt)"
+  CHIRP_SRC="$new" bash "$here/restart-groove.sh" live-suite "@$nxt"
+elif [ "$tools_changed" -gt 0 ]; then
+  echo "sync: evolver/composer changed upstream — restarting the evolver (keeping the playing song)"
+  pgrep -f "python3 $here/evolve.py" | xargs -r kill; sleep 0.5
+  CHIRP_BIN="$pinned" EVOLVE_RESUME=keep setsid nohup "$py" "$here/evolve.py" >> "$log" 2>&1 < /dev/null &
+fi
+echo "sync: config $(git -C "$cfg" log --oneline -1 | cut -c1-60) · chirp $(git -C "$main" log --oneline -1 | cut -c1-60)"

@@ -1,0 +1,9 @@
+about: "Lead with a slapback: the sustaining 8-string, 5150, cab, a single 95 ms echo and a tight room — aggressive, close, for fast runs and shred."
+extends: "m8 layers.0.decay.value=7s layers.0.bright.value=0.8"
+fx:
+  - {type: amp, model: "5150", gain: 0.92, ts: 0.75, tight: 150, boost: 6dB, bass: 0.48, mid: 0.7, treble: 0.58, presence: 0.6, resonance: 0.55, sag: 0.25}
+  - {type: ir, file: jester/cookie-monster, blend_file: jester/kitten-slayer, blend: 0.35, length: 120ms}
+  - {type: eq, bands: ["peak cutoff=900 q=0.9 gain=2dB", "peak cutoff=250 q=1.2 gain=-2dB", "highshelf cutoff=7500 gain=-2dB"]}
+  - {type: delay, time: 95ms, mix: 0.22, feedback: 0.08}
+  - "reverb kind=room decay=0.9s mix=0.12"
+gain: -20dB

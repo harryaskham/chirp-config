@@ -1,0 +1,15 @@
+about: "Auto-wah lead: the sustaining 8-string through a tempo-synced swept band-pass (wah) into a 5150, cab, tape-ish delay and hall. Bends, legato (^h) and pinches like lead-monster."
+extends: "m8 layers.0.decay.value=9s layers.0.bright.value=0.82"
+synth:
+  lfo:
+    vib: {wave: sine, rate: 5.6hz, delay: 280ms, fade: 350ms, retrig: true}
+    wah: {wave: triangle, rate: 1/8}
+  filters:
+    - {kind: lp, cutoff: {value: 11k, mod: [{src: expr.pm, amount: -3.4}, {src: vel, amount: 0.6}]}, q: 0.6}
+    - {kind: peak, cutoff: {value: 900, mod: [{src: lfo.wah, amount: 1.6}]}, q: 3.5, gain: 14dB}
+fx:
+  - {type: amp, model: "5150", gain: 0.9, ts: 0.7, tight: 140, boost: 6dB, bass: 0.48, mid: 0.66, treble: 0.56, presence: 0.58, resonance: 0.55, sag: 0.3}
+  - {type: ir, file: jester/cookie-monster, blend_file: jester/darth-genocider, blend: 0.4, length: 120ms}
+  - {type: delay, time: 3/16, mix: 0.16, feedback: 0.3, ping_pong: true, tone: 3500}
+  - "reverb kind=hall decay=2.2s mix=0.2"
+gain: -20dB

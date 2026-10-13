@@ -59,3 +59,11 @@ drums; power chords, clusters, choked stops, muted scratches; `mode` riff / toms
 `gen_space` (ringing twangs with gaps), `gen_djent`, `gen_hook` (motif → sequence → cadence),
 `gen_clusters`, `gen_hold`, `soften` (velocity-scaled variant). Modes include the evil ones
 (double-harmonic, hungarian, neapolitan, phrygian-dominant, locrian, diminished).
+
+## Staying current
+
+`tools/sync.sh` (run it regularly, e.g. every few minutes): pulls `chirp-config`, restarts the
+evolver if `evolve.py`/`compose.py` changed upstream, and when `tools` origin/main has new chirp
+commits rebuilds in a detached worktree and restarts the groove on the new build (resuming the
+queued song). `favorites.json` lists saved parts (`songs/fav-*`) that forms recall — breakdowns
+re-use a favourite ~⅓ of the time, transposed into the song's key.

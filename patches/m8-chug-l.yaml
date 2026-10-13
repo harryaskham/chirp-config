@@ -1,0 +1,10 @@
+about: "Harder chug rig (left of a pair): compressor pedal into a Mark-voiced amp with a big screamer push and very tight lows, cookie-monster/kitten-slayer cab blend, 110 Hz thump, fizz dip, and a fast gate so stops are surgical. Pair with m8-chug-r."
+extends: "m8 layers.0.pick=0.12 layers.0.pickup=0.085"
+fx:
+  - {type: compressor, threshold: -20dB, ratio: 4, attack: 2ms, release: 60ms, makeup: 3dB}
+  - {type: amp, model: mark, gain: 0.86, ts: 0.75, tight: 150, boost: 6dB, bass: 0.5, mid: 0.66, treble: 0.5, presence: 0.5, resonance: 0.72, sag: 0.15}
+  - {type: ir, file: jester/cookie-monster, blend_file: jester/kitten-slayer, blend: 0.3, length: 120ms}
+  - {type: eq, bands: ["peak cutoff=110 q=1.1 gain=2dB", "peak cutoff=250 q=1.2 gain=-2.5dB", "peak cutoff=3300 q=1.2 gain=-2.5dB", "highshelf cutoff=7500 gain=-3dB"]}
+  - {type: gate, threshold: -48dB, attack: 0.3ms, hold: 8ms, release: 25ms}
+  - "reverb kind=plate decay=0.9s mix=0.06 predelay=10ms"
+gain: -23dB

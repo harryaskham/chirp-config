@@ -48,6 +48,9 @@ STYLES = {
   "meshuggah":  dict(form="meshuggah", tempo=(96, 140), off=0, riff=["riff-chug7"], riff_off=0, lift=0,
                      low=["beat-sparse"], mid=["beat-poly7"], high=["beat-doom"], half=["beat-halftime"], brk=["beat-doom"],
                      hook=["lead-solo"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["riff-hold"]),
+  "tech-death": dict(form="tech-death", tempo=(170, 220), off=0, riff=["riff-chug7"], riff_off=0, lift=0,
+                     low=["beat-sparse"], mid=["beat-blast"], high=["beat-blast"], half=["beat-halftime"], brk=["beat-doom"],
+                     hook=["lead-solo"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["riff-hold"]),
   "djent-breakdown": dict(form="breakdown", tempo=(100, 140), off=0, riff=["riff-hold", "riff-chug5", "riff-chug7"], riff_off=0,
                      low=["beat-sparse"], mid=["beat-halftime"], high=["beat-doom"], half=["beat-halftime"], brk=["beat-doom"],
                      hook=["lead-solo"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["riff-hold"]),
@@ -68,12 +71,18 @@ FORMS = {
            ("outro", ["low", "soft"], "revcym")],
   # Polymetric riffs carry their own locked drums (kick follows the guitar; 4/4 cymbals, snare on 3).
   "meshuggah": [("intro", ["soft", "hold"], "revcym"), ("verse", ["riffSoft"], "impact"), ("verse", ["riff", "pad"], None),
-                ("heavy", ["riffB"], "impact"), ("heavy", ["riffB", "hook"], None), ("shuffle", ["riffS"], "impact"),
+                ("heavy", ["riffB"], "impact"), ("heavy", ["riffB", "hook"], None),
+                ("blast", ["riffBl"], "impact"), ("blast", ["riffBl", "pad"], None), ("shuffle", ["riffS"], "impact"),
                 ("shuffle", ["riffS", "pad"], None), ("toms", ["riffT"], "impact"), ("toms", ["riffT", "soft"], None),
                 ("space", ["riffX"], "impact"), ("space", ["riffX", "drone"], None),
                 ("verse2", ["riff", "hook"], "revcym"), ("break", ["riffBrk"], "impact"),
                 ("break", ["riffBrk", "soft"], None), ("C", ["riffC"], "impact"), ("C", ["riffC", "hook", "pad"], None),
                 ("final", ["riff", "hook", "pad"], "impact"), ("outro", ["soft", "hold"], "revcym")],
+  "tech-death": [("blast", ["riff"], "impact"), ("blast", ["riffB", "pad"], None), ("dbeat", ["riffD"], "impact"),
+                 ("dbeat", ["riffD", "hook"], None), ("groove", ["riffSoft"], "impact"), ("groove", ["riffG", "pad"], None),
+                 ("blast", ["riff", "hook"], "impact"), ("break", ["riffBrk"], "impact"), ("break", ["riffBrk", "drone"], None),
+                 ("toms", ["riffT"], "impact"), ("solo", ["riffD", "solo"], "impact"), ("solo", ["riffB", "solo"], None),
+                 ("final", ["riff", "hook", "pad"], "impact"), ("outro", ["riffBrk", "soft"], "revcym")],
   "breakdown": [("intro", ["brk", "hold"], "revcym"), ("break", ["half", "riff"], "impact"), ("break", ["half", "riff", "pad"], None),
                 ("build", ["mid", "riffSoft", "arp"], "riser"), ("drop", ["high", "riff", "hook"], "impact"), ("drop", ["high", "riff", "hook", "pad"], None),
                 ("break", ["brk", "hold", "pad"], "revcym"), ("final", ["high", "riff", "hook", "pad"], "impact"), ("outro", ["brk", "hold"], "revcym")],
@@ -113,6 +122,19 @@ def mutate(ident):
     return ident, k
 
 PASS_MINUTES = 1.0
+FAVORITES = f"{TOOLS}/favorites.json" if "TOOLS" in globals() else "/home/harry/.config/chirp/tools/favorites.json"
+
+def favorite_for(role, ident):
+    """A saved favourite part for `role`, transposed into the song's key (kits don't transpose)."""
+    try:
+        favs = [f for f in json.load(open("/home/harry/.config/chirp/tools/favorites.json")) if f.get("role") == role]
+    except Exception:
+        return None
+    if not favs or not ident.get("gen") or random.random() > 0.35:
+        return None
+    f = random.choice(favs)
+    tr = (ident["gen"]["pc"] - f["pc"] + 6) % 12 - 6
+    return f["part"], tr
 
 def chapters(ident):
     """Split the style's form into consecutive chapters of about PASS_MINUTES each."""
@@ -190,7 +212,12 @@ def write_form(name, ident):
         rx = ident.get("xf", {})
         riff_role = next((l for l in layers if l.startswith("riff")), None)
         part = (ident.get(riff_role) or ident.get("riff")) if riff_role else None
-        put("riff", part, s["riff_off"], riff_xf + rx.get("riff", ""))
+        fav = favorite_for(riff_role, ident) if riff_role == "riffBrk" else None
+        if fav:
+            t = ident["key"] + fav[1]
+            tracks["riff"].append(f"tr={t} @{fav[0]} tr=0" if t else f"@{fav[0]}")
+        else:
+            put("riff", part, s["riff_off"], riff_xf + rx.get("riff", ""))
         hook = ident.get("solo", "lead-solo") if "solo" in layers else (ident["hook"] if "hook" in layers else None)
         put("hook", hook, s.get("hook_off", s["off"]), ("^rot=1" if "solo" in layers and ident.get("gen") else "") + rx.get("hook", ""))
         pad = ident["pad"] if "pad" in layers else (ident["soft"] if "soft" in layers else None)
@@ -217,7 +244,7 @@ def write_form(name, ident):
 TOOLS = "/home/harry/.config/chirp/tools"
 JOURNEY = f"{TOOLS}/journey.json"
 # How heavy each style is (0 lofi … 1 djent).
-HEAVY = {"meshuggah": 1.0, "lofi": 0.0, "classical": 0.05, "house": 0.2, "garage": 0.25, "poly": 0.35, "prog-clean": 0.4, "acid": 0.45,
+HEAVY = {"tech-death": 1.0, "meshuggah": 1.0, "lofi": 0.0, "classical": 0.05, "house": 0.2, "garage": 0.25, "poly": 0.35, "prog-clean": 0.4, "acid": 0.45,
          "idm": 0.55, "doom-ambient": 0.6, "hardcore": 0.7, "djent-breakdown": 0.85, "djent": 1.0}
 
 def journey_load():
@@ -236,7 +263,7 @@ def journey_style(h, current):
             return random.choice(["prog-clean", "poly"])
         if r < 0.2:
             return random.choice([k for k in STYLES if k not in ("djent", "meshuggah", current)])
-        return "meshuggah" if r < 0.74 else "djent"
+        return "meshuggah" if r < 0.66 else ("tech-death" if r < 0.8 else "djent")
     if r < 0.1:
         return random.choice([k for k in STYLES if k != current])
     w = {k: math.exp(-((HEAVY.get(k, 0.5) - h) / 0.15) ** 2) for k in STYLES}
