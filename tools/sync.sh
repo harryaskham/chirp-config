@@ -21,7 +21,9 @@ rebuilt=0
 git -C "$repo" fetch -q origin
 [ -d "$main" ] || git -C "$repo" worktree add -f --detach "$main" origin/main >/dev/null 2>&1
 cur=$(git -C "$main" rev-parse HEAD); head=$(git -C "$repo" rev-parse origin/main)
-if [ "$cur" != "$head" ] && [ -n "$(git -C "$repo" log --format=%H "$cur..$head" -- cli/chirp)" ] || [ ! -x "$main/cli/chirp/target/release/chirp" ]; then
+# Rebuild only for engine/library changes (not docs).
+src_changes=$(git -C "$repo" log --format=%H "$cur..$head" -- cli/chirp/crates cli/chirp/Cargo.toml cli/chirp/Cargo.lock 2>/dev/null)
+if [ "$cur" != "$head" ] && [ -n "$src_changes" ] || [ ! -x "$main/cli/chirp/target/release/chirp" ]; then
   git -C "$main" checkout -q --detach "$head"
   echo "sync: building chirp $(git -C "$main" log --oneline -1 | cut -c1-80)"
   if (cd "$main/cli/chirp" && nix develop -c cargo build --release -p chirp-cli >/tmp/chirp-sync-build.log 2>&1); then rebuilt=1; else echo "sync: build failed (see /tmp/chirp-sync-build.log)"; fi
