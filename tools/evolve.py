@@ -69,7 +69,8 @@ FORMS = {
   # Polymetric riffs carry their own locked drums (kick follows the guitar; 4/4 cymbals, snare on 3).
   "meshuggah": [("intro", ["soft", "hold"], "revcym"), ("verse", ["riffSoft"], "impact"), ("verse", ["riff", "pad"], None),
                 ("heavy", ["riffB"], "impact"), ("heavy", ["riffB", "hook"], None), ("shuffle", ["riffS"], "impact"),
-                ("shuffle", ["riffS", "pad"], None), ("verse2", ["riff", "hook"], "revcym"), ("break", ["riffBrk"], "impact"),
+                ("shuffle", ["riffS", "pad"], None), ("toms", ["riffT"], "impact"), ("toms", ["riffT", "soft"], None),
+                ("verse2", ["riff", "hook"], "revcym"), ("break", ["riffBrk"], "impact"),
                 ("break", ["riffBrk", "soft"], None), ("C", ["riffC"], "impact"), ("C", ["riffC", "hook", "pad"], None),
                 ("final", ["riff", "hook", "pad"], "impact"), ("outro", ["soft", "hold"], "revcym")],
   "breakdown": [("intro", ["brk", "hold"], "revcym"), ("break", ["half", "riff"], "impact"), ("break", ["half", "riff", "pad"], None),
@@ -130,12 +131,15 @@ def master_for(ident):
     secs = [sec for sec, _, _ in chs[min(ident.get("chapter", 0), len(chs) - 1)]]
     calm = sum(sec in ("intro", "intro2", "break", "outro", "coda", "B") for sec in secs) / len(secs)
     shuffle = "shuffle" in secs
+    toms = "toms" in secs
     if calm >= 0.4:
         verb, ott, makeup = "reverb kind=hall decay=3.6s size=1 mix=0.2 predelay=35ms low_cut=220 high_cut=7500 width=1.4 modulation=0.5", 0.1, 3
     elif shuffle:
         verb, ott, makeup = "reverb kind=plate decay=2s mix=0.14 predelay=20ms low_cut=250 width=1.3 modulation=0.3", 0.15, 3.5
     else:
         verb, ott, makeup = "reverb kind=room decay=1.6s size=0.8 mix=0.1 predelay=15ms low_cut=280 high_cut=8000 width=1.25 modulation=0.3", 0.2, 4
+    if toms:  # the tom grooves love the compressor
+        ott, makeup = 0.25, makeup + 0.5
     fx = [json.loads(MASTER_BASE[0]), verb, f"ott depth={ott} time=0.3",
           f"glue threshold=-16dB ratio=2 attack=10ms release=150ms makeup={makeup}dB", "tape drive=0.25 warmth=0.4", "width width=1.2 mono_below=140"]
     return json.dumps(fx)

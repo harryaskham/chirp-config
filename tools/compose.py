@@ -302,11 +302,12 @@ def gen_meshuggah(r, k, low, gp, cycle, grid="16", mode="riff"):
             v = min(127, (126 if restart else r.choice([110, 116, 120])) + bar_off)
             art = "^gate=1.6" if ring else "^gate=0.9"
             gtr.append(f"expr.pm=0 {chordhead(pc)}{dur}@{v}{art}"); bass.append(f"{mname(pc[0])}{dur}@{v}")
-            kick.append(f"k{dur}@{v}")
+            kick.append(f"k,ft{dur}@{v}" if mode == "toms" else f"k{dur}@{v}")
         elif kind == "chug":
             v = max(70, min(124, [112, 98, 106, 92][min(run - 1, 3)] + r.randint(-6, 6) + bar_off))  # runs swell and decay
             gtr.append(f"expr.pm=1 {mname(pc)}{dur}@{v}"); bass.append(f"{mname(pc)}{dur}@{v}")
-            kick.append(f"k{dur}@{v - 6}")
+            # Tom grooves: chug runs walk down the toms (high → floor) instead of the kick.
+            kick.append(f"{['t1', 't2', 't3', 'ft'][min(run - 1, 3)]}{dur}@{v}" if mode == "toms" else f"k{dur}@{v - 6}")
         elif kind == "dead":
             gtr.append(f"expr.pm=1 {mname(pc)}{dur}@62^dead"); bass.append(f"R{dur}"); kick.append(f"R{dur}")
         else:
@@ -365,6 +366,7 @@ def compose(style, slot, p):
             "riffSoft": soften(main),
             "riffB": gen_meshuggah(r, k, low, gp, cycles[1]),
             "riffC": gen_meshuggah(r, k, low, gp, cycles[2]),
+            "riffT": gen_meshuggah(r, k, low, gp, r.choice([22, 14, 20, 18]), mode="toms"),
             "riffS": gen_meshuggah(r, k, low, gp, r.choice([11, 7, 10, 5]), grid="12", mode="shuffle"),
             "riffBrk": gen_meshuggah(r, k, low, gp, r.choice([7, 11, 5]), grid="8", mode="break"),
             "hook": gen_hook(r, k, prog, 62, "lead-monster"),
