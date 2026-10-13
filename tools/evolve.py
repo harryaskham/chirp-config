@@ -70,6 +70,7 @@ FORMS = {
   "meshuggah": [("intro", ["soft", "hold"], "revcym"), ("verse", ["riffSoft"], "impact"), ("verse", ["riff", "pad"], None),
                 ("heavy", ["riffB"], "impact"), ("heavy", ["riffB", "hook"], None), ("shuffle", ["riffS"], "impact"),
                 ("shuffle", ["riffS", "pad"], None), ("toms", ["riffT"], "impact"), ("toms", ["riffT", "soft"], None),
+                ("space", ["riffX"], "impact"), ("space", ["riffX", "drone"], None),
                 ("verse2", ["riff", "hook"], "revcym"), ("break", ["riffBrk"], "impact"),
                 ("break", ["riffBrk", "soft"], None), ("C", ["riffC"], "impact"), ("C", ["riffC", "hook", "pad"], None),
                 ("final", ["riff", "hook", "pad"], "impact"), ("outro", ["soft", "hold"], "revcym")],
@@ -96,7 +97,7 @@ def identity(style=None):
     style = style or random.choice(list(STYLES))
     s = STYLES[style]
     bpm = random.randrange(s["tempo"][0], s["tempo"][1] + 1, 2)
-    return dict(style=style, tempo=bpm, base_tempo=bpm, chapter=0, key=0, gen=composer.params(style),
+    return dict(style=style, tempo=bpm, base_tempo=bpm, chapter=0, key=0, gen=composer.params(style), comp=random.choice(COMP_STYLES),
                 **{r: pick(s, r) for r in ["riff", "low", "mid", "high", "half", "brk", "hook", "pad", "soft", "arp", "hold"]})
 
 def mutate(ident):
@@ -123,6 +124,14 @@ def chapters(ident):
         chs[-1] = chs[-1] + last
     return chs
 
+COMP_STYLES = ["glue", "pump", "smash", "parallel", "opto", "tape"]
+
+def has_patch(name):
+    return subprocess.run([C, "plan", "-p", name, "C4/4"], capture_output=True).returncode == 0
+
+BUILTIN_FX = {p: has_patch(p) for p in ["fx-tapestop", "fx-riser-shepard", "fx-riser-noise", "fx-reverse", "drone", "fx-downlifter"]}
+BUILTIN_FX["fx-reverse"] = False  # sample-song layer: rejected by live sessions (resample path), see bead
+
 MASTER_BASE = ['{"type": "eq", "bands": ["hp cutoff=28", "peak cutoff=320 q=0.8 gain=-1dB", "highshelf cutoff=9000 gain=1.5dB"]}']
 
 def master_for(ident):
@@ -140,8 +149,16 @@ def master_for(ident):
         verb, ott, makeup = "reverb kind=room decay=1.6s size=0.8 mix=0.1 predelay=15ms low_cut=280 high_cut=8000 width=1.25 modulation=0.3", 0.2, 4
     if toms:  # the tom grooves love the compressor
         ott, makeup = 0.25, makeup + 0.5
-    fx = [json.loads(MASTER_BASE[0]), verb, f"ott depth={ott} time=0.3",
-          f"glue threshold=-16dB ratio=2 attack=10ms release=150ms makeup={makeup}dB", "tape drive=0.25 warmth=0.4", "width width=1.2 mono_below=140"]
+    comp = ident.get("comp", "glue")
+    dyn = {
+        "glue": [f"ott depth={ott} time=0.3", f"glue threshold=-16dB ratio=2 attack=10ms release=150ms makeup={makeup}dB", "tape drive=0.25 warmth=0.4"],
+        "pump": [f"ott depth={ott} time=0.2", f"compressor threshold=-22dB ratio=6 attack=1ms release=70ms makeup={makeup + 2}dB", "tape drive=0.2 warmth=0.4"],
+        "smash": [f"ott depth={min(0.55, ott + 0.3)} time=0.2", f"glue threshold=-14dB ratio=2 attack=10ms release=120ms makeup={makeup - 1}dB", "tape drive=0.3 warmth=0.45"],
+        "parallel": [f"ott depth={ott} time=0.3", f"glue threshold=-30dB ratio=8 attack=3ms release=90ms makeup={makeup + 6}dB mix=0.45", "tape drive=0.25 warmth=0.4"],
+        "opto": [f"ott depth={ott * 0.5} time=0.6", f"compressor threshold=-18dB ratio=3 attack=30ms release=450ms makeup={makeup}dB", "glue threshold=-14dB ratio=1.5 makeup=1dB"],
+        "tape": [f"ott depth={ott * 0.5} time=0.4", f"glue threshold=-16dB ratio=2 makeup={makeup - 1}dB", "tape drive=0.6 warmth=0.7"],
+    }[comp]
+    fx = [json.loads(MASTER_BASE[0]), verb] + dyn + ["width width=1.2 mono_below=140"]
     return json.dumps(fx)
 
 def write_form(name, ident):
@@ -153,10 +170,12 @@ def write_form(name, ident):
         s = dict(s, off=0, riff_off=0, hook_off=0)
     else:
         gdesc = "library parts"
-    roles = ["drums", "riff", "hook", "pad", "arp", "hold", "fx"]
+    roles = ["drums", "riff", "hook", "pad", "arp", "hold", "drone", "fx"]
     tracks = {t: [] for t in roles}
     chs = chapters(ident)
-    for sec, layers, fx in chs[min(ident.get("chapter", 0), len(chs) - 1)]:
+    chapter = chs[min(ident.get("chapter", 0), len(chs) - 1)]
+    form_secs = [sec for sec, _, _ in chapter]
+    for idx, (sec, layers, fx) in enumerate(chapter):
         lift = s.get("lift", 2) if sec == "final" else 0
         def put(track, part, off, xf=""):
             if not part:
@@ -178,10 +197,18 @@ def write_form(name, ident):
         put("pad", pad, s["off"], rx.get("pad", ""))
         put("arp", ident["arp"] if "arp" in layers else None, s["off"], ("^rev" if sec == "break" else "") + rx.get("arp", ""))
         put("hold", ident["hold"] if "hold" in layers else None, s["off"], rx.get("hold", ""))
-        tracks["fx"].append({"riser": "R/1 R/1 R/1 patch=fx-riser C4/1@90",
+        calm = sec in ("intro", "intro2", "break", "outro", "coda", "space")
+        put("drone", ident.get("drone") if ("drone" in layers or (calm and ident.get("drone"))) and BUILTIN_FX["drone"] else None, 0)
+        nxt_sec = form_secs[idx + 1] if idx + 1 < len(form_secs) else None
+        if nxt_sec == "break" and BUILTIN_FX["fx-tapestop"] and random.random() < 0.6:
+            fx = "tapestop"
+        risers = ["fx-riser"] + [p for p in ["fx-riser-shepard", "fx-riser-noise"] if BUILTIN_FX[p]]
+        revs = ["fx-revcym"] + (["fx-reverse"] if BUILTIN_FX["fx-reverse"] else [])
+        tracks["fx"].append({"riser": f"R/1 R/1 R/1 patch={random.choice(risers)} C4/1@90",
                              "impact": "patch=fx-impact F1/4@104 R/4 R/2 R/1 R/1 R/1",
-                             "revcym": "R/1 R/1 R/1 R/2 patch=fx-revcym C5/2@88"}.get(fx, REST))
-    lines = [f"about: Generated {s['form']}-form song — {ident['style']} at {ident['tempo']} BPM, {gdesc}, shift {ident['key']:+d}, chapter {ident.get('chapter', 0) + 1}/{len(chs)}.",
+                             "revcym": f"R/1 R/1 R/1 R/2 patch={random.choice(revs)} C5/2@88",
+                             "tapestop": "R/1 R/1 R/1 patch=fx-tapestop C4/1@100"}.get(fx, REST))
+    lines = [f"about: Generated {s['form']}-form song — {ident['style']} at {ident['tempo']} BPM, {gdesc}, shift {ident['key']:+d}, chapter {ident.get('chapter', 0) + 1}/{len(chs)}, comp {ident.get('comp', 'glue')}.",
              f"tempo: {ident['tempo']}", "tracks:"]
     for t, items in tracks.items():
         lines.append(f"  - {{name: {t}, score: \"{' '.join(items)}\"}}")

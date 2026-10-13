@@ -11,6 +11,9 @@ MODES = {
     "harmonic": [0, 2, 3, 5, 7, 8, 11], "lydian": [0, 2, 4, 6, 7, 9, 11], "mixolydian": [0, 2, 4, 5, 7, 9, 10],
     "major": [0, 2, 4, 5, 7, 9, 11],
     "locrian": [0, 1, 3, 5, 6, 8, 10], "diminished": [0, 1, 3, 4, 6, 7, 9, 10],
+    # Evil: double harmonic (Byzantine), Hungarian minor, Neapolitan minor, phrygian dominant.
+    "double-harmonic": [0, 1, 4, 5, 7, 8, 11], "hungarian": [0, 2, 3, 6, 7, 8, 11],
+    "neapolitan": [0, 1, 3, 5, 7, 8, 11], "phrygian-dominant": [0, 1, 4, 5, 7, 8, 10],
 }
 PROGS = {  # 0-based scale-degree roots, one chord per bar
     "minor": [[0, 5, 2, 6], [0, 3, 6, 2], [0, 5, 3, 4], [0, 6, 5, 6], [0, 2, 6, 3], [0, 5, 6, 4], [0, 3, 0, 4]],
@@ -22,14 +25,19 @@ PROGS = {  # 0-based scale-degree roots, one chord per bar
     "major": [[0, 4, 5, 3], [0, 3, 4, 0], [0, 5, 3, 4], [0, 3, 1, 4]],
     "locrian": [[0, 1, 0, 1], [0, 1, 4, 1], [0, 6, 1, 0]],
     "diminished": [[0, 1, 0, 1], [0, 2, 1, 0], [0, 1, 4, 1]],
+    "double-harmonic": [[0, 1, 0, 1], [0, 1, 3, 1], [0, 5, 1, 0]],
+    "hungarian": [[0, 3, 0, 1], [0, 5, 3, 4], [0, 3, 5, 4]],
+    "neapolitan": [[0, 1, 0, 4], [0, 1, 5, 4], [0, 5, 1, 0]],
+    "phrygian-dominant": [[0, 1, 0, 6], [0, 1, 5, 1], [0, 6, 5, 1]],
 }
 STYLE_MODES = {
-    "djent": ["phrygian", "minor", "harmonic", "phrygian"], "djent-breakdown": ["phrygian", "minor", "harmonic"],
+    "djent": ["phrygian", "minor", "harmonic", "phrygian-dominant", "neapolitan", "hungarian"],
+    "djent-breakdown": ["phrygian", "harmonic", "double-harmonic", "locrian"],
     "doom-ambient": ["minor", "phrygian", "harmonic"], "hardcore": ["phrygian", "minor"], "acid": ["phrygian", "minor", "dorian"],
     "idm": ["dorian", "lydian", "minor", "harmonic"], "prog-clean": ["dorian", "lydian", "minor", "mixolydian"],
     "poly": ["dorian", "mixolydian", "minor", "major"], "house": ["minor", "dorian", "major"], "garage": ["minor", "dorian"],
     "lofi": ["dorian", "major", "minor", "mixolydian"], "classical": ["harmonic", "major", "minor"],
-    "meshuggah": ["phrygian", "locrian", "diminished", "phrygian"],
+    "meshuggah": ["phrygian", "locrian", "diminished", "double-harmonic", "hungarian", "neapolitan", "phrygian-dominant"],
 }
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 
@@ -274,7 +282,8 @@ def gen_meshuggah(r, k, low, gp, cycle, grid="16", mode="riff"):
     steps = {"16": 64, "12": 48, "8": 32}[grid]
     per_beat = {"16": 4, "12": 3, "8": 2}[grid]
     t = k.deg(0, low)
-    accents = [[t, t + 1], [t, t + 1, t + 12], [t, t + 6], [t + 6, t + 12], [t + 6, t + 13], [t, t + 13], [t + 12, t + 13, t + 18]]
+    accents = [[t, t + 1], [t, t + 1, t + 12], [t, t + 6], [t + 6, t + 12], [t + 6, t + 13], [t, t + 13], [t + 12, t + 13, t + 18],
+               [t, t + 11], [t + 1, t + 8], [t + 12, t + 15, t + 18]]  # maj7, b2 power chord, diminished triad
     # Build one cycle from cells: chug runs, gaps, accents, dead notes.
     cyc = [("acc", r.choice(accents))]
     while len(cyc) < cycle:
@@ -326,8 +335,50 @@ def gen_meshuggah(r, k, low, gp, cycle, grid="16", mode="riff"):
         snare[steps - per_beat + j] = f"{piece}/{grid}@{110 + 2 * j}"
     j = lambda xs: " ".join(xs)
     return [track("gtr-l", gp, j(gtr), pan="L90", seed=7), track("gtr-r", gp + " layers.0.pick=0.14 humanize.time=5ms", j(gtr), pan="R90", seed=7),
-            track("bass", "bass-di", j(bass), seed=7), track("sub", "sub", j(bass), seed=7),
+            track("bass", "bass-fat", j(bass), seed=7), track("sub", "sub", j(bass), seed=7),
             track("kick", "prog-kit", j(kick)), track("snare", "prog-kit", j(snare)), track("cym", "prog-kit", j(cym))]
+
+
+def gen_space(r, k, low, gp, cycle):
+    """Space for the twangs: big open hits (low tonic, b2, tritone) ring out on m8-twang with
+    gaps after them for the amp, delay and hall to play out; short tight chug bursts between.
+    Slow eighth grid; kick + crash/china on hits, half-time snare on 3, soft hats in the gaps."""
+    steps, dur = 32, "/8"
+    t = k.deg(0, low)
+    hits = [[t], [t, t + 7], [t, t + 1], [t, t + 6], [t + 1, t + 7], [t, t + 11]]
+    cyc = []
+    while len(cyc) < cycle:
+        cyc.append(("ring", r.choice(hits), r.choice([3, 3.5, 4])))
+        cyc += [("rest",)] * r.choice([2, 3, 4])
+        if r.random() < 0.5:
+            cyc += [("chug",)] * r.choice([1, 2, 3])
+    cyc = cyc[:cycle]
+    gtr, twang, bass, kick, snare, cym = [], [], [], [], [], []
+    for i in range(steps):
+        ev = cyc[i % cycle]
+        beat = i // 2
+        if ev[0] == "ring":
+            v = 120 + r.randint(0, 6)
+            twang.append(f"{chordhead(ev[1])}{dur}@{v}^gate={ev[2]}"); gtr.append(f"R{dur}")
+            bass.append(f"{mname(ev[1][0])}{dur}@{v}^gate={ev[2]}"); kick.append(f"k{dur}@{v}")
+            cym.append(f"{r.choice(['c', 'x'])}{dur}@{v - 6}")
+        else:
+            twang.append(f"R{dur}")
+            if ev[0] == "chug":
+                v = r.choice([100, 108, 114])
+                gtr.append(f"expr.pm=1 {mname(t)}{dur}@{v}"); bass.append(f"{mname(t)}{dur}@{v - 8}"); kick.append(f"k{dur}@{v - 8}")
+            else:
+                gtr.append(f"R{dur}"); bass.append(f"R{dur}"); kick.append(f"R{dur}")
+            cym.append(f"h{dur}@{r.choice([60, 70])}" if i % 2 == 0 else f"R{dur}")
+        snare.append(f"s{dur}@112" if i % 8 == 4 else f"R{dur}")
+    j = lambda xs: " ".join(xs)
+    return [track("gtr-l", gp, j(gtr), pan="L90", seed=7), track("gtr-r", gp + " layers.0.pick=0.14 humanize.time=5ms", j(gtr), pan="R90", seed=7),
+            track("twang", "m8-twang", j(twang)), track("bass", "bass-fat", j(bass), seed=7), track("sub", "sub", j(bass), seed=7),
+            track("kick", "prog-kit", j(kick)), track("snare", "prog-kit", j(snare)), track("cym", "prog-kit", j(cym))]
+
+
+def gen_drone(k, base, patch):
+    return [track("drone", patch, f"{mname(k.deg(0, base))},{mname(k.deg(0, base) + 7)}/1@84 _ _ _", gain="-6dB")]
 
 
 def soften(tracks, scale=0.78):
@@ -366,6 +417,7 @@ def compose(style, slot, p):
             "riffSoft": soften(main),
             "riffB": gen_meshuggah(r, k, low, gp, cycles[1]),
             "riffC": gen_meshuggah(r, k, low, gp, cycles[2]),
+            "riffX": gen_space(r, k, low, gp, r.choice([11, 13, 9, 14])),
             "riffT": gen_meshuggah(r, k, low, gp, r.choice([22, 14, 20, 18]), mode="toms"),
             "riffS": gen_meshuggah(r, k, low, gp, r.choice([11, 7, 10, 5]), grid="12", mode="shuffle"),
             "riffBrk": gen_meshuggah(r, k, low, gp, r.choice([7, 11, 5]), grid="8", mode="break"),
@@ -374,6 +426,7 @@ def compose(style, slot, p):
             "soft": gen_clusters(r, k, prog, 48, "ambient-swell", vel=68),
             "arp": gen_arp(r, k, prog, 55, "arp-pluck"),
             "hold": gen_hold(r, k, prog, low, gp),
+            "drone": gen_drone(k, 36, "drone"),
         }
         desc = f"{NAMES[p['pc']]} {p['mode']}, cycles {'/'.join(f'{c}/16' for c in cycles)}"
         names = {}

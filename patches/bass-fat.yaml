@@ -1,0 +1,10 @@
+about: "Fat modern metal bass DI: the picked bass string model with a long, heavy string (5 s decay, darker tone, a little more fret buzz) and a strong sine sub, blended with a light amp (mix 0.3) into a 4x10; low and low-mid weight, fizz cut, compressed and tape-warmed. For ringing open hits and low unison riffs."
+extends: "m8-bass layers.0.decay.value=5s layers.0.bright.value=0.52 layers.0.buzz=0.24 layers.1.level=-3dB"
+fx:
+  - {type: amp, model: crunch, gain: 0.5, tight: 30, boost: 3dB, bass: 0.7, mid: 0.5, treble: 0.4, presence: 0.3, resonance: 0.75, sag: 0.4, mix: 0.3}
+  - {type: cab, model: 4x10, mic: 0.4, distance: 0.12}
+  - {type: eq, bands: ["lowshelf cutoff=90 gain=3dB", "peak cutoff=180 q=0.9 gain=1.5dB", "peak cutoff=3000 q=1 gain=-4dB", "highshelf cutoff=4500 gain=-7dB"]}
+  - {type: compressor, threshold: -24dB, ratio: 5, attack: 10ms, release: 140ms, makeup: 3dB}
+  - "tape drive=0.3 warmth=0.6"
+  - {type: gate, threshold: -58dB, hold: 30ms, release: 80ms}
+gain: -11dB
