@@ -244,7 +244,7 @@ def chapters(ident):
 COMP_STYLES = ["glue", "pump", "smash", "parallel", "opto", "tape"]
 # Loudness-matched to glue (measured RMS over the same 48 beats through each master chain).
 FLAVOR_HOOK = {"vintage": ["rack:tape-echo"], "industrial": ["rack:radio"], "space": ["rack:shimmer-hall"], "wide": ["rack:chorus-wide"]}
-STYLE_TRIM = {"tool": 2.0, "numetal": 2.5, "industrial": -2.5}  # sparse styles sit lower (QA loudness)
+STYLE_TRIM = {"tool": 2.0, "numetal": 1.0, "industrial": -1.5}  # sparse styles sit lower (QA loudness)
 COMP_TRIM = {"glue": 0.0, "pump": 6.1, "smash": 3.4, "parallel": 3.2, "opto": 3.3, "tape": -2.1}
 
 def has_patch(name):
@@ -283,7 +283,8 @@ def master_for(ident):
     eq = [json.loads(MASTER_BASE[0])]
     air = {"brostep": 2.5, "darksynth": 3.0, "tool": 1.5, "industrial": 3.0, "dnb": 2.0}.get(ident.get("style"))
     if air:  # QA: these styles measure dark at the top
-        eq.append({"type": "eq", "bands": ["peak cutoff=3500 q=0.8 gain=1.5dB", f"highshelf cutoff=8000 gain={air}dB"]})
+        eq.append({"type": "eq", "bands": ["peak cutoff=3500 q=0.8 gain=1.5dB", f"highshelf cutoff=8000 gain={air}dB"]
+                   + (["peak cutoff=500 q=0.9 gain=-2dB"] if ident.get("style") == "industrial" else [])})
     flavor = (ident.get("gen") or {}).get("flavor", "modern")
     dyn = dyn + (["tape drive=0.45 warmth=0.65"] if flavor == "vintage" else [])
     width = "width width=1.35 mono_below=140" if flavor == "wide" else "width width=1.2 mono_below=140"

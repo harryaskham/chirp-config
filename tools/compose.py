@@ -1241,7 +1241,7 @@ def gen_numetal(r, k, prog, low=23, kind="bounce"):
     bass = mirror_bass(gtr)
     kit = rig("drums")
     jn = lambda xs: " ".join(xs)
-    return rhythm_tracks(jn(gtr)) + [track("bass", pick_patch("slap-bass", "pick-bass", "bass-fat"), jn(bass), seed=7),
+    return rhythm_tracks(jn(gtr)) + [track("bass", pick_patch("slap-bass", "pick-bass", "bass-fat"), jn(bass), seed=7, gain="-4dB"),
             track("kick", kit, jn(kick)), track("snare", kit, jn(snare)), track("cym", kit, jn(cym))]
 
 
@@ -1270,11 +1270,11 @@ def gen_industrial(r, k, prog, low=28, kind="march"):
         clap.append("cp/16@110" if x in (4, 12) else "R/16")
     kit = rig("drums")
     jn = lambda xs: " ".join(xs)
-    out = [track("kick", kit, jn(kick)), track("snare", kit, jn(snare)), track("clap", pick_patch("electro-kit", "909"), jn(clap))]
+    out = [track("kick", kit, jn(kick)), track("snare", kit, jn(snare)), track("clap", pick_patch("electro-kit", "909"), jn(clap), gain="-3dB")]
     if kind != "verse":
         out += rhythm_tracks(jn(gtr)) + [track("bass", rig("bass"), jn(mirror_bass(gtr)), seed=7)]
     else:
-        out += gen_bassline(r, k, prog, 33, pick_patch("808-dist", "acid"))
+        out += [dict(t, gain="-8dB") for t in gen_bassline(r, k, prog, 33, pick_patch("808-dist", "acid"))]
     return out + [dict(t, gain="-6dB") for t in gen_arp(r, k, prog, 60, pick_patch("supersaw", "arp-pluck"))]
 
 
@@ -1379,7 +1379,7 @@ def compose(style, slot, p):
     if style == "industrial":
         parts = {"riff": gen_industrial(r, k, prog, low, "march"), "riffS": gen_industrial(r, k, prog, low, "stomp"),
                  "riffV": gen_industrial(r, k, prog, low, "verse"), "hook": gen_hook(r, k, prog, 64, pick_patch("synth-lead", "lead-monster")),
-                 "pad": gen_pad(r, k, prog, 48, pick_patch("supersaw", "saw-pad"), gain="-8dB")}
+                 "pad": gen_pad(r, k, prog, 48, pick_patch("supersaw", "saw-pad"), gain="-12dB")}
         parts["riffSoft"] = soften(parts["riff"])
         parts["riffUp"] = parts["riffV"]
         return _write_parts(slot, "industrial", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")

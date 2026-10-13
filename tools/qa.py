@@ -2,7 +2,7 @@
 """QA the styles as the groove plays them: compose a chapter per style, render it through the song's
 own master chain, and report loudness, peak, limiter time, render speed and spectral balance.
 `qa.py [STYLE …]` (default: the heavy rotation)."""
-import importlib.util, json, os, random, subprocess, sys
+import importlib.util, json, os, random, subprocess, sys, zlib
 import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -28,7 +28,7 @@ def measure(wav):
 def main(styles):
     print(f"{'style':13s} {'bpm':>4s} {'rms':>6s} {'peak':>5s} {'lim':>6s} {'xRT':>4s} {'dyn':>4s} | sub   low  lmid  mid  hmid  air")
     for st in styles:
-        random.seed(hash(st) & 0xffff)
+        random.seed(zlib.crc32(st.encode()))  # stable per style across runs
         ident = ev.identity(st)
         name = f"form-qa-{st}"
         ev.write_form(name, dict(ident, chapter=0))
