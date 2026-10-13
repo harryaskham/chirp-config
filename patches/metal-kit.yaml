@@ -1,4 +1,4 @@
-about: "Fat modern metal kit (extends prog-kit): punchy triggered-style kick (fast big pitch punch, loud beater click and tick, tight decay for double kick, weight below 80 Hz), a rimshot-thick snare (more body and shell plus rim ring), the prog-kit cymbals, toms, ghosts (g), rimshot (rs), stack (st), splash (sp), china (x). Kit bus: slower-attack compressor so transients punch, light saturation, fat/click EQ, small room."
+about: "Fat modern metal kit (extends prog-kit) with articulations. Kick k (punchy, clicky, tight for double kick). Snare: s rimshot-thick main, sc centre, so off-centre, se edge, rs rimshot, rc rim only, ss sidestick, g ghost. Hats (choke): h tip, hs shank, h1/h2/h3 quarter/half/three-quarter open, oh open, hf foot chick. Ride: rd tip, rds shank, rde edge wash, rb bell, rbs bell-shank. Crash: c edge, cbl bell, cch choked; sp splash, st stack, x china. Toms t1 t2 t3 ft ft2. Percussion: wb/wbl woodblock high/low, cow/cowm cowbell open/muted, clv claves, tamb tambourine, shk shaker. Kit bus: slower-attack compressor so transients punch, light saturation, fat/click EQ, small room."
 extends: prog-kit
 gain: -8dB
 fx:
@@ -57,3 +57,138 @@ kit:
         amp: {a: 0.2ms, d: 320ms, s: 0, r: 30ms}
         drive: 0.28
       play: {vel_sens: 0.7}
+  # --- snare zones -------------------------------------------------------------------------
+  sc:
+    pitch: A3
+    patch:
+      synth:
+        layers:
+          - {name: body, wave: triangle, level: {value: -60dB, mod: [{src: env.body, amount: 62}, {src: vel, amount: 8}]}}
+          - {name: shell, ratio: 1.62, level: {value: -60dB, mod: [{src: env.body, amount: 48}, {src: rand, amount: 2}]}}
+          - {name: wires, type: noise, level: {value: -66dB, mod: [{src: env.wires, amount: 62}, {src: vel, amount: 6}]}}
+        pitch: {value: 0, mod: [{src: env.p, amount: 5}, {src: rand, amount: 0.25}]}
+        env:
+          p: {a: 0.2ms, d: 16ms, s: 0}
+          body: {a: 0.2ms, d: 150ms, s: 0, curve: 4}
+          wires: {a: 0.4ms, d: 240ms, s: 0, curve: 4}
+        filters: ["hp cutoff=110", "peak cutoff=200 q=1 gain=3dB", {kind: lp, cutoff: {value: 6k, mod: [{src: vel, amount: 1.5}]}}]
+        amp: {a: 0.2ms, d: 320ms, s: 0, r: 30ms}
+        drive: 0.22
+      play: {vel_sens: 0.7}
+  so:
+    pitch: A3
+    patch:
+      synth:
+        layers:
+          - {name: body, wave: triangle, level: {value: -60dB, mod: [{src: env.body, amount: 56}]}}
+          - {name: shell, ratio: 1.62, level: {value: -60dB, mod: [{src: env.body, amount: 56}, {src: rand, amount: 2}]}}
+          - {name: over, ratio: 2.31, level: {value: -66dB, mod: [{src: env.body, amount: 54}]}}
+          - {name: wires, type: noise, level: {value: -66dB, mod: [{src: env.wires, amount: 60}]}}
+          - {name: crack, type: noise, level: {value: -70dB, mod: [{src: env.crack, amount: 62}]}}
+        pitch: {value: 0, mod: [{src: env.p, amount: 4}, {src: rand, amount: 0.25}]}
+        env:
+          p: {a: 0.2ms, d: 15ms, s: 0}
+          body: {a: 0.2ms, d: 200ms, s: 0, curve: 4}
+          wires: {a: 0.4ms, d: 220ms, s: 0, curve: 4}
+          crack: {a: 0.1ms, d: 9ms, s: 0}
+        filters: ["hp cutoff=140", "peak cutoff=1.2k q=1.5 gain=3dB", {kind: lp, cutoff: {value: 7.5k, mod: [{src: vel, amount: 1.4}]}}]
+        amp: {a: 0.2ms, d: 330ms, s: 0, r: 30ms}
+        drive: 0.2
+      play: {vel_sens: 0.7}
+  se:
+    pitch: A3
+    gain: -2dB
+    patch:
+      synth:
+        layers:
+          - {name: shell, ratio: 1.62, level: {value: -60dB, mod: [{src: env.body, amount: 50}]}}
+          - {name: over, ratio: 3.1, level: {value: -66dB, mod: [{src: env.ring, amount: 56}]}}
+          - {name: wires, type: noise, level: {value: -66dB, mod: [{src: env.wires, amount: 62}]}}
+          - {name: crack, type: noise, level: {value: -70dB, mod: [{src: env.crack, amount: 64}]}}
+        env:
+          body: {a: 0.2ms, d: 90ms, s: 0, curve: 4}
+          ring: {a: 0.2ms, d: 260ms, s: 0}
+          wires: {a: 0.4ms, d: 200ms, s: 0, curve: 4}
+          crack: {a: 0.1ms, d: 8ms, s: 0}
+        filters: ["hp cutoff=260", "peak cutoff=3.4k q=1.2 gain=4dB", "lp cutoff=9k"]
+        amp: {a: 0.2ms, d: 300ms, s: 0, r: 30ms}
+      play: {vel_sens: 0.7}
+  rc:
+    pitch: C4
+    gain: -4dB
+    patch:
+      synth:
+        layers:
+          - {name: rim, wave: square, fixed: 1650, level: {value: -60dB, mod: [{src: env.k, amount: 56}]}}
+          - {name: ring, wave: sine, fixed: 3100, level: {value: -66dB, mod: [{src: env.r, amount: 50}]}}
+          - {name: click, type: noise, level: {value: -66dB, mod: [{src: env.c, amount: 60}]}}
+        env:
+          k: {a: 0.1ms, d: 25ms, s: 0, curve: 4}
+          r: {a: 0.1ms, d: 90ms, s: 0}
+          c: {a: 0.1ms, d: 4ms, s: 0}
+        filters: ["hp cutoff=500", "lp cutoff=9k"]
+        amp: {a: 0.1ms, d: 120ms, s: 0, r: 20ms}
+  # --- hats: shank, degrees of opening, foot chick (all choke) -------------------------------
+  hs: {choke: hat, gain: -9dB, patch: "haake-hat amp.d=60ms filters.0.cutoff.value=5.5k"}
+  h1: {choke: hat, gain: -9dB, patch: "haake-hat amp.d=110ms amp.r=30ms"}
+  h2: {choke: hat, gain: -10dB, patch: "haake-hat amp.d=240ms amp.r=50ms filters.0.cutoff.value=6.5k"}
+  h3: {choke: hat, gain: -10dB, patch: "haake-hat amp.d=380ms amp.r=70ms filters.0.cutoff.value=6k"}
+  hf: {choke: hat, gain: -13dB, patch: "haake-hat amp.d=30ms filters.0.cutoff.value=4.5k"}
+  # --- ride zones, crash bell, choked crash ------------------------------------------------
+  rds:
+    gain: -8dB
+    patch:
+      synth:
+        layers:
+          - {type: additive, fixed: 480, partials: [[1, 0.6], [2.4, 0.5], [3.3, 0.4], [5.1, 0.35], [6.9, 0.3], [8.7, 0.25]], damp: 0.35, level: -6dB}
+          - {type: noise, level: {value: -2dB, mod: [{src: vel, amount: 4}]}}
+        pitch: {value: 0, mod: [{src: rand, amount: 0.2}]}
+        filters: ["hp cutoff=1.6k", "peak cutoff=4.5k q=0.7 gain=3dB"]
+        amp: {a: 0.3ms, d: 1.6s, s: 0, r: 250ms, curve: 6}
+  rde:
+    gain: -9dB
+    patch:
+      synth:
+        layers:
+          - {type: noise}
+          - {type: additive, fixed: 440, partials: [[1, 0.4], [2.4, 0.4], [3.3, 0.4], [5.1, 0.35], [7.2, 0.3], [9.8, 0.3]], damp: 0.4, level: -7dB}
+        pitch: {value: 0, mod: [{src: rand, amount: 0.3}]}
+        filters: ["hp cutoff=1.2k", {kind: lp, cutoff: {value: 7k, mod: [{src: vel, amount: 1}]}}]
+        amp: {a: 1ms, d: 2.6s, s: 0, r: 300ms, curve: 6}
+  rbs:
+    gain: -7dB
+    patch:
+      synth:
+        layers:
+          - {type: additive, fixed: 760, partials: [[1, 1], [2.03, 0.6], [2.97, 0.5], [4.21, 0.4], [5.4, 0.3]], damp: 0.15}
+          - {type: noise, level: -6dB}
+        pitch: {value: 0, mod: [{src: rand, amount: 0.15}]}
+        filters: ["hp cutoff=500", "peak cutoff=5k q=0.8 gain=2dB"]
+        amp: {a: 0.2ms, d: 1.9s, s: 0, r: 250ms, curve: 5}
+  cbl:
+    gain: -8dB
+    patch:
+      synth:
+        layers:
+          - {type: additive, fixed: 920, partials: [[1, 1], [2.11, 0.7], [3.05, 0.5], [4.4, 0.4], [6.2, 0.3]], damp: 0.2}
+          - {type: noise, level: -10dB}
+        pitch: {value: 0, mod: [{src: rand, amount: 0.15}]}
+        filters: ["hp cutoff=600"]
+        amp: {a: 0.2ms, d: 1.4s, s: 0, r: 200ms, curve: 5}
+  cch:
+    gain: -8dB
+    patch:
+      synth:
+        layers:
+          - {type: noise}
+          - {type: additive, fixed: 430, partials: [[1, 0.3], [2.7, 0.4], [4.1, 0.5], [6.3, 0.4], [9.2, 0.3]], damp: 0.4, level: -8dB}
+        filters: ["hp cutoff=2.5k", "lp cutoff=9k"]
+        amp: {a: 1ms, d: 160ms, s: 0, r: 50ms, curve: 4}
+  # --- percussion -----------------------------------------------------------------------------
+  wb: {gain: -8dB, patch: {synth: {layers: ["triangle fixed=1900", {type: noise, level: {value: -66dB, mod: [{src: env.c, amount: 50}]}}], env: {c: {a: 0.1ms, d: 3ms, s: 0}}, filters: ["bp cutoff=1.9k q=2"], amp: {a: 0.1ms, d: 70ms, s: 0, r: 15ms, curve: 4}}}}
+  wbl: {gain: -8dB, patch: {synth: {layers: ["triangle fixed=1250", {type: noise, level: {value: -66dB, mod: [{src: env.c, amount: 50}]}}], env: {c: {a: 0.1ms, d: 3ms, s: 0}}, filters: ["bp cutoff=1.25k q=2"], amp: {a: 0.1ms, d: 90ms, s: 0, r: 15ms, curve: 4}}}}
+  cow: {gain: -11dB, patch: {synth: {layers: ["square fixed=540", "square fixed=800 level=-2dB"], filters: ["bp cutoff=900 q=1.2"], amp: {a: 0.2ms, d: 320ms, s: 0, r: 40ms, curve: 5}}}}
+  cowm: {gain: -11dB, patch: {synth: {layers: ["square fixed=540", "square fixed=800 level=-2dB"], filters: ["bp cutoff=900 q=1.2"], amp: {a: 0.2ms, d: 60ms, s: 0, r: 20ms, curve: 5}}}}
+  clv: {gain: -7dB, patch: {synth: {layers: ["sine fixed=2500"], amp: {a: 0.1ms, d: 55ms, s: 0, r: 10ms, curve: 4}}}}
+  tamb: {gain: -14dB, patch: {synth: {layers: [{type: noise}, "square fixed=5200 level=-12dB", "square fixed=7300 level=-14dB"], filters: ["hp cutoff=5k"], amp: {a: 0.5ms, d: 180ms, s: 0, r: 40ms, curve: 5}}}}
+  shk: {gain: -12dB, patch: {synth: {layers: [{type: noise}], filters: ["bp cutoff=6k q=0.8"], amp: {a: 8ms, d: 70ms, s: 0, r: 20ms, curve: 3}}}}

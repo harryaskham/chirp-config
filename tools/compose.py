@@ -488,12 +488,20 @@ def gen_meshuggah(r, k, low, gp, cycle, grid="16", mode="riff"):
         else:
             gtr.append(f"R{dur}"); bass.append(f"R{dur}"); kick.append(f"R{dur}")
         beat_pos, beat = i % per_beat, i // per_beat
-        snare.append((f"s{dur}@118" + ("^flam" if r.random() < 0.2 else "")) if beat_pos == 0 and beat % 4 == 2 else
-                     (f"g{dur}@{r.choice([30, 36, 42])}" if r.random() < 0.16 else f"R{dur}"))
+        backbeat = r.choice(["s", "s", "s", "sc", "so"]) if beat_pos == 0 and beat % 4 == 2 else None
+        snare.append((f"{backbeat}{dur}@118" + ("^flam" if r.random() < 0.2 else "")) if backbeat else
+                     (f"g{dur}@{r.choice([30, 36, 42])}" if r.random() < 0.16 else (f"rc{dur}@70" if r.random() < 0.03 else f"R{dur}")))
         if kind == "stop":
             cym.append(f"R{dur}")
         elif beat_pos == 0:
-            piece = "x" if restart else ("rd" if mode == "riff" else "h")
+            if restart:
+                piece = r.choice(["x", "x", "rbs", "cbl"])
+            elif mode == "toms":
+                piece = "rb"                                  # Meshuggah bell on the quarters
+            elif mode == "shuffle":
+                piece = r.choice(["h1", "hs", "h", "h2"])     # hats at varying openings
+            else:
+                piece = "rds" if beat % 2 == 1 else "rd"      # ride tip / shank
             cym.append(f"{piece}{dur}@{(118 if restart else r.choice([84, 90, 96])) + bar_off}")
         else:
             cym.append(f"x{dur}@104" if restart else f"R{dur}")
@@ -552,7 +560,7 @@ def gen_space(r, k, low, gp, cycle):
                 twang.append(f"{chordhead(ev[1])}{dur}@{v}^gate={ev[2]}")
             gtr.append(f"R{dur}")
             bass.append(f"{mname(ev[1][0])}{dur}@{v}^gate={ev[2]}"); kick.append(f"k{dur}@{v}")
-            cym.append(f"{r.choice(['c', 'x'])}{dur}@{v - 6}")
+            cym.append(f"{r.choice(['c', 'x', 'cbl', 'rde'])}{dur}@{v - 6}")
         else:
             twang.append(f"R{dur}")
             if ev[0] == "chug":
@@ -560,7 +568,7 @@ def gen_space(r, k, low, gp, cycle):
                 gtr.append(f"expr.pm=1 {mname(t)}{dur}@{v}"); bass.append(f"{mname(t)}{dur}@{v - 8}"); kick.append(f"k{dur}@{v - 8}")
             else:
                 gtr.append(f"R{dur}"); bass.append(f"R{dur}"); kick.append(f"R{dur}")
-            cym.append(f"h{dur}@{r.choice([60, 70])}" if i % 2 == 0 else f"R{dur}")
+            cym.append(f"{r.choice(['hf', 'h1', 'hf'])}{dur}@{r.choice([60, 70])}" if i % 2 == 0 else f"R{dur}")
         snare.append(f"s{dur}@116" if i % 8 == 4 else (f"g{dur}@{r.choice([30, 38])}" if r.random() < 0.14 else f"R{dur}"))
     for i in dives:  # turn the rests after a dive note into held, bending steps
         for d, b in zip((1, 2, 3), (-1, -4, -9)):
@@ -593,7 +601,7 @@ def garstka(r, hits, steps=64, restarts=()):
     hs = sorted(set(h for h in hits if 0 <= h < steps)) or [0]
     for h in hs:
         kick[h] = f"k@{r.choice([120, 124])}"
-        cym[h] = f"{'x' if (h in restarts or r.random() < 0.6) else 'c'}@{r.choice([112, 118])}"
+        cym[h] = f"{'x' if h in restarts else r.choice(['x', 'c', 'cbl', 'st', 'cch'])}@{r.choice([112, 118])}"
     bounds = hs + [steps]
     for a, b in zip(bounds, bounds[1:]):
         gap = list(range(a + 1, b))
@@ -614,7 +622,7 @@ def garstka(r, hits, steps=64, restarts=()):
         else:
             for i in gap:
                 if i % 4 in (1, 3) and r.random() < 0.55:
-                    cym[i] = f"{r.choice(['st', 'sp', 'st', 'x'])}@{r.choice([96, 104, 110])}"
+                    cym[i] = f"{r.choice(['st', 'sp', 'st', 'x', 'cch', 'rbs'])}@{r.choice([96, 104, 110])}"
                 if i % 4 == 0:
                     kick[i] = "k@104"
     for i in range(steps):
@@ -623,7 +631,9 @@ def garstka(r, hits, steps=64, restarts=()):
         elif snare[i] == "R" and kick[i] == "R" and r.random() < 0.18:
             snare[i] = f"g@{r.choice([30, 36, 42])}"
         if cym[i] == "R" and i % 4 == 0 and r.random() < 0.5:
-            cym[i] = "rb@70"
+            cym[i] = f"{r.choice(['rb', 'rb', 'rbs'])}@70"
+        elif cym[i] == "R" and i % 4 == 2 and r.random() < 0.15:
+            cym[i] = "h2@64"
     f = lambda xs: " ".join(x.replace("@", "/16@", 1) if x != "R" else "R/16" for x in xs)
     return f(kick), f(snare), f(cym)
 
@@ -667,7 +677,7 @@ def gen_blast(r, k, prog, low, kind="trad"):
             pat = {0: "k", 4: "s", 8: "k", 10: "k", 12: "s"}
             x = pat.get(i % 16)
             kick.append("k/16@114" if x == "k" else "R/16"); snare.append("s/16@110" if x == "s" else "R/16")
-        cym.append(("x/16@112" if i % 16 == 0 else f"rd/16@{90 if sub == 0 else 80}") if i % 2 == 0 else "R/16")
+        cym.append(("x/16@112" if i % 16 == 0 else f"{'rb' if sub == 0 else 'rd'}/16@{90 if sub == 0 else 80}") if i % 2 == 0 else "R/16")
     for n, i in enumerate(range(steps - 8, steps)):  # tom fill
         snare[i] = f"{['t1', 't1', 't2', 't2', 't3', 't3', 'ft', 'ft'][n]}/16@{104 + 2 * n}"
         kick[i] = "k/16@100" if n % 2 == 0 else "R/16"
@@ -748,7 +758,15 @@ def gen_thrash(r, k, prog, low=40, kind="gallop"):
                 else:
                     kick.append("k/16@118" if (beat == 0 and j == 0) or (beat == 2 and j == 2) else "R/16")
                     snare.append("s/16@120" if (beat == 2 and j == 0) else "R/16")
-                cym.append((f"{'c' if (beat == 0 and j == 0) else 'rd'}/16@{110 if beat == 0 else 92}" if j == 0 else ("rd/16@78" if kind == "skank" and j == 2 else "R/16")))
+                if j == 0 and beat == 0:
+                    cym.append(f"{r.choice(['c', 'c', 'cbl'])}/16@110")
+                elif j == 0:
+                    cym.append({"skank": "h2/16@92", "chromatic": "oh/16@96", "gallop": f"{'rds' if beat % 2 else 'rd'}/16@92"}.get(kind, "rd/16@92")
+                               if not (kind == "gallop" and r.random() < 0.12) else "cow/16@96")
+                elif kind == "skank" and j == 2:
+                    cym.append("h/16@78")
+                else:
+                    cym.append("R/16")
     for n, i in enumerate(range(56, 64)):  # snare roll into the next section
         snare[i] = f"s/16@{96 + 3 * n}^r=2"
         cym[i] = "R/16"
@@ -818,8 +836,8 @@ def gen_tool(r, k, low, meter, groups, mode="heavy", reps=None, lead=None):
         # drums
         if mode == "clean":
             kick.append(f"k/8@84" if x == 0 else "R/8")
-            snare.append(f"ss/8@{80 if at_start else 0}" if at_start and gi % 2 == 1 else (f"{toms[gi % 4]}/8@70" if at_start and r.random() < 0.4 else "R/8"))
-            cym.append(f"rd/8@{70 if at_start else 56}")
+            snare.append(f"ss/8@80" if at_start and gi % 2 == 1 else (f"{toms[gi % 4]}/8@70" if at_start and r.random() < 0.4 else (f"rc/8@60" if r.random() < 0.08 else "R/8")))
+            cym.append(f"{'rd' if at_start else 'shk'}/8@{70 if at_start else 62}")
         else:
             if at_start:
                 kick.append(f"k/8@{min(127, 116 + cres)}" if gi % 2 == 0 or mode == "tribal" else "R/8")
@@ -828,11 +846,12 @@ def gen_tool(r, k, low, meter, groups, mode="heavy", reps=None, lead=None):
                 kick.append(f"k/8@{96 + cres}" if mode in ("heavy", "build") and r.random() < 0.25 else "R/8")
                 snare.append(f"g/8@{r.choice([30, 38])}" if r.random() < 0.2 else (f"{toms[(gi + x) % 4]}/8@{88 + cres}" if mode == "tribal" and r.random() < 0.5 else "R/8"))
             if x == 0:
-                cym.append(f"c/8@{min(127, 116 + cres)}")
+                cym.append(f"{r.choice(['c', 'cbl', 'rde'])}/8@{min(127, 116 + cres)}")
             elif i % poly == 0:
-                cym.append(f"rb/8@{min(127, 96 + cres)}")
+                perc = r.choice(["wb", "wbl", "cowm", "clv"]) if mode == "tribal" else r.choice(["rb", "rbs"])
+                cym.append(f"{perc}/8@{min(127, 96 + cres)}")
             else:
-                cym.append(f"{'rd' if mode != 'tribal' else 'h'}/8@{(90 if at_start else 72) + cres}")
+                cym.append(f"{('rds' if at_start else 'rd') if mode != 'tribal' else ('hf' if at_start else 'h1')}/8@{(90 if at_start else 72) + cres}")
     # tom cascade over the last group
     last = groups[-1]
     for j2, i in enumerate(range(n - last, n)):
