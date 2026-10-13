@@ -10,6 +10,7 @@ MODES = {
     "minor": [0, 2, 3, 5, 7, 8, 10], "dorian": [0, 2, 3, 5, 7, 9, 10], "phrygian": [0, 1, 3, 5, 7, 8, 10],
     "harmonic": [0, 2, 3, 5, 7, 8, 11], "lydian": [0, 2, 4, 6, 7, 9, 11], "mixolydian": [0, 2, 4, 5, 7, 9, 10],
     "major": [0, 2, 4, 5, 7, 9, 11],
+    "locrian": [0, 1, 3, 5, 6, 8, 10], "diminished": [0, 1, 3, 4, 6, 7, 9, 10],
 }
 PROGS = {  # 0-based scale-degree roots, one chord per bar
     "minor": [[0, 5, 2, 6], [0, 3, 6, 2], [0, 5, 3, 4], [0, 6, 5, 6], [0, 2, 6, 3], [0, 5, 6, 4], [0, 3, 0, 4]],
@@ -19,6 +20,8 @@ PROGS = {  # 0-based scale-degree roots, one chord per bar
     "lydian": [[0, 1, 0, 1], [0, 1, 4, 3], [0, 4, 1, 5]],
     "mixolydian": [[0, 6, 3, 0], [0, 3, 6, 4], [0, 6, 5, 3]],
     "major": [[0, 4, 5, 3], [0, 3, 4, 0], [0, 5, 3, 4], [0, 3, 1, 4]],
+    "locrian": [[0, 1, 0, 1], [0, 1, 4, 1], [0, 6, 1, 0]],
+    "diminished": [[0, 1, 0, 1], [0, 2, 1, 0], [0, 1, 4, 1]],
 }
 STYLE_MODES = {
     "djent": ["phrygian", "minor", "harmonic", "phrygian"], "djent-breakdown": ["phrygian", "minor", "harmonic"],
@@ -26,6 +29,7 @@ STYLE_MODES = {
     "idm": ["dorian", "lydian", "minor", "harmonic"], "prog-clean": ["dorian", "lydian", "minor", "mixolydian"],
     "poly": ["dorian", "mixolydian", "minor", "major"], "house": ["minor", "dorian", "major"], "garage": ["minor", "dorian"],
     "lofi": ["dorian", "major", "minor", "mixolydian"], "classical": ["harmonic", "major", "minor"],
+    "meshuggah": ["phrygian", "locrian", "diminished", "phrygian"],
 }
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 
@@ -42,7 +46,8 @@ class Key:
     def deg(self, d, base):
         """Scale degree d (0-based, any integer) above tonic in the octave starting at MIDI `base`."""
         t = base + (self.pc - base) % 12
-        return t + 12 * (d // 7) + self.iv[d % 7]
+        n = len(self.iv)
+        return t + 12 * (d // n) + self.iv[d % n]
 
     def chord(self, root, base, n=3):
         return [self.deg(root + 2 * i, base) for i in range(n)]
@@ -261,6 +266,75 @@ def gen_hold(r, k, prog, low, gp):
             track("bass", "m8-bass-dist", " ".join(bass)), track("sub", "sub", " ".join(bass))]
 
 
+def gen_meshuggah(r, k, low, gp, cycle, grid="16", mode="riff"):
+    """Polymetric riff: a cycle of `cycle` steps repeated over a steady 4/4 pulse (reset at the
+    phrase). Chugs on the low tonic (sometimes ♭2), b2-cluster / tritone / ♭5 / ♭9 accents, dead
+    notes and gaps. Drums lock to it: kick on every hit, half-time snare on 3, ride/hats on
+    quarters, china on each cycle restart, a tom fill to end the phrase."""
+    steps = {"16": 64, "12": 48, "8": 32}[grid]
+    per_beat = {"16": 4, "12": 3, "8": 2}[grid]
+    t = k.deg(0, low)
+    accents = [[t, t + 1], [t, t + 1, t + 12], [t, t + 6], [t + 6, t + 12], [t + 6, t + 13], [t, t + 13], [t + 12, t + 13, t + 18]]
+    # Build one cycle from cells: chug runs, gaps, accents, dead notes.
+    cyc = [("acc", r.choice(accents))]
+    while len(cyc) < cycle:
+        x = r.random()
+        if x < 0.45:
+            for _ in range(r.choice([1, 2, 2, 3])):
+                cyc.append(("chug", t if r.random() < 0.85 else t + 1))
+        elif x < 0.65:
+            cyc.append(("rest", None))
+        elif x < 0.85:
+            cyc.append(("acc", r.choice(accents)))
+        else:
+            cyc.append(("dead", t))
+    cyc = cyc[:cycle]
+    gtr, bass, kick, snare, cym = [], [], [], [], []
+    ring = mode == "break"
+    for i in range(steps):
+        kind, pc = cyc[i % cycle]
+        restart = i % cycle == 0
+        dur = f"/{grid}"
+        if kind == "acc":
+            v = 122 if restart else r.choice([114, 118, 122])
+            art = "^gate=1.6" if ring else "^gate=0.9"
+            gtr.append(f"expr.pm=0 {chordhead(pc)}{dur}@{v}{art}"); bass.append(f"{mname(pc[0])}{dur}@{v}")
+            kick.append(f"k{dur}@{v}")
+        elif kind == "chug":
+            v = r.choice([100, 108, 114])
+            gtr.append(f"expr.pm=1 {mname(pc)}{dur}@{v}"); bass.append(f"{mname(pc)}{dur}@{v}")
+            kick.append(f"k{dur}@{v - 6}")
+        elif kind == "dead":
+            gtr.append(f"expr.pm=1 {mname(pc)}{dur}@62^dead"); bass.append(f"R{dur}"); kick.append(f"R{dur}")
+        else:
+            gtr.append(f"R{dur}"); bass.append(f"R{dur}"); kick.append(f"R{dur}")
+        beat_pos, beat = i % per_beat, i // per_beat
+        snare.append(f"s{dur}@{116 if beat % 4 == 2 else 0}" if beat_pos == 0 and beat % 4 == 2 else
+                     (f"g{dur}@{r.choice([34, 40])}" if r.random() < 0.06 else f"R{dur}"))
+        if beat_pos == 0:
+            piece = "x" if restart else ("rd" if mode == "riff" else "h")
+            cym.append(f"{piece}{dur}@{112 if restart else 92}")
+        else:
+            cym.append(f"x{dur}@104" if restart else f"R{dur}")
+    # Tom fill over the last beat.
+    fill = ["t1", "t2", "t3", "ft"][:per_beat] if per_beat <= 4 else ["t1", "t2", "t3", "ft"]
+    for j, piece in enumerate(fill):
+        snare[steps - per_beat + j] = f"{piece}/{grid}@{110 + 2 * j}"
+    j = lambda xs: " ".join(xs)
+    return [track("gtr-l", gp, j(gtr), pan="L90", seed=7), track("gtr-r", gp + " layers.0.pick=0.14 humanize.time=5ms", j(gtr), pan="R90", seed=7),
+            track("bass", "m8-bass-dist", j(bass), seed=7), track("sub", "sub", j(bass), seed=7),
+            track("kick", "prog-kit", j(kick)), track("snare", "prog-kit", j(snare)), track("cym", "prog-kit", j(cym))]
+
+
+def gen_clusters(r, k, prog, base, patch, gain="-6dB", vel=74):
+    """Dissonant pad: minor-2nd and tritone clusters over the progression roots."""
+    out = []
+    for root in prog:
+        rt = k.deg(root, base)
+        out.append(f"{chordhead(r.choice([[rt, rt + 1, rt + 6], [rt, rt + 6, rt + 13], [rt + 1, rt + 6, rt + 12], [rt, rt + 7, rt + 13]]))}/1@{vel}")
+    return [track("pad", patch, " ".join(out), gain=gain)]
+
+
 # ---------- per-style composition -------------------------------------------------------
 
 def params(style, rng=random):
@@ -275,6 +349,27 @@ def compose(style, slot, p):
     prog = p["prog"]
     low = 28  # E1: 8-string range for riffs
     gp = r.choice(["m8-gojira", "m8-nolly", "m8"])
+    if style == "meshuggah":
+        cycles = r.sample([22, 14, 20, 18, 26, 23, 13], 3)  # 11/8, 7/8, 10/8, 9/8, 13/8, 23/16, 13/16
+        parts = {
+            "riff": gen_meshuggah(r, k, low, gp, cycles[0]),
+            "riffB": gen_meshuggah(r, k, low, gp, cycles[1]),
+            "riffC": gen_meshuggah(r, k, low, gp, cycles[2]),
+            "riffS": gen_meshuggah(r, k, low, gp, r.choice([11, 7, 10, 5]), grid="12", mode="shuffle"),
+            "riffBrk": gen_meshuggah(r, k, low, gp, r.choice([7, 11, 5]), grid="8", mode="break"),
+            "hook": gen_hook(r, k, prog, 62, "lead-monster"),
+            "pad": gen_clusters(r, k, prog, 48, "saw-pad"),
+            "soft": gen_clusters(r, k, prog, 48, "ambient-swell", vel=68),
+            "arp": gen_arp(r, k, prog, 55, "arp-pluck"),
+            "hold": gen_hold(r, k, prog, low, gp),
+        }
+        desc = f"{NAMES[p['pc']]} {p['mode']}, cycles {'/'.join(f'{c}/16' for c in cycles)}"
+        names = {}
+        for role, tr in parts.items():
+            n = f"gen-{slot}-{role}"
+            write(n, f"{role} for meshuggah in {desc}", tr)
+            names[role] = n
+        return names, desc
     heavy = style in ("djent", "djent-breakdown", "doom-ambient")
     if style in ("djent", "djent-breakdown"):
         riff = [dict(t, patch=t["patch"].replace("{gp}", gp)) for t in gen_djent(r, k, prog, low, style == "djent-breakdown")]

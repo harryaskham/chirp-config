@@ -45,6 +45,9 @@ STYLES = {
   "classical":  dict(form="classical", tempo=(66, 90), off=0, riff=["piano-alberti"], riff_off=0,
                      low=[], mid=[], high=["beat-sparse"], half=[], brk=[],
                      hook=["lead-hook"], pad=["strings-chorale"], soft=["strings-chorale"], arp=["arp-16th"], hold=["pad-swell"]),
+  "meshuggah":  dict(form="meshuggah", tempo=(110, 128), off=0, riff=["riff-chug7"], riff_off=0, lift=0,
+                     low=["beat-sparse"], mid=["beat-poly7"], high=["beat-doom"], half=["beat-halftime"], brk=["beat-doom"],
+                     hook=["lead-solo"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["riff-hold"]),
   "djent-breakdown": dict(form="breakdown", tempo=(126, 140), off=0, riff=["riff-hold", "riff-chug5", "riff-chug7"], riff_off=0,
                      low=["beat-sparse"], mid=["beat-halftime"], high=["beat-doom"], half=["beat-halftime"], brk=["beat-doom"],
                      hook=["lead-solo"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["riff-hold"]),
@@ -63,6 +66,12 @@ FORMS = {
            ("drop", ["high", "riff", "hook", "pad", "arp"], None), ("break", ["soft", "arp"], "revcym"), ("break", ["soft", "arp", "hold"], None),
            ("build", ["mid", "riff", "arp"], "riser"), ("final", ["high", "riff", "hook", "pad", "arp"], "impact"), ("final", ["high", "riff", "hook", "pad"], None),
            ("outro", ["low", "soft"], "revcym")],
+  # Polymetric riffs carry their own locked drums (kick follows the guitar; 4/4 cymbals, snare on 3).
+  "meshuggah": [("intro", ["soft", "hold"], "revcym"), ("verse", ["riff"], "impact"), ("verse", ["riff", "pad"], None),
+                ("heavy", ["riffB"], "impact"), ("heavy", ["riffB", "hook"], None), ("shuffle", ["riffS"], "impact"),
+                ("shuffle", ["riffS", "pad"], None), ("verse2", ["riff", "hook"], "revcym"), ("break", ["riffBrk"], "impact"),
+                ("break", ["riffBrk", "soft"], None), ("C", ["riffC"], "impact"), ("C", ["riffC", "hook", "pad"], None),
+                ("final", ["riff", "hook", "pad"], "impact"), ("outro", ["soft", "hold"], "revcym")],
   "breakdown": [("intro", ["brk", "hold"], "revcym"), ("break", ["half", "riff"], "impact"), ("break", ["half", "riff", "pad"], None),
                 ("build", ["mid", "riff", "arp"], "riser"), ("drop", ["high", "riff", "hook"], "impact"), ("drop", ["high", "riff", "hook", "pad"], None),
                 ("break", ["brk", "hold", "pad"], "revcym"), ("final", ["high", "riff", "hook", "pad"], "impact"), ("outro", ["brk", "hold"], "revcym")],
@@ -112,7 +121,7 @@ def write_form(name, ident):
     roles = ["drums", "riff", "hook", "pad", "arp", "hold", "fx"]
     tracks = {t: [] for t in roles}
     for sec, layers, fx in FORMS[s["form"]]:
-        lift = 2 if sec == "final" else 0
+        lift = s.get("lift", 2) if sec == "final" else 0
         def put(track, part, off, xf=""):
             if not part:
                 tracks[track].append(REST)
@@ -124,7 +133,8 @@ def write_form(name, ident):
         # The motif develops when it returns: rotated/thinned in verse 2, thinned under the solo.
         riff_xf = {"verse2": random.choice(["^rot=0.5", "^rot=1", "^thin=0.2"]), "solo": "^thin=0.35"}.get(sec, "")
         rx = ident.get("xf", {})
-        put("riff", ident["riff"] if "riff" in layers else None, s["riff_off"], riff_xf + rx.get("riff", ""))
+        riff_role = next((l for l in layers if l.startswith("riff")), None)
+        put("riff", ident.get(riff_role) if riff_role else None, s["riff_off"], riff_xf + rx.get("riff", ""))
         hook = ident.get("solo", "lead-solo") if "solo" in layers else (ident["hook"] if "hook" in layers else None)
         put("hook", hook, s.get("hook_off", s["off"]), ("^rot=1" if "solo" in layers and ident.get("gen") else "") + rx.get("hook", ""))
         pad = ident["pad"] if "pad" in layers else (ident["soft"] if "soft" in layers else None)
@@ -143,7 +153,7 @@ def write_form(name, ident):
 TOOLS = "/home/harry/.config/chirp/tools"
 JOURNEY = f"{TOOLS}/journey.json"
 # How heavy each style is (0 lofi … 1 djent).
-HEAVY = {"lofi": 0.0, "classical": 0.05, "house": 0.2, "garage": 0.25, "poly": 0.35, "prog-clean": 0.4, "acid": 0.45,
+HEAVY = {"meshuggah": 1.0, "lofi": 0.0, "classical": 0.05, "house": 0.2, "garage": 0.25, "poly": 0.35, "prog-clean": 0.4, "acid": 0.45,
          "idm": 0.55, "doom-ambient": 0.6, "hardcore": 0.7, "djent-breakdown": 0.85, "djent": 1.0}
 
 def journey_load():
@@ -161,8 +171,8 @@ def journey_style(h, current):
         if r < 0.24:
             return random.choice(["prog-clean", "poly"])
         if r < 0.34:
-            return random.choice([k for k in STYLES if k not in ("djent", current)])
-        return "djent"
+            return random.choice([k for k in STYLES if k not in ("djent", "meshuggah", current)])
+        return "meshuggah" if r < 0.79 else "djent"
     if r < 0.1:
         return random.choice([k for k in STYLES if k != current])
     w = {k: math.exp(-((HEAVY.get(k, 0.5) - h) / 0.15) ** 2) for k in STYLES}
