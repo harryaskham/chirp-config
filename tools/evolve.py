@@ -229,14 +229,14 @@ def journey_load():
 def journey_style(h, current):
     """Pick a style near heaviness h; at full heaviness: mostly djent, sometimes breakdown/clean/excursion."""
     r = random.random()
-    if h >= 0.95:
+    if h >= 0.95:  # full heaviness: mostly meshuggah, then djent; breakdowns; rare clean/excursions
         if r < 0.12:
             return "djent-breakdown"
-        if r < 0.24:
+        if r < 0.16:
             return random.choice(["prog-clean", "poly"])
-        if r < 0.34:
+        if r < 0.2:
             return random.choice([k for k in STYLES if k not in ("djent", "meshuggah", current)])
-        return "meshuggah" if r < 0.79 else "djent"
+        return "meshuggah" if r < 0.74 else "djent"
     if r < 0.1:
         return random.choice([k for k in STYLES if k != current])
     w = {k: math.exp(-((HEAVY.get(k, 0.5) - h) / 0.15) ** 2) for k in STYLES}
@@ -336,6 +336,7 @@ if __name__ == "__main__":
             prev = json.load(open(STATE))
             playing, playing_ident = prev["next"], prev["next_ident"]
             ident, passes = dict(playing_ident), 1
+            seen = -1  # the first status is a real pass change: continue the song's chapters
             print(time.strftime("%T"), f"resumed: playing {playing} {ident['style']}", flush=True)
         except Exception as e:
             print(time.strftime("%T"), f"resume failed: {e}", flush=True)
