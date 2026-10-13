@@ -1,0 +1,13 @@
+{
+ "about": "Master tilt: sub cleanup, slight low-mid dip, air.",
+ "fx": [
+  {
+   "type": "eq",
+   "bands": [
+    "hp cutoff=28",
+    "peak cutoff=320 q=0.8 gain=-1dB",
+    "highshelf cutoff=9000 gain=1.5dB"
+   ]
+  }
+ ]
+}

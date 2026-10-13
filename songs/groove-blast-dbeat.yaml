@@ -1,0 +1,7 @@
+about: "Generated part (tempo: inherit, 16 beats) \u2014 tech-death dbeat blast: ride tip/bell, china on bar starts, tom fill"
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "kick", "patch": "metal-kit", "score": "k/16@114 R/16 R/16 R/16 R/16 R/16 R/16 R/16 k/16@114 R/16 k/16@114 R/16 R/16 R/16 R/16 R/16 k/16@114 R/16 R/16 R/16 R/16 R/16 R/16 R/16 k/16@114 R/16 k/16@114 R/16 R/16 R/16 R/16 R/16 k/16@114 R/16 R/16 R/16 R/16 R/16 R/16 R/16 k/16@114 R/16 k/16@114 R/16 R/16 R/16 R/16 R/16 k/16@114 R/16 R/16 R/16 R/16 R/16 R/16 R/16 k/16@100 R/16 k/16@100 R/16 k/16@100 R/16 k/16@100 R/16"}
+  - {"name": "snare", "patch": "metal-kit", "score": "R/16 R/16 R/16 R/16 s/16@110 R/16 R/16 R/16 R/16 R/16 R/16 R/16 s/16@110 R/16 R/16 R/16 R/16 R/16 R/16 R/16 s/16@110 R/16 R/16 R/16 R/16 R/16 R/16 R/16 s/16@110 R/16 R/16 R/16 R/16 R/16 R/16 R/16 s/16@110 R/16 R/16 R/16 R/16 R/16 R/16 R/16 s/16@110 R/16 R/16 R/16 R/16 R/16 R/16 R/16 s/16@110 R/16 R/16 R/16 t1/16@104 t1/16@106 t2/16@108 t2/16@110 t3/16@112 t3/16@114 ft/16@116 ft/16@118"}
+  - {"name": "cym", "patch": "metal-kit", "score": "x/16@112 R/16 rd/16@80 R/16 rb/16@90 R/16 rd/16@80 R/16 rb/16@90 R/16 rd/16@80 R/16 rb/16@90 R/16 rd/16@80 R/16 x/16@112 R/16 rd/16@80 R/16 rb/16@90 R/16 rd/16@80 R/16 rb/16@90 R/16 rd/16@80 R/16 rb/16@90 R/16 rd/16@80 R/16 x/16@112 R/16 rd/16@80 R/16 rb/16@90 R/16 rd/16@80 R/16 rb/16@90 R/16 rd/16@80 R/16 rb/16@90 R/16 rd/16@80 R/16 x/16@112 R/16 rd/16@80 R/16 rb/16@90 R/16 rd/16@80 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16"}

@@ -1,0 +1,36 @@
+{
+ "about": "Glassy clean: compressor, chorus pedal, clean amp, 2x12-ish cab, plate.",
+ "fx": [
+  {
+   "type": "compressor",
+   "threshold": "-22dB",
+   "ratio": 3,
+   "attack": "8ms",
+   "release": "120ms",
+   "makeup": "2dB"
+  },
+  {
+   "type": "chorus",
+   "rate": 0.6,
+   "depth": 0.5,
+   "voices": 2,
+   "mix": 0.35
+  },
+  {
+   "type": "amp",
+   "model": "clean",
+   "gain": 0.35,
+   "bass": 0.55,
+   "mid": 0.5,
+   "treble": 0.58,
+   "presence": 0.5
+  },
+  {
+   "type": "cab",
+   "model": "2x12",
+   "mic": 0.3,
+   "distance": 0.15
+  },
+  "rack:plate-short"
+ ]
+}

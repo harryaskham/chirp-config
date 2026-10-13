@@ -1,0 +1,7 @@
+{
+ "about": "Fast pumping compression (loudness-matched).",
+ "fx": [
+  "compressor threshold=-22dB ratio=6 attack=1ms release=70ms makeup=6dB",
+  "gain gain=+6.1dB"
+ ]
+}

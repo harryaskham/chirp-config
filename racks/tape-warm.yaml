@@ -1,0 +1,6 @@
+{
+ "about": "Saturated tape warmth.",
+ "fx": [
+  "tape drive=0.6 warmth=0.7"
+ ]
+}

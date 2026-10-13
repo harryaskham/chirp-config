@@ -1,0 +1,13 @@
+{
+ "about": "8-bit, downsampled crunch.",
+ "fx": [
+  {
+   "type": "drive",
+   "shape": "crush",
+   "bits": 8,
+   "downsample": 3,
+   "drive": 0.5,
+   "mix": 0.7
+  }
+ ]
+}

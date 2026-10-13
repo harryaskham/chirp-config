@@ -1,0 +1,7 @@
+about: "Generated part (tempo: inherit, 17.5 beats) \u2014 Tool-style 7/8 (3+2+2) clean: kick/toms rotate across groups, snare on chosen groups, ride/bell or woodblock/cowbell polyrhythm, crash per cycle, tom cascade"
+tempo: inherit
+length: 17.5b
+tracks:
+  - {"name": "kick", "patch": "metal-kit", "score": "k/8@84 R/8 R/8 R/8 R/8 R/8 R/8 k/8@84 R/8 R/8 R/8 R/8 R/8 R/8 k/8@84 R/8 R/8 R/8 R/8 R/8 R/8 k/8@84 R/8 R/8 R/8 R/8 R/8 R/8 k/8@84 R/8 R/8 R/8 R/8 R/8 R/8"}
+  - {"name": "snare", "patch": "metal-kit", "score": "R/8 R/8 R/8 ss/8@80 R/8 t1/8@70 R/8 ft/8@70 R/8 rc/8@60 ss/8@80 R/8 R/8 R/8 R/8 R/8 R/8 ss/8@80 R/8 R/8 R/8 R/8 R/8 R/8 ss/8@80 R/8 t1/8@70 R/8 ft/8@70 R/8 R/8 ss/8@80 R/8 t1/8@104 t2/8@107"}
+  - {"name": "cym", "patch": "metal-kit", "score": "rd/8@70 shk/8@62 shk/8@62 rd/8@70 shk/8@62 rd/8@70 shk/8@62 rd/8@70 shk/8@62 shk/8@62 rd/8@70 shk/8@62 rd/8@70 shk/8@62 rd/8@70 shk/8@62 shk/8@62 rd/8@70 shk/8@62 rd/8@70 shk/8@62 rd/8@70 shk/8@62 shk/8@62 rd/8@70 shk/8@62 rd/8@70 shk/8@62 rd/8@70 shk/8@62 shk/8@62 rd/8@70 shk/8@62 rd/8@70 shk/8@62"}

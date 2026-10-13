@@ -91,3 +91,12 @@ breakdowns/space sections (an `auto` spike on a feedback delay's mix) and an LFO
 The engine also offers `track.NAME.vel/key` follow sources, song `vars` (lfo/auto/steps), `cc.N`, and
 modulatable amp gain, drive, delay/reverb/chorus/phaser mix, glue mix, OTT depth, tape drive, width, gain,
 pan and sends — all usable from these helpers.
+
+## Racks and grooves
+
+- `racks/NAME.yaml` — named, composable effect chains (see `racks/README.md`); `compose.rack(name)` /
+  `compose.expand(fx)` resolve `"rack:NAME"` (nested) until the engine supports racks natively.
+- `songs/groove-*.yaml` — the groove library (drum-only, tempo-inheriting parts), rebuilt by
+  `tools/grooves.py`: djent cells and breakdowns, Meshuggah cycles / tom grooves / shuffle, Garstka
+  breakdowns, blasts (trad/hammer/bomb/d-beat), thrash (gallop/chromatic/skank/half), Tool-style
+  5–31/8 grooves by grouping (heavy/tribal/clean). Drop in with `@groove-mesh-11-8`.

@@ -1,0 +1,48 @@
+{
+ "about": "Hard chug rig: compressor pedal, Mark-voiced amp with a big screamer push and very tight lows, 110 Hz thump, fizz dip, surgical gate.",
+ "fx": [
+  {
+   "type": "compressor",
+   "threshold": "-20dB",
+   "ratio": 4,
+   "attack": "2ms",
+   "release": "60ms",
+   "makeup": "3dB"
+  },
+  {
+   "type": "amp",
+   "model": "mark",
+   "gain": 0.86,
+   "ts": 0.75,
+   "tight": 150,
+   "boost": "6dB",
+   "bass": 0.5,
+   "mid": 0.66,
+   "treble": 0.5,
+   "presence": 0.5,
+   "resonance": 0.72,
+   "sag": 0.15
+  },
+  {
+   "type": "ir",
+   "file": "jester/cookie-monster",
+   "blend_file": "jester/kitten-slayer",
+   "blend": 0.3,
+   "length": "120ms"
+  },
+  {
+   "type": "eq",
+   "bands": [
+    "peak cutoff=110 q=1.1 gain=2dB"
+   ]
+  },
+  "rack:eq-guitar-smooth",
+  {
+   "type": "gate",
+   "threshold": "-48dB",
+   "attack": "0.3ms",
+   "hold": "8ms",
+   "release": "25ms"
+  }
+ ]
+}

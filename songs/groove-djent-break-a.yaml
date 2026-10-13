@@ -1,0 +1,7 @@
+about: "Generated part (tempo: inherit, 16 beats) \u2014 djent half-time breakdown: kick locked to a sparse cell, snare on 3"
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "kick", "patch": "metal-kit", "score": "k/16@118 R/16 R/16 R/16 R/16 R/16 k/16@118 R/16 R/16 R/16 R/16 k/16@118 R/16 k/16@118 R/16 R/16 k/16@118 R/16 R/16 R/16 R/16 R/16 k/16@118 R/16 R/16 R/16 R/16 k/16@118 R/16 k/16@118 R/16 R/16 k/16@118 R/16 R/16 R/16 R/16 R/16 k/16@118 R/16 R/16 R/16 R/16 k/16@118 R/16 k/16@118 R/16 R/16 k/16@118 R/16 R/16 R/16 R/16 R/16 k/16@118 R/16 R/16 R/16 R/16 k/16@118 R/16 k/16@118 R/16 R/16"}
+  - {"name": "snare", "patch": "metal-kit", "score": "R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 sc/16@118 R/16 g/16@38 g/16@38 R/16 R/16 g/16@38 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 so/16@118 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 g/16@38 R/16 R/16 s/16@118 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 g/16@38 R/16 R/16 R/16 R/16 sc/16@118 R/16 R/16 R/16 R/16 R/16 R/16 R/16"}
+  - {"name": "cym", "patch": "metal-kit", "score": "c/16@114 R/16 R/16 R/16 rds/16@88 R/16 x/16@108 R/16 rd/16@80 R/16 R/16 R/16 rds/16@88 cch/16@108 R/16 R/16 cbl/16@114 R/16 R/16 R/16 rds/16@88 R/16 st/16@108 R/16 rd/16@80 R/16 R/16 R/16 rds/16@88 st/16@108 R/16 R/16 cbl/16@114 R/16 R/16 R/16 rds/16@88 R/16 R/16 R/16 rd/16@80 R/16 R/16 R/16 rds/16@88 st/16@108 R/16 R/16 x/16@114 R/16 R/16 R/16 rds/16@88 R/16 R/16 R/16 rd/16@80 R/16 R/16 x/16@108 rds/16@88 R/16 R/16 R/16"}

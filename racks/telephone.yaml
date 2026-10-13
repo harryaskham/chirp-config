@@ -1,0 +1,20 @@
+{
+ "about": "Telephone: 300 Hz\u20133 kHz, crushed.",
+ "fx": [
+  {
+   "type": "eq",
+   "bands": [
+    "hp cutoff=300",
+    "lp cutoff=3k"
+   ]
+  },
+  {
+   "type": "drive",
+   "shape": "crush",
+   "bits": 10,
+   "downsample": 2,
+   "drive": 0.3,
+   "mix": 0.6
+  }
+ ]
+}

@@ -1,0 +1,13 @@
+{
+ "about": "Dark tape echo: quarter-note repeats with a rolled-off tone and tape warmth.",
+ "fx": [
+  {
+   "type": "delay",
+   "time": "1/4",
+   "mix": 0.2,
+   "feedback": 0.38,
+   "tone": 2400
+  },
+  "tape drive=0.3 warmth=0.6"
+ ]
+}

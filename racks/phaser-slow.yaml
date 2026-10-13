@@ -1,0 +1,13 @@
+{
+ "about": "Slow six-stage phaser.",
+ "fx": [
+  {
+   "type": "phaser",
+   "rate": 0.25,
+   "depth": 0.7,
+   "stages": 6,
+   "feedback": 0.4,
+   "mix": 0.45
+  }
+ ]
+}

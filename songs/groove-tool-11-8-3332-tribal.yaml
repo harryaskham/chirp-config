@@ -1,0 +1,7 @@
+about: "Generated part (tempo: inherit, 16.5 beats) \u2014 Tool-style 11/8 (3+3+3+2) tribal: kick/toms rotate across groups, snare on chosen groups, ride/bell or woodblock/cowbell polyrhythm, crash per cycle, tom cascade"
+tempo: inherit
+length: 16.5b
+tracks:
+  - {"name": "kick", "patch": "metal-kit", "score": "k/8@116 R/8 R/8 k/8@116 R/8 R/8 k/8@116 R/8 R/8 k/8@116 R/8 k/8@116 R/8 R/8 k/8@116 R/8 R/8 k/8@116 R/8 R/8 k/8@116 R/8 k/8@116 R/8 R/8 k/8@116 R/8 R/8 k/8@116 R/8 R/8 k/8@116 R/8"}
+  - {"name": "snare", "patch": "metal-kit", "score": "t2/8@108 g/8@38 R/8 ft/8@108 g/8@30 t1/8@88 t1/8@108 R/8 t1/8@88 t3/8@108 R/8 t2/8@108 R/8 R/8 ft/8@108 R/8 g/8@30 t1/8@108 ft/8@88 t1/8@88 t3/8@108 g/8@38 t2/8@108 R/8 g/8@30 ft/8@108 ft/8@88 g/8@30 t1/8@108 ft/8@88 t1/8@88 t1/8@104 t2/8@107"}
+  - {"name": "cym", "patch": "metal-kit", "score": "c/8@116 h1/8@72 h1/8@72 cowm/8@96 h1/8@72 h1/8@72 cowm/8@96 h1/8@72 h1/8@72 clv/8@96 h1/8@72 cbl/8@116 wb/8@96 h1/8@72 hf/8@90 wbl/8@96 h1/8@72 hf/8@90 clv/8@96 h1/8@72 hf/8@90 clv/8@96 cbl/8@116 h1/8@72 clv/8@96 hf/8@90 h1/8@72 cowm/8@96 hf/8@90 h1/8@72 wbl/8@96 hf/8@90 h1/8@72"}

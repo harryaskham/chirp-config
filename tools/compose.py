@@ -111,13 +111,14 @@ def rhythm_tracks(score, *, pair=None, pan=90, seeds=(7, 13), fx=None):
 
 # Section inserts for variety (post-rig): picked per part.
 SECTION_FX = {
-    "space": [None, None, ["phaser rate=0.25 depth=0.7 mix=0.45"], ["chorus rate=0.5 depth=0.5 mix=0.35"]],
-    "break": [None, None, None, ["tremolo rate=1/16 depth=0.85"]],
+    "space": [None, None, ["rack:phaser-slow"], ["rack:chorus-wide"], ["rack:shimmer-hall"]],
+    "break": [None, None, None, ["rack:stutter-16"], ["rack:dub-throw"]],
 }
 
 
 def section_fx(r, kind):
-    return r.choice(SECTION_FX.get(kind, [None]))
+    choice = r.choice(SECTION_FX.get(kind, [None]))
+    return expand(choice) if choice else None
 
 
 def mname(m):
@@ -153,6 +154,33 @@ def track(name, patch, score, **kw):
 
 
 LENGTHS = {}  # part name → length in beats (parts default to 16)
+
+# ---------- racks: named, composable effect chains (~/.config/chirp/racks/NAME.yaml) ------
+import os as _os
+RACKS_DIR = _os.path.join(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))), "racks")
+
+
+def rack(name, _depth=0):
+    """The effect list of rack NAME with nested `rack:OTHER` entries expanded."""
+    if _depth > 8:
+        raise ValueError(f"rack nesting too deep at {name}")
+    data = json.load(open(_os.path.join(RACKS_DIR, f"{name}.yaml")))
+    return expand(data["fx"], _depth + 1)
+
+
+def expand(fx, _depth=0):
+    """Expand `rack:NAME` references in an effect list (effects and strings pass through)."""
+    out = []
+    for e in fx or []:
+        if isinstance(e, str) and e.startswith("rack:"):
+            out += rack(e[5:].strip(), _depth)
+        else:
+            out.append(e)
+    return out
+
+
+def racks():
+    return sorted(f[:-5] for f in _os.listdir(RACKS_DIR) if f.endswith(".yaml"))
 
 
 # ---------- time-varying effects (modulation, automation, sidechain) ----------------------

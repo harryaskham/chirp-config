@@ -1,0 +1,8 @@
+{
+ "about": "OTT smash with glue (loudness-matched).",
+ "fx": [
+  "ott depth=0.45 time=0.2",
+  "glue threshold=-14dB ratio=2 attack=10ms release=120ms makeup=3dB",
+  "gain gain=+3.4dB"
+ ]
+}

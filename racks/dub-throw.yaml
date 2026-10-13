@@ -1,0 +1,13 @@
+{
+ "about": "Feedback ping-pong for throws (automate mix: 0 \u2192 0.45 on the last beats).",
+ "fx": [
+  {
+   "type": "delay",
+   "time": "3/16",
+   "feedback": 0.5,
+   "ping_pong": true,
+   "tone": 3000,
+   "mix": 0.3
+  }
+ ]
+}

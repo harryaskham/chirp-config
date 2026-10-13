@@ -1,0 +1,6 @@
+{
+ "about": "Short bright plate for snares and guitars.",
+ "fx": [
+  "reverb kind=plate decay=1.1s mix=0.12 predelay=12ms"
+ ]
+}

@@ -1,0 +1,6 @@
+{
+ "about": "Gentle mix-bus glue.",
+ "fx": [
+  "glue threshold=-16dB ratio=2 attack=10ms release=150ms makeup=4dB"
+ ]
+}

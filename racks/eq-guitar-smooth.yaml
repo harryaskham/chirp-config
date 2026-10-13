@@ -1,0 +1,13 @@
+{
+ "about": "Heavy-guitar finishing EQ: 250 Hz mud cut, 3.2 kHz fizz dip, gentle high shelf.",
+ "fx": [
+  {
+   "type": "eq",
+   "bands": [
+    "peak cutoff=250 q=1.2 gain=-2dB",
+    "peak cutoff=3200 q=1.2 gain=-2.5dB",
+    "highshelf cutoff=7500 gain=-3dB"
+   ]
+  }
+ ]
+}

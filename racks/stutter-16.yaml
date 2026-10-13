@@ -1,0 +1,10 @@
+{
+ "about": "1/16 stutter gate (tremolo at full depth).",
+ "fx": [
+  {
+   "type": "tremolo",
+   "rate": "1/16",
+   "depth": 0.85
+  }
+ ]
+}

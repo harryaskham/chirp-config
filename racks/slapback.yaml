@@ -1,0 +1,12 @@
+{
+ "about": "Single 95 ms slap and a tight room \u2014 rockabilly / aggressive close leads.",
+ "fx": [
+  {
+   "type": "delay",
+   "time": "95ms",
+   "mix": 0.22,
+   "feedback": 0.08
+  },
+  "rack:room-tight"
+ ]
+}

@@ -1,0 +1,42 @@
+{
+ "about": "Modern tight rhythm rig: compressor pedal, 5150-voiced amp with a screamer, cookie-monster/kitten-slayer cab blend, fizz dip, high shelf, fast gate.",
+ "fx": [
+  {
+   "type": "compressor",
+   "threshold": "-20dB",
+   "ratio": 4,
+   "attack": "2ms",
+   "release": "60ms",
+   "makeup": "3dB"
+  },
+  {
+   "type": "amp",
+   "model": "5150",
+   "gain": 0.82,
+   "ts": 0.7,
+   "tight": 140,
+   "boost": "5dB",
+   "bass": 0.52,
+   "mid": 0.62,
+   "treble": 0.5,
+   "presence": 0.5,
+   "resonance": 0.68,
+   "sag": 0.2
+  },
+  {
+   "type": "ir",
+   "file": "jester/cookie-monster",
+   "blend_file": "jester/kitten-slayer",
+   "blend": 0.3,
+   "length": "120ms"
+  },
+  "rack:eq-guitar-smooth",
+  {
+   "type": "gate",
+   "threshold": "-48dB",
+   "attack": "0.3ms",
+   "hold": "8ms",
+   "release": "25ms"
+  }
+ ]
+}

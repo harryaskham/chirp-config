@@ -1,0 +1,18 @@
+{
+ "about": "AM-radio band: band-limited, driven.",
+ "fx": [
+  {
+   "type": "eq",
+   "bands": [
+    "hp cutoff=400",
+    "lp cutoff=3.5k",
+    "peak cutoff=1.2k q=1 gain=4dB"
+   ]
+  },
+  {
+   "type": "drive",
+   "drive": 0.4,
+   "mix": 0.6
+  }
+ ]
+}

@@ -1,0 +1,13 @@
+{
+ "about": "Huge modulated hall with predelay and an octave-ish chorus shimmer.",
+ "fx": [
+  {
+   "type": "chorus",
+   "rate": 0.3,
+   "depth": 0.6,
+   "voices": 3,
+   "mix": 0.3
+  },
+  "reverb kind=hall decay=5s size=1 mix=0.35 predelay=40ms width=1.4 modulation=0.6 low_cut=250"
+ ]
+}

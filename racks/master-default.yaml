@@ -1,0 +1,11 @@
+{
+ "about": "Default master: master-eq, wide modulated hall send-style, light OTT, glue, tape, mono-safe width.",
+ "fx": [
+  "rack:master-eq",
+  "reverb kind=hall decay=2.6s size=0.9 mix=0.12 predelay=25ms low_cut=250 high_cut=8000 width=1.3 modulation=0.4",
+  "ott depth=0.15 time=0.3",
+  "rack:glue-bus",
+  "tape drive=0.25 warmth=0.4",
+  "width width=1.2 mono_below=140"
+ ]
+}

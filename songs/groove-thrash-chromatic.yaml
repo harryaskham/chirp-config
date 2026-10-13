@@ -1,0 +1,7 @@
+about: "Generated part (tempo: inherit, 16 beats) \u2014 thrash chromatic: crash/crash-bell downbeats, ride/hats by feel, snare-roll fill"
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "kick", "patch": "metal-kit", "score": "k/16@114 R/16 R/16 R/16 R/16 R/16 R/16 R/16 k/16@114 R/16 k/16@114 R/16 R/16 R/16 R/16 R/16 k/16@114 R/16 R/16 R/16 R/16 R/16 R/16 R/16 k/16@114 R/16 k/16@114 R/16 R/16 R/16 R/16 R/16 k/16@114 R/16 R/16 R/16 R/16 R/16 R/16 R/16 k/16@114 R/16 k/16@114 R/16 R/16 R/16 R/16 R/16 k/16@114 R/16 R/16 R/16 R/16 R/16 R/16 R/16 k/16@114 R/16 k/16@114 R/16 R/16 R/16 R/16 R/16"}
+  - {"name": "snare", "patch": "metal-kit", "score": "R/16 R/16 R/16 R/16 s/16@116 R/16 R/16 R/16 R/16 R/16 R/16 R/16 s/16@116 R/16 R/16 R/16 R/16 R/16 R/16 R/16 s/16@116 R/16 R/16 R/16 R/16 R/16 R/16 R/16 s/16@116 R/16 R/16 R/16 R/16 R/16 R/16 R/16 s/16@116 R/16 R/16 R/16 R/16 R/16 R/16 R/16 s/16@116 R/16 R/16 R/16 R/16 R/16 R/16 R/16 s/16@116 R/16 R/16 R/16 s/16@96^r=2 s/16@99^r=2 s/16@102^r=2 s/16@105^r=2 s/16@108^r=2 s/16@111^r=2 s/16@114^r=2 s/16@117^r=2"}
+  - {"name": "cym", "patch": "metal-kit", "score": "cbl/16@110 R/16 R/16 R/16 oh/16@96 R/16 R/16 R/16 oh/16@96 R/16 R/16 R/16 oh/16@96 R/16 R/16 R/16 c/16@110 R/16 R/16 R/16 oh/16@96 R/16 R/16 R/16 oh/16@96 R/16 R/16 R/16 oh/16@96 R/16 R/16 R/16 c/16@110 R/16 R/16 R/16 oh/16@96 R/16 R/16 R/16 oh/16@96 R/16 R/16 R/16 oh/16@96 R/16 R/16 R/16 c/16@110 R/16 R/16 R/16 oh/16@96 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16"}

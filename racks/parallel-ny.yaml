@@ -1,0 +1,7 @@
+{
+ "about": "New York parallel compression: heavy glue blended with the dry (loudness-matched).",
+ "fx": [
+  "glue threshold=-30dB ratio=8 attack=3ms release=90ms makeup=10dB mix=0.45",
+  "gain gain=+3.2dB"
+ ]
+}

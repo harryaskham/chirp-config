@@ -1,0 +1,13 @@
+{
+ "about": "Wide three-voice chorus and a touch of width.",
+ "fx": [
+  {
+   "type": "chorus",
+   "rate": 0.5,
+   "depth": 0.55,
+   "voices": 3,
+   "mix": 0.4
+  },
+  "width width=1.3"
+ ]
+}

@@ -1,0 +1,14 @@
+{
+ "about": "Phaser pedal into the Gojira rig.",
+ "fx": [
+  {
+   "type": "phaser",
+   "rate": 0.22,
+   "depth": 0.75,
+   "stages": 6,
+   "feedback": 0.45,
+   "mix": 0.55
+  },
+  "rack:rig-gojira"
+ ]
+}

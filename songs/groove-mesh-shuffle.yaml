@@ -1,0 +1,7 @@
+about: "Generated part (tempo: inherit, 16 beats) \u2014 Meshuggah shuffle: triplet grid, 11-step cycle, hats at varying openings"
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "kick", "patch": "metal-kit", "score": "k/12@120 k/12@102 k/12@83 R/12 R/12 k/12@116 R/12 R/12 R/12 k/12@102 k/12@89 k/12@120 k/12@105 k/12@88 R/12 R/12 k/12@120 R/12 R/12 R/12 k/12@108 k/12@91 k/12@124 k/12@101 k/12@95 R/12 R/12 k/12@122 R/12 R/12 R/12 k/12@102 k/12@93 k/12@126 k/12@101 k/12@98 R/12 R/12 k/12@126 R/12 R/12 R/12 k/12@109 k/12@90 k/12@127 k/12@114 k/12@101 R/12"}
+  - {"name": "snare", "patch": "metal-kit", "score": "R/12 R/12 R/12 R/12 R/12 R/12 so/12@118 R/12 R/12 R/12 R/12 R/12 R/12 R/12 g/12@36 R/12 rc/12@70 R/12 so/12@118^flam R/12 g/12@36 R/12 g/12@30 R/12 R/12 R/12 R/12 R/12 R/12 rc/12@70 s/12@118 R/12 R/12 R/12 R/12 R/12 R/12 R/12 R/12 R/12 R/12 g/12@30 s/12@118 R/12 g/12@30 t1/12@110 t2/12@112 t3/12@114"}
+  - {"name": "cym", "patch": "metal-kit", "score": "rbs/12@112 R/12 R/12 hs/12@90 R/12 R/12 R/12 R/12 R/12 hs/12@78 R/12 x/12@104 h2/12@82 R/12 R/12 hs/12@88 R/12 R/12 h2/12@82 R/12 R/12 hs/12@82 x/12@104 R/12 h/12@96 R/12 R/12 hs/12@84 R/12 R/12 h1/12@90 R/12 R/12 rbs/12@118 R/12 R/12 h2/12@100 R/12 R/12 R/12 R/12 R/12 h1/12@100 R/12 x/12@104 h2/12@88 R/12 R/12"}

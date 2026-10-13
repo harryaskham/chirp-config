@@ -1,0 +1,6 @@
+{
+ "about": "Tight small room.",
+ "fx": [
+  "reverb kind=room decay=0.7s mix=0.1 predelay=8ms"
+ ]
+}

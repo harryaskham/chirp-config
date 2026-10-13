@@ -1,0 +1,8 @@
+{
+ "about": "Slow opto-style levelling (loudness-matched).",
+ "fx": [
+  "compressor threshold=-18dB ratio=3 attack=30ms release=450ms makeup=4dB",
+  "glue threshold=-14dB ratio=1.5 makeup=1dB",
+  "gain gain=+3.3dB"
+ ]
+}

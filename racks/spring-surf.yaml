@@ -1,0 +1,6 @@
+{
+ "about": "Drippy spring reverb.",
+ "fx": [
+  "reverb kind=spring decay=2.2s mix=0.25"
+ ]
+}
