@@ -60,6 +60,12 @@ STYLES = {
   "hardcore-kl": dict(form="hardcore-kl", tempo=(140, 180), off=0, riff=["riff-chug5"], riff_off=0, lift=0,
                      low=["beat-sparse"], mid=["beat-djent"], high=["beat-djent"], half=["beat-halftime"], brk=["beat-doom"],
                      hook=["lead-solo"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["riff-hold"]),
+  "blackgaze":  dict(form="blackgaze", tempo=(150, 190), off=0, riff=["riff-chug7"], riff_off=0, lift=0,
+                     low=["beat-sparse"], mid=["beat-blast"], high=["beat-blast"], half=["beat-halftime"], brk=["beat-sparse"],
+                     hook=["lead-solo"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["pad-swell"]),
+  "darksynth":  dict(form="darksynth", tempo=(104, 124), off=0, riff=["bass-acid"], riff_off=0, lift=0,
+                     low=["beat-sparse"], mid=["beat-house"], high=["beat-house"], half=["beat-halftime"], brk=["beat-sparse"],
+                     hook=["lead-hook"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["pad-swell"]),
   "tech-death": dict(form="tech-death", tempo=(170, 220), off=0, riff=["riff-chug7"], riff_off=0, lift=0,
                      low=["beat-sparse"], mid=["beat-blast"], high=["beat-blast"], half=["beat-halftime"], brk=["beat-doom"],
                      hook=["lead-solo"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["riff-hold"]),
@@ -107,6 +113,14 @@ FORMS = {
                   ("fast", ["riffD"], "impact"), ("fast", ["riffD"], None), ("break", ["riffBd"], "impact"), ("break", ["riffBd2"], None),
                   ("verse2", ["riff"], "impact"), ("fast", ["riffD"], None), ("stop", ["riffStop"], "tapestop"),
                   ("break", ["riffSlow"], "impact"), ("final", ["riffBd"], "impact"), ("outro", ["riffSq"], "revcym")],
+  "blackgaze": [("intro", ["riffClean"], None), ("intro2", ["riffClean", "hookE"], None), ("build", ["riffUp"], "riser"),
+                ("blast", ["riff"], "impact"), ("blast", ["riffB", "hook"], None), ("half", ["riffH", "hookE"], "revcym"),
+                ("build", ["riffUp"], "riser"), ("climax", ["riff", "hook"], "impact"), ("final", ["riffB", "hookE"], None),
+                ("outro", ["riffClean"], "revcym")],
+  "darksynth": [("intro", ["riffIntro"], None), ("verse", ["riff"], "impact"), ("verse", ["riff", "pad"], None),
+                ("build", ["riffUp", "pad"], "riser"), ("drop", ["riffD", "hook"], "impact"), ("drop", ["riffD2", "hook"], None),
+                ("break", ["riffIntro"], "revcym"), ("build", ["riffUp"], "riser"), ("final", ["riffD", "hook", "pad"], "impact"),
+                ("outro", ["riffIntro"], "revcym")],
   "tech-death": [("blast", ["riff"], "impact"), ("blast", ["riffB", "pad"], None), ("dbeat", ["riffD"], "impact"),
                  ("dbeat", ["riffD", "hook"], None), ("groove", ["riffSoft"], "impact"), ("groove", ["riffG", "pad"], None),
                  ("blast", ["riff", "hook"], "impact"), ("break", ["riffBrk"], "impact"), ("break", ["riffBrk", "drone"], None),
@@ -156,7 +170,7 @@ PASS_MINUTES = 1.0
 ENERGY = {"intro": 0.3, "intro2": 0.45, "verse": 0.6, "verse2": 0.65, "pre": 0.7, "build": 0.7, "chorus": 0.85,
           "drop": 0.95, "heavy": 0.85, "blast": 1.0, "dbeat": 0.85, "groove": 0.7, "shuffle": 0.7, "toms": 0.75,
           "space": 0.4, "break": 0.9, "C": 0.8, "C2": 0.8, "solo": 0.85, "final": 1.0, "outro": 0.35, "coda": 0.3,
-          "A": 0.6, "A2": 0.7, "B": 0.8, "B2": 0.85, "climax": 1.0, "fast": 1.0, "stop": 0.9}
+          "A": 0.6, "A2": 0.7, "B": 0.8, "B2": 0.85, "climax": 1.0, "fast": 1.0, "stop": 0.9, "half": 0.75}
 RAMPS = {"pre", "build", "intro2"}
 
 
@@ -322,7 +336,7 @@ def write_form(name, ident):
 TOOLS = "/home/harry/.config/chirp/tools"
 JOURNEY = f"{TOOLS}/journey.json"
 # How heavy each style is (0 lofi … 1 djent).
-HEAVY = {"hardcore-kl": 1.0, "brostep": 0.8, "thrash": 0.9, "tool": 0.9, "tech-death": 1.0, "meshuggah": 1.0, "lofi": 0.0, "classical": 0.05, "house": 0.2, "garage": 0.25, "poly": 0.35, "prog-clean": 0.4, "acid": 0.45,
+HEAVY = {"blackgaze": 0.95, "darksynth": 0.8, "hardcore-kl": 1.0, "brostep": 0.8, "thrash": 0.9, "tool": 0.9, "tech-death": 1.0, "meshuggah": 1.0, "lofi": 0.0, "classical": 0.05, "house": 0.2, "garage": 0.25, "poly": 0.35, "prog-clean": 0.4, "acid": 0.45,
          "idm": 0.55, "doom-ambient": 0.6, "hardcore": 0.7, "djent-breakdown": 0.85, "djent": 1.0}
 
 STYLE_QUEUE = []
@@ -344,7 +358,8 @@ def journey_style(h, current):
         if r < 0.2:
             return random.choice([k for k in STYLES if k not in ("djent", "meshuggah", current)])
         x = random.random()
-        mix = [("meshuggah", 0.34), ("hardcore-kl", 0.12), ("tech-death", 0.11), ("thrash", 0.11), ("tool", 0.11), ("djent", 0.11), ("brostep", 0.1)]
+        mix = [("meshuggah", 0.3), ("hardcore-kl", 0.11), ("tech-death", 0.1), ("thrash", 0.1), ("tool", 0.1), ("djent", 0.09),
+               ("brostep", 0.08), ("blackgaze", 0.07), ("darksynth", 0.05)]
         for name, w in mix:
             x -= w
             if x <= 0:

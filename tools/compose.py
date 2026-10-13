@@ -41,6 +41,8 @@ STYLE_MODES = {
     "tech-death": ["harmonic", "diminished", "phrygian-dominant", "hungarian", "locrian", "double-harmonic"],
     "thrash": ["phrygian", "minor", "locrian", "phrygian-dominant"],
     "brostep": ["minor", "phrygian", "harmonic"],
+    "blackgaze": ["major", "lydian", "dorian", "mixolydian"],
+    "darksynth": ["minor", "phrygian", "harmonic", "dorian"],
     "hardcore-kl": ["phrygian", "locrian", "minor", "diminished"],
     "tool": ["phrygian", "dorian", "locrian", "double-harmonic", "minor"],
 }
@@ -1102,6 +1104,65 @@ def gen_hc(r, k, prog, low=28, kind="twostep"):
             track("kick", kit, jn(kick)), track("snare", kit, jn(snare)), track("cym", kit, jn(cym))]
 
 
+# ---------- blackgaze ------------------------------------------------------------------------
+
+def _drums_of(tracks):
+    return [t for t in tracks if t["name"] in ("kick", "snare", "cym", "clap", "hats")]
+
+
+def gen_gaze(r, k, prog, kind="blast"):
+    """Blackgaze: tremolo-picked open chords (triad + 9th, mid register) through a shimmer hall
+    over blasts (kind=blast), or ringing 8th-note chords over half-time drums with toms and ride
+    wash (kind=half); clean arpeggios (kind=clean)."""
+    base = 52
+    chords = [[k.deg(root + d, base) for d in (0, 2, 4, 8)] for root in prog]
+    if kind == "clean":
+        out = []
+        for ch in chords:
+            for rep_ in range(2):
+                out += [f"{mname(ch[i])}/8@{88 if i == 0 else 74}" for i in (0, 2, 1, 3)]
+        return [track("gtr", rig("clean"), " ".join(out), pan=0.2, fx=expand(["rack:shimmer-hall"]))] + _drums_of(gen_tool(r, k, 28, 8, [3, 3, 2], "clean", reps=4))
+    gtr = []
+    for ch in chords:
+        for i in range(16 if kind == "blast" else 8):
+            v = (104 if i % 2 == 0 else 92) if kind == "blast" else (112 if i % 4 == 0 else 96)
+            gtr.append(f"{chordhead(ch)}/{16 if kind == 'blast' else 8}@{v}" + ("" if kind == "blast" else "^gate=1.2"))
+    sh = expand(["rack:shimmer-hall"])
+    guitars = [dict(t, fx=list(t.get("fx", [])) + sh) for t in rhythm_tracks("expr.pm=0 " + " ".join(gtr))]
+    bass = [track("bass", rig("bass"), " ".join(f"{mname(k.deg(root, 28 + 12))}/2@104" for root in prog for _ in range(2)), seed=7)]
+    drums = _drums_of(gen_blast(r, k, prog, 28, "trad")) if kind == "blast" else _drums_of(gen_tool(r, k, 28, 8, [3, 3, 2], "build", reps=4))
+    return guitars + bass + drums
+
+
+# ---------- darksynth -------------------------------------------------------------------------
+
+def gen_darksynth(r, k, prog, kind="verse"):
+    """Darksynth (Carpenter Brut / Perturbator): 16th distorted-bass octaves, supersaw arps,
+    electro drums with a big gated snare (four-on-the-floor in verses, half-time in drops);
+    kind=drop adds doubled metal chugs on the bass rhythm."""
+    t = k.deg(0, 33)
+    kit = pick_patch("electro-kit", "909")
+    bass, kick, snare, hats = [], [], [], []
+    for bar, root in enumerate(prog):
+        rt = k.deg(root, 33)
+        for x in range(16):
+            bass.append(f"{mname(rt + (12 if x % 2 else 0))}/16@{110 if x % 4 == 0 else 96}")
+            if kind == "drop":
+                kick.append("k/16@120" if x in (0, 10) else "R/16"); snare.append("s/16@122" if x == 8 else "R/16")
+            else:
+                kick.append("k/16@118" if x % 4 == 0 else "R/16"); snare.append("s/16@118" if x in (4, 12) else "R/16")
+            hats.append(f"h/16@{80 if x % 2 == 0 else 60}" if x % 2 == 0 or kind == "drop" else "R/16")
+    gated = [{"type": "reverb", "kind": "plate", "decay": "1.2s", "mix": 0.3}, {"type": "gate", "threshold": "-30dB", "hold": "60ms", "release": "20ms"}]
+    jn = lambda xs: " ".join(xs)
+    out = [track("bassA", pick_patch("808-dist", "reese", "acid"), jn(bass), gain="-4dB"),
+           track("kick", kit, jn(kick)), track("snare", kit, jn(snare), fx=gated), track("hats", kit, jn(hats), pan=0.1)]
+    out += gen_arp(r, k, prog, 60, pick_patch("supersaw", "arp-pluck"))
+    if kind == "drop":
+        chug = [f"expr.pm=1 {mname(t)}/16@{112 if x % 4 == 0 else 100}" if x % 2 == 0 else "R/16" for x in range(64)]
+        out += rhythm_tracks(jn(chug))
+    return out
+
+
 def gen_clusters(r, k, prog, base, patch, gain="-6dB", vel=74):
     """Dissonant pad: minor-2nd and tritone clusters over the progression roots."""
     out = []
@@ -1124,7 +1185,7 @@ def _write_parts(slot, style, parts, desc, beats=None):
 
 def params(style, rng=random):
     mode = rng.choice(STYLE_MODES.get(style, ["minor"]))
-    heavy = style in ("meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep")
+    heavy = style in ("meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep", "blackgaze", "darksynth")
     rigset = ("tech" if style == "tech-death" and rng.random() < 0.6 else
               "thrash" if style == "thrash" else
               "chug" if style in ("hardcore-kl", "brostep") else
@@ -1157,6 +1218,17 @@ def compose(style, slot, p):
             "hookE": gen_atmos(r, k, prog, 62, rig("atmos")),
         }
         return _write_parts(slot, "brostep", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
+    if style == "blackgaze":
+        parts = {"riffClean": gen_gaze(r, k, prog, "clean"), "riff": gen_gaze(r, k, prog, "blast"), "riffB": gen_gaze(r, k, prog, "blast"),
+                 "riffH": gen_gaze(r, k, prog, "half"), "hook": gen_hook(r, k, prog, 64, rig("lead")), "hookE": gen_atmos(r, k, prog, 62, rig("atmos"))}
+        parts["riffUp"] = parts["riffH"]
+        return _write_parts(slot, "blackgaze", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
+    if style == "darksynth":
+        parts = {"riffIntro": gen_arp(r, k, prog, 60, pick_patch("supersaw", "arp-pluck")) + gen_pad(r, k, prog, 48, pick_patch("supersaw", "saw-pad"), gain="-8dB"),
+                 "riff": gen_darksynth(r, k, prog, "verse"), "riffD": gen_darksynth(r, k, prog, "drop"), "riffD2": gen_darksynth(r, k, prog, "drop"),
+                 "riffUp": gen_darksynth(r, k, prog, "verse"), "hook": gen_hook(r, k, prog, 64, pick_patch("synth-lead", "chip-lead")),
+                 "pad": gen_pad(r, k, prog, 48, pick_patch("supersaw", "saw-pad"), gain="-8dB")}
+        return _write_parts(slot, "darksynth", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
     if style == "hardcore-kl":
         parts = {
             "riff": gen_hc(r, k, prog, low, "twostep"),
