@@ -2,7 +2,7 @@ about: "Polyphia-ish: fingerpicked nylon and Strat funk over trap/ghost beats wi
 form: rock
 tempo: [88, 100]
 offset: -1
-riff_offset: 1
+riff_offset: 0
 roles:
   riff: [riff-nylon, riff-funk]
   low: [beat-sparse]
