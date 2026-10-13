@@ -39,6 +39,8 @@ STYLE_MODES = {
     "lofi": ["dorian", "major", "minor", "mixolydian"], "classical": ["harmonic", "major", "minor"],
     "meshuggah": ["phrygian", "locrian", "diminished", "double-harmonic", "hungarian", "neapolitan", "phrygian-dominant"],
     "tech-death": ["harmonic", "diminished", "phrygian-dominant", "hungarian", "locrian", "double-harmonic"],
+    "thrash": ["phrygian", "minor", "locrian", "phrygian-dominant"],
+    "tool": ["phrygian", "dorian", "locrian", "double-harmonic", "minor"],
 }
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 
@@ -145,8 +147,13 @@ def track(name, patch, score, **kw):
     return t
 
 
-def write(name, about, tracks):
-    lines = [f"about: {json.dumps('Generated part (tempo: inherit, 16 beats) — ' + about)}", "tempo: inherit", "length: 16b", "tracks:"]
+LENGTHS = {}  # part name → length in beats (parts default to 16)
+
+
+def write(name, about, tracks, beats=16):
+    LENGTHS[name] = beats
+    b = f"{beats:g}b"
+    lines = [f"about: {json.dumps(f'Generated part (tempo: inherit, {beats:g} beats) — ' + about)}", "tempo: inherit", f"length: {b}", "tracks:"]
     lines += ["  - " + json.dumps(t) for t in tracks]
     open(f"{SONGS}/{name}.yaml", "w").write("\n".join(lines) + "\n")
 
@@ -620,6 +627,173 @@ def gen_shred(r, k, prog, base, patch):
     return [track("hook", patch, " ".join(out), pan=0.1)]
 
 
+# ---------- thrash -----------------------------------------------------------------------
+
+def gen_thrash(r, k, prog, low=40, kind="gallop"):
+    """Thrash: gallops (8th + two 16ths) with chromatic power-chord moves, 16th palm-muted pedal
+    with chromatic stabs over a d-beat, skank-beat chugs, half-time ringing chords; snare roll
+    into the next section."""
+    t = k.deg(0, low)
+    pc5 = lambda m: [m, m + 7, m + 12]
+    gtr, bass, kick, snare, cym = [], [], [], [], []
+    chroma = r.choice([[0, 1, 3, 1], [0, 3, 5, 6], [0, -1, -2, 1], [0, 6, 5, 1], [0, 1, 0, 6]])
+    for bar in range(4):
+        root = k.deg(prog[bar], low)
+        if root - t > 7:
+            root -= 12
+        for beat in range(4):
+            for j in range(4):
+                i = bar * 16 + beat * 4 + j
+                stab = t + chroma[beat] if kind in ("chromatic", "gallop") else root
+                if kind == "gallop":
+                    if beat == 3 and j == 0:
+                        g = f"expr.pm=0 {chordhead(pc5(stab))}/16@122^gate=1.6"
+                    elif j in (0, 2, 3):
+                        g = f"expr.pm=1 {mname(t)}/16@{116 if j == 0 else 100}"
+                    else:
+                        g = "R/16"
+                elif kind == "chromatic":
+                    if j == 0 and beat % 2 == 1:
+                        g = f"expr.pm=0 {chordhead(pc5(stab))}/16@120^gate=1.8"
+                    else:
+                        g = f"expr.pm=1 {mname(t)}/16@{110 if j % 2 == 0 else 96}"
+                elif kind == "skank":
+                    if j % 2 == 1:
+                        g = "R/16"
+                    elif beat in (0, 2) and j == 0:
+                        g = f"expr.pm=0 {chordhead(pc5(root))}/16@120^gate=1.6"
+                    else:
+                        g = f"expr.pm=1 {mname(t)}/16@{108 if j == 0 else 98}"
+                else:  # half: ringing chords
+                    g = f"expr.pm=0 {chordhead(pc5(root))}/16@122^gate=4" if (beat % 2 == 0 and j == 0) else "R/16"
+                gtr.append(g)
+                bass.append(re.sub(r"expr\.pm=\d ", "", g).split(",")[0].split("/")[0] + "/16@" + (g.split("@")[1].split("^")[0] if "@" in g else "0") if g != "R/16" else "R/16")
+                # drums
+                if kind == "gallop":
+                    kick.append("k/16@114" if j in (0, 2, 3) else "R/16")
+                    snare.append("s/16@118" if (beat % 2 == 1 and j == 0) else ("g/16@36" if r.random() < 0.08 else "R/16"))
+                elif kind == "chromatic":
+                    x = {0: "k", 4: "s", 8: "k", 10: "k", 12: "s"}.get((beat * 4 + j) % 16)
+                    kick.append("k/16@114" if x == "k" else "R/16"); snare.append("s/16@116" if x == "s" else "R/16")
+                elif kind == "skank":
+                    kick.append("k/16@112" if j == 0 else "R/16"); snare.append("s/16@114" if j == 2 else "R/16")
+                else:
+                    kick.append("k/16@118" if (beat == 0 and j == 0) or (beat == 2 and j == 2) else "R/16")
+                    snare.append("s/16@120" if (beat == 2 and j == 0) else "R/16")
+                cym.append((f"{'c' if (beat == 0 and j == 0) else 'rd'}/16@{110 if beat == 0 else 92}" if j == 0 else ("rd/16@78" if kind == "skank" and j == 2 else "R/16")))
+    for n, i in enumerate(range(56, 64)):  # snare roll into the next section
+        snare[i] = f"s/16@{96 + 3 * n}^r=2"
+        cym[i] = "R/16"
+    kit = rig("drums")
+    jn = lambda xs: " ".join(xs)
+    return rhythm_tracks(jn(gtr)) + [track("bass", rig("bass"), jn(bass), seed=7), track("sub", rig("sub"), jn(bass), seed=7),
+            track("kick", kit, jn(kick)), track("snare", kit, jn(snare)), track("cym", kit, jn(cym))]
+
+
+# ---------- Tool-style odd meters --------------------------------------------------------
+
+METERS = {  # eighths per bar → groupings (all sum to the meter)
+    5: [[3, 2], [2, 3]], 7: [[2, 2, 3], [3, 2, 2], [2, 3, 2]], 9: [[2, 2, 2, 3], [3, 3, 3], [2, 3, 2, 2]],
+    11: [[3, 3, 3, 2], [2, 2, 3, 2, 2], [4, 4, 3]], 13: [[3, 3, 3, 4], [2, 2, 2, 3, 2, 2], [4, 3, 3, 3]],
+    15: [[3, 3, 3, 3, 3], [4, 4, 4, 3]], 23: [[4, 4, 4, 4, 4, 3], [3, 3, 3, 3, 3, 3, 3, 2]],
+    31: [[8, 8, 8, 7], [3, 3, 2, 3, 3, 2, 3, 3, 2, 3, 4], [7, 7, 7, 5, 5], [4, 4, 4, 4, 4, 4, 4, 3]],
+}
+
+
+def reps_for(meter):
+    return max(1, round(32 / meter))
+
+
+def gen_tool(r, k, low, meter, groups, mode="heavy", reps=None, lead=None):
+    """Odd-meter riff (Tool-style): the band plays the meter. Guitar accents each group start
+    (tonic / b2 / b5 / 9 dyads moving through the groups), palm-muted pedal between; melodic bass
+    doubles with fifths and octaves; drums (Carey-ish): kick and toms rotate across group starts,
+    snare on chosen groups, ride 8ths accented on group starts, a ride-bell polyrhythm in 3s or 5s
+    across the meter, crash at each cycle, tom cascade at the end. Modes: heavy, clean (delayed
+    arpeggios, side-stick + toms), tribal (bass + toms only), poly, build (crescendo)."""
+    reps = reps or reps_for(meter)
+    n = meter * reps
+    t = k.deg(0, low)
+    moves = r.choice([[0, 1, 0, 6], [0, 6, 1, 0], [0, 2, 1, 0, 6], [0, 13, 1, 6], [0, 1, 6, 7]])
+    starts = []
+    pos = 0
+    for g in groups:
+        starts.append(pos)
+        pos += g
+    poly = r.choice([3, 5, 3, 4])
+    snare_groups = set(r.sample(range(len(groups)), max(1, len(groups) // 3)))
+    toms = r.choice([["t1", "t2", "t3", "ft"], ["ft", "t3", "t1", "t2"], ["t2", "ft", "t1", "t3"]])
+    gtr, bass, kick, snare, cym = [], [], [], [], []
+    for i in range(n):
+        rep_i, x = divmod(i, meter)
+        cres = int((i / n) * 24) - 12 if mode == "build" else 0
+        gi = max(j for j, s0 in enumerate(starts) if s0 <= x)
+        at_start = x == starts[gi]
+        mv = moves[gi % len(moves)]
+        root = t + mv
+        if mode == "clean":
+            chord = [k.deg(d, 52) for d in (0, 2, 4, 7, 9)]
+            gtr.append(f"{mname(chord[(i + gi) % len(chord)])}/8@{(92 if at_start else 74) + cres}")
+            bass.append(f"{mname(root + 12)}/8@{86}^gate=2" if at_start and gi % 2 == 0 else "R/8")
+        elif mode == "tribal":
+            gtr.append("R/8")
+            bass.append(f"{mname(root + 12)}/8@{104 if at_start else 88}" if (at_start or r.random() < 0.4) else "R/8")
+        else:
+            if at_start:
+                dy = [root, root + 7] if r.random() < 0.6 else [root, root + r.choice([1, 6, 13])]
+                gtr.append(f"expr.pm=0 {chordhead(dy)}/8@{min(127, 118 + cres)}^gate={1.6 if mode != 'poly' else 1}")
+                bass.append(f"{mname(root)}/8@{min(127, 116 + cres)}")
+            else:
+                v = min(127, (100 if x % 2 == 0 else 92) + cres)
+                gtr.append(f"expr.pm=1 {mname(t)}/8@{v}" if r.random() < 0.8 else "R/8")
+                bass.append(f"{mname(t + (7 if r.random() < 0.2 else 0))}/8@{v}")
+        # drums
+        if mode == "clean":
+            kick.append(f"k/8@84" if x == 0 else "R/8")
+            snare.append(f"ss/8@{80 if at_start else 0}" if at_start and gi % 2 == 1 else (f"{toms[gi % 4]}/8@70" if at_start and r.random() < 0.4 else "R/8"))
+            cym.append(f"rd/8@{70 if at_start else 56}")
+        else:
+            if at_start:
+                kick.append(f"k/8@{min(127, 116 + cres)}" if gi % 2 == 0 or mode == "tribal" else "R/8")
+                snare.append((f"s/8@{min(127, 118 + cres)}" if gi in snare_groups and mode != "tribal" else f"{toms[gi % 4]}/8@{min(127, 108 + cres)}"))
+            else:
+                kick.append(f"k/8@{96 + cres}" if mode in ("heavy", "build") and r.random() < 0.25 else "R/8")
+                snare.append(f"g/8@{r.choice([30, 38])}" if r.random() < 0.2 else (f"{toms[(gi + x) % 4]}/8@{88 + cres}" if mode == "tribal" and r.random() < 0.5 else "R/8"))
+            if x == 0:
+                cym.append(f"c/8@{min(127, 116 + cres)}")
+            elif i % poly == 0:
+                cym.append(f"rb/8@{min(127, 96 + cres)}")
+            else:
+                cym.append(f"{'rd' if mode != 'tribal' else 'h'}/8@{(90 if at_start else 72) + cres}")
+    # tom cascade over the last group
+    last = groups[-1]
+    for j2, i in enumerate(range(n - last, n)):
+        snare[i] = f"{['t1', 't2', 't3', 'ft', 'ft'][min(j2, 4)]}/8@{104 + 3 * j2}"
+    kit = rig("drums")
+    jn = lambda xs: " ".join(xs)
+    if mode == "clean":
+        out = [track("gtr", "clean-chorus", jn(gtr), pan=0.2), track("bass", rig("bass"), jn(bass), seed=7)]
+    elif mode == "tribal":
+        out = [track("bass", rig("bass"), jn(bass), seed=7), track("sub", rig("sub"), jn(bass), seed=7)]
+    else:
+        out = rhythm_tracks(jn(gtr)) + [track("bass", rig("bass"), jn(bass), seed=7), track("sub", rig("sub"), jn(bass), seed=7)]
+    return out + [track("kick", kit, jn(kick)), track("snare", kit, jn(snare)), track("cym", kit, jn(cym))]
+
+
+def gen_tool_lead(r, k, prog, meter, base, patch, reps=None):
+    """A long-note melodic lead (vocal-like) across the odd meter: phrases land on group starts."""
+    reps = reps or reps_for(meter)
+    n = meter * reps
+    out, i = [], 0
+    d = r.choice([0, 2, 4])
+    while i < n:
+        ln = min(n - i, r.choice([2, 3, 4, 6]))
+        out.append(f"{mname(k.deg(d, base))}/8@{r.choice([92, 100, 108])}" + (" _" * (ln - 1)))
+        d += r.choice([-2, -1, 1, 2, 0])
+        i += ln
+    return [track("hook", patch, " ".join(out), pan=0.1)]
+
+
 def gen_clusters(r, k, prog, base, patch, gain="-6dB", vel=74):
     """Dissonant pad: minor-2nd and tritone clusters over the progression roots."""
     out = []
@@ -629,12 +803,24 @@ def gen_clusters(r, k, prog, base, patch, gain="-6dB", vel=74):
     return [track("pad", patch, " ".join(out), gain=gain)]
 
 
+def _write_parts(slot, style, parts, desc, beats=None):
+    names = {}
+    for role, tr in parts.items():
+        n = f"gen-{slot}-{role}"
+        write(n, f"{role} for {style} in {desc}", tr, (beats or {}).get(role, 16))
+        names[role] = n
+    return names, desc
+
+
 # ---------- per-style composition -------------------------------------------------------
 
 def params(style, rng=random):
     mode = rng.choice(STYLE_MODES.get(style, ["minor"]))
-    heavy = style in ("meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death")
-    rigset = ("tech" if style == "tech-death" and rng.random() < 0.6 else rng.choice(["modern", "chug", "chug", "fuzz", "phase"])) if heavy else "modern"
+    heavy = style in ("meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool")
+    rigset = ("tech" if style == "tech-death" and rng.random() < 0.6 else
+              "chug" if style == "thrash" else
+              rng.choice(["fuzz", "phase", "modern"]) if style == "tool" else
+              rng.choice(["modern", "chug", "chug", "fuzz", "phase"])) if heavy else "modern"
     return {"pc": rng.randrange(12), "mode": mode, "prog": rng.choice(PROGS[mode]), "seed": rng.randrange(1 << 30), "rigset": rigset}
 
 
@@ -647,6 +833,40 @@ def compose(style, slot, p):
     prog = p["prog"]
     low = 28  # E1: 8-string range for riffs
     gp = r.choice(["m8-tight", "m8-tight", "m8-nolly"]) if style in ("djent", "djent-breakdown", "meshuggah", "doom-ambient") else r.choice(["m8-tight", "m8-gojira", "m8-nolly"])
+    if style == "thrash":
+        parts = {
+            "riff": gen_thrash(r, k, prog, 40, "skank"),
+            "riffG": gen_thrash(r, k, prog, 40, "gallop"),
+            "riffC": gen_thrash(r, k, prog, 40, "chromatic"),
+            "riffH": gen_thrash(r, k, prog, 40, "half"),
+            "riffBrk": gen_meshuggah(r, k, 40, gp, r.choice([7, 11, 5]), grid="8", mode="break"),
+            "hook": gen_hook(r, k, prog, 64, rig("lead")),
+            "solo": gen_shred(r, k, prog, 64, pick_patch("lead-wah", "lead-monster")),
+            "pad": gen_clusters(r, k, prog, 48, "saw-pad"),
+        }
+        parts["riffSoft"] = soften(parts["riffG"])
+        return _write_parts(slot, "thrash", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
+    if style == "tool":
+        m1 = r.choice([7, 7, 5, 9, 11, 13]); g1 = r.choice(METERS[m1])
+        m2 = r.choice([31, 31, 23, 15]); g2 = r.choice(METERS[m2])
+        m3 = r.choice([9, 11, 13]); g3 = r.choice(METERS[m3])
+        tl = pick_patch("lead-tape", "lead-monster")
+        parts = {
+            "riffClean": gen_tool(r, k, low, m1, g1, "clean"),
+            "riffCleanB": gen_tool(r, k, low, m1, g1, "clean"),
+            "riff": gen_tool(r, k, low, m1, g1, "heavy"),
+            "riffB": gen_tool(r, k, low, m2, g2, "heavy"),
+            "riffT": gen_tool(r, k, low, m3, g3, "tribal"),
+            "riffP": gen_tool(r, k, low, m2, g2, "poly"),
+            "riffUp": gen_tool(r, k, low, m1, g1, "build"),
+            "hookA": gen_tool_lead(r, k, prog, m1, 62, tl),
+            "hookB": gen_tool_lead(r, k, prog, m2, 62, tl),
+        }
+        parts["riffSoft"] = soften(parts["riff"])
+        lens = {"riffClean": m1, "riffCleanB": m1, "riff": m1, "riffSoft": m1, "riffUp": m1, "hookA": m1,
+                "riffB": m2, "riffP": m2, "hookB": m2, "riffT": m3}
+        desc = f"{NAMES[p['pc']]} {p['mode']}, meters {m1}/8 ({'+'.join(map(str, g1))}), {m2}/8 ({'+'.join(map(str, g2))}), {m3}/8, rigs {p.get('rigset', 'modern')}"
+        return _write_parts(slot, "tool", parts, desc, {role: m * reps_for(m) / 2 for role, m in lens.items()})
     if style == "tech-death":
         kinds = r.sample(["trad", "hammer", "bomb"], 2)
         parts = {
