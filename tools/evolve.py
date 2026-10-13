@@ -163,6 +163,8 @@ def chapters(ident):
     return chs
 
 COMP_STYLES = ["glue", "pump", "smash", "parallel", "opto", "tape"]
+# Loudness-matched to glue (measured RMS over the same 48 beats through each master chain).
+COMP_TRIM = {"glue": 0.0, "pump": 6.1, "smash": 3.4, "parallel": 3.2, "opto": 3.3, "tape": -2.1}
 
 def has_patch(name):
     return subprocess.run([C, "plan", "-p", name, "C4/4"], capture_output=True).returncode == 0
@@ -196,7 +198,8 @@ def master_for(ident):
         "opto": [f"ott depth={ott * 0.5} time=0.6", f"compressor threshold=-18dB ratio=3 attack=30ms release=450ms makeup={makeup}dB", "glue threshold=-14dB ratio=1.5 makeup=1dB"],
         "tape": [f"ott depth={ott * 0.5} time=0.4", f"glue threshold=-16dB ratio=2 makeup={makeup - 1}dB", "tape drive=0.6 warmth=0.7"],
     }[comp]
-    fx = [json.loads(MASTER_BASE[0]), verb] + dyn + ["width width=1.2 mono_below=140"]
+    trim = COMP_TRIM.get(comp, 0.0)
+    fx = [json.loads(MASTER_BASE[0]), verb] + dyn + ([f"gain gain={trim:+.1f}dB"] if trim else []) + ["width width=1.2 mono_below=140"]
     return json.dumps(fx)
 
 def write_form(name, ident):
