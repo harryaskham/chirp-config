@@ -155,8 +155,71 @@ def track(name, patch, score, **kw):
 LENGTHS = {}  # part name → length in beats (parts default to 16)
 
 
+# ---------- time-varying effects (modulation, automation, sidechain) ----------------------
+
+def _add(t, fx=(), auto=None, lfo=None, **kw):
+    t = dict(t)
+    if fx:
+        t["fx"] = list(t.get("fx", [])) + list(fx)
+    if auto:
+        t["auto"] = dict(t.get("auto", {}), **auto)
+    if lfo:
+        t["lfo"] = dict(t.get("lfo", {}), **lfo)
+    t.update(kw)
+    return t
+
+
+def duck_low(tracks):
+    """Sidechain: the sub, reese and bass duck under the part's kick (tighter, punchier lows)."""
+    if not any(t["name"] == "kick" for t in tracks):
+        return tracks
+    depth = {"sub": "-8dB", "reese": "-6dB", "bass": "-3dB"}
+    return [_add(t, fx=[{"type": "duck", "by": "kick", "depth": depth[t["name"]], "attack": "2ms", "release": "90ms"}])
+            if t["name"] in depth else t for t in tracks]
+
+
+def sweep_build(tracks, beats=16):
+    """A build: the guitars' low-pass opens across the part and their level swells."""
+    pts = [["0b", 0.12], [f"{beats * 0.75:g}b", 0.7], [f"{beats:g}b", 1.0]]
+    out = []
+    for t in tracks:
+        if t["name"] in ("gtr-l", "gtr-r", "gtr", "twang"):
+            t = _add(t, fx=[{"type": "filter", "kind": "lp", "cutoff": {"value": 350, "mod": [{"src": "auto.open", "amount": 5.6}]}}],
+                     auto={"open": {"points": pts}, "swell": {"points": pts}},
+                     gain={"value": "-6dB", "mod": [{"src": "auto.swell", "amount": 6}]})
+        out.append(t)
+    return out
+
+
+def delay_throw(tracks, names, beats=16):
+    """Dub-style throw: a feedback delay's mix spikes over the last beat and a half, so the final
+    hits echo into the next section."""
+    pts = [["0b", 0], [f"{beats - 2:g}b", 0], [f"{beats - 1:g}b", 1], [f"{beats:g}b", 0.3]]
+    return [_add(t, fx=[{"type": "delay", "time": "3/16", "feedback": 0.5, "ping_pong": True, "tone": 3000,
+                         "mix": {"value": 0, "mod": [{"src": "auto.throw", "amount": 0.45}]}}],
+                 auto={"throw": {"points": pts}}) if t["name"] in names else t for t in tracks]
+
+
+def auto_pan(tracks, names, rate="1/1", depth=0.6):
+    return [_add(t, lfo={"pan": {"wave": "sine", "rate": rate}}, pan={"value": 0, "mod": [{"src": "lfo.pan", "amount": depth}]})
+            if t["name"] in names else t for t in tracks]
+
+
+def enhance(role, tracks, beats):
+    """Per-role time-varying effects applied to every generated part."""
+    tracks = duck_low(tracks)
+    if role in ("riffSoft", "riffUp"):
+        tracks = sweep_build(tracks, beats)
+    if role == "riffX":
+        tracks = auto_pan(delay_throw(tracks, ("twang",), beats), ("twang",))
+    if role == "riffBrk":
+        tracks = delay_throw(tracks, ("gtr-l", "gtr-r"), beats)
+    return tracks
+
+
 def write(name, about, tracks, beats=16):
     LENGTHS[name] = beats
+    tracks = enhance(name.rsplit("-", 1)[-1], tracks, beats)
     b = f"{beats:g}b"
     lines = [f"about: {json.dumps(f'Generated part (tempo: inherit, {beats:g} beats) — ' + about)}", "tempo: inherit", f"length: {b}", "tracks:"]
     lines += ["  - " + json.dumps(t) for t in tracks]

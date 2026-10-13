@@ -81,3 +81,13 @@ song's key; kits don't transpose) and saved songs return now and then with a new
 Generated parts add ghosts and flams; guitars get pinch squeals, tremolo-picked stabs, machine-gun
 double chugs, whammy dives and natural harmonics on twangs, and per-section inserts (phaser/chorus in
 space sections, a 1/16 stutter gate in some breakdowns).
+
+## Time-varying effects
+
+Every generated part goes through `compose.enhance(role, tracks, beats)`:
+sidechain (`duck` by the part's kick: sub −8 dB, reese −6, bass −3), builds (`riffSoft`/`riffUp`: an
+`auto` envelope opens a low-pass across the part and swells the level), dub delay throws at the end of
+breakdowns/space sections (an `auto` spike on a feedback delay's mix) and an LFO auto-pan on twangs.
+The engine also offers `track.NAME.vel/key` follow sources, song `vars` (lfo/auto/steps), `cc.N`, and
+modulatable amp gain, drive, delay/reverb/chorus/phaser mix, glue mix, OTT depth, tape drive, width, gain,
+pan and sends — all usable from these helpers.
