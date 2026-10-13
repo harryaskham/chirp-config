@@ -269,7 +269,32 @@ def gen_djent(r, k, prog, low, breakdown=False):
                 gtr.append(f"expr.pm=1 {note}/16@{v}"); bass.append(f"{note}/16@{v}")
     g = " ".join(gtr)
     b = " ".join(bass)
-    return rhythm_tracks(g) + [track("bass", rig("bass"), b, seed=7), track("sub", rig("sub"), b, seed=7)]
+    # Drums locked to the riff: kick under every chug/accent, backbeat (2 & 4, or 3 for
+    # breakdowns) from rimshot/centre/off-centre with ghosts, ride tip/shank quarters, crash or
+    # china on bar 1, china/stack/choked crash on accents.
+    kick, snare, cym = [], [], []
+    for i, tok in enumerate(gtr):
+        hit = not tok.startswith("R") and "^dead" not in tok
+        accent = "expr.pm=0" in tok
+        beat, sub = divmod(i % 16, 4)
+        kick.append(f"k/16@{118 if accent else 104}" if hit else "R/16")
+        back = (beat == 2) if breakdown else (beat in (1, 3))
+        if sub == 0 and back:
+            snare.append(f"{r.choice(['s', 's', 'sc', 'so'])}/16@118" + ("^flam" if r.random() < 0.15 else ""))
+        else:
+            snare.append(f"g/16@{r.choice([30, 38])}" if r.random() < 0.12 else "R/16")
+        if i % 16 == 0:
+            cym.append(f"{r.choice(['c', 'x', 'cbl'])}/16@114")
+        elif accent and r.random() < 0.5:
+            cym.append(f"{r.choice(['x', 'st', 'cch'])}/16@108")
+        elif sub == 0:
+            cym.append(f"{'rds' if beat % 2 else 'rd'}/16@{88 if beat % 2 else 80}")
+        else:
+            cym.append("R/16")
+    kit = rig("drums")
+    jn = lambda xs: " ".join(xs)
+    return rhythm_tracks(g) + [track("bass", rig("bass"), b, seed=7), track("sub", rig("sub"), b, seed=7),
+            track("kick", kit, jn(kick)), track("snare", kit, jn(snare)), track("cym", kit, jn(cym))]
 
 
 def gen_taps(r, k, prog, base):

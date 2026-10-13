@@ -264,7 +264,9 @@ def write_form(name, ident):
                 return
             t = ident["key"] + off + lift
             tracks[track].append(f"tr={t} @{part}{xf} tr=0" if t else f"@{part}{xf}")
-        drum = next((ident[r] for r in ["high", "mid", "half", "brk", "low"] if r in layers and ident.get(r)), None)
+        # Generated riffs carry their own locked drums: library beats only where no riff plays.
+        has_riff = any(l.startswith("riff") for l in layers) and ident.get("gen") and ident["style"] in ("djent", "djent-breakdown")
+        drum = None if has_riff else next((ident[r] for r in ["high", "mid", "half", "brk", "low"] if r in layers and ident.get(r)), None)
         tracks["drums"].append(f"@{drum}" if drum else rest(sec_len))
         # The motif develops when it returns: rotated/thinned in verse 2, thinned under the solo.
         riff_xf = {"verse2": random.choice(["^rot=0.5", "^rot=1", "^thin=0.2"]), "solo": "^thin=0.35"}.get(sec, "")
