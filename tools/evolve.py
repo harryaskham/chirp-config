@@ -262,7 +262,7 @@ def master_for(ident):
     }[comp]
     trim = COMP_TRIM.get(comp, 0.0) + STYLE_TRIM.get(ident.get("style"), 0.0)
     eq = [json.loads(MASTER_BASE[0])]
-    air = {"brostep": 2.5, "darksynth": 4.0, "tool": 1.5}.get(ident.get("style"))
+    air = {"brostep": 2.5, "darksynth": 3.0, "tool": 1.5}.get(ident.get("style"))
     if air:  # QA: these styles measure dark at the top
         eq.append({"type": "eq", "bands": ["peak cutoff=3500 q=0.8 gain=1.5dB", f"highshelf cutoff=8000 gain={air}dB"]})
     fx = eq + [verb] + dyn + ([f"gain gain={trim:+.1f}dB"] if trim else []) + ["width width=1.2 mono_below=140"]

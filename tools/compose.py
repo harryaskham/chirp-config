@@ -1170,7 +1170,7 @@ def gen_darksynth(r, k, prog, kind="verse"):
     gated = [{"type": "reverb", "kind": "plate", "decay": "1.2s", "mix": 0.3}, {"type": "gate", "threshold": "-30dB", "hold": "60ms", "release": "20ms"}]
     jn = lambda xs: " ".join(xs)
     out = [track("bassA", pick_patch("808-dist", "reese", "acid"), jn(bass), gain="-4dB"),
-           track("kick", kit, jn(kick)), track("snare", kit, jn(snare), fx=gated), track("hats", kit, jn(hats), pan=0.1, gain="3dB")]
+           track("kick", kit, jn(kick)), track("snare", kit, jn(snare), fx=gated), track("hats", kit, jn(hats), pan=0.1, gain="1.5dB")]
     out += gen_arp(r, k, prog, 60, pick_patch("supersaw", "arp-pluck"))
     if kind == "drop":
         chug = [f"expr.pm=1 {mname(t)}/16@{112 if x % 4 == 0 else 100}" if x % 2 == 0 else "R/16" for x in range(64)]
