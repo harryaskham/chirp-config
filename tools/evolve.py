@@ -66,6 +66,15 @@ STYLES = {
   "darksynth":  dict(form="darksynth", tempo=(104, 124), off=0, riff=["bass-acid"], riff_off=0, lift=0,
                      low=["beat-sparse"], mid=["beat-house"], high=["beat-house"], half=["beat-halftime"], brk=["beat-sparse"],
                      hook=["lead-hook"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["pad-swell"]),
+  "numetal":    dict(form="numetal", tempo=(92, 112), off=0, riff=["riff-chug5"], riff_off=0, lift=0,
+                     low=["beat-sparse"], mid=["beat-djent"], high=["beat-djent"], half=["beat-halftime"], brk=["beat-doom"],
+                     hook=["lead-solo"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["riff-hold"]),
+  "industrial": dict(form="industrial", tempo=(112, 128), off=0, riff=["riff-chug5"], riff_off=0, lift=0,
+                     low=["beat-sparse"], mid=["beat-djent"], high=["beat-djent"], half=["beat-halftime"], brk=["beat-doom"],
+                     hook=["lead-solo"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["riff-hold"]),
+  "dnb":        dict(form="dnb", tempo=(170, 176), off=0, riff=["bass-acid"], riff_off=0, lift=0,
+                     low=["beat-sparse"], mid=["beat-djent"], high=["beat-djent"], half=["beat-halftime"], brk=["beat-doom"],
+                     hook=["lead-solo"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["riff-hold"]),
   "tech-death": dict(form="tech-death", tempo=(170, 220), off=0, riff=["riff-chug7"], riff_off=0, lift=0,
                      low=["beat-sparse"], mid=["beat-blast"], high=["beat-blast"], half=["beat-halftime"], brk=["beat-doom"],
                      hook=["lead-solo"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["riff-hold"]),
@@ -121,6 +130,15 @@ FORMS = {
                 ("build", ["riffUp", "pad"], "riser"), ("drop", ["riffD", "hook"], "impact"), ("drop", ["riffD2", "hook"], None),
                 ("break", ["riffIntro"], "revcym"), ("build", ["riffUp"], "riser"), ("final", ["riffD", "hook", "pad"], "impact"),
                 ("outro", ["riffIntro"], "revcym")],
+  "numetal": [("intro", ["riffV"], None), ("verse", ["riffV"], None), ("verse", ["riffSoft"], "impact"), ("chorus", ["riffH", "hook"], "impact"),
+              ("verse2", ["riff"], "impact"), ("verse2", ["riffB"], None), ("chorus", ["riffH", "hook"], "impact"), ("break", ["riffBrk"], "impact"),
+              ("bridge", ["riffV", "pad"], "revcym"), ("final", ["riffB", "hook"], "impact"), ("outro", ["riffV"], "revcym")],
+  "industrial": [("intro", ["riffV"], None), ("verse", ["riffSoft"], "impact"), ("verse", ["riff"], None), ("build", ["riffUp", "pad"], "riser"),
+                 ("chorus", ["riffS", "hook"], "impact"), ("chorus", ["riff", "hook"], None), ("break", ["riffV", "pad"], "revcym"),
+                 ("final", ["riffS", "hook", "pad"], "impact"), ("final", ["riff", "hook"], None), ("outro", ["riffV"], "revcym")],
+  "dnb": [("intro", ["riffIntro"], None), ("build", ["riffUp", "pad"], "riser"), ("drop", ["riff"], "impact"), ("drop", ["riffB"], None),
+          ("break", ["riffIntro", "soft", "hookE"], "revcym"), ("build", ["riffUp", "arp"], "riser"), ("drop", ["riffM"], "impact"),
+          ("drop", ["riffM2"], None), ("outro", ["soft"], "revcym")],
   "tech-death": [("blast", ["riff"], "impact"), ("blast", ["riffB", "pad"], None), ("dbeat", ["riffD"], "impact"),
                  ("dbeat", ["riffD", "hook"], None), ("groove", ["riffSoft"], "impact"), ("groove", ["riffG", "pad"], None),
                  ("blast", ["riff", "hook"], "impact"), ("break", ["riffBrk"], "impact"), ("break", ["riffBrk", "drone"], None),
@@ -170,7 +188,7 @@ PASS_MINUTES = 1.0
 ENERGY = {"intro": 0.3, "intro2": 0.45, "verse": 0.6, "verse2": 0.65, "pre": 0.7, "build": 0.7, "chorus": 0.85,
           "drop": 0.95, "heavy": 0.85, "blast": 1.0, "dbeat": 0.85, "groove": 0.7, "shuffle": 0.7, "toms": 0.75,
           "space": 0.4, "break": 0.9, "C": 0.8, "C2": 0.8, "solo": 0.85, "final": 1.0, "outro": 0.35, "coda": 0.3,
-          "A": 0.6, "A2": 0.7, "B": 0.8, "B2": 0.85, "climax": 1.0, "fast": 1.0, "stop": 0.9, "half": 0.75}
+          "A": 0.6, "A2": 0.7, "B": 0.8, "B2": 0.85, "climax": 1.0, "fast": 1.0, "stop": 0.9, "half": 0.75, "bridge": 0.5}
 RAMPS = {"pre", "build", "intro2"}
 
 
@@ -225,7 +243,8 @@ def chapters(ident):
 
 COMP_STYLES = ["glue", "pump", "smash", "parallel", "opto", "tape"]
 # Loudness-matched to glue (measured RMS over the same 48 beats through each master chain).
-STYLE_TRIM = {"tool": 2.0}  # sparse styles sit lower (QA loudness)
+FLAVOR_HOOK = {"vintage": ["rack:tape-echo"], "industrial": ["rack:radio"], "space": ["rack:shimmer-hall"], "wide": ["rack:chorus-wide"]}
+STYLE_TRIM = {"tool": 2.0, "numetal": 2.5, "industrial": -2.5}  # sparse styles sit lower (QA loudness)
 COMP_TRIM = {"glue": 0.0, "pump": 6.1, "smash": 3.4, "parallel": 3.2, "opto": 3.3, "tape": -2.1}
 
 def has_patch(name):
@@ -262,10 +281,13 @@ def master_for(ident):
     }[comp]
     trim = COMP_TRIM.get(comp, 0.0) + STYLE_TRIM.get(ident.get("style"), 0.0)
     eq = [json.loads(MASTER_BASE[0])]
-    air = {"brostep": 2.5, "darksynth": 3.0, "tool": 1.5}.get(ident.get("style"))
+    air = {"brostep": 2.5, "darksynth": 3.0, "tool": 1.5, "industrial": 3.0, "dnb": 2.0}.get(ident.get("style"))
     if air:  # QA: these styles measure dark at the top
         eq.append({"type": "eq", "bands": ["peak cutoff=3500 q=0.8 gain=1.5dB", f"highshelf cutoff=8000 gain={air}dB"]})
-    fx = eq + [verb] + dyn + ([f"gain gain={trim:+.1f}dB"] if trim else []) + ["width width=1.2 mono_below=140"]
+    flavor = (ident.get("gen") or {}).get("flavor", "modern")
+    dyn = dyn + (["tape drive=0.45 warmth=0.65"] if flavor == "vintage" else [])
+    width = "width width=1.35 mono_below=140" if flavor == "wide" else "width width=1.2 mono_below=140"
+    fx = eq + [verb] + dyn + ([f"gain gain={trim:+.1f}dB"] if trim else []) + [width]
     return json.dumps(fx)
 
 def write_form(name, ident):
@@ -281,6 +303,7 @@ def write_form(name, ident):
         gdesc, lens = "library parts", {}
     roles = ["drums", "riff", "hook", "pad", "arp", "hold", "drone", "fx"]
     tracks = {t: [] for t in roles}
+    flavor = (ident.get("gen") or {}).get("flavor", "modern")
     chs = chapters(ident)
     chapter = chs[min(ident.get("chapter", 0), len(chs) - 1)]
     form_secs = [sec for sec, _, _ in chapter]
@@ -333,7 +356,9 @@ def write_form(name, ident):
     lines = [f"about: Generated {s['form']}-form song — {ident['style']} at {ident['tempo']} BPM, {gdesc}, shift {ident['key']:+d}, chapter {ident.get('chapter', 0) + 1}/{len(chs)}, comp {ident.get('comp', 'glue')}.",
              f"tempo: {ident['tempo']}", "tracks:"]
     for t, items in tracks.items():
-        if t == "riff":
+        if t == "hook" and FLAVOR_HOOK.get(flavor):
+            lines.append("  - " + json.dumps({"name": t, "score": " ".join(items), "fx": composer.expand(FLAVOR_HOOK[flavor])}))
+        elif t == "riff":
             lines.append("  - " + json.dumps(dict({"name": t, "score": " ".join(items), "auto": {"energy": {"points": energy_lane(meta)}}}, **energy_fx(ident["style"]))))
         else:
             lines.append(f"  - {{name: {t}, score: \"{' '.join(items)}\"}}")
@@ -342,7 +367,7 @@ def write_form(name, ident):
 TOOLS = "/home/harry/.config/chirp/tools"
 JOURNEY = f"{TOOLS}/journey.json"
 # How heavy each style is (0 lofi … 1 djent).
-HEAVY = {"blackgaze": 0.95, "darksynth": 0.8, "hardcore-kl": 1.0, "brostep": 0.8, "thrash": 0.9, "tool": 0.9, "tech-death": 1.0, "meshuggah": 1.0, "lofi": 0.0, "classical": 0.05, "house": 0.2, "garage": 0.25, "poly": 0.35, "prog-clean": 0.4, "acid": 0.45,
+HEAVY = {"numetal": 0.9, "industrial": 0.85, "dnb": 0.8, "blackgaze": 0.95, "darksynth": 0.8, "hardcore-kl": 1.0, "brostep": 0.8, "thrash": 0.9, "tool": 0.9, "tech-death": 1.0, "meshuggah": 1.0, "lofi": 0.0, "classical": 0.05, "house": 0.2, "garage": 0.25, "poly": 0.35, "prog-clean": 0.4, "acid": 0.45,
          "idm": 0.55, "doom-ambient": 0.6, "hardcore": 0.7, "djent-breakdown": 0.85, "djent": 1.0}
 
 STYLE_QUEUE = []
@@ -364,8 +389,8 @@ def journey_style(h, current):
         if r < 0.2:
             return random.choice([k for k in STYLES if k not in ("djent", "meshuggah", current)])
         x = random.random()
-        mix = [("meshuggah", 0.3), ("hardcore-kl", 0.11), ("tech-death", 0.1), ("thrash", 0.1), ("tool", 0.1), ("djent", 0.09),
-               ("brostep", 0.08), ("blackgaze", 0.07), ("darksynth", 0.05)]
+        mix = [("meshuggah", 0.26), ("hardcore-kl", 0.1), ("tech-death", 0.09), ("thrash", 0.09), ("tool", 0.09), ("djent", 0.07),
+               ("brostep", 0.07), ("blackgaze", 0.06), ("darksynth", 0.04), ("numetal", 0.05), ("industrial", 0.05), ("dnb", 0.03)]
         for name, w in mix:
             x -= w
             if x <= 0:
