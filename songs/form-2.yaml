@@ -1,8 +1,8 @@
 about: Generated rock-form song — poly at 92 BPM, Eb major, prog 1-5-6-4, shift +0.
 tempo: 92
 tracks:
-  - {name: drums, score: "R/1 R/1 R/1 R/1 @beat-sparse @beat-ghost @beat-ghost @beat-halftime @beat-trap @beat-trap @beat-ghost @beat-trap @beat-lofi @beat-trap @beat-halftime @beat-trap @beat-trap @beat-sparse"}
-  - {name: riff, score: "R/1 R/1 R/1 R/1 R/1 R/1 R/1 R/1 @gen-form-2-riff @gen-form-2-riff R/1 R/1 R/1 R/1 @gen-form-2-riff @gen-form-2-riff @gen-form-2-riff^rot=1 @gen-form-2-riff R/1 R/1 R/1 R/1 @gen-form-2-riff^thin=0.35 R/1 R/1 R/1 R/1 tr=2 @gen-form-2-riff tr=0 tr=2 @gen-form-2-riff tr=0 R/1 R/1 R/1 R/1"}
+  - {name: drums, score: "R/1 R/1 R/1 R/1 @beat-sparse @beat-euclid @beat-euclid @beat-halftime @beat-trap @beat-trap @beat-euclid @beat-trap @beat-lofi @beat-trap @beat-halftime @beat-trap @beat-trap @beat-sparse"}
+  - {name: riff, score: "R/1 R/1 R/1 R/1 R/1 R/1 R/1 R/1 @gen-form-2-riff^rot=0.25 @gen-form-2-riff^rot=0.25 R/1 R/1 R/1 R/1 @gen-form-2-riff^rot=0.25 @gen-form-2-riff^rot=0.25 @gen-form-2-riff^thin=0.2^rot=0.25 @gen-form-2-riff^rot=0.25 R/1 R/1 R/1 R/1 @gen-form-2-riff^thin=0.35^rot=0.25 R/1 R/1 R/1 R/1 tr=2 @gen-form-2-riff^rot=0.25 tr=0 tr=2 @gen-form-2-riff^rot=0.25 tr=0 R/1 R/1 R/1 R/1"}
   - {name: hook, score: "R/1 R/1 R/1 R/1 R/1 R/1 R/1 R/1 R/1 R/1 R/1 R/1 R/1 R/1 R/1 R/1 R/1 R/1 R/1 R/1 @gen-form-2-hook @gen-form-2-hook R/1 R/1 R/1 R/1 @gen-form-2-hook R/1 R/1 R/1 R/1 @gen-form-2-hook^rot=1 R/1 R/1 R/1 R/1 tr=2 @gen-form-2-hook tr=0 tr=2 @gen-form-2-hook tr=0 R/1 R/1 R/1 R/1"}
   - {name: pad, score: "@gen-form-2-soft @gen-form-2-soft R/1 R/1 R/1 R/1 R/1 R/1 R/1 R/1 @gen-form-2-pad @gen-form-2-pad @gen-form-2-pad R/1 R/1 R/1 R/1 @gen-form-2-pad R/1 R/1 R/1 R/1 R/1 R/1 R/1 R/1 @gen-form-2-pad tr=2 @gen-form-2-pad tr=0 tr=2 @gen-form-2-pad tr=0 @gen-form-2-soft"}
   - {name: arp, score: "R/1 R/1 R/1 R/1 R/1 R/1 R/1 R/1 R/1 R/1 R/1 R/1 @gen-form-2-arp R/1 R/1 R/1 R/1 R/1 R/1 R/1 R/1 R/1 R/1 R/1 R/1 @gen-form-2-arp R/1 R/1 R/1 R/1 R/1 R/1 R/1 R/1 R/1 R/1 R/1 R/1 @gen-form-2-arp tr=2 @gen-form-2-arp tr=0 tr=2 @gen-form-2-arp tr=0 R/1 R/1 R/1 R/1"}

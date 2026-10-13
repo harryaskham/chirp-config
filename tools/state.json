@@ -17,7 +17,7 @@
   },
   "riff": "riff-chug5",
   "low": "beat-sparse",
-  "mid": "beat-poly7",
+  "mid": "beat-euclid",
   "high": "beat-djent",
   "half": "beat-halftime",
   "brk": "beat-doom",
@@ -25,7 +25,10 @@
   "pad": "pad-dark",
   "soft": "pad-swell",
   "arp": "arp-16th",
-  "hold": "riff-hold"
+  "hold": "riff-hold",
+  "xf": {
+   "riff": "^rot=0.25"
+  }
  },
  "next": "form-2",
  "next_ident": {
@@ -45,7 +48,7 @@
   },
   "riff": "riff-nylon",
   "low": "beat-sparse",
-  "mid": "beat-ghost",
+  "mid": "beat-euclid",
   "high": "beat-trap",
   "half": "beat-halftime",
   "brk": "beat-lofi",
@@ -53,7 +56,10 @@
   "pad": "bass-808",
   "soft": "pad-swell",
   "arp": "arp-16th",
-  "hold": "riff-hold"
+  "hold": "riff-hold",
+  "xf": {
+   "riff": "^rot=0.25"
+  }
  },
  "loop_index": 9
 }
