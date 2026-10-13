@@ -30,3 +30,32 @@ Keep a live `groove` session evolving as real songs.
 
 `state.json` shows what is playing and queued; `journey.json` the heaviness climb (full djent mode:
 mostly djent, sometimes breakdown, clean or another genre). Watch with `chirp watch`.
+
+## Rigs (reusable sound choices)
+
+`compose.py` keeps every instrument choice in `RIGS` (with fallbacks for builds that lack a patch)
+and builds guitars through `rhythm_tracks(score)`, so other composition scripts get the same sound:
+
+```python
+import os, sys; sys.path.insert(0, os.path.expanduser("~/.config/chirp/tools")); import compose
+tracks = compose.rhythm_tracks("expr.pm=1 F1/16@110 F1@98 …") + [compose.track("bass", compose.rig("bass"), "F1/16@110 …")]
+```
+
+| Role | Patches (first available) |
+| --- | --- |
+| rhythm | `m8-rhythm-l` + `m8-rhythm-r` — a real double: two rigs (5150 / Gojira voicings, different IRs, pick, pickup, stiffness), two players (seeds 7 / 13, looser right hand) |
+| bass | `bass-fat` (heavy string DI + strong sub, light amp blend) → `bass-di` → `m8-bass` |
+| sub / twang / lead / drums | `sub-sine` → `sub` · `m8-twang` · `lead-monster` · `prog-kit` |
+
+In hand-written YAML, double a rhythm part the same way:
+
+```yaml
+- {name: gtr-l, patch: m8-rhythm-l, pan: L90, seed: 7, score: "…"}
+- {name: gtr-r, patch: m8-rhythm-r, pan: R90, seed: 13, score: "…"}
+```
+
+Riff building blocks in `compose.py`: `gen_meshuggah` (odd cycles over a 4/4 pulse with locked
+drums; power chords, clusters, choked stops, muted scratches; `mode` riff / toms / shuffle / break),
+`gen_space` (ringing twangs with gaps), `gen_djent`, `gen_hook` (motif → sequence → cadence),
+`gen_clusters`, `gen_hold`, `soften` (velocity-scaled variant). Modes include the evil ones
+(double-harmonic, hungarian, neapolitan, phrygian-dominant, locrian, diminished).

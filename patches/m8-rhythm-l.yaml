@@ -1,0 +1,9 @@
+about: "Left rhythm rig for double-tracked heavy riffs: the 8-string into a 5150-voiced amp with a screamer, cookie-monster/kitten-slayer cab blend, fizz dip and high shelf, a short plate. Pair with m8-rhythm-r on the right (different rig, pick and seed) for a real double."
+extends: "m8 layers.0.pick=0.12 layers.0.pickup=0.09"
+fx:
+  - {type: amp, model: "5150", gain: 0.8, ts: 0.6, tight: 120, boost: 4dB, bass: 0.55, mid: 0.62, treble: 0.5, presence: 0.5, resonance: 0.65, sag: 0.25}
+  - {type: ir, file: jester/cookie-monster, blend_file: jester/kitten-slayer, blend: 0.35, length: 120ms}
+  - {type: eq, bands: ["peak cutoff=250 q=1.2 gain=-2dB", "peak cutoff=3300 q=1.2 gain=-2.5dB", "highshelf cutoff=7500 gain=-3dB"]}
+  - {type: gate, threshold: -52dB, attack: 0.5ms, hold: 20ms, release: 45ms}
+  - "reverb kind=plate decay=1s mix=0.08 predelay=12ms"
+gain: -22dB

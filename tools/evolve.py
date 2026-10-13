@@ -373,7 +373,12 @@ if __name__ == "__main__":
                     change += f", {k}"
             elif not first or passes > 1:
                 style = journey_style(j.get("h", 0), ident["style"]) if j.get("on") else random.choice([k for k in STYLES if k != ident["style"]])
-                ident, passes, change = identity(style), 1, f"new song h={j.get('h', 0):.2f}" if j.get("on") else "new song"
+                prev_bpm = ident.get("tempo", 120)
+                for _ in range(8):  # keep tempos moving: at least 14 BPM from the last song
+                    cand = identity(style)
+                    if abs(cand["tempo"] - prev_bpm) >= 14:
+                        break
+                ident, passes, change = cand, 1, f"new song h={j.get('h', 0):.2f}" if j.get("on") else "new song"
             else:
                 change = "first pass"
             flip = 1 - flip

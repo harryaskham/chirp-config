@@ -42,6 +42,51 @@ STYLE_MODES = {
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 
 
+_HAVE = {}
+
+def have(patch):
+    """Is `patch` available to the running chirp (built-ins differ by build)?"""
+    if patch not in _HAVE:
+        import os, subprocess
+        c = os.environ.get("CHIRP_BIN") or "chirp"
+        _HAVE[patch] = subprocess.run([c, "plan", "-p", patch, "C2/4"], capture_output=True).returncode == 0
+    return _HAVE[patch]
+
+
+def pick_patch(*names):
+    """First available patch in order of preference."""
+    return next((n for n in names if have(n)), names[-1])
+
+
+# Rigs: the instrument choices every generator uses, with fallbacks for builds that lack a
+# patch. Import this module from other composition scripts and reuse the same sound:
+#     sys.path.insert(0, os.path.expanduser("~/.config/chirp/tools")); import compose
+#     tracks = compose.rhythm_tracks("expr.pm=1 F1/16@110 …") + [compose.track("bass", compose.rig("bass"), "F1/16@110 …")]
+RIGS = {
+    "rhythm": (("m8-rhythm-l", "m8-rhythm-r"), ("m8-tight", "m8-tight layers.0.pick=0.14 humanize.time=5ms")),
+    "bass": ("bass-fat", "bass-di", "m8-bass"),
+    "sub": ("sub-sine", "sub"),
+    "twang": ("m8-twang", "m8"),
+    "lead": ("lead-monster", "synth-lead"),
+    "drums": ("prog-kit",),
+}
+
+
+def rig(role):
+    """The first available patch for a rig role (rhythm returns a (left, right) pair)."""
+    opts = RIGS[role]
+    if role == "rhythm":
+        return next((pair for pair in opts if all(have(p.split()[0]) for p in pair)), opts[-1])
+    return pick_patch(*opts)
+
+
+def rhythm_tracks(score, *, pair=None, pan=90, seeds=(7, 13)):
+    """A real double-tracked rhythm guitar: the same part on two rigs played by two "players"
+    (own seeds, the right looser), hard-panned. `pair` overrides the (left, right) rigs."""
+    left, right = pair or rig("rhythm")
+    return [track("gtr-l", left, score, pan=f"L{pan}", seed=seeds[0]), track("gtr-r", right, score, pan=f"R{pan}", seed=seeds[1])]
+
+
 def mname(m):
     return f"{NAMES[m % 12]}{m // 12 - 1}"
 
@@ -123,8 +168,7 @@ def gen_djent(r, k, prog, low, breakdown=False):
                 gtr.append(f"expr.pm=1 {note}/16@{v}"); bass.append(f"{note}/16@{v}")
     g = " ".join(gtr)
     b = " ".join(bass)
-    return [track("gtr-l", "{gp}", g, pan="L90", seed=7), track("gtr-r", "{gp} layers.0.pick=0.14 humanize.time=5ms", g, pan="R90", seed=7),
-            track("bass", "bass-di", b, seed=7), track("sub", "sub", b, seed=7)]
+    return rhythm_tracks(g) + [track("bass", rig("bass"), b, seed=7), track("sub", rig("sub"), b, seed=7)]
 
 
 def gen_taps(r, k, prog, base):
@@ -175,12 +219,12 @@ def gen_bassline(r, k, prog, base, patch="bass"):
     return [track("bass", patch, " ".join(out), gain="-4dB")]
 
 
-def gen_808(r, k, prog, base):
+def gen_808(r, k, prog, base, patch="808"):
     out = []
     for root in prog:
         rt = k.deg(root, base)
         out.append(f"{mname(rt)}/4.@110 {mname(rt)}/8@100 R/4 ({mname(k.deg(root + 2, base))}|{mname(rt + 12)})/8@104 {mname(rt)}/8@100")
-    return [track("sub808", "808", " ".join(out))]
+    return [track("sub808", patch, " ".join(out))]
 
 
 def gen_stabs(r, k, prog, base, patch):
@@ -270,8 +314,7 @@ def gen_hold(r, k, prog, low, gp):
             rt -= 12
         out.append(f"{chordhead([rt, rt + 7, rt + 12])}/1@{r.choice([120, 124])}^gate=1")
         bass.append(f"{mname(rt)}/1@120")
-    return [track("gtr-l", gp, "expr.pm=0 " + " ".join(out), pan="L90", seed=7), track("gtr-r", gp + " layers.0.pick=0.14 humanize.time=5ms", "expr.pm=0 " + " ".join(out), pan="R90", seed=7),
-            track("bass", "bass-di", " ".join(bass)), track("sub", "sub", " ".join(bass))]
+    return rhythm_tracks("expr.pm=0 " + " ".join(out)) + [track("bass", rig("bass"), " ".join(bass)), track("sub", rig("sub"), " ".join(bass))]
 
 
 def gen_meshuggah(r, k, low, gp, cycle, grid="16", mode="riff"):
@@ -282,19 +325,27 @@ def gen_meshuggah(r, k, low, gp, cycle, grid="16", mode="riff"):
     steps = {"16": 64, "12": 48, "8": 32}[grid]
     per_beat = {"16": 4, "12": 3, "8": 2}[grid]
     t = k.deg(0, low)
-    accents = [[t, t + 1], [t, t + 1, t + 12], [t, t + 6], [t + 6, t + 12], [t + 6, t + 13], [t, t + 13], [t + 12, t + 13, t + 18],
-               [t, t + 11], [t + 1, t + 8], [t + 12, t + 15, t + 18]]  # maj7, b2 power chord, diminished triad
+    evil = [[t, t + 1], [t, t + 1, t + 12], [t, t + 6], [t + 6, t + 12], [t + 6, t + 13], [t, t + 13], [t + 12, t + 13, t + 18],
+            [t, t + 11], [t + 12, t + 15, t + 18]]  # clusters, tritones, maj7, diminished
+    power = [[t, t + 7, t + 12], [t + 1, t + 8, t + 13], [t + 6, t + 13, t + 18], [t + 3, t + 10, t + 15], [t, t + 7]]
+    pick_acc = lambda: r.choice(power) if r.random() < 0.6 else r.choice(evil)
     # Build one cycle from cells: chug runs, gaps, accents, dead notes.
-    cyc = [("acc", r.choice(accents))]
+    cyc = [("acc", pick_acc())]
     while len(cyc) < cycle:
         x = r.random()
-        if x < 0.45:
+        if x < 0.42:
             for _ in range(r.choice([1, 2, 2, 3])):
                 cyc.append(("chug", t if r.random() < 0.85 else t + 1))
-        elif x < 0.65:
+        elif x < 0.58:
             cyc.append(("rest", None))
-        elif x < 0.85:
-            cyc.append(("acc", r.choice(accents)))
+        elif x < 0.8:
+            if r.random() < 0.3:  # choked stab into a full-band stop
+                cyc.append(("stab", pick_acc()))
+                cyc += [("stop", None)] * r.choice([1, 2])
+            else:
+                cyc.append(("acc", pick_acc()))
+        elif x < 0.9:
+            cyc.append(("mute", r.choice(power)))  # muted chord scratch
         else:
             cyc.append(("dead", t))
     cyc = cyc[:cycle]
@@ -307,7 +358,15 @@ def gen_meshuggah(r, k, low, gp, cycle, grid="16", mode="riff"):
         dur = f"/{grid}"
         bar_off = [-6, -2, 0, 4][min(3, i * 4 // steps)]  # each phrase builds
         run = run + 1 if kind == "chug" else 0
-        if kind == "acc":
+        if kind == "stab":
+            v = min(127, 122 + bar_off)
+            gtr.append(f"expr.pm=0 {chordhead(pc)}{dur}@{v}^gate=0.35"); bass.append(f"{mname(pc[0])}{dur}@{v}^gate=0.35")
+            kick.append(f"k{dur}@{v}")
+        elif kind == "stop":
+            gtr.append(f"R{dur}"); bass.append(f"R{dur}"); kick.append(f"R{dur}")
+        elif kind == "mute":
+            gtr.append(f"expr.pm=0 {chordhead(pc)}{dur}@{r.choice([64, 72, 80])}^dead"); bass.append(f"R{dur}"); kick.append(f"R{dur}")
+        elif kind == "acc":
             v = min(127, (126 if restart else r.choice([110, 116, 120])) + bar_off)
             art = "^gate=1.6" if ring else "^gate=0.9"
             gtr.append(f"expr.pm=0 {chordhead(pc)}{dur}@{v}{art}"); bass.append(f"{mname(pc[0])}{dur}@{v}")
@@ -324,7 +383,9 @@ def gen_meshuggah(r, k, low, gp, cycle, grid="16", mode="riff"):
         beat_pos, beat = i % per_beat, i // per_beat
         snare.append(f"s{dur}@{116 if beat % 4 == 2 else 0}" if beat_pos == 0 and beat % 4 == 2 else
                      (f"g{dur}@{r.choice([34, 40])}" if r.random() < 0.06 else f"R{dur}"))
-        if beat_pos == 0:
+        if kind == "stop":
+            cym.append(f"R{dur}")
+        elif beat_pos == 0:
             piece = "x" if restart else ("rd" if mode == "riff" else "h")
             cym.append(f"{piece}{dur}@{(118 if restart else r.choice([84, 90, 96])) + bar_off}")
         else:
@@ -334,9 +395,11 @@ def gen_meshuggah(r, k, low, gp, cycle, grid="16", mode="riff"):
     for j, piece in enumerate(fill):
         snare[steps - per_beat + j] = f"{piece}/{grid}@{110 + 2 * j}"
     j = lambda xs: " ".join(xs)
-    return [track("gtr-l", gp, j(gtr), pan="L90", seed=7), track("gtr-r", gp + " layers.0.pick=0.14 humanize.time=5ms", j(gtr), pan="R90", seed=7),
-            track("bass", "bass-fat", j(bass), seed=7), track("sub", "sub", j(bass), seed=7),
-            track("kick", "prog-kit", j(kick)), track("snare", "prog-kit", j(snare)), track("cym", "prog-kit", j(cym))]
+    kit = rig("drums")
+    return rhythm_tracks(j(gtr)) + [track("bass", rig("bass"), j(bass), seed=7), track("sub", rig("sub"), j(bass), seed=7),
+            track("kick", kit, j(kick)), track("snare", kit, j(snare)), track("cym", kit, j(cym))] + (
+            [track("reese", "reese", j(f"{mname(pc[0] + 12)}{dur}@{100}^gate=2" if kind == "acc" else f"R{dur}" for kind, pc in (cyc[i % cycle] for i in range(steps))), gain="-8dB")]
+            if mode == "break" and have("reese") else [])
 
 
 def gen_space(r, k, low, gp, cycle):
@@ -372,9 +435,9 @@ def gen_space(r, k, low, gp, cycle):
             cym.append(f"h{dur}@{r.choice([60, 70])}" if i % 2 == 0 else f"R{dur}")
         snare.append(f"s{dur}@112" if i % 8 == 4 else f"R{dur}")
     j = lambda xs: " ".join(xs)
-    return [track("gtr-l", gp, j(gtr), pan="L90", seed=7), track("gtr-r", gp + " layers.0.pick=0.14 humanize.time=5ms", j(gtr), pan="R90", seed=7),
-            track("twang", "m8-twang", j(twang)), track("bass", "bass-fat", j(bass), seed=7), track("sub", "sub", j(bass), seed=7),
-            track("kick", "prog-kit", j(kick)), track("snare", "prog-kit", j(snare)), track("cym", "prog-kit", j(cym))]
+    kit = rig("drums")
+    return rhythm_tracks(j(gtr)) + [track("twang", rig("twang"), j(twang)), track("bass", rig("bass"), j(bass), seed=7),
+            track("sub", rig("sub"), j(bass), seed=7), track("kick", kit, j(kick)), track("snare", kit, j(snare)), track("cym", kit, j(cym))]
 
 
 def gen_drone(k, base, patch):
@@ -421,7 +484,7 @@ def compose(style, slot, p):
             "riffT": gen_meshuggah(r, k, low, gp, r.choice([22, 14, 20, 18]), mode="toms"),
             "riffS": gen_meshuggah(r, k, low, gp, r.choice([11, 7, 10, 5]), grid="12", mode="shuffle"),
             "riffBrk": gen_meshuggah(r, k, low, gp, r.choice([7, 11, 5]), grid="8", mode="break"),
-            "hook": gen_hook(r, k, prog, 62, "lead-monster"),
+            "hook": gen_hook(r, k, prog, 62, rig("lead")),
             "pad": gen_clusters(r, k, prog, 48, "saw-pad"),
             "soft": gen_clusters(r, k, prog, 48, "ambient-swell", vel=68),
             "arp": gen_arp(r, k, prog, 55, "arp-pluck"),
@@ -437,28 +500,33 @@ def compose(style, slot, p):
         return names, desc
     heavy = style in ("djent", "djent-breakdown", "doom-ambient")
     if style in ("djent", "djent-breakdown"):
-        riff = [dict(t, patch=t["patch"].replace("{gp}", gp)) for t in gen_djent(r, k, prog, low, style == "djent-breakdown")]
+        riff = gen_djent(r, k, prog, low, style == "djent-breakdown")
     elif style == "doom-ambient":
         riff = gen_hold(r, k, prog, low, gp)
     elif style == "prog-clean":
         riff = gen_taps(r, k, prog, 50)
     elif style == "poly":
-        riff = gen_chops(r, k, prog, 52) + gen_808(r, k, prog, 26)
+        riff = gen_chops(r, k, prog, 52) + gen_808(r, k, prog, 26, pick_patch("808-slide", "808"))
     elif style in ("house",):
         riff = gen_bassline(r, k, prog, 33)
     elif style == "garage":
-        riff = gen_808(r, k, prog, 26) + gen_stabs(r, k, prog, 50, "rhodes")
+        riff = gen_808(r, k, prog, 26, pick_patch("808-short", "808")) + gen_stabs(r, k, prog, 50, "rhodes")
+    elif style == "idm" and r.random() < 0.6 and have("reese"):
+        riff = gen_bassline(r, k, prog, 33, r.choice([p for p in ["reese", "growl"] if have(p)]))
     elif style in ("acid", "hardcore", "idm"):
         riff = gen_acid(r, k, prog, 33)
     elif style == "lofi":
         riff = gen_comp(r, k, prog, 50)
     else:  # classical
         riff = gen_alberti(r, k, prog, 41)
-    hook_patch = {"djent": r.choice(["lead-monster", "synth-lead"]), "djent-breakdown": "lead-monster", "doom-ambient": "lead-monster",
+    hook_patch = {"djent": r.choice(["lead-monster", "synth-lead"] + (["supersaw"] if have("supersaw") else [])),
+                  "hardcore": pick_patch("hoover", "synth-lead"), "djent-breakdown": "lead-monster", "doom-ambient": "lead-monster",
                   "prog-clean": r.choice(["synth-lead", "strat-neck"]), "poly": "nylon", "house": "house-chord", "garage": "rhodes",
                   "lofi": "nylon", "classical": "piano"}.get(style, "synth-lead")
-    if style in ("house",):
+    if style in ("house",) and not (have("pluck-lead") and r.random() < 0.5):
         hook = gen_stabs(r, k, prog, 53, "house-chord")
+    elif style == "house":
+        hook = gen_hook(r, k, prog, 64, "pluck-lead")
     else:
         hook = gen_hook(r, k, prog, 64 if style not in ("lofi", "poly", "classical") else 60, hook_patch)
     pad_patch = "strings" if style in ("classical", "doom-ambient") else ("rhodes" if style == "lofi" else "saw-pad")
