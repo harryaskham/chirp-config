@@ -15,3 +15,7 @@ roles:
   soft: [pad-swell]
   arp: [arp-16th]
   hold: [chords-house]
+fill_kit: "909"
+feel:
+  drums: "^sw=0.6"
+  riff: "^sw=0.6"

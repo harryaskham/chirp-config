@@ -16,3 +16,7 @@ roles:
   soft: [tex-vinyl]
   arp: [keys-rhodes]
   hold: [pad-swell]
+feel:
+  drums: "^sw=0.62^push=0.02"
+  riff: "^push=0.03"
+  hook: "^push=0.02"
