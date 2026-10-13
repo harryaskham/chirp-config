@@ -1,7 +1,0 @@
-about: Generated combo — beat-euclid + riff-chug7 + pad-dark + lead-hook at 92 BPM.
-tempo: 92
-tracks:
-  - {name: drums, score: "[ @beat-euclid ]x2"}
-  - {name: riff, score: "[ @riff-chug7 ]x2"}
-  - {name: layer0, score: "[ @pad-dark ]x2"}
-  - {name: layer1, score: "[ @lead-hook ]x2"}

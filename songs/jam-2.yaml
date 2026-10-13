@@ -1,6 +1,0 @@
-about: Generated combo — beat-poly7 + riff-332 at 150 BPM.
-tempo: 150
-tracks:
-  - {name: drums, score: "@beat-poly7"}
-  - {name: riff, score: "tr=2 @riff-332"}
-  - {name: fx, score: "patch=fx-revcym R/1 R/1 R/1 R/2 C5/2@88"}

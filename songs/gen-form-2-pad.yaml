@@ -1,5 +1,0 @@
-about: "Generated part (tempo: inherit, 16 beats) \u2014 pad for poly in Eb major, prog 1-5-6-4"
-tempo: inherit
-length: 16b
-tracks:
-  - {"name": "pad", "patch": "saw-pad", "score": "Eb3,G3,Bb3,D4/1@80 Bb3,D4,F4,Ab4/1@80 C4,Eb4,G4,Bb4/1@80 Ab3,C4,Eb4,G4/1@80", "gain": "-4dB"}

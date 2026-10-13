@@ -1,6 +1,0 @@
-about: "Generated part (tempo: inherit, 16 beats) \u2014 riff for poly in Eb major, prog 1-5-6-4"
-tempo: inherit
-length: 16b
-tracks:
-  - {"name": "chops", "patch": "strat-quack", "score": "Eb4,G4,Bb4,D5/16@96 Eb4,G4,Bb4,D5@58^dead R Eb4,G4,Bb4,D5@92 R Eb4,G4,Bb4,D5@60^dead Eb4,G4,Bb4,D5@90 R Eb4,G4,Bb4,D5@96 Eb4,G4,Bb4,D5@58^dead R Eb4,G4,Bb4,D5@92 R Eb4,G4,Bb4,D5@60^dead Eb4,G4,Bb4,D5@94 (Eb4,G4,Bb4,D5@88|R) Bb4,D5,F5,Ab5/16@96 Bb4,D5,F5,Ab5@58^dead R Bb4,D5,F5,Ab5@92 R Bb4,D5,F5,Ab5@60^dead Bb4,D5,F5,Ab5@90 R Bb4,D5,F5,Ab5@96 Bb4,D5,F5,Ab5@58^dead R Bb4,D5,F5,Ab5@92 R Bb4,D5,F5,Ab5@60^dead Bb4,D5,F5,Ab5@94 (Bb4,D5,F5,Ab5@88|R) C5,Eb5,G5,Bb5/16@96 C5,Eb5,G5,Bb5@58^dead R C5,Eb5,G5,Bb5@92 R C5,Eb5,G5,Bb5@60^dead C5,Eb5,G5,Bb5@90 R C5,Eb5,G5,Bb5@96 C5,Eb5,G5,Bb5@58^dead R C5,Eb5,G5,Bb5@92 R C5,Eb5,G5,Bb5@60^dead C5,Eb5,G5,Bb5@94 (C5,Eb5,G5,Bb5@88|R) Ab4,C5,Eb5,G5/16@96 Ab4,C5,Eb5,G5@58^dead R Ab4,C5,Eb5,G5@92 R Ab4,C5,Eb5,G5@60^dead Ab4,C5,Eb5,G5@90 R Ab4,C5,Eb5,G5@96 Ab4,C5,Eb5,G5@58^dead R Ab4,C5,Eb5,G5@92 R Ab4,C5,Eb5,G5@60^dead Ab4,C5,Eb5,G5@94 (Ab4,C5,Eb5,G5@88|R)", "pan": -0.35}
-  - {"name": "sub808", "patch": "808", "score": "Eb1/4.@110 Eb1/8@100 R/4 (G1|Eb2)/8@104 Eb1/8@100 Bb1/4.@110 Bb1/8@100 R/4 (D2|Bb2)/8@104 Bb1/8@100 C2/4.@110 C2/8@100 R/4 (Eb2|C3)/8@104 C2/8@100 Ab1/4.@110 Ab1/8@100 R/4 (C2|Ab2)/8@104 Ab1/8@100"}

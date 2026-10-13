@@ -1,8 +1,0 @@
-about: Generated combo — beat-trap + riff-nylon + pad-dark + bass-808 at 132 BPM.
-tempo: 132
-tracks:
-  - {name: drums, score: "@beat-trap"}
-  - {name: riff, score: "tr=1 @riff-nylon"}
-  - {name: layer0, score: "tr=1 @pad-dark"}
-  - {name: layer1, score: "tr=1 @bass-808"}
-  - {name: fx, score: "patch=fx-revcym R/1 R/1 R/1 R/2 C5/2@88"}
