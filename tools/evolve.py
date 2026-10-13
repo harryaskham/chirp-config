@@ -192,12 +192,13 @@ def energy_lane(meta):
     return pts
 
 
-def energy_fx():
+def energy_fx(style=None):
+    wet = {"blackgaze": (0.38, -0.22, "3.5s")}.get(style, (0.28, -0.26, "2.4s"))
     return {"gain": {"value": "-5dB", "mod": [{"src": "auto.energy", "amount": 6}]},
             "fx": [{"type": "drive", "drive": 0.3, "mix": {"value": 0, "mod": [{"src": "auto.energy", "amount": 0.25}]}},
                    {"type": "ott", "time": 0.3, "depth": {"value": 0, "mod": [{"src": "auto.energy", "amount": 0.3}]}},
-                   {"type": "reverb", "kind": "hall", "decay": "2.4s", "predelay": "25ms", "low_cut": 250,
-                    "mix": {"value": 0.28, "mod": [{"src": "auto.energy", "amount": -0.26}]}}]}
+                   {"type": "reverb", "kind": "hall", "decay": wet[2], "predelay": "25ms", "low_cut": 250,
+                    "mix": {"value": wet[0], "mod": [{"src": "auto.energy", "amount": wet[1]}]}}]}
 FAVORITES = f"{TOOLS}/favorites.json" if "TOOLS" in globals() else "/home/harry/.config/chirp/tools/favorites.json"
 
 def favorite_for(role, ident):
@@ -224,6 +225,7 @@ def chapters(ident):
 
 COMP_STYLES = ["glue", "pump", "smash", "parallel", "opto", "tape"]
 # Loudness-matched to glue (measured RMS over the same 48 beats through each master chain).
+STYLE_TRIM = {"tool": 2.0}  # sparse styles sit lower (QA loudness)
 COMP_TRIM = {"glue": 0.0, "pump": 6.1, "smash": 3.4, "parallel": 3.2, "opto": 3.3, "tape": -2.1}
 
 def has_patch(name):
@@ -258,8 +260,12 @@ def master_for(ident):
         "opto": [f"ott depth={ott * 0.5} time=0.6", f"compressor threshold=-18dB ratio=3 attack=30ms release=450ms makeup={makeup}dB", "glue threshold=-14dB ratio=1.5 makeup=1dB"],
         "tape": [f"ott depth={ott * 0.5} time=0.4", f"glue threshold=-16dB ratio=2 makeup={makeup - 1}dB", "tape drive=0.6 warmth=0.7"],
     }[comp]
-    trim = COMP_TRIM.get(comp, 0.0)
-    fx = [json.loads(MASTER_BASE[0]), verb] + dyn + ([f"gain gain={trim:+.1f}dB"] if trim else []) + ["width width=1.2 mono_below=140"]
+    trim = COMP_TRIM.get(comp, 0.0) + STYLE_TRIM.get(ident.get("style"), 0.0)
+    eq = [json.loads(MASTER_BASE[0])]
+    air = {"brostep": 2.5, "darksynth": 4.0, "tool": 1.5}.get(ident.get("style"))
+    if air:  # QA: these styles measure dark at the top
+        eq.append({"type": "eq", "bands": ["peak cutoff=3500 q=0.8 gain=1.5dB", f"highshelf cutoff=8000 gain={air}dB"]})
+    fx = eq + [verb] + dyn + ([f"gain gain={trim:+.1f}dB"] if trim else []) + ["width width=1.2 mono_below=140"]
     return json.dumps(fx)
 
 def write_form(name, ident):
@@ -328,7 +334,7 @@ def write_form(name, ident):
              f"tempo: {ident['tempo']}", "tracks:"]
     for t, items in tracks.items():
         if t == "riff":
-            lines.append("  - " + json.dumps(dict({"name": t, "score": " ".join(items), "auto": {"energy": {"points": energy_lane(meta)}}}, **energy_fx())))
+            lines.append("  - " + json.dumps(dict({"name": t, "score": " ".join(items), "auto": {"energy": {"points": energy_lane(meta)}}}, **energy_fx(ident["style"]))))
         else:
             lines.append(f"  - {{name: {t}, score: \"{' '.join(items)}\"}}")
     open(f"{SONGS}/{name}.yaml", "w").write("\n".join(lines) + "\n")

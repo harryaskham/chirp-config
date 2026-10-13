@@ -249,11 +249,27 @@ def enhance(role, tracks, beats):
     return tracks
 
 
+DRUM_BUS = ["rack:drum-bus-punch", {"type": "eq", "bands": ["highshelf cutoff=8000 gain=2dB"]}]  # QA: keep cymbal air
+
+
+def drum_bus(tracks):
+    """Route metal-kit tracks through one shared drums bus (glued, and processed once per part):
+    the tracks switch to metal-kit-dry and `out: drums`; returns (tracks, buses)."""
+    if not have("metal-kit-dry") or not any(t.get("patch") == "metal-kit" for t in tracks):
+        return tracks, {}
+    out = [dict(t, patch="metal-kit-dry", out="drums") if t.get("patch") == "metal-kit" else t for t in tracks]
+    return out, {"drums": {"fx": expand(DRUM_BUS)}}
+
+
 def write(name, about, tracks, beats=16):
     LENGTHS[name] = beats
     tracks = enhance(name.rsplit("-", 1)[-1], tracks, beats)
+    tracks, buses = drum_bus(tracks)
     b = f"{beats:g}b"
-    lines = [f"about: {json.dumps(f'Generated part (tempo: inherit, {beats:g} beats) — ' + about)}", "tempo: inherit", f"length: {b}", "tracks:"]
+    lines = [f"about: {json.dumps(f'Generated part (tempo: inherit, {beats:g} beats) — ' + about)}", "tempo: inherit", f"length: {b}"]
+    if buses:
+        lines.append("buses: " + json.dumps(buses))
+    lines.append("tracks:")
     lines += ["  - " + json.dumps(t) for t in tracks]
     open(f"{SONGS}/{name}.yaml", "w").write("\n".join(lines) + "\n")
 
@@ -1025,7 +1041,7 @@ def gen_bro_drop(r, k, prog, low=33, metal=False):
             voice = 1 - voice if r.random() < 0.7 else voice
             x += ln
     jn = lambda xs: " ".join(xs)
-    out = [track("bassA", a_p, jn(A), gain="-3dB"), track("bassB", b_p, jn(B), gain="-3dB"), track("sub", rig("sub"), jn(sub), seed=7)]
+    out = [track("bassA", a_p, jn(A), gain="-6dB"), track("bassB", b_p, jn(B), gain="-6dB"), track("sub", rig("sub"), jn(sub), seed=7, gain="-2dB")]
     if metal:
         out += rhythm_tracks(jn(gtr))
     return out + _bro_drums(r)
@@ -1127,8 +1143,7 @@ def gen_gaze(r, k, prog, kind="blast"):
         for i in range(16 if kind == "blast" else 8):
             v = (104 if i % 2 == 0 else 92) if kind == "blast" else (112 if i % 4 == 0 else 96)
             gtr.append(f"{chordhead(ch)}/{16 if kind == 'blast' else 8}@{v}" + ("" if kind == "blast" else "^gate=1.2"))
-    sh = expand(["rack:shimmer-hall"])
-    guitars = [dict(t, fx=list(t.get("fx", [])) + sh) for t in rhythm_tracks("expr.pm=0 " + " ".join(gtr))]
+    guitars = rhythm_tracks("expr.pm=0 " + " ".join(gtr), fx=expand(["rack:chorus-wide"]))  # space comes from the wet energy hall
     bass = [track("bass", rig("bass"), " ".join(f"{mname(k.deg(root, 28 + 12))}/2@104" for root in prog for _ in range(2)), seed=7)]
     drums = _drums_of(gen_blast(r, k, prog, 28, "trad")) if kind == "blast" else _drums_of(gen_tool(r, k, 28, 8, [3, 3, 2], "build", reps=4))
     return guitars + bass + drums
@@ -1155,7 +1170,7 @@ def gen_darksynth(r, k, prog, kind="verse"):
     gated = [{"type": "reverb", "kind": "plate", "decay": "1.2s", "mix": 0.3}, {"type": "gate", "threshold": "-30dB", "hold": "60ms", "release": "20ms"}]
     jn = lambda xs: " ".join(xs)
     out = [track("bassA", pick_patch("808-dist", "reese", "acid"), jn(bass), gain="-4dB"),
-           track("kick", kit, jn(kick)), track("snare", kit, jn(snare), fx=gated), track("hats", kit, jn(hats), pan=0.1)]
+           track("kick", kit, jn(kick)), track("snare", kit, jn(snare), fx=gated), track("hats", kit, jn(hats), pan=0.1, gain="3dB")]
     out += gen_arp(r, k, prog, 60, pick_patch("supersaw", "arp-pluck"))
     if kind == "drop":
         chug = [f"expr.pm=1 {mname(t)}/16@{112 if x % 4 == 0 else 100}" if x % 2 == 0 else "R/16" for x in range(64)]

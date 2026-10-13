@@ -1,0 +1,4 @@
+about: "metal-kit with no bus effects: route its tracks to a shared drums bus (e.g. rack:drum-bus-punch) so the kit is glued and processed once per part instead of once per track."
+extends: metal-kit
+fx: []
+gain: -9.5dB
