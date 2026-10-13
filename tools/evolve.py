@@ -292,6 +292,10 @@ def steer(ident, cmd):
         ident["gen"] = g if op == "compose" else (dict(old, seed=g["seed"]) if op == "melody" else dict(g, seed=old["seed"]))
         ident["key"] = 0
         return ident, f"{op}: {composer.NAMES[ident['gen']['pc']]} {ident['gen']['mode']} prog {'-'.join(str(d + 1) for d in ident['gen']['prog'])}"
+    elif op == "comp":
+        ident["comp"] = args[0] if args else random.choice(COMP_STYLES)
+        if ident["comp"] not in COMP_STYLES:
+            raise ValueError(f"comp: one of {COMP_STYLES}")
     elif op == "mutate":
         ident, k = mutate(ident)
         return ident, f"mutate {k}"
@@ -402,7 +406,7 @@ if __name__ == "__main__":
                         playing_ident, desc = steer(playing_ident, cmd)
                         write_form(playing, playing_ident)
                         gen = (live("status") or {}).get("generation", 0)
-                        ok = subprocess.run([C, "live", "set", "--id", "groove", "--when", "bar", "--xfade", "250ms", f"tracks.arrangement.score=@{playing}"], capture_output=True, text=True).returncode == 0
+                        ok = subprocess.run([C, "live", "set", "--id", "groove", "--when", "bar", "--xfade", "250ms", f"tracks.arrangement.score=@{playing}", f"master.fx={master_for(playing_ident)}"], capture_output=True, text=True).returncode == 0
                         applied = ok and wait_generation(gen)
                         if cmd.split()[0] == "style":
                             nxt_ident = dict(playing_ident)
