@@ -1,0 +1,32 @@
+about: Metric-modulation suite 2/4 — 99 BPM (old triplets now eighths), heavy half-time eighths; 3/4 pivot bar of dotted eighths that become the next quarter (→ 132).
+tempo: 99
+length: 15b
+vars: {dark: 0, wet: 0.35}
+buses:
+  room: {fx: ["reverb kind=room decay=1.2s mix=1"], gain: {value: -18dB, mod: [{src: var.wet, amount: 18}]}}
+  gtr: {fx: [{type: filter, kind: lp, cutoff: {value: 16k, mod: [{src: var.dark, amount: -4.5}]}, q: 0.8}]}
+tracks:
+  - name: drums
+    patch: prog-kit
+    sends: {room: -12dB}
+    score: "[ k,c/8@122 k/16@96 k@88 s/8@118 k@104 k/16@100 k@92 . k@96 s/4@120 ]x3 [ k,x/8.@122 ]x4"
+  - name: cym
+    patch: prog-kit
+    score: "[ x/4@100 rd@72 x@98 rb@92 ]x3 R/2."
+  - name: gtr-l
+    patch: m8-nolly
+    pan: L90
+    out: gtr
+    seed: 42
+    sends: {room: -14dB}
+    score: &g >
+      [ expr.pm=0 F1,C2,F2/8@124^gate=0.95 expr.pm=1 F1/16@110 F1@80 F1/8@112 expr.pm=0 (Gb1,Db2,Gb2|Ab1,Eb2)/8@120^gate=0.95
+        expr.pm=1 F1/16@108 F1@82 F1@104 F1@80 expr.pm=0 (B1,F2/4@122^gate=1|C2,G2/4@122^gate=1) ]x3
+      expr.pm=0 [ (F1,C2,F2|E1,B1,E2)/8.@124^gate=0.9 ]x4
+  - {name: gtr-r, patch: "m8-nolly layers.0.pick=0.14 humanize.time=5ms", pan: R90, out: gtr, seed: 42, sends: {room: -14dB}, score: *g}
+  - name: bass
+    patch: m8-bass-dist
+    seed: 42
+    score: &b "[ F1/8@124 F1/16@110 F1@80 F1/8@112 (Gb1|Ab1)/8@120 F1/16@108 F1@82 F1@104 F1@80 (B1/4|C2/4)@122 ]x3 [ (F1|E1)/8.@124 ]x4"
+  - {name: sub, patch: sub, seed: 42, score: *b}
+  - {name: fx-rev, patch: fx-revcym, score: "R/1 R/1 R/1 R/4 C5/2@92"}

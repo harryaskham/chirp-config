@@ -1,0 +1,6 @@
+about: "Cue: thinking — a quiet plucked pulse for background waits (use --loop); 2 bars."
+tempo: 96
+length: 8b
+tracks:
+  - {name: pulse, patch: arp-pluck, gain: 6dB, score: "[ C4/8@70 (G4|E4)@60 C5@66 (G4|A4)@58 ]x4"}
+  - {name: pad, patch: saw-pad, gain: -2dB, score: "C3,G3,E4/1@60 A2,E3,C4/1@60"}

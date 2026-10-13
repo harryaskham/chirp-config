@@ -1,0 +1,14 @@
+about: Bright plucked synth for arpeggios — saw and square through a snappy filter envelope, dotted-eighth ping-pong delay.
+synth:
+  layers:
+    - saw
+    - square ratio=2 level=-10dB
+  env:
+    f: {a: 0.5ms, d: 160ms, s: 0, r: 80ms}
+  filters:
+    - {kind: lp, cutoff: {value: 600, mod: [{src: env.f, amount: 4}, {src: vel, amount: 1}]}, q: 2}
+  amp: {a: 1ms, d: 220ms, s: 0, r: 120ms}
+fx:
+  - delay time=3/16 mix=0.14 feedback=0.25 ping_pong=true
+  - "reverb kind=room decay=0.9s mix=0.14"
+gain: -20dB

@@ -1,0 +1,8 @@
+about: "Strat bridge pickup into a crunchy amp and spring reverb — blues/rock rhythm and leads."
+extends: "strat layers.0.pickup=0.07 layers.0.pickup_hz=6200 layers.0.pickup_q=2.2"
+fx:
+  - {type: compressor, threshold: -20dB, ratio: 3, attack: 5ms, release: 120ms, makeup: 2dB}
+  - {type: amp, model: crunch, gain: 0.55, ts: 0.3, tight: 90, bass: 0.48, mid: 0.6, treble: 0.58, presence: 0.58, resonance: 0.5, sag: 0.3}
+  - {type: ir, file: jester/kitten-slayer, length: 100ms}
+  - "reverb kind=spring decay=2.4s mix=0.2"
+gain: -18dB

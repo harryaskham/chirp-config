@@ -1,0 +1,24 @@
+about: Clean 8-string for dissonant arpeggios and ambient parts — bright string, chorus, delay, big room.
+synth:
+  layers:
+    - type: pluck
+      decay: {value: 5s, mod: [{src: vel, amount: 1}]}
+      pick: 0.18
+      body: 0.25
+      bright: {value: 0.55, mod: [{src: vel, amount: 0.25}, {src: rand, amount: 0.05}]}
+  pitch: {value: 0, mod: [{src: rand, amount: 0.04}, {src: lfo.vib, amount: 0.08}]}
+  lfo: {vib: {wave: sine, rate: 4.8hz, delay: 600ms, fade: 800ms, retrig: true}}
+  filters: ["lp cutoff=6k", "hp cutoff=90"]
+  amp: {a: 2ms, s: 1, r: 400ms}
+play:
+  voicing: guitar
+  tuning: F1 Bb1 Eb2 Ab2 Db3 Gb3 Bb3 Eb4
+  frets: 24
+  gate: 1.6
+  humanize: {time: 8ms, vel: 0.08}
+  vel_sens: 0.6
+fx:
+  - "chorus mix=0.25 depth=0.4 rate=0.6"
+  - "delay time=3/8 mix=0.22 feedback=0.35 ping_pong=true tone=2.5k"
+  - "reverb mix=0.32 size=0.85 damp=0.55"
+gain: -6dB

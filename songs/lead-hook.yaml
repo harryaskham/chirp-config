@@ -1,0 +1,5 @@
+about: "Part (tempo: inherit, 16 beats) \u2014 synth-lead hook an octave up, doubling-friendly."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "synth-lead", "pan": 0.1, "score": "[ R/8 C5/16@100 Eb5@104 F5/8@110 (Ab5|G5)/8@108 F5/16@100 Eb5@98 C5/8@104 (Bb4|Ab4)/4@100^gate=1.1 ]x3 R/8 C5/16@100 Eb5@104 F5/8@110 Ab5/16@108 Bb5@110 C6/2@116^gate=1.2"}

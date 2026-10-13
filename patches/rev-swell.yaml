@@ -1,0 +1,7 @@
+about: "Reverse reverb swell (resampling): a clean Em9 chord and its hall tail rendered and played backwards, rising into the next downbeat. Root E4 — play other notes to transpose; place it so it ends on the beat."
+synth:
+  layers:
+    - {type: sample, song: rs-src, root: E4, reverse: true}
+  amp: {a: 1ms, d: 0, s: 1, r: 30ms}
+play: {gate: 1}
+gain: 4dB

@@ -1,0 +1,13 @@
+about: "String ensemble: detuned saws with a slow bow attack, gentle vibrato and a hall — long chords, swells and lines."
+synth:
+  layers: ["saw unison=6 detune=0.18 spread=0.9", "saw ratio=2 unison=3 detune=0.12 level=-12dB"]
+  lfo:
+    vib: {wave: sine, rate: 5.2hz, delay: 400ms, fade: 500ms, retrig: true}
+  pitch: {value: 0, mod: [{src: lfo.vib, amount: 0.12}]}
+  filters:
+    - {kind: lp, cutoff: {value: 2.4k, mod: [{src: vel, amount: 1.2}]}, q: 0.7}
+    - "peak cutoff=350 q=1 gain=-3dB"
+  amp: {a: 350ms, d: 500ms, s: 0.85, r: 900ms}
+play: {gate: 1, vel_sens: 0.6, humanize: {time: 10ms, vel: 0.05}}
+fx: ["reverb kind=hall decay=3.2s mix=0.3 predelay=25ms"]
+gain: -18dB

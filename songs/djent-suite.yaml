@@ -1,0 +1,6 @@
+about: >
+  Seven-part djent suite composed from saved section songs (each plays on its own as @dj-…):
+  intro → 13/16 polymeter → 7+9 riff with lead → half-time breakdown → 7/8 → ambient bridge → 5:4 outro.
+tracks:
+  - name: arrangement
+    score: "@dj-intro @dj-a @dj-b @dj-break @dj-78 @dj-bridge @dj-outro"

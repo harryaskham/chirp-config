@@ -1,0 +1,8 @@
+about: "Ambience: focus — lo-fi fingerpicked nylon over a soft half-time beat and pad; quiet and steady (use --loop)."
+tempo: 80
+length: 16b
+tracks:
+  - {name: nylon, patch: nylon, gain: -6dB, score: "@riff-nylon"}
+  - {name: kick-snare, patch: prog-kit, gain: -12dB, score: "[ k/8@96 R/8 R/4 ss/4@78 (k/8@84|.) R/8 ]x4"}
+  - {name: hats, patch: prog-kit, gain: -16dB, score: "[ h/8@70 h@54 ]x16"}
+  - {name: pad, patch: saw-pad, gain: -14dB, score: "E3,G3,B3,D4/1@64 C3,E3,G3,B3/1@64 G2,B2,D3,E3/1@64 F#2,A2,D3,F#3/1@66"}

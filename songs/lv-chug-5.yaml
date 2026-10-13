@@ -1,0 +1,41 @@
+about: Live suite variant — 5-sixteenth riff cycling against 4/4 at 132 (12 cycles + pickup), Mark rig, double kicks, distorted bass and sub locked by seed.
+tempo: 132
+length: 16b
+vars: {dark: 0, wet: 0.35}
+buses:
+  room: {fx: ["reverb kind=room decay=1.1s mix=1"], gain: {value: -18dB, mod: [{src: var.wet, amount: 18}]}}
+  gtr: {fx: [{type: filter, kind: lp, cutoff: {value: 16k, mod: [{src: var.dark, amount: -4.5}]}, q: 0.8}]}
+tracks:
+  - name: drums
+    patch: prog-kit
+    sends: {room: -12dB}
+    score: >
+      [ k,c/16@122 k@92 k@104 k@90 s@120 k@94 k@102 k@90 k,c@118 k@92 k@104 k@88 s@122 k@96 (k@100|g@38) (k@94|.) ]x3
+      k,c/16@122 . k@100 . s@118 t1@104 t1@96 t2@106 t2@98 t3@110 ft@112 ft@104 ft2@118 ft2@108 s@120^flam s,c@124
+  - name: gtr-l
+    patch: m8-mark
+    pan: L90
+    out: gtr
+    seed: 21
+    sends: {room: -16dB}
+    score: &r5 >
+      [ expr.pm=1 F1/16@120 (F1@72|F1@64^dead) expr.pm=0 (Gb1,Db2|E1,B1|F1,C2,F2)@122^gate=0.9 expr.pm=1 F1@108 (F2@118^ph^gate=1.4|F1@96) ]x12
+      expr.pm=0 B1,F2/16@120 C2,G2@122 Db2,Ab2@124 D2,A2@126
+  - name: gtr-r
+    patch: "m8-mark layers.0.pick=0.14 humanize.time=5ms"
+    pan: R90
+    out: gtr
+    seed: 21
+    sends: {room: -16dB}
+    score: *r5
+  - name: bass
+    patch: m8-bass-dist
+    seed: 21
+    score: "[ F1/16@120 (F1@72|F1@64) (Gb1|E1|F1)@122 F1@108 (F2@110|F1@96) ]x12 B1/16@120 C2@122 Db2@124 D2@126"
+  - {name: sub, patch: sub, seed: 21, score: "[ F1/16 (.|.) (Gb1|E1|F1) . (.|.) ]x12 B0/16 C1 Db1 D1"}
+  - name: fx
+    sends: {room: -10dB}
+    score: "patch=fx-impact F1/4@112 R/4 R/2 R/1 R/1 patch=fx-riser C4/1@96"
+  - name: fx-rev
+    patch: fx-revcym
+    score: "R/1 R/1 R/1 R/2 C5/2@96"

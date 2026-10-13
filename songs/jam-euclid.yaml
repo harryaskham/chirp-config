@@ -1,0 +1,6 @@
+about: Euclidean polyrhythm under the 3-3-2 Nolly riff and a 16th arp, 124 BPM.
+tempo: 124
+tracks:
+  - {name: drums, score: "[ @beat-euclid ]x2"}
+  - {name: riff, score: "[ @riff-332 ]x2"}
+  - {name: arp, score: "R/1 R/1 R/1 R/1 @arp-16th"}

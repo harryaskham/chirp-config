@@ -1,0 +1,31 @@
+about: >
+  Polymetric djent groove: a 13/16 palm-muted guitar/bass/kick cycle against a 4/4 frame
+  (china quarters, half-time snare on 3). The riff realigns with the bar after 13 bars.
+tempo: 122
+length: 4bar
+buses:
+  room: {fx: ["reverb mix=1 size=0.35 damp=0.7"]}
+tracks:
+  - name: kick
+    patch: haake
+    score: "[vel=110 k k . k k . k . k k . k@124 .]x5"
+    sends: {room: -24dB}
+  - name: china
+    patch: haake
+    score: "len=/4 [x@112 x@92 x@106 x@92]x4"
+    sends: {room: -14dB}
+  - name: snare
+    patch: haake
+    score: "len=/4 [R R s@124 R]x4"
+    sends: {room: -12dB}
+  - name: gtr-l
+    patch: m8
+    pan: L85
+    score: "[expr.pm=1 F1/16 F . F F . F . F F . expr.pm=0 Gb1 .]x5"
+  - name: gtr-r
+    patch: m8
+    pan: R85
+    score: "[expr.pm=1 F1/16 F . F F . F . F F . expr.pm=0 Gb1 .]x5"
+  - name: bass
+    patch: m8-bass
+    score: "[expr.pm=1 F1/16 F . F F . F . F F . expr.pm=0 Gb1 .]x5"

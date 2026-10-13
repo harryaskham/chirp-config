@@ -1,0 +1,10 @@
+about: "Ambient volume swells — the clean 8-string faded in by the volume knob into a long washy delay and a huge reverb. Hold notes and chords (gate ~1.5) and let them bloom."
+extends: "clean-chorus amp.a=450ms amp.r=1.2s"
+fx:
+  - {type: compressor, threshold: -22dB, ratio: 3, attack: 10ms, release: 200ms, makeup: 3dB}
+  - {type: amp, model: clean, gain: 0.3, tight: 80, bass: 0.4, mid: 0.5, treble: 0.6, presence: 0.55, resonance: 0.45, sag: 0.1}
+  - {type: cab, model: 2x12, mic: 0.5, distance: 0.3}
+  - chorus mix=0.35
+  - "delay time=1/8 mix=0.14 feedback=0.28 ping_pong=true"
+  - "reverb kind=hall decay=3s mix=0.32 predelay=30ms"
+gain: 4dB

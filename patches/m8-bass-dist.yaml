@@ -1,0 +1,9 @@
+about: Filthy distorted 8-string-band bass — the m8-bass string into a high-gain amp with a parallel clean blend (keeps the lows), upper-mid grind and a 4×10 cab. Pair with `sub` for clean low end.
+extends: m8-bass
+fx:
+  - {type: amp, model: modern, gain: 0.88, ts: 0.4, tight: 70, boost: 6dB, bass: 0.5, mid: 0.72, treble: 0.64, presence: 0.62, resonance: 0.5, sag: 0.25, mix: 0.62}
+  - {type: cab, model: 4x10, mic: 0.25, distance: 0.05}
+  - {type: eq, bands: ["peak cutoff=900 q=1.1 gain=3dB", "peak cutoff=2500 q=1.4 gain=2dB", "lowshelf cutoff=90 gain=-2dB"]}
+  - {type: compressor, threshold: -20dB, ratio: 4, attack: 5ms, release: 90ms}
+  - {type: gate, threshold: -54dB, hold: 20ms, release: 45ms}
+gain: -18dB

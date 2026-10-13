@@ -1,0 +1,31 @@
+about: Metric-modulation suite 3/4 — 132 BPM, 5-sixteenth cycle over 4/4 (9× in 3 bars); 3/4 pivot of dotted eighths that become the next quarter (→ 176).
+tempo: 132
+length: 15b
+vars: {dark: 0, wet: 0.35}
+buses:
+  room: {fx: ["reverb kind=room decay=1.2s mix=1"], gain: {value: -18dB, mod: [{src: var.wet, amount: 18}]}}
+  gtr: {fx: [{type: filter, kind: lp, cutoff: {value: 16k, mod: [{src: var.dark, amount: -4.5}]}, q: 0.8}]}
+tracks:
+  - name: drums
+    patch: prog-kit
+    sends: {room: -14dB}
+    score: "[ k,c/16@122 k@90 k@100 k@88 s@120 k@92 k@102 k@90 ]x6 [ k,x/8.@122 ]x4"
+  - name: cym
+    patch: prog-kit
+    score: "[ rd/8@90 rd@70 ]x12 R/2."
+  - name: gtr-l
+    patch: m8-nolly
+    pan: L90
+    out: gtr
+    seed: 43
+    sends: {room: -16dB}
+    score: &g >
+      [ expr.pm=1 F1/16@120 F1@72 expr.pm=0 (Ab1,Eb2|Gb1,Db2)@122^gate=0.9 expr.pm=1 F1@106 F1@76 ]x9 F1/16@100 F1@80 F1@90
+      expr.pm=0 [ (F1,C2,F2|Gb1,Db2,Gb2)/8.@124^gate=0.9 ]x4
+  - {name: gtr-r, patch: "m8-nolly layers.0.pick=0.14 humanize.time=5ms", pan: R90, out: gtr, seed: 43, sends: {room: -16dB}, score: *g}
+  - name: bass
+    patch: m8-bass-dist
+    seed: 43
+    score: &b "[ F1/16@120 F1@72 (Ab1|Gb1)@122 F1@106 F1@76 ]x9 F1/16@100 F1@80 F1@90 [ (F1|Gb1)/8.@124 ]x4"
+  - {name: sub, patch: sub, seed: 43, score: *b}
+  - {name: fx-rev, patch: fx-revcym, score: "R/1 R/1 R/1 R/4 C5/2@92"}

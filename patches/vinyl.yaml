@@ -1,0 +1,9 @@
+about: "Vinyl crackle and hiss texture for lofi: hold a long note; random pops ride on top."
+synth:
+  layers: [{type: noise, color: pink, level: -12dB}, {type: noise, level: -24dB}]
+  lfo:
+    w: {wave: sine, rate: 0.5hz}
+  filters: ["bp cutoff=2.5k q=0.4", {kind: lp, cutoff: {value: 6k, mod: [{src: lfo.w, amount: 0.3}]}}]
+  amp: {a: 300ms, d: 0, s: 1, r: 500ms}
+play: {gate: 1}
+gain: -30dB

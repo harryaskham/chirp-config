@@ -1,0 +1,5 @@
+about: "Part (tempo: inherit, 16 beats) \u2014 sparse toms, floor-tom pulses and ride swells for long-note sections."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "drums", "patch": "prog-kit", "score": "R/2 ft/4@96 R/4 R/1 ft/8@100 ft@92 t3/8@96 R/8 R/2 k,c/4@110 R/4 R/2"}

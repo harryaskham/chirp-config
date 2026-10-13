@@ -1,0 +1,40 @@
+about: Doom-OST style (Mick Gordon-ish) — 140 BPM syncopated F chugs, driven 808 doubling the roots, gated synth stabs through heavy OTT, OTT-crushed drums with stack/china accents, 32nd tremolo turnaround.
+tempo: 140
+length: 16b
+vars: {dark: 0, wet: 0.35}
+buses:
+  room: {fx: ["reverb kind=room decay=1s mix=1"], gain: {value: -18dB, mod: [{src: var.wet, amount: 18}]}}
+  gtr: {fx: [{type: filter, kind: lp, cutoff: {value: 16k, mod: [{src: var.dark, amount: -4.5}]}, q: 0.8}]}
+tracks:
+  - name: drums
+    patch: prog-kit
+    fx: ["ott depth=0.45 time=0.3", "gain gain=-3dB"]
+    sends: {room: -14dB}
+    score: >
+      [ k,x/16@124 . k@110 . s,st@122 . k@108 k@96 . k@112 . k@100 s,st@124 . (t1@104|k@100) (k@96|.) ]x3
+      k,x/16@124 k@100 k@108 k@96 s@120 s@110 s@116 s@122 t1/32@110 t1@100 t2@112 t2@102 t3@114 t3@104 ft@118 ft@108 ft2/8@124 k,x/8@124
+  - name: gtr-l
+    patch: m8-gojira
+    pan: L90
+    out: gtr
+    seed: 61
+    sends: {room: -16dB}
+    score: &g >
+      [ expr.pm=1 F1/16@124 F1@80 . F1@120 . F1@84 F1@122 . expr.pm=0 (Gb1,Db2|E1,B1)/8@124^gate=0.9
+        expr.pm=1 F1/16@118 F1@82 . F1@120 (F2@120^ph^gate=1.3|F1@96) . ]x3
+      expr.pm=0 F1,C2,F2/8@126^gate=0.9 . [ F1/32@110 ]x8 B1,F2/4@124^gate=1 F1,C2,F2/4@126^gate=1
+  - {name: gtr-r, patch: "m8-gojira fx.1.file=jester/darth-genocider layers.0.pick=0.14 humanize.time=5ms", pan: R90, out: gtr, seed: 61, sends: {room: -16dB}, score: *g}
+  - name: sub808
+    patch: "808 drive=0.75"
+    seed: 61
+    gain: -2dB
+    score: "[ F1/8@120 R/8 F1/8@110 R/8 (Gb1|E1)/4@120 F1/8@116 F1@110 ]x3 F1/2@124 B1/4@122 F1/4@124"
+  - name: stabs
+    patch: "pad amp.a=2ms amp.d=80ms amp.s=0.6 amp.r=40ms"
+    fx: ["drive drive=0.5", "ott depth=0.7 time=0.2", "gain gain=-8dB"]
+    pan: 0.2
+    sends: {room: -12dB}
+    score: "[ F3,C4,F4/8@100^r=2 R/8 F3,C4,F4/8@90^r=2 R/8 (Gb3,Db4|E3,B3)/4@100^r=4 F3,C4,F4/4@96^r=3 ]x3 R/1"
+  - name: fx
+    sends: {room: -10dB}
+    score: "patch=fx-impact F1/4@112 R/4 R/2 R/1 R/1 patch=fx-riser C4/1@96"

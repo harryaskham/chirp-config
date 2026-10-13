@@ -1,0 +1,25 @@
+about: >
+  5 against 4 — guitar and kick play quintuplet sixteenths (/20) in groups of 5+5+6 against straight
+  quarter chinas and a backbeat; then 3 against 4 with sextuplet chugs (/24).
+tempo: 110
+length: 4bar
+tracks:
+  - name: gtr
+    patch: m8
+    score: >
+      [expr.pm=1 len=/20 F1 F F . F  F F . F F  Gb1 F F . F F . F F F]x2
+      [len=/24 F1 F . F F . F . F F F . F F . F F . F . F F F .]x2
+  - name: gtr-r
+    patch: m8
+    pan: R80
+    score: >
+      [expr.pm=1 len=/20 F1 F F . F  F F . F F  Gb1 F F . F F . F F F]x2
+      [len=/24 F1 F . F F . F . F F F . F F . F F . F . F F F .]x2
+  - name: kick
+    patch: haake
+    score: >
+      [len=/20 k k k . k  k k . k k  k k k . k k . k k k]x2
+      [len=/24 k k . k k . k . k k k . k k . k k . k . k k k .]x2
+  - name: frame
+    patch: haake
+    score: "len=/4 [x@110 x,s@120 x x,s@120]x4"

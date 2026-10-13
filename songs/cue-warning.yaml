@@ -1,0 +1,4 @@
+about: "Cue: warning — a screaming lead note bent down a whole tone."
+tempo: 120
+tracks:
+  - {name: lead, patch: lead-monster, gain: 2dB, score: "F5/4@110 bend=-2 _ bend="}

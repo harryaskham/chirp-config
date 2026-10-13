@@ -1,0 +1,2 @@
+about: "Strat position 4 (middle + neck): the hollow, notchy funk quack of two single coils combined (same rig and techniques as strat)."
+extends: "strat layers.0.pickup=0.19 layers.0.coil=0.58 layers.0.pickup_hz=6500 layers.0.pickup_q=1.8"

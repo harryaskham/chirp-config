@@ -1,0 +1,5 @@
+about: "Part (tempo: inherit, 16 beats) \u2014 lofi Rhodes: lazy swung 9th chords with a melodic top note that varies."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "keys", "patch": "rhodes", "gain": "-2dB", "score": "swing=0.62 F3,Ab3,Eb4/4.@80 (G4|C5)/8@70 R/2 Bb2,Db3,Ab3/4.@78 (C4|F4)/8@68 R/2 Db3,F3,C4/4.@80 (Eb4|Ab4)/8@70 R/2 C3,E3,Bb3/4.@82 (D4|G4)/8@72 R/2"}

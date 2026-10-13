@@ -1,0 +1,5 @@
+about: "Part (tempo: inherit, 16 beats) \u2014 Rhodes 9th chords with garage-style syncopation: Fm9 \u00b7 Bbm9 \u00b7 Db maj7 \u00b7 C7#9."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "keys", "patch": "rhodes", "pan": -0.2, "score": "F3,Ab3,Eb4,G4/8.@92 F3,Ab3,Eb4,G4/16@70 R/4 R/8 F3,Ab3,Eb4,G4/8@84 R/4 Bb2,Db3,Ab3,C4/8.@92 Bb2,Db3,Ab3,C4/16@70 R/4 R/8 Bb2,Db3,Ab3,C4/8@84 R/4 Db3,F3,Ab3,C4/8.@92 Db3,F3,Ab3,C4/16@70 R/4 R/8 Db3,F3,Ab3,C4/8@84 R/4 C3,E3,Bb3,D#4/8.@94 C3,E3,Bb3,D#4/16@72 R/4 R/8 C3,E3,Bb3,D#4/8@86 R/4"}

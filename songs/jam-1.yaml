@@ -1,0 +1,5 @@
+about: Generated combo — beat-euclid + riff-chug7 at 132 BPM.
+tempo: 132
+tracks:
+  - {name: drums, score: "[ @beat-euclid ]x2"}
+  - {name: riff, score: "tr=-3 [ @riff-chug7 ]x2"}

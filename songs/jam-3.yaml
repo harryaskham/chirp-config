@@ -1,0 +1,7 @@
+about: Generated combo — beat-sparse + riff-chug5 + pad-dark + arp-16th at 108 BPM.
+tempo: 108
+tracks:
+  - {name: drums, score: "[ @beat-sparse ]x2"}
+  - {name: riff, score: "tr=2 [ @riff-chug5 ]x2"}
+  - {name: layer0, score: "tr=2 [ @pad-dark ]x2"}
+  - {name: layer1, score: "tr=2 [ @arp-16th ]x2"}

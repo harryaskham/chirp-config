@@ -1,0 +1,14 @@
+about: "Reverse cymbal: a crash swelling backwards into the next downbeat over two beats (beat-timed envelope)."
+synth:
+  layers:
+    - white
+    - {type: additive, fixed: 430, partials: [[1, 0.3], [2.7, 0.4], [4.1, 0.5], [6.3, 0.4], [9.2, 0.3]], level: -10dB}
+  env:
+    sw: {a: 2b, d: 0, s: 1, r: 20ms}
+  filters:
+    - "hp cutoff=2.5k"
+    - {kind: lp, cutoff: {value: 3k, mod: [{src: env.sw, amount: 2}]}}
+  amp: {a: 2b, d: 0, s: 1, r: 25ms, curve: 4}
+play: {gate: 1}
+fx: ["reverb kind=hall decay=2.5s mix=0.3"]
+gain: -16dB

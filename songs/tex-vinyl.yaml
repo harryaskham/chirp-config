@@ -1,0 +1,5 @@
+about: "Part (tempo: inherit, 16 beats) \u2014 vinyl crackle and hiss bed."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "vinyl", "patch": "vinyl", "score": "C4/1 _ _ _"}

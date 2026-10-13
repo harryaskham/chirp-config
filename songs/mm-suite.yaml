@@ -1,0 +1,12 @@
+about: Metric-modulation suite — 132 → 99 → 132 → 176 → 132; each section's last bar is a pivot (triplets, dotted eighths, half-note triplets) whose pulse becomes the next tempo's beat, each with its own polyrhythm. vars dark, wet.
+vars:
+  dark: {value: 0, smooth: 400ms, min: 0, max: 1}
+  wet: {value: 0.35, smooth: 400ms, min: 0, max: 1}
+master:
+  fx:
+    - "glue threshold=-16dB ratio=2 attack=10ms release=150ms makeup=4dB"
+    - "tape drive=0.2 warmth=0.35"
+    - "width width=1.15 mono_below=120"
+tracks:
+  - name: arrangement
+    score: "@mm-a @mm-b @mm-c @mm-d"

@@ -1,0 +1,125 @@
+about: >
+  Tight, articulate prog/djent studio kit (AAL / Periphery / Polyphia): clicky kick, crisp snare whose
+  ghosts stay defined, rimshot, sidestick, pedal hat and choked hats, splash, stack, china and five
+  tuned two-mode toms. Pieces: k s g(ghost) rs(rimshot) ss(sidestick) h hp(pedal) hh oh rd rb c sp st x
+  t1 t2 t3 ft ft2. Score tricks: hat ratchets h^r=3, flams s^flam, drags s^drag, chords k,c.
+extends: haake
+gain: -7dB
+fx:
+  - {type: compressor, threshold: -18dB, ratio: 3, attack: 6ms, release: 90ms, makeup: 3dB}
+  - type: eq
+    bands: ["hp cutoff=32", "peak cutoff=400 q=1 gain=-3dB", "peak cutoff=4.5k q=1 gain=1.5dB", "highshelf cutoff=10k gain=2dB"]
+  - "reverb mix=0.08 size=0.22 damp=0.55"
+kit:
+  # Kick: tight body, defined beater click; little boom.
+  k:
+    pitch: A1
+    patch:
+      synth:
+        layers:
+          - {name: body, wave: sine}
+          - {name: click, type: noise, level: {value: -66dB, mod: [{src: env.click, amount: 60}, {src: vel, amount: 10}, {src: rand, amount: 1.5}]}}
+          - {name: beater, wave: triangle, fixed: 2800, level: {value: -66dB, mod: [{src: env.click, amount: 54}, {src: vel, amount: 8}]}}
+        pitch: {value: 0, mod: [{src: env.p, amount: 22}, {src: rand, amount: 0.25}]}
+        env:
+          p: {a: 0.2ms, d: 22ms, s: 0, curve: 5}
+          click: {a: 0.1ms, d: 3.5ms, s: 0, curve: 3}
+        filters:
+          - "hp cutoff=38"
+          - {kind: peak, cutoff: 3.5k, q: 1.2, gain: {value: 2dB, mod: [{src: vel, amount: 5}]}}
+        amp: {a: 0.2ms, d: 190ms, s: 0, r: 25ms, curve: 4}
+        drive: 0.12
+      play: {vel_sens: 0.45}
+  # Snare: body + shell + wires + crack; soft hits keep wire definition, lose body.
+  s:
+    pitch: A3
+    patch: &snare
+      synth:
+        layers:
+          - {name: body, wave: triangle, level: {value: -60dB, mod: [{src: env.body, amount: 54}, {src: vel, amount: 8}]}}
+          - {name: shell, ratio: 1.62, level: {value: -60dB, mod: [{src: env.body, amount: 46}, {src: vel, amount: 6}, {src: rand, amount: 2}]}}
+          - {name: wires, type: noise, level: {value: -66dB, mod: [{src: env.wires, amount: 62}]}}
+          - {name: crack, type: noise, level: {value: -72dB, mod: [{src: env.crack, amount: 62}, {src: vel, amount: 10}]}}
+        pitch: {value: 0, mod: [{src: env.p, amount: 4}, {src: rand, amount: 0.25}]}
+        env:
+          p: {a: 0.2ms, d: 15ms, s: 0}
+          body: {a: 0.2ms, d: 90ms, s: 0, curve: 4}
+          wires: {a: 0.3ms, d: 140ms, s: 0, curve: 4}
+          crack: {a: 0.1ms, d: 8ms, s: 0}
+        filters:
+          - "hp cutoff=160"
+          - {kind: peak, cutoff: {value: 5.5k, mod: [{src: rand, amount: 0.15}]}, q: 0.9, gain: {value: 1dB, mod: [{src: vel, amount: 5}]}}
+          - "peak cutoff=850 q=1.2 gain=-2.5dB"
+          - {kind: lp, cutoff: {value: 9k, mod: [{src: vel, amount: 1}]}}
+        amp: {a: 0.2ms, d: 260ms, s: 0, r: 25ms}
+        drive: 0.1
+      play: {vel_sens: 0.5}
+  # Ghost: the snare played soft and close to the head — short, wiry, quiet but present.
+  g: {pitch: A3, gain: -11dB, patch: "prog-snare-ghost"}
+  # Rimshot: stick hits head and rim — a loud ringing crack on top of the snare.
+  rs:
+    pitch: A3
+    gain: 1dB
+    patch:
+      synth:
+        layers:
+          - {name: body, wave: triangle, level: {value: -60dB, mod: [{src: env.body, amount: 56}]}}
+          - {name: rim, wave: square, fixed: 1650, level: {value: -66dB, mod: [{src: env.rim, amount: 58}, {src: rand, amount: 2}]}}
+          - {name: ring, wave: sine, fixed: 3100, level: {value: -66dB, mod: [{src: env.ring, amount: 52}]}}
+          - {name: wires, type: noise, level: {value: -66dB, mod: [{src: env.wires, amount: 62}]}}
+          - {name: crack, type: noise, level: {value: -70dB, mod: [{src: env.crack, amount: 66}]}}
+        pitch: {value: 0, mod: [{src: env.p, amount: 5}, {src: rand, amount: 0.2}]}
+        env:
+          p: {a: 0.2ms, d: 15ms, s: 0}
+          body: {a: 0.2ms, d: 100ms, s: 0, curve: 4}
+          rim: {a: 0.1ms, d: 35ms, s: 0, curve: 4}
+          ring: {a: 0.1ms, d: 160ms, s: 0, curve: 4}
+          wires: {a: 0.3ms, d: 170ms, s: 0, curve: 4}
+          crack: {a: 0.1ms, d: 10ms, s: 0}
+        filters: ["hp cutoff=170", "peak cutoff=6k q=0.9 gain=4dB"]
+        amp: {a: 0.1ms, d: 300ms, s: 0, r: 25ms}
+        drive: 0.2
+      play: {vel_sens: 0.4}
+  # Sidestick (cross-stick): woody click, no wires.
+  ss:
+    pitch: C4
+    gain: -5dB
+    patch:
+      synth:
+        layers:
+          - {name: knock, wave: sine, fixed: 540, level: {value: -60dB, mod: [{src: env.k, amount: 56}]}}
+          - {name: wood, wave: triangle, fixed: 1380, level: {value: -66dB, mod: [{src: env.k, amount: 54}, {src: rand, amount: 2}]}}
+          - {name: click, type: noise, level: {value: -66dB, mod: [{src: env.c, amount: 60}, {src: vel, amount: 6}]}}
+        env:
+          k: {a: 0.1ms, d: 45ms, s: 0, curve: 4}
+          c: {a: 0.1ms, d: 6ms, s: 0}
+        filters: ["hp cutoff=300", "peak cutoff=1.8k q=1.5 gain=5dB", "lp cutoff=7k"]
+        amp: {a: 0.1ms, d: 90ms, s: 0, r: 20ms}
+      play: {vel_sens: 0.5}
+  # Hats: closed, pedal (foot chick), half-open, open — one choke group.
+  h: {choke: hat, gain: -10dB, patch: haake-hat}
+  hp: {choke: hat, gain: -14dB, patch: "haake-hat amp.d=30ms filters.0.cutoff.value=5k"}
+  # Splash and stack.
+  sp:
+    gain: -10dB
+    patch:
+      synth:
+        layers: [white, {type: additive, fixed: 620, partials: [[1, 0.4], [2.3, 0.5], [3.9, 0.5], [5.7, 0.4], [8.1, 0.3]], damp: 0.6, level: -8dB}]
+        pitch: {value: 0, mod: [{src: rand, amount: 0.4}]}
+        filters: ["hp cutoff=3.5k", "peak cutoff=8k q=0.8 gain=3dB"]
+        amp: {a: 0.5ms, d: 700ms, s: 0, r: 120ms, curve: 6}
+  st:
+    gain: -8dB
+    patch:
+      synth:
+        layers: [white, {type: noise, color: pink, level: -4dB}, "square fixed=610 level=-12dB", "square fixed=937 level=-12dB"]
+        pitch: {value: 0, mod: [{src: rand, amount: 0.5}]}
+        filters: ["hp cutoff=1.2k", "peak cutoff=4k q=1 gain=6dB", "lp cutoff=9k"]
+        amp: {a: 0.3ms, d: 260ms, s: 0, r: 60ms, curve: 6}
+        drive: 0.3
+  # Toms: two-mode membranes (1 : 1.59 : 2.14) tuned like 10"–16" drums, pitch drop, stick attack.
+  t1: {pitch: F#3, patch: &tom prog-tom}
+  t2: {pitch: D3, patch: *tom}
+  t3: {pitch: A2, patch: *tom}
+  ft: {pitch: F2, patch: *tom}
+  ft2: {pitch: C#2, patch: *tom}

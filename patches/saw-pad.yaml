@@ -1,0 +1,15 @@
+about: Huge supersaw pad — 7 detuned saws plus a sub-octave, slow attack and long release, drifting filter, chorus and a long dark room. For doom swells and ambient breaks.
+synth:
+  layers:
+    - saw unison=7 detune=0.28 spread=0.95
+    - saw ratio=0.5 unison=3 detune=0.15 spread=0.6 level=-6dB
+  lfo:
+    drift: {wave: sine, rate: 0.07hz}
+  filters:
+    - {kind: lp, cutoff: {value: 1800, mod: [{src: lfo.drift, amount: 0.8}, {src: vel, amount: 1}]}, q: 0.9}
+  amp: {a: 900ms, d: 1s, s: 0.85, r: 2.5s}
+play: {gate: 1}
+fx:
+  - chorus mix=0.35
+  - reverb mix=0.45 size=0.92 damp=0.6
+gain: -21dB

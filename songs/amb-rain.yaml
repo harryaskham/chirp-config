@@ -1,0 +1,16 @@
+about: "Ambience: rain — filtered noise rainfall with random glassy drips and a soft low pad (use --loop)."
+tempo: 90
+length: 16b
+patches:
+  rainfall:
+    synth:
+      layers: [{type: noise, color: pink}, {type: noise, level: -10dB}]
+      lfo: {gust: {wave: sine, rate: 0.09hz}}
+      filters: [{kind: bp, cutoff: {value: 2800, mod: [{src: lfo.gust, amount: 0.6}]}, q: 0.5}, "hp cutoff=400"]
+      amp: {a: 2s, d: 0, s: 1, r: 2s}
+    play: {gate: 1}
+    gain: -15dB
+tracks:
+  - {name: rain, patch: rainfall, score: "C4/1 _ _ _"}
+  - {name: drips, patch: glass, gain: -5dB, score: "[ (C6|E6|G6|B6)/16@50?0.25 ]x64", fx: ["reverb kind=room decay=1.2s mix=0.4"]}
+  - {name: pad, patch: saw-pad, gain: -7dB, score: "C3,G3,E4/1@60 A2,E3,C4/1@60 F2,C3,A3/1@60 G2,D3,B3/1@60"}

@@ -1,0 +1,17 @@
+about: "Clean prog (Animals as Leaders-ish): thump/pop and tapped clean 8-string, ghost-note grooves."
+form: rock
+tempo: [104, 126]
+offset: 1
+riff_offset: -1
+roles:
+  riff: [riff-thump, riff-taps]
+  low: [beat-sparse]
+  mid: [beat-ghost, beat-ride, beat-euclid]
+  high: [beat-djent, beat-ghost]
+  half: [beat-halftime]
+  brk: [beat-sparse]
+  hook: [lead-hook]
+  pad: [pad-dark]
+  soft: [pad-swell]
+  arp: [arp-16th]
+  hold: [riff-hold]

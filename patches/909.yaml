@@ -1,0 +1,65 @@
+about: "909-style drum machine for house/techno/garage/hardcore: k punchy kick, kh distorted hardcore kick, s snare, cp clap, rs rim, h closed / oh open hat (choke), rd ride, c crash. Length defaults to 1/16."
+play: {len: /16, vel_sens: 0.5, humanize: {time: 1ms, vel: 0.03}}
+gain: -6dB
+fx:
+  - {type: compressor, threshold: -14dB, ratio: 3, attack: 3ms, release: 80ms, makeup: 2dB}
+  - "reverb kind=room decay=0.6s mix=0.06"
+kit:
+  k:
+    pitch: G1
+    patch:
+      synth:
+        layers:
+          - sine
+          - {type: noise, level: {value: -66dB, mod: [{src: env.click, amount: 58}, {src: vel, amount: 6}]}}
+        env:
+          p: {a: 0.1ms, d: 18ms, s: 0, curve: 5}
+          click: {a: 0.1ms, d: 2ms, s: 0}
+        pitch: {value: 0, mod: [{src: env.p, amount: 26}]}
+        filters: ["hp cutoff=30", "lp cutoff=5k"]
+        amp: {a: 0.1ms, d: 380ms, s: 0, r: 30ms, curve: 3}
+        drive: 0.2
+  kh:
+    pitch: G1
+    gain: 2dB
+    patch:
+      synth:
+        layers:
+          - sine
+          - {type: noise, level: {value: -60dB, mod: [{src: env.click, amount: 56}]}}
+        env:
+          p: {a: 0.1ms, d: 30ms, s: 0, curve: 4}
+          click: {a: 0.1ms, d: 3ms, s: 0}
+        pitch: {value: 0, mod: [{src: env.p, amount: 30}]}
+        filters: ["hp cutoff=35"]
+        amp: {a: 0.1ms, d: 420ms, s: 0.2, r: 40ms, curve: 2}
+        drive: 0.9
+      fx: ["ott depth=0.4 time=0.2", "drive drive=0.6 bias=0.15", "gain gain=-6dB"]
+  s:
+    pitch: G3
+    patch:
+      synth:
+        layers:
+          - {wave: triangle, level: {value: -60dB, mod: [{src: env.t, amount: 56}]}}
+          - {type: noise, level: {value: -66dB, mod: [{src: env.n, amount: 62}]}}
+        env:
+          t: {a: 0.1ms, d: 60ms, s: 0}
+          n: {a: 0.2ms, d: 160ms, s: 0, curve: 4}
+        pitch: {value: 0, mod: [{src: env.t, amount: 5}]}
+        filters: ["hp cutoff=180", "peak cutoff=3.5k q=0.8 gain=4dB"]
+        amp: {a: 0.1ms, d: 220ms, s: 0, r: 20ms}
+  cp:
+    gain: -2dB
+    patch:
+      synth:
+        layers: [{type: noise}]
+        env:
+          b: {a: 0.1ms, d: 9ms, s: 0}
+        filters: ["bp cutoff=1.3k q=1.2", "hp cutoff=500"]
+        amp: {a: 0.1ms, d: 140ms, s: 0, r: 30ms, curve: 4}
+      fx: ["reverb kind=room decay=0.5s mix=0.2"]
+  rs: {gain: -6dB, patch: "blip amp.d=30ms layers.0.fixed=1700"}
+  h: {choke: hat, gain: -12dB, patch: "haake-hat amp.d=40ms"}
+  oh: {choke: hat, gain: -13dB, patch: "haake-hat amp.d=300ms amp.r=60ms"}
+  rd: {gain: -14dB, patch: "haake-hat amp.d=900ms filters.0.cutoff.value=5k"}
+  c: {gain: -12dB, patch: "haake-hat amp.d=1.8s filters.0.cutoff.value=3.5k"}

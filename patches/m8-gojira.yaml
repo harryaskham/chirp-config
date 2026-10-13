@@ -1,0 +1,8 @@
+about: 8-string through a Gojira-style rig — screamer into a tight, aggressive amp with thick upper mids, real V30/SM57 + Rockdriver/e606 4×12 IR blend (Jester, CC0), gate. Same articulations as m8.
+extends: m8
+fx:
+  - {type: amp, model: gojira, gain: 0.74, ts: 0.45, tight: 92, boost: 4dB, bass: 0.6, mid: 0.6, treble: 0.64, presence: 0.7, resonance: 0.68, sag: 0.2}
+  - {type: ir, file: jester/cookie-monster, blend_file: jester/kitten-slayer, blend: 0.35, length: 120ms}
+  - {type: eq, bands: ["peak cutoff=250 q=1.2 gain=-2dB", "peak cutoff=4500 q=1 gain=2dB"]}
+  - {type: gate, threshold: -52dB, attack: 0.5ms, hold: 20ms, release: 45ms}
+gain: -23dB

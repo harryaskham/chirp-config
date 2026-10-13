@@ -1,0 +1,47 @@
+about: Suite 3/7 — the 7+9 riff with dynamics, stabs, pinch squeal and dive; lead joins on the repeat.
+tempo: 116
+buses:
+  room: {fx: ["reverb mix=1 size=0.45 damp=0.6"]}
+tracks:
+  - name: drums
+    patch: haake
+    sends: {room: -16dB}
+    score: >
+      [ k,c@124 k@68 k@74 . k,x@106 k@70 s@30 k@112 k,x,s@122 k@116 . k@106 k,x@96 . k@104 s@28 |
+        k,x@120 k@70 k@68 . k,x@110 k@74 s@32 k@116 k,x,s@124 k@118 . k@102 k,x@98 k@72 k@108 hh@96 |
+        k,x@118 k@64 k@72 . k,x@112 k@68 s@30 k@110 k,x,s@126 k,c@120 . k@100 k,x@96 . k@110 s@34 |
+        k,c@124 . . . s@96 s@40 k@96 k@70 t1@100 t1@84 t2@104 t2@88 ft@110 ft@96 ft,k@116 s@120 ]x2
+  - name: gtr-l
+    patch: m8
+    pan: L90
+    score: &riff >
+      [ expr.pm=1 F1/16@118 F@66 F@74 . F@108 F@70 . F@114 F@64 expr.pm=0 B1,F2/8@116^gate=1.05
+        expr.pm=1 F1/16@106 F@70 . F@104 . |
+        F1/16@120 F@70 F@68 . F@110 F@74 . F@116 F@62 expr.pm=0 Bb1,E2/8@118^gate=1.05
+        expr.pm=1 F1/16@102 F@66 F@72 F@108 . |
+        F1/16@118 F@64 F@72 . F@112 F@68 . F@110 F@66 expr.pm=0 F2/8@120^ph^gate=1.3
+        expr.pm=1 F1/16@100 F@68 . Gb1@110 . |
+        expr.pm=0 Eb2,Bb2,Eb3/4.@118^gate=1.05 expr.pm=1 F1/16@96 F@70
+        expr.pm=0 Gb2/32@116 _ _ bend=-0.25 _ _ bend=-0.5 _ _ bend=-1 _ _ bend=-1.75 _ _ bend=-3 _ _ bend=-5 _ bend=
+        expr.pm=1 F1/16@110 ]x2
+  - name: gtr-r
+    patch: "m8 layers.0.pick=0.14 humanize.time=5ms"
+    pan: R90
+    score: *riff
+  - name: bass
+    patch: m8-bass
+    score: >
+      [ expr.pm=1 F1/16@118 F@66 F@74 . F@108 F@70 . F@114 F@64 expr.pm=0 B1/8@116^gate=1.05
+        expr.pm=1 F1/16@106 F@70 . F@104 . |
+        F1/16@120 F@70 F@68 . F@110 F@74 . F@116 F@62 expr.pm=0 Bb1/8@118^gate=1.05
+        expr.pm=1 F1/16@102 F@66 F@72 F@108 . |
+        F1/16@118 F@64 F@72 . F@112 F@68 . F@110 F@66 expr.pm=0 F1/8@120^gate=1.3
+        expr.pm=1 F1/16@100 F@68 . Gb1@110 . |
+        expr.pm=0 Eb1/4.@118^gate=1.05 expr.pm=1 F1/16@96 F@70
+        expr.pm=0 Gb1/32@116 _ _ bend=-0.25 _ _ bend=-0.5 _ _ bend=-1 _ _ bend=-1.75 _ _ bend=-3 _ _ bend=-5 _ bend=
+        expr.pm=1 F1/16@110 ]x2
+  - name: lead
+    patch: m8-lead
+    at: 4bar
+    sends: {room: -10dB}
+    score: "R/8 Bb4/8@90 C5/4@100 Db5/4.@110 F5/8@100 | E5/2@112 Db5/8@92 C5/8@96 Bb4/4@104 | Gb5/4.@118 F5/8@96 Eb5/4@100 Db5/8@90 C5/8@94 | Db5/1@108"

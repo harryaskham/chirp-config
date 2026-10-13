@@ -1,0 +1,7 @@
+about: "Ambience: space — huge reverb swells, a sub drone and distant harmonics; very slow (use --loop)."
+tempo: 56
+length: 16b
+tracks:
+  - {name: swells, patch: ambient-swell, gain: -4dB, score: "F3,C4,G4/1@80^gate=1.8 R/1 Db3,Ab3,Eb4/1@78^gate=1.8 R/1"}
+  - {name: harm, patch: nylon, gain: -8dB, score: "R/1 (C5|G5)/2@80^nh=2 R/2 R/1 (Ab4|Eb5)/2@78^nh=3 R/2", fx: ["reverb kind=hall decay=8s mix=0.6 predelay=60ms"]}
+  - {name: drone, patch: sub, gain: -10dB, score: "F1/1@80 _ Db1/1@80 _"}

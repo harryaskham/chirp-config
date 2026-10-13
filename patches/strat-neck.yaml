@@ -1,0 +1,2 @@
+about: "Strat neck pickup: warm, round single-coil clean (same rig and techniques as strat)."
+extends: "strat layers.0.pickup=0.3 layers.0.pickup_hz=4800 layers.0.pickup_q=2.2 layers.0.bright.value=0.7"

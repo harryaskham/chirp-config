@@ -1,0 +1,9 @@
+about: One-bar stop — a full-band hit on the downbeat, then space for the tails.
+tempo: 120
+length: 4b
+tracks:
+  - {name: drums, patch: prog-kit, score: "k,c,x/4@124 R/4 R/2"}
+  - {name: gtr-l, patch: m8-gojira, pan: L90, score: "F1,C2,F2/4@124^gate=0.6 R/4 R/2"}
+  - {name: gtr-r, patch: "m8-gojira fx.1.file=jester/darth-genocider", pan: R90, score: "F1,C2,F2/4@124^gate=0.6 R/4 R/2"}
+  - {name: bass, patch: m8-bass-dist, score: "F1/4@124^gate=0.6 R/4 R/2"}
+  - {name: fx, patch: fx-impact, score: "F1/4@110 R/4 R/2"}

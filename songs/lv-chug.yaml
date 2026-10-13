@@ -1,0 +1,43 @@
+about: Live suite 2/5 — polymetric 7-sixteenth chug at 128, quad-tracked guitars, distorted bass and sub.
+tempo: 128
+length: 16b
+vars: {dark: 0, wet: 0.35}
+buses:
+  room: {fx: ["reverb mix=1 size=0.55 damp=0.5"], gain: {value: -18dB, mod: [{src: var.wet, amount: 18}]}}
+  gtr: {fx: [{type: filter, kind: lp, cutoff: {value: 16k, mod: [{src: var.dark, amount: -4.5}]}, q: 0.8}]}
+tracks:
+  - name: drums
+    patch: haake
+    sends: {room: -10dB}
+    score: >
+      [ k,c/16@124 k@88 k@100 k@84 s,c@122 k@86 k@102 k@88 k,c@120 k@84 k@98 k@86 s,c@124 k@90 (k@104|t1@100) (k@92|t2@96) ]x3
+      k,c/16@124 . k@96 k@80 s,c@120 . k@104 k@84 t1@110 t1@96 t2@108 t2@92 ft@114 ft@100 ft,k@118 s@124
+  - name: gtr-l
+    patch: m8-gojira
+    pan: L90
+    out: gtr
+    seed: 3
+    sends: {room: -14dB}
+    score: &riff >
+      [ expr.pm=1 F1/16@120 F1@70^dead (F1@98|Bb1@104) expr.pm=0 (F1,C2,F2|Ab1,Eb2|Gb1,Db2,Gb2)@122^gate=0.95
+        expr.pm=1 F1@106 (F1@64^dead|Gb1@102) (F1@112|F2@118^ph^gate=1.6) ]x9 .
+  - name: gtr-r
+    patch: "m8-gojira fx.1.file=jester/darth-genocider layers.0.pick=0.14 humanize.time=5ms"
+    pan: R90
+    out: gtr
+    seed: 3
+    sends: {room: -14dB}
+    score: *riff
+  - {name: gtr-l2, patch: "m8-mark layers.0.pick=0.12 humanize.time=6ms", pan: -0.55, out: gtr, seed: 3, gain: -5dB, score: *riff}
+  - {name: gtr-r2, patch: "m8-mark layers.0.pick=0.15 humanize.time=6ms", pan: 0.55, out: gtr, seed: 3, gain: -5dB, score: *riff}
+  - {name: bass, patch: m8-bass-dist, seed: 3, score: *riff}
+  - name: sub
+    patch: sub
+    seed: 3
+    score: "[ F1/16 . (.|.) (F1|Ab1|Gb1)/16 . (.|.) (.|.) ]x9 ."
+  - name: fx
+    sends: {room: -10dB}
+    score: "patch=fx-impact F1/4@112 R/4 R/2 R/1 R/1 patch=fx-riser C4/1@96"
+  - name: fx-rev
+    patch: fx-revcym
+    score: "R/1 R/1 R/1 R/2 C5/2@96"

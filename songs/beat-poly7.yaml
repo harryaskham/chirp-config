@@ -1,0 +1,6 @@
+about: "Part (tempo: inherit, 16 beats) \u2014 kick locked to a 7-sixteenth cycle, snare on 2 and 4, china pulse."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "kick", "patch": "prog-kit", "score": "[ k/16@122 . (k@96|.) k@110 . (k@100|.) k@114 ]x9 ."}
+  - {"name": "snare", "patch": "prog-kit", "score": "[ R/4 s,x/4@122 R/4 s,x/4@124 ]x4"}

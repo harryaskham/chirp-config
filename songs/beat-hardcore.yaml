@@ -1,0 +1,7 @@
+about: "Part (tempo: inherit, 16 beats) \u2014 hardcore: distorted kick on every beat, off-beat open hats, claps on 2 and 4, a 16th kick roll at the end."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "kick", "patch": "909", "score": "[ kh/4@124 ]x14 [ kh/16@120 ]x8"}
+  - {"name": "ohat", "patch": "909", "score": "[ R/8 oh/8@88 ]x16"}
+  - {"name": "clap", "patch": "909", "score": "[ R/4 cp/4@100 ]x8"}

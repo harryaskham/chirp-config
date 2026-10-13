@@ -1,0 +1,5 @@
+about: "Part (tempo: inherit, 16 beats) \u2014 OTT-crushed industrial groove with stack accents and a 32nd tom turnaround."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "drums", "patch": "prog-kit", "fx": ["ott depth=0.45 time=0.3", "gain gain=-3dB"], "score": "[ k,x/16@124 . k@110 . s,st@122 . k@108 k@96 . k@112 . k@100 s,st@124 . (t1@104|k@100) (k@96|.) ]x3 k,x/16@124 k@100 k@108 k@96 s@120 s@110 s@116 s@122 t1/32@110 t1@100 t2@112 t2@102 t3@114 t3@104 ft@118 ft@108 ft2/8@124 k,x/8@124"}

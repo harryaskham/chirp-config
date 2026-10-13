@@ -1,0 +1,5 @@
+about: "Cue: error — a low, dissonant 8-string stab (F + B) with a short impact."
+tempo: 120
+tracks:
+  - {name: gtr, patch: m8-gojira, gain: 2dB, score: "F1,B1,F2/8@120^gate=0.9"}
+  - {name: hit, patch: fx-impact, gain: -4dB, score: "F1/8@90"}

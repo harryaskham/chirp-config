@@ -1,0 +1,17 @@
+about: "UK garage / 2-step: shuffled skippy beats, Rhodes 9ths, 808/house bass."
+form: edm
+tempo: [130, 136]
+offset: 0
+riff_offset: 0
+roles:
+  riff: [bass-house, bass-808]
+  low: [beat-garage]
+  mid: [beat-garage]
+  high: [beat-garage]
+  half: [beat-lofi]
+  brk: [beat-sparse]
+  hook: [keys-rhodes]
+  pad: [pad-dark]
+  soft: [pad-swell]
+  arp: [arp-16th]
+  hold: [chords-house]

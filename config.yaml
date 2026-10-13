@@ -1,0 +1,6 @@
+# chirp config (local; Collective can take this over later).
+output:
+  sink: vsink_fx          # notifications
+outputs:
+  music: {server: "tcp:sgu24:4713", sink: vsink_music, role: music}
+  fx: {server: "tcp:sgu24:4713", sink: vsink_fx}

@@ -1,0 +1,5 @@
+about: "Part (tempo: inherit, 16 beats) \u2014 house chord stabs on the off-beats: Fm9 \u00b7 Fm9 \u00b7 Dbmaj7 \u00b7 Eb6."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "stabs", "patch": "house-chord", "pan": 0.15, "score": "R/8 F3,Ab3,C4,Eb4,G4/8@100 R/4 R/8 F3,Ab3,C4,Eb4/8@88 R/4 R/8 (F3,Ab3,C4,Eb4,G4|F3,Ab3,Bb3,Eb4)/8@100 R/4 R/8 F3,Ab3,C4,Eb4/8@86 R/4 R/8 Db3,F3,Ab3,C4/8@100 R/4 R/8 Db3,F3,Ab3,C4/8@88 R/4 R/8 Eb3,G3,Bb3,C4/8@100 R/4 R/8 (Eb3,G3,Bb3,C4|Eb3,G3,Bb3,Db4)/8@90 R/4"}

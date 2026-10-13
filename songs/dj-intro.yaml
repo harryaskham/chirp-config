@@ -1,0 +1,20 @@
+about: Suite 1/7 — clean dissonant arpeggios swelling in over ride bell, drone bass, tom crescendo into the riff.
+tempo: 116
+tracks:
+  - name: clean
+    patch: m8-clean
+    envelope: {a: 5s, s: 1, r: 1s}
+    score: >
+      len=/8 F2@82 C3@70 Gb3@76 B3@72 E4@84 B3@68 Gb3@74 C3@70 |
+      F2@86 C3@72 Gb3@78 B3@74 E4@88 B3@70 Gb3@76 C3@72 |
+      F2@88 Db3@74 Ab3@80 C4@76 Eb4@92 C4@72 Ab3@78 Db3@74 |
+      F2,C3,Gb3,B3/2@96^gate=2.5 R/2
+  - name: bass
+    patch: m8-bass
+    envelope: {a: 6s, s: 1, r: 500ms}
+    score: "F1/1@70^gate=1 _ _ R/1"
+  - name: drums
+    patch: haake
+    score: >
+      len=/4 rb@54 rb@40 rb@58 rb@42 | rb@60 rb@44 rb@64 rb@46 | rb@66 rb@48 rb@70 rb@52 |
+      len=/16 t1@60 t1@66 t1@72 t1@78 t2@82 t2@86 t2@90 t2@94 ft@98 ft@102 ft@106 ft@110 s@108 s@114 s@120 s@126

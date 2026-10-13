@@ -1,0 +1,50 @@
+about: Live suite 3/5 — 3-3-2 syncopated groove at 120 with plucked synth arps doubling the guitars.
+tempo: 120
+length: 16b
+vars: {dark: 0, wet: 0.35}
+buses:
+  room: {fx: ["reverb mix=1 size=0.6 damp=0.5"], gain: {value: -18dB, mod: [{src: var.wet, amount: 18}]}}
+  gtr: {fx: [{type: filter, kind: lp, cutoff: {value: 16k, mod: [{src: var.dark, amount: -4.5}]}, q: 0.8}]}
+tracks:
+  - name: drums
+    patch: haake
+    sends: {room: -10dB}
+    score: >
+      [ k,c/16@124 hh@60 hh@54 k@110 s,hh@120 hh@56 k@108 hh@58 k,c@122 hh@60 hh@54 k@112 s,hh@122 hh@56 k@110 (k@90|hh@60) ]x4
+  - name: gtr-l
+    patch: m8-nolly
+    pan: L90
+    out: gtr
+    seed: 4
+    sends: {room: -14dB}
+    score: &g332 >
+      [ expr.pm=1 F1/16@120 F@72 F@80 F1@116 F@70 F@78 expr.pm=0 (B1,F2|C2,G2)/8@122^gate=0.9
+        expr.pm=1 F1/16@118 F@72 F@84 F1@114 F@70 (F@82|.) expr.pm=0 (Ab1,Eb2|Gb1,Db2)/8@120^gate=0.9 ]x4
+  - name: gtr-r
+    patch: "m8-nolly layers.0.pick=0.14 humanize.time=5ms"
+    pan: R90
+    out: gtr
+    seed: 4
+    sends: {room: -14dB}
+    score: *g332
+  - name: bass
+    patch: m8-bass-dist
+    seed: 4
+    score: &b332 "[ F1/16@120 . . F1@116 . . (B1|C2)/8@122 F1/16@118 . . F1@114 . (.|.) (Ab1|Gb1)/8@120 ]x4"
+  - {name: sub, patch: sub, seed: 4, score: *b332}
+  - name: arp
+    patch: arp-pluck
+    pan: 0.3
+    sends: {room: -10dB}
+    score: "[ F3/16@100 C4@90 F4@96 Ab3@88 C4@92 F4@98 (B3|C4)@100 F4@90 Ab3@94 C4@88 Eb4@96 F3@90 Ab3@92 C4@88 (Db4|Eb4)@98 F4@94 ]x4"
+  - name: pad
+    patch: saw-pad
+    sends: {room: -10dB}
+    gain: -6dB
+    score: "[ F3,Ab3,C4/1@80 ]x2 Gb3,Bb3,Db4/1@80 E3,Ab3,B3/1@84"
+  - name: fx
+    sends: {room: -10dB}
+    score: "patch=fx-impact F1/4@112 R/4 R/2 R/1 R/1 patch=fx-riser C4/1@96"
+  - name: fx-rev
+    patch: fx-revcym
+    score: "R/1 R/1 R/1 R/2 C5/2@96"

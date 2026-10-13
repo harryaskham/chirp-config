@@ -1,0 +1,28 @@
+about: Long-note clean section — 4 bars at 84 BPM, ringing strummed chords with delay over Fm9 · Dbmaj7#11 · Bbm9 · C7sus4, nylon harmonics, sidestick and ride, long bass notes.
+tempo: 84
+length: 16b
+vars: {dark: 0, wet: 0.35}
+buses:
+  room: {fx: ["reverb kind=hall decay=3.5s mix=1 predelay=25ms"], gain: {value: -14dB, mod: [{src: var.wet, amount: 14}]}}
+  gtr: {fx: [{type: filter, kind: lp, cutoff: {value: 16k, mod: [{src: var.dark, amount: -4.5}]}, q: 0.8}]}
+tracks:
+  - name: chords
+    patch: clean-chorus
+    pan: -0.3
+    sends: {room: -8dB}
+    score: "F2,C3,Eb3,Ab3,G4/1@92^gate=1.3 Db2,Ab2,C3,F3,G4/1@90^gate=1.3 Bb1,F2,Db3,F3,C4/1@92^gate=1.3 C2,G2,Bb2,F3,G4/1@94^gate=1.4"
+  - name: harm
+    patch: nylon
+    pan: 0.35
+    sends: {room: -6dB}
+    score: "R/2 (C5|G5)/2@92^nh=2 R/2 (Ab4|F5)/2@90^nh=3 R/2 (F5|Db5)/2@92^nh=2 R/4 G5/4@96^nh=2 (C6|E5)/2@92^nh=3"
+  - name: drums
+    patch: prog-kit
+    sends: {room: -10dB}
+    score: "[ k/4@96 ss@78 k@88 ss@80 ]x4"
+  - name: ride
+    patch: prog-kit
+    score: "[ rd/8@76 rd@58 rb@84 rd@58 ]x8"
+  - name: bass
+    patch: m8-bass
+    score: "F1/1@100 Db1/1@98 Bb0/1@100 C1/1@102"

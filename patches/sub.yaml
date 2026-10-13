@@ -1,0 +1,9 @@
+about: Clean sine sub-bass with a touch of 2nd harmonic; mono, glides slightly. Doubles a distorted bass an octave down or in unison.
+synth:
+  layers:
+    - sine
+    - sine ratio=2 level=-18dB
+  amp: {a: 4ms, d: 0, s: 1, r: 120ms}
+  filters: ["lp cutoff=160 q=0.7"]
+play: {mono: true, glide: 15ms, gate: 0.95}
+gain: -13dB

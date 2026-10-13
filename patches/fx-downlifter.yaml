@@ -1,0 +1,11 @@
+about: "Downlifter: a falling noise sweep after a drop (one bar, beat-timed)."
+synth:
+  layers: [white, {type: noise, color: pink, level: -3dB}]
+  env:
+    dn: {a: 1ms, d: 4b, s: 0}
+  filters:
+    - {kind: bp, cutoff: {value: 400, mod: [{src: env.dn, amount: 4.5}]}, q: 1.2}
+  amp: {a: 2ms, d: 4b, s: 0, r: 80ms, curve: 2}
+play: {gate: 1}
+fx: ["reverb kind=hall decay=3s mix=0.3"]
+gain: -16dB

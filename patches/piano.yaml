@@ -1,0 +1,13 @@
+about: "Piano: stretched additive partials with a hammer thump; upper partials fade first; velocity brightens. Broken chords, Alberti bass, melodies."
+synth:
+  layers:
+    - {type: additive, count: 14, tilt: -5, stretch: 0.25, damp: 1.6, level: {value: 0dB, mod: [{src: vel, amount: 4}]}}
+    - {type: noise, color: pink, level: {value: -60dB, mod: [{src: env.h, amount: 38}, {src: vel, amount: 8}]}}
+  env:
+    h: {a: 0.1ms, d: 8ms, s: 0}
+  filters:
+    - {kind: lp, cutoff: {value: 3k, mod: [{src: vel, amount: 2}, {src: key, amount: 0.6}]}, q: 0.6}
+  amp: {a: 1ms, d: 4s, s: 0, r: 350ms, curve: 3}
+play: {gate: 1, vel_sens: 0.7, humanize: {time: 5ms, vel: 0.06}}
+fx: ["reverb kind=hall decay=2.2s mix=0.18"]
+gain: -6dB

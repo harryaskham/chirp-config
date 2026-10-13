@@ -1,0 +1,5 @@
+about: "Part (tempo: inherit, 16 beats) \u2014 16th double-kick chug, china backbeat, tom tail."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "kick-snare", "patch": "prog-kit", "score": "[ k,c/16@124 k@88 k@100 k@84 s,x@122 k@86 k@102 k@88 k,c@120 k@84 k@98 k@86 s,x@124 k@90 (k@104|t1@100) (k@92|t2@96) ]x4"}

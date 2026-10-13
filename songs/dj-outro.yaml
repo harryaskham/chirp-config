@@ -1,0 +1,24 @@
+about: Suite 7/7 — 5-against-4 quintuplet chugs building into a final ringing chord.
+tempo: 116
+tracks:
+  - name: gtr-l
+    patch: m8
+    pan: L90
+    score: &q >
+      [expr.pm=1 len=/20 F1@120 F@70 F@78 . F@104 F@112 F@72 . F@106 F@74 Gb1@118^pm=0^gate=1 F@70 F@78 . F@108 F@114 F@74 . F@110 F@120]x3
+      expr.pm=0 F1,C2,F2/1@126^gate=1 _
+  - name: gtr-r
+    patch: "m8 layers.0.pick=0.14 humanize.time=5ms"
+    pan: R90
+    score: *q
+  - name: bass
+    patch: m8-bass
+    score: >
+      [expr.pm=1 len=/20 F1@120 F@70 F@78 . F@104 F@112 F@72 . F@106 F@74 Gb1@118^pm=0^gate=1 F@70 F@78 . F@108 F@114 F@74 . F@110 F@120]x3
+      expr.pm=0 F1/1@126^gate=1 _
+  - name: kick
+    patch: haake
+    score: "[len=/20 k@120 k@70 k@78 . k@104 k@112 k@72 . k@106 k@74 k@118 k@70 k@78 . k@108 k@114 k@74 . k@110 k@120]x3 k/1@127"
+  - name: tops
+    patch: haake
+    score: "len=/4 c@124 x@96 x,s@124 x@96 x@112 x@96 x,s@124 x@100 x@114 x@100 x,s@126 s/16@104 s@112 s@120 s@126 c/1@127"

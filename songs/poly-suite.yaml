@@ -1,0 +1,12 @@
+about: Polyphia-style suite — fingerpicked nylon over half-time trap drums and 808, then chord stabs and a synth hook join. vars dark, wet.
+vars:
+  dark: {value: 0, smooth: 400ms, min: 0, max: 1}
+  wet: {value: 0.35, smooth: 400ms, min: 0, max: 1}
+master:
+  fx:
+    - "glue threshold=-16dB ratio=2 attack=10ms release=150ms makeup=4dB"
+    - "tape drive=0.2 warmth=0.35"
+    - "width width=1.15 mono_below=120"
+tracks:
+  - name: arrangement
+    score: "@poly-a @poly-b"

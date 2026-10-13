@@ -1,0 +1,5 @@
+about: "Cue: done — a warm clean Cmaj9 strum with chorus, spring and a soft pad swell underneath."
+tempo: 100
+tracks:
+  - {name: gtr, patch: strat, score: "C:maj9/2@96^gate=1.4"}
+  - {name: pad, patch: saw-pad, gain: -10dB, score: "C3,G3,E4/2@70"}

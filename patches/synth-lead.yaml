@@ -1,0 +1,19 @@
+about: Screaming synth lead — detuned saw and square with glide, delayed vibrato, filter bite, drive and a ping-pong delay. Doubles guitar leads an octave up.
+synth:
+  layers:
+    - saw unison=3 detune=0.12 spread=0.4
+    - square cents=-6 level=-5dB
+  env:
+    f: {a: 1ms, d: 350ms, s: 0.4, r: 250ms}
+  lfo:
+    vib: {wave: sine, rate: 5.6hz, delay: 300ms, fade: 400ms, retrig: true}
+  pitch: {value: 0, mod: [{src: lfo.vib, amount: 0.3}]}
+  filters:
+    - {kind: lp, cutoff: {value: 2200, mod: [{src: env.f, amount: 2}, {src: vel, amount: 0.8}]}, q: 1.4}
+  amp: {a: 4ms, d: 120ms, s: 0.85, r: 180ms}
+play: {mono: true, glide: 45ms}
+fx:
+  - drive drive=0.35
+  - delay time=3/16 mix=0.12 feedback=0.22 ping_pong=true
+  - "reverb kind=plate decay=1.4s mix=0.15"
+gain: -19dB

@@ -1,0 +1,6 @@
+about: "Part (tempo: inherit, 16 beats) \u2014 Tosin-style thump/pop with hammer-ons on clean 8-string (F#)."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "gtr-l", "patch": "clean-chorus", "pan": "L90", "seed": 7, "score": "[ F#1/16@110^thump F#2@96^pop F#1@100^thump A1@90^h F#1@108^thump E2@96^pop D2@88^h F#1@104^thump B1@110^thump B2@98^pop B1@100^thump D2@90^h E2@96^pop F#2@100^h A2@104^pop (B2@100^pop|C#3@104^pop) ]x4"}
+  - {"name": "gtr-r", "patch": "clean-chorus layers.0.pick=0.16 humanize.time=6ms", "pan": "R90", "seed": 7, "score": "[ F#1/16@110^thump F#2@96^pop F#1@100^thump A1@90^h F#1@108^thump E2@96^pop D2@88^h F#1@104^thump B1@110^thump B2@98^pop B1@100^thump D2@90^h E2@96^pop F#2@100^h A2@104^pop (B2@100^pop|C#3@104^pop) ]x4"}

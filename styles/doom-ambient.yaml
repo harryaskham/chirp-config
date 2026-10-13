@@ -1,0 +1,17 @@
+about: "Doom/ambient: held distorted chords, sparse drums, swells and slow leads."
+form: rock
+tempo: [60, 72]
+offset: 0
+riff_offset: 0
+roles:
+  riff: [riff-hold]
+  low: [beat-sparse]
+  mid: [beat-halftime]
+  high: [beat-doom]
+  half: [beat-sparse]
+  brk: [beat-sparse]
+  hook: [lead-solo]
+  pad: [pad-dark]
+  soft: [pad-swell]
+  arp: [arp-16th]
+  hold: [pad-swell]

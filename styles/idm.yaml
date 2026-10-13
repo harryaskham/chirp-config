@@ -1,0 +1,17 @@
+about: "IDM (Aphex/Venetian Snares-ish): ratcheted breakbeats, acid, Rhodes, strings."
+form: edm
+tempo: [150, 174]
+offset: 0
+riff_offset: 0
+roles:
+  riff: [bass-acid, arp-16th]
+  low: [beat-euclid]
+  mid: [beat-breaks]
+  high: [beat-breaks]
+  half: [beat-euclid]
+  brk: [beat-sparse]
+  hook: [lead-hook, keys-rhodes]
+  pad: [pad-dark, strings-chorale]
+  soft: [pad-swell]
+  arp: [piano-alberti, arp-16th]
+  hold: [strings-chorale]

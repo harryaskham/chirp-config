@@ -1,0 +1,22 @@
+about: 7/8 groove — 2+2+3 grouping; kick follows the guitar, snare on the 3-group, ride bell pulse.
+tempo: 140
+meter: 7/8
+length: 4bar
+tracks:
+  - name: gtr-l
+    patch: m8
+    pan: L85
+    score: "[expr.pm=1 len=/8 F1 F expr.pm=0 Ab1 expr.pm=1 F1/16 F | F1/8 expr.pm=0 B1,F2/8 .]x4"
+  - name: gtr-r
+    patch: m8
+    pan: R85
+    score: "[expr.pm=1 len=/8 F1 F expr.pm=0 Ab1 expr.pm=1 F1/16 F | F1/8 expr.pm=0 B1,F2/8 .]x4"
+  - name: bass
+    patch: m8-bass
+    score: "[expr.pm=1 len=/8 F1 F expr.pm=0 Ab1 expr.pm=1 F1/16 F | F1/8 expr.pm=0 B1/8 .]x4"
+  - name: kick
+    patch: haake
+    score: "[len=/8 k k k k/16 k k/8 k .]x4"
+  - name: top
+    patch: haake
+    score: "[len=/8 rb . rb . rb,s . .]x4"

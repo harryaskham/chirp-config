@@ -1,0 +1,15 @@
+about: "Rhodes-style FM electric piano: soft bell tine attack over a warm body, tremolo and chorus. Chords and lofi keys."
+synth:
+  layers:
+    - {name: tine, ratio: 14, audible: false}
+    - {name: mod, ratio: 1, audible: false}
+    - {pm: [{from: mod, depth: {value: 0.6, mod: [{src: env.bark, amount: 1.4}, {src: vel, amount: 0.8}]}}, {from: tine, depth: {value: 0, mod: [{src: env.tine, amount: 0.5}]}}]}
+  env:
+    bark: {a: 1ms, d: 600ms, s: 0.2, r: 200ms}
+    tine: {a: 0.5ms, d: 60ms, s: 0}
+  lfo:
+    trem: {wave: sine, rate: 4.2hz}
+  amp: {a: 2ms, d: 2.5s, s: 0.3, r: 300ms}
+play: {gate: 0.95, vel_sens: 0.6, humanize: {time: 6ms, vel: 0.06}}
+fx: ["tremolo rate=4.2hz depth=0.18", "chorus mix=0.25", "reverb kind=room decay=1.2s mix=0.15"]
+gain: -6dB

@@ -1,0 +1,5 @@
+about: "Part (tempo: inherit, 16 beats) \u2014 clean tapped arpeggios with hammer-ons over F#m11 \u00b7 Dmaj9 \u00b7 Bm9 \u00b7 C#7sus4."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "taps", "patch": "clean-chorus", "pan": 0.15, "score": "F#3/16@100 C#4@80^h E4@82^h A4@96 B4@84^h A4@80^h E4@92 C#4@78^h F#3@98 C#4@80^h E4@82^h (A4@96|G#4@96) (B4@86^h|C#5@90) A4@80^h E4@90 C#4@78^h D3/16@100 A3@80^h C#4@82^h E4@96 F#4@84^h E4@80^h C#4@92 A3@78^h D3@98 A3@80^h C#4@82^h (E4@96|F#4@96) (A4@86^h|G#4@86^h) F#4@80^h E4@90 C#4@78^h B2/16@100 F#3@80^h A3@82^h C#4@96 D4@84^h C#4@80^h A3@92 F#3@78^h B2@98 F#3@80^h A3@82^h (C#4@96|D4@96) (E4@86^h|F#4@86^h) D4@80^h C#4@90 A3@78^h C#3/16@100 G#3@80^h B3@82^h E4@96 F#4@84^h E4@80^h B3@92 G#3@78^h C#3@98 G#3@80^h B3@82^h (E4@96|F#4@96) (G#4@86^h|B4@86^h) F#4@80^h (E4/8@96^nh=2|E4/8@96)"}

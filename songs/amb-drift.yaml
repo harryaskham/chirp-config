@@ -1,0 +1,34 @@
+about: Long-note ambient section — 8 bars at 66 BPM, swells and pad over Fm9 · Dbmaj7 · Bbm9 · C7sus4 (two bars each), sub drone, a slow bending lead, sparse toms and ride.
+tempo: 66
+length: 32b
+vars: {dark: 0, wet: 0.35}
+buses:
+  room: {fx: ["reverb kind=hall decay=3.5s mix=1 predelay=25ms"], gain: {value: -14dB, mod: [{src: var.wet, amount: 14}]}}
+  gtr: {fx: [{type: filter, kind: lp, cutoff: {value: 16k, mod: [{src: var.dark, amount: -4.5}]}, q: 0.8}]}
+tracks:
+  - name: swells
+    patch: ambient-swell
+    pan: -0.3
+    sends: {room: -6dB}
+    score: "F3,C4,Eb4,Ab4/1@84^gate=1.6 _ Db3,Ab3,C4,F4/1@82^gate=1.6 _ Bb2,F3,Ab3,Db4/1@84^gate=1.6 _ C3,G3,Bb3,E4/1@86^gate=1.7 _"
+  - name: pad
+    patch: saw-pad
+    gain: -6dB
+    sends: {room: -6dB}
+    score: "F2,C3,Ab3/1@76 _ Db2,Ab2,F3/1@76 _ Bb1,F2,Db3/1@76 _ C2,G2,E3/1@80 _"
+  - name: lead
+    patch: lead-monster
+    pan: 0.2
+    gain: -4dB
+    sends: {room: -4dB}
+    score: "R/1 (C5|Eb5)/1@100 bend=1 _ bend= (Ab4|F4)/2@98 G4/2@96 R/1 (F5|Ab5)/1@104 bend=-2 _ bend= Eb5/2@100 R/2"
+  - name: sub
+    patch: sub
+    score: "F1/1@90 _ Db1/1@90 _ Bb0/1@90 _ C1/1@92 _"
+  - name: drums
+    patch: prog-kit
+    sends: {room: -6dB}
+    score: "R/1 R/1 R/1 ft/4@90 R/4 R/2 R/1 R/1 R/1 rd/1@70"
+  - name: fx
+    sends: {room: -8dB}
+    score: "patch=fx-impact F1/4@100 R/4 R/2 R/1 R/1 R/1 R/1 R/1 R/1 patch=fx-riser C4/1@90"

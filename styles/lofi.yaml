@@ -1,0 +1,18 @@
+about: "Lofi hip-hop: swung soft drums, Rhodes 9ths, nylon, vinyl crackle."
+form: edm
+tempo: [72, 86]
+offset: 0
+riff_offset: 0
+hook_offset: 1
+roles:
+  riff: [keys-lofi]
+  low: [beat-lofi]
+  mid: [beat-lofi]
+  high: [beat-lofi]
+  half: [beat-sparse]
+  brk: [beat-sparse]
+  hook: [riff-nylon]
+  pad: [tex-vinyl]
+  soft: [tex-vinyl]
+  arp: [keys-rhodes]
+  hold: [pad-swell]

@@ -1,0 +1,8 @@
+about: "Part (tempo: inherit, 16 beats) — Euclidean polyrhythm: kick 5-of-16 sixteenths, snare 2-of-8 eighths rotated, hats 7-of-12 triplet eighths, ride bell 3-of-4."
+tempo: inherit
+length: 16b
+tracks:
+  - {name: kick, patch: prog-kit, score: "[ k(5,16)/16@116 ]x4"}
+  - {name: snare, patch: prog-kit, score: "[ s(2,8,2)/8@118 ]x4"}
+  - {name: hats, patch: prog-kit, score: "[ h(7,12)/12@82 ]x4"}
+  - {name: bell, patch: prog-kit, score: "[ rb(3,4,1)/4@84 ]x4"}

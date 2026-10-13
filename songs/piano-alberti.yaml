@@ -1,0 +1,6 @@
+about: "Part (tempo: inherit, 16 beats) \u2014 piano Alberti bass under a simple melody: i \u00b7 iv \u00b7 V7 \u00b7 i in F minor."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "lh", "patch": "piano", "pan": -0.15, "score": "[ F2/8@70 C3@60 Ab2@64 C3@60 ]x2 [ Bb1/8@70 F2@60 Db3@64 F2@60 ]x2 [ C2/8@72 Bb2@60 E2@64 Bb2@60 ]x2 [ F2/8@70 C3@60 Ab2@64 C3@60 ]x2"}
+  - {"name": "rh", "patch": "piano", "pan": 0.15, "score": "C5/4@88 (Ab4|C5)/8@80 G4/8@78 F4/2@84 F5/4@90 (Eb5|Db5)/8@82 C5/8@80 Bb4/2@84 (G4|Bb4)/4@86 C5/8@84 Db5/8@82 E4/4@80 G4/4@84 F4/1@88"}

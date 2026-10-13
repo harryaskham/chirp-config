@@ -1,0 +1,8 @@
+about: "Ambience: night — dark pad and guitar swells over Fm9 · Dbmaj7 · Bbm9 · C7sus4 with a slow, sparse plucked arp; varies every pass (use --loop)."
+tempo: 64
+length: 16b
+tracks:
+  - {name: pad, patch: saw-pad, gain: -1dB, score: "F2,C3,Ab3,Eb4/1@76 Db2,Ab2,F3,C4/1@76 Bb1,F2,Db3,Ab3/1@76 C2,G2,F3,Bb3/1@80"}
+  - {name: swells, patch: ambient-swell, gain: -1dB, pan: -0.3, score: "R/2 (C5|Eb5)/2@80^gate=1.6 R/2 (Ab4|F5)/2@78^gate=1.6 R/2 (Db5|F5)/2@80^gate=1.6 R/2 (E5|G4)/2@82^gate=1.7"}
+  - {name: arp, patch: arp-pluck, gain: -7dB, pan: 0.35, score: "[ (F4|C5)/8@60?0.7 . (Ab4|Eb5)@56?0.6 . ]x8", fx: ["reverb kind=hall decay=5s mix=0.5"]}
+  - {name: sub, patch: sub, gain: -3dB, score: "F1/1@80 Db1/1@80 Bb0/1@80 C1/1@84"}

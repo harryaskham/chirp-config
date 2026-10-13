@@ -1,0 +1,6 @@
+about: "Part (tempo: inherit, 16 beats) \u2014 UK garage 2-step: skippy kicks, snares on 2 and 4, triplet-shuffled hats, ghosted rims."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "kick-snare", "patch": "909", "score": "[ k/16@118 . . . s@112 . . . . . k@104 . s@114 . (rs@60|.) (k@96|.) ]x4"}
+  - {"name": "hats", "patch": "909", "score": "[ h/12@82 . h@58 ]x16"}

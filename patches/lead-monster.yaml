@@ -1,0 +1,12 @@
+about: "Monstrous lead: long-sustaining 8-string into a 5150-style amp with a screamer and mid push, two-mic cab IR, ping-pong delay and a big room. `^h` hammer-on/legato (no pick), `^ph` pinch squeal, `^nh=N` harmonics, bends with bend=."
+extends: "m8 layers.0.decay.value=9s layers.0.bright.value=0.82"
+synth:
+  lfo:
+    vib: {wave: sine, rate: 5.6hz, delay: 280ms, fade: 350ms, retrig: true}
+fx:
+  - {type: amp, model: "5150", gain: 0.92, ts: 0.7, tight: 140, boost: 6dB, bass: 0.48, mid: 0.68, treble: 0.6, presence: 0.62, resonance: 0.55, sag: 0.3}
+  - {type: ir, file: jester/cookie-monster, blend_file: jester/darth-genocider, blend: 0.4, length: 120ms}
+  - {type: eq, bands: ["peak cutoff=800 q=0.9 gain=2dB", "peak cutoff=250 q=1.2 gain=-2dB"]}
+  - "delay time=3/16 mix=0.15 feedback=0.25 ping_pong=true"
+  - "reverb kind=hall decay=2s mix=0.18"
+gain: -19dB

@@ -1,0 +1,17 @@
+about: "Deep/classic house: four-on-the-floor 909, off-beat bass, chord stabs, Rhodes."
+form: edm
+tempo: [120, 126]
+offset: 0
+riff_offset: 0
+roles:
+  riff: [bass-house]
+  low: [beat-house]
+  mid: [beat-house]
+  high: [beat-house]
+  half: [beat-lofi]
+  brk: [beat-sparse]
+  hook: [chords-house]
+  pad: [pad-dark, strings-chorale]
+  soft: [pad-swell, strings-chorale]
+  arp: [arp-16th, keys-rhodes]
+  hold: [chords-house]

@@ -1,0 +1,19 @@
+about: Tour of prog-kit — ghost-note groove with hat ratchets, sidestick on ride, rimshot backbeat with flams, splash/stack accents and a five-tom fill with drags.
+tempo: 104
+length: 32b
+tracks:
+  - name: kick-snare
+    patch: prog-kit
+    score: >
+      [ k/16@118 . g@36 . s@118 . g@34 k@100 . k@108 g@38 . s@120 . g@40 (g@34|.) ]x2
+      [ k/16@110 . . ss@90 . . k@100 . ss@92 . k@96 . ss@88 . (ss@60|.) . ]x2
+      [ k/16@120 . k@96 . rs@124 . k@100 k@92 . k@104 . . rs@124^flam . g@40 . ]x2
+      k,sp/16@120 . st@100 . k,st@110 . st@96 . t1@110 t1@96 t2@112 t2@98 t3@114 t3@100 ft@118 ft2@120
+      t1/32@100 t1@92 t2@104 t2@94 t3@108 t3@98 ft@112 ft@102 ft2/16@124 ft2@110 s@116^drag s@120^flam k,c/4@124 R/4
+  - name: hats
+    patch: prog-kit
+    score: >
+      [ h/16@92 h@64 h@80 h@60 h@90 h@62 (h@80|h@70^r=2) h@60 h@92 h@64 h@80 hp@60 h@90 h@62 (h@84^r=3|oh@80) h@60 ]x2
+      [ rd/8@90 rd@70 rb@100 rd@70 ]x4
+      [ h/8@92 h@70 h@90 h@72 h@92 h@70 (h@90^r=2|h@88) oh@84 ]x2
+      R/1 R/1

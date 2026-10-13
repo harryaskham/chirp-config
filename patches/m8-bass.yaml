@@ -1,0 +1,29 @@
+about: >
+  Picked, distorted metal bass: string + sine sub with a velocity-scaled clank, pitch twang on the
+  attack, palm-mute damping (expr.pm), per-note variation, tight gate.
+synth:
+  layers:
+    - name: string
+      type: pluck
+      stiff: 0.28
+      choke: 70ms
+      buzz: 0.18
+      polarity: {value: 1, mod: [{src: expr.up, amount: -2}]}
+      pick: 0.2
+      decay: {value: 3s, mod: [{src: expr.pm, amount: -2.5}, {src: vel, amount: 0.4}]}
+      bright: {value: 0.66, mod: [{src: vel, amount: 0.25}, {src: expr.pm, amount: -0.35}, {src: rand, amount: 0.04}]}
+    - {name: sub, wave: sine, level: -8dB}
+    - name: pick
+      type: noise
+      level: {value: -60dB, mod: [{src: env.pick, amount: 40}, {src: vel, amount: 10}]}
+  pitch: {value: 0, mod: [{src: env.tw, amount: 0.45}, {src: rand, amount: 0.04}]}
+  env:
+    tw: {a: 0.2ms, d: 70ms, s: 0}
+    pick: {a: 0.1ms, d: 5ms, s: 0}
+  amp: {a: 1ms, s: 1, r: 50ms}
+play: {mono: true, gate: 0.88, humanize: {time: 4ms, vel: 0.06}, vel_sens: 0.45}
+fx:
+  - {type: amp, model: crunch, gain: 0.65, tight: 45, boost: 4dB, bass: 0.6, mid: 0.62, treble: 0.55, presence: 0.55, resonance: 0.55, sag: 0.35, mix: 0.75}
+  - {type: cab, model: 4x10, mic: 0.3, distance: 0.05}
+  - {type: gate, threshold: -54dB, hold: 20ms, release: 45ms}
+gain: -15dB

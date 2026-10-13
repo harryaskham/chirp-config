@@ -1,0 +1,5 @@
+about: "Part (tempo: inherit, 16 beats) \u2014 Strat quack funk chops with dead scratches over Em9 \u00b7 A13 \u00b7 Dmaj9 \u00b7 Bm7."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "chops", "patch": "strat-quack", "pan": -0.35, "score": "[ E:m9/16@96 E:m9@58^dead . E:m9@92 R E:m9@60^dead E:m9@90 . A:13@96 A:13@58^dead . A:13@92 R A:13@60^dead A:13@94 (A:13@88|.) D:maj9/16@96 D:maj9@58^dead . D:maj9@92 R D:maj9@60^dead D:maj9@90 . B:m7@96 B:m7@58^dead . B:m7@92 R B:m7@60^dead B:m7@94 (B:m7@88|.) ]x2"}

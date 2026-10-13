@@ -1,0 +1,17 @@
+about: "Transition riser: filtered noise and a rising detuned saw swelling over one bar (envelope times are in beats, so it fits any tempo); end a section with it."
+synth:
+  layers:
+    - white
+    - {type: noise, color: pink, level: -4dB}
+    - {wave: saw, unison: 5, detune: 0.3, spread: 0.9, level: -14dB}
+  env:
+    up: {a: 4b, d: 0, s: 1, r: 50ms}
+  pitch: {value: -12, mod: [{src: env.up, amount: 24}]}
+  filters:
+    - {kind: bp, cutoff: {value: 300, mod: [{src: env.up, amount: 5}]}, q: 1.4}
+  amp: {a: 4b, d: 0, s: 1, r: 60ms, curve: 3}
+play: {gate: 1}
+fx:
+  - "reverb kind=plate decay=2s mix=0.35"
+  - "delay time=1/8 mix=0.1 feedback=0.25 ping_pong=true"
+gain: -14dB

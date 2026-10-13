@@ -1,0 +1,28 @@
+about: Suite 4/7 — half-time breakdown at 92 BPM; ringing open chords, chinas, palm-muted pickups, a final dive.
+tempo: 92
+tracks:
+  - name: gtr-l
+    patch: m8
+    pan: L90
+    score: &br >
+      F1,C2,F2/4.@124^gate=1 F1/16@96^pm F@72^pm F1/8@112^pm . Gb1,Db2,Gb2/4@120^gate=1 |
+      F1,C2,F2/4.@124^gate=1 F1/16@96^pm F@72^pm F1/8@112^pm . B1,F2/4@122^gate=1 |
+      F1,C2,F2/4.@126^gate=1 F1/16@100^pm F@74^pm F1/8@114^pm . Gb1,Db2,Gb2/4@122^gate=1 |
+      Eb2,Bb2,Eb3/2@126^gate=1 Gb2/32@118 _ bend=-0.5 _ _ bend=-1 _ _ bend=-2 _ _ bend=-3 _ _ bend=-4.5 _ _ bend=-6 _ _ bend=-8 _ bend=-10 _ bend=
+  - name: gtr-r
+    patch: "m8 layers.0.pick=0.14 humanize.time=6ms"
+    pan: R90
+    score: *br
+  - name: bass
+    patch: m8-bass
+    score: >
+      F1/4.@124^gate=1 F1/16@96^pm F@72^pm F1/8@112^pm . Gb1/4@120^gate=1 |
+      F1/4.@124^gate=1 F1/16@96^pm F@72^pm F1/8@112^pm . B1/4@122^gate=1 |
+      F1/4.@126^gate=1 F1/16@100^pm F@74^pm F1/8@114^pm . Gb1/4@122^gate=1 |
+      Eb1/2@126^gate=1 Gb1/32@118 _ bend=-0.5 _ _ bend=-1 _ _ bend=-2 _ _ bend=-3 _ _ bend=-4.5 _ _ bend=-6 _ _ bend=-8 _ bend=-10 _ bend=
+  - name: drums
+    patch: haake
+    score: >
+      [k,x@124 . . . x@96 . k@100 k@84 k,s,x@124 . . . k,x@118 . . .]x2
+      k,x@124 . . . x@98 . k@102 k@86 k,s,x@126 . . . k,x@120 . s@90 s@104
+      k,c@126 . . . x@100 . . . s,x@124 . s@60 s@70 s@84 s@98 s@112 s@124

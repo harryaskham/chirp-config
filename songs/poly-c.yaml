@@ -1,0 +1,34 @@
+about: Polyphia-style C — funky 16th clean chord chops with ghosted dead strums, a nylon melody with hammer-ons and harmonics, half-time drums with ghost snares and hat rolls, 808.
+tempo: 95
+length: 16b
+vars: {dark: 0, wet: 0.35}
+buses:
+  room: {fx: ["reverb kind=plate decay=1.8s mix=1"], gain: {value: -18dB, mod: [{src: var.wet, amount: 18}]}}
+tracks:
+  - name: kick-snare
+    patch: prog-kit
+    sends: {room: -16dB}
+    score: "[ k/16@118 . g@32 k@96 s@116 g@34 . k@100 . k@108 g@36 . s@120 g@34 (g@30^r=2|.) (k@96|g@36) ]x4"
+  - name: hats
+    patch: prog-kit
+    score: "[ h/16@86 h@58 (h/8@80^r=3|h/8@78^r=2) h/16@84 h@60 h@80 hp@56 (h/8@84^r=4|oh/8@76) h/16@82 h@60 h@78 h@58 (h/8@82^r=3|h/8@80) ]x4"
+  - name: chops
+    patch: clean-chorus
+    pan: 0.45
+    sends: {room: -12dB}
+    score: >
+      [ E3,B3,D4,G4/16@96 E3,B3,D4,G4@58^dead . E3,B3,D4,G4@92 (C3,G3,B3,E4@94|C3,G3,D4,E4@94) . E3,B3,D4,G4@60^dead E3,B3,D4,G4@90
+        . (G2,D3,F#3,B3@96|G2,D3,E3,B3@96) G2,D3,F#3,B3@56^dead . (D3,A3,C4,F#4@94|D3,A3,D4,F#4@94) . D3,A3,C4,F#4@60^dead (D3,A3,C4,F#4@92|.) ]x4
+  - name: melody
+    patch: nylon
+    pan: -0.25
+    sends: {room: -10dB}
+    seed: 31
+    score: >
+      [ R/8 (B4|D5)/16@96 E5@104^h (G5|F#5)/8@108 E5/16@98 D5@94^h B4/8@100 (A4|G4)/8@96 (B4/4@104^nh=2|E5/4@104) ]x4
+  - name: sub808
+    patch: "808"
+    score: "[ E1/4.@110 E1/8@100 R/4 (G1|B0)/8@104 (E1|D1)/8@100 ]x2 C1/4.@110 C1/8@100 R/4 (E1|G1)/8@104 (D1|B0)/8@100 D1/4.@110 D1/8@100 R/4 (F#1|A1)/8@104 (D1|E1)/8@100"
+  - name: fx-rev
+    patch: fx-revcym
+    score: "R/1 R/1 R/1 R/2 C5/2@78"

@@ -1,0 +1,7 @@
+about: "Cue: riff — a two-beat djent stab (china + kick + double-tracked chug) with an impact; for wins and big moments."
+tempo: 130
+tracks:
+  - {name: drums, patch: prog-kit, score: "k,x/16@124 k@96 k@110 . k,x/8@124 R/4"}
+  - {name: gtr-l, patch: m8-gojira, pan: L90, score: "expr.pm=1 F1/16@122 F1@80 F1@100 . expr.pm=0 F1,C2,F2/8@124^gate=0.8 R/4"}
+  - {name: gtr-r, patch: "m8-gojira fx.1.file=jester/darth-genocider", pan: R90, score: "expr.pm=1 F1/16@122 F1@80 F1@100 . expr.pm=0 F1,C2,F2/8@124^gate=0.8 R/4"}
+  - {name: hit, patch: fx-impact, gain: -8dB, score: "R/4 F1/8@100 R/8"}

@@ -1,0 +1,4 @@
+about: "Cue: message — a soft glass ping with a dotted-eighth echo."
+tempo: 120
+tracks:
+  - {name: ping, patch: glass, score: "G5/8@90 D6/8@80", fx: ["delay time=3/16 mix=0.3 feedback=0.35 ping_pong=true", "reverb kind=plate decay=1.2s mix=0.2"]}

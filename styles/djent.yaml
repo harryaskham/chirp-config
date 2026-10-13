@@ -1,0 +1,17 @@
+about: "Djent/prog-metal: polymetric chugs, Gojira/Nolly/Mark rigs, OTT drums, monster leads."
+form: rock
+tempo: [120, 142]
+offset: 0
+riff_offset: 0
+roles:
+  riff: [riff-chug7, riff-chug5, riff-332, riff-gallop]
+  low: [beat-sparse]
+  mid: [beat-poly7, beat-euclid, beat-ghost]
+  high: [beat-djent, beat-blast, beat-doom]
+  half: [beat-halftime]
+  brk: [beat-doom]
+  hook: [lead-hook, lead-solo]
+  pad: [pad-dark]
+  soft: [pad-swell]
+  arp: [arp-16th]
+  hold: [riff-hold]

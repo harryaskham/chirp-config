@@ -1,0 +1,6 @@
+about: "Part (tempo: inherit, 16 beats) \u2014 lofi: swung, soft kick and snare, lazy swung hats."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "kick-snare", "patch": "prog-kit", "gain": "-6dB", "score": "swing=0.62 [ k/8@96 (k@60|.) s/4@84 (k/8@80|.) (k@70|.) s/4@86 ]x4"}
+  - {"name": "hats", "patch": "prog-kit", "gain": "-8dB", "score": "swing=0.62 [ h/8@64 h@44 ]x16"}

@@ -1,0 +1,29 @@
+about: Single-coil neo-soul/funk section — strat-quack 16th chord chops with dead scratches (Em9 · A13 · Dmaj9 · Bm7), a strat-neck lick with hammer-ons and harmonics, ghost-note groove, bass.
+tempo: 92
+length: 16b
+vars: {dark: 0, wet: 0.35}
+buses:
+  room: {fx: ["reverb kind=plate decay=1.6s mix=1"], gain: {value: -18dB, mod: [{src: var.wet, amount: 18}]}}
+tracks:
+  - name: chops
+    patch: strat-quack
+    pan: -0.35
+    sends: {room: -14dB}
+    score: >
+      [ E:m9/16@96 E:m9@58^dead . E:m9@92 R E:m9@60^dead E:m9@90 . A:13@96 A:13@58^dead . A:13@92 R A:13@60^dead A:13@94 (A:13@88|.)
+        D:maj9/16@96 D:maj9@58^dead . D:maj9@92 R D:maj9@60^dead D:maj9@90 . B:m7@96 B:m7@58^dead . B:m7@92 R B:m7@60^dead B:m7@94 (B:m7@88|.) ]x2
+  - name: lick
+    patch: strat-neck
+    pan: 0.3
+    sends: {room: -10dB}
+    score: "[ R/4 B3/16@96 D4@100^h E4/8@104 G4/16@100 F#4@96^h E4/8@100 (A3/4@100|B3/4@100^nh=2) ]x4"
+  - name: drums
+    patch: prog-kit
+    sends: {room: -16dB}
+    score: "[ k/16@112 . g@34 . s@108 . g@36 k@96 . k@104 g@34 . s@110 g@38 (g@32^r=2|.) . ]x4"
+  - name: hats
+    patch: prog-kit
+    score: "[ h/16@84 h@56 h@78 h@58 ]x16"
+  - name: bass
+    patch: bass
+    score: "[ E2/4@100 E2/8@90 G2/8@96 A1/4@100 A1/8@92 C#2/8@96 D2/4@100 D2/8@90 F#2/8@96 B1/4@100 B1/8@92 D2/8@96 ]x2"

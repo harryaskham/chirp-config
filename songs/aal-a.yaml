@@ -1,0 +1,37 @@
+about: AAL-style A — Tosin-style thump/pop with hammer-ons on clean 8-string, prog kit ghost groove with hat ratchets, bass, ambient swells.
+tempo: 132
+length: 16b
+vars: {dark: 0, wet: 0.35}
+buses:
+  room: {fx: ["reverb mix=1 size=0.6 damp=0.5"], gain: {value: -18dB, mod: [{src: var.wet, amount: 18}]}}
+tracks:
+  - name: kick-snare
+    patch: prog-kit
+    sends: {room: -14dB}
+    score: >
+      [ k/16@116 . g@34 k@96 s@114 . g@36 . k@108 g@32 k@100 . s@118 g@38 (g@34^r=2|.) (k@96|.) ]x3
+      k/16@118 . g@34 . s@116 . t1@100 t1@92 t2@104 t2@96 t3@108 t3@98 ft@112 ft@102 ft2@116 s@120^flam
+  - name: hats
+    patch: prog-kit
+    score: "[ h/16@90 h@60 (h@78|h@70^r=2) h@58 h@88 h@60 h@76 hp@56 h@90 h@60 (h@80^r=3|h@74) h@58 h@88 h@60 (oh@84|h@76) hp@54 ]x3 R/1"
+  - name: thump
+    patch: clean-chorus
+    pan: -0.2
+    sends: {room: -14dB}
+    score: >
+      [ F#1/16@110^thump F#2@96^pop F#1@100^thump A1@90^h F#1@108^thump E2@96^pop D2@88^h F#1@104^thump
+        B1@110^thump B2@98^pop B1@100^thump D2@90^h E2@96^pop F#2@100^h A2@104^pop (B2@100^pop|C#3@104^pop) ]x4
+  - name: bass
+    patch: m8-bass
+    score: "[ F#1/8@110 F#1@100 F#1@104 F#1@100 B1@108 B1@100 (D2|E2)@96 (F#2|A1)@100 ]x4"
+  - name: swells
+    patch: ambient-swell
+    pan: 0.35
+    sends: {room: -8dB}
+    score: "F#3,C#4,E4/1@80^gate=1.4 F#3,C#4,E4/1@78^gate=1.4 D3,A3,E4/1@80^gate=1.4 E3,B3,D4/1@84^gate=1.4"
+  - name: fx
+    sends: {room: -10dB}
+    score: "patch=fx-impact F1/4@112 R/4 R/2 R/1 R/1 patch=fx-riser C4/1@96"
+  - name: fx-rev
+    patch: fx-revcym
+    score: "R/1 R/1 R/1 R/2 C5/2@96"

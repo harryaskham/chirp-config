@@ -1,0 +1,9 @@
+about: Hi-hat voice for the haake kit (noise + metallic square cluster); brighter and tighter when hit softly.
+synth:
+  layers: [white, "square fixed=540 level=-14dB", "square fixed=800 level=-14dB", "square fixed=1170 level=-16dB"]
+  pitch: {value: 0, mod: [{src: rand, amount: 0.4}]}
+  filters:
+    - {kind: hp, cutoff: {value: 8k, mod: [{src: vel, amount: -0.6}, {src: rand, amount: 0.1}]}, q: 0.8}
+    - "peak cutoff=10k q=1 gain=3dB"
+  amp: {a: 0.2ms, d: 45ms, s: 0, r: 15ms, curve: 5}
+play: {vel_sens: 0.7}

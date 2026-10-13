@@ -1,0 +1,5 @@
+about: "Part (tempo: inherit, 16 beats) \u2014 generative monster-lead licks in F minor, a held bend to finish."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "lead", "patch": "lead-monster", "pan": 0.1, "score": "[ R/4 (F4|Ab4|Bb4)/8@100 (C5|Db5)@104 (Eb5|C5)/4@110^gate=1.1 (Db5|Bb4)/8@100 (Ab4|.)/8 ]x3 R/4 (Eb5|F5)/8@106 (Gb5|Ab5)/8@110 (F5/2|C6/2)@116^gate=1.3"}

@@ -1,0 +1,6 @@
+about: "Part (tempo: inherit, 16 beats) \u2014 prog ride pattern with sidestick and ghost notes."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "kick-snare", "patch": "prog-kit", "score": "[ k/16@110 . . ss@84 . . k@100 . ss@88 . k@96 . ss@84 g@34 (ss@60|.) . ]x4"}
+  - {"name": "ride", "patch": "prog-kit", "score": "[ rd/8@88 rd@68 rb@98 rd@68 ]x8"}

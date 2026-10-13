@@ -1,0 +1,2 @@
+about: "Strat bridge pickup: bright and edgy single coil with a little amp breakup (same techniques as strat)."
+extends: "strat layers.0.pickup=0.07 layers.0.pickup_hz=6200 layers.0.pickup_q=2.2 fx.1.gain=0.55"

@@ -1,0 +1,7 @@
+about: Generated combo — beat-trap + riff-chug5 + lead-hook at 116 BPM.
+tempo: 116
+tracks:
+  - {name: drums, score: "@beat-trap"}
+  - {name: riff, score: "tr=-2 @riff-chug5"}
+  - {name: layer0, score: "tr=-2 @lead-hook"}
+  - {name: fx, score: "patch=fx-revcym R/1 R/1 R/1 R/2 C5/2@88"}

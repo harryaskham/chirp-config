@@ -1,0 +1,5 @@
+about: "Part (tempo: inherit, 16 beats) \u2014 dark supersaw pad: Fm9 \u00b7 Dbmaj7 \u00b7 Bbm9 \u00b7 C7sus4, one bar each."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "pad", "patch": "saw-pad", "gain": "-4dB", "score": "F2,C3,Ab3,Eb4/1@80 Db2,Ab2,F3,C4/1@80 Bb1,F2,Db3,Ab3/1@80 C2,G2,F3,Bb3/1@84"}

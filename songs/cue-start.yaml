@@ -1,0 +1,5 @@
+about: "Cue: start — a one-second riser into a bright plucked stab."
+tempo: 240
+tracks:
+  - {name: rise, patch: fx-riser, gain: 5dB, score: "C4/1@90"}
+  - {name: stab, patch: arp-pluck, gain: 8dB, score: "R/1 C4,G4,C5/4@100"}

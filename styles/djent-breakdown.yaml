@@ -1,0 +1,17 @@
+about: "Djent breakdown (breakdown form, 126\u2013140 BPM)."
+form: breakdown
+tempo: [126, 140]
+offset: 0
+riff_offset: 0
+roles:
+  riff: [riff-hold, riff-chug5, riff-chug7]
+  low: [beat-sparse]
+  mid: [beat-halftime]
+  high: [beat-doom]
+  half: [beat-halftime]
+  brk: [beat-doom]
+  hook: [lead-solo]
+  pad: [pad-dark]
+  soft: [pad-swell]
+  arp: [arp-16th]
+  hold: [riff-hold]

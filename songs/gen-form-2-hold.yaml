@@ -1,0 +1,8 @@
+about: "Generated part (tempo: inherit, 16 beats) \u2014 hold for poly in Eb major, prog 1-5-6-4"
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "gtr-l", "patch": "m8-gojira", "score": "expr.pm=0 Eb2,Bb2,Eb3/1@120^gate=1 Bb2,F3,Bb3/1@120^gate=1 C2,G2,C3/1@124^gate=1 Ab2,Eb3,Ab3/1@120^gate=1", "pan": "L90", "seed": 7}
+  - {"name": "gtr-r", "patch": "m8-gojira layers.0.pick=0.14 humanize.time=5ms", "score": "expr.pm=0 Eb2,Bb2,Eb3/1@120^gate=1 Bb2,F3,Bb3/1@120^gate=1 C2,G2,C3/1@124^gate=1 Ab2,Eb3,Ab3/1@120^gate=1", "pan": "R90", "seed": 7}
+  - {"name": "bass", "patch": "m8-bass-dist", "score": "Eb2/1@120 Bb2/1@120 C2/1@120 Ab2/1@120"}
+  - {"name": "sub", "patch": "sub", "score": "Eb2/1@120 Bb2/1@120 C2/1@120 Ab2/1@120"}

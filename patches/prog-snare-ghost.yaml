@@ -1,0 +1,14 @@
+about: Ghost-note snare for prog-kit — short, wiry and quiet but present (wires carry it, little body).
+synth:
+  layers:
+    - {name: body, wave: triangle, level: {value: -60dB, mod: [{src: env.body, amount: 46}]}}
+    - {name: wires, type: noise, level: {value: -66dB, mod: [{src: env.wires, amount: 62}]}}
+    - {name: tap, type: noise, level: {value: -70dB, mod: [{src: env.tap, amount: 58}]}}
+  pitch: {value: 0, mod: [{src: rand, amount: 0.3}]}
+  env:
+    body: {a: 0.2ms, d: 40ms, s: 0, curve: 4}
+    wires: {a: 0.3ms, d: 85ms, s: 0, curve: 4}
+    tap: {a: 0.1ms, d: 5ms, s: 0}
+  filters: ["hp cutoff=250", "peak cutoff=5k q=1 gain=4dB", "lp cutoff=10k"]
+  amp: {a: 0.2ms, d: 140ms, s: 0, r: 20ms}
+play: {vel_sens: 0.3}

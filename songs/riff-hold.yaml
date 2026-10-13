@@ -1,0 +1,8 @@
+about: "Part (tempo: inherit, 16 beats) \u2014 long held power chords (two bars each pair) with a pinch to finish \u2014 for breakdowns and doom."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "gtr-l", "patch": "m8-gojira", "pan": "L90", "seed": 7, "score": "expr.pm=0 F1,C2,F2/2@124^gate=1 _ (Gb1,Db2,Gb2|E1,B1,E2)/2@122^gate=1 _ (Ab1,Eb2,Ab2|Db2,Ab2,Db3)/2@122^gate=1 _ B1,F2,B2/4@124^gate=1 F1,C2,F2/4@124^gate=1 F2/2@116^ph^gate=1.5"}
+  - {"name": "gtr-r", "patch": "m8-gojira layers.0.pick=0.14 humanize.time=5ms", "pan": "R90", "seed": 7, "score": "expr.pm=0 F1,C2,F2/2@124^gate=1 _ (Gb1,Db2,Gb2|E1,B1,E2)/2@122^gate=1 _ (Ab1,Eb2,Ab2|Db2,Ab2,Db3)/2@122^gate=1 _ B1,F2,B2/4@124^gate=1 F1,C2,F2/4@124^gate=1 F2/2@116^ph^gate=1.5"}
+  - {"name": "bass", "patch": "m8-bass-dist", "seed": 7, "score": "F1/2@122 _ (Gb1|E1)/2@120 _ (Ab1|Db2)/2@120 _ B1/4@122 F1/4@122 F1/2@116"}
+  - {"name": "sub", "patch": "sub", "seed": 7, "score": "F1/2@122 _ (Gb1|E1)/2@120 _ (Ab1|Db2)/2@120 _ B1/4@122 F1/4@122 F1/2@116"}

@@ -1,0 +1,47 @@
+about: "Glassy clean 8-string (Animals as Leaders style, F# standard): neck/middle single-coil-ish pickup into a clean amp and 2×12, compression, chorus, dotted-eighth delay and plate. Techniques: `^thump` thumb slap and `^pop` finger pop (Tosin-style thumping), `^h` hammer-on, `^nh=N` natural harmonic, `^ph` pinch, `^dead`, `expr.pm`."
+synth:
+  layers:
+    - name: string
+      type: pluck
+      pick: 0.14
+      pickup: 0.2
+      stiff: 0.2
+      choke: 70ms
+      fret: 0.2
+      buzz: {value: 0, mod: [{src: expr.thump, amount: 0.75}, {src: expr.pop, amount: 0.55}]}
+      pinch: {value: 0, mod: [{src: expr.nh, amount: 1}, {src: expr.ph, amount: 1}]}
+      node: {value: 0, mod: [{src: expr.nh, amount: 1}]}
+      polarity: {value: 1, mod: [{src: expr.up, amount: -2}]}
+      decay: {value: 3.5s, mod: [{src: expr.pm, amount: -3.1}, {src: expr.dead, amount: -3.45}, {src: expr.thump, amount: -2}, {src: vel, amount: 0.4}]}
+      bright: {value: 0.7, mod: [{src: vel, amount: 0.2}, {src: expr.pm, amount: -0.35}, {src: expr.pop, amount: 0.25}, {src: expr.h, amount: -0.15}, {src: rand, amount: 0.04}]}
+      level: {value: 0dB, mod: [{src: expr.dead, amount: -6}, {src: expr.h, amount: -2}, {src: expr.thump, amount: 2}, {src: expr.pop, amount: 2}]}
+    - name: pick
+      type: noise
+      level: {value: -60dB, mod: [{src: env.pick, amount: 40}, {src: vel, amount: 8}, {src: expr.h, amount: -20}]}
+    - name: slap
+      type: noise
+      color: pink
+      level: {value: -120dB, mod: [{src: env.slap, amount: 50}, {src: expr.thump, amount: 66}, {src: expr.pop, amount: 58}]}
+  env:
+    pick: {a: 0.1ms, d: 5ms, s: 0}
+    slap: {a: 0.1ms, d: 12ms, s: 0}
+  filters:
+    - "hp cutoff=70"
+    - {kind: lp, cutoff: {value: 10k, mod: [{src: expr.pm, amount: -3}]}, q: 0.6}
+  amp: {a: 1ms, s: 1, r: 100ms}
+play:
+  voicing: guitar
+  tuning: F#1 B1 E2 A2 D3 G3 B3 E4
+  frets: 24
+  strum: 9ms
+  gate: 0.92
+  humanize: {time: 4ms, vel: 0.07}
+  vel_sens: 0.45
+fx:
+  - {type: compressor, threshold: -22dB, ratio: 4, attack: 3ms, release: 100ms, makeup: 4dB}
+  - {type: amp, model: clean, gain: 0.35, tight: 60, bass: 0.45, mid: 0.5, treble: 0.62, presence: 0.6, resonance: 0.5, sag: 0.1}
+  - {type: cab, model: 2x12, mic: 0.35, distance: 0.2}
+  - chorus mix=0.3
+  - "delay time=3/16 mix=0.1 feedback=0.2 ping_pong=true"
+  - "reverb kind=plate decay=1.3s mix=0.16"
+gain: -3dB

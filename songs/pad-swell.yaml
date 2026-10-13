@@ -1,0 +1,5 @@
+about: "Part (tempo: inherit, 16 beats) \u2014 ambient guitar swells into long delay/reverb over the same changes."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "swells", "patch": "ambient-swell", "pan": -0.3, "score": "F3,C4,Eb4,Ab4/1@84^gate=1.6 Db3,Ab3,C4,F4/1@82^gate=1.6 Bb2,F3,Ab3,Db4/1@84^gate=1.6 C3,G3,Bb3,E4/1@86^gate=1.7"}

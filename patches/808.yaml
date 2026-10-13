@@ -1,0 +1,13 @@
+about: "808 sub bass: sine with a pitch-drop punch, long decay, saturation and mono glide for slides (overlap notes to slide)."
+synth:
+  layers:
+    - sine
+    - sine ratio=2 level=-20dB
+  env:
+    p: {a: 0.2ms, d: 25ms, s: 0}
+  pitch: {value: 0, mod: [{src: env.p, amount: 12}]}
+  amp: {a: 1ms, d: 1.4s, s: 0.35, r: 300ms, curve: 3}
+  drive: 0.35
+  filters: ["lp cutoff=900 q=0.7"]
+play: {mono: true, glide: 60ms, gate: 0.98}
+gain: -10dB

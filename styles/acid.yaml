@@ -1,0 +1,17 @@
+about: "Acid techno: 303 lines over 909 four-on-the-floor and Euclidean variations."
+form: edm
+tempo: [128, 138]
+offset: 0
+riff_offset: 0
+roles:
+  riff: [bass-acid]
+  low: [beat-house]
+  mid: [beat-house]
+  high: [beat-house, beat-euclid]
+  half: [beat-sparse]
+  brk: [beat-sparse]
+  hook: [chords-house]
+  pad: [pad-dark]
+  soft: [pad-swell]
+  arp: [arp-16th]
+  hold: [chords-house]

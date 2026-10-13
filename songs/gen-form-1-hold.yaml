@@ -1,0 +1,8 @@
+about: "Generated part (tempo: inherit, 16 beats) \u2014 hold for djent in F# minor, prog 1-3-7-4"
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "gtr-l", "patch": "m8-gojira", "score": "expr.pm=0 F#1,C#2,F#2/1@120^gate=1 A1,E2,A2/1@120^gate=1 E1,B1,E2/1@120^gate=1 B1,F#2,B2/1@124^gate=1", "pan": "L90", "seed": 7}
+  - {"name": "gtr-r", "patch": "m8-gojira layers.0.pick=0.14 humanize.time=5ms", "score": "expr.pm=0 F#1,C#2,F#2/1@120^gate=1 A1,E2,A2/1@120^gate=1 E1,B1,E2/1@120^gate=1 B1,F#2,B2/1@124^gate=1", "pan": "R90", "seed": 7}
+  - {"name": "bass", "patch": "m8-bass-dist", "score": "F#1/1@120 A1/1@120 E1/1@120 B1/1@120"}
+  - {"name": "sub", "patch": "sub", "score": "F#1/1@120 A1/1@120 E1/1@120 B1/1@120"}

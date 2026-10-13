@@ -1,0 +1,5 @@
+about: "Part (tempo: inherit, 16 beats) \u2014 16th plucked-synth arpeggio over Fm9 \u00b7 Dbmaj7 \u00b7 Bbm9 \u00b7 C7sus4."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "arp", "patch": "arp-pluck", "pan": 0.3, "score": "[ F3/16@100 C4@90 Eb4@96 Ab4@88 ]x4 [ Db3/16@100 Ab3@90 C4@96 F4@88 ]x4 [ Bb2/16@100 F3@90 Db4@96 Ab4@88 ]x4 [ C3/16@100 G3@90 Bb3@96 F4@88 ]x4"}

@@ -1,0 +1,17 @@
+about: "Polyphia-ish: fingerpicked nylon and Strat funk over trap/ghost beats with 808."
+form: rock
+tempo: [88, 100]
+offset: -1
+riff_offset: 1
+roles:
+  riff: [riff-nylon, riff-funk]
+  low: [beat-sparse]
+  mid: [beat-trap, beat-ghost]
+  high: [beat-trap, beat-euclid]
+  half: [beat-halftime]
+  brk: [beat-lofi]
+  hook: [lead-hook]
+  pad: [pad-dark, bass-808]
+  soft: [pad-swell]
+  arp: [arp-16th]
+  hold: [riff-hold]

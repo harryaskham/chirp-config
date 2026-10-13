@@ -1,0 +1,8 @@
+about: "Part (tempo: inherit, 16 beats) \u2014 5-sixteenth cycle over 4/4 (12 cycles + chromatic pickup)."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "gtr-l", "patch": "m8-mark", "pan": "L90", "seed": 7, "score": "[ expr.pm=1 F1/16@120 (F1@72|F1@64^dead) expr.pm=0 (Gb1,Db2|E1,B1|F1,C2,F2)@122^gate=0.9 expr.pm=1 F1@108 (F2@118^ph^gate=1.4|F1@96) ]x12 expr.pm=0 B1,F2/16@120 C2,G2@122 Db2,Ab2@124 D2,A2@126"}
+  - {"name": "gtr-r", "patch": "m8-mark layers.0.pick=0.14 humanize.time=5ms", "pan": "R90", "seed": 7, "score": "[ expr.pm=1 F1/16@120 (F1@72|F1@64^dead) expr.pm=0 (Gb1,Db2|E1,B1|F1,C2,F2)@122^gate=0.9 expr.pm=1 F1@108 (F2@118^ph^gate=1.4|F1@96) ]x12 expr.pm=0 B1,F2/16@120 C2,G2@122 Db2,Ab2@124 D2,A2@126"}
+  - {"name": "bass", "patch": "m8-bass-dist", "seed": 7, "score": "[ F1/16@120 (F1@72|F1@64) (Gb1|E1|F1)@122 F1@108 (F2@110|F1@96) ]x12 B1/16@120 C2@122 Db2@124 D2@126"}
+  - {"name": "sub", "patch": "sub", "seed": 7, "score": "[ F1/16@120 (F1@72|F1@64) (Gb1|E1|F1)@122 F1@108 (F2@110|F1@96) ]x12 B1/16@120 C2@122 Db2@124 D2@126"}

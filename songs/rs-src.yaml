@@ -1,0 +1,4 @@
+about: Source for rev-swell — a clean Em9 chord into a big hall (rendered and reversed by the patch).
+tempo: 100
+tracks:
+  - {name: gtr, patch: clean-chorus, score: "E:m9/2@100^gate=1", fx: ["reverb kind=hall decay=4s mix=0.55"]}

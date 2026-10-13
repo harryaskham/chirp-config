@@ -1,0 +1,10 @@
+about: "House chord stab: detuned saws and a square through a short filter envelope; play off-beat minor 7th/9th chords."
+synth:
+  layers: ["saw unison=3 detune=0.15 spread=0.6", "square level=-8dB"]
+  env:
+    f: {a: 1ms, d: 220ms, s: 0.1, r: 100ms}
+  filters:
+    - {kind: lp, cutoff: {value: 700, mod: [{src: env.f, amount: 2.5}, {src: vel, amount: 1}]}, q: 1.6}
+  amp: {a: 1ms, d: 300ms, s: 0.2, r: 120ms}
+fx: ["chorus mix=0.2", "delay time=3/16 mix=0.12 feedback=0.25", "reverb kind=plate decay=1.6s mix=0.18"]
+gain: -14dB

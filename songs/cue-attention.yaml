@@ -1,0 +1,4 @@
+about: "Cue: attention — two bell-like nylon harmonics (12th fret) in a wide room."
+tempo: 120
+tracks:
+  - {name: harm, patch: nylon, score: "E4/8@100^nh=2 B4/4@96^nh=2", fx: ["reverb kind=hall decay=2s mix=0.3"]}

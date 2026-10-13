@@ -1,0 +1,5 @@
+about: "Part (tempo: inherit, 16 beats) \u2014 gliding 808 on F minor roots with syncopated pickups."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "sub808", "patch": "808", "score": "F1/4.@110 F1/8@100 R/4 (Ab1|C2)/8@104 (F1|Eb1)/8@100 Db1/4.@110 Db1/8@100 R/4 (F1|Ab1)/8@104 (Db1|C1)/8@100 Bb0/4.@110 Bb0/8@100 R/4 (Db1|F1)/8@104 (Bb0|C1)/8@100 C1/4.@110 C1/8@100 R/4 (E1|G1)/8@104 (C1|F1)/8@100"}

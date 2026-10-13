@@ -1,0 +1,23 @@
+about: Instrument tour for feedback — kick, snare, cymbals, guitar articulations, bass; each solo.
+tempo: 112
+tracks:
+  - name: drums
+    patch: haake
+    score: >
+      len=/8 k@30 k@50 k@70 k@90 k@110 k@127 . . len=/16 [k@110 k@80]x8 R/2 |
+      len=/8 s@25 s@40 s@60 s@80 s@100 s@127 . . len=/32 [s@60 s@50]x8 s/8@124 R/4. |
+      len=/4 x@60 x@90 x@124 . h/8@50 h@70 h@90 h@110 hh@100 h@80 oh/4@110 . |
+      rd/8@70 rd@85 rd@100 rd@90 rb/4@100 rb@124 c/2@120 R/2 |
+      R/1 R/1 R/1 R/1 R/1
+  - name: gtr
+    patch: m8
+    at: 5bar
+    score: >
+      expr.pm=1 F1/16@40 F@60 F@80 F@100 F@120 F@127 . . F@110 F@70 F@110 F@70 F@110 F@70 . . |
+      expr.pm=0 F1/2@110^gate=1 Ab1/4@100 . | F2/2@118^ph^gate=1 R/2 |
+      Gb2/32@116 _ _ bend=-0.5 _ _ bend=-1 _ _ bend=-2 _ _ bend=-3.5 _ _ bend=-5 _ _ bend=-7 _ bend= R/2 |
+      B1,F2,Bb2/2@120^gate=1 R/2
+  - name: bass
+    patch: m8-bass
+    at: 10bar
+    score: "expr.pm=1 F1/16@50 F@80 F@110 F@127 . . . . expr.pm=0 F1/4@110 Ab1/4@120"

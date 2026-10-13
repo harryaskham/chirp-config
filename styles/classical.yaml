@@ -1,0 +1,13 @@
+about: "Classical: string chorale and Alberti piano in statement\u2013development\u2013return form."
+form: classical
+tempo: [66, 90]
+offset: 0
+riff_offset: 0
+roles:
+  riff: [piano-alberti]
+  high: [beat-sparse]
+  hook: [lead-hook]
+  pad: [strings-chorale]
+  soft: [strings-chorale]
+  arp: [arp-16th]
+  hold: [pad-swell]

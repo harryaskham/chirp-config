@@ -1,0 +1,5 @@
+about: "Part (tempo: inherit, 16 beats) \u2014 off-beat house bass: F \u00b7 F \u00b7 Db \u00b7 Eb."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "bass", "patch": "bass", "gain": "-4dB", "score": "[ R/8 F1/8@100 R/8 F1/8@90 R/8 (Ab1|C2)/8@96 R/8 F1/8@92 ]x2 [ R/8 Db1/8@100 R/8 Db1/8@90 R/8 (F1|Ab1)/8@96 R/8 Db1/8@92 ] [ R/8 Eb1/8@100 R/8 Eb1/8@90 R/8 (G1|Bb1)/8@96 R/8 Eb1/8@92 ]"}

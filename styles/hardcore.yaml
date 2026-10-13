@@ -1,0 +1,17 @@
+about: "Hardcore/gabber: distorted kicks on every beat, acid lines, hoover-ish leads."
+form: edm
+tempo: [170, 182]
+offset: 0
+riff_offset: 0
+roles:
+  riff: [bass-acid]
+  low: [beat-sparse]
+  mid: [beat-hardcore]
+  high: [beat-hardcore]
+  half: [beat-halftime]
+  brk: [beat-sparse]
+  hook: [lead-hook]
+  pad: [pad-dark]
+  soft: [strings-chorale]
+  arp: [arp-16th]
+  hold: [riff-hold]

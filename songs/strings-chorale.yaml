@@ -1,0 +1,5 @@
+about: "Part (tempo: inherit, 16 beats) \u2014 string chorale in F harmonic minor: i \u00b7 iv \u00b7 V7 \u00b7 i, one bar each, voice-led."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "strings", "patch": "strings", "score": "F2,C3,Ab3,F4/1@84 Bb1,Db3,Bb3,F4/1@82 C2,E3,Bb3,G4/1@88 F2,C3,Ab3,F4/1@84"}

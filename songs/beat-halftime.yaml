@@ -1,0 +1,5 @@
+about: "Part (tempo: inherit, 16 beats) \u2014 half-time breakdown: china/kick unison, snare on 3, kick pickups."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "drums", "patch": "prog-kit", "score": "[ k,x/4@124 k/16@110 k@90 . k@104 s,c/4@124 R/8 k/16@108 (k@100|.) ]x4"}

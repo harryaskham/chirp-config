@@ -1,0 +1,12 @@
+about: "303-style acid bass: saw into a resonant low-pass with a snappy envelope; velocity is accent (louder, brighter, more squelch); overlapping notes slide (mono legato)."
+synth:
+  layers: [saw]
+  env:
+    f: {a: 0.5ms, d: 180ms, s: 0.05, r: 60ms}
+  filters:
+    - {kind: lp, cutoff: {value: 260, mod: [{src: env.f, amount: 4.2}, {src: vel, amount: 2}]}, q: 7, slope: 24}
+  amp: {a: 1ms, d: 0, s: 1, r: 40ms}
+  drive: 0.4
+play: {mono: true, legato: true, glide: 55ms, gate: 0.8, vel_sens: 0.6}
+fx: ["drive drive=0.3", "delay time=3/16 mix=0.1 feedback=0.2"]
+gain: -14dB

@@ -1,0 +1,5 @@
+about: "Cue: level up — a fast rising synth-lead arpeggio with an octave hit."
+tempo: 150
+tracks:
+  - {name: lead, patch: synth-lead, gain: 5dB, score: "C5/16@96 E5 G5 C6 E6/8@104 G6/4@110^gate=1.2"}
+  - {name: arp, patch: arp-pluck, gain: -6dB, score: "R/4 C4,G4,C5,E5/4@96"}

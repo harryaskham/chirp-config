@@ -1,0 +1,8 @@
+about: "Part (tempo: inherit, 16 beats) \u2014 four-on-the-floor 909: kick every beat, claps on 2 and 4, off-beat open hats, 16th closed hats."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "kick", "patch": "909", "score": "[ k/4@118 ]x16"}
+  - {"name": "clap", "patch": "909", "score": "[ R/4 cp/4@106 ]x8"}
+  - {"name": "ohat", "patch": "909", "score": "[ R/8 oh/8@82 ]x16"}
+  - {"name": "hats", "patch": "909", "score": "[ h/16@72 h@48 h@64 (h@46|h@52^r=2) ]x16"}

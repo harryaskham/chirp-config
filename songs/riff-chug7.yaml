@@ -1,0 +1,8 @@
+about: "Part (tempo: inherit, 16 beats) \u2014 7-sixteenth polymetric chug (9 cycles + rest), dead notes, random stabs and pinch squeals."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "gtr-l", "patch": "m8-gojira", "pan": "L90", "seed": 7, "score": "[ expr.pm=1 F1/16@120 F1@70^dead (F1@98|Bb1@104) expr.pm=0 (F1,C2,F2|Ab1,Eb2|Gb1,Db2,Gb2)@122^gate=0.95 expr.pm=1 F1@106 (F1@64^dead|Gb1@102) (F1@112|F2@118^ph^gate=1.6) ]x9 ."}
+  - {"name": "gtr-r", "patch": "m8-gojira layers.0.pick=0.14 humanize.time=5ms", "pan": "R90", "seed": 7, "score": "[ expr.pm=1 F1/16@120 F1@70^dead (F1@98|Bb1@104) expr.pm=0 (F1,C2,F2|Ab1,Eb2|Gb1,Db2,Gb2)@122^gate=0.95 expr.pm=1 F1@106 (F1@64^dead|Gb1@102) (F1@112|F2@118^ph^gate=1.6) ]x9 ."}
+  - {"name": "bass", "patch": "m8-bass-dist", "seed": 7, "score": "[ F1/16@120 F1@70 (F1@98|Bb1@104) (F1|Ab1|Gb1)@122 F1@106 (F1@64|Gb1@102) (F1@112|F2@118) ]x9 ."}
+  - {"name": "sub", "patch": "sub", "seed": 7, "score": "[ F1/16@120 F1@70 (F1@98|Bb1@104) (F1|Ab1|Gb1)@122 F1@106 (F1@64|Gb1@102) (F1@112|F2@118) ]x9 ."}

@@ -1,0 +1,23 @@
+about: Suite 6/7 — ambient bridge; fluid lead over clean arpeggios, tom pulse and a bass drone.
+tempo: 116
+buses:
+  space: {fx: ["delay time=3/8 mix=1 feedback=0.4 tone=2k", "reverb mix=1 size=0.9 damp=0.5"]}
+tracks:
+  - name: clean
+    patch: m8-clean
+    score: >
+      len=/8 [F2@70 C3@62 Gb3@66 B3@62 E4@72 B3@60 Gb3@64 C3@60]x2
+      [Db2@70 Ab2@62 Eb3@66 G3@62 C4@72 G3@60 Eb3@64 Ab2@60]x2
+  - name: lead
+    patch: m8-lead
+    sends: {space: -12dB}
+    score: "R/4 E5/4.@96 F5/8@88 Gb5/4@104 | B5/2.@112 Bb5/8@90 Ab5/8@86 | G5/4.@100 Eb5/8@90 C5/2@96 | Db5/1@104"
+  - name: bass
+    patch: m8-bass
+    envelope: {a: 1s, s: 1, r: 1s}
+    score: "F1/1@80^gate=1 _ Db1/1@80^gate=1 _"
+  - name: drums
+    patch: haake
+    score: >
+      len=/8 [ft@70 . t2@54 . ft@74 t2@50 . t1@60]x3
+      len=/16 ft@80 ft@84 t2@88 t2@92 t1@96 t1@100 s@104 s@108 s@112 s@116 s@120 s@124 k,c@126 R/16 R/8
