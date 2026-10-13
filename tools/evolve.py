@@ -138,6 +138,39 @@ def mutate(ident):
     return ident, k
 
 PASS_MINUTES = 1.0
+# Section energy (0 calm … 1 full) → one automation curve per chapter that drives the riff
+# track's level, room, saturation and OTT together. Ramp sections glide into the next.
+ENERGY = {"intro": 0.3, "intro2": 0.45, "verse": 0.6, "verse2": 0.65, "pre": 0.7, "build": 0.7, "chorus": 0.85,
+          "drop": 0.95, "heavy": 0.85, "blast": 1.0, "dbeat": 0.85, "groove": 0.7, "shuffle": 0.7, "toms": 0.75,
+          "space": 0.4, "break": 0.9, "C": 0.8, "C2": 0.8, "solo": 0.85, "final": 1.0, "outro": 0.35, "coda": 0.3,
+          "A": 0.6, "A2": 0.7, "B": 0.8, "B2": 0.85, "climax": 1.0}
+RAMPS = {"pre", "build", "intro2"}
+
+
+def energy_lane(meta):
+    """Breakpoints for a chapter from [(section, beats)]: hold each section's energy, 1-beat moves,
+    ramps across build sections."""
+    pts, t = [], 0.0
+    es = [ENERGY.get(sec, 0.7) for sec, _ in meta]
+    for i, (sec, ln) in enumerate(meta):
+        e = es[i]
+        nxt = es[i + 1] if i + 1 < len(es) else e
+        pts.append([f"{t:g}b", e])
+        if sec in RAMPS:
+            pts.append([f"{t + ln - 0.5:g}b", nxt])
+        else:
+            pts.append([f"{max(t, t + ln - 1):g}b", e])
+        t += ln
+    pts.append([f"{t:g}b", es[-1]])
+    return pts
+
+
+def energy_fx():
+    return {"gain": {"value": "-5dB", "mod": [{"src": "auto.energy", "amount": 6}]},
+            "fx": [{"type": "drive", "drive": 0.3, "mix": {"value": 0, "mod": [{"src": "auto.energy", "amount": 0.25}]}},
+                   {"type": "ott", "time": 0.3, "depth": {"value": 0, "mod": [{"src": "auto.energy", "amount": 0.3}]}},
+                   {"type": "reverb", "kind": "hall", "decay": "2.4s", "predelay": "25ms", "low_cut": 250,
+                    "mix": {"value": 0.28, "mod": [{"src": "auto.energy", "amount": -0.26}]}}]}
 FAVORITES = f"{TOOLS}/favorites.json" if "TOOLS" in globals() else "/home/harry/.config/chirp/tools/favorites.json"
 
 def favorite_for(role, ident):
@@ -220,8 +253,10 @@ def write_form(name, ident):
     form_secs = [sec for sec, _, _ in chapter]
     def rest(beats):
         return REST if beats == 16 else f"[ R/8 ]x{int(round(beats * 2))}"
+    meta = []
     for idx, (sec, layers, fx) in enumerate(chapter):
         sec_len = max([lens[l] for l in layers if l in lens] or [16])
+        meta.append((sec, sec_len))
         lift = s.get("lift", 2) if sec == "final" else 0
         def put(track, part, off, xf=""):
             if not part:
@@ -263,7 +298,10 @@ def write_form(name, ident):
     lines = [f"about: Generated {s['form']}-form song — {ident['style']} at {ident['tempo']} BPM, {gdesc}, shift {ident['key']:+d}, chapter {ident.get('chapter', 0) + 1}/{len(chs)}, comp {ident.get('comp', 'glue')}.",
              f"tempo: {ident['tempo']}", "tracks:"]
     for t, items in tracks.items():
-        lines.append(f"  - {{name: {t}, score: \"{' '.join(items)}\"}}")
+        if t == "riff":
+            lines.append("  - " + json.dumps(dict({"name": t, "score": " ".join(items), "auto": {"energy": {"points": energy_lane(meta)}}}, **energy_fx())))
+        else:
+            lines.append(f"  - {{name: {t}, score: \"{' '.join(items)}\"}}")
     open(f"{SONGS}/{name}.yaml", "w").write("\n".join(lines) + "\n")
 
 TOOLS = "/home/harry/.config/chirp/tools"
