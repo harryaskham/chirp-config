@@ -80,7 +80,7 @@ FORMS = {
                 ("heavy", ["riffB"], "impact"), ("heavy", ["riffB", "hook"], None),
                 ("blast", ["riffBl"], "impact"), ("blast", ["riffBl", "pad"], None), ("shuffle", ["riffS"], "impact"),
                 ("shuffle", ["riffS", "pad"], None), ("toms", ["riffT"], "impact"), ("toms", ["riffT", "soft"], None),
-                ("space", ["riffX"], "impact"), ("space", ["riffX", "drone"], None),
+                ("space", ["riffX"], "impact"), ("space", ["riffX", "drone", "hookE"], None),
                 ("verse2", ["riff", "hook"], "revcym"), ("break", ["riffBrk"], "impact"),
                 ("break", ["riffBrk", "soft"], None), ("C", ["riffC"], "impact"), ("C", ["riffC", "hook", "pad"], None),
                 ("final", ["riff", "hook", "pad"], "impact"), ("outro", ["soft", "hold"], "revcym")],

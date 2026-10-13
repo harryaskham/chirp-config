@@ -72,6 +72,8 @@ RIGS = {
     "twang": ("m8-twang", "m8"),
     "lead": ("lead-monster", "synth-lead"),
     "drums": ("metal-kit", "prog-kit"),
+    "clean": ("clean-chorus",),
+    "atmos": ("ebow", "ambient-swell"),
 }
 
 
@@ -82,6 +84,9 @@ RIG_SETS = {
     "fuzz": {"rhythm": (("m8-fuzz", "m8-fuzz layers.0.pick=0.1 humanize.time=9ms"),), "bass": ("bass-fuzz", "bass-fat"), "lead": ("lead-wah", "lead-monster")},
     "phase": {"rhythm": (("m8-rhythm-l", "m8-phase"),), "lead": ("lead-slap", "lead-monster"), "twang": ("m8-twang-chorus", "m8-twang")},
     "tech": {"rhythm": (("m8-chug-l", "m8-chug-r"),), "lead": ("lead-slap", "lead-monster")},
+    "thrash": {"rhythm": (("m8-chug-l", "m8-chug-r"),), "bass": ("pick-bass", "bass-fat"), "lead": ("lead-wah", "lead-monster")},
+    "tool-fuzz": {"bass": ("bass-fuzz", "bass-fat"), "lead": ("ebow", "lead-tape"), "clean": ("baritone", "clean-chorus")},
+    "tool-pick": {"bass": ("pick-bass", "bass-fat"), "lead": ("lead-tape", "lead-monster"), "clean": ("twelve-string", "clean-chorus")},
 }
 _RIGSET = {}
 
@@ -772,7 +777,7 @@ def gen_tool(r, k, low, meter, groups, mode="heavy", reps=None, lead=None):
     kit = rig("drums")
     jn = lambda xs: " ".join(xs)
     if mode == "clean":
-        out = [track("gtr", "clean-chorus", jn(gtr), pan=0.2), track("bass", rig("bass"), jn(bass), seed=7)]
+        out = [track("gtr", rig("clean"), jn(gtr), pan=0.2), track("bass", rig("bass"), jn(bass), seed=7)]
     elif mode == "tribal":
         out = [track("bass", rig("bass"), jn(bass), seed=7), track("sub", rig("sub"), jn(bass), seed=7)]
     else:
@@ -792,6 +797,19 @@ def gen_tool_lead(r, k, prog, meter, base, patch, reps=None):
         d += r.choice([-2, -1, 1, 2, 0])
         i += ln
     return [track("hook", patch, " ".join(out), pan=0.1)]
+
+
+def gen_atmos(r, k, prog, base, patch):
+    """A slow soaring line (e-bow / swell): one or two long overlapping notes per bar on chord
+    tones, legato into each other."""
+    out = []
+    for root in prog:
+        if r.random() < 0.5:
+            out.append(f"{mname(k.deg(root + r.choice([2, 4, 7]), base))}/1@{r.choice([84, 92, 100])}^gate=1.1")
+        else:
+            out += [f"{mname(k.deg(root + r.choice([0, 2, 4]), base))}/2@{r.choice([84, 92])}^gate=1.1",
+                    f"{mname(k.deg(root + r.choice([4, 6, 7]), base))}/2@{r.choice([92, 100])}^gate=1.1"]
+    return [track("hook", patch, " ".join(out), pan=-0.1)]
 
 
 def gen_clusters(r, k, prog, base, patch, gain="-6dB", vel=74):
@@ -818,8 +836,8 @@ def params(style, rng=random):
     mode = rng.choice(STYLE_MODES.get(style, ["minor"]))
     heavy = style in ("meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool")
     rigset = ("tech" if style == "tech-death" and rng.random() < 0.6 else
-              "chug" if style == "thrash" else
-              rng.choice(["fuzz", "phase", "modern"]) if style == "tool" else
+              "thrash" if style == "thrash" else
+              rng.choice(["tool-fuzz", "tool-pick", "tool-fuzz", "phase"]) if style == "tool" else
               rng.choice(["modern", "chug", "chug", "fuzz", "phase"])) if heavy else "modern"
     return {"pc": rng.randrange(12), "mode": mode, "prog": rng.choice(PROGS[mode]), "seed": rng.randrange(1 << 30), "rigset": rigset}
 
@@ -850,7 +868,7 @@ def compose(style, slot, p):
         m1 = r.choice([7, 7, 5, 9, 11, 13]); g1 = r.choice(METERS[m1])
         m2 = r.choice([31, 31, 23, 15]); g2 = r.choice(METERS[m2])
         m3 = r.choice([9, 11, 13]); g3 = r.choice(METERS[m3])
-        tl = pick_patch("lead-tape", "lead-monster")
+        tl = rig("lead")
         parts = {
             "riffClean": gen_tool(r, k, low, m1, g1, "clean"),
             "riffCleanB": gen_tool(r, k, low, m1, g1, "clean"),
@@ -897,6 +915,7 @@ def compose(style, slot, p):
             "riffB": gen_meshuggah(r, k, low, gp, cycles[1]),
             "riffC": gen_meshuggah(r, k, low, gp, cycles[2]),
             "riffX": gen_space(r, k, low, gp, r.choice([11, 13, 9, 14])),
+            "hookE": gen_atmos(r, k, prog, 62, rig("atmos")),
             "riffT": gen_meshuggah(r, k, low, gp, r.choice([22, 14, 20, 18]), mode="toms"),
             "riffBl": gen_blast(r, k, prog, low, r.choice(["trad", "hammer", "bomb"])),
             "riffS": gen_meshuggah(r, k, low, gp, r.choice([11, 7, 10, 5]), grid="12", mode="shuffle"),
