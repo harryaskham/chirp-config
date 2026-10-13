@@ -3,7 +3,7 @@
 four-chord progression, then a style-idiomatic main riff, a hook built from a motif
 (statement, repeat, sequence, cadence), chords, an arpeggio and a held layer.
 Deterministic from `seed`, so any form slot can regenerate the same material."""
-import json, random
+import json, random, re
 
 SONGS = "/home/harry/.config/chirp/songs"
 MODES = {
@@ -116,7 +116,7 @@ def gen_djent(r, k, prog, low, breakdown=False):
     g = " ".join(gtr)
     b = " ".join(bass)
     return [track("gtr-l", "{gp}", g, pan="L90", seed=7), track("gtr-r", "{gp} layers.0.pick=0.14 humanize.time=5ms", g, pan="R90", seed=7),
-            track("bass", "m8-bass-dist", b, seed=7), track("sub", "sub", b, seed=7)]
+            track("bass", "bass-di", b, seed=7), track("sub", "sub", b, seed=7)]
 
 
 def gen_taps(r, k, prog, base):
@@ -263,7 +263,7 @@ def gen_hold(r, k, prog, low, gp):
         out.append(f"{chordhead([rt, rt + 7, rt + 12])}/1@{r.choice([120, 124])}^gate=1")
         bass.append(f"{mname(rt)}/1@120")
     return [track("gtr-l", gp, "expr.pm=0 " + " ".join(out), pan="L90", seed=7), track("gtr-r", gp + " layers.0.pick=0.14 humanize.time=5ms", "expr.pm=0 " + " ".join(out), pan="R90", seed=7),
-            track("bass", "m8-bass-dist", " ".join(bass)), track("sub", "sub", " ".join(bass))]
+            track("bass", "bass-di", " ".join(bass)), track("sub", "sub", " ".join(bass))]
 
 
 def gen_meshuggah(r, k, low, gp, cycle, grid="16", mode="riff"):
@@ -291,17 +291,20 @@ def gen_meshuggah(r, k, low, gp, cycle, grid="16", mode="riff"):
     cyc = cyc[:cycle]
     gtr, bass, kick, snare, cym = [], [], [], [], []
     ring = mode == "break"
+    run = 0
     for i in range(steps):
         kind, pc = cyc[i % cycle]
         restart = i % cycle == 0
         dur = f"/{grid}"
+        bar_off = [-6, -2, 0, 4][min(3, i * 4 // steps)]  # each phrase builds
+        run = run + 1 if kind == "chug" else 0
         if kind == "acc":
-            v = 122 if restart else r.choice([114, 118, 122])
+            v = min(127, (126 if restart else r.choice([110, 116, 120])) + bar_off)
             art = "^gate=1.6" if ring else "^gate=0.9"
             gtr.append(f"expr.pm=0 {chordhead(pc)}{dur}@{v}{art}"); bass.append(f"{mname(pc[0])}{dur}@{v}")
             kick.append(f"k{dur}@{v}")
         elif kind == "chug":
-            v = r.choice([100, 108, 114])
+            v = max(70, min(124, [112, 98, 106, 92][min(run - 1, 3)] + r.randint(-6, 6) + bar_off))  # runs swell and decay
             gtr.append(f"expr.pm=1 {mname(pc)}{dur}@{v}"); bass.append(f"{mname(pc)}{dur}@{v}")
             kick.append(f"k{dur}@{v - 6}")
         elif kind == "dead":
@@ -313,7 +316,7 @@ def gen_meshuggah(r, k, low, gp, cycle, grid="16", mode="riff"):
                      (f"g{dur}@{r.choice([34, 40])}" if r.random() < 0.06 else f"R{dur}"))
         if beat_pos == 0:
             piece = "x" if restart else ("rd" if mode == "riff" else "h")
-            cym.append(f"{piece}{dur}@{112 if restart else 92}")
+            cym.append(f"{piece}{dur}@{(118 if restart else r.choice([84, 90, 96])) + bar_off}")
         else:
             cym.append(f"x{dur}@104" if restart else f"R{dur}")
     # Tom fill over the last beat.
@@ -322,8 +325,14 @@ def gen_meshuggah(r, k, low, gp, cycle, grid="16", mode="riff"):
         snare[steps - per_beat + j] = f"{piece}/{grid}@{110 + 2 * j}"
     j = lambda xs: " ".join(xs)
     return [track("gtr-l", gp, j(gtr), pan="L90", seed=7), track("gtr-r", gp + " layers.0.pick=0.14 humanize.time=5ms", j(gtr), pan="R90", seed=7),
-            track("bass", "m8-bass-dist", j(bass), seed=7), track("sub", "sub", j(bass), seed=7),
+            track("bass", "bass-di", j(bass), seed=7), track("sub", "sub", j(bass), seed=7),
             track("kick", "prog-kit", j(kick)), track("snare", "prog-kit", j(snare)), track("cym", "prog-kit", j(cym))]
+
+
+def soften(tracks, scale=0.78):
+    """The same part played softer: every explicit velocity scaled (timbre follows velocity)."""
+    f = lambda m: "@" + str(max(30, int(int(m.group(1)) * scale)))
+    return [dict(t, score=re.sub(r"@(\d+)", f, t["score"])) for t in tracks]
 
 
 def gen_clusters(r, k, prog, base, patch, gain="-6dB", vel=74):
@@ -348,11 +357,12 @@ def compose(style, slot, p):
     k = Key(p["pc"], p["mode"])
     prog = p["prog"]
     low = 28  # E1: 8-string range for riffs
-    gp = r.choice(["m8-gojira", "m8-nolly", "m8"])
+    gp = r.choice(["m8-tight", "m8-tight", "m8-nolly"]) if style in ("djent", "djent-breakdown", "meshuggah", "doom-ambient") else r.choice(["m8-tight", "m8-gojira", "m8-nolly"])
     if style == "meshuggah":
         cycles = r.sample([22, 14, 20, 18, 26, 23, 13], 3)  # 11/8, 7/8, 10/8, 9/8, 13/8, 23/16, 13/16
         parts = {
-            "riff": gen_meshuggah(r, k, low, gp, cycles[0]),
+            "riff": (main := gen_meshuggah(r, k, low, gp, cycles[0])),
+            "riffSoft": soften(main),
             "riffB": gen_meshuggah(r, k, low, gp, cycles[1]),
             "riffC": gen_meshuggah(r, k, low, gp, cycles[2]),
             "riffS": gen_meshuggah(r, k, low, gp, r.choice([11, 7, 10, 5]), grid="12", mode="shuffle"),
@@ -403,7 +413,7 @@ def compose(style, slot, p):
     hold = gen_hold(r, k, prog, low, gp) if heavy or style in ("prog-clean", "poly") else gen_pad(r, k, prog, 48, "strings", vel=76)
     desc = f"{NAMES[p['pc']]} {p['mode']}, prog {'-'.join(str(d + 1) for d in prog)}"
     names = {}
-    for role, tr in [("riff", riff), ("hook", hook), ("pad", pad), ("soft", soft), ("arp", arp), ("hold", hold)]:
+    for role, tr in [("riff", riff), ("riffSoft", soften(riff)), ("hook", hook), ("pad", pad), ("soft", soft), ("arp", arp), ("hold", hold)]:
         n = f"gen-{slot}-{role}"
         write(n, f"{role} for {style} in {desc}", tr)
         names[role] = n

@@ -1,0 +1,9 @@
+about: "Modern metal bass, DI + amp sim: the picked bass string model blended with a gently driven amp (amp mix 0.4 → mostly clean DI) into a 4x10 cab; low shelf for weight, 3–6 kHz fizz tamed, compressed. Sits under rhythm guitars without fizz. Same expr.pm / ^dead articulations as m8-bass."
+extends: m8-bass
+fx:
+  - {type: amp, model: crunch, gain: 0.45, tight: 40, boost: 2dB, bass: 0.62, mid: 0.55, treble: 0.42, presence: 0.35, resonance: 0.6, sag: 0.3, mix: 0.4}
+  - {type: cab, model: 4x10, mic: 0.35, distance: 0.1}
+  - {type: eq, bands: ["lowshelf cutoff=100 gain=2dB", "peak cutoff=700 q=1 gain=1.5dB", "peak cutoff=3200 q=1 gain=-4dB", "highshelf cutoff=5000 gain=-6dB"]}
+  - {type: compressor, threshold: -22dB, ratio: 4, attack: 8ms, release: 120ms, makeup: 2dB}
+  - {type: gate, threshold: -56dB, hold: 20ms, release: 50ms}
+gain: -15dB

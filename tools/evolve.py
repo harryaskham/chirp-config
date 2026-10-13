@@ -15,7 +15,7 @@ REST = "R/1 R/1 R/1 R/1"
 
 # off: transposition applied to F-based layers (pads, hooks, arps, holds, F-minor parts).
 STYLES = {
-  "djent":      dict(form="rock", tempo=(120, 142), off=0, riff=["riff-chug7", "riff-chug5", "riff-332", "riff-gallop"], riff_off=0,
+  "djent":      dict(form="rock", tempo=(110, 150), off=0, riff=["riff-chug7", "riff-chug5", "riff-332", "riff-gallop"], riff_off=0,
                      low=["beat-sparse"], mid=["beat-poly7", "beat-euclid", "beat-ghost"], high=["beat-djent", "beat-blast", "beat-doom"],
                      half=["beat-halftime"], brk=["beat-doom"], hook=["lead-hook", "lead-solo"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["riff-hold"]),
   "prog-clean": dict(form="rock", tempo=(104, 126), off=1, riff=["riff-thump", "riff-taps"], riff_off=-1,
@@ -45,10 +45,10 @@ STYLES = {
   "classical":  dict(form="classical", tempo=(66, 90), off=0, riff=["piano-alberti"], riff_off=0,
                      low=[], mid=[], high=["beat-sparse"], half=[], brk=[],
                      hook=["lead-hook"], pad=["strings-chorale"], soft=["strings-chorale"], arp=["arp-16th"], hold=["pad-swell"]),
-  "meshuggah":  dict(form="meshuggah", tempo=(110, 128), off=0, riff=["riff-chug7"], riff_off=0, lift=0,
+  "meshuggah":  dict(form="meshuggah", tempo=(96, 140), off=0, riff=["riff-chug7"], riff_off=0, lift=0,
                      low=["beat-sparse"], mid=["beat-poly7"], high=["beat-doom"], half=["beat-halftime"], brk=["beat-doom"],
                      hook=["lead-solo"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["riff-hold"]),
-  "djent-breakdown": dict(form="breakdown", tempo=(126, 140), off=0, riff=["riff-hold", "riff-chug5", "riff-chug7"], riff_off=0,
+  "djent-breakdown": dict(form="breakdown", tempo=(100, 140), off=0, riff=["riff-hold", "riff-chug5", "riff-chug7"], riff_off=0,
                      low=["beat-sparse"], mid=["beat-halftime"], high=["beat-doom"], half=["beat-halftime"], brk=["beat-doom"],
                      hook=["lead-solo"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["riff-hold"]),
   "doom-ambient": dict(form="rock", tempo=(60, 72), off=0, riff=["riff-hold"], riff_off=0,
@@ -57,23 +57,23 @@ STYLES = {
 }
 # Forms: (section, roles, fx). Roles: low/mid/high/half/brk (drums), riff, hook, pad, soft, arp, hold.
 FORMS = {
-  "rock": [("intro", ["soft"], None), ("intro2", ["soft", "low", "hold"], "riser"), ("verse", ["mid", "riff"], "impact"),
+  "rock": [("intro", ["soft"], None), ("intro2", ["soft", "low", "hold"], "riser"), ("verse", ["mid", "riffSoft"], "impact"),
            ("verse", ["mid", "riff", "arp"], None), ("pre", ["half", "hold", "pad"], "riser"), ("chorus", ["high", "riff", "hook", "pad"], "impact"),
            ("chorus", ["high", "riff", "hook", "pad"], None), ("verse2", ["mid", "riff", "arp"], "impact"), ("chorus", ["high", "riff", "hook", "pad"], "impact"),
            ("break", ["brk", "hold"], "revcym"), ("solo", ["high", "riff", "solo"], "impact"), ("pre", ["half", "hold", "pad", "arp"], "riser"),
            ("final", ["high", "riff", "hook", "pad", "arp"], "impact"), ("final", ["high", "riff", "hook", "pad", "arp"], None), ("outro", ["soft", "hold", "low"], "revcym")],
-  "edm":  [("intro", ["low"], None), ("intro2", ["low", "soft"], None), ("build", ["mid", "riff"], "riser"), ("drop", ["high", "riff", "hook", "pad"], "impact"),
+  "edm":  [("intro", ["low"], None), ("intro2", ["low", "soft"], None), ("build", ["mid", "riffSoft"], "riser"), ("drop", ["high", "riff", "hook", "pad"], "impact"),
            ("drop", ["high", "riff", "hook", "pad", "arp"], None), ("break", ["soft", "arp"], "revcym"), ("break", ["soft", "arp", "hold"], None),
            ("build", ["mid", "riff", "arp"], "riser"), ("final", ["high", "riff", "hook", "pad", "arp"], "impact"), ("final", ["high", "riff", "hook", "pad"], None),
            ("outro", ["low", "soft"], "revcym")],
   # Polymetric riffs carry their own locked drums (kick follows the guitar; 4/4 cymbals, snare on 3).
-  "meshuggah": [("intro", ["soft", "hold"], "revcym"), ("verse", ["riff"], "impact"), ("verse", ["riff", "pad"], None),
+  "meshuggah": [("intro", ["soft", "hold"], "revcym"), ("verse", ["riffSoft"], "impact"), ("verse", ["riff", "pad"], None),
                 ("heavy", ["riffB"], "impact"), ("heavy", ["riffB", "hook"], None), ("shuffle", ["riffS"], "impact"),
                 ("shuffle", ["riffS", "pad"], None), ("verse2", ["riff", "hook"], "revcym"), ("break", ["riffBrk"], "impact"),
                 ("break", ["riffBrk", "soft"], None), ("C", ["riffC"], "impact"), ("C", ["riffC", "hook", "pad"], None),
                 ("final", ["riff", "hook", "pad"], "impact"), ("outro", ["soft", "hold"], "revcym")],
   "breakdown": [("intro", ["brk", "hold"], "revcym"), ("break", ["half", "riff"], "impact"), ("break", ["half", "riff", "pad"], None),
-                ("build", ["mid", "riff", "arp"], "riser"), ("drop", ["high", "riff", "hook"], "impact"), ("drop", ["high", "riff", "hook", "pad"], None),
+                ("build", ["mid", "riffSoft", "arp"], "riser"), ("drop", ["high", "riff", "hook"], "impact"), ("drop", ["high", "riff", "hook", "pad"], None),
                 ("break", ["brk", "hold", "pad"], "revcym"), ("final", ["high", "riff", "hook", "pad"], "impact"), ("outro", ["brk", "hold"], "revcym")],
   "classical": [("A", ["pad", "riff"], None), ("A", ["pad", "riff", "hook"], None), ("B", ["soft", "arp"], None), ("B", ["soft", "arp", "hook"], "riser"),
                 ("final", ["pad", "riff", "hook", "high"], "impact"), ("coda", ["soft"], "revcym")],
@@ -94,7 +94,8 @@ def pick(s, role):
 def identity(style=None):
     style = style or random.choice(list(STYLES))
     s = STYLES[style]
-    return dict(style=style, tempo=random.randrange(s["tempo"][0], s["tempo"][1] + 1, 2), key=0, gen=composer.params(style),
+    bpm = random.randrange(s["tempo"][0], s["tempo"][1] + 1, 2)
+    return dict(style=style, tempo=bpm, base_tempo=bpm, chapter=0, key=0, gen=composer.params(style),
                 **{r: pick(s, r) for r in ["riff", "low", "mid", "high", "half", "brk", "hook", "pad", "soft", "arp", "hold"]})
 
 def mutate(ident):
@@ -109,6 +110,36 @@ def mutate(ident):
         ident[k] = pick(s, k) or ident[k]
     return ident, k
 
+PASS_MINUTES = 1.0
+
+def chapters(ident):
+    """Split the style's form into consecutive chapters of about PASS_MINUTES each."""
+    form = FORMS[STYLES[ident["style"]]["form"]]
+    n = max(4, round(ident.get("base_tempo", ident["tempo"]) * PASS_MINUTES / 16))
+    chs = [form[i:i + n] for i in range(0, len(form), n)]
+    if len(chs) > 1 and len(chs[-1]) < n / 2:
+        last = chs.pop()
+        chs[-1] = chs[-1] + last
+    return chs
+
+MASTER_BASE = ['{"type": "eq", "bands": ["hp cutoff=28", "peak cutoff=320 q=0.8 gain=-1dB", "highshelf cutoff=9000 gain=1.5dB"]}']
+
+def master_for(ident):
+    """Master chain for the chapter about to play: the room and glue follow its content."""
+    chs = chapters(ident)
+    secs = [sec for sec, _, _ in chs[min(ident.get("chapter", 0), len(chs) - 1)]]
+    calm = sum(sec in ("intro", "intro2", "break", "outro", "coda", "B") for sec in secs) / len(secs)
+    shuffle = "shuffle" in secs
+    if calm >= 0.4:
+        verb, ott, makeup = "reverb kind=hall decay=3.6s size=1 mix=0.2 predelay=35ms low_cut=220 high_cut=7500 width=1.4 modulation=0.5", 0.1, 3
+    elif shuffle:
+        verb, ott, makeup = "reverb kind=plate decay=2s mix=0.14 predelay=20ms low_cut=250 width=1.3 modulation=0.3", 0.15, 3.5
+    else:
+        verb, ott, makeup = "reverb kind=room decay=1.6s size=0.8 mix=0.1 predelay=15ms low_cut=280 high_cut=8000 width=1.25 modulation=0.3", 0.2, 4
+    fx = [json.loads(MASTER_BASE[0]), verb, f"ott depth={ott} time=0.3",
+          f"glue threshold=-16dB ratio=2 attack=10ms release=150ms makeup={makeup}dB", "tape drive=0.25 warmth=0.4", "width width=1.2 mono_below=140"]
+    return json.dumps(fx)
+
 def write_form(name, ident):
     s = STYLES[ident["style"]]
     if ident.get("gen"):
@@ -120,7 +151,8 @@ def write_form(name, ident):
         gdesc = "library parts"
     roles = ["drums", "riff", "hook", "pad", "arp", "hold", "fx"]
     tracks = {t: [] for t in roles}
-    for sec, layers, fx in FORMS[s["form"]]:
+    chs = chapters(ident)
+    for sec, layers, fx in chs[min(ident.get("chapter", 0), len(chs) - 1)]:
         lift = s.get("lift", 2) if sec == "final" else 0
         def put(track, part, off, xf=""):
             if not part:
@@ -134,7 +166,8 @@ def write_form(name, ident):
         riff_xf = {"verse2": random.choice(["^rot=0.5", "^rot=1", "^thin=0.2"]), "solo": "^thin=0.35"}.get(sec, "")
         rx = ident.get("xf", {})
         riff_role = next((l for l in layers if l.startswith("riff")), None)
-        put("riff", ident.get(riff_role) if riff_role else None, s["riff_off"], riff_xf + rx.get("riff", ""))
+        part = (ident.get(riff_role) or ident.get("riff")) if riff_role else None
+        put("riff", part, s["riff_off"], riff_xf + rx.get("riff", ""))
         hook = ident.get("solo", "lead-solo") if "solo" in layers else (ident["hook"] if "hook" in layers else None)
         put("hook", hook, s.get("hook_off", s["off"]), ("^rot=1" if "solo" in layers and ident.get("gen") else "") + rx.get("hook", ""))
         pad = ident["pad"] if "pad" in layers else (ident["soft"] if "soft" in layers else None)
@@ -144,7 +177,7 @@ def write_form(name, ident):
         tracks["fx"].append({"riser": "R/1 R/1 R/1 patch=fx-riser C4/1@90",
                              "impact": "patch=fx-impact F1/4@104 R/4 R/2 R/1 R/1 R/1",
                              "revcym": "R/1 R/1 R/1 R/2 patch=fx-revcym C5/2@88"}.get(fx, REST))
-    lines = [f"about: Generated {s['form']}-form song — {ident['style']} at {ident['tempo']} BPM, {gdesc}, shift {ident['key']:+d}.",
+    lines = [f"about: Generated {s['form']}-form song — {ident['style']} at {ident['tempo']} BPM, {gdesc}, shift {ident['key']:+d}, chapter {ident.get('chapter', 0) + 1}/{len(chs)}.",
              f"tempo: {ident['tempo']}", "tracks:"]
     for t, items in tracks.items():
         lines.append(f"  - {{name: {t}, score: \"{' '.join(items)}\"}}")
@@ -292,12 +325,20 @@ if __name__ == "__main__":
             if j.get("on") and not first:
                 j["h"] = round(min(1.0, j.get("h", 0) + j.get("rate", 0.09)), 3)
                 open(JOURNEY, "w").write(json.dumps(j) + "\n")
-            limit = int(j.get("passes_per_song", 2)) if j.get("on") and j.get("h", 0) < 0.95 else random.choice([2, 3])
-            if passes > limit:
+            # Each pass plays the next ~1-minute chapter of the song; after the last, a new song.
+            if not first and ident.get("chapter", 0) + 1 < len(chapters(ident)):
+                ident = dict(ident, chapter=ident.get("chapter", 0) + 1)
+                change = f"chapter {ident['chapter'] + 1}/{len(chapters(ident))}"
+                if random.random() < 0.5:
+                    st_ = STYLES[ident["style"]]
+                    ident["tempo"] = max(st_["tempo"][0] - 10, min(st_["tempo"][1] + 10, ident["tempo"] + random.choice([-12, -8, -6, -4, 4, 6, 8, 12])))
+                    change += f", tempo {ident['tempo']}"
+                if random.random() < 0.3:
+                    ident, k = mutate(ident)
+                    change += f", {k}"
+            elif not first or passes > 1:
                 style = journey_style(j.get("h", 0), ident["style"]) if j.get("on") else random.choice([k for k in STYLES if k != ident["style"]])
                 ident, passes, change = identity(style), 1, f"new song h={j.get('h', 0):.2f}" if j.get("on") else "new song"
-            elif passes > 1:
-                ident, change = mutate(ident)
             else:
                 change = "first pass"
             flip = 1 - flip
@@ -307,7 +348,7 @@ if __name__ == "__main__":
                 name = f"form-{flip + 1}"
             write_form(name, ident)
             nxt, nxt_ident = name, dict(ident)
-            ok = live("set", f"tracks.arrangement.score=@{name}")
+            ok = live("set", f"tracks.arrangement.score=@{name}", f"master.fx={master_for(ident)}")
             print(time.strftime("%T"), f"pass {li}: next {name} ({change}) {ident['style']} {ident['tempo']}bpm key{ident['key']:+d} riff={ident['riff']} hook={ident['hook']}" + ("" if ok is not None else "  (rejected)"), flush=True)
             save_state(playing=playing, playing_ident=playing_ident, next=nxt, next_ident=nxt_ident, loop_index=li)
         # Steering: apply to the song playing now (cut at the next bar, same position),
