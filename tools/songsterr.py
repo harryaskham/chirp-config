@@ -48,7 +48,9 @@ def load(cache, i):
 def beats_of(b):
     n, d = b.get("duration", [1, 4])
     t = 4 * n / d
-    if b.get("tuplet"):
+    # Songsterr usually stores tuplets already reduced ([1, 24] = a sixteenth triplet); scale only
+    # durations that are still plain note values (power-of-two denominators).
+    if b.get("tuplet") and d & (d - 1) == 0:
         t *= {3: 2 / 3, 5: 4 / 5, 6: 4 / 6, 7: 4 / 7}.get(b["tuplet"], 1)
     return t
 

@@ -1,0 +1,27 @@
+about: >-
+  Danny Carey's Fear Inoculum-era hybrid kit (first pass, for Tool's "Pneuma"): the metal-kit drums
+  plus his Mandala-pad tabla voices (borrowed tabla-kit bols), a gong and a castanet click.
+  Tab mapping (tab2song --drums): 60=dha 61=tun 62=te 63=tin 64=ge 65=ke 76=wb 85=cas 92=gong 98=gong.
+extends: metal-kit
+kit:
+  dha: tabla-kit.dha
+  tun: tabla-kit.tun
+  te: tabla-kit.te
+  tin: tabla-kit.tin
+  ge: tabla-kit.ge
+  ke: tabla-kit.ke
+  na: tabla-kit.na
+  cas: {gain: -10dB, patch: {synth: {layers: [{type: noise}], filters: ["bp cutoff=3.2k q=3"], amp: {a: 0.1ms, d: 25ms, s: 0, r: 8ms, curve: 5}}}}
+  gong:
+    pitch: A1
+    gain: -6dB
+    patch:
+      synth:
+        layers:
+          - type: additive
+            partials: [[1, 1], [1.52, 0.8], [2.03, 0.7], [2.61, 0.55], [3.17, 0.5], [3.82, 0.4], [4.47, 0.35], [5.33, 0.25], [6.12, 0.2]]
+            damp: 0.35
+          - {type: noise, color: pink, level: {value: -40dB, mod: [{src: vel, amount: 6}]}}
+        pitch: {value: 0, mod: [{src: rand, amount: 0.15}]}
+        filters: ["hp cutoff=50", "lp cutoff=7k"]
+        amp: {a: 25ms, d: 9s, s: 0, r: 2s, curve: 3}

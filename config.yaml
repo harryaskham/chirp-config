@@ -11,3 +11,7 @@ outputs:
 inputs:
   tts: "pulse://sgu24:4713/vsink_agent_tts.monitor"
   caco: "pulse://sgu24:4713/vsink_cacophony.monitor"
+
+# Long-form songs: prog climbs (Tool "Pneuma", 11:55) run past the 600 s default.
+limits:
+  seconds: 1200

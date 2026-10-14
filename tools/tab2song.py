@@ -16,7 +16,8 @@ MAP.json:
       "remap": {"t3": "ft"}, "drop": ["m98"], "extra": {…}}    # extra: more track keys, verbatim
    ]}
 
-Bars are 1-based inclusive ranges. Outside its ranges a part rests. Drum pieces can be renamed (`remap`) or
+A tab with tempo changes becomes a song with a tempo map (a point at every tempo or meter change); "meters": true
+emits the map for a constant-tempo tab too. Bars are 1-based inclusive ranges. Outside its ranges a part rests. Drum pieces can be renamed (`remap`) or
 dropped (`drop`) per part, for kits that name pieces differently from the tab's General-MIDI mapping."""
 import json
 import os
@@ -102,14 +103,35 @@ def part_score(lines, beats, ranges, offset_beats, remap=None, drop=(), label=""
     return " | ".join(out)
 
 
+def tempo_map(tl, off_beats):
+    """A tempo map with a point wherever the tab's tempo or meter changes (beats count from the song start,
+    after the offset)."""
+    pts, beat, last = [], off_beats, None
+    if off_beats > 0:
+        pts.append({"at": "0b", "bpm": tl[0]["bpm"]})
+    for m in tl:
+        key = (m["bpm"], m["sig"])
+        if key != last:
+            pts.append({"at": f"{fmt_num(beat)}b", "bpm": m["bpm"], "meter": m["sig"]})
+            last = key
+        beat += m["beats"]
+    return pts
+
+
+def fmt_num(x):
+    return f"{round(x, 4):.4f}".rstrip("0").rstrip(".")
+
+
 def build(mp):
     cache = mp["cache"]
     tl = T.timeline(cache)
     beats = [m["beats"] for m in tl]
     bpm = tl[0]["bpm"]
-    if any(m["bpm"] != bpm for m in tl):
-        raise SystemExit("tempo changes: not supported yet (add a tempo map)")
+    # The offset is converted at the opening tempo; with tempo changes the song gets a tempo map
+    # (also with "meters": true, to carry the tab's time signatures for bar-aligned editing).
     off_beats = round(mp.get("offset", 0) * bpm / 60, 4)
+    varying = any(m["bpm"] != bpm for m in tl)
+    tempo = tempo_map(tl, off_beats) if varying or mp.get("meters") else bpm
     lines_cache = {}
     tracks = []
     for p in mp["parts"]:
@@ -123,7 +145,7 @@ def build(mp):
         tr.update(p.get("extra", {}))
         tr["score"] = sc
         tracks.append(tr)
-    song = {"about": mp.get("about"), "tempo": bpm}   # a song is named by its file
+    song = {"about": mp.get("about"), "tempo": tempo}   # a song is named by its file
     song.update(mp.get("head", {}))
     song["tracks"] = tracks
     return {k: v for k, v in song.items() if v is not None}
