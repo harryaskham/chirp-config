@@ -46,12 +46,16 @@ def fit(c, dev, n_bands=5, max_gain=8.0):
     resid = np.convolve(dev, np.ones(3) / 3, "same")
     resid[0], resid[-1] = dev[0], dev[-1]
     bands = []
+    done = np.zeros(len(resid), bool)   # bins whose band already hit the gain limit
     for _ in range(n_bands):
-        i = int(np.argmax(np.abs(resid)))
+        cand = np.where(done, 0, np.abs(resid))
+        i = int(np.argmax(cand))
         d = resid[i]
-        if abs(d) < 1.5:
+        if abs(d) < 1.5 or done[i]:
             break
         g = float(np.clip(-d, -max_gain, max_gain))
+        if abs(g) >= max_gain:
+            done[i] = True
         # width: span of same-sign deviation above half the peak
         j0 = i
         while j0 > 0 and np.sign(resid[j0 - 1]) == np.sign(d) and abs(resid[j0 - 1]) > abs(d) / 2:
@@ -71,9 +75,16 @@ def fit(c, dev, n_bands=5, max_gain=8.0):
 
 
 def fmt(bands, scale):
+    merged = {}
+    for kind, fc, g, q in bands:                      # one band per (kind, frequency): gains add, then clip
+        key = (kind, round(fc, 1))
+        if key in merged:
+            merged[key] = (kind, fc, merged[key][2] + g, merged[key][3])
+        else:
+            merged[key] = (kind, fc, g, q)
     out = []
-    for kind, fc, g, q in sorted(bands, key=lambda b: b[1]):
-        g *= scale
+    for kind, fc, g, q in sorted(merged.values(), key=lambda b: b[1]):
+        g = float(np.clip(g, -12, 12)) * scale
         if abs(g) < 1.5:
             continue
         f = f"{fc / 1000:.1f}k" if fc >= 1000 else f"{fc:.0f}"

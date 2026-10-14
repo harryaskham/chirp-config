@@ -37,6 +37,54 @@
               0
             ]
           ]
+        },
+        "s3": {
+          "points": [
+            [
+              "0s",
+              0
+            ],
+            [
+              "168.346s",
+              0
+            ],
+            [
+              "168.496s",
+              1
+            ],
+            [
+              "218.383s",
+              1
+            ],
+            [
+              "218.533s",
+              0
+            ]
+          ]
+        },
+        "s4": {
+          "points": [
+            [
+              "0s",
+              0
+            ],
+            [
+              "218.433s",
+              0
+            ],
+            [
+              "218.583s",
+              1
+            ],
+            [
+              "251.774s",
+              1
+            ],
+            [
+              "251.924s",
+              0
+            ]
+          ]
         }
       },
       "fx": [
@@ -59,6 +107,137 @@
             "peak cutoff=855 q=1.0 gain=2.1dB",
             "highshelf cutoff=5.4k gain=-2.1dB"
           ]
+        },
+        {
+          "type": "filter",
+          "kind": "highshelf",
+          "cutoff": 10900,
+          "gain": {
+            "value": "0dB",
+            "mod": [
+              {
+                "src": "auto.s4",
+                "amount": -6.0
+              }
+            ]
+          }
+        },
+        {
+          "type": "filter",
+          "kind": "peak",
+          "cutoff": 428,
+          "gain": {
+            "value": "0dB",
+            "mod": [
+              {
+                "src": "auto.s4",
+                "amount": -5.5
+              }
+            ]
+          },
+          "q": 1.0
+        },
+        {
+          "type": "filter",
+          "kind": "peak",
+          "cutoff": 214,
+          "gain": {
+            "value": "0dB",
+            "mod": [
+              {
+                "src": "auto.s4",
+                "amount": 6.9
+              }
+            ]
+          },
+          "q": 0.8
+        },
+        {
+          "type": "filter",
+          "kind": "lowshelf",
+          "cutoff": 42,
+          "gain": {
+            "value": "0dB",
+            "mod": [
+              {
+                "src": "auto.s4",
+                "amount": 3.3
+              }
+            ]
+          }
+        },
+        {
+          "type": "filter",
+          "kind": "highshelf",
+          "cutoff": 6800,
+          "gain": {
+            "value": "0dB",
+            "mod": [
+              {
+                "src": "auto.s3",
+                "amount": 3.6
+              }
+            ]
+          }
+        },
+        {
+          "type": "filter",
+          "kind": "peak",
+          "cutoff": 428,
+          "gain": {
+            "value": "0dB",
+            "mod": [
+              {
+                "src": "auto.s3",
+                "amount": -2.3
+              }
+            ]
+          },
+          "q": 0.8
+        },
+        {
+          "type": "filter",
+          "kind": "peak",
+          "cutoff": 214,
+          "gain": {
+            "value": "0dB",
+            "mod": [
+              {
+                "src": "auto.s3",
+                "amount": 2.9
+              }
+            ]
+          },
+          "q": 0.8
+        },
+        {
+          "type": "filter",
+          "kind": "peak",
+          "cutoff": 85,
+          "gain": {
+            "value": "0dB",
+            "mod": [
+              {
+                "src": "auto.s3",
+                "amount": -3.0
+              }
+            ]
+          },
+          "q": 0.8
+        },
+        {
+          "type": "filter",
+          "kind": "lowshelf",
+          "cutoff": 42,
+          "gain": {
+            "value": "0dB",
+            "mod": [
+              {
+                "src": "auto.s3",
+                "amount": 4.2
+              }
+            ]
+          }
         },
         {
           "type": "filter",
