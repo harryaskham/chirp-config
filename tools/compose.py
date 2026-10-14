@@ -1794,6 +1794,30 @@ def gen_mahavishnu(r, k, prog, meter=7, low=28, kind="riff"):
     return out
 
 
+def gen_drumsolo(r, beats=8):
+    """A fusion drum break on the metal kit: four-beat phrases, each a linear kick / snare / tom figure,
+    a descending tom run, a snare roll in 32nd pairs or double-kick bursts under snare accents; a crash
+    to open, landing on the last beat."""
+    toks = ["c/16@112"]
+    used = 1
+    while used < beats * 4:
+        left = beats * 4 - used
+        idea = r.choice(["linear", "toms", "roll", "dkick"])
+        n = min(left, 16 - (used % 16) if used % 16 else 16)
+        for j in range(n):
+            if idea == "linear":
+                toks.append(f"{['k', 's', 't1', 'k', 't2', 's', 'ft', 'k'][j % 8]}/16@{r.choice([92, 100, 108])}")
+            elif idea == "toms":
+                toks.append(f"{['t1', 't1', 't2', 't2', 't3', 't3', 'ft', 'ft'][(j // 2) % 8 if j < 16 else 7]}/16@{100 + (j % 2) * 6}")
+            elif idea == "roll":
+                toks.append(f"s/32@{60 + j * 3 if j < 16 else 100} s/32@{64 + j * 3 if j < 16 else 104}")
+            else:
+                toks.append(f"{'s' if j % 4 == 2 else 'k'}/16@{110 if j % 4 == 2 else 96}")
+        used += n
+    toks[-1] = "c/16@116"
+    return [track("drumsolo", rig("drums"), " ".join(toks))]
+
+
 def gen_mathcore(r, k, prog, low=28, kind="chaos"):
     """chaos: the 16-beat part cut into odd-length chunks (3–13 sixteenths, summing to 64); each a
     cluster stab into a hard stop, a dissonant tremolo run, chugs over a blast fragment or silence;
@@ -4154,6 +4178,12 @@ def compose(style, slot, p):
             nt = f"gen-{slot}-riffTrade"
             write(nt, f"fusion trading solos over the main riff for {style}", trade)
             names["riffTrade"] = nt
+            # Trading fours with the drums: the band two bars (the main riff cut at 8 beats), the drummer two.
+            ds = gen_drumsolo(r, 8)[0]
+            fours = [{"name": "band", "score": f"@{names['riff']}^cut=8"}, dict(ds, score="R/1 R/1 " + ds["score"])]
+            nf = f"gen-{slot}-riffFours"
+            write(nf, f"trading fours: band and drum breaks for {style}", fours)
+            names["riffFours"] = nf
         n = f"gen-{slot}-riffEnd"
         write(n, f"ending for {style}", gen_ending(r, k, p["prog"]))
         names["riffEnd"] = n

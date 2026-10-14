@@ -786,6 +786,9 @@ def add_guests(ident, form, rng):
     if fusion and ident["style"] in composer.HEAVY_STYLES and rng.random() < 0.6:
         form = list(form)
         form.insert(rng.randrange(2, len(form) - 1), ("trade", ["riffTrade"], "impact"))  # guitar / synth trading solos
+    if fusion and ident["style"] in composer.HEAVY_STYLES and rng.random() < 0.5:
+        form = list(form)
+        form.insert(rng.randrange(2, len(form) - 1), ("fours", ["riffFours"], None))  # trading fours with the drums
     if ident["style"] in (composer.ODD_HOSTS_HEAVY | composer.ODD_HOSTS_CHILL) and rng.random() < odd_p:
         form = list(form)
         form.insert(rng.randrange(2, len(form) - 1), ("odd", ["riffOdd"], "impact"))  # an odd-meter excursion
