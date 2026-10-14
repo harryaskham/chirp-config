@@ -1,0 +1,14 @@
+about: "Hammond B3: drawbars 16′ 8′ 5⅓′ 4′ 2⅔′ 2′ (a jazz registration), a decaying 3rd-harmonic percussion pop and key click, through a Leslie (horn tremolo + drum chorus) with a little tube drive. Soul jazz, gospel, blues."
+synth:
+  layers:
+    - {type: additive, partials: [[0.5, 0.75], [1, 1], [1.5, 0.6], [2, 0.5], [3, 0.25], [4, 0.2]], damp: 0}
+    - {type: additive, partials: [[3, 1]], damp: 0, level: {value: -60dB, mod: [{src: env.perc, amount: 52}, {src: vel, amount: 4}]}}
+    - {type: noise, color: white, level: {value: -70dB, mod: [{src: env.click, amount: 40}]}}
+  env:
+    perc: {a: 1ms, d: 300ms, s: 0, r: 50ms}
+    click: {a: 0.2ms, d: 4ms, s: 0}
+  filters: ["hp cutoff=50", "lp cutoff=7k"]
+  amp: {a: 3ms, d: 50ms, s: 1.0, r: 45ms}
+play: {gate: 0.95, vel_sens: 0.25}
+fx: ["drive drive=0.25", "tremolo rate=6.3hz depth=0.14", "chorus rate=0.9 depth=0.35 mix=0.4", "reverb kind=room decay=1s mix=0.14"]
+gain: -12dB

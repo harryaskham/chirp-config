@@ -61,6 +61,8 @@ Use `@NAME` in a score; transpose with `tr=N` (e.g. `tr=-3 @lib-kankyo`).
 | `@lib-slowcore` | slowcore | 16 |
 | `@lib-smile-hook` | smile | 16 |
 | `@lib-smile` | smile | 16 |
+| `@lib-souljazz-hook` | souljazz | 16 |
+| `@lib-souljazz` | souljazz | 16 |
 | `@lib-tiersen` | tiersen | 24 |
 | `@lib-triphop-hook` | triphop | 16 |
 | `@lib-triphop` | triphop | 16 |

@@ -1,0 +1,5 @@
+about: "Library part \u2014 souljazz melody (C mixolydian), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "hammond-b3", "score": "swing=0.66 G5/8.@81 C6/8.@89 D6/8@92 G5/4@85 R/4 A5/8.@89 D6/8.@88 E6/8@89 A5/4@91 R/4 D6/8.@83 G6/8.@86 A6/8@86 G5/4@90 R/4 G5/4@90 E5/4@94 G5/2@92^gate=1.2", "pan": 0.1}
