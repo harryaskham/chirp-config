@@ -40,10 +40,10 @@ songs:
   brk:
     tempo: inherit
     tracks:
-      - {name: ostinato, patch: erhu, score: "len=/16 [[B3@90 F#3@70 C#4@76 F#3@70]x4]x16", gain: -8dB}
-      - {name: choir, patch: mellotron-choir, score: "R/1 R/1 R/1 R/1 [B3,F#4/1 B3,F#4,C#5/1]x6", gain: -9dB}
-      - {name: toms, patch: metal-kit, score: "[R/1]x8 [k/8@90 R/8 R/4 R/2]x4 [k/16@100 k k k R/4 R/2]x2 [k/16@112]x16 [k/16@116 s s s]x4"}
-      - {name: sub, patch: sub, score: "[R/1]x9 [B0/1@100]x7", gain: -8dB}
+      - {name: ostinato, patch: erhu, score: "len=/16 [[B3@90 F#3@70 C#4@76 F#3@70]x4]x16", gain: -4dB}
+      - {name: choir, patch: mellotron-choir, score: "R/1 R/1 R/1 R/1 [B3,F#4/1 B3,F#4,C#5/1]x6", gain: -5dB}
+      - {name: toms, patch: metal-kit, score: "[R/1]x8 [k/8@90 R/8 R/4 R/2]x4 [k/16@100 k k k R/4 R/2]x2 [k/16@112]x16 [k/16@116 s s s]x4", gain: -8dB}
+      - {name: sub, patch: sub, score: "[R/1]x9 [B0/1@100]x7", gain: -12dB}
 
   # bars 50-63: climax A — syncopated riff, choir melody around B–A–G#–C
   climax:
@@ -66,7 +66,12 @@ songs:
       - {name: strings, patch: mellotron-strings, gain: -12dB, score: "[B3,F#4/1 C4,F#4/1]x5 A3,C4/1 A3,E4/1 A#3,G4/1 A#3,G4/1 A3,G#4/1 R/1"}
 
 tracks:
-  - {name: arrangement, score: "@boom/5.756b @intro/56b @main/72b @brk/64b @climax/132b @outro/64b"}
+  - {name: boom, at: 0.0b, score: "@boom/5.756b", gain: -7dB}
+  - {name: intro, at: 5.756b, score: "@intro/56b"}
+  - {name: main, at: 61.756b, score: "@main/72b", gain: -6dB}
+  - {name: brk, at: 133.756b, score: "@brk/64b"}
+  - {name: climax, at: 197.756b, score: "@climax/132b"}
+  - {name: outro, at: 329.756b, score: "@outro/64b", gain: 2.5dB}
 
 master:
   fx:
