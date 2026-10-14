@@ -61,7 +61,7 @@ STYLE_MODES = {
     "bossa": ["major", "dorian", "minor", "lydian"], "dub": ["minor", "dorian", "mixolydian"],
     "manouche": ["harmonic", "minor", "harmonic", "major"], "celtic": ["dorian", "mixolydian", "minor", "major"],
     "doomjazz": ["minor", "phrygian", "dorian", "harmonic"], "mali": ["dorian", "minor", "mixolydian"], "guofeng": ["major", "minor", "dorian"], "vaporwave": ["major", "lydian", "dorian", "minor"], "slowcore": ["major", "mixolydian", "minor", "dorian"],
-    "backrooms": ["major", "lydian", "mixolydian"], "neosoul": ["dorian", "minor", "major", "mixolydian"], "minimal": ["major", "lydian", "dorian", "mixolydian"], "fusion": ["minor", "dorian", "major", "mixolydian"], "berlin": ["minor", "dorian", "phrygian", "aeolian" if "aeolian" in MODES else "minor"], "satie": ["major", "lydian", "mixolydian", "dorian"], "kankyo": ["major", "lydian", "dorian", "mixolydian"], "dawnraga": ["double-harmonic", "phrygian-dominant", "phrygian", "mixolydian"], "handpan": ["minor", "dorian", "phrygian-dominant", "hirajoshi"], "citypop": ["major", "lydian", "dorian", "major"], "lid": ["major", "lydian", "minor", "dorian"], "tiersen": ["minor", "major", "harmonic", "dorian"], "balearic": ["phrygian-dominant", "minor", "dorian", "major"], "chillwave": ["major", "lydian", "dorian", "mixolydian"], "souljazz": ["mixolydian", "dorian", "blues", "mixolydian"], "ethiojazz": ["minor", "hirajoshi", "major", "phrygian"], "hauntology": ["major", "dorian", "lydian", "minor"], "dawnchorus": ["major", "lydian", "mixolydian"], "beattape": ["minor", "dorian", "major"], "lofihouse": ["minor", "dorian", "major"], "amapiano": ["minor", "dorian", "minor"], "liquid": ["minor", "dorian", "major", "lydian"], "nujazz": ["dorian", "minor", "mixolydian"], "highlife": ["major", "mixolydian", "major"], "samba": ["major", "dorian", "minor", "mixolydian"], "rumba": ["phrygian-dominant", "harmonic", "minor"], "secondline": ["mixolydian", "major", "blues"], "exotica": ["major", "lydian", "minor", "dorian"], "cyberscape": ["minor", "dorian", "lydian", "phrygian"],
+    "backrooms": ["major", "lydian", "mixolydian"], "neosoul": ["dorian", "minor", "major", "mixolydian"], "minimal": ["major", "lydian", "dorian", "mixolydian"], "fusion": ["minor", "dorian", "major", "mixolydian"], "berlin": ["minor", "dorian", "phrygian", "aeolian" if "aeolian" in MODES else "minor"], "satie": ["major", "lydian", "mixolydian", "dorian"], "kankyo": ["major", "lydian", "dorian", "mixolydian"], "dawnraga": ["double-harmonic", "phrygian-dominant", "phrygian", "mixolydian"], "handpan": ["minor", "dorian", "phrygian-dominant", "hirajoshi"], "citypop": ["major", "lydian", "dorian", "major"], "lid": ["major", "lydian", "minor", "dorian"], "tiersen": ["minor", "major", "harmonic", "dorian"], "balearic": ["phrygian-dominant", "minor", "dorian", "major"], "chillwave": ["major", "lydian", "dorian", "mixolydian"], "souljazz": ["mixolydian", "dorian", "blues", "mixolydian"], "ethiojazz": ["minor", "hirajoshi", "major", "phrygian"], "hauntology": ["major", "dorian", "lydian", "minor"], "dawnchorus": ["major", "lydian", "mixolydian"], "beattape": ["minor", "dorian", "major"], "lofihouse": ["minor", "dorian", "major"], "amapiano": ["minor", "dorian", "minor"], "liquid": ["minor", "dorian", "major", "lydian"], "nujazz": ["dorian", "minor", "mixolydian"], "highlife": ["major", "mixolydian", "major"], "samba": ["major", "dorian", "minor", "mixolydian"], "rumba": ["phrygian-dominant", "harmonic", "minor"], "secondline": ["mixolydian", "major", "blues"], "exotica": ["major", "lydian", "minor", "dorian"], "slowed": ["major"], "cyberscape": ["minor", "dorian", "lydian", "phrygian"],
     "koto": ["hirajoshi", "hirajoshi", "phrygian"],
     "djazz": ["dorian", "lydian", "harmonic", "minor", "mixolydian"], "industrial": ["phrygian", "minor", "harmonic"], "dnb": ["minor", "phrygian", "dorian"],
     "darksynth": ["minor", "phrygian", "harmonic", "dorian"],
@@ -3741,6 +3741,26 @@ def gen_exotica(r, k, prog, kind="main"):
     return out
 
 
+SLOW_SOURCES = ["citypop", "neosoul", "chillwave", "lofihop", "bossa", "vaporwave", "souljazz", "balearic"]
+
+
+def gen_slowed(r, k, prog, kind="main", src="lofihop", drop=3):
+    """Slowed + reverb: a whole library part played as one sample, lowered `drop` semitones and
+    time-stretched to exactly one 16-beat section at the song's tempo, through chorus, a soft low-pass
+    and a long hall; a root–fifth pad in the lowered key and vinyl; kind=B adds a soft kick on 1 and 3;
+    kind=intro is the sample, more muffled."""
+    note = mname(60 - drop)
+    patch = f"{pick_patch(f'slow-{src}', 'pad')} layers.0.speed={_TEMPO / 120:.3f}"
+    t = {"name": "slowed", "patch": patch, "score": f"{note}/1 _ _ _"}
+    if kind == "intro":
+        t["fx"] = [{"type": "filter", "kind": "lp", "cutoff": 2500}]
+    out = [t, track("vinyl", pick_patch("vinyl", "pad"), "C4/1 _ _ _", gain="-4dB"),
+           track("pad", pick_patch("pad-glass", "pad"), f"{chordhead([48 - drop, 55 - drop])}/1 _ _ _", gain="-12dB")]
+    if kind == "B":
+        out.append(track("kick", pick_patch("lofi-kit", "tight-kit"), " ".join(("k/16@70" if x in (0, 8) else "R/16") for _ in range(4) for x in range(16)), gain="-8dB"))
+    return out
+
+
 def gen_downtempo(r, k, prog, kind="main"):
     """Downtempo (Bonobo / Emancipator / Tycho): a breakbeat (one of three patterns) whose low-pass opens
     over the section, an ostinato on marimba / kalimba / harp / nylon / celesta, a melodic syncopated bass
@@ -3940,7 +3960,7 @@ def compose(style, slot, p):
     return names, desc
 
 
-CHILL_STYLES = {"lofihop", "gogo", "ukjazz", "ambient", "downtempo", "smile", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche", "celtic", "doomjazz", "mali", "guofeng", "vaporwave", "slowcore", "backrooms", "cyberscape", "neosoul", "minimal", "fusion", "berlin", "satie", "kankyo", "dawnraga", "handpan", "citypop", "lid", "tiersen", "balearic", "chillwave", "souljazz", "ethiojazz", "hauntology", "dawnchorus", "beattape", "lofihouse", "amapiano", "liquid", "nujazz", "highlife", "samba", "rumba", "secondline", "exotica"}
+CHILL_STYLES = {"lofihop", "gogo", "ukjazz", "ambient", "downtempo", "smile", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche", "celtic", "doomjazz", "mali", "guofeng", "vaporwave", "slowcore", "backrooms", "cyberscape", "neosoul", "minimal", "fusion", "berlin", "satie", "kankyo", "dawnraga", "handpan", "citypop", "lid", "tiersen", "balearic", "chillwave", "souljazz", "ethiojazz", "hauntology", "dawnchorus", "beattape", "lofihouse", "amapiano", "liquid", "nujazz", "highlife", "samba", "rumba", "secondline", "exotica", "slowed"}
 HEAVY_STYLES = {"meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep",
                 "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock", "groovemetal", "power", "sludge",
                 "breakcore", "mathcore", "gojira", "djazz", "raga", "gamelan", "koto"}
@@ -3971,6 +3991,11 @@ def _compose_style(style, slot, p):
             "hookE": gen_atmos(r, k, prog, 62, rig("atmos")),
         }
         return _write_parts(slot, "brostep", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
+    if style == "slowed":
+        src = r.choice(SLOW_SOURCES)
+        drop = r.choice([2, 3, 4, 5])
+        parts = {"riffI": gen_slowed(r, k, prog, "intro", src, drop), "riff": gen_slowed(r, k, prog, "main", src, drop), "riffB": gen_slowed(r, k, prog, "B", src, drop)}
+        return _write_parts(slot, "slowed", parts, f"{src} slowed {drop} semitones")
     if style == "exotica":
         parts = {"riffI": gen_exotica(r, k, prog, "intro"), "riff": gen_exotica(r, k, prog), "riffB": gen_exotica(r, k, prog, "full"),
                  "hook": gen_hook(r, k, prog, 67, pick_patch("vibes", "marimba"))}
