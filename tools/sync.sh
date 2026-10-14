@@ -34,7 +34,14 @@ fi
 new="$main/cli/chirp/target/release/chirp"
 if [ "$rebuilt" = 1 ] && ! cmp -s "$new" "$pinned"; then
   nxt=$("$py" -c "import json;print(json.load(open('$here/state.json')).get('next') or 'form-1')" 2>/dev/null || echo form-1)
-  echo "sync: restarting groove on the new build (resuming @$nxt)"
+  # Restart at a pass boundary (≤ 2.5 s left in the playing chapter) so it lands where the music changes.
+  for _ in $(seq 1 240); do
+    left=$("$pinned" --json live status --id groove 2>/dev/null | "$py" -c "import json,sys; d=json.load(sys.stdin)['data']; print(d['loop_seconds'] - d['position'])" 2>/dev/null || echo 0)
+    "$py" -c "import sys; sys.exit(0 if float('$left') <= 2.5 else 1)" && break
+    sleep 0.5
+  done
+  nxt=$("$py" -c "import json;print(json.load(open('$here/state.json')).get('next') or 'form-1')" 2>/dev/null || echo form-1)
+  echo "sync: restarting groove on the new build at a pass boundary (resuming @$nxt)"
   CHIRP_SRC="$new" bash "$here/restart-groove.sh" live-suite "@$nxt"
 elif [ "$tools_changed" -gt 0 ]; then
   echo "sync: evolver/composer changed upstream — restarting the evolver (keeping the playing song)"
