@@ -759,7 +759,7 @@ def chapters(ident):
 COMP_STYLES = ["glue", "pump", "smash", "parallel", "opto", "tape"]
 # Loudness-matched to glue (measured RMS over the same 48 beats through each master chain).
 FLAVOR_HOOK = {"vintage": ["rack:tape-echo"], "industrial": ["rack:radio"], "space": ["rack:shimmer-hall"], "wide": ["rack:chorus-wide"]}
-STYLE_TRIM = {"darksynth": -2.0, "postmetal": 2.0, "tool": -2.5, "numetal": 1.0, "industrial": -1.5, "power": -1.0, "sludge": 2.0, "mathcore": 1.5, "gojira": 1.0, "raga": -2.0,
+STYLE_TRIM = {"dnb": -1.0, "darksynth": -2.0, "postmetal": 2.0, "tool": -2.5, "numetal": 1.0, "industrial": -1.5, "power": -1.0, "sludge": 2.0, "mathcore": 1.5, "gojira": 1.0, "raga": -2.0,
               "lofihop": 3.0, "ambient": 1.5, "house-melodic": -2.0, "chamber": 0.0, "neoclassical": 1.5, "dub": 3.0, "manouche": 3.0, "celtic": 3.0, "doomjazz": 4.0, "guofeng": 3.0, "vaporwave": 3.0, "backrooms": 10.0, "cyberscape": 2.0, "fusion": 3.0, "berlin": 1.0, "satie": 6.0, "kankyo": 6.0, "citypop": 2.0, "triphop": -2.0, "lid": -2.0, "tiersen": 5.0, "chillwave": 3.0, "souljazz": -1.5, "ethiojazz": 2.0, "hauntology": 4.0, "dawnchorus": 4.0}  # sparse styles sit lower (QA loudness)
 COMP_TRIM = {"glue": 0.0, "pump": 6.1, "smash": 3.4, "parallel": 3.2, "opto": 3.3, "tape": -2.1}
 
