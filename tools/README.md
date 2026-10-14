@@ -100,3 +100,9 @@ pan and sends — all usable from these helpers.
   `tools/grooves.py`: djent cells and breakdowns, Meshuggah cycles / tom grooves / shuffle, Garstka
   breakdowns, blasts (trad/hammer/bomb/d-beat), thrash (gallop/chromatic/skank/half), Tool-style
   5–31/8 grooves by grouping (heavy/tribal/clean). Drop in with `@groove-mesh-11-8`.
+
+## Keeping it running
+
+`tools/watchdog.sh` (run in the background): every 15 s, if the `groove` session is gone and the
+Pulse server answers (e.g. after an sgu24 Pulse restart), it restarts the groove on the latest build,
+resuming the queued song. Log: /tmp/chirp-watchdog.log.

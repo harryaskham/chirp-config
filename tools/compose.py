@@ -45,7 +45,8 @@ STYLE_MODES = {
     "brostep": ["minor", "phrygian", "harmonic"],
     "blackgaze": ["major", "lydian", "dorian", "mixolydian"],
     "numetal": ["phrygian", "locrian", "minor"], "deathcore": ["phrygian", "harmonic", "locrian", "diminished"],
-    "postrock": ["major", "lydian", "mixolydian", "dorian"], "groovemetal": ["blues", "pentatonic-minor", "phrygian", "minor"], "industrial": ["phrygian", "minor", "harmonic"], "dnb": ["minor", "phrygian", "dorian"],
+    "postrock": ["major", "lydian", "mixolydian", "dorian"], "groovemetal": ["blues", "pentatonic-minor", "phrygian", "minor"],
+    "power": ["major", "harmonic", "minor", "major"], "industrial": ["phrygian", "minor", "harmonic"], "dnb": ["minor", "phrygian", "dorian"],
     "darksynth": ["minor", "phrygian", "harmonic", "dorian"],
     "hardcore-kl": ["phrygian", "locrian", "minor", "diminished"],
     "tool": ["phrygian", "dorian", "locrian", "double-harmonic", "minor"],
@@ -1203,6 +1204,59 @@ def mirror_bass(tokens, d="/16"):
     return out
 
 
+# ---------- harmony leads / power metal -------------------------------------------------------
+
+def note_midi(name):
+    """`C#4` / `Eb3` → MIDI."""
+    m = re.match(r"([A-G][b#]?)(-?\d+)$", name)
+    if not m:
+        return None
+    pcs = {n: i for i, n in enumerate(NAMES)}
+    pcs.update({"Db": 1, "D#": 3, "Gb": 6, "G#": 8, "A#": 10, "Cb": 11, "E#": 5, "Fb": 4, "B#": 0})
+    return pcs[m.group(1)] + 12 * (int(m.group(2)) + 1)
+
+
+def harmonize(score, k, steps=2, base=48):
+    """Shift every note of a lead score `steps` scale degrees (2 = a diatonic third above)."""
+    scale = sorted({k.deg(d, base) for d in range(-14, 40)})
+    def shift(mt):
+        n = note_midi(mt.group(0))
+        if n is None or n not in scale:
+            return mt.group(0)
+        return mname(scale[min(len(scale) - 1, scale.index(n) + steps)])
+    return re.sub(r"\b[A-G][b#]?-?\d+\b", shift, score)
+
+
+def gen_twin_hook(r, k, prog, base, patch):
+    """A lead hook doubled a diatonic third above (twin guitars), panned apart."""
+    lead = gen_hook(r, k, prog, base, patch)[0]
+    return [dict(lead, name="hook", pan=-0.25), dict(lead, name="hook3", pan=0.25, score=harmonize(lead["score"], k, 2), gain="-2dB")]
+
+
+def gen_power(r, k, prog, low=40, kind="verse"):
+    """Power metal: verse (16th double kick under palm-muted gallops), chorus (open power chords in
+    8ths, crash-ride, half the snares), with a strings pad added at song level."""
+    t = k.deg(0, low)
+    gtr, kick, snare, cym = [], [], [], []
+    for i in range(64):
+        x = i % 16
+        root = k.deg(prog[i // 16], low)
+        if root - t > 7:
+            root -= 12
+        if kind == "verse":
+            gtr.append(f"expr.pm=1 {mname(root)}/16@{116 if x % 4 == 0 else 100}" if x % 4 in (0, 2, 3) else "R/16")
+            cym.append(f"{'c' if x == 0 else 'rd'}/16@{110 if x == 0 else 86}" if x % 4 == 0 else "R/16")
+        else:
+            gtr.append(f"expr.pm=0 {chordhead([root, root + 7, root + 12])}/16@{120 if x % 4 == 0 else 108}^gate=1" if x % 2 == 0 else "R/16")
+            cym.append(f"{'c' if x % 8 == 0 else 'rde'}/16@{114 if x % 8 == 0 else 96}" if x % 4 == 0 else "R/16")
+        kick.append(f"k/16@{110 if x % 2 == 0 else 98}")
+        snare.append("s/16@118" if x in (4, 12) else (f"g/16@34" if r.random() < 0.06 else "R/16"))
+    kit = rig("drums")
+    jn = lambda xs: " ".join(xs)
+    return rhythm_tracks(jn(gtr)) + [track("bass", rig("bass"), jn(mirror_bass(gtr)), seed=7), track("sub", rig("sub"), jn(mirror_bass(gtr)), seed=7),
+            track("kick", kit, jn(kick)), track("snare", kit, jn(snare)), track("cym", kit, jn(cym))]
+
+
 # ---------- groove metal --------------------------------------------------------------------
 
 def gen_groovemetal(r, k, prog, low=28, kind="groove"):
@@ -1386,7 +1440,7 @@ def _write_parts(slot, style, parts, desc, beats=None):
 
 def params(style, rng=random):
     mode = rng.choice(STYLE_MODES.get(style, ["minor"]))
-    heavy = style in ("meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep", "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock", "groovemetal")
+    heavy = style in ("meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep", "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock", "groovemetal", "power")
     rigset = ("tech" if style == "tech-death" and rng.random() < 0.6 else
               "thrash" if style == "thrash" else
               "chug" if style in ("hardcore-kl", "brostep") else
@@ -1421,6 +1475,13 @@ def compose(style, slot, p):
             "hookE": gen_atmos(r, k, prog, 62, rig("atmos")),
         }
         return _write_parts(slot, "brostep", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
+    if style == "power":
+        parts = {"riff": gen_power(r, k, prog, 40, "verse"), "riffC": gen_power(r, k, prog, 40, "chorus"),
+                 "hook": gen_twin_hook(r, k, prog, 64, pick_patch("lead-slap", "lead-monster")),
+                 "solo": gen_shred(r, k, prog, 64, pick_patch("lead-slap", "lead-monster")),
+                 "pad": gen_pad(r, k, prog, 48, "strings", gain="-6dB"), "riffBrk": gen_meshuggah(r, k, 40, gp, 7, grid="8", mode="break")}
+        parts["riffSoft"] = soften(parts["riff"])
+        return _write_parts(slot, "power", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
     if style == "groovemetal":
         parts = {"riff": gen_groovemetal(r, k, prog, 28, "groove"), "riffB": gen_groovemetal(r, k, prog, 28, "groove"),
                  "riffG": gen_groovemetal(r, k, prog, 28, "gallop"), "riffH": gen_groovemetal(r, k, prog, 28, "half"),
