@@ -1,0 +1,14 @@
+about: "Shortwave radio: band-limited static with whistling heterodyne sweeps and a little crush — distant, searching. Backrooms, cyber and liminal scapes."
+synth:
+  layers:
+    - {type: noise, color: white, level: -10dB}
+    - {wave: sine, level: -14dB}
+  lfo:
+    tune: {wave: sine, rate: 0.09hz}
+    flutter: {wave: sine, rate: 6.5hz}
+  pitch: {value: 0, mod: [{src: lfo.tune, amount: 12}, {src: lfo.flutter, amount: 0.2}, {src: rand, amount: 0.3}]}
+  filters: ["hp cutoff=500", "bp cutoff=1700 q=0.9"]
+  amp: {a: 1.5s, d: 1s, s: 0.9, r: 2s}
+play: {gate: 1}
+fx: [{type: crush, bits: 9, rate: 9000, mix: 0.4}, "reverb kind=room decay=1.2s mix=0.2"]
+gain: 0dB

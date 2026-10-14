@@ -1774,9 +1774,31 @@ def gen_clusters(r, k, prog, base, patch, gain="-6dB", vel=74):
     return [track("pad", patch, " ".join(out), gain=gain)]
 
 
+SCAPES = {"wind": ("wind", "C5", "-6dB"), "shortwave": ("shortwave", "A4", "-8dB"), "hum": ("shortwave", "E4", "-10dB")}
+SCAPE_STYLES = {"backrooms": ["shortwave", "hum", "wind"], "cyberscape": ["shortwave", "wind"], "ambient": ["wind"], "celtic": ["wind"],
+                "slowcore": ["wind"], "doomjazz": ["wind", "shortwave"], "guofeng": ["wind"], "mali": ["wind"]}
+
+
+def scape(style, role, beats, seed):
+    """A held scape layer (wind / shortwave) for some chill riff parts, or None."""
+    import zlib
+    r = random.Random(zlib.crc32(f"{seed}{role}".encode()))
+    pool = SCAPE_STYLES.get(style, ["wind", "shortwave"])
+    if r.random() > (0.6 if style in SCAPE_STYLES else 0.25) or abs(beats - round(beats)) > 1e-9:
+        return None
+    patch, note, gain = SCAPES[r.choice(pool)]
+    if not have(patch):
+        return None
+    return track("scape", patch, f"{note}/4" + " _" * (int(round(beats)) - 1), gain=gain, pan=round(r.uniform(-0.5, 0.5), 2))
+
+
 def _write_parts(slot, style, parts, desc, beats=None):
     names = {}
     for role, tr in parts.items():
+        if style in CHILL_STYLES and role.startswith("riff"):
+            sc = scape(style, role, (beats or {}).get(role, 16), desc + slot)
+            if sc:
+                tr = tr + [sc]
         n = f"gen-{slot}-{role}"
         write(n, f"{role} for {style} in {desc}", tr, (beats or {}).get(role, 16))
         names[role] = n

@@ -1,0 +1,14 @@
+about: "Wind: pink noise gusting through a slowly swept resonant band-pass, with a darker low layer; fades in over seconds. Scapes, field-ish ambience."
+synth:
+  layers:
+    - {type: noise, color: pink, level: -6dB}
+    - {type: noise, color: brown, level: -10dB}
+  lfo:
+    gust: {wave: sine, rate: 0.07hz}
+    eddy: {wave: sine, rate: 0.23hz}
+  filters:
+    - {kind: bp, cutoff: {value: 700, mod: [{src: lfo.gust, amount: 1.4}, {src: lfo.eddy, amount: 0.3}]}, q: 2.5}
+  amp: {a: 2.5s, d: 1s, s: 0.9, r: 3s}
+play: {gate: 1}
+fx: ["reverb kind=hall decay=3s mix=0.25"]
+gain: -4dB

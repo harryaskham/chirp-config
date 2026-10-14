@@ -418,7 +418,48 @@ def filter_lane(meta):
     return pts
 
 
-def texture(style, meta):
+def generic_texture(style, meta, rng, prefix="g"):
+    """Two or three modulators drawn per chapter from a palette, rates/depths/directions re-rolled:
+    breathing filter, drifting wow, wearing grit, reverb tide, delay swell, slow phaser, tremolo tide,
+    tape-skip creep, section high-pass sweep; warped styles add pitch drift."""
+    total = sum(ln for _, ln in meta) or 16
+    up = rng.random() < 0.6
+    ramp = lambda a, b: {"points": [["0b", a if up else b], [f"{total:g}b", b if up else a]]}
+    L = lambda nm: f"{prefix}{nm}"
+    pal = {
+        "breathe": lambda: ({L("br"): {"wave": "sine", "rate": f"{rng.uniform(0.03, 0.12):.3f}hz"}}, {},
+                            [{"type": "filter", "kind": "lp", "cutoff": {"value": rng.choice([2500, 3500, 5000, 6500]), "mod": [{"src": f"lfo.{L('br')}", "amount": round(rng.uniform(0.6, 1.0), 2)}]}}]),
+        "wow": lambda: ({}, {L("wow"): ramp(0.25, round(rng.uniform(0.8, 1.0), 2))},
+                        [{"type": "chorus", "rate": round(rng.uniform(0.3, 0.7), 2), "voices": 1, "depth": round(rng.uniform(0.2, 0.4), 2), "mix": {"value": 0, "mod": [{"src": f"auto.{L('wow')}", "amount": 1.0}]}}]),
+        "grit": lambda: ({}, {L("grit"): ramp(0.0, round(rng.uniform(0.3, 0.55), 2))},
+                         [{"type": "crush", "bits": rng.choice([10, 11, 12]), "rate": rng.choice([12000, 16000]), "mix": {"value": 0, "mod": [{"src": f"auto.{L('grit')}", "amount": 1.0}]}}]),
+        "tide": lambda: ({L("tide"): {"wave": "sine", "rate": f"{rng.uniform(0.02, 0.05):.3f}hz"}}, {},
+                         [{"type": "reverb", "kind": "hall", "decay": f"{rng.uniform(3, 6):.1f}s", "predelay": "35ms", "low_cut": 200, "mix": {"value": 0.24, "mod": [{"src": f"lfo.{L('tide')}", "amount": 0.15}]}}]),
+        "swell": lambda: ({L("dfb"): {"wave": "sine", "rate": f"{rng.uniform(0.03, 0.06):.3f}hz"}}, {},
+                          [{"type": "delay", "time": rng.choice(["3/16", "1/4", "3/8"]), "ping_pong": True, "tone": 2600,
+                            "feedback": {"value": 0.3, "mod": [{"src": f"lfo.{L('dfb')}", "amount": 0.2}]}, "mix": {"value": 0.1, "mod": [{"src": f"lfo.{L('dfb')}", "amount": 0.08}]}}]),
+        "phase": lambda: ({}, {}, [{"type": "phaser", "rate": round(rng.uniform(0.05, 0.2), 3), "depth": round(rng.uniform(0.4, 0.7), 2), "stages": rng.choice([4, 6]), "feedback": 0.3, "mix": 0.3}]),
+        "trem": lambda: ({}, {}, [{"type": "tremolo", "rate": round(rng.uniform(2, 5), 2), "depth": round(rng.uniform(0.1, 0.25), 2)}]),
+        "skips": lambda: ({}, {L("skip"): ramp(0.0, round(rng.uniform(0.12, 0.25), 2))},
+                          [{"type": "stutter", "slice": rng.choice(["1/16", "1/8"]), "repeats": 2, "reverse": rng.random() < 0.5, "seed": rng.randrange(1000),
+                            "chance": {"value": 0, "mod": [{"src": f"auto.{L('skip')}", "amount": 1.0}]}}]),
+        "hpsweep": lambda: ({}, {L("hp"): {"points": [[f"{sum(ln for _, ln in meta[:i]):g}b", 1.0 if sec in ("intro", "break", "outro") else 0.0] for i, (sec, _) in enumerate(meta)] + [[f"{total:g}b", 0.0]]}},
+                            [{"type": "filter", "kind": "hp", "cutoff": {"value": 30, "mod": [{"src": f"auto.{L('hp')}", "amount": 3.5}]}}]),
+    }
+    names = list(pal)
+    picks = rng.sample(names, rng.choice([2, 2, 3]))
+    if style in WARP or style in ("vaporwave", "backrooms"):
+        pal["drift"] = lambda: ({L("dr"): {"wave": "sine", "rate": f"{rng.uniform(0.04, 0.09):.3f}hz"}}, {},
+                                [{"type": "pitch", "semitones": {"value": 0, "mod": [{"src": f"lfo.{L('dr')}", "amount": round(rng.uniform(0.15, 0.35), 2)}]}, "grain": "70ms", "mix": 1.0}])
+        picks.append("drift")
+    T = {"lfo": {}, "auto": {}, "fx": [], "picks": picks}
+    for nm in picks:
+        lf, au, fx = pal[nm]()
+        T["lfo"].update(lf); T["auto"].update(au); T["fx"] += fx
+    return T
+
+
+def texture(style, meta, rng=None):
     """Evolving timbre lanes for a chill chapter's riff track: LFOs and automation over effect
     parameters (wow, breathing filters, wearing tape grit, reverb tides, filter sweeps).
     Returns {lfo, auto, fx}."""
@@ -463,6 +504,15 @@ def texture(style, meta):
     elif style == "chamber":
         T = {"lfo": {"hall": {"wave": "sine", "rate": "0.02hz"}},
              "fx": [{"type": "reverb", "kind": "hall", "decay": "3.2s", "predelay": "30ms", "low_cut": 150, "mix": {"value": 0.18, "mod": [{"src": "lfo.hall", "amount": 0.08}]}}]}
+    rng = rng or random.Random(0)
+    G = generic_texture(style, meta, rng)
+    if not T:  # styles without a hand-made lane get the full generated set
+        return G
+    # hand-made lanes gain one generated modulator on top
+    one = generic_texture(style, meta, rng, prefix="x")
+    nm = one["picks"][0]
+    extra = generic_texture(style, meta, random.Random(rng.random()), prefix="x")
+    T = dict(T, lfo=dict(T.get("lfo", {}), **one["lfo"]), auto=dict(T.get("auto", {}), **one["auto"]), fx=list(T.get("fx", [])) + one["fx"][:1], picks=[nm])
     return T
 
 
@@ -623,7 +673,7 @@ COMP_STYLES = ["glue", "pump", "smash", "parallel", "opto", "tape"]
 # Loudness-matched to glue (measured RMS over the same 48 beats through each master chain).
 FLAVOR_HOOK = {"vintage": ["rack:tape-echo"], "industrial": ["rack:radio"], "space": ["rack:shimmer-hall"], "wide": ["rack:chorus-wide"]}
 STYLE_TRIM = {"postmetal": 2.0, "tool": 2.0, "numetal": 1.0, "industrial": -1.5, "power": -1.0, "sludge": 2.0, "mathcore": 1.5, "gojira": 1.0, "raga": -2.0,
-              "lofihop": 3.0, "ambient": 1.5, "house-melodic": -2.0, "chamber": 0.0, "neoclassical": 1.5, "dub": 3.0, "manouche": 3.0, "celtic": 3.0, "doomjazz": 4.0, "guofeng": 3.0, "vaporwave": 3.0, "backrooms": 8.0}  # sparse styles sit lower (QA loudness)
+              "lofihop": 3.0, "ambient": 1.5, "house-melodic": -2.0, "chamber": 0.0, "neoclassical": 1.5, "dub": 3.0, "manouche": 3.0, "celtic": 3.0, "doomjazz": 4.0, "guofeng": 3.0, "vaporwave": 3.0, "backrooms": 10.0, "cyberscape": 2.0}  # sparse styles sit lower (QA loudness)
 COMP_TRIM = {"glue": 0.0, "pump": 6.1, "smash": 3.4, "parallel": 3.2, "opto": 3.3, "tape": -2.1}
 
 def has_patch(name):
@@ -856,7 +906,7 @@ def write_form(name, ident):
             efx = energy_fx(ident["style"])
             efx["fx"] = [{"type": "filter", "kind": "lp", "cutoff": {"value": 700, "mod": [{"src": "auto.filt", "amount": 5}]}}] + efx["fx"]
             autos = {"energy": {"points": energy_lane(meta)}, "filt": {"points": filter_lane(meta)}}
-            tx = texture(ident["style"], meta) if ident["style"] in composer.CHILL_STYLES else {}
+            tx = texture(ident["style"], meta, random.Random(((ident.get("gen") or {}).get("seed", 0)) * 13 + ident.get("chapter", 0))) if ident["style"] in composer.CHILL_STYLES else {}
             autos.update(tx.get("auto", {}))
             efx["fx"] = tx.get("fx", []) + efx["fx"]
             row = dict({"name": t, "score": " ".join(items), "auto": autos}, **efx)
