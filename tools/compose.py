@@ -2069,6 +2069,7 @@ def feel_track(t, profile, r):
 _KEY = (0, "minor")
 _CHAPTER = 0
 _TEMPO = 100
+FUSION = False  # set by the evolver in the fusion-metal journey
 LITE = False  # set by the evolver when the groove's render load is high: skip optional layers
 VOX_CHOPS = {"house-melodic": 0.6, "cyberscape": 0.5, "fusion": 0.3, "dnb": 0.5, "brostep": 0.4, "garage": 0.6, "house": 0.5, "darksynth": 0.3}
 ORCH_HITS = {"darksynth": 0.5, "industrial": 0.4, "power": 0.5, "deathcore": 0.4, "numetal": 0.3, "brostep": 0.3}
@@ -3945,6 +3946,11 @@ def compose(style, slot, p):
         gp = rig("rhythm")[0]
         pool = [g for g, (_, homes) in GUESTS.items() if style not in homes]
         picks = r.sample(pool, 2)
+        if FUSION:  # fusion-metal journey: one guest from the jazz / polymetric set
+            pref = [g for g in ("jazz", "space", "tribal", "tabla", "kotekan") if g in pool]
+            if pref:
+                first = r.choice(pref)
+                picks = [first, r.choice([g for g in pool if g != first])]
         for i, g in enumerate(picks, 1):
             n = f"gen-{slot}-riffGuest{i}"
             write(n, f"guest section ({g}) for {style}", GUESTS[g][0](r, k, p["prog"], 28, gp))

@@ -764,7 +764,8 @@ def add_guests(ident, form, rng):
     ~60% of songs get one, some of those two."""
     if not ident.get("gen") or ident["style"] not in (composer.HEAVY_STYLES | composer.CHILL_STYLES) or len(form) < 4:
         return form
-    if ident["style"] in (composer.ODD_HOSTS_HEAVY | composer.ODD_HOSTS_CHILL) and rng.random() < 0.45:
+    odd_p = 0.75 if journey_load().get("mode") == "fusion" else 0.45
+    if ident["style"] in (composer.ODD_HOSTS_HEAVY | composer.ODD_HOSTS_CHILL) and rng.random() < odd_p:
         form = list(form)
         form.insert(rng.randrange(2, len(form) - 1), ("odd", ["riffOdd"], "impact"))  # an odd-meter excursion
     if ident["style"] in ("ukjazz",):  # its own odd-meter sections: 16-beat guests would not fit
@@ -1285,6 +1286,10 @@ HEAVY_MIX = [("meshuggah", 0.26), ("hardcore-kl", 0.1), ("tech-death", 0.09), ("
              ("mathcore", 0.04), ("gojira", 0.06), ("djazz", 0.05), ("raga", 0.04), ("gamelan", 0.03), ("koto", 0.03)]
 
 
+FUSION_MIX = [("djazz", 0.22), ("mathcore", 0.16), ("meshuggah", 0.16), ("tool", 0.12), ("djent", 0.12), ("gojira", 0.06),
+              ("tech-death", 0.05), ("postmetal", 0.04), ("metalcore", 0.04), ("djent-breakdown", 0.03)]
+
+
 def heavy_recency(name):
     recent = recent_styles()
     return 0.3 if name in recent[-3:] else (0.6 if name in recent[-6:] else 1.0)
@@ -1307,6 +1312,11 @@ def journey_style(h, current, mode=None):
         if current in AMBIENTISH or current in composer.CHILL_STYLES:
             return heavy_pick()
         return random.choice(AMBIENTISH)
+    if mode == "fusion":  # fusion metal: math, odd meters, polyrhythms, jazz
+        names = [n for n, _ in FUSION_MIX if n != current]
+        pick = random.choices(names, [w * heavy_recency(n) for n, w in FUSION_MIX if n != current])[0]
+        remember_style(pick)
+        return pick
     if mode == "chill":
         # Normalised weights (the list outgrew a single 0..1 draw), shaped by the night arc.
         mult = night_arc()
@@ -1549,7 +1559,8 @@ if __name__ == "__main__":
                 flip = 1 - flip
                 name = f"form-{flip + 1}"
             load = float(st.get("load") or 0)
-            composer.LITE = load > 0.8  # little render headroom: write the next song without optional layers
+            composer.LITE = load > 0.8
+            composer.FUSION = journey_load().get("mode") == "fusion"  # little render headroom: write the next song without optional layers
             write_form(name, ident)
             nxt, nxt_ident = name, dict(ident)
             sets = [f"tracks.arrangement.score=@{name}", f"master.fx={master_for(ident)}"]
