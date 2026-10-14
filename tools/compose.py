@@ -137,6 +137,8 @@ def rhythm_tracks(score, *, pair=None, pan=90, seeds=(7, 13), fx=None):
     adds per-part inserts after the rigs (a phaser, chorus or stutter gate for this section)."""
     left, right = pair or rig("rhythm")
     extra = {"fx": fx} if fx else {}
+    if LITE:  # little render headroom: one centred rig instead of the double (halves the amp-sim cost)
+        return [track("gtr-l", left, score, pan=0, seed=seeds[0], **extra)]
     return [track("gtr-l", left, score, pan=f"L{pan}", seed=seeds[0], **extra), track("gtr-r", right, score, pan=f"R{pan}", seed=seeds[1], **extra)]
 
 
