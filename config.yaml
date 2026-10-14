@@ -4,3 +4,8 @@ output:
 outputs:
   music: {server: "tcp:sgu24:4713", sink: vsink_music, role: music}
   fx: {server: "tcp:sgu24:4713", sink: vsink_fx}
+
+# Live audio for `input` tracks (docs/inputs.md): agent speech on sgu24.
+inputs:
+  tts: "pulse://sgu24:4713/vsink_agent_tts.monitor"
+  caco: "pulse://sgu24:4713/vsink_cacophony.monitor"
