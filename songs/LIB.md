@@ -3,10 +3,12 @@
 Stable, reusable parts exported from the generators (`tools/libparts.py`; `libparts.py heavy` for the metal set), composed in C, tempo-inheriting.
 Use `@NAME` in a score; transpose with `tr=N` (e.g. `tr=-3 @lib-kankyo`, `tr=5 @lib-meshuggah-brk`).
 
-## Chill (71)
+## Chill (76)
 
 | part | style | kind | beats |
 |---|---|---|---|
+| `@lib-amapiano-hook` | amapiano | melody | 16 |
+| `@lib-amapiano` | amapiano | section | 16 |
 | `@lib-ambient-hook` | ambient | melody | 16 |
 | `@lib-ambient` | ambient | section | 16 |
 | `@lib-backrooms` | backrooms | section | 16 |
@@ -52,8 +54,11 @@ Use `@NAME` in a score; transpose with `tr=N` (e.g. `tr=-3 @lib-kankyo`, `tr=5 @
 | `@lib-kankyo-hook` | kankyo | melody | 16 |
 | `@lib-kankyo` | kankyo | section | 16 |
 | `@lib-lid` | lid | section | 16 |
+| `@lib-liquid-hook` | liquid | melody | 16 |
+| `@lib-liquid` | liquid | section | 16 |
 | `@lib-lofihop-hook` | lofihop | melody | 16 |
 | `@lib-lofihop` | lofihop | section | 16 |
+| `@lib-lofihouse` | lofihouse | section | 16 |
 | `@lib-mali-hook` | mali | melody | 16 |
 | `@lib-mali` | mali | section | 16 |
 | `@lib-manouche-hook` | manouche | melody | 16 |

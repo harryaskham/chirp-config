@@ -1,0 +1,5 @@
+about: "Library part \u2014 liquid melody (C minor), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "shakuhachi", "score": "Eb5/4.@89 D5/8@90 C5/4@91 R/4 Ab5/4.@88 G5/8@95 C6/4@84 R/4 Eb5/4.@92 F5/8@88 Bb5/2@89 F6/4@93 D6/4@96 G5/2@92^gate=1.2", "pan": 0.1}
