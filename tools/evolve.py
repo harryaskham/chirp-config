@@ -171,6 +171,12 @@ STYLES = {
   "slowcore": dict(form="slowcore", tempo=(56, 76), off=0, riff=["keys-lofi"], riff_off=0, lift=0,
                      low=["beat-sparse"], mid=["beat-lofi"], high=["beat-lofi"], half=["beat-sparse"], brk=["beat-sparse"],
                      hook=["lead-hook"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["pad-swell"]),
+  "backrooms": dict(form="backrooms", tempo=(60, 84), off=0, riff=["keys-lofi"], riff_off=0, lift=0,
+                     low=["beat-sparse"], mid=["beat-lofi"], high=["beat-lofi"], half=["beat-sparse"], brk=["beat-sparse"],
+                     hook=["lead-hook"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["pad-swell"]),
+  "cyberscape": dict(form="cyberscape", tempo=(80, 100), off=0, riff=["keys-lofi"], riff_off=0, lift=0,
+                     low=["beat-sparse"], mid=["beat-lofi"], high=["beat-lofi"], half=["beat-sparse"], brk=["beat-sparse"],
+                     hook=["lead-hook"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["pad-swell"]),
   "tech-death": dict(form="tech-death", tempo=(170, 220), off=0, riff=["riff-chug7"], riff_off=0, lift=0,
                      low=["beat-sparse"], mid=["beat-blast"], high=["beat-blast"], half=["beat-halftime"], brk=["beat-doom"],
                      hook=["lead-solo"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["riff-hold"]),
@@ -309,6 +315,10 @@ FORMS = {
                 ("break", ["riffI"], None), ("A2", ["riffB", "hook"], None), ("outro", ["riffI"], None)],
   "slowcore": [("intro", ["riffI"], None), ("A", ["riff", "hookE"], None), ("A2", ["riff"], None), ("B", ["riffB", "hook"], None),
                ("A2", ["riffB", "hookE"], None), ("outro", ["riffI", "hookE"], None)],
+  "backrooms": [("intro", ["riffI"], None), ("A", ["riff"], None), ("A2", ["riffF"], None), ("break", ["riffD"], None),
+                ("B", ["riffF"], None), ("A2", ["riffD"], None), ("outro", ["riffI"], None)],
+  "cyberscape": [("intro", ["riffI"], None), ("A", ["riff"], None), ("A2", ["riff", "hook"], None), ("B", ["riffB", "hook"], None),
+                 ("break", ["riffI", "hook"], None), ("B2", ["riffB"], None), ("outro", ["riffI"], None)],
   "tech-death": [("blast", ["riff"], "impact"), ("blast", ["riffB", "pad"], None), ("dbeat", ["riffD"], "impact"),
                  ("dbeat", ["riffD", "hook"], None), ("groove", ["riffSoft"], "impact"), ("groove", ["riffG", "pad"], None),
                  ("blast", ["riff", "hook"], "impact"), ("break", ["riffBrk"], "impact"), ("break", ["riffBrk", "drone"], None),
@@ -490,11 +500,23 @@ METRIC = [(3, 2), (2, 3), (4, 3), (3, 4)]
 STEADY = {"lofihop", "ambient", "downtempo", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche", "celtic", "doomjazz", "mali", "guofeng", "vaporwave", "slowcore"}  # chill styles that hold key and tempo
 
 
+WARP = {"backrooms"}
+
+
 def metric_map(ident, meta):
     """Metric modulation (deterministic per song and chapter): ~a third of chapters change tempo by
     3:2, 2:3, 4:3 or 3:4 at a section past the first, half of them returning at a later section.
     Returns (tempo map or None, description)."""
     rng = random.Random(((ident.get("gen") or {}).get("seed", 0)) * 17 + ident.get("chapter", 0) * 5 + 3)
+    if ident["style"] in WARP:  # wonky, warped tape time: a random walk with occasional tape dips
+        t0, total, d, pts = ident["tempo"], sum(ln for _, ln in meta), 0.0, []
+        for at in range(0, int(total), 2):
+            d = max(-0.09, min(0.09, d + rng.uniform(-0.03, 0.03)))
+            pts.append({"at": at, "bpm": round(t0 * (1 + d), 2)})
+            if rng.random() < 0.08:  # the tape drags for half a beat
+                pts.append({"at": at + 1, "bpm": round(t0 * (1 + d) * rng.uniform(0.8, 0.9), 2)})
+                pts.append({"at": at + 1.5, "bpm": round(t0 * (1 + d), 2)})
+        return pts, ", warped time"
     if ident["style"] in STEADY or len(meta) < 3 or rng.random() > 0.33:
         return None, ""
     t0 = ident["tempo"]
@@ -595,7 +617,7 @@ COMP_STYLES = ["glue", "pump", "smash", "parallel", "opto", "tape"]
 # Loudness-matched to glue (measured RMS over the same 48 beats through each master chain).
 FLAVOR_HOOK = {"vintage": ["rack:tape-echo"], "industrial": ["rack:radio"], "space": ["rack:shimmer-hall"], "wide": ["rack:chorus-wide"]}
 STYLE_TRIM = {"tool": 2.0, "numetal": 1.0, "industrial": -1.5, "power": -1.0, "sludge": 2.0, "mathcore": 1.5, "gojira": 1.0, "raga": -2.0,
-              "lofihop": 3.0, "ambient": 1.5, "house-melodic": -2.0, "chamber": 0.0, "neoclassical": 1.5, "dub": 3.0, "manouche": 3.0, "celtic": 3.0, "doomjazz": 4.0, "guofeng": 3.0, "vaporwave": 3.0}  # sparse styles sit lower (QA loudness)
+              "lofihop": 3.0, "ambient": 1.5, "house-melodic": -2.0, "chamber": 0.0, "neoclassical": 1.5, "dub": 3.0, "manouche": 3.0, "celtic": 3.0, "doomjazz": 4.0, "guofeng": 3.0, "vaporwave": 3.0, "backrooms": 8.0}  # sparse styles sit lower (QA loudness)
 COMP_TRIM = {"glue": 0.0, "pump": 6.1, "smash": 3.4, "parallel": 3.2, "opto": 3.3, "tape": -2.1}
 
 def has_patch(name):
@@ -708,7 +730,7 @@ VOX_POOLS = {
     "chill": {"choir": 2, "shimmer": 2, "harmony": 1.5, "dub": 1, "ghost": 1.5, "phaser80": 1, "radio": 1, "talkbox": 0.7, "formant": 0.7, "chop": 0.5},
     "heavy": {"choir": 1.2, "robot": 1.5, "demon": 1.5, "glitch": 1.5, "radio": 1, "talkbox": 1, "chop": 1, "harmony": 0.7, "formant": 0.6},
 }
-VOX_STYLE = {"dub": "dub", "vaporwave": "phaser80", "doomjazz": "ghost", "ambient": "shimmer", "idm": "glitch", "breakcore": "glitch",
+VOX_STYLE = {"backrooms": "ghost", "cyberscape": "glitch", "dub": "dub", "vaporwave": "phaser80", "doomjazz": "ghost", "ambient": "shimmer", "idm": "glitch", "breakcore": "glitch",
              "industrial": "robot", "deathcore": "demon", "sludge": "demon", "lofihop": "radio", "triphop": "radio"}
 # Level-matched to the vocoder choir on a sung test phrase (measured; capped ±9 dB).
 VOX_GAIN = {'harmony': 9, 'robot': 9, 'phaser80': 9, 'dub': 8, 'chop': 9, 'glitch': 5, 'ghost': 4, 'shimmer': 4, 'formant': -4, 'radio': -9, 'demon': -9, 'talkbox': -9}
@@ -854,7 +876,7 @@ def journey_load():
         return {"on": False, "h": 0.0, "rate": 0.09, "passes_per_song": 2}
 
 CHILL_MIX = [("lofihop", 0.16), ("gogo", 0.11), ("ukjazz", 0.1), ("ambient", 0.1), ("downtempo", 0.09), ("smile", 0.09),
-             ("house-melodic", 0.08), ("chamber", 0.05), ("triphop", 0.08), ("neoclassical", 0.08), ("ballad", 0.06), ("bossa", 0.07), ("dub", 0.06), ("manouche", 0.05), ("celtic", 0.05), ("doomjazz", 0.05), ("mali", 0.05), ("guofeng", 0.05), ("vaporwave", 0.05), ("slowcore", 0.05)]
+             ("house-melodic", 0.08), ("chamber", 0.05), ("triphop", 0.08), ("neoclassical", 0.08), ("ballad", 0.06), ("bossa", 0.07), ("dub", 0.06), ("manouche", 0.05), ("celtic", 0.05), ("doomjazz", 0.05), ("mali", 0.05), ("guofeng", 0.05), ("vaporwave", 0.05), ("slowcore", 0.05), ("backrooms", 0.05), ("cyberscape", 0.05)]
 
 
 AMBIENTISH = ["ambient", "ambient", "downtempo", "chamber"]
@@ -1070,11 +1092,12 @@ if __name__ == "__main__":
             if not first and ident.get("chapter", 0) + 1 < len(chapters(ident)):
                 ident = dict(ident, chapter=ident.get("chapter", 0) + 1)
                 change = f"chapter {ident['chapter'] + 1}/{len(chapters(ident))}"
-                if random.random() < 0.5:
+                steady = ident["style"] in STEADY
+                if not steady and random.random() < 0.5:
                     st_ = STYLES[ident["style"]]
                     ident["tempo"] = max(st_["tempo"][0] - 10, min(st_["tempo"][1] + 10, ident["tempo"] + random.choice([-12, -8, -6, -4, 4, 6, 8, 12])))
                     change += f", tempo {ident['tempo']}"
-                x = random.random()
+                x = random.random() if not steady else 1.0
                 if x < 0.35:  # key change at the chapter boundary
                     ident["key"] = max(-6, min(6, ident.get("key", 0) + random.choice(MOD_STEPS)))
                     change += f", key {ident['key']:+d}"

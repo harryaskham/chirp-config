@@ -61,6 +61,7 @@ STYLE_MODES = {
     "bossa": ["major", "dorian", "minor", "lydian"], "dub": ["minor", "dorian", "mixolydian"],
     "manouche": ["harmonic", "minor", "harmonic", "major"], "celtic": ["dorian", "mixolydian", "minor", "major"],
     "doomjazz": ["minor", "phrygian", "dorian", "harmonic"], "mali": ["dorian", "minor", "mixolydian"], "guofeng": ["major", "minor", "dorian"], "vaporwave": ["major", "lydian", "dorian", "minor"], "slowcore": ["major", "mixolydian", "minor", "dorian"],
+    "backrooms": ["major", "lydian", "mixolydian"], "cyberscape": ["minor", "dorian", "lydian", "phrygian"],
     "koto": ["hirajoshi", "hirajoshi", "phrygian"],
     "djazz": ["dorian", "lydian", "harmonic", "minor", "mixolydian"], "industrial": ["phrygian", "minor", "harmonic"], "dnb": ["minor", "phrygian", "dorian"],
     "darksynth": ["minor", "phrygian", "harmonic", "dorian"],
@@ -2267,6 +2268,63 @@ def gen_slowcore(r, k, prog, kind="main"):
     return out
 
 
+def warped(r, amount=1.0):
+    """Liminal tape: heavy wow, a slight detune, a muffled band-limit, light crush, tape-skip stutter, a big hall."""
+    return [{"type": "chorus", "rate": round(r.uniform(0.15, 0.35), 2), "depth": round(0.6 + 0.3 * amount, 2), "voices": 1, "mix": 1.0},
+            {"type": "pitch", "semitones": r.choice([-0.3, -0.5, -1.0]) * amount, "grain": "80ms", "mix": 1.0},
+            {"type": "filter", "kind": "hp", "cutoff": 180}, {"type": "filter", "kind": "lp", "cutoff": int(2200 - 700 * amount)},
+            {"type": "crush", "bits": 12, "rate": 14000, "mix": 0.35},
+            {"type": "stutter", "slice": "1/8", "repeats": 2, "chance": round(0.08 + 0.25 * (amount - 1 if amount > 1 else 0) + 0.05 * amount, 2), "reverse": r.random() < 0.5, "seed": r.randrange(1000)},
+            {"type": "reverb", "kind": "hall", "decay": "4.5s", "predelay": "30ms", "mix": 0.45}]
+
+
+def gen_backrooms(r, k, prog, kind="main"):
+    """Backrooms / liminal tape ambient: a distant ballroom-lounge band (stride piano or Wurlitzer,
+    maj6/maj7, a waltzing bass) through heavy tape wow, detune, muffling, tape skips and a big hall,
+    over fluorescent hum and tape hiss. kind=far adds warped strings; kind=decay warps harder."""
+    amount = {"intro": 0.8, "main": 1.0, "far": 1.1, "decay": 1.6}.get(kind, 1.0)
+    keys = []
+    for root in prog:
+        ch = chordhead([k.deg(root + d, 55) for d in r.choice([[0, 2, 4, 5], [0, 2, 4, 6], [2, 4, 5, 7]])])
+        b1, b5 = mname(k.deg(root, 40)), mname(k.deg(root + 4, 40))
+        keys.append(r.choice([f"{b1}/4@70 {ch}/4@58 {b5}/4@66 {ch}/4@56", f"{b1}/4@70 {ch}/4@58 {ch}/4@54 {b5}/4@64"]))
+    out = [track("band", pick_patch(r.choice(["piano", "wurli", "tape-piano"]), "piano"), " ".join(keys), fx=warped(r, amount)),
+           track("hum", pick_patch("sub-sine", "pad"), "B1,B2,F#3/1 _ _ _", gain="-26dB"),
+           track("hiss", pick_patch("vinyl", "pad"), "C4/1 _ _ _", gain="-4dB")]
+    if kind in ("far", "decay"):
+        out += [dict(t, name="strings", fx=warped(r, amount)) for t in gen_pad(r, k, prog, 52, pick_patch("mellotron-strings", "strings"), gain="-8dB", vel=60)]
+    return out
+
+
+def gen_cyberscape(r, k, prog, kind="main"):
+    """Cyberscape / future ambient: glassy FM pads, DX-bell arps through ping-pong delays, digital rain
+    (random high plinks, stuttered and shimmered), a sub heartbeat, a filter-swept supersaw; kind=full
+    adds a skippy future-garage beat; kind=intro is pads + rain."""
+    pp = {"type": "delay", "time": r.choice(["3/16", "1/8", "3/8"]), "feedback": 0.45, "ping_pong": True, "tone": 4000, "mix": 0.3}
+    shimmer = [{"type": "pitch", "semitones": 12, "mix": 0.3}, {"type": "reverb", "kind": "hall", "decay": "6s", "mix": 0.5}]
+    out = [dict(t, name="glass", gain="-6dB") for t in gen_pad(r, k, prog, 55, pick_patch("pad-glass", "pad"), vel=60)]
+    rain = " ".join((f"{mname(k.deg(r.choice([0, 2, 4, 6, 7, 9]), 79))}/16@{r.choice([50, 60, 70])}" if r.random() < 0.14 else "R/16") for _ in range(64))
+    out.append(track("rain", pick_patch("dx-epiano", "celesta"), rain, pan=round(r.uniform(-0.4, 0.4), 2),
+                     fx=[{"type": "stutter", "slice": "1/32", "repeats": 3, "chance": 0.3, "seed": r.randrange(1000)}] + shimmer, gain="-8dB"))
+    if kind == "intro":
+        return out
+    arp = []
+    for root in prog:
+        tones = [k.deg(root + d, 67) for d in (0, 2, 4, 6, 7)]
+        arp += [f"{mname(tones[j % len(tones)] if r.random() > 0.1 else tones[0] + 12)}/16@{70 if j % 3 == 0 else 56}" for j in range(16)]
+    sweep = {"cut": {"points": [["0b", 0.1], ["8b", 0.8], ["16b", 0.2]]}}
+    out += [track("arp", pick_patch("dx-epiano", "pluck-lead"), " ".join(arp), pan=0.2, fx=[pp], gain="-4dB"),
+            track("pulse", pick_patch("sub-sine", "808-sub"), " ".join(f"{mname(k.deg(root, 28))}/4@{90} R/4 {mname(k.deg(root, 28))}/8@{70} R/8 R/4" for root in prog), gain="-6dB"),
+            track("saw", pick_patch("supersaw", "pad"), " ".join(f"{chordhead([k.deg(root + d, 52) for d in (0, 2, 4)])}/1@{56}" for root in prog), gain="-14dB",
+                  fx=[{"type": "filter", "kind": "lp", "cutoff": {"value": 600, "mod": [{"src": "auto.cut", "amount": 2.5}]}, "q": 0.8}], auto=sweep)]
+    if kind == "full":
+        kit = rig("drums")
+        out += [track("rim", kit, "swing16=0.6 " + " ".join(("rc/16@72" if x in (4, 12) else ("rc/16@40" if x == 14 and r.random() < 0.4 else "R/16")) for _ in range(4) for x in range(16)), gain="-6dB"),
+                track("kick", kit, "swing16=0.6 " + " ".join(("k/16@84" if x in (0, 7, 10) and (x == 0 or r.random() < 0.5) else "R/16") for _ in range(4) for x in range(16)), gain="-6dB"),
+                track("hats", kit, "swing16=0.6 " + " ".join((f"h/16@{48 if x % 4 == 2 else 34}" if r.random() < 0.7 else "R/16") for _ in range(4) for x in range(16)), pan=0.2, gain="-6dB")]
+    return out
+
+
 def gen_downtempo(r, k, prog, kind="main"):
     """Downtempo (Bonobo-ish): a low-passed breakbeat, marimba/kalimba ostinato, finger bass, strings."""
     kit = pick_patch("break-kit", "lofi-kit")
@@ -2307,6 +2365,8 @@ CHILL_GUESTS = {
     "doomjazz": (lambda r, k, prog: gen_doomjazz(r, k, prog, "full") + gen_atmos(r, k, prog, 55, pick_patch("tenor-sax", "clarinet")), {"doomjazz"}),
     "mali": (lambda r, k, prog: gen_mali(r, k, prog), {"mali"}),
     "vaporwave": (lambda r, k, prog: gen_vaporwave(r, k, prog), {"vaporwave"}),
+    "backrooms": (lambda r, k, prog: gen_backrooms(r, k, prog, "far"), {"backrooms"}),
+    "cyberscape": (lambda r, k, prog: gen_cyberscape(r, k, prog), {"cyberscape"}),
     "slowcore": (lambda r, k, prog: gen_slowcore(r, k, prog) + gen_atmos(r, k, prog, 64, pick_patch("pedal-steel", "ebow")), {"slowcore"}),
     "guofeng": (lambda r, k, prog: gen_guofeng(r, k, prog) + gen_penta_air(r, k, prog, 67, pick_patch("dizi", "flute")), {"guofeng"}),
     "celtic": (lambda r, k, prog: gen_celtic(r, k, prog, "drums") + gen_air(r, k, prog, 72, pick_patch("low-whistle", "flute")), {"celtic"}),
@@ -2355,7 +2415,7 @@ def compose(style, slot, p):
     return names, desc
 
 
-CHILL_STYLES = {"lofihop", "gogo", "ukjazz", "ambient", "downtempo", "smile", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche", "celtic", "doomjazz", "mali", "guofeng", "vaporwave", "slowcore"}
+CHILL_STYLES = {"lofihop", "gogo", "ukjazz", "ambient", "downtempo", "smile", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche", "celtic", "doomjazz", "mali", "guofeng", "vaporwave", "slowcore", "backrooms", "cyberscape"}
 HEAVY_STYLES = {"meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep",
                 "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock", "groovemetal", "power", "sludge",
                 "breakcore", "mathcore", "gojira", "djazz", "raga", "gamelan", "koto"}
@@ -2386,6 +2446,14 @@ def _compose_style(style, slot, p):
             "hookE": gen_atmos(r, k, prog, 62, rig("atmos")),
         }
         return _write_parts(slot, "brostep", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
+    if style == "backrooms":
+        parts = {"riffI": gen_backrooms(r, k, prog, "intro"), "riff": gen_backrooms(r, k, prog), "riffF": gen_backrooms(r, k, prog, "far"),
+                 "riffD": gen_backrooms(r, k, prog, "decay")}
+        return _write_parts(slot, "backrooms", parts, f"{NAMES[p['pc']]} {p['mode']}")
+    if style == "cyberscape":
+        parts = {"riffI": gen_cyberscape(r, k, prog, "intro"), "riff": gen_cyberscape(r, k, prog), "riffB": gen_cyberscape(r, k, prog, "full"),
+                 "hook": [dict(t, fx=[{"type": "delay", "time": "3/8", "feedback": 0.4, "ping_pong": True, "mix": 0.3}]) for t in gen_atmos(r, k, prog, 67, pick_patch(r.choice(["theremin", "pad-glass", "ebow"]), "synth-lead"))]}
+        return _write_parts(slot, "cyberscape", parts, f"{NAMES[p['pc']]} {p['mode']}")
     if style == "slowcore":
         steel = pick_patch("pedal-steel", "ebow")
         parts = {"riffI": gen_slowcore(r, k, prog, "intro"), "riff": gen_slowcore(r, k, prog), "riffB": gen_slowcore(r, k, prog, "full"),
