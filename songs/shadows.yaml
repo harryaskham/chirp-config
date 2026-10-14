@@ -91,7 +91,7 @@ songs:
 tracks:
   - {name: boom, at: 0.0b, score: "@boom/5.756b", gain: -7dB}
   - {name: intro, at: 5.756b, score: "@intro/56b", gain: -6dB}
-  - {name: main, at: 61.756b, score: "@main/72b", gain: -9dB}
+  - {name: main, at: 61.756b, score: "@main/72b", gain: -5dB, envelope: {points: [[0.05s, 0.944], [1.93s, 0.647], [3.8s, 0.47], [5.67s, 0.302], [7.55s, 0.768], [9.43s, 0.629], [11.3s, 0.487], [13.18s, 0.297], [15.05s, 0.841], [16.93s, 0.645], [18.8s, 0.503], [20.68s, 0.422], [22.55s, 1.0], [24.43s, 0.758], [26.3s, 0.94], [28.18s, 0.635], [30.05s, 0.877], [31.93s, 0.638]]}}
   - name: brk
     at: 133.756b
     score: "@brk/64b"
