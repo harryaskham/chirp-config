@@ -1,0 +1,12 @@
+about: "Wind chimes: thin metal tubes — bright inharmonic partials, a soft strike and a long shimmering ring. Section transitions, garden ambience."
+synth:
+  layers:
+    - {type: additive, partials: [[1, 1], [2.76, 0.45], [5.40, 0.25], [8.93, 0.12]], damp: 0.12}
+    - {type: noise, color: white, level: {value: -70dB, mod: [{src: env.tk, amount: 36}]}}
+  env:
+    tk: {a: 0.2ms, d: 4ms, s: 0}
+  filters: ["hp cutoff=800"]
+  amp: {a: 1ms, d: 3.5s, s: 0, r: 1s, curve: 3}
+play: {gate: 1, vel_sens: 0.5, humanize: {time: 15ms, vel: 0.1}}
+fx: ["reverb kind=hall decay=3.5s mix=0.35 predelay=20ms"]
+gain: -10dB

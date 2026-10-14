@@ -995,10 +995,32 @@ def write_form(name, ident):
             fx = "tapestop"
         risers = ["fx-riser"] + [p for p in ["fx-riser-shepard", "fx-riser-noise"] if BUILTIN_FX[p]]
         revs = ["fx-revcym"] + (["fx-reverse"] if BUILTIN_FX["fx-reverse"] else [])
+        chimes = rest(sec_len)
+        if ident["style"] in composer.CHILL_STYLES and fx is None and nxt_sec and sec_len >= 4:
+            # Gentle chill transitions (deterministic per song/chapter/section): swells into lifts,
+            # chimes or a soft downlifter into breaks, an occasional chime between sections.
+            rr = random.Random(((ident.get("gen") or {}).get("seed", 0)) * 7 + idx * 13 + ident.get("chapter", 0) * 31)
+            if nxt_sec in ("B", "B2", "climax", "final", "drop", "gat") and rr.random() < 0.6:
+                fx = rr.choice(["swell", "chimes"])
+            elif nxt_sec in ("break", "outro", "low") and rr.random() < 0.5:
+                fx = rr.choice(["chimes", "downlift" if BUILTIN_FX["fx-downlifter"] else "swell"])
+            elif rr.random() < 0.2:
+                fx = "chimes"
+            if fx == "chimes":
+                g = ident.get("gen") or {}
+                kk = composer.Key(g.get("pc", 0), g.get("mode", "major"))
+                pt = composer.penta(kk)
+                notes = [composer.mname(kk.deg(rr.choice(pt), 84) + ident.get("key", 0)) for _ in range(5)]
+                vels = [rr.choice([40, 46, 52]) for _ in range(5)]
+                chimes = (f"{rest(sec_len - 2)} patch=chimes " + " ".join(f"{n}/16@{v}" for n, v in zip(notes[:4], vels[:4]))
+                          + f" {notes[4]}/8@{vels[4]} R/8 R/2")
         tracks["fx"].append({"riser": f"{rest(sec_len - 4)} patch={random.choice(risers)} C4/1@90",
                              "impact": f"patch=fx-impact F1/4@104 {rest(sec_len - 1)}",
                              "revcym": f"{rest(sec_len - 2)} patch={random.choice(revs)} C5/2@88",
-                             "tapestop": f"{rest(sec_len - 4)} patch=fx-tapestop C4/1@100"}.get(fx, rest(sec_len)))
+                             "tapestop": f"{rest(sec_len - 4)} patch=fx-tapestop C4/1@100",
+                             "swell": f"{rest(sec_len - 2)} patch={random.choice(revs)} C5/2@60",
+                             "chimes": chimes,
+                             "downlift": f"{rest(sec_len - 4)} patch=fx-downlifter C4/1@58"}.get(fx, rest(sec_len)))
     modn = f", modulates {mod_tr:+d} at section {mod_at + 1}" if mod_at is not None else ""
     tmap, mdesc = metric_map(ident, meta) if ident.get("gen") else (None, "")
     modn += mdesc
