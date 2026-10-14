@@ -52,6 +52,15 @@
           ]
         },
         {
+          "type": "eq",
+          "bands": [
+            "peak cutoff=107 q=1.0 gain=2.4dB",
+            "peak cutoff=428 q=1.0 gain=-2.2dB",
+            "peak cutoff=855 q=1.0 gain=2.1dB",
+            "highshelf cutoff=5.4k gain=-2.1dB"
+          ]
+        },
+        {
           "type": "filter",
           "kind": "lp",
           "cutoff": {
