@@ -117,6 +117,13 @@ def band_db(F, a=0, b=None):
     return 10 * np.log10(e / e.sum())
 
 
+def stereo_bands(st):
+    """Side/mid amplitude ratio in each of the seven bands."""
+    m = st.mean(1); sd = (st[:, 0] - st[:, 1]) / 2
+    f, Pm = signal.welch(m, SR, nperseg=8192); _, Ps = signal.welch(sd, SR, nperseg=8192)
+    return np.array([np.sqrt(Ps[(f >= a) & (f < b)].sum() / (Pm[(f >= a) & (f < b)].sum() + 1e-20)) for _, a, b in BANDS7])
+
+
 def describe(path):
     F = Feat(load(path))
     dur = len(F.x) / SR
@@ -183,9 +190,13 @@ def compare(ref, cand, verbose=True, ref_start=None, ref_end=None):
     s_ltas = 100 * np.exp(-np.abs((a - a.mean()) - (b - b.mean())).mean() / 6)
     tr, tc = tempo(R.onset), tempo(C.onset)
     s_tempo = 100 * np.exp(-abs(np.log2(tc / tr)) * 12)
-    total = 0.15 * s_loud + 0.25 * s_spec + 0.25 * s_chroma + 0.2 * s_rhythm + 0.1 * s_ltas + 0.05 * s_tempo
+    # stereo image: per-band side/mid ratio (realism: wide doubled guitars and overheads, mono low end)
+    rw, cw = stereo_bands(R.st[:int(n * HOP)]), stereo_bands(C.st[:int(n * HOP)])
+    s_stereo = 100 * np.exp(-np.mean(np.abs(np.log2((cw + 0.02) / (rw + 0.02)))) * 1.5)
+    total = (0.14 * s_loud + 0.22 * s_spec + 0.22 * s_chroma + 0.18 * s_rhythm + 0.09 * s_ltas + 0.05 * s_tempo
+             + 0.10 * s_stereo)
     res = {k: round(float(v), 1) for k, v in {"total": total, "loudness": s_loud, "spectral": s_spec, "chroma": s_chroma,
-           "rhythm": s_rhythm, "ltas": s_ltas, "tempo": s_tempo, "tempo_ref": tr, "tempo_cand": tc,
+           "rhythm": s_rhythm, "ltas": s_ltas, "tempo": s_tempo, "stereo": s_stereo, "tempo_ref": tr, "tempo_cand": tc,
            "dur_ref": R.n / FPS, "dur_cand": C.n / FPS}.items()}
     # per-section gaps on the reference's sections
     bounds = [0.0] + sections(R) + [round(dur, 1)]
