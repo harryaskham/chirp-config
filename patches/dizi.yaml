@@ -1,0 +1,17 @@
+about: "Dizi (Chinese bamboo flute): a breathy flute with the buzzing dimo membrane's bright, reedy sizzle, delayed vibrato. Guofeng and folk melodies."
+synth:
+  layers:
+    - sine
+    - {wave: triangle, ratio: 2, level: -16dB}
+    - {wave: saw, level: -30dB}
+    - {type: noise, color: pink, level: {value: -38dB, mod: [{src: env.chiff, amount: 12}]}}
+  env:
+    chiff: {a: 3ms, d: 70ms, s: 0.3, r: 80ms}
+  lfo:
+    vib: {wave: sine, rate: 5.5hz, delay: 350ms, fade: 350ms, retrig: true}
+  pitch: {value: 0, mod: [{src: lfo.vib, amount: 0.14}]}
+  filters: ["hp cutoff=400", "peak cutoff=3200 q=2 gain=6dB", "lp cutoff=8k"]
+  amp: {a: 20ms, d: 150ms, s: 0.9, r: 120ms}
+play: {mono: true, legato: true, glide: 25ms, gate: 1, vel_sens: 0.4}
+fx: ["reverb kind=hall decay=2.2s mix=0.24 predelay=20ms"]
+gain: -7dB

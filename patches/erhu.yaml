@@ -1,0 +1,16 @@
+about: "Erhu (Chinese two-string fiddle): a nasal, singing bowed tone with bow-hair noise, expressive vibrato and long portamento slides (mono legato). Guofeng melodies, laments."
+synth:
+  layers:
+    - {wave: saw, level: -3dB}
+    - {wave: saw, cents: 6, level: -9dB}
+    - {type: noise, color: pink, level: {value: -44dB, mod: [{src: env.bow, amount: 10}]}}
+  env:
+    bow: {a: 40ms, d: 300ms, s: 0.5, r: 150ms}
+  lfo:
+    vib: {wave: sine, rate: 5.6hz, delay: 250ms, fade: 350ms, retrig: true}
+  pitch: {value: 0, mod: [{src: lfo.vib, amount: 0.22}, {src: rand, amount: 0.04}]}
+  filters: ["hp cutoff=350", "peak cutoff=1100 q=2 gain=6dB", "peak cutoff=2600 q=2.5 gain=4dB", "lp cutoff=6k"]
+  amp: {a: 70ms, d: 250ms, s: 0.85, r: 220ms}
+play: {mono: true, legato: true, glide: 90ms, gate: 1, vel_sens: 0.5, humanize: {time: 12ms, vel: 0.06}}
+fx: ["reverb kind=hall decay=2.4s mix=0.26 predelay=20ms"]
+gain: -7dB

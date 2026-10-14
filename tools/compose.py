@@ -60,7 +60,7 @@ STYLE_MODES = {
     "triphop": ["minor", "phrygian", "harmonic"], "neoclassical": ["major", "minor", "lydian", "dorian"], "ballad": ["major", "dorian", "minor"],
     "bossa": ["major", "dorian", "minor", "lydian"], "dub": ["minor", "dorian", "mixolydian"],
     "manouche": ["harmonic", "minor", "harmonic", "major"], "celtic": ["dorian", "mixolydian", "minor", "major"],
-    "doomjazz": ["minor", "phrygian", "dorian", "harmonic"], "mali": ["dorian", "minor", "mixolydian"],
+    "doomjazz": ["minor", "phrygian", "dorian", "harmonic"], "mali": ["dorian", "minor", "mixolydian"], "guofeng": ["major", "minor", "dorian"],
     "koto": ["hirajoshi", "hirajoshi", "phrygian"],
     "djazz": ["dorian", "lydian", "harmonic", "minor", "mixolydian"], "industrial": ["phrygian", "minor", "harmonic"], "dnb": ["minor", "phrygian", "dorian"],
     "darksynth": ["minor", "phrygian", "harmonic", "dorian"],
@@ -2184,6 +2184,38 @@ def gen_mali(r, k, prog, kind="main"):
     return out
 
 
+def gen_guofeng(r, k, prog, kind="main"):
+    """Guofeng (Chinese-style ambient): cascading pentatonic koto/guzheng arpeggios over a soft string
+    drone; temple woodblocks, soft kick and a frame-drum pulse in kind=full; kind=intro is koto + drone."""
+    pt = penta(k)
+    koto = []
+    for root in prog:
+        run = [k.deg(root + pt[i % 5] + 7 * (i // 5), 55) for i in range(8)]
+        seq = r.choice([run + run[::-1], run[::2] + run[1::2] + run[::-2] + run[-2::-2], run[:4] * 2 + run[4:] * 2])
+        koto += [f"{mname(m)}/16@{78 if j % 4 == 0 else 62}" for j, m in enumerate(seq[:16])]
+    out = [track("koto", pick_patch("koto", "harp"), " ".join(koto), pan=-0.2),
+           track("drone", pick_patch("strings", "pad"), " ".join(f"{chordhead([k.deg(root, 43), k.deg(root + 4, 43)])}/1@{54}" for root in prog), gain="-10dB")]
+    if kind == "intro":
+        return out
+    kit = pick_patch("tight-kit", "metal-kit")
+    blocks = r.choice(["x...x.x.....x...", "x.....x.x...x...", "x...x...x.x.x..."])
+    out += [track("blocks", kit, " ".join((f"{'wb' if x % 8 == 0 else 'wbl'}/16@{64 if x % 8 == 0 else 54}" if c == "x" else "R/16") for _ in range(4) for x, c in enumerate(blocks)), pan=0.25, gain="-4dB"),
+            track("kick", kit, " ".join(("k/16@60" if x in (0, 10) else "R/16") for _ in range(4) for x in range(16)))]
+    if kind == "full":
+        out.append(track("frame", pick_patch("bodhran", "tight-kit"), " ".join(("b/16@80" if x == 0 else ("t/16@60" if x in (6, 12) else "R/16")) for _ in range(4) for x in range(16)), pan=-0.1))
+    return out
+
+
+def gen_penta_air(r, k, prog, base, patch):
+    """A slow pentatonic melody with long sliding notes (legato portamento does the slides)."""
+    pt = penta(k)
+    out = []
+    for root in prog:
+        for ln in r.choice([[2, 1, 1], [1, 1, 2], [3, 1], [4]]):
+            out.append(f"{mname(k.deg(root + pt[r.randrange(5)], base))}/{4 // ln if ln in (1, 2, 4) else 4}@{84}" if ln != 3 else f"{mname(k.deg(root + pt[r.randrange(5)], base))}/2.@{84}")
+    return [track("hook", patch, " ".join(out), pan=0.15)]
+
+
 def gen_downtempo(r, k, prog, kind="main"):
     """Downtempo (Bonobo-ish): a low-passed breakbeat, marimba/kalimba ostinato, finger bass, strings."""
     kit = pick_patch("break-kit", "lofi-kit")
@@ -2223,6 +2255,7 @@ CHILL_GUESTS = {
     "bossa": (lambda r, k, prog: gen_bossa(r, k, prog), {"bossa"}),
     "doomjazz": (lambda r, k, prog: gen_doomjazz(r, k, prog, "full") + gen_atmos(r, k, prog, 55, pick_patch("tenor-sax", "clarinet")), {"doomjazz"}),
     "mali": (lambda r, k, prog: gen_mali(r, k, prog), {"mali"}),
+    "guofeng": (lambda r, k, prog: gen_guofeng(r, k, prog) + gen_penta_air(r, k, prog, 67, pick_patch("dizi", "flute")), {"guofeng"}),
     "celtic": (lambda r, k, prog: gen_celtic(r, k, prog, "drums") + gen_air(r, k, prog, 72, pick_patch("low-whistle", "flute")), {"celtic"}),
     "manouche": (lambda r, k, prog: gen_manouche(r, k, prog) + gen_swing_run(r, k, prog, 64, pick_patch("accordion", "clarinet")), {"manouche"}),
     "neo": (lambda r, k, prog: gen_neoclassical(r, k, prog), {"neoclassical", "chamber"}),
@@ -2269,7 +2302,7 @@ def compose(style, slot, p):
     return names, desc
 
 
-CHILL_STYLES = {"lofihop", "gogo", "ukjazz", "ambient", "downtempo", "smile", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche", "celtic", "doomjazz", "mali"}
+CHILL_STYLES = {"lofihop", "gogo", "ukjazz", "ambient", "downtempo", "smile", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche", "celtic", "doomjazz", "mali", "guofeng"}
 HEAVY_STYLES = {"meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep",
                 "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock", "groovemetal", "power", "sludge",
                 "breakcore", "mathcore", "gojira", "djazz", "raga", "gamelan", "koto"}
@@ -2300,6 +2333,11 @@ def _compose_style(style, slot, p):
             "hookE": gen_atmos(r, k, prog, 62, rig("atmos")),
         }
         return _write_parts(slot, "brostep", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
+    if style == "guofeng":
+        lead = pick_patch(r.choice(["erhu", "dizi"]), "flute")
+        parts = {"riffI": gen_guofeng(r, k, prog, "intro"), "riff": gen_guofeng(r, k, prog), "riffB": gen_guofeng(r, k, prog, "full"),
+                 "hook": gen_penta_air(r, k, prog, 67, lead), "hookE": gen_penta_air(r, k, prog, 62, pick_patch("erhu", "strings"))}
+        return _write_parts(slot, "guofeng", parts, f"{NAMES[p['pc']]} {p['mode']}, lead {lead}")
     if style == "mali":
         parts = {"riffI": gen_mali(r, k, prog, "intro"), "riff": gen_mali(r, k, prog), "riffB": gen_mali(r, k, prog, "riff"),
                  "hook": gen_hook(r, k, prog, 67, pick_patch("kora", "harp"))}
