@@ -2056,6 +2056,7 @@ FAMILIES = [
     ["piano", "tape-piano"],
     ["nylon", "acoustic"],
     ["finger-bass", "fretless", "upright-bass"],
+    ["tuba", "upright-bass"],
 ]
 
 
@@ -2322,9 +2323,10 @@ def gen_trio_drums(r, kind="groove"):
     return [track("hats", kit, " ".join(hats), pan=0.12, gain="-3dB"), track("kick", kit, " ".join(kick)), track("snare", kit, " ".join(snare))]
 
 
-def gen_broken(r, k, prog, meter=7, kind="main"):
+def gen_broken(r, k, prog, meter=7, kind="main", bass_patch=None):
     """UK jazz broken beat in an odd meter (7/8 or 5/4 as 10/8): shuffled 16ths, kick on odd
-    placements, snare/rim backbeats with ghosts; Rhodes chords and an upright line in the meter."""
+    placements, snare/rim backbeats with ghosts; Rhodes chords and an upright (or tuba) line in the
+    meter; kind=horns adds a horn-section riff in the meter (octave dyads) and shekere."""
     kit = rig("drums")
     reps = 4 if meter in (7, 9) else 3
     n = meter * 2 * reps  # 16ths
@@ -2342,9 +2344,25 @@ def gen_broken(r, k, prog, meter=7, kind="main"):
     sw = "swing16=0.6 "
     jn = lambda xs: sw + " ".join(xs)
     out = [track("kick", kit, jn(kick)), track("snare", kit, jn(snare)), track("hats", kit, jn(hats), pan=0.12, gain="-3dB"),
-           track("bass", pick_patch("upright-bass", "finger-bass"), jn(bass), seed=7)]
+           track("bass", bass_patch or pick_patch("upright-bass", "finger-bass"), jn(bass), seed=7)]
     if kind != "drums":
         out.append(track("keys", keys_patch, jn(keys), pan=-0.15))
+    if kind == "horns":
+        pt = penta(k)
+        cell = [pt[i] for i in r.choice([[0, 2, 3, 2], [4, 3, 2, 0], [0, 0, 2, 4]])]
+        hpos = sorted(r.sample([x for x in range(meter * 2) if x % 2 == 0], 4))
+        riff, sk = [], []
+        for i in range(n):
+            x = i % (meter * 2)
+            root = prog[(i // (meter * 2)) % len(prog)]
+            if x in hpos:
+                note = k.deg(root + cell[hpos.index(x)], 57)
+                riff.append(f"{chordhead([note, note + 12])}/16@{96 if x == hpos[0] else 86}^gate=1.5")
+            else:
+                riff.append("R/16")
+            sk.append(f"sk/16@{56 if x % 4 == 0 else 44}" if x % 2 == 0 else "R/16")
+        out += [track("horns", pick_patch("horn-section", "brass"), jn(riff), pan=0.15, gain="-4dB"),
+                track("shekere", pick_patch("afro-perc", "tight-kit"), jn(sk), pan=-0.25, gain="-6dB")]
     return out
 
 
@@ -4009,11 +4027,12 @@ def _compose_style(style, slot, p):
         meter = r.choice([7, 7, 5, 9])
         m = meter * 2 if meter == 5 else meter  # 5/4 as 10/8
         beats = (m * 2 * (4 if m in (7, 9) else 3)) / 4
-        parts = {"riffK": gen_broken(r, k, prog, m, "sparse"), "riff": gen_broken(r, k, prog, m), "riffB": gen_broken(r, k, prog, m),
+        bp = pick_patch("tuba", "upright-bass") if r.random() < 0.4 else pick_patch("upright-bass", "finger-bass")
+        parts = {"riffK": gen_broken(r, k, prog, m, "sparse", bp), "riff": gen_broken(r, k, prog, m, "main", bp), "riffB": gen_broken(r, k, prog, m, "horns", bp),
                  "hook": gen_tool_lead(r, k, prog, m, 60, pick_patch(r.choice(["clarinet", "flute", "vibes", "tenor-sax", "trumpet-mute"]), "vibes"), reps=int(beats * 2 / m)),
                  "solo": gen_tool_lead(r, k, prog, m, 67, pick_patch("vibes", "rhodes"), reps=int(beats * 2 / m))}
         lens = {role: beats for role in parts}
-        return _write_parts(slot, "ukjazz", parts, f"{NAMES[p['pc']]} {p['mode']}, {meter}/{4 if meter == 5 else 8}", lens)
+        return _write_parts(slot, "ukjazz", parts, f"{NAMES[p['pc']]} {p['mode']}, {meter}/{4 if meter == 5 else 8}, bass {bp}", lens)
     if style == "ambient":
         parts = {"riffA": gen_ambient(r, k, prog, "A"), "riffB": gen_ambient(r, k, prog, "B"), "hookE": gen_atmos(r, k, prog, 62, pick_patch("ebow", "ambient-swell"))}
         return _write_parts(slot, "ambient", parts, f"{NAMES[p['pc']]} {p['mode']}")

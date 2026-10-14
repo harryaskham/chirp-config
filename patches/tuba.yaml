@@ -1,0 +1,17 @@
+about: "Tuba: big, round low brass — a filtered saw and pulse with a breathy attack and a little brassy edge when played harder. Sons of Kemet bass lines, brass bands."
+synth:
+  layers:
+    - {wave: saw, level: -6dB}
+    - {wave: pulse, width: 0.4, level: -6dB}
+    - {wave: sine, level: -3dB}
+    - {type: noise, color: pink, level: {value: -54dB, mod: [{src: env.br, amount: 12}]}}
+  env:
+    br: {a: 10ms, d: 120ms, s: 0.15, r: 100ms}
+    open: {a: 40ms, d: 300ms, s: 0.5, r: 150ms}
+  filters:
+    - "hp cutoff=30"
+    - {kind: lp, cutoff: {value: 420, mod: [{src: env.open, amount: 1.2}, {src: vel, amount: 1.0}]}, q: 0.7}
+  amp: {a: 30ms, d: 200ms, s: 0.85, r: 140ms}
+play: {mono: true, legato: true, glide: 25ms, gate: 0.9, vel_sens: 0.6, humanize: {time: 8ms, vel: 0.05}}
+fx: ["reverb kind=room decay=0.9s mix=0.12"]
+gain: -6dB
