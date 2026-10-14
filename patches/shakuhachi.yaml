@@ -1,0 +1,17 @@
+about: "Shakuhachi (Japanese end-blown bamboo flute): breathy with a strong air attack (muraiki), notes that scoop up from below (meri/kari), deep delayed vibrato. Zen, kankyō ongaku, film scores."
+synth:
+  layers:
+    - sine
+    - {wave: triangle, ratio: 2, level: -18dB}
+    - {type: noise, color: pink, level: {value: -32dB, mod: [{src: env.air, amount: 14}, {src: vel, amount: 4}]}}
+  env:
+    air: {a: 10ms, d: 220ms, s: 0.35, r: 150ms}
+    bend: {a: 0.5ms, d: 180ms, s: 0}
+  lfo:
+    vib: {wave: sine, rate: 4.6hz, delay: 600ms, fade: 700ms, retrig: true}
+  pitch: {value: 0, mod: [{src: env.bend, amount: -1.2}, {src: lfo.vib, amount: 0.25}]}
+  filters: ["hp cutoff=250", "peak cutoff=1600 q=1 gain=2dB", "lp cutoff=6.5k"]
+  amp: {a: 60ms, d: 300ms, s: 0.85, r: 250ms}
+play: {mono: true, legato: false, gate: 1, vel_sens: 0.5, humanize: {time: 15ms, vel: 0.06}}
+fx: ["reverb kind=hall decay=3.5s mix=0.32 predelay=30ms"]
+gain: -9dB
