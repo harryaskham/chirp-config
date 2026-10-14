@@ -6,7 +6,10 @@ tempo map and quantised finely; the output is one score per piece family (kick, 
 hand drums), each with per-hit velocities, ready to drop into a song (tab2song.py "raw" parts).
 
   drumtrans.py STEM.wav SONG.yaml TEMPLATES.wav PIECES.json OUT.json [--from S] [--to S] [--grid 24] [--gain-db G]
-               [--share 0.12] [--floor 0.06] [--labels TRACK]
+               [--share 0.12] [--floor 0.06] [--labels TRACK] [--shift S]
+
+--shift S moves every hit S seconds later (latency compensation: onsets are detected on the rising edge,
+a rendered hit peaks at its start — Pneuma's high band matched best at +21 ms).
 
 --labels TRACK learns each piece's template from the stem itself: the median feature of the stem onsets that
 fall within 60 ms of that piece's hits in TRACK of SONG.yaml (a rough transcription, e.g. from a tab).
@@ -191,7 +194,7 @@ def fmt(b):
     return f"{round(b, 4):.4f}".rstrip("0").rstrip(".")
 
 
-def transcribe(stem, song, tpl_wav, pieces, t0=0.0, t1=None, grid=24, gain_db=0.0, share=0.12, floor=0.06, labels=None):
+def transcribe(stem, song, tpl_wav, pieces, t0=0.0, t1=None, grid=24, gain_db=0.0, share=0.12, floor=0.06, labels=None, shift=0.0):
     x = L.load(stem).mean(1)
     B = bands(x)
     on_all = pick(novelty(B))
@@ -232,7 +235,7 @@ def transcribe(stem, song, tpl_wav, pieces, t0=0.0, t1=None, grid=24, gain_db=0.
     events = [(t, pieces[i], int(np.clip(cal * amp ** (1 / gamma[i]), 1, 127))) for t, i, amp in raw]
     out = {}
     for fam, members in FAMILIES.items():
-        ev = sorted((round(tb(t) * grid) / grid, p, v) for t, p, v in events if p in members)
+        ev = sorted((round(tb(t + shift) * grid) / grid, p, v) for t, p, v in events if p in members)
         merged = {}
         for b, p, v in ev:                     # one hit per grid slot: the loudest
             if b not in merged or v > merged[b][1]:
@@ -258,6 +261,7 @@ if __name__ == "__main__":
     pieces = json.load(open(a[3]))
     labels = track_hits(a[1], a[a.index("--labels") + 1]) if "--labels" in a else None
     res, n_on = transcribe(a[0], a[1], a[2], pieces, opt("--from", 0.0), (opt("--to", -1.0) if "--to" in a else None),
-                           opt("--grid", 24), opt("--gain-db", 0.0), opt("--share", 0.12), opt("--floor", 0.06), labels)
+                           opt("--grid", 24), opt("--gain-db", 0.0), opt("--share", 0.12), opt("--floor", 0.06), labels,
+                           opt("--shift", 0.0))
     json.dump(res, open(a[4], "w"))
     print(f"{n_on} onsets → " + ", ".join(f"{k} {v['hits']}" for k, v in res.items()))
