@@ -12,3 +12,6 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | d4 / t445d4 | drums +4 dB | 49.153 / 48.877 | no |
 | g8 | rhythm guitars stiff 0.8 | 50.035 | no |
 | v5 | g8 + snare pitch Ab3 (record's ringing Ab4 snare; ours read A) | 50.455 | yes |
+| sab | snare Ab3 alone (no stiffness): stiffness was costing ~0.2 | 50.659 | (base for v7) |
+| v6 | v5 + master EQ from mastereq.py (53 -4.5, 85 +2.4, 107 +3.4, 428 -2.3, 1.1k +2.2, hs 13.7k -4.3) | 52.193 | yes |
+| l1 | v5 + master gain lane: pre-choruses -0.5 dB, choruses +0.5 dB (record's chorus lift; ours was inverted) | 51.976 | (combine) |

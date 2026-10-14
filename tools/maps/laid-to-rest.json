@@ -11,7 +11,22 @@
     ]
    }
   },
-  "ceiling": "-0.3dB"
+  "ceiling": "-0.3dB",
+  "master": {
+   "fx": [
+    {
+     "type": "eq",
+     "bands": [
+      "peak cutoff=53 q=1.0 gain=-4.50dB",
+      "peak cutoff=85 q=1.5 gain=2.40dB",
+      "peak cutoff=107 q=0.8 gain=3.40dB",
+      "peak cutoff=428 q=0.6 gain=-2.30dB",
+      "peak cutoff=1.1k q=0.8 gain=2.20dB",
+      "highshelf cutoff=13.7k gain=-4.30dB"
+     ]
+    }
+   ]
+  }
  },
  "parts": [
   {
