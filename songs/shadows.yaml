@@ -99,7 +99,7 @@ tracks:
     auto: {sweep: {points: [[0s, 0], [7.5s, 0.05], [16.5s, 0.45], [22.5s, 0.75], [28s, 1]]}}
     gain: -6dB
     envelope: {points: [[0s, 0.38], [7.5s, 0.38], [16.5s, 0.8], [22.5s, 0.9], [28s, 1]]}   # the build swells as it opens
-    fx: [{type: filter, kind: lp, cutoff: {value: 2.5k, mod: [{src: auto.sweep, amount: 2.3}]}, q: 0.7}, {type: width, width: 1.5, mono_below: 60}]
+    fx: [{type: filter, kind: hp, cutoff: {value: 120, mod: [{src: auto.sweep, amount: -2.6}]}, q: 0.7}, {type: filter, kind: lp, cutoff: {value: 2.5k, mod: [{src: auto.sweep, amount: 2.3}]}, q: 0.7}, {type: width, width: 1.5, mono_below: 60}]   # the sub returns only as the build completes
   - {name: climax, at: 197.756b, score: "@climax/132b", fx: [{type: width, width: 1.5, mono_below: 150}]}
   - {name: outro, at: 329.756b, score: "@outro/64b", gain: -4dB, fx: [{type: width, width: 1.5, mono_below: 60}], envelope: {points: [[0s, 1], [12s, 0.85], [22s, 0.45], [30s, 0.12]]}}
 
