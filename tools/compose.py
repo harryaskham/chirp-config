@@ -47,7 +47,7 @@ STYLE_MODES = {
     "brostep": ["minor", "phrygian", "harmonic"],
     "blackgaze": ["major", "lydian", "dorian", "mixolydian"],
     "numetal": ["phrygian", "locrian", "minor"], "deathcore": ["phrygian", "harmonic", "locrian", "diminished"],
-    "postrock": ["major", "lydian", "mixolydian", "dorian"], "postmetal": ["minor", "phrygian", "dorian", "harmonic"], "slam": ["phrygian", "locrian", "minor", "diminished"], "metalcore": ["minor", "harmonic", "dorian", "phrygian"], "symphonic": ["harmonic", "minor", "phrygian-dominant", "minor"], "cynic": ["lydian", "dorian", "minor", "diminished"], "tigran": ["phrygian-dominant", "harmonic", "phrygian", "minor"], "mahavishnu": ["dorian", "mixolydian", "phrygian", "minor"], "groovemetal": ["blues", "pentatonic-minor", "phrygian", "minor"],
+    "postrock": ["major", "lydian", "mixolydian", "dorian"], "postmetal": ["minor", "phrygian", "dorian", "harmonic"], "slam": ["phrygian", "locrian", "minor", "diminished"], "metalcore": ["minor", "harmonic", "dorian", "phrygian"], "symphonic": ["harmonic", "minor", "phrygian-dominant", "minor"], "cynic": ["lydian", "dorian", "minor", "diminished"], "tigran": ["phrygian-dominant", "harmonic", "phrygian", "minor"], "mahavishnu": ["dorian", "mixolydian", "phrygian", "minor"], "blackjazz": ["minor", "phrygian", "diminished", "locrian"], "groovemetal": ["blues", "pentatonic-minor", "phrygian", "minor"],
     "power": ["major", "harmonic", "minor", "major"], "sludge": ["blues", "pentatonic-minor", "phrygian"],
     "breakcore": ["harmonic", "minor", "diminished", "phrygian-dominant"],
     "mathcore": ["locrian", "diminished", "phrygian", "double-harmonic"],
@@ -1844,6 +1844,62 @@ def gen_coltrane(r, k, prog, low=28):
             track("sax", pick_patch("tenor-sax", "synth-lead"), sw + " ".join(sax), pan=0.2)]
 
 
+def gen_freesax(r, k, low=28, beats=16):
+    """Free-jazz saxophone (Shining / blackjazz): fast chromatic and whole-tone flurries with wide
+    leaps, squealing high notes held with a bend, breaths — screamed through overdrive."""
+    t = k.deg(0, low) + 36
+    toks, used = [], 0
+    while used < beats * 4:
+        left = beats * 4 - used
+        g = r.random()
+        if g < 0.6:
+            n = min(left, r.choice([6, 8, 12]))
+            note = t + r.randrange(0, 12)
+            step = r.choice([1, 2, -1, -2])
+            for j in range(n):
+                note += step if r.random() < 0.8 else r.choice([7, -7, 11, -11])
+                note = max(t - 5, min(t + 26, note))
+                toks.append(f"{mname(note)}/16@{r.choice([96, 104, 112])}")
+            used += n
+        elif g < 0.85 and left >= 4:
+            toks.append(f"bend= {mname(t + r.choice([19, 22, 24]))}/16@118 bend=1 _ _ _ bend=")
+            used += 4
+        else:
+            toks.append("bend= R/16"); used += 1
+    return [track("sax", pick_patch("tenor-sax", "synth-lead"), " ".join(toks), pan=0.15, gain="-2dB",
+                  fx=[{"type": "drive", "drive": 0.45}, {"type": "reverb", "kind": "room", "decay": "1s", "mix": 0.15}])]
+
+
+def gen_blackjazz(r, k, prog, low=28, kind="black"):
+    """Blackjazz (Shining): black: tremolo-picked minor / diminished riffs over blasts with a distorted
+    Hammond holding clusters; industrial: stop-start chugs grouped 2+2+3 (7/8 feel inside 4/4 bars)
+    with machine-tight kick and snare."""
+    t = k.deg(0, low)
+    kit = rig("drums")
+    jn = lambda xs: " ".join(xs)
+    gtr, kick, snare, cym = [], [], [], []
+    if kind == "black":
+        shape = [t + 12 + d for d in r.choice([[0, 3, 6, 3], [0, 1, 6, 7], [0, 3, 7, 6]])]
+        for i in range(64):
+            root = prog[(i // 16) % len(prog)]
+            n = shape[(i // 4) % 4] + (k.deg(root, low) - t)
+            gtr.append(f"expr.pm=0 {mname(n)}/16@{104 if i % 4 == 0 else 96}")
+            kick.append("k/16@110" if i % 2 == 0 else "R/16"); snare.append("s/16@108" if i % 2 == 1 else "R/16")
+            cym.append("c/16@108" if i % 16 == 0 else ("rd/16@84" if i % 2 == 0 else "R/16"))
+    else:
+        cell = "x.x.xx.x.x.xx..."  # 2+2+3 groupings inside each bar
+        for i in range(64):
+            x = i % 16
+            hit = cell[x] == "x"
+            gtr.append(f"expr.pm={0 if x in (0, 4, 9) else 1} {chordhead([t, t + 6]) if x in (0, 9) else mname(t)}/16@{118 if x in (0, 9) else 106}" if hit else "R/16")
+            kick.append("k/16@114" if hit else "R/16"); snare.append("s/16@118" if x in (4, 12) else "R/16")
+            cym.append("cch/16@108" if x in (0, 9) else "R/16")
+    organ = track("organ", pick_patch("hammond-b3", "organ"), jn(f"{chordhead([k.deg(root, 48), k.deg(root, 48) + 1, k.deg(root + 4, 48)])}/1@{90}" for root in prog),
+                  fx=[{"type": "drive", "drive": 0.5}], gain="-8dB")
+    return rhythm_tracks(jn(gtr)) + [track("bass", rig("bass"), jn(mirror_bass(gtr, "/16")), seed=7), organ,
+                                     track("kick", kit, jn(kick)), track("snare", kit, jn(snare)), track("cym", kit, jn(cym))]
+
+
 def gen_mathcore(r, k, prog, low=28, kind="chaos"):
     """chaos: the 16-beat part cut into odd-length chunks (3–13 sixteenths, summing to 64); each a
     cluster stab into a hard stop, a dissonant tremolo run, chugs over a blast fragment or silence;
@@ -2471,7 +2527,7 @@ for _m, _ps in _MORE_PROGS.items():
 
 def params(style, rng=random):
     mode = rng.choice(STYLE_MODES.get(style, ["minor"]))
-    heavy = style in ("meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep", "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock", "postmetal", "slam", "metalcore", "symphonic", "cynic", "tigran", "mahavishnu", "groovemetal", "power", "sludge", "breakcore", "mathcore", "gojira", "djazz", "raga", "gamelan", "koto", "postmetal", "slam", "metalcore", "symphonic", "cynic", "tigran", "mahavishnu")
+    heavy = style in ("meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep", "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock", "postmetal", "slam", "metalcore", "symphonic", "cynic", "tigran", "mahavishnu", "blackjazz", "groovemetal", "power", "sludge", "breakcore", "mathcore", "gojira", "djazz", "raga", "gamelan", "koto", "postmetal", "slam", "metalcore", "symphonic", "cynic", "tigran", "mahavishnu", "blackjazz")
     if style in CHILL_STYLES:
         rigset = "chill"
     else:
@@ -4138,7 +4194,7 @@ def gen_fusion(r, k, prog, src, beat, with_beat=True):
 # Odd-meter guest sections from the engine's built-in parts (in F minor; length in beats, repeats).
 ODD_PARTS = {"54": (10, 2, "beat-54", "beat-54-ghost"), "68": (6, 3, "beat-68", "beat-68-trap"), "74": (14, 1, "beat-74", "beat-74"),
              "78": (7, 2, "beat-78", "beat-78"), "118": (11, 2, "beat-118", "beat-118-ghost")}
-ODD_HOSTS_HEAVY = {"tigran", "cynic", "mathcore", "djazz", "tool", "djent", "meshuggah", "metalcore", "postmetal", "gojira", "tech-death", "postrock", "blackgaze", "groovemetal"}
+ODD_HOSTS_HEAVY = {"blackjazz", "tigran", "cynic", "mathcore", "djazz", "tool", "djent", "meshuggah", "metalcore", "postmetal", "gojira", "tech-death", "postrock", "blackgaze", "groovemetal"}
 ODD_HOSTS_CHILL = {"ukjazz", "gogo", "neosoul", "fusion", "souljazz", "ethiojazz", "citypop", "nujazz"}
 
 
@@ -4585,6 +4641,10 @@ def _compose_style(style, slot, p):
                  "riffSlam": gen_hc(r, k, prog, dl, "slowdown"), "pad": gen_pad(r, k, prog, 48, "strings", gain="-6dB"),
                  "soft": gen_pad(r, k, prog, 48, "strings", gain="-8dB", vel=70), "drone": gen_drone(k, 36, "drone")}
         return _write_parts(slot, "deathcore", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
+    if style == "blackjazz":
+        parts = {"riff": gen_blackjazz(r, k, prog), "riffI": gen_blackjazz(r, k, prog, kind="industrial"), "riffB": gen_blackjazz(r, k, prog),
+                 "hook": gen_freesax(r, k), "solo": gen_freesax(r, k)}
+        return _write_parts(slot, "blackjazz", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
     if style == "mahavishnu":
         meter = r.choice([7, 9, 11])
         beats = meter * 4 / 2
