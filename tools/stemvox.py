@@ -3,8 +3,10 @@
 the pitch is noise): syllables are runs of vocal-band energy above a floor, split at internal dips, quantised to
 a grid on the tab's own measure timeline (so odd-length bars stay exact), with velocity from loudness.
 
-  stemvox.py STEM --tab DIR --d0 SECONDS --bars B0-B1 [--note Eb3] [--grid 0.125] [--range 30] [--dip 6] [--min 0.25]
+  stemvox.py STEM --tab DIR --d0 SECONDS --bars B0-B1 [--note Eb3|auto] [--grid 0.125] [--range 30] [--dip 6] [--min 0.25]
 
+  --note   one pitch for every syllable, or `auto`: each syllable's pitch from the stem (harmonic summation,
+           G3..F5; a shout's pitch moves from phrase to phrase)
   --range  dB below the passage's loudest frame that still counts as voice (default 30)
   --dip    a fall of this many dB inside a run, then a rise, starts a new syllable (default 6)
   --min    shortest syllable in beats after quantising (default 0.25)
@@ -54,6 +56,26 @@ def syllables(env, hop, rng, dip):
     return [(a * hop, b * hop, p - top) for a, b, p in segs]
 
 
+def syllable_pitch(x, a, b, lo=55, hi=77, default="A4"):
+    """Pitch of one syllable (MIDI lo..hi): harmonic summation over 5 harmonics of the segment's spectrum.
+    Shouted vocals are noisy but strongly pitched; the estimate is the most salient harmonic series."""
+    seg = x[int(a * SR):int(b * SR)]
+    if len(seg) < int(0.04 * SR):
+        return default
+    n = 1 << int(np.ceil(np.log2(max(len(seg), 8192))))
+    spec = np.abs(np.fft.rfft(seg * np.hanning(len(seg)), n))
+    f = np.fft.rfftfreq(n, 1 / SR)
+    mag = np.log1p(spec / (spec.max() + 1e-12) * 1000)
+    best, bm = -1.0, None
+    for m in range(lo, hi + 1):
+        f0 = 440 * 2 ** ((m - 69) / 12)
+        s = sum(mag[min(len(mag) - 1, int(round(h * f0 * n / SR)))] / h for h in range(1, 6))
+        if s > best:
+            best, bm = s, m
+    names = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
+    return f"{names[bm % 12]}{bm // 12 - 1}"
+
+
 def main():
     a = sys.argv[1:]
     stem = a[0]
@@ -78,17 +100,18 @@ def main():
                 qs = round((ts - ms) / spb / grid) * grid
                 ql = max(mn, round((te - ts) / spb / grid) * grid)
                 vel = int(np.clip(120 + 3 * lvl, 50, 124))
-                bars[m].append([qs, ql, vel])
+                pitch = syllable_pitch(x, s, e) if note == "auto" else note
+                bars[m].append([qs, ql, vel, pitch])
                 break
     for m in range(b0, b1 + 1):
         nb = tl[m - 1]["beats"]; ev = sorted(bars[m]); toks, pos = [], 0.0
-        for qs, ql, vel in ev:
+        for qs, ql, vel, pitch in ev:
             if qs < pos - 1e-9 or qs >= nb:
                 continue
             if qs > pos + 1e-9:
                 toks.append(f"R/{qs - pos:g}b")
             ql = min(ql, nb - qs)
-            toks.append(f"{note}/{ql:g}b@{vel}"); pos = qs + ql
+            toks.append(f"{pitch}/{ql:g}b@{vel}"); pos = qs + ql
         if pos < nb - 1e-9:
             toks.append(f"R/{nb - pos:g}b")
         print(f"bar {m:3d}  {' '.join(toks)}")
