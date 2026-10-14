@@ -2330,6 +2330,21 @@ def drum_enrich(t, r):
     return dict(t, score=" ".join(pre + out))
 
 
+def poly_lead(r, k, patch, cycle, base=64, steps=64):
+    """A polymetric lead: a 5- or 7-step motif (16ths) from the mode, repeated against the 4/4 so it
+    realigns with the bar only every `cycle` bars; accents on each cycle start, rests inside."""
+    motif = []
+    d = r.choice([0, 2, 4])
+    for j in range(cycle):
+        if j and r.random() < 0.2:
+            motif.append(None)
+        else:
+            motif.append(d)
+            d += r.choice([-2, -1, 1, 2, 3])
+    toks = [(f"{mname(k.deg(motif[i % cycle], base))}/16@{104 if i % cycle == 0 else 88}" if motif[i % cycle] is not None else "R/16") for i in range(steps)]
+    return [track("hook", patch, " ".join(toks), pan=0.1)]
+
+
 def fusion_layers(style, parts, beats, desc):
     """Fusion journey, heavy songs: a polyrhythmic overlay (a 3/5/7-step motif of extended chord tones
     on vibes / DX bell / pluck / marimba cycling against the 4/4) on a main riff section, and jazz
@@ -2337,6 +2352,9 @@ def fusion_layers(style, parts, beats, desc):
     import zlib
     r = random.Random(zlib.crc32(f"fusion{desc}".encode()))
     k = Key(*_KEY)
+    if "hook" in parts and abs((beats or {}).get("hook", 16) - 16) < 1e-9 and r.random() < 0.5:
+        lead_patch = next((t.get("patch") for t in parts["hook"] if t.get("patch")), rig("lead"))
+        parts["hook"] = poly_lead(r, k, lead_patch, r.choice([5, 7]))
     is16 = lambda ro: abs((beats or {}).get(ro, 16) - 16) < 1e-9
     host = next((ro for ro in ("riffB", "riffC", "riffV", "riff") if ro in parts and is16(ro)), None)
     if host:
