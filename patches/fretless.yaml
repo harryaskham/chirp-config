@@ -1,0 +1,15 @@
+about: "Fretless bass: a singing 'mwah' — a resonant filter that opens slowly on each note — with legato slides and gentle vibrato (Pino Palladino, Mick Karn)."
+synth:
+  layers: [{wave: saw, level: -4dB}, {wave: sine, level: -2dB}]
+  env:
+    mwah: {a: 140ms, d: 500ms, s: 0.35, r: 200ms}
+  lfo:
+    vib: {wave: sine, rate: 5hz, delay: 400ms, fade: 400ms, retrig: true}
+  pitch: {value: 0, mod: [{src: lfo.vib, amount: 0.08}]}
+  filters:
+    - "hp cutoff=35"
+    - {kind: lp, cutoff: {value: 380, mod: [{src: env.mwah, amount: 1.6}, {src: vel, amount: 0.6}]}, q: 2.2}
+  amp: {a: 6ms, d: 400ms, s: 0.8, r: 140ms}
+play: {mono: true, legato: true, glide: 70ms, gate: 0.97, vel_sens: 0.5, humanize: {time: 6ms, vel: 0.05}}
+fx: ["compressor threshold=-20dB ratio=3 attack=10ms release=120ms"]
+gain: 0dB

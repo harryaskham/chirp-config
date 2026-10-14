@@ -1,0 +1,14 @@
+about: "DX7 'E.Piano 1': an FM body with a glassy 14:1 tine bell on the attack, chorused — 80s ballads, city pop, vaporwave."
+synth:
+  layers:
+    - {name: m1, ratio: 1, audible: false}
+    - {wave: sine, pm: [{from: m1, depth: {value: 0.2, mod: [{src: env.body, amount: 0.8}, {src: vel, amount: 0.6}]}}]}
+    - {name: m2, ratio: 14, audible: false}
+    - {wave: sine, level: -10dB, pm: [{from: m2, depth: {value: 0, mod: [{src: env.tine, amount: 1.4}, {src: vel, amount: 0.6}]}}]}
+  env:
+    body: {a: 1ms, d: 1.2s, s: 0.2, r: 300ms}
+    tine: {a: 0.5ms, d: 70ms, s: 0, r: 30ms}
+  amp: {a: 1ms, d: 2.6s, s: 0.3, r: 400ms}
+play: {gate: 0.95, vel_sens: 0.6, humanize: {time: 5ms, vel: 0.06}}
+fx: ["chorus rate=0.8 depth=0.45 mix=0.45", "reverb kind=plate decay=1.8s mix=0.2"]
+gain: -10dB

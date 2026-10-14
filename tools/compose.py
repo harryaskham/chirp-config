@@ -60,7 +60,7 @@ STYLE_MODES = {
     "triphop": ["minor", "phrygian", "harmonic"], "neoclassical": ["major", "minor", "lydian", "dorian"], "ballad": ["major", "dorian", "minor"],
     "bossa": ["major", "dorian", "minor", "lydian"], "dub": ["minor", "dorian", "mixolydian"],
     "manouche": ["harmonic", "minor", "harmonic", "major"], "celtic": ["dorian", "mixolydian", "minor", "major"],
-    "doomjazz": ["minor", "phrygian", "dorian", "harmonic"], "mali": ["dorian", "minor", "mixolydian"], "guofeng": ["major", "minor", "dorian"],
+    "doomjazz": ["minor", "phrygian", "dorian", "harmonic"], "mali": ["dorian", "minor", "mixolydian"], "guofeng": ["major", "minor", "dorian"], "vaporwave": ["major", "lydian", "dorian", "minor"],
     "koto": ["hirajoshi", "hirajoshi", "phrygian"],
     "djazz": ["dorian", "lydian", "harmonic", "minor", "mixolydian"], "industrial": ["phrygian", "minor", "harmonic"], "dnb": ["minor", "phrygian", "dorian"],
     "darksynth": ["minor", "phrygian", "harmonic", "dorian"],
@@ -2216,6 +2216,35 @@ def gen_penta_air(r, k, prog, base, patch):
     return [track("hook", patch, " ".join(out), pan=0.15)]
 
 
+TAPE_WOW = [{"type": "chorus", "rate": 0.35, "depth": 0.3, "voices": 1, "mix": 1.0}, {"type": "filter", "kind": "lp", "cutoff": 6500}]
+
+
+def gen_vaporwave(r, k, prog, kind="main"):
+    """Vaporwave / city-pop chill: electro kick and hats, a gated-reverb snare and clap on 2 and 4,
+    DX7 E.Piano maj9/m9 chords, a sliding fretless bass, everything through slow tape wow and a soft
+    low-pass; kind=intro is the keys alone, kind=full adds a string bed."""
+    gated = [{"type": "reverb", "kind": "room", "decay": "1.4s", "mix": 0.55}, {"type": "gate", "threshold": "-26dB", "hold": "110ms", "release": "35ms"}]
+    keys, bass = [], []
+    for root in prog:
+        ch = chordhead([k.deg(root + d, 52) for d in r.choice([[0, 2, 4, 6, 8], [2, 4, 6, 8], [0, 4, 6, 8, 11]])])
+        keys.append(r.choice([f"{ch}/2.@{78} {ch}/4@{66}", f"{ch}/4.@{76} {ch}/8@{64}^gate=0.5 R/4 {ch}/4@{68}", f"{ch}/1@{76}"]))
+        cell = r.choice([[(0, 4), (4, 8), (7, 8), (5, 4), (4, 4)], [(0, 2), (2, 8), (4, 8), (5, 4)], [(0, 4), (0, 8), (4, 8), (6, 4), (7, 4)]])
+        bass.append(" ".join(f"{mname(k.deg(root + d, 33))}/{ln}@{86}" for d, ln in cell))
+    out = [track("keys", pick_patch("dx-epiano", "rhodes"), " ".join(keys), pan=-0.1, fx=TAPE_WOW)]
+    if kind == "intro":
+        return out
+    kit = pick_patch("electro-kit", "tight-kit")
+    sw = "swing16=0.56 "
+    out += [track("bass", pick_patch("fretless", "finger-bass"), " ".join(bass), seed=7, fx=TAPE_WOW),
+            track("kick", kit, sw + " ".join(("k/16@96" if x in (0, 10) or (x == 7 and r.random() < 0.3) else "R/16") for _ in range(4) for x in range(16))),
+            track("snare", kit, sw + " ".join(("s/16@92" if x in (4, 12) else "R/16") for _ in range(4) for x in range(16)), fx=gated),
+            track("clap", kit, sw + " ".join(("cp/16@70" if x in (4, 12) else "R/16") for _ in range(4) for x in range(16)), fx=gated, gain="-6dB"),
+            track("hats", kit, sw + " ".join((f"h/16@{60 if x % 4 == 2 else 44}" if x % 2 == 0 else "R/16") for _ in range(4) for x in range(16)), pan=0.2, gain="-6dB")]
+    if kind == "full":
+        out += [dict(t, name="strings", fx=TAPE_WOW) for t in gen_pad(r, k, prog, 55, "strings", gain="-12dB", vel=56)]
+    return out
+
+
 def gen_downtempo(r, k, prog, kind="main"):
     """Downtempo (Bonobo-ish): a low-passed breakbeat, marimba/kalimba ostinato, finger bass, strings."""
     kit = pick_patch("break-kit", "lofi-kit")
@@ -2255,6 +2284,7 @@ CHILL_GUESTS = {
     "bossa": (lambda r, k, prog: gen_bossa(r, k, prog), {"bossa"}),
     "doomjazz": (lambda r, k, prog: gen_doomjazz(r, k, prog, "full") + gen_atmos(r, k, prog, 55, pick_patch("tenor-sax", "clarinet")), {"doomjazz"}),
     "mali": (lambda r, k, prog: gen_mali(r, k, prog), {"mali"}),
+    "vaporwave": (lambda r, k, prog: gen_vaporwave(r, k, prog), {"vaporwave"}),
     "guofeng": (lambda r, k, prog: gen_guofeng(r, k, prog) + gen_penta_air(r, k, prog, 67, pick_patch("dizi", "flute")), {"guofeng"}),
     "celtic": (lambda r, k, prog: gen_celtic(r, k, prog, "drums") + gen_air(r, k, prog, 72, pick_patch("low-whistle", "flute")), {"celtic"}),
     "manouche": (lambda r, k, prog: gen_manouche(r, k, prog) + gen_swing_run(r, k, prog, 64, pick_patch("accordion", "clarinet")), {"manouche"}),
@@ -2302,7 +2332,7 @@ def compose(style, slot, p):
     return names, desc
 
 
-CHILL_STYLES = {"lofihop", "gogo", "ukjazz", "ambient", "downtempo", "smile", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche", "celtic", "doomjazz", "mali", "guofeng"}
+CHILL_STYLES = {"lofihop", "gogo", "ukjazz", "ambient", "downtempo", "smile", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche", "celtic", "doomjazz", "mali", "guofeng", "vaporwave"}
 HEAVY_STYLES = {"meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep",
                 "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock", "groovemetal", "power", "sludge",
                 "breakcore", "mathcore", "gojira", "djazz", "raga", "gamelan", "koto"}
@@ -2333,6 +2363,11 @@ def _compose_style(style, slot, p):
             "hookE": gen_atmos(r, k, prog, 62, rig("atmos")),
         }
         return _write_parts(slot, "brostep", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
+    if style == "vaporwave":
+        lead = pick_patch(r.choice(["tenor-sax", "dx-epiano"]), "rhodes")
+        parts = {"riffI": gen_vaporwave(r, k, prog, "intro"), "riff": gen_vaporwave(r, k, prog), "riffB": gen_vaporwave(r, k, prog, "full"),
+                 "hook": [dict(t, fx=TAPE_WOW) for t in gen_hook(r, k, prog, 67 if "sax" in lead else 74, lead)]}
+        return _write_parts(slot, "vaporwave", parts, f"{NAMES[p['pc']]} {p['mode']}, lead {lead}")
     if style == "guofeng":
         lead = pick_patch(r.choice(["erhu", "dizi"]), "flute")
         parts = {"riffI": gen_guofeng(r, k, prog, "intro"), "riff": gen_guofeng(r, k, prog), "riffB": gen_guofeng(r, k, prog, "full"),

@@ -165,6 +165,9 @@ STYLES = {
   "guofeng": dict(form="guofeng", tempo=(64, 90), off=0, riff=["keys-lofi"], riff_off=0, lift=0,
                      low=["beat-sparse"], mid=["beat-lofi"], high=["beat-lofi"], half=["beat-sparse"], brk=["beat-sparse"],
                      hook=["lead-hook"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["pad-swell"]),
+  "vaporwave": dict(form="vaporwave", tempo=(72, 92), off=0, riff=["keys-lofi"], riff_off=0, lift=0,
+                     low=["beat-sparse"], mid=["beat-lofi"], high=["beat-lofi"], half=["beat-sparse"], brk=["beat-sparse"],
+                     hook=["lead-hook"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["pad-swell"]),
   "tech-death": dict(form="tech-death", tempo=(170, 220), off=0, riff=["riff-chug7"], riff_off=0, lift=0,
                      low=["beat-sparse"], mid=["beat-blast"], high=["beat-blast"], half=["beat-halftime"], brk=["beat-doom"],
                      hook=["lead-solo"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["riff-hold"]),
@@ -299,6 +302,8 @@ FORMS = {
            ("B2", ["riffB", "hook"], None), ("break", ["riffI"], None), ("A2", ["riff", "hook"], None), ("outro", ["riffI"], None)],
   "guofeng": [("intro", ["riffI"], None), ("A", ["riff", "hookE"], None), ("A2", ["riff", "hook"], None), ("B", ["riffB", "hook"], None),
               ("break", ["riffI", "hookE"], None), ("A2", ["riffB", "hook"], None), ("outro", ["riffI"], None)],
+  "vaporwave": [("intro", ["riffI"], None), ("A", ["riff"], None), ("A2", ["riff", "hook"], None), ("B", ["riffB", "hook"], None),
+                ("break", ["riffI"], None), ("A2", ["riffB", "hook"], None), ("outro", ["riffI"], None)],
   "tech-death": [("blast", ["riff"], "impact"), ("blast", ["riffB", "pad"], None), ("dbeat", ["riffD"], "impact"),
                  ("dbeat", ["riffD", "hook"], None), ("groove", ["riffSoft"], "impact"), ("groove", ["riffG", "pad"], None),
                  ("blast", ["riff", "hook"], "impact"), ("break", ["riffBrk"], "impact"), ("break", ["riffBrk", "drone"], None),
@@ -477,7 +482,7 @@ MOD_STEPS = [1, -1, 2, 3, -3, 5, 6, -6]  # half/whole steps, minor thirds, fourt
 
 
 METRIC = [(3, 2), (2, 3), (4, 3), (3, 4)]
-STEADY = {"lofihop", "ambient", "downtempo", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche", "celtic", "doomjazz", "mali", "guofeng"}  # chill styles that hold key and tempo
+STEADY = {"lofihop", "ambient", "downtempo", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche", "celtic", "doomjazz", "mali", "guofeng", "vaporwave"}  # chill styles that hold key and tempo
 
 
 def metric_map(ident, meta):
@@ -585,7 +590,7 @@ COMP_STYLES = ["glue", "pump", "smash", "parallel", "opto", "tape"]
 # Loudness-matched to glue (measured RMS over the same 48 beats through each master chain).
 FLAVOR_HOOK = {"vintage": ["rack:tape-echo"], "industrial": ["rack:radio"], "space": ["rack:shimmer-hall"], "wide": ["rack:chorus-wide"]}
 STYLE_TRIM = {"tool": 2.0, "numetal": 1.0, "industrial": -1.5, "power": -1.0, "sludge": 2.0, "mathcore": 1.5, "gojira": 1.0, "raga": -2.0,
-              "lofihop": 3.0, "ambient": 1.5, "house-melodic": -2.0, "chamber": 0.0, "neoclassical": 1.5, "dub": 3.0, "manouche": 3.0, "celtic": 3.0, "doomjazz": 4.0, "guofeng": 3.0}  # sparse styles sit lower (QA loudness)
+              "lofihop": 3.0, "ambient": 1.5, "house-melodic": -2.0, "chamber": 0.0, "neoclassical": 1.5, "dub": 3.0, "manouche": 3.0, "celtic": 3.0, "doomjazz": 4.0, "guofeng": 3.0, "vaporwave": 3.0}  # sparse styles sit lower (QA loudness)
 COMP_TRIM = {"glue": 0.0, "pump": 6.1, "smash": 3.4, "parallel": 3.2, "opto": 3.3, "tape": -2.1}
 
 def has_patch(name):
@@ -623,7 +628,7 @@ def master_for(ident):
     trim = COMP_TRIM.get(comp, 0.0) + STYLE_TRIM.get(ident.get("style"), 0.0)
     eq = [json.loads(MASTER_BASE[0])]
     air = {"brostep": 2.5, "darksynth": 3.0, "tool": 1.5, "industrial": 3.0, "dnb": 2.0, "power": 2.0, "raga": 2.5, "koto": 2.0,
-           "lofihop": 2.0, "ukjazz": 3.0, "ambient": 3.0, "triphop": 2.0, "dub": 1.5, "celtic": 2.5, "doomjazz": 1.5}.get(ident.get("style"))
+           "lofihop": 2.0, "ukjazz": 3.0, "ambient": 3.0, "triphop": 2.0, "dub": 1.5, "celtic": 2.5, "doomjazz": 1.5, "vaporwave": 1.0}.get(ident.get("style"))
     if air:  # QA: these styles measure dark at the top
         eq.append({"type": "eq", "bands": ["peak cutoff=3500 q=0.8 gain=1.5dB", f"highshelf cutoff=8000 gain={air}dB"]
                    + (["peak cutoff=500 q=0.9 gain=-2dB"] if ident.get("style") == "industrial" else [])})
@@ -765,7 +770,7 @@ def journey_load():
         return {"on": False, "h": 0.0, "rate": 0.09, "passes_per_song": 2}
 
 CHILL_MIX = [("lofihop", 0.16), ("gogo", 0.11), ("ukjazz", 0.1), ("ambient", 0.1), ("downtempo", 0.09), ("smile", 0.09),
-             ("house-melodic", 0.08), ("chamber", 0.05), ("triphop", 0.08), ("neoclassical", 0.08), ("ballad", 0.06), ("bossa", 0.07), ("dub", 0.06), ("manouche", 0.05), ("celtic", 0.05), ("doomjazz", 0.05), ("mali", 0.05), ("guofeng", 0.05)]
+             ("house-melodic", 0.08), ("chamber", 0.05), ("triphop", 0.08), ("neoclassical", 0.08), ("ballad", 0.06), ("bossa", 0.07), ("dub", 0.06), ("manouche", 0.05), ("celtic", 0.05), ("doomjazz", 0.05), ("mali", 0.05), ("guofeng", 0.05), ("vaporwave", 0.05)]
 
 
 AMBIENTISH = ["ambient", "ambient", "downtempo", "chamber"]
