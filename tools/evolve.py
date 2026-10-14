@@ -81,6 +81,9 @@ STYLES = {
   "postrock":   dict(form="postrock", tempo=(100, 130), off=0, riff=["riff-taps"], riff_off=0, lift=0,
                      low=["beat-sparse"], mid=["beat-djent"], high=["beat-djent"], half=["beat-halftime"], brk=["beat-doom"],
                      hook=["lead-solo"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["riff-hold"]),
+  "groovemetal": dict(form="groovemetal", tempo=(100, 140), off=0, riff=["riff-chug5"], riff_off=0, lift=0,
+                     low=["beat-sparse"], mid=["beat-djent"], high=["beat-djent"], half=["beat-halftime"], brk=["beat-doom"],
+                     hook=["lead-solo"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["riff-hold"]),
   "tech-death": dict(form="tech-death", tempo=(170, 220), off=0, riff=["riff-chug7"], riff_off=0, lift=0,
                      low=["beat-sparse"], mid=["beat-blast"], high=["beat-blast"], half=["beat-halftime"], brk=["beat-doom"],
                      hook=["lead-solo"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["riff-hold"]),
@@ -152,6 +155,9 @@ FORMS = {
   "postrock": [("intro", ["riffClean"], None), ("intro2", ["riffClean", "hookE"], None), ("A", ["riffSoft"], None), ("A2", ["riffH", "hookE"], None),
                ("build", ["riffUp"], "riser"), ("climax", ["riff", "hook"], "impact"), ("climax", ["riff", "hookE"], None),
                ("break", ["riffClean"], "revcym"), ("build", ["riffUp"], "riser"), ("final", ["riff", "hook"], "impact"), ("outro", ["riffClean"], "revcym")],
+  "groovemetal": [("intro", ["riffH"], "revcym"), ("verse", ["riffSoft"], "impact"), ("verse", ["riff"], None), ("chorus", ["riffG", "hook"], "impact"),
+                  ("verse2", ["riffB"], "impact"), ("chorus", ["riffG", "hook"], "impact"), ("solo", ["riff", "solo"], "impact"),
+                  ("break", ["riffH"], "impact"), ("final", ["riffB", "hook"], "impact"), ("outro", ["riffH"], "revcym")],
   "tech-death": [("blast", ["riff"], "impact"), ("blast", ["riffB", "pad"], None), ("dbeat", ["riffD"], "impact"),
                  ("dbeat", ["riffD", "hook"], None), ("groove", ["riffSoft"], "impact"), ("groove", ["riffG", "pad"], None),
                  ("blast", ["riff", "hook"], "impact"), ("break", ["riffBrk"], "impact"), ("break", ["riffBrk", "drone"], None),
@@ -220,6 +226,23 @@ def energy_lane(meta):
             pts.append([f"{max(t, t + ln - 1):g}b", e])
         t += ln
     pts.append([f"{t:g}b", es[-1]])
+    return pts
+
+
+FILTERED = {"intro": 0.2, "intro2": 0.4}
+
+
+def filter_lane(meta):
+    """0..1 openness per chapter: intros muffled (≈1.4 kHz), builds open up, everything else open."""
+    pts, t = [], 0.0
+    vals = [FILTERED.get(sec, 1.0) for sec, _ in meta]
+    for i, (sec, ln) in enumerate(meta):
+        v = vals[i]
+        nxt = vals[i + 1] if i + 1 < len(vals) else v
+        pts.append([f"{t:g}b", v])
+        pts.append([f"{t + ln - 0.5:g}b", nxt if sec in RAMPS else v])
+        t += ln
+    pts.append([f"{t:g}b", vals[-1]])
     return pts
 
 
@@ -373,7 +396,9 @@ def write_form(name, ident):
         if t == "hook" and FLAVOR_HOOK.get(flavor):
             lines.append("  - " + json.dumps({"name": t, "score": " ".join(items), "fx": composer.expand(FLAVOR_HOOK[flavor])}))
         elif t == "riff":
-            lines.append("  - " + json.dumps(dict({"name": t, "score": " ".join(items), "auto": {"energy": {"points": energy_lane(meta)}}}, **energy_fx(ident["style"]))))
+            efx = energy_fx(ident["style"])
+            efx["fx"] = [{"type": "filter", "kind": "lp", "cutoff": {"value": 700, "mod": [{"src": "auto.filt", "amount": 5}]}}] + efx["fx"]
+            lines.append("  - " + json.dumps(dict({"name": t, "score": " ".join(items), "auto": {"energy": {"points": energy_lane(meta)}, "filt": {"points": filter_lane(meta)}}}, **efx)))
         else:
             lines.append(f"  - {{name: {t}, score: \"{' '.join(items)}\"}}")
     open(f"{SONGS}/{name}.yaml", "w").write("\n".join(lines) + "\n")
@@ -381,7 +406,7 @@ def write_form(name, ident):
 TOOLS = "/home/harry/.config/chirp/tools"
 JOURNEY = f"{TOOLS}/journey.json"
 # How heavy each style is (0 lofi … 1 djent).
-HEAVY = {"deathcore": 1.0, "postrock": 0.6, "numetal": 0.9, "industrial": 0.85, "dnb": 0.8, "blackgaze": 0.95, "darksynth": 0.8, "hardcore-kl": 1.0, "brostep": 0.8, "thrash": 0.9, "tool": 0.9, "tech-death": 1.0, "meshuggah": 1.0, "lofi": 0.0, "classical": 0.05, "house": 0.2, "garage": 0.25, "poly": 0.35, "prog-clean": 0.4, "acid": 0.45,
+HEAVY = {"groovemetal": 0.95, "deathcore": 1.0, "postrock": 0.6, "numetal": 0.9, "industrial": 0.85, "dnb": 0.8, "blackgaze": 0.95, "darksynth": 0.8, "hardcore-kl": 1.0, "brostep": 0.8, "thrash": 0.9, "tool": 0.9, "tech-death": 1.0, "meshuggah": 1.0, "lofi": 0.0, "classical": 0.05, "house": 0.2, "garage": 0.25, "poly": 0.35, "prog-clean": 0.4, "acid": 0.45,
          "idm": 0.55, "doom-ambient": 0.6, "hardcore": 0.7, "djent-breakdown": 0.85, "djent": 1.0}
 
 STYLE_QUEUE = []
@@ -405,7 +430,7 @@ def journey_style(h, current):
         x = random.random()
         mix = [("meshuggah", 0.26), ("hardcore-kl", 0.1), ("tech-death", 0.09), ("thrash", 0.09), ("tool", 0.09), ("djent", 0.07),
                ("brostep", 0.07), ("blackgaze", 0.06), ("darksynth", 0.04), ("numetal", 0.05), ("industrial", 0.05), ("dnb", 0.03),
-               ("deathcore", 0.06), ("postrock", 0.03)]
+               ("deathcore", 0.06), ("postrock", 0.03), ("groovemetal", 0.05)]
         for name, w in mix:
             x -= w
             if x <= 0:

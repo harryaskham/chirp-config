@@ -14,6 +14,7 @@ MODES = {
     # Evil: double harmonic (Byzantine), Hungarian minor, Neapolitan minor, phrygian dominant.
     "double-harmonic": [0, 1, 4, 5, 7, 8, 11], "hungarian": [0, 2, 3, 6, 7, 8, 11],
     "neapolitan": [0, 1, 3, 5, 7, 8, 11], "phrygian-dominant": [0, 1, 4, 5, 7, 8, 10],
+    "blues": [0, 3, 5, 6, 7, 10], "pentatonic-minor": [0, 3, 5, 7, 10],
 }
 PROGS = {  # 0-based scale-degree roots, one chord per bar
     "minor": [[0, 5, 2, 6], [0, 3, 6, 2], [0, 5, 3, 4], [0, 6, 5, 6], [0, 2, 6, 3], [0, 5, 6, 4], [0, 3, 0, 4]],
@@ -29,6 +30,7 @@ PROGS = {  # 0-based scale-degree roots, one chord per bar
     "hungarian": [[0, 3, 0, 1], [0, 5, 3, 4], [0, 3, 5, 4]],
     "neapolitan": [[0, 1, 0, 4], [0, 1, 5, 4], [0, 5, 1, 0]],
     "phrygian-dominant": [[0, 1, 0, 6], [0, 1, 5, 1], [0, 6, 5, 1]],
+    "blues": [[0, 0, 2, 0], [0, 2, 3, 0], [0, 4, 3, 2]], "pentatonic-minor": [[0, 0, 3, 2], [0, 3, 2, 0], [0, 2, 0, 4]],
 }
 STYLE_MODES = {
     "djent": ["phrygian", "minor", "harmonic", "phrygian-dominant", "neapolitan", "hungarian"],
@@ -43,7 +45,7 @@ STYLE_MODES = {
     "brostep": ["minor", "phrygian", "harmonic"],
     "blackgaze": ["major", "lydian", "dorian", "mixolydian"],
     "numetal": ["phrygian", "locrian", "minor"], "deathcore": ["phrygian", "harmonic", "locrian", "diminished"],
-    "postrock": ["major", "lydian", "mixolydian", "dorian"], "industrial": ["phrygian", "minor", "harmonic"], "dnb": ["minor", "phrygian", "dorian"],
+    "postrock": ["major", "lydian", "mixolydian", "dorian"], "groovemetal": ["blues", "pentatonic-minor", "phrygian", "minor"], "industrial": ["phrygian", "minor", "harmonic"], "dnb": ["minor", "phrygian", "dorian"],
     "darksynth": ["minor", "phrygian", "harmonic", "dorian"],
     "hardcore-kl": ["phrygian", "locrian", "minor", "diminished"],
     "tool": ["phrygian", "dorian", "locrian", "double-harmonic", "minor"],
@@ -1201,6 +1203,51 @@ def mirror_bass(tokens, d="/16"):
     return out
 
 
+# ---------- groove metal --------------------------------------------------------------------
+
+def gen_groovemetal(r, k, prog, low=28, kind="groove"):
+    """Pantera / Lamb of God: swung 16ths (swing16) — blues-scale riffs with b5 passing notes,
+    hammer-ons, pinch squeals and stops, the kick following the riff and a double-kick fill at the
+    phrase end (kind=groove); gallop choruses (gallop); half-time breakdown (half)."""
+    t = k.deg(0, low)
+    blues = [0, 3, 5, 6, 7, 10, 12]
+    cell = [r.choice(blues + [0, 0, 0]) if r.random() < 0.75 else None for _ in range(16)]
+    cell[0] = 0
+    gtr, kick, snare, cym = [], [], [], []
+    for i in range(64):
+        x = i % 16
+        bar = i // 16
+        if kind == "gallop":
+            if x % 4 in (0, 2, 3):
+                g = f"expr.pm={0 if x == 0 else 1} {chordhead([t, t + 7]) if x == 0 else mname(t)}/16@{120 if x == 0 else 104}"
+            else:
+                g = "R/16"
+            kick.append("k/16@114" if x % 4 in (0, 2, 3) else "R/16")
+        elif kind == "half":
+            g = f"expr.pm=0 {chordhead([t, t + 7, t + 12])}/16@124^gate=2" if x in (0, 7, 10) else "R/16"
+            kick.append("k/16@120" if x in (0, 7, 10) else "R/16")
+        else:
+            iv = cell[x]
+            if iv is None:
+                g = "R/16"
+            else:
+                m = t + iv + (12 if bar == 3 and x > 11 and iv < 7 else 0)
+                art = "^ph" if (iv in (6, 10, 12) and r.random() < 0.35) else ("^h" if x % 2 == 1 and r.random() < 0.3 else "")
+                pm = 1 if iv == 0 else 0
+                g = f"expr.pm={pm} {mname(m)}/16@{118 if x == 0 else 106}{art}"
+            kick.append(("k/16@112" if iv is not None and (iv == 0 or x % 4 == 0) else "R/16") if not (bar == 3 and x >= 12) else "k/16@116^r=2")
+        gtr.append(g)
+        back = x in (8,) if kind == "half" else x in (4, 12)
+        snare.append(f"{r.choice(['s', 's', 'sc'])}/16@118" if back else (f"g/16@{r.choice([30, 38])}" if r.random() < 0.12 else "R/16"))
+        cym.append((f"{r.choice(['x', 'c'])}/16@112" if x == 0 and bar % 2 == 0 else f"{r.choice(['rd', 'rds', 'h2'])}/16@{88 if x % 4 == 0 else 74}") if x % 2 == 0 else "R/16")
+    kit = rig("drums")
+    jn = lambda xs: " ".join(xs)
+    sw = "swing16=0.58 " if kind == "groove" else ""
+    gt = rhythm_tracks(sw + jn(gtr))
+    return gt + [track("bass", rig("bass"), sw + jn(mirror_bass(gtr)), seed=7), track("sub", rig("sub"), sw + jn(mirror_bass(gtr)), seed=7),
+                 track("kick", kit, sw + jn(kick)), track("snare", kit, sw + jn(snare)), track("cym", kit, sw + jn(cym))]
+
+
 # ---------- nu-metal ---------------------------------------------------------------------------
 
 def gen_numetal(r, k, prog, low=23, kind="bounce"):
@@ -1339,7 +1386,7 @@ def _write_parts(slot, style, parts, desc, beats=None):
 
 def params(style, rng=random):
     mode = rng.choice(STYLE_MODES.get(style, ["minor"]))
-    heavy = style in ("meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep", "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock")
+    heavy = style in ("meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep", "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock", "groovemetal")
     rigset = ("tech" if style == "tech-death" and rng.random() < 0.6 else
               "thrash" if style == "thrash" else
               "chug" if style in ("hardcore-kl", "brostep") else
@@ -1374,6 +1421,12 @@ def compose(style, slot, p):
             "hookE": gen_atmos(r, k, prog, 62, rig("atmos")),
         }
         return _write_parts(slot, "brostep", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
+    if style == "groovemetal":
+        parts = {"riff": gen_groovemetal(r, k, prog, 28, "groove"), "riffB": gen_groovemetal(r, k, prog, 28, "groove"),
+                 "riffG": gen_groovemetal(r, k, prog, 28, "gallop"), "riffH": gen_groovemetal(r, k, prog, 28, "half"),
+                 "solo": gen_shred(r, k, prog, 64, pick_patch("lead-wah", "lead-monster")), "hook": gen_hook(r, k, prog, 64, rig("lead"))}
+        parts["riffSoft"] = soften(parts["riff"])
+        return _write_parts(slot, "groovemetal", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
     if style == "deathcore":
         dl = 26  # tuned lower
         parts = {"riff": gen_blast(r, k, prog, dl, "bomb"), "riffB": gen_blast(r, k, prog, dl, "trad"),
