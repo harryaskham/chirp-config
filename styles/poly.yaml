@@ -15,3 +15,7 @@ roles:
   soft: [pad-swell]
   arp: [arp-16th]
   hold: [riff-hold]
+odd:
+  - {meter: 6/8, bars: 8, drums: [beat-68-trap, beat-68], riff: [riff-68-clean], chance: 0.35}
+  - {meter: 5/4, bars: 4, drums: [beat-54-ghost], riff: [riff-54-clean], chance: 0.35}
+  - {meter: 11/8, bars: 4, drums: [beat-118-ghost], riff: [riff-118-clean], chance: 0.35}

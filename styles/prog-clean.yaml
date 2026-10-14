@@ -23,3 +23,8 @@ progressions:
   - "i iv VII III"
   - "VI VII i i"
   - "i9 iv7 VImaj7 V7sus4"
+odd:
+  - {meter: 7/8, bars: 4, drums: [beat-78], riff: [riff-78-clean], chance: 0.4}
+  - {meter: 5/4, bars: 4, drums: [beat-54-ghost, beat-54], riff: [riff-54-clean], chance: 0.4}
+  - {meter: 7/4, bars: 4, drums: [beat-74], riff: [riff-74-clean], chance: 0.4}
+  - {meter: 11/8, bars: 4, drums: [beat-118-ghost, beat-118], riff: [riff-118-clean], chance: 0.4}
