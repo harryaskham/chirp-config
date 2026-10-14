@@ -726,7 +726,10 @@ def add_guests(ident, form, rng):
     ~60% of songs get one, some of those two."""
     if not ident.get("gen") or ident["style"] not in (composer.HEAVY_STYLES | composer.CHILL_STYLES) or len(form) < 4:
         return form
-    if ident["style"] in ("ukjazz",):  # odd-meter sections: guests (16 beats) would not fit its lengths
+    if ident["style"] in (composer.ODD_HOSTS_HEAVY | composer.ODD_HOSTS_CHILL) and rng.random() < 0.45:
+        form = list(form)
+        form.insert(rng.randrange(2, len(form) - 1), ("odd", ["riffOdd"], "impact"))  # an odd-meter excursion
+    if ident["style"] in ("ukjazz",):  # its own odd-meter sections: 16-beat guests would not fit
         return form
     x = rng.random()
     n = 0 if x < 0.4 else (1 if x < 0.85 else 2)

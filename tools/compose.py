@@ -3450,6 +3450,35 @@ def gen_fusion(r, k, prog, src, beat, with_beat=True):
     return out
 
 
+# Odd-meter guest sections from the engine's built-in parts (in F minor; length in beats, repeats).
+ODD_PARTS = {"54": (10, 2, "beat-54", "beat-54-ghost"), "68": (6, 3, "beat-68", "beat-68-trap"), "74": (14, 1, "beat-74", "beat-74"),
+             "78": (7, 2, "beat-78", "beat-78"), "118": (11, 2, "beat-118", "beat-118-ghost")}
+ODD_HOSTS_HEAVY = {"mathcore", "djazz", "tool", "djent", "meshuggah", "metalcore", "postmetal", "gojira", "tech-death", "postrock", "blackgaze", "groovemetal"}
+ODD_HOSTS_CHILL = {"ukjazz", "gogo", "neosoul", "fusion", "souljazz", "ethiojazz", "citypop"}
+
+
+def odd_section(style, slot, p):
+    """Write gen-SLOT-riffOdd: an engine odd-meter riff (+ its beat) transposed into the song's key."""
+    import zlib
+    r = random.Random(zlib.crc32(f"odd{p['seed']}".encode()))
+    meter = r.choice(sorted(ODD_PARTS))
+    beats, reps, beat_h, beat_c = ODD_PARTS[meter]
+    clean = style in ODD_HOSTS_CHILL
+    riff = f"riff-{meter}" + ("-clean" if clean else "")
+    beat = beat_c if clean else beat_h
+    t = (p["pc"] - 5) % 12
+    t = t - 12 if t > 6 else t
+    n = f"gen-{slot}-riffOdd"
+    total = beats * reps
+    LENGTHS[n] = total
+    tracks = [{"name": "odd", "score": f"tr={t} " + " ".join(f"@{riff}" for _ in range(reps))},
+              {"name": "oddbeat", "score": " ".join(f"@{beat}" for _ in range(reps))}]
+    lines = [f"about: {json.dumps(f'Generated part (tempo: inherit, {total:g} beats) — odd-meter guest ({meter[0]}/{meter[1:]} {riff} + {beat}) for {style}')}",
+             "tempo: inherit", f"length: {total:g}b", "tracks:"] + ["  - " + json.dumps(tr_) for tr_ in tracks]
+    open(f"{SONGS}/{n}.yaml", "w").write("\n".join(lines) + "\n")
+    return n, f"{meter[0]}/{meter[1:]}"
+
+
 def compose(style, slot, p):
     """Compose the style's parts, plus two guest sections from other styles (riffGuest1/2, same key)."""
     global _KEY, _CHAPTER
@@ -3458,6 +3487,10 @@ def compose(style, slot, p):
     _KEY = (p["pc"], p["mode"])
     _CHAPTER = p.get("chapter", 0)
     names, desc = _compose_style(style, slot, p)
+    if style in ODD_HOSTS_HEAVY | ODD_HOSTS_CHILL:
+        n, meter = odd_section(style, slot, p)
+        names["riffOdd"] = n
+        desc += f", odd {meter}"
     if style in CHILL_STYLES:
         r = random.Random(p["seed"] + 1)
         k = Key(p["pc"], p["mode"])

@@ -18,7 +18,8 @@ C=${XDG_RUNTIME_DIR:-/tmp}/chirp-groove
 log=${TMPDIR:-/tmp}/chirp-evolve.log
 pgrep -f "^[^ ]*python3 $here/evolve.py" | xargs -r kill
 # Stop with the new binary first (the pinned copy may be missing or older); any build speaks the socket protocol.
-"$src" stop groove >/dev/null 2>&1 || { [ -x "$C" ] && "$C" stop groove >/dev/null 2>&1; }
+# Musical stop (fade out on a bar line) where the build supports it; otherwise a plain stop.
+"$src" stop groove --at bar --fade 800ms >/dev/null 2>&1 || "$src" stop groove >/dev/null 2>&1 || { [ -x "$C" ] && "$C" stop groove >/dev/null 2>&1; }
 for _ in 1 2 3 4 5 6 7 8 9 10; do "$src" live list 2>/dev/null | grep -q '^groove ' || break; sleep 0.5; done
 cp -f "$src" "$C"
 sleep 0.3
