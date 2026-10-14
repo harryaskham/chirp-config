@@ -22,7 +22,7 @@
     {
       "name": "gtr-l",
       "track": 2,
-      "patch": "m8-chug-l",
+      "patch": "m8-obzen-l",
       "bars": [
         [
           1,
@@ -32,9 +32,22 @@
       "pan": -1
     },
     {
+      "name": "gtr-l2",
+      "track": 2,
+      "patch": "m8-obzen-l",
+      "bars": [
+        [
+          1,
+          212
+        ]
+      ],
+      "pan": -0.85,
+      "gain": "-3dB"
+    },
+    {
       "name": "gtr-r",
       "track": 0,
-      "patch": "m8-chug-r",
+      "patch": "m8-obzen-r",
       "bars": [
         [
           1,
@@ -46,6 +59,23 @@
         ]
       ],
       "pan": 1
+    },
+    {
+      "name": "gtr-r2",
+      "track": 0,
+      "patch": "m8-obzen-r",
+      "bars": [
+        [
+          1,
+          121
+        ],
+        [
+          171,
+          212
+        ]
+      ],
+      "pan": 0.85,
+      "gain": "-3dB"
     },
     {
       "name": "clean",
