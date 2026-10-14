@@ -1,0 +1,6 @@
+about: "Beat-tape chopper: the souljazz library part (lib-souljazz) resampled and cut into 16 slices — C4 plays slice 1, C#4 slice 2 … (MPC-style; re-sequence into new phrases)."
+synth:
+  layers:
+    - {type: sample, song: lib-souljazz, root: C4, slices: 16, level: 6dB}
+  amp: {a: 3ms, d: 0s, s: 1, r: 40ms}
+fx: [{type: filter, kind: lp, cutoff: 5000}, {type: crush, bits: 12, rate: 16000, mix: 0.3}, "reverb kind=room decay=0.8s mix=0.12"]
