@@ -1043,6 +1043,48 @@ def set_choir(ident, when="loop", variant=0):
     return name if r.returncode == 0 else f"{name}(rejected: {r.stderr.strip()[-80:]})"
 
 
+NOTE_NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"]
+
+
+def chord_symbol(k, degree, shift):
+    """A chord symbol (C:maj7, D:m7, E:7, B:dim…) for a scale degree of key k, transposed by shift."""
+    iv = k.iv
+    n = len(iv)
+    rt = (k.pc + iv[degree % n] + shift) % 12
+    third = (iv[(degree + 2) % n] - iv[degree % n]) % 12
+    fifth = (iv[(degree + 4) % n] - iv[degree % n]) % 12
+    if n != 7:
+        q = "m" if third == 3 else "maj"
+    else:
+        seventh = (iv[(degree + 6) % n] - iv[degree % n]) % 12
+        if third == 3 and fifth == 6:
+            q = "dim"
+        elif third == 3:
+            q = "m7"
+        elif seventh == 11:
+            q = "maj7"
+        else:
+            q = "7"
+    return f"{NOTE_NAMES[rt]}:{q}"
+
+
+def harmony_for(ident, meta):
+    """The chapter's chord progression for `harmony:` (shown by live status / chirp watch): one chord
+    per bar from the song's progression in 16-beat sections, the tonic held through other lengths."""
+    g = ident.get("gen") or {}
+    if not g.get("prog"):
+        return None
+    k = composer.Key(g["pc"], g["mode"])
+    shift = ident.get("key", 0)
+    out = []
+    for _, ln in meta:
+        if abs(ln - 16) < 1e-9:
+            out += [f"{chord_symbol(k, d, shift)}/1" for d in g["prog"]]
+        else:
+            out.append(f"{chord_symbol(k, 0, shift)}/{4 / ln:.4g}")
+    return " ".join(out)
+
+
 def write_form(name, ident):
     s = STYLES[ident["style"]]
     if ident.get("gen"):
@@ -1149,8 +1191,9 @@ def write_form(name, ident):
     modn = f", modulates {mod_tr:+d} at section {mod_at + 1}" if mod_at is not None else ""
     tmap, mdesc = metric_map(ident, meta) if ident.get("gen") else (None, "")
     modn += mdesc
+    harm = harmony_for(ident, meta)
     lines = [f"about: Generated {s['form']}-form song ({ident.get('fv', 'base')}) — {ident['style']} at {ident['tempo']} BPM, {gdesc}, shift {ident['key']:+d}{modn}, chapter {ident.get('chapter', 0) + 1}/{len(chs)}, comp {ident.get('comp', 'glue')}.",
-             f"tempo: {json.dumps(tmap) if tmap else ident['tempo']}", "tracks:"]
+             f"tempo: {json.dumps(tmap) if tmap else ident['tempo']}"] + ([f"harmony: {json.dumps(harm)}"] if harm else []) + ["tracks:"]
     for t, items in tracks.items():
         if t == "hook" and ident["style"] in composer.CHILL_STYLES:
             lines.append("  - " + json.dumps(dict({"name": t, "score": " ".join(items)}, lfo=HOOK_LIVE["lfo"],
