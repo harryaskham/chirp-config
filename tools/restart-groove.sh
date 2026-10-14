@@ -2,7 +2,7 @@
 # restart-groove.sh SONG [ARRANGEMENT] — restart the live `groove` on a pinned copy of the current
 # chirp binary (so rebuilds don't change the engine under it) and resume the evolver.
 #   CHIRP_SRC  binary to pin (default: $CHIRP_BIN or `command -v chirp`)
-#   CHIRP_OUT  output device (default: music)
+#   CHIRP_OUT  output profile (default: tools/groove-out, else music)
 set -u
 # One restart at a time (sync.sh and watchdog.sh can both trigger one): wait up to 60 s for the lock.
 exec 9>"${TMPDIR:-/tmp}/chirp-restart-v2.lock"
@@ -25,7 +25,16 @@ cp -f "$src" "$C"
 sleep 0.3
 # A generous output buffer: the music sink is a phone over Wi-Fi, and network jitter otherwise
 # starves the stream (underruns) even when rendering is far ahead of real time.
-PULSE_LATENCY_MSEC=${CHIRP_PULSE_LATENCY_MSEC:-1000} setsid nohup "$C" --loop --id groove -o "${CHIRP_OUT:-music}" -s "${1:-live-suite}" > "${TMPDIR:-/tmp}/chirp-groove.log" 2>&1 < /dev/null 9>&- &
+# output profile: CHIRP_OUT, else tools/groove-out (runtime state), else music. The environment's PULSE_SERVER may
+# point at a remote box, so it is unset: every profile names its own server. `chirp` is a pocket4-local null sink,
+# (re)created here if missing so the groove never depends on the network during benchmark runs.
+out=${CHIRP_OUT:-$(cat "$here/groove-out" 2>/dev/null || echo music)}
+if [ "$out" = chirp ]; then
+  local_pulse="unix:/run/user/$(id -u)/pulse/native"
+  env -u PULSE_SERVER pactl -s "$local_pulse" list short sinks 2>/dev/null | grep -qw chirp \
+    || env -u PULSE_SERVER pactl -s "$local_pulse" load-module module-null-sink sink_name=chirp rate=48000 channels=2 sink_properties=device.description=chirp >/dev/null
+fi
+PULSE_LATENCY_MSEC=${CHIRP_PULSE_LATENCY_MSEC:-1000} setsid nohup env -u PULSE_SERVER "$C" --loop --id groove -o "$out" -s "${1:-live-suite}" > "${TMPDIR:-/tmp}/chirp-groove.log" 2>&1 < /dev/null 9>&- &
 sleep 1.2
 if [ -n "${2:-}" ]; then "$C" live set --id groove --when bar --xfade 150ms "tracks.arrangement.score=$2" | tail -1; fi
 # the evolver only drives live-suite; any other song (a benchmark reproduction) plays as written

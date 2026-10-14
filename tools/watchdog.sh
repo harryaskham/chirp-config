@@ -18,7 +18,9 @@ while true; do
       if [ -n "$pos" ] && [ "$pos" = "$last" ]; then reason="frozen at $pos"; fi
       last="$pos"
     fi
-    if [ -n "$reason" ] && pactl -s "$pulse" info >/dev/null 2>&1; then
+    out=$(cat "$here/groove-out" 2>/dev/null || echo music)
+    if [ "$out" = chirp ]; then pulse="unix:/run/user/$(id -u)/pulse/native"; else pulse=${PULSE:-tcp:sgu24:4713}; fi
+    if [ -n "$reason" ] && env -u PULSE_SERVER pactl -s "$pulse" info >/dev/null 2>&1; then
       nxt=$(python3 -c "import json;print(json.load(open('$here/state.json')).get('next') or 'form-1')" 2>/dev/null || echo form-1)
       echo "$(date +%T) watchdog: groove $reason — restarting (@$nxt)"
       song=$(cat "$here/groove-song" 2>/dev/null || echo live-suite)  # what the groove should play (runtime state)

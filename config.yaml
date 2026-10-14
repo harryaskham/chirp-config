@@ -4,6 +4,8 @@ output:
 outputs:
   music: {server: "tcp:sgu24:4713", sink: vsink_music, role: music}
   fx: {server: "tcp:sgu24:4713", sink: vsink_fx}
+  # pocket4-local null sink (48 kHz): no network in the loop — deterministic for benchmark runs
+  chirp: {server: "unix:/run/user/1000/pulse/native", sink: chirp, role: music}
 
 # Live audio for `input` tracks (docs/inputs.md): agent speech on sgu24.
 inputs:
