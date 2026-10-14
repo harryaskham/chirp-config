@@ -1,0 +1,8 @@
+about: "Tape-replay flute (Mellotron): a breathy flute tone, band-limited like old tape, with wow and a soft swell. Lofi, Radiohead/Beatles textures."
+synth:
+  layers: [sine, {wave: triangle, ratio: 2, level: -16dB}, {type: noise, color: pink, level: -30dB}]
+  filters: ["hp cutoff=250", "lp cutoff=4k"]
+  amp: {a: 45ms, d: 300ms, s: 0.85, r: 180ms}
+play: {gate: 1, vel_sens: 0.4}
+fx: [{type: chorus, rate: 0.6, depth: 0.25, voices: 1, mix: 1.0}, "tape drive=0.3 warmth=0.6", "reverb kind=room decay=1.2s mix=0.16"]
+gain: -10dB

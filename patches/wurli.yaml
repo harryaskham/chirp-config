@@ -1,0 +1,14 @@
+about: "Wurlitzer-style electric piano: a reedy, barking FM tone (brighter and grittier than the Rhodes), stereo tremolo, a touch of drive. Soul, lofi, jazz comping."
+synth:
+  layers:
+    - {name: mod, ratio: 1, audible: false}
+    - {name: reed, ratio: 3, audible: false}
+    - {wave: sine, pm: [{from: mod, depth: {value: 0.9, mod: [{src: env.bark, amount: 1.6}, {src: vel, amount: 1.0}]}}, {from: reed, depth: {value: 0.1, mod: [{src: env.bark, amount: 0.4}]}}]}
+  env:
+    bark: {a: 1ms, d: 350ms, s: 0.25, r: 150ms}
+  filters: ["peak cutoff=1200 q=1 gain=3dB", "lp cutoff=6k"]
+  amp: {a: 2ms, d: 1.8s, s: 0.25, r: 220ms}
+  drive: 0.2
+play: {gate: 0.95, vel_sens: 0.6, humanize: {time: 6ms, vel: 0.06}}
+fx: ["tremolo rate=5.5hz depth=0.25", "reverb kind=room decay=1s mix=0.14"]
+gain: -9dB

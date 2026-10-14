@@ -1,0 +1,11 @@
+about: "Theremin / ondes-like voice: a pure singing sine with a whisper of 2nd harmonic, deep slow vibrato and long glides (mono legato). Eerie ambient and Radiohead lines."
+synth:
+  layers: [sine, {wave: sine, ratio: 2, level: -18dB}]
+  lfo:
+    vib: {wave: sine, rate: 5.8hz, delay: 200ms, fade: 500ms}
+  pitch: {value: 0, mod: [{src: lfo.vib, amount: 0.3}]}
+  filters: ["lp cutoff=5k"]
+  amp: {a: 60ms, d: 200ms, s: 0.9, r: 300ms}
+play: {mono: true, legato: true, glide: 140ms, gate: 1, vel_sens: 0.3}
+fx: ["reverb kind=plate decay=2.6s mix=0.3 predelay=20ms"]
+gain: -11dB

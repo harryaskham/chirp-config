@@ -1,0 +1,23 @@
+about: "Harmon-muted jazz trumpet (Miles): a buzzy brass tone pinched by the mute's nasal resonances, a soft breathy onset with a little tongue, delayed vibrato; harder notes brighten. Ballads, bossa, cool jazz leads."
+synth:
+  layers:
+    - {wave: saw, level: -4dB}
+    - {wave: pulse, width: 0.3, level: -8dB}
+    - {type: noise, color: pink, level: {value: -40dB, mod: [{src: env.breath, amount: 16}]}}
+  env:
+    breath: {a: 4ms, d: 90ms, s: 0.15, r: 80ms}
+    bright: {a: 25ms, d: 300ms, s: 0.6, r: 120ms}
+  lfo:
+    vib: {wave: sine, rate: 5.2hz, delay: 350ms, fade: 400ms, retrig: true}
+  pitch: {value: 0, mod: [{src: lfo.vib, amount: 0.12}, {src: rand, amount: 0.05}]}
+  filters:
+    - "hp cutoff=500"
+    - {kind: bp, cutoff: {value: 1500, mod: [{src: env.bright, amount: 0.7}, {src: vel, amount: 0.6}]}, q: 1.6}
+    - "peak cutoff=2800 q=2.5 gain=8dB"
+    - "peak cutoff=4200 q=3 gain=4dB"
+    - "lp cutoff=7k"
+  amp: {a: 30ms, d: 200ms, s: 0.85, r: 140ms}
+  drive: 0.25
+play: {mono: true, legato: true, glide: 35ms, gate: 0.95, vel_sens: 0.6, humanize: {time: 8ms, vel: 0.06}}
+fx: ["reverb kind=room decay=1.2s mix=0.18 predelay=12ms"]
+gain: -8dB

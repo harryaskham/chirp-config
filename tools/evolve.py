@@ -144,6 +144,9 @@ STYLES = {
   "ballad": dict(form="ballad", tempo=(60, 76), off=0, riff=["keys-lofi"], riff_off=0, lift=0,
                      low=["beat-sparse"], mid=["beat-lofi"], high=["beat-lofi"], half=["beat-sparse"], brk=["beat-sparse"],
                      hook=["lead-hook"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["pad-swell"]),
+  "bossa": dict(form="bossa", tempo=(120, 140), off=0, riff=["keys-lofi"], riff_off=0, lift=0,
+                     low=["beat-sparse"], mid=["beat-lofi"], high=["beat-lofi"], half=["beat-sparse"], brk=["beat-sparse"],
+                     hook=["lead-hook"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["pad-swell"]),
   "tech-death": dict(form="tech-death", tempo=(170, 220), off=0, riff=["riff-chug7"], riff_off=0, lift=0,
                      low=["beat-sparse"], mid=["beat-blast"], high=["beat-blast"], half=["beat-halftime"], brk=["beat-doom"],
                      hook=["lead-solo"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["riff-hold"]),
@@ -264,6 +267,8 @@ FORMS = {
   "neoclassical": [("intro", ["riffP"], None), ("A", ["riff"], None), ("A2", ["riff", "hookE"], None), ("B", ["riffB"], None),
                    ("B2", ["riffB", "hookE"], None), ("A", ["riffP"], None), ("outro", ["riffP"], None)],
   "ballad": [("A", ["riff"], None), ("A2", ["riff", "hook"], None), ("B", ["riffB", "hook"], None), ("A2", ["riff", "hook"], None), ("outro", ["riffB"], None)],
+  "bossa": [("intro", ["riffG"], None), ("A", ["riff", "hook"], None), ("A", ["riff"], None), ("B", ["riffB", "hook", "pad"], None),
+            ("A2", ["riff", "hook"], None), ("outro", ["riffG"], None)],
   "tech-death": [("blast", ["riff"], "impact"), ("blast", ["riffB", "pad"], None), ("dbeat", ["riffD"], "impact"),
                  ("dbeat", ["riffD", "hook"], None), ("groove", ["riffSoft"], "impact"), ("groove", ["riffG", "pad"], None),
                  ("blast", ["riff", "hook"], "impact"), ("break", ["riffBrk"], "impact"), ("break", ["riffBrk", "drone"], None),
@@ -442,7 +447,7 @@ MOD_STEPS = [1, -1, 2, 3, -3, 5, 6, -6]  # half/whole steps, minor thirds, fourt
 
 
 METRIC = [(3, 2), (2, 3), (4, 3), (3, 4)]
-STEADY = {"lofihop", "ambient", "downtempo", "house-melodic", "chamber", "triphop", "neoclassical", "ballad"}  # chill styles that hold key and tempo
+STEADY = {"lofihop", "ambient", "downtempo", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa"}  # chill styles that hold key and tempo
 
 
 def metric_map(ident, meta):
@@ -730,7 +735,7 @@ def journey_load():
         return {"on": False, "h": 0.0, "rate": 0.09, "passes_per_song": 2}
 
 CHILL_MIX = [("lofihop", 0.16), ("gogo", 0.11), ("ukjazz", 0.1), ("ambient", 0.1), ("downtempo", 0.09), ("smile", 0.09),
-             ("house-melodic", 0.08), ("chamber", 0.05), ("triphop", 0.08), ("neoclassical", 0.08), ("ballad", 0.06)]
+             ("house-melodic", 0.08), ("chamber", 0.05), ("triphop", 0.08), ("neoclassical", 0.08), ("ballad", 0.06), ("bossa", 0.07)]
 
 
 AMBIENTISH = ["ambient", "ambient", "downtempo", "chamber"]

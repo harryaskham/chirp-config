@@ -1,0 +1,8 @@
+about: "Tape-replay strings (Mellotron): band-limited, slightly wobbly saw strings with a slow swell — Strawberry Fields / Radiohead textures."
+synth:
+  layers: ["saw unison=3 detune=0.12 spread=0.6", "saw ratio=2 level=-14dB"]
+  filters: ["hp cutoff=200", "lp cutoff=3.5k q=0.7", "peak cutoff=1100 q=1 gain=2dB"]
+  amp: {a: 80ms, d: 400ms, s: 0.85, r: 300ms}
+play: {gate: 1, vel_sens: 0.4}
+fx: [{type: chorus, rate: 0.5, depth: 0.3, voices: 1, mix: 1.0}, "tape drive=0.35 warmth=0.6", "reverb kind=hall decay=2.2s mix=0.2"]
+gain: -11dB

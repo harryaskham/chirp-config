@@ -1,0 +1,4 @@
+about: "Worn lofi piano: the concert grand through tape wow, a low-pass, light crush and tape warmth."
+extends: piano
+fx: [{type: chorus, rate: 0.5, depth: 0.2, voices: 1, mix: 1.0}, {type: filter, kind: lp, cutoff: 4500}, {type: crush, bits: 12, rate: 16000, mix: 0.3}, "tape drive=0.3 warmth=0.65", "reverb kind=room decay=1s mix=0.15"]
+gain: -10dB

@@ -58,6 +58,7 @@ STYLE_MODES = {
     "smile": ["dorian", "minor", "mixolydian", "phrygian"], "house-melodic": ["dorian", "minor", "major"],
     "chamber": ["major", "minor", "harmonic", "dorian"],
     "triphop": ["minor", "phrygian", "harmonic"], "neoclassical": ["major", "minor", "lydian", "dorian"], "ballad": ["major", "dorian", "minor"],
+    "bossa": ["major", "dorian", "minor", "lydian"],
     "koto": ["hirajoshi", "hirajoshi", "phrygian"],
     "djazz": ["dorian", "lydian", "harmonic", "minor", "mixolydian"], "industrial": ["phrygian", "minor", "harmonic"], "dnb": ["minor", "phrygian", "dorian"],
     "darksynth": ["minor", "phrygian", "harmonic", "dorian"],
@@ -1810,7 +1811,7 @@ def gen_lofi(r, k, prog, kind="main"):
     out = []
     if kind != "intro":
         out += gen_lofi_drums(r, busy=kind == "busy")
-    out += gen_comp(r, k, prog, 50, pick_patch("rhodes", "piano"), swing=0.62)
+    out += gen_comp(r, k, prog, 50, pick_patch(r.choice(["rhodes", "wurli", "tape-piano"]), "rhodes"), swing=0.62)
     if kind != "intro":
         out.append(track("bass", pick_patch("finger-bass", "bass-di"), "swing16=0.62 " + " ".join(
             f"{mname(k.deg(root, 33))}/4.@{90} {mname(k.deg(root + r.choice([4, 2, 0]), 33))}/8@{78} R/4 {mname(k.deg(root, 33))}/4@84" for root in prog), seed=7))
@@ -1853,6 +1854,7 @@ def gen_broken(r, k, prog, meter=7, kind="main"):
     reps = 4 if meter in (7, 9) else 3
     n = meter * 2 * reps  # 16ths
     kick, snare, hats, keys, bass = [], [], [], [], []
+    keys_patch = pick_patch(r.choice(["rhodes", "wurli"]), "rhodes")
     for i in range(n):
         x = i % (meter * 2)
         bar = i // (meter * 2)
@@ -1867,7 +1869,7 @@ def gen_broken(r, k, prog, meter=7, kind="main"):
     out = [track("kick", kit, jn(kick)), track("snare", kit, jn(snare)), track("hats", kit, jn(hats), pan=0.12, gain="-3dB"),
            track("bass", pick_patch("upright-bass", "finger-bass"), jn(bass), seed=7)]
     if kind != "drums":
-        out.append(track("keys", pick_patch("rhodes", "piano"), jn(keys), pan=-0.15))
+        out.append(track("keys", keys_patch, jn(keys), pan=-0.15))
     return out
 
 
@@ -1884,8 +1886,10 @@ def gen_ambient(r, k, prog, kind="A"):
     out.append(track("twinkle", tw, " ".join(notes), pan=r.choice([-0.4, 0.4]), fx=expand(["rack:shimmer-hall"]), gain="-4dB"))
     bowl = pick_patch(r.choice(["singing-bowl", "handpan"]), "bell")
     out.append(track("bowl", bowl, " ".join(f"{mname(k.deg(root, 48))}/1@{60}" if i % 2 == 0 else "R/1" for i, root in enumerate(prog)), gain="-6dB"))
+    if have("pad-glass") and r.random() < 0.4:
+        out += [dict(t, name="glass", gain="-8dB") for t in gen_pad(r, k, prog, 60, "pad-glass", vel=60)]
     if kind == "B":
-        out += [dict(t, gain="-6dB") for t in gen_atmos(r, k, prog, 62, pick_patch("ebow", "ambient-swell"))]
+        out += [dict(t, gain="-6dB") for t in gen_atmos(r, k, prog, 62, pick_patch(r.choice(["ebow", "theremin"]), "ambient-swell"))]
     return out
 
 
@@ -1954,7 +1958,7 @@ def gen_smile(r, k, prog, kind="arp"):
     if kind != "quiet":
         out += gen_trio_drums(r, "groove")
     if kind == "full":
-        out += [dict(t, name="strings") for t in gen_pad(r, k, prog, 48, "strings", gain="-10dB", vel=64)]
+        out += [dict(t, name="strings") for t in gen_pad(r, k, prog, 48, pick_patch(r.choice(["strings", "mellotron-strings"]), "strings"), gain="-10dB", vel=64)]
     return out
 
 
@@ -1982,6 +1986,8 @@ def gen_neoclassical(r, k, prog, kind="main"):
     beneath (kind main/full), celesta glints (full)."""
     out = [dict(t, gain="-2dB") for t in gen_ostinato(r, k, prog, 60, "piano", r.choice([[3, 3, 2], [4, 4], [3, 5]]))]
     out = [dict(t, score=re.sub(r"@(\d+)", lambda m_: "@" + str(int(int(m_.group(1)) * 0.8)), t["score"])) for t in out]  # softer touch
+    if kind == "full" and r.random() < 0.5:
+        out += [dict(t, name="glass", gain="-10dB") for t in gen_pad(r, k, prog, 60, pick_patch("pad-glass", "pad"), vel=56)]
     if kind in ("main", "full"):
         out.append(track("cellos", pick_patch("cellos", "strings"), " ".join(f"{mname(k.deg(root, 36))}/1@{66}" for root in prog), gain="-6dB"))
     if kind == "full":
@@ -2006,6 +2012,34 @@ def gen_ballad(r, k, prog, kind="trio"):
     room = expand(["rack:piano-room"])
     return [track("ride", kit, sw + ride), track("snare", kit, sw + snare), track("piano", "piano", " ".join(piano), pan=-0.15, fx=room),
             track("bass", pick_patch("upright-bass", "finger-bass"), " ".join(bass), seed=7)]
+
+
+def gen_bossa(r, k, prog, kind="main"):
+    """Bossa nova: nylon comping in the syncopated Gilberto pattern (thumb basses on 1 and 3, rootless
+    maj7/m7/9 voicings between), rim clicks on a 3-2 clave, soft shaker, upright root–fifth; kind=guitar
+    is the guitar alone."""
+    stabs = r.choice([[3, 6, 10, 13], [2, 6, 9, 13], [3, 7, 10, 14]])
+    gtr, bass = [], []
+    for root in prog:
+        v = chordhead([k.deg(root + d, 52) for d in r.choice([[2, 4, 6, 8], [4, 6, 8, 9], [2, 6, 8, 11]])])
+        for x in range(16):
+            if x in (0, 8):
+                gtr.append(f"{mname(k.deg(root + (0 if x == 0 else 4), 40))}/16@{72}^gate=3")
+            elif x in stabs:
+                gtr.append(f"{v}/16@{r.choice([62, 68])}^gate=2")
+            else:
+                gtr.append("R/16")
+        bass.append(f"{mname(k.deg(root, 33))}/4.@80 {mname(k.deg(root + 4, 33))}/8@70 {mname(k.deg(root, 33))}/4.@78 {mname(k.deg(root + 4, 33))}/8@68")
+    out = [track("gtr", pick_patch("nylon", "acoustic"), " ".join(gtr), pan=-0.15)]
+    if kind == "guitar":
+        return out
+    kit = rig("drums")
+    clave = {0, 6, 12, 20, 24}
+    rim = " ".join(("rc/16@70" if (i % 32) in clave else "R/16") for i in range(64))
+    shaker = " ".join(f"shk/16@{48 if i % 4 == 0 else 34}" for i in range(64))
+    kick = " ".join(("k/16@58" if i % 8 == 0 else "R/16") for i in range(64))
+    return out + [track("bass", pick_patch("upright-bass", "finger-bass"), " ".join(bass), seed=7),
+                  track("rim", kit, rim), track("shaker", kit, shaker, pan=0.2, gain="-4dB"), track("kick", kit, kick)]
 
 
 def gen_downtempo(r, k, prog, kind="main"):
@@ -2044,6 +2078,7 @@ GUESTS = {
 
 CHILL_GUESTS = {
     "ballad": (lambda r, k, prog: gen_ballad(r, k, prog), {"ballad"}),
+    "bossa": (lambda r, k, prog: gen_bossa(r, k, prog), {"bossa"}),
     "neo": (lambda r, k, prog: gen_neoclassical(r, k, prog), {"neoclassical", "chamber"}),
     "ambient": (lambda r, k, prog: gen_ambient(r, k, prog, "A"), {"ambient"}),
     "lofi": (lambda r, k, prog: gen_lofi(r, k, prog), {"lofihop"}),
@@ -2088,7 +2123,7 @@ def compose(style, slot, p):
     return names, desc
 
 
-CHILL_STYLES = {"lofihop", "gogo", "ukjazz", "ambient", "downtempo", "smile", "house-melodic", "chamber", "triphop", "neoclassical", "ballad"}
+CHILL_STYLES = {"lofihop", "gogo", "ukjazz", "ambient", "downtempo", "smile", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa"}
 HEAVY_STYLES = {"meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep",
                 "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock", "groovemetal", "power", "sludge",
                 "breakcore", "mathcore", "gojira", "djazz", "raga", "gamelan", "koto"}
@@ -2119,6 +2154,11 @@ def _compose_style(style, slot, p):
             "hookE": gen_atmos(r, k, prog, 62, rig("atmos")),
         }
         return _write_parts(slot, "brostep", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
+    if style == "bossa":
+        parts = {"riffG": gen_bossa(r, k, prog, "guitar"), "riff": gen_bossa(r, k, prog), "riffB": gen_bossa(r, k, prog),
+                 "hook": gen_hook(r, k, prog, 64, pick_patch(r.choice(["flute", "trumpet-mute", "trumpet-mute"]), "flute")),
+                 "pad": gen_pad(r, k, prog, 52, "strings", gain="-12dB", vel=58)}
+        return _write_parts(slot, "bossa", parts, f"{NAMES[p['pc']]} {p['mode']}")
     if style == "triphop":
         parts = {"riffI": gen_triphop(r, k, prog, "intro"), "riff": gen_triphop(r, k, prog), "riffB": gen_triphop(r, k, prog, "full"),
                  "hook": gen_hook(r, k, prog, 62, pick_patch(r.choice(["ebow", "flute", "rhodes"]), "rhodes"))}
@@ -2129,12 +2169,12 @@ def _compose_style(style, slot, p):
         return _write_parts(slot, "neoclassical", parts, f"{NAMES[p['pc']]} {p['mode']}")
     if style == "ballad":
         parts = {"riff": gen_ballad(r, k, prog), "riffB": gen_ballad(r, k, prog),
-                 "hook": gen_hook(r, k, prog, 64, pick_patch(r.choice(["clarinet", "flute", "vibes", "piano"]), "vibes"))}
+                 "hook": gen_hook(r, k, prog, 64, pick_patch(r.choice(["clarinet", "flute", "vibes", "piano", "trumpet-mute"]), "vibes"))}
         return _write_parts(slot, "ballad", parts, f"{NAMES[p['pc']]} {p['mode']}")
     if style == "smile":
         parts = {"riffQ": gen_smile(r, k, prog, "quiet"), "riff": gen_smile(r, k, prog), "riffF": gen_smile(r, k, prog, "full"),
                  "riff5": gen_tool(r, k, 40, 10, r.choice([[3, 3, 2, 2], [3, 3, 4]]), "clean", reps=3) + gen_trio_drums(r, "sparse")[:0],
-                 "hookE": [dict(t, gain="-6dB") for t in gen_atmos(r, k, prog, 64, pick_patch("ebow", "synth-lead"))]}
+                 "hookE": [dict(t, gain="-6dB") for t in gen_atmos(r, k, prog, 64, pick_patch(r.choice(["ebow", "theremin"]), "synth-lead"))]}
         lens = {"riff5": 10 * 3 / 2}
         return _write_parts(slot, "smile", parts, f"{NAMES[p['pc']]} {p['mode']}", lens)
     if style == "house-melodic":
@@ -2147,7 +2187,7 @@ def _compose_style(style, slot, p):
         return _write_parts(slot, "chamber", parts, f"{NAMES[p['pc']]} {p['mode']}")
     if style == "lofihop":
         parts = {"riffI": gen_lofi(r, k, prog, "intro"), "riff": gen_lofi(r, k, prog), "riffB": gen_lofi(r, k, prog, "busy"),
-                 "hook": gen_hook(r, k, prog, 64, pick_patch(r.choice(["vibes", "nylon", "rhodes", "flute"]), "rhodes")),
+                 "hook": gen_hook(r, k, prog, 64, pick_patch(r.choice(["vibes", "nylon", "rhodes", "flute", "mellotron-flute", "tape-piano"]), "rhodes")),
                  "arp": [dict(t, gain="-6dB") for t in gen_arp(r, k, prog, 72, pick_patch("kalimba", "music-box"))]}
         return _write_parts(slot, "lofihop", parts, f"{NAMES[p['pc']]} {p['mode']}")
     if style == "gogo":

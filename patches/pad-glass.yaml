@@ -1,0 +1,12 @@
+about: "Glass pad: an FM bell-glass tone that blooms in slowly, with chorus and a long hall. Ambient fields and neo-classical beds."
+synth:
+  layers:
+    - {name: mod, ratio: 3.5, audible: false}
+    - {pm: [{from: mod, depth: {value: 0.15, mod: [{src: env.glint, amount: 0.6}]}}]}
+    - "sine ratio=2 level=-14dB"
+  env:
+    glint: {a: 600ms, d: 2s, s: 0.3, r: 1.5s}
+  amp: {a: 500ms, d: 1s, s: 0.85, r: 1.6s}
+play: {gate: 1, vel_sens: 0.3}
+fx: ["chorus rate=0.3 depth=0.5 mix=0.35", "reverb kind=hall decay=4.5s mix=0.38 predelay=30ms"]
+gain: -10dB
