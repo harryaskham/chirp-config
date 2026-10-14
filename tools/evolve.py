@@ -1098,7 +1098,7 @@ def write_form(name, ident):
     s = STYLES[ident["style"]]
     if ident.get("gen"):
         # Freshly composed melodic parts in their own key: no F-based offsets.
-        names, gdesc = composer.compose(ident["style"], name, dict(ident["gen"], chapter=ident.get("chapter", 0)))
+        names, gdesc = composer.compose(ident["style"], name, dict(ident["gen"], chapter=ident.get("chapter", 0), tempo=ident.get("tempo", 100)))
         lens = {role: composer.LENGTHS.get(n, 16) for role, n in names.items()}
         ident = dict(ident, **names)
         ident["solo"] = names.get("solo", names.get("hook"))

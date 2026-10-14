@@ -2068,6 +2068,7 @@ def feel_track(t, profile, r):
 
 _KEY = (0, "minor")
 _CHAPTER = 0
+_TEMPO = 100
 LITE = False  # set by the evolver when the groove's render load is high: skip optional layers
 VOX_CHOPS = {"house-melodic": 0.6, "cyberscape": 0.5, "fusion": 0.3, "dnb": 0.5, "brostep": 0.4, "garage": 0.6, "house": 0.5, "darksynth": 0.3}
 ORCH_HITS = {"darksynth": 0.5, "industrial": 0.4, "power": 0.5, "deathcore": 0.4, "numetal": 0.3, "brostep": 0.3}
@@ -3414,6 +3415,13 @@ CHOP_SOURCES = ["satie", "souljazz", "ballad", "neoclassical", "bossa", "kankyo"
                 "berlin", "guofeng", "mali", "handpan", "chillwave", "vaporwave", "celtic", "smile"]
 
 
+def chop_patch(src):
+    """A chop-SRC patch time-stretched so each slice lasts one beat of the song (library parts render
+    at 120 BPM, so speed = tempo / 120; pitch is unchanged)."""
+    base = pick_patch(f"chop-{src}", "chopper")
+    return f"{base} layers.0.speed={_TEMPO / 120:.3f}" if base.startswith("chop-") else base
+
+
 def chop_phrase(r, bars=4):
     """An MPC phrase: 8 eighth steps per bar, mostly runs of adjacent slices (they belong together),
     some rests; each bar flips a couple of steps."""
@@ -3435,7 +3443,7 @@ def gen_beattape(r, k, prog, kind="main", src=None, src2=None):
     re-sequenced into new phrases (flipped each bar) over dusty boom-bap, a soft tonic bass and vinyl;
     kind=full adds a second source as a counter-chop; kind=intro is the chops and vinyl."""
     src = src or r.choice(CHOP_SOURCES)
-    out = [track("chops", pick_patch(f"chop-{src}", "chopper"), chop_phrase(r)), track("vinyl", pick_patch("vinyl", "pad"), "C4/1 _ _ _", gain="-2dB")]
+    out = [track("chops", chop_patch(src), chop_phrase(r)), track("vinyl", pick_patch("vinyl", "pad"), "C4/1 _ _ _", gain="-2dB")]
     if kind == "intro":
         return out
     kit = pick_patch("lofi-kit", "tight-kit")
@@ -3446,7 +3454,7 @@ def gen_beattape(r, k, prog, kind="main", src=None, src2=None):
             track("bass", pick_patch("sub-sine", "finger-bass"), " ".join("C2/4@86 R/4 R/8 C2/8@70 R/4" for _ in range(4)), seed=7, gain="-7dB")]
     if kind == "full" and not LITE:
         s2 = src2 or r.choice([c for c in CHOP_SOURCES if c != src])
-        out.append(track("chops2", pick_patch(f"chop-{s2}", "chopper"), chop_phrase(r), pan=0.3, gain="-6dB"))
+        out.append(track("chops2", chop_patch(s2), chop_phrase(r), pan=0.3, gain="-6dB"))
     return out
 
 
@@ -3458,7 +3466,7 @@ def gen_lofihouse(r, k, prog, kind="main", src=None, src2=None):
     src = src or r.choice(CHOP_SOURCES)
     pump = {"pump": {"points": sum(([[f"{b}b", 0.0], [f"{b + 0.2:g}b", 0.4], [f"{b + 0.85:g}b", 1.0]] for b in range(16)), []) + [["16b", 1.0]]}}
     chops = "swing16=0.58 " + " ".join(tok.replace("/8@", "/16@") + " R/16" if tok != "R/8" else "R/8" for tok in chop_phrase(r).split())
-    out = [track("chops", pick_patch(f"chop-{src}", "chopper"), chops, auto=pump, gain={"value": "-4dB", "mod": [{"src": "auto.pump", "amount": 4}]}),
+    out = [track("chops", chop_patch(src), chops, auto=pump, gain={"value": "-4dB", "mod": [{"src": "auto.pump", "amount": 4}]}),
            track("vinyl", pick_patch("vinyl", "pad"), "C4/1 _ _ _", gain="-4dB")]
     if kind == "intro":
         return out
@@ -3471,7 +3479,7 @@ def gen_lofihouse(r, k, prog, kind="main", src=None, src2=None):
             track("pad", pick_patch("juno-pad", "pad"), "C3,G3/1@56 _ _ _", gain="-10dB", auto=pump)]
     if kind == "full" and not LITE:
         s2 = src2 or r.choice([c for c in CHOP_SOURCES if c != src])
-        out.append(track("chops2", pick_patch(f"chop-{s2}", "chopper"), chop_phrase(r), pan=0.35, gain="-8dB"))
+        out.append(track("chops2", chop_patch(s2), chop_phrase(r), pan=0.35, gain="-8dB"))
     return out
 
 
@@ -3888,7 +3896,8 @@ def odd_section(style, slot, p):
 
 def compose(style, slot, p):
     """Compose the style's parts, plus two guest sections from other styles (riffGuest1/2, same key)."""
-    global _KEY, _CHAPTER
+    global _KEY, _CHAPTER, _TEMPO
+    _TEMPO = p.get("tempo", 100)
     if style in ("beattape", "lofihouse"):  # the chopped samples are in C: these styles live in their key
         p = dict(p, pc=0)
     _KEY = (p["pc"], p["mode"])
