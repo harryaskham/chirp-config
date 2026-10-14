@@ -59,6 +59,7 @@ STYLE_MODES = {
     "chamber": ["major", "minor", "harmonic", "dorian"],
     "triphop": ["minor", "phrygian", "harmonic"], "neoclassical": ["major", "minor", "lydian", "dorian"], "ballad": ["major", "dorian", "minor"],
     "bossa": ["major", "dorian", "minor", "lydian"], "dub": ["minor", "dorian", "mixolydian"],
+    "manouche": ["harmonic", "minor", "harmonic", "major"],
     "koto": ["hirajoshi", "hirajoshi", "phrygian"],
     "djazz": ["dorian", "lydian", "harmonic", "minor", "mixolydian"], "industrial": ["phrygian", "minor", "harmonic"], "dnb": ["minor", "phrygian", "dorian"],
     "darksynth": ["minor", "phrygian", "harmonic", "dorian"],
@@ -2073,6 +2074,31 @@ def gen_dub(r, k, prog, kind="main"):
     return out
 
 
+def gen_manouche(r, k, prog, kind="main"):
+    """Gypsy jazz (Django): la pompe on a steel-string acoustic — a bass strum on 1 and 3, short
+    percussive chunks on 2 and 4 — in minor-6 / diminished colours; upright bass two-feel; no drums.
+    kind=guitar is the rhythm guitar alone."""
+    gtr, bass = [], []
+    for root in prog:
+        ch = chordhead([k.deg(root, 48)] + [k.deg(root + d, 52) for d in r.choice([[2, 4, 5], [2, 4, 6], [2, 3, 5]])])
+        gtr.append(f"{ch}/4@{88}^gate=0.6 {ch}/4@{70}^gate=0.15 {ch}/4@{84}^gate=0.6 {ch}/4@{70}^gate=0.15")
+        bass.append(f"{mname(k.deg(root, 33))}/2@{84} {mname(k.deg(root + 4, 33))}/2@{78}")
+    sw = "swing=0.64 "
+    out = [track("pompe", pick_patch("acoustic", "nylon"), sw + " ".join(gtr), pan=-0.2)]
+    if kind == "guitar":
+        return out
+    return out + [track("bass", pick_patch("upright-bass", "finger-bass"), " ".join(bass), seed=7)]
+
+
+def gen_swing_run(r, k, prog, base, patch):
+    """Fast swung 8th runs for gypsy-jazz solos: arpeggios and scale runs through the chords."""
+    out = []
+    for root in prog:
+        cell = r.choice([[0, 2, 4, 6, 7, 6, 4, 2], [4, 3, 2, 1, 0, 2, 4, 7], [0, 4, 7, 9, 8, 7, 4, 2]])
+        out += [f"{mname(k.deg(root + d, base))}/8@{96 if j % 2 == 0 else 82}" for j, d in enumerate(cell)]
+    return [track("hook", patch, "swing=0.64 " + " ".join(out), pan=0.15)]
+
+
 def gen_downtempo(r, k, prog, kind="main"):
     """Downtempo (Bonobo-ish): a low-passed breakbeat, marimba/kalimba ostinato, finger bass, strings."""
     kit = pick_patch("break-kit", "lofi-kit")
@@ -2110,6 +2136,7 @@ GUESTS = {
 CHILL_GUESTS = {
     "ballad": (lambda r, k, prog: gen_ballad(r, k, prog), {"ballad"}),
     "bossa": (lambda r, k, prog: gen_bossa(r, k, prog), {"bossa"}),
+    "manouche": (lambda r, k, prog: gen_manouche(r, k, prog) + gen_swing_run(r, k, prog, 64, pick_patch("accordion", "clarinet")), {"manouche"}),
     "neo": (lambda r, k, prog: gen_neoclassical(r, k, prog), {"neoclassical", "chamber"}),
     "ambient": (lambda r, k, prog: gen_ambient(r, k, prog, "A"), {"ambient"}),
     "lofi": (lambda r, k, prog: gen_lofi(r, k, prog), {"lofihop"}),
@@ -2154,7 +2181,7 @@ def compose(style, slot, p):
     return names, desc
 
 
-CHILL_STYLES = {"lofihop", "gogo", "ukjazz", "ambient", "downtempo", "smile", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub"}
+CHILL_STYLES = {"lofihop", "gogo", "ukjazz", "ambient", "downtempo", "smile", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche"}
 HEAVY_STYLES = {"meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep",
                 "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock", "groovemetal", "power", "sludge",
                 "breakcore", "mathcore", "gojira", "djazz", "raga", "gamelan", "koto"}
@@ -2185,6 +2212,12 @@ def _compose_style(style, slot, p):
             "hookE": gen_atmos(r, k, prog, 62, rig("atmos")),
         }
         return _write_parts(slot, "brostep", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
+    if style == "manouche":
+        lead = pick_patch(r.choice(["violins", "clarinet", "accordion"]), "violins")
+        parts = {"riffG": gen_manouche(r, k, prog, "guitar"), "riff": gen_manouche(r, k, prog), "riffB": gen_manouche(r, k, prog),
+                 "hook": [dict(t, score="swing=0.64 " + t["score"]) for t in gen_hook(r, k, prog, 64, lead)],
+                 "solo": gen_swing_run(r, k, prog, 64, lead)}
+        return _write_parts(slot, "manouche", parts, f"{NAMES[p['pc']]} {p['mode']}, lead {lead}")
     if style == "dub":
         parts = {"riffI": gen_dub(r, k, prog, "intro"), "riff": gen_dub(r, k, prog), "riffD": gen_dub(r, k, prog, "dub"),
                  "hook": gen_hook(r, k, prog, 64, pick_patch("melodica", "flute"))}

@@ -150,6 +150,9 @@ STYLES = {
   "dub": dict(form="dub", tempo=(66, 80), off=0, riff=["keys-lofi"], riff_off=0, lift=0,
                      low=["beat-sparse"], mid=["beat-lofi"], high=["beat-lofi"], half=["beat-sparse"], brk=["beat-sparse"],
                      hook=["lead-hook"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["pad-swell"]),
+  "manouche": dict(form="manouche", tempo=(110, 150), off=0, riff=["keys-lofi"], riff_off=0, lift=0,
+                     low=["beat-sparse"], mid=["beat-lofi"], high=["beat-lofi"], half=["beat-sparse"], brk=["beat-sparse"],
+                     hook=["lead-hook"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["pad-swell"]),
   "tech-death": dict(form="tech-death", tempo=(170, 220), off=0, riff=["riff-chug7"], riff_off=0, lift=0,
                      low=["beat-sparse"], mid=["beat-blast"], high=["beat-blast"], half=["beat-halftime"], brk=["beat-doom"],
                      hook=["lead-solo"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["riff-hold"]),
@@ -274,6 +277,8 @@ FORMS = {
             ("A2", ["riff", "hook"], None), ("outro", ["riffG"], None)],
   "dub": [("intro", ["riffI"], None), ("A", ["riff"], None), ("A2", ["riff", "hook"], None), ("break", ["riffD"], None),
           ("B", ["riff", "hook"], None), ("break", ["riffD"], None), ("outro", ["riffI"], None)],
+  "manouche": [("intro", ["riffG"], None), ("A", ["riff", "hook"], None), ("A", ["riffB", "hook"], None), ("solo", ["riff", "solo"], None),
+               ("solo", ["riffB", "solo"], None), ("A2", ["riff", "hook"], None), ("outro", ["riffG"], None)],
   "tech-death": [("blast", ["riff"], "impact"), ("blast", ["riffB", "pad"], None), ("dbeat", ["riffD"], "impact"),
                  ("dbeat", ["riffD", "hook"], None), ("groove", ["riffSoft"], "impact"), ("groove", ["riffG", "pad"], None),
                  ("blast", ["riff", "hook"], "impact"), ("break", ["riffBrk"], "impact"), ("break", ["riffBrk", "drone"], None),
@@ -452,7 +457,7 @@ MOD_STEPS = [1, -1, 2, 3, -3, 5, 6, -6]  # half/whole steps, minor thirds, fourt
 
 
 METRIC = [(3, 2), (2, 3), (4, 3), (3, 4)]
-STEADY = {"lofihop", "ambient", "downtempo", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub"}  # chill styles that hold key and tempo
+STEADY = {"lofihop", "ambient", "downtempo", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche"}  # chill styles that hold key and tempo
 
 
 def metric_map(ident, meta):
@@ -560,7 +565,7 @@ COMP_STYLES = ["glue", "pump", "smash", "parallel", "opto", "tape"]
 # Loudness-matched to glue (measured RMS over the same 48 beats through each master chain).
 FLAVOR_HOOK = {"vintage": ["rack:tape-echo"], "industrial": ["rack:radio"], "space": ["rack:shimmer-hall"], "wide": ["rack:chorus-wide"]}
 STYLE_TRIM = {"tool": 2.0, "numetal": 1.0, "industrial": -1.5, "power": -1.0, "sludge": 2.0, "mathcore": 1.5, "gojira": 1.0, "raga": -2.0,
-              "lofihop": 3.0, "ambient": 1.5, "house-melodic": -2.0, "chamber": 0.0, "neoclassical": 1.5, "dub": 3.0}  # sparse styles sit lower (QA loudness)
+              "lofihop": 3.0, "ambient": 1.5, "house-melodic": -2.0, "chamber": 0.0, "neoclassical": 1.5, "dub": 3.0, "manouche": 3.0}  # sparse styles sit lower (QA loudness)
 COMP_TRIM = {"glue": 0.0, "pump": 6.1, "smash": 3.4, "parallel": 3.2, "opto": 3.3, "tape": -2.1}
 
 def has_patch(name):
@@ -740,7 +745,7 @@ def journey_load():
         return {"on": False, "h": 0.0, "rate": 0.09, "passes_per_song": 2}
 
 CHILL_MIX = [("lofihop", 0.16), ("gogo", 0.11), ("ukjazz", 0.1), ("ambient", 0.1), ("downtempo", 0.09), ("smile", 0.09),
-             ("house-melodic", 0.08), ("chamber", 0.05), ("triphop", 0.08), ("neoclassical", 0.08), ("ballad", 0.06), ("bossa", 0.07), ("dub", 0.06)]
+             ("house-melodic", 0.08), ("chamber", 0.05), ("triphop", 0.08), ("neoclassical", 0.08), ("ballad", 0.06), ("bossa", 0.07), ("dub", 0.06), ("manouche", 0.05)]
 
 
 AMBIENTISH = ["ambient", "ambient", "downtempo", "chamber"]

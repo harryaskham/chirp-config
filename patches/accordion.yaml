@@ -1,0 +1,14 @@
+about: "Musette accordion: two reeds detuned against each other (the Paris-café wavering shimmer), a little bellows breath on the attack, reedy midrange. Café, gypsy jazz, folk."
+synth:
+  layers:
+    - {wave: pulse, width: 0.4, level: -4dB}
+    - {wave: pulse, width: 0.4, cents: 14, level: -5dB}
+    - {wave: saw, ratio: 2, level: -16dB}
+    - {type: noise, color: pink, level: {value: -44dB, mod: [{src: env.bel, amount: 14}]}}
+  env:
+    bel: {a: 10ms, d: 100ms, s: 0.1, r: 80ms}
+  filters: ["hp cutoff=200", "peak cutoff=1300 q=1 gain=3dB", "lp cutoff=5.5k"]
+  amp: {a: 25ms, d: 120ms, s: 0.9, r: 90ms}
+play: {gate: 0.95, vel_sens: 0.5, humanize: {time: 6ms, vel: 0.06}}
+fx: ["reverb kind=room decay=1s mix=0.16"]
+gain: -12dB
