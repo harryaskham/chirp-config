@@ -909,7 +909,7 @@ def master_for(ident):
     flavor = (ident.get("gen") or {}).get("flavor", "modern")
     dyn = dyn + (["tape drive=0.45 warmth=0.65"] if flavor == "vintage" else [])
     width = "width width=1.35 mono_below=140" if flavor == "wide" else "width width=1.2 mono_below=140"
-    level = {"type": "autolevel", "target": LOUD_TARGET["chill" if ident.get("style") in composer.CHILL_STYLES else "heavy"], "speed": 0.5, "range": 6}
+    level = {"type": "autolevel", "target": LOUD_TARGET["chill" if ident.get("style") in composer.CHILL_STYLES else "heavy"], "speed": 0.8, "range": 6}
     fx = eq + [verb] + dyn + ([f"gain gain={trim:+.1f}dB"] if trim else []) + [level, width]  # autolevel rides short-term LUFS gently
     fx.append({"type": "tapestop", "stop": "var.stop", "time": "1b"})  # DJ tape stop between songs (armed by the evolver)
     return json.dumps(fx)
