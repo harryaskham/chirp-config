@@ -495,7 +495,8 @@ def write_form(name, ident):
         s = dict(s, off=0, riff_off=0, hook_off=0)
     else:
         gdesc, lens = "library parts", {}
-    roles = ["drums", "riff", "hook", "pad", "arp", "hold", "drone", "fx"]
+    roles = ["drums", "riff", "fill", "hook", "pad", "arp", "hold", "drone", "fx"]
+    BIG = {"chorus", "drop", "final", "climax", "blast", "chaos", "guest", "heavy"}
     tracks = {t: [] for t in roles}
     flavor = (ident.get("gen") or {}).get("flavor", "modern")
     chs = chapters(ident)
@@ -526,11 +527,19 @@ def write_form(name, ident):
         riff_role = next((l for l in layers if l.startswith("riff")), None)
         part = (ident.get(riff_role) or ident.get("riff")) if riff_role else None
         fav = favorite_for(riff_role, ident) if riff_role else None
+        nxt_big = idx + 1 < len(chapter) and chapter[idx + 1][0] in BIG
+        fill = ident.get("fillA") if (part and not fav and nxt_big and sec_len == 16 and random.random() < 0.6) else None
+        if fill:
+            fill = random.choice([ident.get("fillA"), ident.get("fillB")])
+            tf = ident["key"] + s["riff_off"] + lift + mod
+            tracks["fill"].append(f"{rest(12)} " + (f"tr={tf} @{fill} tr=0" if tf else f"@{fill}"))
+        else:
+            tracks["fill"].append(rest(sec_len))
         if fav:
             t = ident["key"] + fav[1] + mod
             tracks["riff"].append(f"tr={t} @{fav[0]} tr=0" if t else f"@{fav[0]}")
         else:
-            put("riff", part, s["riff_off"], riff_xf + rx.get("riff", ""))
+            put("riff", part, s["riff_off"], riff_xf + rx.get("riff", "") + ("^cut=12" if fill else ""))
         hook_role = next((l for l in layers if l.startswith("hook")), None)
         hook = ident.get("solo", "lead-solo") if "solo" in layers else (ident.get(hook_role) if hook_role else None)
         put("hook", hook, s.get("hook_off", s["off"]), ("^rot=1" if "solo" in layers and ident.get("gen") else "") + rx.get("hook", ""))

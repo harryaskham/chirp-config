@@ -1726,6 +1726,39 @@ def params(style, rng=random):
     return {"pc": rng.randrange(12), "mode": mode, "prog": rng.choice(PROGS[mode]), "seed": rng.randrange(1 << 30), "rigset": rigset, "flavor": flavor}
 
 
+def gen_fill(r, k, low=28, kind=None):
+    """A 4-beat drum fill leading into a big section: descending tom 16ths, a crescendo snare roll
+    into 32nds, a linear kick/snare/tom figure, a triplet tom fill, or a stop (silence, then a
+    flammed pickup). Some open with a ringing power chord (or just a bass note)."""
+    kind = kind or r.choice(["toms", "roll", "linear", "triplets", "stop"])
+    t = k.deg(0, low)
+    kit = rig("drums")
+    if kind == "triplets":
+        seq = [r.choice(["t1", "t2"]), "t2", "t3", "t3", "ft", "ft", "s", "t1", "t2", "t3", "ft", "s"]
+        drums = " ".join(f"{p_}/12@{100 + 2 * i}" for i, p_ in enumerate(seq))
+        kick = " ".join("k/12@104" if i % 3 == 0 else "R/12" for i in range(12))
+    elif kind == "stop":
+        drums = "R/4 R/4 R/4 R/8 s/8@118^flam"
+        kick = "R/4 R/4 R/4 R/8 k/8@118"
+    else:
+        steps = []
+        for i in range(16):
+            if kind == "toms":
+                steps.append(f"{['t1', 't1', 't2', 't2', 't3', 't3', 'ft', 'ft'][i % 8]}/16@{100 + i}")
+            elif kind == "roll":
+                steps.append(f"s/16@{70 + 3 * i}" + ("^r=2" if i >= 12 else ""))
+            else:
+                steps.append(f"{['s', 't1', 't2', 's', 't3', 'ft', 's', 'ft'][i % 8]}/16@{102 + i}")
+        drums = " ".join(steps)
+        kick = " ".join(("k/16@108" if (kind == "linear" and i % 4 == 2) or (kind != "linear" and i % 4 == 0) else "R/16") for i in range(16))
+    out = [track("fill", kit, drums), track("fill-k", kit, kick)]
+    if r.random() < 0.5 and kind != "stop":
+        out += rhythm_tracks(f"expr.pm=0 {chordhead([t, t + 7, t + 12])}/4@118^gate=3 R/4 R/4 R/4")
+    elif kind != "stop":
+        out.append(track("bass", rig("bass"), f"{mname(t)}/4@110^gate=2 R/4 R/4 R/4", seed=7))
+    return out
+
+
 # Guest sections: other styles' generators composed in the song's key, slotted into its form.
 GUESTS = {
     "jazz": (lambda r, k, prog, low, gp: gen_mathcore(r, k, prog, low, "jazz"), {"djazz", "mathcore"}),
@@ -1759,6 +1792,10 @@ def compose(style, slot, p):
             write(n, f"guest section ({g}) for {style}", GUESTS[g][0](r, k, p["prog"], 28, gp))
             names[f"riffGuest{i}"] = n
         desc += f", guests {'/'.join(picks)}"
+        for tag in ("A", "B"):  # two 4-beat fills leading into big sections
+            n = f"gen-{slot}-fill{tag}"
+            write(n, f"4-beat fill for {style}", gen_fill(r, k), 4)
+            names[f"fill{tag}"] = n
     return names, desc
 
 
