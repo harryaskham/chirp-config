@@ -1,0 +1,16 @@
+about: "Amapiano log drum: a short, boomy pitched sine with a woody click, a pitch drop and a slight glide — the bouncing bass-percussion of South African house."
+synth:
+  layers:
+    - sine
+    - {wave: sine, ratio: 2, level: -14dB}
+    - {type: noise, color: pink, level: {value: -64dB, mod: [{src: env.k, amount: 42}]}}
+  env:
+    p: {a: 0.5ms, d: 60ms, s: 0}
+    k: {a: 0.3ms, d: 8ms, s: 0}
+  pitch: {value: 0, mod: [{src: env.p, amount: 5}]}
+  filters: ["lp cutoff=1.8k"]
+  amp: {a: 1ms, d: 380ms, s: 0.2, r: 120ms, curve: 3}
+  drive: 0.25
+play: {mono: true, legato: true, glide: 30ms, gate: 0.9, vel_sens: 0.6}
+fx: ["compressor threshold=-18dB ratio=3 attack=5ms release=100ms"]
+gain: -2dB
