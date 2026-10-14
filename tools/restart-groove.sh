@@ -23,7 +23,9 @@ pgrep -f "^[^ ]*python3 $here/evolve.py" | xargs -r kill
 for _ in 1 2 3 4 5 6 7 8 9 10; do "$src" live list 2>/dev/null | grep -q '^groove ' || break; sleep 0.5; done
 cp -f "$src" "$C"
 sleep 0.3
-setsid nohup "$C" --loop --id groove -o "${CHIRP_OUT:-music}" -s "${1:-live-suite}" > "${TMPDIR:-/tmp}/chirp-groove.log" 2>&1 < /dev/null 9>&- &
+# A generous output buffer: the music sink is a phone over Wi-Fi, and network jitter otherwise
+# starves the stream (underruns) even when rendering is far ahead of real time.
+PULSE_LATENCY_MSEC=${CHIRP_PULSE_LATENCY_MSEC:-300} setsid nohup "$C" --loop --id groove -o "${CHIRP_OUT:-music}" -s "${1:-live-suite}" > "${TMPDIR:-/tmp}/chirp-groove.log" 2>&1 < /dev/null 9>&- &
 sleep 1.2
 if [ -n "${2:-}" ]; then "$C" live set --id groove --when bar --xfade 150ms "tracks.arrangement.score=$2" | tail -1; fi
 CHIRP_BIN=$C EVOLVE_RESUME=1 setsid nohup python3 "$here/evolve.py" >> "$log" 2>&1 < /dev/null 9>&- &
