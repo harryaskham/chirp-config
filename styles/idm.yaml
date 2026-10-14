@@ -15,3 +15,4 @@ roles:
   soft: [pad-swell]
   arp: [piano-alberti, arp-16th]
   hold: [strings-chorale]
+stops: 0.3

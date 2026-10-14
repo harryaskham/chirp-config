@@ -16,3 +16,4 @@ roles:
   arp: [arp-16th, keys-rhodes]
   hold: [chords-house]
 fill_kit: "909"
+stops: 0.3

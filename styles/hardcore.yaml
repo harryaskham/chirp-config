@@ -16,3 +16,4 @@ roles:
   arp: [arp-16th]
   hold: [riff-hold]
 fill_kit: "909"
+stops: 0.3

@@ -19,3 +19,4 @@ fill_kit: "909"
 feel:
   drums: "^sw=0.6"
   riff: "^sw=0.6"
+stops: 0.3
