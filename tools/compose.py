@@ -1792,9 +1792,45 @@ def scape(style, role, beats, seed):
     return track("scape", patch, f"{note}/4" + " _" * (int(round(beats)) - 1), gain=gain, pan=round(r.uniform(-0.5, 0.5), 2))
 
 
+FEEL_LATE = {"s", "rs", "rc", "cp", "ss", "sc", "so", "se", "g", "sl"}
+FEEL_DRIFT = {"h", "hs", "h1", "h2", "h3", "oh", "hf", "hp", "hh", "rd", "rds", "rde", "rb", "shk", "sh", "tamb", "t"}
+
+
+def feel_track(t, profile, r):
+    """Re-time a 16th-grid kit track per feel profile (kick on the grid, backbeats late, hats
+    drifting) using drunk(); tracks not purely on the 16th grid are returned unchanged."""
+    p = t.get("patch", "")
+    if profile == "tight" or not ("kit" in p or p in ("djembe", "bodhran")):
+        return t
+    toks = t["score"].split()
+    pre = []
+    while toks and "=" in toks[0] and "/" not in toks[0]:
+        pre.append(toks.pop(0))
+    slots = []
+    for tok in toks:
+        m = re.match(r"^([A-Za-z][A-Za-z0-9]*)/16(@\d+)?$", tok)
+        if tok == "R/16":
+            slots.append((None, 0))
+        elif m and m.group(1) != "R":
+            piece = m.group(1)
+            late = {"laid": [1, 1, 2], "drunk": [1, 2, 2, 3]}[profile]
+            drift = {"laid": [0, 0, 1], "drunk": [0, 1, 1, 2]}[profile]
+            slots.append((tok, r.choice(late) if piece in FEEL_LATE else r.choice(drift) if piece in FEEL_DRIFT else 0))
+        else:
+            return t
+    return dict(t, score=" ".join(pre + [drunk(slots)]))
+
+
 def _write_parts(slot, style, parts, desc, beats=None):
     names = {}
+    feel = None
+    if style in CHILL_STYLES and style != "neosoul":
+        import zlib
+        fr = random.Random(zlib.crc32(f"{style}{desc}".encode()))
+        feel = fr.choices(["tight", "laid", "drunk"], [0.3, 0.45, 0.25])[0]
     for role, tr in parts.items():
+        if feel:
+            tr = [feel_track(t, feel, fr) for t in tr]
         if style in CHILL_STYLES and role.startswith("riff"):
             sc = scape(style, role, (beats or {}).get(role, 16), desc + slot)
             if sc:
@@ -2081,7 +2117,7 @@ def gen_neoclassical(r, k, prog, kind="main"):
         out.append(track("cellos", pick_patch("cellos", "strings"), " ".join(f"{mname(k.deg(root, 36))}/1@{66}" for root in prog), gain="-6dB"))
     if kind == "full":
         out += [dict(t, name="strings") for t in gen_pad(r, k, prog, 52, "strings", gain="-10dB", vel=60)]
-        out.append(track("celesta", pick_patch("celesta", "glock"), " ".join(f"{mname(k.deg(r.choice([0, 2, 4, 7]), 72))}/8@{60}" if r.random() < 0.15 else "R/8" for _ in range(32)), pan=0.3, gain="-6dB"))
+        out.append(track("celesta", pick_patch(r.choice(["celesta", "music-box"]), "glock"), " ".join(f"{mname(k.deg(r.choice([0, 2, 4, 7]), 72))}/8@{60}" if r.random() < 0.15 else "R/8" for _ in range(32)), pan=0.3, gain="-6dB"))
     return out
 
 
@@ -2379,6 +2415,8 @@ def gen_backrooms(r, k, prog, kind="main"):
            track("hiss", pick_patch("vinyl", "pad"), "C4/1 _ _ _", gain="-4dB")]
     if kind in ("far", "decay"):
         out += [dict(t, name="strings", fx=warped(r, amount)) for t in gen_pad(r, k, prog, 52, pick_patch("mellotron-strings", "strings"), gain="-8dB", vel=60)]
+    if kind == "far" and have("music-box") and r.random() < 0.6:  # a warped music-box tune drifting through
+        out += [dict(t, name="musicbox", fx=warped(r, amount * 1.2), gain="-4dB") for t in gen_hook(r, k, prog, 72, "music-box")]
     return out
 
 
@@ -2665,7 +2703,7 @@ def _compose_style(style, slot, p):
         return _write_parts(slot, "chamber", parts, f"{NAMES[p['pc']]} {p['mode']}")
     if style == "lofihop":
         parts = {"riffI": gen_lofi(r, k, prog, "intro"), "riff": gen_lofi(r, k, prog), "riffB": gen_lofi(r, k, prog, "busy"),
-                 "hook": gen_hook(r, k, prog, 64, pick_patch(r.choice(["vibes", "nylon", "rhodes", "flute", "mellotron-flute", "tape-piano"]), "rhodes")),
+                 "hook": gen_hook(r, k, prog, 64, pick_patch(r.choice(["vibes", "nylon", "rhodes", "flute", "mellotron-flute", "tape-piano", "music-box"]), "rhodes")),
                  "arp": [dict(t, gain="-6dB") for t in gen_arp(r, k, prog, 72, pick_patch("kalimba", "music-box"))]}
         return _write_parts(slot, "lofihop", parts, f"{NAMES[p['pc']]} {p['mode']}")
     if style == "gogo":
