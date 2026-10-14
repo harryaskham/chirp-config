@@ -982,6 +982,13 @@ def tapestop_now(bpm):
     beat = 60.0 / max(40, bpm)
     if left <= 0 or left > beat + 3:
         return False
+    # Engine-scheduled (sample-accurate, through the pass's tempo map): one beat before this pass ends → stop,
+    # on the next pass's downbeat → release. Older groove binaries reject --at; fall back to timed calls.
+    a = subprocess.run([C, "live", "var", "--id", "groove", "stop=1", "--at", "loop-1b"], capture_output=True)
+    if a.returncode == 0:
+        b = subprocess.run([C, "live", "var", "--id", "groove", "stop=0", "--at", "loop"], capture_output=True)
+        if b.returncode == 0:
+            return True
     time.sleep(max(0.0, left - beat))
     subprocess.run([C, "live", "var", "--id", "groove", "stop=1"], capture_output=True)
     time.sleep(max(0.0, min(beat, left) - 0.03))
