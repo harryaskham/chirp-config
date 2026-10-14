@@ -1,0 +1,14 @@
+about: "Hauntological lead (Boards of Canada): a detuned saw + sine pair, each drifting slightly in pitch, softly low-passed, chorused and tape-worn — wobbly, nostalgic, childlike."
+synth:
+  layers:
+    - {wave: saw, level: -6dB}
+    - {wave: sine, cents: -14, level: -3dB}
+  lfo:
+    drift: {wave: sine, rate: 0.23hz}
+    wow: {wave: sine, rate: 0.9hz}
+  pitch: {value: 0, mod: [{src: lfo.drift, amount: 0.18}, {src: lfo.wow, amount: 0.06}, {src: rand, amount: 0.05}]}
+  filters: ["hp cutoff=200", "lp cutoff=2.2k q=0.7"]
+  amp: {a: 40ms, d: 300ms, s: 0.8, r: 300ms}
+play: {mono: true, legato: true, glide: 60ms, gate: 1, vel_sens: 0.3}
+fx: [{type: chorus, rate: 0.4, depth: 0.35, voices: 1, mix: 0.6}, "tape drive=0.3 warmth=0.65", "reverb kind=hall decay=2.6s mix=0.28"]
+gain: -10dB

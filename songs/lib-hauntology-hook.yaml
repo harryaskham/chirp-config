@@ -1,0 +1,5 @@
+about: "Library part \u2014 hauntology melody (C minor), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "glock", "score": "R/8 C6/8@90 Eb6/16@89 G6/16@87 D6/4@98 C6/2@87 Ab6/8@80 C7/16@84 Eb7/16@90 Bb6/4@95 C7/4@86 R/4 D7/8@83 Bb6/16@87 G6/16@87 C7/4@96 Bb6/2@90 Bb6/4@88 G6/4@92 C6/4.@90^gate=1.2", "pan": 0.1}

@@ -41,6 +41,8 @@ Use `@NAME` in a score; transpose with `tr=N` (e.g. `tr=-3 @lib-kankyo`).
 | `@lib-guofeng` | guofeng | 16 |
 | `@lib-handpan-hook` | handpan | 16 |
 | `@lib-handpan` | handpan | 16 |
+| `@lib-hauntology-hook` | hauntology | 16 |
+| `@lib-hauntology` | hauntology | 16 |
 | `@lib-house-melodic-hook` | house-melodic | 16 |
 | `@lib-house-melodic` | house-melodic | 16 |
 | `@lib-kankyo-hook` | kankyo | 16 |
