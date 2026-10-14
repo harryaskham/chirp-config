@@ -47,7 +47,8 @@ STYLE_MODES = {
     "numetal": ["phrygian", "locrian", "minor"], "deathcore": ["phrygian", "harmonic", "locrian", "diminished"],
     "postrock": ["major", "lydian", "mixolydian", "dorian"], "groovemetal": ["blues", "pentatonic-minor", "phrygian", "minor"],
     "power": ["major", "harmonic", "minor", "major"], "sludge": ["blues", "pentatonic-minor", "phrygian"],
-    "breakcore": ["harmonic", "minor", "diminished", "phrygian-dominant"], "industrial": ["phrygian", "minor", "harmonic"], "dnb": ["minor", "phrygian", "dorian"],
+    "breakcore": ["harmonic", "minor", "diminished", "phrygian-dominant"],
+    "mathcore": ["locrian", "diminished", "phrygian", "double-harmonic"], "industrial": ["phrygian", "minor", "harmonic"], "dnb": ["minor", "phrygian", "dorian"],
     "darksynth": ["minor", "phrygian", "harmonic", "dorian"],
     "hardcore-kl": ["phrygian", "locrian", "minor", "diminished"],
     "tool": ["phrygian", "dorian", "locrian", "double-harmonic", "minor"],
@@ -1341,6 +1342,56 @@ def gen_breakcore(r, k, prog, low=28, wild=1.0):
     return out
 
 
+# ---------- mathcore (Dillinger Escape Plan) ----------------------------------------------------
+
+def gen_mathcore(r, k, prog, low=28, kind="chaos"):
+    """chaos: the 16-beat part cut into odd-length chunks (3–13 sixteenths, summing to 64); each a
+    cluster stab into a hard stop, a dissonant tremolo run, chugs over a blast fragment or silence;
+    crash/china + kick on every chunk start, blasts inside blast chunks, toms in short chunks.
+    jazz: lounge breaks — jazz-box maj7#11 / m9 / 7#9 voicings in odd placements over brushes."""
+    t = k.deg(0, low)
+    if kind == "jazz":
+        kit = pick_patch("brush-kit", "metal-kit")
+        gtr, ride, snare = [], [], []
+        for bar, root in enumerate(prog):
+            rt = k.deg(root, 50)
+            voicing = r.choice([[0, 4, 11, 18], [0, 3, 10, 14], [0, 4, 10, 15], [0, 7, 11, 14]])
+            hits = sorted(r.sample(range(16), r.choice([2, 3])))
+            for x in range(16):
+                gtr.append(f"{chordhead([rt + v for v in voicing])}/16@{r.choice([70, 78, 86])}^gate=2" if x in hits else "R/16")
+                ride.append(f"rd/16@{70 if x % 4 == 0 else 56}" if x % 4 in (0, 3) else "R/16")
+                snare.append(f"s/16@{r.choice([28, 34])}" if r.random() < 0.15 else "R/16")  # brushed ghosts (brush-kit has no g)
+        jn = lambda xs: " ".join(xs)
+        return [track("gtr", pick_patch("jazz-box", "clean-chorus"), jn(gtr), pan=0.15), track("ride", kit, jn(ride)), track("snare", kit, jn(snare)),
+                track("bass", pick_patch("upright-bass", "finger-bass", "bass-di"), " ".join(f"{mname(k.deg(root + d, 33))}/4@{84}" for root in prog for d in (0, 2, 4, 6)), seed=7)]
+    sizes, total = [], 0
+    while total < 64:
+        sz = min(r.choice([3, 5, 7, 7, 9, 9, 11, 13]), 64 - total)
+        sizes.append(sz); total += sz
+    clusters = [[t, t + 1, t + 6], [t + 1, t + 7, t + 13], [t, t + 6, t + 11], [t + 12, t + 13, t + 18]]
+    gtr, kick, snare, cym = [], [], [], []
+    for sz in sizes:
+        cell = r.choice(["stab", "trem", "blast", "stab", "stop"])
+        for j in range(sz):
+            first = j == 0
+            if cell == "stab":
+                gtr.append(f"expr.pm=0 {chordhead(r.choice(clusters))}/16@124^gate=0.7" if first else "R/16")
+            elif cell == "trem":
+                gtr.append(f"expr.pm=0 {mname(t + 12 + r.choice([0, 1, 3, 6, 7, 11]))}/16@{106 if j % 2 == 0 else 94}")
+            elif cell == "blast":
+                gtr.append(f"expr.pm={0 if first else 1} {chordhead([t, t + 7]) if first else mname(t)}/16@{120 if first else 106}")
+            else:
+                gtr.append(f"expr.pm=0 {chordhead(r.choice(clusters))}/16@122^gate=0.4" if first else "R/16")
+            kick.append("k/16@120" if first else ("k/16@108" if cell == "blast" and j % 2 == 0 else "R/16"))
+            snare.append("R/16" if first else ("s/16@108" if cell == "blast" and j % 2 == 1 else
+                         (f"{['t1', 't2', 't3', 'ft'][j % 4]}/16@{100 + j}" if sz <= 5 and cell != "stop" else "R/16")))
+            cym.append(f"{r.choice(['x', 'c', 'st', 'cch'])}/16@118" if first else ("rd/16@84" if cell in ("blast", "trem") and j % 2 == 0 else "R/16"))
+    kit = rig("drums")
+    jn = lambda xs: " ".join(xs)
+    return rhythm_tracks(jn(gtr)) + [track("bass", rig("bass"), jn(mirror_bass(gtr)), seed=7), track("sub", rig("sub"), jn(mirror_bass(gtr)), seed=7),
+            track("kick", kit, jn(kick)), track("snare", kit, jn(snare)), track("cym", kit, jn(cym))]
+
+
 # ---------- groove metal --------------------------------------------------------------------
 
 def gen_groovemetal(r, k, prog, low=28, kind="groove"):
@@ -1524,7 +1575,7 @@ def _write_parts(slot, style, parts, desc, beats=None):
 
 def params(style, rng=random):
     mode = rng.choice(STYLE_MODES.get(style, ["minor"]))
-    heavy = style in ("meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep", "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock", "groovemetal", "power", "sludge", "breakcore")
+    heavy = style in ("meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep", "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock", "groovemetal", "power", "sludge", "breakcore", "mathcore")
     rigset = ("tech" if style == "tech-death" and rng.random() < 0.6 else
               "thrash" if style == "thrash" else
               "fuzz" if style == "sludge" else
@@ -1560,6 +1611,10 @@ def compose(style, slot, p):
             "hookE": gen_atmos(r, k, prog, 62, rig("atmos")),
         }
         return _write_parts(slot, "brostep", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
+    if style == "mathcore":
+        parts = {"riff": gen_mathcore(r, k, prog, low), "riffB": gen_mathcore(r, k, prog, low), "riffC": gen_mathcore(r, k, prog, low),
+                 "riffJ": gen_mathcore(r, k, prog, low, "jazz"), "riffSlam": gen_hc(r, k, prog, low, "slowdown")}
+        return _write_parts(slot, "mathcore", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
     if style == "sludge":
         parts = {"riff": gen_sludge(r, k, prog, 28, "riff"), "riffB": gen_sludge(r, k, prog, 28, "riff"),
                  "riffD": gen_sludge(r, k, prog, 28, "drone"), "riffG": gen_sludge(r, k, prog, 28, "gallop"),
