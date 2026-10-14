@@ -1164,7 +1164,7 @@ def journey_load():
     except Exception:
         return {"on": False, "h": 0.0, "rate": 0.09, "passes_per_song": 2}
 
-CHILL_MIX = [("lofihop", 0.16), ("gogo", 0.11), ("ukjazz", 0.1), ("ambient", 0.1), ("downtempo", 0.09), ("smile", 0.09),
+CHILL_MIX = [("lofihop", 0.16), ("gogo", 0.11), ("ukjazz", 0.1), ("ambient", 0.05), ("downtempo", 0.09), ("smile", 0.09),
              ("house-melodic", 0.08), ("chamber", 0.05), ("triphop", 0.08), ("neoclassical", 0.08), ("ballad", 0.06), ("bossa", 0.07), ("dub", 0.06), ("manouche", 0.05), ("celtic", 0.05), ("doomjazz", 0.05), ("mali", 0.05), ("guofeng", 0.05), ("vaporwave", 0.05), ("slowcore", 0.05), ("backrooms", 0.05), ("cyberscape", 0.05), ("neosoul", 0.06), ("minimal", 0.05), ("fusion", 0.1), ("berlin", 0.05), ("satie", 0.05), ("kankyo", 0.05), ("dawnraga", 0.04), ("handpan", 0.05), ("citypop", 0.05), ("lid", 0.05), ("tiersen", 0.05), ("balearic", 0.05), ("chillwave", 0.05), ("souljazz", 0.05), ("ethiojazz", 0.05), ("hauntology", 0.06), ("dawnchorus", 0.04), ("beattape", 0.06), ("lofihouse", 0.05), ("amapiano", 0.05), ("liquid", 0.05), ("nujazz", 0.05)]
 
 
@@ -1172,6 +1172,20 @@ AMBIENTISH = ["ambient", "ambient", "downtempo", "chamber"]
 DEEP_NIGHT = {"dawnchorus", "lid", "handpan", "ambient", "satie", "kankyo", "neoclassical", "berlin", "doomjazz", "backrooms", "celtic", "guofeng", "minimal", "chamber", "dawnraga", "slowcore"}
 MORNING = {"nujazz", "liquid", "amapiano", "lofihouse", "dawnchorus", "ethiojazz", "souljazz", "chillwave", "balearic", "tiersen", "citypop", "bossa", "lofihop", "gogo", "house-melodic", "neosoul", "manouche", "mali", "ukjazz", "smile", "vaporwave", "fusion", "dub", "dawnraga"}
 BUSY = {"nujazz", "liquid", "amapiano", "lofihouse", "citypop", "house-melodic", "gogo", "ukjazz", "dub", "neosoul", "vaporwave", "cyberscape", "fusion", "triphop", "mali", "manouche"}
+
+
+RECENT = "/home/harry/.config/chirp/tools/recent.json"
+
+
+def recent_styles():
+    try:
+        return json.load(open(RECENT))
+    except Exception:
+        return []
+
+
+def remember_style(style):
+    json.dump((recent_styles() + [style])[-24:], open(RECENT, "w"))
 
 
 def night_arc(now=None):
@@ -1213,9 +1227,13 @@ def journey_style(h, current, mode=None):
     if mode == "chill":
         # Normalised weights (the list outgrew a single 0..1 draw), shaped by the night arc.
         mult = night_arc()
+        recent = recent_styles()
         names = [n for n, _ in CHILL_MIX if n != current]
-        weights = [dict(CHILL_MIX)[n] * mult.get(n, 1.0) for n in names]
-        return random.choices(names, weights)[0]
+        # Recency: a style heard in the last 8 songs is rare, in the last 16 less likely.
+        weights = [dict(CHILL_MIX)[n] * mult.get(n, 1.0) * (0.15 if n in recent[-8:] else (0.5 if n in recent[-16:] else 1.0)) for n in names]
+        pick = random.choices(names, weights)[0]
+        remember_style(pick)
+        return pick
     r = random.random()
     if h >= 0.95:
         if r < 0.12:
