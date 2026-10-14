@@ -1,0 +1,7 @@
+about: "Library part \u2014 lid section (C minor), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "drone0", "patch": "strings", "score": "R/4 Eb4,G4,C5/4@64 _ _ _ _ _ _ _ Ab4,C5,Eb5/4@58 _ _ _ _ _ _", "auto": {"sw0": {"points": [["0b", 0.15], ["12b", 1.0], ["16b", 0.25]]}}, "fx": [{"type": "reverb", "kind": "hall", "decay": "6s", "predelay": "40ms", "low_cut": 120, "mix": 0.42}], "pan": -0.35, "gain": {"value": "-12dB", "mod": [{"src": "auto.sw0", "amount": 8}]}}
+  - {"name": "drone1", "patch": "horn", "score": "R/4 R/4 R/4 G4,D5/4@64 _ _ _ _ _ _ _ F4,C5,Ab5/4@58 _ _ _ _", "auto": {"sw1": {"points": [["0b", 0.15], ["12b", 1.0], ["16b", 0.25]]}}, "fx": [{"type": "reverb", "kind": "hall", "decay": "6s", "predelay": "40ms", "low_cut": 120, "mix": 0.42}], "pan": 0.35, "gain": {"value": "-12dB", "mod": [{"src": "auto.sw1", "amount": 8}]}}
+  - {"name": "piano", "patch": "piano", "score": "R/4 R/4 R/4 R/4 R/4 R/4 R/4 R/4 R/4 R/4 R/4 R/4 C5/4@40 R/4 R/4 R/4", "fx": [{"type": "reverb", "kind": "hall", "decay": "6s", "predelay": "40ms", "low_cut": 120, "mix": 0.42}], "gain": "-6dB", "pan": 0.2}

@@ -1,0 +1,5 @@
+about: "Library part \u2014 mali melody (C dorian), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "kora", "score": "C5/4@88 D5/8@85 G5/8@88 A5/4@94 G5/4@88 D6/4@80 Eb6/8@85 A6/8@92 Bb6/4@97 D6/4@84 C6/4@82 D6/8@92 G6/8@97 A6/4@90 F5/4@83 G5/4@84 Eb5/4@91 C5/2@91^gate=1.2", "pan": 0.1}

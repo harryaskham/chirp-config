@@ -1,0 +1,5 @@
+about: "Library part \u2014 neosoul melody (C dorian), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "synth-lead", "score": "Eb5/8@87 A5/16@85 G5/16@93 C6/4@99 G5/2@90 R/1 Bb5/8@83 F5/16@87 G5/16@93 D5/4@97 Eb5/2@81 A5/4@88 G5/4@101 R/2", "pan": 0.1}

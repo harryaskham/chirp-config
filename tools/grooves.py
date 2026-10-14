@@ -6,7 +6,7 @@ import os, random, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import compose as c
 
-DRUMS = ("kick", "snare", "cym", "hats", "rim", "shaker", "ride")
+DRUMS = ("kick", "snare", "cym", "hats", "rim", "shaker", "ride", "clap", "frame", "blocks")
 
 
 def drums_only(tracks):
@@ -63,6 +63,13 @@ def main():
     made.append(save("groove-triphop", "trip-hop: dusty half-time breakbeat, low-passed", c.gen_triphop(random.Random(6), k, prog)))
     made.append(save("groove-trio", "GoGo Penguin trio drums: busy tight hats, offbeat kicks", c.gen_trio_drums(random.Random(7))))
     made.append(save("groove-dub", "dub one-drop: kick + rim on 3 with delay throws, swung hats", c.gen_dub(random.Random(9), k, prog)))
+    made.append(save("groove-citypop", "city pop disco: LinnDrum-ish kick on the beats, snare 2 and 4, 16th hats with open offbeats", c.gen_citypop(random.Random(3), k, prog)))
+    made.append(save("groove-dilla", "neo-soul / Dilla: drunk unquantized kick, late snare, drifting hats (sub-step offsets)", c.gen_neosoul(random.Random(4), k, prog)))
+    made.append(save("groove-gated", "80s gated-reverb snare and clap on 2 and 4 with swung electro hats (vaporwave)", c.gen_vaporwave(random.Random(5), k, prog)))
+    made.append(save("groove-future-garage", "future garage: skippy rim and kick with shuffled hats (cyberscape)", c.gen_cyberscape(random.Random(6), k, prog, "full")))
+    made.append(save("groove-berlin-pulse", "Berlin school: a soft electro kick on every beat", c.gen_berlin(random.Random(7), k, prog, "drive")))
+    made.append(save("groove-handpan-frame", "handpan meditation: frame drum boom-taps and a soft shaker", c.gen_handpan(random.Random(8), k, prog, "full")))
+    made.append(save("groove-temple", "guofeng temple woodblocks over a soft kick", c.gen_guofeng(random.Random(9), k, prog)))
     print(len(made), "grooves")
     return made
 

@@ -1,0 +1,5 @@
+about: "Library part \u2014 celtic melody (C major), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "low-whistle", "score": "B5/12@88 _ _ _ _ _ A5/12@88 _ _ F5/12@88 _ _ A5/12@88 _ _ _ _ _ F5/12@88 _ _ B5/12@70^h A5/12@88 _ F5/12@88 _ _ _ _ _ _ _ _ F5/12@70^h E5/12@88 _ B5/12@88 _ _ _ _ _ B5/12@70^h A5/12@88 _ B5/12@88 _ _", "pan": 0.15}

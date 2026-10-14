@@ -1,0 +1,8 @@
+about: "Library part \u2014 minimal section (C major), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "marimba", "patch": "marimba", "score": "D4,F4,A4,D5/8@56 D4,F4,A4,D5/8@62 D4,F4,A4,D5/8@70 D4,F4,A4,D5/8@78 D4,F4,A4,D5/8@84 D4,F4,A4,D5/8@78 D4,F4,A4,D5/8@70 D4,F4,A4,D5/8@62 G4,B4,D5,G5/8@56 G4,B4,D5,G5/8@62 G4,B4,D5,G5/8@70 G4,B4,D5,G5/8@78 G4,B4,D5,G5/8@84 G4,B4,D5,G5/8@78 G4,B4,D5,G5/8@70 G4,B4,D5,G5/8@62 C4,E4,G4,C5/8@56 C4,E4,G4,C5/8@62 C4,E4,G4,C5/8@70 C4,E4,G4,C5/8@78 C4,E4,G4,C5/8@84 C4,E4,G4,C5/8@78 C4,E4,G4,C5/8@70 C4,E4,G4,C5/8@62 A4,C5,E5,A5/8@56 A4,C5,E5,A5/8@62 A4,C5,E5,A5/8@70 A4,C5,E5,A5/8@78 A4,C5,E5,A5/8@84 A4,C5,E5,A5/8@78 A4,C5,E5,A5/8@70 A4,C5,E5,A5/8@62", "pan": -0.2, "gain": "-3dB"}
+  - {"name": "piano", "patch": "piano", "score": "R/8 D3,A3,D4/8@54 R/8 D3,A3,D4/8@70 R/8 D3,A3,D4/8@70 R/8 D3,A3,D4/8@54 R/8 G3,D4,G4/8@54 R/8 G3,D4,G4/8@70 R/8 G3,D4,G4/8@70 R/8 G3,D4,G4/8@54 R/8 C3,G3,C4/8@54 R/8 C3,G3,C4/8@70 R/8 C3,G3,C4/8@70 R/8 C3,G3,C4/8@54 R/8 A3,E4,A4/8@54 R/8 A3,E4,A4/8@70 R/8 A3,E4,A4/8@70 R/8 A3,E4,A4/8@54", "pan": 0.2, "gain": "-4dB"}
+  - {"name": "pulsebass", "patch": "finger-bass", "score": "D2/8@50 D2/8@56 D2/8@64 D2/8@72 D2/8@78 D2/8@72 D2/8@64 D2/8@56 G2/8@50 G2/8@56 G2/8@64 G2/8@72 G2/8@78 G2/8@72 G2/8@64 G2/8@56 C2/8@50 C2/8@56 C2/8@64 C2/8@72 C2/8@78 C2/8@72 C2/8@64 C2/8@56 A2/8@50 A2/8@56 A2/8@64 A2/8@72 A2/8@78 A2/8@72 A2/8@64 A2/8@56", "seed": 7, "gain": "-4dB"}
+  - {"name": "swell", "patch": "strings", "score": "D4,F4,A4,C5/1@60 G4,B4,D5,F5/1@60 C4,E4,G4,B4/1@60 A4,C5,E5,G5/1@60", "gain": "-10dB"}

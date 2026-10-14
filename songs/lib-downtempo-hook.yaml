@@ -1,0 +1,5 @@
+about: "Library part \u2014 downtempo melody (C minor), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "vibes", "score": "Eb5/4.@89 C5/8@91 G5/2@89 Eb6/2@91 D6/2@84 C6/4.@87 Ab5/8@90 C6/4@87 R/4 D6/2@96 R/2", "pan": 0.1}

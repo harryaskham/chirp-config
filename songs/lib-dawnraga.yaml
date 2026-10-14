@@ -1,0 +1,8 @@
+about: "Library part \u2014 dawnraga section (C phrygian-dominant), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "tanpura", "patch": "tanpura", "score": "G3/4@70 C4/4@66 C4/4@66 C3/4@72 G3/4@70 C4/4@66 C4/4@66 C3/4@72 G3/4@70 C4/4@66 C4/4@66 C3/4@72 G3/4@70 C4/4@66 C4/4@66 C3/4@72", "gain": "-4dB"}
+  - {"name": "sitar", "patch": "sitar", "score": "G4/4@86 _ C5/4@90 _ bend=1 _ bend= E4/4@94 _ C5/4@94 _ _ Ab4/4@90 _ bend=1 _ bend= C#4/4@90 _ bend=1 _ bend=", "pan": 0.15}
+  - {"name": "harmonium", "patch": "harmonium", "score": "C3,G3,C4/1@56 C3,G3,C4/1@56 C3,G3,C4/1@56 C3,G3,C4/1@56", "gain": "-6dB", "pan": -0.2}
+  - {"name": "scape", "patch": "wind", "score": "C5/4 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _", "gain": "-6dB", "pan": 0.45}

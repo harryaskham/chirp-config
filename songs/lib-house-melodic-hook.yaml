@@ -1,0 +1,5 @@
+about: "Library part \u2014 house-melodic melody (C minor), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "pluck-lead", "score": "G5/8.@84 F5/8.@94 C5/8@92 G5/4@88 R/4 C6/2@90 Bb5/2@87 F6/8.@81 G6/8.@86 C7/8@95 F6/4@81 R/4 Bb5/2@89 R/2", "pan": 0.1}

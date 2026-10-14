@@ -1,0 +1,8 @@
+about: "Library part \u2014 kankyo section (C dorian), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "glass", "patch": "pad-glass", "score": "C4,Eb4,G4,Bb4/1@56 D4,F4,A4,C5/1@56 F4,A4,C5,Eb5/1@56 C4,Eb4,G4,Bb4/1@56", "gain": "-7dB"}
+  - {"name": "motif", "patch": "marimba", "score": "C5/8@58 Bb5/8@64 C5/8@70 F5/4@58 C5/8@58 R/4 D5/8@64 A5/8@64 F5/8@70 F5/4@70 D5/8@70 R/4 A5/8@70 Eb6/8@70 F5/8@58 A5/4@64 F5/8@70 R/4 C5/8@58 Bb5/8@64 C5/8@70 Eb5/4@70 C5/8@70 R/4", "pan": -0.05, "fx": [{"type": "delay", "time": "3/16", "feedback": 0.4, "ping_pong": true, "tone": 3500, "mix": 0.28}, {"type": "reverb", "kind": "hall", "decay": "4s", "predelay": "30ms", "mix": 0.3}]}
+  - {"name": "sine", "patch": "sub-sine", "score": "C2/1@60 R/1 F2/1@60 R/1", "gain": "-10dB"}
+  - {"name": "scape", "patch": "rain", "score": "C5/4 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _", "gain": "-4dB", "pan": 0.03}

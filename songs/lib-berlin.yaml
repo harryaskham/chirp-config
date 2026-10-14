@@ -1,0 +1,6 @@
+about: "Library part \u2014 berlin section (C phrygian), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "seq", "patch": "moog-seq", "score": "C2/16@90 C2/16@70 G2/16@70 C2/16@70 C3/16@82 C2/16@70 G2/16@70 Bb2/16@70 C2/16@90 C2/16@70 G2/16@70 C2/16@70 C3/16@82 C2/16@70 G2/16@70 Bb2/16@70 C#2/16@90 C#2/16@70 Ab2/16@70 C#2/16@70 C#3/16@82 C#2/16@70 Ab2/16@70 B2/16@70 C#2/16@90 C#2/16@70 Ab2/16@70 C#2/16@70 C#3/16@82 C#2/16@70 Ab2/16@70 B2/16@70 Ab2/16@90 Ab2/16@70 Eb3/16@70 Ab2/16@70 Ab3/16@82 Ab2/16@70 Eb3/16@70 F#3/16@70 Ab2/16@90 Ab2/16@70 Eb3/16@70 Ab2/16@70 Ab3/16@82 Ab2/16@70 Eb3/16@70 F#3/16@70 C#2/16@90 C#2/16@70 Ab2/16@70 C#2/16@70 C#3/16@82 C#2/16@70 Ab2/16@70 B2/16@70 C#2/16@90 C#2/16@70 Ab2/16@70 C#2/16@70 C#3/16@82 C#2/16@70 Ab2/16@70 B2/16@70", "auto": {"sw": {"points": [["0b", 0.1], ["8b", 0.9], ["16b", 0.2]]}}, "gain": "-2dB", "fx": [{"type": "filter", "kind": "lp", "cutoff": {"value": 500, "mod": [{"src": "auto.sw", "amount": 3.0}]}, "q": 0.7}]}
+  - {"name": "choir", "patch": "mellotron-choir", "score": "C4,Eb4,G4,Bb4/1@62 C#4,F4,Ab4,C5/1@62 Ab4,C5,Eb5,G5/1@62 C#4,F4,Ab4,C5/1@62", "gain": "-4dB"}

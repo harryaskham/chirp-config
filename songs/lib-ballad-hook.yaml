@@ -1,0 +1,5 @@
+about: "Library part \u2014 ballad melody (C dorian), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "vibes", "score": "Eb4/8@88 D4/8@87 Eb4/8@87 C4/8@88 G4/2@89 D5/4@91 C5/4@87 D5/2@79 C5/8@83 Bb4/8@86 C5/8@97 A4/8@93 F4/2@82 Eb4/2@88 R/2", "pan": 0.1}

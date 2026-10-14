@@ -1,0 +1,8 @@
+about: "Library part \u2014 backrooms section (C major), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "band", "patch": "wurli", "score": "D3/4@70 F4,A4,B4,D5/4@58 F4,A4,B4,D5/4@54 A3/4@64 G3/4@70 B4,D5,E5,G5/4@58 B4,D5,E5,G5/4@54 D4/4@64 C3/4@70 C4,E4,G4,A4/4@58 C4,E4,G4,A4/4@54 G3/4@64 A3/4@70 A4,C5,E5,G5/4@58 A4,C5,E5,G5/4@54 E4/4@64", "fx": [{"type": "chorus", "rate": 0.18, "depth": 0.9, "voices": 1, "mix": 1.0}, {"type": "pitch", "semitones": -0.3, "grain": "80ms", "mix": 1.0}, {"type": "filter", "kind": "hp", "cutoff": 180}, {"type": "filter", "kind": "lp", "cutoff": 1500}, {"type": "crush", "bits": 12, "rate": 14000, "mix": 0.35}, {"type": "stutter", "slice": "1/8", "repeats": 2, "chance": 0.13, "reverse": false, "seed": 181}, {"type": "reverb", "kind": "hall", "decay": "4.5s", "predelay": "30ms", "mix": 0.45}]}
+  - {"name": "hum", "patch": "sub-sine", "score": "B1,B2,F#3/1 _ _ _", "gain": "-26dB"}
+  - {"name": "hiss", "patch": "vinyl", "score": "C4/1 _ _ _", "gain": "-4dB"}
+  - {"name": "scape", "patch": "waterphone", "score": "E5/4 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _", "gain": "-14dB", "pan": -0.26}

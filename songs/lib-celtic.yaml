@@ -1,0 +1,7 @@
+about: "Library part \u2014 celtic section (C major), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "harp", "patch": "harp", "score": "E3/12@80 B3/12@64 G4/12@64 G3/12@80 E4/12@64 B4/12@64 E3/12@80 G4/12@64 B3/12@64 B4/12@80 E4/12@64 G3/12@64 A3/12@80 E4/12@64 C5/12@64 C4/12@80 A4/12@64 E5/12@64 A3/12@80 C5/12@64 E4/12@64 E5/12@80 A4/12@64 C4/12@64 D3/12@80 A3/12@64 F4/12@64 F3/12@80 D4/12@64 A4/12@64 D3/12@80 F4/12@64 A3/12@64 A4/12@80 D4/12@64 F3/12@64 G3/12@80 B3/12@64 D4/12@64 G4/12@80 B4/12@64 D5/12@64 D5/12@80 B4/12@64 G4/12@64 D4/12@80 B3/12@64 G3/12@64", "pan": -0.2}
+  - {"name": "drone", "patch": "drone", "score": "C2,G2/1@84 _ _ _", "gain": "-8dB"}
+  - {"name": "scape", "patch": "rain", "score": "C5/4 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _", "gain": "-4dB", "pan": -0.26}

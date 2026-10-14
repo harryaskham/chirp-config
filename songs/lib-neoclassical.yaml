@@ -1,0 +1,8 @@
+about: "Library part \u2014 neoclassical section (C dorian), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "rh", "patch": "piano", "score": "C4/16@76 Eb4/16@57 G4/16@57 Eb4/16@57 C5/16@57 G4/16@76 C4/16@57 Eb4/16@57 G4/16@76 Eb4/16@57 C5/16@57 G4/16@57 C4/16@57 Eb4/16@76 G4/16@57 Eb4/16@57 Bb4/16@76 D5/16@57 F5/16@57 D5/16@57 Bb5/16@57 F5/16@76 Bb4/16@57 D5/16@57 F5/16@76 D5/16@57 Bb5/16@57 F5/16@57 Bb4/16@57 D5/16@76 F5/16@57 D5/16@57 G4/16@76 Bb4/16@57 D5/16@57 Bb4/16@57 G5/16@57 D5/16@76 G4/16@57 Bb4/16@57 D5/16@76 Bb4/16@57 G5/16@57 D5/16@57 G4/16@57 Bb4/16@76 D5/16@57 Bb4/16@57 F4/16@76 A4/16@57 C5/16@57 A4/16@57 F5/16@57 C5/16@76 F4/16@57 A4/16@57 C5/16@76 A4/16@57 F5/16@57 C5/16@57 F4/16@57 A4/16@76 C5/16@57 A4/16@57", "pan": 0.15, "fx": [{"type": "eq", "bands": ["peak cutoff=250 q=1 gain=-1.5dB", "highshelf cutoff=9000 gain=-1.5dB"]}, "reverb kind=room decay=1.4s size=0.7 mix=0.25 predelay=14ms"], "gain": "-2dB"}
+  - {"name": "lh", "patch": "piano", "score": "C2,C3/2@64 G2/2@59 Bb2,Bb3/2@64 F3/2@59 G2,G3/2@64 D3/2@59 F2,F3/2@64 C3/2@59", "pan": -0.15, "fx": [{"type": "eq", "bands": ["peak cutoff=250 q=1 gain=-1.5dB", "highshelf cutoff=9000 gain=-1.5dB"]}, "reverb kind=room decay=1.4s size=0.7 mix=0.25 predelay=14ms"], "gain": "-2dB"}
+  - {"name": "cellos", "patch": "cellos", "score": "C2/1@66 Bb2/1@66 G2/1@66 F2/1@66", "gain": "-6dB"}
+  - {"name": "scape", "patch": "wind", "score": "C5/4 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _", "gain": "-6dB", "pan": -0.19}

@@ -1,0 +1,5 @@
+about: "Library part \u2014 guofeng melody (C minor), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "dizi", "score": "Bb5/2@84 Bb5/4@84 F5/4@84 F5/1@84 G5/2.@84 D6/4@84 C5/2.@84 Bb5/4@84", "pan": 0.15}

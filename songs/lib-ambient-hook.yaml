@@ -1,0 +1,5 @@
+about: "Library part \u2014 ambient melody (C dorian), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "ebow", "score": "Eb5/1@92^gate=1.1 G5/1@84^gate=1.1 C6/1@100^gate=1.1 D6/1@92^gate=1.1", "pan": -0.1}

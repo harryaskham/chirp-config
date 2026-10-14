@@ -1,0 +1,5 @@
+about: "Library part \u2014 vaporwave melody (C minor), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "tenor-sax", "score": "Eb5/4@84 F5/8@93 C5/8@91 G4/4@96 C5/4@84 Eb6/2@97 F6/2@88 D6/4@89 Eb6/8@83 Bb5/8@92 F5/4@91 Bb5/4@87 D6/2@91 R/2", "pan": 0.1, "fx": [{"type": "chorus", "rate": 0.35, "depth": 0.3, "voices": 1, "mix": 1.0}, {"type": "filter", "kind": "lp", "cutoff": 6500}]}

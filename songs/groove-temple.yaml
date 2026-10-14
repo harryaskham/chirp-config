@@ -1,0 +1,6 @@
+about: "Generated part (tempo: inherit, 16 beats) \u2014 guofeng temple woodblocks over a soft kick"
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "blocks", "patch": "tight-kit", "score": "wb/16@64 R/16 R/16 R/16 wbl/16@54 R/16 wbl/16@54 R/16 R/16 R/16 R/16 R/16 wbl/16@54 R/16 R/16 R/16 wb/16@64 R/16 R/16 R/16 wbl/16@54 R/16 wbl/16@54 R/16 R/16 R/16 R/16 R/16 wbl/16@54 R/16 R/16 R/16 wb/16@64 R/16 R/16 R/16 wbl/16@54 R/16 wbl/16@54 R/16 R/16 R/16 R/16 R/16 wbl/16@54 R/16 R/16 R/16 wb/16@64 R/16 R/16 R/16 wbl/16@54 R/16 wbl/16@54 R/16 R/16 R/16 R/16 R/16 wbl/16@54 R/16 R/16 R/16", "pan": 0.25, "gain": "-4dB"}
+  - {"name": "kick", "patch": "tight-kit", "score": "k/16@60 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 k/16@60 R/16 R/16 R/16 R/16 R/16 k/16@60 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 k/16@60 R/16 R/16 R/16 R/16 R/16 k/16@60 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 k/16@60 R/16 R/16 R/16 R/16 R/16 k/16@60 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 k/16@60 R/16 R/16 R/16 R/16 R/16"}

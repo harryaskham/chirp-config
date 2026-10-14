@@ -1,0 +1,6 @@
+about: "Generated part (tempo: inherit, 16 beats) \u2014 handpan meditation: frame drum boom-taps and a soft shaker"
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "frame", "patch": "bodhran", "score": "b/16@74 R/16 R/16 R/16 t/16@54 R/16 R/16 R/16 R/16 R/16 b/16@74 R/16 t/16@54 R/16 t/16@54 R/16 b/16@74 R/16 R/16 R/16 t/16@54 R/16 R/16 R/16 R/16 R/16 b/16@74 R/16 t/16@54 R/16 t/16@54 R/16 b/16@74 R/16 R/16 R/16 t/16@54 R/16 R/16 R/16 R/16 R/16 b/16@74 R/16 t/16@54 R/16 t/16@54 R/16 b/16@74 R/16 R/16 R/16 t/16@54 R/16 R/16 R/16 R/16 R/16 b/16@74 R/16 t/16@54 R/16 t/16@54 R/16", "pan": -0.15, "gain": "-4dB"}
+  - {"name": "shaker", "patch": "djembe", "score": "sh/16@38 R/16 sh/16@50 R/16 sh/16@38 R/16 sh/16@50 R/16 sh/16@38 R/16 sh/16@50 R/16 sh/16@38 R/16 sh/16@50 R/16 sh/16@38 R/16 sh/16@50 R/16 sh/16@38 R/16 sh/16@50 R/16 sh/16@38 R/16 sh/16@50 R/16 sh/16@38 R/16 sh/16@50 R/16 sh/16@38 R/16 sh/16@50 R/16 sh/16@38 R/16 sh/16@50 R/16 sh/16@38 R/16 sh/16@50 R/16 sh/16@38 R/16 sh/16@50 R/16 sh/16@38 R/16 sh/16@50 R/16 sh/16@38 R/16 sh/16@50 R/16 sh/16@38 R/16 sh/16@50 R/16 sh/16@38 R/16 sh/16@50 R/16", "pan": 0.3, "gain": "-4dB"}

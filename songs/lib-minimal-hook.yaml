@@ -1,0 +1,5 @@
+about: "Library part \u2014 minimal melody (C major), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "flute", "score": "A4/2@84^gate=1.1 D5/2@100^gate=1.1 G4/2@84^gate=1.1 G5/2@100^gate=1.1 E4/2@92^gate=1.1 C5/2@100^gate=1.1 C5/2@92^gate=1.1 E5/2@92^gate=1.1", "pan": -0.1}

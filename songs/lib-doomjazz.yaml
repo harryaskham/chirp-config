@@ -1,0 +1,9 @@
+about: "Library part \u2014 doomjazz section (C phrygian), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "rhodes", "patch": "rhodes", "score": "C3,Eb3,Bb3,C#4,G4/1@62 Ab3,C4,G4,Bb4,Eb5/1@62 Bb3,F4,Ab4,C5,Eb5/1@62 C#3,F3,C4,Eb4,Ab4/1@62", "pan": -0.15, "fx": [{"type": "reverb", "kind": "hall", "decay": "7s", "predelay": "40ms", "low_cut": 150, "mix": 0.35}]}
+  - {"name": "ride", "patch": "brush-kit", "score": "rd/4@54 rd/4@54 rd/4@54 rd/4@54 rd/4@54 rd/4@54 rd/4@54 rd/4@54 rd/4@54 rd/4@54 rd/4@54 rd/4@54 rd/4@54 rd/4@54 rd/4@54 rd/4@54", "fx": [{"type": "reverb", "kind": "hall", "decay": "7s", "predelay": "40ms", "low_cut": 150, "mix": 0.35}], "gain": "-4dB"}
+  - {"name": "snare", "patch": "brush-kit", "score": "R/4 s/4@40 R/4 s/4@40 R/4 s/4@40 R/4 s/4@40 R/4 s/4@40 R/4 s/4@40 R/4 s/4@40 R/4 s/4@40", "fx": [{"type": "reverb", "kind": "hall", "decay": "7s", "predelay": "40ms", "low_cut": 150, "mix": 0.35}]}
+  - {"name": "bass", "patch": "upright-bass", "score": "C2/1@80 Ab2/1@80 Bb2/1@80 C#2/1@80", "seed": 7}
+  - {"name": "scape", "patch": "rain", "score": "C5/4 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _", "gain": "-4dB", "pan": 0.19}

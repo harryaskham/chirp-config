@@ -1,0 +1,5 @@
+about: "Library part \u2014 bossa melody (C major), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "trumpet-mute", "score": "G5/8@90 C6/16@91 G5/16@89 D5/4@92 C5/4@86 R/4 R/1 E5/8@89 B4/16@91 E5/16@87 A5/4@90 G5/4@84 R/4 D6/4@89 G5/4@101 R/2", "pan": 0.1}

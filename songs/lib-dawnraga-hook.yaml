@@ -1,0 +1,5 @@
+about: "Library part \u2014 dawnraga melody (C phrygian-dominant), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "sitar", "score": "C5/4@90 C#5/8@89 G5/8@93 Ab5/4@92 C5/4@83 R/1 C6/4@80 Bb5/8@87 F5/8@89 E5/4@91 Ab5/4@85 Ab5/4@90 C5/4@94 R/2", "pan": 0.1}

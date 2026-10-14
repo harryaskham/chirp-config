@@ -1,0 +1,5 @@
+about: "Library part \u2014 lofihop melody (C mixolydian), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "music-box", "score": "R/8 A5/8@84 D6/16@84 E6/16@94 D6/4@93 A5/4@89 R/4 Bb5/8@86 E6/16@87 F6/16@92 E6/4@95 D6/4@81 R/4 E5/8@85 Bb4/16@89 A4/16@90 Bb4/4@93 C5/2@85 G5/4@94 E5/4@95 G5/4.@90^gate=1.2", "pan": 0.1}

@@ -1,0 +1,5 @@
+about: "Library part \u2014 kankyo melody (C dorian), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "shakuhachi", "score": "Bb5/1@84 G5/1@84 C6/2.@84 A5/4@84 C5/2@84 G5/4@84 G5/4@84", "pan": 0.15}

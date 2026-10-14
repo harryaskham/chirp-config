@@ -1,0 +1,5 @@
+about: "Library part \u2014 cyberscape melody (C phrygian), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "theremin", "score": "G5/2@84^gate=1.1 G5/2@92^gate=1.1 C#6/1@84^gate=1.1 Eb5/1@100^gate=1.1 C#6/2@84^gate=1.1 Bb6/2@92^gate=1.1", "pan": -0.1, "fx": [{"type": "delay", "time": "3/8", "feedback": 0.4, "ping_pong": true, "mix": 0.3}]}

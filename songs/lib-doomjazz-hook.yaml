@@ -1,0 +1,5 @@
+about: "Library part \u2014 doomjazz melody (C phrygian), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "trumpet-mute", "score": "C5/1@92^gate=1.1 Eb5/2@84^gate=1.1 G5/2@92^gate=1.1 C#5/1@84^gate=1.1 Ab4/2@84^gate=1.1 Ab4/2@92^gate=1.1", "pan": -0.1}

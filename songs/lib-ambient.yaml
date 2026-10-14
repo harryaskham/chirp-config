@@ -1,0 +1,10 @@
+about: "Library part \u2014 ambient section (C dorian), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "pad", "patch": "strings", "score": "C3,Eb3,G3,Bb3/1@60 Eb3,G3,Bb3,D4/1@60 F3,A3,C4,Eb4/1@60 Bb3,D4,F4,A4/1@60", "gain": "-10dB"}
+  - {"name": "drone", "patch": "drone", "score": "C2,G2/1@84 _ _ _", "gain": "-6dB"}
+  - {"name": "choir", "patch": "choir", "score": "C3,Eb3,G3,Bb3/1@56 Eb3,G3,Bb3,D4/1@56 F3,A3,C4,Eb4/1@56 Bb3,D4,F4,A4/1@56", "gain": "-12dB"}
+  - {"name": "twinkle", "patch": "harp", "score": "R/16 R/16 R/16 R/16 C5/16@60 R/16 R/16 C6/16@70 R/16 G6/16@70 Eb6/16@50 R/16 G6/16@60 C6/16@70 R/16 R/16 R/16 R/16 R/16 R/16 R/16 C5/16@60 R/16 G6/16@60 R/16 R/16 R/16 Eb6/16@60 R/16 R/16 R/16 Eb6/16@50 G6/16@60 C6/16@50 R/16 R/16 C6/16@60 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 Eb5/16@70 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 C6/16@70 Eb5/16@60 C6/16@60 R/16 G6/16@70 R/16 R/16 Eb5/16@70 R/16", "pan": 0.4, "fx": [{"type": "chorus", "rate": 0.3, "depth": 0.6, "voices": 3, "mix": 0.3}, "reverb kind=hall decay=5s size=1 mix=0.35 predelay=40ms width=1.4 modulation=0.6 low_cut=250"], "gain": "-4dB"}
+  - {"name": "bowl", "patch": "handpan", "score": "C3/1@60 R/1 F3/1@60 R/1", "gain": "-6dB"}
+  - {"name": "hook", "patch": "ebow", "score": "G5/1@100^gate=1.1 Eb6/1@92^gate=1.1 F5/2@92^gate=1.1 C6/2@92^gate=1.1 D6/2@92^gate=1.1 Bb6/2@100^gate=1.1", "pan": -0.1, "gain": "-6dB"}

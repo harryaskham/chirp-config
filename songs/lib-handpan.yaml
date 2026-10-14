@@ -1,0 +1,9 @@
+about: "Library part \u2014 handpan section (C dorian), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "drone", "patch": "drone", "score": "C3,G3/1@84 _ _ _", "gain": "-12dB"}
+  - {"name": "ding", "patch": "handpan", "score": "C4/2@88 R/2 C4/2@88 R/2 C4/2@88 R/2 C4/2@88 R/2", "pan": 0.0}
+  - {"name": "tones", "patch": "handpan", "score": "R/16 R/16 C5/16@64 R/16 C5/16@80 C5/16@70 R/16 A4/16@64 R/16 R/16 G4/16@58 R/16 Eb4/16@80 R/16 C4/16@58 R/16 R/16 R/16 C4/16@70 R/16 D4/16@80 C4/16@64 R/16 D4/16@64 R/16 R/16 F4/16@58 R/16 G4/16@80 R/16 F4/16@64 R/16 R/16 R/16 D4/16@64 R/16 C4/16@80 C4/16@64 R/16 D4/16@64 R/16 R/16 C4/16@64 R/16 D4/16@80 R/16 C4/16@64 R/16 R/16 R/16 C4/16@64 R/16 C4/16@80 D4/16@58 R/16 Eb4/16@58 R/16 R/16 G4/16@58 R/16 Bb4/16@80 R/16 C5/16@64 R/16", "pan": 0.05}
+  - {"name": "kalimba", "patch": "kalimba", "score": "R/16 R/16 R/16 F5/16@50 R/16 R/16 R/16 R/16 R/16 R/16 G5/16@50 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 C5/16@50 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 C6/16@50 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16", "pan": 0.4, "gain": "-6dB"}
+  - {"name": "scape", "patch": "rain", "score": "C5/4 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _", "gain": "-4dB", "pan": -0.19}

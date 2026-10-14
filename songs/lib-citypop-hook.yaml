@@ -1,0 +1,5 @@
+about: "Library part \u2014 citypop melody (C lydian), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "tenor-sax", "score": "E6/8@85 C6/8@89 A5/8@95 C6/8@83 A5/4@90 R/4 F#5/2@97 G5/2@82 C5/8@89 E5/8@84 G5/8@96 E5/8@93 G5/2@88 G5/2@93 R/2", "pan": 0.1}

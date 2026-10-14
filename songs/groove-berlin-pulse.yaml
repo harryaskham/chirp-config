@@ -1,0 +1,5 @@
+about: "Generated part (tempo: inherit, 16 beats) \u2014 Berlin school: a soft electro kick on every beat"
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "kick", "patch": "electro-kit", "score": "k/4@64 k/4@64 k/4@64 k/4@64 k/4@64 k/4@64 k/4@64 k/4@64 k/4@64 k/4@64 k/4@64 k/4@64 k/4@64 k/4@64 k/4@64 k/4@64", "gain": "-6dB"}

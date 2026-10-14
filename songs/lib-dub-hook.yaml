@@ -1,0 +1,5 @@
+about: "Library part \u2014 dub melody (C mixolydian), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "melodica", "score": "C6/8@89 F6/8@84 A6/8@97 Bb6/8@90 A5/2@87 F6/8@89 Bb6/8@88 D7/8@97 E7/8@89 F6/4@80 R/4 G5/8@86 C6/8@84 E6/8@87 F6/8@86 C5/2@88 G5/4@86 E5/4@88 C5/2@93^gate=1.2", "pan": 0.1}

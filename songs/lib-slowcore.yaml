@@ -1,0 +1,9 @@
+about: "Library part \u2014 slowcore section (C mixolydian), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "gtr", "patch": "tele", "score": "C4/8@80 C5/8@66 G4/8@66 E5/8@66 C4/8@80 C5/8@66 G5/8@66 C5/8@66 F4/8@80 C5/8@66 F5/8@66 C5/8@66 A5/8@80 F5/8@66 C5/8@66 F5/8@66 Bb4/8@80 F5/8@66 Bb5/8@66 D6/8@66 Bb5/8@80 F5/8@66 Bb5/8@66 F6/8@66 G4/8@80 G5/8@66 D5/8@66 Bb5/8@66 G4/8@80 G5/8@66 D6/8@66 G5/8@66", "pan": -0.25, "fx": [{"type": "tremolo", "rate": 3.2, "depth": 0.35}, "reverb kind=spring decay=2.2s mix=0.25"], "gain": "-2dB"}
+  - {"name": "ride", "patch": "brush-kit", "score": "rd/8@52 rd/8@40 rd/8@52 rd/8@40 rd/8@52 rd/8@40 rd/8@52 rd/8@40 rd/8@52 rd/8@40 rd/8@52 rd/8@40 rd/8@52 rd/8@40 rd/8@52 rd/8@40 rd/8@52 rd/8@40 rd/8@52 rd/8@40 rd/8@52 rd/8@40 rd/8@52 rd/8@40 rd/8@52 rd/8@40 rd/8@52 rd/8@40 rd/8@52 rd/8@40 rd/8@52 rd/8@40", "gain": "-4dB"}
+  - {"name": "snare", "patch": "brush-kit", "score": "k/4@62 s/4@58 k/4@62 s/4@58 k/4@62 s/4@58 k/4@62 s/4@58 k/4@62 s/4@58 k/4@62 s/4@58 k/4@62 s/4@58 k/4@62 s/4@58"}
+  - {"name": "bass", "patch": "finger-bass", "score": "C2/2@82 G2/2@74 F2/2@82 C3/2@74 Bb2/2@82 F3/2@74 G2/2@82 D3/2@74", "seed": 7}
+  - {"name": "scape", "patch": "wind", "score": "C5/4 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _", "gain": "-6dB", "pan": 0.02}

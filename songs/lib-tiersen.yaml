@@ -1,0 +1,7 @@
+about: "Library part \u2014 tiersen section (C dorian), 24 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 24b
+tracks:
+  - {"name": "lh", "patch": "piano", "score": "C3/4@70 C4,Eb4,G4/4@56 C4,Eb4,G4/4@54 C3/4@70 C4,Eb4,G4/4@56 C4,Eb4,G4/4@54 F3/4@70 F4,A4,C5/4@56 F4,A4,C5/4@54 F3/4@70 F4,A4,C5/4@56 F4,A4,C5/4@54 C3/4@70 C4,Eb4,G4/4@56 C4,Eb4,G4/4@54 C3/4@70 C4,Eb4,G4/4@56 C4,Eb4,G4/4@54 F3/4@70 F4,A4,C5/4@56 F4,A4,C5/4@54 F3/4@70 F4,A4,C5/4@56 F4,A4,C5/4@54", "pan": -0.15}
+  - {"name": "melody", "patch": "mandolin", "score": "[ C5/32@70 ]x24 [ C5/32@70 ]x24 F#5/4@80 G5/4@80 C6/4@86 [ F5/32@76 ]x16 A5/4@72 F#5/4@72 G5/4@80 C5/4@72 F#5/4@72 [ C5/32@76 ]x16 [ F#5/32@70 ]x24 F5/4@72 [ E5/32@76 ]x16", "pan": 0.15}
+  - {"name": "scape", "patch": "wind", "score": "C5/4 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _", "gain": "-6dB", "pan": 0.49}

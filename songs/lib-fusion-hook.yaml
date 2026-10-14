@@ -1,0 +1,5 @@
+about: "Library part \u2014 fusion melody (C mixolydian), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "trumpet-mute", "score": "G5/4@88 E5/8@93 C5/8@91 Bb4/4@93 G5/4@83 R/1 F6/4@87 A6/8@90 C7/8@88 D7/4@97 F6/4@84 D6/4@86 C5/4@102 R/2", "pan": 0.1}

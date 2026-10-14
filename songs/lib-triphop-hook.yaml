@@ -1,0 +1,5 @@
+about: "Library part \u2014 triphop melody (C phrygian), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "flute", "score": "Eb5/8@83 Bb4/16@92 Eb5/16@97 C#5/4@95 G5/2@81 R/1 Ab5/8@87 C#6/16@83 Ab5/16@97 Bb5/4@99 Ab5/4@84 R/4 G5/4@94 C5/4@98 R/2", "pan": 0.1}

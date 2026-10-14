@@ -1,0 +1,7 @@
+about: "Library part \u2014 manouche section (C major), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "pompe", "patch": "acoustic", "score": "swing=0.64 C3,E4,G4,A4/4@88^gate=0.6 C3,E4,G4,A4/4@70^gate=0.15 C3,E4,G4,A4/4@84^gate=0.6 C3,E4,G4,A4/4@70^gate=0.15 F3,A4,C5,D5/4@88^gate=0.6 F3,A4,C5,D5/4@70^gate=0.15 F3,A4,C5,D5/4@84^gate=0.6 F3,A4,C5,D5/4@70^gate=0.15 C3,E4,F4,A4/4@88^gate=0.6 C3,E4,F4,A4/4@70^gate=0.15 C3,E4,F4,A4/4@84^gate=0.6 C3,E4,F4,A4/4@70^gate=0.15 G3,B4,C5,E5/4@88^gate=0.6 G3,B4,C5,E5/4@70^gate=0.15 G3,B4,C5,E5/4@84^gate=0.6 G3,B4,C5,E5/4@70^gate=0.15", "pan": -0.2}
+  - {"name": "bass", "patch": "upright-bass", "score": "C2/2@84 G2/2@78 F2/2@84 C3/2@78 C2/2@84 G2/2@78 G2/2@84 D3/2@78", "seed": 7}
+  - {"name": "scape", "patch": "wind", "score": "C5/4 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _", "gain": "-6dB", "pan": -0.35}

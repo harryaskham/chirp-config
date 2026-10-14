@@ -1,0 +1,7 @@
+about: "Generated part (tempo: inherit, 16 beats) \u2014 future garage: skippy rim and kick with shuffled hats (cyberscape)"
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "rim", "patch": "tight-kit", "score": "swing16=0.6 R/16 R/16 R/16 R/16 rc/16@72 R/16 R/16 R/16 R/16 R/16 R/16 R/16 rc/16@72 R/16 R/16 R/16 R/16 R/16 R/16 R/16 rc/16@72 R/16 R/16 R/16 R/16 R/16 R/16 R/16 rc/16@72 R/16 R/16 R/16 R/16 R/16 R/16 R/16 rc/16@72 R/16 R/16 R/16 R/16 R/16 R/16 R/16 rc/16@72 R/16 R/16 R/16 R/16 R/16 R/16 R/16 rc/16@72 R/16 R/16 R/16 R/16 R/16 R/16 R/16 rc/16@72 R/16 R/16 R/16", "gain": "-6dB"}
+  - {"name": "kick", "patch": "tight-kit", "score": "swing16=0.6 k/16@84 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 k/16@84 R/16 R/16 R/16 R/16 R/16 k/16@84 R/16 R/16 R/16 R/16 R/16 R/16 k/16@84 R/16 R/16 k/16@84 R/16 R/16 R/16 R/16 R/16 k/16@84 R/16 R/16 R/16 R/16 R/16 R/16 k/16@84 R/16 R/16 k/16@84 R/16 R/16 R/16 R/16 R/16 k/16@84 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16", "gain": "-6dB"}
+  - {"name": "hats", "patch": "tight-kit", "score": "swing16=0.6 h/16@34 h/16@34 h/16@48 h/16@34 h/16@34 h/16@34 R/16 h/16@34 R/16 h/16@34 R/16 h/16@34 h/16@34 R/16 R/16 R/16 h/16@34 h/16@34 R/16 h/16@34 R/16 R/16 h/16@48 R/16 h/16@34 h/16@34 R/16 h/16@34 R/16 R/16 h/16@48 R/16 h/16@34 R/16 h/16@48 R/16 h/16@34 R/16 h/16@48 h/16@34 R/16 h/16@34 h/16@48 h/16@34 h/16@34 h/16@34 h/16@48 R/16 R/16 R/16 R/16 h/16@34 h/16@34 R/16 h/16@48 h/16@34 h/16@34 h/16@34 h/16@48 h/16@34 h/16@34 h/16@34 h/16@48 h/16@34", "pan": 0.2, "gain": "-6dB"}

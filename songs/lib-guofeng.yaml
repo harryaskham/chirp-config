@@ -1,0 +1,9 @@
+about: "Library part \u2014 guofeng section (C minor), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "koto", "patch": "koto", "score": "C4/16@78 Eb4/16@62 F4/16@62 G4/16@62 Bb4/16@78 C5/16@62 Eb5/16@62 F5/16@62 F5/16@78 Eb5/16@62 C5/16@62 Bb4/16@62 G4/16@78 F4/16@62 Eb4/16@62 C4/16@62 F4/16@78 Ab4/16@62 Bb4/16@62 C5/16@62 Eb5/16@78 F5/16@62 Ab5/16@62 Bb5/16@62 Bb5/16@78 Ab5/16@62 F5/16@62 Eb5/16@62 C5/16@78 Bb4/16@62 Ab4/16@62 F4/16@62 G4/16@78 Bb4/16@62 C5/16@62 D5/16@62 F5/16@78 G5/16@62 Bb5/16@62 C6/16@62 C6/16@78 Bb5/16@62 G5/16@62 F5/16@62 D5/16@78 C5/16@62 Bb4/16@62 G4/16@62 C4/16@78 Eb4/16@62 F4/16@62 G4/16@62 Bb4/16@78 C5/16@62 Eb5/16@62 F5/16@62 F5/16@78 Eb5/16@62 C5/16@62 Bb4/16@62 G4/16@78 F4/16@62 Eb4/16@62 C4/16@62", "pan": -0.2}
+  - {"name": "drone", "patch": "strings", "score": "C3,G3/1@54 F3,C4/1@54 G3,D4/1@54 C3,G3/1@54", "gain": "-10dB"}
+  - {"name": "blocks", "patch": "tight-kit", "score": "wb/16@64 R/16 R/16 R/16 R/16 R/16 wbl/16@54 R/16 wb/16@64 R/16 R/16 R/16 wbl/16@54 R/16 R/16 R/16 wb/16@64 R/16 R/16 R/16 R/16 R/16 wbl/16@54 R/16 wb/16@64 R/16 R/16 R/16 wbl/16@54 R/16 R/16 R/16 wb/16@64 R/16 R/16 R/16 R/16 R/16 wbl/16@54 R/16 wb/16@64 R/16 R/16 R/16 wbl/16@54 R/16 R/16 R/16 wb/16@64 R/16 R/16 R/16 R/16 R/16 wbl/16@54 R/16 wb/16@64 R/16 R/16 R/16 wbl/16@54 R/16 R/16 R/16", "pan": 0.25, "gain": "-4dB"}
+  - {"name": "kick", "patch": "tight-kit", "score": "k/16@60 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 k/16@60 R/16 R/16 R/16 R/16 R/16 k/16@60 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 k/16@60 R/16 R/16 R/16 R/16 R/16 k/16@60 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 k/16@60 R/16 R/16 R/16 R/16 R/16 k/16@60 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 R/16 k/16@60 R/16 R/16 R/16 R/16 R/16"}
+  - {"name": "scape", "patch": "wind", "score": "C5/4 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _", "gain": "-6dB", "pan": 0.21}

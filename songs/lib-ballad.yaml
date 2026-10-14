@@ -1,0 +1,8 @@
+about: "Library part \u2014 ballad section (C dorian), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "ride", "patch": "brush-kit", "score": "swing=0.66 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46"}
+  - {"name": "snare", "patch": "brush-kit", "score": "swing=0.66 R/8 R/8 s/8@38 R/8 R/8 R/8 s/8@38 R/8 R/8 R/8 s/8@38 R/8 R/8 R/8 s/8@38 R/8 R/8 R/8 s/8@38 R/8 R/8 R/8 s/8@38 R/8 R/8 R/8 s/8@38 R/8 R/8 R/8 s/8@38 R/8"}
+  - {"name": "piano", "patch": "piano", "score": "Bb4,D5,Eb5/2@62 Bb4,D5,Eb5/4@56 R/4 A5,C6,D6/2@68 A5,C6,D6/4@56 R/4 A4,C5,Eb5/2@62 A4,C5,Eb5/4@56 R/4 Eb4,G4,Bb4/2@62 Eb4,G4,Bb4/4@56 R/4", "pan": -0.15, "fx": [{"type": "eq", "bands": ["peak cutoff=250 q=1 gain=-1.5dB", "highshelf cutoff=9000 gain=-1.5dB"]}, "reverb kind=room decay=1.4s size=0.7 mix=0.25 predelay=14ms"]}
+  - {"name": "bass", "patch": "upright-bass", "score": "C2/4@78 Eb2/4@78 G2/4@78 A2/4@78 Bb2/4@78 C3/4@78 D3/4@78 F3/4@78 F2/4@78 G2/4@78 A2/4@78 C3/4@78 C2/4@78 G2/4@78 Eb2/4@78 D2/4@78", "seed": 7}

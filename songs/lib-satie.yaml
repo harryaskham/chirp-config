@@ -1,0 +1,7 @@
+about: "Library part \u2014 satie section (C major), 24 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 24b
+tracks:
+  - {"name": "lh", "patch": "piano", "score": "A3/4@58 E5,G5,B5/2@50 A3/4@58 C5,E5,G5/2@50 F3/4@58 A4,C5,E5/2@50 F3/4@58 A4,C5,E5/2@50 C3/4@58 E4,B4,D5/2@50 C3/4@58 E4,B4,D5/2@50 G3/4@58 B4,F5,A5/2@50 G3/4@58 D5,F5,A5/2@50", "pan": -0.15, "fx": [{"type": "eq", "bands": ["peak cutoff=250 q=1 gain=-1.5dB", "highshelf cutoff=9000 gain=-1.5dB"]}, "reverb kind=room decay=1.4s size=0.7 mix=0.25 predelay=14ms"]}
+  - {"name": "rh", "patch": "piano", "score": "A5/4@56 G5/2@62 R/4 G5/2@60 G5/4@56 F5/2@62 Eb5/2.@60 F5/4@56 Eb5/2@62 R/4 D5/2@60 A5/4@56 G5/2@62 R/4 G5/2@60", "pan": 0.15, "fx": [{"type": "eq", "bands": ["peak cutoff=250 q=1 gain=-1.5dB", "highshelf cutoff=9000 gain=-1.5dB"]}, "reverb kind=room decay=1.4s size=0.7 mix=0.25 predelay=14ms"]}
+  - {"name": "scape", "patch": "rain", "score": "C5/4 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _", "gain": "-4dB", "pan": -0.26}

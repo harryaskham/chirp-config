@@ -1,0 +1,5 @@
+about: "Library part \u2014 slowcore melody (C mixolydian), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "pedal-steel", "score": "E5/1@92^gate=1.1 C6/1@84^gate=1.1 F6/2@92^gate=1.1 Bb6/2@100^gate=1.1 G5/2@92^gate=1.1 F6/2@100^gate=1.1", "pan": -0.1}
