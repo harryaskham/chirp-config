@@ -1,0 +1,5 @@
+about: "Library part \u2014 highlife melody (C major), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "trumpet-mute", "score": "E6/8@89 A6/16@86 E6/16@96 F6/4@99 E6/4@86 R/4 C6/4@90 B5/4@97 G5/2@81 C5/8@80 G4/16@90 C5/16@93 B4/4@92 C5/2@86 G5/2@95 R/2", "pan": 0.1}

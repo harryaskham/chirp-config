@@ -3,7 +3,7 @@
 Stable, reusable parts exported from the generators (`tools/libparts.py`; `libparts.py heavy` for the metal set), composed in C, tempo-inheriting.
 Use `@NAME` in a score; transpose with `tr=N` (e.g. `tr=-3 @lib-kankyo`, `tr=5 @lib-meshuggah-brk`).
 
-## Chill (78)
+## Chill (80)
 
 | part | style | kind | beats |
 |---|---|---|---|
@@ -49,6 +49,8 @@ Use `@NAME` in a score; transpose with `tr=N` (e.g. `tr=-3 @lib-kankyo`, `tr=5 @
 | `@lib-handpan` | handpan | section | 16 |
 | `@lib-hauntology-hook` | hauntology | melody | 16 |
 | `@lib-hauntology` | hauntology | section | 16 |
+| `@lib-highlife-hook` | highlife | melody | 16 |
+| `@lib-highlife` | highlife | section | 16 |
 | `@lib-house-melodic-hook` | house-melodic | melody | 16 |
 | `@lib-house-melodic` | house-melodic | section | 16 |
 | `@lib-kankyo-hook` | kankyo | melody | 16 |

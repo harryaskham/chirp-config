@@ -1,0 +1,31 @@
+about: "West African percussion: ah / al agogô bells (high / low), sk shekere (beaded gourd), cl clave. Highlife, Afrobeat, 12/8 bell patterns."
+play: {len: /16, vel_sens: 0.6, humanize: {time: 5ms, vel: 0.08}}
+gain: 0dB
+fx: ["reverb kind=room decay=0.7s mix=0.12"]
+kit:
+  ah:
+    pitch: E6
+    patch:
+      synth:
+        layers: [{type: additive, partials: [[1, 1], [2.4, 0.4], [3.9, 0.15]], damp: 0.3}, {type: noise, level: {value: -60dB, mod: [{src: env.h, amount: 40}]}}]
+        env:
+          h: {a: 0.2ms, d: 4ms, s: 0}
+        amp: {a: 0.2ms, d: 220ms, s: 0, r: 30ms, curve: 3}
+  al:
+    pitch: B5
+    patch:
+      synth:
+        layers: [{type: additive, partials: [[1, 1], [2.4, 0.4], [3.9, 0.15]], damp: 0.3}, {type: noise, level: {value: -60dB, mod: [{src: env.h, amount: 40}]}}]
+        env:
+          h: {a: 0.2ms, d: 4ms, s: 0}
+        amp: {a: 0.2ms, d: 260ms, s: 0, r: 30ms, curve: 3}
+  sk:
+    gain: -6dB
+    patch: {synth: {layers: [{type: noise}], filters: ["hp cutoff=3k", "lp cutoff=11k"], amp: {a: 6ms, d: 90ms, s: 0, r: 30ms}}}
+  cl:
+    pitch: G5
+    gain: -2dB
+    patch:
+      synth:
+        layers: [sine, {wave: sine, ratio: 2.1, level: -10dB}]
+        amp: {a: 0.2ms, d: 60ms, s: 0, r: 15ms, curve: 4}
