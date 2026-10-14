@@ -17,6 +17,7 @@ done
 C=${XDG_RUNTIME_DIR:-/tmp}/chirp-groove
 log=${TMPDIR:-/tmp}/chirp-evolve.log
 pgrep -f "^[^ ]*python3 $here/evolve.py" | xargs -r kill
+pgrep -f "^[^ ]*python3 $here/playlist.py" | xargs -r kill
 # Stop with the new binary first (the pinned copy may be missing or older); any build speaks the socket protocol.
 # Musical stop (fade out on a bar line) where the build supports it; otherwise a plain stop.
 "$src" stop groove --at bar --fade 800ms >/dev/null 2>&1 || "$src" stop groove >/dev/null 2>&1 || { [ -x "$C" ] && "$C" stop groove >/dev/null 2>&1; }
@@ -34,11 +35,21 @@ if [ "$out" = chirp ]; then
   env -u PULSE_SERVER pactl -s "$local_pulse" list short sinks 2>/dev/null | grep -qw chirp \
     || env -u PULSE_SERVER pactl -s "$local_pulse" load-module module-null-sink sink_name=chirp rate=48000 channels=2 sink_properties=device.description=chirp >/dev/null
 fi
-PULSE_LATENCY_MSEC=${CHIRP_PULSE_LATENCY_MSEC:-1000} setsid nohup env -u PULSE_SERVER "$C" --loop --id groove -o "$out" -s "${1:-live-suite}" > "${TMPDIR:-/tmp}/chirp-groove.log" 2>&1 < /dev/null 9>&- &
+# `playlist`: the hill-climb playlist (climbs.json) — start its first enabled climb from its file, then hand the
+# groove to tools/playlist.py, which rotates the climbs and hot-swaps each owner's new best versions.
+if [ "${1:-}" = playlist ]; then
+  first=$(cd "$here/.." && python3 -c 'import json; c=[x for x in json.load(open("climbs.json"))["climbs"] if x.get("enabled", True)]; print(c[0]["song"])')
+  src_args=(-f "$here/../$first")
+else
+  src_args=(-s "${1:-live-suite}")
+fi
+PULSE_LATENCY_MSEC=${CHIRP_PULSE_LATENCY_MSEC:-1000} setsid nohup env -u PULSE_SERVER "$C" --loop --id groove -o "$out" "${src_args[@]}" > "${TMPDIR:-/tmp}/chirp-groove.log" 2>&1 < /dev/null 9>&- &
 sleep 1.2
 if [ -n "${2:-}" ]; then "$C" live set --id groove --when bar --xfade 150ms "tracks.arrangement.score=$2" | tail -1; fi
 # the evolver only drives live-suite; any other song (a benchmark reproduction) plays as written
 if [ "${1:-live-suite}" = live-suite ]; then CHIRP_BIN=$C EVOLVE_RESUME=1 setsid nohup python3 "$here/evolve.py" >> "$log" 2>&1 < /dev/null 9>&- & fi
+if [ "${1:-}" = playlist ]; then CHIRP_BIN=$C setsid nohup python3 "$here/playlist.py" >> "${TMPDIR:-/tmp}/chirp-playlist.log" 2>&1 < /dev/null 9>&- & fi
 sleep 0.5
 "$C" live list
-pgrep -f "^[^ ]*python3 $here/evolve.py" >/dev/null && echo "evolver running (log: $log)" || echo "groove playing ${1:-live-suite} (no evolver)"
+if pgrep -f "^[^ ]*python3 $here/playlist.py" >/dev/null; then echo "playlist driver running (log: ${TMPDIR:-/tmp}/chirp-playlist.log)"
+else pgrep -f "^[^ ]*python3 $here/evolve.py" >/dev/null && echo "evolver running (log: $log)"; pgrep -f "^[^ ]*python3 $here/evolve.py" >/dev/null || echo "groove playing ${1:-live-suite} (no evolver)"; fi

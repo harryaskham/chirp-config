@@ -20,6 +20,11 @@ while true; do
     fi
     out=$(cat "$here/groove-out" 2>/dev/null || echo music)
     if [ "$out" = chirp ]; then pulse="unix:/run/user/$(id -u)/pulse/native"; else pulse=${PULSE:-tcp:sgu24:4713}; fi
+    # playlist mode: the groove alone keeps looping its current song, so a dead driver silently stops the rotation
+    if [ -z "$reason" ] && [ "$(cat "$here/groove-song" 2>/dev/null)" = playlist ] && ! pgrep -f "^[^ ]*python3 $here/playlist.py" >/dev/null; then
+      echo "$(date +%T) watchdog: playlist driver missing — restarting it"
+      CHIRP_BIN="${XDG_RUNTIME_DIR:-/tmp}/chirp-groove" setsid nohup python3 "$here/playlist.py" >> "${TMPDIR:-/tmp}/chirp-playlist.log" 2>&1 < /dev/null &
+    fi
     if [ -n "$reason" ] && env -u PULSE_SERVER pactl -s "$pulse" info >/dev/null 2>&1; then
       nxt=$(python3 -c "import json;print(json.load(open('$here/state.json')).get('next') or 'form-1')" 2>/dev/null || echo form-1)
       echo "$(date +%T) watchdog: groove $reason — restarting (@$nxt)"
