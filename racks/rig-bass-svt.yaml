@@ -1,0 +1,6 @@
+about: "Tube bass rig (SVT-style): compression, a warm, gently driven preamp blended with the DI, 4x10 cab, tone EQ — the DI's pick attack and low end intact."
+fx:
+  - {type: compressor, threshold: -20dB, ratio: 3, attack: 10ms, release: 120ms, makeup: 2dB}
+  - {type: amp, model: crunch, gain: 0.35, tight: 30, boost: 0dB, bass: 0.62, mid: 0.5, treble: 0.5, presence: 0.45, resonance: 0.6, sag: 0.35, mix: 0.7}
+  - {type: cab, model: 4x10, mic: 0.3, distance: 0.1}
+  - {type: eq, bands: ["lowshelf cutoff=90 gain=1.5dB", "highshelf cutoff=6k gain=-4dB"]}

@@ -1,0 +1,23 @@
+about: >-
+  Crash cymbal on the modal layer: a thinner plate struck at the edge, the wash blooming upward over
+  the first few hundred ms, a few seconds of decay; velocity opens it up. Pitch ~F4 for an 18-19".
+synth:
+  layers:
+    - name: plate
+      type: modal
+      modes: cymbal
+      strike: 0.9
+      bright: {value: 0.7, mod: [{src: vel, amount: 0.3}]}
+      decay: 3.2s
+      damp: 0.03
+      tilt: 0
+      bloom: 0.55
+      vary: 0.6
+    - name: hit
+      type: noise
+      level: {value: -66dB, mod: [{src: env.att, amount: 50}, {src: vel, amount: 6}]}
+  env:
+    att: {a: 0.2ms, d: 12ms, s: 0}
+  filters: ["hp cutoff=400", "peak cutoff=7k q=0.7 gain=2dB"]
+  amp: {a: 0.3ms, d: 3.5s, s: 0, r: 500ms, curve: 4}
+play: {vel_sens: 0.5}

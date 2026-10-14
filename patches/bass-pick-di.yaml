@@ -1,0 +1,31 @@
+about: >-
+  Picked electric bass, DI only — no amp, no sub oscillator: a stiff round-wound string through
+  Wal-style active humbuckers near the bridge (coil spacing, ~1.6 kHz resonance), a medium pick
+  (click, per-stroke scrape), fret buzz and attack twang on hard hits. Articulations: expr.pm palm
+  mute (shorter, darker, body knock), expr.up upstroke (polarity), choke on release; velocity drives
+  brightness, click and buzz. Put a bass rig after it (rack:rig-bass-svt, rack:rig-bass-grit) or keep
+  it clean.
+synth:
+  layers:
+    - name: string
+      type: pluck
+      stiff: 0.22
+      pick: 0.12
+      pickup: 0.12
+      coil: 0.3
+      pickup_hz: 1600
+      pickup_q: 1.2
+      decay: {value: 4s, mod: [{src: expr.pm, amount: -3.2}, {src: vel, amount: 0.6}]}
+      bright: {value: 0.58, mod: [{src: vel, amount: 0.25}, {src: expr.pm, amount: -0.3}, {src: rand, amount: 0.03}]}
+      buzz: {value: 0.04, mod: [{src: vel, amount: 0.18}]}
+      polarity: {value: 1, mod: [{src: expr.up, amount: -2}]}
+      click: {value: 0.2, mod: [{src: vel, amount: 0.35}]}
+      pick_hard: 0.55
+      scrape: {value: 0.08, mod: [{src: vel, amount: 0.1}]}
+      thump: {value: 0, mod: [{src: expr.pm, amount: 0.6}]}
+      sharp: 10
+      vary: 0.5
+      fret: 0.12
+      choke: 60ms
+  amp: {a: 1ms, s: 1, r: 60ms}
+play: {mono: true, humanize: {time: 3ms, vel: 0.05}, vel_sens: 0.5}

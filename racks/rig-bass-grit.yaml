@@ -1,0 +1,6 @@
+about: "Parallel bass grit (Darkglass-style): the clean DI carries the lows while a tight overdrive, high-passed at 250 Hz before the drive, adds growl and clank above it (amp tight + mix = the blend knob); 4x10, mid growl, compression."
+fx:
+  - {type: compressor, threshold: -24dB, ratio: 4, attack: 6ms, release: 100ms, makeup: 3dB}
+  - {type: amp, model: modern, gain: 0.6, tight: 250, boost: 3dB, bass: 0.4, mid: 0.62, treble: 0.55, presence: 0.5, resonance: 0.5, sag: 0.2, mix: 0.45}
+  - {type: cab, model: 4x10, mic: 0.35, distance: 0.08}
+  - {type: eq, bands: ["peak cutoff=800 q=0.9 gain=2dB", "highshelf cutoff=5k gain=-5dB"]}

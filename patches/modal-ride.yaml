@@ -1,0 +1,24 @@
+about: >-
+  Ride cymbal on the modal layer: a dense chaotic plate (cymbal mode set) struck on the bow, long
+  shimmering decay with a little wash bloom, a dry stick ping on top; harder hits are brighter.
+  Pitch ~D4 for a 21-22" ride.
+synth:
+  layers:
+    - name: bow
+      type: modal
+      modes: cymbal
+      strike: 0.5
+      bright: {value: 0.62, mod: [{src: vel, amount: 0.3}]}
+      decay: 5s
+      damp: 0.025
+      tilt: 0
+      bloom: 0.15
+      vary: 0.5
+    - name: ping
+      type: noise
+      level: {value: -66dB, mod: [{src: env.att, amount: 46}, {src: vel, amount: 6}]}
+  env:
+    att: {a: 0.1ms, d: 3ms, s: 0}
+  filters: ["hp cutoff=320", "peak cutoff=5k q=0.8 gain=2dB"]
+  amp: {a: 0.1ms, d: 6s, s: 0, r: 400ms, curve: 4}
+play: {vel_sens: 0.5}

@@ -105,7 +105,40 @@ def split_chords(line, mode):
     return " ".join(out)
 
 
-def part_score(lines, beats, ranges, offset_beats, remap=None, drop=(), label="", chord=None):
+RING_TOK = re.compile(r"^([^/]+)/([0-9.]+)b(.*)$")
+
+
+def ring_bar(line, max_beats):
+    """Let notes ring through the rests that follow them (up to max_beats), as a guitarist or bassist lets a
+    chord sustain where a tab writes short notes and rests. Muted/dead/staccato notes stay short; the bar's
+    timing is unchanged (each rest shrinks by what the note before it takes)."""
+    toks = line.split()
+    out, i = [], 0
+    while i < len(toks):
+        m = RING_TOK.match(toks[i])
+        if not m or m.group(1) == "R" or any(a in m.group(3) for a in ("^pm", "^dead", "^stac")):
+            out.append(toks[i]); i += 1; continue
+        head, dur, tail = m.group(1), float(m.group(2)), m.group(3)
+        take, j, left = 0.0, i + 1, max_beats
+        rests = []
+        while j < len(toks) and left > 1e-9:
+            r = RING_TOK.match(toks[j])
+            if not r or r.group(1) != "R" or r.group(3):
+                break
+            rb = float(r.group(2)); t = min(rb, left)
+            take += t; left -= t
+            if rb - t > 1e-6:
+                rests.append(fmt_beats(rb - t))
+                j += 1
+                break
+            j += 1
+        out.append(f"{head}/{fmt_num(dur + take)}b{tail}")
+        out.extend(rests)
+        i = j
+    return " ".join(out)
+
+
+def part_score(lines, beats, ranges, offset_beats, remap=None, drop=(), label="", chord=None, ring=None):
     """Bars inside `ranges` keep their tab line (fitted to the bar length); everything else rests. Consecutive
     identical bars collapse to [bar]xN; consecutive rests merge."""
     on = set()
@@ -121,6 +154,8 @@ def part_score(lines, beats, ranges, offset_beats, remap=None, drop=(), label=""
             if chord:
                 line = split_chords(line, chord)
             line, have = fit_bar(line, nb)
+            if ring:
+                line = ring_bar(line, float(ring))
             if abs(have - nb) >= 1e-4:
                 FITTED.append((label, i, round(have, 4), nb))
             items.append(["bar", line])
@@ -229,7 +264,7 @@ def build(mp):
             kept = [pos[m] for m in range(a, b + 1) if m in pos]
             if kept:
                 ranges.append((min(kept), max(kept)))
-        sc = part_score(lines_cache[p["track"]], beats, ranges, off_beats, p.get("remap"), p.get("drop", ()), p["name"], p.get("chord"))
+        sc = part_score(lines_cache[p["track"]], beats, ranges, off_beats, p.get("remap"), p.get("drop", ()), p["name"], p.get("chord"), p.get("ring"))
         tr = {"name": p["name"], "patch": p["patch"]}
         for k in ("gain", "pan"):
             if k in p:

@@ -83,7 +83,7 @@ def feat(B, k):
 def templates(path, pieces):
     x = L.load(path).mean(1)
     B = bands(x)
-    T, gamma = [], []
+    T, gamma, n120 = [], [], []
     for i, p in enumerate(pieces):
         norms, vecs = [], []
         for j, v in enumerate((40, 80, 120)):
@@ -95,8 +95,8 @@ def templates(path, pieces):
             vecs.append(f); norms.append(np.linalg.norm(f) + 1e-12)
         lx, ly = np.log([40, 80, 120]), np.log(norms)
         g = float(((lx - lx.mean()) * (ly - ly.mean())).sum() / ((lx - lx.mean()) ** 2).sum())   # magnitude ∝ vel^g
-        T.append(vecs[2] / norms[2]); gamma.append(max(0.3, g))
-    return np.array(T).T, np.array(gamma), norms
+        T.append(vecs[2] / norms[2]); gamma.append(max(0.3, g)); n120.append(norms[2])
+    return np.array(T).T, np.array(gamma), np.array(n120)
 
 
 def track_hits(song_path, track_name):
@@ -198,10 +198,17 @@ def transcribe(stem, song, tpl_wav, pieces, t0=0.0, t1=None, grid=24, gain_db=0.
     x = L.load(stem).mean(1)
     B = bands(x)
     on_all = pick(novelty(B))
+    kit_curve = None
     if labels is not None:
+        all_pieces = list(pieces)
         T, pieces, counts = learned_templates(B, on_all, labels, pieces)
         gamma = np.ones(len(pieces))
         print("learned templates: " + ", ".join(f"{p}×{c}" for p, c in zip(pieces, counts)), file=sys.stderr)
+        if tpl_wav and tpl_wav != "-" and os.path.exists(tpl_wav):
+            # Per-piece velocity calibration through the kit's own rendered level curves: the stem's
+            # amplitudes are comparable across pieces only through how loud each of OUR pieces plays.
+            _, kg, kn = templates(tpl_wav, all_pieces)
+            kit_curve = {p: (kg[all_pieces.index(p)], kn[all_pieces.index(p)]) for p in pieces}
     else:
         T, gamma, _ = templates(tpl_wav, pieces)
     # weight bands so cymbal/hat bands count as much as the kick's: inverse of the stem's typical magnitude
@@ -228,11 +235,25 @@ def transcribe(stem, song, tpl_wav, pieces, t0=0.0, t1=None, grid=24, gain_db=0.
             # constant absorbed by the template normalisation) → velocity through the piece's own curve
             amp = c[i] * scale / (np.linalg.norm(T[:, i] * w) + 1e-12) * (np.linalg.norm(T[:, i]) + 1e-12)
             raw.append((t, i, amp))
-    # velocity: through each piece's own level curve, with one global calibration so the 95th-percentile hit
-    # lands at 120 (the stem's absolute level is arbitrary)
-    v0 = np.array([amp ** (1 / gamma[i]) for _, i, amp in raw]) if raw else np.ones(1)
-    cal = 120 / (np.percentile(v0, 95) + 1e-12)
-    events = [(t, pieces[i], int(np.clip(cal * amp ** (1 / gamma[i]), 1, 127))) for t, i, amp in raw]
+    if kit_curve:
+        # one global gain G (stem units per kit unit) from the anchors (kick, snare: p95 hit ~ vel 120), then
+        # every hit through its own piece's curve: vel = 120 * (amp / (G * level120)) ** (1 / gamma)
+        amps = {p: np.array([amp for _, i, amp in raw if pieces[i] == p]) for p in pieces}
+        anchors = [p for p in ("k", "s") if p in amps and len(amps[p]) > 10] or [p for p in pieces if len(amps[p])]
+        G = float(np.median([np.percentile(amps[p], 95) / kit_curve[p][1] for p in anchors]))
+        velf = lambda i, amp: 120 * (amp / (G * kit_curve[pieces[i]][1])) ** (1 / kit_curve[pieces[i]][0])
+        for p in pieces:
+            if len(amps[p]):
+                v95 = float(np.percentile([velf(pieces.index(p), a) for a in amps[p]], 95))
+                hint = f"  → raise the piece ~{20 * kit_curve[p][0] * np.log10(v95 / 120):+.1f} dB" if v95 > 127 else ""
+                print(f"  {p}: {len(amps[p])} hits, p95 velocity {v95:.0f}{hint}", file=sys.stderr)
+        events = [(t, pieces[i], int(np.clip(velf(i, amp), 1, 127))) for t, i, amp in raw]
+    else:
+        # velocity: through each piece's own level curve, with one global calibration so the 95th-percentile
+        # hit lands at 120 (the stem's absolute level is arbitrary)
+        v0 = np.array([amp ** (1 / gamma[i]) for _, i, amp in raw]) if raw else np.ones(1)
+        cal = 120 / (np.percentile(v0, 95) + 1e-12)
+        events = [(t, pieces[i], int(np.clip(cal * amp ** (1 / gamma[i]), 1, 127))) for t, i, amp in raw]
     out = {}
     for fam, members in FAMILIES.items():
         ev = sorted((round(tb(t + shift) * grid) / grid, p, v) for t, p, v in events if p in members)

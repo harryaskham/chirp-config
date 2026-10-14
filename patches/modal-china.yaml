@@ -1,0 +1,19 @@
+about: >-
+  China cymbal on the modal layer: an edge-struck plate driven hard — trashy, honky mids (1.5-3 kHz),
+  fast bloom and a shorter, rougher decay. Pitch ~C4.
+synth:
+  layers:
+    - name: plate
+      type: modal
+      modes: cymbal
+      strike: 1.0
+      bright: {value: 0.85, mod: [{src: vel, amount: 0.15}]}
+      decay: 2.2s
+      damp: 0.05
+      tilt: 1
+      bloom: 0.35
+      vary: 0.7
+  filters: ["hp cutoff=500", "peak cutoff=2.2k q=1.2 gain=5dB"]
+  amp: {a: 0.2ms, d: 2.4s, s: 0, r: 300ms, curve: 4}
+  drive: 0.35
+play: {vel_sens: 0.5}
