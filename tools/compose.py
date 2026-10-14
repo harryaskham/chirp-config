@@ -60,6 +60,7 @@ STYLE_MODES = {
     "triphop": ["minor", "phrygian", "harmonic"], "neoclassical": ["major", "minor", "lydian", "dorian"], "ballad": ["major", "dorian", "minor"],
     "bossa": ["major", "dorian", "minor", "lydian"], "dub": ["minor", "dorian", "mixolydian"],
     "manouche": ["harmonic", "minor", "harmonic", "major"], "celtic": ["dorian", "mixolydian", "minor", "major"],
+    "doomjazz": ["minor", "phrygian", "dorian", "harmonic"],
     "koto": ["hirajoshi", "hirajoshi", "phrygian"],
     "djazz": ["dorian", "lydian", "harmonic", "minor", "mixolydian"], "industrial": ["phrygian", "minor", "harmonic"], "dnb": ["minor", "phrygian", "dorian"],
     "darksynth": ["minor", "phrygian", "harmonic", "dorian"],
@@ -2130,6 +2131,26 @@ def gen_air(r, k, prog, base, patch):
     return [track("hook", patch, " ".join(out), pan=0.15)]
 
 
+def gen_doomjazz(r, k, prog, kind="main"):
+    """Doom jazz (Bohren & der Club of Gore): ultra-slow brushes (soft ride quarters, swishes on 2 and
+    4), upright whole notes, dark Rhodes minor-9 / maj7#11 chords held for the bar, vibes ringing in
+    kind=full, all in a vast hall. kind=intro: Rhodes alone."""
+    hall = [{"type": "reverb", "kind": "hall", "decay": "7s", "predelay": "40ms", "low_cut": 150, "mix": 0.35}]
+    keys = []
+    for root in prog:
+        keys.append(f"{chordhead([k.deg(root + d, 48) for d in r.choice([[0, 2, 4, 6, 8], [0, 4, 6, 8, 10], [0, 2, 6, 8, 11]])])}/1@{62}")
+    out = [track("rhodes", pick_patch("rhodes", "piano"), " ".join(keys), pan=-0.15, fx=hall)]
+    if kind == "intro":
+        return out
+    kit = pick_patch("brush-kit", "tight-kit")
+    out += [track("ride", kit, " ".join("rd/4@54" for _ in range(16)), fx=hall, gain="-4dB"),
+            track("snare", kit, " ".join(("s/4@40" if x % 2 == 1 else "R/4") for x in range(16)), fx=hall),
+            track("bass", pick_patch("upright-bass", "finger-bass"), " ".join(f"{mname(k.deg(root, 28))}/1@{80}" for root in prog), seed=7)]
+    if kind == "full":
+        out.append(track("vibes", pick_patch("vibes", "celesta"), " ".join(f"{chordhead([k.deg(root + d, 60) for d in (2, 4, 6)])}/2@56 R/2" for root in prog), pan=0.25, fx=hall, gain="-4dB"))
+    return out
+
+
 def gen_downtempo(r, k, prog, kind="main"):
     """Downtempo (Bonobo-ish): a low-passed breakbeat, marimba/kalimba ostinato, finger bass, strings."""
     kit = pick_patch("break-kit", "lofi-kit")
@@ -2167,6 +2188,7 @@ GUESTS = {
 CHILL_GUESTS = {
     "ballad": (lambda r, k, prog: gen_ballad(r, k, prog), {"ballad"}),
     "bossa": (lambda r, k, prog: gen_bossa(r, k, prog), {"bossa"}),
+    "doomjazz": (lambda r, k, prog: gen_doomjazz(r, k, prog, "full") + gen_atmos(r, k, prog, 55, pick_patch("tenor-sax", "clarinet")), {"doomjazz"}),
     "celtic": (lambda r, k, prog: gen_celtic(r, k, prog, "drums") + gen_air(r, k, prog, 72, pick_patch("low-whistle", "flute")), {"celtic"}),
     "manouche": (lambda r, k, prog: gen_manouche(r, k, prog) + gen_swing_run(r, k, prog, 64, pick_patch("accordion", "clarinet")), {"manouche"}),
     "neo": (lambda r, k, prog: gen_neoclassical(r, k, prog), {"neoclassical", "chamber"}),
@@ -2213,7 +2235,7 @@ def compose(style, slot, p):
     return names, desc
 
 
-CHILL_STYLES = {"lofihop", "gogo", "ukjazz", "ambient", "downtempo", "smile", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche", "celtic"}
+CHILL_STYLES = {"lofihop", "gogo", "ukjazz", "ambient", "downtempo", "smile", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche", "celtic", "doomjazz"}
 HEAVY_STYLES = {"meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep",
                 "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock", "groovemetal", "power", "sludge",
                 "breakcore", "mathcore", "gojira", "djazz", "raga", "gamelan", "koto"}
@@ -2244,6 +2266,11 @@ def _compose_style(style, slot, p):
             "hookE": gen_atmos(r, k, prog, 62, rig("atmos")),
         }
         return _write_parts(slot, "brostep", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
+    if style == "doomjazz":
+        sax = pick_patch("tenor-sax", "clarinet")
+        parts = {"riffI": gen_doomjazz(r, k, prog, "intro"), "riff": gen_doomjazz(r, k, prog), "riffB": gen_doomjazz(r, k, prog, "full"),
+                 "hookE": gen_atmos(r, k, prog, 55, sax), "hook": gen_atmos(r, k, prog, 60, pick_patch(r.choice(["tenor-sax", "trumpet-mute"]), "clarinet"))}
+        return _write_parts(slot, "doomjazz", parts, f"{NAMES[p['pc']]} {p['mode']}")
     if style == "celtic":
         lead = pick_patch("low-whistle", "flute")
         parts = {"riffI": gen_celtic(r, k, prog, "intro"), "riff": gen_celtic(r, k, prog), "riffB": gen_celtic(r, k, prog, "drums"),
@@ -2274,7 +2301,7 @@ def _compose_style(style, slot, p):
         return _write_parts(slot, "neoclassical", parts, f"{NAMES[p['pc']]} {p['mode']}")
     if style == "ballad":
         parts = {"riff": gen_ballad(r, k, prog), "riffB": gen_ballad(r, k, prog),
-                 "hook": gen_hook(r, k, prog, 64, pick_patch(r.choice(["clarinet", "flute", "vibes", "piano", "trumpet-mute"]), "vibes"))}
+                 "hook": gen_hook(r, k, prog, 60, pick_patch(r.choice(["clarinet", "flute", "vibes", "piano", "trumpet-mute", "tenor-sax", "tenor-sax"]), "vibes"))}
         return _write_parts(slot, "ballad", parts, f"{NAMES[p['pc']]} {p['mode']}")
     if style == "smile":
         parts = {"riffQ": gen_smile(r, k, prog, "quiet"), "riff": gen_smile(r, k, prog), "riffF": gen_smile(r, k, prog, "full"),
@@ -2307,7 +2334,7 @@ def _compose_style(style, slot, p):
         m = meter * 2 if meter == 5 else meter  # 5/4 as 10/8
         beats = (m * 2 * (4 if m in (7, 9) else 3)) / 4
         parts = {"riffK": gen_broken(r, k, prog, m, "sparse"), "riff": gen_broken(r, k, prog, m), "riffB": gen_broken(r, k, prog, m),
-                 "hook": gen_tool_lead(r, k, prog, m, 64, pick_patch(r.choice(["clarinet", "flute", "vibes"]), "vibes"), reps=int(beats * 2 / m)),
+                 "hook": gen_tool_lead(r, k, prog, m, 60, pick_patch(r.choice(["clarinet", "flute", "vibes", "tenor-sax", "trumpet-mute"]), "vibes"), reps=int(beats * 2 / m)),
                  "solo": gen_tool_lead(r, k, prog, m, 67, pick_patch("vibes", "rhodes"), reps=int(beats * 2 / m))}
         lens = {role: beats for role in parts}
         return _write_parts(slot, "ukjazz", parts, f"{NAMES[p['pc']]} {p['mode']}, {meter}/{4 if meter == 5 else 8}", lens)
