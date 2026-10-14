@@ -2432,7 +2432,23 @@ def gen_classical(r, k, prog, kind="nocturne"):
 def gen_smile(r, k, prog, kind="arp"):
     """The Smile / Radiohead: interlocking clean-guitar arpeggios with odd accent groupings, a
     melodic bass counterline, roomy piano chords, tight busy drums with rim clicks; kind=quiet drops
-    the drums, kind=full adds string swells."""
+    the drums, kind=full adds string swells and horn swells; kind=kida is the electronic side (Kid A):
+    a glitchy stuttering drum machine, pulsing Rhodes/Wurlitzer chords, a sub bass and a drifting
+    falsetto-like dream-vox pad."""
+    if kind == "kida":
+        kit = pick_patch("electro-kit", "tight-kit")
+        stut = [{"type": "stutter", "slice": r.choice(["1/32", "1/16"]), "repeats": r.choice([2, 3, 4]), "chance": 0.3, "seed": r.randrange(1000)},
+                {"type": "crush", "bits": 10, "rate": 14000, "mix": 0.35}]
+        kp = r.choice(["x.....x...x.....", "x..x......x..x..", "x.......x.x....."])
+        drift = {"dr": {"wave": "sine", "rate": "0.11hz"}}
+        out = [track("kick", kit, " ".join(("k/16@90" if kp[x] == "x" else "R/16") for _ in range(4) for x in range(16)), fx=stut, gain="-5dB"),
+               track("snare", kit, " ".join(("rs/16@80" if x in (4, 12) else ("rs/16@40" if r.random() < 0.12 else "R/16")) for _ in range(4) for x in range(16)), fx=stut, gain="-5dB"),
+               track("hats", kit, " ".join((f"h/16@{r.choice([40, 50])}" if r.random() < 0.6 else "R/16") for _ in range(64)), fx=stut, pan=0.2, gain="-8dB"),
+               track("keys", pick_patch(r.choice(["rhodes", "wurli"]), "rhodes"), " ".join(" ".join(f"{chordhead(v)}/8@{r.choice([66, 74])}" for _ in range(8)) for v in voice_lead(k, prog, (0, 2, 4, 6))), pan=-0.15, gain="-3dB"),
+               track("sub", pick_patch("sub-sine", "finger-bass"), " ".join(f"{mname(k.deg(root, 33))}/2@80 R/2" for root in prog), seed=7),
+               track("falsetto", pick_patch("dream-vox", "choir"), " ".join(f"{mname(k.deg(root + r.choice([2, 4, 7]), 67))}/1@{60}" for root in prog), lfo=drift, gain="-6dB",
+                     fx=[{"type": "pitch", "semitones": {"value": 0, "mod": [{"src": "lfo.dr", "amount": 0.2}]}, "grain": "70ms", "mix": 1.0}])]
+        return out
     g1 = gen_ostinato(r, k, prog, 52, rig("clean"), r.choice([[3, 3, 2], [3, 5], [5, 5, 6]]))[0]
     g2 = gen_ostinato(r, k, prog, 64, rig("clean"), r.choice([[3, 3, 3, 3, 4], [3, 3, 2]]))[0]
     tape = expand(["rack:tape-echo"])
@@ -2443,6 +2459,8 @@ def gen_smile(r, k, prog, kind="arp"):
         out += gen_trio_drums(r, "groove")
     if kind == "full":
         out += [dict(t, name="strings") for t in gen_pad(r, k, prog, 48, pick_patch(r.choice(["strings", "mellotron-strings"]), "strings"), gain="-10dB", vel=64)]
+        if r.random() < 0.6:  # The Smile's brass: slow horn swells under the guitars
+            out.append(track("horns", pick_patch("horn", "brass"), " ".join(f"{chordhead([k.deg(root, 50), k.deg(root + 4, 50)])}/2@{58} {chordhead([k.deg(root + 2, 50), k.deg(root + 4, 50)])}/2@{74}" for root in prog), gain="-6dB", pan=0.1))
     return out
 
 
@@ -3949,7 +3967,7 @@ def _compose_style(style, slot, p):
                  "hook": gen_hook(r, k, prog, 60, pick_patch(r.choice(["clarinet", "flute", "vibes", "piano", "trumpet-mute", "tenor-sax", "tenor-sax"]), "vibes"))}
         return _write_parts(slot, "ballad", parts, f"{NAMES[p['pc']]} {p['mode']}")
     if style == "smile":
-        parts = {"riffQ": gen_smile(r, k, prog, "quiet"), "riff": gen_smile(r, k, prog), "riffF": gen_smile(r, k, prog, "full"),
+        parts = {"riffQ": gen_smile(r, k, prog, "quiet"), "riff": gen_smile(r, k, prog), "riffF": gen_smile(r, k, prog, "full"), "riffK": gen_smile(r, k, prog, "kida"),
                  "riff5": gen_tool(r, k, 40, 10, r.choice([[3, 3, 2, 2], [3, 3, 4]]), "clean", reps=3) + gen_trio_drums(r, "sparse")[:0],
                  "hookE": [dict(t, gain="-6dB") for t in gen_atmos(r, k, prog, 64, pick_patch(r.choice(["ebow", "theremin"]), "synth-lead"))]}
         lens = {"riff5": 10 * 3 / 2}

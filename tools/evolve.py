@@ -384,7 +384,7 @@ FORMS = {
               ("A", ["riffA"], None), ("outro", ["riffA"], None)],
   "downtempo": [("intro", ["riffI"], None), ("A", ["riff"], None), ("A2", ["riff", "hook"], None), ("break", ["riffI"], None),
                 ("B", ["riffB", "hook"], None), ("outro", ["riffI"], None)],
-  "smile": [("intro", ["riffQ"], None), ("A", ["riff"], None), ("A2", ["riff", "hookE"], None), ("B", ["riff5"], None), ("B2", ["riffF", "hookE"], None),
+  "smile": [("intro", ["riffQ"], None), ("A", ["riff"], None), ("A2", ["riff", "hookE"], None), ("K", ["riffK", "hookE"], None), ("B", ["riff5"], None), ("B2", ["riffF", "hookE"], None),
             ("break", ["riffQ"], None), ("final", ["riffF", "hookE"], None), ("outro", ["riffQ"], None)],
   "house-melodic": [("intro", ["riffI"], None), ("A", ["riff"], None), ("A2", ["riff", "hook"], None), ("break", ["riffI"], "revcym"),
                     ("build", ["riffB"], "riser"), ("drop", ["riffB", "hook"], "impact"), ("A", ["riff"], None), ("outro", ["riffI"], None)],
