@@ -717,7 +717,7 @@ COMP_STYLES = ["glue", "pump", "smash", "parallel", "opto", "tape"]
 # Loudness-matched to glue (measured RMS over the same 48 beats through each master chain).
 FLAVOR_HOOK = {"vintage": ["rack:tape-echo"], "industrial": ["rack:radio"], "space": ["rack:shimmer-hall"], "wide": ["rack:chorus-wide"]}
 STYLE_TRIM = {"darksynth": -2.0, "postmetal": 2.0, "tool": 2.0, "numetal": 1.0, "industrial": -1.5, "power": -1.0, "sludge": 2.0, "mathcore": 1.5, "gojira": 1.0, "raga": -2.0,
-              "lofihop": 3.0, "ambient": 1.5, "house-melodic": -2.0, "chamber": 0.0, "neoclassical": 1.5, "dub": 3.0, "manouche": 3.0, "celtic": 3.0, "doomjazz": 4.0, "guofeng": 3.0, "vaporwave": 3.0, "backrooms": 10.0, "cyberscape": 2.0, "fusion": 3.0, "berlin": 1.0, "satie": 6.0, "kankyo": 6.0, "citypop": 2.0}  # sparse styles sit lower (QA loudness)
+              "lofihop": 3.0, "ambient": 1.5, "house-melodic": -2.0, "chamber": 0.0, "neoclassical": 1.5, "dub": 3.0, "manouche": 3.0, "celtic": 3.0, "doomjazz": 4.0, "guofeng": 3.0, "vaporwave": 3.0, "backrooms": 10.0, "cyberscape": 2.0, "fusion": 3.0, "berlin": 1.0, "satie": 6.0, "kankyo": 6.0, "citypop": 2.0, "triphop": -2.0}  # sparse styles sit lower (QA loudness)
 COMP_TRIM = {"glue": 0.0, "pump": 6.1, "smash": 3.4, "parallel": 3.2, "opto": 3.3, "tape": -2.1}
 
 def has_patch(name):
@@ -871,19 +871,29 @@ def vox_presets(ident, r):
                     {"type": "phaser", "rate": 0.4, "depth": 0.6, "mix": 0.3}, {"type": "drive", "drive": 0.2}, plate(1.0, 2.0)],
         "formant": [{"type": "formant", "vowel": r.choice([0, 1, 2, 3, 4]), "q": r.choice([8, 12, 16]), "mix": round(r.uniform(0.55, 0.8), 2)},
                     {"type": "tremolo", "rate": round(bpm / 60 * r.choice([1, 2, 4]), 3), "depth": round(r.uniform(0.3, 0.6), 2)}, {"type": "delay", "time": note(), "feedback": 0.3, "mix": 0.22}, plate()],
+        "octaves": [{"type": "pitch", "semitones": -12, "grain": "60ms", "mix": round(r.uniform(0.3, 0.45), 2)}, {"type": "pitch", "semitones": 12, "grain": "40ms", "mix": round(r.uniform(0.2, 0.35), 2)},
+                    {"type": "chorus", "rate": 0.5, "depth": 0.3, "mix": 0.3}, plate()],
+        "megaphone": [{"type": "filter", "kind": "hp", "cutoff": r.choice([700, 900, 1100])}, {"type": "filter", "kind": "lp", "cutoff": r.choice([2200, 2800])},
+                      {"type": "drive", "drive": round(r.uniform(0.55, 0.8), 2)}, {"type": "reverb", "kind": "room", "decay": "0.6s", "mix": 0.18}],
+        "underwater": [{"type": "filter", "kind": "lp", "cutoff": r.choice([450, 650, 900]), "q": 1.5}, {"type": "chorus", "rate": round(r.uniform(0.2, 0.5), 2), "depth": 0.7, "voices": 2, "mix": 0.6},
+                       {"type": "phaser", "rate": 0.15, "depth": 0.8, "mix": 0.4}, {"type": "reverb", "kind": "hall", "decay": "4s", "mix": 0.4}],
+        "whisper": [{"type": "filter", "kind": "hp", "cutoff": r.choice([1800, 2400, 3000])},
+                    {"type": "reverb", "kind": "hall", "decay": f"{r.uniform(6, 9):.1f}s", "predelay": "50ms", "mix": round(r.uniform(0.7, 0.85), 2)}],
         "chop": [{"type": "tremolo", "rate": round(bpm / 60 * r.choice([2, 3, 4, 6]), 3), "depth": round(r.uniform(0.75, 0.95), 2)},
                  {"type": "delay", "time": note(), "feedback": 0.25, "mix": 0.2, "ping_pong": True}, plate(1.0, 2.2)],
     }
 
 
 VOX_POOLS = {
-    "chill": {"choir": 2, "shimmer": 2, "harmony": 1.5, "dub": 1, "ghost": 1.5, "phaser80": 1, "radio": 1, "talkbox": 0.7, "formant": 0.7, "chop": 0.5},
-    "heavy": {"choir": 1.2, "robot": 1.5, "demon": 1.5, "glitch": 1.5, "radio": 1, "talkbox": 1, "chop": 1, "harmony": 0.7, "formant": 0.6},
+    "chill": {"choir": 2, "shimmer": 2, "harmony": 1.5, "dub": 1, "ghost": 1.5, "phaser80": 1, "radio": 1, "talkbox": 0.7, "formant": 0.7, "chop": 0.5,
+              "octaves": 1, "underwater": 1.2, "whisper": 1.2, "megaphone": 0.4},
+    "heavy": {"choir": 1.2, "robot": 1.5, "demon": 1.5, "glitch": 1.5, "radio": 1, "talkbox": 1, "chop": 1, "harmony": 0.7, "formant": 0.6,
+              "octaves": 1.2, "megaphone": 1.2, "underwater": 0.5},
 }
 VOX_STYLE = {"backrooms": "ghost", "cyberscape": "glitch", "dub": "dub", "vaporwave": "phaser80", "doomjazz": "ghost", "ambient": "shimmer", "idm": "glitch", "breakcore": "glitch",
              "industrial": "robot", "deathcore": "demon", "sludge": "demon", "lofihop": "radio", "triphop": "radio"}
 # Level-matched to the vocoder choir on a sung test phrase (measured; capped ±9 dB).
-VOX_GAIN = {'harmony': 9, 'robot': 9, 'phaser80': 9, 'dub': 8, 'chop': 9, 'glitch': 5, 'ghost': 4, 'shimmer': 4, 'formant': -4, 'radio': -9, 'demon': -9, 'talkbox': -9}
+VOX_GAIN = {'harmony': 9, 'robot': 9, 'phaser80': 9, 'dub': 8, 'chop': 9, 'glitch': 5, 'ghost': 4, 'shimmer': 4, 'formant': -4, 'radio': -9, 'demon': -9, 'talkbox': -9, 'octaves': 11, 'megaphone': -14, 'underwater': 8, 'whisper': 12}
 
 
 def vox_chain(ident, variant=0):

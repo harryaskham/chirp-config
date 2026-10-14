@@ -2151,8 +2151,8 @@ def gen_triphop(r, k, prog, kind="main"):
     if kind == "intro":
         return out
     pat = r.choice(["x......x..x.....", "x.......x.x....."])
-    out += [track("kick", kit, " ".join(("k/16@100" if pat[x] == "x" else "R/16") for _ in range(4) for x in range(16)), fx=lp),
-            track("snare", kit, " ".join(("s/16@104" if x == 8 else (f"g/16@32" if r.random() < 0.08 else "R/16")) for _ in range(4) for x in range(16)), fx=lp),
+    out += [track("kick", kit, " ".join(("k/16@100" if pat[x] == "x" else "R/16") for _ in range(4) for x in range(16)), fx=lp, gain="-3dB"),
+            track("snare", kit, " ".join(("s/16@104" if x == 8 else (f"g/16@32" if r.random() < 0.08 else "R/16")) for _ in range(4) for x in range(16)), fx=lp, gain="-3dB"),
             track("hats", kit, " ".join((f"h/16@{56 if x % 4 == 0 else 40}" if x % 2 == 0 else "R/16") for _ in range(4) for x in range(16)), fx=lp, gain="-5dB"),
             track("bass", pick_patch("finger-bass", "sub-sine"), " ".join(f"{mname(k.deg(root, 28))}/2@96 R/4 {mname(k.deg(root + 4, 28))}/4@80" for root in prog), seed=7)]
     if kind == "full":
@@ -2596,10 +2596,10 @@ def gen_berlin(r, k, prog, kind="main"):
     seq = []
     for root in prog:
         base = k.deg(root, 33)
-        seq += [f"{mname(base + cell[j % 8])}/16@{100 if j % 8 == 0 else (88 if j % 4 == 0 else 70)}" for j in range(16)]
+        seq += [f"{mname(base + cell[j % 8])}/16@{90 if j % 8 == 0 else (82 if j % 4 == 0 else 70)}" for j in range(16)]
     shape = r.choice([[0.1, 0.9, 0.2], [0.2, 0.5, 1.0], [0.8, 0.2, 0.7]])
     sweep = {"sw": {"points": [["0b", shape[0]], ["8b", shape[1]], ["16b", shape[2]]]}}
-    out = [track("seq", pick_patch("moog-seq", "acid"), " ".join(seq), auto=sweep,
+    out = [track("seq", pick_patch("moog-seq", "acid"), " ".join(seq), auto=sweep, gain="-2dB",
                  fx=[{"type": "filter", "kind": "lp", "cutoff": {"value": 500, "mod": [{"src": "auto.sw", "amount": 3.0}]}, "q": 0.7}])]
     out += [dict(t, name="choir") for t in gen_pad(r, k, prog, 52, pick_patch("mellotron-choir", "choir"), gain="-4dB", vel=62)]
     if kind == "full":
@@ -2823,6 +2823,7 @@ def gen_fusion(r, k, prog, src, beat, with_beat=True):
         names = {t["name"] for t in out}
         for t in RHYTHM_SRC[beat](r, k, prog):
             if is_rhythm(t):
+                t = dict(t, gain=f"{float(str(t.get('gain', '0dB')).replace('dB', '')) - 3:g}dB")
                 out.append(dict(t, name=t["name"] + "-x") if t["name"] in names else t)
     return out
 
