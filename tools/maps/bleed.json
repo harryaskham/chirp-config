@@ -238,7 +238,7 @@
     {
       "name": "bass",
       "track": 4,
-      "patch": "m8-bass-dist",
+      "patch": "bass-fat",
       "bars": [
         [
           1,

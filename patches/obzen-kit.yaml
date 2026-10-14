@@ -2,8 +2,18 @@ about: >-
   obZen-era Meshuggah kit (extends metal-kit): the same tight, bright, triggered-sounding pieces, imaged like a
   recorded kit — hats, crashes, china, ride and toms panned from the drummer's perspective (as room-kit), with
   metal-kit's own tone chain kept. Bleed's reference has wide cymbals: side/mid 0.6 in the presence and air bands,
-  where a centred kit measures 0.04-0.2. Pair with a width stage on the track for overhead spread.
+  where a centred kit measures 0.04-0.2 (an extra width stage overshoots). Tone fitted to Bleed's drum stem
+  (separation-corrected 1/3-octave spectrum): metal-kit's chain plus a final EQ — more beater click and snare
+  crack (+5 dB at 1.6 kHz; the stem was 10-15 dB hotter at 0.9-2.9 kHz), less boom (−4 dB at 63 Hz), less box
+  (−4 dB at 180 Hz) and less sizzle (−3 dB above 9 kHz). Half the measured moves scored best in the mix.
 extends: metal-kit
+fx:
+  - {type: compressor, threshold: -20dB, ratio: 4, attack: 9ms, release: 80ms, makeup: 4dB}
+  - {type: drive, drive: 0.18, mix: 0.5}
+  - type: eq
+    bands: ["hp cutoff=30", "peak cutoff=62 q=1.1 gain=2.5dB", "peak cutoff=420 q=1 gain=-3.5dB", "peak cutoff=4.2k q=1 gain=2.5dB", "highshelf cutoff=10k gain=1.5dB"]
+  - "reverb kind=room decay=0.7s mix=0.09 predelay=8ms"
+  - {type: eq, bands: ["peak cutoff=1600 q=0.7 gain=5dB", "peak cutoff=63 q=1 gain=-4dB", "peak cutoff=180 q=1.2 gain=-4dB", "highshelf cutoff=9000 gain=-3dB"]}
 kit:
   h: {pan: -0.35}
   hs: {pan: -0.35}
