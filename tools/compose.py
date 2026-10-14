@@ -1650,6 +1650,33 @@ def gen_breakcore(r, k, prog, low=28, wild=1.0):
 
 # ---------- mathcore (Dillinger Escape Plan) ----------------------------------------------------
 
+def gen_swingmetal(r, k, prog, low=28):
+    """Swing metal (Intervals / Plini / Thank You Scientist): a jazz rhythm section and heavy guitars at
+    once — swung spang-a-lang ride, hat foot on 2 and 4, comping ghost snares, a walking finger bass —
+    under distorted double-tracked extended-chord stabs (add9 / maj7 / m9 in an open mid voicing) on the
+    Charleston (1 and the and-of-2) with an occasional push on 4."""
+    sw = "swing=0.66 "
+    kit = rig("drums")
+    gtr, bass, kick = [], [], []
+    for bi, root in enumerate(prog):
+        rt = k.deg(root, low + 12)
+        voic = chordhead([rt, k.deg(root + 4, low + 12), k.deg(root + 6, low + 24), k.deg(root + 8, low + 24)])
+        push = r.random() < 0.4
+        cells = [f"expr.pm=0 {voic}/8@118^gate=0.6", "R/8", "R/8", f"expr.pm=0 {voic}/8@110^gate=0.5", "R/8", "R/8",
+                 (f"expr.pm=0 {voic}/8@112^gate=0.4" if push else "R/8"), "R/8"]
+        gtr += cells
+        kick += ["k/8@112", "R/8", "R/8", "k/8@104", "R/8", "R/8", ("k/8@106" if push else "R/8"), "R/8"]
+        nxt = prog[(bi + 1) % len(prog)]
+        walk = [root, root + r.choice([1, 2]), root + r.choice([2, 4]), None]
+        bass += [f"{mname(k.deg(d, 33))}/4@{84 if j == 0 else 74}" for j, d in enumerate(walk[:3])] + [f"{mname(k.deg(nxt, 33) + r.choice([-1, 1]))}/4@72"]
+    ride = " ".join(("rd/8@96" if x % 2 == 0 else ("rd/8@70" if x in (3, 7) else "R/8")) for _ in range(4) for x in range(8))
+    hat = " ".join(("hf/4@70" if x % 2 == 1 else "R/4") for _ in range(4) for x in range(4))
+    snare = " ".join((f"g/8@{r.choice([26, 32, 40])}" if r.random() < 0.18 else ("s/8@84" if r.random() < 0.05 else "R/8")) for _ in range(32))
+    return rhythm_tracks(sw + " ".join(gtr)) + [track("bass", pick_patch("finger-bass", "upright-bass"), " ".join(bass), seed=7),
+                                               track("kick", kit, sw + " ".join(kick)), track("ride", kit, sw + ride, gain="-3dB"),
+                                               track("hats", kit, hat, gain="-6dB"), track("snare", kit, sw + snare, gain="-3dB")]
+
+
 def gen_mathcore(r, k, prog, low=28, kind="chaos"):
     """chaos: the 16-beat part cut into odd-length chunks (3–13 sixteenths, summing to 64); each a
     cluster stab into a hard stop, a dissonant tremolo run, chugs over a blast fragment or silence;
@@ -3825,6 +3852,7 @@ def gen_downtempo(r, k, prog, kind="main"):
 # Guest sections: other styles' generators composed in the song's key, slotted into its form.
 GUESTS = {
     "brokenjazz": (None, {"ukjazz"}),
+    "swingmetal": (lambda r, k, prog, low, gp: gen_swingmetal(r, k, prog, low), {"djazz"}),
     "jazz": (lambda r, k, prog, low, gp: gen_mathcore(r, k, prog, low, "jazz"), {"djazz", "mathcore"}),
     "breakcore": (lambda r, k, prog, low, gp: gen_breakcore(r, k, prog, low), {"breakcore"}),
     "blast": (lambda r, k, prog, low, gp: gen_blast(r, k, prog, low, r.choice(["trad", "hammer", "bomb"])), {"tech-death", "deathcore"}),
@@ -3972,7 +4000,7 @@ def compose(style, slot, p):
         pool = [g for g, (_, homes) in GUESTS.items() if style not in homes]
         picks = r.sample(pool, 2)
         if FUSION:  # fusion-metal journey: one guest from the jazz / polymetric set
-            pref = [g for g in ("jazz", "space", "tribal", "tabla", "kotekan", "brokenjazz", "brokenjazz") if g in pool]
+            pref = [g for g in ("jazz", "space", "tribal", "tabla", "kotekan", "brokenjazz", "brokenjazz", "swingmetal", "swingmetal") if g in pool]
             if pref:
                 first = r.choice(pref)
                 picks = [first, r.choice([g for g in pool if g != first])]
@@ -4311,7 +4339,7 @@ def _compose_style(style, slot, p):
         parts = {"riffJ": jz, "riffJ2": gen_mathcore(r, k, prog, low, "jazz"),
                  "riff": gen_djent(r, k, prog, low), "riffB": gen_meshuggah(r, k, low, gp, r.choice([14, 22, 20])),
                  "riffC": gen_mathcore(r, k, prog, low), "hook": gen_hook(r, k, prog, 64, pick_patch("lead-tape", "lead-monster")),
-                 "pad": gen_clusters(r, k, prog, 48, "saw-pad")}
+                 "pad": gen_clusters(r, k, prog, 48, "saw-pad"), "riffSW": gen_swingmetal(r, k, prog, low)}
         parts["riffSoft"] = soften(parts["riff"])
         return _write_parts(slot, "djazz", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
     if style == "gojira":

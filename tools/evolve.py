@@ -376,7 +376,7 @@ FORMS = {
              ("toms", ["riffT"], "impact"), ("verse2", ["riffB"], "impact"), ("chorus", ["riffW", "hook"], "impact"),
              ("break", ["riffN", "drone"], "revcym"), ("final", ["riffT"], "impact"), ("final", ["riffW", "hook"], None), ("outro", ["riffN"], "revcym")],
   "djazz": [("intro", ["riffJ"], None), ("verse", ["riffSoft"], "impact"), ("verse", ["riff", "hook"], None), ("break", ["riffJ2"], "revcym"),
-            ("chaos", ["riffC"], "impact"), ("heavy", ["riffB"], "impact"), ("heavy", ["riffB", "hook"], None), ("break", ["riffJ"], "revcym"),
+            ("chaos", ["riffC"], "impact"), ("swing", ["riffSW", "hook"], "impact"), ("heavy", ["riffB"], "impact"), ("heavy", ["riffB", "hook"], None), ("break", ["riffJ"], "revcym"),
             ("chaos", ["riffC"], "impact"), ("final", ["riff", "hook", "pad"], "impact"), ("outro", ["riffJ2"], "revcym")],
   "raga": [("intro", ["riffA"], None), ("intro2", ["riffG"], None), ("verse", ["riffSoft"], "impact"), ("verse", ["riff", "hook"], None),
            ("break", ["riffG"], "revcym"), ("heavy", ["riffB"], "impact"), ("heavy", ["riffB", "hook"], None), ("break", ["riffBrk"], "impact"),
