@@ -1,9 +1,9 @@
 about: "Harder chug rig (right of a pair): another player and rig — pick nearer the neck, stiffer string, compressor pedal into a 5150-voiced amp, darth-genocider/cookie-monster blend, thump and fizz dip, fast gate, looser hand."
-extends: "m8 layers.0.pick=0.095 layers.0.pickup=0.1 layers.0.coil=0.36 layers.0.stiff=0.3"
+extends: "m8 layers.0.pick=0.095 layers.0.pickup=0.1 layers.0.coil=0.36 layers.0.stiff=0.3 layers.0.click=0.2 layers.0.scrape=0.12 layers.0.thump=expr.pm*0.7"
 fx:
   - {type: compressor, threshold: -20dB, ratio: 4, attack: 3ms, release: 70ms, makeup: 3dB}
-  - {type: amp, model: "5150", gain: 0.84, ts: 0.7, tight: 140, boost: 6dB, bass: 0.52, mid: 0.62, treble: 0.5, presence: 0.48, resonance: 0.7, sag: 0.18}
-  - {type: ir, file: jester/darth-genocider, blend_file: jester/cookie-monster, blend: 0.3, length: 120ms}
+  - {type: amp, model: "5150", gain: 0.84, ts: 0.7, tight: 140, boost: 6dB, bass: 0.52, mid: 0.62, treble: 0.5, presence: 0.48, resonance: 0.7, sag: 0.18, bloom: 0.35}
+  - {type: ir, file: jester/darth-genocider, blend_file: jester/cookie-monster, blend: 0.3, length: 120ms, breakup: 0.3, room: 0.12}
   - {type: eq, bands: ["peak cutoff=115 q=1.1 gain=2dB", "peak cutoff=230 q=1.2 gain=-2.5dB", "peak cutoff=2900 q=1.2 gain=-2.5dB", "highshelf cutoff=7000 gain=-3dB"]}
   - {type: gate, threshold: -48dB, attack: 0.3ms, hold: 8ms, release: 25ms}
   - "reverb kind=plate decay=1s mix=0.06 predelay=16ms"

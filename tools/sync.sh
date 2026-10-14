@@ -45,7 +45,7 @@ if [ "$rebuilt" = 1 ] && ! cmp -s "$new" "$pinned"; then
   CHIRP_SRC="$new" bash "$here/restart-groove.sh" live-suite "@$nxt"
 elif [ "$tools_changed" -gt 0 ]; then
   echo "sync: evolver/composer changed upstream — restarting the evolver (keeping the playing song)"
-  pgrep -f "python3 $here/evolve.py" | xargs -r kill; sleep 0.5
+  pgrep -f "^[^ ]*python3 $here/evolve.py" | xargs -r kill; sleep 0.5
   CHIRP_BIN="$pinned" EVOLVE_RESUME=keep setsid nohup "$py" "$here/evolve.py" >> "$log" 2>&1 < /dev/null &
 fi
 echo "sync: config $(git -C "$cfg" log --oneline -1 | cut -c1-60) · chirp $(git -C "$main" log --oneline -1 | cut -c1-60)"

@@ -1,6 +1,6 @@
 {
  "about": "Hot passive-pickup double (right): other player, 5150, impaler-jim/cannibal-choir.",
- "extends": "m8 layers.0.pickup=0.09 layers.0.coil=0.32 layers.0.pickup_hz=2400 layers.0.pickup_q=1.9 layers.0.pick=0.095 layers.0.stiff=0.3",
+ "extends": "m8 layers.0.pickup=0.09 layers.0.coil=0.32 layers.0.pickup_hz=2400 layers.0.pickup_q=1.9 layers.0.pick=0.095 layers.0.stiff=0.3 layers.0.click=0.2 layers.0.scrape=0.12 layers.0.thump=expr.pm*0.7",
  "fx": [
   {
    "type": "compressor",
@@ -22,14 +22,17 @@
    "treble": 0.5,
    "presence": 0.5,
    "resonance": 0.66,
-   "sag": 0.2
+   "sag": 0.2,
+   "bloom": 0.35
   },
   {
    "type": "ir",
    "file": "jester/impaler-jim",
    "blend_file": "jester/cannibal-choir",
    "blend": 0.35,
-   "length": "120ms"
+   "length": "120ms",
+   "breakup": 0.3,
+   "room": 0.12
   },
   {
    "type": "eq",

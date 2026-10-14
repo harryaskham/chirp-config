@@ -1,9 +1,9 @@
 about: "Fuzz rig for doom, sludge and slams: a folding fuzz pedal into a crunch amp, woolly and huge; cab blend, low-mid weight, fizz tamed, long plate."
-extends: "m8 layers.0.decay.value=6s"
+extends: "m8 layers.0.decay.value=6s layers.0.click=0.2 layers.0.scrape=0.12 layers.0.thump=expr.pm*0.7"
 fx:
   - {type: drive, drive: 0.75, shape: fold, mix: 0.85}
-  - {type: amp, model: crunch, gain: 0.72, ts: 0.3, tight: 60, boost: 3dB, bass: 0.68, mid: 0.6, treble: 0.45, presence: 0.4, resonance: 0.75, sag: 0.45}
-  - {type: ir, file: jester/cookie-monster, blend_file: jester/darth-genocider, blend: 0.5, length: 120ms}
+  - {type: amp, model: crunch, gain: 0.72, ts: 0.3, tight: 60, boost: 3dB, bass: 0.68, mid: 0.6, treble: 0.45, presence: 0.4, resonance: 0.75, sag: 0.45, bloom: 0.35}
+  - {type: ir, file: jester/cookie-monster, blend_file: jester/darth-genocider, blend: 0.5, length: 120ms, breakup: 0.3, room: 0.12}
   - {type: eq, bands: ["peak cutoff=180 q=0.9 gain=2dB", "peak cutoff=3000 q=1.2 gain=-3dB", "highshelf cutoff=6000 gain=-5dB"]}
   - {type: gate, threshold: -56dB, hold: 30ms, release: 90ms}
   - "reverb kind=plate decay=1.6s mix=0.12 predelay=20ms"

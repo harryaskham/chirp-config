@@ -1,6 +1,6 @@
 {
  "about": "Airy, tight active double (right): other player, 5150, cathode-ray-fleshburn/devils-cunnilingus.",
- "extends": "m8 layers.0.pickup=0.085 layers.0.coil=0.28 layers.0.pickup_hz=4200 layers.0.pickup_q=0.7 layers.0.pick=0.09 layers.0.stiff=0.3",
+ "extends": "m8 layers.0.pickup=0.085 layers.0.coil=0.28 layers.0.pickup_hz=4200 layers.0.pickup_q=0.7 layers.0.pick=0.09 layers.0.stiff=0.3 layers.0.click=0.2 layers.0.scrape=0.12 layers.0.thump=expr.pm*0.7",
  "fx": [
   {
    "type": "compressor",
@@ -22,14 +22,17 @@
    "treble": 0.5,
    "presence": 0.5,
    "resonance": 0.62,
-   "sag": 0.18
+   "sag": 0.18,
+   "bloom": 0.35
   },
   {
    "type": "ir",
    "file": "jester/cathode-ray-fleshburn",
    "blend_file": "jester/devils-cunnilingus",
    "blend": 0.4,
-   "length": "120ms"
+   "length": "120ms",
+   "breakup": 0.3,
+   "room": 0.12
   },
   {
    "type": "eq",

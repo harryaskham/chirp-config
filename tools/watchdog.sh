@@ -6,7 +6,8 @@ here=$(cd "$(dirname "$0")" && pwd)
 main=${CHIRP_MAIN:-/tmp/lt/chirp-main}; pulse=${PULSE:-tcp:sgu24:4713}
 while true; do
   bin="$main/cli/chirp/target/release/chirp"
-  if [ -x "$bin" ] && ! "$bin" live list 2>/dev/null | grep -q '^groove '; then
+  # Skip while another restart (sync.sh) holds the lock; re-check after it finishes.
+  if [ -x "$bin" ] && flock -n "${TMPDIR:-/tmp}/chirp-restart.lock" true && ! "$bin" live list 2>/dev/null | grep -q '^groove '; then
     if pactl -s "$pulse" info >/dev/null 2>&1; then
       nxt=$(python3 -c "import json;print(json.load(open('$here/state.json')).get('next') or 'form-1')" 2>/dev/null || echo form-1)
       echo "$(date +%T) watchdog: groove missing — restarting (@$nxt)"
