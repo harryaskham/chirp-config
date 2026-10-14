@@ -103,6 +103,7 @@ tracks:
   - {name: climax, at: 197.756b, score: "@climax/132b", fx: [{type: width, width: 1.5, mono_below: 150}], envelope: {points: [[0s, 1], [26.25s, 1], [26.30s, 0.6], [28.12s, 0.6], [28.18s, 0.75], [30.00s, 0.75], [30.05s, 1]]}}   # the band drops back for two bars before the synth line enters (bar 65)
   - {name: outro, at: 329.756b, score: "@outro/64b", gain: -7dB, fx: [{type: width, width: 1.5, mono_below: 60, bass_width: 0.3, slope: 6}], envelope: {points: [[0s, 1], [12s, 0.9], [20s, 0.55], [26s, 0.25], [30s, 0.06]]}}
 
+ceiling: -0.3dB   # the reference peaks hotter than the default −1 dBFS limiter ceiling
 master:
   # stereo width is set per section (swept: the intro wants none, the climax mono below 150 Hz, the rest below 60 Hz)
   fx:
