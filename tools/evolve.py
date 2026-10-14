@@ -111,6 +111,30 @@ STYLES = {
   "koto":       dict(form="koto", tempo=(120, 160), off=0, riff=["riff-chug5"], riff_off=0, lift=2,
                      low=["beat-sparse"], mid=["beat-djent"], high=["beat-djent"], half=["beat-halftime"], brk=["beat-doom"],
                      hook=["lead-solo"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["riff-hold"]),
+  "lofihop": dict(form="lofihop", tempo=(70, 90), off=0, riff=["keys-lofi"], riff_off=0, lift=0,
+                     low=["beat-sparse"], mid=["beat-lofi"], high=["beat-lofi"], half=["beat-sparse"], brk=["beat-sparse"],
+                     hook=["lead-hook"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["pad-swell"]),
+  "gogo": dict(form="gogo", tempo=(112, 140), off=0, riff=["keys-lofi"], riff_off=0, lift=0,
+                     low=["beat-sparse"], mid=["beat-lofi"], high=["beat-lofi"], half=["beat-sparse"], brk=["beat-sparse"],
+                     hook=["lead-hook"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["pad-swell"]),
+  "ukjazz": dict(form="ukjazz", tempo=(88, 112), off=0, riff=["keys-lofi"], riff_off=0, lift=0,
+                     low=["beat-sparse"], mid=["beat-lofi"], high=["beat-lofi"], half=["beat-sparse"], brk=["beat-sparse"],
+                     hook=["lead-hook"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["pad-swell"]),
+  "ambient": dict(form="ambient", tempo=(60, 80), off=0, riff=["keys-lofi"], riff_off=0, lift=0,
+                     low=["beat-sparse"], mid=["beat-lofi"], high=["beat-lofi"], half=["beat-sparse"], brk=["beat-sparse"],
+                     hook=["lead-hook"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["pad-swell"]),
+  "downtempo": dict(form="downtempo", tempo=(88, 104), off=0, riff=["keys-lofi"], riff_off=0, lift=0,
+                     low=["beat-sparse"], mid=["beat-lofi"], high=["beat-lofi"], half=["beat-sparse"], brk=["beat-sparse"],
+                     hook=["lead-hook"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["pad-swell"]),
+  "smile": dict(form="smile", tempo=(80, 132), off=0, riff=["keys-lofi"], riff_off=0, lift=0,
+                     low=["beat-sparse"], mid=["beat-lofi"], high=["beat-lofi"], half=["beat-sparse"], brk=["beat-sparse"],
+                     hook=["lead-hook"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["pad-swell"]),
+  "house-melodic": dict(form="house-melodic", tempo=(118, 124), off=0, riff=["keys-lofi"], riff_off=0, lift=0,
+                     low=["beat-sparse"], mid=["beat-lofi"], high=["beat-lofi"], half=["beat-sparse"], brk=["beat-sparse"],
+                     hook=["lead-hook"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["pad-swell"]),
+  "chamber": dict(form="chamber", tempo=(60, 100), off=0, riff=["keys-lofi"], riff_off=0, lift=0,
+                     low=["beat-sparse"], mid=["beat-lofi"], high=["beat-lofi"], half=["beat-sparse"], brk=["beat-sparse"],
+                     hook=["lead-hook"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["pad-swell"]),
   "tech-death": dict(form="tech-death", tempo=(170, 220), off=0, riff=["riff-chug7"], riff_off=0, lift=0,
                      low=["beat-sparse"], mid=["beat-blast"], high=["beat-blast"], half=["beat-halftime"], brk=["beat-doom"],
                      hook=["lead-solo"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["riff-hold"]),
@@ -211,6 +235,21 @@ FORMS = {
   "koto": [("intro", ["riffK"], None), ("verse", ["riffSoft"], "impact"), ("verse", ["riff"], None), ("chorus", ["riffC", "hook", "pad"], "impact"),
            ("break", ["riffT"], "impact"), ("verse2", ["riff"], "impact"), ("chorus", ["riffC", "hook", "pad"], "impact"), ("break", ["riffK"], "revcym"),
            ("final", ["riffC", "hook", "pad"], "impact"), ("outro", ["riffK"], "revcym")],
+  "lofihop": [("intro", ["riffI"], None), ("A", ["riff", "hook"], None), ("A", ["riff"], None), ("B", ["riffB", "hook"], None),
+              ("A2", ["riff", "arp"], None), ("B", ["riffB", "hook"], None), ("outro", ["riffI"], "revcym")],
+  "gogo": [("intro", ["riffP"], None), ("A", ["riffS"], None), ("A", ["riff"], None), ("build", ["riffUp"], "riser"), ("B", ["riffB"], "impact"),
+           ("break", ["riffP"], None), ("B2", ["riffB"], None), ("outro", ["riffP"], None)],
+  "ukjazz": [("intro", ["riffK"], None), ("A", ["riff"], None), ("A2", ["riff", "hook"], None), ("B", ["riffB", "hook"], None),
+             ("solo", ["riffB", "solo"], None), ("final", ["riff", "hook"], None), ("outro", ["riffK"], None)],
+  "ambient": [("intro", ["riffA"], None), ("A", ["riffA", "hookE"], None), ("B", ["riffB"], None), ("B2", ["riffB", "hookE"], None),
+              ("A", ["riffA"], None), ("outro", ["riffA"], None)],
+  "downtempo": [("intro", ["riffI"], None), ("A", ["riff"], None), ("A2", ["riff", "hook"], None), ("break", ["riffI"], None),
+                ("B", ["riffB", "hook"], None), ("outro", ["riffI"], None)],
+  "smile": [("intro", ["riffQ"], None), ("A", ["riff"], None), ("A2", ["riff", "hookE"], None), ("B", ["riff5"], None), ("B2", ["riffF", "hookE"], None),
+            ("break", ["riffQ"], None), ("final", ["riffF", "hookE"], None), ("outro", ["riffQ"], None)],
+  "house-melodic": [("intro", ["riffI"], None), ("A", ["riff"], None), ("A2", ["riff", "hook"], None), ("break", ["riffI"], "revcym"),
+                    ("build", ["riffB"], "riser"), ("drop", ["riffB", "hook"], "impact"), ("A", ["riff"], None), ("outro", ["riffI"], None)],
+  "chamber": [("A", ["riffN"], None), ("A", ["riffQ"], None), ("B", ["riffM"], None), ("B2", ["riffQ"], None), ("A", ["riffN2"], None), ("coda", ["riffN"], None)],
   "tech-death": [("blast", ["riff"], "impact"), ("blast", ["riffB", "pad"], None), ("dbeat", ["riffD"], "impact"),
                  ("dbeat", ["riffD", "hook"], None), ("groove", ["riffSoft"], "impact"), ("groove", ["riffG", "pad"], None),
                  ("blast", ["riff", "hook"], "impact"), ("break", ["riffBrk"], "impact"), ("break", ["riffBrk", "drone"], None),
@@ -239,8 +278,11 @@ def identity(style=None):
     style = style or random.choice(list(STYLES))
     s = STYLES[style]
     bpm = random.randrange(s["tempo"][0], s["tempo"][1] + 1, 2)
+    if style in composer.CHILL_STYLES:
+        return dict(style=style, tempo=bpm, base_tempo=bpm, chapter=0, key=0, gen=composer.params(style), comp=random.choice(["opto", "tape", "glue"]),
+                    fv="base", **{r: pick(s, r) for r in ["riff", "low", "mid", "high", "half", "brk", "hook", "pad", "soft", "arp", "hold"]})
     return dict(style=style, tempo=bpm, base_tempo=bpm, chapter=0, key=0, gen=composer.params(style), comp=random.choice(COMP_STYLES),
-                fv=random.choice(FORM_VARIANTS),
+                fv=random.choice(FORM_VARIANTS) if style not in composer.CHILL_STYLES else "base",
                 **{r: pick(s, r) for r in ["riff", "low", "mid", "high", "half", "brk", "hook", "pad", "soft", "arp", "hold"]})
 
 def mutate(ident):
@@ -301,6 +343,10 @@ def filter_lane(meta):
 
 
 def energy_fx(style=None):
+    if style in composer.CHILL_STYLES:
+        return {"gain": {"value": "-3dB", "mod": [{"src": "auto.energy", "amount": 4}]},
+                "fx": [{"type": "reverb", "kind": "hall", "decay": "2.8s", "predelay": "30ms", "low_cut": 200,
+                        "mix": {"value": 0.3, "mod": [{"src": "auto.energy", "amount": -0.18}]}}]}
     wet = {"blackgaze": (0.38, -0.22, "3.5s")}.get(style, (0.28, -0.26, "2.4s"))
     return {"gain": {"value": "-5dB", "mod": [{"src": "auto.energy", "amount": 6}]},
             "fx": [{"type": "drive", "drive": 0.3, "mix": {"value": 0, "mod": [{"src": "auto.energy", "amount": 0.25}]}},
@@ -328,6 +374,7 @@ MOD_STEPS = [1, -1, 2, 3, -3, 5, 6, -6]  # half/whole steps, minor thirds, fourt
 
 
 METRIC = [(3, 2), (2, 3), (4, 3), (3, 4)]
+STEADY = {"lofihop", "ambient", "downtempo", "house-melodic", "chamber"}  # chill styles that hold key and tempo
 
 
 def metric_map(ident, meta):
@@ -335,7 +382,7 @@ def metric_map(ident, meta):
     3:2, 2:3, 4:3 or 3:4 at a section past the first, half of them returning at a later section.
     Returns (tempo map or None, description)."""
     rng = random.Random(((ident.get("gen") or {}).get("seed", 0)) * 17 + ident.get("chapter", 0) * 5 + 3)
-    if len(meta) < 3 or rng.random() > 0.33:
+    if ident["style"] in STEADY or len(meta) < 3 or rng.random() > 0.33:
         return None, ""
     t0 = ident["tempo"]
     for _ in range(6):
@@ -359,7 +406,7 @@ def modulation(ident, nsec):
     """Within-chapter modulation (deterministic per song and chapter): half of chapters shift every
     pitched part from a section past the first by a brutal interval. Returns (from_index, semitones)."""
     rng = random.Random(((ident.get("gen") or {}).get("seed", 0)) * 31 + ident.get("chapter", 0) * 7 + 11)
-    if nsec < 3 or rng.random() < 0.5:
+    if ident["style"] in STEADY or nsec < 3 or rng.random() < 0.5:
         return None, 0
     return rng.randrange(1, nsec), rng.choice(MOD_STEPS)
 KEEP_END = {"final", "outro", "coda", "climax"}
@@ -430,7 +477,8 @@ def chapters(ident):
 COMP_STYLES = ["glue", "pump", "smash", "parallel", "opto", "tape"]
 # Loudness-matched to glue (measured RMS over the same 48 beats through each master chain).
 FLAVOR_HOOK = {"vintage": ["rack:tape-echo"], "industrial": ["rack:radio"], "space": ["rack:shimmer-hall"], "wide": ["rack:chorus-wide"]}
-STYLE_TRIM = {"tool": 2.0, "numetal": 1.0, "industrial": -1.5, "power": -1.0, "sludge": 2.0, "mathcore": 1.5, "gojira": 1.0, "raga": -2.0}  # sparse styles sit lower (QA loudness)
+STYLE_TRIM = {"tool": 2.0, "numetal": 1.0, "industrial": -1.5, "power": -1.0, "sludge": 2.0, "mathcore": 1.5, "gojira": 1.0, "raga": -2.0,
+              "lofihop": 3.0, "ambient": 1.5, "house-melodic": -2.0, "chamber": 2.0}  # sparse styles sit lower (QA loudness)
 COMP_TRIM = {"glue": 0.0, "pump": 6.1, "smash": 3.4, "parallel": 3.2, "opto": 3.3, "tape": -2.1}
 
 def has_patch(name):
@@ -467,7 +515,8 @@ def master_for(ident):
     }[comp]
     trim = COMP_TRIM.get(comp, 0.0) + STYLE_TRIM.get(ident.get("style"), 0.0)
     eq = [json.loads(MASTER_BASE[0])]
-    air = {"brostep": 2.5, "darksynth": 3.0, "tool": 1.5, "industrial": 3.0, "dnb": 2.0, "power": 2.0, "raga": 2.5, "koto": 2.0}.get(ident.get("style"))
+    air = {"brostep": 2.5, "darksynth": 3.0, "tool": 1.5, "industrial": 3.0, "dnb": 2.0, "power": 2.0, "raga": 2.5, "koto": 2.0,
+           "lofihop": 2.0, "ukjazz": 3.0, "ambient": 3.0}.get(ident.get("style"))
     if air:  # QA: these styles measure dark at the top
         eq.append({"type": "eq", "bands": ["peak cutoff=3500 q=0.8 gain=1.5dB", f"highshelf cutoff=8000 gain={air}dB"]
                    + (["peak cutoff=500 q=0.9 gain=-2dB"] if ident.get("style") == "industrial" else [])})
@@ -598,7 +647,18 @@ def journey_load():
     except Exception:
         return {"on": False, "h": 0.0, "rate": 0.09, "passes_per_song": 2}
 
-def journey_style(h, current):
+CHILL_MIX = [("lofihop", 0.2), ("gogo", 0.15), ("ukjazz", 0.14), ("ambient", 0.12), ("downtempo", 0.12), ("smile", 0.12),
+             ("house-melodic", 0.1), ("chamber", 0.05)]
+
+
+def journey_style(h, current, mode=None):
+    if mode == "chill":
+        x = random.random()
+        for name, w in CHILL_MIX:
+            x -= w
+            if x <= 0 and name != current:
+                return name
+        return "lofihop" if current != "lofihop" else "gogo"
     """Pick a style near heaviness h; at full heaviness: mostly djent, sometimes breakdown/clean/excursion."""
     r = random.random()
     if h >= 0.95:  # full heaviness: mostly meshuggah, then djent; breakdowns; rare clean/excursions
@@ -663,7 +723,10 @@ def steer(ident, cmd):
                 j["on"] = a == "on"
             elif "=" in a:
                 k, v = a.split("=", 1)
-                j[k] = float(v)
+                try:
+                    j[k] = float(v)
+                except ValueError:
+                    j[k] = v  # e.g. mode=chill
         open(JOURNEY, "w").write(json.dumps(j) + "\n")
         return ident, f"journey {j}"
     elif op in ("compose", "melody", "rekey"):
@@ -789,7 +852,7 @@ if __name__ == "__main__":
                         change += f", mode {m}"
             elif not first or passes > 1:
                 queued = bool(STYLE_QUEUE)
-                style = STYLE_QUEUE.pop(0) if STYLE_QUEUE else (journey_style(j.get("h", 0), ident["style"]) if j.get("on") else random.choice([k for k in STYLES if k != ident["style"]]))
+                style = STYLE_QUEUE.pop(0) if STYLE_QUEUE else (journey_style(j.get("h", 0), ident["style"], j.get("mode")) if j.get("on") else random.choice([k for k in STYLES if k != ident["style"]]))
                 prev_bpm = ident.get("tempo", 120)
                 fav_songs = []
                 try:

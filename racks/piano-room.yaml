@@ -1,0 +1,1 @@
+{"about": "Roomy piano: a natural mid-size room with a little predelay and gentle top roll-off.", "fx": [{"type": "eq", "bands": ["peak cutoff=250 q=1 gain=-1.5dB", "highshelf cutoff=9000 gain=-1.5dB"]}, "reverb kind=room decay=1.4s size=0.7 mix=0.25 predelay=14ms"]}

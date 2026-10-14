@@ -1,0 +1,44 @@
+about: "Tight, dry, close-miked kit for indie/jazz/trip-hop (Radiohead / The Smile / GoGo Penguin): a damped kick (short, no boom), a tight snare with less wire ring, crisp rimshot (rs) and sidestick (ss), close hats (h/hs/h1/h2/oh/hf), toms, rides; a touch of small room. Extends metal-kit's pieces."
+extends: metal-kit
+gain: 3dB
+fx:
+  - {type: compressor, threshold: -20dB, ratio: 3, attack: 6ms, release: 90ms, makeup: 2dB}
+  - {type: eq, bands: ["hp cutoff=40", "peak cutoff=80 q=1 gain=-2dB", "peak cutoff=400 q=1 gain=-2dB", "peak cutoff=5k q=1 gain=1.5dB"]}
+  - "reverb kind=room decay=0.45s mix=0.06 predelay=4ms"
+kit:
+  k:
+    pitch: A1
+    gain: -2dB
+    patch:
+      synth:
+        layers:
+          - {name: body, wave: sine}
+          - {name: knock, wave: sine, ratio: 2.1, level: {value: -60dB, mod: [{src: env.knock, amount: 52}]}}
+          - {name: click, type: noise, level: {value: -66dB, mod: [{src: env.click, amount: 50}, {src: vel, amount: 8}]}}
+        pitch: {value: 0, mod: [{src: env.p, amount: 14}, {src: rand, amount: 0.3}]}
+        env:
+          p: {a: 0.3ms, d: 30ms, s: 0, curve: 4}
+          click: {a: 0.1ms, d: 3ms, s: 0}
+          knock: {a: 0.2ms, d: 30ms, s: 0}
+        filters: ["lp cutoff=3k", "peak cutoff=110 q=1 gain=2dB"]
+        amp: {a: 0.3ms, d: 130ms, s: 0, r: 20ms, curve: 4}
+        drive: 0.05
+      play: {vel_sens: 0.6}
+  s:
+    pitch: A3
+    patch:
+      synth:
+        layers:
+          - {name: body, wave: triangle, level: {value: -60dB, mod: [{src: env.body, amount: 56}, {src: vel, amount: 8}]}}
+          - {name: shell, ratio: 1.62, level: {value: -60dB, mod: [{src: env.body, amount: 46}]}}
+          - {name: wires, type: noise, level: {value: -68dB, mod: [{src: env.wires, amount: 58}, {src: vel, amount: 8}]}}
+          - {name: crack, type: noise, level: {value: -72dB, mod: [{src: env.crack, amount: 62}, {src: vel, amount: 10}]}}
+        pitch: {value: 0, mod: [{src: env.p, amount: 4}, {src: rand, amount: 0.25}]}
+        env:
+          p: {a: 0.2ms, d: 14ms, s: 0}
+          body: {a: 0.2ms, d: 80ms, s: 0, curve: 4}
+          wires: {a: 0.4ms, d: 140ms, s: 0, curve: 5}
+          crack: {a: 0.1ms, d: 8ms, s: 0}
+        filters: ["hp cutoff=160", {kind: lp, cutoff: {value: 6.5k, mod: [{src: vel, amount: 1.5}]}}]
+        amp: {a: 0.2ms, d: 200ms, s: 0, r: 20ms}
+      play: {vel_sens: 0.75}
