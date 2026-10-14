@@ -37,6 +37,20 @@
       },
       "passes": 1,
       "enabled": true
+    },
+    {
+      "id": "pneuma",
+      "song": "songs/pneuma.yaml",
+      "reference": "Tool — Pneuma (Fear Inoculum, 2019), official audio YouTube 5ClCaPmAA7s",
+      "owner": "chirper-one (chirp-climb1)",
+      "metric": "python3 tools/likeness.py sections ref/pneuma.wav OUT.wav $(cat tools/pneuma-sections.txt)",
+      "best": {
+        "score": 34.3,
+        "version": "v4",
+        "commit": "38ca5c5"
+      },
+      "passes": 1,
+      "enabled": true
     }
   ]
 }
