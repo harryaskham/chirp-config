@@ -322,6 +322,16 @@ def favorite_for(role, ident):
     return f["part"], tr
 
 FORM_VARIANTS = ["base", "base", "extended", "short", "breakheavy", "shuffle"]
+MOD_STEPS = [1, -1, 2, 3, -3, 5, 6, -6]  # half/whole steps, minor thirds, fourth, tritone
+
+
+def modulation(ident, nsec):
+    """Within-chapter modulation (deterministic per song and chapter): half of chapters shift every
+    pitched part from a section past the first by a brutal interval. Returns (from_index, semitones)."""
+    rng = random.Random(((ident.get("gen") or {}).get("seed", 0)) * 31 + ident.get("chapter", 0) * 7 + 11)
+    if nsec < 3 or rng.random() < 0.5:
+        return None, 0
+    return rng.randrange(1, nsec), rng.choice(MOD_STEPS)
 KEEP_END = {"final", "outro", "coda", "climax"}
 
 
@@ -451,15 +461,17 @@ def write_form(name, ident):
     def rest(beats):
         return REST if beats == 16 else f"[ R/8 ]x{int(round(beats * 2))}"
     meta = []
+    mod_at, mod_tr = modulation(ident, len(chapter)) if ident.get("gen") else (None, 0)
     for idx, (sec, layers, fx) in enumerate(chapter):
         sec_len = max([lens[l] for l in layers if l in lens] or [16])
         meta.append((sec, sec_len))
+        mod = mod_tr if mod_at is not None and idx >= mod_at else 0
         lift = s.get("lift", 2) if sec == "final" else 0
         def put(track, part, off, xf=""):
             if not part:
                 tracks[track].append(rest(sec_len))
                 return
-            t = ident["key"] + off + lift
+            t = ident["key"] + off + lift + mod
             tracks[track].append(f"tr={t} @{part}{xf} tr=0" if t else f"@{part}{xf}")
         # Generated riffs carry their own locked drums: library beats only where no riff plays.
         has_riff = any(l.startswith("riff") for l in layers) and ident.get("gen") and ident["style"] in ("djent", "djent-breakdown")
@@ -472,7 +484,7 @@ def write_form(name, ident):
         part = (ident.get(riff_role) or ident.get("riff")) if riff_role else None
         fav = favorite_for(riff_role, ident) if riff_role else None
         if fav:
-            t = ident["key"] + fav[1]
+            t = ident["key"] + fav[1] + mod
             tracks["riff"].append(f"tr={t} @{fav[0]} tr=0" if t else f"@{fav[0]}")
         else:
             put("riff", part, s["riff_off"], riff_xf + rx.get("riff", ""))
@@ -494,7 +506,8 @@ def write_form(name, ident):
                              "impact": f"patch=fx-impact F1/4@104 {rest(sec_len - 1)}",
                              "revcym": f"{rest(sec_len - 2)} patch={random.choice(revs)} C5/2@88",
                              "tapestop": f"{rest(sec_len - 4)} patch=fx-tapestop C4/1@100"}.get(fx, rest(sec_len)))
-    lines = [f"about: Generated {s['form']}-form song ({ident.get('fv', 'base')}) — {ident['style']} at {ident['tempo']} BPM, {gdesc}, shift {ident['key']:+d}, chapter {ident.get('chapter', 0) + 1}/{len(chs)}, comp {ident.get('comp', 'glue')}.",
+    modn = f", modulates {mod_tr:+d} at section {mod_at + 1}" if mod_at is not None else ""
+    lines = [f"about: Generated {s['form']}-form song ({ident.get('fv', 'base')}) — {ident['style']} at {ident['tempo']} BPM, {gdesc}, shift {ident['key']:+d}{modn}, chapter {ident.get('chapter', 0) + 1}/{len(chs)}, comp {ident.get('comp', 'glue')}.",
              f"tempo: {ident['tempo']}", "tracks:"]
     for t, items in tracks.items():
         if t == "hook" and FLAVOR_HOOK.get(flavor):
@@ -700,9 +713,16 @@ if __name__ == "__main__":
                     st_ = STYLES[ident["style"]]
                     ident["tempo"] = max(st_["tempo"][0] - 10, min(st_["tempo"][1] + 10, ident["tempo"] + random.choice([-12, -8, -6, -4, 4, 6, 8, 12])))
                     change += f", tempo {ident['tempo']}"
-                if random.random() < 0.3:
-                    ident, k = mutate(ident)
-                    change += f", {k}"
+                x = random.random()
+                if x < 0.35:  # key change at the chapter boundary
+                    ident["key"] = max(-6, min(6, ident.get("key", 0) + random.choice(MOD_STEPS)))
+                    change += f", key {ident['key']:+d}"
+                elif x < 0.6 and ident.get("gen"):  # scale change: same motifs, new mode
+                    modes = [m for m in composer.STYLE_MODES.get(ident["style"], []) if m != ident["gen"]["mode"]]
+                    if modes:
+                        m = random.choice(modes)
+                        ident["gen"] = dict(ident["gen"], mode=m, prog=random.choice(composer.PROGS[m]))
+                        change += f", mode {m}"
             elif not first or passes > 1:
                 queued = bool(STYLE_QUEUE)
                 style = STYLE_QUEUE.pop(0) if STYLE_QUEUE else (journey_style(j.get("h", 0), ident["style"]) if j.get("on") else random.choice([k for k in STYLES if k != ident["style"]]))
