@@ -61,7 +61,7 @@ STYLE_MODES = {
     "bossa": ["major", "dorian", "minor", "lydian"], "dub": ["minor", "dorian", "mixolydian"],
     "manouche": ["harmonic", "minor", "harmonic", "major"], "celtic": ["dorian", "mixolydian", "minor", "major"],
     "doomjazz": ["minor", "phrygian", "dorian", "harmonic"], "mali": ["dorian", "minor", "mixolydian"], "guofeng": ["major", "minor", "dorian"], "vaporwave": ["major", "lydian", "dorian", "minor"], "slowcore": ["major", "mixolydian", "minor", "dorian"],
-    "backrooms": ["major", "lydian", "mixolydian"], "neosoul": ["dorian", "minor", "major", "mixolydian"], "minimal": ["major", "lydian", "dorian", "mixolydian"], "cyberscape": ["minor", "dorian", "lydian", "phrygian"],
+    "backrooms": ["major", "lydian", "mixolydian"], "neosoul": ["dorian", "minor", "major", "mixolydian"], "minimal": ["major", "lydian", "dorian", "mixolydian"], "fusion": ["minor", "dorian", "major", "mixolydian"], "cyberscape": ["minor", "dorian", "lydian", "phrygian"],
     "koto": ["hirajoshi", "hirajoshi", "phrygian"],
     "djazz": ["dorian", "lydian", "harmonic", "minor", "mixolydian"], "industrial": ["phrygian", "minor", "harmonic"], "dnb": ["minor", "phrygian", "dorian"],
     "darksynth": ["minor", "phrygian", "harmonic", "dorian"],
@@ -2590,6 +2590,41 @@ CHILL_GUESTS = {
 }
 
 
+CHILL_GUESTS["dub"] = (lambda r, k, prog: gen_dub(r, k, prog), {"dub"})
+RHYTHM_SRC = {
+    "dub": lambda r, k, prog: gen_dub(r, k, prog), "triphop": lambda r, k, prog: gen_triphop(r, k, prog),
+    "lofi": lambda r, k, prog: gen_lofi(r, k, prog), "bossa": lambda r, k, prog: gen_bossa(r, k, prog),
+    "neosoul": lambda r, k, prog: gen_neosoul(r, k, prog), "mali": lambda r, k, prog: gen_mali(r, k, prog),
+    "celtic": lambda r, k, prog: gen_celtic(r, k, prog, "drums"), "cycles": lambda r, k, prog: gen_cycles(r, k, prog),
+    "ballad": lambda r, k, prog: gen_ballad(r, k, prog), "slowcore": lambda r, k, prog: gen_slowcore(r, k, prog),
+    "vaporwave": lambda r, k, prog: gen_vaporwave(r, k, prog), "cyberscape": lambda r, k, prog: gen_cyberscape(r, k, prog, "full"),
+    "doomjazz": lambda r, k, prog: gen_doomjazz(r, k, prog),
+}
+
+
+def is_rhythm(t):
+    p, n = t.get("patch", ""), t.get("name", "")
+    return "kit" in p or p in ("djembe", "bodhran") or n in ("bass", "pulsebass", "sub", "pulse") or n.startswith("bass")
+
+
+def fusion_pair(seed):
+    r = random.Random(seed * 3 + 11)
+    src = r.choice(sorted(CHILL_GUESTS))
+    beat = r.choice([b for b in sorted(RHYTHM_SRC) if b != src and not (src == "lofi" and b == "lofi")])
+    return src, beat
+
+
+def gen_fusion(r, k, prog, src, beat, with_beat=True):
+    tonal = [t for t in CHILL_GUESTS[src][0](r, k, prog) if not is_rhythm(t)]
+    out = list(tonal)
+    if with_beat:
+        names = {t["name"] for t in out}
+        for t in RHYTHM_SRC[beat](r, k, prog):
+            if is_rhythm(t):
+                out.append(dict(t, name=t["name"] + "-x") if t["name"] in names else t)
+    return out
+
+
 def compose(style, slot, p):
     """Compose the style's parts, plus two guest sections from other styles (riffGuest1/2, same key)."""
     names, desc = _compose_style(style, slot, p)
@@ -2626,7 +2661,7 @@ def compose(style, slot, p):
     return names, desc
 
 
-CHILL_STYLES = {"lofihop", "gogo", "ukjazz", "ambient", "downtempo", "smile", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche", "celtic", "doomjazz", "mali", "guofeng", "vaporwave", "slowcore", "backrooms", "cyberscape", "neosoul", "minimal"}
+CHILL_STYLES = {"lofihop", "gogo", "ukjazz", "ambient", "downtempo", "smile", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche", "celtic", "doomjazz", "mali", "guofeng", "vaporwave", "slowcore", "backrooms", "cyberscape", "neosoul", "minimal", "fusion"}
 HEAVY_STYLES = {"meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep",
                 "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock", "groovemetal", "power", "sludge",
                 "breakcore", "mathcore", "gojira", "djazz", "raga", "gamelan", "koto"}
@@ -2657,6 +2692,13 @@ def _compose_style(style, slot, p):
             "hookE": gen_atmos(r, k, prog, 62, rig("atmos")),
         }
         return _write_parts(slot, "brostep", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
+    if style == "fusion":
+        src, beat = fusion_pair(p["seed"])
+        lead = pick_patch(r.choice(["tenor-sax", "flute", "erhu", "kora", "music-box", "theremin", "trumpet-mute", "vibes"]), "rhodes")
+        parts = {"riffI": gen_fusion(r, k, prog, src, beat, with_beat=False), "riff": gen_fusion(r, k, prog, src, beat),
+                 "riffB": gen_fusion(r, k, prog, src, beat) + [dict(t, name="pad-f") for t in gen_pad(r, k, prog, 55, pick_patch("pad-glass", "strings"), gain="-10dB", vel=58)],
+                 "hook": gen_hook(r, k, prog, 64 if lead in ("tenor-sax", "trumpet-mute") else 69, lead)}
+        return _write_parts(slot, "fusion", parts, f"{NAMES[p['pc']]} {p['mode']}, {src} over {beat}, lead {lead}")
     if style == "minimal":
         parts = {"riffP": gen_minimal(r, k, prog, "phase"), "riffA": gen_minimal(r, k, prog, "additive"), "riff": gen_minimal(r, k, prog, "pulse"),
                  "riffF": gen_minimal(r, k, prog, "full"), "hook": gen_atmos(r, k, prog, 60, pick_patch(r.choice(["clarinet", "cellos", "flute"]), "strings"))}
