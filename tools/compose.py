@@ -312,6 +312,29 @@ def chordhead(ms):
 
 # ---------- generators -----------------------------------------------------------------
 
+def gen_djent_clean(r, k, prog):
+    """Djent's ambient side (TesseracT / Periphery): clean arpeggios on add9 / maj7 chords through a
+    ping-pong delay and hall, over a Juno or glass pad."""
+    arp = []
+    for root in prog:
+        tones = [k.deg(root + d, 55) for d in r.choice([(0, 4, 8, 9), (0, 2, 4, 6), (0, 4, 6, 8)])]
+        arp += [f"{mname(tones[i])}/8@{74 if j % 4 == 0 else 62}" for j, i in enumerate(r.choice([[0, 1, 2, 3, 2, 1, 2, 3], [0, 2, 1, 3, 0, 2, 3, 1]]))]
+    delay = [{"type": "delay", "time": "3/16", "feedback": 0.45, "ping_pong": True, "tone": 3500, "mix": 0.32}, {"type": "reverb", "kind": "hall", "decay": "3.5s", "mix": 0.35}]
+    return [track("clean", pick_patch("clean-chorus", "tele"), " ".join(arp), pan=-0.2, fx=delay)] + \
+        [dict(t, name="pad", gain="-10dB") for t in gen_pad(r, k, prog, 52, pick_patch(r.choice(["juno-pad", "pad-glass"]), "pad"), vel=58)]
+
+
+def gen_tapping(r, k, prog, patch):
+    """Animals as Leaders-style tapping: sextuplet arpeggios across the chord tones in a high register."""
+    out = []
+    for root in prog:
+        tones = [k.deg(root + d, 67) for d in r.choice([(0, 2, 4, 7, 9, 11), (0, 4, 7, 9, 11, 14), (0, 2, 4, 6, 7, 9)])]
+        shape = r.choice([[0, 1, 2, 3, 4, 5], [0, 2, 4, 5, 3, 1], [5, 3, 1, 0, 2, 4]])
+        out += [f"{mname(tones[i])}/24@{80 if j % 6 == 0 else 66}" for _ in range(4) for j, i in enumerate(shape)]
+    return [track("tap", patch, " ".join(out), pan=0.25, gain="-4dB",
+                  fx=[{"type": "delay", "time": "1/8", "feedback": 0.2, "mix": 0.15}, {"type": "reverb", "kind": "plate", "decay": "1.6s", "mix": 0.2}])]
+
+
 def gen_djent(r, k, prog, low, breakdown=False):
     """16th chugs on the low tonic in a per-song rhythm cell; power-chord accents on chord roots."""
     cell = [r.random() < (0.35 if breakdown else 0.62) for _ in range(16)]
@@ -4373,6 +4396,17 @@ def _compose_style(style, slot, p):
             write(n, f"{role} for meshuggah in {desc}", tr)
             names[role] = n
         return names, desc
+    if style == "djent":  # the modern form: ambient cleans, polyrhythmic verses, a glitch edit, open choruses, tapping, breakdowns
+        verse = gen_djent(r, k, prog, low)
+        glitch_fx = [{"type": "stutter", "slice": r.choice(["1/32", "1/16"]), "repeats": r.choice([2, 3, 4]), "chance": 0.35, "seed": r.randrange(1000)},
+                     {"type": "crush", "bits": 10, "rate": 16000, "mix": 0.3}]
+        glitch = [dict(t, fx=list(t.get("fx", [])) + glitch_fx) if t.get("name", "").startswith("gtr") else t for t in gen_djent(r, k, prog, low)]
+        lead = r.choice(["lead-monster", "synth-lead"] + (["supersaw"] if have("supersaw") else []))
+        parts = {"riffClean": gen_djent_clean(r, k, prog), "riff": verse, "riffG": glitch, "riffC": gen_metalcore(r, k, prog, low, kind="chorus"),
+                 "riffBrk": gen_djent(r, k, prog, low, True), "hook": gen_hook(r, k, prog, 64, lead),
+                 "tap": gen_tapping(r, k, prog, pick_patch(r.choice(["clean-chorus", "pluck-lead"]), "clean-chorus")),
+                 "pad": gen_clusters(r, k, prog, 48, pick_patch("saw-pad", "pad"))}
+        return _write_parts(slot, "djent", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
     heavy = style in ("djent", "djent-breakdown", "doom-ambient")
     if style in ("djent", "djent-breakdown"):
         riff = gen_djent(r, k, prog, low, style == "djent-breakdown")

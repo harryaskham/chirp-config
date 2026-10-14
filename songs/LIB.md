@@ -94,7 +94,7 @@ Use `@NAME` in a score; transpose with `tr=N` (e.g. `tr=-3 @lib-kankyo`, `tr=5 @
 | `@lib-vaporwave-hook` | vaporwave | melody | 16 |
 | `@lib-vaporwave` | vaporwave | section | 16 |
 
-## Heavy (66)
+## Heavy (67)
 
 | part | style | kind | beats |
 |---|---|---|---|
@@ -115,6 +115,7 @@ Use `@NAME` in a score; transpose with `tr=N` (e.g. `tr=-3 @lib-kankyo`, `tr=5 @
 | `@lib-djazz` | djazz | section | 16 |
 | `@lib-djent-breakdown-hook` | djent-breakdown | melody | 16 |
 | `@lib-djent-breakdown` | djent-breakdown | section | 16 |
+| `@lib-djent-brk` | djent | breakdown | 16 |
 | `@lib-djent-hook` | djent | melody | 16 |
 | `@lib-djent` | djent | section | 16 |
 | `@lib-dnb-brk` | dnb | breakdown | 16 |

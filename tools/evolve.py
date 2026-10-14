@@ -15,7 +15,7 @@ REST = "R/1 R/1 R/1 R/1"
 
 # off: transposition applied to F-based layers (pads, hooks, arps, holds, F-minor parts).
 STYLES = {
-  "djent":      dict(form="rock", tempo=(110, 150), off=0, riff=["riff-chug7", "riff-chug5", "riff-332", "riff-gallop"], riff_off=0,
+  "djent":      dict(form="djent", tempo=(110, 150), off=0, riff=["riff-chug7", "riff-chug5", "riff-332", "riff-gallop"], riff_off=0,
                      low=["beat-sparse"], mid=["beat-poly7", "beat-euclid", "beat-ghost"], high=["beat-djent", "beat-blast", "beat-doom"],
                      half=["beat-halftime"], brk=["beat-doom"], hook=["lead-hook", "lead-solo"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["riff-hold"]),
   "prog-clean": dict(form="rock", tempo=(104, 126), off=1, riff=["riff-thump", "riff-taps"], riff_off=0,
@@ -343,6 +343,9 @@ FORMS = {
                 ("chorus", ["riffC", "hook"], "impact"), ("outro", ["riffH"], "revcym")],
   "slam": [("intro", ["riffSlam"], "revcym"), ("blast", ["riffBlast"], "impact"), ("slam", ["riffSlam2"], "impact"), ("grav", ["riffGrav"], None),
            ("slam", ["riffSlam"], "impact"), ("breakdown", ["riffBrk"], "impact"), ("blast", ["riffBlast"], None), ("outro", ["riffBrk"], "revcym")],
+  "djent": [("intro", ["riffClean"], None), ("verse", ["riff"], "impact"), ("verse", ["riff", "pad"], None), ("glitch", ["riffG"], "impact"),
+            ("chorus", ["riffC", "hook"], "impact"), ("verse2", ["riff", "pad"], "impact"), ("clean", ["riffClean", "tap"], "revcym"),
+            ("breakdown", ["riffBrk"], "impact"), ("breakdown", ["riffBrk", "pad"], None), ("chorus", ["riffC", "hook"], "impact"), ("outro", ["riffClean"], "revcym")],
   "postmetal": [("intro", ["riffClean"], None), ("build", ["riffToms", "hookE"], "riser"), ("A", ["riffCrush"], "impact"),
                 ("A2", ["riffCrush", "hookT"], None), ("break", ["riffClean", "hookE"], "revcym"), ("build", ["riffToms"], "riser"),
                 ("climax", ["riffWall"], "impact"), ("climax", ["riffWall", "hookT"], None), ("outro", ["riffClean"], "revcym")],
