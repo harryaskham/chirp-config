@@ -32,7 +32,8 @@ def main(styles):
         ident = ev.identity(st)
         name = f"form-qa-{st}"
         ev.write_form(name, dict(ident, chapter=0))
-        doc = {"tempo": ident["tempo"], "master": {"fx": json.loads(ev.master_for(ident))}, "tracks": [{"name": "a", "score": f"@{name}"}]}
+        doc = {"tempo": ident["tempo"], "vars": {"stop": {"value": 0, "smooth": "5ms", "min": 0, "max": 1}},
+               "master": {"fx": json.loads(ev.master_for(ident))}, "tracks": [{"name": "a", "score": f"@{name}"}]}
         json.dump(doc, open("/tmp/chirp-qa.json", "w"))
         r = subprocess.run([ev.C, "render", "--json", "-f", "/tmp/chirp-qa.json", "-o", "/tmp/chirp-qa.wav"], capture_output=True, text=True)
         try:

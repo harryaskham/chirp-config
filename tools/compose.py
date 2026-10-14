@@ -1823,8 +1823,38 @@ def feel_track(t, profile, r):
     return dict(t, score=" ".join(pre + [drunk(slots)]))
 
 
+_KEY = (0, "minor")
+VOX_CHOPS = {"house-melodic": 0.6, "cyberscape": 0.5, "fusion": 0.3, "dnb": 0.5, "brostep": 0.4, "garage": 0.6, "house": 0.5, "darksynth": 0.3}
+ORCH_HITS = {"darksynth": 0.5, "industrial": 0.4, "power": 0.5, "deathcore": 0.4, "numetal": 0.3, "brostep": 0.3}
+MINORISH = {"minor", "dorian", "phrygian", "harmonic", "locrian", "melodic", "blues", "pentatonic-minor", "neapolitan", "hungarian", "phrygian-dominant"}
+
+
+def _tr_to_minor():
+    """Semitones that move a C-minor library part to the current song's minor colour (relative minor
+    for major-ish modes), folded into −6…+5."""
+    pc, mode = _KEY
+    t = (pc + (0 if mode in MINORISH else 9)) % 12
+    return t - 12 if t > 5 else t
+
+
+def stock_layers(style, parts, beats, seed):
+    """Layer the engine's @vox-chops / @orch-hit into one non-intro riff part (deterministic per song)."""
+    import zlib
+    r = random.Random(zlib.crc32(f"stock{seed}".encode()))
+    roles = [ro for ro in ("riffB", "riffD", "riffDrop", "riffF", "riff") if ro in parts and abs((beats or {}).get(ro, 16) - 16) < 1e-9]
+    if not roles:
+        return
+    tr = _tr_to_minor()
+    if r.random() < VOX_CHOPS.get(style, 0):
+        parts[roles[0]] = parts[roles[0]] + [{"name": "chops", "score": f"tr={tr} @vox-chops @vox-chops", "gain": "-3dB"}]
+    if r.random() < ORCH_HITS.get(style, 0):
+        parts[roles[0]] = parts[roles[0]] + [{"name": "orch", "score": f"tr={tr} @orch-hit R/1 @orch-hit R/1", "gain": "-4dB"}]
+
+
 def _write_parts(slot, style, parts, desc, beats=None):
     names = {}
+    parts = dict(parts)
+    stock_layers(style, parts, beats, desc)
     feel = None
     if style in CHILL_STYLES and style != "neosoul":
         import zlib
@@ -2679,6 +2709,8 @@ def gen_fusion(r, k, prog, src, beat, with_beat=True):
 
 def compose(style, slot, p):
     """Compose the style's parts, plus two guest sections from other styles (riffGuest1/2, same key)."""
+    global _KEY
+    _KEY = (p["pc"], p["mode"])
     names, desc = _compose_style(style, slot, p)
     if style in CHILL_STYLES:
         r = random.Random(p["seed"] + 1)
