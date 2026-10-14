@@ -1,0 +1,41 @@
+about: "Cajón and palmas: cb bass (deep centre hit), cs slap (edge crack with snare wires), cg ghost, pa palmas (crisp handclap). Flamenco, rumba, acoustic grooves."
+play: {len: /16, vel_sens: 0.6, humanize: {time: 5ms, vel: 0.08}}
+gain: 2dB
+fx: ["reverb kind=room decay=0.7s mix=0.14"]
+kit:
+  cb:
+    pitch: A1
+    patch:
+      synth:
+        layers: [sine, {type: noise, color: brown, level: {value: -60dB, mod: [{src: env.s, amount: 38}]}}]
+        env:
+          p: {a: 0.5ms, d: 30ms, s: 0}
+          s: {a: 0.5ms, d: 15ms, s: 0}
+        pitch: {value: 0, mod: [{src: env.p, amount: 4}]}
+        filters: ["lp cutoff=1.5k"]
+        amp: {a: 0.5ms, d: 220ms, s: 0, r: 30ms, curve: 4}
+  cs:
+    gain: -2dB
+    patch:
+      synth:
+        layers: [{wave: sine, level: -10dB}, {type: noise, level: {value: -38dB, mod: [{src: env.s, amount: 32}]}}]
+        env:
+          s: {a: 0.2ms, d: 60ms, s: 0}
+        filters: ["hp cutoff=400", "peak cutoff=2.5k q=1 gain=5dB"]
+        amp: {a: 0.2ms, d: 140ms, s: 0, r: 20ms, curve: 4}
+  cg:
+    gain: -12dB
+    patch:
+      synth:
+        layers: [{type: noise}]
+        filters: ["bp cutoff=1.8k q=1"]
+        amp: {a: 0.2ms, d: 50ms, s: 0, r: 10ms, curve: 4}
+  pa:
+    gain: -4dB
+    patch:
+      synth:
+        layers: [{type: noise}]
+        env:
+          f: {a: 0.1ms, d: 10ms, s: 0}
+        filters: ["hp cutoff=900", "peak cutoff=1.6k q=1.2 gain=6dB"]
+        amp: {a: 0.1ms, d: 70ms, s: 0, r: 15ms, curve: 3}

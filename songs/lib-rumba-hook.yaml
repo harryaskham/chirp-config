@@ -1,0 +1,5 @@
+about: "Library part \u2014 rumba melody (C phrygian-dominant), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "acoustic", "score": "C5/16@86 Bb4/16@74 Ab4/16@74 G5/16@92 _ _ _ _ G5/16@86 F5/16@74 E5/16@74 C#5/16@74 C5/16@74 Bb4/16@74 Ab4/16@74 G5/16@92 C#5/16@86 E5/16@74 F5/16@74 C#5/16@92 _ _ Ab5/16@86 Bb5/16@74 C6/16@74 C#6/16@74 E6/16@74 C#5/16@92 _ _ _ _ E6/16@86 F6/16@74 G6/16@74 Ab6/16@74 Bb6/16@74 C7/16@74 C#7/16@74 E6/16@92 _ _ _ _ E6/16@86 C#6/16@74 C6/16@74 Ab5/16@92 C#5/16@86 C5/16@74 Bb4/16@74 Ab4/16@74 G4/16@74 C#5/16@92 _ _ _ _ C#6/16@86 E6/16@74 F6/16@74 C#5/16@92 _ _", "pan": 0.2}
