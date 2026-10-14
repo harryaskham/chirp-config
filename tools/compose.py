@@ -60,7 +60,7 @@ STYLE_MODES = {
     "triphop": ["minor", "phrygian", "harmonic"], "neoclassical": ["major", "minor", "lydian", "dorian"], "ballad": ["major", "dorian", "minor"],
     "bossa": ["major", "dorian", "minor", "lydian"], "dub": ["minor", "dorian", "mixolydian"],
     "manouche": ["harmonic", "minor", "harmonic", "major"], "celtic": ["dorian", "mixolydian", "minor", "major"],
-    "doomjazz": ["minor", "phrygian", "dorian", "harmonic"],
+    "doomjazz": ["minor", "phrygian", "dorian", "harmonic"], "mali": ["dorian", "minor", "mixolydian"],
     "koto": ["hirajoshi", "hirajoshi", "phrygian"],
     "djazz": ["dorian", "lydian", "harmonic", "minor", "mixolydian"], "industrial": ["phrygian", "minor", "harmonic"], "dnb": ["minor", "phrygian", "dorian"],
     "darksynth": ["minor", "phrygian", "harmonic", "dorian"],
@@ -2151,6 +2151,39 @@ def gen_doomjazz(r, k, prog, kind="main"):
     return out
 
 
+def penta(k):
+    """Scale-degree indices of the pentatonic inside the key's mode (minor-ish modes → minor pentatonic)."""
+    return [0, 2, 3, 4, 6] if k.mode in ("minor", "dorian", "phrygian", "harmonic", "locrian") else [0, 1, 2, 4, 5]
+
+
+def gen_mali(r, k, prog, kind="main"):
+    """Mali / desert blues: an interlocking kora ostinato (thumb bass on the beats, pentatonic upper
+    notes between), a pentatonic bass ostinato, djembe bass/tone/slap with calabash and shaker;
+    kind=riff adds a hypnotic lightly-driven Tele riff; kind=intro is the kora alone."""
+    pt = penta(k)
+    kora = []
+    for root in prog:
+        hi = [k.deg(root + pt[i % 5] + 7 * (i // 5), 60) for i in r.sample(range(8), 6)]
+        for j in range(16):
+            kora.append(f"{mname(k.deg(root, 48))}/16@{84}" if j % 4 == 0 else f"{mname(hi[j % 6])}/16@{70 if j % 2 else 76}")
+    out = [track("kora", pick_patch("kora", "harp"), " ".join(kora), pan=-0.2)]
+    if kind == "intro":
+        return out
+    bass_cell = r.choice([[0, None, 4, 0, None, 3, 4, None], [0, 0, None, 4, None, 6, 4, 2], [0, None, 0, 4, 3, None, 2, None]])
+    bass = " ".join(f"{mname(k.deg(root + (pt[d % 5] if d is not None else 0), 33))}/8@{90}" if d is not None else "R/8" for root in prog for d in bass_cell)
+    dj = r.choice(["b.s.t.s.b.tts.t.", "b..st.s.b.s.tt.s", "b.ts.tb.s.tts.t."])
+    cal = "c.....c.c.......".replace(".", ".")
+    hits = " ".join({"b": "b/16@100", "t": "t/16@74", "s": "s/16@90", ".": "R/16"}[c] for _ in range(4) for c in dj)
+    gourd = " ".join(("c/16@88" if c == "c" else ("sh/16@52" if x % 2 == 0 else "R/16")) for _ in range(4) for x, c in enumerate(cal))
+    out += [track("bass", pick_patch("finger-bass", "bass-di"), bass, seed=7),
+            track("djembe", pick_patch("djembe", "tight-kit"), hits, pan=0.2), track("calabash", pick_patch("djembe", "tight-kit"), gourd, pan=-0.1)]
+    if kind == "riff":
+        cell = [pt[i] for i in r.choice([[0, 2, 3, 2, 0, 4, 3, 2], [0, 0, 2, 3, 4, 3, 2, 0], [4, 3, 2, 0, 2, 0, 3, 2]])]
+        riff = " ".join(f"{mname(k.deg(root + d, 52))}/8@{86 if j % 2 == 0 else 72}" for root in prog for j, d in enumerate(cell))
+        out.append(track("gtr", pick_patch("tele", "clean-chorus"), riff, pan=0.3, fx=[{"type": "drive", "drive": 0.25}, {"type": "reverb", "kind": "room", "decay": "1s", "mix": 0.15}], gain="-3dB"))
+    return out
+
+
 def gen_downtempo(r, k, prog, kind="main"):
     """Downtempo (Bonobo-ish): a low-passed breakbeat, marimba/kalimba ostinato, finger bass, strings."""
     kit = pick_patch("break-kit", "lofi-kit")
@@ -2189,6 +2222,7 @@ CHILL_GUESTS = {
     "ballad": (lambda r, k, prog: gen_ballad(r, k, prog), {"ballad"}),
     "bossa": (lambda r, k, prog: gen_bossa(r, k, prog), {"bossa"}),
     "doomjazz": (lambda r, k, prog: gen_doomjazz(r, k, prog, "full") + gen_atmos(r, k, prog, 55, pick_patch("tenor-sax", "clarinet")), {"doomjazz"}),
+    "mali": (lambda r, k, prog: gen_mali(r, k, prog), {"mali"}),
     "celtic": (lambda r, k, prog: gen_celtic(r, k, prog, "drums") + gen_air(r, k, prog, 72, pick_patch("low-whistle", "flute")), {"celtic"}),
     "manouche": (lambda r, k, prog: gen_manouche(r, k, prog) + gen_swing_run(r, k, prog, 64, pick_patch("accordion", "clarinet")), {"manouche"}),
     "neo": (lambda r, k, prog: gen_neoclassical(r, k, prog), {"neoclassical", "chamber"}),
@@ -2235,7 +2269,7 @@ def compose(style, slot, p):
     return names, desc
 
 
-CHILL_STYLES = {"lofihop", "gogo", "ukjazz", "ambient", "downtempo", "smile", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche", "celtic", "doomjazz"}
+CHILL_STYLES = {"lofihop", "gogo", "ukjazz", "ambient", "downtempo", "smile", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche", "celtic", "doomjazz", "mali"}
 HEAVY_STYLES = {"meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep",
                 "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock", "groovemetal", "power", "sludge",
                 "breakcore", "mathcore", "gojira", "djazz", "raga", "gamelan", "koto"}
@@ -2266,6 +2300,10 @@ def _compose_style(style, slot, p):
             "hookE": gen_atmos(r, k, prog, 62, rig("atmos")),
         }
         return _write_parts(slot, "brostep", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
+    if style == "mali":
+        parts = {"riffI": gen_mali(r, k, prog, "intro"), "riff": gen_mali(r, k, prog), "riffB": gen_mali(r, k, prog, "riff"),
+                 "hook": gen_hook(r, k, prog, 67, pick_patch("kora", "harp"))}
+        return _write_parts(slot, "mali", parts, f"{NAMES[p['pc']]} {p['mode']}")
     if style == "doomjazz":
         sax = pick_patch("tenor-sax", "clarinet")
         parts = {"riffI": gen_doomjazz(r, k, prog, "intro"), "riff": gen_doomjazz(r, k, prog), "riffB": gen_doomjazz(r, k, prog, "full"),

@@ -1,0 +1,3 @@
+about: "Kora (Malian 21-string harp-lute): the concert harp made brighter and shorter-ringing with a sharper thumb-and-finger pluck, and calabash-gourd body resonances. Interlocking ostinatos (Toumani Diabaté)."
+extends: "harp layers.0.pick=0.16 layers.0.bright.value=0.55 layers.0.decay.value=2.2s layers.0.body=0.6"
+fx: ["peak cutoff=190 q=1.2 gain=4dB", "peak cutoff=1300 q=1.5 gain=3dB", "reverb kind=room decay=1.1s mix=0.16"]

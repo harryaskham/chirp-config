@@ -1,0 +1,51 @@
+about: "Djembe and calabash kit: b deep bass, t open tone, s cracking slap, c calabash boom, sh shaker. West African grooves, desert blues."
+play: {len: /16, vel_sens: 0.6, humanize: {time: 5ms, vel: 0.08}}
+gain: 2dB
+fx: ["reverb kind=room decay=0.8s mix=0.12"]
+kit:
+  b:
+    pitch: C2
+    patch:
+      synth:
+        layers: [sine, {type: noise, color: pink, level: {value: -60dB, mod: [{src: env.s, amount: 44}]}}]
+        env:
+          p: {a: 0.5ms, d: 40ms, s: 0}
+          s: {a: 0.5ms, d: 20ms, s: 0}
+        pitch: {value: 0, mod: [{src: env.p, amount: 7}, {src: rand, amount: 0.2}]}
+        filters: ["lp cutoff=1.5k"]
+        amp: {a: 0.5ms, d: 280ms, s: 0, r: 30ms, curve: 4}
+  t:
+    pitch: E4
+    gain: -3dB
+    patch:
+      synth:
+        layers: [sine, {wave: sine, ratio: 1.6, level: -10dB}, {type: noise, level: {value: -60dB, mod: [{src: env.s, amount: 44}]}}]
+        env:
+          s: {a: 0.3ms, d: 12ms, s: 0}
+        pitch: {value: 0, mod: [{src: rand, amount: 0.2}]}
+        amp: {a: 0.3ms, d: 160ms, s: 0, r: 20ms, curve: 4}
+  s:
+    pitch: B4
+    gain: -2dB
+    patch:
+      synth:
+        layers: [{wave: sine, ratio: 1, level: -8dB}, {type: noise, level: {value: -40dB, mod: [{src: env.s, amount: 36}]}}]
+        env:
+          s: {a: 0.2ms, d: 30ms, s: 0}
+        filters: ["hp cutoff=500", "peak cutoff=2.2k q=1.5 gain=6dB"]
+        amp: {a: 0.2ms, d: 90ms, s: 0, r: 15ms, curve: 4}
+  c:
+    pitch: G1
+    gain: -2dB
+    patch:
+      synth:
+        layers: [sine, {type: noise, color: brown, level: {value: -60dB, mod: [{src: env.s, amount: 40}]}}]
+        env:
+          p: {a: 0.5ms, d: 60ms, s: 0}
+          s: {a: 0.5ms, d: 50ms, s: 0}
+        pitch: {value: 0, mod: [{src: env.p, amount: 4}]}
+        filters: ["lp cutoff=900"]
+        amp: {a: 0.5ms, d: 420ms, s: 0, r: 40ms, curve: 4}
+  sh:
+    gain: -12dB
+    patch: {synth: {layers: [{type: noise}], filters: ["hp cutoff=5k"], amp: {a: 3ms, d: 45ms, s: 0, r: 15ms}}}
