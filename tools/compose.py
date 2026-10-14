@@ -47,7 +47,7 @@ STYLE_MODES = {
     "brostep": ["minor", "phrygian", "harmonic"],
     "blackgaze": ["major", "lydian", "dorian", "mixolydian"],
     "numetal": ["phrygian", "locrian", "minor"], "deathcore": ["phrygian", "harmonic", "locrian", "diminished"],
-    "postrock": ["major", "lydian", "mixolydian", "dorian"], "postmetal": ["minor", "phrygian", "dorian", "harmonic"], "slam": ["phrygian", "locrian", "minor", "diminished"], "metalcore": ["minor", "harmonic", "dorian", "phrygian"], "symphonic": ["harmonic", "minor", "phrygian-dominant", "minor"], "groovemetal": ["blues", "pentatonic-minor", "phrygian", "minor"],
+    "postrock": ["major", "lydian", "mixolydian", "dorian"], "postmetal": ["minor", "phrygian", "dorian", "harmonic"], "slam": ["phrygian", "locrian", "minor", "diminished"], "metalcore": ["minor", "harmonic", "dorian", "phrygian"], "symphonic": ["harmonic", "minor", "phrygian-dominant", "minor"], "cynic": ["lydian", "dorian", "minor", "diminished"], "groovemetal": ["blues", "pentatonic-minor", "phrygian", "minor"],
     "power": ["major", "harmonic", "minor", "major"], "sludge": ["blues", "pentatonic-minor", "phrygian"],
     "breakcore": ["harmonic", "minor", "diminished", "phrygian-dominant"],
     "mathcore": ["locrian", "diminished", "phrygian", "double-harmonic"],
@@ -1677,6 +1677,46 @@ def gen_swingmetal(r, k, prog, low=28):
                                                track("hats", kit, hat, gain="-6dB"), track("snare", kit, sw + snare, gain="-3dB")]
 
 
+def gen_cynic(r, k, prog, low=28, kind="riff"):
+    """Tech-death fusion (Cynic / Atheist / Pestilence). riff: tremolo-picked chromatic / diminished
+    figures grouped in 7s or 5s over double kick with blast fragments. fusion: the metal drums keep
+    going while a fretless bass plays melodic counterpoint and clean jazz voicings (maj7#11 / m9) ring
+    over it. clean: chorused clean arpeggios over a soft ride and pad with a singing fretless line."""
+    t = k.deg(0, low)
+    kit = rig("drums")
+    jn = lambda xs: " ".join(xs)
+    if kind == "riff":
+        grp = r.choice([7, 5])
+        shape = [t + d for d in r.choice([[0, 1, 3, 4, 6, 4, 1], [0, 3, 6, 9, 6, 3, 1], [0, 1, 0, 6, 7, 6, 1]])][:grp]
+        gtr, kick, snare, cym = [], [], [], []
+        for i in range(64):
+            x = i % grp
+            blast = (i // 16) == 2
+            gtr.append(f"expr.pm={0 if x == 0 else 1} {mname(shape[x] + 12)}/16@{116 if x == 0 else 102}")
+            kick.append("k/16@112" if blast and i % 2 == 0 or (not blast) else "R/16")
+            snare.append("s/16@116" if (blast and i % 2 == 1) or (not blast and i % 8 == 4) else "R/16")
+            cym.append(f"{'c' if x == 0 else ('rd' if i % 2 == 0 else 'R')}/16@{108 if x == 0 else 86}".replace("R/16@86", "R/16"))
+        return rhythm_tracks(jn(gtr)) + [track("bass", rig("bass"), jn(mirror_bass(gtr, "/16")), seed=7),
+                                         track("kick", kit, jn(kick)), track("snare", kit, jn(snare)), track("cym", kit, jn([c_ if not c_.startswith("R") else "R/16" for c_ in cym]))]
+    voic = lambda root: chordhead([k.deg(root + d, 55) for d in r.choice([[0, 4, 6, 10], [0, 2, 6, 8], [2, 4, 6, 8]])])
+    fret = []
+    for root in prog:
+        d = root + r.choice([0, 2, 4])
+        for ln in r.choice([[2, 1, 1], [1, 1, 2], [3, 1]]):
+            fret.append(f"{mname(k.deg(d, 40))}/{ {1: '4', 2: '2', 3: '2.'}[ln] }@{84}")
+            d += r.choice([-2, -1, 1, 2])
+    fretless = track("fretless", pick_patch("fretless", "finger-bass"), " ".join(fret), seed=7)
+    clean = track("clean", pick_patch("clean-chorus", "tele"), " ".join(f"{voic(root)}/2@{74} {voic(root)}/2@{66}" for root in prog), pan=-0.25,
+                  fx=[{"type": "delay", "time": "3/16", "feedback": 0.35, "ping_pong": True, "mix": 0.25}, {"type": "reverb", "kind": "hall", "decay": "2.5s", "mix": 0.3}])
+    if kind == "fusion":
+        kick = jn(("k/16@108" if x in (0, 3, 6, 10) else "R/16") for _ in range(4) for x in range(16))
+        snare = jn(("s/16@112" if x in (4, 12) else (f"g/16@{r.choice([28, 34])}" if r.random() < 0.12 else "R/16")) for _ in range(4) for x in range(16))
+        cym = jn((f"{'c' if x == 0 else 'rd'}/16@{106 if x == 0 else 80}" if x % 2 == 0 else "R/16") for _ in range(4) for x in range(16))
+        return [clean, fretless, track("kick", kit, kick), track("snare", kit, snare), track("cym", kit, cym)]
+    soft = jn(("rd/8@60" if x % 2 == 0 else "rd/8@44") for x in range(32))
+    return [clean, fretless, track("ride", kit, "swing=0.62 " + soft, gain="-6dB")] + [dict(t_, name="pad", gain="-12dB") for t_ in gen_pad(r, k, prog, 52, pick_patch("pad-glass", "pad"), vel=56)]
+
+
 def gen_mathcore(r, k, prog, low=28, kind="chaos"):
     """chaos: the 16-beat part cut into odd-length chunks (3–13 sixteenths, summing to 64); each a
     cluster stab into a hard stop, a dissonant tremolo run, chugs over a blast fragment or silence;
@@ -2276,7 +2316,7 @@ for _m, _ps in _MORE_PROGS.items():
 
 def params(style, rng=random):
     mode = rng.choice(STYLE_MODES.get(style, ["minor"]))
-    heavy = style in ("meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep", "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock", "postmetal", "slam", "metalcore", "symphonic", "groovemetal", "power", "sludge", "breakcore", "mathcore", "gojira", "djazz", "raga", "gamelan", "koto", "postmetal", "slam", "metalcore", "symphonic")
+    heavy = style in ("meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep", "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock", "postmetal", "slam", "metalcore", "symphonic", "cynic", "groovemetal", "power", "sludge", "breakcore", "mathcore", "gojira", "djazz", "raga", "gamelan", "koto", "postmetal", "slam", "metalcore", "symphonic", "cynic")
     if style in CHILL_STYLES:
         rigset = "chill"
     else:
@@ -3942,7 +3982,7 @@ def gen_fusion(r, k, prog, src, beat, with_beat=True):
 # Odd-meter guest sections from the engine's built-in parts (in F minor; length in beats, repeats).
 ODD_PARTS = {"54": (10, 2, "beat-54", "beat-54-ghost"), "68": (6, 3, "beat-68", "beat-68-trap"), "74": (14, 1, "beat-74", "beat-74"),
              "78": (7, 2, "beat-78", "beat-78"), "118": (11, 2, "beat-118", "beat-118-ghost")}
-ODD_HOSTS_HEAVY = {"mathcore", "djazz", "tool", "djent", "meshuggah", "metalcore", "postmetal", "gojira", "tech-death", "postrock", "blackgaze", "groovemetal"}
+ODD_HOSTS_HEAVY = {"cynic", "mathcore", "djazz", "tool", "djent", "meshuggah", "metalcore", "postmetal", "gojira", "tech-death", "postrock", "blackgaze", "groovemetal"}
 ODD_HOSTS_CHILL = {"ukjazz", "gogo", "neosoul", "fusion", "souljazz", "ethiojazz", "citypop", "nujazz"}
 
 
@@ -4383,6 +4423,11 @@ def _compose_style(style, slot, p):
                  "riffSlam": gen_hc(r, k, prog, dl, "slowdown"), "pad": gen_pad(r, k, prog, 48, "strings", gain="-6dB"),
                  "soft": gen_pad(r, k, prog, 48, "strings", gain="-8dB", vel=70), "drone": gen_drone(k, 36, "drone")}
         return _write_parts(slot, "deathcore", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
+    if style == "cynic":
+        parts = {"riffClean": gen_cynic(r, k, prog, kind="clean"), "riff": gen_cynic(r, k, prog), "riffB": gen_cynic(r, k, prog),
+                 "riffF": gen_cynic(r, k, prog, kind="fusion"), "hook": gen_hook(r, k, prog, 52, pick_patch("fretless", "finger-bass")),
+                 "solo": gen_thordendal(r, k, 28, rig("lead"))}
+        return _write_parts(slot, "cynic", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
     if style == "symphonic":
         parts = {"riffO": gen_symphonic(r, k, prog, kind="orch"), "riffV": gen_symphonic(r, k, prog, kind="verse"),
                  "riffC": gen_symphonic(r, k, prog, kind="chorus"), "hook": gen_hook(r, k, prog, 69, pick_patch(r.choice(["violins", "lead-tape"]), "strings"))}
