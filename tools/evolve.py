@@ -293,6 +293,7 @@ FORMS = {
                 ("space", ["riffX"], "impact"), ("space", ["riffX", "drone", "hookE"], None),
                 ("verse2", ["riff", "hook"], "revcym"), ("break", ["riffBrk"], "impact"),
                 ("break", ["riffBrk", "soft"], None), ("C", ["riffC"], "impact"), ("C", ["riffC", "hook", "pad"], None),
+                ("solo", ["riffC", "solo"], "impact"),
                 ("final", ["riff", "hook", "pad"], "impact"), ("outro", ["soft", "hold"], "revcym")],
   "thrash": [("intro", ["riffH"], "revcym"), ("intro2", ["riffG"], "impact"), ("verse", ["riff"], "impact"),
              ("verse", ["riff", "pad"], None), ("pre", ["riffC"], "riser"), ("chorus", ["riffH", "hook"], "impact"),

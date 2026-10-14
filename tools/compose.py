@@ -552,6 +552,31 @@ def gen_hold(r, k, prog, low, gp):
     return rhythm_tracks("expr.pm=0 " + " ".join(out)) + [track("bass", rig("bass"), " ".join(bass)), track("sub", rig("sub"), " ".join(bass))]
 
 
+def gen_thordendal(r, k, low, patch, beats=16):
+    """A Fredrik Thordendal-style solo (Holdsworth-like fusion): fluid legato runs in 16ths or sextuplets
+    over diminished / whole-tone fragments with wide leaps, long notes bent up and released, breaths."""
+    t = k.deg(0, low) + 36
+    scale = r.choice([[0, 1, 3, 4, 6, 7, 9, 10], [0, 2, 4, 6, 8, 10], [0, 2, 3, 5, 6, 8, 9, 11]])
+    note = lambda idx: t + scale[idx % len(scale)] + 12 * (idx // len(scale))
+    toks, used, idx = [], 0, r.randrange(len(scale))
+    while used < beats:
+        left = beats - used
+        g = r.random()
+        if g < 0.55 and left >= 1:  # legato run
+            n_beats = min(left, r.choice([1, 1, 2]))
+            per = r.choice([6, 4, 6])
+            for j in range(n_beats * per):
+                idx = max(0, min(2 * len(scale), idx + r.choice([1, 1, 2, -1, -2, 4, -4] if r.random() < 0.9 else [5, -5])))
+                toks.append(f"{mname(note(idx))}/{24 if per == 6 else 16}@{100 if j % per == 0 else 88}")
+            used += n_beats
+        elif g < 0.8 and left >= 2:  # a long note bent up a whole tone and released
+            toks.append(f"bend= {mname(note(idx))}/4@108 bend=2 _ bend=")
+            used += 2
+        else:
+            toks.append("bend= R/4"); used += 1
+    return [track("solo", patch, " ".join(toks), pan=0.15)]
+
+
 def gen_meshuggah(r, k, low, gp, cycle, grid="16", mode="riff"):
     """Polymetric riff: a cycle of `cycle` steps repeated over a steady 4/4 pulse (reset at the
     phrase). Chugs on the low tonic (sometimes ♭2), b2-cluster / tritone / ♭5 / ♭9 accents, dead
@@ -4255,6 +4280,7 @@ def _compose_style(style, slot, p):
             "riffS": gen_meshuggah(r, k, low, gp, r.choice([11, 7, 10, 5]), grid="12", mode="shuffle"),
             "riffBrk": gen_meshuggah(r, k, low, gp, r.choice([7, 11, 5]), grid="8", mode="break"),
             "hook": gen_hook(r, k, prog, 62, rig("lead")),
+            "solo": gen_thordendal(r, k, low, rig("lead")),
             "pad": gen_clusters(r, k, prog, 48, "saw-pad"),
             "soft": gen_clusters(r, k, prog, 48, "ambient-swell", vel=68),
             "arp": gen_arp(r, k, prog, 55, "arp-pluck"),
