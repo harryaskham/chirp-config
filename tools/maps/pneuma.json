@@ -183,27 +183,77 @@
   {
    "name": "dr-kick",
    "patch": "carey-kit",
-   "raw": "tools/maps/pneuma-drums.json#kick"
+   "raw": "tools/maps/pneuma-drums.json#kick",
+   "extra": {
+    "fx": [
+     {
+      "type": "eq",
+      "bands": [
+       "highshelf cutoff=10k gain=-14dB"
+      ]
+     }
+    ]
+   }
   },
   {
    "name": "dr-snare",
    "patch": "carey-kit",
-   "raw": "tools/maps/pneuma-drums.json#snare"
+   "raw": "tools/maps/pneuma-drums.json#snare",
+   "extra": {
+    "fx": [
+     {
+      "type": "eq",
+      "bands": [
+       "highshelf cutoff=10k gain=-14dB"
+      ]
+     }
+    ]
+   }
   },
   {
    "name": "dr-hats",
    "patch": "carey-kit",
-   "raw": "tools/maps/pneuma-drums.json#hats"
+   "raw": "tools/maps/pneuma-drums.json#hats",
+   "extra": {
+    "fx": [
+     {
+      "type": "eq",
+      "bands": [
+       "highshelf cutoff=10k gain=-14dB"
+      ]
+     }
+    ]
+   }
   },
   {
    "name": "dr-toms",
    "patch": "carey-kit",
-   "raw": "tools/maps/pneuma-drums.json#toms"
+   "raw": "tools/maps/pneuma-drums.json#toms",
+   "extra": {
+    "fx": [
+     {
+      "type": "eq",
+      "bands": [
+       "highshelf cutoff=10k gain=-14dB"
+      ]
+     }
+    ]
+   }
   },
   {
    "name": "dr-cymbals",
    "patch": "carey-kit",
-   "raw": "tools/maps/pneuma-drums.json#cymbals"
+   "raw": "tools/maps/pneuma-drums.json#cymbals",
+   "extra": {
+    "fx": [
+     {
+      "type": "eq",
+      "bands": [
+       "highshelf cutoff=10k gain=-14dB"
+      ]
+     }
+    ]
+   }
   },
   {
    "name": "vox",
