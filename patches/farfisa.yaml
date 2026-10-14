@@ -1,0 +1,11 @@
+about: "Farfisa combo organ (the Philip Glass Ensemble's sound): a reedy square with a bright octave, instant on/off, a quick flutter vibrato. Additive minimalism, 60s garage."
+synth:
+  layers: [{wave: pulse, width: 0.5, level: -4dB}, {wave: saw, ratio: 2, level: -12dB}, {wave: pulse, width: 0.25, ratio: 4, level: -20dB}]
+  lfo:
+    vib: {wave: sine, rate: 6.8hz}
+  pitch: {value: 0, mod: [{src: lfo.vib, amount: 0.07}]}
+  filters: ["hp cutoff=150", "lp cutoff=5.5k", "peak cutoff=1800 q=1 gain=2dB"]
+  amp: {a: 3ms, d: 50ms, s: 0.95, r: 40ms}
+play: {gate: 0.9, vel_sens: 0.3}
+fx: ["reverb kind=room decay=1.2s mix=0.16"]
+gain: -14dB

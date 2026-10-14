@@ -61,7 +61,7 @@ STYLE_MODES = {
     "bossa": ["major", "dorian", "minor", "lydian"], "dub": ["minor", "dorian", "mixolydian"],
     "manouche": ["harmonic", "minor", "harmonic", "major"], "celtic": ["dorian", "mixolydian", "minor", "major"],
     "doomjazz": ["minor", "phrygian", "dorian", "harmonic"], "mali": ["dorian", "minor", "mixolydian"], "guofeng": ["major", "minor", "dorian"], "vaporwave": ["major", "lydian", "dorian", "minor"], "slowcore": ["major", "mixolydian", "minor", "dorian"],
-    "backrooms": ["major", "lydian", "mixolydian"], "neosoul": ["dorian", "minor", "major", "mixolydian"], "cyberscape": ["minor", "dorian", "lydian", "phrygian"],
+    "backrooms": ["major", "lydian", "mixolydian"], "neosoul": ["dorian", "minor", "major", "mixolydian"], "minimal": ["major", "lydian", "dorian", "mixolydian"], "cyberscape": ["minor", "dorian", "lydian", "phrygian"],
     "koto": ["hirajoshi", "hirajoshi", "phrygian"],
     "djazz": ["dorian", "lydian", "harmonic", "minor", "mixolydian"], "industrial": ["phrygian", "minor", "harmonic"], "dnb": ["minor", "phrygian", "dorian"],
     "darksynth": ["minor", "phrygian", "harmonic", "dorian"],
@@ -2496,6 +2496,44 @@ def gen_neosoul(r, k, prog, kind="main"):
     return out
 
 
+def gen_minimal(r, k, prog, kind="pulse"):
+    """Minimalism (Reich / Glass). kind=phase: a 12-note marimba figure left, the same figure with an
+    extra rest (13 steps) right — they drift apart and back (Piano Phase). kind=additive: an organ
+    figure that grows a note per cycle (Glass). kind=pulse: pulsing 8th chords on marimba + piano
+    swelling each bar, a pulsing bass and long string swells (Music for 18 Musicians). kind=full:
+    pulse + phase."""
+    root0 = prog[0]
+    fig = [k.deg(root0 + d, 64) for d in r.choice([[0, 1, 4, 5, 6, 1, 0, 5, 4, 1, 6, 5], [0, 2, 4, 2, 7, 4, 2, 4, 0, 2, 7, 4], [4, 0, 2, 0, 5, 2, 4, 2, 6, 4, 2, 0]])]
+    def stream(cells, n=64, vel=74):
+        return " ".join((f"{mname(cells[i % len(cells)])}/16@{vel if i % 4 == 0 else vel - 10}" if cells[i % len(cells)] is not None else "R/16") for i in range(n))
+    out = []
+    if kind in ("phase", "full"):
+        out += [track("phaseL", pick_patch("marimba", "vibes"), stream(fig), pan=-0.5),
+                track("phaseR", pick_patch("marimba" if kind == "phase" else "vibes", "vibes"), stream(fig + [None], vel=68), pan=0.5)]
+    if kind == "additive":
+        tones = [k.deg(root0 + d, 60) for d in r.choice([[0, 2, 4, 7, 9, 7, 4, 2], [0, 4, 2, 4, 7, 4, 9, 7], [0, 2, 0, 4, 0, 5, 0, 7]])]
+        seq, n = [], 2
+        while len(seq) < 64:
+            seq += tones[:n]
+            n = n + 1 if n < len(tones) else 2
+        out.append(track("organ", pick_patch("farfisa", "organ"), " ".join(f"{mname(m)}/16@{72 if j % 2 == 0 else 62}" for j, m in enumerate(seq[:64])), pan=-0.1))
+        out.append(track("bass", pick_patch("finger-bass", "upright-bass"), " ".join(f"{mname(k.deg(root, 33))}/4@{70}" for root in prog for _ in range(4)), seed=7, gain="-4dB"))
+    if kind in ("pulse", "full"):
+        swell = [56, 62, 70, 78, 84, 78, 70, 62]
+        mar, pno, bass = [], [], []
+        for root in prog:
+            ch = chordhead([k.deg(root + d, 60) for d in (0, 2, 4, 7)])
+            low = chordhead([k.deg(root + d, 48) for d in (0, 4, 7)])
+            mar += [f"{ch}/8@{v}" for v in swell]
+            pno += [f"{low}/8@{v - 8}" if j % 2 else "R/8" for j, v in enumerate(swell)]
+            bass += [f"{mname(k.deg(root, 33))}/8@{v - 6}" for v in swell]
+        out += [track("marimba", pick_patch("marimba", "vibes"), " ".join(mar), pan=-0.2, gain="-3dB"),
+                track("piano", "piano", " ".join(pno), pan=0.2, gain="-4dB"),
+                track("pulsebass", pick_patch("finger-bass", "upright-bass"), " ".join(bass), seed=7, gain="-4dB")]
+        out += [dict(t, name="swell") for t in gen_pad(r, k, prog, 55, pick_patch("strings", "pad"), gain="-10dB", vel=60)]
+    return out
+
+
 def gen_downtempo(r, k, prog, kind="main"):
     """Downtempo (Bonobo-ish): a low-passed breakbeat, marimba/kalimba ostinato, finger bass, strings."""
     kit = pick_patch("break-kit", "lofi-kit")
@@ -2538,6 +2576,7 @@ CHILL_GUESTS = {
     "vaporwave": (lambda r, k, prog: gen_vaporwave(r, k, prog), {"vaporwave"}),
     "backrooms": (lambda r, k, prog: gen_backrooms(r, k, prog, "far"), {"backrooms"}),
     "neosoul": (lambda r, k, prog: gen_neosoul(r, k, prog), {"neosoul"}),
+    "minimal": (lambda r, k, prog: gen_minimal(r, k, prog, "phase"), {"minimal"}),
     "cyberscape": (lambda r, k, prog: gen_cyberscape(r, k, prog), {"cyberscape"}),
     "slowcore": (lambda r, k, prog: gen_slowcore(r, k, prog) + gen_atmos(r, k, prog, 64, pick_patch("pedal-steel", "ebow")), {"slowcore"}),
     "guofeng": (lambda r, k, prog: gen_guofeng(r, k, prog) + gen_penta_air(r, k, prog, 67, pick_patch("dizi", "flute")), {"guofeng"}),
@@ -2587,7 +2626,7 @@ def compose(style, slot, p):
     return names, desc
 
 
-CHILL_STYLES = {"lofihop", "gogo", "ukjazz", "ambient", "downtempo", "smile", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche", "celtic", "doomjazz", "mali", "guofeng", "vaporwave", "slowcore", "backrooms", "cyberscape", "neosoul"}
+CHILL_STYLES = {"lofihop", "gogo", "ukjazz", "ambient", "downtempo", "smile", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche", "celtic", "doomjazz", "mali", "guofeng", "vaporwave", "slowcore", "backrooms", "cyberscape", "neosoul", "minimal"}
 HEAVY_STYLES = {"meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep",
                 "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock", "groovemetal", "power", "sludge",
                 "breakcore", "mathcore", "gojira", "djazz", "raga", "gamelan", "koto"}
@@ -2618,6 +2657,10 @@ def _compose_style(style, slot, p):
             "hookE": gen_atmos(r, k, prog, 62, rig("atmos")),
         }
         return _write_parts(slot, "brostep", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
+    if style == "minimal":
+        parts = {"riffP": gen_minimal(r, k, prog, "phase"), "riffA": gen_minimal(r, k, prog, "additive"), "riff": gen_minimal(r, k, prog, "pulse"),
+                 "riffF": gen_minimal(r, k, prog, "full"), "hook": gen_atmos(r, k, prog, 60, pick_patch(r.choice(["clarinet", "cellos", "flute"]), "strings"))}
+        return _write_parts(slot, "minimal", parts, f"{NAMES[p['pc']]} {p['mode']}")
     if style == "neosoul":
         lead = pick_patch(r.choice(["tenor-sax", "trumpet-mute", "synth-lead"]), "rhodes")
         parts = {"riffI": gen_neosoul(r, k, prog, "intro"), "riff": gen_neosoul(r, k, prog), "riffB": gen_neosoul(r, k, prog, "full"),
