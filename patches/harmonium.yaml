@@ -1,0 +1,14 @@
+about: "Harmonium (Indian reed pump organ): nasal, slightly beating reeds with a breathy bellows swell and an uneven pumping tremor. Devotional drones, ragas, qawwali."
+synth:
+  layers:
+    - {wave: pulse, width: 0.35, level: -4dB}
+    - {wave: pulse, width: 0.35, cents: 7, level: -7dB}
+    - {wave: saw, ratio: 2, level: -16dB}
+    - {type: noise, color: pink, level: {value: -46dB, mod: [{src: env.bel, amount: 10}]}}
+  env:
+    bel: {a: 60ms, d: 200ms, s: 0.3, r: 150ms}
+  filters: ["hp cutoff=180", "peak cutoff=1100 q=1.2 gain=4dB", "lp cutoff=4.5k"]
+  amp: {a: 90ms, d: 200ms, s: 0.85, r: 180ms}
+play: {gate: 1, vel_sens: 0.4}
+fx: ["tremolo rate=1.3hz depth=0.08", "reverb kind=room decay=1.3s mix=0.2"]
+gain: -12dB

@@ -61,7 +61,7 @@ STYLE_MODES = {
     "bossa": ["major", "dorian", "minor", "lydian"], "dub": ["minor", "dorian", "mixolydian"],
     "manouche": ["harmonic", "minor", "harmonic", "major"], "celtic": ["dorian", "mixolydian", "minor", "major"],
     "doomjazz": ["minor", "phrygian", "dorian", "harmonic"], "mali": ["dorian", "minor", "mixolydian"], "guofeng": ["major", "minor", "dorian"], "vaporwave": ["major", "lydian", "dorian", "minor"], "slowcore": ["major", "mixolydian", "minor", "dorian"],
-    "backrooms": ["major", "lydian", "mixolydian"], "neosoul": ["dorian", "minor", "major", "mixolydian"], "minimal": ["major", "lydian", "dorian", "mixolydian"], "fusion": ["minor", "dorian", "major", "mixolydian"], "berlin": ["minor", "dorian", "phrygian", "aeolian" if "aeolian" in MODES else "minor"], "satie": ["major", "lydian", "mixolydian", "dorian"], "kankyo": ["major", "lydian", "dorian", "mixolydian"], "cyberscape": ["minor", "dorian", "lydian", "phrygian"],
+    "backrooms": ["major", "lydian", "mixolydian"], "neosoul": ["dorian", "minor", "major", "mixolydian"], "minimal": ["major", "lydian", "dorian", "mixolydian"], "fusion": ["minor", "dorian", "major", "mixolydian"], "berlin": ["minor", "dorian", "phrygian", "aeolian" if "aeolian" in MODES else "minor"], "satie": ["major", "lydian", "mixolydian", "dorian"], "kankyo": ["major", "lydian", "dorian", "mixolydian"], "dawnraga": ["double-harmonic", "phrygian-dominant", "phrygian", "mixolydian"], "cyberscape": ["minor", "dorian", "lydian", "phrygian"],
     "koto": ["hirajoshi", "hirajoshi", "phrygian"],
     "djazz": ["dorian", "lydian", "harmonic", "minor", "mixolydian"], "industrial": ["phrygian", "minor", "harmonic"], "dnb": ["minor", "phrygian", "dorian"],
     "darksynth": ["minor", "phrygian", "harmonic", "dorian"],
@@ -1569,6 +1569,28 @@ def gen_raga(r, k, prog, kind="alap"):
     return tanpura + [track("sitar", pick_patch("sitar", "nylon"), " ".join(line), pan=0.15)]
 
 
+def gen_dawnraga(r, k, prog, kind="alap"):
+    """A morning raga in the classical arc. alap: tanpura + a free sitar line with meend glides over a
+    soft harmonium drone; jor: a pulsing sitar (Sa on the beat, melodic figures between); gat:
+    soft teental tabla, harmonium chords and the sitar melody (the hook)."""
+    sa = k.deg(0, 48)
+    harm = track("harmonium", pick_patch("harmonium", "organ"), " ".join(f"{chordhead([sa, sa + 7, sa + 12])}/1@{56}" for _ in range(4)), gain="-6dB", pan=-0.2)
+    if kind == "alap":
+        return gen_raga(r, k, prog, "alap") + [harm]
+    tanpura = [t for t in gen_raga(r, k, prog, "alap") if t["name"] == "tanpura"]
+    if kind == "jor":
+        line = []
+        for j in range(32):
+            if j % 2 == 0:
+                line.append(f"{mname(sa + 12)}/8@{r.choice([72, 78])}")
+            else:
+                line.append(f"{mname(k.deg(r.choice([1, 2, 4, 5, 7]), 60))}/8@{r.choice([82, 88])}" if r.random() < 0.6 else f"{mname(sa + 12)}/8@{64}")
+        return tanpura + [track("sitar", pick_patch("sitar", "nylon"), " ".join(line), pan=0.15)]
+    tabla = [dict(t, gain="-5dB") for t in gen_tabla(r, "teental")]
+    return tanpura + tabla + [track("harmonium", pick_patch("harmonium", "organ"),
+                                    " ".join(f"{chordhead([k.deg(root, 48), k.deg(root + 2, 48), k.deg(root + 4, 48)])}/2@{58} R/2" for root in prog), gain="-8dB", pan=-0.2)]
+
+
 def gen_kotekan(r, k, prog):
     """Gamelan kotekan: polos and sangsih interlock on alternate 16ths from a repeating degree cell,
     a gong (low tubular bell) on every bar."""
@@ -2782,7 +2804,7 @@ def compose(style, slot, p):
     return names, desc
 
 
-CHILL_STYLES = {"lofihop", "gogo", "ukjazz", "ambient", "downtempo", "smile", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche", "celtic", "doomjazz", "mali", "guofeng", "vaporwave", "slowcore", "backrooms", "cyberscape", "neosoul", "minimal", "fusion", "berlin", "satie", "kankyo"}
+CHILL_STYLES = {"lofihop", "gogo", "ukjazz", "ambient", "downtempo", "smile", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche", "celtic", "doomjazz", "mali", "guofeng", "vaporwave", "slowcore", "backrooms", "cyberscape", "neosoul", "minimal", "fusion", "berlin", "satie", "kankyo", "dawnraga"}
 HEAVY_STYLES = {"meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep",
                 "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock", "groovemetal", "power", "sludge",
                 "breakcore", "mathcore", "gojira", "djazz", "raga", "gamelan", "koto"}
@@ -2813,6 +2835,10 @@ def _compose_style(style, slot, p):
             "hookE": gen_atmos(r, k, prog, 62, rig("atmos")),
         }
         return _write_parts(slot, "brostep", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
+    if style == "dawnraga":
+        parts = {"riffA": gen_dawnraga(r, k, prog, "alap"), "riffJ": gen_dawnraga(r, k, prog, "jor"), "riffG": gen_dawnraga(r, k, prog, "gat"),
+                 "hook": gen_hook(r, k, prog, 62, pick_patch("sitar", "nylon")), "hookE": gen_atmos(r, k, prog, 60, pick_patch(r.choice(["shakuhachi", "flute", "harmonium"]), "flute"))}
+        return _write_parts(slot, "dawnraga", parts, f"{NAMES[p['pc']]} {p['mode']}")
     if style == "kankyo":
         parts = {"riffI": gen_kankyo(r, k, prog, "intro"), "riff": gen_kankyo(r, k, prog), "riffW": gen_kankyo(r, k, prog, "water"),
                  "hook": gen_penta_air(r, k, prog, 67, pick_patch("shakuhachi", "flute"))}

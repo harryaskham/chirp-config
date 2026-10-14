@@ -198,6 +198,9 @@ STYLES = {
   "kankyo": dict(form="kankyo", tempo=(66, 88), off=0, riff=["keys-lofi"], riff_off=0, lift=0,
                      low=["beat-sparse"], mid=["beat-lofi"], high=["beat-lofi"], half=["beat-sparse"], brk=["beat-sparse"],
                      hook=["lead-hook"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["pad-swell"]),
+  "dawnraga": dict(form="dawnraga", tempo=(60, 84), off=0, riff=["keys-lofi"], riff_off=0, lift=0,
+                     low=["beat-sparse"], mid=["beat-lofi"], high=["beat-lofi"], half=["beat-sparse"], brk=["beat-sparse"],
+                     hook=["lead-hook"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["pad-swell"]),
   "tech-death": dict(form="tech-death", tempo=(170, 220), off=0, riff=["riff-chug7"], riff_off=0, lift=0,
                      low=["beat-sparse"], mid=["beat-blast"], high=["beat-blast"], half=["beat-halftime"], brk=["beat-doom"],
                      hook=["lead-solo"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["riff-hold"]),
@@ -354,6 +357,8 @@ FORMS = {
   "satie": [("intro", ["riffP"], None), ("A", ["riff"], None), ("B", ["riffB"], None), ("A2", ["riff"], None), ("outro", ["riffP"], None)],
   "kankyo": [("intro", ["riffI"], None), ("A", ["riff"], None), ("A2", ["riffW"], None), ("B", ["riffW", "hook"], None),
              ("A2", ["riff", "hook"], None), ("outro", ["riffI"], None)],
+  "dawnraga": [("alap", ["riffA"], None), ("alap", ["riffA"], None), ("jor", ["riffJ"], None), ("jor", ["riffJ", "hookE"], None),
+               ("gat", ["riffG", "hook"], None), ("gat", ["riffG", "hook"], None), ("outro", ["riffA"], None)],
   "tech-death": [("blast", ["riff"], "impact"), ("blast", ["riffB", "pad"], None), ("dbeat", ["riffD"], "impact"),
                  ("dbeat", ["riffD", "hook"], None), ("groove", ["riffSoft"], "impact"), ("groove", ["riffG", "pad"], None),
                  ("blast", ["riff", "hook"], "impact"), ("break", ["riffBrk"], "impact"), ("break", ["riffBrk", "drone"], None),
@@ -582,7 +587,7 @@ MOD_STEPS = [1, -1, 2, 3, -3, 5, 6, -6]  # half/whole steps, minor thirds, fourt
 
 
 METRIC = [(3, 2), (2, 3), (4, 3), (3, 4)]
-STEADY = {"lofihop", "ambient", "downtempo", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche", "celtic", "doomjazz", "mali", "guofeng", "vaporwave", "slowcore", "neosoul", "minimal", "fusion", "berlin", "satie", "kankyo"}  # chill styles that hold key and tempo
+STEADY = {"lofihop", "ambient", "downtempo", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche", "celtic", "doomjazz", "mali", "guofeng", "vaporwave", "slowcore", "neosoul", "minimal", "fusion", "berlin", "satie", "kankyo", "dawnraga"}  # chill styles that hold key and tempo
 
 
 WARP = {"backrooms"}
@@ -981,10 +986,25 @@ def journey_load():
         return {"on": False, "h": 0.0, "rate": 0.09, "passes_per_song": 2}
 
 CHILL_MIX = [("lofihop", 0.16), ("gogo", 0.11), ("ukjazz", 0.1), ("ambient", 0.1), ("downtempo", 0.09), ("smile", 0.09),
-             ("house-melodic", 0.08), ("chamber", 0.05), ("triphop", 0.08), ("neoclassical", 0.08), ("ballad", 0.06), ("bossa", 0.07), ("dub", 0.06), ("manouche", 0.05), ("celtic", 0.05), ("doomjazz", 0.05), ("mali", 0.05), ("guofeng", 0.05), ("vaporwave", 0.05), ("slowcore", 0.05), ("backrooms", 0.05), ("cyberscape", 0.05), ("neosoul", 0.06), ("minimal", 0.05), ("fusion", 0.1), ("berlin", 0.05), ("satie", 0.05), ("kankyo", 0.05)]
+             ("house-melodic", 0.08), ("chamber", 0.05), ("triphop", 0.08), ("neoclassical", 0.08), ("ballad", 0.06), ("bossa", 0.07), ("dub", 0.06), ("manouche", 0.05), ("celtic", 0.05), ("doomjazz", 0.05), ("mali", 0.05), ("guofeng", 0.05), ("vaporwave", 0.05), ("slowcore", 0.05), ("backrooms", 0.05), ("cyberscape", 0.05), ("neosoul", 0.06), ("minimal", 0.05), ("fusion", 0.1), ("berlin", 0.05), ("satie", 0.05), ("kankyo", 0.05), ("dawnraga", 0.04)]
 
 
 AMBIENTISH = ["ambient", "ambient", "downtempo", "chamber"]
+DEEP_NIGHT = {"ambient", "satie", "kankyo", "neoclassical", "berlin", "doomjazz", "backrooms", "celtic", "guofeng", "minimal", "chamber", "dawnraga", "slowcore"}
+MORNING = {"bossa", "lofihop", "gogo", "house-melodic", "neosoul", "manouche", "mali", "ukjazz", "smile", "vaporwave", "fusion", "dub", "dawnraga"}
+BUSY = {"house-melodic", "gogo", "ukjazz", "dub", "neosoul", "vaporwave", "cyberscape", "fusion", "triphop", "mali", "manouche"}
+
+
+def night_arc(now=None):
+    """Weight multipliers by local time: deep night 05:00–07:30 favours sparse drumless styles;
+    morning 07:30–11:00 favours brighter, warmer grooves."""
+    t = time.localtime(now)
+    h = t.tm_hour + t.tm_min / 60
+    if 5.0 <= h < 7.5:
+        return {**{n: 0.4 for n in BUSY}, **{n: 2.5 for n in DEEP_NIGHT}}
+    if 7.5 <= h < 11.0:
+        return {**{n: 0.6 for n in DEEP_NIGHT}, **{n: 2.2 for n in MORNING}}
+    return {}
 
 
 HEAVY_MIX = [("meshuggah", 0.26), ("hardcore-kl", 0.1), ("tech-death", 0.09), ("thrash", 0.09), ("tool", 0.09), ("djent", 0.07),
@@ -1012,12 +1032,11 @@ def journey_style(h, current, mode=None):
             return heavy_pick()
         return random.choice(AMBIENTISH)
     if mode == "chill":
-        x = random.random()
-        for name, w in CHILL_MIX:
-            x -= w
-            if x <= 0 and name != current:
-                return name
-        return "lofihop" if current != "lofihop" else "gogo"
+        # Normalised weights (the list outgrew a single 0..1 draw), shaped by the night arc.
+        mult = night_arc()
+        names = [n for n, _ in CHILL_MIX if n != current]
+        weights = [dict(CHILL_MIX)[n] * mult.get(n, 1.0) for n in names]
+        return random.choices(names, weights)[0]
     r = random.random()
     if h >= 0.95:
         if r < 0.12:
