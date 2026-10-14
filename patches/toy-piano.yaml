@@ -1,0 +1,14 @@
+about: "Toy piano: short metal rods struck by little hammers — clunky, bright and slightly out of tune, a woody thunk under the tone. Whimsical waltzes, lullabies (Tiersen)."
+synth:
+  layers:
+    - {type: additive, partials: [[1, 1], [3.2, 0.35], [6.9, 0.12]], damp: 0.5}
+    - {type: additive, partials: [[1.006, 0.5]], damp: 0.6}
+    - {type: noise, color: brown, level: {value: -60dB, mod: [{src: env.th, amount: 36}]}}
+  env:
+    th: {a: 0.3ms, d: 25ms, s: 0}
+  pitch: {value: 0, mod: [{src: rand, amount: 0.12}]}
+  filters: ["hp cutoff=300", "lp cutoff=8k"]
+  amp: {a: 1ms, d: 900ms, s: 0, r: 200ms, curve: 3}
+play: {gate: 1, vel_sens: 0.5, humanize: {time: 8ms, vel: 0.1}}
+fx: ["reverb kind=room decay=1s mix=0.18"]
+gain: -10dB
