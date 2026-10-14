@@ -78,6 +78,9 @@ STYLES = {
   "deathcore":  dict(form="deathcore", tempo=(130, 170), off=0, riff=["riff-chug5"], riff_off=0, lift=0,
                      low=["beat-sparse"], mid=["beat-djent"], high=["beat-djent"], half=["beat-halftime"], brk=["beat-doom"],
                      hook=["lead-solo"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["riff-hold"]),
+  "mahavishnu": dict(form="mahavishnu", tempo=(120, 160), off=0, riff=["riff-taps"], riff_off=0, lift=0,
+                     low=["beat-sparse"], mid=["beat-lofi"], high=["beat-lofi"], half=["beat-sparse"], brk=["beat-sparse"],
+                     hook=["lead-hook"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["pad-swell"]),
   "tigran":     dict(form="tigran", tempo=(100, 140), off=0, riff=["riff-taps"], riff_off=0, lift=0,
                      low=["beat-sparse"], mid=["beat-lofi"], high=["beat-lofi"], half=["beat-sparse"], brk=["beat-sparse"],
                      hook=["lead-hook"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["pad-swell"]),
@@ -348,6 +351,8 @@ FORMS = {
                 ("groove", ["riffG"], "impact"), ("groove", ["riffG", "pad"], None), ("break", ["riffBd"], "impact"), ("slam", ["riffSlam"], None),
                 ("blast", ["riff", "pad"], "impact"), ("break", ["riffBd", "pad"], "impact"), ("final", ["riffSlam", "pad"], "impact"),
                 ("outro", ["soft", "drone"], "revcym")],
+  "mahavishnu": [("A", ["riff"], "impact"), ("A", ["riffB"], None), ("solo", ["riffS", "solo"], "impact"), ("B", ["riffB"], "impact"),
+                 ("solo", ["riffS", "solo"], None), ("A", ["riff"], "impact"), ("outro", ["riffB"], "revcym")],
   "tigran": [("intro", ["riffF"], None), ("A", ["riff"], "impact"), ("A2", ["riffB", "hook"], None), ("folk", ["riffF", "hook"], "revcym"),
              ("heavy", ["riffH"], "impact"), ("heavy", ["riffH", "hook"], None), ("A2", ["riffB"], "impact"), ("outro", ["riffF"], "revcym")],
   "cynic": [("intro", ["riffClean"], None), ("A", ["riff"], "impact"), ("A2", ["riffB"], None), ("fusion", ["riffF"], "impact"),
@@ -879,6 +884,7 @@ MASTER_BASE = ['{"type": "eq", "bands": ["hp cutoff=28", "peak cutoff=320 q=0.8 
 # ---- Adaptive loudness: the groove reports short-term LUFS; each pass's energy-mean nudges a learned
 # per-style trim toward the target (chill −18 LUFS at night, heavy −14), ±6 dB on top of QA trims.
 LOUD = "/home/harry/.config/chirp/tools/loudness.json"
+LUFS_OFFSET = {"mahavishnu": -2.0}  # dense unison mixes that can only reach the heavy target through the limiter
 LOUD_TARGET = {"chill": -18.0, "heavy": -11.5}  # heavy: the level the metal has always played at (≈ −14.5 dB RMS)
 _L = {"li": None, "style": None, "vals": []}
 
@@ -944,7 +950,8 @@ def master_for(ident):
     flavor = (ident.get("gen") or {}).get("flavor", "modern")
     dyn = dyn + (["tape drive=0.45 warmth=0.65"] if flavor == "vintage" else [])
     width = "width width=1.35 mono_below=140" if flavor == "wide" else "width width=1.2 mono_below=140"
-    level = {"type": "autolevel", "target": LOUD_TARGET["chill" if ident.get("style") in composer.CHILL_STYLES else "heavy"], "speed": 0.8, "range": 6}
+    level = {"type": "autolevel", "target": LOUD_TARGET["chill" if ident.get("style") in composer.CHILL_STYLES else "heavy"] + LUFS_OFFSET.get(ident.get("style"), 0.0),
+             "speed": 0.8, "range": 6}
     fx = eq + [verb] + dyn + ([f"gain gain={trim:+.1f}dB"] if trim else []) + [level, width]  # autolevel rides short-term LUFS gently
     fx.append({"type": "tapestop", "stop": "var.stop", "time": "1b"})  # DJ tape stop between songs (armed by the evolver)
     return json.dumps(fx)
@@ -1249,7 +1256,7 @@ def write_form(name, ident):
 TOOLS = "/home/harry/.config/chirp/tools"
 JOURNEY = f"{TOOLS}/journey.json"
 # How heavy each style is (0 lofi … 1 djent).
-HEAVY = {"raga": 0.9, "gamelan": 0.9, "koto": 0.9, "djazz": 0.9, "gojira": 1.0, "mathcore": 1.0, "sludge": 0.95, "breakcore": 0.9, "power": 0.9, "groovemetal": 0.95, "deathcore": 1.0, "postrock": 0.6, "postmetal": 0.9, "slam": 1.0, "metalcore": 0.95, "symphonic": 0.95, "cynic": 0.95, "tigran": 0.8, "numetal": 0.9, "industrial": 0.85, "dnb": 0.8, "blackgaze": 0.95, "darksynth": 0.8, "hardcore-kl": 1.0, "brostep": 0.8, "thrash": 0.9, "tool": 0.9, "tech-death": 1.0, "meshuggah": 1.0, "lofi": 0.0, "classical": 0.05, "house": 0.2, "garage": 0.25, "poly": 0.35, "prog-clean": 0.4, "acid": 0.45,
+HEAVY = {"raga": 0.9, "gamelan": 0.9, "koto": 0.9, "djazz": 0.9, "gojira": 1.0, "mathcore": 1.0, "sludge": 0.95, "breakcore": 0.9, "power": 0.9, "groovemetal": 0.95, "deathcore": 1.0, "postrock": 0.6, "postmetal": 0.9, "slam": 1.0, "metalcore": 0.95, "symphonic": 0.95, "cynic": 0.95, "tigran": 0.8, "mahavishnu": 0.85, "numetal": 0.9, "industrial": 0.85, "dnb": 0.8, "blackgaze": 0.95, "darksynth": 0.8, "hardcore-kl": 1.0, "brostep": 0.8, "thrash": 0.9, "tool": 0.9, "tech-death": 1.0, "meshuggah": 1.0, "lofi": 0.0, "classical": 0.05, "house": 0.2, "garage": 0.25, "poly": 0.35, "prog-clean": 0.4, "acid": 0.45,
          "idm": 0.55, "doom-ambient": 0.6, "hardcore": 0.7, "djent-breakdown": 0.85, "djent": 1.0}
 
 STYLE_QUEUE = []
@@ -1298,11 +1305,11 @@ def night_arc(now=None):
 
 HEAVY_MIX = [("meshuggah", 0.26), ("hardcore-kl", 0.1), ("tech-death", 0.09), ("thrash", 0.09), ("tool", 0.09), ("djent", 0.07),
              ("brostep", 0.07), ("blackgaze", 0.06), ("darksynth", 0.04), ("numetal", 0.05), ("industrial", 0.05), ("dnb", 0.03),
-             ("deathcore", 0.06), ("postrock", 0.03), ("postmetal", 0.05), ("slam", 0.05), ("metalcore", 0.06), ("symphonic", 0.05), ("cynic", 0.04), ("tigran", 0.04), ("groovemetal", 0.05), ("power", 0.04), ("sludge", 0.04), ("breakcore", 0.03),
+             ("deathcore", 0.06), ("postrock", 0.03), ("postmetal", 0.05), ("slam", 0.05), ("metalcore", 0.06), ("symphonic", 0.05), ("cynic", 0.04), ("tigran", 0.04), ("mahavishnu", 0.03), ("groovemetal", 0.05), ("power", 0.04), ("sludge", 0.04), ("breakcore", 0.03),
              ("mathcore", 0.04), ("gojira", 0.06), ("djazz", 0.05), ("raga", 0.04), ("gamelan", 0.03), ("koto", 0.03)]
 
 
-FUSION_MIX = [("tigran", 0.12), ("cynic", 0.14), ("djazz", 0.22), ("mathcore", 0.16), ("meshuggah", 0.16), ("tool", 0.12), ("djent", 0.12), ("gojira", 0.06),
+FUSION_MIX = [("mahavishnu", 0.1), ("tigran", 0.12), ("cynic", 0.14), ("djazz", 0.22), ("mathcore", 0.16), ("meshuggah", 0.16), ("tool", 0.12), ("djent", 0.12), ("gojira", 0.06),
               ("tech-death", 0.05), ("postmetal", 0.04), ("metalcore", 0.04), ("djent-breakdown", 0.03)]
 
 

@@ -47,7 +47,7 @@ STYLE_MODES = {
     "brostep": ["minor", "phrygian", "harmonic"],
     "blackgaze": ["major", "lydian", "dorian", "mixolydian"],
     "numetal": ["phrygian", "locrian", "minor"], "deathcore": ["phrygian", "harmonic", "locrian", "diminished"],
-    "postrock": ["major", "lydian", "mixolydian", "dorian"], "postmetal": ["minor", "phrygian", "dorian", "harmonic"], "slam": ["phrygian", "locrian", "minor", "diminished"], "metalcore": ["minor", "harmonic", "dorian", "phrygian"], "symphonic": ["harmonic", "minor", "phrygian-dominant", "minor"], "cynic": ["lydian", "dorian", "minor", "diminished"], "tigran": ["phrygian-dominant", "harmonic", "phrygian", "minor"], "groovemetal": ["blues", "pentatonic-minor", "phrygian", "minor"],
+    "postrock": ["major", "lydian", "mixolydian", "dorian"], "postmetal": ["minor", "phrygian", "dorian", "harmonic"], "slam": ["phrygian", "locrian", "minor", "diminished"], "metalcore": ["minor", "harmonic", "dorian", "phrygian"], "symphonic": ["harmonic", "minor", "phrygian-dominant", "minor"], "cynic": ["lydian", "dorian", "minor", "diminished"], "tigran": ["phrygian-dominant", "harmonic", "phrygian", "minor"], "mahavishnu": ["dorian", "mixolydian", "phrygian", "minor"], "groovemetal": ["blues", "pentatonic-minor", "phrygian", "minor"],
     "power": ["major", "harmonic", "minor", "major"], "sludge": ["blues", "pentatonic-minor", "phrygian"],
     "breakcore": ["harmonic", "minor", "diminished", "phrygian-dominant"],
     "mathcore": ["locrian", "diminished", "phrygian", "double-harmonic"],
@@ -1758,6 +1758,42 @@ def gen_tigran(r, k, prog, kind="groove"):
             track("kick", kit, jn(kick), gain="-3dB"), track("snare", kit, jn(snare)), track("cym", kit, jn(cym))]
 
 
+def gen_mahavishnu(r, k, prog, meter=7, low=28, kind="riff"):
+    """Mahavishnu Orchestra: a unison riff in 7/8, 9/8 or 11/8 (8ths) on distorted guitar and electric
+    violin an octave apart, a Hammond comping on the group starts, busy Cobham drums in the meter (kick and
+    snare on the groupings, toms filling the last group, crash each cycle), bass doubling the riff.
+    kind=solo drops the violin from the riff (it solos) and thins the Hammond."""
+    groups = {7: [2, 2, 3], 9: [2, 2, 2, 3], 11: [3, 3, 3, 2]}[meter]
+    starts, pos = [], 0
+    for g in groups:
+        starts.append(pos); pos += g
+    t = k.deg(0, low + 12)
+    cell = [t + d for d in r.choice([[0, 1, 3, 5, 6, 3, 1, 0, 7, 6, 5], [0, 3, 5, 6, 5, 3, 0, 10, 12, 10, 7], [0, 2, 3, 5, 7, 8, 7, 5, 3, 2, 0]])][:meter]
+    reps = 4
+    gtr, vln, bass, organ, kick, snare, cym = [], [], [], [], [], [], []
+    for rep_ in range(reps):
+        root = prog[rep_ % len(prog)]
+        shift = k.deg(root, low + 12) - k.deg(0, low + 12)
+        for x in range(meter):
+            n = cell[x] + shift
+            acc = x in starts
+            gtr.append(f"expr.pm=0 {mname(n)}/8@{106 if acc else 98}")
+            vln.append(f"{mname(n + 24)}/8@{100 if acc else 86}")
+            bass.append(f"{mname(n - 12)}/8@{100 if acc else 88}")
+            organ.append(f"{chordhead([k.deg(root + d, 55) for d in (0, 2, 4, 6)])}/8@{78}^gate=0.6" if acc and (kind != "solo" or x == 0) else "R/8")
+            last = x >= starts[-1]
+            kick.append("k/8@108" if acc else ("k/8@90" if r.random() < 0.25 else "R/8"))
+            snare.append((r.choice(["t1", "t2", "t3", "ft"]) + "/8@100") if last and rep_ == reps - 1 else ("s/8@108" if x == starts[1] else ("g/8@34" if r.random() < 0.2 else "R/8")))
+            cym.append("c/8@110" if x == 0 else ("rd/8@88" if not last else "R/8"))
+    kit = rig("drums")
+    jn = lambda xs: " ".join(xs)
+    out = rhythm_tracks(jn(gtr)) + [track("bass", rig("bass"), jn(bass), seed=7, gain="-3dB"), track("organ", pick_patch("hammond-b3", "organ"), jn(organ), pan=-0.2, gain="-8dB"),
+                                    track("kick", kit, jn(kick), gain="-2dB"), track("snare", kit, jn(snare)), track("cym", kit, jn(cym), gain="-5dB")]
+    if kind != "solo":
+        out.append(track("violin", pick_patch("violins", "strings"), jn(vln), pan=0.25, gain="-13dB", fx=[{"type": "drive", "drive": 0.25}]))
+    return out
+
+
 def gen_mathcore(r, k, prog, low=28, kind="chaos"):
     """chaos: the 16-beat part cut into odd-length chunks (3–13 sixteenths, summing to 64); each a
     cluster stab into a hard stop, a dissonant tremolo run, chugs over a blast fragment or silence;
@@ -2367,7 +2403,7 @@ for _m, _ps in _MORE_PROGS.items():
 
 def params(style, rng=random):
     mode = rng.choice(STYLE_MODES.get(style, ["minor"]))
-    heavy = style in ("meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep", "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock", "postmetal", "slam", "metalcore", "symphonic", "cynic", "tigran", "groovemetal", "power", "sludge", "breakcore", "mathcore", "gojira", "djazz", "raga", "gamelan", "koto", "postmetal", "slam", "metalcore", "symphonic", "cynic", "tigran")
+    heavy = style in ("meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep", "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock", "postmetal", "slam", "metalcore", "symphonic", "cynic", "tigran", "mahavishnu", "groovemetal", "power", "sludge", "breakcore", "mathcore", "gojira", "djazz", "raga", "gamelan", "koto", "postmetal", "slam", "metalcore", "symphonic", "cynic", "tigran", "mahavishnu")
     if style in CHILL_STYLES:
         rigset = "chill"
     else:
@@ -4474,6 +4510,13 @@ def _compose_style(style, slot, p):
                  "riffSlam": gen_hc(r, k, prog, dl, "slowdown"), "pad": gen_pad(r, k, prog, 48, "strings", gain="-6dB"),
                  "soft": gen_pad(r, k, prog, 48, "strings", gain="-8dB", vel=70), "drone": gen_drone(k, 36, "drone")}
         return _write_parts(slot, "deathcore", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
+    if style == "mahavishnu":
+        meter = r.choice([7, 9, 11])
+        beats = meter * 4 / 2
+        vl = pick_patch("violins", "strings")
+        parts = {"riff": gen_mahavishnu(r, k, prog, meter), "riffB": gen_mahavishnu(r, k, prog, meter), "riffS": gen_mahavishnu(r, k, prog, meter, kind="solo"),
+                 "solo": gen_thordendal(r, k, 28, vl, int(beats))}
+        return _write_parts(slot, "mahavishnu", parts, f"{NAMES[p['pc']]} {p['mode']}, {meter}/8", {role: beats for role in parts})
     if style == "tigran":
         parts = {"riffF": gen_tigran(r, k, prog, "folk"), "riff": gen_tigran(r, k, prog), "riffB": gen_tigran(r, k, prog), "riffH": gen_tigran(r, k, prog, "heavy"),
                  "hook": gen_hook(r, k, prog, 67, "piano")}
