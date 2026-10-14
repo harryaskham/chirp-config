@@ -1,0 +1,20 @@
+about: "French horn: warm, round and dark with a soft swelling attack; louder notes open into a gentle brass edge. Drone swells, chamber and film writing."
+synth:
+  layers:
+    - {wave: saw, level: -6dB}
+    - {wave: sine, level: -3dB}
+    - {type: noise, color: pink, level: {value: -52dB, mod: [{src: env.br, amount: 8}]}}
+  env:
+    br: {a: 30ms, d: 200ms, s: 0.2, r: 150ms}
+    open: {a: 180ms, d: 600ms, s: 0.6, r: 300ms}
+  lfo:
+    vib: {wave: sine, rate: 4.8hz, delay: 700ms, fade: 800ms, retrig: true}
+  pitch: {value: 0, mod: [{src: lfo.vib, amount: 0.05}]}
+  filters:
+    - "hp cutoff=70"
+    - {kind: lp, cutoff: {value: 650, mod: [{src: env.open, amount: 1.2}, {src: vel, amount: 1.3}]}, q: 0.7}
+    - "peak cutoff=420 q=1 gain=3dB"
+  amp: {a: 160ms, d: 400ms, s: 0.9, r: 450ms}
+play: {gate: 1, vel_sens: 0.6, humanize: {time: 12ms, vel: 0.05}}
+fx: ["reverb kind=hall decay=2.8s mix=0.28 predelay=25ms"]
+gain: -6dB
