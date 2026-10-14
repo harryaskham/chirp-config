@@ -114,20 +114,20 @@ kit:
         amp: {a: 0.2ms, d: 300ms, s: 0, r: 30ms}
       play: {vel_sens: 0.7}
   rc:
+    # rim click: a stick across the rim — a broadband woody transient with short, wide resonances
     pitch: C4
     gain: -4dB
     patch:
       synth:
         layers:
-          - {name: rim, wave: square, fixed: 1650, level: {value: -60dB, mod: [{src: env.k, amount: 56}]}}
-          - {name: ring, wave: sine, fixed: 3100, level: {value: -66dB, mod: [{src: env.r, amount: 50}]}}
-          - {name: click, type: noise, level: {value: -66dB, mod: [{src: env.c, amount: 60}]}}
+          - {name: click, type: noise, level: {value: -60dB, mod: [{src: env.c, amount: 60}]}}
+          - {name: body, type: noise, color: pink, level: {value: -60dB, mod: [{src: env.k, amount: 58}]}}
         env:
-          k: {a: 0.1ms, d: 25ms, s: 0, curve: 4}
-          r: {a: 0.1ms, d: 90ms, s: 0}
-          c: {a: 0.1ms, d: 4ms, s: 0}
-        filters: ["hp cutoff=500", "lp cutoff=9k"]
-        amp: {a: 0.1ms, d: 120ms, s: 0, r: 20ms}
+          k: {a: 0.1ms, d: 30ms, s: 0, curve: 4}
+          c: {a: 0.1ms, d: 5ms, s: 0}
+        filters: ["hp cutoff=400", "peak cutoff=1.7k q=1.2 gain=6dB", "peak cutoff=3.1k q=1.5 gain=4dB", "lp cutoff=10k"]
+        amp: {a: 0.1ms, d: 60ms, s: 0, r: 20ms}
+
   # --- hats: shank, degrees of opening, foot chick (all choke) -------------------------------
   hs: {choke: hat, gain: -9dB, patch: "haake-hat amp.d=60ms filters.0.cutoff.value=5.5k"}
   h1: {choke: hat, gain: -9dB, patch: "haake-hat amp.d=110ms amp.r=30ms"}
@@ -156,25 +156,30 @@ kit:
         filters: ["hp cutoff=1.2k", {kind: lp, cutoff: {value: 7k, mod: [{src: vel, amount: 1}]}}]
         amp: {a: 1ms, d: 2.6s, s: 0, r: 300ms, curve: 6}
   rbs:
-    gain: -7dB
-    patch:
-      synth:
-        layers:
-          - {type: additive, fixed: 760, partials: [[1, 1], [2.03, 0.6], [2.97, 0.5], [4.21, 0.4], [5.4, 0.3]], damp: 0.15}
-          - {type: noise, level: -6dB}
-        pitch: {value: 0, mod: [{src: rand, amount: 0.15}]}
-        filters: ["hp cutoff=500", "peak cutoff=5k q=0.8 gain=2dB"]
-        amp: {a: 0.2ms, d: 1.9s, s: 0, r: 250ms, curve: 5}
-  cbl:
+    # ride bell: as cbl but higher and brighter; a ping with a halo of wash, not a sine
     gain: -8dB
     patch:
       synth:
         layers:
-          - {type: additive, fixed: 920, partials: [[1, 1], [2.11, 0.7], [3.05, 0.5], [4.4, 0.4], [6.2, 0.3]], damp: 0.2}
-          - {type: noise, level: -10dB}
-        pitch: {value: 0, mod: [{src: rand, amount: 0.15}]}
-        filters: ["hp cutoff=600"]
-        amp: {a: 0.2ms, d: 1.4s, s: 0, r: 200ms, curve: 5}
+          - {type: additive, fixed: 780, partials: [[1, 0.8], [1.09, 0.7], [1.62, 0.65], [2.21, 0.6], [2.27, 0.45], [2.83, 0.5], [3.41, 0.45], [4.07, 0.4], [4.73, 0.35], [5.52, 0.3], [6.4, 0.25]], damp: 0.6, level: -4dB}
+          - {type: noise, level: {value: -2dB, mod: [{src: vel, amount: 4}]}}
+        pitch: {value: 0, mod: [{src: rand, amount: 0.3}]}
+        filters: ["hp cutoff=600", "peak cutoff=4.5k q=0.7 gain=3dB", "lp cutoff=14k"]
+        amp: {a: 0.2ms, d: 1.4s, s: 0, r: 250ms, curve: 6}
+
+  cbl:
+    # cymbal bell: a clangorous cluster of inharmonic partials (close pairs beat) over band-shaped wash;
+    # upper partials die faster — a struck bell of bronze, not a chime
+    gain: -9dB
+    patch:
+      synth:
+        layers:
+          - {type: additive, fixed: 640, partials: [[1, 0.8], [1.13, 0.75], [1.71, 0.7], [1.79, 0.5], [2.32, 0.6], [2.76, 0.5], [3.28, 0.45], [3.94, 0.4], [4.58, 0.35], [5.36, 0.3], [6.13, 0.25]], damp: 0.7, level: -4dB}
+          - {type: noise, level: {value: -1dB, mod: [{src: vel, amount: 4}]}}
+        pitch: {value: 0, mod: [{src: rand, amount: 0.3}]}
+        filters: ["hp cutoff=700", "peak cutoff=3.2k q=0.6 gain=3dB", "lp cutoff=13k"]
+        amp: {a: 0.2ms, d: 1.1s, s: 0, r: 200ms, curve: 6}
+
   cch:
     gain: -8dB
     patch:

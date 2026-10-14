@@ -93,15 +93,17 @@ kit:
         filters: ["hp cutoff=2.5k", "peak cutoff=6k q=0.7 gain=3dB"]
         amp: {a: 0.3ms, d: 1.2s, s: 0, r: 200ms, curve: 6}
   rb:
-    gain: -7dB
+    # ride bell: a clangorous cluster of inharmonic partials (close pairs beat, uppers die first)
+    # with a halo of wash — struck bronze, not a sine chime
+    gain: -8dB
     patch:
       synth:
         layers:
-          - {type: additive, fixed: 760, partials: [[1, 1], [2.03, 0.6], [2.97, 0.5], [4.21, 0.4], [5.4, 0.3]], damp: 0.15}
-          - {type: noise, level: -18dB}
-        pitch: {value: 0, mod: [{src: rand, amount: 0.15}]}
-        filters: ["hp cutoff=400"]
-        amp: {a: 0.2ms, d: 1.8s, s: 0, r: 250ms, curve: 5}
+          - {type: additive, fixed: 760, partials: [[1, 0.8], [1.1, 0.7], [1.64, 0.65], [2.19, 0.6], [2.26, 0.45], [2.81, 0.5], [3.39, 0.45], [4.02, 0.4], [4.69, 0.35], [5.47, 0.3], [6.33, 0.25]], damp: 0.6, level: -4dB}
+          - {type: noise, level: {value: -2dB, mod: [{src: vel, amount: 4}]}}
+        pitch: {value: 0, mod: [{src: rand, amount: 0.3}]}
+        filters: ["hp cutoff=500", "peak cutoff=4k q=0.7 gain=3dB", "lp cutoff=14k"]
+        amp: {a: 0.2ms, d: 1.6s, s: 0, r: 250ms, curve: 6}
   c:
     gain: -9dB
     patch:
