@@ -1,0 +1,5 @@
+about: "Library part \u2014 djent-breakdown melody (C harmonic), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "lead-monster", "score": "C5/8@108 B4/8@96 Ab4/8@96 G4/8@96 C5/2@108 C6/8@108 B5/8@96 Ab5/8@96 G5/8@96 C6/2@108 Ab5/8@108 B5/8@96 C6/8@96 D6/8@96 Ab5/2@108 D6/4@108 B5/4@96 C5/2@108^gate=1.2", "pan": 0.1}

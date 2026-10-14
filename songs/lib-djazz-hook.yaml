@@ -1,0 +1,5 @@
+about: "Library part \u2014 djazz melody (C dorian), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "lead-tape", "score": "Eb5/4@108 Bb4/8@96 F4/8@96 C4/4@108 G5/4@108 D5/4@108 A4/8@96 Eb4/8@96 Bb3/4@108 F5/4@108 Bb5/4@108 F5/8@96 C5/8@96 G4/4@108 Bb5/4@108 A5/4@108 F5/4@96 G5/2@108^gate=1.2", "pan": 0.1}

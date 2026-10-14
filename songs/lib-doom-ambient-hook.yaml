@@ -1,0 +1,5 @@
+about: "Library part \u2014 doom-ambient melody (C harmonic), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "lead-monster", "score": "R/8 Eb5/8@108 D5/8@96 Ab4/4@108 C5/2@108 Eb5/8@108 D5/8@96 Ab4/4@108 B5/2@108 C6/8@108 B5/8@96 F5/4@108 Eb6/2@108 D6/4@108 B5/4@96 G5/4.@108^gate=1.2", "pan": 0.1}

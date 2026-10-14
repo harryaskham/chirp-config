@@ -1,0 +1,5 @@
+about: "Library part \u2014 groovemetal melody (C minor), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "lead-tape", "score": "R/8 C6/4@108 G5/8@96 F5/8@96 G5/4@108 Eb6/4@108 G5/4@108 D5/8@96 C5/8@96 D5/4@108 G5/4@108 D6/4@108 G6/8@96 Ab6/8@96 G6/4@108 F6/4@108 G5/4@108 Eb5/4@96 G5/4.@108^gate=1.2", "pan": 0.1}

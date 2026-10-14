@@ -1,0 +1,12 @@
+about: "Library part \u2014 deathcore breakdown (C harmonic), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+buses: {"drums": {"fx": [{"type": "compressor", "threshold": "-20dB", "ratio": 4, "attack": "9ms", "release": "80ms", "makeup": "4dB"}, {"type": "drive", "drive": 0.18, "mix": 0.5}, {"type": "eq", "bands": ["hp cutoff=30", "peak cutoff=62 q=1.1 gain=2.5dB", "peak cutoff=420 q=1 gain=-3.5dB", "peak cutoff=4.2k q=1 gain=2.5dB", "highshelf cutoff=10k gain=1.5dB"]}, "reverb kind=room decay=0.7s mix=0.1 predelay=8ms", {"type": "eq", "bands": ["highshelf cutoff=8000 gain=2dB"]}]}}
+tracks:
+  - {"name": "gtr-l", "patch": "m8-bkp-l", "score": "expr.pm=0 C#2,Ab2,C#3/4@124^gate=1.8 R/4 expr.pm=0 C#2,Ab2,C#3/4@124^gate=1.8 R/4 R/4 expr.pm=0 C#2,Ab2,C#3/4@124^gate=1.8 R/4 R/4 expr.pm=0 C#2,Ab2,C#3/4@124^gate=1.8 R/4 R/4 R/4 expr.pm=0 C#2,Ab2,C#3/4@124^gate=1.8 R/4 R/4 expr.pm=0 C2,G2,C#3/4@124^ph^gate=2", "pan": "L90", "seed": 7}
+  - {"name": "gtr-r", "patch": "m8-bkp-r", "score": "expr.pm=0 C#2,Ab2,C#3/4@124^gate=1.8 R/4 expr.pm=0 C#2,Ab2,C#3/4@124^gate=1.8 R/4 R/4 expr.pm=0 C#2,Ab2,C#3/4@124^gate=1.8 R/4 R/4 expr.pm=0 C#2,Ab2,C#3/4@124^gate=1.8 R/4 R/4 R/4 expr.pm=0 C#2,Ab2,C#3/4@124^gate=1.8 R/4 R/4 expr.pm=0 C2,G2,C#3/4@124^ph^gate=2", "pan": "R90", "seed": 13}
+  - {"name": "bass", "patch": "bass-fat", "score": "C#2/4@124 R/4 C#2/4@124 R/4 R/4 C#2/4@124 R/4 R/4 C#2/4@124 R/4 R/4 R/4 C#2/4@124 R/4 R/4 C2/4@124", "seed": 7, "fx": [{"type": "duck", "by": "kick", "depth": "-3dB", "attack": "2ms", "release": "90ms"}]}
+  - {"name": "sub", "patch": "sub-sine", "score": "C#2/4@124 R/4 C#2/4@124 R/4 R/4 C#2/4@124 R/4 R/4 C#2/4@124 R/4 R/4 R/4 C#2/4@124 R/4 R/4 C2/4@124", "seed": 7, "fx": [{"type": "duck", "by": "kick", "depth": "-8dB", "attack": "2ms", "release": "90ms"}]}
+  - {"name": "kick", "patch": "metal-kit-dry", "score": "k,ft/4@124 R/4 k,ft/4@124 R/4 R/4 k,ft/4@124 R/4 R/4 k,ft/4@124 R/4 R/4 R/4 k,ft/4@124 R/4 R/4 k,ft/4@124", "out": "drums"}
+  - {"name": "snare", "patch": "metal-kit-dry", "score": "R/4 R/4 R/4 R/4 R/4 R/4 s/4@120 R/4 R/4 R/4 s/4@120 R/4 R/4 R/4 s/4@120 R/4", "out": "drums"}
+  - {"name": "cym", "patch": "metal-kit-dry", "score": "x/4@120 R/4 c/4@120 R/4 R/4 cbl/4@120 R/4 R/4 cbl/4@120 R/4 R/4 R/4 c/4@120 R/4 R/4 x/4@120", "out": "drums"}

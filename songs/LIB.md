@@ -1,78 +1,151 @@
 # Library parts
 
-Stable, reusable parts exported from the chill generators (`tools/libparts.py`), composed in C, tempo-inheriting.
-Use `@NAME` in a score; transpose with `tr=N` (e.g. `tr=-3 @lib-kankyo`).
+Stable, reusable parts exported from the generators (`tools/libparts.py`; `libparts.py heavy` for the metal set), composed in C, tempo-inheriting.
+Use `@NAME` in a score; transpose with `tr=N` (e.g. `tr=-3 @lib-kankyo`, `tr=5 @lib-meshuggah-brk`).
 
-| part | style | beats |
-|---|---|---|
-| `@lib-ambient-hook` | ambient | 16 |
-| `@lib-ambient` | ambient | 16 |
-| `@lib-backrooms` | backrooms | 16 |
-| `@lib-balearic-hook` | balearic | 16 |
-| `@lib-balearic` | balearic | 16 |
-| `@lib-ballad-hook` | ballad | 16 |
-| `@lib-ballad` | ballad | 16 |
-| `@lib-berlin-hook` | berlin | 16 |
-| `@lib-berlin` | berlin | 16 |
-| `@lib-bossa-hook` | bossa | 16 |
-| `@lib-bossa` | bossa | 16 |
-| `@lib-celtic-hook` | celtic | 16 |
-| `@lib-celtic` | celtic | 16 |
-| `@lib-chillwave-hook` | chillwave | 16 |
-| `@lib-chillwave` | chillwave | 16 |
-| `@lib-citypop-hook` | citypop | 16 |
-| `@lib-citypop` | citypop | 16 |
-| `@lib-cyberscape-hook` | cyberscape | 16 |
-| `@lib-cyberscape` | cyberscape | 16 |
-| `@lib-dawnchorus-hook` | dawnchorus | 16 |
-| `@lib-dawnchorus` | dawnchorus | 16 |
-| `@lib-dawnraga-hook` | dawnraga | 16 |
-| `@lib-dawnraga` | dawnraga | 16 |
-| `@lib-doomjazz-hook` | doomjazz | 16 |
-| `@lib-doomjazz` | doomjazz | 16 |
-| `@lib-downtempo-hook` | downtempo | 16 |
-| `@lib-downtempo` | downtempo | 16 |
-| `@lib-dub-hook` | dub | 16 |
-| `@lib-dub` | dub | 16 |
-| `@lib-ethiojazz-hook` | ethiojazz | 16 |
-| `@lib-ethiojazz` | ethiojazz | 16 |
-| `@lib-fusion-hook` | fusion | 16 |
-| `@lib-fusion` | fusion | 16 |
-| `@lib-gogo` | gogo | 16 |
-| `@lib-guofeng-hook` | guofeng | 16 |
-| `@lib-guofeng` | guofeng | 16 |
-| `@lib-handpan-hook` | handpan | 16 |
-| `@lib-handpan` | handpan | 16 |
-| `@lib-hauntology-hook` | hauntology | 16 |
-| `@lib-hauntology` | hauntology | 16 |
-| `@lib-house-melodic-hook` | house-melodic | 16 |
-| `@lib-house-melodic` | house-melodic | 16 |
-| `@lib-kankyo-hook` | kankyo | 16 |
-| `@lib-kankyo` | kankyo | 16 |
-| `@lib-lid` | lid | 16 |
-| `@lib-lofihop-hook` | lofihop | 16 |
-| `@lib-lofihop` | lofihop | 16 |
-| `@lib-mali-hook` | mali | 16 |
-| `@lib-mali` | mali | 16 |
-| `@lib-manouche-hook` | manouche | 16 |
-| `@lib-manouche` | manouche | 16 |
-| `@lib-minimal-hook` | minimal | 16 |
-| `@lib-minimal` | minimal | 16 |
-| `@lib-neoclassical-hook` | neoclassical | 16 |
-| `@lib-neoclassical` | neoclassical | 16 |
-| `@lib-neosoul-hook` | neosoul | 16 |
-| `@lib-neosoul` | neosoul | 16 |
-| `@lib-satie` | satie | 24 |
-| `@lib-slowcore-hook` | slowcore | 16 |
-| `@lib-slowcore` | slowcore | 16 |
-| `@lib-smile-hook` | smile | 16 |
-| `@lib-smile` | smile | 16 |
-| `@lib-souljazz-hook` | souljazz | 16 |
-| `@lib-souljazz` | souljazz | 16 |
-| `@lib-tiersen` | tiersen | 24 |
-| `@lib-triphop-hook` | triphop | 16 |
-| `@lib-triphop` | triphop | 16 |
-| `@lib-ukjazz-hook` | ukjazz | 18 |
-| `@lib-ukjazz` | ukjazz | 18 |
-| `@lib-vaporwave-hook` | vaporwave | 16 |
-| `@lib-vaporwave` | vaporwave | 16 |
+## Chill (71)
+
+| part | style | kind | beats |
+|---|---|---|---|
+| `@lib-ambient-hook` | ambient | melody | 16 |
+| `@lib-ambient` | ambient | section | 16 |
+| `@lib-backrooms` | backrooms | section | 16 |
+| `@lib-balearic-hook` | balearic | melody | 16 |
+| `@lib-balearic` | balearic | section | 16 |
+| `@lib-ballad-hook` | ballad | melody | 16 |
+| `@lib-ballad` | ballad | section | 16 |
+| `@lib-berlin-hook` | berlin | melody | 16 |
+| `@lib-berlin` | berlin | section | 16 |
+| `@lib-bossa-hook` | bossa | melody | 16 |
+| `@lib-bossa` | bossa | section | 16 |
+| `@lib-celtic-hook` | celtic | melody | 16 |
+| `@lib-celtic` | celtic | section | 16 |
+| `@lib-chillwave-hook` | chillwave | melody | 16 |
+| `@lib-chillwave` | chillwave | section | 16 |
+| `@lib-citypop-hook` | citypop | melody | 16 |
+| `@lib-citypop` | citypop | section | 16 |
+| `@lib-cyberscape-hook` | cyberscape | melody | 16 |
+| `@lib-cyberscape` | cyberscape | section | 16 |
+| `@lib-dawnchorus-hook` | dawnchorus | melody | 16 |
+| `@lib-dawnchorus` | dawnchorus | section | 16 |
+| `@lib-dawnraga-hook` | dawnraga | melody | 16 |
+| `@lib-dawnraga` | dawnraga | section | 16 |
+| `@lib-doomjazz-hook` | doomjazz | melody | 16 |
+| `@lib-doomjazz` | doomjazz | section | 16 |
+| `@lib-downtempo-hook` | downtempo | melody | 16 |
+| `@lib-downtempo` | downtempo | section | 16 |
+| `@lib-dub-hook` | dub | melody | 16 |
+| `@lib-dub` | dub | section | 16 |
+| `@lib-ethiojazz-hook` | ethiojazz | melody | 16 |
+| `@lib-ethiojazz` | ethiojazz | section | 16 |
+| `@lib-fusion-hook` | fusion | melody | 16 |
+| `@lib-fusion` | fusion | section | 16 |
+| `@lib-gogo` | gogo | section | 16 |
+| `@lib-guofeng-hook` | guofeng | melody | 16 |
+| `@lib-guofeng` | guofeng | section | 16 |
+| `@lib-handpan-hook` | handpan | melody | 16 |
+| `@lib-handpan` | handpan | section | 16 |
+| `@lib-hauntology-hook` | hauntology | melody | 16 |
+| `@lib-hauntology` | hauntology | section | 16 |
+| `@lib-house-melodic-hook` | house-melodic | melody | 16 |
+| `@lib-house-melodic` | house-melodic | section | 16 |
+| `@lib-kankyo-hook` | kankyo | melody | 16 |
+| `@lib-kankyo` | kankyo | section | 16 |
+| `@lib-lid` | lid | section | 16 |
+| `@lib-lofihop-hook` | lofihop | melody | 16 |
+| `@lib-lofihop` | lofihop | section | 16 |
+| `@lib-mali-hook` | mali | melody | 16 |
+| `@lib-mali` | mali | section | 16 |
+| `@lib-manouche-hook` | manouche | melody | 16 |
+| `@lib-manouche` | manouche | section | 16 |
+| `@lib-minimal-hook` | minimal | melody | 16 |
+| `@lib-minimal` | minimal | section | 16 |
+| `@lib-neoclassical-hook` | neoclassical | melody | 16 |
+| `@lib-neoclassical` | neoclassical | section | 16 |
+| `@lib-neosoul-hook` | neosoul | melody | 16 |
+| `@lib-neosoul` | neosoul | section | 16 |
+| `@lib-satie` | satie | section | 24 |
+| `@lib-slowcore-hook` | slowcore | melody | 16 |
+| `@lib-slowcore` | slowcore | section | 16 |
+| `@lib-smile-hook` | smile | melody | 16 |
+| `@lib-smile` | smile | section | 16 |
+| `@lib-souljazz-hook` | souljazz | melody | 16 |
+| `@lib-souljazz` | souljazz | section | 16 |
+| `@lib-tiersen` | tiersen | section | 24 |
+| `@lib-triphop-hook` | triphop | melody | 16 |
+| `@lib-triphop` | triphop | section | 16 |
+| `@lib-ukjazz-hook` | ukjazz | melody | 18 |
+| `@lib-ukjazz` | ukjazz | section | 18 |
+| `@lib-vaporwave-hook` | vaporwave | melody | 16 |
+| `@lib-vaporwave` | vaporwave | section | 16 |
+
+## Heavy (66)
+
+| part | style | kind | beats |
+|---|---|---|---|
+| `@lib-blackgaze-brk` | blackgaze | breakdown | 16 |
+| `@lib-blackgaze-hook` | blackgaze | melody | 16 |
+| `@lib-blackgaze` | blackgaze | section | 16 |
+| `@lib-breakcore-brk` | breakcore | breakdown | 16 |
+| `@lib-breakcore` | breakcore | section | 16 |
+| `@lib-brostep-brk` | brostep | breakdown | 16 |
+| `@lib-brostep-hook` | brostep | melody | 16 |
+| `@lib-brostep` | brostep | section | 16 |
+| `@lib-darksynth-hook` | darksynth | melody | 16 |
+| `@lib-darksynth` | darksynth | section | 16 |
+| `@lib-deathcore-brk` | deathcore | breakdown | 16 |
+| `@lib-deathcore` | deathcore | section | 16 |
+| `@lib-djazz-brk` | djazz | breakdown | 16 |
+| `@lib-djazz-hook` | djazz | melody | 16 |
+| `@lib-djazz` | djazz | section | 16 |
+| `@lib-djent-breakdown-hook` | djent-breakdown | melody | 16 |
+| `@lib-djent-breakdown` | djent-breakdown | section | 16 |
+| `@lib-djent-hook` | djent | melody | 16 |
+| `@lib-djent` | djent | section | 16 |
+| `@lib-dnb-brk` | dnb | breakdown | 16 |
+| `@lib-dnb-hook` | dnb | melody | 16 |
+| `@lib-dnb` | dnb | section | 16 |
+| `@lib-doom-ambient-hook` | doom-ambient | melody | 16 |
+| `@lib-doom-ambient` | doom-ambient | section | 16 |
+| `@lib-gamelan-brk` | gamelan | breakdown | 16 |
+| `@lib-gamelan-hook` | gamelan | melody | 16 |
+| `@lib-gamelan` | gamelan | section | 16 |
+| `@lib-gojira-brk` | gojira | breakdown | 16 |
+| `@lib-gojira-hook` | gojira | melody | 16 |
+| `@lib-gojira` | gojira | section | 16 |
+| `@lib-groovemetal-brk` | groovemetal | breakdown | 16 |
+| `@lib-groovemetal-hook` | groovemetal | melody | 16 |
+| `@lib-groovemetal` | groovemetal | section | 16 |
+| `@lib-hardcore-kl-brk` | hardcore-kl | breakdown | 16 |
+| `@lib-hardcore-kl` | hardcore-kl | section | 16 |
+| `@lib-industrial-hook` | industrial | melody | 16 |
+| `@lib-industrial` | industrial | section | 16 |
+| `@lib-koto-hook` | koto | melody | 16 |
+| `@lib-koto` | koto | section | 16 |
+| `@lib-mathcore-brk` | mathcore | breakdown | 16 |
+| `@lib-mathcore` | mathcore | section | 16 |
+| `@lib-meshuggah-brk` | meshuggah | breakdown | 16 |
+| `@lib-meshuggah-hook` | meshuggah | melody | 16 |
+| `@lib-meshuggah` | meshuggah | section | 16 |
+| `@lib-numetal-brk` | numetal | breakdown | 16 |
+| `@lib-numetal-hook` | numetal | melody | 16 |
+| `@lib-numetal` | numetal | section | 16 |
+| `@lib-postrock-hook` | postrock | melody | 16 |
+| `@lib-postrock` | postrock | section | 16 |
+| `@lib-power-brk` | power | breakdown | 16 |
+| `@lib-power-hook` | power | melody | 16 |
+| `@lib-power` | power | section | 16 |
+| `@lib-raga-brk` | raga | breakdown | 16 |
+| `@lib-raga-hook` | raga | melody | 16 |
+| `@lib-raga` | raga | section | 16 |
+| `@lib-sludge-brk` | sludge | breakdown | 16 |
+| `@lib-sludge-hook` | sludge | melody | 16 |
+| `@lib-sludge` | sludge | section | 16 |
+| `@lib-tech-death-brk` | tech-death | breakdown | 16 |
+| `@lib-tech-death-hook` | tech-death | melody | 16 |
+| `@lib-tech-death` | tech-death | section | 16 |
+| `@lib-thrash-brk` | thrash | breakdown | 16 |
+| `@lib-thrash-hook` | thrash | melody | 16 |
+| `@lib-thrash` | thrash | section | 16 |
+| `@lib-tool-brk` | tool | breakdown | 15.5 |
+| `@lib-tool` | tool | section | 15 |

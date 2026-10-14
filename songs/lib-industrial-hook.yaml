@@ -1,0 +1,5 @@
+about: "Library part \u2014 industrial melody (C phrygian), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "synth-lead", "score": "Eb5/4@81 F5/8@93 G5/8@87 F5/4@96 G5/4@81 C#6/4@82 Eb6/8@86 F6/8@96 Eb6/4@89 C#6/4@80 Ab5/4@89 G5/8@89 F5/8@94 G5/4@96 Ab5/4@80 Ab5/4@89 F5/4@90 G5/2@90^gate=1.2", "pan": 0.1}

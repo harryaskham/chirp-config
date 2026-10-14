@@ -1,0 +1,8 @@
+about: "Library part \u2014 doom-ambient section (C harmonic), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "gtr-l", "patch": "m8-bkp-l", "score": "expr.pm=0 C2,G2,C3/1@120^gate=1 Eb2,Bb2,Eb3/1@120^gate=1 Ab1,Eb2,Ab2/1@120^gate=1 G2,D3,G3/1@120^gate=1", "pan": "L90", "seed": 7}
+  - {"name": "gtr-r", "patch": "m8-bkp-r", "score": "expr.pm=0 C2,G2,C3/1@120^gate=1 Eb2,Bb2,Eb3/1@120^gate=1 Ab1,Eb2,Ab2/1@120^gate=1 G2,D3,G3/1@120^gate=1", "pan": "R90", "seed": 13}
+  - {"name": "bass", "patch": "bass-fat", "score": "C2/1@120 Eb2/1@120 Ab1/1@120 G2/1@120"}
+  - {"name": "sub", "patch": "sub-sine", "score": "C2/1@120 Eb2/1@120 Ab1/1@120 G2/1@120"}

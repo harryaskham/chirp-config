@@ -8,7 +8,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import compose as c
 
 SONGS = os.path.expanduser("~/.config/chirp/songs")
-MAIN = ["riff", "riffB", "riffA", "riffP", "riffG", "riffJ", "riffW", "riffF", "riffI"]
+MAIN = ["riff", "riffV", "riffSlam", "riffCrush", "riffB", "riffA", "riffP", "riffG", "riffJ", "riffW", "riffF", "riffI"]
+BRK = ["riffBrk", "riffBrk2", "riffSlam", "riffBd", "riffBreak", "riffB"]
 
 
 def export(style):
@@ -17,12 +18,17 @@ def export(style):
     p["pc"] = 0
     names, desc = c.compose(style, "libtmp", p)
     out = []
-    for role, lib in [(next((r for r in MAIN if r in names), None), f"lib-{style}"), ("hook" if "hook" in names else ("hookE" if "hookE" in names else None), f"lib-{style}-hook")]:
+    main = next((r for r in MAIN if r in names), None)
+    roles = [(main, f"lib-{style}"), ("hook" if "hook" in names else ("hookE" if "hookE" in names else None), f"lib-{style}-hook")]
+    if style not in c.CHILL_STYLES:
+        brk = next((r for r in BRK if r in names and r != main), None)
+        roles.append((brk, f"lib-{style}-brk"))
+    for role, lib in roles:
         if not role:
             continue
         src = open(f"{SONGS}/{names[role]}.yaml").read().splitlines()
         beats = c.LENGTHS.get(names[role], 16)
-        about = f"Library part — {style} {'melody' if 'hook' in lib else 'section'} ({desc.split(',')[0].replace(c.NAMES[0], 'C')}), {beats:g} beats, tempo-inheriting; transpose with tr=."
+        about = f"Library part — {style} {'melody' if 'hook' in lib else ('breakdown' if lib.endswith('-brk') else 'section')} ({desc.split(',')[0].replace(c.NAMES[0], 'C')}), {beats:g} beats, tempo-inheriting; transpose with tr=."
         src[0] = "about: " + __import__("json").dumps(about)
         open(f"{SONGS}/{lib}.yaml", "w").write("\n".join(src) + "\n")
         out.append((lib, beats))
@@ -33,6 +39,8 @@ def export(style):
 
 if __name__ == "__main__":
     styles = sys.argv[1:] or sorted(c.CHILL_STYLES)
+    if styles == ["heavy"]:
+        styles = sorted(c.HEAVY_STYLES)
     rows = []
     for st in styles:
         for lib, beats in export(st):

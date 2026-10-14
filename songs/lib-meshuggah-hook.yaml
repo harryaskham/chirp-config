@@ -1,0 +1,5 @@
+about: "Library part \u2014 meshuggah melody (C locrian), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "lead-monster", "score": "F#5/4@108 Ab5/8@96 Eb5/8@96 F#5/4@108 F#5/4@108 C#5/4@108 Eb5/8@96 Bb4/8@96 C#5/4@108 F5/4@108 Eb5/4@108 C#5/8@96 F#5/8@96 Eb5/4@108 C5/4@108 Ab5/4@108 F5/4@96 C5/2@108^gate=1.2", "pan": 0.1}

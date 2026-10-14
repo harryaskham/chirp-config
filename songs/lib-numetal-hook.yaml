@@ -1,0 +1,5 @@
+about: "Library part \u2014 numetal melody (C locrian), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "lead-tape", "score": "F#5/4.@108 Ab5/8@96 C5/2@108 C#6/4.@108 Eb6/8@96 C#6/2@108 F5/4.@108 F#5/8@96 C#5/2@108 F#5/4@108 Eb5/4@96 C5/2@108^gate=1.2", "pan": 0.1}

@@ -1,0 +1,5 @@
+about: "Library part \u2014 tech-death melody (C locrian), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "lead-slap", "score": "Eb5/16@100^h F5/16@90^h F#5/16@90^h Ab5/16@90^h F5/16@100^h F#5/16@90^h Ab5/16@90^h Bb5/16@90^h Eb5/16@100^h F#5/16@90^h F5/16@90^h Ab5/16@90^h C6/16@100^h Bb5/16@90^h Ab5/16@90^h F#5/16@90^h Bb5/16@100^h C#6/16@90^h C6/16@90^h Eb6/16@90^h C6/16@100^h Eb6/16@90^h C#6/16@90^h F6/16@90^h Bb5/16@100^h C6/16@90^h C#6/16@90^h Eb6/16@90^h C6/16@100^h C#6/16@90^h Eb6/16@90^h F6/16@90^h Bb5/16@100^h Ab5/16@90^h F#5/16@90^h F5/16@90^h Ab5/16@100^h C6/16@90^h Bb5/16@90^h C#6/16@90^h F#5/16@100^h Ab5/16@90^h Bb5/16@90^h C6/16@90^h C6/16@100^h Eb6/16@90^h C#6/16@90^h F6/16@90^h Eb5/16@100^h F#5/16@90^h F5/16@90^h Ab5/16@90^h F#5/16@100^h Bb5/16@90^h Ab5/16@90^h C6/16@90^h C6/2@112^gate=1.2", "pan": 0.1}

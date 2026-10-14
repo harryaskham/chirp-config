@@ -70,6 +70,13 @@ def main():
     made.append(save("groove-berlin-pulse", "Berlin school: a soft electro kick on every beat", c.gen_berlin(random.Random(7), k, prog, "drive")))
     made.append(save("groove-handpan-frame", "handpan meditation: frame drum boom-taps and a soft shaker", c.gen_handpan(random.Random(8), k, prog, "full")))
     made.append(save("groove-temple", "guofeng temple woodblocks over a soft kick", c.gen_guofeng(random.Random(9), k, prog)))
+    c._RIGSET = c.RIG_SETS.get("chug", {})
+    made.append(save("groove-slam", "slam death: half-time slam groove, kick doubling the chugs, snare on 3, china on the beats", c.gen_slam(random.Random(3), k, prog, kind="slam")))
+    made.append(save("groove-gravity", "slam death: gravity blast — a 32nd snare roll with kick on the beats", c.gen_slam(random.Random(4), k, prog, kind="gravity")))
+    made.append(save("groove-metalcore-gallop", "metalcore verse: gallop kicks under 16ths, snare 2 and 4", c.gen_metalcore(random.Random(5), k, prog, kind="verse")))
+    made.append(save("groove-metalcore-breakdown", "metalcore breakdown: syncopated half-time kicks, china quarters", c.gen_metalcore(random.Random(6), k, prog, kind="breakdown")))
+    made.append(save("groove-symphonic", "symphonic metal: double-kick 16ths, snare 2 and 4, crash-ride", c.gen_symphonic(random.Random(7), k, prog, kind="chorus")))
+    made.append(save("groove-postmetal-toms", "post-metal build: tribal kick + floor-tom 8ths with rack-tom accents and ride", c.gen_postmetal(random.Random(8), k, prog, kind="toms")))
     print(len(made), "grooves")
     return made
 

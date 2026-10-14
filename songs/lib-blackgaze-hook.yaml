@@ -1,0 +1,5 @@
+about: "Library part \u2014 blackgaze melody (C dorian), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "lead-slap", "score": "G5/8@108 Eb5/16@96 G5/16@96 A5/4@108 C5/2@108 G5/8@108 Eb5/16@96 G5/16@96 A5/4@108 G5/2@108 A5/8@108 C6/16@96 A5/16@96 G5/4@108 F5/2@108 F6/4@108 D6/4@96 C5/2@108^gate=1.2", "pan": 0.1}

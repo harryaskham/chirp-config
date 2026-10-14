@@ -1,0 +1,5 @@
+about: "Library part \u2014 raga melody (C phrygian-dominant), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "sitar", "score": "G4/4@81 C#4/8@85 E4/8@94 F4/4@92 G4/4@85 R/1 E5/4@90 Ab5/8@87 G5/8@87 F5/4@99 E5/4@86 Ab4/4@89 C4/4@95 R/2", "pan": 0.1}

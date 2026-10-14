@@ -1,0 +1,5 @@
+about: "Library part \u2014 dnb melody (C dorian), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "ebow", "score": "G5/1@84^gate=1.1 Bb5/1@100^gate=1.1 F6/1@84^gate=1.1 Eb5/2@84^gate=1.1 C6/2@92^gate=1.1", "pan": -0.1}

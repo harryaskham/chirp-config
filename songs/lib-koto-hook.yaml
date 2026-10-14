@@ -1,0 +1,5 @@
+about: "Library part \u2014 koto melody (C hirajoshi), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "koto", "score": "R/8 C4/4@89 D4/8@84 Eb4/8@91 G4/4@92 C4/4@85 Eb5/4@90 G5/8@85 Ab5/8@87 C6/4@96 C5/4@80 D5/4@87 Eb5/8@84 G5/8@95 Ab5/4@90 Ab4/4@89 Ab4/4@85 Eb4/4@93 Ab4/4.@84^gate=1.2", "pan": 0.1}

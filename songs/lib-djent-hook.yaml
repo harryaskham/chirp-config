@@ -1,0 +1,5 @@
+about: "Library part \u2014 djent melody (C phrygian-dominant), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "synth-lead", "score": "G5/8@88 Ab5/8@93 Bb5/4@94 C5/2@89 Ab5/2@88 Bb5/2@89 Ab5/8@82 G5/8@95 F5/4@98 E6/2@86 Ab5/2@89 R/2", "pan": 0.1}

@@ -1,0 +1,6 @@
+about: "Library part \u2014 power melody (C harmonic), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "lead-slap", "score": "G5/4.@108 B5/8@96 C5/2@108 Eb5/4.@108 G5/8@96 G5/2@108 Ab5/4.@108 C6/8@96 F5/2@108 D6/4@108 B5/4@96 C5/2@108^gate=1.2", "pan": -0.25}
+  - {"name": "hook3", "patch": "lead-slap", "score": "B5/4.@108 D6/8@96 Eb5/2@108 G5/4.@108 B5/8@96 B5/2@108 C6/4.@108 Eb6/8@96 Ab5/2@108 F6/4@108 D6/4@96 Eb5/2@108^gate=1.2", "pan": 0.25, "gain": "-2dB"}

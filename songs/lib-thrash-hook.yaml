@@ -1,0 +1,5 @@
+about: "Library part \u2014 thrash melody (C minor), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "lead-wah", "score": "R/8 C5/8.@108 G4/8.@96 Ab4/8@96 C5/2@108 Ab5/8.@108 Eb5/8.@96 F5/8@96 C6/2@108 D6/8.@108 Ab5/8.@96 Bb5/8@96 Bb5/2@108 Bb5/4@108 G5/4@96 C5/4.@108^gate=1.2", "pan": 0.1}
