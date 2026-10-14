@@ -20,7 +20,10 @@ Corrections measured against the recording (tools/scorealign.py): "bpm": {"37": 
 measure M on (until the next entry; earlier measures keep the tab's tempo), and "skip": [[285, 288], …] removes
 measures the recording does not play (from the timeline and every part).
 A tab with tempo changes becomes a song with a tempo map (a point at every tempo or meter change); "meters": true
-emits the map for a constant-tempo tab too. Bars are 1-based inclusive ranges. Outside its ranges a part rests. Drum pieces can be renamed (`remap`) or
+emits the map for a constant-tempo tab too. A part may take `"score_file": "PATH"` instead of `track`: `bar N  tokens` lines (stemvox.py/stemnotes.py
+output) on the tab's measure numbers, with optional `"rest": [[a, b], …]` ranges kept silent.
+
+Bars are 1-based inclusive ranges. Outside its ranges a part rests. Drum pieces can be renamed (`remap`) or
 dropped (`drop`) per part, for kits that name pieces differently from the tab's General-MIDI mapping."""
 import json
 import os
@@ -29,6 +32,8 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import songsterr as S  # noqa: E402
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 import tabtime as T  # noqa: E402
 
 
@@ -156,6 +161,19 @@ def build(mp):
     lines_cache = {}
     tracks = []
     for p in mp["parts"]:
+        if "score_file" in p:
+            # a part that is not in the tab (e.g. a vocal line from stemvox.py): `bar N  tokens` lines on the
+            # tab's measure numbers; unlisted bars and `rest` ranges are silent
+            sf = os.path.join(ROOT, p["score_file"]) if not os.path.isabs(p["score_file"]) else p["score_file"]
+            by_bar = {}
+            for ln in open(sf):
+                bits = ln.split(None, 2)
+                if len(bits) == 3 and bits[0] == "bar":
+                    by_bar[int(bits[1])] = bits[2].strip()
+            silent = {m for a, b in p.get("rest", []) for m in range(a, b + 1)}
+            key = ("file", p["score_file"], tuple(sorted(silent)))
+            lines_cache[key] = ["" if full[i]["m"] in silent else by_bar.get(full[i]["m"], "") for i in keep]
+            p = {**p, "track": key, "bars": p.get("bars", [[1, full[-1]["m"]]])}
         if p["track"] not in lines_cache:
             lines_all = S.score(cache, p["track"])[2]
             lines_cache[p["track"]] = [lines_all[i] for i in keep]
