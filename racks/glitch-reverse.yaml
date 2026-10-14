@@ -1,0 +1,12 @@
+{
+ "about": "Reverse glitch: some 1/8 slots repeat backwards.",
+ "fx": [
+  {
+   "type": "stutter",
+   "slice": "1/8",
+   "repeats": 2,
+   "chance": 0.2,
+   "reverse": true
+  }
+ ]
+}

@@ -1,0 +1,12 @@
+{
+ "about": "Beat-synced stutter: a quarter of 1/16 slots repeat 4x, decaying.",
+ "fx": [
+  {
+   "type": "stutter",
+   "slice": "1/16",
+   "repeats": 4,
+   "chance": 0.25,
+   "decay": 0.15
+  }
+ ]
+}

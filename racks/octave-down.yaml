@@ -1,0 +1,11 @@
+{
+ "about": "Octaver pedal: a granular octave down blended under the dry signal (heavier riffs, bass doubling).",
+ "fx": [
+  {
+   "type": "pitch",
+   "semitones": -12,
+   "grain": "30ms",
+   "mix": 0.35
+  }
+ ]
+}

@@ -1,0 +1,11 @@
+{
+ "about": "12-bit, 16 kHz crush blended in.",
+ "fx": [
+  {
+   "type": "crush",
+   "bits": 12,
+   "rate": 16000,
+   "mix": 0.5
+  }
+ ]
+}

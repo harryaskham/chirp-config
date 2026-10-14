@@ -1,0 +1,11 @@
+{
+ "about": "Octavia-style shimmer: an octave up blended in (leads, twangs).",
+ "fx": [
+  {
+   "type": "pitch",
+   "semitones": 12,
+   "grain": "30ms",
+   "mix": 0.3
+  }
+ ]
+}

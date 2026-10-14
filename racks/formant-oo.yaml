@@ -1,0 +1,11 @@
+{
+ "about": "Static 'oo' vowel formant (talk-box tone); bind vowel to an LFO for sweeps.",
+ "fx": [
+  {
+   "type": "formant",
+   "vowel": 4,
+   "q": 10,
+   "mix": 0.6
+  }
+ ]
+}

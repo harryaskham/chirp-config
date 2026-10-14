@@ -1,0 +1,10 @@
+{
+ "about": "Ring modulation at 90 Hz blended in: metallic, robotic edge.",
+ "fx": [
+  {
+   "type": "ring",
+   "freq": 90,
+   "mix": 0.3
+  }
+ ]
+}

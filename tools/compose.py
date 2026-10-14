@@ -121,8 +121,8 @@ def rhythm_tracks(score, *, pair=None, pan=90, seeds=(7, 13), fx=None):
 
 # Section inserts for variety (post-rig): picked per part.
 SECTION_FX = {
-    "space": [None, None, ["rack:phaser-slow"], ["rack:chorus-wide"], ["rack:shimmer-hall"]],
-    "break": [None, None, None, ["rack:stutter-16"], ["rack:dub-throw"]],
+    "space": [None, None, ["rack:phaser-slow"], ["rack:chorus-wide"], ["rack:shimmer-hall"], ["rack:glitch-reverse"]],
+    "break": [None, None, None, ["rack:stutter-16"], ["rack:dub-throw"], ["rack:octave-down"], ["rack:glitch-stutter"]],
 }
 
 
@@ -250,6 +250,9 @@ def enhance(role, tracks, beats):
         tracks = sweep_build(tracks, beats)
     if role == "riffX":
         tracks = auto_pan(delay_throw(tracks, ("twang",), beats), ("twang",))
+        pts = [["0b", 0], [f"{beats - 3:g}b", 0], [f"{beats - 2.9:g}b", 1], [f"{beats - 0.1:g}b", 1], [f"{beats:g}b", 0]]
+        tracks = [_add(t, fx=[{"type": "freeze", "size": "180ms", "mix": 0.7, "hold": {"value": 0, "mod": [{"src": "auto.frz", "amount": 1}]}}],
+                       auto={"frz": {"points": pts}}) if t["name"] == "twang" else t for t in tracks]
     if role == "riffBrk":
         tracks = delay_throw(tracks, ("gtr-l", "gtr-r"), beats)
     return tracks
@@ -1049,7 +1052,9 @@ def gen_bro_drop(r, k, prog, low=33, metal=False):
             voice = 1 - voice if r.random() < 0.7 else voice
             x += ln
     jn = lambda xs: " ".join(xs)
-    out = [track("bassA", a_p, jn(A), gain="-6dB"), track("bassB", b_p, jn(B), gain="-6dB"), track("sub", rig("sub"), jn(sub), seed=7, gain="-2dB")]
+    yoi = {"lfo": {"v": {"wave": "sine", "rate": "1/8"}},
+           "fx": [{"type": "formant", "q": 9, "mix": 0.55, "vowel": {"value": 2, "mod": [{"src": "lfo.v", "amount": 2}]}}]}
+    out = [dict(track("bassA", a_p, jn(A), gain="-6dB"), **yoi), track("bassB", b_p, jn(B), gain="-6dB"), track("sub", rig("sub"), jn(sub), seed=7, gain="-2dB")]
     if metal:
         out += rhythm_tracks(jn(gtr))
     return out + _bro_drums(r)
@@ -1328,10 +1333,11 @@ def gen_breakcore(r, k, prog, low=28, wild=1.0):
             else:
                 put(bs=f"s2/16@{100 + j * 5}^r={r.choice([3, 4, 6])}" if j % 2 == 0 else "R/16", bk="k/16@110^r=2" if j == 3 else "R/16")
     jn = lambda xs: " ".join(xs)
-    out = [track("brk-k", bk, jn(tr["bk"])), track("brk-s", bk, jn(tr["bs"])), track("brk-h", bk, jn(tr["bh"]), pan=0.12),
+    stut = [{"type": "stutter", "slice": "1/32", "repeats": 6, "chance": 0.3, "decay": 0.1, "seed": r.randrange(1000)}]
+    out = [track("brk-k", bk, jn(tr["bk"])), track("brk-s", bk, jn(tr["bs"]), fx=stut), track("brk-h", bk, jn(tr["bh"]), pan=0.12),
            track("kick", mk, jn(tr["mk"])), track("cym", mk, jn(tr["mc"])), track("piano", pick_patch("piano", "rhodes"), jn(tr["piano"]), pan=0.2)]
     if any(g != "R/16" for g in tr["gtr"]):
-        out += rhythm_tracks(jn(tr["gtr"])) + [track("bass", rig("bass"), jn(mirror_bass(tr["gtr"])), seed=7)]
+        out += rhythm_tracks(jn(tr["gtr"]), fx=expand(["rack:glitch-stutter"])) + [track("bass", rig("bass"), jn(mirror_bass(tr["gtr"])), seed=7)]
     return out
 
 
