@@ -1,0 +1,10 @@
+about: "Rain: soft broadband patter with droplets (a fine stutter on high noise). A sleep / study scape."
+synth:
+  layers:
+    - {type: noise, color: pink, level: -8dB}
+    - {type: noise, color: white, level: -16dB}
+  filters: ["hp cutoff=900", "lp cutoff=7.5k", "peak cutoff=3k q=0.8 gain=2dB"]
+  amp: {a: 3s, d: 1s, s: 0.9, r: 3s}
+play: {gate: 1}
+fx: [{type: stutter, slice: 1/64, repeats: 2, chance: 0.45, seed: 7}, "reverb kind=room decay=0.8s mix=0.2"]
+gain: -2dB

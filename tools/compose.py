@@ -61,7 +61,7 @@ STYLE_MODES = {
     "bossa": ["major", "dorian", "minor", "lydian"], "dub": ["minor", "dorian", "mixolydian"],
     "manouche": ["harmonic", "minor", "harmonic", "major"], "celtic": ["dorian", "mixolydian", "minor", "major"],
     "doomjazz": ["minor", "phrygian", "dorian", "harmonic"], "mali": ["dorian", "minor", "mixolydian"], "guofeng": ["major", "minor", "dorian"], "vaporwave": ["major", "lydian", "dorian", "minor"], "slowcore": ["major", "mixolydian", "minor", "dorian"],
-    "backrooms": ["major", "lydian", "mixolydian"], "neosoul": ["dorian", "minor", "major", "mixolydian"], "minimal": ["major", "lydian", "dorian", "mixolydian"], "fusion": ["minor", "dorian", "major", "mixolydian"], "berlin": ["minor", "dorian", "phrygian", "aeolian" if "aeolian" in MODES else "minor"], "cyberscape": ["minor", "dorian", "lydian", "phrygian"],
+    "backrooms": ["major", "lydian", "mixolydian"], "neosoul": ["dorian", "minor", "major", "mixolydian"], "minimal": ["major", "lydian", "dorian", "mixolydian"], "fusion": ["minor", "dorian", "major", "mixolydian"], "berlin": ["minor", "dorian", "phrygian", "aeolian" if "aeolian" in MODES else "minor"], "satie": ["major", "lydian", "mixolydian", "dorian"], "cyberscape": ["minor", "dorian", "lydian", "phrygian"],
     "koto": ["hirajoshi", "hirajoshi", "phrygian"],
     "djazz": ["dorian", "lydian", "harmonic", "minor", "mixolydian"], "industrial": ["phrygian", "minor", "harmonic"], "dnb": ["minor", "phrygian", "dorian"],
     "darksynth": ["minor", "phrygian", "harmonic", "dorian"],
@@ -1774,9 +1774,11 @@ def gen_clusters(r, k, prog, base, patch, gain="-6dB", vel=74):
     return [track("pad", patch, " ".join(out), gain=gain)]
 
 
-SCAPES = {"wind": ("wind", "C5", "-6dB"), "shortwave": ("shortwave", "A4", "-8dB"), "hum": ("shortwave", "E4", "-10dB")}
-SCAPE_STYLES = {"backrooms": ["shortwave", "hum", "wind"], "cyberscape": ["shortwave", "wind"], "ambient": ["wind"], "celtic": ["wind"],
-                "slowcore": ["wind"], "doomjazz": ["wind", "shortwave"], "guofeng": ["wind"], "mali": ["wind"]}
+SCAPES = {"wind": ("wind", "C5", "-6dB"), "shortwave": ("shortwave", "A4", "-8dB"), "hum": ("shortwave", "E4", "-10dB"),
+          "rain": ("rain", "C5", "-4dB"), "waterphone": ("waterphone", "E5", "-14dB")}
+SCAPE_STYLES = {"backrooms": ["shortwave", "hum", "wind", "waterphone"], "cyberscape": ["shortwave", "wind", "waterphone"], "ambient": ["wind", "rain", "waterphone"],
+                "celtic": ["wind", "rain"], "slowcore": ["wind", "rain"], "doomjazz": ["wind", "shortwave", "waterphone", "rain"], "guofeng": ["wind", "rain"], "mali": ["wind"],
+                "satie": ["rain", "rain", "wind"], "lofihop": ["rain"], "neoclassical": ["rain", "wind"], "triphop": ["rain", "shortwave"]}
 
 
 def scape(style, role, beats, seed):
@@ -2558,6 +2560,31 @@ def gen_berlin(r, k, prog, kind="main"):
     return out
 
 
+def gen_satie(r, k, prog, kind="main"):
+    """Satie / Gymnopédie in 3/4 (24 beats = 8 bars, 2 per chord): the left hand's bass on 1 and a
+    soft maj7/9 chord on 2 held through 3; a slow falling right-hand melody in dotted halves and
+    quarter–half figures (kind main/full); strings under it in kind=full; kind=piano is the left hand."""
+    lh, rh = [], []
+    m = k.deg(prog[0] + r.choice([4, 6, 7]), 67)
+    for bar in range(8):
+        root = prog[(bar // 2) % len(prog)]
+        ch = chordhead([k.deg(root + d, 55) for d in r.choice([[2, 4, 6], [4, 6, 8], [2, 6, 8]])])
+        lh.append(f"{mname(k.deg(root, 40))}/4@{58} {ch}/2@{50}")
+        tones = [k.deg(root + d, 64) for d in (0, 2, 4, 6, 7, 9)]
+        near = min(tones, key=lambda t: abs(t - m))
+        step = r.choice([-1, -1, -2, 0, 1])
+        m = max(62, min(79, near + (0 if step == 0 else (2 if step > 0 else -1) * abs(step))))
+        rh.append(r.choice([f"{mname(m)}/2.@{60}", f"{mname(m + 2)}/4@{56} {mname(m)}/2@{62}", f"R/4 {mname(m)}/2@{60}"]))
+    room = expand(["rack:piano-room"])
+    out = [track("lh", "piano", " ".join(lh), pan=-0.15, fx=room)]
+    if kind == "piano":
+        return out
+    out.append(track("rh", "piano", " ".join(rh), pan=0.15, fx=room))
+    if kind == "full":
+        out.append(track("strings", pick_patch("strings", "pad"), " ".join(f"{chordhead([k.deg(prog[(b // 2) % len(prog)] + d, 48) for d in (0, 4)])}/2.@{52}" for b in range(8)), gain="-12dB"))
+    return out
+
+
 def gen_downtempo(r, k, prog, kind="main"):
     """Downtempo (Bonobo-ish): a low-passed breakbeat, marimba/kalimba ostinato, finger bass, strings."""
     kit = pick_patch("break-kit", "lofi-kit")
@@ -2686,7 +2713,7 @@ def compose(style, slot, p):
     return names, desc
 
 
-CHILL_STYLES = {"lofihop", "gogo", "ukjazz", "ambient", "downtempo", "smile", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche", "celtic", "doomjazz", "mali", "guofeng", "vaporwave", "slowcore", "backrooms", "cyberscape", "neosoul", "minimal", "fusion", "berlin"}
+CHILL_STYLES = {"lofihop", "gogo", "ukjazz", "ambient", "downtempo", "smile", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche", "celtic", "doomjazz", "mali", "guofeng", "vaporwave", "slowcore", "backrooms", "cyberscape", "neosoul", "minimal", "fusion", "berlin", "satie"}
 HEAVY_STYLES = {"meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep",
                 "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock", "groovemetal", "power", "sludge",
                 "breakcore", "mathcore", "gojira", "djazz", "raga", "gamelan", "koto"}
@@ -2717,6 +2744,9 @@ def _compose_style(style, slot, p):
             "hookE": gen_atmos(r, k, prog, 62, rig("atmos")),
         }
         return _write_parts(slot, "brostep", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
+    if style == "satie":
+        parts = {"riffP": gen_satie(r, k, prog, "piano"), "riff": gen_satie(r, k, prog), "riffB": gen_satie(r, k, prog, "full")}
+        return _write_parts(slot, "satie", parts, f"{NAMES[p['pc']]} {p['mode']}", {"riffP": 24, "riff": 24, "riffB": 24})
     if style == "berlin":
         parts = {"riffI": [t for t in gen_berlin(r, k, prog) if t["name"] == "choir"], "riff": gen_berlin(r, k, prog), "riffB": gen_berlin(r, k, prog, "full"),
                  "riffD": gen_berlin(r, k, prog, "drive"),

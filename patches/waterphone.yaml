@@ -1,0 +1,16 @@
+about: "Waterphone: bowed metal rods over a water-filled resonator — bright inharmonic partials with a slow bowed swell, sloshing pitch wobble and shimmer. Eerie ambient, horror-score scapes."
+synth:
+  layers:
+    - {type: additive, partials: [[1, 1], [2.43, 0.5], [3.91, 0.3], [5.62, 0.18], [7.3, 0.1]], damp: 0.2}
+    - {type: noise, color: pink, level: {value: -50dB, mod: [{src: env.bow, amount: 12}]}}
+  env:
+    bow: {a: 800ms, d: 1s, s: 0.6, r: 1.5s}
+  lfo:
+    slosh: {wave: sine, rate: 0.35hz}
+    slosh2: {wave: sine, rate: 0.13hz}
+  pitch: {value: 0, mod: [{src: lfo.slosh, amount: 0.35}, {src: lfo.slosh2, amount: 0.6}]}
+  filters: ["hp cutoff=300", "lp cutoff=9k"]
+  amp: {a: 900ms, d: 1.5s, s: 0.7, r: 2.5s}
+play: {gate: 1, vel_sens: 0.3}
+fx: ["reverb kind=hall decay=6s mix=0.45 predelay=40ms"]
+gain: -12dB
