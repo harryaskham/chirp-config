@@ -19,6 +19,8 @@ Reference: album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825;
 | v14 | 62.1 | second master EQ stage (tools/mastereq.py on the residual) |
 | v15 | 63.0 | obzen-kit kick A1 → B1 (drum stem chroma B/A/Ab/Bb) |
 | v16 | 63.6 | per-section master EQ on implement-heed and BLEED YOU WILL (filter gains on auto.s3/auto.s4 lanes) |
+| v17 | 64.3 | more ambience: obzen-kit room 0.09 → 0.15, m8-obzen plate 0.06 → 0.10 (drier measured worse) |
+| v18 | 65.0 | chirper-one's sectioneq.py (7-band LS per-section master EQ) on all sections but the bridge |
 
 ## Tried and rejected (don't re-run without a new reason)
 - Guitars: amp gain/scrape/pick-noise for the 'saw' valleys (no effect; pitch glide was the lever); stiffer strings
@@ -27,6 +29,8 @@ Reference: album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825;
 - Bass: m8-bass-dist + parallel sub (56.4 vs bass-fat 57.1); the stem's low-end target is unreliable (Demucs puts
   palm-mute thump into the bass stem) — choose bass in the mix.
 - Drums: full measured EQ (55.1; riffs −5.5) — half moves win; extra overhead width stage (56.0 vs 56.7).
+- Ambience: everything dry (62.5), kit room 0.22 (63.3) — 0.15 is the peak.
+- sectioneq on the bridge: −4.0 (same content-chasing as mastereq's bridge fit).
 - Mastering: 0.5× (60.4) and 1.4× (60.5) of the measured EQ; more stages after v14 (residual 2.2 dB rms is noise-level).
 - Voice: per-syllable pitch from the stem (stemvox --note auto: −0.3, octave slips on shouts); the voice-layer patch
   'kidman' (61.9 / 62.3 level-matched: its clean harmonics put E on the chroma).
