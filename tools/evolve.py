@@ -325,6 +325,34 @@ FORM_VARIANTS = ["base", "base", "extended", "short", "breakheavy", "shuffle"]
 MOD_STEPS = [1, -1, 2, 3, -3, 5, 6, -6]  # half/whole steps, minor thirds, fourth, tritone
 
 
+METRIC = [(3, 2), (2, 3), (4, 3), (3, 4)]
+
+
+def metric_map(ident, meta):
+    """Metric modulation (deterministic per song and chapter): ~a third of chapters change tempo by
+    3:2, 2:3, 4:3 or 3:4 at a section past the first, half of them returning at a later section.
+    Returns (tempo map or None, description)."""
+    rng = random.Random(((ident.get("gen") or {}).get("seed", 0)) * 17 + ident.get("chapter", 0) * 5 + 3)
+    if len(meta) < 3 or rng.random() > 0.33:
+        return None, ""
+    t0 = ident["tempo"]
+    for _ in range(6):
+        a, b = rng.choice(METRIC)
+        if 60 <= t0 * a / b <= 240:
+            break
+    else:
+        return None, ""
+    m = rng.randrange(1, len(meta))
+    starts = [sum(ln for _, ln in meta[:i]) for i in range(len(meta) + 1)]
+    pts = [{"at": 0, "bpm": t0}, {"at": starts[m], "bpm": round(t0 * a / b, 2)}]
+    desc = f", metric {a}:{b} at section {m + 1}"
+    if m + 1 < len(meta) and rng.random() < 0.5:
+        back = rng.randrange(m + 1, len(meta))
+        pts.append({"at": starts[back], "bpm": t0})
+        desc += f" (back at {back + 1})"
+    return pts, desc
+
+
 def modulation(ident, nsec):
     """Within-chapter modulation (deterministic per song and chapter): half of chapters shift every
     pitched part from a section past the first by a brutal interval. Returns (from_index, semitones)."""
@@ -507,8 +535,10 @@ def write_form(name, ident):
                              "revcym": f"{rest(sec_len - 2)} patch={random.choice(revs)} C5/2@88",
                              "tapestop": f"{rest(sec_len - 4)} patch=fx-tapestop C4/1@100"}.get(fx, rest(sec_len)))
     modn = f", modulates {mod_tr:+d} at section {mod_at + 1}" if mod_at is not None else ""
+    tmap, mdesc = metric_map(ident, meta) if ident.get("gen") else (None, "")
+    modn += mdesc
     lines = [f"about: Generated {s['form']}-form song ({ident.get('fv', 'base')}) — {ident['style']} at {ident['tempo']} BPM, {gdesc}, shift {ident['key']:+d}{modn}, chapter {ident.get('chapter', 0) + 1}/{len(chs)}, comp {ident.get('comp', 'glue')}.",
-             f"tempo: {ident['tempo']}", "tracks:"]
+             f"tempo: {json.dumps(tmap) if tmap else ident['tempo']}", "tracks:"]
     for t, items in tracks.items():
         if t == "hook" and FLAVOR_HOOK.get(flavor):
             lines.append("  - " + json.dumps({"name": t, "score": " ".join(items), "fx": composer.expand(FLAVOR_HOOK[flavor])}))
