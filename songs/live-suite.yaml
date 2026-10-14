@@ -10,3 +10,10 @@ master:
 tracks:
   - name: arrangement
     score: "@lv-doom @lv-chug @lv-332 @lv-solo @lv-break"
+    # Duck the music while agents speak (TTS / Cacophony), so speech stays clear.
+    fx:
+      - {type: duck, by: ttskey, depth: -9dB, attack: 15ms, release: 450ms}
+      - {type: duck, by: cacokey, depth: -7dB, attack: 15ms, release: 450ms}
+  # Live speech streams as sidechain keys only (muted: not heard twice).
+  - {name: ttskey, input: tts, mute: true}
+  - {name: cacokey, input: caco, mute: true}
