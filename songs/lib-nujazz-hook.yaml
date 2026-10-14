@@ -1,0 +1,5 @@
+about: "Library part \u2014 nujazz melody (C minor), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "flute", "score": "swing16=0.6 C5/4@86 Eb5/8@89 C5/8@95 D5/4@96 C5/4@87 C6/2@88 Ab5/2@83 G5/4@87 Eb5/8@86 G5/8@91 F5/4@96 Eb5/4@84 D6/2@88 R/2", "pan": 0.1}
