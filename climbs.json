@@ -14,7 +14,12 @@
       "reference": "DOOM: The Dark Ages OST (Finishing Move) — When The Shadows First Lengthened (menu theme), YouTube UOXI5uSPIaQ",
       "owner": "chirp-climb0",
       "metric": "python3 tools/likeness.py sections ref/shadows.wav OUT.wav $(cat tools/shadows-sections.txt)",
-      "best": {"score": 59.2, "version": "v45", "commit": "0ac6a01"},
+      "best": {
+        "score": 59.4,
+        "version": "v47",
+        "commit": "pending",
+        "engine": "afdeb8a (name-stable seeds; v45 re-baselined 59.2 -> 59.4)"
+      },
       "passes": 1,
       "enabled": true
     },

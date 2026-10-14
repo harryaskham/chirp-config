@@ -64,10 +64,11 @@ def temporal(segs):
     for s in segs:
         m = s.mean(1) if s.ndim == 2 else s
         fr = m[: len(m) // 480 * 480].reshape(-1, 480); r = 20 * np.log10(np.sqrt((fr ** 2).mean(1)) + 1e-9)
-        k = int(np.argmax(r)); att.append(k * 10.0)
-        tail = r[k:]; t = np.arange(len(tail)) * 0.01
-        if len(tail) > 5:   # least-squares slope by hand (numpy's lstsq is broken on some hosts)
-            tc = t - t.mean(); dec.append(float((tc * (tail - tail.mean())).sum() / ((tc ** 2).sum() + 1e-12)))
+        k = int(np.argmax(r[:30])); att.append(k * 10.0)        # peak within the first 300 ms
+        # sustain decay: level drop between fixed windows (robust to wandering frame peaks), in dB/s
+        early, late = r[6:21], r[41:62]                          # ~0.10-0.25 s and ~0.45-0.66 s into the window
+        if len(late) > 3:
+            dec.append(float((late.mean() - early.mean()) / (0.01 * ((41 + min(len(r), 62)) / 2 - 13.5))))
         n = 960; frames = m[: len(m) // n * n].reshape(-1, n)
         spec = np.abs(np.fft.rfft(frames * np.hanning(n), axis=1)) ** 2; ff = np.fft.rfftfreq(n, 1 / SR)
         band = 10 * np.log10(spec[:, (ff > 500) & (ff < 4000)].sum(1) + 1e-20)
