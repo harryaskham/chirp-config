@@ -1,0 +1,5 @@
+about: "Library part \u2014 balearic melody (C phrygian-dominant), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "flute", "score": "C5/8@86 F5/16@89 G5/16@95 Ab5/4@96 C5/4@83 R/4 Ab5/4.@84 G5/8@97 F5/2@82 C6/8@89 F6/16@91 G6/16@88 Ab6/4@99 F5/4@89 R/4 Ab5/2@91 R/2", "pan": 0.1}
