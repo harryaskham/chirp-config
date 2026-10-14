@@ -416,6 +416,21 @@ def master_for(ident):
     fx = eq + [verb] + dyn + ([f"gain gain={trim:+.1f}dB"] if trim else []) + [width]
     return json.dumps(fx)
 
+def choir_notes(ident):
+    """The vocoder choir's carrier chord: the song's tonic with its mode's fifth, octave and third."""
+    g = ident.get("gen")
+    if not g:
+        return None
+    k = composer.Key(g["pc"], g["mode"])
+    return ",".join(composer.mname(m + ident.get("key", 0)) for m in (k.deg(0, 48), k.deg(4, 48), k.deg(len(k.iv), 48), k.deg(2, 60)))
+
+
+def set_choir(ident, when="loop"):
+    notes = choir_notes(ident)
+    if notes:  # best effort: a live song without the choir just rejects this edit
+        subprocess.run([C, "live", "set", "--id", "groove", "--when", when, f"tracks.voxchoir.fx.0.notes={notes}"], capture_output=True)
+
+
 def write_form(name, ident):
     s = STYLES[ident["style"]]
     if ident.get("gen"):
@@ -716,6 +731,7 @@ if __name__ == "__main__":
             write_form(name, ident)
             nxt, nxt_ident = name, dict(ident)
             ok = live("set", f"tracks.arrangement.score=@{name}", f"master.fx={master_for(ident)}")
+            set_choir(ident)
             print(time.strftime("%T"), f"pass {li}: next {name} ({change}) {ident['style']} {ident['tempo']}bpm key{ident['key']:+d} riff={ident['riff']} hook={ident['hook']}" + ("" if ok is not None else "  (rejected)"), flush=True)
             save_state(playing=playing, playing_ident=playing_ident, next=nxt, next_ident=nxt_ident, loop_index=li)
         # Steering: apply to the song playing now (cut at the next bar, same position),
@@ -746,6 +762,7 @@ if __name__ == "__main__":
                         gen = (live("status") or {}).get("generation", 0)
                         ok = subprocess.run([C, "live", "set", "--id", "groove", "--when", "bar", "--xfade", "250ms", f"tracks.arrangement.score=@{playing}", f"master.fx={master_for(playing_ident)}"], capture_output=True, text=True).returncode == 0
                         applied = ok and wait_generation(gen)
+                        set_choir(playing_ident, "bar")
                         if cmd.split()[0] == "style":
                             nxt_ident = dict(playing_ident)
                         elif not same:

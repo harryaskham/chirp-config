@@ -14,6 +14,15 @@ tracks:
     fx:
       - {type: duck, by: ttskey, depth: -9dB, attack: 15ms, release: 450ms}
       - {type: duck, by: cacokey, depth: -7dB, attack: 15ms, release: 450ms}
+  # Agent speech re-sung as a robot choir in the song's key (the evolver sets `notes` each pass);
+  # ~0.5 s capture latency makes it a harmonised echo of the dry voice.
+  - name: voxchoir
+    input: tts
+    gain: -8dB
+    fx:
+      - {type: vocoder, notes: "C3,G3,C4,Eb4", bands: 20, noise: 0.12, release: 80ms}
+      - {type: delay, time: 3/16, feedback: 0.35, mix: 0.3, ping_pong: true}
+      - "reverb kind=plate decay=1.8s mix=0.3"
   # Live speech streams as sidechain keys only (muted: not heard twice).
   - {name: ttskey, input: tts, mute: true}
   - {name: cacokey, input: caco, mute: true}
