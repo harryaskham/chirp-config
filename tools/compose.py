@@ -1759,6 +1759,27 @@ def gen_fill(r, k, low=28, kind=None):
     return out
 
 
+def gen_ending(r, k, prog, low=28, kind=None):
+    """Song endings (16 beats): `rock` — the final chord rings over a building drum roll into a
+    last crash; `cut` — three hard hits on the root, then dead silence."""
+    kind = kind or r.choice(["rock", "cut"])
+    t = k.deg(0, low)
+    kit = rig("drums")
+    pc = [t, t + 7, t + 12]
+    if kind == "cut":
+        g = f"expr.pm=0 {chordhead(pc)}/8@124^gate=0.5 R/8 R/4 {chordhead(pc)}/8@124^gate=0.5 R/8 R/4 R/2 {chordhead(pc)}/4@127^gate=0.6 R/4 R/1 R/1"
+        drums = "x/8@120 R/8 R/4 x/8@120 R/8 R/4 R/2 c/4@124 R/4 R/1 R/1"
+        kick = "k/8@122 R/8 R/4 k/8@122 R/8 R/4 R/2 k/4@124 R/4 R/1 R/1"
+        bass = f"{mname(t)}/8@124 R/8 R/4 {mname(t)}/8@124 R/8 R/4 R/2 {mname(t)}/4@127 R/4 R/1 R/1"
+    else:
+        g = f"expr.pm=0 {chordhead(pc)}/1@124^gate=4 _ _ R/1"
+        roll = " ".join(f"{p_}/16@{min(127, 80 + i)}" for i, p_ in enumerate((["t1", "t1", "t2", "t2", "t3", "t3", "ft", "ft"] * 4)))
+        drums = f"c/4@120 R/4 R/2 {roll} c/4@127 R/4 R/2"
+        kick = "k/4@120 R/4 R/2 " + " ".join("k/16@96" if i % 2 == 0 else "R/16" for i in range(32)) + " k/4@124 R/4 R/2"
+        bass = f"{mname(t)}/1@120^gate=4 _ _ R/1"
+    return rhythm_tracks(g) + [track("bass", rig("bass"), bass, seed=7), track("end-d", kit, drums), track("end-k", kit, kick)]
+
+
 # Guest sections: other styles' generators composed in the song's key, slotted into its form.
 GUESTS = {
     "jazz": (lambda r, k, prog, low, gp: gen_mathcore(r, k, prog, low, "jazz"), {"djazz", "mathcore"}),
@@ -1792,6 +1813,9 @@ def compose(style, slot, p):
             write(n, f"guest section ({g}) for {style}", GUESTS[g][0](r, k, p["prog"], 28, gp))
             names[f"riffGuest{i}"] = n
         desc += f", guests {'/'.join(picks)}"
+        n = f"gen-{slot}-riffEnd"
+        write(n, f"ending for {style}", gen_ending(r, k, p["prog"]))
+        names["riffEnd"] = n
         for tag in ("A", "B"):  # two 4-beat fills leading into big sections
             n = f"gen-{slot}-fill{tag}"
             write(n, f"4-beat fill for {style}", gen_fill(r, k), 4)

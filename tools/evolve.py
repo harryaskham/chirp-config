@@ -261,7 +261,7 @@ PASS_MINUTES = 1.0
 ENERGY = {"intro": 0.3, "intro2": 0.45, "verse": 0.6, "verse2": 0.65, "pre": 0.7, "build": 0.7, "chorus": 0.85,
           "drop": 0.95, "heavy": 0.85, "blast": 1.0, "dbeat": 0.85, "groove": 0.7, "shuffle": 0.7, "toms": 0.75,
           "space": 0.4, "break": 0.9, "C": 0.8, "C2": 0.8, "solo": 0.85, "final": 1.0, "outro": 0.35, "coda": 0.3,
-          "A": 0.6, "A2": 0.7, "B": 0.8, "B2": 0.85, "climax": 1.0, "fast": 1.0, "stop": 0.9, "half": 0.75, "bridge": 0.5, "slam": 0.95, "chaos": 1.0, "guest": 0.85}
+          "A": 0.6, "A2": 0.7, "B": 0.8, "B2": 0.85, "climax": 1.0, "fast": 1.0, "stop": 0.9, "half": 0.75, "bridge": 0.5, "slam": 0.95, "chaos": 1.0, "guest": 0.85, "end": 0.9}
 RAMPS = {"pre", "build", "intro2"}
 
 
@@ -322,6 +322,8 @@ def favorite_for(role, ident):
     return f["part"], tr
 
 FORM_VARIANTS = ["base", "base", "extended", "short", "breakheavy", "shuffle"]
+GROOVY = {"numetal", "groovemetal", "djazz", "sludge", "gojira", "hardcore-kl", "industrial"}
+FEELS = ["", "^push=0.015", "^sw=0.56", "^push=0.025", "^sw=0.6"]  # per song: straight, laid back, swung
 MOD_STEPS = [1, -1, 2, 3, -3, 5, 6, -6]  # half/whole steps, minor thirds, fourth, tritone
 
 
@@ -385,6 +387,12 @@ def form_for(ident):
     v = ident.get("fv", "base")
     rng = random.Random(((ident.get("gen") or {}).get("seed", 0)) ^ 0x5F3759DF)
     base = add_guests(ident, base, rng)
+    if ident.get("gen") and ident["style"] in composer.HEAVY_STYLES:  # a real ending, sometimes
+        x = rng.random()
+        if base[-1][0] == "outro" and x < 0.4:
+            base = base[:-1] + [("end", ["riffEnd"], "impact")]
+        elif base[-1][0] == "final" and x < 0.25:
+            base = base + [("end", ["riffEnd"], None)]
     if v == "base" or len(base) < 5:
         return base
     head, tail = base[:1], []
@@ -525,6 +533,8 @@ def write_form(name, ident):
         riff_xf = {"verse2": random.choice(["^rot=0.5", "^rot=1", "^thin=0.2"]), "solo": "^thin=0.35"}.get(sec, "")
         rx = ident.get("xf", {})
         riff_role = next((l for l in layers if l.startswith("riff")), None)
+        if ident["style"] in GROOVY and sec not in ("chaos", "blast", "fast", "guest", "end"):
+            riff_xf += FEELS[((ident.get("gen") or {}).get("seed", 0)) % len(FEELS)]
         part = (ident.get(riff_role) or ident.get("riff")) if riff_role else None
         fav = favorite_for(riff_role, ident) if riff_role else None
         nxt_big = idx + 1 < len(chapter) and chapter[idx + 1][0] in BIG
