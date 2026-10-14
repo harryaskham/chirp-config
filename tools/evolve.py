@@ -216,6 +216,9 @@ STYLES = {
   "balearic": dict(form="balearic", tempo=(96, 112), off=0, riff=["keys-lofi"], riff_off=0, lift=0,
                      low=["beat-sparse"], mid=["beat-lofi"], high=["beat-lofi"], half=["beat-sparse"], brk=["beat-sparse"],
                      hook=["lead-hook"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["pad-swell"]),
+  "chillwave": dict(form="chillwave", tempo=(90, 110), off=0, riff=["keys-lofi"], riff_off=0, lift=0,
+                     low=["beat-sparse"], mid=["beat-lofi"], high=["beat-lofi"], half=["beat-sparse"], brk=["beat-sparse"],
+                     hook=["lead-hook"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["pad-swell"]),
   "tech-death": dict(form="tech-death", tempo=(170, 220), off=0, riff=["riff-chug7"], riff_off=0, lift=0,
                      low=["beat-sparse"], mid=["beat-blast"], high=["beat-blast"], half=["beat-halftime"], brk=["beat-doom"],
                      hook=["lead-solo"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["riff-hold"]),
@@ -382,6 +385,8 @@ FORMS = {
   "tiersen": [("intro", ["riffI"], None), ("A", ["riff"], None), ("B", ["riffB"], None), ("A2", ["riff"], None), ("B2", ["riffB"], None), ("outro", ["riffI"], None)],
   "balearic": [("intro", ["riffI"], None), ("A", ["riff"], None), ("A2", ["riff", "hook"], None), ("B", ["riffB", "hook"], None),
                ("break", ["riffI", "hook"], None), ("B2", ["riffB"], None), ("outro", ["riffI"], None)],
+  "chillwave": [("intro", ["riffI"], None), ("A", ["riff"], None), ("A2", ["riff", "hook"], None), ("B", ["riffB", "hook"], None),
+                ("break", ["riffI", "hook"], None), ("B2", ["riffB"], None), ("outro", ["riffI"], None)],
   "tech-death": [("blast", ["riff"], "impact"), ("blast", ["riffB", "pad"], None), ("dbeat", ["riffD"], "impact"),
                  ("dbeat", ["riffD", "hook"], None), ("groove", ["riffSoft"], "impact"), ("groove", ["riffG", "pad"], None),
                  ("blast", ["riff", "hook"], "impact"), ("break", ["riffBrk"], "impact"), ("break", ["riffBrk", "drone"], None),
@@ -610,7 +615,7 @@ MOD_STEPS = [1, -1, 2, 3, -3, 5, 6, -6]  # half/whole steps, minor thirds, fourt
 
 
 METRIC = [(3, 2), (2, 3), (4, 3), (3, 4)]
-STEADY = {"lofihop", "ambient", "downtempo", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche", "celtic", "doomjazz", "mali", "guofeng", "vaporwave", "slowcore", "neosoul", "minimal", "fusion", "berlin", "satie", "kankyo", "dawnraga", "handpan", "citypop", "lid", "tiersen", "balearic"}  # chill styles that hold key and tempo
+STEADY = {"lofihop", "ambient", "downtempo", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche", "celtic", "doomjazz", "mali", "guofeng", "vaporwave", "slowcore", "neosoul", "minimal", "fusion", "berlin", "satie", "kankyo", "dawnraga", "handpan", "citypop", "lid", "tiersen", "balearic", "chillwave"}  # chill styles that hold key and tempo
 
 
 WARP = {"backrooms"}
@@ -730,7 +735,7 @@ COMP_STYLES = ["glue", "pump", "smash", "parallel", "opto", "tape"]
 # Loudness-matched to glue (measured RMS over the same 48 beats through each master chain).
 FLAVOR_HOOK = {"vintage": ["rack:tape-echo"], "industrial": ["rack:radio"], "space": ["rack:shimmer-hall"], "wide": ["rack:chorus-wide"]}
 STYLE_TRIM = {"darksynth": -2.0, "postmetal": 2.0, "tool": 2.0, "numetal": 1.0, "industrial": -1.5, "power": -1.0, "sludge": 2.0, "mathcore": 1.5, "gojira": 1.0, "raga": -2.0,
-              "lofihop": 3.0, "ambient": 1.5, "house-melodic": -2.0, "chamber": 0.0, "neoclassical": 1.5, "dub": 3.0, "manouche": 3.0, "celtic": 3.0, "doomjazz": 4.0, "guofeng": 3.0, "vaporwave": 3.0, "backrooms": 10.0, "cyberscape": 2.0, "fusion": 3.0, "berlin": 1.0, "satie": 6.0, "kankyo": 6.0, "citypop": 2.0, "triphop": -2.0, "lid": -2.0, "tiersen": 5.0}  # sparse styles sit lower (QA loudness)
+              "lofihop": 3.0, "ambient": 1.5, "house-melodic": -2.0, "chamber": 0.0, "neoclassical": 1.5, "dub": 3.0, "manouche": 3.0, "celtic": 3.0, "doomjazz": 4.0, "guofeng": 3.0, "vaporwave": 3.0, "backrooms": 10.0, "cyberscape": 2.0, "fusion": 3.0, "berlin": 1.0, "satie": 6.0, "kankyo": 6.0, "citypop": 2.0, "triphop": -2.0, "lid": -2.0, "tiersen": 5.0, "chillwave": 3.0}  # sparse styles sit lower (QA loudness)
 COMP_TRIM = {"glue": 0.0, "pump": 6.1, "smash": 3.4, "parallel": 3.2, "opto": 3.3, "tape": -2.1}
 
 def has_patch(name):
@@ -739,7 +744,7 @@ def has_patch(name):
 # Soft one-beat drum fills for chill section ends (on the style's own kit, via the fx track).
 STYLE_KIT = {**{s_: "tight-kit" for s_ in ("lofihop", "triphop", "dub", "ukjazz", "gogo", "neosoul", "fusion", "smile", "downtempo", "house-melodic")},
              **{s_: "brush-kit" for s_ in ("ballad", "doomjazz", "slowcore")},
-             **{s_: "electro-kit" for s_ in ("vaporwave", "citypop", "berlin", "cyberscape")},
+             **{s_: "electro-kit" for s_ in ("vaporwave", "citypop", "berlin", "cyberscape", "chillwave")},
              "balearic": "congas", "mali": "djembe", "celtic": "bodhran", "handpan": "bodhran", "dawnraga": "tabla-kit"}
 SOFT_FILLS = {
     "tight-kit": ["g/16@40 g@52 s@64 s@80", "g/16@44 t2@60 t3@70 ft@82", "g/16@36 g@44 g@54 s@70"],
@@ -1094,12 +1099,12 @@ def journey_load():
         return {"on": False, "h": 0.0, "rate": 0.09, "passes_per_song": 2}
 
 CHILL_MIX = [("lofihop", 0.16), ("gogo", 0.11), ("ukjazz", 0.1), ("ambient", 0.1), ("downtempo", 0.09), ("smile", 0.09),
-             ("house-melodic", 0.08), ("chamber", 0.05), ("triphop", 0.08), ("neoclassical", 0.08), ("ballad", 0.06), ("bossa", 0.07), ("dub", 0.06), ("manouche", 0.05), ("celtic", 0.05), ("doomjazz", 0.05), ("mali", 0.05), ("guofeng", 0.05), ("vaporwave", 0.05), ("slowcore", 0.05), ("backrooms", 0.05), ("cyberscape", 0.05), ("neosoul", 0.06), ("minimal", 0.05), ("fusion", 0.1), ("berlin", 0.05), ("satie", 0.05), ("kankyo", 0.05), ("dawnraga", 0.04), ("handpan", 0.05), ("citypop", 0.05), ("lid", 0.05), ("tiersen", 0.05), ("balearic", 0.05)]
+             ("house-melodic", 0.08), ("chamber", 0.05), ("triphop", 0.08), ("neoclassical", 0.08), ("ballad", 0.06), ("bossa", 0.07), ("dub", 0.06), ("manouche", 0.05), ("celtic", 0.05), ("doomjazz", 0.05), ("mali", 0.05), ("guofeng", 0.05), ("vaporwave", 0.05), ("slowcore", 0.05), ("backrooms", 0.05), ("cyberscape", 0.05), ("neosoul", 0.06), ("minimal", 0.05), ("fusion", 0.1), ("berlin", 0.05), ("satie", 0.05), ("kankyo", 0.05), ("dawnraga", 0.04), ("handpan", 0.05), ("citypop", 0.05), ("lid", 0.05), ("tiersen", 0.05), ("balearic", 0.05), ("chillwave", 0.05)]
 
 
 AMBIENTISH = ["ambient", "ambient", "downtempo", "chamber"]
 DEEP_NIGHT = {"lid", "handpan", "ambient", "satie", "kankyo", "neoclassical", "berlin", "doomjazz", "backrooms", "celtic", "guofeng", "minimal", "chamber", "dawnraga", "slowcore"}
-MORNING = {"balearic", "tiersen", "citypop", "bossa", "lofihop", "gogo", "house-melodic", "neosoul", "manouche", "mali", "ukjazz", "smile", "vaporwave", "fusion", "dub", "dawnraga"}
+MORNING = {"chillwave", "balearic", "tiersen", "citypop", "bossa", "lofihop", "gogo", "house-melodic", "neosoul", "manouche", "mali", "ukjazz", "smile", "vaporwave", "fusion", "dub", "dawnraga"}
 BUSY = {"citypop", "house-melodic", "gogo", "ukjazz", "dub", "neosoul", "vaporwave", "cyberscape", "fusion", "triphop", "mali", "manouche"}
 
 

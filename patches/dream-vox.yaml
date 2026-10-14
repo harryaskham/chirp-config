@@ -1,0 +1,14 @@
+about: "Dream vocals: wordless 'ooh's — a formant-shaped pulse with breath, a slow swell and gentle vibrato, like a choir of faraway voices. Chillwave, dream pop, ambient."
+synth:
+  layers:
+    - {wave: pulse, width: 0.3, level: -4dB}
+    - {wave: saw, cents: 8, level: -10dB}
+    - {type: noise, color: pink, level: -38dB}
+  lfo:
+    vib: {wave: sine, rate: 5hz, delay: 500ms, fade: 600ms}
+  pitch: {value: 0, mod: [{src: lfo.vib, amount: 0.12}]}
+  filters: ["hp cutoff=200", "peak cutoff=350 q=3 gain=10dB", "peak cutoff=800 q=3 gain=6dB", "lp cutoff=1.8k q=0.7"]
+  amp: {a: 350ms, d: 400ms, s: 0.85, r: 600ms}
+play: {gate: 1, vel_sens: 0.3}
+fx: ["chorus rate=0.4 depth=0.4 voices=2 mix=0.5", "reverb kind=hall decay=3.5s mix=0.4 predelay=30ms"]
+gain: -9dB

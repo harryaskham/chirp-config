@@ -1,0 +1,13 @@
+about: "Juno-60-style pad: pulse-width-modulated saws through the famous stereo chorus (I+II) — warm, wide, a little hazy. Chillwave, synth-pop, dream pop."
+synth:
+  layers:
+    - {wave: pulse, width: {value: 0.5, mod: [{src: lfo.pwm, amount: 0.35}]}, level: -4dB}
+    - {wave: saw, level: -8dB}
+    - {wave: pulse, ratio: 0.5, width: 0.5, level: -12dB}
+  lfo:
+    pwm: {wave: triangle, rate: 0.6hz}
+  filters: ["hp cutoff=120", "lp cutoff=3.2k q=0.6"]
+  amp: {a: 300ms, d: 500ms, s: 0.85, r: 700ms}
+play: {gate: 1, vel_sens: 0.3}
+fx: ["chorus rate=0.5 depth=0.45 voices=2 mix=0.55", "chorus rate=0.83 depth=0.3 voices=2 mix=0.35", "reverb kind=hall decay=2.4s mix=0.25"]
+gain: -4dB

@@ -1,0 +1,5 @@
+about: "Library part \u2014 chillwave melody (C dorian), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "synth-lead", "score": "C5/8@85 G4/16@85 Bb4/16@92 Eb5/4@90 C5/2@84 F6/4@84 G6/4@88 Eb6/2@78 C6/8@84 G5/16@93 Bb5/16@89 Eb6/4@93 F5/2@86 Eb5/2@95 R/2", "pan": 0.1}

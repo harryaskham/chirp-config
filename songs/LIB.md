@@ -18,6 +18,8 @@ Use `@NAME` in a score; transpose with `tr=N` (e.g. `tr=-3 @lib-kankyo`).
 | `@lib-bossa` | bossa | 16 |
 | `@lib-celtic-hook` | celtic | 16 |
 | `@lib-celtic` | celtic | 16 |
+| `@lib-chillwave-hook` | chillwave | 16 |
+| `@lib-chillwave` | chillwave | 16 |
 | `@lib-citypop-hook` | citypop | 16 |
 | `@lib-citypop` | citypop | 16 |
 | `@lib-cyberscape-hook` | cyberscape | 16 |
