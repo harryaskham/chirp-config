@@ -106,5 +106,5 @@ tracks:
 master:
   fx:
     - "glue threshold=-14dB ratio=2.5 attack=10ms release=120ms makeup=4dB"
-    - {type: eq, bands: ["lowshelf cutoff=160 gain=9dB"]}   # the huge low end (swept: +9 dB @160 Hz best)
+    - {type: eq, bands: ["lowshelf cutoff=160 gain=6dB"]}   # the huge low end (swept: +9 → +6 dB once the bass parts carried it)
     - {type: width, width: 1.5, mono_below: 150}   # wide mids/highs, mono low end (matched the reference's side/mid per band)
