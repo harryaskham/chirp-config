@@ -943,6 +943,7 @@ if __name__ == "__main__":
                         change += f", mode {m}"
             elif not first or passes > 1:
                 queued = bool(STYLE_QUEUE)
+                forced_fv = None
                 style = STYLE_QUEUE.pop(0) if STYLE_QUEUE else (journey_style(j.get("h", 0), ident["style"], j.get("mode")) if j.get("on") else random.choice([k for k in STYLES if k != ident["style"]]))
                 prev_bpm = ident.get("tempo", 120)
                 fav_songs = []
@@ -950,8 +951,12 @@ if __name__ == "__main__":
                     fav_songs = [f["song"] for f in json.load(open("/home/harry/.config/chirp/tools/favorites.json")) if "song" in f]
                 except Exception:
                     pass
+                if ":" in style:  # queued as STYLE:FORMVARIANT (e.g. meshuggah:breakheavy)
+                    style, forced_fv = style.split(":", 1)
                 for _ in range(8):  # keep tempos moving: at least 14 BPM from the last song
                     cand = identity(style)
+                    if forced_fv:
+                        cand["fv"] = forced_fv
                     if fav_songs and not queued and random.random() < 0.15:  # a favourite returns, moved
                         fs = dict(random.choice(fav_songs))
                         bpm = max(90, min(150, fs["base_tempo"] + random.choice([-16, -10, 10, 16])))
