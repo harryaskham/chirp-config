@@ -719,6 +719,7 @@ MOD_STEPS = [1, -1, 2, 3, -3, 5, 6, -6]  # half/whole steps, minor thirds, fourt
 
 
 METRIC = [(3, 2), (2, 3), (4, 3), (3, 4)]
+METRIC_FUSION = METRIC + [(5, 4), (4, 5), (2, 1), (1, 2)]  # quintuplet-based, double / half time
 STEADY = {"lofihop", "ambient", "downtempo", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche", "celtic", "doomjazz", "mali", "guofeng", "vaporwave", "slowcore", "neosoul", "minimal", "fusion", "berlin", "satie", "kankyo", "dawnraga", "handpan", "citypop", "lid", "tiersen", "balearic", "chillwave", "souljazz", "ethiojazz", "hauntology", "dawnchorus", "beattape", "lofihouse", "amapiano", "liquid", "nujazz", "highlife", "samba", "rumba", "secondline", "exotica", "slowed"}  # chill styles that hold key and tempo
 
 
@@ -739,11 +740,12 @@ def metric_map(ident, meta):
                 pts.append({"at": at + 1, "bpm": round(t0 * (1 + d) * rng.uniform(0.8, 0.9), 2)})
                 pts.append({"at": at + 1.5, "bpm": round(t0 * (1 + d), 2)})
         return pts, ", warped time"
-    if ident["style"] in STEADY or len(meta) < 3 or rng.random() > 0.33:
+    fusion = journey_load().get("mode") == "fusion" and ident["style"] in composer.HEAVY_STYLES
+    if ident["style"] in STEADY or len(meta) < 3 or rng.random() > (0.66 if fusion else 0.33):
         return None, ""
     t0 = ident["tempo"]
     for _ in range(6):
-        a, b = rng.choice(METRIC)
+        a, b = rng.choice(METRIC_FUSION if fusion else METRIC)
         if 60 <= t0 * a / b <= 240:
             break
     else:
