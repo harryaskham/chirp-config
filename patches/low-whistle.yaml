@@ -1,0 +1,16 @@
+about: "Low whistle: a breathy, haunting fipple tone with a soft chiff, delayed vibrato and quick slides — Celtic airs; ornament with ^h grace notes."
+synth:
+  layers:
+    - sine
+    - {wave: triangle, ratio: 2, level: -20dB}
+    - {type: noise, color: pink, level: {value: -38dB, mod: [{src: env.chiff, amount: 14}]}}
+  env:
+    chiff: {a: 3ms, d: 60ms, s: 0.25, r: 80ms}
+  lfo:
+    vib: {wave: sine, rate: 5.3hz, delay: 400ms, fade: 400ms, retrig: true}
+  pitch: {value: 0, mod: [{src: lfo.vib, amount: 0.15}]}
+  filters: ["hp cutoff=300", "lp cutoff=6k"]
+  amp: {a: 25ms, d: 150ms, s: 0.9, r: 140ms}
+play: {mono: true, legato: true, glide: 18ms, gate: 1, vel_sens: 0.4}
+fx: ["reverb kind=hall decay=2.8s mix=0.3 predelay=25ms"]
+gain: -10dB

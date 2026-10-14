@@ -1,0 +1,29 @@
+about: "Bodhrán (Irish frame drum): b deep boom with a pitch drop, t top-end tap, r rim click. Jigs, reels and slow airs."
+play: {len: /8, vel_sens: 0.6, humanize: {time: 4ms, vel: 0.08}}
+gain: 0dB
+fx: ["reverb kind=room decay=0.9s mix=0.15"]
+kit:
+  b:
+    pitch: D2
+    patch:
+      synth:
+        layers: [sine, {type: noise, color: pink, level: {value: -60dB, mod: [{src: env.s, amount: 46}]}}]
+        env:
+          p: {a: 0.5ms, d: 60ms, s: 0}
+          s: {a: 0.5ms, d: 30ms, s: 0}
+        pitch: {value: 0, mod: [{src: env.p, amount: 5}, {src: rand, amount: 0.3}]}
+        filters: ["lp cutoff=2k"]
+        amp: {a: 0.5ms, d: 380ms, s: 0, r: 40ms, curve: 4}
+  t:
+    pitch: A3
+    gain: -4dB
+    patch:
+      synth:
+        layers: [{wave: sine}, {type: noise, level: {value: -60dB, mod: [{src: env.s, amount: 48}]}}]
+        env:
+          s: {a: 0.3ms, d: 15ms, s: 0}
+        filters: ["bp cutoff=900 q=1"]
+        amp: {a: 0.3ms, d: 120ms, s: 0, r: 20ms, curve: 4}
+  r:
+    gain: -8dB
+    patch: {synth: {layers: [{type: noise}], filters: ["hp cutoff=2k"], amp: {a: 0.1ms, d: 25ms, s: 0, r: 10ms}}}

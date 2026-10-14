@@ -59,7 +59,7 @@ STYLE_MODES = {
     "chamber": ["major", "minor", "harmonic", "dorian"],
     "triphop": ["minor", "phrygian", "harmonic"], "neoclassical": ["major", "minor", "lydian", "dorian"], "ballad": ["major", "dorian", "minor"],
     "bossa": ["major", "dorian", "minor", "lydian"], "dub": ["minor", "dorian", "mixolydian"],
-    "manouche": ["harmonic", "minor", "harmonic", "major"],
+    "manouche": ["harmonic", "minor", "harmonic", "major"], "celtic": ["dorian", "mixolydian", "minor", "major"],
     "koto": ["hirajoshi", "hirajoshi", "phrygian"],
     "djazz": ["dorian", "lydian", "harmonic", "minor", "mixolydian"], "industrial": ["phrygian", "minor", "harmonic"], "dnb": ["minor", "phrygian", "dorian"],
     "darksynth": ["minor", "phrygian", "harmonic", "dorian"],
@@ -76,7 +76,7 @@ def have(patch):
     if patch not in _HAVE:
         import os, subprocess
         c = os.environ.get("CHIRP_BIN") or "chirp"
-        _HAVE[patch] = any(subprocess.run([c, "plan", "-p", patch, note], capture_output=True).returncode == 0 for note in ("R/4 C2/4", "k/4", "na/4"))
+        _HAVE[patch] = any(subprocess.run([c, "plan", "-p", patch, note], capture_output=True).returncode == 0 for note in ("R/4", "R/4 C2/4", "k/4", "na/4"))
     return _HAVE[patch]
 
 
@@ -2099,6 +2099,37 @@ def gen_swing_run(r, k, prog, base, patch):
     return [track("hook", patch, "swing=0.64 " + " ".join(out), pan=0.15)]
 
 
+def gen_celtic(r, k, prog, kind="harp"):
+    """Celtic folk-ambient on a triplet (6/8) grid: harp arpeggios on triplet 8ths; kind=drums adds
+    the bodhrán (boom-tap jig pattern with rim accents); kind=intro is drone + harp."""
+    harp = []
+    for root in prog:
+        tones = [k.deg(root + d, 48) for d in (0, 2, 4, 7, 9, 11)]
+        seq = r.choice([tones + tones[::-1], tones[:3] * 2 + tones[3:] * 2, [tones[i] for i in (0, 2, 4, 1, 3, 5, 0, 4, 2, 5, 3, 1)]])
+        harp += [f"{mname(m)}/12@{80 if j % 3 == 0 else 64}" for j, m in enumerate(seq[:12])]
+    out = [track("harp", pick_patch("harp", "nylon"), " ".join(harp), pan=-0.2)]
+    out += [dict(t, gain="-8dB") for t in gen_drone(k, 36, pick_patch("drone", "tanpura"))]
+    if kind == "drums":
+        pat = r.choice(["b..t.tb.tt.r", "b.tt.tb..t.r", "b..b.tt.tb.r"])
+        hits = " ".join({"b": "b/12@96", "t": "t/12@72", "r": "r/12@64", ".": "R/12"}[c] for _ in range(4) for c in pat)
+        out.append(track("bodhran", pick_patch("bodhran", "tight-kit"), hits, pan=0.15))
+    return out
+
+
+def gen_air(r, k, prog, base, patch):
+    """A slow Celtic air: dotted rhythms on the triplet grid, grace-note flicks (^h) into long notes."""
+    out = []
+    for root in prog:
+        d = root + r.choice([0, 2, 4])
+        for ln in r.choice([[6, 3, 3], [3, 3, 6], [9, 3], [6, 6]]):
+            if r.random() < 0.4:
+                out.append(f"{mname(k.deg(d + 1, base))}/12@{70}^h")
+                ln -= 1
+            out.append(f"{mname(k.deg(d, base))}/12@{88}" + " _" * (ln - 1))
+            d += r.choice([-2, -1, 1, 2])
+    return [track("hook", patch, " ".join(out), pan=0.15)]
+
+
 def gen_downtempo(r, k, prog, kind="main"):
     """Downtempo (Bonobo-ish): a low-passed breakbeat, marimba/kalimba ostinato, finger bass, strings."""
     kit = pick_patch("break-kit", "lofi-kit")
@@ -2136,6 +2167,7 @@ GUESTS = {
 CHILL_GUESTS = {
     "ballad": (lambda r, k, prog: gen_ballad(r, k, prog), {"ballad"}),
     "bossa": (lambda r, k, prog: gen_bossa(r, k, prog), {"bossa"}),
+    "celtic": (lambda r, k, prog: gen_celtic(r, k, prog, "drums") + gen_air(r, k, prog, 72, pick_patch("low-whistle", "flute")), {"celtic"}),
     "manouche": (lambda r, k, prog: gen_manouche(r, k, prog) + gen_swing_run(r, k, prog, 64, pick_patch("accordion", "clarinet")), {"manouche"}),
     "neo": (lambda r, k, prog: gen_neoclassical(r, k, prog), {"neoclassical", "chamber"}),
     "ambient": (lambda r, k, prog: gen_ambient(r, k, prog, "A"), {"ambient"}),
@@ -2181,7 +2213,7 @@ def compose(style, slot, p):
     return names, desc
 
 
-CHILL_STYLES = {"lofihop", "gogo", "ukjazz", "ambient", "downtempo", "smile", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche"}
+CHILL_STYLES = {"lofihop", "gogo", "ukjazz", "ambient", "downtempo", "smile", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche", "celtic"}
 HEAVY_STYLES = {"meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep",
                 "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock", "groovemetal", "power", "sludge",
                 "breakcore", "mathcore", "gojira", "djazz", "raga", "gamelan", "koto"}
@@ -2212,6 +2244,11 @@ def _compose_style(style, slot, p):
             "hookE": gen_atmos(r, k, prog, 62, rig("atmos")),
         }
         return _write_parts(slot, "brostep", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
+    if style == "celtic":
+        lead = pick_patch("low-whistle", "flute")
+        parts = {"riffI": gen_celtic(r, k, prog, "intro"), "riff": gen_celtic(r, k, prog), "riffB": gen_celtic(r, k, prog, "drums"),
+                 "hook": gen_air(r, k, prog, 72, lead), "hookB": gen_air(r, k, prog, 72, lead)}
+        return _write_parts(slot, "celtic", parts, f"{NAMES[p['pc']]} {p['mode']}")
     if style == "manouche":
         lead = pick_patch(r.choice(["violins", "clarinet", "accordion"]), "violins")
         parts = {"riffG": gen_manouche(r, k, prog, "guitar"), "riff": gen_manouche(r, k, prog), "riffB": gen_manouche(r, k, prog),
