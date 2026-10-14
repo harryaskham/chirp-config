@@ -42,6 +42,16 @@
       "fx": [
         "glue threshold=-14dB ratio=2.5 attack=10ms release=120ms makeup=4dB",
         {
+          "type": "eq",
+          "bands": [
+            "peak cutoff=53 q=1.2 gain=-5.0dB",
+            "peak cutoff=105 q=0.9 gain=5.0dB",
+            "peak cutoff=430 q=0.8 gain=-7.0dB",
+            "peak cutoff=2700 q=1 gain=6.0dB",
+            "highshelf cutoff=12000 gain=-3.0dB"
+          ]
+        },
+        {
           "type": "filter",
           "kind": "lp",
           "cutoff": {
