@@ -45,18 +45,32 @@
   {
    "name": "bass",
    "track": 4,
-   "patch": "m8-bass-dist",
+   "patch": "bass",
    "bars": [
     [
      1,
      400
     ]
-   ]
+   ],
+   "chord": "low"
+  },
+  {
+   "name": "bass-up",
+   "track": 4,
+   "patch": "bass",
+   "bars": [
+    [
+     1,
+     400
+    ]
+   ],
+   "chord": "upper",
+   "gain": "-12dB"
   },
   {
    "name": "bassfx",
    "track": 3,
-   "patch": "pick-bass",
+   "patch": "bass",
    "bars": [
     [
      1,
@@ -64,6 +78,7 @@
     ]
    ],
    "gain": "-8dB",
+   "chord": "low",
    "extra": {
     "sends": {
      "hall": "-6dB"

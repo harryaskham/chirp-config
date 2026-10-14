@@ -16,6 +16,8 @@ MAP.json:
       "remap": {"t3": "ft"}, "drop": ["m98"], "extra": {…}}    # extra: more track keys, verbatim
    ]}
 
+A part's "chord": "low" keeps only the lowest note of every chord (a root/pedal layer), "upper" keeps the rest
+(double-stops split into two parts with their own level and tone); single notes stay with "low".
 Corrections measured against the recording (tools/scorealign.py): "bpm": {"37": 113.5, …} sets the tempo from
 measure M on (until the next entry; earlier measures keep the tab's tempo), and "skip": [[285, 288], …] removes
 measures the recording does not play (from the timeline and every part).
@@ -74,7 +76,35 @@ def fit_bar(line, want):
 FITTED = []
 
 
-def part_score(lines, beats, ranges, offset_beats, remap=None, drop=(), label=""):
+NOTE_RE = re.compile(r"^([A-Ga-g][#sb]?-?\d)$")
+
+
+def split_chords(line, mode):
+    """Keep the lowest note of each chord ("low") or the notes above it ("upper"); chordless notes stay in
+    "low" and rest in "upper"."""
+    def key(n):
+        m = re.match(r"([A-Ga-g])([#sb]?)(-?\d+)", n)
+        base = {"c": 0, "d": 2, "e": 4, "f": 5, "g": 7, "a": 9, "b": 11}[m.group(1).lower()]
+        acc = {"#": 1, "s": 1, "b": -1}.get(m.group(2), 0)
+        return int(m.group(3)) * 12 + base + acc
+    out = []
+    for tok in line.split():
+        m = re.match(r"^([^/]+)(/.*)$", tok)
+        if not m or m.group(1) in ("R", "r", "_", "-", ".") or "=" in tok:
+            out.append(tok); continue
+        notes = m.group(1).split(",")
+        if not all(NOTE_RE.match(n) for n in notes):
+            out.append(tok); continue
+        notes.sort(key=key)
+        keep = notes[:1] if mode == "low" else notes[1:]
+        if keep:
+            out.append(",".join(keep) + m.group(2))
+        else:   # nothing above the root: a rest of the same length (articulations dropped)
+            out.append("R" + re.sub(r"^(/[^@^]*).*$", r"\1", m.group(2)))
+    return " ".join(out)
+
+
+def part_score(lines, beats, ranges, offset_beats, remap=None, drop=(), label="", chord=None):
     """Bars inside `ranges` keep their tab line (fitted to the bar length); everything else rests. Consecutive
     identical bars collapse to [bar]xN; consecutive rests merge."""
     on = set()
@@ -87,6 +117,8 @@ def part_score(lines, beats, ranges, offset_beats, remap=None, drop=(), label=""
         if i in on and line.strip() and any(not t.startswith("R") for t in line.split()):
             if remap or drop:
                 line = remap_drums(line, remap or {}, set(drop))
+            if chord:
+                line = split_chords(line, chord)
             line, have = fit_bar(line, nb)
             if abs(have - nb) >= 1e-4:
                 FITTED.append((label, i, round(have, 4), nb))
@@ -183,7 +215,7 @@ def build(mp):
             kept = [pos[m] for m in range(a, b + 1) if m in pos]
             if kept:
                 ranges.append((min(kept), max(kept)))
-        sc = part_score(lines_cache[p["track"]], beats, ranges, off_beats, p.get("remap"), p.get("drop", ()), p["name"])
+        sc = part_score(lines_cache[p["track"]], beats, ranges, off_beats, p.get("remap"), p.get("drop", ()), p["name"], p.get("chord"))
         tr = {"name": p["name"], "patch": p["patch"]}
         for k in ("gain", "pan"):
             if k in p:
