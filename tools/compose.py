@@ -2042,9 +2042,31 @@ GUESTS = {
 }
 
 
+CHILL_GUESTS = {
+    "ballad": (lambda r, k, prog: gen_ballad(r, k, prog), {"ballad"}),
+    "neo": (lambda r, k, prog: gen_neoclassical(r, k, prog), {"neoclassical", "chamber"}),
+    "ambient": (lambda r, k, prog: gen_ambient(r, k, prog, "A"), {"ambient"}),
+    "lofi": (lambda r, k, prog: gen_lofi(r, k, prog), {"lofihop"}),
+    "cycles": (lambda r, k, prog: gen_cycles(r, k, prog), {"house-melodic"}),
+    "triphop": (lambda r, k, prog: gen_triphop(r, k, prog), {"triphop"}),
+}
+
+
 def compose(style, slot, p):
     """Compose the style's parts, plus two guest sections from other styles (riffGuest1/2, same key)."""
     names, desc = _compose_style(style, slot, p)
+    if style in CHILL_STYLES:
+        r = random.Random(p["seed"] + 1)
+        k = Key(p["pc"], p["mode"])
+        pool = [g for g, (_, homes) in CHILL_GUESTS.items() if style not in homes]
+        if style in ("chamber", "neoclassical", "ambient"):  # drumless pieces borrow only drumless guests
+            pool = [g for g in pool if g in ("neo", "ambient")] or ["neo"]
+        picks = r.sample(pool, min(2, len(pool))) + (["neo"] if len(pool) < 2 else [])
+        for i, g in enumerate(picks, 1):
+            n = f"gen-{slot}-riffGuest{i}"
+            write(n, f"chill guest section ({g}) for {style}", CHILL_GUESTS[g][0](r, k, p["prog"]))
+            names[f"riffGuest{i}"] = n
+        desc += f", guests {'/'.join(picks)}"
     if style in HEAVY_STYLES:
         r = random.Random(p["seed"] + 1)  # separate stream: the style's own parts stay as they were
         k = Key(p["pc"], p["mode"])

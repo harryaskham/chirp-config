@@ -294,7 +294,8 @@ def identity(style=None):
     bpm = random.randrange(s["tempo"][0], s["tempo"][1] + 1, 2)
     if style in composer.CHILL_STYLES:
         return dict(style=style, tempo=bpm, base_tempo=bpm, chapter=0, key=0, gen=composer.params(style), comp=random.choice(["opto", "tape", "glue"]),
-                    fv="base", **{r: pick(s, r) for r in ["riff", "low", "mid", "high", "half", "brk", "hook", "pad", "soft", "arp", "hold"]})
+                    fv=random.choice(["base", "base", "extended", "short", "shuffle"]),
+                    **{r: pick(s, r) for r in ["riff", "low", "mid", "high", "half", "brk", "hook", "pad", "soft", "arp", "hold"]})
     return dict(style=style, tempo=bpm, base_tempo=bpm, chapter=0, key=0, gen=composer.params(style), comp=random.choice(COMP_STYLES),
                 fv=random.choice(FORM_VARIANTS) if style not in composer.CHILL_STYLES else "base",
                 **{r: pick(s, r) for r in ["riff", "low", "mid", "high", "half", "brk", "hook", "pad", "soft", "arp", "hold"]})
@@ -482,7 +483,9 @@ KEEP_END = {"final", "outro", "coda", "climax"}
 def add_guests(ident, form, rng):
     """Slot guest sections (other styles' generators in this song's key) into the middle of the form:
     ~60% of songs get one, some of those two."""
-    if not ident.get("gen") or ident["style"] not in composer.HEAVY_STYLES or len(form) < 4:
+    if not ident.get("gen") or ident["style"] not in (composer.HEAVY_STYLES | composer.CHILL_STYLES) or len(form) < 4:
+        return form
+    if ident["style"] in ("ukjazz",):  # odd-meter sections: guests (16 beats) would not fit its lengths
         return form
     x = rng.random()
     n = 0 if x < 0.4 else (1 if x < 0.85 else 2)
