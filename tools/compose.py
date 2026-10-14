@@ -2100,6 +2100,31 @@ def swap_plan(desc):
     return plan
 
 
+def drum_enrich(t, r):
+    """Heavy kits: soft ghost snares in isolated 16th rests (12%), hat strokes varied across
+    h/h1/h2/h3 (~30%), ride hits moved to the shank (~25%). Plain 16th tokens only."""
+    p = t.get("patch", "")
+    name = t.get("name", "")
+    if p not in ("metal-kit", "metal-kit-dry", "prog-kit") or not any(w in name for w in ("snare", "cym", "hat")):
+        return t
+    toks = t["score"].split()
+    pre = []
+    while toks and "=" in toks[0] and "/" not in toks[0]:
+        pre.append(toks.pop(0))
+    out = []
+    for i, tok in enumerate(toks):
+        if "snare" in name and tok == "R/16" and 0 < i < len(toks) - 1 and toks[i - 1] == "R/16" and toks[i + 1] == "R/16" and r.random() < 0.12:
+            out.append(f"g/16@{r.choice([24, 28, 32, 38])}")
+            continue
+        m = re.match(r"^(h|rd)/16(@\d+)?$", tok)
+        if m and m.group(1) == "h" and r.random() < 0.3:
+            out.append(tok.replace("h/16", r.choice(["h1", "h2", "h3"]) + "/16", 1)); continue
+        if m and m.group(1) == "rd" and r.random() < 0.25:
+            out.append(tok.replace("rd/16", "rds/16", 1)); continue
+        out.append(tok)
+    return dict(t, score=" ".join(pre + out))
+
+
 def _write_parts(slot, style, parts, desc, beats=None):
     names = {}
     parts = dict(parts)
@@ -2117,6 +2142,10 @@ def _write_parts(slot, style, parts, desc, beats=None):
                 dbl, tr_ = dr.choice([(pick_patch("cellos", "strings"), -12), (pick_patch("horn", "strings"), -12), (pick_patch("flute", "vibes"), 12)])
             parts[role] = parts[role] + [dict(t, name=t["name"] + "-dbl", patch=dbl, score=f"tr={tr_} " + t["score"], gain="-8dB", pan=-float(t.get("pan", 0) or 0))
                                          for t in parts[role] if isinstance(t.get("patch"), str) and "kit" not in t["patch"]]
+    if style in HEAVY_STYLES:
+        import zlib
+        er = random.Random(zlib.crc32(f"enrich{desc}".encode()))
+        parts = {role: (tr if any(b in role for b in ("Bl", "Blast", "Grav")) else [drum_enrich(t, er) for t in tr]) for role, tr in parts.items()}
     if style in CHILL_STYLES:
         sw = swap_plan(f"{style}{desc}")
         if sw:
@@ -4289,8 +4318,12 @@ def _compose_style(style, slot, p):
         }
         desc = f"{NAMES[p['pc']]} {p['mode']}, cycles {'/'.join(f'{c}/16' for c in cycles)}, rigs {p.get('rigset', 'modern')}"
         names = {}
+        import zlib
+        er = random.Random(zlib.crc32(f"enrich{desc}".encode()))
         for role, tr in parts.items():
             n = f"gen-{slot}-{role}"
+            if "Bl" not in role:
+                tr = [drum_enrich(t, er) for t in tr]
             write(n, f"{role} for meshuggah in {desc}", tr)
             names[role] = n
         return names, desc
