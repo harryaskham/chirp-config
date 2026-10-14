@@ -2247,8 +2247,18 @@ def drum_enrich(t, r):
     while toks and "=" in toks[0] and "/" not in toks[0]:
         pre.append(toks.pop(0))
     out = []
+    ghost_p = 0.2 if FUSION else 0.12
+    cycle = r.choice([3, 5]) if FUSION and ("cym" in name or "hat" in name) else None
+    step = 0
     for i, tok in enumerate(toks):
-        if "snare" in name and tok == "R/16" and 0 < i < len(toks) - 1 and toks[i - 1] == "R/16" and toks[i + 1] == "R/16" and r.random() < 0.12:
+        if cycle:  # polyrhythmic accents across a 16th hat / ride stream (3s or 5s against the 4/4)
+            m16 = re.match(r"^(h|h1|h2|h3|rd|rds)/16@(\d+)$", tok)
+            if m16:
+                v = int(m16.group(2))
+                tok = f"{m16.group(1)}/16@{min(127, v + 22) if step % cycle == 0 else max(30, v - 12)}"
+            if re.match(r"^[A-Za-z]+[0-9]?/16", tok) or tok == "R/16":
+                step += 1
+        if "snare" in name and tok == "R/16" and 0 < i < len(toks) - 1 and toks[i - 1] == "R/16" and toks[i + 1] == "R/16" and r.random() < ghost_p:
             out.append(f"g/16@{r.choice([24, 28, 32, 38])}")
             continue
         m = re.match(r"^(h|rd)/(8|16)(@\d+)?$", tok)
