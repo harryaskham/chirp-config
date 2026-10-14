@@ -230,8 +230,11 @@ def sectioned(ref, cand, bounds):
                 w.writeframes((np.clip(seg, -1, 1) * 32767).astype("<i2").tobytes())
             r = compare(ref, tf.name, ref_start=a, ref_end=b)
         os.unlink(tf.name)
-        out.append({"start": a, "end": b, **{k: r[k] for k in ("total", "loudness", "spectral", "chroma", "rhythm", "ltas", "stereo")}})
-        wsum += b - a; tsum += r["total"] * (b - a)
+        # the tempo term is meaningless on a short, sparse section (the onset autocorrelation jumps between beat
+        # multiples) — score sections without it, renormalised
+        tot = (r["total"] - 0.05 * r["tempo"]) / 0.95
+        out.append({"start": a, "end": b, "total": round(tot, 1), **{k: r[k] for k in ("loudness", "spectral", "chroma", "rhythm", "ltas", "stereo", "tempo")}})
+        wsum += b - a; tsum += tot * (b - a)
     return {"total": round(tsum / wsum, 1), "sections": out}
 
 
