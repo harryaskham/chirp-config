@@ -257,15 +257,9 @@
   },
   {
    "name": "vox",
-   "track": 0,
-   "patch": "dream-vox",
-   "bars": [
-    [
-     1,
-     400
-    ]
-   ],
-   "gain": "-4dB",
+   "patch": "maynard",
+   "raw": "tools/maps/pneuma-vox.json#vox",
+   "gain": "-6dB",
    "extra": {
     "sends": {
      "hall": "-8dB"
