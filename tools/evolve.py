@@ -1043,6 +1043,7 @@ def set_choir(ident, when="loop", variant=0):
     return name if r.returncode == 0 else f"{name}(rejected: {r.stderr.strip()[-80:]})"
 
 
+HARMONY = {}  # form name → its chapter's harmony string (set on the live suite so status shows the chord)
 NOTE_NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"]
 
 
@@ -1192,6 +1193,7 @@ def write_form(name, ident):
     tmap, mdesc = metric_map(ident, meta) if ident.get("gen") else (None, "")
     modn += mdesc
     harm = harmony_for(ident, meta)
+    HARMONY[name] = harm
     lines = [f"about: Generated {s['form']}-form song ({ident.get('fv', 'base')}) — {ident['style']} at {ident['tempo']} BPM, {gdesc}, shift {ident['key']:+d}{modn}, chapter {ident.get('chapter', 0) + 1}/{len(chs)}, comp {ident.get('comp', 'glue')}.",
              f"tempo: {json.dumps(tmap) if tmap else ident['tempo']}"] + ([f"harmony: {json.dumps(harm)}"] if harm else []) + ["tracks:"]
     for t, items in tracks.items():
@@ -1538,7 +1540,12 @@ if __name__ == "__main__":
             composer.LITE = load > 0.8  # little render headroom: write the next song without optional layers
             write_form(name, ident)
             nxt, nxt_ident = name, dict(ident)
-            ok = live("set", f"tracks.arrangement.score=@{name}", f"master.fx={master_for(ident)}")
+            sets = [f"tracks.arrangement.score=@{name}", f"master.fx={master_for(ident)}"]
+            if HARMONY.get(name):
+                sets.append("harmony=" + json.dumps(HARMONY[name]))
+            ok = live("set", *sets)
+            if ok is None and len(sets) > 2:  # a build without top-level harmony edits: keep the pass
+                ok = live("set", *sets[:2])
             vx = set_choir(ident)
             if change.startswith("new song") and random.random() < TAPESTOP.get(old_style, 0):
                 globals()["_ts_arm"] = li  # this pass ends the old song: tape-stop into the next
