@@ -78,6 +78,9 @@ STYLES = {
   "deathcore":  dict(form="deathcore", tempo=(130, 170), off=0, riff=["riff-chug5"], riff_off=0, lift=0,
                      low=["beat-sparse"], mid=["beat-djent"], high=["beat-djent"], half=["beat-halftime"], brk=["beat-doom"],
                      hook=["lead-solo"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["riff-hold"]),
+  "postmetal":  dict(form="postmetal", tempo=(60, 84), off=0, riff=["riff-taps"], riff_off=0, lift=0,
+                     low=["beat-sparse"], mid=["beat-lofi"], high=["beat-lofi"], half=["beat-sparse"], brk=["beat-sparse"],
+                     hook=["lead-hook"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["pad-swell"]),
   "postrock":   dict(form="postrock", tempo=(100, 130), off=0, riff=["riff-taps"], riff_off=0, lift=0,
                      low=["beat-sparse"], mid=["beat-djent"], high=["beat-djent"], half=["beat-halftime"], brk=["beat-doom"],
                      hook=["lead-solo"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["riff-hold"]),
@@ -245,6 +248,9 @@ FORMS = {
                 ("groove", ["riffG"], "impact"), ("groove", ["riffG", "pad"], None), ("break", ["riffBd"], "impact"), ("slam", ["riffSlam"], None),
                 ("blast", ["riff", "pad"], "impact"), ("break", ["riffBd", "pad"], "impact"), ("final", ["riffSlam", "pad"], "impact"),
                 ("outro", ["soft", "drone"], "revcym")],
+  "postmetal": [("intro", ["riffClean"], None), ("build", ["riffToms", "hookE"], "riser"), ("A", ["riffCrush"], "impact"),
+                ("A2", ["riffCrush", "hookT"], None), ("break", ["riffClean", "hookE"], "revcym"), ("build", ["riffToms"], "riser"),
+                ("climax", ["riffWall"], "impact"), ("climax", ["riffWall", "hookT"], None), ("outro", ["riffClean"], "revcym")],
   "postrock": [("intro", ["riffClean"], None), ("intro2", ["riffClean", "hookE"], None), ("A", ["riffSoft"], None), ("A2", ["riffH", "hookE"], None),
                ("build", ["riffUp"], "riser"), ("climax", ["riff", "hook"], "impact"), ("climax", ["riff", "hookE"], None),
                ("break", ["riffClean"], "revcym"), ("build", ["riffUp"], "riser"), ("final", ["riff", "hook"], "impact"), ("outro", ["riffClean"], "revcym")],
@@ -616,7 +622,7 @@ def chapters(ident):
 COMP_STYLES = ["glue", "pump", "smash", "parallel", "opto", "tape"]
 # Loudness-matched to glue (measured RMS over the same 48 beats through each master chain).
 FLAVOR_HOOK = {"vintage": ["rack:tape-echo"], "industrial": ["rack:radio"], "space": ["rack:shimmer-hall"], "wide": ["rack:chorus-wide"]}
-STYLE_TRIM = {"tool": 2.0, "numetal": 1.0, "industrial": -1.5, "power": -1.0, "sludge": 2.0, "mathcore": 1.5, "gojira": 1.0, "raga": -2.0,
+STYLE_TRIM = {"postmetal": 2.0, "tool": 2.0, "numetal": 1.0, "industrial": -1.5, "power": -1.0, "sludge": 2.0, "mathcore": 1.5, "gojira": 1.0, "raga": -2.0,
               "lofihop": 3.0, "ambient": 1.5, "house-melodic": -2.0, "chamber": 0.0, "neoclassical": 1.5, "dub": 3.0, "manouche": 3.0, "celtic": 3.0, "doomjazz": 4.0, "guofeng": 3.0, "vaporwave": 3.0, "backrooms": 8.0}  # sparse styles sit lower (QA loudness)
 COMP_TRIM = {"glue": 0.0, "pump": 6.1, "smash": 3.4, "parallel": 3.2, "opto": 3.3, "tape": -2.1}
 
@@ -864,7 +870,7 @@ def write_form(name, ident):
 TOOLS = "/home/harry/.config/chirp/tools"
 JOURNEY = f"{TOOLS}/journey.json"
 # How heavy each style is (0 lofi … 1 djent).
-HEAVY = {"raga": 0.9, "gamelan": 0.9, "koto": 0.9, "djazz": 0.9, "gojira": 1.0, "mathcore": 1.0, "sludge": 0.95, "breakcore": 0.9, "power": 0.9, "groovemetal": 0.95, "deathcore": 1.0, "postrock": 0.6, "numetal": 0.9, "industrial": 0.85, "dnb": 0.8, "blackgaze": 0.95, "darksynth": 0.8, "hardcore-kl": 1.0, "brostep": 0.8, "thrash": 0.9, "tool": 0.9, "tech-death": 1.0, "meshuggah": 1.0, "lofi": 0.0, "classical": 0.05, "house": 0.2, "garage": 0.25, "poly": 0.35, "prog-clean": 0.4, "acid": 0.45,
+HEAVY = {"raga": 0.9, "gamelan": 0.9, "koto": 0.9, "djazz": 0.9, "gojira": 1.0, "mathcore": 1.0, "sludge": 0.95, "breakcore": 0.9, "power": 0.9, "groovemetal": 0.95, "deathcore": 1.0, "postrock": 0.6, "postmetal": 0.9, "numetal": 0.9, "industrial": 0.85, "dnb": 0.8, "blackgaze": 0.95, "darksynth": 0.8, "hardcore-kl": 1.0, "brostep": 0.8, "thrash": 0.9, "tool": 0.9, "tech-death": 1.0, "meshuggah": 1.0, "lofi": 0.0, "classical": 0.05, "house": 0.2, "garage": 0.25, "poly": 0.35, "prog-clean": 0.4, "acid": 0.45,
          "idm": 0.55, "doom-ambient": 0.6, "hardcore": 0.7, "djent-breakdown": 0.85, "djent": 1.0}
 
 STYLE_QUEUE = []
@@ -884,7 +890,7 @@ AMBIENTISH = ["ambient", "ambient", "downtempo", "chamber"]
 
 HEAVY_MIX = [("meshuggah", 0.26), ("hardcore-kl", 0.1), ("tech-death", 0.09), ("thrash", 0.09), ("tool", 0.09), ("djent", 0.07),
              ("brostep", 0.07), ("blackgaze", 0.06), ("darksynth", 0.04), ("numetal", 0.05), ("industrial", 0.05), ("dnb", 0.03),
-             ("deathcore", 0.06), ("postrock", 0.03), ("groovemetal", 0.05), ("power", 0.04), ("sludge", 0.04), ("breakcore", 0.03),
+             ("deathcore", 0.06), ("postrock", 0.03), ("postmetal", 0.05), ("groovemetal", 0.05), ("power", 0.04), ("sludge", 0.04), ("breakcore", 0.03),
              ("mathcore", 0.04), ("gojira", 0.06), ("djazz", 0.05), ("raga", 0.04), ("gamelan", 0.03), ("koto", 0.03)]
 
 
