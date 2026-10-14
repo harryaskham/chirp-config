@@ -342,6 +342,59 @@ def filter_lane(meta):
     return pts
 
 
+def texture(style, meta):
+    """Evolving timbre lanes for a chill chapter's riff track: LFOs and automation over effect
+    parameters (wow, breathing filters, wearing tape grit, reverb tides, filter sweeps).
+    Returns {lfo, auto, fx}."""
+    total = sum(ln for _, ln in meta) or 16
+    ramp = lambda a, b: {"points": [["0b", a], [f"{total:g}b", b]]}
+    sweep = {"points": [[f"{sum(ln for _, ln in meta[:i]):g}b", 0.0 if sec in ("break", "build", "intro") else 1.0] for i, (sec, _) in enumerate(meta)]
+                       + [[f"{total:g}b", 1.0]]}
+    breathe = lambda hz, base, amt: ({"br": {"wave": "sine", "rate": f"{hz}hz"}},
+                                     {"type": "filter", "kind": "lp", "cutoff": {"value": base, "mod": [{"src": "lfo.br", "amount": amt}]}})
+    wow = {"type": "chorus", "rate": 0.55, "depth": 0.22, "voices": 1, "mix": 1.0}
+    T = {}
+    if style == "lofihop":
+        lfo, flt = breathe(0.07, 3800, 0.9)
+        T = {"lfo": lfo, "auto": {"grit": ramp(0.05, 0.45)},
+             "fx": [wow, flt, {"type": "crush", "bits": 10, "rate": 12000, "mix": {"value": 0, "mod": [{"src": "auto.grit", "amount": 0.6}]}}]}
+    elif style == "ambient":
+        lfo, flt = breathe(0.04, 5000, 1.0)
+        lfo["tide"] = {"wave": "sine", "rate": "0.03hz"}
+        T = {"lfo": lfo, "fx": [flt, {"type": "chorus", "rate": 0.2, "depth": 0.5, "voices": 2, "mix": {"value": 0.25, "mod": [{"src": "lfo.tide", "amount": 0.2}]}},
+                                {"type": "reverb", "kind": "hall", "decay": "6s", "predelay": "40ms", "low_cut": 200, "mix": {"value": 0.3, "mod": [{"src": "lfo.tide", "amount": 0.18}]}}]}
+    elif style == "gogo":
+        T = {"auto": {"open": ramp(0.55, 1.0)},
+             "fx": [{"type": "filter", "kind": "lp", "cutoff": {"value": 900, "mod": [{"src": "auto.open", "amount": 4.5}]}},
+                    {"type": "tape", "drive": {"value": 0.1, "mod": [{"src": "auto.open", "amount": 0.25}]}, "warmth": 0.4}]}
+    elif style == "ukjazz":
+        T = {"lfo": {"warm": {"wave": "sine", "rate": "0.05hz"}},
+             "fx": [{"type": "tape", "drive": {"value": 0.25, "mod": [{"src": "lfo.warm", "amount": 0.15}]}, "warmth": 0.6},
+                    {"type": "chorus", "rate": 0.4, "depth": 0.3, "voices": 2, "mix": {"value": 0.2, "mod": [{"src": "lfo.warm", "amount": 0.15}]}}]}
+    elif style == "downtempo":
+        lfo, flt = breathe(0.06, 4500, 0.8)
+        lfo["dub"] = {"wave": "sine", "rate": "0.04hz"}
+        T = {"lfo": lfo, "fx": [flt, {"type": "delay", "time": "3/16", "ping_pong": True, "tone": 2500,
+                                      "feedback": {"value": 0.3, "mod": [{"src": "lfo.dub", "amount": 0.2}]}, "mix": {"value": 0.12, "mod": [{"src": "lfo.dub", "amount": 0.1}]}}]}
+    elif style == "smile":
+        T = {"lfo": {"fb": {"wave": "sine", "rate": "0.05hz"}},
+             "fx": [dict(wow, depth=0.12), {"type": "delay", "time": "1/4", "tone": 2400, "feedback": {"value": 0.3, "mod": [{"src": "lfo.fb", "amount": 0.25}]},
+                                            "mix": {"value": 0.12, "mod": [{"src": "lfo.fb", "amount": 0.08}]}}]}
+    elif style == "house-melodic":
+        lfo, flt = breathe(0.08, 6000, 0.8)
+        T = {"lfo": lfo, "auto": {"hpf": {"points": [[p_[0], 1 - p_[1]] for p_ in sweep["points"]]}},
+             "fx": [{"type": "filter", "kind": "hp", "cutoff": {"value": 30, "mod": [{"src": "auto.hpf", "amount": 4.5}]}}, flt]}
+    elif style == "chamber":
+        T = {"lfo": {"hall": {"wave": "sine", "rate": "0.02hz"}},
+             "fx": [{"type": "reverb", "kind": "hall", "decay": "3.2s", "predelay": "30ms", "low_cut": 150, "mix": {"value": 0.18, "mod": [{"src": "lfo.hall", "amount": 0.08}]}}]}
+    return T
+
+
+HOOK_LIVE = {"lfo": {"fbk": {"wave": "sine", "rate": "0.04hz"}},
+             "fx": [{"type": "delay", "time": "3/16", "ping_pong": True, "tone": 3000, "feedback": {"value": 0.35, "mod": [{"src": "lfo.fbk", "amount": 0.2}]}, "mix": 0.18},
+                    "reverb kind=hall decay=3s mix=0.22 predelay=30ms low_cut=250"]}
+
+
 def energy_fx(style=None):
     if style in composer.CHILL_STYLES:
         return {"gain": {"value": "-3dB", "mod": [{"src": "auto.energy", "amount": 4}]},
@@ -485,7 +538,7 @@ def has_patch(name):
     return subprocess.run([C, "plan", "-p", name, "C4/4"], capture_output=True).returncode == 0
 
 BUILTIN_FX = {p: has_patch(p) for p in ["fx-tapestop", "fx-riser-shepard", "fx-riser-noise", "fx-reverse", "drone", "fx-downlifter"]}
-BUILTIN_FX["fx-reverse"] = False  # sample-song layer: rejected by live sessions (resample path), see bead
+# fx-reverse (sample-song layer) works in live sessions since 2207f2f (bd-424fe9).
 
 MASTER_BASE = ['{"type": "eq", "bands": ["hp cutoff=28", "peak cutoff=320 q=0.8 gain=-1dB", "highshelf cutoff=9000 gain=1.5dB"]}']
 
@@ -623,12 +676,22 @@ def write_form(name, ident):
     lines = [f"about: Generated {s['form']}-form song ({ident.get('fv', 'base')}) — {ident['style']} at {ident['tempo']} BPM, {gdesc}, shift {ident['key']:+d}{modn}, chapter {ident.get('chapter', 0) + 1}/{len(chs)}, comp {ident.get('comp', 'glue')}.",
              f"tempo: {json.dumps(tmap) if tmap else ident['tempo']}", "tracks:"]
     for t, items in tracks.items():
-        if t == "hook" and FLAVOR_HOOK.get(flavor):
+        if t == "hook" and ident["style"] in composer.CHILL_STYLES:
+            lines.append("  - " + json.dumps(dict({"name": t, "score": " ".join(items)}, lfo=HOOK_LIVE["lfo"],
+                                                  fx=composer.expand(FLAVOR_HOOK.get(flavor, [])) + HOOK_LIVE["fx"])))
+        elif t == "hook" and FLAVOR_HOOK.get(flavor):
             lines.append("  - " + json.dumps({"name": t, "score": " ".join(items), "fx": composer.expand(FLAVOR_HOOK[flavor])}))
         elif t == "riff":
             efx = energy_fx(ident["style"])
             efx["fx"] = [{"type": "filter", "kind": "lp", "cutoff": {"value": 700, "mod": [{"src": "auto.filt", "amount": 5}]}}] + efx["fx"]
-            lines.append("  - " + json.dumps(dict({"name": t, "score": " ".join(items), "auto": {"energy": {"points": energy_lane(meta)}, "filt": {"points": filter_lane(meta)}}}, **efx)))
+            autos = {"energy": {"points": energy_lane(meta)}, "filt": {"points": filter_lane(meta)}}
+            tx = texture(ident["style"], meta) if ident["style"] in composer.CHILL_STYLES else {}
+            autos.update(tx.get("auto", {}))
+            efx["fx"] = tx.get("fx", []) + efx["fx"]
+            row = dict({"name": t, "score": " ".join(items), "auto": autos}, **efx)
+            if tx.get("lfo"):
+                row["lfo"] = tx["lfo"]
+            lines.append("  - " + json.dumps(row))
         else:
             lines.append(f"  - {{name: {t}, score: \"{' '.join(items)}\"}}")
     open(f"{SONGS}/{name}.yaml", "w").write("\n".join(lines) + "\n")
@@ -651,7 +714,33 @@ CHILL_MIX = [("lofihop", 0.2), ("gogo", 0.15), ("ukjazz", 0.14), ("ambient", 0.1
              ("house-melodic", 0.1), ("chamber", 0.05)]
 
 
+AMBIENTISH = ["ambient", "ambient", "downtempo", "chamber"]
+
+
+HEAVY_MIX = [("meshuggah", 0.26), ("hardcore-kl", 0.1), ("tech-death", 0.09), ("thrash", 0.09), ("tool", 0.09), ("djent", 0.07),
+             ("brostep", 0.07), ("blackgaze", 0.06), ("darksynth", 0.04), ("numetal", 0.05), ("industrial", 0.05), ("dnb", 0.03),
+             ("deathcore", 0.06), ("postrock", 0.03), ("groovemetal", 0.05), ("power", 0.04), ("sludge", 0.04), ("breakcore", 0.03),
+             ("mathcore", 0.04), ("gojira", 0.06), ("djazz", 0.05), ("raga", 0.04), ("gamelan", 0.03), ("koto", 0.03)]
+
+
+def heavy_pick():
+    """A weighted pick from the heavy rotation (no chill styles, no excursions)."""
+    x = random.random() * sum(w for _, w in HEAVY_MIX)
+    for name, w in HEAVY_MIX:
+        x -= w
+        if x <= 0:
+            return name
+    return "meshuggah"
+
+
 def journey_style(h, current, mode=None):
+    """The next song's style. Modes: metalambient (heavy ↔ ambient interludes), chill (CHILL_MIX);
+    otherwise by heaviness h: at full heaviness the heavy mix with occasional breakdown/clean/excursion,
+    below it a style near h."""
+    if mode == "metalambient":
+        if current in AMBIENTISH or current in composer.CHILL_STYLES:
+            return heavy_pick()
+        return random.choice(AMBIENTISH)
     if mode == "chill":
         x = random.random()
         for name, w in CHILL_MIX:
@@ -659,27 +748,18 @@ def journey_style(h, current, mode=None):
             if x <= 0 and name != current:
                 return name
         return "lofihop" if current != "lofihop" else "gogo"
-    """Pick a style near heaviness h; at full heaviness: mostly djent, sometimes breakdown/clean/excursion."""
     r = random.random()
-    if h >= 0.95:  # full heaviness: mostly meshuggah, then djent; breakdowns; rare clean/excursions
+    if h >= 0.95:
         if r < 0.12:
             return "djent-breakdown"
         if r < 0.16:
             return random.choice(["prog-clean", "poly"])
         if r < 0.2:
-            return random.choice([k for k in STYLES if k not in ("djent", "meshuggah", current)])
-        x = random.random()
-        mix = [("meshuggah", 0.26), ("hardcore-kl", 0.1), ("tech-death", 0.09), ("thrash", 0.09), ("tool", 0.09), ("djent", 0.07),
-               ("brostep", 0.07), ("blackgaze", 0.06), ("darksynth", 0.04), ("numetal", 0.05), ("industrial", 0.05), ("dnb", 0.03),
-               ("deathcore", 0.06), ("postrock", 0.03), ("groovemetal", 0.05), ("power", 0.04), ("sludge", 0.04), ("breakcore", 0.03), ("mathcore", 0.04), ("gojira", 0.06), ("djazz", 0.05), ("raga", 0.04), ("gamelan", 0.03), ("koto", 0.03)]
-        for name, w in mix:
-            x -= w
-            if x <= 0:
-                return name
-        return "meshuggah"
+            return random.choice([k for k in STYLES if k not in ("djent", "meshuggah", current) and k not in composer.CHILL_STYLES])
+        return heavy_pick()
     if r < 0.1:
-        return random.choice([k for k in STYLES if k != current])
-    w = {k: math.exp(-((HEAVY.get(k, 0.5) - h) / 0.15) ** 2) for k in STYLES}
+        return random.choice([k for k in STYLES if k != current and k not in composer.CHILL_STYLES])
+    w = {k: math.exp(-((HEAVY.get(k, 0.5) - h) / 0.15) ** 2) for k in STYLES if k not in composer.CHILL_STYLES}
     if current in w and len(w) > 1:
         w[current] *= 0.3  # prefer moving on
     tot = sum(w.values())
@@ -723,6 +803,9 @@ def steer(ident, cmd):
                 j["on"] = a == "on"
             elif "=" in a:
                 k, v = a.split("=", 1)
+                if k == "until" and v.startswith("+"):  # until=+25 → 25 minutes from now
+                    j[k] = time.time() + float(v[1:]) * 60
+                    continue
                 try:
                     j[k] = float(v)
                 except ValueError:
@@ -739,6 +822,9 @@ def steer(ident, cmd):
         ident["comp"] = args[0] if args else random.choice(COMP_STYLES)
         if ident["comp"] not in COMP_STYLES:
             raise ValueError(f"comp: one of {COMP_STYLES}")
+    elif op == "then" and args == ["clear"]:
+        STYLE_QUEUE.clear()
+        return ident, "queue cleared"
     elif op == "then":
         STYLE_QUEUE.extend(args)
         return ident, f"then {' '.join(STYLE_QUEUE)}"
@@ -829,6 +915,11 @@ if __name__ == "__main__":
             archive(playing, playing_ident)
             passes += 1
             j = journey_load()
+            if j.get("until") and time.time() > float(j["until"]):
+                print(time.strftime("%T"), f"journey: {j.get('mode')} → {j.get('then', 'chill')} (scheduled)", flush=True)
+                j["mode"] = j.pop("then", "chill")
+                j.pop("until", None)
+                open(JOURNEY, "w").write(json.dumps(j) + "\n")
             if j.get("on") and not first:
                 j["h"] = round(min(1.0, j.get("h", 0) + j.get("rate", 0.09)), 3)
                 open(JOURNEY, "w").write(json.dumps(j) + "\n")
