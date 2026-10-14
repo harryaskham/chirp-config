@@ -60,7 +60,7 @@ STYLE_MODES = {
     "triphop": ["minor", "phrygian", "harmonic"], "neoclassical": ["major", "minor", "lydian", "dorian"], "ballad": ["major", "dorian", "minor"],
     "bossa": ["major", "dorian", "minor", "lydian"], "dub": ["minor", "dorian", "mixolydian"],
     "manouche": ["harmonic", "minor", "harmonic", "major"], "celtic": ["dorian", "mixolydian", "minor", "major"],
-    "doomjazz": ["minor", "phrygian", "dorian", "harmonic"], "mali": ["dorian", "minor", "mixolydian"], "guofeng": ["major", "minor", "dorian"], "vaporwave": ["major", "lydian", "dorian", "minor"],
+    "doomjazz": ["minor", "phrygian", "dorian", "harmonic"], "mali": ["dorian", "minor", "mixolydian"], "guofeng": ["major", "minor", "dorian"], "vaporwave": ["major", "lydian", "dorian", "minor"], "slowcore": ["major", "mixolydian", "minor", "dorian"],
     "koto": ["hirajoshi", "hirajoshi", "phrygian"],
     "djazz": ["dorian", "lydian", "harmonic", "minor", "mixolydian"], "industrial": ["phrygian", "minor", "harmonic"], "dnb": ["minor", "phrygian", "dorian"],
     "darksynth": ["minor", "phrygian", "harmonic", "dorian"],
@@ -2245,6 +2245,28 @@ def gen_vaporwave(r, k, prog, kind="main"):
     return out
 
 
+def gen_slowcore(r, k, prog, kind="main"):
+    """Slowcore / Americana (Low, Red House Painters, Hammock): clean electric arpeggios through slow
+    tremolo and spring, soft brushes on a slow backbeat, a root–fifth bass; kind=full adds Wurlitzer
+    chords; kind=intro is the guitar alone."""
+    trem = [{"type": "tremolo", "rate": 3.2, "depth": 0.35}] + expand(["rack:spring-surf"])
+    gtr = []
+    for root in prog:
+        tones = [k.deg(root + d, 52) for d in (0, 4, 7, 9, 11)]
+        cell = r.choice([[0, 1, 2, 3, 2, 1, 2, 4], [0, 2, 1, 3, 0, 2, 4, 2], [0, 1, 2, 1, 3, 2, 1, 2]])
+        gtr += [f"{mname(tones[c])}/8@{80 if j % 4 == 0 else 66}" for j, c in enumerate(cell)]
+    out = [track("gtr", pick_patch("tele", "clean-chorus"), " ".join(gtr), pan=-0.25, fx=trem, gain="-2dB")]
+    if kind == "intro":
+        return out
+    kit = pick_patch("brush-kit", "tight-kit")
+    out += [track("ride", kit, " ".join(f"rd/8@{52 if x % 2 == 0 else 40}" for x in range(32)), gain="-4dB"),
+            track("snare", kit, " ".join(("s/4@58" if x % 2 == 1 else "k/4@62") for x in range(16))),
+            track("bass", pick_patch("finger-bass", "bass-di"), " ".join(f"{mname(k.deg(root, 33))}/2@{82} {mname(k.deg(root + 4, 33))}/2@{74}" for root in prog), seed=7)]
+    if kind == "full":
+        out.append(track("wurli", pick_patch("wurli", "rhodes"), " ".join(f"{chordhead([k.deg(root + d, 55) for d in (0, 2, 4)])}/1@{58}" for root in prog), pan=0.25, gain="-6dB"))
+    return out
+
+
 def gen_downtempo(r, k, prog, kind="main"):
     """Downtempo (Bonobo-ish): a low-passed breakbeat, marimba/kalimba ostinato, finger bass, strings."""
     kit = pick_patch("break-kit", "lofi-kit")
@@ -2285,6 +2307,7 @@ CHILL_GUESTS = {
     "doomjazz": (lambda r, k, prog: gen_doomjazz(r, k, prog, "full") + gen_atmos(r, k, prog, 55, pick_patch("tenor-sax", "clarinet")), {"doomjazz"}),
     "mali": (lambda r, k, prog: gen_mali(r, k, prog), {"mali"}),
     "vaporwave": (lambda r, k, prog: gen_vaporwave(r, k, prog), {"vaporwave"}),
+    "slowcore": (lambda r, k, prog: gen_slowcore(r, k, prog) + gen_atmos(r, k, prog, 64, pick_patch("pedal-steel", "ebow")), {"slowcore"}),
     "guofeng": (lambda r, k, prog: gen_guofeng(r, k, prog) + gen_penta_air(r, k, prog, 67, pick_patch("dizi", "flute")), {"guofeng"}),
     "celtic": (lambda r, k, prog: gen_celtic(r, k, prog, "drums") + gen_air(r, k, prog, 72, pick_patch("low-whistle", "flute")), {"celtic"}),
     "manouche": (lambda r, k, prog: gen_manouche(r, k, prog) + gen_swing_run(r, k, prog, 64, pick_patch("accordion", "clarinet")), {"manouche"}),
@@ -2332,7 +2355,7 @@ def compose(style, slot, p):
     return names, desc
 
 
-CHILL_STYLES = {"lofihop", "gogo", "ukjazz", "ambient", "downtempo", "smile", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche", "celtic", "doomjazz", "mali", "guofeng", "vaporwave"}
+CHILL_STYLES = {"lofihop", "gogo", "ukjazz", "ambient", "downtempo", "smile", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche", "celtic", "doomjazz", "mali", "guofeng", "vaporwave", "slowcore"}
 HEAVY_STYLES = {"meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep",
                 "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock", "groovemetal", "power", "sludge",
                 "breakcore", "mathcore", "gojira", "djazz", "raga", "gamelan", "koto"}
@@ -2363,6 +2386,11 @@ def _compose_style(style, slot, p):
             "hookE": gen_atmos(r, k, prog, 62, rig("atmos")),
         }
         return _write_parts(slot, "brostep", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
+    if style == "slowcore":
+        steel = pick_patch("pedal-steel", "ebow")
+        parts = {"riffI": gen_slowcore(r, k, prog, "intro"), "riff": gen_slowcore(r, k, prog), "riffB": gen_slowcore(r, k, prog, "full"),
+                 "hookE": gen_atmos(r, k, prog, 64, steel), "hook": gen_atmos(r, k, prog, 69, steel)}
+        return _write_parts(slot, "slowcore", parts, f"{NAMES[p['pc']]} {p['mode']}")
     if style == "vaporwave":
         lead = pick_patch(r.choice(["tenor-sax", "dx-epiano"]), "rhodes")
         parts = {"riffI": gen_vaporwave(r, k, prog, "intro"), "riff": gen_vaporwave(r, k, prog), "riffB": gen_vaporwave(r, k, prog, "full"),

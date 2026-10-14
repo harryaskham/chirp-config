@@ -1,0 +1,19 @@
+about: "Pedal steel guitar: notes swell in like a volume pedal, sustain long and glide between pitches like pedal bends; a little steel-bar shimmer and twang. Americana, slowcore, country-ambient."
+synth:
+  layers:
+    - {wave: saw, level: -5dB}
+    - {wave: pulse, width: 0.2, level: -11dB}
+    - {wave: sine, ratio: 2, level: -14dB}
+  env:
+    twang: {a: 2ms, d: 250ms, s: 0.3, r: 200ms}
+  lfo:
+    vib: {wave: sine, rate: 4.8hz, delay: 500ms, fade: 600ms, retrig: true}
+  pitch: {value: 0, mod: [{src: lfo.vib, amount: 0.06}]}
+  filters:
+    - "hp cutoff=120"
+    - {kind: lp, cutoff: {value: 2200, mod: [{src: env.twang, amount: 0.9}, {src: vel, amount: 0.5}]}, q: 0.8}
+    - "peak cutoff=2600 q=1.5 gain=3dB"
+  amp: {a: 280ms, d: 600ms, s: 0.85, r: 600ms}
+play: {mono: true, legato: true, glide: 160ms, gate: 1, vel_sens: 0.4}
+fx: ["chorus rate=0.5 depth=0.25 mix=0.25", "delay time=3/8 feedback=0.25 mix=0.14 tone=3000", "reverb kind=hall decay=3s mix=0.3 predelay=25ms"]
+gain: 0dB
