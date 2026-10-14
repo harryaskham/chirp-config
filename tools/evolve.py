@@ -736,6 +736,21 @@ COMP_TRIM = {"glue": 0.0, "pump": 6.1, "smash": 3.4, "parallel": 3.2, "opto": 3.
 def has_patch(name):
     return subprocess.run([C, "plan", "-p", name, "C4/4"], capture_output=True).returncode == 0
 
+# Soft one-beat drum fills for chill section ends (on the style's own kit, via the fx track).
+STYLE_KIT = {**{s_: "tight-kit" for s_ in ("lofihop", "triphop", "dub", "ukjazz", "gogo", "neosoul", "fusion", "smile", "downtempo", "house-melodic")},
+             **{s_: "brush-kit" for s_ in ("ballad", "doomjazz", "slowcore")},
+             **{s_: "electro-kit" for s_ in ("vaporwave", "citypop", "berlin", "cyberscape")},
+             "balearic": "congas", "mali": "djembe", "celtic": "bodhran", "handpan": "bodhran", "dawnraga": "tabla-kit"}
+SOFT_FILLS = {
+    "tight-kit": ["g/16@40 g@52 s@64 s@80", "g/16@44 t2@60 t3@70 ft@82", "g/16@36 g@44 g@54 s@70"],
+    "brush-kit": ["s/16@36 s@44 s@52 sl@66", "s/16@40 s@46 sl@58 sl@64"],
+    "electro-kit": ["cp/16@50 cp@60 cp@72 cp@86", "rs/16@50 rs@58 s@70 s@84"],
+    "congas": ["bh/16@60 bl@66 bh@74 lo@88", "bh/16@64 bh@70 bl@76 o@86"],
+    "djembe": ["s/16@70 t@64 t@72 b@90", "t/16@60 s@70 s@78 b@90"],
+    "bodhran": ["t/16@56 t@62 t@70 b@86", "t/16@50 t@56 b@70 b@82"],
+    "tabla-kit": ["te/16@60 re@64 ke@70 dha@88", "na/16@60 tin@66 na@72 dha@86"],
+}
+
 BUILTIN_FX = {p: has_patch(p) for p in ["fx-tapestop", "fx-riser-shepard", "fx-riser-noise", "fx-reverse", "drone", "fx-downlifter"]}
 # fx-reverse (sample-song layer) works in live sessions since 2207f2f (bd-424fe9).
 
@@ -1017,6 +1032,10 @@ def write_form(name, ident):
                 fx = rr.choice(["chimes", "downlift" if BUILTIN_FX["fx-downlifter"] else "swell"])
             elif rr.random() < 0.2:
                 fx = "chimes"
+            kit = STYLE_KIT.get(ident["style"])
+            if fx is None and kit and rr.random() < (0.35 if nxt_sec in ("B", "B2", "A2", "climax", "final", "gat") else 0.1):
+                fx = "fill"
+                chimes = f"{rest(sec_len - 1)} patch={kit} " + rr.choice(SOFT_FILLS[kit]) + "  # fill"
             if fx == "chimes":
                 g = ident.get("gen") or {}
                 kk = composer.Key(g.get("pc", 0), g.get("mode", "major"))
@@ -1031,6 +1050,7 @@ def write_form(name, ident):
                              "tapestop": f"{rest(sec_len - 4)} patch=fx-tapestop C4/1@100",
                              "swell": f"{rest(sec_len - 2)} patch={random.choice(revs)} C5/2@60",
                              "chimes": chimes,
+                             "fill": chimes.replace("  # fill", ""),
                              "downlift": f"{rest(sec_len - 4)} patch=fx-downlifter C4/1@58"}.get(fx, rest(sec_len)))
     modn = f", modulates {mod_tr:+d} at section {mod_at + 1}" if mod_at is not None else ""
     tmap, mdesc = metric_map(ident, meta) if ident.get("gen") else (None, "")
