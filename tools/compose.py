@@ -47,7 +47,7 @@ STYLE_MODES = {
     "brostep": ["minor", "phrygian", "harmonic"],
     "blackgaze": ["major", "lydian", "dorian", "mixolydian"],
     "numetal": ["phrygian", "locrian", "minor"], "deathcore": ["phrygian", "harmonic", "locrian", "diminished"],
-    "postrock": ["major", "lydian", "mixolydian", "dorian"], "postmetal": ["minor", "phrygian", "dorian", "harmonic"], "slam": ["phrygian", "locrian", "minor", "diminished"], "metalcore": ["minor", "harmonic", "dorian", "phrygian"], "symphonic": ["harmonic", "minor", "phrygian-dominant", "minor"], "cynic": ["lydian", "dorian", "minor", "diminished"], "groovemetal": ["blues", "pentatonic-minor", "phrygian", "minor"],
+    "postrock": ["major", "lydian", "mixolydian", "dorian"], "postmetal": ["minor", "phrygian", "dorian", "harmonic"], "slam": ["phrygian", "locrian", "minor", "diminished"], "metalcore": ["minor", "harmonic", "dorian", "phrygian"], "symphonic": ["harmonic", "minor", "phrygian-dominant", "minor"], "cynic": ["lydian", "dorian", "minor", "diminished"], "tigran": ["phrygian-dominant", "harmonic", "phrygian", "minor"], "groovemetal": ["blues", "pentatonic-minor", "phrygian", "minor"],
     "power": ["major", "harmonic", "minor", "major"], "sludge": ["blues", "pentatonic-minor", "phrygian"],
     "breakcore": ["harmonic", "minor", "diminished", "phrygian-dominant"],
     "mathcore": ["locrian", "diminished", "phrygian", "double-harmonic"],
@@ -1717,6 +1717,47 @@ def gen_cynic(r, k, prog, low=28, kind="riff"):
     return [clean, fretless, track("ride", kit, "swing=0.62 " + soft, gain="-6dB")] + [dict(t_, name="pad", gain="-12dB") for t_ in gen_pad(r, k, prog, 52, pick_patch("pad-glass", "pad"), vel=56)]
 
 
+def gen_tigran(r, k, prog, kind="groove"):
+    """Tigran Hamasyan (Mockroot): a jazz piano trio as heavy as metal, no guitars. groove: piano
+    left-hand octaves and right-hand chords on the accents of a 5/7/9-step polymetric cycle against
+    the 4/4, a synth bass doubling the accents, drums locked to them (kick on accents, half-time snare
+    on 3); folk: an ornamented phrygian-dominant piano melody over a drone, rim and toms; heavy: the
+    groove plus a distorted synth bass and crash on every cycle restart."""
+    kit = rig("drums")
+    jn = lambda xs: " ".join(xs)
+    t = k.deg(0, 36)
+    if kind == "folk":
+        mel, d = [], r.choice([0, 2, 4])
+        for root in prog:
+            for ln in r.choice([[2, 1, 1], [1, 1, 2], [1, 2, 1]]):
+                if r.random() < 0.4:
+                    mel.append(f"{mname(k.deg(d + 1, 67))}/16@{70}^h")
+                    mel.append(f"{mname(k.deg(d, 67))}/{ {1: '8.', 2: '4..'}.get(ln, '8.') }@{84}" if ln in (1, 2) else f"{mname(k.deg(d, 67))}/4@84")
+                else:
+                    mel.append(f"{mname(k.deg(d, 67))}/{ {1: '4', 2: '2'}[ln] }@{84}")
+                d += r.choice([-2, -1, 1, 2])
+        return [track("piano", "piano", jn(mel), pan=0.1), track("drone", "piano", jn(f"{chordhead([t, t + 7])}/1@{60}" for _ in prog), pan=-0.2, gain="-6dB"),
+                track("rim", kit, jn(("rs/16@70" if x in (4, 12) else (r.choice(["t2", "t3", "ft"]) + "/16@60" if x in (14, 15) and r.random() < 0.5 else "R/16")) for _ in range(4) for x in range(16)), gain="-6dB")]
+    cyc = r.choice([5, 7, 9])
+    acc = sorted(set([0] + r.sample(range(1, cyc), r.choice([1, 2]))))
+    lh, rh, bass, kick, snare, cym = [], [], [], [], [], []
+    for i in range(64):
+        x = i % cyc
+        root = prog[(i // 16) % len(prog)]
+        rt = k.deg(root, 36)
+        hit = x in acc
+        lh.append(f"{chordhead([rt, rt + 12])}/16@{96 if x == 0 else 86}" if hit else "R/16")
+        rh.append(f"{chordhead([k.deg(root + d, 60) for d in (2, 4, 6)])}/16@{90}" if hit and x == 0 else "R/16")
+        bass.append(f"{mname(rt - 12)}/16@{104}" if hit else "R/16")
+        kick.append("k/16@112" if hit else "R/16")
+        snare.append("s/16@116" if i % 16 == 8 else ("g/16@30" if r.random() < 0.1 else "R/16"))
+        cym.append(("c/16@108" if x == 0 and kind == "heavy" else "h/16@70") if i % 4 == 0 else "R/16")
+    sb = pick_patch("bass-fuzz", "growl") if kind == "heavy" else pick_patch("moog-seq", "sub-sine")
+    return [track("piano-lh", "piano", jn(lh), pan=-0.15), track("piano-rh", "piano", jn(rh), pan=0.15),
+            track("synthbass", sb, jn(bass), seed=7, gain="-5dB" if kind == "heavy" else "-7dB"),
+            track("kick", kit, jn(kick), gain="-3dB"), track("snare", kit, jn(snare)), track("cym", kit, jn(cym))]
+
+
 def gen_mathcore(r, k, prog, low=28, kind="chaos"):
     """chaos: the 16-beat part cut into odd-length chunks (3–13 sixteenths, summing to 64); each a
     cluster stab into a hard stop, a dissonant tremolo run, chugs over a blast fragment or silence;
@@ -2316,7 +2357,7 @@ for _m, _ps in _MORE_PROGS.items():
 
 def params(style, rng=random):
     mode = rng.choice(STYLE_MODES.get(style, ["minor"]))
-    heavy = style in ("meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep", "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock", "postmetal", "slam", "metalcore", "symphonic", "cynic", "groovemetal", "power", "sludge", "breakcore", "mathcore", "gojira", "djazz", "raga", "gamelan", "koto", "postmetal", "slam", "metalcore", "symphonic", "cynic")
+    heavy = style in ("meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep", "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock", "postmetal", "slam", "metalcore", "symphonic", "cynic", "tigran", "groovemetal", "power", "sludge", "breakcore", "mathcore", "gojira", "djazz", "raga", "gamelan", "koto", "postmetal", "slam", "metalcore", "symphonic", "cynic", "tigran")
     if style in CHILL_STYLES:
         rigset = "chill"
     else:
@@ -3982,7 +4023,7 @@ def gen_fusion(r, k, prog, src, beat, with_beat=True):
 # Odd-meter guest sections from the engine's built-in parts (in F minor; length in beats, repeats).
 ODD_PARTS = {"54": (10, 2, "beat-54", "beat-54-ghost"), "68": (6, 3, "beat-68", "beat-68-trap"), "74": (14, 1, "beat-74", "beat-74"),
              "78": (7, 2, "beat-78", "beat-78"), "118": (11, 2, "beat-118", "beat-118-ghost")}
-ODD_HOSTS_HEAVY = {"cynic", "mathcore", "djazz", "tool", "djent", "meshuggah", "metalcore", "postmetal", "gojira", "tech-death", "postrock", "blackgaze", "groovemetal"}
+ODD_HOSTS_HEAVY = {"tigran", "cynic", "mathcore", "djazz", "tool", "djent", "meshuggah", "metalcore", "postmetal", "gojira", "tech-death", "postrock", "blackgaze", "groovemetal"}
 ODD_HOSTS_CHILL = {"ukjazz", "gogo", "neosoul", "fusion", "souljazz", "ethiojazz", "citypop", "nujazz"}
 
 
@@ -4423,6 +4464,10 @@ def _compose_style(style, slot, p):
                  "riffSlam": gen_hc(r, k, prog, dl, "slowdown"), "pad": gen_pad(r, k, prog, 48, "strings", gain="-6dB"),
                  "soft": gen_pad(r, k, prog, 48, "strings", gain="-8dB", vel=70), "drone": gen_drone(k, 36, "drone")}
         return _write_parts(slot, "deathcore", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
+    if style == "tigran":
+        parts = {"riffF": gen_tigran(r, k, prog, "folk"), "riff": gen_tigran(r, k, prog), "riffB": gen_tigran(r, k, prog), "riffH": gen_tigran(r, k, prog, "heavy"),
+                 "hook": gen_hook(r, k, prog, 67, "piano")}
+        return _write_parts(slot, "tigran", parts, f"{NAMES[p['pc']]} {p['mode']}")
     if style == "cynic":
         parts = {"riffClean": gen_cynic(r, k, prog, kind="clean"), "riff": gen_cynic(r, k, prog), "riffB": gen_cynic(r, k, prog),
                  "riffF": gen_cynic(r, k, prog, kind="fusion"), "hook": gen_hook(r, k, prog, 52, pick_patch("fretless", "finger-bass")),
