@@ -1,0 +1,30 @@
+about: >-
+  Bass tagelharpa (bowed horsehair lyre, the big one Finishing Move doubled their DOOM: The Dark Ages riffs
+  with): a coarse, raspy, growling bowed tone. Two horsehair strings (detuned, beating) through a small
+  wooden body (formants ~515 / 650 / 855 / 1000 / 1220 Hz), harmonics strong to ~2.4 kHz, bow rasp nearly as
+  loud as the harmonics above 600 Hz, unsteady horsehair bowing (±~35 cents). Play drones as chords
+  (B0,F#1); velocity is bow pressure (more rasp). Fitted to the reference with tools/fitpatch.py.
+synth:
+  layers:
+    - {wave: saw, level: -3dB}
+    - {wave: saw, cents: 8, level: -7dB}
+    - {type: noise, color: pink, level: {value: -30dB, mod: [{src: env.bow, amount: 10}, {src: vel, amount: 8}]}}  # bow rasp
+  env:
+    bow: {a: 30ms, d: 250ms, s: 0.6, r: 150ms}
+  lfo:
+    drift: {wave: sine, rate: 0.7hz}
+  pitch: {value: 0, mod: [{src: rand, amount: 0.25}, {src: lfo.drift, amount: 0.12}]}
+  filters:
+    - {kind: hp, cutoff: 35}
+    - {kind: peak, cutoff: 515, q: 3, gain: 5dB}
+    - {kind: peak, cutoff: 650, q: 3, gain: 3dB}
+    - {kind: peak, cutoff: 855, q: 3.5, gain: 7dB}
+    - {kind: peak, cutoff: 1000, q: 3, gain: 3dB}
+    - {kind: peak, cutoff: 1220, q: 3, gain: 5dB}
+    - {kind: lp, cutoff: 3.5k, q: 0.8}
+  amp: {a: 80ms, d: 300ms, s: 0.9, r: 220ms}
+play: {gate: 1, vel_sens: 0.4, humanize: {time: 8ms, vel: 0.05}}
+fx:
+  - {type: drive, drive: 0.3}
+  - "reverb kind=room decay=0.9s mix=0.12"
+gain: -6dB
