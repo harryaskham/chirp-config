@@ -1,0 +1,12 @@
+about: >-
+  (Experimental: fits sustained drones better than the saw patch but short/staccato notes barely speak until the
+  bowed layer gains re-bow articulation — bd-373e41.) Bass tagelharpa (bowed horsehair lyre — the big one Finishing Move doubled their DOOM: The Dark Ages riffs with) on
+  the engine's bowed-string waveguide: hard horsehair bow near the bridge, rosin scratch at the slips, no added body
+  colour. Parameters fitted with tools/fitpatch.py to the reference's intro drone (B1+B2 harmonic fingerprint:
+  3.50 dB/harmonic, noise floor 4.26 dB — the saw stand-in, tagelharpa-bass-saw, was 3.89 / 5.30). Play drones
+  as chords (B0,F#1); velocity is bow pressure.
+extends: tagelharpa
+synth:
+  layers:
+    - {type: bowed, body: 0, bright: 0.15, pressure: 0.7, bow_pos: 0.08, rosin: 0.55, body_size: 1.3, bow_speed: 0.55, bow_attack: 90ms}
+gain: 12.300000190734863dB   # level-matched to the saw stand-in the song's gains were tuned on
