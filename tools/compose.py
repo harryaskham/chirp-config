@@ -2152,6 +2152,26 @@ def drum_enrich(t, r):
     return dict(t, score=" ".join(pre + out))
 
 
+def fusion_layers(style, parts, beats, desc):
+    """Fusion journey, heavy songs: a polyrhythmic overlay (a 3/5/7-step motif of extended chord tones
+    on vibes / DX bell / pluck / marimba cycling against the 4/4) on a main riff section, and jazz
+    chord stabs (m11 / maj7#11 on Rhodes / vibes / Wurlitzer) on the downbeats under breakdowns."""
+    import zlib
+    r = random.Random(zlib.crc32(f"fusion{desc}".encode()))
+    k = Key(*_KEY)
+    is16 = lambda ro: abs((beats or {}).get(ro, 16) - 16) < 1e-9
+    host = next((ro for ro in ("riffB", "riffC", "riffV", "riff") if ro in parts and is16(ro)), None)
+    if host:
+        cyc = r.choice([3, 5, 7])
+        motif = [k.deg(r.choice([1, 3, 5, 6, 8, 10, 12]), 72) if r.random() < 0.8 else None for _ in range(cyc)]
+        line = " ".join((f"{mname(motif[i % cyc])}/16@{r.choice([70, 78, 86])}" if motif[i % cyc] is not None else "R/16") for i in range(64))
+        parts[host] = parts[host] + [track("polyline", pick_patch(r.choice(["vibes", "dx-epiano", "pluck-lead", "marimba"]), "vibes"), line, pan=0.3, gain="-8dB")]
+    for ro in [ro for ro in parts if "Brk" in ro and is16(ro)]:
+        voic = r.choice([[0, 2, 4, 6, 10], [0, 4, 6, 8, 11], [2, 4, 6, 8, 12]])
+        stabs = " ".join(f"{chordhead([k.deg(d, 55) for d in voic])}/4@{r.choice([70, 78])} R/4 R/2" for _ in range(4))
+        parts[ro] = parts[ro] + [track("jazzkeys", pick_patch(r.choice(["rhodes", "vibes", "wurli"]), "rhodes"), stabs, pan=-0.25, gain="-6dB")]
+
+
 def _write_parts(slot, style, parts, desc, beats=None):
     names = {}
     parts = dict(parts)
@@ -2169,6 +2189,8 @@ def _write_parts(slot, style, parts, desc, beats=None):
                 dbl, tr_ = dr.choice([(pick_patch("cellos", "strings"), -12), (pick_patch("horn", "strings"), -12), (pick_patch("flute", "vibes"), 12)])
             parts[role] = parts[role] + [dict(t, name=t["name"] + "-dbl", patch=dbl, score=f"tr={tr_} " + t["score"], gain="-8dB", pan=-float(t.get("pan", 0) or 0))
                                          for t in parts[role] if isinstance(t.get("patch"), str) and "kit" not in t["patch"]]
+    if style in HEAVY_STYLES and FUSION and not LITE:
+        fusion_layers(style, parts, beats, desc)
     if style in HEAVY_STYLES:
         import zlib
         er = random.Random(zlib.crc32(f"enrich{desc}".encode()))
@@ -4484,6 +4506,8 @@ def _compose_style(style, slot, p):
         desc = f"{NAMES[p['pc']]} {p['mode']}, cycles {'/'.join(f'{c}/16' for c in cycles)}, rigs {p.get('rigset', 'modern')}"
         names = {}
         import zlib
+        if FUSION and not LITE:
+            fusion_layers("meshuggah", parts, None, desc)
         er = random.Random(zlib.crc32(f"enrich{desc}".encode()))
         for role, tr in parts.items():
             n = f"gen-{slot}-{role}"
