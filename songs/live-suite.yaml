@@ -2,6 +2,7 @@ about: Live suite — doom intro, polymetric chug, 3-3-2 synth groove, solo, bre
 vars:
   dark: {value: 0, smooth: 400ms, min: 0, max: 1}
   wet: {value: 0.35, smooth: 400ms, min: 0, max: 1}
+  stop: {value: 0, smooth: 5ms, min: 0, max: 1}   # DJ tape stop on the master (the evolver arms it between songs)
 master:
   fx:
     - "glue threshold=-16dB ratio=2 attack=10ms release=150ms makeup=4dB"

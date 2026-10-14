@@ -5,7 +5,7 @@
 #   CHIRP_OUT  output device (default: music)
 set -u
 # One restart at a time (sync.sh and watchdog.sh can both trigger one): wait up to 60 s for the lock.
-exec 9>"${TMPDIR:-/tmp}/chirp-restart.lock"
+exec 9>"${TMPDIR:-/tmp}/chirp-restart-v2.lock"
 flock -w 60 9 || { echo "restart-groove: another restart holds the lock"; exit 0; }
 here=$(cd "$(dirname "$0")" && pwd)
 # Never fall back to an installed (Nix) chirp: it can be far older than the library needs.
@@ -22,10 +22,10 @@ pgrep -f "^[^ ]*python3 $here/evolve.py" | xargs -r kill
 for _ in 1 2 3 4 5 6 7 8 9 10; do "$src" live list 2>/dev/null | grep -q '^groove ' || break; sleep 0.5; done
 cp -f "$src" "$C"
 sleep 0.3
-setsid nohup "$C" --loop --id groove -o "${CHIRP_OUT:-music}" -s "${1:-live-suite}" > "${TMPDIR:-/tmp}/chirp-groove.log" 2>&1 < /dev/null &
+setsid nohup "$C" --loop --id groove -o "${CHIRP_OUT:-music}" -s "${1:-live-suite}" > "${TMPDIR:-/tmp}/chirp-groove.log" 2>&1 < /dev/null 9>&- &
 sleep 1.2
 if [ -n "${2:-}" ]; then "$C" live set --id groove --when bar --xfade 150ms "tracks.arrangement.score=$2" | tail -1; fi
-CHIRP_BIN=$C EVOLVE_RESUME=1 setsid nohup python3 "$here/evolve.py" >> "$log" 2>&1 < /dev/null &
+CHIRP_BIN=$C EVOLVE_RESUME=1 setsid nohup python3 "$here/evolve.py" >> "$log" 2>&1 < /dev/null 9>&- &
 sleep 0.5
 "$C" live list
 pgrep -f "^[^ ]*python3 $here/evolve.py" >/dev/null && echo "evolver running (log: $log)"

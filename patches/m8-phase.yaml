@@ -1,6 +1,7 @@
 about: "Phaser pedal into a Gojira-voiced amp: slow six-stage sweep under heavy chugs and ringing chords — for space sections and as the odd side of a double."
-extends: "m8 layers.0.pick=0.1 layers.0.click=0.2 layers.0.scrape=0.12 layers.0.thump=expr.pm*0.7"
+extends: "m8 layers.0.pick=0.1 layers.0.click=0.2 layers.0.scrape=0.12 layers.0.thump=expr.pm*0.7 layers.0.squeak=expr.move*0.6"
 fx:
+  - {type: sympathetic, notes: "F1,Bb1,Eb2,Ab2,Db3,Gb3,Bb3,Eb4", decay: 1.2s, mix: 0.06}
   - {type: phaser, rate: 0.22, depth: 0.75, stages: 6, feedback: 0.45, mix: 0.55}
   - {type: amp, model: gojira, gain: 0.76, ts: 0.5, tight: 110, boost: 4dB, bass: 0.56, mid: 0.6, treble: 0.5, presence: 0.48, resonance: 0.66, sag: 0.25, bloom: 0.35}
   - {type: ir, file: jester/cookie-monster, blend_file: jester/kitten-slayer, blend: 0.4, length: 120ms, breakup: 0.3, room: 0.12}

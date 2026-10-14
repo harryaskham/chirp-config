@@ -1,9 +1,10 @@
 about: "Lead into a dark tape echo: the sustaining 8-string, 5150, cab, quarter-note delay with a rolled-off tone and tape warmth, wide hall — big, evil melodic leads."
-extends: "m8 layers.0.decay.value=9s layers.0.bright.value=0.8 layers.0.click=0.12 layers.0.scrape=0.08"
+extends: "m8 layers.0.decay.value=9s layers.0.bright.value=0.8 layers.0.click=0.12 layers.0.scrape=0.08 layers.0.squeak=expr.move*0.6"
 synth:
   lfo:
     vib: {wave: sine, rate: 5.4hz, delay: 300ms, fade: 400ms, retrig: true}
 fx:
+  - {type: sympathetic, notes: "F1,Bb1,Eb2,Ab2,Db3,Gb3,Bb3,Eb4", decay: 1.2s, mix: 0.06}
   - {type: amp, model: "5150", gain: 0.9, ts: 0.7, tight: 140, boost: 6dB, bass: 0.5, mid: 0.68, treble: 0.58, presence: 0.6, resonance: 0.55, sag: 0.3, bloom: 0.3}
   - {type: ir, file: jester/cookie-monster, blend_file: jester/darth-genocider, blend: 0.4, length: 120ms, breakup: 0.3, room: 0.12}
   - {type: eq, bands: ["peak cutoff=800 q=0.9 gain=2dB", "peak cutoff=250 q=1.2 gain=-2dB"]}

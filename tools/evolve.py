@@ -743,7 +743,27 @@ def master_for(ident):
     dyn = dyn + (["tape drive=0.45 warmth=0.65"] if flavor == "vintage" else [])
     width = "width width=1.35 mono_below=140" if flavor == "wide" else "width width=1.2 mono_below=140"
     fx = eq + [verb] + dyn + ([f"gain gain={trim:+.1f}dB"] if trim else []) + [width]
+    fx.append({"type": "tapestop", "stop": "var.stop", "time": "1b"})  # DJ tape stop between songs (armed by the evolver)
     return json.dumps(fx)
+
+
+TAPESTOP = {"vaporwave": 0.35, "backrooms": 0.35, "lofihop": 0.3, "triphop": 0.3, "dub": 0.3, "cyberscape": 0.25, "fusion": 0.25, "neosoul": 0.3,
+            "meshuggah": 0.35, "djent": 0.35, "djent-breakdown": 0.35, "breakcore": 0.4, "brostep": 0.35, "darksynth": 0.3, "industrial": 0.3,
+            "numetal": 0.3, "deathcore": 0.35, "hardcore-kl": 0.3}
+
+
+def tapestop_now(bpm):
+    """Wind the mix down over the last beat of the pass and release on the downbeat of the next."""
+    st = live("status") or {}
+    left = st.get("loop_seconds", 0) - st.get("position", 0)
+    beat = 60.0 / max(40, bpm)
+    if left <= 0 or left > beat + 3:
+        return False
+    time.sleep(max(0.0, left - beat))
+    subprocess.run([C, "live", "var", "--id", "groove", "stop=1"], capture_output=True)
+    time.sleep(max(0.0, min(beat, left) - 0.03))
+    subprocess.run([C, "live", "var", "--id", "groove", "stop=0"], capture_output=True)
+    return True
 
 def choir_notes(ident):
     """The vocoder choir's carrier chord: the song's tonic with its mode's fifth, octave and third."""
@@ -1168,6 +1188,7 @@ if __name__ == "__main__":
             if j.get("on") and not first:
                 j["h"] = round(min(1.0, j.get("h", 0) + j.get("rate", 0.09)), 3)
                 open(JOURNEY, "w").write(json.dumps(j) + "\n")
+            old_style = ident.get("style")
             # Each pass plays the next ~1-minute chapter of the song; after the last, a new song.
             if not first and ident.get("chapter", 0) + 1 < len(chapters(ident)):
                 ident = dict(ident, chapter=ident.get("chapter", 0) + 1)
@@ -1223,6 +1244,9 @@ if __name__ == "__main__":
             nxt, nxt_ident = name, dict(ident)
             ok = live("set", f"tracks.arrangement.score=@{name}", f"master.fx={master_for(ident)}")
             vx = set_choir(ident)
+            if change.startswith("new song") and random.random() < TAPESTOP.get(old_style, 0):
+                globals()["_ts_arm"] = li  # this pass ends the old song: tape-stop into the next
+                change += ", tape stop"
             print(time.strftime("%T"), f"pass {li}: next {name} ({change}) {ident['style']} {ident['tempo']}bpm key{ident['key']:+d} riff={ident['riff']} hook={ident['hook']} vox={vx}" + ("" if ok is not None else "  (rejected)"), flush=True)
             save_state(playing=playing, playing_ident=playing_ident, next=nxt, next_ident=nxt_ident, loop_index=li)
         # Steering: apply to the song playing now (cut at the next bar, same position),
@@ -1275,6 +1299,12 @@ if __name__ == "__main__":
                 except Exception as e:
                     print(time.strftime("%T"), f"steer failed: {cmd!r}: {e}", flush=True)
             save_state(playing=playing, playing_ident=playing_ident, next=nxt, next_ident=nxt_ident, loop_index=li)
+        if globals().get("_ts_arm") == li:
+            st = live("status") or {}
+            if st.get("loop_seconds") and st["loop_seconds"] - st.get("position", 0) < 60.0 / max(40, (playing_ident or ident).get("tempo", 100)) + 2.5:
+                globals()["_ts_arm"] = None
+                if tapestop_now((playing_ident or ident).get("tempo", 100)):
+                    print(time.strftime("%T"), "tape stop", flush=True)
         # Mid-pass: vary the playing chapter's vocal chain (same effect, fresh parameters) at a bar line.
         if playing_ident and globals().get("_vox_mid") != li:
             st = live("status") or {}

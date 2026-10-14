@@ -1,6 +1,7 @@
 about: "Right rhythm rig for double-tracked heavy riffs: a different player and rig from m8-rhythm-l — pick nearer the neck, other pickup/coil and string stiffness, Gojira-voiced amp, darth-genocider/cookie-monster cab blend, its own fizz dip, short plate. Give the right track its own seed and ~9 ms humanize."
-extends: "m8 layers.0.pick=0.095 layers.0.pickup=0.1 layers.0.coil=0.36 layers.0.stiff=0.29 layers.0.click=0.2 layers.0.scrape=0.12 layers.0.thump=expr.pm*0.7"
+extends: "m8 layers.0.pick=0.095 layers.0.pickup=0.1 layers.0.coil=0.36 layers.0.stiff=0.29 layers.0.click=0.2 layers.0.scrape=0.12 layers.0.thump=expr.pm*0.7 layers.0.squeak=expr.move*0.6"
 fx:
+  - {type: sympathetic, notes: "F1,Bb1,Eb2,Ab2,Db3,Gb3,Bb3,Eb4", decay: 1.2s, mix: 0.06}
   - {type: amp, model: gojira, gain: 0.78, ts: 0.5, tight: 105, boost: 4dB, bass: 0.58, mid: 0.58, treble: 0.5, presence: 0.48, resonance: 0.68, sag: 0.28, bloom: 0.35}
   - {type: ir, file: jester/darth-genocider, blend_file: jester/cookie-monster, blend: 0.3, length: 120ms, breakup: 0.3, room: 0.12}
   - {type: eq, bands: ["peak cutoff=230 q=1.2 gain=-2dB", "peak cutoff=2900 q=1.2 gain=-2.5dB", "highshelf cutoff=7000 gain=-3dB"]}
