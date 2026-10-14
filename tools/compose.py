@@ -61,7 +61,7 @@ STYLE_MODES = {
     "bossa": ["major", "dorian", "minor", "lydian"], "dub": ["minor", "dorian", "mixolydian"],
     "manouche": ["harmonic", "minor", "harmonic", "major"], "celtic": ["dorian", "mixolydian", "minor", "major"],
     "doomjazz": ["minor", "phrygian", "dorian", "harmonic"], "mali": ["dorian", "minor", "mixolydian"], "guofeng": ["major", "minor", "dorian"], "vaporwave": ["major", "lydian", "dorian", "minor"], "slowcore": ["major", "mixolydian", "minor", "dorian"],
-    "backrooms": ["major", "lydian", "mixolydian"], "cyberscape": ["minor", "dorian", "lydian", "phrygian"],
+    "backrooms": ["major", "lydian", "mixolydian"], "neosoul": ["dorian", "minor", "major", "mixolydian"], "cyberscape": ["minor", "dorian", "lydian", "phrygian"],
     "koto": ["hirajoshi", "hirajoshi", "phrygian"],
     "djazz": ["dorian", "lydian", "harmonic", "minor", "mixolydian"], "industrial": ["phrygian", "minor", "harmonic"], "dnb": ["minor", "phrygian", "dorian"],
     "darksynth": ["minor", "phrygian", "harmonic", "dorian"],
@@ -2411,6 +2411,53 @@ def gen_cyberscape(r, k, prog, kind="main"):
     return out
 
 
+def drunk(slots):
+    """Unquantized 16ths: slots = [(token or None, offset 0..3 in 1/128-note sub-steps)], each hit
+    delayed by its offset (≈20 ms per step at ~88 BPM) and held so every slot is exactly a 16th."""
+    out = []
+    for tok, off in slots:
+        if tok is None:
+            out.append("R/16")
+            continue
+        off = max(0, min(3, off))
+        out.append(" ".join(["R/128"] * off + [tok.replace("/16", "/128")] + ["_"] * (7 - off)))
+    return " ".join(out)
+
+
+def gen_neosoul(r, k, prog, kind="main"):
+    """Neo-soul / Dilla jazz-hop: drunk unquantized drums (kick on the grid, snare late, hats drifting
+    with uneven velocities, lazy ghosts), rotary Rhodes 9/11/13 voicings, syncopated finger bass a
+    touch behind; kind=full adds a Wurlitzer; kind=intro is keys alone."""
+    keys = []
+    for root in prog:
+        ch = chordhead([k.deg(root + d, 50) for d in r.choice([[0, 2, 4, 6, 8], [2, 4, 6, 8, 10], [0, 4, 6, 8, 12], [2, 6, 8, 11]])])
+        keys.append(r.choice([f"{ch}/4.@72 {ch}/8@60^gate=0.6 R/4 {ch}/4@66", f"R/8 {ch}/4.@70 R/4 {ch}/4@64", f"{ch}/2@72 R/8 {ch}/4.@62"]))
+    out = [track("keys", pick_patch("rhodes-rotary", "rhodes"), "swing16=0.58 " + " ".join(keys), pan=-0.15)]
+    if kind == "intro":
+        return out
+    kit = rig("drums")
+    kpat = r.choice(["x.......x.x.....", "x......x..x.....", "x.......x..x..x."])
+    kick, snare, hats, bass = [], [], [], []
+    for bar in range(4):
+        root = prog[bar % len(prog)]
+        for x in range(16):
+            kick.append((f"k/16@{r.choice([92, 98, 104])}", 0) if kpat[x] == "x" else (None, 0))
+            if x in (4, 12):
+                snare.append((f"s/16@{r.choice([96, 102])}", r.choice([1, 2, 2, 3])))
+            elif r.random() < 0.12:
+                snare.append((f"g/16@{r.choice([24, 30, 36])}", r.choice([1, 2, 3])))
+            else:
+                snare.append((None, 0))
+            hats.append((f"h/16@{r.choice([40, 48, 56, 64]) if x % 2 == 0 else r.choice([28, 34, 40])}", r.choice([0, 1, 1, 2])) if r.random() < 0.85 else (None, 0))
+            bnote = {0: 0, 3: 0, 6: 4, 10: r.choice([2, 4, 6]), 14: r.choice([5, 6])}.get(x)
+            bass.append((f"{mname(k.deg(root + bnote, 33))}/16@{r.choice([84, 90, 96])}", 1) if bnote is not None and (x in (0, 6) or r.random() < 0.7) else (None, 0))
+    out += [track("kick", kit, drunk(kick), gain="-4dB"), track("snare", kit, drunk(snare), gain="-3dB"), track("hats", kit, drunk(hats), pan=0.15, gain="-5dB"),
+            track("bass", pick_patch("finger-bass", "fretless"), drunk(bass), seed=7)]
+    if kind == "full":
+        out.append(track("wurli", pick_patch("wurli", "rhodes"), " ".join(f"R/4 {chordhead([k.deg(root + d, 62) for d in (2, 4, 6)])}/8@56^gate=0.5 R/8 R/2" for root in prog), pan=0.3, gain="-6dB"))
+    return out
+
+
 def gen_downtempo(r, k, prog, kind="main"):
     """Downtempo (Bonobo-ish): a low-passed breakbeat, marimba/kalimba ostinato, finger bass, strings."""
     kit = pick_patch("break-kit", "lofi-kit")
@@ -2452,6 +2499,7 @@ CHILL_GUESTS = {
     "mali": (lambda r, k, prog: gen_mali(r, k, prog), {"mali"}),
     "vaporwave": (lambda r, k, prog: gen_vaporwave(r, k, prog), {"vaporwave"}),
     "backrooms": (lambda r, k, prog: gen_backrooms(r, k, prog, "far"), {"backrooms"}),
+    "neosoul": (lambda r, k, prog: gen_neosoul(r, k, prog), {"neosoul"}),
     "cyberscape": (lambda r, k, prog: gen_cyberscape(r, k, prog), {"cyberscape"}),
     "slowcore": (lambda r, k, prog: gen_slowcore(r, k, prog) + gen_atmos(r, k, prog, 64, pick_patch("pedal-steel", "ebow")), {"slowcore"}),
     "guofeng": (lambda r, k, prog: gen_guofeng(r, k, prog) + gen_penta_air(r, k, prog, 67, pick_patch("dizi", "flute")), {"guofeng"}),
@@ -2501,7 +2549,7 @@ def compose(style, slot, p):
     return names, desc
 
 
-CHILL_STYLES = {"lofihop", "gogo", "ukjazz", "ambient", "downtempo", "smile", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche", "celtic", "doomjazz", "mali", "guofeng", "vaporwave", "slowcore", "backrooms", "cyberscape"}
+CHILL_STYLES = {"lofihop", "gogo", "ukjazz", "ambient", "downtempo", "smile", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche", "celtic", "doomjazz", "mali", "guofeng", "vaporwave", "slowcore", "backrooms", "cyberscape", "neosoul"}
 HEAVY_STYLES = {"meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep",
                 "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock", "groovemetal", "power", "sludge",
                 "breakcore", "mathcore", "gojira", "djazz", "raga", "gamelan", "koto"}
@@ -2532,6 +2580,11 @@ def _compose_style(style, slot, p):
             "hookE": gen_atmos(r, k, prog, 62, rig("atmos")),
         }
         return _write_parts(slot, "brostep", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
+    if style == "neosoul":
+        lead = pick_patch(r.choice(["tenor-sax", "trumpet-mute", "synth-lead"]), "rhodes")
+        parts = {"riffI": gen_neosoul(r, k, prog, "intro"), "riff": gen_neosoul(r, k, prog), "riffB": gen_neosoul(r, k, prog, "full"),
+                 "hook": gen_hook(r, k, prog, 64 if "synth" not in lead else 69, lead)}
+        return _write_parts(slot, "neosoul", parts, f"{NAMES[p['pc']]} {p['mode']}, lead {lead}")
     if style == "backrooms":
         parts = {"riffI": gen_backrooms(r, k, prog, "intro"), "riff": gen_backrooms(r, k, prog), "riffF": gen_backrooms(r, k, prog, "far"),
                  "riffD": gen_backrooms(r, k, prog, "decay")}

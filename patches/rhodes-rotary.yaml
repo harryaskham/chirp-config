@@ -1,0 +1,3 @@
+about: "Rhodes through a rotary speaker (Leslie emulation): fast amplitude tremolo for the horn rotor, a slow phaser and chorus for the drum rotor's doppler swirl. Neo-soul, gospel-jazz comping."
+extends: rhodes
+fx: ["tremolo rate=6.2hz depth=0.18", "phaser rate=0.8 depth=0.5 stages=4 feedback=0.2 mix=0.35", "chorus rate=1.1 depth=0.3 mix=0.3", "reverb kind=room decay=1.2s mix=0.16"]
