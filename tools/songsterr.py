@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Songsterr tab → explicit chirp score notation (one line per measure, durations exact in beats).
 
-  songsterr.py SONG_ID [TRACK…]        fetch the tab's meta + tracks (cached under ref/), print scores
+  songsterr.py SONG_ID [TRACK…]        fetch the tab's meta + tracks (cached under ref/songsterr-SONG_ID/), print scores
   songsterr.py --cached DIR [TRACK…]   use already-fetched DIR/songsterr-N.json files
 
 Pitched tracks: note = string tuning + fret; ties merge into the previous note; dynamics (ppp…fff)
@@ -131,7 +131,7 @@ if __name__ == "__main__":
     if args and args[0] == "--cached":
         cache = args[1]; args = args[2:]
     else:
-        cache = os.path.expanduser("~/.config/chirp/ref"); fetch(args[0], cache); args = args[1:]
+        cache = os.path.expanduser(f"~/.config/chirp/ref/songsterr-{args[0]}"); fetch(args[0], cache); args = args[1:]
     meta = json.load(open(f"{cache}/songsterr-meta.json"))
     idx = [int(a) for a in args] or list(range(len(meta.get("tracks", []))))
     for i in idx:
