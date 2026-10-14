@@ -1,0 +1,5 @@
+about: "Library part \u2014 exotica melody (C major), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "vibes", "score": "E5/8@84 B4/8@84 D5/8@90 B4/8@92 G5/4@82 R/4 R/1 E5/8@82 A5/8@84 F5/8@94 A5/8@83 G5/4@81 R/4 D6/4@86 C5/4@98 R/2", "pan": 0.1}

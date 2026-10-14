@@ -1,0 +1,8 @@
+about: "Ukulele: small, bright four-string nylon strums with a quick decay and a light strum spread. Hawaiian, exotica, folk-pop offbeats."
+synth:
+  layers:
+    - {type: pluck, pick: 0.2, body: 0.35, decay: 0.8s, bright: 0.6}
+  filters: ["hp cutoff=250", "peak cutoff=2.2k q=1 gain=2dB", "lp cutoff=8k"]
+play: {gate: 1, vel_sens: 0.6, strum: 14ms, humanize: {time: 5ms, vel: 0.08}}
+fx: ["reverb kind=room decay=0.9s mix=0.15"]
+gain: 4dB
