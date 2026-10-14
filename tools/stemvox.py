@@ -10,6 +10,9 @@ a grid on the tab's own measure timeline (so odd-length bars stay exact), with v
   --range  dB below the passage's loudest frame that still counts as voice (default 30)
   --dip    a fall of this many dB inside a run, then a rise, starts a new syllable (default 6)
   --min    shortest syllable in beats after quantising (default 0.25)
+  --onsets runs (default: energy runs split at dips) | flux (syllable starts at vocal-band flux peaks — the
+           perceived attack; with --grid 0.03125 --min 0.0625 this tracks barked delivery far better)
+  --shift  ms added to every syllable time (latency calibration against the target patch's attack)
 Prints one line per bar: `bar N  tokens` (R for rests), like stemnotes.py."""
 import os
 import sys
@@ -56,6 +59,25 @@ def syllables(env, hop, rng, dip):
     return [(a * hop, b * hop, p - top) for a, b, p in segs]
 
 
+def syllables_flux(env, hop, rng, height=96, gap=0.09, min_len=0.06):
+    """Syllables from onsets: vocal-band flux peaks (the perceived attack, not the quiet rising edge), each
+    lasting until the next onset or until the voice falls below the passage's top − rng dB."""
+    from scipy import signal as sg
+    top = np.percentile(env, 99.5); live = env > top - rng
+    fl = np.maximum(np.diff(env, prepend=env[0]), 0)
+    fl = np.convolve(fl, np.ones(3), "same")
+    pk, _ = sg.find_peaks(fl, height=np.percentile(fl, height), distance=max(1, int(gap / hop)))
+    pk = [p for p in pk if live[min(p + int(0.03 / hop), len(env) - 1)]]
+    segs = []
+    for i, p in enumerate(pk):
+        nxt = pk[i + 1] if i + 1 < len(pk) else len(env)
+        e = p
+        while e < nxt and (live[e] or e - p < int(min_len / hop)):
+            e += 1
+        segs.append((p * hop, e * hop, float(env[p:max(e, p + 1)].max() - top)))
+    return segs
+
+
 def syllable_pitch(x, a, b, lo=55, hi=77, default="A4"):
     """Pitch of one syllable (MIDI lo..hi): harmonic summation over 5 harmonics of the segment's spectrum.
     Shouted vocals are noisy but strongly pitched; the estimate is the most salient harmonic series."""
@@ -84,12 +106,14 @@ def main():
     b0, b1 = (int(v) for v in opt("--bars", "1-1").split("-"))
     note, grid = opt("--note", "Eb3"), float(opt("--grid", "0.125"))
     rng, dip, mn = float(opt("--range", "30")), float(opt("--dip", "6")), float(opt("--min", "0.25"))
+    mode, shift = opt("--onsets", "runs"), float(opt("--shift", "0")) / 1000
     tl = T.timeline(tab)
     t_start = d0 + tl[b0 - 1]["start"]
     last = tl[b1 - 1]; t_end = d0 + last["start"] + last["beats"] * 60 / last["bpm"]
     x = L.load(stem).mean(1)[int(t_start * SR):int(t_end * SR)]
     env, hop = band_env(x)
-    segs = syllables(env, hop, rng, dip)
+    segs = syllables_flux(env, hop, rng) if mode == "flux" else syllables(env, hop, rng, dip)
+    segs = [(s + shift, e + shift, lvl) for s, e, lvl in segs]
     # time → (bar, beat-in-bar) on the tab timeline, quantised
     bars = {m: [] for m in range(b0, b1 + 1)}
     for s, e, lvl in segs:
