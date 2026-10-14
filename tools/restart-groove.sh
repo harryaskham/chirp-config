@@ -28,7 +28,8 @@ sleep 0.3
 PULSE_LATENCY_MSEC=${CHIRP_PULSE_LATENCY_MSEC:-1000} setsid nohup "$C" --loop --id groove -o "${CHIRP_OUT:-music}" -s "${1:-live-suite}" > "${TMPDIR:-/tmp}/chirp-groove.log" 2>&1 < /dev/null 9>&- &
 sleep 1.2
 if [ -n "${2:-}" ]; then "$C" live set --id groove --when bar --xfade 150ms "tracks.arrangement.score=$2" | tail -1; fi
-CHIRP_BIN=$C EVOLVE_RESUME=1 setsid nohup python3 "$here/evolve.py" >> "$log" 2>&1 < /dev/null 9>&- &
+# the evolver only drives live-suite; any other song (a benchmark reproduction) plays as written
+if [ "${1:-live-suite}" = live-suite ]; then CHIRP_BIN=$C EVOLVE_RESUME=1 setsid nohup python3 "$here/evolve.py" >> "$log" 2>&1 < /dev/null 9>&- & fi
 sleep 0.5
 "$C" live list
-pgrep -f "^[^ ]*python3 $here/evolve.py" >/dev/null && echo "evolver running (log: $log)"
+pgrep -f "^[^ ]*python3 $here/evolve.py" >/dev/null && echo "evolver running (log: $log)" || echo "groove playing ${1:-live-suite} (no evolver)"

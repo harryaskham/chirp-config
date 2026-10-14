@@ -21,7 +21,9 @@ while true; do
     if [ -n "$reason" ] && pactl -s "$pulse" info >/dev/null 2>&1; then
       nxt=$(python3 -c "import json;print(json.load(open('$here/state.json')).get('next') or 'form-1')" 2>/dev/null || echo form-1)
       echo "$(date +%T) watchdog: groove $reason — restarting (@$nxt)"
-      CHIRP_SRC="$bin" bash "$here/restart-groove.sh" live-suite "@$nxt" 2>&1 | tail -2
+      song=$(cat "$here/groove-song" 2>/dev/null || echo live-suite)  # what the groove should play (runtime state)
+      if [ "$song" = live-suite ]; then CHIRP_SRC="$bin" bash "$here/restart-groove.sh" live-suite "@$nxt" 2>&1 | tail -2
+      else CHIRP_SRC="$bin" bash "$here/restart-groove.sh" "$song" 2>&1 | tail -2; fi
       last=""
       sleep 30
     fi

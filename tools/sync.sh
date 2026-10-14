@@ -42,7 +42,9 @@ if [ "$rebuilt" = 1 ] && ! cmp -s "$new" "$pinned"; then
   done
   nxt=$("$py" -c "import json;print(json.load(open('$here/state.json')).get('next') or 'form-1')" 2>/dev/null || echo form-1)
   echo "sync: restarting groove on the new build at a pass boundary (resuming @$nxt)"
-  CHIRP_SRC="$new" bash "$here/restart-groove.sh" live-suite "@$nxt"
+  song=$(cat "$here/groove-song" 2>/dev/null || echo live-suite)  # what the groove should play (runtime state)
+  if [ "$song" = live-suite ]; then CHIRP_SRC="$new" bash "$here/restart-groove.sh" live-suite "@$nxt"
+  else CHIRP_SRC="$new" bash "$here/restart-groove.sh" "$song"; fi
 elif [ "$tools_changed" -gt 0 ]; then
   echo "sync: evolver/composer changed upstream — restarting the evolver (keeping the playing song)"
   pgrep -f "^[^ ]*python3 $here/evolve.py" | xargs -r kill; sleep 0.5
