@@ -7,6 +7,6 @@ fx:
   - {type: ir, file: jester/darth-genocider, blend_file: jester/cookie-monster, blend: 0.3, length: 120ms, breakup: 0.3, room: 0.12}
   - {type: eq, bands: ["peak cutoff=115 q=1.1 gain=2dB", "peak cutoff=230 q=1.2 gain=-2.5dB", "peak cutoff=2900 q=1.2 gain=-2.5dB", "highshelf cutoff=7000 gain=-3dB", "lowshelf cutoff=120 gain=7dB", "peak cutoff=3300 q=1 gain=4dB", "highshelf cutoff=5000 gain=-12dB"]}
   - {type: gate, threshold: -48dB, attack: 0.3ms, hold: 8ms, release: 25ms}
-  - "reverb kind=plate decay=1s mix=0.06 predelay=16ms"
+  - "reverb kind=plate decay=1s mix=0.1 predelay=16ms"   # a touch more plate than the chug rigs: dry −0.3, 0.1 +0.2 on Bleed
 gain: -23dB
 play: {humanize: {time: 9ms, vel: 0.09}}

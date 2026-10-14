@@ -7,5 +7,5 @@ fx:
   - {type: ir, file: jester/cookie-monster, blend_file: jester/kitten-slayer, blend: 0.3, length: 120ms, breakup: 0.3, room: 0.12}
   - {type: eq, bands: ["peak cutoff=110 q=1.1 gain=2dB", "peak cutoff=250 q=1.2 gain=-2.5dB", "peak cutoff=3300 q=1.2 gain=-2.5dB", "highshelf cutoff=7500 gain=-3dB", "lowshelf cutoff=120 gain=7dB", "peak cutoff=3300 q=1 gain=4dB", "highshelf cutoff=5000 gain=-12dB"]}
   - {type: gate, threshold: -48dB, attack: 0.3ms, hold: 8ms, release: 25ms}
-  - "reverb kind=plate decay=0.9s mix=0.06 predelay=10ms"
+  - "reverb kind=plate decay=0.9s mix=0.1 predelay=10ms"   # a touch more plate than the chug rigs: dry −0.3, 0.1 +0.2 on Bleed
 gain: -23dB

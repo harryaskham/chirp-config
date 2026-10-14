@@ -13,7 +13,7 @@ fx:
   - {type: drive, drive: 0.18, mix: 0.5}
   - type: eq
     bands: ["hp cutoff=30", "peak cutoff=62 q=1.1 gain=2.5dB", "peak cutoff=420 q=1 gain=-3.5dB", "peak cutoff=4.2k q=1 gain=2.5dB", "highshelf cutoff=10k gain=1.5dB"]
-  - "reverb kind=room decay=0.7s mix=0.09 predelay=8ms"
+  - "reverb kind=room decay=0.7s mix=0.15 predelay=8ms"   # more room than metal-kit: dry 62.7, 0.09 63.6, 0.15 64.1, 0.22 63.3 on Bleed
   - {type: eq, bands: ["peak cutoff=1600 q=0.7 gain=5dB", "peak cutoff=63 q=1 gain=-4dB", "peak cutoff=180 q=1.2 gain=-4dB", "highshelf cutoff=9000 gain=-3dB"]}
 kit:
   k: {pitch: B1}   # Haake's kick reads B/A/Ab/Bb on Bleed's drum stem (metal-kit's is A1): +0.9 on the song
