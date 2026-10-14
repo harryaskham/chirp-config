@@ -786,7 +786,8 @@ def loud_sample(st, li, ident):
             step = 0.6 if _L["style"] not in L else 0.5  # a style's first measurement moves further
             L[_L["style"]] = round(max(-6.0, min(6.0, old + step * (tgt - m))), 2)
             world = "_chill" if _L["style"] in composer.CHILL_STYLES else "_heavy"  # fast shared trim for the whole set
-            L[world] = round(max(-8.0, min(6.0, L.get(world, 0.0) + 0.35 * (tgt - m))), 2)
+            # Slow shared drift only (fast per-style + fast shared double-corrects and oscillates).
+            L[world] = round(max(-8.0, min(6.0, L.get(world, 0.0) + 0.1 * (tgt - m))), 2)
             json.dump(L, open(LOUD, "w"), indent=1, sort_keys=True)
             print(time.strftime("%T"), f"loudness: {_L['style']} {m:.1f} LUFS (target {tgt:.0f}) → learned trim {old:+.1f} → {L[_L['style']]:+.1f} dB", flush=True)
         _L.update(li=li, style=(ident or {}).get("style"), vals=[])
