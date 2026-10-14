@@ -652,10 +652,89 @@ def choir_notes(ident):
     return ",".join(composer.mname(m + ident.get("key", 0)) for m in (k.deg(0, 48), k.deg(4, 48), k.deg(len(k.iv), 48), k.deg(2, 60)))
 
 
-def set_choir(ident, when="loop"):
-    notes = choir_notes(ident)
-    if notes:  # best effort: a live song without the choir just rejects this edit
-        subprocess.run([C, "live", "set", "--id", "groove", "--when", when, f"tracks.voxchoir.fx.0.notes={notes}"], capture_output=True)
+# ---- Vocal effects: the agent voice (input tts) re-voiced by a chain chosen per chapter, its
+# parameters re-rolled per chapter and varied again mid-pass; timings follow the song's tempo.
+def _tonic(ident):
+    g = ident.get("gen") or {}
+    k = composer.Key(g.get("pc", 0), g.get("mode", "minor"))
+    return k, k.deg(0, 48) + ident.get("key", 0)
+
+
+def _hz(m):
+    return round(440 * 2 ** ((m - 69) / 12), 2)
+
+
+def vox_presets(ident, r):
+    """Each preset: (fx list). r supplies the per-chapter / per-variation parameters."""
+    k, t = _tonic(ident)
+    bpm = ident.get("tempo", 100)
+    third = 3 if k.iv[2] == 3 else 4
+    note = lambda: r.choice(["1/16", "1/8", "3/16", "1/4", "3/8"])
+    plate = lambda lo=1.4, hi=3.5: {"type": "reverb", "kind": r.choice(["plate", "hall"]), "decay": f"{r.uniform(lo, hi):.1f}s", "mix": round(r.uniform(0.22, 0.38), 2)}
+    voicing = r.choice([(0, 4, 7, 2), (0, 4, 7, 9), (0, 2, 4, 7), (0, 7, 9, 11), (0, 4, 9, 13)])
+    choir = ",".join(composer.mname(k.deg(d, 48) + ident.get("key", 0)) for d in voicing)
+    return {
+        "choir": [{"type": "vocoder", "notes": choir, "bands": r.choice([14, 18, 20, 24, 28]), "noise": round(r.uniform(0.05, 0.2), 2), "release": f"{r.choice([50, 80, 120, 160])}ms"},
+                  {"type": "delay", "time": note(), "feedback": round(r.uniform(0.2, 0.42), 2), "mix": round(r.uniform(0.18, 0.32), 2), "ping_pong": True}, plate()],
+        "shimmer": [{"type": "filter", "kind": "hp", "cutoff": 220}, {"type": "pitch", "semitones": r.choice([12, 12, 7, 19]), "grain": f"{r.choice([40, 60, 90])}ms", "mix": round(r.uniform(0.35, 0.55), 2)},
+                    {"type": "reverb", "kind": "hall", "decay": f"{r.uniform(4.5, 8):.1f}s", "predelay": "40ms", "mix": round(r.uniform(0.45, 0.62), 2)}],
+        "harmony": [{"type": "pitch", "semitones": third, "mix": 0.45}, {"type": "pitch", "semitones": r.choice([7, -5, 12]), "mix": 0.35},
+                    {"type": "chorus", "rate": round(r.uniform(0.3, 0.9), 2), "depth": 0.35, "mix": 0.35}, plate()],
+        "radio": [{"type": "filter", "kind": "hp", "cutoff": r.choice([350, 450, 600])}, {"type": "filter", "kind": "lp", "cutoff": r.choice([2600, 3200, 4000])},
+                  {"type": "drive", "drive": round(r.uniform(0.3, 0.6), 2)}, {"type": "crush", "bits": r.choice([8, 10, 12]), "rate": r.choice([8000, 11025, 16000]), "mix": round(r.uniform(0.35, 0.7), 2)},
+                  {"type": "reverb", "kind": "spring", "decay": "1.4s", "mix": 0.2}],
+        "robot": [{"type": "ring", "freq": _hz(t + r.choice([0, 12, 7])), "mix": round(r.uniform(0.5, 0.8), 2)}, {"type": "delay", "time": "1/16", "feedback": 0.12, "mix": 0.2}, plate(0.8, 1.6)],
+        "demon": [{"type": "pitch", "semitones": r.choice([-12, -7, -5]), "grain": "60ms", "mix": round(r.uniform(0.6, 0.85), 2)}, {"type": "formant", "vowel": r.choice([0, 1, 2, 3, 4]), "q": r.choice([6, 9, 12]), "mix": 0.4},
+                  {"type": "drive", "drive": round(r.uniform(0.2, 0.4), 2)}, plate(2.0, 4.0)],
+        "glitch": [{"type": "stutter", "slice": r.choice(["1/32", "1/16", "1/8"]), "repeats": r.choice([2, 3, 4, 6, 8]), "chance": round(r.uniform(0.25, 0.5), 2), "reverse": r.random() < 0.4, "seed": r.randrange(1000)},
+                   {"type": "crush", "bits": r.choice([10, 12, 14]), "rate": r.choice([12000, 16000, 24000]), "mix": 0.5}, {"type": "delay", "time": note(), "feedback": 0.3, "mix": 0.22, "ping_pong": True}],
+        "dub": [{"type": "filter", "kind": "hp", "cutoff": 350}, {"type": "delay", "time": r.choice(["3/8", "3/16", "1/4"]), "feedback": round(r.uniform(0.45, 0.6), 2), "tone": r.choice([1500, 2000, 2500]), "mix": round(r.uniform(0.28, 0.38), 2), "ping_pong": True},
+                {"type": "reverb", "kind": "spring", "decay": "1.8s", "mix": 0.25}],
+        "ghost": [{"type": "filter", "kind": "hp", "cutoff": 500}, {"type": "pitch", "semitones": 12, "mix": 0.3},
+                  {"type": "stutter", "slice": "1/8", "repeats": 2, "chance": round(r.uniform(0.3, 0.5), 2), "reverse": True, "seed": r.randrange(1000)},
+                  {"type": "reverb", "kind": "hall", "decay": f"{r.uniform(7, 10):.1f}s", "predelay": "60ms", "mix": round(r.uniform(0.6, 0.75), 2)}],
+        "phaser80": [{"type": "phaser", "rate": round(r.uniform(0.2, 0.8), 2), "depth": round(r.uniform(0.6, 0.9), 2), "stages": r.choice([4, 6, 8]), "feedback": round(r.uniform(0.3, 0.6), 2), "mix": 0.5},
+                     {"type": "chorus", "rate": 0.6, "depth": 0.4, "mix": 0.4}, plate()],
+        "talkbox": [{"type": "vocoder", "notes": ",".join(composer.mname(t + d) for d in r.choice([(0, 12), (0, 7, 12), (12,), (0, 12, 19)])), "bands": r.choice([24, 28, 32]), "noise": 0.03, "release": "30ms"},
+                    {"type": "phaser", "rate": 0.4, "depth": 0.6, "mix": 0.3}, {"type": "drive", "drive": 0.2}, plate(1.0, 2.0)],
+        "formant": [{"type": "formant", "vowel": r.choice([0, 1, 2, 3, 4]), "q": r.choice([8, 12, 16]), "mix": round(r.uniform(0.55, 0.8), 2)},
+                    {"type": "tremolo", "rate": round(bpm / 60 * r.choice([1, 2, 4]), 3), "depth": round(r.uniform(0.3, 0.6), 2)}, {"type": "delay", "time": note(), "feedback": 0.3, "mix": 0.22}, plate()],
+        "chop": [{"type": "tremolo", "rate": round(bpm / 60 * r.choice([2, 3, 4, 6]), 3), "depth": round(r.uniform(0.75, 0.95), 2)},
+                 {"type": "delay", "time": note(), "feedback": 0.25, "mix": 0.2, "ping_pong": True}, plate(1.0, 2.2)],
+    }
+
+
+VOX_POOLS = {
+    "chill": {"choir": 2, "shimmer": 2, "harmony": 1.5, "dub": 1, "ghost": 1.5, "phaser80": 1, "radio": 1, "talkbox": 0.7, "formant": 0.7, "chop": 0.5},
+    "heavy": {"choir": 1.2, "robot": 1.5, "demon": 1.5, "glitch": 1.5, "radio": 1, "talkbox": 1, "chop": 1, "harmony": 0.7, "formant": 0.6},
+}
+VOX_STYLE = {"dub": "dub", "vaporwave": "phaser80", "doomjazz": "ghost", "ambient": "shimmer", "idm": "glitch", "breakcore": "glitch",
+             "industrial": "robot", "deathcore": "demon", "sludge": "demon", "lofihop": "radio", "triphop": "radio"}
+# Level-matched to the vocoder choir on a sung test phrase (measured; capped ±9 dB).
+VOX_GAIN = {'harmony': 9, 'robot': 9, 'phaser80': 9, 'dub': 8, 'chop': 9, 'glitch': 5, 'ghost': 4, 'shimmer': 4, 'formant': -4, 'radio': -9, 'demon': -9, 'talkbox': -9}
+
+
+def vox_chain(ident, variant=0):
+    g = ident.get("gen") or {}
+    seed = (g.get("seed", 0) * 31 + ident.get("chapter", 0)) & 0xFFFFFFFF
+    pick = random.Random(seed)
+    pool = dict(VOX_POOLS["chill" if ident.get("style") in composer.CHILL_STYLES else "heavy"])
+    fav = VOX_STYLE.get(ident.get("style"))
+    if fav:
+        pool[fav] = pool.get(fav, 0) + 3
+    names = list(pool)
+    name = pick.choices(names, [pool[n] for n in names])[0]
+    chain = vox_presets(ident, random.Random(seed * 7 + variant + 1))[name]
+    return name, chain + [{"type": "gain", "gain": f"{VOX_GAIN.get(name, 0)}dB"}]
+
+
+def set_choir(ident, when="loop", variant=0):
+    """Set the voice track's whole fx chain (the name stays for the callers)."""
+    if not ident.get("gen"):
+        return None
+    name, chain = vox_chain(ident, variant)
+    r = subprocess.run([C, "live", "set", "--id", "groove", "--when", when, "tracks.voxchoir.fx=" + json.dumps(chain, separators=(",", ":"))], capture_output=True, text=True)
+    return name if r.returncode == 0 else f"{name}(rejected: {r.stderr.strip()[-80:]})"
 
 
 def write_form(name, ident):
@@ -1040,8 +1119,8 @@ if __name__ == "__main__":
             write_form(name, ident)
             nxt, nxt_ident = name, dict(ident)
             ok = live("set", f"tracks.arrangement.score=@{name}", f"master.fx={master_for(ident)}")
-            set_choir(ident)
-            print(time.strftime("%T"), f"pass {li}: next {name} ({change}) {ident['style']} {ident['tempo']}bpm key{ident['key']:+d} riff={ident['riff']} hook={ident['hook']}" + ("" if ok is not None else "  (rejected)"), flush=True)
+            vx = set_choir(ident)
+            print(time.strftime("%T"), f"pass {li}: next {name} ({change}) {ident['style']} {ident['tempo']}bpm key{ident['key']:+d} riff={ident['riff']} hook={ident['hook']} vox={vx}" + ("" if ok is not None else "  (rejected)"), flush=True)
             save_state(playing=playing, playing_ident=playing_ident, next=nxt, next_ident=nxt_ident, loop_index=li)
         # Steering: apply to the song playing now (cut at the next bar, same position),
         # then carry the change into the queued next song and re-queue it.
@@ -1093,4 +1172,12 @@ if __name__ == "__main__":
                 except Exception as e:
                     print(time.strftime("%T"), f"steer failed: {cmd!r}: {e}", flush=True)
             save_state(playing=playing, playing_ident=playing_ident, next=nxt, next_ident=nxt_ident, loop_index=li)
+        # Mid-pass: vary the playing chapter's vocal chain (same effect, fresh parameters) at a bar line.
+        if playing_ident and globals().get("_vox_mid") != li:
+            st = live("status") or {}
+            if st.get("loop_seconds") and st.get("position", 0) > st["loop_seconds"] * 0.5:
+                globals()["_vox_mid"] = li
+                vx = set_choir(playing_ident, "bar", variant=1)
+                if vx:
+                    print(time.strftime("%T"), f"vox: mid-pass variation ({vx})", flush=True)
         time.sleep(1)
