@@ -3800,6 +3800,7 @@ def gen_downtempo(r, k, prog, kind="main"):
 
 # Guest sections: other styles' generators composed in the song's key, slotted into its form.
 GUESTS = {
+    "brokenjazz": (None, {"ukjazz"}),
     "jazz": (lambda r, k, prog, low, gp: gen_mathcore(r, k, prog, low, "jazz"), {"djazz", "mathcore"}),
     "breakcore": (lambda r, k, prog, low, gp: gen_breakcore(r, k, prog, low), {"breakcore"}),
     "blast": (lambda r, k, prog, low, gp: gen_blast(r, k, prog, low, r.choice(["trad", "hammer", "bomb"])), {"tech-death", "deathcore"}),
@@ -3947,15 +3948,33 @@ def compose(style, slot, p):
         pool = [g for g, (_, homes) in GUESTS.items() if style not in homes]
         picks = r.sample(pool, 2)
         if FUSION:  # fusion-metal journey: one guest from the jazz / polymetric set
-            pref = [g for g in ("jazz", "space", "tribal", "tabla", "kotekan") if g in pool]
+            pref = [g for g in ("jazz", "space", "tribal", "tabla", "kotekan", "brokenjazz", "brokenjazz") if g in pool]
             if pref:
                 first = r.choice(pref)
                 picks = [first, r.choice([g for g in pool if g != first])]
         for i, g in enumerate(picks, 1):
             n = f"gen-{slot}-riffGuest{i}"
-            write(n, f"guest section ({g}) for {style}", GUESTS[g][0](r, k, p["prog"], 28, gp))
+            if g == "brokenjazz":  # odd-meter section: its own length
+                meter = r.choice([7, 7, 10])
+                beats = meter * 2 * (4 if meter in (7, 9) else 3) / 4
+                bp = pick_patch("tuba", "upright-bass") if r.random() < 0.5 else pick_patch("upright-bass", "finger-bass")
+                write(n, f"guest section (broken jazz in {meter}/8) for {style}", gen_broken(r, k, p["prog"], meter, "horns", bp), beats)
+            else:
+                write(n, f"guest section ({g}) for {style}", GUESTS[g][0](r, k, p["prog"], 28, gp))
             names[f"riffGuest{i}"] = n
         desc += f", guests {'/'.join(picks)}"
+        if FUSION and "riff" in names and abs(LENGTHS.get(names["riff"], 16) - 16) < 1e-9:
+            # Fusion solo trading over the song's own main riff: guitar two bars, synth two bars.
+            gl = rig("lead")
+            sl = pick_patch(r.choice(["moog-seq", "synth-lead", "lead-monster"]), "synth-lead")
+            g1 = gen_thordendal(r, k, 28, gl, 8)[0]
+            g2 = gen_thordendal(r, k, 28, sl, 8)[0]
+            trade = [{"name": "band", "score": f"@{names['riff']}"},
+                     dict(g1, name="solo-gtr", score=g1["score"] + " R/1 R/1"),
+                     dict(g2, name="solo-syn", score="R/1 R/1 " + g2["score"], pan=-0.15)]
+            nt = f"gen-{slot}-riffTrade"
+            write(nt, f"fusion trading solos over the main riff for {style}", trade)
+            names["riffTrade"] = nt
         n = f"gen-{slot}-riffEnd"
         write(n, f"ending for {style}", gen_ending(r, k, p["prog"]))
         names["riffEnd"] = n

@@ -764,7 +764,11 @@ def add_guests(ident, form, rng):
     ~60% of songs get one, some of those two."""
     if not ident.get("gen") or ident["style"] not in (composer.HEAVY_STYLES | composer.CHILL_STYLES) or len(form) < 4:
         return form
-    odd_p = 0.75 if journey_load().get("mode") == "fusion" else 0.45
+    fusion = journey_load().get("mode") == "fusion"
+    odd_p = 0.75 if fusion else 0.45
+    if fusion and ident["style"] in composer.HEAVY_STYLES and rng.random() < 0.6:
+        form = list(form)
+        form.insert(rng.randrange(2, len(form) - 1), ("trade", ["riffTrade"], "impact"))  # guitar / synth trading solos
     if ident["style"] in (composer.ODD_HOSTS_HEAVY | composer.ODD_HOSTS_CHILL) and rng.random() < odd_p:
         form = list(form)
         form.insert(rng.randrange(2, len(form) - 1), ("odd", ["riffOdd"], "impact"))  # an odd-meter excursion
