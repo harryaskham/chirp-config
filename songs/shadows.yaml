@@ -1,0 +1,130 @@
+chirp: 1
+about: >-
+  Benchmark reproduction of "When The Shadows First Lengthened" (DOOM: The Dark Ages main menu,
+  Finishing Move): B pedal, 128 BPM, Archetype-style Nolly (bulk high gain) + compressed low-mid
+  Gojira layer, bass tagelharpa doubling the riff, high tagelharpa on top, orchestra and choir.
+  Written by ear from numeric analysis (tools/likeness.py); never samples the reference.
+tempo: 128
+meter: 4/4
+seed: 7
+tail: 3s
+
+songs:
+  # bars 0-1: the opening hit
+  boom:
+    tempo: inherit
+    tracks:
+      - {name: kit, patch: metal-kit, score: "k,cch/1@124 R/1"}
+      - {name: sub, patch: sub, score: "B0/1@120 _", gain: -2dB}
+      - {name: cluster, patch: horn-section, score: "C2,C#2,G2/1@112 R/1", gain: -4dB}
+
+  # bars 2-15: bowed drone, strings brightening in the second half
+  intro:
+    tempo: inherit
+    tracks:
+      - {name: drone, patch: erhu, score: "tr=-12 [B2,F#3/1]x14", gain: -6dB}
+      - {name: strings, patch: mellotron-strings, score: "R/1 R/1 [B3,F#4/1 C4,F#4/1 B3,F#4/1 A3,E4/1]x3", gain: -10dB}
+
+  # bars 16-33: main riff — 16th chugs on low B, open accents on the 3+3+2 grid
+  main:
+    tempo: inherit
+    tracks:
+      - name: gtr-l
+        patch: m8-nolly
+        pan: -0.8
+        score: &mainriff >-
+          expr.pm=1 len=/16 vel=100
+          [B1,F#2@118^pm=0 B1 B1 B1 B1 B1 D#2,A#2@118^pm=0 B1 B1 B1 B1 B1 A#1,F2@118^pm=0 B1 B1 B1
+           A#1,F2@118^pm=0 B1 B1 B1 B1 B1 E2,B2@118^pm=0 B1 B1 B1 B1 B1 B1,F#2@118^pm=0 B1 B1 B1
+           E2,B2@118^pm=0 B1 B1 B1 B1 B1 C2,G2@118^pm=0 B1 B1 B1 B1 B1 B1,F#2@118^pm=0 B1 B1 B1
+           C2,G2@118^pm=0 B1 B1 B1 B1 B1 D#2,A#2@118^pm=0 B1 B1 B1 B1 B1 F#2,C#3@118^pm=0 B1 B1 B1]x4
+          C#2,G#2@118^pm=0 C#2 C#2 C#2 C#2 C#2 C2,G2@118^pm=0 C#2 C#2 C#2 C#2 C#2 A#1,F2@118^pm=0 C#2 C#2 C#2
+          C#2,G#2@118^pm=0 C#2 C#2 C#2 C#2 C#2 C2,G2@118^pm=0 C#2 C#2 C#2 C#2 C#2 F#2,C#3@118^pm=0 F#2 F#2 F#2
+      - {name: gtr-r, patch: m8-nolly, pan: 0.8, score: *mainriff}
+      - {name: gtr-snap, patch: m8-gojira, score: *mainriff, gain: -4dB}
+      - name: tagel-bass
+        patch: erhu
+        gain: -4dB
+        score: >-
+          tr=-12 [B2/4. D#3/4. A#2/4 A#2/4. E3/4. B2/4 E3/4. C3/4. B2/4 C3/4. D#3/4. F#3/4]x4
+          C#3/4. C3/4. A#2/4 C#3/4. C3/4. F#3/4
+      - name: kit
+        patch: metal-kit
+        score: >-
+          cch/16@118 [k/16@100]x15 [k/16@100]x16 [[k/16@100]x16]x16 ;
+          [R/4 s/4@112 R/4 s/4@112]x17 R/4 s/4@112 s/8@100 s s/16 s s s ;
+          [h1/8@84]x144
+
+  # bars 34-49: break — bowed B/F# 16th ostinato (no sub), building into the climax
+  brk:
+    tempo: inherit
+    tracks:
+      - {name: ostinato, patch: erhu, score: "len=/16 [[B3@90 F#3@70 C#4@76 F#3@70]x4]x16", gain: -8dB}
+      - {name: choir, patch: mellotron-choir, score: "R/1 R/1 R/1 R/1 [B3,F#4/1 B3,F#4,C#5/1]x6", gain: -9dB}
+      - {name: toms, patch: metal-kit, score: "[R/1]x8 [k/8@90 R/8 R/4 R/2]x4 [k/16@100 k k k R/4 R/2]x2 [k/16@112]x16 [k/16@116 s s s]x4"}
+      - {name: sub, patch: sub, score: "[R/1]x9 [B0/1@100]x7", gain: -8dB}
+
+  # bars 50-63: climax A — syncopated riff, choir melody around B–A–G#–C
+  climaxA:
+    tempo: inherit
+    tracks:
+      - name: gtr-l
+        patch: m8-nolly
+        pan: -0.8
+        score: &riffA >-
+          len=/16 expr.pm=1 vel=104
+          [[B1,F#2@120^pm=0 B1 B1,F#2@116^pm=0 B1 B1,F#2@120^pm=0 B1 B1 B1,F#2@116^pm=0 B1 B1 A1,E2@118^pm=0 B1 B1 G#1,D#2@118^pm=0 B1,F#2@116^pm=0 B1]x4]x3
+          [B1,F#2@120^pm=0 B1 B1,F#2@116^pm=0 B1 B1,F#2@120^pm=0 B1 B1 B1,F#2@116^pm=0 B1 B1 C2,G2@118^pm=0 B1 B1 C#2,G#2@118^pm=0 B1,F#2@116^pm=0 B1]x2
+      - {name: gtr-r, patch: m8-nolly, pan: 0.8, score: *riffA}
+      - {name: gtr-snap, patch: m8-gojira, score: *riffA, gain: -4dB}
+      - {name: tagel-bass, patch: erhu, gain: -4dB, score: "tr=-12 [B2/2. A2/8 G#2/8]x14"}
+      - {name: choir, patch: mellotron-choir, gain: -6dB, score: "[B3,D#4/2 A3,C#4/4 G#3,B3/4 | A3,C4/2. G#3,B3/4 | B3,D#4/2 C4,E4/4 B3,D#4/4 | A3,C#4/1]x3 B3,D#4/1 C#4,F#4/1"}
+      - {name: strings, patch: mellotron-strings, gain: -8dB, score: "[B4/2 A4/4 G#4/4 | A4/2. G#4/4 | B4/2 C5/4 B4/4 | A4/1]x3 B4/1 C#5/1"}
+      - name: kit
+        patch: metal-kit
+        score: >-
+          [cch/16@118 R/16 k/16@100 R/16 k/16@108 R/16 R/16 k/16@100 R/16 R/16 k/16@104 R/16 R/16 k/16@100 k/16@104 R/16
+           [k/16@110 R/16 k/16@100 R/16 k/16@108 R/16 R/16 k/16@100 R/16 R/16 k/16@104 R/16 R/16 k/16@100 k/16@104 R/16]x3]x3
+          [k/16@110 R/16 k/16@100 R/16 k/16@108 R/16 R/16 k/16@100 R/16 R/16 k/16@104 R/16 R/16 k/16@100 k/16@104 R/16]x2 ;
+          [R/4 s/4@114 R/4 s/4@114]x14 ;
+          [rds/8@90]x112
+
+  # bars 64-82: climax B — B minor with the tritone F; melody F#–F–D–C#
+  climaxB:
+    tempo: inherit
+    tracks:
+      - name: gtr-l
+        patch: m8-nolly
+        pan: -0.8
+        score: &riffB >-
+          len=/16 expr.pm=1 vel=104
+          [B1,F#2@120^pm=0 B1 B1 B1 B1,F#2@116^pm=0 B1 B1 B1 B1 B1 F2,C3@118^pm=0 B1 B1 B1 B1,F#2@116^pm=0 B1
+           B1,F#2@120^pm=0 B1 B1 B1 B1,F#2@116^pm=0 B1 B1 B1 B1 B1 D2,A2@118^pm=0 B1 B1 B1 C#2,G#2@116^pm=0 B1]x9
+          B1,F#2/1@118^pm=0
+      - {name: gtr-r, patch: m8-nolly, pan: 0.8, score: *riffB}
+      - {name: gtr-snap, patch: m8-gojira, score: *riffB, gain: -4dB}
+      - {name: tagel-bass, patch: erhu, gain: -4dB, score: "tr=-12 [B2/2 F3/2 | B2/2 D3/4 C#3/4]x9 B2/1"}
+      - {name: choir, patch: mellotron-choir, gain: -6dB, score: "[F#4,B4/2 F4,B4/2 | D4,F#4/2 C#4,F#4/2]x9 B3,F#4/1"}
+      - {name: brass, patch: horn-section, gain: -8dB, score: "[B2,F#3/1 B2,F3/1 D3,A3/1 C#3,F#3/1]x4 B2,F#3/1 C3,G3/1 B2,F#3/1"}
+      - name: kit
+        patch: metal-kit
+        score: >-
+          cch/16@118 R/16 k/16@100 R/16 k/16@108 R/16 k/16@100 R/16 R/16 R/16 k/16@104 R/16 R/16 R/16 k/16@110 R/16
+          [k/16@110 R/16 k/16@100 R/16 k/16@108 R/16 k/16@100 R/16 R/16 R/16 k/16@104 R/16 R/16 R/16 k/16@110 R/16]x17
+          k,cch/1@120 ;
+          [s/8@108 R/8 s/8@104 R/8 s/4@114 R/4 R/4 s/4@114]x18 R/1 ;
+          [rds/8@92]x144 R/1
+
+  # bars 83-98: outro — quiet B/F#/C drone and a bowed line, ending on A/G/Bb
+  outro:
+    tempo: inherit
+    tracks:
+      - {name: drone, patch: erhu, gain: -6dB, score: "tr=-12 [B2,F#3/1 B2,F#3/1 B2,C3/1 B2,F#3/1]x2 [B2,F#3/1]x3 A2,C3/1 A2,E3/1 A#2,G3/1 A#2,G3/1 A2,G#3/1"}
+      - {name: strings, patch: mellotron-strings, gain: -12dB, score: "[B3,F#4/1 C4,F#4/1]x5 A3,C4/1 A3,E4/1 A#3,G4/1 A#3,G4/1 A3,G#4/1 R/1"}
+
+tracks:
+  - {name: arrangement, score: "R/311ms @boom/8b @intro/56b @main/72b @brk/64b @climaxA/56b @climaxB/76b @outro/64b"}
+
+master:
+  fx:
+    - "glue threshold=-14dB ratio=2.5 attack=10ms release=120ms makeup=4dB"
