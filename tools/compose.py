@@ -1897,6 +1897,33 @@ def _write_parts(slot, style, parts, desc, beats=None):
 
 # ---------- per-style composition -------------------------------------------------------
 
+# Wider harmonic vocabulary (idiomatic loops per mode); appended to PROGS, deduplicated.
+_MORE_PROGS = {
+    "major": [[0, 3, 5, 4], [5, 3, 0, 4], [1, 4, 0, 5], [0, 1, 2, 3], [3, 4, 2, 5], [0, 4, 1, 3], [2, 5, 1, 4], [0, 3, 0, 4], [0, 2, 3, 4], [3, 0, 4, 5]],
+    "minor": [[5, 6, 0, 0], [0, 4, 5, 3], [0, 2, 6, 3], [3, 0, 6, 5], [0, 5, 3, 4], [0, 6, 3, 5], [0, 3, 4, 0], [5, 2, 6, 0]],
+    "dorian": [[0, 1, 2, 1], [0, 4, 3, 0], [0, 2, 3, 6], [3, 0, 6, 0], [0, 1, 3, 0], [0, 6, 4, 3]],
+    "lydian": [[0, 1, 6, 0], [0, 5, 1, 0], [0, 4, 1, 0], [5, 1, 0, 4], [0, 1, 2, 1]],
+    "mixolydian": [[0, 4, 6, 3], [0, 3, 4, 0], [6, 3, 0, 0], [0, 1, 3, 0], [5, 6, 0, 0], [0, 6, 0, 3]],
+    "phrygian": [[0, 6, 5, 1], [0, 3, 1, 0], [0, 2, 1, 0], [0, 1, 2, 1], [0, 5, 6, 1]],
+    "harmonic": [[0, 5, 4, 4], [0, 2, 5, 4], [3, 4, 0, 0], [0, 3, 5, 4], [0, 6, 0, 4]],
+    "blues": [[0, 3, 0, 4], [0, 3, 4, 3], [0, 0, 3, 3]],
+    "pentatonic-minor": [[0, 3, 0, 2], [0, 4, 3, 0], [0, 1, 3, 4]],
+    "double-harmonic": [[0, 1, 4, 0], [0, 3, 1, 0], [0, 4, 3, 1]],
+    "hirajoshi": [[0, 2, 1, 0], [0, 4, 1, 0], [0, 3, 2, 1]],
+    "hungarian": [[0, 4, 3, 0], [0, 1, 0, 4], [0, 5, 4, 0]],
+    "neapolitan": [[0, 3, 1, 4], [0, 1, 3, 0]],
+    "pelog": [[0, 2, 1, 0], [0, 4, 3, 1]],
+    "diminished": [[0, 2, 0, 2], [0, 3, 1, 2]],
+    "locrian": [[0, 3, 1, 0], [0, 1, 5, 6]],
+    "phrygian-dominant": [[0, 3, 1, 0], [0, 5, 1, 0], [0, 1, 3, 1]],
+}
+for _m, _ps in _MORE_PROGS.items():
+    if _m in PROGS:
+        for _p in _ps:
+            if _p not in PROGS[_m]:
+                PROGS[_m].append(_p)
+
+
 def params(style, rng=random):
     mode = rng.choice(STYLE_MODES.get(style, ["minor"]))
     heavy = style in ("meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep", "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock", "postmetal", "groovemetal", "power", "sludge", "breakcore", "mathcore", "gojira", "djazz", "raga", "gamelan", "koto", "postmetal")
