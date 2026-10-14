@@ -16,11 +16,12 @@ synth:
   pitch: {value: 0, mod: [{src: rand, amount: 0.25}, {src: lfo.drift, amount: 0.12}]}
   filters:
     - {kind: hp, cutoff: 35}
-    - {kind: peak, cutoff: 515, q: 3, gain: 5dB}
-    - {kind: peak, cutoff: 650, q: 3, gain: 3dB}
-    - {kind: peak, cutoff: 855, q: 3.5, gain: 7dB}
-    - {kind: peak, cutoff: 1000, q: 3, gain: 3dB}
-    - {kind: peak, cutoff: 1220, q: 3, gain: 5dB}
+    - {kind: peak, cutoff: 515, q: 3, gain: 2.5dB}
+    - {kind: peak, cutoff: 650, q: 3, gain: 1.5dB}
+    - {kind: peak, cutoff: 855, q: 3.5, gain: 3.5dB}
+    - {kind: peak, cutoff: 1000, q: 3, gain: 1.5dB}
+    - {kind: peak, cutoff: 1220, q: 3, gain: 2.5dB}
+    - {kind: peak, cutoff: 450, q: 0.9, gain: -6dB}   # body anti-resonance: the saw's 5th-10th harmonics sit ~7 dB hot
     - {kind: lp, cutoff: 3.5k, q: 0.8}
   amp: {a: 80ms, d: 300ms, s: 0.9, r: 220ms}
 play: {gate: 1, vel_sens: 0.4, humanize: {time: 8ms, vel: 0.05}}
