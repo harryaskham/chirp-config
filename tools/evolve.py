@@ -78,6 +78,9 @@ STYLES = {
   "deathcore":  dict(form="deathcore", tempo=(130, 170), off=0, riff=["riff-chug5"], riff_off=0, lift=0,
                      low=["beat-sparse"], mid=["beat-djent"], high=["beat-djent"], half=["beat-halftime"], brk=["beat-doom"],
                      hook=["lead-solo"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["riff-hold"]),
+  "symphonic":  dict(form="symphonic", tempo=(140, 180), off=0, riff=["riff-taps"], riff_off=0, lift=0,
+                     low=["beat-sparse"], mid=["beat-lofi"], high=["beat-lofi"], half=["beat-sparse"], brk=["beat-sparse"],
+                     hook=["lead-hook"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["pad-swell"]),
   "metalcore":  dict(form="metalcore", tempo=(130, 170), off=0, riff=["riff-taps"], riff_off=0, lift=0,
                      low=["beat-sparse"], mid=["beat-lofi"], high=["beat-lofi"], half=["beat-sparse"], brk=["beat-sparse"],
                      hook=["lead-hook"], pad=["pad-dark"], soft=["pad-swell"], arp=["arp-16th"], hold=["pad-swell"]),
@@ -305,6 +308,8 @@ FORMS = {
                 ("groove", ["riffG"], "impact"), ("groove", ["riffG", "pad"], None), ("break", ["riffBd"], "impact"), ("slam", ["riffSlam"], None),
                 ("blast", ["riff", "pad"], "impact"), ("break", ["riffBd", "pad"], "impact"), ("final", ["riffSlam", "pad"], "impact"),
                 ("outro", ["soft", "drone"], "revcym")],
+  "symphonic": [("intro", ["riffO"], "riser"), ("verse", ["riffV"], "impact"), ("chorus", ["riffC", "hook"], "impact"), ("verse", ["riffV"], "impact"),
+                ("chorus", ["riffC", "hook"], "impact"), ("break", ["riffO"], "revcym"), ("chorus", ["riffC", "hook"], "impact"), ("outro", ["riffO"], None)],
   "metalcore": [("intro", ["riffH"], "revcym"), ("verse", ["riffV"], "impact"), ("chorus", ["riffC", "hook"], "impact"), ("verse", ["riffV"], "impact"),
                 ("chorus", ["riffC", "hook"], "impact"), ("bridge", ["riffH"], None), ("breakdown", ["riffBrk"], "impact"), ("breakdown", ["riffBrk"], None),
                 ("chorus", ["riffC", "hook"], "impact"), ("outro", ["riffH"], "revcym")],
@@ -795,7 +800,7 @@ MASTER_BASE = ['{"type": "eq", "bands": ["hp cutoff=28", "peak cutoff=320 q=0.8 
 # ---- Adaptive loudness: the groove reports short-term LUFS; each pass's energy-mean nudges a learned
 # per-style trim toward the target (chill −18 LUFS at night, heavy −14), ±6 dB on top of QA trims.
 LOUD = "/home/harry/.config/chirp/tools/loudness.json"
-LOUD_TARGET = {"chill": -18.0, "heavy": -14.0}
+LOUD_TARGET = {"chill": -18.0, "heavy": -11.5}  # heavy: the level the metal has always played at (≈ −14.5 dB RMS)
 _L = {"li": None, "style": None, "vals": []}
 
 
@@ -853,7 +858,7 @@ def master_for(ident):
     trim = COMP_TRIM.get(comp, 0.0) + STYLE_TRIM.get(ident.get("style"), 0.0) + loud_learned().get(ident.get("style"), 0.0) + loud_learned().get("_chill" if ident.get("style") in composer.CHILL_STYLES else "_heavy", 0.0)
     eq = [json.loads(MASTER_BASE[0])]
     air = {"brostep": 2.5, "darksynth": 3.0, "tool": 1.5, "industrial": 3.0, "dnb": 2.0, "power": 2.0, "raga": 2.5, "koto": 2.0,
-           "lofihop": 2.0, "ukjazz": 3.0, "ambient": 3.0, "triphop": 2.0, "dub": 1.5, "celtic": 2.5, "doomjazz": 1.5, "vaporwave": 1.0, "slowcore": 1.5, "minimal": 2.0, "kankyo": 1.5, "lid": 1.0, "balearic": 1.5}.get(ident.get("style"))
+           "lofihop": 2.0, "ukjazz": 3.0, "ambient": 3.0, "triphop": 2.0, "dub": 1.5, "celtic": 2.5, "doomjazz": 1.5, "vaporwave": 1.0, "slowcore": 1.5, "minimal": 2.0, "kankyo": 1.5, "lid": 1.0, "balearic": 1.5, "symphonic": 1.5}.get(ident.get("style"))
     if air:  # QA: these styles measure dark at the top
         eq.append({"type": "eq", "bands": ["peak cutoff=3500 q=0.8 gain=1.5dB", f"highshelf cutoff=8000 gain={air}dB"]
                    + (["peak cutoff=500 q=0.9 gain=-2dB"] if ident.get("style") == "industrial" else [])})
@@ -1120,7 +1125,7 @@ def write_form(name, ident):
 TOOLS = "/home/harry/.config/chirp/tools"
 JOURNEY = f"{TOOLS}/journey.json"
 # How heavy each style is (0 lofi … 1 djent).
-HEAVY = {"raga": 0.9, "gamelan": 0.9, "koto": 0.9, "djazz": 0.9, "gojira": 1.0, "mathcore": 1.0, "sludge": 0.95, "breakcore": 0.9, "power": 0.9, "groovemetal": 0.95, "deathcore": 1.0, "postrock": 0.6, "postmetal": 0.9, "slam": 1.0, "metalcore": 0.95, "numetal": 0.9, "industrial": 0.85, "dnb": 0.8, "blackgaze": 0.95, "darksynth": 0.8, "hardcore-kl": 1.0, "brostep": 0.8, "thrash": 0.9, "tool": 0.9, "tech-death": 1.0, "meshuggah": 1.0, "lofi": 0.0, "classical": 0.05, "house": 0.2, "garage": 0.25, "poly": 0.35, "prog-clean": 0.4, "acid": 0.45,
+HEAVY = {"raga": 0.9, "gamelan": 0.9, "koto": 0.9, "djazz": 0.9, "gojira": 1.0, "mathcore": 1.0, "sludge": 0.95, "breakcore": 0.9, "power": 0.9, "groovemetal": 0.95, "deathcore": 1.0, "postrock": 0.6, "postmetal": 0.9, "slam": 1.0, "metalcore": 0.95, "symphonic": 0.95, "numetal": 0.9, "industrial": 0.85, "dnb": 0.8, "blackgaze": 0.95, "darksynth": 0.8, "hardcore-kl": 1.0, "brostep": 0.8, "thrash": 0.9, "tool": 0.9, "tech-death": 1.0, "meshuggah": 1.0, "lofi": 0.0, "classical": 0.05, "house": 0.2, "garage": 0.25, "poly": 0.35, "prog-clean": 0.4, "acid": 0.45,
          "idm": 0.55, "doom-ambient": 0.6, "hardcore": 0.7, "djent-breakdown": 0.85, "djent": 1.0}
 
 STYLE_QUEUE = []
@@ -1155,7 +1160,7 @@ def night_arc(now=None):
 
 HEAVY_MIX = [("meshuggah", 0.26), ("hardcore-kl", 0.1), ("tech-death", 0.09), ("thrash", 0.09), ("tool", 0.09), ("djent", 0.07),
              ("brostep", 0.07), ("blackgaze", 0.06), ("darksynth", 0.04), ("numetal", 0.05), ("industrial", 0.05), ("dnb", 0.03),
-             ("deathcore", 0.06), ("postrock", 0.03), ("postmetal", 0.05), ("slam", 0.05), ("metalcore", 0.06), ("groovemetal", 0.05), ("power", 0.04), ("sludge", 0.04), ("breakcore", 0.03),
+             ("deathcore", 0.06), ("postrock", 0.03), ("postmetal", 0.05), ("slam", 0.05), ("metalcore", 0.06), ("symphonic", 0.05), ("groovemetal", 0.05), ("power", 0.04), ("sludge", 0.04), ("breakcore", 0.03),
              ("mathcore", 0.04), ("gojira", 0.06), ("djazz", 0.05), ("raga", 0.04), ("gamelan", 0.03), ("koto", 0.03)]
 
 
