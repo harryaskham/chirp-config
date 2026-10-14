@@ -194,6 +194,7 @@ def identity(style=None):
     s = STYLES[style]
     bpm = random.randrange(s["tempo"][0], s["tempo"][1] + 1, 2)
     return dict(style=style, tempo=bpm, base_tempo=bpm, chapter=0, key=0, gen=composer.params(style), comp=random.choice(COMP_STYLES),
+                fv=random.choice(FORM_VARIANTS),
                 **{r: pick(s, r) for r in ["riff", "low", "mid", "high", "half", "brk", "hook", "pad", "soft", "arp", "hold"]})
 
 def mutate(ident):
@@ -274,9 +275,44 @@ def favorite_for(role, ident):
     tr = (ident["gen"]["pc"] - f["pc"] + 6) % 12 - 6
     return f["part"], tr
 
+FORM_VARIANTS = ["base", "base", "extended", "short", "breakheavy", "shuffle"]
+KEEP_END = {"final", "outro", "coda", "climax"}
+
+
+def form_for(ident):
+    """The song's form: the style's base form, varied per song (deterministic from its seed):
+    extended (the most intense middle section repeats), short (some middle sections dropped),
+    breakheavy (an extra breakdown before the finale), shuffle (middle sections reordered)."""
+    base = list(FORMS[STYLES[ident["style"]]["form"]])
+    v = ident.get("fv", "base")
+    rng = random.Random(((ident.get("gen") or {}).get("seed", 0)) ^ 0x5F3759DF)
+    if v == "base" or len(base) < 5:
+        return base
+    head, tail = base[:1], []
+    while len(base) > 2 and base[-1][0] in KEEP_END | {"outro"}:
+        tail.insert(0, base.pop())
+    mid = base[1:]
+    if v == "extended" and mid:
+        peak = max(range(len(mid)), key=lambda i: ENERGY.get(mid[i][0], 0.7))
+        mid.insert(peak + 1, mid[peak])
+    elif v == "short" and len(mid) > 4:
+        drop = set(rng.sample(range(len(mid)), max(1, len(mid) // 4)))
+        mid = [m for i, m in enumerate(mid) if i not in drop]
+    elif v == "breakheavy":
+        brks = [m for m in mid if m[0] in ("break", "slam", "stop")]
+        if brks:
+            mid.append(rng.choice(brks))
+        else:
+            peak = max(range(len(mid)), key=lambda i: ENERGY.get(mid[i][0], 0.7))
+            mid.insert(peak + 1, mid[peak])
+    elif v == "shuffle" and len(mid) > 3:
+        rng.shuffle(mid)
+    return head + mid + tail
+
+
 def chapters(ident):
-    """Split the style's form into consecutive chapters of about PASS_MINUTES each."""
-    form = FORMS[STYLES[ident["style"]]["form"]]
+    """Split the song's form into consecutive chapters of about PASS_MINUTES each."""
+    form = form_for(ident)
     n = max(4, round(ident.get("base_tempo", ident["tempo"]) * PASS_MINUTES / 16))
     chs = [form[i:i + n] for i in range(0, len(form), n)]
     if len(chs) > 1 and len(chs[-1]) < n / 2:
@@ -397,7 +433,7 @@ def write_form(name, ident):
                              "impact": f"patch=fx-impact F1/4@104 {rest(sec_len - 1)}",
                              "revcym": f"{rest(sec_len - 2)} patch={random.choice(revs)} C5/2@88",
                              "tapestop": f"{rest(sec_len - 4)} patch=fx-tapestop C4/1@100"}.get(fx, rest(sec_len)))
-    lines = [f"about: Generated {s['form']}-form song — {ident['style']} at {ident['tempo']} BPM, {gdesc}, shift {ident['key']:+d}, chapter {ident.get('chapter', 0) + 1}/{len(chs)}, comp {ident.get('comp', 'glue')}.",
+    lines = [f"about: Generated {s['form']}-form song ({ident.get('fv', 'base')}) — {ident['style']} at {ident['tempo']} BPM, {gdesc}, shift {ident['key']:+d}, chapter {ident.get('chapter', 0) + 1}/{len(chs)}, comp {ident.get('comp', 'glue')}.",
              f"tempo: {ident['tempo']}", "tracks:"]
     for t, items in tracks.items():
         if t == "hook" and FLAVOR_HOOK.get(flavor):
