@@ -22,14 +22,17 @@ def nm(m):
     return f"{NAMES[m % 12]}{m // 12 - 1}"
 
 
-def transcribe(path, d0, bar, b0, b1, lo=23, hi=52, th=0.25, merge=0.6):
+def transcribe(path, d0, bar, b0, b1, lo=23, hi=52, th=0.25, merge=0.6, floor_db=None):
     x = L.load(path).mean(1)
     F = L.Feat(L.load(path))
     s16 = bar / 16
     on = F.onset / (np.percentile(F.onset, 99) + 1e-9)
     rms = np.sqrt(np.convolve(x ** 2, np.ones(1024) / 1024, "same"))
     loud = 20 * np.log10(rms + 1e-9)
-    floor = np.percentile(loud[int(d0 * 48000):int((d0 + (b1 - b0 + 1) * bar) * 48000) + int(b0 * bar * 48000)], 20) + 6
+    region = loud[int((d0 + b0 * bar) * 48000):int((d0 + (b1 + 1) * bar) * 48000)]
+    # 'sounding' floor: default 20th percentile + 6 dB of the region; --floor D uses the 10th percentile + D dB
+    # (fades and quiet passages need a low floor or their notes read as rests)
+    floor = np.percentile(region, 20) + 6 if floor_db is None else np.percentile(region, 10) + floor_db
     NFFT = 65536
     cands = np.arange(lo, hi + 1)
     hz = 440 * 2 ** ((cands - 69) / 12)
@@ -90,5 +93,6 @@ if __name__ == "__main__":
     hi = int(a[a.index("--hi") + 1]) if "--hi" in a else 52
     th = float(a[a.index("--th") + 1]) if "--th" in a else 0.25
     mg = float(a[a.index("--merge") + 1]) if "--merge" in a else 0.6
-    for j, line in transcribe(path, d0, bar, b0, b1, lo, hi, th, mg):
+    fl = float(a[a.index("--floor") + 1]) if "--floor" in a else None
+    for j, line in transcribe(path, d0, bar, b0, b1, lo, hi, th, mg, fl):
         print(f"bar {j:3d}  {line}")
