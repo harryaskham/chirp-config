@@ -145,8 +145,11 @@ def _cos(a, b):
     return float((a * b).sum() / (np.linalg.norm(a) * np.linalg.norm(b) + 1e-9))
 
 
-def compare(ref, cand, verbose=True):
-    R, C = Feat(load(ref)), Feat(load(cand))
+def compare(ref, cand, verbose=True, ref_start=None, ref_end=None):
+    rs = load(ref)
+    if ref_start is not None:
+        rs = rs[int(ref_start * SR):int(ref_end * SR) if ref_end else None]
+    R, C = Feat(rs), Feat(load(cand))
     n = min(R.n, C.n)
     dur = n / FPS
     # loudness contour (shape: correlation; level: mean abs diff after matching overall level)
@@ -216,6 +219,8 @@ if __name__ == "__main__":
     if cmd == "describe":
         print(json.dumps(describe(sys.argv[2]), indent=1))
     elif cmd == "compare":
-        print(json.dumps(compare(sys.argv[2], sys.argv[3]), indent=1))
+        extra = [float(v) for v in sys.argv[4:6]]
+        print(json.dumps(compare(sys.argv[2], sys.argv[3], ref_start=extra[0] if extra else None,
+                                 ref_end=extra[1] if len(extra) > 1 else None), indent=1))
     elif cmd == "bands":
         print(json.dumps(bands(sys.argv[2], sys.argv[3]), indent=1))
