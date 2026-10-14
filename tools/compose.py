@@ -2277,6 +2277,8 @@ def _compose_style(style, slot, p):
             "hookE": gen_atmos(r, k, prog, 62, rig("atmos")),
             "riffT": gen_meshuggah(r, k, low, gp, r.choice([22, 14, 20, 18]), mode="toms"),
             "riffBl": gen_blast(r, k, prog, low, r.choice(["trad", "hammer", "bomb"])),
+            "riffBrk2": gen_meshuggah(r, k, low, gp, r.choice([5, 9, 11]), grid="8", mode="break"),
+            "riffSlam": gen_hc(r, k, prog, low, "slowdown"),
             "riffS": gen_meshuggah(r, k, low, gp, r.choice([11, 7, 10, 5]), grid="12", mode="shuffle"),
             "riffBrk": gen_meshuggah(r, k, low, gp, r.choice([7, 11, 5]), grid="8", mode="break"),
             "hook": gen_hook(r, k, prog, 62, rig("lead")),

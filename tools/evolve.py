@@ -507,7 +507,9 @@ def form_for(ident):
         mid = [m for i, m in enumerate(mid) if i not in drop]
     elif v == "breakheavy":
         brks = [m for m in mid if m[0] in ("break", "slam", "stop")]
-        if brks:
+        if ident["style"] == "meshuggah":  # a different breakdown, not a repeat
+            mid.append(("break", [rng.choice(["riffBrk2", "riffSlam"])], "impact"))
+        elif brks:
             mid.append(rng.choice(brks))
         else:
             peak = max(range(len(mid)), key=lambda i: ENERGY.get(mid[i][0], 0.7))
