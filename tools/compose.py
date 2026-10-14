@@ -61,7 +61,7 @@ STYLE_MODES = {
     "bossa": ["major", "dorian", "minor", "lydian"], "dub": ["minor", "dorian", "mixolydian"],
     "manouche": ["harmonic", "minor", "harmonic", "major"], "celtic": ["dorian", "mixolydian", "minor", "major"],
     "doomjazz": ["minor", "phrygian", "dorian", "harmonic"], "mali": ["dorian", "minor", "mixolydian"], "guofeng": ["major", "minor", "dorian"], "vaporwave": ["major", "lydian", "dorian", "minor"], "slowcore": ["major", "mixolydian", "minor", "dorian"],
-    "backrooms": ["major", "lydian", "mixolydian"], "neosoul": ["dorian", "minor", "major", "mixolydian"], "minimal": ["major", "lydian", "dorian", "mixolydian"], "fusion": ["minor", "dorian", "major", "mixolydian"], "berlin": ["minor", "dorian", "phrygian", "aeolian" if "aeolian" in MODES else "minor"], "satie": ["major", "lydian", "mixolydian", "dorian"], "kankyo": ["major", "lydian", "dorian", "mixolydian"], "dawnraga": ["double-harmonic", "phrygian-dominant", "phrygian", "mixolydian"], "cyberscape": ["minor", "dorian", "lydian", "phrygian"],
+    "backrooms": ["major", "lydian", "mixolydian"], "neosoul": ["dorian", "minor", "major", "mixolydian"], "minimal": ["major", "lydian", "dorian", "mixolydian"], "fusion": ["minor", "dorian", "major", "mixolydian"], "berlin": ["minor", "dorian", "phrygian", "aeolian" if "aeolian" in MODES else "minor"], "satie": ["major", "lydian", "mixolydian", "dorian"], "kankyo": ["major", "lydian", "dorian", "mixolydian"], "dawnraga": ["double-harmonic", "phrygian-dominant", "phrygian", "mixolydian"], "handpan": ["minor", "dorian", "phrygian-dominant", "hirajoshi"], "cyberscape": ["minor", "dorian", "lydian", "phrygian"],
     "koto": ["hirajoshi", "hirajoshi", "phrygian"],
     "djazz": ["dorian", "lydian", "harmonic", "minor", "mixolydian"], "industrial": ["phrygian", "minor", "harmonic"], "dnb": ["minor", "phrygian", "dorian"],
     "darksynth": ["minor", "phrygian", "harmonic", "dorian"],
@@ -1800,7 +1800,7 @@ SCAPES = {"wind": ("wind", "C5", "-6dB"), "shortwave": ("shortwave", "A4", "-8dB
           "rain": ("rain", "C5", "-4dB"), "waterphone": ("waterphone", "E5", "-14dB")}
 SCAPE_STYLES = {"backrooms": ["shortwave", "hum", "wind", "waterphone"], "cyberscape": ["shortwave", "wind", "waterphone"], "ambient": ["wind", "rain", "waterphone"],
                 "celtic": ["wind", "rain"], "slowcore": ["wind", "rain"], "doomjazz": ["wind", "shortwave", "waterphone", "rain"], "guofeng": ["wind", "rain"], "mali": ["wind"],
-                "satie": ["rain", "rain", "wind"], "kankyo": ["rain", "wind", "rain"], "lofihop": ["rain"], "neoclassical": ["rain", "wind"], "triphop": ["rain", "shortwave"]}
+                "satie": ["rain", "rain", "wind"], "kankyo": ["rain", "wind", "rain"], "handpan": ["wind", "rain"], "lofihop": ["rain"], "neoclassical": ["rain", "wind"], "triphop": ["rain", "shortwave"]}
 
 
 def scape(style, role, beats, seed):
@@ -2673,6 +2673,36 @@ def gen_kankyo(r, k, prog, kind="main"):
     return out
 
 
+def gen_handpan(r, k, prog, kind="main"):
+    """Handpan meditation: the ding (low centre note) on 1 and sometimes 3, an eight-note tone field
+    played hand-to-hand on a 16th cell with accents and a slow melodic contour, a soft drone; kind=full
+    adds a frame drum and shaker; kalimba sparkles; kind=intro is ding + drone."""
+    ding = k.deg(0, 50)
+    field = [k.deg(d, 57) for d in range(8)]
+    cell = r.choice(["x.x.xx.x..x.x.x.", "x..x.x.xx.x..x.x", "x.xx.x..x.xx.x.."])
+    drone = [dict(t, gain="-12dB") for t in gen_drone(k, 38, pick_patch("drone", "tanpura"))]
+    hp = pick_patch("handpan", "kalimba")
+    pan_t, dg = [], []
+    pos = r.randrange(8)
+    for bar, root in enumerate(prog):
+        dg.append(f"{mname(ding)}/2@{88}" + (f" {mname(ding)}/2@{76}" if r.random() < 0.4 else " R/2"))
+        for x, c in enumerate(cell):
+            if c == "x" and x not in (0,):
+                pos = max(0, min(7, pos + r.choice([-2, -1, 1, 1, 2])))
+                pan_t.append(f"{mname(field[pos])}/16@{80 if x % 4 == 0 else r.choice([58, 64, 70])}")
+            else:
+                pan_t.append("R/16")
+    out = drone + [track("ding", hp, " ".join(dg), pan=0.0)]
+    if kind == "intro":
+        return out
+    out.append(track("tones", hp, " ".join(pan_t), pan=round(r.uniform(-0.25, 0.25), 2)))
+    out.append(track("kalimba", pick_patch("kalimba", "celesta"), " ".join((f"{mname(field[r.randrange(8)] + 12)}/16@{50}" if r.random() < 0.05 else "R/16") for _ in range(64)), pan=0.4, gain="-6dB"))
+    if kind == "full":
+        out += [track("frame", pick_patch("bodhran", "tight-kit"), " ".join(("b/16@74" if x in (0, 10) else ("t/16@54" if x in (4, 12, 14) else "R/16")) for _ in range(4) for x in range(16)), pan=-0.15, gain="-4dB"),
+                track("shaker", pick_patch("djembe", "tight-kit"), " ".join(("sh/16@" + str(50 if x % 4 == 2 else 38)) if x % 2 == 0 else "R/16" for _ in range(4) for x in range(16)), pan=0.3, gain="-4dB")]
+    return out
+
+
 def gen_downtempo(r, k, prog, kind="main"):
     """Downtempo (Bonobo-ish): a low-passed breakbeat, marimba/kalimba ostinato, finger bass, strings."""
     kit = pick_patch("break-kit", "lofi-kit")
@@ -2732,6 +2762,7 @@ CHILL_GUESTS = {
 CHILL_GUESTS["dub"] = (lambda r, k, prog: gen_dub(r, k, prog), {"dub"})
 CHILL_GUESTS["berlin"] = (lambda r, k, prog: gen_berlin(r, k, prog, "full"), {"berlin"})
 CHILL_GUESTS["kankyo"] = (lambda r, k, prog: gen_kankyo(r, k, prog, "water"), {"kankyo"})
+CHILL_GUESTS["handpan"] = (lambda r, k, prog: gen_handpan(r, k, prog), {"handpan"})
 RHYTHM_SRC = {
     "dub": lambda r, k, prog: gen_dub(r, k, prog), "triphop": lambda r, k, prog: gen_triphop(r, k, prog),
     "lofi": lambda r, k, prog: gen_lofi(r, k, prog), "bossa": lambda r, k, prog: gen_bossa(r, k, prog),
@@ -2804,7 +2835,7 @@ def compose(style, slot, p):
     return names, desc
 
 
-CHILL_STYLES = {"lofihop", "gogo", "ukjazz", "ambient", "downtempo", "smile", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche", "celtic", "doomjazz", "mali", "guofeng", "vaporwave", "slowcore", "backrooms", "cyberscape", "neosoul", "minimal", "fusion", "berlin", "satie", "kankyo", "dawnraga"}
+CHILL_STYLES = {"lofihop", "gogo", "ukjazz", "ambient", "downtempo", "smile", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche", "celtic", "doomjazz", "mali", "guofeng", "vaporwave", "slowcore", "backrooms", "cyberscape", "neosoul", "minimal", "fusion", "berlin", "satie", "kankyo", "dawnraga", "handpan"}
 HEAVY_STYLES = {"meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep",
                 "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock", "groovemetal", "power", "sludge",
                 "breakcore", "mathcore", "gojira", "djazz", "raga", "gamelan", "koto"}
@@ -2835,6 +2866,10 @@ def _compose_style(style, slot, p):
             "hookE": gen_atmos(r, k, prog, 62, rig("atmos")),
         }
         return _write_parts(slot, "brostep", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
+    if style == "handpan":
+        parts = {"riffI": gen_handpan(r, k, prog, "intro"), "riff": gen_handpan(r, k, prog), "riffB": gen_handpan(r, k, prog, "full"),
+                 "hook": gen_penta_air(r, k, prog, 67, pick_patch(r.choice(["low-whistle", "shakuhachi"]), "flute"))}
+        return _write_parts(slot, "handpan", parts, f"{NAMES[p['pc']]} {p['mode']}")
     if style == "dawnraga":
         parts = {"riffA": gen_dawnraga(r, k, prog, "alap"), "riffJ": gen_dawnraga(r, k, prog, "jor"), "riffG": gen_dawnraga(r, k, prog, "gat"),
                  "hook": gen_hook(r, k, prog, 62, pick_patch("sitar", "nylon")), "hookE": gen_atmos(r, k, prog, 60, pick_patch(r.choice(["shakuhachi", "flute", "harmonium"]), "flute"))}
