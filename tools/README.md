@@ -9,7 +9,7 @@ Keep a live `groove` session evolving as real songs.
   `compose.py` (a key, mode and four-chord progression; an idiomatic main riff; a hook motif that
   is stated, sequenced and resolved; chords, arpeggio, held layer → `songs/gen-form-*`).
   A song lasts 2–3 passes, mutating one element per pass.
-  Styles: djent djent-breakdown prog-clean poly house garage hardcore acid idm lofi classical doom-ambient.
+  Styles: 26 heavy (`compose.HEAVY_STYLES`) and 43 chill (`compose.CHILL_STYLES`) — see below.
 - `compose.py STYLE` — compose a test set (`songs/gen-test-*`).
 - `restart-groove.sh [SONG] [ARRANGEMENT]` — restart `groove` on a pinned copy of chirp and resume the evolver.
 
@@ -119,3 +119,77 @@ resuming the queued song. Log: /tmp/chirp-watchdog.log.
   (half return later) via the form's tempo map.
 - Rig sets, compression styles and flavours vary per song; the energy and filter lanes and the
   vocoder choir (agent TTS re-sung in the song's key) follow each chapter.
+
+## Journeys (`tools/journey.json`)
+
+- `mode`: `metalambient` (heavy ↔ ambient interludes), `chill` (the night set) or anything else (the
+  heaviness-driven heavy rotation; `h` climbs by `rate` per pass). `until` (epoch) + `then` schedule a
+  switch: e.g. chill until 10:50, then `metal` — the handover warms up from h 0.4 back to 1.0 (~7 passes).
+- **Night arc** (`night_arc`, chill mode): 05:00–07:30 favours sparse, drumless `DEEP_NIGHT` styles
+  (×2.5, busy styles ×0.4); 07:30–11:00 favours brighter `MORNING` grooves (×2.2). Choices use
+  normalised `random.choices` over `CHILL_MIX`.
+- Favourites only return within the journey's world (chill favourites in chill mode, heavy otherwise).
+
+## The chill set (43 styles)
+
+Jazz & soul: ukjazz gogo ballad doomjazz souljazz ethiojazz neosoul manouche bossa citypop.
+Electronic: lofihop downtempo house-melodic triphop dub vaporwave chillwave cyberscape berlin hauntology
+beattape lofihouse amapiano liquid fusion. Classical & ambient: chamber neoclassical satie tiersen
+minimal lid ambient kankyo backrooms dawnchorus handpan. World: mali guofeng celtic dawnraga balearic.
+Band: smile slowcore. Steady styles (`STEADY`) hold key, tempo and mode for the whole song.
+
+Per song / chapter, all deterministic from the song's seed:
+- **Textures** (`texture`/`generic_texture`): 2–3 modulators per chapter — breathing filter, wow swell,
+  wearing grit, reverb tide, delay swell, phaser, tremolo, tape-skip creep, section high-pass sweep,
+  pitch drift for warped styles.
+- **Scapes**: wind, shortwave, rain, waterphone layered under ~40% of riff parts (`SCAPE_STYLES`).
+- **Feel** (`feel_track`): tight / laid / drunk — 16th-grid kit tracks re-timed with 1/128 sub-step
+  offsets (`drunk()`): kick on the grid, backbeats late, hats drifting. Neo-soul is always drunk.
+- **Transitions** (`write_form`): in-key wind-chime cascades, swells, soft downlifters, and one-beat
+  drum fills on each style's own kit (`STYLE_KIT`, `SOFT_FILLS`).
+- **Instrument swaps** (`FAMILIES`): each family (keys, mallets, winds, reeds/brass, pads, pianos,
+  guitars, basses) swaps to a sibling with p=0.35 per song.
+- **Melodic development**: the hook gains an octave double in chapter 2 (mallet above) and later
+  (cellos/horn below or flute above). `gen_hook` writes classic, call-and-response or sparse forms
+  with breathing rests and phrase-arc dynamics.
+- **Guests / fusion**: same-key sections from other chill styles (`CHILL_GUESTS`); `fusion` splices one
+  style's harmony over another's rhythm section (`RHYTHM_SRC`).
+- **Resampling**: `beattape` and `lofihouse` chop library parts (`chop-*` patches: `type: sample`,
+  `song: lib-X`, `slices: 16`) and re-sequence them MPC-style (`chop_phrase`).
+- **Stock layers**: the engine's `@vox-chops` / `@orch-hit` in B sections of some styles, transposed
+  to the song's (relative) minor.
+
+## Loudness
+
+- `qa.py STYLE…` renders a chapter through the master and reports rms, peak, limited samples, xRT,
+  dynamics and band levels (QA rms is per-channel; LUFS reads ~3 dB higher).
+- Static trims: `STYLE_TRIM`, `COMP_TRIM`, per-style air shelf.
+- **Adaptive** (`loud_sample`): each pass's short-term LUFS (`live status` → `lufs_s`) nudges a learned
+  per-style trim (step 0.5) and a slow shared `_chill` / `_heavy` trim (0.1) — `tools/loudness.json`.
+  Targets: −18 LUFS chill (night), −11.5 heavy (the level the metal always played at).
+- **Autolevel** on the master (`autolevel`, 0.5 dB/s, ±6 dB) rides within passes, after the trims.
+
+## Voice (agent TTS → `voxchoir`)
+
+17 chains — choir (vocoder), shimmer, harmony, radio, robot, demon, glitch, dub, ghost, phaser80,
+talkbox, formant wah, chop, octaves, megaphone, underwater, whisper — chosen per chapter from chill /
+heavy pools with style affinities (`VOX_STYLE`), parameters re-rolled per chapter and varied mid-pass,
+timings tempo-synced, level-matched (`VOX_GAIN`). The pass log shows `vox=NAME`.
+
+## Between songs
+
+- **Tape stops**: the master carries `tapestop stop=var.stop`; ~30% of song changes in tape-friendly
+  styles (`TAPESTOP`) wind down over the last beat and snap back on the downbeat (`tape stop` in the log).
+
+## Library
+
+- `libparts.py [STYLE…|heavy]` — export `songs/lib-STYLE.yaml` (section), `-hook` (melody), `-brk`
+  (heavy breakdowns): composed in C, tempo-inheriting, `tr=` transposable; index `songs/LIB.md`.
+- `grooves.py` — rebuild the drum-only `groove-*` library (metal and chill grooves).
+
+## Operations
+
+- `restart-groove.sh` takes `chirp-restart-v2.lock` (spawned processes don't inherit it); the watchdog
+  skips while it is held. `sync.sh` rebuilds origin/main when the engine changed and restarts the
+  groove at a pass boundary (≤ 2.5 s left).
+- Runtime state (ignored): `state.json`, `steer.txt`, `journey.json`, `loudness.json`, `form-*`, `gen-*`.
