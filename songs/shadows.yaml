@@ -91,7 +91,7 @@ songs:
 tracks:
   - {name: boom, at: 0.0b, score: "@boom/5.756b", gain: -7dB}
   - {name: intro, at: 5.756b, score: "@intro/56b", gain: -6dB}
-  - {name: main, at: 61.756b, score: "@main/72b", gain: -5dB, envelope: {points: [[0.05s, 0.944], [1.93s, 0.647], [3.8s, 0.47], [5.67s, 0.302], [7.55s, 0.768], [9.43s, 0.629], [11.3s, 0.487], [13.18s, 0.297], [15.05s, 0.841], [16.93s, 0.645], [18.8s, 0.503], [20.68s, 0.422], [22.55s, 1.0], [24.43s, 0.758], [26.3s, 0.94], [28.18s, 0.635], [30.05s, 0.877], [31.93s, 0.638]]}}
+  - {name: main, at: 61.756b, score: "@main/72b", gain: -5dB, fx: [{type: width, width: 1.5, mono_below: 60}], envelope: {points: [[0.05s, 0.944], [1.93s, 0.647], [3.8s, 0.47], [5.67s, 0.302], [7.55s, 0.768], [9.43s, 0.629], [11.3s, 0.487], [13.18s, 0.297], [15.05s, 0.841], [16.93s, 0.645], [18.8s, 0.503], [20.68s, 0.422], [22.55s, 1.0], [24.43s, 0.758], [26.3s, 0.94], [28.18s, 0.635], [30.05s, 0.877], [31.93s, 0.638]]}}
   - name: brk
     at: 133.756b
     score: "@brk/64b"
@@ -99,12 +99,12 @@ tracks:
     auto: {sweep: {points: [[0s, 0], [7.5s, 0.05], [16.5s, 0.45], [22.5s, 0.75], [28s, 1]]}}
     gain: -6dB
     envelope: {points: [[0s, 0.38], [7.5s, 0.38], [16.5s, 0.8], [22.5s, 0.9], [28s, 1]]}   # the build swells as it opens
-    fx: [{type: filter, kind: lp, cutoff: {value: 2.5k, mod: [{src: auto.sweep, amount: 2.3}]}, q: 0.7}]
-  - {name: climax, at: 197.756b, score: "@climax/132b"}
-  - {name: outro, at: 329.756b, score: "@outro/64b", gain: -4dB, envelope: {points: [[0s, 1], [12s, 0.85], [22s, 0.45], [30s, 0.12]]}}
+    fx: [{type: filter, kind: lp, cutoff: {value: 2.5k, mod: [{src: auto.sweep, amount: 2.3}]}, q: 0.7}, {type: width, width: 1.5, mono_below: 60}]
+  - {name: climax, at: 197.756b, score: "@climax/132b", fx: [{type: width, width: 1.5, mono_below: 150}]}
+  - {name: outro, at: 329.756b, score: "@outro/64b", gain: -4dB, fx: [{type: width, width: 1.5, mono_below: 60}], envelope: {points: [[0s, 1], [12s, 0.85], [22s, 0.45], [30s, 0.12]]}}
 
 master:
+  # stereo width is set per section (swept: the intro wants none, the climax mono below 150 Hz, the rest below 60 Hz)
   fx:
     - "glue threshold=-14dB ratio=2.5 attack=10ms release=120ms makeup=4dB"
     - {type: eq, bands: ["lowshelf cutoff=160 gain=6dB"]}   # the huge low end (swept: +9 → +6 dB once the bass parts carried it)
-    - {type: width, width: 1.5, mono_below: 150}   # wide mids/highs, mono low end (matched the reference's side/mid per band)
