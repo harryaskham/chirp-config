@@ -17,6 +17,20 @@
       "best": {"score": 59.2, "version": "v45", "commit": "0ac6a01"},
       "passes": 1,
       "enabled": true
+    },
+    {
+      "id": "bleed",
+      "song": "songs/bleed.yaml",
+      "reference": "Meshuggah — Bleed (obZen, 2008), album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825",
+      "owner": "chirp-climb2",
+      "metric": "python3 tools/likeness.py sections ref/bleed.wav OUT.wav $(cat tools/bleed-sections.txt)",
+      "best": {
+        "score": 50.0,
+        "version": "v2",
+        "commit": ""
+      },
+      "passes": 1,
+      "enabled": true
     }
   ]
 }
