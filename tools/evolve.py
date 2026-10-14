@@ -755,6 +755,8 @@ def loud_sample(st, li, ident):
             L = loud_learned()
             old = L.get(_L["style"], 0.0)
             L[_L["style"]] = round(max(-6.0, min(6.0, old + 0.3 * (tgt - m))), 2)
+            world = "_chill" if _L["style"] in composer.CHILL_STYLES else "_heavy"  # fast shared trim for the whole set
+            L[world] = round(max(-6.0, min(6.0, L.get(world, 0.0) + 0.2 * (tgt - m))), 2)
             json.dump(L, open(LOUD, "w"), indent=1, sort_keys=True)
             print(time.strftime("%T"), f"loudness: {_L['style']} {m:.1f} LUFS (target {tgt:.0f}) → learned trim {old:+.1f} → {L[_L['style']]:+.1f} dB", flush=True)
         _L.update(li=li, style=(ident or {}).get("style"), vals=[])
@@ -786,7 +788,7 @@ def master_for(ident):
         "opto": [f"ott depth={ott * 0.5} time=0.6", f"compressor threshold=-18dB ratio=3 attack=30ms release=450ms makeup={makeup}dB", "glue threshold=-14dB ratio=1.5 makeup=1dB"],
         "tape": [f"ott depth={ott * 0.5} time=0.4", f"glue threshold=-16dB ratio=2 makeup={makeup - 1}dB", "tape drive=0.6 warmth=0.7"],
     }[comp]
-    trim = COMP_TRIM.get(comp, 0.0) + STYLE_TRIM.get(ident.get("style"), 0.0) + loud_learned().get(ident.get("style"), 0.0)
+    trim = COMP_TRIM.get(comp, 0.0) + STYLE_TRIM.get(ident.get("style"), 0.0) + loud_learned().get(ident.get("style"), 0.0) + loud_learned().get("_chill" if ident.get("style") in composer.CHILL_STYLES else "_heavy", 0.0)
     eq = [json.loads(MASTER_BASE[0])]
     air = {"brostep": 2.5, "darksynth": 3.0, "tool": 1.5, "industrial": 3.0, "dnb": 2.0, "power": 2.0, "raga": 2.5, "koto": 2.0,
            "lofihop": 2.0, "ukjazz": 3.0, "ambient": 3.0, "triphop": 2.0, "dub": 1.5, "celtic": 2.5, "doomjazz": 1.5, "vaporwave": 1.0, "slowcore": 1.5, "minimal": 2.0, "kankyo": 1.5, "lid": 1.0}.get(ident.get("style"))
