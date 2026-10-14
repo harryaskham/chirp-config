@@ -42,7 +42,8 @@ STYLE_MODES = {
     "thrash": ["phrygian", "minor", "locrian", "phrygian-dominant"],
     "brostep": ["minor", "phrygian", "harmonic"],
     "blackgaze": ["major", "lydian", "dorian", "mixolydian"],
-    "numetal": ["phrygian", "locrian", "minor"], "industrial": ["phrygian", "minor", "harmonic"], "dnb": ["minor", "phrygian", "dorian"],
+    "numetal": ["phrygian", "locrian", "minor"], "deathcore": ["phrygian", "harmonic", "locrian", "diminished"],
+    "postrock": ["major", "lydian", "mixolydian", "dorian"], "industrial": ["phrygian", "minor", "harmonic"], "dnb": ["minor", "phrygian", "dorian"],
     "darksynth": ["minor", "phrygian", "harmonic", "dorian"],
     "hardcore-kl": ["phrygian", "locrian", "minor", "diminished"],
     "tool": ["phrygian", "dorian", "locrian", "double-harmonic", "minor"],
@@ -1143,10 +1144,13 @@ def gen_gaze(r, k, prog, kind="blast"):
         return [track("gtr", rig("clean"), " ".join(out), pan=0.2, fx=expand(["rack:shimmer-hall"]))] + _drums_of(gen_tool(r, k, 28, 8, [3, 3, 2], "clean", reps=4))
     gtr = []
     for ch in chords:
-        for i in range(16 if kind == "blast" else 8):
-            v = (104 if i % 2 == 0 else 92) if kind == "blast" else (112 if i % 4 == 0 else 96)
-            gtr.append(f"{chordhead(ch)}/{16 if kind == 'blast' else 8}@{v}" + ("" if kind == "blast" else "^gate=1.2"))
+        trem = kind in ("blast", "drive")
+        for i in range(16 if trem else 8):
+            v = (104 if i % 2 == 0 else 92) if trem else (112 if i % 4 == 0 else 96)
+            gtr.append(f"{chordhead(ch)}/{16 if trem else 8}@{v}" + ("" if trem else "^gate=1.2"))
     guitars = rhythm_tracks("expr.pm=0 " + " ".join(gtr), fx=expand(["rack:chorus-wide"]))  # space comes from the wet energy hall
+    if kind == "drive":  # post-rock climax: tremolo chords over a driving 8th-note beat
+        return guitars + [track("bass", rig("bass"), " ".join(f"{mname(k.deg(root, 40))}/8@108" for root in prog for _ in range(8)), seed=7)] + _drums_of(gen_thrash(r, k, prog, 40, "skank"))
     bass = [track("bass", rig("bass"), " ".join(f"{mname(k.deg(root, 28 + 12))}/2@104" for root in prog for _ in range(2)), seed=7)]
     drums = _drums_of(gen_blast(r, k, prog, 28, "trad")) if kind == "blast" else _drums_of(gen_tool(r, k, 28, 8, [3, 3, 2], "build", reps=4))
     return guitars + bass + drums
@@ -1335,7 +1339,7 @@ def _write_parts(slot, style, parts, desc, beats=None):
 
 def params(style, rng=random):
     mode = rng.choice(STYLE_MODES.get(style, ["minor"]))
-    heavy = style in ("meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep", "blackgaze", "darksynth", "numetal", "industrial", "dnb")
+    heavy = style in ("meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep", "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock")
     rigset = ("tech" if style == "tech-death" and rng.random() < 0.6 else
               "thrash" if style == "thrash" else
               "chug" if style in ("hardcore-kl", "brostep") else
@@ -1370,6 +1374,19 @@ def compose(style, slot, p):
             "hookE": gen_atmos(r, k, prog, 62, rig("atmos")),
         }
         return _write_parts(slot, "brostep", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
+    if style == "deathcore":
+        dl = 26  # tuned lower
+        parts = {"riff": gen_blast(r, k, prog, dl, "bomb"), "riffB": gen_blast(r, k, prog, dl, "trad"),
+                 "riffG": gen_meshuggah(r, k, dl, gp, r.choice([14, 22, 20])), "riffBd": gen_hc(r, k, prog, dl, "beatdown"),
+                 "riffSlam": gen_hc(r, k, prog, dl, "slowdown"), "pad": gen_pad(r, k, prog, 48, "strings", gain="-6dB"),
+                 "soft": gen_pad(r, k, prog, 48, "strings", gain="-8dB", vel=70), "drone": gen_drone(k, 36, "drone")}
+        return _write_parts(slot, "deathcore", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
+    if style == "postrock":
+        parts = {"riffClean": gen_gaze(r, k, prog, "clean"), "riffH": gen_gaze(r, k, prog, "half"), "riff": gen_gaze(r, k, prog, "drive"),
+                 "hook": gen_hook(r, k, prog, 64, pick_patch("lead-tape", "lead-monster")), "hookE": gen_atmos(r, k, prog, 62, rig("atmos"))}
+        parts["riffSoft"] = soften(parts["riffH"], 0.7)
+        parts["riffUp"] = gen_gaze(r, k, prog, "half")
+        return _write_parts(slot, "postrock", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
     if style == "numetal":
         parts = {"riff": gen_numetal(r, k, prog, 23, "bounce"), "riffB": gen_numetal(r, k, prog, 23, "bounce"),
                  "riffV": gen_numetal(r, k, prog, 23, "verse"), "riffH": gen_numetal(r, k, prog, 23, "chorus"),
