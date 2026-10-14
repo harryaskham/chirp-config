@@ -71,3 +71,4 @@ tracks:
 master:
   fx:
     - "glue threshold=-14dB ratio=2.5 attack=10ms release=120ms makeup=4dB"
+    - {type: eq, bands: ["lowshelf cutoff=160 gain=9dB"]}   # the huge low end (swept: +9 dB @160 Hz best)
