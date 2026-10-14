@@ -58,7 +58,7 @@ STYLE_MODES = {
     "smile": ["dorian", "minor", "mixolydian", "phrygian"], "house-melodic": ["dorian", "minor", "major"],
     "chamber": ["major", "minor", "harmonic", "dorian"],
     "triphop": ["minor", "phrygian", "harmonic"], "neoclassical": ["major", "minor", "lydian", "dorian"], "ballad": ["major", "dorian", "minor"],
-    "bossa": ["major", "dorian", "minor", "lydian"],
+    "bossa": ["major", "dorian", "minor", "lydian"], "dub": ["minor", "dorian", "mixolydian"],
     "koto": ["hirajoshi", "hirajoshi", "phrygian"],
     "djazz": ["dorian", "lydian", "harmonic", "minor", "mixolydian"], "industrial": ["phrygian", "minor", "harmonic"], "dnb": ["minor", "phrygian", "dorian"],
     "darksynth": ["minor", "phrygian", "harmonic", "dorian"],
@@ -2042,6 +2042,37 @@ def gen_bossa(r, k, prog, kind="main"):
                   track("rim", kit, rim), track("shaker", kit, shaker, pan=0.2, gain="-4dB"), track("kick", kit, kick)]
 
 
+def gen_dub(r, k, prog, kind="main"):
+    """Dub reggae: one-drop drums (kick + rim together on 3), swung hats, offbeat guitar skanks on 2
+    and 4, a 16th organ bubble, a deep melodic bass with space; kind=dub drops instruments in and out
+    under big delay throws and spring; kind=intro is bass + bubble."""
+    kit = rig("drums")
+    sw = "swing16=0.6 "
+    kick = " ".join(("k/16@100" if x == 8 else "R/16") for _ in range(4) for x in range(16))
+    rim = " ".join(("rs/16@96" if x == 8 else (f"rc/16@60" if x == 14 and r.random() < 0.3 else "R/16")) for _ in range(4) for x in range(16))
+    hats = " ".join((f"h/16@{60 if x % 4 == 0 else 42}" if x % 2 == 0 else "R/16") for _ in range(4) for x in range(16))
+    skank, bubble, bass = [], [], []
+    for root in prog:
+        ch = chordhead([k.deg(root + d, 52) for d in (0, 2, 4)])
+        skank.append(f"R/4 {ch}/8@84^gate=0.4 R/8 R/4 {ch}/8@82^gate=0.4 R/8")
+        bubble.append(" ".join(f"{mname(k.deg(root + (0 if j % 2 == 0 else 4), 48))}/16@{70 if j % 4 == 1 else 54}" if j % 2 == 1 else "R/16" for j in range(16)))
+        b = r.choice([[0, None, 0, 4, None, 2, 0, None], [0, 0, None, 4, 5, None, 4, 2], [0, None, 4, None, 0, 6, 5, None]])
+        bass.append(" ".join(f"{mname(k.deg(root + d, 28))}/8@{96}" if d is not None else "R/8" for d in b))
+    throw = {"type": "delay", "time": "3/16", "feedback": 0.55, "ping_pong": True, "tone": 2200, "mix": {"value": 0.1, "mod": [{"src": "auto.dub", "amount": 0.4}]}}
+    dub_pts = {"dub": {"points": [["0b", 0], ["7b", 0], ["7.5b", 1], ["8b", 0.2], ["15b", 0.2], ["15.5b", 1], ["16b", 0.2]]}}
+    spring = expand(["rack:spring-surf"])
+    out = [track("bass", pick_patch("finger-bass", "sub-sine"), sw + " ".join(bass), seed=7, gain="2dB"),
+           track("bubble", pick_patch("organ", "rhodes"), sw + " ".join(bubble), pan=0.25, gain="-6dB")]
+    if kind == "intro":
+        return out
+    out += [track("kick", kit, sw + kick), track("rim", kit, sw + rim, fx=[throw] + spring, auto=dub_pts),
+            track("hats", kit, sw + hats, pan=0.15, gain="-4dB"),
+            track("skank", pick_patch("tele", "clean-chorus"), sw + " ".join(skank), pan=-0.25, fx=[dict(throw)] + spring, auto=dub_pts)]
+    if kind == "dub":  # stripped: drop the bubble and hats in and out
+        out = [t for t in out if t["name"] != "hats" or r.random() < 0.5]
+    return out
+
+
 def gen_downtempo(r, k, prog, kind="main"):
     """Downtempo (Bonobo-ish): a low-passed breakbeat, marimba/kalimba ostinato, finger bass, strings."""
     kit = pick_patch("break-kit", "lofi-kit")
@@ -2123,7 +2154,7 @@ def compose(style, slot, p):
     return names, desc
 
 
-CHILL_STYLES = {"lofihop", "gogo", "ukjazz", "ambient", "downtempo", "smile", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa"}
+CHILL_STYLES = {"lofihop", "gogo", "ukjazz", "ambient", "downtempo", "smile", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub"}
 HEAVY_STYLES = {"meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep",
                 "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock", "groovemetal", "power", "sludge",
                 "breakcore", "mathcore", "gojira", "djazz", "raga", "gamelan", "koto"}
@@ -2154,6 +2185,10 @@ def _compose_style(style, slot, p):
             "hookE": gen_atmos(r, k, prog, 62, rig("atmos")),
         }
         return _write_parts(slot, "brostep", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
+    if style == "dub":
+        parts = {"riffI": gen_dub(r, k, prog, "intro"), "riff": gen_dub(r, k, prog), "riffD": gen_dub(r, k, prog, "dub"),
+                 "hook": gen_hook(r, k, prog, 64, pick_patch("melodica", "flute"))}
+        return _write_parts(slot, "dub", parts, f"{NAMES[p['pc']]} {p['mode']}")
     if style == "bossa":
         parts = {"riffG": gen_bossa(r, k, prog, "guitar"), "riff": gen_bossa(r, k, prog), "riffB": gen_bossa(r, k, prog),
                  "hook": gen_hook(r, k, prog, 64, pick_patch(r.choice(["flute", "trumpet-mute", "trumpet-mute"]), "flute")),

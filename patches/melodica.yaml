@@ -1,0 +1,16 @@
+about: "Melodica: a reedy, breathy free-reed keyboard tone with a soft tongued attack and a little vibrato — the dub lead (Augustus Pablo) and a folky colour."
+synth:
+  layers:
+    - {wave: pulse, width: 0.35, level: -4dB}
+    - {wave: saw, level: -10dB}
+    - {type: noise, color: pink, level: {value: -42dB, mod: [{src: env.breath, amount: 14}]}}
+  env:
+    breath: {a: 6ms, d: 120ms, s: 0.2, r: 80ms}
+  lfo:
+    vib: {wave: sine, rate: 5hz, delay: 300ms, fade: 300ms, retrig: true}
+  pitch: {value: 0, mod: [{src: lfo.vib, amount: 0.08}]}
+  filters: ["hp cutoff=300", "peak cutoff=1600 q=1.2 gain=4dB", "lp cutoff=5k"]
+  amp: {a: 18ms, d: 150ms, s: 0.85, r: 100ms}
+play: {mono: true, legato: true, glide: 20ms, gate: 0.95, vel_sens: 0.5}
+fx: ["reverb kind=spring decay=1.6s mix=0.2"]
+gain: -10dB

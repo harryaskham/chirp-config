@@ -1,0 +1,6 @@
+about: "Generated part (tempo: inherit, 16 beats) \u2014 jazz ballad brushes: swung ride, soft snare"
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "ride", "patch": "brush-kit", "score": "swing=0.66 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46 rd/8@64 rd/8@46"}
+  - {"name": "snare", "patch": "brush-kit", "score": "swing=0.66 R/8 R/8 s/8@38 R/8 R/8 R/8 s/8@38 R/8 R/8 R/8 s/8@38 R/8 R/8 R/8 s/8@38 R/8 R/8 R/8 s/8@38 R/8 R/8 R/8 s/8@38 R/8 R/8 R/8 s/8@38 R/8 R/8 R/8 s/8@38 R/8"}

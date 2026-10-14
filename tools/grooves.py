@@ -6,7 +6,7 @@ import os, random, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import compose as c
 
-DRUMS = ("kick", "snare", "cym")
+DRUMS = ("kick", "snare", "cym", "hats", "rim", "shaker", "ride")
 
 
 def drums_only(tracks):
@@ -51,6 +51,18 @@ def main():
             g = "".join(map(str, groups))
             beats = meter * c.reps_for(meter) / 2
             made.append(save(f"groove-tool-{meter}-8-{g}-{mode}", f"Tool-style {meter}/8 ({'+'.join(map(str, groups))}) {mode}: kick/toms rotate across groups, snare on chosen groups, ride/bell or woodblock/cowbell polyrhythm, crash per cycle, tom cascade", c.gen_tool(r, k, low, meter, groups, mode), beats))
+    # chill grooves (tight / lofi / brush kits)
+    c._RIGSET = c.RIG_SETS["chill"]
+    for i, seed in enumerate([3, 8]):
+        made.append(save(f"groove-lofi-{'ab'[i]}", "lofi hip hop boom-bap: swung kick/snare, lazy hats", c.gen_lofi_drums(random.Random(seed), busy=i == 1)))
+    made.append(save("groove-bossa", "bossa nova: rim clicks on a 3-2 clave, soft shaker, kick on 1 and 3", c.gen_bossa(random.Random(4), k, prog)))
+    for meter, label in [(7, "7-8"), (10, "5-4")]:
+        beats = meter * 2 * (4 if meter in (7, 9) else 3) / 4
+        made.append(save(f"groove-broken-{label}", f"UK jazz broken beat in {label.replace('-', '/')}: shuffled 16ths, odd kick placements, ghosts", c.gen_broken(random.Random(meter), k, prog, meter, "drums"), beats))
+    made.append(save("groove-ballad-brush", "jazz ballad brushes: swung ride, soft snare", c.gen_ballad(random.Random(5), k, prog)))
+    made.append(save("groove-triphop", "trip-hop: dusty half-time breakbeat, low-passed", c.gen_triphop(random.Random(6), k, prog)))
+    made.append(save("groove-trio", "GoGo Penguin trio drums: busy tight hats, offbeat kicks", c.gen_trio_drums(random.Random(7))))
+    made.append(save("groove-dub", "dub one-drop: kick + rim on 3 with delay throws, swung hats", c.gen_dub(random.Random(9), k, prog)))
     print(len(made), "grooves")
     return made
 
