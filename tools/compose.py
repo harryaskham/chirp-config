@@ -2308,6 +2308,11 @@ def gen_ostinato(r, k, prog, base=60, patch="piano", group=None):
 def gen_trio_drums(r, kind="groove"):
     """Tight, electronic-feeling acoustic drums: busy closed hats, offbeat kicks, cross-stick backbeat."""
     kit = rig("drums")
+    if kind == "breaks":  # GoGo Penguin's drum-and-bass-inspired breaks: two-step kick, rolling ghosts, ride + hats
+        kp = r.choice(["x.........x.....", "x.........x..x..", "x......x..x....."])
+        return [track("hats", kit, " ".join((f"{'rd' if x % 4 == 0 else 'h'}/16@{66 if x % 4 == 0 else 48}") for _ in range(4) for x in range(16)), pan=0.12, gain="-4dB"),
+                track("kick", kit, " ".join(("k/16@100" if kp[x] == "x" else "R/16") for _ in range(4) for x in range(16))),
+                track("snare", kit, " ".join(("s/16@98" if x in (4, 12) else (f"g/16@{r.choice([26, 32, 38])}" if x in (6, 9, 14, 15) and r.random() < 0.6 else "R/16")) for _ in range(4) for x in range(16)))]
     hats, kick, snare = [], [], []
     for i in range(64):
         x = i % 16
@@ -3988,9 +3993,17 @@ def _compose_style(style, slot, p):
     if style == "gogo":
         grp = r.choice([[3, 3, 2], [3, 3, 3, 3, 4], [5, 5, 6]])
         piano = gen_ostinato(r, k, prog, 60, "piano", grp)
-        bass = [track("bass", pick_patch("upright-bass", "finger-bass"), " ".join(f"{mname(k.deg(root, 33))}/8@90 R/8 {mname(k.deg(root, 33))}/8@80 {mname(k.deg(root + 4, 33))}/8@84 R/4 {mname(k.deg(root + 2, 33))}/4@82" for root in prog), seed=7)]
-        parts = {"riffP": piano, "riff": piano + bass + gen_trio_drums(r, "groove"), "riffB": gen_ostinato(r, k, prog, 60, "piano", r.choice([[3, 5], [3, 3, 2]])) + bass + gen_trio_drums(r, "groove"),
-                 "riffUp": piano + bass + gen_trio_drums(r, "build"), "riffS": piano + bass + gen_trio_drums(r, "sparse")}
+        ub = pick_patch("upright-bass", "finger-bass")
+        bass = [track("bass", ub, " ".join(f"{mname(k.deg(root, 33))}/8@90 R/8 {mname(k.deg(root, 33))}/8@80 {mname(k.deg(root + 4, 33))}/8@84 R/4 {mname(k.deg(root + 2, 33))}/4@82" for root in prog), seed=7)]
+        bassB = [track("bass", ub, " ".join(f"{mname(k.deg(root, 33))}/16@92 R/16 {mname(k.deg(root, 45))}/16@80 R/16 R/8 {mname(k.deg(root, 33))}/8@86 {mname(k.deg(root + 4, 33))}/8@80 R/8 {mname(k.deg(root, 45))}/8@84 R/8" for root in prog), seed=7)]
+        sw = {"sw": {"points": [["0b", 0.1], ["8b", 1.0], ["16b", 0.3]]}}
+        arco = [track("arco", pick_patch("cellos", "strings"), " ".join(f"{mname(k.deg(root, 36))}/1@{70}" for root in prog), auto=sw, gain={"value": "-12dB", "mod": [{"src": "auto.sw", "amount": 6}]})]
+        lh = [track("lhoct", "piano", " ".join(f"{chordhead([k.deg(root, 36), k.deg(root, 48)])}/8@{78 if j % 2 == 0 else 66}" for root in prog for j in range(8)), pan=-0.15, gain="-5dB")]
+        cresc = {"cr": {"points": [["0b", 0.0], ["16b", 1.0]]}}
+        build_piano = [dict(t, auto=cresc, gain={"value": "-6dB", "mod": [{"src": "auto.cr", "amount": 6}]}) for t in piano]
+        pianoB = gen_ostinato(r, k, prog, 60, "piano", r.choice([[3, 5], [3, 3, 2]]))
+        parts = {"riffP": piano + arco, "riff": piano + bass + gen_trio_drums(r, "groove"), "riffB": pianoB + lh + bassB + gen_trio_drums(r, "breaks"),
+                 "riffUp": build_piano + bass + gen_trio_drums(r, "build"), "riffS": piano + bass + gen_trio_drums(r, "sparse")}
         return _write_parts(slot, "gogo", parts, f"{NAMES[p['pc']]} {p['mode']}, piano grouping {'+'.join(map(str, grp))}")
     if style == "ukjazz":
         meter = r.choice([7, 7, 5, 9])
