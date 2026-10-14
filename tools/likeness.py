@@ -9,6 +9,7 @@
 Features: 48 kHz mono, STFT 4096 / hop 1024 (~21 ms), 40 log-spaced bands 30 Hz-16 kHz, 12-bin
 chroma from 55-2000 Hz, spectral-flux onsets, Krumhansl key, checkerboard novelty sections."""
 import json
+import os
 import sys
 import wave
 
@@ -214,6 +215,26 @@ def compare(ref, cand, verbose=True, ref_start=None, ref_end=None):
     return res
 
 
+def sectioned(ref, cand, bounds):
+    """Duration-weighted mean of per-section scores: each section [b_i, b_i+1) of the reference is compared
+    with the same span of the candidate (both cropped), so a quiet section's gains count for its length
+    instead of disappearing into whole-song level normalisation. → {"total": …, "sections": […]}"""
+    import tempfile, wave as _w
+    cs = load(cand)
+    out, wsum, tsum = [], 0.0, 0.0
+    for a, b in zip(bounds[:-1], bounds[1:]):
+        seg = cs[int(a * SR):int(b * SR)]
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tf:
+            with _w.open(tf.name, "wb") as w:
+                w.setnchannels(2); w.setsampwidth(2); w.setframerate(SR)
+                w.writeframes((np.clip(seg, -1, 1) * 32767).astype("<i2").tobytes())
+            r = compare(ref, tf.name, ref_start=a, ref_end=b)
+        os.unlink(tf.name)
+        out.append({"start": a, "end": b, **{k: r[k] for k in ("total", "loudness", "spectral", "chroma", "rhythm", "ltas", "stereo")}})
+        wsum += b - a; tsum += r["total"] * (b - a)
+    return {"total": round(tsum / wsum, 1), "sections": out}
+
+
 def bands(ref, cand):
     R, C = Feat(load(ref)), Feat(load(cand))
     dur = min(R.n, C.n) / FPS
@@ -233,5 +254,7 @@ if __name__ == "__main__":
         extra = [float(v) for v in sys.argv[4:6]]
         print(json.dumps(compare(sys.argv[2], sys.argv[3], ref_start=extra[0] if extra else None,
                                  ref_end=extra[1] if len(extra) > 1 else None), indent=1))
+    elif cmd == "sections":  # likeness.py sections REF CAND b0,b1,b2,…  (seconds)
+        print(json.dumps(sectioned(sys.argv[2], sys.argv[3], [float(v) for v in sys.argv[4].split(",")]), indent=1))
     elif cmd == "bands":
         print(json.dumps(bands(sys.argv[2], sys.argv[3]), indent=1))
