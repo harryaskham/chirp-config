@@ -91,7 +91,7 @@ songs:
 tracks:
   - {name: boom, at: 0.0b, score: "@boom/5.756b", gain: -7dB}
   - {name: intro, at: 5.848b, score: "@intro/56b", gain: -3.3dB, envelope: {points: [[0.05s, 0.748], [1.93s, 0.736], [3.8s, 0.572], [5.67s, 0.35], [7.55s, 0.392], [9.43s, 0.373], [11.3s, 0.454], [13.18s, 1.0], [15.05s, 0.882], [16.93s, 0.712], [18.8s, 0.386], [20.68s, 0.247], [22.55s, 0.293], [24.43s, 0.59]]}}   # the reference intro breathes: dips in bars 4-6 and 11-13, a swell at bar 8
-  - {name: main, at: 61.756b, score: "@main/72b", gain: -5dB, fx: [{type: width, width: 1.5, mono_below: 60}], envelope: {points: [[0.05s, 0.944], [1.93s, 0.647], [3.8s, 0.47], [5.67s, 0.302], [7.55s, 0.768], [9.43s, 0.629], [11.3s, 0.487], [13.18s, 0.297], [15.05s, 0.841], [16.93s, 0.645], [18.8s, 0.503], [20.68s, 0.422], [22.55s, 1.0], [24.43s, 0.758], [26.3s, 0.94], [28.18s, 0.635], [30.05s, 0.877], [31.93s, 0.638]]}}
+  - {name: main, at: 61.756b, score: "@main/72b", gain: -5dB, fx: [{type: width, width: 1.5, mono_below: 60}, {type: eq, bands: ["lowshelf cutoff=42 gain=4.8dB", "peak cutoff=107 q=1.5 gain=3.6dB", "peak cutoff=170 q=0.8 gain=-3.4dB", "peak cutoff=679 q=0.5 gain=4.9dB", "peak cutoff=3.4k q=0.5 gain=-3.9dB"]}], envelope: {points: [[0.05s, 0.944], [1.93s, 0.647], [3.8s, 0.47], [5.67s, 0.302], [7.55s, 0.768], [9.43s, 0.629], [11.3s, 0.487], [13.18s, 0.297], [15.05s, 0.841], [16.93s, 0.645], [18.8s, 0.503], [20.68s, 0.422], [22.55s, 1.0], [24.43s, 0.758], [26.3s, 0.94], [28.18s, 0.635], [30.05s, 0.877], [31.93s, 0.638]]}}
   - name: brk
     at: 133.756b
     score: "@brk/64b"
@@ -99,9 +99,9 @@ tracks:
     auto: {sweep: {points: [[0s, 0], [7.5s, 0.05], [16.5s, 0.45], [22.5s, 0.75], [28s, 1]]}}
     gain: -6dB
     envelope: {points: [[0s, 0.38], [7.5s, 0.38], [16.5s, 0.8], [22.5s, 0.9], [28s, 1]]}   # the build swells as it opens
-    fx: [{type: filter, kind: hp, cutoff: {value: 120, mod: [{src: auto.sweep, amount: -2.6}]}, q: 0.7}, {type: filter, kind: lp, cutoff: {value: 2.5k, mod: [{src: auto.sweep, amount: 2.3}]}, q: 0.7}, {type: width, width: 1.5, mono_below: 60, bass_width: 0.3, slope: 6}]   # the sub returns only as the build completes; partial bass width (quiet sections only)
+    fx: [{type: filter, kind: hp, cutoff: {value: 120, mod: [{src: auto.sweep, amount: -2.6}]}, q: 0.7}, {type: filter, kind: lp, cutoff: {value: 2.5k, mod: [{src: auto.sweep, amount: 2.3}]}, q: 0.7}, {type: width, width: 1.5, mono_below: 60, bass_width: 0.3, slope: 6}, {type: eq, bands: ["lowshelf cutoff=42 gain=6.6dB", "peak cutoff=67 q=1.0 gain=-6.3dB", "peak cutoff=170 q=1.5 gain=3.5dB", "peak cutoff=339 q=3.0 gain=-5.3dB", "peak cutoff=2.7k q=0.6 gain=3.4dB"]}]   # the sub returns only as the build completes; partial bass width (quiet sections only)
   - {name: climax, at: 197.756b, score: "@climax/132b", fx: [{type: width, width: 1.5, mono_below: 150}], envelope: {points: [[0s, 1], [26.25s, 1], [26.30s, 0.6], [28.12s, 0.6], [28.18s, 0.75], [30.00s, 0.75], [30.05s, 1]]}}   # the band drops back for two bars before the synth line enters (bar 65)
-  - {name: outro, at: 329.756b, score: "@outro/64b", gain: -7dB, fx: [{type: width, width: 1.5, mono_below: 60, bass_width: 0.3, slope: 6}], envelope: {points: [[0s, 1], [12s, 0.9], [20s, 0.55], [26s, 0.25], [30s, 0.06]]}}
+  - {name: outro, at: 329.756b, score: "@outro/64b", gain: -7dB, fx: [{type: width, width: 1.5, mono_below: 60, bass_width: 0.3, slope: 6}, {type: eq, bands: ["lowshelf cutoff=170 gain=-4.8dB", "peak cutoff=539 q=1.0 gain=2.7dB", "peak cutoff=2.2k q=0.5 gain=6.7dB", "highshelf cutoff=5.4k gain=-5.7dB", "highshelf cutoff=6.8k gain=-8.0dB"]}], envelope: {points: [[0s, 1], [12s, 0.9], [20s, 0.55], [26s, 0.25], [30s, 0.06]]}}
 
 ceiling: -0.3dB   # the reference peaks hotter than the default −1 dBFS limiter ceiling
 master:
