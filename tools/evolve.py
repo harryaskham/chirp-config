@@ -261,7 +261,7 @@ PASS_MINUTES = 1.0
 ENERGY = {"intro": 0.3, "intro2": 0.45, "verse": 0.6, "verse2": 0.65, "pre": 0.7, "build": 0.7, "chorus": 0.85,
           "drop": 0.95, "heavy": 0.85, "blast": 1.0, "dbeat": 0.85, "groove": 0.7, "shuffle": 0.7, "toms": 0.75,
           "space": 0.4, "break": 0.9, "C": 0.8, "C2": 0.8, "solo": 0.85, "final": 1.0, "outro": 0.35, "coda": 0.3,
-          "A": 0.6, "A2": 0.7, "B": 0.8, "B2": 0.85, "climax": 1.0, "fast": 1.0, "stop": 0.9, "half": 0.75, "bridge": 0.5, "slam": 0.95, "chaos": 1.0}
+          "A": 0.6, "A2": 0.7, "B": 0.8, "B2": 0.85, "climax": 1.0, "fast": 1.0, "stop": 0.9, "half": 0.75, "bridge": 0.5, "slam": 0.95, "chaos": 1.0, "guest": 0.85}
 RAMPS = {"pre", "build", "intro2"}
 
 
@@ -363,6 +363,20 @@ def modulation(ident, nsec):
 KEEP_END = {"final", "outro", "coda", "climax"}
 
 
+def add_guests(ident, form, rng):
+    """Slot guest sections (other styles' generators in this song's key) into the middle of the form:
+    ~60% of songs get one, some of those two."""
+    if not ident.get("gen") or ident["style"] not in composer.HEAVY_STYLES or len(form) < 4:
+        return form
+    x = rng.random()
+    n = 0 if x < 0.4 else (1 if x < 0.85 else 2)
+    form = list(form)
+    for i in range(1, n + 1):
+        pos = rng.randrange(2, len(form) - 1)
+        form.insert(pos, ("guest", [f"riffGuest{i}"], "impact"))
+    return form
+
+
 def form_for(ident):
     """The song's form: the style's base form, varied per song (deterministic from its seed):
     extended (the most intense middle section repeats), short (some middle sections dropped),
@@ -370,6 +384,7 @@ def form_for(ident):
     base = list(FORMS[STYLES[ident["style"]]["form"]])
     v = ident.get("fv", "base")
     rng = random.Random(((ident.get("gen") or {}).get("seed", 0)) ^ 0x5F3759DF)
+    base = add_guests(ident, base, rng)
     if v == "base" or len(base) < 5:
         return base
     head, tail = base[:1], []

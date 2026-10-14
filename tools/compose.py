@@ -1726,7 +1726,48 @@ def params(style, rng=random):
     return {"pc": rng.randrange(12), "mode": mode, "prog": rng.choice(PROGS[mode]), "seed": rng.randrange(1 << 30), "rigset": rigset, "flavor": flavor}
 
 
+# Guest sections: other styles' generators composed in the song's key, slotted into its form.
+GUESTS = {
+    "jazz": (lambda r, k, prog, low, gp: gen_mathcore(r, k, prog, low, "jazz"), {"djazz", "mathcore"}),
+    "breakcore": (lambda r, k, prog, low, gp: gen_breakcore(r, k, prog, low), {"breakcore"}),
+    "blast": (lambda r, k, prog, low, gp: gen_blast(r, k, prog, low, r.choice(["trad", "hammer", "bomb"])), {"tech-death", "deathcore"}),
+    "tribal": (lambda r, k, prog, low, gp: gen_gojira(r, k, prog, low, "tribal"), {"gojira"}),
+    "whammy": (lambda r, k, prog, low, gp: gen_gojira(r, k, prog, low, "whammy"), {"gojira"}),
+    "taiko": (lambda r, k, prog, low, gp: gen_koto(r, k, prog, "arp") + gen_koto(r, k, prog, "taiko"), {"koto"}),
+    "kotekan": (lambda r, k, prog, low, gp: gen_meshuggah(r, k, low, gp, r.choice([14, 22])) + gen_kotekan(r, k, prog), {"gamelan"}),
+    "tabla": (lambda r, k, prog, low, gp: gen_raga(r, k, prog, "groove"), {"raga"}),
+    "space": (lambda r, k, prog, low, gp: gen_space(r, k, low, gp, r.choice([11, 13, 9])), {"meshuggah"}),
+    "beatdown": (lambda r, k, prog, low, gp: gen_hc(r, k, prog, low, "beatdown"), {"hardcore-kl"}),
+    "dnb": (lambda r, k, prog, low, gp: gen_dnb(r, k, prog, "metal"), {"dnb"}),
+    "brostep": (lambda r, k, prog, low, gp: gen_bro_drop(r, k, prog, metal=True), {"brostep"}),
+    "gallop": (lambda r, k, prog, low, gp: gen_power(r, k, prog, 40, "verse"), {"power", "thrash"}),
+    "chaos": (lambda r, k, prog, low, gp: gen_mathcore(r, k, prog, low), {"mathcore"}),
+}
+
+
 def compose(style, slot, p):
+    """Compose the style's parts, plus two guest sections from other styles (riffGuest1/2, same key)."""
+    names, desc = _compose_style(style, slot, p)
+    if style in HEAVY_STYLES:
+        r = random.Random(p["seed"] + 1)  # separate stream: the style's own parts stay as they were
+        k = Key(p["pc"], p["mode"])
+        gp = rig("rhythm")[0]
+        pool = [g for g, (_, homes) in GUESTS.items() if style not in homes]
+        picks = r.sample(pool, 2)
+        for i, g in enumerate(picks, 1):
+            n = f"gen-{slot}-riffGuest{i}"
+            write(n, f"guest section ({g}) for {style}", GUESTS[g][0](r, k, p["prog"], 28, gp))
+            names[f"riffGuest{i}"] = n
+        desc += f", guests {'/'.join(picks)}"
+    return names, desc
+
+
+HEAVY_STYLES = {"meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep",
+                "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock", "groovemetal", "power", "sludge",
+                "breakcore", "mathcore", "gojira", "djazz", "raga", "gamelan", "koto"}
+
+
+def _compose_style(style, slot, p):
     """Write gen-<slot>-{riff,hook,pad,soft,arp,hold}; return role → part name."""
     global _RIGSET
     _RIGSET = RIG_SETS.get(p.get("rigset", "modern"), {})

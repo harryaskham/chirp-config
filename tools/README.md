@@ -106,3 +106,16 @@ pan and sends — all usable from these helpers.
 `tools/watchdog.sh` (run in the background): every 15 s, if the `groove` session is gone and the
 Pulse server answers (e.g. after an sgu24 Pulse restart), it restarts the groove on the latest build,
 resuming the queued song. Log: /tmp/chirp-watchdog.log.
+
+## Song-level variety (per song / per chapter)
+
+- **Form variants** (`fv`): base, extended, short, breakheavy, shuffle.
+- **Guest sections**: two sections from other styles' generators composed in the song's key
+  (`riffGuest1/2`: jazz, breakcore, blast, tribal, whammy, taiko, kotekan, tabla, space, beatdown,
+  D&B, brostep, gallop, chaos); ~60% of songs slot one or two into the form.
+- **Modulation**: half of chapters shift key (±1, 2, ±3, 5, ±6 semitones) at a section; chapter
+  boundaries may shift key or change scale (same motifs, new mode).
+- **Metric modulation**: ~a third of chapters change tempo 3:2 / 2:3 / 4:3 / 3:4 at a section
+  (half return later) via the form's tempo map.
+- Rig sets, compression styles and flavours vary per song; the energy and filter lanes and the
+  vocoder choir (agent TTS re-sung in the song's key) follow each chapter.
