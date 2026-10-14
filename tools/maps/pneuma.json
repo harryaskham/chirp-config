@@ -158,13 +158,13 @@
    }
   },
   {
-   "name": "kit",
+   "name": "kit-intro",
    "track": 7,
    "patch": "carey-kit",
    "bars": [
     [
      1,
-     400
+     36
     ]
    ],
    "remap": {
@@ -179,6 +179,31 @@
     "m92": "gong",
     "m98": "gong"
    }
+  },
+  {
+   "name": "dr-kick",
+   "patch": "carey-kit",
+   "raw": "tools/maps/pneuma-drums.json#kick"
+  },
+  {
+   "name": "dr-snare",
+   "patch": "carey-kit",
+   "raw": "tools/maps/pneuma-drums.json#snare"
+  },
+  {
+   "name": "dr-hats",
+   "patch": "carey-kit",
+   "raw": "tools/maps/pneuma-drums.json#hats"
+  },
+  {
+   "name": "dr-toms",
+   "patch": "carey-kit",
+   "raw": "tools/maps/pneuma-drums.json#toms"
+  },
+  {
+   "name": "dr-cymbals",
+   "patch": "carey-kit",
+   "raw": "tools/maps/pneuma-drums.json#cymbals"
   },
   {
    "name": "vox",

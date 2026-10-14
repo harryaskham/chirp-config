@@ -16,7 +16,8 @@ MAP.json:
       "remap": {"t3": "ft"}, "drop": ["m98"], "extra": {…}}    # extra: more track keys, verbatim
    ]}
 
-A part's "chord": "low" keeps only the lowest note of every chord (a root/pedal layer), "upper" keeps the rest
+A part with "raw": "FILE.json#key" (or a text file) takes its score verbatim — e.g. tools/drumtrans.py output on
+the same tempo map. A part's "chord": "low" keeps only the lowest note of every chord (a root/pedal layer), "upper" keeps the rest
 (double-stops split into two parts with their own level and tone); single notes stay with "low".
 Corrections measured against the recording (tools/scorealign.py): "bpm": {"37": 113.5, …} sets the tempo from
 measure M on (until the next entry; earlier measures keep the tab's tempo), and "skip": [[285, 288], …] removes
@@ -206,6 +207,19 @@ def build(mp):
             key = ("file", p["score_file"], tuple(sorted(silent)))
             lines_cache[key] = ["" if full[i]["m"] in silent else by_bar.get(full[i]["m"], "") for i in keep]
             p = {**p, "track": key, "bars": p.get("bars", [[1, full[-1]["m"]]])}
+        if "raw" in p:   # a score from elsewhere (e.g. tools/drumtrans.py output): "FILE.json#key" or a plain text file
+            path, _, key = p["raw"].partition("#")
+            root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            path = path if os.path.isabs(path) else os.path.join(root, path)
+            sc = json.load(open(path))[key]["score"] if key else open(path).read().strip()
+            tr = {"name": p["name"], "patch": p["patch"]}
+            for k in ("gain", "pan"):
+                if k in p:
+                    tr[k] = p[k]
+            tr.update(p.get("extra", {}))
+            tr["score"] = sc
+            tracks.append(tr)
+            continue
         if p["track"] not in lines_cache:
             lines_all = S.score(cache, p["track"])[2]
             lines_cache[p["track"]] = [lines_all[i] for i in keep]
