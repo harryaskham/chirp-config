@@ -468,35 +468,64 @@ def gen_alberti(r, k, prog, base):
 
 
 def gen_hook(r, k, prog, base, patch):
-    """Motif statement, repeat with altered ending, sequence onto chord 3, cadence."""
+    """A 16-beat melody in one of three phrase forms — classic (motif, repeat with an altered ending,
+    sequence, cadence), call-and-response (motif, short answer, sequenced motif, long tone + rest) or
+    sparse (motif, a bar of silence, inverted motif, short cadence). Non-heavy instruments breathe
+    (long final notes clipped with a rest) and get a phrase-arc dynamic instead of fixed hard hits."""
     cells = [[0.5, 0.5, 1, 2], [1, 0.5, 0.5, 1, 1], [0.75, 0.75, 0.5, 2], [0.5, 0.25, 0.25, 1, 2], [1.5, 0.5, 2], [0.5, 0.5, 0.5, 0.5, 2]]
     rhythm = r.choice(cells)
-    lead_in = r.random() < 0.5
     steps = [0] + [r.choice([-2, -1, 1, 1, 2, 3, -3]) for _ in rhythm[1:]]
-
-    def phrase(root, alt_end=False, inv=False):
-        d = root + r.choice([0, 2, 4])
-        out = []
-        for i, (ln, st) in enumerate(zip(rhythm, steps)):
-            d += -st if inv else st
-            if i == len(rhythm) - 1:
-                d = root + (r.choice([2, 4]) if alt_end else r.choice([0, 4]))
-            m = k.deg(d, base)
-            v = 108 if i == 0 or ln >= 1 else 96
-            out.append(f"{mname(m)}/{fmt(ln)}@{v}")
-        return out
+    heavy = str(patch).startswith(("lead-", "m8"))
+    form = "classic" if heavy else r.choice(["classic", "classic", "qa", "sparse"])
 
     def fmt(ln):
         return {0.25: "16", 0.5: "8", 0.75: "8.", 1: "4", 1.5: "4.", 2: "2", 3: "2.", 4: "1"}[ln]
 
-    bars = [phrase(prog[0]), phrase(prog[1], alt_end=True), phrase(prog[2], inv=r.random() < 0.4)]
-    cad_root = prog[3]
-    cad = [f"{mname(k.deg(cad_root + 4, base))}/4@100", f"{mname(k.deg(cad_root + 2, base))}/4@96", f"{mname(k.deg(0 if r.random() < 0.6 else 4, base))}/2@110^gate=1.2"]
-    body = bars[0] + bars[1] + bars[2] + cad
-    if lead_in:  # rest an eighth and shorten the cadence to keep 16 beats
-        body = ["R/8"] + body[:-1] + [body[-1].replace("/2@", "/4.@")]
-    return [track("hook", patch, " ".join(body), pan=0.1)]
+    def vel(i, count, strong):
+        if heavy:
+            return 108 if strong else 96
+        import math as _m
+        arc = _m.sin(_m.pi * (i + 0.5) / max(1, count))
+        return max(40, min(118, int(74 + 18 * arc + (6 if strong else 0) + r.randint(-5, 5))))
 
+    def phrase(root, alt_end=False, inv=False, rhy=None):
+        rhy = rhy or rhythm
+        st_ = steps if len(steps) == len(rhy) else [0] + [r.choice([-2, -1, 1, 2]) for _ in rhy[1:]]
+        d = root + r.choice([0, 2, 4])
+        out = []
+        for i, (ln, st) in enumerate(zip(rhy, st_)):
+            d += -st if inv else st
+            if i == len(rhy) - 1:
+                d = root + (r.choice([2, 4]) if alt_end else r.choice([0, 4]))
+            tok = f"{mname(k.deg(d, base))}/{fmt(ln)}@{vel(i, len(rhy), i == 0 or ln >= 1)}"
+            if i == len(rhy) - 1 and ln >= 2 and not heavy and r.random() < 0.5:  # breathe
+                tok = f"{mname(k.deg(d, base))}/{fmt(ln - 1)}@{vel(i, len(rhy), True)} R/4"
+            out.append(tok)
+        return out
+
+    def cadence(root, short=False):
+        last = mname(k.deg(0 if r.random() < 0.6 else 4, base))
+        a, b = mname(k.deg(root + 4, base)), mname(k.deg(root + 2, base))
+        if short:
+            return [f"{a}/4@{vel(0, 3, True)}", f"{last}/4@{vel(1, 3, True)}", "R/2"]
+        return [f"{a}/4@{vel(0, 3, True)}", f"{b}/4@{vel(1, 3, False)}", f"{last}/2@{vel(2, 3, True)}^gate=1.2"]
+
+    if form == "qa":
+        ans = r.choice([[1, 1, 2], [2, 2], [1.5, 0.5, 2]])
+        d = prog[1] + r.choice([2, 4])
+        answer = []
+        for i, ln in enumerate(ans):
+            answer.append(f"{mname(k.deg(d, base))}/{fmt(ln)}@{vel(i, len(ans), i == 0)}")
+            d += r.choice([-1, -2, 1])
+        tail = [f"{mname(k.deg(prog[3] + r.choice([0, 2, 4]), base))}/2@{vel(0, 2, True)}", "R/2"]
+        body = phrase(prog[0]) + answer + phrase(prog[2], inv=r.random() < 0.4) + tail
+    elif form == "sparse":
+        body = phrase(prog[0]) + ["R/1"] + phrase(prog[2], inv=True) + cadence(prog[3], short=True)
+    else:
+        body = phrase(prog[0]) + phrase(prog[1], alt_end=True) + phrase(prog[2], inv=r.random() < 0.4) + cadence(prog[3])
+        if r.random() < 0.5:  # lead-in: rest an eighth and shorten the cadence to keep 16 beats
+            body = ["R/8"] + body[:-1] + [body[-1].replace("/2@", "/4.@")]
+    return [track("hook", patch, " ".join(body), pan=0.1)]
 
 def gen_pad(r, k, prog, base, patch, gain="-4dB", vel=80):
     out = [f"{chordhead(k.chord(root, base, 4))}/1@{vel}" for root in prog]
