@@ -15,6 +15,7 @@ MODES = {
     "double-harmonic": [0, 1, 4, 5, 7, 8, 11], "hungarian": [0, 2, 3, 6, 7, 8, 11],
     "neapolitan": [0, 1, 3, 5, 7, 8, 11], "phrygian-dominant": [0, 1, 4, 5, 7, 8, 10],
     "blues": [0, 3, 5, 6, 7, 10], "pentatonic-minor": [0, 3, 5, 7, 10],
+    "hirajoshi": [0, 2, 3, 7, 8], "pelog": [0, 1, 3, 7, 8],
 }
 PROGS = {  # 0-based scale-degree roots, one chord per bar
     "minor": [[0, 5, 2, 6], [0, 3, 6, 2], [0, 5, 3, 4], [0, 6, 5, 6], [0, 2, 6, 3], [0, 5, 6, 4], [0, 3, 0, 4]],
@@ -31,6 +32,7 @@ PROGS = {  # 0-based scale-degree roots, one chord per bar
     "neapolitan": [[0, 1, 0, 4], [0, 1, 5, 4], [0, 5, 1, 0]],
     "phrygian-dominant": [[0, 1, 0, 6], [0, 1, 5, 1], [0, 6, 5, 1]],
     "blues": [[0, 0, 2, 0], [0, 2, 3, 0], [0, 4, 3, 2]], "pentatonic-minor": [[0, 0, 3, 2], [0, 3, 2, 0], [0, 2, 0, 4]],
+    "hirajoshi": [[0, 0, 4, 3], [0, 3, 4, 0], [0, 1, 0, 4]], "pelog": [[0, 0, 3, 1], [0, 3, 0, 4], [0, 1, 3, 0]],
 }
 STYLE_MODES = {
     "djent": ["phrygian", "minor", "harmonic", "phrygian-dominant", "neapolitan", "hungarian"],
@@ -50,6 +52,8 @@ STYLE_MODES = {
     "breakcore": ["harmonic", "minor", "diminished", "phrygian-dominant"],
     "mathcore": ["locrian", "diminished", "phrygian", "double-harmonic"],
     "gojira": ["phrygian", "minor", "locrian", "pentatonic-minor"],
+    "raga": ["phrygian-dominant", "double-harmonic", "harmonic", "phrygian"], "gamelan": ["pelog", "phrygian", "locrian"],
+    "koto": ["hirajoshi", "hirajoshi", "phrygian"],
     "djazz": ["dorian", "lydian", "harmonic", "minor", "mixolydian"], "industrial": ["phrygian", "minor", "harmonic"], "dnb": ["minor", "phrygian", "dorian"],
     "darksynth": ["minor", "phrygian", "harmonic", "dorian"],
     "hardcore-kl": ["phrygian", "locrian", "minor", "diminished"],
@@ -65,7 +69,7 @@ def have(patch):
     if patch not in _HAVE:
         import os, subprocess
         c = os.environ.get("CHIRP_BIN") or "chirp"
-        _HAVE[patch] = any(subprocess.run([c, "plan", "-p", patch, note], capture_output=True).returncode == 0 for note in ("C2/4", "k/4"))
+        _HAVE[patch] = any(subprocess.run([c, "plan", "-p", patch, note], capture_output=True).returncode == 0 for note in ("R/4 C2/4", "k/4", "na/4"))
     return _HAVE[patch]
 
 
@@ -100,6 +104,9 @@ RIG_SETS = {
     "thrash": {"rhythm": (("m8-chug-l", "m8-chug-r"),), "bass": ("pick-bass", "bass-fat"), "lead": ("lead-wah", "lead-monster")},
     "tool-fuzz": {"bass": ("bass-fuzz", "bass-fat"), "lead": ("ebow", "lead-tape"), "clean": ("baritone", "clean-chorus")},
     "gojira": {"rhythm": (("m8-gojira", "m8-gojira layers.0.pick=0.095 humanize.time=9ms"),), "lead": ("lead-monster", "lead-tape")},
+    "emg": {"rhythm": (("m8-emg-l", "m8-emg-r"),)},
+    "bkp": {"rhythm": (("m8-bkp-l", "m8-bkp-r"),), "lead": ("lead-tape", "lead-monster")},
+    "fluence": {"rhythm": (("m8-fluence-l", "m8-fluence-r"),), "lead": ("lead-slap", "lead-monster")},
     "tool-pick": {"bass": ("pick-bass", "bass-fat"), "lead": ("lead-tape", "lead-monster"), "clean": ("twelve-string", "clean-chorus")},
 }
 _RIGSET = {}
@@ -1454,6 +1461,76 @@ def gen_gojira(r, k, prog, low=28, kind="groove"):
                  track("kick", kit, jn(kick)), track("snare", kit, jn(snare)), track("cym", kit, jn(cym))]
 
 
+# ---------- world x metal: raga, gamelan, koto ---------------------------------------------------
+
+def gen_tabla(r, kind="teental"):
+    """Tabla bols on a 16th grid over 16 beats: teental (8th bols), tirakita runs, or a sparse groove."""
+    kit = pick_patch("tabla-kit", "metal-kit")
+    teental = "dha dhin dhin dha dha dhin dhin dha dha tin tin na na dhin dhin dha".split()
+    out = []
+    for beat in range(16):
+        if kind == "teental":
+            b = teental[(beat * 2) % 16], teental[(beat * 2 + 1) % 16]
+            out += [f"{b[0]}/16@100", "R/16", f"{b[1]}/16@{88}", "R/16"]
+        elif kind == "tirakita":
+            out += [f"{x}/16@{v}" for x, v in zip(r.choice([["te", "re", "ke", "te"], ["dha", "te", "re", "ke"], ["na", "tin", "na", "ge"]]), [96, 80, 86, 82])]
+        else:
+            out += [f"{r.choice(['ge', 'na', 'dha', 'tin'])}/16@{94}" if j == 0 or r.random() < 0.3 else "R/16" for j in range(4)]
+    return [track("tabla", kit, " ".join(out), pan=-0.2)]
+
+
+def gen_raga(r, k, prog, kind="alap"):
+    """alap: tanpura cycle (Pa Sa Sa Sa) and a slow sitar line with meend bends; groove: tabla + tanpura."""
+    sa = k.deg(0, 48)
+    tanpura = [track("tanpura", pick_patch("tanpura", "drone"), " ".join([f"{mname(sa + 7)}/4@70 {mname(sa + 12)}/4@66 {mname(sa + 12)}/4@66 {mname(sa)}/4@72"] * 4), gain="-4dB")]
+    if kind == "groove":
+        return tanpura + gen_tabla(r, r.choice(["teental", "tirakita"]))
+    line, t = [], 0
+    while t < 16:
+        ln = min(16 - t, r.choice([2, 3, 4]))
+        m = k.deg(r.choice([0, 1, 2, 4, 5, 7]), 60)
+        line.append(f"{mname(m)}/4@{r.choice([86, 94])}" + ("".join(" _" for _ in range(ln - 1)) if ln > 1 else ""))
+        if ln >= 3 and r.random() < 0.5:
+            line[-1] = f"{mname(m)}/4@90 _ bend=1 _ bend=" + "".join(" _" for _ in range(ln - 3))
+        t += ln
+    return tanpura + [track("sitar", pick_patch("sitar", "nylon"), " ".join(line), pan=0.15)]
+
+
+def gen_kotekan(r, k, prog):
+    """Gamelan kotekan: polos and sangsih interlock on alternate 16ths from a repeating degree cell,
+    a gong (low tubular bell) on every bar."""
+    cell = [r.choice([0, 1, 2, 3, 4]) for _ in range(8)]
+    polos, sang, gong = [], [], []
+    for i in range(64):
+        d = cell[i % 8] + prog[i // 16]
+        if i % 2 == 0:
+            polos.append(f"{mname(k.deg(d, 72))}/16@{96 if i % 4 == 0 else 84}"); sang.append("R/16")
+        else:
+            sang.append(f"{mname(k.deg(d + 2, 72))}/16@{88}"); polos.append("R/16")
+    gong = [f"{mname(k.deg(root, 36))}/1@96" for root in prog]  # one gong stroke per bar, ringing the bar
+    g = pick_patch("gamelan", "vibes")
+    return [track("polos", g, " ".join(polos), pan=-0.3), track("sangsih", g, " ".join(sang), pan=0.3),
+            track("gong", pick_patch("tubular-bells", "gamelan"), " ".join(gong), gain="-6dB")]
+
+
+def gen_koto(r, k, prog, kind="arp"):
+    """Koto: hirajoshi arpeggios (with sararin tremolo on long notes); taiko thunder on floor toms
+    and kick (kind=taiko)."""
+    if kind == "taiko":
+        kit = rig("drums")
+        pat = r.choice(["x..x..x.x.x.xxx.", "x...x.x.x..xx.x.", "x.x..x.xx..x.x.."])
+        toms = " ".join((f"{r.choice(['ft', 'ft2', 't3'])}/16@{116 if x % 4 == 0 else 104}" if pat[x] == "x" else "R/16") for _ in range(4) for x in range(16))
+        kick = " ".join(("k/16@118" if x in (0, 8) else "R/16") for _ in range(4) for x in range(16))
+        return [track("taiko", kit, toms), track("taiko-k", kit, kick)]
+    out = []
+    for root in prog:
+        if r.random() < 0.3:
+            out.append(f"{mname(k.deg(root + 4, 60))}/2@{90}^r=8 {mname(k.deg(root + 2, 60))}/2@86^r=8")
+        else:
+            out += [f"{mname(k.deg(root + d, 60))}/16@{96 if j % 4 == 0 else 80}" for j, d in enumerate([0, 1, 2, 4, 2, 1, 0, 2] * 2)]
+    return [track("koto", pick_patch("koto", "nylon"), " ".join(out), pan=0.2)]
+
+
 # ---------- groove metal --------------------------------------------------------------------
 
 def gen_groovemetal(r, k, prog, low=28, kind="groove"):
@@ -1637,14 +1714,14 @@ def _write_parts(slot, style, parts, desc, beats=None):
 
 def params(style, rng=random):
     mode = rng.choice(STYLE_MODES.get(style, ["minor"]))
-    heavy = style in ("meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep", "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock", "groovemetal", "power", "sludge", "breakcore", "mathcore", "gojira", "djazz")
+    heavy = style in ("meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep", "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock", "groovemetal", "power", "sludge", "breakcore", "mathcore", "gojira", "djazz", "raga", "gamelan", "koto")
     rigset = ("tech" if style == "tech-death" and rng.random() < 0.6 else
               "thrash" if style == "thrash" else
               "fuzz" if style == "sludge" else
               "gojira" if style == "gojira" else
               "chug" if style in ("hardcore-kl", "brostep") else
               rng.choice(["tool-fuzz", "tool-pick", "tool-fuzz", "phase"]) if style == "tool" else
-              rng.choice(["modern", "chug", "chug", "fuzz", "phase"])) if heavy else "modern"
+              rng.choice(["modern", "chug", "chug", "fuzz", "phase", "emg", "bkp", "fluence", "fluence"])) if heavy else "modern"
     flavor = rng.choice(["modern", "modern", "vintage", "industrial", "space", "wide"]) if style != "industrial" else "industrial"
     return {"pc": rng.randrange(12), "mode": mode, "prog": rng.choice(PROGS[mode]), "seed": rng.randrange(1 << 30), "rigset": rigset, "flavor": flavor}
 
@@ -1674,8 +1751,32 @@ def compose(style, slot, p):
             "hookE": gen_atmos(r, k, prog, 62, rig("atmos")),
         }
         return _write_parts(slot, "brostep", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
+    if style == "raga":
+        parts = {"riffA": gen_raga(r, k, prog, "alap"), "riffG": gen_raga(r, k, prog, "groove"),
+                 "riff": gen_meshuggah(r, k, low, gp, r.choice([14, 22, 20])) + gen_tabla(r, "tirakita"),
+                 "riffB": gen_djent(r, k, prog, low) + gen_tabla(r, "sparse"), "riffBrk": gen_meshuggah(r, k, low, gp, 7, grid="8", mode="break"),
+                 "hook": gen_hook(r, k, prog, 60, pick_patch("sitar", "lead-monster"))}
+        parts["riffSoft"] = soften(parts["riff"])
+        return _write_parts(slot, "raga", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
+    if style == "gamelan":
+        parts = {"riffK": gen_kotekan(r, k, prog), "riff": gen_meshuggah(r, k, low, gp, r.choice([14, 22, 20, 18])) + gen_kotekan(r, k, prog),
+                 "riffB": gen_meshuggah(r, k, low, gp, r.choice([13, 23, 26]), mode="toms"), "riffT": gen_tool(r, k, low, 7, [2, 2, 3], "tribal", reps=5),
+                 "hook": gen_hook(r, k, prog, 62, rig("lead")), "drone": gen_drone(k, 36, "drone")}
+        parts["riffSoft"] = soften(parts["riff"])
+        lens = {"riffT": 7 * 5 / 2}
+        return _write_parts(slot, "gamelan", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}", lens)
+    if style == "koto":
+        parts = {"riffK": gen_koto(r, k, prog, "arp") + gen_koto(r, k, prog, "taiko"),
+                 "riff": gen_djent(r, k, prog, low) + gen_koto(r, k, prog, "arp"), "riffC": gen_power(r, k, prog, 40, "chorus"),
+                 "riffT": gen_koto(r, k, prog, "taiko") + gen_hc(r, k, prog, low, "beatdown"),
+                 "hook": gen_hook(r, k, prog, 60, pick_patch("koto", "lead-monster")), "pad": gen_pad(r, k, prog, 48, "strings", gain="-8dB")}
+        parts["riffSoft"] = soften(parts["riff"])
+        return _write_parts(slot, "koto", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
     if style == "djazz":
-        parts = {"riffJ": gen_mathcore(r, k, prog, low, "jazz"), "riffJ2": gen_mathcore(r, k, prog, low, "jazz"),
+        jz = gen_mathcore(r, k, prog, low, "jazz")
+        if have("vibes") and r.random() < 0.5:  # mallet break: vibes or marimba take the comping
+            jz = [dict(t, patch=r.choice(["vibes", "marimba"])) if t["name"] == "gtr" else t for t in jz]
+        parts = {"riffJ": jz, "riffJ2": gen_mathcore(r, k, prog, low, "jazz"),
                  "riff": gen_djent(r, k, prog, low), "riffB": gen_meshuggah(r, k, low, gp, r.choice([14, 22, 20])),
                  "riffC": gen_mathcore(r, k, prog, low), "hook": gen_hook(r, k, prog, 64, pick_patch("lead-tape", "lead-monster")),
                  "pad": gen_clusters(r, k, prog, 48, "saw-pad")}
@@ -1794,7 +1895,8 @@ def compose(style, slot, p):
             "riffCleanB": gen_tool(r, k, low, m1, g1, "clean"),
             "riff": gen_tool(r, k, low, m1, g1, "heavy"),
             "riffB": gen_tool(r, k, low, m2, g2, "heavy"),
-            "riffT": gen_tool(r, k, low, m3, g3, "tribal"),
+            "riffT": gen_tool(r, k, low, m3, g3, "tribal") + ([track("tabla", pick_patch("tabla-kit"), " ".join(
+                (f"{r.choice(['na', 'tin', 'te', 'ge', 'dha'])}/8@{90}" if r.random() < 0.6 else "R/8") for _ in range(m3 * reps_for(m3))), pan=-0.2)] if have("tabla-kit") else []),
             "riffP": gen_tool(r, k, low, m2, g2, "poly"),
             "riffUp": gen_tool(r, k, low, m1, g1, "build"),
             "hookA": gen_tool_lead(r, k, prog, m1, 62, tl),

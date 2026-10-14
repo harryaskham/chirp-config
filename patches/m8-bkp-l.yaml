@@ -1,0 +1,52 @@
+{
+ "about": "Hot passive-pickup double (left): mid-peaked, more output, into a Gojira-voiced amp, cannibal-choir/impaler-jim. Pair with m8-bkp-r.",
+ "extends": "m8 layers.0.pickup=0.09 layers.0.coil=0.32 layers.0.pickup_hz=2400 layers.0.pickup_q=1.9 layers.0.pick=0.12",
+ "fx": [
+  {
+   "type": "compressor",
+   "threshold": "-20dB",
+   "ratio": 3.5,
+   "attack": "2ms",
+   "release": "70ms",
+   "makeup": "3dB"
+  },
+  {
+   "type": "amp",
+   "model": "gojira",
+   "gain": 0.76,
+   "ts": 0.55,
+   "tight": 110,
+   "boost": "4dB",
+   "bass": 0.56,
+   "mid": 0.6,
+   "treble": 0.5,
+   "presence": 0.48,
+   "resonance": 0.66,
+   "sag": 0.26
+  },
+  {
+   "type": "ir",
+   "file": "jester/cannibal-choir",
+   "blend_file": "jester/impaler-jim",
+   "blend": 0.4,
+   "length": "120ms"
+  },
+  {
+   "type": "eq",
+   "bands": [
+    "peak cutoff=250 q=1.2 gain=-2dB",
+    "peak cutoff=3200 q=1.2 gain=-2.5dB",
+    "highshelf cutoff=7500 gain=-3dB"
+   ]
+  },
+  {
+   "type": "gate",
+   "threshold": "-50dB",
+   "attack": "0.4ms",
+   "hold": "12ms",
+   "release": "35ms"
+  },
+  "reverb kind=plate decay=1s mix=0.07 predelay=12ms"
+ ],
+ "gain": "-22dB"
+}
