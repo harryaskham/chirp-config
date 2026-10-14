@@ -1,0 +1,9 @@
+about: "Cavaquinho: the small four-string Brazilian guitar — bright, jangly and quick to decay; strum chords in 16ths (samba, choro, pagode)."
+synth:
+  layers:
+    - {type: pluck, pick: 0.1, body: 0.25, decay: 0.7s, bright: 0.75}
+    - {type: pluck, pick: 0.12, body: 0.2, decay: 0.6s, bright: 0.7, cents: 5, level: -4dB}
+  filters: ["hp cutoff=250", "peak cutoff=2.8k q=1 gain=3dB", "lp cutoff=9k"]
+play: {gate: 1, vel_sens: 0.6, strum: 12ms, humanize: {time: 4ms, vel: 0.08}}
+fx: ["reverb kind=room decay=0.9s mix=0.14"]
+gain: -3dB
