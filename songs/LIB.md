@@ -24,6 +24,8 @@ Use `@NAME` in a score; transpose with `tr=N` (e.g. `tr=-3 @lib-kankyo`).
 | `@lib-citypop` | citypop | 16 |
 | `@lib-cyberscape-hook` | cyberscape | 16 |
 | `@lib-cyberscape` | cyberscape | 16 |
+| `@lib-dawnchorus-hook` | dawnchorus | 16 |
+| `@lib-dawnchorus` | dawnchorus | 16 |
 | `@lib-dawnraga-hook` | dawnraga | 16 |
 | `@lib-dawnraga` | dawnraga | 16 |
 | `@lib-doomjazz-hook` | doomjazz | 16 |

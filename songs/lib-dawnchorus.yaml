@@ -1,0 +1,9 @@
+about: "Library part \u2014 dawnchorus section (C mixolydian), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "birds", "patch": "birds", "score": "R/4 R/4 A6/32@80 G7/32@60 C7/32@70 C6/32@70 G7/32@80 R/32 R/32 R/32 R/4 R/4 D6/32@80 G7/32@60 E7/32@70 E7/32@60 E6/32@70 R/32 R/32 R/32 C6/32@70 G6/32@80 E7/32@70 C7/32@70 C7/32@70 R/32 R/32 R/32 C6/32@70 G7/32@80 R/32 R/32 R/32 R/32 R/32 R/32 A6/32@70 C6/32@70 D6/32@70 C6/32@60 R/32 R/32 R/32 R/32 R/4 R/4 R/4 R/4 R/4 R/4 R/4", "pan": 0.12}
+  - {"name": "birds2", "patch": "birds", "score": "R/4 R/4 C6/16@70 C7/16@80 R/16 R/16 R/4 R/4 R/4 R/4 R/4 R/4 R/4 R/4 R/4 G6/16@70 R/16 R/16 R/16 R/4 R/4 R/4", "pan": 0.52, "gain": "-4dB"}
+  - {"name": "stream", "patch": "stream", "score": "C5/4 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _", "pan": -0.2}
+  - {"name": "glass", "patch": "mellotron-choir", "score": "C4,E4,G4,Bb4/1@54 Bb4,D5,F5,A5/1@54 C4,E4,G4,Bb4/1@54 F4,A4,C5,E5/1@54", "gain": "-9dB"}
+  - {"name": "scape", "patch": "wind", "score": "C5/4 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _", "gain": "-6dB", "pan": 0.02}

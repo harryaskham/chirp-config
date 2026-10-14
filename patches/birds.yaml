@@ -1,0 +1,13 @@
+about: "Birdsong: quick high chirps with sweeping pitch envelopes and fast trills — play clusters of short high notes (C6–C8) with rests between for a dawn chorus."
+synth:
+  layers: [sine, {wave: sine, ratio: 2, level: -16dB}]
+  env:
+    sweep: {a: 0.5ms, d: 70ms, s: 0}
+  lfo:
+    trill: {wave: sine, rate: 22hz, retrig: true}
+  pitch: {value: 0, mod: [{src: env.sweep, amount: 7}, {src: lfo.trill, amount: 0.6}, {src: rand, amount: 2}]}
+  filters: ["hp cutoff=1500"]
+  amp: {a: 2ms, d: 90ms, s: 0, r: 30ms}
+play: {gate: 1, vel_sens: 0.5, humanize: {time: 20ms, vel: 0.15}}
+fx: ["delay time=3/16 feedback=0.2 mix=0.12", "reverb kind=hall decay=2.5s mix=0.35"]
+gain: -8dB

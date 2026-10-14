@@ -1,0 +1,12 @@
+about: "Babbling stream: pink noise through band-passes wobbled by two out-of-step LFOs (the gurgle) over a soft low wash. A long held note is the water."
+synth:
+  layers: [{type: noise, color: pink, level: -6dB}, {type: noise, color: brown, level: -12dB}]
+  lfo:
+    g1: {wave: sine, rate: 3.3hz}
+    g2: {wave: sine, rate: 5.1hz}
+  filters:
+    - {kind: bp, cutoff: {value: 1800, mod: [{src: lfo.g1, amount: 0.5}, {src: lfo.g2, amount: 0.35}]}, q: 2}
+  amp: {a: 2s, d: 1s, s: 0.9, r: 3s}
+play: {gate: 1}
+fx: ["reverb kind=room decay=1s mix=0.2"]
+gain: -2dB

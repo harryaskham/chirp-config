@@ -1,0 +1,5 @@
+about: "Library part \u2014 dawnchorus melody (C mixolydian), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "shakuhachi", "score": "E5/2@84 C5/4@84 D5/4@84 C6/2.@84 G6/4@84 A5/2@84 E5/4@84 A5/4@84 A5/2@84 G5/4@84 G5/4@84", "pan": 0.15}
