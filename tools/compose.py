@@ -1875,6 +1875,7 @@ def feel_track(t, profile, r):
 
 
 _KEY = (0, "minor")
+_CHAPTER = 0
 VOX_CHOPS = {"house-melodic": 0.6, "cyberscape": 0.5, "fusion": 0.3, "dnb": 0.5, "brostep": 0.4, "garage": 0.6, "house": 0.5, "darksynth": 0.3}
 ORCH_HITS = {"darksynth": 0.5, "industrial": 0.4, "power": 0.5, "deathcore": 0.4, "numetal": 0.3, "brostep": 0.3}
 MINORISH = {"minor", "dorian", "phrygian", "harmonic", "locrian", "melodic", "blues", "pentatonic-minor", "neapolitan", "hungarian", "phrygian-dominant"}
@@ -1932,6 +1933,18 @@ def _write_parts(slot, style, parts, desc, beats=None):
     names = {}
     parts = dict(parts)
     stock_layers(style, parts, beats, desc)
+    if style in CHILL_STYLES and _CHAPTER >= 1:
+        # Development across chapters: the melody gains an octave double (a mallet above in chapter 2,
+        # cellos/horn below or a flute above later), quiet, so it thickens rather than competes.
+        import zlib
+        dr = random.Random(zlib.crc32(f"dbl{desc}{_CHAPTER}".encode()))
+        for role in [ro for ro in parts if ro.startswith("hook")]:
+            if _CHAPTER == 1:
+                dbl, tr_ = pick_patch(dr.choice(["vibes", "celesta", "glock", "music-box"]), "vibes"), 12
+            else:
+                dbl, tr_ = dr.choice([(pick_patch("cellos", "strings"), -12), (pick_patch("horn", "strings"), -12), (pick_patch("flute", "vibes"), 12)])
+            parts[role] = parts[role] + [dict(t, name=t["name"] + "-dbl", patch=dbl, score=f"tr={tr_} " + t["score"], gain="-8dB", pan=-float(t.get("pan", 0) or 0))
+                                         for t in parts[role] if isinstance(t.get("patch"), str) and "kit" not in t["patch"]]
     if style in CHILL_STYLES:
         sw = swap_plan(f"{style}{desc}")
         if sw:
@@ -3091,8 +3104,9 @@ def gen_fusion(r, k, prog, src, beat, with_beat=True):
 
 def compose(style, slot, p):
     """Compose the style's parts, plus two guest sections from other styles (riffGuest1/2, same key)."""
-    global _KEY
+    global _KEY, _CHAPTER
     _KEY = (p["pc"], p["mode"])
+    _CHAPTER = p.get("chapter", 0)
     names, desc = _compose_style(style, slot, p)
     if style in CHILL_STYLES:
         r = random.Random(p["seed"] + 1)
