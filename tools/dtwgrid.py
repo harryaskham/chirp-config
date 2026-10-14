@@ -1,0 +1,109 @@
+#!/usr/bin/env python3
+"""DTW-anchored beat grid for a tab2song map: fixes the grid where riffs alias.
+
+  dtwgrid.py MAP.json RENDER.wav REF.wav [--block 4] [--window 0.08] [--frame 0.1] [--minconf 0.1] [--clamp 0.15]
+            [-o OUT.json] [--report]
+
+RENDER.wav must be a render of the song MAP.json generates (so its bar times are the map's). Two signals:
+
+  * DTW (scorealign.py features, --frame s) maps every render bar onto the recording unambiguously, to about
+    one frame (+-0.1 s) — too coarse for the rhythm metric (~20 ms) but never off by a whole riff cell.
+  * Onset correlation (5 ms flux of the 80-250 Hz and 2.5-6 kHz bands, summed) per block of --block bars is
+    precise but periodic: with steady eighths the peaks repeat every eighth (beatgrid.py's pulse phase locks to
+    the wrong one, and its unwrap fails across tempo changes).
+
+Per block, the lag is the onset-correlation peak within +-window s of the DTW lag. Block starts move to where
+the band played them (blocks whose onset correlation is below --minconf — sections the transcription or the
+instruments don't match yet — take the DTW lag itself; a block's tempo change is clamped to +-clamp); every kept measure gets a "bpm" override so each block spans its real duration (the
+shape inside a block scales together) and the map's offset moves with the first block. Regenerate, render,
+and re-run: --report prints the residual lags only.
+"""
+import importlib.util
+import json
+import os
+import sys
+
+import numpy as np
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+import likeness as L  # noqa: E402
+import mixfeel as M  # noqa: E402
+
+
+def load_mod(name, file):
+    spec = importlib.util.spec_from_file_location(name, os.path.join(HERE, file))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def flux(path):
+    E = M.envelopes(L.load(path))
+    return np.maximum(np.diff(E[1]), 0) + np.maximum(np.diff(E[4]), 0)   # 5 ms frames
+
+
+def main():
+    a = sys.argv[1:]
+    opt = lambda k, d: a[a.index(k) + 1] if k in a else d  # noqa: E731
+    mpath, render, ref = a[0], a[1], a[2]
+    block, window, frame = int(opt("--block", "4")), float(opt("--window", "0.08")), float(opt("--frame", "0.1"))
+    minconf, clamp = float(opt("--minconf", "0.1")), float(opt("--clamp", "0.15"))
+    T2S, SA = load_mod("t2s", "tab2song.py"), load_mod("sa", "scorealign.py")
+    mp = json.load(open(mpath))
+    cache = mp["cache"] if os.path.isabs(mp["cache"]) else os.path.join(os.path.dirname(HERE), mp["cache"])
+    keep = [m for m in T2S.corrected_timeline(cache, mp) if not m["skip"]]
+    t, starts = mp.get("offset", 0.0), []
+    for m in keep:
+        starts.append(t)
+        t += m["beats"] * 60 / m["bpm"]
+    end = t
+    A, dt = SA.feats(render, frame)
+    B, _ = SA.feats(ref, frame)
+    ci, rj, _ = SA.dtw(A, B, int(15 / dt))
+    f = SA.mapping(ci, rj, dt)
+    fo, fr = flux(render), flux(ref)
+    blocks = list(range(0, len(keep), block))
+    lags, confs = [], []
+    for bi in blocks:
+        s0 = starts[bi]
+        s1 = starts[bi + block] if bi + block < len(keep) else end
+        dtw_lag = s0 - float(f([s0])[0])               # + = render later than the recording
+        i0, i1 = int(s0 * 200), int(s1 * 200)
+        o = fo[i0:i1] - fo[i0:i1].mean()
+        best = (-9.0, dtw_lag)
+        for k in range(int((dtw_lag - window) * 200), int((dtw_lag + window) * 200) + 1):
+            j0, j1 = i0 - k, i1 - k
+            if j0 < 0 or j1 > len(fr):
+                continue
+            r = fr[j0:j1] - fr[j0:j1].mean()
+            c = float((o * r).sum() / (np.linalg.norm(o) * np.linalg.norm(r) + 1e-9))
+            if c > best[0]:
+                best = (c, k / 200)
+        lags.append(best[1] if best[0] >= minconf else dtw_lag)
+        confs.append(best[0])
+    if "--report" in a:
+        al = np.abs(lags)
+        print(f"{len(blocks)} blocks; lag (ms): " + " ".join(f"{l * 1000:+.0f}" for l in lags))
+        print(f"residual |lag| median {np.median(al) * 1000:.0f} ms, p90 {np.percentile(al, 90) * 1000:.0f} ms")
+        return
+    real = [starts[bi] - lag for bi, lag in zip(blocks, lags)]
+    bpm = dict(mp.get("bpm", {}))
+    for n, bi in enumerate(blocks):
+        span_ours = (starts[blocks[n + 1]] if n + 1 < len(blocks) else end) - starts[bi]
+        span_real = (real[n + 1] if n + 1 < len(blocks) else end - lags[-1]) - real[n]
+        scale = span_ours / span_real if span_real > 0 else 1.0
+        scale = min(1 + clamp, max(1 - clamp, scale))
+        for m in keep[bi:bi + block]:
+            bpm[str(m["m"])] = round(m["bpm"] * scale, 4)
+    mp["bpm"] = bpm
+    mp["offset"] = round(real[0], 4)
+    text = json.dumps(mp, indent=2) + "\n"
+    open(opt("-o", mpath), "w").write(text)
+    print(f"{len(blocks)} blocks; lag (ms): " + " ".join(f"{l * 1000:+.0f}" for l in lags))
+    print("confidence: " + " ".join(f"{c:.2f}" for c in confs))
+    print(f"offset {mp['offset']} s")
+
+
+if __name__ == "__main__":
+    main()
