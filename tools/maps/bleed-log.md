@@ -18,6 +18,7 @@ Reference: album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825;
 | v13 | 61.3 | master EQ with the measured unmastered signature (sub +, punch −, mud +, presence −) |
 | v14 | 62.1 | second master EQ stage (tools/mastereq.py on the residual) |
 | v15 | 63.0 | obzen-kit kick A1 → B1 (drum stem chroma B/A/Ab/Bb) |
+| v16 | 63.6 | per-section master EQ on implement-heed and BLEED YOU WILL (filter gains on auto.s3/auto.s4 lanes) |
 
 ## Tried and rejected (don't re-run without a new reason)
 - Guitars: amp gain/scrape/pick-noise for the 'saw' valleys (no effect; pitch glide was the lever); stiffer strings
@@ -29,6 +30,10 @@ Reference: album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825;
 - Mastering: 0.5× (60.4) and 1.4× (60.5) of the measured EQ; more stages after v14 (residual 2.2 dB rms is noise-level).
 - Voice: per-syllable pitch from the stem (stemvox --note auto: −0.3, octave slips on shouts); the voice-layer patch
   'kidman' (61.9 / 62.3 level-matched: its clean harmonics put E on the chroma).
+- Per-section EQ for the bridge: its mastereq fit (+8 dB sub and air) chases content the arrangement lacks — not
+  applied; other sections' fits are at noise level (2.2-2.7 dB rms).
+- Guitar timing/articulation: the guitar stem's low/high envelopes don't follow ours (−0.12 / 0.23 vs a 0.65 / 0.61
+  separation control), but no time shift fixes it — accents/articulation, unresolved.
 - Bridge: ambient-swell / m8-clean for the tab's 'piano atmosphere' (35.6 / 40.7 vs rhodes 43.5); stem-transcribed
   re-articulation of the clean part (45.6) or a dotted-eighth delay (45.1) vs 47.7.
 
