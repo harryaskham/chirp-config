@@ -1,24 +1,25 @@
 #!/usr/bin/env python3
 """Hill-climb playlist driver: plays every enabled climb in climbs.json on the live `groove`, each in its
-current best version (see the registry's _protocol).
+current best version (see the registry's _protocol), using chirp's shared queue (`chirp live queue`).
 
-- A few seconds before each pass ends, it queues the next climb with `live replace --when loop`, reading the
-  song file fresh, so a turn always starts with the newest committed best. After `passes` passes it moves on.
-- When the playing climb's song file changes on disk (its owner committed a new best), it hot-swaps it at the
-  next bar, but never in the last seconds of a pass, where the queued handover wins.
-- Every file is checked with the groove's own binary (`chirp plan`) first. A climb that fails, for example
-  because it needs a newer engine than the groove is pinned to, is skipped and logged.
+- The groove always has exactly one climb waiting: whenever its queue is empty (the waiting climb has just
+  started playing), the next climb in rotation is queued from its song file. So each turn plays the version
+  committed up to about one pass before it, and the session never falls back to its start-up song.
+- A climb with `passes: N` is queued N times in a row; `enabled: false` leaves the rotation.
+- Every file is validated by the groove (and checked with its binary's `plan` first). A climb that fails,
+  for example because it needs a newer engine than the groove runs, is skipped and logged.
 - tools/playlist-solo (runtime, ignored) holding one climb id plays that climb exclusively.
+- To show Harry something, take over for one pass: `chirp live queue FILE --id groove --now --label NAME`.
+  The rotation carries on afterwards.
+- Underrun increases are logged with the host load (they track CPU storms on the host).
 
 Started by tools/restart-groove.sh playlist. Log: /tmp/chirp-playlist.log."""
-import hashlib, json, os, subprocess, sys, time
+import json, os, subprocess, sys, time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 C = os.environ.get("CHIRP_BIN", os.path.join(os.environ.get("XDG_RUNTIME_DIR", "/tmp"), "chirp-groove"))
 ID = os.environ.get("PLAYLIST_GROOVE", "groove")
-LEAD = float(os.environ.get("PLAYLIST_LEAD_S", "8"))       # queue the handover this long before the pass ends
-SWAP_GUARD = LEAD + 6                                        # no hot-swaps this close to the end
 
 
 def log(*a):
@@ -45,13 +46,6 @@ def path(c):
     return os.path.join(ROOT, c["song"])
 
 
-def digest(c):
-    try:
-        return hashlib.sha1(open(path(c), "rb").read()).hexdigest()
-    except OSError:
-        return None
-
-
 def playable(c):
     r = subprocess.run([C, "plan", "-f", path(c)], capture_output=True, text=True, cwd=ROOT)
     if r.returncode:
@@ -67,10 +61,10 @@ def status():
         return None
 
 
-def replace(c, when):
-    r = subprocess.run([C, "live", "replace", "--id", ID, "--when", when, path(c)], capture_output=True, text=True)
+def enqueue(c):
+    r = subprocess.run([C, "live", "queue", "--id", ID, "--label", c["id"], path(c)], capture_output=True, text=True, cwd=ROOT)
     ok = r.returncode == 0
-    log(f"replace {c['id']} --when {when}: {'ok' if ok else (r.stderr or r.stdout).strip()[-200:]}")
+    log(f"queued {c['id']}: {'ok' if ok else (r.stderr or r.stdout).strip()[-200:]}")
     return ok
 
 
@@ -79,61 +73,39 @@ def label_of(c):
 
 
 def main():
-    log(f"playlist driver up (binary {C}, groove {ID})")
-    playing, play_hash, passes_left = None, None, 1
-    queued, queued_gen = None, None
-    last_loop = None
+    log(f"playlist driver up (binary {C}, groove {ID}; chirp live queue)")
+    last, run = None, 0          # last queued climb id and how many times in a row
     last_under = None
     while True:
-        time.sleep(1)
+        time.sleep(2)
         st = status()
         if not st:
             continue                                         # groove down: the watchdog restarts it
         u = st.get("underruns", 0)
-        if last_under is not None and u > last_under:        # diagnose: output starvation vs host CPU storms
-            log(f"underruns +{u - last_under} (total {u}); host load {open('/proc/loadavg').read().split()[:3]}, groove load {st.get('load', 0):.2f}")
+        if last_under is not None and u > last_under:
+            log(f"underruns +{u - last_under} (total {u}); host load {open('/proc/loadavg').read().split()[:3]}, groove load {st.get('load') or 0:.2f}")
         last_under = u
+        if st.get("queue"):
+            continue                                         # a climb is already waiting
         cl = climbs()
         if not cl:
             continue
-        if playing is None:                                  # adopt whatever is playing (restart-groove started it)
-            playing = next((c for c in cl if label_of(c) == st.get("label")), cl[0])
-            play_hash, passes_left, last_loop = digest(playing), playing.get("passes", 1), st["loop_index"]
-            log(f"now playing {playing['id']} ({st.get('label')})")
-        gen, pos, length, loop = st["generation"], st["position"], st["loop_seconds"], st["loop_index"]
-        if queued is not None and gen != queued_gen and not st.get("pending"):
-            playing, play_hash, passes_left, last_loop = queued, digest(queued), queued.get("passes", 1), loop
-            log(f"now playing {playing['id']}")
-            queued = None
-            continue
-        if loop != last_loop:                                # a pass of the same song completed
-            passes_left -= 1
-            last_loop = loop
-        playing = next((c for c in cl if c["id"] == playing["id"]), playing)   # registry edits (passes, song path)
-        remaining = length - pos
-        if queued is None and remaining < LEAD and not st.get("pending"):
-            if passes_left > 1 or len(cl) == 1:
-                nxt = playing                                # stay; re-queue only if the file changed
-                if digest(nxt) == play_hash:
-                    continue
-            else:
-                i = next((k for k, c in enumerate(cl) if c["id"] == playing["id"]), -1)
-                order = cl[i + 1:] + cl[:i + 1]
-                nxt = next((c for c in order if playable(c)), None)
-                if nxt is None:
-                    continue
-            if nxt is playing or nxt["id"] == playing["id"]:
-                if not playable(nxt):
-                    continue
-            if replace(nxt, "loop"):
-                queued, queued_gen = nxt, gen
-        elif queued is None and remaining > SWAP_GUARD and not st.get("pending"):
-            h = digest(playing)
-            if h and h != play_hash:
-                log(f"{playing['id']}: song file changed on disk")
-                if playable(playing) and replace(playing, "bar"):
-                    pass
-                play_hash = h                                # a failing file is not retried until it changes again
+        if last is None:                                     # adopt the start-up song (restart-groove plays the first climb)
+            cur = next((c for c in cl if label_of(c) == st.get("label", "").lstrip("▶ ")), cl[0])
+            last, run = cur["id"], 1
+        cur = next((c for c in cl if c["id"] == last), None)
+        if cur is not None and run < cur.get("passes", 1):
+            order = [cur]
+        else:
+            i = next((k for k, c in enumerate(cl) if c["id"] == last), -1)
+            order = cl[i + 1:] + cl[:i + 1]
+        for c in order:
+            if playable(c) and enqueue(c):
+                run = run + 1 if c["id"] == last else 1
+                last = c["id"]
+                break
+        else:
+            time.sleep(30)                                   # nothing playable: retry later
 
 
 if __name__ == "__main__":

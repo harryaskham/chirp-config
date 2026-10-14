@@ -2,10 +2,11 @@
   "_protocol": [
     "Hill-climb registry: one entry per reference track being reproduced. The live `groove` plays them in turn as a playlist (tools/playlist.py).",
     "1. `song` is ALWAYS the best version so far. Keep experiments elsewhere (/tmp, *-wip.yaml); commit the song file only when it beats `best.score`, and update `best` in the same commit.",
-    "2. Do NOT `chirp live replace` the groove yourself. The playlist driver loads each song fresh when its turn comes, and hot-swaps the playing song at the next bar when its file changes on disk.",
+    "2. Do NOT `chirp live replace` or play your own sessions. The playlist driver (tools/playlist.py) keeps one climb queued on the groove with `chirp live queue`, reading each song file fresh about one pass before its turn.",
     "3. Commit to this repo (git add <your files>; git commit; git pull --rebase origin main; git push origin HEAD:main). Touch only your own entry and files; never rewrite another climb's song.",
     "4. Every song must plan with the groove's pinned binary (tools/restart-groove.sh pins origin/main builds). A song needing newer engine features is skipped (logged in /tmp/chirp-playlist.log) until the groove restarts on a newer build.",
-    "5. `passes`: how many times the song plays per turn. `enabled: false` takes a climb out of rotation. Runtime overrides (ignored by git): tools/playlist-solo holds one id to play exclusively."
+    "5. `passes`: how many times the song plays per turn. `enabled: false` takes a climb out of rotation. Runtime overrides (ignored by git): tools/playlist-solo holds one id to play exclusively.",
+    "6. To show Harry something, take over for one pass: `chirp live queue FILE --id groove --now --label NAME` (the rotation resumes after it). Render to files for measuring; never start a second stream on the shared sinks."
   ],
   "climbs": [
     {
