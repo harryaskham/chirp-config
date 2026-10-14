@@ -2,4 +2,4 @@ about: "Library part \u2014 downtempo melody (C minor), 16 beats, tempo-inheriti
 tempo: inherit
 length: 16b
 tracks:
-  - {"name": "hook", "patch": "vibes", "score": "Eb5/4.@89 C5/8@91 G5/2@89 Eb6/2@91 D6/2@84 C6/4.@87 Ab5/8@90 C6/4@87 R/4 D6/2@96 R/2", "pan": 0.1}
+  - {"name": "hook", "patch": "clarinet", "score": "R/8 Eb5/8.@87 F5/8.@86 Eb5/8@90 C5/2@82 Eb6/8.@89 F6/8.@88 Eb6/8@91 C6/4@90 R/4 C6/8.@85 Bb5/8.@89 C6/8@94 C6/4@83 R/4 D6/4@94 Bb5/4@87 C5/4.@85^gate=1.2", "pan": 0.1}

@@ -901,7 +901,7 @@ def master_for(ident):
     }[comp]
     trim = COMP_TRIM.get(comp, 0.0) + STYLE_TRIM.get(ident.get("style"), 0.0) + loud_learned().get(ident.get("style"), 0.0) + loud_learned().get("_chill" if ident.get("style") in composer.CHILL_STYLES else "_heavy", 0.0)
     eq = [json.loads(MASTER_BASE[0])]
-    air = {"brostep": 2.5, "darksynth": 3.0, "tool": 1.5, "industrial": 3.0, "dnb": 2.0, "power": 2.0, "raga": 2.5, "koto": 2.0,
+    air = {"brostep": 2.5, "downtempo": 1.5, "darksynth": 3.0, "tool": 1.5, "industrial": 3.0, "dnb": 2.0, "power": 2.0, "raga": 2.5, "koto": 2.0,
            "lofihop": 2.0, "ukjazz": 3.0, "ambient": 3.0, "triphop": 2.0, "dub": 1.5, "celtic": 2.5, "doomjazz": 1.5, "vaporwave": 1.0, "slowcore": 1.5, "minimal": 2.0, "kankyo": 1.5, "lid": 1.0, "balearic": 1.5, "symphonic": 1.5, "beattape": 1.5, "lofihouse": 2.0}.get(ident.get("style"))
     if air:  # QA: these styles measure dark at the top
         eq.append({"type": "eq", "bands": ["peak cutoff=3500 q=0.8 gain=1.5dB", f"highshelf cutoff=8000 gain={air}dB"]

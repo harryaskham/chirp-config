@@ -3543,17 +3543,38 @@ def gen_picado(r, k, prog, base, patch):
 
 
 def gen_downtempo(r, k, prog, kind="main"):
-    """Downtempo (Bonobo-ish): a low-passed breakbeat, marimba/kalimba ostinato, finger bass, strings."""
+    """Downtempo (Bonobo / Emancipator / Tycho): a breakbeat (one of three patterns) whose low-pass opens
+    over the section, an ostinato on marimba / kalimba / harp / nylon / celesta, a melodic syncopated bass
+    (finger or fretless), a swelling string pad; kind=B adds an open hat, light congas, a second
+    interlocking ostinato and sometimes pizzicato strings; kind=intro is ostinato, bass and pad."""
     kit = pick_patch("break-kit", "lofi-kit")
-    lp = [{"type": "filter", "kind": "lp", "cutoff": 3500}]
-    kick = " ".join(("k/16@96" if x in (0, 10) else "R/16") for _ in range(4) for x in range(16))
-    snare = " ".join(("s/16@90" if x in (4, 12) else (f"g/16@30" if r.random() < 0.12 else "R/16")) for _ in range(4) for x in range(16))
-    hats = " ".join((f"h/16@{60 if x % 4 == 0 else 44}" if x % 2 == 0 else "R/16") for _ in range(4) for x in range(16))
-    out = [] if kind == "intro" else [track("kick", kit, kick, fx=lp), track("snare", kit, snare, fx=lp), track("hats", kit, hats, fx=lp, gain="-4dB", pan=0.1)]
-    out += gen_ostinato(r, k, prog, 60, r.choice(["marimba", "kalimba"]), r.choice([[3, 3, 2], [3, 5]]))[:1]
-    out.append(track("bass", pick_patch("finger-bass", "bass-di"), " ".join(f"{mname(k.deg(root, 33))}/4.@86 {mname(k.deg(root, 33))}/8@72 R/2" for root in prog), seed=7))
-    if kind != "intro":
-        out += gen_pad(r, k, prog, 48, "strings", gain="-10dB", vel=64)
+    opening = {"open": {"points": [["0b", 0.0], ["12b", 1.0], ["16b", 1.0]]}}
+    lp = [{"type": "filter", "kind": "lp", "cutoff": {"value": 2200, "mod": [{"src": "auto.open", "amount": 1.6}]}}]
+    kp, sp = r.choice([("x.........x.....", (4, 12)), ("x......x..x.....", (4, 12)), ("x.....x...x..x..", (4, 12))])
+    busy = kind == "B"
+    kick = " ".join(("k/16@96" if kp[x] == "x" else "R/16") for _ in range(4) for x in range(16))
+    snare = " ".join(("s/16@90" if x in sp else (f"g/16@{r.choice([26, 32])}" if r.random() < (0.2 if busy else 0.1) else "R/16")) for _ in range(4) for x in range(16))
+    hats = " ".join(("oh/16@54" if busy and x % 8 == 6 else (f"h/16@{60 if x % 4 == 0 else 44}" if x % 2 == 0 or (busy and r.random() < 0.3) else "R/16")) for _ in range(4) for x in range(16))
+    out = [] if kind == "intro" else [track("kick", kit, kick, fx=lp, auto=opening), track("snare", kit, snare, fx=lp, auto=opening),
+                                      track("hats", kit, hats, fx=lp, auto=opening, gain="-4dB", pan=0.1)]
+    osts = r.sample(["marimba", "kalimba", "harp", "nylon", "celesta"], 2)
+    out += [dict(t, name="ostinato") for t in gen_ostinato(r, k, prog, 60, pick_patch(osts[0], "marimba"), r.choice([[3, 3, 2], [3, 5]]))[:1]]
+    if busy:
+        out += [dict(t, name="ostinato2", pan=0.35, gain="-6dB") for t in gen_ostinato(r, k, prog, 72, pick_patch(osts[1], "kalimba"), r.choice([[3, 3, 3, 3, 4], [5, 5, 6]]))[:1]]
+    bass = []
+    for bi, root in enumerate(prog):
+        nxt = prog[(bi + 1) % len(prog)]
+        b1, b5, appr = mname(k.deg(root, 33)), mname(k.deg(root + 4, 33)), mname(k.deg(nxt, 33) + r.choice([-1, 1]))
+        bass.append(r.choice([f"{b1}/4.@86 {b1}/8@72 R/4 {b5}/8@76 {appr}/8@68", f"{b1}/8@86 R/8 {b1}/8@70 {b5}/8@78 R/4 {b1}/8@80 {appr}/8@66",
+                              f"{b1}/2@86 R/8 {b5}/8@74 R/8 {appr}/8@68"]))
+    out.append(track("bass", pick_patch(r.choice(["finger-bass", "fretless"]), "bass-di"), " ".join(bass), seed=7))
+    if kind != "intro" or r.random() < 0.5:
+        peak = r.choice([6, 10, 14])
+        sw = {"sw": {"points": [["0b", 0.2], [f"{peak}b", 1.0], ["16b", 0.4]]}}
+        out += [dict(t, auto=sw, gain={"value": "-14dB", "mod": [{"src": "auto.sw", "amount": 5}]}) for t in gen_pad(r, k, prog, 48, "strings", vel=64)]
+    if busy and r.random() < 0.5:
+        pizz = " ".join(f"{mname(k.deg(root + d, 55))}/8@{r.choice([60, 68])}^gate=0.25" if j % 2 == 0 else "R/8" for root in prog for j, d in enumerate([0, 2, 4, 2, 4, 7, 4, 2]))
+        out.append(track("pizz", pick_patch("strings", "harp"), pizz, pan=-0.3, gain="-8dB"))
     return out
 
 
@@ -3966,7 +3987,7 @@ def _compose_style(style, slot, p):
         parts = {"riffA": gen_ambient(r, k, prog, "A"), "riffB": gen_ambient(r, k, prog, "B"), "hookE": gen_atmos(r, k, prog, 62, pick_patch("ebow", "ambient-swell"))}
         return _write_parts(slot, "ambient", parts, f"{NAMES[p['pc']]} {p['mode']}")
     if style == "downtempo":
-        parts = {"riffI": gen_downtempo(r, k, prog, "intro"), "riff": gen_downtempo(r, k, prog), "riffB": gen_downtempo(r, k, prog),
+        parts = {"riffI": gen_downtempo(r, k, prog, "intro"), "riff": gen_downtempo(r, k, prog), "riffB": gen_downtempo(r, k, prog, "B"),
                  "hook": gen_hook(r, k, prog, 64, pick_patch(r.choice(["vibes", "flute", "clarinet", "pluck-lead"]), "rhodes"))}
         return _write_parts(slot, "downtempo", parts, f"{NAMES[p['pc']]} {p['mode']}")
     if style == "raga":
