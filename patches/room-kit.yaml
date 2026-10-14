@@ -1,0 +1,36 @@
+about: >-
+  Organic recorded metal kit (extends metal-kit): the same pieces and articulations heard through room and overhead
+  mics instead of a scooped modern sample chain — a little less sub, a darker top (no 10 kHz
+  snare sizzle), a trace of room, overhead-style width, and cymbals and toms panned from the drummer's
+  perspective. For older-school, cinematic or doom metal (DOOM: The Dark Ages), where drums sit in a space.
+  Matched against a separated reference drum stem (tools/likeness.py on drums-only renders).
+extends: metal-kit
+kit:
+  h: {pan: -0.35}
+  hs: {pan: -0.35}
+  h1: {pan: -0.35}
+  h2: {pan: -0.35}
+  h3: {pan: -0.35}
+  oh: {pan: -0.35}
+  hf: {pan: -0.3}
+  rd: {pan: 0.4}
+  rds: {pan: 0.4}
+  rde: {pan: 0.45}
+  rb: {pan: 0.35}
+  rbs: {pan: 0.35}
+  c: {pan: -0.5}
+  cbl: {pan: -0.5}
+  cch: {pan: 0.55}
+  x: {pan: 0.6}
+  sp: {pan: -0.2}
+  t1: {pan: -0.25}
+  t2: {pan: 0.05}
+  t3: {pan: 0.3}
+  ft: {pan: 0.45}
+  ft2: {pan: 0.55}
+fx:
+  - {type: compressor, threshold: -20dB, ratio: 4, attack: 12ms, release: 90ms, makeup: 4dB}
+  - {type: drive, drive: 0.25, mix: 0.5}
+  - {type: eq, bands: ["lowshelf cutoff=60 gain=-2dB", "highshelf cutoff=7000 gain=-4dB"]}   # swept: bigger mid boosts fought the guitars
+  - {type: reverb, kind: room, decay: 0.9s, mix: 0.05, predelay: 6ms}   # a trace of room; more smeared the hits
+  - {type: width, width: 1.6, mono_below: 120}
