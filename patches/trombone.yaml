@@ -1,0 +1,19 @@
+about: "Trombone: warm, round brass with the slide's glissando between legato notes; louder notes open into a brassy edge. Brass bands, second line, ska, big band."
+synth:
+  layers:
+    - {wave: saw, level: -4dB}
+    - {wave: sine, level: -4dB}
+    - {type: noise, color: pink, level: {value: -50dB, mod: [{src: env.br, amount: 12}]}}
+  env:
+    br: {a: 8ms, d: 120ms, s: 0.15, r: 100ms}
+    open: {a: 30ms, d: 280ms, s: 0.55, r: 140ms}
+  lfo:
+    vib: {wave: sine, rate: 5hz, delay: 450ms, fade: 500ms, retrig: true}
+  pitch: {value: 0, mod: [{src: lfo.vib, amount: 0.07}]}
+  filters:
+    - "hp cutoff=70"
+    - {kind: lp, cutoff: {value: 800, mod: [{src: env.open, amount: 1.2}, {src: vel, amount: 1.2}]}, q: 0.8}
+  amp: {a: 25ms, d: 200ms, s: 0.85, r: 140ms}
+play: {mono: true, legato: true, glide: 110ms, gate: 0.95, vel_sens: 0.6, humanize: {time: 8ms, vel: 0.05}}
+fx: ["reverb kind=room decay=1.1s mix=0.16"]
+gain: -2dB

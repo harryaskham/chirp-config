@@ -1,0 +1,5 @@
+about: "Library part \u2014 secondline melody (C mixolydian), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "trombone", "score": "swing16=0.62 E4/8.@88 G4/8.@91 F4/8@94 C4/2@86 F5/8.@86 A5/8.@90 G5/8@93 F5/4@89 R/4 A4/8.@84 C5/8.@88 Bb4/8@93 E5/2@82 C5/4@89 A4/4@96 G4/2@84^gate=1.2", "pan": 0.1}
