@@ -1,0 +1,11 @@
+about: "Analog sequencer voice (Berlin school): a saw over a square sub through a resonant low-pass with a snappy filter envelope; velocity accents open the filter. Tangerine Dream / Schulze ostinatos."
+synth:
+  layers: [{wave: saw, level: -3dB}, {wave: pulse, width: 0.5, ratio: 0.5, level: -8dB}]
+  env:
+    f: {a: 1ms, d: 160ms, s: 0.15, r: 80ms}
+  filters:
+    - {kind: lp, cutoff: {value: 380, mod: [{src: env.f, amount: 2.6}, {src: vel, amount: 1.4}]}, q: 3.2}
+  amp: {a: 2ms, d: 220ms, s: 0.6, r: 90ms}
+play: {gate: 0.8, vel_sens: 0.5}
+fx: ["delay time=3/16 feedback=0.3 mix=0.18 ping_pong=true tone=2500"]
+gain: -4dB

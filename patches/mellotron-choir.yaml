@@ -1,0 +1,8 @@
+about: "Tape 'aah' choir (Mellotron): formant-shaped saws, band-limited and wobbly, with a slow swell — cosmic 70s pads (Tangerine Dream, King Crimson)."
+synth:
+  layers: ["saw unison=3 detune=0.1 spread=0.7", {wave: pulse, width: 0.3, level: -10dB}]
+  filters: ["hp cutoff=220", "lp cutoff=3.4k", "peak cutoff=700 q=2 gain=6dB", "peak cutoff=1150 q=2.5 gain=5dB", "peak cutoff=2600 q=3 gain=3dB"]
+  amp: {a: 220ms, d: 400ms, s: 0.85, r: 500ms}
+play: {gate: 1, vel_sens: 0.3}
+fx: [{type: chorus, rate: 0.45, depth: 0.3, voices: 1, mix: 1.0}, "tape drive=0.3 warmth=0.6", "reverb kind=hall decay=3s mix=0.28"]
+gain: -11dB
