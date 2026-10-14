@@ -4,6 +4,8 @@ the pitch is noise): syllables are runs of vocal-band energy above a floor, spli
 a grid on the tab's own measure timeline (so odd-length bars stay exact), with velocity from loudness.
 
   stemvox.py STEM --tab DIR --d0 SECONDS --bars B0-B1 [--note Eb3|auto] [--grid 0.125] [--range 30] [--dip 6] [--min 0.25]
+  stemvox.py STEM --map MAP.json --bars B0-B1 [...]   bar times from a tab2song map's corrected timeline
+           (its offset, skipped measures and beatgrid/scorealign `bpm` overrides) instead of the raw tab
 
   --note   one pitch for every syllable, or `auto`: each syllable's pitch from the stem (harmonic summation,
            G3..F5; a shout's pitch moves from phrase to phrase)
@@ -107,7 +109,22 @@ def main():
     note, grid = opt("--note", "Eb3"), float(opt("--grid", "0.125"))
     rng, dip, mn = float(opt("--range", "30")), float(opt("--dip", "6")), float(opt("--min", "0.25"))
     mode, shift = opt("--onsets", "runs"), float(opt("--shift", "0")) / 1000
-    tl = T.timeline(tab)
+    tl = T.timeline(tab) if tab else None
+    if opt("--map", None):
+        import importlib.util
+        import json
+        here = os.path.dirname(os.path.abspath(__file__))
+        spec = importlib.util.spec_from_file_location("t2s", os.path.join(here, "tab2song.py"))
+        t2s = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(t2s)
+        mp = json.load(open(opt("--map", None)))
+        cache = mp["cache"] if os.path.isabs(mp["cache"]) else os.path.join(os.path.dirname(here), mp["cache"])
+        tl, t = [], mp.get("offset", 0.0)
+        for m in t2s.corrected_timeline(cache, mp):   # skipped measures keep a zero-length slot
+            tl.append({"m": m["m"], "start": t, "beats": 0.0 if m["skip"] else m["beats"], "bpm": m["bpm"]})
+            if not m["skip"]:
+                t += m["beats"] * 60 / m["bpm"]
+        d0 = 0.0
     t_start = d0 + tl[b0 - 1]["start"]
     last = tl[b1 - 1]; t_end = d0 + last["start"] + last["beats"] * 60 / last["bpm"]
     x = L.load(stem).mean(1)[int(t_start * SR):int(t_end * SR)]

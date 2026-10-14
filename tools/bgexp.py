@@ -7,8 +7,8 @@
 
 Each job waits for one of --slots concurrency slots (flock files), renders at nice 15 with the pinned build
 ($CHIRP or /tmp/lt/chirp-main/cli/chirp/target/release/chirp), then scores with likeness.py (sections + the
-unrounded weighted total) and mixfeel.py (punch/crest/vary per band), writing /tmp/lt/exp/NAME.json and
-NAME.log. Never plays audio. Defaults (--ref/--sections) are the shadows climb's.
+unrounded weighted total) and mixfeel.py (punch/crest/vary per band), writing $BGEXP_DIR/NAME.json and
+NAME.log ($BGEXP_DIR defaults to /tmp/lt/exp; give each climb its own so climbers don't wait on each other's slots). Never plays audio. Defaults (--ref/--sections) are the shadows climb's.
 """
 import fcntl
 import json
@@ -19,7 +19,7 @@ import time
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
-EXP = "/tmp/lt/exp"
+EXP = os.environ.get("BGEXP_DIR", "/tmp/lt/exp")  # one queue (and slot set) per climber: BGEXP_DIR=/tmp/lt/exp-<id>
 CHIRP = os.environ.get("CHIRP", "/tmp/lt/chirp-main/cli/chirp/target/release/chirp")
 W = {"loudness": 0.14, "spectral": 0.22, "chroma": 0.22, "rhythm": 0.18, "ltas": 0.09, "stereo": 0.10}
 
