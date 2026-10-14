@@ -1,0 +1,29 @@
+about: >-
+  obZen-era Meshuggah kit (extends metal-kit): the same tight, bright, triggered-sounding pieces, imaged like a
+  recorded kit — hats, crashes, china, ride and toms panned from the drummer's perspective (as room-kit), with
+  metal-kit's own tone chain kept. Bleed's reference has wide cymbals: side/mid 0.6 in the presence and air bands,
+  where a centred kit measures 0.04-0.2. Pair with a width stage on the track for overhead spread.
+extends: metal-kit
+kit:
+  h: {pan: -0.35}
+  hs: {pan: -0.35}
+  h1: {pan: -0.35}
+  h2: {pan: -0.35}
+  h3: {pan: -0.35}
+  oh: {pan: -0.35}
+  hf: {pan: -0.3}
+  rd: {pan: 0.4}
+  rds: {pan: 0.4}
+  rde: {pan: 0.45}
+  rb: {pan: 0.35}
+  rbs: {pan: 0.35}
+  c: {pan: -0.5}
+  cbl: {pan: -0.5}
+  cch: {pan: 0.55}
+  x: {pan: 0.6}
+  sp: {pan: -0.2}
+  t1: {pan: -0.25}
+  t2: {pan: 0.05}
+  t3: {pan: 0.3}
+  ft: {pan: 0.45}
+  ft2: {pan: 0.55}

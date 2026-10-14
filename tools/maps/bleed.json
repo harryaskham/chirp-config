@@ -266,7 +266,7 @@
     {
       "name": "drums",
       "track": 6,
-      "patch": "metal-kit",
+      "patch": "obzen-kit",
       "bars": [
         [
           1,
