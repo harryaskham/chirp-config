@@ -32,6 +32,8 @@ Use `@NAME` in a score; transpose with `tr=N` (e.g. `tr=-3 @lib-kankyo`).
 | `@lib-downtempo` | downtempo | 16 |
 | `@lib-dub-hook` | dub | 16 |
 | `@lib-dub` | dub | 16 |
+| `@lib-ethiojazz-hook` | ethiojazz | 16 |
+| `@lib-ethiojazz` | ethiojazz | 16 |
 | `@lib-fusion-hook` | fusion | 16 |
 | `@lib-fusion` | fusion | 16 |
 | `@lib-gogo` | gogo | 16 |

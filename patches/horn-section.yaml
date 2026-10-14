@@ -1,0 +1,19 @@
+about: "Horn section: tenor sax and trumpet in tight unison — a brassy reed ensemble with breath on the attack and a little detune between the players. Ethio-jazz, soul, Afrobeat riffs and stabs."
+synth:
+  layers:
+    - {wave: saw, level: -4dB}
+    - {wave: saw, cents: 9, level: -6dB}
+    - {wave: pulse, width: 0.3, ratio: 2, level: -12dB}
+    - {type: noise, color: pink, level: {value: -44dB, mod: [{src: env.br, amount: 14}]}}
+  env:
+    br: {a: 5ms, d: 120ms, s: 0.2, r: 100ms}
+    open: {a: 25ms, d: 250ms, s: 0.6, r: 120ms}
+  filters:
+    - "hp cutoff=150"
+    - {kind: lp, cutoff: {value: 1400, mod: [{src: env.open, amount: 1.1}, {src: vel, amount: 1.0}]}, q: 0.8}
+    - "peak cutoff=1300 q=1.4 gain=4dB"
+  amp: {a: 18ms, d: 200ms, s: 0.85, r: 110ms}
+  drive: {value: 0.1, mod: [{src: vel, amount: 0.3}]}
+play: {gate: 0.9, vel_sens: 0.6, humanize: {time: 8ms, vel: 0.06}}
+fx: ["reverb kind=room decay=1.1s mix=0.16"]
+gain: -10dB

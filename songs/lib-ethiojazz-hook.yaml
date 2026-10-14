@@ -1,0 +1,5 @@
+about: "Library part \u2014 ethiojazz melody (C major), 16 beats, tempo-inheriting; transpose with tr=."
+tempo: inherit
+length: 16b
+tracks:
+  - {"name": "hook", "patch": "tenor-sax", "score": "G5/8@88 A5/16@84 D6/16@88 G6/4@95 C5/4@90 R/4 A5/2@93 G5/2@82 D6/8@88 C6/16@93 G5/16@90 D5/4@89 G5/2@90 E5/2@95 R/2", "pan": 0.1}

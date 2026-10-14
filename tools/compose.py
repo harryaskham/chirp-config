@@ -61,7 +61,7 @@ STYLE_MODES = {
     "bossa": ["major", "dorian", "minor", "lydian"], "dub": ["minor", "dorian", "mixolydian"],
     "manouche": ["harmonic", "minor", "harmonic", "major"], "celtic": ["dorian", "mixolydian", "minor", "major"],
     "doomjazz": ["minor", "phrygian", "dorian", "harmonic"], "mali": ["dorian", "minor", "mixolydian"], "guofeng": ["major", "minor", "dorian"], "vaporwave": ["major", "lydian", "dorian", "minor"], "slowcore": ["major", "mixolydian", "minor", "dorian"],
-    "backrooms": ["major", "lydian", "mixolydian"], "neosoul": ["dorian", "minor", "major", "mixolydian"], "minimal": ["major", "lydian", "dorian", "mixolydian"], "fusion": ["minor", "dorian", "major", "mixolydian"], "berlin": ["minor", "dorian", "phrygian", "aeolian" if "aeolian" in MODES else "minor"], "satie": ["major", "lydian", "mixolydian", "dorian"], "kankyo": ["major", "lydian", "dorian", "mixolydian"], "dawnraga": ["double-harmonic", "phrygian-dominant", "phrygian", "mixolydian"], "handpan": ["minor", "dorian", "phrygian-dominant", "hirajoshi"], "citypop": ["major", "lydian", "dorian", "major"], "lid": ["major", "lydian", "minor", "dorian"], "tiersen": ["minor", "major", "harmonic", "dorian"], "balearic": ["phrygian-dominant", "minor", "dorian", "major"], "chillwave": ["major", "lydian", "dorian", "mixolydian"], "souljazz": ["mixolydian", "dorian", "blues", "mixolydian"], "cyberscape": ["minor", "dorian", "lydian", "phrygian"],
+    "backrooms": ["major", "lydian", "mixolydian"], "neosoul": ["dorian", "minor", "major", "mixolydian"], "minimal": ["major", "lydian", "dorian", "mixolydian"], "fusion": ["minor", "dorian", "major", "mixolydian"], "berlin": ["minor", "dorian", "phrygian", "aeolian" if "aeolian" in MODES else "minor"], "satie": ["major", "lydian", "mixolydian", "dorian"], "kankyo": ["major", "lydian", "dorian", "mixolydian"], "dawnraga": ["double-harmonic", "phrygian-dominant", "phrygian", "mixolydian"], "handpan": ["minor", "dorian", "phrygian-dominant", "hirajoshi"], "citypop": ["major", "lydian", "dorian", "major"], "lid": ["major", "lydian", "minor", "dorian"], "tiersen": ["minor", "major", "harmonic", "dorian"], "balearic": ["phrygian-dominant", "minor", "dorian", "major"], "chillwave": ["major", "lydian", "dorian", "mixolydian"], "souljazz": ["mixolydian", "dorian", "blues", "mixolydian"], "ethiojazz": ["minor", "hirajoshi", "major", "phrygian"], "cyberscape": ["minor", "dorian", "lydian", "phrygian"],
     "koto": ["hirajoshi", "hirajoshi", "phrygian"],
     "djazz": ["dorian", "lydian", "harmonic", "minor", "mixolydian"], "industrial": ["phrygian", "minor", "harmonic"], "dnb": ["minor", "phrygian", "dorian"],
     "darksynth": ["minor", "phrygian", "harmonic", "dorian"],
@@ -1907,7 +1907,7 @@ FAMILIES = [
     ["rhodes", "wurli", "rhodes-rotary", "dx-epiano", "tape-piano", "hammond-b3"],
     ["vibes", "marimba", "celesta", "music-box", "glock", "kalimba", "toy-piano"],
     ["flute", "dizi", "low-whistle", "shakuhachi", "mellotron-flute", "clarinet"],
-    ["tenor-sax", "trumpet-mute", "melodica"],
+    ["tenor-sax", "trumpet-mute", "melodica", "horn-section"],
     ["pad-glass", "juno-pad", "mellotron-strings", "mellotron-choir"],
     ["piano", "tape-piano"],
     ["nylon", "acoustic"],
@@ -3004,6 +3004,36 @@ def gen_souljazz(r, k, prog, kind="main"):
     return out
 
 
+def gen_ethiojazz(r, k, prog, kind="main"):
+    """Ethio-jazz (Mulatu Astatke): a two-bar pentatonic bass ostinato (the heartbeat), a laid groove
+    with tom accents, organ stabs; kind=full adds a horn-section riff (low, then answered an octave
+    up); kind=intro is bass + organ."""
+    pt = penta(k)
+    root0 = prog[0]
+    cell = r.choice([[0, None, 2, 0, None, 3, 4, None, 0, None, 2, 4, 3, None, 2, None],
+                     [0, 0, None, 3, None, 2, None, 0, 4, None, 3, None, 2, 0, None, None],
+                     [0, None, 4, 3, 2, None, 0, None, 0, None, 4, 3, None, 2, 3, None]])
+    bass = " ".join((f"{mname(k.deg(root0 + pt[d], 33))}/8@{90 if j % 4 == 0 else 78}" if d is not None else "R/8") for _ in range(2) for j, d in enumerate(cell))
+    organ = " ".join(f"R/4 {chordhead([k.deg(root + pt[d], 55) for d in (0, 2, 3)])}/8@{70}^gate=0.5 R/8 R/2" for root in prog)
+    out = [track("bass", pick_patch("finger-bass", "upright-bass"), bass, seed=7),
+           track("organ", pick_patch(r.choice(["farfisa", "hammond-b3"]), "organ"), organ, pan=-0.25, gain="-4dB")]
+    if kind == "intro":
+        return out
+    kit = rig("drums")
+    out += [track("kick", kit, " ".join(("k/16@88" if x in (0, 6, 10) else "R/16") for _ in range(4) for x in range(16)), gain="-5dB"),
+            track("snare", kit, " ".join(("s/16@86" if x == 8 else ("g/16@32" if r.random() < 0.1 else "R/16")) for _ in range(4) for x in range(16)), gain="-5dB"),
+            track("hats", kit, " ".join((f"h/16@{52 if x % 4 == 0 else 38}" if x % 2 == 0 else "R/16") for _ in range(4) for x in range(16)), pan=0.2, gain="-7dB"),
+            track("toms", kit, " ".join(((r.choice(["t2", "t3", "ft"]) + f"/16@{70}") if x in (12, 14) and r.random() < 0.6 else "R/16") for _ in range(4) for x in range(16)), gain="-9dB")]
+    if kind == "full":
+        riff = [pt[i] for i in r.choice([[0, 2, 3, 4, 3, 2], [4, 3, 2, 0, 2, 3], [0, 0, 2, 3, 4, 4]])]
+        hs = []
+        for bar in range(4):
+            base = 57 if bar % 2 == 0 else 69
+            hs.append(" ".join(f"{mname(k.deg(root0 + d, base))}/8@{96 if j == 0 else 86}" for j, d in enumerate(riff)) + " R/4")
+        out.append(track("horns", pick_patch("horn-section", "brass"), " ".join(hs), pan=0.15, gain="-4dB"))
+    return out
+
+
 def gen_downtempo(r, k, prog, kind="main"):
     """Downtempo (Bonobo-ish): a low-passed breakbeat, marimba/kalimba ostinato, finger bass, strings."""
     kit = pick_patch("break-kit", "lofi-kit")
@@ -3071,6 +3101,7 @@ RHYTHM_SRC = {
     "neosoul": lambda r, k, prog: gen_neosoul(r, k, prog), "mali": lambda r, k, prog: gen_mali(r, k, prog),
     "citypop": lambda r, k, prog: gen_citypop(r, k, prog), "balearic": lambda r, k, prog: gen_balearic(r, k, prog),
     "chillwave": lambda r, k, prog: gen_chillwave(r, k, prog), "souljazz": lambda r, k, prog: gen_souljazz(r, k, prog),
+    "ethiojazz": lambda r, k, prog: gen_ethiojazz(r, k, prog),
     "celtic": lambda r, k, prog: gen_celtic(r, k, prog, "drums"), "cycles": lambda r, k, prog: gen_cycles(r, k, prog),
     "ballad": lambda r, k, prog: gen_ballad(r, k, prog), "slowcore": lambda r, k, prog: gen_slowcore(r, k, prog),
     "vaporwave": lambda r, k, prog: gen_vaporwave(r, k, prog), "cyberscape": lambda r, k, prog: gen_cyberscape(r, k, prog, "full"),
@@ -3141,7 +3172,7 @@ def compose(style, slot, p):
     return names, desc
 
 
-CHILL_STYLES = {"lofihop", "gogo", "ukjazz", "ambient", "downtempo", "smile", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche", "celtic", "doomjazz", "mali", "guofeng", "vaporwave", "slowcore", "backrooms", "cyberscape", "neosoul", "minimal", "fusion", "berlin", "satie", "kankyo", "dawnraga", "handpan", "citypop", "lid", "tiersen", "balearic", "chillwave", "souljazz"}
+CHILL_STYLES = {"lofihop", "gogo", "ukjazz", "ambient", "downtempo", "smile", "house-melodic", "chamber", "triphop", "neoclassical", "ballad", "bossa", "dub", "manouche", "celtic", "doomjazz", "mali", "guofeng", "vaporwave", "slowcore", "backrooms", "cyberscape", "neosoul", "minimal", "fusion", "berlin", "satie", "kankyo", "dawnraga", "handpan", "citypop", "lid", "tiersen", "balearic", "chillwave", "souljazz", "ethiojazz"}
 HEAVY_STYLES = {"meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep",
                 "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock", "groovemetal", "power", "sludge",
                 "breakcore", "mathcore", "gojira", "djazz", "raga", "gamelan", "koto"}
@@ -3172,6 +3203,11 @@ def _compose_style(style, slot, p):
             "hookE": gen_atmos(r, k, prog, 62, rig("atmos")),
         }
         return _write_parts(slot, "brostep", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
+    if style == "ethiojazz":
+        lead = pick_patch(r.choice(["vibes", "vibes", "tenor-sax"]), "vibes")
+        parts = {"riffI": gen_ethiojazz(r, k, prog, "intro"), "riff": gen_ethiojazz(r, k, prog), "riffB": gen_ethiojazz(r, k, prog, "full"),
+                 "hook": gen_penta_air(r, k, prog, 67, lead) if r.random() < 0.4 else gen_hook(r, k, prog, 67, lead)}
+        return _write_parts(slot, "ethiojazz", parts, f"{NAMES[p['pc']]} {p['mode']}, lead {lead}")
     if style == "souljazz":
         lead = pick_patch(r.choice(["hammond-b3", "jazz-box"]), "organ")
         parts = {"riffI": gen_souljazz(r, k, prog, "intro"), "riff": gen_souljazz(r, k, prog), "riffB": gen_souljazz(r, k, prog, "full"),
