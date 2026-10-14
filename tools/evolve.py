@@ -1206,14 +1206,18 @@ HEAVY_MIX = [("meshuggah", 0.26), ("hardcore-kl", 0.1), ("tech-death", 0.09), ("
              ("mathcore", 0.04), ("gojira", 0.06), ("djazz", 0.05), ("raga", 0.04), ("gamelan", 0.03), ("koto", 0.03)]
 
 
+def heavy_recency(name):
+    recent = recent_styles()
+    return 0.3 if name in recent[-3:] else (0.6 if name in recent[-6:] else 1.0)
+
+
 def heavy_pick():
-    """A weighted pick from the heavy rotation (no chill styles, no excursions)."""
-    x = random.random() * sum(w for _, w in HEAVY_MIX)
-    for name, w in HEAVY_MIX:
-        x -= w
-        if x <= 0:
-            return name
-    return "meshuggah"
+    """A weighted pick from the heavy rotation (no chill styles, no excursions); styles heard in the
+    last few songs are less likely (Meshuggah stays the most frequent, just not back to back)."""
+    names = [n for n, _ in HEAVY_MIX]
+    pick = random.choices(names, [w * heavy_recency(n) for n, w in HEAVY_MIX])[0]
+    remember_style(pick)
+    return pick
 
 
 def journey_style(h, current, mode=None):
@@ -1236,25 +1240,27 @@ def journey_style(h, current, mode=None):
         return pick
     r = random.random()
     if h >= 0.95:
-        if r < 0.12:
+        recent = recent_styles()
+        if r < 0.12 and "djent-breakdown" not in recent[-4:]:  # a breakdown excursion, not back to back
+            remember_style("djent-breakdown")
             return "djent-breakdown"
-        if r < 0.16:
-            return random.choice(["prog-clean", "poly"])
-        if r < 0.2:
-            return random.choice([k for k in STYLES if k not in ("djent", "meshuggah", current) and k not in composer.CHILL_STYLES])
+        if 0.12 <= r < 0.16:
+            pick = random.choice([x for x in ["prog-clean", "poly"] if x not in recent[-4:]] or ["prog-clean"])
+            remember_style(pick)
+            return pick
+        if 0.16 <= r < 0.2:
+            pick = random.choice([k for k in STYLES if k not in ("djent", "meshuggah", current) and k not in composer.CHILL_STYLES and k not in recent[-6:]])
+            remember_style(pick)
+            return pick
         return heavy_pick()
     if r < 0.1:
         return random.choice([k for k in STYLES if k != current and k not in composer.CHILL_STYLES])
-    w = {k: math.exp(-((HEAVY.get(k, 0.5) - h) / 0.15) ** 2) for k in STYLES if k not in composer.CHILL_STYLES}
+    w = {k: math.exp(-((HEAVY.get(k, 0.5) - h) / 0.15) ** 2) * heavy_recency(k) for k in STYLES if k not in composer.CHILL_STYLES}
     if current in w and len(w) > 1:
         w[current] *= 0.3  # prefer moving on
-    tot = sum(w.values())
-    x = random.random() * tot
-    for k, v in w.items():
-        x -= v
-        if x <= 0:
-            return k
-    return "djent"
+    pick = random.choices(list(w), list(w.values()))[0]
+    remember_style(pick)
+    return pick
 
 STEER = f"{TOOLS}/steer.txt"
 STATE = f"{TOOLS}/state.json"
