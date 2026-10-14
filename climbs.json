@@ -45,9 +45,9 @@
       "owner": "chirper-one (chirp-climb1)",
       "metric": "python3 tools/likeness.py sections ref/pneuma.wav OUT.wav $(cat tools/pneuma-sections.txt)",
       "best": {
-        "score": 34.3,
-        "version": "v4",
-        "commit": "38ca5c5"
+        "score": 42.2,
+        "version": "v5",
+        "commit": "0945396"
       },
       "passes": 1,
       "enabled": true
