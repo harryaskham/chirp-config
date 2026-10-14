@@ -100,7 +100,7 @@ tracks:
     gain: -6dB
     envelope: {points: [[0s, 0.38], [7.5s, 0.38], [16.5s, 0.8], [22.5s, 0.9], [28s, 1]]}   # the build swells as it opens
     fx: [{type: filter, kind: hp, cutoff: {value: 120, mod: [{src: auto.sweep, amount: -2.6}]}, q: 0.7}, {type: filter, kind: lp, cutoff: {value: 2.5k, mod: [{src: auto.sweep, amount: 2.3}]}, q: 0.7}, {type: width, width: 1.5, mono_below: 60, bass_width: 0.3, slope: 6}]   # the sub returns only as the build completes; partial bass width (quiet sections only)
-  - {name: climax, at: 197.756b, score: "@climax/132b", fx: [{type: width, width: 1.5, mono_below: 150}]}
+  - {name: climax, at: 197.756b, score: "@climax/132b", fx: [{type: width, width: 1.5, mono_below: 150}], envelope: {points: [[0s, 1], [26.25s, 1], [26.30s, 0.6], [28.12s, 0.6], [28.18s, 0.75], [30.00s, 0.75], [30.05s, 1]]}}   # the band drops back for two bars before the synth line enters (bar 65)
   - {name: outro, at: 329.756b, score: "@outro/64b", gain: -7dB, fx: [{type: width, width: 1.5, mono_below: 60, bass_width: 0.3, slope: 6}], envelope: {points: [[0s, 1], [12s, 0.9], [20s, 0.55], [26s, 0.25], [30s, 0.06]]}}
 
 master:
