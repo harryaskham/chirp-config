@@ -17,7 +17,7 @@
       "metric": "python3 tools/likeness.py sections ref/shadows.wav OUT.wav $(cat tools/shadows-sections.txt)",
       "best": {
         "score": 62.7,
-        "version": "v54",
+        "version": "v55",
         "commit": "see git log songs/shadows.yaml",
         "engine": "9945fa5"
       },
