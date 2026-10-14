@@ -16,10 +16,10 @@
       "owner": "chirp-climb0",
       "metric": "python3 tools/likeness.py sections ref/shadows.wav OUT.wav $(cat tools/shadows-sections.txt)",
       "best": {
-        "score": 59.4,
-        "version": "v47",
-        "commit": "a6b5bea",
-        "engine": "afdeb8a (name-stable seeds; v45 re-baselined 59.2 -> 59.4)"
+        "score": 59.5,
+        "version": "v48",
+        "commit": "see git log songs/shadows.yaml",
+        "engine": "1c7fba2"
       },
       "passes": 1,
       "enabled": true
