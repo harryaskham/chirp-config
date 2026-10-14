@@ -40,7 +40,7 @@ songs:
   brk:
     tempo: inherit
     tracks:
-      - {name: ostinato, patch: erhu, score: "len=/16 [[B3@90 F#3@70 C#4@76 F#3@70]x4]x16", gain: -4dB}
+      - {name: ostinato, patch: tagelharpa-bass, score: "tr=24 len=/16 [[B1@96 F#2@74 C#3@80 F#2@74]x4]x2 [[B1@96 F#2@74 A2@80 F#2@74]x4] [[B1@96 D2@74 C#3@80 D2@74]x4] [[[B1@96 F#2@74 C#3@80 F#2@74]x4]x2 [[B1@96 F#2@74 C3@80 F#2@74]x4]x2]x1 [[B1@96 F#2@74 C#3@80 F#2@74]x4] [[B1@96 G2@74 F#2@80 G2@74]x4]x3 [[B1@96 F#2@74 C#3@80 F#2@74]x4]x2 [[B1@96 F#2@74 A#2@80 F#2@74]x4] [[B1@100 F#2@80 C#3@88 F#2@80]x4]", gain: -6dB}
       - {name: choir, patch: mellotron-choir, score: "R/1 R/1 R/1 R/1 [B3,F#4/1 B3,F#4,C#5/1]x6", gain: -5dB}
       - {name: toms, patch: metal-kit, score: "[R/1]x8 [k/8@90 R/8 R/4 R/2]x4 [k/16@100 k k k R/4 R/2]x2 [k/16@112]x16 [k/16@116 s s s]x4", gain: -8dB}
       - {name: sub, patch: sub, score: "[R/1]x9 [B0/1@100]x7", gain: -12dB}
@@ -69,7 +69,14 @@ tracks:
   - {name: boom, at: 0.0b, score: "@boom/5.756b", gain: -7dB}
   - {name: intro, at: 5.756b, score: "@intro/56b", gain: -6dB}
   - {name: main, at: 61.756b, score: "@main/72b", gain: -9dB}
-  - {name: brk, at: 133.756b, score: "@brk/64b"}
+  - name: brk
+    at: 133.756b
+    score: "@brk/64b"
+    # the break is a filter-sweep build: closed (mids only) for 7.5 s, opening to full over ~28 s
+    auto: {sweep: {points: [[0s, 0], [7.5s, 0.05], [16.5s, 0.45], [22.5s, 0.75], [28s, 1]]}}
+    gain: -6dB
+    envelope: {points: [[0s, 0.38], [7.5s, 0.38], [16.5s, 0.8], [22.5s, 0.9], [28s, 1]]}   # the build swells as it opens
+    fx: [{type: filter, kind: lp, cutoff: {value: 2.5k, mod: [{src: auto.sweep, amount: 2.3}]}, q: 0.7}]
   - {name: climax, at: 197.756b, score: "@climax/132b"}
   - {name: outro, at: 329.756b, score: "@outro/64b", gain: -4dB}
 
