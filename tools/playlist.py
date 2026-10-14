@@ -83,11 +83,16 @@ def main():
     playing, play_hash, passes_left = None, None, 1
     queued, queued_gen = None, None
     last_loop = None
+    last_under = None
     while True:
         time.sleep(1)
         st = status()
         if not st:
             continue                                         # groove down: the watchdog restarts it
+        u = st.get("underruns", 0)
+        if last_under is not None and u > last_under:        # diagnose: output starvation vs host CPU storms
+            log(f"underruns +{u - last_under} (total {u}); host load {open('/proc/loadavg').read().split()[:3]}, groove load {st.get('load', 0):.2f}")
+        last_under = u
         cl = climbs()
         if not cl:
             continue
