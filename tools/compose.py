@@ -1902,10 +1902,41 @@ def stock_layers(style, parts, beats, seed):
         parts[roles[0]] = parts[roles[0]] + [{"name": "orch", "score": f"tr={tr} @orch-hit R/1 @orch-hit R/1", "gain": "-4dB"}]
 
 
+FAMILIES = [
+    ["rhodes", "wurli", "rhodes-rotary", "dx-epiano", "tape-piano"],
+    ["vibes", "marimba", "celesta", "music-box", "glock", "kalimba", "toy-piano"],
+    ["flute", "dizi", "low-whistle", "shakuhachi", "mellotron-flute", "clarinet"],
+    ["tenor-sax", "trumpet-mute", "melodica"],
+    ["pad-glass", "juno-pad", "mellotron-strings", "mellotron-choir"],
+    ["piano", "tape-piano"],
+    ["nylon", "acoustic"],
+    ["finger-bass", "fretless", "upright-bass"],
+]
+
+
+def swap_plan(desc):
+    """Per song: each instrument family swaps to a sibling with p=0.35 (deterministic from the song)."""
+    import zlib
+    plan = {}
+    for i, fam in enumerate(FAMILIES):
+        r = random.Random(zlib.crc32(f"swap{i}{desc}".encode()))
+        if r.random() < 0.35:
+            for src in fam:
+                opts = [d for d in fam if d != src and have(d)]
+                if opts:
+                    plan.setdefault(src, r.choice(opts))
+    return plan
+
+
 def _write_parts(slot, style, parts, desc, beats=None):
     names = {}
     parts = dict(parts)
     stock_layers(style, parts, beats, desc)
+    if style in CHILL_STYLES:
+        sw = swap_plan(f"{style}{desc}")
+        if sw:
+            parts = {role: [dict(t, patch=sw.get(t.get("patch"), t.get("patch"))) if isinstance(t.get("patch"), str) and " " not in t.get("patch", "") else t for t in tr]
+                     for role, tr in parts.items()}
     feel = None
     if style in CHILL_STYLES and style != "neosoul":
         import zlib
