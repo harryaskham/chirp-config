@@ -1485,6 +1485,8 @@ if __name__ == "__main__":
             if name == playing:
                 flip = 1 - flip
                 name = f"form-{flip + 1}"
+            load = float(st.get("load") or 0)
+            composer.LITE = load > 0.8  # little render headroom: write the next song without optional layers
             write_form(name, ident)
             nxt, nxt_ident = name, dict(ident)
             ok = live("set", f"tracks.arrangement.score=@{name}", f"master.fx={master_for(ident)}")
@@ -1492,7 +1494,8 @@ if __name__ == "__main__":
             if change.startswith("new song") and random.random() < TAPESTOP.get(old_style, 0):
                 globals()["_ts_arm"] = li  # this pass ends the old song: tape-stop into the next
                 change += ", tape stop"
-            print(time.strftime("%T"), f"pass {li}: next {name} ({change}) {ident['style']} {ident['tempo']}bpm key{ident['key']:+d} riff={ident['riff']} hook={ident['hook']} vox={vx}" + ("" if ok is not None else "  (rejected)"), flush=True)
+            print(time.strftime("%T"), f"pass {li}: next {name} ({change}) {ident['style']} {ident['tempo']}bpm key{ident['key']:+d} vox={vx} load={load:.2f}"
+                  + (" LITE" if composer.LITE else "") + (f" underruns={st.get('underruns')}" if st.get("underruns") else "") + ("" if ok is not None else "  (rejected)"), flush=True)
             save_state(playing=playing, playing_ident=playing_ident, next=nxt, next_ident=nxt_ident, loop_index=li)
         # Steering: apply to the song playing now (cut at the next bar, same position),
         # then carry the change into the queued next song and re-queue it.

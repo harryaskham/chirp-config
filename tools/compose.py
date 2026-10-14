@@ -2020,6 +2020,7 @@ def feel_track(t, profile, r):
 
 _KEY = (0, "minor")
 _CHAPTER = 0
+LITE = False  # set by the evolver when the groove's render load is high: skip optional layers
 VOX_CHOPS = {"house-melodic": 0.6, "cyberscape": 0.5, "fusion": 0.3, "dnb": 0.5, "brostep": 0.4, "garage": 0.6, "house": 0.5, "darksynth": 0.3}
 ORCH_HITS = {"darksynth": 0.5, "industrial": 0.4, "power": 0.5, "deathcore": 0.4, "numetal": 0.3, "brostep": 0.3}
 MINORISH = {"minor", "dorian", "phrygian", "harmonic", "locrian", "melodic", "blues", "pentatonic-minor", "neapolitan", "hungarian", "phrygian-dominant"}
@@ -2077,8 +2078,9 @@ def swap_plan(desc):
 def _write_parts(slot, style, parts, desc, beats=None):
     names = {}
     parts = dict(parts)
-    stock_layers(style, parts, beats, desc)
-    if style in CHILL_STYLES and _CHAPTER >= 1:
+    if not LITE:
+        stock_layers(style, parts, beats, desc)
+    if style in CHILL_STYLES and _CHAPTER >= 1 and not LITE:
         # Development across chapters: the melody gains an octave double (a mallet above in chapter 2,
         # cellos/horn below or a flute above later), quiet, so it thickens rather than competes.
         import zlib
@@ -2103,7 +2105,7 @@ def _write_parts(slot, style, parts, desc, beats=None):
     for role, tr in parts.items():
         if feel:
             tr = [feel_track(t, feel, fr) for t in tr]
-        if style in CHILL_STYLES and role.startswith("riff"):
+        if style in CHILL_STYLES and role.startswith("riff") and not LITE:
             sc = scape(style, role, (beats or {}).get(role, 16), desc + slot)
             if sc:
                 tr = tr + [sc]
@@ -3365,7 +3367,7 @@ def gen_beattape(r, k, prog, kind="main", src=None, src2=None):
             track("snare", kit, "swing16=0.6 " + " ".join(("s/16@94" if x in (4, 12) else "R/16") for _ in range(4) for x in range(16)), gain="-4dB"),
             track("hats", kit, "swing16=0.6 " + " ".join((f"h/16@{52 if x % 4 == 2 else 38}" if x % 2 == 0 else "R/16") for _ in range(4) for x in range(16)), pan=0.2, gain="-7dB"),
             track("bass", pick_patch("sub-sine", "finger-bass"), " ".join("C2/4@86 R/4 R/8 C2/8@70 R/4" for _ in range(4)), seed=7, gain="-7dB")]
-    if kind == "full":
+    if kind == "full" and not LITE:
         s2 = src2 or r.choice([c for c in CHOP_SOURCES if c != src])
         out.append(track("chops2", pick_patch(f"chop-{s2}", "chopper"), chop_phrase(r), pan=0.3, gain="-6dB"))
     return out
@@ -3390,7 +3392,7 @@ def gen_lofihouse(r, k, prog, kind="main", src=None, src2=None):
             track("hats", kit, "swing16=0.58 " + " ".join(("oh/16@64" if x % 4 == 2 else (f"h/16@{44}" if r.random() < 0.6 else "R/16")) for _ in range(4) for x in range(16)), fx=crunch, pan=0.2, gain="-8dB"),
             track("bass", pick_patch("sub-sine", "finger-bass"), " ".join("R/8 C2/8@84 R/8 C2/8@80 R/8 C2/8@84 R/8 G1/8@78" for _ in range(4)), seed=7, gain="-5dB"),
             track("pad", pick_patch("juno-pad", "pad"), "C3,G3/1@56 _ _ _", gain="-10dB", auto=pump)]
-    if kind == "full":
+    if kind == "full" and not LITE:
         s2 = src2 or r.choice([c for c in CHOP_SOURCES if c != src])
         out.append(track("chops2", pick_patch(f"chop-{s2}", "chopper"), chop_phrase(r), pan=0.35, gain="-8dB"))
     return out
