@@ -2231,18 +2231,63 @@ def gen_lofi_drums(r, kit=None, busy=False):
     return [track("kick", kit, sw + kick), track("snare", kit, sw + snare), track("hats", kit, sw + hats, pan=0.15, gain="-3dB")]
 
 
+def voice_lead(k, prog, degs=(0, 2, 4, 6, 8), base=52, lo=48, hi=74):
+    """Voice-led chords: each chord takes the inversion (octave placement of each tone) closest to the
+    previous voicing, so the inner voices glide."""
+    out, prev = [], None
+    for root in prog:
+        tones = sorted(k.deg(root + d, base) for d in degs)
+        if prev:
+            placed = []
+            for t in tones:
+                cands = [t + o for o in (-12, 0, 12) if lo <= t + o <= hi]
+                placed.append(min(cands or [t], key=lambda c: min(abs(c - p_) for p_ in prev)))
+            tones = sorted(set(placed))
+        out.append(tones)
+        prev = tones
+    return out
+
+
 def gen_lofi(r, k, prog, kind="main"):
-    """Lofi hip hop: swung drums, Rhodes 9th comping, finger bass on the roots, vinyl bed."""
+    """Lofi hip hop: swung boom-bap; voice-led Rhodes / Wurlitzer / tape-piano 9th chords in varied comp
+    rhythms through tape wow and a soft low-pass (a 'sampled' feel; the intro opens from muffled); a
+    melodic finger bass with approach notes; a vinyl bed; kind=busy adds jazz-guitar licks at bar ends."""
     out = []
     if kind != "intro":
         out += gen_lofi_drums(r, busy=kind == "busy")
-    out += gen_comp(r, k, prog, 50, pick_patch(r.choice(["rhodes", "wurli", "tape-piano"]), "rhodes"), swing=0.62)
+    voicings = voice_lead(k, prog, r.choice([(0, 2, 4, 6, 8), (2, 4, 6, 8, 11), (0, 4, 6, 8, 9)]))
+    cells = [lambda c: f"{c}/4.@80 R/8 R/4 {c}/4@72", lambda c: f"R/8 {c}/4.@78 R/4 {c}/8@66 R/8", lambda c: f"{c}/2@80 R/8 {c}/8@64 R/4",
+             lambda c: f"{c}/8@76 R/8 R/8 {c}/8@68 R/4 {c}/4@72", lambda c: f"{c}/1@78"]
+    keys = " ".join(r.choice(cells)(chordhead(v)) for v in voicings)
+    sampled = [{"type": "chorus", "rate": round(r.uniform(0.4, 0.7), 2), "depth": 0.25, "voices": 1, "mix": 1.0},
+               {"type": "filter", "kind": "lp", "cutoff": {"value": 5000, "mod": [{"src": "auto.open", "amount": -2.5}]} if kind == "intro" else 5000},
+               {"type": "crush", "bits": 12, "rate": 18000, "mix": 0.2}]
+    kt = track("keys", pick_patch(r.choice(["rhodes", "wurli", "tape-piano"]), "rhodes"), "swing=0.62 " + keys, fx=sampled)
+    if kind == "intro":
+        kt["auto"] = {"open": {"points": [["0b", 1.0], ["12b", 0.0], ["16b", 0.0]]}}
+    out.append(kt)
     if kind != "intro":
-        out.append(track("bass", pick_patch("finger-bass", "bass-di"), "swing16=0.62 " + " ".join(
-            f"{mname(k.deg(root, 33))}/4.@{90} {mname(k.deg(root + r.choice([4, 2, 0]), 33))}/8@{78} R/4 {mname(k.deg(root, 33))}/4@84" for root in prog), seed=7))
+        bass = []
+        for bi, root in enumerate(prog):
+            nxt = prog[(bi + 1) % len(prog)]
+            b1, b5 = mname(k.deg(root, 33)), mname(k.deg(root + 4, 33))
+            appr = mname(k.deg(nxt, 33) - 1)
+            bass.append(r.choice([f"{b1}/4.@90 {b5}/8@76 R/4 {b1}/8@82 {appr}/8@70",
+                                  f"{b1}/4@90 R/8 {b1}/8@72 {b5}/4@80 R/8 {appr}/8@68",
+                                  f"{b1}/2@88 R/8 {b5}/8@74 {b1}/8@80 {appr}/8@70"]))
+        out.append(track("bass", pick_patch("finger-bass", "bass-di"), "swing16=0.62 " + " ".join(bass), seed=7))
+    if kind == "busy":
+        pt = penta(k)
+        licks = []
+        for bi, root in enumerate(prog):
+            if bi % 2 == 1:
+                lick = [mname(k.deg(root + pt[i % 5] + 7 * (i // 5), 60)) for i in r.sample(range(7), 4)]
+                licks.append("R/2 R/4 " + " ".join(f"{n_}/16@{r.choice([64, 72])}" for n_ in lick))
+            else:
+                licks.append("R/1")
+        out.append(track("licks", pick_patch("jazz-box", "clean-chorus"), "swing16=0.62 " + " ".join(licks), pan=0.3, gain="-4dB"))
     out.append(track("vinyl", "vinyl", "C4/1 _ _ _", gain="-4dB"))
     return out
-
 
 def gen_ostinato(r, k, prog, base=60, patch="piano", group=None):
     """GoGo Penguin piano: a repeating 16th cell over chord tones with odd accent groupings over 4/4."""
