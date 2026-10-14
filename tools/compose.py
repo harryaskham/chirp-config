@@ -1874,7 +1874,9 @@ def gen_ambient(r, k, prog, kind="A"):
     """Ethereal ambient: soft string/swell pads, a drone, shimmering twinkles (music box, kalimba or
     glock) through a shimmer hall, singing-bowl or handpan strokes, no drums."""
     out = gen_pad(r, k, prog, 48, "strings", gain="-10dB", vel=60) + gen_drone(k, 36, pick_patch("drone", "pad"))
-    tw = pick_patch(r.choice(["music-box", "kalimba", "glock"]), "bell")
+    if have("choir") and r.random() < 0.5:
+        out += [dict(t, name="choir", gain="-12dB") for t in gen_pad(r, k, prog, 48, "choir", vel=56)]
+    tw = pick_patch(r.choice(["music-box", "kalimba", "glock", "celesta", "harp"]), "bell")
     notes = []
     for x in range(64):
         notes.append(f"{mname(k.deg(r.choice([0, 2, 4, 7, 9, 11]), 72))}/16@{r.choice([50, 60, 70])}" if r.random() < (0.12 if kind == "A" else 0.2) else "R/16")
@@ -1920,15 +1922,17 @@ def gen_classical(r, k, prog, kind="nocturne"):
             c = [k.deg(root, 36), k.deg(root + 4, 48), k.deg(root + 7, 48), k.deg(root + 9, 48), k.deg(root + 11, 48), k.deg(root + 9, 48)]
             lh += [f"{mname(m)}/12@{70 if j == 0 else 58}" for j, m in enumerate(c * 2)]
         mel = gen_hook(r, k, prog, 72, "piano")[0]
-        return [track("lh", "piano", " ".join(lh), pan=-0.2, fx=room), dict(mel, name="rh", pan=0.2, fx=room)]
+        lhp = pick_patch("harp", "piano") if r.random() < 0.5 else "piano"
+        return [track("lh", lhp, " ".join(lh), pan=-0.2, fx=room), dict(mel, name="rh", pan=0.2, fx=room)]
     if kind == "quartet":
         voices = {"cello": [], "viola": [], "vln2": []}
         for root in prog:
             ch = sorted([k.deg(root, 36), k.deg(root + 4, 48), k.deg(root + 2, 60)])
             for (name, m) in zip(voices, ch):
                 voices[name].append(f"{mname(m)}/2@{72} {mname(m + r.choice([0, 0, 2, -1]))}/2@68")
-        out = [track(n, "strings", " ".join(v), pan=p_, gain="-4dB") for (n, v), p_ in zip(voices.items(), [-0.4, -0.15, 0.15])]
-        mel = gen_hook(r, k, prog, 72, "strings")[0]
+        sect = {"cello": pick_patch("cellos", "strings"), "viola": "strings", "vln2": pick_patch("violins", "strings")}
+        out = [track(n, sect[n], " ".join(v), pan=p_, gain="-4dB") for (n, v), p_ in zip(voices.items(), [-0.4, -0.15, 0.15])]
+        mel = gen_hook(r, k, prog, 72, pick_patch("violins", "strings"))[0]
         return out + [dict(mel, name="vln1", pan=0.4)]
     cell = r.choice([[0, 2, 4, 2, 7, 4], [0, 4, 7, 4, 2, 4, 7, 9], [0, 2, 7, 4, 9]])
     a = " ".join(f"{mname(k.deg(prog[i // 16] + cell[i % len(cell)], 60))}/16@{80 if i % len(cell) == 0 else 66}" for i in range(64))
@@ -2058,7 +2062,7 @@ def _compose_style(style, slot, p):
         return _write_parts(slot, "chamber", parts, f"{NAMES[p['pc']]} {p['mode']}")
     if style == "lofihop":
         parts = {"riffI": gen_lofi(r, k, prog, "intro"), "riff": gen_lofi(r, k, prog), "riffB": gen_lofi(r, k, prog, "busy"),
-                 "hook": gen_hook(r, k, prog, 64, pick_patch(r.choice(["vibes", "nylon", "rhodes"]), "rhodes")),
+                 "hook": gen_hook(r, k, prog, 64, pick_patch(r.choice(["vibes", "nylon", "rhodes", "flute"]), "rhodes")),
                  "arp": [dict(t, gain="-6dB") for t in gen_arp(r, k, prog, 72, pick_patch("kalimba", "music-box"))]}
         return _write_parts(slot, "lofihop", parts, f"{NAMES[p['pc']]} {p['mode']}")
     if style == "gogo":
@@ -2073,7 +2077,7 @@ def _compose_style(style, slot, p):
         m = meter * 2 if meter == 5 else meter  # 5/4 as 10/8
         beats = (m * 2 * (4 if m in (7, 9) else 3)) / 4
         parts = {"riffK": gen_broken(r, k, prog, m, "sparse"), "riff": gen_broken(r, k, prog, m), "riffB": gen_broken(r, k, prog, m),
-                 "hook": gen_tool_lead(r, k, prog, m, 64, pick_patch("vibes", "rhodes"), reps=int(beats * 2 / m)),
+                 "hook": gen_tool_lead(r, k, prog, m, 64, pick_patch(r.choice(["clarinet", "flute", "vibes"]), "vibes"), reps=int(beats * 2 / m)),
                  "solo": gen_tool_lead(r, k, prog, m, 67, pick_patch("vibes", "rhodes"), reps=int(beats * 2 / m))}
         lens = {role: beats for role in parts}
         return _write_parts(slot, "ukjazz", parts, f"{NAMES[p['pc']]} {p['mode']}, {meter}/{4 if meter == 5 else 8}", lens)
@@ -2082,7 +2086,7 @@ def _compose_style(style, slot, p):
         return _write_parts(slot, "ambient", parts, f"{NAMES[p['pc']]} {p['mode']}")
     if style == "downtempo":
         parts = {"riffI": gen_downtempo(r, k, prog, "intro"), "riff": gen_downtempo(r, k, prog), "riffB": gen_downtempo(r, k, prog),
-                 "hook": gen_hook(r, k, prog, 64, pick_patch(r.choice(["vibes", "pluck-lead", "rhodes"]), "rhodes"))}
+                 "hook": gen_hook(r, k, prog, 64, pick_patch(r.choice(["vibes", "flute", "clarinet", "pluck-lead"]), "rhodes"))}
         return _write_parts(slot, "downtempo", parts, f"{NAMES[p['pc']]} {p['mode']}")
     if style == "raga":
         parts = {"riffA": gen_raga(r, k, prog, "alap"), "riffG": gen_raga(r, k, prog, "groove"),
