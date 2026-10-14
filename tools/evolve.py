@@ -905,6 +905,11 @@ def loud_sample(st, li, ident):
         if _L["style"] and len(_L["vals"]) >= 8:
             m = 10 * math.log10(sum(10 ** (x / 10) for x in _L["vals"]) / len(_L["vals"]))
             tgt = LOUD_TARGET["chill" if _L["style"] in composer.CHILL_STYLES else "heavy"]
+            print(time.strftime("%T"), f"loudness: {_L['style']} {m:.1f} LUFS (target {tgt:.1f}; autolevel rides it)", flush=True)
+            _L.update(li=li, style=(ident or {}).get("style"), vals=[])
+            if v is not None and v > -45:
+                _L["vals"].append(v)
+            return
             L = loud_learned()
             old = L.get(_L["style"], 0.0)
             step = 0.6 if _L["style"] not in L else 0.5  # a style's first measurement moves further
@@ -943,7 +948,7 @@ def master_for(ident):
         "opto": [f"ott depth={ott * 0.5} time=0.6", f"compressor threshold=-18dB ratio=3 attack=30ms release=450ms makeup={makeup}dB", "glue threshold=-14dB ratio=1.5 makeup=1dB"],
         "tape": [f"ott depth={ott * 0.5} time=0.4", f"glue threshold=-16dB ratio=2 makeup={makeup - 1}dB", "tape drive=0.6 warmth=0.7"],
     }[comp]
-    trim = COMP_TRIM.get(comp, 0.0) + STYLE_TRIM.get(ident.get("style"), 0.0) + loud_learned().get(ident.get("style"), 0.0) + loud_learned().get("_chill" if ident.get("style") in composer.CHILL_STYLES else "_heavy", 0.0)
+    trim = COMP_TRIM.get(comp, 0.0) + STYLE_TRIM.get(ident.get("style"), 0.0)   # (learned per-pass trims retired: they stacked with autolevel and blasted pass starts)
     eq = [json.loads(MASTER_BASE[0])]
     air = {"brostep": 2.5, "slowed": 2.5, "exotica": 2.0, "secondline": 2.0, "downtempo": 1.5, "darksynth": 3.0, "tool": 1.5, "industrial": 3.0, "dnb": 2.0, "power": 2.0, "raga": 2.5, "koto": 2.0,
            "lofihop": 2.0, "ukjazz": 3.0, "ambient": 3.0, "triphop": 2.0, "dub": 1.5, "celtic": 2.5, "doomjazz": 1.5, "vaporwave": 1.0, "slowcore": 1.5, "minimal": 2.0, "kankyo": 1.5, "lid": 1.0, "balearic": 1.5, "symphonic": 1.5, "beattape": 1.5, "lofihouse": 2.0}.get(ident.get("style"))
