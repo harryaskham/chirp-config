@@ -68,7 +68,7 @@ songs:
 tracks:
   - {name: boom, at: 0.0b, score: "@boom/5.756b", gain: -7dB}
   - {name: intro, at: 5.756b, score: "@intro/56b"}
-  - {name: main, at: 61.756b, score: "@main/72b", gain: -6dB}
+  - {name: main, at: 61.756b, score: "@main/72b", gain: -9dB}
   - {name: brk, at: 133.756b, score: "@brk/64b"}
   - {name: climax, at: 197.756b, score: "@climax/132b"}
   - {name: outro, at: 329.756b, score: "@outro/64b", gain: 2.5dB}
