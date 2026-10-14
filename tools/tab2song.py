@@ -16,6 +16,9 @@ MAP.json:
       "remap": {"t3": "ft"}, "drop": ["m98"], "extra": {…}}    # extra: more track keys, verbatim
    ]}
 
+Corrections measured against the recording (tools/scorealign.py): "bpm": {"37": 113.5, …} sets the tempo from
+measure M on (until the next entry; earlier measures keep the tab's tempo), and "skip": [[285, 288], …] removes
+measures the recording does not play (from the timeline and every part).
 A tab with tempo changes becomes a song with a tempo map (a point at every tempo or meter change); "meters": true
 emits the map for a constant-tempo tab too. Bars are 1-based inclusive ranges. Outside its ranges a part rests. Drum pieces can be renamed (`remap`) or
 dropped (`drop`) per part, for kits that name pieces differently from the tab's General-MIDI mapping."""
@@ -122,9 +125,27 @@ def fmt_num(x):
     return f"{round(x, 4):.4f}".rstrip("0").rstrip(".")
 
 
+def corrected_timeline(cache, mp):
+    """The tab's timeline with the map's tempo overrides applied and skipped measures marked."""
+    tl = [dict(m) for m in T.timeline(cache)]
+    over = sorted((int(k), float(v)) for k, v in mp.get("bpm", {}).items())
+    for i, (m0, v) in enumerate(over):
+        m1 = over[i + 1][0] if i + 1 < len(over) else len(tl) + 1
+        for m in tl[m0 - 1:m1 - 1]:
+            m["bpm"] = v
+    skip = set()
+    for a, b in mp.get("skip", []):
+        skip.update(range(a, b + 1))
+    for m in tl:
+        m["skip"] = m["m"] in skip
+    return tl
+
+
 def build(mp):
     cache = mp["cache"]
-    tl = T.timeline(cache)
+    full = corrected_timeline(cache, mp)
+    keep = [i for i, m in enumerate(full) if not m["skip"]]
+    tl = [full[i] for i in keep]
     beats = [m["beats"] for m in tl]
     bpm = tl[0]["bpm"]
     # The offset is converted at the opening tempo; with tempo changes the song gets a tempo map
@@ -136,8 +157,15 @@ def build(mp):
     tracks = []
     for p in mp["parts"]:
         if p["track"] not in lines_cache:
-            lines_cache[p["track"]] = S.score(cache, p["track"])[2]
-        sc = part_score(lines_cache[p["track"]], beats, p["bars"], off_beats, p.get("remap"), p.get("drop", ()), p["name"])
+            lines_all = S.score(cache, p["track"])[2]
+            lines_cache[p["track"]] = [lines_all[i] for i in keep]
+        pos = {full[i]["m"]: k + 1 for k, i in enumerate(keep)}   # tab measure → kept index (1-based)
+        ranges = []
+        for a, b in p["bars"]:
+            kept = [pos[m] for m in range(a, b + 1) if m in pos]
+            if kept:
+                ranges.append((min(kept), max(kept)))
+        sc = part_score(lines_cache[p["track"]], beats, ranges, off_beats, p.get("remap"), p.get("drop", ()), p["name"])
         tr = {"name": p["name"], "patch": p["patch"]}
         for k in ("gain", "pan"):
             if k in p:
