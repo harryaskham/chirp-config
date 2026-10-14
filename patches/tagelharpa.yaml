@@ -1,0 +1,16 @@
+about: >-
+  Tagelharpa (regular size; bowed horsehair lyre): the bass tagelharpa's coarse, raspy bowed tone from a smaller
+  body — formants ~1.4× higher (720 / 910 / 1200 / 1400 / 1700 Hz), less low end. Finishing Move layered one on
+  top of the bass tagelharpa's riff for upper harmonics and a wall of sound; also a folk melody / drone voice.
+extends: tagelharpa-bass
+synth:
+  filters:
+    - {kind: hp, cutoff: 110}
+    - {kind: peak, cutoff: 720, q: 3, gain: 5dB}
+    - {kind: peak, cutoff: 910, q: 3, gain: 3dB}
+    - {kind: peak, cutoff: 1200, q: 3.5, gain: 7dB}
+    - {kind: peak, cutoff: 1400, q: 3, gain: 3dB}
+    - {kind: peak, cutoff: 1700, q: 3, gain: 5dB}
+    - {kind: lp, cutoff: 5k, q: 0.8}
+play: {gate: 1, vel_sens: 0.4, humanize: {time: 10ms, vel: 0.06}, mono: true, legato: true, glide: 60ms}
+gain: -8dB
