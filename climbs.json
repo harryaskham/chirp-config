@@ -17,7 +17,7 @@
       "best": {
         "score": 59.4,
         "version": "v47",
-        "commit": "pending",
+        "commit": "a6b5bea",
         "engine": "afdeb8a (name-stable seeds; v45 re-baselined 59.2 -> 59.4)"
       },
       "passes": 1,
