@@ -43,7 +43,10 @@ if [ "${1:-}" = playlist ]; then
 else
   src_args=(-s "${1:-live-suite}")
 fi
-PULSE_LATENCY_MSEC=${CHIRP_PULSE_LATENCY_MSEC:-2000} setsid nohup env -u PULSE_SERVER "$C" --loop --id groove -o "$out" "${src_args[@]}" > "${TMPDIR:-/tmp}/chirp-groove.log" 2>&1 < /dev/null 9>&- &
+# Claim the sink: any other chirp stream on it refuses (naming the groove) unless --takeover, so stray playback
+# can't double Harry's audio. Guarded: older binaries reject the flag.
+excl=(); "$C" --help 2>/dev/null | grep -q -- --exclusive && excl=(--exclusive)
+PULSE_LATENCY_MSEC=${CHIRP_PULSE_LATENCY_MSEC:-2000} setsid nohup env -u PULSE_SERVER "$C" --loop "${excl[@]}" --id groove -o "$out" "${src_args[@]}" > "${TMPDIR:-/tmp}/chirp-groove.log" 2>&1 < /dev/null 9>&- &
 sleep 1.2
 if [ -n "${2:-}" ]; then "$C" live set --id groove --when bar --xfade 150ms "tracks.arrangement.score=$2" | tail -1; fi
 # the evolver only drives live-suite; any other song (a benchmark reproduction) plays as written
