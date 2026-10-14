@@ -1818,6 +1818,32 @@ def gen_drumsolo(r, beats=8):
     return [track("drumsolo", rig("drums"), " ".join(toks))]
 
 
+def gen_coltrane(r, k, prog, low=28):
+    """Coltrane changes (Giant Steps) as a fusion guest: the tonic moving by major thirds, each new key
+    approached from its dominant seventh (I · V7/III · III · V7/bVI · bVI · V7 · I …), eight chords in
+    16 beats; Rhodes comping, a walking bass with chromatic approaches, a swung ride with hat foot and a
+    tenor sax playing 1-2-3-5 patterns through the changes. Absolute pitches from the song's tonic."""
+    t = k.deg(0, 48) % 12 + 48
+    # (root offset, quality): maj7 tonics a major third apart, each preceded by its V7
+    seq = [(0, "maj7"), (11, "7"), (4, "maj7"), (3, "7"), (8, "maj7"), (7, "7"), (0, "maj7"), (11, "7")]  # B7→E, Eb7→Ab, G7→C
+    shapes = {"maj7": (0, 4, 7, 11), "7": (0, 4, 7, 10)}
+    sw = "swing=0.66 "
+    keys, bass, sax = [], [], []
+    for j, (ro, q) in enumerate(seq):
+        root = t + ro
+        keys.append(f"{chordhead([root + i for i in shapes[q]])}/4@{70} {chordhead([root + i for i in shapes[q]])}/8@{60}^gate=0.5 R/8")
+        nxt = t + seq[(j + 1) % len(seq)][0]
+        bass.append(f"{mname(root - 24)}/4@{82} {mname(nxt - 24 + r.choice([-1, 1]))}/4@{72}")
+        sax.append(" ".join(f"{mname(root + 12 + i)}/8@{88 if n == 0 else 80}" for n, i in enumerate((0, 2, 4, 7))))  # the 1-2-3-5 pattern
+    kit = rig("drums")
+    ride = " ".join(("rd/8@90" if x % 2 == 0 else ("rd/8@66" if x in (3, 7) else "R/8")) for _ in range(4) for x in range(8))
+    hat = " ".join(("hf/4@64" if x % 2 == 1 else "R/4") for _ in range(4) for x in range(4))
+    return [track("rhodes", pick_patch("rhodes", "piano"), sw + " ".join(keys), pan=-0.2),
+            track("bass", pick_patch("upright-bass", "finger-bass"), " ".join(bass), seed=7),
+            track("ride", kit, sw + ride, gain="-4dB"), track("hats", kit, hat, gain="-6dB"),
+            track("sax", pick_patch("tenor-sax", "synth-lead"), sw + " ".join(sax), pan=0.2)]
+
+
 def gen_mathcore(r, k, prog, low=28, kind="chaos"):
     """chaos: the 16-beat part cut into odd-length chunks (3–13 sixteenths, summing to 64); each a
     cluster stab into a hard stop, a dissonant tremolo run, chugs over a blast fragment or silence;
@@ -4022,6 +4048,7 @@ def gen_downtempo(r, k, prog, kind="main"):
 GUESTS = {
     "brokenjazz": (None, {"ukjazz"}),
     "swingmetal": (lambda r, k, prog, low, gp: gen_swingmetal(r, k, prog, low), {"djazz"}),
+    "coltrane": (lambda r, k, prog, low, gp: gen_coltrane(r, k, prog, low), set()),
     "jazz": (lambda r, k, prog, low, gp: gen_mathcore(r, k, prog, low, "jazz"), {"djazz", "mathcore"}),
     "breakcore": (lambda r, k, prog, low, gp: gen_breakcore(r, k, prog, low), {"breakcore"}),
     "blast": (lambda r, k, prog, low, gp: gen_blast(r, k, prog, low, r.choice(["trad", "hammer", "bomb"])), {"tech-death", "deathcore"}),
@@ -4169,7 +4196,7 @@ def compose(style, slot, p):
         pool = [g for g, (_, homes) in GUESTS.items() if style not in homes]
         picks = r.sample(pool, 2)
         if FUSION:  # fusion-metal journey: one guest from the jazz / polymetric set
-            pref = [g for g in ("jazz", "space", "tribal", "tabla", "kotekan", "brokenjazz", "brokenjazz", "swingmetal", "swingmetal") if g in pool]
+            pref = [g for g in ("jazz", "space", "tribal", "tabla", "kotekan", "brokenjazz", "brokenjazz", "swingmetal", "swingmetal", "coltrane", "coltrane") if g in pool]
             if pref:
                 first = r.choice(pref)
                 picks = [first, r.choice([g for g in pool if g != first])]
