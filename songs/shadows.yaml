@@ -31,7 +31,7 @@ songs:
       - {name: drone, patch: tagelharpa-bass, score: "[B1,B2/1]x14", gain: -19dB, sends: {hall: -4dB}}
       - {name: sub, patch: sub, score: "[B0/1@80]x14", gain: -12dB}
       - {name: strings, patch: mellotron-strings, sends: {hall: -6dB}, score: "R/1 R/1 [B3,F#4/1 C4,F#4/1 B3,F#4/1 A3,E4/1]x3", gain: -14dB}
-      - {name: impact, patch: fx-impact, sends: {hall: -6dB}, score: "R/12.27b C2/4b@96 R/39.23b C2/0.5b@127"}
+      - {name: impact, patch: fx-impact, gain: -14dB, sends: {hall: -6dB}, score: "R/12.27b C2/4b@96 R/39.23b C2/0.5b@127"}
       - {name: swell, patch: fx-revcym, sends: {hall: -8dB}, score: "R/22.8b C4/2b@90 R/31.2b"}
       - {name: tom, patch: prog-tom, sends: {hall: -6dB}, score: "R/27.8b G2/1b@112 R/27.2b"}
 
@@ -59,7 +59,7 @@ songs:
       - {name: choir, patch: mellotron-choir, sends: {hall: -6dB}, score: "R/1 R/1 R/1 R/1 [B3,F#4/1 B3,F#4,C#5/1]x6", gain: -5dB}
       - {name: toms, patch: metal-kit, score: "[R/1]x8 [k/8@90 R/8 R/4 R/2]x4 [k/16@100 k k k R/4 R/2]x2 [k/16@112]x16 [k/16@116 s s s]x4", gain: -8dB}
       - {name: sub, patch: sub, score: "[R/1]x9 [B0/1@100]x7", gain: -12dB}
-      - {name: launch, patch: fx-impact, sends: {hall: -6dB}, score: "R/62.72b C2/1.28b@127"}
+      - {name: launch, patch: fx-impact, gain: -14dB, sends: {hall: -6dB}, score: "R/62.72b C2/1.28b@127"}
       - {name: launch-crash, patch: metal-kit, score: "R/62.72b c,x/1.28b@124"}
 
   # bars 50-63: climax A — syncopated riff, choir melody around B–A–G#–C
