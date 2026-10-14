@@ -2299,24 +2299,38 @@ def gen_broken(r, k, prog, meter=7, kind="main"):
 
 
 def gen_ambient(r, k, prog, kind="A"):
-    """Ethereal ambient: soft string/swell pads, a drone, shimmering twinkles (music box, kalimba or
-    glock) through a shimmer hall, singing-bowl or handpan strokes, no drums."""
-    out = gen_pad(r, k, prog, 48, "strings", gain="-10dB", vel=60) + gen_drone(k, 36, pick_patch("drone", "pad"))
-    if have("choir") and r.random() < 0.5:
+    """Ethereal ambient: a swelling pad (strings / Juno / Mellotron choir / glass, chosen per song) and a
+    drone; twinkles through a shimmer hall and a spectral freeze that catches them into a sustained cloud
+    at a random point of the section (Eno); singing-bowl or handpan strokes; kind=B adds a short Rhodes /
+    piano phrase looping and disintegrating (Basinski: crush and darkening grow over the section) and a
+    sustained e-bow / theremin line. No drums."""
+    pad_patch = pick_patch(r.choice(["strings", "juno-pad", "mellotron-choir", "pad-glass"]), "strings")
+    peak = r.choice([6, 10, 14])
+    swell = {"sw": {"points": [["0b", 0.2], [f"{peak}b", 1.0], ["16b", 0.35]]}}
+    out = [dict(t, auto=swell, gain={"value": "-14dB", "mod": [{"src": "auto.sw", "amount": 6}]})
+           for t in gen_pad(r, k, prog, 48, pad_patch, vel=60)]
+    out += gen_drone(k, 36, pick_patch("drone", "pad"))
+    if have("choir") and r.random() < 0.4:
         out += [dict(t, name="choir", gain="-12dB") for t in gen_pad(r, k, prog, 48, "choir", vel=56)]
     tw = pick_patch(r.choice(["music-box", "kalimba", "glock", "celesta", "harp"]), "bell")
     notes = []
     for x in range(64):
         notes.append(f"{mname(k.deg(r.choice([0, 2, 4, 7, 9, 11]), 72))}/16@{r.choice([50, 60, 70])}" if r.random() < (0.12 if kind == "A" else 0.2) else "R/16")
-    out.append(track("twinkle", tw, " ".join(notes), pan=r.choice([-0.4, 0.4]), fx=expand(["rack:shimmer-hall"]), gain="-4dB"))
+    at = r.choice([4, 6, 8, 10])
+    freeze_lane = {"fz": {"points": [["0b", 0], [f"{at}b", 0], [f"{at + 0.1:g}b", 1], [f"{at + r.choice([3, 4, 5])}b", 1], [f"{at + 6}b", 0], ["16b", 0]]}}
+    freeze = {"type": "freeze", "hold": {"value": 0, "mod": [{"src": "auto.fz", "amount": 1}]}, "size": f"{r.choice([150, 220, 300])}ms", "mix": 0.55}
+    out.append(track("twinkle", tw, " ".join(notes), pan=r.choice([-0.4, 0.4]), fx=[freeze] + expand(["rack:shimmer-hall"]), auto=freeze_lane, gain="-4dB"))
     bowl = pick_patch(r.choice(["singing-bowl", "handpan"]), "bell")
     out.append(track("bowl", bowl, " ".join(f"{mname(k.deg(root, 48))}/1@{60}" if i % 2 == 0 else "R/1" for i, root in enumerate(prog)), gain="-6dB"))
-    if have("pad-glass") and r.random() < 0.4:
-        out += [dict(t, name="glass", gain="-8dB") for t in gen_pad(r, k, prog, 60, "pad-glass", vel=60)]
     if kind == "B":
+        cell = " ".join(f"{mname(k.deg(prog[0] + d, 60))}/8@{r.choice([60, 66, 72])}" if d is not None else "R/8" for d in r.choice([[0, 2, 4, None, 7, 4, None, 2], [4, None, 2, 0, None, 2, 4, None], [7, 4, 2, None, 0, None, 2, None]]))
+        wear = {"wear": {"points": [["0b", 0.0], ["16b", 1.0]]}}
+        loop_fx = [{"type": "crush", "bits": 10, "rate": 12000, "mix": {"value": 0, "mod": [{"src": "auto.wear", "amount": 0.7}]}},
+                   {"type": "filter", "kind": "lp", "cutoff": {"value": 6000, "mod": [{"src": "auto.wear", "amount": -2.0}]}},
+                   {"type": "chorus", "rate": 0.3, "depth": 0.4, "voices": 1, "mix": 1.0}, {"type": "reverb", "kind": "hall", "decay": "4s", "mix": 0.35}]
+        out.append(track("loop", pick_patch(r.choice(["rhodes", "piano", "tape-piano"]), "piano"), " ".join([cell] * 4), fx=loop_fx, auto=wear, pan=0.2, gain="-6dB"))
         out += [dict(t, gain="-6dB") for t in gen_atmos(r, k, prog, 62, pick_patch(r.choice(["ebow", "theremin"]), "ambient-swell"))]
     return out
-
 
 def gen_cycles(r, k, prog, kind="main"):
     """Four Tet / Bonobo melodic house: sparkly motifs in different cycle lengths (5, 7, 3 steps)
