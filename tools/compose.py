@@ -47,7 +47,7 @@ STYLE_MODES = {
     "brostep": ["minor", "phrygian", "harmonic"],
     "blackgaze": ["major", "lydian", "dorian", "mixolydian"],
     "numetal": ["phrygian", "locrian", "minor"], "deathcore": ["phrygian", "harmonic", "locrian", "diminished"],
-    "postrock": ["major", "lydian", "mixolydian", "dorian"], "postmetal": ["minor", "phrygian", "dorian", "harmonic"], "slam": ["phrygian", "locrian", "minor", "diminished"], "groovemetal": ["blues", "pentatonic-minor", "phrygian", "minor"],
+    "postrock": ["major", "lydian", "mixolydian", "dorian"], "postmetal": ["minor", "phrygian", "dorian", "harmonic"], "slam": ["phrygian", "locrian", "minor", "diminished"], "metalcore": ["minor", "harmonic", "dorian", "phrygian"], "groovemetal": ["blues", "pentatonic-minor", "phrygian", "minor"],
     "power": ["major", "harmonic", "minor", "major"], "sludge": ["blues", "pentatonic-minor", "phrygian"],
     "breakcore": ["harmonic", "minor", "diminished", "phrygian-dominant"],
     "mathcore": ["locrian", "diminished", "phrygian", "double-harmonic"],
@@ -1461,6 +1461,58 @@ def gen_slam(r, k, prog, low=28, kind="slam"):
                                      track("kick", kit, jn(kick)), track("snare", kit, jn(snare)), track("cym", kit, jn(cym))]
 
 
+# ---------- metalcore (Killswitch Engage / Architects / Parkway Drive) --------------------------
+
+def gen_metalcore(r, k, prog, low=28, kind="verse"):
+    """Metalcore. verse: palm-muted 16th gallops (x-xx) on the low tonic with chord-root accents over
+    double kick; chorus: open ringing melodic chords (root-fifth-octave + third on top) over driving
+    8th kicks, crash on the 1s; harmony: twin guitars in diatonic thirds playing a melodic line;
+    breakdown: half-time chugs on the low tonic with china and syncopated kicks."""
+    t = k.deg(0, low)
+    kit = rig("drums")
+    jn = lambda xs: " ".join(xs)
+    gtr, kick, snare, cym = [], [], [], []
+    if kind == "harmony":
+        line = []
+        d = r.choice([0, 2, 4])
+        for i in range(32):
+            d = max(-2, min(9, d + r.choice([-2, -1, 1, 1, 2])))
+            line.append(d)
+        lo = jn(f"expr.pm=0 {mname(k.deg(prog[(i // 8) % 4] * 0 + d, 52))}/8@{104 if i % 2 == 0 else 96}" for i, d in enumerate(line))
+        hi = jn(f"expr.pm=0 {mname(k.deg(d + 2, 52))}/8@{104 if i % 2 == 0 else 96}" for i, d in enumerate(line))
+        out = [track("gtr-l", rig("rhythm")[0], lo, pan="L80", seed=7), track("gtr-r", rig("rhythm")[1], hi, pan="R80", seed=13)]
+        kick = ["k/8@104" if x % 2 == 0 else "R/8" for _ in range(4) for x in range(8)]
+        snare = ["s/8@112" if x in (2, 6) else "R/8" for _ in range(4) for x in range(8)]
+        cym = [f"{'c' if x == 0 else 'rd'}/8@{110 if x == 0 else 88}" for _ in range(4) for x in range(8)]
+        return out + [track("bass", rig("bass"), jn(f"{mname(k.deg(root, 28))}/2@96 {mname(k.deg(root, 28))}/2@90" for root in prog), seed=7),
+                      track("kick", kit, jn(kick)), track("snare", kit, jn(snare)), track("cym", kit, jn(cym))]
+    for i in range(64):
+        x = i % 16
+        root = prog[(i // 16) % len(prog)]
+        rt = k.deg(root, low)
+        if kind == "verse":
+            hit = x % 4 in (0, 2, 3)
+            gtr.append((f"expr.pm=0 {chordhead([rt, rt + 7])}/16@118" if x == 0 else f"expr.pm=1 {mname(t)}/16@{110 if x % 4 == 0 else 100}") if hit else "R/16")
+            kick.append(f"k/16@{112 if hit else 100}" if hit or x % 2 == 0 else "R/16")
+            snare.append("s/16@118" if x in (4, 12) else "R/16")
+            cym.append(f"{'c' if x == 0 and i % 32 == 0 else 'h'}/16@{108 if x == 0 else 82}" if x % 2 == 0 else "R/16")
+        elif kind == "chorus":
+            third = k.deg(root + 2, low + 12)
+            gtr.append(f"expr.pm=0 {chordhead([rt, rt + 7, rt + 12, third + 12])}/16@116" if x == 0 else ("_" if x < 8 else (f"expr.pm=0 {chordhead([rt, rt + 7, rt + 12])}/16@108" if x == 8 else "_")))
+            kick.append("k/16@110" if x % 2 == 0 else "R/16")
+            snare.append("s/16@118" if x in (4, 12) else "R/16")
+            cym.append(f"{'c' if x == 0 else 'rd'}/16@{112 if x == 0 else 90}" if x % 4 == 0 else "R/16")
+        else:  # breakdown
+            cell = "x..x.x....x..x.." if (i // 16) % 2 == 0 else "x..x.x..x.x.x..."
+            hit = cell[x] == "x"
+            gtr.append(f"expr.pm=1 {mname(t)}/16@{122 if x == 0 else 114}" if hit else "R/16")
+            kick.append(f"k/16@{122 if x == 0 else 112}" if hit else "R/16")
+            snare.append("s/16@124" if x == 8 else "R/16")
+            cym.append("cch/16@114" if x % 4 == 0 else "R/16")
+    return rhythm_tracks(jn(gtr)) + [track("bass", rig("bass"), jn(mirror_bass(gtr, "/16")), seed=7), track("sub", rig("sub"), jn(mirror_bass(gtr, "/16")), seed=7),
+                                     track("kick", kit, jn(kick)), track("snare", kit, jn(snare)), track("cym", kit, jn(cym))]
+
+
 # ---------- breakcore metal (Igorrr / Venetian Snares) ----------------------------------------
 
 def gen_breakcore(r, k, prog, low=28, wild=1.0):
@@ -2042,7 +2094,7 @@ for _m, _ps in _MORE_PROGS.items():
 
 def params(style, rng=random):
     mode = rng.choice(STYLE_MODES.get(style, ["minor"]))
-    heavy = style in ("meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep", "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock", "postmetal", "slam", "groovemetal", "power", "sludge", "breakcore", "mathcore", "gojira", "djazz", "raga", "gamelan", "koto", "postmetal", "slam")
+    heavy = style in ("meshuggah", "djent", "djent-breakdown", "doom-ambient", "tech-death", "thrash", "tool", "hardcore-kl", "brostep", "blackgaze", "darksynth", "numetal", "industrial", "dnb", "deathcore", "postrock", "postmetal", "slam", "metalcore", "groovemetal", "power", "sludge", "breakcore", "mathcore", "gojira", "djazz", "raga", "gamelan", "koto", "postmetal", "slam", "metalcore")
     if style in CHILL_STYLES:
         rigset = "chill"
     else:
@@ -2052,6 +2104,7 @@ def params(style, rng=random):
               "fuzz" if style == "sludge" else
               rng.choice(["fuzz", "tool-fuzz", "bkp", "fluence", "chug"]) if style == "postmetal" else
               rng.choice(["chug", "fluence", "bkp", "emg"]) if style == "slam" else
+              rng.choice(["modern", "emg", "bkp", "fluence"]) if style == "metalcore" else
               "gojira" if style == "gojira" else
               "chug" if style in ("hardcore-kl", "brostep") else
               rng.choice(["tool-fuzz", "tool-pick", "tool-fuzz", "phase"]) if style == "tool" else
@@ -3553,6 +3606,11 @@ def _compose_style(style, slot, p):
                  "riffSlam": gen_hc(r, k, prog, dl, "slowdown"), "pad": gen_pad(r, k, prog, 48, "strings", gain="-6dB"),
                  "soft": gen_pad(r, k, prog, 48, "strings", gain="-8dB", vel=70), "drone": gen_drone(k, 36, "drone")}
         return _write_parts(slot, "deathcore", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
+    if style == "metalcore":
+        parts = {"riffV": gen_metalcore(r, k, prog, kind="verse"), "riffC": gen_metalcore(r, k, prog, kind="chorus"),
+                 "riffH": gen_metalcore(r, k, prog, kind="harmony"), "riffBrk": gen_metalcore(r, k, prog, kind="breakdown"),
+                 "hook": gen_hook(r, k, prog, 64, pick_patch("lead-tape", "lead-monster"))}
+        return _write_parts(slot, "metalcore", parts, f"{NAMES[p['pc']]} {p['mode']}, rigs {p.get('rigset', 'modern')}")
     if style == "slam":
         parts = {"riffSlam": gen_slam(r, k, prog, kind="slam"), "riffSlam2": gen_slam(r, k, prog, kind="slam"), "riffBlast": gen_slam(r, k, prog, kind="blast"),
                  "riffGrav": gen_slam(r, k, prog, kind="gravity"), "riffBrk": gen_slam(r, k, prog, kind="brk")}
