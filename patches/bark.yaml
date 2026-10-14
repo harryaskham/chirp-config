@@ -1,9 +1,9 @@
-about: "Barked harsh metal vocal — a stand-in until the voice engine (bd-4664e9) can growl and take lyrics: a buzzy glottal saw and square sub with heavy pink 'rasp' noise, a pitch that scoops up into each bark and never sits still, open-vowel formants (F1 700, F2 1250, F3 2600 Hz) plus a half-mixed `formant` stage, a hot drive into tight compression, upfront and nearly dry. Play the shout rhythm on one pitch around Ab3 (a shout's f0 is ~200 Hz); velocity barks harder, louder and raspier. Built for Meshuggah's Bleed (tools/stemvox.py transcribes a vocal stem's syllables)."
+about: "Barked harsh metal vocal — a stand-in until the voice engine (bd-4664e9) can growl and take lyrics: a buzzy glottal saw and square sub with heavy pink 'rasp' noise, a pitch that scoops up into each bark and never sits still, open-vowel formants (F1 700, F2 1250, F3 2600 Hz) plus a half-mixed `formant` stage, a hot drive into tight compression, upfront and nearly dry. Play the shout rhythm on the shout's pitch (Bleed: A4 — a strained bark's f0 sits high, ~440 Hz; a real shout is strongly pitched; the formants are broad so they colour the vowel without imprinting pitch classes of their own); velocity barks harder, louder and raspier. Built for Meshuggah's Bleed (tools/stemvox.py transcribes a vocal stem's syllables)."
 synth:
   layers:
     - {wave: saw, level: -4dB}
     - {wave: square, ratio: 0.5, level: -14dB}
-    - {name: rasp, type: noise, color: pink, level: {value: -9dB, mod: [{src: vel, amount: 8}]}}
+    - {name: rasp, type: noise, color: pink, level: {value: -14dB, mod: [{src: vel, amount: 8}]}}
   pitch: {value: 0, mod: [{src: env.scoop, amount: -2}, {src: rand, amount: 0.8}, {src: lfo.wob, amount: 0.25}]}
   env:
     scoop: {a: 0.5ms, d: 90ms, s: 0}
@@ -11,15 +11,15 @@ synth:
     wob: {wave: sine, rate: 6.5hz, retrig: true}
   filters:
     - "hp cutoff=180"
-    - {kind: peak, cutoff: 700, q: 2, gain: 9dB}
-    - {kind: peak, cutoff: 1250, q: 2.5, gain: 8dB}
-    - {kind: peak, cutoff: 2600, q: 3, gain: 5dB}
+    - {kind: peak, cutoff: 700, q: 1.2, gain: 6dB}
+    - {kind: peak, cutoff: 1250, q: 1.2, gain: 2dB}
+    - {kind: peak, cutoff: 2600, q: 1.5, gain: 3dB}
     - {kind: lp, cutoff: {value: 5500, mod: [{src: vel, amount: 0.5}]}}
   amp: {a: 6ms, d: 0ms, s: 1, r: 60ms}
   drive: {value: 0.7, mod: [{src: vel, amount: 0.25}]}
 play: {mono: true, glide: 20ms, gate: 0.92}
 fx:
-  - {type: formant, vowel: 0.3, q: 6, mix: 0.5}
+  - {type: formant, vowel: 0.3, q: 6, mix: 0.3}
   - {type: compressor, threshold: -24dB, ratio: 6, attack: 2ms, release: 80ms, makeup: 6dB}
   - {type: eq, bands: ["peak cutoff=300 q=1 gain=-3dB", "peak cutoff=1500 q=0.8 gain=2dB"]}
   - "reverb kind=room decay=0.6s mix=0.08 predelay=8ms"
