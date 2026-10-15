@@ -105,6 +105,8 @@ Reference: album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825;
   C#3/D#3. Octave-up: keys 72.35 (bridge chroma 48.7 → 55.7 but loudness −5, solo/outro −0.7), clean 72.32, both 71.91.
 - Vocal pitch per section (tracked modes) disagrees with the scores; global Ab4 is best or tied everywhere but falling
   (A4 +0.1) — not worth splitting. Per-syllable tracked pitch: 72.11.
+- Bridge high line (the tab's atmos rests there; the record's D#5/C#5): lead-tape Eb5/C#5 whole notes, −12 dB 72.36
+  (chroma +3.8 but stereo 50 → 42), −18 dB 72.42, −15 dB doubled 72.42 (stereo 48) vs v42 72.45 — net loss.
 
 ## Metric notes
 - loudness term: 0.5 s / 1 s-window contour; steady sections score ~45-50 whatever the match (per-bar levels are
