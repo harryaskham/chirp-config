@@ -76,6 +76,9 @@ Reference: album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825;
 - Chroma attribution (likeness chroma is 100 Hz-4 kHz, so the kick fundamental is outside it): guitars carry ~61% of
   the band's energy; the mix's C# excess (+0.03) / D# and G deficits sit on the riff's 7th/14th vs octave/5th
   harmonics of Eb2 — a harmonic-balance property of the rig, not reachable with bloom or EQ.
+- Master clip (97092a5) after the v27 levels: drive 2 dB 68.65, 4 dB 66.32 (v27 69.67) — the section levels already
+  match the record; clipping over-crushes (Laid to Rest gained only because it was 4 dB short).
+- Pick 1/7 on bass-fat (0.2 → 0.143): −0.02; on lead-tape atmos: 0.
 
 ## Metric notes
 - loudness term: 0.5 s / 1 s-window contour; steady sections score ~45-50 whatever the match (per-bar levels are
