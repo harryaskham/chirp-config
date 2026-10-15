@@ -2185,7 +2185,7 @@
      228
     ],
     [
-     285,
+     371,
      400
     ]
    ],
@@ -2297,7 +2297,7 @@
      228
     ],
     [
-     285,
+     371,
      400
     ]
    ],
@@ -2645,6 +2645,24 @@
     "sends": {
      "hall": "-8dB"
     }
+   }
+  },
+  {
+   "name": "bass-line",
+   "patch": "bass",
+   "raw": "tools/maps/pneuma-bassline.json#bass",
+   "gain": "0dB",
+   "extra": {
+    "fx": [
+     {
+      "type": "eq",
+      "bands": [
+       "lowshelf cutoff=100 gain=-6dB",
+       "peak cutoff=180 q=0.8 gain=-3dB",
+       "peak cutoff=700 q=0.8 gain=-9dB"
+      ]
+     }
+    ]
    }
   }
  ],
