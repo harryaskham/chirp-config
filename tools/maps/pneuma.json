@@ -2126,15 +2126,8 @@
   },
   {
    "name": "xgtr",
-   "track": 1,
    "patch": "m8 synth.layers.0.pick=0.143 play.humanize.accent=0.5 play.humanize.gate=0.15",
-   "bars": [
-    [
-     37,
-     400
-    ]
-   ],
-   "gain": "-6dB",
+   "raw": "tools/maps/pneuma-xgtr.json#part",
    "extra": {
     "double": {
      "patch": "m8 synth.layers.0.pick=0.143 play.humanize.accent=0.5 play.humanize.gate=0.15",
@@ -2152,7 +2145,8 @@
       ]
      }
     ]
-   }
+   },
+   "gain": "-6dB"
   },
   {
    "name": "bass",
@@ -2366,20 +2360,14 @@
   },
   {
    "name": "synth",
-   "track": 5,
    "patch": "synth-lead",
-   "bars": [
-    [
-     1,
-     400
-    ]
-   ],
-   "gain": "-6dB",
+   "raw": "tools/maps/pneuma-synth.json#part",
    "extra": {
     "sends": {
      "hall": "-6dB"
     }
-   }
+   },
+   "gain": "-6dB"
   },
   {
    "name": "pads",
