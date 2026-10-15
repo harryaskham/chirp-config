@@ -2522,7 +2522,8 @@
     "m85": "cas",
     "m92": "gong",
     "m98": "gong"
-   }
+   },
+   "gain": "-4.0dB"
   },
   {
    "name": "dr-kick",
