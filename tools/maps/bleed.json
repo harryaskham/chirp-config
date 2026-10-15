@@ -3016,7 +3016,7 @@
     {
       "name": "vox",
       "score_file": "tools/maps/bleed-vox-phones.txt",
-      "patch": "kidman",
+      "patch": "kidman synth.amp.a=40ms",
       "gain": "6dB",
       "rest": [
         [
