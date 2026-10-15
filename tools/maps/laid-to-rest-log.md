@@ -80,3 +80,7 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | vr1 | vocals as stemvox energy runs (358 syllables) | 66.898 | neutral |
 | in1 | intro bars 2-5 per-bar metric grid (bar 2 was 150 ms early; offset 1.82 -> 1.97) | 66.948 | (combine) |
 | v27 | bridge bars 72-86 per-bar metric grid (75-76 30 ms early, 78-81 25-80 ms late around the 15/8 bar) + vocals re-transcribed | 67.016 | yes |
+| c11 / c12 | intro bars 2-5 per-bar grid (+1.0 intro, nets 0) | 67.024 | no |
+| gr0 / k2db / swire | rigs without click/scrape/thump/squeak 67.016 (inaudible); kick +2 dB 66.591; snare wires -6 dB 66.559 | | no |
+| amm | both rigs amp model mark | 66.838 | no |
+| v28 | both rhythm rigs on the Rectifier-like `modern` amp (was 5150 left / gojira right): every section up | 67.880 | yes |
