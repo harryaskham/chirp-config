@@ -2109,14 +2109,8 @@
   },
   {
    "name": "gtr",
-   "track": 2,
    "patch": "m8 synth.layers.0.pick=0.143 play.humanize.accent=0.5 play.humanize.gate=0.15",
-   "bars": [
-    [
-     37,
-     400
-    ]
-   ],
+   "raw": "tools/maps/pneuma-gtr.json#gtr",
    "extra": {
     "double": {
      "patch": "m8 synth.layers.0.pick=0.143 play.humanize.accent=0.5 play.humanize.gate=0.15",
@@ -2134,15 +2128,6 @@
       ]
      }
     ]
-   },
-   "replace": {
-    "221": "D3,A3,E4,A4/4b",
-    "222": "D3,A3,E4,A4/4b",
-    "223": "D3,A3,E4,A4/4b",
-    "224": "A2,A3/4b",
-    "225": "A2,A3/4b",
-    "226": "A2,A3/4b",
-    "227": "A2,A3/4b"
    }
   },
   {
@@ -2183,10 +2168,6 @@
     [
      1,
      228
-    ],
-    [
-     371,
-     400
     ]
    ],
    "chord": "low",
@@ -2295,10 +2276,6 @@
     [
      1,
      228
-    ],
-    [
-     371,
-     400
     ]
    ],
    "chord": "upper",
