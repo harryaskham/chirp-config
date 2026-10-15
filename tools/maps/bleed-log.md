@@ -109,6 +109,9 @@ Reference: album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825;
   (A4 +0.1) — not worth splitting. Per-syllable tracked pitch: 72.11.
 - Bridge high line (the tab's atmos rests there; the record's D#5/C#5): lead-tape Eb5/C#5 whole notes, −12 dB 72.36
   (chroma +3.8 but stereo 50 → 42), −18 dB 72.42, −15 dB doubled 72.42 (stereo 48) vs v42 72.45 — net loss.
+- Master EQ refit on v44 (mastereq: residual 2.4 dB rms, low-end detail + hs 13.7k −1.9): full 72.35, half 72.51 vs 72.64 —
+  the master spectrum is at noise level.
+- Closed hat (h1, 124 hits) not swept — too few hits to matter.
 
 ## Metric notes
 - loudness term: 0.5 s / 1 s-window contour; steady sections score ~45-50 whatever the match (per-bar levels are
