@@ -122,3 +122,4 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | cl5 / cl7 (seed-avg, 33fca2a) | master soft clipper (clip, 33fca2a) ahead of the ceiling limiter instead of +5 dB gain: drive 5 dB 68.23 ± 0.05; 7 dB 68.20 ± 0.08 (v38 67.50 on the same engine) | | |
 | v39 | clip drive=7dB ceiling=-0.5dB (ties drive 5; 2 dB louder, nearer the record's crushed master); groove restarted on 33fca2a | 68.20 (mean) | yes |
 | v40 | seed-robust fader ride: levelride --accumulate on the averaged loudness of v39 rendered at seeds 3/5/11 (levelride.py now takes several renders). In-sample seeds 3/5/11: 68.50 vs 68.22; held-out 7/13/17: 68.67 vs v39 68.47, +0.2 on every seed | 68.6 (6-seed mean) | yes |
+| vocal check | kidman solo render separated by htdemucs_6s: vocals 75%, drums 15%, other 11%; the record's scream stem re-separated: vocals 100%. Engine bead bd-f227d8 (harsh vocals read as voice), with the engine agent | | engine |
