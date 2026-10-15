@@ -1,13 +1,9 @@
 #!/usr/bin/env python3
-
-  stemnotes.py STEM --map MAP.json B0 B1 [...]   bar starts, lengths and beats from a tab2song map's corrected
-  timeline (odd meters, tempo maps, skipped measures) instead of constant 4-beat bars from DOWNBEAT_S/BAR_S.
-
-  stemnotes.py STEM --map MAP.json B0 B1 [...]   bar starts, lengths and beats from a tab2song map's corrected
-  timeline (odd meters, tempo maps, skipped measures) instead of constant 4-beat bars from DOWNBEAT_S/BAR_S.
 """Transcribe a monophonic low part (bass / riff) from a stem into explicit chirp notation.
 
   stemnotes.py STEM.wav DOWNBEAT_S BAR_S FIRST_BAR LAST_BAR [--lo MIDI] [--hi MIDI]
+  stemnotes.py STEM.wav --map MAP.json FIRST_BAR LAST_BAR [...]   bar starts, lengths and beats from a tab2song
+  map's corrected timeline (odd meters, tempo maps, skipped measures) instead of constant 4-beat bars.
 
 Onsets: spectral flux on the stem, peak-picked and quantised to the 16th grid of the given bar grid.
 Each note runs to the next onset (or a gap when the stem falls silent); its pitch is the candidate with
