@@ -87,3 +87,4 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | amrl / amrr / mmid / mgain / ird / irc / bam / bag | (v28) modern amp left only 67.499, right only 67.730; amp mid 0.75 67.622; amp gain 0.65 67.879; darth-genocider cab 67.182; cookie-monster 66.962; bass amp modern 67.642; bass amp gain 0.85 67.862 | | no |
 | pb1 | per-bar metric grid, bars 105-135 (+-80 ms window) | 67.979 | (combine) |
 | v29 | per-bar metric grid, bars 72-90 + vocals re-transcribed | 68.008 | yes |
+| v30 | v29 + per-bar metric grid over bars 105-135 (breakdown/outro residual -40..+45 ms) | 68.109 | yes |
