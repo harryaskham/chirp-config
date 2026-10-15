@@ -27,6 +27,7 @@ Reference: album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825;
 | v22 | 65.92 | tab correction: bars 81-97 write D3 (guitars, s5f11) / D2 (bass) where the record plays the D# octave — map `subst` D3→Eb3, D2→Eb2 (per-bar f0 vs the stems; implement chroma 34.7 → 39.9) |
 | v23 | 66.07 | bridge darkness re-fit: master auto.dark 4× lp 1.4 kHz → 1.7 kHz (−3.85 → −3.55 oct): bridge 48.3 → 50.2 (spectral +5.5, ltas +7.5). 2.0k 66.02, 2.8k 65.78, 2 stages @1.4k 66.02, 2 stages @2k 65.84 |
 | v24 | 67.67 | pick position 1/7 (m8-obzen-l 0.12 → 0.143, -r 0.095 → 0.143): a pluck at 1/n of the string cancels harmonics n, 2n…; the old points cancelled the octave (8th) and ~10th-11th (G) and left the 7th/14th (C# over Eb2) — chroma +5..+10 in every heavy section (implement 39.9 → 49.3). 0.135: 67.45. From here on scores are on likeness.py with the mastering term (1ffa987): v23 = 66.4 there |
+| v25 | 68.64 | section levels for the mastering term: master envelope +1.3..+2.8 dB per section into the −0.3 dB ceiling (we were 1.3-2.8 dB quiet with ~1 dB more crest), BLEED +0.5, bridge unchanged (+2 dB there: 49.5, +4 dB: 49.2 vs 50.6); uniform +2 dB: 68.4 |
 
 ## Tried and rejected (don't re-run without a new reason)
 - Guitars: amp gain/scrape/pick-noise for the 'saw' valleys (no effect; pitch glide was the lever); stiffer strings
