@@ -2089,14 +2089,8 @@
  "parts": [
   {
    "name": "gtr-clean",
-   "track": 2,
    "patch": "jazz-box",
-   "bars": [
-    [
-     1,
-     36
-    ]
-   ],
+   "raw": "tools/maps/pneuma-gtrclean.json#part",
    "extra": {
     "double": {
      "patch": "jazz-box",
