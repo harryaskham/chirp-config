@@ -2063,7 +2063,7 @@
   {
    "name": "gtr",
    "track": 2,
-   "patch": "m8",
+   "patch": "m8 play.humanize.accent=0.5 play.humanize.gate=0.15",
    "bars": [
     [
      37,
@@ -2072,7 +2072,7 @@
    ],
    "extra": {
     "double": {
-     "patch": "m8",
+     "patch": "m8 play.humanize.accent=0.5 play.humanize.gate=0.15",
      "seeds": [
       7,
       13
@@ -2083,7 +2083,7 @@
   {
    "name": "xgtr",
    "track": 1,
-   "patch": "m8",
+   "patch": "m8 play.humanize.accent=0.5 play.humanize.gate=0.15",
    "bars": [
     [
      37,
@@ -2093,7 +2093,7 @@
    "gain": "-6dB",
    "extra": {
     "double": {
-     "patch": "m8",
+     "patch": "m8 play.humanize.accent=0.5 play.humanize.gate=0.15",
      "seeds": [
       3,
       5
@@ -2104,7 +2104,7 @@
   {
    "name": "bass",
    "track": 4,
-   "patch": "bass",
+   "patch": "bass play.humanize.accent=0.5 play.humanize.gate=0.15",
    "bars": [
     [
      1,
@@ -2139,7 +2139,7 @@
   {
    "name": "bass-up",
    "track": 4,
-   "patch": "bass",
+   "patch": "bass play.humanize.accent=0.5 play.humanize.gate=0.15",
    "bars": [
     [
      1,
@@ -2175,7 +2175,7 @@
   {
    "name": "bassfx",
    "track": 3,
-   "patch": "bass",
+   "patch": "bass play.humanize.accent=0.5 play.humanize.gate=0.15",
    "bars": [
     [
      1,
