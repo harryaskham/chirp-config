@@ -2037,6 +2037,11 @@
      ]
     }
    }
+  },
+  "feel": {
+   "drift": "4ms",
+   "drift_bars": 4,
+   "from": 37
   }
  },
  "parts": [
@@ -2506,6 +2511,17 @@
    "patch": "maynard",
    "raw": "tools/maps/pneuma-vox.json#vox",
    "gain": "-6dB",
+   "extra": {
+    "sends": {
+     "hall": "-8dB"
+    }
+   }
+  },
+  {
+   "name": "otherpad",
+   "patch": "drone",
+   "raw": "tools/maps/pneuma-otherpad.json#pad",
+   "gain": "-14dB",
    "extra": {
     "sends": {
      "hall": "-8dB"
