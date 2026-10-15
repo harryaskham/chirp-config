@@ -2,7 +2,7 @@
 """DTW-anchored beat grid for a tab2song map: fixes the grid where riffs alias.
 
   dtwgrid.py MAP.json RENDER.wav REF.wav [--block 4] [--window 0.08] [--frame 0.1] [--minconf 0.1] [--clamp 0.15]
-            [--ref-onsets REF_STEM.wav --render-onsets OUR_SOLO.wav] [--keep-below] [--bars A-B] [--feature flux|metric] [--around-zero] [-o OUT.json] [--report]
+            [--ref-onsets REF_STEM.wav --render-onsets OUR_SOLO.wav[,MORE.wav]] [--keep-below] [--bars A-B] [--feature flux|metric] [--around-zero] [-o OUT.json] [--report]
 
 RENDER.wav must be a render of the song MAP.json generates (so its bar times are the map's). Two signals:
 
@@ -82,7 +82,11 @@ def main():
     ci, rj, _ = SA.dtw(A, B, int(15 / dt))
     f = SA.mapping(ci, rj, dt)
     feat = metric_onset if opt("--feature", "flux") == "metric" else flux
-    fo = feat(opt("--render-onsets", render))
+    # several renders (comma-separated; the same song at different seeds): average their onset envelopes, so the
+    # lags follow the arrangement, not one seed's random velocities and envelopes
+    ros = [feat(f) for f in opt("--render-onsets", render).split(",")]
+    mlen = min(len(f_) for f_ in ros)
+    fo = np.mean([f_[:mlen] for f_ in ros], axis=0)
     fr = feat(opt("--ref-onsets", ref))
     blocks = list(range(0, len(keep), block))
     lags, confs = [], []
