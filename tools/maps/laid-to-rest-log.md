@@ -99,3 +99,6 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | heg / hed | humanize.env 0.2 on guitars 68.366 (sections +-1.6: seed noise); on the kit 68.359 (no effect: env doesn't reach kit pieces) | | no |
 | sbb / sg | snare Bb3 65.787; G3 68.309 | | no: Ab3 stays |
 | note | stemnotes.py --map (12/8 bars): the chorus guitar stem reads D/Eb/F + F#2-F2 at bar 49 ends; the tab's riff notes are right, chorus chroma is a harmonic-weighting gap | | |
+| stemscore v33 | drums 57.7, guitar 44.3 (choruses 29/32), bass 30.2 (ltas 13.4), vocals 29.0 | | |
+| note | like-for-like bass (ref bass stem vs our separated bass, same htdemucs_6s): ours +13..+19 dB below 80 Hz (sine sub; the record's bass has little under 80 Hz) and +10..+35 dB above 315 Hz (brighter grind); the per-section EQ's -6..-8 dB at 45 Hz has been compensating at the master | | |
+| bhp / blp / bamix | (v33) bass hp 70 Hz 68.095; lp 1.5 kHz 67.857; amp blend 0.4 67.513 | | no: the master (EQ, rides) is fitted around the old bass; trying a re-master pipeline (rm1: hp bass, no per-section EQ/ride -> refit EQ -> re-ride) |
