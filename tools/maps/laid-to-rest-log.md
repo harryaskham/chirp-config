@@ -55,3 +55,6 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | v17v | v17 + vocals re-transcribed on its grid | 60.989 | |
 | mg3 | second metric-grid pass | 61.674 | |
 | v18 | second pass + vocals re-transcribed on it | 61.735 | yes |
+| sy1 / sy0 / irk | (v17) m8-rhythm sympathetic stage (F-standard 8-string resonances) retuned to drop D 61.467; off 61.795; cab kitten-slayer only 61.069 | | (combine) |
+| c7 | v18 + sympathetic off | 62.709 | |
+| v19 | v18 + sympathetic off + kitten-slayer cab on both rigs | 63.098 | yes |

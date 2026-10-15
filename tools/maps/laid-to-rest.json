@@ -837,7 +837,7 @@
   {
    "name": "gtr-l",
    "track": 2,
-   "patch": "m8-rhythm-l",
+   "patch": "m8-rhythm-l fx.0.mix=0 fx.2.file=jester/kitten-slayer fx.2.blend=0",
    "bars": [
     [
      1,
@@ -849,7 +849,7 @@
   {
    "name": "gtr-l2",
    "track": 2,
-   "patch": "m8-rhythm-l",
+   "patch": "m8-rhythm-l fx.0.mix=0 fx.2.file=jester/kitten-slayer fx.2.blend=0",
    "bars": [
     [
      1,
@@ -862,7 +862,7 @@
   {
    "name": "gtr-r",
    "track": 1,
-   "patch": "m8-rhythm-r",
+   "patch": "m8-rhythm-r fx.0.mix=0 fx.2.file=jester/kitten-slayer fx.2.blend=0",
    "bars": [
     [
      1,
@@ -874,7 +874,7 @@
   {
    "name": "gtr-r2",
    "track": 1,
-   "patch": "m8-rhythm-r",
+   "patch": "m8-rhythm-r fx.0.mix=0 fx.2.file=jester/kitten-slayer fx.2.blend=0",
    "bars": [
     [
      1,
