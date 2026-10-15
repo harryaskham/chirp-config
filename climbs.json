@@ -282,7 +282,7 @@
       "id": "2-minutes-to-midnight",
       "song": "songs/2-minutes-to-midnight.yaml",
       "reference": "Iron Maiden — 2 Minutes to Midnight",
-      "source": "https://www.youtube.com/watch?v=wBzFgGn8g2Y",
+      "source": "https://www.youtube.com/watch?v=inKtFIKe68o",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/2-minutes-to-midnight.wav OUT.wav $(cat tools/2-minutes-to-midnight-sections.txt)",
       "best": null,
