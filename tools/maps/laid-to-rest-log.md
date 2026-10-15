@@ -108,3 +108,6 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | v34 | v33 + 5 dB into the ceiling limiter (the record is a crushed 2004 master: -9.5 dBFS RMS, crest 9.5 dB) | 67.050 | yes |
 | rr5 | v34 + 1 s fader re-ride on the limited render (--accumulate) | 67.357 | (combine) |
 | v35 | v34 with the chorus lift lane doubled to +-2 dB (the ceiling limiter squashes a +-1 dB lift) | 67.477 | yes |
+| pk7 / pk6 | (v34) guitars pick at 1/7 (0.143; chirper-two's Bleed finding: a pluck at 1/n cancels harmonics n, 2n...; ours were 0.12/0.095 like Bleed's) 67.731; (c13) at 1/6 67.766 | | |
+| c13 | v35 + the re-ride | 67.532 | |
+| v36 | v35 + re-ride + guitars picked at 1/7 | 68.240 | yes |
