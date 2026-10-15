@@ -283,15 +283,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/2-minutes-to-midnight.wav OUT.wav $(cat tools/2-minutes-to-midnight-sections.txt)",
       "best": {
-        "score": 36.7,
-        "version": "v1",
+        "score": 41.4,
+        "version": "v2",
         "commit": "see git log songs/2-minutes-to-midnight.yaml",
-        "engine": "51cfe09"
+        "engine": "f4b9563"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 1,
+      "rounds": 2,
       "priority": 1.0,
       "genre": "heavy metal (NWOBHM; Powerslave, 1984; 1998 remaster upload)",
       "requested": {
@@ -300,8 +300,8 @@
         "note": "requested as 'Two Minutes to Midnight'"
       },
       "last": {
-        "at": "2026-10-15T21:30:49Z",
-        "who": "chirper-one"
+        "at": "2026-10-15T21:40:23Z",
+        "who": "chirper-zero"
       }
     },
     {

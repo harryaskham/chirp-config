@@ -21,7 +21,8 @@
    "fx": [
     "glue threshold=-16dB ratio=2 attack=15ms release=150ms makeup=3dB"
    ]
-  }
+  },
+  "a4": 445.55
  },
  "parts": [
   {
@@ -136,7 +137,8 @@
    "extra": {
     "sends": {
      "plate": "-10dB"
-    }
+    },
+    "mute": true
    }
   },
   {
