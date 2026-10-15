@@ -116,3 +116,6 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | inb | bars 3-5 per-bar grid only (offset/bar 2 kept) | 68.226 | no (intro +0.5; other sections moved +-1.6 = noise) |
 | noise floor | v37 at seeds default / 3 / 5: 68.312 / 67.612 / 67.569 (sections +-1..1.5). The default seed is a ~0.7 lucky draw; single-seed changes under ~0.5 are noise. From here: seed-average (seedscore.py) anything small. Kept small steps (dwx +0.06, c13 +0.06, spl +0.08, bpk7 +0.07, tune +0.17) were never seed-checked | | |
 | seedscore v37 | seeds 3/5/11: 67.6 / 67.6 / 67.5 (mean 67.57, std 0.05) vs the default seed 68.31: the climb fitted seed 0 (voice seeds hash the start sample; the 0.5 s fader rides and per-bar grid follow seed 0's draws). Decisions from here on seed-averaged; the playlist plays seed 0 | | |
+| gld / bhp37 (seed-avg) | guitar lead 67.17; bass hp 70 Hz 67.17 (vs v37 67.57 ± 0.05) | | no: real losses |
+| mst (seeds 3/5/11) | render-time mastering --loudness -9.5 --limit (c552556): 67.49 / 67.76 / 67.37 = 67.54 | | no gain over +5 dB into the ceiling |
+| v38 | pinch harmonics restored with their tab bends (Lamb of God's bent squeals): seed-avg 67.50 ± 0.08 vs v37 67.57 ± 0.05 — a tie, so the realistic choice | 67.50 (mean) | yes |
