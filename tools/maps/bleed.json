@@ -7,7 +7,30 @@
     "buses": {
       "hall": {
         "fx": [
-          "reverb kind=hall decay=2.6s mix=1 predelay=20ms"
+          "reverb kind=hall decay=2.6s mix=1 predelay=20ms",
+          {
+            "type": "width",
+            "width": 1.0,
+            "mono_below": 20,
+            "bands": [
+              [
+                400,
+                1.14
+              ],
+              [
+                1200,
+                1.0
+              ],
+              [
+                3500,
+                0.8
+              ],
+              [
+                8000,
+                0.69
+              ]
+            ]
+          }
         ]
       }
     },
@@ -2944,7 +2967,32 @@
       "extra": {
         "sends": {
           "hall": "-8dB"
-        }
+        },
+        "fx": [
+          {
+            "type": "width",
+            "width": 1.0,
+            "mono_below": 20,
+            "bands": [
+              [
+                400,
+                1.14
+              ],
+              [
+                1200,
+                1.0
+              ],
+              [
+                3500,
+                0.8
+              ],
+              [
+                8000,
+                0.69
+              ]
+            ]
+          }
+        ]
       }
     },
     {
@@ -3016,7 +3064,32 @@
       "extra": {
         "sends": {
           "hall": "-4dB"
-        }
+        },
+        "fx": [
+          {
+            "type": "width",
+            "width": 1.0,
+            "mono_below": 20,
+            "bands": [
+              [
+                400,
+                1.14
+              ],
+              [
+                1200,
+                1.0
+              ],
+              [
+                3500,
+                0.8
+              ],
+              [
+                8000,
+                0.69
+              ]
+            ]
+          }
+        ]
       }
     },
     {

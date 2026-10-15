@@ -33,6 +33,7 @@ Reference: album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825;
 | v28 | 69.71 | vocal attack 8 → 40 ms on the track (kidman synth.amp.a=40ms; Jens' onset rise is 92 ms vs ours 47): implement +0.3 |
 | v29 | 70.01 | stereo image by band (b638c6a per-band width on the master after the glue): every heavy section was ~2-3 dB too wide at 400-1200 Hz and 3-6 dB too narrow above 3.5 kHz → bands [[400, 0.77], [1200, 1], [3500, 1.55], [8000, 2.0]], mono_below 20 Hz: stereo solo 52 → 75, implement 57 → 70; bridge −2.4 (stereo 61 → 35), riffs −0.6. Needs a groove ≥ b638c6a (fa719f6) |
 | v30 | 70.98 | half the measured width correction: bands [[400, 0.88], [1200, 1], [3500, 1.25], [8000, 1.45]] — the full move (v29) overshoots like instrument EQ fits do (riffs 71.6 → 73.3, bridge 49.9 → 50.8) |
+| v32 | 71.07 | bridge counter-width at half on clean/keys/hall (bridge 50.8 → 51.6); kidman's vowel is an open base (0.62) + relative ^dvow offsets (stemvox --phones emits them) — unmarked notes sang a closed 'u' that separated as 12% drums (bd-f227d8; tools/vocaltest.py: Bleed's vocal 94.3% vocals, LTR's 80.6 → 94.8%) |
 
 ## Tried and rejected (don't re-run without a new reason)
 - Guitars: amp gain/scrape/pick-noise for the 'saw' valleys (no effect; pitch glide was the lever); stiffer strings

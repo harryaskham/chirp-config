@@ -15,7 +15,8 @@ a grid on the tab's own measure timeline (so odd-length bars stay exact), with v
   --onsets runs (default: energy runs split at dips) | flux (syllable starts at vocal-band flux peaks — the
            perceived attack; with --grid 0.03125 --min 0.0625 this tracks barked delivery far better)
   --shift  ms added to every syllable time (latency calibration against the target patch's attack)
-  --phones per syllable, ^on=/^off= consonant codes (voice layer table) and ^vow= (u 0 … i 1) from acoustic cues
+  --phones per syllable, ^on=/^off= consonant codes (voice layer table) and ^dvow= vowel offsets (u 0 … i 1, relative to
+           --vowel-base 0.62, the open vowel kidman sings unmarked) from acoustic cues
            (stems are noisy: a sketch of the syllables' shape, for voice patches binding expr.on/off/vow)
 Prints one line per bar: `bar N  tokens` (R for rests), like stemnotes.py."""
 import os
@@ -181,6 +182,7 @@ def main():
     rng, dip, mn = float(opt("--range", "30")), float(opt("--dip", "6")), float(opt("--min", "0.25"))
     mode, shift = opt("--onsets", "runs"), float(opt("--shift", "0")) / 1000
     phones = "--phones" in a
+    vbase = float(opt("--vowel-base", "0.62"))   # the patch's open vowel; --phones emits ^dvow offsets from it
     tl = T.timeline(tab) if tab else None
     if opt("--map", None):
         import importlib.util
@@ -221,7 +223,8 @@ def main():
                     on, off = consonant_at(x, s - shift, pk), consonant_at(x, e - shift, pk, coda=True)
                     mid = seg[int(len(seg) * 0.2):int(len(seg) * 0.8)]
                     vw = (vowel_of(mid) if len(mid) > 2048 else None) or 0.62   # an open a/e when unmeasurable
-                    suffix = (f"^on={on}" if on else "") + (f"^vow={vw}" if vw is not None else "") + (f"^off={off}" if off else "")
+                    dv = round(vw - vbase, 2)
+                    suffix = (f"^on={on}" if on else "") + (f"^dvow={dv:g}" if abs(dv) > 1e-9 else "") + (f"^off={off}" if off else "")
                 bars[m].append([qs, ql, vel, pitch, suffix])
                 break
     for m in range(b0, b1 + 1):
