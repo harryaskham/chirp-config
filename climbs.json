@@ -45,9 +45,13 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 51,
+      "rounds": 52,
       "priority": 1,
-      "genre": "extreme metal / djent"
+      "genre": "extreme metal / djent",
+      "last": {
+        "at": "2026-10-15T20:12:21Z",
+        "who": "chirper-two"
+      }
     },
     {
       "id": "pneuma",
