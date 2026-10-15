@@ -88,3 +88,6 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | pb1 | per-bar metric grid, bars 105-135 (+-80 ms window) | 67.979 | (combine) |
 | v29 | per-bar metric grid, bars 72-90 + vocals re-transcribed | 68.008 | yes |
 | v30 | v29 + per-bar metric grid over bars 105-135 (breakdown/outro residual -40..+45 ms) | 68.109 | yes |
+| ld4 / ld7 / ldg | (v29) master +4 dB into the ceiling 67.782; +7 dB 65.765; glue + 4 dB 64.667 (the record is ~7 dB louder, crest 9.5 vs 16 dB; limiting flattens the chorus lift) | | asked Harry |
+| v30b | v30 on e27a12a (bends now reach voices: 4049ee3) | 68.021 | baseline |
+| v31 | strip bend= tokens (tab slides/bends: 2-semitone slide bends, 4.5-semitone bends on the stripped pinch harmonics, 6-semitone bass bends) | 68.109 | yes |
