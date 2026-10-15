@@ -3085,7 +3085,7 @@
   {
    "name": "vox",
    "score_file": "tools/maps/laid-to-rest-vox-v30.txt",
-   "patch": "kidman",
+   "patch": "kidman synth.drive.value=0.25",
    "gain": "0dB",
    "rest": [
     [

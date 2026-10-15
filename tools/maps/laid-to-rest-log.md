@@ -136,3 +136,5 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | bw5 | fifth per-band width pass (body bands now within ~0.02 of the record) | 70.63 = v45 | converged |
 | cd9 | clip drive 9 dB (held-out) | 69.90 vs v45 70.63 | no: the drive is now coupled to the per-band width fit (the per-channel clip makes side content) |
 | v46 | vocals back on kidman after chirper-two's bd-f227d8 fix (e47aad9: unmarked notes sang a closed 'u' that read as drums; now an open vowel, 94.8% vocals) | 70.87 held-out (v45 bark 70.63; +0.2..0.3 every seed) | yes |
+| vk3 / vkm3 | kidman +3 dB 70.80; -3 dB 70.77 (v46 70.87) | | no: level at its optimum |
+| v47 | kidman drive 0.5 -> 0.25 (track override; chirper-two: 98.2% vocals vs 94.8% on this track) | 70.87 (tie, plan differs) | yes (realism) |
