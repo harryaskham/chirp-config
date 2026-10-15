@@ -63,3 +63,6 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | lr4 | levelride 4 s windows | 63.086 | no |
 | v20 | levelride.py fader ride at 1 s windows / 0.5 s steps, max 4 dB (the record's verse phrases its dynamics; verse 60.4 -> 67.9) | 64.641 | yes |
 | v21 | v20 + kick A1 except bars 78-105 and the outro (Ab1 there): the kick's best pitch follows the section's harmony | 65.041 | yes |
+| ldb / ldbd / ldbu / ldbl | (v20n) built-in guitar m8-lead (7ff2824) inlined as ltr-lead; dry; -1 dB; -7 dB | 64.313 / 64.188 / 64.260 / 64.300 | no (synth lead 64.641) |
+| inl | v21 with the config m8-lead/m8-rhythm-l/r inlined as ltr-lead/ltr-rhythm-l/r (no dependence on shadowing shared copies) | 65.041 | bit-identical |
+| v22 | inlined patches + second 1 s fader-ride pass (--accumulate on the v21 render) | 65.123 | yes |
