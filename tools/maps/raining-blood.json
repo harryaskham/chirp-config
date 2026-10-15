@@ -765,6 +765,12 @@
     ]
    ],
    "gain": "3dB"
+  },
+  {
+   "name": "rain",
+   "raw": "tools/maps/raining-blood-fx.json#rain-out",
+   "patch": "fx-rain",
+   "gain": "0dB"
   }
  ],
  "bpm": {
