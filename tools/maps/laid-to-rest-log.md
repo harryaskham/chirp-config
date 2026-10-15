@@ -157,3 +157,7 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | se10 / se05 (held-out) | per-section EQ residual refit from v55's averaged seed spectra, full / half | 72.07 / 72.33 (v55 72.40) | no: the EQ is at its optimum given the ride, clip and stereo fits |
 | rr10 / rr05 (held-out) | re-ride (levelride --accumulate on v55 seeds 3/5/11), full / half | 72.40 / 72.40 (tie) | no: the ride is still right after the stereo work |
 | note | chorus/verse-3 chroma: section-average pitch-class profiles match within ~2% (G/F# ~1-2% light in the choruses: the left guitar's palm-muted chromatic run); the low chroma score is frame-level (which notes when under distortion), not averages | | |
+| pmg / pma (held-out) | gentler palm mute (pm low-pass -3.4 -> -2.4 oct) on the left / both guitars | 72.33 / 72.20 (v55 72.40) | no |
+| blp8 / blp15 (held-out) | bass low-pass 800 Hz / 1.5 kHz | 70.97 / 71.50 (v55 72.40) | no: the bass's grit carries mid-range the mix needs |
+| bg3 / bgm3 (held-out) | bass +3 / -3 dB | 71.40 / 71.77 (v55 72.40) | no: sharp optimum |
+| note | every single-parameter change now loses by more than early in the climb (palm mute, bass low-pass, bass level): the master's stereo bands, EQ, ride and clip are fitted to the current mix, so a sound-design change must be judged after its own refit (one stereo pass + ride on its seeds), ~3x the cost | | |
