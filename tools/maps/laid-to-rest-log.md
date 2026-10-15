@@ -91,3 +91,6 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | ld4 / ld7 / ldg | (v29) master +4 dB into the ceiling 67.782; +7 dB 65.765; glue + 4 dB 64.667 (the record is ~7 dB louder, crest 9.5 vs 16 dB; limiting flattens the chorus lift) | | asked Harry |
 | v30b | v30 on e27a12a (bends now reach voices: 4049ee3) | 68.021 | baseline |
 | v31 | strip bend= tokens (tab slides/bends: 2-semitone slide bends, 4.5-semitone bends on the stripped pinch harmonics, 6-semitone bass bends) | 68.109 | yes |
+| phb / nbass | pinch harmonics with their 4.5-semitone squeal bends 68.000; bends stripped from the bass only 68.106 | | no |
+| sef1 / sef13 | per-section EQ refitted from scratch on a render without it (1.0x / 1.3x) | 67.121 / 66.788 | no (everything since v10 was tuned on the old fit) |
+| v32 | the fresh fit spliced into the three sections where it won (intro, lead riff, outro) | 68.188 | yes |
