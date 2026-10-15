@@ -50,6 +50,7 @@ Reference: album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825;
 | v46 | 72.69 | bridge parts widened instead of counter-narrowed (clean, keys, hall: ×1.5 from 120 Hz, ×1.6 from 3.5 kHz): the record's bridge is near-decorrelated (S/M ≈ −1 dB), ours was 2.4-4.3 dB narrower; stereo 49.8 → 52.4. ×2.0/2.2: 72.51; no width stage: 72.61 |
 | v47 | 72.75 | bridge contour ride: levelride (--win 1.5 --step 0.5, 0.7) fitted on v46, kept only inside the bridge with its mean shift removed (contour, not level — raising the bridge always lost): bridge loudness 51.4 → 58.5 |
 | v48 | 73.24 | contour-only ride everywhere: the finer levelride (--win 1.5 --step 0.5, 0.7) with each section's mean shift removed — the section levels stay where the mastering term wants them, the ride only shapes within sections: loudness contour +2..+7 in 7 sections |
+| v49 | 73.42 | second contour pass: levelride --win 1 --step 0.5 --amount 0.5 --accumulate --contour --sections (new option): bridge loudness 58 → 68 |
 
 ## Tried and rejected (don't re-run without a new reason)
 - Guitars: amp gain/scrape/pick-noise for the 'saw' valleys (no effect; pitch glide was the lever); stiffer strings

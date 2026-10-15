@@ -6,7 +6,8 @@ it moves like a hand on a fader, not a compressor. Re-run after arrangement or m
 
   levelride.py MAP.json REF.wav RENDER.wav[,RENDER2,...] [--win 4] [--step 2] [--max 9] [--amount 1.0] [-o OUT.json]
 
---amount scales the correction (0.5 = halfway). Existing auto.ride is replaced; the render should have been made
+--amount scales the correction (0.5 = halfway). --contour --sections F removes each section's mean correction, so the
+ride only shapes loudness within sections (set section levels separately, e.g. a master envelope). Existing auto.ride is replaced; the render should have been made
 without it (or pass --accumulate to add to the existing lane). Several renders (comma-separated: the same
 song at different seeds) average their loudness, so the ride doesn't learn one seed's draws (a 0.5 s ride fitted
 to the default seed was ~0.7 of Laid to Rest's seed-overfit)."""
@@ -54,6 +55,18 @@ def ride(ref, out, win=4.0, step=2.0, mx=9.0, amount=1.0):
     return tr[:n], d
 
 
+def contour_only(t, d, sections):
+    """Remove each section's mean correction: the ride then shapes loudness *within* sections and leaves the section
+    levels (the mastering term's job, set elsewhere) untouched. On Bleed this was +0.49 over a ride that also moved
+    section levels (a section the record has quieter than ours kept being pushed up, and lost)."""
+    d = d.copy()
+    for a0, b0 in zip(sections, sections[1:]):
+        sel = (t >= a0) & (t < b0)
+        if sel.any():
+            d[sel] -= d[sel].mean()
+    return d
+
+
 if __name__ == "__main__":
     a = sys.argv[1:]
     opt = lambda k, dflt: type(dflt)(a[a.index(k) + 1]) if k in a else dflt
@@ -64,6 +77,10 @@ if __name__ == "__main__":
     if not any(isinstance(f, dict) and f.get("type") == "gain" and "auto.ride" in json.dumps(f) for f in fx):
         fx.append({"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.ride", "amount": 1}]}})
     lanes = master.setdefault("auto", {})
+    if "--sections" in a:   # with --contour: per-section mean removed (sections file: comma-separated boundaries, seconds)
+        secs = [float(v) for v in open(a[a.index("--sections") + 1]).read().strip().split(",")]
+        if "--contour" in a:
+            d = contour_only(t, d, secs)
     if "--accumulate" in a and "ride" in lanes:
         old_t = np.array([float(p[0].rstrip("s")) for p in lanes["ride"]["points"]])
         old_v = np.array([p[1] for p in lanes["ride"]["points"]])
