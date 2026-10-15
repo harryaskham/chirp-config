@@ -189,7 +189,7 @@
       "id": "come-down",
       "song": "songs/come-down.yaml",
       "reference": "Anderson .Paak & The Free Nationals — Come Down",
-      "source": null,
+      "source": "https://www.youtube.com/watch?v=rptBpOCCMWc",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/come-down.wav OUT.wav $(cat tools/come-down-sections.txt)",
       "best": null,
@@ -198,7 +198,7 @@
       "status": "requested",
       "rounds": 0,
       "priority": 1.0,
-      "genre": "funk / hip-hop",
+      "genre": "funk / hip-hop (Malibu, 2016; prod. Hi-Tek)",
       "requested": {
         "by": "harry",
         "at": "2026-10-15T20:01:08Z",
