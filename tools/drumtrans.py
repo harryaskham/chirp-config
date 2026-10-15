@@ -106,7 +106,7 @@ def track_hits(song_path, track_name):
     """(seconds, piece) for every kit hit of a song track written as `piece/LENb` tokens (as tab2song writes them),
     through the song's tempo map."""
     text = open(song_path).read()
-    m = re.search(r'\{name: "' + re.escape(track_name) + r'"[^\n]*?score: "([^"]*)"', text)
+    m = re.search(r'\{name: "?' + re.escape(track_name) + r'"?,[^\n]*?score: "([^"]*)"', text)   # quoted or not
     if not m:
         raise SystemExit(f"no track {track_name} in {song_path}")
     pts = tempo_points(song_path)
