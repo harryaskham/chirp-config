@@ -39,6 +39,7 @@ Reference: album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825;
 | v35 | 71.54 | part balance re-check after the pick/width/ride/vocal changes: drums +1.5 dB, bass −1.5 dB (drums +3: 70.31; drums −1.5: 70.32; bass +1.5: 71.17; vocal ±1.5: 71.27/71.15) |
 | v36 | 71.58 | lead −2 → −0.5 dB (solo 74.7 → 75.0; +3 dB: 71.48). Guitars ±1.5: 71.14/71.06; overdub ±1.5: 71.50/71.53 |
 | v37 | 71.75 | keys −8 → −11 dB (bridge 53.8 → 56.6; −1.5: 71.68, −4.5: 71.68, −6: 71.64); clean/atmos ±1.5 within ±0.02 |
+| v38 | 71.84 | ride refreshed after the balance changes (levelride --accumulate 0.5 on the v37 render) everywhere but the bridge — riding the bridge up toward the record's level costs it 1.4 every time. Hall bus ±3 dB: 71.58/71.71 |
 
 ## Tried and rejected (don't re-run without a new reason)
 - Guitars: amp gain/scrape/pick-noise for the 'saw' valleys (no effect; pitch glide was the lever); stiffer strings
