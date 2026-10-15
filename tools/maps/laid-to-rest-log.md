@@ -103,3 +103,6 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | note | like-for-like bass (ref bass stem vs our separated bass, same htdemucs_6s): ours +13..+19 dB below 80 Hz (sine sub; the record's bass has little under 80 Hz) and +10..+35 dB above 315 Hz (brighter grind); the per-section EQ's -6..-8 dB at 45 Hz has been compensating at the master | | |
 | bhp / blp / bamix | (v33) bass hp 70 Hz 68.095; lp 1.5 kHz 67.857; amp blend 0.4 67.513 | | no: the master (EQ, rides) is fitted around the old bass; trying a re-master pipeline (rm1: hp bass, no per-section EQ/ride -> refit EQ -> re-ride) |
 | rm1 / rm2 / rm3 | re-master around a hp-70 bass: no per-section EQ/ride 64.866 -> fresh per-section EQ 65.762 -> fresh 1 s ride 67.419 | | no (v33 68.359: its master was refined over many passes) |
+| metric | likeness gains a mastering term (level + crest, 1ffa987): v33 68.359 -> 66.001 on the new metric | | |
+| lda4 / lda6 | v33 + 4 dB / + 6 dB into the ceiling limiter | 67.030 / 66.948 | |
+| v34 | v33 + 5 dB into the ceiling limiter (the record is a crushed 2004 master: -9.5 dBFS RMS, crest 9.5 dB) | 67.050 | yes |
