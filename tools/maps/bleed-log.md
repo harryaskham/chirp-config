@@ -101,6 +101,10 @@ Reference: album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825;
 - Master glue threshold −14 → −17 dB (our crest is 0.5-1.1 dB above the record's): 70.16 vs 71.07.
 - Bridge keys variants on top of v34: X/2b X,Y/2b (both pitches from beat 3) 71.05 (chroma 39, spectral 50); X/2b Y/1.5b Z/0.5b
   (keep the bar-end pitch) 71.07 (chroma 50 but rhythm 47.6 — the slot-15 onset). Keys out of the bridge: 71.16 (loudness −15).
+- Bridge pitch: the record centres on D#5/C#5 (622/554 Hz peaks; D# 0.43 of the chroma), ours on D#4/C#4 with strong
+  C#3/D#3. Octave-up: keys 72.35 (bridge chroma 48.7 → 55.7 but loudness −5, solo/outro −0.7), clean 72.32, both 71.91.
+- Vocal pitch per section (tracked modes) disagrees with the scores; global Ab4 is best or tied everywhere but falling
+  (A4 +0.1) — not worth splitting. Per-syllable tracked pitch: 72.11.
 
 ## Metric notes
 - loudness term: 0.5 s / 1 s-window contour; steady sections score ~45-50 whatever the match (per-bar levels are
