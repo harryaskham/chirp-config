@@ -31,9 +31,9 @@
    "owner": "chirp-climb2",
    "metric": "python3 tools/likeness.py sections ref/bleed.wav OUT.wav $(cat tools/bleed-sections.txt)",
    "best": {
-    "score": 65.8,
-    "version": "v21",
-    "commit": "5d54a2b"
+    "score": 65.9,
+    "version": "v22",
+    "commit": "91e9a2e"
    },
    "passes": 1,
    "enabled": true
