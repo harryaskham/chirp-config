@@ -21,6 +21,8 @@ Reference: album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825;
 | v16 | 63.6 | per-section master EQ on implement-heed and BLEED YOU WILL (filter gains on auto.s3/auto.s4 lanes) |
 | v17 | 64.3 | more ambience: obzen-kit room 0.09 → 0.15, m8-obzen plate 0.06 → 0.10 (drier measured worse) |
 | v18 | 65.0 | chirper-one's sectioneq.py (7-band LS per-section master EQ) on all sections but the bridge |
+| v19 | 65.4 | vocal timing: stemvox --onsets flux --grid 0.03125 --min 0.0625 --shift 7 (syllable recall 0.15-0.31 → 0.41-0.74) |
+| v20 | 65.51 | obzen-kit china self-choke (`x: {choke: x}`): a re-struck china cuts its own wash instead of stacking it; rhythm +0.4..+2 in the china sections |
 
 ## Tried and rejected (don't re-run without a new reason)
 - Guitars: amp gain/scrape/pick-noise for the 'saw' valleys (no effect; pitch glide was the lever); stiffer strings
@@ -40,6 +42,18 @@ Reference: album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825;
   separation control), but no time shift fixes it — accents/articulation, unresolved.
 - Bridge: ambient-swell / m8-clean for the tab's 'piano atmosphere' (35.6 / 40.7 vs rhodes 43.5); stem-transcribed
   re-articulation of the clean part (45.6) or a dotted-eighth delay (45.1) vs 47.7.
+- Voice-layer vocals (kidman: scream 0.8, fold 0.6 — every voxprofile feature inside Jens' IQR) with stemvox
+  --phones consonants/vowels: 65.2 level-matched (+4/+6/+8 dB all 65.0-65.2) vs bark 65.4. Earlier kidman runs were
+  6-7 dB under-gained — always level-match voice A/Bs. A tie for the operator's ears.
+- Humanize feel (a41c070): drums drift 6 ms 63.8 (−1.6); guitars+bass gate 0.15 65.3; drums accent 0.3 65.4.
+- Master lowshelf −7 dB @34 Hz (the fit's residual): 65.2 — the deep sub is part of the match.
+- Modal cymbals (chirper-one): old china+crash 63.4 (−5/−9 dB) / 62.2 (+3 dB); re-voiced metal china 64.9 at −5 dB,
+  63.8 level-matched (−0.4 dB), 63.9 with self-choke; + brightened crash 64.7. In the BLEED section it over-fills
+  4-14 kHz (+2..+4.5 dB vs metal-kit x) and loses rhythm/stereo. Crash self-choke on top of v20: 65.36 (crashes ring
+  out in sparse passages).
+- Built-in m8-lead on the m8 string (7ff2824) for the solo: 64.4 (solo 72.5 → 65.8: loudness contour −13, chroma −13;
+  +2 dB at 1-3 kHz, thin ~340 Hz; Fredrik's lead is near-infinite sustain). Bleed keeps the old synth lead —
+  m8-lead-synth is bit-identical to the chirp-config m8-lead copy; switch to it once the groove is >= 7ff2824.
 
 ## Metric notes
 - loudness term: 0.5 s / 1 s-window contour; steady sections score ~45-50 whatever the match (per-bar levels are
