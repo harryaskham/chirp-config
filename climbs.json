@@ -229,15 +229,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/come-down.wav OUT.wav $(cat tools/come-down-sections.txt)",
       "best": {
-        "score": 30.4,
-        "version": "v2",
+        "score": 38.0,
+        "version": "v3",
         "commit": "see git log songs/come-down.yaml",
         "engine": "51cfe09"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 2,
+      "rounds": 3,
       "priority": 1.0,
       "genre": "funk / hip-hop (Malibu, 2016; prod. Hi-Tek)",
       "requested": {
@@ -246,8 +246,8 @@
         "note": "The band performance: the Tiny Desk concert (Harry). Reproducing the room, audience and bleed is a non-goal. Measure the performance only: clip tightly; if room tone still costs points, denoise the reference clip once (e.g. ffmpeg afftdn, settings recorded in tools/come-down-ref.txt) or score against its instrument-stem sum, and say which in this climb's metric so every round measures the same way. If the metric still rewards noise, fix likeness.py for live references rather than adding noise to the song."
       },
       "last": {
-        "at": "2026-10-15T22:24:17Z",
-        "who": "chirper-one"
+        "at": "2026-10-15T22:51:21Z",
+        "who": "chirper-two"
       },
       "clip": "from the first note at 0:00 to the last note's decay before the applause (find the end from the audio: drums and bass stop, broadband applause starts); 938 s video, songs follow: Heart Don't Stand A Chance, Put Me Thru, Suede"
     },
