@@ -80,6 +80,8 @@ Reference: album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825;
 - Master clip (97092a5) after the v27 levels: drive 2 dB 68.65, 4 dB 66.32 (v27 69.67) — the section levels already
   match the record; clipping over-crushes (Laid to Rest gained only because it was 4 dB short).
 - Pick 1/7 on bass-fat (0.2 → 0.143): −0.02; on lead-tape atmos: 0.
+- Vocal track highshelf 2.5 kHz −4 dB on top of v28 (toward the stem's 1243 Hz centroid): 69.63 vs 69.71 — the mix wants
+  the brighter voice.
 
 ## Metric notes
 - loudness term: 0.5 s / 1 s-window contour; steady sections score ~45-50 whatever the match (per-bar levels are
