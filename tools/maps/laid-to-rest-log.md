@@ -41,3 +41,6 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | ks | c5 + snare +4 + kick +3 | 57.564 | no |
 | v12 | c5 + snare +4 dB (mixfeel: the record's 250 Hz-2.5 kHz crest 9-10 dB vs ours 4-6, hit-to-hit vary 3.6-4.2 vs 1.4-2.0) | 58.525 | yes |
 | v13 | snare +6 dB (kit.s.gain=7dB) | 58.774 | yes |
+| h0 | v13 on a41c070 (humanize feel off) | 58.774 | bit-identical |
+| h1 | guitars humanize drift 5ms + gate 0.15 | 58.763 | neutral (choruses/outro +0.6..0.9, intro/verse/breakdown -0.4..0.9) |
+| v14 | snare +8 dB | 58.963 | yes |
