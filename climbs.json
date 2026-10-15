@@ -138,7 +138,7 @@
       "id": "saturnine",
       "song": "songs/saturnine.yaml",
       "reference": "GoGo Penguin — Saturnine",
-      "source": null,
+      "source": "https://www.youtube.com/watch?v=WW6JY2WcEUI",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/saturnine.wav OUT.wav $(cat tools/saturnine-sections.txt)",
       "best": null,
