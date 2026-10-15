@@ -18,3 +18,5 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | m05 | master EQ at 0.5x | 51.440 | no |
 | l2 | lift lane +-1 dB (on v5) | 52.225 | (combine) |
 | v7 | snare Ab3 (no stiffness) + master EQ + lift +-1 dB | 53.978 | yes |
+| k2 | kick Ab1 (drive 0.35) | 53.677 | no |
+| v8 | kick Ab1 + drive 0.1 (our kit read E21: the driven A1 kick's 3rd harmonic; the record's drums read Ab24 A20) | 54.838 | yes |
