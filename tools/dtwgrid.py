@@ -2,7 +2,7 @@
 """DTW-anchored beat grid for a tab2song map: fixes the grid where riffs alias.
 
   dtwgrid.py MAP.json RENDER.wav REF.wav [--block 4] [--window 0.08] [--frame 0.1] [--minconf 0.1] [--clamp 0.15]
-            [--ref-onsets REF_STEM.wav --render-onsets OUR_SOLO.wav] [--keep-below] [-o OUT.json] [--report]
+            [--ref-onsets REF_STEM.wav --render-onsets OUR_SOLO.wav] [--keep-below] [--bars A-B] [-o OUT.json] [--report]
 
 RENDER.wav must be a render of the song MAP.json generates (so its bar times are the map's). Two signals:
 
@@ -15,7 +15,11 @@ RENDER.wav must be a render of the song MAP.json generates (so its bar times are
 --ref-onsets/--render-onsets correlate other signals with the same timelines instead of the two mixes — e.g.
 the reference's drum stem against a drums-only render of the same song: drums are the sharpest timing evidence
 (10-20 ms drifts collapse a 5 ms flux correlation). --keep-below: blocks under --minconf keep their current
-timing (lag 0) instead of taking the DTW lag — for a refinement pass on an already-aligned map. Per block, the lag is the onset-correlation peak within +-window s of the DTW lag. Block starts move to where
+timing (lag 0) instead of taking the DTW lag — for a refinement pass on an already-aligned map. --bars A-B: only
+blocks starting inside measures A..B move (the rest keep their timing) — splice a good region in. Caveats: DTW
+anchors poorly where the render does not resemble the record yet (Pneuma's drum-solo middle and outro lost 1-2.5
+per section: lags of +0.5..+1.2 s) — check per-section scores and splice with --bars/--keep-below; and stem-timed
+parts (drumtrans/stemvox/stemnotes output) are in beats, so re-transcribe them on the new grid. Per block, the lag is the onset-correlation peak within +-window s of the DTW lag. Block starts move to where
 the band played them (blocks whose onset correlation is below --minconf — sections the transcription or the
 instruments don't match yet — take the DTW lag itself; a block's tempo change is clamped to +-clamp); every kept measure gets a "bpm" override so each block spans its real duration (the
 shape inside a block scales together) and the map's offset moves with the first block. Regenerate, render,
@@ -52,6 +56,7 @@ def main():
     mpath, render, ref = a[0], a[1], a[2]
     block, window, frame = int(opt("--block", "4")), float(opt("--window", "0.08")), float(opt("--frame", "0.1"))
     minconf, clamp = float(opt("--minconf", "0.1")), float(opt("--clamp", "0.15"))
+    bar_range = tuple(int(v) for v in opt("--bars", "").split("-")) if "--bars" in a else None
     T2S, SA = load_mod("t2s", "tab2song.py"), load_mod("sa", "scorealign.py")
     mp = json.load(open(mpath))
     cache = mp["cache"] if os.path.isabs(mp["cache"]) else os.path.join(os.path.dirname(HERE), mp["cache"])
@@ -85,6 +90,8 @@ def main():
             if c > best[0]:
                 best = (c, k / 200)
         lags.append(best[1] if best[0] >= minconf else (0.0 if "--keep-below" in a else dtw_lag))
+        if bar_range and not (bar_range[0] <= keep[bi]["m"] <= bar_range[1]):
+            lags[-1] = 0.0
         confs.append(best[0])
     if "--report" in a:
         al = np.abs(lags)

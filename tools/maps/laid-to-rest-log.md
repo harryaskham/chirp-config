@@ -44,3 +44,5 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | h0 | v13 on a41c070 (humanize feel off) | 58.774 | bit-identical |
 | h1 | guitars humanize drift 5ms + gate 0.15 | 58.763 | neutral (choruses/outro +0.6..0.9, intro/verse/breakdown -0.4..0.9) |
 | v14 | snare +8 dB | 58.963 | yes |
+| h2 / h3 / h4 | guitar+bass accent 0.5 58.801 (+0.03); drums accent 0.4 + drift 4ms 57.840 (-0.93); all 57.844 | | no |
+| v15 | snare +10 dB | 59.090 | yes |
