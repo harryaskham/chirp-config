@@ -6992,7 +6992,7 @@
   },
   {
    "name": "dr-kick",
-   "patch": "carey-kit",
+   "patch": "carey-kit tune=B1",
    "raw": "tools/maps/pneuma-drums.json#kick",
    "extra": {
     "fx": [
@@ -7012,7 +7012,7 @@
   },
   {
    "name": "dr-snare",
-   "patch": "carey-kit",
+   "patch": "carey-kit tune=B1",
    "raw": "tools/maps/pneuma-drums.json#snare",
    "extra": {
     "fx": [
@@ -7032,7 +7032,7 @@
   },
   {
    "name": "dr-hats",
-   "patch": "carey-kit",
+   "patch": "carey-kit tune=B1",
    "raw": "tools/maps/pneuma-drums.json#hats",
    "extra": {
     "fx": [
@@ -7052,7 +7052,7 @@
   },
   {
    "name": "dr-toms",
-   "patch": "carey-kit",
+   "patch": "carey-kit tune=B1",
    "raw": "tools/maps/pneuma-drums.json#toms",
    "extra": {
     "fx": [
@@ -7072,7 +7072,7 @@
   },
   {
    "name": "dr-cymbals",
-   "patch": "carey-kit",
+   "patch": "carey-kit tune=B1",
    "raw": "tools/maps/pneuma-drums.json#cymbals",
    "extra": {
     "fx": [
