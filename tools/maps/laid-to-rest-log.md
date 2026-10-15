@@ -139,3 +139,4 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | vk3 / vkm3 | kidman +3 dB 70.80; -3 dB 70.77 (v46 70.87) | | no: level at its optimum |
 | v47 | kidman drive 0.5 -> 0.25 (track override; chirper-two: 98.2% vocals vs 94.8% on this track) | 70.87 (tie, plan differs) | yes (realism) |
 | vfd / vfa | vocals on one fixed note D4 / A4 (stemvox --note) | 70.80 / 70.90 (v47 70.87) | tie: per-syllable pitch stays (a scream moves) |
+| pka | right-hand rig picked at 1/8 (left stays 1/7) | 70.73 (v47 70.87; -0.1..-0.2 every seed) | no |
