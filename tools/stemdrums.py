@@ -42,7 +42,9 @@ def grid_hits(env, d0, bar, b0, b1, th=TH):
             for k in range(16):
                 t = d0 + j * bar + k * s16
                 i0, i1 = int((t - 0.015) / 0.002), int((t + 0.035) / 0.002)
-                pk = e[i0:i1].max(); fl = floor[int(t / 0.002)] + 1e-9
+                if i0 < 0 or int((t + 0.12) / 0.002) >= len(e):   # outside the stem (first/last slots)
+                    continue
+                pk = e[i0:i1].max(); fl = floor[min(int(t / 0.002), len(floor) - 1)] + 1e-9
                 if p == "c":  # crash: must still ring 120 ms later
                     if e[int((t + 0.12) / 0.002)] < 0.5 * pk:
                         continue

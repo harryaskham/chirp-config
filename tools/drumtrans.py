@@ -6,7 +6,7 @@ tempo map and quantised finely; the output is one score per piece family (kick, 
 hand drums), each with per-hit velocities, ready to drop into a song (tab2song.py "raw" parts).
 
   drumtrans.py STEM.wav SONG.yaml TEMPLATES.wav PIECES.json OUT.json [--from S] [--to S] [--grid 24] [--gain-db G]
-               [--share 0.12] [--floor 0.06] [--labels TRACK] [--shift S]
+               [--share 0.12] [--floor 0.06] [--labels TRACK] [--shift S] [--vel-gamma G]
 
 --shift S moves every hit S seconds later (latency compensation: onsets are detected on the rising edge,
 a rendered hit peaks at its start — Pneuma's high band matched best at +21 ms).
@@ -197,7 +197,7 @@ def fmt(b):
     return f"{round(b, 4):.4f}".rstrip("0").rstrip(".")
 
 
-def transcribe(stem, song, tpl_wav, pieces, t0=0.0, t1=None, grid=24, gain_db=0.0, share=0.12, floor=0.06, labels=None, shift=0.0):
+def transcribe(stem, song, tpl_wav, pieces, t0=0.0, t1=None, grid=24, gain_db=0.0, share=0.12, floor=0.06, labels=None, shift=0.0, vel_gamma=None):
     x = L.load(stem).mean(1)
     B = bands(x)
     on_all = pick(novelty(B))
@@ -214,6 +214,8 @@ def transcribe(stem, song, tpl_wav, pieces, t0=0.0, t1=None, grid=24, gain_db=0.
             kit_curve = {p: (kg[all_pieces.index(p)], kn[all_pieces.index(p)]) for p in pieces}
     else:
         T, gamma, _ = templates(tpl_wav, pieces)
+        if vel_gamma:    # kits behind a bus compressor barely grow with velocity (gamma floors at 0.3): invert linearly
+            gamma = np.full(len(pieces), float(vel_gamma))
     # weight bands so cymbal/hat bands count as much as the kick's: inverse of the stem's typical magnitude
     w = 1 / (np.median(np.sqrt(B), axis=1) + 1e-9)
     w = np.concatenate([w, w]) / w.mean()
@@ -315,7 +317,7 @@ if __name__ == "__main__":
     labels = track_hits(a[1], a[a.index("--labels") + 1]) if "--labels" in a else None
     res, n_on = transcribe(a[0], a[1], a[2], pieces, opt("--from", 0.0), (opt("--to", -1.0) if "--to" in a else None),
                            opt("--grid", 24), opt("--gain-db", 0.0), opt("--share", 0.12), opt("--floor", 0.06), labels,
-                           opt("--shift", 0.0))
+                           opt("--shift", 0.0), opt("--vel-gamma", 0.0) or None)
     json.dump(res, open(a[4], "w"))
     if "--suggest-gains" in a:
         sg = suggest_family_gains()
