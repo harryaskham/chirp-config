@@ -330,7 +330,7 @@
       "id": "hajnal",
       "song": "songs/hajnal.yaml",
       "reference": "Venetian Snares — Hajnal",
-      "source": null,
+      "source": "https://www.youtube.com/watch?v=R8HsWeWZAN8",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/hajnal.wav OUT.wav $(cat tools/hajnal-sections.txt)",
       "best": null,
