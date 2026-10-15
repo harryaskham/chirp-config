@@ -2970,6 +2970,12 @@
         },
         "fx": [
           {
+            "type": "delay",
+            "time": "12ms",
+            "feedback": 0,
+            "mix": 1
+          },
+          {
             "type": "width",
             "width": 1.0,
             "mono_below": 20,
@@ -3067,6 +3073,12 @@
           "hall": "-4dB"
         },
         "fx": [
+          {
+            "type": "delay",
+            "time": "12ms",
+            "feedback": 0,
+            "mix": 1
+          },
           {
             "type": "width",
             "width": 1.0,

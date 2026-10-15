@@ -40,6 +40,7 @@ Reference: album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825;
 | v36 | 71.58 | lead −2 → −0.5 dB (solo 74.7 → 75.0; +3 dB: 71.48). Guitars ±1.5: 71.14/71.06; overdub ±1.5: 71.50/71.53 |
 | v37 | 71.75 | keys −8 → −11 dB (bridge 53.8 → 56.6; −1.5: 71.68, −4.5: 71.68, −6: 71.64); clean/atmos ±1.5 within ±0.02 |
 | v38 | 71.84 | ride refreshed after the balance changes (levelride --accumulate 0.5 on the v37 render) everywhere but the bridge — riding the bridge up toward the record's level costs it 1.4 every time. Hall bus ±3 dB: 71.58/71.71 |
+| v39 | 72.03 | bridge parts 12 ms later (pure delay on clean + keys): the song offset is right (±10 ms: 71.30/69.86) but the bridge's rhythm rose with a later offset (61 → 70 → 77 at +10/+20 ms); 20 ms: 72.02 (outro −0.7), clean 20 + keys 12: 72.02 |
 
 ## Tried and rejected (don't re-run without a new reason)
 - Guitars: amp gain/scrape/pick-noise for the 'saw' valleys (no effect; pitch glide was the lever); stiffer strings
