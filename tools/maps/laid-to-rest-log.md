@@ -106,3 +106,5 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | metric | likeness gains a mastering term (level + crest, 1ffa987): v33 68.359 -> 66.001 on the new metric | | |
 | lda4 / lda6 | v33 + 4 dB / + 6 dB into the ceiling limiter | 67.030 / 66.948 | |
 | v34 | v33 + 5 dB into the ceiling limiter (the record is a crushed 2004 master: -9.5 dBFS RMS, crest 9.5 dB) | 67.050 | yes |
+| rr5 | v34 + 1 s fader re-ride on the limited render (--accumulate) | 67.357 | (combine) |
+| v35 | v34 with the chorus lift lane doubled to +-2 dB (the ceiling limiter squashes a +-1 dB lift) | 67.477 | yes |
