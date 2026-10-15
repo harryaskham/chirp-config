@@ -48,6 +48,7 @@ Reference: album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825;
 | v44 | 72.64 | obzen-kit crash −9 → −7 dB (−5: 72.61; −11: 72.35). Open hat ±2 dB: neutral |
 | v45 | 72.67 | bridge high texture: ambient-swell holding Eb5 (C#5 in each 4-bar cycle's C# bar), −9 dB (the record's bridge centres on D#5/C#5; the tab's atmos rests there): bridge chroma 48.7 → 50.8. −15 dB 72.65; drone-shimmer ±0; ebow 72.41; lead-tape 72.36-72.42 (mono → stereo loss) |
 | v46 | 72.69 | bridge parts widened instead of counter-narrowed (clean, keys, hall: ×1.5 from 120 Hz, ×1.6 from 3.5 kHz): the record's bridge is near-decorrelated (S/M ≈ −1 dB), ours was 2.4-4.3 dB narrower; stereo 49.8 → 52.4. ×2.0/2.2: 72.51; no width stage: 72.61 |
+| v47 | 72.75 | bridge contour ride: levelride (--win 1.5 --step 0.5, 0.7) fitted on v46, kept only inside the bridge with its mean shift removed (contour, not level — raising the bridge always lost): bridge loudness 51.4 → 58.5 |
 
 ## Tried and rejected (don't re-run without a new reason)
 - Guitars: amp gain/scrape/pick-noise for the 'saw' valleys (no effect; pitch glide was the lever); stiffer strings
