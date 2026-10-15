@@ -25,6 +25,7 @@ Reference: album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825;
 | v20 | 65.51 | obzen-kit china self-choke (`x: {choke: x}`): a re-struck china cuts its own wash instead of stacking it; rhythm +0.4..+2 in the china sections |
 | v21 | 65.77 | tab bends: songsterr.py emits Songsterr bends (tone/25 semitones, read mid-note) as bend= tokens; the riff's B25/B50 pedal bends sound E/F over the open D# (chroma riffs +2.9, ripples +2.0, falling +2.6). Needs chirp ≥ 4049ee3: bend=/cc never reached patches with their own fx before |
 | v22 | 65.92 | tab correction: bars 81-97 write D3 (guitars, s5f11) / D2 (bass) where the record plays the D# octave — map `subst` D3→Eb3, D2→Eb2 (per-bar f0 vs the stems; implement chroma 34.7 → 39.9) |
+| v23 | 66.07 | bridge darkness re-fit: master auto.dark 4× lp 1.4 kHz → 1.7 kHz (−3.85 → −3.55 oct): bridge 48.3 → 50.2 (spectral +5.5, ltas +7.5). 2.0k 66.02, 2.8k 65.78, 2 stages @1.4k 66.02, 2 stages @2k 65.84 |
 
 ## Tried and rejected (don't re-run without a new reason)
 - Guitars: amp gain/scrape/pick-noise for the 'saw' valleys (no effect; pitch glide was the lever); stiffer strings
@@ -61,6 +62,9 @@ Reference: album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825;
 - modal-china f9c8e62 (faster HF decay) with the self-choke: 64.20 level-matched, 64.84 at −3 dB.
 - Kick pitch (B1 since v15): F1 62.33, F#1 62.07, G1 62.46, A#1 65.10, C2 65.48 vs B1 65.77 — the stem's 41-47 Hz
   'kick' is bass leakage; B1 is the optimum.
+- Bleed-section guitars E2→Eb2 (bars 108-121, barchroma 0.3 → 0.96 per bar): 65.921 = v22 (mix chroma +0.2) — not kept.
+- Bridge 'missing low end' (−25..−32 dB at 30-100 Hz) is the previous section's last hit ringing ~1.5 s into the window,
+  not a drone: the record's bridge is −80 dB at 50-110 Hz after 2 s. Its 'drum stem' onsets are noise-floor artefacts.
 
 ## Metric notes
 - loudness term: 0.5 s / 1 s-window contour; steady sections score ~45-50 whatever the match (per-bar levels are
