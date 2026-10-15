@@ -2,12 +2,15 @@ about: >-
   Maynard James Keenan-style lead (Tool, A Perfect Circle) on chirp's synthesised voice layer: a baritone
   sung mostly soft and close with a pressed edge on accents. The vowel follows `expr.vow` (absolute,
   u 0 – o 0.25 – a 0.5 – e 0.75 – i 1), written per note by tools/stemvowels.py from the reference vocal
-  (`A3/1b^vow=0.62`); without it the vowel sits at u. Velocity adds effort, `^rasp` strains.
+  (`A3/1b^vow=0.62`); without it the vowel sits at u. Consonants: `^on=N`/`^off=N` (voice-layer codes),
+  measured per note by tools/stemconsonants.py. Velocity adds effort, `^rasp` strains.
 play: {mono: true, glide: 70ms, humanize: {time: 6ms, vel: 0.05}}
 synth:
   layers:
     - type: voice
       vowel: {value: 0, mod: [{src: expr.vow, amount: 1}]}
+      onset: expr.on
+      coda: expr.off
       breath: {value: 0.25, mod: [{src: vel, amount: -0.12}]}
       effort: {value: 0.25, mod: [{src: vel, amount: 0.45}]}
       rasp: {value: 0, mod: [{src: expr.rasp, amount: 1}]}
