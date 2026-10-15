@@ -2389,43 +2389,20 @@
   },
   {
    "name": "pads",
-   "track": 6,
    "patch": "marimba",
-   "bars": [
-    [
-     1,
-     400
-    ]
-   ],
-   "gain": "-4dB",
+   "raw": "tools/maps/pneuma-pads.json#part",
    "extra": {
     "sends": {
      "hall": "-6dB"
     }
-   }
+   },
+   "gain": "-4dB"
   },
   {
    "name": "kit-intro",
-   "track": 7,
    "patch": "carey-kit",
-   "bars": [
-    [
-     1,
-     36
-    ]
-   ],
-   "remap": {
-    "m60": "dha",
-    "m61": "tun",
-    "m62": "te",
-    "m63": "tin",
-    "m64": "ge",
-    "m65": "ke",
-    "m76": "wb",
-    "m85": "cas",
-    "m92": "gong",
-    "m98": "gong"
-   },
+   "raw": "tools/maps/pneuma-kitintro.json#part",
+   "extra": {},
    "gain": "-4.0dB"
   },
   {
