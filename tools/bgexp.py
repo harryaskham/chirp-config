@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Background experiment queue for climbs: render + score song variants detached, a few at a time.
 
-  bgexp.py run NAME SONG.yaml [--ref ref/X.wav] [--sections tools/X-sections.txt] [--slots 3] [-- extra chirp render args]
+  bgexp.py run NAME SONG.yaml [--ref ref/X.wav] [--sections tools/X-sections.txt] [--slots 3] [--max-load L] [-- extra chirp render args]
   bgexp.py status [--since MINUTES] [PREFIX]
   bgexp.py wait NAME [NAME...]          # block until those finish (for scripts)
 
-Each job waits for one of --slots concurrency slots (flock files), renders at nice 15 with the pinned build
+Each job waits until the 1-min load average is below --max-load (default 3x cores: don't pile onto a host storm
+while the live groove plays) and for one of --slots concurrency slots (flock files), renders at nice 15 with the pinned build
 ($CHIRP or /tmp/lt/chirp-main/cli/chirp/target/release/chirp), then scores with likeness.py (sections + the
 unrounded weighted total) and mixfeel.py; records the binary used (pin CHIRP to an immutable copy: a shared build path can be rebuilt under a queue) (punch/crest/vary per band), writing $BGEXP_DIR/NAME.json and
 NAME.log ($BGEXP_DIR defaults to /tmp/lt/exp; give each climb its own so climbers don't wait on each other's slots). Never plays audio. Defaults (--ref/--sections) are the shadows climb's.
@@ -33,13 +34,17 @@ def opt(args, flag, default):
     return default
 
 
-def job(name, song, ref, sections, slots, extra):
+def job(name, song, ref, sections, slots, extra, max_load=None):
     os.makedirs(EXP, exist_ok=True)
     out = f"{EXP}/{name}.json"
     state = {"name": name, "song": song, "state": "queued", "queued": time.time()}
     json.dump(state, open(out, "w"))
     lock = None
+    max_load = max_load or 3.0 * (os.cpu_count() or 8)
     while lock is None:
+        if os.getloadavg()[0] > max_load:  # host storm: don't pile on (the live groove underruns)
+            time.sleep(10)
+            continue
         for k in range(slots):
             f = open(f"{EXP}/slot-{k}.lock", "w")
             try:
@@ -133,6 +138,7 @@ def main():
         ref = opt(a, "--ref", "ref/shadows.wav")
         sections = opt(a, "--sections", "tools/shadows-sections.txt")
         slots = int(opt(a, "--slots", "3"))
+        max_load = float(opt(a, "--max-load", "0")) or None
         name, song = a[0], os.path.abspath(a[1])
         if os.fork() == 0:
             os.setsid()
@@ -140,7 +146,7 @@ def main():
                 fd = os.open(os.devnull, os.O_RDWR)
                 for k in (0, 1, 2):
                     os.dup2(fd, k)
-                job(name, song, ref, sections, slots, extra)
+                job(name, song, ref, sections, slots, extra, max_load)
             os._exit(0)
         print(f"queued {name}")
     elif cmd == "status":
