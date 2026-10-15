@@ -119,6 +119,9 @@ Reference: album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825;
 - Master EQ refit on v44 (mastereq: residual 2.4 dB rms, low-end detail + hs 13.7k −1.9): full 72.35, half 72.51 vs 72.64 —
   the master spectrum is at noise level.
 - Closed hat (h1, 124 hits) not swept — too few hits to matter.
+- Per-stem onset check (Ripples): our drums' low-band onsets match the drum stem (corr 0.91); bass 0.09, guitar 0.16 —
+  but stemretime.py (onsets → nearest stem onset ±120 ms) loses: bass 74.17, bass+guitars 64.12 (v51 74.25). The
+  guitar stem mixes both guitars; snapping each tab onset to it scrambles the riff.
 
 ## Metric notes
 - loudness term: 0.5 s / 1 s-window contour; steady sections score ~45-50 whatever the match (per-bar levels are

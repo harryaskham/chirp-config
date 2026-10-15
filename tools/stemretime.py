@@ -54,12 +54,18 @@ def main(a):
         return secs[i] + (b - beats[i]) * 60 / bpm[i]
 
     toks = V.track_tokens(song, track)
-    ev, pos = [], 0.0                      # (start beat, length, body, rest-of-token)
+    ev, pos = [], 0.0                      # (start beat, length, body, rest-of-token, controls before it)
+    pending = []                           # control tokens (bend=, ccN=, …) ride with the next note when it moves
     for t in toks:
         m = re.match(r"^([^/]+)/([0-9.]+)b(.*)$", t)
         if not m:
+            if "=" in t:
+                pending.append(t)
             continue
-        ev.append([pos, float(m.group(2)), m.group(1), m.group(3)]); pos += float(m.group(2))
+        ctl = []
+        if m.group(1) not in ("R", "r", "_"):
+            ctl, pending = pending, []
+        ev.append([pos, float(m.group(2)), m.group(1), m.group(3), ctl]); pos += float(m.group(2))
     on = onsets(x, opt("--lo", 80.0), opt("--hi", 6000.0), max(0.0, t0 - 0.5), t1 + 0.5)
     moved = 0
     for e in ev:
@@ -75,17 +81,20 @@ def main(a):
                 moved += 1
             e.append(nb)
     # rebuild: notes at their (possibly moved) starts, each lasting to the next note's start (or its own length)
-    notes = [(e[4] if len(e) > 4 else e[0], e[0] + e[1], e[2], e[3]) for e in ev if e[2] not in ("R", "r", "_")]
+    notes = [(e[5] if len(e) > 5 else e[0], e[0] + e[1], e[2], e[3], e[4]) for e in ev if e[2] not in ("R", "r", "_")]
     notes.sort(key=lambda n: n[0])
     out, cur = [], 0.0
-    for i, (s, e_end, body, rest) in enumerate(notes):
+    for i, (s, e_end, body, rest, ctl) in enumerate(notes):
         if s < cur - 1e-9:
             s = cur
         nxt = notes[i + 1][0] if i + 1 < len(notes) else e_end
         end = min(max(e_end, s + 1 / grid), max(nxt, s + 1 / grid)) if nxt > s else s + 1 / grid
         if s > cur + 1e-9:
             out.append(f"R/{fmt(s - cur)}b")
+        out.extend(ctl)
         out.append(f"{body}/{fmt(end - s)}b{rest}"); cur = end
+    if pending:
+        out.extend(pending)
     json.dump({opt("--key", "part"): {"score": " ".join(out)}}, open(a[3], "w"))
     print(f"{len(notes)} notes; {moved} moved to stem onsets within ±{win * 1000:.0f} ms in {t0:.0f}-{t1:.0f} s; {len(on)} stem onsets")
 
