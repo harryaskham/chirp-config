@@ -31,6 +31,7 @@ Reference: album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825;
 | v26 | 68.80 | the voice engine takes the vocal: kidman (scream 0.8, fold 0.6 — voxprofile-fitted to Jens) singing stemvox --phones syllables (^on/^off consonants, ^vow vowels; tools/maps/bleed-vox-phones.txt), +6 dB, muted in the bridge (the record's bridge is vocal-free: bark muted there 68.76, kidman 68.80; at 0.2 49.2 vs bark 50.6); overdub m8-tight picked at 1/7 (+0.03) |
 | v27 | 69.67 | macro-dynamics: levelride.py fader ride (auto.ride, --win 2 --step 1 --max 6 --amount 0.7) fitted on the v26 render (+0.83; defaults --win 4: +0.46, bridge −3); clean guitar picked at 1/7 (+0.02, bridge +0.3). Bass pick 1/7: −0.02; atmos: 0 |
 | v28 | 69.71 | vocal attack 8 → 40 ms on the track (kidman synth.amp.a=40ms; Jens' onset rise is 92 ms vs ours 47): implement +0.3 |
+| v29 | 70.01 | stereo image by band (b638c6a per-band width on the master after the glue): every heavy section was ~2-3 dB too wide at 400-1200 Hz and 3-6 dB too narrow above 3.5 kHz → bands [[400, 0.77], [1200, 1], [3500, 1.55], [8000, 2.0]], mono_below 20 Hz: stereo solo 52 → 75, implement 57 → 70; bridge −2.4 (stereo 61 → 35), riffs −0.6. Needs a groove ≥ b638c6a (fa719f6) |
 
 ## Tried and rejected (don't re-run without a new reason)
 - Guitars: amp gain/scrape/pick-noise for the 'saw' valleys (no effect; pitch glide was the lever); stiffer strings

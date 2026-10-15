@@ -2414,6 +2414,29 @@
       "fx": [
         "glue threshold=-14dB ratio=2.5 attack=10ms release=120ms makeup=4dB",
         {
+          "type": "width",
+          "width": 1.0,
+          "mono_below": 20,
+          "bands": [
+            [
+              400,
+              0.77
+            ],
+            [
+              1200,
+              1.0
+            ],
+            [
+              3500,
+              1.55
+            ],
+            [
+              8000,
+              2.0
+            ]
+          ]
+        },
+        {
           "type": "eq",
           "bands": [
             {
