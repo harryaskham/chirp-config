@@ -37,3 +37,6 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | tu7 / tu9 / ld1 / va9 | (v9n) a4 447 54.927; a4 450 54.327; lead on m8-rhythm-r 54.604; aligned vocals on new kidman 55.107 (+0.04) | | no / no / no / (combine) |
 | c4 | v10 + no pinch harmonics | 57.896 | |
 | v11 | per-section EQ at 1.3x + no pinch harmonics (map "strip": ["ph"]) | 57.949 | yes |
+| c5 | per-section EQ 1.0x + no pinch + vocals re-aligned to the v4+ grid (they were ~230 ms early) | 57.918 | (base) |
+| ks | c5 + snare +4 + kick +3 | 57.564 | no |
+| v12 | c5 + snare +4 dB (mixfeel: the record's 250 Hz-2.5 kHz crest 9-10 dB vs ours 4-6, hit-to-hit vary 3.6-4.2 vs 1.4-2.0) | 58.525 | yes |

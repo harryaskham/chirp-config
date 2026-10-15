@@ -59,8 +59,8 @@
    "owner": "chirp-climb3",
    "metric": "python3 tools/likeness.py sections ref/laid-to-rest.wav OUT.wav $(cat tools/laid-to-rest-sections.txt)",
    "best": {
-    "score": 57.9,
-    "version": "v11",
+    "score": 58.5,
+    "version": "v12",
     "commit": "see git log songs/laid-to-rest.yaml",
     "engine": "2e0ac67"
    },
