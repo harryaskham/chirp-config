@@ -7,7 +7,10 @@ for any climbing agent's next pass, one climb to work on, weighted towards the f
   climb.py next [--as NAME] [--peek] [--json] [--seed N]
                                                     pick this pass's climb (and say what to do)
   climb.py done ID --note TEXT [--score S --version vN] [--next TEXT] [--engine SHA]
-               [--with FILE …] [--as NAME]          record the round (kept or not), hand off
+               [--with FILE …] [--as NAME] [--force]
+                                                    record the round (kept or not), hand off; --with refuses
+                                                    files changed after another agent started this climb
+                                                    (unless --force)
   climb.py status [--json]                          every climb: status, rounds, best, last round, odds
   climb.py log ID [-n N]                            a climb's rounds
   climb.py set ID KEY=VALUE …                       edit a climb's fields (source, genre, metric, …)
@@ -16,7 +19,9 @@ for any climbing agent's next pass, one climb to work on, weighted towards the f
 
 Sampling: weight = priority / (1 + rounds), halved for a climb another agent started in the last
 30 min (spread, not a lock: two agents on one song is fine), ×0.3 for the climb you did last and
-×0.6 for its genre (switch it up). Requested songs have no rounds, so they come up first.
+×0.6 for its genre (switch it up). Requested songs have no rounds, so they come up first — but a
+song's setup is one agent's job: one with no rounds that another agent started in the last 2 h is
+skipped (it writes shared unversioned paths) until that first round is done.
 
 State, in this repo (the tool commits its own files and pushes; --no-git to skip):
   climbs.json          the registry — the groove's playlist plays its `enabled` entries
@@ -41,6 +46,10 @@ HIST = os.path.join(ROOT, "climbs")
 STATE = os.path.join(os.environ.get("XDG_STATE_HOME") or os.path.expanduser("~/.local/state"), "chirp")
 STARTS = os.environ.get("CLIMB_STARTS") or os.path.join(STATE, "climb-starts.jsonl")
 SPREAD = 30 * 60
+# A song's setup (its first round) writes unversioned shared paths — ref/ID.wav, stems, songs/ID.yaml,
+# tools/ID-sections.txt — so one agent sets it up: `next` skips a song with no rounds that another agent
+# started within this long (it expires on its own and ends with that round's `done`).
+SETUP_HOLD = 2 * 3600
 QUEUED = ("requested", "active")
 SKILL = "the chirp-song-reproduction skill (tools repo: skills/chirp-song-reproduction/SKILL.md)"
 
@@ -212,6 +221,9 @@ def weights(reg, me):
     for c in reg["climbs"]:
         if c["status"] not in QUEUED:
             continue
+        if c["rounds"] == 0 and any(s["id"] == c["id"] and s.get("who") != me and t - s.get("t", 0) < SETUP_HOLD
+                                    for s in st):
+            continue  # someone is setting it up
         w = float(c.get("priority", 1)) / (1 + c["rounds"])
         others = [s for s in st if s["id"] == c["id"] and s.get("who") != me and t - s.get("t", 0) < SPREAD]
         if others:
@@ -362,6 +374,20 @@ def cmd_done(a):
     me = whoami(a)
     score = float(opt(a, "--score")) if opt(a, "--score") else None
     version = opt(a, "--version")
+    # Files others may have written: another agent on this climb since (or shortly before) you started it.
+    withs = multi(a, "--with")
+    if withs and "--force" not in a:
+        st = starts()
+        mine = [s["t"] for s in st if s["id"] == cid and s.get("who") == me]
+        since = (mine[-1] if mine else time.time()) - SPREAD
+        others = [s for s in st if s["id"] == cid and s.get("who") != me and s.get("t", 0) >= since]
+        if others:
+            first = min(s["t"] for s in others)
+            touched = [p for p in withs if os.path.exists(os.path.join(ROOT, p)) and os.path.getmtime(os.path.join(ROOT, p)) > first]
+            if touched:
+                die(f"{', '.join(sorted({s['who'] for s in others}))} also started {cid} while you were on it, and "
+                    f"{', '.join(touched)} changed since: check they hold your version (git diff), coordinate, then "
+                    f"re-run with --force (or drop --with and commit yourself)", 3)
     with registry() as reg:
         c = find(reg, cid)
         best = c.get("best") or {}
