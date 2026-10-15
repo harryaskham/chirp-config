@@ -140,3 +140,4 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | v47 | kidman drive 0.5 -> 0.25 (track override; chirper-two: 98.2% vocals vs 94.8% on this track) | 70.87 (tie, plan differs) | yes (realism) |
 | vfd / vfa | vocals on one fixed note D4 / A4 (stemvox --note) | 70.80 / 70.90 (v47 70.87) | tie: per-syllable pitch stays (a scream moves) |
 | pka | right-hand rig picked at 1/8 (left stays 1/7) | 70.73 (v47 70.87; -0.1..-0.2 every seed) | no |
+| v48 | right guitar's pre-chorus chords (bars 34-41, 62-69) ring instead of the tab's 3-beat ^dead chords (a tab artifact: the left guitar plays the chromatic line under ringing C/Bb/F/Eb chords) — map strip ["dead"] on gtr-r/gtr-r2 | 71.00 held-out (v47 70.87; pre-chorus sections +0.7/+0.8) | yes |

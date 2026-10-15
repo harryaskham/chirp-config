@@ -2972,7 +2972,10 @@
      135
     ]
    ],
-   "pan": 1
+   "pan": 1,
+   "strip": [
+    "dead"
+   ]
   },
   {
    "name": "gtr-r2",
@@ -2985,7 +2988,10 @@
     ]
    ],
    "pan": 0.85,
-   "gain": "-3dB"
+   "gain": "-3dB",
+   "strip": [
+    "dead"
+   ]
   },
   {
    "name": "lead",
