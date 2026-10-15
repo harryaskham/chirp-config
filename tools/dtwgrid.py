@@ -96,12 +96,12 @@ def main():
         dtw_lag = s0 - float(f([s0])[0])               # + = render later than the recording
         if "--around-zero" in a:
             dtw_lag = 0.0
-        i0, i1 = int(s0 * 200), int(s1 * 200)
-        o = fo[i0:i1] - fo[i0:i1].mean()
+        i0, i1 = int(s0 * 200), min(int(s1 * 200), len(fo))
+        o = fo[i0:i1] - fo[i0:i1].mean() if i1 > i0 + 1 else np.zeros(0)
         best = (-9.0, dtw_lag)
         for k in range(int((dtw_lag - window) * 200), int((dtw_lag + window) * 200) + 1):
             j0, j1 = i0 - k, i1 - k
-            if j0 < 0 or j1 > len(fr):
+            if len(o) < 2 or j0 < 0 or j1 > len(fr):
                 continue
             r = fr[j0:j1] - fr[j0:j1].mean()
             c = float((o * r).sum() / (np.linalg.norm(o) * np.linalg.norm(r) + 1e-9))
