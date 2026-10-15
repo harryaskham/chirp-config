@@ -113,3 +113,5 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | v36 | v35 + re-ride + guitars picked at 1/7 | 68.240 | yes |
 | pu13 | guitar pickups at 1/13 | 68.224 | no |
 | v37 | bass picked at 1/7 too (was 0.2 = 1/5, cancelling its 5th harmonic) | 68.312 | yes |
+| inb | bars 3-5 per-bar grid only (offset/bar 2 kept) | 68.226 | no (intro +0.5; other sections moved +-1.6 = noise) |
+| noise floor | v37 at seeds default / 3 / 5: 68.312 / 67.612 / 67.569 (sections +-1..1.5). The default seed is a ~0.7 lucky draw; single-seed changes under ~0.5 are noise. From here: seed-average (seedscore.py) anything small. Kept small steps (dwx +0.06, c13 +0.06, spl +0.08, bpk7 +0.07, tune +0.17) were never seed-checked | | |
