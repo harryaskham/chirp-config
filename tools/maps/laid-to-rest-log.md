@@ -130,3 +130,4 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | sr05 (held-out seeds 7/13/17) | residual per-section EQ fitted on the averaged spectra of v41 at seeds 3/5/11 (0.5x, added to the lanes) | 68.53 vs v41 68.67 (paired -0.1 each) | no: the EQ is at its optimum |
 | v41 held-out | seeds 7/13/17 | 68.67 (same as v40: the bark switch is score-neutral) | |
 | v42 | per-band master width (fa719f6): side scaled per likeness band by the record's side/mid over ours (measured on v41 at seeds 3/5/11; mids 400-1200 Hz x0.82 and air 8-16 kHz x0.71 narrower, sub x0.77, low-mids x1.12) | 69.20 held-out (v41 68.67; +0.5 every seed); half strength 69.10 | yes |
+| v43 | second per-band width pass (residual ratios from v42 at seeds 3/5/11: the clip/limiter and 12 dB/oct crossovers mean one pass under-corrects; low 60-150 and himid 1.2-3.5k needed ~0.75-0.83 more) | 69.50 held-out (v42 69.20; +0.3 every seed) | yes |
