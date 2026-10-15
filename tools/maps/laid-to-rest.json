@@ -3085,7 +3085,7 @@
   {
    "name": "vox",
    "score_file": "tools/maps/laid-to-rest-vox-v30.txt",
-   "patch": "bark",
+   "patch": "kidman",
    "gain": "0dB",
    "rest": [
     [
