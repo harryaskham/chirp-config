@@ -28,7 +28,7 @@
   {
    "name": "rhythm",
    "track": 4,
-   "patch": "strat-crunch",
+   "patch": "les-paul params.drive=0.8",
    "bars": [
     [
      1,
@@ -52,7 +52,7 @@
   {
    "name": "lead-adrian",
    "track": 2,
-   "patch": "strat-crunch",
+   "patch": "les-paul params.drive=0.8",
    "bars": [
     [
      1,
@@ -70,7 +70,7 @@
   {
    "name": "lead-dave",
    "track": 3,
-   "patch": "strat-crunch",
+   "patch": "les-paul params.drive=0.8",
    "bars": [
     [
      1,
