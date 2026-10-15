@@ -32,7 +32,7 @@ kit:
   c: {pan: -0.5}
   cbl: {pan: -0.5}
   cch: {pan: 0.55}
-  x: {pan: 0.6, choke: x}   # a re-struck china cuts its own wash instead of stacking it (dense 8th chinas: +0.12 on Bleed)
+  x: {pan: 0.6, choke: x, gain: -7dB}   # a re-struck china cuts its own wash instead of stacking it (dense 8th chinas: +0.12 on Bleed); 2 dB under haake's −5 dB (+0.10; −4 dB: −0.12)
   sp: {pan: -0.2}
   t1: {pan: -0.25}
   t2: {pan: 0.05}
