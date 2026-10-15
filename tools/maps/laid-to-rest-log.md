@@ -20,3 +20,8 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | v7 | snare Ab3 (no stiffness) + master EQ + lift +-1 dB | 53.978 | yes |
 | k2 | kick Ab1 (drive 0.35) | 53.677 | no |
 | v8 | kick Ab1 + drive 0.1 (our kit read E21: the driven A1 kick's 3rd harmonic; the record's drums read Ab24 A20) | 54.838 | yes |
+| bal2 | like-for-like stem balance: bass -5, drums -3, guitars +2 (separated synthetic stems mislead) | 51.790 | no |
+| vb / gp | (v7 base) bark on aligned vocals 53.854; guitar presence +3 dB @4k 54.092 (+0.11) | | no / marginal |
+| v8n | v8 on f0b5f99 (m8 grain 0.5 default) | 54.801 | baseline |
+| gp8 | presence on v8n | 54.840 | marginal |
+| v9 | dtwgrid refinement: drum stem vs drums solo, 2-bar blocks, conf >= 0.3 else keep (bars 94-109 were 10-20 ms early) | 55.083 | yes |

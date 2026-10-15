@@ -2,7 +2,7 @@
 """DTW-anchored beat grid for a tab2song map: fixes the grid where riffs alias.
 
   dtwgrid.py MAP.json RENDER.wav REF.wav [--block 4] [--window 0.08] [--frame 0.1] [--minconf 0.1] [--clamp 0.15]
-            [-o OUT.json] [--report]
+            [--ref-onsets REF_STEM.wav --render-onsets OUR_SOLO.wav] [--keep-below] [-o OUT.json] [--report]
 
 RENDER.wav must be a render of the song MAP.json generates (so its bar times are the map's). Two signals:
 
@@ -12,7 +12,10 @@ RENDER.wav must be a render of the song MAP.json generates (so its bar times are
     precise but periodic: with steady eighths the peaks repeat every eighth (beatgrid.py's pulse phase locks to
     the wrong one, and its unwrap fails across tempo changes).
 
-Per block, the lag is the onset-correlation peak within +-window s of the DTW lag. Block starts move to where
+--ref-onsets/--render-onsets correlate other signals with the same timelines instead of the two mixes — e.g.
+the reference's drum stem against a drums-only render of the same song: drums are the sharpest timing evidence
+(10-20 ms drifts collapse a 5 ms flux correlation). --keep-below: blocks under --minconf keep their current
+timing (lag 0) instead of taking the DTW lag — for a refinement pass on an already-aligned map. Per block, the lag is the onset-correlation peak within +-window s of the DTW lag. Block starts move to where
 the band played them (blocks whose onset correlation is below --minconf — sections the transcription or the
 instruments don't match yet — take the DTW lag itself; a block's tempo change is clamped to +-clamp); every kept measure gets a "bpm" override so each block spans its real duration (the
 shape inside a block scales together) and the map's offset moves with the first block. Regenerate, render,
@@ -62,7 +65,8 @@ def main():
     B, _ = SA.feats(ref, frame)
     ci, rj, _ = SA.dtw(A, B, int(15 / dt))
     f = SA.mapping(ci, rj, dt)
-    fo, fr = flux(render), flux(ref)
+    fo = flux(opt("--render-onsets", render))
+    fr = flux(opt("--ref-onsets", ref))
     blocks = list(range(0, len(keep), block))
     lags, confs = [], []
     for bi in blocks:
@@ -80,7 +84,7 @@ def main():
             c = float((o * r).sum() / (np.linalg.norm(o) * np.linalg.norm(r) + 1e-9))
             if c > best[0]:
                 best = (c, k / 200)
-        lags.append(best[1] if best[0] >= minconf else dtw_lag)
+        lags.append(best[1] if best[0] >= minconf else (0.0 if "--keep-below" in a else dtw_lag))
         confs.append(best[0])
     if "--report" in a:
         al = np.abs(lags)
