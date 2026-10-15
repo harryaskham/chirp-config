@@ -1,4 +1,4 @@
-about: "Tenor saxophone: a reedy, breathy formant-shaped tone with a breath-noise onset, delayed vibrato and legato glides; harder notes add grit and growl. Jazz ballads, doom jazz, UK jazz leads."
+about: "Tenor saxophone, oscillator version (the built-in tenor-sax is the physical model): a reedy, breathy formant-shaped tone with a breath-noise onset, delayed vibrato and legato glides; harder notes add grit and growl. Jazz ballads, doom jazz, UK jazz leads."
 synth:
   layers:
     - {wave: saw, level: -3dB}
