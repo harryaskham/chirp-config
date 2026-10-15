@@ -236,7 +236,7 @@
       "id": "raining-blood",
       "song": "songs/raining-blood.yaml",
       "reference": "Slayer — Raining Blood",
-      "source": null,
+      "source": "https://www.youtube.com/watch?v=Gy3BOmvLf2w",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/raining-blood.wav OUT.wav $(cat tools/raining-blood-sections.txt)",
       "best": null,
