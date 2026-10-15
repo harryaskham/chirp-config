@@ -33,6 +33,8 @@ SR, NFFT, HOP = 48000, 2048, 256
 FPS = SR / HOP
 EDGES = np.geomspace(30, 16000, 41)
 WIN = int(0.07 * FPS)          # 70 ms after the onset
+NEED = {}  # piece -> (hits, dB its p95 hit needs beyond velocity 120), filled by a calibrated transcription
+
 FAMILIES = {"kick": ["k"], "snare": ["s", "rc"], "hats": ["h1", "oh", "hf"], "toms": ["t1", "t2", "t3", "ft"],
             "cymbals": ["c", "rd", "x"], "hand": ["te", "na", "tun", "ge"]}
 
@@ -245,7 +247,9 @@ def transcribe(stem, song, tpl_wav, pieces, t0=0.0, t1=None, grid=24, gain_db=0.
         for p in pieces:
             if len(amps[p]):
                 v95 = float(np.percentile([velf(pieces.index(p), a) for a in amps[p]], 95))
-                hint = f"  → raise the piece ~{20 * kit_curve[p][0] * np.log10(v95 / 120):+.1f} dB" if v95 > 127 else ""
+                need = 20 * kit_curve[p][0] * np.log10(v95 / 120)
+                NEED[p] = (len(amps[p]), need)
+                hint = f"  → raise the piece ~{need:+.1f} dB" if v95 > 127 else ""
                 print(f"  {p}: {len(amps[p])} hits, p95 velocity {v95:.0f}{hint}", file=sys.stderr)
         events = [(t, pieces[i], int(np.clip(velf(i, amp), 1, 127))) for t, i, amp in raw]
     else:
@@ -276,8 +280,35 @@ def transcribe(stem, song, tpl_wav, pieces, t0=0.0, t1=None, grid=24, gain_db=0.
     return out, len(on)
 
 
+def suggest_family_gains(min_hits=20):
+    """Track gain per family (dB, >= 0) so its pieces reach the stem's level after the kit's bus (piece gains
+    are squashed by a kit-bus compressor; track gain sits after it): the median need of its populated pieces."""
+    out = {}
+    for fam, members in FAMILIES.items():
+        needs = [NEED[p][1] for p in members if p in NEED and NEED[p][0] >= min_hits]
+        if needs:
+            out[fam] = round(max(0.0, float(np.median(needs))), 1)
+    return out
+
+
+def template_song(kit, pieces, family_gains=None):
+    """Template song: each piece at velocities 40/80/120, 2 s apart, on its own track at its family's gain — the
+    templates then measure each piece's level after the kit bus and track gain, as it plays in the song."""
+    fam_of = {p: f for f, ms in FAMILIES.items() for p in ms}
+    tracks = []
+    for i, p in enumerate(pieces):
+        g = (family_gains or {}).get(fam_of.get(p, ""), 0.0)
+        notes = " ".join(f"{p}/2@{v}" for v in (40, 80, 120))
+        tracks.append({"name": f"tpl-{p}", "patch": kit, "gain": f"{g}dB", "score": (f"R/{6 * i}b " if i else "") + notes})
+    return {"tempo": 60, "tail": "2s", "tracks": tracks}
+
+
 if __name__ == "__main__":
     a = sys.argv[1:]
+    if a and a[0] == "--template-song":
+        fg = json.load(open(a[a.index("--family-gains") + 1])) if "--family-gains" in a else None
+        json.dump(template_song(a[1], json.load(open(a[2])), fg), open(a[3], "w"))
+        sys.exit()
     opt = lambda k, d: type(d)(a[a.index(k) + 1]) if k in a else d
     pieces = json.load(open(a[3]))
     labels = track_hits(a[1], a[a.index("--labels") + 1]) if "--labels" in a else None
@@ -285,4 +316,8 @@ if __name__ == "__main__":
                            opt("--grid", 24), opt("--gain-db", 0.0), opt("--share", 0.12), opt("--floor", 0.06), labels,
                            opt("--shift", 0.0))
     json.dump(res, open(a[4], "w"))
+    if "--suggest-gains" in a:
+        sg = suggest_family_gains()
+        json.dump(sg, open(a[a.index("--suggest-gains") + 1], "w"))
+        print("suggested family gains (dB): " + json.dumps(sg), file=sys.stderr)
     print(f"{n_on} onsets → " + ", ".join(f"{k} {v['hits']}" for k, v in res.items()))
