@@ -1,74 +1,272 @@
 {
- "_protocol": [
-  "Hill-climb registry: one entry per reference track being reproduced. The live `groove` plays them in turn as a playlist (tools/playlist.py).",
-  "1. `song` is ALWAYS the best version so far. Keep experiments elsewhere (/tmp, *-wip.yaml); commit the song file only when it beats `best.score`, and update `best` in the same commit.",
-  "2. Do NOT `chirp live replace` or play your own sessions. The playlist driver (tools/playlist.py) keeps one climb queued on the groove with `chirp live queue`, reading each song file fresh about one pass before its turn.",
-  "3. Commit to this repo (git add <your files>; git commit; git pull --rebase origin main; git push origin HEAD:main). Touch only your own entry and files; never rewrite another climb's song.",
-  "4. Every song must plan with the groove's pinned binary (tools/restart-groove.sh pins origin/main builds). A song needing newer engine features is skipped (logged in /tmp/chirp-playlist.log) until the groove restarts on a newer build.",
-  "5. `passes`: how many times the song plays per turn. `enabled: false` takes a climb out of rotation. Runtime overrides (ignored by git): tools/playlist-solo holds one id to play exclusively.",
-  "6. To show Harry something, take over for one pass: `chirp live queue FILE --id groove --now --label NAME` (the rotation resumes after it). Render to files for measuring; never start a second stream on the shared sinks."
- ],
- "climbs": [
-  {
-   "id": "shadows",
-   "song": "songs/shadows.yaml",
-   "reference": "DOOM: The Dark Ages OST (Finishing Move) \u2014 When The Shadows First Lengthened (menu theme), YouTube UOXI5uSPIaQ",
-   "owner": "chirp-climb0",
-   "metric": "python3 tools/likeness.py sections ref/shadows.wav OUT.wav $(cat tools/shadows-sections.txt)",
-   "best": {
-    "score": 69.3,
-    "version": "v94",
-    "commit": "see git log songs/shadows.yaml",
-    "engine": "f4b9563",
-    "metric": "likeness with the mastering term (1ffa987)"
-   },
-   "passes": 1,
-   "enabled": true
-  },
-  {
-   "id": "bleed",
-   "song": "songs/bleed.yaml",
-   "reference": "Meshuggah \u2014 Bleed (obZen, 2008), album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825",
-   "owner": "chirp-climb2",
-   "metric": "python3 tools/likeness.py sections ref/bleed.wav OUT.wav $(cat tools/bleed-sections.txt)",
-   "best": {
-    "score": 74.2,
-    "version": "v51",
-    "commit": "6c4d0d4"
-   },
-   "passes": 1,
-   "enabled": true
-  },
-  {
-   "id": "pneuma",
-   "song": "songs/pneuma.yaml",
-   "reference": "Tool \u2014 Pneuma (Fear Inoculum, 2019), official audio YouTube 5ClCaPmAA7s",
-   "owner": "chirper-one (chirp-climb1)",
-   "metric": "python3 tools/likeness.py sections ref/pneuma.wav OUT.wav $(cat tools/pneuma-sections.txt)",
-   "best": {
-    "score": 70.5,
-    "version": "v39",
-    "commit": "ac8fe92",
-    "metric": "likeness sections with mastering term (1ffa987)"
-   },
-   "passes": 1,
-   "enabled": true
-  },
-  {
-   "id": "laid-to-rest",
-   "song": "songs/laid-to-rest.yaml",
-   "reference": "Lamb of God \u2014 Laid to Rest (Ashes of the Wake, 2004), album mix from the official video (YouTube HL9kaJZw8iw); Songsterr tab 12062",
-   "owner": "chirp-climb3",
-   "metric": "python3 tools/likeness.py sections ref/laid-to-rest.wav OUT.wav $(cat tools/laid-to-rest-sections.txt)",
-   "best": {
-    "score": 72.6,
-    "version": "v57",
-    "commit": "see git log songs/laid-to-rest.yaml",
-    "engine": "f4b9563 (width band lanes)",
-    "metric": "likeness with the mastering term (1ffa987), mean over held-out seeds 7/13/17"
-   },
-   "passes": 1,
-   "enabled": true
-  }
- ]
+  "_protocol": [
+    "Hill-climb registry: one entry per reference track being reproduced. The live `groove` plays them in turn as a playlist (tools/playlist.py).",
+    "1. `song` is ALWAYS the best version so far. Keep experiments elsewhere (/tmp, *-wip.yaml); commit the song file only when it beats `best.score`, and update `best` in the same commit.",
+    "2. Do NOT `chirp live replace` or play your own sessions. The playlist driver (tools/playlist.py) keeps one climb queued on the groove with `chirp live queue`, reading each song file fresh about one pass before its turn.",
+    "3. Commit to this repo (git add <your files>; git commit; git pull --rebase origin main; git push origin HEAD:main). Touch only your own entry and files; never rewrite another climb's song.",
+    "4. Every song must plan with the groove's pinned binary (tools/restart-groove.sh pins origin/main builds). A song needing newer engine features is skipped (logged in /tmp/chirp-playlist.log) until the groove restarts on a newer build.",
+    "5. `passes`: how many times the song plays per turn. `enabled: false` takes a climb out of rotation. Runtime overrides (ignored by git): tools/playlist-solo holds one id to play exclusively.",
+    "6. To show Harry something, take over for one pass: `chirp live queue FILE --id groove --now --label NAME` (the rotation resumes after it). Render to files for measuring; never start a second stream on the shared sinks.",
+    "7. The queue (tools/climb.py; skill chirp-song-reproduction §Climb queue): any agent climbing runs `python3 tools/climb.py next` each pass — one climb, weighted towards the fewest rounds (requested songs first) — works one round on it, and records it with `climb.py done ID --note … --next …` whether kept or not (the next agent reads it). Two agents on one song is fine. Rounds: climbs/ID.jsonl.",
+    "8. Requests: `climb.py add \"Artist - Title\"` (or --url). A requested song's first round sets it up; it joins the playlist when its first version is kept. The playlist always plays each enabled climb's `song`, its best version (rule 1). `owner` is historical: climbs belong to the pool."
+  ],
+  "climbs": [
+    {
+      "id": "shadows",
+      "song": "songs/shadows.yaml",
+      "reference": "DOOM: The Dark Ages OST (Finishing Move) — When The Shadows First Lengthened (menu theme), YouTube UOXI5uSPIaQ",
+      "owner": "chirp-climb0",
+      "metric": "python3 tools/likeness.py sections ref/shadows.wav OUT.wav $(cat tools/shadows-sections.txt)",
+      "best": {
+        "score": 69.3,
+        "version": "v94",
+        "commit": "see git log songs/shadows.yaml",
+        "engine": "f4b9563",
+        "metric": "likeness with the mastering term (1ffa987)"
+      },
+      "passes": 1,
+      "enabled": true,
+      "status": "active",
+      "rounds": 94,
+      "priority": 1,
+      "genre": "orchestral metal (game OST)"
+    },
+    {
+      "id": "bleed",
+      "song": "songs/bleed.yaml",
+      "reference": "Meshuggah — Bleed (obZen, 2008), album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825",
+      "owner": "chirp-climb2",
+      "metric": "python3 tools/likeness.py sections ref/bleed.wav OUT.wav $(cat tools/bleed-sections.txt)",
+      "best": {
+        "score": 74.2,
+        "version": "v51",
+        "commit": "6c4d0d4"
+      },
+      "passes": 1,
+      "enabled": true,
+      "status": "active",
+      "rounds": 51,
+      "priority": 1,
+      "genre": "extreme metal / djent"
+    },
+    {
+      "id": "pneuma",
+      "song": "songs/pneuma.yaml",
+      "reference": "Tool — Pneuma (Fear Inoculum, 2019), official audio YouTube 5ClCaPmAA7s",
+      "owner": "chirper-one (chirp-climb1)",
+      "metric": "python3 tools/likeness.py sections ref/pneuma.wav OUT.wav $(cat tools/pneuma-sections.txt)",
+      "best": {
+        "score": 70.5,
+        "version": "v39",
+        "commit": "ac8fe92",
+        "metric": "likeness sections with mastering term (1ffa987)"
+      },
+      "passes": 1,
+      "enabled": true,
+      "status": "active",
+      "rounds": 39,
+      "priority": 1,
+      "genre": "progressive metal"
+    },
+    {
+      "id": "laid-to-rest",
+      "song": "songs/laid-to-rest.yaml",
+      "reference": "Lamb of God — Laid to Rest (Ashes of the Wake, 2004), album mix from the official video (YouTube HL9kaJZw8iw); Songsterr tab 12062",
+      "owner": "chirp-climb3",
+      "metric": "python3 tools/likeness.py sections ref/laid-to-rest.wav OUT.wav $(cat tools/laid-to-rest-sections.txt)",
+      "best": {
+        "score": 72.6,
+        "version": "v57",
+        "commit": "see git log songs/laid-to-rest.yaml",
+        "engine": "f4b9563 (width band lanes)",
+        "metric": "likeness with the mastering term (1ffa987), mean over held-out seeds 7/13/17"
+      },
+      "passes": 1,
+      "enabled": true,
+      "status": "active",
+      "rounds": 57,
+      "priority": 1,
+      "genre": "groove metal"
+    },
+    {
+      "id": "daydreaming",
+      "song": "songs/daydreaming.yaml",
+      "reference": "Dark Dark Dark — Daydreaming",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/daydreaming.wav OUT.wav $(cat tools/daydreaming-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "chamber folk / indie",
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-15T20:01:07Z",
+        "note": null
+      }
+    },
+    {
+      "id": "saturnine",
+      "song": "songs/saturnine.yaml",
+      "reference": "GoGo Penguin — Saturnine",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/saturnine.wav OUT.wav $(cat tools/saturnine-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "jazz trio / nu-jazz",
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-15T20:01:07Z",
+        "note": null
+      }
+    },
+    {
+      "id": "the-national-anthem",
+      "song": "songs/the-national-anthem.yaml",
+      "reference": "Radiohead — The National Anthem",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/the-national-anthem.wav OUT.wav $(cat tools/the-national-anthem-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "art rock / free-jazz brass",
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-15T20:01:08Z",
+        "note": null
+      }
+    },
+    {
+      "id": "thin-thing",
+      "song": "songs/thin-thing.yaml",
+      "reference": "The Smile — Thin Thing",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/thin-thing.wav OUT.wav $(cat tools/thin-thing-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "art rock / math rock",
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-15T20:01:08Z",
+        "note": null
+      }
+    },
+    {
+      "id": "come-down",
+      "song": "songs/come-down.yaml",
+      "reference": "Anderson .Paak & The Free Nationals — Come Down",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/come-down.wav OUT.wav $(cat tools/come-down-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "funk / hip-hop",
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-15T20:01:08Z",
+        "note": "Harry named the Free Nationals: a live band version (e.g. NPR Tiny Desk) may be meant; the studio cut is on Malibu (2016) — pick the stronger band performance"
+      }
+    },
+    {
+      "id": "raining-blood",
+      "song": "songs/raining-blood.yaml",
+      "reference": "Slayer — Raining Blood",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/raining-blood.wav OUT.wav $(cat tools/raining-blood-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "thrash metal",
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-15T20:01:08Z",
+        "note": null
+      }
+    },
+    {
+      "id": "2-minutes-to-midnight",
+      "song": "songs/2-minutes-to-midnight.yaml",
+      "reference": "Iron Maiden — 2 Minutes to Midnight",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/2-minutes-to-midnight.wav OUT.wav $(cat tools/2-minutes-to-midnight-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "heavy metal (NWOBHM)",
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-15T20:01:08Z",
+        "note": "requested as 'Two Minutes to Midnight'"
+      }
+    },
+    {
+      "id": "flim",
+      "song": "songs/flim.yaml",
+      "reference": "Aphex Twin — Flim",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/flim.wav OUT.wav $(cat tools/flim-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "IDM / breakbeat",
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-15T20:01:08Z",
+        "note": null
+      }
+    },
+    {
+      "id": "hajnal",
+      "song": "songs/hajnal.yaml",
+      "reference": "Venetian Snares — Hajnal",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/hajnal.wav OUT.wav $(cat tools/hajnal-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "breakcore / orchestral",
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-15T20:01:08Z",
+        "note": null
+      }
+    }
+  ]
 }
