@@ -9,12 +9,13 @@ to the record's side/mid over the render's. Run it again on a new render to refi
 lanes by the residual): the clip/limiter after the stage and the bands' crossovers re-create or leak side, so a
 first pass under-corrects and 2-4 passes converge (stop when a pass ties).
 
-  widthfit.py IN OUT RENDER.wav REF.wav SECTIONS.txt [--bass-width 0.5] [--clip LO,HI] [--min-sec 5]
+  widthfit.py IN OUT RENDER.wav REF.wav SECTIONS.txt [--bass-width 0.5] [--clip LO,HI] [--min-sec 5] [--strength 1]
 
 IN/OUT: a tab2song map (.json; edits head.master) or a song (.yaml; replaces its `master:` line). First pass
 (no wb lanes yet): ratios clipped to 0.2..2.5; later passes 0.5..2.0 (--clip overrides). --bass-width sets the
 stage's width below its 120 Hz corner, where the band lanes do not reach (0.3-0.5 when the record's lows are
-narrower than ours). Sections shorter than --min-sec seconds of render keep the previous section's values.
+narrower than ours). --strength S applies ratio**S (0.5 = half the correction in dB: quiet acoustic records whose width is room
+sound responded better to half — Daydreaming). Sections shorter than --min-sec seconds of render keep the previous section's values.
 Prints each section's ratios. Measure the result with likeness; keep it only if it scores higher."""
 import json, re, sys
 
@@ -84,13 +85,14 @@ def main():
                     f["bass_width"] = float(opt("--bass-width", 1.0))
     R, O = L.load(ref), L.load(wav)
     minsec = float(opt("--min-sec", 5))
+    strength = float(opt("--strength", 1.0))
     for i in range(nsec):
         s0, s1 = int(cuts[i] * 48000), min(int(cuts[i + 1] * 48000), len(O), len(R))
         if s1 - s0 < minsec * 48000:
             if i:
                 cur[i] = cur[i - 1]
             continue
-        r = np.clip(L.stereo_bands(R[s0:s1]) / np.maximum(L.stereo_bands(O[s0:s1]), 1e-3), lo, hi)
+        r = np.clip(L.stereo_bands(R[s0:s1]) / np.maximum(L.stereo_bands(O[s0:s1]), 1e-3), lo, hi) ** strength
         cur[i] = np.clip(cur[i] * r, 0, 6)
         print(f"section {i + 1:2d} ratio " + " ".join(f"{v:.2f}" for v in r))
     auto.update(lanes(cuts, cur))
