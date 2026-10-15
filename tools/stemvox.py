@@ -15,6 +15,8 @@ a grid on the tab's own measure timeline (so odd-length bars stay exact), with v
   --onsets runs (default: energy runs split at dips) | flux (syllable starts at vocal-band flux peaks — the
            perceived attack; with --grid 0.03125 --min 0.0625 this tracks barked delivery far better)
   --shift  ms added to every syllable time (latency calibration against the target patch's attack)
+  --phones per syllable, ^on=/^off= consonant codes (voice layer table) and ^vow= (u 0 … i 1) from acoustic cues
+           (stems are noisy: a sketch of the syllables' shape, for voice patches binding expr.on/off/vow)
 Prints one line per bar: `bar N  tokens` (R for rests), like stemnotes.py."""
 import os
 import sys
@@ -80,6 +82,75 @@ def syllables_flux(env, hop, rng, height=96, gap=0.09, min_len=0.06):
     return segs
 
 
+VOWEL_F = [(300, 870), (460, 840), (730, 1090), (530, 1840), (270, 2290)]   # u o a e i (the voice layer's table)
+
+
+def vowel_of(seg):
+    """Position on the voice layer's u (0) – o – a – e – i (1) axis from LPC F1/F2 (log distance to the
+    five targets, interpolating between the nearest pair along the axis)."""
+    import voxprofile as VP
+    f1, f2 = VP.lpc_formants(seg)
+    if not f1 or not f2:
+        return None
+    d = [np.hypot(np.log(f1 / a), np.log(f2 / b)) for a, b in VOWEL_F]
+    i = int(np.argmin(d))
+    j = i + 1 if i == 0 else i - 1 if i == 4 else (i + 1 if d[i + 1] < d[i - 1] else i - 1)
+    w = d[i] / (d[i] + d[j] + 1e-9)
+    return round((i * (1 - w) + j * w) / 4, 2)
+
+
+def band_ratio(seg, lo, hi):
+    if len(seg) < 256:
+        return 0.0
+    f = np.fft.rfftfreq(len(seg), 1 / SR); p = np.abs(np.fft.rfft(seg * np.hanning(len(seg)))) ** 2
+    tot = p[(f >= 80) & (f < 12000)].sum() + 1e-20
+    return float(p[(f >= lo) & (f < hi)].sum() / tot)
+
+
+def centroid(seg):
+    f = np.fft.rfftfreq(len(seg), 1 / SR); p = np.abs(np.fft.rfft(seg * np.hanning(len(seg)))) ** 2
+    return float((f * p)[(f >= 80) & (f < 12000)].sum() / (p[(f >= 80) & (f < 12000)].sum() + 1e-20))
+
+
+def level(seg):
+    return 20 * np.log10(np.sqrt((seg ** 2).mean()) + 1e-9) if len(seg) else -200.0
+
+
+def consonant_at(x, t, peak_db, coda=False):
+    """Consonant class around a syllable edge (t, s) as a voice-layer code, from simple acoustic cues: noise
+    above 4 kHz → /s/ (11), 2.5-4 kHz → /sh/ (13), a gap then a burst → a stop (place by the burst's centroid:
+    low b, mid g, high d; long noise before voicing → unvoiced p/k/t), energy under 400 Hz → a nasal (m / n),
+    else none. Separation bleed makes this a sketch, not a phonetic transcription."""
+    w = lambda a, b: x[max(0, int((t + a) * SR)):max(0, int((t + b) * SR))]
+    edge = w(-0.01, 0.05) if not coda else w(-0.06, 0.0)
+    if len(edge) < 512 or level(edge) < peak_db - 35:
+        return 0
+    hf, mhf, lo = band_ratio(edge, 4000, 9000), band_ratio(edge, 2500, 4000), band_ratio(edge, 80, 400)
+    if hf > 0.35:
+        return 11
+    if mhf > 0.35:
+        return 13
+    if not coda:
+        gap = w(-0.06, -0.015)
+        if len(gap) and level(gap) < peak_db - 22:
+            burst = w(-0.005, 0.015); c = centroid(burst) if len(burst) > 256 else 2000
+            noisy = band_ratio(w(0.0, 0.04), 2000, 9000) > 0.4
+            if c < 1500:
+                return 1 if noisy else 2
+            if c < 3000:
+                return 5 if noisy else 6
+            return 3 if noisy else 4
+        if lo > 0.6:
+            return 16
+    else:
+        after = w(0.0, 0.05)
+        if len(after) and level(after) < peak_db - 22:
+            return 4
+        if lo > 0.6:
+            return 17
+    return 0
+
+
 def syllable_pitch(x, a, b, lo=55, hi=77, default="A4"):
     """Pitch of one syllable (MIDI lo..hi): harmonic summation over 5 harmonics of the segment's spectrum.
     Shouted vocals are noisy but strongly pitched; the estimate is the most salient harmonic series."""
@@ -109,6 +180,7 @@ def main():
     note, grid = opt("--note", "Eb3"), float(opt("--grid", "0.125"))
     rng, dip, mn = float(opt("--range", "30")), float(opt("--dip", "6")), float(opt("--min", "0.25"))
     mode, shift = opt("--onsets", "runs"), float(opt("--shift", "0")) / 1000
+    phones = "--phones" in a
     tl = T.timeline(tab) if tab else None
     if opt("--map", None):
         import importlib.util
@@ -142,17 +214,25 @@ def main():
                 ql = max(mn, round((te - ts) / spb / grid) * grid)
                 vel = int(np.clip(120 + 3 * lvl, 50, 124))
                 pitch = syllable_pitch(x, s, e) if note == "auto" else note
-                bars[m].append([qs, ql, vel, pitch])
+                suffix = ""
+                if phones:
+                    seg = x[int((s - shift) * SR):int((e - shift) * SR)]
+                    pk = max((level(seg[i:i + 960]) for i in range(0, max(1, len(seg) - 960), 480)), default=-200.0)
+                    on, off = consonant_at(x, s - shift, pk), consonant_at(x, e - shift, pk, coda=True)
+                    mid = seg[int(len(seg) * 0.2):int(len(seg) * 0.8)]
+                    vw = (vowel_of(mid) if len(mid) > 2048 else None) or 0.62   # an open a/e when unmeasurable
+                    suffix = (f"^on={on}" if on else "") + (f"^vow={vw}" if vw is not None else "") + (f"^off={off}" if off else "")
+                bars[m].append([qs, ql, vel, pitch, suffix])
                 break
     for m in range(b0, b1 + 1):
         nb = tl[m - 1]["beats"]; ev = sorted(bars[m]); toks, pos = [], 0.0
-        for qs, ql, vel, pitch in ev:
+        for qs, ql, vel, pitch, suffix in ev:
             if qs < pos - 1e-9 or qs >= nb:
                 continue
             if qs > pos + 1e-9:
                 toks.append(f"R/{qs - pos:g}b")
             ql = min(ql, nb - qs)
-            toks.append(f"{pitch}/{ql:g}b@{vel}"); pos = qs + ql
+            toks.append(f"{pitch}/{ql:g}b@{vel}{suffix}"); pos = qs + ql
         if pos < nb - 1e-9:
             toks.append(f"R/{nb - pos:g}b")
         print(f"bar {m:3d}  {' '.join(toks)}")
