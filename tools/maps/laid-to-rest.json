@@ -3024,7 +3024,14 @@
    "extra": {
     "sends": {
      "room": "-12dB"
-    }
+    },
+    "fx": [
+     {
+      "type": "width",
+      "width": 1.6,
+      "mono_below": 300
+     }
+    ]
    },
    "drop": [
     "m95",
@@ -3048,7 +3055,14 @@
    "extra": {
     "sends": {
      "room": "-12dB"
-    }
+    },
+    "fx": [
+     {
+      "type": "width",
+      "width": 1.6,
+      "mono_below": 300
+     }
+    ]
    },
    "drop": [
     "m95",

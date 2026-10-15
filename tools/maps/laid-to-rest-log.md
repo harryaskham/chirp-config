@@ -69,3 +69,5 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | sbody | snare body level.value -6 dB (less Eb/C imprint) | 64.352 | no: the pitched body is worth more |
 | wout / c10 | master width lane: x1.8 from the outro (the record's outro is wide in every band, ours half) | 65.244 (v21) / 65.328 (v22) | |
 | v23 | outro width x2.4 | 65.361 | yes |
+| vdbl / gn | (v22) vocals double-tracked (detune 10, pan 0.3) 64.921; (v23) guitars narrower +-0.8/0.65 64.566 | | no |
+| v24 | drums width 1.6 above 300 Hz (the record's top bands are wide; ours were narrow where the centred snare and cymbals dominate) | 66.401 | yes (every section up) |
