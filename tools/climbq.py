@@ -116,6 +116,8 @@ def worker(a):
             if job:
                 t = threading.Thread(target=go, args=(job,), daemon=True); t.start(); active.append(t); last = time.time()
                 continue
+        if active or os.listdir(os.path.join(Q, "pending")):
+            last = time.time()   # waiting on the load gate with work queued is not idle
         if not active and time.time() - last > idle_exit:
             print(time.strftime("%H:%M:%S"), "idle — exiting", flush=True)
             return
