@@ -91,6 +91,8 @@ Reference: album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825;
 - Vocal drive 0.25 (98% vocals on separation): 71.017; ring 0: 70.975 (v32 71.070) — kidman keeps drive 0.5/ring 0.1.
 - Stereo-width bracket: full 70.01, half 70.98 (kept), quarter 70.36.
 - Master glue threshold −14 → −17 dB (our crest is 0.5-1.1 dB above the record's): 70.16 vs 71.07.
+- Bridge keys variants on top of v34: X/2b X,Y/2b (both pitches from beat 3) 71.05 (chroma 39, spectral 50); X/2b Y/1.5b Z/0.5b
+  (keep the bar-end pitch) 71.07 (chroma 50 but rhythm 47.6 — the slot-15 onset). Keys out of the bridge: 71.16 (loudness −15).
 
 ## Metric notes
 - loudness term: 0.5 s / 1 s-window contour; steady sections score ~45-50 whatever the match (per-bar levels are
