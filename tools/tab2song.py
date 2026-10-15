@@ -261,12 +261,20 @@ def build(mp):
             lines_all = S.score(cache, p["track"])[2]
             lines_cache[p["track"]] = [lines_all[i] for i in keep]
         pos = {full[i]["m"]: k + 1 for k, i in enumerate(keep)}   # tab measure → kept index (1-based)
+        lines = lines_cache[p["track"]]
+        if p.get("replace"):
+            # per-bar corrections (e.g. from per-bar chroma against the stems): {"221": "D3,A3,E4/4b", ...} on the
+            # tab's measure numbers, applied before chord splitting and bar fitting
+            lines = list(lines)
+            for m, txt in p["replace"].items():
+                if int(m) in pos:
+                    lines[pos[int(m)] - 1] = txt
         ranges = []
         for a, b in p["bars"]:
             kept = [pos[m] for m in range(a, b + 1) if m in pos]
             if kept:
                 ranges.append((min(kept), max(kept)))
-        sc = part_score(lines_cache[p["track"]], beats, ranges, off_beats, p.get("remap"), p.get("drop", ()), p["name"], p.get("chord"), p.get("ring"))
+        sc = part_score(lines, beats, ranges, off_beats, p.get("remap"), p.get("drop", ()), p["name"], p.get("chord"), p.get("ring"))
         for art in list(mp.get("strip", [])) + list(p.get("strip", [])):   # e.g. "ph": drop ^ph articulations
             sc = re.sub(r"\^" + re.escape(art) + r"(?![A-Za-z0-9_])", "", sc)
         tr = {"name": p["name"], "patch": p["patch"]}
