@@ -143,3 +143,4 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | v48 | right guitar's pre-chorus chords (bars 34-41, 62-69) ring instead of the tab's 3-beat ^dead chords (a tab artifact: the left guitar plays the chromatic line under ringing C/Bb/F/Eb chords) — map strip ["dead"] on gtr-r/gtr-r2 | 71.00 held-out (v47 70.87; pre-chorus sections +0.7/+0.8) | yes |
 | note | per-bar chroma on v45/v48: median bar 0.63 (was 0.35 at v5); worst bars are the bridge's Eb2/Bb2 chugs (78-81: the record reads Eb E B Bb = those notes ~30 c sharp, ours Bb A Ab B = the kit's Ab/A over them) and chorus 3 (98-103) | | |
 | tu30 (held-out) | a4 447.6 (+30 c, the record's measured tuning) | 70.50 vs v48 71.00 | no: tuning still loses with seed averaging |
+| ks3 (held-out) | chorus 3 (98-105) on the A1 kit like choruses 1-2 | 70.83 vs v48 71.00 (verse3/chorus3 72.6 -> 71.1) | no: chorus 3 prefers Ab1 |
