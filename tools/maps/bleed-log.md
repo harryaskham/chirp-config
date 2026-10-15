@@ -54,6 +54,9 @@ Reference: album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825;
 - Built-in m8-lead on the m8 string (7ff2824) for the solo: 64.4 (solo 72.5 → 65.8: loudness contour −13, chroma −13;
   +2 dB at 1-3 kHz, thin ~340 Hz; Fredrik's lead is near-infinite sustain). Bleed keeps the old synth lead —
   m8-lead-synth is bit-identical to the chirp-config m8-lead copy; switch to it once the groove is >= 7ff2824.
+- Kit width fx (Laid to Rest's +1.45 finding): width 2 / mono_below 300 → 63.92, width 1.5 → 64.36 (v20 65.51) —
+  obzen-kit's fitted pans are already the image.
+- modal-china f9c8e62 (faster HF decay) with the self-choke: 64.20 level-matched, 64.84 at −3 dB.
 
 ## Metric notes
 - loudness term: 0.5 s / 1 s-window contour; steady sections score ~45-50 whatever the match (per-bar levels are
