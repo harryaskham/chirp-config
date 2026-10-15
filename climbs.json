@@ -112,17 +112,26 @@
       "source": "https://www.youtube.com/watch?v=UvTZwhOHYVA",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/daydreaming.wav OUT.wav $(cat tools/daydreaming-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 55.3,
+        "version": "v1",
+        "commit": "see git log songs/daydreaming.yaml",
+        "engine": "51cfe09"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "chamber folk / indie",
       "requested": {
         "by": "harry",
         "at": "2026-10-15T20:01:07Z",
         "note": null
+      },
+      "last": {
+        "at": "2026-10-15T20:32:06Z",
+        "who": "chirper-one"
       }
     },
     {

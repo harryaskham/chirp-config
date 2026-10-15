@@ -35,8 +35,9 @@ EDGES = np.geomspace(30, 16000, 41)
 WIN = int(0.07 * FPS)          # 70 ms after the onset
 NEED = {}  # piece -> (hits, dB its p95 hit needs beyond velocity 120), filled by a calibrated transcription
 
-FAMILIES = {"kick": ["k"], "snare": ["s", "rc"], "hats": ["h1", "oh", "hf"], "toms": ["t1", "t2", "t3", "ft"],
-            "cymbals": ["c", "rd", "x"], "hand": ["te", "na", "tun", "ge"]}
+FAMILIES = {"kick": ["k"], "snare": ["s", "rc", "sw", "sl", "ss", "sz", "sc", "so", "se", "g"],
+            "hats": ["h", "h1", "h2", "h3", "hs", "oh", "hf", "hp"], "toms": ["t", "t1", "t2", "t3", "ft", "ft2"],
+            "cymbals": ["c", "rd", "rds", "rde", "rb", "x", "sp", "st", "cbl"], "hand": ["te", "na", "tun", "ge"]}
 
 
 def bands(x, chunk=60.0):
