@@ -73,3 +73,6 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | v24 | drums width 1.6 above 300 Hz (the record's top bands are wide; ours were narrow where the centred snare and cymbals dominate) | 66.401 | yes (every section up) |
 | dw13 | drums width 1.3 | 65.978 | |
 | v25 | drums width 2.0 above 300 Hz | 66.812 | yes |
+| dw25 / dw30 | width 2.5 / 3.0: bit-identical to 2.0 (WidthFx clamps at 2.0) | 66.812 | |
+| g0 / gup | (v25) guitars grain 0 66.821 (neutral); guitars +2 dB 66.484 | | no |
+| v26 | drums: two stacked width stages (2.0 then 1.5, above 300 Hz) | 66.874 | yes (+0.06) |

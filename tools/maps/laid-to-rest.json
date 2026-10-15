@@ -3030,6 +3030,11 @@
       "type": "width",
       "width": 2.0,
       "mono_below": 300
+     },
+     {
+      "type": "width",
+      "width": 1.5,
+      "mono_below": 300
      }
     ]
    },
@@ -3060,6 +3065,11 @@
      {
       "type": "width",
       "width": 2.0,
+      "mono_below": 300
+     },
+     {
+      "type": "width",
+      "width": 1.5,
       "mono_below": 300
      }
     ]
