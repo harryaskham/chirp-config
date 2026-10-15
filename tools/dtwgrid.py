@@ -2,7 +2,7 @@
 """DTW-anchored beat grid for a tab2song map: fixes the grid where riffs alias.
 
   dtwgrid.py MAP.json RENDER.wav REF.wav [--block 4] [--window 0.08] [--frame 0.1] [--minconf 0.1] [--clamp 0.15]
-            [--ref-onsets REF_STEM.wav --render-onsets OUR_SOLO.wav] [--keep-below] [--bars A-B] [-o OUT.json] [--report]
+            [--ref-onsets REF_STEM.wav --render-onsets OUR_SOLO.wav] [--keep-below] [--bars A-B] [--feature flux|metric] [--around-zero] [-o OUT.json] [--report]
 
 RENDER.wav must be a render of the song MAP.json generates (so its bar times are the map's). Two signals:
 
@@ -15,7 +15,11 @@ RENDER.wav must be a render of the song MAP.json generates (so its bar times are
 --ref-onsets/--render-onsets correlate other signals with the same timelines instead of the two mixes — e.g.
 the reference's drum stem against a drums-only render of the same song: drums are the sharpest timing evidence
 (10-20 ms drifts collapse a 5 ms flux correlation). --keep-below: blocks under --minconf keep their current
-timing (lag 0) instead of taking the DTW lag — for a refinement pass on an already-aligned map. --bars A-B: only
+timing (lag 0) instead of taking the DTW lag — for a refinement pass on an already-aligned map. --feature metric: correlate likeness.py's own onset envelope (spectral flux,
+~21 ms frames, smoothed +-50 ms as the rhythm term does; interpolated to 5 ms) instead of the sharp 5 ms band
+flux — where the 5 ms flux is too noisy to correlate (Laid to Rest's breakdown: flux 0.09-0.28, metric 0.5-0.7),
+and it aligns exactly what the rhythm term scores. --around-zero: search +-window around the current timing instead of the DTW lag (a refinement pass where DTW
+itself anchors poorly). --bars A-B: only
 blocks starting inside measures A..B move (the rest keep their timing) — splice a good region in. Caveats: DTW
 anchors poorly where the render does not resemble the record yet (Pneuma's drum-solo middle and outro lost 1-2.5
 per section: lags of +0.5..+1.2 s) — check per-section scores and splice with --bars/--keep-below; and stem-timed
@@ -45,6 +49,13 @@ def load_mod(name, file):
     return mod
 
 
+def metric_onset(path):
+    F = L.Feat(L.load(path))
+    o = np.convolve(F.onset, np.ones(5) / 5, "same")
+    t = np.arange(len(o)) / L.FPS
+    return np.interp(np.arange(0, t[-1], 0.005), t, o)
+
+
 def flux(path):
     E = M.envelopes(L.load(path))
     return np.maximum(np.diff(E[1]), 0) + np.maximum(np.diff(E[4]), 0)   # 5 ms frames
@@ -70,14 +81,17 @@ def main():
     B, _ = SA.feats(ref, frame)
     ci, rj, _ = SA.dtw(A, B, int(15 / dt))
     f = SA.mapping(ci, rj, dt)
-    fo = flux(opt("--render-onsets", render))
-    fr = flux(opt("--ref-onsets", ref))
+    feat = metric_onset if opt("--feature", "flux") == "metric" else flux
+    fo = feat(opt("--render-onsets", render))
+    fr = feat(opt("--ref-onsets", ref))
     blocks = list(range(0, len(keep), block))
     lags, confs = [], []
     for bi in blocks:
         s0 = starts[bi]
         s1 = starts[bi + block] if bi + block < len(keep) else end
         dtw_lag = s0 - float(f([s0])[0])               # + = render later than the recording
+        if "--around-zero" in a:
+            dtw_lag = 0.0
         i0, i1 = int(s0 * 200), int(s1 * 200)
         o = fo[i0:i1] - fo[i0:i1].mean()
         best = (-9.0, dtw_lag)

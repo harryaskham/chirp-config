@@ -910,7 +910,7 @@
   {
    "name": "drums",
    "track": 4,
-   "patch": "metal-kit kit.s.pitch=Ab3 kit.k.pitch=Ab1 kit.k.patch.synth.drive=0.1 kit.s.gain=11dB",
+   "patch": "metal-kit kit.s.pitch=Ab3 kit.k.pitch=Ab1 kit.k.patch.synth.drive=0.1 kit.s.gain=13dB",
    "bars": [
     [
      1,

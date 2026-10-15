@@ -46,3 +46,7 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | v14 | snare +8 dB | 58.963 | yes |
 | h2 / h3 / h4 | guitar+bass accent 0.5 58.801 (+0.03); drums accent 0.4 + drift 4ms 57.840 (-0.93); all 57.844 | | no |
 | v15 | snare +10 dB | 59.090 | yes |
+| h3a / h3d / h12 | drums accent only 58.900 (-0.06); drums drift only 58.078 (-0.89: drift is the culprit); guitar drift+gate+accent + bass accent 58.979 (+0.02) | | no |
+| bk1 / bk2 | breakdown drums from drumtrans (tab elsewhere), without/with toms | 57.900 / 58.155 | no (breakdown 46.6/48.5 vs 54.5) |
+| bt1 / bt2 | breakdown per-bar tempos from transcribed-kick offsets | 58.406 / 58.434 | no: the kick offsets pointed the wrong way |
+| v16 | snare +12 dB (+4/+6/+8/+10/+12: +0.61/+0.25/+0.19/+0.13/+0.10 — stopping here) | 59.195 | yes |
