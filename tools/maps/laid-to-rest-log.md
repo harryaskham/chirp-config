@@ -155,3 +155,5 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | v54 | second per-section band pass (from v53 seeds) | 72.30 held-out (v53 71.97; +0.3..0.4 every seed) | yes |
 | v55 | third per-section band pass (residuals mostly within 15%) | 72.40 held-out (v54 72.30; +0.1 every seed) | yes |
 | se10 / se05 (held-out) | per-section EQ residual refit from v55's averaged seed spectra, full / half | 72.07 / 72.33 (v55 72.40) | no: the EQ is at its optimum given the ride, clip and stereo fits |
+| rr10 / rr05 (held-out) | re-ride (levelride --accumulate on v55 seeds 3/5/11), full / half | 72.40 / 72.40 (tie) | no: the ride is still right after the stereo work |
+| note | chorus/verse-3 chroma: section-average pitch-class profiles match within ~2% (G/F# ~1-2% light in the choruses: the left guitar's palm-muted chromatic run); the low chroma score is frame-level (which notes when under distortion), not averages | | |
