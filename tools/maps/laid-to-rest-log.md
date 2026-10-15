@@ -62,3 +62,4 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | ka / ksplit | kick A1 everywhere 63.115 (sections split: +1.2..1.6 in 1/4/5/9, -2..-3 in 7/8); A1 except bars 78-105 + outro 63.659 | | (combine) |
 | lr4 | levelride 4 s windows | 63.086 | no |
 | v20 | levelride.py fader ride at 1 s windows / 0.5 s steps, max 4 dB (the record's verse phrases its dynamics; verse 60.4 -> 67.9) | 64.641 | yes |
+| v21 | v20 + kick A1 except bars 78-105 and the outro (Ab1 there): the kick's best pitch follows the section's harmony | 65.041 | yes |
