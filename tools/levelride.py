@@ -4,9 +4,9 @@ a render of the map are compared (high-passed RMS, smoothed over --win seconds);
 automation lane (auto.ride, after the master EQ, before the song ceiling), clamped to ±--max dB and median-filtered so
 it moves like a hand on a fader, not a compressor. Re-run after arrangement or mix changes (it follows the render).
 
-  levelride.py MAP.json REF.wav RENDER.wav[,RENDER2,...] [--win 4] [--step 2] [--max 9] [--amount 1.0] [--contour --sections F] [-o OUT.json]
+  levelride.py MAP.json REF.wav RENDER.wav[,RENDER2,...] [--win 4] [--step 2] [--max 9] [--amount 1.0] [--contour --sections F] [--slew 8] [-o OUT.json]
 
---amount scales the correction (0.5 = halfway). --contour --sections F removes each section's mean correction, so the
+--amount scales the correction (0.5 = halfway). --slew caps how fast the lane moves (dB/s; 8 keeps 0.25 s rides fader-like). --contour --sections F removes each section's mean correction, so the
 ride only shapes loudness within sections (set section levels separately, e.g. a master envelope). Existing auto.ride is replaced; the render should have been made
 without it (or pass --accumulate to add to the existing lane). Several renders (comma-separated: the same
 song at different seeds) average their loudness, so the ride doesn't learn one seed's draws (a 0.5 s ride fitted
@@ -85,6 +85,13 @@ if __name__ == "__main__":
         old_t = np.array([float(p[0].rstrip("s")) for p in lanes["ride"]["points"]])
         old_v = np.array([p[1] for p in lanes["ride"]["points"]])
         d = np.clip(d + np.interp(t, old_t, old_v), -opt("--max", 9.0), opt("--max", 9.0))
+    if "--slew" in a:   # limit how fast the ride may move (dB/s, both directions): fine rides stay fader-like, not pumping
+        lim = float(a[a.index("--slew") + 1])
+        d = d.copy()
+        for i in range(1, len(d)):
+            d[i] = np.clip(d[i], d[i - 1] - lim * (t[i] - t[i - 1]), d[i - 1] + lim * (t[i] - t[i - 1]))
+        for i in range(len(d) - 2, -1, -1):
+            d[i] = np.clip(d[i], d[i + 1] - lim * (t[i + 1] - t[i]), d[i + 1] + lim * (t[i + 1] - t[i]))
     lanes["ride"] = {"points": [["0s", round(float(d[0]), 2)]] + [[f"{x:.2f}s", round(float(v), 2)] for x, v in zip(t, d)]}
     json.dump(mp, open(opt("-o", a[0]), "w"), indent=1)
     print(f"ride: {len(t)} points, range {d.min():+.1f}..{d.max():+.1f} dB, mean |d| {np.abs(d).mean():.1f} dB")

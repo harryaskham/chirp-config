@@ -52,6 +52,7 @@ Reference: album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825;
 | v48 | 73.24 | contour-only ride everywhere: the finer levelride (--win 1.5 --step 0.5, 0.7) with each section's mean shift removed — the section levels stay where the mastering term wants them, the ride only shapes within sections: loudness contour +2..+7 in 7 sections |
 | v49 | 73.42 | second contour pass: levelride --win 1 --step 0.5 --amount 0.5 --accumulate --contour --sections (new option): bridge loudness 58 → 68 |
 | v50 | 73.87 | third contour pass at the metric's own resolution (levelride --win 0.5 --step 0.25 --amount 0.5 --accumulate --contour): loudness contour +3..+7 in 7 sections; a further 1 s pass: 73.48 |
+| v51 | 74.25 | fourth contour pass at 0.25 s (half-second again: 74.06), slew-limited to 8 dB/s (max 2 dB per 250 ms; same score as unlimited, which jumped up to 5.6 dB) |
 
 ## Tried and rejected (don't re-run without a new reason)
 - Guitars: amp gain/scrape/pick-noise for the 'saw' valleys (no effect; pitch glide was the lever); stiffer strings
