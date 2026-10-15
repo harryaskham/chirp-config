@@ -34,6 +34,7 @@ Reference: album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825;
 | v29 | 70.01 | stereo image by band (b638c6a per-band width on the master after the glue): every heavy section was ~2-3 dB too wide at 400-1200 Hz and 3-6 dB too narrow above 3.5 kHz → bands [[400, 0.77], [1200, 1], [3500, 1.55], [8000, 2.0]], mono_below 20 Hz: stereo solo 52 → 75, implement 57 → 70; bridge −2.4 (stereo 61 → 35), riffs −0.6. Needs a groove ≥ b638c6a (fa719f6) |
 | v30 | 70.98 | half the measured width correction: bands [[400, 0.88], [1200, 1], [3500, 1.25], [8000, 1.45]] — the full move (v29) overshoots like instrument EQ fits do (riffs 71.6 → 73.3, bridge 49.9 → 50.8) |
 | v32 | 71.07 | bridge counter-width at half on clean/keys/hall (bridge 50.8 → 51.6); kidman's vowel is an open base (0.62) + relative ^dvow offsets (stemvox --phones emits them) — unmarked notes sang a closed 'u' that separated as 12% drums (bd-f227d8; tools/vocaltest.py: Bleed's vocal 94.3% vocals, LTR's 80.6 → 94.8%) |
+| v33 | 71.15 | fader ride refreshed: levelride --accumulate --amount 0.5 on the v32 render (the v27 ride was fitted before the width/vocal changes) |
 
 ## Tried and rejected (don't re-run without a new reason)
 - Guitars: amp gain/scrape/pick-noise for the 'saw' valleys (no effect; pitch glide was the lever); stiffer strings
@@ -88,6 +89,7 @@ Reference: album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825;
 - Guitar bite −4 dB @3.2k + lp 4.5k on the rhythm guitars (wM's bd-80d164 ablation reading): 68.97 vs 69.71.
 - Vocal drive 0.25 (98% vocals on separation): 71.017; ring 0: 70.975 (v32 71.070) — kidman keeps drive 0.5/ring 0.1.
 - Stereo-width bracket: full 70.01, half 70.98 (kept), quarter 70.36.
+- Master glue threshold −14 → −17 dB (our crest is 0.5-1.1 dB above the record's): 70.16 vs 71.07.
 
 ## Metric notes
 - loudness term: 0.5 s / 1 s-window contour; steady sections score ~45-50 whatever the match (per-bar levels are
