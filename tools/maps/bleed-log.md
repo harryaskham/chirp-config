@@ -42,6 +42,7 @@ Reference: album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825;
 | v38 | 71.84 | ride refreshed after the balance changes (levelride --accumulate 0.5 on the v37 render) everywhere but the bridge — riding the bridge up toward the record's level costs it 1.4 every time. Hall bus ±3 dB: 71.58/71.71 |
 | v39 | 72.03 | bridge parts 12 ms later (pure delay on clean + keys): the song offset is right (±10 ms: 71.30/69.86) but the bridge's rhythm rose with a later offset (61 → 70 → 77 at +10/+20 ms); 20 ms: 72.02 (outro −0.7), clean 20 + keys 12: 72.02 |
 | v40 | 72.22 | relative timing: rhythm guitars and bass 6 ms behind the kit (pure delays): guitars 6 ms 72.17, 10 ms 72.20, bass 6 ms 72.08; drums 6 ms later 71.91 — the kit leads |
+| v41 | 72.25 | vocal syllables 5 ms earlier (stemvox --shift 7 → 2; the vocal cross-correlated +5 ms late vs Jens): implement +0.6; --shift −3: 71.97. Lead 6 ms later: 72.13 |
 
 ## Tried and rejected (don't re-run without a new reason)
 - Guitars: amp gain/scrape/pick-noise for the 'saw' valleys (no effect; pitch glide was the lever); stiffer strings
