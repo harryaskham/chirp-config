@@ -248,17 +248,25 @@
       "source": "https://www.youtube.com/watch?v=CkaE237oiwE",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/raining-blood.wav OUT.wav $(cat tools/raining-blood-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 44.2,
+        "version": "v1",
+        "commit": "see git log songs/raining-blood.yaml"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "thrash metal",
       "requested": {
         "by": "harry",
         "at": "2026-10-15T20:01:08Z",
         "note": null
+      },
+      "last": {
+        "at": "2026-10-15T20:48:25Z",
+        "who": "chirper-two"
       }
     },
     {
