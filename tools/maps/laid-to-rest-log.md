@@ -149,3 +149,4 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | ow (held-out) | outro-only guitar/lead parts (bars 123-135) with a track-level per-band width toward the record's outro image | 71.03 (outro 67.2 -> 67.7) | no: noise-level; the record's outro width (sub 0.19) seems to come from elements we lack (room/reverb tail), not the guitars' image |
 | oh10 / oh4 (held-out) | outro hall reverb sends -10 / -4 dB | 71.03 / 70.90 | no |
 | v50 | outro per-band stereo profile via width band lanes (f4b9563): an outb lane switches each master band from the body width to the record's outro image (sub x3.8, himid x1.31, pres x0.84) at bar 123; needs groove >= f4b9563 (restarted) | 71.10 held-out (v49 71.00 same pin; outro 67.2 -> 68.7; half strength 68.1) | yes |
+| v51 | second outro band-lane pass (residual on v50 seeds 3/5/11: sub overshot 0.25 vs 0.19, low 0.22 vs 0.44, mid 1.28 vs 1.14) | 71.27 held-out (v50 71.10; outro 68.7 -> 70.4) | yes |
