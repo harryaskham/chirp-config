@@ -201,17 +201,26 @@
       "source": "https://www.youtube.com/watch?v=rptBpOCCMWc",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/come-down.wav OUT.wav $(cat tools/come-down-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 50.2,
+        "version": "v1",
+        "commit": "see git log songs/come-down.yaml",
+        "engine": "f4b9563"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "funk / hip-hop (Malibu, 2016; prod. Hi-Tek)",
       "requested": {
         "by": "harry",
         "at": "2026-10-15T20:01:08Z",
         "note": "Harry named the Free Nationals: a live band version (e.g. NPR Tiny Desk) may be meant; the studio cut is on Malibu (2016) — pick the stronger band performance"
+      },
+      "last": {
+        "at": "2026-10-15T20:27:30Z",
+        "who": "chirper-zero"
       }
     },
     {
