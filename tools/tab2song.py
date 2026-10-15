@@ -27,7 +27,9 @@ emits the map for a constant-tempo tab too. A part may take `"score_file": "PATH
 output) on the tab's measure numbers, with optional `"rest": [[a, b], …]` ranges kept silent.
 
 Bars are 1-based inclusive ranges. Outside its ranges a part rests. Drum pieces can be renamed (`remap`) or
-dropped (`drop`) per part, for kits that name pieces differently from the tab's General-MIDI mapping."""
+dropped (`drop`) per part, for kits that name pieces differently from the tab's General-MIDI mapping.
+"strip": ["ph", …] (map-wide or per part) removes those `^articulation` marks from tab-derived parts (e.g. pinch
+harmonics whose rung partial does not match the record's)."""
 import json
 import os
 import re
@@ -265,6 +267,8 @@ def build(mp):
             if kept:
                 ranges.append((min(kept), max(kept)))
         sc = part_score(lines_cache[p["track"]], beats, ranges, off_beats, p.get("remap"), p.get("drop", ()), p["name"], p.get("chord"), p.get("ring"))
+        for art in list(mp.get("strip", [])) + list(p.get("strip", [])):   # e.g. "ph": drop ^ph articulations
+            sc = re.sub(r"\^" + re.escape(art) + r"(?![A-Za-z0-9_])", "", sc)
         tr = {"name": p["name"], "patch": p["patch"]}
         for k in ("gain", "pan"):
             if k in p:

@@ -34,3 +34,6 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | v9n | v9 re-baselined on 2e0ac67 (kidman with onset/coda) | 55.066 | baseline |
 | c3 | se05 + ph0 | 56.967 | (superseded) |
 | v10 | per-section master EQ at 1.0x (sectioneq.py on the v9 render) | 57.737 | yes |
+| tu7 / tu9 / ld1 / va9 | (v9n) a4 447 54.927; a4 450 54.327; lead on m8-rhythm-r 54.604; aligned vocals on new kidman 55.107 (+0.04) | | no / no / no / (combine) |
+| c4 | v10 + no pinch harmonics | 57.896 | |
+| v11 | per-section EQ at 1.3x + no pinch harmonics (map "strip": ["ph"]) | 57.949 | yes |
