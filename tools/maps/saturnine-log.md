@@ -24,3 +24,5 @@ drumtrans labels are rough: snare family mostly sidestick (ss 193, g 58), toms m
 | v1a | stemsong (piano/other chords on piano, bass line on upright-bass) + drumtrans drums on tight-kit | 50.5 | |
 | v1b | master +5 dB, clip 4 dB (RMS -10.3, crest 6.8: over-squashed) | 51.2 | |
 | v1 | master +3 dB, clip 2 dB (RMS -13.8, crest 10.3) | 52.1 | yes |
+| v2 | master width stage, neutral (width 1, mono_below 1), per-band side factors from the record's S/M per band: [[60,0.58],[220,1.29],[700,1.64],[2000,2.14],[5300,2.45],[11000,2.75]] (v1 S/M -8.3/-8.9/-4.6/-6.8/-10.5/-12.1 dB vs record -13.1/-6.7/-0.3/-0.2/-2.7/-3.3: the record's piano is spaced-pair wide, side ≥ mid) | 54.7 | yes |
+| v2b | same at 70% of the dB correction | 54.1 | |
