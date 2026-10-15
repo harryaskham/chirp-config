@@ -94,7 +94,7 @@ songs:
 
 tracks:
   - {name: boom, at: 0.0b, score: "@boom/5.756b", gain: -7dB}
-  - {name: intro, at: 5.848b, score: "@intro/56b", gain: -4.8dB, envelope: {points: [[0.05s, 0.748], [1.93s, 0.736], [3.8s, 0.572], [5.67s, 0.35], [7.55s, 0.392], [9.43s, 0.373], [11.3s, 0.454], [13.18s, 1.0], [15.05s, 0.882], [16.93s, 0.712], [18.8s, 0.386], [20.68s, 0.247], [22.55s, 0.293], [24.43s, 0.59]]}}   # the reference intro breathes: dips in bars 4-6 and 11-13, a swell at bar 8
+  - {name: intro, at: 5.848b, score: "@intro/56b", fx: [{type: width, width: 1, mono_below: 20, bass_width: 1, bands: [[60, 0.60], [150, 0.96], [400, 1.21], [1200, 1.00], [3500, 1.05], [8000, 0.93]]}], gain: -4.8dB, envelope: {points: [[0.05s, 0.748], [1.93s, 0.736], [3.8s, 0.572], [5.67s, 0.35], [7.55s, 0.392], [9.43s, 0.373], [11.3s, 0.454], [13.18s, 1.0], [15.05s, 0.882], [16.93s, 0.712], [18.8s, 0.386], [20.68s, 0.247], [22.55s, 0.293], [24.43s, 0.59]]}}   # the reference intro breathes: dips in bars 4-6 and 11-13, a swell at bar 8
   - {name: main, at: 61.756b, score: "@main/72b", gain: -3.7dB, fx: [{type: width, width: 1.5, mono_below: 60}, {type: eq, bands: ["lowshelf cutoff=42 gain=4.8dB", "peak cutoff=107 q=1.5 gain=3.6dB", "peak cutoff=170 q=0.8 gain=-3.4dB", "peak cutoff=679 q=0.5 gain=4.9dB", "peak cutoff=3.4k q=0.5 gain=-3.9dB"]}], envelope: {points: [[0.05s, 0.944], [1.93s, 0.647], [3.8s, 0.47], [5.67s, 0.302], [7.55s, 0.768], [9.43s, 0.629], [11.3s, 0.487], [13.18s, 0.297], [15.05s, 0.841], [16.93s, 0.645], [18.8s, 0.503], [20.68s, 0.422], [22.55s, 1.0], [24.43s, 0.758], [26.3s, 0.94], [28.18s, 0.635], [30.05s, 0.877], [31.93s, 0.638]]}}
   - name: brk
     at: 133.756b

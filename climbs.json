@@ -16,8 +16,8 @@
       "owner": "chirp-climb0",
       "metric": "python3 tools/likeness.py sections ref/shadows.wav OUT.wav $(cat tools/shadows-sections.txt)",
       "best": {
-        "score": 67.8,
-        "version": "v91",
+        "score": 67.9,
+        "version": "v92",
         "commit": "see git log songs/shadows.yaml",
         "engine": "f4b9563 (needs >= f4b9563: width bands)",
         "metric": "likeness with the mastering term (1ffa987)"
