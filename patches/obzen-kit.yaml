@@ -29,7 +29,7 @@ kit:
   rde: {pan: 0.45}
   rb: {pan: 0.35}
   rbs: {pan: 0.35}
-  c: {pan: -0.5}
+  c: {pan: -0.5, gain: -7dB}   # 2 dB over haake's −9 dB: Bleed's crashes sit forward (+0.09; +4 dB: +0.07)
   cbl: {pan: -0.5}
   cch: {pan: 0.55}
   x: {pan: 0.6, choke: x, gain: -7dB}   # a re-struck china cuts its own wash instead of stacking it (dense 8th chinas: +0.12 on Bleed); 2 dB under haake's −5 dB (+0.10; −4 dB: −0.12)
