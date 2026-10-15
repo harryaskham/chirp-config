@@ -85,7 +85,9 @@ def measure_tokens(track, m, drums):
             if any(n.get("slide") in ("downwards", "outDownwards", "shift") for n in notes):
                 out[-1][2] += "^slidedown"
             continue
-        pitches = sorted(tun[int(n["string"])] + int(n["fret"]) for n in notes)
+        pitches = sorted(tun[int(n["string"])] + int(n["fret"]) for n in notes if "fret" in n)
+        if not pitches:  # only fretless notes (e.g. a dead/ghost note without a fret): a rest of that length
+            out.append(["R", t, ""]); continue
         bend = max((bend_semis(n) for n in notes), key=abs, default=0.0)
         arts = ""
         if b.get("palmMute") or any(n.get("palmMute") for n in notes):
