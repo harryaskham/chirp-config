@@ -1,7 +1,7 @@
 about: "Smoother modern rhythm rig for polymetric/djent riffs: the 8-string into a lower-gain Gojira-voiced amp with a tighter low end, two-IR cab blend, 3 kHz fizz dip and a gentle high shelf, plus a small room so it sits like the lead. Less caustic on clusters and tritones."
 extends: "m8 layers.0.click=0.2 layers.0.scrape=0.12 layers.0.thump=expr.pm*0.7 layers.0.squeak=expr.move*0.6"
 fx:
-  - {type: sympathetic, notes: "F1,Bb1,Eb2,Ab2,Db3,Gb3,Bb3,Eb4", decay: 1.2s, mix: 0.06}
+  - {type: sympathetic, decay: 1.2s, mix: 0.06}
   - {type: amp, model: gojira, gain: 0.62, ts: 0.5, tight: 110, boost: 3dB, bass: 0.58, mid: 0.58, treble: 0.52, presence: 0.5, resonance: 0.62, sag: 0.22, bloom: 0.35}
   - {type: ir, file: jester/cookie-monster, blend_file: jester/kitten-slayer, blend: 0.4, length: 120ms, breakup: 0.3, room: 0.12}
   - {type: eq, bands: ["peak cutoff=250 q=1.2 gain=-2dB", "peak cutoff=3200 q=1.2 gain=-3dB", "highshelf cutoff=7000 gain=-4dB"]}

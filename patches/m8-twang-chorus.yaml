@@ -1,7 +1,7 @@
 about: "Ringing 8-string through a chorus pedal into the twang amp: shimmering, wide open hits with ping-pong delay and hall. Leave gaps after each hit."
 extends: "m8 layers.0.decay.value=8s layers.0.click=0.2 layers.0.scrape=0.12 layers.0.thump=expr.pm*0.7 layers.0.squeak=expr.move*0.6"
 fx:
-  - {type: sympathetic, notes: "F1,Bb1,Eb2,Ab2,Db3,Gb3,Bb3,Eb4", decay: 1.2s, mix: 0.06}
+  - {type: sympathetic, decay: 1.2s, mix: 0.06}
   - {type: chorus, rate: 0.6, depth: 0.55, voices: 3, mix: 0.45}
   - {type: amp, model: gojira, gain: 0.66, ts: 0.5, tight: 100, boost: 4dB, bass: 0.6, mid: 0.6, treble: 0.52, presence: 0.5, resonance: 0.7, sag: 0.35, bloom: 0.35}
   - {type: ir, file: jester/cookie-monster, blend_file: jester/darth-genocider, blend: 0.4, length: 120ms, breakup: 0.3, room: 0.12}
