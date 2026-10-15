@@ -152,17 +152,26 @@
       "source": "https://www.youtube.com/watch?v=NfQD1QiQ9o4",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/the-national-anthem.wav OUT.wav $(cat tools/the-national-anthem-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 47.1,
+        "version": "v1",
+        "commit": "see git log songs/the-national-anthem.yaml",
+        "engine": "36561dc"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "art rock / free-jazz brass",
       "requested": {
         "by": "harry",
         "at": "2026-10-15T20:01:08Z",
         "note": null
+      },
+      "last": {
+        "at": "2026-10-15T20:27:15Z",
+        "who": "chirper-three"
       }
     },
     {
