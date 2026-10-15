@@ -5,7 +5,7 @@ gains are a least-squares fit (exact biquad responses, a little ridge) of the 1/
 between the candidate and the reference over that section — the dense sections stop dictating the quiet ones'
 EQ (chirper-two's mastereq.py fits one stage for the whole mix; chirper-zero found per-section fits worth more).
 
-  sectioneq.py REF.wav CAND.wav SECTIONS.txt [--scale 1.0] [--max 9] [--only 0,2,5] [--ramp 0.05]
+  sectioneq.py REF.wav CAND.wav[,CAND2,...] SECTIONS.txt [--scale 1.0] [--max 9] [--only 0,2,5] [--ramp 0.05]
 
 Prints a `master:` JSON block (auto lanes + eq stage) to merge into a song's master (append the eq after the glue).
 --only fits just those sections (others stay flat): check each section separately — a fit can chase content
@@ -84,12 +84,15 @@ if __name__ == "__main__":
     scale, mx, ramp = opt("--scale", 1.0), opt("--max", 9.0), opt("--ramp", 0.05)
     bounds = [float(v) for v in open(a[2]).read().split(",")]
     only = {int(v) for v in opt("--only", "").split(",") if v != ""} if "--only" in a else None
-    R, Cd = L.load(a[0]).mean(1), L.load(a[1]).mean(1)
+    # CAND may be several renders (comma-separated; the same song at different seeds): their spectra are averaged per
+    # section, so the fit follows the arrangement, not one seed's draws
+    R, Cds = L.load(a[0]).mean(1), [L.load(f).mean(1) for f in a[1].split(",")]
     gains = []
     for k, (s0, s1) in enumerate(zip(bounds, bounds[1:])):
         if only is not None and k not in only:
             gains.append(np.zeros(len(BANDS))); continue
-        r = third_octave(R[int(s0 * SR):int(s1 * SR)]); c = third_octave(Cd[int(s0 * SR):int(min(s1, len(Cd) / SR) * SR)])
+        r = third_octave(R[int(s0 * SR):int(s1 * SR)])
+        c = np.mean([third_octave(Cd[int(s0 * SR):int(min(s1, len(Cd) / SR) * SR)]) for Cd in Cds], axis=0)
         dev = (c - c.mean()) - (r - r.mean())
         g = fit(dev, mx) * scale
         gains.append(g)

@@ -127,3 +127,5 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | v41 | vocals on bark: a metric tie, but the separator reads a solo bark render as 98% vocals (kidman 75%, the record's scream 100%) | 68.5 (mean) | yes (realism) |
 | vb3 / vb6 (seed-avg) | bark vocals +3 dB 68.20 (vs 68.47); +6 dB aborted | | no |
 | smem (seed-avg) | snare body as an additive ideal-membrane mode set (1, 1.59, 2.14, 2.30, 2.65, 2.92, 3.16; damp 4) via an inline ltr-kit | 68.23 ± 0.19 (paired -0.1/-0.3/-0.3) | no: the triangle body's harmonics help here |
+| sr05 (held-out seeds 7/13/17) | residual per-section EQ fitted on the averaged spectra of v41 at seeds 3/5/11 (0.5x, added to the lanes) | 68.53 vs v41 68.67 (paired -0.1 each) | no: the EQ is at its optimum |
+| v41 held-out | seeds 7/13/17 | 68.67 (same as v40: the bark switch is score-neutral) | |
