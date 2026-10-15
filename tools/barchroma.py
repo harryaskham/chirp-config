@@ -4,7 +4,7 @@ real time span is compared with the pitch classes the tab's part plays there. Ba
 pitch classes are not what the tab plays are listed worst-first — candidates for a part's "replace" corrections
 (tab2song.py), which Pneuma's hold (tab: D5 held; record: A/E voicings, then A) and Shadows' transitions needed.
 
-  barchroma.py MAP.json PART STEM.wav [--bars A-B] [--top 20] [--min-level -45]
+  barchroma.py MAP.json PART STEM.wav [--bars A-B] [--top 20] [--min-level -45] [--emit OUT.json --min-gain 0.25]
 
 Per bar: the stem's chroma (30 Hz-2 kHz, 0.7 Hz bins) against the chroma the tab's notes should produce with
 their harmonics (1-8 at 1/h, so a low note's fifth-up 3rd harmonic is expected), and against the same notes
@@ -55,6 +55,26 @@ def predicted(midis, shift=0):
     return c / (np.linalg.norm(c) + 1e-12)
 
 
+SUG = {}   # bar -> (fit gain, best shift, tab line)
+
+
+def transpose(line, k):
+    """Shift every note of a tab line by k semitones, keeping durations and articulations."""
+    def one(tok):
+        head, sep, rest = tok.partition("/")
+        if not sep or head in ("R", "r", "_"):
+            return tok
+        out = []
+        for n in head.split(","):
+            m = re.match(r"^([A-G](?:#|b)?)(-?\d+)$", n)
+            if not m:
+                return tok
+            mi = 12 * (int(m.group(2)) + 1) + PC[m.group(1)] + k
+            out.append(f"{NAMES[mi % 12]}{mi // 12 - 1}")
+        return ",".join(out) + sep + rest
+    return " ".join(one(t) for t in line.split())
+
+
 def chroma(x):
     n = 32768                       # 0.7 Hz bins: low notes must not smear into their neighbours' classes
     acc = np.zeros(12)
@@ -98,12 +118,26 @@ def main(a):
                 top = " ".join(f"{NAMES[k]}{100 * c[k]:.0f}" for k in np.argsort(c)[::-1][:4])
                 sug = f"try {best:+d} st ({fit[0]:.2f} → {fit[best]:.2f})" if best else f"fits ({fit[0]:.2f})"
                 rows.append((gain, m["m"], t, top, sug, line[:56]))
+                SUG[m["m"]] = (gain, best, line)
         t += dur
     rows.sort(reverse=True)
     for gain, mm, tt, top, sug, line in rows[:opt("--top", 20)]:
         print(f"m{mm:<4} {tt:7.1f}s  stem: {top:24} {sug:28} | {line}")
     if rows:
         print(f"{sum(1 for r in rows if r[0] > 0.15)} of {len(rows)} bars fit a transposition better by > 0.15")
+    if "--emit" in a:
+        # replace entries for tab2song: each flagged bar transposed by its suggested shift, taken as the smallest
+        # equivalent interval (+7 -> -5) that keeps the bar inside the part's range (chroma does not know octaves)
+        mg = opt("--min-gain", 0.25)
+        floor_note = min((n for _, _, ln in SUG.values() for n in note_midis(ln)), default=0)   # the part's range
+
+        def shift(k, line):
+            low = min(note_midis(line))
+            ok = [c for c in (k, k - 12) if low + c >= floor_note]     # never below the instrument's lowest note
+            return min(ok, key=abs) if ok else k
+        out = {str(m): transpose(line, shift(k, line)) for m, (g, k, line) in sorted(SUG.items()) if k and g > mg}
+        json.dump(out, open(opt("--emit", ""), "w"), indent=1)
+        print(f"emitted {len(out)} bar corrections (gain > {mg})")
 
 
 if __name__ == "__main__":
