@@ -2882,7 +2882,17 @@
           "D3",
           "Eb3"
         ]
-      ]
+      ],
+      "extra": {
+        "fx": [
+          {
+            "type": "delay",
+            "time": "6ms",
+            "feedback": 0,
+            "mix": 1
+          }
+        ]
+      }
     },
     {
       "name": "gtr-l2",
@@ -2903,7 +2913,17 @@
           "D3",
           "Eb3"
         ]
-      ]
+      ],
+      "extra": {
+        "fx": [
+          {
+            "type": "delay",
+            "time": "6ms",
+            "feedback": 0,
+            "mix": 1
+          }
+        ]
+      }
     },
     {
       "name": "gtr-r",
@@ -2927,7 +2947,17 @@
           "D3",
           "Eb3"
         ]
-      ]
+      ],
+      "extra": {
+        "fx": [
+          {
+            "type": "delay",
+            "time": "6ms",
+            "feedback": 0,
+            "mix": 1
+          }
+        ]
+      }
     },
     {
       "name": "gtr-r2",
@@ -2952,7 +2982,17 @@
           "D3",
           "Eb3"
         ]
-      ]
+      ],
+      "extra": {
+        "fx": [
+          {
+            "type": "delay",
+            "time": "6ms",
+            "feedback": 0,
+            "mix": 1
+          }
+        ]
+      }
     },
     {
       "name": "clean",
@@ -3055,7 +3095,17 @@
           "Eb2"
         ]
       ],
-      "gain": "-1.5dB"
+      "gain": "-1.5dB",
+      "extra": {
+        "fx": [
+          {
+            "type": "delay",
+            "time": "6ms",
+            "feedback": 0,
+            "mix": 1
+          }
+        ]
+      }
     },
     {
       "name": "keys",
