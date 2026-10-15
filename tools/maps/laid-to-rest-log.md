@@ -95,3 +95,7 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | sef1 / sef13 | per-section EQ refitted from scratch on a render without it (1.0x / 1.3x) | 67.121 / 66.788 | no (everything since v10 was tuned on the old fit) |
 | v32 | the fresh fit spliced into the three sections where it won (intro, lead riff, outro) | 68.188 | yes |
 | v33 | kit `tune` (d6bf166, bd-416d85) instead of kit.k.pitch: the toms follow the A1/Ab1 kick (outro 67.3 -> 69.3) | 68.359 | yes; groove restarted on d6bf166 |
+| tbg / tbbb / tabb | second kit tune G1 (bridge +1.7, verse3 -1.9) 68.170; Bb1 67.894; main kit Bb1 (lead riff +0.8) 68.290 | | no: stopping at a two-kit split (a drummer doesn't retune per section) |
+| heg / hed | humanize.env 0.2 on guitars 68.366 (sections +-1.6: seed noise); on the kit 68.359 (no effect: env doesn't reach kit pieces) | | no |
+| sbb / sg | snare Bb3 65.787; G3 68.309 | | no: Ab3 stays |
+| note | stemnotes.py --map (12/8 bars): the chorus guitar stem reads D/Eb/F + F#2-F2 at bar 49 ends; the tab's riff notes are right, chorus chroma is a harmonic-weighting gap | | |
