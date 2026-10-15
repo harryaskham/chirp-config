@@ -11,6 +11,7 @@ for any climbing agent's next pass, one climb to work on, weighted towards the f
   climb.py status [--json]                          every climb: status, rounds, best, last round, odds
   climb.py log ID [-n N]                            a climb's rounds
   climb.py set ID KEY=VALUE …                       edit a climb's fields (source, genre, metric, …)
+  climb.py note ID TEXT [--next TEXT]               steer: a note in its history (not a round; `next` shows it)
   climb.py pause|resume|drop ID [--note TEXT]       take a climb out of (or back into) the queue
 
 Sampling: weight = priority / (1 + rounds), halved for a climb another agent started in the last
@@ -323,7 +324,8 @@ def brief(c, hist):
                      f"--with {c.get('song')}]`.")
     for h in hist[-3:]:
         sc = f" {h['score']}" if h.get("score") is not None else ""
-        lines.append(f"  r{h['round']} {age(h['at'])} ago by {h['who']}{sc}{' kept' if h.get('kept') else ''}: {h['note']}")
+        tag = "NOTE" if h.get("steer") else f"r{h['round']}"
+        lines.append(f"  {tag} {age(h['at'])} ago by {h['who']}{sc}{' kept' if h.get('kept') else ''}: {h['note']}")
     nxt = next((h["next"] for h in reversed(hist) if h.get("next")), None)
     if nxt:
         lines.append(f"  suggested next: {nxt}")
@@ -413,8 +415,23 @@ def cmd_log(a):
         die("log ID [-n N]")
     for h in history(pos[0])[-int(opt(a, "-n", 20)):]:
         sc = f" {h['score']}" if h.get("score") is not None else ""
-        print(f"r{h['round']} {h['at']} {h['who']}{sc}{' (' + h['version'] + ')' if h.get('version') else ''}"
+        print(f"{'NOTE' if h.get('steer') else 'r' + str(h['round'])} {h['at']} {h['who']}{sc}{' (' + h['version'] + ')' if h.get('version') else ''}"
               f"{' kept' if h.get('kept') else ''}: {h['note']}" + (f"\n    next: {h['next']}" if h.get("next") else ""))
+
+
+def cmd_note(a):
+    pos = positional(a, ("--next", "--as"))
+    if len(pos) < 2:
+        die("note ID TEXT [--next TEXT]")
+    cid, text = pos[0], " ".join(pos[1:])
+    with registry() as reg:
+        c = find(reg, cid)
+        h = {"round": c["rounds"], "at": now_iso(), "who": whoami(a), "note": text, "next": opt(a, "--next"), "steer": True}
+        os.makedirs(HIST, exist_ok=True)
+        with open(os.path.join(HIST, f"{cid}.jsonl"), "a") as f:
+            f.write(json.dumps({k: v for k, v in h.items() if v is not None}, ensure_ascii=False) + "\n")
+    print(f"{cid}: noted")
+    commit(["climbs.json", f"climbs/{cid}.jsonl"], f"climbs: {cid} note: {text[:60]}", a)
 
 
 def cmd_set(a):
@@ -455,6 +472,7 @@ def main():
         return cmd_status(a[1:] if a else [])
     cmd, rest = a[0], a[1:]
     table = {"add": cmd_add, "request": cmd_add, "next": cmd_next, "done": cmd_done, "log": cmd_log, "set": cmd_set,
+             "note": cmd_note,
              "pause": lambda r: cmd_state(r, "paused"), "resume": lambda r: cmd_state(r, "active"),
              "drop": lambda r: cmd_state(r, "dropped")}
     if cmd in ("-h", "--help", "help"):

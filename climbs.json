@@ -228,12 +228,7 @@
       "source": "https://www.youtube.com/watch?v=ferZnZ0_rSM",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/come-down.wav OUT.wav $(cat tools/come-down-sections.txt)",
-      "best": {
-        "score": 50.2,
-        "version": "v1",
-        "commit": "see git log songs/come-down.yaml",
-        "engine": "f4b9563"
-      },
+      "best": null,
       "passes": 1,
       "enabled": true,
       "status": "active",
