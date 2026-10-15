@@ -86,6 +86,8 @@ Reference: album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825;
 - Vocal track highshelf 2.5 kHz −4 dB on top of v28 (toward the stem's 1243 Hz centroid): 69.63 vs 69.71 — the mix wants
   the brighter voice.
 - Guitar bite −4 dB @3.2k + lp 4.5k on the rhythm guitars (wM's bd-80d164 ablation reading): 68.97 vs 69.71.
+- Vocal drive 0.25 (98% vocals on separation): 71.017; ring 0: 70.975 (v32 71.070) — kidman keeps drive 0.5/ring 0.1.
+- Stereo-width bracket: full 70.01, half 70.98 (kept), quarter 70.36.
 
 ## Metric notes
 - loudness term: 0.5 s / 1 s-window contour; steady sections score ~45-50 whatever the match (per-bar levels are
