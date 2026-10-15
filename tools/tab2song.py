@@ -269,6 +269,14 @@ def build(mp):
             for m, txt in p["replace"].items():
                 if int(m) in pos:
                     lines[pos[int(m)] - 1] = txt
+        for a, b, fr, to in p.get("subst", []):
+            # note corrections over a bar range: [[81, 97, "D3", "Eb3"]] swaps that note (alone or in a chord),
+            # keeping the bar's rhythm and articulations (a tab's wrong fret across a passage)
+            lines = list(lines)
+            pat = re.compile(r"(^|[\s,])" + re.escape(fr) + r"(?=[/,])")
+            for m in range(int(a), int(b) + 1):
+                if m in pos:
+                    lines[pos[m] - 1] = pat.sub(lambda g: g.group(1) + to, lines[pos[m] - 1])
         ranges = []
         for a, b in p["bars"]:
             kept = [pos[m] for m in range(a, b + 1) if m in pos]
