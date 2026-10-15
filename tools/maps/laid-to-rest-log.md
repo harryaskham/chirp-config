@@ -71,3 +71,5 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | v23 | outro width x2.4 | 65.361 | yes |
 | vdbl / gn | (v22) vocals double-tracked (detune 10, pan 0.3) 64.921; (v23) guitars narrower +-0.8/0.65 64.566 | | no |
 | v24 | drums width 1.6 above 300 Hz (the record's top bands are wide; ours were narrow where the centred snare and cymbals dominate) | 66.401 | yes (every section up) |
+| dw13 | drums width 1.3 | 65.978 | |
+| v25 | drums width 2.0 above 300 Hz | 66.812 | yes |

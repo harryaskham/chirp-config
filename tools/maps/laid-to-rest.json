@@ -3028,7 +3028,7 @@
     "fx": [
      {
       "type": "width",
-      "width": 1.6,
+      "width": 2.0,
       "mono_below": 300
      }
     ]
@@ -3059,7 +3059,7 @@
     "fx": [
      {
       "type": "width",
-      "width": 1.6,
+      "width": 2.0,
       "mono_below": 300
      }
     ]
