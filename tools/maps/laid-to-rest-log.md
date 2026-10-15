@@ -15,3 +15,6 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | sab | snare Ab3 alone (no stiffness): stiffness was costing ~0.2 | 50.659 | (base for v7) |
 | v6 | v5 + master EQ from mastereq.py (53 -4.5, 85 +2.4, 107 +3.4, 428 -2.3, 1.1k +2.2, hs 13.7k -4.3) | 52.193 | yes |
 | l1 | v5 + master gain lane: pre-choruses -0.5 dB, choruses +0.5 dB (record's chorus lift; ours was inverted) | 51.976 | (combine) |
+| m05 | master EQ at 0.5x | 51.440 | no |
+| l2 | lift lane +-1 dB (on v5) | 52.225 | (combine) |
+| v7 | snare Ab3 (no stiffness) + master EQ + lift +-1 dB | 53.978 | yes |

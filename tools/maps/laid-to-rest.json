@@ -15,6 +15,18 @@
   "master": {
    "fx": [
     {
+     "type": "gain",
+     "gain": {
+      "value": "0dB",
+      "mod": [
+       {
+        "src": "auto.lift",
+        "amount": 1
+       }
+      ]
+     }
+    },
+    {
      "type": "eq",
      "bands": [
       "peak cutoff=53 q=1.0 gain=-4.50dB",
@@ -25,14 +37,88 @@
       "highshelf cutoff=13.7k gain=-4.30dB"
      ]
     }
-   ]
+   ],
+   "auto": {
+    "lift": {
+     "points": [
+      [
+       "0s",
+       0.0
+      ],
+      [
+       "57.075s",
+       0.0
+      ],
+      [
+       "57.125s",
+       -1.0
+      ],
+      [
+       "70.882s",
+       -1.0
+      ],
+      [
+       "70.932s",
+       1.0
+      ],
+      [
+       "84.691s",
+       1.0
+      ],
+      [
+       "84.741s",
+       0.0
+      ],
+      [
+       "105.424s",
+       0.0
+      ],
+      [
+       "105.474s",
+       -1.0
+      ],
+      [
+       "119.229s",
+       -1.0
+      ],
+      [
+       "119.279s",
+       1.0
+      ],
+      [
+       "133.101s",
+       1.0
+      ],
+      [
+       "133.151s",
+       0.0
+      ],
+      [
+       "169.100s",
+       0.0
+      ],
+      [
+       "169.150s",
+       1.0
+      ],
+      [
+       "182.897s",
+       1.0
+      ],
+      [
+       "182.947s",
+       0.0
+      ]
+     ]
+    }
+   }
   }
  },
  "parts": [
   {
    "name": "gtr-l",
    "track": 2,
-   "patch": "m8-rhythm-l synth.layers.0.stiff=0.8",
+   "patch": "m8-rhythm-l",
    "bars": [
     [
      1,
@@ -44,7 +130,7 @@
   {
    "name": "gtr-l2",
    "track": 2,
-   "patch": "m8-rhythm-l synth.layers.0.stiff=0.8",
+   "patch": "m8-rhythm-l",
    "bars": [
     [
      1,
@@ -57,7 +143,7 @@
   {
    "name": "gtr-r",
    "track": 1,
-   "patch": "m8-rhythm-r synth.layers.0.stiff=0.8",
+   "patch": "m8-rhythm-r",
    "bars": [
     [
      1,
@@ -69,7 +155,7 @@
   {
    "name": "gtr-r2",
    "track": 1,
-   "patch": "m8-rhythm-r synth.layers.0.stiff=0.8",
+   "patch": "m8-rhythm-r",
    "bars": [
     [
      1,
