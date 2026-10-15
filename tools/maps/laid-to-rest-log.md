@@ -84,3 +84,6 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | gr0 / k2db / swire | rigs without click/scrape/thump/squeak 67.016 (inaudible); kick +2 dB 66.591; snare wires -6 dB 66.559 | | no |
 | amm | both rigs amp model mark | 66.838 | no |
 | v28 | both rhythm rigs on the Rectifier-like `modern` amp (was 5150 left / gojira right): every section up | 67.880 | yes |
+| amrl / amrr / mmid / mgain / ird / irc / bam / bag | (v28) modern amp left only 67.499, right only 67.730; amp mid 0.75 67.622; amp gain 0.65 67.879; darth-genocider cab 67.182; cookie-monster 66.962; bass amp modern 67.642; bass amp gain 0.85 67.862 | | no |
+| pb1 | per-bar metric grid, bars 105-135 (+-80 ms window) | 67.979 | (combine) |
+| v29 | per-bar metric grid, bars 72-90 + vocals re-transcribed | 68.008 | yes |
