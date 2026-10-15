@@ -76,3 +76,7 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | dw25 / dw30 | width 2.5 / 3.0: bit-identical to 2.0 (WidthFx clamps at 2.0) | 66.812 | |
 | g0 / gup | (v25) guitars grain 0 66.821 (neutral); guitars +2 dB 66.484 | | no |
 | v26 | drums: two stacked width stages (2.0 then 1.5, above 300 Hz) | 66.874 | yes (+0.06) |
+| vdn / lup / ldn / bup / bdn | (v26) vocals -3 66.826; lead +3 66.779; lead -3 66.851; bass +2 66.525; bass -2 66.704 | | no: levels at their optimum |
+| vr1 | vocals as stemvox energy runs (358 syllables) | 66.898 | neutral |
+| in1 | intro bars 2-5 per-bar metric grid (bar 2 was 150 ms early; offset 1.82 -> 1.97) | 66.948 | (combine) |
+| v27 | bridge bars 72-86 per-bar metric grid (75-76 30 ms early, 78-81 25-80 ms late around the 15/8 bar) + vocals re-transcribed | 67.016 | yes |
