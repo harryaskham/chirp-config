@@ -22,7 +22,7 @@ TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
 EXP = os.environ.get("BGEXP_DIR", "/tmp/lt/exp")  # one queue (and slot set) per climber: BGEXP_DIR=/tmp/lt/exp-<id>
 CHIRP = os.environ.get("CHIRP", "/tmp/lt/chirp-main/cli/chirp/target/release/chirp")
-W = {"loudness": 0.14, "spectral": 0.22, "chroma": 0.22, "rhythm": 0.18, "ltas": 0.09, "stereo": 0.10}
+W = {"loudness": 0.14, "spectral": 0.22, "chroma": 0.22, "rhythm": 0.18, "ltas": 0.09, "stereo": 0.10, "master": 0.08}  # likeness weights, tempo excluded
 
 
 def opt(args, flag, default):
@@ -78,7 +78,7 @@ def job(name, song, ref, sections, slots, extra, max_load=None):
         d = json.loads(lk.stdout)
         secs = d["sections"]
         durs = [s["end"] - s["start"] for s in secs]
-        exact = sum(sum(s[k] * w for k, w in W.items()) / 0.95 * du for s, du in zip(secs, durs)) / sum(durs)
+        exact = sum(sum(s.get(k, 0) * w for k, w in W.items()) / sum(W.values()) * du for s, du in zip(secs, durs)) / sum(durs)
         state.update(total=d["total"], exact=round(exact, 3), sections=[{k: round(v, 1) if isinstance(v, float) else v for k, v in s.items()} for s in secs])
     except Exception as e:  # noqa: BLE001
         state.update(error=f"likeness: {e}")

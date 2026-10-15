@@ -194,10 +194,16 @@ def compare(ref, cand, verbose=True, ref_start=None, ref_end=None):
     # stereo image: per-band side/mid ratio (realism: wide doubled guitars and overheads, mono low end)
     rw, cw = stereo_bands(R.st[:int(n * HOP)]), stereo_bands(C.st[:int(n * HOP)])
     s_stereo = 100 * np.exp(-np.mean(np.abs(np.log2((cw + 0.02) / (rw + 0.02)))) * 1.5)
+    # mastering: absolute level and crest factor (robust peak / RMS). Every other term is level-normalised, so a
+    # master 7 dB quieter and 6 dB more dynamic than the record scored the same as a matched one (Laid to Rest).
+    xr, xc = R.x[:int(n * HOP)], C.x[:int(n * HOP)]
+    lvl = lambda x: 10 * np.log10(float((x ** 2).mean()) + 1e-12)  # noqa: E731
+    crest = lambda x: 20 * np.log10(float(np.percentile(np.abs(x), 99.9)) + 1e-9) - lvl(x)  # noqa: E731
+    s_master = 100 * (0.5 * np.exp(-abs(lvl(xc) - lvl(xr)) / 4) + 0.5 * np.exp(-abs(crest(xc) - crest(xr)) / 3))
     total = (0.14 * s_loud + 0.22 * s_spec + 0.22 * s_chroma + 0.18 * s_rhythm + 0.09 * s_ltas + 0.05 * s_tempo
-             + 0.10 * s_stereo)
+             + 0.10 * s_stereo + 0.08 * s_master) / 1.08
     res = {k: round(float(v), 1) for k, v in {"total": total, "loudness": s_loud, "spectral": s_spec, "chroma": s_chroma,
-           "rhythm": s_rhythm, "ltas": s_ltas, "tempo": s_tempo, "stereo": s_stereo, "tempo_ref": tr, "tempo_cand": tc,
+           "rhythm": s_rhythm, "ltas": s_ltas, "tempo": s_tempo, "stereo": s_stereo, "master": s_master, "tempo_ref": tr, "tempo_cand": tc,
            "dur_ref": R.n / FPS, "dur_cand": C.n / FPS}.items()}
     # per-section gaps on the reference's sections
     bounds = [0.0] + sections(R) + [round(dur, 1)]
@@ -232,8 +238,8 @@ def sectioned(ref, cand, bounds):
         os.unlink(tf.name)
         # the tempo term is meaningless on a short, sparse section (the onset autocorrelation jumps between beat
         # multiples) — score sections without it, renormalised
-        tot = (r["total"] - 0.05 * r["tempo"]) / 0.95
-        out.append({"start": a, "end": b, "total": round(tot, 1), **{k: r[k] for k in ("loudness", "spectral", "chroma", "rhythm", "ltas", "stereo", "tempo")}})
+        tot = (r["total"] * 1.08 - 0.05 * r["tempo"]) / 1.03
+        out.append({"start": a, "end": b, "total": round(tot, 1), **{k: r[k] for k in ("loudness", "spectral", "chroma", "rhythm", "ltas", "stereo", "master", "tempo")}})
         wsum += b - a; tsum += tot * (b - a)
     return {"total": round(tsum / wsum, 1), "sections": out}
 
