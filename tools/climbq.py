@@ -5,7 +5,8 @@ keep working.
 
   climbq.py submit NAME --song FILE [--set PATH=V …] [--solo T …] [--from S --to S] [--metric sections|none]
                         [--ref ref/bleed.wav] [--sections tools/bleed-sections.txt] [--keep]
-  climbq.py worker [-j 3] [--idle-exit 900]      run queued jobs, N at a time; exits after idle seconds
+  climbq.py worker [-j 3] [--idle-exit 900] [--max-load L]   run queued jobs, N at a time (no new job while the
+                                                  1-min load is ≥ L, default 3× cores); exits after idle seconds
   climbq.py status                                pending / running / done with headline scores
   climbq.py result NAME                           the full result JSON
 
@@ -82,6 +83,7 @@ def run(job):
 def worker(a):
     n = int(a[a.index("-j") + 1]) if "-j" in a else 3
     idle_exit = float(a[a.index("--idle-exit") + 1]) if "--idle-exit" in a else 900
+    max_load = float(a[a.index("--max-load") + 1]) if "--max-load" in a else 3 * (os.cpu_count() or 8)   # wait out host storms
     lock = threading.Lock(); active = []; last = time.time()
 
     def take():
@@ -109,7 +111,7 @@ def worker(a):
     print(time.strftime("%H:%M:%S"), f"worker up: -j {n}, binary {C}", flush=True)
     while True:
         active = [t for t in active if t.is_alive()]
-        if len(active) < n:
+        if len(active) < n and os.getloadavg()[0] < max_load:
             job = take()
             if job:
                 t = threading.Thread(target=go, args=(job,), daemon=True); t.start(); active.append(t); last = time.time()
