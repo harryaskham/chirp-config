@@ -40,3 +40,4 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | c5 | per-section EQ 1.0x + no pinch + vocals re-aligned to the v4+ grid (they were ~230 ms early) | 57.918 | (base) |
 | ks | c5 + snare +4 + kick +3 | 57.564 | no |
 | v12 | c5 + snare +4 dB (mixfeel: the record's 250 Hz-2.5 kHz crest 9-10 dB vs ours 4-6, hit-to-hit vary 3.6-4.2 vs 1.4-2.0) | 58.525 | yes |
+| v13 | snare +6 dB (kit.s.gain=7dB) | 58.774 | yes |
