@@ -199,10 +199,14 @@ def commit(paths, msg, args):
             if "nothing" not in (c.stdout + c.stderr):
                 print(f"climb: not committed: {(c.stderr or c.stdout).strip()[:200]}", file=sys.stderr)
             return
-        for _ in range(3):
+        for attempt in range(5):
             p = git("pull", "-q", "--rebase", "--autostash", "origin", "main")
             if p.returncode:
                 git("rebase", "--abort")
+                # another agent's fetch in the shared tree can leave FETCH_HEAD naming several branches for a moment
+                if "multiple branches" in p.stderr and attempt < 4:
+                    time.sleep(2 + 2 * attempt)
+                    continue
                 print(f"climb: committed locally; pull failed: {p.stderr.strip()[:200]}", file=sys.stderr)
                 return
             if git("push", "-q", "origin", "HEAD:main").returncode == 0:
