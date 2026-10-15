@@ -65,6 +65,13 @@ Reference: album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825;
 - Bleed-section guitars E2→Eb2 (bars 108-121, barchroma 0.3 → 0.96 per bar): 65.921 = v22 (mix chroma +0.2) — not kept.
 - Bridge 'missing low end' (−25..−32 dB at 30-100 Hz) is the previous section's last hit ringing ~1.5 s into the window,
   not a drone: the record's bridge is −80 dB at 50-110 Hz after 2 s. Its 'drum stem' onsets are noise-floor artefacts.
+- Guitar track EQ toward guitarbench's residual (lowmid 230-1150 −5.3 dB, bite/fizz +2.4/+2.9): half move 65.31,
+  full move 64.03 (v23 66.07) — the stem-based mid target fights the mix balance the master EQ already fits.
+- Kick body decay 210 → 140 / 100 ms: 65.86 / 65.02 (implement +1.3, everything else down).
+- Amp bloom (fx.2.bloom, 0.35 now): 0.65 66.01, 0.9 64.99, 0.15 65.74, 0 65.50 — 0.35 is the balance point.
+- Chroma attribution (likeness chroma is 100 Hz-4 kHz, so the kick fundamental is outside it): guitars carry ~61% of
+  the band's energy; the mix's C# excess (+0.03) / D# and G deficits sit on the riff's 7th/14th vs octave/5th
+  harmonics of Eb2 — a harmonic-balance property of the rig, not reachable with bloom or EQ.
 
 ## Metric notes
 - loudness term: 0.5 s / 1 s-window contour; steady sections score ~45-50 whatever the match (per-bar levels are
