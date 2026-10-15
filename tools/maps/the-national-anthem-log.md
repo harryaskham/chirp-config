@@ -14,3 +14,7 @@ track is silent after bar 122 — the record's last ~30 s (the brass/noise tail 
 | v1a | tab at 90 bpm, offset 2.12 s: bass-fuzz, rock-kit (h1->h, drop m92), maynard vox, horn-section brass, tenor-sax bari, juno-pad keys, 3x theremin ondes | 34.9 (rhythm ~0) | |
 | v1b | all bars at the measured 91.48 bpm, offset 2.105 s | 45.9 (rhythm 30-57) | |
 | v1 | + master +2.6 dB before the clip (body RMS was 2.6 dB low) | 47.1 | yes |
+| wb1 | per-section master band-width lanes (wb0-wb6, record/ours side-mid per likeness band, clip 0.2-2.5): the record is mono-ish below 150 Hz, very wide at 400-1.2k (~1.0: ondes/brass) and 0.6 in the air; ours the reverse | 48.4 | |
+| wb2 | second band pass | 48.7 | |
+| bw3 / bw15 | bass_width 0.3 / 0.15 (below the stage's 120 Hz corner bands do not apply; mono_below 0 needs a newer groove than f4b9563) | 49.2 / 48.9 | |
+| v2 | third band pass on bw3 | 49.7 | yes |
