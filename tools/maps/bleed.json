@@ -3232,6 +3232,12 @@
           ]
         }
       }
+    },
+    {
+      "name": "bridge-high",
+      "score_file": "tools/maps/bleed-bridge-high.txt",
+      "patch": "ambient-swell",
+      "gain": "-9dB"
     }
   ]
 }

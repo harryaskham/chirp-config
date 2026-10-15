@@ -46,6 +46,7 @@ Reference: album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825;
 | v42 | 72.45 | vocal on Ab4 (the tracked pitch's mode) instead of A4 (chosen for the noisy bark): chroma +1..+2 in riffs/ripples/break/implement; G4: 71.94; per-syllable tracked pitch (stemvox --note auto, octave errors G3/E5/F5): 72.11 |
 | v43 | 72.55 | obzen-kit china −5 → −7 dB (−9: 72.43). Kit piece re-check: kick ±2 dB 72.21/72.27 (stays 2 dB), snare +2 72.32 / −2 72.46 (neutral) |
 | v44 | 72.64 | obzen-kit crash −9 → −7 dB (−5: 72.61; −11: 72.35). Open hat ±2 dB: neutral |
+| v45 | 72.67 | bridge high texture: ambient-swell holding Eb5 (C#5 in each 4-bar cycle's C# bar), −9 dB (the record's bridge centres on D#5/C#5; the tab's atmos rests there): bridge chroma 48.7 → 50.8. −15 dB 72.65; drone-shimmer ±0; ebow 72.41; lead-tape 72.36-72.42 (mono → stereo loss) |
 
 ## Tried and rejected (don't re-run without a new reason)
 - Guitars: amp gain/scrape/pick-noise for the 'saw' valleys (no effect; pitch glide was the lever); stiffer strings

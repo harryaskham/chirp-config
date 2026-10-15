@@ -1,0 +1,16 @@
+bar 122  Eb5/4b@90
+bar 123  C#5/4b@90
+bar 124  Eb5/4b@90
+bar 125  Eb5/4b@90
+bar 126  Eb5/4b@90
+bar 127  C#5/4b@90
+bar 128  Eb5/4b@90
+bar 129  Eb5/4b@90
+bar 130  Eb5/4b@90
+bar 131  C#5/4b@90
+bar 132  Eb5/4b@90
+bar 133  Eb5/4b@90
+bar 134  Eb5/4b@90
+bar 135  C#5/4b@90
+bar 136  Eb5/4b@90
+bar 137  Eb5/4b@90
