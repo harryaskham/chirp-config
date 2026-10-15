@@ -23,6 +23,7 @@ Reference: album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825;
 | v18 | 65.0 | chirper-one's sectioneq.py (7-band LS per-section master EQ) on all sections but the bridge |
 | v19 | 65.4 | vocal timing: stemvox --onsets flux --grid 0.03125 --min 0.0625 --shift 7 (syllable recall 0.15-0.31 → 0.41-0.74) |
 | v20 | 65.51 | obzen-kit china self-choke (`x: {choke: x}`): a re-struck china cuts its own wash instead of stacking it; rhythm +0.4..+2 in the china sections |
+| v21 | 65.77 | tab bends: songsterr.py emits Songsterr bends (tone/25 semitones, read mid-note) as bend= tokens; the riff's B25/B50 pedal bends sound E/F over the open D# (chroma riffs +2.9, ripples +2.0, falling +2.6). Needs chirp ≥ 4049ee3: bend=/cc never reached patches with their own fx before |
 
 ## Tried and rejected (don't re-run without a new reason)
 - Guitars: amp gain/scrape/pick-noise for the 'saw' valleys (no effect; pitch glide was the lever); stiffer strings

@@ -60,6 +60,10 @@ def fmt_len(t):
     return f"/{s}b"
 
 
+def fmt_num(x):
+    return f"{x:.2f}".rstrip("0").rstrip(".")
+
+
 def measure_tokens(track, m, drums):
     out = []  # list of [token_body, beats, suffix]
     vel = None
@@ -82,6 +86,7 @@ def measure_tokens(track, m, drums):
                 out[-1][2] += "^slidedown"
             continue
         pitches = sorted(tun[int(n["string"])] + int(n["fret"]) for n in notes)
+        bend = max((bend_semis(n) for n in notes), key=abs, default=0.0)
         arts = ""
         if b.get("palmMute") or any(n.get("palmMute") for n in notes):
             arts += "^pm"
@@ -94,9 +99,15 @@ def measure_tokens(track, m, drums):
         if any(n.get("slide") in ("downwards", "outDownwards") for n in notes):
             arts += "^slidedown"
         v = f"@{vel}" if vel else ""
-        out.append([",".join(nm(p) for p in pitches), t, v + arts])
+        out.append([",".join(nm(p) for p in pitches), t, v + arts, bend])
     toks = []
-    for body, t, suf in out:
+    state = 0.0   # the track's current bend (semitones): a bend= token holds until the next one
+    for item in out:
+        body, t, suf = item[:3]
+        bend = item[3] if len(item) > 3 else 0.0
+        if body != "R" and abs(bend - state) > 1e-6:
+            toks.append(f"bend={fmt_num(bend)}" if abs(bend) > 1e-6 else "bend=")
+            state = bend
         # slides become stepped bends across short holds (bends act on the holds that follow them):
         # in = from 2 semitones below over the first 1/8 beat; out = falling 2 then 5 over the last 1/4
         sin, sout = "^slidein" in suf, "^slidedown" in suf
@@ -118,7 +129,28 @@ def measure_tokens(track, m, drums):
         if sout:
             parts.append("bend=-2 _/0.125b bend=-5 _/0.125b bend=")
         toks.append(" ".join(parts))
+        state = 0.0   # the slide's stepped bends end reset
+    if abs(state) > 1e-6:
+        toks.append("bend=")
     return " ".join(toks)
+
+
+def bend_semis(n):
+    """A bent note's pitch offset in semitones, read at the middle of its bend curve (Songsterr `tone` 25 =
+    one semitone: Bleed's B25/B50 pedal bends sound E/F over the open D#, as the stems confirm). Notes
+    bending through a transition (0 → 25) take the value they mostly sound at."""
+    b = n.get("bend")
+    if not b:
+        return 0.0
+    pts = sorted((p.get("position", 0), p.get("tone", 0)) for p in b.get("points", [])) or [(0, b.get("tone", 0))]
+    mid = 30
+    for (p0, v0), (p1, v1) in zip(pts, pts[1:]):
+        if p0 <= mid <= p1:
+            tone = v0 + (v1 - v0) * ((mid - p0) / (p1 - p0) if p1 > p0 else 0)
+            break
+    else:
+        tone = pts[-1][1] if mid >= pts[-1][0] else pts[0][1]
+    return round(tone / 25.0, 2)
 
 
 def score(cache, i):
