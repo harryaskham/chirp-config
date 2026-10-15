@@ -17,7 +17,7 @@
       "metric": "python3 tools/likeness.py sections ref/shadows.wav OUT.wav $(cat tools/shadows-sections.txt)",
       "best": {
         "score": 67.4,
-        "version": "v89",
+        "version": "v90",
         "commit": "see git log songs/shadows.yaml",
         "engine": "b638c6a (needs >= b638c6a: reverb mono_below)",
         "metric": "likeness with the mastering term (1ffa987)"
