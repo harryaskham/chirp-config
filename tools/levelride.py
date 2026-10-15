@@ -4,10 +4,12 @@ a render of the map are compared (high-passed RMS, smoothed over --win seconds);
 automation lane (auto.ride, after the master EQ, before the song ceiling), clamped to ±--max dB and median-filtered so
 it moves like a hand on a fader, not a compressor. Re-run after arrangement or mix changes (it follows the render).
 
-  levelride.py MAP.json REF.wav RENDER.wav [--win 4] [--step 2] [--max 9] [--amount 1.0] [-o OUT.json]
+  levelride.py MAP.json REF.wav RENDER.wav[,RENDER2,...] [--win 4] [--step 2] [--max 9] [--amount 1.0] [-o OUT.json]
 
 --amount scales the correction (0.5 = halfway). Existing auto.ride is replaced; the render should have been made
-without it (or pass --accumulate to add to the existing lane)."""
+without it (or pass --accumulate to add to the existing lane). Several renders (comma-separated: the same
+song at different seeds) average their loudness, so the ride doesn't learn one seed's draws (a 0.5 s ride fitted
+to the default seed was ~0.7 of Laid to Rest's seed-overfit)."""
 import json
 import sys
 import os
@@ -36,7 +38,11 @@ def loud(x, win, step):
 
 def ride(ref, out, win=4.0, step=2.0, mx=9.0, amount=1.0):
     tr, lr = loud(L.load(ref), win, step)
-    to, lo = loud(L.load(out), win, step)
+    # several renders (comma-separated, e.g. the same song at different seeds): average their short-term loudness,
+    # so the ride follows the arrangement's level contour, not one seed's random fluctuations
+    curves = [loud(L.load(o), win, step) for o in out.split(",")]
+    m = min(len(c[1]) for c in curves)
+    to, lo = curves[0][0][:m], np.mean([c[1][:m] for c in curves], axis=0)
     n = min(len(tr), len(to))
     d = (lr[:n] - lo[:n])
     d = d - np.median(d)            # the ride shapes the contour; the overall level is the ceiling's job
