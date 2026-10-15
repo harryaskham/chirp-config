@@ -141,17 +141,26 @@
       "source": "https://www.youtube.com/watch?v=WW6JY2WcEUI",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/saturnine.wav OUT.wav $(cat tools/saturnine-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 52.1,
+        "version": "v1",
+        "commit": "see git log songs/saturnine.yaml",
+        "engine": "36561dc"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "jazz trio / nu-jazz",
       "requested": {
         "by": "harry",
         "at": "2026-10-15T20:01:07Z",
         "note": null
+      },
+      "last": {
+        "at": "2026-10-15T20:48:05Z",
+        "who": "chirper-three"
       }
     },
     {
