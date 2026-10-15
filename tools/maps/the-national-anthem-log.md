@@ -20,3 +20,7 @@ track is silent after bar 122 — the record's last ~30 s (the brass/noise tail 
 | v2 | third band pass on bw3 | 49.7 | yes |
 | t0 / t6 | ending tail: stempad of the guitar stem (the record's ending lives there: drums/bass gone from 316 s, 'guitar' -17..-22 dB = the brass/sax squall) over bars 119-131 on brass, 0 / -6 dB | 49.9 / 49.7 (v3 50.3; ending 32.2 -> 29.3 / 26.9: ltas +9 but chroma -14) | no |
 | t7 | the tail only from bar 126 (where v3 is already silent) | 48.9 (ending 20.3, loudness term 0.1) | no |
+| bs1-3 | bari part on bari-sax / physical tenor-sax / sax-section (bd-315068 fixed by 81a3042) | 49.8 / 49.6 / 49.4 (v3 50.3) | no |
+| on1 | the three ondes parts on wM's new 'ondes' (ec8ad0e) instead of theremin | 49.6 | no (untuned) |
+| se1 | per-section master EQ (sectioneq.py, lanes eq0-eq6 after the clip): large corrections (45 Hz -9, 90 Hz +7..+9, 1.8k +5..+7, air -9) | 52.7 | |
+| v4 | residual sectioneq pass on se1's render, added per section | 53.4 | yes |
