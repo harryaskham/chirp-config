@@ -43,6 +43,7 @@ Reference: album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825;
 | v39 | 72.03 | bridge parts 12 ms later (pure delay on clean + keys): the song offset is right (±10 ms: 71.30/69.86) but the bridge's rhythm rose with a later offset (61 → 70 → 77 at +10/+20 ms); 20 ms: 72.02 (outro −0.7), clean 20 + keys 12: 72.02 |
 | v40 | 72.22 | relative timing: rhythm guitars and bass 6 ms behind the kit (pure delays): guitars 6 ms 72.17, 10 ms 72.20, bass 6 ms 72.08; drums 6 ms later 71.91 — the kit leads |
 | v41 | 72.25 | vocal syllables 5 ms earlier (stemvox --shift 7 → 2; the vocal cross-correlated +5 ms late vs Jens): implement +0.6; --shift −3: 71.97. Lead 6 ms later: 72.13 |
+| v42 | 72.45 | vocal on Ab4 (the tracked pitch's mode) instead of A4 (chosen for the noisy bark): chroma +1..+2 in riffs/ripples/break/implement; G4: 71.94; per-syllable tracked pitch (stemvox --note auto, octave errors G3/E5/F5): 72.11 |
 
 ## Tried and rejected (don't re-run without a new reason)
 - Guitars: amp gain/scrape/pick-noise for the 'saw' valleys (no effect; pitch glide was the lever); stiffer strings
