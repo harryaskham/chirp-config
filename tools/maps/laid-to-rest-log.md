@@ -58,3 +58,7 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | sy1 / sy0 / irk | (v17) m8-rhythm sympathetic stage (F-standard 8-string resonances) retuned to drop D 61.467; off 61.795; cab kitten-slayer only 61.069 | | (combine) |
 | c7 | v18 + sympathetic off | 62.709 | |
 | v19 | v18 + sympathetic off + kitten-slayer cab on both rigs | 63.098 | yes |
+| g5v / se2 / w1 / r6 / bsub / ssin / sa | third grid pass 63.117 (converged); per-section EQ refit 62.499; master sub mono 62.700; drums room -6 dB 61.883; bass sine sub -20 dB 62.517; snare body sine 62.776; snare A3 62.032 | | no |
+| ka / ksplit | kick A1 everywhere 63.115 (sections split: +1.2..1.6 in 1/4/5/9, -2..-3 in 7/8); A1 except bars 78-105 + outro 63.659 | | (combine) |
+| lr4 | levelride 4 s windows | 63.086 | no |
+| v20 | levelride.py fader ride at 1 s windows / 0.5 s steps, max 4 dB (the record's verse phrases its dynamics; verse 60.4 -> 67.9) | 64.641 | yes |
