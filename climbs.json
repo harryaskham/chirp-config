@@ -12,7 +12,7 @@
   {
    "id": "shadows",
    "song": "songs/shadows.yaml",
-   "reference": "DOOM: The Dark Ages OST (Finishing Move) — When The Shadows First Lengthened (menu theme), YouTube UOXI5uSPIaQ",
+   "reference": "DOOM: The Dark Ages OST (Finishing Move) \u2014 When The Shadows First Lengthened (menu theme), YouTube UOXI5uSPIaQ",
    "owner": "chirp-climb0",
    "metric": "python3 tools/likeness.py sections ref/shadows.wav OUT.wav $(cat tools/shadows-sections.txt)",
    "best": {
@@ -27,7 +27,7 @@
   {
    "id": "bleed",
    "song": "songs/bleed.yaml",
-   "reference": "Meshuggah — Bleed (obZen, 2008), album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825",
+   "reference": "Meshuggah \u2014 Bleed (obZen, 2008), album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825",
    "owner": "chirp-climb2",
    "metric": "python3 tools/likeness.py sections ref/bleed.wav OUT.wav $(cat tools/bleed-sections.txt)",
    "best": {
@@ -41,13 +41,13 @@
   {
    "id": "pneuma",
    "song": "songs/pneuma.yaml",
-   "reference": "Tool — Pneuma (Fear Inoculum, 2019), official audio YouTube 5ClCaPmAA7s",
+   "reference": "Tool \u2014 Pneuma (Fear Inoculum, 2019), official audio YouTube 5ClCaPmAA7s",
    "owner": "chirper-one (chirp-climb1)",
    "metric": "python3 tools/likeness.py sections ref/pneuma.wav OUT.wav $(cat tools/pneuma-sections.txt)",
    "best": {
-    "score": 61.4,
-    "version": "v17",
-    "commit": "200bedd"
+    "score": 61.5,
+    "version": "v18",
+    "commit": "10ab0b8"
    },
    "passes": 1,
    "enabled": true
@@ -55,7 +55,7 @@
   {
    "id": "laid-to-rest",
    "song": "songs/laid-to-rest.yaml",
-   "reference": "Lamb of God — Laid to Rest (Ashes of the Wake, 2004), album mix from the official video (YouTube HL9kaJZw8iw); Songsterr tab 12062",
+   "reference": "Lamb of God \u2014 Laid to Rest (Ashes of the Wake, 2004), album mix from the official video (YouTube HL9kaJZw8iw); Songsterr tab 12062",
    "owner": "chirp-climb3",
    "metric": "python3 tools/likeness.py sections ref/laid-to-rest.wav OUT.wav $(cat tools/laid-to-rest-sections.txt)",
    "best": {
