@@ -4,7 +4,7 @@ a render of the map are compared (high-passed RMS, smoothed over --win seconds);
 automation lane (auto.ride, after the master EQ, before the song ceiling), clamped to ±--max dB and median-filtered so
 it moves like a hand on a fader, not a compressor. Re-run after arrangement or mix changes (it follows the render).
 
-  levelride.py MAP.json REF.wav RENDER.wav[,RENDER2,...] [--win 4] [--step 2] [--max 9] [--amount 1.0] [-o OUT.json]
+  levelride.py MAP.json REF.wav RENDER.wav[,RENDER2,...] [--win 4] [--step 2] [--max 9] [--amount 1.0] [--contour --sections F] [-o OUT.json]
 
 --amount scales the correction (0.5 = halfway). --contour --sections F removes each section's mean correction, so the
 ride only shapes loudness within sections (set section levels separately, e.g. a master envelope). Existing auto.ride is replaced; the render should have been made
