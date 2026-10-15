@@ -153,3 +153,4 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | v52 | third outro band-lane pass (low 0.36 vs 0.44, lowmid 0.86 vs 1.02, mid 1.23 vs 1.14) | 71.30 held-out (v51 71.27; outro 70.4 -> 71.1, no seed worse) | yes |
 | v53 | per-section band profiles: each master width band is a lane (wb0-wb6) stepping at the section cuts, fitted from v52 seeds 3/5/11 (ratios clipped 0.6-1.6; intro/lead riff want mids/himid x1.35-1.6) | 71.97 held-out (v52 71.30; +0.6..0.7 every seed; 9 of 10 sections up) | yes |
 | v54 | second per-section band pass (from v53 seeds) | 72.30 held-out (v53 71.97; +0.3..0.4 every seed) | yes |
+| v55 | third per-section band pass (residuals mostly within 15%) | 72.40 held-out (v54 72.30; +0.1 every seed) | yes |
