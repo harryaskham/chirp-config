@@ -25,3 +25,12 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | v8n | v8 on f0b5f99 (m8 grain 0.5 default) | 54.801 | baseline |
 | gp8 | presence on v8n | 54.840 | marginal |
 | v9 | dtwgrid refinement: drum stem vs drums solo, 2-bar blocks, conf >= 0.3 else keep (bars 94-109 were 10-20 ms early) | 55.083 | yes |
+| vox6 / dh8 / bs2 | (v8) vocals +6 dB 54.335; drums highshelf -3 dB @5k 54.181; bass-pick-di 52.787 | | no |
+| dt1 / dt1b | drumtrans.py transcription of the whole drum stem replacing the tab drums (tab drums already align 0.4-0.58) | 46.831 / 45.971 | no |
+| r1 / r2 / r3 / bs1 / bal1 | (v9) m8-chug 54.247; m8-emg-l + m8-bkp-r 53.563; m8-obzen 53.650; bass-di 53.804; bass -5 drums -3 53.040 | | no |
+| se05 | (v9) per-section master EQ (sectioneq.py) at 0.5x on top of the global EQ: 45 Hz -3..-4 dB in most sections | 56.832 | (combine) |
+| ph0 | (v9) pinch harmonics as plain notes (m8 ^ph rings the 3rd-6th: F2's C was an extra pitch class; the record's ring reads F) | 55.310 | (combine) |
+| note | shared kidman.yaml adopted the voice `coda` field (921e976): songs on kidman stopped planning on the pinned groove; groove restarted on 2e0ac67 | | |
+| v9n | v9 re-baselined on 2e0ac67 (kidman with onset/coda) | 55.066 | baseline |
+| c3 | se05 + ph0 | 56.967 | (superseded) |
+| v10 | per-section master EQ at 1.0x (sectioneq.py on the v9 render) | 57.737 | yes |
