@@ -26,6 +26,7 @@ Reference: album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825;
 | v21 | 65.77 | tab bends: songsterr.py emits Songsterr bends (tone/25 semitones, read mid-note) as bend= tokens; the riff's B25/B50 pedal bends sound E/F over the open D# (chroma riffs +2.9, ripples +2.0, falling +2.6). Needs chirp ≥ 4049ee3: bend=/cc never reached patches with their own fx before |
 | v22 | 65.92 | tab correction: bars 81-97 write D3 (guitars, s5f11) / D2 (bass) where the record plays the D# octave — map `subst` D3→Eb3, D2→Eb2 (per-bar f0 vs the stems; implement chroma 34.7 → 39.9) |
 | v23 | 66.07 | bridge darkness re-fit: master auto.dark 4× lp 1.4 kHz → 1.7 kHz (−3.85 → −3.55 oct): bridge 48.3 → 50.2 (spectral +5.5, ltas +7.5). 2.0k 66.02, 2.8k 65.78, 2 stages @1.4k 66.02, 2 stages @2k 65.84 |
+| v24 | 67.67 | pick position 1/7 (m8-obzen-l 0.12 → 0.143, -r 0.095 → 0.143): a pluck at 1/n of the string cancels harmonics n, 2n…; the old points cancelled the octave (8th) and ~10th-11th (G) and left the 7th/14th (C# over Eb2) — chroma +5..+10 in every heavy section (implement 39.9 → 49.3). 0.135: 67.45. From here on scores are on likeness.py with the mastering term (1ffa987): v23 = 66.4 there |
 
 ## Tried and rejected (don't re-run without a new reason)
 - Guitars: amp gain/scrape/pick-noise for the 'saw' valleys (no effect; pitch glide was the lever); stiffer strings
