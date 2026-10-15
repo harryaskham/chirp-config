@@ -145,7 +145,7 @@
       "id": "the-national-anthem",
       "song": "songs/the-national-anthem.yaml",
       "reference": "Radiohead — The National Anthem",
-      "source": null,
+      "source": "https://www.youtube.com/watch?v=NfQD1QiQ9o4",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/the-national-anthem.wav OUT.wav $(cat tools/the-national-anthem-sections.txt)",
       "best": null,
