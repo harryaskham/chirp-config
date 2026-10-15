@@ -146,3 +146,4 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | ks3 (held-out) | chorus 3 (98-105) on the A1 kit like choruses 1-2 | 70.83 vs v48 71.00 (verse3/chorus3 72.6 -> 71.1) | no: chorus 3 prefers Ab1 |
 | v49 | intro bars 2-5 per-bar metric grid on seed-averaged onsets (bar 2 was 150 ms early; offset 1.82 -> 1.97 s) | 71.00 held-out (tie; intro 69.7 -> 70.2, others -0.1..-0.2 re-roll noise) | yes (alignment) |
 | lo4 / lo8 (held-out) | outro lead (bars 122-135) -4 / -8 dB as its own part | 71.03 / 71.00 (v49 71.00) | no: noise-level; the outro gap is its stereo profile, not the lead's level |
+| ow (held-out) | outro-only guitar/lead parts (bars 123-135) with a track-level per-band width toward the record's outro image | 71.03 (outro 67.2 -> 67.7) | no: noise-level; the record's outro width (sub 0.19) seems to come from elements we lack (room/reverb tail), not the guitars' image |
