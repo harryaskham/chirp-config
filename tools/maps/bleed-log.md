@@ -36,6 +36,7 @@ Reference: album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825;
 | v32 | 71.07 | bridge counter-width at half on clean/keys/hall (bridge 50.8 → 51.6); kidman's vowel is an open base (0.62) + relative ^dvow offsets (stemvox --phones emits them) — unmarked notes sang a closed 'u' that separated as 12% drums (bd-f227d8; tools/vocaltest.py: Bleed's vocal 94.3% vocals, LTR's 80.6 → 94.8%) |
 | v33 | 71.15 | fader ride refreshed: levelride --accumulate --amount 0.5 on the v32 render (the v27 ride was fitted before the width/vocal changes) |
 | v34 | 71.29 | bridge keys on the beat: the tab's 'piano atmosphere' anticipates beats 1 and 3 by an eighth (onsets at 16th slots 7 and 15); the record's other stem changes on slots 1 and 9 → per-bar replace X/2b Y/2b (bars 122-137): bridge rhythm 38.6 → 60.7, chroma 57.9 → 45.1 (keys out entirely: rhythm 58 but loudness −15) |
+| v35 | 71.54 | part balance re-check after the pick/width/ride/vocal changes: drums +1.5 dB, bass −1.5 dB (drums +3: 70.31; drums −1.5: 70.32; bass +1.5: 71.17; vocal ±1.5: 71.27/71.15) |
 
 ## Tried and rejected (don't re-run without a new reason)
 - Guitars: amp gain/scrape/pick-noise for the 'saw' valleys (no effect; pitch glide was the lever); stiffer strings
