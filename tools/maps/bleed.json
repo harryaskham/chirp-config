@@ -1175,7 +1175,7 @@
     {
       "name": "overdub",
       "track": 3,
-      "patch": "m8-tight",
+      "patch": "m8-tight synth.layers.0.pick=0.143",
       "bars": [
         [
           1,
@@ -1239,9 +1239,9 @@
     },
     {
       "name": "vox",
-      "score_file": "tools/maps/bleed-vox.txt",
-      "patch": "bark",
-      "gain": "4dB",
+      "score_file": "tools/maps/bleed-vox-phones.txt",
+      "patch": "kidman",
+      "gain": "6dB",
       "rest": [
         [
           106,
@@ -1265,11 +1265,11 @@
             ],
             [
               "251.9s",
-              0.2
+              0.0
             ],
             [
               "285.2s",
-              0.2
+              0.0
             ],
             [
               "285.3s",
