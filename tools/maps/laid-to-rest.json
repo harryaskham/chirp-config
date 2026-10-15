@@ -2975,7 +2975,7 @@
   {
    "name": "bass",
    "track": 3,
-   "patch": "m8-bass",
+   "patch": "m8-bass synth.layers.0.pick=0.143",
    "bars": [
     [
      1,

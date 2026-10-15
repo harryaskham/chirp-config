@@ -111,3 +111,5 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | pk7 / pk6 | (v34) guitars pick at 1/7 (0.143; chirper-two's Bleed finding: a pluck at 1/n cancels harmonics n, 2n...; ours were 0.12/0.095 like Bleed's) 67.731; (c13) at 1/6 67.766 | | |
 | c13 | v35 + the re-ride | 67.532 | |
 | v36 | v35 + re-ride + guitars picked at 1/7 | 68.240 | yes |
+| pu13 | guitar pickups at 1/13 | 68.224 | no |
+| v37 | bass picked at 1/7 too (was 0.2 = 1/5, cancelling its 5th harmonic) | 68.312 | yes |
