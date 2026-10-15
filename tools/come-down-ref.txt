@@ -1,0 +1,11 @@
+Come Down — reference (Harry's request: the band performance, NPR Music Tiny Desk Concert 2016, the set opener)
+
+source:  https://www.youtube.com/watch?v=ferZnZ0_rSM  (NPR Music; full concert 937.4 s)
+fetch:   yt-dlp -x --audio-format wav --postprocessor-args "ffmpeg:-ar 48000" -o td-full.%(ext)s URL
+clip:    ffmpeg -ss 1.9 -to 176.5 -i td-full.wav -ar 48000 -c:a pcm_s16le ref/come-down.wav   (174.6 s)
+         1.9 s: the first note (digital silence before it); 175.5 s: the band stops (bass content ends);
+         176.5 s: a short tail, before Anderson's talk and the applause (talk/applause runs ~176-225 s,
+         the next song starts at ~225 s)
+denoise: none (round 2 baseline measured on the plain clip). If room tone is ever found to cost points,
+         denoise this clip once and record the exact settings here, so every round measures the same way.
+studio:  the Malibu studio cut that round 1 measured on is kept locally as ref/come-down-studio.wav
