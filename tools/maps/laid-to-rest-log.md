@@ -119,3 +119,5 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | gld / bhp37 (seed-avg) | guitar lead 67.17; bass hp 70 Hz 67.17 (vs v37 67.57 ± 0.05) | | no: real losses |
 | mst (seeds 3/5/11) | render-time mastering --loudness -9.5 --limit (c552556): 67.49 / 67.76 / 67.37 = 67.54 | | no gain over +5 dB into the ceiling |
 | v38 | pinch harmonics restored with their tab bends (Lamb of God's bent squeals): seed-avg 67.50 ± 0.08 vs v37 67.57 ± 0.05 — a tie, so the realistic choice | 67.50 (mean) | yes |
+| cl5 / cl7 (seed-avg, 33fca2a) | master soft clipper (clip, 33fca2a) ahead of the ceiling limiter instead of +5 dB gain: drive 5 dB 68.23 ± 0.05; 7 dB 68.20 ± 0.08 (v38 67.50 on the same engine) | | |
+| v39 | clip drive=7dB ceiling=-0.5dB (ties drive 5; 2 dB louder, nearer the record's crushed master); groove restarted on 33fca2a | 68.20 (mean) | yes |

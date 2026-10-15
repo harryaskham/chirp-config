@@ -165,10 +165,7 @@
       ]
      }
     },
-    {
-     "type": "gain",
-     "gain": "5dB"
-    }
+    "clip drive=7dB ceiling=-0.5dB"
    ],
    "auto": {
     "lift": {
