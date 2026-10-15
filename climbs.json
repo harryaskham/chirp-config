@@ -245,7 +245,7 @@
       "id": "flim",
       "song": "songs/flim.yaml",
       "reference": "Aphex Twin — Flim",
-      "source": null,
+      "source": "https://www.youtube.com/watch?v=-yNHlKAzyVA",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/flim.wav OUT.wav $(cat tools/flim-sections.txt)",
       "best": null,
