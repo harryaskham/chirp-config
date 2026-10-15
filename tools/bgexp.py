@@ -7,7 +7,7 @@
 
 Each job waits for one of --slots concurrency slots (flock files), renders at nice 15 with the pinned build
 ($CHIRP or /tmp/lt/chirp-main/cli/chirp/target/release/chirp), then scores with likeness.py (sections + the
-unrounded weighted total) and mixfeel.py (punch/crest/vary per band), writing $BGEXP_DIR/NAME.json and
+unrounded weighted total) and mixfeel.py; records the binary used (pin CHIRP to an immutable copy: a shared build path can be rebuilt under a queue) (punch/crest/vary per band), writing $BGEXP_DIR/NAME.json and
 NAME.log ($BGEXP_DIR defaults to /tmp/lt/exp; give each climb its own so climbers don't wait on each other's slots). Never plays audio. Defaults (--ref/--sections) are the shadows climb's.
 """
 import fcntl
@@ -50,7 +50,9 @@ def job(name, song, ref, sections, slots, extra):
                 f.close()
         if lock is None:
             time.sleep(3)
-    state.update(state="rendering", started=time.time())
+    st = os.stat(CHIRP)
+    ver = subprocess.run([CHIRP, "--version"], capture_output=True, text=True).stdout.strip()
+    state.update(state="rendering", started=time.time(), engine={"path": CHIRP, "size": st.st_size, "mtime": int(st.st_mtime), "version": ver})
     json.dump(state, open(out, "w"))
     wav = f"{EXP}/{name}.wav"
     with open(f"{EXP}/{name}.log", "w") as log:
@@ -96,8 +98,12 @@ def status(prefix="", since=None):
             continue
         rows.append(d)
     rows.sort(key=lambda d: d.get("queued", 0))
+    engines = {}
     for d in rows:
-        line = f"{d['name']:14s} {d['state']:9s}"
+        e = d.get('engine'); tag = ''
+        if e:
+            key = (e['path'], e['size'], e['mtime']); tag = engines.setdefault(key, chr(ord('A') + len(engines)))
+        line = f"{d['name']:14s} {d['state']:9s}{tag:2s}"
         if d.get("state") == "done" and "exact" in d:
             line += f" {d['exact']:7.3f}  " + " ".join(f"{s['total']:5.1f}" for s in d["sections"])
             mf = d.get("mixfeel")
@@ -107,6 +113,8 @@ def status(prefix="", since=None):
         elif d.get("state") in ("rendering", "scoring"):
             line += f" ({time.time() - d.get('started', time.time()):.0f} s)"
         print(line)
+    for (path, size, mtime), tag in engines.items():
+        print(f"engine {tag}: {path} ({size} bytes, built {time.strftime('%H:%M', time.localtime(mtime))})")
     if rows and rows[-1].get("mixfeel"):
         mf = rows[-1]["mixfeel"]
         print(f"{'(reference)':14s} {'':9s} {'':7s}  {'':29s}  | sub punch " + "/".join(f"{s['ref']['sub']['punch']:.1f}" for s in mf)
