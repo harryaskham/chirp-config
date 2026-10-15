@@ -111,6 +111,9 @@ def main():
         if bar_range and not (bar_range[0] <= keep[bi]["m"] <= bar_range[1]):
             lags[-1] = 0.0
         confs.append(best[0])
+    if "--median" in a:   # remove isolated whole-bar aliases: each lag -> the median of its N neighbours
+        n = int(a[a.index("--median") + 1]); h = n // 2
+        lags = [float(np.median(lags[max(0, i - h):i + h + 1])) for i in range(len(lags))]
     if "--report" in a:
         al = np.abs(lags)
         print(f"{len(blocks)} blocks; lag (ms): " + " ".join(f"{l * 1000:+.0f}" for l in lags))
