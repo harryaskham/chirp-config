@@ -34,7 +34,7 @@
         "mod": [
          {
           "src": "auto.outb",
-          "amount": 1.994
+          "amount": 1.937
          }
         ]
        }
@@ -46,7 +46,7 @@
         "mod": [
          {
           "src": "auto.outb",
-          "amount": 0.714
+          "amount": 0.957
          }
         ]
        }
@@ -58,7 +58,7 @@
         "mod": [
          {
           "src": "auto.outb",
-          "amount": 0.055
+          "amount": 0.252
          }
         ]
        }
@@ -70,7 +70,7 @@
         "mod": [
          {
           "src": "auto.outb",
-          "amount": -0.037
+          "amount": -0.1
          }
         ]
        }
@@ -82,7 +82,7 @@
         "mod": [
          {
           "src": "auto.outb",
-          "amount": 0.408
+          "amount": 0.43
          }
         ]
        }
@@ -94,7 +94,7 @@
         "mod": [
          {
           "src": "auto.outb",
-          "amount": -0.156
+          "amount": -0.166
          }
         ]
        }
@@ -106,7 +106,7 @@
         "mod": [
          {
           "src": "auto.outb",
-          "amount": -0.082
+          "amount": -0.074
          }
         ]
        }

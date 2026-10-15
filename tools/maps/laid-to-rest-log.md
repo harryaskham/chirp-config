@@ -150,3 +150,4 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | oh10 / oh4 (held-out) | outro hall reverb sends -10 / -4 dB | 71.03 / 70.90 | no |
 | v50 | outro per-band stereo profile via width band lanes (f4b9563): an outb lane switches each master band from the body width to the record's outro image (sub x3.8, himid x1.31, pres x0.84) at bar 123; needs groove >= f4b9563 (restarted) | 71.10 held-out (v49 71.00 same pin; outro 67.2 -> 68.7; half strength 68.1) | yes |
 | v51 | second outro band-lane pass (residual on v50 seeds 3/5/11: sub overshot 0.25 vs 0.19, low 0.22 vs 0.44, mid 1.28 vs 1.14) | 71.27 held-out (v50 71.10; outro 68.7 -> 70.4) | yes |
+| v52 | third outro band-lane pass (low 0.36 vs 0.44, lowmid 0.86 vs 1.02, mid 1.23 vs 1.14) | 71.30 held-out (v51 71.27; outro 70.4 -> 71.1, no seed worse) | yes |
