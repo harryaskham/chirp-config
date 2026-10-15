@@ -105,7 +105,7 @@
       "id": "daydreaming",
       "song": "songs/daydreaming.yaml",
       "reference": "Dark Dark Dark — Daydreaming",
-      "source": null,
+      "source": "https://www.youtube.com/watch?v=UvTZwhOHYVA",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/daydreaming.wav OUT.wav $(cat tools/daydreaming-sections.txt)",
       "best": null,
