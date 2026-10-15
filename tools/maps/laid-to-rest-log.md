@@ -125,3 +125,5 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | vocal check | kidman solo render separated by htdemucs_6s: vocals 75%, drums 15%, other 11%; the record's scream stem re-separated: vocals 100%. Engine bead bd-f227d8 (harsh vocals read as voice), with the engine agent | | engine |
 | vbk / vkb (seed-avg) | vocals on bark 68.47 ± 0.09; kidman + bark rasp -8 dB 68.50 (v40 68.50 on the same seeds): metric ties | | |
 | v41 | vocals on bark: a metric tie, but the separator reads a solo bark render as 98% vocals (kidman 75%, the record's scream 100%) | 68.5 (mean) | yes (realism) |
+| vb3 / vb6 (seed-avg) | bark vocals +3 dB 68.20 (vs 68.47); +6 dB aborted | | no |
+| smem (seed-avg) | snare body as an additive ideal-membrane mode set (1, 1.59, 2.14, 2.30, 2.65, 2.92, 3.16; damp 4) via an inline ltr-kit | 68.23 ± 0.19 (paired -0.1/-0.3/-0.3) | no: the triangle body's harmonics help here |
