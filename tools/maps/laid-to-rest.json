@@ -15,6 +15,19 @@
   "master": {
    "fx": [
     {
+     "type": "width",
+     "width": {
+      "value": 1.0,
+      "mod": [
+       {
+        "src": "auto.wout",
+        "amount": 1
+       }
+      ]
+     },
+     "bass_width": 1.0
+    },
+    {
      "type": "gain",
      "gain": {
       "value": "0dB",
@@ -2715,6 +2728,22 @@
       [
        "233.50s",
        0.0
+      ]
+     ]
+    },
+    "wout": {
+     "points": [
+      [
+       "0s",
+       0.0
+      ],
+      [
+       "213.145s",
+       0.0
+      ],
+      [
+       "213.645s",
+       1.4
       ]
      ]
     }
