@@ -18,3 +18,5 @@ track is silent after bar 122 — the record's last ~30 s (the brass/noise tail 
 | wb2 | second band pass | 48.7 | |
 | bw3 / bw15 | bass_width 0.3 / 0.15 (below the stage's 120 Hz corner bands do not apply; mono_below 0 needs a newer groove than f4b9563) | 49.2 / 48.9 | |
 | v2 | third band pass on bw3 | 49.7 | yes |
+| t0 / t6 | ending tail: stempad of the guitar stem (the record's ending lives there: drums/bass gone from 316 s, 'guitar' -17..-22 dB = the brass/sax squall) over bars 119-131 on brass, 0 / -6 dB | 49.9 / 49.7 (v3 50.3; ending 32.2 -> 29.3 / 26.9: ltas +9 but chroma -14) | no |
+| t7 | the tail only from bar 126 (where v3 is already silent) | 48.9 (ending 20.3, loudness term 0.1) | no |
