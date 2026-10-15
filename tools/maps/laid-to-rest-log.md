@@ -94,3 +94,4 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | phb / nbass | pinch harmonics with their 4.5-semitone squeal bends 68.000; bends stripped from the bass only 68.106 | | no |
 | sef1 / sef13 | per-section EQ refitted from scratch on a render without it (1.0x / 1.3x) | 67.121 / 66.788 | no (everything since v10 was tuned on the old fit) |
 | v32 | the fresh fit spliced into the three sections where it won (intro, lead riff, outro) | 68.188 | yes |
+| v33 | kit `tune` (d6bf166, bd-416d85) instead of kit.k.pitch: the toms follow the A1/Ab1 kick (outro 67.3 -> 69.3) | 68.359 | yes; groove restarted on d6bf166 |
