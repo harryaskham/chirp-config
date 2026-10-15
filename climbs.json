@@ -252,17 +252,25 @@
       "source": "https://www.youtube.com/watch?v=-yNHlKAzyVA",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/flim.wav OUT.wav $(cat tools/flim-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 41.5,
+        "version": "v1",
+        "commit": "see git log songs/flim.yaml"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "IDM / breakbeat",
       "requested": {
         "by": "harry",
         "at": "2026-10-15T20:01:08Z",
         "note": null
+      },
+      "last": {
+        "at": "2026-10-15T20:26:36Z",
+        "who": "chirper-two"
       }
     },
     {
