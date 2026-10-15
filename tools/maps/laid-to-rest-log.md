@@ -50,3 +50,5 @@ Metric: likeness.py sections on tools/laid-to-rest-sections.txt (record-aligned 
 | bk1 / bk2 | breakdown drums from drumtrans (tab elsewhere), without/with toms | 57.900 / 58.155 | no (breakdown 46.6/48.5 vs 54.5) |
 | bt1 / bt2 | breakdown per-bar tempos from transcribed-kick offsets | 58.406 / 58.434 | no: the kick offsets pointed the wrong way |
 | v16 | snare +12 dB (+4/+6/+8/+10/+12: +0.61/+0.25/+0.19/+0.13/+0.10 — stopping here) | 59.195 | yes |
+| v17 | dtwgrid --feature metric --around-zero, 2-bar blocks, conf >= 0.3 keep-below: the breakdown was 30-75 ms early, bridge/lead riff -60..+95 ms, intro -120 | 60.816 | yes (breakdown 54.8 -> 60.2) |
+| mg2b | same without the intro blocks | 60.609 | |
