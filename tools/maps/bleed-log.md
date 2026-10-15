@@ -32,6 +32,7 @@ Reference: album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825;
 | v27 | 69.67 | macro-dynamics: levelride.py fader ride (auto.ride, --win 2 --step 1 --max 6 --amount 0.7) fitted on the v26 render (+0.83; defaults --win 4: +0.46, bridge −3); clean guitar picked at 1/7 (+0.02, bridge +0.3). Bass pick 1/7: −0.02; atmos: 0 |
 | v28 | 69.71 | vocal attack 8 → 40 ms on the track (kidman synth.amp.a=40ms; Jens' onset rise is 92 ms vs ours 47): implement +0.3 |
 | v29 | 70.01 | stereo image by band (b638c6a per-band width on the master after the glue): every heavy section was ~2-3 dB too wide at 400-1200 Hz and 3-6 dB too narrow above 3.5 kHz → bands [[400, 0.77], [1200, 1], [3500, 1.55], [8000, 2.0]], mono_below 20 Hz: stereo solo 52 → 75, implement 57 → 70; bridge −2.4 (stereo 61 → 35), riffs −0.6. Needs a groove ≥ b638c6a (fa719f6) |
+| v30 | 70.98 | half the measured width correction: bands [[400, 0.88], [1200, 1], [3500, 1.25], [8000, 1.45]] — the full move (v29) overshoots like instrument EQ fits do (riffs 71.6 → 73.3, bridge 49.9 → 50.8) |
 
 ## Tried and rejected (don't re-run without a new reason)
 - Guitars: amp gain/scrape/pick-noise for the 'saw' valleys (no effect; pitch glide was the lever); stiffer strings
@@ -83,6 +84,7 @@ Reference: album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825;
 - Pick 1/7 on bass-fat (0.2 → 0.143): −0.02; on lead-tape atmos: 0.
 - Vocal track highshelf 2.5 kHz −4 dB on top of v28 (toward the stem's 1243 Hz centroid): 69.63 vs 69.71 — the mix wants
   the brighter voice.
+- Guitar bite −4 dB @3.2k + lp 4.5k on the rhythm guitars (wM's bd-80d164 ablation reading): 68.97 vs 69.71.
 
 ## Metric notes
 - loudness term: 0.5 s / 1 s-window contour; steady sections score ~45-50 whatever the match (per-bar levels are
