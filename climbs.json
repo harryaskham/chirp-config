@@ -56,17 +56,22 @@
       "owner": "chirper-one (chirp-climb1)",
       "metric": "python3 tools/likeness.py sections ref/pneuma.wav OUT.wav $(cat tools/pneuma-sections.txt)",
       "best": {
-        "score": 70.5,
-        "version": "v39",
-        "commit": "ac8fe92",
-        "metric": "likeness sections with mastering term (1ffa987)"
+        "score": 70.6,
+        "version": "v40",
+        "commit": "see git log songs/pneuma.yaml",
+        "metric": "likeness sections with mastering term (1ffa987)",
+        "engine": "51cfe09"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 39,
+      "rounds": 40,
       "priority": 1,
-      "genre": "progressive metal"
+      "genre": "progressive metal",
+      "last": {
+        "at": "2026-10-15T20:11:23Z",
+        "who": "chirper-one"
+      }
     },
     {
       "id": "laid-to-rest",
