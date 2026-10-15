@@ -26,3 +26,6 @@ drumtrans labels are rough: snare family mostly sidestick (ss 193, g 58), toms m
 | v1 | master +3 dB, clip 2 dB (RMS -13.8, crest 10.3) | 52.1 | yes |
 | v2 | master width stage, neutral (width 1, mono_below 1), per-band side factors from the record's S/M per band: [[60,0.58],[220,1.29],[700,1.64],[2000,2.14],[5300,2.45],[11000,2.75]] (v1 S/M -8.3/-8.9/-4.6/-6.8/-10.5/-12.1 dB vs record -13.1/-6.7/-0.3/-0.2/-2.7/-3.3: the record's piano is spaced-pair wide, side ≥ mid) | 54.7 | yes |
 | v2b | same at 70% of the dB correction | 54.1 | |
+| v2 (chirper-one) | static neutral width stage, bands from the record's side/mid | 54.7 | yes |
+| wf1 | tools/widthfit.py on v1: per-section band lanes (record far wider above 400 Hz: ratios up to the 2.5 cap; sub x1.5-1.9, 60-150 Hz x0.4-0.8) replacing v2's static stage | 55.2 | |
+| v3 | second widthfit pass | 56.5 | yes |
