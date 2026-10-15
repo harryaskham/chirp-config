@@ -33,8 +33,8 @@
    "metric": "python3 tools/likeness.py sections ref/bleed.wav OUT.wav $(cat tools/bleed-sections.txt)",
    "best": {
     "score": 72.5,
-    "version": "v42",
-    "commit": "9b67249"
+    "version": "v43",
+    "commit": "5f1d293"
    },
    "passes": 1,
    "enabled": true
