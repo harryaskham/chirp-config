@@ -143,8 +143,8 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/saturnine.wav OUT.wav $(cat tools/saturnine-sections.txt)",
       "best": {
-        "score": 69.7,
-        "version": "v21",
+        "score": 69.67,
+        "version": "v22",
         "commit": "see git log songs/saturnine.yaml",
         "engine": "a931418"
       },
