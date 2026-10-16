@@ -4,9 +4,10 @@ a render of the map are compared (high-passed RMS, smoothed over --win seconds);
 automation lane (auto.ride, after the master EQ, before the song ceiling), clamped to ±--max dB and median-filtered so
 it moves like a hand on a fader, not a compressor. Re-run after arrangement or mix changes (it follows the render).
 
-  levelride.py MAP.json REF.wav RENDER.wav[,RENDER2,...] [--win 4] [--step 2] [--max 9] [--amount 1.0] [--contour --sections F] [--slew 8] [-o OUT.json]
+  levelride.py MAP.json REF.wav RENDER.wav[,RENDER2,...] [--win 4] [--step 2] [--max 9] [--amount 1.0] [--contour --sections F] [--slew 8] [--only-in T0-T1,…] [--fade-out T0-T1] [-o OUT.json]
 
---amount scales the correction (0.5 = halfway). --slew caps how fast the lane moves (dB/s; 8 keeps 0.25 s rides fader-like). --contour --sections F removes each section's mean correction, so the
+--amount scales the correction (0.5 = halfway). --only-in T0-T1,… applies the (absolute, not contour) correction only inside
+those ranges with 0.5 s ramps — an outro's decay or a trailing tail past the record's end (Hajnal, Raining Blood: +0.3..0.5). --slew caps how fast the lane moves (dB/s; 8 keeps 0.25 s rides fader-like). --contour --sections F removes each section's mean correction, so the
 ride only shapes loudness within sections (set section levels separately, e.g. a master envelope). Existing auto.ride is replaced; the render should have been made
 without it (or pass --accumulate to add to the existing lane). Several renders (comma-separated: the same
 song at different seeds) average their loudness, so the ride doesn't learn one seed's draws (a 0.5 s ride fitted
@@ -55,6 +56,25 @@ def ride(ref, out, win=4.0, step=2.0, mx=9.0, amount=1.0):
     return tr[:n], d
 
 
+def fade_out(t, d, spec):
+    """Append a linear fade on the ride lane: 0 dB at T0 down to -60 dB at T1 (and held after) — a tail that must end
+    where the record ends (the loudness measure gates near-silence, so a ride cannot ask for it)."""
+    a0, a1 = (float(v) for v in spec.split("-"))
+    f = np.interp(t, [a0, a1], [0.0, -60.0], left=0.0, right=-60.0)
+    if t[-1] < a1:
+        t = np.append(t, [a1, a1 + 2.0]); d = np.append(d, [d[-1], d[-1]]); f = np.append(f, [-60.0, -60.0])
+    return t, d + f
+
+
+def only_in_mask(t, spec, ramp=0.5):
+    """1 inside the ranges ("T0-T1,T0-T1"), 0 outside, with linear ramps of `ramp` s at the edges."""
+    w = np.zeros(len(t))
+    for r in spec.split(","):
+        a0, a1 = (float(v) for v in r.split("-"))
+        w = np.maximum(w, np.clip(np.minimum((t - a0) / ramp + 1, (a1 - t) / ramp + 1), 0, 1))
+    return w
+
+
 def contour_only(t, d, sections):
     """Remove each section's mean correction: the ride then shapes loudness *within* sections and leaves the section
     levels (the mastering term's job, set elsewhere) untouched. On Bleed this was +0.49 over a ride that also moved
@@ -81,6 +101,8 @@ if __name__ == "__main__":
         secs = [float(v) for v in open(a[a.index("--sections") + 1]).read().strip().split(",")]
         if "--contour" in a:
             d = contour_only(t, d, secs)
+    if "--only-in" in a:   # correct only inside these ranges (e.g. an outro's level curve); the lane elsewhere is untouched
+        d = d * only_in_mask(t, a[a.index("--only-in") + 1])
     if "--accumulate" in a and "ride" in lanes:
         old_t = np.array([float(p[0].rstrip("s")) for p in lanes["ride"]["points"]])
         old_v = np.array([p[1] for p in lanes["ride"]["points"]])
@@ -92,6 +114,8 @@ if __name__ == "__main__":
             d[i] = np.clip(d[i], d[i - 1] - lim * (t[i] - t[i - 1]), d[i - 1] + lim * (t[i] - t[i - 1]))
         for i in range(len(d) - 2, -1, -1):
             d[i] = np.clip(d[i], d[i + 1] - lim * (t[i + 1] - t[i]), d[i + 1] + lim * (t[i + 1] - t[i]))
+    if "--fade-out" in a:   # an explicit tail fade (after the slew, so it is not slowed)
+        t, d = fade_out(t, d, a[a.index("--fade-out") + 1])
     lanes["ride"] = {"points": [["0s", round(float(d[0]), 2)]] + [[f"{x:.2f}s", round(float(v), 2)] for x, v in zip(t, d)]}
     json.dump(mp, open(opt("-o", a[0]), "w"), indent=1)
     print(f"ride: {len(t)} points, range {d.min():+.1f}..{d.max():+.1f} dB, mean |d| {np.abs(d).mean():.1f} dB")

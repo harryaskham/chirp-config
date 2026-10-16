@@ -5,7 +5,7 @@ an optional fader ride (levelride.ride: short-term loudness of the reference min
 gain lane `auto.ride`) followed by any extra master effects (e.g. a clipper for a brick-walled record).
 
   songride.py SONG.yaml REF.wav RENDER.wav -o OUT.yaml [--win 4] [--step 2] [--max 9] [--amount 1]
-              [--contour --sections F] [--slew 8] [--slew-in 0-22,262-999:4] [--accumulate] [--no-ride] [--fx "clip drive=3dB ceiling=-0.5dB" …]
+              [--contour --sections F] [--slew 8] [--slew-in 0-22,262-999:4] [--only-in T0-T1,…] [--fade-out T0-T1] [--accumulate] [--no-ride] [--fx "clip drive=3dB ceiling=-0.5dB" …]
 
 --no-ride writes only the --fx chain (e.g. --no-ride --fx rack:master-loud). A song that already has a top-level master
 is refused unless --accumulate: then the new correction is added to its auto.ride lane (fit on a render of that song)
@@ -46,6 +46,8 @@ def main(a):
         if "--contour" in a:
             secs = [float(v) for v in open(opt("--sections", "")).read().strip().split(",")]
             d = LR.contour_only(t, d, secs)
+        if "--only-in" in a:   # correct only inside these ranges (an outro's decay, a trailing tail); elsewhere untouched
+            d = d * LR.only_in_mask(t, opt("--only-in", ""))
         if old_master and "ride" in old_master.get("auto", {}):   # --accumulate: refine the existing lane
             ot = np.array([float(str(p[0]).rstrip("s")) for p in old_master["auto"]["ride"]["points"]])
             ov = np.array([p[1] for p in old_master["auto"]["ride"]["points"]])
@@ -68,6 +70,8 @@ def main(a):
                 for i in range(len(d) - 2, -1, -1):
                     if np.isfinite(lim[i]):
                         d[i] = np.clip(d[i], d[i + 1] - lim[i] * (t[i + 1] - t[i]), d[i + 1] + lim[i] * (t[i + 1] - t[i]))
+        if "--fade-out" in a:   # explicit tail fade to -60 dB (after the slews)
+            t, d = LR.fade_out(t, d, opt("--fade-out", ""))
         master["fx"].append({"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.ride", "amount": 1}]}})
         master["auto"] = {"ride": {"points": [["0s", round(float(d[0]), 2)]] + [[f"{x:.2f}s", round(float(v), 2)] for x, v in zip(t, d)]}}
         print(f"ride: {len(t)} points, range {d.min():+.1f}..{d.max():+.1f} dB, mean |d| {np.abs(d).mean():.1f} dB", file=sys.stderr)
