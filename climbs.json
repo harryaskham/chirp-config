@@ -467,6 +467,26 @@
         "at": "2026-10-16T23:31:52Z",
         "note": null
       }
+    },
+    {
+      "id": "playing-god",
+      "song": "songs/playing-god.yaml",
+      "reference": "Polyphia — Playing God",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/playing-god.wav OUT.wav $(cat tools/playing-god-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "instrumental prog / math rock (nylon tapping, trap drums)",
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-16T23:31:56Z",
+        "note": null
+      }
     }
   ]
 }
