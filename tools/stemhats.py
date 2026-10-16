@@ -5,14 +5,17 @@ held-out (874 uncovered 6-12 kHz onsets on tight-kit h at -6 dB, kept between th
 
   stemhats.py SONG.yaml DRUM_STEM.wav OUT.yaml [--band 6000-12000] [--k 1.5] [--cover 0.03] [--gap 0.06]
               [--piece h] [--patch PATCH] [--gain -6dB] [--name drums-hats] [--tracks REGEX] [--from S] [--to S]
-              [--vel 15-90] [--len 0.125]
+              [--vel 15-90] [--len 0.125] [--map MAP.json --raw tools/maps/SONG-hats.json]
 
 Onsets: spectral flux of the band (log magnitude, hop 256), local maxima within +-30 ms above median + K * std of a
 2 s neighbourhood, at least --gap s apart. Covered: within --cover s of any note start of the tracks whose name
 matches --tracks (default drum|kit|perc|hat|cym|tom|snare|kick). Velocity from the band level around its median
 (2 per dB, clipped to --vel). --from/--to keep hits only inside that time range (the intro/ending may not want them).
 The new one-line track goes after the last matching track (its sends copied); --patch defaults to that track's patch.
-Constant-tempo songs (`tempo:` at the top). Measure on held-out seeds and try --gain -12dB / 0dB."""
+Tempo: a number or a tempo map (`tempo: [{at, bpm}, ...]`, as tab2song writes) — times go through it both ways.
+Map-built songs (tab2song): pass --map MAP.json --raw RAW.json — the hats go into RAW.json (key "hats") and OUT is
+a copy of the map with a part {"name", "raw": "RAW.json#hats", "patch", "gain", "extra": {"sends"}} appended;
+regenerate the song with tab2song. Measure on held-out seeds and try --gain -12dB / 0dB."""
 import re
 import sys
 
@@ -20,6 +23,7 @@ import numpy as np
 
 sys.path.insert(0, __file__.rsplit("/", 1)[0])
 import likeness as L  # noqa: E402
+import drumtrans as D  # noqa: E402
 
 
 def main():
@@ -34,7 +38,12 @@ def main():
     t_from, t_to = opt("--from", 0.0), opt("--to", 1e9)
     rx = re.compile(opt("--tracks", r"drum|kit|perc|hat|cym|tom|snare|kick"))
     y = open(song).read()
-    tempo = float(re.search(r"^tempo:\s*([\d.]+)", y, re.M).group(1))
+    pts = D.tempo_points(song); t2b = D.time_to_beat(pts)
+    pb = np.array([b for b, _ in pts]); pv = np.array([v for _, v in pts])
+    psec = np.concatenate([[0.0], np.cumsum(np.diff(pb) * 60 / pv[:-1])])
+    def b2t(b):
+        i = max(0, np.searchsorted(pb, b, side="right") - 1)
+        return psec[i] + (b - pb[i]) * 60 / pv[i]
     x = L.load(stem).mean(1); sr = 48000
     hop, n = 256, 1024
     fr = np.lib.stride_tricks.sliding_window_view(x, n)[::hop] * np.hanning(n)
@@ -60,7 +69,7 @@ def main():
             if not mm:
                 continue
             if mm.group(1) not in ("R", "r", "_"):
-                hits.append(pos * 60 / tempo)
+                hits.append(b2t(pos))
             pos += float(mm.group(2))
     if last is None:
         sys.exit("no drum tracks matched --tracks")
@@ -72,7 +81,7 @@ def main():
     med = float(np.median([l for _, l in keep])); ln = opt("--len", 0.125)
     toks, cur = [], 0.0
     for s, l in keep:
-        b = s * tempo / 60
+        b = float(t2b(s))
         if b > cur + 1e-3:
             toks.append(f"R/{b - cur:.4f}b"); cur = b
         toks.append(f"{opt('--piece', 'h')}/{ln:g}b@{int(np.clip((v0 + v1) / 2 + 2.0 * (l - med), v0, v1))}"); cur += ln
@@ -82,6 +91,23 @@ def main():
     indent = re.match(r"^(\s*)", line).group(1)
     new = (f'{indent}- {{name: "{opt("--name", "drums-hats")}", patch: "{patch.split()[0] if "--patch" not in a else patch}", '
            f'gain: "{opt("--gain", "-6dB")}"' + (f", sends: {sends.group(1)}" if sends else "") + f', score: "{" ".join(toks)}"}}')
+    if "--map" in a:   # a tab2song map: the hats as a raw part
+        import json, os
+        raw = opt("--raw", "")
+        if not raw:
+            sys.exit("--map needs --raw RAW.json (relative to the config root, e.g. tools/maps/SONG-hats.json)")
+        root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        json.dump({"hats": {"score": " ".join(toks)}}, open(raw if os.path.isabs(raw) else os.path.join(root, raw), "w"))
+        mraw = open(opt("--map", "")).read(); mp = json.loads(mraw)
+        part = {"name": opt("--name", "drums-hats"), "raw": f"{raw}#hats",
+                "patch": patch.split()[0] if "--patch" not in a else patch, "gain": opt("--gain", "-6dB")}
+        if sends:
+            part["extra"] = {"sends": json.loads(sends.group(1))}
+        mp["parts"].append(part)
+        ind = (len(mraw.splitlines()[1]) - len(mraw.splitlines()[1].lstrip())) if mraw.count("\n") > 1 else 2
+        open(out_path, "w").write(json.dumps(mp, indent=ind or 2, ensure_ascii=False) + "\n")
+        print(f"raw {raw} ({len(keep)} hits); map part appended -> {out_path} (regenerate with tab2song.py)")
+        return
     j = y.index("\n", last.end()) + 1 if "\n" in y[last.end():] else len(y)
     open(out_path, "w").write(y[:j] + new + "\n" + y[j:])
     print(f"added {opt('--name', 'drums-hats')} ({len(keep)} hits) -> {out_path}")
