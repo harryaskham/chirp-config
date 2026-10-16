@@ -6,7 +6,10 @@ or shrink so each note still reaches the next one; notes with no stem onset near
 track's whole score (retimed inside the range) as a raw part for tab2song.
 
   stemretime.py STEM.wav SONG.yaml TRACK OUT.json --from S --to S [--key part] [--window 0.12] [--lo 80]
-               [--hi 6000] [--grid 24]"""
+               [--hi 6000] [--grid 24] [--only-in T0-T1,…]
+
+--only-in: retime only notes starting inside these ranges (s); others keep their time — keep a retime where its paired
+per-section deltas win (Flim's drums: sections 2/6 up, 3/4 down)."""
 import json
 import os
 import re
@@ -66,6 +69,7 @@ def main(a):
         if m.group(1) not in ("R", "r", "_"):
             ctl, pending = pending, []
         ev.append([pos, float(m.group(2)), m.group(1), m.group(3), ctl]); pos += float(m.group(2))
+    only = [tuple(float(v) for v in r.split("-")) for r in opt("--only-in", "").split(",")] if "--only-in" in a else None
     on = onsets(x, opt("--lo", 80.0), opt("--hi", 6000.0), max(0.0, t0 - 0.5), t1 + 0.5)
     moved = 0
     for e in ev:
@@ -74,6 +78,8 @@ def main(a):
         ts = b2t(e[0])
         if not (t0 <= ts < t1) or not len(on):
             continue
+        if only and not any(a0 <= ts < a1 for a0, a1 in only):
+            continue   # outside --only-in: keeps its time
         k = int(np.argmin(np.abs(on - ts)))
         if abs(on[k] - ts) <= win:
             nb = round(tb(on[k]) * grid) / grid
