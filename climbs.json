@@ -318,15 +318,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/flim.wav OUT.wav $(cat tools/flim-sections.txt)",
       "best": {
-        "score": 52.8,
-        "version": "v9",
+        "score": 53.45,
+        "version": "v10",
         "commit": "see git log songs/flim.yaml",
-        "engine": "81a3042"
+        "engine": "ec8ad0e"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 13,
+      "rounds": 14,
       "priority": 1.0,
       "genre": "IDM / breakbeat",
       "requested": {
@@ -335,7 +335,7 @@
         "note": null
       },
       "last": {
-        "at": "2026-10-16T03:27:14Z",
+        "at": "2026-10-16T04:25:04Z",
         "who": "chirper-three"
       }
     },
