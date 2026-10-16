@@ -10713,6 +10713,17 @@
           "plate": "-10dB"
         }
       }
+    },
+    {
+      "name": "drums-ghost",
+      "raw": "tools/maps/2-minutes-to-midnight-ghost.json#hats",
+      "patch": "rock-kit",
+      "gain": "0dB",
+      "extra": {
+        "sends": {
+          "room": "-14dB"
+        }
+      }
     }
   ],
   "bpm": {
