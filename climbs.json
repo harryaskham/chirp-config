@@ -267,7 +267,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 9,
+      "rounds": 10,
       "priority": 1.0,
       "genre": "thrash metal",
       "requested": {
@@ -276,7 +276,7 @@
         "note": null
       },
       "last": {
-        "at": "2026-10-16T00:13:19Z",
+        "at": "2026-10-16T00:39:40Z",
         "who": "chirper-two"
       }
     },
