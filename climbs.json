@@ -121,7 +121,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 9,
+      "rounds": 10,
       "priority": 1.0,
       "genre": "chamber folk / indie",
       "requested": {
@@ -130,8 +130,8 @@
         "note": null
       },
       "last": {
-        "at": "2026-10-16T01:59:17Z",
-        "who": "chirper-three"
+        "at": "2026-10-16T02:35:05Z",
+        "who": "chirper-zero"
       }
     },
     {
