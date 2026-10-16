@@ -260,15 +260,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/raining-blood.wav OUT.wav $(cat tools/raining-blood-sections.txt)",
       "best": {
-        "score": 60.833,
-        "version": "v23",
+        "score": 60.967,
+        "version": "v24",
         "commit": "see git log songs/raining-blood.yaml",
         "engine": "a931418"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 39,
+      "rounds": 40,
       "priority": 1.0,
       "genre": "thrash metal",
       "requested": {
@@ -277,7 +277,7 @@
         "note": null
       },
       "last": {
-        "at": "2026-10-16T20:37:43Z",
+        "at": "2026-10-16T21:56:37Z",
         "who": "chirper-one"
       }
     },
