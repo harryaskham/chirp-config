@@ -5879,7 +5879,20 @@
    "name": "rain",
    "raw": "tools/maps/raining-blood-fx.json#rain-out",
    "patch": "fx-rain",
-   "gain": "0dB"
+   "gain": "0dB",
+   "extra": {
+    "fx": [
+     {
+      "type": "eq",
+      "bands": [
+       "lowshelf cutoff=269 gain=12.0dB",
+       "lowshelf cutoff=339 gain=8.0dB",
+       "highshelf cutoff=1.1k gain=-8.0dB",
+       "highshelf cutoff=1.4k gain=-8.0dB"
+      ]
+     }
+    ]
+   }
   }
  ],
  "bpm": {
