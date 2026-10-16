@@ -42,20 +42,20 @@
       "owner": "chirp-climb2",
       "metric": "python3 tools/likeness.py sections ref/bleed.wav OUT.wav $(cat tools/bleed-sections.txt)",
       "best": {
-        "score": 75.2,
-        "version": "v54",
+        "score": 75.537,
+        "version": "v55",
         "commit": "see git log songs/bleed.yaml",
         "engine": "a931418"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 64,
+      "rounds": 65,
       "priority": 1,
       "genre": "extreme metal / djent",
       "last": {
-        "at": "2026-10-16T21:58:37Z",
-        "who": "chirper-two"
+        "at": "2026-10-16T23:18:20Z",
+        "who": "chirper-zero"
       }
     },
     {
