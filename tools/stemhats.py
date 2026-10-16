@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Hats (or any missing high percussion) from the drum stem: the record's onsets in a band that NO existing drum hit
 of the song covers become a new track — the hats/shaker/ride taps a drum transcription left out. Saturnine +1.95
-held-out (874 uncovered 6-12 kHz onsets on tight-kit h at -6 dB, kept between the intro and the ending).
+held-out (874 uncovered 6-12 kHz onsets on tight-kit h at -6 dB, kept between the intro and the ending); Laid to Rest
++0.33 (761 at 0 dB); Come Down +0.35 with section 7 only — its live ending's high band is crowd/cymbal wash (hats
+there: section 59.8 -> 35.7). Score per section and keep the hats only where they win (--from/--to).
 
   stemhats.py SONG.yaml DRUM_STEM.wav OUT.yaml [--band 6000-12000] [--k 1.5] [--cover 0.03] [--gap 0.06]
               [--piece h] [--patch PATCH] [--gain -6dB] [--name drums-hats] [--tracks REGEX] [--from S] [--to S]
