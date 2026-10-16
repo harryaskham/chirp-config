@@ -50,11 +50,11 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 60,
+      "rounds": 61,
       "priority": 1,
       "genre": "extreme metal / djent",
       "last": {
-        "at": "2026-10-16T15:06:21Z",
+        "at": "2026-10-16T15:57:07Z",
         "who": "chirper-three"
       }
     },
