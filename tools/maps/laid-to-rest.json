@@ -5592,6 +5592,17 @@
      "room": "-14dB"
     }
    }
+  },
+  {
+   "name": "drums-hats",
+   "raw": "tools/maps/laid-to-rest-hats.json#hats",
+   "patch": "metal-kit",
+   "gain": "0dB",
+   "extra": {
+    "sends": {
+     "room": "-12dB"
+    }
+   }
   }
  ],
  "skip": [
