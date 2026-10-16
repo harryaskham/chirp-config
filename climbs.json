@@ -18,8 +18,8 @@
       "owner": "chirp-climb0",
       "metric": "python3 tools/likeness.py sections ref/shadows.wav OUT.wav $(cat tools/shadows-sections.txt)",
       "best": {
-        "score": 70.0,
-        "version": "v97",
+        "score": 70.3,
+        "version": "v98",
         "commit": "see git log songs/shadows.yaml",
         "engine": "ec8ad0e",
         "metric": "likeness with the mastering term (1ffa987)"
@@ -27,12 +27,12 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 96,
+      "rounds": 97,
       "priority": 1,
       "genre": "orchestral metal (game OST)",
       "last": {
-        "at": "2026-10-16T01:41:05Z",
-        "who": "chirper-one"
+        "at": "2026-10-16T02:26:26Z",
+        "who": "chirper-three"
       }
     },
     {
