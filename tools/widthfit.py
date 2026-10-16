@@ -18,6 +18,10 @@ narrower than ours). --strength S applies ratio**S (0.5 = half the correction in
 sound responded better to half — Daydreaming). --only N,M (1-based, as printed) fits just those sections; the others keep their lanes (1.0 on a first pass) — on a
 mature mix fit only sections whose stereo term is below ~80: Bleed's full pass lost where the image was already right
 (near-1 ratios add noise), the selective one gained +0.5. Sections shorter than --min-sec seconds of render keep the previous section's values.
+Recipe for a mature mix (chirper-zero's 'stale width'): print the per-section stereo term; run 2 passes with --only the
+sections below ~65 and --clip 0.5,4; score per section; then REFIT from the base on the winners only (2 passes).
+Raining Blood +0.58, Come Down +0.4, 2 Minutes to Midnight +0.12, The National Anthem +0.1 held-out. Sections whose
+stereo is content (an intro's mono voice, a squall ending, a part's pan) lose — leave them out.
 Prints each section's ratios. Measure the result with likeness; keep it only if it scores higher."""
 import json, re, sys
 
