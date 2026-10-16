@@ -9,13 +9,15 @@ to the record's side/mid over the render's. Run it again on a new render to refi
 lanes by the residual): the clip/limiter after the stage and the bands' crossovers re-create or leak side, so a
 first pass under-corrects and 2-4 passes converge (stop when a pass ties).
 
-  widthfit.py IN OUT RENDER.wav REF.wav SECTIONS.txt [--bass-width 0.5] [--clip LO,HI] [--min-sec 5] [--strength 1]
+  widthfit.py IN OUT RENDER.wav REF.wav SECTIONS.txt [--bass-width 0.5] [--clip LO,HI] [--min-sec 5] [--strength 1] [--only 4,6,7]
 
 IN/OUT: a tab2song map (.json; edits head.master) or a song (.yaml; replaces its `master:` line). First pass
 (no wb lanes yet): ratios clipped to 0.2..2.5; later passes 0.5..2.0 (--clip overrides). --bass-width sets the
 stage's width below its 120 Hz corner, where the band lanes do not reach (0.3-0.5 when the record's lows are
 narrower than ours). --strength S applies ratio**S (0.5 = half the correction in dB: quiet acoustic records whose width is room
-sound responded better to half — Daydreaming). Sections shorter than --min-sec seconds of render keep the previous section's values.
+sound responded better to half — Daydreaming). --only N,M (1-based, as printed) fits just those sections; the others keep their lanes (1.0 on a first pass) — on a
+mature mix fit only sections whose stereo term is below ~80: Bleed's full pass lost where the image was already right
+(near-1 ratios add noise), the selective one gained +0.5. Sections shorter than --min-sec seconds of render keep the previous section's values.
 Prints each section's ratios. Measure the result with likeness; keep it only if it scores higher."""
 import json, re, sys
 
@@ -86,7 +88,10 @@ def main():
     R, O = L.load(ref), L.load(wav)
     minsec = float(opt("--min-sec", 5))
     strength = float(opt("--strength", 1.0))
+    only = {int(v) for v in opt("--only", "").split(",") if v.strip()} if "--only" in a else None
     for i in range(nsec):
+        if only is not None and i + 1 not in only:
+            continue
         s0, s1 = int(cuts[i] * 48000), min(int(cuts[i + 1] * 48000), len(O), len(R))
         if s1 - s0 < minsec * 48000:
             if i:
