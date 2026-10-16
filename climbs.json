@@ -447,6 +447,26 @@
         "at": "2026-10-16T23:31:48Z",
         "note": null
       }
+    },
+    {
+      "id": "money",
+      "song": "songs/money.yaml",
+      "reference": "Pink Floyd — Money",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/money.wav OUT.wav $(cat tools/money-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "prog rock in 7/4 (tape loop, sax, bass riff)",
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-16T23:31:52Z",
+        "note": null
+      }
     }
   ]
 }
