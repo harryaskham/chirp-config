@@ -22,6 +22,8 @@ the same tempo map. A part's "chord": "low" keeps only the lowest note of every 
 Corrections measured against the recording (tools/scorealign.py): "bpm": {"37": 113.5, …} sets the tempo from
 measure M on (until the next entry; earlier measures keep the tab's tempo), and "skip": [[285, 288], …] removes
 measures the recording does not play (from the timeline and every part).
+"repeat": [[61, 64, 1], …] plays measures a..b n more times right after b (a live vamp or a longer
+ending; every part — repeated bars share their tab measure number, so bpm/replace/subst apply to every copy).
 A tab with tempo changes becomes a song with a tempo map (a point at every tempo or meter change); "meters": true
 emits the map for a constant-tempo tab too. A part may take `"score_file": "PATH"` instead of `track`: `bar N  tokens` lines (stemvox.py/stemnotes.py
 output) on the tab's measure numbers, with optional `"rest": [[a, b], …]` ranges kept silent.
@@ -220,6 +222,11 @@ def build(mp):
     cache = mp["cache"]
     full = corrected_timeline(cache, mp)
     keep = [i for i, m in enumerate(full) if not m["skip"]]
+    for a, b, n in mp.get("repeat", []):
+        # a live vamp or a longer ending: play tab measures a..b n more times right after b (every part)
+        idx = [i for i in keep if a <= full[i]["m"] <= b]
+        at = max((k for k, i in enumerate(keep) if full[i]["m"] <= b), default=len(keep) - 1) + 1
+        keep[at:at] = idx * int(n)
     tl = [full[i] for i in keep]
     beats = [m["beats"] for m in tl]
     bpm = tl[0]["bpm"]
@@ -260,26 +267,28 @@ def build(mp):
         if p["track"] not in lines_cache:
             lines_all = S.score(cache, p["track"])[2]
             lines_cache[p["track"]] = [lines_all[i] for i in keep]
-        pos = {full[i]["m"]: k + 1 for k, i in enumerate(keep)}   # tab measure → kept index (1-based)
+        pos = {}   # tab measure → its kept indices (1-based; a repeated measure has several)
+        for k, i in enumerate(keep):
+            pos.setdefault(full[i]["m"], []).append(k + 1)
         lines = lines_cache[p["track"]]
         if p.get("replace"):
             # per-bar corrections (e.g. from per-bar chroma against the stems): {"221": "D3,A3,E4/4b", ...} on the
             # tab's measure numbers, applied before chord splitting and bar fitting
             lines = list(lines)
             for m, txt in p["replace"].items():
-                if int(m) in pos:
-                    lines[pos[int(m)] - 1] = txt
+                for k in pos.get(int(m), []):
+                    lines[k - 1] = txt
         for a, b, fr, to in p.get("subst", []):
             # note corrections over a bar range: [[81, 97, "D3", "Eb3"]] swaps that note (alone or in a chord),
             # keeping the bar's rhythm and articulations (a tab's wrong fret across a passage)
             lines = list(lines)
             pat = re.compile(r"(^|[\s,])" + re.escape(fr) + r"(?=[/,])")
             for m in range(int(a), int(b) + 1):
-                if m in pos:
-                    lines[pos[m] - 1] = pat.sub(lambda g: g.group(1) + to, lines[pos[m] - 1])
+                for k in pos.get(m, []):
+                    lines[k - 1] = pat.sub(lambda g: g.group(1) + to, lines[k - 1])
         ranges = []
         for a, b in p["bars"]:
-            kept = [pos[m] for m in range(a, b + 1) if m in pos]
+            kept = [k for m in range(a, b + 1) for k in pos.get(m, [])]
             if kept:
                 ranges.append((min(kept), max(kept)))
         sc = part_score(lines, beats, ranges, off_beats, p.get("remap"), p.get("drop", ()), p["name"], p.get("chord"), p.get("ring"))
