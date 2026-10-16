@@ -12,8 +12,8 @@ Prints each section's RMS, 99.9th-percentile peak and crest, ours vs the record.
 the end of the song's master chain driven by a lane (default auto.slev) that steps at the section cuts to
 -(ours - record) * amount dB for sections off by more than --min dB (others 0; default 1.0 — chirper-two: on
 Saturnine 8 sections at --min 1 beat 2 sections at --min 2, 64.75 vs 64.5 held-out), ramping over --ramp seconds.
---only N,M (1-based) limits the correction to those sections. Song YAMLs with a one-line JSON `master:` (as
-widthfit/songride/sectioneq write) or none. Keep only what the metric confirms (seeds 7/13 for small changes)."""
+--only N,M (1-based) limits the correction to those sections. SONG may be a tab2song map (.json: the lane goes into head.master; regenerate
+with tab2song) or a song YAML with a one-line JSON `master:` (as widthfit/songride/sectioneq write) or none. Keep only what the metric confirms (seeds 7/13 for small changes)."""
 import json
 import sys
 
@@ -55,9 +55,14 @@ def main():
     if "-o" not in a:
         return
     lane = opt("--lane", "slev"); ramp = opt("--ramp", 0.5)
-    lines = open(song).read().splitlines()
-    mi = next((k for k, l in enumerate(lines) if l.startswith("master:")), None)
-    master = json.loads(lines[mi][len("master:"):].strip()) if mi is not None else {"fx": []}
+    is_map = song.endswith(".json")
+    if is_map:   # a tab2song map: the lane goes into head.master (tab2song then regenerates the song)
+        raw = open(song).read(); doc = json.loads(raw)
+        master = doc.setdefault("head", {}).get("master") or {"fx": []}
+    else:
+        lines = open(song).read().splitlines()
+        mi = next((k for k, l in enumerate(lines) if l.startswith("master:")), None)
+        master = json.loads(lines[mi][len("master:"):].strip()) if mi is not None else {"fx": []}
     if isinstance(master, list):
         master = {"fx": master}
     auto = master.setdefault("auto", {})
@@ -68,6 +73,12 @@ def main():
         pts += [[f"{cuts[i] - ramp / 2:.3f}s", gains[i - 1]], [f"{cuts[i] + ramp / 2:.3f}s", gains[i]]]
     auto[lane] = {"points": pts}
     master.setdefault("fx", []).append({"type": "gain", "gain": {"value": "0dB", "mod": [{"src": f"auto.{lane}", "amount": 1}]}})
+    if is_map:
+        doc["head"]["master"] = master
+        ind = (len(raw.splitlines()[1]) - len(raw.splitlines()[1].lstrip())) if raw.count("\n") > 1 else 1
+        open(opt("-o", ""), "w").write(json.dumps(doc, indent=ind or 1, ensure_ascii=False) + "\n")
+        print(f"lane {lane}: {sum(1 for g in gains if g)} sections corrected -> {opt('-o', '')} (map: regenerate with tab2song.py)")
+        return
     line = "master: " + json.dumps(master)
     if mi is None:
         ci = next((k for k, l in enumerate(lines) if l.startswith(("ceiling:", "tempo:"))), 0)
