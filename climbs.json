@@ -89,8 +89,8 @@
       "owner": "chirp-climb3",
       "metric": "python3 tools/likeness.py sections ref/laid-to-rest.wav OUT.wav $(cat tools/laid-to-rest-sections.txt)",
       "best": {
-        "score": 75.3,
-        "version": "v60",
+        "score": 75.4,
+        "version": "v61",
         "commit": "see git log songs/laid-to-rest.yaml",
         "engine": "a931418",
         "metric": "likeness with the mastering term (1ffa987), mean over held-out seeds 7/13/17"
@@ -98,12 +98,12 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 67,
+      "rounds": 68,
       "priority": 1,
       "genre": "groove metal",
       "last": {
-        "at": "2026-10-16T10:25:30Z",
-        "who": "chirper-three"
+        "at": "2026-10-16T13:42:11Z",
+        "who": "chirper-zero"
       }
     },
     {
