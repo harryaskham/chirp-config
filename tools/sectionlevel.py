@@ -3,7 +3,9 @@
 each section's mean) and the one likeness's mastering term punishes: a section 10 dB too loud scores ~13 there
 (Flim's ending: the record drops 10-11 dB at 136 s and stays; a master gain lane gave +1.2 overall).
 Results: Flim +1.2 (ending) then +2.95 (sections 1-7, 4-5 dB too loud), Daydreaming +1.65 (6 sections 2.5-5 dB quiet),
-Hajnal +1.8, Saturnine +0.3, Shadows +0.2 (already within 1.4 dB). Full strength (--amount 1) beat half every time.
+Hajnal +1.8, Saturnine +0.3, Shadows +0.2 (already within 1.4 dB). Full strength (--amount 1) beat half every time — EXCEPT where the section's content is wrong: Bleed's bridge
+was 4.8 dB quiet (master 45), and raising it lifted master to 70 but sank spectral/ltas (quiet frames count more when
+louder), net -0.9 in the section; check a section's other terms before keeping its correction.
 
   sectionlevel.py SONG.yaml RENDER.wav REF.wav SECTIONS.txt [-o OUT.yaml] [--min 1.0] [--amount 1.0] [--only 2,7]
                   [--lane slev] [--ramp 0.5]
