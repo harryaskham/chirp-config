@@ -11,7 +11,8 @@ so each tab bar's window of it IS that bar's predicted pattern. Features per bar
 record bar in range it prints the correlation with the bar we play there (own), the best-matching tab measures
 anywhere in the song, and flags bars where a different measure beats ours by --margin and reaches --min — the arrangement candidates to
 remap with tab2song's replace / repeat / skip. In a repetitive song some other bar always wins by a little (138
-candidates); trust a flag only when consecutive record bars point at consecutive tab bars. Low own correlation
+candidates); trust a flag only when consecutive record bars point at consecutive tab bars. A 'best other bar' is a candidate, not a fix: on Flim, copying the
+suggested bar 78 into bars 72-77 LOST (section 6 56.7 → 54.4) — the features are coarse flux shapes. Low own correlation
 with best matches scattered across the tab means the record plays something the tab lacks (or the bar grid is out
 of phase there), not a different arrangement of the tab's bars.
 """
