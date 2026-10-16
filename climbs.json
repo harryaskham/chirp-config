@@ -27,12 +27,12 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 100,
+      "rounds": 101,
       "priority": 1,
       "genre": "orchestral metal (game OST)",
       "last": {
-        "at": "2026-10-16T08:47:49Z",
-        "who": "chirper-three"
+        "at": "2026-10-16T09:30:32Z",
+        "who": "chirper-one"
       }
     },
     {
