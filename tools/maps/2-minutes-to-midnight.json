@@ -7,12 +7,12 @@
     "buses": {
       "room": {
         "fx": [
-          "reverb kind=room decay=1.3s mix=1 predelay=12ms"
+          "reverb kind=room decay=1.3s mix=1 predelay=12ms mono_below=100hz"
         ]
       },
       "plate": {
         "fx": [
-          "reverb kind=plate decay=2.2s mix=1 predelay=30ms"
+          "reverb kind=plate decay=2.2s mix=1 predelay=30ms mono_below=100hz"
         ]
       }
     },
