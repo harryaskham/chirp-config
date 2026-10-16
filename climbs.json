@@ -347,15 +347,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/hajnal.wav OUT.wav $(cat tools/hajnal-sections.txt)",
       "best": {
-        "score": 61.1,
-        "version": "v11",
+        "score": 61.2,
+        "version": "v12",
         "commit": "see git log songs/hajnal.yaml",
         "engine": "df5b7bc"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 17,
+      "rounds": 18,
       "priority": 1.0,
       "genre": "breakcore / orchestral",
       "requested": {
@@ -364,8 +364,8 @@
         "note": null
       },
       "last": {
-        "at": "2026-10-16T10:54:36Z",
-        "who": "chirper-three"
+        "at": "2026-10-16T11:23:36Z",
+        "who": "chirper-two"
       }
     }
   ]
