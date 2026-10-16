@@ -95,7 +95,7 @@ def main(a):
             s = cur
         nxt = notes[i + 1][0] if i + 1 < len(notes) else e_end
         end = min(max(e_end, s + 1 / grid), max(nxt, s + 1 / grid)) if nxt > s else s + 1 / grid
-        if s > cur + 1e-9:
+        if s > cur + 1e-9 and float(fmt(s - cur)) > 0:   # a gap that rounds to 0 would print R/0b (rejected)
             out.append(f"R/{fmt(s - cur)}b")
         out.extend(ctl)
         out.append(f"{body}/{fmt(end - s)}b{rest}"); cur = end
