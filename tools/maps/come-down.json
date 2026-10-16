@@ -4239,6 +4239,17 @@
           "room": "-16dB"
         }
       }
+    },
+    {
+      "name": "drums-toms",
+      "raw": "tools/maps/come-down-toms.json#hats",
+      "patch": "tight-kit",
+      "gain": "-18dB",
+      "extra": {
+        "sends": {
+          "room": "-16dB"
+        }
+      }
     }
   ],
   "bpm": {
