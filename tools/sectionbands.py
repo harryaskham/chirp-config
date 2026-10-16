@@ -2,7 +2,7 @@
 """Per-section octave-band balance vs the reference — where a section's TONE is off by more than a master EQ can fix.
   sectionbands.py REF.wav RENDER.wav SECTIONS.txt [--flag 6] [--solo SOLO.wav]
 
-Prints, per section, ours minus the record in octave bands 31 Hz-8 kHz (level-normalised by the median band, dB),
+Prints, per section, ours minus the record in octave bands 31 Hz-8 kHz plus the 20-31 Hz and 16-20 kHz edges (level-normalised by the median band, dB),
 marking |d| >= --flag. sectioneq.py clamps at +-9 dB and couples to the whole mix; a section several bands off by
 6-13 dB usually means a PART is wrong there (too bright, missing a register, an extra layer) — fix it at the source
 with a part filter or level driven by a track lane over that section (Saturnine v17: the intro's muted piano was
@@ -10,6 +10,8 @@ with a part filter or level driven by a track lane over that section (Saturnine 
 Only deviations of ~6 dB or more have paid (TNA v18/v22, Saturnine v17); +-3..5 dB lanes lost or tied (TNA r35,
 Flim r34) — the 40-band spectral/ltas terms already tolerate them. And not every >= 6 dB gap is EQ-able: Shadows' intro
 (+6 dB at 125 Hz, -6..-8 above 2 kHz) lost to every master lane (its tone is the parts' balance, not an EQ).
+Edges matter: Flim's sub rumble (25-40 Hz +5..+16 dB in 5 sections) and the fade's air (+8 at 16-20k) were outside
+the octave bands; a master highpass at 35 Hz on a per-section lane (+ the fade's highshelf) gave +0.55 held-out.
 --solo SOLO.wav adds a line per section with a solo render's bands (relative to the full render) to see which part
 carries the excess."""
 import sys
@@ -17,7 +19,7 @@ import wave
 
 import numpy as np
 
-EDGES = [31, 63, 125, 250, 500, 1000, 2000, 4000, 8000, 16000]
+EDGES = [20, 31, 63, 125, 250, 500, 1000, 2000, 4000, 8000, 16000, 20000]   # 20-31 Hz rumble and 16-20 kHz air too
 
 
 def rd(p):
