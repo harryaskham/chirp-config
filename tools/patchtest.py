@@ -4,11 +4,12 @@ as the control), and score every candidate on held-out seeds. A plain swap is un
 fitted to the old patch (Daydreaming's piano swaps lost for months that way).
 
   patchtest.py SONG TRACK[,TRACK2] PATCH[,PATCH2,...] [--zero eq,rq] [--refit eq] [--max 18] [--seeds 7,13]
-               [--chirp BIN] [--work DIR] [--ref REF.wav] [--sections FILE]
+               [--chirp BIN] [--work DIR] [--ref REF.wav] [--sections FILE] [--skip-control]
 
 For every candidate (the tracks' current patch first): the patch's NAME is swapped on every listed track (its params
 kept); the master's automation lanes whose names start with a --zero prefix and end in a digit are flattened; a
-default-seed render is fitted with sectioneq.py (--prefix = --refit, --max); the fitted lanes are written back and the
+default-seed render is fitted (a candidate whose patch rejects the incumbent's params is retried with the bare
+patch name, marked '(params dropped)') with sectioneq.py (--prefix = --refit, --max); the fitted lanes are written back and the
 song is scored (likeness.py sections) on each --seeds seed. Prints one line per candidate; candidate songs stay in
 --work (default /tmp/lt/patchtest-SONG). A YAML song with a one-line JSON `master:` (the songride/sectioneq form).
 Results: Daydreaming piano 70.7 vs piano-additive 68.7 / tape-piano 63.6; Flim epiano 60.4 vs rhodes 59.2 /
@@ -45,12 +46,27 @@ def main(a):
         if not m:
             sys.exit(f"no track {t}")
         cur = cur or m.group(2)
-    cands = [cur] + [c for c in cands if c != cur]
+    cands = ([] if "--skip-control" in a else [cur]) + [c for c in cands if c != cur]   # --skip-control: control already measured
     secs_arg = open(os.path.join(HOME, secs)).read().split()
+    whole = lambda t: re.compile(r'(\{name: "?' + re.escape(t) + r'"?, patch: )("[^"]*"|[^,}]+)')
     for c in cands:
         s = base
         for t in tracks:
             s = pat(t).sub(lambda m: m.group(1) + c, s, count=1)
+        note = ""
+        probe = f"{work}/{c}-probe.yaml"
+        open(probe, "w").write(s)
+        if subprocess.run([chirp, "plan", "-f", probe], capture_output=True, cwd=HOME).returncode != 0:
+            s = base   # the incumbent's params do not fit this patch: retry with the bare patch name
+            for t in tracks:
+                s = whole(t).sub(lambda m: m.group(1) + f'"{c}"', s, count=1)
+            open(probe, "w").write(s)
+            r = subprocess.run([chirp, "plan", "-f", probe], capture_output=True, text=True, cwd=HOME)
+            if r.returncode != 0:
+                print(f"{c:20s} does not plan: {(r.stderr or r.stdout).strip().splitlines()[-1][:120]}", flush=True)
+                continue
+            note = " (params dropped)"
+        os.remove(probe)
         m = re.search(r"^master: (\{.*\})$", s, re.M)
         mj = json.loads(m.group(1))
         for k in list(mj.get("auto", {})):
@@ -63,6 +79,9 @@ def main(a):
         sh(["nice", "-n", "10", "python3", "tools/sectioneq.py", ref, w0, secs, "--max", mx, "--prefix", refit], out=f"{work}/{c}-eq.txt")
         os.path.exists(w0) and os.remove(w0)
         t = open(f"{work}/{c}-eq.txt").read()
+        if "{" not in t:
+            print(f"{c:20s} render/refit failed (see {work}/{c}-0.yaml)", flush=True)
+            continue
         fit = json.loads(t[t.index("{"):])
         m = re.search(r"^master: (\{.*\})$", s0, re.M)
         mj = json.loads(m.group(1))
@@ -77,7 +96,7 @@ def main(a):
                                capture_output=True, text=True, cwd=HOME)
             os.path.exists(w) and os.remove(w)
             tot.append(json.loads(r.stdout)["total"])
-        tag = " (control)" if c == cur else ""
+        tag = " (control)" if c == cur else note
         print(f"{c:20s}{tag:10s} refit held-out {'/'.join(map(str, seeds))}: " + " ".join(f"{x:.2f}" for x in tot)
               + f"  mean {sum(tot) / len(tot):.2f}  → {y1}", flush=True)
 
