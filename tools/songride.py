@@ -57,9 +57,13 @@ def main(a):
         master["fx"].append({"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.ride", "amount": 1}]}})
         master["auto"] = {"ride": {"points": [["0s", round(float(d[0]), 2)]] + [[f"{x:.2f}s", round(float(v), 2)] for x, v in zip(t, d)]}}
         print(f"ride: {len(t)} points, range {d.min():+.1f}..{d.max():+.1f} dB, mean |d| {np.abs(d).mean():.1f} dB", file=sys.stderr)
-    if old_master:   # keep the old chain (its ride gain stage is re-added above) and any other lanes
-        kept = [f for f in old_master.get("fx", []) if not (isinstance(f, dict) and "auto.ride" in json.dumps(f))]
-        master["fx"] = (master["fx"] + kept) if "--no-ride" not in a else old_master.get("fx", [])
+    if old_master:   # keep the old chain and any other lanes; an existing ride stage keeps its position
+        old_fx = old_master.get("fx", [])
+        has_ride = any(isinstance(f, dict) and "auto.ride" in json.dumps(f) for f in old_fx)
+        if "--no-ride" in a or has_ride:
+            master["fx"] = list(old_fx)   # the refined lane drives the stage where it already sits (e.g. after a clip)
+        else:
+            master["fx"] = master["fx"] + list(old_fx)
         for k, v in old_master.get("auto", {}).items():
             if k != "ride" or "--no-ride" in a:
                 master.setdefault("auto", {})[k] = v
