@@ -5,9 +5,11 @@ gains are a least-squares fit (exact biquad responses, a little ridge) of the 1/
 between the candidate and the reference over that section — the dense sections stop dictating the quiet ones'
 EQ (chirper-two's mastereq.py fits one stage for the whole mix; chirper-zero found per-section fits worth more).
 
-  sectioneq.py REF.wav CAND.wav[,CAND2,...] SECTIONS.txt [--scale 1.0] [--max 9] [--only 0,2,5] [--ramp 0.05]
+  sectioneq.py REF.wav CAND.wav[,CAND2,...] SECTIONS.txt [--scale 1.0] [--max 9] [--only 0,2,5] [--ramp 0.05] [--prefix eq]
 
 Prints a `master:` JSON block (auto lanes + eq stage) to merge into a song's master (append the eq after the glue).
+--prefix P names the lanes P0..P6 (default eq): use another prefix when the song already has eq lanes
+(an eqride.py ride or an earlier sectioneq) — appending with the same names silently REPLACES them (Pneuma: -4.5).
 --only fits just those sections (others stay flat): check each section separately — a fit can chase content
 the arrangement lacks."""
 import json
@@ -82,6 +84,7 @@ if __name__ == "__main__":
     a = sys.argv[1:]
     opt = lambda k, d: type(d)(a[a.index(k) + 1]) if k in a else d
     scale, mx, ramp = opt("--scale", 1.0), opt("--max", 9.0), opt("--ramp", 0.05)
+    prefix = a[a.index("--prefix") + 1] if "--prefix" in a else "eq"
     bounds = [float(v) for v in open(a[2]).read().split(",")]
     only = {int(v) for v in opt("--only", "").split(",") if v != ""} if "--only" in a else None
     # CAND may be several renders (comma-separated; the same song at different seeds): their spectra are averaged per
@@ -105,6 +108,6 @@ if __name__ == "__main__":
             v = round(float(gains[k][j]), 2)
             pts += [[f"{round(s0 if k == 0 else s0 + ramp, 3)}s", v], [f"{round(s1, 3)}s", v]]
         pts = [[ "0s", pts[0][1]]] + pts
-        auto[f"eq{j}"] = {"points": pts}
-        bands.append({"kind": kind, "cutoff": f0, "q": q, "gain": {"value": "0dB", "mod": [{"src": f"auto.eq{j}", "amount": 1}]}})
+        auto[f"{prefix}{j}"] = {"points": pts}
+        bands.append({"kind": kind, "cutoff": f0, "q": q, "gain": {"value": "0dB", "mod": [{"src": f"auto.{prefix}{j}", "amount": 1}]}})
     print(json.dumps({"auto": auto, "eq": {"type": "eq", "bands": bands}}))
