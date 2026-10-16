@@ -12,7 +12,8 @@ there: section 59.8 -> 35.7). Score per section and keep the hats only where the
 Onsets: spectral flux of the band (log magnitude, hop 256), local maxima within +-30 ms above median + K * std of a
 2 s neighbourhood, at least --gap s apart. Covered: within --cover s of any note start of the tracks whose name
 matches --tracks (default drum|kit|perc|hat|cym|tom|snare|kick). Velocity from the band level around its median
-(2 per dB, clipped to --vel). --from/--to keep hits only inside that time range (the intro/ending may not want them).
+(2 per dB, clipped to --vel). --from/--to keep hits only inside that time range (the intro/ending may not want them);
+--to never exceeds the song's current end (onsets after it are dropped and reported - chirper-zero's Thin Thing catch).
 The new one-line track goes after the last matching track; its patch (first word) and sends come from the matching
 track that already plays --piece most, else the first kit-like one (piece names, not pitches) — a pitched
 'low-perc' on modal-tom cannot play `h` (chirper-two's Daydreaming catch); --patch overrides.
@@ -89,6 +90,21 @@ def main():
     if src is None and "--patch" not in a:
         sys.exit(f"no drum track plays '{piece}' or looks like a kit (pitched tracks only): pass --patch KIT")
     hits = np.sort(np.array(hits))
+    # never past the song's current end (the longest track: its at: plus its score's beats) - a hats-only tail
+    # extends the song and wrecks its last section (Thin Thing: 257 -> 270 s, the last section 59.8 -> 45)
+    song_end = 0.0
+    for m in re.finditer(r'^\s*- \{name: "?[^",]+"?,([^\n]*?)score: "([^"]*)"', y, re.M):
+        at = re.search(r"\bat: ([0-9.]+)b", m.group(1)); pos = float(at.group(1)) if at else 0.0
+        for tk in m.group(2).split():
+            mm = re.match(r"^[^/]+/([0-9.]+)b", tk)
+            if mm:
+                pos += float(mm.group(1))
+        song_end = max(song_end, b2t(pos))
+    if song_end > 0 and t_to > song_end:
+        n_past = sum(1 for s_, _ in on if s_ >= song_end)
+        if n_past:
+            print(f"song ends at {song_end:.1f} s: {n_past} onsets after it dropped (pass --to to change)")
+        t_to = song_end
     keep = [(s, l) for s, l in on if t_from <= s < t_to and (hits.size == 0 or np.min(np.abs(hits - s)) > cover)]
     print(f"{len(on)} band onsets, {len(keep)} uncovered{' in range' if '--from' in a or '--to' in a else ''}")
     if not keep:
