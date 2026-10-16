@@ -2,13 +2,13 @@
   "cache": "ref/songsterr-17904",
   "offset": 0.0,
   "name": "raining-blood",
-  "about": "Slayer — Raining Blood (Reign in Blood, 1986): Hanneman/King rhythm guitars hard-panned, King's leads and solo, bass, Lombardo's drums, Araya's vocal line. Songsterr 17904; reference https://www.youtube.com/watch?v=CkaE237oiwE",
+  "about": "Slayer \u2014 Raining Blood (Reign in Blood, 1986): Hanneman/King rhythm guitars hard-panned, King's leads and solo, bass, Lombardo's drums, Araya's vocal line. Songsterr 17904; reference https://www.youtube.com/watch?v=CkaE237oiwE",
   "head": {
     "ceiling": "-0.3dB",
     "buses": {
       "room": {
         "fx": [
-          "reverb kind=room decay=1.1s mix=1 predelay=12ms"
+          "reverb kind=room decay=1.1s mix=1 predelay=12ms mono_below=100hz"
         ]
       }
     },
