@@ -57,7 +57,8 @@ def main(a):
         return secs[i] + (b - beats[i]) * 60 / bpm[i]
 
     toks = V.track_tokens(song, track)
-    ev, pos = [], 0.0                      # (start beat, length, body, rest-of-token, controls before it)
+    off = V.track_offset(song, track)      # SUB/TRACK: an embedded song's track, timed from its placement's at:
+    ev, pos = [], off                      # (start beat, length, body, rest-of-token, controls before it)
     pending = []                           # control tokens (bend=, ccN=, …) ride with the next note when it moves
     for t in toks:
         m = re.match(r"^([^/]+)/([0-9.]+)b(.*)$", t)
@@ -89,7 +90,7 @@ def main(a):
     # rebuild: notes at their (possibly moved) starts, each lasting to the next note's start (or its own length)
     notes = [(e[5] if len(e) > 5 else e[0], e[0] + e[1], e[2], e[3], e[4]) for e in ev if e[2] not in ("R", "r", "_")]
     notes.sort(key=lambda n: n[0])
-    out, cur = [], 0.0
+    out, cur = [], off                     # the written score is relative to the track's own start
     for i, (s, e_end, body, rest, ctl) in enumerate(notes):
         if s < cur - 1e-9:
             s = cur
