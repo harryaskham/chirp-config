@@ -98,12 +98,12 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 64,
+      "rounds": 65,
       "priority": 1,
       "genre": "groove metal",
       "last": {
-        "at": "2026-10-16T08:54:51Z",
-        "who": "chirper-two"
+        "at": "2026-10-16T09:35:03Z",
+        "who": "chirper-one"
       }
     },
     {
