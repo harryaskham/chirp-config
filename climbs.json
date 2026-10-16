@@ -151,7 +151,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 35,
+      "rounds": 36,
       "priority": 1.0,
       "genre": "jazz trio / nu-jazz",
       "requested": {
@@ -160,8 +160,8 @@
         "note": null
       },
       "last": {
-        "at": "2026-10-16T20:13:59Z",
-        "who": "chirper-one"
+        "at": "2026-10-16T20:50:12Z",
+        "who": "chirper-zero"
       }
     },
     {
