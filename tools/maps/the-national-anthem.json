@@ -8434,20 +8434,8 @@
   },
   {
    "name": "drums",
-   "track": 8,
+   "raw": "tools/maps/the-national-anthem-drums-rt.json#drums",
    "patch": "rock-kit",
-   "bars": [
-    [
-     1,
-     131
-    ]
-   ],
-   "remap": {
-    "h1": "h"
-   },
-   "drop": [
-    "m92"
-   ],
    "extra": {
     "sends": {
      "room": "-10dB"
