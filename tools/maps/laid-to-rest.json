@@ -251,7 +251,7 @@
       ]
      }
     },
-    "clip drive=7dB ceiling=-0.5dB"
+    "clip drive=7dB ceiling=2.5dB"
    ],
    "auto": {
     "lift": {
