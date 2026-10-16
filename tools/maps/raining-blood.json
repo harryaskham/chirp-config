@@ -5806,6 +5806,17 @@
           }
         ]
       }
+    },
+    {
+      "name": "drums-ghost",
+      "raw": "tools/maps/raining-blood-ghost.json#hats",
+      "patch": "metal-kit",
+      "gain": "3dB",
+      "extra": {
+        "sends": {
+          "room": "-12dB"
+        }
+      }
     }
   ],
   "bpm": {
