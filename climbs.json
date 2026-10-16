@@ -143,15 +143,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/saturnine.wav OUT.wav $(cat tools/saturnine-sections.txt)",
       "best": {
-        "score": 62.8,
-        "version": "v7",
+        "score": 63.3,
+        "version": "v8",
         "commit": "see git log songs/saturnine.yaml",
         "engine": "ec8ad0e"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 9,
+      "rounds": 10,
       "priority": 1.0,
       "genre": "jazz trio / nu-jazz",
       "requested": {
@@ -160,8 +160,8 @@
         "note": null
       },
       "last": {
-        "at": "2026-10-16T02:59:43Z",
-        "who": "chirper-one"
+        "at": "2026-10-16T04:08:55Z",
+        "who": "chirper-three"
       }
     },
     {
