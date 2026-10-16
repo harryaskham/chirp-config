@@ -11,7 +11,9 @@ Onsets: spectral flux of the band (log magnitude, hop 256), local maxima within 
 2 s neighbourhood, at least --gap s apart. Covered: within --cover s of any note start of the tracks whose name
 matches --tracks (default drum|kit|perc|hat|cym|tom|snare|kick). Velocity from the band level around its median
 (2 per dB, clipped to --vel). --from/--to keep hits only inside that time range (the intro/ending may not want them).
-The new one-line track goes after the last matching track (its sends copied); --patch defaults to that track's patch.
+The new one-line track goes after the last matching track; its patch (first word) and sends come from the matching
+track that already plays --piece most, else the first kit-like one (piece names, not pitches) — a pitched
+'low-perc' on modal-tom cannot play `h` (chirper-two's Daydreaming catch); --patch overrides.
 Tempo: a number or a tempo map (`tempo: [{at, bpm}, ...]`, as tab2song writes) — times go through it both ways.
 Map-built songs (tab2song): pass --map MAP.json --raw RAW.json — the hats go into RAW.json (key "hats") and OUT is
 a copy of the map with a part {"name", "raw": "RAW.json#hats", "patch", "gain", "extra": {"sends"}} appended;
@@ -58,21 +60,32 @@ def main():
             loc = flux[max(0, i - k):i + k]
             if flux[i] > np.median(loc) + K * loc.std() and (not on or t[i] - on[-1][0] > gap):
                 on.append((t[i], lvl[i]))
-    hits, last = [], None
+    hits, last, src, src_n, kitlike = [], None, None, 0, None
+    piece = opt("--piece", "h")
+    note = re.compile(r"^[A-Ga-g][#b]?-?\d+$")
     for m in re.finditer(r'^\s*- \{name: "?([^",]+)"?,[^\n]*?score: "([^"]*)"', y, re.M):
         if not rx.search(m.group(1)):
             continue
         last = m
-        pos = 0.0
+        pos, n_piece, n_notes, n_hits = 0.0, 0, 0, 0
         for tk in m.group(2).split():
             mm = re.match(r"^([^/]+)/([0-9.]+)b", tk)
             if not mm:
                 continue
             if mm.group(1) not in ("R", "r", "_"):
-                hits.append(b2t(pos))
+                hits.append(b2t(pos)); n_hits += 1
+                heads = mm.group(1).split(",")
+                n_piece += piece in heads; n_notes += any(note.match(h) for h in heads)
             pos += float(mm.group(2))
+        if n_piece > src_n:   # the patch/sends come from a track that already plays --piece
+            src, src_n = m, n_piece
+        if kitlike is None and n_hits and n_notes < 0.5 * n_hits:   # else a kit (pieces, not pitches)
+            kitlike = m
     if last is None:
         sys.exit("no drum tracks matched --tracks")
+    src = src or kitlike
+    if src is None and "--patch" not in a:
+        sys.exit(f"no drum track plays '{piece}' or looks like a kit (pitched tracks only): pass --patch KIT")
     hits = np.sort(np.array(hits))
     keep = [(s, l) for s, l in on if t_from <= s < t_to and (hits.size == 0 or np.min(np.abs(hits - s)) > cover)]
     print(f"{len(on)} band onsets, {len(keep)} uncovered{' in range' if '--from' in a or '--to' in a else ''}")
@@ -85,7 +98,7 @@ def main():
         if b > cur + 1e-3:
             toks.append(f"R/{b - cur:.4f}b"); cur = b
         toks.append(f"{opt('--piece', 'h')}/{ln:g}b@{int(np.clip((v0 + v1) / 2 + 2.0 * (l - med), v0, v1))}"); cur += ln
-    line = last.group(0)
+    line = (src or last).group(0)   # patch and sends from the source track; the new track goes after the last one
     patch = opt("--patch", "") or (re.search(r'patch: "([^"]*)"', line) or re.search(r"patch: ([^,}]+)", line)).group(1)
     sends = re.search(r"sends: (\{[^}]*\})", line)
     indent = re.match(r"^(\s*)", line).group(1)
