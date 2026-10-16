@@ -114,15 +114,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/daydreaming.wav OUT.wav $(cat tools/daydreaming-sections.txt)",
       "best": {
-        "score": 70.6,
-        "version": "v16",
+        "score": 71.1,
+        "version": "v17",
         "commit": "see git log songs/daydreaming.yaml",
         "engine": "a931418"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 30,
+      "rounds": 31,
       "priority": 1.0,
       "genre": "chamber folk / indie",
       "requested": {
@@ -131,7 +131,7 @@
         "note": null
       },
       "last": {
-        "at": "2026-10-16T13:23:25Z",
+        "at": "2026-10-16T14:13:15Z",
         "who": "chirper-three"
       }
     },
