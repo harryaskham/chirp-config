@@ -326,7 +326,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 15,
+      "rounds": 16,
       "priority": 1.0,
       "genre": "IDM / breakbeat",
       "requested": {
@@ -335,8 +335,8 @@
         "note": null
       },
       "last": {
-        "at": "2026-10-16T05:19:23Z",
-        "who": "chirper-three"
+        "at": "2026-10-16T05:24:26Z",
+        "who": "chirper-two"
       }
     },
     {
