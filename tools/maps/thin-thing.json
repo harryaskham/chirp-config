@@ -5905,11 +5905,7 @@
    "bars": [
     [
      1,
-     68
-    ],
-    [
-     80,
-     98
+     42
     ],
     [
      126,
@@ -5973,6 +5969,18 @@
    "patch": "finger-bass",
    "gain": "4dB",
    "raw": "tools/maps/thin-thing-bass-s11.json#bass"
+  },
+  {
+   "name": "bass-s56",
+   "patch": "finger-bass",
+   "gain": "4dB",
+   "raw": "tools/maps/thin-thing-bass-s56.json#bass"
+  },
+  {
+   "name": "bass-s89",
+   "patch": "finger-bass",
+   "gain": "4dB",
+   "raw": "tools/maps/thin-thing-bass-s89.json#bass"
   }
  ],
  "skip": [
