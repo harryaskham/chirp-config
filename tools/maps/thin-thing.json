@@ -5905,6 +5905,10 @@
    "bars": [
     [
      1,
+     98
+    ],
+    [
+     113,
      999
     ]
    ],
@@ -5947,6 +5951,12 @@
      "dly": "-12dB"
     }
    }
+  },
+  {
+   "name": "bass-stem",
+   "patch": "finger-bass",
+   "raw": "tools/maps/thin-thing-bass-s10.json#bass",
+   "gain": "4dB"
   }
  ],
  "skip": [
