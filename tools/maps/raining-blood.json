@@ -5999,6 +5999,26 @@
    "patch": "pick-bass",
    "gain": "5dB",
    "extra": {}
+  },
+  {
+   "name": "rain-in",
+   "raw": "tools/maps/raining-blood-fx.json#rain-in",
+   "patch": "fx-rain",
+   "gain": "-6dB",
+   "extra": {
+    "fx": [
+     {
+      "type": "eq",
+      "bands": [
+       "lowshelf cutoff=42 gain=-8.0dB",
+       "peak cutoff=67 q=3.0 gain=3.9dB",
+       "peak cutoff=170 q=1.5 gain=7.1dB",
+       "peak cutoff=2.2k q=1.0 gain=4.2dB",
+       "peak cutoff=4.3k q=1.0 gain=-4.5dB"
+      ]
+     }
+    ]
+   }
   }
  ],
  "bpm": {

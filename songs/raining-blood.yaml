@@ -15,3 +15,4 @@ tracks:
   - {name: "rain", patch: "fx-rain", gain: "0dB", fx: [{"type": "eq", "bands": ["lowshelf cutoff=269 gain=12.0dB", "lowshelf cutoff=339 gain=8.0dB", "highshelf cutoff=1.1k gain=-8.0dB", "highshelf cutoff=1.4k gain=-8.0dB"]}], score: "R/654.57b C4/83.841b@70"}
   - {name: "gtr-ring", patch: "thrash", gain: "5dB", score: "R/660b Eb2,Bb2,Eb3/65.7b@95"}
   - {name: "bass-ring", patch: "pick-bass", gain: "5dB", score: "R/660b Eb1/65.7b@95"}
+  - {name: "rain-in", patch: "fx-rain", gain: "-6dB", fx: [{"type": "eq", "bands": ["lowshelf cutoff=42 gain=-8.0dB", "peak cutoff=67 q=3.0 gain=3.9dB", "peak cutoff=170 q=1.5 gain=7.1dB", "peak cutoff=2.2k q=1.0 gain=4.2dB", "peak cutoff=4.3k q=1.0 gain=-4.5dB"]}], score: "R/27.631b C4/54.774b@70"}
