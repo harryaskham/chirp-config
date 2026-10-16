@@ -6089,6 +6089,17 @@
    "patch": "finger-bass",
    "gain": "4dB",
    "raw": "tools/maps/thin-thing-bass-s89.json#bass"
+  },
+  {
+   "name": "drums-hats",
+   "raw": "tools/maps/thin-thing-hats.json#hats",
+   "patch": "tight-kit",
+   "gain": "0dB",
+   "extra": {
+    "sends": {
+     "room": "-16dB"
+    }
+   }
   }
  ],
  "skip": [
