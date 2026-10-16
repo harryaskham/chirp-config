@@ -387,6 +387,26 @@
         "at": "2026-10-16T23:31:36Z",
         "note": null
       }
+    },
+    {
+      "id": "archangel",
+      "song": "songs/archangel.yaml",
+      "reference": "Burial — Archangel",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/archangel.wav OUT.wav $(cat tools/archangel-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "UK garage / future garage (2-step, vocal chops, crackle)",
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-16T23:31:40Z",
+        "note": null
+      }
     }
   ]
 }
