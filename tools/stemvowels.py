@@ -46,7 +46,7 @@ def expand(tokens):
 
 def track_tokens(song, name):
     text = open(song).read()
-    m = re.search(r'\{name: "' + re.escape(name) + r'"[^\n]*?score: "([^"]*)"', text)
+    m = re.search(r'\{name: "?' + re.escape(name) + r'"?,[^\n]*?score: "([^"]*)"', text)   # quoted or not
     if not m:
         raise SystemExit(f"no track {name}")
     return expand(m.group(1).replace("|", " ").split())
