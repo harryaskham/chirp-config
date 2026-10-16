@@ -73,12 +73,12 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 42,
+      "rounds": 43,
       "priority": 1,
       "genre": "progressive metal",
       "last": {
-        "at": "2026-10-16T01:14:36Z",
-        "who": "chirper-one"
+        "at": "2026-10-16T01:19:53Z",
+        "who": "chirper-three"
       }
     },
     {
