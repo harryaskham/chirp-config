@@ -7,6 +7,8 @@ marking |d| >= --flag. sectioneq.py clamps at +-9 dB and couples to the whole mi
 6-13 dB usually means a PART is wrong there (too bright, missing a register, an extra layer) — fix it at the source
 with a part filter or level driven by a track lane over that section (Saturnine v17: the intro's muted piano was
 +5..+13 dB too bright at 500 Hz-4 kHz; a lowpass at 400 Hz only before 22 s gave the intro 61.7 -> 67.0).
+Only deviations of ~6 dB or more have paid (TNA v18/v22, Saturnine v17); +-3..5 dB lanes lost or tied (TNA r35,
+Flim r34) — the 40-band spectral/ltas terms already tolerate them.
 --solo SOLO.wav adds a line per section with a solo render's bands (relative to the full render) to see which part
 carries the excess."""
 import sys
