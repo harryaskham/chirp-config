@@ -5,11 +5,13 @@ an optional fader ride (levelride.ride: short-term loudness of the reference min
 gain lane `auto.ride`) followed by any extra master effects (e.g. a clipper for a brick-walled record).
 
   songride.py SONG.yaml REF.wav RENDER.wav -o OUT.yaml [--win 4] [--step 2] [--max 9] [--amount 1]
-              [--contour --sections F] [--slew 8] [--accumulate] [--no-ride] [--fx "clip drive=3dB ceiling=-0.5dB" …]
+              [--contour --sections F] [--slew 8] [--slew-in 0-22,262-999:4] [--accumulate] [--no-ride] [--fx "clip drive=3dB ceiling=-0.5dB" …]
 
 --no-ride writes only the --fx chain (e.g. --no-ride --fx rack:master-loud). A song that already has a top-level master
 is refused unless --accumulate: then the new correction is added to its auto.ride lane (fit on a render of that song)
-and its other effects and lanes are kept — passes 1.5 s, 1 s, 0.5 s refine a contour as on Bleed/Daydreaming."""
+and its other effects and lanes are kept. --slew-in caps the lane harder inside exposed passages (strings-only intros, solo
+endings: >1 dB per 250 ms there is audible pumping; Hajnal and Saturnine scored the same or better capped)
+— check the lane's movement per section before choosing the ranges; — passes 1.5 s, 1 s, 0.5 s refine a contour as on Bleed/Daydreaming."""
 import json
 import os
 import sys
@@ -54,6 +56,18 @@ def main(a):
                 d[i] = np.clip(d[i], d[i - 1] - lim * (t[i] - t[i - 1]), d[i - 1] + lim * (t[i] - t[i - 1]))
             for i in range(len(d) - 2, -1, -1):
                 d[i] = np.clip(d[i], d[i + 1] - lim * (t[i + 1] - t[i]), d[i + 1] + lim * (t[i + 1] - t[i]))
+        if "--slew-in" in a:   # tighter slew in exposed passages, e.g. 0-22,262-999:4 (dB/s)
+            rng, _, lim2 = opt("--slew-in", "").rpartition(":")
+            spans = [tuple(float(v) for v in r.split("-")) for r in rng.split(",")]
+            lim = np.array([float(lim2) if any(a0 <= x < a1 for a0, a1 in spans) else np.inf for x in t])
+            d = d.copy()
+            for _ in range(2):
+                for i in range(1, len(d)):
+                    if np.isfinite(lim[i]):
+                        d[i] = np.clip(d[i], d[i - 1] - lim[i] * (t[i] - t[i - 1]), d[i - 1] + lim[i] * (t[i] - t[i - 1]))
+                for i in range(len(d) - 2, -1, -1):
+                    if np.isfinite(lim[i]):
+                        d[i] = np.clip(d[i], d[i + 1] - lim[i] * (t[i + 1] - t[i]), d[i + 1] + lim[i] * (t[i + 1] - t[i]))
         master["fx"].append({"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.ride", "amount": 1}]}})
         master["auto"] = {"ride": {"points": [["0s", round(float(d[0]), 2)]] + [[f"{x:.2f}s", round(float(v), 2)] for x, v in zip(t, d)]}}
         print(f"ride: {len(t)} points, range {d.min():+.1f}..{d.max():+.1f} dB, mean |d| {np.abs(d).mean():.1f} dB", file=sys.stderr)
