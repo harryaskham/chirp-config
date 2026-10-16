@@ -6102,6 +6102,28 @@
           "room": "-16dB"
         }
       }
+    },
+    {
+      "name": "drums-kick",
+      "raw": "tools/maps/thin-thing-kick.json#hats",
+      "patch": "tight-kit",
+      "gain": "-6dB",
+      "extra": {
+        "sends": {
+          "room": "-16dB"
+        }
+      }
+    },
+    {
+      "name": "drums-kick2",
+      "raw": "tools/maps/thin-thing-kick2.json#hats",
+      "patch": "tight-kit",
+      "gain": "-6dB",
+      "extra": {
+        "sends": {
+          "room": "-16dB"
+        }
+      }
     }
   ],
   "skip": [
