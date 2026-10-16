@@ -8713,6 +8713,16 @@
               "peak cutoff=269 q=1.0 gain=4.9dB",
               "highshelf cutoff=8.6k gain=-4.5dB"
             ]
+          },
+          {
+            "type": "eq",
+            "bands": [
+              "lowshelf cutoff=53 gain=8.0dB",
+              "lowshelf cutoff=85 gain=8.0dB",
+              "peak cutoff=339 q=0.8 gain=6.8dB",
+              "peak cutoff=679 q=0.6 gain=-8.0dB",
+              "peak cutoff=8.6k q=1.0 gain=-5.6dB"
+            ]
           }
         ]
       }
