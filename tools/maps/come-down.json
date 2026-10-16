@@ -4148,6 +4148,17 @@
           "room": "-16dB"
         }
       }
+    },
+    {
+      "name": "drums-kick",
+      "raw": "tools/maps/come-down-kick.json#hats",
+      "patch": "tight-kit",
+      "gain": "-6dB",
+      "extra": {
+        "sends": {
+          "room": "-16dB"
+        }
+      }
     }
   ],
   "bpm": {
