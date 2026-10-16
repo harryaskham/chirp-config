@@ -412,7 +412,7 @@
       "id": "harder-better-faster-stronger",
       "song": "songs/harder-better-faster-stronger.yaml",
       "reference": "Daft Punk — Harder, Better, Faster, Stronger",
-      "source": null,
+      "source": "https://www.youtube.com/watch?v=yydNF8tuVmU",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/harder-better-faster-stronger.wav OUT.wav $(cat tools/harder-better-faster-stronger-sections.txt)",
       "best": null,
