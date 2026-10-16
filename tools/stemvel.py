@@ -5,6 +5,9 @@ existing velocity; other articulations kept). A tab or a transcription gives not
 singer or player swells and recedes, and the level contour is a large share of a part's likeness.
 
   stemvel.py STEM.wav SONG.yaml TRACK OUT.json [--key vox] [--range 40-120] [--mid V] [--slope 2.5] [--only-in 30-55.5,131-169]
+             [--write SONG_OUT.yaml]
+TRACK may be SUB/TRACK: a track of the embedded song SUB (songs: blocks placed by `@SUB/…` tracks, e.g. Shadows'
+intro/chant); its notes are timed from that placement's at:. --write puts the new score into a copy of the song.
 
 --only-in: apply stem velocities only to notes starting inside these time ranges (s); others keep theirs. A stem
 transfer that helps some sections and hurts others (bleed in the stem there) is kept where it helps: measure the
@@ -40,7 +43,7 @@ def run(stem, song, track, key="vox", lo=40, hi=120, slope=2.5, mid=None, only=N
         i = max(0, np.searchsorted(beats, b, side="right") - 1)
         return secs[i] + (b - beats[i]) * 60 / bpm[i]
 
-    toks, notes, pos = V.track_tokens(song, track), [], 0.0
+    toks, notes, pos = V.track_tokens(song, track), [], V.track_offset(song, track)   # SUB/TRACK: an embedded song's track, from its at:
     for t in toks:
         m = re.match(r"^([^/]+)/([0-9.]+)b(.*)$", t)
         if not m:
@@ -77,4 +80,7 @@ if __name__ == "__main__":
     only = [tuple(float(v) for v in r.split("-")) for r in opt("--only-in", "").split(",")] if "--only-in" in a else None
     res, med, n = run(a[0], a[1], a[2], opt("--key", "vox"), lo, hi, opt("--slope", 2.5), opt("--mid", 100.0) if "--mid" in a else None, only)
     json.dump(res, open(a[3], "w"))
+    if "--write" in a:   # the new score in place of the track's, in a copy of the song
+        s0, s1 = V.track_span(a[1], a[2]); text = open(a[1]).read()
+        open(opt("--write", ""), "w").write(text[:s0] + list(res.values())[0]["score"] + text[s1:])
     print(f"{n} sung notes; median stem level {med:.1f} dB")

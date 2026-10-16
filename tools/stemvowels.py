@@ -44,12 +44,55 @@ def expand(tokens):
     return out
 
 
-def track_tokens(song, name):
+def _sub_block(text, sub):
+    """(start, end) of an embedded song's block: `songs:` → `  SUB:` up to the next two-space key or top-level key."""
+    m = re.search(r"^songs:\s*$", text, re.M)
+    if not m:
+        raise SystemExit("no songs: block (SONG/TRACK addresses an embedded song)")
+    m2 = re.search(r"^  " + re.escape(sub) + r":\s*$", text[m.end():], re.M)
+    if not m2:
+        raise SystemExit(f"no embedded song {sub}")
+    start = m.end() + m2.end()
+    m3 = re.search(r"^(  [A-Za-z0-9_-]+:\s*$|[A-Za-z_])", text[start:], re.M)
+    return start, (start + m3.start() if m3 else len(text))
+
+
+def track_span(song, name):
+    """(start, end) of a track's score string in the song text. NAME is a top-level track, or SUB/TRACK for a track
+    of the embedded song SUB (Shadows: songs: {intro: {tracks: [...]}, ...} placed by `@intro/56b` tracks)."""
     text = open(song).read()
-    m = re.search(r'\{name: "?' + re.escape(name) + r'"?,[^\n]*?score: "([^"]*)"', text)   # quoted or not
+    lo, hi = 0, len(text)
+    if "/" in name:
+        sub, name = name.split("/", 1)
+        lo, hi = _sub_block(text, sub)
+    m = re.search(r'\{name: "?' + re.escape(name) + r'"?,[^\n]*?score: "([^"]*)"', text[lo:hi])   # quoted or not
     if not m:
         raise SystemExit(f"no track {name}")
-    return expand(m.group(1).replace("|", " ").split())
+    return lo + m.start(1), lo + m.end(1)
+
+
+def track_offset(song, name):
+    """Beats from the top song's start to where the track's beat 0 plays: 0 for a top-level track; for SUB/TRACK the
+    `at:` of the top-level track that places `@SUB/…` (the first one, if SUB is placed more than once)."""
+    if "/" not in name:
+        return 0.0
+    sub = name.split("/", 1)[0]
+    text = open(song).read()
+    t0 = re.search(r"^tracks:\s*$", text, re.M)
+    body = text[t0.end():] if t0 else text
+    k = body.find('"@' + sub + "/")
+    if k < 0:
+        raise SystemExit(f"no top-level track places @{sub}")
+    starts = [mm.start() for mm in re.finditer(r"^  - ", body, re.M)]
+    a = max([st for st in starts if st <= k], default=0)
+    b = min([st for st in starts if st > k], default=len(body))
+    m = re.search(r"\bat:\s*([0-9.]+)b", body[a:b])
+    return float(m.group(1)) if m else 0.0
+
+
+def track_tokens(song, name):
+    a, b = track_span(song, name)
+    return expand(open(song).read()[a:b].replace("|", " ").split())
 
 
 def envelope(x, f0max=420.0):
