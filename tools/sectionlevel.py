@@ -2,13 +2,16 @@
 """Per-section ABSOLUTE level vs the reference — the gap the contour ride cannot close (levelride --contour removes
 each section's mean) and the one likeness's mastering term punishes: a section 10 dB too loud scores ~13 there
 (Flim's ending: the record drops 10-11 dB at 136 s and stays; a master gain lane gave +1.2 overall).
+Results: Flim +1.2 (ending) then +2.95 (sections 1-7, 4-5 dB too loud), Daydreaming +1.65 (6 sections 2.5-5 dB quiet),
+Hajnal +1.8, Saturnine +0.3, Shadows +0.2 (already within 1.4 dB). Full strength (--amount 1) beat half every time.
 
-  sectionlevel.py SONG.yaml RENDER.wav REF.wav SECTIONS.txt [-o OUT.yaml] [--min 2.0] [--amount 1.0] [--only 2,7]
+  sectionlevel.py SONG.yaml RENDER.wav REF.wav SECTIONS.txt [-o OUT.yaml] [--min 1.0] [--amount 1.0] [--only 2,7]
                   [--lane slev] [--ramp 0.5]
 
 Prints each section's RMS, 99.9th-percentile peak and crest, ours vs the record. With -o, appends ONE gain stage at
 the end of the song's master chain driven by a lane (default auto.slev) that steps at the section cuts to
--(ours - record) * amount dB for sections off by more than --min dB (others 0), ramping over --ramp seconds.
+-(ours - record) * amount dB for sections off by more than --min dB (others 0; default 1.0 — chirper-two: on
+Saturnine 8 sections at --min 1 beat 2 sections at --min 2, 64.75 vs 64.5 held-out), ramping over --ramp seconds.
 --only N,M (1-based) limits the correction to those sections. Song YAMLs with a one-line JSON `master:` (as
 widthfit/songride/sectioneq write) or none. Keep only what the metric confirms (seeds 7/13 for small changes)."""
 import json
@@ -38,7 +41,7 @@ def main():
     cuts = [float(x) for x in open(secf).read().replace("\n", ",").split(",") if x.strip()]
     R, O = L.load(ref), L.load(render)
     only = {int(v) for v in opt("--only", "").split(",") if v.strip()} if "--only" in a else None
-    mn, amount = opt("--min", 2.0), opt("--amount", 1.0)
+    mn, amount = opt("--min", 1.0), opt("--amount", 1.0)
     gains = []
     print("section     start   ref rms  peak crest |  our rms  peak crest |  diff")
     for i in range(len(cuts) - 1):
