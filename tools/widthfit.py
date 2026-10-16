@@ -83,8 +83,8 @@ def main():
         cur = np.array([[auto[f"wb{k}"]["points"][0 if i == 0 else 2 * i][1] for k in range(7)] for i in range(nsec)])
         if "--bass-width" in a:
             for f in master["fx"]:
-                if isinstance(f, dict) and f.get("type") == "width" and "bands" in f:
-                    f["bass_width"] = float(opt("--bass-width", 1.0))
+                if isinstance(f, dict) and f.get("type") == "width" and any(isinstance(b[1], dict) and "auto.wb" in json.dumps(b[1]) for b in f.get("bands", [])):
+                    f["bass_width"] = float(opt("--bass-width", 1.0))   # only the lane stage, not other (static) width stages
     R, O = L.load(ref), L.load(wav)
     minsec = float(opt("--min-sec", 5))
     strength = float(opt("--strength", 1.0))
