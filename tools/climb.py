@@ -409,6 +409,11 @@ def cmd_done(a):
         os.makedirs(HIST, exist_ok=True)
         with open(os.path.join(HIST, f"{cid}.jsonl"), "a") as f:
             f.write(json.dumps({k: v for k, v in h.items() if v is not None}, ensure_ascii=False) + "\n")
+    near = best.get("score")
+    if score is not None and not kept and near is not None and abs(score - float(near)) <= 0.05:
+        print(f"climb: {score} is within rounding of best {near}: if either was rounded, re-measure both "
+              f"unrounded (likeness.py prints 3 decimals) and `climb.py set {cid} best=…` if this one is higher",
+              file=sys.stderr)
     print(f"{cid} round {h['round']}{f' — best {score} ({version})' if kept else ''}"
           f"{' — joins the playlist' if c.get('enabled') and h['round'] == 1 else ''}")
     commit(["climbs.json", f"climbs/{cid}.jsonl", *multi(a, "--with")],

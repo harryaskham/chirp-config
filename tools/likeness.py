@@ -239,9 +239,11 @@ def sectioned(ref, cand, bounds):
         # the tempo term is meaningless on a short, sparse section (the onset autocorrelation jumps between beat
         # multiples) — score sections without it, renormalised
         tot = (r["total"] * 1.08 - 0.05 * r["tempo"]) / 1.03
-        out.append({"start": a, "end": b, "total": round(tot, 1), **{k: r[k] for k in ("loudness", "spectral", "chroma", "rhythm", "ltas", "stereo", "master", "tempo")}})
+        out.append({"start": a, "end": b, "total": round(tot, 3), **{k: r[k] for k in ("loudness", "spectral", "chroma", "rhythm", "ltas", "stereo", "master", "tempo")}})
         wsum += b - a; tsum += tot * (b - a)
-    return {"total": round(tsum / wsum, 1), "sections": out}
+    # Totals to 3 decimals: kept/not-kept decisions compare them, and a 1-decimal total hid
+    # gains under ~0.05 (a best registered as 69.7 was really 69.66).
+    return {"total": round(tsum / wsum, 3), "sections": out}
 
 
 def bands(ref, cand):
