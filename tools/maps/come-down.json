@@ -4126,6 +4126,17 @@
    "raw": "tools/maps/come-down-vox.json#vox-intro",
    "patch": "maynard",
    "gain": "-16dB"
+  },
+  {
+   "name": "drums-hats",
+   "raw": "tools/maps/come-down-hats.json#hats",
+   "patch": "tight-kit",
+   "gain": "-6dB",
+   "extra": {
+    "sends": {
+     "room": "-16dB"
+    }
+   }
   }
  ],
  "bpm": {
