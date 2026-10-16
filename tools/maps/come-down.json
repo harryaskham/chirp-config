@@ -3892,6 +3892,12 @@
      "room": "-16dB"
     }
    }
+  },
+  {
+   "name": "vox",
+   "raw": "tools/maps/come-down-vox.json#vox-intro",
+   "patch": "maynard",
+   "gain": "-16dB"
   }
  ],
  "bpm": {
