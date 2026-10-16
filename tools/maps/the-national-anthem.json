@@ -8388,10 +8388,45 @@
      {
       "type": "eq",
       "bands": [
-       "lowshelf cutoff=150 gain=-6dB"
+       {
+        "kind": "lowshelf",
+        "cutoff": 150,
+        "q": 0.7,
+        "gain": {
+         "value": "-6dB",
+         "mod": [
+          {
+           "src": "auto.bshelf",
+           "amount": 1
+          }
+         ]
+        }
+       }
       ]
      }
-    ]
+    ],
+    "auto": {
+     "bshelf": {
+      "points": [
+       [
+        "0s",
+        0.0
+       ],
+       [
+        "240.75s",
+        0.0
+       ],
+       [
+        "240.85s",
+        6.0
+       ],
+       [
+        "400s",
+        6.0
+       ]
+      ]
+     }
+    }
    }
   },
   {
@@ -8413,10 +8448,45 @@
      {
       "type": "eq",
       "bands": [
-       "lowshelf cutoff=150 gain=-6dB"
+       {
+        "kind": "lowshelf",
+        "cutoff": 150,
+        "q": 0.7,
+        "gain": {
+         "value": "-6dB",
+         "mod": [
+          {
+           "src": "auto.bshelf",
+           "amount": 1
+          }
+         ]
+        }
+       }
       ]
      }
-    ]
+    ],
+    "auto": {
+     "bshelf": {
+      "points": [
+       [
+        "0s",
+        0.0
+       ],
+       [
+        "240.75s",
+        0.0
+       ],
+       [
+        "240.85s",
+        6.0
+       ],
+       [
+        "400s",
+        6.0
+       ]
+      ]
+     }
+    }
    }
   },
   {
