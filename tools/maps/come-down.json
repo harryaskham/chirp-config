@@ -4131,7 +4131,7 @@
    "name": "drums-hats",
    "raw": "tools/maps/come-down-hats.json#hats",
    "patch": "tight-kit",
-   "gain": "-6dB",
+   "gain": "0dB",
    "extra": {
     "sends": {
      "room": "-16dB"
