@@ -4142,7 +4142,7 @@
       "name": "drums-ghost",
       "raw": "tools/maps/come-down-ghost.json#hats",
       "patch": "tight-kit",
-      "gain": "-12dB",
+      "gain": "-6dB",
       "extra": {
         "sends": {
           "room": "-16dB"
