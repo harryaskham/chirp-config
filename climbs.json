@@ -355,7 +355,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 30,
+      "rounds": 31,
       "priority": 1.0,
       "genre": "breakcore / orchestral",
       "requested": {
@@ -364,8 +364,8 @@
         "note": null
       },
       "last": {
-        "at": "2026-10-16T16:31:44Z",
-        "who": "chirper-two"
+        "at": "2026-10-16T17:47:03Z",
+        "who": "chirper-zero"
       }
     }
   ]
