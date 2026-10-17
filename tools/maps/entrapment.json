@@ -1,0 +1,178 @@
+{
+  "cache": "ref/songsterr-73455",
+  "offset": 0.0375,
+  "name": "entrapment",
+  "about": "Hill-climb reproduction of Meshuggah - Entrapment (Catch Thirtythree, 2005, track 6; meta: artist Meshuggah, album Catch Thirtythree, title Entrapment, track 6, year 2005 — a meta: block once the groove pin passes main 8c95a3d). Reference: the album master's track 6. From Songsterr tab 73455 (all 5 tracks).",
+  "meters": true,
+  "head": {
+    "buses": {
+      "hall": {
+        "fx": [
+          "reverb kind=hall decay=2.6s mix=1 predelay=20ms mono_below=100hz"
+        ]
+      }
+    },
+    "ceiling": "-0.3dB",
+    "master": {
+      "fx": [
+        "glue threshold=-14dB ratio=2.5 attack=10ms release=120ms makeup=4dB",
+        "gain gain=2dB",
+        "clip drive=3dB ceiling=2.7dB"
+      ]
+    }
+  },
+  "parts": [
+    {
+      "name": "gtr-l",
+      "track": 0,
+      "patch": "m8-obzen-l",
+      "pan": -1,
+      "bars": [
+        [
+          1,
+          999
+        ]
+      ],
+      "extra": {
+        "fx": [
+          {
+            "type": "delay",
+            "time": "6ms",
+            "feedback": 0,
+            "mix": 1
+          }
+        ]
+      }
+    },
+    {
+      "name": "gtr-r",
+      "track": 1,
+      "patch": "m8-obzen-r",
+      "pan": 1,
+      "bars": [
+        [
+          1,
+          999
+        ]
+      ],
+      "extra": {
+        "fx": [
+          {
+            "type": "delay",
+            "time": "6ms",
+            "feedback": 0,
+            "mix": 1
+          }
+        ]
+      }
+    },
+    {
+      "name": "lead",
+      "track": 2,
+      "patch": "m8-lead",
+      "gain": "-3dB",
+      "bars": [
+        [
+          1,
+          999
+        ]
+      ],
+      "extra": {
+        "sends": {
+          "hall": "-12dB"
+        }
+      }
+    },
+    {
+      "name": "bass",
+      "track": 3,
+      "patch": "bass-fat",
+      "gain": "-1.5dB",
+      "bars": [
+        [
+          1,
+          999
+        ]
+      ],
+      "extra": {
+        "fx": [
+          {
+            "type": "delay",
+            "time": "6ms",
+            "feedback": 0,
+            "mix": 1
+          }
+        ]
+      }
+    },
+    {
+      "name": "drums",
+      "track": 4,
+      "patch": "obzen-kit",
+      "gain": "1.5dB",
+      "bars": [
+        [
+          1,
+          999
+        ]
+      ]
+    }
+  ],
+  "bpm": {
+    "1": 117.9602,
+    "2": 117.9602,
+    "3": 122.6344,
+    "4": 122.6344,
+    "5": 117.9361,
+    "6": 117.9361,
+    "7": 120.6704,
+    "8": 120.6704,
+    "9": 121.519,
+    "10": 121.519,
+    "11": 118.9629,
+    "12": 118.9629,
+    "13": 120.0,
+    "14": 120.0,
+    "15": 120.0,
+    "16": 120.0,
+    "17": 120.0,
+    "18": 120.0,
+    "19": 120.0,
+    "20": 120.0,
+    "21": 119.0682,
+    "22": 119.0682,
+    "23": 116.9084,
+    "24": 116.9084,
+    "25": 129.1248,
+    "26": 129.1248,
+    "27": 118.8832,
+    "28": 118.8832,
+    "29": 121.4489,
+    "30": 121.4489,
+    "31": 120.1092,
+    "32": 120.1092,
+    "33": 118.2164,
+    "34": 118.2164,
+    "35": 121.6964,
+    "36": 121.6964,
+    "37": 117.7376,
+    "38": 117.7376,
+    "39": 119.5021,
+    "40": 119.5021,
+    "41": 121.5531,
+    "42": 121.5531,
+    "43": 120.0,
+    "44": 120.0,
+    "45": 120.0,
+    "46": 120.0,
+    "47": 119.9001,
+    "48": 119.9001,
+    "49": 120.0,
+    "50": 120.0,
+    "51": 120.1001,
+    "52": 120.1001,
+    "53": 120.5525,
+    "54": 120.5525,
+    "55": 120.0
+  }
+}

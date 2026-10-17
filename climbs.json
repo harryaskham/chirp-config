@@ -774,11 +774,15 @@
       "source": "https://www.youtube.com/watch?v=WvL83L8FWvQ",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/entrapment.wav OUT.wav $(cat tools/entrapment-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 48.526,
+        "version": "v1",
+        "commit": "see git log songs/entrapment.yaml"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
       "meta": {
@@ -793,7 +797,11 @@
         "at": "2026-10-17T11:08:20Z",
         "note": "album climb: the album plays end to end; adjacent tracks blend seamlessly, so match the record's level and tone at each song's edges"
       },
-      "ref_file": "ref/albums/catch-thirtythree/06 entrapment.webm"
+      "ref_file": "ref/albums/catch-thirtythree/06 entrapment.webm",
+      "last": {
+        "at": "2026-10-17T11:50:07Z",
+        "who": "chirper-two"
+      }
     },
     {
       "id": "mind-s-mirrors",
