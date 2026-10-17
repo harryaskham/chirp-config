@@ -200,12 +200,7 @@
       "source": "https://www.youtube.com/watch?v=cFqPQ0bpktQ",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/thin-thing.wav OUT.wav $(cat tools/thin-thing-sections.txt)",
-      "best": {
-        "score": 61.485,
-        "version": "v30",
-        "commit": "see git log songs/thin-thing.yaml",
-        "engine": "a931418"
-      },
+      "best": 61.029,
       "passes": 1,
       "enabled": true,
       "status": "active",
