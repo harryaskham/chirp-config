@@ -1,0 +1,122 @@
+{
+ "cache": "ref/songsterr-73448",
+ "offset": 0.055,
+ "name": "disenchantment",
+ "about": "Meshuggah \u2014 Disenchantment (Catch Thirtythree, track 3, 2005). Songsterr 73448 (Wrong Perfection, as Imprint's 73449): 52 bars 4/4 at 120 BPM = 104.0 s, 8-string guitars in F (F1 low), 4-string bass in F; programmed Drumkit-from-Hell drums. Offset +0.055 s (as Imprint): the drum stem's clear blocks (8-24 s, 72-104 s) put the record 55 ms after the tab grid; 0-16 s and 32-64 s narrowly prefer one beat later (+445, a near tie: alias or a shifted riff?).",
+ "head": {
+  "buses": {
+   "hall": {
+    "fx": [
+     "reverb kind=hall decay=2.2s mix=1 predelay=20ms"
+    ]
+   }
+  },
+  "ceiling": "-0.3dB",
+  "master": {
+   "fx": [
+    "glue threshold=-14dB ratio=2.5 attack=10ms release=120ms makeup=4dB",
+    {
+     "type": "width",
+     "width": 1.0,
+     "mono_below": 120,
+     "bands": [
+      [
+       400,
+       0.9
+      ],
+      [
+       3500,
+       1.2
+      ],
+      [
+       8000,
+       1.3
+      ]
+     ]
+    }
+   ]
+  }
+ },
+ "parts": [
+  {
+   "name": "gtr-l",
+   "track": 0,
+   "patch": "m8-obzen-l",
+   "bars": [
+    [
+     1,
+     52
+    ]
+   ],
+   "pan": -1,
+   "extra": {
+    "fx": [
+     {
+      "type": "delay",
+      "time": "6ms",
+      "feedback": 0,
+      "mix": 1
+     }
+    ]
+   }
+  },
+  {
+   "name": "gtr-r",
+   "track": 1,
+   "patch": "m8-obzen-r",
+   "bars": [
+    [
+     1,
+     52
+    ]
+   ],
+   "pan": 1,
+   "extra": {
+    "fx": [
+     {
+      "type": "delay",
+      "time": "6ms",
+      "feedback": 0,
+      "mix": 1
+     }
+    ]
+   }
+  },
+  {
+   "name": "lead",
+   "track": 2,
+   "patch": "m8-lead",
+   "bars": [
+    [
+     1,
+     52
+    ]
+   ],
+   "gain": "-2dB"
+  },
+  {
+   "name": "bass",
+   "track": 3,
+   "patch": "bass-fat",
+   "bars": [
+    [
+     1,
+     52
+    ]
+   ],
+   "gain": "-1.5dB"
+  },
+  {
+   "name": "drums",
+   "track": 4,
+   "patch": "obzen-kit",
+   "bars": [
+    [
+     1,
+     52
+    ]
+   ],
+   "gain": "1.5dB"
+  }
+ ]
+}
