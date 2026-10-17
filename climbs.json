@@ -463,15 +463,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/wuthering-heights.wav OUT.wav $(cat tools/wuthering-heights-sections.txt)",
       "best": {
-        "score": 54.762,
-        "version": "v4",
+        "score": 55.103,
+        "version": "v5",
         "commit": "see git log songs/wuthering-heights.yaml",
         "engine": "a931418"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 4,
+      "rounds": 5,
       "priority": 1.0,
       "genre": "art pop (piano, strings, high soprano; The Kick Inside, 1978; 2018 remaster)",
       "requested": {
@@ -480,8 +480,8 @@
         "note": null
       },
       "last": {
-        "at": "2026-10-17T02:38:10Z",
-        "who": "chirper-zero"
+        "at": "2026-10-17T02:47:59Z",
+        "who": "chirper-three"
       }
     },
     {
