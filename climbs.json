@@ -500,7 +500,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 5,
+      "rounds": 6,
       "priority": 1.0,
       "genre": "prog rock in 7/4 (Pink Floyd, The Dark Side of the Moon, 1973; 2011 remaster)",
       "requested": {
@@ -509,7 +509,7 @@
         "note": null
       },
       "last": {
-        "at": "2026-10-17T02:52:40Z",
+        "at": "2026-10-17T03:16:01Z",
         "who": "chirper-one"
       }
     },
