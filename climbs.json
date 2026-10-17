@@ -298,7 +298,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 48,
+      "rounds": 49,
       "priority": 1.0,
       "genre": "heavy metal (NWOBHM; Powerslave, 1984; 1998 remaster upload)",
       "requested": {
@@ -307,7 +307,7 @@
         "note": "requested as 'Two Minutes to Midnight'"
       },
       "last": {
-        "at": "2026-10-17T09:09:06Z",
+        "at": "2026-10-17T09:22:23Z",
         "who": "chirper-one"
       }
     },
