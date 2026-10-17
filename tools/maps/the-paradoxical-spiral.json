@@ -4549,6 +4549,29 @@
      }
     ]
    }
+  },
+  {
+   "name": "drone-e",
+   "raw": "tools/maps/the-paradoxical-spiral-drone.json#drone-e",
+   "patch": "juno-pad",
+   "gain": "-16dB",
+   "extra": {
+    "double": {
+     "patch": "juno-pad",
+     "seeds": [
+      11,
+      17
+     ]
+    },
+    "fx": [
+     {
+      "type": "filter",
+      "kind": "lp",
+      "cutoff": 7000,
+      "q": 0.7
+     }
+    ]
+   }
   }
  ],
  "bpm": {
