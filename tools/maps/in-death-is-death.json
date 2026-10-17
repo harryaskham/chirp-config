@@ -2,7 +2,7 @@
  "cache": "ref/songsterr-12447",
  "offset": 0.13,
  "name": "in-death-is-death",
- "about": "Meshuggah \u2014 In Death - Is Death (Catch Thirtythree, track 9, 2005). Songsterr 12447 (Nathan Nunez): 213 bars 4/4 at 126 BPM = 405.7 s, covering the record's heavy first ~430 s; the record (802.6 s) continues with a long ambient half (430-802 s) not in the tab. Bars 47-57 per-bar bpm from scorealign (the record holds ~23 s more there: likely a 12-bar repeat the tab writes once). The ambient half (428.6-802.6 s: no drums or vocals; guitar, 'piano' (clean guitar/keys), 'other' pads, low bass drones) from tools/stemsong.py at 126 BPM, cut at the tab's end (raw parts amb-*, tools/maps/in-death-is-death-amb.json). Offset +0.13 s: the drum stem put v1's heavy part 125-135 ms early in every block (conf 0.41-0.57).",
+ "about": "Meshuggah — In Death - Is Death (Catch Thirtythree, track 9, 2005). Songsterr 12447 (Nathan Nunez): 213 bars 4/4 at 126 BPM = 405.7 s, covering the record's heavy first ~430 s; the record (802.6 s) continues with a long ambient half (430-802 s) not in the tab. Bars 47-57 per-bar bpm from scorealign (the record holds ~23 s more there: likely a 12-bar repeat the tab writes once). The ambient half (428.6-802.6 s: no drums or vocals; guitar, 'piano' (clean guitar/keys), 'other' pads, low bass drones) from tools/stemsong.py at 126 BPM, cut at the tab's end (raw parts amb-*, tools/maps/in-death-is-death-amb.json). Offset +0.13 s: the drum stem put v1's heavy part 125-135 ms early in every block (conf 0.41-0.57).",
  "head": {
   "buses": {
    "hall": {
@@ -33,8 +33,102 @@
        1.3
       ]
      ]
+    },
+    {
+     "type": "gain",
+     "gain": {
+      "value": "0dB",
+      "mod": [
+       {
+        "src": "auto.slev",
+        "amount": 1
+       }
+      ]
+     }
     }
-   ]
+   ],
+   "auto": {
+    "slev": {
+     "points": [
+      [
+       "0s",
+       6.06
+      ],
+      [
+       "5.750s",
+       6.06
+      ],
+      [
+       "6.250s",
+       6.13
+      ],
+      [
+       "95.750s",
+       6.13
+      ],
+      [
+       "96.250s",
+       6.44
+      ],
+      [
+       "131.150s",
+       6.44
+      ],
+      [
+       "131.650s",
+       4.93
+      ],
+      [
+       "266.450s",
+       4.93
+      ],
+      [
+       "266.950s",
+       -1.3
+      ],
+      [
+       "319.750s",
+       -1.3
+      ],
+      [
+       "320.250s",
+       4.91
+      ],
+      [
+       "428.350s",
+       4.91
+      ],
+      [
+       "428.850s",
+       2.95
+      ],
+      [
+       "579.750s",
+       2.95
+      ],
+      [
+       "580.250s",
+       7.14
+      ],
+      [
+       "729.750s",
+       7.14
+      ],
+      [
+       "730.250s",
+       -4.13
+      ],
+      [
+       "796.350s",
+       -4.13
+      ],
+      [
+       "796.850s",
+       1.19
+      ]
+     ]
+    }
+   }
   }
  },
  "parts": [
