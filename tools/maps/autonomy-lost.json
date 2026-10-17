@@ -2773,6 +2773,18 @@
     "t3": "ft"
    },
    "gain": "1.5dB"
+  },
+  {
+   "name": "vox",
+   "score_file": "tools/maps/autonomy-lost-vox.txt",
+   "patch": "kidman synth.amp.a=40ms",
+   "gain": "-6dB",
+   "rest": [
+    [
+     1,
+     32
+    ]
+   ]
   }
  ],
  "bpm": {
