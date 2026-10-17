@@ -36,7 +36,8 @@ if [ "$out" = chirp ]; then
     || env -u PULSE_SERVER pactl -s "$local_pulse" load-module module-null-sink sink_name=chirp rate=48000 channels=2 sink_properties=device.description=chirp >/dev/null
 fi
 # `playlist`: the hill-climb playlist (climbs.json) — start its first enabled climb from its file, then hand the
-# groove to tools/playlist.py, which rotates the climbs and hot-swaps each owner's new best versions.
+# groove to tools/playlist.py, which keeps the session's native playlist equal to the enabled climbs (each
+# file re-read at its turn, so new best versions play; players show the whole rotation).
 if [ "${1:-}" = playlist ]; then
   first=$(cd "$here/.." && python3 -c 'import json; c=[x for x in json.load(open("climbs.json"))["climbs"] if x.get("enabled", True)]; print(c[0]["song"])')
   src_args=(-f "$here/../$first")
