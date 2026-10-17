@@ -210,7 +210,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 45,
+      "rounds": 46,
       "priority": 1.0,
       "genre": "art rock / math rock (The Smile, A Light for Attracting Attention, 2022)",
       "requested": {
@@ -219,8 +219,8 @@
         "note": null
       },
       "last": {
-        "at": "2026-10-17T05:37:48Z",
-        "who": "chirper-three"
+        "at": "2026-10-17T08:22:12Z",
+        "who": "chirper-two"
       }
     },
     {
