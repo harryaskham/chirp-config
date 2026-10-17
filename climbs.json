@@ -527,7 +527,7 @@
       "id": "dreams",
       "song": "songs/dreams.yaml",
       "reference": "Fleetwood Mac — Dreams",
-      "source": null,
+      "source": "https://www.youtube.com/watch?v=PgagPdVM7bk",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/dreams.wav OUT.wav $(cat tools/dreams-sections.txt)",
       "best": null,
@@ -536,7 +536,7 @@
       "status": "requested",
       "rounds": 0,
       "priority": 1.0,
-      "genre": null,
+      "genre": "soft rock (Fleetwood Mac, Rumours 1977): Stevie Nicks lead vocal, steady 4/4 drum loop, two-chord Fmaj7-G vamp, bass, Rhodes/organ, guitar swells",
       "requested": {
         "by": "harryaskham",
         "at": "2026-10-16T23:34:08Z",
