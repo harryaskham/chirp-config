@@ -12,6 +12,9 @@ it beats lag 0 by > 0.01, '-' where the part is silent. A lag of one SIGN across
 (flagged with the median lag): delay the track (prepend R/<lag>b) or start it earlier (trim its leading rest; map
 parts: make it a raw part). Sporadic lags are noise or content. Archangel: the stemsong vocal was 0.5-0.75 beat late
 in 7 of 8 sections; 0.5 beat earlier +0.14 held-out. Complements onsetlag.py --chroma (the MIX's lag per section).
+A flag is a CANDIDATE: render and score it. Parts that repeat at the lag alias — Dreams' rhodes-r (off-beat
+stabs over a two-chord vamp) leaned -1 beat and advancing it lost on every seed (chirper-zero). Self-similarity at
+the lag does not separate the cases (that rhodes 0.72 vs HBFS's true riff-synth 0.77), so no automatic veto.
 """
 import os
 import re
