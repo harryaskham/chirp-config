@@ -25,7 +25,11 @@
      "release": "150ms",
      "makeup": "2dB"
     },
-    "clip drive=3dB ceiling=-0.5dB"
+    {
+     "type": "gain",
+     "gain": "5dB"
+    },
+    "clip drive=6dB ceiling=2.7dB"
    ]
   }
  },
