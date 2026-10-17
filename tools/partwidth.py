@@ -66,8 +66,13 @@ def main():
             print(f"{p:14s} (render failed: unknown part?)")
             continue
         v, lv = side_mid(L.load(rendered[p]), t0, t1)
+        if lv < -80:
+            print(f"{p:14s} (silent in {t0:.0f}-{t1:.0f} s: pick a window where it plays)")
+            os.remove(rendered[p])
+            continue
         wide = float(np.mean(v[2:] - base[2:]))
-        flag = f"  <- {wide:+.1f} dB wider than the {'stem' if '--stem' in a else 'record'} above 400 Hz" if wide >= 5 else ""
+        flag = f"  <- {wide:+.1f} dB wider than the {'stem' if '--stem' in a else 'record'} above 400 Hz" if wide >= 5 else (
+            f"  <- {-wide:.1f} dB NARROWER (a mono lead vs a doubled/stacked record: try extra.double)" if wide <= -8 else "")
         print(f"{p:14s} " + " ".join(f"{x:10.1f}" for x in v) + f"   {lv:6.1f}{flag}")
         os.remove(rendered[p])
     os.rmdir(tmp)
