@@ -754,6 +754,17 @@
           "room": "-18dB"
         }
       }
+    },
+    {
+      "name": "vamp",
+      "score_file": "tools/maps/lebanese-blonde-vamp.txt",
+      "patch": "juno-pad",
+      "gain": "-16dB",
+      "extra": {
+        "sends": {
+          "room": "-12dB"
+        }
+      }
     }
   ]
 }
