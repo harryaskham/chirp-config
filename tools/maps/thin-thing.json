@@ -6267,6 +6267,9 @@
       "extra": {
         "sends": {
           "room": "-16dB"
+        },
+        "params": {
+          "air": -5
         }
       },
       "raw": "tools/maps/thin-thing-kit-rt.json#k"
@@ -6327,6 +6330,9 @@
       "extra": {
         "sends": {
           "room": "-16dB"
+        },
+        "params": {
+          "air": -5
         }
       }
     },
@@ -6338,6 +6344,9 @@
       "extra": {
         "sends": {
           "room": "-16dB"
+        },
+        "params": {
+          "air": -5
         }
       }
     },
@@ -6349,6 +6358,9 @@
       "extra": {
         "sends": {
           "room": "-16dB"
+        },
+        "params": {
+          "air": -5
         }
       }
     },
@@ -6360,6 +6372,9 @@
       "extra": {
         "sends": {
           "room": "-16dB"
+        },
+        "params": {
+          "air": -5
         }
       }
     }
