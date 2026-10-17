@@ -16,7 +16,10 @@ measured +10 ms (ours late), yet shifting earlier lost steadily (-5/-10/-15 ms: 
 Chroma mode compares 0.5 s chroma windows of ours, shifted up to ±--max s, with the record's, per section. A section
 that peaks cleanly off zero while the others peak at 0 has PARTS a beat off (Raining Blood v29: the rhythm guitar
 and bass one beat early in one section after a DTW/grid fit, the retimed drums right; +0.31..+0.38 on all seeds).
-Then solo-scan the parts against their stems and delay only that section's beats in those parts."""
+Then solo-scan the parts against their stems and delay only that section's beats in those parts. Only BEAT-sized
+lags mean anything: sustained notes keep their chroma after the onset, so 0.5 s chroma windows read a few tens of
+ms LATE everywhere (Money: +43..+85 ms in every section, yet shifting the map 40/60 ms earlier collapsed rhythm,
+67.46 -> 63.18/59.44). Fine offsets come from the onset mode, never the chroma mode."""
 import os
 import re
 import sys
