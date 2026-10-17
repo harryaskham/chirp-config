@@ -413,7 +413,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 6,
+      "rounds": 7,
       "priority": 1.0,
       "genre": "UK garage / future garage (Burial, Untrue, Hyperdub 2007): shuffled 2-step drums, pitched vocal chops, vinyl crackle, sub bass, pads",
       "requested": {
@@ -422,8 +422,8 @@
         "note": null
       },
       "last": {
-        "at": "2026-10-17T01:33:16Z",
-        "who": "chirper-three"
+        "at": "2026-10-17T01:49:37Z",
+        "who": "chirper-zero"
       }
     },
     {
