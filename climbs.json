@@ -172,15 +172,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/the-national-anthem.wav OUT.wav $(cat tools/the-national-anthem-sections.txt)",
       "best": {
-        "score": 63.238,
-        "version": "v26",
+        "score": 63.418,
+        "version": "v27",
         "commit": "see git log songs/the-national-anthem.yaml",
         "engine": "a931418"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 45,
+      "rounds": 46,
       "priority": 1.0,
       "genre": "art rock / free-jazz brass",
       "requested": {
@@ -189,7 +189,7 @@
         "note": null
       },
       "last": {
-        "at": "2026-10-17T07:09:19Z",
+        "at": "2026-10-17T07:28:56Z",
         "who": "chirper-three"
       }
     },

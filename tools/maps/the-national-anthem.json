@@ -9818,7 +9818,13 @@
    "extra": {
     "sends": {
      "room": "-12dB"
-    }
+    },
+    "fx": [
+     {
+      "type": "width",
+      "width": 0.0
+     }
+    ]
    },
    "raw": "tools/maps/the-national-anthem-vox.json#vox"
   },
