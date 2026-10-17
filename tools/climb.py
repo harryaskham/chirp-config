@@ -17,10 +17,11 @@ for any climbing agent's next pass, one climb to work on, weighted towards the f
   climb.py next [--as NAME] [--peek] [--json] [--seed N]
                                                     pick this pass's climb (and say what to do)
   climb.py done ID --note TEXT [--score S --version vN] [--next TEXT] [--engine SHA]
-               [--with FILE …] [--as NAME] [--force]
+               [--with FILE …] [--render WAV] [--as NAME] [--force]
                                                     record the round (kept or not), hand off; --with refuses
                                                     files changed after another agent started this climb
-                                                    (unless --force)
+                                                    (unless --force); --render records a kept album
+                                                    version's edges (tools/albumedges.py)
   climb.py status [--json]                          every climb: status, rounds, best, last round, odds
   climb.py log ID [-n N]                            a climb's rounds
   climb.py set ID KEY=VALUE …                       edit a climb's fields (source, genre, metric, …)
@@ -569,7 +570,9 @@ def brief(c, hist):
         lines.append(f"  album {meta['album']} track {meta.get('track', '?')} ({meta.get('artist', '')}, {meta.get('year', '')}) — "
                      f"the registry holds its meta (the playlist shows it); songs/{c['id']}.yaml carries `meta:` "
                      f"once the groove's pinned binary supports it (main 8c95a3d+; until then put it in `about:`); the album "
-                     f"plays end to end, so match the record's level at the song's first and last seconds")
+                     f"plays end to end, so match the record's level at the song's first and last seconds: "
+                     f"`tools/albumedges.py check {c['id']} RENDER.wav` shows your edges against the record and "
+                     f"both transitions; pass `--render RENDER.wav` to done so a kept version's edges are recorded")
     if c["status"] == "requested" and c.get("ref_file"):
         lines.append(f"  the reference is ready: ref/{c['id']}.wav (from {c['ref_file']}, one master for the album — "
                      f"do not replace it with a download)")
@@ -615,7 +618,7 @@ def cmd_next(a):
 
 
 def cmd_done(a):
-    pos = positional(a, ("--note", "--score", "--version", "--next", "--engine", "--as", "--with"))
+    pos = positional(a, ("--note", "--score", "--version", "--next", "--engine", "--as", "--with", "--render"))
     if not pos:
         die("done ID --note TEXT [--score S --version vN] [--next TEXT] [--with FILE …]")
     cid, note = pos[0], opt(a, "--note")
@@ -656,6 +659,17 @@ def cmd_done(a):
         os.makedirs(HIST, exist_ok=True)
         with open(os.path.join(HIST, f"{cid}.jsonl"), "a") as f:
             f.write(json.dumps({k: v for k, v in h.items() if v is not None}, ensure_ascii=False) + "\n")
+    edges = []
+    if kept and opt(a, "--render") and (c.get("meta") or {}).get("album"):
+        # An album song's kept render: its edges, for the album's transitions (albumedges.py score).
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("albumedges", os.path.join(HERE, "albumedges.py"))
+        ae = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(ae)
+        try:
+            edges = [ae.cmd_record([cid, opt(a, "--render")], version=version)]
+        except (OSError, SystemExit, ValueError) as e:
+            print(f"climb: edges not recorded ({e}); run tools/albumedges.py record {cid} RENDER.wav", file=sys.stderr)
     near = best.get("score")
     if score is not None and not kept and near is not None and abs(score - float(near)) <= 0.05:
         print(f"climb: {score} is within rounding of best {near}: if either was rounded, re-measure both "
@@ -663,7 +677,7 @@ def cmd_done(a):
               file=sys.stderr)
     # commit FIRST, then print the status line LAST: a failed commit must not end in a success line (agents read
     # `| tail -1`), and it exits non-zero
-    commit_or_die(["climbs.json", f"climbs/{cid}.jsonl", *multi(a, "--with")],
+    commit_or_die(["climbs.json", f"climbs/{cid}.jsonl", *multi(a, "--with"), *edges],
                   f"climbs: {cid} round {h['round']}{f' — {version} {score}' if kept else ''}: {note[:60]}", a)
     print(f"{cid} round {h['round']}{f' — best {score} ({version})' if kept else ''}"
           f"{' — joins the playlist' if c.get('enabled') and h['round'] == 1 else ''}")
