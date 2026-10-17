@@ -54,7 +54,9 @@ def run_one(climb, s, keep):
     data = rc.get("data") or {}
     dur = data.get("duration") or 0
     cpu = (data.get("timings") or {}).get("cpu_ms")
+    raw = None
     if s.get("refit"):
+        raw = score(climb, wav)
         # Let this side's master adapt before scoring: fit mastereq.py's residual EQ to the render and append
         # it to the song's master (canonical JSON renders like the YAML). Both sides get the same treatment, so
         # a library fix is not judged against masters fitted to the old library.
@@ -81,14 +83,25 @@ def run_one(climb, s, keep):
                            capture_output=True, text=True, env=s["env"], cwd=ROOT)
         if (first_json(p.stdout) or {}).get("status") != "success":
             return {"error": "refit render: " + p.stderr.strip()[-160:]}
+    got = score(climb, wav)
+    if not keep:
+        os.path.exists(wav) and os.remove(wav)
+    if isinstance(got, str):
+        return {"error": got}
+    # With --refit a side scores its better of raw and re-fitted: a refit that hurts a song (its own section
+    # masters beat a generic EQ) must not handicap both sides alike and hide a loss (Saturnine, tight-kit air).
+    best = max(got, raw) if isinstance(raw, float) else got
+    return {"score": best, "raw": raw, "refit": got if raw is not None else None,
+            "rt": (cpu / 1000 / dur) if cpu and dur else None}
+
+
+def score(climb, wav):
     metric = climb["metric"].replace("OUT.wav", wav)
     m = subprocess.run(metric, shell=True, capture_output=True, text=True, cwd=ROOT)
     doc = first_json(m.stdout) or {}
-    if not keep:
-        os.path.exists(wav) and os.remove(wav)
     if "total" not in doc:
-        return {"error": "metric: " + (m.stderr.strip() or m.stdout.strip())[-160:]}
-    return {"score": float(doc["total"]), "rt": (cpu / 1000 / dur) if cpu and dur else None}
+        return "metric: " + (m.stderr.strip() or m.stdout.strip())[-160:]
+    return float(doc["total"])
 
 
 def main():
@@ -103,8 +116,9 @@ def main():
     ap.add_argument("-j", type=int, default=3, help="songs in parallel (default 3)")
     ap.add_argument("--threads", type=int, default=1, help="render threads per song (default 1: clean CPU cost)")
     ap.add_argument("--refit", action="store_true",
-                    help="refit each side's master (mastereq.py residual EQ) before scoring: songs' masters were fitted "
-                         "to the current library, so a library fix is double-corrected without it (CPU: the first render)")
+                    help="also refit each side's master (mastereq.py residual EQ) and score each side at its better of raw and "
+                         "refit: masters fitted to the current library double-correct a library fix, but a generic refit "
+                         "can also hurt a song (CPU: the first render)")
     ap.add_argument("--keep", action="store_true", help="keep the renders")
     ap.add_argument("--json", action="store_true", help="print the rows as JSON")
     a = ap.parse_args()
@@ -131,8 +145,10 @@ def main():
                     print(f"{cid:30s} ERROR a: {ra.get('error', 'ok')} | b: {rb.get('error', 'ok')}", flush=True)
                 else:
                     rt = lambda r: f"{r['rt']:.2f}" if r.get("rt") is not None else "  - "
+                    rf = lambda r: (f" (raw {r['raw']:.2f}, refit {r['refit']:.2f})"
+                                    if isinstance(r.get("raw"), float) and isinstance(r.get("refit"), float) else "")
                     print(f"{cid:30s} {ra['score']:7.2f} -> {rb['score']:7.2f}  {rb['score'] - ra['score']:+6.2f}"
-                          f"   cpu x RT {rt(ra)} -> {rt(rb)}", flush=True)
+                          f"   cpu x RT {rt(ra)} -> {rt(rb)}{rf(ra)}{rf(rb)}", flush=True)
     ok = [r for r in rows if "score" in r["a"] and "score" in r["b"]]
     if a.json:
         print(json.dumps(rows, indent=1))

@@ -1,9 +1,12 @@
 about: "Tight, dry, close-miked kit for indie/jazz/trip-hop (Radiohead / The Smile / GoGo Penguin): a damped kick (short, no boom), a tight snare with less wire ring, crisp rimshot (rs) and sidestick (ss), close hats (h/hs/h1/h2/oh/hf), toms, rides; a touch of small room. Extends metal-kit's pieces."
 extends: metal-kit
+# Cymbal/hat air (dB above 8 kHz): 0 keeps the kit as recorded; indie/trip-hop records sit darker
+# (Thin Thing, Come Down, Archangel: -5), jazz rides want it (Saturnine: 0). Bind per track: params: {air: -5}.
+params: {air: 0}
 gain: 3dB
 fx:
   - {type: compressor, threshold: -20dB, ratio: 3, attack: 6ms, release: 90ms, makeup: 2dB}
-  - {type: eq, bands: ["hp cutoff=40", "peak cutoff=80 q=1 gain=-2dB", "peak cutoff=400 q=1 gain=-2dB", "peak cutoff=3.5k q=1 gain=3dB", "peak cutoff=5k q=1 gain=1.5dB", "highshelf cutoff=8k gain=-5dB"]}
+  - {type: eq, bands: ["hp cutoff=40", "peak cutoff=80 q=1 gain=-2dB", "peak cutoff=400 q=1 gain=-2dB", "peak cutoff=3.5k q=1 gain=3dB", "peak cutoff=5k q=1 gain=1.5dB", {kind: highshelf, cutoff: 8k, gain: {value: 0dB, mod: [{src: param.air, amount: 1}]}}]}
   - "reverb kind=room decay=0.45s mix=0.06 predelay=4ms"
 kit:
   k:
