@@ -231,7 +231,7 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/come-down.wav OUT.wav $(cat tools/come-down-sections.txt)",
       "best": {
-        "score": 65.923,
+        "score": 65.831,
         "version": "v23",
         "commit": "see git log songs/come-down.yaml",
         "engine": "a931418"
