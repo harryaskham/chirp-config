@@ -9,7 +9,9 @@ ours is EARLY. A consistent lag across windows (with near-zero correlation at la
 perceived onsets. Playing God v3 -> v4: ours 25 ms early everywhere; +25 ms on all tracks 49.81 -> 52.01 (rhythm
 up in every section, the intro 29 -> 82). Lags near ±half a beat in single windows are aliases — trust the median.
 Map-built songs shift with the map's `offset` instead (then regenerate with tab2song.py); try ±10 ms around the
-median, the rhythm term is sharp."""
+median, the rhythm term is sharp. On live/room recordings with smeared onsets the SIGN can mislead: Daydreaming
+measured +10 ms (ours late), yet shifting earlier lost steadily (-5/-10/-15 ms: 71.68/71.26/70.85) and later won
+(+10 ms 71.89 -> 72.03, +0.14 held-out). Always scan both directions in 5 ms steps."""
 import os
 import re
 import sys
