@@ -201,8 +201,8 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/thin-thing.wav OUT.wav $(cat tools/thin-thing-sections.txt)",
       "best": {
-        "score": 61.029,
-        "version": "v30",
+        "score": 61.415,
+        "version": "v31",
         "commit": "see git log songs/thin-thing.yaml",
         "engine": "a931418",
         "remeasured": "v30 on the current tree after the tight-kit air fix cde7d0c (61.485 was on the old kit)"
@@ -210,7 +210,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 43,
+      "rounds": 44,
       "priority": 1.0,
       "genre": "art rock / math rock (The Smile, A Light for Attracting Attention, 2022)",
       "requested": {
@@ -219,7 +219,7 @@
         "note": null
       },
       "last": {
-        "at": "2026-10-17T02:57:14Z",
+        "at": "2026-10-17T03:50:43Z",
         "who": "chirper-three"
       }
     },
