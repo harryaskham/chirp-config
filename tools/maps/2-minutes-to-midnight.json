@@ -10865,7 +10865,7 @@
   {
    "name": "vox",
    "patch": "maynard",
-   "gain": "-16dB",
+   "gain": "-20dB",
    "raw": "tools/maps/2-minutes-to-midnight-vox-rt.json#vox",
    "extra": {
     "sends": {
