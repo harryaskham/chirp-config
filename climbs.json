@@ -551,7 +551,7 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/dreams.wav OUT.wav $(cat tools/dreams-sections.txt)",
       "best": {
-        "score": 65.221,
+        "score": 65.383,
         "version": "v9",
         "commit": "see git log songs/dreams.yaml",
         "engine": "a931418"
