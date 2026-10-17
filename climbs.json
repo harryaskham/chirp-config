@@ -756,7 +756,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 6,
+      "rounds": 7,
       "priority": 1.0,
       "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
       "meta": {
@@ -773,8 +773,8 @@
       },
       "ref_file": "ref/albums/catch-thirtythree/05 re-inanimate.webm",
       "last": {
-        "at": "2026-10-17T15:26:27Z",
-        "who": "chirper-one"
+        "at": "2026-10-17T15:46:43Z",
+        "who": "chirper-two"
       }
     },
     {
