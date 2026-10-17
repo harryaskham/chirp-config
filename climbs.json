@@ -599,11 +599,16 @@
       "source": "https://www.youtube.com/watch?v=Lfr2n6yWqfM",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/autonomy-lost.wav OUT.wav $(cat tools/autonomy-lost-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 58.13,
+        "version": "v1",
+        "commit": "see git log songs/autonomy-lost.yaml",
+        "engine": "a931418"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
       "meta": {
@@ -618,7 +623,11 @@
         "at": "2026-10-17T11:08:17Z",
         "note": "album climb: the album plays end to end; adjacent tracks blend seamlessly, so match the record's level and tone at each song's edges"
       },
-      "ref_file": "ref/albums/catch-thirtythree/01 autonomy-lost.webm"
+      "ref_file": "ref/albums/catch-thirtythree/01 autonomy-lost.webm",
+      "last": {
+        "at": "2026-10-17T12:40:27Z",
+        "who": "chirper-three"
+      }
     },
     {
       "id": "imprint-of-the-un-saved",
