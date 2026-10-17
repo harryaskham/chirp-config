@@ -372,7 +372,7 @@
       "id": "lebanese-blonde",
       "song": "songs/lebanese-blonde.yaml",
       "reference": "Thievery Corporation — Lebanese Blonde",
-      "source": null,
+      "source": "https://www.youtube.com/watch?v=zNhHhtJ1reM",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/lebanese-blonde.wav OUT.wav $(cat tools/lebanese-blonde-sections.txt)",
       "best": null,
