@@ -392,7 +392,7 @@
       "id": "archangel",
       "song": "songs/archangel.yaml",
       "reference": "Burial — Archangel",
-      "source": null,
+      "source": "https://www.youtube.com/watch?v=8k_f2QK77ew",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/archangel.wav OUT.wav $(cat tools/archangel-sections.txt)",
       "best": null,
@@ -401,7 +401,7 @@
       "status": "requested",
       "rounds": 0,
       "priority": 1.0,
-      "genre": "UK garage / future garage (2-step, vocal chops, crackle)",
+      "genre": "UK garage / future garage (Burial, Untrue, Hyperdub 2007): shuffled 2-step drums, pitched vocal chops, vinyl crackle, sub bass, pads",
       "requested": {
         "by": "harry",
         "at": "2026-10-16T23:31:40Z",
