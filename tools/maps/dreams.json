@@ -5488,7 +5488,7 @@
      "plate": "-10dB"
     }
    },
-   "raw": "tools/maps/dreams-vox-vel.json#vox"
+   "raw": "tools/maps/dreams-vox-pitch.json#vox"
   },
   {
    "name": "bvox",
