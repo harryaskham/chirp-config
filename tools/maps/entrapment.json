@@ -732,7 +732,22 @@
           1,
           999
         ]
-      ]
+      ],
+      "extra": {
+        "fx": [
+          {
+            "type": "eq",
+            "bands": [
+              {
+                "kind": "highshelf",
+                "cutoff": 3000,
+                "q": 0.7,
+                "gain": "-9dB"
+              }
+            ]
+          }
+        ]
+      }
     }
   ],
   "bpm": {
