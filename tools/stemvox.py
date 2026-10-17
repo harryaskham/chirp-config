@@ -199,7 +199,7 @@ def main():
             if not m["skip"]:
                 t += m["beats"] * 60 / m["bpm"]
         d0 = 0.0
-    t_start = d0 + tl[b0 - 1]["start"]
+    t_start = max(0.0, d0 + tl[b0 - 1]["start"])   # a negative map offset would slice from the stem's END
     last = tl[b1 - 1]; t_end = d0 + last["start"] + last["beats"] * 60 / last["bpm"]
     x = L.load(stem).mean(1)[int(t_start * SR):int(t_end * SR)]
     env, hop = band_env(x)
