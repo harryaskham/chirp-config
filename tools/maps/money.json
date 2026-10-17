@@ -963,20 +963,14 @@
   "parts": [
     {
       "name": "vox",
-      "track": 0,
       "patch": "maynard",
-      "bars": [
-        [
-          1,
-          999
-        ]
-      ],
       "gain": "-4dB",
       "extra": {
         "sends": {
           "plate": "-12dB"
         }
-      }
+      },
+      "raw": "tools/maps/money-vox-vow.json#vox"
     },
     {
       "name": "solo3",

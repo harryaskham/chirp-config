@@ -492,15 +492,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/money.wav OUT.wav $(cat tools/money-sections.txt)",
       "best": {
-        "score": 61.361,
-        "version": "v3",
+        "score": 61.477,
+        "version": "v4",
         "commit": "see git log songs/money.yaml",
         "engine": "a931418"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 4,
+      "rounds": 5,
       "priority": 1.0,
       "genre": "prog rock in 7/4 (Pink Floyd, The Dark Side of the Moon, 1973; 2011 remaster)",
       "requested": {
@@ -509,7 +509,7 @@
         "note": null
       },
       "last": {
-        "at": "2026-10-17T01:18:59Z",
+        "at": "2026-10-17T02:52:40Z",
         "who": "chirper-one"
       }
     },
