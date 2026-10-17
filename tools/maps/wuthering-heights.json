@@ -6380,7 +6380,13 @@
       "extra": {
         "sends": {
           "hall": "-10dB"
-        }
+        },
+        "fx": [
+          {
+            "type": "width",
+            "width": 0.0
+          }
+        ]
       },
       "raw": "tools/maps/wuthering-heights-vox-vel.json#vox"
     },
