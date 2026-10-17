@@ -108,6 +108,14 @@ def sync(st):
     wanted = [key(e["label"], e["song"], e.get("passes")) for e in want]
     have = [key(x["label"], x["source"], x.get("passes")) for x in (pl or {}).get("entries", [])]
     if have and not pl.get("finished") and sum(h in wanted for h in have) * 2 < len(have):
+        # A once-through album on its last track: the rotation follows it (no replay, no gap);
+        # the next sync then sees the rotation and drops the album's entries.
+        cur = pl.get("current")
+        if not pl.get("repeat") and not pl.get("stop") and cur is not None and cur == len(have) - 1:
+            request({"op": "playlist-add", "entries": want})
+            request({"op": "playlist-mode", "repeat": True})
+            log("playlist: the album's last track is playing; the rotation follows it")
+            return
         if not YIELDED["on"]:
             log(f"playlist: another playlist is playing ({len(have)} entries, e.g. {have[0][0]}): "
                 "the rotation waits until it finishes or is cleared")
