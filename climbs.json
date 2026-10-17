@@ -441,7 +441,7 @@
       "id": "wuthering-heights",
       "song": "songs/wuthering-heights.yaml",
       "reference": "Kate Bush — Wuthering Heights",
-      "source": null,
+      "source": "https://www.youtube.com/watch?v=mj9RNQnRqPU",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/wuthering-heights.wav OUT.wav $(cat tools/wuthering-heights-sections.txt)",
       "best": null,
@@ -450,7 +450,7 @@
       "status": "requested",
       "rounds": 0,
       "priority": 1.0,
-      "genre": "art pop (piano, strings, high soprano)",
+      "genre": "art pop (piano, strings, high soprano; The Kick Inside, 1978; 2018 remaster)",
       "requested": {
         "by": "harry",
         "at": "2026-10-16T23:31:48Z",
