@@ -970,15 +970,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/personate-non-gratae.wav OUT.wav $(cat tools/personate-non-gratae-sections.txt)",
       "best": {
-        "score": 60.692,
-        "version": "v4",
+        "score": 61.662,
+        "version": "v5",
         "commit": "see git log songs/personate-non-gratae.yaml",
         "engine": "a931418"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 5,
+      "rounds": 6,
       "priority": 1.0,
       "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
       "meta": {
@@ -995,7 +995,7 @@
       },
       "ref_file": "ref/albums/catch-thirtythree/11 personate-non-gratae.webm",
       "last": {
-        "at": "2026-10-17T15:20:28Z",
+        "at": "2026-10-17T16:07:47Z",
         "who": "chirper-one"
       }
     },
