@@ -971,7 +971,7 @@
           999
         ]
       ],
-      "gain": "-10dB",
+      "gain": "-4dB",
       "extra": {
         "sends": {
           "plate": "-12dB"
