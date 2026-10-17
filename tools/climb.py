@@ -4,6 +4,16 @@ for any climbing agent's next pass, one climb to work on, weighted towards the f
 
   climb.py add "Artist - Title" ["Artist - Title" …] [--url URL] [--genre G] [--note TEXT]
                [--priority P] [--by NAME]           request songs (a YouTube URL alone works too)
+               [--ref FILE|HOST:/PATH] [--album A --track N --artist A --year Y]
+                                                    … with our own copy of a reference file (its tags fill
+                                                    the metadata), converted to ref/ID.wav
+  climb.py add-album SOURCE [--album A --artist A --year Y] [--genre G] [--note TEXT] [--priority P]
+                                                    request every track of an album, in order: SOURCE is a
+                                                    folder of audio files (local, or HOST:/PATH via scp) or a
+                                                    playlist URL; copies the originals to ref/albums/ALBUM/ and
+                                                    each reference to ref/ID.wav (one master for the album)
+  climb.py refs ALBUM SOURCE                        replace an album's references (matched by track number),
+                                                    e.g. with better files; notes each climb to re-measure
   climb.py next [--as NAME] [--peek] [--json] [--seed N]
                                                     pick this pass's climb (and say what to do)
   climb.py done ID --note TEXT [--score S --version vN] [--next TEXT] [--engine SHA]
@@ -33,6 +43,7 @@ import json
 import os
 import random
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -189,9 +200,6 @@ def git(*a):
 
 
 def commit(paths, msg, args):
-    if "--no-git" in args or not os.path.isdir(os.path.join(ROOT, ".git")):
-        return
-    rel = [os.path.relpath(os.path.join(ROOT, p) if not os.path.isabs(p) else p, ROOT) for p in paths]
     """True when the change is in a commit (pushed, or local to go with the next push); False when nothing was
     committed - callers must then fail loudly, or the registry edit can be lost to the next agent's sync."""
     if "--no-git" in args or not os.path.isdir(os.path.join(ROOT, ".git")):
@@ -279,8 +287,209 @@ def youtube_title(url):
     return None
 
 
+# ── references: our own copies (never rely on a share or a URL staying up) ──────────────────
+
+AUDIO = (".flac", ".mp3", ".m4a", ".ogg", ".opus", ".wav", ".aiff", ".aif", ".wma", ".webm")
+REMOTE = re.compile(r"^[\w.@-]+:/")
+
+
+def ytdlp(*args, timeout=900):
+    for cmd in (["yt-dlp"], ["uv", "tool", "run", "yt-dlp"]):
+        try:
+            return subprocess.run([*cmd, *args], capture_output=True, text=True, timeout=timeout, env={
+                **os.environ, "SSL_CERT_FILE": os.environ.get("SSL_CERT_FILE", "/etc/ssl/certs/ca-certificates.crt")})
+        except FileNotFoundError:
+            continue
+    die("yt-dlp not found (nor uv)")
+
+
+def tags(path):
+    """Artist, album, title, track and year from a file's tags (ffprobe), lower-cased keys."""
+    r = subprocess.run(["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", "-show_streams", path],
+                       capture_output=True, text=True)
+    try:
+        d = json.loads(r.stdout)
+    except ValueError:
+        return {}
+    t = {k.lower(): v for k, v in (d.get("format", {}).get("tags") or {}).items()}
+    for st in d.get("streams", []):  # ogg/opus keep tags on the stream
+        t.update({k.lower(): v for k, v in (st.get("tags") or {}).items() if k.lower() not in t})
+    track = re.match(r"\d+", str(t.get("track") or t.get("tracknumber") or ""))
+    year = re.match(r"\d{4}", str(t.get("date") or t.get("year") or t.get("originaldate") or ""))
+    return {k: v for k, v in {
+        "artist": t.get("album_artist") or t.get("albumartist") or t.get("artist"),
+        "album": t.get("album"), "title": t.get("title"),
+        "track": int(track.group()) if track else None, "year": int(year.group()) if year else None,
+    }.items() if v}
+
+
+def copy_in(src, dest_dir):
+    """Our own copy of SRC (a local path, or HOST:/PATH over scp) in DEST_DIR; returns its path."""
+    os.makedirs(dest_dir, exist_ok=True)
+    dest = os.path.join(dest_dir, os.path.basename(src.split(":", 1)[1] if REMOTE.match(src) else src))
+    if REMOTE.match(src):
+        r = subprocess.run(["scp", "-q", "-o", "BatchMode=yes", src, dest], capture_output=True, text=True)
+        if r.returncode:
+            die(f"scp {src}: {r.stderr.strip()[:200]}")
+    else:
+        shutil.copy2(src, dest)
+    return dest
+
+
+def to_wav(src, cid):
+    """ref/ID.wav at the metric's format (48 kHz, 16-bit stereo) from any audio file."""
+    out = os.path.join(ROOT, "ref", f"{cid}.wav")
+    os.makedirs(os.path.dirname(out), exist_ok=True)
+    r = subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", src, "-vn", "-ar", "48000", "-ac", "2", "-c:a", "pcm_s16le", out],
+                       capture_output=True, text=True)
+    if r.returncode:
+        die(f"ffmpeg {src}: {r.stderr.strip()[:200]}")
+    return out
+
+
+def album_files(source, album_dir, meta):
+    """[(path, tags)] for an album SOURCE, copied into ALBUM_DIR, in track order."""
+    out = []
+    if source.startswith("http"):
+        d = ytdlp("--flat-playlist", "-J", source, timeout=300)
+        try:
+            pl = json.loads(d.stdout)
+        except ValueError:
+            die(f"not a playlist: {source}: {d.stderr.strip()[-200:]}")
+        meta.setdefault("album", re.sub(r"^Album - ", "", pl.get("title") or "") or None)
+        for i, e in enumerate(pl.get("entries") or [], 1):
+            url = e.get("url") or f"https://www.youtube.com/watch?v={e['id']}"
+            base = os.path.join(album_dir, f"{i:02d} {slug(e.get('title') or e['id'])}")
+            r = ytdlp("-f", "bestaudio", "-o", base + ".%(ext)s", "--no-playlist", url)
+            got = [f for f in os.listdir(album_dir) if f.startswith(os.path.basename(base) + ".")]
+            if r.returncode or not got:
+                die(f"download {url}: {r.stderr.strip()[-200:]}")
+            t = tags(os.path.join(album_dir, got[0]))
+            t.setdefault("title", e.get("title"))
+            t.setdefault("artist", e.get("channel") or e.get("uploader"))
+            t["track"] = t.get("track") or i
+            t["source"] = url
+            out.append((os.path.join(album_dir, got[0]), t))
+        return out
+    if REMOTE.match(source):
+        host, path = source.split(":", 1)
+        r = subprocess.run(["ssh", "-o", "BatchMode=yes", host, "find", path, "-maxdepth", "2", "-type", "f"],
+                           capture_output=True, text=True)
+        if r.returncode:
+            die(f"ssh {host}: {r.stderr.strip()[:200]}")
+        files = [f"{host}:{f}" for f in r.stdout.splitlines() if f.lower().endswith(AUDIO)]
+    else:
+        files = [os.path.join(dp, f) for dp, _, fs in os.walk(source) for f in fs if f.lower().endswith(AUDIO)]
+    for f in sorted(files):
+        local = copy_in(f, album_dir)
+        t = tags(local)
+        t["source"] = f
+        out.append((local, t))
+    out.sort(key=lambda x: (x[1].get("track") or 999, x[0]))
+    for i, (_, t) in enumerate(out, 1):
+        t["track"] = t.get("track") or i
+    return out
+
+
+def new_climb(cid, ref, url, a, meta=None):
+    return {
+        "id": cid,
+        "song": f"songs/{cid}.yaml",
+        "reference": ref,
+        "source": url,
+        "owner": None,
+        "metric": f"python3 tools/likeness.py sections ref/{cid}.wav OUT.wav $(cat tools/{cid}-sections.txt)",
+        "best": None,
+        "passes": 1,
+        "enabled": False,
+        "status": "requested",
+        "rounds": 0,
+        "priority": float(opt(a, "--priority", 1)),
+        "genre": opt(a, "--genre"),
+        **({"meta": meta} if meta else {}),
+        "requested": {"by": opt(a, "--by") or os.environ.get("CLIMB_AS") or os.environ.get("USER", "?"),
+                      "at": now_iso(), "note": opt(a, "--note")},
+    }
+
+
+def cmd_add_album(a):
+    pos = positional(a, ("--album", "--artist", "--year", "--genre", "--note", "--priority", "--by"))
+    if not pos:
+        die("add-album SOURCE (a folder, HOST:/PATH or a playlist URL) [--album A --artist A --year Y] [--genre G]")
+    meta = {k: v for k, v in {"album": opt(a, "--album"), "artist": opt(a, "--artist"),
+                              "year": int(opt(a, "--year")) if opt(a, "--year") else None}.items() if v}
+    staging = os.path.join(ROOT, "ref", "albums", ".incoming-" + str(os.getpid()))
+    files = album_files(pos[0], staging, meta)
+    if not files:
+        die(f"no audio files in {pos[0]}")
+    album = meta.get("album") or files[0][1].get("album") or "album"
+    album_dir = os.path.join(ROOT, "ref", "albums", slug(album))
+    os.makedirs(album_dir, exist_ok=True)
+    added = []
+    with registry() as reg:
+        have = {c["id"] for c in reg["climbs"]}
+        for path, t in files:
+            m = {"artist": meta.get("artist") or t.get("artist"), "album": album, "title": t.get("title"),
+                 "track": t.get("track"), "year": meta.get("year") or t.get("year")}
+            m = {k: v for k, v in m.items() if v}
+            cid = slug(m["title"])
+            if cid in have:
+                cid = slug(f"{album} {m['title']}")
+            if cid in have:
+                print(f"climb: `{cid}` is already a climb — skipped", file=sys.stderr)
+                continue
+            kept = os.path.join(album_dir, os.path.basename(path))
+            os.replace(path, kept)
+            to_wav(kept, cid)
+            c = new_climb(cid, f"{m.get('artist', '')} — {m['title']}".strip(" —"), t.get("source"), a, m)
+            c["ref_file"] = os.path.relpath(kept, ROOT)
+            reg["climbs"].append(c)
+            have.add(cid)
+            added.append(cid)
+    shutil.rmtree(staging, ignore_errors=True)
+    for cid in added:
+        print(f"requested {cid}")
+    if added:
+        commit_or_die(["climbs.json"], f"climbs: request the album {album} ({len(added)} tracks)", a)
+
+
+def cmd_refs(a):
+    pos = positional(a, ())
+    if len(pos) < 2:
+        die("refs ALBUM SOURCE — replace the album's references, matched by track number")
+    album, source = pos[0], pos[1]
+    reg = load()
+    mine = {c["meta"]["track"]: c for c in reg["climbs"]
+            if (c.get("meta") or {}).get("album", "").lower() == album.lower() and c["meta"].get("track")}
+    if not mine:
+        die(f"no climbs on the album `{album}`")
+    album_dir = os.path.join(ROOT, "ref", "albums", slug(album))
+    files = album_files(source, album_dir, {"album": album})
+    done = []
+    for path, t in files:
+        c = mine.get(t.get("track"))
+        if not c:
+            print(f"climb: track {t.get('track')} ({os.path.basename(path)}) is not a climb — skipped", file=sys.stderr)
+            continue
+        to_wav(path, c["id"])
+        done.append((c["id"], os.path.relpath(path, ROOT), t.get("source")))
+    with registry() as reg:
+        for cid, rel, src in done:
+            c = find(reg, cid)
+            c["ref_file"], c["source"] = rel, src
+            h = {"round": c["rounds"], "at": now_iso(), "who": whoami(a), "steer": True,
+                 "note": f"reference replaced from {source}: re-measure the best version before comparing rounds"}
+            with open(os.path.join(HIST, f"{cid}.jsonl"), "a") as f:
+                f.write(json.dumps(h, ensure_ascii=False) + "\n")
+    print(f"{len(done)} references replaced: {', '.join(c for c, _, _ in done)}")
+    if done:
+        commit_or_die(["climbs.json", *[f"climbs/{c}.jsonl" for c, _, _ in done]],
+                      f"climbs: {album} references from {source}", a)
+
+
 def cmd_add(a):
-    titles = positional(a, ("--url", "--genre", "--note", "--priority", "--by"))
+    titles = positional(a, ("--url", "--genre", "--note", "--priority", "--by", "--ref", "--album", "--track",
+                            "--artist", "--year"))
     url = opt(a, "--url")
     if not titles and url:
         titles = [youtube_title(url) or url]
@@ -310,23 +519,23 @@ def cmd_add(a):
             if cid in have:
                 print(f"climb: `{cid}` is already a climb — skipped", file=sys.stderr)
                 continue
-            c = {
-                "id": cid,
-                "song": f"songs/{cid}.yaml",
-                "reference": f"{artist} — {title}" if artist else title,
-                "source": url_,
-                "owner": None,
-                "metric": f"python3 tools/likeness.py sections ref/{cid}.wav OUT.wav $(cat tools/{cid}-sections.txt)",
-                "best": None,
-                "passes": 1,
-                "enabled": False,
-                "status": "requested",
-                "rounds": 0,
-                "priority": float(opt(a, "--priority", 1)),
-                "genre": opt(a, "--genre"),
-                "requested": {"by": opt(a, "--by") or os.environ.get("CLIMB_AS") or os.environ.get("USER", "?"),
-                              "at": now_iso(), "note": opt(a, "--note")},
-            }
+            meta = {"artist": opt(a, "--artist") or artist or None, "title": title,
+                    "album": opt(a, "--album"), "track": int(opt(a, "--track")) if opt(a, "--track") else None,
+                    "year": int(opt(a, "--year")) if opt(a, "--year") else None}
+            ref_file = None
+            if opt(a, "--ref"):
+                # our own copy of the reference: tags fill what the flags leave out
+                kept = copy_in(opt(a, "--ref"), os.path.join(ROOT, "ref", "albums", slug(meta["album"] or "singles")))
+                for k, v in tags(kept).items():
+                    if not meta.get(k) or (k == "title" and not title):
+                        meta[k] = v
+                to_wav(kept, cid)
+                ref_file = os.path.relpath(kept, ROOT)
+            meta = {k: v for k, v in meta.items() if v}
+            c = new_climb(cid, f"{artist} — {title}" if artist else title, url_ or opt(a, "--ref"), a,
+                          meta if (meta.keys() - {"title", "artist"}) or ref_file else None)
+            if ref_file:
+                c["ref_file"] = ref_file
             reg["climbs"].append(c)
             have.add(cid)
             added.append(cid)
@@ -347,6 +556,14 @@ def brief(c, hist):
     req = c.get("requested") or {}
     if req.get("note"):
         lines.append(f"  request note: {req['note']}")
+    meta = c.get("meta") or {}
+    if meta.get("album"):
+        lines.append(f"  album {meta['album']} track {meta.get('track', '?')} ({meta.get('artist', '')}, {meta.get('year', '')}) — "
+                     f"songs/{c['id']}.yaml carries `meta:` (artist, album, title, track, year); the album plays "
+                     f"end to end, so match the record's level at the song's first and last seconds")
+    if c["status"] == "requested" and c.get("ref_file"):
+        lines.append(f"  the reference is ready: ref/{c['id']}.wav (from {c['ref_file']}, one master for the album — "
+                     f"do not replace it with a download)")
     if c["status"] == "requested":
         lines.append(
             f"  FIRST ROUND — set it up ({SKILL}, §Setup): find the official upload (record it: "
@@ -533,7 +750,7 @@ def main():
     if not a or a[0] in ("status", "ls", "list"):
         return cmd_status(a[1:] if a else [])
     cmd, rest = a[0], a[1:]
-    table = {"add": cmd_add, "request": cmd_add, "next": cmd_next, "done": cmd_done, "log": cmd_log, "set": cmd_set,
+    table = {"add": cmd_add, "request": cmd_add, "add-album": cmd_add_album, "refs": cmd_refs, "next": cmd_next, "done": cmd_done, "log": cmd_log, "set": cmd_set,
              "note": cmd_note,
              "pause": lambda r: cmd_state(r, "paused"), "resume": lambda r: cmd_state(r, "active"),
              "drop": lambda r: cmd_state(r, "dropped")}
