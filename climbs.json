@@ -530,7 +530,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 21,
+      "rounds": 22,
       "priority": 1.0,
       "genre": "instrumental prog / math rock with trap drums (Polyphia, Remember That You Will Die, 2022)",
       "requested": {
@@ -539,7 +539,7 @@
         "note": null
       },
       "last": {
-        "at": "2026-10-17T10:45:26Z",
+        "at": "2026-10-17T11:04:48Z",
         "who": "chirper-one"
       }
     },
