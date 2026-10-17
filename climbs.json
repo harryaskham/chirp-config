@@ -415,17 +415,26 @@
       "source": "https://www.youtube.com/watch?v=yydNF8tuVmU",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/harder-better-faster-stronger.wav OUT.wav $(cat tools/harder-better-faster-stronger-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 38.824,
+        "version": "v1",
+        "commit": "see git log songs/harder-better-faster-stronger.yaml",
+        "engine": "a931418"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "French house (talkbox/vocoder, filtered loops)",
       "requested": {
         "by": "harry",
         "at": "2026-10-16T23:31:44Z",
         "note": null
+      },
+      "last": {
+        "at": "2026-10-17T00:16:00Z",
+        "who": "chirper-zero"
       }
     },
     {

@@ -1,0 +1,155 @@
+{
+ "cache": "ref/songsterr-24122",
+ "name": "harder-better-faster-stronger",
+ "offset": 1.4395,
+ "bpm": {
+  "1": 123.454
+ },
+ "about": "Daft Punk - Harder, Better, Faster, Stronger (Discovery, 2001), official audio YouTube yydNF8tuVmU; Songsterr tab 24122. v1 setup: tab parts on chirp's French-house palette (909 kit, house-chord stabs, juno pad, moog-seq bass, a formant talk-box lead for the robot vocal). Tempo 123.454 BPM and bar 1 at 1.4395 s fitted to the drum stem's kicks (+-3 ms residual over the song): the tab notates the groove half a beat off the bar line (kick at beat 0.5); the record's first kick is at 5.56 s (bar 3).",
+ "head": {
+  "ceiling": "-0.3dB",
+  "buses": {
+   "room": {
+    "fx": [
+     "reverb kind=room decay=0.8s mix=1 predelay=6ms"
+    ]
+   }
+  },
+  "master": {
+   "fx": [
+    {
+     "type": "compressor",
+     "threshold": "-14dB",
+     "ratio": 2,
+     "attack": "10ms",
+     "release": "120ms",
+     "makeup": "2dB"
+    },
+    "clip drive=3dB ceiling=-0.5dB"
+   ]
+  }
+ },
+ "parts": [
+  {
+   "name": "drone",
+   "track": 2,
+   "patch": "juno-pad",
+   "bars": [
+    [
+     1,
+     114
+    ]
+   ],
+   "gain": "-14dB"
+  },
+  {
+   "name": "pad",
+   "track": 0,
+   "patch": "house-chord",
+   "bars": [
+    [
+     1,
+     114
+    ]
+   ],
+   "gain": "-10dB",
+   "extra": {
+    "sends": {
+     "room": "-16dB"
+    }
+   }
+  },
+  {
+   "name": "riff-synth",
+   "track": 1,
+   "patch": "house-chord",
+   "bars": [
+    [
+     1,
+     114
+    ]
+   ],
+   "gain": "-8dB",
+   "pan": -0.2
+  },
+  {
+   "name": "riff-gtr",
+   "track": 4,
+   "patch": "cutting-guitar",
+   "bars": [
+    [
+     1,
+     114
+    ]
+   ],
+   "gain": "-8dB",
+   "pan": 0.2
+  },
+  {
+   "name": "vocoder",
+   "track": 3,
+   "patch": "moog-seq",
+   "bars": [
+    [
+     1,
+     114
+    ]
+   ],
+   "gain": "-6dB",
+   "extra": {
+    "fx": [
+     "formant vowel=2 q=8"
+    ],
+    "sends": {
+     "room": "-14dB"
+    }
+   }
+  },
+  {
+   "name": "bass",
+   "track": 5,
+   "patch": "moog-seq",
+   "bars": [
+    [
+     1,
+     114
+    ]
+   ],
+   "gain": "-4dB"
+  },
+  {
+   "name": "kit",
+   "track": 6,
+   "patch": "909",
+   "bars": [
+    [
+     1,
+     114
+    ]
+   ],
+   "gain": "0dB",
+   "remap": {
+    "h1": "h",
+    "hf": "h"
+   },
+   "drop": [
+    "ft"
+   ]
+  },
+  {
+   "name": "hats",
+   "track": 7,
+   "patch": "909",
+   "bars": [
+    [
+     1,
+     114
+    ]
+   ],
+   "gain": "-6dB",
+   "remap": {
+    "hf": "h"
+   }
+  }
+ ]
+}
