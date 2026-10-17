@@ -5485,14 +5485,48 @@
    "gain": "-2dB",
    "extra": {
     "sends": {
-     "plate": "-10dB"
+     "plate": {
+      "value": "-10dB",
+      "mod": [
+       {
+        "src": "auto.ps5",
+        "amount": 1
+       }
+      ]
+     }
     },
     "fx": [
      {
       "type": "width",
       "width": 0.4
      }
-    ]
+    ],
+    "auto": {
+     "ps5": {
+      "points": [
+       [
+        "0s",
+        0
+       ],
+       [
+        "104.10s",
+        0
+       ],
+       [
+        "104.40s",
+        -8
+       ],
+       [
+        "120.60s",
+        -8
+       ],
+       [
+        "120.90s",
+        0
+       ]
+      ]
+     }
+    }
    },
    "raw": "tools/maps/dreams-vox-pitch.json#vox"
   },
