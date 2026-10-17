@@ -12,6 +12,11 @@ for any climbing agent's next pass, one climb to work on, weighted towards the f
                                                     folder of audio files (local, or HOST:/PATH via scp) or a
                                                     playlist URL; copies the originals to ref/albums/ALBUM/ and
                                                     each reference to ref/ID.wav (one master for the album)
+  climb.py art ALBUM [--url URL | --file F] [--px 32] [--colors 16]
+                                                    the album's cover as pixel art (art/SLUG.json: a
+                                                    palette and pixel indices; players draw it as blocks,
+                                                    as a TUI would): from the iTunes search unless given;
+                                                    the original is kept in ref/albums/SLUG/
   climb.py refs ALBUM SOURCE                        replace an album's references (matched by track number),
                                                     e.g. with better files; notes each climb to re-measure
   climb.py next [--as NAME] [--peek] [--json] [--seed N]
@@ -507,6 +512,70 @@ def cmd_refs(a):
                       f"climbs: {album} references from {source}", a)
 
 
+def itunes_art(artist, album, year=None):
+    """The album's cover URL (600 px) from the iTunes search (the edition from `year` first)."""
+    import urllib.parse
+    import urllib.request
+    q = urllib.parse.urlencode({"term": f"{artist} {album}".strip(), "entity": "album", "limit": 10})
+    with urllib.request.urlopen(f"https://itunes.apple.com/search?{q}", timeout=30) as r:
+        res = json.load(r).get("results", [])
+    norm = lambda x: re.sub(r"[^a-z0-9]", "", (x or "").lower())
+    want = norm(album)
+    hits = [x for x in res if norm(x.get("collectionName")).startswith(want) or want.startswith(norm(x.get("collectionName")))]
+    if not hits:
+        die(f"no cover for {artist} — {album} in the iTunes search (give --url or --file)")
+    hits.sort(key=lambda x: (str(year or "") != str(x.get("releaseDate", ""))[:4], len(x.get("collectionName", ""))))
+    return hits[0]["artworkUrl100"].replace("100x100bb", "600x600bb")
+
+
+def pixel_art(path, px, colors):
+    """(palette as #rrggbb, pixel indices) of an image scaled to px×px with at most `colors`."""
+    vf = (f"scale={px}:{px}:flags=area,split[a][b];[a]palettegen=max_colors={colors}:stats_mode=full[p];"
+          f"[b][p]paletteuse=dither=none")
+    r = subprocess.run(["ffmpeg", "-v", "error", "-i", path, "-filter_complex", vf, "-frames:v", "1",
+                        "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], capture_output=True)
+    if r.returncode or len(r.stdout) != px * px * 3:
+        die(f"ffmpeg {path}: {r.stderr.decode(errors='replace').strip()[:200]}")
+    rgb = [r.stdout[i:i + 3] for i in range(0, len(r.stdout), 3)]
+    pal = sorted(set(rgb), key=lambda c: 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2])
+    index = {c: i for i, c in enumerate(pal)}
+    width = 1 if len(pal) <= 16 else 2
+    pixels = "".join(format(index[c], "x").rjust(width, "0") for c in rgb)
+    return ["#" + c.hex() for c in pal], pixels
+
+
+def cmd_art(a):
+    pos = positional(a, ("--url", "--file", "--px", "--colors", "--artist"))
+    if not pos:
+        die("art ALBUM [--url URL | --file F] [--px 32] [--colors 16]")
+    album = pos[0]
+    reg = load()
+    mine = [c for c in reg["climbs"] if ((c.get("meta") or {}).get("album") or "").lower() == album.lower()]
+    meta = (mine[0].get("meta") or {}) if mine else {}
+    album = meta.get("album") or album
+    artist = opt(a, "--artist") or meta.get("artist") or ""
+    keep = os.path.join(ROOT, "ref", "albums", slug(album))
+    os.makedirs(keep, exist_ok=True)
+    if opt(a, "--file"):
+        cover = copy_in(opt(a, "--file"), keep)
+    else:
+        import urllib.request
+        url = opt(a, "--url") or itunes_art(artist, album, meta.get("year"))
+        cover = os.path.join(keep, "cover" + os.path.splitext(url.split("?")[0])[1] or ".jpg")
+        with urllib.request.urlopen(url, timeout=60) as r, open(cover, "wb") as f:
+            f.write(r.read())
+    px, colors = int(opt(a, "--px", 32)), int(opt(a, "--colors", 16))
+    palette, pixels = pixel_art(cover, px, colors)
+    out = os.path.join("art", f"{slug(album)}.json")
+    os.makedirs(os.path.join(ROOT, "art"), exist_ok=True)
+    with open(os.path.join(ROOT, out), "w") as f:
+        json.dump({"album": album, "artist": artist, "year": meta.get("year"), "w": px, "h": px,
+                   "palette": palette, "pixels": pixels}, f)
+        f.write("\n")
+    print(f"{out}: {px}×{px}, {len(palette)} colours (from {os.path.relpath(cover, ROOT)})")
+    commit_or_die([out], f"art: {album} ({px}×{px}, {len(palette)} colours)", a)
+
+
 def cmd_add(a):
     titles = positional(a, ("--url", "--genre", "--note", "--priority", "--by", "--ref", "--album", "--track",
                             "--artist", "--year"))
@@ -831,7 +900,7 @@ def main():
     if not a or a[0] in ("status", "ls", "list"):
         return cmd_status(a[1:] if a else [])
     cmd, rest = a[0], a[1:]
-    table = {"add": cmd_add, "request": cmd_add, "add-album": cmd_add_album, "refs": cmd_refs, "next": cmd_next, "done": cmd_done, "log": cmd_log, "set": cmd_set,
+    table = {"add": cmd_add, "request": cmd_add, "add-album": cmd_add_album, "refs": cmd_refs, "art": cmd_art, "next": cmd_next, "done": cmd_done, "log": cmd_log, "set": cmd_set,
              "note": cmd_note,
              "pause": lambda r: cmd_state(r, "paused"), "resume": lambda r: cmd_state(r, "active"),
              "drop": lambda r: cmd_state(r, "dropped"), "focus": cmd_focus, "tui": cmd_tui}
