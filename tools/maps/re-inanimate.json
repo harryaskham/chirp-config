@@ -1,0 +1,155 @@
+{
+  "cache": "ref/songsterr-73446",
+  "offset": 0.315,
+  "name": "re-inanimate",
+  "about": "Hill-climb reproduction of Meshuggah - Re-Inanimate (Catch Thirtythree, 2005, track 5; meta: artist Meshuggah, album Catch Thirtythree, title Re-Inanimate, track 5, year 2005 \u2014 bd-03819b for a meta: block). Reference: the album master's track 5. From Songsterr tab 73446 (all 5 tracks).",
+  "meters": true,
+  "head": {
+    "buses": {
+      "hall": {
+        "fx": [
+          "reverb kind=hall decay=2.6s mix=1 predelay=20ms mono_below=100hz"
+        ]
+      }
+    },
+    "ceiling": "-0.3dB",
+    "master": {
+      "fx": [
+        "glue threshold=-14dB ratio=2.5 attack=10ms release=120ms makeup=4dB",
+        "gain gain=3dB",
+        "clip drive=3dB ceiling=2.7dB"
+      ]
+    }
+  },
+  "parts": [
+    {
+      "name": "gtr-l",
+      "track": 0,
+      "patch": "m8-obzen-l",
+      "pan": -1,
+      "bars": [
+        [
+          1,
+          999
+        ]
+      ],
+      "extra": {
+        "fx": [
+          {
+            "type": "delay",
+            "time": "6ms",
+            "feedback": 0,
+            "mix": 1
+          }
+        ]
+      }
+    },
+    {
+      "name": "gtr-r",
+      "track": 1,
+      "patch": "m8-obzen-r",
+      "pan": 1,
+      "bars": [
+        [
+          1,
+          999
+        ]
+      ],
+      "extra": {
+        "fx": [
+          {
+            "type": "delay",
+            "time": "6ms",
+            "feedback": 0,
+            "mix": 1
+          }
+        ]
+      }
+    },
+    {
+      "name": "lead",
+      "track": 2,
+      "patch": "m8-lead",
+      "gain": "-3dB",
+      "bars": [
+        [
+          1,
+          999
+        ]
+      ],
+      "extra": {
+        "sends": {
+          "hall": "-12dB"
+        }
+      }
+    },
+    {
+      "name": "bass",
+      "track": 3,
+      "patch": "bass-fat",
+      "gain": "-1.5dB",
+      "bars": [
+        [
+          1,
+          999
+        ]
+      ],
+      "extra": {
+        "fx": [
+          {
+            "type": "delay",
+            "time": "6ms",
+            "feedback": 0,
+            "mix": 1
+          }
+        ]
+      }
+    },
+    {
+      "name": "drums",
+      "track": 4,
+      "patch": "obzen-kit",
+      "gain": "1.5dB",
+      "bars": [
+        [
+          1,
+          999
+        ]
+      ]
+    }
+  ],
+  "bpm": {
+    "1": 126.9841,
+    "2": 126.9841,
+    "3": 118.91,
+    "4": 118.91,
+    "5": 121.1102,
+    "6": 121.1102,
+    "7": 119.0575,
+    "8": 119.0575,
+    "9": 119.8502,
+    "10": 119.8502,
+    "11": 120.6536,
+    "12": 120.6536,
+    "13": 119.403,
+    "14": 119.403,
+    "15": 121.3654,
+    "16": 121.3654,
+    "17": 118.3238,
+    "18": 118.3238,
+    "19": 121.2632,
+    "20": 121.2632,
+    "21": 119.6511,
+    "22": 119.6511,
+    "23": 120.0,
+    "24": 120.0,
+    "25": 119.7007,
+    "26": 119.7007,
+    "27": 120.5021,
+    "28": 120.5021,
+    "29": 119.2794,
+    "30": 119.2794,
+    "31": 120.0,
+    "32": 120.0
+  }
+}
