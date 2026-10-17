@@ -877,6 +877,28 @@
           999
         ]
       ]
+    },
+    {
+      "name": "drums-ghost",
+      "raw": "tools/maps/dreams-ghost.json#hats",
+      "patch": "tight-kit",
+      "gain": "-12dB",
+      "extra": {
+        "sends": {
+          "room": "-14dB"
+        }
+      }
+    },
+    {
+      "name": "drums-hats",
+      "raw": "tools/maps/dreams-hats.json#hats",
+      "patch": "tight-kit",
+      "gain": "0dB",
+      "extra": {
+        "sends": {
+          "room": "-14dB"
+        }
+      }
     }
   ],
   "skip": [
