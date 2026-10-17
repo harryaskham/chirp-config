@@ -710,7 +710,6 @@
   "parts": [
     {
       "name": "vox",
-      "track": 0,
       "patch": "maynard synth.layers.0.tract=0.86",
       "gain": "-2dB",
       "extra": {
@@ -718,12 +717,7 @@
           "plate": "-10dB"
         }
       },
-      "bars": [
-        [
-          1,
-          999
-        ]
-      ]
+      "raw": "tools/maps/dreams-vox-vel.json#vox"
     },
     {
       "name": "bvox",
