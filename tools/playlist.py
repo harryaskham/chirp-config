@@ -81,6 +81,8 @@ def label_of(c):
 
 def entry(c):
     e = {"song": path(c), "label": c["id"]}
+    if c.get("meta"):
+        e["meta"] = c["meta"]  # the registry's; a song's own meta wins (engines from main 8c95a3d)
     if c.get("passes", 1) != 1:
         e["passes"] = c["passes"]
     return e

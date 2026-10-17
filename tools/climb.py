@@ -26,6 +26,11 @@ for any climbing agent's next pass, one climb to work on, weighted towards the f
   climb.py set ID KEY=VALUE …                       edit a climb's fields (source, genre, metric, …)
   climb.py note ID TEXT [--next TEXT]               steer: a note in its history (not a round; `next` shows it)
   climb.py pause|resume|drop ID [--note TEXT]       take a climb out of (or back into) the queue
+  climb.py focus ALBUM | --off                      climb only that album: pause every other queued climb
+                                                    (marked, so --off resumes exactly those); the playlist
+                                                    is unchanged
+Out of band: `add --oob` (or `set ID oob=true`) makes a test climb that `next` never picks and that never
+joins the playlist; agents can still climb it (and any paused climb) directly when asked.
 
 Sampling: weight = priority / (1 + rounds), halved for a climb another agent started in the last
 30 min (spread, not a lock: two agents on one song is fine), ×0.3 for the climb you did last and
@@ -251,7 +256,7 @@ def weights(reg, me):
     last = mine[-1] if mine else None
     out = {}
     for c in reg["climbs"]:
-        if c["status"] not in QUEUED:
+        if c["status"] not in QUEUED or c.get("oob"):
             continue
         if c["rounds"] == 0 and any(s["id"] == c["id"] and s.get("who") != me and t - s.get("t", 0) < SETUP_HOLD
                                     for s in st):
@@ -534,6 +539,8 @@ def cmd_add(a):
             meta = {k: v for k, v in meta.items() if v}
             c = new_climb(cid, f"{artist} — {title}" if artist else title, url_ or opt(a, "--ref"), a,
                           meta if (meta.keys() - {"title", "artist"}) or ref_file else None)
+            if "--oob" in a:
+                c["oob"] = True
             if ref_file:
                 c["ref_file"] = ref_file
             reg["climbs"].append(c)
@@ -559,8 +566,9 @@ def brief(c, hist):
     meta = c.get("meta") or {}
     if meta.get("album"):
         lines.append(f"  album {meta['album']} track {meta.get('track', '?')} ({meta.get('artist', '')}, {meta.get('year', '')}) — "
-                     f"songs/{c['id']}.yaml carries `meta:` (artist, album, title, track, year); the album plays "
-                     f"end to end, so match the record's level at the song's first and last seconds")
+                     f"the registry holds its meta (the playlist shows it); songs/{c['id']}.yaml carries `meta:` "
+                     f"once the groove's pinned binary supports it (main 8c95a3d+; until then put it in `about:`); the album "
+                     f"plays end to end, so match the record's level at the song's first and last seconds")
     if c["status"] == "requested" and c.get("ref_file"):
         lines.append(f"  the reference is ready: ref/{c['id']}.wav (from {c['ref_file']}, one master for the album — "
                      f"do not replace it with a download)")
@@ -641,7 +649,8 @@ def cmd_done(a):
             if opt(a, "--engine"):
                 c["best"]["engine"] = opt(a, "--engine")
         if c["status"] == "requested" and os.path.exists(os.path.join(ROOT, c["song"])) and kept:
-            c["status"], c["enabled"] = "active", True
+            c["status"] = "active"
+            c["enabled"] = not c.get("oob")  # out-of-band climbs never join the playlist
         c["last"] = {"at": h["at"], "who": me}
         os.makedirs(HIST, exist_ok=True)
         with open(os.path.join(HIST, f"{cid}.jsonl"), "a") as f:
@@ -745,6 +754,44 @@ def cmd_state(a, status):
     commit_or_die(["climbs.json"], f"climbs: {pos[0]} {status}", a)
 
 
+def album_of(c):
+    return (c.get("meta") or {}).get("album")
+
+
+def cmd_focus(a):
+    pos = positional(a, ())
+    off = "--off" in a
+    if not pos and not off:
+        die("focus ALBUM | focus --off")
+    changed = []
+    with registry() as reg:
+        if off:
+            for c in reg["climbs"]:
+                if c.get("paused_by") == "focus":
+                    c["status"] = "active" if c["rounds"] else "requested"
+                    c.pop("paused_by", None)
+                    changed.append(c["id"])
+            reg.pop("focus", None)
+        else:
+            album = pos[0]
+            mine = [c for c in reg["climbs"] if (album_of(c) or "").lower() == album.lower()]
+            if not mine:
+                die(f"no climbs on the album `{album}` (albums: {', '.join(sorted({album_of(c) for c in reg['climbs'] if album_of(c)}))})")
+            for c in reg["climbs"]:
+                on = (album_of(c) or "").lower() == album.lower()
+                if on and c.get("paused_by") == "focus":
+                    c["status"] = "active" if c["rounds"] else "requested"
+                    c.pop("paused_by", None)
+                    changed.append(c["id"])
+                elif not on and c["status"] in QUEUED:
+                    c["status"], c["paused_by"] = "paused", "focus"
+                    changed.append(c["id"])
+            reg["focus"] = album_of(mine[0])
+    print(f"focus {'off' if off else reg.get('focus')}: {len(changed)} climbs changed")
+    if changed:
+        commit_or_die(["climbs.json"], f"climbs: focus {'off' if off else pos[0]} ({len(changed)} changed)", a)
+
+
 def main():
     a = sys.argv[1:]
     if not a or a[0] in ("status", "ls", "list"):
@@ -753,7 +800,7 @@ def main():
     table = {"add": cmd_add, "request": cmd_add, "add-album": cmd_add_album, "refs": cmd_refs, "next": cmd_next, "done": cmd_done, "log": cmd_log, "set": cmd_set,
              "note": cmd_note,
              "pause": lambda r: cmd_state(r, "paused"), "resume": lambda r: cmd_state(r, "active"),
-             "drop": lambda r: cmd_state(r, "dropped")}
+             "drop": lambda r: cmd_state(r, "dropped"), "focus": cmd_focus}
     if cmd in ("-h", "--help", "help"):
         print(__doc__)
         return
