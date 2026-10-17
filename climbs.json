@@ -784,15 +784,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/entrapment.wav OUT.wav $(cat tools/entrapment-sections.txt)",
       "best": {
-        "score": 54.194,
-        "version": "v3",
+        "score": 56.192,
+        "version": "v4",
         "commit": "see git log songs/entrapment.yaml",
         "engine": "a931418"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 4,
+      "rounds": 5,
       "priority": 1.0,
       "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
       "meta": {
@@ -809,7 +809,7 @@
       },
       "ref_file": "ref/albums/catch-thirtythree/06 entrapment.webm",
       "last": {
-        "at": "2026-10-17T13:08:09Z",
+        "at": "2026-10-17T13:37:35Z",
         "who": "chirper-two"
       }
     },
