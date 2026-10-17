@@ -711,15 +711,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/the-paradoxical-spiral.wav OUT.wav $(cat tools/the-paradoxical-spiral-sections.txt)",
       "best": {
-        "score": 54.114,
-        "version": "v3",
+        "score": 56.928,
+        "version": "v4",
         "commit": "see git log songs/the-paradoxical-spiral.yaml",
         "engine": "a931418"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 3,
+      "rounds": 4,
       "priority": 1.0,
       "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
       "meta": {
@@ -736,8 +736,8 @@
       },
       "ref_file": "ref/albums/catch-thirtythree/04 the-paradoxical-spiral.webm",
       "last": {
-        "at": "2026-10-17T12:50:19Z",
-        "who": "chirper-three"
+        "at": "2026-10-17T13:33:10Z",
+        "who": "chirper-two"
       }
     },
     {
