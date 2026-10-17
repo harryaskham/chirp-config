@@ -480,9 +480,14 @@ def cmd_set(a):
             if k in ("id", "rounds"):
                 die(f"`{k}` is kept by the tool")
             try:
-                c[k] = json.loads(v)
+                val = json.loads(v)
             except ValueError:
-                c[k] = v
+                val = v
+            if k == "best" and isinstance(val, (int, float)):
+                # `set ID best=61.03` (a re-measure, e.g. after a library change) updates only the score: the
+                # version/commit/engine record stays, so status/next/done keep working
+                val = {**(c.get("best") if isinstance(c.get("best"), dict) else {}), "score": val}
+            c[k] = val
     commit(["climbs.json"], f"climbs: {pos[0]} {' '.join(pos[1:])[:60]}", a)
 
 
