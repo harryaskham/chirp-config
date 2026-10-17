@@ -8213,6 +8213,27 @@
       "remap": {
         "h1": "h"
       }
+    },
+    {
+      "name": "till",
+      "track": 10,
+      "patch": "fx-till",
+      "bars": [
+        [
+          1,
+          999
+        ]
+      ],
+      "gain": "-18dB",
+      "remap": {
+        "rc": "coin",
+        "m81": "bell",
+        "m83": "jingle",
+        "m82": "rattle",
+        "m58": "drawer",
+        "m73": "tear",
+        "m74": "tearl"
+      }
     }
   ],
   "bpm": {

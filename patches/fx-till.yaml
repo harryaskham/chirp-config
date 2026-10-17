@@ -1,0 +1,83 @@
+about: >-
+  Cash-register tape-loop SFX kit (sampleless; for Pink Floyd's 'Money'): bell (the till's bright ching —
+  struck bell modes), coin (a small disc dropped on the counter: glock modes, every hit a little different),
+  jingle (coins shaken together), rattle (coins sliding in the tray: a short band-passed noise burst),
+  drawer (the cash drawer: a low wooden clunk and a mechanical rattle), tear (paper ripping: band-passed noise,
+  gated ragged) and tearl (a longer rip). Write coin bounces as rolls of shrinking intervals
+  (`coin/0.25b coin/0.18b coin/0.12b …`). Songsterr writes the loop as GM percussion: remap rc -> coin,
+  m81 -> bell, m83 -> jingle, m82 -> rattle, m58 -> drawer, m73 -> tear, m74 -> tearl.
+fx:
+- reverb kind=room decay=0.5s mix=0.12
+kit:
+  bell:
+    pitch: C7
+    pan: -0.7
+    patch:
+      synth:
+        layers:
+        - {type: modal, modes: bell, strike: 0.6, bright: 0.9, decay: 0.9s, damp: 0.25, vary: 0.3}
+        filters: ["hp cutoff=900", "peak cutoff=5k q=0.8 gain=3dB"]
+        amp: {a: 0.3ms, d: 1.2s, s: 0, r: 200ms}
+  coin:
+    pitch: G7
+    pan: 0.6
+    patch:
+      synth:
+        layers:
+        - {type: modal, modes: glock, strike: 0.8, bright: 1.0, decay: 0.28s, damp: 0.35, vary: 0.9}
+        - {type: noise, color: white, level: -22dB}
+        filters: ["hp cutoff=1.8k", "lp cutoff=13k"]
+        amp: {a: 0.2ms, d: 260ms, s: 0, r: 60ms}
+  jingle:
+    pitch: A7
+    pan: 0.75
+    patch:
+      synth:
+        layers:
+        - {type: modal, modes: cymbal, strike: 0.9, bright: 1.0, decay: 0.45s, damp: 0.3, vary: 0.8}
+        filters: ["hp cutoff=2.5k"]
+        amp: {a: 0.5ms, d: 420ms, s: 0, r: 80ms}
+  rattle:
+    gain: 8dB
+    pan: -0.5
+    patch:
+      synth:
+        layers:
+        - {type: noise, color: white}
+        filters: ["bp cutoff=4.5k q=0.9", "hp cutoff=1.5k"]
+        amp: {a: 2ms, d: 140ms, s: 0, r: 40ms, curve: 3}
+      fx: [{type: stutter, slice: 1/64, repeats: 3, chance: 0.6, seed: 11}]
+  drawer:
+    pitch: A2
+    pan: 0.3
+    patch:
+      synth:
+        layers:
+        - sine
+        - {type: noise, color: brown, level: -6dB}
+        - {type: noise, color: white, level: -18dB}
+        filters: ["lp cutoff=3.5k", "peak cutoff=180 q=1.0 gain=4dB"]
+        amp: {a: 1ms, d: 320ms, s: 0, r: 80ms, curve: 3}
+      fx: [{type: stutter, slice: 1/64, repeats: 4, chance: 0.5, seed: 3}]
+  tear:
+    gain: 8dB
+    pan: 0.65
+    patch:
+      synth:
+        layers:
+        - {type: noise, color: white}
+        - {type: noise, color: pink, level: -6dB}
+        filters: ["bp cutoff=2.8k q=0.6", "hp cutoff=600"]
+        amp: {a: 8ms, d: 220ms, s: 0, r: 60ms}
+      fx: [{type: stutter, slice: 1/64, repeats: 2, chance: 0.55, seed: 5}]
+  tearl:
+    gain: 8dB
+    pan: -0.75
+    patch:
+      synth:
+        layers:
+        - {type: noise, color: white}
+        - {type: noise, color: pink, level: -6dB}
+        filters: ["bp cutoff=2.4k q=0.6", "hp cutoff=500"]
+        amp: {a: 15ms, d: 520ms, s: 0, r: 80ms}
+      fx: [{type: stutter, slice: 1/64, repeats: 2, chance: 0.55, seed: 9}]
