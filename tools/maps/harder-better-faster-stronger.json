@@ -5142,29 +5142,29 @@
       "points": [
        [
         "0s",
-        0
+        0.0
        ],
        [
         "51.8s",
-        0
+        0.0
        ],
        [
         "52.1s",
-        1
+        1.0
        ],
        [
         "121.82s",
-        1
+        1.0
        ],
        [
         "122.12s",
-        0
+        0.0
        ]
       ]
      }
     },
     "fx": [
-     "formant vowel=auto.vw q=1 mix=auto.fm"
+     "formant vowel=auto.vw q=2 mix=auto.fm"
     ]
    }
   },
