@@ -472,7 +472,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 10,
+      "rounds": 11,
       "priority": 1.0,
       "genre": "art pop (piano, strings, high soprano; The Kick Inside, 1978; 2018 remaster)",
       "requested": {
@@ -481,8 +481,8 @@
         "note": null
       },
       "last": {
-        "at": "2026-10-17T04:56:32Z",
-        "who": "chirper-zero"
+        "at": "2026-10-17T05:34:57Z",
+        "who": "chirper-two"
       }
     },
     {
