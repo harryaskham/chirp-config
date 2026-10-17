@@ -714,9 +714,6 @@
       ],
       "gain": "-6dB",
       "extra": {
-        "fx": [
-          "formant vowel=auto.vw q=4"
-        ],
         "sends": {
           "room": "-14dB"
         },

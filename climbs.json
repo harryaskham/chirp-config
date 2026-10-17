@@ -434,15 +434,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/harder-better-faster-stronger.wav OUT.wav $(cat tools/harder-better-faster-stronger-sections.txt)",
       "best": {
-        "score": 42.972,
-        "version": "v3",
+        "score": 44.245,
+        "version": "v4",
         "commit": "see git log songs/harder-better-faster-stronger.yaml",
         "engine": "a931418"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 4,
+      "rounds": 5,
       "priority": 1.0,
       "genre": "French house (talkbox/vocoder, filtered loops)",
       "requested": {
@@ -451,8 +451,8 @@
         "note": null
       },
       "last": {
-        "at": "2026-10-17T01:20:04Z",
-        "who": "chirper-three"
+        "at": "2026-10-17T02:10:58Z",
+        "who": "chirper-one"
       }
     },
     {
