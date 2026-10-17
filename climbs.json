@@ -933,15 +933,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/shed.wav OUT.wav $(cat tools/shed-sections.txt)",
       "best": {
-        "score": 57.679,
-        "version": "v6",
+        "score": 58.384,
+        "version": "v7",
         "commit": "see git log songs/shed.yaml",
         "engine": "a931418"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 6,
+      "rounds": 7,
       "priority": 1.0,
       "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
       "meta": {
@@ -958,8 +958,8 @@
       },
       "ref_file": "ref/albums/catch-thirtythree/10 shed.webm",
       "last": {
-        "at": "2026-10-17T15:34:41Z",
-        "who": "chirper-zero"
+        "at": "2026-10-17T16:07:20Z",
+        "who": "chirper-three"
       }
     },
     {
