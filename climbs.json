@@ -522,15 +522,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/playing-god.wav OUT.wav $(cat tools/playing-god-sections.txt)",
       "best": {
-        "score": 54.122,
-        "version": "v5",
+        "score": 55.666,
+        "version": "v6",
         "commit": "see git log songs/playing-god.yaml",
         "engine": "a931418"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 5,
+      "rounds": 6,
       "priority": 1.0,
       "genre": "instrumental prog / math rock with trap drums (Polyphia, Remember That You Will Die, 2022)",
       "requested": {
@@ -539,8 +539,8 @@
         "note": null
       },
       "last": {
-        "at": "2026-10-17T03:45:18Z",
-        "who": "chirper-one"
+        "at": "2026-10-17T04:32:17Z",
+        "who": "chirper-zero"
       }
     },
     {
