@@ -5708,15 +5708,9 @@
   },
   {
    "name": "lead",
-   "track": 2,
    "patch": "m8-lead",
-   "bars": [
-    [
-     1,
-     199
-    ]
-   ],
-   "gain": "2dB"
+   "gain": "2dB",
+   "raw": "tools/maps/raining-blood-pitched.json#lead"
   },
   {
    "name": "solo",
