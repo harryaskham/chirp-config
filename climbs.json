@@ -1007,15 +1007,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/dehumanization.wav OUT.wav $(cat tools/dehumanization-sections.txt)",
       "best": {
-        "score": 51.039,
-        "version": "v2",
+        "score": 56.895,
+        "version": "v3",
         "commit": "see git log songs/dehumanization.yaml",
         "engine": "a931418"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 2,
+      "rounds": 3,
       "priority": 1.0,
       "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
       "meta": {
@@ -1032,8 +1032,8 @@
       },
       "ref_file": "ref/albums/catch-thirtythree/12 dehumanization.webm",
       "last": {
-        "at": "2026-10-17T12:51:17Z",
-        "who": "chirper-two"
+        "at": "2026-10-17T14:42:07Z",
+        "who": "chirper-zero"
       }
     },
     {
