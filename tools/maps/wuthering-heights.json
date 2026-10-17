@@ -6428,39 +6428,27 @@
     },
     {
       "name": "p-rh",
-      "track": 4,
       "patch": "piano",
-      "bars": [
-        [
-          1,
-          999
-        ]
-      ],
       "gain": "-2dB",
       "extra": {
         "sends": {
           "hall": "-14dB"
         }
       },
-      "pan": 0.1
+      "pan": 0.1,
+      "raw": "tools/maps/wuthering-heights-prh-rt.json#k"
     },
     {
       "name": "p-lh",
-      "track": 5,
       "patch": "piano",
-      "bars": [
-        [
-          1,
-          999
-        ]
-      ],
       "gain": "-2dB",
       "extra": {
         "sends": {
           "hall": "-14dB"
         }
       },
-      "pan": -0.1
+      "pan": -0.1,
+      "raw": "tools/maps/wuthering-heights-plh-rt.json#k"
     },
     {
       "name": "mel1",
