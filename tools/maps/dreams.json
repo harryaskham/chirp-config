@@ -5486,7 +5486,13 @@
    "extra": {
     "sends": {
      "plate": "-10dB"
-    }
+    },
+    "fx": [
+     {
+      "type": "width",
+      "width": 0.4
+     }
+    ]
    },
    "raw": "tools/maps/dreams-vox-pitch.json#vox"
   },
