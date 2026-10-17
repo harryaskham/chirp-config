@@ -10,6 +10,8 @@ committed by then; see the registry's _protocol). Players (`chirp player`, the w
 - The session validates every file at its turn; one that fails (e.g. it needs a newer engine than the
   groove runs) is skipped and its error shows beside the entry.
 - tools/playlist-solo (runtime, ignored) holding one climb id makes the playlist that climb alone.
+- A player playing an album (or any playlist mostly of other songs) is left alone until it finishes
+  (albums play once through) or is cleared; then the rotation comes back.
 - To show Harry something, take over for one pass: `chirp live queue FILE --id groove --now --label NAME`.
   Queued songs play before the playlist's next entry; the rotation carries on afterwards.
 - Underrun increases are logged with the host load (they track CPU storms on the host).
@@ -92,13 +94,29 @@ def key(label, source, passes):
     return (label, source, passes or 1)
 
 
+YIELDED = {"on": False}
+
+
 def sync(st):
-    """Make the session's playlist the enabled climbs (set it, or apply only what changed)."""
+    """Make the session's playlist the enabled climbs (set it, or apply only what changed). Someone
+    else's playlist (an album played from a player: mostly entries the rotation does not have) is left
+    alone until it finishes or is cleared."""
     want = [entry(c) for c in climbs()]
     if not want:
         return
     pl = st.get("playlist")
-    if not pl or not pl.get("entries"):
+    wanted = [key(e["label"], e["song"], e.get("passes")) for e in want]
+    have = [key(x["label"], x["source"], x.get("passes")) for x in (pl or {}).get("entries", [])]
+    if have and not pl.get("finished") and sum(h in wanted for h in have) * 2 < len(have):
+        if not YIELDED["on"]:
+            log(f"playlist: another playlist is playing ({len(have)} entries, e.g. {have[0][0]}): "
+                "the rotation waits until it finishes or is cleared")
+            YIELDED["on"] = True
+        return
+    if YIELDED["on"]:
+        log("playlist: the other playlist is done; back to the rotation")
+        YIELDED["on"] = False
+    if not pl or not pl.get("entries") or pl.get("finished"):
         # Start after what is playing or queued now (the old driver queued one at a time).
         now = [q.lstrip("▶ ") for q in (st.get("queue") or [])] or [str(st.get("label", "")).lstrip("▶ ")]
         ids = [e["label"] for e in want]
@@ -107,8 +125,6 @@ def sync(st):
         request({"op": "playlist-set", "entries": want, "start": start, "repeat": True, "shuffle": False})
         log(f"playlist set: {len(want)} climbs, starting with {want[start]['label']} (after the queue)")
         return
-    have = [key(x["label"], x["source"], x.get("passes")) for x in pl["entries"]]
-    wanted = [key(e["label"], e["song"], e.get("passes")) for e in want]
     if have == wanted:
         return
     for i in reversed(range(len(have))):
