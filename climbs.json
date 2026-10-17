@@ -405,14 +405,14 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/archangel.wav OUT.wav $(cat tools/archangel-sections.txt)",
       "best": {
-        "score": 49.014,
-        "version": "v1",
+        "score": 52.621,
+        "version": "v2",
         "commit": "see git log songs/archangel.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 1,
+      "rounds": 2,
       "priority": 1.0,
       "genre": "UK garage / future garage (Burial, Untrue, Hyperdub 2007): shuffled 2-step drums, pitched vocal chops, vinyl crackle, sub bass, pads",
       "requested": {
@@ -421,7 +421,7 @@
         "note": null
       },
       "last": {
-        "at": "2026-10-17T00:27:13Z",
+        "at": "2026-10-17T00:48:21Z",
         "who": "chirper-two"
       }
     },

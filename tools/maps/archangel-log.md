@@ -28,3 +28,4 @@ Build (no map; regenerate with):
 
 Engine: the vocal chops (Burial's pitched, chopped R&B fragments) can be built from existing fx (Pitch, Formant,
 Stutter, Tape, Crush) and resampling (chop-lofihop's method) — no engine gap filed yet.
+| v2 | widthfit.py 2 passes (per-section master band lanes wb0-wb6; the record far narrower below 400 Hz: ratios 0.2-0.5, wider above 3.5 kHz: 1.2-1.5) | 52.62 (held-out 52.66/52.60 vs 49.02/49.03) |
