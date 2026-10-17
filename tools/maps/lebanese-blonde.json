@@ -6100,6 +6100,31 @@
      "room": "-12dB"
     }
    }
+  },
+  {
+   "name": "vox",
+   "score_file": "tools/maps/lebanese-blonde-vox.txt",
+   "patch": "maynard synth.layers.0.tract=0.86",
+   "gain": "-18dB",
+   "rest": [
+    [
+     1,
+     22
+    ],
+    [
+     39,
+     48
+    ],
+    [
+     66,
+     92
+    ]
+   ],
+   "extra": {
+    "sends": {
+     "room": "-12dB"
+    }
+   }
   }
  ]
 }
