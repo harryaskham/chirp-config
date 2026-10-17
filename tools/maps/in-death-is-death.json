@@ -1,0 +1,263 @@
+{
+ "cache": "ref/songsterr-12447",
+ "offset": 0.13,
+ "name": "in-death-is-death",
+ "about": "Meshuggah \u2014 In Death - Is Death (Catch Thirtythree, track 9, 2005). Songsterr 12447 (Nathan Nunez): 213 bars 4/4 at 126 BPM = 405.7 s, covering the record's heavy first ~430 s; the record (802.6 s) continues with a long ambient half (430-802 s) not in the tab. Bars 47-57 per-bar bpm from scorealign (the record holds ~23 s more there: likely a 12-bar repeat the tab writes once). The ambient half (428.6-802.6 s: no drums or vocals; guitar, 'piano' (clean guitar/keys), 'other' pads, low bass drones) from tools/stemsong.py at 126 BPM, cut at the tab's end (raw parts amb-*, tools/maps/in-death-is-death-amb.json). Offset +0.13 s: the drum stem put v1's heavy part 125-135 ms early in every block (conf 0.41-0.57).",
+ "head": {
+  "buses": {
+   "hall": {
+    "fx": [
+     "reverb kind=hall decay=2.2s mix=1 predelay=20ms"
+    ]
+   }
+  },
+  "ceiling": "-0.3dB",
+  "master": {
+   "fx": [
+    "glue threshold=-14dB ratio=2.5 attack=10ms release=120ms makeup=4dB",
+    {
+     "type": "width",
+     "width": 1.0,
+     "mono_below": 120,
+     "bands": [
+      [
+       400,
+       0.9
+      ],
+      [
+       3500,
+       1.2
+      ],
+      [
+       8000,
+       1.3
+      ]
+     ]
+    }
+   ]
+  }
+ },
+ "parts": [
+  {
+   "name": "gtr-l",
+   "track": 1,
+   "patch": "m8-obzen-l",
+   "bars": [
+    [
+     1,
+     213
+    ]
+   ],
+   "pan": -1,
+   "extra": {
+    "fx": [
+     {
+      "type": "delay",
+      "time": "6ms",
+      "feedback": 0,
+      "mix": 1
+     }
+    ]
+   }
+  },
+  {
+   "name": "gtr-r",
+   "track": 2,
+   "patch": "m8-obzen-r",
+   "bars": [
+    [
+     1,
+     213
+    ]
+   ],
+   "pan": 1,
+   "extra": {
+    "fx": [
+     {
+      "type": "delay",
+      "time": "6ms",
+      "feedback": 0,
+      "mix": 1
+     }
+    ]
+   }
+  },
+  {
+   "name": "gtr-x",
+   "track": 0,
+   "patch": "m8-lead",
+   "bars": [
+    [
+     1,
+     213
+    ]
+   ],
+   "gain": "-4dB"
+  },
+  {
+   "name": "bass",
+   "track": 3,
+   "patch": "bass-fat",
+   "bars": [
+    [
+     1,
+     213
+    ]
+   ],
+   "gain": "-1.5dB"
+  },
+  {
+   "name": "drums",
+   "track": 4,
+   "patch": "obzen-kit",
+   "bars": [
+    [
+     1,
+     213
+    ]
+   ],
+   "gain": "1.5dB",
+   "drop": [
+    "m98"
+   ]
+  },
+  {
+   "name": "amb-gtr",
+   "patch": "m8-twang-chorus",
+   "gain": {
+    "value": "-4dB",
+    "mod": [
+     {
+      "src": "auto.gt",
+      "amount": 1
+     }
+    ]
+   },
+   "raw": "tools/maps/in-death-is-death-amb.json#amb-gtr",
+   "extra": {
+    "sends": {
+     "hall": "-10dB"
+    },
+    "auto": {
+     "gt": {
+      "points": [
+       [
+        "0s",
+        0
+       ],
+       [
+        "780s",
+        0
+       ],
+       [
+        "786s",
+        -11
+       ],
+       [
+        "802.6s",
+        -11
+       ]
+      ]
+     },
+     "hpt": {
+      "points": [
+       [
+        "0s",
+        0
+       ],
+       [
+        "780s",
+        0
+       ],
+       [
+        "786s",
+        5.129
+       ],
+       [
+        "802.6s",
+        5.129
+       ]
+      ]
+     }
+    },
+    "fx": [
+     {
+      "type": "filter",
+      "kind": "hp",
+      "cutoff": {
+       "value": 10,
+       "mod": [
+        {
+         "src": "auto.hpt",
+         "amount": 1
+        }
+       ]
+      },
+      "q": 0.7
+     },
+     {
+      "type": "filter",
+      "kind": "hp",
+      "cutoff": {
+       "value": 10,
+       "mod": [
+        {
+         "src": "auto.hpt",
+         "amount": 1
+        }
+       ]
+      },
+      "q": 0.7
+     }
+    ]
+   }
+  },
+  {
+   "name": "amb-clean",
+   "patch": "m8-clean",
+   "gain": "-6dB",
+   "raw": "tools/maps/in-death-is-death-amb.json#amb-clean",
+   "extra": {
+    "sends": {
+     "hall": "-10dB"
+    }
+   }
+  },
+  {
+   "name": "amb-pad",
+   "patch": "juno-pad",
+   "gain": "-6dB",
+   "raw": "tools/maps/in-death-is-death-amb.json#amb-pad",
+   "extra": {
+    "sends": {
+     "hall": "-10dB"
+    }
+   }
+  },
+  {
+   "name": "amb-bass",
+   "patch": "bass-fat",
+   "gain": "-6dB",
+   "raw": "tools/maps/in-death-is-death-amb.json#amb-bass",
+   "extra": {
+    "sends": {
+     "hall": "-10dB"
+    }
+   }
+  }
+ ],
+ "bpm": {
+  "47": 114.449,
+  "48": 34.798,
+  "49": 41.783,
+  "50": 114.449,
+  "51": 44.768,
+  "52": 83.77,
+  "53": 69.767,
+  "54": 78.508,
+  "55": 60.806,
+  "56": 74.234,
+  "57": 47.412,
+  "58": 126
+ }
+}
