@@ -550,15 +550,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/dreams.wav OUT.wav $(cat tools/dreams-sections.txt)",
       "best": {
-        "score": 64.064,
-        "version": "v7",
+        "score": 64.965,
+        "version": "v8",
         "commit": "see git log songs/dreams.yaml",
         "engine": "a931418"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 7,
+      "rounds": 8,
       "priority": 1.0,
       "genre": "soft rock (Fleetwood Mac, Rumours 1977): Stevie Nicks lead vocal, steady 4/4 drum loop, two-chord Fmaj7-G vamp, bass, Rhodes/organ, guitar swells",
       "requested": {
@@ -567,7 +567,7 @@
         "note": null
       },
       "last": {
-        "at": "2026-10-17T03:27:54Z",
+        "at": "2026-10-17T03:38:19Z",
         "who": "chirper-three"
       }
     }
