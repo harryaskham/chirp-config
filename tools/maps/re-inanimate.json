@@ -2,7 +2,7 @@
  "cache": "ref/songsterr-73446",
  "offset": 0.315,
  "name": "re-inanimate",
- "about": "Hill-climb reproduction of Meshuggah - Re-Inanimate (Catch Thirtythree, 2005, track 5; meta: artist Meshuggah, album Catch Thirtythree, title Re-Inanimate, track 5, year 2005 \u2014 bd-03819b for a meta: block). Reference: the album master's track 5. From Songsterr tab 73446 (all 5 tracks).",
+ "about": "Hill-climb reproduction of Meshuggah - Re-Inanimate (Catch Thirtythree, 2005, track 5; meta: artist Meshuggah, album Catch Thirtythree, title Re-Inanimate, track 5, year 2005 — bd-03819b for a meta: block). Reference: the album master's track 5. From Songsterr tab 73446 (all 5 tracks).",
  "meters": true,
  "head": {
   "buses": {
@@ -2381,6 +2381,18 @@
     ]
    ],
    "extra": {}
+  },
+  {
+   "name": "vox",
+   "score_file": "tools/maps/re-inanimate-vox.txt",
+   "patch": "kidman",
+   "gain": "0dB",
+   "rest": [
+    [
+     17,
+     32
+    ]
+   ]
   }
  ],
  "bpm": {
