@@ -3,7 +3,7 @@ extends: metal-kit
 gain: 3dB
 fx:
   - {type: compressor, threshold: -20dB, ratio: 3, attack: 6ms, release: 90ms, makeup: 2dB}
-  - {type: eq, bands: ["hp cutoff=40", "peak cutoff=80 q=1 gain=-2dB", "peak cutoff=400 q=1 gain=-2dB", "peak cutoff=5k q=1 gain=1.5dB"]}
+  - {type: eq, bands: ["hp cutoff=40", "peak cutoff=80 q=1 gain=-2dB", "peak cutoff=400 q=1 gain=-2dB", "peak cutoff=3.5k q=1 gain=3dB", "peak cutoff=5k q=1 gain=1.5dB", "highshelf cutoff=8k gain=-5dB"]}
   - "reverb kind=room decay=0.45s mix=0.06 predelay=4ms"
 kit:
   k:

@@ -11,6 +11,7 @@ costs a lot shows up too.
   crossclimb.py --b-bin /tmp/lt/chirp-new                 # an engine build vs the installed chirp
   crossclimb.py --b-cfg /tmp/cfg-copy                     # a patch change in a private config copy
   crossclimb.py --b-args "--volume 0dB" --songs bleed,pneuma -j 4
+  crossclimb.py --b-cfg /tmp/cfg-copy --refit            # library fixes: let each side's master adapt first
 
 Renders go to /tmp/crossclimb/<id>-{a,b}.wav (removed afterwards unless --keep).
 """
@@ -32,14 +33,14 @@ def first_json(text):
     return json.loads(text[i:]) if i >= 0 else None
 
 
-def side(name, binary, cfg, extra, threads):
+def side(name, binary, cfg, extra, threads, refit=False):
     env = dict(os.environ)
     # One render thread by default: idle rayon workers spin, which counts as CPU time and would
     # triple a song's apparent cost; songs run in parallel instead (-j).
     env["RAYON_NUM_THREADS"] = str(threads)
     if cfg:
         env["XDG_CONFIG_HOME"] = os.path.dirname(os.path.abspath(cfg)) if os.path.basename(cfg.rstrip("/")) == "chirp" else cfg
-    return {"name": name, "bin": binary, "env": env, "args": shlex.split(extra or "")}
+    return {"name": name, "bin": binary, "env": env, "args": shlex.split(extra or ""), "refit": refit}
 
 
 def run_one(climb, s, keep):
@@ -53,6 +54,33 @@ def run_one(climb, s, keep):
     data = rc.get("data") or {}
     dur = data.get("duration") or 0
     cpu = (data.get("timings") or {}).get("cpu_ms")
+    if s.get("refit"):
+        # Let this side's master adapt before scoring: fit mastereq.py's residual EQ to the render and append
+        # it to the song's master (canonical JSON renders like the YAML). Both sides get the same treatment, so
+        # a library fix is not judged against masters fitted to the old library.
+        ref = re.search(r"(ref/\S+\.wav)", climb["metric"])
+        eq = subprocess.run([sys.executable, os.path.join(ROOT, "tools/mastereq.py"), ref.group(1), wav, "--json"],
+                            capture_output=True, text=True, cwd=ROOT) if ref else None
+        plan = subprocess.run([s["bin"], "plan", "--json", "-f", song], capture_output=True, text=True,
+                              env=s["env"], cwd=ROOT)
+        try:
+            stage = json.loads(eq.stdout)["eq"]
+            canon = json.loads(plan.stdout)["data"]["canonical"]
+        except (AttributeError, ValueError, KeyError, TypeError):
+            return {"error": "refit: " + ((eq.stderr if eq else "no ref in metric") or plan.stderr)[-160:]}
+        m = canon.get("master")
+        if isinstance(m, list):
+            canon["master"] = m + [stage]
+        else:
+            m = m or {}
+            m["fx"] = list(m.get("fx") or []) + [stage]
+            canon["master"] = m
+        doc = f"{OUT}/{climb['id']}-{s['name']}-refit.json"
+        json.dump(canon, open(doc, "w"))
+        p = subprocess.run([s["bin"], "render", "-f", doc, *s["args"], "-o", wav, "--json"],
+                           capture_output=True, text=True, env=s["env"], cwd=ROOT)
+        if (first_json(p.stdout) or {}).get("status") != "success":
+            return {"error": "refit render: " + p.stderr.strip()[-160:]}
     metric = climb["metric"].replace("OUT.wav", wav)
     m = subprocess.run(metric, shell=True, capture_output=True, text=True, cwd=ROOT)
     doc = first_json(m.stdout) or {}
@@ -74,6 +102,9 @@ def main():
     ap.add_argument("--songs", help="comma-separated climb ids (default: every enabled climb)")
     ap.add_argument("-j", type=int, default=3, help="songs in parallel (default 3)")
     ap.add_argument("--threads", type=int, default=1, help="render threads per song (default 1: clean CPU cost)")
+    ap.add_argument("--refit", action="store_true",
+                    help="refit each side's master (mastereq.py residual EQ) before scoring: songs' masters were fitted "
+                         "to the current library, so a library fix is double-corrected without it (CPU: the first render)")
     ap.add_argument("--keep", action="store_true", help="keep the renders")
     ap.add_argument("--json", action="store_true", help="print the rows as JSON")
     a = ap.parse_args()
@@ -85,8 +116,8 @@ def main():
     if a.songs:
         want = set(a.songs.split(","))
         climbs = [c for c in climbs if c["id"] in want]
-    sa = side("a", a.a_bin, a.a_cfg, a.a_args, a.threads)
-    sb = side("b", a.b_bin or a.a_bin, a.b_cfg, a.b_args, a.threads)
+    sa = side("a", a.a_bin, a.a_cfg, a.a_args, a.threads, a.refit)
+    sb = side("b", a.b_bin or a.a_bin, a.b_cfg, a.b_args, a.threads, a.refit)
 
     def both(c):
         return c["id"], run_one(c, sa, a.keep), run_one(c, sb, a.keep)
