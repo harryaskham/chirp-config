@@ -5516,7 +5516,13 @@
    "extra": {
     "sends": {
      "room": "-12dB"
-    }
+    },
+    "fx": [
+     {
+      "type": "width",
+      "width": 0.3
+     }
+    ]
    },
    "bars": [
     [
@@ -5534,7 +5540,13 @@
    "extra": {
     "sends": {
      "plate": "-10dB"
-    }
+    },
+    "fx": [
+     {
+      "type": "width",
+      "width": 0.3
+     }
+    ]
    },
    "bars": [
     [
@@ -5618,6 +5630,14 @@
     "105": "G5/1b F5,G5/2b C5/1b",
     "114": "E5/4b",
     "121": "G5/4b"
+   },
+   "extra": {
+    "fx": [
+     {
+      "type": "width",
+      "width": 0.3
+     }
+    ]
    }
   },
   {
