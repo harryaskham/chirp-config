@@ -5492,7 +5492,6 @@
   },
   {
    "name": "bvox",
-   "track": 1,
    "patch": "dream-vox",
    "gain": "-10dB",
    "extra": {
@@ -5500,12 +5499,7 @@
      "plate": "-8dB"
     }
    },
-   "bars": [
-    [
-     1,
-     999
-    ]
-   ]
+   "raw": "tools/maps/dreams-bvox-pitch.json#bvox"
   },
   {
    "name": "gtr-ac",
