@@ -6392,21 +6392,15 @@
   },
   {
    "name": "twelve",
-   "track": 1,
    "patch": "twelve-string",
-   "bars": [
-    [
-     1,
-     999
-    ]
-   ],
    "gain": "-6dB",
    "extra": {
     "sends": {
      "hall": "-14dB"
     }
    },
-   "pan": -0.3
+   "pan": -0.3,
+   "raw": "tools/maps/wuthering-heights-twelve-raw.json#twelve"
   },
   {
    "name": "twelve-fx",
@@ -6524,21 +6518,15 @@
   },
   {
    "name": "str1",
-   "track": 10,
    "patch": "strings",
-   "bars": [
-    [
-     1,
-     999
-    ]
-   ],
    "gain": "-8dB",
    "extra": {
     "sends": {
      "hall": "-14dB"
     }
    },
-   "pan": -0.35
+   "pan": -0.35,
+   "raw": "tools/maps/wuthering-heights-str1-raw.json#str1"
   },
   {
    "name": "str2",
