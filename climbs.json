@@ -26,14 +26,15 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 110,
       "priority": 1,
       "genre": "orchestral metal (game OST)",
       "last": {
         "at": "2026-10-16T22:32:25Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "bleed",
@@ -49,14 +50,15 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 70,
       "priority": 1,
       "genre": "extreme metal / djent",
       "last": {
         "at": "2026-10-17T09:22:58Z",
         "who": "chirper-three"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "pneuma",
@@ -73,14 +75,15 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 63,
       "priority": 1,
       "genre": "progressive metal",
       "last": {
         "at": "2026-10-17T10:57:49Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "laid-to-rest",
@@ -97,14 +100,15 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 79,
       "priority": 1,
       "genre": "groove metal",
       "last": {
         "at": "2026-10-17T06:08:36Z",
         "who": "chirper-two"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "daydreaming",
@@ -121,7 +125,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 55,
       "priority": 1.0,
       "genre": "chamber folk / indie",
@@ -133,7 +137,8 @@
       "last": {
         "at": "2026-10-17T11:23:14Z",
         "who": "chirper-two"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "saturnine",
@@ -150,7 +155,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 44,
       "priority": 1.0,
       "genre": "jazz trio / nu-jazz",
@@ -162,7 +167,8 @@
       "last": {
         "at": "2026-10-17T10:48:14Z",
         "who": "chirper-three"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "the-national-anthem",
@@ -179,7 +185,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 48,
       "priority": 1.0,
       "genre": "art rock / free-jazz brass",
@@ -191,7 +197,8 @@
       "last": {
         "at": "2026-10-17T10:57:02Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "thin-thing",
@@ -209,7 +216,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 47,
       "priority": 1.0,
       "genre": "art rock / math rock (The Smile, A Light for Attracting Attention, 2022)",
@@ -221,7 +228,8 @@
       "last": {
         "at": "2026-10-17T08:39:37Z",
         "who": "chirper-three"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "come-down",
@@ -238,7 +246,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 47,
       "priority": 1.0,
       "genre": "funk / hip-hop (Malibu, 2016; prod. Hi-Tek)",
@@ -251,7 +259,8 @@
         "at": "2026-10-17T10:35:32Z",
         "who": "chirper-three"
       },
-      "clip": "from the first note at 0:00 to the last note's decay before the applause (find the end from the audio: drums and bass stop, broadband applause starts); 938 s video, songs follow: Heart Don't Stand A Chance, Put Me Thru, Suede"
+      "clip": "from the first note at 0:00 to the last note's decay before the applause (find the end from the audio: drums and bass stop, broadband applause starts); 938 s video, songs follow: Heart Don't Stand A Chance, Put Me Thru, Suede",
+      "paused_by": "focus"
     },
     {
       "id": "raining-blood",
@@ -268,7 +277,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 49,
       "priority": 1.0,
       "genre": "thrash metal",
@@ -280,7 +289,8 @@
       "last": {
         "at": "2026-10-17T10:24:20Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "2-minutes-to-midnight",
@@ -297,7 +307,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 50,
       "priority": 1.0,
       "genre": "heavy metal (NWOBHM; Powerslave, 1984; 1998 remaster upload)",
@@ -309,7 +319,8 @@
       "last": {
         "at": "2026-10-17T10:07:12Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "flim",
@@ -326,7 +337,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 54,
       "priority": 1.0,
       "genre": "IDM / breakbeat",
@@ -338,7 +349,8 @@
       "last": {
         "at": "2026-10-17T09:05:57Z",
         "who": "chirper-three"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "hajnal",
@@ -355,7 +367,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 48,
       "priority": 1.0,
       "genre": "breakcore / orchestral",
@@ -367,7 +379,8 @@
       "last": {
         "at": "2026-10-17T10:57:28Z",
         "who": "chirper-two"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "lebanese-blonde",
@@ -384,7 +397,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 20,
       "priority": 1.0,
       "genre": "trip-hop / downtempo (sitar, bossa)",
@@ -396,7 +409,8 @@
       "last": {
         "at": "2026-10-17T11:09:19Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "archangel",
@@ -413,7 +427,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 19,
       "priority": 1.0,
       "genre": "UK garage / future garage (Burial, Untrue, Hyperdub 2007): shuffled 2-step drums, pitched vocal chops, vinyl crackle, sub bass, pads",
@@ -425,7 +439,8 @@
       "last": {
         "at": "2026-10-17T10:23:01Z",
         "who": "chirper-two"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "harder-better-faster-stronger",
@@ -442,7 +457,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 19,
       "priority": 1.0,
       "genre": "French house (talkbox/vocoder, filtered loops)",
@@ -454,7 +469,8 @@
       "last": {
         "at": "2026-10-17T11:10:18Z",
         "who": "chirper-three"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "wuthering-heights",
@@ -471,7 +487,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 20,
       "priority": 1.0,
       "genre": "art pop (piano, strings, high soprano; The Kick Inside, 1978; 2018 remaster)",
@@ -483,7 +499,8 @@
       "last": {
         "at": "2026-10-17T10:25:34Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "money",
@@ -500,7 +517,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 20,
       "priority": 1.0,
       "genre": "prog rock in 7/4 (Pink Floyd, The Dark Side of the Moon, 1973; 2011 remaster)",
@@ -512,7 +529,8 @@
       "last": {
         "at": "2026-10-17T10:41:06Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "playing-god",
@@ -529,7 +547,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 22,
       "priority": 1.0,
       "genre": "instrumental prog / math rock with trap drums (Polyphia, Remember That You Will Die, 2022)",
@@ -541,7 +559,8 @@
       "last": {
         "at": "2026-10-17T11:04:48Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "dreams",
@@ -558,7 +577,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 24,
       "priority": 1.0,
       "genre": "soft rock (Fleetwood Mac, Rumours 1977): Stevie Nicks lead vocal, steady 4/4 drum loop, two-chord Fmaj7-G vamp, bass, Rhodes/organ, guitar swells",
@@ -570,7 +589,8 @@
       "last": {
         "at": "2026-10-17T11:02:50Z",
         "who": "chirper-two"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "autonomy-lost",
@@ -962,5 +982,6 @@
       },
       "ref_file": "ref/albums/catch-thirtythree/13 sum.webm"
     }
-  ]
+  ],
+  "focus": "Catch Thirtythree"
 }
