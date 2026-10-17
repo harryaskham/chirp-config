@@ -46,6 +46,7 @@ State, in this repo (the tool commits its own files and pushes; --no-git to skip
 Runtime (not in git): $XDG_STATE_HOME/chirp/climb-starts.jsonl — who started what, when.
 Who you are: --as NAME, else $CLIMB_AS, else the herdr pane, else the pi session."""
 import fcntl
+import calendar
 import json
 import os
 import random
@@ -252,11 +253,15 @@ def commit_or_die(paths, msg, args):
 # ── sampling ───────────────────────────────────────────────────────────────────────────────
 
 def weights(reg, me):
+    """Draw weights. A climb another agent started under SPREAD ago and has not recorded a round on since is HELD:
+    it is skipped while anything unheld is queued (two agents on one climb duplicate the round - chirper-two drew
+    entrapment and imprint while chirper-three held them); when every candidate is held, held ones are drawn at
+    half weight as before."""
     t = time.time()
     st = starts()
     mine = [s for s in st if s.get("who") == me]
     last = mine[-1] if mine else None
-    out = {}
+    out, held = {}, set()
     for c in reg["climbs"]:
         if c["status"] not in QUEUED or c.get("oob"):
             continue
@@ -265,6 +270,13 @@ def weights(reg, me):
             continue  # someone is setting it up
         w = float(c.get("priority", 1)) / (1 + c["rounds"])
         others = [s for s in st if s["id"] == c["id"] and s.get("who") != me and t - s.get("t", 0) < SPREAD]
+        lr = c.get("last") or {}
+        try:
+            lr_t = calendar.timegm(time.strptime(lr.get("at", ""), "%Y-%m-%dT%H:%M:%SZ"))
+        except ValueError:
+            lr_t = 0
+        if any(not (lr.get("who") == s.get("who") and lr_t >= s.get("t", 0) - 1) for s in others):
+            held.add(c["id"])
         if others:
             w *= 0.5
         if last and last["id"] == c["id"]:
@@ -272,7 +284,8 @@ def weights(reg, me):
         elif last and c.get("genre") and c.get("genre") == last.get("genre"):
             w *= 0.6
         out[c["id"]] = w
-    return out
+    free = {k: v for k, v in out.items() if k not in held}
+    return free if free else out
 
 
 # ── commands ──────────────────────────────────────────────────────────────────────────────
