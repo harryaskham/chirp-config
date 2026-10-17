@@ -384,7 +384,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 4,
+      "rounds": 5,
       "priority": 1.0,
       "genre": "trip-hop / downtempo (sitar, bossa)",
       "requested": {
@@ -393,7 +393,7 @@
         "note": null
       },
       "last": {
-        "at": "2026-10-17T01:10:00Z",
+        "at": "2026-10-17T01:35:26Z",
         "who": "chirper-zero"
       }
     },
