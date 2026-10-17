@@ -571,6 +571,370 @@
         "at": "2026-10-17T11:02:50Z",
         "who": "chirper-two"
       }
+    },
+    {
+      "id": "autonomy-lost",
+      "song": "songs/autonomy-lost.yaml",
+      "reference": "Meshuggah — Autonomy Lost",
+      "source": "https://www.youtube.com/watch?v=Lfr2n6yWqfM",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/autonomy-lost.wav OUT.wav $(cat tools/autonomy-lost-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
+      "meta": {
+        "artist": "Meshuggah",
+        "album": "Catch Thirtythree",
+        "title": "Autonomy Lost",
+        "track": 1,
+        "year": 2005
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-17T11:08:17Z",
+        "note": "album climb: the album plays end to end; adjacent tracks blend seamlessly, so match the record's level and tone at each song's edges"
+      },
+      "ref_file": "ref/albums/catch-thirtythree/01 autonomy-lost.webm"
+    },
+    {
+      "id": "imprint-of-the-un-saved",
+      "song": "songs/imprint-of-the-un-saved.yaml",
+      "reference": "Meshuggah — Imprint of the Un-Saved",
+      "source": "https://www.youtube.com/watch?v=wDrMPsSYjOQ",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/imprint-of-the-un-saved.wav OUT.wav $(cat tools/imprint-of-the-un-saved-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
+      "meta": {
+        "artist": "Meshuggah",
+        "album": "Catch Thirtythree",
+        "title": "Imprint of the Un-Saved",
+        "track": 2,
+        "year": 2005
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-17T11:08:17Z",
+        "note": "album climb: the album plays end to end; adjacent tracks blend seamlessly, so match the record's level and tone at each song's edges"
+      },
+      "ref_file": "ref/albums/catch-thirtythree/02 imprint-of-the-un-saved.webm"
+    },
+    {
+      "id": "disenchantment",
+      "song": "songs/disenchantment.yaml",
+      "reference": "Meshuggah — Disenchantment",
+      "source": "https://www.youtube.com/watch?v=7Teljac4UrE",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/disenchantment.wav OUT.wav $(cat tools/disenchantment-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
+      "meta": {
+        "artist": "Meshuggah",
+        "album": "Catch Thirtythree",
+        "title": "Disenchantment",
+        "track": 3,
+        "year": 2005
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-17T11:08:18Z",
+        "note": "album climb: the album plays end to end; adjacent tracks blend seamlessly, so match the record's level and tone at each song's edges"
+      },
+      "ref_file": "ref/albums/catch-thirtythree/03 disenchantment.webm"
+    },
+    {
+      "id": "the-paradoxical-spiral",
+      "song": "songs/the-paradoxical-spiral.yaml",
+      "reference": "Meshuggah — The Paradoxical Spiral",
+      "source": "https://www.youtube.com/watch?v=6SEjvMZbMqE",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/the-paradoxical-spiral.wav OUT.wav $(cat tools/the-paradoxical-spiral-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
+      "meta": {
+        "artist": "Meshuggah",
+        "album": "Catch Thirtythree",
+        "title": "The Paradoxical Spiral",
+        "track": 4,
+        "year": 2005
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-17T11:08:19Z",
+        "note": "album climb: the album plays end to end; adjacent tracks blend seamlessly, so match the record's level and tone at each song's edges"
+      },
+      "ref_file": "ref/albums/catch-thirtythree/04 the-paradoxical-spiral.webm"
+    },
+    {
+      "id": "re-inanimate",
+      "song": "songs/re-inanimate.yaml",
+      "reference": "Meshuggah — Re-Inanimate",
+      "source": "https://www.youtube.com/watch?v=dIrClxu5lcQ",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/re-inanimate.wav OUT.wav $(cat tools/re-inanimate-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
+      "meta": {
+        "artist": "Meshuggah",
+        "album": "Catch Thirtythree",
+        "title": "Re-Inanimate",
+        "track": 5,
+        "year": 2005
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-17T11:08:19Z",
+        "note": "album climb: the album plays end to end; adjacent tracks blend seamlessly, so match the record's level and tone at each song's edges"
+      },
+      "ref_file": "ref/albums/catch-thirtythree/05 re-inanimate.webm"
+    },
+    {
+      "id": "entrapment",
+      "song": "songs/entrapment.yaml",
+      "reference": "Meshuggah — Entrapment",
+      "source": "https://www.youtube.com/watch?v=WvL83L8FWvQ",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/entrapment.wav OUT.wav $(cat tools/entrapment-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
+      "meta": {
+        "artist": "Meshuggah",
+        "album": "Catch Thirtythree",
+        "title": "Entrapment",
+        "track": 6,
+        "year": 2005
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-17T11:08:20Z",
+        "note": "album climb: the album plays end to end; adjacent tracks blend seamlessly, so match the record's level and tone at each song's edges"
+      },
+      "ref_file": "ref/albums/catch-thirtythree/06 entrapment.webm"
+    },
+    {
+      "id": "mind-s-mirrors",
+      "song": "songs/mind-s-mirrors.yaml",
+      "reference": "Meshuggah — Mind's Mirrors",
+      "source": "https://www.youtube.com/watch?v=vf0ZALfOOLc",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/mind-s-mirrors.wav OUT.wav $(cat tools/mind-s-mirrors-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
+      "meta": {
+        "artist": "Meshuggah",
+        "album": "Catch Thirtythree",
+        "title": "Mind's Mirrors",
+        "track": 7,
+        "year": 2005
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-17T11:08:21Z",
+        "note": "album climb: the album plays end to end; adjacent tracks blend seamlessly, so match the record's level and tone at each song's edges"
+      },
+      "ref_file": "ref/albums/catch-thirtythree/07 mind-s-mirrors.webm"
+    },
+    {
+      "id": "in-death-is-life",
+      "song": "songs/in-death-is-life.yaml",
+      "reference": "Meshuggah — In Death - Is Life",
+      "source": "https://www.youtube.com/watch?v=IVvBqLaQhuw",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/in-death-is-life.wav OUT.wav $(cat tools/in-death-is-life-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
+      "meta": {
+        "artist": "Meshuggah",
+        "album": "Catch Thirtythree",
+        "title": "In Death - Is Life",
+        "track": 8,
+        "year": 2005
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-17T11:08:22Z",
+        "note": "album climb: the album plays end to end; adjacent tracks blend seamlessly, so match the record's level and tone at each song's edges"
+      },
+      "ref_file": "ref/albums/catch-thirtythree/08 in-death-is-life.webm"
+    },
+    {
+      "id": "in-death-is-death",
+      "song": "songs/in-death-is-death.yaml",
+      "reference": "Meshuggah — In Death - Is Death",
+      "source": "https://www.youtube.com/watch?v=5CwwXxOwqVY",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/in-death-is-death.wav OUT.wav $(cat tools/in-death-is-death-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
+      "meta": {
+        "artist": "Meshuggah",
+        "album": "Catch Thirtythree",
+        "title": "In Death - Is Death",
+        "track": 9,
+        "year": 2005
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-17T11:08:26Z",
+        "note": "album climb: the album plays end to end; adjacent tracks blend seamlessly, so match the record's level and tone at each song's edges"
+      },
+      "ref_file": "ref/albums/catch-thirtythree/09 in-death-is-death.webm"
+    },
+    {
+      "id": "shed",
+      "song": "songs/shed.yaml",
+      "reference": "Meshuggah — Shed",
+      "source": "https://www.youtube.com/watch?v=dCwOG1kWkAQ",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/shed.wav OUT.wav $(cat tools/shed-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
+      "meta": {
+        "artist": "Meshuggah",
+        "album": "Catch Thirtythree",
+        "title": "Shed",
+        "track": 10,
+        "year": 2005
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-17T11:08:27Z",
+        "note": "album climb: the album plays end to end; adjacent tracks blend seamlessly, so match the record's level and tone at each song's edges"
+      },
+      "ref_file": "ref/albums/catch-thirtythree/10 shed.webm"
+    },
+    {
+      "id": "personate-non-gratae",
+      "song": "songs/personate-non-gratae.yaml",
+      "reference": "Meshuggah — Personate Non Gratae",
+      "source": "https://www.youtube.com/watch?v=Xib64Y5pvqI",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/personate-non-gratae.wav OUT.wav $(cat tools/personate-non-gratae-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
+      "meta": {
+        "artist": "Meshuggah",
+        "album": "Catch Thirtythree",
+        "title": "Personate Non Gratae",
+        "track": 11,
+        "year": 2005
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-17T11:08:28Z",
+        "note": "album climb: the album plays end to end; adjacent tracks blend seamlessly, so match the record's level and tone at each song's edges"
+      },
+      "ref_file": "ref/albums/catch-thirtythree/11 personate-non-gratae.webm"
+    },
+    {
+      "id": "dehumanization",
+      "song": "songs/dehumanization.yaml",
+      "reference": "Meshuggah — Dehumanization",
+      "source": "https://www.youtube.com/watch?v=sp-eWHnvXvU",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/dehumanization.wav OUT.wav $(cat tools/dehumanization-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
+      "meta": {
+        "artist": "Meshuggah",
+        "album": "Catch Thirtythree",
+        "title": "Dehumanization",
+        "track": 12,
+        "year": 2005
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-17T11:08:29Z",
+        "note": "album climb: the album plays end to end; adjacent tracks blend seamlessly, so match the record's level and tone at each song's edges"
+      },
+      "ref_file": "ref/albums/catch-thirtythree/12 dehumanization.webm"
+    },
+    {
+      "id": "sum",
+      "song": "songs/sum.yaml",
+      "reference": "Meshuggah — Sum",
+      "source": "https://www.youtube.com/watch?v=LVpdK2-cerA",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/sum.wav OUT.wav $(cat tools/sum-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
+      "meta": {
+        "artist": "Meshuggah",
+        "album": "Catch Thirtythree",
+        "title": "Sum",
+        "track": 13,
+        "year": 2005
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-17T11:08:32Z",
+        "note": "album climb: the album plays end to end; adjacent tracks blend seamlessly, so match the record's level and tone at each song's edges"
+      },
+      "ref_file": "ref/albums/catch-thirtythree/13 sum.webm"
     }
   ]
 }
