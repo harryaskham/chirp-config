@@ -192,13 +192,26 @@ def commit(paths, msg, args):
     if "--no-git" in args or not os.path.isdir(os.path.join(ROOT, ".git")):
         return
     rel = [os.path.relpath(os.path.join(ROOT, p) if not os.path.isabs(p) else p, ROOT) for p in paths]
+    """True when the change is in a commit (pushed, or local to go with the next push); False when nothing was
+    committed - callers must then fail loudly, or the registry edit can be lost to the next agent's sync."""
+    if "--no-git" in args or not os.path.isdir(os.path.join(ROOT, ".git")):
+        return True
+    rel = [os.path.relpath(os.path.join(ROOT, p) if not os.path.isabs(p) else p, ROOT) for p in paths]
     with locked("climb-git.lock"):
-        git("add", "--", *rel)
-        c = git("commit", "-q", "-m", msg, "--", *rel)
-        if c.returncode:
-            if "nothing" not in (c.stdout + c.stderr):
-                print(f"climb: not committed: {(c.stderr or c.stdout).strip()[:200]}", file=sys.stderr)
-            return
+        for attempt in range(6):
+            git("add", "--", *rel)
+            c = git("commit", "-q", "-m", msg, "--", *rel)
+            if c.returncode == 0:
+                break
+            out = c.stdout + c.stderr
+            if "nothing" in out:
+                return True
+            # another agent's git op in the shared tree (sync, status, pull) can hold .git/index.lock for a moment
+            if "index.lock" in out and attempt < 5:
+                time.sleep(1 + attempt)
+                continue
+            print(f"climb: not committed: {out.strip()[:200]}", file=sys.stderr)
+            return False
         for attempt in range(5):
             p = git("pull", "-q", "--rebase", "--autostash", "origin", "main")
             if p.returncode:
@@ -208,10 +221,17 @@ def commit(paths, msg, args):
                     time.sleep(2 + 2 * attempt)
                     continue
                 print(f"climb: committed locally; pull failed: {p.stderr.strip()[:200]}", file=sys.stderr)
-                return
+                return True
             if git("push", "-q", "origin", "HEAD:main").returncode == 0:
-                return
+                return True
         print("climb: committed locally; push lost three races (it goes with the next push)", file=sys.stderr)
+        return True
+
+
+def commit_or_die(paths, msg, args):
+    if not commit(paths, msg, args):
+        die("NOT recorded in git (see 'not committed' above): the registry edit is only in the working tree "
+            "and the next sync can drop it - fix the git state and re-run (with --force for done)", 4)
 
 
 # ── sampling ───────────────────────────────────────────────────────────────────────────────
@@ -313,7 +333,7 @@ def cmd_add(a):
     for cid in added:
         print(f"requested {cid}")
     if added:
-        commit(["climbs.json"], f"climbs: request {', '.join(added)}", a)
+        commit_or_die(["climbs.json"], f"climbs: request {', '.join(added)}", a)
 
 
 def brief(c, hist):
@@ -414,10 +434,12 @@ def cmd_done(a):
         print(f"climb: {score} is within rounding of best {near}: if either was rounded, re-measure both "
               f"unrounded (likeness.py prints 3 decimals) and `climb.py set {cid} best=…` if this one is higher",
               file=sys.stderr)
+    # commit FIRST, then print the status line LAST: a failed commit must not end in a success line (agents read
+    # `| tail -1`), and it exits non-zero
+    commit_or_die(["climbs.json", f"climbs/{cid}.jsonl", *multi(a, "--with")],
+                  f"climbs: {cid} round {h['round']}{f' — {version} {score}' if kept else ''}: {note[:60]}", a)
     print(f"{cid} round {h['round']}{f' — best {score} ({version})' if kept else ''}"
           f"{' — joins the playlist' if c.get('enabled') and h['round'] == 1 else ''}")
-    commit(["climbs.json", f"climbs/{cid}.jsonl", *multi(a, "--with")],
-           f"climbs: {cid} round {h['round']}{f' — {version} {score}' if kept else ''}: {note[:60]}", a)
 
 
 def cmd_status(a):
@@ -466,7 +488,7 @@ def cmd_note(a):
         with open(os.path.join(HIST, f"{cid}.jsonl"), "a") as f:
             f.write(json.dumps({k: v for k, v in h.items() if v is not None}, ensure_ascii=False) + "\n")
     print(f"{cid}: noted")
-    commit(["climbs.json", f"climbs/{cid}.jsonl"], f"climbs: {cid} note: {text[:60]}", a)
+    commit_or_die(["climbs.json", f"climbs/{cid}.jsonl"], f"climbs: {cid} note: {text[:60]}", a)
 
 
 def cmd_set(a):
@@ -488,7 +510,7 @@ def cmd_set(a):
                 # version/commit/engine record stays, so status/next/done keep working
                 val = {**(c.get("best") if isinstance(c.get("best"), dict) else {}), "score": val}
             c[k] = val
-    commit(["climbs.json"], f"climbs: {pos[0]} {' '.join(pos[1:])[:60]}", a)
+    commit_or_die(["climbs.json"], f"climbs: {pos[0]} {' '.join(pos[1:])[:60]}", a)
 
 
 def cmd_state(a, status):
@@ -503,7 +525,7 @@ def cmd_state(a, status):
         if opt(a, "--note"):
             c["status_note"] = opt(a, "--note")
     print(f"{pos[0]}: {status}")
-    commit(["climbs.json"], f"climbs: {pos[0]} {status}", a)
+    commit_or_die(["climbs.json"], f"climbs: {pos[0]} {status}", a)
 
 
 def main():
