@@ -2,7 +2,7 @@
  "cache": "ref/songsterr-73451",
  "offset": -0.0025,
  "name": "shed",
- "about": "Hill-climb reproduction of Meshuggah - Shed (Catch Thirtythree, 2005, track 10; meta: artist Meshuggah, album Catch Thirtythree, title Shed, track 10, year 2005 \u2014 a meta: block once the groove pin passes main 8c95a3d). Reference: the album master's track 10. From Songsterr tab 73451 (all 5 tracks).",
+ "about": "Hill-climb reproduction of Meshuggah - Shed (Catch Thirtythree, 2005, track 10; meta: artist Meshuggah, album Catch Thirtythree, title Shed, track 10, year 2005 — a meta: block once the groove pin passes main 8c95a3d). Reference: the album master's track 10. From Songsterr tab 73451 (all 5 tracks).",
  "meters": true,
  "head": {
   "buses": {
@@ -211,7 +211,7 @@
     },
     "glue threshold=-14dB ratio=2.5 attack=10ms release=120ms makeup=4dB",
     "gain gain=2dB",
-    "clip drive=3dB ceiling=2.7dB",
+    "clip drive=1.5dB ceiling=2.7dB",
     {
      "type": "gain",
      "gain": {
@@ -243,6 +243,18 @@
       "mod": [
        {
         "src": "auto.ride",
+        "amount": 1
+       }
+      ]
+     }
+    },
+    {
+     "type": "gain",
+     "gain": {
+      "value": "0dB",
+      "mod": [
+       {
+        "src": "auto.slev3",
         "amount": 1
        }
       ]
@@ -4759,6 +4771,70 @@
       [
        "214.00s",
        -9.0
+      ]
+     ]
+    },
+    "slev3": {
+     "points": [
+      [
+       "0s",
+       0.46
+      ],
+      [
+       "15.350s",
+       0.46
+      ],
+      [
+       "15.850s",
+       1.41
+      ],
+      [
+       "45.830s",
+       1.41
+      ],
+      [
+       "46.330s",
+       1.42
+      ],
+      [
+       "76.300s",
+       1.42
+      ],
+      [
+       "76.800s",
+       1.48
+      ],
+      [
+       "91.540s",
+       1.48
+      ],
+      [
+       "92.040s",
+       1.41
+      ],
+      [
+       "122.000s",
+       1.41
+      ],
+      [
+       "122.500s",
+       0.61
+      ],
+      [
+       "170.700s",
+       0.61
+      ],
+      [
+       "171.200s",
+       1.45
+      ],
+      [
+       "198.450s",
+       1.45
+      ],
+      [
+       "198.950s",
+       0.39
       ]
      ]
     }
