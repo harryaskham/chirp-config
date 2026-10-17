@@ -5826,6 +5826,23 @@
      "room": "-12dB"
     }
    }
+  },
+  {
+   "name": "rumble",
+   "raw": "tools/maps/raining-blood-fx.json#rain-out",
+   "patch": "fx-wind",
+   "gain": "6dB",
+   "extra": {
+    "fx": [
+     {
+      "type": "filter",
+      "kind": "lp",
+      "cutoff": 80,
+      "q": 0.7,
+      "slope": 24
+     }
+    ]
+   }
   }
  ],
  "bpm": {
