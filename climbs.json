@@ -377,15 +377,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/lebanese-blonde.wav OUT.wav $(cat tools/lebanese-blonde-sections.txt)",
       "best": {
-        "score": 68.381,
-        "version": "v12",
+        "score": 68.414,
+        "version": "v13",
         "commit": "see git log songs/lebanese-blonde.yaml",
         "engine": "a931418"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 17,
+      "rounds": 18,
       "priority": 1.0,
       "genre": "trip-hop / downtempo (sitar, bossa)",
       "requested": {
@@ -394,8 +394,8 @@
         "note": null
       },
       "last": {
-        "at": "2026-10-17T08:47:27Z",
-        "who": "chirper-one"
+        "at": "2026-10-17T09:38:19Z",
+        "who": "chirper-two"
       }
     },
     {
