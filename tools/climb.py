@@ -26,6 +26,7 @@ for any climbing agent's next pass, one climb to work on, weighted towards the f
   climb.py set ID KEY=VALUE …                       edit a climb's fields (source, genre, metric, …)
   climb.py note ID TEXT [--next TEXT]               steer: a note in its history (not a round; `next` shows it)
   climb.py pause|resume|drop ID [--note TEXT]       take a climb out of (or back into) the queue
+  climb.py tui                                      the queue as a TUI: toggle climbable/playlist, focus, notes
   climb.py focus ALBUM | --off                      climb only that album: pause every other queued climb
                                                     (marked, so --off resumes exactly those); the playlist
                                                     is unchanged
@@ -792,6 +793,12 @@ def cmd_focus(a):
         commit_or_die(["climbs.json"], f"climbs: focus {'off' if off else pos[0]} ({len(changed)} changed)", a)
 
 
+def cmd_tui(a):
+    import runpy
+    sys.argv = [os.path.join(HERE, "climbtui.py"), *a]
+    runpy.run_path(sys.argv[0], run_name="__main__")
+
+
 def main():
     a = sys.argv[1:]
     if not a or a[0] in ("status", "ls", "list"):
@@ -800,7 +807,7 @@ def main():
     table = {"add": cmd_add, "request": cmd_add, "add-album": cmd_add_album, "refs": cmd_refs, "next": cmd_next, "done": cmd_done, "log": cmd_log, "set": cmd_set,
              "note": cmd_note,
              "pause": lambda r: cmd_state(r, "paused"), "resume": lambda r: cmd_state(r, "active"),
-             "drop": lambda r: cmd_state(r, "dropped"), "focus": cmd_focus}
+             "drop": lambda r: cmd_state(r, "dropped"), "focus": cmd_focus, "tui": cmd_tui}
     if cmd in ("-h", "--help", "help"):
         print(__doc__)
         return
