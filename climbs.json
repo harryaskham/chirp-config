@@ -559,7 +559,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 11,
+      "rounds": 12,
       "priority": 1.0,
       "genre": "soft rock (Fleetwood Mac, Rumours 1977): Stevie Nicks lead vocal, steady 4/4 drum loop, two-chord Fmaj7-G vamp, bass, Rhodes/organ, guitar swells",
       "requested": {
@@ -568,7 +568,7 @@
         "note": null
       },
       "last": {
-        "at": "2026-10-17T05:00:03Z",
+        "at": "2026-10-17T05:20:56Z",
         "who": "chirper-one"
       }
     }
