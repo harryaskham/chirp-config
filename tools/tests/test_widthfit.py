@@ -47,6 +47,10 @@ def write(path, x):
         w.writeframes((np.clip(x, -1, 1) * 32767).astype("<i2").tobytes())
 
 
+def lane_at(points, t):
+    return np.interp(np.asarray(t, float), [float(str(p[0])[:-1]) for p in points], [float(p[1]) for p in points])
+
+
 def knots(doc):
     return {k: [(float(str(t)[:-1]), float(v)) for t, v in doc["head"]["master"]["auto"][k]["points"]]
             for k in doc["head"]["master"]["auto"]}
@@ -125,10 +129,50 @@ class Widthfit(unittest.TestCase):
         for kwargs in ({"now": 0.5, "new": 0.75}, {"absolute": 0.75}):
             with self.subTest(kwargs=kwargs):
                 after = WF.scale_section(points, 66.25, 71.75, 1.5, **kwargs)
-                self.assertEqual([p for p in after if not 66.25 <= float(p[0][:-1]) < 71.75], points)
+                outside = [p for p in after if not 66.25 <= float(p[0][:-1]) < 71.75]
+                self.assertTrue(all(p in outside for p in points), "every old knot survives")
+                self.assertEqual([p for p in outside if p not in points], [["66.200s", 0.5], ["71.800s", 0.5]],
+                                 "anchors just outside hold the original lane (bd-b508ee)")
                 self.assertEqual([p for p in after if 66.25 <= float(p[0][:-1]) < 71.75],
                                  [["66.300s", 0.75], ["71.700s", 0.75]])
+                self.assertOutsideUnchanged(points, after, 66.25, 71.75)
         self.assertEqual(points, [["0s", 0.5], ["66s", 0.5], ["72s", 0.5], ["104s", 0.5]])
+
+    def assertOutsideUnchanged(self, before, after, a, b, ramp=0.05, until=300.0):
+        grid = np.concatenate([np.linspace(0, a - ramp, 2000), np.linspace(b + ramp, until, 2000)])
+        self.assertLess(np.abs(lane_at(after, grid) - lane_at(before, grid)).max(), 1e-9)
+
+    def test_a_sparse_lane_keeps_the_rewrite_in_its_section(self):
+        # bd-b508ee: 0 s: 1 … 250 s: 1, section 6-15.282 s x2 leaked 1.937 at 30 s; the next section's 2.5 became 4.802
+        p = [["0s", 1.0], ["250s", 1.0]]
+        q = WF.scale_section(p, 6, 15.282, 2.0, now=1.0, new=2.0, original=p)
+        self.assertOutsideUnchanged(p, q, 6, 15.282)
+        self.assertEqual(float(lane_at(q, [10.0])[0]), 2.0)
+        r = WF.scale_section(q, 15.282, 52.4, 2.5, now=1.0, new=2.5, original=p)
+        self.assertEqual([float(v) for v in lane_at(r, [3.0, 10.0, 30.0, 100.0])], [1.0, 2.0, 2.5, 1.0])
+        self.assertTrue(all(k in r for k in p), "old knots preserved")
+
+    def test_adjacent_sections_in_sequence_meet_their_targets(self):
+        p = [["0s", 1.0], ["40s", 1.6], ["250s", 1.0]]
+        cuts, rs = [0, 12.5, 31.25, 60.0, 250.0], [None, 2.0, 0.5, 3.0]
+        lane = [list(k) for k in p]
+        for i, r in enumerate(rs):
+            if r is not None:
+                lane = WF.scale_section(lane, cuts[i], cuts[i + 1], r, original=p, end=cuts[-1])
+        for i, r in enumerate(rs):
+            mid = np.linspace(cuts[i] + 0.06, cuts[i + 1] - 0.06, 500)
+            want = lane_at(p, mid) * (r if r is not None else 1.0)
+            self.assertLess(np.abs(lane_at(lane, mid) - want).max(), 2e-3, f"section {i + 1}")
+        grid = np.linspace(0, 12.45, 200)
+        self.assertLess(np.abs(lane_at(lane, grid) - lane_at(p, grid)).max(), 1e-9, "the unselected section")
+
+    def test_a_factor_of_one_and_a_lane_starting_inside(self):
+        p = [["20s", 1.2], ["30s", 0.8]]
+        same = WF.scale_section(p, 15, 25, 1.0, original=p)
+        grid = np.linspace(0, 60, 3001)
+        self.assertLess(np.abs(lane_at(same, grid) - lane_at(p, grid)).max(), 1e-9, "r = 1 changes nothing")
+        up = WF.scale_section(p, 15, 25, 2.0, original=p)
+        self.assertOutsideUnchanged(p, up, 15, 25, until=60.0)   # [0, 15) held 1.2 before the first knot
 
     def test_a_varying_section_is_refused_before_writing(self):
         with open(self.grid) as f:

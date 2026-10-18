@@ -92,18 +92,45 @@ def varies(points, a, b, mean, tol=0.10, share=0.10):
     return dev.mean() > share
 
 
-def scale_section(points, a, b, r, absolute=None, now=None, new=None):
+def scale_section(points, a, b, r, absolute=None, now=None, new=None, original=None, end=None, ramp=0.05):
     """The lane with every knot in [a, b) scaled by r (clipped 0..6, rounded) — or set to `absolute` where the
     current width is 0; a knot at exactly the section's current value `now` takes `new` (so a regular grid rounds as
-    before); knots elsewhere keep their exact time strings and values. A section without knots of its own gets a
-    pair just inside its edges."""
-    inside = [i for i, (t, _) in enumerate(points) if a <= float(str(t)[:-1]) < b]
+    before); knots elsewhere keep their exact time strings and values.
+
+    The change stays inside the section (bd-b508ee): where no knot pins an edge within `ramp`, a knot is added just
+    inside (it is scaled) and one just outside holding the lane's ORIGINAL value there, so the lane outside
+    [a - ramp, b + ramp] is unchanged — a sparse lane (0 s: 1 … 250 s: 1) no longer carries a section's width across
+    the song, and a later section never reads an earlier one's rewrite. Added values come from `original` (the lane
+    before any section was rewritten; default: `points`). No anchors before 0 or at/after `end` (the song's end): a
+    regular grid already has its knots at every cut +-ramp, so its rewrite is as before."""
     pts = [list(p) for p in points]
-    if not inside:
-        v = section_mean(points, a, b)
-        added = [[f"{a + 0.05:.3f}s", v], [f"{b - 0.05:.3f}s", v]]
-        pts = sorted(pts + added, key=lambda p: float(str(p[0])[:-1]))
-        inside = [i for i, (t, _) in enumerate(pts) if a <= float(str(t)[:-1]) < b]
+    ref = lane_points(original if original is not None else points)
+    rts, rvs = [p[0] for p in ref], [p[1] for p in ref]
+    at = lambda t: float(np.interp(t, rts, rvs))   # noqa: E731
+    ms = lambda t: float(f"{t:.3f}")               # noqa: E731
+    times = lambda: [float(str(p[0])[:-1]) for p in pts]   # noqa: E731
+
+    def add(t, v):
+        pts.append([f"{t:.3f}s", v])
+        pts.sort(key=lambda p: float(str(p[0])[:-1]))
+
+    ts = times()
+    if a > 0 and not any(a - ramp - 1e-9 <= t < a for t in ts):          # left edge unpinned
+        add(ms(max(0.0, a - ramp)), at(ms(max(0.0, a - ramp))))
+        if not any(a <= t <= a + ramp + 1e-9 for t in times()):
+            add(ms(a + ramp), at(ms(a + ramp)))
+    if end is None or b < end - 1e-9:
+        if not any(b < t <= b + ramp + 1e-9 or t == b for t in times()):  # right edge unpinned
+            add(ms(b + ramp), at(ms(b + ramp)))
+            if not any(b - ramp - 1e-9 <= t < b for t in times()):
+                add(ms(b - ramp), at(ms(b - ramp)))
+    last = end is not None and b >= end - 1e-9   # the song's last section owns knots at or after its end
+    mine = lambda t: a <= t < b or (last and t >= b)   # noqa: E731
+    inside = [i for i, t in enumerate(times()) if mine(t)]
+    if not inside:   # still no knot of its own (e.g. a section at the lane's edges): a pair just inside
+        add(ms(a + ramp), at(ms(a + ramp)))
+        add(ms(b - ramp), at(ms(b - ramp)))
+        inside = [i for i, t in enumerate(times()) if mine(t)]
     for i in inside:
         if absolute is not None:
             nv = absolute
@@ -232,15 +259,18 @@ def main():
     else:
         # rewrite only the fitted sections, scaling their own knots (shapes and unselected sections survive; a
         # factor of exactly 1 changes nothing)
+        original = {k: [list(p) for p in auto[f"wb{k}"]["points"]] for k in range(7)}   # before any rewrite (bd-b508ee)
         for i in fitted:
             for k in range(7):
                 lane = auto[f"wb{k}"]
                 if now[i, k] > 0:
                     r = cur[i, k] / now[i, k]
                     if r != 1.0:
-                        lane["points"] = scale_section(lane["points"], cuts[i], cuts[i + 1], r, now=now[i, k], new=cur[i, k])
+                        lane["points"] = scale_section(lane["points"], cuts[i], cuts[i + 1], r, now=now[i, k], new=cur[i, k],
+                                                       original=original[k], end=cuts[-1])
                 elif cur[i, k] != now[i, k]:
-                    lane["points"] = scale_section(lane["points"], cuts[i], cuts[i + 1], 1.0, absolute=cur[i, k])
+                    lane["points"] = scale_section(lane["points"], cuts[i], cuts[i + 1], 1.0, absolute=cur[i, k],
+                                                   original=original[k], end=cuts[-1])
     if is_map:
         doc["head"]["master"] = master
         json.dump(doc, open(dst, "w"), indent=1)
