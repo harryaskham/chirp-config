@@ -5074,7 +5074,7 @@
    "name": "drums-hats",
    "raw": "tools/maps/shed-hats.json#hats",
    "patch": "obzen-kit",
-   "gain": "6dB"
+   "gain": "12dB"
   }
  ],
  "bpm": {
