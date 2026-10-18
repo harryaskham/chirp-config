@@ -1096,11 +1096,16 @@
       "source": "https://www.youtube.com/watch?v=ylXk1LBvIqU",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/so-what.wav OUT.wav $(cat tools/so-what-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 50.003,
+        "version": "v1",
+        "commit": "see git log songs/so-what.yaml",
+        "engine": "654b5e3"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 1,
+      "enabled": true,
+      "status": "active",
+      "rounds": 2,
       "priority": 1.0,
       "genre": "modal jazz",
       "requested": {
@@ -1114,8 +1119,8 @@
         "title": "So What"
       },
       "last": {
-        "at": "2026-10-18T20:33:44Z",
-        "who": "chirper-two"
+        "at": "2026-10-18T22:14:07Z",
+        "who": "chirper-three"
       }
     },
     {
