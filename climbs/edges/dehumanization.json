@@ -1,9 +1,9 @@
 {
  "id": "dehumanization",
- "version": "v5",
+ "version": "v6",
  "edge": 3.0,
  "ref_seconds": 175.787,
- "at": "2026-10-17T15:50:16Z",
+ "at": "2026-10-18T12:37:06Z",
  "edges": {
   "head": {
    "level": -12.300679386835569,
