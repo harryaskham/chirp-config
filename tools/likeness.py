@@ -145,7 +145,9 @@ def describe(path):
     F = Feat(load(path))
     dur = len(F.x) / SR
     secs = sections(F)
-    bounds = [0.0] + secs + [round(dur, 1)]
+    end = round(dur, 1)
+    # bd-9e4a85: a boundary at or past the end made a negative last span (282.5 -> 282.0) and NaN features
+    bounds = [0.0] + sorted({s for s in secs if 0 < s < end}) + [end]
     out = {"duration": round(dur, 2), "tempo": round(tempo(F.onset), 1), "key": key_of(F.chroma),
            "lufs_ish_rms": round(float(20 * np.log10(np.sqrt((F.x ** 2).mean()))), 1),
            "sections": []}
@@ -162,7 +164,18 @@ def describe(path):
             "width": round(float(np.std(F.st[int(a * SR):int(b * SR), 0] - F.st[int(a * SR):int(b * SR), 1]) /
                                  (np.std(F.st[int(a * SR):int(b * SR)].mean(1)) + 1e-9)), 2),
         })
-    return out
+    return _finite(out)
+
+
+def _finite(v):
+    """JSON-safe: NaN or infinite numbers become None (null) anywhere in a nested result."""
+    if isinstance(v, dict):
+        return {k: _finite(x) for k, x in v.items()}
+    if isinstance(v, list):
+        return [_finite(x) for x in v]
+    if isinstance(v, float) and not np.isfinite(v):
+        return None
+    return v
 
 
 def _cos(a, b):

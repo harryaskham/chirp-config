@@ -104,6 +104,27 @@ class Sectioned(unittest.TestCase):
         self.assertLessEqual(abs(r["total"] - r["total_raw"]), 0.06, "the legacy total differs by rounding only")
         self.assertIn("legacy", r["convention"]["total"])
 
+    def test_describe_keeps_sections_inside_the_audio(self):
+        # bd-9e4a85: an automatic boundary at or past the end gave a negative last span and NaN (invalid JSON)
+        import json
+        real = L.sections
+        try:
+            L.sections = lambda F: [0.0, 5.0, 5.0, 1e6, 2.5]   # zero, duplicate, past the end, unsorted
+            d = L.describe(self.ref)
+        finally:
+            L.sections = real
+        spans = [(x["start"], x["end"]) for x in d["sections"]]
+        self.assertEqual(spans[0][0], 0.0)
+        self.assertTrue(all(b > a for a, b in spans), spans)
+        self.assertEqual([a for a, _ in spans], [0.0, 2.5, 5.0])
+        self.assertEqual(spans[-1][1], round(d["duration"], 1))
+        json.loads(json.dumps(d), parse_constant=lambda c: self.fail(f"non-finite {c} in describe's JSON"))
+        self.assertIsNone(L._finite({"a": [float("nan"), 1.0]})["a"][0])
+
+    @unittest.skipUnless(OLD, "set LIKENESS_OLD to the previous likeness.py to compare scores")
+    def test_describe_is_unchanged_for_ordinary_audio(self):
+        self.assertEqual(L.describe(self.ref), module(OLD, "likeness_old_d").describe(self.ref))
+
     @unittest.skipUnless(OLD, "set LIKENESS_OLD to the previous likeness.py to compare scores")
     def test_every_score_field_is_unchanged(self):
         old = module(OLD, "likeness_old")
