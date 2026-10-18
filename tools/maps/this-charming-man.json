@@ -1,0 +1,4590 @@
+{
+ "cache": "ref/songsterr-17973",
+ "offset": 0.99,
+ "bpm": {
+  "1": 104.05
+ },
+ "meters": true,
+ "bends": "curve",
+ "bend_step": 0.0625,
+ "about": "Fixed 2008-remaster recording UpjaTtNVwEs. Non-AI Songsterr17973 arrangement; native clean/acoustic/capoed guitar ensemble, melodic picked bass, wordless baritone. Provisional timing needs full-record check; no audio samples or lyrics/TTS.",
+ "head": {
+  "meta": {
+   "artist": "The Smiths",
+   "title": "This Charming Man"
+  },
+  "tail": "3s",
+  "ceiling": "-0.3dB",
+  "patches": {
+   "tcm-lead": {
+    "about": "Song-local tele setup fork; event-local identity enabled; source tuning retained where supplied.",
+    "fx": [
+     {
+      "bands": [
+       "peak cutoff=1.3k q=1.2 gain=3dB"
+      ],
+      "type": "eq"
+     },
+     {
+      "attack": "9ms",
+      "makeup": "5dB",
+      "ratio": 5,
+      "release": "90ms",
+      "threshold": "-26dB",
+      "type": "compressor"
+     },
+     {
+      "bass": 0.4,
+      "gain": 0.42,
+      "mid": 0.52,
+      "model": "twin",
+      "presence": 0.62,
+      "resonance": 0.45,
+      "sag": 0.12,
+      "tight": 80,
+      "treble": 0.64,
+      "type": "amp"
+     },
+     {
+      "distance": 0.12,
+      "mic": 0.3,
+      "model": "2x12",
+      "type": "cab"
+     },
+     "delay time=105ms feedback=0.05 mix=0.17 tone=3.5k",
+     "reverb kind=spring decay=1.8s mix=0.13"
+    ],
+    "gain": "-4dB",
+    "play": {
+     "frets": 21,
+     "gate": 0.92,
+     "humanize": {
+      "time": "4ms",
+      "vel": 0.07
+     },
+     "strum": "9ms",
+     "tuning": "F#2 B2 E3 A3 C#4 F#4",
+     "vel_sens": 0.45,
+     "voicing": "guitar",
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "1ms",
+      "r": "110ms",
+      "s": 1
+     },
+     "env": {
+      "pick": {
+       "a": "0.1ms",
+       "d": "5ms",
+       "s": 0
+      }
+     },
+     "filters": [
+      "hp cutoff=90"
+     ],
+     "layers": [
+      {
+       "bright": {
+        "mod": [
+         {
+          "amount": 0.16,
+          "src": "vel"
+         },
+         {
+          "amount": -0.35,
+          "src": "expr.pm"
+         },
+         {
+          "amount": -0.2,
+          "src": "expr.dead"
+         },
+         {
+          "amount": -0.12,
+          "src": "expr.h"
+         },
+         {
+          "amount": 0.04,
+          "src": "rand"
+         }
+        ],
+        "value": 0.8
+       },
+       "choke": "60ms",
+       "decay": {
+        "mod": [
+         {
+          "amount": -3,
+          "src": "expr.pm"
+         },
+         {
+          "amount": -3.36,
+          "src": "expr.dead"
+         },
+         {
+          "amount": 0.4,
+          "src": "vel"
+         }
+        ],
+        "value": "3.4s"
+       },
+       "fret": 0.22,
+       "level": {
+        "mod": [
+         {
+          "amount": -3,
+          "src": "expr.dead"
+         },
+         {
+          "amount": -2,
+          "src": "expr.h"
+         },
+         {
+          "amount": 2,
+          "src": "expr.ph"
+         }
+        ],
+        "value": "0dB"
+       },
+       "name": "string",
+       "node": {
+        "mod": [
+         {
+          "amount": 1,
+          "src": "expr.nh"
+         }
+        ],
+        "value": 0
+       },
+       "pick": 0.09,
+       "pickup": 0.065,
+       "pickup_hz": 6800,
+       "pickup_q": 2.4,
+       "pinch": {
+        "mod": [
+         {
+          "amount": 1,
+          "src": "expr.nh"
+         },
+         {
+          "amount": 1,
+          "src": "expr.ph"
+         }
+        ],
+        "value": 0
+       },
+       "polarity": {
+        "mod": [
+         {
+          "amount": -2,
+          "src": "expr.up"
+         }
+        ],
+        "value": 1
+       },
+       "soft": {
+        "mod": [
+         {
+          "amount": -0.2,
+          "src": "vel"
+         },
+         {
+          "amount": 0.3,
+          "src": "expr.pm"
+         },
+         {
+          "amount": 0.04,
+          "src": "rand"
+         }
+        ],
+        "value": 0.35
+       },
+       "stiff": 0.07,
+       "type": "pluck"
+      },
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 40,
+          "src": "env.pick"
+         },
+         {
+          "amount": 9,
+          "src": "vel"
+         },
+         {
+          "amount": -20,
+          "src": "expr.h"
+         },
+         {
+          "amount": 9,
+          "src": "expr.dead"
+         }
+        ],
+        "value": "-60dB"
+       },
+       "name": "pick",
+       "type": "noise"
+      }
+     ],
+     "pitch": {
+      "mod": [
+       {
+        "amount": 0.04,
+        "src": "rand"
+       }
+      ],
+      "value": 0
+     }
+    }
+   },
+   "tcm-rhythm": {
+    "about": "Song-local strat setup fork; event-local identity enabled; source tuning retained where supplied.",
+    "fx": [
+     {
+      "attack": "4ms",
+      "makeup": "4dB",
+      "ratio": 4,
+      "release": "120ms",
+      "threshold": "-24dB",
+      "type": "compressor"
+     },
+     {
+      "bass": 0.45,
+      "gain": 0.4,
+      "mid": 0.45,
+      "model": "twin",
+      "presence": 0.6,
+      "resonance": 0.5,
+      "sag": 0.12,
+      "tight": 70,
+      "treble": 0.62,
+      "type": "amp"
+     },
+     {
+      "distance": 0.15,
+      "mic": 0.3,
+      "model": "2x12",
+      "type": "cab"
+     },
+     "chorus mix=0.12",
+     "reverb kind=spring decay=2.2s mix=0.22"
+    ],
+    "gain": "-4dB",
+    "play": {
+     "frets": 22,
+     "gate": 0.95,
+     "humanize": {
+      "time": "4ms",
+      "vel": 0.07
+     },
+     "strum": "10ms",
+     "tuning": "F#2 B2 E3 A3 C#4 F#4",
+     "vel_sens": 0.5,
+     "voicing": "guitar",
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "1ms",
+      "r": "120ms",
+      "s": 1
+     },
+     "env": {
+      "pick": {
+       "a": "0.1ms",
+       "d": "5ms",
+       "s": 0
+      }
+     },
+     "filters": [
+      "hp cutoff=80"
+     ],
+     "layers": [
+      {
+       "bright": {
+        "mod": [
+         {
+          "amount": 0.18,
+          "src": "vel"
+         },
+         {
+          "amount": -0.35,
+          "src": "expr.pm"
+         },
+         {
+          "amount": -0.12,
+          "src": "expr.h"
+         },
+         {
+          "amount": 0.04,
+          "src": "rand"
+         }
+        ],
+        "value": 0.78
+       },
+       "choke": "80ms",
+       "click": {
+        "mod": [
+         {
+          "amount": 0.1,
+          "src": "vel"
+         }
+        ],
+        "value": 0.1
+       },
+       "decay": {
+        "mod": [
+         {
+          "amount": -3.4,
+          "src": "expr.pm"
+         },
+         {
+          "amount": -3.75,
+          "src": "expr.dead"
+         },
+         {
+          "amount": 0.4,
+          "src": "vel"
+         }
+        ],
+        "value": "3.8s"
+       },
+       "fret": 0.18,
+       "level": {
+        "mod": [
+         {
+          "amount": -8,
+          "src": "expr.dead"
+         },
+         {
+          "amount": -2,
+          "src": "expr.h"
+         }
+        ],
+        "value": "0dB"
+       },
+       "name": "string",
+       "node": {
+        "mod": [
+         {
+          "amount": 1,
+          "src": "expr.nh"
+         }
+        ],
+        "value": 0
+       },
+       "pick": 0.12,
+       "pick_hard": 0.4,
+       "pickup": 0.19,
+       "pickup_hz": 5800,
+       "pickup_q": 2.6,
+       "pinch": {
+        "mod": [
+         {
+          "amount": 1,
+          "src": "expr.nh"
+         },
+         {
+          "amount": 1,
+          "src": "expr.ph"
+         }
+        ],
+        "value": 0
+       },
+       "polarity": {
+        "mod": [
+         {
+          "amount": -2,
+          "src": "expr.up"
+         }
+        ],
+        "value": 1
+       },
+       "scrape": 0.05,
+       "squeak": "expr.move*0.5",
+       "stiff": 0.08,
+       "type": "pluck"
+      },
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 40,
+          "src": "env.pick"
+         },
+         {
+          "amount": 8,
+          "src": "vel"
+         },
+         {
+          "amount": -20,
+          "src": "expr.h"
+         },
+         {
+          "amount": 6,
+          "src": "expr.dead"
+         }
+        ],
+        "value": "-60dB"
+       },
+       "name": "pick",
+       "type": "noise"
+      }
+     ]
+    }
+   },
+   "tcm-overdub": {
+    "about": "Song-local strat setup fork; event-local identity enabled; source tuning retained where supplied.",
+    "fx": [
+     {
+      "attack": "4ms",
+      "makeup": "4dB",
+      "ratio": 4,
+      "release": "120ms",
+      "threshold": "-24dB",
+      "type": "compressor"
+     },
+     {
+      "bass": 0.45,
+      "gain": 0.4,
+      "mid": 0.45,
+      "model": "twin",
+      "presence": 0.6,
+      "resonance": 0.5,
+      "sag": 0.12,
+      "tight": 70,
+      "treble": 0.62,
+      "type": "amp"
+     },
+     {
+      "distance": 0.15,
+      "mic": 0.3,
+      "model": "2x12",
+      "type": "cab"
+     },
+     "chorus mix=0.12",
+     "reverb kind=spring decay=2.2s mix=0.22"
+    ],
+    "gain": "-4dB",
+    "play": {
+     "frets": 22,
+     "gate": 0.95,
+     "humanize": {
+      "time": "4ms",
+      "vel": 0.07
+     },
+     "strum": "10ms",
+     "tuning": "F#2 B2 E3 A3 C#4 F#4",
+     "vel_sens": 0.5,
+     "voicing": "guitar",
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "1ms",
+      "r": "120ms",
+      "s": 1
+     },
+     "env": {
+      "pick": {
+       "a": "0.1ms",
+       "d": "5ms",
+       "s": 0
+      }
+     },
+     "filters": [
+      "hp cutoff=80"
+     ],
+     "layers": [
+      {
+       "bright": {
+        "mod": [
+         {
+          "amount": 0.18,
+          "src": "vel"
+         },
+         {
+          "amount": -0.35,
+          "src": "expr.pm"
+         },
+         {
+          "amount": -0.12,
+          "src": "expr.h"
+         },
+         {
+          "amount": 0.04,
+          "src": "rand"
+         }
+        ],
+        "value": 0.78
+       },
+       "choke": "80ms",
+       "click": {
+        "mod": [
+         {
+          "amount": 0.1,
+          "src": "vel"
+         }
+        ],
+        "value": 0.1
+       },
+       "decay": {
+        "mod": [
+         {
+          "amount": -3.4,
+          "src": "expr.pm"
+         },
+         {
+          "amount": -3.75,
+          "src": "expr.dead"
+         },
+         {
+          "amount": 0.4,
+          "src": "vel"
+         }
+        ],
+        "value": "3.8s"
+       },
+       "fret": 0.18,
+       "level": {
+        "mod": [
+         {
+          "amount": -8,
+          "src": "expr.dead"
+         },
+         {
+          "amount": -2,
+          "src": "expr.h"
+         }
+        ],
+        "value": "0dB"
+       },
+       "name": "string",
+       "node": {
+        "mod": [
+         {
+          "amount": 1,
+          "src": "expr.nh"
+         }
+        ],
+        "value": 0
+       },
+       "pick": 0.12,
+       "pick_hard": 0.4,
+       "pickup": 0.19,
+       "pickup_hz": 5800,
+       "pickup_q": 2.6,
+       "pinch": {
+        "mod": [
+         {
+          "amount": 1,
+          "src": "expr.nh"
+         },
+         {
+          "amount": 1,
+          "src": "expr.ph"
+         }
+        ],
+        "value": 0
+       },
+       "polarity": {
+        "mod": [
+         {
+          "amount": -2,
+          "src": "expr.up"
+         }
+        ],
+        "value": 1
+       },
+       "scrape": 0.05,
+       "squeak": "expr.move*0.5",
+       "stiff": 0.08,
+       "type": "pluck"
+      },
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 40,
+          "src": "env.pick"
+         },
+         {
+          "amount": 8,
+          "src": "vel"
+         },
+         {
+          "amount": -20,
+          "src": "expr.h"
+         },
+         {
+          "amount": 6,
+          "src": "expr.dead"
+         }
+        ],
+        "value": "-60dB"
+       },
+       "name": "pick",
+       "type": "noise"
+      }
+     ]
+    }
+   },
+   "tcm-acoustic": {
+    "about": "Song-local acoustic setup fork; event-local identity enabled; source tuning retained where supplied.",
+    "fx": [
+     {
+      "bands": [
+       "peak cutoff=105 q=1.6 gain=3dB",
+       "peak cutoff=225 q=1.2 gain=2dB",
+       "peak cutoff=480 q=1 gain=-2.5dB",
+       "peak cutoff=2.6k q=0.9 gain=2.5dB",
+       "highshelf cutoff=7k gain=3dB",
+       "lp cutoff=14k q=0.6"
+      ],
+      "type": "eq"
+     },
+     {
+      "attack": "8ms",
+      "makeup": "2dB",
+      "ratio": 2.5,
+      "release": "150ms",
+      "threshold": "-20dB",
+      "type": "compressor"
+     },
+     "reverb kind=room decay=0.9s mix=0.14 early=0.6"
+    ],
+    "gain": "-2dB",
+    "play": {
+     "frets": 20,
+     "gate": 0.97,
+     "humanize": {
+      "time": "5ms",
+      "vel": 0.08
+     },
+     "strum": "14ms",
+     "tuning": "F#2 B2 E3 A3 C#4 F#4",
+     "vel_sens": 0.55,
+     "voicing": "guitar",
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "1ms",
+      "r": "140ms",
+      "s": 1
+     },
+     "env": {
+      "pick": {
+       "a": "0.1ms",
+       "d": "4ms",
+       "s": 0
+      }
+     },
+     "filters": [
+      "hp cutoff=75"
+     ],
+     "layers": [
+      {
+       "body": 0.45,
+       "bright": {
+        "mod": [
+         {
+          "amount": 0.26,
+          "src": "vel"
+         },
+         {
+          "amount": -0.35,
+          "src": "expr.pm"
+         },
+         {
+          "amount": -0.15,
+          "src": "expr.h"
+         },
+         {
+          "amount": -0.05,
+          "src": "expr.up"
+         },
+         {
+          "amount": 0.04,
+          "src": "rand"
+         }
+        ],
+        "value": 0.66
+       },
+       "choke": "110ms",
+       "decay": {
+        "mod": [
+         {
+          "amount": -4.1,
+          "src": "expr.pm"
+         },
+         {
+          "amount": -4.5,
+          "src": "expr.dead"
+         },
+         {
+          "amount": 0.8,
+          "src": "vel"
+         }
+        ],
+        "value": "4.6s"
+       },
+       "fret": 0.12,
+       "level": {
+        "mod": [
+         {
+          "amount": -7,
+          "src": "expr.dead"
+         },
+         {
+          "amount": -2,
+          "src": "expr.h"
+         },
+         {
+          "amount": -1,
+          "src": "expr.up"
+         }
+        ],
+        "value": "0dB"
+       },
+       "name": "string",
+       "node": {
+        "mod": [
+         {
+          "amount": 1,
+          "src": "expr.nh"
+         }
+        ],
+        "value": 0
+       },
+       "pick": 0.13,
+       "pinch": {
+        "mod": [
+         {
+          "amount": 1,
+          "src": "expr.nh"
+         },
+         {
+          "amount": 1,
+          "src": "expr.ph"
+         }
+        ],
+        "value": 0
+       },
+       "polarity": {
+        "mod": [
+         {
+          "amount": -2,
+          "src": "expr.up"
+         }
+        ],
+        "value": 1
+       },
+       "soft": {
+        "mod": [
+         {
+          "amount": -0.2,
+          "src": "vel"
+         },
+         {
+          "amount": 0.3,
+          "src": "expr.pm"
+         },
+         {
+          "amount": 0.05,
+          "src": "rand"
+         }
+        ],
+        "value": 0.2
+       },
+       "stiff": 0.12,
+       "type": "pluck"
+      },
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 38,
+          "src": "env.pick"
+         },
+         {
+          "amount": 12,
+          "src": "vel"
+         },
+         {
+          "amount": -20,
+          "src": "expr.h"
+         },
+         {
+          "amount": 8,
+          "src": "expr.dead"
+         }
+        ],
+        "value": "-60dB"
+       },
+       "name": "pick",
+       "type": "noise"
+      }
+     ]
+    }
+   },
+   "tcm-twelve": {
+    "about": "Song-local twelve-string setup fork; event-local identity enabled; source tuning retained where supplied.",
+    "fx": [
+     {
+      "bands": [
+       "peak cutoff=110 q=1.6 gain=2dB",
+       "peak cutoff=230 q=1.2 gain=2dB",
+       "peak cutoff=500 q=1 gain=-3dB",
+       "peak cutoff=3k q=0.8 gain=2dB",
+       "highshelf cutoff=7k gain=3dB",
+       "lp cutoff=14k q=0.6"
+      ],
+      "type": "eq"
+     },
+     {
+      "attack": "8ms",
+      "makeup": "2dB",
+      "ratio": 3,
+      "release": "150ms",
+      "threshold": "-20dB",
+      "type": "compressor"
+     },
+     "chorus mix=0.22 depth=0.25 rate=0.5 voices=2",
+     "reverb kind=chamber decay=1.3s mix=0.16"
+    ],
+    "gain": "-2dB",
+    "play": {
+     "frets": 19,
+     "gate": 0.97,
+     "humanize": {
+      "time": "5ms",
+      "vel": 0.08
+     },
+     "strum": "16ms",
+     "tuning": "F#2 B2 E3 A3 C#4 F#4",
+     "vel_sens": 0.55,
+     "voicing": "guitar",
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "1ms",
+      "r": "160ms",
+      "s": 1
+     },
+     "env": {
+      "pick": {
+       "a": "0.1ms",
+       "d": "5ms",
+       "s": 0
+      }
+     },
+     "filters": [
+      "hp cutoff=80"
+     ],
+     "layers": [
+      {
+       "body": 0.4,
+       "bright": {
+        "mod": [
+         {
+          "amount": 0.26,
+          "src": "vel"
+         },
+         {
+          "amount": -0.35,
+          "src": "expr.pm"
+         },
+         {
+          "amount": -0.15,
+          "src": "expr.h"
+         },
+         {
+          "amount": 0.04,
+          "src": "rand"
+         }
+        ],
+        "value": 0.64
+       },
+       "choke": "110ms",
+       "decay": {
+        "mod": [
+         {
+          "amount": -3.9,
+          "src": "expr.pm"
+         },
+         {
+          "amount": -4.3,
+          "src": "expr.dead"
+         },
+         {
+          "amount": 0.8,
+          "src": "vel"
+         }
+        ],
+        "value": "4.4s"
+       },
+       "fret": 0.1,
+       "level": {
+        "mod": [
+         {
+          "amount": -7,
+          "src": "expr.dead"
+         },
+         {
+          "amount": -2,
+          "src": "expr.h"
+         },
+         {
+          "amount": -1,
+          "src": "expr.up"
+         }
+        ],
+        "value": "0dB"
+       },
+       "name": "string",
+       "node": {
+        "mod": [
+         {
+          "amount": 1,
+          "src": "expr.nh"
+         }
+        ],
+        "value": 0
+       },
+       "pan": -0.2,
+       "pick": 0.13,
+       "pinch": {
+        "mod": [
+         {
+          "amount": 1,
+          "src": "expr.nh"
+         },
+         {
+          "amount": 1,
+          "src": "expr.ph"
+         }
+        ],
+        "value": 0
+       },
+       "polarity": {
+        "mod": [
+         {
+          "amount": -2,
+          "src": "expr.up"
+         }
+        ],
+        "value": 1
+       },
+       "soft": {
+        "mod": [
+         {
+          "amount": -0.2,
+          "src": "vel"
+         },
+         {
+          "amount": 0.3,
+          "src": "expr.pm"
+         },
+         {
+          "amount": 0.05,
+          "src": "rand"
+         }
+        ],
+        "value": 0.2
+       },
+       "stiff": 0.12,
+       "type": "pluck"
+      },
+      {
+       "body": 0.2,
+       "bright": {
+        "mod": [
+         {
+          "amount": 0.22,
+          "src": "vel"
+         },
+         {
+          "amount": -0.35,
+          "src": "expr.pm"
+         },
+         {
+          "amount": 0.06,
+          "src": "rand"
+         }
+        ],
+        "value": 0.72
+       },
+       "cents": 4,
+       "choke": "90ms",
+       "decay": {
+        "mod": [
+         {
+          "amount": -2.9,
+          "src": "expr.pm"
+         },
+         {
+          "amount": -3.15,
+          "src": "expr.dead"
+         },
+         {
+          "amount": 0.5,
+          "src": "vel"
+         }
+        ],
+        "value": "3.2s"
+       },
+       "level": {
+        "mod": [
+         {
+          "amount": -6,
+          "src": "key"
+         },
+         {
+          "amount": -9,
+          "src": "expr.dead"
+         },
+         {
+          "amount": -6,
+          "src": "expr.h"
+         },
+         {
+          "amount": 1.5,
+          "src": "rand"
+         }
+        ],
+        "value": "-9dB"
+       },
+       "name": "octave",
+       "pan": 0.3,
+       "pick": 0.2,
+       "polarity": {
+        "mod": [
+         {
+          "amount": -2,
+          "src": "expr.up"
+         }
+        ],
+        "value": 1
+       },
+       "ratio": 2,
+       "stiff": 0.04,
+       "type": "pluck"
+      },
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 38,
+          "src": "env.pick"
+         },
+         {
+          "amount": 12,
+          "src": "vel"
+         },
+         {
+          "amount": -20,
+          "src": "expr.h"
+         },
+         {
+          "amount": 8,
+          "src": "expr.dead"
+         }
+        ],
+        "value": "-60dB"
+       },
+       "name": "pick",
+       "type": "noise"
+      }
+     ]
+    }
+   },
+   "tcm-bass": {
+    "about": "Song-local pick-bass setup fork; event-local identity enabled; source tuning retained where supplied.",
+    "fx": [
+     {
+      "attack": "6ms",
+      "makeup": "3dB",
+      "ratio": 4,
+      "release": "110ms",
+      "threshold": "-22dB",
+      "type": "compressor"
+     },
+     {
+      "bass": 0.6,
+      "gain": 0.55,
+      "mid": 0.6,
+      "mix": 0.55,
+      "model": "clean",
+      "presence": 0.5,
+      "resonance": 0.55,
+      "sag": 0.3,
+      "tight": 40,
+      "treble": 0.55,
+      "type": "amp"
+     },
+     {
+      "distance": 0.1,
+      "mic": 0.3,
+      "mix": 0.6,
+      "model": "4x10",
+      "type": "cab"
+     }
+    ],
+    "gain": "-1dB",
+    "play": {
+     "gate": 0.9,
+     "humanize": {
+      "time": "4ms",
+      "vel": 0.06
+     },
+     "mono": false,
+     "oct": 2,
+     "pick_grid": 0.5,
+     "vel_sens": 0.45,
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "1ms",
+      "r": "70ms",
+      "s": 1
+     },
+     "env": {
+      "pick": {
+       "a": "0.1ms",
+       "d": "5ms",
+       "s": 0
+      },
+      "twang": {
+       "a": "0.2ms",
+       "d": "45ms",
+       "s": 0
+      }
+     },
+     "filters": [
+      "hp cutoff=32"
+     ],
+     "layers": [
+      {
+       "bright": {
+        "mod": [
+         {
+          "amount": 0.24,
+          "src": "vel"
+         },
+         {
+          "amount": -0.32,
+          "src": "expr.pm"
+         },
+         {
+          "amount": -0.05,
+          "src": "expr.up"
+         },
+         {
+          "amount": -0.15,
+          "src": "expr.h"
+         },
+         {
+          "amount": 0.04,
+          "src": "rand"
+         }
+        ],
+        "value": 0.62
+       },
+       "buzz": {
+        "mod": [
+         {
+          "amount": 0.05,
+          "src": "rand"
+         }
+        ],
+        "value": 0.16
+       },
+       "choke": "60ms",
+       "decay": {
+        "mod": [
+         {
+          "amount": -3.9,
+          "src": "expr.pm"
+         },
+         {
+          "amount": -4.44,
+          "src": "expr.dead"
+         },
+         {
+          "amount": 0.6,
+          "src": "vel"
+         }
+        ],
+        "value": "4.5s"
+       },
+       "fret": 0.3,
+       "level": {
+        "mod": [
+         {
+          "amount": -6,
+          "src": "expr.dead"
+         },
+         {
+          "amount": -3,
+          "src": "expr.h"
+         },
+         {
+          "amount": -0.8,
+          "src": "expr.up"
+         }
+        ],
+        "value": "0dB"
+       },
+       "name": "string",
+       "node": {
+        "mod": [
+         {
+          "amount": 1,
+          "src": "expr.nh"
+         }
+        ],
+        "value": 0
+       },
+       "pick": 0.1,
+       "pickup": 0.11,
+       "pickup_hz": 3000,
+       "pickup_q": 1.5,
+       "pinch": {
+        "mod": [
+         {
+          "amount": 1,
+          "src": "expr.ph"
+         },
+         {
+          "amount": 1,
+          "src": "expr.nh"
+         }
+        ],
+        "value": 0
+       },
+       "polarity": {
+        "mod": [
+         {
+          "amount": -2,
+          "src": "expr.up"
+         }
+        ],
+        "value": 1
+       },
+       "soft": {
+        "mod": [
+         {
+          "amount": -0.25,
+          "src": "vel"
+         },
+         {
+          "amount": 0.3,
+          "src": "expr.pm"
+         },
+         {
+          "amount": 0.05,
+          "src": "rand"
+         }
+        ],
+        "value": 0.55
+       },
+       "stiff": 0.34,
+       "type": "pluck"
+      },
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 40,
+          "src": "env.pick"
+         },
+         {
+          "amount": 10,
+          "src": "vel"
+         },
+         {
+          "amount": -20,
+          "src": "expr.h"
+         },
+         {
+          "amount": 6,
+          "src": "expr.dead"
+         },
+         {
+          "amount": -2,
+          "src": "expr.up"
+         }
+        ],
+        "value": "-60dB"
+       },
+       "name": "pick",
+       "type": "noise"
+      }
+     ],
+     "pitch": {
+      "mod": [
+       {
+        "amount": 0.18,
+        "src": "env.twang"
+       },
+       {
+        "amount": 0.03,
+        "src": "rand"
+       }
+      ],
+      "value": 0
+     }
+    }
+   },
+   "tcm-voice": {
+    "about": "Sampleless open-vowel baritone melodic stand-in; NOT intelligible lyrics/TTS.",
+    "fx": [
+     "reverb kind=plate decay=1.8s mix=0.14 predelay=25ms"
+    ],
+    "play": {
+     "glide": "70ms",
+     "humanize": {
+      "time": "6ms",
+      "vel": 0.05
+     },
+     "mono": true,
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "60ms",
+      "d": "0s",
+      "r": "220ms",
+      "s": 1
+     },
+     "layers": [
+      {
+       "breath": {
+        "mod": [
+         {
+          "amount": -0.12,
+          "src": "vel"
+         }
+        ],
+        "value": 0.25
+       },
+       "bright": 0.6,
+       "coda": "expr.off",
+       "effort": {
+        "value": 0.2,
+        "mod": [
+         {
+          "src": "vel",
+          "amount": 0.25
+         }
+        ]
+       },
+       "onset": "expr.on",
+       "rasp": {
+        "mod": [
+         {
+          "amount": 1,
+          "src": "expr.rasp"
+         }
+        ],
+        "value": 0
+       },
+       "ring": 0.35,
+       "type": "voice",
+       "vary": 0.5,
+       "vowel": {
+        "value": 0.62,
+        "mod": [
+         {
+          "src": "expr.dvow",
+          "amount": 1
+         }
+        ]
+       }
+      }
+     ],
+     "lfo": {
+      "vib": {
+       "delay": "320ms",
+       "fade": "500ms",
+       "rate": "5.2hz",
+       "retrig": true,
+       "wave": "sine"
+      }
+     },
+     "pitch": {
+      "mod": [
+       {
+        "amount": 0.18,
+        "src": "lfo.vib"
+       }
+      ],
+      "value": 0
+     }
+    }
+   },
+   "tcm-kit": {
+    "about": "Song-local rock-kit setup fork; event-local identity enabled; source tuning retained where supplied.",
+    "fx": [
+     {
+      "attack": "12ms",
+      "makeup": "2dB",
+      "ratio": 2.5,
+      "release": "120ms",
+      "threshold": "-13dB",
+      "type": "compressor"
+     },
+     {
+      "bands": [
+       "hp cutoff=30",
+       "peak cutoff=420 q=1 gain=-2.5dB",
+       "highshelf cutoff=8k gain=2dB"
+      ],
+      "type": "eq"
+     },
+     "gain gain=-6dB",
+     "tape drive=0.12 warmth=0.3",
+     "reverb kind=room decay=1.1s mix=0.16 early=0.8 predelay=8ms"
+    ],
+    "gain": "3dB",
+    "kit": {
+     "c": {
+      "gain": "-8dB",
+      "pan": -0.4,
+      "patch": {
+       "play": {
+        "vel_sens": 0.6
+       },
+       "synth": {
+        "amp": {
+         "a": "1ms",
+         "curve": 6,
+         "d": "2.6s",
+         "r": "300ms",
+         "s": 0
+        },
+        "filters": [
+         "hp cutoff=1.2k",
+         "peak cutoff=4.5k q=0.7 gain=5dB",
+         {
+          "cutoff": {
+           "mod": [
+            {
+             "amount": 1.1,
+             "src": "vel"
+            }
+           ],
+           "value": "7k"
+          },
+          "kind": "lp"
+         }
+        ],
+        "layers": [
+         {
+          "type": "noise"
+         },
+         {
+          "color": "pink",
+          "level": "-6dB",
+          "type": "noise"
+         },
+         {
+          "damp": 0.7,
+          "fixed": 410,
+          "level": "-14dB",
+          "partials": [
+           [
+            1,
+            0.5
+           ],
+           [
+            1.53,
+            0.6
+           ],
+           [
+            2.21,
+            0.7
+           ],
+           [
+            2.87,
+            0.6
+           ],
+           [
+            3.61,
+            0.8
+           ],
+           [
+            4.42,
+            0.7
+           ],
+           [
+            5.38,
+            0.6
+           ],
+           [
+            6.53,
+            0.5
+           ],
+           [
+            7.9,
+            0.4
+           ]
+          ],
+          "type": "additive"
+         }
+        ],
+        "pitch": {
+         "mod": [
+          {
+           "amount": 0.4,
+           "src": "rand"
+          }
+         ],
+         "value": 0
+        }
+       }
+      }
+     },
+     "c2": {
+      "gain": "-9dB",
+      "pan": 0.45,
+      "patch": {
+       "play": {
+        "vel_sens": 0.6
+       },
+       "synth": {
+        "amp": {
+         "a": "0.8ms",
+         "curve": 6,
+         "d": "1.7s",
+         "r": "250ms",
+         "s": 0
+        },
+        "filters": [
+         "hp cutoff=1.8k",
+         "peak cutoff=6k q=0.7 gain=5dB",
+         {
+          "cutoff": {
+           "mod": [
+            {
+             "amount": 1,
+             "src": "vel"
+            }
+           ],
+           "value": "8k"
+          },
+          "kind": "lp"
+         }
+        ],
+        "layers": [
+         {
+          "type": "noise"
+         },
+         {
+          "color": "pink",
+          "level": "-6dB",
+          "type": "noise"
+         },
+         {
+          "damp": 0.7,
+          "fixed": 410,
+          "level": "-14dB",
+          "partials": [
+           [
+            1,
+            0.5
+           ],
+           [
+            1.53,
+            0.6
+           ],
+           [
+            2.21,
+            0.7
+           ],
+           [
+            2.87,
+            0.6
+           ],
+           [
+            3.61,
+            0.8
+           ],
+           [
+            4.42,
+            0.7
+           ],
+           [
+            5.38,
+            0.6
+           ],
+           [
+            6.53,
+            0.5
+           ],
+           [
+            7.9,
+            0.4
+           ]
+          ],
+          "type": "additive"
+         }
+        ],
+        "pitch": {
+         "mod": [
+          {
+           "amount": 0.4,
+           "src": "rand"
+          }
+         ],
+         "value": 4
+        }
+       }
+      },
+      "pitch": "G4"
+     },
+     "ft": {
+      "pan": 0.3,
+      "patch": {
+       "play": {
+        "vel_sens": 0.55
+       },
+       "synth": {
+        "amp": {
+         "a": "0.3ms",
+         "curve": 4,
+         "d": "800ms",
+         "r": "60ms",
+         "s": 0
+        },
+        "drive": 0.1,
+        "env": {
+         "att": {
+          "a": "0.1ms",
+          "d": "6ms",
+          "s": 0
+         },
+         "p": {
+          "a": "0.3ms",
+          "curve": 3,
+          "d": "150ms",
+          "s": 0
+         }
+        },
+        "filters": [
+         "hp cutoff=45",
+         "peak cutoff=3k q=1 gain=2dB",
+         {
+          "cutoff": {
+           "mod": [
+            {
+             "amount": 1,
+             "src": "vel"
+            }
+           ],
+           "value": "4k"
+          },
+          "kind": "lp"
+         }
+        ],
+        "layers": [
+         {
+          "name": "head",
+          "wave": "sine"
+         },
+         {
+          "damp": 5,
+          "level": {
+           "mod": [
+            {
+             "amount": 6,
+             "src": "vel"
+            }
+           ],
+           "value": "-10dB"
+          },
+          "name": "modes",
+          "partials": [
+           [
+            1.59,
+            0.5
+           ],
+           [
+            2.14,
+            0.3
+           ],
+           [
+            2.65,
+            0.15
+           ]
+          ],
+          "type": "additive"
+         },
+         {
+          "level": {
+           "mod": [
+            {
+             "amount": 56,
+             "src": "env.att"
+            },
+            {
+             "amount": 8,
+             "src": "vel"
+            }
+           ],
+           "value": "-66dB"
+          },
+          "name": "stick",
+          "type": "noise"
+         }
+        ],
+        "pitch": {
+         "mod": [
+          {
+           "amount": 2.5,
+           "src": "env.p"
+          },
+          {
+           "amount": 1,
+           "src": "vel"
+          },
+          {
+           "amount": 0.2,
+           "src": "rand"
+          }
+         ],
+         "value": 0
+        }
+       }
+      },
+      "pitch": "F2"
+     },
+     "ft2": {
+      "pan": 0.4,
+      "patch": {
+       "play": {
+        "vel_sens": 0.55
+       },
+       "synth": {
+        "amp": {
+         "a": "0.3ms",
+         "curve": 4,
+         "d": "800ms",
+         "r": "60ms",
+         "s": 0
+        },
+        "drive": 0.1,
+        "env": {
+         "att": {
+          "a": "0.1ms",
+          "d": "6ms",
+          "s": 0
+         },
+         "p": {
+          "a": "0.3ms",
+          "curve": 3,
+          "d": "150ms",
+          "s": 0
+         }
+        },
+        "filters": [
+         "hp cutoff=45",
+         "peak cutoff=3k q=1 gain=2dB",
+         {
+          "cutoff": {
+           "mod": [
+            {
+             "amount": 1,
+             "src": "vel"
+            }
+           ],
+           "value": "4k"
+          },
+          "kind": "lp"
+         }
+        ],
+        "layers": [
+         {
+          "name": "head",
+          "wave": "sine"
+         },
+         {
+          "damp": 5,
+          "level": {
+           "mod": [
+            {
+             "amount": 6,
+             "src": "vel"
+            }
+           ],
+           "value": "-10dB"
+          },
+          "name": "modes",
+          "partials": [
+           [
+            1.59,
+            0.5
+           ],
+           [
+            2.14,
+            0.3
+           ],
+           [
+            2.65,
+            0.15
+           ]
+          ],
+          "type": "additive"
+         },
+         {
+          "level": {
+           "mod": [
+            {
+             "amount": 56,
+             "src": "env.att"
+            },
+            {
+             "amount": 8,
+             "src": "vel"
+            }
+           ],
+           "value": "-66dB"
+          },
+          "name": "stick",
+          "type": "noise"
+         }
+        ],
+        "pitch": {
+         "mod": [
+          {
+           "amount": 2.5,
+           "src": "env.p"
+          },
+          {
+           "amount": 1,
+           "src": "vel"
+          },
+          {
+           "amount": 0.2,
+           "src": "rand"
+          }
+         ],
+         "value": 0
+        }
+       }
+      },
+      "pitch": "D2"
+     },
+     "g": {
+      "gain": "-9dB",
+      "patch": {
+       "play": {
+        "vel_sens": 0.35
+       },
+       "synth": {
+        "amp": {
+         "a": "0.3ms",
+         "d": "160ms",
+         "r": "20ms",
+         "s": 0
+        },
+        "env": {
+         "body": {
+          "a": "0.3ms",
+          "curve": 4,
+          "d": "40ms",
+          "s": 0
+         },
+         "wires": {
+          "a": "0.3ms",
+          "curve": 4,
+          "d": "100ms",
+          "s": 0
+         }
+        },
+        "filters": [
+         "hp cutoff=220",
+         "peak cutoff=5k q=1 gain=3dB",
+         {
+          "cutoff": {
+           "mod": [
+            {
+             "amount": 1,
+             "src": "vel"
+            }
+           ],
+           "value": "5k"
+          },
+          "kind": "lp"
+         }
+        ],
+        "layers": [
+         {
+          "level": {
+           "mod": [
+            {
+             "amount": 46,
+             "src": "env.body"
+            }
+           ],
+           "value": "-60dB"
+          },
+          "name": "body",
+          "wave": "triangle"
+         },
+         {
+          "level": {
+           "mod": [
+            {
+             "amount": 62,
+             "src": "env.wires"
+            }
+           ],
+           "value": "-66dB"
+          },
+          "name": "wires",
+          "type": "noise"
+         }
+        ],
+        "pitch": {
+         "mod": [
+          {
+           "amount": 0.3,
+           "src": "rand"
+          }
+         ],
+         "value": 0
+        }
+       }
+      },
+      "pitch": "G3"
+     },
+     "h": {
+      "choke": "hat",
+      "gain": "-9dB",
+      "pan": -0.3,
+      "patch": {
+       "play": {
+        "vel_sens": 0.65
+       },
+       "synth": {
+        "amp": {
+         "a": "0.3ms",
+         "curve": 5,
+         "d": "55ms",
+         "r": "15ms",
+         "s": 0
+        },
+        "filters": [
+         {
+          "cutoff": {
+           "mod": [
+            {
+             "amount": -0.7,
+             "src": "vel"
+            },
+            {
+             "amount": 0.1,
+             "src": "rand"
+            }
+           ],
+           "value": "7.5k"
+          },
+          "kind": "hp",
+          "q": 0.8
+         },
+         {
+          "cutoff": {
+           "mod": [
+            {
+             "amount": 0.8,
+             "src": "vel"
+            }
+           ],
+           "value": "9k"
+          },
+          "kind": "lp"
+         },
+         "peak cutoff=10k q=1 gain=2dB"
+        ],
+        "layers": [
+         "white",
+         "square fixed=540 level=-14dB",
+         "square fixed=800 level=-14dB",
+         "square fixed=1170 level=-16dB",
+         "square fixed=1640 level=-18dB"
+        ],
+        "pitch": {
+         "mod": [
+          {
+           "amount": 0.4,
+           "src": "rand"
+          }
+         ],
+         "value": 0
+        }
+       }
+      }
+     },
+     "hh": {
+      "choke": "hat",
+      "gain": "-10dB",
+      "pan": -0.3,
+      "patch": {
+       "play": {
+        "vel_sens": 0.6
+       },
+       "synth": {
+        "amp": {
+         "a": "0.5ms",
+         "curve": 4,
+         "d": "180ms",
+         "r": "40ms",
+         "s": 0
+        },
+        "filters": [
+         {
+          "cutoff": {
+           "mod": [
+            {
+             "amount": -0.7,
+             "src": "vel"
+            },
+            {
+             "amount": 0.1,
+             "src": "rand"
+            }
+           ],
+           "value": "7.5k"
+          },
+          "kind": "hp",
+          "q": 0.8
+         },
+         {
+          "cutoff": {
+           "mod": [
+            {
+             "amount": 0.8,
+             "src": "vel"
+            }
+           ],
+           "value": "9k"
+          },
+          "kind": "lp"
+         },
+         "peak cutoff=10k q=1 gain=2dB"
+        ],
+        "layers": [
+         "white",
+         "square fixed=540 level=-14dB",
+         "square fixed=800 level=-14dB",
+         "square fixed=1170 level=-16dB",
+         "square fixed=1640 level=-18dB"
+        ],
+        "pitch": {
+         "mod": [
+          {
+           "amount": 0.4,
+           "src": "rand"
+          }
+         ],
+         "value": 0
+        }
+       }
+      }
+     },
+     "hp": {
+      "choke": "hat",
+      "gain": "-10dB",
+      "pan": -0.3,
+      "patch": {
+       "play": {
+        "vel_sens": 0.5
+       },
+       "synth": {
+        "amp": {
+         "a": "0.8ms",
+         "curve": 4,
+         "d": "35ms",
+         "r": "10ms",
+         "s": 0
+        },
+        "filters": [
+         "bp cutoff=4.5k q=0.9",
+         "hp cutoff=1.5k"
+        ],
+        "layers": [
+         "white",
+         "square fixed=540 level=-14dB",
+         "square fixed=800 level=-14dB",
+         "square fixed=1170 level=-16dB",
+         "square fixed=1640 level=-18dB"
+        ],
+        "pitch": {
+         "mod": [
+          {
+           "amount": 0.3,
+           "src": "rand"
+          }
+         ],
+         "value": 0
+        }
+       }
+      }
+     },
+     "k": {
+      "patch": {
+       "play": {
+        "vel_sens": 0.5
+       },
+       "synth": {
+        "amp": {
+         "a": "0.3ms",
+         "curve": 4,
+         "d": "360ms",
+         "r": "35ms",
+         "s": 0
+        },
+        "drive": {
+         "mod": [
+          {
+           "amount": 0.15,
+           "src": "vel"
+          }
+         ],
+         "value": 0.1
+        },
+        "env": {
+         "click": {
+          "a": "0.1ms",
+          "curve": 3,
+          "d": "5ms",
+          "s": 0
+         },
+         "knock": {
+          "a": "0.3ms",
+          "d": "30ms",
+          "s": 0
+         },
+         "p": {
+          "a": "0.3ms",
+          "curve": 5,
+          "d": "30ms",
+          "s": 0
+         }
+        },
+        "filters": [
+         "lowshelf cutoff=70 gain=3dB",
+         {
+          "cutoff": "3k",
+          "gain": {
+           "mod": [
+            {
+             "amount": 6,
+             "src": "vel"
+            }
+           ],
+           "value": "0dB"
+          },
+          "kind": "peak",
+          "q": 1
+         },
+         {
+          "cutoff": {
+           "mod": [
+            {
+             "amount": 1.2,
+             "src": "vel"
+            }
+           ],
+           "value": "4k"
+          },
+          "kind": "lp"
+         }
+        ],
+        "layers": [
+         {
+          "name": "body",
+          "wave": "sine"
+         },
+         {
+          "level": {
+           "mod": [
+            {
+             "amount": 52,
+             "src": "env.knock"
+            },
+            {
+             "amount": 2,
+             "src": "rand"
+            }
+           ],
+           "value": "-60dB"
+          },
+          "name": "knock",
+          "ratio": 2.05,
+          "wave": "sine"
+         },
+         {
+          "level": {
+           "mod": [
+            {
+             "amount": 56,
+             "src": "env.click"
+            },
+            {
+             "amount": 12,
+             "src": "vel"
+            },
+            {
+             "amount": 2,
+             "src": "rand"
+            }
+           ],
+           "value": "-66dB"
+          },
+          "name": "beater",
+          "type": "noise"
+         },
+         {
+          "fixed": 2600,
+          "level": {
+           "mod": [
+            {
+             "amount": 50,
+             "src": "env.click"
+            },
+            {
+             "amount": 12,
+             "src": "vel"
+            }
+           ],
+           "value": "-66dB"
+          },
+          "name": "tick",
+          "wave": "triangle"
+         }
+        ],
+        "pitch": {
+         "mod": [
+          {
+           "amount": 20,
+           "src": "env.p"
+          },
+          {
+           "amount": 0.3,
+           "src": "rand"
+          }
+         ],
+         "value": 0
+        }
+       }
+      },
+      "pitch": "G1"
+     },
+     "oh": {
+      "choke": "hat",
+      "gain": "-10dB",
+      "pan": -0.3,
+      "patch": {
+       "play": {
+        "vel_sens": 0.6
+       },
+       "synth": {
+        "amp": {
+         "a": "0.5ms",
+         "curve": 4,
+         "d": "650ms",
+         "r": "90ms",
+         "s": 0
+        },
+        "filters": [
+         {
+          "cutoff": {
+           "mod": [
+            {
+             "amount": -0.7,
+             "src": "vel"
+            },
+            {
+             "amount": 0.1,
+             "src": "rand"
+            }
+           ],
+           "value": "7.5k"
+          },
+          "kind": "hp",
+          "q": 0.8
+         },
+         {
+          "cutoff": {
+           "mod": [
+            {
+             "amount": 0.8,
+             "src": "vel"
+            }
+           ],
+           "value": "9k"
+          },
+          "kind": "lp"
+         },
+         "peak cutoff=10k q=1 gain=2dB"
+        ],
+        "layers": [
+         "white",
+         "square fixed=540 level=-14dB",
+         "square fixed=800 level=-14dB",
+         "square fixed=1170 level=-16dB",
+         "square fixed=1640 level=-18dB"
+        ],
+        "pitch": {
+         "mod": [
+          {
+           "amount": 0.4,
+           "src": "rand"
+          }
+         ],
+         "value": 0
+        }
+       }
+      }
+     },
+     "rb": {
+      "choke": "ride",
+      "gain": "-13dB",
+      "pan": 0.4,
+      "patch": {
+       "play": {
+        "vel_sens": 0.5
+       },
+       "synth": {
+        "amp": {
+         "a": "0.3ms",
+         "curve": 6,
+         "d": "1.8s",
+         "r": "200ms",
+         "s": 0
+        },
+        "filters": [
+         "hp cutoff=500",
+         "peak cutoff=4k q=0.7 gain=3dB",
+         {
+          "cutoff": {
+           "mod": [
+            {
+             "amount": 0.8,
+             "src": "vel"
+            }
+           ],
+           "value": "7k"
+          },
+          "kind": "lp"
+         }
+        ],
+        "layers": [
+         {
+          "damp": 0.6,
+          "fixed": 720,
+          "level": "-4dB",
+          "partials": [
+           [
+            1,
+            0.8
+           ],
+           [
+            1.1,
+            0.7
+           ],
+           [
+            1.64,
+            0.65
+           ],
+           [
+            2.19,
+            0.6
+           ],
+           [
+            2.26,
+            0.45
+           ],
+           [
+            2.81,
+            0.5
+           ],
+           [
+            3.39,
+            0.45
+           ],
+           [
+            4.02,
+            0.4
+           ],
+           [
+            4.69,
+            0.35
+           ],
+           [
+            5.47,
+            0.3
+           ],
+           [
+            6.33,
+            0.25
+           ]
+          ],
+          "type": "additive"
+         },
+         {
+          "level": {
+           "mod": [
+            {
+             "amount": 8,
+             "src": "vel"
+            }
+           ],
+           "value": "-4dB"
+          },
+          "type": "noise"
+         }
+        ],
+        "pitch": {
+         "mod": [
+          {
+           "amount": 0.2,
+           "src": "rand"
+          }
+         ],
+         "value": 0
+        }
+       }
+      }
+     },
+     "rd": {
+      "choke": "ride",
+      "gain": "-9dB",
+      "pan": 0.4,
+      "patch": {
+       "play": {
+        "vel_sens": 0.5
+       },
+       "synth": {
+        "amp": {
+         "a": "0.5ms",
+         "curve": 6,
+         "d": "2.4s",
+         "r": "200ms",
+         "s": 0
+        },
+        "env": {
+         "ping": {
+          "a": "0.1ms",
+          "d": "50ms",
+          "s": 0
+         }
+        },
+        "filters": [
+         "hp cutoff=2k",
+         "peak cutoff=5k q=0.8 gain=3dB",
+         {
+          "cutoff": {
+           "mod": [
+            {
+             "amount": 0.8,
+             "src": "vel"
+            }
+           ],
+           "value": "8k"
+          },
+          "kind": "lp"
+         }
+        ],
+        "layers": [
+         {
+          "damp": 1.2,
+          "fixed": 1050,
+          "level": {
+           "mod": [
+            {
+             "amount": 6,
+             "src": "env.ping"
+            }
+           ],
+           "value": "-10dB"
+          },
+          "name": "ping",
+          "partials": [
+           [
+            1,
+            0.7
+           ],
+           [
+            1.47,
+            0.4
+           ],
+           [
+            2.06,
+            0.5
+           ],
+           [
+            2.68,
+            0.35
+           ],
+           [
+            3.39,
+            0.35
+           ],
+           [
+            4.21,
+            0.2
+           ]
+          ],
+          "type": "additive"
+         },
+         {
+          "level": {
+           "mod": [
+            {
+             "amount": 8,
+             "src": "vel"
+            },
+            {
+             "amount": 1,
+             "src": "rand"
+            }
+           ],
+           "value": "-12dB"
+          },
+          "name": "wash",
+          "type": "noise"
+         }
+        ],
+        "pitch": {
+         "mod": [
+          {
+           "amount": 0.25,
+           "src": "rand"
+          }
+         ],
+         "value": 0
+        }
+       }
+      }
+     },
+     "rs": {
+      "gain": "1dB",
+      "patch": {
+       "play": {
+        "vel_sens": 0.5
+       },
+       "synth": {
+        "amp": {
+         "a": "0.1ms",
+         "d": "400ms",
+         "r": "30ms",
+         "s": 0
+        },
+        "drive": 0.2,
+        "env": {
+         "body": {
+          "a": "0.2ms",
+          "curve": 4,
+          "d": "130ms",
+          "s": 0
+         },
+         "crack": {
+          "a": "0.1ms",
+          "d": "12ms",
+          "s": 0
+         },
+         "p": {
+          "a": "0.2ms",
+          "d": "18ms",
+          "s": 0
+         },
+         "rim": {
+          "a": "0.1ms",
+          "curve": 4,
+          "d": "35ms",
+          "s": 0
+         },
+         "ring": {
+          "a": "0.1ms",
+          "curve": 4,
+          "d": "200ms",
+          "s": 0
+         },
+         "wires": {
+          "a": "0.3ms",
+          "curve": 4,
+          "d": "260ms",
+          "s": 0
+         }
+        },
+        "filters": [
+         "hp cutoff=130",
+         "peak cutoff=5.5k q=0.9 gain=4dB",
+         {
+          "cutoff": {
+           "mod": [
+            {
+             "amount": 0.8,
+             "src": "vel"
+            }
+           ],
+           "value": "7k"
+          },
+          "kind": "lp"
+         }
+        ],
+        "layers": [
+         {
+          "level": {
+           "mod": [
+            {
+             "amount": 58,
+             "src": "env.body"
+            }
+           ],
+           "value": "-60dB"
+          },
+          "name": "body",
+          "wave": "triangle"
+         },
+         {
+          "fixed": 1600,
+          "level": {
+           "mod": [
+            {
+             "amount": 56,
+             "src": "env.rim"
+            },
+            {
+             "amount": 2,
+             "src": "rand"
+            }
+           ],
+           "value": "-66dB"
+          },
+          "name": "rim",
+          "wave": "square"
+         },
+         {
+          "fixed": 2950,
+          "level": {
+           "mod": [
+            {
+             "amount": 50,
+             "src": "env.ring"
+            },
+            {
+             "amount": 4,
+             "src": "vel"
+            }
+           ],
+           "value": "-66dB"
+          },
+          "name": "ring",
+          "wave": "sine"
+         },
+         {
+          "level": {
+           "mod": [
+            {
+             "amount": 62,
+             "src": "env.wires"
+            }
+           ],
+           "value": "-66dB"
+          },
+          "name": "wires",
+          "type": "noise"
+         },
+         {
+          "level": {
+           "mod": [
+            {
+             "amount": 66,
+             "src": "env.crack"
+            },
+            {
+             "amount": 6,
+             "src": "vel"
+            }
+           ],
+           "value": "-70dB"
+          },
+          "name": "crack",
+          "type": "noise"
+         }
+        ],
+        "pitch": {
+         "mod": [
+          {
+           "amount": 5,
+           "src": "env.p"
+          },
+          {
+           "amount": 0.2,
+           "src": "rand"
+          }
+         ],
+         "value": 0
+        }
+       }
+      },
+      "pitch": "G3"
+     },
+     "s": {
+      "patch": {
+       "play": {
+        "vel_sens": 0.7
+       },
+       "synth": {
+        "amp": {
+         "a": "0.2ms",
+         "d": "380ms",
+         "r": "30ms",
+         "s": 0
+        },
+        "drive": 0.15,
+        "env": {
+         "body": {
+          "a": "0.3ms",
+          "curve": 4,
+          "d": "130ms",
+          "s": 0
+         },
+         "crack": {
+          "a": "0.1ms",
+          "d": "12ms",
+          "s": 0
+         },
+         "p": {
+          "a": "0.2ms",
+          "d": "18ms",
+          "s": 0
+         },
+         "ring": {
+          "a": "0.3ms",
+          "curve": 3,
+          "d": "220ms",
+          "s": 0
+         },
+         "wires": {
+          "a": "0.5ms",
+          "curve": 4,
+          "d": "260ms",
+          "s": 0
+         }
+        },
+        "filters": [
+         "hp cutoff=120",
+         {
+          "cutoff": {
+           "mod": [
+            {
+             "amount": 0.2,
+             "src": "rand"
+            }
+           ],
+           "value": "5k"
+          },
+          "gain": {
+           "mod": [
+            {
+             "amount": 7,
+             "src": "vel"
+            }
+           ],
+           "value": "0dB"
+          },
+          "kind": "peak",
+          "q": 0.8
+         },
+         "peak cutoff=900 q=1 gain=-2dB",
+         {
+          "cutoff": {
+           "mod": [
+            {
+             "amount": 1.6,
+             "src": "vel"
+            }
+           ],
+           "value": "5k"
+          },
+          "kind": "lp"
+         }
+        ],
+        "layers": [
+         {
+          "level": {
+           "mod": [
+            {
+             "amount": 60,
+             "src": "env.body"
+            }
+           ],
+           "value": "-60dB"
+          },
+          "name": "body",
+          "wave": "triangle"
+         },
+         {
+          "level": {
+           "mod": [
+            {
+             "amount": 50,
+             "src": "env.ring"
+            },
+            {
+             "amount": 3,
+             "src": "rand"
+            }
+           ],
+           "value": "-60dB"
+          },
+          "name": "shell",
+          "ratio": 1.58,
+          "wave": "sine"
+         },
+         {
+          "level": {
+           "mod": [
+            {
+             "amount": 62,
+             "src": "env.wires"
+            },
+            {
+             "amount": 6,
+             "src": "vel"
+            }
+           ],
+           "value": "-68dB"
+          },
+          "name": "wires",
+          "type": "noise"
+         },
+         {
+          "level": {
+           "mod": [
+            {
+             "amount": 62,
+             "src": "env.crack"
+            },
+            {
+             "amount": 12,
+             "src": "vel"
+            }
+           ],
+           "value": "-72dB"
+          },
+          "name": "crack",
+          "type": "noise"
+         }
+        ],
+        "pitch": {
+         "mod": [
+          {
+           "amount": 5,
+           "src": "env.p"
+          },
+          {
+           "amount": 0.3,
+           "src": "rand"
+          }
+         ],
+         "value": 0
+        }
+       }
+      },
+      "pitch": "G3"
+     },
+     "ss": {
+      "gain": "-4dB",
+      "patch": {
+       "play": {
+        "vel_sens": 0.5
+       },
+       "synth": {
+        "amp": {
+         "a": "0.1ms",
+         "d": "90ms",
+         "r": "20ms",
+         "s": 0
+        },
+        "env": {
+         "c": {
+          "a": "0.1ms",
+          "d": "6ms",
+          "s": 0
+         },
+         "k": {
+          "a": "0.1ms",
+          "curve": 4,
+          "d": "45ms",
+          "s": 0
+         }
+        },
+        "filters": [
+         "hp cutoff=300",
+         "peak cutoff=1.8k q=1.5 gain=5dB",
+         {
+          "cutoff": {
+           "mod": [
+            {
+             "amount": 1,
+             "src": "vel"
+            }
+           ],
+           "value": "5k"
+          },
+          "kind": "lp"
+         }
+        ],
+        "layers": [
+         {
+          "fixed": 560,
+          "level": {
+           "mod": [
+            {
+             "amount": 56,
+             "src": "env.k"
+            }
+           ],
+           "value": "-60dB"
+          },
+          "name": "knock",
+          "wave": "sine"
+         },
+         {
+          "fixed": 1420,
+          "level": {
+           "mod": [
+            {
+             "amount": 54,
+             "src": "env.k"
+            },
+            {
+             "amount": 2,
+             "src": "rand"
+            }
+           ],
+           "value": "-66dB"
+          },
+          "name": "wood",
+          "wave": "triangle"
+         },
+         {
+          "level": {
+           "mod": [
+            {
+             "amount": 58,
+             "src": "env.c"
+            },
+            {
+             "amount": 8,
+             "src": "vel"
+            }
+           ],
+           "value": "-66dB"
+          },
+          "name": "click",
+          "type": "noise"
+         }
+        ]
+       }
+      }
+     },
+     "t1": {
+      "pan": -0.2,
+      "patch": {
+       "play": {
+        "vel_sens": 0.55
+       },
+       "synth": {
+        "amp": {
+         "a": "0.3ms",
+         "curve": 4,
+         "d": "800ms",
+         "r": "60ms",
+         "s": 0
+        },
+        "drive": 0.1,
+        "env": {
+         "att": {
+          "a": "0.1ms",
+          "d": "6ms",
+          "s": 0
+         },
+         "p": {
+          "a": "0.3ms",
+          "curve": 3,
+          "d": "150ms",
+          "s": 0
+         }
+        },
+        "filters": [
+         "hp cutoff=45",
+         "peak cutoff=3k q=1 gain=2dB",
+         {
+          "cutoff": {
+           "mod": [
+            {
+             "amount": 1,
+             "src": "vel"
+            }
+           ],
+           "value": "4k"
+          },
+          "kind": "lp"
+         }
+        ],
+        "layers": [
+         {
+          "name": "head",
+          "wave": "sine"
+         },
+         {
+          "damp": 5,
+          "level": {
+           "mod": [
+            {
+             "amount": 6,
+             "src": "vel"
+            }
+           ],
+           "value": "-10dB"
+          },
+          "name": "modes",
+          "partials": [
+           [
+            1.59,
+            0.5
+           ],
+           [
+            2.14,
+            0.3
+           ],
+           [
+            2.65,
+            0.15
+           ]
+          ],
+          "type": "additive"
+         },
+         {
+          "level": {
+           "mod": [
+            {
+             "amount": 56,
+             "src": "env.att"
+            },
+            {
+             "amount": 8,
+             "src": "vel"
+            }
+           ],
+           "value": "-66dB"
+          },
+          "name": "stick",
+          "type": "noise"
+         }
+        ],
+        "pitch": {
+         "mod": [
+          {
+           "amount": 2.5,
+           "src": "env.p"
+          },
+          {
+           "amount": 1,
+           "src": "vel"
+          },
+          {
+           "amount": 0.2,
+           "src": "rand"
+          }
+         ],
+         "value": 0
+        }
+       }
+      },
+      "pitch": "E3"
+     },
+     "t2": {
+      "pan": -0.05,
+      "patch": {
+       "play": {
+        "vel_sens": 0.55
+       },
+       "synth": {
+        "amp": {
+         "a": "0.3ms",
+         "curve": 4,
+         "d": "800ms",
+         "r": "60ms",
+         "s": 0
+        },
+        "drive": 0.1,
+        "env": {
+         "att": {
+          "a": "0.1ms",
+          "d": "6ms",
+          "s": 0
+         },
+         "p": {
+          "a": "0.3ms",
+          "curve": 3,
+          "d": "150ms",
+          "s": 0
+         }
+        },
+        "filters": [
+         "hp cutoff=45",
+         "peak cutoff=3k q=1 gain=2dB",
+         {
+          "cutoff": {
+           "mod": [
+            {
+             "amount": 1,
+             "src": "vel"
+            }
+           ],
+           "value": "4k"
+          },
+          "kind": "lp"
+         }
+        ],
+        "layers": [
+         {
+          "name": "head",
+          "wave": "sine"
+         },
+         {
+          "damp": 5,
+          "level": {
+           "mod": [
+            {
+             "amount": 6,
+             "src": "vel"
+            }
+           ],
+           "value": "-10dB"
+          },
+          "name": "modes",
+          "partials": [
+           [
+            1.59,
+            0.5
+           ],
+           [
+            2.14,
+            0.3
+           ],
+           [
+            2.65,
+            0.15
+           ]
+          ],
+          "type": "additive"
+         },
+         {
+          "level": {
+           "mod": [
+            {
+             "amount": 56,
+             "src": "env.att"
+            },
+            {
+             "amount": 8,
+             "src": "vel"
+            }
+           ],
+           "value": "-66dB"
+          },
+          "name": "stick",
+          "type": "noise"
+         }
+        ],
+        "pitch": {
+         "mod": [
+          {
+           "amount": 2.5,
+           "src": "env.p"
+          },
+          {
+           "amount": 1,
+           "src": "vel"
+          },
+          {
+           "amount": 0.2,
+           "src": "rand"
+          }
+         ],
+         "value": 0
+        }
+       }
+      },
+      "pitch": "C3"
+     },
+     "t3": {
+      "pan": 0.1,
+      "patch": {
+       "play": {
+        "vel_sens": 0.55
+       },
+       "synth": {
+        "amp": {
+         "a": "0.3ms",
+         "curve": 4,
+         "d": "800ms",
+         "r": "60ms",
+         "s": 0
+        },
+        "drive": 0.1,
+        "env": {
+         "att": {
+          "a": "0.1ms",
+          "d": "6ms",
+          "s": 0
+         },
+         "p": {
+          "a": "0.3ms",
+          "curve": 3,
+          "d": "150ms",
+          "s": 0
+         }
+        },
+        "filters": [
+         "hp cutoff=45",
+         "peak cutoff=3k q=1 gain=2dB",
+         {
+          "cutoff": {
+           "mod": [
+            {
+             "amount": 1,
+             "src": "vel"
+            }
+           ],
+           "value": "4k"
+          },
+          "kind": "lp"
+         }
+        ],
+        "layers": [
+         {
+          "name": "head",
+          "wave": "sine"
+         },
+         {
+          "damp": 5,
+          "level": {
+           "mod": [
+            {
+             "amount": 6,
+             "src": "vel"
+            }
+           ],
+           "value": "-10dB"
+          },
+          "name": "modes",
+          "partials": [
+           [
+            1.59,
+            0.5
+           ],
+           [
+            2.14,
+            0.3
+           ],
+           [
+            2.65,
+            0.15
+           ]
+          ],
+          "type": "additive"
+         },
+         {
+          "level": {
+           "mod": [
+            {
+             "amount": 56,
+             "src": "env.att"
+            },
+            {
+             "amount": 8,
+             "src": "vel"
+            }
+           ],
+           "value": "-66dB"
+          },
+          "name": "stick",
+          "type": "noise"
+         }
+        ],
+        "pitch": {
+         "mod": [
+          {
+           "amount": 2.5,
+           "src": "env.p"
+          },
+          {
+           "amount": 1,
+           "src": "vel"
+          },
+          {
+           "amount": 0.2,
+           "src": "rand"
+          }
+         ],
+         "value": 0
+        }
+       }
+      },
+      "pitch": "A2"
+     },
+     "x": {
+      "gain": "-6dB",
+      "pan": 0.5,
+      "patch": {
+       "play": {
+        "vel_sens": 0.6
+       },
+       "synth": {
+        "amp": {
+         "a": "0.5ms",
+         "curve": 6,
+         "d": "1.5s",
+         "r": "200ms",
+         "s": 0
+        },
+        "drive": 0.3,
+        "filters": [
+         "hp cutoff=900",
+         {
+          "cutoff": {
+           "mod": [
+            {
+             "amount": 0.2,
+             "src": "rand"
+            }
+           ],
+           "value": "3.5k"
+          },
+          "gain": "7dB",
+          "kind": "peak",
+          "q": 0.6
+         },
+         {
+          "cutoff": {
+           "mod": [
+            {
+             "amount": 1.2,
+             "src": "vel"
+            }
+           ],
+           "value": "6k"
+          },
+          "kind": "lp"
+         }
+        ],
+        "layers": [
+         {
+          "type": "noise"
+         },
+         {
+          "color": "pink",
+          "level": "-6dB",
+          "type": "noise"
+         },
+         {
+          "damp": 0.9,
+          "fixed": 380,
+          "level": "-14dB",
+          "partials": [
+           [
+            1,
+            0.4
+           ],
+           [
+            1.47,
+            0.5
+           ],
+           [
+            2.09,
+            0.7
+           ],
+           [
+            2.56,
+            0.6
+           ],
+           [
+            3.11,
+            0.8
+           ],
+           [
+            3.67,
+            0.7
+           ],
+           [
+            4.32,
+            0.9
+           ],
+           [
+            5.71,
+            1
+           ],
+           [
+            7.24,
+            0.9
+           ],
+           [
+            9.13,
+            0.8
+           ]
+          ],
+          "type": "additive"
+         }
+        ],
+        "pitch": {
+         "mod": [
+          {
+           "amount": 0.5,
+           "src": "rand"
+          }
+         ],
+         "value": 0
+        }
+       }
+      }
+     }
+    },
+    "play": {
+     "humanize": {
+      "time": "4ms",
+      "vel": 0.06
+     },
+     "len": "/16",
+     "vel_sens": 0.55,
+     "event_stable": true
+    }
+   },
+   "tcm-cabasa": {
+    "about": "Song-local afro-perc setup fork; event-local identity enabled; source tuning retained where supplied.",
+    "fx": [
+     "reverb kind=room decay=0.7s mix=0.12"
+    ],
+    "gain": "0dB",
+    "kit": {
+     "ah": {
+      "patch": {
+       "synth": {
+        "amp": {
+         "a": "0.2ms",
+         "curve": 3,
+         "d": "220ms",
+         "r": "30ms",
+         "s": 0
+        },
+        "env": {
+         "h": {
+          "a": "0.2ms",
+          "d": "4ms",
+          "s": 0
+         }
+        },
+        "layers": [
+         {
+          "damp": 0.3,
+          "partials": [
+           [
+            1,
+            1
+           ],
+           [
+            2.4,
+            0.4
+           ],
+           [
+            3.9,
+            0.15
+           ]
+          ],
+          "type": "additive"
+         },
+         {
+          "level": {
+           "mod": [
+            {
+             "amount": 40,
+             "src": "env.h"
+            }
+           ],
+           "value": "-60dB"
+          },
+          "type": "noise"
+         }
+        ]
+       }
+      },
+      "pitch": "E6"
+     },
+     "al": {
+      "patch": {
+       "synth": {
+        "amp": {
+         "a": "0.2ms",
+         "curve": 3,
+         "d": "260ms",
+         "r": "30ms",
+         "s": 0
+        },
+        "env": {
+         "h": {
+          "a": "0.2ms",
+          "d": "4ms",
+          "s": 0
+         }
+        },
+        "layers": [
+         {
+          "damp": 0.3,
+          "partials": [
+           [
+            1,
+            1
+           ],
+           [
+            2.4,
+            0.4
+           ],
+           [
+            3.9,
+            0.15
+           ]
+          ],
+          "type": "additive"
+         },
+         {
+          "level": {
+           "mod": [
+            {
+             "amount": 40,
+             "src": "env.h"
+            }
+           ],
+           "value": "-60dB"
+          },
+          "type": "noise"
+         }
+        ]
+       }
+      },
+      "pitch": "B5"
+     },
+     "cl": {
+      "gain": "-2dB",
+      "patch": {
+       "synth": {
+        "amp": {
+         "a": "0.2ms",
+         "curve": 4,
+         "d": "60ms",
+         "r": "15ms",
+         "s": 0
+        },
+        "layers": [
+         "sine",
+         {
+          "level": "-10dB",
+          "ratio": 2.1,
+          "wave": "sine"
+         }
+        ]
+       }
+      },
+      "pitch": "G5"
+     },
+     "sk": {
+      "gain": "-6dB",
+      "patch": {
+       "synth": {
+        "amp": {
+         "a": "6ms",
+         "d": "90ms",
+         "r": "30ms",
+         "s": 0
+        },
+        "filters": [
+         "hp cutoff=3k",
+         "lp cutoff=11k"
+        ],
+        "layers": [
+         {
+          "type": "noise"
+         }
+        ]
+       }
+      }
+     }
+    },
+    "play": {
+     "humanize": {
+      "time": "5ms",
+      "vel": 0.08
+     },
+     "len": "/16",
+     "vel_sens": 0.6,
+     "event_stable": true
+    }
+   }
+  },
+  "master": {
+   "fx": [
+    {
+     "type": "width",
+     "width": 1.0,
+     "bass_width": 1.0,
+     "bands": [
+      [
+       20,
+       {
+        "value": 0.0,
+        "mod": [
+         {
+          "src": "auto.wb0",
+          "amount": 1
+         }
+        ]
+       }
+      ],
+      [
+       60,
+       {
+        "value": 0.0,
+        "mod": [
+         {
+          "src": "auto.wb1",
+          "amount": 1
+         }
+        ]
+       }
+      ],
+      [
+       150,
+       {
+        "value": 0.0,
+        "mod": [
+         {
+          "src": "auto.wb2",
+          "amount": 1
+         }
+        ]
+       }
+      ],
+      [
+       400,
+       {
+        "value": 0.0,
+        "mod": [
+         {
+          "src": "auto.wb3",
+          "amount": 1
+         }
+        ]
+       }
+      ],
+      [
+       1200,
+       {
+        "value": 0.0,
+        "mod": [
+         {
+          "src": "auto.wb4",
+          "amount": 1
+         }
+        ]
+       }
+      ],
+      [
+       3500,
+       {
+        "value": 0.0,
+        "mod": [
+         {
+          "src": "auto.wb5",
+          "amount": 1
+         }
+        ]
+       }
+      ],
+      [
+       8000,
+       {
+        "value": 0.0,
+        "mod": [
+         {
+          "src": "auto.wb6",
+          "amount": 1
+         }
+        ]
+       }
+      ]
+     ]
+    },
+    {
+     "type": "gain",
+     "gain": {
+      "value": "0dB",
+      "mod": [
+       {
+        "src": "auto.setup_level",
+        "amount": 1
+       }
+      ]
+     }
+    }
+   ],
+   "auto": {
+    "setup_level": {
+     "points": [
+      [
+       "0s",
+       8.78
+      ],
+      [
+       "5.850s",
+       8.78
+      ],
+      [
+       "6.150s",
+       7.63
+      ],
+      [
+       "13.550s",
+       7.63
+      ],
+      [
+       "13.850s",
+       7.84
+      ],
+      [
+       "28.519s",
+       7.84
+      ],
+      [
+       "28.819s",
+       7.49
+      ],
+      [
+       "46.972s",
+       7.49
+      ],
+      [
+       "47.272s",
+       7.62
+      ],
+      [
+       "65.424s",
+       7.62
+      ],
+      [
+       "65.724s",
+       8.59
+      ],
+      [
+       "83.877s",
+       8.59
+      ],
+      [
+       "84.177s",
+       7.81
+      ],
+      [
+       "102.330s",
+       7.81
+      ],
+      [
+       "102.630s",
+       7.58
+      ],
+      [
+       "120.782s",
+       7.58
+      ],
+      [
+       "121.082s",
+       8.73
+      ],
+      [
+       "139.235s",
+       8.73
+      ],
+      [
+       "139.535s",
+       9.07
+      ],
+      [
+       "152.850s",
+       9.07
+      ],
+      [
+       "153.150s",
+       8.87
+      ]
+     ]
+    },
+    "wb0": {
+     "points": [
+      [
+       "0s",
+       0.707
+      ],
+      [
+       "5.950s",
+       0.707
+      ],
+      [
+       "6.050s",
+       0.707
+      ],
+      [
+       "13.650s",
+       0.707
+      ],
+      [
+       "13.750s",
+       1.048
+      ],
+      [
+       "28.619s",
+       1.048
+      ],
+      [
+       "28.719s",
+       1.287
+      ],
+      [
+       "47.072s",
+       1.287
+      ],
+      [
+       "47.172s",
+       1.123
+      ],
+      [
+       "65.524s",
+       1.123
+      ],
+      [
+       "65.624s",
+       0.77
+      ],
+      [
+       "83.977s",
+       0.77
+      ],
+      [
+       "84.077s",
+       1.106
+      ],
+      [
+       "102.430s",
+       1.106
+      ],
+      [
+       "102.530s",
+       1.116
+      ],
+      [
+       "120.882s",
+       1.116
+      ],
+      [
+       "120.982s",
+       0.947
+      ],
+      [
+       "139.335s",
+       0.947
+      ],
+      [
+       "139.435s",
+       0.992
+      ],
+      [
+       "152.950s",
+       0.992
+      ],
+      [
+       "153.050s",
+       1.437
+      ]
+     ]
+    },
+    "wb1": {
+     "points": [
+      [
+       "0s",
+       0.782
+      ],
+      [
+       "5.950s",
+       0.782
+      ],
+      [
+       "6.050s",
+       0.831
+      ],
+      [
+       "13.650s",
+       0.831
+      ],
+      [
+       "13.750s",
+       0.846
+      ],
+      [
+       "28.619s",
+       0.846
+      ],
+      [
+       "28.719s",
+       0.785
+      ],
+      [
+       "47.072s",
+       0.785
+      ],
+      [
+       "47.172s",
+       0.858
+      ],
+      [
+       "65.524s",
+       0.858
+      ],
+      [
+       "65.624s",
+       0.707
+      ],
+      [
+       "83.977s",
+       0.707
+      ],
+      [
+       "84.077s",
+       0.882
+      ],
+      [
+       "102.430s",
+       0.882
+      ],
+      [
+       "102.530s",
+       0.858
+      ],
+      [
+       "120.882s",
+       0.858
+      ],
+      [
+       "120.982s",
+       0.83
+      ],
+      [
+       "139.335s",
+       0.83
+      ],
+      [
+       "139.435s",
+       0.821
+      ],
+      [
+       "152.950s",
+       0.821
+      ],
+      [
+       "153.050s",
+       0.707
+      ]
+     ]
+    },
+    "wb2": {
+     "points": [
+      [
+       "0s",
+       1.339
+      ],
+      [
+       "5.950s",
+       1.339
+      ],
+      [
+       "6.050s",
+       1.256
+      ],
+      [
+       "13.650s",
+       1.256
+      ],
+      [
+       "13.750s",
+       1.296
+      ],
+      [
+       "28.619s",
+       1.296
+      ],
+      [
+       "28.719s",
+       1.375
+      ],
+      [
+       "47.072s",
+       1.375
+      ],
+      [
+       "47.172s",
+       1.309
+      ],
+      [
+       "65.524s",
+       1.309
+      ],
+      [
+       "65.624s",
+       1.304
+      ],
+      [
+       "83.977s",
+       1.304
+      ],
+      [
+       "84.077s",
+       1.332
+      ],
+      [
+       "102.430s",
+       1.332
+      ],
+      [
+       "102.530s",
+       1.318
+      ],
+      [
+       "120.882s",
+       1.318
+      ],
+      [
+       "120.982s",
+       1.317
+      ],
+      [
+       "139.335s",
+       1.317
+      ],
+      [
+       "139.435s",
+       1.325
+      ],
+      [
+       "152.950s",
+       1.325
+      ],
+      [
+       "153.050s",
+       1.515
+      ]
+     ]
+    },
+    "wb3": {
+     "points": [
+      [
+       "0s",
+       1.134
+      ],
+      [
+       "5.950s",
+       1.134
+      ],
+      [
+       "6.050s",
+       1.362
+      ],
+      [
+       "13.650s",
+       1.362
+      ],
+      [
+       "13.750s",
+       0.874
+      ],
+      [
+       "28.619s",
+       0.874
+      ],
+      [
+       "28.719s",
+       0.754
+      ],
+      [
+       "47.072s",
+       0.754
+      ],
+      [
+       "47.172s",
+       0.809
+      ],
+      [
+       "65.524s",
+       0.809
+      ],
+      [
+       "65.624s",
+       0.707
+      ],
+      [
+       "83.977s",
+       0.707
+      ],
+      [
+       "84.077s",
+       0.942
+      ],
+      [
+       "102.430s",
+       0.942
+      ],
+      [
+       "102.530s",
+       0.707
+      ],
+      [
+       "120.882s",
+       0.707
+      ],
+      [
+       "120.982s",
+       0.707
+      ],
+      [
+       "139.335s",
+       0.707
+      ],
+      [
+       "139.435s",
+       0.707
+      ],
+      [
+       "152.950s",
+       0.707
+      ],
+      [
+       "153.050s",
+       0.813
+      ]
+     ]
+    },
+    "wb4": {
+     "points": [
+      [
+       "0s",
+       1.405
+      ],
+      [
+       "5.950s",
+       1.405
+      ],
+      [
+       "6.050s",
+       1.55
+      ],
+      [
+       "13.650s",
+       1.55
+      ],
+      [
+       "13.750s",
+       1.184
+      ],
+      [
+       "28.619s",
+       1.184
+      ],
+      [
+       "28.719s",
+       1.22
+      ],
+      [
+       "47.072s",
+       1.22
+      ],
+      [
+       "47.172s",
+       1.193
+      ],
+      [
+       "65.524s",
+       1.193
+      ],
+      [
+       "65.624s",
+       1.182
+      ],
+      [
+       "83.977s",
+       1.182
+      ],
+      [
+       "84.077s",
+       1.194
+      ],
+      [
+       "102.430s",
+       1.194
+      ],
+      [
+       "102.530s",
+       1.259
+      ],
+      [
+       "120.882s",
+       1.259
+      ],
+      [
+       "120.982s",
+       1.228
+      ],
+      [
+       "139.335s",
+       1.228
+      ],
+      [
+       "139.435s",
+       1.17
+      ],
+      [
+       "152.950s",
+       1.17
+      ],
+      [
+       "153.050s",
+       1.581
+      ]
+     ]
+    },
+    "wb5": {
+     "points": [
+      [
+       "0s",
+       1.386
+      ],
+      [
+       "5.950s",
+       1.386
+      ],
+      [
+       "6.050s",
+       1.429
+      ],
+      [
+       "13.650s",
+       1.429
+      ],
+      [
+       "13.750s",
+       1.29
+      ],
+      [
+       "28.619s",
+       1.29
+      ],
+      [
+       "28.719s",
+       1.263
+      ],
+      [
+       "47.072s",
+       1.263
+      ],
+      [
+       "47.172s",
+       1.258
+      ],
+      [
+       "65.524s",
+       1.258
+      ],
+      [
+       "65.624s",
+       1.261
+      ],
+      [
+       "83.977s",
+       1.261
+      ],
+      [
+       "84.077s",
+       1.275
+      ],
+      [
+       "102.430s",
+       1.275
+      ],
+      [
+       "102.530s",
+       1.263
+      ],
+      [
+       "120.882s",
+       1.263
+      ],
+      [
+       "120.982s",
+       1.258
+      ],
+      [
+       "139.335s",
+       1.258
+      ],
+      [
+       "139.435s",
+       1.318
+      ],
+      [
+       "152.950s",
+       1.318
+      ],
+      [
+       "153.050s",
+       1.514
+      ]
+     ]
+    },
+    "wb6": {
+     "points": [
+      [
+       "0s",
+       1.061
+      ],
+      [
+       "5.950s",
+       1.061
+      ],
+      [
+       "6.050s",
+       1.521
+      ],
+      [
+       "13.650s",
+       1.521
+      ],
+      [
+       "13.750s",
+       1.195
+      ],
+      [
+       "28.619s",
+       1.195
+      ],
+      [
+       "28.719s",
+       1.208
+      ],
+      [
+       "47.072s",
+       1.208
+      ],
+      [
+       "47.172s",
+       1.207
+      ],
+      [
+       "65.524s",
+       1.207
+      ],
+      [
+       "65.624s",
+       1.043
+      ],
+      [
+       "83.977s",
+       1.043
+      ],
+      [
+       "84.077s",
+       1.115
+      ],
+      [
+       "102.430s",
+       1.115
+      ],
+      [
+       "102.530s",
+       1.173
+      ],
+      [
+       "120.882s",
+       1.173
+      ],
+      [
+       "120.982s",
+       1.11
+      ],
+      [
+       "139.335s",
+       1.11
+      ],
+      [
+       "139.435s",
+       1.105
+      ],
+      [
+       "152.950s",
+       1.105
+      ],
+      [
+       "153.050s",
+       1.202
+      ]
+     ]
+    }
+   }
+  }
+ },
+ "parts": [
+  {
+   "name": "lead-tele",
+   "track": 2,
+   "bars": [
+    [
+     1,
+     70
+    ]
+   ],
+   "patch": "tcm-lead",
+   "gain": "-5dB",
+   "pan": 0.15
+  },
+  {
+   "name": "acoustic-rhythm",
+   "track": 1,
+   "bars": [
+    [
+     1,
+     70
+    ]
+   ],
+   "patch": "tcm-acoustic",
+   "gain": "-16dB",
+   "pan": -0.35
+  },
+  {
+   "name": "electric-overdub",
+   "track": 3,
+   "bars": [
+    [
+     1,
+     70
+    ]
+   ],
+   "patch": "tcm-overdub",
+   "gain": "-13dB",
+   "pan": 0.5
+  },
+  {
+   "name": "electric-rhythm",
+   "track": 4,
+   "bars": [
+    [
+     1,
+     70
+    ]
+   ],
+   "patch": "tcm-rhythm",
+   "gain": "-12dB",
+   "pan": -0.5
+  },
+  {
+   "name": "twelve-overdub",
+   "track": 5,
+   "bars": [
+    [
+     1,
+     70
+    ]
+   ],
+   "patch": "tcm-twelve",
+   "gain": "-19dB",
+   "pan": 0.4
+  },
+  {
+   "name": "bass-picked",
+   "track": 6,
+   "bars": [
+    [
+     1,
+     70
+    ]
+   ],
+   "patch": "tcm-bass",
+   "gain": "-3dB",
+   "pan": 0
+  },
+  {
+   "name": "drums",
+   "track": 8,
+   "bars": [
+    [
+     1,
+     70
+    ]
+   ],
+   "patch": "tcm-kit",
+   "gain": "-5dB",
+   "pan": 0,
+   "remap": {
+    "h1": "h",
+    "hf": "hp",
+    "rbs": "rb",
+    "m97": "rs"
+   }
+  },
+  {
+   "name": "cabasa",
+   "track": 7,
+   "bars": [
+    [
+     1,
+     70
+    ]
+   ],
+   "patch": "tcm-cabasa",
+   "gain": "-20dB",
+   "pan": 0,
+   "remap": {
+    "m69": "sk"
+   }
+  },
+  {
+   "name": "vocal-melody",
+   "track": 0,
+   "bars": [
+    [
+     1,
+     70
+    ]
+   ],
+   "patch": "tcm-voice",
+   "gain": "-8dB",
+   "pan": 0
+  }
+ ]
+}

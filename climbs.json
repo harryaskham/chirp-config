@@ -1162,11 +1162,15 @@
       "source": "https://www.youtube.com/watch?v=UpjaTtNVwEs",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/this-charming-man.wav OUT.wav $(cat tools/this-charming-man-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 65.038,
+        "version": "v1",
+        "commit": "see git log songs/this-charming-man.yaml"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "indie / jangle pop",
       "meta": {
@@ -1178,7 +1182,11 @@
         "at": "2026-10-18T12:31:20Z",
         "note": "2008 remaster: jangly clean guitars, melodic bass, Morrissey's voice."
       },
-      "ref_file": "ref/albums/singles/this-charming-man.webm"
+      "ref_file": "ref/albums/singles/this-charming-man.webm",
+      "last": {
+        "at": "2026-10-18T17:50:25Z",
+        "who": "chirper-two"
+      }
     },
     {
       "id": "baddadan",
