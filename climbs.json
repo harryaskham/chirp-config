@@ -1312,11 +1312,16 @@
       "source": "https://www.youtube.com/watch?v=Nl_Eo2QzqU4",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/rasputin.wav OUT.wav $(cat tools/rasputin-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 53.819,
+        "version": "v1",
+        "commit": "see git log songs/rasputin.yaml",
+        "engine": "654b5e3"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "euro-disco",
       "requested": {
@@ -1328,6 +1333,10 @@
       "meta": {
         "artist": "Boney M.",
         "title": "Rasputin"
+      },
+      "last": {
+        "at": "2026-10-18T18:53:00Z",
+        "who": "chirper-two"
       }
     },
     {
