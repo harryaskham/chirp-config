@@ -2,7 +2,7 @@
   "cache": "ref/songsterr-73455",
   "offset": 0.0375,
   "name": "entrapment",
-  "about": "Hill-climb reproduction of Meshuggah - Entrapment (Catch Thirtythree, 2005, track 6; meta: artist Meshuggah, album Catch Thirtythree, title Entrapment, track 6, year 2005 — a meta: block once the groove pin passes main 8c95a3d). Reference: the album master's track 6. From Songsterr tab 73455 (all 5 tracks).",
+  "about": "Hill-climb reproduction of Meshuggah - Entrapment (Catch Thirtythree, 2005, track 6; meta: artist Meshuggah, album Catch Thirtythree, title Entrapment, track 6, year 2005 \u2014 a meta: block once the groove pin passes main 8c95a3d). Reference: the album master's track 6. From Songsterr tab 73455 (all 5 tracks).",
   "meters": true,
   "head": {
     "buses": {
@@ -4384,6 +4384,25 @@
         "sends": {
           "hall": "-12dB"
         }
+      },
+      "replace": {
+        "39": "G3/5.5b E4/0.5b",
+        "40": "G3/6b",
+        "41": "G3/6b",
+        "42": "G3/6b",
+        "43": "G3/6b",
+        "44": "G#3/6b",
+        "45": "G#3/6b",
+        "46": "G3/6b",
+        "47": "G#3/6b",
+        "48": "G3/6b",
+        "49": "G#3/6b",
+        "50": "G#3/6b",
+        "51": "G3/6b",
+        "52": "G#3/6b",
+        "53": "G3/6b",
+        "54": "G#3/6b",
+        "55": "F3/6b"
       }
     },
     {
