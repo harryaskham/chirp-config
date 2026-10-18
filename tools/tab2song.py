@@ -25,7 +25,10 @@ measures the recording does not play (from the timeline and every part).
 "repeat": [[61, 64, 1], …] plays measures a..b n more times right after b (a live vamp or a longer
 ending; every part — repeated bars share their tab measure number, so bpm/replace/subst apply to every copy).
 A tab with tempo changes becomes a song with a tempo map (a point at every tempo or meter change); "meters": true
-emits the map for a constant-tempo tab too. A part may take `"score_file": "PATH"` instead of `track`: `bar N  tokens` lines (stemvox.py/stemnotes.py
+emits the map for a constant-tempo tab too. "offset_mode": "placement" (opt-in; default "rest") places tab/score_file
+tracks with native at: seconds instead of inserting a leading rest. This preserves local swing phase under a
+fractional recording offset. The performed bar clock still includes offset; raw scores keep their legacy absolute
+placement. Negative placement offsets and a conflicting extra.at are refused rather than silently rewritten. A part may take `"score_file": "PATH"` instead of `track`: `bar N  tokens` lines (stemvox.py/stemnotes.py
 output) on the tab's measure numbers, with optional `"rest": [[a, b], …]` ranges kept silent. A measure the map plays
 more than once (a "repeat") takes `bar N.K  tokens` for its K-th play (stemvox/stemnotes --map write these: each pass
 is transcribed at its own performed time); a plain `bar N` line applies to every play.
@@ -199,16 +202,21 @@ def part_score(lines, beats, ranges, offset_beats, remap=None, drop=(), label=""
     return " | ".join(out)
 
 
-def tempo_map(tl, off_beats):
-    """A tempo map with a point wherever the tab's tempo or meter changes (beats count from the song start,
-    after the offset)."""
+def tempo_map(tl, off_beats, placement=False):
+    """Tempo/meter points from the song start. Placement keeps offset precision and the opening meter."""
+    def at_num(value):
+        return f"{value:.9f}".rstrip("0").rstrip(".") if placement else fmt_num(value)
+
     pts, beat, last = [], off_beats, None
     if off_beats > 0:
-        pts.append({"at": "0b", "bpm": tl[0]["bpm"]})
+        point = {"at": "0b", "bpm": tl[0]["bpm"]}
+        if placement:
+            point["meter"] = tl[0]["sig"]
+        pts.append(point)
     for m in tl:
         key = (m["bpm"], m["sig"])
         if key != last:
-            pts.append({"at": f"{fmt_num(beat)}b", "bpm": m["bpm"], "meter": m["sig"]})
+            pts.append({"at": f"{at_num(beat)}b", "bpm": m["bpm"], "meter": m["sig"]})
             last = key
         beat += m["beats"]
     return pts
@@ -353,9 +361,16 @@ def build(mp):
     bpm = tl[0]["bpm"]
     # The offset is converted at the opening tempo; with tempo changes the song gets a tempo map
     # (also with "meters": true, to carry the tab's time signatures for bar-aligned editing).
-    off_beats = round(mp.get("offset", 0) * bpm / 60, 4)
+    offset_mode = mp.get("offset_mode", "rest")
+    if offset_mode not in ("rest", "placement"):
+        sys.exit('tab2song: offset_mode must be "rest" or "placement"')
+    placement = offset_mode == "placement"
+    offset = float(mp.get("offset", 0))
+    if placement and offset < 0:
+        sys.exit("tab2song: placement offset must be non-negative")
+    off_beats = offset * bpm / 60 if placement else round(offset * bpm / 60, 4)
     varying = any(m["bpm"] != bpm for m in tl)
-    tempo = tempo_map(tl, off_beats) if varying or mp.get("meters") else bpm
+    tempo = tempo_map(tl, off_beats, placement=placement) if varying or mp.get("meters") else bpm
     lines_cache = {}
     tracks = []
     for p in mp["parts"]:
@@ -425,7 +440,7 @@ def build(mp):
             kept = [k for m in range(a, b + 1) for k in pos.get(m, [])]
             if kept:
                 ranges.append((min(kept), max(kept)))
-        sc = part_score(lines, beats, ranges, off_beats, p.get("remap"), p.get("drop", ()), p["name"], p.get("chord"), p.get("ring"))
+        sc = part_score(lines, beats, ranges, 0 if placement else off_beats, p.get("remap"), p.get("drop", ()), p["name"], p.get("chord"), p.get("ring"))
         for art in list(mp.get("strip", [])) + list(p.get("strip", [])):   # e.g. "ph": drop ^ph articulations
             if art == "bend":   # drop bend= tokens (slides/bends); held notes stay
                 sc = re.sub(r"\s*bend=\S+", "", sc)
@@ -436,6 +451,10 @@ def build(mp):
             if k in p:
                 tr[k] = p[k]
         tr.update(p.get("extra", {}))
+        if placement:
+            if "at" in tr:
+                sys.exit(f'tab2song: part {p["name"]}: placement offset conflicts with extra.at')
+            tr["at"] = f'{offset:.9f}'.rstrip("0").rstrip(".") + "s"
         tr["score"] = sc
         tracks.append(tr)
     song = {"about": mp.get("about"), "tempo": tempo}   # a song is named by its file
