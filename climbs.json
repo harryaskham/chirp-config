@@ -1466,11 +1466,16 @@
       "source": "https://www.youtube.com/watch?v=-s4zRw16tMA",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/the-model.wav OUT.wav $(cat tools/the-model-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 58.891,
+        "version": "v1",
+        "commit": "see git log songs/the-model.yaml",
+        "engine": "654b5e3"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "electronic / synth-pop",
       "requested": {
@@ -1482,6 +1487,10 @@
       "meta": {
         "artist": "Kraftwerk",
         "title": "The Model"
+      },
+      "last": {
+        "at": "2026-10-18T19:48:51Z",
+        "who": "chirper-two"
       }
     },
     {
