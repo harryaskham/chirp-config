@@ -1629,11 +1629,16 @@
       "source": "https://www.youtube.com/watch?v=22CPWEivGEE",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/ingenue.wav OUT.wav $(cat tools/ingenue-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 57.902,
+        "version": "v1",
+        "commit": "see git log songs/ingenue.yaml",
+        "engine": "e443c01"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "art pop / electronic (Amok official 2013, fixed supplied version)",
       "requested": {
@@ -1645,6 +1650,10 @@
       "meta": {
         "artist": "Atoms for Peace",
         "title": "Ingenue"
+      },
+      "last": {
+        "at": "2026-10-18T23:29:56Z",
+        "who": "chirper-one"
       }
     }
   ]
