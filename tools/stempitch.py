@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Re-pitch a monophonic part from a stem: for every note of a song track (a tab's vocal line, a lead), estimate the
-stem's pitch over the note's middle (YIN-style difference function on 40 ms frames, median of the confident
-frames) and, where it clearly differs from the written note, replace the note's pitch — keeping its duration,
+stem's pitch over the note's middle (YIN-style difference function, median of the confident frames) and, where it
+clearly differs from the written note, replace the note's pitch — keeping its duration,
 velocity and articulations (^vow, ^on/^off …). Tabs approximate sung lines; the stem knows what was sung.
 
   stempitch.py STEM.wav SONG.yaml TRACK OUT.json [--key vox] [--from S] [--to S] [--min-dur 0.15]
@@ -9,7 +9,13 @@ velocity and articulations (^vow, ^on/^off …). Tabs approximate sung lines; th
 
 A note changes only when ≥60% of its frames are confident (YIN dip < --conf) and the median differs by ≥1
 semitone. --keep-octave moves the stem's pitch into the written note's octave when it lies within an octave
-(pitch trackers flip octaves; the tab's register is usually right)."""
+(pitch trackers flip octaves; the tab's register is usually right).
+
+Frames fit --lo (bd-f5d514): YIN needs its window to span the longest period, so a frame is 40 ms or 2.8 periods
+of --lo, whichever is longer (40 ms down to --lo 70, the default, unchanged; 80 ms at --lo 35 for bass and
+8-string parts; between them a little longer than the old fixed 40 ms), hopped by half. A note whose middle is shorter than one frame keeps its written pitch and is
+counted in the summary. A confident YIN dip says the frame is periodic, not that its octave is right or that the
+stem is free of bleed: check low parts' octave against the stem's spectrum (--keep-octave trusts the tab's)."""
 import json
 import os
 import re
@@ -35,6 +41,12 @@ def midi_of(n):
 
 def name_of(mi):
     return f"{NAMES[mi % 12]}{mi // 12 - 1}"
+
+
+def frame_len(lo):
+    """Samples per analysis frame for a lowest pitch `lo`: 40 ms, or long enough that YIN's window (the frame
+    minus the longest lag) spans 1.8 periods of `lo` (2.8 in all)."""
+    return max(int(0.04 * SR), int(np.ceil(2.8 * SR / lo)))
 
 
 def yin(frame, lo, hi, thr):
@@ -63,7 +75,8 @@ def main(a):
         i = max(0, np.searchsorted(beats, b, side="right") - 1)
         return secs[i] + (b - beats[i]) * 60 / bpm[i]
 
-    toks, out, pos, changed, seen = V.track_tokens(a[1], a[2]), [], 0.0, 0, 0
+    toks, out, pos, changed, seen, short = V.track_tokens(a[1], a[2]), [], 0.0, 0, 0, 0
+    flen = frame_len(lo); hop = flen // 2
     for t in toks:
         m = re.match(r"^([^/]+)/([0-9.]+)b(.*)$", t)
         if not m:
@@ -77,7 +90,9 @@ def main(a):
             out.append(t); continue
         seen += 1
         seg = x[int((s + 0.2 * (e - s)) * SR):int((e - 0.2 * (e - s)) * SR)]
-        fr = [seg[i:i + int(0.04 * SR)] for i in range(0, max(0, len(seg) - int(0.04 * SR)), int(0.02 * SR))]
+        fr = [seg[i:i + flen] for i in range(0, max(0, len(seg) - flen), hop)]
+        if not fr:   # the note's middle is shorter than one frame at this --lo: kept as written, counted
+            short += 1
         f0s = [f for f in (yin(f_, lo, hi, thr) for f_ in fr) if f]
         if len(fr) == 0 or len(f0s) < 0.6 * len(fr):
             out.append(t); continue
@@ -91,7 +106,8 @@ def main(a):
         else:
             out.append(t)
     json.dump({opt("--key", "vox"): {"score": " ".join(out)}}, open(a[3], "w"))
-    print(f"{seen} notes checked in {t0:.0f}-{min(t1, pos):.0f}; {changed} re-pitched from the stem")
+    print(f"{seen} notes checked in {t0:.0f}-{min(t1, pos):.0f}; {changed} re-pitched from the stem"
+          + (f"; {short} too short for a {1000 * flen / SR:.0f} ms frame at --lo {lo:g} (kept as written)" if short else ""))
 
 
 if __name__ == "__main__":
