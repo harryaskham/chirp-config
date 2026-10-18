@@ -378,7 +378,1118 @@
     }
    }
   },
-  "length": "450.8s"
+  "length": "450.8s",
+  "patches": {
+   "bm-kit-r2": {
+    "about": "Electro / 808-classic drum machine: booming kick, two-tone snare, clap, cowbell, clave and six-square metallic hats. For electro, Miami bass, synth-pop and early hip-hop. Pieces: k kick, kl long kick (choke bd), s snare, cp clap, rs rim, cl clave, ma maracas, cb cowbell, h closed / oh open hat (choke), cy cymbal, lt mt ht toms, lc mc hc congas, zp zap. Accents (velocity) add click, snap and brightness. Try `chirp -t 128 @beat-electro`.\n",
+    "fx": [
+     "drive drive=0.1",
+     "glue threshold=-16dB ratio=2 attack=10ms release=150ms makeup=1dB"
+    ],
+    "gain": "-5dB",
+    "kit": {
+     "cb": {
+      "gain": "-10dB",
+      "patch": {
+       "play": {
+        "vel_sens": 0.5
+       },
+       "synth": {
+        "amp": {
+         "curve": 3,
+         "points": [
+          [
+           0,
+           0
+          ],
+          [
+           "0.3ms",
+           1
+          ],
+          [
+           "12ms",
+           0.4
+          ],
+          [
+           "300ms",
+           0
+          ]
+         ]
+        },
+        "filters": [
+         "bp cutoff=850 q=1.6",
+         {
+          "cutoff": {
+           "mod": [
+            {
+             "amount": 0.7,
+             "src": "vel"
+            }
+           ],
+           "value": "3k"
+          },
+          "kind": "lp"
+         }
+        ],
+        "layers": [
+         "square fixed=540",
+         "square fixed=800"
+        ]
+       }
+      }
+     },
+     "cl": {
+      "gain": "-6dB",
+      "patch": {
+       "play": {
+        "vel_sens": 0.5
+       },
+       "synth": {
+        "amp": {
+         "a": "0.1ms",
+         "curve": 3,
+         "d": "28ms",
+         "r": "8ms",
+         "s": 0
+        },
+        "layers": [
+         {
+          "fixed": 2450,
+          "wave": "sine"
+         }
+        ]
+       }
+      }
+     },
+     "cp": {
+      "gain": "3dB",
+      "patch": {
+       "play": {
+        "vel_sens": 0.5
+       },
+       "synth": {
+        "amp": {
+         "a": "0.1ms",
+         "curve": 1,
+         "d": "320ms",
+         "r": "20ms",
+         "s": 0
+        },
+        "env": {
+         "b": {
+          "curve": 3,
+          "points": [
+           [
+            0,
+            0
+           ],
+           [
+            "0.2ms",
+            1
+           ],
+           [
+            "9ms",
+            0.2
+           ],
+           [
+            "10ms",
+            1
+           ],
+           [
+            "19ms",
+            0.2
+           ],
+           [
+            "20ms",
+            1
+           ],
+           [
+            "30ms",
+            0
+           ]
+          ]
+         },
+         "t": {
+          "curve": 1.5,
+          "points": [
+           [
+            0,
+            0
+           ],
+           [
+            "24ms",
+            1
+           ],
+           [
+            "300ms",
+            0
+           ]
+          ]
+         }
+        },
+        "filters": [
+         {
+          "cutoff": {
+           "mod": [
+            {
+             "amount": 0.3,
+             "src": "vel"
+            }
+           ],
+           "value": "1.1k"
+          },
+          "kind": "bp",
+          "q": 1.2
+         },
+         "hp cutoff=500"
+        ],
+        "layers": [
+         {
+          "level": {
+           "mod": [
+            {
+             "amount": 40,
+             "src": "env.b"
+            }
+           ],
+           "value": "-40dB"
+          },
+          "name": "bursts",
+          "type": "noise"
+         },
+         {
+          "level": {
+           "mod": [
+            {
+             "amount": 36,
+             "src": "env.t"
+            }
+           ],
+           "value": "-40dB"
+          },
+          "name": "tail",
+          "type": "noise"
+         }
+        ]
+       }
+      }
+     },
+     "cy": {
+      "gain": "-10dB",
+      "pan": 0.15,
+      "patch": {
+       "play": {
+        "vel_sens": 0.6
+       },
+       "synth": {
+        "amp": {
+         "a": "0.3ms",
+         "curve": 4,
+         "d": "1.4s",
+         "r": "150ms",
+         "s": 0
+        },
+        "filters": [
+         {
+          "cutoff": {
+           "mod": [
+            {
+             "amount": 0.4,
+             "src": "vel"
+            }
+           ],
+           "value": "6k"
+          },
+          "kind": "bp",
+          "q": 0.6
+         },
+         "hp cutoff=3.5k"
+        ],
+        "layers": [
+         "square fixed=205.3",
+         "square fixed=304.4",
+         "square fixed=369.6",
+         "square fixed=522.7",
+         "square fixed=540",
+         "square fixed=800",
+         {
+          "level": "-18dB",
+          "type": "noise"
+         }
+        ]
+       }
+      }
+     },
+     "h": {
+      "choke": "hat",
+      "gain": "-6dB",
+      "pan": -0.1,
+      "patch": {
+       "play": {
+        "vel_sens": 0.6
+       },
+       "synth": {
+        "amp": {
+         "a": "0.1ms",
+         "curve": 4,
+         "d": "45ms",
+         "r": "10ms",
+         "s": 0
+        },
+        "filters": [
+         {
+          "cutoff": {
+           "mod": [
+            {
+             "amount": 0.3,
+             "src": "vel"
+            }
+           ],
+           "value": "9k"
+          },
+          "kind": "bp",
+          "q": 0.9
+         },
+         "hp cutoff=6.5k"
+        ],
+        "layers": [
+         "square fixed=205.3",
+         "square fixed=304.4",
+         "square fixed=369.6",
+         "square fixed=522.7",
+         "square fixed=540",
+         "square fixed=800"
+        ]
+       }
+      }
+     },
+     "hc": {
+      "gain": "-6dB",
+      "pan": 0.25,
+      "patch": {
+       "play": {
+        "vel_sens": 0.45
+       },
+       "synth": {
+        "amp": {
+         "a": "0.2ms",
+         "curve": 4,
+         "d": "190ms",
+         "r": "20ms",
+         "s": 0
+        },
+        "env": {
+         "p": {
+          "a": "0.1ms",
+          "d": "15ms",
+          "s": 0
+         }
+        },
+        "layers": [
+         "sine"
+        ],
+        "pitch": {
+         "mod": [
+          {
+           "amount": 2,
+           "src": "env.p"
+          }
+         ],
+         "value": 0
+        }
+       }
+      },
+      "pitch": "E4"
+     },
+     "ht": {
+      "gain": "-4dB",
+      "pan": 0.2,
+      "patch": {
+       "play": {
+        "vel_sens": 0.45
+       },
+       "synth": {
+        "amp": {
+         "a": "0.2ms",
+         "curve": 4,
+         "d": "380ms",
+         "r": "30ms",
+         "s": 0
+        },
+        "env": {
+         "n": {
+          "a": "0.1ms",
+          "d": "40ms",
+          "s": 0
+         },
+         "p": {
+          "a": "0.1ms",
+          "d": "60ms",
+          "s": 0
+         }
+        },
+        "layers": [
+         "sine",
+         {
+          "color": "pink",
+          "level": {
+           "mod": [
+            {
+             "amount": 42,
+             "src": "env.n"
+            }
+           ],
+           "value": "-66dB"
+          },
+          "type": "noise"
+         }
+        ],
+        "pitch": {
+         "mod": [
+          {
+           "amount": 3,
+           "src": "env.p"
+          }
+         ],
+         "value": 0
+        }
+       }
+      },
+      "pitch": "F#3"
+     },
+     "k": {
+      "choke": "bd",
+      "patch": {
+       "play": {
+        "vel_sens": 0.4
+       },
+       "synth": {
+        "amp": {
+         "a": "0.3ms",
+         "curve": 3,
+         "d": "520ms",
+         "r": "30ms",
+         "s": 0
+        },
+        "env": {
+         "c": {
+          "a": "0.1ms",
+          "d": "2.5ms",
+          "s": 0
+         },
+         "p": {
+          "a": "0.1ms",
+          "curve": 3,
+          "d": "30ms",
+          "s": 0
+         }
+        },
+        "filters": [
+         "hp cutoff=25",
+         {
+          "cutoff": {
+           "mod": [
+            {
+             "amount": 1,
+             "src": "vel"
+            }
+           ],
+           "value": "1.8k"
+          },
+          "kind": "lp"
+         }
+        ],
+        "layers": [
+         {
+          "name": "tone",
+          "wave": "sine"
+         },
+         {
+          "level": {
+           "mod": [
+            {
+             "amount": 58,
+             "src": "env.c"
+            },
+            {
+             "amount": 10,
+             "src": "vel"
+            }
+           ],
+           "value": "-70dB"
+          },
+          "name": "click",
+          "type": "noise"
+         },
+         {
+          "fixed": 1100,
+          "level": {
+           "mod": [
+            {
+             "amount": 50,
+             "src": "env.c"
+            },
+            {
+             "amount": 6,
+             "src": "vel"
+            }
+           ],
+           "value": "-66dB"
+          },
+          "name": "pulse",
+          "wave": "square"
+         }
+        ],
+        "pitch": {
+         "mod": [
+          {
+           "amount": 7,
+           "src": "env.p"
+          }
+         ],
+         "value": 0
+        }
+       }
+      },
+      "pitch": "A1"
+     },
+     "kl": {
+      "choke": "bd",
+      "patch": {
+       "play": {
+        "vel_sens": 0.4
+       },
+       "synth": {
+        "amp": {
+         "a": "0.3ms",
+         "curve": 2.5,
+         "d": "1.5s",
+         "r": "40ms",
+         "s": 0
+        },
+        "drive": {
+         "mod": [
+          {
+           "amount": 0.2,
+           "src": "vel"
+          }
+         ],
+         "value": 0.15
+        },
+        "env": {
+         "c": {
+          "a": "0.1ms",
+          "d": "2.5ms",
+          "s": 0
+         },
+         "p": {
+          "a": "0.1ms",
+          "curve": 3,
+          "d": "35ms",
+          "s": 0
+         }
+        },
+        "filters": [
+         "hp cutoff=25",
+         "lp cutoff=1.5k"
+        ],
+        "layers": [
+         {
+          "name": "tone",
+          "wave": "sine"
+         },
+         {
+          "level": {
+           "mod": [
+            {
+             "amount": 58,
+             "src": "env.c"
+            },
+            {
+             "amount": 10,
+             "src": "vel"
+            }
+           ],
+           "value": "-70dB"
+          },
+          "name": "click",
+          "type": "noise"
+         }
+        ],
+        "pitch": {
+         "mod": [
+          {
+           "amount": 9,
+           "src": "env.p"
+          }
+         ],
+         "value": 0
+        }
+       }
+      },
+      "pitch": "G1"
+     },
+     "lc": {
+      "gain": "-6dB",
+      "pan": -0.25,
+      "patch": {
+       "play": {
+        "vel_sens": 0.45
+       },
+       "synth": {
+        "amp": {
+         "a": "0.2ms",
+         "curve": 4,
+         "d": "190ms",
+         "r": "20ms",
+         "s": 0
+        },
+        "env": {
+         "p": {
+          "a": "0.1ms",
+          "d": "15ms",
+          "s": 0
+         }
+        },
+        "layers": [
+         "sine"
+        ],
+        "pitch": {
+         "mod": [
+          {
+           "amount": 2,
+           "src": "env.p"
+          }
+         ],
+         "value": 0
+        }
+       }
+      },
+      "pitch": "E3"
+     },
+     "lt": {
+      "gain": "-4dB",
+      "pan": -0.2,
+      "patch": {
+       "play": {
+        "vel_sens": 0.45
+       },
+       "synth": {
+        "amp": {
+         "a": "0.2ms",
+         "curve": 4,
+         "d": "380ms",
+         "r": "30ms",
+         "s": 0
+        },
+        "env": {
+         "n": {
+          "a": "0.1ms",
+          "d": "40ms",
+          "s": 0
+         },
+         "p": {
+          "a": "0.1ms",
+          "d": "60ms",
+          "s": 0
+         }
+        },
+        "layers": [
+         "sine",
+         {
+          "color": "pink",
+          "level": {
+           "mod": [
+            {
+             "amount": 42,
+             "src": "env.n"
+            }
+           ],
+           "value": "-66dB"
+          },
+          "type": "noise"
+         }
+        ],
+        "pitch": {
+         "mod": [
+          {
+           "amount": 3,
+           "src": "env.p"
+          }
+         ],
+         "value": 0
+        }
+       }
+      },
+      "pitch": "F#2"
+     },
+     "ma": {
+      "gain": "-9dB",
+      "pan": 0.2,
+      "patch": {
+       "play": {
+        "vel_sens": 0.5
+       },
+       "synth": {
+        "amp": {
+         "a": "2ms",
+         "curve": 3,
+         "d": "35ms",
+         "r": "10ms",
+         "s": 0
+        },
+        "filters": [
+         {
+          "cutoff": {
+           "mod": [
+            {
+             "amount": -0.3,
+             "src": "vel"
+            }
+           ],
+           "value": "6k"
+          },
+          "kind": "hp"
+         }
+        ],
+        "layers": [
+         "white"
+        ]
+       }
+      }
+     },
+     "mc": {
+      "gain": "-6dB",
+      "patch": {
+       "play": {
+        "vel_sens": 0.45
+       },
+       "synth": {
+        "amp": {
+         "a": "0.2ms",
+         "curve": 4,
+         "d": "190ms",
+         "r": "20ms",
+         "s": 0
+        },
+        "env": {
+         "p": {
+          "a": "0.1ms",
+          "d": "15ms",
+          "s": 0
+         }
+        },
+        "layers": [
+         "sine"
+        ],
+        "pitch": {
+         "mod": [
+          {
+           "amount": 2,
+           "src": "env.p"
+          }
+         ],
+         "value": 0
+        }
+       }
+      },
+      "pitch": "A3"
+     },
+     "mt": {
+      "gain": "-4dB",
+      "patch": {
+       "play": {
+        "vel_sens": 0.45
+       },
+       "synth": {
+        "amp": {
+         "a": "0.2ms",
+         "curve": 4,
+         "d": "380ms",
+         "r": "30ms",
+         "s": 0
+        },
+        "env": {
+         "n": {
+          "a": "0.1ms",
+          "d": "40ms",
+          "s": 0
+         },
+         "p": {
+          "a": "0.1ms",
+          "d": "60ms",
+          "s": 0
+         }
+        },
+        "layers": [
+         "sine",
+         {
+          "color": "pink",
+          "level": {
+           "mod": [
+            {
+             "amount": 42,
+             "src": "env.n"
+            }
+           ],
+           "value": "-66dB"
+          },
+          "type": "noise"
+         }
+        ],
+        "pitch": {
+         "mod": [
+          {
+           "amount": 3,
+           "src": "env.p"
+          }
+         ],
+         "value": 0
+        }
+       }
+      },
+      "pitch": "C#3"
+     },
+     "oh": {
+      "choke": "hat",
+      "gain": "-9dB",
+      "pan": -0.1,
+      "patch": {
+       "play": {
+        "vel_sens": 0.6
+       },
+       "synth": {
+        "amp": {
+         "a": "0.2ms",
+         "curve": 3,
+         "d": "420ms",
+         "r": "40ms",
+         "s": 0
+        },
+        "filters": [
+         {
+          "cutoff": {
+           "mod": [
+            {
+             "amount": 0.3,
+             "src": "vel"
+            }
+           ],
+           "value": "9k"
+          },
+          "kind": "bp",
+          "q": 0.9
+         },
+         "hp cutoff=6.5k"
+        ],
+        "layers": [
+         "square fixed=205.3",
+         "square fixed=304.4",
+         "square fixed=369.6",
+         "square fixed=522.7",
+         "square fixed=540",
+         "square fixed=800"
+        ]
+       }
+      }
+     },
+     "rs": {
+      "gain": "-7dB",
+      "patch": {
+       "play": {
+        "vel_sens": 0.5
+       },
+       "synth": {
+        "amp": {
+         "a": "0.1ms",
+         "curve": 3,
+         "d": "22ms",
+         "r": "8ms",
+         "s": 0
+        },
+        "filters": [
+         "hp cutoff=350"
+        ],
+        "layers": [
+         {
+          "fixed": 1667,
+          "wave": "triangle"
+         },
+         {
+          "fixed": 455,
+          "level": "-6dB",
+          "wave": "triangle"
+         }
+        ]
+       }
+      }
+     },
+     "s": {
+      "patch": {
+       "play": {
+        "vel_sens": 0.5
+       },
+       "synth": {
+        "amp": {
+         "a": "0.1ms",
+         "curve": 1,
+         "d": "260ms",
+         "r": "20ms",
+         "s": 0
+        },
+        "env": {
+         "hi": {
+          "a": "0.1ms",
+          "curve": 2,
+          "d": "80ms",
+          "s": 0
+         },
+         "lo": {
+          "a": "0.1ms",
+          "curve": 2,
+          "d": "120ms",
+          "s": 0
+         },
+         "n": {
+          "a": "0.1ms",
+          "curve": 1.5,
+          "d": "220ms",
+          "s": 0
+         }
+        },
+        "filters": [
+         {
+          "cutoff": {
+           "mod": [
+            {
+             "amount": 0.5,
+             "src": "vel"
+            }
+           ],
+           "value": 160
+          },
+          "kind": "hp"
+         },
+         {
+          "cutoff": {
+           "mod": [
+            {
+             "amount": 1,
+             "src": "vel"
+            }
+           ],
+           "value": "7k"
+          },
+          "kind": "lp"
+         }
+        ],
+        "layers": [
+         {
+          "fixed": 185,
+          "level": {
+           "mod": [
+            {
+             "amount": 36,
+             "src": "env.lo"
+            }
+           ],
+           "value": "-36dB"
+          },
+          "name": "lo",
+          "wave": "sine"
+         },
+         {
+          "fixed": 332,
+          "level": {
+           "mod": [
+            {
+             "amount": 37,
+             "src": "env.hi"
+            }
+           ],
+           "value": "-40dB"
+          },
+          "name": "hi",
+          "wave": "sine"
+         },
+         {
+          "level": {
+           "mod": [
+            {
+             "amount": 38,
+             "src": "env.n"
+            },
+            {
+             "amount": 6,
+             "src": "vel"
+            }
+           ],
+           "value": "-44dB"
+          },
+          "name": "snappy",
+          "type": "noise"
+         }
+        ]
+       }
+      }
+     },
+     "zp": {
+      "gain": "-8dB",
+      "patch": {
+       "fx": [
+        "delay time=3/16 feedback=0.3 mix=0.2 tone=3k"
+       ],
+       "play": {
+        "vel_sens": 0.5
+       },
+       "synth": {
+        "amp": {
+         "a": "0.3ms",
+         "curve": 2,
+         "d": "160ms",
+         "r": "30ms",
+         "s": 0
+        },
+        "env": {
+         "z": {
+          "a": "0.1ms",
+          "curve": 2,
+          "d": "90ms",
+          "s": 0
+         }
+        },
+        "layers": [
+         "sine",
+         {
+          "level": "-14dB",
+          "ratio": 2,
+          "wave": "triangle"
+         }
+        ],
+        "pitch": {
+         "mod": [
+          {
+           "amount": 30,
+           "src": "env.z"
+          },
+          {
+           "amount": 6,
+           "src": "vel"
+          }
+         ],
+         "value": -24
+        }
+       }
+      },
+      "pitch": "C5"
+     },
+     "kr": {
+      "choke": "bd",
+      "patch": {
+       "play": {
+        "vel_sens": 0.4
+       },
+       "synth": {
+        "amp": {
+         "a": "0.3ms",
+         "curve": 3,
+         "d": "160ms",
+         "r": "30ms",
+         "s": 0
+        },
+        "env": {
+         "c": {
+          "a": "0.1ms",
+          "d": "2.5ms",
+          "s": 0
+         },
+         "p": {
+          "a": "0.1ms",
+          "curve": 3,
+          "d": "30ms",
+          "s": 0
+         }
+        },
+        "filters": [
+         "hp cutoff=25",
+         {
+          "cutoff": {
+           "mod": [
+            {
+             "amount": 1,
+             "src": "vel"
+            }
+           ],
+           "value": "1.8k"
+          },
+          "kind": "lp"
+         }
+        ],
+        "layers": [
+         {
+          "name": "tone",
+          "wave": "sine"
+         },
+         {
+          "level": {
+           "mod": [
+            {
+             "amount": 58,
+             "src": "env.c"
+            },
+            {
+             "amount": 10,
+             "src": "vel"
+            }
+           ],
+           "value": "-70dB"
+          },
+          "name": "click",
+          "type": "noise"
+         },
+         {
+          "fixed": 1100,
+          "level": {
+           "mod": [
+            {
+             "amount": 50,
+             "src": "env.c"
+            },
+            {
+             "amount": 6,
+             "src": "vel"
+            }
+           ],
+           "value": "-66dB"
+          },
+          "name": "pulse",
+          "wave": "square"
+         }
+        ],
+        "pitch": {
+         "mod": [
+          {
+           "amount": 7,
+           "src": "env.p"
+          }
+         ],
+         "value": 0
+        }
+       }
+      },
+      "pitch": "A1"
+     }
+    },
+    "play": {
+     "humanize": {
+      "time": "0.3ms",
+      "vel": 0.02
+     },
+     "len": "/16",
+     "vel_sens": 0.45
+    }
+   }
+  }
  },
  "cache": "ref/songsterr-48464",
  "offset": 0.1924942324366488,
@@ -632,7 +1743,7 @@
  "parts": [
   {
    "name": "drum-machine",
-   "patch": "electro-kit play.event_stable=true",
+   "patch": "bm-kit-r2 play.event_stable=true",
    "gain": "-6dB",
    "bars": [
     [
@@ -652,6 +1763,55 @@
    "track": 2,
    "gm_map": {
     "39": "cp"
+   },
+   "replace": {
+    "1": "kr/1b@100 kr/1b@100 kr/0.25b@100 kr/0.25b@100 kr/0.25b@100 kr/0.25b@100 kr/0.25b@100 kr/0.25b@100 kr/0.25b@100 kr/0.25b@100",
+    "2": "kr/1b@100 kr/1b@100 kr/1b@100 kr/1b@100",
+    "3": "kr/1b@100 kr/1b@100 kr/0.25b@100 kr/0.25b@100 kr/0.25b@100 kr/0.25b@100 kr/0.25b@100 kr/0.25b@100 kr/0.25b@100 kr/0.25b@100",
+    "4": "kr/1b@100 kr/1b@100 kr/1b@100 kr/1b@100",
+    "5": "kr/1b@100 kr/1b@100 kr/0.25b@100 kr/0.25b@100 kr/0.25b@100 kr/0.25b@100 kr/0.25b@100 kr/0.25b@100 kr/0.25b@100 kr/0.25b@100",
+    "6": "kr/1b@100 kr/1b@100 kr/1b@100 kr/1b@100",
+    "7": "kr/1b@100 kr/1b@100 kr/0.25b@100 kr/0.25b@100 kr/0.25b@100 kr/0.25b@100 kr/0.25b@100 kr/0.25b@100 kr/0.25b@100 kr/0.25b@100",
+    "8": "kr/1b@100 kr/1b@100 kr/1b@100 kr/1b@100"
+   },
+   "extra": {
+    "auto": {
+     "r2_kick_level": {
+      "curve": 1,
+      "points": [
+       [
+        0,
+        3.6117061444176377
+       ],
+       [
+        "14.7s",
+        3.6117061444176377
+       ],
+       [
+        "14.932151s",
+        0
+       ],
+       [
+        "450.8s",
+        0
+       ]
+      ]
+     }
+    },
+    "fx": [
+     {
+      "type": "gain",
+      "gain": {
+       "value": "0dB",
+       "mod": [
+        {
+         "src": "auto.r2_kick_level",
+         "amount": 1
+        }
+       ]
+      }
+     }
+    ]
    }
   },
   {
