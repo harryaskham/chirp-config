@@ -1015,7 +1015,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 12,
+      "rounds": 13,
       "priority": 1.0,
       "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
       "meta": {
@@ -1032,8 +1032,8 @@
       },
       "ref_file": "ref/albums/catch-thirtythree/12 dehumanization.webm",
       "last": {
-        "at": "2026-10-18T09:02:16Z",
-        "who": "chirper-one"
+        "at": "2026-10-18T10:44:00Z",
+        "who": "chirper-two"
       }
     },
     {
