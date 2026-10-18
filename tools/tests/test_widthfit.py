@@ -120,6 +120,16 @@ class Widthfit(unittest.TestCase):
             self.assertEqual([p[0] for p in inner], [20.05, 20.15, 29.85, 29.95])
             self.assertAlmostEqual(inner[0][1] / inner[1][1], 0.8, delta=0.01)
 
+    def test_section_without_internal_knots_keeps_scalar_target(self):
+        points = [["0s", 0.5], ["66s", 0.5], ["72s", 0.5], ["104s", 0.5]]
+        for kwargs in ({"now": 0.5, "new": 0.75}, {"absolute": 0.75}):
+            with self.subTest(kwargs=kwargs):
+                after = WF.scale_section(points, 66.25, 71.75, 1.5, **kwargs)
+                self.assertEqual([p for p in after if not 66.25 <= float(p[0][:-1]) < 71.75], points)
+                self.assertEqual([p for p in after if 66.25 <= float(p[0][:-1]) < 71.75],
+                                 [["66.300s", 0.75], ["71.700s", 0.75]])
+        self.assertEqual(points, [["0s", 0.5], ["66s", 0.5], ["72s", 0.5], ["104s", 0.5]])
+
     def test_a_varying_section_is_refused_before_writing(self):
         with open(self.grid) as f:
             doc = json.load(f)

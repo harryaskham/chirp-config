@@ -101,8 +101,8 @@ def scale_section(points, a, b, r, absolute=None, now=None, new=None):
     pts = [list(p) for p in points]
     if not inside:
         v = section_mean(points, a, b)
-        new = [[f"{a + 0.05:.3f}s", v], [f"{b - 0.05:.3f}s", v]]
-        pts = sorted(pts + new, key=lambda p: float(str(p[0])[:-1]))
+        added = [[f"{a + 0.05:.3f}s", v], [f"{b - 0.05:.3f}s", v]]
+        pts = sorted(pts + added, key=lambda p: float(str(p[0])[:-1]))
         inside = [i for i, (t, _) in enumerate(pts) if a <= float(str(t)[:-1]) < b]
     for i in inside:
         if absolute is not None:
