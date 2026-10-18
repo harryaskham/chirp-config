@@ -156,6 +156,11 @@ def main():
     elif isinstance(master, list):
         master = {"fx": master}
     master.setdefault("fx", [])
+    for f in master["fx"]:   # bd-85ba39: the lanes are fitted with the legacy stage's model only
+        if isinstance(f, dict) and f.get("type") == "width" and f.get("crossover", "legacy") != "legacy" \
+                and any(isinstance(b[1], dict) and "auto.wb" in json.dumps(b[1]) for b in f.get("bands", [])):
+            sys.exit(f"widthfit: the lane stage uses crossover {f['crossover']}; widthfit fits the legacy stage only "
+                     "(widthresp --crossover lr4 models it, but its lanes have no validated fitting pass yet)")
     auto = master.setdefault("auto", {})
     first = "wb0" not in auto
     lo, hi = (float(x) for x in opt("--clip", "0.2,2.5" if first else "0.5,2.0").split(","))

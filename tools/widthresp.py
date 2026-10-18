@@ -26,9 +26,19 @@ master chain after the stage is linear on the side, as in the MM tail: mid uncha
   widthresp.py probe --tones 100,250,700,2000,5000,11000 [--bin CHIRP] [--widths …]
         a multisine probe: hard-left tones, each tone's side/mid gain against the model's |H| at that frequency
   widthresp.py predict RENDER.wav --at A-B --from w0,…,w6 --to w0,…,w6 [--bands 1200-3500,3500-8000]
+  … [--crossover legacy|lr4]   which stage topology to model and probe (default legacy; lr4: see below)
         a render's side/mid per measured band and side/mid dBFS in Butterworth bands, now and predicted
 
 widthfit.py --joint uses this model to solve all seven widths of a section together.
+
+Crossover `lr4` (bd-85ba39, opt-in, experimental): `--crossover lr4` on matrix/probe/predict models the stage's
+phase-aligned Linkwitz-Riley split instead. Each lower edge splits what is left with LP4/HP4 (two identical Cytomic
+SVF sections, Q 1/sqrt2, prewarped); lower branches pass every later edge's allpass AP2 = LP4+HP4, and mid passes the
+same cascade. With t_i = tan(pi f/SR)/tan(pi fc_i/SR), l_i = 1/(1+t_i^4), h_i = 1-l_i, the band weights
+b_i = l_i * prod_{j<i} h_j (and prod_j h_j above the last edge) are real, non-negative and sum to 1, so the side gain
+is A * sum_i g_i b_i with A = prod_i AP2_i common to mid and side: a convex combination of the widths (no overshoot,
+monotonic in each). Unity widths are flat in magnitude but not waveform-neutral (the allpass). The legacy stage
+stays the default everywhere; do not fit legacy lanes with this model, or this model's lanes with the legacy one.
 """
 import json
 import os
@@ -59,14 +69,37 @@ def onepole_lp(f, fc):
     return (1 - a) / (1 - a * np.exp(-2j * np.pi * np.asarray(f, float) / SR))
 
 
-def response(f, widths, freqs=FREQS, width=1.0, bass_width=1.0, mono_below=120.0, gentle=False):
-    """Complex side gain of a width stage at frequencies f (the per-sample code in dsp/fx.rs `Width`)."""
+def lr4_weights(f, freqs=FREQS):
+    """The lr4 stage's band weights at frequencies f: [below the first edge, above edge 0, …, above the last] (they
+    sum to 1), and the common allpass A (bd-85ba39's transfer contract)."""
+    f = np.asarray(f, float)
+    edges = sorted(min(max(float(fc), 20.0), 20000.0) for fc in freqs)[:16]
+    weights, through, A = [], np.ones_like(f), np.ones_like(f, dtype=complex)
+    for fc in edges:
+        fc = min(max(min(fc, SR * 0.45), 10.0), SR * 0.49)
+        t = np.tan(np.pi * f / SR) / np.tan(np.pi * fc / SR)
+        lo = 1 / (1 + t ** 4)
+        weights.append(lo * through)
+        through = through * (1 - lo)
+        A = A * (1 - t * t - 1j * np.sqrt(2) * t) / (1 - t * t + 1j * np.sqrt(2) * t)
+    return weights + [through], A
+
+
+def response(f, widths, freqs=FREQS, width=1.0, bass_width=1.0, mono_below=120.0, gentle=False, crossover="legacy"):
+    """Complex side gain of a width stage at frequencies f (the per-sample code in dsp/fx.rs `Width`). With
+    crossover="lr4" the gain is relative to the stage's mid, which passes the same allpass A (|A| = 1)."""
+    if crossover not in ("legacy", "lr4"):
+        raise ValueError(f"crossover {crossover!r}: legacy or lr4")
     if mono_below > 0:
         hp = 1 - onepole_lp(f, mono_below)
         hp = hp if gentle else hp * hp
         rest = hp * width + (1 - hp) * bass_width
     else:
         rest = np.full(np.shape(f), float(width), complex)
+    if crossover == "lr4":
+        weights, A = lr4_weights(f, freqs)
+        gains = [1.0] + [float(np.clip(w, 0, 8)) for w in widths[:len(weights) - 1]]
+        return A * rest * sum(g * b for g, b in zip(gains, weights))
     acc, g = 0, 1.0
     for i, fc in enumerate(freqs):
         lo = svf_lp(f, min(fc, SR * 0.45)) * rest
@@ -189,8 +222,9 @@ def widths_arg(s):
     return v
 
 
-def probe(binary, widths, seconds=12):
-    """Hard-left noise through the engine's width stage: (neutral max diff in 16-bit steps, measured, model)."""
+def probe(binary, widths, seconds=12, crossover="legacy"):
+    """Hard-left noise through the engine's width stage: (neutral max diff in 16-bit steps, measured, model). With
+    crossover="lr4" the neutral control's residue is the allpass's waveform change, not rounding."""
     d = tempfile.mkdtemp(prefix="widthresp-")
     try:
         def render(ws, tag):
@@ -200,6 +234,8 @@ def probe(binary, widths, seconds=12):
                 # the stage alone and explicitly neutral elsewhere: width 1, bass_width 1, no bass split
                 song["master"] = {"fx": [{"type": "width", "width": 1.0, "bass_width": 1.0, "mono_below": 0,
                                           "bands": [[fc, w] for fc, w in zip(FREQS, ws)]}]}
+                if crossover != "legacy":
+                    song["master"]["fx"][0]["crossover"] = crossover
             p, out = os.path.join(d, f"{tag}.yaml"), os.path.join(d, f"{tag}.wav")
             with open(p, "w") as fh:
                 json.dump(song, fh)
@@ -210,6 +246,9 @@ def probe(binary, widths, seconds=12):
         none, neutral, x = render(None, "none"), render([1] * 7, "neutral"), render(widths, "w")
         res = (none - neutral) * 32768
         f, ps, pm = spectra(none)
+        if crossover != "legacy":   # the unity stage's own band S/M against no stage (magnitude-neutral by design)
+            return (float(np.abs(res).max()), float(np.sqrt(np.mean(res * res))), L.stereo_bands(neutral) / L.stereo_bands(none)), \
+                L.stereo_bands(x), predict_ratios(f, ps, pm, [1] * 7, widths, mono_below=0, crossover=crossover)
         return (float(np.abs(res).max()), float(np.sqrt(np.mean(res * res)))), L.stereo_bands(x), \
             predict_ratios(f, ps, pm, [1] * 7, widths, mono_below=0)
     finally:
@@ -217,7 +256,7 @@ def probe(binary, widths, seconds=12):
         shutil.rmtree(d, True)
 
 
-def tone_probe(binary, widths, tones, seconds=10):
+def tone_probe(binary, widths, tones, seconds=10, crossover="legacy"):
     """Hard-left sine tones through the engine's stage alone: per tone (Hz, measured side/mid gain, model |H|)."""
     d = tempfile.mkdtemp(prefix="widthresp-")
     try:
@@ -226,6 +265,8 @@ def tone_probe(binary, widths, tones, seconds=10):
                            for i, t in enumerate(tones)],   # one track per tone (a chord of hz notes does not parse)
                 "master": {"fx": [{"type": "width", "width": 1.0, "bass_width": 1.0, "mono_below": 0,
                                    "bands": [[fc, w] for fc, w in zip(FREQS, widths)]}]}}
+        if crossover != "legacy":
+            song["master"]["fx"][0]["crossover"] = crossover
         p, out = os.path.join(d, "t.yaml"), os.path.join(d, "t.wav")
         with open(p, "w") as fh:
             json.dump(song, fh)
@@ -241,7 +282,11 @@ def tone_probe(binary, widths, tones, seconds=10):
         for t in tones:
             k = int(np.argmin(np.abs(fr - t)))
             k = k - 2 + int(np.argmax(M[k - 2:k + 3]))
-            rows.append((t, float(S[k] / M[k]), float(np.abs(response(np.array([fr[k]]), widths, mono_below=0))[0])))
+            if crossover == "legacy":
+                rows.append((t, float(S[k] / M[k]), float(np.abs(response(np.array([fr[k]]), widths, mono_below=0))[0])))
+            else:
+                rows.append((t, float(S[k] / M[k]),
+                             float(np.abs(response(np.array([fr[k]]), widths, mono_below=0, crossover=crossover))[0])))
         return rows
     finally:
         import shutil
@@ -254,20 +299,24 @@ def main(a):
     opt = lambda k, d: a[a.index(k) + 1] if k in a else d  # noqa: E731
     cmd = a[0]
     names = [n for n, _, _ in L.BANDS7]
+    xo = opt("--crossover", "legacy")
+    if xo not in ("legacy", "lr4"):
+        sys.exit(f"widthresp: --crossover {xo}: legacy or lr4")
+    st_ = {} if xo == "legacy" else {"crossover": xo}
     if cmd == "matrix":
         w = widths_arg(opt("--widths", "1,1,1,1,1,1,1"))
         if "--wav" in a:
             t0, t1 = (float(v) for v in opt("--at", "0-1e9").split("-"))
             f, ps, pm = spectra(L.load(opt("--wav", ""))[int(t0 * SR):int(t1 * SR)])
             w_from = widths_arg(opt("--render-widths", ",".join(map(str, w))))
-            ps = ps * np.abs(response(f, w, **{})) ** 2 / np.maximum(np.abs(response(f, w_from)) ** 2, 1e-12)
+            ps = ps * np.abs(response(f, w, **st_)) ** 2 / np.maximum(np.abs(response(f, w_from, **st_)) ** 2, 1e-12)
         else:
             f = np.linspace(1, SR / 2, 8193)
             ps = pm = np.ones_like(f)
-        g = band_ratios(f, ps * np.abs(response(f, w)) ** 2, pm) / band_ratios(f, ps, pm)
+        g = band_ratios(f, ps * np.abs(response(f, w, **st_)) ** 2, pm) / band_ratios(f, ps, pm)
         print("widths  " + " ".join(f"{v:7.3f}" for v in w))
         print("gain    " + " ".join(f"{v:7.3f}" for v in g) + "   (measured band S/M x, per band)")
-        J = jacobian(f, ps, pm, w)
+        J = jacobian(f, ps, pm, w, **st_)
         print("d log2(band) / d log2(w_k)   rows: measured bands, columns: wb0..wb6")
         for j, n in enumerate(names):
             print(f"{n:7} " + " ".join(f"{v:7.3f}" for v in J[j]))
@@ -277,12 +326,19 @@ def main(a):
         w = widths_arg(opt("--widths", "6,0.364,1.533,1.251,1.951,4.215,4.493"))   # MM v14 tail (bd-33c6c3)
         if "--tones" in a:   # a multisine probe: each tone's side/mid gain against |H| at that frequency
             print("tone Hz   measured   model   error dB")
-            for t, m_, h in tone_probe(opt("--bin", CHIRP), w, [float(v) for v in opt("--tones", "").split(",")]):
+            for t, m_, h in tone_probe(opt("--bin", CHIRP), w, [float(v) for v in opt("--tones", "").split(",")], **st_):
                 print(f"{t:7g}  {m_:8.4f} {h:8.4f}   {20 * np.log10(h / m_):+.4f}")
             return
-        (peak, rms), meas, model = probe(opt("--bin", CHIRP), w)
-        print(f"neutral control: unity stage (width 1, bass_width 1, mono_below 0) vs no stage: residue max {peak:.1f}, "
-              f"rms {rms:.3f} 16-bit steps (float rounding in the split-and-sum)")
+        ctl, meas, model = probe(opt("--bin", CHIRP), w, **st_)
+        if xo == "legacy":
+            peak, rms = ctl
+            print(f"neutral control: unity stage (width 1, bass_width 1, mono_below 0) vs no stage: residue max {peak:.1f}, "
+                  f"rms {rms:.3f} 16-bit steps (float rounding in the split-and-sum)")
+        else:
+            peak, rms, unity = ctl
+            print(f"neutral control ({xo}): unity stage vs no stage: band S/M within "
+                  f"{np.max(np.abs(20 * np.log10(unity))):.4f} dB (magnitude-flat); waveform residue max {peak:.1f}, "
+                  f"rms {rms:.3f} 16-bit steps (the allpass phase, by design)")
         print("band     measured   model   error dB")
         for n, m_, p_ in zip(names, meas, model):
             print(f"{n:7}  {m_:8.3f} {p_:7.3f}   {20 * np.log10(p_ / m_):+.3f}")
@@ -293,9 +349,9 @@ def main(a):
         w0, w1 = widths_arg(opt("--from", "")), widths_arg(opt("--to", ""))
         f, ps, pm = spectra(seg)
         print("band     now      predicted")
-        for n, r0, r1 in zip(names, band_ratios(f, ps, pm), predict_ratios(f, ps, pm, w0, w1)):
+        for n, r0, r1 in zip(names, band_ratios(f, ps, pm), predict_ratios(f, ps, pm, w0, w1, **st_)):
             print(f"{n:7}  {r0:7.3f}  {r1:7.3f}")
-        gain = lambda fr: np.abs(response(fr, w1)) / np.maximum(np.abs(response(fr, w0)), 1e-9)  # noqa: E731
+        gain = lambda fr: np.abs(response(fr, w1, **st_)) / np.maximum(np.abs(response(fr, w0, **st_)), 1e-9)  # noqa: E731
         for band in opt("--bands", "1200-3500,3500-8000").split(","):
             lo, hi = (float(v) for v in band.split("-"))
             s0, m0 = side_dbfs(seg, lo, hi)
