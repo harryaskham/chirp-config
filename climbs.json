@@ -1165,15 +1165,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/genesis.wav OUT.wav $(cat tools/genesis-sections.txt)",
       "best": {
-        "score": 60.574,
-        "version": "v1",
+        "score": 60.699,
+        "version": "v2",
         "commit": "see git log songs/genesis.yaml",
-        "engine": "e086795"
+        "engine": "e443c01"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 1,
+      "rounds": 2,
       "priority": 1.0,
       "genre": "dream pop",
       "requested": {
@@ -1187,8 +1187,8 @@
         "title": "Genesis"
       },
       "last": {
-        "at": "2026-10-18T22:55:16Z",
-        "who": "chirper-three"
+        "at": "2026-10-18T23:52:25Z",
+        "who": "chirper-zero"
       }
     },
     {
