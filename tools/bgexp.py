@@ -36,11 +36,40 @@ def opt(args, flag, default):
     return default
 
 
+def put(path, state):
+    """Write a job's state atomically (status and wait never read a half-written file)."""
+    tmp = f"{path}.tmp"
+    with open(tmp, "w") as f:
+        json.dump(state, f)
+    os.replace(tmp, path)
+
+
 def job(name, song, ref, sections, slots, extra, max_load=None, keep_wav=False):
+    """A detached worker. It always ends terminal — done, or failed with the stage, the error and a traceback in
+    NAME.log — whatever raises (bd-1a4f0e: a missing sections file after a good render left jobs `scoring` forever)."""
     os.makedirs(EXP, exist_ok=True)
     out = f"{EXP}/{name}.json"
     state = {"name": name, "song": song, "state": "queued", "queued": time.time()}
-    json.dump(state, open(out, "w"))
+    put(out, state)
+    wav = f"{EXP}/{name}.wav"
+    try:
+        _job(state, out, wav, name, song, ref, sections, slots, extra, max_load, keep_wav)
+    except BaseException as e:  # noqa: BLE001
+        import traceback
+        state.update(state="failed", stage=state.get("state"), error=f"{type(e).__name__}: {e}", finished=time.time())
+        if os.path.exists(wav):   # the render completed: keep it (tmpclean sweeps it after 6 idle hours)
+            state["wav"] = f"{wav} (kept: the render completed, then {state['stage']} failed)"
+        try:
+            with open(f"{EXP}/{name}.log", "a") as log:
+                log.write("\n" + traceback.format_exc())
+        except OSError:
+            pass
+        put(out, state)
+        if not isinstance(e, Exception):
+            raise
+
+
+def _job(state, out, wav, name, song, ref, sections, slots, extra, max_load, keep_wav):
     lock = None
     max_load = max_load or 3.0 * (os.cpu_count() or 8)
     while lock is None:
@@ -60,18 +89,18 @@ def job(name, song, ref, sections, slots, extra, max_load=None, keep_wav=False):
     st = os.stat(CHIRP)
     ver = subprocess.run([CHIRP, "--version"], capture_output=True, text=True).stdout.strip()
     state.update(state="rendering", started=time.time(), engine={"path": CHIRP, "size": st.st_size, "mtime": int(st.st_mtime), "version": ver})
-    json.dump(state, open(out, "w"))
-    wav = f"{EXP}/{name}.wav"
+    put(out, state)
     with open(f"{EXP}/{name}.log", "w") as log:
         r = subprocess.run(["nice", "-n", "15", CHIRP, "render", "-f", song, "-o", wav, *extra], stdout=log, stderr=log, cwd=ROOT)
         if r.returncode != 0:
             if os.path.exists(wav):
                 os.remove(wav)
-            state.update(state="failed", finished=time.time())
-            json.dump(state, open(out, "w"))
+            state.update(state="failed", stage="rendering", error=f"render exited {r.returncode} (see {name}.log)",
+                         finished=time.time())
+            put(out, state)
             return
         state.update(state="scoring")
-        json.dump(state, open(out, "w"))
+        put(out, state)
         cuts = open(os.path.join(ROOT, sections)).read().split()[0]
         lk = subprocess.run(["nice", "-n", "10", sys.executable, f"{TOOLS}/likeness.py", "sections", ref, wav, cuts],
                             capture_output=True, text=True, cwd=ROOT)
@@ -85,7 +114,11 @@ def job(name, song, ref, sections, slots, extra, max_load=None, keep_wav=False):
         exact = sum(sum(s.get(k, 0) * w for k, w in W.items()) / sum(W.values()) * du for s, du in zip(secs, durs)) / sum(durs)
         state.update(total=d["total"], exact=round(exact, 3), sections=[{k: round(v, 1) if isinstance(v, float) else v for k, v in s.items()} for s in secs])
     except Exception as e:  # noqa: BLE001
-        state.update(error=f"likeness: {e}")
+        # no score: a failure (the render stays for a rescore), not a `done` without a total
+        state.update(state="failed", stage="scoring", error=f"likeness: {e}", finished=time.time(),
+                     wav=f"{wav} (kept: the render completed, then scoring failed)")
+        put(out, state)
+        return
     try:
         state["mixfeel"] = json.loads(mf.stdout)
     except Exception as e:  # noqa: BLE001
@@ -97,7 +130,7 @@ def job(name, song, ref, sections, slots, extra, max_load=None, keep_wav=False):
         except OSError:
             pass
     state.update(state="done", finished=time.time())
-    json.dump(state, open(out, "w"))
+    put(out, state)
 
 
 def status(prefix="", since=None):
@@ -152,6 +185,10 @@ def main():
         keep_wav = "--keep-wav" in a
         a = [x for x in a if x != "--keep-wav"]
         name, song = a[0], os.path.abspath(a[1])
+        # caller errors now, not a failed job later (the worker still guards: files can vanish while it queues)
+        for what, path in (("song", song), ("--ref", os.path.join(ROOT, ref)), ("--sections", os.path.join(ROOT, sections))):
+            if not os.path.isfile(path):
+                sys.exit(f"bgexp: {what} {path} does not exist (--ref/--sections default to the shadows climb's)")
         if os.fork() == 0:
             os.setsid()
             if os.fork() == 0:
