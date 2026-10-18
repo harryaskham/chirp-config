@@ -2,7 +2,7 @@
  "cache": "ref/songsterr-73451",
  "offset": -0.0025,
  "name": "shed",
- "about": "Hill-climb reproduction of Meshuggah - Shed (Catch Thirtythree, 2005, track 10; meta: artist Meshuggah, album Catch Thirtythree, title Shed, track 10, year 2005 \u2014 a meta: block once the groove pin passes main 8c95a3d). Reference: the album master's track 10. From Songsterr tab 73451 (all 5 tracks).",
+ "about": "Hill-climb reproduction of Meshuggah - Shed (Catch Thirtythree, 2005, track 10; meta: artist Meshuggah, album Catch Thirtythree, title Shed, track 10, year 2005 — a meta: block once the groove pin passes main 8c95a3d). Reference: the album master's track 10. From Songsterr tab 73451 (all 5 tracks).",
  "meters": true,
  "head": {
   "buses": {
@@ -5074,7 +5074,7 @@
    "name": "drums-hats",
    "raw": "tools/maps/shed-hats.json#hats",
    "patch": "obzen-kit",
-   "gain": "0dB"
+   "gain": "6dB"
   }
  ],
  "bpm": {
