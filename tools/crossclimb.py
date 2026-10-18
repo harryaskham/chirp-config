@@ -92,7 +92,10 @@ def run_one(climb, s, keep):
     # masters beat a generic EQ) must not handicap both sides alike and hide a loss (Saturnine, tight-kit air).
     best = max(got, raw) if isinstance(raw, float) else got
     return {"score": best, "raw": raw, "refit": got if raw is not None else None,
-            "rt": (cpu / 1000 / dur) if cpu and dur else None}
+            "rt": (cpu / 1000 / dur) if cpu and dur else None, "short": SHORT.get(wav)}
+
+
+SHORT = {}   # render path -> the metric's coverage summary, when the render did not cover its sections (bd-066928)
 
 
 def score(climb, wav):
@@ -101,6 +104,11 @@ def score(climb, wav):
     doc = first_json(m.stdout) or {}
     if "total" not in doc:
         return "metric: " + (m.stderr.strip() or m.stdout.strip())[-160:]
+    cov = doc.get("coverage") or {}
+    if cov and not cov.get("complete", True):
+        SHORT[wav] = cov
+    else:
+        SHORT.pop(wav, None)
     return float(doc["total"])
 
 
@@ -147,8 +155,11 @@ def main():
                     rt = lambda r: f"{r['rt']:.2f}" if r.get("rt") is not None else "  - "
                     rf = lambda r: (f" (raw {r['raw']:.2f}, refit {r['refit']:.2f})"
                                     if isinstance(r.get("raw"), float) and isinstance(r.get("refit"), float) else "")
+                    sh = next((r["short"] for r in (ra, rb) if r.get("short")), None)
+                    flag = (f"   SHORT: render {sh.get('candidate_seconds')} s < sections {sh.get('requested_end')} s"
+                            if sh else "")   # compared over the covered part only (bd-066928)
                     print(f"{cid:30s} {ra['score']:7.2f} -> {rb['score']:7.2f}  {rb['score'] - ra['score']:+6.2f}"
-                          f"   cpu x RT {rt(ra)} -> {rt(rb)}{rf(ra)}{rf(rb)}", flush=True)
+                          f"   cpu x RT {rt(ra)} -> {rt(rb)}{rf(ra)}{rf(rb)}{flag}", flush=True)
     ok = [r for r in rows if "score" in r["a"] and "score" in r["b"]]
     if a.json:
         print(json.dumps(rows, indent=1))
