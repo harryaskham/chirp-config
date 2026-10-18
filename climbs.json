@@ -1187,11 +1187,16 @@
       "source": "https://www.youtube.com/watch?v=rkjNL4dX-U4",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/baddadan.wav OUT.wav $(cat tools/baddadan-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 46.204,
+        "version": "v1",
+        "commit": "see git log songs/baddadan.yaml",
+        "engine": "da70ccd"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "drum and bass (jump-up; MC-led)",
       "requested": {
@@ -1203,6 +1208,10 @@
       "meta": {
         "artist": "Chase & Status",
         "title": "Baddadan"
+      },
+      "last": {
+        "at": "2026-10-18T17:11:23Z",
+        "who": "chirper-one"
       }
     },
     {
