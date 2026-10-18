@@ -1581,11 +1581,16 @@
       "source": "https://www.youtube.com/watch?v=JQ6c_SDjrHc",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/black-swan.wav OUT.wav $(cat tools/black-swan-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 52.532,
+        "version": "v1",
+        "commit": "see git log songs/black-swan.yaml",
+        "engine": "654b5e3"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "art pop / electronic",
       "meta": {
@@ -1597,7 +1602,11 @@
         "at": "2026-10-18T12:31:29Z",
         "note": "The Eraser (2006) album version."
       },
-      "ref_file": "ref/albums/singles/black-swan.webm"
+      "ref_file": "ref/albums/singles/black-swan.webm",
+      "last": {
+        "at": "2026-10-18T22:05:03Z",
+        "who": "chirper-zero"
+      }
     },
     {
       "id": "ingenue",
