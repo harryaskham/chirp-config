@@ -1374,15 +1374,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/you-can-t-hurry-love.wav OUT.wav $(cat tools/you-can-t-hurry-love-sections.txt)",
       "best": {
-        "score": 53.318,
-        "version": "v1",
+        "score": 60.888,
+        "version": "v2",
         "commit": "see git log songs/you-can-t-hurry-love.yaml",
-        "engine": "da70ccd"
+        "engine": "654b5e3"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 1,
+      "rounds": 2,
       "priority": 1.0,
       "genre": "Motown / soul (The Supremes, fixed supplied recording; 192 BPM 4/4 transcription aid, finger bass, female lead/backing guide, tambourine approximation)",
       "meta": {
@@ -1396,7 +1396,7 @@
       },
       "ref_file": "ref/albums/singles/you-can-t-hurry-love.opus",
       "last": {
-        "at": "2026-10-18T18:19:13Z",
+        "at": "2026-10-18T19:43:14Z",
         "who": "chirper-three"
       }
     },
