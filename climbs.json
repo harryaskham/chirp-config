@@ -822,15 +822,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/mind-s-mirrors.wav OUT.wav $(cat tools/mind-s-mirrors-sections.txt)",
       "best": {
-        "score": 48.589,
-        "version": "v9",
+        "score": 49.114,
+        "version": "v10",
         "commit": "see git log songs/mind-s-mirrors.yaml",
         "engine": "a931418"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 9,
+      "rounds": 10,
       "priority": 1.0,
       "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
       "meta": {
@@ -847,8 +847,8 @@
       },
       "ref_file": "ref/albums/catch-thirtythree/07 mind-s-mirrors.webm",
       "last": {
-        "at": "2026-10-17T17:07:16Z",
-        "who": "chirper-two"
+        "at": "2026-10-18T03:44:12Z",
+        "who": "chirper-three"
       }
     },
     {
