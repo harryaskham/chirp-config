@@ -54,6 +54,65 @@ def flow_to_json(s):
     return json.loads(s)
 
 
+def lane_points(points):
+    """[(seconds, value)] of an automation lane whose times are "N.NNNs" (widthfit's lanes); anything else is refused
+    (before anything is written) rather than misread."""
+    out = []
+    for t, v in points:
+        ts = str(t)
+        if not ts.endswith("s") or ts.endswith("ms"):
+            sys.exit(f"widthfit: lane point time {t!r} is not in seconds; refusing to rewrite this lane")
+        out.append((float(ts[:-1]), float(v)))
+    return out
+
+
+def section_mean(points, a, b, ramp=0.05):
+    """The time-weighted mean of a piecewise-linear lane over the section's interior [a + ramp, b - ramp] (the 50 ms
+    lane ramps at the cuts belong to both neighbours) — by actual time, not knot order (custom knots shift the
+    ordinals: Imprint v10's 32.15/63.85 s ramps, bd-3a56c6). On widthfit's regular grid this is the section's value."""
+    if b - a > 4 * ramp:
+        a, b = a + ramp, b - ramp
+    pts = lane_points(points)
+    ts, vs = [p[0] for p in pts], [p[1] for p in pts]
+    grid = sorted({a, b, *[t for t in ts if a < t < b]})
+    val = lambda t: float(np.interp(t, ts, vs))  # noqa: E731
+    area = sum((t1 - t0) * (val(t0) + val(t1)) / 2 for t0, t1 in zip(grid, grid[1:]))
+    return area / (b - a) if b > a else val(a)
+
+
+def varies(points, a, b, mean, tol=0.10, share=0.10):
+    """Whether a lane strays more than tol from its section mean for more than share of the section (a shape the
+    one-width-per-section model does not describe)."""
+    pts = lane_points(points)
+    ts, vs = [p[0] for p in pts], [p[1] for p in pts]
+    grid = np.linspace(a, b, 401)
+    dev = np.abs(np.interp(grid, ts, vs) - mean) > tol * max(abs(mean), 1e-9)
+    return dev.mean() > share
+
+
+def scale_section(points, a, b, r, absolute=None, now=None, new=None):
+    """The lane with every knot in [a, b) scaled by r (clipped 0..6, rounded) — or set to `absolute` where the
+    current width is 0; a knot at exactly the section's current value `now` takes `new` (so a regular grid rounds as
+    before); knots elsewhere keep their exact time strings and values. A section without knots of its own gets a
+    pair just inside its edges."""
+    inside = [i for i, (t, _) in enumerate(points) if a <= float(str(t)[:-1]) < b]
+    pts = [list(p) for p in points]
+    if not inside:
+        v = section_mean(points, a, b)
+        new = [[f"{a + 0.05:.3f}s", v], [f"{b - 0.05:.3f}s", v]]
+        pts = sorted(pts + new, key=lambda p: float(str(p[0])[:-1]))
+        inside = [i for i, (t, _) in enumerate(pts) if a <= float(str(t)[:-1]) < b]
+    for i in inside:
+        if absolute is not None:
+            nv = absolute
+        elif now is not None and float(pts[i][1]) == now:
+            nv = new
+        else:
+            nv = pts[i][1] * r
+        pts[i][1] = round(float(np.clip(nv, 0, 6)), 3)
+    return pts
+
+
 def lanes(cuts, W):
     out = {}
     for k in range(W.shape[1]):
@@ -93,7 +152,8 @@ def main():
         master["fx"].insert(0, {"type": "width", "width": 1.0, "bass_width": float(opt("--bass-width", 1.0)),
                                 "bands": [[f, {"value": 0.0, "mod": [{"src": f"auto.wb{k}", "amount": 1}]}] for k, f in enumerate(FREQS)]})
     else:
-        cur = np.array([[auto[f"wb{k}"]["points"][0 if i == 0 else 2 * i][1] for k in range(7)] for i in range(nsec)])
+        # the current width of each section, by time (bd-3a56c6: custom knots shifted the old points[2*i] read)
+        cur = np.array([[section_mean(auto[f"wb{k}"]["points"], cuts[i], cuts[i + 1]) for k in range(7)] for i in range(nsec)])
         if "--bass-width" in a:
             for f in master["fx"]:
                 if isinstance(f, dict) and f.get("type") == "width" and any(isinstance(b[1], dict) and "auto.wb" in json.dumps(b[1]) for b in f.get("bands", [])):
@@ -107,13 +167,23 @@ def main():
         import widthresp as WR
         bass = next((float(f.get("bass_width", 1.0)) for f in master["fx"] if isinstance(f, dict) and f.get("type") == "width"
                      and any(isinstance(b[1], dict) and "auto.wb" in json.dumps(b[1]) for b in f.get("bands", []))), 1.0)
+    now = cur.copy()   # the current widths; cur becomes the new ones, and only `fitted` sections are rewritten
+    fitted = []
     for i in range(nsec):
         if only is not None and i + 1 not in only:
             continue
+        if not first and "--scale-shapes" not in a:
+            shaped = [k for k in range(7) if varies(auto[f"wb{k}"]["points"], cuts[i], cuts[i + 1], now[i, k])]
+            if shaped:
+                sys.exit(f"widthfit: section {i + 1}: lanes " + ", ".join(f"wb{k}" for k in shaped) + " vary within the "
+                         "section (more than 10% off their mean for over 10% of it); widthfit fits one width per section. "
+                         "Leave the section out (--only), or --scale-shapes to scale the shape by the fitted factor. "
+                         "Nothing written.")
         s0, s1 = int(cuts[i] * 48000), min(int(cuts[i + 1] * 48000), len(O), len(R))
         if s1 - s0 < minsec * 48000:
             if i:
                 cur[i] = cur[i - 1]
+                fitted.append(i)
             continue
         r = np.clip(L.stereo_bands(R[s0:s1]) / np.maximum(L.stereo_bands(O[s0:s1]), 1e-3), lo, hi) ** strength
         if joint:
@@ -125,10 +195,25 @@ def main():
             print(f"section {i + 1:2d} joint x " + " ".join(f"{v:.2f}" for v in new / np.maximum(cur[i], 1e-9))
                   + f"  | predicted stereo term {term(cur[i]):.1f} now, {term(naive):.1f} per-band, {term(new):.1f} joint")
             cur[i] = new
+            fitted.append(i)
             continue
         cur[i] = np.clip(cur[i] * r, 0, 6)
+        fitted.append(i)
         print(f"section {i + 1:2d} ratio " + " ".join(f"{v:.2f}" for v in r))
-    auto.update(lanes(cuts, cur))
+    if first:
+        auto.update(lanes(cuts, cur))
+    else:
+        # rewrite only the fitted sections, scaling their own knots (shapes and unselected sections survive; a
+        # factor of exactly 1 changes nothing)
+        for i in fitted:
+            for k in range(7):
+                lane = auto[f"wb{k}"]
+                if now[i, k] > 0:
+                    r = cur[i, k] / now[i, k]
+                    if r != 1.0:
+                        lane["points"] = scale_section(lane["points"], cuts[i], cuts[i + 1], r, now=now[i, k], new=cur[i, k])
+                elif cur[i, k] != now[i, k]:
+                    lane["points"] = scale_section(lane["points"], cuts[i], cuts[i + 1], 1.0, absolute=cur[i, k])
     if is_map:
         doc["head"]["master"] = master
         json.dump(doc, open(dst, "w"), indent=1)
