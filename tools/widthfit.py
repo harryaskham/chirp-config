@@ -9,7 +9,7 @@ to the record's side/mid over the render's. Run it again on a new render to refi
 lanes by the residual): the clip/limiter after the stage and the bands' crossovers re-create or leak side, so a
 first pass under-corrects and 2-4 passes converge (stop when a pass ties).
 
-  widthfit.py IN OUT RENDER.wav REF.wav SECTIONS.txt [--bass-width 0.5] [--clip LO,HI] [--min-sec 5] [--strength 1] [--only 4,6,7]
+  widthfit.py IN OUT RENDER.wav REF.wav SECTIONS.txt [--bass-width 0.5] [--clip LO,HI] [--min-sec 5] [--strength 1] [--only 4,6,7] [--joint]
 
 IN/OUT: a tab2song map (.json; edits head.master) or a song (.yaml; replaces its `master:` line). First pass
 (no wb lanes yet): ratios clipped to 0.2..2.5; later passes 0.5..2.0 (--clip overrides). --bass-width sets the
@@ -22,7 +22,16 @@ Recipe for a mature mix (chirper-zero's 'stale width'): print the per-section st
 sections below ~65 and --clip 0.5,4; score per section; then REFIT from the base on the winners only (2 passes).
 Raining Blood +0.58, Come Down +0.4, 2 Minutes to Midnight +0.12, The National Anthem +0.1 held-out. Sections whose
 stereo is content (an intro's mono voice, a squall ending, a part's pan) lose — leave them out.
-Prints each section's ratios. Measure the result with likeness; keep it only if it scores higher."""
+Prints each section's ratios. Measure the result with likeness; keep it only if it scores higher.
+
+The bands are coupled (bd-33c6c3; tools/widthresp.py): wb_k scales the side from FREQS[k] up (lower edge), but the
+stage's crossovers are 12 dB/oct Butterworth splits ~3x apart, so a measured band answers its own width and the next
+one up about equally (and the one below slightly negatively, through phase); with uneven widths a band follows its
+widest neighbour (MM tail: 1.2-3.5k measured x4.08 with wb4 1.95, wb5 4.2). The per-band ratio above assumes each
+band answers only its own width. --joint (opt-in) instead solves a section's seven widths together on the exact
+stage model, weighted by the render's own side spectrum, for the likeness stereo residuals (same --clip bounds per
+pass, --strength scales the step); each section prints the model's predicted stereo term now / per-band / joint.
+The model covers the stage only: anything after it that reacts to the side (clip, limiter) is why passes repeat."""
 import json, re, sys
 
 import numpy as np
@@ -93,6 +102,11 @@ def main():
     minsec = float(opt("--min-sec", 5))
     strength = float(opt("--strength", 1.0))
     only = {int(v) for v in opt("--only", "").split(",") if v.strip()} if "--only" in a else None
+    joint = "--joint" in a
+    if joint:
+        import widthresp as WR
+        bass = next((float(f.get("bass_width", 1.0)) for f in master["fx"] if isinstance(f, dict) and f.get("type") == "width"
+                     and any(isinstance(b[1], dict) and "auto.wb" in json.dumps(b[1]) for b in f.get("bands", []))), 1.0)
     for i in range(nsec):
         if only is not None and i + 1 not in only:
             continue
@@ -102,6 +116,16 @@ def main():
                 cur[i] = cur[i - 1]
             continue
         r = np.clip(L.stereo_bands(R[s0:s1]) / np.maximum(L.stereo_bands(O[s0:s1]), 1e-3), lo, hi) ** strength
+        if joint:
+            f_, ps, pm = WR.spectra(O[s0:s1])
+            target = L.stereo_bands(R[s0:s1])
+            naive = np.clip(cur[i] * r, 0, 6)
+            new = WR.fit_joint(f_, ps, pm, cur[i], target, lo, hi, cap=6.0, strength=strength, bass_width=bass)
+            term = lambda w: WR.stereo_term(WR.predict_ratios(f_, ps, pm, cur[i], w, bass_width=bass), target)  # noqa: E731
+            print(f"section {i + 1:2d} joint x " + " ".join(f"{v:.2f}" for v in new / np.maximum(cur[i], 1e-9))
+                  + f"  | predicted stereo term {term(cur[i]):.1f} now, {term(naive):.1f} per-band, {term(new):.1f} joint")
+            cur[i] = new
+            continue
         cur[i] = np.clip(cur[i] * r, 0, 6)
         print(f"section {i + 1:2d} ratio " + " ".join(f"{v:.2f}" for v in r))
     auto.update(lanes(cuts, cur))
