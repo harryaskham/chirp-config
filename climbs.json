@@ -1408,8 +1408,8 @@
     {
       "id": "hmu",
       "song": "songs/hmu.yaml",
-      "reference": "Space Jesus — HMU",
-      "source": "https://www.youtube.com/watch?v=TUZCiqOBH7g",
+      "reference": "Space Jesus — Hmu (feat. Clay Parnell, Rory Sweet Boy Dolan)",
+      "source": "https://www.youtube.com/watch?v=6Cy6Nm_-nZM",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/hmu.wav OUT.wav $(cat tools/hmu-sections.txt)",
       "best": null,
@@ -1421,12 +1421,12 @@
       "genre": "bass music",
       "meta": {
         "artist": "Space Jesus",
-        "title": "HMU"
+        "title": "Hmu (feat. Clay Parnell, Rory Sweet Boy Dolan)"
       },
       "requested": {
         "by": "harry",
         "at": "2026-10-18T12:31:27Z",
-        "note": "Deep bass / dub. Reference version to be confirmed by Harry (the official channel only has a remix)."
+        "note": "Deep bass / dub. Canonical recording (Harry confirmed the feat. version): Hmu (feat. Clay Parnell, Rory Sweet Boy Dolan), 4:10, youtube 6Cy6Nm_-nZM; ref/hmu.wav. Climb only this file."
       },
       "ref_file": "ref/albums/singles/hmu.webm"
     },
