@@ -14,6 +14,19 @@ for c in "${CHIRP_MAIN:-/tmp/lt/chirp-main}/cli/chirp/target/release/chirp" "$HO
   [ -z "$src" ] && [ -x "$c" ] && src=$c
 done
 [ -n "$src" ] || { echo "restart-groove: set CHIRP_SRC to a chirp build from tools origin/main"; exit 1; }
+# tools/groove-pin (runtime state, one line: a binary path) holds the groove's engine: every restart — the
+# watchdog's, sync.sh's, a manual one — uses it, so a crash never rolls the groove back to an older build and a
+# rebuild never moves it forward unannounced. Adopting a new engine = writing its (immutable) path there.
+# CHIRP_PIN_BYPASS=1 ignores the pin for one restart.
+pin=$(head -1 "$here/groove-pin" 2>/dev/null)
+if [ -n "$pin" ] && [ -z "${CHIRP_PIN_BYPASS:-}" ]; then
+  if [ -x "$pin" ]; then
+    [ "$src" != "$pin" ] && echo "restart-groove: tools/groove-pin holds the engine at $pin (not $src)"
+    src=$pin
+  else
+    echo "restart-groove: tools/groove-pin names $pin, which is not executable — refusing to restart"; exit 1
+  fi
+fi
 C=${XDG_RUNTIME_DIR:-/tmp}/chirp-groove
 log=${TMPDIR:-/tmp}/chirp-evolve.log
 pgrep -f "^[^ ]*python3 $here/evolve.py" | xargs -r kill
