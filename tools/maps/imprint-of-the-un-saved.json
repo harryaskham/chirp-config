@@ -2,7 +2,7 @@
  "cache": "ref/songsterr-73449",
  "offset": 0.055,
  "name": "imprint-of-the-un-saved",
- "about": "Meshuggah \u2014 Imprint of the Un-Saved (Catch Thirtythree, track 2, 2005). Songsterr 73449: 48 bars 4/4 at 120 BPM, 8-string guitars in F (F1 low), 5-string bass; programmed Drumkit-from-Hell drums. Offset +0.055 s: the drum stem's onsets sit 55 ms after the tab grid from 8 s on (conf 0.42-0.50; the 1-beat aliases \u00b1500 ms clearly behind).",
+ "about": "Meshuggah — Imprint of the Un-Saved (Catch Thirtythree, track 2, 2005). Songsterr 73449: 48 bars 4/4 at 120 BPM, 8-string guitars in F (F1 low), 5-string bass; programmed Drumkit-from-Hell drums. Offset +0.055 s: the drum stem's onsets sit 55 ms after the tab grid from 8 s on (conf 0.42-0.50; the 1-beat aliases ±500 ms clearly behind).",
  "head": {
   "buses": {
    "hall": {
@@ -277,6 +277,14 @@
        4.405
       ],
       [
+       "32.15s",
+       4.495
+      ],
+      [
+       "63.85s",
+       4.495
+      ],
+      [
        "63.950s",
        4.405
       ],
@@ -323,6 +331,14 @@
       [
        "32.050s",
        2.68
+      ],
+      [
+       "32.15s",
+       2.649
+      ],
+      [
+       "63.85s",
+       2.649
       ],
       [
        "63.950s",
@@ -373,6 +389,14 @@
        1.118
       ],
       [
+       "32.15s",
+       1.128
+      ],
+      [
+       "63.85s",
+       1.128
+      ],
+      [
        "63.950s",
        1.118
       ],
@@ -419,6 +443,14 @@
       [
        "32.050s",
        0.977
+      ],
+      [
+       "32.15s",
+       0.976
+      ],
+      [
+       "63.85s",
+       0.976
       ],
       [
        "63.950s",
@@ -469,6 +501,14 @@
        0.561
       ],
       [
+       "32.15s",
+       0.707
+      ],
+      [
+       "63.85s",
+       0.707
+      ],
+      [
        "63.950s",
        0.561
       ],
@@ -517,6 +557,14 @@
        0.723
       ],
       [
+       "32.15s",
+       0.714
+      ],
+      [
+       "63.85s",
+       0.714
+      ],
+      [
        "63.950s",
        0.723
       ],
@@ -563,6 +611,14 @@
       [
        "32.050s",
        1.288
+      ],
+      [
+       "32.15s",
+       1.308
+      ],
+      [
+       "63.85s",
+       1.308
       ],
       [
        "63.950s",
