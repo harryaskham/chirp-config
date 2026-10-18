@@ -4622,6 +4622,12 @@
       "kind": "lp",
       "cutoff": 7000,
       "q": 0.7
+     },
+     {
+      "type": "eq",
+      "bands": [
+       "peak cutoff=82 q=1.4 gain=-6dB"
+      ]
      }
     ]
    }
