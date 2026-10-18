@@ -7,6 +7,7 @@
   … [--voice N]                        read the tab's Nth voice (default 0, the first; see below)
   … [--gm-map 39=cp,…]                 drums: General-MIDI note -> piece overrides, applied before a beat's pieces
                                        merge (see below)
+  … [--articulations hp,tap]           opt-in: carry hammer-on/pull-off edges (^h) and tapped beats (^tap) (see below)
 
 Pitched tracks: note = string tuning + fret; ties merge into the previous note; dynamics (ppp…fff)
 become velocities; palm mute → ^pm, dead → ^dead, harmonics → ^ph; slides into a note become a
@@ -29,7 +30,15 @@ merged. A measure without the chosen voice is a rest of the bar's length (its ti
 Drum pieces: each General-MIDI note maps to a metal-kit piece (GM below), and a beat's pieces merge — a clap (39) and a
 snare (38) struck together are one `s`. `--gm-map 39=cp` (a tab2song part's or map's "gm_map": {"39": "cp"}; bd-a725c6)
 overrides notes BEFORE that merge, so they stay distinct (`cp,s`); tab2song's per-part remap/drop still apply after.
-Overrides must be MIDI 0..127 -> a piece name ([a-z][a-z0-9]*); the target kit has to define the piece."""
+Overrides must be MIDI 0..127 -> a piece name ([a-z][a-z0-9]*); the target kit has to define the piece.
+
+Articulations (opt-in; bd-7bf072; a tab2song part's or map's "articulations": ["hp", "tap"]): a tab's `hp` flag is
+the SOURCE of a hammer-on/pull-off — the next note on the same string (in the chosen voice, possibly the next bar) is
+played legato, so that TARGET gets `^h` (the guitar patches' hammer-on; a pull-off is the same unpicked onset). A
+token carries one suffix for all its notes, so a target beat is marked only when every sounding note in it is a
+target; a mixed chord stays unmarked. An edge is not carried across a rest, onto a tied note, or over a repeat or
+alternate-ending boundary (written and performed order differ there). `tapping` marks its beat `^tap` (expr.tap: a
+transport only — no patch binds it yet; it is NOT ^h). Each skipped case is counted on stderr."""
 import gzip
 import json
 import os
@@ -105,13 +114,86 @@ def gm_map_of(spec):
     return out
 
 
-def measure_tokens(track, m, drums, bends="peak", step=0.125, voice=0, bar_beats=4.0, gm_map=None):
+ARTICULATIONS = ("hp", "tap")
+
+
+def articulations_of(spec):
+    """("hp", "tap", …) from ["hp", "tap"] or "hp,tap"; None for none. Raises ValueError on an unknown name."""
+    if not spec:
+        return None
+    names = spec if isinstance(spec, (list, tuple)) else str(spec).split(",")
+    names = tuple(sorted({str(n).strip() for n in names if str(n).strip()}))
+    bad = [n for n in names if n not in ARTICULATIONS]
+    if bad:
+        raise ValueError(f"articulations: {', '.join(bad)} (known: {', '.join(ARTICULATIONS)})")
+    return names or None
+
+
+def crosses_repeat(ms, a, b):
+    """Whether going from measure a to a later measure b passes a repeat sign or an alternate ending (where the
+    written next measure need not be the performed one)."""
+    if ms[a].get("repeat") or ms[a].get("alternateEnding") or ms[b].get("repeatStart") or ms[b].get("alternateEnding"):
+        return True
+    return any(ms[x].get(f) for x in range(a + 1, b) for f in ("repeatStart", "repeat", "alternateEnding"))
+
+
+def articulation_marks(track, voice=0, kinds=("hp", "tap")):
+    """{(measure, beat): {"h", "tap"}} for a voice of a pitched track, and a report of what was not marked."""
+    beats = []   # (measure index, beat index, beat), in written order
+    for mi, m in enumerate(track["measures"]):
+        vs = m.get("voices") or []
+        if voice < len(vs):
+            beats += [(mi, bi, b) for bi, b in enumerate(vs[voice]["beats"])]
+    ms = track["measures"]
+    sounding = lambda b: [] if b.get("rest") else [n for n in b.get("notes", []) if not n.get("rest") and "fret" in n]  # noqa: E731
+    marks, rep = {}, {"sources": 0, "targets": 0, "beats_h": 0, "mixed": 0, "rest": 0, "tied": 0, "repeat": 0, "end": 0, "tap": 0}
+    if "hp" in kinds:
+        targets = {}   # (mi, bi) -> strings that are targets
+        for k, (mi, bi, b) in enumerate(beats):
+            for n in sounding(b):
+                if not n.get("hp"):
+                    continue
+                rep["sources"] += 1
+                s, why = n.get("string"), "end"
+                prev = mi
+                for mj, bj, nb in beats[k + 1:]:
+                    if mj != prev and crosses_repeat(ms, prev, mj):
+                        why = "repeat"; break
+                    prev = mj
+                    notes = sounding(nb)
+                    if not notes:
+                        why = "rest"; break
+                    on = [x for x in notes if x.get("string") == s]
+                    if on:
+                        if on[0].get("tie"):
+                            why = "tied"
+                        else:
+                            targets.setdefault((mj, bj), set()).add(s); why = None
+                        break
+                if why:
+                    rep[why] += 1
+                else:
+                    rep["targets"] += 1
+        for (mi, bi), strings in targets.items():
+            b = ms[mi]["voices"][voice]["beats"][bi]
+            if {n.get("string") for n in sounding(b) if not n.get("tie")} <= strings:
+                marks.setdefault((mi, bi), set()).add("h"); rep["beats_h"] += 1
+            else:
+                rep["mixed"] += 1
+    if "tap" in kinds:
+        for mi, bi, b in beats:
+            if b.get("tapping") and sounding(b):
+                marks.setdefault((mi, bi), set()).add("tap"); rep["tap"] += 1
+    return marks, rep
+
+
+def measure_tokens(track, m, drums, bends="peak", step=0.125, voice=0, bar_beats=4.0, gm_map=None, marks=None):
     voices = m.get("voices") or []
     if voice >= len(voices):   # the chosen voice is absent here: the bar rests (bd-72f61a)
         return f"R{fmt_len(bar_beats)}"
     out = []  # list of [token_body, beats, suffix, bend]: bend semitones, or {"pieces": [(curve|None, beats)]}
     vel = None
-    for b in voices[voice]["beats"]:
+    for bi, b in enumerate(voices[voice]["beats"]):
         t = beats_of(b)
         if b.get("velocity"):
             vel = VEL.get(b["velocity"], vel)
@@ -161,6 +243,8 @@ def measure_tokens(track, m, drums, bends="peak", step=0.125, voice=0, bar_beats
             arts += "^slidein"
         if any(n.get("slide") in ("downwards", "outDownwards") for n in notes):
             arts += "^slidedown"
+        if marks and bi in marks:   # opt-in articulations (bd-7bf072): ^h on a legato target, ^tap on a tapped beat
+            arts += "".join(f"^{x}" for x in sorted(marks[bi]))
         v = f"@{vel}" if vel else ""
         out.append([",".join(nm(p) for p in pitches), t, v + arts, bend])
     toks = []
@@ -280,25 +364,45 @@ def bend_semis(n):
     return round(tone / 25.0, 2)
 
 
-def score(cache, i, bends="peak", step=0.125, voice=0, gm_map=None):
+def score(cache, i, bends="peak", step=0.125, voice=0, gm_map=None, articulations=None):
     tr = load(cache, i)
     drums = not tr.get("tuning")
+    by_measure = None
+    if articulations and not drums:
+        marks, rep = articulation_marks(tr, voice, articulations)
+        by_measure = {}
+        for (mi, bi), names in marks.items():
+            by_measure.setdefault(mi, {})[bi] = names
+        print(f"songsterr: track {i} articulations {','.join(articulations)}: "
+              + (f"hp {rep['sources']} sources -> {rep['targets']} targets, ^h on {rep['beats_h']} beats; not marked: "
+                 f"{rep['mixed']} mixed chords, {rep['rest']} across a rest, {rep['tied']} onto a tie, "
+                 f"{rep['repeat']} over a repeat boundary, {rep['end']} without a next note" if "hp" in articulations else "")
+              + (f"{'; ' if 'hp' in articulations else ''}^tap on {rep['tap']} beats" if "tap" in articulations else ""),
+              file=sys.stderr)
     lines, sig = [], [4, 4]
-    for m in tr["measures"]:
+    for mi, m in enumerate(tr["measures"]):
         sig = m.get("signature", sig)   # as tabtime.timeline: a signature holds until the next one
-        lines.append(measure_tokens(tr, m, drums, bends, step, voice, 4 * sig[0] / sig[1], gm_map))
+        lines.append(measure_tokens(tr, m, drums, bends, step, voice, 4 * sig[0] / sig[1], gm_map,
+                                    by_measure.get(mi) if by_measure else None))
     return tr.get("name") or tr.get("instrument"), drums, lines
 
 
 if __name__ == "__main__":
     args = sys.argv[1:]
-    bends, step, voice, gm_map = "peak", 0.125, 0, None
+    bends, step, voice, gm_map, arts = "peak", 0.125, 0, None, None
     if "--bends" in args:
         i = args.index("--bends"); bends = args[i + 1]; del args[i:i + 2]
     if "--bend-step" in args:
         i = args.index("--bend-step"); step = float(args[i + 1]); del args[i:i + 2]
     if "--voice" in args:
         i = args.index("--voice"); voice = int(args[i + 1]); del args[i:i + 2]
+    if "--articulations" in args:
+        i = args.index("--articulations")
+        try:
+            arts = articulations_of(args[i + 1])
+        except ValueError as e:
+            sys.exit(f"songsterr: {e}")
+        del args[i:i + 2]
     if "--gm-map" in args:
         i = args.index("--gm-map")
         try:
@@ -313,7 +417,7 @@ if __name__ == "__main__":
     meta = json.load(open(f"{cache}/songsterr-meta.json"))
     idx = [int(a) for a in args] or list(range(len(meta.get("tracks", []))))
     for i in idx:
-        name, drums, lines = score(cache, i, bends, step, voice, gm_map)
+        name, drums, lines = score(cache, i, bends, step, voice, gm_map, arts)
         print(f"# track {i}: {name}{' (drums → metal-kit)' if drums else ''}{f' voice {voice}' if voice else ''}")
         for mi, l in enumerate(lines):
             print(f"m{mi + 1:<3d} {l}")
