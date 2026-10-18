@@ -71,10 +71,12 @@ def fmt_beats(b):
 
 
 def remap_drums(line, remap, drop):
+    """Rename (`remap`) or drop (`drop`) drum pieces in a bar's tokens; settings (`swing=.666`, `vel=`, `gate=`,
+    `bend=`, `ccN=`) pass through untouched (bd-77908e: they became `swing=.666/`, which the engine rejects)."""
     out = []
     for tok in line.split():
         body, _, rest = tok.partition("/")
-        if body == "R":
+        if body == "R" or "=" in body:
             out.append(tok); continue
         pcs = [remap.get(p, p) for p in body.split(",") if p not in drop]
         out.append(f"{','.join(dict.fromkeys(pcs))}/{rest}" if pcs else f"R/{rest.split('@')[0]}")
