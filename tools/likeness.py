@@ -157,6 +157,12 @@ def compare(ref, cand, verbose=True, ref_start=None, ref_end=None):
     rs = load(ref)
     if ref_start is not None:
         rs = rs[int(ref_start * SR):int(ref_end * SR) if ref_end else None]
+    return _compare(rs, cand)
+
+
+def _compare(rs, cand):
+    """compare() on an already-decoded (and cropped) reference: sectioned() decodes the reference once per call
+    and hands each section a view of it (bd-167ed8); nothing here writes to `rs`."""
     R, C = Feat(rs), Feat(load(cand))
     n = min(R.n, C.n)
     dur = n / FPS
@@ -227,6 +233,7 @@ def sectioned(ref, cand, bounds):
     instead of disappearing into whole-song level normalisation. → {"total": …, "sections": […]}"""
     import tempfile, wave as _w
     cs = load(cand)
+    full = load(ref)   # decoded once per call (an 802 s reference was decoded once per section), sliced per section
     out, wsum, tsum = [], 0.0, 0.0
     for a, b in zip(bounds[:-1], bounds[1:]):
         seg = cs[int(a * SR):int(b * SR)]
@@ -234,7 +241,7 @@ def sectioned(ref, cand, bounds):
             with _w.open(tf.name, "wb") as w:
                 w.setnchannels(2); w.setsampwidth(2); w.setframerate(SR)
                 w.writeframes((np.clip(seg, -1, 1) * 32767).astype("<i2").tobytes())
-            r = compare(ref, tf.name, ref_start=a, ref_end=b)
+            r = _compare(full[int(a * SR):int(b * SR) if b else None], tf.name)
         os.unlink(tf.name)
         # the tempo term is meaningless on a short, sparse section (the onset autocorrelation jumps between beat
         # multiples) — score sections without it, renormalised
