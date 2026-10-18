@@ -3,7 +3,7 @@
 squares) into the spectral templates of the pieces of the kit that will play it, so simultaneous hits separate
 and the weights become velocities (dynamics, ghost notes). Times are converted to beats through the song's own
 tempo map and quantised finely; the output is one score per piece family (kick, snare, hats, toms, cymbals,
-hand drums, claps), each with per-hit velocities, ready to drop into a song (tab2song.py "raw" parts).
+hand drums, claps, perc, fx), each with per-hit velocities, ready to drop into a song (tab2song.py "raw" parts).
 
   drumtrans.py STEM.wav SONG.yaml TEMPLATES.wav PIECES.json OUT.json [--from S] [--to S] [--grid 24] [--gain-db G]
                [--share 0.12] [--floor 0.06] [--labels TRACK] [--shift S] [--vel-gamma G] [--kit-levels [--source-gain-db D]]
@@ -40,10 +40,21 @@ EDGES = np.geomspace(30, 16000, 41)
 WIN = int(0.07 * FPS)          # 70 ms after the onset
 NEED = {}  # piece -> (hits, dB its p95 hit needs beyond velocity 120), filled by a calibrated transcription
 
-FAMILIES = {"kick": ["k"], "snare": ["s", "rc", "sw", "sl", "ss", "sz", "sc", "so", "se", "g"],
-            "hats": ["h", "h1", "h2", "h3", "hs", "oh", "hf", "hp"], "toms": ["t", "t1", "t2", "t3", "ft", "ft2"],
-            "cymbals": ["c", "rd", "rds", "rde", "rb", "x", "sp", "st", "cbl"], "hand": ["te", "na", "tun", "ge"],
-            "claps": ["cp"]}   # the 909/electro kits' clap (bd-dfa7eb: selected cp hits were dropped at export)
+# Every piece of every kit belongs to a family (bd-dbdf72: 66 of 105 kit pieces had none, so their selected hits were
+# dropped at export; tools/tests/test_drumtrans.py checks the kits). Same name, different kits: a family is only the
+# output track a piece's hits go to (`cb` is the electro cowbell and the cajon's bass tone: perc).
+FAMILIES = {"kick": ["k", "kd", "kh", "kp", "kl"],
+            "snare": ["s", "rc", "sw", "sl", "ss", "sz", "sc", "so", "se", "g", "rs", "s2", "sn", "cs"],
+            "hats": ["h", "h1", "h2", "h3", "hs", "oh", "hf", "hp", "hh"],
+            "toms": ["t", "t1", "t2", "t3", "ft", "ft2", "lt", "mt", "ht"],
+            "cymbals": ["c", "rd", "rds", "rde", "rb", "x", "sp", "st", "cbl", "c2", "cch", "rbs", "cy", "gong"],
+            "hand": ["te", "na", "tun", "ge",                       # tabla (and the congas, cajon, bodhran, samba drums)
+                     "o", "lo", "mu", "bh", "bl", "lc", "mc", "hc", "tin", "re", "gem", "dha", "dhin", "ke", "pa", "cg",
+                     "b", "sd", "sm", "pt", "tm"],
+            "claps": ["cp"],   # the 909/electro kits' clap (bd-dfa7eb: selected cp hits were dropped at export)
+            "perc": ["ma", "sh", "shk", "tamb", "gz", "pd", "cow", "cowm", "cb", "cl", "clv", "wb", "wbl", "ah", "al",
+                     "cas", "sk", "r", "pc"],                       # shakers, tambourines, bells, blocks, claves
+            "fx": ["bell", "coin", "drawer", "jingle", "rattle", "tear", "tearl", "zp", "v"]}
 
 
 def bands(x, chunk=60.0):

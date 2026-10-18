@@ -158,6 +158,62 @@ class Claps(unittest.TestCase):
             self.assertEqual({k: v for k, v in new.items() if k != "claps"}, before)
 
 
+def kit_pieces():
+    """{piece: {kit, …}} for every `kit:` in the config's patches and, if found, the installed library's."""
+    import glob
+    dirs = [os.path.join(os.path.dirname(TOOLS), "patches"),
+            os.environ.get("CHIRP_LIBRARY_PATCHES",
+                           os.path.expanduser("~/.pi/agent/git/github.com/harryaskham/tools/cli/chirp/crates/chirp-cli/library/patches"))]
+    out = {}
+    for path in [p for d in dirs if os.path.isdir(d) for p in glob.glob(os.path.join(d, "*.yaml"))]:
+        lines = open(path).read().splitlines()
+        for i, ln in enumerate(lines):
+            if not re.match(r"^(\s*)kit:\s*$", ln):
+                continue
+            ind = len(ln) - len(ln.lstrip())
+            body = [x for x in lines[i + 1:] if x.strip() and not x.lstrip().startswith("#")]
+            kind = len(body[0]) - len(body[0].lstrip()) if body else 0
+            for nl in body:
+                nind = len(nl) - len(nl.lstrip())
+                if nind <= ind:
+                    break
+                m = re.match(r"^\s*([A-Za-z0-9_]+):", nl)
+                if m and nind == kind:
+                    out.setdefault(m.group(1), set()).add(os.path.basename(path)[:-5])
+    return out
+
+
+class Families(unittest.TestCase):
+    """bd-dbdf72: every kit piece has a family, so no selected hit is dropped at export."""
+
+    def test_every_kit_piece_has_a_family(self):
+        homed = [p for ms in D.FAMILIES.values() for p in ms]
+        self.assertEqual(len(homed), len(set(homed)), "a piece belongs to one family")
+        pieces = kit_pieces()
+        self.assertGreater(len(pieces), 50)
+        missing = {p: sorted(k) for p, k in pieces.items() if p not in homed}
+        self.assertEqual(missing, {}, "kit pieces without a drumtrans family")
+
+    def test_maracas_export_as_perc(self):
+        from unittest.mock import patch
+        T = np.eye(80, 2)
+        frames = np.array([8, 208])
+        feats = {8: T[:, 0] * 2.0, 208: T[:, 1] * 2.0}
+        with tempfile.TemporaryDirectory() as d:
+            song = os.path.join(d, "t.yaml")
+            with open(song, "w") as f:
+                f.write("tempo: 60\n")
+            err = io.StringIO()
+            with patch.object(D.L, "load", return_value=np.zeros((48000, 2), np.float32)), \
+                    patch.object(D, "bands", return_value=np.ones((40, 80))), patch.object(D, "pick", return_value=frames), \
+                    patch.object(D, "templates", return_value=(T, np.ones(2), np.ones(2))), \
+                    patch.object(D, "feat", side_effect=lambda _B, fr: feats[int(fr)]), redirect_stderr(err):
+                res, _ = D.transcribe("x.wav", song, "t.wav", ["k", "ma"])
+        self.assertIn("perc", res)
+        self.assertTrue(res["perc"]["score"].count("ma/"), res["perc"]["score"])
+        self.assertNotIn("not exported", err.getvalue())
+
+
 class KitLevels(unittest.TestCase):
     """bd-6f5e5a: --kit-levels reads each hit in its own piece's velocity-120 units. Detection and classification are
     mocked exactly (one orthogonal template per piece), so only the velocity inversion is under test."""
