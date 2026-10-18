@@ -331,7 +331,7 @@ def ytdlp(*args, timeout=900):
 def tags(path):
     """Artist, album, title, track and year from a file's tags (ffprobe), lower-cased keys."""
     r = subprocess.run(["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", "-show_streams", path],
-                       capture_output=True, text=True)
+                       capture_output=True, text=True, stdin=subprocess.DEVNULL)
     try:
         d = json.loads(r.stdout)
     except ValueError:
@@ -353,7 +353,7 @@ def copy_in(src, dest_dir):
     os.makedirs(dest_dir, exist_ok=True)
     dest = os.path.join(dest_dir, os.path.basename(src.split(":", 1)[1] if REMOTE.match(src) else src))
     if REMOTE.match(src):
-        r = subprocess.run(["scp", "-q", "-o", "BatchMode=yes", src, dest], capture_output=True, text=True)
+        r = subprocess.run(["scp", "-q", "-o", "BatchMode=yes", src, dest], capture_output=True, text=True, stdin=subprocess.DEVNULL)
         if r.returncode:
             die(f"scp {src}: {r.stderr.strip()[:200]}")
     else:
@@ -366,7 +366,7 @@ def to_wav(src, cid):
     out = os.path.join(ROOT, "ref", f"{cid}.wav")
     os.makedirs(os.path.dirname(out), exist_ok=True)
     r = subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", src, "-vn", "-ar", "48000", "-ac", "2", "-c:a", "pcm_s16le", out],
-                       capture_output=True, text=True)
+                       capture_output=True, text=True, stdin=subprocess.DEVNULL)
     if r.returncode:
         die(f"ffmpeg {src}: {r.stderr.strip()[:200]}")
     return out
