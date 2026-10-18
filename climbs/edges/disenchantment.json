@@ -1,9 +1,9 @@
 {
  "id": "disenchantment",
- "version": "v8",
+ "version": "v9",
  "edge": 3.0,
  "ref_seconds": 104.04,
- "at": "2026-10-18T03:18:33Z",
+ "at": "2026-10-18T04:20:03Z",
  "edges": {
   "head": {
    "level": -12.211291865485027,
