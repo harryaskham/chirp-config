@@ -1229,11 +1229,16 @@
       "source": "https://www.youtube.com/watch?v=6VWxl0YUT4o",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/diplodocus.wav OUT.wav $(cat tools/diplodocus-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 48.78,
+        "version": "v1",
+        "commit": "see git log songs/diplodocus.yaml",
+        "engine": "654b5e3"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "drum and bass / neurofunk (Noisia, Split the Atom 2010 fixed album recording; 172 BPM stem-derived note guides, native reese/FM growl and sampleless drums)",
       "meta": {
@@ -1245,7 +1250,11 @@
         "at": "2026-10-18T12:31:21Z",
         "note": "Split the Atom (Vision, 2010) album version: neurofunk reese/growl basses."
       },
-      "ref_file": "ref/albums/singles/diplodocus.webm"
+      "ref_file": "ref/albums/singles/diplodocus.webm",
+      "last": {
+        "at": "2026-10-18T19:22:28Z",
+        "who": "chirper-three"
+      }
     },
     {
       "id": "dance-yrself-clean",
