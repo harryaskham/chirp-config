@@ -27,15 +27,31 @@ MIN = np.array([6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34
 
 
 def load(path):
-    with wave.open(path, "rb") as w:
-        sr, ch, sw, n = w.getframerate(), w.getnchannels(), w.getsampwidth(), w.getnframes()
-        raw = w.readframes(n)
-    if sw == 2:
-        x = np.frombuffer(raw, dtype="<i2").astype(np.float32) / 32768
-    elif sw == 4:
-        x = np.frombuffer(raw, dtype="<i4").astype(np.float32) / 2147483648
+    try:
+        with wave.open(path, "rb") as w:
+            sr, ch, sw, n = w.getframerate(), w.getnchannels(), w.getsampwidth(), w.getnframes()
+            raw = w.readframes(n)
+    except wave.Error:
+        # wave only decodes integer PCM. Demucs --float32 writes IEEE-float WAV;
+        # keep its absolute amplitudes (including values beyond +/-1), not a rescale.
+        from scipy.io import wavfile
+        sr, decoded = wavfile.read(path)
+        if decoded.dtype.kind != "f" or decoded.ndim not in (1, 2):
+            raise ValueError("unsupported non-PCM WAV encoding")
+        ch = 1 if decoded.ndim == 1 else decoded.shape[1]
+        if ch not in (1, 2):
+            raise ValueError("float WAV must be finite mono or stereo audio")
+        with np.errstate(over="ignore", invalid="ignore"):
+            x = decoded.astype(np.float32, copy=False)
+        if not np.isfinite(x).all():
+            raise ValueError("float WAV must be finite mono or stereo audio")
     else:
-        raise SystemExit(f"unsupported sample width {sw}")
+        if sw == 2:
+            x = np.frombuffer(raw, dtype="<i2").astype(np.float32) / 32768
+        elif sw == 4:
+            x = np.frombuffer(raw, dtype="<i4").astype(np.float32) / 2147483648
+        else:
+            raise SystemExit(f"unsupported sample width {sw}")
     x = x.reshape(-1, ch)
     stereo = x if ch == 2 else np.repeat(x, 2, axis=1)
     if sr != SR:
