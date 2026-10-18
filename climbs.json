@@ -904,7 +904,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 10,
+      "rounds": 11,
       "priority": 1.0,
       "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
       "meta": {
@@ -921,7 +921,7 @@
       },
       "ref_file": "ref/albums/catch-thirtythree/09 in-death-is-death.webm",
       "last": {
-        "at": "2026-10-18T02:53:54Z",
+        "at": "2026-10-18T03:16:32Z",
         "who": "chirper-two"
       }
     },
