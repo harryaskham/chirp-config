@@ -1125,11 +1125,16 @@
       "source": "https://www.youtube.com/watch?v=-DHuW1h1wHw",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/take-five.wav OUT.wav $(cat tools/take-five-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 51.151,
+        "version": "v1",
+        "commit": "see git log songs/take-five.yaml",
+        "engine": "654b5e3"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "cool jazz (Time Out 1959 fixed studio recording; real 5/4 throughout, physical alto/piano/upright bass/light stick kit)",
       "meta": {
@@ -1141,7 +1146,11 @@
         "at": "2026-10-18T12:31:19Z",
         "note": "5/4 throughout: score and map it in 5/4 (meters), not as 4/4 bars. Time Out (1959) studio version."
       },
-      "ref_file": "ref/albums/singles/take-five.webm"
+      "ref_file": "ref/albums/singles/take-five.webm",
+      "last": {
+        "at": "2026-10-18T21:02:22Z",
+        "who": "chirper-three"
+      }
     },
     {
       "id": "genesis",
