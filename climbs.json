@@ -1237,11 +1237,15 @@
       "source": "https://www.youtube.com/watch?v=9ZNkPA_zUd4",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/dance-yrself-clean.wav OUT.wav $(cat tools/dance-yrself-clean-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 43.189,
+        "version": "v1",
+        "commit": "see git log songs/dance-yrself-clean.yaml"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "dance-punk",
       "requested": {
@@ -1253,6 +1257,10 @@
       "meta": {
         "artist": "LCD Soundsystem",
         "title": "Dance Yrself Clean"
+      },
+      "last": {
+        "at": "2026-10-18T14:35:54Z",
+        "who": "chirper-two"
       }
     },
     {

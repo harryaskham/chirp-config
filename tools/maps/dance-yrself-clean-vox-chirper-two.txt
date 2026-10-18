@@ -1,0 +1,218 @@
+bar 1  R/4b
+bar 2  R/4b
+bar 3  R/4b
+bar 4  R/4b
+bar 5  R/4b
+bar 6  R/4b
+bar 7  R/4b
+bar 8  R/4b
+bar 9  R/4b
+bar 10  R/4b
+bar 11  R/4b
+bar 12  R/4b
+bar 13  Ab3/0.25b@100 Ab3/0.5b@100 Ab3/0.25b@100 Ab3/0.5b@100 Ab3/1b@100 F#3/0.5b@100 E3/0.5b@100 F#3/0.5b@100
+bar 14  Ab3/0.25b Ab3/0.5b Ab3/0.25b Ab3/0.5b Ab3/1b F#3/0.5b E3/0.5b F#3/0.5b
+bar 15  Ab3/1.5b R/0.5b Ab3/0.25b Ab3/0.5b B3/0.5b B3/0.5b Ab3/0.25b
+bar 16  Ab3/2b R/2b
+bar 17  Ab3/0.25b Ab3/0.5b Ab3/0.25b Ab3/0.5b Ab3/1b F#3/0.5b E3/0.5b F#3/0.5b
+bar 18  Ab3/0.25b Ab3/0.5b Ab3/0.25b Ab3/0.5b Ab3/1b F#3/0.5b E3/0.5b F#3/0.5b
+bar 19  Ab3/1.5b R/0.5b Ab3/0.25b Ab3/0.5b B3/0.5b B3/0.5b Ab3/0.25b
+bar 20  Ab3/1b R/2b E4/1b
+bar 21  E4/0.5b B4/2.5b bend=2 C#5/1b bend=
+bar 22  Ab4/2b Ab4/0.25b F#3/0.5b E3/0.5b F#3/0.5b Ab3/0.25b
+bar 23  Ab3/1.5b R/0.5b Ab3/0.25b Ab3/0.5b B3/0.5b B3/0.5b Ab3/0.25b
+bar 24  Ab3/1b R/2b E4/1b
+bar 25  E4/0.5b B4/2.5b bend=2 C#5/1b bend=
+bar 26  Ab4/2b Ab4/0.25b F#3/0.5b E3/0.5b F#3/0.5b Ab3/0.25b
+bar 27  R/1.5b C#3/0.5b C#3/0.25b C#3/0.5b E3/0.5b E3/0.25b R/0.25b C#3/0.25b
+bar 28  R/4b
+bar 29  Ab3/0.25b Ab3/0.5b Ab3/0.25b Ab3/0.5b Ab3/1b F#3/0.5b E3/0.5b F#3/0.5b
+bar 30  Ab3/0.25b Ab3/0.5b Ab3/0.25b Ab3/0.5b Ab3/1b F#3/0.5b E3/0.5b F#3/0.5b
+bar 31  Ab3/1.5b R/0.5b Ab3/0.25b Ab3/0.5b B3/0.5b B3/0.5b Ab3/0.25b
+bar 32  Ab3/0.25b Ab3/0.5b Ab3/0.25b Ab3/0.5b Ab3/1b F#3/0.5b E3/0.5b F#3/0.5b
+bar 33  Ab3/0.25b Ab3/0.5b Ab3/0.25b Ab3/0.5b Ab3/1b F#3/0.5b E3/0.5b F#3/0.5b
+bar 34  Ab3/0.25b Ab3/0.5b Ab3/0.25b Ab3/0.5b Ab3/1b F#3/0.5b E3/0.5b F#3/0.5b
+bar 35  Ab3/1.5b R/0.5b Ab3/0.25b Ab3/0.5b B3/0.5b B3/0.5b Ab3/0.25b
+bar 36  Ab3/1b R/2b E4/1b
+bar 37  E4/0.5b B4/2.5b bend=2 C#5/1b bend=
+bar 38  Ab4/2b Ab4/0.25b F#3/0.5b E3/0.5b F#3/0.5b Ab3/0.25b
+bar 39  Ab3/1.5b R/0.5b Ab3/0.25b Ab3/0.5b B3/0.5b B3/0.5b Ab3/0.25b
+bar 40  Ab3/1b R/2b E4/1b
+bar 41  E4/0.5b B4/2.5b bend=2 C#5/1b bend=
+bar 42  Ab4/2b Ab4/0.25b F#3/0.5b E3/0.5b F#3/0.5b Ab3/0.25b
+bar 43  Ab3/1.5b R/0.5b Ab3/0.25b Ab3/0.5b B3/0.5b B3/0.5b Ab3/0.25b
+bar 44  R/4b
+bar 45  R/4b
+bar 46  R/4b
+bar 47  R/4b
+bar 48  R/4b
+bar 49  R/4b
+bar 50  R/4b
+bar 51  R/4b
+bar 52  R/4b
+bar 53  Ab3/0.25b Ab3/0.5b Ab3/0.25b Ab3/0.5b Ab3/1b F#3/0.5b E3/0.5b F#3/0.5b
+bar 54  Ab3/0.25b Ab3/0.5b Ab3/0.25b Ab3/0.5b Ab3/1b F#3/0.5b E3/0.5b F#3/0.5b
+bar 55  Ab3/1.5b R/0.5b Ab3/0.25b Ab3/0.5b B3/0.5b B3/0.5b Ab3/0.25b
+bar 56  Ab3/2b R/2b
+bar 57  Ab3/0.25b Ab3/0.5b Ab3/0.25b Ab3/0.5b Ab3/1b F#3/0.5b E3/0.5b F#3/0.5b
+bar 58  Ab3/0.25b Ab3/0.5b Ab3/0.25b Ab3/0.5b Ab3/1b F#3/0.5b E3/0.5b F#3/0.5b
+bar 59  Ab3/1.5b R/0.5b Ab3/0.25b Ab3/0.5b B3/0.5b B3/0.5b Ab3/0.25b
+bar 60  Ab3/1b R/2b E4/1b
+bar 61  E4/0.5b B4/2.5b bend=2 C#5/1b bend=
+bar 62  Ab4/2b Ab4/0.25b F#3/0.5b E3/0.5b F#3/0.5b Ab3/0.25b
+bar 63  Ab3/1.5b R/0.5b Ab3/0.25b Ab3/0.5b B3/0.5b B3/0.5b Ab3/0.25b
+bar 64  Ab3/1b R/2b E4/1b
+bar 65  E4/0.5b B4/2.5b bend=2 C#5/1b bend=
+bar 66  Ab4/2b Ab4/0.25b F#3/0.5b E3/0.5b F#3/0.5b Ab3/0.25b
+bar 67  Ab3/1.5b R/0.5b Ab3/0.25b Ab3/0.5b B3/0.5b B3/0.5b Ab3/0.25b
+bar 68  Ab3/1b R/2b E4/1b
+bar 69  E4/0.5b B4/3.5b
+bar 70  B4/3b E4/1b
+bar 71  E4/1b E4/3b
+bar 72  E4/4b
+bar 73  E4/4b
+bar 74  E4/3b E4/1b
+bar 75  E4/4b
+bar 76  E4/4b
+bar 77  E4/4b
+bar 78  E3/4b
+bar 79  B4/4b
+bar 80  R/4b
+bar 81  R/4b
+bar 82  R/4b
+bar 83  R/4b
+bar 84  R/4b
+bar 85  Ab4/0.5b Ab4/0.5b E4/0.5b F#4/0.5b E4/0.5b F#4/0.5b F#4/1b
+bar 86  R/2b R/1.5b E3/0.5b
+bar 87  Ab4/0.5b Ab4/0.5b F#4/0.5b E4/0.5b F#4/0.5b E4/0.5b F#4/0.5b R/0.5b
+bar 88  C#4/4b
+bar 89  Ab4/0.5b Ab4/0.5b E4/0.5b F#4/0.5b E4/0.5b F#4/0.5b F#4/0.5b Ab4/0.5b
+bar 90  R/2b R/1.5b E3/0.5b
+bar 91  Ab4/0.5b Ab4/0.5b F#4/0.5b E4/0.5b F#4/0.5b E4/0.5b F#4/0.5b R/0.5b
+bar 92  F#4/1b R/1b R/0.5b F#4/0.5b F#4/0.5b F#4/0.5b
+bar 93  B4/0.5b Ab4/0.5b F#4/0.5b F#4/0.5b F#4/1b E4/1b
+bar 94  E4/1b R/1b R/0.5b E4/0.5b E4/0.5b E4/0.5b
+bar 95  E4/0.5b E4/0.5b F#4/0.5b F#4/0.5b Ab4/1b B4/1b
+bar 96  R/1b R/1b R/0.5b F#4/0.5b F#4/0.5b F#4/0.5b
+bar 97  B4/0.5b Ab4/0.5b F#4/0.5b F#4/0.5b F#4/1b E4/1b
+bar 98  E4/1b R/1b R/0.5b E4/0.5b E4/0.5b E4/0.5b
+bar 99  E4/0.5b E4/0.5b F#4/0.5b F#4/0.5b Ab4/1b B4/1b
+bar 100  R/2b R/1b Ab4/0.5b bend=2 B4/0.5b bend=
+bar 101  R/4b
+bar 102  R/4b
+bar 103  B4/0.5b bend=2 A4/0.5b R/2b R/1b bend=
+bar 104  R/1b R/1b R/0.5b Ab4/0.5b Ab4/0.5b Ab4/0.5b
+bar 105  B4/4b
+bar 106  R/4b
+bar 107  B4/0.5b bend=2 A4/0.5b R/2b R/1b bend=
+bar 108  R/4b
+bar 109  Ab4/0.5b Ab4/0.5b E4/0.5b F#4/0.5b E4/0.5b F#4/0.5b F#4/1b
+bar 110  R/2b R/1.5b E3/0.5b
+bar 111  Ab4/0.5b Ab4/0.5b F#4/0.5b E4/0.5b F#4/0.5b E4/0.5b F#4/0.5b R/0.5b
+bar 112  C#4/4b
+bar 113  Ab4/0.5b Ab4/0.5b E4/0.5b F#4/0.5b E4/0.5b F#4/0.5b F#4/1b
+bar 114  R/2b R/1.5b E3/0.5b
+bar 115  Ab4/0.5b Ab4/0.5b F#4/0.5b E4/0.5b F#4/0.5b E4/0.5b F#4/0.5b Ab4/0.5b
+bar 116  F#4/1b R/1b R/0.5b Ab4/0.5b Ab4/0.5b Ab4/0.5b
+bar 117  B4/0.5b Ab4/0.5b F#4/0.5b F#4/1b E4/0.5b C#4/1b
+bar 118  R/1b bend=4 E5/1b R/0.5b bend= Ab4/0.5b Ab4/0.5b Ab4/0.5b
+bar 119  B4/0.5b Ab4/0.5b F#4/0.5b F#4/1b E4/0.5b C#4/1b
+bar 120  R/1b R/1b R/0.5b C#4/0.5b C#4/0.5b C#4/0.5b
+bar 121  E4/0.5b E4/0.5b F#4/0.5b F#4/0.5b Ab4/0.5b B4/1b R/0.5b
+bar 122  R/1b R/1b R/0.5b E4/0.5b E4/0.5b E4/0.5b
+bar 123  F#4/0.5b F#4/0.5b Ab4/0.5b Ab4/0.5b B4/0.5b bend=8 C4/1b bend= B4/0.5b
+bar 124  B4/2b R/0.5b C#4/0.5b C#4/0.5b C#4/0.5b
+bar 125  R/4b
+bar 126  R/2b R/0.5b F#4/0.5b Ab4/0.5b F#4/0.5b
+bar 127  R/4b
+bar 128  R/2b R/0.5b F#4/0.5b Ab4/0.5b B4/0.5b
+bar 129  B4/0.5b bend=2 A4/0.5b R/2b R/1b bend=
+bar 130  R/1b R/1b R/0.5b Ab4/0.5b Ab4/0.5b Ab4/0.5b
+bar 131  B4/4b
+bar 132  R/2b R/0.5b E5/0.5b E5/0.5b E5/0.5b
+bar 133  bend=12 Ab5/4b bend=
+bar 134  Ab5/4b
+bar 135  B4/2b C#5/1b Ab4/1b
+bar 136  Ab4/4b
+bar 137  Ab4/0.5b Ab4/0.5b E4/0.5b F#4/0.5b E4/0.5b F#4/0.5b R/0.5b F#4/0.5b
+bar 138  F#4/4b
+bar 139  F#4/4b
+bar 140  F#4/4b
+bar 141  F#4/4b
+bar 142  F#4/4b
+bar 143  R/2b R/0.5b R/0.5b R/0.5b E5/0.5b
+bar 144  bend=8 Ab5/4b bend=
+bar 145  Ab5/4b
+bar 146  R/4b
+bar 147  R/4b
+bar 148  R/4b
+bar 149  R/4b
+bar 150  R/4b
+bar 151  R/4b
+bar 152  R/4b
+bar 153  Ab3/0.25b Ab3/0.5b Ab3/0.25b F#3/0.5b E3/0.5b F#3/0.5b F#3/0.5b F#3/1b
+bar 154  R/2b R/1b E3/0.5b E3/0.5b
+bar 155  F#3/0.5b F#3/0.5b Ab3/0.5b B3/0.5b B3/0.5b C#4/0.5b B3/1b
+bar 156  R/4b
+bar 157  Ab3/0.25b Ab3/0.5b Ab3/0.25b F#3/0.5b E3/0.5b F#3/0.5b F#3/0.5b F#3/1b
+bar 158  R/2b R/1b E3/0.5b E3/0.5b
+bar 159  F#3/0.5b F#3/0.5b Ab3/0.5b B3/0.5b C#4/0.5b C#4/0.5b C#4/0.5b E4/0.5b
+bar 160  R/2b R/0.5b Ab4/0.5b F#4/0.5b F#4/0.5b
+bar 161  R/2b R/0.5b R/0.5b R/0.5b B4/0.5b
+bar 162  R/2b R/0.5b R/0.5b R/0.5b B4/0.5b
+bar 163  R/2b R/0.5b R/0.5b R/0.5b B4/0.5b
+bar 164  R/2b R/0.5b R/0.5b R/0.5b B4/0.5b
+bar 165  R/2b R/0.5b R/0.5b R/0.5b B4/0.5b
+bar 166  R/2b R/0.5b R/0.5b R/0.5b B4/0.5b
+bar 167  R/2b R/0.5b R/0.5b R/0.5b B4/0.5b
+bar 168  R/2b B4/0.5b B4/0.5b B4/0.5b B4/0.5b
+bar 169  Ab4/0.5b Ab4/0.5b E4/0.5b F#4/0.5b E4/0.5b F#4/0.5b F#4/1b
+bar 170  R/2b R/1.5b E3/0.5b
+bar 171  Ab4/0.5b Ab4/0.5b F#4/0.5b E4/0.5b F#4/0.5b F#4/0.5b E4/1b
+bar 172  C#4/4b
+bar 173  Ab4/0.5b Ab4/0.5b E4/0.5b F#4/0.5b E4/0.5b F#4/0.5b F#4/0.5b Ab4/0.5b
+bar 174  R/1b R/1b R/0.5b C#4/0.5b C#4/0.5b C#4/0.5b
+bar 175  E4/0.5b E4/0.5b F#4/0.5b F#4/0.5b Ab4/0.5b B4/0.5b B4/1b
+bar 176  R/1b R/1b R/0.5b C#4/0.5b C#4/0.5b C#4/0.5b
+bar 177  B4/1b Ab4/1b E4/0.5b E4/0.5b F#4/1b
+bar 178  F#4/2b R/0.5b C#4/0.5b C#4/0.5b C#4/0.5b
+bar 179  B4/1b Ab4/1b E4/0.5b E4/0.5b Eb4/0.5b C#4/0.5b
+bar 180  C#4/2.5b C#4/0.5b C#4/0.5b C#4/0.5b
+bar 181  E4/0.5b E4/0.5b F#4/0.5b F#4/0.5b Ab4/0.5b B4/0.5b B4/1b
+bar 182  R/1b R/1b R/0.5b B3/0.5b B3/0.5b B3/0.5b
+bar 183  F#4/0.5b F#4/0.5b Ab4/0.5b A4/0.5b B4/0.5b Ab4/0.5b R/0.5b Ab4/0.5b
+bar 184  B4/4b
+bar 185  R/4b
+bar 186  Ab4/4b
+bar 187  E4/4b
+bar 188  Ab4/0.5b F#4/3.5b
+bar 189  Ab4/0.5b F#4/3.5b
+bar 190  Ab4/0.5b F#4/3.5b
+bar 191  Ab4/0.5b F#4/3.5b
+bar 192  F#4/1b R/1b R/0.5b Ab4/0.5b Ab4/0.5b Ab4/0.5b
+bar 193  B4/0.5b Ab4/0.5b F#4/0.5b F#4/1b E4/0.5b C#4/1b
+bar 194  R/1b bend=4 E5/1b R/0.5b bend= Ab4/0.5b Ab4/0.5b Ab4/0.5b
+bar 195  B4/0.5b Ab4/0.5b F#4/0.5b F#4/1b E4/0.5b C#4/1b
+bar 196  R/1b R/1b R/0.5b C#4/0.5b C#4/0.5b C#4/0.5b
+bar 197  E4/0.5b E4/0.5b F#4/0.5b F#4/0.5b Ab4/0.5b B4/1b R/0.5b
+bar 198  R/1b R/1b R/0.5b E4/0.5b E4/0.5b E4/0.5b
+bar 199  F#4/0.5b F#4/0.5b Ab4/0.5b Ab4/0.5b B4/0.5b bend=8 C4/1b bend= B4/0.5b
+bar 200  B4/2b R/0.5b C#4/0.5b C#4/0.5b C#4/0.5b
+bar 201  R/4b
+bar 202  R/4b
+bar 203  R/4b
+bar 204  R/4b
+bar 205  R/4b
+bar 206  R/4b
+bar 207  R/4b
+bar 208  R/4b
+bar 209  Ab3/0.25b Ab3/0.5b Ab3/0.25b Ab3/0.5b Ab3/1b F#3/0.5b E3/0.5b F#3/0.5b
+bar 210  Ab3/0.25b Ab3/0.5b Ab3/0.25b Ab3/0.5b Ab3/1b F#3/0.5b E3/0.5b F#3/0.5b
+bar 211  Ab3/1.5b R/0.5b Ab3/0.25b Ab3/0.5b B3/0.5b B3/0.5b Ab3/0.25b
+bar 212  Ab3/2b R/2b
+bar 213  Ab3/0.25b Ab3/0.5b Ab3/0.25b Ab3/0.5b Ab3/1b F#3/0.5b E3/0.5b F#3/0.5b
+bar 214  Ab3/0.25b Ab3/0.5b Ab3/0.25b Ab3/0.5b Ab3/1b F#3/0.5b E3/0.5b F#3/0.5b
+bar 215  Ab3/1.5b R/0.5b Ab3/0.25b Ab3/0.5b B3/0.5b B3/0.5b Ab3/0.25b
+bar 216  Ab3/1b R/2b E4/1b
+bar 217  E4/0.5b B4/2.5b bend=2 C#5/1b bend=
+bar 218  Ab4/4b
