@@ -1522,7 +1522,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 1,
+      "rounds": 2,
       "priority": 1.0,
       "genre": "bass music / deep dub (feat. Clay Parnell, Rory Sweet Boy Dolan)",
       "meta": {
@@ -1536,8 +1536,8 @@
       },
       "ref_file": "ref/albums/singles/hmu.webm",
       "last": {
-        "at": "2026-10-18T20:50:28Z",
-        "who": "chirper-one"
+        "at": "2026-10-18T21:42:37Z",
+        "who": "chirper-two"
       }
     },
     {
