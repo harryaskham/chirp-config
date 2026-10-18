@@ -2,9 +2,11 @@
 """Album edges: how a song's first and last seconds meet its neighbours' — the transitions an album
 plays without a gap — measured cheaply from each song's own render (never a whole-album render).
 
-  albumedges.py check ID RENDER.wav [--edge S]   this render's edges against the record's, and the
+  albumedges.py check ID RENDER.wav [--edge S] [--absolute]
+                                                 this render's edges against the record's, and the
                                                  transitions to its neighbours (their recorded edges,
-                                                 else the record's)
+                                                 else the record's); --absolute also prints RMS dBFS
+                                                 values and flags large deltas in very quiet bands
   albumedges.py record ID RENDER.wav [--version vN]
                                                  keep this render's edges in climbs/edges/ID.json
                                                  (`climb.py done … --render RENDER.wav` does it for a
@@ -126,6 +128,15 @@ def cmd_check(a):
     for side in ("head", "tail"):
         d = vec(ours[side]) - vec(ref[side])
         print(f"  {side} ours − record: {fmt(d)}   (mean |Δ| {np.mean(np.abs(d)):.1f} dB)")
+        if "--absolute" in a:
+            ov, rv = vec(ours[side]), vec(ref[side])
+            print(f"  {side} ours RMS dBFS:   {fmt(ov)}")
+            print(f"  {side} record RMS dBFS: {fmt(rv)}")
+            quiet = [name for i, name in enumerate(NAMES[1:], 1)
+                     if max(ov[i], rv[i]) < -70 and abs(d[i]) >= 6]
+            if quiet:
+                print(f"  {side} quiet-band deltas (both below -70 dBFS, ≥6 dB apart): {', '.join(quiet)}"
+                      " — diagnostic only; scores unchanged")
     _, prev, nxt = neighbours(cid)
     for other, mine, theirs, label in ((prev, "head", "tail", "from"), (nxt, "tail", "head", "into")):
         if not other:
