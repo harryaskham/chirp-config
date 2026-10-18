@@ -420,10 +420,11 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/archangel.wav OUT.wav $(cat tools/archangel-sections.txt)",
       "best": {
-        "score": 59.518,
+        "score": 59.859,
         "version": "v12",
         "commit": "see git log songs/archangel.yaml",
-        "engine": "a931418"
+        "engine": "a931418",
+        "remeasured": "likeness short-section rhythm fix: the current song 59.616 -> 59.859 on a931418 (registered 59.518 on the old metric)"
       },
       "passes": 1,
       "enabled": true,
@@ -440,7 +441,8 @@
         "at": "2026-10-17T10:23:01Z",
         "who": "chirper-two"
       },
-      "paused_by": "focus"
+      "paused_by": "focus",
+      "chirp-eco": ""
     },
     {
       "id": "harder-better-faster-stronger",
