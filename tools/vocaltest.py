@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Does a vocal read as a voice? Render one track solo, separate it with Demucs htdemucs_6s and report each stem's
-share of the energy (bd-f227d8). A real voice — the record's own vocal stem, re-separated — lands ~100% in
-"vocals"; a harsh synthetic voice that leaks into "drums" (broadband, percussive bursts) or "other" (buzzy,
-synth-like steady state) does not read as a voice to a listener either.
+share of separated energy (bd-f227d8). Re-separate a real reference vocal as a control (usually near 100%
+"vocals"). Leakage into "drums" (percussive bursts) or "other" (synth-like steady state) is a useful voice-likeness
+proxy, not proof of listener perception, lyric intelligibility, pitch accuracy or overall fidelity.
 
   vocaltest.py SONG TRACK [--from 168s --to 208s] [--set PATH=VALUE …] [--seed N] [--jobs 1] [--shifts N] [--keep DIR] [--json]
   vocaltest.py --wav FILE.wav [--jobs 1] [--shifts N] [--keep DIR] [--json]   # analysis only
