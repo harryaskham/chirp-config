@@ -3354,6 +3354,22 @@
     "t3": "ft"
    },
    "gain": "1.5dB"
+  },
+  {
+   "name": "vox",
+   "score_file": "tools/maps/in-death-is-life-vox-c1-r9.txt",
+   "patch": "kidman synth.amp.a=40ms",
+   "gain": "0dB",
+   "rest": [
+    [
+     1,
+     16
+    ],
+    [
+     49,
+     64
+    ]
+   ]
   }
  ]
 }
