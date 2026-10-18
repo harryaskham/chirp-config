@@ -748,15 +748,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/re-inanimate.wav OUT.wav $(cat tools/re-inanimate-sections.txt)",
       "best": {
-        "score": 64.412,
-        "version": "v10",
+        "score": 65.389,
+        "version": "v11",
         "commit": "see git log songs/re-inanimate.yaml",
         "engine": "a931418"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 11,
+      "rounds": 12,
       "priority": 1.0,
       "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
       "meta": {
@@ -773,7 +773,7 @@
       },
       "ref_file": "ref/albums/catch-thirtythree/05 re-inanimate.webm",
       "last": {
-        "at": "2026-10-18T02:36:10Z",
+        "at": "2026-10-18T03:18:39Z",
         "who": "chirper-zero"
       }
     },
