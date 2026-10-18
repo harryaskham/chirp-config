@@ -2662,6 +2662,27 @@
     ]
    ],
    "gain": "1.5dB"
+  },
+  {
+   "name": "vox",
+   "score_file": "tools/maps/imprint-of-the-un-saved-vox-chirper-zero.txt",
+   "patch": "kidman synth.amp.a=40ms",
+   "gain": "-6dB",
+   "rest": [
+    [
+     1,
+     16
+    ],
+    [
+     33,
+     48
+    ]
+   ],
+   "extra": {
+    "sends": {
+     "hall": "-16dB"
+    }
+   }
   }
  ]
 }
