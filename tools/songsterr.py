@@ -3,12 +3,21 @@
 
   songsterr.py SONG_ID [TRACK…]        fetch the tab's meta + tracks (cached under ref/songsterr-SONG_ID/), print scores
   songsterr.py --cached DIR [TRACK…]   use already-fetched DIR/songsterr-N.json files
+  … [--bends peak|curve|mean] [--bend-step 0.125]   how a bent note's curve becomes bend= (see below)
 
 Pitched tracks: note = string tuning + fret; ties merge into the previous note; dynamics (ppp…fff)
 become velocities; palm mute → ^pm, dead → ^dead, harmonics → ^ph; slides into a note become a
 short bend from 2 semitones below, slides out a bend down at the end. Drums: General MIDI numbers →
 metal-kit pieces. Output is plain notation to paste into a song — the tab is a transcription aid,
-not a runtime dependency."""
+not a runtime dependency.
+
+Bends (a tab note's curve: points of (position 0-60 across the note, tone 25 = one semitone)):
+  peak   one bend= for the whole note, read at the curve's middle — a bend-and-release (0 -> 3 -> 0) holds its
+         peak throughout (the default: every existing song was built this way)
+  curve  the curve itself: stepped bend= over holds every ~--bend-step beats, each step at the curve's mean over
+         it (a tied continuation carries its own curve on); the time-averaged pitch follows the record (bd-954470)
+  mean   one bend= at the curve's time-average
+tab2song maps choose per part or map-wide ("bends", "bend_step")."""
 import gzip
 import json
 import os
@@ -64,8 +73,8 @@ def fmt_num(x):
     return f"{x:.2f}".rstrip("0").rstrip(".")
 
 
-def measure_tokens(track, m, drums):
-    out = []  # list of [token_body, beats, suffix]
+def measure_tokens(track, m, drums, bends="peak", step=0.125):
+    out = []  # list of [token_body, beats, suffix, bend]: bend semitones, or {"pieces": [(curve|None, beats)]}
     vel = None
     for b in m["voices"][0]["beats"]:
         t = beats_of(b)
@@ -81,6 +90,13 @@ def measure_tokens(track, m, drums):
             out.append([",".join(pcs), t, f"@{v}"]); continue
         tun = track["tuning"]
         if all(n.get("tie") for n in notes) and out and out[-1][0] != "R":
+            if bends == "curve" and len(out[-1]) > 3:   # the tied part bends on (its own curve, or holds)
+                tie_pts = widest_curve(notes)
+                prev = out[-1][3]
+                if tie_pts or isinstance(prev, dict):
+                    if not isinstance(prev, dict):
+                        prev = out[-1][3] = {"pieces": [([(0, prev)], out[-1][1])]}
+                    prev["pieces"].append((tie_pts, t))
             out[-1][1] += t  # tie: extend the previous note
             if any(n.get("slide") in ("downwards", "outDownwards", "shift") for n in notes):
                 out[-1][2] += "^slidedown"
@@ -88,7 +104,16 @@ def measure_tokens(track, m, drums):
         pitches = sorted(tun[int(n["string"])] + int(n["fret"]) for n in notes if "fret" in n)
         if not pitches:  # only fretless notes (e.g. a dead/ghost note without a fret): a rest of that length
             out.append(["R", t, ""]); continue
-        bend = max((bend_semis(n) for n in notes), key=abs, default=0.0)
+        if bends == "peak":
+            bend = max((bend_semis(n) for n in notes), key=abs, default=0.0)
+        else:   # a chord follows its widest curve (one bend per track)
+            pts = widest_curve(notes)
+            if pts is None:
+                bend = 0.0
+            elif bends == "mean":
+                bend = round(curve_mean(pts), 2)
+            else:
+                bend = {"pieces": [(pts, t)]}
         arts = ""
         if b.get("palmMute") or any(n.get("palmMute") for n in notes):
             arts += "^pm"
@@ -107,6 +132,22 @@ def measure_tokens(track, m, drums):
     for item in out:
         body, t, suf = item[:3]
         bend = item[3] if len(item) > 3 else 0.0
+        if isinstance(bend, dict):
+            segs = curve_segments(bend["pieces"], step)
+            if any(abs(v) > 1e-6 for _, v in segs):
+                # the curve: the note at its first step's bend, then holds at each next step's
+                suf = suf.replace("^slidein", "").replace("^slidedown", "")
+                parts, done = [], 0.0
+                for k, (ln, v) in enumerate(segs):
+                    ln = round(t - done, 4) if k == len(segs) - 1 else round(ln, 4)
+                    done += ln
+                    if abs(v - state) > 1e-6:
+                        parts.append(f"bend={fmt_num(v)}" if abs(v) > 1e-6 else "bend=")
+                        state = v
+                    parts.append(f"{body}{fmt_len(ln)}{suf}" if k == 0 else f"_{fmt_len(ln)}")
+                toks.append(" ".join(parts))
+                continue
+            bend = 0.0
         if body != "R" and abs(bend - state) > 1e-6:
             toks.append(f"bend={fmt_num(bend)}" if abs(bend) > 1e-6 else "bend=")
             state = bend
@@ -137,6 +178,54 @@ def measure_tokens(track, m, drums):
     return " ".join(toks)
 
 
+def bend_curve(n):
+    """A bent note's curve as [(position 0-60, semitones)], or None."""
+    b = n.get("bend")
+    if not b:
+        return None
+    return sorted((p.get("position", 0), p.get("tone", 0) / 25.0) for p in b.get("points", [])) \
+        or [(0, b.get("tone", 0) / 25.0)]
+
+
+def widest_curve(notes):
+    """The curve of the most-bent note (a chord bends as one), or None."""
+    curves = [c for c in (bend_curve(n) for n in notes) if c]
+    return max(curves, key=lambda c: max(abs(v) for _, v in c)) if curves else None
+
+
+def curve_at(pts, pos):
+    if pos <= pts[0][0]:
+        return pts[0][1]
+    for (p0, v0), (p1, v1) in zip(pts, pts[1:]):
+        if p0 <= pos <= p1:
+            return v0 + (v1 - v0) * ((pos - p0) / (p1 - p0) if p1 > p0 else 0)
+    return pts[-1][1]
+
+
+def curve_mean(pts, a=0.0, b=60.0, n=24):
+    """The curve's mean (semitones) over positions a..b."""
+    return sum(curve_at(pts, a + (b - a) * (i + 0.5) / n) for i in range(n)) / n
+
+
+def curve_segments(pieces, step):
+    """[(curve or None, beats)] → [(beats, semitones)]: each piece in ~step-beat steps at the curve's mean over the
+    step (None holds the last value), equal neighbours merged."""
+    out, last = [], 0.0
+    for pts, beats in pieces:
+        if pts is None:
+            vals = [(beats, last)]
+        else:
+            k = max(1, int(round(beats / step)))
+            vals = [(beats / k, round(curve_mean(pts, 60 * i / k, 60 * (i + 1) / k), 2)) for i in range(k)]
+        for ln, v in vals:
+            if out and abs(out[-1][1] - v) < 1e-9:
+                out[-1][0] += ln
+            else:
+                out.append([ln, v])
+            last = v
+    return [(ln, v) for ln, v in out]
+
+
 def bend_semis(n):
     """A bent note's pitch offset in semitones, read at the middle of its bend curve (Songsterr `tone` 25 =
     one semitone: Bleed's B25/B50 pedal bends sound E/F over the open D#, as the stems confirm). Notes
@@ -155,15 +244,20 @@ def bend_semis(n):
     return round(tone / 25.0, 2)
 
 
-def score(cache, i):
+def score(cache, i, bends="peak", step=0.125):
     tr = load(cache, i)
     drums = not tr.get("tuning")
-    lines = [measure_tokens(tr, m, drums) for m in tr["measures"]]
+    lines = [measure_tokens(tr, m, drums, bends, step) for m in tr["measures"]]
     return tr.get("name") or tr.get("instrument"), drums, lines
 
 
 if __name__ == "__main__":
     args = sys.argv[1:]
+    bends, step = "peak", 0.125
+    if "--bends" in args:
+        i = args.index("--bends"); bends = args[i + 1]; del args[i:i + 2]
+    if "--bend-step" in args:
+        i = args.index("--bend-step"); step = float(args[i + 1]); del args[i:i + 2]
     if args and args[0] == "--cached":
         cache = args[1]; args = args[2:]
     else:
@@ -171,7 +265,7 @@ if __name__ == "__main__":
     meta = json.load(open(f"{cache}/songsterr-meta.json"))
     idx = [int(a) for a in args] or list(range(len(meta.get("tracks", []))))
     for i in idx:
-        name, drums, lines = score(cache, i)
+        name, drums, lines = score(cache, i, bends, step)
         print(f"# track {i}: {name}{' (drums → metal-kit)' if drums else ''}")
         for mi, l in enumerate(lines):
             print(f"m{mi + 1:<3d} {l}")

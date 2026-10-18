@@ -171,7 +171,9 @@ def main(a):
     root = os.path.dirname(HERE)
     cache = mp["cache"] if os.path.isabs(mp["cache"]) else os.path.join(root, mp["cache"])
     tl = T.performed_timeline(cache, mp)  # the performed clock: skips and repeats (bd-8e945f)
-    lines = S.score(cache, part["track"])[2]
+    # the lines tab2song would write: the part's (or the map's) bend mode
+    lines = S.score(cache, part["track"], part.get("bends", mp.get("bends", "peak")),
+                    float(part.get("bend_step", mp.get("bend_step", 0.125))))[2]
     rep = {int(k): v for k, v in part.get("replace", {}).items()}
     lo, hi = (int(v) for v in opt("--bars", "1-100000").split("-"))
     # the bend state and held notes carry across bars in play order; outside its `bars` the part rests (no bends)

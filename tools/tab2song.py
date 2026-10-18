@@ -35,6 +35,9 @@ against a map's bars should use (bd-8e945f).
 
 Bars are 1-based inclusive ranges. Outside its ranges a part rests. Drum pieces can be renamed (`remap`) or
 dropped (`drop`) per part, for kits that name pieces differently from the tab's General-MIDI mapping.
+"bends": "peak" | "curve" | "mean" (map-wide or per part; default "peak", how every existing song was built) chooses
+how a tab note's bend curve is written (songsterr.py): "curve" steps a bend-and-release over holds every "bend_step"
+beats (default 0.125) instead of holding its peak for the whole note (bd-954470); "mean" holds its time-average.
 "strip": ["ph", "bend", …] (map-wide or per part) removes those `^articulation` marks ("bend": the bend= tokens) from tab-derived parts (e.g. pinch
 harmonics whose rung partial does not match the record's)."""
 import json
@@ -316,13 +319,16 @@ def build(mp):
             tr["score"] = sc
             tracks.append(tr)
             continue
-        if p["track"] not in lines_cache:
-            lines_all = S.score(cache, p["track"])[2]
-            lines_cache[p["track"]] = [lines_all[i] for i in keep]
+        # a tab track's lines per bend mode ("bends"/"bend_step", per part or map-wide; score_file parts are keyed)
+        mode, step = p.get("bends", mp.get("bends", "peak")), float(p.get("bend_step", mp.get("bend_step", 0.125)))
+        ck = p["track"] if isinstance(p["track"], tuple) else (p["track"], mode, step)
+        if ck not in lines_cache:
+            lines_all = S.score(cache, p["track"], mode, step)[2]
+            lines_cache[ck] = [lines_all[i] for i in keep]
         pos = {}   # tab measure → its kept indices (1-based; a repeated measure has several)
         for k, i in enumerate(keep):
             pos.setdefault(full[i]["m"], []).append(k + 1)
-        lines = lines_cache[p["track"]]
+        lines = lines_cache[ck]
         if p.get("replace"):
             # per-bar corrections (e.g. from per-bar chroma against the stems): {"221": "D3,A3,E4/4b", ...} on the
             # tab's measure numbers, applied before chord splitting and bar fitting
