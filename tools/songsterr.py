@@ -4,6 +4,7 @@
   songsterr.py SONG_ID [TRACK…]        fetch the tab's meta + tracks (cached under ref/songsterr-SONG_ID/), print scores
   songsterr.py --cached DIR [TRACK…]   use already-fetched DIR/songsterr-N.json files
   … [--bends peak|curve|mean] [--bend-step 0.125]   how a bent note's curve becomes bend= (see below)
+  … [--voice N]                        read the tab's Nth voice (default 0, the first; see below)
 
 Pitched tracks: note = string tuning + fret; ties merge into the previous note; dynamics (ppp…fff)
 become velocities; palm mute → ^pm, dead → ^dead, harmonics → ^ph; slides into a note become a
@@ -17,7 +18,11 @@ Bends (a tab note's curve: points of (position 0-60 across the note, tone 25 = o
   curve  the curve itself: stepped bend= over holds every ~--bend-step beats, each step at the curve's mean over
          it (a tied continuation carries its own curve on); the time-averaged pitch follows the record (bd-954470)
   mean   one bend= at the curve's time-average
-tab2song maps choose per part or map-wide ("bends", "bend_step")."""
+tab2song maps choose per part or map-wide ("bends", "bend_step").
+
+Voices: a staff can carry independent voices (e.g. a drum tab's cymbals in voice 0, kick and snare in voice 1). One
+voice is read — voice 0 unless chosen (`--voice N`, a tab2song part's "voice": N; bd-72f61a); voices are never
+merged. A measure without the chosen voice is a rest of the bar's length (its time signature), never another voice."""
 import gzip
 import json
 import os
@@ -73,10 +78,13 @@ def fmt_num(x):
     return f"{x:.2f}".rstrip("0").rstrip(".")
 
 
-def measure_tokens(track, m, drums, bends="peak", step=0.125):
+def measure_tokens(track, m, drums, bends="peak", step=0.125, voice=0, bar_beats=4.0):
+    voices = m.get("voices") or []
+    if voice >= len(voices):   # the chosen voice is absent here: the bar rests (bd-72f61a)
+        return f"R{fmt_len(bar_beats)}"
     out = []  # list of [token_body, beats, suffix, bend]: bend semitones, or {"pieces": [(curve|None, beats)]}
     vel = None
-    for b in m["voices"][0]["beats"]:
+    for b in voices[voice]["beats"]:
         t = beats_of(b)
         if b.get("velocity"):
             vel = VEL.get(b["velocity"], vel)
@@ -244,20 +252,25 @@ def bend_semis(n):
     return round(tone / 25.0, 2)
 
 
-def score(cache, i, bends="peak", step=0.125):
+def score(cache, i, bends="peak", step=0.125, voice=0):
     tr = load(cache, i)
     drums = not tr.get("tuning")
-    lines = [measure_tokens(tr, m, drums, bends, step) for m in tr["measures"]]
+    lines, sig = [], [4, 4]
+    for m in tr["measures"]:
+        sig = m.get("signature", sig)   # as tabtime.timeline: a signature holds until the next one
+        lines.append(measure_tokens(tr, m, drums, bends, step, voice, 4 * sig[0] / sig[1]))
     return tr.get("name") or tr.get("instrument"), drums, lines
 
 
 if __name__ == "__main__":
     args = sys.argv[1:]
-    bends, step = "peak", 0.125
+    bends, step, voice = "peak", 0.125, 0
     if "--bends" in args:
         i = args.index("--bends"); bends = args[i + 1]; del args[i:i + 2]
     if "--bend-step" in args:
         i = args.index("--bend-step"); step = float(args[i + 1]); del args[i:i + 2]
+    if "--voice" in args:
+        i = args.index("--voice"); voice = int(args[i + 1]); del args[i:i + 2]
     if args and args[0] == "--cached":
         cache = args[1]; args = args[2:]
     else:
@@ -265,7 +278,7 @@ if __name__ == "__main__":
     meta = json.load(open(f"{cache}/songsterr-meta.json"))
     idx = [int(a) for a in args] or list(range(len(meta.get("tracks", []))))
     for i in idx:
-        name, drums, lines = score(cache, i, bends, step)
-        print(f"# track {i}: {name}{' (drums → metal-kit)' if drums else ''}")
+        name, drums, lines = score(cache, i, bends, step, voice)
+        print(f"# track {i}: {name}{' (drums → metal-kit)' if drums else ''}{f' voice {voice}' if voice else ''}")
         for mi, l in enumerate(lines):
             print(f"m{mi + 1:<3d} {l}")

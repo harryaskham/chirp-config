@@ -38,6 +38,8 @@ dropped (`drop`) per part, for kits that name pieces differently from the tab's 
 "bends": "peak" | "curve" | "mean" (map-wide or per part; default "peak", how every existing song was built) chooses
 how a tab note's bend curve is written (songsterr.py): "curve" steps a bend-and-release over holds every "bend_step"
 beats (default 0.125) instead of holding its peak for the whole note (bd-954470); "mean" holds its time-average.
+"voice": N (per part; default 0) reads the tab track's Nth voice — e.g. a drum staff whose kick and snare are in voice 1
+under cymbals in voice 0 (bd-72f61a); bars without that voice rest. Add a part per voice to hear both.
 "strip": ["ph", "bend", …] (map-wide or per part) removes those `^articulation` marks ("bend": the bend= tokens) from tab-derived parts (e.g. pinch
 harmonics whose rung partial does not match the record's)."""
 import json
@@ -321,9 +323,10 @@ def build(mp):
             continue
         # a tab track's lines per bend mode ("bends"/"bend_step", per part or map-wide; score_file parts are keyed)
         mode, step = p.get("bends", mp.get("bends", "peak")), float(p.get("bend_step", mp.get("bend_step", 0.125)))
-        ck = p["track"] if isinstance(p["track"], tuple) else (p["track"], mode, step)
+        voice = int(p.get("voice", 0))   # the staff's voice (bd-72f61a): one voice, never merged
+        ck = p["track"] if isinstance(p["track"], tuple) else (p["track"], mode, step, voice)
         if ck not in lines_cache:
-            lines_all = S.score(cache, p["track"], mode, step)[2]
+            lines_all = S.score(cache, p["track"], mode, step, voice)[2]
             lines_cache[ck] = [lines_all[i] for i in keep]
         pos = {}   # tab measure → its kept indices (1-based; a repeated measure has several)
         for k, i in enumerate(keep):
