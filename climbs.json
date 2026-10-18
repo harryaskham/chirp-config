@@ -1062,11 +1062,16 @@
       "source": "https://www.youtube.com/watch?v=U3u4pQ4WKOk",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/clair-de-lune.wav OUT.wav $(cat tools/clair-de-lune-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 53.13,
+        "version": "v1",
+        "commit": "see git log songs/clair-de-lune.yaml",
+        "engine": "654b5e3"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "classical piano (Debussy; Seong-Jin Cho DG studio)",
       "meta": {
@@ -1078,7 +1083,11 @@
         "at": "2026-10-18T12:31:17Z",
         "note": "Canonical performance: Seong-Jin Cho (Deutsche Grammophon, studio; Suite bergamasque L.75 III). Every agent climbs this one recording, ref/clair-de-lune.wav, never another pianist's: tempo and rubato differ between performances."
       },
-      "ref_file": "ref/albums/singles/clair-de-lune.webm"
+      "ref_file": "ref/albums/singles/clair-de-lune.webm",
+      "last": {
+        "at": "2026-10-18T19:35:35Z",
+        "who": "chirper-one"
+      }
     },
     {
       "id": "so-what",
