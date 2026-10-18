@@ -1337,11 +1337,16 @@
       "source": "https://www.youtube.com/watch?v=F2NUI1ELYao",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/you-can-t-hurry-love.wav OUT.wav $(cat tools/you-can-t-hurry-love-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 53.318,
+        "version": "v1",
+        "commit": "see git log songs/you-can-t-hurry-love.yaml",
+        "engine": "da70ccd"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "Motown / soul (The Supremes, fixed supplied recording; 192 BPM 4/4 transcription aid, finger bass, female lead/backing guide, tambourine approximation)",
       "meta": {
@@ -1353,7 +1358,11 @@
         "at": "2026-10-18T12:31:24Z",
         "note": "Diana Ross & The Supremes: Motown band, tambourine, backing vocals."
       },
-      "ref_file": "ref/albums/singles/you-can-t-hurry-love.opus"
+      "ref_file": "ref/albums/singles/you-can-t-hurry-love.opus",
+      "last": {
+        "at": "2026-10-18T18:19:13Z",
+        "who": "chirper-three"
+      }
     },
     {
       "id": "blue-monday",
