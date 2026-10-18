@@ -20,7 +20,7 @@ import barchroma as B  # noqa: E402
 def timeline(mp):
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     cache = mp["cache"] if os.path.isabs(mp["cache"]) else os.path.join(root, mp["cache"])
-    return [m for m in B.T.corrected_timeline(cache, mp) if not m["skip"]]
+    return B.T.performed_timeline(cache, mp)  # the performed clock: skips and repeats (bd-8e945f)
 
 
 def main():
@@ -53,10 +53,10 @@ def main():
         lo, hi = max(0, i - win // 2), min(len(tl), i + win // 2 + 1)
         med = float(np.median(vals[lo:hi]))
         if abs(m["bpm"] - med) / med > dev:
-            flagged.append((m["m"], round(times[i], 1), round(m["bpm"], 1), round(med, 1)))
+            flagged.append((m["label"], round(times[i], 1), round(m["bpm"], 1), round(med, 1)))
     print(f"{len(flagged)} of {len(tl)} bars deviate > {dev * 100:.0f}% from the local median (bar, time s, bpm, median):")
     for f in flagged:
-        print("  m%d %7.1fs  %6.1f vs %6.1f" % f)
+        print("  m%s %7.1fs  %6.1f vs %6.1f" % f)
 
 
 if __name__ == "__main__":

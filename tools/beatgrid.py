@@ -32,7 +32,7 @@ def onset_curve(stem):
 def phases(mp, o, block=8):
     root = os.path.dirname(HERE)
     cache = mp["cache"] if os.path.isabs(mp["cache"]) else os.path.join(root, mp["cache"])
-    keep = [m for m in T2S.corrected_timeline(cache, mp) if not m["skip"]]
+    keep = T2S.performed_timeline(cache, mp)  # the performed clock: skips and repeats (bd-8e945f)
     t, starts, grid = mp.get("offset", 0.0), [], []
     for i, m in enumerate(keep):
         starts.append(t); P = 30 / m["bpm"]
@@ -80,7 +80,9 @@ def fit(mp, stem, block=8, minconf=1.5, unwrap=False):
         new = old + (d_next - b["d"])
         k = old / max(new, 1e-3)
         for i in range(i0, i1):
-            bpm[str(keep[i]["m"])] = round(keep[i]["bpm"] * k, 4)
+            # a map's bpm is per tab measure (every play of it): a repeat's later plays keep the first's
+            if keep[i]["occ"] == 1:
+                bpm[str(keep[i]["m"])] = round(keep[i]["bpm"] * k, 4)
     if blocks:
         mp = dict(mp); mp["offset"] = round(mp.get("offset", 0.0) + blocks[0]["d"], 4)
     mp["bpm"] = bpm

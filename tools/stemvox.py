@@ -4,8 +4,13 @@ the pitch is noise): syllables are runs of vocal-band energy above a floor, spli
 a grid on the tab's own measure timeline (so odd-length bars stay exact), with velocity from loudness.
 
   stemvox.py STEM --tab DIR --d0 SECONDS --bars B0-B1 [--note Eb3|auto] [--grid 0.125] [--range 30] [--dip 6] [--min 0.25]
-  stemvox.py STEM --map MAP.json --bars B0-B1 [...]   bar times from a tab2song map's corrected timeline
-           (its offset, skipped measures and beatgrid/scorealign `bpm` overrides) instead of the raw tab
+  stemvox.py STEM --map MAP.json --bars B0-B1 [...]   bar times from a tab2song map's performed timeline
+           (its offset, skipped measures, beatgrid/scorealign `bpm` overrides and `repeat`s) instead of the raw tab
+
+  With --map, every play of a bar in B0-B1 is transcribed at its own performed time: a measure the map plays
+  once prints `bar N`, one it plays more than once (a `repeat`) prints `bar N.1`, `bar N.2`, … (tab2song reads
+  each into its own pass). With --tab, a tab whose own repeat signs (which no tool expands) fall at or before
+  B1 is refused — its bar clock would be wrong after them; use a map with `repeat` entries, or --ignore-repeats.
 
   --note   one pitch for every syllable, or `auto`: each syllable's pitch from the stem (harmonic summation,
            G3..F5; a shout's pitch moves from phrase to phrase)
@@ -183,7 +188,7 @@ def main():
     mode, shift = opt("--onsets", "runs"), float(opt("--shift", "0")) / 1000
     phones = "--phones" in a
     vbase = float(opt("--vowel-base", "0.62"))   # the patch's open vowel; --phones emits ^dvow offsets from it
-    tl = T.timeline(tab) if tab else None
+    # rows: (m, label, start s, beats, bpm) in bar order; skipped measures are zero-length rows (empty bars)
     if opt("--map", None):
         import importlib.util
         import json
@@ -192,25 +197,39 @@ def main():
         t2s = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(t2s)
         mp = json.load(open(opt("--map", None)))
+        perf = t2s.performed_timeline(mp["cache"], mp)
+        rows = [(p["m"], p["occ"], p["label"], p["start"], p["beats"], p["bpm"]) for p in perf if b0 <= p["m"] <= b1]
+        if not rows:
+            sys.exit(f"stemvox: the map plays no bars in {b0}-{b1}")
         cache = mp["cache"] if os.path.isabs(mp["cache"]) else os.path.join(os.path.dirname(here), mp["cache"])
-        tl, t = [], mp.get("offset", 0.0)
-        for m in t2s.corrected_timeline(cache, mp):   # skipped measures keep a zero-length slot
-            tl.append({"m": m["m"], "start": t, "beats": 0.0 if m["skip"] else m["beats"], "bpm": m["bpm"]})
-            if not m["skip"]:
-                t += m["beats"] * 60 / m["bpm"]
-        d0 = 0.0
-    t_start = max(0.0, d0 + tl[b0 - 1]["start"])   # a negative map offset would slice from the stem's END
-    last = tl[b1 - 1]; t_end = d0 + last["start"] + last["beats"] * 60 / last["bpm"]
+        rows += [(m["m"], 1, str(m["m"]), 0.0, 0.0, m["bpm"]) for m in t2s.corrected_timeline(cache, mp)
+                 if m["skip"] and b0 <= m["m"] <= b1]
+        rows.sort(key=lambda r: (r[0], r[1]))
+        rows = [r[:1] + r[2:] for r in rows]
+    else:
+        tl = T.timeline(tab)
+        if "--ignore-repeats" not in a:
+            import songsterr as S
+            marked = [i + 1 for i, m in enumerate(S.load(tab, 0)["measures"][:b1])
+                      if m.get("repeatStart") or m.get("repeat") or m.get("alternateEnding")]
+            if marked:
+                sys.exit(f"stemvox: the tab has repeat signs at measure(s) {', '.join(map(str, marked))}, at or before bar {b1}: "
+                         "its bar clock ignores them, so bars after them would be read at the wrong time. Use a tab2song "
+                         "map with `repeat` entries (--map), or --ignore-repeats if the recording does not play them.")
+        rows = [(m, str(m), d0 + tl[m - 1]["start"], tl[m - 1]["beats"], tl[m - 1]["bpm"]) for m in range(b0, b1 + 1)]
+    played = [r for r in rows if r[3] > 0]
+    t_start = max(0.0, min(r[2] for r in played))   # a negative map offset would slice from the stem's END
+    t_end = max(r[2] + r[3] * 60 / r[4] for r in played)
     x = L.load(stem).mean(1)[int(t_start * SR):int(t_end * SR)]
     env, hop = band_env(x)
     segs = syllables_flux(env, hop, rng) if mode == "flux" else syllables(env, hop, rng, dip)
     segs = [(s + shift, e + shift, lvl) for s, e, lvl in segs]
     # time → (bar, beat-in-bar) on the tab timeline, quantised
-    bars = {m: [] for m in range(b0, b1 + 1)}
+    bars = {r[1]: [] for r in rows}
     for s, e, lvl in segs:
         ts, te = t_start + s, t_start + e
-        for m in range(b0, b1 + 1):
-            ms = d0 + tl[m - 1]["start"]; spb = 60 / tl[m - 1]["bpm"]; me = ms + tl[m - 1]["beats"] * spb
+        for _, label, ms, nbeats, bpm in rows:
+            spb = 60 / bpm; me = ms + nbeats * spb
             if ms <= ts < me:
                 qs = round((ts - ms) / spb / grid) * grid
                 ql = max(mn, round((te - ts) / spb / grid) * grid)
@@ -225,10 +244,10 @@ def main():
                     vw = (vowel_of(mid) if len(mid) > 2048 else None) or 0.62   # an open a/e when unmeasurable
                     dv = round(vw - vbase, 2)
                     suffix = (f"^on={on}" if on else "") + (f"^dvow={dv:g}" if abs(dv) > 1e-9 else "") + (f"^off={off}" if off else "")
-                bars[m].append([qs, ql, vel, pitch, suffix])
+                bars[label].append([qs, ql, vel, pitch, suffix])
                 break
-    for m in range(b0, b1 + 1):
-        nb = tl[m - 1]["beats"]; ev = sorted(bars[m]); toks, pos = [], 0.0
+    for _, label, _, nb, _ in rows:
+        ev = sorted(bars[label]); toks, pos = [], 0.0
         for qs, ql, vel, pitch, suffix in ev:
             if qs < pos - 1e-9 or qs >= nb:
                 continue
@@ -238,7 +257,7 @@ def main():
             toks.append(f"{pitch}/{ql:g}b@{vel}{suffix}"); pos = qs + ql
         if pos < nb - 1e-9:
             toks.append(f"R/{nb - pos:g}b")
-        print(f"bar {m:3d}  {' '.join(toks)}")
+        print(f"bar {label:>3}  {' '.join(toks)}")
 
 
 if __name__ == "__main__":

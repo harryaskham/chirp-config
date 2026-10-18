@@ -26,7 +26,12 @@ measures the recording does not play (from the timeline and every part).
 ending; every part — repeated bars share their tab measure number, so bpm/replace/subst apply to every copy).
 A tab with tempo changes becomes a song with a tempo map (a point at every tempo or meter change); "meters": true
 emits the map for a constant-tempo tab too. A part may take `"score_file": "PATH"` instead of `track`: `bar N  tokens` lines (stemvox.py/stemnotes.py
-output) on the tab's measure numbers, with optional `"rest": [[a, b], …]` ranges kept silent.
+output) on the tab's measure numbers, with optional `"rest": [[a, b], …]` ranges kept silent. A measure the map plays
+more than once (a "repeat") takes `bar N.K  tokens` for its K-th play (stemvox/stemnotes --map write these: each pass
+is transcribed at its own performed time); a plain `bar N` line applies to every play.
+
+performed_timeline(cache, map) is the map's bar clock (skips and repeats applied) — the one every tool reading a stem
+against a map's bars should use (bd-8e945f).
 
 Bars are 1-based inclusive ranges. Outside its ranges a part rests. Drum pieces can be renamed (`remap`) or
 dropped (`drop`) per part, for kits that name pieces differently from the tab's General-MIDI mapping.
@@ -218,15 +223,57 @@ def corrected_timeline(cache, mp):
     return tl
 
 
-def build(mp):
-    cache = mp["cache"]
-    full = corrected_timeline(cache, mp)
+def performed_keep(full, mp):
+    """Indices into the corrected timeline of the bars the map plays, in order: skipped measures out, each
+    repeat [a, b, n] (a live vamp or a longer ending) inserted n more times right after b."""
     keep = [i for i, m in enumerate(full) if not m["skip"]]
     for a, b, n in mp.get("repeat", []):
-        # a live vamp or a longer ending: play tab measures a..b n more times right after b (every part)
         idx = [i for i in keep if a <= full[i]["m"] <= b]
         at = max((k for k, i in enumerate(keep) if full[i]["m"] <= b), default=len(keep) - 1) + 1
         keep[at:at] = idx * int(n)
+    return keep
+
+
+def performed_timeline(cache, mp):
+    """The bars the map plays, in order — the clock the song is built on: each the corrected timeline's measure
+    (m, beats, bpm, sig, skip) plus k (1-based performed index), occ (1 on the measure's first play, 2 on its
+    second …), plays (how often the map plays it), label ("M", or "M.OCC" when it plays more than once: the
+    score_file key) and start (seconds from the song start, the offset included). Summing the corrected timeline
+    instead puts every bar after a repeat early by the repeat's length (bd-8e945f)."""
+    cache = cache if os.path.isabs(cache) else os.path.join(ROOT, cache)
+    full = corrected_timeline(cache, mp)
+    keep = performed_keep(full, mp)
+    plays = {}
+    for i in keep:
+        plays[full[i]["m"]] = plays.get(full[i]["m"], 0) + 1
+    t, seen, out = float(mp.get("offset", 0.0)), {}, []
+    for k, i in enumerate(keep):
+        m = full[i]
+        seen[m["m"]] = seen.get(m["m"], 0) + 1
+        n, occ = plays[m["m"]], seen[m["m"]]
+        out.append({**m, "k": k + 1, "occ": occ, "plays": n, "label": str(m["m"]) if n == 1 else f"{m['m']}.{occ}",
+                    "start": t})
+        t += m["beats"] * 60 / m["bpm"]
+    return out
+
+
+def read_score_file(path):
+    """`bar N  tokens` / `bar N.K  tokens` lines → {(N, K or None): tokens}."""
+    by_bar = {}
+    with open(path) as f:
+        text = f.read()
+    for ln in text.splitlines():
+        bits = ln.split(None, 2)
+        if len(bits) == 3 and bits[0] == "bar":
+            n, _, occ = bits[1].partition(".")
+            by_bar[(int(n), int(occ) if occ else None)] = bits[2].strip()
+    return by_bar
+
+
+def build(mp):
+    cache = mp["cache"]
+    full = corrected_timeline(cache, mp)
+    keep = performed_keep(full, mp)
     tl = [full[i] for i in keep]
     beats = [m["beats"] for m in tl]
     bpm = tl[0]["bpm"]
@@ -242,14 +289,19 @@ def build(mp):
             # a part that is not in the tab (e.g. a vocal line from stemvox.py): `bar N  tokens` lines on the
             # tab's measure numbers; unlisted bars and `rest` ranges are silent
             sf = os.path.join(ROOT, p["score_file"]) if not os.path.isabs(p["score_file"]) else p["score_file"]
-            by_bar = {}
-            for ln in open(sf):
-                bits = ln.split(None, 2)
-                if len(bits) == 3 and bits[0] == "bar":
-                    by_bar[int(bits[1])] = bits[2].strip()
+            by_bar = read_score_file(sf)
             silent = {m for a, b in p.get("rest", []) for m in range(a, b + 1)}
             key = ("file", p["score_file"], tuple(sorted(silent)))
-            lines_cache[key] = ["" if full[i]["m"] in silent else by_bar.get(full[i]["m"], "") for i in keep]
+            # each play of a measure: its own `bar N.K` line, else the measure's `bar N` (every play)
+            seen, file_lines = {}, []
+            for i in keep:
+                m = full[i]["m"]
+                seen[m] = seen.get(m, 0) + 1
+                file_lines.append("" if m in silent else by_bar.get((m, seen[m]), by_bar.get((m, None), "")))
+            unused = sorted(f"{m}.{k}" for m, k in by_bar if k is not None and k > seen.get(m, 0))
+            if unused:
+                print(f"tab2song: {p['score_file']}: the map does not play bar(s) {', '.join(unused)}", file=sys.stderr)
+            lines_cache[key] = file_lines
             p = {**p, "track": key, "bars": p.get("bars", [[1, full[-1]["m"]]])}
         if "raw" in p:   # a score from elsewhere (e.g. tools/drumtrans.py output): "FILE.json#key" or a plain text file
             path, _, key = p["raw"].partition("#")

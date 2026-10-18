@@ -35,17 +35,7 @@ spec.loader.exec_module(T2S)
 
 def bars(mp):
     """[(tab measure, start s, duration s)] for the bars the map plays, in order (skips and repeats applied)."""
-    full = T2S.corrected_timeline(mp["cache"], mp)
-    keep = [i for i, m in enumerate(full) if not m["skip"]]
-    for a, b, n in mp.get("repeat", []):
-        idx = [i for i in keep if a <= full[i]["m"] <= b]
-        at = max((k for k, i in enumerate(keep) if full[i]["m"] <= b), default=len(keep) - 1) + 1
-        keep[at:at] = idx * int(n)
-    t = float(mp.get("offset", 0.0)); out = []
-    for i in keep:
-        d = full[i]["beats"] * 60.0 / full[i]["bpm"]
-        out.append((full[i]["m"], t, d)); t += d
-    return out
+    return [(p["m"], p["start"], p["beats"] * 60.0 / p["bpm"]) for p in T2S.performed_timeline(mp["cache"], mp)]
 
 
 def flux(x, lo, hi, hop=240):

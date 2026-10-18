@@ -42,7 +42,7 @@ def main(a):
     mp = json.load(open(a[0])); x = L.load(a[1]).mean(1)
     root = os.path.dirname(HERE)
     cache = mp["cache"] if os.path.isabs(mp["cache"]) else os.path.join(root, mp["cache"])
-    tl = [m for m in B.T.corrected_timeline(cache, mp) if not m["skip"]]
+    tl = B.T.performed_timeline(cache, mp)  # the performed clock: skips and repeats (bd-8e945f)
     want = ranges(opt("--bars", "1-100000"))
     on = lambda m: any(lo <= m <= hi for lo, hi in want)
     floor, share_min, second = opt("--floor", -55.0), opt("--min-share", 0.3), opt("--second", 0.5)

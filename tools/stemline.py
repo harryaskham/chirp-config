@@ -39,11 +39,11 @@ def main(a):
     # bar range → time range through the map's corrected timeline
     root = os.path.dirname(HERE)
     cache = mp["cache"] if os.path.isabs(mp["cache"]) else os.path.join(root, mp["cache"])
-    tl = [m for m in B.T.corrected_timeline(cache, mp) if not m["skip"]]
+    tl = B.T.performed_timeline(cache, mp)  # the performed clock: skips and repeats (bd-8e945f)
     b0, b1 = (int(v) for v in opt("--bars", "1-100000").split("-"))
     t, t0, t1 = mp.get("offset", 0.0), None, None
     for m in tl:
-        if m["m"] == b0: t0 = t
+        if m["m"] == b0 and t0 is None: t0 = t   # its first play; t1 ends its last
         t += m["beats"] * 60 / m["bpm"]
         if m["m"] == b1: t1 = t
     # tempo map (song beats ↔ seconds)

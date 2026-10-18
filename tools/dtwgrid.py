@@ -71,7 +71,7 @@ def main():
     T2S, SA = load_mod("t2s", "tab2song.py"), load_mod("sa", "scorealign.py")
     mp = json.load(open(mpath))
     cache = mp["cache"] if os.path.isabs(mp["cache"]) else os.path.join(os.path.dirname(HERE), mp["cache"])
-    keep = [m for m in T2S.corrected_timeline(cache, mp) if not m["skip"]]
+    keep = T2S.performed_timeline(cache, mp)  # the performed clock: skips and repeats (bd-8e945f)
     t, starts = mp.get("offset", 0.0), []
     for m in keep:
         starts.append(t)
@@ -127,7 +127,8 @@ def main():
         scale = span_ours / span_real if span_real > 0 else 1.0
         scale = min(1 + clamp, max(1 - clamp, scale))
         for m in keep[bi:bi + block]:
-            bpm[str(m["m"])] = round(m["bpm"] * scale, 4)
+            if m["occ"] == 1:   # a map's bpm is per tab measure (every play): a repeat's later plays keep the first's
+                bpm[str(m["m"])] = round(m["bpm"] * scale, 4)
     mp["bpm"] = bpm
     mp["offset"] = round(real[0], 4)
     text = json.dumps(mp, indent=2) + "\n"

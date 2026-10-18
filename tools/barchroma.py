@@ -96,7 +96,7 @@ def main(a):
     x = L.load(a[2]).mean(1)
     root = os.path.dirname(HERE)
     cache = mp["cache"] if os.path.isabs(mp["cache"]) else os.path.join(root, mp["cache"])
-    tl = T.corrected_timeline(cache, mp)
+    tl = T.performed_timeline(cache, mp)  # the performed clock: skips and repeats (bd-8e945f)
     lines = S.score(cache, part["track"])[2]
     rep = {int(k): v for k, v in part.get("replace", {}).items()}
     lo, hi = (int(v) for v in opt("--bars", "1-100000").split("-"))
@@ -117,11 +117,11 @@ def main(a):
                 best = int(np.argmax(fit)); gain = fit[best] - fit[0]
                 top = " ".join(f"{NAMES[k]}{100 * c[k]:.0f}" for k in np.argsort(c)[::-1][:4])
                 sug = f"try {best:+d} st ({fit[0]:.2f} → {fit[best]:.2f})" if best else f"fits ({fit[0]:.2f})"
-                rows.append((gain, m["m"], t, top, sug, line[:56]))
-                SUG[m["m"]] = (gain, best, line)
+                rows.append((gain, (m["m"], m["occ"]), m["label"], t, top, sug, line[:56]))
+                SUG.setdefault(m["m"], (gain, best, line))   # replace is per tab measure: its first play's
         t += dur
     rows.sort(reverse=True)
-    for gain, mm, tt, top, sug, line in rows[:opt("--top", 20)]:
+    for gain, _, mm, tt, top, sug, line in rows[:opt("--top", 20)]:
         print(f"m{mm:<4} {tt:7.1f}s  stem: {top:24} {sug:28} | {line}")
     if rows:
         print(f"{sum(1 for r in rows if r[0] > 0.15)} of {len(rows)} bars fit a transposition better by > 0.15")
