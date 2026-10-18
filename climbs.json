@@ -1504,11 +1504,16 @@
       "source": "https://www.youtube.com/watch?v=6Cy6Nm_-nZM",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/hmu.wav OUT.wav $(cat tools/hmu-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 45.621,
+        "version": "v1",
+        "commit": "see git log songs/hmu.yaml",
+        "engine": "654b5e3"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "bass music / deep dub (feat. Clay Parnell, Rory Sweet Boy Dolan)",
       "meta": {
@@ -1520,7 +1525,11 @@
         "at": "2026-10-18T12:31:27Z",
         "note": "Deep bass / dub. Canonical recording (Harry confirmed the feat. version): Hmu (feat. Clay Parnell, Rory Sweet Boy Dolan), 4:10, youtube 6Cy6Nm_-nZM; ref/hmu.wav. Climb only this file."
       },
-      "ref_file": "ref/albums/singles/hmu.webm"
+      "ref_file": "ref/albums/singles/hmu.webm",
+      "last": {
+        "at": "2026-10-18T20:50:28Z",
+        "who": "chirper-one"
+      }
     },
     {
       "id": "the-woven-web",
