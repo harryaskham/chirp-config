@@ -1100,7 +1100,7 @@
       "passes": 1,
       "enabled": false,
       "status": "requested",
-      "rounds": 0,
+      "rounds": 1,
       "priority": 1.0,
       "genre": "modal jazz",
       "requested": {
@@ -1112,6 +1112,10 @@
       "meta": {
         "artist": "Miles Davis",
         "title": "So What"
+      },
+      "last": {
+        "at": "2026-10-18T20:33:44Z",
+        "who": "chirper-two"
       }
     },
     {
