@@ -3,7 +3,7 @@
 squares) into the spectral templates of the pieces of the kit that will play it, so simultaneous hits separate
 and the weights become velocities (dynamics, ghost notes). Times are converted to beats through the song's own
 tempo map and quantised finely; the output is one score per piece family (kick, snare, hats, toms, cymbals,
-hand drums), each with per-hit velocities, ready to drop into a song (tab2song.py "raw" parts).
+hand drums, claps), each with per-hit velocities, ready to drop into a song (tab2song.py "raw" parts).
 
   drumtrans.py STEM.wav SONG.yaml TEMPLATES.wav PIECES.json OUT.json [--from S] [--to S] [--grid 24] [--gain-db G]
                [--share 0.12] [--floor 0.06] [--labels TRACK] [--shift S] [--vel-gamma G]
@@ -37,7 +37,8 @@ NEED = {}  # piece -> (hits, dB its p95 hit needs beyond velocity 120), filled b
 
 FAMILIES = {"kick": ["k"], "snare": ["s", "rc", "sw", "sl", "ss", "sz", "sc", "so", "se", "g"],
             "hats": ["h", "h1", "h2", "h3", "hs", "oh", "hf", "hp"], "toms": ["t", "t1", "t2", "t3", "ft", "ft2"],
-            "cymbals": ["c", "rd", "rds", "rde", "rb", "x", "sp", "st", "cbl"], "hand": ["te", "na", "tun", "ge"]}
+            "cymbals": ["c", "rd", "rds", "rde", "rb", "x", "sp", "st", "cbl"], "hand": ["te", "na", "tun", "ge"],
+            "claps": ["cp"]}   # the 909/electro kits' clap (bd-dfa7eb: selected cp hits were dropped at export)
 
 
 def bands(x, chunk=60.0):
@@ -261,6 +262,16 @@ def transcribe(stem, song, tpl_wav, pieces, t0=0.0, t1=None, grid=24, gain_db=0.
         v0 = np.array([amp ** (1 / gamma[i]) for _, i, amp in raw]) if raw else np.ones(1)
         cal = 120 / (np.percentile(v0, 95) + 1e-12)
         events = [(t, pieces[i], int(np.clip(cal * amp ** (1 / gamma[i]), 1, 127))) for t, i, amp in raw]
+    # a piece in no family takes part in the decomposition (it absorbs energy) but has nowhere to go: say so
+    # instead of losing its hits silently (bd-dfa7eb)
+    homed = {p for ms in FAMILIES.values() for p in ms}
+    lost = {}
+    for _, p, _ in events:
+        if p not in homed:
+            lost[p] = lost.get(p, 0) + 1
+    if lost:
+        print("drumtrans: not exported (no family in FAMILIES): "
+              + ", ".join(f"{p} {n} hits" for p, n in sorted(lost.items())), file=sys.stderr)
     out = {}
     for fam, members in FAMILIES.items():
         ev = sorted((round(tb(t + shift) * grid) / grid, p, v) for t, p, v in events if p in members)
