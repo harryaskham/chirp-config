@@ -117,6 +117,8 @@ def _job(state, out, wav, name, song, ref, sections, slots, extra, max_load, kee
         # bd-fd060e: which convention each number is (compare a candidate with its baseline on the SAME field)
         if "total_raw" in d:
             state["total_raw"] = d["total_raw"]
+        if "coverage" in d:   # bd-066928: a render shorter than the sections is scored on its covered part only
+            state["coverage"] = d["coverage"]
         state["conventions"] = {"total": "likeness CLI total (legacy-v1): the field climbs record as their best",
                                 "exact": "bgexp legacy: a term-weighted recomputation from 1-decimal section terms, "
                                          "tempo excluded — not a raw score",
@@ -165,6 +167,9 @@ def status(prefix="", since=None):
             raw = f" raw {d['total_raw']:8.4f}" if "total_raw" in d else ""
             line += (f" total {d.get('total', float('nan')):7.3f} exact {d['exact']:7.3f}{raw}  "
                      + " ".join(f"{s['total']:5.1f}" for s in d["sections"]))
+            cov = d.get("coverage") or {}
+            if cov and not cov.get("complete", True):
+                line += f"  SHORT: render {cov.get('candidate_seconds')} s < sections {cov.get('requested_end')} s"
             mf = d.get("mixfeel")
             if mf:
                 line += "  | sub punch " + "/".join(f"{s['ours']['sub']['punch']:.1f}" for s in mf)

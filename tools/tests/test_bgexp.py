@@ -12,7 +12,9 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import io
 import unittest
+from contextlib import redirect_stdout
 import wave
 from unittest import mock
 
@@ -103,6 +105,17 @@ class Jobs(unittest.TestCase):
         st = self.run_job(keep_wav=True)
         self.assertEqual(st["state"], "done")
         self.assertTrue(self.wav(), "--keep-wav keeps it")
+
+    def test_a_short_render_is_flagged(self):
+        lk = json.dumps({"total": 70.5, "sections": [{"start": 0, "end": 0.01, "total": 70.5}],
+                         "coverage": {"complete": False, "candidate_seconds": 9.5, "requested_end": 10.0, "short_sections": [1]}})
+        st = self.run_job(likeness_out=lk)
+        self.assertEqual(st["state"], "done")
+        self.assertFalse(st["coverage"]["complete"])
+        out = io.StringIO()
+        with redirect_stdout(out):
+            B.status()
+        self.assertIn("SHORT: render 9.5 s < sections 10.0 s", out.getvalue())
 
     def test_the_cli_refuses_missing_inputs_before_forking(self):
         r = subprocess.run([sys.executable, os.path.join(TOOLS, "bgexp.py"), "run", "x", self.song,

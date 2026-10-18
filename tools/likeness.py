@@ -261,13 +261,45 @@ def _compare(rs, cand):
     return res
 
 
-def sectioned(ref, cand, bounds):
+def sectioned(ref, cand, bounds, coverage="report"):
     """Duration-weighted mean of per-section scores: each section [b_i, b_i+1) of the reference is compared
     with the same span of the candidate (both cropped), so a quiet section's gains count for its length
-    instead of disappearing into whole-song level normalisation. → {"total": …, "sections": […]}"""
+    instead of disappearing into whole-song level normalisation. → {"total": …, "sections": […]}
+
+    Coverage (bd-066928): a candidate shorter than the requested sections was scored on its covered part as if
+    complete (a render 5.4 s short scored above its full-length self). coverage="report" (the default; scores as
+    before) adds each section's covered seconds and a `coverage` summary and warns on stderr; "strict" refuses any
+    section the candidate or reference covers less than one analysis hop short of its end; "pad" scores the
+    candidate padded with silence to the requested end (labelled in `convention`). A section the candidate does not
+    reach at all is an error unless padded (it used to crash)."""
     import tempfile, wave as _w
+    if coverage not in ("report", "strict", "pad"):
+        raise ValueError(f"coverage {coverage!r}: report, strict or pad")
     cs = load(cand)
     full = load(ref)   # decoded once per call (an 802 s reference was decoded once per section), sliced per section
+    tol = HOP / SR
+    cand_s, ref_s = len(cs) / SR, len(full) / SR
+    covered = [max(0.0, min(b, cand_s) - a) for a, b in zip(bounds[:-1], bounds[1:])]   # as rendered, padded or not
+    short = [i for i, (a, b) in enumerate(zip(bounds[:-1], bounds[1:])) if covered[i] < (b - a) - tol]
+    ref_short = [i for i, (a, b) in enumerate(zip(bounds[:-1], bounds[1:])) if max(0.0, min(b, ref_s) - a) < (b - a) - tol]
+    where = lambda ix: ", ".join(f"{bounds[i]:g}-{bounds[i + 1]:g} s ({covered[i] / (bounds[i + 1] - bounds[i]):.0%})" for i in ix)  # noqa: E731
+    if coverage == "strict" and (short or ref_short):
+        raise ValueError(f"coverage: requested sections end at {bounds[-1]:g} s; the candidate is {cand_s:.3f} s and the "
+                         f"reference {ref_s:.3f} s" + (f"; candidate short in {where(short)}" if short else "")
+                         + (f"; reference short in {len(ref_short)} section(s)" if ref_short else ""))
+    if coverage == "pad" and len(cs) < int(bounds[-1] * SR):
+        cs = np.concatenate([cs, np.zeros((int(bounds[-1] * SR) - len(cs), cs.shape[1]), cs.dtype)])
+    empty = [i for i in short if covered[i] <= 0 and coverage != "pad"]
+    if empty:
+        raise ValueError(f"coverage: the candidate ({cand_s:.3f} s) does not reach section(s) "
+                         + ", ".join(f"{bounds[i]:g}-{bounds[i + 1]:g} s" for i in empty)
+                         + "; render the full length, shorten the bounds, or pad with silence (--pad-silence)")
+    if short and coverage == "report":
+        print(f"likeness: the candidate ({cand_s:.3f} s) ends before the requested sections ({bounds[-1]:g} s): "
+              f"{where(short)} scored on the covered part only — not comparable with a full-length render; "
+              "--strict-coverage refuses, --pad-silence scores the rest as silence", file=sys.stderr)
+    if ref_short:
+        print(f"likeness: the reference ({ref_s:.3f} s) ends before the requested sections ({bounds[-1]:g} s)", file=sys.stderr)
     out, wsum, tsum, rsum = [], 0.0, 0.0, 0.0
     for a, b in zip(bounds[:-1], bounds[1:]):
         seg = cs[int(a * SR):int(b * SR)]
@@ -282,7 +314,7 @@ def sectioned(ref, cand, bounds):
         tot = (r["total"] * 1.08 - 0.05 * r["tempo"]) / 1.03
         raw = (r["raw"]["total"] * 1.08 - 0.05 * r["raw"]["tempo"]) / 1.03
         out.append({"start": a, "end": b, "total": round(tot, 3), **{k: r[k] for k in ("loudness", "spectral", "chroma", "rhythm", "ltas", "stereo", "master", "tempo")},
-                    "total_raw": raw})
+                    "total_raw": raw, "covered": round(covered[len(out)], 3)})
         wsum += b - a; tsum += tot * (b - a); rsum += raw * (b - a)
     # Totals to 3 decimals: kept/not-kept decisions compare them, and a 1-decimal total hid
     # gains under ~0.05 (a best registered as 69.7 was really 69.66).
@@ -291,7 +323,12 @@ def sectioned(ref, cand, bounds):
     # candidate with its baseline on the SAME field.
     return {"total": round(tsum / wsum, 3), "sections": out, "total_raw": rsum / wsum,
             "convention": {"total": "legacy-v1: from 1-decimal compare() total/tempo, rounded to 3 decimals",
-                           "total_raw": "raw-v1: the same formula on unrounded terms"}}
+                           "total_raw": "raw-v1: the same formula on unrounded terms",
+                           "coverage": "silence-padded: the candidate padded with silence to the requested end" if coverage == "pad"
+                           else "as rendered: each section compared over the candidate's covered part"},
+            "coverage": {"mode": coverage, "requested_end": bounds[-1], "candidate_seconds": round(cand_s, 3),
+                         "reference_seconds": round(ref_s, 3), "short_sections": [i + 1 for i in short],
+                         "complete": not short and not ref_short}}
 
 
 def bands(ref, cand):
@@ -313,7 +350,12 @@ if __name__ == "__main__":
         extra = [float(v) for v in sys.argv[4:6]]
         print(json.dumps(compare(sys.argv[2], sys.argv[3], ref_start=extra[0] if extra else None,
                                  ref_end=extra[1] if len(extra) > 1 else None), indent=1))
-    elif cmd == "sections":  # likeness.py sections REF CAND b0,b1,b2,…  (seconds)
-        print(json.dumps(sectioned(sys.argv[2], sys.argv[3], [float(v) for v in sys.argv[4].split(",")]), indent=1))
+    elif cmd == "sections":  # likeness.py sections REF CAND b0,b1,b2,… [--strict-coverage | --pad-silence]  (seconds)
+        mode = "strict" if "--strict-coverage" in sys.argv else "pad" if "--pad-silence" in sys.argv else "report"
+        try:
+            res = sectioned(sys.argv[2], sys.argv[3], [float(v) for v in sys.argv[4].split(",")], coverage=mode)
+        except ValueError as e:
+            sys.exit(f"likeness: {e}")
+        print(json.dumps(res, indent=1))
     elif cmd == "bands":
         print(json.dumps(bands(sys.argv[2], sys.argv[3]), indent=1))

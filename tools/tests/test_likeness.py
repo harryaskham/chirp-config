@@ -5,11 +5,13 @@
   LIKENESS=tools/_likeness_new.py LIKENESS_OLD=… python3 tools/tests/test_likeness.py   (a candidate vs a baseline)
 """
 import hashlib
+import io
 import importlib.util
 import os
 import shutil
 import tempfile
 import unittest
+from contextlib import redirect_stderr
 import warnings
 import wave
 
@@ -121,6 +123,54 @@ class Sectioned(unittest.TestCase):
         json.loads(json.dumps(d), parse_constant=lambda c: self.fail(f"non-finite {c} in describe's JSON"))
         self.assertIsNone(L._finite({"a": [float("nan"), 1.0]})["a"][0])
 
+    def short(self, seconds):
+        path = os.path.join(self.dir, f"short-{seconds:g}.wav")
+        write(path, music(40, 2, 116.0)[:int(seconds * L.SR)])
+        return path
+
+    def test_a_full_render_is_complete(self):
+        err = io.StringIO()
+        with redirect_stderr(err):
+            r = L.sectioned(self.ref, self.cand, self.bounds)
+        self.assertTrue(r["coverage"]["complete"])
+        self.assertEqual([s["covered"] for s in r["sections"]], [round(b - a, 3) for a, b in zip(self.bounds, self.bounds[1:])])
+        self.assertNotIn("ends before", err.getvalue())
+
+    def test_a_render_ending_inside_the_last_section_is_reported(self):
+        # bd-066928: scored on its covered part as before, but no longer silently
+        cand = self.short(34.0)
+        err = io.StringIO()
+        with redirect_stderr(err):
+            r = L.sectioned(self.ref, cand, self.bounds)
+        self.assertIn("ends before the requested sections", err.getvalue())
+        self.assertEqual(r["coverage"]["short_sections"], [4])
+        self.assertFalse(r["coverage"]["complete"])
+        self.assertAlmostEqual(r["sections"][-1]["covered"], 34.0 - 29.25, places=3)
+        with self.assertRaisesRegex(ValueError, "candidate short in 29.25-40 s"):
+            L.sectioned(self.ref, cand, self.bounds, coverage="strict")
+        with redirect_stderr(io.StringIO()):
+            padded = L.sectioned(self.ref, cand, self.bounds, coverage="pad")
+        self.assertIn("silence-padded", padded["convention"]["coverage"])
+        self.assertEqual(padded["coverage"]["short_sections"], [4], "padding is recorded, not hidden")
+        self.assertLess(padded["sections"][-1]["total"], r["sections"][-1]["total"], "the missing span counts as silence")
+        self.assertEqual([s["total"] for s in padded["sections"][:3]], [s["total"] for s in r["sections"][:3]])
+        if OLD:
+            with redirect_stderr(io.StringIO()):
+                self.assertEqual(r["total"], module(OLD, "likeness_old_c").sectioned(self.ref, cand, self.bounds)["total"],
+                                 "the default score is unchanged")
+
+    def test_a_section_the_render_never_reaches(self):
+        cand = self.short(20.0)   # ends inside section 3; section 4 (29.25-40 s) is empty
+        with self.assertRaisesRegex(ValueError, "does not reach section"), redirect_stderr(io.StringIO()):
+            L.sectioned(self.ref, cand, self.bounds)
+        with redirect_stderr(io.StringIO()):
+            r = L.sectioned(self.ref, cand, self.bounds, coverage="pad")
+        self.assertTrue(all(np.isfinite(s["total"]) and s["end"] > s["start"] for s in r["sections"]))
+        self.assertEqual(r["coverage"]["short_sections"], [3, 4])
+        self.assertEqual(r["sections"][-1]["covered"], 0.0)
+        with self.assertRaises(ValueError):
+            L.sectioned(self.ref, cand, self.bounds, coverage="trim")
+
     @unittest.skipUnless(OLD, "set LIKENESS_OLD to the previous likeness.py to compare scores")
     def test_describe_is_unchanged_for_ordinary_audio(self):
         self.assertEqual(L.describe(self.ref), module(OLD, "likeness_old_d").describe(self.ref))
@@ -128,7 +178,7 @@ class Sectioned(unittest.TestCase):
     @unittest.skipUnless(OLD, "set LIKENESS_OLD to the previous likeness.py to compare scores")
     def test_every_score_field_is_unchanged(self):
         old = module(OLD, "likeness_old")
-        added = {"raw", "total_raw", "convention"}   # bd-fd060e: new fields only; every legacy one is identical
+        added = {"raw", "total_raw", "convention", "coverage", "covered"}   # bd-fd060e, bd-066928: new fields only
         legacy = lambda d: {k: ([{x: y for x, y in s.items() if x not in added} for s in v] if k == "sections" else v)  # noqa: E731
                             for k, v in d.items() if k not in added}
         self.assertEqual(legacy(L.sectioned(self.ref, self.cand, self.bounds)), legacy(old.sectioned(self.ref, self.cand, self.bounds)))
