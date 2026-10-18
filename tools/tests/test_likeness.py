@@ -83,6 +83,11 @@ class Sectioned(unittest.TestCase):
         x, h = seen[0]
         self.assertEqual(hashlib.sha256(x.tobytes()).hexdigest(), h, "the shared reference array was modified")
 
+    def test_a_section_shorter_than_the_rhythm_window_scores_itself_100(self):
+        r = L.sectioned(self.ref, self.ref, [0.0, 36.2, 40.0])   # a 3.8 s last section (Archangel's ending)
+        self.assertEqual(r["sections"][-1]["rhythm"], 100.0, r["sections"][-1])
+        self.assertGreater(r["total"], 99.9)
+
     def test_standalone_compare_still_crops(self):
         r = L.compare(self.ref, self.cand, ref_start=7.5, ref_end=16.0)
         self.assertAlmostEqual(r["dur_ref"], 8.5, delta=0.1)

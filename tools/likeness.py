@@ -186,9 +186,11 @@ def _compare(rs, cand):
     # rhythm: onset envelopes smoothed ±50 ms, correlated per 4 s window (allowing ±1 frame shift)
     sm = np.ones(5) / 5
     ro, co = np.convolve(R.onset[:n], sm, "same"), np.convolve(C.onset[:n], sm, "same")
+    # (a section shorter than one window is correlated whole — it used to score 0, even against itself)
     w4 = int(4 * FPS); rs = []
-    for i in range(0, n - w4, w4):
-        a, b = ro[i:i + w4], co[i:i + w4]
+    spans = [(i, i + w4) for i in range(0, n - w4, w4)] or ([(0, n)] if n > FPS else [])
+    for i0, i1 in spans:
+        a, b = ro[i0:i1], co[i0:i1]
         if a.std() > 0 and b.std() > 0:
             rs.append(np.corrcoef(a, b)[0, 1])
     s_rhythm = 100 * max(0, np.mean(rs)) if rs else 0
