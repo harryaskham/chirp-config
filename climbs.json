@@ -878,15 +878,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/in-death-is-death.wav OUT.wav $(cat tools/in-death-is-death-sections.txt)",
       "best": {
-        "score": 59.636,
-        "version": "v9",
+        "score": 59.892,
+        "version": "v10",
         "commit": "see git log songs/in-death-is-death.yaml",
         "engine": "a931418"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 15,
+      "rounds": 16,
       "priority": 1.0,
       "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
       "meta": {
@@ -903,8 +903,8 @@
       },
       "ref_file": "ref/albums/catch-thirtythree/09 in-death-is-death.webm",
       "last": {
-        "at": "2026-10-18T12:02:12Z",
-        "who": "chirper-zero"
+        "at": "2026-10-18T13:46:36Z",
+        "who": "chirper-three"
       }
     },
     {

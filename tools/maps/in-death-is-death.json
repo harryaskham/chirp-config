@@ -2,7 +2,7 @@
   "cache": "ref/songsterr-12447",
   "offset": 0.13,
   "name": "in-death-is-death",
-  "about": "Meshuggah \u2014 In Death - Is Death (Catch Thirtythree, track 9, 2005). Songsterr 12447 (Nathan Nunez): 213 bars 4/4 at 126 BPM = 405.7 s, covering the record's heavy first ~430 s; the record (802.6 s) continues with a long ambient half (430-802 s) not in the tab. Bars 47-57 per-bar bpm from scorealign (the record holds ~23 s more there: likely a 12-bar repeat the tab writes once). The ambient half (428.6-802.6 s: no drums or vocals; guitar, 'piano' (clean guitar/keys), 'other' pads, low bass drones) from tools/stemsong.py at 126 BPM, cut at the tab's end (raw parts amb-*, tools/maps/in-death-is-death-amb.json). Offset +0.13 s: the drum stem put v1's heavy part 125-135 ms early in every block (conf 0.41-0.57).",
+  "about": "Meshuggah — In Death - Is Death (Catch Thirtythree, track 9, 2005). Songsterr 12447 (Nathan Nunez): 213 bars 4/4 at 126 BPM = 405.7 s, covering the record's heavy first ~430 s; the record (802.6 s) continues with a long ambient half (430-802 s) not in the tab. Bars 47-57 per-bar bpm from scorealign (the record holds ~23 s more there: likely a 12-bar repeat the tab writes once). The ambient half (428.6-802.6 s: no drums or vocals; guitar, 'piano' (clean guitar/keys), 'other' pads, low bass drones) from tools/stemsong.py at 126 BPM, cut at the tab's end (raw parts amb-*, tools/maps/in-death-is-death-amb.json). Offset +0.13 s: the drum stem put v1's heavy part 125-135 ms early in every block (conf 0.41-0.57).",
   "head": {
     "buses": {
       "hall": {
@@ -15973,7 +15973,7 @@
     },
     {
       "name": "amb-gtr",
-      "patch": "m8-twang-chorus",
+      "patch": "m8-twang-chorus synth.layers.0.soft={\"value\":0,\"mod\":[{\"src\":\"expr.repick\",\"amount\":1}]} synth.layers.0.click={\"value\":0.2,\"mod\":[{\"src\":\"expr.repick\",\"amount\":-0.2}]} synth.layers.0.scrape={\"value\":0.12,\"mod\":[{\"src\":\"expr.repick\",\"amount\":-0.12}]}",
       "gain": {
         "value": "-4dB",
         "mod": [
@@ -15983,7 +15983,7 @@
           }
         ]
       },
-      "raw": "tools/maps/in-death-is-death-amb-repeat-c2.json#amb-gtr",
+      "raw": "tools/maps/in-death-is-death-soft-repick-c3.json#amb-gtr",
       "extra": {
         "sends": {
           "hall": "-10dB"
@@ -15993,6 +15993,22 @@
             "points": [
               [
                 "0s",
+                0
+              ],
+              [
+                "450s",
+                0
+              ],
+              [
+                "450.2s",
+                -0.13355026804615636
+              ],
+              [
+                "729.8s",
+                -0.13355026804615636
+              ],
+              [
+                "730s",
                 0
               ],
               [
