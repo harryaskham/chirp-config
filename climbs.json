@@ -1371,11 +1371,16 @@
       "source": "https://www.youtube.com/watch?v=iOEJHNZpeck",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/blue-monday.wav OUT.wav $(cat tools/blue-monday-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 55.833,
+        "version": "v1",
+        "commit": "see git log songs/blue-monday.yaml",
+        "engine": "654b5e3"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "synth-pop / new wave (2016 remaster of the 12-inch)",
       "requested": {
@@ -1387,6 +1392,10 @@
       "meta": {
         "artist": "New Order",
         "title": "Blue Monday"
+      },
+      "last": {
+        "at": "2026-10-18T18:32:00Z",
+        "who": "chirper-one"
       }
     },
     {

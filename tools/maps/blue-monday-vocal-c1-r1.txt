@@ -1,0 +1,245 @@
+bar   1  R/4b
+bar   2  R/4b
+bar   3  R/4b
+bar   4  R/4b
+bar   5  R/4b
+bar   6  R/4b
+bar   7  R/4b
+bar   8  R/4b
+bar   9  R/4b
+bar  10  R/4b
+bar  11  R/4b
+bar  12  R/4b
+bar  13  R/4b
+bar  14  R/4b
+bar  15  R/4b
+bar  16  R/4b
+bar  17  R/4b
+bar  18  R/4b
+bar  19  R/4b
+bar  20  R/4b
+bar  21  R/4b
+bar  22  R/4b
+bar  23  R/4b
+bar  24  R/4b
+bar  25  R/4b
+bar  26  R/4b
+bar  27  R/4b
+bar  28  R/4b
+bar  29  R/4b
+bar  30  R/4b
+bar  31  R/4b
+bar  32  R/4b
+bar  33  R/4b
+bar  34  R/4b
+bar  35  R/4b
+bar  36  R/4b
+bar  37  R/4b
+bar  38  R/4b
+bar  39  R/4b
+bar  40  R/4b
+bar  41  R/4b
+bar  42  R/4b
+bar  43  R/4b
+bar  44  R/4b
+bar  45  R/4b
+bar  46  R/4b
+bar  47  R/4b
+bar  48  R/4b
+bar  49  R/4b
+bar  50  R/4b
+bar  51  R/4b
+bar  52  R/4b
+bar  53  R/4b
+bar  54  R/4b
+bar  55  R/4b
+bar  56  R/4b
+bar  57  R/4b
+bar  58  R/4b
+bar  59  R/4b
+bar  60  R/4b
+bar  61  R/4b
+bar  62  R/4b
+bar  63  R/4b
+bar  64  R/4b
+bar  65  R/4b
+bar  66  R/4b
+bar  67  R/4b
+bar  68  R/4b
+bar  69  R/4b
+bar  70  R/4b
+bar  71  F3/2b@100^dvow=-0.19 E3/0.5b@100^on=16^dvow=0.05 E3/1b@100^dvow=0.18^off=11 E3/0.5b@100^dvow=0.22
+bar  72  D3/1b^dvow=-0.22 R/1b R/1.5b D3/0.5b^on=16^off=11
+bar  73  F3/1b^on=11^dvow=0.23^off=17 F3/1b^on=16^dvow=0.15 E3/0.5b E3/1b^on=13^dvow=0.26 E3/0.5b^on=16^dvow=0.21^off=17
+bar  74  D3/0.5b^on=16^dvow=0.02 R/0.5b R/2b D3/0.5b^dvow=0.09^off=17 D3/0.5b^on=16^dvow=0.29
+bar  75  F3/1b^on=16^dvow=0.15^off=11 F3/1b^on=11^dvow=-0.16 E3/1b^dvow=-0.01 E3/0.5b^on=11^off=11 E3/0.5b^on=6^dvow=-0.15
+bar  76  E3/0.5b^dvow=-0.51^off=17 D3/1b^dvow=0.22^off=17 R/1.5b D3/1b^on=2^dvow=0.07^off=11
+bar  77  G3/0.5b^on=11^dvow=-0.19 G3/0.5b^on=16^dvow=0.31^off=17 R/1b C3/0.5b^on=16^dvow=0.3^off=17 C3/1b^on=16^dvow=0.08 D3/0.5b^dvow=-0.05
+bar  78  D3/1b^dvow=-0.06^off=4 R/1b R/1.5b D3/0.5b^dvow=0.01^off=11
+bar  79  A3,A4/1b^dvow=-0.07 A3,A4/1b^dvow=-0.04^off=17 G3,G4/1b^dvow=0.01 G3,G4/0.5b^off=11 G3,G4/0.5b^on=11^dvow=0.04
+bar  80  G3,G4/0.5b^dvow=0.21 F3,F4/1b^dvow=0.23^off=4 R/2b D3/0.5b^on=2
+bar  81  A3,A4/1b^dvow=-0.09 A3,A4/1b^dvow=-0.01 G3,G4/0.75b^dvow=0.06^off=11 G3,G4/0.75b^dvow=-0.24 F3,F4/0.5b^dvow=0.01
+bar  82  F3/0.5b^dvow=0.05^off=11 R/0.5b R/2b D3/0.5b^on=11^dvow=-0.04 D3/0.5b^dvow=0.09
+bar  83  F3/2b^dvow=-0.25 E3/0.5b^on=2^dvow=-0.29 E3/1b^dvow=0.02 E3/0.5b^dvow=0.2
+bar  84  D3/0.5b^dvow=-0.22 R/0.5b R/2b D3/0.5b^on=11^dvow=-0.02 D3/0.5b^dvow=0.25^off=17
+bar  85  G3,G4/1b^dvow=-0.04 G3,G4/1b^dvow=-0.05 C3/0.5b^dvow=-0.48 C3/1b^off=11 D3/0.5b^on=16^dvow=0.29
+bar  86  D3/1b^dvow=-0.03^off=4 R/3b
+bar  87  F3/1b^dvow=-0.26^off=11 F3/1b^on=11^dvow=0.03^off=13 E3/0.6667b^dvow=0.16^off=17 E3/0.6667b^dvow=0.23^off=11 E3/0.6667b^on=11^dvow=-0.28
+bar  88  E3/0.5b^dvow=-0.52^off=17 E3/1b^on=16^dvow=0.29^off=4 R/1b R/1.5b
+bar  89  F3/1b^dvow=0.09^off=17 F3/1b^on=16^dvow=-0.5^off=17 E3/0.6667b^on=4^dvow=0.03^off=17 E3/0.6667b^dvow=0.17^off=17 E3/0.6667b^on=13^dvow=0.15^off=17
+bar  90  E3/0.5b^on=13 D3/1b^on=16^dvow=0.23^off=11 R/1.5b D3/0.5b^on=2^dvow=-0.19 D3/0.5b^dvow=0.02^off=13
+bar  91  F3/1b^dvow=-0.03^off=11 F3/1b^dvow=0.01^off=11 E3/0.6667b^on=11^dvow=-0.25 E3/0.6667b^on=16^dvow=0.05^off=17 E3/0.6667b^on=13^dvow=0.23
+bar  92  E3/0.5b^on=16^off=13 D3/1b^dvow=0.21^off=17 R/1.5b D3/1b^dvow=0.03^off=11
+bar  93  G3/0.5b^on=11^dvow=0.04 G3/1b^dvow=-0.02^off=17 C3/1b^dvow=0.18 C3/1b^dvow=-0.29^off=17 D3/0.5b^dvow=-0.27
+bar  94  D3/0.5b^dvow=-0.25 R/0.5b R/2b D3/1b^dvow=0.07^off=11
+bar  95  A3,A4/1.5b^on=11^dvow=-0.03 A3,A4/0.5b^dvow=-0.05 G3,G4/0.5b^dvow=-0.03 G3,G4/1b^dvow=0.02^off=11 G3,G4/0.5b^on=11^dvow=-0.02
+bar  96  G3/0.5b^dvow=0.02 F3,F4/1b^dvow=-0.05 R/1.5b D3/1b^on=11^dvow=0.01
+bar  97  A3/0.5b^dvow=0.16 A3/1b^dvow=-0.03 A3/0.5b^dvow=0.04^off=17 G3/0.6667b^on=16^dvow=0.25^off=11 G3/0.6667b^on=11^dvow=0.24 F3/0.6667b^on=11^dvow=0.31
+bar  98  F3/0.5b^dvow=0.11 R/0.5b R/2b D3,D4/0.5b^on=2^dvow=-0.06 D3,D4/0.5b^dvow=0.02
+bar  99  F3,F4/1b^dvow=-0.02^off=13 F3,F4/1b^on=13^dvow=-0.18 E3,E4/0.5b^dvow=-0.01^off=11 E3,E4/1b^on=11^dvow=0.01 E3,E4/0.5b^dvow=-0.02
+bar 100  E3/0.5b^dvow=0.01 D3,D4/1b^dvow=0.19^off=4 R/1.5b D3/0.5b^dvow=0.19^off=11 D3/0.5b^on=11^dvow=-0.06
+bar 101  G3,G4/1b^dvow=-0.01^off=11 G3,G4/1b^dvow=-0.04^off=11 C3/0.5b^dvow=0.22^off=17 C3/1b^on=11^dvow=0.26^off=17 D3/0.5b^on=16^dvow=0.08
+bar 102  D3/0.75b^dvow=0.25^off=17 bend=-2 _/0.125b bend=-5 _/0.125b bend= R/3b
+bar 103  R/4b
+bar 104  R/4b
+bar 105  R/4b
+bar 106  R/4b
+bar 107  R/4b
+bar 108  R/4b
+bar 109  R/4b
+bar 110  R/4b
+bar 111  R/4b
+bar 112  R/4b
+bar 113  R/4b
+bar 114  R/4b
+bar 115  R/4b
+bar 116  R/4b
+bar 117  F3/1b^dvow=-0.02 F3/0.5b^dvow=-0.01 F3/0.5b^dvow=0.01 E3/0.5b E3/0.5b^dvow=0.08 E3/0.5b^dvow=-0.01 E3/0.5b^dvow=-0.05
+bar 118  E3/0.5b^dvow=-0.05 D3/1b R/1b R/1.5b
+bar 119  F3/0.6667b^on=2^dvow=0.01^off=13 F3/0.6667b F3/0.6667b^dvow=0.03^off=11 bend=-2 E3/0.125b^on=11^off=11 bend= _/0.875b E3/0.5b^dvow=-0.29 D3/0.5b^dvow=0.1
+bar 120  D3/0.5b^dvow=0.23 R/2b D3/0.5b^on=2^dvow=-0.02 D3/0.5b^dvow=0.1 D3/0.5b^dvow=0.19^off=17
+bar 121  F3/0.5b^dvow=-0.04^off=11 F3/1b^on=11^dvow=0.04 F3/0.5b^on=2^dvow=-0.17 E3/0.5b^on=16^dvow=-0.22 E3/1b^on=16^dvow=0.1^off=11 E3/0.5b^on=6^dvow=-0.2
+bar 122  E3/0.5b^dvow=0.02^off=11 D3/1b^on=11^dvow=0.22^off=4 R/1b D3/0.5b^dvow=-0.02 D3/0.5b^on=2^dvow=0.2 D3/0.5b
+bar 123  G3/0.5b^dvow=0.02 G3/0.5b^dvow=0.02^off=17 G3/1b^on=16^dvow=0.21 C3/0.5b^dvow=0.02 C3/0.5b^on=11^dvow=0.01^off=11 C3/0.5b^on=11^dvow=0.27 D3/0.5b^on=6^dvow=0.1
+bar 124  D3/0.5b^dvow=0.18 R/2b R/0.5b D3/0.5b^on=2^dvow=0.03 D3/0.5b^dvow=0.06
+bar 125  A3/1b^dvow=-0.06 A3/1b^on=2^dvow=-0.02 G3/1b^dvow=-0.03^off=11 G3/0.5b^dvow=0.2^off=11 G3/0.5b^on=11^dvow=0.08
+bar 126  G3/0.5b^dvow=0.21 F3/1b^dvow=0.06 R/1.5b D3/0.5b^dvow=-0.01 D3/0.5b^dvow=0.03
+bar 127  A3/1b^on=2^dvow=-0.14 A3/1b^on=2^dvow=-0.01 G3/0.75b^dvow=0.09^off=17 G3/0.875b^dvow=0.01^off=11 F3/0.375b^on=3^dvow=0.18^off=17
+bar 128  F3/0.5b^dvow=0.26 R/1b R/1.5b G3/0.5b^on=11^dvow=0.01 G3/0.5b^dvow=0.17
+bar 129  A3/1b^dvow=-0.04 R/1b G3/0.5b^on=2^dvow=0.04 G3/1b F3/0.5b^on=6^dvow=0.17
+bar 130  D3/1b^dvow=-0.01^off=4 R/0.5b R/1.5b D3/0.5b^on=11^dvow=0.02 D3/0.5b^on=13^dvow=0.08^off=17
+bar 131  F3/2b^dvow=-0.08 C3/0.5b^on=2^dvow=-0.05^off=11 C3/0.5b^on=11^dvow=0.07 C3/0.5b^dvow=0.02 D3/0.5b^dvow=0.1
+bar 132  D3/0.5b^dvow=-0.2^off=17 R/1.5b R/2b
+bar 133  F3/1b^dvow=-0.04 F3/1b^dvow=-0.01^off=11 E3/0.5b^dvow=-0.02 E3/1b^dvow=0.12 E3/0.5b^dvow=0.12
+bar 134  E3/0.5b^dvow=0.01 D3/0.5b^on=16^dvow=0.21 R/3b
+bar 135  R/4b
+bar 136  R/4b
+bar 137  R/4b
+bar 138  R/4b
+bar 139  R/4b
+bar 140  R/3b R/0.5b D3/0.5b^on=11
+bar 141  A3/1b^dvow=-0.08 A3/1b^off=11 G3/0.5b^on=11^dvow=-0.2 G3/0.5b^on=16^dvow=0.25^off=11 G3/0.5b^on=11^dvow=0.03 G3/0.5b^dvow=0.16^off=17
+bar 142  G3/0.5b^on=16^dvow=0.29^off=17 F3/1b^dvow=0.19^off=4 R/1.5b D3/0.5b^on=2^dvow=-0.06 D3/0.5b^dvow=0.02^off=17
+bar 143  A3/0.6667b^dvow=-0.14 A3/1.3333b^dvow=-0.02^off=11 G3/0.5b^on=11^dvow=-0.51^off=17 G3/1b^on=16^dvow=0.02^off=17 F3/0.5b^on=2^dvow=0.26^off=17
+bar 144  F3/0.5b^on=16^dvow=0.22^off=11 R/2b R/0.5b F3/0.5b G3/0.5b^dvow=0.08^off=13
+bar 145  A3/2b^dvow=-0.09 G3/0.5b^dvow=0.01^off=11 G3/1b^on=11^dvow=0.08 G3/0.5b^on=6^dvow=0.2
+bar 146  F3/1b^dvow=-0.23^off=4 R/0.5b R/1.5b D3,D4/0.5b D3,D4/0.5b^dvow=0.03^off=13
+bar 147  F3,F4/2b^dvow=-0.04^off=17 G3/1.5b^on=2^dvow=-0.28^off=11 F3/0.5b^on=11^dvow=0.03
+bar 148  D3/4b^dvow=0.04^off=17
+bar 149  R/4b
+bar 150  R/4b
+bar 151  R/4b
+bar 152  R/4b
+bar 153  R/4b
+bar 154  R/4b
+bar 155  R/4b
+bar 156  R/4b
+bar 157  R/4b
+bar 158  R/4b
+bar 159  R/4b
+bar 160  R/4b
+bar 161  R/4b
+bar 162  R/4b
+bar 163  R/4b
+bar 164  R/4b
+bar 165  R/4b
+bar 166  R/4b
+bar 167  R/4b
+bar 168  R/4b
+bar 169  R/4b
+bar 170  R/4b
+bar 171  R/4b
+bar 172  R/4b
+bar 173  R/4b
+bar 174  R/4b
+bar 175  R/4b
+bar 176  R/4b
+bar 177  R/4b
+bar 178  R/4b
+bar 179  R/4b
+bar 180  R/4b
+bar 181  R/4b
+bar 182  R/4b
+bar 183  R/4b
+bar 184  R/4b
+bar 185  R/4b
+bar 186  R/4b
+bar 187  R/4b
+bar 188  R/4b
+bar 189  R/4b
+bar 190  R/4b
+bar 191  R/4b
+bar 192  R/4b
+bar 193  R/4b
+bar 194  R/4b
+bar 195  R/4b
+bar 196  R/4b
+bar 197  R/4b
+bar 198  R/4b
+bar 199  R/4b
+bar 200  R/4b
+bar 201  R/4b
+bar 202  R/4b
+bar 203  R/4b
+bar 204  R/4b
+bar 205  R/4b
+bar 206  R/4b
+bar 207  R/4b
+bar 208  R/4b
+bar 209  R/4b
+bar 210  R/4b
+bar 211  R/4b
+bar 212  R/4b
+bar 213  R/4b
+bar 214  R/4b
+bar 215  R/4b
+bar 216  R/4b
+bar 217  R/4b
+bar 218  R/4b
+bar 219  R/4b
+bar 220  R/4b
+bar 221  R/4b
+bar 222  R/4b
+bar 223  R/4b
+bar 224  R/4b
+bar 225  R/4b
+bar 226  R/4b
+bar 227  R/4b
+bar 228  R/4b
+bar 229  R/4b
+bar 230  R/4b
+bar 231  R/4b
+bar 232  R/4b
+bar 233  R/4b
+bar 234  R/4b
+bar 235  R/4b
+bar 236  R/4b
+bar 237  R/4b
+bar 238  R/4b
+bar 239  R/4b
+bar 240  R/4b
+bar 241  R/4b
+bar 242  R/4b
+bar 243  R/4b
+bar 244  R/4b
+bar 245  R/4b
