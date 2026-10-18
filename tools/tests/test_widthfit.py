@@ -70,8 +70,8 @@ class Widthfit(unittest.TestCase):
         self.grid = os.path.join(self.dir, "grid.json")
         self.run_fit(self.empty, self.grid)
 
-    def run_fit(self, src, dst, *args, tool=None):
-        r = subprocess.run([sys.executable, tool or os.path.join(TOOLS, "widthfit.py"), src, dst, self.render,
+    def run_fit(self, src, dst, *args, tool=None, renders=None):
+        r = subprocess.run([sys.executable, tool or os.path.join(TOOLS, "widthfit.py"), src, dst, renders or self.render,
                             self.ref, self.secs, *args], capture_output=True, text=True, cwd=ROOT, env=ENV)
         return r
 
@@ -133,6 +133,47 @@ class Widthfit(unittest.TestCase):
         self.assertIn("vary within the section", r.stderr)
         self.assertFalse(os.path.exists(out), "nothing written")
         self.assertEqual(self.run_fit(path, out, "--only", "2", "--scale-shapes").returncode, 0)
+
+    def test_multiple_renders_preserve_power_not_waveform_phase(self):
+        # Opposite PCM would cancel if the tool averaged waveforms. Its PSD is unchanged.
+        neg = os.path.join(self.dir, "negative.wav")
+        with wave.open(self.render, "rb") as inp:
+            params = inp.getparams()
+            pcm = np.frombuffer(inp.readframes(inp.getnframes()), dtype="<i2")
+        with wave.open(neg, "wb") as out:
+            out.setparams(params)
+            out.writeframes((-pcm).astype("<i2").tobytes())
+        for mode in ([], ["--joint"]):
+            single = os.path.join(self.dir, "single.json")
+            self.assertEqual(self.run_fit(self.grid, single, *mode).returncode, 0)
+            with open(single) as f:
+                expected = knots(json.load(f))
+            for renders in (self.render + "," + self.render, self.render + "," + neg):
+                with self.subTest(mode=mode, renders=renders):
+                    multi = os.path.join(self.dir, "multi.json")
+                    r = self.run_fit(self.grid, multi, *mode, renders=renders)
+                    self.assertEqual(r.returncode, 0, r.stderr)
+                    with open(multi) as f:
+                        self.assertEqual(knots(json.load(f)), expected)
+
+    def test_multiple_renders_zero_step_preserves_custom_knots(self):
+        path, before = self.custom()
+        for mode in ([], ["--joint"]):
+            out = os.path.join(self.dir, "multi-zero.json")
+            r = self.run_fit(path, out, "--only", "1", "--clip", "1,1", "--strength", "0", *mode,
+                             renders=self.render + "," + self.render)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            with open(out) as f:
+                self.assertEqual(knots(json.load(f)), knots(before))
+
+    def test_literal_comma_filename_keeps_single_input_behavior(self):
+        comma = os.path.join(self.dir, "literal,render.wav")
+        shutil.copyfile(self.render, comma)
+        one, two = os.path.join(self.dir, "one.json"), os.path.join(self.dir, "two.json")
+        self.assertEqual(self.run_fit(self.grid, one).returncode, 0)
+        self.assertEqual(self.run_fit(self.grid, two, renders=comma).returncode, 0)
+        with open(one) as a, open(two) as b:
+            self.assertEqual(knots(json.load(a)), knots(json.load(b)))
 
     @unittest.skipUnless(os.environ.get("WIDTHFIT_OLD"), "set WIDTHFIT_OLD to the previous widthfit.py")
     def test_regular_grids_match_the_previous_widthfit(self):

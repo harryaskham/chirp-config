@@ -9,7 +9,7 @@ to the record's side/mid over the render's. Run it again on a new render to refi
 lanes by the residual): the clip/limiter after the stage and the bands' crossovers re-create or leak side, so a
 first pass under-corrects and 2-4 passes converge (stop when a pass ties).
 
-  widthfit.py IN OUT RENDER.wav REF.wav SECTIONS.txt [--bass-width 0.5] [--clip LO,HI] [--min-sec 5] [--strength 1] [--only 4,6,7] [--joint]
+  widthfit.py IN OUT RENDER.wav[,RENDER2.wav,...] REF.wav SECTIONS.txt [--bass-width 0.5] [--clip LO,HI] [--min-sec 5] [--strength 1] [--only 4,6,7] [--joint]
 
 IN/OUT: a tab2song map (.json; edits head.master) or a song (.yaml; replaces its `master:` line). First pass
 (no wb lanes yet): ratios clipped to 0.2..2.5; later passes 0.5..2.0 (--clip overrides). --bass-width sets the
@@ -22,6 +22,8 @@ Recipe for a mature mix (chirper-zero's 'stale width'): print the per-section st
 sections below ~65 and --clip 0.5,4; score per section; then REFIT from the base on the winners only (2 passes).
 Raining Blood +0.58, Come Down +0.4, 2 Minutes to Midnight +0.12, The National Anthem +0.1 held-out. Sections whose
 stereo is content (an intro's mono voice, a squall ending, a part's pan) lose — leave them out.
+Several seed renders pool their side/mid POWER spectra per section (not their waveforms), fitting the seed-average
+image. One input keeps the original path. A literal filename containing a comma is accepted if that file exists.
 Prints each section's ratios. Measure the result with likeness; keep it only if it scores higher.
 
 The bands are coupled (bd-33c6c3; tools/widthresp.py): wb_k scales the side from FREQS[k] up (lower edge), but the
@@ -32,7 +34,7 @@ band answers only its own width. --joint (opt-in) instead solves a section's sev
 stage model, weighted by the render's own side spectrum, for the likeness stereo residuals (same --clip bounds per
 pass, --strength scales the step); each section prints the model's predicted stereo term now / per-band / joint.
 The model covers the stage only: anything after it that reacts to the side (clip, limiter) is why passes repeat."""
-import json, re, sys
+import json, os, re, sys
 
 import numpy as np
 
@@ -123,6 +125,16 @@ def lanes(cuts, W):
     return out
 
 
+def pooled_spectra(segments):
+    """Mean side/mid PSDs on the common sample window; phase-opposed renders must not cancel."""
+    import widthresp as WR
+    spectra = [WR.spectra(st) for st in segments]
+    f = spectra[0][0]
+    if not all(np.array_equal(f, v[0]) for v in spectra[1:]):
+        raise ValueError("widthfit: seed renders have incompatible frequency grids")
+    return f, np.mean([v[1] for v in spectra], axis=0), np.mean([v[2] for v in spectra], axis=0)
+
+
 def main():
     a = sys.argv[1:]
     if len(a) < 5:
@@ -158,12 +170,16 @@ def main():
             for f in master["fx"]:
                 if isinstance(f, dict) and f.get("type") == "width" and any(isinstance(b[1], dict) and "auto.wb" in json.dumps(b[1]) for b in f.get("bands", [])):
                     f["bass_width"] = float(opt("--bass-width", 1.0))   # only the lane stage, not other (static) width stages
-    R, O = L.load(ref), L.load(wav)
+    paths = [wav] if os.path.isfile(wav) else wav.split(",")
+    if any(not p for p in paths):
+        sys.exit("widthfit: render list contains an empty path")
+    R, renders = L.load(ref), [L.load(p) for p in paths]
+    O = renders[0]
     minsec = float(opt("--min-sec", 5))
     strength = float(opt("--strength", 1.0))
     only = {int(v) for v in opt("--only", "").split(",") if v.strip()} if "--only" in a else None
     joint = "--joint" in a
-    if joint:
+    if joint or len(renders) > 1:
         import widthresp as WR
         bass = next((float(f.get("bass_width", 1.0)) for f in master["fx"] if isinstance(f, dict) and f.get("type") == "width"
                      and any(isinstance(b[1], dict) and "auto.wb" in json.dumps(b[1]) for b in f.get("bands", []))), 1.0)
@@ -179,15 +195,21 @@ def main():
                          "section (more than 10% off their mean for over 10% of it); widthfit fits one width per section. "
                          "Leave the section out (--only), or --scale-shapes to scale the shape by the fitted factor. "
                          "Nothing written.")
-        s0, s1 = int(cuts[i] * 48000), min(int(cuts[i + 1] * 48000), len(O), len(R))
+        s0, s1 = int(cuts[i] * 48000), min(int(cuts[i + 1] * 48000), len(R), *(len(o) for o in renders))
         if s1 - s0 < minsec * 48000:
             if i:
                 cur[i] = cur[i - 1]
                 fitted.append(i)
             continue
-        r = np.clip(L.stereo_bands(R[s0:s1]) / np.maximum(L.stereo_bands(O[s0:s1]), 1e-3), lo, hi) ** strength
+        if len(renders) > 1:
+            f_, ps, pm = pooled_spectra([o[s0:s1] for o in renders])
+            current = WR.band_ratios(f_, ps, pm)
+        else:
+            current = L.stereo_bands(O[s0:s1])
+        r = np.clip(L.stereo_bands(R[s0:s1]) / np.maximum(current, 1e-3), lo, hi) ** strength
         if joint:
-            f_, ps, pm = WR.spectra(O[s0:s1])
+            if len(renders) == 1:
+                f_, ps, pm = WR.spectra(O[s0:s1])
             target = L.stereo_bands(R[s0:s1])
             naive = np.clip(cur[i] * r, 0, 6)
             new = WR.fit_joint(f_, ps, pm, cur[i], target, lo, hi, cap=6.0, strength=strength, bass_width=bass)
