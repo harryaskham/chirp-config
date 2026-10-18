@@ -5,6 +5,8 @@
   songsterr.py --cached DIR [TRACK…]   use already-fetched DIR/songsterr-N.json files
   … [--bends peak|curve|mean] [--bend-step 0.125]   how a bent note's curve becomes bend= (see below)
   … [--voice N]                        read the tab's Nth voice (default 0, the first; see below)
+  … [--gm-map 39=cp,…]                 drums: General-MIDI note -> piece overrides, applied before a beat's pieces
+                                       merge (see below)
 
 Pitched tracks: note = string tuning + fret; ties merge into the previous note; dynamics (ppp…fff)
 become velocities; palm mute → ^pm, dead → ^dead, harmonics → ^ph; slides into a note become a
@@ -22,7 +24,12 @@ tab2song maps choose per part or map-wide ("bends", "bend_step").
 
 Voices: a staff can carry independent voices (e.g. a drum tab's cymbals in voice 0, kick and snare in voice 1). One
 voice is read — voice 0 unless chosen (`--voice N`, a tab2song part's "voice": N; bd-72f61a); voices are never
-merged. A measure without the chosen voice is a rest of the bar's length (its time signature), never another voice."""
+merged. A measure without the chosen voice is a rest of the bar's length (its time signature), never another voice.
+
+Drum pieces: each General-MIDI note maps to a metal-kit piece (GM below), and a beat's pieces merge — a clap (39) and a
+snare (38) struck together are one `s`. `--gm-map 39=cp` (a tab2song part's or map's "gm_map": {"39": "cp"}; bd-a725c6)
+overrides notes BEFORE that merge, so they stay distinct (`cp,s`); tab2song's per-part remap/drop still apply after.
+Overrides must be MIDI 0..127 -> a piece name ([a-z][a-z0-9]*); the target kit has to define the piece."""
 import gzip
 import json
 import os
@@ -78,7 +85,27 @@ def fmt_num(x):
     return f"{x:.2f}".rstrip("0").rstrip(".")
 
 
-def measure_tokens(track, m, drums, bends="peak", step=0.125, voice=0, bar_beats=4.0):
+def gm_map_of(spec):
+    """{GM note: piece} from {"39": "cp"} or "39=cp,40=s"; None for none. Raises ValueError on a bad entry."""
+    import re
+    if spec is None or spec == {} or spec == "":
+        return None
+    items = spec.items() if isinstance(spec, dict) else (kv.partition("=")[::2] for kv in str(spec).split(","))
+    out = {}
+    for k, v in items:
+        try:
+            note = int(str(k).strip())
+        except ValueError:
+            raise ValueError(f"gm_map: {k!r} is not a General-MIDI note number") from None
+        if not 0 <= note <= 127:
+            raise ValueError(f"gm_map: note {note} is outside 0..127")
+        if not isinstance(v, str) or not re.fullmatch(r"[a-z][a-z0-9]*", v.strip()):
+            raise ValueError(f"gm_map: {note} -> {v!r} is not a piece name ([a-z][a-z0-9]*)")
+        out[note] = v.strip()
+    return out
+
+
+def measure_tokens(track, m, drums, bends="peak", step=0.125, voice=0, bar_beats=4.0, gm_map=None):
     voices = m.get("voices") or []
     if voice >= len(voices):   # the chosen voice is absent here: the bar rests (bd-72f61a)
         return f"R{fmt_len(bar_beats)}"
@@ -92,7 +119,8 @@ def measure_tokens(track, m, drums, bends="peak", step=0.125, voice=0, bar_beats
         if not notes or b.get("rest"):
             out.append(["R", t, ""]); continue
         if drums:
-            pcs = sorted({GM.get(int(n["fret"]), f"m{int(n['fret'])}") for n in notes})
+            gm = {**GM, **gm_map} if gm_map else GM   # overrides map before the beat's pieces merge (bd-a725c6)
+            pcs = sorted({gm.get(int(n["fret"]), f"m{int(n['fret'])}") for n in notes})
             acc = any(n.get("accentuated") for n in notes)
             v = min(127, (vel or 100) + (12 if acc else 0))
             out.append([",".join(pcs), t, f"@{v}"]); continue
@@ -252,25 +280,32 @@ def bend_semis(n):
     return round(tone / 25.0, 2)
 
 
-def score(cache, i, bends="peak", step=0.125, voice=0):
+def score(cache, i, bends="peak", step=0.125, voice=0, gm_map=None):
     tr = load(cache, i)
     drums = not tr.get("tuning")
     lines, sig = [], [4, 4]
     for m in tr["measures"]:
         sig = m.get("signature", sig)   # as tabtime.timeline: a signature holds until the next one
-        lines.append(measure_tokens(tr, m, drums, bends, step, voice, 4 * sig[0] / sig[1]))
+        lines.append(measure_tokens(tr, m, drums, bends, step, voice, 4 * sig[0] / sig[1], gm_map))
     return tr.get("name") or tr.get("instrument"), drums, lines
 
 
 if __name__ == "__main__":
     args = sys.argv[1:]
-    bends, step, voice = "peak", 0.125, 0
+    bends, step, voice, gm_map = "peak", 0.125, 0, None
     if "--bends" in args:
         i = args.index("--bends"); bends = args[i + 1]; del args[i:i + 2]
     if "--bend-step" in args:
         i = args.index("--bend-step"); step = float(args[i + 1]); del args[i:i + 2]
     if "--voice" in args:
         i = args.index("--voice"); voice = int(args[i + 1]); del args[i:i + 2]
+    if "--gm-map" in args:
+        i = args.index("--gm-map")
+        try:
+            gm_map = gm_map_of(args[i + 1])
+        except ValueError as e:
+            sys.exit(f"songsterr: {e}")
+        del args[i:i + 2]
     if args and args[0] == "--cached":
         cache = args[1]; args = args[2:]
     else:
@@ -278,7 +313,7 @@ if __name__ == "__main__":
     meta = json.load(open(f"{cache}/songsterr-meta.json"))
     idx = [int(a) for a in args] or list(range(len(meta.get("tracks", []))))
     for i in idx:
-        name, drums, lines = score(cache, i, bends, step, voice)
+        name, drums, lines = score(cache, i, bends, step, voice, gm_map)
         print(f"# track {i}: {name}{' (drums → metal-kit)' if drums else ''}{f' voice {voice}' if voice else ''}")
         for mi, l in enumerate(lines):
             print(f"m{mi + 1:<3d} {l}")
