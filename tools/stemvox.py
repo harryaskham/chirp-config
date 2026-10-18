@@ -20,6 +20,9 @@ a grid on the tab's own measure timeline (so odd-length bars stay exact), with v
   --onsets runs (default: energy runs split at dips) | flux (syllable starts at vocal-band flux peaks — the
            perceived attack; with --grid 0.03125 --min 0.0625 this tracks barked delivery far better)
   --shift  ms added to every syllable time (latency calibration against the target patch's attack)
+  --carry  opt-in: continue syllables across adjacent performed bar lines with _ holds instead of
+           clipping them. Preserves the original onset/pitch/velocity/phones; coda sounds at the final
+           held release. BPM changes and repeat passes use their own clock; excluded-bar gaps stop a hold.
   --phones per syllable, ^on=/^off= consonant codes (voice layer table) and ^dvow= vowel offsets (u 0 … i 1, relative to
            --vowel-base 0.62, the open vowel kidman sings unmarked) from acoustic cues
            (stems are noisy: a sketch of the syllables' shape, for voice patches binding expr.on/off/vow)
@@ -177,6 +180,55 @@ def syllable_pitch(x, a, b, lo=55, hi=77, default="A4"):
     return f"{names[bm % 12]}{bm // 12 - 1}"
 
 
+def carried_lines(rows, bars, grid):
+    """Render opt-in cross-bar syllables in performed order, never holding a rejected origin note.
+
+    Rows are (measure, label, start seconds, beats, bpm). Each detected syllable stores its original
+    end in seconds, so a continuation across a tempo change is not stretched by the onset bar's BPM.
+    """
+    played = sorted((r for r in rows if r[3] > 0), key=lambda r: r[2])
+    events = {r[1]: [] for r in played}
+    for i, (_, label, start, nb, bpm) in enumerate(played):
+        end = start + nb * 60 / bpm
+        for n, (qs, ql, vel, pitch, suffix, stop) in enumerate(bars[label]):
+            if qs >= nb:
+                continue
+            uid = (label, n)
+            first = nb - qs if stop > end + 1e-9 else min(ql, nb - qs)
+            events[label].append((qs, first, vel, pitch, suffix, uid, False))
+            previous_end = end
+            for _, next_label, next_start, next_nb, next_bpm in played[i + 1:]:
+                if stop <= previous_end + 1e-9 or abs(next_start - previous_end) > 1e-6:
+                    break
+                next_end = next_start + next_nb * 60 / next_bpm
+                length = next_nb if stop >= next_end else round((stop - next_start) * next_bpm / 60 / grid) * grid
+                length = min(next_nb, max(0.0, length))
+                if length > 1e-9:
+                    events[next_label].append((0.0, length, vel, "_", "", uid, True))
+                previous_end = next_end
+    accepted, lines = set(), []
+    for _, label, _, nb, _ in played:
+        toks, pos = [], 0.0
+        for qs, ql, vel, pitch, suffix, uid, hold in sorted(events[label]):
+            if (hold and uid not in accepted) or qs < pos - 1e-9 or qs >= nb:
+                continue
+            if qs > pos + 1e-9:
+                toks.append(f"R/{qs - pos:g}b")
+            ql = min(ql, nb - qs)
+            if hold:
+                toks.append(f"_/{ql:g}b")
+            else:
+                toks.append(f"{pitch}/{ql:g}b@{vel}{suffix}")
+                accepted.add(uid)
+            pos = qs + ql
+        if pos < nb - 1e-9:
+            toks.append(f"R/{nb - pos:g}b")
+        lines.append(f"bar {label:>3}  {' '.join(toks)}")
+    # Skipped source bars do not play, but retain their empty labels as in the legacy writer.
+    lines.extend(f"bar {label:>3}  " for _, label, _, nb, _ in rows if nb == 0)
+    return lines
+
+
 def main():
     a = sys.argv[1:]
     stem = a[0]
@@ -244,8 +296,12 @@ def main():
                     vw = (vowel_of(mid) if len(mid) > 2048 else None) or 0.62   # an open a/e when unmeasurable
                     dv = round(vw - vbase, 2)
                     suffix = (f"^on={on}" if on else "") + (f"^dvow={dv:g}" if abs(dv) > 1e-9 else "") + (f"^off={off}" if off else "")
-                bars[label].append([qs, ql, vel, pitch, suffix])
+                item = [qs, ql, vel, pitch, suffix]
+                bars[label].append(item + [te] if "--carry" in a else item)
                 break
+    if "--carry" in a:
+        print("\n".join(carried_lines(rows, bars, grid)))
+        return
     for _, label, _, nb, _ in rows:
         ev = sorted(bars[label]); toks, pos = [], 0.0
         for qs, ql, vel, pitch, suffix in ev:
