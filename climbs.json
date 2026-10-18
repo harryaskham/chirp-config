@@ -1468,11 +1468,16 @@
       "source": "https://www.youtube.com/watch?v=LnVTJJ3wcEo",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/fools-gold.wav OUT.wav $(cat tools/fools-gold-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 55.934,
+        "version": "v1",
+        "commit": "see git log songs/fools-gold.yaml",
+        "engine": "e443c01"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "madchester / baggy",
       "meta": {
@@ -1484,7 +1489,11 @@
         "at": "2026-10-18T12:31:26Z",
         "note": "The remastered edit (4:17), not the 9:54 full version: breakbeat drums, wah guitar, funky bass."
       },
-      "ref_file": "ref/albums/singles/fools-gold.webm"
+      "ref_file": "ref/albums/singles/fools-gold.webm",
+      "last": {
+        "at": "2026-10-18T23:34:04Z",
+        "who": "chirper-two"
+      }
     },
     {
       "id": "the-model",
