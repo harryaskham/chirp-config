@@ -2908,6 +2908,22 @@
      }
     ]
    }
+  },
+  {
+   "name": "vox",
+   "score_file": "tools/maps/personate-non-gratae-vox-c1-r13.txt",
+   "patch": "kidman synth.amp.a=40ms",
+   "gain": "-0.916210dB",
+   "rest": [
+    [
+     1,
+     13
+    ],
+    [
+     32,
+     38
+    ]
+   ]
   }
  ],
  "bpm": {
