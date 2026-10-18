@@ -1,9 +1,9 @@
 {
  "id": "autonomy-lost",
- "version": "v8",
+ "version": "v9",
  "edge": 3.0,
  "ref_seconds": 100.707,
- "at": "2026-10-17T16:17:30Z",
+ "at": "2026-10-18T03:10:29Z",
  "edges": {
   "head": {
    "level": -13.398887197395876,
