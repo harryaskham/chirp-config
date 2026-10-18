@@ -309,7 +309,8 @@ def main():
             if marked:
                 sys.exit(f"stemvox: the tab has repeat signs at measure(s) {', '.join(map(str, marked))}, at or before bar {b1}: "
                          "its bar clock ignores them, so bars after them would be read at the wrong time. Use a tab2song "
-                         "map with `repeat` entries (--map), or --ignore-repeats if the recording does not play them.")
+                         "map (--map) with `\"tab_repeats\": true` (the tab's own repeat signs and endings) or `repeat` "
+                         "entries, or --ignore-repeats if the recording does not play them.")
         rows = [(m, str(m), d0 + tl[m - 1]["start"], tl[m - 1]["beats"], tl[m - 1]["bpm"]) for m in range(b0, b1 + 1)]
     played = [r for r in rows if r[3] > 0]
     t_start = max(0.0, min(r[2] for r in played))   # a negative map offset would slice from the stem's END

@@ -30,6 +30,10 @@ output) on the tab's measure numbers, with optional `"rest": [[a, b], …]` rang
 more than once (a "repeat") takes `bar N.K  tokens` for its K-th play (stemvox/stemnotes --map write these: each pass
 is transcribed at its own performed time); a plain `bar N` line applies to every play.
 
+"tab_repeats": true (opt-in; bd-11abdc) plays the tab's own repeat signs and alternate endings (Guitar Pro rules: a
+1-3/4 ending pair plays the closing measure three times and the fourth ending once) instead of the written bars once
+each; it cannot be combined with "repeat", and labels follow (a measure played three times is N.1..N.3). Off, every
+map is unchanged.
 performed_timeline(cache, map) is the map's bar clock (skips and repeats applied) — the one every tool reading a stem
 against a map's bars should use (bd-8e945f).
 
@@ -230,9 +234,72 @@ def corrected_timeline(cache, mp):
     return tl
 
 
-def performed_keep(full, mp):
+def tab_play_order(measures):
+    """Measure indices (0-based) in the order the tab's own repeat signs and alternate endings play them, by Guitar
+    Pro's rules (bd-11abdc): a section runs from its `repeatStart` to the measure whose `repeat: n` closes it and
+    plays n times; a measure with `alternateEnding: [passes]` plays only on those passes of its section (so a
+    closing measure that is endings 1-3 of four is skipped on the fourth, and the ending-4 measure after it plays
+    instead); a close without a start repeats from the piece's start, or from just after the previous section.
+    Raises ValueError on a nested repeat, an ending outside a repeat or one that never plays, or a loop."""
+    n = len(measures)
+    order = []
+    start, passno = 0, 1          # the current section's first measure and pass
+    open_ = False                 # inside a section whose close has not completed
+    endings = False               # just after a completed section: its later endings may follow
+    jumped = False
+    i = 0
+    while i < n:
+        if len(order) > 64 * n + 64:
+            raise ValueError("tab repeats: the order never ends (a repeat loop)")
+        m = measures[i]
+        alt, close = m.get("alternateEnding"), int(m.get("repeat") or 0)
+        if m.get("repeatStart") and not jumped:
+            if open_ and i != start:
+                raise ValueError(f"tab repeats: measure {i + 1} starts a repeat inside the one from measure {start + 1} "
+                                 "(nested repeats)")
+            start, passno, open_, endings = i, 1, True, False
+        jumped = False
+        if not open_ and not endings and (alt or close):
+            if alt and not close:
+                raise ValueError(f"tab repeats: measure {i + 1} is an alternate ending outside a repeat")
+            open_, passno = True, 1   # a section closed here without a start sign: from `start`
+        if alt and passno not in alt:
+            if close and passno >= close:   # the final pass skips this closing ending: the section is done
+                open_, endings, start = False, True, i + 1
+            i += 1
+            continue
+        if not alt and endings:
+            endings, passno = False, 1   # past the section's last ending
+        order.append(i)
+        if close and passno < close:
+            passno += 1
+            i, jumped = start, True
+            continue
+        if close:                     # the final pass through the close
+            open_, endings = False, True
+        if endings:
+            start = i + 1             # a later close without a start sign repeats from here
+        i += 1
+    played = set(order)
+    never = [k + 1 for k, m in enumerate(measures) if m.get("alternateEnding") and k not in played]
+    if never:
+        raise ValueError(f"tab repeats: alternate ending measure(s) {never} never play (their passes exceed the repeat count)")
+    return order
+
+
+def performed_keep(full, mp, cache=None):
     """Indices into the corrected timeline of the bars the map plays, in order: skipped measures out, each
-    repeat [a, b, n] (a live vamp or a longer ending) inserted n more times right after b."""
+    repeat [a, b, n] (a live vamp or a longer ending) inserted n more times right after b. With "tab_repeats":
+    true (opt-in), the tab's own repeat signs and alternate endings give the order instead (tab_play_order)."""
+    if mp.get("tab_repeats"):
+        if mp.get("repeat"):
+            sys.exit('tab2song: "tab_repeats" and "repeat" are both set — the tab\'s own repeat signs already give the order')
+        cache = cache if cache is None or os.path.isabs(cache) else os.path.join(ROOT, cache)
+        try:
+            order = tab_play_order(S.load(cache, 0)["measures"])
+        except ValueError as e:
+            sys.exit(f"tab2song: {e}")
+        return [i for i in order if not full[i]["skip"]]
     keep = [i for i, m in enumerate(full) if not m["skip"]]
     for a, b, n in mp.get("repeat", []):
         idx = [i for i in keep if a <= full[i]["m"] <= b]
@@ -249,7 +316,7 @@ def performed_timeline(cache, mp):
     instead puts every bar after a repeat early by the repeat's length (bd-8e945f)."""
     cache = cache if os.path.isabs(cache) else os.path.join(ROOT, cache)
     full = corrected_timeline(cache, mp)
-    keep = performed_keep(full, mp)
+    keep = performed_keep(full, mp, cache)
     plays = {}
     for i in keep:
         plays[full[i]["m"]] = plays.get(full[i]["m"], 0) + 1
@@ -280,7 +347,7 @@ def read_score_file(path):
 def build(mp):
     cache = mp["cache"]
     full = corrected_timeline(cache, mp)
-    keep = performed_keep(full, mp)
+    keep = performed_keep(full, mp, cache)
     tl = [full[i] for i in keep]
     beats = [m["beats"] for m in tl]
     bpm = tl[0]["bpm"]
