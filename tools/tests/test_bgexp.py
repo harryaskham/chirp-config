@@ -48,7 +48,7 @@ class Jobs(unittest.TestCase):
 
     def run_job(self, render_rc=0, likeness_out=None, sections=None, keep_wav=False):
         lk = likeness_out if likeness_out is not None else json.dumps(
-            {"total": 70.5, "sections": [{"start": 0, "end": 0.01, "total": 70.5, "loudness": 80.0}]})
+            {"total": 70.5, "total_raw": 70.4987, "sections": [{"start": 0, "end": 0.01, "total": 70.5, "loudness": 80.0}]})
 
         def fake_run(cmd, **kw):
             if "render" in cmd:
@@ -97,6 +97,8 @@ class Jobs(unittest.TestCase):
         st = self.run_job()
         self.assertEqual(st["state"], "done", st)
         self.assertEqual(st["total"], 70.5)
+        self.assertIn("legacy", st["conventions"]["exact"])
+        self.assertEqual(st["total_raw"], 70.4987, "the raw total is recorded as given")
         self.assertFalse(self.wav(), "deleted after scoring")
         st = self.run_job(keep_wav=True)
         self.assertEqual(st["state"], "done")

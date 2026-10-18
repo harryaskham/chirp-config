@@ -2,7 +2,8 @@
 """Background experiment queue for climbs: render + score song variants detached, a few at a time.
 
   bgexp.py run NAME SONG.yaml [--ref ref/X.wav] [--sections tools/X-sections.txt] [--slots 3] [--max-load L] [--keep-wav] [-- extra chirp render args]
-  bgexp.py status [--since MINUTES] [PREFIX]
+  bgexp.py status [--since MINUTES] [PREFIX]   total (the CLI total climbs record), exact (bgexp's legacy
+                                               term recompute), raw (unrounded); a failed job's stage and error
   bgexp.py wait NAME [NAME...]          # block until those finish (for scripts)
 
 Each job waits until the 1-min load average is below --max-load (default 3x cores: don't pile onto a host storm
@@ -113,6 +114,13 @@ def _job(state, out, wav, name, song, ref, sections, slots, extra, max_load, kee
         durs = [s["end"] - s["start"] for s in secs]
         exact = sum(sum(s.get(k, 0) * w for k, w in W.items()) / sum(W.values()) * du for s, du in zip(secs, durs)) / sum(durs)
         state.update(total=d["total"], exact=round(exact, 3), sections=[{k: round(v, 1) if isinstance(v, float) else v for k, v in s.items()} for s in secs])
+        # bd-fd060e: which convention each number is (compare a candidate with its baseline on the SAME field)
+        if "total_raw" in d:
+            state["total_raw"] = d["total_raw"]
+        state["conventions"] = {"total": "likeness CLI total (legacy-v1): the field climbs record as their best",
+                                "exact": "bgexp legacy: a term-weighted recomputation from 1-decimal section terms, "
+                                         "tempo excluded — not a raw score",
+                                "total_raw": "likeness raw-v1: the CLI formula on unrounded terms"}
     except Exception as e:  # noqa: BLE001
         # no score: a failure (the render stays for a rescore), not a `done` without a total
         state.update(state="failed", stage="scoring", error=f"likeness: {e}", finished=time.time(),
@@ -153,11 +161,16 @@ def status(prefix="", since=None):
             key = (e['path'], e['size'], e['mtime']); tag = engines.setdefault(key, chr(ord('A') + len(engines)))
         line = f"{d['name']:14s} {d['state']:9s}{tag:2s}"
         if d.get("state") == "done" and "exact" in d:
-            line += f" {d['exact']:7.3f}  " + " ".join(f"{s['total']:5.1f}" for s in d["sections"])
+            # total: the CLI convention climbs record; exact: bgexp's legacy recompute; raw: unrounded (bd-fd060e)
+            raw = f" raw {d['total_raw']:8.4f}" if "total_raw" in d else ""
+            line += (f" total {d.get('total', float('nan')):7.3f} exact {d['exact']:7.3f}{raw}  "
+                     + " ".join(f"{s['total']:5.1f}" for s in d["sections"]))
             mf = d.get("mixfeel")
             if mf:
                 line += "  | sub punch " + "/".join(f"{s['ours']['sub']['punch']:.1f}" for s in mf)
                 line += "  pres crest " + "/".join(f"{s['ours']['pres']['crest']:.1f}" for s in mf)
+        elif d.get("state") == "failed":
+            line += f" {d.get('stage', '?')}: {str(d.get('error', ''))[:90]}"
         elif d.get("state") in ("rendering", "scoring"):
             line += f" ({time.time() - d.get('started', time.time()):.0f} s)"
         print(line)

@@ -92,13 +92,28 @@ class Sectioned(unittest.TestCase):
         r = L.compare(self.ref, self.cand, ref_start=7.5, ref_end=16.0)
         self.assertAlmostEqual(r["dur_ref"], 8.5, delta=0.1)
 
+    def test_raw_scores_are_not_rebuilt_from_display_fields(self):
+        r = L.sectioned(self.ref, self.cand, self.bounds)
+        # bd-fd060e: total_raw comes from compare()'s unrounded terms, not its 1-decimal display fields
+        for sec, (a, b) in zip(r["sections"], zip(self.bounds, self.bounds[1:])):
+            c = L.compare(self.ref, self.cand, ref_start=a, ref_end=b)
+            self.assertNotEqual(c["raw"]["total"], round(c["raw"]["total"], 1), "raw terms are unrounded")
+            self.assertAlmostEqual(c["raw"]["total"], c["total"], delta=0.05 + 1e-9)
+        w = np.diff(self.bounds)
+        self.assertAlmostEqual(r["total_raw"], float(np.dot([s["total_raw"] for s in r["sections"]], w) / w.sum()), places=9)
+        self.assertLessEqual(abs(r["total"] - r["total_raw"]), 0.06, "the legacy total differs by rounding only")
+        self.assertIn("legacy", r["convention"]["total"])
+
     @unittest.skipUnless(OLD, "set LIKENESS_OLD to the previous likeness.py to compare scores")
     def test_every_score_field_is_unchanged(self):
         old = module(OLD, "likeness_old")
-        self.assertEqual(L.sectioned(self.ref, self.cand, self.bounds), old.sectioned(self.ref, self.cand, self.bounds))
-        self.assertEqual(L.compare(self.ref, self.cand), old.compare(self.ref, self.cand))
-        self.assertEqual(L.compare(self.ref, self.cand, ref_start=7.5, ref_end=16.0),
-                         old.compare(self.ref, self.cand, ref_start=7.5, ref_end=16.0))
+        added = {"raw", "total_raw", "convention"}   # bd-fd060e: new fields only; every legacy one is identical
+        legacy = lambda d: {k: ([{x: y for x, y in s.items() if x not in added} for s in v] if k == "sections" else v)  # noqa: E731
+                            for k, v in d.items() if k not in added}
+        self.assertEqual(legacy(L.sectioned(self.ref, self.cand, self.bounds)), legacy(old.sectioned(self.ref, self.cand, self.bounds)))
+        self.assertEqual(legacy(L.compare(self.ref, self.cand)), legacy(old.compare(self.ref, self.cand)))
+        self.assertEqual(legacy(L.compare(self.ref, self.cand, ref_start=7.5, ref_end=16.0)),
+                         legacy(old.compare(self.ref, self.cand, ref_start=7.5, ref_end=16.0)))
 
 
 if __name__ == "__main__":

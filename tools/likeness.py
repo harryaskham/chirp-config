@@ -210,9 +210,12 @@ def _compare(rs, cand):
     s_master = 100 * (0.5 * np.exp(-abs(lvl(xc) - lvl(xr)) / 4) + 0.5 * np.exp(-abs(crest(xc) - crest(xr)) / 3))
     total = (0.14 * s_loud + 0.22 * s_spec + 0.22 * s_chroma + 0.18 * s_rhythm + 0.09 * s_ltas + 0.05 * s_tempo
              + 0.10 * s_stereo + 0.08 * s_master) / 1.08
-    res = {k: round(float(v), 1) for k, v in {"total": total, "loudness": s_loud, "spectral": s_spec, "chroma": s_chroma,
-           "rhythm": s_rhythm, "ltas": s_ltas, "tempo": s_tempo, "stereo": s_stereo, "master": s_master, "tempo_ref": tr, "tempo_cand": tc,
+    terms = {"total": total, "loudness": s_loud, "spectral": s_spec, "chroma": s_chroma, "rhythm": s_rhythm, "ltas": s_ltas,
+             "tempo": s_tempo, "stereo": s_stereo, "master": s_master}
+    res = {k: round(float(v), 1) for k, v in {**terms, "tempo_ref": tr, "tempo_cand": tc,
            "dur_ref": R.n / FPS, "dur_cand": C.n / FPS}.items()}
+    # the same terms before display rounding (bd-fd060e): sectioned()'s total_raw is built from these
+    res["raw"] = {k: float(v) for k, v in terms.items()}
     # per-section gaps on the reference's sections
     bounds = [0.0] + sections(R) + [round(dur, 1)]
     secs = []
@@ -236,7 +239,7 @@ def sectioned(ref, cand, bounds):
     import tempfile, wave as _w
     cs = load(cand)
     full = load(ref)   # decoded once per call (an 802 s reference was decoded once per section), sliced per section
-    out, wsum, tsum = [], 0.0, 0.0
+    out, wsum, tsum, rsum = [], 0.0, 0.0, 0.0
     for a, b in zip(bounds[:-1], bounds[1:]):
         seg = cs[int(a * SR):int(b * SR)]
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tf:
@@ -248,11 +251,18 @@ def sectioned(ref, cand, bounds):
         # the tempo term is meaningless on a short, sparse section (the onset autocorrelation jumps between beat
         # multiples) — score sections without it, renormalised
         tot = (r["total"] * 1.08 - 0.05 * r["tempo"]) / 1.03
-        out.append({"start": a, "end": b, "total": round(tot, 3), **{k: r[k] for k in ("loudness", "spectral", "chroma", "rhythm", "ltas", "stereo", "master", "tempo")}})
-        wsum += b - a; tsum += tot * (b - a)
+        raw = (r["raw"]["total"] * 1.08 - 0.05 * r["raw"]["tempo"]) / 1.03
+        out.append({"start": a, "end": b, "total": round(tot, 3), **{k: r[k] for k in ("loudness", "spectral", "chroma", "rhythm", "ltas", "stereo", "master", "tempo")},
+                    "total_raw": raw})
+        wsum += b - a; tsum += tot * (b - a); rsum += raw * (b - a)
     # Totals to 3 decimals: kept/not-kept decisions compare them, and a 1-decimal total hid
     # gains under ~0.05 (a best registered as 69.7 was really 69.66).
-    return {"total": round(tsum / wsum, 3), "sections": out}
+    # `total` is the legacy convention every recorded best uses (section totals from compare()'s 1-decimal total
+    # and tempo, rounded to 3 decimals); `total_raw` is the same formula on unrounded terms (bd-fd060e). Compare a
+    # candidate with its baseline on the SAME field.
+    return {"total": round(tsum / wsum, 3), "sections": out, "total_raw": rsum / wsum,
+            "convention": {"total": "legacy-v1: from 1-decimal compare() total/tempo, rounded to 3 decimals",
+                           "total_raw": "raw-v1: the same formula on unrounded terms"}}
 
 
 def bands(ref, cand):
