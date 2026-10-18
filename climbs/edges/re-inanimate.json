@@ -1,9 +1,9 @@
 {
  "id": "re-inanimate",
- "version": "v11",
+ "version": "v12",
  "edge": 3.0,
  "ref_seconds": 64.053,
- "at": "2026-10-18T03:18:40Z",
+ "at": "2026-10-18T03:55:45Z",
  "edges": {
   "head": {
    "level": -13.852192230995648,
