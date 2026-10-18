@@ -600,15 +600,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/autonomy-lost.wav OUT.wav $(cat tools/autonomy-lost-sections.txt)",
       "best": {
-        "score": 67.338,
-        "version": "v9",
+        "score": 68.286,
+        "version": "v10",
         "commit": "see git log songs/autonomy-lost.yaml",
         "engine": "a931418"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 10,
+      "rounds": 11,
       "priority": 1.0,
       "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
       "meta": {
@@ -625,8 +625,8 @@
       },
       "ref_file": "ref/albums/catch-thirtythree/01 autonomy-lost.webm",
       "last": {
-        "at": "2026-10-18T03:10:27Z",
-        "who": "chirper-zero"
+        "at": "2026-10-18T04:10:14Z",
+        "who": "chirper-one"
       }
     },
     {
