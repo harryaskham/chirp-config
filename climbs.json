@@ -1305,11 +1305,16 @@
       "source": "https://www.youtube.com/watch?v=EFL3OVmq2VE",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/odyssey.wav OUT.wav $(cat tools/odyssey-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 55.094,
+        "version": "v1",
+        "commit": "see git log songs/odyssey.yaml",
+        "engine": "654b5e3"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "electronica",
       "meta": {
@@ -1321,7 +1326,11 @@
         "at": "2026-10-18T12:31:23Z",
         "note": "Mostly programmed synthesis: should be one of the easier ones."
       },
-      "ref_file": "ref/albums/singles/odyssey.webm"
+      "ref_file": "ref/albums/singles/odyssey.webm",
+      "last": {
+        "at": "2026-10-18T19:40:58Z",
+        "who": "chirper-zero"
+      }
     },
     {
       "id": "rasputin",
