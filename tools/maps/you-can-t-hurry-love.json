@@ -1,7 +1,7 @@
 {
   "cache": "ref/songsterr-3374178",
   "name": "you-can-t-hurry-love",
-  "about": "The Supremes — You Can’t Hurry Love. Fixed supplied F2NUI1ELYao recording; unofficial Supremes3374178 tab, not Phil Collins. Wordless female lead plus quiet unison backing GUIDE from score melodic doublings, not recovered backing harmony/lyrics. Ride-labelled bright percussion rendered as short jingle/tambourine approximation; arrangement aid, verify against stems.",
+  "about": "The Supremes \u2014 You Can\u2019t Hurry Love. Fixed supplied F2NUI1ELYao recording; unofficial Supremes3374178 tab, not Phil Collins. Wordless female lead plus quiet unison backing GUIDE from score melodic doublings, not recovered backing harmony/lyrics. Ride-labelled bright percussion rendered as short jingle/tambourine approximation; arrangement aid, verify against stems.",
   "meters": true,
   "bends": "curve",
   "bend_step": 0.125,
@@ -4544,6 +4544,22 @@
     "39": 192.77108433734938,
     "63": 192.60993144959036,
     "87": 194.07008086253364,
-    "111": 194.07008086253364
+    "111": 197.26027397260268,
+    "97": 187.43898470549948,
+    "98": 187.43898470549948,
+    "99": 194.46320054017548,
+    "100": 194.46320054017548,
+    "101": 194.07008086253364,
+    "102": 194.07008086253364,
+    "103": 194.6603582291314,
+    "104": 194.66035822913142,
+    "105": 195.2542372881355,
+    "106": 195.25423728813556,
+    "107": 195.45300305395313,
+    "108": 195.45300305395313,
+    "109": 194.26644182124784,
+    "110": 194.26644182124784,
+    "112": 197.26027397260268,
+    "113": 194.07008086253364
   }
 }
