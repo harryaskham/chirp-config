@@ -2,7 +2,7 @@
  "cache": "ref/songsterr-73446",
  "offset": 0.315,
  "name": "re-inanimate",
- "about": "Hill-climb reproduction of Meshuggah - Re-Inanimate (Catch Thirtythree, 2005, track 5; meta: artist Meshuggah, album Catch Thirtythree, title Re-Inanimate, track 5, year 2005 — bd-03819b for a meta: block). Reference: the album master's track 5. From Songsterr tab 73446 (all 5 tracks).",
+ "about": "Hill-climb reproduction of Meshuggah - Re-Inanimate (Catch Thirtythree, 2005, track 5; meta: artist Meshuggah, album Catch Thirtythree, title Re-Inanimate, track 5, year 2005 \u2014 bd-03819b for a meta: block). Reference: the album master's track 5. From Songsterr tab 73446 (all 5 tracks).",
  "meters": true,
  "head": {
   "buses": {
@@ -2306,6 +2306,12 @@
       "mix": 1
      }
     ]
+   },
+   "replace": {
+    "2": "G1/4b",
+    "6": "G1/4b",
+    "10": "F#1/4b",
+    "14": "F#1/4b"
    }
   },
   {
@@ -2328,6 +2334,12 @@
       "mix": 1
      }
     ]
+   },
+   "replace": {
+    "2": "G1/4b",
+    "6": "G1/4b",
+    "10": "F#1/4b",
+    "14": "F#1/4b"
    }
   },
   {
@@ -2345,6 +2357,20 @@
     "sends": {
      "hall": "-12dB"
     }
+   },
+   "replace": {
+    "18": "E3/4b",
+    "19": "F3/4b",
+    "20": "F3/4b",
+    "21": "E3/4b",
+    "22": "F#3/4b",
+    "23": "F3/4b",
+    "29": "E3/4b",
+    "30": "E3/4b",
+    "31": "D#3/4b",
+    "25": "A#3/4b",
+    "26": "G3/4b",
+    "28": "F3/4b"
    }
   },
   {
@@ -2367,6 +2393,12 @@
       "mix": 1
      }
     ]
+   },
+   "replace": {
+    "2": "G1/4b",
+    "6": "G1/4b",
+    "10": "F#1/4b",
+    "14": "F#1/4b"
    }
   },
   {
