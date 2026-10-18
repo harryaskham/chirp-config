@@ -25,6 +25,10 @@ while true; do
       echo "$(date +%T) watchdog: playlist driver missing — restarting it"
       CHIRP_BIN="${XDG_RUNTIME_DIR:-/tmp}/chirp-groove" setsid nohup python3 "$here/playlist.py" >> "${TMPDIR:-/tmp}/chirp-playlist.log" 2>&1 < /dev/null &
     fi
+    # the temp audio janitor (agents' renders fill the disk otherwise): one detached loop, every 10 min
+    if ! pgrep -f "tmpclean.py --loop" >/dev/null; then
+      setsid nohup python3 "$here/tmpclean.py" --loop 600 --quiet >/dev/null 2>&1 < /dev/null &
+    fi
     if [ -n "$reason" ] && env -u PULSE_SERVER pactl -s "$pulse" info >/dev/null 2>&1; then
       nxt=$(python3 -c "import json;print(json.load(open('$here/state.json')).get('next') or 'form-1')" 2>/dev/null || echo form-1)
       echo "$(date +%T) watchdog: groove $reason — restarting (@$nxt)"

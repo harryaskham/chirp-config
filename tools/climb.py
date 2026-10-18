@@ -909,7 +909,19 @@ def main():
         return
     if cmd not in table:
         die(f"unknown command `{cmd}` — {', '.join(table)} or status")
+    if cmd in ("next", "done"):
+        janitor()
     table[cmd](rest)
+
+
+def janitor():
+    """Every round sweeps the agents' temp audio (tmpclean.py: at most every 10 minutes, detached)."""
+    try:
+        subprocess.Popen([sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), "tmpclean.py"),
+                          "--every", "10", "--quiet"], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                         stderr=subprocess.DEVNULL, start_new_session=True)
+    except OSError:
+        pass
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Background experiment queue for climbs: render + score song variants detached, a few at a time.
 
-  bgexp.py run NAME SONG.yaml [--ref ref/X.wav] [--sections tools/X-sections.txt] [--slots 3] [--max-load L] [-- extra chirp render args]
+  bgexp.py run NAME SONG.yaml [--ref ref/X.wav] [--sections tools/X-sections.txt] [--slots 3] [--max-load L] [--keep-wav] [-- extra chirp render args]
   bgexp.py status [--since MINUTES] [PREFIX]
   bgexp.py wait NAME [NAME...]          # block until those finish (for scripts)
 
@@ -10,6 +10,8 @@ while the live groove plays) and for one of --slots concurrency slots (flock fil
 ($CHIRP or /tmp/lt/chirp-main/cli/chirp/target/release/chirp), then scores with likeness.py (sections + the
 unrounded weighted total) and mixfeel.py; records the binary used (pin CHIRP to an immutable copy: a shared build path can be rebuilt under a queue) (punch/crest/vary per band), writing $BGEXP_DIR/NAME.json and
 NAME.log ($BGEXP_DIR defaults to /tmp/lt/exp; give each climb its own so climbers don't wait on each other's slots). Never plays audio. Defaults (--ref/--sections) are the shadows climb's.
+The render is deleted once scored (the score is what is kept; a render is ~60-150 MB and climbs run
+hundreds): --keep-wav keeps it as $BGEXP_DIR/NAME.wav (tmpclean.py still sweeps it after 6 idle hours).
 """
 import fcntl
 import json
@@ -34,7 +36,7 @@ def opt(args, flag, default):
     return default
 
 
-def job(name, song, ref, sections, slots, extra, max_load=None):
+def job(name, song, ref, sections, slots, extra, max_load=None, keep_wav=False):
     os.makedirs(EXP, exist_ok=True)
     out = f"{EXP}/{name}.json"
     state = {"name": name, "song": song, "state": "queued", "queued": time.time()}
@@ -63,6 +65,8 @@ def job(name, song, ref, sections, slots, extra, max_load=None):
     with open(f"{EXP}/{name}.log", "w") as log:
         r = subprocess.run(["nice", "-n", "15", CHIRP, "render", "-f", song, "-o", wav, *extra], stdout=log, stderr=log, cwd=ROOT)
         if r.returncode != 0:
+            if os.path.exists(wav):
+                os.remove(wav)
             state.update(state="failed", finished=time.time())
             json.dump(state, open(out, "w"))
             return
@@ -86,6 +90,12 @@ def job(name, song, ref, sections, slots, extra, max_load=None):
         state["mixfeel"] = json.loads(mf.stdout)
     except Exception as e:  # noqa: BLE001
         state["mixfeel_error"] = str(e)
+    if not keep_wav:
+        try:
+            os.remove(wav)
+            state["wav"] = "deleted after scoring (--keep-wav keeps it)"
+        except OSError:
+            pass
     state.update(state="done", finished=time.time())
     json.dump(state, open(out, "w"))
 
@@ -139,6 +149,8 @@ def main():
         sections = opt(a, "--sections", "tools/shadows-sections.txt")
         slots = int(opt(a, "--slots", "3"))
         max_load = float(opt(a, "--max-load", "0")) or None
+        keep_wav = "--keep-wav" in a
+        a = [x for x in a if x != "--keep-wav"]
         name, song = a[0], os.path.abspath(a[1])
         if os.fork() == 0:
             os.setsid()
@@ -146,7 +158,7 @@ def main():
                 fd = os.open(os.devnull, os.O_RDWR)
                 for k in (0, 1, 2):
                     os.dup2(fd, k)
-                job(name, song, ref, sections, slots, extra, max_load)
+                job(name, song, ref, sections, slots, extra, max_load, keep_wav)
             os._exit(0)
         print(f"queued {name}")
     elif cmd == "status":
