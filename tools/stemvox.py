@@ -3,7 +3,7 @@
 the pitch is noise): syllables are runs of vocal-band energy above a floor, split at internal dips, quantised to
 a grid on the tab's own measure timeline (so odd-length bars stay exact), with velocity from loudness.
 
-  stemvox.py STEM --tab DIR --d0 SECONDS --bars B0-B1 [--note Eb3|auto] [--grid 0.125] [--range 30] [--dip 6] [--min 0.25]
+  stemvox.py STEM --tab DIR --d0 SECONDS --bars B0-B1 [--note Eb3|auto [--note-range G3..F5]] [--grid 0.125] [--range 30] [--dip 6] [--min 0.25]
   stemvox.py STEM --map MAP.json --bars B0-B1 [...]   bar times from a tab2song map's performed timeline
            (its offset, skipped measures, beatgrid/scorealign `bpm` overrides and `repeat`s) instead of the raw tab
 
@@ -14,6 +14,10 @@ a grid on the tab's own measure timeline (so odd-length bars stay exact), with v
 
   --note   one pitch for every syllable, or `auto`: each syllable's pitch from the stem (harmonic summation,
            G3..F5; a shout's pitch moves from phrase to phrase)
+  --note-range LO..HI  the register `--note auto` may choose from (default G3..F5, MIDI 55..77, the shouted-metal
+           register every existing transcription used): note names or MIDI numbers, e.g. C2..C5 for spoken or rap
+           voices (bd-2df192). It permits a register; it is not proof of pitch or octave — harmonic summation can still
+           land on a sub- or overtone, so check a range against the stem. Ignored (with a note) for a fixed --note.
   --range  dB below the passage's loudest frame that still counts as voice (default 30)
   --dip    a fall of this many dB inside a run, then a rise, starts a new syllable (default 6)
   --min    shortest syllable in beats after quantising (default 0.25)
@@ -160,6 +164,36 @@ def consonant_at(x, t, peak_db, coda=False):
     return 0
 
 
+NOTE_RANGE = (55, 77)   # G3..F5: --note auto's default register
+
+
+def note_number(text):
+    """MIDI number of a note name (C3, F#2, Bb4, Cs3, C-1) or a plain MIDI number; None if neither."""
+    import re
+    t = text.strip()
+    if re.fullmatch(r"\d{1,3}", t):
+        return int(t)
+    m = re.fullmatch(r"([A-Ga-g])([#sb]?)(-?\d)", t)
+    if not m:
+        return None
+    pc = {"c": 0, "d": 2, "e": 4, "f": 5, "g": 7, "a": 9, "b": 11}[m.group(1).lower()]
+    pc += {"#": 1, "s": 1, "b": -1, "": 0}[m.group(2)]
+    return 12 * (int(m.group(3)) + 1) + pc
+
+
+def note_range(text):
+    """(lo, hi) MIDI numbers from `LO..HI` (names or numbers); raises ValueError on a malformed or reversed range."""
+    lo_t, sep, hi_t = text.partition("..")
+    lo, hi = (note_number(lo_t), note_number(hi_t)) if sep else (None, None)
+    if lo is None or hi is None:
+        raise ValueError(f"--note-range {text!r}: expected LO..HI as note names or MIDI numbers, e.g. C2..C5 or 36..72")
+    if not (0 <= lo <= 127 and 0 <= hi <= 127):
+        raise ValueError(f"--note-range {text!r}: notes must be MIDI 0..127")
+    if lo > hi:
+        raise ValueError(f"--note-range {text!r}: the low note is above the high one")
+    return lo, hi
+
+
 def syllable_pitch(x, a, b, lo=55, hi=77, default="A4"):
     """Pitch of one syllable (MIDI lo..hi): harmonic summation over 5 harmonics of the segment's spectrum.
     Shouted vocals are noisy but strongly pitched; the estimate is the most salient harmonic series."""
@@ -236,6 +270,14 @@ def main():
     tab, d0 = opt("--tab", None), float(opt("--d0", "0"))
     b0, b1 = (int(v) for v in opt("--bars", "1-1").split("-"))
     note, grid = opt("--note", "Eb3"), float(opt("--grid", "0.125"))
+    lo, hi = NOTE_RANGE
+    if "--note-range" in a:
+        try:
+            lo, hi = note_range(opt("--note-range", ""))
+        except ValueError as e:
+            sys.exit(f"stemvox: {e}")
+        if note != "auto":
+            print(f"stemvox: --note-range applies to --note auto; ignored with --note {note}", file=sys.stderr)
     rng, dip, mn = float(opt("--range", "30")), float(opt("--dip", "6")), float(opt("--min", "0.25"))
     mode, shift = opt("--onsets", "runs"), float(opt("--shift", "0")) / 1000
     phones = "--phones" in a
@@ -286,7 +328,7 @@ def main():
                 qs = round((ts - ms) / spb / grid) * grid
                 ql = max(mn, round((te - ts) / spb / grid) * grid)
                 vel = int(np.clip(120 + 3 * lvl, 50, 124))
-                pitch = syllable_pitch(x, s, e) if note == "auto" else note
+                pitch = syllable_pitch(x, s, e, lo, hi) if note == "auto" else note
                 suffix = ""
                 if phones:
                     seg = x[int((s - shift) * SR):int((e - shift) * SR)]
