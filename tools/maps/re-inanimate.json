@@ -2428,7 +2428,8 @@
           999
         ]
       ],
-      "extra": {}
+      "extra": {},
+      "raw": "tools/maps/re-inanimate-drums-c1-r14.json#drums"
     },
     {
       "name": "vox",
