@@ -6,7 +6,12 @@ tempo map and quantised finely; the output is one score per piece family (kick, 
 hand drums, claps), each with per-hit velocities, ready to drop into a song (tab2song.py "raw" parts).
 
   drumtrans.py STEM.wav SONG.yaml TEMPLATES.wav PIECES.json OUT.json [--from S] [--to S] [--grid 24] [--gain-db G]
-               [--share 0.12] [--floor 0.06] [--labels TRACK] [--shift S] [--vel-gamma G]
+               [--share 0.12] [--floor 0.06] [--labels TRACK] [--shift S] [--vel-gamma G] [--kit-levels [--source-gain-db D]]
+
+--kit-levels (opt-in; bd-6f5e5a) reads each hit in units of its own piece's velocity-120 level from TEMPLATES.wav, so
+a kick rendered 20 dB louder than a hat no longer reads as harder playing; the stem's overall gain is one number,
+--source-gain-db (the stem's level relative to the kit render) or else taken from the kick and snare (their
+95th-percentile hit = velocity 120). Without it (the default, unchanged), one calibration covers every piece.
 
 --shift S moves every hit S seconds later (latency compensation: onsets are detected on the rising edge,
 a rendered hit peaks at its start — Pneuma's high band matched best at +21 ms).
@@ -198,7 +203,8 @@ def fmt(b):
     return f"{round(b, 4):.4f}".rstrip("0").rstrip(".")
 
 
-def transcribe(stem, song, tpl_wav, pieces, t0=0.0, t1=None, grid=24, gain_db=0.0, share=0.12, floor=0.06, labels=None, shift=0.0, vel_gamma=None):
+def transcribe(stem, song, tpl_wav, pieces, t0=0.0, t1=None, grid=24, gain_db=0.0, share=0.12, floor=0.06, labels=None, shift=0.0, vel_gamma=None,
+               kit_levels=False, source_gain_db=None):
     x = L.load(stem).mean(1)
     B = bands(x)
     on_all = pick(novelty(B))
@@ -214,7 +220,7 @@ def transcribe(stem, song, tpl_wav, pieces, t0=0.0, t1=None, grid=24, gain_db=0.
             _, kg, kn = templates(tpl_wav, all_pieces)
             kit_curve = {p: (kg[all_pieces.index(p)], kn[all_pieces.index(p)]) for p in pieces}
     else:
-        T, gamma, _ = templates(tpl_wav, pieces)
+        T, gamma, n120 = templates(tpl_wav, pieces)
         if vel_gamma:    # kits behind a bus compressor barely grow with velocity (gamma floors at 0.3): invert linearly
             gamma = np.full(len(pieces), float(vel_gamma))
     # weight bands so cymbal/hat bands count as much as the kick's: inverse of the stem's typical magnitude
@@ -256,9 +262,26 @@ def transcribe(stem, song, tpl_wav, pieces, t0=0.0, t1=None, grid=24, gain_db=0.
                 hint = f"  → raise the piece ~{need:+.1f} dB" if v95 > 127 else ""
                 print(f"  {p}: {len(amps[p])} hits, p95 velocity {v95:.0f}{hint}", file=sys.stderr)
         events = [(t, pieces[i], int(np.clip(velf(i, amp), 1, 127))) for t, i, amp in raw]
+    elif kit_levels:
+        # bd-6f5e5a (opt-in): each hit in units of ITS OWN piece's velocity-120 level (a hit as loud as that piece's
+        # vel-120 template is 1, whatever the piece), then one global source gain G: given (--source-gain-db), or
+        # from the anchors (kick and snare: their 95th-percentile hit is velocity 120), as the --labels path does
+        units = [(t, i, amp / (n120[i] + 1e-12)) for t, i, amp in raw]
+        if source_gain_db is not None:
+            G, how = 10 ** (source_gain_db / 20), "given"
+        else:
+            per = {}
+            for _, i, u in units:
+                per.setdefault(pieces[i], []).append(u)
+            anchors = [p for p in ("k", "s") if len(per.get(p, [])) > 10] or list(per)
+            G = float(np.median([np.percentile(per[p], 95) for p in anchors])) if anchors else 1.0
+            how = f"95th-percentile hit of {','.join(anchors) or 'none'} at 120"
+        print(f"drumtrans: kit levels: source gain {20 * np.log10(max(G, 1e-12)):+.2f} dB ({how})", file=sys.stderr)
+        events = [(t, pieces[i], int(np.clip(round(120 * (u / max(G, 1e-12)) ** (1 / gamma[i])), 1, 127))) for t, i, u in units]
     else:
         # velocity: through each piece's own level curve, with one global calibration so the 95th-percentile
-        # hit lands at 120 (the stem's absolute level is arbitrary)
+        # hit lands at 120 (the stem's absolute level is arbitrary). Pieces' own levels are NOT taken into account
+        # (a quieter piece reads as softer playing): --kit-levels does (bd-6f5e5a)
         v0 = np.array([amp ** (1 / gamma[i]) for _, i, amp in raw]) if raw else np.ones(1)
         cal = 120 / (np.percentile(v0, 95) + 1e-12)
         events = [(t, pieces[i], int(np.clip(cal * amp ** (1 / gamma[i]), 1, 127))) for t, i, amp in raw]
@@ -328,7 +351,8 @@ if __name__ == "__main__":
     labels = track_hits(a[1], a[a.index("--labels") + 1]) if "--labels" in a else None
     res, n_on = transcribe(a[0], a[1], a[2], pieces, opt("--from", 0.0), (opt("--to", -1.0) if "--to" in a else None),
                            opt("--grid", 24), opt("--gain-db", 0.0), opt("--share", 0.12), opt("--floor", 0.06), labels,
-                           opt("--shift", 0.0), opt("--vel-gamma", 0.0) or None)
+                           opt("--shift", 0.0), opt("--vel-gamma", 0.0) or None, "--kit-levels" in a,
+                           float(a[a.index("--source-gain-db") + 1]) if "--source-gain-db" in a else None)
     json.dump(res, open(a[4], "w"))
     if "--suggest-gains" in a:
         sg = suggest_family_gains()
