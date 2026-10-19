@@ -619,15 +619,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/imprint-of-the-un-saved.wav OUT.wav $(cat tools/imprint-of-the-un-saved-sections.txt)",
       "best": {
-        "score": 69.559,
-        "version": "v10",
+        "score": 69.68,
+        "version": "v11",
         "commit": "see git log songs/imprint-of-the-un-saved.yaml",
-        "engine": "a931418"
+        "engine": "5425a86"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 15,
+      "rounds": 16,
       "priority": 1.0,
       "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
       "meta": {
@@ -644,7 +644,7 @@
       },
       "ref_file": "ref/albums/catch-thirtythree/02 imprint-of-the-un-saved.webm",
       "last": {
-        "at": "2026-10-18T10:04:50Z",
+        "at": "2026-10-19T19:05:56Z",
         "who": "chirper-zero"
       }
     },
