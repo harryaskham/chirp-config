@@ -1648,7 +1648,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 1,
+      "rounds": 2,
       "priority": 1.0,
       "genre": "art pop / electronic (Amok official 2013, fixed supplied version)",
       "requested": {
@@ -1662,8 +1662,8 @@
         "title": "Ingenue"
       },
       "last": {
-        "at": "2026-10-18T23:29:56Z",
-        "who": "chirper-one"
+        "at": "2026-10-19T00:15:58Z",
+        "who": "chirper-zero"
       }
     }
   ]
