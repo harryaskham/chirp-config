@@ -7,12 +7,14 @@ there: section 59.8 -> 35.7). Score per section and keep the hats only where the
 
   stemhats.py SONG.yaml DRUM_STEM.wav OUT.yaml [--band 6000-12000] [--k 1.5] [--cover 0.03] [--gap 0.06]
               [--piece h] [--patch PATCH] [--gain -6dB] [--name drums-hats] [--tracks REGEX] [--from S] [--to S]
-              [--vel 15-90] [--len 0.125] [--map MAP.json --raw tools/maps/SONG-hats.json]
+              [--vel 15-90] [--len 0.125] [--floor-db D] [--map MAP.json --raw tools/maps/SONG-hats.json]
 
 Onsets: spectral flux of the band (log magnitude, hop 256), local maxima within +-30 ms above median + K * std of a
 2 s neighbourhood, at least --gap s apart. Covered: within --cover s of any note start of the tracks whose name
 matches --tracks (default drum|kit|perc|hat|cym|tom|snare|kick). Velocity from the band level around its median
-(2 per dB, clipped to --vel). --from/--to keep hits only inside that time range (the intro/ending may not want them);
+(2 per dB, clipped to --vel) — relative, so a nearly silent band reads like a loud one: stderr reports the kept hits'
+absolute band level (dBFS RMS of the hit's loudest 21 ms frame within 50 ms of its onset) and warns below -80 dBFS; --floor-db D (opt-in, bd-b4a779)
+drops onsets quieter than D dBFS first (e.g. -70: a float stem's -124 dBFS HF residue is not hats). --from/--to keep hits only inside that time range (the intro/ending may not want them);
 --to never exceeds the song's current end (onsets after it are dropped and reported - chirper-zero's Thin Thing catch).
 The new one-line track goes after the last matching track; its patch (first word) and sends come from the matching
 track that already plays --piece most, else the first kit-like one (piece names, not pitches) — a pitched
@@ -56,13 +58,16 @@ def main():
     E = np.log(F[:, band] + 1e-6)
     flux = np.concatenate([[0], np.maximum(np.diff(E, axis=0), 0).sum(1)])
     lvl = 10 * np.log10((F[:, band] ** 2).sum(1) + 1e-12)
+    # the same frame's band level in dBFS (RMS, 0 dBFS = RMS 1): Parseval on the windowed one-sided spectrum
+    dbfs = 10 * np.log10(2 * (F[:, band] ** 2).sum(1) / n / (np.hanning(n) ** 2).sum() + 1e-30)
     t = np.arange(len(flux)) * hop / sr + n / 2 / sr
-    w = int(0.03 * sr / hop); k = int(1.0 * sr / hop); on = []
+    w = int(0.03 * sr / hop); k = int(1.0 * sr / hop); on = []; abs_db = {}
     for i in range(w, len(flux) - w):
         if flux[i] == flux[i - w:i + w + 1].max():
             loc = flux[max(0, i - k):i + k]
             if flux[i] > np.median(loc) + K * loc.std() and (not on or t[i] - on[-1][0] > gap):
                 on.append((t[i], lvl[i]))
+                abs_db[t[i]] = float(dbfs[i:i + int(0.05 * sr / hop) + 1].max())   # the hit: its loudest frame in 50 ms
     hits, last, src, src_n, kitlike = [], None, None, 0, None
     piece = opt("--piece", "h")
     note = re.compile(r"^[A-Ga-g][#b]?-?\d+$")
@@ -107,6 +112,20 @@ def main():
         t_to = song_end
     keep = [(s, l) for s, l in on if t_from <= s < t_to and (hits.size == 0 or np.min(np.abs(hits - s)) > cover)]
     print(f"{len(on)} band onsets, {len(keep)} uncovered{' in range' if '--from' in a or '--to' in a else ''}")
+    if "--floor-db" in a and keep:
+        floor = opt("--floor-db", -70.0)
+        low = [abs_db[s] for s, _ in keep if abs_db[s] < floor]
+        keep = [(s, l) for s, l in keep if abs_db[s] >= floor]
+        if low:
+            print(f"--floor-db {floor:g}: dropped {len(low)} onsets below {floor:g} dBFS (loudest {max(low):.1f}), "
+                  f"{len(keep)} kept", file=sys.stderr)
+    if keep:
+        lv = np.array([abs_db[s] for s, _ in keep])
+        print(f"kept hits' band level: median {np.median(lv):.1f} dBFS (range {lv.min():.1f}..{lv.max():.1f})", file=sys.stderr)
+        if np.median(lv) < -80:
+            print(f"stemhats: the {b0:g}-{b1:g} Hz band is nearly silent (median {np.median(lv):.1f} dBFS): velocities are "
+                  "relative to it, so these hits may be noise read as hats; --floor-db D drops onsets below D dBFS",
+                  file=sys.stderr)
     if not keep:
         sys.exit("nothing to add")
     med = float(np.median([l for _, l in keep])); ln = opt("--len", 0.125)
