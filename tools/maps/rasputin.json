@@ -5792,7 +5792,42 @@
         "hf": "hp",
         "h1": "h"
       },
-      "raw": "tools/maps/rasputin-drums-pickup-chirper-two-r2.json#drums"
+      "raw": "tools/maps/rasputin-drums-pickup-chirper-two-r2.json#drums",
+      "extra": {
+        "auto": {
+          "r5_intro_level": {
+            "curve": 1,
+            "points": [
+              [
+                0,
+                -0.384532785438199
+              ],
+              [
+                "16s",
+                -0.384532785438199
+              ],
+              [
+                "16.2s",
+                0
+              ]
+            ]
+          }
+        },
+        "fx": [
+          {
+            "type": "gain",
+            "gain": {
+              "value": "0dB",
+              "mod": [
+                {
+                  "src": "auto.r5_intro_level",
+                  "amount": 1
+                }
+              ]
+            }
+          }
+        ]
+      }
     },
     {
       "name": "handclaps",
