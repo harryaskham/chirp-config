@@ -1666,6 +1666,370 @@
         "at": "2026-10-19T10:46:13Z",
         "who": "chirper-one"
       }
+    },
+    {
+      "id": "xtal",
+      "song": "songs/xtal.yaml",
+      "reference": "Aphex Twin — Xtal",
+      "source": "https://www.youtube.com/watch?v=sWcLccMuCA8",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/xtal.wav OUT.wav $(cat tools/xtal-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "ambient techno",
+      "meta": {
+        "artist": "Aphex Twin",
+        "album": "Selected Ambient Works 85-92",
+        "title": "Xtal",
+        "track": 1,
+        "year": 1992
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-19T22:56:04Z",
+        "note": "Harry's request: the whole album as one album climb. Canonical recording: the official album master (YouTube Music album playlist OLAK5uy_npVGHGqWs_-hTzVUivb8lCndQPVB7aIm0, Aphex Twin channel); one master for all 13 tracks."
+      },
+      "ref_file": "ref/albums/selected-ambient-works-85-92/01 xtal.webm"
+    },
+    {
+      "id": "tha",
+      "song": "songs/tha.yaml",
+      "reference": "Aphex Twin — Tha",
+      "source": "https://www.youtube.com/watch?v=N3G7JPTVVEQ",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/tha.wav OUT.wav $(cat tools/tha-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "ambient techno",
+      "meta": {
+        "artist": "Aphex Twin",
+        "album": "Selected Ambient Works 85-92",
+        "title": "Tha",
+        "track": 2,
+        "year": 1992
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-19T22:56:05Z",
+        "note": "Harry's request: the whole album as one album climb. Canonical recording: the official album master (YouTube Music album playlist OLAK5uy_npVGHGqWs_-hTzVUivb8lCndQPVB7aIm0, Aphex Twin channel); one master for all 13 tracks."
+      },
+      "ref_file": "ref/albums/selected-ambient-works-85-92/02 tha.webm"
+    },
+    {
+      "id": "pulsewidth",
+      "song": "songs/pulsewidth.yaml",
+      "reference": "Aphex Twin — Pulsewidth",
+      "source": "https://www.youtube.com/watch?v=OtAweb0IV14",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/pulsewidth.wav OUT.wav $(cat tools/pulsewidth-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "ambient techno",
+      "meta": {
+        "artist": "Aphex Twin",
+        "album": "Selected Ambient Works 85-92",
+        "title": "Pulsewidth",
+        "track": 3,
+        "year": 1992
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-19T22:56:06Z",
+        "note": "Harry's request: the whole album as one album climb. Canonical recording: the official album master (YouTube Music album playlist OLAK5uy_npVGHGqWs_-hTzVUivb8lCndQPVB7aIm0, Aphex Twin channel); one master for all 13 tracks."
+      },
+      "ref_file": "ref/albums/selected-ambient-works-85-92/03 pulsewidth.webm"
+    },
+    {
+      "id": "ageispolis",
+      "song": "songs/ageispolis.yaml",
+      "reference": "Aphex Twin — Ageispolis",
+      "source": "https://www.youtube.com/watch?v=bdWIwpTS48s",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/ageispolis.wav OUT.wav $(cat tools/ageispolis-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "ambient techno",
+      "meta": {
+        "artist": "Aphex Twin",
+        "album": "Selected Ambient Works 85-92",
+        "title": "Ageispolis",
+        "track": 4,
+        "year": 1992
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-19T22:56:07Z",
+        "note": "Harry's request: the whole album as one album climb. Canonical recording: the official album master (YouTube Music album playlist OLAK5uy_npVGHGqWs_-hTzVUivb8lCndQPVB7aIm0, Aphex Twin channel); one master for all 13 tracks."
+      },
+      "ref_file": "ref/albums/selected-ambient-works-85-92/04 ageispolis.webm"
+    },
+    {
+      "id": "i",
+      "song": "songs/i.yaml",
+      "reference": "Aphex Twin — I",
+      "source": "https://www.youtube.com/watch?v=KqnezE0qLSM",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/i.wav OUT.wav $(cat tools/i-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "ambient techno",
+      "meta": {
+        "artist": "Aphex Twin",
+        "album": "Selected Ambient Works 85-92",
+        "title": "I",
+        "track": 5,
+        "year": 1992
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-19T22:56:07Z",
+        "note": "Harry's request: the whole album as one album climb. Canonical recording: the official album master (YouTube Music album playlist OLAK5uy_npVGHGqWs_-hTzVUivb8lCndQPVB7aIm0, Aphex Twin channel); one master for all 13 tracks."
+      },
+      "ref_file": "ref/albums/selected-ambient-works-85-92/05 i.webm"
+    },
+    {
+      "id": "green-calx",
+      "song": "songs/green-calx.yaml",
+      "reference": "Aphex Twin — Green Calx",
+      "source": "https://www.youtube.com/watch?v=6yROS-zZqFU",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/green-calx.wav OUT.wav $(cat tools/green-calx-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "ambient techno",
+      "meta": {
+        "artist": "Aphex Twin",
+        "album": "Selected Ambient Works 85-92",
+        "title": "Green Calx",
+        "track": 6,
+        "year": 1992
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-19T22:56:07Z",
+        "note": "Harry's request: the whole album as one album climb. Canonical recording: the official album master (YouTube Music album playlist OLAK5uy_npVGHGqWs_-hTzVUivb8lCndQPVB7aIm0, Aphex Twin channel); one master for all 13 tracks."
+      },
+      "ref_file": "ref/albums/selected-ambient-works-85-92/06 green-calx.webm"
+    },
+    {
+      "id": "heliosphan",
+      "song": "songs/heliosphan.yaml",
+      "reference": "Aphex Twin — Heliosphan",
+      "source": "https://www.youtube.com/watch?v=Xxk-ryO6J2I",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/heliosphan.wav OUT.wav $(cat tools/heliosphan-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "ambient techno",
+      "meta": {
+        "artist": "Aphex Twin",
+        "album": "Selected Ambient Works 85-92",
+        "title": "Heliosphan",
+        "track": 7,
+        "year": 1992
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-19T22:56:09Z",
+        "note": "Harry's request: the whole album as one album climb. Canonical recording: the official album master (YouTube Music album playlist OLAK5uy_npVGHGqWs_-hTzVUivb8lCndQPVB7aIm0, Aphex Twin channel); one master for all 13 tracks."
+      },
+      "ref_file": "ref/albums/selected-ambient-works-85-92/07 heliosphan.webm"
+    },
+    {
+      "id": "we-are-the-music-makers",
+      "song": "songs/we-are-the-music-makers.yaml",
+      "reference": "Aphex Twin — We Are the Music Makers",
+      "source": "https://www.youtube.com/watch?v=4acK8W65jAE",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/we-are-the-music-makers.wav OUT.wav $(cat tools/we-are-the-music-makers-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "ambient techno",
+      "meta": {
+        "artist": "Aphex Twin",
+        "album": "Selected Ambient Works 85-92",
+        "title": "We Are the Music Makers",
+        "track": 8,
+        "year": 1992
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-19T22:56:10Z",
+        "note": "Harry's request: the whole album as one album climb. Canonical recording: the official album master (YouTube Music album playlist OLAK5uy_npVGHGqWs_-hTzVUivb8lCndQPVB7aIm0, Aphex Twin channel); one master for all 13 tracks."
+      },
+      "ref_file": "ref/albums/selected-ambient-works-85-92/08 we-are-the-music-makers.webm"
+    },
+    {
+      "id": "schottkey-7th-path",
+      "song": "songs/schottkey-7th-path.yaml",
+      "reference": "Aphex Twin — Schottkey 7th Path",
+      "source": "https://www.youtube.com/watch?v=22x8jxh4aVw",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/schottkey-7th-path.wav OUT.wav $(cat tools/schottkey-7th-path-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "ambient techno",
+      "meta": {
+        "artist": "Aphex Twin",
+        "album": "Selected Ambient Works 85-92",
+        "title": "Schottkey 7th Path",
+        "track": 9,
+        "year": 1992
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-19T22:56:11Z",
+        "note": "Harry's request: the whole album as one album climb. Canonical recording: the official album master (YouTube Music album playlist OLAK5uy_npVGHGqWs_-hTzVUivb8lCndQPVB7aIm0, Aphex Twin channel); one master for all 13 tracks."
+      },
+      "ref_file": "ref/albums/selected-ambient-works-85-92/09 schottkey-7th-path.webm"
+    },
+    {
+      "id": "ptolemy",
+      "song": "songs/ptolemy.yaml",
+      "reference": "Aphex Twin — Ptolemy",
+      "source": "https://www.youtube.com/watch?v=dBubcKr93K0",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/ptolemy.wav OUT.wav $(cat tools/ptolemy-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "ambient techno",
+      "meta": {
+        "artist": "Aphex Twin",
+        "album": "Selected Ambient Works 85-92",
+        "title": "Ptolemy",
+        "track": 10,
+        "year": 1992
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-19T22:56:12Z",
+        "note": "Harry's request: the whole album as one album climb. Canonical recording: the official album master (YouTube Music album playlist OLAK5uy_npVGHGqWs_-hTzVUivb8lCndQPVB7aIm0, Aphex Twin channel); one master for all 13 tracks."
+      },
+      "ref_file": "ref/albums/selected-ambient-works-85-92/10 ptolemy.webm"
+    },
+    {
+      "id": "hedphelym",
+      "song": "songs/hedphelym.yaml",
+      "reference": "Aphex Twin — Hedphelym",
+      "source": "https://www.youtube.com/watch?v=9gbSs6vAs_w",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/hedphelym.wav OUT.wav $(cat tools/hedphelym-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "ambient techno",
+      "meta": {
+        "artist": "Aphex Twin",
+        "album": "Selected Ambient Works 85-92",
+        "title": "Hedphelym",
+        "track": 11,
+        "year": 1992
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-19T22:56:12Z",
+        "note": "Harry's request: the whole album as one album climb. Canonical recording: the official album master (YouTube Music album playlist OLAK5uy_npVGHGqWs_-hTzVUivb8lCndQPVB7aIm0, Aphex Twin channel); one master for all 13 tracks."
+      },
+      "ref_file": "ref/albums/selected-ambient-works-85-92/11 hedphelym.webm"
+    },
+    {
+      "id": "delphium",
+      "song": "songs/delphium.yaml",
+      "reference": "Aphex Twin — Delphium",
+      "source": "https://www.youtube.com/watch?v=W4YVXY5YKAE",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/delphium.wav OUT.wav $(cat tools/delphium-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "ambient techno",
+      "meta": {
+        "artist": "Aphex Twin",
+        "album": "Selected Ambient Works 85-92",
+        "title": "Delphium",
+        "track": 12,
+        "year": 1992
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-19T22:56:13Z",
+        "note": "Harry's request: the whole album as one album climb. Canonical recording: the official album master (YouTube Music album playlist OLAK5uy_npVGHGqWs_-hTzVUivb8lCndQPVB7aIm0, Aphex Twin channel); one master for all 13 tracks."
+      },
+      "ref_file": "ref/albums/selected-ambient-works-85-92/12 delphium.webm"
+    },
+    {
+      "id": "actium",
+      "song": "songs/actium.yaml",
+      "reference": "Aphex Twin — Actium",
+      "source": "https://www.youtube.com/watch?v=pLxNh-qDIvg",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/actium.wav OUT.wav $(cat tools/actium-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "ambient techno",
+      "meta": {
+        "artist": "Aphex Twin",
+        "album": "Selected Ambient Works 85-92",
+        "title": "Actium",
+        "track": 13,
+        "year": 1992
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-19T22:56:14Z",
+        "note": "Harry's request: the whole album as one album climb. Canonical recording: the official album master (YouTube Music album playlist OLAK5uy_npVGHGqWs_-hTzVUivb8lCndQPVB7aIm0, Aphex Twin channel); one master for all 13 tracks."
+      },
+      "ref_file": "ref/albums/selected-ambient-works-85-92/13 actium.webm"
     }
   ]
 }
