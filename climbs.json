@@ -1173,7 +1173,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 6,
+      "rounds": 7,
       "priority": 1.0,
       "genre": "dream pop",
       "requested": {
@@ -1187,7 +1187,7 @@
         "title": "Genesis"
       },
       "last": {
-        "at": "2026-10-19T12:50:14Z",
+        "at": "2026-10-19T18:47:28Z",
         "who": "chirper-one"
       }
     },
