@@ -1479,7 +1479,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 4,
+      "rounds": 5,
       "priority": 1.0,
       "genre": "madchester / baggy",
       "meta": {
@@ -1493,8 +1493,8 @@
       },
       "ref_file": "ref/albums/singles/fools-gold.webm",
       "last": {
-        "at": "2026-10-19T10:10:38Z",
-        "who": "chirper-two"
+        "at": "2026-10-19T21:06:53Z",
+        "who": "chirper-one"
       }
     },
     {
