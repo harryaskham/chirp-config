@@ -1139,7 +1139,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 3,
+      "rounds": 4,
       "priority": 1.0,
       "genre": "cool jazz (Time Out 1959 fixed studio recording; real 5/4 throughout, physical alto/piano/upright bass/light stick kit)",
       "meta": {
@@ -1153,8 +1153,8 @@
       },
       "ref_file": "ref/albums/singles/take-five.webm",
       "last": {
-        "at": "2026-10-19T08:18:33Z",
-        "who": "chirper-three"
+        "at": "2026-10-19T09:46:55Z",
+        "who": "chirper-one"
       }
     },
     {
