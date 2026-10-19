@@ -1411,7 +1411,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 4,
+      "rounds": 5,
       "priority": 1.0,
       "genre": "Motown / soul (The Supremes, fixed supplied recording; 192 BPM 4/4 transcription aid, finger bass, female lead/backing guide, tambourine approximation)",
       "meta": {
@@ -1425,8 +1425,8 @@
       },
       "ref_file": "ref/albums/singles/you-can-t-hurry-love.opus",
       "last": {
-        "at": "2026-10-19T05:49:26Z",
-        "who": "chirper-three"
+        "at": "2026-10-19T10:43:45Z",
+        "who": "chirper-two"
       }
     },
     {
