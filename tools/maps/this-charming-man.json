@@ -4472,7 +4472,10 @@
    ],
    "patch": "tcm-lead",
    "gain": "-5dB",
-   "pan": 0.15
+   "pan": 0.15,
+   "replace": {
+    "1": "R/0.33b A4,C#5/0.32b@100^up=1 A4,C#5/0.25b@100^up=0 R/0.35b Ab4,B4/0.5b@100 Ab4,B4/0.25b@100 R/0.25b A4,D5/0.5b@100 E4/0.25b@100^dead A4,C#5/0.5b@100 Ab4,B4/0.5b@100"
+   }
   },
   {
    "name": "acoustic-rhythm",
