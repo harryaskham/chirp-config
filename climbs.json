@@ -1335,15 +1335,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/odyssey.wav OUT.wav $(cat tools/odyssey-sections.txt)",
       "best": {
-        "score": 55.67,
-        "version": "v2",
+        "score": 55.819,
+        "version": "v3",
         "commit": "see git log songs/odyssey.yaml",
         "engine": "15f4412"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 5,
+      "rounds": 6,
       "priority": 1.0,
       "genre": "electronica",
       "meta": {
@@ -1357,7 +1357,7 @@
       },
       "ref_file": "ref/albums/singles/odyssey.webm",
       "last": {
-        "at": "2026-10-19T04:57:08Z",
+        "at": "2026-10-19T06:07:33Z",
         "who": "chirper-three"
       }
     },
