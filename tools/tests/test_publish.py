@@ -52,6 +52,9 @@ class Publish(unittest.TestCase):
         for d in (self.tree, self.other):
             run(self.dir, "clone", "-q", self.origin, d)
             self.ident(d)
+        # the worst user config: git would autostash on its own (bd-d30a90 acceptance 1)
+        run(self.tree, "config", "rebase.autoStash", "true")
+        run(self.tree, "config", "merge.autoStash", "true")
         self.C = load()
         self.C.ROOT = self.tree
 
@@ -149,6 +152,51 @@ class Publish(unittest.TestCase):
         self.assertTrue(pushed, why)
         self.assertEqual(self.origin_file("ours.txt"), "ours v1")
         self.assertEqual(run(self.tree, "rev-list", "--count", "HEAD"), before, "publish records nothing new")
+
+    def test_a_staged_foreign_edit_keeps_its_index_and_bytes(self):
+        self.upstream("upstream.txt", "upstream v1\n")
+        self.write(self.tree, "foreign.txt", "staged draft\n")
+        run(self.tree, "add", "foreign.txt")
+        self.write(self.tree, "foreign.txt", "staged draft, then edited\n")
+        staged = run(self.tree, "diff", "--cached", "--", "foreign.txt")
+        ok, err = self.commit_ours()
+        self.assertTrue(ok, err)
+        self.assertEqual(self.origin_file("ours.txt"), "ours v1")
+        self.assertEqual(self.origin_file("foreign.txt"), "foreign.txt v0", "the staged draft is not published")
+        self.assertEqual(run(self.tree, "diff", "--cached", "--", "foreign.txt"), staged, "the index entry is kept")
+        self.assertEqual(self.read(self.tree, "foreign.txt"), "staged draft, then edited\n")
+        self.assertNothingStashed()
+
+    def test_a_fast_forward_beside_a_foreign_edit(self):
+        self.upstream("upstream.txt", "upstream v1\n")
+        self.write(self.tree, "foreign.txt", "another agent's draft\n")
+        ok, why = self.C.publish()
+        self.assertTrue(ok, why)
+        self.assertEqual(self.read(self.tree, "upstream.txt"), "upstream v1\n", "fast-forwarded")
+        self.assertEqual(self.read(self.tree, "foreign.txt"), "another agent's draft\n")
+        self.assertNothingStashed()
+
+    def test_a_push_race_is_retried_once_more(self):
+        real, calls, raced = self.C.git, [], []
+
+        def racing(*a):
+            calls.append(list(a))
+            if a[:1] == ("push",) and not raced:   # someone else pushes first
+                raced.append(1)
+                self.upstream("upstream.txt", "raced in\n")
+            return real(*a)
+        self.C.git = racing
+        ok, err = self.commit_ours()
+        self.assertTrue(ok, err)
+        self.assertEqual(err, "")
+        self.assertEqual(self.origin_file("upstream.txt"), "raced in")
+        self.assertEqual(self.origin_file("ours.txt"), "ours v1")
+        self.assertEqual(run(self.origin, "log", "--format=%s", "main").split("\n").count("ours"), 1, "one record")
+        for c in calls:
+            if c[:1] in (["merge"], ["rebase"]):
+                self.assertIn("--no-autostash", c, c)
+            self.assertNotIn("--autostash", c)
+        self.assertNothingStashed()
 
     def test_the_mocked_control_flow_never_stashes(self):
         # chirper-zero's repro shape: every git call mocked, a foreign tracked draft present

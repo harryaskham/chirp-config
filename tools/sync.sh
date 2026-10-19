@@ -14,7 +14,7 @@ py=$(command -v python3)
 before=$(git -C "$cfg" rev-parse HEAD)
 # Fast-forward only, under climb.py's git lock: the tree is shared, so never stash or rebase another agent's
 # uncommitted work (bd-d30a90); local commits are climb.py's to publish (`climb.py publish`).
-flock "$cfg/.git/climb-git.lock" -c "git -C '$cfg' fetch -q origin main && git -C '$cfg' merge -q --ff-only origin/main" \
+flock "$cfg/.git/climb-git.lock" -c "git -C '$cfg' fetch -q --no-write-fetch-head origin refs/heads/main:refs/remotes/origin/main && git -C '$cfg' merge -q --ff-only --no-autostash origin/main" \
   || echo "sync: config not fast-forwarded (local commits to publish, or an edit in the way; nothing stashed)"
 after=$(git -C "$cfg" rev-parse HEAD)
 tools_changed=$(git -C "$cfg" diff --name-only "$before" "$after" -- tools/evolve.py tools/compose.py | wc -l)

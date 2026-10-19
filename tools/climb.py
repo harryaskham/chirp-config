@@ -49,8 +49,8 @@ skipped (it writes shared unversioned paths) until that first round is done.
 
 Publishing (bd-d30a90): the tree is shared, so nothing ever stashes another agent's uncommitted work. Commits take
 only their own paths; when origin is ahead, a clean tree rebases, a tree with others' edits replays the commits in a
-scratch worktree, pushes from there and moves this tree with `git reset --keep` (which refuses rather than overwrite
-an edited file). If the push cannot happen the receipt says so — the record is committed locally; retry with
+scratch worktree, pushes from there and moves this tree over only the upstream-changed paths (refusing if one of them
+is edited here; every other index entry, a foreign staged edit included, stays as it was). If the push cannot happen the receipt says so — the record is committed locally; retry with
 `climb.py publish`, never by re-running the command (that would record the round twice).
 
 State, in this repo (the tool commits its own files and pushes; --no-git to skip):
@@ -234,9 +234,29 @@ def tracked_dirty():
     return paths
 
 
+def _advance(old, new):
+    """Move this tree from `old` to `new` touching only the paths that differ between them (index and file), and
+    only when none of those carries uncommitted work; every other index entry - a foreign staged edit included - is
+    left exactly as it was (`reset --keep` would reset the whole index). → None, or why it did not move."""
+    changed = [p for p in git("diff", "--name-only", "--no-renames", "-z", old, new).stdout.split("\0") if p]
+    busy = sorted(set(changed) & set(tracked_dirty()))
+    if busy:
+        return f"{', '.join(busy[:3])} {'is' if len(busy) == 1 else 'are'} edited here and changed upstream"
+    u = git("update-ref", "-m", "climb publish: advance to the published commit", "HEAD", new, old)
+    if u.returncode:
+        return f"HEAD moved meanwhile: {u.stderr.strip()[:120]}"
+    keep = [p for p in changed if git("cat-file", "-e", f"{new}:{p}").returncode == 0]
+    gone = [p for p in changed if p not in keep]
+    if keep:
+        git("checkout", new, "--", *keep)
+    if gone:
+        git("rm", "-q", "--ignore-unmatch", "--", *gone)
+    return None
+
+
 def _replay_elsewhere(ahead):
     """Origin is ahead and the tree holds others' edits: replay `ahead` (oldest first) on origin/main in a scratch
-    worktree and push from there, then move this tree to it with `reset --keep` (no stash). → (pushed, receipt)."""
+    worktree and push from there, then move this tree to it with _advance (no stash). → (pushed, receipt)."""
     import tempfile
     tmp = tempfile.mkdtemp(prefix="climb-publish-")
     wt = lambda *a: subprocess.run(["git", *a], cwd=tmp, capture_output=True, text=True)   # noqa: E731
@@ -252,10 +272,10 @@ def _replay_elsewhere(ahead):
         if wt("push", "-q", "origin", "HEAD:main").returncode:
             return False, "race"
         new = wt("rev-parse", "HEAD").stdout.strip()
-        k = git("reset", "-q", "--keep", new)
-        if k.returncode:
-            return True, (f"pushed {new[:7]}, but this tree stays where it was: {k.stderr.strip()[:160]} (a file edited "
-                          "here also changed upstream; `climb.py publish` again once it is committed)")
+        stuck = _advance(git("rev-parse", "HEAD").stdout.strip(), new)
+        if stuck:
+            return True, (f"pushed {new[:7]}, but this tree stays where it was: {stuck} (`climb.py publish` again once "
+                          "that is committed)")
         return True, f"pushed {new[:7]} (replayed beside others' uncommitted edits, none stashed)"
     finally:
         git("worktree", "remove", "--force", tmp)
@@ -266,14 +286,15 @@ def publish(attempts=5):
     """Push this tree's local commits to origin main without stashing anyone's work (bd-d30a90).
     → (True, receipt) when origin has them, (False, why) when they stay local."""
     for attempt in range(attempts):
-        f = git("fetch", "-q", "origin", "main")
+        # one named ref, no FETCH_HEAD (others' fetches in this tree can leave it naming several branches)
+        f = git("fetch", "-q", "--no-write-fetch-head", "origin", "refs/heads/main:refs/remotes/origin/main")
         if f.returncode:
             return False, f"fetch failed: {f.stderr.strip()[:160]}"
         # commits whose change is not upstream yet (an equivalent replay already pushed does not count)
         ahead = git("rev-list", "--reverse", "--cherry-pick", "--right-only", "--no-merges", "origin/main...HEAD").stdout.split()
         behind = git("rev-list", "HEAD..origin/main").stdout.split()
         if not ahead:
-            if behind and git("merge", "-q", "--ff-only", "origin/main").returncode:
+            if behind and git("merge", "-q", "--ff-only", "--no-autostash", "origin/main").returncode:
                 return True, "nothing to push (this tree is behind origin and could not fast-forward past local edits)"
             return True, "nothing to push"
         if behind:
@@ -282,7 +303,7 @@ def publish(attempts=5):
                 if why == "race" and attempt < attempts - 1:
                     continue
                 return ok, ("push lost every race" if why == "race" else why)
-            r = git("rebase", "-q", "origin/main")   # a clean tree: nothing to stash
+            r = git("rebase", "-q", "--no-autostash", "origin/main")   # a clean tree; never autostash, whatever the config
             if r.returncode:
                 git("rebase", "--abort")
                 return False, f"rebase onto origin/main conflicts: {(r.stdout + r.stderr).strip()[:160]}"
