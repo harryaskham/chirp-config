@@ -5791,7 +5791,8 @@
       "remap": {
         "hf": "hp",
         "h1": "h"
-      }
+      },
+      "raw": "tools/maps/rasputin-drums-pickup-chirper-two-r2.json#drums"
     },
     {
       "name": "handclaps",
