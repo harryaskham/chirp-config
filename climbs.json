@@ -1377,7 +1377,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 3,
+      "rounds": 4,
       "priority": 1.0,
       "genre": "euro-disco",
       "requested": {
@@ -1391,8 +1391,8 @@
         "title": "Rasputin"
       },
       "last": {
-        "at": "2026-10-19T10:58:37Z",
-        "who": "chirper-three"
+        "at": "2026-10-19T11:57:38Z",
+        "who": "chirper-zero"
       }
     },
     {
