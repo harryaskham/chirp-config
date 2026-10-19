@@ -1309,7 +1309,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 8,
+      "rounds": 9,
       "priority": 1.0,
       "genre": "dance-punk",
       "requested": {
@@ -1323,7 +1323,7 @@
         "title": "Dance Yrself Clean"
       },
       "last": {
-        "at": "2026-10-19T13:01:11Z",
+        "at": "2026-10-19T18:19:31Z",
         "who": "chirper-zero"
       }
     },
