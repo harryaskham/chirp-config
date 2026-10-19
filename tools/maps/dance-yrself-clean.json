@@ -2568,9 +2568,34 @@
                     "src": "rand"
                   }
                 ],
-                "value": "-134dB"
+                "value": "-137.010299956640dB"
               },
-              "type": "noise"
+              "type": "noise",
+              "pan": -0.2
+            },
+            {
+              "color": "pink",
+              "level": {
+                "mod": [
+                  {
+                    "amount": 120,
+                    "src": "env.n"
+                  },
+                  {
+                    "amount": 10,
+                    "src": "vel"
+                  },
+                  {
+                    "amount": 2,
+                    "src": "rand"
+                  }
+                ],
+                "value": "-137.010299956640dB"
+              },
+              "type": "noise",
+              "name": "noise-right",
+              "pan": 0.6,
+              "audible": true
             }
           ],
           "pitch": {
@@ -3028,7 +3053,7 @@
       "name": "outro-attack",
       "raw": "tools/maps/dance-yrself-clean-ending-c1-r3.txt",
       "patch": "dyc-ending-attack",
-      "gain": "9.115476953dB"
+      "gain": "5.919140793435dB"
     }
   ]
 }
