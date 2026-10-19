@@ -1445,7 +1445,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 6,
+      "rounds": 7,
       "priority": 1.0,
       "genre": "synth-pop / new wave (2016 remaster of the 12-inch)",
       "requested": {
@@ -1459,8 +1459,8 @@
         "title": "Blue Monday"
       },
       "last": {
-        "at": "2026-10-19T12:25:13Z",
-        "who": "chirper-three"
+        "at": "2026-10-19T19:42:30Z",
+        "who": "chirper-two"
       }
     },
     {
