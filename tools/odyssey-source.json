@@ -396,7 +396,7 @@
     "filters": [
      {
       "kind": "lp",
-      "cutoff": 420,
+      "cutoff": 840,
       "q": 0.65
      }
     ]
@@ -619,7 +619,19 @@
    "name": "pad",
    "patch": "odyssey-pad",
    "gain": "0dB",
-   "score": "R/390.5333b A3/4b@90 A2,E4/4b@93 A2,C#3/4b@92 F2,A2/4b@90 A2/4b@94 A2,F3/4b@94 A2,C#3/4b@99 A2,E3/4b@95 A2/4b@96 G#2,A2/4b@90 A2,C#3/4b@96 F2,A2/4b@92 A2/4b@93 A2,F3/4b@95 A2,C#3/4b@100 A2,E3/4b@95 A2/4b@97 D3,E3/16.125b@101 R/0.0080333b"
+   "score": "R/390.5333b A3/4b@90 A2,E4/4b@93 A2,C#3/4b@92 F2,A2/4b@90 A2/4b@94 A2,F3/4b@94 A2,C#3/4b@99 A2,E3/4b@95 A2/4b@96 G#2,A2/4b@90 A2,C#3/4b@96 F2,A2/4b@92 A2/4b@93 A2,F3/4b@95 A2,C#3/4b@100 A2,E3/4b@95 A2/4b@97 D3,E3/16.125b@101 R/0.0080333b",
+   "fx": [
+    {
+     "type": "width",
+     "width": 2,
+     "bass_width": 2,
+     "mono_below": 0
+    },
+    {
+     "type": "gain",
+     "gain": "-0.472267139dB"
+    }
+   ]
   }
  ]
 }
