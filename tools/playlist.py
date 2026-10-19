@@ -10,6 +10,9 @@ committed by then; see the registry's _protocol). Players (`chirp player`, the w
 - The session validates every file at its turn; one that fails (e.g. it needs a newer engine than the
   groove runs) is skipped and its error shows beside the entry.
 - tools/playlist-solo (runtime, ignored) holding one climb id makes the playlist that climb alone.
+- tools/playlist-album (runtime, ignored) holding an album name makes the playlist that album: its enabled tracks
+  with a song, in track order, looping; tracks join as their first versions are kept. Until one has a song the
+  whole rotation plays.
 - A player playing an album (or any playlist mostly of other songs) is left alone until it finishes
   (albums play once through) or is cleared; then the rotation comes back.
 - To show Harry something, take over for one pass: `chirp live queue FILE --id groove --now --label NAME`.
@@ -56,12 +59,38 @@ def climbs():
         log("registry unreadable:", e)
         return []
     on = [c for c in reg.get("climbs", []) if c.get("enabled", True)]
+    on = album_only(on)
     try:
         solo = open(os.path.join(HERE, "playlist-solo")).read().strip()
     except OSError:
         solo = ""
     if solo:
         on = [c for c in on if c["id"] == solo] or on
+    return on
+
+
+ALBUM_MODE = [None]
+
+
+def album_only(on):
+    """tools/playlist-album: only that album's enabled tracks that have a song, in track order (else everything)."""
+    try:
+        album = open(os.path.join(HERE, "playlist-album")).read().strip()
+    except OSError:
+        album = ""
+    mode = None
+    if album:
+        mine = [c for c in on if str((c.get("meta") or {}).get("album", "")).casefold() == album.casefold()
+                and c.get("song") and os.path.exists(path(c))]
+        if mine:
+            on = sorted(mine, key=lambda c: ((c.get("meta") or {}).get("track") or 999, c["id"]))
+            mode = f"album {album}: {len(on)} track(s) ({', '.join(c['id'] for c in on)})"
+        else:
+            mode = f"album {album}: no track has a song yet, so the whole rotation plays"
+    if mode != ALBUM_MODE[0]:
+        ALBUM_MODE[0] = mode
+        if mode:
+            log("playlist:", mode)
     return on
 
 
