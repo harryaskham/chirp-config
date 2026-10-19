@@ -1369,15 +1369,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/rasputin.wav OUT.wav $(cat tools/rasputin-sections.txt)",
       "best": {
-        "score": 54.151,
-        "version": "v2",
+        "score": 54.244,
+        "version": "v3",
         "commit": "see git log songs/rasputin.yaml",
-        "engine": "a85cd2f"
+        "engine": "b1741e4"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 2,
+      "rounds": 3,
       "priority": 1.0,
       "genre": "euro-disco",
       "requested": {
@@ -1391,8 +1391,8 @@
         "title": "Rasputin"
       },
       "last": {
-        "at": "2026-10-19T07:00:24Z",
-        "who": "chirper-two"
+        "at": "2026-10-19T10:58:37Z",
+        "who": "chirper-three"
       }
     },
     {
