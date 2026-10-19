@@ -159,6 +159,26 @@ class Sectioned(unittest.TestCase):
                 self.assertEqual(r["total"], module(OLD, "likeness_old_c").sectioned(self.ref, cand, self.bounds)["total"],
                                  "the default score is unchanged")
 
+    def test_sections_past_the_reference_end(self):
+        # Re-Inanimate/Archangel: the last bound 45-47 ms past the reference's end (a rounded nominal bound)
+        cand = os.path.join(self.dir, "long.wav")
+        write(cand, music(41, 2, 116.0))
+        over = self.bounds[:-1] + [40.05]
+        with self.assertRaisesRegex(ValueError, r"50\.0 ms past the reference \(40\.000 s\).*at most 40\.000"):
+            L.sectioned(self.ref, cand, over, coverage="strict")
+        err = io.StringIO()
+        with redirect_stderr(err):
+            r = L.sectioned(self.ref, cand, over)
+        self.assertIn("ms past the reference", err.getvalue())
+        self.assertFalse(r["coverage"]["complete"])
+        self.assertEqual(r["coverage"]["short_sections"], [], "the candidate covers them")
+        with redirect_stderr(io.StringIO()):
+            ok = L.sectioned(self.ref, cand, self.bounds[:-1] + [40.01], coverage="strict")   # within one hop
+        self.assertTrue(ok["coverage"]["complete"])
+        if OLD:
+            with redirect_stderr(io.StringIO()):
+                self.assertEqual(r["total"], module(OLD, "likeness_old_r").sectioned(self.ref, cand, over)["total"])
+
     def test_a_section_the_render_never_reaches(self):
         cand = self.short(20.0)   # ends inside section 3; section 4 (29.25-40 s) is empty
         with self.assertRaisesRegex(ValueError, "does not reach section"), redirect_stderr(io.StringIO()):

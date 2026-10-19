@@ -282,11 +282,13 @@ def sectioned(ref, cand, bounds, coverage="report"):
     covered = [max(0.0, min(b, cand_s) - a) for a, b in zip(bounds[:-1], bounds[1:])]   # as rendered, padded or not
     short = [i for i, (a, b) in enumerate(zip(bounds[:-1], bounds[1:])) if covered[i] < (b - a) - tol]
     ref_short = [i for i, (a, b) in enumerate(zip(bounds[:-1], bounds[1:])) if max(0.0, min(b, ref_s) - a) < (b - a) - tol]
+    over = (f"; the sections end {1000 * (bounds[-1] - ref_s):.1f} ms past the reference ({ref_s:.3f} s): record a "
+            f"corrected last bound (at most {np.floor(ref_s * 1000) / 1000:.3f}) with fresh paired controls") if ref_short else ""
     where = lambda ix: ", ".join(f"{bounds[i]:g}-{bounds[i + 1]:g} s ({covered[i] / (bounds[i + 1] - bounds[i]):.0%})" for i in ix)  # noqa: E731
     if coverage == "strict" and (short or ref_short):
         raise ValueError(f"coverage: requested sections end at {bounds[-1]:g} s; the candidate is {cand_s:.3f} s and the "
                          f"reference {ref_s:.3f} s" + (f"; candidate short in {where(short)}" if short else "")
-                         + (f"; reference short in {len(ref_short)} section(s)" if ref_short else ""))
+                         + over)
     if coverage == "pad" and len(cs) < int(bounds[-1] * SR):
         cs = np.concatenate([cs, np.zeros((int(bounds[-1] * SR) - len(cs), cs.shape[1]), cs.dtype)])
     empty = [i for i in short if covered[i] <= 0 and coverage != "pad"]
@@ -299,7 +301,7 @@ def sectioned(ref, cand, bounds, coverage="report"):
               f"{where(short)} scored on the covered part only — not comparable with a full-length render; "
               "--strict-coverage refuses, --pad-silence scores the rest as silence", file=sys.stderr)
     if ref_short:
-        print(f"likeness: the reference ({ref_s:.3f} s) ends before the requested sections ({bounds[-1]:g} s)", file=sys.stderr)
+        print(f"likeness: the reference ({ref_s:.3f} s) ends before the requested sections ({bounds[-1]:g} s){over}", file=sys.stderr)
     out, wsum, tsum, rsum = [], 0.0, 0.0, 0.0
     for a, b in zip(bounds[:-1], bounds[1:]):
         seg = cs[int(a * SR):int(b * SR)]
