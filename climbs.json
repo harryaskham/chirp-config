@@ -664,7 +664,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 22,
+      "rounds": 23,
       "priority": 1.0,
       "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
       "meta": {
@@ -681,7 +681,7 @@
       },
       "ref_file": "ref/albums/catch-thirtythree/03 disenchantment.webm",
       "last": {
-        "at": "2026-10-19T19:28:51Z",
+        "at": "2026-10-19T21:29:59Z",
         "who": "chirper-zero"
       }
     },
