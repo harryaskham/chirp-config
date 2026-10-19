@@ -180,7 +180,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 48,
+      "rounds": 49,
       "priority": 1.0,
       "genre": "art rock / free-jazz brass",
       "requested": {
@@ -189,8 +189,8 @@
         "note": null
       },
       "last": {
-        "at": "2026-10-17T10:57:02Z",
-        "who": "chirper-one"
+        "at": "2026-10-19T07:22:58Z",
+        "who": "chirper-two"
       }
     },
     {
