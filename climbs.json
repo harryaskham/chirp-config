@@ -1207,7 +1207,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 4,
+      "rounds": 5,
       "priority": 1.0,
       "genre": "indie / jangle pop",
       "meta": {
@@ -1221,8 +1221,8 @@
       },
       "ref_file": "ref/albums/singles/this-charming-man.webm",
       "last": {
-        "at": "2026-10-19T05:28:41Z",
-        "who": "chirper-one"
+        "at": "2026-10-19T06:00:16Z",
+        "who": "chirper-two"
       }
     },
     {
