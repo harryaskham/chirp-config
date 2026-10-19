@@ -1275,7 +1275,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 1,
+      "rounds": 2,
       "priority": 1.0,
       "genre": "drum and bass / neurofunk (Noisia, Split the Atom 2010 fixed album recording; 172 BPM stem-derived note guides, native reese/FM growl and sampleless drums)",
       "meta": {
@@ -1289,8 +1289,8 @@
       },
       "ref_file": "ref/albums/singles/diplodocus.webm",
       "last": {
-        "at": "2026-10-18T19:22:28Z",
-        "who": "chirper-three"
+        "at": "2026-10-19T01:12:44Z",
+        "who": "chirper-zero"
       }
     },
     {
