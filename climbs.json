@@ -445,7 +445,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 19,
+      "rounds": 20,
       "priority": 1.0,
       "genre": "French house (talkbox/vocoder, filtered loops)",
       "requested": {
@@ -454,8 +454,8 @@
         "note": null
       },
       "last": {
-        "at": "2026-10-17T11:10:18Z",
-        "who": "chirper-three"
+        "at": "2026-10-19T18:34:02Z",
+        "who": "chirper-one"
       }
     },
     {
