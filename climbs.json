@@ -1267,15 +1267,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/diplodocus.wav OUT.wav $(cat tools/diplodocus-sections.txt)",
       "best": {
-        "score": 48.78,
-        "version": "v1",
+        "score": 49.51,
+        "version": "v2",
         "commit": "see git log songs/diplodocus.yaml",
-        "engine": "654b5e3"
+        "engine": "a85cd2f"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 4,
+      "rounds": 5,
       "priority": 1.0,
       "genre": "drum and bass / neurofunk (Noisia, Split the Atom 2010 fixed album recording; 172 BPM stem-derived note guides, native reese/FM growl and sampleless drums)",
       "meta": {
@@ -1289,8 +1289,8 @@
       },
       "ref_file": "ref/albums/singles/diplodocus.webm",
       "last": {
-        "at": "2026-10-19T03:02:50Z",
-        "who": "chirper-three"
+        "at": "2026-10-19T08:00:03Z",
+        "who": "chirper-zero"
       }
     },
     {
