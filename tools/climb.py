@@ -36,6 +36,8 @@ for any climbing agent's next pass, one climb to work on, weighted towards the f
   climb.py focus ALBUM | --off                      climb only that album: pause every other queued climb
                                                     (marked, so --off resumes exactly those); the playlist
                                                     is unchanged
+  climb.py commit -m MSG PATH …                     commit those paths only and publish (below)
+  climb.py publish                                  push this tree's local commits (a retry: records nothing)
 Out of band: `add --oob` (or `set ID oob=true`) makes a test climb that `next` never picks and that never
 joins the playlist; agents can still climb it (and any paused climb) directly when asked.
 
@@ -44,6 +46,12 @@ Sampling: weight = priority / (1 + rounds), halved for a climb another agent sta
 ×0.6 for its genre (switch it up). Requested songs have no rounds, so they come up first — but a
 song's setup is one agent's job: one with no rounds that another agent started in the last 2 h is
 skipped (it writes shared unversioned paths) until that first round is done.
+
+Publishing (bd-d30a90): the tree is shared, so nothing ever stashes another agent's uncommitted work. Commits take
+only their own paths; when origin is ahead, a clean tree rebases, a tree with others' edits replays the commits in a
+scratch worktree, pushes from there and moves this tree with `git reset --keep` (which refuses rather than overwrite
+an edited file). If the push cannot happen the receipt says so — the record is committed locally; retry with
+`climb.py publish`, never by re-running the command (that would record the round twice).
 
 State, in this repo (the tool commits its own files and pushes; --no-git to skip):
   climbs.json          the registry — the groove's playlist plays its `enabled` entries
@@ -212,9 +220,82 @@ def git(*a):
     return subprocess.run(["git", *a], cwd=ROOT, capture_output=True, text=True)
 
 
+def tracked_dirty():
+    """Tracked paths with uncommitted changes (index or working tree): another agent's active work."""
+    out = git("status", "--porcelain=v1", "-z", "--untracked-files=no").stdout.split("\0")
+    paths, i = [], 0
+    while i < len(out):
+        e = out[i]
+        if e:
+            paths.append(e[3:])
+            if e[0] in "RC":   # a rename or copy: the next field is its source
+                i += 1
+        i += 1
+    return paths
+
+
+def _replay_elsewhere(ahead):
+    """Origin is ahead and the tree holds others' edits: replay `ahead` (oldest first) on origin/main in a scratch
+    worktree and push from there, then move this tree to it with `reset --keep` (no stash). → (pushed, receipt)."""
+    import tempfile
+    tmp = tempfile.mkdtemp(prefix="climb-publish-")
+    wt = lambda *a: subprocess.run(["git", *a], cwd=tmp, capture_output=True, text=True)   # noqa: E731
+    try:
+        w = git("worktree", "add", "-q", "--detach", tmp, "origin/main")
+        if w.returncode:
+            return False, f"scratch worktree failed: {w.stderr.strip()[:160]}"
+        for c in ahead:
+            cp = wt("cherry-pick", "--allow-empty", c)
+            if cp.returncode:
+                wt("cherry-pick", "--abort")
+                return False, f"{c[:7]} conflicts with origin/main: {(cp.stdout + cp.stderr).strip()[:160]}"
+        if wt("push", "-q", "origin", "HEAD:main").returncode:
+            return False, "race"
+        new = wt("rev-parse", "HEAD").stdout.strip()
+        k = git("reset", "-q", "--keep", new)
+        if k.returncode:
+            return True, (f"pushed {new[:7]}, but this tree stays where it was: {k.stderr.strip()[:160]} (a file edited "
+                          "here also changed upstream; `climb.py publish` again once it is committed)")
+        return True, f"pushed {new[:7]} (replayed beside others' uncommitted edits, none stashed)"
+    finally:
+        git("worktree", "remove", "--force", tmp)
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+def publish(attempts=5):
+    """Push this tree's local commits to origin main without stashing anyone's work (bd-d30a90).
+    → (True, receipt) when origin has them, (False, why) when they stay local."""
+    for attempt in range(attempts):
+        f = git("fetch", "-q", "origin", "main")
+        if f.returncode:
+            return False, f"fetch failed: {f.stderr.strip()[:160]}"
+        # commits whose change is not upstream yet (an equivalent replay already pushed does not count)
+        ahead = git("rev-list", "--reverse", "--cherry-pick", "--right-only", "--no-merges", "origin/main...HEAD").stdout.split()
+        behind = git("rev-list", "HEAD..origin/main").stdout.split()
+        if not ahead:
+            if behind and git("merge", "-q", "--ff-only", "origin/main").returncode:
+                return True, "nothing to push (this tree is behind origin and could not fast-forward past local edits)"
+            return True, "nothing to push"
+        if behind:
+            if tracked_dirty():
+                ok, why = _replay_elsewhere(ahead)
+                if why == "race" and attempt < attempts - 1:
+                    continue
+                return ok, ("push lost every race" if why == "race" else why)
+            r = git("rebase", "-q", "origin/main")   # a clean tree: nothing to stash
+            if r.returncode:
+                git("rebase", "--abort")
+                return False, f"rebase onto origin/main conflicts: {(r.stdout + r.stderr).strip()[:160]}"
+        if git("push", "-q", "origin", "HEAD:main").returncode == 0:
+            return True, f"pushed {git('rev-parse', '--short', 'HEAD').stdout.strip()}"
+        time.sleep(1 + attempt)
+    return False, "push lost every race"
+
+
 def commit(paths, msg, args):
-    """True when the change is in a commit (pushed, or local to go with the next push); False when nothing was
-    committed - callers must then fail loudly, or the registry edit can be lost to the next agent's sync."""
+    """True when the change is in a commit (pushed, or local with an honest receipt and `climb.py publish` to retry);
+    False when nothing was committed - callers must then fail loudly, or the registry edit can be lost to the next
+    agent's sync. Never stashes another agent's uncommitted work (bd-d30a90)."""
     if "--no-git" in args or not os.path.isdir(os.path.join(ROOT, ".git")):
         return True
     rel = [os.path.relpath(os.path.join(ROOT, p) if not os.path.isabs(p) else p, ROOT) for p in paths]
@@ -233,19 +314,11 @@ def commit(paths, msg, args):
                 continue
             print(f"climb: not committed: {out.strip()[:200]}", file=sys.stderr)
             return False
-        for attempt in range(5):
-            p = git("pull", "-q", "--rebase", "--autostash", "origin", "main")
-            if p.returncode:
-                git("rebase", "--abort")
-                # another agent's fetch in the shared tree can leave FETCH_HEAD naming several branches for a moment
-                if "multiple branches" in p.stderr and attempt < 4:
-                    time.sleep(2 + 2 * attempt)
-                    continue
-                print(f"climb: committed locally; pull failed: {p.stderr.strip()[:200]}", file=sys.stderr)
-                return True
-            if git("push", "-q", "origin", "HEAD:main").returncode == 0:
-                return True
-        print("climb: committed locally; push lost three races (it goes with the next push)", file=sys.stderr)
+        ok, why = publish()
+        if not ok:
+            sha = git("rev-parse", "--short", "HEAD").stdout.strip()
+            print(f"climb: committed locally as {sha} but NOT pushed: {why}. The record is safe in git; retry with "
+                  "`python3 tools/climb.py publish` - do not re-run this command (it would record it twice)", file=sys.stderr)
         return True
 
 
@@ -889,6 +962,25 @@ def cmd_focus(a):
         commit_or_die(["climbs.json"], f"climbs: focus {'off' if off else pos[0]} ({len(changed)} changed)", a)
 
 
+def cmd_commit(a):
+    """climb.py commit -m MSG PATH …: commit exactly those paths and publish them (no stash, honest receipt)."""
+    if "-m" not in a or a.index("-m") + 1 >= len(a):
+        die("usage: climb.py commit -m MSG PATH …")
+    i = a.index("-m")
+    msg, paths = a[i + 1], [p for p in a[:i] + a[i + 2:] if p != "--no-git"]
+    if not paths:
+        die("climb.py commit: name the paths to commit")
+    commit_or_die(paths, msg, a)
+
+
+def cmd_publish(a):
+    """climb.py publish: push local commits (after a 'NOT pushed' receipt). Records nothing."""
+    with locked("climb-git.lock"):
+        ok, why = publish()
+    print(f"climb: {why}" if ok else f"climb: NOT pushed: {why}", file=sys.stderr if not ok else sys.stdout)
+    sys.exit(0 if ok else 1)
+
+
 def cmd_tui(a):
     import runpy
     sys.argv = [os.path.join(HERE, "climbtui.py"), *a]
@@ -903,7 +995,8 @@ def main():
     table = {"add": cmd_add, "request": cmd_add, "add-album": cmd_add_album, "refs": cmd_refs, "art": cmd_art, "next": cmd_next, "done": cmd_done, "log": cmd_log, "set": cmd_set,
              "note": cmd_note,
              "pause": lambda r: cmd_state(r, "paused"), "resume": lambda r: cmd_state(r, "active"),
-             "drop": lambda r: cmd_state(r, "dropped"), "focus": cmd_focus, "tui": cmd_tui}
+             "drop": lambda r: cmd_state(r, "dropped"), "focus": cmd_focus, "tui": cmd_tui,
+             "commit": cmd_commit, "publish": cmd_publish}
     if cmd in ("-h", "--help", "help"):
         print(__doc__)
         return

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # sync.sh — keep the live groove on the latest shared config, evolver and chirp build.
-#  1. pull chirp-config (rebase, autostash); restart the evolver (keeping the playing song) if
+#  1. fast-forward chirp-config (never stashes; bd-d30a90); restart the evolver (keeping the playing song) if
 #     evolve.py/compose.py changed upstream
 #  2. if tools origin/main has new chirp commits, rebuild in a detached worktree and restart the
 #     groove on a fresh pinned copy (resuming the queued song)
@@ -12,7 +12,10 @@ pinned=${XDG_RUNTIME_DIR:-/tmp}/chirp-groove; log=${TMPDIR:-/tmp}/chirp-evolve.l
 py=$(command -v python3)
 
 before=$(git -C "$cfg" rev-parse HEAD)
-git -C "$cfg" pull -q --rebase --autostash origin main || echo "sync: config pull failed (local changes?)"
+# Fast-forward only, under climb.py's git lock: the tree is shared, so never stash or rebase another agent's
+# uncommitted work (bd-d30a90); local commits are climb.py's to publish (`climb.py publish`).
+flock "$cfg/.git/climb-git.lock" -c "git -C '$cfg' fetch -q origin main && git -C '$cfg' merge -q --ff-only origin/main" \
+  || echo "sync: config not fast-forwarded (local commits to publish, or an edit in the way; nothing stashed)"
 after=$(git -C "$cfg" rev-parse HEAD)
 tools_changed=$(git -C "$cfg" diff --name-only "$before" "$after" -- tools/evolve.py tools/compose.py | wc -l)
 [ "$before" != "$after" ] && echo "sync: config $before → $after ($(git -C "$cfg" log --oneline "$before..$after" | wc -l) commits)"
