@@ -1233,15 +1233,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/baddadan.wav OUT.wav $(cat tools/baddadan-sections.txt)",
       "best": {
-        "score": 46.204,
-        "version": "v1",
+        "score": 47.014,
+        "version": "v2",
         "commit": "see git log songs/baddadan.yaml",
-        "engine": "da70ccd"
+        "engine": "cd0a9c2"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 1,
+      "rounds": 2,
       "priority": 1.0,
       "genre": "drum and bass (jump-up; MC-led)",
       "requested": {
@@ -1255,8 +1255,8 @@
         "title": "Baddadan"
       },
       "last": {
-        "at": "2026-10-18T17:11:23Z",
-        "who": "chirper-one"
+        "at": "2026-10-19T01:47:07Z",
+        "who": "chirper-two"
       }
     },
     {
