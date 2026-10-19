@@ -26,14 +26,15 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 112,
       "priority": 1,
       "genre": "orchestral metal (game OST)",
       "last": {
         "at": "2026-10-19T22:09:54Z",
         "who": "chirper-three"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "bleed",
@@ -49,14 +50,15 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 72,
       "priority": 1,
       "genre": "extreme metal / djent",
       "last": {
         "at": "2026-10-19T12:26:04Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "pneuma",
@@ -73,14 +75,15 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 64,
       "priority": 1,
       "genre": "progressive metal",
       "last": {
         "at": "2026-10-19T02:07:59Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "laid-to-rest",
@@ -97,14 +100,15 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 79,
       "priority": 1,
       "genre": "groove metal",
       "last": {
         "at": "2026-10-17T06:08:36Z",
         "who": "chirper-two"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "daydreaming",
@@ -121,7 +125,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 55,
       "priority": 1.0,
       "genre": "chamber folk / indie",
@@ -133,7 +137,8 @@
       "last": {
         "at": "2026-10-17T11:23:14Z",
         "who": "chirper-two"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "saturnine",
@@ -150,7 +155,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 44,
       "priority": 1.0,
       "genre": "jazz trio / nu-jazz",
@@ -162,7 +167,8 @@
       "last": {
         "at": "2026-10-17T10:48:14Z",
         "who": "chirper-three"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "the-national-anthem",
@@ -179,7 +185,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 50,
       "priority": 1.0,
       "genre": "art rock / free-jazz brass",
@@ -191,7 +197,8 @@
       "last": {
         "at": "2026-10-19T08:24:25Z",
         "who": "chirper-two"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "thin-thing",
@@ -209,7 +216,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 48,
       "priority": 1.0,
       "genre": "art rock / math rock (The Smile, A Light for Attracting Attention, 2022)",
@@ -221,7 +228,8 @@
       "last": {
         "at": "2026-10-19T06:25:07Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "come-down",
@@ -238,7 +246,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 48,
       "priority": 1.0,
       "genre": "funk / hip-hop (Malibu, 2016; prod. Hi-Tek)",
@@ -251,7 +259,8 @@
         "at": "2026-10-19T19:44:47Z",
         "who": "chirper-three"
       },
-      "clip": "from the first note at 0:00 to the last note's decay before the applause (find the end from the audio: drums and bass stop, broadband applause starts); 938 s video, songs follow: Heart Don't Stand A Chance, Put Me Thru, Suede"
+      "clip": "from the first note at 0:00 to the last note's decay before the applause (find the end from the audio: drums and bass stop, broadband applause starts); 938 s video, songs follow: Heart Don't Stand A Chance, Put Me Thru, Suede",
+      "paused_by": "focus"
     },
     {
       "id": "raining-blood",
@@ -268,7 +277,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 49,
       "priority": 1.0,
       "genre": "thrash metal",
@@ -280,7 +289,8 @@
       "last": {
         "at": "2026-10-17T10:24:20Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "2-minutes-to-midnight",
@@ -297,7 +307,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 50,
       "priority": 1.0,
       "genre": "heavy metal (NWOBHM; Powerslave, 1984; 1998 remaster upload)",
@@ -309,7 +319,8 @@
       "last": {
         "at": "2026-10-17T10:07:12Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "flim",
@@ -326,7 +337,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 54,
       "priority": 1.0,
       "genre": "IDM / breakbeat",
@@ -338,7 +349,8 @@
       "last": {
         "at": "2026-10-17T09:05:57Z",
         "who": "chirper-three"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "hajnal",
@@ -355,7 +367,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 48,
       "priority": 1.0,
       "genre": "breakcore / orchestral",
@@ -367,7 +379,8 @@
       "last": {
         "at": "2026-10-17T10:57:28Z",
         "who": "chirper-two"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "lebanese-blonde",
@@ -384,7 +397,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 23,
       "priority": 1.0,
       "genre": "trip-hop / downtempo (sitar, bossa)",
@@ -396,7 +409,8 @@
       "last": {
         "at": "2026-10-19T20:39:26Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "archangel",
@@ -414,7 +428,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 21,
       "priority": 1.0,
       "genre": "UK garage / future garage (Burial, Untrue, Hyperdub 2007): shuffled 2-step drums, pitched vocal chops, vinyl crackle, sub bass, pads",
@@ -427,7 +441,8 @@
         "at": "2026-10-19T18:55:02Z",
         "who": "chirper-three"
       },
-      "chirp-eco": ""
+      "chirp-eco": "",
+      "paused_by": "focus"
     },
     {
       "id": "harder-better-faster-stronger",
@@ -444,7 +459,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 20,
       "priority": 1.0,
       "genre": "French house (talkbox/vocoder, filtered loops)",
@@ -456,7 +471,8 @@
       "last": {
         "at": "2026-10-19T18:34:02Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "wuthering-heights",
@@ -473,7 +489,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 21,
       "priority": 1.0,
       "genre": "art pop (piano, strings, high soprano; The Kick Inside, 1978; 2018 remaster)",
@@ -485,7 +501,8 @@
       "last": {
         "at": "2026-10-19T08:21:45Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "money",
@@ -502,7 +519,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 22,
       "priority": 1.0,
       "genre": "prog rock in 7/4 (Pink Floyd, The Dark Side of the Moon, 1973; 2011 remaster)",
@@ -514,7 +531,8 @@
       "last": {
         "at": "2026-10-19T22:08:20Z",
         "who": "chirper-two"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "playing-god",
@@ -531,7 +549,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 23,
       "priority": 1.0,
       "genre": "instrumental prog / math rock with trap drums (Polyphia, Remember That You Will Die, 2022)",
@@ -543,7 +561,8 @@
       "last": {
         "at": "2026-10-19T09:24:24Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "dreams",
@@ -560,7 +579,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 25,
       "priority": 1.0,
       "genre": "soft rock (Fleetwood Mac, Rumours 1977): Stevie Nicks lead vocal, steady 4/4 drum loop, two-chord Fmaj7-G vamp, bass, Rhodes/organ, guitar swells",
@@ -572,7 +591,8 @@
       "last": {
         "at": "2026-10-18T23:17:50Z",
         "who": "chirper-three"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "autonomy-lost",
@@ -589,7 +609,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 16,
       "priority": 1.0,
       "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
@@ -609,7 +629,8 @@
       "last": {
         "at": "2026-10-19T07:50:40Z",
         "who": "chirper-two"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "imprint-of-the-un-saved",
@@ -626,7 +647,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 17,
       "priority": 1.0,
       "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
@@ -646,7 +667,8 @@
       "last": {
         "at": "2026-10-19T20:57:57Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "disenchantment",
@@ -663,7 +685,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 23,
       "priority": 1.0,
       "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
@@ -683,7 +705,8 @@
       "last": {
         "at": "2026-10-19T21:29:59Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "the-paradoxical-spiral",
@@ -700,7 +723,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 16,
       "priority": 1.0,
       "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
@@ -720,7 +743,8 @@
       "last": {
         "at": "2026-10-19T11:31:51Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "re-inanimate",
@@ -737,7 +761,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 18,
       "priority": 1.0,
       "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
@@ -757,7 +781,8 @@
       "last": {
         "at": "2026-10-19T03:47:52Z",
         "who": "chirper-two"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "entrapment",
@@ -774,7 +799,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 17,
       "priority": 1.0,
       "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
@@ -794,7 +819,8 @@
       "last": {
         "at": "2026-10-19T20:05:21Z",
         "who": "chirper-three"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "mind-s-mirrors",
@@ -811,7 +837,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 19,
       "priority": 1.0,
       "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
@@ -831,7 +857,8 @@
       "last": {
         "at": "2026-10-19T22:51:21Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "in-death-is-life",
@@ -848,7 +875,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 17,
       "priority": 1.0,
       "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
@@ -868,7 +895,8 @@
       "last": {
         "at": "2026-10-19T19:18:48Z",
         "who": "chirper-three"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "in-death-is-death",
@@ -885,7 +913,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 18,
       "priority": 1.0,
       "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
@@ -905,7 +933,8 @@
       "last": {
         "at": "2026-10-19T11:42:40Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "shed",
@@ -922,7 +951,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 17,
       "priority": 1.0,
       "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
@@ -942,7 +971,8 @@
       "last": {
         "at": "2026-10-19T08:52:17Z",
         "who": "chirper-two"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "personate-non-gratae",
@@ -959,7 +989,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 15,
       "priority": 1.0,
       "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
@@ -979,7 +1009,8 @@
       "last": {
         "at": "2026-10-19T20:21:34Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "dehumanization",
@@ -996,7 +1027,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 14,
       "priority": 1.0,
       "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
@@ -1016,7 +1047,8 @@
       "last": {
         "at": "2026-10-18T12:37:04Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "sum",
@@ -1033,7 +1065,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 12,
       "priority": 1.0,
       "genre": "progressive metal (Meshuggah, Catch Thirtythree, 2005: one continuous 47-minute piece in 13 parts, programmed Drumkit from Hell drums, 8-string guitars)",
@@ -1053,7 +1085,8 @@
       "last": {
         "at": "2026-10-19T19:18:16Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "clair-de-lune",
@@ -1070,7 +1103,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 5,
       "priority": 1.0,
       "genre": "classical piano (Debussy; Seong-Jin Cho DG studio)",
@@ -1087,7 +1120,8 @@
       "last": {
         "at": "2026-10-19T12:36:10Z",
         "who": "chirper-two"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "so-what",
@@ -1104,7 +1138,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 8,
       "priority": 1.0,
       "genre": "modal jazz",
@@ -1121,7 +1155,8 @@
       "last": {
         "at": "2026-10-19T22:13:49Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "take-five",
@@ -1138,7 +1173,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 5,
       "priority": 1.0,
       "genre": "cool jazz (Time Out 1959 fixed studio recording; real 5/4 throughout, physical alto/piano/upright bass/light stick kit)",
@@ -1155,7 +1190,8 @@
       "last": {
         "at": "2026-10-19T20:10:40Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "genesis",
@@ -1172,7 +1208,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 8,
       "priority": 1.0,
       "genre": "dream pop",
@@ -1189,7 +1225,8 @@
       "last": {
         "at": "2026-10-19T22:46:58Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "this-charming-man",
@@ -1206,7 +1243,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 8,
       "priority": 1.0,
       "genre": "indie / jangle pop",
@@ -1223,7 +1260,8 @@
       "last": {
         "at": "2026-10-19T22:31:10Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "baddadan",
@@ -1240,7 +1278,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 8,
       "priority": 1.0,
       "genre": "drum and bass (jump-up; MC-led)",
@@ -1257,7 +1295,8 @@
       "last": {
         "at": "2026-10-19T21:35:41Z",
         "who": "chirper-two"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "diplodocus",
@@ -1274,7 +1313,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 9,
       "priority": 1.0,
       "genre": "drum and bass / neurofunk (Noisia, Split the Atom 2010 fixed album recording; 172 BPM stem-derived note guides, native reese/FM growl and sampleless drums)",
@@ -1291,7 +1330,8 @@
       "last": {
         "at": "2026-10-19T18:03:31Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "dance-yrself-clean",
@@ -1308,7 +1348,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 9,
       "priority": 1.0,
       "genre": "dance-punk",
@@ -1325,7 +1365,8 @@
       "last": {
         "at": "2026-10-19T18:19:31Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "odyssey",
@@ -1342,7 +1383,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 8,
       "priority": 1.0,
       "genre": "electronica",
@@ -1359,7 +1400,8 @@
       "last": {
         "at": "2026-10-19T19:20:08Z",
         "who": "chirper-two"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "rasputin",
@@ -1376,7 +1418,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 7,
       "priority": 1.0,
       "genre": "euro-disco",
@@ -1393,7 +1435,8 @@
       "last": {
         "at": "2026-10-19T22:30:16Z",
         "who": "chirper-three"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "you-can-t-hurry-love",
@@ -1410,7 +1453,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 7,
       "priority": 1.0,
       "genre": "Motown / soul (The Supremes, fixed supplied recording; 192 BPM 4/4 transcription aid, finger bass, female lead/backing guide, tambourine approximation)",
@@ -1427,7 +1470,8 @@
       "last": {
         "at": "2026-10-19T22:17:08Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "blue-monday",
@@ -1444,7 +1488,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 7,
       "priority": 1.0,
       "genre": "synth-pop / new wave (2016 remaster of the 12-inch)",
@@ -1461,7 +1505,8 @@
       "last": {
         "at": "2026-10-19T19:42:30Z",
         "who": "chirper-two"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "fools-gold",
@@ -1478,7 +1523,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 5,
       "priority": 1.0,
       "genre": "madchester / baggy",
@@ -1495,7 +1540,8 @@
       "last": {
         "at": "2026-10-19T21:06:53Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "the-model",
@@ -1512,7 +1558,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 5,
       "priority": 1.0,
       "genre": "electronic / synth-pop",
@@ -1529,7 +1575,8 @@
       "last": {
         "at": "2026-10-19T22:46:28Z",
         "who": "chirper-two"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "hmu",
@@ -1546,7 +1593,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 6,
       "priority": 1.0,
       "genre": "bass music / deep dub (feat. Clay Parnell, Rory Sweet Boy Dolan)",
@@ -1563,7 +1610,8 @@
       "last": {
         "at": "2026-10-19T22:51:26Z",
         "who": "chirper-three"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "the-woven-web",
@@ -1580,7 +1628,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 9,
       "priority": 1.0,
       "genre": "instrumental progressive metal (Animals as Leaders, The Joy of Motion; 8-string guitars, actual 6/4 7/4 8/4 9/8 7/8 4/4 3/4 meter map; fixed supplied recording)",
@@ -1597,7 +1645,8 @@
       "last": {
         "at": "2026-10-19T18:18:26Z",
         "who": "chirper-two"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "black-swan",
@@ -1614,7 +1663,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 6,
       "priority": 1.0,
       "genre": "art pop / electronic",
@@ -1631,7 +1680,8 @@
       "last": {
         "at": "2026-10-19T20:00:33Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "ingenue",
@@ -1648,7 +1698,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 5,
       "priority": 1.0,
       "genre": "art pop / electronic (Amok official 2013, fixed supplied version)",
@@ -1665,7 +1715,8 @@
       "last": {
         "at": "2026-10-19T10:46:13Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "xtal",
@@ -2031,5 +2082,6 @@
       },
       "ref_file": "ref/albums/selected-ambient-works-85-92/13 actium.webm"
     }
-  ]
+  ],
+  "focus": "Selected Ambient Works 85-92"
 }
