@@ -1343,7 +1343,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 6,
+      "rounds": 7,
       "priority": 1.0,
       "genre": "electronica",
       "meta": {
@@ -1357,7 +1357,7 @@
       },
       "ref_file": "ref/albums/singles/odyssey.webm",
       "last": {
-        "at": "2026-10-19T06:07:33Z",
+        "at": "2026-10-19T11:59:35Z",
         "who": "chirper-three"
       }
     },
