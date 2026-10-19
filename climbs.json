@@ -1105,7 +1105,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 3,
+      "rounds": 4,
       "priority": 1.0,
       "genre": "modal jazz",
       "requested": {
@@ -1119,7 +1119,7 @@
         "title": "So What"
       },
       "last": {
-        "at": "2026-10-19T03:10:47Z",
+        "at": "2026-10-19T04:20:48Z",
         "who": "chirper-one"
       }
     },
