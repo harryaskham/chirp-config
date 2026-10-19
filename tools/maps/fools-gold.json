@@ -3851,7 +3851,49 @@
         "h1": "h",
         "hf": "hp"
       },
-      "score_file": "tools/maps/fools-gold-drums-c3-pickup.txt"
+      "score_file": "tools/maps/fools-gold-drums-c3-pickup.txt",
+      "extra": {
+        "auto": {
+          "c3_pickup_body": {
+            "curve": 1,
+            "points": [
+              [
+                "0s",
+                -9
+              ],
+              [
+                "2.75s",
+                -9
+              ],
+              [
+                "2.95s",
+                0
+              ]
+            ]
+          }
+        },
+        "fx": [
+          {
+            "type": "eq",
+            "bands": [
+              {
+                "kind": "peak",
+                "cutoff": 250,
+                "q": 0.8,
+                "gain": {
+                  "value": "0dB",
+                  "mod": [
+                    {
+                      "src": "auto.c3_pickup_body",
+                      "amount": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
     },
     {
       "name": "late-bass-guide",
