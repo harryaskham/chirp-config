@@ -1641,15 +1641,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/ingenue.wav OUT.wav $(cat tools/ingenue-sections.txt)",
       "best": {
-        "score": 57.902,
-        "version": "v1",
+        "score": 57.922,
+        "version": "v2",
         "commit": "see git log songs/ingenue.yaml",
-        "engine": "e443c01"
+        "engine": "b1741e4"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 4,
+      "rounds": 5,
       "priority": 1.0,
       "genre": "art pop / electronic (Amok official 2013, fixed supplied version)",
       "requested": {
@@ -1663,8 +1663,8 @@
         "title": "Ingenue"
       },
       "last": {
-        "at": "2026-10-19T04:30:55Z",
-        "who": "chirper-zero"
+        "at": "2026-10-19T10:46:13Z",
+        "who": "chirper-one"
       }
     }
   ]

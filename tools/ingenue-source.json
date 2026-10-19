@@ -14876,7 +14876,10 @@
      "len": "0.650000s",
      "pitch": 57,
      "vel": 0.58933,
-     "gate": 1
+     "gate": 1,
+     "expr": {
+      "r5sub": 1
+     }
     },
     {
      "at": "266.895000s",
@@ -26312,6 +26315,113 @@
       "onset": "expr.on",
       "coda": "expr.off",
       "vary": 0.4
+     }
+    ]
+   }
+  },
+  "dx-epiano": {
+   "about": "DX7 'E.Piano 1': an FM body with a glassy 14:1 tine bell on the attack, chorused \u2014 80s ballads, city pop, vaporwave.",
+   "fx": [
+    "chorus rate=0.8 depth=0.45 mix=0.45",
+    "reverb kind=plate decay=1.8s mix=0.2"
+   ],
+   "gain": "-10dB",
+   "play": {
+    "gate": 0.95,
+    "humanize": {
+     "time": "5ms",
+     "vel": 0.06
+    },
+    "vel_sens": 0.6
+   },
+   "synth": {
+    "amp": {
+     "a": "1ms",
+     "d": "2.6s",
+     "r": "400ms",
+     "s": 0.3
+    },
+    "env": {
+     "body": {
+      "a": "1ms",
+      "d": "1.2s",
+      "r": "300ms",
+      "s": 0.2
+     },
+     "tine": {
+      "a": "0.5ms",
+      "d": "70ms",
+      "r": "30ms",
+      "s": 0
+     }
+    },
+    "layers": [
+     {
+      "audible": false,
+      "name": "m1",
+      "ratio": 1
+     },
+     {
+      "pm": [
+       {
+        "depth": {
+         "mod": [
+          {
+           "amount": 0.8,
+           "src": "env.body"
+          },
+          {
+           "amount": 0.6,
+           "src": "vel"
+          }
+         ],
+         "value": 0.2
+        },
+        "from": "m1"
+       }
+      ],
+      "wave": "sine"
+     },
+     {
+      "audible": false,
+      "name": "m2",
+      "ratio": 14
+     },
+     {
+      "level": "-10dB",
+      "pm": [
+       {
+        "depth": {
+         "mod": [
+          {
+           "amount": 1.4,
+           "src": "env.tine"
+          },
+          {
+           "amount": 0.6,
+           "src": "vel"
+          }
+         ],
+         "value": 0
+        },
+        "from": "m2"
+       }
+      ],
+      "wave": "sine"
+     },
+     {
+      "name": "third-sub",
+      "wave": "saw",
+      "ratio": 0.3333333333333333,
+      "level": {
+       "value": "-300dB",
+       "mod": [
+        {
+         "src": "expr.r5sub",
+         "amount": 288
+        }
+       ]
+      }
      }
     ]
    }
