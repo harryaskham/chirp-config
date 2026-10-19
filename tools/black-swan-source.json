@@ -1,1045 +1,1045 @@
 {
- "tempo": [
-  {
-   "at": "0b",
-   "bpm": 101.0,
-   "meter": "1/4"
-  },
-  {
-   "at": "1b",
-   "bpm": 101.0,
-   "meter": "4/4"
-  }
- ],
- "meta": {
-  "artist": "Thom Yorke",
-  "title": "Black Swan",
-  "album": "The Eraser",
-  "year": 2006,
-  "track": 4
- },
- "seed": 0,
- "tail": "0s",
- "ceiling": "-0.8dB",
- "patches": {
-  "bs-kit": {
-   "about": "Tight, dry, close-miked kit for indie/jazz/trip-hop (Radiohead / The Smile / GoGo Penguin): a damped kick (short, no boom), a tight snare with less wire ring, crisp rimshot (rs) and sidestick (ss), close hats (h/hs/h1/h2/oh/hf), toms, rides; a touch of small room. Extends metal-kit's pieces.",
-   "extends": "metal-kit",
-   "kit": {
-    "k": {
-     "gain": "-2dB",
-     "patch": {
-      "play": {
-       "vel_sens": 0.6
-      },
-      "synth": {
-       "amp": {
-        "a": "0.3ms",
-        "curve": 4,
-        "d": "130ms",
-        "r": "20ms",
-        "s": 0
-       },
-       "drive": 0.05,
-       "env": {
-        "click": {
-         "a": "0.1ms",
-         "d": "3ms",
-         "s": 0
-        },
-        "knock": {
-         "a": "0.2ms",
-         "d": "30ms",
-         "s": 0
-        },
-        "p": {
-         "a": "0.3ms",
-         "curve": 4,
-         "d": "30ms",
-         "s": 0
-        }
-       },
-       "filters": [
-        "lp cutoff=3k",
-        "peak cutoff=110 q=1 gain=2dB"
-       ],
-       "layers": [
-        {
-         "name": "body",
-         "wave": "sine"
-        },
-        {
-         "level": {
-          "mod": [
-           {
-            "amount": 52,
-            "src": "env.knock"
-           }
-          ],
-          "value": "-60dB"
-         },
-         "name": "knock",
-         "ratio": 2.1,
-         "wave": "sine"
-        },
-        {
-         "level": {
-          "mod": [
-           {
-            "amount": 50,
-            "src": "env.click"
-           },
-           {
-            "amount": 8,
-            "src": "vel"
-           }
-          ],
-          "value": "-66dB"
-         },
-         "name": "click",
-         "type": "noise"
-        }
-       ],
-       "pitch": {
-        "mod": [
-         {
-          "amount": 14,
-          "src": "env.p"
-         },
-         {
-          "amount": 0.3,
-          "src": "rand"
-         }
-        ],
-        "value": 0
-       }
-      }
-     },
-     "pitch": "A1"
-    },
-    "s": {
-     "patch": {
-      "play": {
-       "vel_sens": 0.75
-      },
-      "synth": {
-       "amp": {
-        "a": "0.2ms",
-        "d": "200ms",
-        "r": "20ms",
-        "s": 0
-       },
-       "env": {
-        "body": {
-         "a": "0.2ms",
-         "curve": 4,
-         "d": "80ms",
-         "s": 0
-        },
-        "crack": {
-         "a": "0.1ms",
-         "d": "8ms",
-         "s": 0
-        },
-        "p": {
-         "a": "0.2ms",
-         "d": "14ms",
-         "s": 0
-        },
-        "wires": {
-         "a": "0.4ms",
-         "curve": 5,
-         "d": "140ms",
-         "s": 0
-        }
-       },
-       "filters": [
-        "hp cutoff=160",
-        {
-         "cutoff": {
-          "mod": [
-           {
-            "amount": 1.5,
-            "src": "vel"
-           }
-          ],
-          "value": "6.5k"
-         },
-         "kind": "lp"
-        }
-       ],
-       "layers": [
-        {
-         "level": {
-          "mod": [
-           {
-            "amount": 56,
-            "src": "env.body"
-           },
-           {
-            "amount": 8,
-            "src": "vel"
-           }
-          ],
-          "value": "-60dB"
-         },
-         "name": "body",
-         "wave": "triangle"
-        },
-        {
-         "level": {
-          "mod": [
-           {
-            "amount": 46,
-            "src": "env.body"
-           }
-          ],
-          "value": "-60dB"
-         },
-         "name": "shell",
-         "ratio": 1.62
-        },
-        {
-         "level": {
-          "mod": [
-           {
-            "amount": 58,
-            "src": "env.wires"
-           },
-           {
-            "amount": 8,
-            "src": "vel"
-           }
-          ],
-          "value": "-68dB"
-         },
-         "name": "wires",
-         "type": "noise"
-        },
-        {
-         "level": {
-          "mod": [
-           {
-            "amount": 62,
-            "src": "env.crack"
-           },
-           {
-            "amount": 10,
-            "src": "vel"
-           }
-          ],
-          "value": "-72dB"
-         },
-         "name": "crack",
-         "type": "noise"
-        }
-       ],
-       "pitch": {
-        "mod": [
-         {
-          "amount": 4,
-          "src": "env.p"
-         },
-         {
-          "amount": 0.25,
-          "src": "rand"
-         }
-        ],
-        "value": 0
-       }
-      }
-     },
-     "pitch": "A3"
-    }
-   },
-   "params": {
-    "air": 0
-   },
-   "gain": "0dB",
-   "fx": [],
-   "play": {
-    "event_stable": true,
-    "humanize": {
-     "time": "0ms",
-     "vel": 0
-    }
-   }
-  },
-  "bs-guitar": {
-   "extends": "cutting-guitar",
-   "gain": "-10dB",
-   "play": {
-    "event_stable": true,
-    "strum": "4ms",
-    "humanize": {
-     "time": "1ms",
-     "vel": 0.02
-    }
-   }
-  },
-  "bs-bass": {
-   "about": "Fingerstyle electric bass DI (P/J style): round, warm and fundamental-heavy, through a compressor. Fingertip plucks over the pickups with a plonk and a little fret growl when dug in \u2014 Motown to modern pop. Mono; scores default to octave 2. Techniques: `^dead` ghost note, `^h` hammer-on/legato, `^nh=2` harmonic, `expr.pm` thumb-muted (Jamerson-style), `bend=`.",
-   "fx": [
+  "tempo": [
     {
-     "bands": [
-      "lowshelf cutoff=90 gain=2dB",
-      "peak cutoff=300 q=1 gain=-1.5dB",
-      "peak cutoff=800 q=0.9 gain=2.5dB",
-      "lp cutoff=6k q=0.6"
-     ],
-     "type": "eq"
+      "at": "0b",
+      "bpm": 101.0,
+      "meter": "1/4"
     },
     {
-     "attack": "12ms",
-     "makeup": "4dB",
-     "ratio": 4,
-     "release": "140ms",
-     "threshold": "-22dB",
-     "type": "compressor"
+      "at": "1b",
+      "bpm": 101.0,
+      "meter": "4/4"
     }
-   ],
-   "gain": "-1dB",
-   "play": {
-    "gate": 0.92,
-    "humanize": {
-     "time": "1ms",
-     "vel": 0.02
-    },
-    "mono": true,
-    "oct": 2,
-    "vel_sens": 0.5,
-    "event_stable": true
-   },
-   "synth": {
-    "amp": {
-     "a": "1.5ms",
-     "r": "90ms",
-     "s": 1
-    },
-    "env": {
-     "f": {
-      "a": "0.5ms",
-      "d": "8ms",
-      "s": 0
-     },
-     "twang": {
-      "a": "0.2ms",
-      "d": "50ms",
-      "s": 0
-     }
-    },
-    "filters": [
-     "hp cutoff=32"
-    ],
-    "layers": [
-     {
-      "bright": {
-       "mod": [
-        {
-         "amount": 0.34,
-         "src": "vel"
-        },
-        {
-         "amount": -0.25,
-         "src": "expr.pm"
-        },
-        {
-         "amount": -0.1,
-         "src": "expr.h"
-        },
-        {
-         "amount": 0.04,
-         "src": "rand"
-        }
-       ],
-       "value": 0.33
-      },
-      "buzz": {
-       "mod": [
-        {
-         "amount": 0.04,
-         "src": "rand"
-        }
-       ],
-       "value": 0.08
-      },
-      "choke": "70ms",
-      "decay": {
-       "mod": [
-        {
-         "amount": -4.9,
-         "src": "expr.pm"
-        },
-        {
-         "amount": -5.42,
-         "src": "expr.dead"
-        },
-        {
-         "amount": 1,
-         "src": "vel"
-        }
-       ],
-       "value": "5.5s"
-      },
-      "fret": 0.3,
-      "level": {
-       "mod": [
-        {
-         "amount": -6,
-         "src": "expr.dead"
-        },
-        {
-         "amount": -2,
-         "src": "expr.h"
-        },
-        {
-         "amount": 0.5,
-         "src": "expr.nh"
-        }
-       ],
-       "value": "0dB"
-      },
-      "name": "string",
-      "node": {
-       "mod": [
-        {
-         "amount": 1,
-         "src": "expr.nh"
-        }
-       ],
-       "value": 0
-      },
-      "pick": 0.16,
-      "pickup": 0.19,
-      "pickup_hz": 2400,
-      "pickup_q": 1.2,
-      "pinch": {
-       "mod": [
-        {
-         "amount": 1,
-         "src": "expr.nh"
-        }
-       ],
-       "value": 0
-      },
-      "soft": {
-       "mod": [
-        {
-         "amount": -0.3,
-         "src": "vel"
-        },
-        {
-         "amount": 0.2,
-         "src": "expr.pm"
-        },
-        {
-         "amount": 0.05,
-         "src": "rand"
-        }
-       ],
-       "value": 0.75
-      },
-      "stiff": 0.28,
-      "type": "pluck"
-     },
-     {
-      "color": "pink",
-      "level": {
-       "mod": [
-        {
-         "amount": 34,
-         "src": "env.f"
-        },
-        {
-         "amount": 10,
-         "src": "vel"
-        },
-        {
-         "amount": -20,
-         "src": "expr.h"
-        },
-        {
-         "amount": 6,
-         "src": "expr.dead"
-        }
-       ],
-       "value": "-60dB"
-      },
-      "name": "finger",
-      "type": "noise"
-     }
-    ],
-    "pitch": {
-     "mod": [
-      {
-       "amount": 0.12,
-       "src": "env.twang"
-      },
-      {
-       "amount": 0.03,
-       "src": "rand"
-      }
-     ],
-     "value": 0
-    }
-   }
-  },
-  "bs-voice": {
-   "about": "Wordless pitch/vowel lead guide. Not lyrics, TTS, or a recovered original vocal.",
-   "fx": [
-    "reverb kind=plate decay=1.8s mix=0.14 predelay=25ms"
-   ],
-   "play": {
-    "glide": "70ms",
-    "humanize": {
-     "time": "2ms",
-     "vel": 0.03
-    },
-    "mono": true,
-    "event_stable": true
-   },
-   "synth": {
-    "amp": {
-     "a": "20ms",
-     "d": "0s",
-     "r": "220ms",
-     "s": 1
-    },
-    "layers": [
-     {
-      "breath": {
-       "mod": [
-        {
-         "amount": -0.12,
-         "src": "vel"
-        }
-       ],
-       "value": 0.25
-      },
-      "bright": 0.6,
-      "coda": "expr.off",
-      "effort": {
-       "mod": [
-        {
-         "amount": 0.45,
-         "src": "vel"
-        }
-       ],
-       "value": 0.25
-      },
-      "onset": "expr.on",
-      "rasp": {
-       "mod": [
-        {
-         "amount": 1,
-         "src": "expr.rasp"
-        }
-       ],
-       "value": 0
-      },
-      "ring": 0.35,
-      "type": "voice",
-      "vary": 0.5,
-      "vowel": {
-       "mod": [
-        {
-         "amount": 1,
-         "src": "expr.vow"
-        }
-       ],
-       "value": 0
-      }
-     }
-    ],
-    "lfo": {
-     "vib": {
-      "delay": "320ms",
-      "fade": "500ms",
-      "rate": "5.2hz",
-      "retrig": true,
-      "wave": "sine"
-     }
-    },
-    "pitch": {
-     "mod": [
-      {
-       "amount": 0.18,
-       "src": "lfo.vib"
-      }
-     ],
-     "value": 0
-    }
-   }
-  },
-  "bs-bridge": {
-   "gain": "-10dB",
-   "play": {
-    "event_stable": true,
-    "gate": 1
-   },
-   "synth": {
-    "amp": {
-     "a": "2ms",
-     "d": "140ms",
-     "s": 0.05,
-     "r": "60ms"
-    },
-    "layers": [
-     "sine ratio=2",
-     "sine ratio=4 level=-20dB"
-    ]
-   },
-   "fx": [
-    "reverb kind=room decay=0.8s mix=0.08"
-   ]
-  },
-  "bs-feedback": {
-   "about": "Closing feedback-like A4 tonal guide inferred from the supplied closing spectrum; not an identified original instrument.",
-   "fx": [
-    {
-     "attack": "30ms",
-     "makeup": "1dB",
-     "ratio": 2.5,
-     "release": "250ms",
-     "threshold": "-16dB",
-     "type": "compressor"
-    },
-    {
-     "bass": 0.45,
-     "gain": 0.35,
-     "mid": 0.6,
-     "model": "crunch",
-     "presence": 0.5,
-     "resonance": 0.5,
-     "sag": 0.35,
-     "tight": 110,
-     "treble": 0.5,
-     "type": "amp"
-    },
-    {
-     "distance": 0.2,
-     "mic": 0.45,
-     "model": "2x12",
-     "type": "cab"
-    },
-    "delay time=3/8 feedback=0.38 mix=0.24 ping_pong=true tone=2.5k",
-    "reverb kind=hall decay=3.5s mix=0.3"
-   ],
-   "gain": "-6dB",
-   "play": {
-    "gate": 1,
-    "glide": "120ms",
-    "humanize": {
-     "time": "0ms",
-     "vel": 0.01
-    },
-    "mono": true,
-    "vel_sens": 0.5,
-    "event_stable": true
-   },
-   "synth": {
-    "amp": {
-     "a": "80ms",
-     "d": "0s",
-     "s": 1,
-     "r": "5s"
-    },
-    "env": {
-     "bloom": {
-      "a": "2.5s",
-      "r": "500ms",
-      "s": 1
-     },
-     "swell": {
-      "a": "700ms",
-      "curve": 2,
-      "d": "1.5s",
-      "r": "600ms",
-      "s": 1
-     }
-    },
-    "filters": [
-     "hp cutoff=90",
-     {
-      "cutoff": {
-       "mod": [
-        {
-         "amount": 1.8,
-         "src": "env.bloom"
-        },
-        {
-         "amount": 1,
-         "src": "vel"
-        }
-       ],
-       "value": 900
-      },
-      "keytrack": 0.6,
-      "kind": "lp",
-      "q": 0.9
-     }
-    ],
-    "layers": [
-     {
-      "bright": {
-       "mod": [
-        {
-         "amount": 0.1,
-         "src": "env.bloom"
-        },
-        {
-         "amount": 0.05,
-         "src": "vel"
-        }
-       ],
-       "value": 0.88
-      },
-      "coil": 0.3,
-      "decay": "40s",
-      "level": {
-       "mod": [
-        {
-         "amount": 4,
-         "src": "env.swell"
-        }
-       ],
-       "value": "-4dB"
-      },
-      "name": "string",
-      "node": {
-       "mod": [
-        {
-         "amount": 1,
-         "src": "expr.nh"
-        }
-       ],
-       "value": 0
-      },
-      "pick": 0.25,
-      "pickup": 0.22,
-      "pickup_hz": 3000,
-      "pickup_q": 1.1,
-      "pinch": {
-       "mod": [
-        {
-         "amount": 1,
-         "src": "expr.nh"
-        }
-       ],
-       "value": 0
-      },
-      "soft": 1,
-      "type": "pluck"
-     },
-     {
-      "level": {
-       "mod": [
-        {
-         "amount": 50,
-         "src": "env.swell"
-        },
-        {
-         "amount": 6,
-         "src": "vel"
-        },
-        {
-         "amount": -10,
-         "src": "expr.nh"
-        }
-       ],
-       "value": "-70dB"
-      },
-      "name": "drive",
-      "wave": "saw"
-     }
-    ],
-    "lfo": {
-     "vib": {
-      "delay": "900ms",
-      "fade": "1.2s",
-      "rate": "5.2hz",
-      "retrig": true,
-      "wave": "sine"
-     }
-    },
-    "pitch": {
-     "value": 0.09,
-     "mod": [
-      {
-       "src": "rand",
-       "amount": 0.01
-      }
-     ]
-    }
-   }
-  }
- },
- "buses": {
-  "drum-bus": {
-   "fx": [
-    {
-     "attack": "6ms",
-     "makeup": "2dB",
-     "ratio": 3,
-     "release": "90ms",
-     "threshold": "-20dB",
-     "type": "compressor"
-    },
-    {
-     "bands": [
-      "hp cutoff=40",
-      "peak cutoff=80 q=1 gain=-2dB",
-      "peak cutoff=400 q=1 gain=-2dB",
-      "peak cutoff=3.5k q=1 gain=3dB",
-      "peak cutoff=5k q=1 gain=1.5dB",
-      {
-       "cutoff": "8k",
-       "gain": "0dB",
-       "kind": "highshelf"
-      }
-     ],
-     "type": "eq"
-    },
-    "reverb kind=room decay=0.45s mix=0.06 predelay=4ms",
-    {
-     "type": "gain",
-     "gain": "3dB"
-    }
-   ]
-  }
- },
- "master": {
-  "fx": [
-   "glue threshold=-16dB ratio=2 attack=10ms release=150ms makeup=2dB",
-   {
-    "type": "gain",
-    "gain": {
-     "value": "0dB",
-     "mod": [
-      {
-       "src": "auto.setup_level",
-       "amount": 1
-      }
-     ]
-    }
-   }
   ],
-  "auto": {
-   "setup_level": {
-    "points": [
-     [
-      "0s",
-      12.47
-     ],
-     [
-      "5.200s",
-      12.47
-     ],
-     [
-      "5.500s",
-      11.74
-     ],
-     [
-      "21.850s",
-      11.74
-     ],
-     [
-      "22.150s",
-      10.53
-     ],
-     [
-      "59.850s",
-      10.53
-     ],
-     [
-      "60.150s",
-      10.3
-     ],
-     [
-      "97.850s",
-      10.3
-     ],
-     [
-      "98.150s",
-      10.4
-     ],
-     [
-      "135.850s",
-      10.4
-     ],
-     [
-      "136.150s",
-      10.0
-     ],
-     [
-      "173.850s",
-      10.0
-     ],
-     [
-      "174.150s",
-      9.33
-     ],
-     [
-      "211.850s",
-      9.33
-     ],
-     [
-      "212.150s",
-      10.22
-     ],
-     [
-      "223.810s",
-      10.22
-     ],
-     [
-      "224.110s",
-      13.57
-     ],
-     [
-      "242.820s",
-      13.57
-     ],
-     [
-      "243.120s",
-      11.16
-     ],
-     [
-      "281.250s",
-      11.16
-     ],
-     [
-      "281.550s",
-      1.66
-     ]
-    ]
-   }
-  }
- },
- "tracks": [
-  {
-   "name": "guitar-pick",
-   "patch": "bs-guitar",
-   "gain": "-10dB",
-   "pan": -0.15,
-   "score": "R/9b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | R/32b | A2/0.5b C4/0.5b A2/0.25b C4/0.5b G2/0.5b B3/0.5b G2/0.25b B3/0.5b G2/0.5b | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | C3/0.5b E4/0.5b C4/0.25b G3/0.5b F4/0.5b D4/0.5b A3/0.25b F4/0.5b D4/0.5b | C3/0.5b E4/0.5b C4/0.25b G3/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.25b G4/0.25b F4/0.5b | A2/0.5b C4/0.5b A2/0.25b C4/0.5b G2/0.5b B3/0.5b G2/0.25b B3/0.5b G2/0.5b | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | C3/0.5b E4/0.5b C4/0.25b G3/0.5b F4/0.5b D4/0.5b A3/0.25b F4/0.5b D4/0.5b | C3/0.5b E4/0.5b C4/0.25b G3/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.25b G4/0.25b F4/0.5b | A2/0.5b C4/0.5b A2/0.25b C4/0.5b G2/0.5b B3/0.5b G2/0.25b B3/0.5b G2/0.5b | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | C3/0.5b E4/0.5b C4/0.25b G3/0.5b F4/0.5b D4/0.5b A3/0.25b F4/0.5b D4/0.5b | C3/0.5b E4/0.5b C4/0.25b G3/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.25b G4/0.25b F4/0.5b | A2/0.5b C4/0.5b A2/0.25b C4/0.5b G2/0.5b B3/0.5b G2/0.25b B3/0.5b G2/0.5b | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | C3/0.5b E4/0.5b C4/0.25b G3/0.5b F4/0.5b D4/0.5b A3/0.25b F4/0.5b D4/0.5b | C3/0.5b E4/0.5b C4/0.25b G3/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.25b G4/0.25b F4/0.5b R/14.8748895b"
+  "meta": {
+    "artist": "Thom Yorke",
+    "title": "Black Swan",
+    "album": "The Eraser",
+    "year": 2006,
+    "track": 4
   },
-  {
-   "name": "guitar-chops",
-   "patch": "bs-guitar",
-   "gain": "-3dB",
-   "pan": 0.15,
-   "score": "R/9b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | R/32b | A2,E3,A3,C4/0.5b E3,A3,C4/0.5b A2,E3,A3/0.25b E3,A3,C4,E4/0.5b G2,B2,D3/0.5b G3,B3,G4/0.5b G2,B2,D3/0.25b G3,B3,G4/0.5b G2,B2,D3/0.5b | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b E3,A3,C4/0.5b A2,E3,A3/0.25b E3,A3,C4,E4/0.5b G2,B2,D3/0.5b G3,B3,G4/0.5b G2,B2,D3/0.25b G3,B3,G4/0.5b G2,B2,D3/0.5b | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b E3,A3,C4/0.5b A2,E3,A3/0.25b E3,A3,C4,E4/0.5b G2,B2,D3/0.5b G3,B3,G4/0.5b G2,B2,D3/0.25b G3,B3,G4/0.5b G2,B2,D3/0.5b | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b E3,A3,C4/0.5b A2,E3,A3/0.25b E3,A3,C4,E4/0.5b G2,B2,D3/0.5b G3,B3,G4/0.5b G2,B2,D3/0.25b G3,B3,G4/0.5b G2,B2,D3/0.5b | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b R/14.8748895b"
-  },
-  {
-   "name": "bass",
-   "patch": "bs-bass",
-   "gain": "-5dB",
-   "score": "R/9b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | R/32b | A2/0.5b A2/0.5b D2/0.25b^dead A2/0.5b G2/0.5b G2/0.5b G2/0.25b G2/0.5b G2/0.5b | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b A2/0.5b D2/0.25b^dead A2/0.5b G2/0.5b G2/0.5b G2/0.25b G2/0.5b G2/0.5b | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b A2/0.5b D2/0.25b^dead A2/0.5b G2/0.5b G2/0.5b G2/0.25b G2/0.5b G2/0.5b | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b A2/0.5b D2/0.25b^dead A2/0.5b G2/0.5b G2/0.5b G2/0.25b G2/0.5b G2/0.5b | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b R/14.8748895b"
-  },
-  {
-   "name": "bridge-sequence",
-   "patch": "bs-bridge",
-   "gain": "-6dB",
-   "score": "R/377b | D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b | A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b | F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b | D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b | A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b | F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b | D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b | A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.5b R/78.8748895b"
-  },
-  {
-   "name": "lead-voice",
-   "patch": "bs-voice",
-   "gain": "-3dB",
-   "score": "R/41b | B3/0.46875b@115^on=2^vow=0.480 R/0.03125b C4/0.375b@117^on=16^off=4^vow=0.150 R/0.09375b B3/0.9375b@119^on=2^vow=0.360 R/0.03125b B3/0.46875b@120^on=2^off=4^vow=0.860 R/0.09375b A3/0.40625b@114^on=5^off=17^vow=0.950 R/0.0625b G3/0.3125b@102^on=11^off=4^vow=0.950 R/0.125b A4/0.15625b@96^on=5^vow=0.620 Ab3/0.4375b@116^on=16^off=17^vow=0.610 | _/0.34375b G3/0.78125b@104^on=16^off=17^vow=0.840 Ab4/0.34375b@95^off=11^vow=0.630 F3/0.625b@100^on=11^off=17^vow=0.860 R/0.9375b D3/0.28125b@105^on=2^off=17^vow=0.900 F#4/0.28125b@81^on=11^off=11^vow=0.630 C#3/0.15625b@105^on=16^off=17^vow=0.120 R/0.1875b F3/0.0625b@106^on=6^off=11^vow=0.630 | _/0.9375b R/0.09375b E3/0.28125b@107^on=4^off=17^vow=0.810 R/0.0625b E3/0.46875b@94^on=11^off=4^vow=0.630 R/0.15625b G3/0.59375b@113^on=6^vow=0.580 F#3/0.125b@103^on=16^off=17^vow=0.690 R/0.21875b A3/1.0625b@110^on=6^off=4^vow=0.830 | _/0.1875b R/0.125b A3/0.09375b@66^on=16^off=17^vow=0.620 R/3.5625b C4/0.03125b@119^off=11^vow=0.780 | _/1b C4/0.53125b@124^on=16^vow=0.840 R/0.03125b C4/0.34375b@122^on=16^off=17^vow=0.620 R/0.1875b A3/1.25b@124^off=4^vow=0.140 R/0.09375b A3/0.5625b@124^on=1^off=17^vow=0.650 | _/0.375b G3/1b@114^on=13^off=17^vow=0.670 R/0.15625b F3/0.625b@104^on=16^off=4^vow=0.700 R/0.0625b C5/0.125b@72^on=11^off=11^vow=0.630 R/0.65625b D3/0.875b@115^on=2^off=4^vow=0.600 R/0.125b | F3/0.375b@98^on=11^off=4^vow=0.970 R/0.1875b F3/0.96875b@102^on=13^off=17^vow=0.940 G3/1.21875b@111^on=16^off=4^vow=0.670 R/0.0625b Eb5/0.28125b@96^on=13^off=11^vow=0.630 Ab3/0.90625b@111^on=16^off=4^vow=0.710 | _/0.34375b R/2.6875b D3/0.8125b@117^on=2^off=4^vow=0.610 R/0.09375b E3/0.0625b@96^on=11^off=4^vow=0.630 | _/0.34375b R/0.1875b G3/2.25b@113^on=5^off=17^vow=0.780 R/0.03125b D5/0.28125b@99^on=13^off=11^vow=0.630 R/0.90625b | R/8b | R/3.0625b D3/0.5625b@109^on=16^off=11^vow=0.930 C#3/0.375b@99^on=16^vow=0.630 | _/0.03125b A3/0.5625b@113^on=16^off=4^vow=0.660 R/1b G3/0.5b@116^on=6^off=4^vow=0.660 R/1.90625b | R/0.0625b F3/0.90625b@107^off=17^vow=0.840 R/0.0625b F3/0.1875b@53^on=16^off=11^vow=0.690 R/0.125b Bb3/0.1875b@82^on=16^off=17^vow=0.630 R/0.03125b F3/0.625b@118^off=4^vow=0.610 R/1.8125b | R/4b | R/2.53125b E3/1.03125b@99^on=2^off=11^vow=0.630 G3/0.4375b@108^on=16^off=11^vow=0.630 | _/0.125b A3/0.53125b@112^on=16^off=4^vow=0.660 R/0.125b A3/0.09375b@50^vow=0.620 R/0.71875b G3/0.53125b@116^on=6^off=4^vow=0.660 R/1.875b | R/0.09375b F3/0.875b@111^on=16^off=4^vow=0.580 R/0.625b D3/0.40625b@99^on=16^off=17^vow=0.630 R/2b | R/8b | R/0.03125b E4/0.53125b@123^on=6^vow=0.900 F4/0.5b@123^on=16^off=17^vow=0.360 F4/0.6875b@124^on=6^off=17^vow=0.690 R/0.25b B3/1.03125b@123^on=16^off=11^vow=0.600 G3/0.5625b@121^on=16^vow=0.640 D4/0.40625b@118^on=2^off=11^vow=0.850 | _/0.4375b R/0.09375b G3/0.625b@109^off=17^vow=0.820 R/0.21875b D3/1.625b@106^off=4^vow=0.100 R/0.0625b D3/0.9375b@110^on=2^off=17^vow=0.840 | _/0.03125b F3/1.9375b@113^on=16^off=17^vow=0.670 R/0.0625b G3/0.40625b@112^on=6^off=17^vow=0.900 R/1.5625b | R/3.875b C4/0.125b@121^on=2^off=17^vow=0.810 | _/0.875b C4/1.125b@124^on=11^vow=0.670 R/0.03125b Bb3/0.625b@121^on=16^off=11^vow=0.730 R/0.375b G3/0.5625b@113^on=2^off=17^vow=0.920 G3/0.40625b@120^on=16^off=4^vow=0.880 | _/2.3125b R/0.09375b Eb5/0.5b@75^vow=0.630 R/0.15625b D3/0.90625b@113^on=2^off=17^vow=0.660 F3/0.03125b@106^on=11^off=4^vow=0.670 | _/0.9375b R/0.09375b F3/1.5625b@113^on=2^vow=0.850 A3/1.40625b@111^on=2^off=4^vow=0.740 | _/0.5625b R/2.4375b D3/0.84375b@102^on=2^off=4^vow=0.140 R/0.09375b F3/0.0625b@103^on=13^off=11^vow=0.840 | _/0.5625b R/0.5b F3/1.5b@114^on=2^off=4^vow=0.880 R/0.09375b F3/0.40625b@100^on=2^off=17^vow=0.840 R/0.9375b | R/8b | R/3.03125b D3/0.96875b@88^on=16^vow=0.920 | _/0.0625b A3/0.4375b@113^off=4^vow=0.470 R/1.0625b G3/0.5625b@114^on=2^off=4^vow=0.660 R/1.875b | R/0.0625b F3/0.90625b@107^off=17^vow=0.850 R/0.375b Bb3/0.15625b@74^on=16^off=17^vow=0.620 R/0.03125b F3/0.625b@112^off=4^vow=0.840 R/1.84375b | R/4b | R/2.5625b D3/0.8125b@90^on=2^off=17^vow=0.920 R/0.1875b G3/0.4375b@105^on=16^vow=0.620 | A3/0.65625b@115^on=16^off=4^vow=0.660 R/0.9375b G3/0.53125b@115^on=6^off=4^vow=0.660 R/1.875b | R/0.03125b F3/1.46875b@111^off=17^vow=0.660 R/0.125b D3/0.4375b@95^on=16^off=17^vow=0.840 R/1.9375b | R/4b | R/2.59375b Ab3/1.40625b@109^on=2^off=17^vow=0.960 | Ab3/1.4375b@117^on=16^off=4^vow=0.610 R/0.15625b F3/2.40625b@114^on=2^off=11^vow=0.650 | _/1.40625b R/0.15625b F3/1.78125b@112^on=2^off=17^vow=0.890 D4/0.65625b@94^on=16^off=17^vow=0.100 | _/0.25b R/3.75b | R/2.75b E3/0.65625b@107^on=16^off=17^vow=0.620 R/0.09375b G3/0.5b@106^on=16^vow=0.850 | G3/4b@119^off=17^vow=0.630 | _/1.53125b E4/2.46875b@110^on=16^off=17^vow=0.670 | _/1.40625b F4/0.65625b@77^on=16^off=17^vow=0.130 R/1.9375b | R/3.03125b Eb3/0.96875b@91^on=2^vow=0.690 | _/0.03125b E4/0.5b@94^on=16^off=17^vow=0.840 R/0.03125b D3/1.03125b@100^on=16^vow=0.850 R/2.40625b | R/1.78125b F3/1.1875b@102^on=16^off=17^vow=0.700 D3/1.03125b@98^on=16^off=17^vow=0.680 | _/2.59375b A3/0.25b@80^on=16^off=17^vow=0.840 R/0.1875b F3/0.96875b@90^on=16^off=17^vow=0.660 | _/1.40625b E3/1.03125b@87^on=16^off=17^vow=0.680 R/0.125b E3/0.34375b@66^on=13^off=13^vow=0.630 R/0.125b G3/0.96875b@101^on=16^off=17^vow=0.740 | _/1.78125b F3/2.21875b@105^on=16^off=17^vow=0.670 | _/4b | _/2.40625b R/0.625b C3/0.96875b@93^on=2^off=17^vow=0.840 | _/2.46875b R/0.125b F4/0.125b@61^on=13^off=13^vow=0.620 R/0.3125b D3/0.90625b@89^on=2^off=17^vow=0.840 B3/0.0625b@121^on=13^off=17^vow=0.610 | _/1.5625b R/0.0625b G3/0.4375b@112^off=17^vow=0.720 B4/1b@122^vow=0.600 D3/0.46875b@102^off=17^vow=0.870 G3/0.46875b@116^off=13^vow=0.690 | _/2.96875b R/0.03125b D3/0.4375b@103^on=2^off=17^vow=0.960 R/0.03125b C3/0.53125b@103^on=13^vow=0.730 | _/0.09375b E3/0.9375b@110^off=11^vow=0.620 F3/1.375b@116^on=16^off=4^vow=0.310 R/0.125b A3/1.46875b@114^on=2^off=17^vow=0.670 | _/0.75b Eb3/1.8125b@94^on=16^off=17^vow=0.630 F5/0.40625b@72^off=13^vow=0.630 R/0.0625b D3/0.78125b@88^on=16^off=17^vow=0.110 G3/0.1875b@103^on=16^vow=0.720 | R/0.9375b B3/2.125b@122^vow=0.570 Eb3/0.53125b@119^on=2^vow=0.850 G3/0.40625b@115^on=16^off=4^vow=0.830 | _/2.96875b R/0.0625b F3/0.96875b@109^on=2^off=17^vow=0.630 | _/1.03125b F3/1.8125b@113^on=16^off=4^vow=0.640 R/0.125b A3/1.03125b@116^on=11^off=4^vow=0.790 | _/0.78125b R/2.25b D3/0.46875b@99^on=2^off=17^vow=0.970 D3/0.5b@104^on=16^vow=0.950 | _/0.0625b F3/1.3125b@99^on=16^off=4^vow=0.960 R/0.09375b F#3/0.40625b@86^off=17^vow=0.960 R/0.15625b G3/0.5b@110^on=16^off=17^vow=0.650 R/0.3125b A3/1.15625b@115^on=16^off=17^vow=0.690 | _/4b | _/1.0625b G3/0.5625b@97^off=17^vow=0.650 R/0.15625b G3/0.71875b@95^off=4^vow=0.620 R/0.0625b Bb4/0.28125b@78^vow=0.630 G3/0.09375b@73^on=16^off=4^vow=0.620 R/0.09375b F3/0.96875b@96^on=2^off=17^vow=0.630 | _/1.3125b E3/1.25b@94^on=16^vow=0.630 D3/1.4375b@119^vow=0.830 | _/1.03125b G3/1.5625b@114^on=11^off=17^vow=0.860 Bb3/0.34375b@76^vow=0.630 R/0.125b F3/0.9375b@119^on=2^off=17^vow=0.860 | _/3b D3/0.75b@100^on=16^off=17^vow=0.680 A3/0.25b@98^on=16^off=11^vow=0.850 | _/1.0625b F#3/0.78125b@101^on=16^off=11^vow=0.850 G3/0.5b@97^on=16^off=4^vow=0.660 R/0.15625b Eb4/0.375b@87^vow=0.610 R/0.1875b A3/0.9375b@98^on=2^off=17^vow=0.700 | _/0.9375b R/0.09375b Bb3/0.625b@104^on=16^off=4^vow=0.810 R/0.1875b F3/2.15625b@105^on=16^vow=0.950 | _/0.125b A3/0.9375b@115^on=16^off=17^vow=0.560 E3/0.53125b@102^on=16^vow=0.830 D3/1.46875b@120^vow=0.650 F3/0.9375b@102^vow=0.640 | _/0.0625b D3/2.53125b@115^vow=0.630 C#4/0.34375b@70^on=13^vow=0.630 R/0.09375b C3/0.59375b@91^on=2^off=17^vow=0.840 C#4/0.15625b@59^on=16^off=17^vow=0.880 R/0.03125b C3/0.1875b@91^on=16^off=17^vow=0.920 | _/0.75b A3/0.375b@74^on=16^off=17^vow=0.900 C3/0.21875b@81^on=16^off=17^vow=0.870 D3/0.3125b@87^on=16^vow=0.850 R/0.125b D3/0.6875b@91^on=16^off=11^vow=0.610 R/0.09375b Eb4/0.25b@65^on=13^vow=0.630 R/0.25b C3/0.71875b@90^on=2^off=17^vow=0.660 R/0.03125b C3/0.1875b@88^on=16^off=17^vow=0.940 | _/1b F3/1.875b@97^on=16^off=17^vow=0.830 R/0.28125b A3/0.84375b@119^on=16^vow=0.660 | _/3.0625b F3/0.9375b@119^off=17^vow=0.640 | _/3b D3/0.71875b@102^off=17^vow=0.670 A3/0.28125b@99^on=16^off=17^vow=0.850 | _/1.0625b F#3/0.78125b@103^on=16^off=11^vow=0.850 G3/0.5625b@97^on=16^off=4^vow=0.660 R/0.0625b Eb4/0.375b@85^on=16^vow=0.610 R/0.1875b A3/0.96875b@98^on=2^off=17^vow=0.700 | _/0.9375b R/0.09375b C#4/0.59375b@103^on=16^off=4^vow=0.820 R/0.21875b Ab3/0.8125b@100^on=16^off=4^vow=0.580 R/0.125b F3/0.09375b@69^on=16^off=17^vow=0.620 R/0.15625b F#3/0.5625b@109^on=2^vow=0.630 C#3/0.40625b@110^on=16^off=17^vow=0.620 | _/0.09375b G3/2.8125b@119^on=16^off=4^vow=0.650 R/0.1875b E3/0.90625b@101^off=17^vow=0.660 | _/0.03125b F3/1.0625b@110^on=16^off=17^vow=0.790 F3/0.53125b@109^on=16^off=17^vow=0.680 E3/0.96875b@112^vow=0.620 B4/0.34375b@66^on=13^vow=0.630 C3/0.875b@105^on=16^off=17^vow=0.870 C3/0.1875b@96^on=16^off=17^vow=0.900 | _/0.75b A3/0.375b@73^on=16^off=17^vow=0.910 C3/0.21875b@81^on=16^off=17^vow=0.870 D3/0.3125b@87^on=16^vow=0.850 R/0.15625b D3/0.6875b@91^on=16^off=11^vow=0.620 R/0.0625b F4/0.28125b@66^on=13^off=13^vow=0.630 R/0.21875b C3/0.71875b@89^on=2^off=17^vow=0.660 R/0.03125b C3/0.1875b@87^off=17^vow=0.950 | _/1.3125b D3/0.34375b@73^on=16^off=17^vow=0.840 R/0.125b D3/0.78125b@94^on=16^off=17^vow=0.690 R/1.4375b | R/28b | R/3.0625b D3/0.9375b@95^on=2^off=11^vow=0.110 | _/0.09375b A3/0.375b@112^on=16^off=4^vow=0.650 R/0.15625b Eb5/0.125b@50^on=11^off=11^vow=0.620 R/0.8125b G3/0.375b@116^on=2^off=4^vow=0.840 R/2.0625b | R/0.09375b F3/0.84375b@111^on=16^off=17^vow=0.570 R/0.125b Eb3/0.28125b@61^on=16^off=17^vow=0.630 Bb3/0.09375b@70^on=16^off=17^vow=0.620 R/0.09375b F3/0.4375b@107^off=17^vow=0.840 R/2.03125b | R/4b | R/3.03125b E3/0.3125b@95^on=2^off=17^vow=0.920 G3/0.53125b@105^on=11^off=11^vow=0.910 G3/0.09375b@103^on=13^off=13^vow=0.620 R/0.03125b | R/0.15625b Ab3/0.5b@110^off=4^vow=0.530 R/0.90625b G3/0.5625b@120^on=2^off=4^vow=0.560 R/1.875b | R/0.03125b F3/0.90625b@111^on=16^off=4^vow=0.410 R/0.09375b C3/0.46875b@80^off=17^vow=0.860 R/0.09375b C#3/0.46875b@86^on=16^off=17^vow=0.090 R/1.9375b | R/4b | R/3.0625b G3/0.8125b@103^on=2^off=17^vow=0.970 R/0.125b | C4/0.9375b@120^on=16^off=4^vow=0.620 R/0.125b C4/0.40625b@100^on=11^off=13^vow=0.630 R/0.03125b B3/1.03125b@121^on=16^off=4^vow=0.640 R/1.4375b G3/0.03125b@119^on=6^off=17^vow=0.620 | _/1.375b C#3/0.21875b@100^on=11^off=11^vow=0.620 F3/0.84375b@108^on=16^off=4^vow=0.370 R/0.40625b F5/0.15625b@70^on=13^off=13^vow=0.640 R/1b | R/4b | R/3.03125b F3/0.5625b@103^on=2^vow=0.650 G3/0.40625b@102^on=16^off=4^vow=0.620 | _/0.03125b R/0.0625b A3/0.875b@114^off=4^vow=0.660 R/0.53125b G3/0.6875b@117^on=6^off=4^vow=0.580 R/0.25b G3/0.15625b@50^on=11^off=11^vow=0.610 R/0.9375b C3/0.3125b@88^on=2^off=17^vow=0.920 R/0.125b E3/0.03125b@101^off=17^vow=0.850 | _/0.40625b R/0.0625b F3/1b@99^off=17^vow=0.690 R/0.09375b E3/0.53125b@101^on=16^off=4^vow=0.660 R/1.90625b R/22.8748895b"
-  },
-  {
-   "name": "closing-tone-guide",
-   "patch": "bs-feedback",
-   "gain": "-10dB",
-   "score": "R/473.0166667b A4/5.0500000b@90 R/9.8082228b",
-   "auto": {
-    "closing_release": {
-     "curve": 1,
-     "points": [
-      [
-       0,
-       0
+  "seed": 0,
+  "tail": "0s",
+  "ceiling": "-0.8dB",
+  "patches": {
+    "bs-kit": {
+      "about": "Tight, dry, close-miked kit for indie/jazz/trip-hop (Radiohead / The Smile / GoGo Penguin): a damped kick (short, no boom), a tight snare with less wire ring, crisp rimshot (rs) and sidestick (ss), close hats (h/hs/h1/h2/oh/hf), toms, rides; a touch of small room. Extends metal-kit's pieces.",
+      "extends": "metal-kit",
+      "kit": {
+        "k": {
+          "gain": "-2dB",
+          "patch": {
+            "play": {
+              "vel_sens": 0.6
+            },
+            "synth": {
+              "amp": {
+                "a": "0.3ms",
+                "curve": 4,
+                "d": "130ms",
+                "r": "20ms",
+                "s": 0
+              },
+              "drive": 0.05,
+              "env": {
+                "click": {
+                  "a": "0.1ms",
+                  "d": "3ms",
+                  "s": 0
+                },
+                "knock": {
+                  "a": "0.2ms",
+                  "d": "30ms",
+                  "s": 0
+                },
+                "p": {
+                  "a": "0.3ms",
+                  "curve": 4,
+                  "d": "30ms",
+                  "s": 0
+                }
+              },
+              "filters": [
+                "lp cutoff=3k",
+                "peak cutoff=110 q=1 gain=2dB"
+              ],
+              "layers": [
+                {
+                  "name": "body",
+                  "wave": "sine"
+                },
+                {
+                  "level": {
+                    "mod": [
+                      {
+                        "amount": 52,
+                        "src": "env.knock"
+                      }
+                    ],
+                    "value": "-60dB"
+                  },
+                  "name": "knock",
+                  "ratio": 2.1,
+                  "wave": "sine"
+                },
+                {
+                  "level": {
+                    "mod": [
+                      {
+                        "amount": 50,
+                        "src": "env.click"
+                      },
+                      {
+                        "amount": 8,
+                        "src": "vel"
+                      }
+                    ],
+                    "value": "-66dB"
+                  },
+                  "name": "click",
+                  "type": "noise"
+                }
+              ],
+              "pitch": {
+                "mod": [
+                  {
+                    "amount": 14,
+                    "src": "env.p"
+                  },
+                  {
+                    "amount": 0.3,
+                    "src": "rand"
+                  }
+                ],
+                "value": 0
+              }
+            }
+          },
+          "pitch": "A1"
+        },
+        "s": {
+          "patch": {
+            "play": {
+              "vel_sens": 0.75
+            },
+            "synth": {
+              "amp": {
+                "a": "0.2ms",
+                "d": "200ms",
+                "r": "20ms",
+                "s": 0
+              },
+              "env": {
+                "body": {
+                  "a": "0.2ms",
+                  "curve": 4,
+                  "d": "80ms",
+                  "s": 0
+                },
+                "crack": {
+                  "a": "0.1ms",
+                  "d": "8ms",
+                  "s": 0
+                },
+                "p": {
+                  "a": "0.2ms",
+                  "d": "14ms",
+                  "s": 0
+                },
+                "wires": {
+                  "a": "0.4ms",
+                  "curve": 5,
+                  "d": "140ms",
+                  "s": 0
+                }
+              },
+              "filters": [
+                "hp cutoff=160",
+                {
+                  "cutoff": {
+                    "mod": [
+                      {
+                        "amount": 1.5,
+                        "src": "vel"
+                      }
+                    ],
+                    "value": "6.5k"
+                  },
+                  "kind": "lp"
+                }
+              ],
+              "layers": [
+                {
+                  "level": {
+                    "mod": [
+                      {
+                        "amount": 56,
+                        "src": "env.body"
+                      },
+                      {
+                        "amount": 8,
+                        "src": "vel"
+                      }
+                    ],
+                    "value": "-60dB"
+                  },
+                  "name": "body",
+                  "wave": "triangle"
+                },
+                {
+                  "level": {
+                    "mod": [
+                      {
+                        "amount": 46,
+                        "src": "env.body"
+                      }
+                    ],
+                    "value": "-60dB"
+                  },
+                  "name": "shell",
+                  "ratio": 1.62
+                },
+                {
+                  "level": {
+                    "mod": [
+                      {
+                        "amount": 58,
+                        "src": "env.wires"
+                      },
+                      {
+                        "amount": 8,
+                        "src": "vel"
+                      }
+                    ],
+                    "value": "-68dB"
+                  },
+                  "name": "wires",
+                  "type": "noise"
+                },
+                {
+                  "level": {
+                    "mod": [
+                      {
+                        "amount": 62,
+                        "src": "env.crack"
+                      },
+                      {
+                        "amount": 10,
+                        "src": "vel"
+                      }
+                    ],
+                    "value": "-72dB"
+                  },
+                  "name": "crack",
+                  "type": "noise"
+                }
+              ],
+              "pitch": {
+                "mod": [
+                  {
+                    "amount": 4,
+                    "src": "env.p"
+                  },
+                  {
+                    "amount": 0.25,
+                    "src": "rand"
+                  }
+                ],
+                "value": 0
+              }
+            }
+          },
+          "pitch": "A3"
+        }
+      },
+      "params": {
+        "air": 0
+      },
+      "gain": "0dB",
+      "fx": [],
+      "play": {
+        "event_stable": true,
+        "humanize": {
+          "time": "0ms",
+          "vel": 0
+        }
+      }
+    },
+    "bs-guitar": {
+      "extends": "cutting-guitar",
+      "gain": "-10dB",
+      "play": {
+        "event_stable": true,
+        "strum": "4ms",
+        "humanize": {
+          "time": "1ms",
+          "vel": 0.02
+        }
+      }
+    },
+    "bs-bass": {
+      "about": "Fingerstyle electric bass DI (P/J style): round, warm and fundamental-heavy, through a compressor. Fingertip plucks over the pickups with a plonk and a little fret growl when dug in \u2014 Motown to modern pop. Mono; scores default to octave 2. Techniques: `^dead` ghost note, `^h` hammer-on/legato, `^nh=2` harmonic, `expr.pm` thumb-muted (Jamerson-style), `bend=`.",
+      "fx": [
+        {
+          "bands": [
+            "lowshelf cutoff=90 gain=2dB",
+            "peak cutoff=300 q=1 gain=-1.5dB",
+            "peak cutoff=800 q=0.9 gain=2.5dB",
+            "lp cutoff=6k q=0.6"
+          ],
+          "type": "eq"
+        },
+        {
+          "attack": "12ms",
+          "makeup": "4dB",
+          "ratio": 4,
+          "release": "140ms",
+          "threshold": "-22dB",
+          "type": "compressor"
+        }
       ],
-      [
-       "281.65s",
-       0
+      "gain": "-1dB",
+      "play": {
+        "gate": 0.92,
+        "humanize": {
+          "time": "1ms",
+          "vel": 0.02
+        },
+        "mono": true,
+        "oct": 2,
+        "vel_sens": 0.5,
+        "event_stable": true
+      },
+      "synth": {
+        "amp": {
+          "a": "1.5ms",
+          "r": "90ms",
+          "s": 1
+        },
+        "env": {
+          "f": {
+            "a": "0.5ms",
+            "d": "8ms",
+            "s": 0
+          },
+          "twang": {
+            "a": "0.2ms",
+            "d": "50ms",
+            "s": 0
+          }
+        },
+        "filters": [
+          "hp cutoff=32"
+        ],
+        "layers": [
+          {
+            "bright": {
+              "mod": [
+                {
+                  "amount": 0.34,
+                  "src": "vel"
+                },
+                {
+                  "amount": -0.25,
+                  "src": "expr.pm"
+                },
+                {
+                  "amount": -0.1,
+                  "src": "expr.h"
+                },
+                {
+                  "amount": 0.04,
+                  "src": "rand"
+                }
+              ],
+              "value": 0.33
+            },
+            "buzz": {
+              "mod": [
+                {
+                  "amount": 0.04,
+                  "src": "rand"
+                }
+              ],
+              "value": 0.08
+            },
+            "choke": "70ms",
+            "decay": {
+              "mod": [
+                {
+                  "amount": -4.9,
+                  "src": "expr.pm"
+                },
+                {
+                  "amount": -5.42,
+                  "src": "expr.dead"
+                },
+                {
+                  "amount": 1,
+                  "src": "vel"
+                }
+              ],
+              "value": "5.5s"
+            },
+            "fret": 0.3,
+            "level": {
+              "mod": [
+                {
+                  "amount": -6,
+                  "src": "expr.dead"
+                },
+                {
+                  "amount": -2,
+                  "src": "expr.h"
+                },
+                {
+                  "amount": 0.5,
+                  "src": "expr.nh"
+                }
+              ],
+              "value": "0dB"
+            },
+            "name": "string",
+            "node": {
+              "mod": [
+                {
+                  "amount": 1,
+                  "src": "expr.nh"
+                }
+              ],
+              "value": 0
+            },
+            "pick": 0.16,
+            "pickup": 0.19,
+            "pickup_hz": 2400,
+            "pickup_q": 1.2,
+            "pinch": {
+              "mod": [
+                {
+                  "amount": 1,
+                  "src": "expr.nh"
+                }
+              ],
+              "value": 0
+            },
+            "soft": {
+              "mod": [
+                {
+                  "amount": -0.3,
+                  "src": "vel"
+                },
+                {
+                  "amount": 0.2,
+                  "src": "expr.pm"
+                },
+                {
+                  "amount": 0.05,
+                  "src": "rand"
+                }
+              ],
+              "value": 0.75
+            },
+            "stiff": 0.28,
+            "type": "pluck"
+          },
+          {
+            "color": "pink",
+            "level": {
+              "mod": [
+                {
+                  "amount": 34,
+                  "src": "env.f"
+                },
+                {
+                  "amount": 10,
+                  "src": "vel"
+                },
+                {
+                  "amount": -20,
+                  "src": "expr.h"
+                },
+                {
+                  "amount": 6,
+                  "src": "expr.dead"
+                }
+              ],
+              "value": "-60dB"
+            },
+            "name": "finger",
+            "type": "noise"
+          }
+        ],
+        "pitch": {
+          "mod": [
+            {
+              "amount": 0.12,
+              "src": "env.twang"
+            },
+            {
+              "amount": 0.03,
+              "src": "rand"
+            }
+          ],
+          "value": 0
+        }
+      }
+    },
+    "bs-voice": {
+      "about": "Wordless pitch/vowel lead guide. Not lyrics, TTS, or a recovered original vocal.",
+      "fx": [
+        "reverb kind=plate decay=1.8s mix=0.14 predelay=25ms"
       ],
-      [
-       "282s",
-       -8.973963451261895
-      ],
-      [
-       "282.5000000s",
-       -8.973963451261895
-      ],
-      [
-       "283.5000000s",
-       -10.828640509366164
-      ],
-      [
-       "284.5000000s",
-       -5.032488621737844
-      ],
-      [
-       "285.5000000s",
-       -9.778084970896796
-      ],
-      [
-       "286.5000000s",
-       -11.623948372243781
-      ],
-      [
-       "287.5000000s",
-       -18.02958108222162
-      ],
-      [
-       "288.5000000s",
-       -30.31383492022257
-      ],
-      [
-       "289.4133335s",
-       -14.027910865945458
-      ],
-      [
-       "289.826667s",
-       -14.027910865945458
+      "play": {
+        "glide": "70ms",
+        "humanize": {
+          "time": "2ms",
+          "vel": 0.03
+        },
+        "mono": true,
+        "event_stable": true
+      },
+      "synth": {
+        "amp": {
+          "a": "20ms",
+          "d": "0s",
+          "r": "220ms",
+          "s": 1
+        },
+        "layers": [
+          {
+            "breath": {
+              "mod": [
+                {
+                  "amount": -0.12,
+                  "src": "vel"
+                }
+              ],
+              "value": 0.25
+            },
+            "bright": 0.6,
+            "coda": "expr.off",
+            "effort": {
+              "mod": [
+                {
+                  "amount": 0.45,
+                  "src": "vel"
+                }
+              ],
+              "value": 0.25
+            },
+            "onset": "expr.on",
+            "rasp": {
+              "mod": [
+                {
+                  "amount": 1,
+                  "src": "expr.rasp"
+                }
+              ],
+              "value": 0
+            },
+            "ring": 0.35,
+            "type": "voice",
+            "vary": 0.5,
+            "vowel": {
+              "mod": [
+                {
+                  "amount": 1,
+                  "src": "expr.vow"
+                }
+              ],
+              "value": 0
+            }
+          }
+        ],
+        "lfo": {
+          "vib": {
+            "delay": "320ms",
+            "fade": "500ms",
+            "rate": "5.2hz",
+            "retrig": true,
+            "wave": "sine"
+          }
+        },
+        "pitch": {
+          "mod": [
+            {
+              "amount": 0.18,
+              "src": "lfo.vib"
+            }
+          ],
+          "value": 0
+        }
+      }
+    },
+    "bs-bridge": {
+      "gain": "-10dB",
+      "play": {
+        "event_stable": true,
+        "gate": 1
+      },
+      "synth": {
+        "amp": {
+          "a": "2ms",
+          "d": "140ms",
+          "s": 0.05,
+          "r": "60ms"
+        },
+        "layers": [
+          "sine ratio=2",
+          "sine ratio=4 level=-20dB"
+        ]
+      },
+      "fx": [
+        "reverb kind=room decay=0.8s mix=0.08"
       ]
-     ]
+    },
+    "bs-feedback": {
+      "about": "Closing feedback-like A4 tonal guide inferred from the supplied closing spectrum; not an identified original instrument.",
+      "fx": [
+        {
+          "attack": "30ms",
+          "makeup": "1dB",
+          "ratio": 2.5,
+          "release": "250ms",
+          "threshold": "-16dB",
+          "type": "compressor"
+        },
+        {
+          "bass": 0.45,
+          "gain": 0.35,
+          "mid": 0.6,
+          "model": "crunch",
+          "presence": 0.5,
+          "resonance": 0.5,
+          "sag": 0.35,
+          "tight": 110,
+          "treble": 0.5,
+          "type": "amp"
+        },
+        {
+          "distance": 0.2,
+          "mic": 0.45,
+          "model": "2x12",
+          "type": "cab"
+        },
+        "delay time=3/8 feedback=0.38 mix=0.24 ping_pong=true tone=2.5k",
+        "reverb kind=hall decay=3.5s mix=0.3"
+      ],
+      "gain": "-6dB",
+      "play": {
+        "gate": 1,
+        "glide": "120ms",
+        "humanize": {
+          "time": "0ms",
+          "vel": 0.01
+        },
+        "mono": true,
+        "vel_sens": 0.5,
+        "event_stable": true
+      },
+      "synth": {
+        "amp": {
+          "a": "80ms",
+          "d": "0s",
+          "s": 1,
+          "r": "5s"
+        },
+        "env": {
+          "bloom": {
+            "a": "2.5s",
+            "r": "500ms",
+            "s": 1
+          },
+          "swell": {
+            "a": "700ms",
+            "curve": 2,
+            "d": "1.5s",
+            "r": "600ms",
+            "s": 1
+          }
+        },
+        "filters": [
+          "hp cutoff=90",
+          {
+            "cutoff": {
+              "mod": [
+                {
+                  "amount": 1.8,
+                  "src": "env.bloom"
+                },
+                {
+                  "amount": 1,
+                  "src": "vel"
+                }
+              ],
+              "value": 900
+            },
+            "keytrack": 0.6,
+            "kind": "lp",
+            "q": 0.9
+          }
+        ],
+        "layers": [
+          {
+            "bright": {
+              "mod": [
+                {
+                  "amount": 0.1,
+                  "src": "env.bloom"
+                },
+                {
+                  "amount": 0.05,
+                  "src": "vel"
+                }
+              ],
+              "value": 0.88
+            },
+            "coil": 0.3,
+            "decay": "40s",
+            "level": {
+              "mod": [
+                {
+                  "amount": 4,
+                  "src": "env.swell"
+                }
+              ],
+              "value": "-4dB"
+            },
+            "name": "string",
+            "node": {
+              "mod": [
+                {
+                  "amount": 1,
+                  "src": "expr.nh"
+                }
+              ],
+              "value": 0
+            },
+            "pick": 0.25,
+            "pickup": 0.22,
+            "pickup_hz": 3000,
+            "pickup_q": 1.1,
+            "pinch": {
+              "mod": [
+                {
+                  "amount": 1,
+                  "src": "expr.nh"
+                }
+              ],
+              "value": 0
+            },
+            "soft": 1,
+            "type": "pluck"
+          },
+          {
+            "level": {
+              "mod": [
+                {
+                  "amount": 50,
+                  "src": "env.swell"
+                },
+                {
+                  "amount": 6,
+                  "src": "vel"
+                },
+                {
+                  "amount": -10,
+                  "src": "expr.nh"
+                }
+              ],
+              "value": "-70dB"
+            },
+            "name": "drive",
+            "wave": "saw"
+          }
+        ],
+        "lfo": {
+          "vib": {
+            "delay": "900ms",
+            "fade": "1.2s",
+            "rate": "5.2hz",
+            "retrig": true,
+            "wave": "sine"
+          }
+        },
+        "pitch": {
+          "value": 0.09,
+          "mod": [
+            {
+              "src": "rand",
+              "amount": 0.01
+            }
+          ]
+        }
+      }
     }
-   },
-   "fx": [
+  },
+  "buses": {
+    "drum-bus": {
+      "fx": [
+        {
+          "attack": "6ms",
+          "makeup": "2dB",
+          "ratio": 3,
+          "release": "90ms",
+          "threshold": "-20dB",
+          "type": "compressor"
+        },
+        {
+          "bands": [
+            "hp cutoff=40",
+            "peak cutoff=80 q=1 gain=-2dB",
+            "peak cutoff=400 q=1 gain=-2dB",
+            "peak cutoff=3.5k q=1 gain=3dB",
+            "peak cutoff=5k q=1 gain=1.5dB",
+            {
+              "cutoff": "8k",
+              "gain": "0dB",
+              "kind": "highshelf"
+            }
+          ],
+          "type": "eq"
+        },
+        "reverb kind=room decay=0.45s mix=0.06 predelay=4ms",
+        {
+          "type": "gain",
+          "gain": "3dB"
+        }
+      ]
+    }
+  },
+  "master": {
+    "fx": [
+      "glue threshold=-16dB ratio=2 attack=10ms release=150ms makeup=2dB",
+      {
+        "type": "gain",
+        "gain": {
+          "value": "0dB",
+          "mod": [
+            {
+              "src": "auto.setup_level",
+              "amount": 1
+            }
+          ]
+        }
+      }
+    ],
+    "auto": {
+      "setup_level": {
+        "points": [
+          [
+            "0s",
+            13.287107595421997
+          ],
+          [
+            "5.200000s",
+            13.287107595421997
+          ],
+          [
+            "5.500000s",
+            12.176814506204893
+          ],
+          [
+            "21.850000s",
+            12.176814506204893
+          ],
+          [
+            "22.150000s",
+            10.667176642347002
+          ],
+          [
+            "59.850000s",
+            10.667176642347002
+          ],
+          [
+            "60.150000s",
+            10.481887261046186
+          ],
+          [
+            "97.850000s",
+            10.481887261046186
+          ],
+          [
+            "98.150000s",
+            10.57599442041667
+          ],
+          [
+            "135.850000s",
+            10.57599442041667
+          ],
+          [
+            "136.150000s",
+            10.089065342369668
+          ],
+          [
+            "173.850000s",
+            10.089065342369668
+          ],
+          [
+            "174.150000s",
+            9.367831269669272
+          ],
+          [
+            "211.850000s",
+            9.367831269669272
+          ],
+          [
+            "212.150000s",
+            10.41882775755479
+          ],
+          [
+            "223.810000s",
+            10.41882775755479
+          ],
+          [
+            "224.110000s",
+            13.528074189499652
+          ],
+          [
+            "242.820000s",
+            13.528074189499652
+          ],
+          [
+            "243.120s",
+            11.16
+          ],
+          [
+            "281.250s",
+            11.16
+          ],
+          [
+            "281.550s",
+            1.66
+          ]
+        ]
+      }
+    }
+  },
+  "tracks": [
     {
-     "type": "gain",
-     "gain": {
-      "value": "0dB",
-      "mod": [
-       {
-        "src": "auto.closing_release",
-        "amount": 1
-       }
+      "name": "guitar-pick",
+      "patch": "bs-guitar",
+      "gain": "-10dB",
+      "pan": -0.15,
+      "score": "R/9b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | A2/0.5b@100 C4/0.5b@100 A2/0.25b@100 C4/0.5b@100 G2/0.5b@100 B3/0.5b@100 G2/0.25b@100 B3/0.5b@100 G2/0.5b@100 | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | R/32b | A2/0.5b C4/0.5b A2/0.25b C4/0.5b G2/0.5b B3/0.5b G2/0.25b B3/0.5b G2/0.5b | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | C3/0.5b E4/0.5b C4/0.25b G3/0.5b F4/0.5b D4/0.5b A3/0.25b F4/0.5b D4/0.5b | C3/0.5b E4/0.5b C4/0.25b G3/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.25b G4/0.25b F4/0.5b | A2/0.5b C4/0.5b A2/0.25b C4/0.5b G2/0.5b B3/0.5b G2/0.25b B3/0.5b G2/0.5b | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | C3/0.5b E4/0.5b C4/0.25b G3/0.5b F4/0.5b D4/0.5b A3/0.25b F4/0.5b D4/0.5b | C3/0.5b E4/0.5b C4/0.25b G3/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.25b G4/0.25b F4/0.5b | A2/0.5b C4/0.5b A2/0.25b C4/0.5b G2/0.5b B3/0.5b G2/0.25b B3/0.5b G2/0.5b | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | C3/0.5b E4/0.5b C4/0.25b G3/0.5b F4/0.5b D4/0.5b A3/0.25b F4/0.5b D4/0.5b | C3/0.5b E4/0.5b C4/0.25b G3/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.25b G4/0.25b F4/0.5b | A2/0.5b C4/0.5b A2/0.25b C4/0.5b G2/0.5b B3/0.5b G2/0.25b B3/0.5b G2/0.5b | C3/0.5b E4/0.5b C3/0.25b E4/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.5b D3/0.5b | C3/0.5b E4/0.5b C4/0.25b G3/0.5b F4/0.5b D4/0.5b A3/0.25b F4/0.5b D4/0.5b | C3/0.5b E4/0.5b C4/0.25b G3/0.5b D3/0.5b F4/0.5b D3/0.25b F4/0.25b G4/0.25b F4/0.5b R/14.8748895b"
+    },
+    {
+      "name": "guitar-chops",
+      "patch": "bs-guitar",
+      "gain": "-3dB",
+      "pan": 0.15,
+      "score": "R/9b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b@100 E3,A3,C4/0.5b@100 A2,E3,A3/0.25b@100 E3,A3,C4,E4/0.5b@100 G2,B2,D3/0.5b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.25b@100 G3,B3,G4/0.5b@100 G2,B2,D3/0.5b@100 | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | R/32b | A2,E3,A3,C4/0.5b E3,A3,C4/0.5b A2,E3,A3/0.25b E3,A3,C4,E4/0.5b G2,B2,D3/0.5b G3,B3,G4/0.5b G2,B2,D3/0.25b G3,B3,G4/0.5b G2,B2,D3/0.5b | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b E3,A3,C4/0.5b A2,E3,A3/0.25b E3,A3,C4,E4/0.5b G2,B2,D3/0.5b G3,B3,G4/0.5b G2,B2,D3/0.25b G3,B3,G4/0.5b G2,B2,D3/0.5b | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b E3,A3,C4/0.5b A2,E3,A3/0.25b E3,A3,C4,E4/0.5b G2,B2,D3/0.5b G3,B3,G4/0.5b G2,B2,D3/0.25b G3,B3,G4/0.5b G2,B2,D3/0.5b | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b | A2,E3,A3,C4/0.5b E3,A3,C4/0.5b A2,E3,A3/0.25b E3,A3,C4,E4/0.5b G2,B2,D3/0.5b G3,B3,G4/0.5b G2,B2,D3/0.25b G3,B3,G4/0.5b G2,B2,D3/0.5b | C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b C3,E3,G3,C4/0.5b E3,G3,C4,E4/0.5b C3,E3,G3/0.25b E3,G3,C4,E4/0.5b D3,A3,D4/0.5b A3,D4,F4/0.5b D3,A3,D4/0.25b D3,A3,D4,F4/0.5b A3,D4,F4/0.5b R/14.8748895b"
+    },
+    {
+      "name": "bass",
+      "patch": "bs-bass",
+      "gain": "-5dB",
+      "score": "R/9b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b@100 A2/0.5b@100 D2/0.25b@100^dead A2/0.5b@100 G2/0.5b@100 G2/0.5b@100 G2/0.25b@100 G2/0.5b@100 G2/0.5b@100 | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | R/32b | A2/0.5b A2/0.5b D2/0.25b^dead A2/0.5b G2/0.5b G2/0.5b G2/0.25b G2/0.5b G2/0.5b | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b A2/0.5b D2/0.25b^dead A2/0.5b G2/0.5b G2/0.5b G2/0.25b G2/0.5b G2/0.5b | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b A2/0.5b D2/0.25b^dead A2/0.5b G2/0.5b G2/0.5b G2/0.25b G2/0.5b G2/0.5b | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | A2/0.5b A2/0.5b D2/0.25b^dead A2/0.5b G2/0.5b G2/0.5b G2/0.25b G2/0.5b G2/0.5b | D3/0.25b E3/0.25b D3/0.25b E3/0.25b C3/0.25b A2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b | C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b C2/0.5b C2/0.5b A1/0.25b^dead C2/0.5b D2/0.5b D2/0.5b D2/0.25b D2/0.5b D2/0.5b R/14.8748895b"
+    },
+    {
+      "name": "bridge-sequence",
+      "patch": "bs-bridge",
+      "gain": "-6dB",
+      "score": "R/377b | D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b | A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b | F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b | D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b | A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b | F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b | D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b | A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.25b A4/0.25b F4/0.25b D5/0.5b R/78.8748895b"
+    },
+    {
+      "name": "lead-voice",
+      "patch": "bs-voice",
+      "gain": "-3dB",
+      "score": "R/41b | B3/0.46875b@115^on=2^vow=0.480 R/0.03125b C4/0.375b@117^on=16^off=4^vow=0.150 R/0.09375b B3/0.9375b@119^on=2^vow=0.360 R/0.03125b B3/0.46875b@120^on=2^off=4^vow=0.860 R/0.09375b A3/0.40625b@114^on=5^off=17^vow=0.950 R/0.0625b G3/0.3125b@102^on=11^off=4^vow=0.950 R/0.125b A4/0.15625b@96^on=5^vow=0.620 Ab3/0.4375b@116^on=16^off=17^vow=0.610 | _/0.34375b G3/0.78125b@104^on=16^off=17^vow=0.840 Ab4/0.34375b@95^off=11^vow=0.630 F3/0.625b@100^on=11^off=17^vow=0.860 R/0.9375b D3/0.28125b@105^on=2^off=17^vow=0.900 F#4/0.28125b@81^on=11^off=11^vow=0.630 C#3/0.15625b@105^on=16^off=17^vow=0.120 R/0.1875b F3/0.0625b@106^on=6^off=11^vow=0.630 | _/0.9375b R/0.09375b E3/0.28125b@107^on=4^off=17^vow=0.810 R/0.0625b E3/0.46875b@94^on=11^off=4^vow=0.630 R/0.15625b G3/0.59375b@113^on=6^vow=0.580 F#3/0.125b@103^on=16^off=17^vow=0.690 R/0.21875b A3/1.0625b@110^on=6^off=4^vow=0.830 | _/0.1875b R/0.125b A3/0.09375b@66^on=16^off=17^vow=0.620 R/3.5625b C4/0.03125b@119^off=11^vow=0.780 | _/1b C4/0.53125b@124^on=16^vow=0.840 R/0.03125b C4/0.34375b@122^on=16^off=17^vow=0.620 R/0.1875b A3/1.25b@124^off=4^vow=0.140 R/0.09375b A3/0.5625b@124^on=1^off=17^vow=0.650 | _/0.375b G3/1b@114^on=13^off=17^vow=0.670 R/0.15625b F3/0.625b@104^on=16^off=4^vow=0.700 R/0.0625b C5/0.125b@72^on=11^off=11^vow=0.630 R/0.65625b D3/0.875b@115^on=2^off=4^vow=0.600 R/0.125b | F3/0.375b@98^on=11^off=4^vow=0.970 R/0.1875b F3/0.96875b@102^on=13^off=17^vow=0.940 G3/1.21875b@111^on=16^off=4^vow=0.670 R/0.0625b Eb5/0.28125b@96^on=13^off=11^vow=0.630 Ab3/0.90625b@111^on=16^off=4^vow=0.710 | _/0.34375b R/2.6875b D3/0.8125b@117^on=2^off=4^vow=0.610 R/0.09375b E3/0.0625b@96^on=11^off=4^vow=0.630 | _/0.34375b R/0.1875b G3/2.25b@113^on=5^off=17^vow=0.780 R/0.03125b D5/0.28125b@99^on=13^off=11^vow=0.630 R/0.90625b | R/8b | R/3.0625b D3/0.5625b@109^on=16^off=11^vow=0.930 C#3/0.375b@99^on=16^vow=0.630 | _/0.03125b A3/0.5625b@113^on=16^off=4^vow=0.660 R/1b G3/0.5b@116^on=6^off=4^vow=0.660 R/1.90625b | R/0.0625b F3/0.90625b@107^off=17^vow=0.840 R/0.0625b F3/0.1875b@53^on=16^off=11^vow=0.690 R/0.125b Bb3/0.1875b@82^on=16^off=17^vow=0.630 R/0.03125b F3/0.625b@118^off=4^vow=0.610 R/1.8125b | R/4b | R/2.53125b E3/1.03125b@99^on=2^off=11^vow=0.630 G3/0.4375b@108^on=16^off=11^vow=0.630 | _/0.125b A3/0.53125b@112^on=16^off=4^vow=0.660 R/0.125b A3/0.09375b@50^vow=0.620 R/0.71875b G3/0.53125b@116^on=6^off=4^vow=0.660 R/1.875b | R/0.09375b F3/0.875b@111^on=16^off=4^vow=0.580 R/0.625b D3/0.40625b@99^on=16^off=17^vow=0.630 R/2b | R/8b | R/0.03125b E4/0.53125b@123^on=6^vow=0.900 F4/0.5b@123^on=16^off=17^vow=0.360 F4/0.6875b@124^on=6^off=17^vow=0.690 R/0.25b B3/1.03125b@123^on=16^off=11^vow=0.600 G3/0.5625b@121^on=16^vow=0.640 D4/0.40625b@118^on=2^off=11^vow=0.850 | _/0.4375b R/0.09375b G3/0.625b@109^off=17^vow=0.820 R/0.21875b D3/1.625b@106^off=4^vow=0.100 R/0.0625b D3/0.9375b@110^on=2^off=17^vow=0.840 | _/0.03125b F3/1.9375b@113^on=16^off=17^vow=0.670 R/0.0625b G3/0.40625b@112^on=6^off=17^vow=0.900 R/1.5625b | R/3.875b C4/0.125b@121^on=2^off=17^vow=0.810 | _/0.875b C4/1.125b@124^on=11^vow=0.670 R/0.03125b Bb3/0.625b@121^on=16^off=11^vow=0.730 R/0.375b G3/0.5625b@113^on=2^off=17^vow=0.920 G3/0.40625b@120^on=16^off=4^vow=0.880 | _/2.3125b R/0.09375b Eb5/0.5b@75^vow=0.630 R/0.15625b D3/0.90625b@113^on=2^off=17^vow=0.660 F3/0.03125b@106^on=11^off=4^vow=0.670 | _/0.9375b R/0.09375b F3/1.5625b@113^on=2^vow=0.850 A3/1.40625b@111^on=2^off=4^vow=0.740 | _/0.5625b R/2.4375b D3/0.84375b@102^on=2^off=4^vow=0.140 R/0.09375b F3/0.0625b@103^on=13^off=11^vow=0.840 | _/0.5625b R/0.5b F3/1.5b@114^on=2^off=4^vow=0.880 R/0.09375b F3/0.40625b@100^on=2^off=17^vow=0.840 R/0.9375b | R/8b | R/3.03125b D3/0.96875b@88^on=16^vow=0.920 | _/0.0625b A3/0.4375b@113^off=4^vow=0.470 R/1.0625b G3/0.5625b@114^on=2^off=4^vow=0.660 R/1.875b | R/0.0625b F3/0.90625b@107^off=17^vow=0.850 R/0.375b Bb3/0.15625b@74^on=16^off=17^vow=0.620 R/0.03125b F3/0.625b@112^off=4^vow=0.840 R/1.84375b | R/4b | R/2.5625b D3/0.8125b@90^on=2^off=17^vow=0.920 R/0.1875b G3/0.4375b@105^on=16^vow=0.620 | A3/0.65625b@115^on=16^off=4^vow=0.660 R/0.9375b G3/0.53125b@115^on=6^off=4^vow=0.660 R/1.875b | R/0.03125b F3/1.46875b@111^off=17^vow=0.660 R/0.125b D3/0.4375b@95^on=16^off=17^vow=0.840 R/1.9375b | R/4b | R/2.59375b Ab3/1.40625b@109^on=2^off=17^vow=0.960 | Ab3/1.4375b@117^on=16^off=4^vow=0.610 R/0.15625b F3/2.40625b@114^on=2^off=11^vow=0.650 | _/1.40625b R/0.15625b F3/1.78125b@112^on=2^off=17^vow=0.890 D4/0.65625b@94^on=16^off=17^vow=0.100 | _/0.25b R/3.75b | R/2.75b E3/0.65625b@107^on=16^off=17^vow=0.620 R/0.09375b G3/0.5b@106^on=16^vow=0.850 | G3/4b@119^off=17^vow=0.630 | _/1.53125b E4/2.46875b@110^on=16^off=17^vow=0.670 | _/1.40625b F4/0.65625b@77^on=16^off=17^vow=0.130 R/1.9375b | R/3.03125b Eb3/0.96875b@91^on=2^vow=0.690 | _/0.03125b E4/0.5b@94^on=16^off=17^vow=0.840 R/0.03125b D3/1.03125b@100^on=16^vow=0.850 R/2.40625b | R/1.78125b F3/1.1875b@102^on=16^off=17^vow=0.700 D3/1.03125b@98^on=16^off=17^vow=0.680 | _/2.59375b A3/0.25b@80^on=16^off=17^vow=0.840 R/0.1875b F3/0.96875b@90^on=16^off=17^vow=0.660 | _/1.40625b E3/1.03125b@87^on=16^off=17^vow=0.680 R/0.125b E3/0.34375b@66^on=13^off=13^vow=0.630 R/0.125b G3/0.96875b@101^on=16^off=17^vow=0.740 | _/1.78125b F3/2.21875b@105^on=16^off=17^vow=0.670 | _/4b | _/2.40625b R/0.625b C3/0.96875b@93^on=2^off=17^vow=0.840 | _/2.46875b R/0.125b F4/0.125b@61^on=13^off=13^vow=0.620 R/0.3125b D3/0.90625b@89^on=2^off=17^vow=0.840 B3/0.0625b@121^on=13^off=17^vow=0.610 | _/1.5625b R/0.0625b G3/0.4375b@112^off=17^vow=0.720 B4/1b@122^vow=0.600 D3/0.46875b@102^off=17^vow=0.870 G3/0.46875b@116^off=13^vow=0.690 | _/2.96875b R/0.03125b D3/0.4375b@103^on=2^off=17^vow=0.960 R/0.03125b C3/0.53125b@103^on=13^vow=0.730 | _/0.09375b E3/0.9375b@110^off=11^vow=0.620 F3/1.375b@116^on=16^off=4^vow=0.310 R/0.125b A3/1.46875b@114^on=2^off=17^vow=0.670 | _/0.75b Eb3/1.8125b@94^on=16^off=17^vow=0.630 F5/0.40625b@72^off=13^vow=0.630 R/0.0625b D3/0.78125b@88^on=16^off=17^vow=0.110 G3/0.1875b@103^on=16^vow=0.720 | R/0.9375b B3/2.125b@122^vow=0.570 Eb3/0.53125b@119^on=2^vow=0.850 G3/0.40625b@115^on=16^off=4^vow=0.830 | _/2.96875b R/0.0625b F3/0.96875b@109^on=2^off=17^vow=0.630 | _/1.03125b F3/1.8125b@113^on=16^off=4^vow=0.640 R/0.125b A3/1.03125b@116^on=11^off=4^vow=0.790 | _/0.78125b R/2.25b D3/0.46875b@99^on=2^off=17^vow=0.970 D3/0.5b@104^on=16^vow=0.950 | _/0.0625b F3/1.3125b@99^on=16^off=4^vow=0.960 R/0.09375b F#3/0.40625b@86^off=17^vow=0.960 R/0.15625b G3/0.5b@110^on=16^off=17^vow=0.650 R/0.3125b A3/1.15625b@115^on=16^off=17^vow=0.690 | _/4b | _/1.0625b G3/0.5625b@97^off=17^vow=0.650 R/0.15625b G3/0.71875b@95^off=4^vow=0.620 R/0.0625b Bb4/0.28125b@78^vow=0.630 G3/0.09375b@73^on=16^off=4^vow=0.620 R/0.09375b F3/0.96875b@96^on=2^off=17^vow=0.630 | _/1.3125b E3/1.25b@94^on=16^vow=0.630 D3/1.4375b@119^vow=0.830 | _/1.03125b G3/1.5625b@114^on=11^off=17^vow=0.860 Bb3/0.34375b@76^vow=0.630 R/0.125b F3/0.9375b@119^on=2^off=17^vow=0.860 | _/3b D3/0.75b@100^on=16^off=17^vow=0.680 A3/0.25b@98^on=16^off=11^vow=0.850 | _/1.0625b F#3/0.78125b@101^on=16^off=11^vow=0.850 G3/0.5b@97^on=16^off=4^vow=0.660 R/0.15625b Eb4/0.375b@87^vow=0.610 R/0.1875b A3/0.9375b@98^on=2^off=17^vow=0.700 | _/0.9375b R/0.09375b Bb3/0.625b@104^on=16^off=4^vow=0.810 R/0.1875b F3/2.15625b@105^on=16^vow=0.950 | _/0.125b A3/0.9375b@115^on=16^off=17^vow=0.560 E3/0.53125b@102^on=16^vow=0.830 D3/1.46875b@120^vow=0.650 F3/0.9375b@102^vow=0.640 | _/0.0625b D3/2.53125b@115^vow=0.630 C#4/0.34375b@70^on=13^vow=0.630 R/0.09375b C3/0.59375b@91^on=2^off=17^vow=0.840 C#4/0.15625b@59^on=16^off=17^vow=0.880 R/0.03125b C3/0.1875b@91^on=16^off=17^vow=0.920 | _/0.75b A3/0.375b@74^on=16^off=17^vow=0.900 C3/0.21875b@81^on=16^off=17^vow=0.870 D3/0.3125b@87^on=16^vow=0.850 R/0.125b D3/0.6875b@91^on=16^off=11^vow=0.610 R/0.09375b Eb4/0.25b@65^on=13^vow=0.630 R/0.25b C3/0.71875b@90^on=2^off=17^vow=0.660 R/0.03125b C3/0.1875b@88^on=16^off=17^vow=0.940 | _/1b F3/1.875b@97^on=16^off=17^vow=0.830 R/0.28125b A3/0.84375b@119^on=16^vow=0.660 | _/3.0625b F3/0.9375b@119^off=17^vow=0.640 | _/3b D3/0.71875b@102^off=17^vow=0.670 A3/0.28125b@99^on=16^off=17^vow=0.850 | _/1.0625b F#3/0.78125b@103^on=16^off=11^vow=0.850 G3/0.5625b@97^on=16^off=4^vow=0.660 R/0.0625b Eb4/0.375b@85^on=16^vow=0.610 R/0.1875b A3/0.96875b@98^on=2^off=17^vow=0.700 | _/0.9375b R/0.09375b C#4/0.59375b@103^on=16^off=4^vow=0.820 R/0.21875b Ab3/0.8125b@100^on=16^off=4^vow=0.580 R/0.125b F3/0.09375b@69^on=16^off=17^vow=0.620 R/0.15625b F#3/0.5625b@109^on=2^vow=0.630 C#3/0.40625b@110^on=16^off=17^vow=0.620 | _/0.09375b G3/2.8125b@119^on=16^off=4^vow=0.650 R/0.1875b E3/0.90625b@101^off=17^vow=0.660 | _/0.03125b F3/1.0625b@110^on=16^off=17^vow=0.790 F3/0.53125b@109^on=16^off=17^vow=0.680 E3/0.96875b@112^vow=0.620 B4/0.34375b@66^on=13^vow=0.630 C3/0.875b@105^on=16^off=17^vow=0.870 C3/0.1875b@96^on=16^off=17^vow=0.900 | _/0.75b A3/0.375b@73^on=16^off=17^vow=0.910 C3/0.21875b@81^on=16^off=17^vow=0.870 D3/0.3125b@87^on=16^vow=0.850 R/0.15625b D3/0.6875b@91^on=16^off=11^vow=0.620 R/0.0625b F4/0.28125b@66^on=13^off=13^vow=0.630 R/0.21875b C3/0.71875b@89^on=2^off=17^vow=0.660 R/0.03125b C3/0.1875b@87^off=17^vow=0.950 | _/1.3125b D3/0.34375b@73^on=16^off=17^vow=0.840 R/0.125b D3/0.78125b@94^on=16^off=17^vow=0.690 R/1.4375b | R/28b | R/3.0625b D3/0.9375b@95^on=2^off=11^vow=0.110 | _/0.09375b A3/0.375b@112^on=16^off=4^vow=0.650 R/0.15625b Eb5/0.125b@50^on=11^off=11^vow=0.620 R/0.8125b G3/0.375b@116^on=2^off=4^vow=0.840 R/2.0625b | R/0.09375b F3/0.84375b@111^on=16^off=17^vow=0.570 R/0.125b Eb3/0.28125b@61^on=16^off=17^vow=0.630 Bb3/0.09375b@70^on=16^off=17^vow=0.620 R/0.09375b F3/0.4375b@107^off=17^vow=0.840 R/2.03125b | R/4b | R/3.03125b E3/0.3125b@95^on=2^off=17^vow=0.920 G3/0.53125b@105^on=11^off=11^vow=0.910 G3/0.09375b@103^on=13^off=13^vow=0.620 R/0.03125b | R/0.15625b Ab3/0.5b@110^off=4^vow=0.530 R/0.90625b G3/0.5625b@120^on=2^off=4^vow=0.560 R/1.875b | R/0.03125b F3/0.90625b@111^on=16^off=4^vow=0.410 R/0.09375b C3/0.46875b@80^off=17^vow=0.860 R/0.09375b C#3/0.46875b@86^on=16^off=17^vow=0.090 R/1.9375b | R/4b | R/3.0625b G3/0.8125b@103^on=2^off=17^vow=0.970 R/0.125b | C4/0.9375b@120^on=16^off=4^vow=0.620 R/0.125b C4/0.40625b@100^on=11^off=13^vow=0.630 R/0.03125b B3/1.03125b@121^on=16^off=4^vow=0.640 R/1.4375b G3/0.03125b@119^on=6^off=17^vow=0.620 | _/1.375b C#3/0.21875b@100^on=11^off=11^vow=0.620 F3/0.84375b@108^on=16^off=4^vow=0.370 R/0.40625b F5/0.15625b@70^on=13^off=13^vow=0.640 R/1b | R/4b | R/3.03125b F3/0.5625b@103^on=2^vow=0.650 G3/0.40625b@102^on=16^off=4^vow=0.620 | _/0.03125b R/0.0625b A3/0.875b@114^off=4^vow=0.660 R/0.53125b G3/0.6875b@117^on=6^off=4^vow=0.580 R/0.25b G3/0.15625b@50^on=11^off=11^vow=0.610 R/0.9375b C3/0.3125b@88^on=2^off=17^vow=0.920 R/0.125b E3/0.03125b@101^off=17^vow=0.850 | _/0.40625b R/0.0625b F3/1b@99^off=17^vow=0.690 R/0.09375b E3/0.53125b@101^on=16^off=4^vow=0.660 R/1.90625b R/22.8748895b"
+    },
+    {
+      "name": "closing-tone-guide",
+      "patch": "bs-feedback",
+      "gain": "-10dB",
+      "score": "R/473.0166667b A4/5.0500000b@90 R/9.8082228b",
+      "auto": {
+        "closing_release": {
+          "curve": 1,
+          "points": [
+            [
+              0,
+              0
+            ],
+            [
+              "281.65s",
+              0
+            ],
+            [
+              "282s",
+              -8.973963451261895
+            ],
+            [
+              "282.5000000s",
+              -8.973963451261895
+            ],
+            [
+              "283.5000000s",
+              -10.828640509366164
+            ],
+            [
+              "284.5000000s",
+              -5.032488621737844
+            ],
+            [
+              "285.5000000s",
+              -9.778084970896796
+            ],
+            [
+              "286.5000000s",
+              -11.623948372243781
+            ],
+            [
+              "287.5000000s",
+              -18.02958108222162
+            ],
+            [
+              "288.5000000s",
+              -30.31383492022257
+            ],
+            [
+              "289.4133335s",
+              -14.027910865945458
+            ],
+            [
+              "289.826667s",
+              -14.027910865945458
+            ]
+          ]
+        }
+      },
+      "fx": [
+        {
+          "type": "gain",
+          "gain": {
+            "value": "0dB",
+            "mod": [
+              {
+                "src": "auto.closing_release",
+                "amount": 1
+              }
+            ]
+          }
+        }
       ]
-     }
+    },
+    {
+      "name": "drums-kick",
+      "patch": "bs-kit",
+      "out": "drum-bus",
+      "score": "R/1.0208b k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.7917b@127 k/0.1875b@127 k/1.3125b@20 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@123 k/0.5b@127 k/0.7708b@127 k/1.5208b@127 k/0.5b@127 k/0.2083b@127 k/0.2917b@127 k/0.2083b@107 k/0.5b@127 k/0.7917b@127 k/0.7292b@127 k/0.7708b@10 k/0.5b@127 k/0.4792b@127 k/0.2292b@127 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@126 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.2083b@127 k/0.2917b@127 k/0.2083b@105 k/0.5b@127 k/0.7708b@127 k/0.75b@127 k/0.7708b@10 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.4792b@127 k/0.2292b@127 k/0.5b@127 k/0.7708b@127 k/1.5208b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@110 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.2292b@127 k/0.2708b@127 k/0.2083b@99 k/0.5b@127 k/0.7708b@127 k/1.5208b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.7708b@127 k/1.5208b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@122 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.2083b@127 k/0.2917b@127 k/0.2083b@122 k/0.5b@127 k/0.7708b@127 k/0.75b@127 k/0.7708b@8 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.7917b@127 k/0.1875b@127 k/1.2917b@5 k/0.5208b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@114 k/0.5b@127 k/0.7708b@127 k/1.5208b@127 k/0.5b@127 k/0.2083b@127 k/0.2917b@127 k/0.2083b@108 k/0.5b@127 k/0.7917b@127 k/0.7292b@127 k/0.7708b@10 k/0.5b@127 k/0.4792b@127 k/0.2292b@127 k/0.5b@127 k/0.2708b@127 k/0.5b@6 k/1.5208b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.4792b@127 k/0.2292b@119 k/0.5b@127 k/0.7708b@127 k/1.5208b@127 k/0.5b@127 k/0.2083b@127 k/0.2917b@127 k/0.2083b@112 k/0.5b@127 k/0.7917b@127 k/0.7292b@127 k/0.7708b@9 k/0.5b@127 k/0.4792b@127 k/0.2292b@127 k/0.5b@127 k/0.7708b@127 k/1.5208b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.7917b@127 k/1.2708b@127 k/0.2292b@1 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.7708b@127 k/1.5208b@127 k/0.5b@127 k/0.2083b@127 k/0.2917b@127 k/0.2083b@110 k/0.5b@127 k/0.7917b@127 k/0.7292b@127 k/0.7708b@11 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.7917b@127 k/1.4792b@127 k/0.5208b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.7708b@127 k/1.5208b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@118 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.2083b@127 k/0.2917b@127 k/0.2083b@106 k/0.5b@127 k/0.7708b@127 k/1.5208b@127 k/0.5b@127 k/0.2292b@127 k/0.2708b@5 k/0.2083b@127 k/0.5b@127 k/0.7917b@127 k/0.2083b@127 k/1.2917b@5 k/0.5b@127 k/0.4792b@127 k/0.2292b@127 k/0.5b@127 k/0.7708b@127 k/1.5208b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@114 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.2083b@127 k/0.2917b@127 k/0.2083b@122 k/0.5b@127 k/0.7708b@127 k/0.75b@127 k/0.7708b@8 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@120 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.2083b@127 k/0.2917b@127 k/0.2083b@101 k/0.5b@127 k/0.7917b@127 k/0.7292b@127 k/0.7708b@10 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.7917b@127 k/0.1875b@127 k/1.3125b@6 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.4792b@127 k/0.2292b@117 k/0.5b@127 k/0.7708b@127 k/1.5208b@127 k/0.5b@127 k/0.2083b@127 k/0.2917b@127 k/0.2083b@111 k/0.5b@127 k/0.7917b@127 k/0.7292b@127 k/0.7708b@9 k/0.5b@127 k/0.4792b@127 k/0.2292b@127 k/0.5b@127 k/0.7708b@127 k/1.5208b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.4792b@127 k/0.2292b@117 k/0.5b@127 k/0.7708b@127 k/1.5208b@127 k/0.5b@127 k/0.2083b@127 k/0.2917b@127 k/0.2083b@100 k/0.5b@127 k/0.7917b@127 k/0.7083b@127 k/0.7917b@9 k/0.5b@127 k/0.4792b@127 k/0.2292b@127 k/0.5b@127 k/0.7708b@127 k/1.5208b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@126 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.2083b@127 k/0.2917b@127 k/0.2083b@105 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.2708b@127 k/0.5208b@4 k/0.2083b@127 k/1.2917b@5 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.7708b@127 k/1.5208b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@125 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.2292b@127 k/0.2708b@127 k/0.2083b@109 k/0.5b@127 k/0.7708b@127 k/0.75b@127 k/0.7708b@10 k/0.5b@127 k/0.2292b@127 k/0.2708b@8 k/0.2083b@127 k/0.5b@127 k/0.7917b@127 k/0.2083b@127 k/1.2917b@7 k/0.5b@127 k/0.4792b@127 k/0.2292b@127 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@118 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.2083b@127 k/0.2917b@127 k/0.2083b@108 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.7917b@127 k/0.1875b@127 k/1.3125b@4 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@112 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.2083b@127 k/0.2917b@127 k/0.2083b@104 k/0.5b@127 k/0.7917b@127 k/0.7292b@127 k/0.7708b@11 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.7708b@127 k/1.4792b@127 k/0.0417b@80 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.4792b@127 k/0.2292b@115 k/0.5b@127 k/0.7708b@127 k/1.5208b@127 k/0.5b@127 k/0.2083b@127 k/0.2917b@127 k/0.2083b@105 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.4792b@127 k/0.2292b@127 k/0.5b@127 k/0.7708b@127 k/1.5208b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@108 k/0.5b@127 k/0.7708b@127 k/1.5208b@127 k/0.5b@127 k/0.2083b@127 k/0.2917b@127 k/0.2083b@108 k/0.5b@127 k/0.7917b@127 k/0.7083b@127 k/0.7917b@7 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@122 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.2083b@127 k/0.2917b@127 k/0.2083b@113 k/0.5b@127 k/0.7708b@127 k/0.75b@127 k/0.7708b@8 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.4792b@127 k/0.2292b@127 k/0.5b@127 k/0.7708b@127 k/1.5208b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@102 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.2292b@127 k/0.2708b@127 k/0.2083b@111 k/0.5b@127 k/0.7708b@127 k/0.75b@127 k/0.7708b@9 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.7917b@127 k/0.2083b@127 k/1.2917b@6 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.7708b@127 k/1.5208b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@97 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.2083b@127 k/0.2917b@127 k/0.2083b@109 k/0.5b@127 k/0.7917b@127 k/0.7292b@127 k/0.7708b@10 k/0.5b@127 k/0.4792b@127 k/0.2292b@127 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@117 k/0.5b@127 k/0.7708b@127 k/1.5208b@127 k/0.5b@127 k/0.2083b@127 k/0.2917b@127 k/0.2083b@115 k/0.5b@127 k/0.7917b@127 k/0.7292b@127 k/0.7708b@11 k/0.5b@127 k/0.4792b@127 k/0.2292b@127 k/0.5b@127 k/0.7708b@127 k/1.5208b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@118 k/0.5b@127 k/0.7708b@127 k/1.5208b@127 k/0.5b@127 k/0.2083b@127 k/0.2917b@127 k/0.2083b@100 k/0.5b@127 k/0.7917b@127 k/0.7292b@127 k/0.7708b@15 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.7708b@127 k/1.5208b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.2083b@127 k/1.0833b@11 k/1.5b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.2083b@127 k/0.1042b@127 k/0.1875b@18 k/0.2083b@106 k/0.2708b@127 k/0.2292b@15 k/0.2708b@127 k/0.5208b@24 k/1.5b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.7708b@127 k/1.4792b@127 k/0.0417b@74 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.2708b@127 k/0.2292b@14 k/0.7917b@127 k/1.4583b@127 k/0.0417b@74 k/0.5b@127 k/0.2292b@127 k/0.2708b@127 k/0.2083b@108 k/0.2708b@127 k/0.2292b@10 k/0.7708b@127 k/0.75b@127 k/0.7292b@14 k/0.0417b@78 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.5b@127 k/0.7917b@127 k/1.5b@127 k/0.5b@127 k/0.4792b@127 k/0.2292b@127 k/0.5b@123 k/0.7708b@117 k/1.5208b@106 k/0.5b@112 k/0.5b@115 k/0.2083b@80 k/0.5b@114 k/0.7917b@112 k/1.5b@115 k/0.5b@94 k/0.2083b@115 k/0.2917b@102 k/0.2083b@69 k/0.5b@116 k/0.7917b@125 k/0.7292b@112 k/0.7708b@5 k/0.5b@116 k/0.5b@118 k/0.2083b@121 k/0.5b@115 k/0.7917b@121 k/1.5b@118 k/0.5b@119 k/0.5b@110 k/0.2083b@116 k/0.5b@121 k/0.7917b@118 k/1.5b@110 k/0.5b@111 k/0.5b@118 k/0.2083b@76 k/0.5b@119 k/0.7917b@118 k/1.5b@118 k/0.5b@95 k/0.2083b@113 k/0.2917b@100 k/0.2083b@65 k/0.5b@122 k/0.7917b@124 k/0.7292b@115 k/0.7708b@6 k/0.5b@112 k/0.5b@121 k/0.2083b@119 k/0.5b@115 k/0.7708b@117 k/1.5208b@117 k/0.5b@117 k/0.5b@120 k/0.2083b@114 k/0.5b@117 k/0.7917b@117 k/1.5b@109 k/0.5b@109 k/0.5b@114 k/0.2083b@80 k/0.5b@102 k/0.7708b@113 k/1.5208b@116 k/0.5b@90 k/0.2083b@117 k/0.2917b@102 k/0.2083b@68 k/0.5b@114 k/0.7917b@122 k/0.7292b@113 k/0.7708b@5 k/0.5b@111 k/0.5b@113 k/0.2083b@119 k/0.5b@119 k/0.7708b@126 k/1.5208b@119 k/0.5b@120 k/0.5b@116 k/0.2083b@115 k/0.5b@116 k/0.7917b@114 k/1.5b@109 k/0.5b@107 k/0.5b@119 k/0.2083b@74 k/0.5b@118 k/0.7917b@121 k/1.5b@111 k/0.5b@93 k/0.2083b@118 k/0.2917b@101 k/0.2083b@66 k/0.5b@117 k/0.7917b@121 k/0.7292b@115 k/0.7708b@6 k/0.5b@115 k/0.5b@110 k/0.2083b@118 k/0.5b@121 k/0.7917b@127 k/1.5b@119 k/0.5b@112 k/0.5b@119 k/0.2083b@108 k/0.2708b@109 k/0.375b@4 k/0.1458b@2 k/1b@1 R/13.0646895b"
+    },
+    {
+      "name": "drums-snare",
+      "patch": "bs-kit",
+      "out": "drum-bus",
+      "score": "R/1.2917b s/0.5208b@3 s/0.2083b@7 s/0.5208b@51 s/0.2917b@4 s/0.4792b@11 s/0.25b@50 s/0.4792b@3 s/1.2708b@52 s/0.4792b@5 s/0.2292b@4 s/0.8125b@49 s/0.4792b@15 s/0.2292b@44 s/0.5b@4 s/0.5b@44 s/1.25b@4 s/0.2292b@3 s/0.8125b@49 s/0.4792b@14 s/0.7292b@42 s/1.9792b@46 s/1.2917b@50 s/0.7292b@41 s/1.25b@44 s/0.75b@2 s/1.2708b@50 s/0.25b@49 s/0.4792b@2 s/1.9792b@45 s/0.7917b@45 s/0.5b@14 s/0.7292b@43 s/1.9792b@43 s/0.8125b@48 s/0.4792b@14 s/0.7292b@41 s/1.9792b@44 s/0.8125b@49 s/0.4792b@11 s/0.7083b@39 s/2.0208b@44 s/1.2708b@52 s/0.25b@49 s/0.4792b@1 s/1.9792b@48 s/1.2917b@46 s/0.7083b@45 s/2.0208b@42 s/1.2708b@45 s/0.7292b@38 s/1.9792b@36 s/1.2917b@49 s/0.7083b@40 s/2b@40 s/1.2917b@51 s/0.7292b@45 s/1.25b@45 s/0.75b@3 s/1.2708b@44 s/0.7083b@43 s/2b@44 s/1.2917b@43 s/0.7292b@37 s/1.9792b@42 s/1.2917b@44 s/0.7292b@37 s/1.9792b@43 s/1.2917b@50 s/0.7292b@44 s/2b@42 s/1.2708b@45 s/0.7292b@41 s/1.9792b@37 s/1.2917b@42 s/0.7083b@39 s/2b@40 s/1.2917b@42 s/0.7292b@36 s/1.9792b@38 s/1.2917b@46 s/0.7083b@49 s/2.0208b@44 s/1.2708b@45 s/0.7292b@41 s/1.9792b@41 s/1.2917b@47 s/0.7083b@41 s/2b@44 s/1.2917b@49 s/0.7292b@38 s/1.9792b@43 s/1.2917b@49 s/0.25b@47 s/0.4792b@2 s/1.9792b@46 s/1.2917b@43 s/0.7292b@41 s/1.9792b@38 s/1.2917b@46 s/0.7292b@39 s/1.9792b@43 s/1.2917b@49 s/0.7292b@39 s/2b@44 s/1.2708b@49 s/0.7292b@49 s/1.9792b@45 s/1.2917b@45 s/0.7083b@41 s/2.0208b@39 s/1.2708b@45 s/0.7292b@33 s/1.9792b@38 s/1.2917b@48 s/0.7083b@37 s/2.0208b@41 s/1.2708b@43 s/0.7292b@46 s/1.9792b@41 s/1.2917b@47 s/0.7083b@41 s/2b@42 s/1.2917b@40 s/0.7292b@39 s/1.9792b@46 s/1.2917b@44 s/0.7083b@37 s/2b@44 s/1.2917b@45 s/0.7292b@41 s/2b@48 s/1.2708b@45 s/0.7292b@39 s/1.9792b@37 s/1.2917b@48 s/0.7292b@37 s/1.9792b@42 s/1.2917b@43 s/0.7292b@36 s/1.9792b@40 s/0.5417b@48 s/0.75b@2 s/0.7083b@50 s/2.0208b@46 s/1.2708b@43 s/0.7292b@41 s/1.9792b@39 s/1.2917b@44 s/0.7083b@39 s/2.0208b@45 s/1.2708b@50 s/0.7292b@38 s/1.9792b@42 s/1.2917b@46 s/0.7083b@50 s/2b@44 s/1.2917b@42 s/0.7292b@42 s/1.9792b@40 s/1.2917b@45 s/0.7083b@42 s/2b@43 s/1.2917b@50 s/0.7292b@37 s/1.9792b@41 s/1.2917b@46 s/0.7292b@48 s/1.9792b@43 s/1.2917b@43 s/0.7292b@39 s/2b@36 s/1.2708b@44 s/0.7292b@40 s/1.9792b@40 s/1.2917b@43 s/0.7083b@39 s/2.0208b@42 s/0.7708b@49 s/0.5b@10 s/0.7292b@49 s/1.9792b@46 s/1.2917b@42 s/0.7083b@42 s/2.0208b@33 s/1.2708b@41 s/0.7292b@40 s/1.9792b@42 s/1.2917b@47 s/0.7083b@39 s/2.0208b@42 s/1.2708b@49 s/0.7292b@49 s/2b@45 s/1.2708b@43 s/0.7292b@43 s/1.9792b@40 s/1.2917b@47 s/0.7292b@40 s/1.75b@43 s/0.25b@1 s/1.2708b@46 s/0.7083b@40 s/2b@45 s/1.2917b@53 s/0.7292b@50 s/1.9792b@48 s/0.5417b@46 s/0.75b@1 s/0.7292b@43 s/1.9792b@44 s/1.2917b@49 s/0.7083b@42 s/2b@44 s/1.2917b@47 s/0.7292b@38 s/1.9792b@44 s/1.2917b@48 s/0.7083b@49 s/2.0208b@44 s/1.2708b@46 s/0.7292b@40 s/1.9792b@42 s/1.2917b@48 s/0.7292b@37 s/2b@35 s/1.2708b@44 s/0.7292b@35 s/2b@42 s/1.2708b@41 s/0.7292b@48 s/1.9792b@43 s/1.2917b@41 s/0.25b@41 s/0.4792b@1 s/1.9792b@41 s/1.2917b@41 s/0.7292b@37 s/0.5208b@42 s/1.4583b@1 s/1.2917b@40 s/0.7292b@37 s/1.9792b@41 s/1.2917b@44 s/0.7292b@45 s/1.9792b@41 s/1.2917b@42 s/0.7083b@43 s/2.0208b@40 s/1.2708b@41 s/0.7292b@38 s/1.9792b@42 s/0.7917b@44 s/0.5b@12 s/0.7083b@39 s/2.0208b@39 s/1.2708b@47 s/0.25b@49 s/0.4792b@1 s/1.25b@45 s/0.7292b@2 s/0.5208b@44 s/0.7708b@1 s/0.7083b@45 s/0.5208b@40 s/1.5b@2 s/1.2708b@46 s/0.7292b@43 s/0.5208b@41 s/1.4583b@1 s/1.2917b@49 s/0.7083b@38 s/2b@44 s/1.2917b@46 s/0.7292b@49 s/1.9792b@44 s/1.2917b@39 s/0.25b@38 s/0.4792b@2 s/1.9792b@34 s/1.2917b@38 s/0.7292b@42 s/1.9792b@42 s/1.2917b@43 s/0.7292b@39 s/1.9792b@40 s/1.2917b@45 s/0.7083b@48 s/2.0208b@41 s/1.2708b@46 s/0.7292b@41 s/1.9792b@42 s/1.2917b@46 s/0.25b@38 s/0.4583b@1 s/0.5417b@42 s/1.4583b@2 s/1.2917b@45 s/0.7292b@39 s/1.9792b@42 s/1.2917b@48 s/0.7083b@49 s/2.0208b@45 s/1.2708b@38 s/0.7292b@40 s/1.9792b@38 s/0.8125b@41 s/0.4792b@12 s/0.7083b@40 s/0.5417b@41 s/1.4583b@2 s/1.2917b@43 s/0.7292b@39 s/1.9792b@38 s/1.2917b@46 s/0.7292b@47 s/1.9792b@43 s/1.2917b@43 s/0.7292b@41 s/1.9792b@40 s/0.8125b@46 s/0.4792b@13 s/0.7292b@41 s/1.9792b@43 s/0.7917b@46 s/0.5b@12 s/0.7083b@38 s/2.0208b@40 s/0.7917b@45 s/0.4792b@11 s/0.25b@46 s/0.4792b@9 s/1.9792b@45 s/1.2917b@41 s/0.7292b@38 s/2b@37 s/0.7708b@47 s/1.2292b@11 s/1.25b@41 s/0.75b@5 s/0.7917b@46 s/0.4792b@14 s/0.7083b@36 s/1.2708b@41 s/0.75b@5 s/0.7917b@47 s/0.4792b@12 s/0.2292b@51 s/0.5b@7 s/1.25b@48 s/0.75b@4 s/0.7917b@47 s/0.4792b@14 s/0.2292b@39 s/0.5b@6 s/1.9792b@41 s/1.2917b@28 s/0.7292b@24 s/1.9792b@26 s/1.2917b@27 s/0.7292b@23 s/1.9792b@23 s/0.5417b@26 s/0.75b@3 s/0.7292b@30 s/2b@28 s/1.2708b@25 s/0.7292b@25 s/1.9792b@24 s/1.2917b@26 s/0.7292b@24 s/2b@24 s/1.2708b@26 s/0.7292b@22 s/1.9792b@24 s/1.2917b@26 s/0.25b@28 s/0.4792b@3 s/2b@25 s/0.5208b@24 s/0.75b@2 s/0.7292b@24 s/1.9792b@23 s/1.2917b@26 s/0.7292b@23 s/2b@25 s/1.2708b@27 s/0.7292b@23 s/1.9792b@21 s/1.2917b@28 s/0.7292b@29 s/1.9792b@26 s/1.2917b@26 s/0.7292b@24 s/2b@24 s/1.2708b@27 s/0.7292b@25 s/1.9792b@25 s/1.2917b@29 s/0.7292b@22 s/2b@25 s/1.2708b@27 s/0.7292b@30 s/1.9792b@26 s/0.5417b@26 s/0.75b@2 s/0.7292b@24 s/1b@23 R/14.8281895b"
+    },
+    {
+      "name": "drums-hats",
+      "patch": "bs-kit",
+      "out": "drum-bus",
+      "score": "R/2.7708b oh/3.7292b@27 oh/0.2917b@5 oh/0.25b@32 oh/1.5b@6 oh/0.75b@4 h1/0.5b@4 oh/0.7292b@3 oh/0.5208b@6 oh/0.5b@7 oh/1.7708b@2 oh/0.4792b@4 hf/0.75b@3 oh/0.1667b@4 oh/0.1042b@24 oh/0.2292b@17 oh/0.5208b@6 hf/1.7292b@7 h1/0.5b@4 oh/0.75b@6 oh/0.2292b@5 oh/0.0625b@25 hf/0.2083b@41 oh/1.5b@5 h1/0.75b@6 h1/0.5b@4 oh/0.75b@3 oh/0.2708b@3 oh/0.2292b@20 oh/0.5208b@3 hf/0.9792b@6 oh/0.75b@3 h1/0.5b@4 hf/0.75b@8 oh/0.1458b@4 oh/0.3542b@26 oh/0.5b@6 hf/1.0208b@6 hf/0.7292b@11 oh/0.5b@4 hf/0.7292b@3 oh/0.0417b@4 hf/0.1458b@7 oh/0.3333b@23 oh/0.5208b@6 hf/1.7292b@6 h1/0.5b@4 oh/0.7708b@7 oh/0.2083b@4 oh/0.0417b@26 hf/0.2292b@43 oh/1.5b@5 h1/0.75b@9 h1/0.5208b@3 hf/0.7292b@11 oh/0.25b@3 oh/0.25b@33 oh/0.5208b@3 hf/1b@9 h1/0.75b@4 hf/0.4792b@6 oh/0.7708b@2 oh/0.2292b@2 oh/0.2708b@31 oh/0.5b@3 h1/0.9792b@2 oh/0.75b@2 oh/1.2292b@4 oh/0.2917b@2 oh/0.2292b@16 oh/0.5b@5 h1/1.75b@2 h1/0.5b@4 h1/0.7708b@6 h1/0.2083b@2 oh/0.0625b@24 hf/0.1875b@68 oh/0.0417b@3 hf/0.5b@8 hf/0.9792b@5 h1/1.25b@9 hf/0.7708b@7 oh/0.2292b@2 oh/0.0417b@31 h1/0.2083b@20 oh/0.5208b@3 h1/1b@2 oh/0.7292b@2 h1/1.25b@5 oh/0.2708b@3 oh/0.2292b@31 oh/0.5208b@4 hf/1b@6 h1/0.7292b@2 h1/1.25b@5 oh/0.1667b@2 oh/0.3333b@22 oh/0.5b@5 oh/1.7708b@2 h1/0.4167b@3 oh/0.0625b@10 oh/0.75b@7 oh/0.25b@2 oh/0.25b@26 oh/0.5208b@4 hf/0.9792b@10 h1/0.75b@9 h1/0.5b@5 hf/0.7083b@7 oh/0.0625b@3 h1/0.2708b@2 oh/0.2083b@13 oh/0.4792b@3 oh/0.0417b@3 h1/0.9792b@2 oh/0.75b@2 h1/0.5b@3 h1/0.75b@2 oh/0.25b@2 oh/0.25b@30 oh/0.5b@4 hf/1.0208b@5 h1/0.7292b@2 h1/1.2708b@3 oh/0.25b@1 oh/0.2292b@12 oh/0.5b@4 h1/1.75b@3 hf/0.5b@6 oh/0.75b@9 oh/0.25b@4 oh/0.25b@26 oh/0.5208b@5 hf/0.9792b@7 h1/0.75b@10 h1/0.5b@5 h1/0.7292b@3 oh/0.0417b@3 oh/0.25b@2 oh/0.2292b@26 oh/0.4792b@3 oh/0.0417b@3 hf/0.9792b@7 oh/0.75b@1 h1/0.5b@5 h1/0.75b@4 oh/0.5b@3 oh/0.5208b@5 hf/1b@6 h1/0.75b@3 oh/1.2083b@3 oh/0.2917b@3 oh/0.2292b@13 oh/0.5b@5 h1/1.75b@3 hf/0.5b@7 oh/0.7708b@9 oh/0.2083b@4 oh/0.0625b@24 hf/0.2083b@50 oh/1.5b@5 h1/0.75b@9 h1/0.5b@5 hf/0.75b@7 h1/0.2708b@2 oh/0.2292b@16 oh/0.5b@3 h1/1.75b@4 h1/0.5b@4 hf/0.7292b@10 oh/0.0417b@4 h1/0.2708b@2 oh/0.2083b@12 oh/0.5b@5 hf/1.0208b@5 h1/0.7292b@3 oh/1.2292b@4 oh/0.0417b@3 hf/0.25b@7 oh/0.25b@13 oh/0.4792b@4 h1/1.75b@2 h1/0.5b@4 oh/0.75b@6 oh/0.2292b@5 oh/0.0625b@24 hf/0.2083b@38 oh/1.5b@5 h1/0.75b@10 hf/0.5b@7 oh/0.7708b@2 h1/0.2292b@2 oh/0.25b@33 oh/0.5208b@3 h1/0.9792b@3 oh/0.75b@2 h1/0.5b@3 h1/0.75b@4 oh/0.2708b@3 h1/0.2708b@30 hf/0.4583b@11 h1/1.7708b@3 h1/1.2083b@2 oh/0.0417b@3 hf/0.2708b@4 h1/0.2292b@18 hf/0.4792b@9 h1/1.75b@2 h1/0.5b@4 hf/0.7708b@16 oh/0.25b@2 oh/0.2292b@24 oh/0.0417b@3 hf/1.4583b@7 h1/0.75b@8 h1/0.5b@4 hf/0.7292b@7 oh/0.0208b@3 oh/0.2708b@2 oh/0.2292b@29 oh/0.5208b@2 h1/1b@4 h1/0.7083b@4 oh/0.4792b@2 oh/1.0625b@4 h1/0.2083b@24 oh/0.0625b@4 hf/2.2083b@4 h1/1.2708b@4 hf/0.1458b@7 oh/0.0417b@21 oh/0.2917b@22 oh/0.5b@4 oh/1.75b@1 h1/0.5b@3 oh/1.0208b@5 oh/0.2292b@24 oh/0.5208b@3 hf/0.9792b@8 h1/0.75b@8 h1/0.5b@3 h1/0.7708b@4 h1/0.2708b@2 h1/0.2083b@20 oh/0.5b@3 h1/1.0208b@3 oh/0.7292b@2 h1/0.5b@4 h1/1.0417b@2 hf/0.2292b@48 oh/0.4792b@3 oh/1.75b@2 oh/1.25b@4 oh/0.2083b@3 oh/0.0833b@21 h1/0.2083b@23 oh/0.4792b@3 oh/0.0208b@2 h1/1.75b@2 h1/0.5b@3 hf/0.7708b@18 oh/0.2083b@4 oh/0.0417b@24 oh/0.2292b@20 oh/0.5208b@5 hf/0.9792b@6 h1/0.75b@10 h1/0.5b@4 hf/0.7083b@7 oh/0.0625b@3 oh/0.25b@2 oh/0.2292b@23 oh/0.5208b@3 hf/1b@4 hf/0.7292b@9 h1/0.5b@5 hf/0.75b@7 oh/0.5b@2 oh/0.5208b@4 hf/1b@7 hf/0.7292b@5 oh/1.25b@4 oh/0.1667b@2 oh/0.1042b@22 oh/0.2292b@11 oh/0.5208b@5 hf/1.7292b@6 hf/0.5b@7 oh/0.75b@9 oh/0.2292b@5 oh/0.0417b@24 oh/0.2292b@11 oh/0.5208b@5 h1/0.9792b@3 h1/0.75b@9 h1/0.5b@5 hf/0.7292b@8 oh/0.0208b@3 h1/0.2708b@3 oh/0.2292b@13 oh/0.4792b@2 oh/0.0417b@3 h1/1b@3 h1/0.7292b@3 h1/0.4792b@4 oh/0.7917b@5 h1/0.4792b@4 oh/0.5208b@5 hf/1b@5 hf/0.7292b@10 oh/1.25b@4 oh/0.2083b@3 oh/0.0625b@22 oh/0.25b@14 oh/0.5b@4 hf/1.7292b@5 hf/0.5b@7 hf/0.75b@21 oh/0.2292b@5 oh/0.0625b@24 h1/0.1875b@16 oh/0.5417b@5 hf/0.9792b@5 h1/0.75b@9 h1/0.5b@5 oh/0.75b@2 oh/0.25b@2 oh/0.25b@32 oh/0.5208b@3 hf/1b@8 h1/0.7292b@2 h1/0.5b@3 h1/0.75b@4 oh/0.5b@3 oh/0.5208b@5 h1/1b@3 hf/0.7292b@6 h1/1.25b@3 hf/0.1667b@5 oh/0.1042b@22 oh/0.25b@15 oh/0.5b@4 hf/1.7292b@5 h1/0.5b@4 hf/0.7708b@24 oh/0.2083b@4 oh/0.2708b@25 oh/1.5b@5 h1/0.75b@7 h1/0.5b@5 oh/0.7292b@2 oh/0.0208b@3 oh/0.2708b@2 oh/0.2292b@19 oh/0.5208b@3 hf/0.9583b@5 oh/0.0417b@3 h1/0.7292b@3 h1/0.5b@4 h1/0.7708b@4 oh/0.25b@2 oh/0.25b@14 h1/0.5b@4 hf/1b@6 hf/0.7292b@7 h1/0.5b@4 hf/0.75b@2 h1/0.2708b@2 oh/0.25b@18 h1/0.5b@4 h1/1.7292b@3 h1/0.5b@4 hf/0.75b@22 oh/0.2292b@5 oh/0.2708b@25 oh/0.5208b@5 hf/0.9792b@10 h1/0.75b@7 h1/0.5b@4 oh/0.7292b@3 oh/0.0417b@3 h1/0.4792b@2 oh/0.5208b@3 h1/0.9792b@3 oh/0.75b@2 h1/0.5b@4 h1/0.75b@2 oh/0.2708b@3 oh/0.2292b@19 oh/0.5208b@5 hf/1b@10 h1/0.7292b@2 oh/1.25b@4 oh/0.1667b@3 oh/0.3333b@23 oh/0.5b@5 h1/1.7708b@3 hf/0.4792b@7 oh/0.75b@8 oh/0.2292b@4 oh/0.0417b@24 oh/0.2292b@20 oh/0.5208b@4 hf/0.9792b@10 h1/0.75b@6 h1/0.5b@4 h1/0.7083b@2 oh/0.0625b@3 oh/0.4792b@2 oh/0.4792b@2 oh/0.0417b@3 hf/0.9792b@10 oh/0.75b@3 h1/0.5b@5 h1/0.7708b@3 oh/0.2292b@2 oh/0.25b@31 oh/0.5b@5 oh/1.0208b@2 hf/0.7292b@8 oh/1.2708b@4 oh/0.1458b@2 oh/0.125b@22 oh/0.2083b@12 oh/0.5208b@5 hf/1.7292b@7 h1/0.5b@5 oh/0.75b@8 oh/0.2292b@4 oh/0.0417b@25 oh/0.2292b@11 oh/0.5208b@4 h1/0.9792b@2 h1/0.75b@8 h1/0.5b@5 h1/0.7292b@4 oh/0.0417b@3 oh/0.25b@2 oh/0.2292b@14 oh/0.5208b@2 hf/1b@4 oh/0.7292b@2 h1/0.5b@5 hf/0.75b@6 oh/0.2917b@2 h1/0.1042b@27 oh/0.1042b@1 oh/0.0417b@4 hf/0.4792b@7 hf/1.75b@5 h1/1.2292b@4 oh/0.1875b@3 oh/0.0833b@22 oh/0.2292b@13 oh/0.5b@2 oh/1.75b@1 hf/0.5208b@5 h1/0.7292b@1 oh/0.25b@3 oh/0.0417b@26 hf/0.2083b@49 oh/0.5208b@3 hf/0.9792b@10 h1/0.75b@7 h1/0.5b@4 h1/0.7708b@2 h1/0.25b@3 oh/0.2292b@15 oh/0.5208b@2 h1/0.9792b@2 oh/0.75b@3 h1/0.5b@3 h1/0.7708b@4 oh/0.4792b@2 oh/0.5b@4 oh/1.0208b@2 h1/0.75b@2 h1/1.2292b@3 oh/0.1667b@7 oh/0.3542b@26 hf/0.4792b@14 oh/1.75b@1 h1/0.5b@4 oh/0.75b@7 oh/0.2708b@2 oh/0.2083b@24 oh/1.5208b@4 h1/0.75b@8 hf/0.5b@6 h1/0.75b@4 h1/0.2917b@2 h1/0.2083b@19 oh/0.5208b@3 h1/1b@3 h1/0.7292b@3 h1/0.5b@4 h1/0.75b@3 oh/0.25b@3 oh/0.2917b@27 hf/1.4792b@8 hf/0.7292b@5 h1/1.2292b@4 oh/0.2083b@2 oh/0.0833b@22 oh/0.2292b@15 oh/0.5b@3 h1/1.75b@2 hf/0.5b@5 hf/0.7708b@20 oh/0.25b@4 oh/0.2292b@24 oh/0.5208b@4 hf/0.9792b@8 h1/0.75b@7 h1/0.5208b@3 hf/0.7292b@7 oh/0.25b@3 oh/0.25b@33 oh/0.5b@3 h1/1b@3 oh/0.75b@2 h1/0.5b@3 h1/0.75b@4 h1/0.25b@2 oh/0.0417b@31 h1/0.2083b@26 oh/0.5208b@5 hf/1.7292b@8 h1/1.2708b@3 h1/0.1458b@2 oh/0.0625b@21 oh/0.0625b@21 h1/0.2083b@17 oh/0.5b@3 oh/1.75b@2 h1/0.5b@5 oh/0.75b@7 oh/0.2708b@3 oh/0.2292b@10 oh/0.5208b@5 h1/0.9792b@2 h1/0.75b@6 hf/0.5b@5 h1/0.7292b@5 oh/0.0417b@3 oh/0.2708b@1 h1/0.2083b@18 h1/2.2708b@2 hf/0.4792b@6 h1/0.7708b@3 hf/0.25b@10 oh/0.2292b@18 oh/0.5b@5 oh/1.0208b@2 h1/0.7292b@2 oh/1.25b@3 oh/0.2917b@2 h1/0.2083b@15 oh/0.4792b@4 oh/0.0208b@3 h1/1.75b@2 h1/0.5b@5 oh/0.75b@8 oh/0.2292b@4 oh/0.0625b@24 hf/0.2083b@58 oh/0.5208b@5 hf/0.9792b@5 h1/0.75b@8 h1/0.5b@4 h1/0.7708b@3 oh/0.2708b@2 oh/0.2083b@14 h1/0.5208b@2 oh/0.9792b@1 oh/0.75b@2 h1/0.5b@4 h1/0.75b@3 oh/0.25b@2 oh/0.0417b@29 h1/0.2083b@28 oh/1.5208b@4 oh/0.7292b@2 oh/1.25b@3 oh/0.2708b@1 h1/0.2292b@19 oh/0.5b@4 h1/1.75b@2 hf/0.5208b@6 hf/0.7292b@23 oh/0.25b@4 oh/0.0417b@24 h1/0.2083b@17 oh/0.5208b@5 hf/0.9792b@4 h1/0.75b@6 h1/0.5b@4 h1/0.75b@4 oh/0.2708b@3 oh/0.2292b@14 oh/0.4792b@2 oh/0.0417b@3 oh/1b@2 oh/0.7292b@1 h1/0.5b@3 h1/0.7083b@3 oh/0.0625b@3 hf/0.2292b@9 oh/0.25b@31 oh/0.5b@4 oh/1.75b@2 oh/1.25b@4 oh/0.1875b@2 oh/0.0833b@22 oh/0.25b@11 h1/0.4583b@4 oh/0.0417b@3 hf/1.7292b@5 h1/0.5b@4 oh/0.75b@9 oh/0.2292b@5 oh/0.2708b@24 oh/0.5208b@5 hf/0.9792b@6 h1/0.75b@8 h1/0.5b@5 oh/0.7292b@2 oh/0.0417b@3 h1/0.25b@2 oh/0.25b@17 h1/0.5b@3 h1/1b@2 h1/0.6667b@2 oh/0.0625b@3 hf/0.2708b@5 oh/0.2292b@8 hf/0.7292b@8 oh/0.5208b@9 oh/0.0417b@5 hf/0.4792b@13 oh/0.9792b@9 oh/0.75b@9 oh/1.25b@6 oh/0.2708b@8 oh/0.2292b@17 oh/0.0417b@6 hf/3.75b@14 h1/0.2083b@15 oh/1.5b@4 oh/0.75b@9 h1/0.5208b@4 oh/0.7292b@6 oh/0.2708b@8 oh/0.2292b@18 h1/2.25b@4 h1/0.5417b@4 hf/0.6875b@19 oh/0.5208b@8 oh/0.0417b@6 hf/0.4583b@14 oh/1.0208b@6 oh/1.9583b@6 oh/0.0417b@9 oh/0.4792b@9 oh/0.0417b@5 hf/0.4792b@11 oh/2.2292b@6 oh/0.75b@9 oh/0.2917b@8 hf/0.2083b@52 oh/1.5b@4 oh/1.25b@9 oh/1.25b@6 oh/0.5b@2 oh/1.75b@6 h1/0.5208b@1 hf/0.7083b@1 oh/0.2917b@4 oh/0.25b@8 oh/0.5b@2 oh/0.0208b@4 hf/0.9792b@3 oh/0.7292b@3 oh/1.2292b@1 oh/0.3125b@4 h1/0.2083b@5 oh/2.25b@2 h1/1.2708b@1 oh/0.2708b@3 hf/0.2083b@7 oh/1.5208b@2 oh/0.7292b@4 h1/1.25b@1 oh/0.5b@4 oh/2.25b@1 hf/1.25b@1 oh/0.2917b@2 h1/0.2083b@8 oh/2.2708b@2 h1/1.2083b@1 oh/0.0417b@3 oh/0.2708b@3 oh/0.2083b@5 oh/2.25b@2 hf/0.5208b@1 hf/0.75b@3 oh/0.2708b@3 hf/0.2083b@6 oh/1.5b@2 oh/0.75b@4 h1/0.5208b@1 oh/0.6875b@2 oh/0.0625b@3 oh/0.25b@2 oh/0.2292b@6 oh/0.5b@1 oh/1.0208b@2 oh/0.7292b@3 h1/0.5208b@1 hf/0.7083b@1 oh/0.3125b@3 h1/0.2083b@6 oh/0.5208b@2 oh/0.9792b@5 oh/0.75b@4 oh/1.2292b@2 oh/0.2292b@4 oh/0.0625b@10 oh/0.25b@6 oh/0.5b@1 oh/1.7292b@2 h1/0.5208b@1 hf/1.0208b@3 hf/0.2083b@7 oh/1.5b@2 oh/0.75b@4 h1/1.25b@1 oh/0.2708b@4 oh/0.2292b@7 oh/1.5b@1 oh/0.75b@3 h1/0.5b@1 oh/0.7083b@2 oh/0.0417b@4 oh/0.2917b@2 h1/0.2083b@6 oh/1.5b@2 oh/0.7708b@2 oh/1.2292b@2 oh/0.0208b@3 oh/0.2708b@3 h1/0.2083b@6 oh/2.25b@2 h1/0.5b@1 oh/0.7708b@4 oh/0.2708b@3 hf/0.2083b@5 oh/0.5208b@2 oh/0.9792b@2 oh/1.2708b@3 oh/0.7083b@2 oh/0.2917b@3 oh/0.2292b@8 oh/1.5208b@1 oh/1b@2 R/14.3114895b"
     }
-   ]
-  },
-  {
-   "name": "drums-kick",
-   "patch": "bs-kit",
-   "out": "drum-bus",
-   "score": "R/1.0208b k/0.5b@116 k/0.7917b@122 k/1.5b@116 k/0.5b@121 k/0.5b@117 k/0.2083b@121 k/0.5b@114 k/0.7917b@118 k/0.1875b@116 k/1.3125b@12 k/0.5b@119 k/0.5b@124 k/0.2083b@114 k/0.5b@124 k/0.7917b@122 k/1.5b@108 k/0.5b@108 k/0.5b@117 k/0.2083b@79 k/0.5b@119 k/0.7708b@117 k/1.5208b@116 k/0.5b@90 k/0.2083b@116 k/0.2917b@102 k/0.2083b@68 k/0.5b@118 k/0.7917b@121 k/0.7292b@111 k/0.7708b@6 k/0.5b@110 k/0.4792b@115 k/0.2292b@118 k/0.5b@114 k/0.7917b@126 k/1.5b@121 k/0.5b@123 k/0.5b@119 k/0.2083b@114 k/0.5b@125 k/0.7917b@119 k/1.5b@108 k/0.5b@111 k/0.5b@115 k/0.2083b@81 k/0.5b@121 k/0.7917b@118 k/1.5b@125 k/0.5b@92 k/0.2083b@118 k/0.2917b@103 k/0.2083b@67 k/0.5b@118 k/0.7708b@125 k/0.75b@113 k/0.7708b@6 k/0.5b@118 k/0.5b@115 k/0.2083b@123 k/0.5b@115 k/0.7917b@127 k/1.5b@116 k/0.5b@120 k/0.4792b@122 k/0.2292b@111 k/0.5b@123 k/0.7708b@116 k/1.5208b@98 k/0.5b@109 k/0.5b@114 k/0.2083b@71 k/0.5b@113 k/0.7917b@118 k/1.5b@117 k/0.5b@88 k/0.2292b@115 k/0.2708b@99 k/0.2083b@63 k/0.5b@110 k/0.7708b@113 k/1.5208b@107 k/0.5b@116 k/0.5b@110 k/0.2083b@115 k/0.5b@108 k/0.7917b@124 k/1.5b@115 k/0.5b@115 k/0.5b@115 k/0.2083b@109 k/0.5b@115 k/0.7708b@116 k/1.5208b@109 k/0.5b@109 k/0.5b@120 k/0.2083b@78 k/0.5b@114 k/0.7917b@118 k/1.5b@115 k/0.5b@93 k/0.2083b@114 k/0.2917b@102 k/0.2083b@78 k/0.5b@115 k/0.7708b@122 k/0.75b@108 k/0.7708b@4 k/0.5b@115 k/0.5b@116 k/0.2083b@115 k/0.5b@117 k/0.7917b@119 k/0.1875b@112 k/1.2917b@3 k/0.5208b@114 k/0.5b@116 k/0.2083b@109 k/0.5b@117 k/0.7917b@118 k/1.5b@104 k/0.5b@109 k/0.5b@109 k/0.2083b@73 k/0.5b@113 k/0.7708b@114 k/1.5208b@114 k/0.5b@94 k/0.2083b@112 k/0.2917b@103 k/0.2083b@69 k/0.5b@122 k/0.7917b@122 k/0.7292b@111 k/0.7708b@6 k/0.5b@112 k/0.4792b@117 k/0.2292b@85 k/0.5b@116 k/0.2708b@122 k/0.5b@3 k/1.5208b@117 k/0.5b@113 k/0.5b@124 k/0.2083b@106 k/0.5b@114 k/0.7917b@121 k/1.5b@107 k/0.5b@108 k/0.4792b@116 k/0.2292b@76 k/0.5b@120 k/0.7708b@113 k/1.5208b@120 k/0.5b@94 k/0.2083b@119 k/0.2917b@103 k/0.2083b@71 k/0.5b@116 k/0.7917b@126 k/0.7292b@110 k/0.7708b@6 k/0.5b@111 k/0.4792b@111 k/0.2292b@112 k/0.5b@115 k/0.7708b@124 k/1.5208b@114 k/0.5b@121 k/0.5b@120 k/0.2083b@111 k/0.5b@120 k/0.7917b@116 k/1.2708b@109 k/0.2292b@1 k/0.5b@102 k/0.5b@113 k/0.2083b@84 k/0.5b@116 k/0.7708b@118 k/1.5208b@116 k/0.5b@94 k/0.2083b@117 k/0.2917b@100 k/0.2083b@70 k/0.5b@121 k/0.7917b@122 k/0.7292b@108 k/0.7708b@7 k/0.5b@109 k/0.5b@117 k/0.2083b@119 k/0.5b@112 k/0.7917b@124 k/1.4792b@119 k/0.5208b@89 k/0.5b@116 k/0.2083b@110 k/0.5b@112 k/0.7708b@110 k/1.5208b@98 k/0.5b@105 k/0.5b@110 k/0.2083b@76 k/0.5b@112 k/0.7917b@114 k/1.5b@111 k/0.5b@87 k/0.2083b@111 k/0.2917b@97 k/0.2083b@68 k/0.5b@114 k/0.7708b@111 k/1.5208b@109 k/0.5b@122 k/0.2292b@116 k/0.2708b@3 k/0.2083b@112 k/0.5b@105 k/0.7917b@117 k/0.2083b@114 k/1.2917b@2 k/0.5b@113 k/0.4792b@116 k/0.2292b@104 k/0.5b@117 k/0.7708b@116 k/1.5208b@96 k/0.5b@105 k/0.5b@111 k/0.2083b@73 k/0.5b@113 k/0.7917b@107 k/1.5b@104 k/0.5b@91 k/0.2083b@110 k/0.2917b@92 k/0.2083b@78 k/0.5b@116 k/0.7708b@121 k/0.75b@107 k/0.7708b@5 k/0.5b@111 k/0.5b@104 k/0.2083b@108 k/0.5b@109 k/0.7917b@115 k/1.5b@118 k/0.5b@115 k/0.5b@113 k/0.2083b@108 k/0.5b@109 k/0.7917b@119 k/1.5b@108 k/0.5b@104 k/0.5b@112 k/0.2083b@77 k/0.5b@111 k/0.7917b@115 k/1.5b@114 k/0.5b@91 k/0.2083b@115 k/0.2917b@102 k/0.2083b@65 k/0.5b@119 k/0.7917b@125 k/0.7292b@111 k/0.7708b@6 k/0.5b@113 k/0.5b@113 k/0.2083b@118 k/0.5b@118 k/0.7917b@122 k/0.1875b@116 k/1.3125b@4 k/0.5b@115 k/0.5b@113 k/0.2083b@110 k/0.5b@120 k/0.7917b@122 k/1.5b@108 k/0.5b@106 k/0.4792b@118 k/0.2292b@75 k/0.5b@122 k/0.7708b@114 k/1.5208b@127 k/0.5b@94 k/0.2083b@119 k/0.2917b@106 k/0.2083b@71 k/0.5b@116 k/0.7917b@127 k/0.7292b@114 k/0.7708b@6 k/0.5b@113 k/0.4792b@115 k/0.2292b@116 k/0.5b@121 k/0.7708b@121 k/1.5208b@116 k/0.5b@116 k/0.5b@122 k/0.2083b@115 k/0.5b@116 k/0.7917b@120 k/1.5b@106 k/0.5b@103 k/0.4792b@115 k/0.2292b@75 k/0.5b@125 k/0.7708b@116 k/1.5208b@118 k/0.5b@92 k/0.2083b@115 k/0.2917b@104 k/0.2083b@64 k/0.5b@117 k/0.7917b@124 k/0.7083b@116 k/0.7917b@5 k/0.5b@116 k/0.4792b@110 k/0.2292b@115 k/0.5b@117 k/0.7708b@123 k/1.5208b@115 k/0.5b@114 k/0.5b@113 k/0.2083b@113 k/0.5b@116 k/0.7917b@111 k/1.5b@104 k/0.5b@103 k/0.5b@112 k/0.2083b@81 k/0.5b@113 k/0.7917b@116 k/1.5b@118 k/0.5b@94 k/0.2083b@117 k/0.2917b@100 k/0.2083b@67 k/0.5b@114 k/0.7917b@118 k/1.5b@111 k/0.5b@117 k/0.5b@111 k/0.2083b@117 k/0.5b@110 k/0.2708b@121 k/0.5208b@2 k/0.2083b@117 k/1.2917b@3 k/0.5b@112 k/0.5b@122 k/0.2083b@106 k/0.5b@118 k/0.7708b@115 k/1.5208b@103 k/0.5b@108 k/0.5b@115 k/0.2083b@80 k/0.5b@121 k/0.7917b@117 k/1.5b@118 k/0.5b@94 k/0.2292b@115 k/0.2708b@101 k/0.2083b@70 k/0.5b@120 k/0.7708b@120 k/0.75b@110 k/0.7708b@6 k/0.5b@115 k/0.2292b@117 k/0.2708b@5 k/0.2083b@119 k/0.5b@111 k/0.7917b@119 k/0.2083b@118 k/1.2917b@4 k/0.5b@117 k/0.4792b@114 k/0.2292b@106 k/0.5b@119 k/0.7917b@123 k/1.5b@102 k/0.5b@103 k/0.5b@112 k/0.2083b@76 k/0.5b@119 k/0.7917b@114 k/1.5b@122 k/0.5b@88 k/0.2083b@119 k/0.2917b@104 k/0.2083b@69 k/0.5b@115 k/0.7917b@123 k/1.5b@113 k/0.5b@116 k/0.5b@114 k/0.2083b@113 k/0.5b@122 k/0.7917b@126 k/0.1875b@114 k/1.3125b@2 k/0.5b@118 k/0.5b@118 k/0.2083b@112 k/0.5b@118 k/0.7917b@119 k/1.5b@111 k/0.5b@115 k/0.5b@117 k/0.2083b@72 k/0.5b@119 k/0.7917b@116 k/1.5b@113 k/0.5b@96 k/0.2083b@114 k/0.2917b@102 k/0.2083b@66 k/0.5b@111 k/0.7917b@122 k/0.7292b@113 k/0.7708b@6 k/0.5b@114 k/0.5b@112 k/0.2083b@120 k/0.5b@120 k/0.7708b@118 k/1.4792b@112 k/0.0417b@51 k/0.5b@120 k/0.5b@111 k/0.2083b@109 k/0.5b@109 k/0.7917b@113 k/1.5b@108 k/0.5b@106 k/0.4792b@112 k/0.2292b@73 k/0.5b@111 k/0.7708b@117 k/1.5208b@118 k/0.5b@95 k/0.2083b@114 k/0.2917b@104 k/0.2083b@67 k/0.5b@107 k/0.7917b@117 k/1.5b@112 k/0.5b@113 k/0.4792b@114 k/0.2292b@113 k/0.5b@109 k/0.7708b@113 k/1.5208b@111 k/0.5b@117 k/0.5b@111 k/0.2083b@107 k/0.5b@113 k/0.7917b@115 k/1.5b@104 k/0.5b@104 k/0.5b@112 k/0.2083b@69 k/0.5b@114 k/0.7708b@116 k/1.5208b@102 k/0.5b@93 k/0.2083b@110 k/0.2917b@92 k/0.2083b@69 k/0.5b@102 k/0.7917b@111 k/0.7083b@104 k/0.7917b@4 k/0.5b@108 k/0.5b@110 k/0.2083b@115 k/0.5b@105 k/0.7917b@113 k/1.5b@114 k/0.5b@113 k/0.5b@115 k/0.2083b@105 k/0.5b@108 k/0.7917b@116 k/1.5b@112 k/0.5b@107 k/0.5b@115 k/0.2083b@78 k/0.5b@111 k/0.7917b@116 k/1.5b@120 k/0.5b@88 k/0.2083b@117 k/0.2917b@102 k/0.2083b@72 k/0.5b@107 k/0.7708b@115 k/0.75b@108 k/0.7708b@4 k/0.5b@113 k/0.5b@107 k/0.2083b@121 k/0.5b@115 k/0.7917b@120 k/1.5b@116 k/0.5b@110 k/0.4792b@110 k/0.2292b@104 k/0.5b@109 k/0.7708b@119 k/1.5208b@98 k/0.5b@110 k/0.5b@111 k/0.2083b@65 k/0.5b@114 k/0.7917b@111 k/1.5b@119 k/0.5b@93 k/0.2292b@117 k/0.2708b@103 k/0.2083b@71 k/0.5b@113 k/0.7708b@119 k/0.75b@115 k/0.7708b@5 k/0.5b@115 k/0.5b@108 k/0.2083b@122 k/0.5b@115 k/0.7917b@125 k/0.2083b@116 k/1.2917b@4 k/0.5b@121 k/0.5b@123 k/0.2083b@114 k/0.5b@115 k/0.7708b@117 k/1.5208b@99 k/0.5b@106 k/0.5b@116 k/0.2083b@62 k/0.5b@120 k/0.7917b@123 k/1.5b@120 k/0.5b@92 k/0.2083b@111 k/0.2917b@99 k/0.2083b@69 k/0.5b@117 k/0.7917b@120 k/0.7292b@110 k/0.7708b@6 k/0.5b@115 k/0.4792b@110 k/0.2292b@85 k/0.5b@115 k/0.7917b@116 k/1.5b@115 k/0.5b@115 k/0.5b@116 k/0.2083b@110 k/0.5b@113 k/0.7917b@116 k/1.5b@108 k/0.5b@110 k/0.5b@115 k/0.2083b@75 k/0.5b@100 k/0.7708b@112 k/1.5208b@114 k/0.5b@98 k/0.2083b@112 k/0.2917b@103 k/0.2083b@74 k/0.5b@116 k/0.7917b@119 k/0.7292b@114 k/0.7708b@6 k/0.5b@111 k/0.4792b@112 k/0.2292b@123 k/0.5b@114 k/0.7708b@117 k/1.5208b@110 k/0.5b@118 k/0.5b@121 k/0.2083b@110 k/0.5b@119 k/0.7917b@120 k/1.5b@100 k/0.5b@106 k/0.5b@114 k/0.2083b@75 k/0.5b@120 k/0.7708b@116 k/1.5208b@111 k/0.5b@97 k/0.2083b@110 k/0.2917b@95 k/0.2083b@64 k/0.5b@115 k/0.7917b@124 k/0.7292b@110 k/0.7708b@9 k/0.5b@110 k/0.5b@110 k/0.2083b@117 k/0.5b@116 k/0.7708b@121 k/1.5208b@111 k/0.5b@116 k/0.5b@119 k/0.2083b@111 k/0.2083b@117 k/1.0833b@7 k/1.5b@103 k/0.5b@110 k/0.5b@115 k/0.2083b@85 k/0.5b@119 k/0.7917b@114 k/1.5b@112 k/0.5b@91 k/0.2083b@115 k/0.1042b@100 k/0.1875b@11 k/0.2083b@68 k/0.2708b@115 k/0.2292b@9 k/0.2708b@111 k/0.5208b@15 k/1.5b@107 k/0.5b@109 k/0.5b@111 k/0.2083b@114 k/0.5b@110 k/0.7917b@114 k/1.5b@111 k/0.5b@113 k/0.5b@111 k/0.2083b@104 k/0.5b@109 k/0.7708b@110 k/1.4792b@104 k/0.0417b@47 k/0.5b@103 k/0.5b@111 k/0.2083b@84 k/0.2708b@114 k/0.2292b@8 k/0.7917b@110 k/1.4583b@110 k/0.0417b@47 k/0.5b@93 k/0.2292b@114 k/0.2708b@100 k/0.2083b@69 k/0.2708b@116 k/0.2292b@6 k/0.7708b@118 k/0.75b@109 k/0.7292b@8 k/0.0417b@49 k/0.5b@111 k/0.5b@112 k/0.2083b@120 k/0.5b@119 k/0.7917b@120 k/1.5b@114 k/0.5b@118 k/0.4792b@121 k/0.2292b@118 k/0.5b@123 k/0.7708b@117 k/1.5208b@106 k/0.5b@112 k/0.5b@115 k/0.2083b@80 k/0.5b@114 k/0.7917b@112 k/1.5b@115 k/0.5b@94 k/0.2083b@115 k/0.2917b@102 k/0.2083b@69 k/0.5b@116 k/0.7917b@125 k/0.7292b@112 k/0.7708b@5 k/0.5b@116 k/0.5b@118 k/0.2083b@121 k/0.5b@115 k/0.7917b@121 k/1.5b@118 k/0.5b@119 k/0.5b@110 k/0.2083b@116 k/0.5b@121 k/0.7917b@118 k/1.5b@110 k/0.5b@111 k/0.5b@118 k/0.2083b@76 k/0.5b@119 k/0.7917b@118 k/1.5b@118 k/0.5b@95 k/0.2083b@113 k/0.2917b@100 k/0.2083b@65 k/0.5b@122 k/0.7917b@124 k/0.7292b@115 k/0.7708b@6 k/0.5b@112 k/0.5b@121 k/0.2083b@119 k/0.5b@115 k/0.7708b@117 k/1.5208b@117 k/0.5b@117 k/0.5b@120 k/0.2083b@114 k/0.5b@117 k/0.7917b@117 k/1.5b@109 k/0.5b@109 k/0.5b@114 k/0.2083b@80 k/0.5b@102 k/0.7708b@113 k/1.5208b@116 k/0.5b@90 k/0.2083b@117 k/0.2917b@102 k/0.2083b@68 k/0.5b@114 k/0.7917b@122 k/0.7292b@113 k/0.7708b@5 k/0.5b@111 k/0.5b@113 k/0.2083b@119 k/0.5b@119 k/0.7708b@126 k/1.5208b@119 k/0.5b@120 k/0.5b@116 k/0.2083b@115 k/0.5b@116 k/0.7917b@114 k/1.5b@109 k/0.5b@107 k/0.5b@119 k/0.2083b@74 k/0.5b@118 k/0.7917b@121 k/1.5b@111 k/0.5b@93 k/0.2083b@118 k/0.2917b@101 k/0.2083b@66 k/0.5b@117 k/0.7917b@121 k/0.7292b@115 k/0.7708b@6 k/0.5b@115 k/0.5b@110 k/0.2083b@118 k/0.5b@121 k/0.7917b@127 k/1.5b@119 k/0.5b@112 k/0.5b@119 k/0.2083b@108 k/0.2708b@109 k/0.375b@4 k/0.1458b@2 k/1b@1 R/13.0646895b"
-  },
-  {
-   "name": "drums-snare",
-   "patch": "bs-kit",
-   "out": "drum-bus",
-   "score": "R/1.2917b s/0.5208b@1 s/0.2083b@3 s/0.5208b@29 s/0.2917b@2 s/0.4792b@6 s/0.25b@29 s/0.4792b@1 s/1.2708b@30 s/0.4792b@2 s/0.2292b@2 s/0.8125b@28 s/0.4792b@8 s/0.2292b@25 s/0.5b@2 s/0.5b@25 s/1.25b@2 s/0.2292b@1 s/0.8125b@28 s/0.4792b@8 s/0.7292b@24 s/1.9792b@26 s/1.2917b@28 s/0.7292b@23 s/1.25b@25 s/0.75b@1 s/1.2708b@29 s/0.25b@28 s/0.4792b@1 s/1.9792b@26 s/0.7917b@26 s/0.5b@8 s/0.7292b@24 s/1.9792b@25 s/0.8125b@27 s/0.4792b@7 s/0.7292b@23 s/1.9792b@25 s/0.8125b@28 s/0.4792b@6 s/0.7083b@22 s/2.0208b@25 s/1.2708b@30 s/0.25b@28 s/0.4792b@1 s/1.9792b@28 s/1.2917b@26 s/0.7083b@26 s/2.0208b@24 s/1.2708b@26 s/0.7292b@22 s/1.9792b@21 s/1.2917b@28 s/0.7083b@23 s/2b@23 s/1.2917b@29 s/0.7292b@26 s/1.25b@26 s/0.75b@1 s/1.2708b@25 s/0.7083b@25 s/2b@25 s/1.2917b@24 s/0.7292b@21 s/1.9792b@24 s/1.2917b@25 s/0.7292b@21 s/1.9792b@24 s/1.2917b@29 s/0.7292b@25 s/2b@24 s/1.2708b@26 s/0.7292b@24 s/1.9792b@21 s/1.2917b@24 s/0.7083b@22 s/2b@23 s/1.2917b@24 s/0.7292b@20 s/1.9792b@21 s/1.2917b@26 s/0.7083b@28 s/2.0208b@25 s/1.2708b@26 s/0.7292b@23 s/1.9792b@24 s/1.2917b@27 s/0.7083b@23 s/2b@25 s/1.2917b@28 s/0.7292b@22 s/1.9792b@24 s/1.2917b@28 s/0.25b@27 s/0.4792b@1 s/1.9792b@27 s/1.2917b@25 s/0.7292b@23 s/1.9792b@22 s/1.2917b@27 s/0.7292b@22 s/1.9792b@24 s/1.2917b@28 s/0.7292b@22 s/2b@25 s/1.2708b@28 s/0.7292b@28 s/1.9792b@26 s/1.2917b@26 s/0.7083b@23 s/2.0208b@22 s/1.2708b@26 s/0.7292b@19 s/1.9792b@22 s/1.2917b@28 s/0.7083b@21 s/2.0208b@23 s/1.2708b@24 s/0.7292b@26 s/1.9792b@24 s/1.2917b@27 s/0.7083b@24 s/2b@24 s/1.2917b@23 s/0.7292b@22 s/1.9792b@27 s/1.2917b@25 s/0.7083b@21 s/2b@25 s/1.2917b@26 s/0.7292b@24 s/2b@27 s/1.2708b@26 s/0.7292b@22 s/1.9792b@21 s/1.2917b@27 s/0.7292b@21 s/1.9792b@24 s/1.2917b@25 s/0.7292b@21 s/1.9792b@23 s/0.5417b@28 s/0.75b@1 s/0.7083b@28 s/2.0208b@26 s/1.2708b@24 s/0.7292b@23 s/1.9792b@22 s/1.2917b@25 s/0.7083b@22 s/2.0208b@26 s/1.2708b@29 s/0.7292b@21 s/1.9792b@24 s/1.2917b@26 s/0.7083b@29 s/2b@25 s/1.2917b@24 s/0.7292b@24 s/1.9792b@23 s/1.2917b@26 s/0.7083b@24 s/2b@24 s/1.2917b@28 s/0.7292b@21 s/1.9792b@24 s/1.2917b@26 s/0.7292b@27 s/1.9792b@25 s/1.2917b@24 s/0.7292b@22 s/2b@20 s/1.2708b@25 s/0.7292b@23 s/1.9792b@23 s/1.2917b@24 s/0.7083b@22 s/2.0208b@24 s/0.7708b@28 s/0.5b@5 s/0.7292b@28 s/1.9792b@26 s/1.2917b@24 s/0.7083b@24 s/2.0208b@19 s/1.2708b@24 s/0.7292b@23 s/1.9792b@24 s/1.2917b@27 s/0.7083b@22 s/2.0208b@24 s/1.2708b@28 s/0.7292b@28 s/2b@26 s/1.2708b@25 s/0.7292b@25 s/1.9792b@23 s/1.2917b@27 s/0.7292b@23 s/1.75b@24 s/0.25b@1 s/1.2708b@26 s/0.7083b@23 s/2b@26 s/1.2917b@31 s/0.7292b@29 s/1.9792b@28 s/0.5417b@27 s/0.75b@1 s/0.7292b@24 s/1.9792b@25 s/1.2917b@28 s/0.7083b@24 s/2b@25 s/1.2917b@27 s/0.7292b@22 s/1.9792b@25 s/1.2917b@27 s/0.7083b@28 s/2.0208b@25 s/1.2708b@26 s/0.7292b@23 s/1.9792b@24 s/1.2917b@27 s/0.7292b@21 s/2b@20 s/1.2708b@25 s/0.7292b@20 s/2b@24 s/1.2708b@23 s/0.7292b@27 s/1.9792b@24 s/1.2917b@24 s/0.25b@23 s/0.4792b@1 s/1.9792b@24 s/1.2917b@24 s/0.7292b@21 s/0.5208b@24 s/1.4583b@1 s/1.2917b@23 s/0.7292b@21 s/1.9792b@24 s/1.2917b@25 s/0.7292b@26 s/1.9792b@23 s/1.2917b@24 s/0.7083b@24 s/2.0208b@23 s/1.2708b@23 s/0.7292b@22 s/1.9792b@24 s/0.7917b@25 s/0.5b@6 s/0.7083b@22 s/2.0208b@22 s/1.2708b@27 s/0.25b@28 s/0.4792b@1 s/1.25b@26 s/0.7292b@1 s/0.5208b@25 s/0.7708b@1 s/0.7083b@25 s/0.5208b@23 s/1.5b@1 s/1.2708b@26 s/0.7292b@25 s/0.5208b@23 s/1.4583b@1 s/1.2917b@28 s/0.7083b@22 s/2b@25 s/1.2917b@26 s/0.7292b@28 s/1.9792b@25 s/1.2917b@22 s/0.25b@22 s/0.4792b@1 s/1.9792b@19 s/1.2917b@22 s/0.7292b@24 s/1.9792b@24 s/1.2917b@24 s/0.7292b@22 s/1.9792b@23 s/1.2917b@26 s/0.7083b@28 s/2.0208b@23 s/1.2708b@26 s/0.7292b@24 s/1.9792b@24 s/1.2917b@26 s/0.25b@22 s/0.4583b@1 s/0.5417b@24 s/1.4583b@1 s/1.2917b@25 s/0.7292b@22 s/1.9792b@24 s/1.2917b@27 s/0.7083b@28 s/2.0208b@25 s/1.2708b@22 s/0.7292b@23 s/1.9792b@22 s/0.8125b@23 s/0.4792b@6 s/0.7083b@23 s/0.5417b@23 s/1.4583b@1 s/1.2917b@25 s/0.7292b@22 s/1.9792b@22 s/1.2917b@26 s/0.7292b@27 s/1.9792b@25 s/1.2917b@24 s/0.7292b@23 s/1.9792b@23 s/0.8125b@26 s/0.4792b@7 s/0.7292b@23 s/1.9792b@25 s/0.7917b@26 s/0.5b@7 s/0.7083b@21 s/2.0208b@23 s/0.7917b@26 s/0.4792b@6 s/0.25b@26 s/0.4792b@5 s/1.9792b@25 s/1.2917b@23 s/0.7292b@22 s/2b@21 s/0.7708b@27 s/1.2292b@6 s/1.25b@24 s/0.75b@2 s/0.7917b@27 s/0.4792b@8 s/0.7083b@21 s/1.2708b@23 s/0.75b@2 s/0.7917b@27 s/0.4792b@7 s/0.2292b@29 s/0.5b@3 s/1.25b@27 s/0.75b@2 s/0.7917b@27 s/0.4792b@8 s/0.2292b@22 s/0.5b@3 s/1.9792b@24 s/1.2917b@28 s/0.7292b@24 s/1.9792b@26 s/1.2917b@27 s/0.7292b@23 s/1.9792b@23 s/0.5417b@26 s/0.75b@3 s/0.7292b@30 s/2b@28 s/1.2708b@25 s/0.7292b@25 s/1.9792b@24 s/1.2917b@26 s/0.7292b@24 s/2b@24 s/1.2708b@26 s/0.7292b@22 s/1.9792b@24 s/1.2917b@26 s/0.25b@28 s/0.4792b@3 s/2b@25 s/0.5208b@24 s/0.75b@2 s/0.7292b@24 s/1.9792b@23 s/1.2917b@26 s/0.7292b@23 s/2b@25 s/1.2708b@27 s/0.7292b@23 s/1.9792b@21 s/1.2917b@28 s/0.7292b@29 s/1.9792b@26 s/1.2917b@26 s/0.7292b@24 s/2b@24 s/1.2708b@27 s/0.7292b@25 s/1.9792b@25 s/1.2917b@29 s/0.7292b@22 s/2b@25 s/1.2708b@27 s/0.7292b@30 s/1.9792b@26 s/0.5417b@26 s/0.75b@2 s/0.7292b@24 s/1b@23 R/14.8281895b"
-  },
-  {
-   "name": "drums-hats",
-   "patch": "bs-kit",
-   "out": "drum-bus",
-   "score": "R/2.7708b oh/3.7292b@13 oh/0.2917b@2 oh/0.25b@15 oh/1.5b@2 oh/0.75b@2 h1/0.5b@1 oh/0.7292b@1 oh/0.5208b@2 oh/0.5b@3 oh/1.7708b@1 oh/0.4792b@1 hf/0.75b@1 oh/0.1667b@1 oh/0.1042b@11 oh/0.2292b@8 oh/0.5208b@2 h1/1.7292b@1 h1/0.5b@1 oh/0.75b@3 oh/0.2292b@2 oh/0.0625b@12 hf/0.2083b@5 oh/1.5b@2 h1/0.75b@2 h1/0.5b@1 oh/0.75b@1 oh/0.2708b@1 oh/0.2292b@9 oh/0.5208b@1 hf/0.9792b@1 oh/0.75b@1 h1/0.5b@1 hf/0.75b@1 oh/0.1458b@2 oh/0.3542b@12 oh/0.5b@2 hf/1.0208b@1 hf/0.7292b@1 oh/0.5b@1 hf/0.7292b@1 oh/0.0417b@1 hf/0.1458b@1 oh/0.3333b@11 oh/0.5208b@2 h1/1.7292b@1 h1/0.5b@1 oh/0.7708b@3 oh/0.2083b@1 oh/0.0417b@12 hf/0.2292b@5 oh/1.5b@2 h1/0.75b@2 h1/0.5208b@1 hf/0.7292b@1 oh/0.25b@1 oh/0.25b@16 oh/0.5208b@1 hf/1b@1 h1/0.75b@1 h1/0.4792b@1 oh/0.7708b@1 oh/0.2292b@1 oh/0.2708b@15 oh/0.5b@1 h1/0.9792b@1 oh/0.75b@1 h1/1.2292b@1 oh/0.2917b@1 oh/0.2292b@8 oh/0.5b@2 h1/1.75b@1 h1/0.5b@1 h1/0.7708b@1 h1/0.2083b@1 oh/0.0625b@12 hf/0.1875b@8 oh/0.0417b@1 hf/0.5b@1 h1/0.9792b@1 h1/1.25b@3 h1/0.7708b@1 oh/0.2292b@1 oh/0.0417b@15 h1/0.2083b@7 oh/0.5208b@1 h1/1b@1 oh/0.7292b@1 h1/1.25b@1 oh/0.2708b@1 oh/0.2292b@15 oh/0.5208b@1 hf/1b@1 h1/0.7292b@1 h1/1.25b@1 oh/0.1667b@1 oh/0.3333b@10 oh/0.5b@2 oh/1.7708b@1 h1/0.4167b@1 oh/0.0625b@4 oh/0.75b@3 oh/0.25b@1 oh/0.25b@12 oh/0.5208b@2 hf/0.9792b@1 h1/0.75b@3 h1/0.5b@1 hf/0.7083b@1 oh/0.0625b@1 h1/0.2708b@1 oh/0.2083b@6 oh/0.4792b@1 oh/0.0417b@1 h1/0.9792b@1 oh/0.75b@1 h1/0.5b@1 h1/0.75b@1 oh/0.25b@1 oh/0.25b@15 oh/0.5b@2 hf/1.0208b@1 h1/0.7292b@1 h1/1.2708b@1 oh/0.25b@1 oh/0.2292b@6 oh/0.5b@2 h1/1.75b@1 h1/0.5b@1 oh/0.75b@4 oh/0.25b@2 oh/0.25b@12 oh/0.5208b@2 h1/0.9792b@1 h1/0.75b@3 h1/0.5b@1 h1/0.7292b@1 oh/0.0417b@1 oh/0.25b@1 oh/0.2292b@12 oh/0.4792b@1 oh/0.0417b@1 hf/0.9792b@1 oh/0.75b@1 h1/0.5b@1 h1/0.75b@1 oh/0.5b@1 oh/0.5208b@2 h1/1b@1 h1/0.75b@1 oh/1.2083b@1 oh/0.2917b@1 oh/0.2292b@6 oh/0.5b@2 h1/1.75b@1 h1/0.5b@1 oh/0.7708b@4 oh/0.2083b@2 oh/0.0625b@12 hf/0.2083b@6 oh/1.5b@2 h1/0.75b@3 h1/0.5b@1 hf/0.75b@1 h1/0.2708b@1 oh/0.2292b@8 oh/0.5b@1 h1/1.75b@1 h1/0.5b@1 hf/0.7292b@1 oh/0.0417b@1 h1/0.2708b@1 oh/0.2083b@5 oh/0.5b@2 hf/1.0208b@1 h1/0.7292b@1 oh/1.2292b@2 oh/0.0417b@1 hf/0.25b@1 oh/0.25b@6 oh/0.4792b@1 h1/1.75b@1 h1/0.5b@1 oh/0.75b@2 oh/0.2292b@2 oh/0.0625b@12 h1/0.2083b@5 oh/1.5b@2 h1/0.75b@3 h1/0.5b@1 oh/0.7708b@1 h1/0.2292b@1 oh/0.25b@16 oh/0.5208b@1 h1/0.9792b@1 oh/0.75b@1 h1/0.5b@1 h1/0.75b@1 oh/0.2708b@1 h1/0.2708b@10 hf/0.4583b@1 h1/1.7708b@1 h1/1.2083b@1 oh/0.0417b@1 h1/0.2708b@1 h1/0.2292b@6 h1/0.4792b@1 h1/1.75b@1 h1/0.5b@1 hf/0.7708b@2 oh/0.25b@1 oh/0.2292b@12 oh/0.0417b@1 hf/1.4583b@1 h1/0.75b@2 h1/0.5b@1 hf/0.7292b@1 oh/0.0208b@1 oh/0.2708b@1 oh/0.2292b@14 oh/0.5208b@1 h1/1b@1 h1/0.7083b@1 oh/0.4792b@1 oh/1.0625b@2 h1/0.2083b@8 oh/0.0625b@1 hf/2.2083b@1 h1/1.2708b@1 hf/0.1458b@1 oh/0.0417b@10 oh/0.2917b@10 oh/0.5b@1 oh/1.75b@1 h1/0.5b@1 oh/1.0208b@2 oh/0.2292b@12 oh/0.5208b@1 hf/0.9792b@1 h1/0.75b@2 h1/0.5b@1 h1/0.7708b@1 h1/0.2708b@1 h1/0.2083b@7 oh/0.5b@1 h1/1.0208b@1 oh/0.7292b@1 h1/0.5b@1 h1/1.0417b@1 hf/0.2292b@6 oh/0.4792b@1 oh/1.75b@1 oh/1.25b@1 oh/0.2083b@1 oh/0.0833b@10 h1/0.2083b@8 oh/0.4792b@1 oh/0.0208b@1 h1/1.75b@1 h1/0.5b@1 oh/0.7708b@3 oh/0.2083b@1 oh/0.0417b@12 oh/0.2292b@10 oh/0.5208b@2 hf/0.9792b@1 h1/0.75b@3 h1/0.5b@1 hf/0.7083b@1 oh/0.0625b@1 oh/0.25b@1 oh/0.2292b@11 oh/0.5208b@1 h1/1b@1 hf/0.7292b@1 h1/0.5b@1 hf/0.75b@1 oh/0.5b@1 oh/0.5208b@2 hf/1b@1 h1/0.7292b@1 oh/1.25b@2 oh/0.1667b@1 oh/0.1042b@10 oh/0.2292b@5 oh/0.5208b@2 h1/1.7292b@1 h1/0.5b@1 oh/0.75b@4 oh/0.2292b@2 oh/0.0417b@12 oh/0.2292b@5 oh/0.5208b@2 h1/0.9792b@1 h1/0.75b@3 h1/0.5b@1 hf/0.7292b@1 oh/0.0208b@1 h1/0.2708b@1 oh/0.2292b@6 oh/0.4792b@1 oh/0.0417b@1 h1/1b@1 h1/0.7292b@1 h1/0.4792b@1 oh/0.7917b@2 h1/0.4792b@1 oh/0.5208b@2 h1/1b@1 hf/0.7292b@1 oh/1.25b@2 oh/0.2083b@1 oh/0.0625b@11 oh/0.25b@6 oh/0.5b@2 h1/1.7292b@1 h1/0.5b@1 hf/0.75b@2 oh/0.2292b@2 oh/0.0625b@12 h1/0.1875b@5 oh/0.5417b@2 h1/0.9792b@1 h1/0.75b@3 h1/0.5b@1 oh/0.75b@1 oh/0.25b@1 oh/0.25b@16 oh/0.5208b@1 hf/1b@1 h1/0.7292b@1 h1/0.5b@1 h1/0.75b@1 oh/0.5b@1 oh/0.5208b@2 h1/1b@1 hf/0.7292b@1 h1/1.25b@1 hf/0.1667b@1 oh/0.1042b@11 oh/0.25b@7 oh/0.5b@1 h1/1.7292b@1 h1/0.5b@1 hf/0.7708b@3 oh/0.2083b@1 oh/0.2708b@12 oh/1.5b@2 h1/0.75b@2 h1/0.5b@1 oh/0.7292b@1 oh/0.0208b@1 oh/0.2708b@1 oh/0.2292b@9 oh/0.5208b@1 h1/0.9583b@1 oh/0.0417b@1 h1/0.7292b@1 h1/0.5b@1 h1/0.7708b@1 oh/0.25b@1 oh/0.25b@6 h1/0.5b@1 hf/1b@1 h1/0.7292b@1 h1/0.5b@1 hf/0.75b@1 h1/0.2708b@1 oh/0.25b@8 h1/0.5b@1 h1/1.7292b@1 h1/0.5b@1 oh/0.75b@3 oh/0.2292b@2 oh/0.2708b@12 oh/0.5208b@2 hf/0.9792b@1 h1/0.75b@2 h1/0.5b@1 oh/0.7292b@1 oh/0.0417b@1 h1/0.4792b@1 oh/0.5208b@1 h1/0.9792b@1 oh/0.75b@1 h1/0.5b@1 h1/0.75b@1 oh/0.2708b@1 oh/0.2292b@9 oh/0.5208b@2 hf/1b@1 h1/0.7292b@1 oh/1.25b@2 oh/0.1667b@1 oh/0.3333b@11 oh/0.5b@2 h1/1.7708b@1 h1/0.4792b@1 oh/0.75b@3 oh/0.2292b@1 oh/0.0417b@11 oh/0.2292b@9 oh/0.5208b@2 hf/0.9792b@1 h1/0.75b@2 h1/0.5b@1 h1/0.7083b@1 oh/0.0625b@1 oh/0.4792b@1 oh/0.4792b@1 oh/0.0417b@1 hf/0.9792b@1 oh/0.75b@1 h1/0.5b@1 h1/0.7708b@1 oh/0.2292b@1 oh/0.25b@15 oh/0.5b@2 oh/1.0208b@1 hf/0.7292b@1 oh/1.2708b@2 oh/0.1458b@1 oh/0.125b@11 oh/0.2083b@6 oh/0.5208b@2 hf/1.7292b@1 h1/0.5b@1 oh/0.75b@4 oh/0.2292b@2 oh/0.0417b@12 oh/0.2292b@5 oh/0.5208b@2 h1/0.9792b@1 h1/0.75b@2 h1/0.5b@1 h1/0.7292b@1 oh/0.0417b@1 oh/0.25b@1 oh/0.2292b@6 oh/0.5208b@1 h1/1b@1 oh/0.7292b@1 h1/0.5b@1 hf/0.75b@1 oh/0.2917b@1 h1/0.1042b@9 oh/0.1042b@1 oh/0.0417b@2 hf/0.4792b@1 h1/1.75b@1 h1/1.2292b@1 oh/0.1875b@1 oh/0.0833b@10 oh/0.2292b@6 oh/0.5b@1 oh/1.75b@1 h1/0.5208b@1 h1/0.7292b@1 oh/0.25b@1 oh/0.0417b@13 hf/0.2083b@6 oh/0.5208b@1 hf/0.9792b@1 h1/0.75b@2 h1/0.5b@1 h1/0.7708b@1 h1/0.25b@1 oh/0.2292b@7 oh/0.5208b@1 h1/0.9792b@1 oh/0.75b@1 h1/0.5b@1 h1/0.7708b@1 oh/0.4792b@1 oh/0.5b@1 oh/1.0208b@1 h1/0.75b@1 h1/1.2292b@1 oh/0.1667b@3 oh/0.3542b@13 hf/0.4792b@1 oh/1.75b@1 h1/0.5b@1 oh/0.75b@3 oh/0.2708b@1 oh/0.2083b@11 oh/1.5208b@1 h1/0.75b@2 h1/0.5b@1 h1/0.75b@1 h1/0.2917b@1 h1/0.2083b@6 oh/0.5208b@1 h1/1b@1 h1/0.7292b@1 h1/0.5b@1 h1/0.75b@1 oh/0.25b@1 oh/0.2917b@13 hf/1.4792b@1 hf/0.7292b@1 h1/1.2292b@1 oh/0.2083b@1 oh/0.0833b@10 oh/0.2292b@7 oh/0.5b@1 h1/1.75b@1 h1/0.5b@1 oh/0.7708b@3 oh/0.25b@1 oh/0.2292b@12 oh/0.5208b@2 hf/0.9792b@1 h1/0.75b@2 h1/0.5208b@1 h1/0.7292b@1 oh/0.25b@1 oh/0.25b@16 oh/0.5b@1 h1/1b@1 oh/0.75b@1 h1/0.5b@1 h1/0.75b@1 h1/0.25b@1 oh/0.0417b@15 h1/0.2083b@8 oh/0.5208b@2 hf/1.7292b@1 h1/1.2708b@1 h1/0.1458b@1 oh/0.0625b@10 oh/0.0625b@10 h1/0.2083b@5 oh/0.5b@1 oh/1.75b@1 h1/0.5b@1 oh/0.75b@3 oh/0.2708b@1 oh/0.2292b@5 oh/0.5208b@2 h1/0.9792b@1 h1/0.75b@2 h1/0.5b@1 h1/0.7292b@1 oh/0.0417b@1 oh/0.2708b@1 h1/0.2083b@6 h1/2.2708b@1 h1/0.4792b@1 h1/0.7708b@1 hf/0.25b@1 oh/0.2292b@8 oh/0.5b@2 oh/1.0208b@1 h1/0.7292b@1 oh/1.25b@1 oh/0.2917b@1 h1/0.2083b@5 oh/0.4792b@2 oh/0.0208b@1 h1/1.75b@1 h1/0.5b@1 oh/0.75b@3 oh/0.2292b@2 oh/0.0625b@11 hf/0.2083b@7 oh/0.5208b@2 h1/0.9792b@1 h1/0.75b@2 h1/0.5b@1 h1/0.7708b@1 oh/0.2708b@1 oh/0.2083b@6 h1/0.5208b@1 oh/0.9792b@1 oh/0.75b@1 h1/0.5b@1 h1/0.75b@1 oh/0.25b@1 oh/0.0417b@14 h1/0.2083b@9 oh/1.5208b@1 oh/0.7292b@1 oh/1.25b@1 oh/0.2708b@1 h1/0.2292b@6 oh/0.5b@2 h1/1.75b@1 h1/0.5208b@1 hf/0.7292b@3 oh/0.25b@1 oh/0.0417b@11 h1/0.2083b@5 oh/0.5208b@2 hf/0.9792b@1 h1/0.75b@2 h1/0.5b@1 h1/0.75b@1 oh/0.2708b@1 oh/0.2292b@7 oh/0.4792b@1 oh/0.0417b@1 oh/1b@1 oh/0.7292b@1 h1/0.5b@1 h1/0.7083b@1 oh/0.0625b@1 hf/0.2292b@1 oh/0.25b@15 oh/0.5b@1 oh/1.75b@1 oh/1.25b@2 oh/0.1875b@1 oh/0.0833b@10 oh/0.25b@5 h1/0.4583b@1 oh/0.0417b@1 h1/1.7292b@1 h1/0.5b@1 oh/0.75b@4 oh/0.2292b@2 oh/0.2708b@11 oh/0.5208b@2 h1/0.9792b@1 h1/0.75b@2 h1/0.5b@1 oh/0.7292b@1 oh/0.0417b@1 h1/0.25b@1 oh/0.25b@8 h1/0.5b@1 h1/1b@1 h1/0.6667b@1 oh/0.0625b@1 h1/0.2708b@1 oh/0.2292b@3 hf/0.7292b@1 oh/0.5208b@4 oh/0.0417b@2 hf/0.4792b@1 oh/0.9792b@4 oh/0.75b@4 oh/1.25b@2 oh/0.2708b@4 oh/0.2292b@8 oh/0.0417b@2 hf/3.75b@1 h1/0.2083b@5 oh/1.5b@1 oh/0.75b@4 h1/0.5208b@1 oh/0.7292b@2 oh/0.2708b@4 oh/0.2292b@9 h1/2.25b@1 h1/0.5417b@1 hf/0.6875b@2 oh/0.5208b@4 oh/0.0417b@2 hf/0.4583b@1 oh/1.0208b@3 oh/1.9583b@3 oh/0.0417b@4 oh/0.4792b@4 oh/0.0417b@2 hf/0.4792b@1 oh/2.2292b@2 oh/0.75b@4 oh/0.2917b@3 hf/0.2083b@6 oh/1.5b@2 oh/1.25b@4 oh/1.25b@3 oh/0.5b@1 oh/1.75b@2 h1/0.5208b@1 hf/0.7083b@1 oh/0.2917b@4 oh/0.25b@8 oh/0.5b@2 oh/0.0208b@4 hf/0.9792b@3 oh/0.7292b@3 oh/1.2292b@1 oh/0.3125b@4 h1/0.2083b@5 oh/2.25b@2 h1/1.2708b@1 oh/0.2708b@3 hf/0.2083b@7 oh/1.5208b@2 oh/0.7292b@4 h1/1.25b@1 oh/0.5b@4 oh/2.25b@1 hf/1.25b@1 oh/0.2917b@2 h1/0.2083b@8 oh/2.2708b@2 h1/1.2083b@1 oh/0.0417b@3 oh/0.2708b@3 oh/0.2083b@5 oh/2.25b@2 hf/0.5208b@1 hf/0.75b@3 oh/0.2708b@3 hf/0.2083b@6 oh/1.5b@2 oh/0.75b@4 h1/0.5208b@1 oh/0.6875b@2 oh/0.0625b@3 oh/0.25b@2 oh/0.2292b@6 oh/0.5b@1 oh/1.0208b@2 oh/0.7292b@3 h1/0.5208b@1 hf/0.7083b@1 oh/0.3125b@3 h1/0.2083b@6 oh/0.5208b@2 oh/0.9792b@5 oh/0.75b@4 oh/1.2292b@2 oh/0.2292b@4 oh/0.0625b@10 oh/0.25b@6 oh/0.5b@1 oh/1.7292b@2 h1/0.5208b@1 hf/1.0208b@3 hf/0.2083b@7 oh/1.5b@2 oh/0.75b@4 h1/1.25b@1 oh/0.2708b@4 oh/0.2292b@7 oh/1.5b@1 oh/0.75b@3 h1/0.5b@1 oh/0.7083b@2 oh/0.0417b@4 oh/0.2917b@2 h1/0.2083b@6 oh/1.5b@2 oh/0.7708b@2 oh/1.2292b@2 oh/0.0208b@3 oh/0.2708b@3 h1/0.2083b@6 oh/2.25b@2 h1/0.5b@1 oh/0.7708b@4 oh/0.2708b@3 hf/0.2083b@5 oh/0.5208b@2 oh/0.9792b@2 oh/1.2708b@3 oh/0.7083b@2 oh/0.2917b@3 oh/0.2292b@8 oh/1.5208b@1 oh/1b@2 R/14.3114895b"
-  }
- ]
+  ]
 }

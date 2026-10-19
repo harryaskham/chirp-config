@@ -1607,15 +1607,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/black-swan.wav OUT.wav $(cat tools/black-swan-sections.txt)",
       "best": {
-        "score": 52.532,
-        "version": "v1",
+        "score": 53.908,
+        "version": "v2",
         "commit": "see git log songs/black-swan.yaml",
-        "engine": "654b5e3"
+        "engine": "cd0a9c2"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 2,
+      "rounds": 3,
       "priority": 1.0,
       "genre": "art pop / electronic",
       "meta": {
@@ -1629,8 +1629,8 @@
       },
       "ref_file": "ref/albums/singles/black-swan.webm",
       "last": {
-        "at": "2026-10-18T22:29:13Z",
-        "who": "chirper-one"
+        "at": "2026-10-19T01:04:36Z",
+        "who": "chirper-two"
       }
     },
     {
