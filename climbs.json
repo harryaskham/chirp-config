@@ -1301,15 +1301,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/dance-yrself-clean.wav OUT.wav $(cat tools/dance-yrself-clean-sections.txt)",
       "best": {
-        "score": 44.12,
-        "version": "v2",
+        "score": 44.147,
+        "version": "v3",
         "commit": "see git log songs/dance-yrself-clean.yaml",
-        "engine": "e443c01"
+        "engine": "cd0a9c2"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 2,
+      "rounds": 3,
       "priority": 1.0,
       "genre": "dance-punk",
       "requested": {
@@ -1323,8 +1323,8 @@
         "title": "Dance Yrself Clean"
       },
       "last": {
-        "at": "2026-10-19T00:15:37Z",
-        "who": "chirper-two"
+        "at": "2026-10-19T01:17:51Z",
+        "who": "chirper-one"
       }
     },
     {
