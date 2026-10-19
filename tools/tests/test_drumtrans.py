@@ -115,10 +115,10 @@ class Claps(unittest.TestCase):
     def tearDownClass(cls):
         shutil.rmtree(cls.dir, True)
 
-    def run_(self, mod, stem, pieces):
+    def run_(self, mod, stem, pieces, **kw):
         err = io.StringIO()
         with redirect_stderr(err):
-            res, _ = mod.transcribe(stem, self.song, self.tpl[tuple(pieces)], pieces)
+            res, _ = mod.transcribe(stem, self.song, self.tpl[tuple(pieces)], pieces, **kw)
         return res, err.getvalue()
 
     def test_claps_are_exported(self):
@@ -147,11 +147,14 @@ class Claps(unittest.TestCase):
 
     @unittest.skipUnless(os.environ.get("DRUMTRANS_OLD"), "set DRUMTRANS_OLD to the previous drumtrans.py")
     def test_kick_snare_output_is_identical_to_before(self):
+        # with the legacy template analysis (bd-07e744 changes only the first piece's level exponent, below)
         old = load(os.environ["DRUMTRANS_OLD"], "drumtrans_old")
-        self.assertEqual(self.run_(D, self.ks, ["k", "s"])[0], self.run_(old, self.ks, ["k", "s"])[0])
-        self.assertEqual(self.run_(D, self.stem, ["k", "s"])[0], self.run_(old, self.stem, ["k", "s"])[0])
-        new, _ = self.run_(D, self.stem, ["k", "s", "cp"])
-        before = self.run_(old, self.stem, ["k", "s", "cp"])[0]
+        kw = {"template_context": 0.0} if "template_context" in old.transcribe.__code__.co_varnames else {}
+        legacy = {"template_context": 0.0}
+        self.assertEqual(self.run_(D, self.ks, ["k", "s"], **legacy)[0], self.run_(old, self.ks, ["k", "s"], **kw)[0])
+        self.assertEqual(self.run_(D, self.stem, ["k", "s"], **legacy)[0], self.run_(old, self.stem, ["k", "s"], **kw)[0])
+        new, _ = self.run_(D, self.stem, ["k", "s", "cp"], **legacy)
+        before = self.run_(old, self.stem, ["k", "s", "cp"], **kw)[0]
         if "claps" in old.FAMILIES:
             self.assertEqual(new, before)
         else:   # a widthfit older than bd-dfa7eb: the old output is the new one without its claps
@@ -212,6 +215,97 @@ class Families(unittest.TestCase):
         self.assertIn("perc", res)
         self.assertTrue(res["perc"]["score"].count("ma/"), res["perc"]["score"])
         self.assertNotIn("not exported", err.getvalue())
+
+
+def template_wav(path, pieces):
+    """A synthetic TEMPLATES.wav laid out like template_song(): each piece at velocities 40/80/120, 2 s apart, the first
+    hit at 0 s. Amplitude ∝ velocity, so the true level exponent is ~1. k: a 60 Hz thump, s: a noise burst."""
+    sr = 48000
+    x = np.zeros(int((6 * len(pieces) + 2) * sr))
+    rng = np.random.default_rng(3)
+    t = np.arange(int(0.6 * sr)) / sr
+    sound = {"k": np.sin(2 * np.pi * 60 * t) * np.exp(-t / 0.15), "s": rng.normal(0, 0.5, len(t)) * np.exp(-t / 0.08)}
+    for i, p in enumerate(pieces):
+        for j, v in enumerate((40, 80, 120)):
+            a = int((3 * i + j) * 2.0 * sr)
+            x[a:a + len(t)] += 0.8 * v / 120 * sound[p]
+    y = (np.clip(x, -1, 1) * 32767).astype("<i2")
+    with wave.open(path, "wb") as w:
+        w.setnchannels(2); w.setsampwidth(2); w.setframerate(sr)
+        w.writeframes(np.repeat(y[:, None], 2, 1).tobytes())
+    return path
+
+
+class TemplateBoundaryTranscription(Claps):
+    """bd-07e744 in a transcription: with the kick first, its exponent read ~10 and every kick came out at velocity 1
+    (the global calibration fits the snares); with context the kicks read as played. The snare hits are the same ones
+    (the one global calibration now includes the kicks, so every velocity is rescaled)."""
+
+    def test_kicks_read_as_played(self):
+        new = self.run_(D, self.ks, ["k", "s"])[0]
+        legacy = self.run_(D, self.ks, ["k", "s"], template_context=0.0)[0]
+        vel = lambda res, fam: [int(t.split("@")[1]) for t in res[fam]["score"].split() if "@" in t]   # noqa: E731
+        self.assertEqual(set(vel(legacy, "kick")), {1}, "the boundary bug")
+        self.assertTrue(all(110 <= v <= 127 for v in vel(new, "kick")), vel(new, "kick"))
+        hits = lambda res: re.sub(r"@\d+", "", res["snare"]["score"])   # noqa: E731
+        self.assertEqual(hits(new), hits(legacy))
+
+    test_claps_are_exported = test_a_kit_without_cp_is_unchanged = test_a_piece_in_no_family_is_reported = None
+    test_kick_snare_output_is_identical_to_before = None
+
+
+class TemplateBoundary(unittest.TestCase):
+    """bd-07e744: the first template hit (at 0 s) had no pre-onset context: the picker landed inside it and the
+    pre-hit subtraction all but erased its velocity-40 level (Ingenue kick exponent 8.93, the 909's 6.87)."""
+
+    def setUp(self):
+        self.dir = tempfile.mkdtemp(prefix="drumtrans-tpl-")
+        self.addCleanup(shutil.rmtree, self.dir, True)
+        self.ks = template_wav(os.path.join(self.dir, "ks.wav"), ["k", "s"])
+        self.sk = template_wav(os.path.join(self.dir, "sk.wav"), ["s", "k"])
+
+    def test_the_first_piece_is_measured_like_any_other(self):
+        _, g_first, n_first = D.templates(self.ks, ["k", "s"])
+        _, g_second, n_second = D.templates(self.sk, ["s", "k"])
+        self.assertAlmostEqual(g_first[0], g_second[1], places=4, msg="the kick's exponent does not depend on its slot")
+        self.assertAlmostEqual(g_first[1], g_second[0], places=4)
+        self.assertLess(abs(g_first[0] - 1.0), 0.2, "amplitude ∝ velocity measures an exponent near 1")
+
+    def test_legacy_mode_keeps_the_boundary_bug(self):
+        _, g_legacy, _ = D.templates(self.ks, ["k", "s"], context=0)
+        _, g_new, _ = D.templates(self.ks, ["k", "s"])
+        self.assertGreater(abs(g_legacy[0] - g_new[0]), 0.5, g_legacy)
+
+    def test_every_other_template_is_bit_identical(self):
+        T0, g0, n0 = D.templates(self.ks, ["k", "s"], context=0)
+        T, g, n = D.templates(self.ks, ["k", "s"])
+        self.assertTrue(np.array_equal(T0, T), "the velocity-120 templates")
+        self.assertTrue(np.array_equal(n0, n), "the velocity-120 levels")
+        self.assertTrue(np.array_equal(g0[1:], g[1:]), "the later pieces' exponents")
+
+    def test_more_context_changes_nothing(self):
+        a = D.templates(self.ks, ["k", "s"])
+        b = D.templates(self.ks, ["k", "s"], context=3.0)
+        self.assertTrue(all(np.array_equal(x, y) for x, y in zip(a, b)))
+
+    @unittest.skipUnless(os.environ.get("DRUMTRANS_OLD"), "set DRUMTRANS_OLD to the previous drumtrans.py")
+    def test_legacy_mode_is_the_old_analysis(self):
+        old = load(os.environ["DRUMTRANS_OLD"], "drumtrans_old_tpl")
+        for x, y in zip(old.templates(self.ks, ["k", "s"]), D.templates(self.ks, ["k", "s"], context=0)):
+            self.assertTrue(np.array_equal(x, y))
+
+    def test_transcribe_passes_the_context(self):
+        from unittest.mock import patch
+        seen = []
+
+        def rec(path, pieces, context=None):
+            seen.append(context)
+            raise RuntimeError("stop")
+        with patch.object(D.L, "load", return_value=np.zeros((48000, 2), np.float32)), patch.object(D, "templates", side_effect=rec):
+            for kw in ({}, {"template_context": 0.0}):
+                with self.assertRaises(RuntimeError):
+                    D.transcribe("x.wav", "x.yaml", "t.wav", ["k"], **kw)
+        self.assertEqual(seen, [D.TEMPLATE_CONTEXT, 0.0])
 
 
 class KitLevels(unittest.TestCase):

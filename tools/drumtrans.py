@@ -7,7 +7,12 @@ hand drums, claps, perc, fx), each with per-hit velocities, ready to drop into a
 
   drumtrans.py STEM.wav SONG.yaml TEMPLATES.wav PIECES.json OUT.json [--from S] [--to S] [--grid 24] [--gain-db G]
                [--share 0.12] [--floor 0.06] [--labels TRACK] [--shift S] [--vel-gamma G] [--kit-levels [--source-gain-db D]]
+               [--legacy-template-boundary]
 
+TEMPLATES.wav is analysed after a 2 s silent lead-in, so the first template hit (at 0 s) has the same pre-onset
+context as every later one (bd-07e744: without it the picker landed 48 ms inside that hit and the pre-hit
+subtraction all but erased it: the first piece's velocity-40 level read ~0, its exponent 8.9 instead of 0.35). Every
+other template is bit-identical; --legacy-template-boundary reproduces the old analysis exactly.
 --kit-levels (opt-in; bd-6f5e5a) reads each hit in units of its own piece's velocity-120 level from TEMPLATES.wav, so
 a kick rendered 20 dB louder than a hat no longer reads as harder playing; the stem's overall gain is one number,
 --source-gain-db (the stem's level relative to the kit render) or else taken from the kick and snare (their
@@ -100,15 +105,24 @@ def feat(B, k):
     return np.sqrt(np.maximum(np.concatenate([att, body]), 0))
 
 
-def templates(path, pieces):
+TEMPLATE_CONTEXT = 2.0   # s of silence before TEMPLATES.wav's first hit, as every later hit has (bd-07e744)
+
+
+def templates(path, pieces, context=TEMPLATE_CONTEXT):
+    """Per piece: the velocity-120 feature (unit norm), the level exponent over velocities 40/80/120, the 120 level.
+    `context` seconds of silence (whole frames) go before the audio so the hit at 0 s has pre-onset context; frames
+    after it are the same samples as without, so only that hit's measurement changes. context=0: the legacy analysis."""
     x = L.load(path).mean(1)
+    off = int(round(context * FPS)) if context else 0
+    if off:
+        x = np.concatenate([np.zeros(off * HOP, dtype=x.dtype), x])
     B = bands(x)
     T, gamma, n120 = [], [], []
     for i, p in enumerate(pieces):
         norms, vecs = [], []
         for j, v in enumerate((40, 80, 120)):
             t0 = (3 * i + j) * 2.0
-            k0 = int(t0 * FPS)
+            k0 = int(t0 * FPS) + off
             nov = novelty(B[:, max(0, k0 - 8):k0 + 12])
             k = max(0, k0 - 8) + int(np.argmax(nov))
             f = feat(B, k)
@@ -215,7 +229,7 @@ def fmt(b):
 
 
 def transcribe(stem, song, tpl_wav, pieces, t0=0.0, t1=None, grid=24, gain_db=0.0, share=0.12, floor=0.06, labels=None, shift=0.0, vel_gamma=None,
-               kit_levels=False, source_gain_db=None):
+               kit_levels=False, source_gain_db=None, template_context=TEMPLATE_CONTEXT):
     x = L.load(stem).mean(1)
     B = bands(x)
     on_all = pick(novelty(B))
@@ -228,10 +242,10 @@ def transcribe(stem, song, tpl_wav, pieces, t0=0.0, t1=None, grid=24, gain_db=0.
         if tpl_wav and tpl_wav != "-" and os.path.exists(tpl_wav):
             # Per-piece velocity calibration through the kit's own rendered level curves: the stem's
             # amplitudes are comparable across pieces only through how loud each of OUR pieces plays.
-            _, kg, kn = templates(tpl_wav, all_pieces)
+            _, kg, kn = templates(tpl_wav, all_pieces, template_context)
             kit_curve = {p: (kg[all_pieces.index(p)], kn[all_pieces.index(p)]) for p in pieces}
     else:
-        T, gamma, n120 = templates(tpl_wav, pieces)
+        T, gamma, n120 = templates(tpl_wav, pieces, template_context)
         if vel_gamma:    # kits behind a bus compressor barely grow with velocity (gamma floors at 0.3): invert linearly
             gamma = np.full(len(pieces), float(vel_gamma))
     # weight bands so cymbal/hat bands count as much as the kick's: inverse of the stem's typical magnitude
@@ -363,7 +377,8 @@ if __name__ == "__main__":
     res, n_on = transcribe(a[0], a[1], a[2], pieces, opt("--from", 0.0), (opt("--to", -1.0) if "--to" in a else None),
                            opt("--grid", 24), opt("--gain-db", 0.0), opt("--share", 0.12), opt("--floor", 0.06), labels,
                            opt("--shift", 0.0), opt("--vel-gamma", 0.0) or None, "--kit-levels" in a,
-                           float(a[a.index("--source-gain-db") + 1]) if "--source-gain-db" in a else None)
+                           float(a[a.index("--source-gain-db") + 1]) if "--source-gain-db" in a else None,
+                           template_context=0.0 if "--legacy-template-boundary" in a else TEMPLATE_CONTEXT)
     json.dump(res, open(a[4], "w"))
     if "--suggest-gains" in a:
         sg = suggest_family_gains()
