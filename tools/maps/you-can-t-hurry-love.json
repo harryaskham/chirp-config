@@ -65,32 +65,28 @@
             "pan": 0.15,
             "patch": {
               "synth": {
-                "layers": [
-                  {
-                    "type": "modal",
-                    "modes": "cymbal",
-                    "strike": 0.9,
-                    "bright": 1,
-                    "decay": "180ms",
-                    "damp": 0.45,
-                    "vary": 0.8
-                  },
-                  {
-                    "type": "noise",
-                    "color": "white",
-                    "level": "-22dB"
-                  }
-                ],
-                "filters": [
-                  "hp cutoff=2.4k",
-                  "lp cutoff=13k"
-                ],
                 "amp": {
                   "a": "0.5ms",
-                  "d": "240ms",
-                  "s": 0,
-                  "r": "40ms"
-                }
+                  "curve": 5,
+                  "d": "180ms",
+                  "r": "40ms",
+                  "s": 0
+                },
+                "filters": [
+                  "hp cutoff=5k",
+                  {
+                    "kind": "lp",
+                    "cutoff": 16000,
+                    "q": 0.7071067811865476
+                  }
+                ],
+                "layers": [
+                  {
+                    "type": "noise"
+                  },
+                  "square fixed=5200 level=-12dB",
+                  "square fixed=7300 level=-14dB"
+                ]
               }
             }
           }
