@@ -1241,7 +1241,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 7,
+      "rounds": 8,
       "priority": 1.0,
       "genre": "drum and bass (jump-up; MC-led)",
       "requested": {
@@ -1255,7 +1255,7 @@
         "title": "Baddadan"
       },
       "last": {
-        "at": "2026-10-19T21:12:57Z",
+        "at": "2026-10-19T21:35:41Z",
         "who": "chirper-two"
       }
     },
