@@ -2703,6 +2703,157 @@
                 }
               }
             }
+          },
+          "ki": {
+            "patch": {
+              "play": {
+                "vel_sens": 0.5
+              },
+              "synth": {
+                "amp": {
+                  "a": "0.3ms",
+                  "curve": 4,
+                  "d": "360ms",
+                  "r": "35ms",
+                  "s": 0
+                },
+                "drive": {
+                  "mod": [
+                    {
+                      "amount": 0.15,
+                      "src": "vel"
+                    }
+                  ],
+                  "value": 0.1
+                },
+                "env": {
+                  "click": {
+                    "a": "0.1ms",
+                    "curve": 3,
+                    "d": "5ms",
+                    "s": 0
+                  },
+                  "knock": {
+                    "a": "0.3ms",
+                    "d": "30ms",
+                    "s": 0
+                  },
+                  "p": {
+                    "a": "0.3ms",
+                    "curve": 5,
+                    "d": "30ms",
+                    "s": 0
+                  }
+                },
+                "filters": [
+                  "lowshelf cutoff=70 gain=3dB",
+                  {
+                    "cutoff": "3k",
+                    "gain": {
+                      "mod": [
+                        {
+                          "amount": 6,
+                          "src": "vel"
+                        }
+                      ],
+                      "value": "0dB"
+                    },
+                    "kind": "peak",
+                    "q": 1
+                  },
+                  {
+                    "cutoff": {
+                      "mod": [
+                        {
+                          "amount": 1.2,
+                          "src": "vel"
+                        }
+                      ],
+                      "value": "4k"
+                    },
+                    "kind": "lp"
+                  }
+                ],
+                "layers": [
+                  {
+                    "name": "body",
+                    "wave": "sine"
+                  },
+                  {
+                    "level": {
+                      "mod": [
+                        {
+                          "amount": 52,
+                          "src": "env.knock"
+                        },
+                        {
+                          "amount": 2,
+                          "src": "rand"
+                        }
+                      ],
+                      "value": "-60dB"
+                    },
+                    "name": "knock",
+                    "ratio": 2.05,
+                    "wave": "sine"
+                  },
+                  {
+                    "level": {
+                      "mod": [
+                        {
+                          "amount": 56,
+                          "src": "env.click"
+                        },
+                        {
+                          "amount": 12,
+                          "src": "vel"
+                        },
+                        {
+                          "amount": 2,
+                          "src": "rand"
+                        }
+                      ],
+                      "value": "-66dB"
+                    },
+                    "name": "beater",
+                    "type": "noise"
+                  },
+                  {
+                    "fixed": 2600,
+                    "level": {
+                      "mod": [
+                        {
+                          "amount": 50,
+                          "src": "env.click"
+                        },
+                        {
+                          "amount": 12,
+                          "src": "vel"
+                        }
+                      ],
+                      "value": "-66dB"
+                    },
+                    "name": "tick",
+                    "wave": "triangle"
+                  }
+                ],
+                "pitch": {
+                  "mod": [
+                    {
+                      "amount": 20,
+                      "src": "env.p"
+                    },
+                    {
+                      "amount": 0.3,
+                      "src": "rand"
+                    }
+                  ],
+                  "value": 0
+                }
+              }
+            },
+            "pitch": "G1",
+            "gain": "-80dB"
           }
         },
         "play": {
@@ -3687,7 +3838,6 @@
     },
     {
       "name": "breakbeat-kit",
-      "track": 3,
       "bars": [
         [
           1,
@@ -3700,7 +3850,8 @@
       "remap": {
         "h1": "h",
         "hf": "hp"
-      }
+      },
+      "score_file": "tools/maps/fools-gold-drums-c3-pickup.txt"
     },
     {
       "name": "late-bass-guide",

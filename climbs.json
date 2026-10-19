@@ -1471,15 +1471,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/fools-gold.wav OUT.wav $(cat tools/fools-gold-sections.txt)",
       "best": {
-        "score": 55.934,
-        "version": "v1",
+        "score": 56.169,
+        "version": "v2",
         "commit": "see git log songs/fools-gold.yaml",
-        "engine": "e443c01"
+        "engine": "cd0a9c2"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 1,
+      "rounds": 2,
       "priority": 1.0,
       "genre": "madchester / baggy",
       "meta": {
@@ -1493,8 +1493,8 @@
       },
       "ref_file": "ref/albums/singles/fools-gold.webm",
       "last": {
-        "at": "2026-10-18T23:34:04Z",
-        "who": "chirper-two"
+        "at": "2026-10-19T01:29:09Z",
+        "who": "chirper-three"
       }
     },
     {
