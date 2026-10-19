@@ -1437,15 +1437,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/blue-monday.wav OUT.wav $(cat tools/blue-monday-sections.txt)",
       "best": {
-        "score": 56.64,
-        "version": "v4",
+        "score": 56.678,
+        "version": "v5",
         "commit": "see git log songs/blue-monday.yaml",
-        "engine": "cd0a9c2"
+        "engine": "15f4412"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 4,
+      "rounds": 5,
       "priority": 1.0,
       "genre": "synth-pop / new wave (2016 remaster of the 12-inch)",
       "requested": {
@@ -1459,8 +1459,8 @@
         "title": "Blue Monday"
       },
       "last": {
-        "at": "2026-10-19T03:45:14Z",
-        "who": "chirper-zero"
+        "at": "2026-10-19T04:35:04Z",
+        "who": "chirper-three"
       }
     },
     {
