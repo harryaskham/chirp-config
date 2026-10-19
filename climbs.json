@@ -1199,15 +1199,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/this-charming-man.wav OUT.wav $(cat tools/this-charming-man-sections.txt)",
       "best": {
-        "score": 66.747,
-        "version": "v3",
+        "score": 66.842,
+        "version": "v4",
         "commit": "see git log songs/this-charming-man.yaml",
-        "engine": "cd0a9c2"
+        "engine": "15f4412"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 3,
+      "rounds": 4,
       "priority": 1.0,
       "genre": "indie / jangle pop",
       "meta": {
@@ -1221,8 +1221,8 @@
       },
       "ref_file": "ref/albums/singles/this-charming-man.webm",
       "last": {
-        "at": "2026-10-19T04:03:39Z",
-        "who": "chirper-three"
+        "at": "2026-10-19T05:28:41Z",
+        "who": "chirper-one"
       }
     },
     {
