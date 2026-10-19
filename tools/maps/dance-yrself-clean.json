@@ -2168,86 +2168,47 @@
             }
           },
           "co": {
-            "gain": "-6dB",
             "patch": {
               "synth": {
                 "amp": {
-                  "a": "0.6ms",
+                  "a": "0.3ms",
                   "curve": 4,
-                  "d": "2s",
-                  "r": "300ms",
+                  "d": "280ms",
+                  "r": "30ms",
                   "s": 0
                 },
                 "env": {
-                  "c": {
-                    "a": "0.2ms",
-                    "curve": 0,
-                    "d": "20ms",
+                  "h": {
+                    "a": "0.3ms",
+                    "d": "12ms",
                     "s": 0
                   },
                   "p": {
-                    "a": "0.1ms",
-                    "d": "60ms",
+                    "a": "0.3ms",
+                    "d": "30ms",
                     "s": 0
                   }
                 },
                 "filters": [
-                  "hp cutoff=120",
-                  {
-                    "cutoff": {
-                      "mod": [
-                        {
-                          "amount": 1,
-                          "src": "vel"
-                        }
-                      ],
-                      "value": "2.5k"
-                    },
-                    "kind": "lp"
-                  }
+                  "lp cutoff=3k"
                 ],
                 "layers": [
+                  "sine",
                   {
-                    "damp": 0.45,
-                    "level": {
-                      "mod": [
-                        {
-                          "amount": 1,
-                          "src": "rand"
-                        }
-                      ],
-                      "value": "0dB"
-                    },
-                    "partials": [
-                      [
-                        1,
-                        1
-                      ],
-                      [
-                        2,
-                        0.35
-                      ],
-                      [
-                        3,
-                        0.12
-                      ]
-                    ],
-                    "type": "additive"
+                    "level": "-12dB",
+                    "ratio": 1.5,
+                    "wave": "sine"
                   },
                   {
-                    "color": "brown",
+                    "color": "pink",
                     "level": {
                       "mod": [
                         {
-                          "amount": 120,
-                          "src": "env.c"
-                        },
-                        {
-                          "amount": 10,
-                          "src": "vel"
+                          "amount": 40,
+                          "src": "env.h"
                         }
                       ],
-                      "value": "-148dB"
+                      "value": "-60dB"
                     },
                     "type": "noise"
                   }
@@ -2255,11 +2216,11 @@
                 "pitch": {
                   "mod": [
                     {
-                      "amount": 0.4,
+                      "amount": 1.5,
                       "src": "env.p"
                     },
                     {
-                      "amount": 0.05,
+                      "amount": 0.15,
                       "src": "rand"
                     }
                   ],
@@ -2267,7 +2228,8 @@
                 }
               }
             },
-            "pitch": "D4"
+            "pitch": "D4",
+            "gain": "1.988773963dB"
           },
           "sl": {
             "gain": "0dB",
