@@ -37,6 +37,67 @@
      "frets": 24,
      "gate": 1,
      "event_stable": true
+    },
+    "synth": {
+     "layers": [
+      {
+       "body": 0.25,
+       "bright": {
+        "mod": [
+         {
+          "amount": 0.25,
+          "src": "vel"
+         },
+         {
+          "amount": 0.05,
+          "src": "rand"
+         },
+         {
+          "amount": -0.12,
+          "src": "expr.h"
+         },
+         {
+          "src": "expr.tap",
+          "amount": -0.06
+         }
+        ],
+        "value": 0.55
+       },
+       "decay": {
+        "mod": [
+         {
+          "amount": 1,
+          "src": "vel"
+         }
+        ],
+        "value": "5s"
+       },
+       "level": {
+        "mod": [
+         {
+          "amount": -7,
+          "src": "expr.h"
+         }
+        ],
+        "value": "0dB"
+       },
+       "pick": 0.18,
+       "soft": {
+        "mod": [
+         {
+          "amount": 0.35,
+          "src": "expr.h"
+         },
+         {
+          "src": "expr.tap",
+          "amount": 0.175
+         }
+        ],
+        "value": 0
+       },
+       "type": "pluck"
+      }
+     ]
     }
    },
    "woven-extra": {
@@ -6304,7 +6365,8 @@
    ],
    "gain": "-2dB",
    "articulations": [
-    "hp"
+    "hp",
+    "tap"
    ],
    "extra": {
     "auto": {

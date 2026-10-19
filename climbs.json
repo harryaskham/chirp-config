@@ -1573,15 +1573,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/the-woven-web.wav OUT.wav $(cat tools/the-woven-web-sections.txt)",
       "best": {
-        "score": 60.116,
-        "version": "v3",
+        "score": 60.41,
+        "version": "v4",
         "commit": "see git log songs/the-woven-web.yaml",
-        "engine": "15f4412"
+        "engine": "5425a86"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 8,
+      "rounds": 9,
       "priority": 1.0,
       "genre": "instrumental progressive metal (Animals as Leaders, The Joy of Motion; 8-string guitars, actual 6/4 7/4 8/4 9/8 7/8 4/4 3/4 meter map; fixed supplied recording)",
       "requested": {
@@ -1595,8 +1595,8 @@
         "title": "The Woven Web"
       },
       "last": {
-        "at": "2026-10-19T11:16:50Z",
-        "who": "chirper-three"
+        "at": "2026-10-19T18:18:26Z",
+        "who": "chirper-two"
       }
     },
     {
