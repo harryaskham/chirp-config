@@ -1581,7 +1581,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 7,
+      "rounds": 8,
       "priority": 1.0,
       "genre": "instrumental progressive metal (Animals as Leaders, The Joy of Motion; 8-string guitars, actual 6/4 7/4 8/4 9/8 7/8 4/4 3/4 meter map; fixed supplied recording)",
       "requested": {
@@ -1595,8 +1595,8 @@
         "title": "The Woven Web"
       },
       "last": {
-        "at": "2026-10-19T10:38:23Z",
-        "who": "chirper-zero"
+        "at": "2026-10-19T11:16:50Z",
+        "who": "chirper-three"
       }
     },
     {
