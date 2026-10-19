@@ -1615,7 +1615,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 3,
+      "rounds": 4,
       "priority": 1.0,
       "genre": "art pop / electronic",
       "meta": {
@@ -1629,8 +1629,8 @@
       },
       "ref_file": "ref/albums/singles/black-swan.webm",
       "last": {
-        "at": "2026-10-19T01:04:36Z",
-        "who": "chirper-two"
+        "at": "2026-10-19T03:50:51Z",
+        "who": "chirper-one"
       }
     },
     {
