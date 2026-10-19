@@ -1513,7 +1513,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 4,
+      "rounds": 5,
       "priority": 1.0,
       "genre": "electronic / synth-pop",
       "requested": {
@@ -1527,7 +1527,7 @@
         "title": "The Model"
       },
       "last": {
-        "at": "2026-10-19T20:48:35Z",
+        "at": "2026-10-19T22:46:28Z",
         "who": "chirper-two"
       }
     },
