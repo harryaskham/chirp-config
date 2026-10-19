@@ -1071,7 +1071,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 4,
+      "rounds": 5,
       "priority": 1.0,
       "genre": "classical piano (Debussy; Seong-Jin Cho DG studio)",
       "meta": {
@@ -1085,8 +1085,8 @@
       },
       "ref_file": "ref/albums/singles/clair-de-lune.webm",
       "last": {
-        "at": "2026-10-19T05:26:59Z",
-        "who": "chirper-three"
+        "at": "2026-10-19T12:36:10Z",
+        "who": "chirper-two"
       }
     },
     {
