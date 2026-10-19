@@ -1505,15 +1505,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/the-model.wav OUT.wav $(cat tools/the-model-sections.txt)",
       "best": {
-        "score": 61.533,
-        "version": "v2",
+        "score": 61.583,
+        "version": "v3",
         "commit": "see git log songs/the-model.yaml",
-        "engine": "e443c01"
+        "engine": "a85cd2f"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 2,
+      "rounds": 3,
       "priority": 1.0,
       "genre": "electronic / synth-pop",
       "requested": {
@@ -1527,8 +1527,8 @@
         "title": "The Model"
       },
       "last": {
-        "at": "2026-10-18T23:49:15Z",
-        "who": "chirper-three"
+        "at": "2026-10-19T07:21:16Z",
+        "who": "chirper-one"
       }
     },
     {
