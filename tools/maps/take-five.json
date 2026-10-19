@@ -39,7 +39,7 @@
     }
    },
    "take5-kit": {
-    "extends": "rock-kit kit.k.gain=-6dB kit.s.gain=-4dB kit.rd.gain=-3dB kit.c.gain=-10dB",
+    "extends": "rock-kit kit.k.gain=-6dB kit.s.gain=-4dB kit.rd.gain=-3dB kit.c.gain=-10dB kit.rd.pan=-0.4 fx.4.mix=0.32",
     "play": {
      "event_stable": true
     }
@@ -6397,6 +6397,14 @@
     "hf": "hp",
     "rc": "ss",
     "rbs": "rb"
+   },
+   "extra": {
+    "fx": [
+     {
+      "type": "gain",
+      "gain": "0.402573473503dB"
+     }
+    ]
    }
   }
  ],

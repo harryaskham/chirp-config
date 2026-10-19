@@ -1131,15 +1131,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/take-five.wav OUT.wav $(cat tools/take-five-sections.txt)",
       "best": {
-        "score": 51.801,
-        "version": "v3",
+        "score": 52.719,
+        "version": "v4",
         "commit": "see git log songs/take-five.yaml",
-        "engine": "a85cd2f"
+        "engine": "5425a86"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 4,
+      "rounds": 5,
       "priority": 1.0,
       "genre": "cool jazz (Time Out 1959 fixed studio recording; real 5/4 throughout, physical alto/piano/upright bass/light stick kit)",
       "meta": {
@@ -1153,7 +1153,7 @@
       },
       "ref_file": "ref/albums/singles/take-five.webm",
       "last": {
-        "at": "2026-10-19T09:46:55Z",
+        "at": "2026-10-19T20:10:40Z",
         "who": "chirper-one"
       }
     },
