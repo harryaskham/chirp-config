@@ -52,14 +52,17 @@ def log(*a):
     print(time.strftime("%H:%M:%S"), *a, flush=True)
 
 
-def climbs():
+def enabled():
     try:
         reg = json.load(open(os.path.join(ROOT, "climbs.json")))
     except (OSError, ValueError) as e:
         log("registry unreadable:", e)
         return []
-    on = [c for c in reg.get("climbs", []) if c.get("enabled", True)]
-    on = album_only(on)
+    return [c for c in reg.get("climbs", []) if c.get("enabled", True)]
+
+
+def climbs():
+    on = album_only(enabled())
     try:
         solo = open(os.path.join(HERE, "playlist-solo")).read().strip()
     except OSError:
@@ -136,7 +139,11 @@ def sync(st):
     pl = st.get("playlist")
     wanted = [key(e["label"], e["song"], e.get("passes")) for e in want]
     have = [key(x["label"], x["source"], x.get("passes")) for x in (pl or {}).get("entries", [])]
-    if have and not pl.get("finished") and sum(h in wanted for h in have) * 2 < len(have):
+    # The rotation's own playlist (repeating, every entry an enabled climb) is never "another playlist", even when
+    # the album/solo filter now wants far fewer entries: apply the change (a repeating rotation never finishes).
+    mine = {key(e["label"], e["song"], e.get("passes")) for e in (entry(c) for c in enabled())}
+    ours = bool(have) and bool(pl.get("repeat")) and all(h in mine for h in have)
+    if have and not pl.get("finished") and not ours and sum(h in wanted for h in have) * 2 < len(have):
         # A once-through album on its last track: the rotation follows it (no replay, no gap);
         # the next sync then sees the rotation and drops the album's entries.
         cur = pl.get("current")
