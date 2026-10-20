@@ -1941,7 +1941,7 @@
       "passes": 1,
       "enabled": false,
       "status": "requested",
-      "rounds": 5,
+      "rounds": 6,
       "priority": 1.0,
       "genre": "ambient techno",
       "meta": {
@@ -1958,7 +1958,7 @@
       },
       "ref_file": "ref/albums/selected-ambient-works-85-92/07 heliosphan.webm",
       "last": {
-        "at": "2026-10-20T06:59:03Z",
+        "at": "2026-10-20T08:42:31Z",
         "who": "chirper-one"
       }
     },
