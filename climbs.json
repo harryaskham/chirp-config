@@ -2042,7 +2042,7 @@
       "passes": 1,
       "enabled": false,
       "status": "requested",
-      "rounds": 6,
+      "rounds": 7,
       "priority": 1.0,
       "genre": "ambient techno",
       "meta": {
@@ -2059,8 +2059,8 @@
       },
       "ref_file": "ref/albums/selected-ambient-works-85-92/10 ptolemy.webm",
       "last": {
-        "at": "2026-10-20T10:58:42Z",
-        "who": "chirper-one"
+        "at": "2026-10-20T12:49:28Z",
+        "who": "chirper-three"
       }
     },
     {
