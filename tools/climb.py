@@ -41,8 +41,8 @@ for any climbing agent's next pass, one climb to work on, weighted towards the f
 Out of band: `add --oob` (or `set ID oob=true`) makes a test climb that `next` never picks and that never
 joins the playlist; agents can still climb it (and any paused climb) directly when asked.
 
-Sampling: weight = priority / (1 + rounds), halved for a climb another agent started in the last
-30 min (spread, not a lock: two agents on one song is fine), ×0.3 for the climb you did last and
+Sampling: weight = priority / (1 + rounds); a climb another agent started in the last 90 min without
+recording a round since is held (skipped while anything else is queued; halved otherwise; a soft hold, not a lock), ×0.3 for the climb you did last and
 ×0.6 for its genre (switch it up). Requested songs have no rounds, so they come up first — but a
 song's setup is one agent's job: one with no rounds that another agent started in the last 2 h is
 skipped (it writes shared unversioned paths) until that first round is done.
@@ -78,6 +78,10 @@ HIST = os.path.join(ROOT, "climbs")
 STATE = os.path.join(os.environ.get("XDG_STATE_HOME") or os.path.expanduser("~/.local/state"), "chirp")
 STARTS = os.environ.get("CLIMB_STARTS") or os.path.join(STATE, "climb-starts.jsonl")
 SPREAD = 30 * 60
+# How long a started round holds its climb against other agents (until its `done`, a note-free round record, or
+# this long): rounds got slower and more careful; in 3 days 26% of 513 ran past 30 min (median 17, p90 46, 5% over
+# an hour), and a queue handing the climb on mid-round made two agents work one song (We Are the Music Makers).
+ROUND_HOLD = 90 * 60
 # A song's setup (its first round) writes unversioned shared paths — ref/ID.wav, stems, songs/ID.yaml,
 # tools/ID-sections.txt — so one agent sets it up: `next` skips a song with no rounds that another agent
 # started within this long (it expires on its own and ends with that round's `done`).
@@ -352,7 +356,7 @@ def commit_or_die(paths, msg, args):
 # ── sampling ───────────────────────────────────────────────────────────────────────────────
 
 def weights(reg, me):
-    """Draw weights. A climb another agent started under SPREAD ago and has not recorded a round on since is HELD:
+    """Draw weights. A climb another agent started under ROUND_HOLD ago and has not recorded a round on since is HELD:
     it is skipped while anything unheld is queued (two agents on one climb duplicate the round - chirper-two drew
     entrapment and imprint while chirper-three held them); when every candidate is held, held ones are drawn at
     half weight as before."""
@@ -368,7 +372,7 @@ def weights(reg, me):
                                     for s in st):
             continue  # someone is setting it up
         w = float(c.get("priority", 1)) / (1 + c["rounds"])
-        others = [s for s in st if s["id"] == c["id"] and s.get("who") != me and t - s.get("t", 0) < SPREAD]
+        others = [s for s in st if s["id"] == c["id"] and s.get("who") != me and t - s.get("t", 0) < ROUND_HOLD]
         lr = c.get("last") or {}
         try:
             lr_t = calendar.timegm(time.strptime(lr.get("at", ""), "%Y-%m-%dT%H:%M:%SZ"))
@@ -869,7 +873,7 @@ def cmd_status(a):
     for c in reg["climbs"]:
         hist = history(c["id"])
         last = hist[-1] if hist else None
-        on = sorted({s["who"] for s in st if s["id"] == c["id"] and t - s.get("t", 0) < SPREAD})
+        on = sorted({s["who"] for s in st if s["id"] == c["id"] and t - s.get("t", 0) < ROUND_HOLD})
         rows.append({"id": c["id"], "status": c["status"], "rounds": c["rounds"], "best": (c.get("best") or {}).get("score"),
                      "genre": c.get("genre"), "playlist": bool(c.get("enabled")), "odds": round(w.get(c["id"], 0) / tot, 3),
                      "last": f"{age(last['at'])} ago by {last['who']}" if last else None, "now": on})
