@@ -1877,7 +1877,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 9,
+      "rounds": 10,
       "priority": 1.0,
       "genre": "ambient techno",
       "meta": {
@@ -1894,7 +1894,7 @@
       },
       "ref_file": "ref/albums/selected-ambient-works-85-92/05 i.webm",
       "last": {
-        "at": "2026-10-20T15:50:54Z",
+        "at": "2026-10-20T18:21:50Z",
         "who": "chirper-two"
       }
     },
