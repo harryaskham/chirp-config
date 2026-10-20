@@ -1996,7 +1996,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 1,
+      "rounds": 2,
       "priority": 1.0,
       "genre": "ambient techno",
       "meta": {
@@ -2013,8 +2013,8 @@
       },
       "ref_file": "ref/albums/selected-ambient-works-85-92/09 schottkey-7th-path.webm",
       "last": {
-        "at": "2026-10-20T01:36:04Z",
-        "who": "chirper-one"
+        "at": "2026-10-20T02:56:07Z",
+        "who": "chirper-three"
       }
     },
     {
