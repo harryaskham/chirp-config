@@ -1959,7 +1959,7 @@
       "passes": 1,
       "enabled": false,
       "status": "requested",
-      "rounds": 0,
+      "rounds": 1,
       "priority": 1.0,
       "genre": "ambient techno",
       "meta": {
@@ -1974,7 +1974,11 @@
         "at": "2026-10-19T22:56:10Z",
         "note": "Harry's request: the whole album as one album climb. Canonical recording: the official album master (YouTube Music album playlist OLAK5uy_npVGHGqWs_-hTzVUivb8lCndQPVB7aIm0, Aphex Twin channel); one master for all 13 tracks."
       },
-      "ref_file": "ref/albums/selected-ambient-works-85-92/08 we-are-the-music-makers.webm"
+      "ref_file": "ref/albums/selected-ambient-works-85-92/08 we-are-the-music-makers.webm",
+      "last": {
+        "at": "2026-10-20T02:48:46Z",
+        "who": "chirper-zero"
+      }
     },
     {
       "id": "schottkey-7th-path",
