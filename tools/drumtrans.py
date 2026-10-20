@@ -9,6 +9,9 @@ hand drums, claps, perc, fx), each with per-hit velocities, ready to drop into a
                [--share 0.12] [--floor 0.06] [--labels TRACK] [--shift S] [--vel-gamma G] [--kit-levels [--source-gain-db D]]
                [--legacy-template-boundary]
 
+--grid N quantises every hit to 1/N of a BEAT of the song's tempo map (default 24: about 20 ms at 125 bpm; 96 at
+120 bpm is 5.2 ms), keeping one hit per family per slot (the loudest): a finer grid keeps more timing detail
+and more near-coincident hits, so it is a new transcription, not a relabelling of an old one.
 TEMPLATES.wav is analysed after a 2 s silent lead-in, so the first template hit (at 0 s) has the same pre-onset
 context as every later one (bd-07e744: without it the picker landed 48 ms inside that hit and the pre-hit
 subtraction all but erased it: the first piece's velocity-40 level read ~0, its exponent 8.9 instead of 0.35). Every
