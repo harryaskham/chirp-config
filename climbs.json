@@ -1734,7 +1734,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 7,
+      "rounds": 8,
       "priority": 1.0,
       "genre": "ambient techno",
       "meta": {
@@ -1751,8 +1751,8 @@
       },
       "ref_file": "ref/albums/selected-ambient-works-85-92/01 xtal.webm",
       "last": {
-        "at": "2026-10-20T15:13:11Z",
-        "who": "chirper-two"
+        "at": "2026-10-20T17:29:10Z",
+        "who": "chirper-zero"
       }
     },
     {
