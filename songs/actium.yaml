@@ -5153,7 +5153,11 @@
           "pitch": "k",
           "vel": 0.007874015748031496
         }
-      ]
+      ],
+      "out": "actium_phase_l",
+      "sends": {
+        "actium_phase_r": "0dB"
+      }
     },
     {
       "name": "drums-snare",
@@ -8592,7 +8596,11 @@
           "pitch": "s",
           "vel": 0.031496062992125984
         }
-      ]
+      ],
+      "out": "actium_phase_l",
+      "sends": {
+        "actium_phase_r": "0dB"
+      }
     },
     {
       "name": "drums-hats",
@@ -12415,7 +12423,11 @@
           "pitch": "oh",
           "vel": 0.11811023622047244
         }
-      ]
+      ],
+      "out": "actium_phase_l",
+      "sends": {
+        "actium_phase_r": "0dB"
+      }
     },
     {
       "name": "drums-claps",
@@ -13388,7 +13400,11 @@
           "pitch": "cp",
           "vel": 1.0
         }
-      ]
+      ],
+      "out": "actium_phase_l",
+      "sends": {
+        "actium_phase_r": "0dB"
+      }
     },
     {
       "name": "bass-guide",
@@ -29753,7 +29769,11 @@
           "vel": 0.007874015748031496,
           "gate": 0.97
         }
-      ]
+      ],
+      "out": "actium_phase_l",
+      "sends": {
+        "actium_phase_r": "0dB"
+      }
     },
     {
       "name": "residual-tone-guide",
@@ -53720,7 +53740,27 @@
           "vel": 0.07874015748031496,
           "gate": 0.97
         }
+      ],
+      "out": "actium_phase_l",
+      "sends": {
+        "actium_phase_r": "0dB"
+      }
+    }
+  ],
+  "buses": {
+    "actium_phase_l": {
+      "pan": -1
+    },
+    "actium_phase_r": {
+      "pan": 1,
+      "fx": [
+        {
+          "type": "filter",
+          "kind": "allpass",
+          "cutoff": 13000,
+          "q": 0.7071067811865476
+        }
       ]
     }
-  ]
+  }
 }
