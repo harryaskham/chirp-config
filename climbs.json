@@ -1979,11 +1979,16 @@
       "source": "https://www.youtube.com/watch?v=22x8jxh4aVw",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/schottkey-7th-path.wav OUT.wav $(cat tools/schottkey-7th-path-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 49.228,
+        "version": "v1",
+        "commit": "see git log songs/schottkey-7th-path.yaml",
+        "engine": "588d9d7"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "ambient techno",
       "meta": {
@@ -1998,7 +2003,11 @@
         "at": "2026-10-19T22:56:11Z",
         "note": "Harry's request: the whole album as one album climb. Canonical recording: the official album master (YouTube Music album playlist OLAK5uy_npVGHGqWs_-hTzVUivb8lCndQPVB7aIm0, Aphex Twin channel); one master for all 13 tracks."
       },
-      "ref_file": "ref/albums/selected-ambient-works-85-92/09 schottkey-7th-path.webm"
+      "ref_file": "ref/albums/selected-ambient-works-85-92/09 schottkey-7th-path.webm",
+      "last": {
+        "at": "2026-10-20T01:36:04Z",
+        "who": "chirper-one"
+      }
     },
     {
       "id": "ptolemy",
