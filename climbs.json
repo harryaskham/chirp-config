@@ -2074,7 +2074,7 @@
       "passes": 1,
       "enabled": false,
       "status": "requested",
-      "rounds": 4,
+      "rounds": 5,
       "priority": 1.0,
       "genre": "ambient techno",
       "meta": {
@@ -2091,8 +2091,8 @@
       },
       "ref_file": "ref/albums/selected-ambient-works-85-92/11 hedphelym.webm",
       "last": {
-        "at": "2026-10-20T07:08:20Z",
-        "who": "chirper-zero"
+        "at": "2026-10-20T07:45:08Z",
+        "who": "chirper-three"
       }
     },
     {
