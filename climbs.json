@@ -1803,7 +1803,7 @@
       "passes": 1,
       "enabled": false,
       "status": "requested",
-      "rounds": 7,
+      "rounds": 8,
       "priority": 1.0,
       "genre": "ambient techno",
       "meta": {
@@ -1820,8 +1820,8 @@
       },
       "ref_file": "ref/albums/selected-ambient-works-85-92/03 pulsewidth.webm",
       "last": {
-        "at": "2026-10-20T15:09:47Z",
-        "who": "chirper-one"
+        "at": "2026-10-20T18:17:58Z",
+        "who": "chirper-three"
       }
     },
     {
