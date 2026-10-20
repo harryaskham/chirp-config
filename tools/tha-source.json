@@ -1,0 +1,3078 @@
+{
+  "meta": {
+    "artist": "Aphex Twin",
+    "album": "Selected Ambient Works 85-92",
+    "title": "Tha",
+    "track": 2,
+    "year": 1992
+  },
+  "about": "Fixed official album master; sampleless soft-mallet/sub/electro/wordless background gestures. Stem-derived guides and134.766BPM analysis clock are not recovered MIDI/gear/speech. No tape noise/wobble model or reference samples/input.",
+  "seed": 0,
+  "tempo": 134.766,
+  "a4": 440,
+  "length": "547.1333333333333s",
+  "tail": "0s",
+  "volume": "0dB",
+  "ceiling": "-.3dB",
+  "patches": {
+    "tha-kit": {
+      "about": "Electro / 808-classic drum machine: booming kick, two-tone snare, clap, cowbell, clave and six-square metallic hats. For electro, Miami bass, synth-pop and early hip-hop. Pieces: k kick, kl long kick (choke bd), s snare, cp clap, rs rim, cl clave, ma maracas, cb cowbell, h closed / oh open hat (choke), cy cymbal, lt mt ht toms, lc mc hc congas, zp zap. Accents (velocity) add click, snap and brightness. Try `chirp -t 128 @beat-electro`.\n",
+      "kit": {
+        "cb": {
+          "gain": "-10dB",
+          "patch": {
+            "play": {
+              "vel_sens": 0.5
+            },
+            "synth": {
+              "amp": {
+                "curve": 3,
+                "points": [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    "0.3ms",
+                    1
+                  ],
+                  [
+                    "12ms",
+                    0.4
+                  ],
+                  [
+                    "300ms",
+                    0
+                  ]
+                ]
+              },
+              "filters": [
+                "bp cutoff=850 q=1.6",
+                {
+                  "cutoff": {
+                    "mod": [
+                      {
+                        "amount": 0.7,
+                        "src": "vel"
+                      }
+                    ],
+                    "value": "3k"
+                  },
+                  "kind": "lp"
+                }
+              ],
+              "layers": [
+                "square fixed=540",
+                "square fixed=800"
+              ]
+            }
+          }
+        },
+        "cl": {
+          "gain": "-6dB",
+          "patch": {
+            "play": {
+              "vel_sens": 0.5
+            },
+            "synth": {
+              "amp": {
+                "a": "0.1ms",
+                "curve": 3,
+                "d": "28ms",
+                "r": "8ms",
+                "s": 0
+              },
+              "layers": [
+                {
+                  "fixed": 2450,
+                  "wave": "sine"
+                }
+              ]
+            }
+          }
+        },
+        "cp": {
+          "gain": "3dB",
+          "patch": {
+            "play": {
+              "vel_sens": 0.5
+            },
+            "synth": {
+              "amp": {
+                "a": "0.1ms",
+                "curve": 1,
+                "d": "320ms",
+                "r": "20ms",
+                "s": 0
+              },
+              "env": {
+                "b": {
+                  "curve": 3,
+                  "points": [
+                    [
+                      0,
+                      0
+                    ],
+                    [
+                      "0.2ms",
+                      1
+                    ],
+                    [
+                      "9ms",
+                      0.2
+                    ],
+                    [
+                      "10ms",
+                      1
+                    ],
+                    [
+                      "19ms",
+                      0.2
+                    ],
+                    [
+                      "20ms",
+                      1
+                    ],
+                    [
+                      "30ms",
+                      0
+                    ]
+                  ]
+                },
+                "t": {
+                  "curve": 1.5,
+                  "points": [
+                    [
+                      0,
+                      0
+                    ],
+                    [
+                      "24ms",
+                      1
+                    ],
+                    [
+                      "300ms",
+                      0
+                    ]
+                  ]
+                }
+              },
+              "filters": [
+                {
+                  "cutoff": {
+                    "mod": [
+                      {
+                        "amount": 0.3,
+                        "src": "vel"
+                      }
+                    ],
+                    "value": "1.1k"
+                  },
+                  "kind": "bp",
+                  "q": 1.2
+                },
+                "hp cutoff=500"
+              ],
+              "layers": [
+                {
+                  "level": {
+                    "mod": [
+                      {
+                        "amount": 40,
+                        "src": "env.b"
+                      }
+                    ],
+                    "value": "-40dB"
+                  },
+                  "name": "bursts",
+                  "type": "noise"
+                },
+                {
+                  "level": {
+                    "mod": [
+                      {
+                        "amount": 36,
+                        "src": "env.t"
+                      }
+                    ],
+                    "value": "-40dB"
+                  },
+                  "name": "tail",
+                  "type": "noise"
+                }
+              ]
+            }
+          }
+        },
+        "cy": {
+          "gain": "-10dB",
+          "pan": 0.15,
+          "patch": {
+            "play": {
+              "vel_sens": 0.6
+            },
+            "synth": {
+              "amp": {
+                "a": "0.3ms",
+                "curve": 4,
+                "d": "1.4s",
+                "r": "150ms",
+                "s": 0
+              },
+              "filters": [
+                {
+                  "cutoff": {
+                    "mod": [
+                      {
+                        "amount": 0.4,
+                        "src": "vel"
+                      }
+                    ],
+                    "value": "6k"
+                  },
+                  "kind": "bp",
+                  "q": 0.6
+                },
+                "hp cutoff=3.5k"
+              ],
+              "layers": [
+                "square fixed=205.3",
+                "square fixed=304.4",
+                "square fixed=369.6",
+                "square fixed=522.7",
+                "square fixed=540",
+                "square fixed=800",
+                {
+                  "level": "-18dB",
+                  "type": "noise"
+                }
+              ]
+            }
+          }
+        },
+        "h": {
+          "choke": "hat",
+          "gain": "-6dB",
+          "pan": -0.1,
+          "patch": {
+            "play": {
+              "vel_sens": 0.6
+            },
+            "synth": {
+              "amp": {
+                "a": "0.1ms",
+                "curve": 4,
+                "d": "45ms",
+                "r": "10ms",
+                "s": 0
+              },
+              "filters": [
+                {
+                  "cutoff": {
+                    "mod": [
+                      {
+                        "amount": 0.3,
+                        "src": "vel"
+                      }
+                    ],
+                    "value": "9k"
+                  },
+                  "kind": "bp",
+                  "q": 0.9
+                },
+                "hp cutoff=6.5k"
+              ],
+              "layers": [
+                "square fixed=205.3",
+                "square fixed=304.4",
+                "square fixed=369.6",
+                "square fixed=522.7",
+                "square fixed=540",
+                "square fixed=800"
+              ]
+            }
+          }
+        },
+        "hc": {
+          "gain": "-6dB",
+          "pan": 0.25,
+          "patch": {
+            "play": {
+              "vel_sens": 0.45
+            },
+            "synth": {
+              "amp": {
+                "a": "0.2ms",
+                "curve": 4,
+                "d": "190ms",
+                "r": "20ms",
+                "s": 0
+              },
+              "env": {
+                "p": {
+                  "a": "0.1ms",
+                  "d": "15ms",
+                  "s": 0
+                }
+              },
+              "layers": [
+                "sine"
+              ],
+              "pitch": {
+                "mod": [
+                  {
+                    "amount": 2,
+                    "src": "env.p"
+                  }
+                ],
+                "value": 0
+              }
+            }
+          },
+          "pitch": "E4"
+        },
+        "ht": {
+          "gain": "-4dB",
+          "pan": 0.2,
+          "patch": {
+            "play": {
+              "vel_sens": 0.45
+            },
+            "synth": {
+              "amp": {
+                "a": "0.2ms",
+                "curve": 4,
+                "d": "380ms",
+                "r": "30ms",
+                "s": 0
+              },
+              "env": {
+                "n": {
+                  "a": "0.1ms",
+                  "d": "40ms",
+                  "s": 0
+                },
+                "p": {
+                  "a": "0.1ms",
+                  "d": "60ms",
+                  "s": 0
+                }
+              },
+              "layers": [
+                "sine",
+                {
+                  "color": "pink",
+                  "level": {
+                    "mod": [
+                      {
+                        "amount": 42,
+                        "src": "env.n"
+                      }
+                    ],
+                    "value": "-66dB"
+                  },
+                  "type": "noise"
+                }
+              ],
+              "pitch": {
+                "mod": [
+                  {
+                    "amount": 3,
+                    "src": "env.p"
+                  }
+                ],
+                "value": 0
+              }
+            }
+          },
+          "pitch": "F#3"
+        },
+        "k": {
+          "choke": "bd",
+          "patch": {
+            "play": {
+              "vel_sens": 0.4
+            },
+            "synth": {
+              "amp": {
+                "a": "0.3ms",
+                "curve": 3,
+                "d": "520ms",
+                "r": "30ms",
+                "s": 0
+              },
+              "env": {
+                "c": {
+                  "a": "0.1ms",
+                  "d": "2.5ms",
+                  "s": 0
+                },
+                "p": {
+                  "a": "0.1ms",
+                  "curve": 3,
+                  "d": "30ms",
+                  "s": 0
+                }
+              },
+              "filters": [
+                "hp cutoff=25",
+                {
+                  "cutoff": {
+                    "mod": [
+                      {
+                        "amount": 1,
+                        "src": "vel"
+                      }
+                    ],
+                    "value": "1.8k"
+                  },
+                  "kind": "lp"
+                }
+              ],
+              "layers": [
+                {
+                  "name": "tone",
+                  "wave": "sine"
+                },
+                {
+                  "level": {
+                    "mod": [
+                      {
+                        "amount": 58,
+                        "src": "env.c"
+                      },
+                      {
+                        "amount": 10,
+                        "src": "vel"
+                      }
+                    ],
+                    "value": "-70dB"
+                  },
+                  "name": "click",
+                  "type": "noise"
+                },
+                {
+                  "fixed": 1100,
+                  "level": {
+                    "mod": [
+                      {
+                        "amount": 50,
+                        "src": "env.c"
+                      },
+                      {
+                        "amount": 6,
+                        "src": "vel"
+                      }
+                    ],
+                    "value": "-66dB"
+                  },
+                  "name": "pulse",
+                  "wave": "square"
+                }
+              ],
+              "pitch": {
+                "mod": [
+                  {
+                    "amount": 7,
+                    "src": "env.p"
+                  }
+                ],
+                "value": 0
+              }
+            }
+          },
+          "pitch": "A1"
+        },
+        "kl": {
+          "choke": "bd",
+          "patch": {
+            "play": {
+              "vel_sens": 0.4
+            },
+            "synth": {
+              "amp": {
+                "a": "0.3ms",
+                "curve": 2.5,
+                "d": "1.5s",
+                "r": "40ms",
+                "s": 0
+              },
+              "drive": {
+                "mod": [
+                  {
+                    "amount": 0.2,
+                    "src": "vel"
+                  }
+                ],
+                "value": 0.15
+              },
+              "env": {
+                "c": {
+                  "a": "0.1ms",
+                  "d": "2.5ms",
+                  "s": 0
+                },
+                "p": {
+                  "a": "0.1ms",
+                  "curve": 3,
+                  "d": "35ms",
+                  "s": 0
+                }
+              },
+              "filters": [
+                "hp cutoff=25",
+                "lp cutoff=1.5k"
+              ],
+              "layers": [
+                {
+                  "name": "tone",
+                  "wave": "sine"
+                },
+                {
+                  "level": {
+                    "mod": [
+                      {
+                        "amount": 58,
+                        "src": "env.c"
+                      },
+                      {
+                        "amount": 10,
+                        "src": "vel"
+                      }
+                    ],
+                    "value": "-70dB"
+                  },
+                  "name": "click",
+                  "type": "noise"
+                }
+              ],
+              "pitch": {
+                "mod": [
+                  {
+                    "amount": 9,
+                    "src": "env.p"
+                  }
+                ],
+                "value": 0
+              }
+            }
+          },
+          "pitch": "G1"
+        },
+        "lc": {
+          "gain": "-6dB",
+          "pan": -0.25,
+          "patch": {
+            "play": {
+              "vel_sens": 0.45
+            },
+            "synth": {
+              "amp": {
+                "a": "0.2ms",
+                "curve": 4,
+                "d": "190ms",
+                "r": "20ms",
+                "s": 0
+              },
+              "env": {
+                "p": {
+                  "a": "0.1ms",
+                  "d": "15ms",
+                  "s": 0
+                }
+              },
+              "layers": [
+                "sine"
+              ],
+              "pitch": {
+                "mod": [
+                  {
+                    "amount": 2,
+                    "src": "env.p"
+                  }
+                ],
+                "value": 0
+              }
+            }
+          },
+          "pitch": "E3"
+        },
+        "lt": {
+          "gain": "-4dB",
+          "pan": -0.2,
+          "patch": {
+            "play": {
+              "vel_sens": 0.45
+            },
+            "synth": {
+              "amp": {
+                "a": "0.2ms",
+                "curve": 4,
+                "d": "380ms",
+                "r": "30ms",
+                "s": 0
+              },
+              "env": {
+                "n": {
+                  "a": "0.1ms",
+                  "d": "40ms",
+                  "s": 0
+                },
+                "p": {
+                  "a": "0.1ms",
+                  "d": "60ms",
+                  "s": 0
+                }
+              },
+              "layers": [
+                "sine",
+                {
+                  "color": "pink",
+                  "level": {
+                    "mod": [
+                      {
+                        "amount": 42,
+                        "src": "env.n"
+                      }
+                    ],
+                    "value": "-66dB"
+                  },
+                  "type": "noise"
+                }
+              ],
+              "pitch": {
+                "mod": [
+                  {
+                    "amount": 3,
+                    "src": "env.p"
+                  }
+                ],
+                "value": 0
+              }
+            }
+          },
+          "pitch": "F#2"
+        },
+        "ma": {
+          "gain": "-9dB",
+          "pan": 0.2,
+          "patch": {
+            "play": {
+              "vel_sens": 0.5
+            },
+            "synth": {
+              "amp": {
+                "a": "2ms",
+                "curve": 3,
+                "d": "35ms",
+                "r": "10ms",
+                "s": 0
+              },
+              "filters": [
+                {
+                  "cutoff": {
+                    "mod": [
+                      {
+                        "amount": -0.3,
+                        "src": "vel"
+                      }
+                    ],
+                    "value": "6k"
+                  },
+                  "kind": "hp"
+                }
+              ],
+              "layers": [
+                "white"
+              ]
+            }
+          }
+        },
+        "mc": {
+          "gain": "-6dB",
+          "patch": {
+            "play": {
+              "vel_sens": 0.45
+            },
+            "synth": {
+              "amp": {
+                "a": "0.2ms",
+                "curve": 4,
+                "d": "190ms",
+                "r": "20ms",
+                "s": 0
+              },
+              "env": {
+                "p": {
+                  "a": "0.1ms",
+                  "d": "15ms",
+                  "s": 0
+                }
+              },
+              "layers": [
+                "sine"
+              ],
+              "pitch": {
+                "mod": [
+                  {
+                    "amount": 2,
+                    "src": "env.p"
+                  }
+                ],
+                "value": 0
+              }
+            }
+          },
+          "pitch": "A3"
+        },
+        "mt": {
+          "gain": "-4dB",
+          "patch": {
+            "play": {
+              "vel_sens": 0.45
+            },
+            "synth": {
+              "amp": {
+                "a": "0.2ms",
+                "curve": 4,
+                "d": "380ms",
+                "r": "30ms",
+                "s": 0
+              },
+              "env": {
+                "n": {
+                  "a": "0.1ms",
+                  "d": "40ms",
+                  "s": 0
+                },
+                "p": {
+                  "a": "0.1ms",
+                  "d": "60ms",
+                  "s": 0
+                }
+              },
+              "layers": [
+                "sine",
+                {
+                  "color": "pink",
+                  "level": {
+                    "mod": [
+                      {
+                        "amount": 42,
+                        "src": "env.n"
+                      }
+                    ],
+                    "value": "-66dB"
+                  },
+                  "type": "noise"
+                }
+              ],
+              "pitch": {
+                "mod": [
+                  {
+                    "amount": 3,
+                    "src": "env.p"
+                  }
+                ],
+                "value": 0
+              }
+            }
+          },
+          "pitch": "C#3"
+        },
+        "oh": {
+          "choke": "hat",
+          "gain": "-9dB",
+          "pan": -0.1,
+          "patch": {
+            "play": {
+              "vel_sens": 0.6
+            },
+            "synth": {
+              "amp": {
+                "a": "0.2ms",
+                "curve": 3,
+                "d": "420ms",
+                "r": "40ms",
+                "s": 0
+              },
+              "filters": [
+                {
+                  "cutoff": {
+                    "mod": [
+                      {
+                        "amount": 0.3,
+                        "src": "vel"
+                      }
+                    ],
+                    "value": "9k"
+                  },
+                  "kind": "bp",
+                  "q": 0.9
+                },
+                "hp cutoff=6.5k"
+              ],
+              "layers": [
+                "square fixed=205.3",
+                "square fixed=304.4",
+                "square fixed=369.6",
+                "square fixed=522.7",
+                "square fixed=540",
+                "square fixed=800"
+              ]
+            }
+          }
+        },
+        "rs": {
+          "gain": "-7dB",
+          "patch": {
+            "play": {
+              "vel_sens": 0.5
+            },
+            "synth": {
+              "amp": {
+                "a": "0.1ms",
+                "curve": 3,
+                "d": "22ms",
+                "r": "8ms",
+                "s": 0
+              },
+              "filters": [
+                "hp cutoff=350"
+              ],
+              "layers": [
+                {
+                  "fixed": 1667,
+                  "wave": "triangle"
+                },
+                {
+                  "fixed": 455,
+                  "level": "-6dB",
+                  "wave": "triangle"
+                }
+              ]
+            }
+          }
+        },
+        "s": {
+          "patch": {
+            "play": {
+              "vel_sens": 0.5
+            },
+            "synth": {
+              "amp": {
+                "a": "0.1ms",
+                "curve": 1,
+                "d": "260ms",
+                "r": "20ms",
+                "s": 0
+              },
+              "env": {
+                "hi": {
+                  "a": "0.1ms",
+                  "curve": 2,
+                  "d": "80ms",
+                  "s": 0
+                },
+                "lo": {
+                  "a": "0.1ms",
+                  "curve": 2,
+                  "d": "120ms",
+                  "s": 0
+                },
+                "n": {
+                  "a": "0.1ms",
+                  "curve": 1.5,
+                  "d": "220ms",
+                  "s": 0
+                }
+              },
+              "filters": [
+                {
+                  "cutoff": {
+                    "mod": [
+                      {
+                        "amount": 0.5,
+                        "src": "vel"
+                      }
+                    ],
+                    "value": 160
+                  },
+                  "kind": "hp"
+                },
+                {
+                  "cutoff": {
+                    "mod": [
+                      {
+                        "amount": 1,
+                        "src": "vel"
+                      }
+                    ],
+                    "value": "7k"
+                  },
+                  "kind": "lp"
+                }
+              ],
+              "layers": [
+                {
+                  "fixed": 185,
+                  "level": {
+                    "mod": [
+                      {
+                        "amount": 36,
+                        "src": "env.lo"
+                      }
+                    ],
+                    "value": "-36dB"
+                  },
+                  "name": "lo",
+                  "wave": "sine"
+                },
+                {
+                  "fixed": 332,
+                  "level": {
+                    "mod": [
+                      {
+                        "amount": 37,
+                        "src": "env.hi"
+                      }
+                    ],
+                    "value": "-40dB"
+                  },
+                  "name": "hi",
+                  "wave": "sine"
+                },
+                {
+                  "level": {
+                    "mod": [
+                      {
+                        "amount": 38,
+                        "src": "env.n"
+                      },
+                      {
+                        "amount": 6,
+                        "src": "vel"
+                      }
+                    ],
+                    "value": "-44dB"
+                  },
+                  "name": "snappy",
+                  "type": "noise"
+                }
+              ]
+            }
+          }
+        },
+        "zp": {
+          "gain": "-8dB",
+          "patch": {
+            "fx": [
+              "delay time=3/16 feedback=0.3 mix=0.2 tone=3k"
+            ],
+            "play": {
+              "vel_sens": 0.5
+            },
+            "synth": {
+              "amp": {
+                "a": "0.3ms",
+                "curve": 2,
+                "d": "160ms",
+                "r": "30ms",
+                "s": 0
+              },
+              "env": {
+                "z": {
+                  "a": "0.1ms",
+                  "curve": 2,
+                  "d": "90ms",
+                  "s": 0
+                }
+              },
+              "layers": [
+                "sine",
+                {
+                  "level": "-14dB",
+                  "ratio": 2,
+                  "wave": "triangle"
+                }
+              ],
+              "pitch": {
+                "mod": [
+                  {
+                    "amount": 30,
+                    "src": "env.z"
+                  },
+                  {
+                    "amount": 6,
+                    "src": "vel"
+                  }
+                ],
+                "value": -24
+              }
+            }
+          },
+          "pitch": "C5"
+        }
+      },
+      "play": {
+        "humanize": {
+          "time": "0ms",
+          "vel": 0
+        },
+        "len": "/16",
+        "vel_sens": 0.45,
+        "event_stable": true
+      },
+      "gain": "0dB"
+    },
+    "tha-mallet": {
+      "about": "Concert marimba: warm rosewood bars over resonators, round when soft and knocking with overtones when hard. The bars are tuned 1:4:10, and low bars bloom and sustain longer than high ones. Rolls are ratchets (`C4/2^r=12^ramp=0.9`), `^dead` presses the mallet into the bar (a choked stroke), `^h` is a lighter second-mallet touch.",
+      "fx": [
+        "delay time=3/16 feedback=.30 mix=.25 ping_pong=true",
+        "reverb kind=hall decay=2.2s mix=.24 predelay=20ms low_cut=70 high_cut=6000"
+      ],
+      "gain": "-8dB",
+      "play": {
+        "gate": 0.93,
+        "humanize": {
+          "time": "0ms",
+          "vel": 0
+        },
+        "vel_sens": 0.55,
+        "event_stable": true
+      },
+      "synth": {
+        "amp": {
+          "a": "1ms",
+          "d": "700ms",
+          "s": 0,
+          "r": "650ms"
+        },
+        "env": {
+          "k": {
+            "a": "0.3ms",
+            "curve": 0,
+            "d": "40ms",
+            "s": 0
+          },
+          "long": {
+            "a": "3ms",
+            "curve": 0,
+            "d": "4.2s",
+            "r": "4.2s",
+            "s": 0
+          },
+          "short": {
+            "a": "1ms",
+            "curve": 0,
+            "d": "1.05s",
+            "r": "1.05s",
+            "s": 0
+          }
+        },
+        "filters": [
+          {
+            "kind": "lp",
+            "cutoff": 2600,
+            "q": 0.7
+          }
+        ],
+        "layers": [
+          {
+            "level": {
+              "mod": [
+                {
+                  "amount": 90,
+                  "src": "env.long"
+                },
+                {
+                  "amount": -3,
+                  "src": "key"
+                },
+                {
+                  "amount": -45,
+                  "src": "expr.dead"
+                },
+                {
+                  "amount": 0.6,
+                  "src": "rand"
+                }
+              ],
+              "value": "-93dB"
+            },
+            "name": "body"
+          },
+          {
+            "level": {
+              "mod": [
+                {
+                  "amount": 90,
+                  "src": "env.short"
+                },
+                {
+                  "amount": 3,
+                  "src": "key"
+                },
+                {
+                  "amount": -3,
+                  "src": "expr.h"
+                }
+              ],
+              "value": "-95dB"
+            },
+            "name": "short"
+          },
+          {
+            "damp": 2.4,
+            "level": {
+              "mod": [
+                {
+                  "amount": 17,
+                  "src": "vel"
+                },
+                {
+                  "amount": -3,
+                  "src": "key"
+                },
+                {
+                  "amount": -5,
+                  "src": "expr.h"
+                },
+                {
+                  "amount": 1.5,
+                  "src": "rand"
+                }
+              ],
+              "value": "-22dB"
+            },
+            "name": "tone",
+            "partials": [
+              [
+                3.98,
+                1
+              ],
+              [
+                9.9,
+                0.35
+              ]
+            ],
+            "type": "additive"
+          },
+          {
+            "color": "brown",
+            "level": {
+              "mod": [
+                {
+                  "amount": 120,
+                  "src": "env.k"
+                },
+                {
+                  "amount": 12,
+                  "src": "vel"
+                },
+                {
+                  "amount": 4,
+                  "src": "expr.dead"
+                }
+              ],
+              "value": "-160dB"
+            },
+            "name": "knock",
+            "type": "noise"
+          }
+        ]
+      }
+    },
+    "tha-sub": {
+      "about": "Clean sine sub-bass with a touch of 2nd harmonic; mono, glides slightly. Doubles a distorted bass an octave down or in unison.",
+      "gain": "-11dB",
+      "play": {
+        "gate": 0.95,
+        "glide": "15ms",
+        "mono": true,
+        "event_stable": true,
+        "humanize": {
+          "time": "0ms",
+          "vel": 0
+        }
+      },
+      "synth": {
+        "amp": {
+          "a": "4ms",
+          "d": 0,
+          "r": "120ms",
+          "s": 1
+        },
+        "filters": [
+          "lp cutoff=160 q=0.7"
+        ],
+        "layers": [
+          "sine",
+          "sine ratio=2 level=-18dB"
+        ]
+      },
+      "fx": [
+        "reverb kind=room decay=.8s mix=.18 low_cut=30 high_cut=1400"
+      ]
+    },
+    "tha-voice": {
+      "about": "Sampleless spoken-vocal gestures: a softer opt-in sibling of kidman, without its scream/period-doubling and with gentler rasp, effort and drive. No TTS or intelligible lyrics are claimed. Use flux-timed syllables and ^on/^off/^dvow marks (stemvox --onsets flux --grid 0.03125 --min 0.0625 --phones); do not replace a sparse pitched-vocal line without compensating the increased voiced duration. First measured on Mind's Mirrors. Existing harsh-vocal defaults are unchanged (bd-855e25).",
+      "fx": [
+        "reverb kind=room decay=1.3s mix=.2 high_cut=3500"
+      ],
+      "gain": "-12dB",
+      "play": {
+        "glide": "20ms",
+        "humanize": {
+          "time": "4ms",
+          "vel": 0.05
+        },
+        "mono": true,
+        "event_stable": true
+      },
+      "synth": {
+        "amp": {
+          "a": "20ms",
+          "d": "0s",
+          "r": "90ms"
+        },
+        "drive": 0.1,
+        "env": {
+          "scoop": {
+            "a": "0.5ms",
+            "d": "90ms",
+            "s": 0
+          }
+        },
+        "layers": [
+          {
+            "breath": 0.3,
+            "coda": {
+              "mod": [
+                {
+                  "amount": 1.0,
+                  "src": "expr.off"
+                }
+              ],
+              "value": 0
+            },
+            "effort": 0.3,
+            "onset": {
+              "mod": [
+                {
+                  "amount": 1.0,
+                  "src": "expr.on"
+                }
+              ],
+              "value": 0
+            },
+            "rasp": 0.15,
+            "ring": 0.1,
+            "type": "voice",
+            "vowel": {
+              "mod": [
+                {
+                  "amount": 1.0,
+                  "src": "expr.dvow"
+                },
+                {
+                  "amount": 0.08,
+                  "src": "rand"
+                }
+              ],
+              "value": 0.62
+            }
+          }
+        ],
+        "pitch": {
+          "mod": [
+            {
+              "amount": -1.5,
+              "src": "env.scoop"
+            }
+          ],
+          "value": 0
+        }
+      }
+    }
+  },
+  "buses": {
+    "tha-drums": {
+      "fx": [
+        "drive drive=0.1",
+        "glue threshold=-16dB ratio=2 attack=10ms release=150ms makeup=1dB",
+        {
+          "type": "gain",
+          "gain": "-5dB"
+        },
+        {
+          "type": "eq",
+          "bands": [
+            "lp cutoff=12k q=.707"
+          ]
+        }
+      ]
+    }
+  },
+  "master": {
+    "fx": [
+      {
+        "type": "width",
+        "width": 1.0,
+        "bass_width": 1.0,
+        "bands": [
+          [
+            20,
+            {
+              "value": 0.0,
+              "mod": [
+                {
+                  "src": "auto.wb0",
+                  "amount": 1
+                }
+              ]
+            }
+          ],
+          [
+            60,
+            {
+              "value": 0.0,
+              "mod": [
+                {
+                  "src": "auto.wb1",
+                  "amount": 1
+                }
+              ]
+            }
+          ],
+          [
+            150,
+            {
+              "value": 0.0,
+              "mod": [
+                {
+                  "src": "auto.wb2",
+                  "amount": 1
+                }
+              ]
+            }
+          ],
+          [
+            400,
+            {
+              "value": 0.0,
+              "mod": [
+                {
+                  "src": "auto.wb3",
+                  "amount": 1
+                }
+              ]
+            }
+          ],
+          [
+            1200,
+            {
+              "value": 0.0,
+              "mod": [
+                {
+                  "src": "auto.wb4",
+                  "amount": 1
+                }
+              ]
+            }
+          ],
+          [
+            3500,
+            {
+              "value": 0.0,
+              "mod": [
+                {
+                  "src": "auto.wb5",
+                  "amount": 1
+                }
+              ]
+            }
+          ],
+          [
+            8000,
+            {
+              "value": 0.0,
+              "mod": [
+                {
+                  "src": "auto.wb6",
+                  "amount": 1
+                }
+              ]
+            }
+          ]
+        ]
+      },
+      {
+        "type": "eq",
+        "bands": [
+          {
+            "kind": "lowshelf",
+            "cutoff": 45,
+            "q": 0.7,
+            "gain": {
+              "value": "0dB",
+              "mod": [
+                {
+                  "src": "auto.setupEQ0",
+                  "amount": 1
+                }
+              ]
+            }
+          },
+          {
+            "kind": "peak",
+            "cutoff": 90,
+            "q": 1.0,
+            "gain": {
+              "value": "0dB",
+              "mod": [
+                {
+                  "src": "auto.setupEQ1",
+                  "amount": 1
+                }
+              ]
+            }
+          },
+          {
+            "kind": "peak",
+            "cutoff": 250,
+            "q": 1.0,
+            "gain": {
+              "value": "0dB",
+              "mod": [
+                {
+                  "src": "auto.setupEQ2",
+                  "amount": 1
+                }
+              ]
+            }
+          },
+          {
+            "kind": "peak",
+            "cutoff": 700,
+            "q": 1.0,
+            "gain": {
+              "value": "0dB",
+              "mod": [
+                {
+                  "src": "auto.setupEQ3",
+                  "amount": 1
+                }
+              ]
+            }
+          },
+          {
+            "kind": "peak",
+            "cutoff": 1800,
+            "q": 1.0,
+            "gain": {
+              "value": "0dB",
+              "mod": [
+                {
+                  "src": "auto.setupEQ4",
+                  "amount": 1
+                }
+              ]
+            }
+          },
+          {
+            "kind": "peak",
+            "cutoff": 4000,
+            "q": 1.0,
+            "gain": {
+              "value": "0dB",
+              "mod": [
+                {
+                  "src": "auto.setupEQ5",
+                  "amount": 1
+                }
+              ]
+            }
+          },
+          {
+            "kind": "highshelf",
+            "cutoff": 10000,
+            "q": 0.7,
+            "gain": {
+              "value": "0dB",
+              "mod": [
+                {
+                  "src": "auto.setupEQ6",
+                  "amount": 1
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "glue threshold=-16dB ratio=2 attack=15ms release=150ms makeup=2dB",
+      {
+        "type": "width",
+        "width": 1,
+        "bass_width": 1,
+        "mono_below": 0
+      },
+      {
+        "type": "gain",
+        "gain": {
+          "value": "0dB",
+          "mod": [
+            {
+              "src": "auto.musicalfade",
+              "amount": 1
+            }
+          ]
+        }
+      },
+      {
+        "type": "gain",
+        "gain": {
+          "value": "0dB",
+          "mod": [
+            {
+              "src": "auto.setuplevel",
+              "amount": 1
+            }
+          ]
+        }
+      }
+    ],
+    "auto": {
+      "musicalfade": {
+        "curve": 1,
+        "points": [
+          [
+            "0s",
+            0
+          ],
+          [
+            "526s",
+            0
+          ],
+          [
+            "527.5s",
+            -3.0433
+          ],
+          [
+            "528.5s",
+            -3.0433
+          ],
+          [
+            "529.5s",
+            -4.2264
+          ],
+          [
+            "530.5s",
+            -4.2927
+          ],
+          [
+            "531.5s",
+            -4.2927
+          ],
+          [
+            "532.5s",
+            -4.2927
+          ],
+          [
+            "533.5s",
+            -9.8465
+          ],
+          [
+            "534.5s",
+            -9.8465
+          ],
+          [
+            "535.5s",
+            -10.0817
+          ],
+          [
+            "536.5s",
+            -13.2139
+          ],
+          [
+            "537.5s",
+            -20.709
+          ],
+          [
+            "538.5s",
+            -21.3274
+          ],
+          [
+            "539.5s",
+            -25.216
+          ],
+          [
+            "540.5s",
+            -30.2489
+          ],
+          [
+            "541.5s",
+            -41.1836
+          ],
+          [
+            "542.5s",
+            -44.423
+          ],
+          [
+            "543.5s",
+            -56.4122
+          ],
+          [
+            "544.5s",
+            -71.3257
+          ],
+          [
+            "545.5s",
+            -90
+          ],
+          [
+            "546.5s",
+            -90
+          ],
+          [
+            "547.1333333333333s",
+            -90
+          ]
+        ]
+      },
+      "setuplevel": {
+        "curve": 1,
+        "points": [
+          [
+            "0s",
+            -1.0634751863897272
+          ],
+          [
+            "5.75s",
+            -1.0634751863897272
+          ],
+          [
+            "6.25s",
+            -1.4580216243739343
+          ],
+          [
+            "15.75s",
+            -1.4580216243739343
+          ],
+          [
+            "16.25s",
+            -0.7898469913220527
+          ],
+          [
+            "63.75s",
+            -0.7898469913220527
+          ],
+          [
+            "64.25s",
+            1.325333541806284
+          ],
+          [
+            "135.75s",
+            1.325333541806284
+          ],
+          [
+            "136.25s",
+            -0.690665254227719
+          ],
+          [
+            "223.75s",
+            -0.690665254227719
+          ],
+          [
+            "224.25s",
+            0.9989879020916739
+          ],
+          [
+            "255.75s",
+            0.9989879020916739
+          ],
+          [
+            "256.25s",
+            1.734955228914414
+          ],
+          [
+            "351.75s",
+            1.734955228914414
+          ],
+          [
+            "352.25s",
+            1.5200757504814622
+          ],
+          [
+            "479.75s",
+            1.5200757504814622
+          ],
+          [
+            "480.25s",
+            2.8752637226006392
+          ],
+          [
+            "527.75s",
+            2.8752637226006392
+          ],
+          [
+            "528.25s",
+            5.4032220505407835
+          ],
+          [
+            "540.8833333333333s",
+            5.4032220505407835
+          ],
+          [
+            "541.3833333333333s",
+            0.0
+          ]
+        ]
+      },
+      "wb0": {
+        "points": [
+          [
+            "0s",
+            2.0
+          ],
+          [
+            "5.950s",
+            2.0
+          ],
+          [
+            "6.050s",
+            1.086
+          ],
+          [
+            "15.950s",
+            1.086
+          ],
+          [
+            "16.050s",
+            0.705
+          ],
+          [
+            "63.950s",
+            0.705
+          ],
+          [
+            "64.050s",
+            1.763
+          ],
+          [
+            "135.950s",
+            1.763
+          ],
+          [
+            "136.050s",
+            0.654
+          ],
+          [
+            "223.950s",
+            0.654
+          ],
+          [
+            "224.050s",
+            1.144
+          ],
+          [
+            "255.950s",
+            1.144
+          ],
+          [
+            "256.050s",
+            1.666
+          ],
+          [
+            "351.950s",
+            1.666
+          ],
+          [
+            "352.050s",
+            1.513
+          ],
+          [
+            "479.950s",
+            1.513
+          ],
+          [
+            "480.050s",
+            1.491
+          ],
+          [
+            "527.950s",
+            1.491
+          ],
+          [
+            "528.050s",
+            1.153
+          ],
+          [
+            "541.083s",
+            1.153
+          ],
+          [
+            "541.183s",
+            0.762
+          ]
+        ]
+      },
+      "wb1": {
+        "points": [
+          [
+            "0s",
+            0.5
+          ],
+          [
+            "5.950s",
+            0.5
+          ],
+          [
+            "6.050s",
+            0.983
+          ],
+          [
+            "15.950s",
+            0.983
+          ],
+          [
+            "16.050s",
+            1.13
+          ],
+          [
+            "63.950s",
+            1.13
+          ],
+          [
+            "64.050s",
+            0.919
+          ],
+          [
+            "135.950s",
+            0.919
+          ],
+          [
+            "136.050s",
+            1.041
+          ],
+          [
+            "223.950s",
+            1.041
+          ],
+          [
+            "224.050s",
+            1.243
+          ],
+          [
+            "255.950s",
+            1.243
+          ],
+          [
+            "256.050s",
+            1.125
+          ],
+          [
+            "351.950s",
+            1.125
+          ],
+          [
+            "352.050s",
+            1.175
+          ],
+          [
+            "479.950s",
+            1.175
+          ],
+          [
+            "480.050s",
+            1.122
+          ],
+          [
+            "527.950s",
+            1.122
+          ],
+          [
+            "528.050s",
+            1.114
+          ],
+          [
+            "541.083s",
+            1.114
+          ],
+          [
+            "541.183s",
+            0.538
+          ]
+        ]
+      },
+      "wb2": {
+        "points": [
+          [
+            "0s",
+            1.025
+          ],
+          [
+            "5.950s",
+            1.025
+          ],
+          [
+            "6.050s",
+            0.5
+          ],
+          [
+            "15.950s",
+            0.5
+          ],
+          [
+            "16.050s",
+            0.5
+          ],
+          [
+            "63.950s",
+            0.5
+          ],
+          [
+            "64.050s",
+            0.808
+          ],
+          [
+            "135.950s",
+            0.808
+          ],
+          [
+            "136.050s",
+            0.557
+          ],
+          [
+            "223.950s",
+            0.557
+          ],
+          [
+            "224.050s",
+            0.58
+          ],
+          [
+            "255.950s",
+            0.58
+          ],
+          [
+            "256.050s",
+            0.7
+          ],
+          [
+            "351.950s",
+            0.7
+          ],
+          [
+            "352.050s",
+            0.643
+          ],
+          [
+            "479.950s",
+            0.643
+          ],
+          [
+            "480.050s",
+            0.692
+          ],
+          [
+            "527.950s",
+            0.692
+          ],
+          [
+            "528.050s",
+            0.738
+          ],
+          [
+            "541.083s",
+            0.738
+          ],
+          [
+            "541.183s",
+            0.751
+          ]
+        ]
+      },
+      "wb3": {
+        "points": [
+          [
+            "0s",
+            0.96
+          ],
+          [
+            "5.950s",
+            0.96
+          ],
+          [
+            "6.050s",
+            0.58
+          ],
+          [
+            "15.950s",
+            0.58
+          ],
+          [
+            "16.050s",
+            1.114
+          ],
+          [
+            "63.950s",
+            1.114
+          ],
+          [
+            "64.050s",
+            1.304
+          ],
+          [
+            "135.950s",
+            1.304
+          ],
+          [
+            "136.050s",
+            1.129
+          ],
+          [
+            "223.950s",
+            1.129
+          ],
+          [
+            "224.050s",
+            1.33
+          ],
+          [
+            "255.950s",
+            1.33
+          ],
+          [
+            "256.050s",
+            1.317
+          ],
+          [
+            "351.950s",
+            1.317
+          ],
+          [
+            "352.050s",
+            1.288
+          ],
+          [
+            "479.950s",
+            1.288
+          ],
+          [
+            "480.050s",
+            1.262
+          ],
+          [
+            "527.950s",
+            1.262
+          ],
+          [
+            "528.050s",
+            1.26
+          ],
+          [
+            "541.083s",
+            1.26
+          ],
+          [
+            "541.183s",
+            0.58
+          ]
+        ]
+      },
+      "wb4": {
+        "points": [
+          [
+            "0s",
+            1.345
+          ],
+          [
+            "5.950s",
+            1.345
+          ],
+          [
+            "6.050s",
+            1.208
+          ],
+          [
+            "15.950s",
+            1.208
+          ],
+          [
+            "16.050s",
+            0.979
+          ],
+          [
+            "63.950s",
+            0.979
+          ],
+          [
+            "64.050s",
+            1.208
+          ],
+          [
+            "135.950s",
+            1.208
+          ],
+          [
+            "136.050s",
+            1.398
+          ],
+          [
+            "223.950s",
+            1.398
+          ],
+          [
+            "224.050s",
+            0.5
+          ],
+          [
+            "255.950s",
+            0.5
+          ],
+          [
+            "256.050s",
+            0.5
+          ],
+          [
+            "351.950s",
+            0.5
+          ],
+          [
+            "352.050s",
+            0.5
+          ],
+          [
+            "479.950s",
+            0.5
+          ],
+          [
+            "480.050s",
+            0.5
+          ],
+          [
+            "527.950s",
+            0.5
+          ],
+          [
+            "528.050s",
+            0.5
+          ],
+          [
+            "541.083s",
+            0.5
+          ],
+          [
+            "541.183s",
+            0.975
+          ]
+        ]
+      },
+      "wb5": {
+        "points": [
+          [
+            "0s",
+            1.839
+          ],
+          [
+            "5.950s",
+            1.839
+          ],
+          [
+            "6.050s",
+            1.945
+          ],
+          [
+            "15.950s",
+            1.945
+          ],
+          [
+            "16.050s",
+            2.0
+          ],
+          [
+            "63.950s",
+            2.0
+          ],
+          [
+            "64.050s",
+            2.0
+          ],
+          [
+            "135.950s",
+            2.0
+          ],
+          [
+            "136.050s",
+            2.0
+          ],
+          [
+            "223.950s",
+            2.0
+          ],
+          [
+            "224.050s",
+            1.878
+          ],
+          [
+            "255.950s",
+            1.878
+          ],
+          [
+            "256.050s",
+            2.0
+          ],
+          [
+            "351.950s",
+            2.0
+          ],
+          [
+            "352.050s",
+            1.997
+          ],
+          [
+            "479.950s",
+            1.997
+          ],
+          [
+            "480.050s",
+            1.688
+          ],
+          [
+            "527.950s",
+            1.688
+          ],
+          [
+            "528.050s",
+            1.647
+          ],
+          [
+            "541.083s",
+            1.647
+          ],
+          [
+            "541.183s",
+            0.977
+          ]
+        ]
+      },
+      "wb6": {
+        "points": [
+          [
+            "0s",
+            2.0
+          ],
+          [
+            "5.950s",
+            2.0
+          ],
+          [
+            "6.050s",
+            2.0
+          ],
+          [
+            "15.950s",
+            2.0
+          ],
+          [
+            "16.050s",
+            2.0
+          ],
+          [
+            "63.950s",
+            2.0
+          ],
+          [
+            "64.050s",
+            2.0
+          ],
+          [
+            "135.950s",
+            2.0
+          ],
+          [
+            "136.050s",
+            2.0
+          ],
+          [
+            "223.950s",
+            2.0
+          ],
+          [
+            "224.050s",
+            2.0
+          ],
+          [
+            "255.950s",
+            2.0
+          ],
+          [
+            "256.050s",
+            2.0
+          ],
+          [
+            "351.950s",
+            2.0
+          ],
+          [
+            "352.050s",
+            2.0
+          ],
+          [
+            "479.950s",
+            2.0
+          ],
+          [
+            "480.050s",
+            2.0
+          ],
+          [
+            "527.950s",
+            2.0
+          ],
+          [
+            "528.050s",
+            2.0
+          ],
+          [
+            "541.083s",
+            2.0
+          ],
+          [
+            "541.183s",
+            0.902
+          ]
+        ]
+      },
+      "setupEQ0": {
+        "points": [
+          [
+            "0s",
+            -3.0
+          ],
+          [
+            "0.0s",
+            -3.0
+          ],
+          [
+            "6.0s",
+            -3.0
+          ],
+          [
+            "6.05s",
+            -2.5
+          ],
+          [
+            "16.0s",
+            -2.5
+          ],
+          [
+            "16.05s",
+            -3.0
+          ],
+          [
+            "64.0s",
+            -3.0
+          ],
+          [
+            "64.05s",
+            -3.0
+          ],
+          [
+            "136.0s",
+            -3.0
+          ],
+          [
+            "136.05s",
+            -3.0
+          ],
+          [
+            "224.0s",
+            -3.0
+          ],
+          [
+            "224.05s",
+            -3.0
+          ],
+          [
+            "256.0s",
+            -3.0
+          ],
+          [
+            "256.05s",
+            -3.0
+          ],
+          [
+            "352.0s",
+            -3.0
+          ],
+          [
+            "352.05s",
+            -3.0
+          ],
+          [
+            "480.0s",
+            -3.0
+          ],
+          [
+            "480.05s",
+            -3.0
+          ],
+          [
+            "528.0s",
+            -3.0
+          ],
+          [
+            "528.05s",
+            -3.0
+          ],
+          [
+            "541.133s",
+            -3.0
+          ],
+          [
+            "541.183s",
+            -3.0
+          ],
+          [
+            "547.133s",
+            -3.0
+          ]
+        ]
+      },
+      "setupEQ1": {
+        "points": [
+          [
+            "0s",
+            1.91
+          ],
+          [
+            "0.0s",
+            1.91
+          ],
+          [
+            "6.0s",
+            1.91
+          ],
+          [
+            "6.05s",
+            -0.71
+          ],
+          [
+            "16.0s",
+            -0.71
+          ],
+          [
+            "16.05s",
+            0.33
+          ],
+          [
+            "64.0s",
+            0.33
+          ],
+          [
+            "64.05s",
+            0.23
+          ],
+          [
+            "136.0s",
+            0.23
+          ],
+          [
+            "136.05s",
+            -2.32
+          ],
+          [
+            "224.0s",
+            -2.32
+          ],
+          [
+            "224.05s",
+            -1.49
+          ],
+          [
+            "256.0s",
+            -1.49
+          ],
+          [
+            "256.05s",
+            -0.26
+          ],
+          [
+            "352.0s",
+            -0.26
+          ],
+          [
+            "352.05s",
+            1.11
+          ],
+          [
+            "480.0s",
+            1.11
+          ],
+          [
+            "480.05s",
+            1.0
+          ],
+          [
+            "528.0s",
+            1.0
+          ],
+          [
+            "528.05s",
+            -2.09
+          ],
+          [
+            "541.133s",
+            -2.09
+          ],
+          [
+            "541.183s",
+            1.92
+          ],
+          [
+            "547.133s",
+            1.92
+          ]
+        ]
+      },
+      "setupEQ2": {
+        "points": [
+          [
+            "0s",
+            3.0
+          ],
+          [
+            "0.0s",
+            3.0
+          ],
+          [
+            "6.0s",
+            3.0
+          ],
+          [
+            "6.05s",
+            3.0
+          ],
+          [
+            "16.0s",
+            3.0
+          ],
+          [
+            "16.05s",
+            2.64
+          ],
+          [
+            "64.0s",
+            2.64
+          ],
+          [
+            "64.05s",
+            2.11
+          ],
+          [
+            "136.0s",
+            2.11
+          ],
+          [
+            "136.05s",
+            1.31
+          ],
+          [
+            "224.0s",
+            1.31
+          ],
+          [
+            "224.05s",
+            3.0
+          ],
+          [
+            "256.0s",
+            3.0
+          ],
+          [
+            "256.05s",
+            1.08
+          ],
+          [
+            "352.0s",
+            1.08
+          ],
+          [
+            "352.05s",
+            1.3
+          ],
+          [
+            "480.0s",
+            1.3
+          ],
+          [
+            "480.05s",
+            1.05
+          ],
+          [
+            "528.0s",
+            1.05
+          ],
+          [
+            "528.05s",
+            0.56
+          ],
+          [
+            "541.133s",
+            0.56
+          ],
+          [
+            "541.183s",
+            2.99
+          ],
+          [
+            "547.133s",
+            2.99
+          ]
+        ]
+      },
+      "setupEQ3": {
+        "points": [
+          [
+            "0s",
+            -1.56
+          ],
+          [
+            "0.0s",
+            -1.56
+          ],
+          [
+            "6.0s",
+            -1.56
+          ],
+          [
+            "6.05s",
+            0.2
+          ],
+          [
+            "16.0s",
+            0.2
+          ],
+          [
+            "16.05s",
+            0.54
+          ],
+          [
+            "64.0s",
+            0.54
+          ],
+          [
+            "64.05s",
+            -0.25
+          ],
+          [
+            "136.0s",
+            -0.25
+          ],
+          [
+            "136.05s",
+            0.84
+          ],
+          [
+            "224.0s",
+            0.84
+          ],
+          [
+            "224.05s",
+            -0.25
+          ],
+          [
+            "256.0s",
+            -0.25
+          ],
+          [
+            "256.05s",
+            -1.04
+          ],
+          [
+            "352.0s",
+            -1.04
+          ],
+          [
+            "352.05s",
+            -0.43
+          ],
+          [
+            "480.0s",
+            -0.43
+          ],
+          [
+            "480.05s",
+            -0.81
+          ],
+          [
+            "528.0s",
+            -0.81
+          ],
+          [
+            "528.05s",
+            -0.21
+          ],
+          [
+            "541.133s",
+            -0.21
+          ],
+          [
+            "541.183s",
+            3.0
+          ],
+          [
+            "547.133s",
+            3.0
+          ]
+        ]
+      },
+      "setupEQ4": {
+        "points": [
+          [
+            "0s",
+            -3.0
+          ],
+          [
+            "0.0s",
+            -3.0
+          ],
+          [
+            "6.0s",
+            -3.0
+          ],
+          [
+            "6.05s",
+            -0.68
+          ],
+          [
+            "16.0s",
+            -0.68
+          ],
+          [
+            "16.05s",
+            0.13
+          ],
+          [
+            "64.0s",
+            0.13
+          ],
+          [
+            "64.05s",
+            0.32
+          ],
+          [
+            "136.0s",
+            0.32
+          ],
+          [
+            "136.05s",
+            1.21
+          ],
+          [
+            "224.0s",
+            1.21
+          ],
+          [
+            "224.05s",
+            -0.57
+          ],
+          [
+            "256.0s",
+            -0.57
+          ],
+          [
+            "256.05s",
+            1.56
+          ],
+          [
+            "352.0s",
+            1.56
+          ],
+          [
+            "352.05s",
+            -0.46
+          ],
+          [
+            "480.0s",
+            -0.46
+          ],
+          [
+            "480.05s",
+            -3.0
+          ],
+          [
+            "528.0s",
+            -3.0
+          ],
+          [
+            "528.05s",
+            -3.0
+          ],
+          [
+            "541.133s",
+            -3.0
+          ],
+          [
+            "541.183s",
+            -3.0
+          ],
+          [
+            "547.133s",
+            -3.0
+          ]
+        ]
+      },
+      "setupEQ5": {
+        "points": [
+          [
+            "0s",
+            -3.0
+          ],
+          [
+            "0.0s",
+            -3.0
+          ],
+          [
+            "6.0s",
+            -3.0
+          ],
+          [
+            "6.05s",
+            -3.0
+          ],
+          [
+            "16.0s",
+            -3.0
+          ],
+          [
+            "16.05s",
+            -3.0
+          ],
+          [
+            "64.0s",
+            -3.0
+          ],
+          [
+            "64.05s",
+            -2.34
+          ],
+          [
+            "136.0s",
+            -2.34
+          ],
+          [
+            "136.05s",
+            -2.95
+          ],
+          [
+            "224.0s",
+            -2.95
+          ],
+          [
+            "224.05s",
+            -1.03
+          ],
+          [
+            "256.0s",
+            -1.03
+          ],
+          [
+            "256.05s",
+            -2.99
+          ],
+          [
+            "352.0s",
+            -2.99
+          ],
+          [
+            "352.05s",
+            -2.36
+          ],
+          [
+            "480.0s",
+            -2.36
+          ],
+          [
+            "480.05s",
+            -1.99
+          ],
+          [
+            "528.0s",
+            -1.99
+          ],
+          [
+            "528.05s",
+            1.53
+          ],
+          [
+            "541.133s",
+            1.53
+          ],
+          [
+            "541.183s",
+            -3.0
+          ],
+          [
+            "547.133s",
+            -3.0
+          ]
+        ]
+      },
+      "setupEQ6": {
+        "points": [
+          [
+            "0s",
+            3.0
+          ],
+          [
+            "0.0s",
+            3.0
+          ],
+          [
+            "6.0s",
+            3.0
+          ],
+          [
+            "6.05s",
+            3.0
+          ],
+          [
+            "16.0s",
+            3.0
+          ],
+          [
+            "16.05s",
+            3.0
+          ],
+          [
+            "64.0s",
+            3.0
+          ],
+          [
+            "64.05s",
+            2.24
+          ],
+          [
+            "136.0s",
+            2.24
+          ],
+          [
+            "136.05s",
+            3.0
+          ],
+          [
+            "224.0s",
+            3.0
+          ],
+          [
+            "224.05s",
+            3.0
+          ],
+          [
+            "256.0s",
+            3.0
+          ],
+          [
+            "256.05s",
+            3.0
+          ],
+          [
+            "352.0s",
+            3.0
+          ],
+          [
+            "352.05s",
+            3.0
+          ],
+          [
+            "480.0s",
+            3.0
+          ],
+          [
+            "480.05s",
+            3.0
+          ],
+          [
+            "528.0s",
+            3.0
+          ],
+          [
+            "528.05s",
+            3.0
+          ],
+          [
+            "541.133s",
+            3.0
+          ],
+          [
+            "541.183s",
+            1.03
+          ],
+          [
+            "547.133s",
+            1.03
+          ]
+        ]
+      }
+    }
+  },
+  "tracks": [
+    {
+      "name": "sub-guide",
+      "patch": "tha-sub",
+      "gain": "0dB",
+      "score": "R/29.0625b A#1/0.6458b@58 A#1/1.3958b@74 A#1/2b@73 A#1/0.625b@68 A#1/0.9375b@73 R/0.4375b A#1/0.5833b@74 A#1/1.4375b@77 A#1/0.5208b@70 A#1/1.4792b@50 A#1/0.5625b@77 A#1/1.4375b@58 A#1/0.7708b@73 A#1/1.2292b@78 A#1/0.5625b@75 A#1/1.4167b@78 A#1/0.5417b@73 A#1/1.0625b@77 R/0.3958b A#1/1.9792b@70 A#1/0.625b@65 A#1/0.9375b@75 R/0.4792b A#1/0.8125b@68 A#1/0.7083b@81 R/0.3958b A#1/0.8958b@61 A#1/0.7708b@80 R/0.3333b A#1/0.8125b@81 A#1/1.2708b@79 A#1/1.9167b@78 A#1/0.7708b@80 A#1/1.2292b@79 A#1/0.6875b@77 A#1/1.4167b@82 A#1/1.8958b@74 A#1/0.6875b@89 A#1/1.3542b@76 A#1/0.8542b@61 A#1/0.7292b@83 R/0.3958b A#1/0.8125b@73 A#1/0.7917b@77 A1/0.3958b@67 A#1/0.625b@81 A#1/1.375b@81 A#1/0.625b@69 A#1/0.9792b@79 R/0.3958b A#1/0.6667b@73 A#1/1.3333b@77 A#1/0.625b@59 A#1/1b@78 R/0.3542b A#1/0.6458b@96 A#1/1b@75 R/0.4167b A#1/0.6042b@74 A#1/0.9792b@78 A#1/0.375b@68 A#1/0.8125b@91 A#1/1.2708b@79 A#1/0.6458b@74 A#1/0.8542b@79 R/0.5b A#1/0.7292b@79 A#1/0.7917b@73 A#1/0.4792b@72 A#1/0.5625b@77 A#1/1.4167b@73 A#1/0.8333b@72 A#1/1.1042b@76 A#1/0.6458b@72 A#1/1.1042b@78 R/0.3542b A#1/0.6042b@80 A#1/0.8542b@77 A#1/0.4583b@79 A#1/0.6875b@87 A#1/1.3125b@82 A#1/0.6667b@84 A#1/0.9583b@74 R/0.3958b A#1/0.6042b@84 A#1/1b@80 R/0.4583b A#1/0.75b@81 A#1/0.7292b@77 R/0.4375b A1/0.6875b@83 A#1/0.3542b@85 A#1/0.5b@86 B1/0.4583b@79 F#1/0.4167b@94 R/0.4792b A#1/0.625b@82 F#1/0.5208b@84 A#1/0.625b@83 A#1/1.3333b@75 R/0.6875b A#1/0.8542b@79 F#1/0.5417b@84 R/0.5833b A#1/0.375b@78 R/0.4583b A1/0.5b@70 A#1/0.5208b@95 A1/0.6042b@95 A#1/0.875b@82 A1/0.8542b@97 A#1/0.75b@74 R/0.5b A#1/0.6458b@78 A1/0.6458b@89 A1/0.6667b@80 A#1/0.9375b@63 A1/0.5208b@90 A2/1.6458b@89 B1/0.3542b@84 B2/0.5208b@90 A1/0.9792b@93 A1/1.125b@89 A#1/1.0208b@50 R/0.3333b B1/1b@95 B1/0.5208b@89 A1/1.0417b@95 E2/0.3542b@89 E2/0.6042b@90 E3/0.4792b@87 E2/1.0417b@92 E2/0.625b@89 R/0.8333b C#2/1b@90 C#3/1b@89 A1/1.0208b@93 A2/1b@94 F#1/0.6042b@96 F#1/0.3958b@90 R/0.5b F#1/0.3125b@91 F#1/0.3333b@90 F#1/0.4583b@84 R/0.3542b A#1/0.4583b@83 B1/0.5833b@53 F#2/0.625b@92 R/0.5208b A#1/0.3333b@49 F#1/0.3333b@90 F#1/0.3333b@90 F#1/0.375b@85 F#1/0.4792b@88 F#1/0.6875b@93 F#1/0.4167b@74 R/0.3958b A1/1.4792b@96 A1/1.0208b@89 A#1/0.6042b@85 R/0.4792b A#1/0.6667b@65 A1/1.0417b@99 A1/0.3958b@56 A#1/0.7917b@35 A1/1.0833b@99 R/0.4583b B1/1b@98 B1/0.4792b@78 A1/1b@93 A1/1.0417b@92 A#1/0.7917b@65 A#1/0.3125b@71 A#1/0.3542b@77 B1/0.7292b@94 R/0.5833b A1/0.75b@78 A2/0.4375b@88 E2/0.8125b@95 R/0.7083b E2/0.4792b@97 R/2b C#2/2b@99 A1/0.9583b@102 A1/1.0625b@78 F#1/0.4583b@93 F#1/0.625b@91 A#1/0.3958b@79 F#1/0.5417b@101 R/0.6042b A#1/0.7708b@69 B1/0.5833b@72 R/0.8958b A#1/0.625b@77 F#1/0.5208b@97 R/0.9792b F#1/0.375b@101 G1/0.625b@89 A1/0.5417b@96 A1/0.8333b@93 A1/0.6042b@85 A1/0.7708b@101 A#1/1.2292b@88 A#1/0.75b@95 A1/0.7292b@96 A1/0.5417b@80 A#1/0.9792b@85 A1/2b@95 R/0.5417b B2/0.5b@91 A1/0.9792b@93 A2/1.1042b@93 A#1/0.7917b@81 A#1/0.5833b@75 B1/0.7083b@96 B1/0.8125b@80 A1/1.0208b@97 R/0.4583b E2/0.5417b@91 R/0.4792b E2/0.8542b@93 E2/0.4375b@81 R/1.1875b C#2/0.3542b@94 C#2/0.6875b@90 A#1/0.9583b@87 A1/1.0208b@96 A1/0.3125b@95 A1/0.6875b@88 F#1/0.6042b@99 F#1/0.4583b@90 B1/0.4375b@82 F#1/0.4167b@94 F#1/0.7708b@89 A#1/0.9375b@78 R/1.0417b A#1/0.3333b@81 A#1/0.5b@81 F#1/0.5b@93 G1/0.5208b@85 R/0.5b F#1/0.625b@94 F#1/0.3542b@74 R/0.5208b A1/1.4792b@93 A1/0.7917b@96 A#1/0.625b@89 A#1/0.3958b@72 R/0.9167b A1/0.5833b@96 A1/0.6875b@88 A1/0.6667b@97 R/0.3333b A1/1.0208b@100 B1/0.5b@94 B1/0.9792b@99 B1/0.5b@95 A1/1.0208b@98 A1/0.625b@96 A1/0.375b@77 A#1/0.7292b@95 A#1/0.3958b@87 B1/0.3542b@58 B1/0.5417b@93 B1/0.4792b@90 B1/0.4792b@87 A1/0.5417b@100 A2/0.4792b@93 E2/1.0417b@94 R/0.4375b E2/1.2917b@91 R/1.1875b C#2/2b@97 A1/1.0417b@92 A2/0.6458b@94 R/0.3125b F#1/0.4792b@95 F#1/0.5625b@94 F#2/0.5b@98 F#1/0.625b@99 F#1/0.6042b@87 R/0.625b A#1/0.625b@45 F#2/1.0833b@99 R/0.4167b F#1/0.4167b@94 F#1/0.6042b@90 F#2/0.5b@95 F#1/0.4375b@95 R/1.0417b A1/1.5b@96 A1/0.7917b@92 A#1/0.8958b@74 A#1/1.0625b@56 A1/1.2708b@97 R/0.9792b A1/1.0417b@94 B1/0.4792b@89 B1/1b@92 B2/0.5208b@93 A1/1b@97 A2/1.0833b@93 A1/0.7083b@77 A#1/0.6667b@63 B1/1.0208b@95 B1/0.5b@93 A1/0.5208b@97 A2/0.5b@92 E2/0.5625b@95 E2/0.4792b@86 E2/0.4375b@75 E2/1b@93 E2/0.3333b@82 E2/0.4375b@72 R/0.4167b B1/0.3125b@42 C#2/1b@101 C#3/1b@90 A1/1b@98 A2/1.0208b@96 F#1/0.5208b@97 R/0.4583b F#2/0.5417b@95 F#1/0.3958b@95 F#1/0.3333b@90 F#1/0.5625b@81 R/1.1458b F#2/0.7708b@98 R/0.75b F#1/0.5417b@92 F#1/0.4583b@87 F#2/0.5417b@96 F#1/0.3542b@98 F#1/1.0833b@89 A1/1.5208b@97 A1/0.9167b@100 A1/0.4792b@79 R/1.3333b A1/1.3542b@98 R/0.8958b A1/1.5417b@95 B1/1b@98 B2/0.5b@93 A1/1b@98 A2/1.375b@94 R/0.4167b A#1/0.6875b@38 B1/1.0208b@95 B1/0.5b@93 A1/0.5b@96 A2/0.5b@93 E2/0.9792b@98 E3/0.5b@83 E2/0.5208b@93 R/0.75b E2/0.7917b@92 R/0.4167b C#2/0.7708b@93 R/0.625b C#2/0.625b@82 A1/1.0208b@96 A2/0.5b@93 B2/0.5208b@92 F#1/0.3958b@97 F#1/0.3333b@92 F#2/0.7708b@92 F#1/0.4375b@96 F#1/0.3542b@94 R/1.6458b F#2/0.7917b@98 A#1/0.75b@86 F#1/0.5625b@95 F#1/0.4167b@82 R/0.5417b F#1/0.5833b@99 R/0.375b A1/0.5208b@96 A1/0.7917b@101 A1/0.6875b@90 A1/0.8333b@102 A#1/0.75b@81 A#1/0.4375b@38 A#1/0.7292b@77 A1/1.25b@99 A1/0.75b@99 A1/1.2708b@93 B1/0.75b@99 A#1/0.8542b@75 A1/0.375b@56 A#1/0.6458b@95 A#1/0.9583b@79 A#1/0.3958b@63 A#1/0.7292b@96 A#1/0.875b@83 A1/0.4792b@63 A#1/0.7917b@77 A#1/0.7708b@82 R/0.375b A#1/0.8125b@95 A#1/0.7292b@77 A#1/0.4375b@62 A#1/0.8125b@66 A#1/0.875b@80 R/0.3125b A#1/0.8958b@86 A#1/0.7292b@80 A#1/0.375b@68 A#1/0.6667b@91 A#1/0.9583b@81 R/0.375b A#1/0.8542b@80 A#1/1.1667b@78 A#1/0.6458b@78 A#1/0.9583b@80 A#1/0.4583b@64 A#1/0.7917b@78 A#1/1.1875b@81 A#1/0.6667b@76 A#1/0.875b@82 A1/0.5b@69 A#1/1.9792b@73 A#1/0.7292b@70 A#1/0.7917b@75 A#1/0.3958b@62 A#1/1.6875b@79 R/0.3125b A#1/0.6667b@80 A#1/0.9375b@84 A#1/0.3958b@81 A#1/0.7917b@91 A#1/0.8125b@86 R/0.3958b A#1/0.8333b@85 A#1/0.7708b@79 R/0.3958b A#1/2b@76 A#1/0.6875b@92 A#1/0.9167b@83 R/0.3958b A#1/0.6875b@92 A#1/0.9167b@82 A1/0.3958b@74 A#1/0.6667b@92 A#1/1.375b@81 A#1/0.625b@74 A#1/1.3542b@75 A#1/0.6667b@77 A#1/1.3542b@78 A#1/0.8333b@70 A#1/0.75b@80 R/0.3958b A#1/2b@70 R/0.0833b A#1/0.7292b@70 A#1/1.1875b@74 A#1/0.875b@80 A#1/1.125b@83 A#1/0.8333b@91 A#1/1.1458b@81 A#1/0.6667b@95 A#1/1.0208b@79 A#1/0.3125b@57 A#1/0.6458b@95 A#1/1.3542b@79 A#1/1.6875b@94 B1/0.3125b@47 A#1/0.8125b@93 A#1/1.1875b@71 A#1/0.625b@94 A#1/0.9583b@76 R/0.4167b A#1/0.6667b@87 A#1/1.0208b@82 R/0.3333b A#1/0.6667b@76 A#1/0.8958b@80 A#1/0.4375b@58 A#1/0.8333b@92 A#1/0.7917b@78 A#1/0.375b@63 A#1/0.6667b@93 A#1/0.9375b@80 A1/0.3958b@57 A#1/0.625b@86 A#1/1.0417b@76 A#1/0.3958b@67 A#1/1.6042b@72 B1/0.3333b@60 A#1/0.6667b@77 A#1/0.9167b@81 B1/0.4167b@56 A#1/0.875b@72 A#1/0.7917b@81 B1/0.3125b@63 A#1/1.6458b@79 A#1/0.375b@71 A#1/0.6667b@82 A#1/0.9792b@81 R/0.3333b A#1/1.6875b@81 A#1/0.4167b@46 A#1/1.5833b@73 R/0.3125b A#1/0.8958b@94 A#1/0.7083b@80 A#1/0.4167b@52 A#1/0.6667b@70 A#1/0.9375b@83 A1/0.3958b@71 A#1/0.7708b@93 A#1/0.8333b@74 A#1/0.375b@60 A#1/1.625b@92 A#1/0.3958b@52 A#1/2b@61 A#1/0.7292b@54 A#1/0.875b@80 A#1/0.3958b@69 A#1/1.6042b@93 B1/0.375b@49 A#1/0.8125b@81 A#1/0.7708b@68 A#1/0.4167b@63 A#1/0.8958b@83 A#1/0.7708b@82 R/0.3542b A#1/0.625b@94 A#1/0.9792b@80 A#1/0.3958b@69 A#1/0.6667b@84 A#1/0.8958b@82 A1/0.4167b@79 A#1/0.625b@96 A#1/1b@83 R/0.375b A#1/0.8542b@95 A#1/0.7708b@79 R/0.3958b A#1/1.6042b@90 R/0.3958b A#1/0.625b@92 A#1/0.9583b@80 A1/0.4167b@78 A#1/0.875b@93 A#1/0.7083b@81 R/0.4167b A#1/1.625b@72 R/0.375b A#1/0.8958b@94 A#1/0.7083b@82 R/0.4792b A#1/0.7083b@72 A#1/0.7708b@76 A#1/0.4167b@70 A#1/0.8333b@84 A#1/0.7917b@81 A#1/0.375b@77 A#1/0.6458b@92 A#1/0.9792b@79 R/0.3958b A#1/0.8542b@83 A#1/0.8333b@81 A1/0.3125b@63 A#1/0.875b@77 A#1/1.125b@78 A#1/0.625b@83 A#1/0.9792b@79 A#1/0.3958b@77 A#1/0.6667b@94 A#1/1.3333b@82 A#1/0.8125b@95 A#1/0.7708b@83 R/0.4167b A#1/0.8333b@96 A#1/1.1667b@76 A#1/0.6042b@93 A#1/1b@82 A#1/0.3958b@67 A#1/0.6667b@94 A#1/0.9167b@83 A#1/0.3958b@67 A#1/0.8333b@95 A#1/0.7917b@73 R/0.3958b A#1/1.6042b@93 R/0.375b A#1/0.8958b@95 A#1/1.1042b@81 A#1/1.625b@95 R/0.375b A#1/0.6875b@93 A#1/1.3333b@82 A#1/0.8333b@71 A#1/0.7292b@81 A#1/0.4375b@64 A#1/0.6667b@81 A#1/0.9375b@83 A#1/0.3958b@51 A#1/0.6458b@93 A#1/0.9375b@84 A#1/0.4583b@74 A#1/0.625b@70 A#1/0.9167b@84 A#1/0.4167b@64 A#1/0.6667b@94 A#1/0.9167b@82 A#1/0.4167b@74 A#1/0.8125b@90 A#1/0.8125b@81 A1/0.375b@39 A#1/0.6667b@89 A#1/0.9375b@85 A#1/0.3958b@46 A#1/0.8125b@91 A#1/0.7708b@76 A1/0.4167b@70 A#1/0.6875b@58 A#1/0.9792b@86 R/0.3333b A#1/1.6042b@82 R/0.3958b A#1/0.8333b@57 A#1/1.1667b@77 A#1/0.6042b@96 A#1/0.9792b@80 B1/0.4167b@63 A#1/0.6667b@93 A#1/0.9375b@83 A#1/0.3958b@54 A#1/0.7708b@86 A#1/0.8542b@75 A#1/0.375b@69 A#1/1.6042b@84 A#1/0.4792b@68 A#1/0.5833b@67 A#1/0.3542b@77 A1/1.75b@99 B1/0.7292b@95 B1/0.5208b@95 A1/1b@100 A2/1b@95 A#1/0.6458b@94 A#1/0.8333b@82 B1/0.5833b@99 B1/0.4375b@87 B1/0.5208b@97 A1/0.4792b@99 A2/0.5b@93 E2/1b@94 R/0.9792b A#1/0.8542b@85 A#1/1.1458b@72 A#1/0.3542b@73 A#1/0.4792b@81 C#2/1.1667b@53 A1/1.0208b@98 A2/1b@96 F#1/0.3125b@96 F#1/0.4375b@93 F#1/0.3542b@85 A#1/0.5b@78 R/0.4583b A#1/0.6042b@77 A#1/0.9167b@56 A#1/0.3958b@47 A#1/0.4167b@82 B1/0.4167b@82 A#1/0.7083b@73 F#1/0.6042b@95 R/0.4375b A#1/0.4583b@76 F#1/0.3542b@96 R/0.6042b A#1/0.5b@87 A1/1.5b@99 A#1/0.8125b@96 A#1/0.7708b@74 A#1/0.4167b@81 A#1/0.7708b@95 A1/0.8542b@97 A1/0.375b@66 A#1/0.6875b@98 R/0.3125b A1/1b@97 B1/0.7708b@95 B1/0.75b@94 B1/0.4792b@88 A1/1b@101 A1/1.0208b@91 A#1/0.6667b@90 A#1/0.8333b@78 B1/0.5417b@97 B1/0.4583b@85 B1/0.4792b@89 A1/0.5208b@95 A2/0.5b@88 E2/0.4583b@95 R/1.0417b E2/0.5417b@92 E2/0.3958b@88 R/0.7083b B1/0.8125b@84 C#2/1.0208b@92 C#3/1b@89 A1/1.0208b@94 A2/0.9792b@91 F#1/0.4583b@92 F#1/0.5625b@91 F#2/0.4792b@90 F#1/0.4167b@92 F#1/0.3333b@89 F#1/1.7292b@80 F#2/1.5208b@91 F#1/0.3125b@98 F#1/0.6875b@92 F#2/0.5b@95 F#1/0.5833b@98 F#1/0.4167b@74 F#1/0.5b@58 A1/1.4792b@94 A2/2b@88 R/0.75b A1/2b@94 R/0.25b A1/1.0417b@88 B2/0.5b@92 B1/0.9792b@96 B1/0.5b@91 A1/0.7708b@94 A1/1.3125b@95 A#1/0.6667b@69 A#1/0.75b@95 B1/1.0208b@98 B1/0.5b@90 A1/0.4792b@98 A2/0.5208b@93 E2/0.75b@98 R/0.7292b E2/0.8542b@93 R/1.2708b B1/0.3542b@69 C#2/1.0208b@99 C#3/1b@96 A1/1b@100 A2/1b@99 F#1/0.4375b@90 F#1/0.5625b@92 F#2/0.5208b@95 F#1/0.3958b@99 F#1/0.5b@91 A#1/0.3125b@85 A#1/0.3333b@70 A#1/0.3333b@83 A#1/0.6042b@67 F#1/0.375b@84 R/0.5833b A#1/0.5417b@79 F#1/0.6458b@92 F#1/0.375b@82 F#2/0.4792b@93 F#1/0.3542b@94 F#1/0.3333b@85 F#1/0.3125b@71 A1/0.5208b@67 A1/1.1042b@97 R/0.3542b A1/0.7917b@92 A#1/1.3542b@85 A#1/0.5417b@59 A1/0.6458b@45 A1/0.9792b@91 A#1/0.7083b@73 A1/1b@95 B1/0.5208b@86 B1/0.9792b@98 B2/0.5417b@93 A1/0.9792b@94 A1/1.0833b@91 A#1/0.7292b@67 A#1/0.6875b@68 B1/0.9792b@90 B1/0.5b@90 A1/0.5208b@96 A2/0.4792b@92 E2/1.0417b@94 R/0.4583b E2/1b@90 C1/0.3125b@84 R/1.1667b C#2/1.0208b@98 C#2/1b@88 A1/1b@94 A2/1.0208b@91 F#1/0.5b@96 F#1/0.4792b@90 F#1/0.5b@92 F#1/0.5208b@98 F#1/0.5208b@91 R/0.3125b A#1/0.5625b@66 A1/0.5625b@71 F#1/0.8333b@96 A#1/0.6875b@84 F#1/0.5208b@98 F#1/0.4792b@89 F#2/0.5208b@92 F#1/0.3542b@96 F#1/0.6042b@85 R/0.5208b A1/0.8333b@96 A1/0.6458b@87 A1/0.9583b@102 A#1/0.6875b@79 R/0.4375b A#1/0.6667b@80 A1/1.2708b@95 R/0.9792b A1/0.5417b@93 A2/1b@90 B1/0.9792b@94 B2/0.5208b@91 A1/0.9792b@92 A1/1.125b@90 R/1.2917b B1/1.0833b@63 B1/0.5b@92 A1/0.5b@95 A2/0.5208b@90 E2/0.3958b@94 E2/0.3125b@91 E2/0.75b@79 E2/1.0833b@91 R/0.3125b A1/0.4167b@83 R/0.6875b C#2/1.0208b@96 C#3/1b@88 A1/1b@95 A1/1b@92 F#1/0.5b@99 F#1/0.5208b@89 F#2/0.4792b@90 F#1/0.6667b@95 F#1/0.4167b@84 R/0.3125b A#1/0.375b@71 R/0.7083b F#2/0.7083b@93 R/0.4583b B1/0.3542b@75 F#1/0.5625b@97 F#1/0.4375b@84 F#2/0.5b@90 F#1/0.4583b@95 R/1b A1/0.8542b@93 A1/0.3542b@86 A1/0.3333b@72 A1/0.7292b@76 R/1.9792b A1/0.6458b@97 A1/1.6042b@80 A1/0.5417b@95 A2/0.8125b@94 B1/0.625b@69 B1/0.5417b@82 B1/0.5b@93 A1/1.0208b@98 A1/0.4792b@97 A2/0.5208b@76 A1/1.4792b@53 B1/0.8542b@94 B1/0.6458b@62 A1/1.0208b@99 E2/1.0417b@96 D#3/0.4375b@71 E2/1.3125b@92 R/1.1667b C#2/2b@92 R/0.0208b A1/2b@100 F#1/0.5208b@93 F#1/0.4792b@94 F#2/0.5208b@101 F#1/0.625b@101 F#1/0.6042b@90 R/1.25b F#2/0.7708b@103 A#1/0.7292b@82 F#1/0.5208b@98 F#1/0.4792b@91 F#2/0.5208b@102 F#1/0.3333b@102 F#1/0.6875b@95 R/0.4792b A1/1.5b@102 A1/1.5833b@98 A#1/0.4583b@74 A#1/0.6875b@64 A1/1.25b@97 A1/1b@99 A1/1.5417b@102 B1/0.9792b@104 B1/0.5b@94 A1/0.9792b@101 A2/1.1458b@98 A#1/0.6042b@81 A#1/0.75b@78 B1/1.0208b@100 B1/0.5b@96 A1/0.5417b@101 A2/0.4792b@91 E2/0.9583b@99 E2/0.5417b@92 E2/0.5208b@99 E2/0.4375b@91 A1/0.8125b@94 R/0.6875b C#2/1b@100 C#3/1b@95 A1/1.0208b@103 A2/1b@95 F#1/0.4375b@106 F#1/0.5417b@101 F#2/0.5417b@97 F#1/1.0208b@101 R/1.4375b F#1/0.8542b@99 A#1/0.6458b@75 F#1/0.3125b@100 F#1/0.3333b@102 R/0.3542b F#2/0.5208b@100 F#1/1.5b@107 A1/1.4792b@104 A1/0.7917b@93 A1/0.8125b@88 A#1/0.5417b@73 A#1/0.6042b@56 A1/0.5625b@105 A1/0.7083b@93 A1/0.9792b@93 A1/1.5208b@104 B1/0.9792b@104 B2/0.5208b@95 A1/0.9792b@104 A2/1.3125b@97 A1/0.3542b@82 A#1/0.8542b@68 B1/0.6875b@100 A#1/0.3125b@79 B1/0.5b@98 A1/0.5b@104 A2/0.5b@96 E2/0.9792b@99 E2/0.5208b@98 E2/0.9792b@99 E2/0.4792b@95 E2/0.6875b@87 R/0.3125b C#2/1.0208b@96 C#3/1b@98 A1/1b@102 A2/0.5208b@96 B2/0.5b@92 F#1/0.3125b@100 F#1/0.6667b@98 F#2/0.5208b@103 F#1/0.5b@97 F#1/0.3542b@89 R/1.6042b F#2/0.8333b@99 F#1/0.3333b@76 R/0.375b F#1/0.4583b@102 F#1/0.5208b@93 F#2/0.5208b@96 F#1/0.4583b@105 F#2/1.0208b@97 A1/1.5b@103 A1/1.0417b@100 A1/0.5625b@86 A#1/0.4792b@81 A#1/0.6667b@69 A1/1.25b@100 D2/0.625b@98 R/0.375b A1/1.3125b@102 B1/1.1875b@95 B2/0.5b@95 A1/1b@104 A2/1.9167b@98 A#1/0.5625b@78 B1/1.0208b@97 B1/0.5b@97 A1/1b@102 E2/1b@103 E2/0.5208b@92 E2/0.9792b@101 E3/0.8958b@95 A1/0.6042b@74 C#2/1b@101 C#3/1b@97 A1/1b@105 A2/1b@97 F#1/1b@105 F#2/0.5208b@105 F#1/0.5b@95 R/0.7292b A#1/1.2292b@91 F#2/0.7708b@100 R/0.3333b A#1/0.4167b@83 F#1/0.5208b@103 F#1/0.4792b@99 F#2/0.5b@103 F#1/1b@105 A#1/0.5208b@95 A1/0.8333b@97 A1/0.625b@87 A1/0.8125b@106 A#1/0.8333b@83 A#1/0.4375b@73 A#1/0.6875b@73 A1/0.6458b@97 A1/0.5833b@91 A#1/0.7083b@92 A#1/0.3125b@80 A1/0.4375b@102 A2/1.0833b@98 B1/0.3333b@104 B1/0.6458b@87 B1/0.5b@93 A1/1b@103 A1/1.125b@99 A#1/0.5625b@75 A#1/0.8125b@75 B1/1.1667b@100 A#1/0.3333b@72 A1/0.5b@100 A2/0.5b@95 E2/1.0417b@97 A#1/0.4375b@80 E2/1b@93 R/0.5208b A#1/0.5b@73 A#1/0.4583b@56 C#2/1.0208b@101 B1/0.3958b@75 R/0.5833b A1/1.0208b@102 A2/0.9792b@96 F#1/0.5208b@93 F#1/0.5b@92 F#2/0.5208b@98 F#1/0.5833b@103 F#1/0.7083b@88 F#1/0.4167b@75 R/0.7708b F#1/0.9792b@93 A#1/0.5208b@67 F#1/0.3125b@98 F#1/0.375b@97 F#1/0.3333b@87 F#1/0.4792b@93 F#1/0.375b@96 R/0.3125b F#1/0.3125b@71 R/0.5208b A1/1.1042b@98 A1/0.375b@68 A1/0.7708b@101 A#1/0.5833b@82 A#1/0.3542b@77 B1/0.4583b@55 A#1/0.5833b@65 A1/0.9583b@100 A1/0.4375b@58 A#1/0.5b@76 R/0.3542b A1/0.5208b@99 A1/0.5b@94 B1/0.5b@93 B1/0.9792b@100 B2/0.5208b@98 A1/1b@101 A1/1.0417b@96 A#1/0.8542b@65 A#1/0.5833b@76 B1/1.0208b@98 B1/0.4792b@93 A1/0.5b@98 A2/0.5208b@96 E2/0.5b@95 E2/0.4792b@84 R/0.5208b E2/0.5b@91 E2/0.4792b@98 A1/0.9167b@91 R/0.5625b C#2/1.0208b@102 C#2/0.5833b@89 R/0.3958b A1/1.0208b@98 A1/0.3333b@98 R/0.6667b F#1/0.4792b@96 F#1/0.5208b@97 F#1/0.5208b@99 F#1/0.5b@96 F#1/0.5625b@88 R/0.3333b A#1/0.5208b@71 A#1/0.5417b@61 R/0.8333b A#1/0.9792b@47 F#1/0.3958b@95 F#1/0.3125b@84 R/0.5208b F#1/0.4583b@98 R/0.5208b A#1/0.5b@85 A1/1.1667b@95 A#1/0.3125b@67 A1/0.6875b@101 A#1/0.7292b@67 A#1/0.6042b@62 A#1/0.75b@74 A1/1.25b@99 A1/0.9792b@97 A1/1.0208b@101 B1/0.5208b@92 B1/0.9792b@94 B2/0.5b@97 A1/1b@101 A1/1.0833b@94 A#1/0.7708b@72 A#1/0.6458b@71 B1/0.5208b@103 B1/0.5b@93 B1/0.4792b@89 A1/1.0208b@94 R/1.4792b E2/0.7917b@93 A#1/0.7083b@82 A#1/0.3958b@82 C2/0.6042b@69 C#2/0.9167b@101 R/1.0833b A1/1b@102 A1/0.6667b@97 R/0.3125b F#1/0.5417b@102 F#1/0.6667b@91 B1/0.3125b@78 F#1/0.5208b@94 F#1/0.5208b@85 B1/0.3125b@75 A#1/0.6458b@80 C2/0.4792b@65 R/0.3958b A#1/0.3125b@76 R/0.8125b F#1/0.5208b@98 F#1/0.4792b@84 R/0.5b F#1/0.375b@97 R/0.6042b A#1/0.5208b@96 A1/1.4792b@98 A1/0.875b@102 A#1/0.7083b@76 A#1/0.5b@74 A#1/0.6875b@82 A1/0.5417b@99 A1/0.7083b@86 B1/0.6667b@97 R/0.3125b A1/1.0208b@95 B1/0.75b@95 B1/0.75b@97 B2/0.5b@92 A1/1.0208b@95 A1/0.9792b@90 A1/0.6042b@94 A#1/0.8958b@72 B1/0.6667b@97 B1/0.3333b@82 B1/0.5b@92 A1/0.5b@95 A2/0.5208b@91 E2/0.5625b@98 R/0.4167b E3/0.5b@88 E2/0.5b@96 R/0.4792b E2/1.4792b@87 C#2/1.0417b@97 C#3/0.9792b@90 A1/1.0208b@103 A1/1b@96 F#1/0.5417b@103 F#1/0.4583b@89 R/0.5b F#1/0.5b@96 F#1/0.3958b@95 R/0.3542b A#1/0.8542b@88 A1/0.3542b@69 R/0.8958b A#1/0.625b@77 F#1/0.5208b@102 F#1/0.6458b@93 R/0.3542b F#1/0.3542b@100 F#1/0.6458b@90 A1/0.4792b@96 A1/0.9375b@96 A1/0.5625b@82 A1/0.7708b@102 A#1/0.8333b@92 A#1/0.3958b@76 A#1/0.7708b@97 A1/1.2292b@100 R/0.3958b A#1/0.5833b@78 A1/1.0208b@91 B1/0.5417b@96 B1/0.4792b@96 A#1/0.4792b@81 B1/0.5b@92 A1/0.9792b@100 A1/1.0417b@92 A#1/0.6042b@80 A#1/0.3125b@79 A#1/0.5625b@75 B1/1.0208b@98 B1/0.5208b@90 A1/0.4792b@96 A2/0.5b@87 R/0.9792b A#1/0.5b@79 E2/0.8542b@93 R/0.3333b A#1/1.2917b@62 C#2/1.0208b@91 C#2/0.5833b@88 R/0.3958b A1/1.0417b@92 A1/1b@91 F#1/0.5417b@96 F#1/0.4375b@90 R/0.5b F#1/0.375b@91 F#1/0.8542b@89 A#1/0.8958b@78 R/0.375b F#1/0.7292b@85 R/0.4167b B1/0.3542b@65 F#1/0.3125b@99 F#1/0.7083b@90 F#1/0.4792b@95 F#1/0.3333b@98 R/0.3125b F#1/0.3542b@75 A#1/0.5208b@74 A1/1.4583b@95 A1/0.7917b@98 A#1/1.3333b@89 A#1/0.6458b@70 A1/0.875b@99 A#1/0.3542b@70 A1/0.8542b@99 A1/0.7083b@79 A1/0.4583b@91 B1/0.5208b@92 B1/0.9792b@99 B1/0.5b@92 A1/0.6875b@95 R/0.3125b A1/0.5625b@95 A#1/0.4375b@70 A#1/0.6458b@95 A#1/0.8542b@79 B1/0.5208b@97 B1/0.4792b@90 B1/0.5208b@93 A1/0.5b@97 A2/0.4792b@91 E2/0.9375b@96 A1/0.5625b@85 E2/1b@96 R/0.5208b A#1/0.5833b@84 A#1/0.375b@76 C#2/1.0208b@102 C#2/0.9792b@93 A1/1.0208b@99 A2/0.9792b@94 F#1/0.5b@97 F#1/0.5417b@94 R/0.4792b F#1/0.4375b@101 F#1/0.375b@91 R/0.4583b A#1/0.75b@77 R/0.4583b F#2/0.7708b@94 A#1/0.3958b@91 A#1/0.3333b@77 F#1/0.5b@95 R/1.0208b F#1/0.3333b@100 F#1/0.6667b@92 R/0.4792b A1/1.5b@98 A1/0.7708b@103 A#1/0.625b@90 A#1/1.3542b@64 A1/1b@96 R/0.4167b A#1/0.8333b@79 A1/1.0417b@97 A#1/0.4792b@90 B1/0.5625b@94 B1/0.6042b@81 B1/0.3125b@53 A1/1.0208b@93 A1/0.375b@90 R/1.5b A#1/0.625b@66 B1/0.7083b@97 A#1/0.7708b@81 A1/1.0208b@98 E2/0.7708b@99 A#1/0.7292b@81 E2/0.5b@97 R/0.8125b A#1/0.7708b@81 R/0.3958b C#2/0.8542b@100 B1/0.5b@79 B1/0.6458b@78 A1/1.0208b@96 A1/0.9792b@89 F#1/0.625b@99 F#1/0.375b@92 A#1/0.5b@89 F#1/0.4375b@100 F#1/0.4583b@93 R/0.3958b A#1/0.6458b@74 R/0.5417b F#2/0.8333b@98 R/0.7083b F#1/0.6458b@107 F#1/0.3542b@82 F#2/0.5b@90 F#1/0.6875b@104 F#1/0.3958b@78 R/0.4375b A1/1.4583b@102 A1/1.0833b@99 A1/1b@84 A#1/0.7083b@61 A1/1.2292b@102 A1/0.625b@88 A#1/0.3542b@76 A1/1.5417b@104 B1/0.9792b@103 B2/0.5b@98 A1/1b@102 A2/1.2292b@97 A1/0.4167b@79 R/0.8333b B1/1b@100 B1/0.5625b@101 A1/0.4583b@102 A2/0.5b@97 E2/0.6458b@94 E2/0.3333b@89 E3/0.5208b@98 E2/0.9792b@93 E2/1.0833b@98 A#1/0.4375b@70 C#2/0.9792b@97 C#3/1.0417b@98 A1/0.9583b@102 A2/1b@98 F#1/0.625b@102 F#1/0.3958b@90 F#2/0.5b@97 F#1/0.7708b@104 R/1.7083b F#2/0.8125b@101 F#1/0.3542b@71 B1/0.3333b@80 F#1/0.6458b@99 F#1/0.375b@86 F#2/0.5b@95 F#1/0.5b@104 F#2/1.0208b@97 A1/0.7708b@103 A1/0.6875b@87 A1/1.0625b@99 A#1/0.3333b@85 A#1/0.8958b@76 R/0.4583b A1/0.7292b@104 A1/0.5208b@84 A1/0.6875b@97 A#1/0.3125b@75 A1/1.5208b@104 B1/0.9792b@103 B1/0.5208b@99 A1/0.6667b@103 A#1/0.3333b@86 A2/1.1042b@97 A1/0.7292b@75 R/0.6458b B1/1b@100 B1/0.5b@100 A1/0.4167b@103 A2/0.5833b@93 E2/1b@93 E3/0.5417b@99 E2/0.9583b@92 E3/0.9167b@100 R/0.5833b C#2/1b@98 C#3/1b@99 A1/1b@102 A2/1.0417b@98 F#1/0.4167b@102 F#1/0.5625b@95 F#2/0.5417b@98 F#1/0.5833b@103 F#1/0.3125b@89 R/0.3542b A#1/0.7917b@69 R/0.3958b F#2/0.5b@103 R/0.3333b A#1/0.6875b@81 F#1/0.5625b@104 F#1/0.4167b@88 F#2/0.3125b@100 R/0.5417b F#1/0.3958b@91 F#1/0.3125b@78 F#1/0.4375b@82 A1/1.4792b@104 A2/2b@102 R/0.7708b A1/1.2292b@104 R/0.3958b A3/0.6042b@67 A1/1.5208b@104 B1/1b@103 B2/0.5b@97 A1/1b@103 A2/2b@99 R/0.375b B1/1.5b@37 A1/1.125b@56 E2/1.0417b@97 R/0.4375b E2/0.9792b@100 R/0.5625b A#1/0.9375b@50 C#2/0.8958b@95 R/1.1042b A1/0.9167b@102 R/1.0833b F#1/0.5417b@100 F#1/0.3333b@91 F#1/0.625b@84 F#1/0.5b@97 F#1/2b@87 R/0.2292b F#2/1.2917b@69 F#1/0.375b@99 F#1/1.1042b@89 F#1/0.3542b@98 F#1/0.3333b@92 F#1/0.8125b@42 A1/0.9375b@86 A1/0.5833b@79 A1/0.4167b@88 R/2.3125b A1/2b@90 R/0.25b A1/0.5208b@88 R/1.0208b B1/0.4375b@95 R/1.0417b A1/1b@94 A2/0.3958b@85 A1/0.7917b@58 A#1/1.2917b@62 B1/1.0208b@92 B2/0.4792b@72 A1/0.5417b@98 A2/0.4792b@92 E2/1.5b@96 E2/0.9375b@95 R/1.5417b C#2/1.1042b@92 R/0.8958b A1/1b@93 A1/1b@90 F#1/0.5208b@97 F#1/0.5b@93 F#2/0.5b@86 F#1/0.6042b@97 F#1/2b@84 R/1.375b F#1/0.5208b@95 F#1/0.9792b@88 F#1/0.3333b@97 F#1/1.1667b@91 A1/2b@92 R/4.5b A1/0.9167b@96 R/0.5833b B1/0.4167b@88 R/1.0625b A1/2b@93 R/1.5208b B1/1.4792b@91 A1/1.0208b@95 E2/0.6042b@87 R/0.8958b E2/0.3542b@84 E2/2b@71 R/0.1458b C#2/1.0625b@96 C#3/0.5417b@78 R/0.3958b A1/1.0208b@94 A2/0.6042b@91 R/0.3542b F#1/0.5417b@96 F#1/0.5b@92 F#2/0.4792b@83 F#1/0.3125b@94 F#1/0.3958b@93 F#1/1.7708b@82 F#2/1.5208b@91 F#1/0.375b@102 F#1/0.6458b@93 F#2/0.5b@95 F#1/0.6875b@97 F#1/0.4583b@68 F#1/0.3333b@55 A1/1.5b@94 A2/2b@96 R/0.7292b A1/2b@98 R/0.2708b A1/0.5208b@99 A2/0.9792b@95 B1/1b@97 B2/0.5b@94 A1/1b@97 A2/2b@95 R/0.4792b B1/1.0208b@93 B2/0.5208b@88 A1/1b@92 E2/1.4792b@88 E2/2b@85 R/0.4792b C#2/1.0208b@90 C#3/0.9792b@83 A1/1.0208b@88 A2/1b@82 F#1/0.5208b@89 F#1/0.4792b@82 F#2/0.5208b@82 F#1/0.5b@89 F#1/2b@75 R/1.4375b F#1/0.5208b@78 F#1/1b@68 F#1/0.3542b@70 F#1/1.125b@68 A1/2b@72 R/2.2708b A1/2b@56 R/0.2292b A1/0.5208b@52 A2/1.0417b@36 B1/1.4792b@43 A1/1.7917b@41"
+    },
+    {
+      "name": "mallet-guide",
+      "patch": "tha-mallet",
+      "gain": "0dB",
+      "score": "R/1.0208b G4/0.3333b@84 A4/0.2708b@62 F#4/0.4792b@64 F#5/0.2917b@72 F#5/0.375b@70 F#5/0.4167b@66 G4/0.3333b@59 G4/0.5208b@64 G4/0.3542b@68 F#4/0.375b@67 G#4/0.25b@67 G4/0.375b@110 F#4/0.25b@88 A4/0.4792b@89 F#5/0.4583b@94 F#5/0.2917b@85 C#5/0.2917b@91 F#5/0.4167b@74 A4/0.2917b@73 G4/0.5208b@78 F#5/0.625b@87 G4/0.25b@115 A4/0.2708b@90 A4/0.6875b@91 F#5/0.4375b@95 F#5/0.6458b@94 A4/0.2917b@74 F#5/0.375b@78 G#4/0.4167b@74 F#5/0.25b@90 F#5/0.375b@77 G4/0.25b@116 A4/0.2917b@89 G#4/0.3333b@86 G#4/0.25b@79 F#3/0.25b@92 F#5/0.25b@88 F#5/0.7083b@93 F#5/0.375b@77 G#4/0.25b@82 G4/0.3958b@77 F#5/0.2708b@88 F#5/0.375b@80 G4/0.2708b@114 A4/0.2708b@87 G4/0.3333b@87 A4/0.25b@87 F#4/0.5208b@91 F#5/0.5208b@91 G#4/0.4792b@78 F#5/0.3125b@79 G4/0.4583b@72 F#4/0.375b@77 F#5/0.25b@68 D5/0.3958b@114 G4/0.3125b@86 A4/0.4167b@89 F#5/0.4375b@87 F#5/0.2917b@79 G4/0.3125b@88 G4/0.3333b@77 G4/0.4583b@75 G4/0.3958b@73 F#4/0.3542b@79 F#5/0.2917b@70 G3/0.25b@110 A4/0.3542b@90 G#4/0.2708b@88 F#4/0.3542b@85 F#5/0.4167b@88 F#4/0.5208b@86 G4/0.5417b@78 G4/0.25b@69 F#5/0.375b@62 F#5/0.6667b@72 D5/0.3542b@91 A4/0.4583b@84 G4/0.2708b@76 F#4/0.4583b@77 F#4/0.5208b@75 G4/0.4792b@62 D4/0.25b@66 D4/0.3333b@71 F#4/0.5625b@70 D4/0.3333b@73 D5/0.3333b@82 G#4/0.4583b@87 D5/0.2917b@77 F#4/0.5417b@91 F#5/0.4167b@88 D5/0.5b@70 D4/0.25b@61 G5/0.5417b@69 F#5/0.3542b@79 F#5/0.3125b@73 D5/0.2917b@87 G4/0.5417b@81 F#4/0.375b@75 F#4/0.3542b@93 F#4/0.25b@83 G#4/0.4375b@85 G4/0.2708b@76 D4/0.2708b@75 G#4/0.4792b@72 F#4/0.7292b@75 D5/0.3542b@99 G#4/0.2708b@86 G4/0.4375b@84 F#4/0.5417b@95 F#5/0.6458b@88 F#5/0.375b@75 F#5/0.375b@73 G#4/0.3125b@64 F#4/0.375b@86 G4/0.2917b@70 D5/0.375b@103 G#4/0.2292b@86 A4/0.4375b@82 F#5/0.3125b@84 F#5/0.5b@87 F#5/0.3125b@88 G4/0.4583b@68 F#5/0.4792b@63 F#5/0.25b@64 F#4/0.25b@78 F#5/0.4167b@80 D5/0.3333b@98 G#4/0.2708b@84 G#4/0.4167b@78 F#5/0.3125b@85 F#5/0.2708b@90 F#4/0.4583b@88 F#5/0.2917b@66 E4/0.4375b@70 F#5/0.3125b@66 G#4/0.25b@66 F#4/0.3542b@80 G#4/0.2917b@70 G3/0.3333b@102 A4/0.2708b@87 A4/0.5b@85 F#4/0.5208b@94 F#4/0.5625b@87 G#4/0.3333b@73 G#4/0.4375b@64 G4/0.3958b@67 F#5/0.6667b@72 G4/0.3125b@114 A4/0.2708b@91 G4/0.2708b@90 G4/0.25b@83 F#4/0.5b@91 F#5/0.25b@85 F#5/0.2917b@86 G4/0.4583b@77 D4/0.3125b@76 G#4/0.4792b@74 F#5/0.2917b@81 D4/0.2708b@77 G4/0.3333b@112 A4/0.25b@90 D5/0.5b@83 F#4/0.5417b@90 F#5/0.5417b@84 G4/0.3958b@74 G#4/0.3542b@75 G4/0.4583b@70 F#5/0.3333b@76 F#5/0.3125b@74 G4/0.3333b@107 G#4/0.25b@89 G#4/0.2708b@74 G#4/0.375b@77 F#5/0.375b@88 F#4/0.4792b@87 G4/0.375b@70 F#5/0.2917b@64 G#4/0.25b@56 G4/0.3542b@66 F#5/0.3958b@77 F#5/0.25b@68 D5/0.375b@96 G#4/0.4375b@85 D4/0.2917b@74 F#5/0.4375b@83 F#5/0.2917b@78 F#5/0.4375b@85 D4/0.2708b@63 D4/0.4792b@60 A3/0.3333b@64 F#4/0.3542b@80 D4/0.2917b@66 D5/0.4583b@96 A4/0.3542b@76 G#4/0.3125b@75 D3/0.7292b@86 G#4/0.4375b@87 G#3/0.3542b@67 D4/0.3542b@61 F#3/0.3542b@70 F#5/0.25b@71 F#5/0.4167b@72 D5/0.2917b@87 G4/0.3125b@88 F#4/0.4583b@83 F#5/0.5417b@87 F#5/0.5b@88 G4/0.4375b@79 F#5/0.375b@68 F#4/0.4167b@68 F#4/0.25b@88 F#5/0.3958b@78 D5/0.375b@103 E4/0.4375b@89 G#4/0.2708b@81 F#4/0.375b@91 F#5/0.3958b@84 F#4/0.375b@87 F#3/0.3333b@76 D4/0.2708b@73 A3/0.5417b@75 F#5/0.6667b@86 G4/0.2292b@113 A4/0.2917b@89 A4/0.2708b@80 A4/0.2917b@83 F#5/0.7708b@94 D4/0.6458b@89 D4/0.2917b@67 A3/0.2708b@75 D#4/0.2708b@74 F#5/0.2708b@95 D4/0.375b@78 A4/0.5208b@112 A4/0.2708b@79 A4/0.3333b@83 F#5/0.25b@86 F#5/0.2708b@93 F#5/0.3333b@92 B3/0.3958b@74 A3/0.2708b@84 D4/0.3333b@83 D4/0.3125b@77 B3/0.6875b@78 G4/0.3333b@110 A4/0.25b@91 G4/0.25b@87 A3/0.2708b@86 F#5/0.3542b@95 F#5/0.6458b@84 A3/0.2917b@79 C#4/0.4167b@79 D4/0.3333b@83 G#4/0.3125b@78 F#5/0.25b@88 B3/0.3125b@80 G4/0.5417b@113 G4/0.3125b@91 G4/0.25b@87 F#5/0.5208b@89 F#5/0.4583b@92 E4/0.6042b@91 E4/0.3125b@81 E3/0.4792b@95 E3/0.5208b@86 G4/0.3333b@106 E4/0.25b@94 E3/0.3125b@91 F#5/0.5417b@89 F#5/0.6458b@85 C#3/0.3542b@88 C#3/0.25b@88 D4/0.3125b@86 C#4/0.2708b@93 F#5/0.3333b@90 C#4/0.3958b@80 D5/0.6875b@107 D4/0.2917b@81 F#5/0.625b@92 B3/0.4792b@89 A4/0.2708b@84 A3/0.25b@83 D4/0.375b@79 F#3/0.4583b@98 C#4/0.25b@93 F#3/0.3125b@89 G4/0.3542b@109 G#4/0.4792b@94 D#4/0.25b@87 F#5/0.4792b@87 F#5/0.4167b@84 F#3/0.7083b@99 D4/0.3542b@82 C#4/0.5625b@86 C#4/0.3958b@83 G4/0.4792b@108 F#3/1.0208b@98 F#3/1.3333b@101 A3/0.2708b@84 A3/0.2708b@88 F#5/0.3333b@85 F#5/0.3333b@81 G4/0.3125b@113 A4/0.2708b@94 A4/0.4792b@94 F#5/0.5417b@94 A4/0.5417b@91 A4/0.4375b@79 D4/0.4583b@84 A4/0.3125b@78 F#5/0.5833b@80 A4/0.6042b@103 A4/0.9167b@102 A3/1.3542b@98 A3/0.4375b@96 A3/0.7292b@96 A4/0.3333b@89 A4/0.6458b@92 A4/1.3958b@99 A3/0.3125b@89 A3/0.2917b@89 C#4/0.3125b@83 A4/0.4583b@75 B3/0.4167b@76 A4/0.4792b@82 B3/0.2708b@90 B3/0.5417b@89 A4/0.5b@90 A4/0.4583b@84 E4/0.2708b@89 D4/0.4375b@81 E4/0.3125b@81 E3/0.6667b@81 E4/0.25b@84 G4/0.4792b@88 E4/0.3333b@88 F#5/0.25b@76 F#5/0.4167b@87 G4/0.2708b@86 C#4/0.4375b@82 C#4/0.2708b@83 E4/0.5417b@81 F#5/0.3333b@77 C#3/0.3542b@78 E4/0.3333b@89 G4/0.2917b@85 D4/0.2917b@83 A4/0.5833b@89 B3/0.5208b@85 A3/0.5208b@87 F#3/0.2917b@82 F#3/0.4792b@88 C#4/0.3333b@93 F#3/0.3333b@87 F3/0.25b@85 F#4/0.3125b@87 A3/0.25b@83 A3/0.25b@83 F#5/0.3542b@83 F#5/0.5208b@81 D4/0.25b@90 F#3/0.5417b@82 F#3/0.2708b@83 C#4/0.5b@82 F#3/0.4792b@81 F3/0.2917b@83 F#3/0.4167b@84 F#3/0.3542b@97 F#3/0.4375b@81 F#3/1.0833b@103 A3/0.25b@71 F#3/0.2708b@75 A3/0.2708b@78 F#4/0.5833b@70 D5/0.3958b@87 A3/0.3542b@85 A4/0.5417b@81 A4/0.4375b@87 A4/0.3958b@91 A4/0.4583b@82 A4/0.2708b@77 A3/0.5625b@82 A3/0.6042b@80 A4/0.3542b@99 A3/0.3333b@95 A4/0.375b@95 A3/0.4583b@84 A3/0.5208b@101 B3/0.5625b@98 A3/0.2708b@83 A3/0.25b@87 A3/0.375b@85 B3/0.2708b@96 B3/0.4583b@92 B3/0.25b@87 B3/0.2292b@90 F#3/0.2917b@82 A3/0.4583b@85 A3/1.0208b@98 A3/0.3333b@83 A3/0.2708b@75 A3/0.375b@68 A3/0.5625b@71 D5/0.5b@110 B3/0.625b@105 D4/0.5b@66 A3/0.4583b@84 E3/0.3333b@69 A3/0.2708b@86 A3/0.2917b@79 E3/0.5417b@96 E3/0.5208b@103 E3/0.4583b@114 E3/1.5625b@104 F3/0.3333b@78 D4/0.5833b@81 C#4/1.0208b@111 A3/0.5208b@111 A3/0.3125b@94 C#3/0.3333b@90 A3/0.3958b@97 B3/0.5625b@100 F#3/0.5417b@88 F#3/0.3333b@91 F#3/1b@110 D5/0.4792b@109 G4/0.375b@84 D4/0.2917b@88 F#5/0.4792b@85 F#5/0.375b@85 F#4/0.8542b@92 F#4/0.5b@87 F#5/0.6458b@82 G4/0.375b@108 F#3/1.125b@93 F#3/1.2917b@103 F#3/0.3542b@87 F#5/0.4583b@86 A3/0.4375b@87 D5/0.3542b@100 A4/0.4583b@90 A4/0.2708b@90 A3/1.3542b@88 A3/0.4167b@91 A3/0.5b@86 F#5/0.6042b@83 A4/0.5833b@105 A3/0.9167b@102 A4/0.3333b@92 A4/0.2708b@96 G#3/0.6042b@90 A3/0.3958b@84 A4/0.3542b@91 A4/0.2708b@83 A4/0.3125b@83 D4/0.3333b@83 A3/0.2917b@87 A3/0.3333b@91 F#5/0.8542b@91 A3/0.5208b@93 A3/0.375b@92 A3/0.625b@89 A3/0.5625b@88 A3/0.3125b@80 A4/0.3333b@82 B3/0.3542b@82 F#5/0.2917b@91 A3/0.2917b@95 A3/0.3333b@93 A4/0.25b@95 A4/0.7292b@87 A3/0.2917b@89 A3/0.25b@89 F#5/0.375b@89 E3/0.4375b@79 E3/0.3125b@89 E3/0.3958b@105 E4/0.5625b@101 F#5/0.5625b@90 C#3/0.25b@87 C#3/0.4375b@86 C#3/0.2917b@86 C#3/0.3542b@87 C#4/0.7083b@94 A3/0.6458b@102 D4/0.2917b@93 A3/0.5b@88 B3/0.3542b@109 B3/0.375b@112 B3/0.4792b@98 A3/0.2917b@75 F#3/0.7708b@114 F#3/0.25b@89 F#3/0.5833b@107 D4/0.4792b@84 F#5/0.5417b@89 F#5/0.375b@88 F#3/0.3958b@95 F#3/0.3958b@86 F#3/0.6042b@85 F#3/0.6042b@78 F#3/0.3542b@86 F#3/0.375b@91 F#4/0.5417b@94 F#5/0.25b@87 F#3/1.1458b@105 D4/0.2917b@86 F#3/0.4375b@83 F#5/0.6667b@92 G4/0.3125b@100 A4/0.2708b@90 A4/0.4792b@83 F#5/0.4375b@92 A3/0.5625b@92 A3/0.25b@84 A3/0.4792b@86 F#3/0.5417b@80 A3/0.6042b@82 G4/0.2917b@83 A4/0.5625b@96 A4/0.2708b@92 F#5/0.3958b@91 A3/0.5417b@91 B3/0.3333b@94 A#3/0.2917b@103 A3/0.5b@94 B3/0.375b@96 B3/0.5833b@92 B3/0.2708b@96 A3/0.4583b@92 B3/0.25b@90 A3/0.375b@91 A3/0.7708b@101 A3/0.4583b@97 A3/0.7292b@99 B3/0.2917b@95 A3/0.5b@96 A3/0.2708b@91 B3/0.3542b@104 B3/0.3333b@104 A3/0.4375b@93 A3/0.375b@96 A3/0.2917b@90 A3/0.2708b@92 A3/0.4375b@95 E4/0.7292b@112 A3/0.2917b@93 A3/0.4792b@92 E3/0.2917b@110 E4/1.0208b@104 E4/0.4583b@93 A3/0.2917b@91 C#3/0.4167b@84 C#4/1.1042b@108 G#3/0.4792b@97 A4/0.4792b@91 F#5/0.4583b@90 B3/0.7917b@99 B3/0.5417b@93 F#3/0.4167b@85 F#5/0.4583b@84 C#5/0.3333b@89 C#5/0.5b@84 F#5/0.7708b@90 F#5/0.2917b@98 F#5/0.7708b@94 C#5/0.2917b@87 F#5/0.6875b@87 F#5/0.625b@96 F#5/0.3958b@86 F#5/0.25b@95 F#3/0.4375b@93 F#5/0.4375b@97 F#3/1.6458b@112 F#5/0.25b@90 F#4/0.3333b@93 A3/0.375b@90 A4/0.2917b@92 A4/0.75b@92 A3/0.6458b@98 F#5/0.4167b@91 A3/0.8542b@90 F#5/0.7292b@96 A3/0.3125b@91 A3/0.6458b@103 A3/0.5208b@98 A4/1.5208b@96 A4/0.5625b@90 A4/0.4583b@94 B3/0.2917b@93 A4/0.375b@90 B4/0.3542b@87 F#3/0.375b@92 A4/0.7708b@85 B4/0.375b@92 B4/0.3333b@92 B4/0.6042b@85 F#5/0.6042b@93 B4/0.2917b@96 B4/1.7917b@90 E5/1.0208b@89 E4/1.4792b@108 E4/1.375b@101 E5/0.75b@98 E5/0.8542b@94 C#4/0.6042b@100 C#4/0.7917b@94 A4/0.8333b@98 C#5/0.7292b@94 F#5/0.4167b@91 F#5/0.6042b@94 F#5/0.6875b@93 F#5/0.9167b@89 F#5/0.7292b@93 F#5/0.6042b@92 F#5/0.4375b@91 F#5/0.6458b@94 F#3/0.3333b@97 F#5/0.3333b@92 F#5/0.4167b@90 F#5/0.6458b@88 F#3/1.6458b@97 F#4/0.5417b@88 F#5/0.4167b@91 D5/0.5417b@96 F#5/0.3542b@95 F#4/0.4375b@94 A3/0.6458b@97 A3/0.5417b@92 A3/0.75b@99 A3/0.2708b@89 D3/0.2917b@92 A4/0.375b@94 A3/0.8333b@103 A4/0.3125b@99 A3/0.4375b@87 A4/0.2917b@87 A3/0.9792b@97 B4/0.8542b@91 B4/0.3125b@91 B3/0.8542b@100 B4/0.375b@88 B4/1.1667b@91 B4/0.75b@96 A4/0.25b@98 B3/0.2708b@96 A3/0.2708b@92 B4/0.6042b@100 B4/0.5833b@97 A3/0.5833b@91 B4/0.4583b@96 A3/1.1667b@92 E5/0.3958b@95 E5/0.25b@98 E5/0.25b@97 E5/0.3333b@93 A4/0.5417b@89 E5/0.4583b@96 F#5/0.2917b@94 A3/0.6875b@95 A3/0.7083b@90 C#4/0.3333b@97 C#4/0.4375b@96 A4/0.4167b@98 A4/0.4167b@92 F#5/1.4167b@97 F3/0.3958b@93 A3/0.3542b@96 F#5/0.3333b@94 F#3/0.4167b@99 F#5/0.4167b@93 C#5/0.8542b@94 F#5/0.7708b@91 F#5/0.875b@99 F#5/0.7917b@89 F#5/0.7917b@93 F#4/0.4167b@94 F#5/0.3958b@96 F#3/0.4167b@97 F#3/1.3125b@109 F#5/0.7708b@91 F#5/0.7708b@92 F#4/0.3542b@95 A3/0.4167b@90 F#5/1.0625b@96 A3/0.625b@91 A3/0.7917b@93 A4/0.3958b@99 A4/0.3958b@91 A3/0.5208b@94 D3/0.6042b@104 A3/0.7708b@104 B3/0.4167b@102 B3/0.375b@97 A4/1.1042b@98 B4/0.7083b@96 A4/0.3333b@97 B4/0.3958b@91 B4/0.4375b@94 B4/0.2708b@93 B4/0.2917b@92 B4/0.5625b@95 B4/0.5625b@100 B4/0.5417b@96 B4/1.3125b@91 E5/0.5625b@94 E5/0.4375b@96 A3/0.875b@96 E5/0.4375b@90 A3/1.2292b@96 E5/0.8125b@94 A3/0.7292b@94 A3/0.3333b@91 A3/0.6875b@95 A3/0.5625b@95 A4/0.2708b@93 A4/2b@93 R/0.8125b C#5/1.0208b@96 F#5/0.4792b@94 C#5/0.3542b@94 F#3/0.2708b@92 F#5/0.4792b@86 F#5/0.8542b@92 F#3/0.5208b@95 F#3/0.25b@96 F#3/0.3125b@95 F#3/0.3542b@96 F#5/0.8542b@86 F#3/0.4792b@96 F#3/0.2917b@94 F#5/1.5b@93 F#5/0.3333b@97 D3/0.5b@96 A4/1.0417b@90 D3/0.625b@93 D3/0.5833b@92 D3/0.375b@89 A4/0.875b@96 A4/0.4583b@88 A4/0.2917b@94 A4/0.2917b@91 A4/0.25b@91 D3/0.3333b@94 A4/0.3958b@99 D3/0.3333b@89 A4/0.2708b@89 A4/0.3542b@99 A4/0.3542b@93 A4/0.3333b@90 A4/0.3958b@90 A#4/0.4167b@98 A#4/0.3958b@92 A4/0.375b@88 B4/0.6458b@100 B4/1.7083b@88 B4/0.7292b@88 B4/0.25b@86 B4/0.5625b@95 E5/0.7917b@97 E5/1.1667b@92 A3/2b@99 R/0.4167b E5/0.7292b@94 A3/1b@95 A3/0.3542b@96 A3/0.4375b@93 A3/1.875b@96 A4/1.4792b@92 F#5/0.2708b@101 F#5/0.7917b@94 F#5/1.0833b@95 F#5/0.6042b@91 F#4/0.8542b@95 F#4/0.6042b@96 F#3/0.3333b@98 F#3/0.5208b@95 F#4/0.4375b@93 F#4/0.6458b@96 F#4/0.3333b@96 F#4/0.5b@94 D3/0.8958b@99 F#5/0.375b@96 F#5/0.2708b@94 D3/0.2708b@91 A4/0.375b@95 A4/0.2708b@91 D3/0.7083b@94 D3/0.5b@92 F#5/0.3125b@91 A4/0.625b@96 D3/0.2708b@90 D3/0.4167b@89 A4/0.5833b@89 A4/0.4583b@94 A4/0.3125b@99 A4/0.3542b@92 D3/0.25b@82 A4/0.75b@95 A4/0.3125b@89 A4/0.5833b@90 B4/1.1875b@98 B4/0.3542b@94 A#4/0.3125b@94 B4/0.4792b@95 A4/0.3125b@90 B4/0.5208b@95 B4/0.3542b@93 B4/0.4583b@92 B4/0.2708b@92 B4/0.25b@93 B3/0.375b@94 B4/0.3333b@93 B4/0.4792b@92 B4/1.1042b@99 B4/0.4375b@92 B4/2b@88 R/0.25b A3/0.2708b@96 E5/0.4792b@91 F#5/0.5b@96 A3/0.5b@97 A3/0.8125b@99 A4/0.3333b@98 F#5/0.4583b@96 A4/0.375b@94 C#5/0.9167b@95 F#5/0.5b@93 A4/0.5208b@93 A4/0.6042b@93 F#4/0.2917b@93 F#5/1.1667b@90 C#5/0.4583b@89 F#5/0.4583b@91 F#3/0.2708b@97 F#3/0.4792b@94 F#5/0.2708b@94 F#4/1.2292b@94 F#4/0.5417b@90 F#5/0.3125b@93 F#5/0.4375b@84 F#5/0.4167b@86 F#4/0.2708b@89 F#3/0.2917b@97 F#3/0.5b@93 A4/0.7917b@95 A4/0.4583b@94 A4/0.5417b@93 A4/0.375b@93 A4/0.4167b@98 A4/0.4583b@90 D3/0.3958b@89 A4/0.3333b@94 A4/0.2917b@93 D3/0.4583b@90 A4/0.25b@97 A4/0.3333b@94 D3/0.3958b@92 A4/0.3542b@91 A4/0.25b@95 A#4/0.3333b@81 A4/0.3125b@96 G#4/0.8125b@95 D3/0.5b@93 A4/0.3958b@93 A4/0.5833b@83 A4/0.2917b@87 A4/0.3333b@91 A4/0.2708b@96 A4/0.5b@92 A4/0.2708b@94 A4/0.2917b@96 A4/0.2292b@96 A4/0.6042b@99 A4/0.2708b@94 A4/0.5625b@98 A4/0.4375b@92 A4/0.3333b@94 A4/0.5417b@96 A4/0.2708b@90 A4/0.5b@88 D3/0.5208b@95 A4/0.5625b@94 A4/0.8542b@98 A4/0.25b@96 D3/0.5b@94 A4/0.5417b@83 D3/0.5208b@82 D3/0.2917b@74 D3/0.3125b@79 D4/0.4792b@75 A4/0.3542b@68 A4/0.5833b@70 D4/0.4167b@68 D4/0.3333b@74 D4/0.5417b@70 D4/0.3125b@72 D4/0.25b@78 D4/0.3333b@66 D4/0.2708b@74 D#4/0.2917b@71 C#4/0.2917b@72 D4/0.4167b@65 D#4/0.5417b@73 D4/0.5b@74 D#4/0.25b@80 D4/0.3333b@73 D4/0.3542b@58 D4/0.3333b@75 D4/0.375b@70 D4/0.4583b@82 D#4/0.3958b@78 D4/0.4375b@64 D4/0.3125b@76 C#4/0.3333b@74 D4/0.4375b@63 D#4/0.3958b@67 D4/0.2708b@59 D4/0.4167b@76 D4/0.2292b@68 D4/0.2917b@62 D4/0.3333b@56 D#4/0.2917b@67 D4/0.2917b@75 D4/0.2917b@48 D4/0.3542b@59 D4/0.5b@56 D4/0.3958b@63 D4/2b@52 R/5.4375b B4/0.75b@66 B4/0.6667b@82 B4/1.6458b@91 B4/1.1042b@86 B4/1.0833b@89 E3/2b@91 R/1.9792b A3/1.3333b@92 A3/0.3958b@90 A3/0.9583b@96 A3/0.3333b@96 A3/1.3125b@98 A4/2b@95 R/2.6667b C#5/0.3958b@92 F#4/1.0625b@94 F#4/1.1042b@93 F#4/1.1875b@87 F#3/0.75b@93 C#5/1.5625b@90 F#4/0.625b@89 A4/1.125b@85 A4/0.4375b@90 A4/0.3333b@96 A4/0.4792b@89 A4/0.2708b@89 A4/0.25b@96 A4/0.5b@89 A4/0.5625b@95 A4/0.7708b@89 A4/0.9375b@95 A4/0.4167b@89 A4/0.5833b@92 A4/0.4375b@95 A4/0.3333b@91 A#4/0.3125b@99 A#4/0.2708b@96 A#4/0.5417b@94 A#4/0.8125b@100 A#4/0.4792b@93 B4/0.6458b@98 B4/0.3125b@94 B4/0.4375b@99 B4/0.3333b@90 B4/0.6667b@93 B4/0.3125b@89 E3/1.9792b@91 E3/0.7917b@90 A4/0.3125b@98 A3/1.0833b@98 A3/0.75b@95 A3/0.6458b@96 A3/1b@89 A3/1.0417b@85 A3/1.5625b@96 A4/0.3958b@97 A4/0.4792b@94 A4/0.4792b@92 C#5/0.6042b@90 F#4/0.4167b@97 C#5/0.4375b@93 C#5/0.4167b@94 C#5/0.4583b@93 C#5/0.3958b@92 C#5/1.3125b@96 C#5/0.25b@89 C#5/0.6458b@92 F#4/0.5b@90 F#3/0.5833b@90 F#3/0.9583b@91 C#5/1.3542b@83 A4/0.9375b@89 A4/0.9167b@91 A4/0.3542b@90 A4/0.2708b@90 A4/0.2917b@93 A4/0.4167b@89 A4/1.0833b@92 A4/0.2917b@88 A4/0.6458b@90 A4/0.25b@91 A4/0.4583b@86 A4/0.6458b@96 A4/0.3333b@92 A4/0.375b@86 A3/0.5625b@94 A4/0.25b@93 A4/0.3125b@94 B4/0.7917b@98 B4/0.2708b@96 B4/0.8333b@93 B4/0.3542b@93 B4/0.4375b@97 A3/0.2917b@95 B4/0.7292b@97 B4/0.5625b@95 B4/1.9583b@86 E3/0.5417b@97 B4/0.3333b@97 A3/0.5208b@97 E5/1.0833b@98 A3/0.8125b@91 A3/2b@88 R/0.0417b A3/0.25b@95 A3/1.4583b@88 A4/0.9375b@93 C#5/0.6042b@92 A4/0.3333b@94 C#5/2b@93 R/0.0417b C#5/0.25b@95 F#4/0.7083b@93 C#5/0.4167b@87 F#4/0.8958b@93 F#3/0.7083b@91 F#3/0.9583b@92 F#3/0.5417b@105 F#3/0.4375b@101 F#3/0.875b@112 A4/0.3333b@94 A4/0.9375b@90 A4/0.4583b@92 A4/0.6042b@95 A4/0.3125b@93 A4/0.4375b@91 A4/0.2708b@97 A4/0.2292b@91 A4/0.8542b@91 A4/0.6458b@94 A4/0.25b@94 A4/0.3125b@88 A3/0.3125b@103 A3/0.3958b@105 A3/0.4167b@103 A4/0.375b@96 A3/0.5625b@107 A4/0.5208b@96 A4/0.7917b@93 B4/0.3125b@96 B4/0.4375b@99 B4/0.2917b@95 A4/0.4792b@97 A3/2b@99 R/1.0625b B4/0.8958b@93 E3/0.2708b@99 B4/0.6042b@95 E5/1.2708b@98 E5/1.0833b@101 E5/0.5b@95 E5/1.0833b@98 A4/0.4792b@99 A3/0.3125b@92 A3/0.7917b@94 A3/0.2917b@90 A4/0.8125b@95 A4/0.4375b@90 A4/0.3542b@100 C#5/0.3958b@101 C#5/0.6458b@93 C#5/0.5208b@95 C#5/0.5b@100 C#5/0.6042b@101 C#5/0.2708b@95 C#5/0.6667b@101 C#5/0.4375b@88 C#5/0.25b@97 C#5/0.75b@96 F#4/0.375b@102 F#4/0.5208b@96 C#5/0.375b@97 F#4/1.0208b@94 F#3/0.4583b@100 F#3/0.5417b@90 F#3/1.3542b@104 F#4/0.5417b@96 A4/0.3333b@97 A4/0.3125b@96 G4/0.2708b@116 A4/0.4167b@100 A4/0.4167b@102 A4/0.6458b@94 D5/0.2917b@97 A4/0.2708b@98 A4/0.75b@98 A3/0.3125b@96 D3/0.3125b@99 A4/0.2708b@96 A3/1.25b@109 F#5/0.2708b@98 D3/0.375b@90 A3/0.6458b@100 A4/0.4583b@90 B4/0.5833b@97 A4/0.3333b@90 B4/0.2708b@84 B4/0.7708b@98 A4/1.5b@92 B4/0.2917b@96 A4/1.75b@88 B3/1.0208b@105 A3/0.5833b@110 E3/0.4375b@97 E5/0.4583b@96 E3/1.1042b@112 A4/0.3958b@94 E5/1.1458b@107 A4/0.8125b@95 A4/0.25b@93 A3/1.0833b@91 A4/0.3125b@87 A4/0.2708b@88 C#5/0.6667b@96 C#5/0.4583b@92 B3/1.2083b@98 C#5/0.6458b@95 F#5/0.375b@98 C#5/0.5b@92 C#5/0.625b@90 C#5/0.25b@95 F#5/0.3542b@90 F#4/1.0208b@95 F#3/0.875b@93 F#4/0.9375b@94 C#4/0.25b@95 F#3/0.2708b@93 F#3/0.3333b@93 F#5/0.375b@90 F#3/1.3333b@103 A4/0.4792b@94 F#4/0.9792b@93 A4/0.25b@88 A4/0.5833b@92 A3/1.2292b@93 A4/0.2708b@94 A4/0.5625b@99 F#5/0.7917b@90 A3/1.5b@104 A3/0.3125b@99 A4/0.6042b@105 A4/0.3333b@92 A4/0.4375b@86 B4/0.25b@95 A4/0.6042b@97 A4/0.5417b@88 A4/0.25b@95 B4/0.2708b@94 B4/0.5625b@95 B4/0.75b@99 A4/0.2917b@95 B4/0.6875b@94 B4/0.3958b@90 B4/0.4583b@97 E5/1.0417b@96 E5/1.0625b@93 A3/0.6458b@97 E5/0.7917b@98 E5/0.2917b@99 A4/1.0625b@95 A3/0.25b@97 A3/0.3542b@99 A4/0.4583b@93 A3/0.3125b@93 A3/0.3125b@98 A4/0.4583b@92 A3/0.3333b@91 C#5/0.5b@96 A4/0.5b@90 C#5/0.5417b@93 A4/0.2917b@98 A4/2b@96 R/0.1458b C#5/0.25b@96 A4/0.3333b@96 A4/0.4583b@93 F#4/1.125b@98 F#4/0.6875b@95 C#5/0.8542b@94 F#5/0.2917b@92 C#5/0.5833b@83 F#4/1.0417b@86 F#4/0.2917b@90 F#3/2b@98 R/0.5417b A4/0.625b@88 A4/0.3542b@100 F#5/1.2708b@92 A4/0.375b@88 A4/0.2917b@94 A3/0.2917b@96 A4/0.4167b@86 A4/0.3125b@93 A3/0.6875b@94 A3/0.4167b@94 D3/0.4792b@89 D3/0.4792b@90 A4/0.3542b@94 D3/0.2917b@96 A4/1.3333b@91 A4/0.5208b@92 A4/0.3125b@93 A4/0.5625b@98 A4/0.4167b@100 B4/0.3125b@96 B4/0.3958b@96 B4/0.5417b@99 B3/0.2917b@95 B3/0.375b@97 B4/0.3333b@93 B4/0.3125b@94 B4/0.75b@98 E5/0.625b@94 E5/0.2708b@99 E5/0.9375b@99 E4/1.1667b@102 A4/1.0417b@99 E5/2b@97 R/0.6042b E5/0.375b@97 C#5/2b@95 R/0.3542b A4/0.9375b@94 F#5/0.6875b@97 F#5/0.9167b@96 F#5/1.0417b@99 F#4/0.5625b@99 F#5/0.625b@90 F#5/0.75b@95 F#4/0.5b@91 F#5/0.4167b@94 F#5/0.4583b@100 F#3/1.3958b@102 F#5/2b@92 R/0.2292b D3/0.25b@95 A4/0.25b@97 D3/0.6458b@91 F3/0.8333b@100 A3/0.3958b@101 A4/0.7083b@96 A3/0.6667b@101 A3/0.3542b@100 A4/0.4792b@93 A4/0.3125b@99 B3/0.4583b@97 A#3/0.2708b@99 A4/1.9583b@94 B3/0.25b@96 A3/0.4792b@98 A3/0.5833b@101 A3/0.8542b@98 A3/0.7083b@100 A3/0.5417b@90 A4/0.4375b@105 B3/1b@111 A3/0.6042b@114 A3/0.25b@103 A3/0.625b@101 E3/1.5208b@111 E4/1.1875b@110 E5/0.5208b@98 E5/0.3542b@100 C#3/0.4167b@93 C#4/0.7708b@113 C#3/0.4583b@92 A4/0.7917b@100 A3/0.5208b@116 B3/0.3333b@109 A3/0.4375b@100 F#5/1.0833b@103 F#5/0.8542b@99 F#5/0.3542b@92 F#5/0.5b@95 F#5/0.3125b@95 F#3/0.2292b@97 F#5/0.3333b@96 F#3/0.2708b@94 F#3/0.375b@92 F#3/0.4792b@89 F#3/0.4583b@94 F#4/0.6667b@102 F#4/0.4167b@97 F#4/0.4167b@96 F#4/0.2708b@91 F#4/0.4792b@93 F#5/0.375b@90 F#5/1.2083b@97 F#5/0.4583b@90 D3/0.4792b@94 A4/0.5b@88 D3/0.3333b@91 D3/0.6042b@93 D3/0.4167b@89 A4/0.2917b@95 A4/0.375b@90 D3/0.5417b@89 D3/0.3958b@87 A4/0.2708b@96 A4/0.375b@91 A4/0.4792b@90 A4/0.3125b@98 F#5/0.2708b@90 D3/0.7083b@89 A3/0.5625b@95 A4/0.5417b@89 A4/0.4167b@93 A4/0.3958b@82 A4/0.9375b@89 D3/0.3958b@88 A4/0.5208b@95 A4/0.2917b@89 A4/0.4792b@91 A4/0.3333b@93 A4/0.2917b@95 A4/0.375b@92 A4/0.2708b@92 A4/0.375b@96 A4/0.2708b@92 A4/0.6458b@93 D3/0.5b@86 A4/0.3125b@97 A4/0.4583b@91 A4/0.3125b@87 A4/0.6875b@99 A4/0.4375b@82 D3/0.625b@99 A4/0.3958b@85 A4/0.2917b@93 A4/0.2708b@89 D3/0.2708b@87 A4/0.4375b@91 A4/0.3542b@94 D3/0.25b@94 A4/0.4583b@94 A4/0.2708b@90 A4/0.4375b@93 A4/0.3958b@100 A4/0.3333b@92 A4/0.5625b@97 D3/0.8542b@90 D3/0.4375b@89 A4/0.375b@89 D3/0.3542b@91 A4/0.375b@85 A4/0.25b@95 G3/0.3542b@112 A4/0.6667b@89 D3/0.7708b@91 A4/0.3125b@91 A4/0.2708b@93 D3/0.375b@91 D3/0.4583b@89 A4/0.7917b@95 G4/0.25b@111 A4/0.2708b@95 A4/0.5625b@92 A4/0.9792b@87 A4/0.7292b@83 A4/0.5625b@90 D3/0.3542b@90 A4/0.3333b@88 A4/0.2708b@101 A4/0.3333b@92 A4/0.4167b@92 D3/0.3125b@90 A4/0.2917b@93 D3/0.3958b@91 A4/0.625b@93 A4/0.6875b@90 D3/0.25b@92 A4/0.5208b@92 A4/0.5208b@95 A4/0.5625b@87 D3/0.8125b@95 A4/0.5b@92 A4/0.8125b@88 A4/0.3333b@92 B4/0.5625b@93 A4/0.2708b@92 B4/0.3125b@82 B4/0.4167b@92 B4/1.3333b@89 B4/0.2708b@90 B4/0.3333b@86 B3/0.4167b@92 B4/0.2708b@84 B4/0.3125b@81 B4/0.4167b@86 B4/0.4375b@84 B4/1.1042b@78 B4/0.7083b@74 B4/1.1458b@80 D5/0.3333b@93 B4/0.2708b@77 B4/0.4792b@84 B4/0.5b@74 B4/0.25b@76 B4/0.6042b@92 E3/0.5b@83 B4/0.5208b@82 B4/0.5417b@75 G3/0.4167b@108 B4/0.3958b@75 B4/0.375b@71 B3/0.5833b@77 B4/0.5208b@76 E3/1b@77 B4/0.3958b@69 B4/0.3125b@65 B4/0.5833b@111 B4/0.4375b@84 B3/0.5b@78 B3/0.3125b@89 B4/0.5208b@91 B4/0.375b@83 B4/0.625b@90 B3/0.6458b@77 B4/0.4375b@89 B4/0.5b@92 B3/0.7292b@91 B3/0.375b@82 B4/0.7708b@90 B4/0.3542b@84 B4/0.75b@93 B4/0.25b@90 B4/0.4375b@87 B4/0.5b@90 B4/0.25b@86 B3/0.9375b@88 B4/1.0833b@91 B4/0.7083b@88 B4/0.3333b@81 B3/0.2708b@80 B3/0.25b@90 B4/0.2917b@90 B3/0.9375b@83 B4/0.6458b@88 B3/0.5b@76 F#5/0.6458b@74 D4/0.4375b@73 D4/0.2708b@67 D4/0.4167b@70 F#5/0.5208b@67 B3/0.4583b@77 D4/0.3333b@69 D4/0.2708b@78 D4/0.4167b@76 D4/0.2708b@68 F#5/0.3958b@69 F#5/0.2708b@67 D5/0.2917b@72 C#4/0.2292b@68 D4/0.25b@63 F#4/0.2708b@70 F#5/0.5b@78 A3/0.5b@82 D4/0.25b@69 A3/0.375b@70 A3/0.5208b@79 A3/0.3333b@88 A3/0.4375b@70 F3/0.25b@78 F#3/0.2917b@76 D4/0.2917b@76 C#4/0.7083b@78 F#5/0.5625b@65 D4/0.3125b@74 D4/0.4167b@83 E3/0.2917b@71 E3/0.3125b@73 F#5/0.5833b@71 C#3/0.3125b@73 C#3/0.375b@63 C#3/0.3958b@56 F#5/0.5208b@56 F#5/0.4375b@56 F3/0.3542b@53 F3/0.2917b@60 D4/0.3333b@57 E3/0.9583b@54 D4/0.4792b@65 D4/0.3333b@53 R/0.6875b D4/0.5625b@43 D4/0.3333b@43 A3/0.3125b@52 A3/0.3333b@53 F#5/1b@56 D5/0.2708b@75 F3/0.25b@51 D4/0.3958b@55 E3/0.3542b@58 D4/0.3333b@60 F#5/0.2917b@53 F#3/0.2708b@59 F#3/0.3542b@62 D4/0.25b@41 F#3/0.3333b@54 D4/0.3333b@51 D4/0.5417b@47 D5/0.5208b@88 G4/0.2917b@63 F3/0.2917b@56 D4/0.3542b@49 C#4/0.2917b@57 D4/0.2917b@47 G3/0.3125b@56 D#4/0.3125b@67 D4/0.3958b@70 E4/0.4167b@57 G3/0.2292b@42 D4/0.2917b@40 G4/0.3125b@81 G#3/0.3125b@65 F3/0.4792b@61 D4/0.4583b@66 D4/0.5b@48 C#4/0.5b@64 C#4/0.2708b@63 D4/0.2708b@71 D4/0.3125b@71 B3/0.375b@67 A#3/0.2708b@57 F#3/0.4792b@69 D4/0.2708b@56 G3/0.3333b@62 B3/0.2708b@68 A#3/0.5b@63 A3/0.2708b@61 A3/0.3542b@66 A3/0.25b@69 A3/0.3125b@59 A3/0.4583b@63 A3/0.2708b@72 A3/0.3958b@62 C#4/0.2292b@53 B3/0.5b@113 B3/0.3333b@82 A3/0.2917b@86 A3/0.3333b@78 B3/0.4167b@93 B3/0.3542b@82 D4/0.2708b@79 E3/0.7917b@111 E3/0.7292b@99 E3/1.5208b@96 E3/0.375b@81 D4/0.5833b@86 C#4/0.6875b@114 C#4/0.2917b@97 C#3/0.2917b@96 C#4/0.5b@78 D4/0.2708b@92 C#4/0.4583b@84 B3/0.5b@111 B3/0.5b@92 B3/0.3333b@79 C#4/0.3125b@89 D4/0.4167b@79 B3/0.3958b@78 D4/0.4583b@73 C#4/0.2917b@86 D4/0.2917b@79 D4/0.25b@82 D4/0.375b@77 D4/0.375b@72 F#3/0.4167b@86 F#3/0.4375b@78 C#4/0.2708b@87 E4/0.3333b@80 G3/0.3542b@74 C#4/0.2917b@67 F#3/0.25b@77 F#3/0.2708b@70 F#3/0.8958b@81 F#3/1.1875b@102 D4/0.3542b@82 A3/0.3958b@90 F#4/0.5b@85 D4/0.4583b@89 G#3/0.375b@84 A4/0.4792b@83 A3/0.375b@87 A3/0.75b@78 A3/0.3125b@86 A3/0.4167b@84 A3/0.3333b@84 A3/0.5417b@80 A3/1.4583b@110 A3/1.1458b@84 A#3/0.2708b@83 A4/0.3125b@90 A4/0.2708b@91 A3/0.2708b@73 A4/0.2917b@78 A4/0.8125b@79 D4/0.2708b@86 A3/0.4167b@86 A3/0.5833b@103 A3/0.2708b@84 A3/0.3333b@93 A3/0.3958b@84 A3/0.3542b@89 A3/0.2917b@94 A3/0.3125b@91 D4/0.3542b@83 A3/0.2708b@89 D4/0.5b@89 F3/0.25b@87 A3/0.6667b@85 E4/0.2917b@88 A3/0.4583b@89 A3/0.2708b@87 E3/0.5833b@86 E3/0.6458b@92 E3/0.5833b@87 E4/0.25b@82 E4/0.2708b@84 E4/0.6667b@81 E3/0.4375b@83 D4/0.4583b@84 C#3/0.375b@80 C#4/0.25b@78 C#3/0.625b@86 C#4/0.2917b@79 C#3/0.2708b@83 C#5/0.3333b@85 C#5/0.375b@85 B3/0.5625b@85 G#3/0.4792b@81 D4/0.4375b@74 F#3/0.4167b@96 F#3/0.7083b@97 F#3/0.3125b@83 F#3/0.7083b@80 C#5/0.3958b@69 B4/0.4375b@67 F#3/1.2708b@87 C#5/0.3333b@73 G3/0.25b@77 F#3/0.3542b@70 F#3/0.3125b@79 F#3/0.9792b@94 F#3/1.1042b@95 A3/0.2708b@83 F#5/0.3125b@81 F#4/0.5208b@86 A3/0.375b@80 A3/0.25b@82 G#3/0.5b@87 E5/0.4792b@83 E5/0.25b@78 E5/0.5417b@80 A4/0.2917b@75 A3/0.4375b@75 F#3/0.375b@74 F#5/0.2292b@66 D4/0.5625b@67 A3/0.3333b@86 A3/0.625b@94 A3/0.3125b@83 A3/0.25b@75 A3/0.5625b@95 A4/0.2917b@75 B3/0.3333b@82 B3/0.3125b@82 A4/0.4167b@74 B3/0.25b@79 B3/0.6042b@76 B3/0.5208b@77 B3/0.3125b@75 B3/0.4167b@74 A3/0.3125b@81 A3/0.3333b@84 A3/0.2917b@77 A4/0.9583b@73 A4/0.3958b@80 A4/0.2708b@72 A4/0.4792b@70 B3/0.3333b@60 B3/0.2708b@86 B3/0.3125b@59 A3/0.4792b@75 D4/0.2708b@75 E3/0.3542b@75 E3/0.3958b@82 E3/0.5833b@105 E3/0.9167b@90 E3/1.6667b@108 C#3/0.2917b@82 C#3/0.2708b@80 C#3/0.2708b@83 C#4/0.4583b@114 C#4/0.3333b@91 C#3/0.3125b@89 C#3/0.2917b@85 C#3/0.4583b@86 C#3/0.3333b@88 A3/0.2708b@82 B3/0.3958b@92 B3/0.2708b@100 F#3/0.3333b@89 A3/0.25b@91 F#3/0.2708b@86 F#3/0.625b@109 F#3/0.2917b@88 F#3/0.3125b@87 F#3/0.8542b@85 F#3/0.25b@78 F#3/0.25b@77 F#3/0.4167b@77 F#3/0.6667b@101 F#3/0.5208b@89 F#3/0.2917b@82 F#3/0.3333b@80 F#3/0.7083b@83 F#3/1b@90 F#3/1.0625b@106 G3/0.2708b@82 A3/0.3333b@81 F#4/0.2917b@80 F#4/0.375b@77 A3/0.25b@76 E4/0.2917b@84 F#4/0.2708b@79 A3/0.5b@84 A3/0.4792b@82 E4/0.25b@76 D#4/0.3542b@78 A3/0.4583b@70 D4/0.4167b@71 A3/0.5208b@75 A3/0.375b@68 A4/2b@96 R/2.7917b A4/1.8958b@89 A4/0.5417b@85 A4/0.5833b@88 A4/0.2917b@81 A4/0.3333b@82 B3/0.2708b@81 D4/0.2708b@80 E4/0.2708b@84 B3/0.3333b@82 E4/0.3958b@82 A4/0.8542b@75 A3/0.2708b@79 E4/0.375b@85 E3/0.6042b@84 D4/0.25b@83 E4/0.5b@83 E4/0.5208b@83 E4/0.75b@86 E4/0.4792b@81 D4/0.5b@83 A4/0.5625b@77 C#4/0.4583b@85 B4/0.2917b@83 B4/1.3542b@86 A4/0.5625b@88 B3/0.25b@85 F#3/0.4375b@86 F#3/0.5625b@98 F#3/0.6042b@87 F#3/0.4583b@88 A#3/0.3333b@84 F#4/0.4792b@90 A#3/0.3333b@87 B4/0.3958b@82 F#3/0.5417b@87 B4/0.875b@84 F#3/0.5208b@90 F#4/0.3958b@89 F#3/0.9792b@109 F#3/1.0833b@113 B4/0.2708b@84 B4/0.4375b@88 F#4/0.8542b@92 B4/0.25b@93 A3/0.6667b@91 A4/0.625b@89 A4/1.0208b@86 A3/0.4583b@86 A4/0.8333b@90 A3/0.8542b@94 A3/0.2917b@98 A3/0.625b@95 A4/0.6667b@97 A4/0.375b@93 B4/0.6458b@91 B4/0.3125b@92 B4/0.3542b@97 B3/0.6042b@94 B4/0.5208b@91 A3/0.4167b@93 A3/0.2917b@99 B4/1.6042b@98 B4/0.3333b@86 B4/0.2917b@93 B4/0.5417b@97 E3/0.6875b@94 E3/0.4167b@99 E5/0.3333b@97 B4/0.4167b@95 B4/0.4375b@89 E3/1.5208b@103 E3/1.0208b@100 E3/0.5625b@89 B4/0.3125b@84 E5/0.4792b@83 B4/0.8542b@83 C#3/0.3333b@85 F#3/0.5208b@75 B4/0.25b@81 B4/0.5208b@83 C#5/0.5625b@88 C#5/0.2917b@87 B4/0.6042b@86 F#3/1.2292b@90 F#3/0.7083b@92 B4/0.3958b@88 C#5/0.5625b@88 C#5/0.7083b@93 F#3/0.3542b@94 B4/0.4583b@94 C#5/1.3125b@94 F#3/0.9375b@94 F#3/1.1875b@102 C#5/1.25b@93 C#5/0.4583b@97 C#5/0.4375b@95 C#5/0.6458b@95 A3/0.2917b@90 C#5/0.5833b@92 C#5/0.4583b@92 A3/0.625b@85 A3/0.5417b@88 A3/2b@108 R/0.6875b A4/1.2292b@92 A4/0.8333b@95 A3/0.4167b@94 A3/0.2917b@91 A3/1.1042b@99 A3/0.4375b@90 A3/0.5833b@84 A3/0.375b@82 A3/0.625b@79 B3/0.25b@89 B3/0.3125b@99 A3/0.5417b@97 A3/0.4792b@103 A4/0.4792b@91 A3/0.375b@85 E3/0.7083b@104 B3/0.5208b@85 E4/0.25b@85 E3/0.9792b@109 E4/0.2917b@85 E4/0.3333b@87 E3/0.7292b@92 C#4/0.3542b@89 E4/0.2292b@90 C#4/0.7083b@102 C#4/0.3333b@90 D4/0.5417b@85 A3/0.5b@83 B3/0.7083b@104 B3/0.5b@98 B3/0.2917b@81 F#3/0.8333b@105 C#4/0.25b@79 D4/0.2708b@85 F3/0.4792b@74 D4/0.3125b@84 D4/0.25b@83 F3/0.3333b@80 B3/0.2708b@68 F#3/0.8542b@85 F#3/0.5833b@79 F#3/0.5625b@87 D4/0.25b@78 F3/0.2708b@77 F#3/0.5417b@109 F#3/0.4375b@86 F#3/1.2917b@107 D4/0.3333b@85 D4/0.4792b@83 F#3/0.3958b@75 A3/0.3542b@88 A3/0.4167b@97 A3/0.2917b@84 A3/0.9583b@85 D4/0.3542b@92 A3/0.4792b@88 A3/0.25b@92 E4/0.3333b@85 A3/0.5625b@80 A3/0.75b@108 A3/0.4583b@99 A3/0.2917b@85 A3/0.5417b@116 B3/0.3333b@113 A3/0.2917b@106 A3/0.2917b@96 A3/0.5417b@95 B3/0.6875b@118 A3/0.5b@109 A3/0.3125b@83 A3/0.3958b@112 A3/0.5625b@107 A3/0.2708b@92 A3/0.3125b@98 A3/0.5625b@103 A3/0.3958b@93 A3/0.5417b@93 A3/0.4375b@92 B3/0.6875b@115 B3/0.3333b@94 A3/0.5b@114 A3/0.2708b@97 A3/0.25b@101 A3/0.4792b@98 E3/0.5833b@112 E3/0.5208b@94 E3/0.3958b@101 E4/0.3333b@111 E3/0.875b@105 E3/0.3958b@88 E3/0.4583b@87 C#3/0.4375b@80 C#4/1.0625b@106 G#3/0.3125b@93 A3/0.2708b@90 A3/0.3542b@78 A3/0.8958b@115 A3/0.4375b@98 A3/0.6667b@91 F#3/0.4375b@109 G#3/0.2708b@79 A3/0.2917b@82 G#3/0.3125b@81 A3/0.3542b@65 A3/0.3125b@68 D4/0.5208b@58 D4/0.25b@59 B3/0.3125b@47 F3/0.2708b@51 F3/0.3542b@53 F#3/0.4792b@55 E3/0.4375b@64 F3/0.3958b@67 F3/0.3542b@82 F3/0.3333b@62 F3/0.5b@63 D4/0.3125b@62 F#3/1.25b@107 F#3/0.5b@59 D4/0.3125b@56 D4/0.4583b@42 G4/0.3333b@82 D4/0.3958b@53 D4/1.3125b@46 R/0.5b D4/0.25b@41 R/1.2083b D4/0.2708b@70 A3/0.3333b@47 A3/0.5b@62 D4/0.9583b@55 A3/0.2708b@52 A3/0.3333b@60 A3/0.5625b@50 R/0.75b D4/0.3333b@74 D4/0.3542b@54 D4/0.2917b@55 A3/0.4792b@54 R/0.8958b D4/0.3333b@56 R/1.3333b G4/0.3958b@79 C#4/0.3333b@58 D4/0.375b@52 D4/0.4375b@50 D4/0.2708b@50 D4/0.4792b@58 C#4/0.375b@45 D4/0.4167b@68 A3/0.4583b@65 D4/0.4375b@53 D4/0.4167b@74 D4/0.2292b@69 D4/0.8333b@65 E3/0.5625b@52 D4/0.3333b@60 F3/0.3125b@64 D4/0.4583b@67 D4/0.6458b@58 D#4/0.25b@52 C#3/0.4375b@71 C#3/0.2708b@65 D4/0.3542b@66 D4/0.4375b@61 F#5/0.5208b@62 D4/0.2708b@59 B4/0.3333b@62 F#5/0.8958b@65 F#5/0.4375b@78 B4/0.3125b@71 B4/0.3125b@71 B4/0.25b@81 B4/0.4167b@83 F#5/0.3333b@74 F#5/0.3333b@85 F#5/0.3958b@83 B4/0.2708b@79 B4/0.25b@79 F#5/0.4583b@81 B3/0.9167b@83 B4/0.4375b@83 B4/0.3958b@80 B3/0.5b@88 F#5/0.5b@81 D5/0.875b@87 B3/0.2917b@86 F#5/0.2917b@83 D5/0.4792b@89 D5/0.25b@83 B3/0.5625b@89 D4/0.2708b@86 D5/0.9583b@83 D3/1.125b@83 D5/0.5208b@87 D5/0.3542b@86 D5/0.2917b@99 D4/0.4375b@92 D4/0.3542b@88 D3/0.25b@91 D3/1.1667b@91 D4/0.3333b@76 D4/0.4583b@89 D3/0.3958b@82 D5/0.3125b@81 D5/0.2708b@84 D5/0.25b@80 A4/0.4792b@83 F#5/0.5625b@80 D3/0.4583b@87 D5/0.2917b@75 D3/0.4375b@76 D5/0.5417b@72 F#5/0.4375b@75 G4/0.25b@72 D5/0.3958b@75 G4/0.375b@69 D4/0.2708b@70 F#4/0.5b@82 F#5/0.25b@81 G4/0.25b@80 G4/0.4792b@71 D4/0.25b@68 D4/0.3125b@71 D4/0.4792b@71 D4/0.3958b@64 D4/0.3125b@75 E4/0.25b@65 D4/0.5b@63 F#5/0.5208b@61 F#5/0.4583b@83 E3/0.3542b@61 F3/0.4167b@66 F3/0.25b@69 F3/0.2917b@63 F#5/0.4375b@66 F#5/0.2292b@51 C#3/0.3125b@69 C#3/0.3542b@64 D4/0.2708b@54 F#5/0.625b@59 F#5/0.4792b@52 F3/0.3125b@44 D4/0.2917b@43 R/1.3125b E4/0.4792b@64 R/3.5417b F3/0.9792b@64 R/3.0417b E4/0.2917b@57 F#5/0.6667b@40 F#5/2b@51 R/1.0208b G4/0.3125b@82 A3/0.3125b@49 A3/0.4583b@64 F#5/0.2708b@43 A3/0.2708b@46 A3/0.3333b@50 B3/0.3958b@61 A#3/0.4375b@79 A3/0.5417b@65 B3/0.4167b@60 B3/0.3125b@68 B3/0.5b@60 A#3/0.3958b@62 A3/0.3125b@71 A3/0.375b@73 A3/0.375b@66 A3/0.5625b@74 A3/0.3958b@68 A3/0.4167b@72 A3/0.2917b@72 G#3/0.2708b@62 A3/0.25b@65 A3/0.25b@56 B3/0.8125b@115 B3/0.4167b@87 A3/0.3542b@94 A3/0.4167b@73 E3/0.25b@89 F#3/0.25b@81 E3/0.6458b@112 E3/0.2708b@90 E3/0.5833b@94 E3/0.375b@110 E3/1.0833b@104 E3/0.3542b@76 E4/0.375b@82 C#3/0.3125b@73 C#4/0.7083b@114 C#4/0.3958b@96 D4/0.2708b@90 G#3/0.3333b@87 C#3/0.3125b@79 A3/0.625b@112 B3/0.6042b@114 B3/0.4375b@93 A3/0.3125b@94 F#3/0.7292b@106 F#3/0.3333b@91 F#3/0.4375b@86 A3/0.3333b@88 B3/0.2917b@78 C#3/0.5b@78 A3/0.375b@72 F#3/0.4583b@102 F#3/0.6875b@98 F3/0.3958b@76 F#3/0.3958b@80 F#3/0.2292b@72 F#3/0.3333b@65 F#3/1b@112 F#3/1.0833b@114 D4/0.2708b@81 F#3/0.4583b@82 F#3/0.2708b@84 F#4/0.4167b@78 A3/0.4583b@95 A3/0.875b@104 A3/0.5b@76 A3/0.2917b@82 F3/0.2708b@76 D4/0.3958b@83 A3/0.5625b@93 A3/0.6458b@83 A4/0.6667b@105 A4/0.3958b@96 A3/0.4583b@101 A3/0.5b@114 B3/0.3333b@112 B3/0.5417b@111 A3/0.6042b@97 B3/0.7292b@112 B3/0.5b@100 A3/0.2917b@85 A3/0.2708b@100 A3/0.4375b@104 A3/0.5625b@105 B3/0.5208b@87 A3/0.2708b@83 A3/0.375b@84 B3/0.5833b@84 B3/0.4583b@78 B3/0.6875b@110 B3/0.375b@82 A3/0.2708b@97 A3/0.375b@101 A3/0.25b@90 E3/0.5208b@86 E3/0.625b@111 E4/0.3333b@84 E3/0.2917b@86 E4/0.2708b@85 E4/0.8125b@109 E3/0.3958b@95 E3/0.2708b@79 D4/0.2708b@88 E4/0.4375b@84 C#3/0.3125b@83 C#4/0.3125b@108 C#4/0.8333b@107 C#4/0.25b@91 D4/0.3125b@89 D4/0.3125b@75 A3/0.8958b@95 A3/0.2708b@108 A3/0.3333b@84 A#3/0.4792b@90 F#3/0.6667b@97 F#3/0.2917b@86 A3/0.3958b@70 A3/0.3125b@63 C#3/0.2917b@71 C#3/0.3333b@71 C#3/0.3125b@65 G3/0.3958b@67 F#3/1.625b@103 F#3/0.25b@79 F#3/0.3125b@88 F#3/0.3125b@87 F#3/0.625b@107 F#3/0.375b@95 F#3/1.1458b@111 C#5/0.3958b@86 C#5/0.5833b@87 C#5/0.375b@89 A3/0.625b@117 A3/0.375b@100 A3/0.2708b@86 A3/0.5625b@94 A3/0.6458b@95 A3/0.6042b@91 A3/0.3333b@78 A3/0.5625b@76 A3/0.9583b@111 A4/0.5625b@101 A3/0.8542b@94 B3/0.2708b@91 A3/0.4167b@93 A4/0.3958b@89 B3/0.2708b@88 B3/0.25b@90 A3/0.25b@99 A3/0.3542b@95 A3/0.4375b@93 A3/2b@107 R/0.5b A3/0.25b@82 B4/0.25b@82 B3/0.4792b@91 B3/0.6042b@109 A3/0.3958b@98 A3/0.5417b@116 E3/0.6875b@105 A3/0.2708b@94 E4/0.7292b@114 E3/0.3958b@101 A3/0.375b@97 E3/0.7708b@116 E3/0.5208b@102 E4/0.5625b@90 C#3/0.3125b@101 C#3/0.3333b@92 C#4/0.8542b@102 C#4/0.3958b@92 E4/0.2708b@85 E4/0.4583b@93 E5/0.5417b@85 B3/1b@105 E4/0.5b@88 F#3/0.7292b@100 F#3/0.375b@92 A#3/0.4792b@84 A3/0.25b@86 A#3/0.25b@84 A#3/0.6042b@87 A#3/0.3958b@82 F#3/0.625b@82 C#4/0.3958b@83 C#4/0.4583b@83 F#3/0.3958b@81 A#3/0.4167b@76 F#3/0.25b@82 F#3/0.2292b@79 G3/0.3125b@72 F#3/0.3125b@78 F#4/1.0833b@110 F#3/0.3542b@97 A3/0.4375b@86 F#3/0.7708b@88 A3/0.3958b@80 F#4/0.6042b@88 G#3/2b@83 R/0.2917b A3/0.5625b@86 A3/0.6875b@114 A3/0.9375b@99 A3/0.7292b@93 B3/0.3333b@100 A3/0.3542b@89 A4/0.5417b@95 B3/0.2917b@93 A3/0.2917b@84 A3/0.4792b@100 A3/0.25b@90 B3/0.4167b@86 A3/0.375b@95 A3/0.4375b@91 A3/0.3333b@85 A3/0.25b@93 A3/0.5833b@84 A3/0.3542b@88 A#3/0.25b@86 A3/0.4167b@85 A3/0.2917b@79 A3/0.3125b@75 A3/0.5833b@86 A4/0.5625b@89 A4/0.9167b@79 E3/0.7083b@104 E3/0.5208b@83 E3/0.2917b@90 E3/1.6458b@102 E5/0.3958b@77 E4/0.4583b@80 C#5/1.2708b@91 C#4/0.7083b@85 A4/0.5417b@87 A4/1.5b@92 F#4/1.7917b@93 A4/1.1667b@79 F#3/1.2708b@98 A4/0.3125b@68 F#3/0.6042b@83 A4/0.3125b@63 F#3/0.7292b@89 F#3/0.2917b@74 F#3/1.625b@94 A4/0.5208b@74 F#4/0.3333b@67 A3/0.8125b@95 F#4/0.25b@62 A3/0.7917b@64 A3/0.625b@63 A3/1.1458b@60 A3/0.375b@50 A3/1.5208b@70 A3/1.7917b@61"
+    },
+    {
+      "name": "drums-kick",
+      "patch": "tha-kit",
+      "out": "tha-drums",
+      "gain": "0dB",
+      "score": "R/9.2708b k/4b@1 k/3.8958b@1 k/4.0208b@1 k/6.375b@2 k/0.25b@127 k/0.75b@127 k/0.5208b@127 k/0.4792b@127 k/0.2708b@127 k/0.7292b@127 k/0.5208b@127 k/0.4792b@127 k/0.2708b@127 k/0.7292b@127 k/1b@118 k/0.2292b@127 k/0.0417b@127 k/0.6875b@127 k/0.0417b@54 k/0.5208b@127 k/0.5b@127 k/0.25b@127 k/0.7292b@127 k/1b@127 k/0.2708b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.4792b@127 k/0.2708b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.4792b@127 k/0.2708b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.0417b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.2708b@127 k/0.7292b@127 k/0.5b@127 k/0.5b@127 k/0.2083b@127 k/0.0417b@127 k/0.75b@127 k/0.5b@125 k/0.5b@127 k/0.2083b@127 k/0.0417b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.2708b@127 k/0.7292b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.5208b@127 k/0.2292b@127 k/0.75b@127 k/0.5208b@127 k/0.4792b@127 k/0.2708b@127 k/0.7292b@127 k/0.5208b@127 k/0.4792b@127 k/0.2708b@127 k/0.7292b@127 k/1b@127 k/0.2708b@127 k/0.7292b@127 k/0.5208b@127 k/0.5b@127 k/0.25b@127 k/0.7292b@127 k/1.0208b@127 k/0.2083b@127 k/0.0417b@127 k/0.7292b@127 k/0.5208b@127 k/0.4792b@127 k/0.2708b@127 k/0.75b@127 k/0.9792b@92 k/0.2708b@127 k/0.75b@127 k/0.5b@127 k/0.4792b@127 k/0.2708b@127 k/0.75b@127 k/0.9792b@127 k/0.2292b@127 k/0.0417b@127 k/0.75b@127 k/0.5b@127 k/0.4792b@36 k/0.2708b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/1b@127 k/0.5b@127 k/0.5b@65 k/0.25b@127 k/0.75b@127 k/0.5b@92 k/0.4792b@127 k/0.2708b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.2708b@127 k/0.7292b@127 k/0.5b@65 k/0.4792b@127 k/0.2292b@127 k/0.0417b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.2708b@127 k/0.6667b@127 k/0.0625b@45 k/0.5b@127 k/0.5b@127 k/0.2708b@127 k/0.7292b@127 k/0.5208b@114 k/0.4792b@127 k/0.2083b@127 k/0.0625b@127 k/0.7292b@127 k/0.5208b@127 k/0.5b@121 k/0.2292b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.2708b@127 k/0.7292b@127 k/0.5208b@127 k/0.4792b@127 k/0.2708b@127 k/0.7292b@127 k/1b@127 k/0.2708b@127 k/0.75b@127 k/0.5b@127 k/0.4792b@127 k/0.25b@127 k/0.7708b@127 k/0.5b@127 k/0.4792b@127 k/0.2708b@127 k/0.75b@127 k/0.5b@127 k/0.4792b@1 k/0.2708b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.4792b@1 k/0.2292b@127 k/0.0417b@127 k/0.75b@127 k/0.5b@126 k/0.4792b@20 k/0.2708b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/0.9792b@127 k/0.2708b@127 k/0.75b@127 k/0.5b@127 k/0.4792b@127 k/0.2708b@127 k/0.75b@127 k/1b@127 k/0.25b@123 k/0.75b@127 k/0.5208b@127 k/0.4792b@127 k/0.2708b@127 k/0.7292b@127 k/1b@127 k/0.25b@127 k/0.75b@127 k/0.5208b@127 k/0.4792b@127 k/0.25b@127 k/0.75b@127 k/1b@127 k/0.2708b@127 k/0.7292b@127 k/0.5208b@127 k/0.4792b@127 k/0.25b@127 k/0.7708b@127 k/0.9792b@127 k/0.2708b@127 k/0.75b@127 k/0.5b@127 k/0.4792b@127 k/0.25b@127 k/0.7708b@127 k/0.9792b@96 k/0.2708b@127 k/0.6875b@127 k/0.0625b@119 k/0.4792b@127 k/0.5b@127 k/0.2708b@127 k/0.75b@127 k/0.9792b@127 k/0.2708b@127 k/0.75b@127 k/0.5b@127 k/0.4792b@127 k/0.2917b@127 k/0.7292b@9 k/0.9792b@127 k/0.2708b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.4792b@127 k/0.2708b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/0.5208b@127 k/0.4792b@127 k/1b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/0.5417b@127 k/0.125b@6 k/0.3333b@4 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/1.2708b@127 k/0.1667b@5 k/0.3125b@1 k/0.25b@127 k/0.7708b@127 k/0.9792b@75 k/0.25b@127 k/0.75b@126 k/0.6875b@127 k/0.3125b@1 k/0.25b@127 k/0.75b@127 k/1b@127 k/0.25b@127 k/0.75b@127 k/0.5208b@127 k/0.0625b@4 k/0.4167b@2 k/0.25b@127 k/1.25b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.7708b@127 k/0.9792b@127 k/0.2708b@127 k/0.75b@127 k/0.4792b@127 k/0.5b@127 k/0.2708b@127 k/0.7292b@127 k/1b@88 k/0.2708b@127 k/0.7292b@127 k/0.5208b@127 k/0.5b@4 k/0.25b@127 k/0.7292b@127 k/1.0208b@127 k/0.25b@127 k/0.7292b@127 k/0.5b@127 k/0.7708b@44 k/0.7292b@127 k/1.2708b@127 k/0.75b@127 k/0.5b@127 k/0.5b@47 k/0.25b@127 k/0.75b@127 k/0.4792b@127 k/0.5b@127 k/0.2708b@127 k/0.7292b@127 k/0.5208b@127 k/0.4792b@127 k/0.2708b@127 k/0.7292b@127 k/1.0208b@113 k/0.25b@127 k/0.7292b@127 k/0.5208b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/1b@127 k/0.25b@127 k/0.7292b@34 k/0.5208b@127 k/0.5b@127 k/0.25b@127 k/0.75b@6 k/0.9792b@127 k/0.2708b@127 k/0.75b@29 k/0.5208b@127 k/0.4792b@8 k/0.25b@127 k/0.7708b@79 k/0.9792b@127 k/0.25b@127 k/0.75b@62 k/0.5208b@127 k/0.1042b@5 k/0.3542b@1 k/0.2708b@127 k/1.75b@64 k/0.2708b@127 k/0.7292b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/1b@127 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/1.75b@127 k/0.2708b@127 k/0.7292b@127 k/0.5b@127 k/0.5b@47 k/0.25b@127 k/0.75b@127 k/1b@127 k/0.2708b@127 k/0.7292b@127 k/0.5208b@127 k/0.4792b@6 k/0.25b@127 k/0.75b@127 k/1b@98 k/0.25b@127 k/0.75b@127 k/0.5208b@127 k/0.4792b@91 k/0.25b@111 k/0.75b@127 k/1b@127 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/1b@127 k/1b@127 k/0.2708b@127 k/0.7292b@127 k/0.5208b@127 k/0.4792b@83 k/0.2708b@127 k/0.75b@69 k/0.9792b@127 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.7708b@127 k/0.9792b@85 k/0.2708b@127 k/0.75b@127 k/0.5b@127 k/0.4792b@127 k/0.25b@127 k/0.7708b@127 k/0.9792b@127 k/0.2708b@127 k/0.7292b@127 k/0.5208b@127 k/0.4792b@21 k/0.25b@127 k/0.75b@127 k/1b@127 k/0.25b@127 k/0.7708b@127 k/0.5b@127 k/0.4792b@87 k/0.25b@112 k/0.75b@34 k/1b@127 k/1b@127 k/0.5208b@127 k/0.4792b@51 k/0.2708b@127 k/0.75b@127 k/0.9792b@127 k/1b@127 k/0.5b@127 k/0.5208b@127 k/0.25b@92 k/0.7292b@19 k/1b@127 k/0.2708b@127 k/0.75b@127 k/0.5b@127 k/0.5b@104 k/0.9792b@127 k/0.5208b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/1b@127 k/0.5b@78 k/0.5b@127 k/0.25b@127 k/0.7292b@74 k/0.5208b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/0.5b@58 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.5b@15 k/0.9792b@127 k/1b@127 k/1b@127 k/0.5208b@127 k/0.5b@6 k/0.9792b@127 k/0.5417b@127 k/0.1458b@5 k/0.3333b@2 k/1b@127 k/0.5b@127 k/0.5b@9 k/1b@127 k/1b@127 k/1b@127 k/1b@127 k/0.2708b@127 k/0.7292b@23 k/1b@127 k/0.25b@127 k/0.75b@98 k/0.5208b@127 k/0.4792b@2 k/0.25b@80 k/0.75b@123 k/1b@127 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.4792b@127 k/0.2917b@127 k/0.7292b@2 k/0.9792b@127 k/0.2708b@127 k/0.75b@17 k/1b@127 k/0.25b@127 k/0.75b@85 k/1b@127 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.0625b@4 k/0.4167b@2 k/0.2708b@127 k/0.75b@127 k/1b@127 k/0.25b@127 k/0.75b@127 k/0.5208b@127 k/0.4792b@6 k/0.25b@127 k/0.7292b@127 k/1.0208b@127 k/0.25b@127 k/0.75b@127 k/0.5208b@127 k/0.4792b@127 k/0.25b@127 k/0.75b@127 k/1b@127 k/0.2083b@127 k/0.0625b@127 k/0.6875b@127 k/0.0417b@73 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/1b@127 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/1b@127 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/1b@127 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/1b@127 k/0.25b@127 k/0.75b@127 k/0.5208b@127 k/0.4792b@30 k/0.25b@127 k/0.75b@127 k/1b@127 k/0.2708b@127 k/0.7292b@127 k/0.5b@127 k/0.5b@127 k/0.2708b@127 k/0.75b@127 k/0.9792b@127 k/0.2708b@127 k/0.7292b@127 k/0.5b@127 k/0.5b@17 k/0.2708b@127 k/0.7292b@127 k/1b@127 k/0.2708b@127 k/0.7292b@127 k/0.5b@127 k/0.5b@127 k/0.2708b@127 k/0.7292b@127 k/1b@127 k/0.2708b@127 k/0.7292b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/1b@126 k/0.2708b@127 k/0.7292b@127 k/0.5208b@127 k/0.4792b@127 k/0.2708b@127 k/0.7292b@127 k/1b@127 k/0.2708b@127 k/0.7292b@127 k/0.5208b@127 k/0.4792b@36 k/0.25b@127 k/0.75b@127 k/1b@127 k/0.2708b@127 k/0.7292b@127 k/0.5208b@127 k/0.4792b@7 k/0.25b@127 k/1.75b@127 k/0.25b@127 k/0.7708b@127 k/0.5b@127 k/0.5b@40 k/0.25b@127 k/0.7292b@127 k/1b@127 k/0.25b@127 k/0.7708b@127 k/0.5b@127 k/0.4792b@127 k/0.2708b@127 k/0.7292b@127 k/1b@127 k/0.2708b@127 k/0.7292b@127 k/0.5208b@127 k/0.4792b@28 k/1.0208b@127 k/1.2292b@127 k/0.7708b@127 k/0.5b@127 k/0.4792b@127 k/0.25b@127 k/0.7708b@127 k/0.9792b@94 k/0.2083b@127 k/0.0625b@127 k/0.7292b@127 k/0.5208b@127 k/0.4792b@127 k/0.2708b@127 k/0.7292b@127 k/1b@127 k/0.2708b@127 k/0.7292b@127 k/0.5b@127 k/0.5b@127 k/0.2708b@127 k/0.7292b@127 k/1b@127 k/0.2708b@127 k/0.7292b@127 k/0.5b@127 k/0.5b@127 k/0.2708b@127 k/0.7292b@127 k/1b@127 k/0.2708b@127 k/0.7292b@127 k/0.5208b@127 k/0.4792b@10 k/0.2708b@127 k/1.7292b@127 k/0.2708b@127 k/0.7292b@127 k/0.5208b@127 k/0.1875b@42 k/0.3125b@1 k/0.25b@127 k/0.7292b@127 k/0.5208b@127 k/0.4792b@32 k/0.25b@127 k/0.75b@127 k/0.5208b@127 k/0.4792b@127 k/0.2708b@127 k/0.7292b@127 k/0.5208b@127 k/0.4792b@127 k/0.25b@127 k/0.75b@127 k/0.5208b@127 k/0.4792b@13 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/0.5208b@127 k/0.4792b@127 k/0.2708b@127 k/0.4375b@127 k/0.3125b@3 k/0.5b@127 k/0.4792b@24 k/0.2708b@127 k/0.7292b@127 k/0.5208b@127 k/0.4792b@127 k/0.2708b@127 k/0.4375b@127 k/0.2917b@3 k/0.5208b@127 k/0.4792b@2 k/0.25b@127 k/0.4583b@127 k/0.3125b@1 k/0.5b@127 k/0.4792b@13 k/0.25b@127 k/0.75b@127 k/0.5208b@127 k/0.4792b@44 k/0.25b@127 k/0.7708b@127 k/0.5b@127 k/0.4792b@25 k/0.25b@127 k/0.7708b@127 k/0.5b@127 k/0.4792b@20 k/0.2708b@127 k/0.7292b@127 k/0.5208b@127 k/0.4792b@127 k/0.2708b@127 k/1.7292b@127 k/0.2708b@127 k/1.25b@127 k/0.5b@127 k/0.25b@127 k/1.25b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.1875b@13 k/0.3125b@2 k/0.25b@127 k/0.7292b@127 k/0.5208b@127 k/0.5b@127 k/0.25b@127 k/0.7292b@127 k/0.5208b@127 k/0.4792b@127 k/0.2708b@127 k/0.7292b@127 k/0.5b@127 k/0.5b@127 k/0.2708b@127 k/0.7292b@127 k/0.5208b@127 k/0.4792b@9 k/0.2708b@127 k/0.7292b@127 k/0.5208b@127 k/0.4792b@7 k/0.2708b@127 k/0.7292b@127 k/0.5208b@127 k/0.5b@10 k/0.25b@127 k/0.3333b@127 k/0.3958b@3 k/0.5208b@127 k/0.1875b@6 k/0.2917b@1 k/0.2708b@127 k/0.4167b@127 k/0.3125b@1 k/0.5208b@127 k/0.4792b@6 k/0.2708b@127 k/0.7292b@127 k/0.5208b@127 k/0.0417b@3 k/0.4375b@2 k/0.2708b@127 k/0.7292b@127 k/0.5208b@127 k/0.0625b@13 k/0.125b@3 k/0.2917b@1 k/0.2708b@127 k/0.4375b@127 k/0.2917b@1 k/0.5208b@127 k/0.0625b@4 k/0.4167b@2 k/0.2708b@127 k/0.75b@127 k/0.5b@127 k/0.4792b@6 k/0.2708b@127 k/0.75b@127 k/0.5b@127 k/0.4792b@7 k/0.2708b@127 k/0.75b@127 k/0.5b@127 k/0.4792b@127 k/0.25b@127 k/0.7708b@127 k/0.5b@127 k/0.4792b@127 k/0.2708b@127 k/0.7292b@127 k/0.5208b@127 k/0.4792b@5 k/0.2708b@127 k/0.75b@127 k/0.5b@127 k/0.4792b@127 k/0.2708b@127 k/0.7292b@127 k/0.5208b@127 k/0.4792b@4 k/0.2708b@127 k/0.7292b@127 k/0.5208b@127 k/0.4792b@57 k/0.2708b@127 k/0.75b@127 k/0.5b@127 k/0.4792b@44 k/0.2708b@127 k/0.7292b@127 k/0.5208b@127 k/0.4792b@43 k/0.2708b@127 k/0.7292b@127 k/0.5208b@127 k/0.5b@127 k/0.25b@127 k/0.4375b@127 k/0.2917b@1 k/0.5208b@127 k/0.5b@96 k/0.25b@127 k/0.7292b@127 k/0.5b@127 k/0.5208b@127 k/0.25b@127 k/0.75b@127 k/0.4792b@127 k/0.0625b@3 k/0.4583b@1 k/0.25b@127 k/0.7292b@127 k/0.5208b@127 k/0.5b@36 k/0.25b@127 k/0.7292b@127 k/0.5b@127 k/0.5208b@101 k/0.25b@127 k/0.7292b@127 k/0.5208b@127 k/0.5b@50 k/0.25b@127 k/0.7292b@127 k/0.5208b@127 k/0.4792b@127 k/0.2708b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.6042b@127 k/0.0833b@5 k/0.2917b@2 k/0.5208b@127 k/0.4792b@127 k/0.2708b@127 k/0.375b@127 k/0.3542b@5 k/0.5208b@127 k/0.4792b@1 k/0.2708b@127 k/0.7292b@127 k/0.5208b@127 k/0.4792b@127 k/0.2708b@71 k/0.75b@127 k/0.5b@127 k/0.5b@93 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.5b@105 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/0.4792b@127 k/0.5b@43 k/0.2708b@127 k/0.3333b@127 k/0.4167b@3 k/0.5b@127 k/0.4792b@127 k/0.2708b@127 k/0.7292b@49 k/0.5208b@127 k/0.4792b@127 k/0.2708b@127 k/0.3333b@127 k/0.3958b@6 k/0.5208b@127 k/0.4792b@127 k/0.2708b@127 k/0.3542b@127 k/0.3958b@3 k/0.5b@127 k/0.5b@124 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.4792b@5 k/0.2708b@127 k/0.7292b@127 k/0.5208b@127 k/0.4792b@8 k/1b@127 k/0.5417b@127 k/0.0417b@2 k/0.4375b@2 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.5b@1 k/0.25b@127 k/0.75b@7 k/0.5b@127 k/0.5b@8 k/0.25b@127 k/0.75b@127 k/1b@127 k/0.25b@127 k/0.75b@127 k/0.4792b@127 k/0.5208b@127 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.375b@127 k/0.375b@4 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.7292b@127 k/0.5208b@127 k/20.5b@127 k/1b@127 k/0.5b@127 k/0.4792b@127 k/1.0208b@127 k/0.4792b@127 k/0.5b@127 k/1.0208b@127 k/0.9792b@127 k/0.2708b@52 k/0.75b@127 k/0.5b@127 k/0.4792b@11 k/0.2708b@127 k/0.7292b@1 k/1.0208b@127 k/0.25b@127 k/0.7292b@127 k/0.5417b@127 k/0.4583b@11 k/0.2708b@127 k/0.7292b@127 k/1.0208b@127 k/0.25b@127 k/0.75b@127 k/0.4792b@127 k/0.5208b@127 k/0.2292b@127 k/0.75b@127 k/1.0208b@127 k/0.25b@127 k/0.7292b@127 k/0.5b@127 k/0.5b@127 k/0.2708b@127 k/0.7292b@127 k/1.0208b@127 k/0.25b@127 k/0.7292b@127 k/0.5208b@127 k/0.4792b@127 k/0.25b@127 k/0.75b@127 k/1b@127 k/0.2708b@127 k/0.7292b@127 k/0.5b@127 k/0.5b@127 k/0.2708b@127 k/0.7292b@6 k/1b@127 k/0.25b@127 k/0.75b@127 k/0.5208b@127 k/0.5b@127 k/0.2292b@127 k/0.7708b@127 k/0.9792b@127 k/0.25b@127 k/0.7708b@127 k/0.4792b@127 k/0.5b@127 k/0.25b@127 k/0.7708b@127 k/0.9792b@127 k/0.2708b@127 k/0.75b@127 k/0.5b@127 k/0.4792b@114 k/0.25b@127 k/0.75b@127 k/1b@127 k/0.25b@127 k/0.7708b@127 k/0.5b@127 k/0.4792b@54 k/0.25b@127 k/0.75b@127 k/1b@127 k/0.25b@127 k/0.7708b@127 k/0.5b@127 k/0.4792b@127 k/0.25b@127 k/0.75b@107 k/1b@127 k/0.2708b@127 k/0.7292b@127 k/0.5b@127 k/0.5b@127 k/0.2708b@127 k/0.7292b@127 k/1b@127 k/0.2708b@127 k/0.7292b@127 k/0.5b@127 k/0.2083b@9 k/0.2917b@6 k/0.2708b@108 k/1.7292b@127 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.2708b@127 k/0.7292b@37 k/1b@127 k/0.2708b@127 k/0.7292b@127 k/0.5b@127 k/0.5208b@127 k/0.2292b@127 k/0.75b@127 k/1b@127 k/0.2708b@127 k/0.7292b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/1b@127 k/0.25b@127 k/0.75b@127 k/0.5208b@127 k/0.4792b@127 k/0.25b@127 k/0.75b@127 k/1b@127 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/1b@127 k/0.25b@127 k/0.75b@127 k/0.5208b@127 k/0.4792b@9 k/0.25b@127 k/0.75b@127 k/1b@41 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/1b@114 k/0.25b@61 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.25b@57 k/0.7292b@127 k/1.0208b@127 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.2708b@127 k/0.7292b@1 k/1b@127 k/0.25b@127 k/0.75b@127 k/0.5b@87 k/0.4583b@127 k/0.0417b@50 k/0.2708b@127 k/0.7292b@72 k/1b@46 k/0.2708b@127 k/0.7292b@127 k/0.5b@127 k/0.4792b@127 k/0.2708b@127 k/0.75b@127 k/0.5b@66 k/0.5b@127 k/0.2708b@110 k/0.7292b@44 k/0.5b@76 k/0.5b@122 k/0.25b@127 k/0.75b@127 k/0.9792b@73 k/0.2708b@127 k/0.75b@127 k/0.5b@127 k/0.4792b@127 k/0.2708b@127 k/0.75b@127 k/0.9792b@84 k/0.2708b@127 k/0.75b@127 k/0.5b@127 k/0.5b@42 k/0.25b@127 k/0.75b@83 k/1b@86 k/0.9792b@127 k/0.5417b@127 k/0.1667b@20 k/0.3125b@1 k/0.25b@127 k/0.75b@110 k/1b@102 k/0.25b@41 k/0.75b@109 k/0.5208b@127 k/0.4792b@11 k/0.25b@126 k/1.75b@127 k/0.25b@127 k/0.7292b@127 k/0.5208b@127 k/0.4792b@127 k/0.375b@127 k/1.6458b@12 k/0.25b@127 k/0.7292b@127 k/0.5208b@127 k/0.5b@127 k/0.25b@127 k/0.7292b@127 k/1b@127 k/0.2708b@127 k/1.25b@127 k/0.4792b@127 k/0.2708b@127 k/1.75b@127 k/0.25b@127 k/0.7292b@127 k/0.5208b@127 k/0.4792b@52 k/0.2708b@127 k/0.75b@127 k/0.9792b@127 k/0.2708b@127 k/0.75b@127 k/0.5b@127 k/0.4792b@121 k/0.2708b@127 k/0.75b@127 k/0.5208b@127 k/0.4583b@39 k/0.2708b@127 k/0.75b@127 k/0.5b@127 k/0.4792b@34 k/0.2708b@127 k/1.25b@127 k/0.4792b@127 k/1.5417b@127 k/0.1667b@4 k/0.2917b@5 k/0.2708b@127 k/0.75b@127 k/0.5b@82 k/0.4792b@127 k/0.2708b@127 k/1.2292b@127 k/0.5b@127 k/0.2708b@127 k/0.2292b@83 k/0.5208b@7 k/0.5b@127 k/0.4792b@127 k/0.2708b@127 k/1.2292b@127 k/0.5b@127 k/1.0208b@127 k/0.5b@127 k/0.4792b@127 k/0.2708b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.7292b@70 k/1.0208b@127 k/0.25b@127 k/0.75b@127 k/0.4792b@127 k/0.5b@127 k/0.2708b@127 k/0.75b@127 k/1b@86 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/1b@127 k/0.25b@127 k/0.7292b@127 k/0.5208b@127 k/0.4792b@127 k/0.2708b@127 k/0.7292b@127 k/0.5208b@127 k/0.4792b@90 k/0.2708b@108 k/0.7292b@127 k/0.5208b@127 k/0.4792b@127 k/0.25b@127 k/0.75b@127 k/0.5208b@127 k/0.4792b@127 k/0.25b@127 k/0.75b@127 k/0.5208b@127 k/0.4792b@127 k/0.2708b@127 k/1.7292b@127 k/0.2708b@127 k/0.75b@127 k/0.5b@127 k/0.4792b@127 k/0.2708b@79 k/0.7292b@127 k/1b@127 k/0.25b@127 k/1.2708b@127 k/0.4792b@127 k/0.2708b@127 k/1.7292b@110 k/0.25b@127 k/0.7708b@127 k/0.5b@127 k/0.4792b@127 k/0.25b@127 k/0.7708b@127 k/0.9792b@127 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/2.0208b@127 k/0.7292b@127 k/0.6667b@127 k/0.3333b@15 k/0.25b@127 k/0.75b@127 k/1.2708b@127 k/0.7292b@127 k/0.5208b@127 k/0.5b@91 k/0.2292b@127 k/0.75b@127 k/1b@127 k/0.2708b@127 k/0.7292b@127 k/0.5208b@127 k/0.7292b@31 k/1.75b@127 k/1b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/1b@120 k/1.5417b@75 k/0.4583b@7 k/0.2708b@127 k/1.7292b@88 k/0.25b@127 k/1.25b@127 k/0.5b@127 k/1b@127 k/1b@127 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.4375b@127 k/0.3125b@3 k/0.4792b@127 k/0.5208b@127 k/0.25b@127 k/0.75b@63 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.4375b@127 k/0.3125b@5 k/0.5b@127 k/0.5b@44 k/0.25b@127 k/0.4167b@127 k/0.3125b@3 k/0.5208b@127 k/0.5b@127 k/0.25b@127 k/0.4375b@127 k/0.9167b@17 k/0.3958b@2 k/0.25b@127 k/0.4375b@127 k/0.2917b@3 k/0.6042b@127 k/0.4167b@3 k/0.25b@127 k/0.4167b@127 k/0.3333b@6 k/0.5208b@127 k/0.4792b@1 k/0.25b@127 k/0.4375b@127 k/0.8125b@4 k/0.4792b@127 k/0.2708b@127 k/0.4375b@127 k/0.3125b@3 k/0.5b@127 k/0.1875b@9 k/0.3125b@1 k/0.25b@127 k/0.4375b@127 k/0.3125b@9 k/0.4792b@127 k/0.5208b@127 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.5b@20 k/0.25b@127 k/0.75b@127 k/0.9792b@127 k/0.2708b@127 k/0.75b@127 k/0.5b@127 k/0.4792b@127 k/0.6875b@127 k/0.3125b@4 k/0.5208b@127 k/0.4792b@127 k/0.2708b@127 k/0.75b@127 k/0.5b@127 k/0.5b@16 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.1042b@6 k/0.375b@2 k/0.2708b@127 k/0.7292b@127 k/0.5208b@127 k/0.4792b@127 k/0.2708b@127 k/0.75b@127 k/0.4792b@127 k/0.5208b@127 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.5b@14 k/0.25b@127 k/0.3333b@127 k/0.3958b@3 k/0.5208b@127 k/0.5b@3 k/0.25b@127 k/0.7292b@127 k/0.5208b@127 k/0.4792b@17 k/0.2708b@127 k/0.7292b@127 k/0.5417b@127 k/1.4583b@4 k/0.5b@127 k/0.5208b@127 k/0.9792b@127 k/0.5208b@127 k/0.4792b@23 k/0.2708b@127 k/0.4167b@127 k/0.3125b@7 k/0.5208b@127 k/0.4792b@5 k/0.2708b@127 k/0.3333b@127 k/0.3958b@9 k/0.5b@127 k/0.5b@127 k/0.2708b@127 k/0.4167b@127 k/0.3125b@1 k/0.5208b@127 k/0.4792b@51 k/0.25b@127 k/0.4583b@127 k/0.2917b@5 k/1b@127 k/0.25b@127 k/0.4375b@127 k/0.8125b@4 k/0.5b@127 k/0.2708b@127 k/0.7292b@127 k/1b@127 k/0.25b@127 k/0.75b@127 k/0.5625b@127 k/0.4375b@3 k/0.2708b@127 k/0.7292b@127 k/0.5208b@98 k/0.4792b@4 k/0.2708b@127 k/0.7292b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.375b@127 k/0.0625b@1 k/0.3125b@2 k/0.5417b@73 k/0.4583b@1 k/0.25b@127 k/0.375b@127 k/0.375b@4 k/0.5625b@127 k/0.4375b@1 k/0.25b@127 k/0.3958b@127 k/0.3542b@2 k/0.5b@108 k/0.5b@21 k/0.25b@127 k/0.4375b@127 k/0.3125b@4 k/0.5208b@127 k/0.4792b@13 k/0.25b@127 k/0.25b@127 k/0.5b@3 k/0.5625b@127 k/0.4375b@2 k/0.2708b@127 k/0.375b@127 k/0.0417b@2 k/0.3125b@2 k/0.5208b@127 k/0.75b@4 k/0.7292b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.3542b@127 k/0.0833b@12 k/0.3125b@11 k/0.5b@127 k/0.5b@127 k/0.2708b@127 k/0.7292b@127 k/0.5b@127 k/0.5b@127 k/0.2708b@127 k/0.7292b@127 k/1.0208b@127 k/0.2292b@127 k/0.75b@127 k/1b@127 k/0.25b@127 k/0.4375b@127 k/0.3125b@4 k/0.5b@127 k/0.4792b@127 k/0.2917b@127 k/1.7292b@13 k/0.25b@127 k/0.4375b@127 k/0.3125b@12 k/0.5208b@127 k/0.5b@5 k/0.9792b@127 k/0.5208b@127 k/0.4792b@4 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.5b@24 k/0.25b@127 k/0.4375b@127 k/0.3125b@3 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.3333b@127 k/0.4167b@5 k/0.5208b@127 k/0.4792b@45 k/0.25b@127 k/0.2917b@127 k/0.1458b@4 k/0.3125b@4 k/0.5b@127 k/0.5b@32 k/0.25b@127 k/0.75b@127 k/0.5208b@127 k/0.4792b@19 k/0.25b@127 k/0.25b@40 k/0.4792b@3 k/0.6042b@127 k/0.4167b@3 k/0.25b@127 k/0.375b@42 k/0.3542b@5 k/0.5417b@127 k/0.4792b@2 k/0.25b@127 k/0.75b@11 k/1b@127 k/0.25b@127 k/0.4375b@52 k/0.3125b@3 k/1b@127 k/0.25b@127 k/0.7292b@21 k/0.5417b@127 k/0.4792b@3 k/0.25b@127 k/0.75b@70 k/1.25b@127 k/0.75b@127 k/1b@127 k/1b@127 k/0.5417b@127 k/0.4375b@2 k/0.2917b@127 k/0.7292b@1 k/0.5b@127 k/0.4792b@37 k/0.2708b@127 k/0.4375b@127 k/0.3125b@3 k/0.5b@127 k/0.5b@1 k/0.25b@127 k/0.75b@52 k/0.5b@127 k/0.4792b@3 k/0.2708b@127 k/0.75b@127 k/0.5b@127 k/0.4792b@127 k/0.2708b@127 k/0.75b@127 k/0.5b@127 k/0.4375b@127 k/0.0625b@21 k/0.25b@64 k/0.75b@127 k/0.5b@127 k/0.4792b@6 k/0.2708b@127 k/0.4375b@127 k/0.2917b@7 k/0.5b@96 k/0.2083b@127 k/0.2917b@1 k/0.2708b@127 k/0.3958b@127 k/0.3333b@7 k/0.5208b@127 k/0.4792b@127 k/0.2708b@127 k/0.25b@127 k/0.1667b@1 k/0.3125b@3 k/0.5b@127 k/0.5208b@127 k/0.25b@127 k/0.7292b@127 k/0.5b@127 k/0.5b@115 k/0.2708b@127 k/0.4167b@127 k/0.3125b@1 k/0.5b@127 k/0.5b@127 k/0.2708b@127 k/0.4167b@127 k/0.3125b@1 k/0.5b@127 k/0.5b@127 k/0.2708b@127 k/0.4167b@127 k/0.3125b@1 k/0.5b@127 k/0.5b@127 k/0.2708b@127 k/0.4167b@127 k/0.3125b@6 k/0.5208b@127 k/0.4792b@127 k/0.2708b@127 k/0.4167b@127 k/0.3125b@4 k/0.5208b@127 k/0.4792b@33 k/0.2708b@127 k/0.4167b@114 k/0.3125b@4 k/0.5208b@127 k/0.4792b@127 k/0.2708b@127 k/0.4167b@2 k/0.3125b@4 k/0.5208b@127 k/0.4792b@1 k/0.2708b@127 k/0.7292b@127 k/0.5b@127 k/0.5208b@127 k/0.2292b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.2708b@127 k/0.75b@127 k/0.5b@127 k/0.0417b@1 k/0.4375b@1 k/0.25b@127 k/0.4583b@127 k/0.3125b@4 k/0.5b@127 k/0.4792b@97 k/0.25b@104 k/0.4375b@127 k/0.3125b@4 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.3125b@127 k/0.0417b@2 k/0.1042b@2 k/0.2917b@1 k/0.5b@127 k/0.5b@127 k/0.2708b@127 k/0.3125b@127 k/0.125b@4 k/0.2917b@1 k/0.5208b@127 k/0.4792b@6 k/0.25b@127 k/0.4375b@127 k/0.3125b@3 k/0.5208b@127 k/0.4792b@3 k/0.25b@127 k/0.75b@127 k/0.5208b@127 k/0.4792b@81 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/0.5208b@127 k/0.4792b@42 k/1b@127 k/1b@127 k/0.0625b@127 k/0.2083b@111 k/0.7292b@54 k/1b@127 k/0.2708b@127 k/0.375b@30 k/1.3542b@6 k/0.5833b@127 k/0.4167b@8 k/0.5b@127 k/0.5b@127 k/0.6875b@127 k/0.3125b@4 k/0.5208b@127 k/0.4792b@13 k/0.2708b@127 k/0.4167b@40 k/0.875b@3 k/0.4583b@1 k/0.25b@127 k/0.7292b@126 k/1b@127 k/0.2708b@127 k/0.7292b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/1.75b@127 k/0.2708b@127 k/0.7292b@127 k/0.5208b@127 k/0.4792b@4 k/0.25b@127 k/0.75b@127 k/1b@127 k/0.25b@127 k/1.2708b@127 k/0.4792b@7 k/0.25b@127 k/1.2708b@127 k/0.4792b@127 k/0.25b@127 k/0.75b@127 k/1b@127 k/0.25b@127 k/1.25b@127 k/0.5b@127 k/0.25b@127 k/1.25b@127 k/0.5b@52 k/0.25b@127 k/1.75b@127 k/0.9792b@127 k/0.5208b@127 k/0.75b@127 k/0.75b@127 k/1b@127 k/0.25b@127 k/0.7292b@127 k/0.5208b@127 k/0.5b@127 k/0.25b@127 k/1.7292b@118 k/0.2708b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.75b@127 k/1.25b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/1b@127 k/0.2708b@127 k/1.2292b@127 k/0.4792b@127 k/0.2708b@127 k/0.75b@127 k/0.9792b@127 k/0.2708b@127 k/0.75b@127 k/0.5b@127 k/0.4792b@127 k/0.2708b@127 k/0.7292b@127 k/1b@127 k/0.2708b@127 k/1.25b@127 k/0.4792b@127 k/0.2708b@127 k/0.75b@127 k/0.9792b@127 k/1.0208b@127 k/0.5b@127 k/0.1875b@127 k/0.3125b@2 k/0.25b@127 k/1.75b@127 k/0.25b@127 k/0.3125b@127 k/0.9167b@56 k/0.5b@127 k/0.2708b@127 k/0.7292b@127 k/1b@127 k/0.2708b@127 k/1.2292b@127 k/0.5b@127 k/1b@127 k/1b@127 k/0.2708b@127 k/1.25b@127 k/0.5b@127 k/0.2292b@127 k/0.75b@127 k/1b@127 k/0.2708b@127 k/0.7292b@127 k/0.5b@127 k/0.5b@127 k/0.2708b@127 k/0.7292b@127 k/1b@114 k/0.2708b@123 k/0.7292b@127 k/0.5208b@127 k/0.4792b@127 k/0.25b@127 k/0.75b@127 k/1b@127 k/0.2708b@127 k/0.75b@127 k/0.4792b@127 k/0.5b@127 k/0.2708b@127 k/1.7292b@127 k/0.2708b@127 k/1.2292b@127 k/0.5b@127 k/0.2708b@127 k/0.75b@127 k/0.9792b@127 k/1b@127 k/0.5208b@127 k/0.4792b@127 k/0.25b@127 k/0.7708b@127 k/0.9792b@127 k/1b@127 k/0.5b@127 k/0.7083b@127 k/16.0417b@5 k/0.75b@127 k/0.5b@99 k/0.4792b@127 k/0.2708b@127 k/0.3333b@127 k/0.1042b@8 k/1.2917b@2 k/0.2708b@127 k/0.4375b@127 k/0.3125b@8 k/0.5208b@127 k/1.9792b@4 k/0.5b@127 k/0.25b@127 k/0.4375b@127 k/0.3125b@1 k/2.4792b@127 k/0.2083b@127 k/0.2917b@4 k/0.2708b@127 k/0.4167b@127 k/0.3333b@7 k/1b@127 k/1.4792b@1 k/0.5208b@127 k/0.25b@127 k/0.4375b@127 k/0.2917b@1 k/0.5208b@127 k/0.1875b@19 k/1.7917b@1 k/0.7708b@127 k/1.2708b@127 k/0.4792b@124 k/0.2292b@127 k/0.75b@127 k/1.0208b@127 k/0.375b@1 k/0.6042b@1 k/0.5208b@127 k/0.1875b@127 k/0.1667b@1 k/1.625b@4 k/0.5b@127 k/0.25b@127 k/0.4583b@127 k/1.3125b@3 k/2.2292b@1 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.2917b@127 k/0.1458b@2 k/0.3125b@2 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/0.5b@127 k/0.5b@127 k/0.25b@127 k/0.75b@127 k/1b@127"
+    },
+    {
+      "name": "drums-snare",
+      "patch": "tha-kit",
+      "out": "tha-drums",
+      "gain": "0dB",
+      "score": "R/235.0417b s/153.1042b@4 s/58.1458b@3 s/29.7917b@1 s/8.6042b@1 s/292.2708b@2 s/33.7083b@2 s/9.6875b@1 s/11b@1 s/10.4167b@3 s/4.5625b@58 s/3.3125b@1 s/9b@1 s/2b@2 s/4b@1 s/18.4792b@1 s/13.5208b@1 s/19b@1 s/7.6667b@1 s/9.3125b@1 s/6b@1 s/5.6875b@1 s/0.3125b@1 s/2b@1 s/8b@1 s/1.7083b@2 s/6.2917b@1 s/15b@1 s/1b@2 s/2.6875b@2 s/7.3125b@1 s/1b@1"
+    },
+    {
+      "name": "drums-hats",
+      "patch": "tha-kit",
+      "out": "tha-drums",
+      "gain": "0dB",
+      "score": "R/201.6667b oh/18.6875b@22 oh/0.0833b@41 h/86.875b@116 oh/130.9167b@3 oh/2.875b@22 oh/0.1042b@18 oh/1.5b@15 oh/26.5625b@21 oh/6.8125b@3 h/21.1667b@8 oh/45.0625b@2 oh/11.1458b@6 h/0.2083b@35 oh/2.5417b@18 oh/0.8125b@4 oh/3.6875b@4 oh/1.5b@1 oh/0.375b@1 oh/0.125b@6 oh/267.625b@9 oh/5.9167b@8 oh/0.0833b@4 oh/4b@8 oh/1.3125b@3 oh/0.0625b@80 oh/0.2083b@93 oh/11.3333b@54 oh/11.0208b@2 oh/0.9167b@3 oh/2.0208b@3 oh/1.0833b@3 oh/14.0208b@2 oh/10b@6 oh/12.9167b@3 oh/1.9375b@4 oh/12.0208b@3 oh/0.7292b@3 oh/3.2917b@3 oh/6.9375b@2 oh/23b@3 oh/6.0417b@2 oh/5b@2 oh/0.0417b@3 oh/2.9167b@3 oh/4.1667b@3 oh/3.8333b@5 oh/0.75b@6 oh/3.3333b@10 oh/105.4583b@5 oh/0.3958b@2 oh/0.4167b@1 oh/3.2708b@2 oh/97.6042b@1 oh/7.4583b@1 oh/3.3125b@1 oh/1.4375b@1 oh/0.4792b@1 oh/2.2917b@1 oh/0.2083b@1 oh/0.5417b@1 oh/1b@1"
+    },
+    {
+      "name": "drums-claps",
+      "patch": "tha-kit",
+      "out": "tha-drums",
+      "gain": "0dB",
+      "score": "R/27.5208b cp/7b@23 cp/4b@14 cp/4b@19 cp/4b@20 cp/8b@18 cp/4b@22 cp/2.9167b@21 cp/5.1042b@22 cp/4b@22 cp/4b@24 cp/4b@24 cp/8b@20 cp/8b@21 cp/8.7708b@16 cp/0.2292b@3 cp/5.8125b@21 cp/1.1458b@9 cp/0.875b@23 cp/0.1458b@17 cp/11.9792b@24 cp/6.0208b@21 cp/1.9792b@20 cp/3.0833b@23 cp/12b@26 cp/4.75b@21 cp/2.25b@5 cp/12b@22 cp/1.0208b@25 cp/8b@25 cp/4.9792b@28 cp/2b@21 cp/5.8958b@27 cp/8.125b@26 cp/5.8125b@27 cp/0.1875b@38 cp/0.9375b@46 cp/1.0417b@21 cp/3.0208b@45 cp/2.9792b@34 cp/1.875b@23 cp/18.1042b@19 cp/8.8333b@23 cp/0.1458b@23 cp/9.3958b@30 cp/3.5833b@3 cp/4b@23 cp/2b@23 cp/39.6875b@20 cp/5.9792b@6 cp/0.7708b@12 cp/3.6458b@10 cp/3.0208b@14 cp/0.9583b@32 cp/7.0417b@25 cp/4b@25 cp/4.0208b@22 cp/0.9792b@23 cp/3.0208b@23 cp/8b@21 cp/4b@22 cp/4b@29 cp/3.9792b@30 cp/4.0208b@30 cp/4b@24 cp/3.9792b@27 cp/8.0208b@20 cp/4b@22 cp/4b@29 cp/4b@31 cp/4b@30 cp/4b@28 cp/3b@24 cp/1b@15 cp/3.9167b@25 cp/21.8333b@22 cp/0.25b@4 cp/1.75b@34 cp/2.25b@4 cp/3.75b@27 cp/0.25b@6 cp/0.5625b@28 cp/1.4375b@5 cp/2b@30 cp/0.8958b@30 cp/1.1042b@28 cp/0.8958b@31 cp/1.1042b@31 cp/1.5833b@33 cp/0.4167b@31 cp/2b@24 cp/0.0625b@44 cp/0.7917b@26 cp/0.9583b@36 cp/0.1875b@42 cp/2b@49 cp/2b@44 cp/2b@36 cp/2b@31 cp/2.8958b@34 cp/5.1042b@26 cp/9.75b@31 cp/4b@3 cp/16b@4 cp/1.8958b@3 cp/2.3542b@6 cp/13.6458b@33 cp/0.2292b@6 cp/1.1458b@28 cp/0.2917b@26 cp/1.6042b@5 cp/4.9375b@30 cp/1.7708b@30 cp/4.0833b@15 cp/1.9375b@8 cp/6.0208b@7 cp/1.9375b@8 cp/0.2708b@13 cp/1.0417b@25 cp/3.0833b@21 cp/0.9375b@32 cp/5.625b@31 cp/1.1042b@7 cp/0.8958b@10 cp/2.25b@16 cp/0.1875b@19 cp/0.7083b@28 cp/1.9792b@12 cp/0.0417b@6 cp/3.5208b@9 cp/10.6875b@7 cp/1.4167b@10 cp/7.2083b@8 cp/2.3958b@7 cp/11.9375b@33 cp/6b@27 cp/4.1042b@33 cp/2.8958b@18 cp/1b@32 cp/0.1042b@31 cp/1.9792b@32 cp/29.9167b@20 cp/15.1042b@31 cp/10.9792b@24 cp/10.0208b@19 cp/10.9792b@11 cp/16.8542b@24 cp/3.1458b@30 cp/4b@28 cp/10.9792b@32 cp/11.8542b@34 cp/2.5833b@49 cp/0.4167b@8 cp/0.1042b@29 cp/1.8958b@35 cp/6.2292b@28 cp/7.9792b@17 cp/14.8542b@20 cp/1.1458b@34 cp/1.9583b@35 cp/8.5625b@25 cp/4.4375b@8 cp/22.6042b@28 cp/5.125b@16 cp/2b@7 cp/1.9167b@5 cp/1.0833b@6 cp/0.8958b@4 cp/1.9375b@6 cp/4.1667b@4 cp/0.1667b@5 cp/3.8958b@34 cp/1.8542b@16 cp/3.0625b@7 cp/4.9375b@7 cp/1.2083b@5 cp/1.0208b@37 cp/2.0208b@47 cp/2.8125b@26 cp/5.0208b@12 cp/0.2917b@4 cp/3.9583b@85 cp/1.9583b@37 cp/4.0208b@32 cp/2.875b@35 cp/1.0833b@41 cp/1.6667b@36 cp/0.2917b@8 cp/1.7083b@34 cp/0.2917b@4 cp/4b@30 cp/1.8333b@42 cp/2.1042b@4 cp/10.0833b@27 cp/5.7083b@37 cp/1.9583b@6 cp/1.1458b@8 cp/5.1458b@5 cp/0.0417b@33 cp/1.0625b@33 cp/0.5833b@27 cp/4.3125b@8 cp/2.7083b@29 cp/0.6042b@5 cp/1.8125b@6 cp/6.5625b@37 cp/1.4167b@7 cp/0.6042b@38 cp/0.3125b@5 cp/1.6667b@36 cp/2.0417b@6 cp/0.3333b@7 cp/1.6458b@22 cp/0.7083b@6 cp/0.6875b@5 cp/6.5625b@37 cp/1.0833b@6 cp/0.2292b@6 cp/3.0625b@32 cp/0.9375b@8 cp/5.0833b@24 cp/11.9792b@27 cp/3.7917b@22 cp/2.1875b@5 cp/2.0625b@31 cp/3.9375b@28 cp/5.8125b@35 cp/2b@4 cp/4b@4 cp/0.2083b@5 cp/0.8125b@28 cp/2.1042b@4 cp/1.4583b@42 cp/1.3125b@11 cp/2.0208b@11 cp/1.0417b@9 cp/1.0417b@5 cp/0.5833b@7 cp/1.4167b@9 cp/0.6667b@7 cp/1.3333b@7 cp/0.1667b@5 cp/13.0417b@37 cp/16.0417b@37 cp/16b@41 cp/0.9583b@36 cp/7.0417b@33 cp/18.9375b@39 cp/33.1875b@22 cp/2.6042b@1 cp/8b@3 cp/3.8958b@3 cp/0.1042b@3 cp/4b@3 cp/8b@3 cp/11.1875b@2 cp/0.7917b@31 cp/1b@5"
+    },
+    {
+      "name": "drums-perc",
+      "patch": "tha-kit",
+      "out": "tha-drums",
+      "gain": "0dB",
+      "score": "R/0.2917b cb/0.2292b@2 cb/1.5208b@1 cb/2.25b@5 cb/1.75b@31 cb/2.25b@78 cb/1.75b@70 cb/2.25b@76 cb/1.75b@83 cb/2.2708b@82 cb/1.6042b@87 cb/0.1458b@39 cb/2.2708b@87 cb/1.6875b@78 cb/0.0625b@48 cb/2.25b@95 cb/1.5833b@95 cb/0.0625b@32 cb/0.0417b@36 cb/0.0625b@44 cb/2.2292b@88 cb/1.75b@92 cb/2.25b@102 cb/1.75b@82 cb/2.25b@70 cb/1.75b@83 cb/2.2083b@67 cb/0.0417b@59 cb/1.75b@93 cb/2.2708b@66 cb/1.75b@74 cb/0.5b@71 cb/1.75b@9 cb/1.75b@78 cb/2.2917b@73 cb/1.7292b@83 cb/2.25b@81 cb/1.7708b@95 cb/2.2083b@89 cb/1.75b@99 cb/0.5b@69 cb/1.75b@14 cb/1.75b@98 cb/2.25b@88 cb/1.7708b@97 cb/2.25b@84 cb/1.75b@96 cb/0.5b@76 cb/1.75b@12 cb/1.7292b@91 cb/2.2708b@86 cb/1.75b@87 cb/0.5b@87 cb/1.7917b@9 cb/1.75b@82 cb/2.1458b@71 cb/0.1042b@36 cb/1.75b@77 cb/2.1458b@86 cb/0.0625b@52 cb/1.7708b@89 cb/2.1667b@70 cb/0.0625b@52 cb/1.75b@87 cb/2.1458b@75 cb/0.1042b@39 cb/1.7708b@86 cb/2.25b@84 cb/1.7292b@94 cb/2.2708b@78 cb/1.7292b@95 cb/2.2708b@94 cb/1.75b@104 cb/0.5b@82 cb/1.625b@13 cb/0.1458b@40 cb/1.75b@98 cb/2.25b@74 cb/0.2292b@100 cb/1.5417b@13 cb/2.2083b@59 cb/1.75b@73 cb/0.5b@61 cb/1.6875b@18 cb/0.0625b@52 cb/1.75b@104 cb/1.1875b@80 cb/1b@1 cb/0.0625b@46 cb/1.75b@80 cb/0.5b@91 cb/1.75b@12 cb/1.75b@88 cb/2.2083b@52 cb/0.0417b@43 cb/1.75b@79 cb/2.1875b@87 cb/0.0625b@47 cb/1.7708b@103 cb/2.2708b@72 cb/1.75b@97 cb/2.25b@87 cb/0.2292b@96 cb/1.5208b@12 cb/2.0833b@49 cb/0.1458b@37 cb/1.75b@85 cb/0.5b@56 cb/1.6875b@15 cb/0.0625b@54 cb/1.75b@105 cb/1.1875b@54 cb/1.0625b@2 cb/1.75b@88 cb/0.5b@108 cb/1.75b@14 cb/1.75b@82 cb/0.5b@45 cb/1.6875b@15 cb/0.0625b@45 cb/1.75b@79 cb/0.5b@97 cb/1.6875b@25 cb/0.0625b@47 cb/0.9583b@89 cb/0.7917b@1 cb/2.2917b@52 cb/1.75b@78 cb/2.1458b@92 cb/0.1042b@41 cb/0.2083b@92 cb/1.5417b@15 cb/2.1667b@49 cb/0.0625b@55 cb/1.75b@89 cb/0.5b@39 cb/1.7292b@12 cb/1.7708b@86 cb/2.25b@63 cb/1.7292b@80 cb/2.1667b@85 cb/0.1042b@37 cb/1.75b@83 cb/2.25b@58 cb/1.75b@60 cb/0.1667b@95 cb/2.0833b@9 cb/1.75b@106 cb/0.4792b@74 cb/1.7917b@15 cb/1.75b@68 cb/2.1458b@82 cb/0.1042b@39 cb/0.2292b@101 cb/1.5208b@14 cb/2.25b@31 cb/1.7292b@74 cb/2.25b@48 cb/1.6667b@98 cb/0.0833b@21 cb/2.25b@47 cb/1.75b@72 cb/2.25b@93 cb/1.7708b@81 cb/0.4792b@55 cb/1.75b@11 cb/1.75b@60 cb/0.2292b@73 cb/2.0208b@25 cb/1.7708b@60 cb/2.2708b@56 cb/1.75b@64 cb/2.1042b@74 cb/0.0417b@24 cb/0.1042b@27 cb/0.2083b@69 cb/1.5417b@16 cb/2.2083b@71 cb/1.75b@68 cb/2.25b@48 cb/1.75b@80 cb/2.2708b@45 cb/1.7292b@66 cb/2.2708b@69 cb/1.75b@76 cb/2.25b@43 cb/1.75b@49 cb/2.25b@64 cb/1.75b@67 cb/2.2708b@67 cb/1.75b@67 cb/2.25b@76 cb/1.75b@77 cb/2.1875b@48 cb/0.0417b@48 cb/1.75b@68 cb/2.25b@44 cb/1.75b@85 cb/2.2292b@20 cb/1.5208b@52 cb/0.25b@8 cb/2.25b@53 cb/1.7708b@56 cb/2.2292b@29 cb/1.75b@46 cb/2.0208b@64 cb/0.2292b@15 cb/1.75b@70 cb/2.2917b@60 cb/1.7292b@61 cb/2.25b@80 cb/1.7708b@95 cb/2.1458b@59 cb/0.0625b@43 cb/1.75b@68 cb/2.25b@73 cb/1.75b@75 cb/0.5b@68 cb/0.3542b@11 cb/1.3958b@5 cb/1.75b@68 cb/2.25b@77 cb/1.75b@80 cb/2.25b@76 cb/1.75b@55 cb/0.5b@73 cb/1.75b@18 cb/1.75b@76 cb/2.2917b@71 cb/1.75b@64 cb/2.25b@80 cb/0.2083b@87 cb/1.5417b@13 cb/2.2083b@81 cb/1.7708b@98 cb/2.1042b@74 cb/0.0625b@40 cb/0.0833b@47 cb/1.75b@102 cb/0.4792b@71 cb/1.75b@12 cb/1.75b@81 cb/2.2708b@81 cb/1.75b@87 cb/0.4792b@68 cb/1.75b@12 cb/1.75b@57 cb/2.25b@64 cb/1.75b@58 cb/2.2917b@66 cb/1.75b@67 cb/2.25b@80 cb/0.2083b@84 cb/1.5417b@14 cb/2.2083b@87 cb/1.75b@76 cb/2.0833b@85 cb/0.1875b@33 cb/1.7292b@96 cb/0.5b@63 cb/1.6042b@13 cb/0.1667b@19 cb/1.75b@39 cb/2.25b@64 cb/1.75b@68 cb/2.2292b@53 cb/1.7708b@54 cb/2.2292b@64 cb/1.75b@68 cb/2.2917b@77 cb/1.75b@71 cb/2.1458b@85 cb/0.1042b@36 cb/0.2083b@89 cb/1.5417b@16 cb/154.25b@91 cb/1.75b@75 cb/2.1042b@89 cb/0.1458b@34 cb/1.7708b@78 cb/2.2083b@38 cb/1.5208b@45 cb/0.2292b@5 cb/2.125b@32 cb/0.125b@15 cb/1.75b@33 cb/2.125b@2 cb/0.125b@21 cb/1.75b@46 cb/2.25b@65 cb/1.75b@82 cb/2.25b@36 cb/1.75b@41 cb/2.1042b@72 cb/0.0625b@32 cb/0.0625b@42 cb/1.75b@81 cb/2.2917b@57 cb/1.75b@63 cb/2.25b@70 cb/1.7083b@62 cb/0.0625b@36 cb/2.0417b@31 cb/0.1042b@31 cb/0.0417b@55 cb/1.7708b@84 cb/2.2292b@35 cb/1.75b@106 cb/2.0833b@44 cb/0.1875b@28 cb/1.7292b@76 cb/0.5208b@79 cb/1.6875b@14 cb/0.0625b@48 cb/1.75b@85 cb/2.1875b@38 cb/0.0417b@35 cb/1.75b@60 cb/0.5b@80 cb/1.625b@18 cb/0.1458b@32 cb/1.75b@78 cb/2.1667b@67 cb/0.1042b@29 cb/1.75b@67 cb/2.1458b@76 cb/0.1042b@28 cb/1.75b@59 cb/2.0417b@61 cb/0.0833b@19 cb/0.1042b@23 cb/1.7292b@47 cb/2.25b@27 cb/1.7708b@58 cb/2.2292b@31 cb/1.75b@59 cb/2.0208b@52 cb/0.2292b@13 cb/1.75b@70 cb/2.0208b@33 cb/0.1667b@9 cb/0.0625b@24 cb/1.75b@44 cb/2.25b@58 cb/1.75b@56 cb/0.5b@32 cb/1.6875b@8 cb/0.1042b@26 cb/1.75b@51 cb/2.25b@56 cb/1.75b@68 cb/2.0625b@45 cb/0.1458b@21 cb/1.75b@52 cb/0.5b@37 cb/1.6667b@11 cb/0.0833b@27 cb/1.75b@60 cb/2.0208b@33 cb/0.1667b@7 cb/0.0625b@33 cb/1.75b@51 cb/2b@55 cb/0.0833b@6 cb/0.1042b@24 cb/0.0625b@41 cb/1.75b@64 cb/2.25b@29 cb/1.75b@41 cb/2.25b@72 cb/1.75b@49 cb/2.2917b@35 cb/1.7292b@77 cb/2.2708b@73 cb/0.1875b@60 cb/0.625b@15 cb/0.0833b@23 cb/0.8542b@2 cb/2.125b@48 cb/0.0833b@40 cb/1.75b@78 cb/2.1042b@64 cb/0.1458b@36 cb/1.7292b@100 cb/2.25b@51 cb/1.7708b@79 cb/2.1458b@89 cb/0.1042b@32 cb/1.75b@82 cb/2.25b@50 cb/0.9167b@80 cb/0.8125b@3 cb/2.2708b@82 cb/1.75b@91 cb/2.2708b@59 cb/1.7708b@67 cb/2.2292b@54 cb/1.75b@59 cb/2.2292b@37 cb/1.75b@59 cb/2.0625b@59 cb/0.1875b@34 cb/1.75b@90 cb/2.2292b@53 cb/1.75b@79 cb/2.25b@97 cb/1.7708b@82 cb/2.2292b@75 cb/1.7708b@81 cb/2.2292b@87 cb/1.75b@95 cb/2.2917b@28 cb/1.75b@66 cb/2.25b@73 cb/1.75b@74 cb/2.2292b@40 cb/1.75b@81 cb/2.125b@52 cb/0.125b@45 cb/1.7917b@103 cb/2.1875b@16 cb/1.75b@84 cb/2.25b@88 cb/1.7708b@90 cb/0.1875b@83 cb/2.0417b@20 cb/1.5208b@97 cb/0.2292b@26 cb/2.25b@116 cb/1.5208b@126 cb/0.2292b@12 cb/0.5b@72 cb/1.5417b@16 cb/0.25b@8 cb/1.7292b@82 cb/0.2292b@92 cb/2.0417b@42 cb/1.75b@53 cb/194.125b@42 cb/0.0417b@36 cb/1.75b@51 cb/2.1458b@46 cb/0.0417b@43 cb/0.0833b@47 cb/1.75b@111 cb/2.1042b@54 cb/0.125b@39 cb/1.75b@94 cb/0.5b@103 cb/1.6875b@25 cb/0.0625b@50 cb/1.75b@100 cb/2.1875b@53 cb/0.0625b@50 cb/0.9167b@96 cb/0.8333b@12 cb/0.1875b@116 cb/0.3125b@21 cb/0.6875b@22 cb/1.0625b@2 cb/1.75b@105 cb/2.2917b@72 cb/1.75b@94 cb/2.2292b@104 cb/1.7708b@91 cb/2.0625b@56 cb/0.1458b@49 cb/1.7708b@104 cb/0.4792b@40 cb/1.6875b@20 cb/0.0625b@48 cb/1.75b@96 cb/2.25b@48 cb/1.75b@80 cb/2.25b@90 cb/1.75b@92 cb/2.1667b@30 cb/0.0833b@33 cb/1.75b@71 cb/2.2292b@85 cb/1.7708b@81 cb/2.1667b@36 cb/0.1042b@31 cb/1.75b@66 cb/2.25b@84 cb/1.75b@72 cb/2.0625b@53 cb/0.1458b@35 cb/1.7708b@88 cb/2.2292b@64 cb/1.75b@106 cb/2.25b@45 cb/1.75b@85 cb/2.25b@88 cb/1.75b@100 cb/2.25b@71 cb/1.75b@95 cb/2b@115 cb/0.125b@15 cb/0.0625b@48 cb/0.0625b@53 cb/1.6458b@127 cb/0.125b@26 cb/2.0833b@79 cb/0.1875b@37 cb/1.75b@108 cb/1.8333b@127 cb/0.25b@1 cb/0.1458b@42 cb/0.8333b@117 cb/0.9375b@31 cb/1.6667b@102 cb/1.125b@1 cb/27.4583b@1 cb/0.0417b@41 cb/0.1458b@53 cb/5.5b@29 cb/4.0208b@43 cb/0.1042b@40 cb/1.0208b@38 cb/4.8958b@1 cb/0.2292b@4 cb/1b@49"
+    },
+    {
+      "name": "background-gestures",
+      "patch": "tha-voice",
+      "gain": "-10dB",
+      "pan": 0.15,
+      "score": "R/193.4375b C#4/0.1667b@86^on=6^dvow=0.34^off=17 R/3.7917b Bb3/0.9167b@107^on=2^dvow=0.08 R/11.5625b Bb4/0.6042b@99^on=13^dvow=0.19 R/16.8125b G4/0.3542b@103^dvow=-0.01 R/6.9167b Bb3/0.1875b@77^on=11^off=11 R/1.3333b C#4/0.25b@86^on=11^off=11 R/0.0417b F#3/0.6875b@97^dvow=0.04^off=11 R/1.1667b B4/0.3333b@102^off=11 R/1.1458b D4/0.625b@104^off=11 R/3.2708b A3/0.2083b@91^on=11^dvow=0.01^off=11 D4/0.375b@96^on=13^off=13 R/0.7917b G4/0.5625b@114^dvow=0.02^off=13 R/0.1458b Ab4/0.2083b@94^dvow=0.25^off=11 R/1.625b Eb4/0.25b@92^on=11^off=11 G4/0.5b@92^on=13^dvow=0.01^off=13 R/7.7083b B4/0.2917b@76^dvow=-0.02 R/3.6875b D4/0.1667b@85^on=2^dvow=0.31 R/1.1042b E3/1.9167b@107^on=2^dvow=0.26 R/4.4167b F4/0.7708b@105^dvow=-0.16^off=13 R/0.6458b G3/1.5625b@106^on=2^dvow=0.21^off=17 R/0.1667b B4/0.8958b@93^on=16^dvow=0.03 R/1.7917b C#4/0.5625b@95^dvow=0.07 R/1.2917b A3/0.1667b@82^on=13^off=13 R/1.2292b E3/0.5625b@90^on=13^off=13 R/22.375b E3/0.3125b@94^on=2^dvow=0.05 R/48.1875b Ab4/0.25b@93^dvow=-0.46 Ab4/0.2083b@86^dvow=-0.48 R/5.1875b Ab4/0.2083b@95^on=2^dvow=0.25 R/1.625b E3/0.2708b@79^on=16^dvow=0.27^off=17 R/1.8333b F#3/0.6875b@97^on=13^dvow=0.22^off=13 R/0.3542b E3/0.625b@97^on=16^dvow=0.24 R/0.9375b E3/0.2708b@89^dvow=0.26^off=17 R/0.5b F3/0.9375b@106^dvow=0.02^off=13 R/0.4583b F#3/1.3542b@98^on=13^dvow=0.2 R/19.9583b B4/0.2917b@81^dvow=-0.02 R/5.3958b Ab3/1.0833b@106^dvow=0.17 R/1.1875b D4/0.7292b@95^dvow=0.01^off=11 R/0.3958b C5/1.0625b@101^off=11 R/44.5208b Bb3/1.5b@110^on=2^dvow=0.04 F3/0.5625b@84^dvow=0.06 R/34.7708b Bb2/0.3125b@87^on=16^dvow=0.33^off=17 R/0.7083b C#4/0.1667b@90^dvow=0.01 R/0.6875b F3/0.2708b@80^on=11^dvow=0.03^off=11 F#3/0.4583b@96^off=17 R/0.2292b F3/0.2292b@92^off=17 R/0.2917b E4/1.2917b@104^on=16^dvow=0.01^off=11 R/0.875b B3/0.5833b@97^off=11 R/2.9792b F3/0.1875b@99^on=16^dvow=-0.51^off=17 R/1.5b E3/1.0833b@108^dvow=0.03 R/1.4583b E3/0.8542b@88^on=11^dvow=0.01 R/0.3958b F4/0.2292b@80^dvow=0.02^off=13 R/2.1667b D3/0.1875b@91^on=5^off=17 F3/0.2917b@108^on=16^dvow=0.23 R/0.0417b E3/0.375b@90^dvow=0.01^off=13 R/0.2917b F#3/0.1667b@89^on=16^dvow=0.24 R/0.5625b F#3/0.5208b@101^dvow=0.23 R/1.0208b C#2/0.1667b@81^on=13^dvow=0.09^off=13 R/0.1667b D4/0.3333b@89^on=16^dvow=0.31 R/0.7292b Eb4/0.3125b@82^on=16^off=17 R/2.5417b Eb4/0.375b@104^on=2^dvow=0.31^off=17 R/0.1667b Eb4/0.4583b@101^on=16^dvow=-0.51^off=17 R/0.4375b C2/0.2917b@88^on=11^dvow=0.01^off=17 R/0.3542b E3/0.2083b@99^on=16^dvow=0.31^off=17 R/0.1042b E3/0.375b@102^dvow=0.28^off=17 R/0.0833b E3/0.3958b@85^on=11^dvow=0.26^off=17 E3/0.7917b@97^dvow=0.27 R/0.3958b E3/0.1458b@77^on=16^off=17 R/0.7292b Eb3/0.3958b@96^dvow=0.09^off=17 A2/0.5625b@99^on=16^dvow=0.26^off=11 R/0.1875b E3/0.8125b@104^on=16^dvow=0.25^off=13 R/1.375b E3/1.3125b@103^dvow=0.02^off=17 R/52.4375b G4/0.2292b@89^on=11^dvow=0.02^off=11 R/0.5417b Ab4/0.1875b@91^on=11^dvow=0.01^off=13 R/0.5625b G4/0.2083b@76^on=11^dvow=0.02^off=11 R/4.5208b A3/0.1667b@79 R/0.0833b A4/0.4375b@98^on=11^off=11 R/2.0417b B3/0.3333b@77^dvow=-0.06 R/163.0833b E4/0.1667b@76^on=11^off=11 R/0.4167b B4/3b@114^on=2 R/3b B4/1.0625b@112^dvow=0.01 B4/0.2083b@102 B4/3b@115^dvow=0.02 R/5b B4/1.8333b@105^dvow=-0.26 R/1.0625b B4/0.2708b@82^dvow=-0.04 R/44.3125b A3/0.3958b@99^dvow=-0.01 R/19.9375b D4/0.3125b@100^on=2^dvow=-0.03 R/5.4792b F#3/0.25b@95^on=13^dvow=0.34^off=17 E3/0.4583b@103^on=16^dvow=0.29^off=17 R/56.7292b D4/0.2917b@108^on=2^dvow=0.02 R/0.3542b Eb4/0.3958b@104^on=16^dvow=-0.49^off=17 R/0.0208b Eb4/0.4375b@86^on=16 R/0.3958b D4/0.5833b@108^on=16^dvow=0.31^off=11 R/0.1667b D4/0.2083b@96^on=16^dvow=0.27^off=17 R/3.25b D4/0.2292b@90^on=16^dvow=0.22^off=17 F#3/0.6042b@105^on=16^dvow=0.01^off=13 C#4/0.2292b@91^on=16^dvow=0.01 R/0.75b G2/0.3542b@105^on=16^dvow=-0.51^off=17 R/18.8333b G2/0.2083b@80^on=13^dvow=0.01^off=13 R/3.0417b C#3/1.6042b@105^on=2^off=11 R/11.3542b E3/0.4375b@93^on=2^dvow=0.01^off=13 R/88.5625b G4/0.2292b@96^dvow=0.06 R/3.4792b G4/0.25b@109^dvow=0.22 R/1.4375b B3/0.2917b@86^on=11^off=17 R/0.7292b C4/0.625b@96^on=16^dvow=0.33^off=11 R/25.9375b F#3/1.1458b@88^on=13^dvow=0.25 R/1.875b F3/0.1667b@78 R/1.25b B4/0.1875b@79^on=13^dvow=0.01^off=13 R/3.1458b E4/0.4792b@90^on=2^dvow=0.01 R/0.2917b E3/0.4375b@95^on=16^dvow=0.26 R/16.1042b E4/0.25b@79^on=2^off=13 R/1.0833b F3/0.2083b@86^on=2 R/0.0417b F#2/0.25b@85^on=13^off=11"
+    }
+  ]
+}
