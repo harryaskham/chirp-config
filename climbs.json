@@ -67,11 +67,17 @@
       "owner": "chirper-one (chirp-climb1)",
       "metric": "python3 tools/likeness.py sections ref/pneuma.wav OUT.wav $(cat tools/pneuma-sections.txt)",
       "best": {
-        "score": 73.841,
+        "score": 71.951,
         "version": "v49",
         "commit": "see git log songs/pneuma.yaml",
         "metric": "likeness sections with mastering term (1ffa987)",
-        "engine": "a931418"
+        "engine": "a931418",
+        "short_render": {
+          "score": 73.841,
+          "basis": "covered part only: the song renders shorter than its last section (likeness report mode, before 47dd2cf)",
+          "fresh_c601062": 73.846
+        },
+        "basis": "full length, strict coverage, silence-padded (likeness sections --pad-silence: the song as the playlist plays it, silence after its end), default render; engine c601062; rebaselined 2026-10-20 at Harry's choice"
       },
       "passes": 1,
       "enabled": true,
@@ -178,10 +184,16 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/the-national-anthem.wav OUT.wav $(cat tools/the-national-anthem-sections.txt)",
       "best": {
-        "score": 63.418,
+        "score": 63.214,
         "version": "v27",
         "commit": "see git log songs/the-national-anthem.yaml",
-        "engine": "a931418"
+        "engine": "a931418",
+        "short_render": {
+          "score": 63.418,
+          "basis": "covered part only: the song renders shorter than its last section (likeness report mode, before 47dd2cf)",
+          "fresh_c601062": 63.418
+        },
+        "basis": "full length, strict coverage, silence-padded (likeness sections --pad-silence: the song as the playlist plays it, silence after its end), default render; engine c601062; rebaselined 2026-10-20 at Harry's choice"
       },
       "passes": 1,
       "enabled": true,
@@ -208,11 +220,17 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/thin-thing.wav OUT.wav $(cat tools/thin-thing-sections.txt)",
       "best": {
-        "score": 61.643,
+        "score": 58.344,
         "version": "v33",
         "commit": "see git log songs/thin-thing.yaml",
         "engine": "a931418",
-        "remeasured": "v30 on the current tree after the tight-kit air fix cde7d0c (61.485 was on the old kit)"
+        "remeasured": "v30 on the current tree after the tight-kit air fix cde7d0c (61.485 was on the old kit)",
+        "short_render": {
+          "score": 61.643,
+          "basis": "covered part only: the song renders shorter than its last section (likeness report mode, before 47dd2cf)",
+          "fresh_c601062": 61.643
+        },
+        "basis": "full length, strict coverage, silence-padded (likeness sections --pad-silence: the song as the playlist plays it, silence after its end), default render; engine c601062; rebaselined 2026-10-20 at Harry's choice"
       },
       "passes": 1,
       "enabled": true,
@@ -239,10 +257,16 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/come-down.wav OUT.wav $(cat tools/come-down-sections.txt)",
       "best": {
-        "score": 65.951,
+        "score": 63.323,
         "version": "v25",
         "commit": "see git log songs/come-down.yaml",
-        "engine": "a931418"
+        "engine": "a931418",
+        "short_render": {
+          "score": 65.951,
+          "basis": "covered part only: the song renders shorter than its last section (likeness report mode, before 47dd2cf)",
+          "fresh_c601062": 65.951
+        },
+        "basis": "full length, strict coverage, silence-padded (likeness sections --pad-silence: the song as the playlist plays it, silence after its end), default render; engine c601062; rebaselined 2026-10-20 at Harry's choice"
       },
       "passes": 1,
       "enabled": true,
@@ -512,10 +536,16 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/money.wav OUT.wav $(cat tools/money-sections.txt)",
       "best": {
-        "score": 67.27,
+        "score": 65.632,
         "version": "v12",
         "commit": "see git log songs/money.yaml",
-        "engine": "a931418"
+        "engine": "a931418",
+        "short_render": {
+          "score": 67.27,
+          "basis": "covered part only: the song renders shorter than its last section (likeness report mode, before 47dd2cf)",
+          "fresh_c601062": 67.27
+        },
+        "basis": "full length, strict coverage, silence-padded (likeness sections --pad-silence: the song as the playlist plays it, silence after its end), mean of held seeds 7 and 13; engine c601062; rebaselined 2026-10-20 at Harry's choice"
       },
       "passes": 1,
       "enabled": true,
@@ -572,10 +602,16 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/dreams.wav OUT.wav $(cat tools/dreams-sections.txt)",
       "best": {
-        "score": 66.381,
+        "score": 66.27,
         "version": "v17",
         "commit": "see git log songs/dreams.yaml",
-        "engine": "a931418"
+        "engine": "a931418",
+        "short_render": {
+          "score": 66.381,
+          "basis": "covered part only: the song renders shorter than its last section (likeness report mode, before 47dd2cf)",
+          "fresh_c601062": 66.38
+        },
+        "basis": "full length, strict coverage, silence-padded (likeness sections --pad-silence: the song as the playlist plays it, silence after its end), mean of held seeds 7 and 13; engine c601062; rebaselined 2026-10-20 at Harry's choice"
       },
       "passes": 1,
       "enabled": true,
