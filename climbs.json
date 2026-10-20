@@ -2143,7 +2143,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 9,
+      "rounds": 10,
       "priority": 1.0,
       "genre": "ambient techno",
       "meta": {
@@ -2160,8 +2160,8 @@
       },
       "ref_file": "ref/albums/selected-ambient-works-85-92/13 actium.webm",
       "last": {
-        "at": "2026-10-20T15:51:52Z",
-        "who": "chirper-zero"
+        "at": "2026-10-20T17:36:35Z",
+        "who": "chirper-one"
       }
     }
   ],
