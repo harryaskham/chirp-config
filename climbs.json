@@ -444,11 +444,16 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/archangel.wav OUT.wav $(cat tools/archangel-sections.txt)",
       "best": {
-        "score": 59.937,
+        "score": 59.94,
         "version": "v13",
         "commit": "see git log songs/archangel.yaml",
         "engine": "b1741e4",
-        "remeasured": "likeness short-section rhythm fix: the current song 59.616 -> 59.859 on a931418 (registered 59.518 on the old metric)"
+        "remeasured": "likeness short-section rhythm fix: the current song 59.616 -> 59.859 on a931418 (registered 59.518 on the old metric)",
+        "overshoot_bound": {
+          "score": 59.937,
+          "basis": "last section bound past the reference's end (likeness report mode, before 47dd2cf/0be6951)"
+        },
+        "basis": "last bound corrected to the reference's end, 238.2 -> 238.155 (reference ends at 238.155479); full length, strict coverage, default render; engine c601062; rebaselined 2026-10-20 at Harry's choice"
       },
       "passes": 1,
       "enabled": true,
@@ -790,10 +795,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/re-inanimate.wav OUT.wav $(cat tools/re-inanimate-sections.txt)",
       "best": {
-        "score": 65.947,
+        "score": 65.943,
         "version": "v15",
         "commit": "see git log songs/re-inanimate.yaml",
-        "engine": "a931418"
+        "engine": "a931418",
+        "overshoot_bound": {
+          "score": 65.947,
+          "basis": "last section bound past the reference's end (likeness report mode, before 47dd2cf/0be6951)"
+        },
+        "basis": "last bound corrected to the reference's end, 64.1 -> 64.053 (reference ends at 64.053333); full length, strict coverage, default render; engine c601062; rebaselined 2026-10-20 at Harry's choice"
       },
       "passes": 1,
       "enabled": true,
