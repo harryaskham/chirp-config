@@ -1973,7 +1973,7 @@
       "passes": 1,
       "enabled": false,
       "status": "requested",
-      "rounds": 5,
+      "rounds": 6,
       "priority": 1.0,
       "genre": "ambient techno",
       "meta": {
@@ -1990,8 +1990,8 @@
       },
       "ref_file": "ref/albums/selected-ambient-works-85-92/08 we-are-the-music-makers.webm",
       "last": {
-        "at": "2026-10-20T12:13:57Z",
-        "who": "chirper-zero"
+        "at": "2026-10-20T12:53:50Z",
+        "who": "chirper-one"
       }
     },
     {
