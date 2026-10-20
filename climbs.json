@@ -1725,11 +1725,16 @@
       "source": "https://www.youtube.com/watch?v=sWcLccMuCA8",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/xtal.wav OUT.wav $(cat tools/xtal-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 56.022,
+        "version": "v1",
+        "commit": "see git log songs/xtal.yaml",
+        "engine": "91d65af"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "ambient techno",
       "meta": {
@@ -1744,7 +1749,11 @@
         "at": "2026-10-19T22:56:04Z",
         "note": "Harry's request: the whole album as one album climb. Canonical recording: the official album master (YouTube Music album playlist OLAK5uy_npVGHGqWs_-hTzVUivb8lCndQPVB7aIm0, Aphex Twin channel); one master for all 13 tracks."
       },
-      "ref_file": "ref/albums/selected-ambient-works-85-92/01 xtal.webm"
+      "ref_file": "ref/albums/selected-ambient-works-85-92/01 xtal.webm",
+      "last": {
+        "at": "2026-10-20T03:42:14Z",
+        "who": "chirper-zero"
+      }
     },
     {
       "id": "tha",
