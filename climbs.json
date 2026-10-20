@@ -1909,7 +1909,7 @@
       "passes": 1,
       "enabled": false,
       "status": "requested",
-      "rounds": 10,
+      "rounds": 11,
       "priority": 1.0,
       "genre": "ambient techno",
       "meta": {
@@ -1926,8 +1926,8 @@
       },
       "ref_file": "ref/albums/selected-ambient-works-85-92/06 green-calx.webm",
       "last": {
-        "at": "2026-10-20T18:33:53Z",
-        "who": "chirper-zero"
+        "at": "2026-10-20T20:03:30Z",
+        "who": "chirper-one"
       }
     },
     {
