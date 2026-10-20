@@ -1859,11 +1859,16 @@
       "source": "https://www.youtube.com/watch?v=KqnezE0qLSM",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/i.wav OUT.wav $(cat tools/i-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 53.912,
+        "version": "v1",
+        "commit": "see git log songs/i.yaml",
+        "engine": "91d65af"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 1,
+      "enabled": true,
+      "status": "active",
+      "rounds": 2,
       "priority": 1.0,
       "genre": "ambient techno",
       "meta": {
@@ -1880,8 +1885,8 @@
       },
       "ref_file": "ref/albums/selected-ambient-works-85-92/05 i.webm",
       "last": {
-        "at": "2026-10-20T01:18:19Z",
-        "who": "chirper-zero"
+        "at": "2026-10-20T02:57:22Z",
+        "who": "chirper-one"
       }
     },
     {
