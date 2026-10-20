@@ -8,6 +8,9 @@ The weakest group/component is the biggest instrument gap — a much sharper sig
 e.g. stemscore.py songs/pneuma.yaml ref/stems/htdemucs_6s/pneuma tools/pneuma-sections.txt \\
        drums=drums:kit bass=bass:bass,bassfx guitar=guitar:gtr,xgtr vocals=vocals:vox keys=piano:synth,pads"""
 import json
+import os as _os, sys as _sys  # noqa: E401
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+import chirpbin  # noqa: E402  (the adopted groove pin when CHIRP is unset)
 import os
 import subprocess
 import sys
@@ -16,7 +19,7 @@ from concurrent.futures import ThreadPoolExecutor
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import likeness as L  # noqa: E402
 
-C = os.environ.get("CHIRP", "/tmp/lt/chirp-main/cli/chirp/target/release/chirp")
+C = chirpbin.resolve("/tmp/lt/chirp-main/cli/chirp/target/release/chirp")
 KEYS = ("loudness", "spectral", "chroma", "rhythm", "ltas", "stereo")
 
 

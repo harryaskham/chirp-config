@@ -9,6 +9,9 @@ stage in the part ({"type": "width", "width": 0} in extra.fx; track fx run befor
 vocoder +0.23 (with the synths at 0.6), TNA vox +0.22, Dreams vox (0.4) +0.33, Wuthering Heights vox +0.18 held-out.
 Beds (keys, drums, pads) on a mature master usually LOSE when narrowed - the wb lanes are fitted around them (Flim)."""
 import os
+import os as _os, sys as _sys  # noqa: E401
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+import chirpbin  # noqa: E402  (the adopted groove pin when CHIRP is unset)
 import subprocess
 import sys
 import tempfile
@@ -42,7 +45,7 @@ def main():
     song, ref = a[0], a[1]
     parts = [p for p in opt("--parts", "").split(",") if p]
     t0, t1, jobs = opt("--from", 30.0), opt("--to", 230.0), opt("--jobs", 3)
-    chirp = os.environ.get("CHIRP", "chirp")
+    chirp = chirpbin.resolve("chirp")
     tmp = tempfile.mkdtemp(prefix="partwidth-")
 
     def render(p):

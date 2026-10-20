@@ -14,6 +14,9 @@ Queue dir: $CLIMBQ (default /tmp/climbq). Binary: $CHIRP (default chirp). Render
 deleted after scoring unless --keep (then it stays at $CLIMBQ/wav/NAME.wav). Start the worker detached, e.g.
 `(setsid nohup python3 tools/climbq.py worker -j 3 >> /tmp/climbq/worker.log 2>&1 < /dev/null &)`."""
 import json
+import os as _os, sys as _sys  # noqa: E401
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+import chirpbin  # noqa: E402  (the adopted groove pin when CHIRP is unset)
 import os
 import subprocess
 import sys
@@ -23,7 +26,7 @@ import time
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 Q = os.environ.get("CLIMBQ", "/tmp/climbq")
-C = os.environ.get("CHIRP", "chirp")
+C = chirpbin.resolve("chirp")
 for d in ("jobs", "running", "done", "wav"):
     os.makedirs(os.path.join(Q, d), exist_ok=True)
 

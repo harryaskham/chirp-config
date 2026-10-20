@@ -16,6 +16,9 @@ Prints the 1/6-octave envelope error grouped by region, the harmonic-line contra
 partial irregularity. Contrast = 90th − 10th percentile of the fine spectrum per octave, median over events: a
 clean synthetic harmonic series reads high (deep valleys), a real rig fills the valleys."""
 import json
+import os as _os, sys as _sys  # noqa: E401
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+import chirpbin  # noqa: E402  (the adopted groove pin when CHIRP is unset)
 import os
 import subprocess
 import sys
@@ -27,7 +30,7 @@ ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
 import tonecmp as T  # noqa: E402
 
-C = os.environ.get("CHIRP", "chirp")
+C = chirpbin.resolve("chirp")
 
 
 def main():

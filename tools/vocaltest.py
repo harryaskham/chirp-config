@@ -15,6 +15,9 @@ ablations need no patch edits. CHIRP picks the binary. Separation runs on CPU at
 --keep DIR is explicit; use ref/evidence/... for durable evidence. A supplied --wav input is never deleted.
 """
 import json
+import os as _os, sys as _sys  # noqa: E401
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+import chirpbin  # noqa: E402  (the adopted groove pin when CHIRP is unset)
 import os
 import shutil
 import subprocess
@@ -26,7 +29,7 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import likeness as L  # noqa: E402
 
-C = os.environ.get("CHIRP", "chirp")
+C = chirpbin.resolve("chirp")
 STEMS = ("vocals", "drums", "bass", "guitar", "piano", "other")
 DEMUCS = ["uv", "run", "-q", "--python", "3.11", "--index", "https://download.pytorch.org/whl/cpu",
           "--index-strategy", "unsafe-best-match", "--with", "torch==2.5.1", "--with", "torchaudio==2.5.1",

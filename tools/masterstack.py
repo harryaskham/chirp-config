@@ -28,6 +28,9 @@ and DIR/best.wav (every other render is deleted as soon as it is scored or fitte
 songs/ or tools/maps/: copy best.* there yourself (matching the original's JSON indent for maps) and commit.
 """
 import json
+import os as _os, sys as _sys  # noqa: E401
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+import chirpbin  # noqa: E402  (the adopted groove pin when CHIRP is unset)
 import os
 import shutil
 import subprocess
@@ -196,7 +199,7 @@ def main(a):
         sys.exit("--out DIR is required")
     steps = opt(a, "--steps", "eq ride ride").split()
     seeds = [int(s) for s in opt(a, "--seeds", "0,11").split(",")]
-    chirp = opt(a, "--chirp", os.environ.get("CHIRP", "chirp"))
+    chirp = opt(a, "--chirp", chirpbin.resolve("chirp"))
     min_gain = opt(a, "--min-gain", 0.0)
     keep_wav = "--keep-wav" in a
     os.makedirs(out, exist_ok=True)

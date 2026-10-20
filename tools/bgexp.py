@@ -15,6 +15,9 @@ The render is deleted once scored (the score is what is kept; a render is ~60-15
 hundreds): --keep-wav keeps it as $BGEXP_DIR/NAME.wav (tmpclean.py still sweeps it after 6 idle hours).
 """
 import fcntl
+import os as _os, sys as _sys  # noqa: E401
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+import chirpbin  # noqa: E402  (the adopted groove pin when CHIRP is unset)
 import json
 import os
 import subprocess
@@ -24,7 +27,7 @@ import time
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
 EXP = os.environ.get("BGEXP_DIR", "/tmp/lt/exp")  # one queue (and slot set) per climber: BGEXP_DIR=/tmp/lt/exp-<id>
-CHIRP = os.environ.get("CHIRP", "/tmp/lt/chirp-main/cli/chirp/target/release/chirp")
+CHIRP = chirpbin.resolve("/tmp/lt/chirp-main/cli/chirp/target/release/chirp")
 W = {"loudness": 0.14, "spectral": 0.22, "chroma": 0.22, "rhythm": 0.18, "ltas": 0.09, "stereo": 0.10, "master": 0.08}  # likeness weights, tempo excluded
 
 

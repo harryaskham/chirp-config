@@ -5,12 +5,15 @@ section. Within a section, randomness is seeded per track index, so any structur
 
   seedscore.py SONG.yaml [--seeds 7,11,13] [--ref ref/shadows.wav] [--sections tools/shadows-sections.txt]"""
 import json, os, subprocess, sys
+import os as _os, sys as _sys  # noqa: E401
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+import chirpbin  # noqa: E402  (the adopted groove pin when CHIRP is unset)
 from concurrent.futures import ThreadPoolExecutor
 import numpy as np
 sys.path.insert(0, os.path.dirname(__file__))
 import likeness as L
 
-C = os.environ.get("CHIRP", "/tmp/lt/chirp-main/cli/chirp/target/release/chirp")
+C = chirpbin.resolve("/tmp/lt/chirp-main/cli/chirp/target/release/chirp")
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 

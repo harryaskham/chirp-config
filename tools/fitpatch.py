@@ -8,12 +8,15 @@ harmonic/percussive separation). Candidates are patch kv overrides; best first.
   fitpatch.py fit TARGET.json PATCH NOTE SECONDS 'label=kv kv …' …   render + score candidates
 """
 import json, os, shlex, subprocess, sys
+import os as _os, sys as _sys  # noqa: E401
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+import chirpbin  # noqa: E402  (the adopted groove pin when CHIRP is unset)
 import numpy as np
 from scipy import ndimage, signal
 sys.path.insert(0, os.path.dirname(__file__))
 import likeness as L
 
-C = os.environ.get("CHIRP", "/tmp/lt/chirp-main/cli/chirp/target/release/chirp")
+C = chirpbin.resolve("/tmp/lt/chirp-main/cli/chirp/target/release/chirp")
 
 
 def fingerprint(x, f0, n=40, hpss=True):

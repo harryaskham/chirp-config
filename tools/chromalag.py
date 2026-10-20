@@ -17,6 +17,9 @@ stabs over a two-chord vamp) leaned -1 beat and advancing it lost on every seed 
 the lag does not separate the cases (that rhodes 0.72 vs HBFS's true riff-synth 0.77), so no automatic veto.
 """
 import os
+import os as _os, sys as _sys  # noqa: E401
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+import chirpbin  # noqa: E402  (the adopted groove pin when CHIRP is unset)
 import re
 import subprocess
 import sys
@@ -47,7 +50,7 @@ def main(a):
     opt = lambda k, d: type(d)(a[a.index(k) + 1]) if k in a else d
     song, ref, secf = a[0], a[1], a[2]
     parts = opt("--parts", "").split(",")
-    chirp = opt("--chirp", os.environ.get("CHIRP", "chirp"))
+    chirp = opt("--chirp", chirpbin.resolve("chirp"))
     work = opt("--work", "/tmp/lt/chromalag")
     os.makedirs(work, exist_ok=True)
     bpm = opt("--bpm", 0.0)
