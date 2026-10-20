@@ -123,6 +123,18 @@ class Widthfit(unittest.TestCase):
         self.assertNotEqual(doc["master"]["auto"], before["master"]["auto"], "section 2 was fitted")
         self.assertTrue(text.startswith('{\n  "'), "the file's own indentation is kept")
 
+    def test_a_native_spec_saved_as_yaml_is_still_json(self):
+        path, before = self.native()
+        as_yaml = os.path.join(self.dir, "native-as.yaml")
+        shutil.copy(path, as_yaml)
+        out = os.path.join(self.dir, "native-as-out.yaml")
+        r = self.run_fit(as_yaml, out, "--only", "2")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        with open(out) as f:
+            doc = json.load(f)
+        self.assertNotIn("head", doc)
+        self.assertEqual(doc["tracks"], before["tracks"])
+
     def test_a_native_spec_without_master_gets_a_top_level_one(self):
         path, before = self.native(master=False)
         out = os.path.join(self.dir, "native-new.json")

@@ -12,8 +12,9 @@ first pass under-corrects and 2-4 passes converge (stop when a pass ties).
   widthfit.py IN OUT RENDER.wav[,RENDER2.wav,...] REF.wav SECTIONS.txt [--bass-width 0.5] [--clip LO,HI] [--min-sec 5] [--strength 1] [--only 4,6,7] [--joint]
 
 IN/OUT: a tab2song map (.json with head/parts; edits head.master), a native song spec (.json with tracks/master;
-edits its top-level master, keeping its format: unchanged bytes when the master is unchanged; bd-6067b9) or a song
-(.yaml; replaces its `master:` line). First pass
+edits its top-level master, keeping its format: unchanged bytes when the master is unchanged; bd-6067b9; JSON is
+recognised by content, so a native song saved as .yaml is handled the same) or a song (.yaml; replaces its
+`master:` line). First pass
 (no wb lanes yet): ratios clipped to 0.2..2.5; later passes 0.5..2.0 (--clip overrides). --bass-width sets the
 stage's width below its 120 Hz corner, where the band lanes do not reach (0.3-0.5 when the record's lows are
 narrower than ours). --strength S applies ratio**S (0.5 = half the correction in dB: quiet acoustic records whose width is room
@@ -173,9 +174,9 @@ def main():
     cuts = [float(x) for x in open(secf).read().replace("\n", ",").split(",") if x.strip()]
     nsec = len(cuts) - 1
     is_map = is_native = False
-    if src.endswith(".json"):
-        with open(src) as f:
-            text = f.read()
+    with open(src) as f:
+        text = f.read()
+    if src.endswith(".json") or text.lstrip().startswith("{"):   # JSON by content too (a native song saved as .yaml)
         doc = json.loads(text)
         is_map = isinstance(doc, dict) and ("head" in doc or "parts" in doc)
         is_native = isinstance(doc, dict) and not is_map and ("tracks" in doc or "master" in doc)
