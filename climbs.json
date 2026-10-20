@@ -1840,7 +1840,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 5,
+      "rounds": 6,
       "priority": 1.0,
       "genre": "ambient techno",
       "meta": {
@@ -1857,8 +1857,8 @@
       },
       "ref_file": "ref/albums/selected-ambient-works-85-92/04 ageispolis.webm",
       "last": {
-        "at": "2026-10-20T06:47:00Z",
-        "who": "chirper-two"
+        "at": "2026-10-20T07:27:41Z",
+        "who": "chirper-three"
       }
     },
     {
