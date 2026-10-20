@@ -2106,7 +2106,7 @@
       "passes": 1,
       "enabled": false,
       "status": "requested",
-      "rounds": 1,
+      "rounds": 2,
       "priority": 1.0,
       "genre": "ambient techno",
       "meta": {
@@ -2123,8 +2123,8 @@
       },
       "ref_file": "ref/albums/selected-ambient-works-85-92/12 delphium.webm",
       "last": {
-        "at": "2026-10-20T03:24:23Z",
-        "who": "chirper-two"
+        "at": "2026-10-20T03:56:31Z",
+        "who": "chirper-three"
       }
     },
     {
