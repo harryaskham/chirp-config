@@ -30,7 +30,9 @@ for any climbing agent's next pass, one climb to work on, weighted towards the f
   climb.py status [--json]                          every climb: status, rounds, best, last round, odds
   climb.py log ID [-n N]                            a climb's rounds
   climb.py set ID KEY=VALUE …                       edit a climb's fields (source, genre, metric, …)
-  climb.py note ID TEXT [--next TEXT]               steer: a note in its history (not a round; `next` shows it)
+  climb.py note ID TEXT [--next TEXT] [--fresh]     steer: a note in its history (not a round; `next` shows it);
+                                                    --fresh: `next` shows nothing older (a fresh start;
+                                                    the full history stays in `climb.py log`)
   climb.py pause|resume|drop ID [--note TEXT]       take a climb out of (or back into) the queue
   climb.py tui                                      the queue as a TUI: toggle climbable/playlist, focus, notes
   climb.py focus ALBUM | --off                      climb only that album: pause every other queued climb
@@ -734,6 +736,15 @@ def cmd_add(a):
         commit_or_die(["climbs.json"], f"climbs: request {', '.join(added)}", a)
 
 
+NOTE_CHARS = 500   # `next` shows a handoff, not a receipt; `climb.py log` has every word
+
+
+def visible(hist):
+    """The history `next` shows: everything from the last fresh-start note on (`note --fresh`), else all of it."""
+    i = max((k for k, h in enumerate(hist) if h.get("fresh")), default=0)
+    return hist[i:]
+
+
 def brief(c, hist):
     best = c.get("best") or {}
     lines = [f"{c['id']} — {c.get('reference', '')}",
@@ -764,14 +775,20 @@ def brief(c, hist):
             f"binary; measure it, then `climb.py done {c['id']} --version v1 --score S --note … --next … "
             f"--with songs/{c['id']}.yaml tools/{c['id']}-sections.txt` (it joins the playlist).")
     else:
-        lines.append(f"  this round: measure, pick the biggest gap, try a fix (engine/library/song — {SKILL}); commit the "
-                     f"song only if it beats best; then `climb.py done {c['id']} --note … --next … [--score S --version vN "
-                     f"--with {c.get('song')}]`.")
-    for h in hist[-3:]:
+        lines.append(f"  this round: listen and measure, then make the BOLD change you believe will move it most — rebuild an "
+                     f"instrument (sound design: layers, FM, filters, envelopes, LFO/automation), rewrite note patterns or "
+                     f"sections, or rewrite the whole song; a candidate every round, aiming for a big gain ({SKILL}, "
+                     f"§Climbing charter). Keep it if it wins on full-length scores and held seeds; then `climb.py done "
+                     f"{c['id']} --note … --next … [--score S --version vN --with {c.get('song')}]`.")
+    view = visible(hist)
+    for h in view[-3:]:
         sc = f" {h['score']}" if h.get("score") is not None else ""
-        tag = "NOTE" if h.get("steer") else f"r{h['round']}"
-        lines.append(f"  {tag} {age(h['at'])} ago by {h['who']}{sc}{' kept' if h.get('kept') else ''}: {h['note']}")
-    nxt = next((h["next"] for h in reversed(hist) if h.get("next")), None)
+        tag = ("FRESH START" if h.get("fresh") else "NOTE") if h.get("steer") else f"r{h['round']}"
+        note = h["note"] if len(h["note"]) <= NOTE_CHARS else h["note"][:NOTE_CHARS] + f" … (climb.py log {c['id']})"
+        lines.append(f"  {tag} {age(h['at'])} ago by {h['who']}{sc}{' kept' if h.get('kept') else ''}: {note}")
+    nxt = next((h["next"] for h in reversed(view) if h.get("next")), None)
+    if nxt and len(nxt) > NOTE_CHARS:
+        nxt = nxt[:NOTE_CHARS] + " …"
     if nxt:
         lines.append(f"  suggested next: {nxt}")
     return "\n".join(lines)
@@ -792,7 +809,7 @@ def cmd_next(a):
         with locked("climb-starts.lock"), open(STARTS, "a") as f:
             f.write(json.dumps({"id": cid, "who": me, "t": time.time(), "at": now_iso(), "genre": c.get("genre")}) + "\n")
     if "--json" in a:
-        print(json.dumps({"climb": c, "history": history(cid)[-5:], "odds": round(w[cid] / sum(w.values()), 3)}))
+        print(json.dumps({"climb": c, "history": visible(history(cid))[-5:], "odds": round(w[cid] / sum(w.values()), 3)}))
     else:
         print(f"next for {me} (odds {w[cid] / sum(w.values()):.0%}):\n{brief(c, history(cid))}")
 
@@ -899,12 +916,14 @@ def cmd_log(a):
 
 def cmd_note(a):
     pos = positional(a, ("--next", "--as"))
+    pos = [p for p in pos if p != "--fresh"]
     if len(pos) < 2:
-        die("note ID TEXT [--next TEXT]")
+        die("note ID TEXT [--next TEXT] [--fresh]")
     cid, text = pos[0], " ".join(pos[1:])
     with registry() as reg:
         c = find(reg, cid)
-        h = {"round": c["rounds"], "at": now_iso(), "who": whoami(a), "note": text, "next": opt(a, "--next"), "steer": True}
+        h = {"round": c["rounds"], "at": now_iso(), "who": whoami(a), "note": text, "next": opt(a, "--next"), "steer": True,
+             "fresh": True if "--fresh" in a else None}
         os.makedirs(HIST, exist_ok=True)
         with open(os.path.join(HIST, f"{cid}.jsonl"), "a") as f:
             f.write(json.dumps({k: v for k, v in h.items() if v is not None}, ensure_ascii=False) + "\n")
