@@ -11,7 +11,9 @@ first pass under-corrects and 2-4 passes converge (stop when a pass ties).
 
   widthfit.py IN OUT RENDER.wav[,RENDER2.wav,...] REF.wav SECTIONS.txt [--bass-width 0.5] [--clip LO,HI] [--min-sec 5] [--strength 1] [--only 4,6,7] [--joint]
 
-IN/OUT: a tab2song map (.json; edits head.master) or a song (.yaml; replaces its `master:` line). First pass
+IN/OUT: a tab2song map (.json with head/parts; edits head.master), a native song spec (.json with tracks/master;
+edits its top-level master, keeping its format: unchanged bytes when the master is unchanged; bd-6067b9) or a song
+(.yaml; replaces its `master:` line). First pass
 (no wb lanes yet): ratios clipped to 0.2..2.5; later passes 0.5..2.0 (--clip overrides). --bass-width sets the
 stage's width below its 120 Hz corner, where the band lanes do not reach (0.3-0.5 when the record's lows are
 narrower than ours). --strength S applies ratio**S (0.5 = half the correction in dB: quiet acoustic records whose width is room
@@ -170,10 +172,20 @@ def main():
     opt = lambda k, d: a[a.index(k) + 1] if k in a else d
     cuts = [float(x) for x in open(secf).read().replace("\n", ",").split(",") if x.strip()]
     nsec = len(cuts) - 1
-    is_map = src.endswith(".json")
+    is_map = is_native = False
+    if src.endswith(".json"):
+        with open(src) as f:
+            text = f.read()
+        doc = json.loads(text)
+        is_map = isinstance(doc, dict) and ("head" in doc or "parts" in doc)
+        is_native = isinstance(doc, dict) and not is_map and ("tracks" in doc or "master" in doc)
+        if not (is_map or is_native):
+            sys.exit(f"widthfit: {src} is neither a tab2song map (head/parts) nor a native song spec (tracks/master)")
     if is_map:
-        doc = json.load(open(src))
         master = doc.setdefault("head", {}).get("master")
+    elif is_native:
+        master = json.loads(json.dumps(doc["master"])) if "master" in doc else None
+        before = doc.get("master")
     else:
         lines = open(src).read().splitlines()
         mi = next((k for k, l in enumerate(lines) if l.startswith("master:")), None)
@@ -274,6 +286,16 @@ def main():
     if is_map:
         doc["head"]["master"] = master
         json.dump(doc, open(dst, "w"), indent=1)
+    elif is_native:
+        # the native spec keeps its own shape: top-level master, no map head (the engine rejects unknown fields)
+        if master == before:
+            out = text
+        else:
+            doc["master"] = master
+            ind = re.search(r"\n( +)\S", text)
+            out = json.dumps(doc, indent=len(ind.group(1)) if ind else None) + ("\n" if text.endswith("\n") else "")
+        with open(dst, "w") as f:
+            f.write(out)
     else:
         line = "master: " + json.dumps(master)
         if mi is None:

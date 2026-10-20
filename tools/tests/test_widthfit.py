@@ -91,6 +91,66 @@ class Widthfit(unittest.TestCase):
             json.dump(doc, f)
         return path, doc
 
+    def native(self, master=True, indent=2):
+        """A native song spec (bd-6067b9): top-level tempo/tracks/master, no map head."""
+        with open(self.grid) as f:
+            m = json.load(f)["head"]["master"]
+        doc = {"tempo": 120, "tracks": [{"name": "pad", "patch": "pad", "score": "C4/4"}]}
+        if master:
+            doc["master"] = m
+        path = os.path.join(self.dir, f"native-{int(master)}.json")
+        with open(path, "w") as f:
+            f.write(json.dumps(doc, indent=indent) + "\n")
+        return path, doc
+
+    def test_a_native_spec_keeps_its_shape(self):
+        path, before = self.native()
+        with open(path, "rb") as f:
+            src = f.read()
+        zero = os.path.join(self.dir, "native-zero.json")
+        r = self.run_fit(path, zero, "--strength", "0", "--only", "0")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        with open(zero, "rb") as f:
+            self.assertEqual(f.read(), src, "a zero step leaves the native file byte-identical")
+        fit = os.path.join(self.dir, "native-fit.json")
+        r = self.run_fit(path, fit, "--only", "2")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        with open(fit) as f:
+            text = f.read()
+        doc = json.loads(text)
+        self.assertNotIn("head", doc, "no tab2song map head in a native spec")
+        self.assertEqual({k: v for k, v in doc.items() if k != "master"}, {k: v for k, v in before.items() if k != "master"})
+        self.assertNotEqual(doc["master"]["auto"], before["master"]["auto"], "section 2 was fitted")
+        self.assertTrue(text.startswith('{\n  "'), "the file's own indentation is kept")
+
+    def test_a_native_spec_without_master_gets_a_top_level_one(self):
+        path, before = self.native(master=False)
+        out = os.path.join(self.dir, "native-new.json")
+        r = self.run_fit(path, out)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        with open(out) as f:
+            doc = json.load(f)
+        self.assertNotIn("head", doc)
+        self.assertTrue(any(fx.get("type") == "width" for fx in doc["master"]["fx"]))
+        self.assertEqual(doc["tracks"], before["tracks"])
+
+    @unittest.skipUnless(os.environ.get("CHIRP"), "set CHIRP to an engine build to validate the native output")
+    def test_the_engine_accepts_the_native_output(self):
+        path, _ = self.native()
+        out = os.path.join(self.dir, "native-plan.json")
+        self.assertEqual(self.run_fit(path, out, "--only", "2").returncode, 0)
+        p = subprocess.run([os.environ["CHIRP"], "plan", "-f", out, "--json"], capture_output=True, text=True)
+        self.assertEqual(json.loads(p.stdout)["status"], "success", p.stdout[-300:])
+
+    def test_an_unrecognised_json_is_refused(self):
+        path = os.path.join(self.dir, "odd.json")
+        with open(path, "w") as f:
+            json.dump({"something": 1}, f)
+        r = self.run_fit(path, os.path.join(self.dir, "odd-out.json"))
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("neither a tab2song map", r.stderr)
+        self.assertFalse(os.path.exists(os.path.join(self.dir, "odd-out.json")))
+
     def test_lanes_are_read_by_time(self):
         pts = [["0s", 1.0], ["9.950s", 1.0], ["10.050s", 0.5], ["10.15s", 0.7], ["19.85s", 0.7], ["19.950s", 0.5],
                ["20.050s", 1.2]]
