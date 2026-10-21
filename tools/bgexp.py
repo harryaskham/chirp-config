@@ -5,6 +5,9 @@
   bgexp.py status [--since MINUTES] [PREFIX]   total (the CLI total climbs record), exact (bgexp's legacy
                                                term recompute), raw (unrounded); a failed job's stage and error
   bgexp.py wait NAME [NAME...]          # block until those finish (for scripts)
+  bgexp.py run NAME SONG --seeds 0,11 …   # one job per seed: NAME-0, NAME-11 (each with --set seed=S)
+  bgexp.py compare A B                  # per-section deltas B - A; A and B may be seed families (NAME-0, NAME-11):
+                                        # means over the seeds both finished
 
 Each job waits until the 1-min load average is below --max-load (default 3x cores: don't pile onto a host storm
 while the live groove plays) and for one of --slots concurrency slots (flock files), renders at nice 15 with the pinned build
@@ -190,6 +193,48 @@ def status(prefix="", since=None):
               + "  pres crest " + "/".join(f"{s['ref']['pres']['crest']:.1f}" for s in mf))
 
 
+def _done(name):
+    """{seed-or-'': job} of finished jobs: NAME itself, else its seed family NAME-<int>."""
+    one = f"{EXP}/{name}.json"
+    if os.path.exists(one):
+        d = json.load(open(one))
+        return {"": d} if d.get("state") == "done" else {}
+    out = {}
+    for f in os.listdir(EXP) if os.path.isdir(EXP) else []:
+        tail = f[len(name) + 1:-5] if f.startswith(name + "-") and f.endswith(".json") else ""
+        if tail.isdigit():
+            d = json.load(open(f"{EXP}/{f}"))
+            if d.get("state") == "done":
+                out[tail] = d
+    return out
+
+
+TERMS = ("loudness", "spectral", "chroma", "rhythm", "ltas", "stereo", "master")
+
+
+def compare(a, b):
+    """Per-section deltas B - A (means over the seeds both finished, when A and B are seed families)."""
+    ja, jb = _done(a), _done(b)
+    keys = sorted(set(ja) & set(jb), key=lambda k: (k != "", int(k) if k.isdigit() else -1))
+    if not keys:
+        sys.exit(f"bgexp compare: no finished jobs in common for {a} and {b} (seeds: {sorted(ja)} vs {sorted(jb)})")
+    if [len(ja[k]["sections"]) for k in keys] != [len(jb[k]["sections"]) for k in keys]:
+        sys.exit("bgexp compare: the jobs have different sections")
+    mean = lambda js, f: sum(f(j) for j in js) / len(js)  # noqa: E731
+    A, B = [ja[k] for k in keys], [jb[k] for k in keys]
+    seeds = ",".join(k for k in keys if k) or "the one job each"
+    ta, tb = mean(A, lambda j: j.get("total_raw", j["total"])), mean(B, lambda j: j.get("total_raw", j["total"]))
+    print(f"{b} vs {a} (seeds {seeds}): total {ta:.3f} -> {tb:.3f}  {tb - ta:+.3f}")
+    for i, sa in enumerate(A[0]["sections"]):
+        va = mean(A, lambda j: j["sections"][i]["total"])
+        vb = mean(B, lambda j: j["sections"][i]["total"])
+        moves = {t: mean(B, lambda j: j["sections"][i].get(t, 0)) - mean(A, lambda j: j["sections"][i].get(t, 0))
+                 for t in TERMS if t in sa}
+        top = sorted(moves.items(), key=lambda kv: -abs(kv[1]))[:2]
+        print(f"  {sa['start']:7.1f}-{sa['end']:7.1f} s  {va:5.1f} -> {vb:5.1f}  {vb - va:+5.1f}   "
+              + "  ".join(f"{t} {v:+.1f}" for t, v in top))
+
+
 def main():
     a = sys.argv[1:]
     if not a:
@@ -205,6 +250,7 @@ def main():
         slots = int(opt(a, "--slots", "3"))
         max_load = float(opt(a, "--max-load", "0")) or None
         keep_wav = "--keep-wav" in a
+        seeds = opt(a, "--seeds", None)
         a = [x for x in a if x != "--keep-wav"]
         name, song = a[0], os.path.abspath(a[1])
         defaulted = [f for f, d in (("--ref", ref_default), ("--sections", sections_default)) if d]
@@ -217,15 +263,22 @@ def main():
             if not os.path.isfile(path):
                 sys.exit(f"bgexp: {what} {path} does not exist"
                          + (" (the default: --ref/--sections default to the shadows climb's)" if dflt else ""))
-        if os.fork() == 0:
-            os.setsid()
+        # --seeds 0,11: one job per seed, NAME-S with --set seed=S (compare NAME … averages them)
+        for n, ex in ([(f"{name}-{v.strip()}", extra + ["--set", f"seed={v.strip()}"]) for v in seeds.split(",") if v.strip()]
+                      if seeds else [(name, extra)]):
             if os.fork() == 0:
-                fd = os.open(os.devnull, os.O_RDWR)
-                for k in (0, 1, 2):
-                    os.dup2(fd, k)
-                job(name, song, ref, sections, slots, extra, max_load, keep_wav)
-            os._exit(0)
-        print(f"queued {name}")
+                os.setsid()
+                if os.fork() == 0:
+                    fd = os.open(os.devnull, os.O_RDWR)
+                    for k in (0, 1, 2):
+                        os.dup2(fd, k)
+                    job(n, song, ref, sections, slots, ex, max_load, keep_wav)
+                os._exit(0)
+            print(f"queued {n}")
+    elif cmd == "compare":
+        if len(a) != 2:
+            sys.exit("bgexp compare A B")
+        compare(*a)
     elif cmd == "status":
         since = opt(a, "--since", None)
         status(a[0] if a else "", float(since) if since else None)

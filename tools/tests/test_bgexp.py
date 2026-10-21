@@ -143,5 +143,61 @@ class Jobs(unittest.TestCase):
         self.assertFalse(os.path.exists(os.path.join(self.dir, "cli", "x.json")), "no job was queued")
 
 
+class CompareAndSeeds(unittest.TestCase):
+    def setUp(self):
+        self.dir = tempfile.mkdtemp(prefix="bgexp-cmp-")
+        self.addCleanup(shutil.rmtree, self.dir, True)
+        self.old = B.EXP
+        self.addCleanup(lambda: setattr(B, "EXP", self.old))
+        B.EXP = self.dir
+
+    def put(self, name, total, secs, state="done"):
+        sections = [{"start": 10.0 * i, "end": 10.0 * (i + 1), "total": v, "stereo": v / 2, "chroma": 50.0}
+                    for i, v in enumerate(secs)]
+        with open(os.path.join(self.dir, name + ".json"), "w") as f:
+            json.dump({"name": name, "state": state, "total": total, "total_raw": total, "sections": sections}, f)
+
+    def test_compare_averages_seed_families_over_common_seeds(self):
+        self.put("a-0", 50.0, [40.0, 60.0])
+        self.put("a-11", 52.0, [42.0, 62.0])
+        self.put("a-7", 99.0, [99.0, 99.0])          # B has no seed 7: left out
+        self.put("b-0", 51.0, [44.0, 58.0])
+        self.put("b-11", 55.0, [46.0, 64.0])
+        self.put("b-13", 10.0, [10.0, 10.0], "failed")
+        out = io.StringIO()
+        with redirect_stdout(out):
+            B.compare("a", "b")
+        text = out.getvalue()
+        self.assertIn("b vs a (seeds 0,11): total 51.000 -> 53.000  +2.000", text)
+        self.assertIn("41.0 ->  45.0   +4.0", text)
+        self.assertIn("stereo +2.0", text)
+        self.assertIn("61.0 ->  61.0   +0.0", text)
+
+    def test_compare_refuses_without_common_finished_jobs(self):
+        self.put("a-0", 50.0, [40.0])
+        self.put("b-11", 51.0, [44.0])
+        with self.assertRaises(SystemExit):
+            B.compare("a", "b")
+
+    def test_run_seeds_queues_one_job_per_seed(self):
+        root = tempfile.mkdtemp(prefix="bgexp-root-")
+        self.addCleanup(shutil.rmtree, root, True)
+        song = os.path.join(root, "cand.yaml")
+        for path in (song, os.path.join(root, "ref.wav"), os.path.join(root, "secs.txt")):
+            open(path, "w").close()
+        out = io.StringIO()
+        old_root = B.ROOT
+        self.addCleanup(lambda: setattr(B, "ROOT", old_root))
+        B.ROOT = root
+        argv = ["bgexp.py", "run", "c7", song, "--ref", "ref.wav", "--sections", "secs.txt", "--seeds", "0,11", "--",
+                "--set", "x=1"]
+        with mock.patch.object(sys, "argv", argv), mock.patch.object(B.os, "fork", return_value=1) as fork, \
+                mock.patch.object(B, "job") as job, redirect_stdout(out):
+            B.main()
+        self.assertEqual(out.getvalue().split(), ["queued", "c7-0", "queued", "c7-11"])
+        self.assertEqual(fork.call_count, 2)
+        job.assert_not_called()   # the parent only forks; the (mocked) children would run the jobs
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
