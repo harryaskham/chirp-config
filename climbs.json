@@ -1845,11 +1845,16 @@
       "source": "https://www.youtube.com/watch?v=OtAweb0IV14",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/pulsewidth.wav OUT.wav $(cat tools/pulsewidth-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 60.77,
+        "version": "v1",
+        "commit": "see git log songs/pulsewidth.yaml",
+        "engine": "21358da"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 9,
+      "enabled": true,
+      "status": "active",
+      "rounds": 10,
       "priority": 1.0,
       "genre": "ambient techno",
       "meta": {
@@ -1866,8 +1871,8 @@
       },
       "ref_file": "ref/albums/selected-ambient-works-85-92/03 pulsewidth.webm",
       "last": {
-        "at": "2026-10-20T19:31:33Z",
-        "who": "chirper-three"
+        "at": "2026-10-21T15:43:24Z",
+        "who": "chirper-zero"
       }
     },
     {
