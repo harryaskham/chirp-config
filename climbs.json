@@ -2089,11 +2089,16 @@
       "source": "https://www.youtube.com/watch?v=dBubcKr93K0",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/ptolemy.wav OUT.wav $(cat tools/ptolemy-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 50.681,
+        "version": "v1",
+        "commit": "see git log songs/ptolemy.yaml",
+        "engine": "21358da"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 15,
+      "enabled": true,
+      "status": "active",
+      "rounds": 16,
       "priority": 1.0,
       "genre": "ambient techno",
       "meta": {
@@ -2110,8 +2115,8 @@
       },
       "ref_file": "ref/albums/selected-ambient-works-85-92/10 ptolemy.webm",
       "last": {
-        "at": "2026-10-20T19:38:12Z",
-        "who": "chirper-one"
+        "at": "2026-10-21T17:31:50Z",
+        "who": "chirper-zero"
       }
     },
     {
