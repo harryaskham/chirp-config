@@ -2,7 +2,11 @@
 """Run the master-fit stack on a song or tab2song map, one scored step at a time, keeping only steps that win.
 
   masterstack.py SONG.(yaml|json) REF.wav SECTIONS.txt --out DIR [--steps "eq ride ride"] [--seeds 0,11]
-                 [--heldout 7,13] [--chirp BIN] [--min-gain 0] [--keep-wav]
+                 [--heldout 7,13] [--chirp BIN] [--min-gain 0] [--keep-wav] [--slots N] [--max-load L]
+
+--slots N renders at most N seeds at once (default: all of them together; --slots 1 = one render at a time, also
+for the held-out check), and --max-load L waits before each render while the 1-minute load average is above L
+(default: no wait). Neither changes what is fitted or scored.
 
 Each step is fitted on renders of the current version at --seeds (the first seed is the scoring render, normally
 0 = the default seed), applied, rendered and scored with likeness; a step that does not beat the running best is
@@ -35,6 +39,7 @@ import os
 import shutil
 import subprocess
 import sys
+import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PY = sys.executable
@@ -49,8 +54,9 @@ def run(cmd, **kw):
 
 
 class Stack:
-    def __init__(self, song, ref, sections, out, seeds, chirp):
+    def __init__(self, song, ref, sections, out, seeds, chirp, slots=None, max_load=None):
         self.ref, self.sections, self.out, self.seeds, self.chirp = ref, sections, out, seeds, chirp
+        self.slots, self.max_load = slots, max_load   # None: every seed at once, no load wait (the original behaviour)
         self.is_map = song.endswith(".json")
         self.ext = ".json" if self.is_map else ".yaml"
         self.secs = open(sections).read().split()
@@ -67,18 +73,30 @@ class Stack:
         return y
 
     def render(self, path, seeds):
-        """Render path at each seed in parallel; returns {seed: wav}."""
+        """Render path at each seed, in parallel up to --slots at a time, each start waiting for the 1-min load average
+        to fall below --max-load; returns {seed: wav}."""
         y, procs, wavs = self.yaml_of(path), [], {}
+        todo = []
         for s in seeds:
             wav = f"{path.rsplit('.', 1)[0]}-s{s}.wav"
             wavs[s] = wav
             if not os.path.exists(wav):
-                procs.append((s, subprocess.Popen(["nice", "-n", "15", self.chirp, "render", "-f", y, "--seed", str(s),
-                                                   "-o", wav], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)))
-        for s, p in procs:
+                todo.append((s, wav))
+
+        def finish(s, p):
             _, err = p.communicate()
             if p.returncode or not os.path.exists(wavs[s]):
                 sys.exit(f"render failed ({path} seed {s}): {err[-400:]}")
+
+        for s, wav in todo:
+            while self.slots and len(procs) >= self.slots:
+                finish(*procs.pop(0))
+            while self.max_load and os.getloadavg()[0] > self.max_load:
+                time.sleep(5)
+            procs.append((s, subprocess.Popen(["nice", "-n", "15", self.chirp, "render", "-f", y, "--seed", str(s),
+                                               "-o", wav], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)))
+        for s, p in procs:
+            finish(s, p)
         return wavs
 
     def score(self, wav):
@@ -180,9 +198,10 @@ def drop_wavs(wavs, keep):
             pass
 
 
-def heldout(chirp, song_yaml, ref, sections, seeds):
+def heldout(chirp, song_yaml, ref, sections, seeds, slots=None):
+    env = {**os.environ, "CHIRP": chirp, **({"SEEDSCORE_JOBS": str(slots)} if slots else {})}
     r = run(["nice", "-n", "15", PY, os.path.join(HERE, "seedscore.py"), song_yaml, "--seeds", seeds, "--ref", ref,
-             "--sections", sections], env={**os.environ, "CHIRP": chirp})
+             "--sections", sections], env=env)
     try:
         d = json.loads(r.stdout.strip().splitlines()[-1])
         return d["mean"], d["per_seed"]
@@ -202,8 +221,10 @@ def main(a):
     chirp = opt(a, "--chirp", chirpbin.resolve("chirp"))
     min_gain = opt(a, "--min-gain", 0.0)
     keep_wav = "--keep-wav" in a
+    slots = int(opt(a, "--slots", 0)) or None
+    max_load = float(opt(a, "--max-load", 0)) or None
     os.makedirs(out, exist_ok=True)
-    st = Stack(song, ref, sections, out, seeds, chirp)
+    st = Stack(song, ref, sections, out, seeds, chirp, slots, max_load)
     cur = os.path.join(out, "step0-base" + st.ext)
     shutil.copy(song, cur)
     wavs = st.render(cur, seeds)
@@ -244,9 +265,9 @@ def main(a):
         print(f"  {step:12s} {sc if sc is not None else '-':>8} {verdict:8s} {sp}")
     if "--heldout" in a:
         hs = opt(a, "--heldout", "7,13")
-        b = heldout(chirp, st.yaml_of(os.path.join(out, "step0-base" + st.ext)), ref, sections, hs)
+        b = heldout(chirp, st.yaml_of(os.path.join(out, "step0-base" + st.ext)), ref, sections, hs, slots)
         f = heldout(chirp, os.path.join(out, "best.yaml") if st.is_map else os.path.join(out, "best" + st.ext), ref,
-                    sections, hs)
+                    sections, hs, slots)
         print(f"held-out {hs}: base {b[0]} {b[1]}  best {f[0]} {f[1]}")
 
 

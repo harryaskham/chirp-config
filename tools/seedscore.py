@@ -32,7 +32,7 @@ def score(song, seeds=(7, 11, 13), ref=None, sections=None):
         os.unlink(out)
         return [d["total"]] + [s["total"] for s in d["sections"]]
 
-    with ThreadPoolExecutor(2) as ex:
+    with ThreadPoolExecutor(int(os.environ.get("SEEDSCORE_JOBS", "2")) or 2) as ex:   # masterstack --slots sets it
         rows = np.array(list(ex.map(one, seeds)))
     return {"mean": round(float(rows[:, 0].mean()), 2), "std": round(float(rows[:, 0].std()), 2),
             "sections": [round(float(v), 1) for v in rows[:, 1:].mean(0)], "per_seed": rows[:, 0].tolist()}
