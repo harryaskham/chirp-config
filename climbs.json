@@ -2116,11 +2116,16 @@
       "source": "https://www.youtube.com/watch?v=9gbSs6vAs_w",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/hedphelym.wav OUT.wav $(cat tools/hedphelym-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 55.271,
+        "version": "v1",
+        "commit": "see git log songs/hedphelym.yaml",
+        "engine": "411dd3c"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 11,
+      "enabled": true,
+      "status": "active",
+      "rounds": 12,
       "priority": 1.0,
       "genre": "ambient techno",
       "meta": {
@@ -2137,7 +2142,7 @@
       },
       "ref_file": "ref/albums/selected-ambient-works-85-92/11 hedphelym.webm",
       "last": {
-        "at": "2026-10-20T19:29:19Z",
+        "at": "2026-10-21T04:53:48Z",
         "who": "chirper-zero"
       }
     },
