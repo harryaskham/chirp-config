@@ -1878,15 +1878,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/ageispolis.wav OUT.wav $(cat tools/ageispolis-sections.txt)",
       "best": {
-        "score": 50.381,
-        "version": "v1",
+        "score": 59.894,
+        "version": "v2",
         "commit": "see git log songs/ageispolis.yaml",
-        "engine": "588d9d7"
+        "engine": "411dd3c"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 11,
+      "rounds": 12,
       "priority": 1.0,
       "genre": "ambient techno",
       "meta": {
@@ -1903,7 +1903,7 @@
       },
       "ref_file": "ref/albums/selected-ambient-works-85-92/04 ageispolis.webm",
       "last": {
-        "at": "2026-10-20T19:12:36Z",
+        "at": "2026-10-21T12:37:15Z",
         "who": "chirper-zero"
       }
     },
