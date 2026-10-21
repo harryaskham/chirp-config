@@ -1809,15 +1809,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/tha.wav OUT.wav $(cat tools/tha-sections.txt)",
       "best": {
-        "score": 51.923,
-        "version": "v1",
+        "score": 62.051,
+        "version": "v2",
         "commit": "see git log songs/tha.yaml",
-        "engine": "588d9d7"
+        "engine": "411dd3c"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 12,
+      "rounds": 13,
       "priority": 1.0,
       "genre": "ambient techno",
       "meta": {
@@ -1834,8 +1834,8 @@
       },
       "ref_file": "ref/albums/selected-ambient-works-85-92/02 tha.webm",
       "last": {
-        "at": "2026-10-20T18:44:19Z",
-        "who": "chirper-three"
+        "at": "2026-10-21T03:28:03Z",
+        "who": "chirper-zero"
       }
     },
     {
