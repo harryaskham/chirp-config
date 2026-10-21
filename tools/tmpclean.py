@@ -21,7 +21,9 @@ on every next/done). --loop S: run every S seconds (a detached janitor). One run
 (flock). A line per run goes to /tmp/lt/tmpclean.log.
 
 Keep audio you need beyond a round in ~/.config/chirp/ref/ (git-ignored) or a song's own
-evidence folder, not /tmp.
+evidence folder, not /tmp. For comparison renders you need for a day or two (a long round, a daemon restart),
+`touch DIR/.tmpclean-keep`: audio under DIR is then treated like stems (--stems-age, default 72 h since last
+use; deleted after ordinary renders when over the cap; disk pressure still applies). Delete the marker when done.
 """
 import fcntl
 import os
@@ -33,6 +35,7 @@ import time
 AUDIO = {".wav", ".flac", ".mp3", ".ogg", ".opus", ".webm", ".m4a", ".aif", ".aiff"}
 SKIP_DIRS = {".git", "target", "node_modules", "__pycache__"}
 STEMS = re.compile(r"(stem|sep|demucs|htdemucs|mdx)", re.I)
+KEEP = ".tmpclean-keep"   # a directory holding this file keeps its audio like stems
 STATE = "/tmp/lt"
 LOG = f"{STATE}/tmpclean.log"
 STAMP = f"{STATE}/.tmpclean-stamp"
@@ -59,11 +62,19 @@ def candidates(roots):
     """(path, size, last_used, is_stem) for each deletable audio file."""
     me = os.getuid()
     out = []
+    marked = {}
+
+    def kept(d):
+        """Whether d or a parent (below /) holds the keep marker."""
+        if d not in marked:
+            up = os.path.dirname(d)
+            marked[d] = os.path.exists(os.path.join(d, KEEP)) or (up != d and up != "/" and kept(up))
+        return marked[d]
 
     def consider(p, st):
         if st.st_uid != me or os.path.splitext(p)[1].lower() not in AUDIO:
             return
-        out.append((p, st.st_size, max(st.st_mtime, st.st_atime), bool(STEMS.search(p))))
+        out.append((p, st.st_size, max(st.st_mtime, st.st_atime), bool(STEMS.search(p)) or kept(os.path.dirname(p))))
 
     for root in roots:
         if not os.path.isdir(root):
