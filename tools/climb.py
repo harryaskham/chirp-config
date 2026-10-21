@@ -853,16 +853,24 @@ def cmd_done(a):
             c["status"] = "active"
             c["enabled"] = not c.get("oob")  # out-of-band climbs never join the playlist
         c["last"] = {"at": h["at"], "who": me}
+        if kept and opt(a, "--render") and (c.get("meta") or {}).get("album"):
+            # the album plays gaplessly: compare this version's two joins with the kept version's (a warning, not a
+            # gate — chirper-zero found Hedphelym v2 and Ageispolis v2 each lost one)
+            try:
+                joins, warns = _albumedges().join_regressions(cid, opt(a, "--render"))
+                if joins:
+                    h["joins"] = {k: {kk: v[kk] for kk in ("with", "score", "was") if kk in v} for k, v in joins.items()}
+                for w in warns:
+                    print(f"climb: WARNING {w}", file=sys.stderr)
+            except (OSError, SystemExit, ValueError, KeyError) as e:
+                print(f"climb: joins not checked ({e})", file=sys.stderr)
         os.makedirs(HIST, exist_ok=True)
         with open(os.path.join(HIST, f"{cid}.jsonl"), "a") as f:
             f.write(json.dumps({k: v for k, v in h.items() if v is not None}, ensure_ascii=False) + "\n")
     edges = []
     if kept and opt(a, "--render") and (c.get("meta") or {}).get("album"):
         # An album song's kept render: its edges, for the album's transitions (albumedges.py score).
-        import importlib.util
-        spec = importlib.util.spec_from_file_location("albumedges", os.path.join(HERE, "albumedges.py"))
-        ae = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(ae)
+        ae = _albumedges()
         try:
             edges = [ae.cmd_record([cid, opt(a, "--render")], version=version)]
         except (OSError, SystemExit, ValueError) as e:
@@ -878,6 +886,14 @@ def cmd_done(a):
                   f"climbs: {cid} round {h['round']}{f' — {version} {score}' if kept else ''}: {note[:60]}", a)
     print(f"{cid} round {h['round']}{f' — best {score} ({version})' if kept else ''}"
           f"{' — joins the playlist' if c.get('enabled') and h['round'] == 1 else ''}")
+
+
+def _albumedges():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("albumedges", os.path.join(HERE, "albumedges.py"))
+    ae = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(ae)
+    return ae
 
 
 def cmd_status(a):

@@ -120,6 +120,47 @@ def opt(a, k, d=None):
     return a[a.index(k) + 1] if k in a and a.index(k) + 1 < len(a) else d
 
 
+def join_scores(cid, ours, ref, edge=3.0):
+    """This song's two transitions as `check` scores them, for edges `ours` (its head and tail) against its record's
+    `ref`: {"from"|"into": {"with": neighbour, "error": dB, "score": 0-100, "basis": the neighbour's kept version}}."""
+    out = {}
+    _, prev, nxt = neighbours(cid)
+    for other, label, theirs in ((prev, "from", "tail"), (nxt, "into", "head")):
+        if not other:
+            continue
+        rec = recorded(other["id"])
+        o_ref = (rec or {}).get("ref", {}).get(theirs) or ref_edges(other["id"], edge)[0][theirs]
+        o_ours = (rec["edges"][theirs] if rec else None) or o_ref
+        if label == "from":
+            jo, jr = vec(ours["head"]) - vec(o_ours), vec(ref["head"]) - vec(o_ref)
+        else:
+            jo, jr = vec(o_ours) - vec(ours["tail"]), vec(o_ref) - vec(ref["tail"])
+        e, sc = err(jo, jr)
+        out[label] = {"with": other["id"], "error": round(e, 2), "score": round(sc, 1),
+                      "basis": rec["version"] if rec else "record"}
+    return out
+
+
+def join_regressions(cid, path, edge=3.0, tolerance=0.5):
+    """(this render's joins, warnings): a join whose score falls more than `tolerance` below the one this song's
+    recorded (kept) edges give is a regression (chirper-zero: Hedphelym v2 and Ageispolis v2 each lost a join)."""
+    ours, ref, _ = render_edges(cid, path, edge)
+    new = join_scores(cid, ours, ref, edge)
+    rec = recorded(cid)
+    old = join_scores(cid, rec["edges"], rec.get("ref") or ref, rec.get("edge", edge)) if rec else {}
+    warnings = []
+    for label, j in new.items():
+        was = old.get(label)
+        if was:
+            j["was"] = was["score"]
+            if j["score"] < was["score"] - tolerance:
+                side = "head" if label == "from" else "tail"
+                warnings.append(f"the join {label} {j['with']} gets worse: {was['score']} -> {j['score']} (error "
+                                f"{was['error']} -> {j['error']} dB against {rec['version']}); level-match this song's "
+                                f"{side} (albumedges.py check {cid} RENDER.wav)")
+    return new, warnings
+
+
 def cmd_check(a):
     cid, path = a[0], a[1]
     edge = float(opt(a, "--edge", 3))
