@@ -102,5 +102,45 @@ class Fit(unittest.TestCase):
         self.assertNotIn("floor-body", names)
 
 
+@unittest.skipUnless(HAVE_CHIRP, "needs the groove pin")
+class Follow(unittest.TestCase):
+    """The floor tracks follow the record's fades (Hedphelym v2's constant floor ran 10-23 dB over its fade-out)."""
+
+    def setUp(self):
+        self.dir = tempfile.mkdtemp(prefix="floorfit-follow-")
+        self.addCleanup(shutil.rmtree, self.dir, True)
+        self.song = os.path.join(self.dir, "song.json")
+        with open(self.song, "w") as f:
+            json.dump({"tempo": 120, "length": "10s", "tracks": [{"name": "pad", "patch": "piano", "score": "C3/20b@40"}]}, f)
+        ours = os.path.join(self.dir, "ours.wav")
+        subprocess.run([chirpbin.resolve("chirp"), "render", "-f", self.song, "-o", ours], check=True, capture_output=True)
+        st = load(ours)[:10 * SR]
+        hiss = band_noise(len(st), 3500, 14000, -62, 7)
+        fade = np.clip((10 * SR - np.arange(len(st))) / (3 * SR), 0, 1) ** 3          # the last 3 s fade to silence
+        self.ref = os.path.join(self.dir, "ref.wav")
+        write(self.ref, (st + hiss) * fade[:, None])
+
+    def fit(self, *extra):
+        out = os.path.join(self.dir, "out.json")
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            F.main(["fit", self.song, self.ref, "--from", "1", "--to", "6", "-o", out, "--bands", "hiss=3000-16000", *extra])
+        return next(t for t in json.load(open(out))["tracks"] if t["name"] == "floor-hiss"), buf.getvalue()
+
+    def test_the_floor_fades_out_with_the_record(self):
+        tr, text = self.fit()
+        self.assertIn("follows the record's floor down", text)
+        self.assertEqual(tr["gain"]["mod"], [{"src": "auto.follow", "amount": 1}])
+        pts = tr["auto"]["follow"]["points"]
+        self.assertEqual(pts[0][1], 0.0)
+        self.assertTrue(all(v == 0.0 for t, v in pts if float(t.rstrip("s")) < 6.5), pts)
+        self.assertLess(pts[-1][1], -20)
+
+    def test_no_follow_keeps_a_plain_gain(self):
+        tr, text = self.fit("--no-follow")
+        self.assertIsInstance(tr["gain"], str)
+        self.assertNotIn("auto", tr)
+
+
 if __name__ == "__main__":
     unittest.main()

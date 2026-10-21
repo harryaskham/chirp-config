@@ -5,7 +5,7 @@ request: its solo-rendered probes read 8-9 dB off the level the same noise reach
   floorfit.py measure WAV [--bands hiss=3000-16000,rumble=20-100] [--pct 10] [--from A --to B]
       each band's floor: the --pct percentile of 100 ms frame band power (dBFS per channel; the quiet moments the
       floor shows through), and its left/right correlation (≈0 for tape hiss, ≈1 for mono hum)
-  floorfit.py fit SONG REF.wav --from A --to B -o OUT [--bands …] [--pct 10] [--prefix floor] [--loud-ok]
+  floorfit.py fit SONG REF.wav --from A --to B -o OUT [--bands …] [--pct 10] [--prefix floor] [--loud-ok] [--no-follow]
       adds, per band, a song-local patch (two noise layers panned hard left and right, so the channels are
       independent; brown noise below 300 Hz, else pink; high-pass and low-pass at the band edges) and a track playing
       it over the whole song, then calibrates each track's gain IN THE MIX: renders the song over [A, B] without the
@@ -16,6 +16,10 @@ request: its solo-rendered probes read 8-9 dB off the level the same noise reach
       quietest frames are music, not noise, so a band "floor" louder than -50 dBFS is skipped unless --loud-ok.
       The master chain (width stages, EQ) acts on the floor tracks too: the reported L/R r shows what it made of
       the independent channels.
+      Each track follows the record's own floor over time (unless --no-follow): a gain lane (auto.follow) from the
+      band's floor every 0.5 s over 2 s windows, only where it falls more than 3 dB under the calibrated level —
+      fade-ins, fade-outs, a silent ending — never above it. Hedphelym v2's constant floor tracks ran 10-23 dB over
+      the record's fade in its last 3 s and its join into Delphium fell 19.1 -> 4.7.
 
 Only noise the record shows: measure first, and keep the result only if it scores (the album rule: tape, hiss and
 wobble only from evidence). The tracks have no fades: the master's fade (if any) shapes them with the music.
@@ -90,7 +94,32 @@ def patch(lo, hi, about):
                       "filters": [{"kind": "hp", "cutoff": lo, "q": 0.7}, {"kind": "lp", "cutoff": hi, "q": 0.7}]}}
 
 
-def with_floor(doc, bands, gains, prefix, song_id, seconds):
+def follow_lane(st, lo, hi, target_db, pct=10.0, step=0.5, span=2.0, dead=3.0, floor_db=-80.0):
+    """[["Ts", dB], …] following the record's band floor where it drops more than `dead` dB under target_db (≤ 0),
+    or None when it never does."""
+    n = len(st) / SR
+    times = np.arange(0.0, n, step)
+    vals = []
+    for t in times:
+        seg = st[int(max(0.0, t - span / 2) * SR):int(min(n, t + span / 2) * SR)]
+        vals.append(floors(seg, {"b": (lo, hi)}, pct)["b"][0] if len(seg) >= FRAME + 4 * HOPF else target_db)
+    v = np.array(vals)
+    v = np.array([np.median(v[max(0, i - 1):i + 2]) for i in range(len(v))])         # a 3-point median: no flicker
+    rel = np.where(v < target_db - dead, np.maximum(v - target_db, floor_db), 0.0)
+    if not (rel < 0).any():
+        return None
+    rel = np.round(rel * 2) / 2                                                       # 0.5 dB steps
+    pts = [[f"{times[0]:.2f}s", float(rel[0])]]
+    for i in range(1, len(rel)):
+        if rel[i] != rel[i - 1]:
+            if pts[-1][0] != f"{times[i - 1]:.2f}s":
+                pts.append([f"{times[i - 1]:.2f}s", float(rel[i - 1])])
+            pts.append([f"{times[i]:.2f}s", float(rel[i])])
+    pts.append([f"{times[-1]:.2f}s", float(rel[-1])])
+    return pts
+
+
+def with_floor(doc, bands, gains, prefix, song_id, seconds, lanes=None):
     out = json.loads(json.dumps(doc))
     pats = out.setdefault("patches", {})
     for name, (lo, hi) in bands.items():
@@ -98,8 +127,12 @@ def with_floor(doc, bands, gains, prefix, song_id, seconds):
             continue
         pid = f"{song_id}-{prefix}-{name}"
         pats[pid] = patch(lo, hi, f"This record's measured {name} floor ({lo:g}-{hi:g} Hz), song-local (floorfit.py).")
-        out["tracks"].append({"name": f"{prefix}-{name}", "patch": pid, "gain": f"{gains[name]:.2f}dB",
-                              "notes": [{"at": "0s", "len": f"{seconds:.3f}s", "pitch": 60, "vel": 0.8}]})
+        tr = {"name": f"{prefix}-{name}", "patch": pid, "gain": f"{gains[name]:.2f}dB",
+              "notes": [{"at": "0s", "len": f"{seconds:.3f}s", "pitch": 60, "vel": 0.8}]}
+        if lanes and lanes.get(name):
+            tr["gain"] = {"value": f"{gains[name]:.2f}dB", "mod": [{"src": "auto.follow", "amount": 1}]}
+            tr["auto"] = {"follow": {"points": lanes[name]}}
+        out["tracks"].append(tr)
     return out
 
 
@@ -147,8 +180,8 @@ def main(argv):
             print(f"{name:10s} {bands[name][0]:g}-{bands[name][1]:g} Hz  floor {db:7.1f} dBFS  L/R r {r:+.2f}")
         return
     out, prefix = opt("-o"), opt("--prefix", "floor")
-    loud_ok = "--loud-ok" in a
-    a = [x for x in a if x != "--loud-ok"]
+    loud_ok, follow = "--loud-ok" in a, "--no-follow" not in a
+    a = [x for x in a if x not in ("--loud-ok", "--no-follow")]
     if t0 is None or t1 is None:
         raise SystemExit("floorfit fit: give --from A --to B, a window where the record goes quiet (floorfit measure helps)")
     if len(a) != 2 or not out:
@@ -185,7 +218,23 @@ def main(argv):
         gains[b] = probe + 10 * np.log10((T - m) / (fp - m))
     if not gains:
         raise SystemExit("floorfit: no band needs a floor; nothing written")
-    final = with_floor(doc, bands, gains, prefix, song_id, seconds)
+    lanes = {}
+    if follow:
+        for b in gains:
+            lanes[b] = follow_lane(rs, *bands[b], target[b][0], pct)
+            if lanes[b]:
+                low = min(v for _, v in lanes[b])
+                spans, start = [], None
+                for (t, v), (t2, _) in zip(lanes[b], lanes[b][1:] + [lanes[b][-1]]):
+                    if v < 0 and start is None:
+                        start = t
+                    if v == 0 and start is not None:
+                        spans.append(f"{start}-{t}")
+                        start = None
+                if start is not None:
+                    spans.append(f"{start}-{lanes[b][-1][0]}")
+                print(f"{b}: follows the record's floor down in {', '.join(spans)} (lowest {low:+.1f} dB)")
+    final = with_floor(doc, bands, gains, prefix, song_id, seconds, lanes)
     got = render_floors(final, text, song, d, bands, pct, t0, t1, "check")
     for b in gains:
         print(f"{b}: record {target[b][0]:.1f} dBFS (L/R r {target[b][1]:+.2f}), ours {M[b][0]:.1f} -> {got[b][0]:.1f} "
