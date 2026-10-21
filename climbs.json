@@ -2117,15 +2117,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/hedphelym.wav OUT.wav $(cat tools/hedphelym-sections.txt)",
       "best": {
-        "score": 55.271,
-        "version": "v1",
+        "score": 56.925,
+        "version": "v2",
         "commit": "see git log songs/hedphelym.yaml",
         "engine": "411dd3c"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 12,
+      "rounds": 13,
       "priority": 1.0,
       "genre": "ambient techno",
       "meta": {
@@ -2142,7 +2142,7 @@
       },
       "ref_file": "ref/albums/selected-ambient-works-85-92/11 hedphelym.webm",
       "last": {
-        "at": "2026-10-21T04:53:48Z",
+        "at": "2026-10-21T11:04:57Z",
         "who": "chirper-zero"
       }
     },
