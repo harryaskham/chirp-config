@@ -2191,15 +2191,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/actium.wav OUT.wav $(cat tools/actium-sections.txt)",
       "best": {
-        "score": 66.601,
-        "version": "v4",
+        "score": 67.272,
+        "version": "v5",
         "commit": "see git log songs/actium.yaml",
-        "engine": "411dd3c"
+        "engine": "21358da"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 12,
+      "rounds": 13,
       "priority": 1.0,
       "genre": "ambient techno",
       "meta": {
@@ -2216,7 +2216,7 @@
       },
       "ref_file": "ref/albums/selected-ambient-works-85-92/13 actium.webm",
       "last": {
-        "at": "2026-10-21T08:24:35Z",
+        "at": "2026-10-21T14:20:25Z",
         "who": "chirper-zero"
       }
     }
