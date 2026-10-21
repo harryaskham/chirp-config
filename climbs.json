@@ -1915,15 +1915,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/i.wav OUT.wav $(cat tools/i-sections.txt)",
       "best": {
-        "score": 53.912,
-        "version": "v1",
+        "score": 64.055,
+        "version": "v2",
         "commit": "see git log songs/i.yaml",
-        "engine": "91d65af"
+        "engine": "411dd3c"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 11,
+      "rounds": 12,
       "priority": 1.0,
       "genre": "ambient techno",
       "meta": {
@@ -1940,8 +1940,8 @@
       },
       "ref_file": "ref/albums/selected-ambient-works-85-92/05 i.webm",
       "last": {
-        "at": "2026-10-20T19:50:25Z",
-        "who": "chirper-two"
+        "at": "2026-10-21T05:29:03Z",
+        "who": "chirper-zero"
       }
     },
     {
