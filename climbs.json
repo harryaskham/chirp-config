@@ -1956,11 +1956,16 @@
       "source": "https://www.youtube.com/watch?v=6yROS-zZqFU",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/green-calx.wav OUT.wav $(cat tools/green-calx-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 58.418,
+        "version": "v1",
+        "commit": "see git log songs/green-calx.yaml",
+        "engine": "21358da"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 11,
+      "enabled": true,
+      "status": "active",
+      "rounds": 12,
       "priority": 1.0,
       "genre": "ambient techno",
       "meta": {
@@ -1977,8 +1982,8 @@
       },
       "ref_file": "ref/albums/selected-ambient-works-85-92/06 green-calx.webm",
       "last": {
-        "at": "2026-10-20T20:03:30Z",
-        "who": "chirper-one"
+        "at": "2026-10-21T19:26:26Z",
+        "who": "chirper-zero"
       }
     },
     {
