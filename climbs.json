@@ -2153,11 +2153,16 @@
       "source": "https://www.youtube.com/watch?v=W4YVXY5YKAE",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/delphium.wav OUT.wav $(cat tools/delphium-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 60.758,
+        "version": "v1",
+        "commit": "see git log songs/delphium.yaml",
+        "engine": "411dd3c"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 10,
+      "enabled": true,
+      "status": "active",
+      "rounds": 11,
       "priority": 1.0,
       "genre": "ambient techno",
       "meta": {
@@ -2174,8 +2179,8 @@
       },
       "ref_file": "ref/albums/selected-ambient-works-85-92/12 delphium.webm",
       "last": {
-        "at": "2026-10-20T18:08:00Z",
-        "who": "chirper-one"
+        "at": "2026-10-21T09:59:00Z",
+        "who": "chirper-zero"
       }
     },
     {
