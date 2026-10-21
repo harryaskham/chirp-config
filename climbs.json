@@ -2154,15 +2154,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/delphium.wav OUT.wav $(cat tools/delphium-sections.txt)",
       "best": {
-        "score": 60.758,
-        "version": "v1",
+        "score": 64.164,
+        "version": "v2",
         "commit": "see git log songs/delphium.yaml",
-        "engine": "411dd3c"
+        "engine": "21358da"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 11,
+      "rounds": 12,
       "priority": 1.0,
       "genre": "ambient techno",
       "meta": {
@@ -2179,7 +2179,7 @@
       },
       "ref_file": "ref/albums/selected-ambient-works-85-92/12 delphium.webm",
       "last": {
-        "at": "2026-10-21T09:59:00Z",
+        "at": "2026-10-21T13:27:34Z",
         "who": "chirper-zero"
       }
     },
