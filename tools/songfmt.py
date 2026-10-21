@@ -4,6 +4,7 @@
   songfmt.py json SONG.yaml -o SOURCE.json [--like SOURCE.json] [--no-check]
   songfmt.py yaml SOURCE.json -o SONG.yaml [--like SONG.yaml] [--no-check]
   songfmt.py same A B                      # do two files resolve to the same song? (exit 0 yes, 1 no)
+  songfmt.py notes SONG TRACK -o OUT [--no-check]   # a score-string track as a native notes list
 
 Songs built from a JSON source (tools/ID-source.json) are rendered from their flow-YAML form (songs/ID.yaml: one
 `key: <JSON>` line per top-level field, one `- {key: <JSON>, …}` line per track — what tab2song writes). songride,
@@ -12,6 +13,13 @@ master or part step the source must be regenerated from the YAML. `json` does th
 top-level key order (new keys at the end) and its exact formatting (indent, ASCII escaping, trailing newline, found by
 reproducing --like byte for byte). `yaml` goes the other way in tab2song's layout (or, when --like is a native JSON song saved as .yaml,
 in its JSON formatting).
+
+`notes` rewrites one track's generated score string (PITCH/Nb@V^marks, chords, kit pieces, R rests, _ holds, |)
+as a `notes` list — at and len in beats (tempo maps still apply), pitch as MIDI (Hz as fractional MIDI) or the kit
+piece, velocity (a token without @V takes the velocity chirp actually plays), ^NAME[=v] as expr, ^NAME=a>b as
+expr + expr_end, ^gate as the note's gate — so the notes-list tools (stemfix, splitpart, griddrums --replace) work on
+it. Ratchets, flams, drags and other syntax are refused. Proven before writing: with humanization off the converted
+song's voices equal the original's (catches a latched octave or anything else the rewrite would change).
 
 It parses only that flow form (no PyYAML here): top-level `key: value` lines whose value is JSON or a bare scalar,
 and a `tracks:` block of single-line flow mappings with bare keys. Anything else is refused, never guessed. Before
@@ -222,6 +230,132 @@ def write_checked(src, text, out, check, suffix):
             os.remove(tmp)
 
 
+STRUCTURAL = {"r", "flam", "drag", "ramp"}
+
+
+def score_to_notes(doc, name, song_path):
+    """(new song, note count): TRACK's score string as a notes list, velocities filled from chirp's plan."""
+    import splitpart as SP
+    import stemfix as SF
+    track = next((t for t in doc.get("tracks", []) if isinstance(t, dict) and t.get("name") == name), None)
+    if track is None or not isinstance(track.get("score"), str):
+        raise Unsupported(f"track {name!r} not found or has no score string")
+    segs = SP.tempo_segments(doc.get("tempo", 120))
+    a4 = float(doc.get("a4", 440))
+    notes, last, pos = [], [], 0.0
+    for tok in track["score"].split():
+        if tok == "|":
+            continue
+        m = SP.TOK.match(tok)
+        if not m:
+            raise Unsupported(f"score token {tok!r} (only PITCH/Nb@V^marks, R, _ and | convert)")
+        head, dur, tail = m.group("head"), float(m.group("dur")), m.group("tail")
+        if head in SP.RESTS:
+            last = []
+        elif head == "_":
+            for i in last:
+                notes[i]["_beats"] += dur
+        else:
+            if ":" in head:
+                raise Unsupported(f"chord symbol {head!r} (voiced by the patch) does not convert")
+            vel = None
+            mv = re.match(r"@([\d.]+)", tail)
+            if mv:
+                vel = float(mv.group(1)) / 127
+            expr, expr_end, gate = {}, {}, None
+            for mark in [x for x in re.sub(r"^@[\d.]+", "", tail).split("^") if x]:
+                k, _, v = mark.partition("=")
+                if k in STRUCTURAL:
+                    raise Unsupported(f"^{k} in {tok!r} makes extra hits; it does not convert to one note")
+                if k == "gate":
+                    gate = float(v)
+                elif ">" in v:
+                    a, b = v.split(">")
+                    expr[k], expr_end[k] = float(a), float(b)
+                else:
+                    expr[k] = float(v) if v else 1.0
+            last = []
+            members = head.split(",")
+            # a chord stays one event with the score's spelling ("A2,E3,A3"): the patch strums chords, not
+            # separate notes that happen to start together
+            for x in (members if len(members) == 1 else [head]):
+                p = SF.parse_pitch(x, a4) if len(members) == 1 else None
+                n = {"_at": pos, "_beats": dur, "pitch": (int(p) if p == int(p) else p) if p is not None else x,
+                     "vel": vel, "_keys": [SF.parse_pitch(y, a4) for y in members]}
+                if expr:
+                    n["expr"] = dict(expr)
+                if expr_end:
+                    n["expr_end"] = dict(expr_end)
+                if gate is not None:
+                    n["gate"] = gate
+                last.append(len(notes))
+                notes.append(n)
+        pos += dur
+    if any(n["vel"] is None for n in notes):
+        # tokens without @V: the velocity chirp plays them at (dehumanized plan of this track alone)
+        voices = _track_voices(doc, name, song_path)
+        for n in notes:
+            if n["vel"] is None:
+                start = round(SF.beats_to_s(n["_at"], segs) * 48000)
+                keys = [k for k in n["_keys"] if k is not None]
+                # a member's pitch at the beat, or up to 100 ms after it (a strummed chord's later members), nearest first
+                hit = sorted((v for v in voices if -2 <= v["start"] - start <= 4800
+                              and (not keys or any(abs(v["key"] - k) < 1e-3 for k in keys))),
+                             key=lambda v: abs(v["start"] - start))
+                if not hit:
+                    raise Unsupported(f"no planned voice for the note at beat {n['_at']:g} ({n['pitch']}) to take a velocity from")
+                n["vel"] = hit[0]["vel"]
+    out_notes = []
+    for n in notes:
+        o = {"at": f"{round(n['_at'], 9)!r}b", "len": f"{round(n['_beats'], 9)!r}b", "pitch": n["pitch"], "vel": n["vel"]}
+        for k in ("gate", "expr", "expr_end"):
+            if k in n:
+                o[k] = n[k]
+        out_notes.append(o)
+    out = json.loads(json.dumps(doc))
+    t = next(t for t in out["tracks"] if isinstance(t, dict) and t.get("name") == name)
+    keys = list(t)
+    t["notes"] = out_notes
+    del t["score"]
+    out["tracks"][out["tracks"].index(t)] = {k: t[k] for k in [*(k for k in keys if k != "score"), "notes"]}
+    return out, len(out_notes)
+
+
+def _plan_voices(doc, song_path):
+    d = os.path.dirname(os.path.abspath(song_path)) or "."
+    fd, tmp = tempfile.mkstemp(suffix=".json", prefix=".songfmt-", dir=d)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(doc, f)
+        r = subprocess.run([chirpbin.resolve("chirp"), "--json", "plan", "-f", tmp, "--ir"], capture_output=True, text=True,
+                           stdin=subprocess.DEVNULL)
+        try:
+            return json.loads(r.stdout)["data"]["ir"]["voices"]
+        except (ValueError, KeyError, TypeError):
+            raise SystemExit(f"songfmt: chirp plan failed: {(r.stderr or r.stdout).strip()[-300:]}")
+    finally:
+        os.remove(tmp)
+
+
+def _track_voices(doc, name, song_path):
+    """The voices TRACK plays with humanization off: the dehumanized plan minus the plan without the track."""
+    import splitpart as SP
+    from collections import Counter
+    flat = SP.dehumanize(doc, {name})
+    key = lambda v: (v["start"], round(v["key"], 6), round(v["vel"], 6))  # noqa: E731
+    allv = _plan_voices(flat, song_path)
+    without = dict(flat, tracks=[t for t in flat["tracks"] if not (isinstance(t, dict) and t.get("name") == name)])
+    rest = Counter(key(v) for v in _plan_voices(without, song_path))
+    mine = []
+    for v in allv:
+        k = key(v)
+        if rest[k]:
+            rest[k] -= 1
+        else:
+            mine.append(v)
+    return mine
+
+
 def main(argv):
     a = list(argv)
 
@@ -236,7 +370,7 @@ def main(argv):
     check = "--no-check" not in a
     a = [x for x in a if x != "--no-check"]
     out, like = opt("-o"), opt("--like")
-    if len(a) < 2 or a[0] not in ("json", "yaml", "same"):
+    if len(a) < 2 or a[0] not in ("json", "yaml", "same", "notes"):
         raise SystemExit(__doc__.strip().split("\n\n")[1])
     cmd = a[0]
     try:
@@ -251,6 +385,22 @@ def main(argv):
         doc = load(a[1])
         if not out:
             raise SystemExit("songfmt: -o OUT is required")
+        if cmd == "notes":
+            import splitpart as SP
+            from collections import Counter
+            new, n = score_to_notes(doc, a[2], a[1])
+            if check:
+                sig = lambda vs: Counter((v["start"], v["end"], round(v["key"], 6), round(v["vel"], 6), v["release"],  # noqa: E731
+                                          json.dumps(v.get("expr"))) for v in vs)
+                if sig(_plan_voices(SP.dehumanize(doc, {a[2]}), a[1])) != sig(_plan_voices(SP.dehumanize(new, {a[2]}), a[1])):
+                    raise SystemExit("songfmt: refused — the notes play differently from the score (a latched octave or "
+                                     "velocity, or syntax this does not model); nothing written")
+            text = read(a[1])
+            body = (json.dumps(new, **json_style(a[1])[0]) + json_style(a[1])[1]) if text.lstrip().startswith("{") \
+                else dump_yaml(new)
+            write_checked(a[1], body, out, False, os.path.splitext(a[1])[1])
+            print(f"wrote {out}: {a[2]} as {n} notes" + (" (proven: the same voices as the score)" if check else ""))
+            return 0
         if cmd == "json":
             style, nl = json_style(like) if like else ({"indent": 2, "ensure_ascii": False}, "\n")
             doc = ordered(doc, load(like)) if like else doc

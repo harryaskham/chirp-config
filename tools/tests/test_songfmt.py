@@ -88,5 +88,52 @@ class RoundTrip(unittest.TestCase):
         self.assertEqual([f for f in os.listdir(self.dir) if f.startswith(".songfmt-")], [], "no temp file left")
 
 
+
+@unittest.skipUnless(HAVE_CHIRP, "needs the groove pin")
+class Notes(unittest.TestCase):
+    """songfmt notes: a score-string track as a notes list (chirper-zero's request), proven against chirp's plan."""
+
+    def setUp(self):
+        self.dir = tempfile.mkdtemp(prefix="songfmt-notes-")
+        self.addCleanup(shutil.rmtree, self.dir, True)
+
+    def song(self, score, patch="g", tempo=120):
+        p = os.path.join(self.dir, "s.json")
+        doc = {"tempo": tempo, "patches": {"g": {"synth": {"layers": [{"wave": "saw"}]}, "play": {"strum": "4ms"}}},
+               "tracks": [{"name": "lead", "patch": patch, "gain": "-3dB", "score": score},
+                          {"name": "kit", "patch": "tight-kit", "score": "k/1b@100 h/1b@60 s/2b@90"}]}
+        with open(p, "w") as f:
+            json.dump(doc, f, indent=2)
+        return p
+
+    def convert(self, src, track="lead"):
+        out = os.path.join(self.dir, "o.json")
+        self.assertEqual(F.main(["notes", src, track, "-o", out]), 0)
+        return next(t for t in json.load(open(out))["tracks"] if t["name"] == track)
+
+    def test_chords_holds_marks_hz_and_latched_velocity_convert_exactly(self):
+        t = self.convert(self.song("C4,E4,G4/1b@100 _/1b | R/1b 440hz/0.5b@64 A4/0.5b B4/1b@90^vow=0.2>0.8^pm | E5/1b^gate=0.5"))
+        self.assertNotIn("score", t)
+        self.assertEqual(t["gain"], "-3dB")
+        n = t["notes"]
+        self.assertEqual([(x["at"], x["len"], x["pitch"]) for x in n],
+                         [("0.0b", "2.0b", "C4,E4,G4"), ("3.0b", "0.5b", 69), ("3.5b", "0.5b", 69), ("4.0b", "1.0b", 71),
+                          ("5.0b", "1.0b", 76)])
+        self.assertAlmostEqual(n[0]["vel"], 100 / 127)
+        self.assertAlmostEqual(n[2]["vel"], 0.8, places=5)      # no @V: the velocity chirp plays (its default; @V does not latch)
+        self.assertEqual((n[3]["expr"], n[3]["expr_end"]), ({"vow": 0.2, "pm": 1.0}, {"vow": 0.8}))
+        self.assertEqual(n[4]["gate"], 0.5)
+
+    def test_kit_pieces_convert(self):
+        t = self.convert(self.song("C4/1b@90"), "kit")
+        self.assertEqual([x["pitch"] for x in t["notes"]], ["k", "h", "s"])
+
+    def test_ratchets_chord_symbols_and_latched_octaves_are_refused(self):
+        for score in ("h/1b@80^r=3", "C:maj7/2b@90", "C5/1b@90 D/1b@90"):
+            with self.assertRaises(SystemExit, msg=score):
+                self.convert(self.song(score))
+        self.assertFalse(os.path.exists(os.path.join(self.dir, "o.json")))
+
+
 if __name__ == "__main__":
     unittest.main()
