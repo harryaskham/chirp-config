@@ -76,6 +76,41 @@ def runs(wins, t1, win):
     return notes
 
 
+def write_into(notes, into, track, patch, t0, t1, out, who="padtrans"):
+    """Replace TRACK's notes starting in [t0, t1) with notes (or add TRACK on patch); write OUT in SONG's format, planned."""
+    import songfmt
+    text, doc = songfmt.read(into), songfmt.load(into)
+    tr = next((t for t in doc.get("tracks", []) if isinstance(t, dict) and t.get("name") == track), None)
+    if tr is not None:
+        if not isinstance(tr.get("notes"), list):
+            raise SystemExit(f"{who}: {track!r} is not a notes track (songfmt.py notes converts a score track)")
+
+        def sec(n):
+            v = str(n["at"])
+            if v.endswith("b"):
+                raise SystemExit(f"{who}: {track!r} has notes in beats; replace by hand or convert")
+            return float(v.rstrip("s"))
+        keep = [n for n in tr["notes"] if not (t0 <= sec(n) < t1)]
+        tr["notes"] = sorted(keep + notes, key=sec)
+    else:
+        if not patch:
+            raise SystemExit(f"{who}: no track {track!r}: pass --patch P to add one")
+        doc["tracks"].append({"name": track, "patch": patch, "notes": notes})
+    body = (json.dumps(doc, **songfmt.json_style(into)[0]) + songfmt.json_style(into)[1] if text.lstrip().startswith("{")
+            else songfmt.dump_yaml(doc))
+    d = os.path.dirname(os.path.abspath(out)) or "."
+    fd, tmp = tempfile.mkstemp(suffix=os.path.splitext(into)[1], prefix=f".{who}-", dir=d)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(body)
+        songfmt.plan_hash(tmp)
+        os.replace(tmp, out)
+        tmp = None
+    finally:
+        if tmp and os.path.exists(tmp):
+            os.remove(tmp)
+
+
 def main(argv):
     a = list(argv)
 
@@ -104,38 +139,9 @@ def main(argv):
     if not into:
         print(json.dumps(notes) if as_json else "\n".join(f"{n['at']:>10} {n['len']:>9}  {n['pitch']:3d}  vel {n['vel']}" for n in notes))
         return
-    import songfmt
     if not track or not out:
         raise SystemExit("padtrans: --into SONG needs --track NAME and -o OUT")
-    text, doc = songfmt.read(into), songfmt.load(into)
-    tr = next((t for t in doc.get("tracks", []) if isinstance(t, dict) and t.get("name") == track), None)
-    if tr is not None:
-        if not isinstance(tr.get("notes"), list):
-            raise SystemExit(f"padtrans: {track!r} is not a notes track (songfmt.py notes converts a score track)")
-        def sec(n):
-            v = str(n["at"])
-            if v.endswith("b"):
-                raise SystemExit(f"padtrans: {track!r} has notes in beats; replace by hand or convert")
-            return float(v.rstrip("s"))
-        keep = [n for n in tr["notes"] if not (t0 <= sec(n) < t1)]
-        tr["notes"] = sorted(keep + notes, key=sec)
-    else:
-        if not patch:
-            raise SystemExit(f"padtrans: no track {track!r}: pass --patch P to add one")
-        doc["tracks"].append({"name": track, "patch": patch, "notes": notes})
-    body = (json.dumps(doc, **songfmt.json_style(into)[0]) + songfmt.json_style(into)[1] if text.lstrip().startswith("{")
-            else songfmt.dump_yaml(doc))
-    d = os.path.dirname(os.path.abspath(out)) or "."
-    fd, tmp = tempfile.mkstemp(suffix=os.path.splitext(into)[1], prefix=".padtrans-", dir=d)
-    try:
-        with os.fdopen(fd, "w", encoding="utf-8") as f:
-            f.write(body)
-        songfmt.plan_hash(tmp)
-        os.replace(tmp, out)
-        tmp = None
-    finally:
-        if tmp and os.path.exists(tmp):
-            os.remove(tmp)
+    write_into(notes, into, track, patch, t0, t1, out, "padtrans")
     print(f"wrote {out}: {len(notes)} pad notes in {t0:g}-{t1:g} s on {track}")
 
 
