@@ -199,6 +199,7 @@ def main():
     if cmd == "run":
         extra = a[a.index("--") + 1:] if "--" in a else []
         a = a[:a.index("--")] if "--" in a else a
+        ref_default, sections_default = "--ref" not in a, "--sections" not in a
         ref = opt(a, "--ref", "ref/shadows.wav")
         sections = opt(a, "--sections", "tools/shadows-sections.txt")
         slots = int(opt(a, "--slots", "3"))
@@ -206,10 +207,16 @@ def main():
         keep_wav = "--keep-wav" in a
         a = [x for x in a if x != "--keep-wav"]
         name, song = a[0], os.path.abspath(a[1])
+        defaulted = [f for f, d in (("--ref", ref_default), ("--sections", sections_default)) if d]
+        if defaulted and not os.path.basename(song).startswith("shadows"):
+            print(f"bgexp: warning: no {' or '.join(defaulted)}: {os.path.basename(song)} will be scored against the "
+                  f"shadows climb's (pass --ref ref/ID.wav --sections tools/ID-sections.txt)", file=sys.stderr)
         # caller errors now, not a failed job later (the worker still guards: files can vanish while it queues)
-        for what, path in (("song", song), ("--ref", os.path.join(ROOT, ref)), ("--sections", os.path.join(ROOT, sections))):
+        for what, path, dflt in (("song", song, False), ("--ref", os.path.join(ROOT, ref), ref_default),
+                                 ("--sections", os.path.join(ROOT, sections), sections_default)):
             if not os.path.isfile(path):
-                sys.exit(f"bgexp: {what} {path} does not exist (--ref/--sections default to the shadows climb's)")
+                sys.exit(f"bgexp: {what} {path} does not exist"
+                         + (" (the default: --ref/--sections default to the shadows climb's)" if dflt else ""))
         if os.fork() == 0:
             os.setsid()
             if os.fork() == 0:

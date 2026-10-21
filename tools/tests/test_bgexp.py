@@ -125,6 +125,23 @@ class Jobs(unittest.TestCase):
         self.assertIn("does not exist", r.stderr)
         self.assertFalse(os.path.exists(os.path.join(self.dir, "cli", "x.json")), "no job was queued")
 
+    def _cli(self, *args):
+        return subprocess.run([sys.executable, os.path.join(TOOLS, "bgexp.py"), "run", "x", *args], capture_output=True,
+                              text=True, env={**os.environ, "BGEXP_DIR": os.path.join(self.dir, "cli")})
+
+    def test_a_missing_song_is_named_without_blaming_explicit_defaults(self):
+        r = self._cli(os.path.join(self.dir, "no-such-cand.yaml"), "--ref", "ref/shadows.wav",
+                      "--sections", "tools/shadows-sections.txt")
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("bgexp: song ", r.stderr)
+        self.assertNotIn("default", r.stderr)
+
+    def test_defaulted_reference_warns_for_another_song(self):
+        r = self._cli(self.song, "--sections", "tools/NO-SUCH-sections.txt")
+        self.assertIn("no --ref: " + os.path.basename(self.song) + " will be scored against the shadows climb's", r.stderr)
+        self.assertNotIn("(the default", r.stderr, "explicit --sections is not blamed on the default")
+        self.assertFalse(os.path.exists(os.path.join(self.dir, "cli", "x.json")), "no job was queued")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
