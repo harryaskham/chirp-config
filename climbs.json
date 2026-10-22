@@ -2419,6 +2419,286 @@
         "at": "2026-10-22T09:27:54Z",
         "who": "chirper-one"
       }
+    },
+    {
+      "id": "packt-like-sardines-in-a-crushd-tin-box",
+      "song": "songs/packt-like-sardines-in-a-crushd-tin-box.yaml",
+      "reference": "Radiohead — Packt Like Sardines in a Crushd Tin Box",
+      "source": "/tmp/lt/amnesiac-src/01.webm",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/packt-like-sardines-in-a-crushd-tin-box.wav OUT.wav $(cat tools/packt-like-sardines-in-a-crushd-tin-box-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "art rock",
+      "meta": {
+        "artist": "Radiohead",
+        "album": "Amnesiac",
+        "title": "Packt Like Sardines in a Crushd Tin Box",
+        "track": 1,
+        "year": 2001
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-22T09:33:08Z",
+        "note": "Harry's request (22 Oct): the Amnesiac album is the focus (Pyramid Song already climbing). References: official Beggars Group uploads (source URL per climb). Stems: ref/stems/htdemucs_6s/ID (chirp-eco); candidate sections: /tmp/lt/setup/ID/sections-candidate.txt."
+      },
+      "ref_file": "ref/albums/amnesiac/01.webm"
+    },
+    {
+      "id": "pulk-pull-revolving-doors",
+      "song": "songs/pulk-pull-revolving-doors.yaml",
+      "reference": "Radiohead — Pulk/Pull Revolving Doors",
+      "source": "/tmp/lt/amnesiac-src/03.webm",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/pulk-pull-revolving-doors.wav OUT.wav $(cat tools/pulk-pull-revolving-doors-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "art rock",
+      "meta": {
+        "artist": "Radiohead",
+        "album": "Amnesiac",
+        "title": "Pulk/Pull Revolving Doors",
+        "track": 3,
+        "year": 2001
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-22T09:33:09Z",
+        "note": "Harry's request (22 Oct): the Amnesiac album is the focus (Pyramid Song already climbing). References: official Beggars Group uploads (source URL per climb). Stems: ref/stems/htdemucs_6s/ID (chirp-eco); candidate sections: /tmp/lt/setup/ID/sections-candidate.txt."
+      },
+      "ref_file": "ref/albums/amnesiac/03.webm"
+    },
+    {
+      "id": "you-and-whose-army",
+      "song": "songs/you-and-whose-army.yaml",
+      "reference": "Radiohead — You and Whose Army?",
+      "source": "/tmp/lt/amnesiac-src/04.webm",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/you-and-whose-army.wav OUT.wav $(cat tools/you-and-whose-army-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "art rock",
+      "meta": {
+        "artist": "Radiohead",
+        "album": "Amnesiac",
+        "title": "You and Whose Army?",
+        "track": 4,
+        "year": 2001
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-22T09:33:09Z",
+        "note": "Harry's request (22 Oct): the Amnesiac album is the focus (Pyramid Song already climbing). References: official Beggars Group uploads (source URL per climb). Stems: ref/stems/htdemucs_6s/ID (chirp-eco); candidate sections: /tmp/lt/setup/ID/sections-candidate.txt."
+      },
+      "ref_file": "ref/albums/amnesiac/04.webm"
+    },
+    {
+      "id": "i-might-be-wrong",
+      "song": "songs/i-might-be-wrong.yaml",
+      "reference": "Radiohead — I Might Be Wrong",
+      "source": "/tmp/lt/amnesiac-src/05.webm",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/i-might-be-wrong.wav OUT.wav $(cat tools/i-might-be-wrong-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "art rock",
+      "meta": {
+        "artist": "Radiohead",
+        "album": "Amnesiac",
+        "title": "I Might Be Wrong",
+        "track": 5,
+        "year": 2001
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-22T09:33:10Z",
+        "note": "Harry's request (22 Oct): the Amnesiac album is the focus (Pyramid Song already climbing). References: official Beggars Group uploads (source URL per climb). Stems: ref/stems/htdemucs_6s/ID (chirp-eco); candidate sections: /tmp/lt/setup/ID/sections-candidate.txt."
+      },
+      "ref_file": "ref/albums/amnesiac/05.webm"
+    },
+    {
+      "id": "knives-out",
+      "song": "songs/knives-out.yaml",
+      "reference": "Radiohead — Knives Out",
+      "source": "/tmp/lt/amnesiac-src/06.webm",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/knives-out.wav OUT.wav $(cat tools/knives-out-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "art rock",
+      "meta": {
+        "artist": "Radiohead",
+        "album": "Amnesiac",
+        "title": "Knives Out",
+        "track": 6,
+        "year": 2001
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-22T09:33:11Z",
+        "note": "Harry's request (22 Oct): the Amnesiac album is the focus (Pyramid Song already climbing). References: official Beggars Group uploads (source URL per climb). Stems: ref/stems/htdemucs_6s/ID (chirp-eco); candidate sections: /tmp/lt/setup/ID/sections-candidate.txt."
+      },
+      "ref_file": "ref/albums/amnesiac/06.webm"
+    },
+    {
+      "id": "morning-bell-amnesiac",
+      "song": "songs/morning-bell-amnesiac.yaml",
+      "reference": "Radiohead — Morning Bell/Amnesiac",
+      "source": "/tmp/lt/amnesiac-src/07.webm",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/morning-bell-amnesiac.wav OUT.wav $(cat tools/morning-bell-amnesiac-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "art rock",
+      "meta": {
+        "artist": "Radiohead",
+        "album": "Amnesiac",
+        "title": "Morning Bell/Amnesiac",
+        "track": 7,
+        "year": 2001
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-22T09:33:11Z",
+        "note": "Harry's request (22 Oct): the Amnesiac album is the focus (Pyramid Song already climbing). References: official Beggars Group uploads (source URL per climb). Stems: ref/stems/htdemucs_6s/ID (chirp-eco); candidate sections: /tmp/lt/setup/ID/sections-candidate.txt."
+      },
+      "ref_file": "ref/albums/amnesiac/07.webm"
+    },
+    {
+      "id": "dollars-and-cents",
+      "song": "songs/dollars-and-cents.yaml",
+      "reference": "Radiohead — Dollars and Cents",
+      "source": "/tmp/lt/amnesiac-src/08.webm",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/dollars-and-cents.wav OUT.wav $(cat tools/dollars-and-cents-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "art rock",
+      "meta": {
+        "artist": "Radiohead",
+        "album": "Amnesiac",
+        "title": "Dollars and Cents",
+        "track": 8,
+        "year": 2001
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-22T09:33:12Z",
+        "note": "Harry's request (22 Oct): the Amnesiac album is the focus (Pyramid Song already climbing). References: official Beggars Group uploads (source URL per climb). Stems: ref/stems/htdemucs_6s/ID (chirp-eco); candidate sections: /tmp/lt/setup/ID/sections-candidate.txt."
+      },
+      "ref_file": "ref/albums/amnesiac/08.webm"
+    },
+    {
+      "id": "hunting-bears",
+      "song": "songs/hunting-bears.yaml",
+      "reference": "Radiohead — Hunting Bears",
+      "source": "/tmp/lt/amnesiac-src/09.webm",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/hunting-bears.wav OUT.wav $(cat tools/hunting-bears-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "art rock",
+      "meta": {
+        "artist": "Radiohead",
+        "album": "Amnesiac",
+        "title": "Hunting Bears",
+        "track": 9,
+        "year": 2001
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-22T09:33:13Z",
+        "note": "Harry's request (22 Oct): the Amnesiac album is the focus (Pyramid Song already climbing). References: official Beggars Group uploads (source URL per climb). Stems: ref/stems/htdemucs_6s/ID (chirp-eco); candidate sections: /tmp/lt/setup/ID/sections-candidate.txt."
+      },
+      "ref_file": "ref/albums/amnesiac/09.webm"
+    },
+    {
+      "id": "like-spinning-plates",
+      "song": "songs/like-spinning-plates.yaml",
+      "reference": "Radiohead — Like Spinning Plates",
+      "source": "/tmp/lt/amnesiac-src/10.webm",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/like-spinning-plates.wav OUT.wav $(cat tools/like-spinning-plates-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "art rock",
+      "meta": {
+        "artist": "Radiohead",
+        "album": "Amnesiac",
+        "title": "Like Spinning Plates",
+        "track": 10,
+        "year": 2001
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-22T09:33:13Z",
+        "note": "Harry's request (22 Oct): the Amnesiac album is the focus (Pyramid Song already climbing). References: official Beggars Group uploads (source URL per climb). Stems: ref/stems/htdemucs_6s/ID (chirp-eco); candidate sections: /tmp/lt/setup/ID/sections-candidate.txt."
+      },
+      "ref_file": "ref/albums/amnesiac/10.webm"
+    },
+    {
+      "id": "life-in-a-glasshouse",
+      "song": "songs/life-in-a-glasshouse.yaml",
+      "reference": "Radiohead — Life in a Glasshouse",
+      "source": "/tmp/lt/amnesiac-src/11.webm",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/life-in-a-glasshouse.wav OUT.wav $(cat tools/life-in-a-glasshouse-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "art rock",
+      "meta": {
+        "artist": "Radiohead",
+        "album": "Amnesiac",
+        "title": "Life in a Glasshouse",
+        "track": 11,
+        "year": 2001
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-22T09:33:15Z",
+        "note": "Harry's request (22 Oct): the Amnesiac album is the focus (Pyramid Song already climbing). References: official Beggars Group uploads (source URL per climb). Stems: ref/stems/htdemucs_6s/ID (chirp-eco); candidate sections: /tmp/lt/setup/ID/sections-candidate.txt."
+      },
+      "ref_file": "ref/albums/amnesiac/11.webm"
     }
   ],
   "focus": "climbs: pyramid-song, i-never-learnt-to-share, i-feel-love, do-it-now, intergalactic"
