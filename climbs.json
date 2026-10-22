@@ -2523,7 +2523,7 @@
       "song": "songs/i-might-be-wrong.yaml",
       "reference": "Radiohead — I Might Be Wrong",
       "source": "https://www.youtube.com/watch?v=_Qvlh_dvmkk",
-      "owner": null,
+      "owner": "chirper-one",
       "metric": "python3 tools/likeness.py sections ref/i-might-be-wrong.wav OUT.wav $(cat tools/i-might-be-wrong-sections.txt)",
       "best": null,
       "passes": 1,
