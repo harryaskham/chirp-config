@@ -2330,14 +2330,14 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/i-feel-love.wav OUT.wav $(cat tools/i-feel-love-sections.txt)",
       "best": {
-        "score": 74.744,
-        "version": "v1",
+        "score": 75.386,
+        "version": "v2",
         "commit": "see git log songs/i-feel-love.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 1,
+      "rounds": 2,
       "priority": 1.0,
       "genre": "disco / electronic",
       "meta": {
@@ -2352,7 +2352,7 @@
         "note": "Harry's request (2026-10-22): a vocal-focused set (Pyramid Song, I Never Learnt to Share, I Feel Love, Do It Now) climbed alone until we make good headway, then back to the shuffle. The point is the voice: push the voice engine towards believable singing and intelligible words (rap, in Do It Now) — consonant clusters, more vowels, prosody, lyric-aligned syllables — and file engine beads for what it lacks; vocal-specific metrics are coming (chirp-eco). Canonical recording: the official studio album version (one master). The album version (not the single edit): Moroder's sequenced Moog plus Donna Summer's breathy, echoed falsetto."
       },
       "last": {
-        "at": "2026-10-22T02:23:50Z",
+        "at": "2026-10-22T03:30:52Z",
         "who": "chirper-one"
       }
     },
