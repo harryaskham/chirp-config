@@ -2495,7 +2495,7 @@
       "song": "songs/you-and-whose-army.yaml",
       "reference": "Radiohead — You and Whose Army?",
       "source": "https://www.youtube.com/watch?v=QQnc-hM80UQ",
-      "owner": null,
+      "owner": "chirper-zero",
       "metric": "python3 tools/likeness.py sections ref/you-and-whose-army.wav OUT.wav $(cat tools/you-and-whose-army-sections.txt)",
       "best": null,
       "passes": 1,
