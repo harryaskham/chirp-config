@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
 """lyricvox: sing a Songsterr vocal track's lyrics on chirp's voice layer.
 
-  lyricvox.py MAP.json TRACK -o OUT.json [--words] [--fit-bars-from SONG]
+  lyricvox.py MAP.json TRACK -o OUT.json [--words] [--ph CMUDICT]
+
+--ph CMUDICT (a cmudict.dict file): sing ARPAbet phoneme strings (native notes[].ph, groove pin 9a9fad3+) instead
+of the onset/vowel/coda marks: each tab word looked up in CMUdict, split into its syllables (one consonant between
+vowels starts the next syllable, more split first-to-coda), a syllable sung over several notes gets its onset+vowel on
+the first, the vowel held on the middle ones and vowel+coda on the last; syllables merged onto one note are joined
+with '.'; 'Ooh' melismas sing UW. Words missing from the dictionary keep the marks.
 
 Reads the map's Songsterr cache (track TRACK: notes, ties, and the tab's own `newLyrics` syllables, which Songsterr
 lays onto the track's non-tied notes in order), places every note on the map's performed timeline (offset, bpm
@@ -75,14 +81,15 @@ def vowel(w):
 def syllables(text):
     """[(syllable, starts_a_line)]"""
     out = []
+    wid = 0
     for line in text.split('\n'):
         first = True
         for word in line.split():
-            parts = [p for p in word.split('-') if p]
-            for p in parts:
-                clean = re.sub(r"[^A-Za-z']", "", p)
-                if not clean: continue
-                out.append((clean, first)); first = False
+            parts = [re.sub(r"[^A-Za-z']", "", p) for p in word.split('-')]
+            parts = [p for p in parts if p]
+            for k, p in enumerate(parts):
+                out.append((p, first, wid, k, len(parts), ''.join(parts))); first = False
+            wid += 1
     return out
 
 
@@ -129,6 +136,54 @@ def _unused_words(text):
     return out
 
 
+ARPA_V = {'AA', 'AE', 'AH', 'AO', 'AW', 'AX', 'AY', 'EH', 'ER', 'EY', 'IH', 'IY', 'OW', 'OY', 'UH', 'UW'}
+
+
+def load_cmu(path):
+    d = {}
+    for line in open(path, encoding='utf-8', errors='replace'):
+        p = line.split('#')[0].split()
+        if len(p) < 2: continue
+        w = p[0].lower()
+        if '(' in w: continue          # keep the first pronunciation
+        d[w] = p[1:]
+    return d
+
+
+def cmu_syllables(ph):
+    """split an ARPAbet word into syllables: one consonant between nuclei starts the next syllable, more split
+    first-to-coda / rest-to-onset."""
+    vi = [i for i, x in enumerate(ph) if x.rstrip('012') in ARPA_V]
+    if not vi: return [ph]
+    bounds = [0]
+    for a, b in zip(vi, vi[1:]):
+        n = b - a - 1
+        bounds.append(b - (1 if n == 1 else (n - 1 if n >= 2 else 0)))
+    bounds.append(len(ph))
+    return [ph[bounds[i]:bounds[i + 1]] for i in range(len(vi))]
+
+
+def word_ph(word, nsyl, cmu):
+    """the word's tab syllables as phoneme lists (melisma syllables repeat the vowel), or None"""
+    w = word.lower().strip("'")
+    if re.fullmatch(r"o+h?", w) or w in ('ooh', 'oooh'):
+        return [['UW1']] * nsyl
+    ph = cmu.get(w) or cmu.get(w.rstrip("'s")) or None
+    if ph is None: return None
+    sy = cmu_syllables(ph)
+    if len(sy) == nsyl: return sy
+    if len(sy) > nsyl:                 # fewer tab syllables: merge the rest into the last
+        return sy[:nsyl - 1] + [sum(sy[nsyl - 1:], [])]
+    vowel = [x for x in sy[-1] if x.rstrip('012') in ARPA_V][0]
+    return sy + [[vowel]] * (nsyl - len(sy))   # melisma ('se-e'): hold the vowel
+
+
+def split_ovc(ph):
+    vi = [i for i, x in enumerate(ph) if x.rstrip('012') in ARPA_V]
+    if not vi: return ph, [], []
+    return ph[:vi[0]], ph[vi[0]:vi[-1] + 1], ph[vi[-1] + 1:]
+
+
 def marks(syl, prev=None):
     """onset/vowel/coda codes for one written syllable; a repeated vowel melisma ('o', 'h') sustains."""
     s = syl.lower().strip("'")
@@ -173,12 +228,48 @@ def main():
     res = []
     prev = None
     lab = align(notes, syl)
+    cmu = load_cmu(a[a.index('--ph') + 1]) if '--ph' in a else None
+    if cmu is not None:
+        sylph = {}
+        words = {}
+        for j, x in enumerate(syl): words.setdefault(x[2], []).append(j)
+        miss = set()
+        for wid, js in words.items():
+            x = syl[js[0]]
+            wp = word_ph(x[5], x[4], cmu)
+            if wp is None and x[4] > 1:      # a hyphenated compound ('Black-eyed', 'past-and'): its parts as words
+                parts = [word_ph(syl[j][0], 1, cmu) for j in js]
+                wp = None if any(q is None for q in parts) else [q[0] for q in parts]
+            if wp is None: miss.add(x[5]); continue
+            for k, j in enumerate(js): sylph[j] = wp[k]
+        if miss: print('lyricvox: not in the dictionary (marks instead):', ' '.join(sorted(miss)), file=sys.stderr)
+        # syllables per note: a 'new' note sings its syllable plus any merged (skipped) ones up to the next new note
+        news = [(i, lab[i][1]) for i in range(len(notes)) if lab[i] and lab[i][0] == 'new']
+        own = {}
+        for (i, j), nxt in zip(news, news[1:] + [(None, len(syl))]):
+            own[i] = list(range(j, nxt[1]))
+        groups = {}                    # syllable index -> its notes (new + continuations)
+        for i in range(len(notes)):
+            if lab[i]: groups.setdefault(lab[i][1], []).append(i)
+        phs = {}
+        for i, js in own.items():
+            if not all(j in sylph for j in js): continue
+            tail = groups.get(js[0], [i])
+            o, v, c = split_ovc(sylph[js[0]])
+            if len(tail) == 1:
+                body = [sylph[j] for j in js]
+                phs[i] = ' . '.join(' '.join(b) for b in body)
+                continue
+            phs[tail[0]] = ' '.join(o + v)
+            for m in tail[1:-1]: phs[m] = ' '.join(v[-1:])
+            rest = [sylph[j] for j in js[1:]]
+            phs[tail[-1]] = ' . '.join([' '.join(v[-1:] + c)] + [' '.join(b) for b in rest])
     for i, n in enumerate(notes):
         kind, j = lab[i] if lab[i] else ('new', None)
         s = syl[j][0] if j is not None else 'ah'
         if kind == 'cont' and prev:
             mk = dict(on=0, va=prev['vb'], vb=prev['vb'], off=prev['off']); prev['off'] = 0
-            if res: res[-1]['expr'].pop('off', None)
+            if res and 'expr' in res[-1]: res[-1]['expr'].pop('off', None)
         else:
             mk = marks(s, prev)
         prev = mk
@@ -188,10 +279,12 @@ def main():
         note = {'at': f"{n['t']:.6f}s", 'len': f"{n['end'] - n['t']:.6f}s", 'pitch': int(n['pitch']), 'vel': 0.75, 'expr': e}
         if mk['vb'] != mk['va']: note['expr_end'] = {'vow': round(mk['vb'], 3)}
         note['syl'] = s
+        if cmu is not None and i in phs:
+            note.pop('expr', None); note.pop('expr_end', None); note['ph'] = phs[i]
         res.append(note)
     print(f'lyricvox: {n_sung} sung notes, {len(syl)} syllables', file=sys.stderr)
     if '--words' in a:
-        for n in res: print(f"{float(n['at'][:-1]):8.2f} {n['pitch']:3d} {n['syl']:10s} {n['expr']} {n.get('expr_end', '')}", file=sys.stderr)
+        for n in res: print(f"{float(n['at'][:-1]):8.2f} {n['pitch']:3d} {n['syl']:10s} {n.get('ph') or n.get('expr')} {n.get('expr_end', '')}", file=sys.stderr)
     for n in res: n.pop('syl')
     json.dump({'notes': res}, open(out, 'w'), indent=1)
 
