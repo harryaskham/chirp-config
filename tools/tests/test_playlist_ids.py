@@ -10,6 +10,7 @@ import shutil
 import sys
 import tempfile
 import unittest
+import unittest.mock
 
 TOOLS = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, TOOLS)
@@ -57,6 +58,28 @@ class Ids(unittest.TestCase):
         for s in ("v1", "v3"):
             open(os.path.join(self.root, "songs", s + ".yaml"), "w").close()
         self.assertEqual(self.ids(), ["v3", "v1"])
+
+
+class Socket(unittest.TestCase):
+    """The driver finds the groove's socket where chirp does, even without XDG_RUNTIME_DIR (the watchdog started one
+    without it, and every playlist change failed: [Errno 2])."""
+
+    def test_falls_back_to_the_dir_that_holds_the_socket(self):
+        d = tempfile.mkdtemp(prefix="playlist-sock-")
+        self.addCleanup(shutil.rmtree, d, True)
+        run = os.path.join(d, "run")
+        os.makedirs(os.path.join(run, "chirp"))
+        open(os.path.join(run, "chirp", P.ID + ".sock"), "w").close()
+        env = {k: v for k, v in os.environ.items() if k not in ("XDG_RUNTIME_DIR", "PLAYLIST_SOCKET")}
+        with unittest.mock.patch.dict(os.environ, env, clear=True), \
+                unittest.mock.patch.object(P.os, "getuid", return_value=424242):
+            self.assertTrue(P.sock_path().startswith("/run/user/424242/") or P.sock_path().startswith("/tmp/chirp-"))
+            os.environ["XDG_RUNTIME_DIR"] = run
+            self.assertEqual(P.sock_path(), os.path.join(run, "chirp", P.ID + ".sock"))
+        real = f"/run/user/{os.getuid()}/chirp/{P.ID}.sock"
+        if os.path.exists(real):
+            with unittest.mock.patch.dict(os.environ, env, clear=True):
+                self.assertEqual(P.sock_path(), real)
 
 
 if __name__ == "__main__":

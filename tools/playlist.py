@@ -32,10 +32,14 @@ ID = os.environ.get("PLAYLIST_GROOVE", "groove")
 
 
 def sock_path():
+    """The groove's control socket: the first of chirp's own session dirs that holds it (XDG_RUNTIME_DIR, then
+    /run/user/UID, then /tmp/chirp-USER), so a driver started without XDG_RUNTIME_DIR (the watchdog's environment)
+    still finds the session the binary finds."""
     if os.environ.get("PLAYLIST_SOCKET"):
         return os.environ["PLAYLIST_SOCKET"]
-    run = os.environ.get("XDG_RUNTIME_DIR") or f"/tmp/chirp-{getpass.getuser()}"
-    return os.path.join(run, "chirp", f"{ID}.sock")
+    dirs = [os.environ.get("XDG_RUNTIME_DIR"), f"/run/user/{os.getuid()}", f"/tmp/chirp-{getpass.getuser()}"]
+    paths = [os.path.join(d, "chirp", f"{ID}.sock") for d in dirs if d]
+    return next((p for p in paths if os.path.exists(p)), paths[0])
 
 
 def request(req):
