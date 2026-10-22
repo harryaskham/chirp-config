@@ -2601,11 +2601,15 @@
       "source": "https://www.youtube.com/watch?v=egUFlyfE1PY",
       "owner": "chirper-one",
       "metric": "python3 tools/likeness.py sections ref/dollars-and-cents.wav OUT.wav $(cat tools/dollars-and-cents-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 51.792,
+        "version": "v1",
+        "commit": "see git log songs/dollars-and-cents.yaml"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "art rock",
       "meta": {
@@ -2620,7 +2624,11 @@
         "at": "2026-10-22T09:33:12Z",
         "note": "Harry's request (22 Oct): the Amnesiac album is the focus (Pyramid Song already climbing). References: official Beggars Group uploads (source URL per climb). Stems: ref/stems/htdemucs_6s/ID (chirp-eco); candidate sections: /tmp/lt/setup/ID/sections-candidate.txt."
       },
-      "ref_file": "ref/albums/amnesiac/08.webm"
+      "ref_file": "ref/albums/amnesiac/08.webm",
+      "last": {
+        "at": "2026-10-22T15:08:30Z",
+        "who": "chirper-one"
+      }
     },
     {
       "id": "hunting-bears",
