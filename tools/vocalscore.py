@@ -33,6 +33,7 @@ does not, so a perfect reproduction scores below 100 on it. Nothing here changes
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -135,7 +136,8 @@ def words(path, model):
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", path, "-ac", "1", "-ar", "16000", wav], check=True,
                    stdin=subprocess.DEVNULL)
     try:
-        subprocess.run(["nice", "-n", "10", "whisper", wav, "--model", model, "--language", "en", "--output_dir", d,
+        pin = ["taskset", "-c", "0-3"] if shutil.which("taskset") else []   # a hard CPU limit (see tools/asr.py)
+        subprocess.run(pin + ["nice", "-n", "10", "whisper", wav, "--model", model, "--language", "en", "--output_dir", d,
                         "--output_format", "json", "--fp16", "False", "--verbose", "False",
                         # bounded and loop-free: a separated stem's silences sent tiny.en into temperature-fallback
                         # re-decoding (4.3 CPU-hours on 25 threads, still at its first window)
