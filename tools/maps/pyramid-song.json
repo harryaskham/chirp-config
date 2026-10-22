@@ -255,6 +255,23 @@
     "hf": "hp",
     "rc": "rd"
    }
+  },
+  {
+   "name": "noise",
+   "track": 2,
+   "patch": "fx-ocean",
+   "bars": [
+    [
+     1,
+     999
+    ]
+   ],
+   "gain": "-22dB",
+   "extra": {
+    "sends": {
+     "hall": "-12dB"
+    }
+   }
   }
  ],
  "bpm": {
