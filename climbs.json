@@ -2309,7 +2309,7 @@
       "id": "i-feel-love",
       "song": "songs/i-feel-love.yaml",
       "reference": "Donna Summer — I Feel Love",
-      "source": null,
+      "source": "https://www.youtube.com/watch?v=bHfrdQ8h2Pw",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/i-feel-love.wav OUT.wav $(cat tools/i-feel-love-sections.txt)",
       "best": null,
