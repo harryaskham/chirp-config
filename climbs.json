@@ -1772,15 +1772,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/xtal.wav OUT.wav $(cat tools/xtal-sections.txt)",
       "best": {
-        "score": 65.057,
-        "version": "v4",
+        "score": 67.238,
+        "version": "v5",
         "commit": "see git log songs/xtal.yaml",
-        "engine": "411dd3c"
+        "engine": "21358da"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 10,
+      "rounds": 11,
       "priority": 1.0,
       "genre": "ambient techno",
       "meta": {
@@ -1797,7 +1797,7 @@
       },
       "ref_file": "ref/albums/selected-ambient-works-85-92/01 xtal.webm",
       "last": {
-        "at": "2026-10-21T07:11:52Z",
+        "at": "2026-10-22T00:22:22Z",
         "who": "chirper-zero"
       }
     },
