@@ -2599,7 +2599,7 @@
       "song": "songs/dollars-and-cents.yaml",
       "reference": "Radiohead — Dollars and Cents",
       "source": "https://www.youtube.com/watch?v=egUFlyfE1PY",
-      "owner": null,
+      "owner": "chirper-one",
       "metric": "python3 tools/likeness.py sections ref/dollars-and-cents.wav OUT.wav $(cat tools/dollars-and-cents-sections.txt)",
       "best": null,
       "passes": 1,
