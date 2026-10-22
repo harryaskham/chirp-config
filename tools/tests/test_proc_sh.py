@@ -32,10 +32,24 @@ class SafePgrep(unittest.TestCase):
 
     def test_found_and_not_found(self):
         # (a fake pgrep: the real one hangs on a host with a process stuck in the kernel, which is the point)
-        r = bash('safe_pgrep -f x; echo "rc=$?"', env=self.fake('echo 4242; exit 0'))
+        r = bash('safe_pgrep -f x; echo "rc=$?"', env={**self.fake('echo 4242; exit 0'), "TMPDIR": tempfile.mkdtemp()})
         self.assertEqual(r.stdout.split(), ["4242", "rc=0"])
-        r = bash('safe_pgrep -f x; echo "rc=$?"', env=self.fake('exit 1'))
+        r = bash('safe_pgrep -f x; echo "rc=$?"', env={**self.fake('exit 1'), "TMPDIR": tempfile.mkdtemp()})
         self.assertEqual(r.stdout.split(), ["rc=1"])
+
+    def test_after_a_hang_it_answers_unknown_without_spawning(self):
+        d = tempfile.mkdtemp(prefix="proc-sh-")
+        self.addCleanup(shutil.rmtree, d, True)
+        calls = os.path.join(d, "calls")
+        env = self.fake(f'echo x >> {calls}; exec sleep 600')
+        env["TMPDIR"] = d
+        bash('safe_pgrep -f a >/dev/null; echo "rc=$?"', env=env)            # hangs once: marker
+        self.assertTrue(os.path.exists(os.path.join(d, "chirp-pgrep-hung")))
+        t = time.monotonic()
+        r = bash('safe_pgrep -f b >/dev/null; echo "rc=$?"', env=env)
+        self.assertIn("rc=2", r.stdout)
+        self.assertLess(time.monotonic() - t, 3, "answered at once")
+        self.assertEqual(open(calls).read().count("x"), 1, "no second pgrep was spawned")
 
     def test_a_hung_pgrep_reports_unknown_quickly(self):
         d = tempfile.mkdtemp(prefix="proc-sh-")
@@ -44,7 +58,7 @@ class SafePgrep(unittest.TestCase):
             f.write("#!/bin/sh\nexec sleep 600\n")
         os.chmod(os.path.join(d, "pgrep"), 0o755)
         t = time.monotonic()
-        r = bash('safe_pgrep -f anything >/dev/null; echo "rc=$?"', env={"PATH": f"{d}:{os.environ['PATH']}"})
+        r = bash('safe_pgrep -f anything >/dev/null; echo "rc=$?"', env={"PATH": f"{d}:{os.environ['PATH']}", "TMPDIR": d})
         self.assertIn("rc=2", r.stdout)
         self.assertLess(time.monotonic() - t, 20)
 
@@ -67,6 +81,11 @@ class Launch(unittest.TestCase):
                 break
             time.sleep(0.25)
         self.assertTrue(os.path.exists(flag), "the command ran after the caller returned")
+
+    def test_unit_active_sees_a_running_unit(self):
+        r = bash('launch proc-sh-active "sleep 5"; sleep 1; unit_active "proc-sh-active-*" && echo yes; '
+                 'unit_active "proc-sh-none-*" || echo no')
+        self.assertEqual(r.stdout.split(), ["yes", "no"])
 
     def test_without_systemd_run_it_falls_back_to_setsid(self):
         d = tempfile.mkdtemp(prefix="proc-sh-")
