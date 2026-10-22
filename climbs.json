@@ -2265,6 +2265,32 @@
         "at": "2026-10-22T00:37:47Z",
         "note": "Harry's request (2026-10-22): a vocal-focused set (Pyramid Song, I Never Learnt to Share, I Feel Love, Do It Now) climbed alone until we make good headway, then back to the shuffle. The point is the voice: push the voice engine towards believable singing and intelligible words (rap, in Do It Now) — consonant clusters, more vowels, prosody, lyric-aligned syllables — and file engine beads for what it lacks; vocal-specific metrics are coming (chirp-eco). Canonical recording: the official studio album version (one master). Thom Yorke's voice over piano and strings; the swung, ambiguous meter matters."
       }
+    },
+    {
+      "id": "i-never-learnt-to-share",
+      "song": "songs/i-never-learnt-to-share.yaml",
+      "reference": "James Blake — I Never Learnt to Share",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/i-never-learnt-to-share.wav OUT.wav $(cat tools/i-never-learnt-to-share-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "electronic soul / post-dubstep",
+      "meta": {
+        "artist": "James Blake",
+        "title": "I Never Learnt to Share",
+        "album": "James Blake",
+        "year": 2011
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-22T00:37:51Z",
+        "note": "Harry's request (2026-10-22): a vocal-focused set (Pyramid Song, I Never Learnt to Share, I Feel Love, Do It Now) climbed alone until we make good headway, then back to the shuffle. The point is the voice: push the voice engine towards believable singing and intelligible words (rap, in Do It Now) — consonant clusters, more vowels, prosody, lyric-aligned syllables — and file engine beads for what it lacks; vocal-specific metrics are coming (chirp-eco). Canonical recording: the official studio album version (one master). A looped, layered, pitch-processed vocal refrain building into synth swells."
+      }
     }
   ],
   "focus": "Selected Ambient Works 85-92"
