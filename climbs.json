@@ -2335,7 +2335,7 @@
       "id": "do-it-now",
       "song": "songs/do-it-now.yaml",
       "reference": "Mos Def — Do It Now",
-      "source": null,
+      "source": "https://www.youtube.com/watch?v=KJLML-VpFcE",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/do-it-now.wav OUT.wav $(cat tools/do-it-now-sections.txt)",
       "best": null,
