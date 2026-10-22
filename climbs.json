@@ -2655,7 +2655,7 @@
       "song": "songs/like-spinning-plates.yaml",
       "reference": "Radiohead — Like Spinning Plates",
       "source": "https://www.youtube.com/watch?v=-UAElLsVOQI",
-      "owner": null,
+      "owner": "chirper-zero",
       "metric": "python3 tools/likeness.py sections ref/like-spinning-plates.wav OUT.wav $(cat tools/like-spinning-plates-sections.txt)",
       "best": null,
       "passes": 1,
