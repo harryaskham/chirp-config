@@ -20,7 +20,9 @@ terms are ordered by how much noise they survive).
                also reports what Whisper heard in the record's stem: if that is not the lyrics, the stem caps the term
 
 --from/--to scores one window (both signals cropped; section bounds then ignored). Whisper on CPU is slow (base.en
-read 30 s of a stem in ~3 min under load): give --asr a window of a verse or a chorus. It read You Can't Hurry Love's
+read 30 s of a stem in ~3 min under load) and on a whole separated rap stem it ran away (~16 cores, stuck at its second
+window, twice): give --asr a 30-60 s window of a verse or a chorus. Each transcription is capped at 10 s per second of
+audio (at least 5 min) with 4 math threads; a timeout reports no words. It read You Can't Hurry Love's
 separated vocal stem close to the lyrics in places ("You gotta trust, give it time"), so the stem caps but does not
 void the term.
 
@@ -118,22 +120,35 @@ def _dct(L):
     return basis.T @ L
 
 
+def _asr_budget(wav):
+    """A hard limit for one transcription: 10 s per second of audio, at least 5 min (a full separated rap stem made
+    Whisper run away on ~16 cores at its second window, twice, despite --threads)."""
+    import wave
+    with wave.open(wav) as f:
+        return max(300, 10 * f.getnframes() / f.getframerate())
+
+
 def words(path, model):
     """Whisper's words for path (lowercase, no punctuation), or None when whisper is unavailable."""
     d = tempfile.mkdtemp(prefix="vocalscore-asr-")
     wav = os.path.join(d, "v.wav")
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", path, "-ac", "1", "-ar", "16000", wav], check=True,
                    stdin=subprocess.DEVNULL)
-    subprocess.run(["nice", "-n", "10", "whisper", wav, "--model", model, "--language", "en", "--output_dir", d,
+    try:
+        subprocess.run(["nice", "-n", "10", "whisper", wav, "--model", model, "--language", "en", "--output_dir", d,
                         "--output_format", "json", "--fp16", "False", "--verbose", "False",
                         # bounded and loop-free: a separated stem's silences sent tiny.en into temperature-fallback
                         # re-decoding (4.3 CPU-hours on 25 threads, still at its first window)
                         "--threads", "4", "--condition_on_previous_text", "False",
                         "--temperature_increment_on_fallback", "None"],
-                       capture_output=True, text=True, stdin=subprocess.DEVNULL,
-                       env={k: v for k, v in os.environ.items() if k != "LD_LIBRARY_PATH"})
+                       capture_output=True, text=True, stdin=subprocess.DEVNULL, timeout=_asr_budget(wav),
+                       env={**{k: v for k, v in os.environ.items() if k != "LD_LIBRARY_PATH"},
+                            "OMP_NUM_THREADS": "4", "MKL_NUM_THREADS": "4", "OPENBLAS_NUM_THREADS": "1"})
+    except subprocess.TimeoutExpired:
+        return None
     try:
-        text = json.load(open(os.path.join(d, "v.json")))["text"]
+        with open(os.path.join(d, "v.json")) as f:
+            text = json.load(f)["text"]
     except (OSError, ValueError, KeyError):
         return None
     return re.findall(r"[a-z']+", text.lower())
