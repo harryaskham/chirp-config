@@ -2669,7 +2669,7 @@
       "song": "songs/hunting-bears.yaml",
       "reference": "Radiohead — Hunting Bears",
       "source": "https://www.youtube.com/watch?v=6AM0q_u7XNc",
-      "owner": null,
+      "owner": "chirper-one",
       "metric": "python3 tools/likeness.py sections ref/hunting-bears.wav OUT.wav $(cat tools/hunting-bears-sections.txt)",
       "best": null,
       "passes": 1,
