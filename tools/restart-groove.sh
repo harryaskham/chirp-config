@@ -54,7 +54,13 @@ fi
 # groove to tools/playlist.py, which keeps the session's native playlist equal to the enabled climbs (each
 # file re-read at its turn, so new best versions play; players show the whole rotation).
 if [ "${1:-}" = playlist ]; then
-  first=$(cd "$here/.." && python3 -c 'import json; c=[x for x in json.load(open("climbs.json"))["climbs"] if x.get("enabled", True)]; print(c[0]["song"])')
+  first=$(cd "$here/.." && python3 -c '
+import json, os
+c = [x for x in json.load(open("climbs.json"))["climbs"] if x.get("enabled", True) and x.get("song")]
+# a focus playlist (tools/playlist-ids, one id per line) starts with its first id that has a song
+ids = [l.strip() for l in open("tools/playlist-ids")] if os.path.exists("tools/playlist-ids") else []
+by = {x["id"]: x for x in c}
+print(next((by[i]["song"] for i in ids if i in by), c[0]["song"]))')
   src_args=(-f "$here/../$first")
 else
   src_args=(-s "${1:-live-suite}")
