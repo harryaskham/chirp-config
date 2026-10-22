@@ -2553,11 +2553,16 @@
       "source": "https://www.youtube.com/watch?v=jhsyc81VcB4",
       "owner": "chirper-zero",
       "metric": "python3 tools/likeness.py sections ref/knives-out.wav OUT.wav $(cat tools/knives-out-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 63.635,
+        "version": "v1",
+        "commit": "see git log songs/knives-out.yaml",
+        "engine": "cd48507"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "art rock",
       "meta": {
@@ -2572,7 +2577,11 @@
         "at": "2026-10-22T09:33:11Z",
         "note": "Harry's request (22 Oct): the Amnesiac album is the focus (Pyramid Song already climbing). References: official Beggars Group uploads (source URL per climb). Stems: ref/stems/htdemucs_6s/ID (chirp-eco); candidate sections: /tmp/lt/setup/ID/sections-candidate.txt."
       },
-      "ref_file": "ref/albums/amnesiac/06.webm"
+      "ref_file": "ref/albums/amnesiac/06.webm",
+      "last": {
+        "at": "2026-10-22T17:18:33Z",
+        "who": "chirper-zero"
+      }
     },
     {
       "id": "morning-bell-amnesiac",
