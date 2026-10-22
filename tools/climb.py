@@ -35,7 +35,8 @@ for any climbing agent's next pass, one climb to work on, weighted towards the f
                                                     the full history stays in `climb.py log`)
   climb.py pause|resume|drop ID [--note TEXT]       take a climb out of (or back into) the queue
   climb.py tui                                      the queue as a TUI: toggle climbable/playlist, focus, notes
-  climb.py focus ALBUM | --off                      climb only that album: pause every other queued climb
+  climb.py focus ALBUM | --ids ID,ID… | --off       climb only that album (or those climbs): pause every other
+                                                    queued climb; --off resumes what a focus paused
                                                     (marked, so --off resumes exactly those); the playlist
                                                     is unchanged
   climb.py commit -m MSG PATH …                     commit those paths only and publish (below)
@@ -989,10 +990,11 @@ def album_of(c):
 
 
 def cmd_focus(a):
-    pos = positional(a, ())
+    pos = positional(a, ("--ids",))
     off = "--off" in a
-    if not pos and not off:
-        die("focus ALBUM | focus --off")
+    ids = [x.strip() for x in (opt(a, "--ids") or "").split(",") if x.strip()]
+    if not pos and not off and not ids:
+        die("focus ALBUM | focus --ids ID,ID… | focus --off")
     changed = []
     with registry() as reg:
         if off:
@@ -1002,6 +1004,21 @@ def cmd_focus(a):
                     c.pop("paused_by", None)
                     changed.append(c["id"])
             reg.pop("focus", None)
+        elif ids:
+            have = {c["id"] for c in reg["climbs"]}
+            missing = [x for x in ids if x not in have]
+            if missing:
+                die(f"no such climb(s): {', '.join(missing)}")
+            for c in reg["climbs"]:
+                on = c["id"] in ids
+                if on and c.get("paused_by") == "focus":
+                    c["status"] = "active" if c["rounds"] else "requested"
+                    c.pop("paused_by", None)
+                    changed.append(c["id"])
+                elif not on and c["status"] in QUEUED:
+                    c["status"], c["paused_by"] = "paused", "focus"
+                    changed.append(c["id"])
+            reg["focus"] = "climbs: " + ", ".join(ids)
         else:
             album = pos[0]
             mine = [c for c in reg["climbs"] if (album_of(c) or "").lower() == album.lower()]
@@ -1019,7 +1036,8 @@ def cmd_focus(a):
             reg["focus"] = album_of(mine[0])
     print(f"focus {'off' if off else reg.get('focus')}: {len(changed)} climbs changed")
     if changed:
-        commit_or_die(["climbs.json"], f"climbs: focus {'off' if off else pos[0]} ({len(changed)} changed)", a)
+        commit_or_die(["climbs.json"], f"climbs: focus {'off' if off else (pos[0] if pos else reg.get('focus'))} "
+                                       f"({len(changed)} changed)", a)
 
 
 def cmd_commit(a):
