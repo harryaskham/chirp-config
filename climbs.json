@@ -2588,7 +2588,7 @@
       "song": "songs/morning-bell-amnesiac.yaml",
       "reference": "Radiohead — Morning Bell/Amnesiac",
       "source": "https://www.youtube.com/watch?v=6LGS0S8Lh4A",
-      "owner": null,
+      "owner": "chirper-zero",
       "metric": "python3 tools/likeness.py sections ref/morning-bell-amnesiac.wav OUT.wav $(cat tools/morning-bell-amnesiac-sections.txt)",
       "best": null,
       "passes": 1,
