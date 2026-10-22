@@ -125,7 +125,11 @@ def words(path, model):
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", path, "-ac", "1", "-ar", "16000", wav], check=True,
                    stdin=subprocess.DEVNULL)
     subprocess.run(["nice", "-n", "10", "whisper", wav, "--model", model, "--language", "en", "--output_dir", d,
-                        "--output_format", "json", "--fp16", "False", "--verbose", "False"],
+                        "--output_format", "json", "--fp16", "False", "--verbose", "False",
+                        # bounded and loop-free: a separated stem's silences sent tiny.en into temperature-fallback
+                        # re-decoding (4.3 CPU-hours on 25 threads, still at its first window)
+                        "--threads", "4", "--condition_on_previous_text", "False",
+                        "--temperature_increment_on_fallback", "None"],
                        capture_output=True, text=True, stdin=subprocess.DEVNULL,
                        env={k: v for k, v in os.environ.items() if k != "LD_LIBRARY_PATH"})
     try:
