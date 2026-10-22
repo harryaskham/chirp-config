@@ -2514,7 +2514,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 2,
+      "rounds": 3,
       "priority": 1.0,
       "genre": "art rock",
       "meta": {
@@ -2531,8 +2531,8 @@
       },
       "ref_file": "ref/albums/amnesiac/04.webm",
       "last": {
-        "at": "2026-10-22T20:31:22Z",
-        "who": "chirper-zero"
+        "at": "2026-10-22T21:15:15Z",
+        "who": "chirper-one"
       }
     },
     {
