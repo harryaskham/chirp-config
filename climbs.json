@@ -2551,7 +2551,7 @@
       "song": "songs/knives-out.yaml",
       "reference": "Radiohead — Knives Out",
       "source": "https://www.youtube.com/watch?v=jhsyc81VcB4",
-      "owner": null,
+      "owner": "chirper-zero",
       "metric": "python3 tools/likeness.py sections ref/knives-out.wav OUT.wav $(cat tools/knives-out-sections.txt)",
       "best": null,
       "passes": 1,
