@@ -2689,14 +2689,14 @@
       "owner": "chirper-one",
       "metric": "python3 tools/likeness.py sections ref/hunting-bears.wav OUT.wav $(cat tools/hunting-bears-sections.txt)",
       "best": {
-        "score": 44.417,
-        "version": "v1",
+        "score": 47.372,
+        "version": "v2",
         "commit": "see git log songs/hunting-bears.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 1,
+      "rounds": 2,
       "priority": 1.0,
       "genre": "art rock",
       "meta": {
@@ -2713,7 +2713,7 @@
       },
       "ref_file": "ref/albums/amnesiac/09.webm",
       "last": {
-        "at": "2026-10-22T19:09:11Z",
+        "at": "2026-10-22T20:18:39Z",
         "who": "chirper-one"
       }
     },
