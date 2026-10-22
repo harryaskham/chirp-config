@@ -2671,11 +2671,15 @@
       "source": "https://www.youtube.com/watch?v=6AM0q_u7XNc",
       "owner": "chirper-one",
       "metric": "python3 tools/likeness.py sections ref/hunting-bears.wav OUT.wav $(cat tools/hunting-bears-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 44.417,
+        "version": "v1",
+        "commit": "see git log songs/hunting-bears.yaml"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "art rock",
       "meta": {
@@ -2690,7 +2694,11 @@
         "at": "2026-10-22T09:33:13Z",
         "note": "Harry's request (22 Oct): the Amnesiac album is the focus (Pyramid Song already climbing). References: official Beggars Group uploads (source URL per climb). Stems: ref/stems/htdemucs_6s/ID (chirp-eco); candidate sections: /tmp/lt/setup/ID/sections-candidate.txt."
       },
-      "ref_file": "ref/albums/amnesiac/09.webm"
+      "ref_file": "ref/albums/amnesiac/09.webm",
+      "last": {
+        "at": "2026-10-22T19:09:11Z",
+        "who": "chirper-one"
+      }
     },
     {
       "id": "like-spinning-plates",
