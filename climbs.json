@@ -2391,6 +2391,26 @@
         "at": "2026-10-22T06:49:21Z",
         "who": "chirper-zero"
       }
+    },
+    {
+      "id": "intergalactic",
+      "song": "songs/intergalactic.yaml",
+      "reference": "Beastie Boys — Intergalactic",
+      "source": "https://www.youtube.com/watch?v=jwqyTB_MUNg",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/intergalactic.wav OUT.wav $(cat tools/intergalactic-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "hip hop",
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-22T08:08:40Z",
+        "note": "Harry's request (22 Oct): vocal focus, rap trading with a vocoder hook over an electronic beat. Source: official label upload (UMG, Anthology: The Sounds of Science 1999 version, 212 s; the Hello Nasty album cut is 3:51 with a longer ending and has no official upload). Staged ref, stems and candidate sections: /tmp/lt/setup/intergalactic (chirp-eco). Use phoneme strings (^ph, CMUdict ARPAbet) for the raps, a vocoder-like voice for the robot hook, and tools/voicefit.py per voice."
+      }
     }
   ],
   "focus": "climbs: pyramid-song, i-never-learnt-to-share, i-feel-love, do-it-now"
