@@ -2283,7 +2283,7 @@
       "id": "i-never-learnt-to-share",
       "song": "songs/i-never-learnt-to-share.yaml",
       "reference": "James Blake — I Never Learnt to Share",
-      "source": null,
+      "source": "https://www.youtube.com/watch?v=50txsuv4xu8",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/i-never-learnt-to-share.wav OUT.wav $(cat tools/i-never-learnt-to-share-sections.txt)",
       "best": null,
