@@ -13,6 +13,9 @@ committed by then; see the registry's _protocol). Players (`chirp player`, the w
 - tools/playlist-album (runtime, ignored) holding an album name makes the playlist that album: its enabled tracks
   with a song, in track order, looping; tracks join as their first versions are kept. Until one has a song the
   whole rotation plays.
+- tools/playlist-ids (runtime, ignored) listing climb ids (whitespace or commas) makes the playlist those climbs
+  that have a song, in that order, looping; each joins as its first version is kept. Until one has a song,
+  playlist-album (else the whole rotation) plays. It takes precedence over playlist-album.
 - A player playing an album (or any playlist mostly of other songs) is left alone until it finishes
   (albums play once through) or is cleared; then the rotation comes back.
 - To show Harry something, take over for one pass: `chirp live queue FILE --id groove --now --label NAME`.
@@ -62,7 +65,8 @@ def enabled():
 
 
 def climbs():
-    on = album_only(enabled())
+    on = enabled()
+    on = ids_only(on) or album_only(on)
     try:
         solo = open(os.path.join(HERE, "playlist-solo")).read().strip()
     except OSError:
@@ -73,6 +77,26 @@ def climbs():
 
 
 ALBUM_MODE = [None]
+IDS_MODE = [None]
+
+
+def ids_only(on):
+    """tools/playlist-ids: only those climbs that have a song, in the listed order; None while none has (or no file)."""
+    try:
+        ids = [x for x in open(os.path.join(HERE, "playlist-ids")).read().replace(",", " ").split() if x]
+    except OSError:
+        ids = []
+    mode, mine = None, None
+    if ids:
+        by = {c["id"]: c for c in on}
+        mine = [by[i] for i in ids if i in by and by[i].get("song") and os.path.exists(path(by[i]))] or None
+        mode = (f"climbs {', '.join(ids)}: {len(mine)} with a song ({', '.join(c['id'] for c in mine)})" if mine
+                else f"climbs {', '.join(ids)}: none has a song yet, so the album/rotation plays")
+    if mode != IDS_MODE[0]:
+        IDS_MODE[0] = mode
+        if mode:
+            log("playlist:", mode)
+    return mine
 
 
 def album_only(on):
