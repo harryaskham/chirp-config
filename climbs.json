@@ -2397,7 +2397,7 @@
       "song": "songs/intergalactic.yaml",
       "reference": "Beastie Boys — Intergalactic",
       "source": "https://www.youtube.com/watch?v=jwqyTB_MUNg",
-      "owner": null,
+      "owner": "chirper-one",
       "metric": "python3 tools/likeness.py sections ref/intergalactic.wav OUT.wav $(cat tools/intergalactic-sections.txt)",
       "best": {
         "score": 44.966,
