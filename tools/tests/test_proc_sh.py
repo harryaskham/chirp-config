@@ -51,6 +51,16 @@ class SafePgrep(unittest.TestCase):
         self.assertLess(time.monotonic() - t, 3, "answered at once")
         self.assertEqual(open(calls).read().count("x"), 1, "no second pgrep was spawned")
 
+    def test_a_hung_pgrep_never_holds_the_callers_lock(self):
+        d = tempfile.mkdtemp(prefix="proc-sh-")
+        self.addCleanup(shutil.rmtree, d, True)
+        lock = os.path.join(d, "restart.lock")
+        env = {**self.fake("exec sleep 30"), "TMPDIR": d}
+        # the caller holds its flock on fd 9 (as restart-groove.sh does), asks, and exits; the hung pgrep lives on
+        bash(f'exec 9>"{lock}"; flock 9; safe_pgrep -f x >/dev/null; echo "rc=$?"', env=env)
+        r = subprocess.run(["flock", "-n", lock, "true"], capture_output=True)
+        self.assertEqual(r.returncode, 0, "the lock is free once the caller has gone")
+
     def test_a_hung_pgrep_reports_unknown_quickly(self):
         d = tempfile.mkdtemp(prefix="proc-sh-")
         self.addCleanup(shutil.rmtree, d, True)

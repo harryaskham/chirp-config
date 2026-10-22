@@ -13,7 +13,9 @@ safe_pgrep() {
     return 2
   fi
   out=$(mktemp)
-  pgrep "$@" > "$out" 2>/dev/null &
+  # 9>&-: never hand the caller's lock fd (restart-groove.sh holds its flock on fd 9) to a pgrep that may hang:
+  # a stuck pgrep from a restart held chirp-restart-v2.lock for two hours, refusing every later restart
+  pgrep "$@" > "$out" 2>/dev/null 9>&- &
   p=$!
   for _ in $(seq 1 40); do kill -0 "$p" 2>/dev/null || break; sleep 0.25; done
   if kill -0 "$p" 2>/dev/null; then rm -f "$out"; touch "$PGREP_HUNG"; return 2; fi
