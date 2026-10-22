@@ -8,6 +8,7 @@ set -u
 exec 9>"${TMPDIR:-/tmp}/chirp-restart-v2.lock"
 flock -w 60 9 || { echo "restart-groove: another restart holds the lock"; exit 0; }
 here=$(cd "$(dirname "$0")" && pwd)
+. "$here/proc.sh"   # safe_pgrep (never hangs on a stuck process), launch (its own systemd user unit)
 # Never fall back to an installed (Nix) chirp: it can be far older than the library needs.
 src=${CHIRP_SRC:-}
 for c in "${CHIRP_MAIN:-/tmp/lt/chirp-main}/cli/chirp/target/release/chirp" "$HOME/.herdr/worktrees/tools/chirp/cli/chirp/target/release/chirp"; do
@@ -29,8 +30,9 @@ if [ -n "$pin" ] && [ -z "${CHIRP_PIN_BYPASS:-}" ]; then
 fi
 C=${XDG_RUNTIME_DIR:-/tmp}/chirp-groove
 log=${TMPDIR:-/tmp}/chirp-evolve.log
-pgrep -f "^[^ ]*python3 $here/evolve.py" | xargs -r kill
-pgrep -f "^[^ ]*python3 $here/playlist.py" | xargs -r kill
+systemctl --user stop 'chirp-evolve-*.service' 'chirp-playlist-*.service' 2>/dev/null
+safe_pgrep -f "^[^ ]*python3 $here/evolve.py" | xargs -r kill
+safe_pgrep -f "^[^ ]*python3 $here/playlist.py" | xargs -r kill
 # Stop with the new binary first (the pinned copy may be missing or older); any build speaks the socket protocol.
 # Musical stop (fade out on a bar line) where the build supports it; otherwise a plain stop.
 "$src" stop groove --at bar --fade 800ms >/dev/null 2>&1 || "$src" stop groove >/dev/null 2>&1 || { [ -x "$C" ] && "$C" stop groove >/dev/null 2>&1; }
@@ -60,13 +62,14 @@ fi
 # Claim the sink: any other chirp stream on it refuses (naming the groove) unless --takeover, so stray playback
 # can't double Harry's audio. Guarded: older binaries reject the flag.
 excl=(); "$C" --help 2>/dev/null | grep -q -- --exclusive && excl=(--exclusive)
-PULSE_LATENCY_MSEC=${CHIRP_PULSE_LATENCY_MSEC:-2000} setsid nohup env -u PULSE_SERVER "$C" --loop "${excl[@]}" --id groove -o "$out" "${src_args[@]}" > "${TMPDIR:-/tmp}/chirp-groove.log" 2>&1 < /dev/null 9>&- &
+launch chirp-groove "PULSE_LATENCY_MSEC=${CHIRP_PULSE_LATENCY_MSEC:-2000} exec env -u PULSE_SERVER $(printf '%q ' "$C" --loop "${excl[@]}" --id groove -o "$out" "${src_args[@]}")> $(printf '%q' "${TMPDIR:-/tmp}/chirp-groove.log") 2>&1 < /dev/null"
 sleep 1.2
 if [ -n "${2:-}" ]; then "$C" live set --id groove --when bar --xfade 150ms "tracks.arrangement.score=$2" | tail -1; fi
 # the evolver only drives live-suite; any other song (a benchmark reproduction) plays as written
-if [ "${1:-live-suite}" = live-suite ]; then CHIRP_BIN=$C EVOLVE_RESUME=1 setsid nohup python3 "$here/evolve.py" >> "$log" 2>&1 < /dev/null 9>&- & fi
-if [ "${1:-}" = playlist ]; then CHIRP_BIN=$C setsid nohup python3 "$here/playlist.py" >> "${TMPDIR:-/tmp}/chirp-playlist.log" 2>&1 < /dev/null 9>&- & fi
+if [ "${1:-live-suite}" = live-suite ]; then launch chirp-evolve "CHIRP_BIN=$(printf '%q' "$C") EVOLVE_RESUME=1 exec python3 $(printf '%q' "$here/evolve.py") >> $(printf '%q' "$log") 2>&1 < /dev/null"; fi
+if [ "${1:-}" = playlist ]; then launch chirp-playlist "CHIRP_BIN=$(printf '%q' "$C") exec python3 $(printf '%q' "$here/playlist.py") >> $(printf '%q' "${TMPDIR:-/tmp}/chirp-playlist.log") 2>&1 < /dev/null"; fi
 sleep 0.5
 "$C" live list
-if pgrep -f "^[^ ]*python3 $here/playlist.py" >/dev/null; then echo "playlist driver running (log: ${TMPDIR:-/tmp}/chirp-playlist.log)"
-else pgrep -f "^[^ ]*python3 $here/evolve.py" >/dev/null && echo "evolver running (log: $log)"; pgrep -f "^[^ ]*python3 $here/evolve.py" >/dev/null || echo "groove playing ${1:-live-suite} (no evolver)"; fi
+if safe_pgrep -f "^[^ ]*python3 $here/playlist.py" >/dev/null; then echo "playlist driver running (log: ${TMPDIR:-/tmp}/chirp-playlist.log)"
+elif safe_pgrep -f "^[^ ]*python3 $here/evolve.py" >/dev/null; then echo "evolver running (log: $log)"
+else echo "groove playing ${1:-live-suite} (no evolver, or the process table did not answer)"; fi
