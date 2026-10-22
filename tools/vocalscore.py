@@ -124,7 +124,7 @@ def words(path, model):
     wav = os.path.join(d, "v.wav")
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", path, "-ac", "1", "-ar", "16000", wav], check=True,
                    stdin=subprocess.DEVNULL)
-    r = subprocess.run(["nice", "-n", "10", "whisper", wav, "--model", model, "--language", "en", "--output_dir", d,
+    subprocess.run(["nice", "-n", "10", "whisper", wav, "--model", model, "--language", "en", "--output_dir", d,
                         "--output_format", "json", "--fp16", "False", "--verbose", "False"],
                        capture_output=True, text=True, stdin=subprocess.DEVNULL,
                        env={k: v for k, v in os.environ.items() if k != "LD_LIBRARY_PATH"})
