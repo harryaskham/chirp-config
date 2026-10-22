@@ -2685,11 +2685,15 @@
       "source": "https://www.youtube.com/watch?v=hKrAPSootn4",
       "owner": "chirper-one",
       "metric": "python3 tools/likeness.py sections ref/life-in-a-glasshouse.wav OUT.wav $(cat tools/life-in-a-glasshouse-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 56.392,
+        "version": "v1",
+        "commit": "see git log songs/life-in-a-glasshouse.yaml"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "art rock",
       "meta": {
@@ -2704,7 +2708,11 @@
         "at": "2026-10-22T09:33:15Z",
         "note": "Harry's request (22 Oct): the Amnesiac album is the focus (Pyramid Song already climbing). References: official Beggars Group uploads (source URL per climb). Stems: ref/stems/htdemucs_6s/ID (chirp-eco); candidate sections: /tmp/lt/setup/ID/sections-candidate.txt."
       },
-      "ref_file": "ref/albums/amnesiac/11.webm"
+      "ref_file": "ref/albums/amnesiac/11.webm",
+      "last": {
+        "at": "2026-10-22T14:43:37Z",
+        "who": "chirper-one"
+      }
     }
   ],
   "focus": "Amnesiac"
