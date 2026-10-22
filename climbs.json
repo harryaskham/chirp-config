@@ -2257,7 +2257,7 @@
       "id": "pyramid-song",
       "song": "songs/pyramid-song.yaml",
       "reference": "Radiohead — Pyramid Song",
-      "source": null,
+      "source": "https://www.youtube.com/watch?v=qZGrXKYbcQs",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/pyramid-song.wav OUT.wav $(cat tools/pyramid-song-sections.txt)",
       "best": null,
