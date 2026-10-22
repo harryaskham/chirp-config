@@ -2653,14 +2653,14 @@
       "owner": "chirper-one",
       "metric": "python3 tools/likeness.py sections ref/dollars-and-cents.wav OUT.wav $(cat tools/dollars-and-cents-sections.txt)",
       "best": {
-        "score": 56.088,
-        "version": "v3",
+        "score": 57.106,
+        "version": "v4",
         "commit": "see git log songs/dollars-and-cents.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 3,
+      "rounds": 4,
       "priority": 1.0,
       "genre": "art rock",
       "meta": {
@@ -2677,7 +2677,7 @@
       },
       "ref_file": "ref/albums/amnesiac/08.webm",
       "last": {
-        "at": "2026-10-22T17:48:15Z",
+        "at": "2026-10-22T22:29:57Z",
         "who": "chirper-one"
       }
     },
