@@ -2433,11 +2433,15 @@
       "source": "https://www.youtube.com/watch?v=LwE4LNP8zsI",
       "owner": "chirper-one",
       "metric": "python3 tools/likeness.py sections ref/packt-like-sardines-in-a-crushd-tin-box.wav OUT.wav $(cat tools/packt-like-sardines-in-a-crushd-tin-box-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 47.986,
+        "version": "v1",
+        "commit": "see git log songs/packt-like-sardines-in-a-crushd-tin-box.yaml"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "art rock",
       "meta": {
@@ -2452,7 +2456,11 @@
         "at": "2026-10-22T09:33:08Z",
         "note": "Harry's request (22 Oct): the Amnesiac album is the focus (Pyramid Song already climbing). References: official Beggars Group uploads (source URL per climb). Stems: ref/stems/htdemucs_6s/ID (chirp-eco); candidate sections: /tmp/lt/setup/ID/sections-candidate.txt."
       },
-      "ref_file": "ref/albums/amnesiac/01.webm"
+      "ref_file": "ref/albums/amnesiac/01.webm",
+      "last": {
+        "at": "2026-10-22T20:03:55Z",
+        "who": "chirper-one"
+      }
     },
     {
       "id": "pulk-pull-revolving-doors",
