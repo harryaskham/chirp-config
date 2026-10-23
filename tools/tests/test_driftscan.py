@@ -46,6 +46,8 @@ class Drift(unittest.TestCase):
         clicks(os.path.join(cls.d, "ref.wav"), 0.37)
         clicks(os.path.join(cls.d, "fast.wav"), 0.37 * (1 - 0.0008))   # ours 0.08% fast: early by ~93 ms at 116 s
         clicks(os.path.join(cls.d, "late.wav"), 0.37, offset=0.04)      # ours 40 ms late throughout
+        clicks(os.path.join(cls.d, "ref2.wav"), 0.37, n_s=60.0, offset=0.1)
+        clicks(os.path.join(cls.d, "early2.wav"), 0.37, n_s=60.0, offset=0.057)   # 43 ms early
 
     @classmethod
     def tearDownClass(cls):
@@ -64,6 +66,15 @@ class Drift(unittest.TestCase):
         m = D.measure(self.p("late.wav"), self.p("ref.wav"))
         self.assertAlmostEqual(m["median_ms"], 40, delta=10)
         self.assertLess(abs(m["drift_ms"]), 20)
+
+    def test_offset_reads_an_early_part_on_likeness_flux(self):
+        m = D.offset(self.p("early2.wav"), self.p("ref2.wav"))
+        self.assertAlmostEqual(m["lag_ms"], -43, delta=12)            # one 21.3 ms frame of slack
+        self.assertGreater(m["gain"], 0)
+        z = D.offset(self.p("ref2.wav"), self.p("ref2.wav"))
+        self.assertAlmostEqual(z["lag_ms"], 0, delta=5)
+        self.assertIn("EARLY", D.offset_row("x", {"_mix": m}, 15))
+        self.assertNotIn("EARLY", D.offset_row("x", {"_mix": z}, 15))
 
     def test_theil_sen_ignores_an_alias(self):
         ts = list(range(10))

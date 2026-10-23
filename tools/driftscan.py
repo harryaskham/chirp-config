@@ -3,6 +3,7 @@
 
   driftscan.py [ID …] [--all] [--mix] [-j 3] [--flag 60] [--win 4] [--step 8] [--max 250] [--keep DIR] [--json]
   driftscan.py --wav OURS.wav --ref REF.wav [--flag 60]                          # analysis only
+  driftscan.py --offset [ID …] [--per-track] [--max-ms 130] [--flag-ms 15]       # whole-song offset (below)
 
 Default IDs: the focus's climbs (climbs.json `focus`), else every enabled climb. By default it compares DRUMS WITH
 DRUMS, the skill's recipe: the song's drum tracks rendered solo (a kit patch, or a track/patch named drum/kick/snare/
@@ -16,6 +17,12 @@ the record's length is the drift. A tempo a fraction off shows as a steady slope
 against the record's 97.089, 0.17 s over the song, and fixing its tempo map was +11.4 on every seed (chirper-zero,
 23 Oct). A constant offset shows as a median lag with no slope (onsetlag.py --shift, or the map's `offset`).
 Flags |drift| >= --flag ms. Negative = ours early. Read-only: it never edits a song.
+--offset: one whole-song lag on likeness's own onset envelope (40-band spectral flux, smoothed +-50 ms, the rhythm
+term's), cross-correlated over +-MAX ms with sub-frame refinement; flags |lag| >= --flag-ms with a correlation gain
+over lag 0. Parts placed on the record's onset-flux peaks (re-strikes, onset chords) sound EARLY: chirper-zero found
+Like Spinning Plates -21 ms and Morning Bell/Amnesiac -43 ms, and shifting just those tracks later (+30 / +55 ms)
+gained +1.9 / +4.4 on every seed. --per-track renders each track solo against the record's mix, to say which tracks to
+shift (drum tracks are better judged by the default drums-vs-stem mode).
 A record with little percussion (its htdemucs_6s drums stem under 10% of the stems' energy) has soft, smeared onsets
 and its lags drift with them, not with our timeline: those flags print as `drift?`. Like Spinning Plates (0.6%
 drums) read +170 ms, and after warping our notes by that slope it still read +142 ms (chirper-one's r4).
@@ -98,6 +105,78 @@ def drum_tracks(song):
     return names
 
 
+def flux_env(path):
+    """likeness's onset envelope (40-band spectral flux) smoothed as its rhythm term does (5 frames, +-50 ms)."""
+    import likeness as L
+    return np.convolve(L.Feat(L.load(path)).onset, np.ones(5) / 5, "same")
+
+
+def offset(ours, ref, max_ms=130.0, r_env=None):
+    """The whole-song lag (ms; negative = ours early) maximising the flux envelopes' correlation, and the gain over 0."""
+    import likeness as L
+    r = flux_env(ref) if r_env is None else r_env
+    o = flux_env(ours)
+    n = min(len(r), len(o))
+    r, o = r[:n], o[:n]
+    M = max(1, int(round(max_ms / 1000 * L.FPS)))
+
+    def corr(g):
+        a, b = (r[:n - g], o[g:]) if g >= 0 else (r[-g:], o[:n + g])
+        a, b = a - a.mean(), b - b.mean()
+        return float(a @ b / (np.linalg.norm(a) * np.linalg.norm(b) + 1e-12))
+    cs = {g: corr(g) for g in range(-M, M + 1)}
+    g = max(cs, key=cs.get)
+    off = 0.0
+    if -M < g < M:
+        y0, y1, y2 = cs[g - 1], cs[g], cs[g + 1]
+        den = y0 - 2 * y1 + y2
+        off = float(np.clip(0.5 * (y0 - y2) / den, -0.5, 0.5)) if den else 0.0
+    return {"lag_ms": (g + off) * 1000 / L.FPS, "corr": cs[g], "corr0": cs[0], "gain": cs[g] - cs[0]}
+
+
+def track_names(song):
+    r = subprocess.run([chirpbin.resolve("chirp"), "plan", "-f", song, "--json"], capture_output=True, text=True,
+                       stdin=subprocess.DEVNULL)
+    try:
+        return [t["name"] for t in json.loads(r.stdout)["data"]["canonical"]["tracks"] if t.get("name")]
+    except (ValueError, KeyError, TypeError):
+        return []
+
+
+def scan_offset(cid, work, a):
+    song = os.path.join(ROOT, "songs", f"{cid}.yaml")
+    ref = os.path.join(ROOT, "ref", f"{cid}.wav")
+    if not (os.path.exists(song) and os.path.exists(ref)):
+        return cid, {"error": "no song or reference"}
+    renders = [("", [])] + ([(n, ["--solo", n]) for n in track_names(song)] if a.per_track else [])
+    r_env = flux_env(ref)
+    res = {}
+    for name, extra in renders:
+        out = os.path.join(work, f"{cid}{'-' + name if name else ''}.wav")
+        r = subprocess.run(["nice", "-n", "15", chirpbin.resolve("chirp"), "render", "-f", song, *extra, "-o", out],
+                           capture_output=True, text=True, stdin=subprocess.DEVNULL)
+        if r.returncode:
+            res[name or "_mix"] = {"error": f"render failed: {r.stderr.strip()[-160:]}"}
+            continue
+        res[name or "_mix"] = offset(out, ref, a.max_ms, r_env)
+    return cid, res
+
+
+def offset_row(cid, res, flag_ms):
+    m = res.get("_mix", {})
+    if "error" in m:
+        return f"{cid:40s} {m['error']}"
+    early = "  EARLY" if m["lag_ms"] <= -flag_ms and m["gain"] > 0.002 else (
+        "  LATE" if m["lag_ms"] >= flag_ms and m["gain"] > 0.002 else "")
+    line = f"{cid:40s} offset {m['lag_ms']:+5.0f} ms  (corr {m['corr']:.3f} vs {m['corr0']:.3f} at 0){early}"
+    tr = [(k, v) for k, v in res.items() if k != "_mix" and "lag_ms" in v]
+    if tr:
+        line += "\n    per track: " + ", ".join(f"{k} {v['lag_ms']:+.0f}" + ("*" if abs(v["lag_ms"]) >= flag_ms
+                                                                                  and v["gain"] > 0.002 else "")
+                                             for k, v in tr)
+    return line
+
+
 def focus_ids(reg):
     f = reg.get("focus")
     enabled = [c for c in reg["climbs"] if c.get("enabled") and c.get("song")]
@@ -157,6 +236,10 @@ def main(argv=None):
     ap.add_argument("ids", nargs="*")
     ap.add_argument("--all", action="store_true", help="every enabled climb, not just the focus")
     ap.add_argument("--mix", action="store_true", help="compare whole mixes (leads only) instead of drums with drums")
+    ap.add_argument("--offset", action="store_true", help="one whole-song lag on likeness's flux envelope")
+    ap.add_argument("--per-track", action="store_true", help="--offset: also each track solo")
+    ap.add_argument("--max-ms", type=float, default=130.0)
+    ap.add_argument("--flag-ms", type=float, default=15.0)
     ap.add_argument("-j", type=int, default=3)
     ap.add_argument("--flag", type=float, default=60.0)
     ap.add_argument("--win", type=float, default=4.0)
@@ -179,6 +262,15 @@ def main(argv=None):
     work = a.keep or tempfile.mkdtemp(prefix="driftscan-", dir="/tmp/lt" if os.path.isdir("/tmp/lt") else None)
     os.makedirs(work, exist_ok=True)
     try:
+        if a.offset:
+            with ThreadPoolExecutor(max_workers=max(1, a.j)) as ex:
+                res = dict(ex.map(lambda c: scan_offset(c, work, a), ids))
+            if a.json:
+                print(json.dumps(res, indent=1))
+                return
+            for cid in ids:
+                print(offset_row(cid, res[cid], a.flag_ms))
+            return
         with ThreadPoolExecutor(max_workers=max(1, a.j)) as ex:
             res = dict(ex.map(lambda c: scan(c, work, a), ids))
     finally:
