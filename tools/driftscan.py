@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 """driftscan: does a song drift against its record? The windowed onset lag (tools/onsetlag.py) fitted against time.
 
-  driftscan.py [ID …] [--all] [-j 3] [--flag 60] [--win 4] [--step 8] [--max 250] [--keep DIR] [--json]
+  driftscan.py [ID …] [--all] [--mix] [-j 3] [--flag 60] [--win 4] [--step 8] [--max 250] [--keep DIR] [--json]
   driftscan.py --wav OURS.wav --ref REF.wav [--flag 60]                          # analysis only
 
-Default IDs: the focus's climbs (climbs.json `focus`), else every enabled climb. Each song is rendered with the
-adopted groove pin (nice 15) and compared with ref/ID.wav. Windows correlating above 0.1 give (time, lag) points;
+Default IDs: the focus's climbs (climbs.json `focus`), else every enabled climb. By default it compares DRUMS WITH
+DRUMS, the skill's recipe: the song's drum tracks rendered solo (a kit patch, or a track/patch named drum/kick/snare/
+hat/perc/kit) against the record's htdemucs_6s drums stem. A record whose drums stem is under 10% of the stems'
+energy has no percussive reference and is not measured. Full mixes mislead: parts placed on the record's own onsets
+(re-strikes, onset chords) read as offsets or drift that shifting the notes only loses (chirper-zero: You and Whose
+Army 'steady +110 ms' and Hunting Bears '-100 ms' both false; Pulk/Pull's drums lag 0 ms in every window).
+--mix keeps the old whole-mix comparison, as leads only. Windows correlating above 0.1 give (time, lag) points;
 their Theil-Sen slope (the median of pairwise slopes, robust to the +-half-beat aliases single windows show) times
 the record's length is the drift. A tempo a fraction off shows as a steady slope: Pulk/Pull's tab said 97.000 BPM
 against the record's 97.089, 0.17 s over the song, and fixing its tempo map was +11.4 on every seed (chirper-zero,
@@ -67,6 +72,30 @@ def drum_share(cid):
 
 
 PERC = 10.0   # % drums: below it, onset lags follow the record's smeared onsets, not our timeline
+DRUMWORDS = ("drum", "kick", "snare", "hat", "perc", "kit", "cymbal", "tom")
+
+
+def drum_tracks(song):
+    """Names of the song's drum tracks, from `chirp plan --json`'s canonical song."""
+    r = subprocess.run([chirpbin.resolve("chirp"), "plan", "-f", song, "--json"], capture_output=True, text=True,
+                       stdin=subprocess.DEVNULL)
+    try:
+        c = json.loads(r.stdout)["data"]["canonical"]
+    except (ValueError, KeyError, TypeError):
+        return []
+    local = c.get("patches") or {}
+    names = []
+    for t in c.get("tracks") or []:
+        if not isinstance(t, dict) or not t.get("name"):
+            continue
+        p = t.get("patch")
+        pname = p if isinstance(p, str) else ""
+        pdef = local.get(pname.split()[0]) if pname else (p if isinstance(p, dict) else None)
+        is_kit = isinstance(pdef, dict) and "kit" in pdef
+        text = f"{t['name']} {pname}".lower()
+        if is_kit or any(w in text for w in DRUMWORDS):
+            names.append(t["name"])
+    return names
 
 
 def focus_ids(reg):
@@ -86,24 +115,39 @@ def scan(cid, work, a):
     ref = os.path.join(ROOT, "ref", f"{cid}.wav")
     if not (os.path.exists(song) and os.path.exists(ref)):
         return cid, {"error": "no song or reference"}
+    pct = drum_share(cid)
+    cmd = ["nice", "-n", "15", chirpbin.resolve("chirp"), "render", "-f", song]
+    if not a.mix:
+        if pct is None:
+            return cid, {"error": "no htdemucs_6s stems to compare drums with (--mix for the whole mix, leads only)"}
+        if pct < PERC:
+            return cid, {"error": f"no percussive reference ({pct:.1f}% drums): not measured"}
+        drums = drum_tracks(song)
+        if not drums:
+            return cid, {"error": f"the record has drums ({pct:.0f}%) but the song has no drum track"}
+        for n in drums:
+            cmd += ["--solo", n]
+        ref = os.path.join(ROOT, "ref", "stems", "htdemucs_6s", cid, "drums.wav")
     out = os.path.join(work, f"{cid}.wav")
-    r = subprocess.run(["nice", "-n", "15", chirpbin.resolve("chirp"), "render", "-f", song, "-o", out],
-                       capture_output=True, text=True, stdin=subprocess.DEVNULL)
+    r = subprocess.run(cmd + ["-o", out], capture_output=True, text=True, stdin=subprocess.DEVNULL)
     if r.returncode:
         return cid, {"error": f"render failed: {r.stderr.strip()[-200:]}"}
     m = measure(out, ref, a.win, a.step, a.max)
     if m:
-        m["drums_pct"] = drum_share(cid)
+        m["drums_pct"] = pct
+        m["method"] = "mix" if a.mix else "drums"
     return cid, m or {"error": "too few correlated windows"}
 
 
 def row(cid, m, flag):
     if "error" in m:
         return f"{cid:40s} {m['error']}"
-    weak = m.get("drums_pct") is not None and m["drums_pct"] < PERC
+    weak = m.get("method") == "mix" or (m.get("drums_pct") is not None and m["drums_pct"] < PERC)
     mark = ""
     if abs(m["drift_ms"]) >= flag:
-        mark = f"  drift? (little percussion: {m['drums_pct']:.1f}% drums)" if weak else "  DRIFT"
+        why = (f"little percussion: {m['drums_pct']:.1f}% drums" if m.get("drums_pct") is not None
+               and m["drums_pct"] < PERC else "whole mix")
+        mark = f"  drift? ({why}; a lead only)" if weak else "  DRIFT"
     return (f"{cid:40s} {m['windows']:4d}  median {m['median_ms']:+5.0f} ms  drift {m['drift_ms']:+6.0f} ms over "
             f"{m['span_s']:.0f} s  (first quarter {m['first_q_ms']:+.0f}, last {m['last_q_ms']:+.0f}){mark}")
 
@@ -112,6 +156,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("ids", nargs="*")
     ap.add_argument("--all", action="store_true", help="every enabled climb, not just the focus")
+    ap.add_argument("--mix", action="store_true", help="compare whole mixes (leads only) instead of drums with drums")
     ap.add_argument("-j", type=int, default=3)
     ap.add_argument("--flag", type=float, default=60.0)
     ap.add_argument("--win", type=float, default=4.0)
@@ -145,7 +190,8 @@ def main(argv=None):
     for cid in ids:
         print(row(cid, res[cid], a.flag))
     big = [c for c in ids if "drift_ms" in res[c] and abs(res[c]["drift_ms"]) >= a.flag]
-    weak = [c for c in big if res[c].get("drums_pct") is not None and res[c]["drums_pct"] < PERC]
+    weak = [c for c in big if res[c].get("method") == "mix"
+            or (res[c].get("drums_pct") is not None and res[c]["drums_pct"] < PERC)]
     sure = [c for c in big if c not in weak]
     print(f"\n{len(sure)} of {len(ids)} drift by {a.flag:g} ms or more" + (f": {', '.join(sure)}" if sure else ""))
     if weak:

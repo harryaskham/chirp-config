@@ -88,9 +88,10 @@ class Drift(unittest.TestCase):
     def test_little_percussion_marks_a_weak_flag(self):
         m = {"windows": 20, "median_ms": 0.0, "drift_ms": 150.0, "first_q_ms": -80.0, "last_q_ms": 70.0,
              "span_s": 200.0, "drums_pct": 0.6}
-        self.assertIn("drift? (little percussion: 0.6% drums)", D.row("x", m, 60))
+        self.assertIn("drift? (little percussion: 0.6% drums; a lead only)", D.row("x", m, 60))
         self.assertIn("  DRIFT", D.row("x", dict(m, drums_pct=23.0), 60))
         self.assertIn("  DRIFT", D.row("x", dict(m, drums_pct=None), 60))   # no stems: no judgement
+        self.assertIn("drift? (whole mix; a lead only)", D.row("x", dict(m, drums_pct=23.0, method="mix"), 60))
 
     def test_focus_ids(self):
         reg = {"focus": "Amnesiac", "climbs": [
