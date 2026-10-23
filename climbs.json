@@ -2467,7 +2467,7 @@
       "song": "songs/pulk-pull-revolving-doors.yaml",
       "reference": "Radiohead — Pulk/Pull Revolving Doors",
       "source": "https://www.youtube.com/watch?v=-fuhLeD594A",
-      "owner": "chirper-one",
+      "owner": "chirper-zero",
       "metric": "python3 tools/likeness.py sections ref/pulk-pull-revolving-doors.wav OUT.wav $(cat tools/pulk-pull-revolving-doors-sections.txt)",
       "best": {
         "score": 42.568,
