@@ -84,6 +84,7 @@ def syllables(text):
     wid = 0
     for line in text.split('\n'):
         first = True
+        line = re.sub(r'\[[^\]]*\]', ' ', line)    # section labels such as [Verse 1] are not sung
         for word in line.split():
             parts = [re.sub(r"[^A-Za-z']", "", p) for p in word.split('-')]
             parts = [p for p in parts if p]
