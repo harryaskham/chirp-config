@@ -19,8 +19,10 @@ for any climbing agent's next pass, one climb to work on, weighted towards the f
                                                     the original is kept in ref/albums/SLUG/
   climb.py refs ALBUM SOURCE                        replace an album's references (matched by track number),
                                                     e.g. with better files; notes each climb to re-measure
-  climb.py next [--as NAME] [--peek] [--json] [--seed N]
-                                                    pick this pass's climb (and say what to do)
+  climb.py next [--as NAME] [--peek] [--take ID] [--include-owned] [--json] [--seed N]
+                                                    pick this pass's climb (and say what to do); skips climbs
+                                                    another agent owns (--include-owned draws them too);
+                                                    --peek records no start, --take ID starts exactly that one
   climb.py done ID --note TEXT [--score S --version vN] [--next TEXT] [--engine SHA]
                [--with FILE …] [--render WAV] [--as NAME] [--force]
                                                     record the round (kept or not), hand off; --with refuses
@@ -795,24 +797,68 @@ def brief(c, hist):
     return "\n".join(lines)
 
 
+NUMWORDS = "zero one two three four five six seven eight nine".split()
+
+
+def agent_names(s):
+    """The names an owner or agent string stands for: 'chirper-one (chirp-climb1)' -> {chirper-one, chirp-climb1};
+    a worktree chirp-climbN and the agent chirper-<N in words> are the same climber."""
+    out = set()
+    for tok in re.findall(r"[a-z0-9][a-z0-9_.@-]*", (s or "").lower()):
+        out.add(tok)
+        m = re.fullmatch(r"chirp-climb(\d)", tok)
+        if m:
+            out.add(f"chirper-{NUMWORDS[int(m.group(1))]}")
+        m = re.fullmatch(r"chirper-([a-z]+)", tok)
+        if m and m.group(1) in NUMWORDS:
+            out.add(f"chirp-climb{NUMWORDS.index(m.group(1))}")
+    return out
+
+
+def owned_by_other(c, me):
+    o = c.get("owner")
+    return bool(o) and not (agent_names(o) & agent_names(me))
+
+
 def cmd_next(a):
     me = whoami(a)
     reg = load()
     w = weights(reg, me)
-    if not w:
-        die("nothing queued (every climb is paused, dropped or done)", 1)
-    rng = random.Random(int(opt(a, "--seed"))) if opt(a, "--seed") else random.Random()
-    ids = list(w)
-    cid = rng.choices(ids, weights=[w[i] for i in ids])[0]
+    skipped = []
+    take = opt(a, "--take")
+    if take:
+        c = find(reg, take)
+        if owned_by_other(c, me) and "--force" not in a:
+            die(f"`{take}` is owned by {c['owner']}: coordinate first (or --force to take it anyway)", 3)
+        cid = take
+    else:
+        if not w:
+            die("nothing queued (every climb is paused, dropped or done)", 1)
+        if "--include-owned" not in a:
+            # (chirper-zero/chirper-one, 23 Oct: draws of another agent's climb recorded a start that later forced
+            # `done --force` on the owner)
+            skipped = sorted(i for i in w if owned_by_other(find(reg, i), me))
+            w = {i: v for i, v in w.items() if i not in skipped}
+            if not w:
+                die(f"every queued climb is owned by another agent ({', '.join(skipped)}): `next --take ID` after "
+                    f"coordinating, or --include-owned", 1)
+        rng = random.Random(int(opt(a, "--seed"))) if opt(a, "--seed") else random.Random()
+        ids = list(w)
+        cid = rng.choices(ids, weights=[w[i] for i in ids])[0]
     c = find(reg, cid)
+    total = sum(w.values())
+    odds = w[cid] / total if cid in w and total else None
     if "--peek" not in a:
         os.makedirs(os.path.dirname(STARTS), exist_ok=True)
         with locked("climb-starts.lock"), open(STARTS, "a") as f:
             f.write(json.dumps({"id": cid, "who": me, "t": time.time(), "at": now_iso(), "genre": c.get("genre")}) + "\n")
     if "--json" in a:
-        print(json.dumps({"climb": c, "history": visible(history(cid))[-5:], "odds": round(w[cid] / sum(w.values()), 3)}))
+        print(json.dumps({"climb": c, "history": visible(history(cid))[-5:],
+                          "odds": round(odds, 3) if odds is not None else None, "skipped_owned": skipped}))
     else:
-        print(f"next for {me} (odds {w[cid] / sum(w.values()):.0%}):\n{brief(c, history(cid))}")
+        how = f"odds {odds:.0%}" if odds is not None else "taken by id"
+        skip = f"; skipped {len(skipped)} owned by others" if skipped else ""
+        print(f"next for {me} ({how}{skip}):\n{brief(c, history(cid))}")
 
 
 def cmd_done(a):
