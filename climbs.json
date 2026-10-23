@@ -2544,14 +2544,14 @@
       "owner": "chirper-one",
       "metric": "python3 tools/likeness.py sections ref/i-might-be-wrong.wav OUT.wav $(cat tools/i-might-be-wrong-sections.txt)",
       "best": {
-        "score": 63.82,
-        "version": "v6",
+        "score": 64.305,
+        "version": "v7",
         "commit": "see git log songs/i-might-be-wrong.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 9,
+      "rounds": 10,
       "priority": 1.0,
       "genre": "art rock",
       "meta": {
@@ -2568,7 +2568,7 @@
       },
       "ref_file": "ref/albums/amnesiac/05.webm",
       "last": {
-        "at": "2026-10-23T13:12:06Z",
+        "at": "2026-10-23T18:44:47Z",
         "who": "chirper-one"
       }
     },
