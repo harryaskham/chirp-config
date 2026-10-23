@@ -61,16 +61,11 @@ def chroma_scan(ours, ref, sections, mx):
         print(f"{i + 1:7d} {cuts[i]:7.1f} {cuts[i + 1]:6.1f} {best[1] / fps * 1000:+12.0f}   {zero[0]:.3f}    {best[0]:.3f}{flag}")
 
 
-def main():
-    a = sys.argv[1:]
-    if len(a) < 2:
-        sys.exit(__doc__)
-    opt = lambda k, d: type(d)(a[a.index(k) + 1]) if k in a else d
-    if "--chroma" in a:
-        return chroma_scan(a[0], a[1], opt("--sections", ""), opt("--max", 1.0))
-    win, step, mx = opt("--win", 4.0), opt("--step", 8.0), opt("--max", 250)
-    r, o = env(L.load(a[1])), env(L.load(a[0]))
-    n = min(len(r), len(o)); M = mx // 10; lags = []
+def windowed_lags(ours, ref, win=4.0, step=8.0, mx=250):
+    """[(t0, lag_ms, corr)] per window: ref's onset envelope cross-correlated with ours over +-mx ms (negative = ours
+    early). Windows whose ref envelope is flat are skipped. tools/driftscan.py fits a slope to these."""
+    r, o = env(L.load(ref)), env(L.load(ours))
+    n = min(len(r), len(o)); M = mx // 10; out = []
     t = 0.0
     while (t + win) * 100 + M < n:
         i0, i1 = int(t * 100), int((t + win) * 100); rr = r[i0:i1] - r[i0:i1].mean(); best = (-1.0, 0)
@@ -82,10 +77,24 @@ def main():
                 c = float(np.dot(rr, oo) / (np.linalg.norm(rr) * np.linalg.norm(oo) + 1e-9))
                 if c > best[0]:
                     best = (c, g)
-            if best[0] > 0.1:
-                lags.append(best[1] * 10)
-            print(f"{t:6.1f}-{t + win:.1f}s lag {best[1] * 10:+5d} ms corr {best[0]:.2f}")
+            out.append((t, best[1] * 10, best[0]))
         t += step
+    return out
+
+
+def main():
+    a = sys.argv[1:]
+    if len(a) < 2:
+        sys.exit(__doc__)
+    opt = lambda k, d: type(d)(a[a.index(k) + 1]) if k in a else d
+    if "--chroma" in a:
+        return chroma_scan(a[0], a[1], opt("--sections", ""), opt("--max", 1.0))
+    win, step, mx = opt("--win", 4.0), opt("--step", 8.0), opt("--max", 250)
+    lags = []
+    for t, lag, corr in windowed_lags(a[0], a[1], win, step, mx):
+        if corr > 0.1:
+            lags.append(lag)
+        print(f"{t:6.1f}-{t + win:.1f}s lag {lag:+5d} ms corr {corr:.2f}")
     med = float(np.median(lags)) if lags else 0.0
     print(f"median lag {med:+.0f} ms over {len(lags)} windows (corr > 0.1); negative = ours early")
     if "--shift" in a:
