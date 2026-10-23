@@ -2617,15 +2617,15 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/likeness.py sections ref/morning-bell-amnesiac.wav OUT.wav $(cat tools/morning-bell-amnesiac-sections.txt)",
       "best": {
-        "score": 65.42,
-        "version": "v3",
+        "score": 66.207,
+        "version": "v4",
         "commit": "see git log songs/morning-bell-amnesiac.yaml",
         "engine": "554cc45"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 7,
+      "rounds": 8,
       "priority": 1.0,
       "genre": "art rock",
       "meta": {
@@ -2642,7 +2642,7 @@
       },
       "ref_file": "ref/albums/amnesiac/07.webm",
       "last": {
-        "at": "2026-10-23T10:35:01Z",
+        "at": "2026-10-23T13:37:53Z",
         "who": "chirper-zero"
       }
     },
