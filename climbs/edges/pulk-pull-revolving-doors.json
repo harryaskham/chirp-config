@@ -1,9 +1,9 @@
 {
  "id": "pulk-pull-revolving-doors",
- "version": "v3",
+ "version": "v4",
  "edge": 3.0,
  "ref_seconds": 247.267,
- "at": "2026-10-23T03:55:05Z",
+ "at": "2026-10-23T05:20:30Z",
  "edges": {
   "head": {
    "level": -15.734553932621793,
