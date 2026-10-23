@@ -12,8 +12,10 @@ and lengths are written in seconds.
 Live drummer + tab drums, Dollars and Cents: W 80/160/320 ms gave +1.0/+1.7/+2.8 (rhythm 35 -> 47) where griddrums
 and dtwgrid failed. Scan W on the ledger; snapping a bass to its stem lost (its notes were already right): drums only.
 --dry-run prints how many hits would move and the median/p90 shift per band, and writes nothing.
-Default stem: ref/stems/htdemucs_6s/<song id>/drums.wav. OUT is JSON: the source's own structure when the source
-is JSON, else `chirp plan`'s canonical song. Notes tracks only (tab2song writes notes).
+Default stem: ref/stems/htdemucs_6s/<song id>/drums.wav. OUT keeps the source's own structure (songfmt.load; chirp
+plan's canonical song only for formats songfmt cannot read) and is written by its extension: .json as JSON, anything
+else as songfmt's song YAML in the source's key order. (OUT.yaml used to get JSON, and masterstack/songride then appended a second
+YAML document: 'more than one document' at render, chirper-zero's Knives Out r3.) Notes tracks only.
 """
 import argparse
 import json
@@ -87,7 +89,8 @@ def seconds(v, clock):
 
 
 def load_song(path):
-    """(song dict to edit and write, canonical song) — the source itself when it is JSON."""
+    """(song dict to edit and write: the source's own structure, canonical song for tempo and drum tracks)."""
+    import songfmt
     r = subprocess.run([chirpbin.resolve("chirp"), "plan", "-f", path, "--json"], capture_output=True, text=True,
                        stdin=subprocess.DEVNULL)
     try:
@@ -95,10 +98,22 @@ def load_song(path):
     except (ValueError, KeyError, TypeError):
         raise SystemExit(f"onsetsnap: chirp plan failed for {path}: {r.stderr.strip()[-300:]}")
     try:
-        with open(path) as f:
-            return json.load(f), canon
-    except ValueError:
+        return songfmt.load(path), canon
+    except Exception as e:   # songfmt.Unsupported or a parse error: fall back to the canonical song
+        print(f"onsetsnap: songfmt cannot read {path} ({e}); editing chirp plan's canonical song", file=sys.stderr)
         return canon, canon
+
+
+def write_song(song, out):
+    """By extension: .json -> JSON; anything else -> songfmt's song YAML in the source's key order (a load/dump round
+    trip of a tab2song-layout song is byte-identical, so the diff shows only the moved hits). Never JSON in a .yaml."""
+    import songfmt
+    with open(out, "w") as f:
+        if out.lower().endswith(".json"):
+            json.dump(song, f, indent=1)
+            f.write("\n")
+        else:
+            f.write(songfmt.dump_yaml(song))
 
 
 def drum_tracks(canon):
@@ -190,8 +205,7 @@ def main(argv=None):
             print(f"  {b:4s} {len(xs):5d} hits  median {np.median(xs):5.1f} ms  p90 {np.percentile(xs, 90):5.1f} ms")
     if a.dry_run:
         return
-    with open(a.out, "w") as f:
-        json.dump(song, f, indent=1)
+    write_song(song, a.out)
     print(f"wrote {a.out}")
 
 

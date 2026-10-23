@@ -82,6 +82,21 @@ class Snap(unittest.TestCase):
         self.assertEqual(got["about"], "kept")               # the JSON source's own structure
         self.assertIn("3 of 5 hits", r.stdout)
 
+    def test_a_yaml_out_is_one_song_yaml_document_that_renders(self):
+        sys.path.insert(0, TOOLS)
+        import songfmt
+        out = os.path.join(self.d, "out.yaml")
+        r = self.run_("-o", out, "--window", "160")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        with open(out) as f:
+            text = f.read()
+        self.assertFalse(text.lstrip().startswith("{"), "a .yaml output is YAML, not JSON")
+        self.assertNotIn("\n---", text)
+        doc = songfmt.load(out)
+        self.assertAlmostEqual(float(doc["tracks"][0]["notes"][1]["at"].rstrip("s")), 2.05, delta=0.01)
+        p = subprocess.run([O.chirpbin.resolve("chirp"), "plan", "-f", out, "--json"], capture_output=True, text=True)
+        self.assertEqual(json.loads(p.stdout)["status"], "success", p.stdout[-300:])
+
     def test_a_narrow_window_moves_less(self):
         r = self.run_("--dry-run", "--window", "20")
         self.assertIn("1 of 5 hits", r.stdout)               # only the 1.00 s kick is within 20 ms
