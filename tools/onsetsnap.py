@@ -83,9 +83,19 @@ class Clock:
         return t
 
 
-def seconds(v, clock):
+def beats(v):
+    """A note time in beats, or None when it is in seconds: canonical notes use bare numbers (and omit at 0)."""
+    if v is None:
+        return 0.0
+    if isinstance(v, (int, float)):
+        return float(v)
     s = str(v)
-    return float(s.rstrip("s")) if s.endswith("s") else clock(float(s.rstrip("b")))
+    return None if s.endswith("s") else float(s.rstrip("b"))
+
+
+def seconds(v, clock):
+    b = beats(v)
+    return clock(b) if b is not None else float(str(v).rstrip("s"))
 
 
 def load_song(path):
@@ -137,11 +147,28 @@ def snap(song, canon, y, names, window, bands, extra, min_rise):
         tr = next((t for t in song.get("tracks", []) if t.get("name") == name), None)
         if tr is None:
             raise SystemExit(f"onsetsnap: no track {name}")
-        if not isinstance(tr.get("notes"), list):
-            raise SystemExit(f"onsetsnap: track {name} has no notes list (notes tracks only)")
+        notes = tr.get("notes")
+        if not isinstance(notes, list):
+            # a score-string track (tab scores, [..]xN repeats): take chirp plan's resolved notes and write it back
+            # as a notes list (Pulk/Pull's drums, chirper-zero 23 Oct)
+            ct = next((t for t in canon.get("tracks", []) if t.get("name") == name), None)
+            if not ct or not isinstance(ct.get("notes"), list):
+                raise SystemExit(f"onsetsnap: track {name} has neither notes nor a score chirp plan resolves")
+            notes = ct["notes"]
+            tr.pop("score", None)
+            print(f"onsetsnap: {name}: score string resolved to {len(notes)} notes (written as a notes list)",
+                  file=sys.stderr)
         new = []
-        for n in tr["notes"]:
-            s = seconds(n["at"], clock)
+        for n in notes:
+            s = seconds(n.get("at"), clock)
+            if not n.get("pitch"):
+                # a pitchless entry (a resolved score's end marker {at, len: 0}): keep it in place, never snap it
+                x = dict(n)
+                x["at"] = f"{s:.4f}s"
+                if "len" in n and beats(n["len"]) is not None:
+                    x["len"] = f"{beats(n['len']) * 60.0 / clock.seg[0][1]:.4f}s"
+                new.append(x)
+                continue
             b = band_of(n.get("pitch", ""), extra)
             ts, hs = found[b]
             i = int(np.searchsorted(ts, s))
@@ -151,10 +178,10 @@ def snap(song, canon, y, names, window, bands, extra, min_rise):
                     best = j
             x = dict(n)
             to = float(ts[best]) if best is not None else s
-            if "len" in n and not str(n["len"]).endswith("s"):
-                start_b = float(str(n["at"]).rstrip("b")) if not str(n["at"]).endswith("s") else None
-                length = (clock(start_b + float(str(n["len"]).rstrip("b"))) - clock(start_b) if start_b is not None
-                          else float(str(n["len"]).rstrip("b")) * 60.0 / clock.seg[0][1])
+            if "len" in n and beats(n["len"]) is not None:
+                start_b = beats(n.get("at"))
+                lb = beats(n["len"])
+                length = (clock(start_b + lb) - clock(start_b) if start_b is not None else lb * 60.0 / clock.seg[0][1])
                 x["len"] = f"{length:.4f}s"
             x["at"] = f"{to:.4f}s"
             if best is not None:

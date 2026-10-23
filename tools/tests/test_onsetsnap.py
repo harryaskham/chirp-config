@@ -97,6 +97,35 @@ class Snap(unittest.TestCase):
         p = subprocess.run([O.chirpbin.resolve("chirp"), "plan", "-f", out, "--json"], capture_output=True, text=True)
         self.assertEqual(json.loads(p.stdout)["status"], "success", p.stdout[-300:])
 
+    def test_a_score_string_drum_track_is_resolved_and_snapped(self):
+        song = {"tempo": 120, "length": "6s", "tracks": [{"name": "drums", "patch": "rock-kit",
+                                                         "score": "R/2b k/1b R/1b [k/1b R/1b]x2"}]}
+        src = os.path.join(self.d, "score.json")
+        with open(src, "w") as f:
+            json.dump(song, f)
+        out = os.path.join(self.d, "score-out.json")
+        r = subprocess.run([sys.executable, os.path.join(TOOLS, "onsetsnap.py"), src, "--stem",
+                            os.path.join(self.d, "drums.wav"), "-o", out, "--window", "160"],
+                           capture_output=True, text=True, timeout=300)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("score string resolved to 4 notes", r.stderr)   # 3 kicks + the end marker
+        with open(out) as f:
+            tr = json.load(f)["tracks"][0]
+        self.assertNotIn("score", tr)
+        ats = [float(n["at"].rstrip("s")) for n in tr["notes"]]
+        self.assertAlmostEqual(ats[0], 1.00, delta=0.01)     # beat 2
+        self.assertAlmostEqual(ats[1], 2.05, delta=0.01)     # beat 4 -> the late stem kick
+        self.assertAlmostEqual(ats[2], 3.00, delta=0.001)    # beat 6: nothing within 160 ms (3.50 is 500 ms away)
+        self.assertAlmostEqual(ats[3], 4.00, delta=0.001)    # the end marker stays put
+        self.assertNotIn("pitch", tr["notes"][3])
+
+    def test_canonical_note_times(self):
+        self.assertEqual(O.beats(None), 0.0)
+        self.assertEqual(O.beats(1.25), 1.25)
+        self.assertEqual(O.beats("2b"), 2.0)
+        self.assertIsNone(O.beats("0.5s"))
+        self.assertAlmostEqual(O.seconds(None, O.Clock(120)), 0.0)
+
     def test_a_narrow_window_moves_less(self):
         r = self.run_("--dry-run", "--window", "20")
         self.assertIn("1 of 5 hits", r.stdout)               # only the 1.00 s kick is within 20 ms
