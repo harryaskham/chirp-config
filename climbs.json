@@ -2624,7 +2624,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 3,
+      "rounds": 4,
       "priority": 1.0,
       "genre": "art rock",
       "meta": {
@@ -2641,7 +2641,7 @@
       },
       "ref_file": "ref/albums/amnesiac/07.webm",
       "last": {
-        "at": "2026-10-22T23:38:10Z",
+        "at": "2026-10-23T00:42:57Z",
         "who": "chirper-zero"
       }
     },
