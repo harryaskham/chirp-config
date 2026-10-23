@@ -2434,14 +2434,14 @@
       "owner": "chirper-one",
       "metric": "python3 tools/likeness.py sections ref/packt-like-sardines-in-a-crushd-tin-box.wav OUT.wav $(cat tools/packt-like-sardines-in-a-crushd-tin-box-sections.txt)",
       "best": {
-        "score": 51.991,
-        "version": "v3",
+        "score": 54.356,
+        "version": "v4",
         "commit": "see git log songs/packt-like-sardines-in-a-crushd-tin-box.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 3,
+      "rounds": 4,
       "priority": 1.0,
       "genre": "art rock",
       "meta": {
@@ -2458,7 +2458,7 @@
       },
       "ref_file": "ref/albums/amnesiac/01.webm",
       "last": {
-        "at": "2026-10-23T00:18:50Z",
+        "at": "2026-10-23T02:20:49Z",
         "who": "chirper-one"
       }
     },
