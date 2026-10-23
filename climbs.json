@@ -2580,15 +2580,15 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/likeness.py sections ref/knives-out.wav OUT.wav $(cat tools/knives-out-sections.txt)",
       "best": {
-        "score": 65.34,
-        "version": "v2",
+        "score": 67.979,
+        "version": "v3",
         "commit": "see git log songs/knives-out.yaml",
-        "engine": "a497b95"
+        "engine": "554cc45"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 4,
+      "rounds": 5,
       "priority": 1.0,
       "genre": "art rock",
       "meta": {
@@ -2605,7 +2605,7 @@
       },
       "ref_file": "ref/albums/amnesiac/06.webm",
       "last": {
-        "at": "2026-10-23T00:34:31Z",
+        "at": "2026-10-23T08:37:42Z",
         "who": "chirper-zero"
       }
     },
