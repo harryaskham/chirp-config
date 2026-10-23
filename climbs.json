@@ -2764,14 +2764,14 @@
       "owner": "chirper-one",
       "metric": "python3 tools/likeness.py sections ref/life-in-a-glasshouse.wav OUT.wav $(cat tools/life-in-a-glasshouse-sections.txt)",
       "best": {
-        "score": 59.325,
-        "version": "v3",
+        "score": 61.29,
+        "version": "v4",
         "commit": "see git log songs/life-in-a-glasshouse.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 4,
+      "rounds": 5,
       "priority": 1.0,
       "genre": "art rock",
       "meta": {
@@ -2788,7 +2788,7 @@
       },
       "ref_file": "ref/albums/amnesiac/11.webm",
       "last": {
-        "at": "2026-10-23T03:54:06Z",
+        "at": "2026-10-23T09:22:46Z",
         "who": "chirper-one"
       }
     }
