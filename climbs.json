@@ -2661,7 +2661,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 8,
+      "rounds": 9,
       "priority": 1.0,
       "genre": "art rock",
       "meta": {
@@ -2678,7 +2678,7 @@
       },
       "ref_file": "ref/albums/amnesiac/08.webm",
       "last": {
-        "at": "2026-10-23T10:11:17Z",
+        "at": "2026-10-23T16:09:55Z",
         "who": "chirper-one"
       }
     },
