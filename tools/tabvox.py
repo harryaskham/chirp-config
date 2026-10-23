@@ -10,8 +10,8 @@ whose vocal track VOX_TRACK carries lyrics (`newLyrics`; cache it first with too
   2. their timeline t = t0 + b*60/bpm is fitted to the vocal stem by FFT cross-correlating an impulse train of those
      onsets with the stem's onset envelope (likeness's flux), over BPM LO-HI (default 50-200: Knives Out's tab runs at
      137 against the song's 111.6) and lags 0..40 s, then refined;
-  3. each word's CMUdict phonemes are split into its tab syllables (lyricvox.word_ph); pieces beyond the word's
-     spoken syllables (a melisma) are held and get none;
+  3. each word's CMUdict syllables are spread over its tab pieces (the last on the last piece; extra pieces held,
+     extra syllables packed with ' . '); a miss retries with repeated letters squeezed ('froooozen' -> frozen);
   4. each TRACK note takes the syllable whose span [t_k - 0.10, t_k+1 - 0.05) holds its start; the FIRST note of
      each syllable gets notes[].ph (ARPAbet, groove pin 9a9fad3+), the rest keep their vowel marks.
 Knives Out: 137.27 BPM, +0.149 s; words on the stem notes +0.07 (every-seed mean up) at v4 68.04. Pair it with the
@@ -131,36 +131,31 @@ def lookup(pieces, cmu):
 
 
 def syllable_ph(tokens, cmu):
-    """ARPAbet per token (None for holds and dictionary misses), and the words missed."""
+    """ARPAbet per token (None for holds, held melisma pieces and dictionary misses), and the words missed. A word's m
+    spoken syllables over its k pieces (chirper-zero's Knives Out recipe): k >= m puts syllable j on piece
+    round(j*(k-1)/(m-1)) (the last syllable on the last piece, the rest held); k < m packs them in order onto piece
+    j*k//m, joined with ' . '."""
     words, out, miss = {}, [None] * len(tokens), set()
     for j, x in enumerate(tokens):
         if x["kind"] == "syl":
             words.setdefault(x["wid"], []).append(j)
     for js in words.values():
-        word = "".join(tokens[j]["piece"] for j in js)
-        ph, used = lookup([tokens[j]["piece"] for j in js], cmu)
-        if ph and used < len(js):
-            # a melisma written out as pieces ('se-e-e' -> 'see' + held pieces)
-            sy = LV.cmu_syllables(ph)
-            for k, j in enumerate(js[:used]):
-                out[j] = " ".join(sy[k]) if k < len(sy) else None
+        pieces = [tokens[j]["piece"] for j in js]
+        ph, used = lookup(pieces, cmu)
+        if ph is None:
+            miss.add("".join(pieces))
             continue
-        if ph and len(LV.cmu_syllables(ph)) < len(js):
-            # more tab pieces than spoken syllables (a melisma, 'se-e'): the pieces past the word's syllables are
-            # HELD, singing nothing new (chirper-zero's recipe; filling them with the vowel cost Knives Out -0.9)
-            sy = LV.cmu_syllables(ph)
-            for k, j in enumerate(js[:len(sy)]):
-                out[j] = " ".join(sy[k])
-            continue
-        wp = LV.word_ph(word, len(js), cmu)
-        if wp is None and len(js) > 1:   # a compound: its pieces as words
-            parts = [LV.word_ph(tokens[j]["piece"], 1, cmu) for j in js]
-            wp = None if any(q is None for q in parts) else [q[0] for q in parts]
-        if wp is None:
-            miss.add(word)
-            continue
-        for k, j in enumerate(js):
-            out[j] = " ".join(wp[k])
+        sy = LV.cmu_syllables(ph)
+        k, m, target = used, len(sy), js[:used]
+        if k >= m:
+            for i in range(m):
+                out[target[round(i * (k - 1) / (m - 1)) if m > 1 else 0]] = " ".join(sy[i])
+        else:
+            packed = {}
+            for i in range(m):
+                packed.setdefault(i * k // m, []).append(" ".join(sy[i]))
+            for piece, parts in packed.items():
+                out[target[piece]] = " . ".join(parts)
     return out, miss
 
 
@@ -172,10 +167,9 @@ def assign(notes, times, phs, kinds=None):
     spans = [(k, times[k] - 0.10, (times[syl[m + 1]] - 0.05) if m + 1 < len(syl) else float("inf"))
              for m, k in enumerate(syl)]
     got = {}
-    for i, n in enumerate(notes):
-        if not n.get("pitch") or not str(n.get("at", "")).endswith("s"):
-            continue
-        s = float(str(n["at"]).rstrip("s"))
+    timed = sorted((float(str(n["at"]).rstrip("s")), i) for i, n in enumerate(notes)
+                   if n.get("pitch") and str(n.get("at", "")).endswith("s"))
+    for s, i in timed:                            # in time order; where windows overlap the earlier syllable wins
         for k, lo, hi in spans:
             if lo <= s < hi:
                 if k not in got and phs[k]:

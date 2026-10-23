@@ -86,6 +86,13 @@ class TabVox(unittest.TestCase):
         ph, miss = T.syllable_ph(toks, {"see": ["S", "IY1"], "go": ["G", "OW1"]})
         self.assertEqual(ph, ["S IY1", None, None, "G OW1"])
 
+    def test_syllables_spread_over_pieces_and_pack_when_short(self):
+        cmu = {"pretty": ["P", "R", "IH1", "T", "IY0"], "abc": ["AE1", "B", "IY1", "S", "IY1"]}
+        ph, _ = T.syllable_ph(T.lyric_tokens("pre-tt-y"), cmu)           # k=3 pieces, m=2: last on the last piece
+        self.assertEqual(ph, ["P R IH1", None, "T IY0"])
+        ph, _ = T.syllable_ph(T.lyric_tokens("a-bc"), cmu)               # k=2, m=3: packed, ' . ' between
+        self.assertEqual(ph, ["AE1 . B IY1", "S IY1"])
+
     def test_a_held_beat_extends_its_syllable(self):
         times = [0.0, 0.5, 1.0]                     # syllable, hold, syllable
         notes = [{"at": "0.02s", "pitch": 60}, {"at": "0.52s", "pitch": 62}, {"at": "1.02s", "pitch": 60}]
