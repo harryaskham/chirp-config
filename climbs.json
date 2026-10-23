@@ -2261,15 +2261,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/pyramid-song.wav OUT.wav $(cat tools/pyramid-song-sections.txt)",
       "best": {
-        "score": 69.429,
-        "version": "v9",
+        "score": 69.522,
+        "version": "v10",
         "commit": "see git log songs/pyramid-song.yaml",
         "engine": "9a9fad3"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 11,
+      "rounds": 12,
       "priority": 1.0,
       "genre": "art rock / chamber",
       "meta": {
@@ -2285,7 +2285,7 @@
         "note": "Harry's request (2026-10-22): a vocal-focused set (Pyramid Song, I Never Learnt to Share, I Feel Love, Do It Now) climbed alone until we make good headway, then back to the shuffle. The point is the voice: push the voice engine towards believable singing and intelligible words (rap, in Do It Now) — consonant clusters, more vowels, prosody, lyric-aligned syllables — and file engine beads for what it lacks; vocal-specific metrics are coming (chirp-eco). Canonical recording: the official studio album version (one master). Thom Yorke's voice over piano and strings; the swung, ambiguous meter matters."
       },
       "last": {
-        "at": "2026-10-23T01:46:36Z",
+        "at": "2026-10-23T04:48:02Z",
         "who": "chirper-one"
       }
     },
