@@ -8,9 +8,10 @@ For a vocal TRACK whose notes come from the stem (monotrans/stemvox: real timing
 whose vocal track VOX_TRACK carries lyrics (`newLyrics`; cache it first with tools/songsterr.py SONGSTERR_ID):
   1. the tab's syllables (lyricvox.syllables) lie 1:1 on the vocal track's non-rest, non-tied beats, in beats;
   2. their timeline t = t0 + b*60/bpm is fitted to the vocal stem by FFT cross-correlating an impulse train of those
-     onsets with the stem's onset envelope (likeness's flux), over BPM LO-HI (default: the song's tempo +-10%) and
-     lags 0..40 s, then refined;
-  3. each word's CMUdict phonemes are split into its tab syllables (lyricvox.word_ph);
+     onsets with the stem's onset envelope (likeness's flux), over BPM LO-HI (default 50-200: Knives Out's tab runs at
+     137 against the song's 111.6) and lags 0..40 s, then refined;
+  3. each word's CMUdict phonemes are split into its tab syllables (lyricvox.word_ph); pieces beyond the word's
+     spoken syllables (a melisma) are held and get none;
   4. each TRACK note takes the syllable whose span [t_k - 0.10, t_k+1 - 0.05) holds its start; the FIRST note of
      each syllable gets notes[].ph (ARPAbet, groove pin 9a9fad3+), the rest keep their vowel marks.
 Knives Out: 137.27 BPM, +0.149 s; words on the stem notes +0.07 (every-seed mean up) at v4 68.04. Pair it with the
@@ -118,6 +119,17 @@ def lyric_tokens(text):
     return out
 
 
+def lookup(pieces, cmu):
+    """(CMUdict phonemes, how many leading pieces they cover) for a word's pieces: the whole word, then repeated
+    letters collapsed ('seee' -> 'see'), then shorter leading runs of pieces (the rest is a written-out melisma)."""
+    for k in range(len(pieces), 0, -1):
+        w = "".join(pieces[:k]).lower().strip("'")
+        for cand in (w, re.sub(r"(.)\1{2,}", r"\1\1", w), re.sub(r"(.)\1+", r"\1", w), w.rstrip("'s")):
+            if cand in cmu:
+                return cmu[cand], k
+    return None, 0
+
+
 def syllable_ph(tokens, cmu):
     """ARPAbet per token (None for holds and dictionary misses), and the words missed."""
     words, out, miss = {}, [None] * len(tokens), set()
@@ -126,6 +138,20 @@ def syllable_ph(tokens, cmu):
             words.setdefault(x["wid"], []).append(j)
     for js in words.values():
         word = "".join(tokens[j]["piece"] for j in js)
+        ph, used = lookup([tokens[j]["piece"] for j in js], cmu)
+        if ph and used < len(js):
+            # a melisma written out as pieces ('se-e-e' -> 'see' + held pieces)
+            sy = LV.cmu_syllables(ph)
+            for k, j in enumerate(js[:used]):
+                out[j] = " ".join(sy[k]) if k < len(sy) else None
+            continue
+        if ph and len(LV.cmu_syllables(ph)) < len(js):
+            # more tab pieces than spoken syllables (a melisma, 'se-e'): the pieces past the word's syllables are
+            # HELD, singing nothing new (chirper-zero's recipe; filling them with the vowel cost Knives Out -0.9)
+            sy = LV.cmu_syllables(ph)
+            for k, j in enumerate(js[:len(sy)]):
+                out[j] = " ".join(sy[k])
+            continue
         wp = LV.word_ph(word, len(js), cmu)
         if wp is None and len(js) > 1:   # a compound: its pieces as words
             parts = [LV.word_ph(tokens[j]["piece"], 1, cmu) for j in js]
@@ -166,7 +192,7 @@ def main(argv=None):
     ap.add_argument("vox_track", type=int)
     ap.add_argument("-o", dest="out")
     ap.add_argument("--stem")
-    ap.add_argument("--bpm", help="LO-HI (default: the song's tempo +-10%%)")
+    ap.add_argument("--bpm", help="LO-HI (default 50-200: a tab's tempo need not be the song's)")
     ap.add_argument("--lag", type=float, default=40.0, help="largest lead-in, s")
     ap.add_argument("--cmu", default=os.path.join(ROOT, "ref", "cmudict.dict"))
     ap.add_argument("--tab", help="a Songsterr track JSON to read instead of the cache")
@@ -193,9 +219,9 @@ def main(argv=None):
     sid = os.path.splitext(os.path.basename(a.song))[0]
     stem = a.stem or os.path.join(ROOT, "ref", "stems", "htdemucs_6s", sid, "vocals.wav")
     env = np.convolve(L.Feat(L.load(stem)).onset, np.ones(5) / 5, "same")
-    tempo = canon.get("tempo") or 120
-    t0 = float(tempo if isinstance(tempo, (int, float)) else tempo[0]["bpm"])
-    lo, hi = (float(x) for x in a.bpm.split("-")) if a.bpm else (t0 * 0.9, t0 * 1.1)
+    # a tab's tempo need not be the song's (Knives Out: tab 137, song 111.6), so sweep wide by default; coverage
+    # (below) flags a fit in the wrong place
+    lo, hi = (float(x) for x in a.bpm.split("-")) if a.bpm else (50.0, 200.0)
     bpm, off, score = fit(onsets_b[:n], env, L.FPS, lo, hi, a.lag)
     times = [off + b * 60.0 / bpm for b in onsets_b[:n]]
     phs, miss = syllable_ph(syl[:n], LV.load_cmu(a.cmu))

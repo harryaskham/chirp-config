@@ -67,7 +67,7 @@ class TabVox(unittest.TestCase):
         return subprocess.run([sys.executable, os.path.join(TOOLS, "tabvox.py"), os.path.join(self.d, "song.json"), "vox",
                                "0", "0", "--tab", os.path.join(self.d, "tab.json"), "--stem",
                                os.path.join(self.d, "vocals.wav"), "--cmu", os.path.join(self.d, "cmu.dict"),
-                               "--bpm", "110-130", *args], capture_output=True, text=True, timeout=300)
+                               *args], capture_output=True, text=True, timeout=300)   # default 50-200 sweep
 
     def test_lyric_conventions_and_held_beats(self):
         toks = T.lyric_tokens("pret-ty pret- ty pret... ..ty spee... ... ...ches [Chorus] Cuc... _ ...koo")
@@ -80,6 +80,11 @@ class TabVox(unittest.TestCase):
         self.assertEqual(ph[:2], ["P R IH1", "T IY0"])
         self.assertIsNone(ph[7])                                         # the held beat
         self.assertEqual(miss, {"Cuckoo"})
+
+    def test_melisma_pieces_past_the_words_syllables_are_held(self):
+        toks = T.lyric_tokens("se-e-e go")
+        ph, miss = T.syllable_ph(toks, {"see": ["S", "IY1"], "go": ["G", "OW1"]})
+        self.assertEqual(ph, ["S IY1", None, None, "G OW1"])
 
     def test_a_held_beat_extends_its_syllable(self):
         times = [0.0, 0.5, 1.0]                     # syllable, hold, syllable
