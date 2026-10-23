@@ -2470,15 +2470,15 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/likeness.py sections ref/pulk-pull-revolving-doors.wav OUT.wav $(cat tools/pulk-pull-revolving-doors-sections.txt)",
       "best": {
-        "score": 58.642,
-        "version": "v8",
+        "score": 59.032,
+        "version": "v9",
         "commit": "see git log songs/pulk-pull-revolving-doors.yaml",
         "engine": "554cc45"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 10,
+      "rounds": 11,
       "priority": 1.0,
       "genre": "art rock",
       "meta": {
@@ -2495,7 +2495,7 @@
       },
       "ref_file": "ref/albums/amnesiac/03.webm",
       "last": {
-        "at": "2026-10-23T15:33:40Z",
+        "at": "2026-10-23T17:46:59Z",
         "who": "chirper-zero"
       }
     },
