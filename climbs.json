@@ -2727,15 +2727,15 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/likeness.py sections ref/like-spinning-plates.wav OUT.wav $(cat tools/like-spinning-plates-sections.txt)",
       "best": {
-        "score": 60.224,
-        "version": "v5",
+        "score": 60.808,
+        "version": "v6",
         "commit": "see git log songs/like-spinning-plates.yaml",
         "engine": "554cc45"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 9,
+      "rounds": 10,
       "priority": 1.0,
       "genre": "art rock",
       "meta": {
@@ -2752,7 +2752,7 @@
       },
       "ref_file": "ref/albums/amnesiac/10.webm",
       "last": {
-        "at": "2026-10-23T15:53:21Z",
+        "at": "2026-10-23T17:00:34Z",
         "who": "chirper-zero"
       }
     },
