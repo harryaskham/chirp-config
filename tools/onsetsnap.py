@@ -10,7 +10,10 @@ mid; hats, cymbals and ride -> hi (a chord of pieces takes its lowest band; --ma
 peaks of the band-passed RMS (at least --min-rise dB, 40 ms apart). A hit with no onset in reach keeps its time. Times
 and lengths are written in seconds.
 Live drummer + tab drums, Dollars and Cents: W 80/160/320 ms gave +1.0/+1.7/+2.8 (rhythm 35 -> 47) where griddrums
-and dtwgrid failed. Scan W on the ledger; snapping a bass to its stem lost (its notes were already right): drums only.
+and dtwgrid failed; Knives Out W 120 +1.9 (v3 +2.4..2.6 with a refit). NOT for a programmed beat already on time:
+Pulk/Pull's drum machine (lag 0 after v2; its long sub kick smears the stem's onsets) lost -3.1/-6.1/-10.5 at W
+40/80/120. No stem statistic told the two apart (constant-grid fit, shift consistency), so scan W on the ledger and
+keep it only if it wins. Snapping a bass to its stem lost too (its notes were already right): drums only.
 --dry-run prints how many hits would move and the median/p90 shift per band, and writes nothing.
 Default stem: ref/stems/htdemucs_6s/<song id>/drums.wav. OUT keeps the source's own structure (songfmt.load; chirp
 plan's canonical song only for formats songfmt cannot read) and is written by its extension: .json as JSON, anything
@@ -126,16 +129,38 @@ def write_song(song, out):
             f.write(songfmt.dump_yaml(song))
 
 
+_DRUM_PATCHES = None
+
+
+def drum_patch_names():
+    """The library's drums family (chirp presets): built-in kits like electro-kit are not inlined by chirp plan."""
+    global _DRUM_PATCHES
+    if _DRUM_PATCHES is None:
+        r = subprocess.run([chirpbin.resolve("chirp"), "--json", "presets"], capture_output=True, text=True,
+                           stdin=subprocess.DEVNULL)
+        try:
+            fam = json.loads(r.stdout)["data"]["patches"].get("drums") or []
+            _DRUM_PATCHES = {x["name"] if isinstance(x, dict) else str(x) for x in fam}
+        except (ValueError, KeyError, TypeError, AttributeError):
+            _DRUM_PATCHES = set()
+    return _DRUM_PATCHES
+
+
+def is_kit_track(t, local):
+    """A kit patch (the library's drums family, or a song-local patch defining `kit`)."""
+    p = t.get("patch")
+    pname = p.split()[0] if isinstance(p, str) and p.split() else ""
+    pdef = local.get(pname) if pname else (p if isinstance(p, dict) else None)
+    return (isinstance(pdef, dict) and "kit" in pdef) or pname in drum_patch_names()
+
+
 def drum_tracks(canon):
+    """Tracks on a kit patch; only when the song has none, tracks NAMED drum/kick/snare/… (patch names are not used:
+    Pulk/Pull's kharm plays pp-kickharm, sine layers, not a kit)."""
     local = canon.get("patches") or {}
-    out = []
-    for t in canon.get("tracks") or []:
-        p = t.get("patch")
-        pname = p if isinstance(p, str) else ""
-        pdef = local.get(pname.split()[0]) if pname else (p if isinstance(p, dict) else None)
-        if (isinstance(pdef, dict) and "kit" in pdef) or any(w in f"{t.get('name', '')} {pname}".lower() for w in DRUMWORDS):
-            out.append(t["name"])
-    return out
+    tracks = [t for t in canon.get("tracks") or [] if isinstance(t, dict) and t.get("name")]
+    kits = [t["name"] for t in tracks if is_kit_track(t, local)]
+    return kits or [t["name"] for t in tracks if any(w in t["name"].lower() for w in DRUMWORDS)]
 
 
 def snap(song, canon, y, names, window, bands, extra, min_rise):

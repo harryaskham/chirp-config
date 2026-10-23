@@ -82,6 +82,31 @@ PERC = 10.0   # % drums: below it, onset lags follow the record's smeared onsets
 DRUMWORDS = ("drum", "kick", "snare", "hat", "perc", "kit", "cymbal", "tom")
 
 
+_DRUM_PATCHES = None
+
+
+def drum_patch_names():
+    """The library's drums family (chirp presets): built-in kits like electro-kit are not inlined by chirp plan."""
+    global _DRUM_PATCHES
+    if _DRUM_PATCHES is None:
+        r = subprocess.run([chirpbin.resolve("chirp"), "--json", "presets"], capture_output=True, text=True,
+                           stdin=subprocess.DEVNULL)
+        try:
+            fam = json.loads(r.stdout)["data"]["patches"].get("drums") or []
+            _DRUM_PATCHES = {x["name"] if isinstance(x, dict) else str(x) for x in fam}
+        except (ValueError, KeyError, TypeError, AttributeError):
+            _DRUM_PATCHES = set()
+    return _DRUM_PATCHES
+
+
+def is_kit_track(t, local):
+    """A kit patch (the library's drums family, or a song-local patch defining `kit`)."""
+    p = t.get("patch")
+    pname = p.split()[0] if isinstance(p, str) and p.split() else ""
+    pdef = local.get(pname) if pname else (p if isinstance(p, dict) else None)
+    return (isinstance(pdef, dict) and "kit" in pdef) or pname in drum_patch_names()
+
+
 def drum_tracks(song):
     """Names of the song's drum tracks, from `chirp plan --json`'s canonical song."""
     r = subprocess.run([chirpbin.resolve("chirp"), "plan", "-f", song, "--json"], capture_output=True, text=True,
@@ -91,18 +116,10 @@ def drum_tracks(song):
     except (ValueError, KeyError, TypeError):
         return []
     local = c.get("patches") or {}
-    names = []
-    for t in c.get("tracks") or []:
-        if not isinstance(t, dict) or not t.get("name"):
-            continue
-        p = t.get("patch")
-        pname = p if isinstance(p, str) else ""
-        pdef = local.get(pname.split()[0]) if pname else (p if isinstance(p, dict) else None)
-        is_kit = isinstance(pdef, dict) and "kit" in pdef
-        text = f"{t['name']} {pname}".lower()
-        if is_kit or any(w in text for w in DRUMWORDS):
-            names.append(t["name"])
-    return names
+    tracks = [t for t in c.get("tracks") or [] if isinstance(t, dict) and t.get("name")]
+    kits = [t["name"] for t in tracks if is_kit_track(t, local)]
+    # names only when the song has no kit track, and track names only (kharm plays pp-kickharm, a sine patch)
+    return kits or [t["name"] for t in tracks if any(w in t["name"].lower() for w in DRUMWORDS)]
 
 
 def flux_env(path):

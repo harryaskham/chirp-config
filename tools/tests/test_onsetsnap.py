@@ -119,6 +119,17 @@ class Snap(unittest.TestCase):
         self.assertAlmostEqual(ats[3], 4.00, delta=0.001)    # the end marker stays put
         self.assertNotIn("pitch", tr["notes"][3])
 
+    def test_kit_tracks_only(self):
+        canon = {"patches": {"pp-kickharm": {"synth": {"layers": [{"wave": "sine"}]}},
+                             "my-kit": {"kit": {"k": {"patch": "x"}}}},
+                 "tracks": [{"name": "drums", "patch": "electro-kit"},       # built-in kit: the drums family
+                            {"name": "kharm", "patch": "pp-kickharm"},       # a sine 'kick harmonic': not a kit
+                            {"name": "perc", "patch": "my-kit"},             # a song-local kit
+                            {"name": "bass", "patch": "808"}]}
+        self.assertEqual(O.drum_tracks(canon), ["drums", "perc"])
+        none = {"tracks": [{"name": "drum-loop", "patch": "pp-kickharm"}, {"name": "kharm", "patch": "pp-kickharm"}]}
+        self.assertEqual(O.drum_tracks(none), ["drum-loop"])                 # no kit: track names only
+
     def test_canonical_note_times(self):
         self.assertEqual(O.beats(None), 0.0)
         self.assertEqual(O.beats(1.25), 1.25)
