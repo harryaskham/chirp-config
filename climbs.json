@@ -2507,15 +2507,15 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/likeness.py sections ref/you-and-whose-army.wav OUT.wav $(cat tools/you-and-whose-army-sections.txt)",
       "best": {
-        "score": 60.683,
-        "version": "v5",
+        "score": 60.794,
+        "version": "v6",
         "commit": "see git log songs/you-and-whose-army.yaml",
         "engine": "554cc45"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 13,
+      "rounds": 14,
       "priority": 1.0,
       "genre": "art rock",
       "meta": {
@@ -2532,7 +2532,7 @@
       },
       "ref_file": "ref/albums/amnesiac/04.webm",
       "last": {
-        "at": "2026-10-23T16:27:17Z",
+        "at": "2026-10-23T18:23:26Z",
         "who": "chirper-zero"
       }
     },
