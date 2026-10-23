@@ -23,6 +23,7 @@ import argparse
 import gzip
 import json
 import os
+import re
 import sys
 
 import numpy as np
@@ -85,37 +86,72 @@ def fit(onsets_b, env, fps, bpm_lo, bpm_hi, max_lag_s=40.0):
     return float(bpm), lag / fps, sc
 
 
-def syllable_ph(syl, cmu):
-    """ARPAbet strings per tab syllable (None where the dictionary has no word), and the words it missed."""
-    words, out, miss = {}, [None] * len(syl), set()
-    for j, x in enumerate(syl):
-        words.setdefault(x[2], []).append(j)
+HOLD = re.compile(r"[._\-\u2026]+")
+CONT = (".", "-", "\u2026")
+
+
+def lyric_tokens(text):
+    """One token per sung beat (Songsterr lays lyric tokens 1:1 on the track's sung, non-tied beats):
+    {'kind': 'syl', 'piece', 'wid'} or {'kind': 'hold'}. Words split over beats are joined back, whichever way the tab
+    writes it: in-word hyphens ('pret-ty'), a trailing hyphen ('pret- ty'), or ellipses ('pret... ..ty'; Songsterr
+    51263). A token that is only dots/underscores/hyphens ('...', '_') is a HELD beat: it continues the previous
+    syllable and starts none (dropping those, as lyricvox.syllables does, shifted every later syllable a beat early)."""
+    out, wid, cont = [], -1, False
+    for line in text.split("\n"):
+        line = re.sub(r"\[[^\]]*\]", " ", line)       # section labels are not sung
+        for tok in line.split():
+            if HOLD.fullmatch(tok):
+                out.append({"kind": "hold"})
+                continue
+            lead = tok.startswith(CONT)
+            core = tok.strip("".join(CONT))
+            parts = [re.sub(r"[^A-Za-z']", "", q) for q in core.split("-")]
+            parts = [q for q in parts if q]
+            if not parts:
+                out.append({"kind": "hold"})
+                continue
+            if not (cont or lead):
+                wid += 1
+            for q in parts:
+                out.append({"kind": "syl", "piece": q, "wid": wid})
+            cont = tok.endswith(CONT)
+    return out
+
+
+def syllable_ph(tokens, cmu):
+    """ARPAbet per token (None for holds and dictionary misses), and the words missed."""
+    words, out, miss = {}, [None] * len(tokens), set()
+    for j, x in enumerate(tokens):
+        if x["kind"] == "syl":
+            words.setdefault(x["wid"], []).append(j)
     for js in words.values():
-        x = syl[js[0]]
-        wp = LV.word_ph(x[5], x[4], cmu)
-        if wp is None and x[4] > 1:   # a hyphenated compound: its parts as words
-            parts = [LV.word_ph(syl[j][0], 1, cmu) for j in js]
+        word = "".join(tokens[j]["piece"] for j in js)
+        wp = LV.word_ph(word, len(js), cmu)
+        if wp is None and len(js) > 1:   # a compound: its pieces as words
+            parts = [LV.word_ph(tokens[j]["piece"], 1, cmu) for j in js]
             wp = None if any(q is None for q in parts) else [q[0] for q in parts]
         if wp is None:
-            miss.add(x[5])
+            miss.add(word)
             continue
         for k, j in enumerate(js):
             out[j] = " ".join(wp[k])
     return out, miss
 
 
-def assign(notes, times, phs):
-    """Indices of the notes that start each syllable's span, with that syllable's phonemes."""
+def assign(notes, times, phs, kinds=None):
+    """Indices of the notes that start each syllable's span, with that syllable's phonemes. A syllable's span runs
+    to the next SYLLABLE (held beats in between belong to it)."""
+    kinds = kinds or ["syl"] * len(times)
+    syl = [k for k in range(len(times)) if kinds[k] == "syl"]
+    spans = [(k, times[k] - 0.10, (times[syl[m + 1]] - 0.05) if m + 1 < len(syl) else float("inf"))
+             for m, k in enumerate(syl)]
     got = {}
     for i, n in enumerate(notes):
-        if not n.get("pitch"):
+        if not n.get("pitch") or not str(n.get("at", "")).endswith("s"):
             continue
-        s = float(str(n["at"]).rstrip("s")) if str(n["at"]).endswith("s") else None
-        if s is None:
-            continue
-        for k, t in enumerate(times):
-            end = times[k + 1] - 0.05 if k + 1 < len(times) else float("inf")
-            if t - 0.10 <= s < end:
+        s = float(str(n["at"]).rstrip("s"))
+        for k, lo, hi in spans:
+            if lo <= s < hi:
                 if k not in got and phs[k]:
                     got[k] = (i, phs[k])
                 break
@@ -149,7 +185,7 @@ def main(argv=None):
     else:
         d = load_tab(a.songsterr_id, a.vox_track)
     text = (d.get("newLyrics") or [{}])[0].get("text", "")
-    syl = LV.syllables(text)
+    syl = lyric_tokens(text)
     onsets_b = tab_onsets(d)
     if not syl or not onsets_b:
         raise SystemExit(f"tabvox: track {a.vox_track} of {a.songsterr_id} has no lyrics or no sung beats")
@@ -163,14 +199,22 @@ def main(argv=None):
     bpm, off, score = fit(onsets_b[:n], env, L.FPS, lo, hi, a.lag)
     times = [off + b * 60.0 / bpm for b in onsets_b[:n]]
     phs, miss = syllable_ph(syl[:n], LV.load_cmu(a.cmu))
-    got = assign(tr["notes"], times, phs)
-    print(f"tabvox {sid}: {len(syl)} syllables on {len(onsets_b)} sung beats; fit {bpm:.2f} BPM, {off:+.3f} s "
+    got = assign(tr["notes"], times, phs, [x["kind"] for x in syl[:n]])
+    holds = sum(1 for x in syl if x["kind"] == "hold")
+    print(f"tabvox {sid}: {len(syl)} lyric tokens ({holds} held) on {len(onsets_b)} sung beats; fit {bpm:.2f} BPM, {off:+.3f} s "
           f"(score {score:.3f}); {len(got)} of {len(tr['notes'])} {a.track} notes take a syllable's phonemes")
+    n_syl = sum(1 for x in syl[:n] if x["kind"] == "syl")
+    cover = len(got) / max(1, n_syl)
+    print(f"  coverage: {len(got)} of {n_syl} syllables found a stem note ({cover:.0%})")
+    if cover < 0.5:
+        print("  WARNING: under half the syllables found a stem note: the tab's timeline does not fit this record "
+              "(a live or edited tab, repeats the tab does not spell out, or a wrong vocal track). Check --dry-run's "
+              "first syllables against the record before keeping it (Like Spinning Plates' live tab 51263: 16%; Knives Out 79%).")
     if miss:
         print(f"  not in the dictionary (left on marks): {' '.join(sorted(miss))}")
     for k in sorted(got)[:6]:
         i, ph = got[k]
-        print(f"  {times[k]:7.2f} s  {syl[k][0]:10s} -> note {i} at {tr['notes'][i]['at']}: {ph}")
+        print(f"  {times[k]:7.2f} s  {syl[k]['piece']:10s} -> note {i} at {tr['notes'][i]['at']}: {ph}")
     if a.dry_run:
         return
     for i, ph in got.values():

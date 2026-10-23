@@ -69,6 +69,24 @@ class TabVox(unittest.TestCase):
                                os.path.join(self.d, "vocals.wav"), "--cmu", os.path.join(self.d, "cmu.dict"),
                                "--bpm", "110-130", *args], capture_output=True, text=True, timeout=300)
 
+    def test_lyric_conventions_and_held_beats(self):
+        toks = T.lyric_tokens("pret-ty pret- ty pret... ..ty spee... ... ...ches [Chorus] Cuc... _ ...koo")
+        pieces = [x.get("piece", "_") for x in toks]
+        self.assertEqual(pieces, ["pret", "ty", "pret", "ty", "pret", "ty", "spee", "_", "ches", "Cuc", "_", "koo"])
+        wids = [x.get("wid") for x in toks if x["kind"] == "syl"]
+        self.assertEqual(wids, [0, 0, 1, 1, 2, 2, 3, 3, 4, 4])          # each split word is one word
+        cmu = {"pretty": ["P", "R", "IH1", "T", "IY0"], "speeches": ["S", "P", "IY1", "CH", "AH0", "Z"]}
+        ph, miss = T.syllable_ph(toks, cmu)
+        self.assertEqual(ph[:2], ["P R IH1", "T IY0"])
+        self.assertIsNone(ph[7])                                         # the held beat
+        self.assertEqual(miss, {"Cuckoo"})
+
+    def test_a_held_beat_extends_its_syllable(self):
+        times = [0.0, 0.5, 1.0]                     # syllable, hold, syllable
+        notes = [{"at": "0.02s", "pitch": 60}, {"at": "0.52s", "pitch": 62}, {"at": "1.02s", "pitch": 60}]
+        got = T.assign(notes, times, ["A", None, "B"], ["syl", "hold", "syl"])
+        self.assertEqual(got, {0: (0, "A"), 2: (2, "B")})                # the held note gets nothing
+
     def test_onsets_skip_rests_and_carry_the_signature(self):
         self.assertEqual(T.tab_onsets(TAB), [0, 1, 2, 3, 4, 5])
 
