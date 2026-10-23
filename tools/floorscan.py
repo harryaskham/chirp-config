@@ -13,7 +13,8 @@ windows with their bands and worst deficit, each with the floorfit command to tr
 noise bed under its 172-200 s break and broadband floors in the intro gaps were +1.6 on every seed (break sections
 +9/+11). What paid so far is a whole SECTION gone silent; scattered gaps did not: You and Whose Army's 8 kHz+ air at
 168-178 s +0.04, its 60 Hz-2.2 kHz floor at 186-190 s -0.17 (stereo and loudness terms), Hunting Bears' floors no
-change. A gap can also be a missing PART: listen before filling it with noise. Read-only.
+change, and an ending's gap that is the record's reverb tail (Dollars and Cents 280-288 s, -89 dBFS) -0.62 when
+filled: its fade already scores. A gap can also be a missing PART: listen before filling it with noise. Read-only.
 """
 import argparse
 import json
