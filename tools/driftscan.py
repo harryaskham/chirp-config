@@ -11,6 +11,9 @@ the record's length is the drift. A tempo a fraction off shows as a steady slope
 against the record's 97.089, 0.17 s over the song, and fixing its tempo map was +11.4 on every seed (chirper-zero,
 23 Oct). A constant offset shows as a median lag with no slope (onsetlag.py --shift, or the map's `offset`).
 Flags |drift| >= --flag ms. Negative = ours early. Read-only: it never edits a song.
+A record with little percussion (its htdemucs_6s drums stem under 10% of the stems' energy) has soft, smeared onsets
+and its lags drift with them, not with our timeline: those flags print as `drift?`. Like Spinning Plates (0.6%
+drums) read +170 ms, and after warping our notes by that slope it still read +142 ms (chirper-one's r4).
 """
 import argparse
 import json
@@ -50,6 +53,22 @@ def measure(ours, ref, win=4.0, step=8.0, mx=250):
             "span_s": length}
 
 
+def drum_share(cid):
+    """The drums stem's share (%) of the separated stems' energy, or None without stems."""
+    import likeness as L
+    d = os.path.join(ROOT, "ref", "stems", "htdemucs_6s", cid)
+    e = {}
+    for st in ("drums", "bass", "other", "vocals", "guitar", "piano"):
+        f = os.path.join(d, f"{st}.wav")
+        if os.path.exists(f):
+            e[st] = float((L.load(f).astype(float) ** 2).mean())
+    tot = sum(e.values())
+    return 100.0 * e.get("drums", 0.0) / tot if tot > 0 and "drums" in e else None
+
+
+PERC = 10.0   # % drums: below it, onset lags follow the record's smeared onsets, not our timeline
+
+
 def focus_ids(reg):
     f = reg.get("focus")
     enabled = [c for c in reg["climbs"] if c.get("enabled") and c.get("song")]
@@ -73,13 +92,18 @@ def scan(cid, work, a):
     if r.returncode:
         return cid, {"error": f"render failed: {r.stderr.strip()[-200:]}"}
     m = measure(out, ref, a.win, a.step, a.max)
+    if m:
+        m["drums_pct"] = drum_share(cid)
     return cid, m or {"error": "too few correlated windows"}
 
 
 def row(cid, m, flag):
     if "error" in m:
         return f"{cid:40s} {m['error']}"
-    mark = "  DRIFT" if abs(m["drift_ms"]) >= flag else ""
+    weak = m.get("drums_pct") is not None and m["drums_pct"] < PERC
+    mark = ""
+    if abs(m["drift_ms"]) >= flag:
+        mark = f"  drift? (little percussion: {m['drums_pct']:.1f}% drums)" if weak else "  DRIFT"
     return (f"{cid:40s} {m['windows']:4d}  median {m['median_ms']:+5.0f} ms  drift {m['drift_ms']:+6.0f} ms over "
             f"{m['span_s']:.0f} s  (first quarter {m['first_q_ms']:+.0f}, last {m['last_q_ms']:+.0f}){mark}")
 
@@ -120,8 +144,12 @@ def main(argv=None):
         return
     for cid in ids:
         print(row(cid, res[cid], a.flag))
-    bad = [c for c in ids if "drift_ms" in res[c] and abs(res[c]["drift_ms"]) >= a.flag]
-    print(f"\n{len(bad)} of {len(ids)} drift by {a.flag:g} ms or more" + (f": {', '.join(bad)}" if bad else ""))
+    big = [c for c in ids if "drift_ms" in res[c] and abs(res[c]["drift_ms"]) >= a.flag]
+    weak = [c for c in big if res[c].get("drums_pct") is not None and res[c]["drums_pct"] < PERC]
+    sure = [c for c in big if c not in weak]
+    print(f"\n{len(sure)} of {len(ids)} drift by {a.flag:g} ms or more" + (f": {', '.join(sure)}" if sure else ""))
+    if weak:
+        print(f"{len(weak)} more read as drift with little percussion (leads only): {', '.join(weak)}")
 
 
 if __name__ == "__main__":
