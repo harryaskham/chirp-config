@@ -3219,7 +3219,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 2,
+      "rounds": 3,
       "priority": 1.0,
       "genre": "alternative rock",
       "meta": {
@@ -3236,7 +3236,7 @@
       },
       "ref_file": "ref/albums/ok-computer/12.webm",
       "last": {
-        "at": "2026-10-24T10:33:13Z",
+        "at": "2026-10-24T11:09:58Z",
         "who": "chirper-one"
       }
     }
