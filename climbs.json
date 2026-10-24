@@ -2791,6 +2791,342 @@
         "at": "2026-10-24T00:06:50Z",
         "who": "chirper-one"
       }
+    },
+    {
+      "id": "airbag",
+      "song": "songs/airbag.yaml",
+      "reference": "Radiohead — Airbag",
+      "source": "/tmp/lt/okc/01.webm",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/airbag.wav OUT.wav $(cat tools/airbag-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "alternative rock",
+      "meta": {
+        "artist": "Radiohead",
+        "album": "OK Computer",
+        "title": "Airbag",
+        "track": 1,
+        "year": 1997
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-24T00:39:09Z",
+        "note": null
+      },
+      "ref_file": "ref/albums/ok-computer/01.webm"
+    },
+    {
+      "id": "paranoid-android",
+      "song": "songs/paranoid-android.yaml",
+      "reference": "Radiohead — Paranoid Android",
+      "source": "/tmp/lt/okc/02.webm",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/paranoid-android.wav OUT.wav $(cat tools/paranoid-android-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "alternative rock",
+      "meta": {
+        "artist": "Radiohead",
+        "album": "OK Computer",
+        "title": "Paranoid Android",
+        "track": 2,
+        "year": 1997
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-24T00:39:11Z",
+        "note": null
+      },
+      "ref_file": "ref/albums/ok-computer/02.webm"
+    },
+    {
+      "id": "subterranean-homesick-alien",
+      "song": "songs/subterranean-homesick-alien.yaml",
+      "reference": "Radiohead — Subterranean Homesick Alien",
+      "source": "/tmp/lt/okc/03.webm",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/subterranean-homesick-alien.wav OUT.wav $(cat tools/subterranean-homesick-alien-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "alternative rock",
+      "meta": {
+        "artist": "Radiohead",
+        "album": "OK Computer",
+        "title": "Subterranean Homesick Alien",
+        "track": 3,
+        "year": 1997
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-24T00:39:13Z",
+        "note": null
+      },
+      "ref_file": "ref/albums/ok-computer/03.webm"
+    },
+    {
+      "id": "exit-music-for-a-film",
+      "song": "songs/exit-music-for-a-film.yaml",
+      "reference": "Radiohead — Exit Music (For a Film)",
+      "source": "/tmp/lt/okc/04.webm",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/exit-music-for-a-film.wav OUT.wav $(cat tools/exit-music-for-a-film-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "alternative rock",
+      "meta": {
+        "artist": "Radiohead",
+        "album": "OK Computer",
+        "title": "Exit Music (For a Film)",
+        "track": 4,
+        "year": 1997
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-24T00:39:15Z",
+        "note": null
+      },
+      "ref_file": "ref/albums/ok-computer/04.webm"
+    },
+    {
+      "id": "let-down",
+      "song": "songs/let-down.yaml",
+      "reference": "Radiohead — Let Down",
+      "source": "/tmp/lt/okc/05.webm",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/let-down.wav OUT.wav $(cat tools/let-down-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "alternative rock",
+      "meta": {
+        "artist": "Radiohead",
+        "album": "OK Computer",
+        "title": "Let Down",
+        "track": 5,
+        "year": 1997
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-24T00:39:17Z",
+        "note": null
+      },
+      "ref_file": "ref/albums/ok-computer/05.webm"
+    },
+    {
+      "id": "karma-police",
+      "song": "songs/karma-police.yaml",
+      "reference": "Radiohead — Karma Police",
+      "source": "/tmp/lt/okc/06.webm",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/karma-police.wav OUT.wav $(cat tools/karma-police-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "alternative rock",
+      "meta": {
+        "artist": "Radiohead",
+        "album": "OK Computer",
+        "title": "Karma Police",
+        "track": 6,
+        "year": 1997
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-24T00:39:19Z",
+        "note": null
+      },
+      "ref_file": "ref/albums/ok-computer/06.webm"
+    },
+    {
+      "id": "fitter-happier",
+      "song": "songs/fitter-happier.yaml",
+      "reference": "Radiohead — Fitter Happier",
+      "source": "/tmp/lt/okc/07.webm",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/fitter-happier.wav OUT.wav $(cat tools/fitter-happier-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "alternative rock",
+      "meta": {
+        "artist": "Radiohead",
+        "album": "OK Computer",
+        "title": "Fitter Happier",
+        "track": 7,
+        "year": 1997
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-24T00:39:20Z",
+        "note": null
+      },
+      "ref_file": "ref/albums/ok-computer/07.webm"
+    },
+    {
+      "id": "electioneering",
+      "song": "songs/electioneering.yaml",
+      "reference": "Radiohead — Electioneering",
+      "source": "/tmp/lt/okc/08.webm",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/electioneering.wav OUT.wav $(cat tools/electioneering-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "alternative rock",
+      "meta": {
+        "artist": "Radiohead",
+        "album": "OK Computer",
+        "title": "Electioneering",
+        "track": 8,
+        "year": 1997
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-24T00:39:22Z",
+        "note": null
+      },
+      "ref_file": "ref/albums/ok-computer/08.webm"
+    },
+    {
+      "id": "climbing-up-the-walls",
+      "song": "songs/climbing-up-the-walls.yaml",
+      "reference": "Radiohead — Climbing Up the Walls",
+      "source": "/tmp/lt/okc/09.webm",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/climbing-up-the-walls.wav OUT.wav $(cat tools/climbing-up-the-walls-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "alternative rock",
+      "meta": {
+        "artist": "Radiohead",
+        "album": "OK Computer",
+        "title": "Climbing Up the Walls",
+        "track": 9,
+        "year": 1997
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-24T00:39:24Z",
+        "note": null
+      },
+      "ref_file": "ref/albums/ok-computer/09.webm"
+    },
+    {
+      "id": "no-surprises",
+      "song": "songs/no-surprises.yaml",
+      "reference": "Radiohead — No Surprises",
+      "source": "/tmp/lt/okc/10.webm",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/no-surprises.wav OUT.wav $(cat tools/no-surprises-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "alternative rock",
+      "meta": {
+        "artist": "Radiohead",
+        "album": "OK Computer",
+        "title": "No Surprises",
+        "track": 10,
+        "year": 1997
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-24T00:39:26Z",
+        "note": null
+      },
+      "ref_file": "ref/albums/ok-computer/10.webm"
+    },
+    {
+      "id": "lucky",
+      "song": "songs/lucky.yaml",
+      "reference": "Radiohead — Lucky",
+      "source": "/tmp/lt/okc/11.webm",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/lucky.wav OUT.wav $(cat tools/lucky-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "alternative rock",
+      "meta": {
+        "artist": "Radiohead",
+        "album": "OK Computer",
+        "title": "Lucky",
+        "track": 11,
+        "year": 1997
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-24T00:39:28Z",
+        "note": null
+      },
+      "ref_file": "ref/albums/ok-computer/11.webm"
+    },
+    {
+      "id": "the-tourist",
+      "song": "songs/the-tourist.yaml",
+      "reference": "Radiohead — The Tourist",
+      "source": "/tmp/lt/okc/12.webm",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/the-tourist.wav OUT.wav $(cat tools/the-tourist-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "alternative rock",
+      "meta": {
+        "artist": "Radiohead",
+        "album": "OK Computer",
+        "title": "The Tourist",
+        "track": 12,
+        "year": 1997
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-24T00:39:31Z",
+        "note": null
+      },
+      "ref_file": "ref/albums/ok-computer/12.webm"
     }
   ],
   "focus": "Amnesiac"
