@@ -2930,11 +2930,16 @@
       "source": "https://www.youtube.com/watch?v=EgkI1zI61bQ",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/let-down.wav OUT.wav $(cat tools/let-down-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 66.859,
+        "version": "v1",
+        "commit": "see git log songs/let-down.yaml",
+        "engine": "554cc45"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "alternative rock",
       "meta": {
@@ -2949,7 +2954,11 @@
         "at": "2026-10-24T00:39:17Z",
         "note": null
       },
-      "ref_file": "ref/albums/ok-computer/05.webm"
+      "ref_file": "ref/albums/ok-computer/05.webm",
+      "last": {
+        "at": "2026-10-24T02:52:52Z",
+        "who": "chirper-zero"
+      }
     },
     {
       "id": "karma-police",
