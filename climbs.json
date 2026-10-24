@@ -3170,7 +3170,7 @@
       "song": "songs/lucky.yaml",
       "reference": "Radiohead — Lucky",
       "source": "https://www.youtube.com/watch?v=yuZYQvvLXVY",
-      "owner": null,
+      "owner": "chirper-zero",
       "metric": "python3 tools/likeness.py sections ref/lucky.wav OUT.wav $(cat tools/lucky-sections.txt)",
       "best": {
         "score": 65.026,
