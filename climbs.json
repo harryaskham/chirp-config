@@ -2920,14 +2920,14 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/exit-music-for-a-film.wav OUT.wav $(cat tools/exit-music-for-a-film-sections.txt)",
       "best": {
-        "score": 56.761,
-        "version": "v2",
+        "score": 58.675,
+        "version": "v3",
         "commit": "see git log songs/exit-music-for-a-film.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 2,
+      "rounds": 3,
       "priority": 1.0,
       "genre": "alternative rock",
       "meta": {
@@ -2944,7 +2944,7 @@
       },
       "ref_file": "ref/albums/ok-computer/04.webm",
       "last": {
-        "at": "2026-10-24T06:40:02Z",
+        "at": "2026-10-24T11:43:47Z",
         "who": "chirper-one"
       }
     },
