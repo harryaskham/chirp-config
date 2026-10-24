@@ -2817,7 +2817,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 4,
       "priority": 1.0,
       "genre": "alternative rock",
@@ -2837,7 +2837,8 @@
       "last": {
         "at": "2026-10-24T16:13:46Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "paranoid-android",
@@ -2854,7 +2855,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 4,
       "priority": 1.0,
       "genre": "alternative rock",
@@ -2874,7 +2875,8 @@
       "last": {
         "at": "2026-10-24T14:18:01Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "subterranean-homesick-alien",
@@ -2890,7 +2892,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 4,
       "priority": 1.0,
       "genre": "alternative rock",
@@ -2910,7 +2912,8 @@
       "last": {
         "at": "2026-10-24T10:55:31Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "exit-music-for-a-film",
@@ -2927,7 +2930,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 5,
       "priority": 1.0,
       "genre": "alternative rock",
@@ -2947,7 +2950,8 @@
       "last": {
         "at": "2026-10-24T16:42:14Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "let-down",
@@ -2964,7 +2968,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 5,
       "priority": 1.0,
       "genre": "alternative rock",
@@ -2984,7 +2988,8 @@
       "last": {
         "at": "2026-10-24T15:34:11Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "karma-police",
@@ -3001,7 +3006,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 5,
       "priority": 1.0,
       "genre": "alternative rock",
@@ -3021,7 +3026,8 @@
       "last": {
         "at": "2026-10-24T17:04:14Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "fitter-happier",
@@ -3038,7 +3044,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 2,
       "priority": 1.0,
       "genre": "alternative rock",
@@ -3058,7 +3064,8 @@
       "last": {
         "at": "2026-10-24T12:02:25Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "electioneering",
@@ -3075,7 +3082,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 6,
       "priority": 1.0,
       "genre": "alternative rock",
@@ -3095,7 +3102,8 @@
       "last": {
         "at": "2026-10-24T17:39:09Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "climbing-up-the-walls",
@@ -3111,7 +3119,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 3,
       "priority": 1.0,
       "genre": "alternative rock",
@@ -3131,7 +3139,8 @@
       "last": {
         "at": "2026-10-24T14:59:05Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "no-surprises",
@@ -3147,7 +3156,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 5,
       "priority": 1.0,
       "genre": "alternative rock",
@@ -3167,7 +3176,8 @@
       "last": {
         "at": "2026-10-24T12:40:59Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "lucky",
@@ -3184,7 +3194,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 2,
       "priority": 1.0,
       "genre": "alternative rock",
@@ -3204,7 +3214,8 @@
       "last": {
         "at": "2026-10-24T10:35:15Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "the-tourist",
@@ -3221,7 +3232,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 7,
       "priority": 1.0,
       "genre": "alternative rock",
@@ -3241,7 +3252,8 @@
       "last": {
         "at": "2026-10-24T17:14:33Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "the-ecstasy-of-gold",
@@ -3832,5 +3844,5 @@
       "ref_file": "ref/albums/s-m/21.mp3"
     }
   ],
-  "focus": "OK Computer"
+  "focus": "S&M"
 }
