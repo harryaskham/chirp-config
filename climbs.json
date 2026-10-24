@@ -2268,7 +2268,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 19,
       "priority": 1.0,
       "genre": "art rock / chamber",
@@ -2287,7 +2287,8 @@
       "last": {
         "at": "2026-10-24T00:37:39Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "i-never-learnt-to-share",
@@ -2440,7 +2441,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 12,
       "priority": 1.0,
       "genre": "art rock",
@@ -2460,7 +2461,8 @@
       "last": {
         "at": "2026-10-23T22:43:49Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "pulk-pull-revolving-doors",
@@ -2477,7 +2479,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 14,
       "priority": 1.0,
       "genre": "art rock",
@@ -2497,7 +2499,8 @@
       "last": {
         "at": "2026-10-23T23:58:07Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "you-and-whose-army",
@@ -2514,7 +2517,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 17,
       "priority": 1.0,
       "genre": "art rock",
@@ -2534,7 +2537,8 @@
       "last": {
         "at": "2026-10-23T22:36:02Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "i-might-be-wrong",
@@ -2550,7 +2554,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 12,
       "priority": 1.0,
       "genre": "art rock",
@@ -2570,7 +2574,8 @@
       "last": {
         "at": "2026-10-23T23:48:55Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "knives-out",
@@ -2587,7 +2592,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 12,
       "priority": 1.0,
       "genre": "art rock",
@@ -2607,7 +2612,8 @@
       "last": {
         "at": "2026-10-23T19:51:00Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "morning-bell-amnesiac",
@@ -2624,7 +2630,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 11,
       "priority": 1.0,
       "genre": "art rock",
@@ -2644,7 +2650,8 @@
       "last": {
         "at": "2026-10-23T22:28:39Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "dollars-and-cents",
@@ -2660,7 +2667,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 13,
       "priority": 1.0,
       "genre": "art rock",
@@ -2680,7 +2687,8 @@
       "last": {
         "at": "2026-10-23T19:43:24Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "hunting-bears",
@@ -2697,7 +2705,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 14,
       "priority": 1.0,
       "genre": "art rock",
@@ -2717,7 +2725,8 @@
       "last": {
         "at": "2026-10-24T00:08:52Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "like-spinning-plates",
@@ -2734,7 +2743,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 14,
       "priority": 1.0,
       "genre": "art rock",
@@ -2754,7 +2763,8 @@
       "last": {
         "at": "2026-10-24T00:34:15Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "life-in-a-glasshouse",
@@ -2770,7 +2780,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 13,
       "priority": 1.0,
       "genre": "art rock",
@@ -2790,7 +2800,8 @@
       "last": {
         "at": "2026-10-24T00:06:50Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "airbag",
@@ -3129,5 +3140,5 @@
       "ref_file": "ref/albums/ok-computer/12.webm"
     }
   ],
-  "focus": "Amnesiac"
+  "focus": "OK Computer"
 }
