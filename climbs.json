@@ -3006,11 +3006,15 @@
       "source": "https://www.youtube.com/watch?v=3DtgWrFTtQk",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/electioneering.wav OUT.wav $(cat tools/electioneering-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 51.886,
+        "version": "v1",
+        "commit": "see git log songs/electioneering.yaml"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "alternative rock",
       "meta": {
@@ -3025,7 +3029,11 @@
         "at": "2026-10-24T00:39:22Z",
         "note": null
       },
-      "ref_file": "ref/albums/ok-computer/08.webm"
+      "ref_file": "ref/albums/ok-computer/08.webm",
+      "last": {
+        "at": "2026-10-24T01:51:01Z",
+        "who": "chirper-one"
+      }
     },
     {
       "id": "climbing-up-the-walls",
