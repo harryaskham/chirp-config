@@ -3209,11 +3209,15 @@
       "source": "https://www.youtube.com/watch?v=HkgzObf8uVU",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/the-tourist.wav OUT.wav $(cat tools/the-tourist-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 59.217,
+        "version": "v1",
+        "commit": "see git log songs/the-tourist.yaml"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "alternative rock",
       "meta": {
@@ -3228,7 +3232,11 @@
         "at": "2026-10-24T00:39:31Z",
         "note": null
       },
-      "ref_file": "ref/albums/ok-computer/12.webm"
+      "ref_file": "ref/albums/ok-computer/12.webm",
+      "last": {
+        "at": "2026-10-24T07:30:27Z",
+        "who": "chirper-one"
+      }
     }
   ],
   "focus": "OK Computer"
