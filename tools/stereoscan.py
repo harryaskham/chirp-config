@@ -73,7 +73,7 @@ def image(ours, ref, win=10.0, under=10.0, mono=-40.0):
         deficit = float(whole_r[b] - whole_o[b])
         out.append({"band": BANDS[b], "record_db": round(float(whole_r[b]), 1), "ours_db": round(float(whole_o[b]), 1),
                     "deficit_db": round(deficit, 1), "narrow_share": round(float(share[b]), 2),
-                    "narrow": bool(whole_r[b] > REC_SIDE and (deficit > under or share[b] >= 0.25)),
+                    "narrow": bool(whole_r[b] > REC_SIDE and (deficit > under or (share[b] >= 0.25 and deficit > 0))),
                     "mono": bool(whole_r[b] > REC_SIDE and whole_o[b] < mono and deficit > under)})
     return out
 
