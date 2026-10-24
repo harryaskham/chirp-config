@@ -386,9 +386,11 @@ def bend_semis(n):
     return round(tone / 25.0, 2)
 
 
-def score(cache, i, bends="peak", step=0.125, voice=0, gm_map=None, articulations=None):
+def score(cache, i, bends="peak", step=0.125, voice=0, gm_map=None, articulations=None, capo=False):
     tr = load(cache, i)
     drums = not tr.get("tuning")
+    if capo and not drums and tr.get("capo"):   # frets are written relative to the capo: sound them at tuning + capo
+        tr = {**tr, "tuning": [int(x) + int(tr["capo"]) for x in tr["tuning"]]}
     by_measure = None
     if articulations and not drums:
         marks, rep = articulation_marks(tr, voice, articulations)
@@ -411,7 +413,9 @@ def score(cache, i, bends="peak", step=0.125, voice=0, gm_map=None, articulation
 
 if __name__ == "__main__":
     args = sys.argv[1:]
-    bends, step, voice, gm_map, arts = "peak", 0.125, 0, None, None
+    bends, step, voice, gm_map, arts, capo = "peak", 0.125, 0, None, None, False
+    if "--capo" in args:
+        args.remove("--capo"); capo = True
     if "--bends" in args:
         i = args.index("--bends"); bends = args[i + 1]; del args[i:i + 2]
     if "--bend-step" in args:
@@ -439,7 +443,7 @@ if __name__ == "__main__":
     meta = json.load(open(f"{cache}/songsterr-meta.json"))
     idx = [int(a) for a in args] or list(range(len(meta.get("tracks", []))))
     for i in idx:
-        name, drums, lines = score(cache, i, bends, step, voice, gm_map, arts)
+        name, drums, lines = score(cache, i, bends, step, voice, gm_map, arts, capo)
         print(f"# track {i}: {name}{' (drums → metal-kit)' if drums else ''}{f' voice {voice}' if voice else ''}")
         for mi, l in enumerate(lines):
             print(f"m{mi + 1:<3d} {l}")
