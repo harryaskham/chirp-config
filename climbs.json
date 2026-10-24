@@ -3213,14 +3213,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/the-tourist.wav OUT.wav $(cat tools/the-tourist-sections.txt)",
       "best": {
-        "score": 60.188,
-        "version": "v2",
-        "commit": "see git log songs/the-tourist.yaml"
+        "score": 60.463,
+        "version": "v3",
+        "commit": "see git log songs/the-tourist.yaml",
+        "engine": "554cc45"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 3,
+      "rounds": 4,
       "priority": 1.0,
       "genre": "alternative rock",
       "meta": {
@@ -3237,8 +3238,8 @@
       },
       "ref_file": "ref/albums/ok-computer/12.webm",
       "last": {
-        "at": "2026-10-24T11:09:58Z",
-        "who": "chirper-one"
+        "at": "2026-10-24T13:14:37Z",
+        "who": "chirper-zero"
       }
     }
   ],
