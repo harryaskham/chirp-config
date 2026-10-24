@@ -2847,15 +2847,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/paranoid-android.wav OUT.wav $(cat tools/paranoid-android-sections.txt)",
       "best": {
-        "score": 70.189,
-        "version": "v2",
+        "score": 70.286,
+        "version": "v3",
         "commit": "see git log songs/paranoid-android.yaml",
         "engine": "554cc45"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 3,
+      "rounds": 4,
       "priority": 1.0,
       "genre": "alternative rock",
       "meta": {
@@ -2872,7 +2872,7 @@
       },
       "ref_file": "ref/albums/ok-computer/02.webm",
       "last": {
-        "at": "2026-10-24T13:21:47Z",
+        "at": "2026-10-24T14:18:01Z",
         "who": "chirper-one"
       }
     },
