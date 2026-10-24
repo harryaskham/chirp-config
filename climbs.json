@@ -3410,11 +3410,15 @@
       "source": "https://drive.google.com/file/d/1j4UFkVmBUP68OPcIpESNiI5z2YmpbxFV (Harry's Drive, Music (Old Collection); S&M per ID3 tag or live duration)",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/fuel.wav OUT.wav $(cat tools/fuel-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 41.095,
+        "version": "v1",
+        "commit": "see git log songs/fuel.yaml"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
       "meta": {
@@ -3429,7 +3433,11 @@
         "at": "2026-10-24T17:43:47Z",
         "note": null
       },
-      "ref_file": "ref/albums/s-m/06.mp3"
+      "ref_file": "ref/albums/s-m/06.mp3",
+      "last": {
+        "at": "2026-10-24T21:04:34Z",
+        "who": "chirper-one"
+      }
     },
     {
       "id": "the-memory-remains",
