@@ -213,7 +213,8 @@ def at_seconds(v):
 def apply_lags(song, res, flag_ms=15.0, skip=(), cap=None, max_ms=130.0, fps=None):
     """SONG with each flagged track (the report's `*`: |lag| >= flag_ms and a correlation gain) moved by its own lag
     through its `at` (ours early -> later), and [(track, shift_ms, note)]. chirper-one's Airbag v3: +2.3..+2.8 on
-    all four seeds; capping at 60 ms gained less. A lag at the +-max_ms edge is noted (sustained pads read there)."""
+    all four seeds; capping at 60 ms gained less. A lag at the +-max_ms edge is noted (sustained pads read there).
+    A voice reading LATE is its attack, not its notes (Let Down: vox +43 / bvox +32 moved earlier -0.06): --skip it."""
     import copy
     if fps is None:
         import likeness as L
