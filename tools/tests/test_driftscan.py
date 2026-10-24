@@ -114,5 +114,26 @@ class Drift(unittest.TestCase):
         self.assertEqual(D.focus_ids(reg), ["b", "x"])
 
 
+class ApplyLags(unittest.TestCase):
+    def test_flagged_parts_move_by_their_own_lag(self):
+        song = {"tracks": [{"name": "vox", "score": "C4/1b"}, {"name": "bass", "at": "0.010s", "score": "C2/1b"},
+                           {"name": "pad", "score": "C3/1b"}, {"name": "keys", "at": "2b", "score": "C4/1b"},
+                           {"name": "drums", "score": "C4/1b"}, {"name": "gtr", "score": "C4/1b"}]}
+        res = {"vox": {"lag_ms": -37.0, "gain": 0.01}, "bass": {"lag_ms": -128.0, "gain": 0.02},
+               "pad": {"lag_ms": 10.0, "gain": 0.01},           # under --flag-ms: left
+               "keys": {"lag_ms": -40.0, "gain": 0.01},         # `at` in beats: skipped, said so
+               "drums": {"lag_ms": -30.0, "gain": 0.001},       # no correlation gain: left
+               "gtr": {"lag_ms": 45.0, "gain": 0.01}}           # late: moved earlier
+        new, done = D.apply_lags(song, res, 15.0, skip=(), cap=None, max_ms=130.0, fps=100.0)
+        at = {t["name"]: t.get("at") for t in new["tracks"]}
+        self.assertEqual(at, {"vox": "0.037s", "bass": "0.138s", "pad": None, "keys": "2b", "drums": None, "gtr": "-0.045s"})
+        notes = {n: note for n, _, note in done}
+        self.assertIn("edge", notes["bass"])
+        self.assertIn("not in seconds", notes["keys"])
+        self.assertNotIn("at", song["tracks"][0])                   # the input is untouched
+        capped, _ = D.apply_lags(song, res, 15.0, skip=("gtr",), cap=60.0, max_ms=130.0, fps=100.0)
+        at = {t["name"]: t.get("at") for t in capped["tracks"]}
+        self.assertEqual((at["bass"], at["gtr"]), ("0.070s", None))
+
 if __name__ == "__main__":
     unittest.main()

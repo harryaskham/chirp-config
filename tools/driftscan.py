@@ -4,6 +4,7 @@
   driftscan.py [ID …] [--all] [--mix] [-j 3] [--flag 60] [--win 4] [--step 8] [--max 250] [--keep DIR] [--json]
   driftscan.py --wav OURS.wav --ref REF.wav [--flag 60]                          # analysis only
   driftscan.py --offset [ID …] [--per-track] [--max-ms 130] [--flag-ms 15]       # whole-song offset (below)
+  driftscan.py --offset --per-track ID --apply OUT [--skip a,b] [--cap MS]        # write each part shifted by its lag
 
 Default IDs: the focus's climbs (climbs.json `focus`), else every enabled climb. By default it compares DRUMS WITH
 DRUMS, the skill's recipe: the song's drum tracks rendered solo (a kit patch, or a track/patch named drum/kick/snare/
@@ -194,6 +195,48 @@ def offset_row(cid, res, flag_ms):
     return line
 
 
+def at_seconds(v):
+    """A track's `at` in seconds (0 when absent); None for a form in beats (left alone)."""
+    if v is None:
+        return 0.0
+    s = str(v).strip()
+    try:
+        if s.endswith("ms"):
+            return float(s[:-2]) / 1000
+        if s.endswith("s"):
+            return float(s[:-1])
+    except ValueError:
+        pass
+    return None
+
+
+def apply_lags(song, res, flag_ms=15.0, skip=(), cap=None, max_ms=130.0, fps=None):
+    """SONG with each flagged track (the report's `*`: |lag| >= flag_ms and a correlation gain) moved by its own lag
+    through its `at` (ours early -> later), and [(track, shift_ms, note)]. chirper-one's Airbag v3: +2.3..+2.8 on
+    all four seeds; capping at 60 ms gained less. A lag at the +-max_ms edge is noted (sustained pads read there)."""
+    import copy
+    if fps is None:
+        import likeness as L
+        fps = L.FPS
+    s = copy.deepcopy(song)
+    done = []
+    for t in s.get("tracks", []):
+        n = t.get("name")
+        v = res.get(n) or {}
+        if n in skip or "lag_ms" not in v or abs(v["lag_ms"]) < flag_ms or v.get("gain", 0) <= 0.002:
+            continue
+        cur = at_seconds(t.get("at"))
+        if cur is None:
+            done.append((n, 0.0, f"skipped: at {t.get('at')!r} is not in seconds"))
+            continue
+        ms = -v["lag_ms"]
+        if cap:
+            ms = max(-cap, min(cap, ms))
+        t["at"] = f"{cur + ms / 1000:.3f}s"
+        done.append((n, ms, "at the search edge: check it (a pad?)" if abs(v["lag_ms"]) >= max_ms - 1000 / fps else ""))
+    return s, done
+
+
 def focus_ids(reg):
     f = reg.get("focus")
     enabled = [c for c in reg["climbs"] if c.get("enabled") and c.get("song")]
@@ -257,6 +300,10 @@ def main(argv=None):
     ap.add_argument("--per-track", action="store_true", help="--offset: also each track solo")
     ap.add_argument("--max-ms", type=float, default=130.0)
     ap.add_argument("--flag-ms", type=float, default=15.0)
+    ap.add_argument("--apply", metavar="OUT", help="--offset --per-track, one ID: write the song with each flagged part "
+                    "shifted by its own lag (its `at`)")
+    ap.add_argument("--skip", default="", help="--apply: tracks to leave alone")
+    ap.add_argument("--cap", type=float, help="--apply: largest shift (ms)")
     ap.add_argument("-j", type=int, default=3)
     ap.add_argument("--flag", type=float, default=60.0)
     ap.add_argument("--win", type=float, default=4.0)
@@ -267,6 +314,8 @@ def main(argv=None):
     ap.add_argument("--wav")
     ap.add_argument("--ref")
     a = ap.parse_args(argv)
+    if a.apply and not (a.offset and a.per_track and len(a.ids) == 1):
+        ap.error("--apply needs --offset --per-track and exactly one ID")
     if a.wav:
         if not a.ref:
             ap.error("--wav needs --ref")
@@ -284,9 +333,18 @@ def main(argv=None):
                 res = dict(ex.map(lambda c: scan_offset(c, work, a), ids))
             if a.json:
                 print(json.dumps(res, indent=1))
-                return
-            for cid in ids:
-                print(offset_row(cid, res[cid], a.flag_ms))
+            else:
+                for cid in ids:
+                    print(offset_row(cid, res[cid], a.flag_ms))
+            if a.apply:
+                import songfmt
+                song = songfmt.load(os.path.join(ROOT, "songs", f"{ids[0]}.yaml"))
+                new, done = apply_lags(song, res[ids[0]], a.flag_ms, {x for x in a.skip.split(",") if x}, a.cap, a.max_ms)
+                with open(a.apply, "w") as f:
+                    f.write(json.dumps(new, indent=1) + "\n" if a.apply.endswith(".json") else songfmt.dump_yaml(new))
+                print(f"applied to {a.apply}: " + (", ".join(f"{n} {ms:+.0f} ms" + (f" ({note})" if note else "")
+                                                           for n, ms, note in done) or "nothing flagged"),
+                      file=sys.stderr)
             return
         with ThreadPoolExecutor(max_workers=max(1, a.j)) as ex:
             res = dict(ex.map(lambda c: scan(c, work, a), ids))
