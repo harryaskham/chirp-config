@@ -3371,14 +3371,14 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/of-wolf-and-man.wav OUT.wav $(cat tools/of-wolf-and-man-sections.txt)",
       "best": {
-        "score": 49.202,
-        "version": "v1",
+        "score": 57.637,
+        "version": "v2",
         "commit": "see git log songs/of-wolf-and-man.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 1,
+      "rounds": 2,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
       "meta": {
@@ -3395,7 +3395,7 @@
       },
       "ref_file": "ref/albums/s-m/04.mp3",
       "last": {
-        "at": "2026-10-24T22:56:24Z",
+        "at": "2026-10-24T23:34:21Z",
         "who": "chirper-one"
       }
     },
