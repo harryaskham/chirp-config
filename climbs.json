@@ -3318,11 +3318,15 @@
       "source": "https://drive.google.com/file/d/1vuU6jBDgE1Y03Td7JZ4UzuockD_4jUjV (Harry's Drive, Music (Old Collection); S&M per ID3 tag or live duration)",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/master-of-puppets.wav OUT.wav $(cat tools/master-of-puppets-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 40.999,
+        "version": "v1",
+        "commit": "see git log songs/master-of-puppets.yaml"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
       "meta": {
@@ -3337,7 +3341,11 @@
         "at": "2026-10-24T17:43:46Z",
         "note": null
       },
-      "ref_file": "ref/albums/s-m/03.mp3"
+      "ref_file": "ref/albums/s-m/03.mp3",
+      "last": {
+        "at": "2026-10-24T20:05:00Z",
+        "who": "chirper-one"
+      }
     },
     {
       "id": "of-wolf-and-man",

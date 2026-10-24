@@ -54,6 +54,8 @@ under cymbals in voice 0 (bd-72f61a); bars without that voice rest. Add a part p
 "capo": true (map-wide or per part; opt-in) sounds a tab track's frets at tuning + its capo: Songsterr writes frets relative
 to the capo (No Surprises: acoustic capo 3, Rickenbacker capo 15 — off, the guitars play a minor third / an octave and a
 minor third low, in D instead of F). Off, every map is unchanged; tab2song warns for each part whose track has a capo.
+"transpose": N (map-wide or per part; default 0) sounds pitched tab tracks N semitones away from their written tuning — a
+performance in another tuning than the tab (Metallica's S&M is a half step down: -1). Drum tracks are untouched.
 "strip": ["ph", "bend", …] (map-wide or per part) removes those `^articulation` marks ("bend": the bend= tokens) from tab-derived parts (e.g. pinch
 harmonics whose rung partial does not match the record's)."""
 import json
@@ -429,9 +431,10 @@ def build(mp):
             if tc:
                 print(f"tab2song: part {p.get('name')}: tab track {p['track']} has capo {tc} (frets are relative to it); "
                       f"set \"capo\": true to sound it", file=sys.stderr)
-        ck = p["track"] if isinstance(p["track"], tuple) else (p["track"], mode, step, voice, tuple(sorted((gm_map or {}).items())), arts, capo)
+        transpose = int(p.get("transpose", mp.get("transpose", 0)))   # semitones (map-wide or per part): a performance in another tuning
+        ck = p["track"] if isinstance(p["track"], tuple) else (p["track"], mode, step, voice, tuple(sorted((gm_map or {}).items())), arts, capo, transpose)
         if ck not in lines_cache:
-            lines_all = S.score(cache, p["track"], mode, step, voice, gm_map, arts, capo)[2]
+            lines_all = S.score(cache, p["track"], mode, step, voice, gm_map, arts, capo, transpose)[2]
             lines_cache[ck] = [lines_all[i] for i in keep]
         pos = {}   # tab measure → its kept indices (1-based; a repeated measure has several)
         for k, i in enumerate(keep):

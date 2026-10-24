@@ -64,6 +64,12 @@ class CapoTest(unittest.TestCase):
         self.assertIn("C5/", got)
         self.assertIn("F5/", got)
 
+    def test_transpose_down_a_half_step(self):
+        got = S.score(self.dir, 2, transpose=-1)[2][0]
+        self.assertTrue(got.startswith("F4/"), got)
+        self.assertIn("Ab3/", got)
+        self.assertIn("C#4/", got)
+
     def test_no_capo_unchanged_with_option(self):
         self.assertEqual(self.line(2, True), self.line(2, False))
 

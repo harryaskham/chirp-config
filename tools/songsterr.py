@@ -386,11 +386,13 @@ def bend_semis(n):
     return round(tone / 25.0, 2)
 
 
-def score(cache, i, bends="peak", step=0.125, voice=0, gm_map=None, articulations=None, capo=False):
+def score(cache, i, bends="peak", step=0.125, voice=0, gm_map=None, articulations=None, capo=False, transpose=0):
     tr = load(cache, i)
     drums = not tr.get("tuning")
     if capo and not drums and tr.get("capo"):   # frets are written relative to the capo: sound them at tuning + capo
         tr = {**tr, "tuning": [int(x) + int(tr["capo"]) for x in tr["tuning"]]}
+    if transpose and not drums:   # the performance is in another tuning (e.g. a live set tuned down a half step)
+        tr = {**tr, "tuning": [int(x) + int(transpose) for x in tr["tuning"]]}
     by_measure = None
     if articulations and not drums:
         marks, rep = articulation_marks(tr, voice, articulations)
