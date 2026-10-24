@@ -135,5 +135,27 @@ class ApplyLags(unittest.TestCase):
         at = {t["name"]: t.get("at") for t in capped["tracks"]}
         self.assertEqual((at["bass"], at["gtr"]), ("0.070s", None))
 
+class SectionLags(unittest.TestCase):
+    def test_a_late_section_shows_while_the_rest_reads_zero(self):
+        import numpy as np
+        import likeness as L
+        rng = np.random.default_rng(3)
+        fps = L.FPS
+        n = int(60 * fps)
+        r = np.zeros(n)
+        r[rng.choice(n, 400, replace=False)] = 1.0
+        r = np.convolve(r, np.ones(5) / 5, "same")
+        o = r.copy()
+        k = int(round(0.2 * fps))                       # section 20-40 s: ours 200 ms late
+        i, j = int(20 * fps), int(40 * fps)
+        o[i + k:j] = r[i:j - k]
+        o[i:i + k] = 0
+        out = D.section_lags(r, o, [0.0, 20.0, 40.0, 60.0, 61.0], 250.0)
+        self.assertEqual(len(out), 3)                     # the 1 s tail section is too short: left out
+        lags = [round(x[2]["lag_ms"] / 10) * 10 for x in out]
+        self.assertEqual(lags[0], 0)
+        self.assertAlmostEqual(out[1][2]["lag_ms"], 200, delta=1000 / fps)
+        self.assertEqual(lags[2], 0)
+
 if __name__ == "__main__":
     unittest.main()

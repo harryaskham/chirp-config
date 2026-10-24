@@ -5,6 +5,7 @@
   driftscan.py --wav OURS.wav --ref REF.wav [--flag 60]                          # analysis only
   driftscan.py --offset [ID …] [--per-track] [--max-ms 130] [--flag-ms 15]       # whole-song offset (below)
   driftscan.py --offset --per-track ID --apply OUT [--skip a,b] [--cap MS]        # write each part shifted by its lag
+  driftscan.py --offset --sections [ID …] [--section-ms 250]                     # the lag per section (metric's bounds)
 
 Default IDs: the focus's climbs (climbs.json `focus`), else every enabled climb. By default it compares DRUMS WITH
 DRUMS, the skill's recipe: the song's drum tracks rendered solo (a kit patch, or a track/patch named drum/kick/snare/
@@ -27,6 +28,10 @@ shift (drum tracks are better judged by the default drums-vs-stem mode).
 A record with little percussion (its htdemucs_6s drums stem under 10% of the stems' energy) has soft, smeared onsets
 and its lags drift with them, not with our timeline: those flags print as `drift?`. Like Spinning Plates (0.6%
 drums) read +170 ms, and after warping our notes by that slope it still read +142 ms (chirper-one's r4).
+--sections: the same lag per section (the climb metric's section bounds, +-SECTION_MS, 250 by default): a whole-song
+lag averages local slips away. chirper-zero: Exit Music's intro sat +200 ms late while its body read ~0 (map offset
+-0.2 s with the first body bar longer, then dtwgrid: +4.5..+5.1 every seed); 43-85 ms slips on Paranoid Android
+(+3.1) and Electioneering (+0.9). The first thing to look at when a section's rhythm term is low.
 """
 import argparse
 import json
@@ -131,9 +136,31 @@ def flux_env(path):
 
 def offset(ours, ref, max_ms=130.0, r_env=None):
     """The whole-song lag (ms; negative = ours early) maximising the flux envelopes' correlation, and the gain over 0."""
-    import likeness as L
     r = flux_env(ref) if r_env is None else r_env
-    o = flux_env(ours)
+    return lag_env(r, flux_env(ours), max_ms)
+
+
+def section_lags(r, o, bounds, max_ms=250.0):
+    """[(start, end, lag)] per section [a, b) of the envelopes (lag_env within it); sections too short to hold
+    twice the search range plus 2 s are left out."""
+    import likeness as L
+    out = []
+    M = max_ms / 1000
+    for a, b in zip(bounds[:-1], bounds[1:]):
+        if b - a < 2 * M + 2.0:
+            continue
+        i, j = int(round(a * L.FPS)), int(round(b * L.FPS))
+        if j > min(len(r), len(o)):
+            break
+        lag = lag_env(r[i:j], o[i:j], max_ms)
+        lag["edge"] = abs(lag["lag_ms"]) >= max_ms - 1000 / L.FPS   # at the search edge: larger, or unreliable
+        out.append((a, b, lag))
+    return out
+
+
+def lag_env(r, o, max_ms=130.0):
+    """The lag (ms; negative = O early) maximising two envelopes' correlation over +-max_ms, and the gain over 0."""
+    import likeness as L
     n = min(len(r), len(o))
     r, o = r[:n], o[:n]
     M = max(1, int(round(max_ms / 1000 * L.FPS)))
@@ -177,6 +204,13 @@ def scan_offset(cid, work, a):
             res[name or "_mix"] = {"error": f"render failed: {r.stderr.strip()[-160:]}"}
             continue
         res[name or "_mix"] = offset(out, ref, a.max_ms, r_env)
+        if not name and getattr(a, "sections", False):
+            import gainsweep
+            secs = gainsweep.metric_paths(cid)[1]
+            if os.path.exists(secs):
+                bounds = [float(v) for v in open(secs).read().replace("\n", ",").split(",") if v.strip()]
+                res["_sections"] = [{"from": x, "to": y, **lag}
+                                    for x, y, lag in section_lags(r_env, flux_env(out), bounds, a.section_ms)]
     return cid, res
 
 
@@ -187,11 +221,16 @@ def offset_row(cid, res, flag_ms):
     early = "  EARLY" if m["lag_ms"] <= -flag_ms and m["gain"] > 0.002 else (
         "  LATE" if m["lag_ms"] >= flag_ms and m["gain"] > 0.002 else "")
     line = f"{cid:40s} offset {m['lag_ms']:+5.0f} ms  (corr {m['corr']:.3f} vs {m['corr0']:.3f} at 0){early}"
-    tr = [(k, v) for k, v in res.items() if k != "_mix" and "lag_ms" in v]
+    tr = [(k, v) for k, v in res.items() if not k.startswith("_") and "lag_ms" in v]
     if tr:
         line += "\n    per track: " + ", ".join(f"{k} {v['lag_ms']:+.0f}" + ("*" if abs(v["lag_ms"]) >= flag_ms
                                                                                   and v["gain"] > 0.002 else "")
                                              for k, v in tr)
+    if res.get("_sections"):
+        line += "\n    sections: " + ", ".join(f"{v['from']:.0f}-{v['to']:.0f} {v['lag_ms']:+.0f}" + (
+            "e" if v.get("edge") else "*" if abs(v["lag_ms"]) >= flag_ms and v["gain"] > 0.002 else "")
+            for v in res["_sections"])
+        line += "\n    (* a slip to check; e at the +-section-ms edge: larger, or a sustained/sparse section)"
     return line
 
 
@@ -301,6 +340,8 @@ def main(argv=None):
     ap.add_argument("--offset", action="store_true", help="one whole-song lag on likeness's flux envelope")
     ap.add_argument("--per-track", action="store_true", help="--offset: also each track solo")
     ap.add_argument("--max-ms", type=float, default=130.0)
+    ap.add_argument("--sections", action="store_true", help="--offset: also the lag per section (the metric's bounds)")
+    ap.add_argument("--section-ms", type=float, default=250.0)
     ap.add_argument("--flag-ms", type=float, default=15.0)
     ap.add_argument("--apply", metavar="OUT", help="--offset --per-track, one ID: write the song with each flagged part "
                     "shifted by its own lag (its `at`)")
