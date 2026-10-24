@@ -2811,14 +2811,14 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/airbag.wav OUT.wav $(cat tools/airbag-sections.txt)",
       "best": {
-        "score": 55.804,
-        "version": "v1",
+        "score": 61.54,
+        "version": "v2",
         "commit": "see git log songs/airbag.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 1,
+      "rounds": 2,
       "priority": 1.0,
       "genre": "alternative rock",
       "meta": {
@@ -2835,7 +2835,7 @@
       },
       "ref_file": "ref/albums/ok-computer/01.webm",
       "last": {
-        "at": "2026-10-24T02:44:39Z",
+        "at": "2026-10-24T06:18:00Z",
         "who": "chirper-one"
       }
     },
