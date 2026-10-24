@@ -3037,15 +3037,15 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/likeness.py sections ref/fitter-happier.wav OUT.wav $(cat tools/fitter-happier-sections.txt)",
       "best": {
-        "score": 54.239,
-        "version": "v1",
+        "score": 57.04,
+        "version": "v2",
         "commit": "see git log songs/fitter-happier.yaml",
         "engine": "554cc45"
       },
       "passes": 1,
       "enabled": true,
       "status": "paused",
-      "rounds": 2,
+      "rounds": 3,
       "priority": 1.0,
       "genre": "alternative rock",
       "meta": {
@@ -3062,7 +3062,7 @@
       },
       "ref_file": "ref/albums/ok-computer/07.webm",
       "last": {
-        "at": "2026-10-24T12:02:25Z",
+        "at": "2026-10-24T18:00:39Z",
         "who": "chirper-zero"
       },
       "paused_by": "focus"
