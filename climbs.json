@@ -3654,11 +3654,15 @@
       "source": "https://drive.google.com/file/d/1nmG0zqqXSfiZGzl3S6N2C4nSmH5yIRi2 (Harry's Drive, Music (Old Collection); S&M per ID3 tag or live duration)",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/human.wav OUT.wav $(cat tools/human-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 46.42,
+        "version": "v1",
+        "commit": "see git log songs/human.yaml"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
       "meta": {
@@ -3673,7 +3677,11 @@
         "at": "2026-10-24T17:43:52Z",
         "note": null
       },
-      "ref_file": "ref/albums/s-m/15.mp3"
+      "ref_file": "ref/albums/s-m/15.mp3",
+      "last": {
+        "at": "2026-10-24T18:50:43Z",
+        "who": "chirper-one"
+      }
     },
     {
       "id": "wherever-i-may-roam",
