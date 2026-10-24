@@ -1,0 +1,8 @@
+about: "S&M's audience (chirper-zero): a wide band of crowd noise, pink 250 Hz-6 kHz, for a live record's crowd bed under the whole song. Use two tracks (crowd-l pan -1, crowd-r pan 1, the second's notes 11 ms later) so the channels are independent; head and tail notes at vel 0.8 and the body at 1.0; calibrate the pair's gain with tools/gainsweep.py --tracks 'crowd:crowd-l+crowd-r' (Devil's Dance -9.3 dB, For Whom the Bell Tolls -2.8 dB). Worth +5..+6 on both songs' v1."
+synth:
+  layers:
+    - {type: noise, color: pink}
+  amp: {a: 400ms, d: 0s, s: 1, r: 800ms}
+  filters: ["hp cutoff=250 q=0.7", "lp cutoff=6000 q=0.7"]
+play: {gate: 1}
+gain: 0dB
