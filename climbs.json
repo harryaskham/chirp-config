@@ -3754,11 +3754,15 @@
       "source": "https://drive.google.com/file/d/1zq31zN48dQYyQSNTxIBp-deipRztBqMt (Harry's Drive, Music (Old Collection); S&M per ID3 tag or live duration)",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/sad-but-true.wav OUT.wav $(cat tools/sad-but-true-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 46.399,
+        "version": "v1",
+        "commit": "see git log songs/sad-but-true.yaml"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
       "meta": {
@@ -3773,7 +3777,11 @@
         "at": "2026-10-24T17:43:54Z",
         "note": null
       },
-      "ref_file": "ref/albums/s-m/18.mp3"
+      "ref_file": "ref/albums/s-m/18.mp3",
+      "last": {
+        "at": "2026-10-24T19:16:21Z",
+        "who": "chirper-one"
+      }
     },
     {
       "id": "one",
