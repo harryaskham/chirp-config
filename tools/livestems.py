@@ -16,6 +16,9 @@ applause into vocals (-25.7, the mix's own level) and drums (-42.9); on MDX's cr
 -76.0; BS-Roformer-SW -94.4 / -91.2. During the music the vocals stems agree within 1-4 dB (the crowd-free mix gives
 2-4 dB of vocal to MDX's crowd stem). SW also keeps the orchestra in `other` (demucs scatters it: -22..-89 dB).
 Slow: run it as a unit (systemd-run --user --collect …). Models cache: ~/.cache/chirp-sep/models.
+Every step runs in a transient systemd scope with CPUQuota = 100 x --threads % (else taskset -c --cpus): ONNX
+Runtime (the MDX crowd model) ignores OMP_NUM_THREADS and pins its own threads (taskset alone: 606%); it took 10
+cores on 24 Oct and the groove underran while two climbers separated at once.
 """
 import argparse
 import glob
@@ -34,6 +37,18 @@ UV = ["uv", "run", "--python", "3.11", "--index", "https://download.pytorch.org/
       "unsafe-best-match", "--with", "torch==2.5.1"]
 
 
+CPUS = ["0-3"]
+QUOTA = [400]
+
+
+def confine(cmd):
+    """CMD in a transient systemd scope with CPUQuota (a cgroup limit the runtime can't lift: ONNX Runtime pins its
+    own threads, so taskset alone still let it reach 606%), else under taskset -c CPUS."""
+    if shutil.which("systemd-run") and os.environ.get("XDG_RUNTIME_DIR"):
+        return ["systemd-run", "--user", "--scope", "--quiet", "-p", f"CPUQuota={QUOTA[0]}%", "--", *cmd]
+    return ["taskset", "-c", CPUS[0], *cmd] if shutil.which("taskset") else cmd
+
+
 def env(threads):
     e = {k: v for k, v in os.environ.items() if k != "LD_LIBRARY_PATH"}
     e.update(OMP_NUM_THREADS=str(threads), MKL_NUM_THREADS=str(threads), OPENBLAS_NUM_THREADS="1",
@@ -50,8 +65,8 @@ def pick(files, label):
 
 def separate(model, wav, outdir, threads, extra=()):
     os.makedirs(outdir, exist_ok=True)
-    cmd = ["nice", "-n", "15", *UV, "--with", "audio-separator[cpu]", "audio-separator", wav, "-m", model,
-           "--model_file_dir", MODELS, "--output_dir", outdir, "--output_format", "WAV", *extra]
+    cmd = confine(["nice", "-n", "15", *UV, "--with", "audio-separator[cpu]", "audio-separator", wav, "-m", model,
+                   "--model_file_dir", MODELS, "--output_dir", outdir, "--output_format", "WAV", *extra])
     r = subprocess.run(cmd, env=env(threads), capture_output=True, text=True, stdin=subprocess.DEVNULL)
     if r.returncode:
         raise SystemExit(f"livestems: {model} failed: {r.stderr.strip()[-400:]}")
@@ -77,9 +92,9 @@ def demucs6(wav, name, out_root, threads):
     with tempfile.TemporaryDirectory(dir=out_root) as tmp:
         src = os.path.join(tmp, f"{name}.wav")
         shutil.copy(wav, src)
-        cmd = ["nice", "-n", "15", *UV, "--with", "torchaudio==2.5.1", "--with", "demucs", "--with", "soundfile",
-               "python", "-m", "demucs", "-n", "htdemucs_6s", "-d", "cpu", "-j", "1", "--shifts", "0", "--float32",
-               "--clip-mode", "none", "--out", out_root, src]
+        cmd = confine(["nice", "-n", "15", *UV, "--with", "torchaudio==2.5.1", "--with", "demucs", "--with", "soundfile",
+                       "python", "-m", "demucs", "-n", "htdemucs_6s", "-d", "cpu", "-j", "1", "--shifts", "0", "--float32",
+                       "--clip-mode", "none", "--out", out_root, src])
         r = subprocess.run(cmd, env=env(threads), capture_output=True, text=True, stdin=subprocess.DEVNULL)
         if r.returncode:
             raise SystemExit(f"livestems: demucs failed: {r.stderr.strip()[-400:]}")
@@ -104,8 +119,10 @@ def main(argv=None):
     ap.add_argument("--crowd", choices=("mdx", "roformer", "none"), default="mdx")
     ap.add_argument("--sw", action="store_true")
     ap.add_argument("--threads", type=int, default=4)
+    ap.add_argument("--cpus", default="0-3", help="taskset CPU list every step is confined to")
     ap.add_argument("--force", action="store_true")
     a = ap.parse_args(argv)
+    CPUS[0], QUOTA[0] = a.cpus, 100 * a.threads
     if bool(a.id) == bool(a.wav) or (a.wav and not a.out):
         ap.error("give ID, or --wav IN --out DIR")
     name = a.id or os.path.splitext(os.path.basename(a.wav))[0]

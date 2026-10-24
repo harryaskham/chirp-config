@@ -38,5 +38,17 @@ class LiveStems(unittest.TestCase):
         self.assertEqual((e["OMP_NUM_THREADS"], e["OPENBLAS_NUM_THREADS"]), ("3", "1"))
 
 
+class Confine(unittest.TestCase):
+    def test_every_step_is_cpu_bounded(self):
+        S.CPUS[0], S.QUOTA[0] = "2-5", 300
+        os.environ["XDG_RUNTIME_DIR"] = os.environ.get("XDG_RUNTIME_DIR") or "/run/user/1000"
+        cmd = S.confine(["nice", "x"])
+        if cmd[0] == "systemd-run":                       # a cgroup quota the runtime can't lift
+            self.assertIn("CPUQuota=300%", cmd)
+            self.assertEqual(cmd[-2:], ["nice", "x"])
+        else:
+            self.assertEqual(cmd[:3], ["taskset", "-c", "2-5"])
+        S.CPUS[0], S.QUOTA[0] = "0-3", 400
+
 if __name__ == "__main__":
     unittest.main()
