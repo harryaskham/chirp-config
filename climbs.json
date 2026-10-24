@@ -3242,6 +3242,594 @@
         "at": "2026-10-24T17:14:33Z",
         "who": "chirper-one"
       }
+    },
+    {
+      "id": "the-ecstasy-of-gold",
+      "song": "songs/the-ecstasy-of-gold.yaml",
+      "reference": "Metallica — The Ecstasy of Gold",
+      "source": "/tmp/lt/sm-album/01.mp3",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/the-ecstasy-of-gold.wav OUT.wav $(cat tools/the-ecstasy-of-gold-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "heavy metal, symphonic metal (live)",
+      "meta": {
+        "artist": "Metallica",
+        "album": "S&M",
+        "title": "The Ecstasy of Gold",
+        "track": 1,
+        "year": 1999
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-24T17:43:44Z",
+        "note": null
+      },
+      "ref_file": "ref/albums/s-m/01.mp3"
+    },
+    {
+      "id": "the-call-of-ktulu",
+      "song": "songs/the-call-of-ktulu.yaml",
+      "reference": "Metallica — The Call of Ktulu",
+      "source": "/tmp/lt/sm-album/02.mp3",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/the-call-of-ktulu.wav OUT.wav $(cat tools/the-call-of-ktulu-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "heavy metal, symphonic metal (live)",
+      "meta": {
+        "artist": "Metallica",
+        "album": "S&M",
+        "title": "The Call of Ktulu",
+        "track": 2,
+        "year": 1999
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-24T17:43:45Z",
+        "note": null
+      },
+      "ref_file": "ref/albums/s-m/02.mp3"
+    },
+    {
+      "id": "master-of-puppets",
+      "song": "songs/master-of-puppets.yaml",
+      "reference": "Metallica — Master of Puppets",
+      "source": "/tmp/lt/sm-album/03.mp3",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/master-of-puppets.wav OUT.wav $(cat tools/master-of-puppets-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "heavy metal, symphonic metal (live)",
+      "meta": {
+        "artist": "Metallica",
+        "album": "S&M",
+        "title": "Master of Puppets",
+        "track": 3,
+        "year": 1999
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-24T17:43:46Z",
+        "note": null
+      },
+      "ref_file": "ref/albums/s-m/03.mp3"
+    },
+    {
+      "id": "of-wolf-and-man",
+      "song": "songs/of-wolf-and-man.yaml",
+      "reference": "Metallica — Of Wolf and Man",
+      "source": "/tmp/lt/sm-album/04.mp3",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/of-wolf-and-man.wav OUT.wav $(cat tools/of-wolf-and-man-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "heavy metal, symphonic metal (live)",
+      "meta": {
+        "artist": "Metallica",
+        "album": "S&M",
+        "title": "Of Wolf and Man",
+        "track": 4,
+        "year": 1999
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-24T17:43:46Z",
+        "note": null
+      },
+      "ref_file": "ref/albums/s-m/04.mp3"
+    },
+    {
+      "id": "the-thing-that-should-not-be",
+      "song": "songs/the-thing-that-should-not-be.yaml",
+      "reference": "Metallica — The Thing That Should Not Be",
+      "source": "/tmp/lt/sm-album/05.mp3",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/the-thing-that-should-not-be.wav OUT.wav $(cat tools/the-thing-that-should-not-be-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "heavy metal, symphonic metal (live)",
+      "meta": {
+        "artist": "Metallica",
+        "album": "S&M",
+        "title": "The Thing That Should Not Be",
+        "track": 5,
+        "year": 1999
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-24T17:43:47Z",
+        "note": null
+      },
+      "ref_file": "ref/albums/s-m/05.mp3"
+    },
+    {
+      "id": "fuel",
+      "song": "songs/fuel.yaml",
+      "reference": "Metallica — Fuel",
+      "source": "/tmp/lt/sm-album/06.mp3",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/fuel.wav OUT.wav $(cat tools/fuel-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "heavy metal, symphonic metal (live)",
+      "meta": {
+        "artist": "Metallica",
+        "album": "S&M",
+        "title": "Fuel",
+        "track": 6,
+        "year": 1999
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-24T17:43:47Z",
+        "note": null
+      },
+      "ref_file": "ref/albums/s-m/06.mp3"
+    },
+    {
+      "id": "the-memory-remains",
+      "song": "songs/the-memory-remains.yaml",
+      "reference": "Metallica — The Memory Remains",
+      "source": "/tmp/lt/sm-album/07.mp3",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/the-memory-remains.wav OUT.wav $(cat tools/the-memory-remains-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "heavy metal, symphonic metal (live)",
+      "meta": {
+        "artist": "Metallica",
+        "album": "S&M",
+        "title": "The Memory Remains",
+        "track": 7,
+        "year": 1999
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-24T17:43:48Z",
+        "note": null
+      },
+      "ref_file": "ref/albums/s-m/07.mp3"
+    },
+    {
+      "id": "no-leaf-clover",
+      "song": "songs/no-leaf-clover.yaml",
+      "reference": "Metallica — No Leaf Clover",
+      "source": "/tmp/lt/sm-album/08.mp3",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/no-leaf-clover.wav OUT.wav $(cat tools/no-leaf-clover-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "heavy metal, symphonic metal (live)",
+      "meta": {
+        "artist": "Metallica",
+        "album": "S&M",
+        "title": "No Leaf Clover",
+        "track": 8,
+        "year": 1999
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-24T17:43:48Z",
+        "note": null
+      },
+      "ref_file": "ref/albums/s-m/08.mp3"
+    },
+    {
+      "id": "hero-of-the-day",
+      "song": "songs/hero-of-the-day.yaml",
+      "reference": "Metallica — Hero of the Day",
+      "source": "/tmp/lt/sm-album/09.mp3",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/hero-of-the-day.wav OUT.wav $(cat tools/hero-of-the-day-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "heavy metal, symphonic metal (live)",
+      "meta": {
+        "artist": "Metallica",
+        "album": "S&M",
+        "title": "Hero of the Day",
+        "track": 9,
+        "year": 1999
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-24T17:43:49Z",
+        "note": null
+      },
+      "ref_file": "ref/albums/s-m/09.mp3"
+    },
+    {
+      "id": "devil-s-dance",
+      "song": "songs/devil-s-dance.yaml",
+      "reference": "Metallica — Devil's Dance",
+      "source": "/tmp/lt/sm-album/10.mp3",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/devil-s-dance.wav OUT.wav $(cat tools/devil-s-dance-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "heavy metal, symphonic metal (live)",
+      "meta": {
+        "artist": "Metallica",
+        "album": "S&M",
+        "title": "Devil's Dance",
+        "track": 10,
+        "year": 1999
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-24T17:43:49Z",
+        "note": null
+      },
+      "ref_file": "ref/albums/s-m/10.mp3"
+    },
+    {
+      "id": "bleeding-me",
+      "song": "songs/bleeding-me.yaml",
+      "reference": "Metallica — Bleeding Me",
+      "source": "/tmp/lt/sm-album/11.mp3",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/bleeding-me.wav OUT.wav $(cat tools/bleeding-me-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "heavy metal, symphonic metal (live)",
+      "meta": {
+        "artist": "Metallica",
+        "album": "S&M",
+        "title": "Bleeding Me",
+        "track": 11,
+        "year": 1999
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-24T17:43:51Z",
+        "note": null
+      },
+      "ref_file": "ref/albums/s-m/11.mp3"
+    },
+    {
+      "id": "nothing-else-matters",
+      "song": "songs/nothing-else-matters.yaml",
+      "reference": "Metallica — Nothing Else Matters",
+      "source": "/tmp/lt/sm-album/12.mp3",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/nothing-else-matters.wav OUT.wav $(cat tools/nothing-else-matters-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "heavy metal, symphonic metal (live)",
+      "meta": {
+        "artist": "Metallica",
+        "album": "S&M",
+        "title": "Nothing Else Matters",
+        "track": 12,
+        "year": 1999
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-24T17:43:51Z",
+        "note": null
+      },
+      "ref_file": "ref/albums/s-m/12.mp3"
+    },
+    {
+      "id": "until-it-sleeps",
+      "song": "songs/until-it-sleeps.yaml",
+      "reference": "Metallica — Until It Sleeps",
+      "source": "/tmp/lt/sm-album/13.mp3",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/until-it-sleeps.wav OUT.wav $(cat tools/until-it-sleeps-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "heavy metal, symphonic metal (live)",
+      "meta": {
+        "artist": "Metallica",
+        "album": "S&M",
+        "title": "Until It Sleeps",
+        "track": 13,
+        "year": 1999
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-24T17:43:52Z",
+        "note": null
+      },
+      "ref_file": "ref/albums/s-m/13.mp3"
+    },
+    {
+      "id": "for-whom-the-bell-tolls",
+      "song": "songs/for-whom-the-bell-tolls.yaml",
+      "reference": "Metallica — For Whom the Bell Tolls",
+      "source": "/tmp/lt/sm-album/14.mp3",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/for-whom-the-bell-tolls.wav OUT.wav $(cat tools/for-whom-the-bell-tolls-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "heavy metal, symphonic metal (live)",
+      "meta": {
+        "artist": "Metallica",
+        "album": "S&M",
+        "title": "For Whom the Bell Tolls",
+        "track": 14,
+        "year": 1999
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-24T17:43:52Z",
+        "note": null
+      },
+      "ref_file": "ref/albums/s-m/14.mp3"
+    },
+    {
+      "id": "human",
+      "song": "songs/human.yaml",
+      "reference": "Metallica — Human",
+      "source": "/tmp/lt/sm-album/15.mp3",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/human.wav OUT.wav $(cat tools/human-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "heavy metal, symphonic metal (live)",
+      "meta": {
+        "artist": "Metallica",
+        "album": "S&M",
+        "title": "Human",
+        "track": 15,
+        "year": 1999
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-24T17:43:52Z",
+        "note": null
+      },
+      "ref_file": "ref/albums/s-m/15.mp3"
+    },
+    {
+      "id": "wherever-i-may-roam",
+      "song": "songs/wherever-i-may-roam.yaml",
+      "reference": "Metallica — Wherever I May Roam",
+      "source": "/tmp/lt/sm-album/16.mp3",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/wherever-i-may-roam.wav OUT.wav $(cat tools/wherever-i-may-roam-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "heavy metal, symphonic metal (live)",
+      "meta": {
+        "artist": "Metallica",
+        "album": "S&M",
+        "title": "Wherever I May Roam",
+        "track": 16,
+        "year": 1999
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-24T17:43:53Z",
+        "note": null
+      },
+      "ref_file": "ref/albums/s-m/16.mp3"
+    },
+    {
+      "id": "outlaw-torn",
+      "song": "songs/outlaw-torn.yaml",
+      "reference": "Metallica — Outlaw Torn",
+      "source": "/tmp/lt/sm-album/17.mp3",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/outlaw-torn.wav OUT.wav $(cat tools/outlaw-torn-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "heavy metal, symphonic metal (live)",
+      "meta": {
+        "artist": "Metallica",
+        "album": "S&M",
+        "title": "Outlaw Torn",
+        "track": 17,
+        "year": 1999
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-24T17:43:54Z",
+        "note": null
+      },
+      "ref_file": "ref/albums/s-m/17.mp3"
+    },
+    {
+      "id": "sad-but-true",
+      "song": "songs/sad-but-true.yaml",
+      "reference": "Metallica — Sad but True",
+      "source": "/tmp/lt/sm-album/18.mp3",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/sad-but-true.wav OUT.wav $(cat tools/sad-but-true-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "heavy metal, symphonic metal (live)",
+      "meta": {
+        "artist": "Metallica",
+        "album": "S&M",
+        "title": "Sad but True",
+        "track": 18,
+        "year": 1999
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-24T17:43:54Z",
+        "note": null
+      },
+      "ref_file": "ref/albums/s-m/18.mp3"
+    },
+    {
+      "id": "one",
+      "song": "songs/one.yaml",
+      "reference": "Metallica — One",
+      "source": "/tmp/lt/sm-album/19.mp3",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/one.wav OUT.wav $(cat tools/one-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "heavy metal, symphonic metal (live)",
+      "meta": {
+        "artist": "Metallica",
+        "album": "S&M",
+        "title": "One",
+        "track": 19,
+        "year": 1999
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-24T17:43:55Z",
+        "note": null
+      },
+      "ref_file": "ref/albums/s-m/19.mp3"
+    },
+    {
+      "id": "enter-sandman",
+      "song": "songs/enter-sandman.yaml",
+      "reference": "Metallica — Enter Sandman",
+      "source": "/tmp/lt/sm-album/20.mp3",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/enter-sandman.wav OUT.wav $(cat tools/enter-sandman-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "heavy metal, symphonic metal (live)",
+      "meta": {
+        "artist": "Metallica",
+        "album": "S&M",
+        "title": "Enter Sandman",
+        "track": 20,
+        "year": 1999
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-24T17:43:57Z",
+        "note": null
+      },
+      "ref_file": "ref/albums/s-m/20.mp3"
+    },
+    {
+      "id": "battery",
+      "song": "songs/battery.yaml",
+      "reference": "Metallica — Battery",
+      "source": "/tmp/lt/sm-album/21.mp3",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/battery.wav OUT.wav $(cat tools/battery-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "heavy metal, symphonic metal (live)",
+      "meta": {
+        "artist": "Metallica",
+        "album": "S&M",
+        "title": "Battery",
+        "track": 21,
+        "year": 1999
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-24T17:43:58Z",
+        "note": null
+      },
+      "ref_file": "ref/albums/s-m/21.mp3"
     }
   ],
   "focus": "OK Computer"
