@@ -3597,7 +3597,7 @@
       "song": "songs/bleeding-me.yaml",
       "reference": "Metallica — Bleeding Me",
       "source": "https://drive.google.com/file/d/1OF3NoBcSG7EPqsxzXB0oviGuxaaLL3Cc (Harry's Drive, Music (Old Collection); S&M per ID3 tag or live duration)",
-      "owner": null,
+      "owner": "chirper-zero",
       "metric": "python3 tools/likeness.py sections ref/bleeding-me.wav OUT.wav $(cat tools/bleeding-me-sections.txt)",
       "best": {
         "score": 55.27,
