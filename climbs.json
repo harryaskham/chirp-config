@@ -2883,14 +2883,14 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/subterranean-homesick-alien.wav OUT.wav $(cat tools/subterranean-homesick-alien-sections.txt)",
       "best": {
-        "score": 60.759,
-        "version": "v1",
+        "score": 61.022,
+        "version": "v2",
         "commit": "see git log songs/subterranean-homesick-alien.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 1,
+      "rounds": 2,
       "priority": 1.0,
       "genre": "alternative rock",
       "meta": {
@@ -2907,7 +2907,7 @@
       },
       "ref_file": "ref/albums/ok-computer/03.webm",
       "last": {
-        "at": "2026-10-24T05:53:11Z",
+        "at": "2026-10-24T07:52:13Z",
         "who": "chirper-one"
       }
     },
