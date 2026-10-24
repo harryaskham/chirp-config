@@ -3599,11 +3599,16 @@
       "source": "https://drive.google.com/file/d/1OF3NoBcSG7EPqsxzXB0oviGuxaaLL3Cc (Harry's Drive, Music (Old Collection); S&M per ID3 tag or live duration)",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/bleeding-me.wav OUT.wav $(cat tools/bleeding-me-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 55.27,
+        "version": "v1",
+        "commit": "see git log songs/bleeding-me.yaml",
+        "engine": "554cc45"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
       "meta": {
@@ -3618,7 +3623,11 @@
         "at": "2026-10-24T17:43:51Z",
         "note": null
       },
-      "ref_file": "ref/albums/s-m/11.mp3"
+      "ref_file": "ref/albums/s-m/11.mp3",
+      "last": {
+        "at": "2026-10-24T23:04:54Z",
+        "who": "chirper-zero"
+      }
     },
     {
       "id": "nothing-else-matters",
