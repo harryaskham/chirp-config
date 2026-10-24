@@ -1,9 +1,9 @@
 {
  "id": "outlaw-torn",
- "version": "v1",
+ "version": "v2",
  "edge": 3.0,
  "ref_seconds": 600.961,
- "at": "2026-10-24T18:37:19Z",
+ "at": "2026-10-24T19:37:45Z",
  "edges": {
   "head": {
    "level": -120.0,
