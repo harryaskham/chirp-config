@@ -2956,15 +2956,15 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/likeness.py sections ref/let-down.wav OUT.wav $(cat tools/let-down-sections.txt)",
       "best": {
-        "score": 71.784,
-        "version": "v2",
+        "score": 71.961,
+        "version": "v3",
         "commit": "see git log songs/let-down.yaml",
         "engine": "554cc45"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 3,
+      "rounds": 4,
       "priority": 1.0,
       "genre": "alternative rock",
       "meta": {
@@ -2981,7 +2981,7 @@
       },
       "ref_file": "ref/albums/ok-computer/05.webm",
       "last": {
-        "at": "2026-10-24T09:42:47Z",
+        "at": "2026-10-24T14:03:54Z",
         "who": "chirper-zero"
       }
     },
