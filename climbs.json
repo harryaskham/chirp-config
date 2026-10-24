@@ -3009,7 +3009,7 @@
       "song": "songs/fitter-happier.yaml",
       "reference": "Radiohead — Fitter Happier",
       "source": "https://www.youtube.com/watch?v=O4SzvsMFaek",
-      "owner": null,
+      "owner": "chirper-zero",
       "metric": "python3 tools/likeness.py sections ref/fitter-happier.wav OUT.wav $(cat tools/fitter-happier-sections.txt)",
       "best": {
         "score": 54.239,
