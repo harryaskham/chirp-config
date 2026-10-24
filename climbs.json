@@ -2950,11 +2950,15 @@
       "source": "https://www.youtube.com/watch?v=4IJI6soiQhI",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/karma-police.wav OUT.wav $(cat tools/karma-police-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 53.68,
+        "version": "v1",
+        "commit": "see git log songs/karma-police.yaml"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "alternative rock",
       "meta": {
@@ -2969,7 +2973,11 @@
         "at": "2026-10-24T00:39:19Z",
         "note": null
       },
-      "ref_file": "ref/albums/ok-computer/06.webm"
+      "ref_file": "ref/albums/ok-computer/06.webm",
+      "last": {
+        "at": "2026-10-24T02:16:05Z",
+        "who": "chirper-one"
+      }
     },
     {
       "id": "fitter-happier",
