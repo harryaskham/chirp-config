@@ -3139,14 +3139,14 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/no-surprises.wav OUT.wav $(cat tools/no-surprises-sections.txt)",
       "best": {
-        "score": 61.687,
-        "version": "v3",
+        "score": 62.57,
+        "version": "v4",
         "commit": "see git log songs/no-surprises.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 3,
+      "rounds": 4,
       "priority": 1.0,
       "genre": "alternative rock",
       "meta": {
@@ -3163,7 +3163,7 @@
       },
       "ref_file": "ref/albums/ok-computer/10.webm",
       "last": {
-        "at": "2026-10-24T03:17:18Z",
+        "at": "2026-10-24T09:24:18Z",
         "who": "chirper-one"
       }
     },
