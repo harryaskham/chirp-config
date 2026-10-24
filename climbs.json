@@ -3512,7 +3512,7 @@
       "song": "songs/devil-s-dance.yaml",
       "reference": "Metallica — Devil's Dance",
       "source": "https://drive.google.com/file/d/1lCn-4CCySvDWcpbYVHq6dg6jBKUSLIG5 (Harry's Drive, Music (Old Collection); S&M per ID3 tag or live duration)",
-      "owner": null,
+      "owner": "chirper-zero",
       "metric": "python3 tools/likeness.py sections ref/devil-s-dance.wav OUT.wav $(cat tools/devil-s-dance-sections.txt)",
       "best": {
         "score": 59.704,
