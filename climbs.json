@@ -3068,15 +3068,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/electioneering.wav OUT.wav $(cat tools/electioneering-sections.txt)",
       "best": {
-        "score": 63.752,
-        "version": "v3",
+        "score": 64.543,
+        "version": "v4",
         "commit": "see git log songs/electioneering.yaml",
         "engine": "554cc45"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 5,
+      "rounds": 6,
       "priority": 1.0,
       "genre": "alternative rock",
       "meta": {
@@ -3093,8 +3093,8 @@
       },
       "ref_file": "ref/albums/ok-computer/08.webm",
       "last": {
-        "at": "2026-10-24T15:43:22Z",
-        "who": "chirper-one"
+        "at": "2026-10-24T17:39:09Z",
+        "who": "chirper-zero"
       }
     },
     {
