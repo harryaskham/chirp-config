@@ -2994,15 +2994,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/karma-police.wav OUT.wav $(cat tools/karma-police-sections.txt)",
       "best": {
-        "score": 63.79,
-        "version": "v3",
+        "score": 64.346,
+        "version": "v4",
         "commit": "see git log songs/karma-police.yaml",
         "engine": "554cc45"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 4,
+      "rounds": 5,
       "priority": 1.0,
       "genre": "alternative rock",
       "meta": {
@@ -3019,7 +3019,7 @@
       },
       "ref_file": "ref/albums/ok-computer/06.webm",
       "last": {
-        "at": "2026-10-24T16:11:51Z",
+        "at": "2026-10-24T17:04:14Z",
         "who": "chirper-zero"
       }
     },
