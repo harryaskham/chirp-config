@@ -3773,11 +3773,15 @@
       "source": "https://drive.google.com/file/d/126td2C_oHiuvyf0AGX-DBK0JFlQd2y0x (Harry's Drive, Music (Old Collection); S&M per ID3 tag or live duration)",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/wherever-i-may-roam.wav OUT.wav $(cat tools/wherever-i-may-roam-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 47.51,
+        "version": "v1",
+        "commit": "see git log songs/wherever-i-may-roam.yaml"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
       "meta": {
@@ -3792,7 +3796,11 @@
         "at": "2026-10-24T17:43:53Z",
         "note": null
       },
-      "ref_file": "ref/albums/s-m/16.mp3"
+      "ref_file": "ref/albums/s-m/16.mp3",
+      "last": {
+        "at": "2026-10-24T23:58:26Z",
+        "who": "chirper-one"
+      }
     },
     {
       "id": "outlaw-torn",
