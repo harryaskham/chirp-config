@@ -3076,14 +3076,14 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/climbing-up-the-walls.wav OUT.wav $(cat tools/climbing-up-the-walls-sections.txt)",
       "best": {
-        "score": 52.374,
-        "version": "v1",
+        "score": 52.686,
+        "version": "v2",
         "commit": "see git log songs/climbing-up-the-walls.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 1,
+      "rounds": 2,
       "priority": 1.0,
       "genre": "alternative rock",
       "meta": {
@@ -3100,7 +3100,7 @@
       },
       "ref_file": "ref/albums/ok-computer/09.webm",
       "last": {
-        "at": "2026-10-24T04:27:07Z",
+        "at": "2026-10-24T04:48:59Z",
         "who": "chirper-one"
       }
     },
