@@ -3407,14 +3407,14 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/the-thing-that-should-not-be.wav OUT.wav $(cat tools/the-thing-that-should-not-be-sections.txt)",
       "best": {
-        "score": 58.779,
-        "version": "v6",
+        "score": 59.302,
+        "version": "v7",
         "commit": "see git log songs/the-thing-that-should-not-be.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 6,
+      "rounds": 7,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
       "meta": {
@@ -3431,7 +3431,7 @@
       },
       "ref_file": "ref/albums/s-m/05.mp3",
       "last": {
-        "at": "2026-10-25T19:57:06Z",
+        "at": "2026-10-25T20:28:48Z",
         "who": "chirper-one"
       }
     },
