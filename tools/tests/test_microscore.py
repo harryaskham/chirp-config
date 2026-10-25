@@ -84,6 +84,12 @@ class MicroScore(unittest.TestCase):
         s = M.score(self.ref, mono)
         self.assertLess(s["stereo"], 85.0, s)
 
+    def test_a_hard_panned_take_keeps_a_sane_stereo_score(self):
+        right = np.stack([np.zeros(len(self.ref)), self.ref.mean(1)], 1)          # pan +1: the left channel is silent
+        near = np.stack([0.05 * self.ref.mean(1), self.ref.mean(1)], 1)           # pan +0.9: -26 dB on the left
+        s = M.score(right, near)
+        self.assertGreater(s["stereo"], 50.0, s)                                  # (unclamped ILD read -230 dB: 0)
+
     def test_noise_scores_low(self):
         noise = np.random.default_rng(1).normal(size=self.ref.shape) * 0.05
         s = M.score(self.ref, noise)

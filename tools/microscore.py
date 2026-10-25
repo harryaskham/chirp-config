@@ -216,8 +216,10 @@ def d_stereo(r, c):
         for x in (r, c):
             y = signal.sosfilt(sos, x, axis=0)
             left, right = y[:, 0], y[:, 1]
-            icc = (left @ right) / (np.linalg.norm(left) * np.linalg.norm(right) + 1e-12)
-            ild = 10 * np.log10((left @ left + 1e-12) / (right @ right + 1e-12))
+            raw_ild = 10 * np.log10((left @ left + 1e-12) / (right @ right + 1e-12))
+            ild = float(np.clip(raw_ild, -20, 20))   # lateralisation saturates by ~20 dB; pan +-1 zeroes a side (-230 dB)
+            # one source panned hard is fully correlated; a near-silent side leaves the correlation undefined
+            icc = 1.0 if abs(raw_ild) >= 30 else (left @ right) / (np.linalg.norm(left) * np.linalg.norm(right) + 1e-12)
             feats.append((icc, ild))
         (ia, la), (ib, lb) = feats
         out.append(abs(ia - ib) + abs(la - lb) / 6)
