@@ -5,7 +5,7 @@ a micro benchmark that sees sound, not song shape: where our songs lean on globa
   microscore.py REF.wav CAND.wav [--ref-from S --ref-to S] [--cand-from S --cand-to S] [--json]
   microscore.py --clip ID CAND.wav | --clip ID --song SONG.yaml        (a clip from micro/clips.json)
   microscore.py --mask [--clips a,b] [-j 3]          each clip's song's current render over the same window
-  microscore.py --clip ID --song micro/songs/ID.yaml --record NOTE [--as WHO]    append to micro/ledger.jsonl
+  microscore.py --clip ID --song micro/songs/ID.yaml [--seeds 0,3,7,11] --record NOTE [--as WHO]   (ledger)
   microscore.py --board                              the best recorded total per clip (holdouts marked)
 
 The candidate is level-matched to the reference (RMS) and aligned within +-50 ms before anything is measured, so
@@ -274,11 +274,12 @@ def clip_ref(cl):
     return cut(L.load(os.path.join(ROOT, "ref", f"{cl['song']}.wav")), cl["from"], cl["to"])
 
 
-def render_window(song, t0, t1):
+def render_window(song, t0, t1, seed=None):
     import chirpbin
     with tempfile.TemporaryDirectory(dir="/tmp/lt" if os.path.isdir("/tmp/lt") else None) as d:
         out = os.path.join(d, "r.wav")
-        r = subprocess.run(["nice", "-n", "15", chirpbin.resolve("chirp"), "render", "-f", os.path.abspath(song), "-o", out],
+        sd = ["--seed", str(seed)] if seed is not None else []
+        r = subprocess.run(["nice", "-n", "15", chirpbin.resolve("chirp"), "render", "-f", os.path.abspath(song), *sd, "-o", out],
                            capture_output=True, text=True, stdin=subprocess.DEVNULL, cwd=os.path.dirname(os.path.abspath(song)),
                            env={**os.environ, "RAYON_NUM_THREADS": "2"})
         if r.returncode:
@@ -304,6 +305,8 @@ def main(argv=None):
     ap.add_argument("--clips")
     ap.add_argument("-j", type=int, default=3)
     ap.add_argument("--json", action="store_true")
+    ap.add_argument("--seeds", help="with --song: render these seeds (e.g. 0,3,7,11) and score their mean "
+                    "(piano/guitar totals swing +-1-3 between seeds)")
     ap.add_argument("--record", metavar="NOTE")
     ap.add_argument("--as", dest="who", default=os.environ.get("CLIMB_AS") or os.environ.get("USER", "?"))
     ap.add_argument("--board", action="store_true")
@@ -350,6 +353,17 @@ def main(argv=None):
         if not cl:
             raise SystemExit(f"microscore: no clip {a.clip} in micro/clips.json")
         ref = clip_ref(cl)
+        if a.song and a.seeds:
+            mono = cl["family"] in MONO_FAMILIES
+            per = [(int(x), score(ref, render_window(a.song, None, None, int(x)), mono=mono)) for x in a.seeds.split(",") if x]
+            s = mean_scores([r for _, r in per])
+            s["seeds"] = {str(k): r["total"] for k, r in per}
+            if not a.json:
+                for k, r in per:
+                    print(row(f"  seed {k}", r))
+            print(json.dumps(s) if a.json else row(f"{a.clip} (mean of {len(per)})", s))
+            record(a, cl, s)
+            return
         cand = render_window(a.song, None, None) if a.song else cut(L.load(a.files[0]), a.cand_from, a.cand_to)
     else:
         if len(a.files) != 2:
@@ -361,15 +375,30 @@ def main(argv=None):
     if a.record is not None:
         if not a.clip:
             raise SystemExit("microscore: --record needs --clip")
-        prev = max((e["total"] for e in ledger() if e["clip"] == a.clip), default=None)
-        import time
-        e = {"clip": a.clip, "at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "who": a.who, "note": a.record,
-             "song": a.song, **s}
-        os.makedirs(os.path.dirname(LEDGER), exist_ok=True)
-        with open(LEDGER, "a") as f:
-            f.write(json.dumps(e) + "\n")
-        print(f"recorded: {s['total']:.2f}" + (f" (best was {prev:.2f}: {'NEW BEST' if s['total'] > prev else 'no gain'})"
-                                               if prev is not None else " (first)"))
+        record(a, cl, s)
+
+
+def mean_scores(rs):
+    """The per-dimension mean of several score() results (pitch None when any is None)."""
+    out = {}
+    for k in list(WEIGHTS) + ["total", "voiced"]:
+        vals = [r[k] for r in rs]
+        out[k] = None if any(v is None for v in vals) else round(float(np.mean(vals)), 2)
+    return out
+
+
+def record(a, cl, s):
+    if a.record is None:
+        return
+    prev = max((e["total"] for e in ledger() if e["clip"] == a.clip), default=None)
+    import time
+    e = {"clip": a.clip, "at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "who": a.who, "note": a.record,
+         "song": a.song, **{k: v for k, v in s.items() if k != "raw"}}
+    os.makedirs(os.path.dirname(LEDGER), exist_ok=True)
+    with open(LEDGER, "a") as f:
+        f.write(json.dumps(e) + "\n")
+    print(f"recorded: {s['total']:.2f}" + (f" (best was {prev:.2f}: {'NEW BEST' if s['total'] > prev else 'no gain'})"
+                                           if prev is not None else " (first)"))
 
 
 if __name__ == "__main__":
