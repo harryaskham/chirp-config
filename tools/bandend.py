@@ -6,7 +6,8 @@ and Man, Human) muting the band by a lane plus crowd-applause plus a refit won +
 
   bandend.py [ID …] [--mute TRACKS] [--floor 40] [-j 3] [--json]      (default: the focus's climbs)
 
-Ours: the song rendered with its crowd tracks muted (any track named crowd/applause/audience, plus --mute). Record: the htdemucs_6s stems except vocals (crowd cheering lands
+Ours: the song rendered with its crowd tracks muted (any track named crowd/applause/audience, plus --mute).
+Record: the htdemucs_6s stems except vocals (crowd cheering lands
 there) summed. Each band end is the last 0.25 s frame within --floor dB of the signal's loud level (95th percentile).
 Reports both ends and the difference; |difference| >= 3 s is flagged (PLAYS ON: the record's band continues after ours;
 STOPS EARLY: ours continues after the record's). Read-only.
