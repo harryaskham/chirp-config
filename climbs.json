@@ -3504,7 +3504,7 @@
       "song": "songs/no-leaf-clover.yaml",
       "reference": "Metallica — No Leaf Clover",
       "source": "https://drive.google.com/file/d/1HXeZyVygvkOcmjaEdk6Y8yjBXyDOOnin (Harry's Drive, Music (Old Collection); S&M per ID3 tag or live duration)",
-      "owner": null,
+      "owner": "chirper-zero",
       "metric": "python3 tools/likeness.py sections ref/no-leaf-clover.wav OUT.wav $(cat tools/no-leaf-clover-sections.txt)",
       "best": {
         "score": 62.804,
