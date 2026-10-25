@@ -3515,15 +3515,15 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/likeness.py sections ref/no-leaf-clover.wav OUT.wav $(cat tools/no-leaf-clover-sections.txt)",
       "best": {
-        "score": 62.804,
-        "version": "v1",
+        "score": 66.462,
+        "version": "v2",
         "commit": "see git log songs/no-leaf-clover.yaml",
-        "engine": "554cc45"
+        "engine": "85b3881"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 1,
+      "rounds": 2,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
       "meta": {
@@ -3540,7 +3540,7 @@
       },
       "ref_file": "ref/albums/s-m/08.mp3",
       "last": {
-        "at": "2026-10-25T04:43:10Z",
+        "at": "2026-10-25T18:57:25Z",
         "who": "chirper-zero"
       }
     },
