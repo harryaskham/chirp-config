@@ -3913,7 +3913,7 @@
       "song": "songs/one.yaml",
       "reference": "Metallica — One",
       "source": "https://drive.google.com/file/d/18pFhDU4wLPF2h1Dwp_VBzOBy74TnrMRA (Harry's Drive, Music (Old Collection); S&M per ID3 tag or live duration)",
-      "owner": null,
+      "owner": "chirper-zero",
       "metric": "python3 tools/likeness.py sections ref/one.wav OUT.wav $(cat tools/one-sections.txt)",
       "best": null,
       "passes": 1,
