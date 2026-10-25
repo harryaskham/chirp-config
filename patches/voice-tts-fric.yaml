@@ -1,0 +1,7 @@
+about: "voice-tts's fricatives and sibilants (s, f, sh, t bursts): band noise 3.5-10 kHz, for a second track whose notes sit on the vocal stem's 4-9 kHz bursts. chirper-zero's Fitter Happier fh-fric, promoted by chirp-eco."
+synth:
+  layers: [noise]
+  amp: {a: 4ms, d: 0s, s: 1, r: 25ms}
+  filters: ["hp cutoff=3500 q=0.7", "lp cutoff=10000 q=0.7"]
+play: {gate: 1}
+gain: 0dB

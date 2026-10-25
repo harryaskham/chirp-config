@@ -1,0 +1,22 @@
+about: "A text-to-speech speaking voice (a 1990s Macintosh TTS): flat, bright, steady, no vibrato. chirper-zero's Fitter Happier fh-voice, promoted by chirp-eco on chirper-three's micro benchmark (fitter-happier-vocals-27 in context: 44.72, beating every library voice by 1.3-3.9: maynard 43.44, voice 41.08, voice-spoken 40.83). Vowels on expr.vow (stemvowels' default ^vow marks), consonants on expr.on / expr.off (stemconsonants). Pair it with voice-tts-fric on a second track for the s/f/sh/t bursts. The song's 3/8 delay is left to the song."
+play: {mono: true, glide: 25ms}
+synth:
+  layers:
+    - type: voice
+      tract: 0.96
+      vowel: {value: 0.5, mod: [{src: expr.vow, amount: 1}]}
+      breath: 0.1
+      effort: {value: 0.35, mod: [{src: vel, amount: 0.3}]}
+      ring: 0.2
+      vary: 0.0
+      bright: 0.6
+      pulse_vary: 0
+      formant_tune: 0.5
+      bw_track: 0.5
+      onset: expr.on
+      coda: expr.off
+  pitch: {value: 0}
+  amp: {a: 15ms, d: 0s, s: 1, r: 60ms}
+fx:
+  - {type: eq, bands: [{kind: lowpass, cutoff: 9000, q: 0.7}]}
+gain: -3dB
