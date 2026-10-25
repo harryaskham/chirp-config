@@ -3335,14 +3335,14 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/master-of-puppets.wav OUT.wav $(cat tools/master-of-puppets-sections.txt)",
       "best": {
-        "score": 56.559,
-        "version": "v6",
+        "score": 57.162,
+        "version": "v7",
         "commit": "see git log songs/master-of-puppets.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 6,
+      "rounds": 7,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
       "meta": {
@@ -3359,7 +3359,7 @@
       },
       "ref_file": "ref/albums/s-m/03.mp3",
       "last": {
-        "at": "2026-10-25T13:44:34Z",
+        "at": "2026-10-25T15:05:41Z",
         "who": "chirper-one"
       }
     },
