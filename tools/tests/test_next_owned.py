@@ -41,6 +41,16 @@ class NextOwned(unittest.TestCase):
         with open(self.starts) as f:
             return [json.loads(x)["id"] for x in f]
 
+    def test_an_unclaimed_setup_in_progress_is_flagged(self):
+        os.makedirs(os.path.join(self.root, "tools", "maps"))
+        with open(os.path.join(self.root, "tools", "maps", "free.json"), "w") as f:
+            f.write("{}")
+        r = self.next_("--take", "free", who="chirper-one")
+        self.assertEqual(json.loads(r.stdout).get("untracked_setup"), ["tools/maps/free.json"])
+        self.assertIn("looks mid-setup", r.stderr)
+        r = self.next_("--take", "mine", who="chirper-zero")       # an active climb: no warning, key absent
+        self.assertNotIn("untracked_setup", json.loads(r.stdout))
+
     def test_draws_skip_other_agents_climbs(self):
         for seed in range(30):
             r = self.next_("--seed", str(seed), "--peek")

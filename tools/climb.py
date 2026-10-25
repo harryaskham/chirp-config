@@ -820,6 +820,20 @@ def owned_by_other(c, me):
     return bool(o) and not (agent_names(o) & agent_names(me))
 
 
+def untracked_setup(cid):
+    """[(path, HH:MM)] of a climb's setup files that exist but are not in git: someone mid-setup without claiming it
+    (chirper-one drew `one` on 25 Oct while chirper-zero's untracked map, sections and stems sat in the tree)."""
+    out = []
+    for rel in (f"tools/maps/{cid}.json", f"tools/{cid}-sections.txt", f"songs/{cid}.yaml"):
+        full = os.path.join(ROOT, rel)
+        if not os.path.exists(full):
+            continue
+        r = subprocess.run(["git", "-C", ROOT, "ls-files", "--error-unmatch", rel], capture_output=True)
+        if r.returncode:
+            out.append((rel, time.strftime("%H:%M", time.localtime(os.path.getmtime(full)))))
+    return out
+
+
 def cmd_next(a):
     me = whoami(a)
     reg = load()
@@ -852,13 +866,20 @@ def cmd_next(a):
         os.makedirs(os.path.dirname(STARTS), exist_ok=True)
         with locked("climb-starts.lock"), open(STARTS, "a") as f:
             f.write(json.dumps({"id": cid, "who": me, "t": time.time(), "at": now_iso(), "genre": c.get("genre")}) + "\n")
+    pending = untracked_setup(cid) if c.get("status") == "requested" and not c.get("owner") else []
     if "--json" in a:
-        print(json.dumps({"climb": c, "history": visible(history(cid))[-5:],
-                          "odds": round(odds, 3) if odds is not None else None, "skipped_owned": skipped}))
+        out = {"climb": c, "history": visible(history(cid))[-5:],
+               "odds": round(odds, 3) if odds is not None else None, "skipped_owned": skipped}
+        if pending:
+            out["untracked_setup"] = [p for p, _ in pending]
+        print(json.dumps(out))
     else:
         how = f"odds {odds:.0%}" if odds is not None else "taken by id"
         skip = f"; skipped {len(skipped)} owned by others" if skipped else ""
         print(f"next for {me} ({how}{skip}):\n{brief(c, history(cid))}")
+    if pending:
+        print(f"climb: `{cid}` looks mid-setup by someone (untracked: "
+              f"{', '.join(f'{p} {t}' for p, t in pending)}): ask before building it", file=sys.stderr)
 
 
 def cmd_done(a):
