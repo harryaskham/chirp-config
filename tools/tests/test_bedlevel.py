@@ -21,7 +21,7 @@ class BedLevel(unittest.TestCase):
         n = 60 * SR
         rng = np.random.default_rng(0)
         music = 0.3 * rng.normal(size=n)
-        music[30 * SR:40 * SR] *= 0.01                   # a quiet passage: the bed shows through
+        music[25 * SR:35 * SR] *= 0.01                   # a quiet passage (one whole window): the bed shows through
         bed = 0.03 * rng.normal(size=n)                  # -20 dB under the loud music
         body, med, worst = B.levels(bed, music, body=5, win=10)
         self.assertAlmostEqual(med, -20.0, delta=0.5)
