@@ -1,4 +1,4 @@
-about: "Dry, dark, close-miked clean electric for riffs and rhythm parts recorded in a dead room: the baritone string model through a light compressor, a Twin barely breaking up, a 4x12 miked off-axis, the top shelved 18 dB down above 1.5 kHz, and a small, narrow room. No chorus or delay: pan it. Fitted jointly on i-might-be-wrong-guitar-233 (33.8 -> ~42.5) and thin-thing-guitar-2 (24.6 -> ~31.3), 2-seed search (chirper-three, 25 Oct 2026)."
+about: "Dry, dark, close-miked clean electric for riffs and rhythm parts recorded in a dead room: the baritone string model through a light compressor, a Twin barely breaking up, a 4x12 miked off-axis, the top shelved 18 dB down above 1.5 kHz, and a small, narrow room. No chorus or delay: pan it. Fitted jointly on i-might-be-wrong-guitar-233 (33.8 -> ~42.5) and thin-thing-guitar-2 (24.6 -> ~31.3), 2-seed search (chirper-three, 25 Oct 2026). IN CONTEXT (harness + album master): thin-thing 32.5 vs 30.4 (les-paul); i-might-be-wrong 36.4, level with jazz-box 36.8."
 extends: baritone
 fx:
   - {type: compressor, attack: 4ms, release: 120ms, ratio: 2.5, threshold: -24dB, makeup: 4dB}

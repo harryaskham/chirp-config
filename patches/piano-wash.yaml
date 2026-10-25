@@ -1,4 +1,4 @@
-about: "Dark, wobbly grand drowned in a plate (Radiohead's Pyramid Song): the concert grand through a slow tape wow, a 2.5 kHz low-pass and a -6 dB shelf above 1.5 kHz, into a long, very wet plate — wide, soft-edged chords that bloom and smear. Micro benchmark: pyramid-song-piano-0 52.5 (3-seed mean) vs 44.0 for `piano` and <= 47.4 for every other library keyboard (chirper-three, 25 Oct 2026)."
+about: "Dark, wobbly grand drowned in a plate (Radiohead's Pyramid Song): the concert grand through a slow tape wow, a 2.5 kHz low-pass and a -6 dB shelf above 1.5 kHz, into a long, very wet plate — wide, soft-edged chords that bloom and smear. Micro benchmark: pyramid-song-piano-0 52.5 (3-seed mean) vs 44.0 for `piano` and <= 47.4 for every other library keyboard (chirper-three, 25 Oct 2026). IN CONTEXT (harness + the Pyramid Song master): 46.1 vs 45.4 for `piano`."
 extends: piano
 gain: -10dB
 fx:

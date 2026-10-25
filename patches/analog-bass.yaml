@@ -1,4 +1,4 @@
-about: "Analog mono saw bass (Juno / SH-101 style): one saw through a gentle 12 dB low-pass that plucks open on every note and settles dark, a fast attack and half sustain, legato glide between touching notes. Round dream-pop, synth-pop and indie-electronica basslines (Grimes' Genesis intro). Dry: add room in the song. Micro benchmark: genesis-bass-4 60.5 vs 45.8 for `bass`, 57.0 for `tuba` (chirper-three, 25 Oct 2026)."
+about: "Analog mono saw bass (Juno / SH-101 style): one saw through a gentle 12 dB low-pass that plucks open on every note and settles dark, a fast attack and half sustain, legato glide between touching notes. Round dream-pop, synth-pop and indie-electronica basslines (Grimes' Genesis intro). Dry: add room in the song. Micro benchmark: genesis-bass-4 60.5 vs 45.8 for `bass`, 57.0 for `tuba` (chirper-three, 25 Oct 2026). IN CONTEXT (harness + the Genesis album master): 57.5 vs 59.3 for `bass`, so the bare-harness win was standing in for that master's EQ; prefer it on unmastered or lightly mastered songs."
 synth:
   layers:
     - {wave: saw, level: -12dB}

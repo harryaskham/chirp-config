@@ -1,4 +1,4 @@
-about: "Saturated sub bass (James Blake / post-dubstep): a sine with a triangle and a little saw driven hard per voice and through tape, low-passed at 2 kHz so its harmonics carry the sub on small speakers; soft 30 ms attack, full sustain, 500 ms release, mono legato glide. Play notes to the next onset. Micro benchmark: i-never-learnt-to-share-bass-263 47.8 (3-seed) vs 40.5 for the best existing library bass (reese) and 31.6 for `sub`; fitted on one clip only (chirper-three, 25 Oct 2026)."
+about: "Saturated sub bass (James Blake / post-dubstep): a sine with a triangle and a little saw driven hard per voice and through tape, low-passed at 2 kHz so its harmonics carry the sub on small speakers; soft 30 ms attack, full sustain, 500 ms release, mono legato glide. Play notes to the next onset. Micro benchmark: i-never-learnt-to-share-bass-263 47.8 (3-seed) vs 40.5 for the best existing library bass (reese) and 31.6 for `sub`; fitted on one clip only (chirper-three, 25 Oct 2026). IN CONTEXT (harness + the album master): 48.0 vs 24.5 for `sub` (4-seed)."
 synth:
   layers:
     - {wave: sine, level: 0dB}
