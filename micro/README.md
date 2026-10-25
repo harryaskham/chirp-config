@@ -27,3 +27,15 @@ engine until chirp can synthesise them closely.
    labels `chirp,dsp`) with the clip ids and the profile as evidence.
 
 Canary: chirper-three (from 25 Oct).
+
+## Findings
+
+- **25 Oct, piano-recorded as the `piano` default: rejected.** chirper-three's piano-recorded (the built-in piano,
+  -12 dB above 2.5 kHz, plate, width 2) beat the built-in on all four piano clips, holdouts included
+  (clair-de-lune-piano-164 36.9 -> 46.2 on every seed). Crossclimbed as the default across the 25 album songs that
+  use pianos: mean -0.96, 13 worse (saturnine -5.5, daydreaming -4.1, wuthering-heights -4.0, pyramid-song -3.7),
+  1 better (clair-de-lune +3.4). With --refit (each side's master refitted first): mean -0.84, the same 13 worse, so
+  stale masters were not the cause. The global metric prefers the brighter, narrower piano inside mixes that are
+  closer to the records locally. That is the masking this benchmark is for: either the global terms reward brightness
+  as fill (as with the S&M crowd bed) or a clip misses how the part sits in its mix. piano-recorded stays a named
+  patch that songs opt into (Clair de Lune +3.4 / +4.65 refit).
