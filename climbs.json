@@ -3299,14 +3299,14 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/the-call-of-ktulu.wav OUT.wav $(cat tools/the-call-of-ktulu-sections.txt)",
       "best": {
-        "score": 57.329,
-        "version": "v4",
+        "score": 59.637,
+        "version": "v5",
         "commit": "see git log songs/the-call-of-ktulu.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 4,
+      "rounds": 5,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
       "meta": {
@@ -3323,7 +3323,7 @@
       },
       "ref_file": "ref/albums/s-m/02.mp3",
       "last": {
-        "at": "2026-10-25T07:34:47Z",
+        "at": "2026-10-25T11:17:55Z",
         "who": "chirper-one"
       }
     },
