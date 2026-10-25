@@ -4,7 +4,12 @@ the reference vocal over the note and map them onto chirp's voice-layer vowel ax
 – i 1), then write the track's score back with a per-note `^vow=X` articulation. Measured from audio — no lyric
 text — so a synthesised singer follows the real vowel colour of each note.
 
-  stemvowels.py VOCALS.wav SONG.yaml TRACK OUT.json [--key vox]
+  stemvowels.py VOCALS.wav SONG.yaml TRACK OUT.json [--key vox] [--style vow|builtin]
+
+--style builtin writes the built-in `voice` patch's own marks instead of ^vow: its vowel is 0.5 (ah) moved by expr.u
+(-0.5) and expr.i (+0.5), so X < 0.5 becomes ^u=(1-2X), X > 0.5 ^i=(2X-1), and 0.5 nothing. With the default ^vow, a
+patch that doesn't bind expr.vow (the built-in voice, voice-spoken) ignores every vowel: chirper-three's micro round 21
+scored byte-identical with and without them.
 
 Envelope: cepstrally smoothed log spectrum (lifter below the pitch period, so the harmonics of a 100-400 Hz voice do
 not pull the formants), averaged over the middle 60% of the note; F1 = strongest envelope peak in 230-1000 Hz,
@@ -135,7 +140,7 @@ def to_axis(f1, f2):
     return round(float(bt), 2)
 
 
-def run(stem, song, track, key="vox"):
+def run(stem, song, track, key="vox", style="vow"):
     x = L.load(stem).mean(1)
     pts = D.tempo_points(song)
     beats = np.array([b for b, _ in pts]); bpm = np.array([v for _, v in pts])
@@ -163,15 +168,25 @@ def run(stem, song, track, key="vox"):
                 f1, f2 = formants(*envelope(seg))
                 v = to_axis(f1, f2); stats.append((f1, f2, v))
         last = v
-        out.append(f"{body}/{m.group(2)}b{rest}^vow={v}")
+        out.append(f"{body}/{m.group(2)}b{rest}{mark(v, style)}")
         pos += ln
     return {key: {"score": " ".join(out), "notes": len(stats)}}, stats
+
+
+def mark(v, style="vow"):
+    """The per-note vowel articulation: ^vow=X (patches binding expr.vow), or the built-in voice's ^u / ^i."""
+    if style != "builtin":
+        return f"^vow={v}"
+    if abs(v - 0.5) < 0.005:
+        return ""
+    return f"^u={round(1 - 2 * v, 3)}" if v < 0.5 else f"^i={round(2 * v - 1, 3)}"
 
 
 if __name__ == "__main__":
     a = sys.argv[1:]
     key = a[a.index("--key") + 1] if "--key" in a else "vox"
-    res, stats = run(a[0], a[1], a[2], key)
+    style = a[a.index("--style") + 1] if "--style" in a else "vow"
+    res, stats = run(a[0], a[1], a[2], key, style)
     json.dump(res, open(a[3], "w"))
     if stats:
         vs = np.array([s[2] for s in stats])
