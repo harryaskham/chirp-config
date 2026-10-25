@@ -3263,14 +3263,14 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/the-ecstasy-of-gold.wav OUT.wav $(cat tools/the-ecstasy-of-gold-sections.txt)",
       "best": {
-        "score": 43.013,
-        "version": "v1",
+        "score": 57.385,
+        "version": "v2",
         "commit": "see git log songs/the-ecstasy-of-gold.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 1,
+      "rounds": 2,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
       "meta": {
@@ -3287,7 +3287,7 @@
       },
       "ref_file": "ref/albums/s-m/01.mp3",
       "last": {
-        "at": "2026-10-24T21:47:24Z",
+        "at": "2026-10-25T01:34:19Z",
         "who": "chirper-one"
       }
     },
