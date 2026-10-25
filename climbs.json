@@ -3961,7 +3961,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 9,
+      "rounds": 10,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
       "meta": {
@@ -3978,7 +3978,7 @@
       },
       "ref_file": "ref/albums/s-m/20.mp3",
       "last": {
-        "at": "2026-10-25T21:15:26Z",
+        "at": "2026-10-25T21:45:44Z",
         "who": "chirper-one"
       }
     },
