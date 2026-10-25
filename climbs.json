@@ -3588,15 +3588,15 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/likeness.py sections ref/devil-s-dance.wav OUT.wav $(cat tools/devil-s-dance-sections.txt)",
       "best": {
-        "score": 59.704,
-        "version": "v1",
+        "score": 67.428,
+        "version": "v2",
         "commit": "see git log songs/devil-s-dance.yaml",
-        "engine": "554cc45"
+        "engine": "85b3881"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 1,
+      "rounds": 2,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
       "meta": {
@@ -3613,7 +3613,7 @@
       },
       "ref_file": "ref/albums/s-m/10.mp3",
       "last": {
-        "at": "2026-10-24T19:18:39Z",
+        "at": "2026-10-25T12:28:22Z",
         "who": "chirper-zero"
       }
     },
