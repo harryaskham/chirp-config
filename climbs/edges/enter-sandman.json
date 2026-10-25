@@ -1,9 +1,9 @@
 {
  "id": "enter-sandman",
- "version": "v2",
+ "version": "v3",
  "edge": 3.0,
  "ref_seconds": 461.206,
- "at": "2026-10-25T04:40:49Z",
+ "at": "2026-10-25T07:54:16Z",
  "edges": {
   "head": {
    "level": -27.899374896581076,
