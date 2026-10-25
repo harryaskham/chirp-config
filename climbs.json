@@ -3836,14 +3836,14 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/outlaw-torn.wav OUT.wav $(cat tools/outlaw-torn-sections.txt)",
       "best": {
-        "score": 55.516,
-        "version": "v5",
+        "score": 56.227,
+        "version": "v6",
         "commit": "see git log songs/outlaw-torn.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 5,
+      "rounds": 6,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
       "meta": {
@@ -3860,7 +3860,7 @@
       },
       "ref_file": "ref/albums/s-m/17.mp3",
       "last": {
-        "at": "2026-10-25T03:30:32Z",
+        "at": "2026-10-25T05:43:15Z",
         "who": "chirper-one"
       }
     },
