@@ -97,6 +97,19 @@ class Launch(unittest.TestCase):
                  'unit_active "proc-sh-none-*" || echo no')
         self.assertEqual(r.stdout.split(), ["yes", "no"])
 
+    def test_the_groove_unit_gets_a_high_cpu_weight(self):
+        d = tempfile.mkdtemp(prefix="proc-sh-")
+        self.addCleanup(shutil.rmtree, d, True)
+        log = os.path.join(d, "args")
+        with open(os.path.join(d, "systemd-run"), "w") as f:     # a fake systemd-run that records its arguments
+            f.write(f"#!/bin/sh\necho \"$@\" >> {log}\n")
+        os.chmod(os.path.join(d, "systemd-run"), 0o755)
+        env = {"PATH": f"{d}:{os.environ['PATH']}"}
+        bash('launch chirp-groove "true"; launch chirp-playlist "true"', env=env)
+        lines = open(log).read().splitlines()
+        self.assertIn("-p CPUWeight=10000", lines[0])
+        self.assertNotIn("CPUWeight", lines[1])
+
     def test_without_systemd_run_it_falls_back_to_setsid(self):
         d = tempfile.mkdtemp(prefix="proc-sh-")
         self.addCleanup(shutil.rmtree, d, True)

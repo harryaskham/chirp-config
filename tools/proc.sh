@@ -28,10 +28,15 @@ safe_pgrep() {
 # user manager is available, else with setsid nohup. A unit outlives its caller's service: an agent's shell runs inside
 # pi-daemon.service, and a system switch restarting that service killed a groove started from it (01:45 and 04:10 on
 # 2026-10-22). A unit does not inherit the caller's environment: put what COMMAND needs inside it (VAR=… exec …).
+# The groove's unit gets CPUWeight=${CHIRP_GROOVE_CPU_WEIGHT:-10000} (siblings 100): under contention it is scheduled
+# first (01:11-01:12 on 2026-10-25, an engine build + separations at load ~100: +370 underruns at the default weight).
 launch() {
   local name=$1; shift
+  local props=""
+  [ "$name" = chirp-groove ] && props="-p CPUWeight=${CHIRP_GROOVE_CPU_WEIGHT:-10000}"
   if command -v systemd-run >/dev/null 2>&1 && systemctl --user show-environment >/dev/null 2>&1; then
-    systemd-run --user --collect --quiet --unit="$name-$(date +%s%N)" -- /bin/sh -c "$*" && return 0
+    # shellcheck disable=SC2086
+    systemd-run --user --collect --quiet $props --unit="$name-$(date +%s%N)" -- /bin/sh -c "$*" && return 0
   fi
   setsid nohup /bin/sh -c "$*" > /dev/null 2>&1 < /dev/null &
 }
