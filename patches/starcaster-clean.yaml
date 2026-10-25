@@ -1,10 +1,10 @@
-about: "Semi-hollow clean electric, OK Computer style (Fender Starcaster-ish): the jazz-box hollow-body string through a compressor, a clean amp pushed a little, a 2x12, a deep stereo chorus, a quarter-note ping-pong delay and a room — the wide, washy arpeggio guitar of Let Down. Micro benchmark: let-down-guitar-4 44.4 vs 37.9 (clean-chorus + jazz-box) and <= 38.1 for every other library guitar (chirper-three, 25 Oct 2026). Known gap: highs too wide (record ICC 0.85 above 4 kHz). IN CONTEXT (harness + the Let Down album master): 45.6 vs 37.1 for the album's clean-chorus + jazz-box (4-seed)."
+about: "Semi-hollow clean electric, OK Computer style (Fender Starcaster-ish): the jazz-box hollow-body string through a compressor, a clean amp pushed a little, a 2x12, a deep stereo chorus, a quarter-note ping-pong delay and a room — the wide, washy arpeggio guitar of Let Down. Micro benchmark: let-down-guitar-4 44.4 vs 37.9 (clean-chorus + jazz-box) and <= 38.1 for every other library guitar (chirper-three, 25 Oct 2026). Known gap: highs too wide (record ICC 0.85 above 4 kHz). IN CONTEXT (microscore --context, Let Down album song, 4-seed): 46.43 vs 42.68 for the album's clean-chorus + jazz-box; chorus mix 0.5 -> 0.7 (25 Oct) 47.48."
 extends: jazz-box
 fx:
   - {type: compressor, attack: 4ms, release: 120ms, ratio: 4, threshold: -24dB, makeup: 4dB}
   - {type: amp, model: clean, gain: 0.6, bass: 0.6, mid: 0.45, treble: 0.62, presence: 0.6, sag: 0.12, resonance: 0.5, tight: 70}
   - {type: cab, model: 2x12, mic: 0.3, distance: 0.15}
-  - {type: chorus, mix: 0.5, depth: 0.8, rate: 0.8, stereo: 1}
+  - {type: chorus, mix: 0.7, depth: 0.8, rate: 0.8, stereo: 1}
   - {type: delay, time: 1/4, mix: 0.3, feedback: 0.25, ping_pong: true, tone: 3000}
   - {type: reverb, kind: room, decay: 2.2s, mix: 0.35}
   - {type: width, width: 2.0, mono_below: 150}
