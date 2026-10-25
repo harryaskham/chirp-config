@@ -1,4 +1,4 @@
-about: "Analog mono saw bass (Juno / SH-101 style): one saw through a gentle 12 dB low-pass that plucks open on every note and settles dark, a fast attack and half sustain, legato glide between touching notes. Round dream-pop, synth-pop and indie-electronica basslines (Grimes' Genesis intro). Dry: add room in the song. Micro benchmark: genesis-bass-4 60.5 vs 45.8 for `bass`, 57.0 for `tuba` (chirper-three, 25 Oct 2026). IN CONTEXT (harness + the Genesis album master): 57.5 vs 59.3 for `bass`, so the bare-harness win was standing in for that master's EQ; prefer it on unmastered or lightly mastered songs."
+about: "Analog mono saw bass (Juno / SH-101 style): one saw through a gentle 12 dB low-pass that plucks open on every note and settles dark, a fast attack and half sustain, legato glide between touching notes. Round dream-pop, synth-pop and indie-electronica basslines (Grimes' Genesis intro). Dry: add room in the song. Micro benchmark: genesis-bass-4 60.5 vs 45.8 for `bass`, 57.0 for `tuba` (chirper-three, 25 Oct 2026). IN CONTEXT (harness + the Genesis album master): 57.5 vs 59.3 for `bass`, so the bare-harness win was standing in for that master's EQ. Sustain 0.5 -> 0.65 (25 Oct) fixed the in-context transient dip: microscore --context genesis-bass-4 62.64 vs 59.48 for the album's gen-bass; bare 61.65 (was 62.10); holdouts hold (we-are-the-music-makers-bass-0 bare 40.99 vs 40.36, baddadan-bass-12 in context 33.06 vs 32.34, album 27.09)."
 synth:
   layers:
     - {wave: saw, level: -12dB}
@@ -7,5 +7,5 @@ synth:
   filters:
     - "hp cutoff=30"
     - {kind: lp, cutoff: {value: 420, mod: [{src: env.f, amount: 1.2}, {src: vel, amount: 1.0}]}, q: 0.7, slope: 12}
-  amp: {a: 2ms, d: 200ms, s: 0.5, r: 300ms}
+  amp: {a: 2ms, d: 200ms, s: 0.65, r: 300ms}
 play: {mono: true, legato: true, glide: 25ms, gate: 0.7, vel_sens: 0.6}
