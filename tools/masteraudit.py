@@ -76,6 +76,8 @@ def main():
     ap.add_argument("--threshold", type=float, default=3.0, help="report a band corrected by at least this (dB)")
     ap.add_argument("--agree", type=int, default=4, help="songs correcting a band the same way to flag it")
     ap.add_argument("-j", type=int, default=3)
+    ap.add_argument("--json", metavar="OUT", help="also write every song's correction curve and their median (dB per "
+                    "1/3-octave centre) to OUT")
     a = ap.parse_args()
     os.makedirs(OUT, exist_ok=True)
     climbs = [c for c in json.load(open(os.path.join(ROOT, "climbs.json")))["climbs"]
@@ -108,6 +110,13 @@ def main():
                     print(f"  {centres[i]:6.0f} Hz {lab} in {len(ks)}: median {np.median([rows[k][i] for k in ks]):+.1f} dB — {', '.join(ks)}")
         if not any_flag:
             print("  none")
+    if a.json and rows:
+        n = min(len(r) for r in rows.values())
+        m = np.array([r[:n] for r in rows.values()])
+        with open(a.json, "w") as f:
+            json.dump({"centres": [round(float(c), 1) for c in centres[:n]], "window": [a.frm, a.to],
+                       "median": [round(float(v), 2) for v in np.median(m, 0)],
+                       "songs": {k: [round(float(v), 2) for v in r[:n]] for k, r in rows.items()}}, f, indent=1)
 
 
 if __name__ == "__main__":
