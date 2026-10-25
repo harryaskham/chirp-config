@@ -3954,14 +3954,14 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/enter-sandman.wav OUT.wav $(cat tools/enter-sandman-sections.txt)",
       "best": {
-        "score": 59.145,
-        "version": "v7",
+        "score": 59.6,
+        "version": "v8",
         "commit": "see git log songs/enter-sandman.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 7,
+      "rounds": 8,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
       "meta": {
@@ -3978,7 +3978,7 @@
       },
       "ref_file": "ref/albums/s-m/20.mp3",
       "last": {
-        "at": "2026-10-25T15:55:54Z",
+        "at": "2026-10-25T19:29:20Z",
         "who": "chirper-one"
       }
     },
