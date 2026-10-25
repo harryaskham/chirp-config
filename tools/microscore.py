@@ -5,6 +5,8 @@ a micro benchmark that sees sound, not song shape: where our songs lean on globa
   microscore.py REF.wav CAND.wav [--ref-from S --ref-to S] [--cand-from S --cand-to S] [--json]
   microscore.py --clip ID CAND.wav | --clip ID --song SONG.yaml        (a clip from micro/clips.json)
   microscore.py --mask [--clips a,b] [-j 3]          each clip's song's current render over the same window
+  microscore.py --clip ID --song micro/songs/ID.yaml --record NOTE [--as WHO]    append to micro/ledger.jsonl
+  microscore.py --board                              the best recorded total per clip (holdouts marked)
 
 The candidate is level-matched to the reference (RMS) and aligned within +-50 ms before anything is measured, so
 loudness and placement are not scored. Seven dimensions, each 0-100 (100 = the reference against itself):
@@ -244,6 +246,16 @@ def score(ref, cand):
     return out
 
 
+LEDGER = os.path.join(ROOT, "micro", "ledger.jsonl")
+
+
+def ledger():
+    if not os.path.exists(LEDGER):
+        return []
+    with open(LEDGER) as f:
+        return [json.loads(x) for x in f if x.strip()]
+
+
 def clips():
     p = os.path.join(ROOT, "micro", "clips.json")
     return json.load(open(p))["clips"] if os.path.exists(p) else []
@@ -283,7 +295,21 @@ def main(argv=None):
     ap.add_argument("--clips")
     ap.add_argument("-j", type=int, default=3)
     ap.add_argument("--json", action="store_true")
+    ap.add_argument("--record", metavar="NOTE")
+    ap.add_argument("--as", dest="who", default=os.environ.get("CLIMB_AS") or os.environ.get("USER", "?"))
+    ap.add_argument("--board", action="store_true")
     a = ap.parse_args(argv)
+    if a.board:
+        best = {}
+        for e in ledger():
+            if e["clip"] not in best or e["total"] > best[e["clip"]]["total"]:
+                best[e["clip"]] = e
+        for cl in clips():
+            e = best.get(cl["id"])
+            tag = "HOLDOUT " if cl.get("holdout") else ""
+            print(f"{cl['id']:44s} {cl['family']:7s} {tag:8s}" + (f"best {e['total']:6.2f} by {e['who']} ({e['at'][:16]}): {e['note'][:60]}"
+                                                                    if e else "—"))
+        return
     if a.mask:
         from concurrent.futures import ThreadPoolExecutor
         want = {x for x in (a.clips or "").split(",") if x}
@@ -317,6 +343,18 @@ def main(argv=None):
         cand = cut(L.load(a.files[1]), a.cand_from, a.cand_to)
     s = score(ref, cand)
     print(json.dumps(s) if a.json else row(a.clip or os.path.basename(a.files[1]), s))
+    if a.record is not None:
+        if not a.clip:
+            raise SystemExit("microscore: --record needs --clip")
+        prev = max((e["total"] for e in ledger() if e["clip"] == a.clip), default=None)
+        import time
+        e = {"clip": a.clip, "at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "who": a.who, "note": a.record,
+             "song": a.song, **s}
+        os.makedirs(os.path.dirname(LEDGER), exist_ok=True)
+        with open(LEDGER, "a") as f:
+            f.write(json.dumps(e) + "\n")
+        print(f"recorded: {s['total']:.2f}" + (f" (best was {prev:.2f}: {'NEW BEST' if s['total'] > prev else 'no gain'})"
+                                               if prev is not None else " (first)"))
 
 
 if __name__ == "__main__":
