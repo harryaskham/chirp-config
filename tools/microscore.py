@@ -35,8 +35,9 @@ import likeness as L  # noqa: E402
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SR = L.SR
 WEIGHTS = {"spectral": .25, "timbre": .2, "tone": .15, "transients": .15, "pitch": .1, "modulation": .1, "stereo": .05}
-# calibrated on synthetic manipulations: noise ~0-20, a semitone or a 1.5 kHz lowpass ~35-60 on the affected dimensions
-SCALES = {"spectral": 1.2, "timbre": 10.0, "tone": 8.0, "pitch": 60.0, "modulation": 0.6, "stereo": 0.5}
+# calibrated on the 25 Oct masking report (37 clips, our best song renders vs the records): the median reproduction
+# scores ~45 on each dimension (pitch stricter: a semitone ~43), so a climber gets a gradient both ways
+SCALES = {"spectral": 1.3, "timbre": 40.0, "tone": 8.0, "pitch": 120.0, "modulation": 0.45, "stereo": 0.7}
 BANDS4 = ((60, 250), (250, 1000), (1000, 4000), (4000, 12000))
 
 
@@ -141,11 +142,12 @@ def d_tone(r, c):
 
 
 def onset_env(x):
-    """Linear-magnitude spectral flux on 256-sample frames (1.3 ms hop), smoothed over 3 frames: log flux jumps at any
-    onset and cannot tell an 80 ms swell from a 3 ms pluck (r 0.993); linear flux reads them 0.72 / 1.0."""
+    """Linear-magnitude spectral flux on 256-sample frames (1.3 ms hop), smoothed over 30 ms: log flux jumps at any
+    onset and cannot tell an 80 ms swell from a 3 ms pluck (r 0.993); linear flux at 1.3 ms punished ordinary 10-30 ms
+    note timing (most real clips read ~0)."""
     m = stft_mag(x, 256)
     flux = np.maximum(0, np.diff(m, axis=1)).sum(0)
-    return np.convolve(flux, np.ones(3) / 3, "same")
+    return np.convolve(flux, np.ones(23) / 23, "same")   # 30 ms: a player's 20 ms timing 0.81, an 80 ms swell 0.61
 
 
 def s_transients(r, c):
@@ -162,14 +164,14 @@ def f0_frames(x):
     return f0
 
 
-def d_pitch(r, c):
-    """(cents-equivalent distance, voiced share of the reference) or (None, share) for non-monophonic clips."""
+def d_pitch(r, c, min_share=0.5):
+    """(cents-equivalent distance, voiced share of the reference) or (None, share) when under MIN_SHARE is voiced."""
     a, b = f0_frames(r), f0_frames(c)
     k = min(len(a), len(b))
     a, b = a[:k], b[:k]
     va, vb = ~np.isnan(a), ~np.isnan(b)
     share = float(va.mean()) if k else 0.0
-    if share < 0.5:
+    if share < min_share:
         return None, share
     both = va & vb
     if not both.any():
@@ -221,28 +223,34 @@ def d_stereo(r, c):
     return float(np.mean(out))
 
 
-def score(ref, cand):
-    """{dimension: 0-100 (pitch None when the clip is not monophonic), 'total': weighted mean}."""
+MONO_FAMILIES = ("bass", "vocals")
+
+
+def score(ref, cand, mono=None):
+    """{dimension: 0-100 (pitch None when the clip is not monophonic), 'total': weighted mean, 'raw': distances}.
+    MONO: True/False forces whether pitch counts (a clip's family: bass and vocals); None decides by the share of
+    voiced reference frames (pitch tracking a mixture is meaningless: the masking report read 0 on most clips)."""
     ref, cand = stereo2(ref), stereo2(cand)
-    n = min(len(ref), len(cand))
-    ref, cand = ref[:n], cand[:n]
+    if len(ref) < SR // 2:
+        raise ValueError("reference clip shorter than 0.5 s")
+    if len(cand) < len(ref):                  # a render that stops early is scored as silence there, not trimmed away
+        cand = np.concatenate([cand, np.zeros((len(ref) - len(cand), 2))])
+    cand = cand[:len(ref)]
     cand = level_match(ref, align(ref, cand))
     rm, cm = ref.mean(1), cand.mean(1)
-    dims = {
-        "spectral": 100 * np.exp(-d_spectral(rm, cm) / SCALES["spectral"]),
-        "timbre": 100 * np.exp(-d_timbre(rm, cm) / SCALES["timbre"]),
-        "tone": 100 * np.exp(-d_tone(rm, cm) / SCALES["tone"]),
-        "transients": s_transients(rm, cm),
-        "modulation": 100 * np.exp(-d_modulation(rm, cm) / SCALES["modulation"]),
-        "stereo": 100 * np.exp(-d_stereo(ref, cand) / SCALES["stereo"]),
-    }
-    dp, share = d_pitch(rm, cm)
+    raw = {"spectral": d_spectral(rm, cm), "timbre": d_timbre(rm, cm), "tone": d_tone(rm, cm),
+           "modulation": d_modulation(rm, cm), "stereo": d_stereo(ref, cand)}
+    dims = {k: 100 * np.exp(-v / SCALES[k]) for k, v in raw.items()}
+    dims["transients"] = s_transients(rm, cm)
+    dp, share = d_pitch(rm, cm, 0.1 if mono else 0.5) if mono is not False else (None, 0.0)
+    raw["pitch"] = dp
     dims["pitch"] = None if dp is None else 100 * np.exp(-dp / SCALES["pitch"])
     w = {k: v for k, v in WEIGHTS.items() if dims[k] is not None}
     tot = sum(w[k] * dims[k] for k in w) / sum(w.values())
     out = {k: (round(float(v), 1) if v is not None else None) for k, v in dims.items()}
     out["total"] = round(float(tot), 2)
     out["voiced"] = round(share, 2)
+    out["raw"] = {k: (round(float(v), 4) if v is not None else None) for k, v in raw.items()}
     return out
 
 
@@ -320,7 +328,10 @@ def main(argv=None):
             song = os.path.join(ROOT, "songs", f"{cl['song']}.yaml")
             if not os.path.exists(song):
                 return cl, None
-            return cl, score(clip_ref(cl), render_window(song, cl["from"], cl["to"]))
+            try:
+                return cl, score(clip_ref(cl), render_window(song, cl["from"], cl["to"]), mono=cl["family"] in MONO_FAMILIES)
+            except (ValueError, SystemExit) as e:
+                return cl, {"error": str(e)[:160]}
         with ThreadPoolExecutor(max(1, a.j)) as ex:
             res = list(ex.map(one, cs))
         if a.json:
@@ -328,7 +339,10 @@ def main(argv=None):
             return
         for cl, s in res:
             g = (reg.get(cl["song"], {}).get("best") or {}).get("score")
-            print(row(f"{cl['id']} ({cl['family']})", s) + f" | song best {g}" if s else f"{cl['id']}: no song")
+            if not s or "error" in s:
+                print(f"{cl['id']}: {s['error'] if s else 'no song'}")
+                continue
+            print(row(f"{cl['id']} ({cl['family']})", s) + f" | song best {g}")
         return
     if a.clip:
         cl = next((c for c in clips() if c["id"] == a.clip), None)
@@ -341,7 +355,7 @@ def main(argv=None):
             ap.error("REF.wav CAND.wav, or --clip ID")
         ref = cut(L.load(a.files[0]), a.ref_from, a.ref_to)
         cand = cut(L.load(a.files[1]), a.cand_from, a.cand_to)
-    s = score(ref, cand)
+    s = score(ref, cand, mono=(cl["family"] in MONO_FAMILIES) if a.clip else None)
     print(json.dumps(s) if a.json else row(a.clip or os.path.basename(a.files[1]), s))
     if a.record is not None:
         if not a.clip:
