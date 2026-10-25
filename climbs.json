@@ -3937,11 +3937,15 @@
       "source": "https://drive.google.com/file/d/1W9200WG171aajdi5zvCfKiSEvpyPxCRN (Harry's Drive, Music (Old Collection); S&M per ID3 tag or live duration)",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/battery.wav OUT.wav $(cat tools/battery-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 36.653,
+        "version": "v1",
+        "commit": "see git log songs/battery.yaml"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
       "meta": {
@@ -3956,7 +3960,11 @@
         "at": "2026-10-24T17:43:58Z",
         "note": null
       },
-      "ref_file": "ref/albums/s-m/21.mp3"
+      "ref_file": "ref/albums/s-m/21.mp3",
+      "last": {
+        "at": "2026-10-25T00:29:20Z",
+        "who": "chirper-one"
+      }
     }
   ],
   "focus": "S&M"
