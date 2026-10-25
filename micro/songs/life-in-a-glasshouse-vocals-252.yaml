@@ -1,5 +1,5 @@
-about: "Micro harness (chirper-three): Life in a Glasshouse 252-256 s, Thom's sung phrase. The album song's vox notes are misaligned in this window (silent for 1.6 s, a semitone low), so notes are from the vocal stem (tools/voxtrans.py, default SHS settings). Patch: the library `voice` (the album's lig-vox is song-local)."
-tempo: [{"at": "0b", "bpm": 120}]
+about: "Micro harness (chirper-three): Life in a Glasshouse 252-256 s, Thom's sung phrase. The album song's vox notes are misaligned in this window, so notes are from the vocal stem: tools/voxtrans.py pitches, split at the stem's vocal-band flux onsets (6 syllables), per-note vowels from tools/stemvowels.py (^vow); stemconsonants found only vowel onsets here. Library patch voice-vow (voice with its vowel on expr.vow)."
+tempo: 120
 length: "4s"
 tracks:
-  - {name: "vox", patch: "voice", notes: [{"pitch": "m60", "vel": 0.969, "at": "0.000s", "len": "1.290s", "expr": {"vow": 0.5}}, {"pitch": "m60", "vel": 0.495, "at": "1.310s", "len": "0.130s", "expr": {"vow": 0.5}}, {"pitch": "m62", "vel": 0.953, "at": "1.530s", "len": "0.680s", "expr": {"vow": 0.5}}, {"pitch": "m60", "vel": 0.896, "at": "2.210s", "len": "1.790s", "expr": {"vow": 0.5}}]}
+  - {name: "vox", patch: "voice-vow", score: "C4/2.0900b@0.969^vow=0.32 C4/0.4900b@0.969^vow=0.25 R/0.0400b C4/0.2600b@0.495^vow=0.78 R/0.1800b D4/1.3600b@0.953^vow=0.8 C4/2.3960b@0.896^vow=0.25 C4/1.1840b@0.896^vow=0.25"}
