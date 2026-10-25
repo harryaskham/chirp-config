@@ -1,9 +1,9 @@
 {
  "id": "battery",
- "version": "v3",
+ "version": "v4",
  "edge": 3.0,
  "ref_seconds": 444.044,
- "at": "2026-10-25T02:09:58Z",
+ "at": "2026-10-25T03:15:04Z",
  "edges": {
   "head": {
    "level": -26.110585722794575,
