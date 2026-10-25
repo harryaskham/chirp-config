@@ -3443,14 +3443,14 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/fuel.wav OUT.wav $(cat tools/fuel-sections.txt)",
       "best": {
-        "score": 56.974,
-        "version": "v3",
+        "score": 58.318,
+        "version": "v4",
         "commit": "see git log songs/fuel.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 3,
+      "rounds": 4,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
       "meta": {
@@ -3467,7 +3467,7 @@
       },
       "ref_file": "ref/albums/s-m/06.mp3",
       "last": {
-        "at": "2026-10-25T02:27:44Z",
+        "at": "2026-10-25T05:09:23Z",
         "who": "chirper-one"
       }
     },
