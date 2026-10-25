@@ -3625,15 +3625,15 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/likeness.py sections ref/bleeding-me.wav OUT.wav $(cat tools/bleeding-me-sections.txt)",
       "best": {
-        "score": 55.27,
-        "version": "v1",
+        "score": 60.394,
+        "version": "v2",
         "commit": "see git log songs/bleeding-me.yaml",
-        "engine": "554cc45"
+        "engine": "85b3881"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 1,
+      "rounds": 2,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
       "meta": {
@@ -3650,7 +3650,7 @@
       },
       "ref_file": "ref/albums/s-m/11.mp3",
       "last": {
-        "at": "2026-10-24T23:04:54Z",
+        "at": "2026-10-25T16:59:13Z",
         "who": "chirper-zero"
       }
     },
