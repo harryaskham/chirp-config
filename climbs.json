@@ -3699,14 +3699,14 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/until-it-sleeps.wav OUT.wav $(cat tools/until-it-sleeps-sections.txt)",
       "best": {
-        "score": 60.783,
-        "version": "v7",
+        "score": 61.182,
+        "version": "v8",
         "commit": "see git log songs/until-it-sleeps.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 9,
+      "rounds": 10,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
       "meta": {
@@ -3723,7 +3723,7 @@
       },
       "ref_file": "ref/albums/s-m/13.mp3",
       "last": {
-        "at": "2026-10-25T19:05:21Z",
+        "at": "2026-10-25T20:49:21Z",
         "who": "chirper-one"
       }
     },
