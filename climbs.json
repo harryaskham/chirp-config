@@ -3915,11 +3915,16 @@
       "source": "https://drive.google.com/file/d/18pFhDU4wLPF2h1Dwp_VBzOBy74TnrMRA (Harry's Drive, Music (Old Collection); S&M per ID3 tag or live duration)",
       "owner": "chirper-zero",
       "metric": "python3 tools/likeness.py sections ref/one.wav OUT.wav $(cat tools/one-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 50.063,
+        "version": "v1",
+        "commit": "see git log songs/one.yaml",
+        "engine": "85b3881"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
       "meta": {
@@ -3934,7 +3939,11 @@
         "at": "2026-10-24T17:43:55Z",
         "note": null
       },
-      "ref_file": "ref/albums/s-m/19.mp3"
+      "ref_file": "ref/albums/s-m/19.mp3",
+      "last": {
+        "at": "2026-10-25T08:35:28Z",
+        "who": "chirper-zero"
+      }
     },
     {
       "id": "enter-sandman",
