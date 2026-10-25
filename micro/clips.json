@@ -1,0 +1,338 @@
+{
+ "about": "Micro benchmark clips (tools/microclips.py, scored by tools/microscore.py). holdout clips are never tuned on: a library change must improve them too.",
+ "clips": [
+  {
+   "id": "genesis-bass-4",
+   "song": "genesis",
+   "from": 4.5,
+   "to": 12.5,
+   "family": "bass",
+   "holdout": false,
+   "note": "dream-pop bass, exposed intro"
+  },
+  {
+   "id": "the-national-anthem-bass-2",
+   "song": "the-national-anthem",
+   "from": 2.0,
+   "to": 10.0,
+   "family": "bass",
+   "holdout": false,
+   "note": "Radiohead's fuzz-bass riff, alone"
+  },
+  {
+   "id": "so-what-bass-489",
+   "song": "so-what",
+   "from": 489.0,
+   "to": 497.0,
+   "family": "bass",
+   "holdout": true,
+   "note": "upright jazz bass walking"
+  },
+  {
+   "id": "i-never-learnt-to-share-bass-263",
+   "song": "i-never-learnt-to-share",
+   "from": 263.0,
+   "to": 271.0,
+   "family": "bass",
+   "holdout": false,
+   "note": "James Blake sub-bass"
+  },
+  {
+   "id": "thin-thing-bass-261",
+   "song": "thin-thing",
+   "from": 261.0,
+   "to": 269.0,
+   "family": "bass",
+   "holdout": true,
+   "note": "math-rock bass"
+  },
+  {
+   "id": "subterranean-homesick-alien-bass-255",
+   "song": "subterranean-homesick-alien",
+   "from": 255.5,
+   "to": 263.5,
+   "family": "bass",
+   "holdout": false,
+   "note": "OK Computer bass tail"
+  },
+  {
+   "id": "blue-monday-drums-0",
+   "song": "blue-monday",
+   "from": 0.5,
+   "to": 8.5,
+   "family": "drums",
+   "holdout": false,
+   "note": "the Oberheim DMX intro pattern"
+  },
+  {
+   "id": "archangel-drums-5",
+   "song": "archangel",
+   "from": 5.5,
+   "to": 13.5,
+   "family": "drums",
+   "holdout": false,
+   "note": "Burial's garage shuffle, vinyl crackle"
+  },
+  {
+   "id": "pulk-pull-revolving-doors-drums-150",
+   "song": "pulk-pull-revolving-doors",
+   "from": 150.5,
+   "to": 158.5,
+   "family": "drums",
+   "holdout": false,
+   "note": "Amnesiac's machine clatter"
+  },
+  {
+   "id": "packt-like-sardines-in-a-crushd-tin-box-drums-26",
+   "song": "packt-like-sardines-in-a-crushd-tin-box",
+   "from": 26.5,
+   "to": 34.5,
+   "family": "drums",
+   "holdout": true,
+   "note": "Amnesiac's hand percussion loop"
+  },
+  {
+   "id": "rasputin-drums-0",
+   "song": "rasputin",
+   "from": 0.5,
+   "to": 8.5,
+   "family": "drums",
+   "holdout": true,
+   "note": "euro-disco kit"
+  },
+  {
+   "id": "one-drums-46",
+   "song": "one",
+   "from": 46.0,
+   "to": 54.0,
+   "family": "drums",
+   "holdout": false,
+   "note": "Lars live on S&M"
+  },
+  {
+   "id": "mind-s-mirrors-guitar-197",
+   "song": "mind-s-mirrors",
+   "from": 197.5,
+   "to": 205.5,
+   "family": "guitar",
+   "holdout": false,
+   "note": "Catch Thirtythree high-gain riff"
+  },
+  {
+   "id": "pneuma-guitar-9",
+   "song": "pneuma",
+   "from": 9.0,
+   "to": 17.0,
+   "family": "guitar",
+   "holdout": true,
+   "note": "progressive-metal clean-ish guitar"
+  },
+  {
+   "id": "i-might-be-wrong-guitar-233",
+   "song": "i-might-be-wrong",
+   "from": 233.5,
+   "to": 241.5,
+   "family": "guitar",
+   "holdout": false,
+   "note": "Amnesiac's blues riff"
+  },
+  {
+   "id": "thin-thing-guitar-2",
+   "song": "thin-thing",
+   "from": 2.0,
+   "to": 10.0,
+   "family": "guitar",
+   "holdout": false,
+   "note": "math-rock tapped guitar"
+  },
+  {
+   "id": "let-down-guitar-4",
+   "song": "let-down",
+   "from": 4.5,
+   "to": 12.5,
+   "family": "guitar",
+   "holdout": false,
+   "note": "OK Computer's arpeggiated guitars"
+  },
+  {
+   "id": "playing-god-guitar-17",
+   "song": "playing-god",
+   "from": 17.5,
+   "to": 25.5,
+   "family": "guitar",
+   "holdout": true,
+   "note": "Polyphia-style clean lead"
+  },
+  {
+   "id": "clair-de-lune-piano-101",
+   "song": "clair-de-lune",
+   "from": 101.5,
+   "to": 109.5,
+   "family": "piano",
+   "holdout": false,
+   "note": "solo concert piano, soft"
+  },
+  {
+   "id": "clair-de-lune-piano-164",
+   "song": "clair-de-lune",
+   "from": 164.5,
+   "to": 172.5,
+   "family": "piano",
+   "holdout": true,
+   "note": "solo concert piano, louder arpeggios"
+  },
+  {
+   "id": "pyramid-song-piano-0",
+   "song": "pyramid-song",
+   "from": 0.0,
+   "to": 8.0,
+   "family": "piano",
+   "holdout": false,
+   "note": "Pyramid Song's piano chords"
+  },
+  {
+   "id": "in-death-is-death-piano-522",
+   "song": "in-death-is-death",
+   "from": 522.5,
+   "to": 530.5,
+   "family": "piano",
+   "holdout": false,
+   "note": "metal album piano interlude"
+  },
+  {
+   "id": "daydreaming-piano-11",
+   "song": "daydreaming",
+   "from": 11.5,
+   "to": 18.5,
+   "family": "piano",
+   "holdout": true,
+   "note": "A Moon Shaped Pool piano"
+  },
+  {
+   "id": "fitter-happier-vocals-27",
+   "song": "fitter-happier",
+   "from": 27.0,
+   "to": 35.0,
+   "family": "vocals",
+   "holdout": false,
+   "note": "the Mac TTS voice"
+  },
+  {
+   "id": "hmu-vocals-17",
+   "song": "hmu",
+   "from": 17.0,
+   "to": 25.0,
+   "family": "vocals",
+   "holdout": false,
+   "note": "rap/dub vocal"
+  },
+  {
+   "id": "life-in-a-glasshouse-vocals-252",
+   "song": "life-in-a-glasshouse",
+   "from": 252.0,
+   "to": 256.0,
+   "family": "vocals",
+   "holdout": false,
+   "note": "Thom's sung phrase"
+  },
+  {
+   "id": "genesis-vocals-239",
+   "song": "genesis",
+   "from": 239.0,
+   "to": 247.0,
+   "family": "vocals",
+   "holdout": true,
+   "note": "Grimes' airy vocal"
+  },
+  {
+   "id": "hmu-vocals-167",
+   "song": "hmu",
+   "from": 167.5,
+   "to": 175.5,
+   "family": "vocals",
+   "holdout": true,
+   "note": "rap/dub vocal, later"
+  },
+  {
+   "id": "i-other-7",
+   "song": "i",
+   "from": 7.0,
+   "to": 15.0,
+   "family": "other",
+   "holdout": false,
+   "note": "Aphex ambient pad"
+  },
+  {
+   "id": "ingenue-other-10",
+   "song": "ingenue",
+   "from": 10.5,
+   "to": 18.5,
+   "family": "other",
+   "holdout": false,
+   "note": "Atoms for Peace synth texture"
+  },
+  {
+   "id": "saturnine-other-5",
+   "song": "saturnine",
+   "from": 5.0,
+   "to": 13.0,
+   "family": "other",
+   "holdout": true,
+   "note": "jazz trio keys"
+  },
+  {
+   "id": "pulk-pull-revolving-doors-other-239",
+   "song": "pulk-pull-revolving-doors",
+   "from": 239.0,
+   "to": 247.0,
+   "family": "other",
+   "holdout": false,
+   "note": "Amnesiac's synth drone"
+  },
+  {
+   "id": "so-what-other-373",
+   "song": "so-what",
+   "from": 373.0,
+   "to": 381.0,
+   "family": "other",
+   "holdout": false,
+   "note": "Kind of Blue horns"
+  },
+  {
+   "id": "odyssey-other-265",
+   "song": "odyssey",
+   "from": 265.5,
+   "to": 273.5,
+   "family": "other",
+   "holdout": true,
+   "note": "electronica lead synth"
+  },
+  {
+   "id": "master-of-puppets-crowd-525",
+   "song": "master-of-puppets",
+   "from": 525.0,
+   "to": 533.0,
+   "family": "crowd",
+   "holdout": false,
+   "note": "S&M applause after MoP"
+  },
+  {
+   "id": "human-crowd-250",
+   "song": "human",
+   "from": 250.5,
+   "to": 258.5,
+   "family": "crowd",
+   "holdout": false,
+   "note": "S&M applause after Human"
+  },
+  {
+   "id": "enter-sandman-crowd-445",
+   "song": "enter-sandman",
+   "from": 445.5,
+   "to": 453.5,
+   "family": "crowd",
+   "holdout": true,
+   "note": "S&M applause after Sandman"
+  }
+ ]
+}
