@@ -333,6 +333,24 @@
    "family": "crowd",
    "holdout": true,
    "note": "S&M applause after Sandman"
+  },
+  {
+   "id": "we-are-the-music-makers-bass-0",
+   "song": "we-are-the-music-makers",
+   "from": 0.0,
+   "to": 8.0,
+   "family": "bass",
+   "holdout": true,
+   "note": "Aphex analog synth bass (holdout for analog-bass)"
+  },
+  {
+   "id": "baddadan-bass-12",
+   "song": "baddadan",
+   "from": 12.5,
+   "to": 18.5,
+   "family": "bass",
+   "holdout": true,
+   "note": "drum & bass sub/reese (holdout for sub-saturated)"
   }
  ]
 }
