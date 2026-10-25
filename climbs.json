@@ -3816,7 +3816,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 5,
+      "rounds": 6,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
       "meta": {
@@ -3833,7 +3833,7 @@
       },
       "ref_file": "ref/albums/s-m/16.mp3",
       "last": {
-        "at": "2026-10-25T14:56:55Z",
+        "at": "2026-10-25T15:22:43Z",
         "who": "chirper-one"
       }
     },
