@@ -1,9 +1,9 @@
 {
  "id": "hero-of-the-day",
- "version": "v2",
+ "version": "v3",
  "edge": 3.0,
  "ref_seconds": 284.64,
- "at": "2026-10-24T23:04:11Z",
+ "at": "2026-10-25T03:06:02Z",
  "edges": {
   "head": {
    "level": -32.96699408208244,

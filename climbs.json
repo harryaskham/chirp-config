@@ -3535,14 +3535,14 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/hero-of-the-day.wav OUT.wav $(cat tools/hero-of-the-day-sections.txt)",
       "best": {
-        "score": 57.513,
-        "version": "v2",
+        "score": 58.831,
+        "version": "v3",
         "commit": "see git log songs/hero-of-the-day.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 2,
+      "rounds": 3,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
       "meta": {
@@ -3559,7 +3559,7 @@
       },
       "ref_file": "ref/albums/s-m/09.mp3",
       "last": {
-        "at": "2026-10-24T23:04:09Z",
+        "at": "2026-10-25T03:06:00Z",
         "who": "chirper-one"
       }
     },
