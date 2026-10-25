@@ -72,6 +72,13 @@ class MicroScore(unittest.TestCase):
         s = M.score(self.ref, plucks(attack=0.08))
         self.assertLess(s["transients"], self.self_["transients"] - 10, s)
 
+    def test_a_sub_octave_does_not_swamp_transients(self):
+        low = plucks(semis=-24)                           # E1.. bass line
+        t = np.arange(len(low)) / SR
+        sub = 0.5 * np.sin(2 * np.pi * 20.6 * t)[:, None] * np.abs(low).max()   # a sustained sub-octave drone
+        s = M.score(low, low + sub)
+        self.assertGreater(s["transients"], 80.0, s)
+
     def test_mono_drops_stereo(self):
         mono = np.repeat(self.ref.mean(1, keepdims=True), 2, 1)
         s = M.score(self.ref, mono)

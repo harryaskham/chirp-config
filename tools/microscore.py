@@ -144,8 +144,9 @@ def d_tone(r, c):
 def onset_env(x):
     """Linear-magnitude spectral flux on 256-sample frames (1.3 ms hop), smoothed over 30 ms: log flux jumps at any
     onset and cannot tell an 80 ms swell from a 3 ms pluck (r 0.993); linear flux at 1.3 ms punished ordinary 10-30 ms
-    note timing (most real clips read ~0)."""
-    m = stft_mag(x, 256)
+    note timing (most real clips read ~0). Bin 0 (DC-93 Hz) is left out, so a bass's sub-octave can't swamp the attacks
+    (chirper-three's genesis-bass-4: a 23 Hz sub dragged transients); its harmonics carry the attack."""
+    m = stft_mag(x, 256)[1:]                             # bin 0 (DC-93 Hz at 256 points) dropped: a sub can't swamp it
     flux = np.maximum(0, np.diff(m, axis=1)).sum(0)
     return np.convolve(flux, np.ones(23) / 23, "same")   # 30 ms: a player's 20 ms timing 0.81, an 80 ms swell 0.61
 
