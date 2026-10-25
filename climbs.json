@@ -3506,11 +3506,16 @@
       "source": "https://drive.google.com/file/d/1HXeZyVygvkOcmjaEdk6Y8yjBXyDOOnin (Harry's Drive, Music (Old Collection); S&M per ID3 tag or live duration)",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/no-leaf-clover.wav OUT.wav $(cat tools/no-leaf-clover-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 62.804,
+        "version": "v1",
+        "commit": "see git log songs/no-leaf-clover.yaml",
+        "engine": "554cc45"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
       "meta": {
@@ -3525,7 +3530,11 @@
         "at": "2026-10-24T17:43:48Z",
         "note": null
       },
-      "ref_file": "ref/albums/s-m/08.mp3"
+      "ref_file": "ref/albums/s-m/08.mp3",
+      "last": {
+        "at": "2026-10-25T04:43:10Z",
+        "who": "chirper-zero"
+      }
     },
     {
       "id": "hero-of-the-day",
