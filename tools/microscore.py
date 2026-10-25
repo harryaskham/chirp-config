@@ -7,6 +7,11 @@ a micro benchmark that sees sound, not song shape: where our songs lean on globa
   microscore.py --mask [--clips a,b] [-j 3]          each clip's song's current render over the same window
   microscore.py --clip ID --song micro/songs/ID.yaml [--seeds 0,3,7,11] --record NOTE [--as WHO]   (ledger)
   microscore.py --board                              the best recorded total per clip (holdouts marked)
+  microscore.py --clip ID --context TRACKS [--set tracks.N.patch=P …] [--seeds …] [--record NOTE]
+        the clip's album song rendered with TRACKS soloed (its master, buses and lanes kept): patches judged in the
+        record's own master context. masteraudit across 111 songs found no common master tilt (median correction
+        within +-2 dB, quartiles +-2-3 dB both ways), so a standard harness master would not remove the bias; each
+        record's master corrects toward its own colour (Mind's Mirrors' harness 31.0, in context 49.2).
 
 The candidate is level-matched to the reference (RMS) and aligned within +-50 ms before anything is measured, so
 loudness and placement are not scored. Seven dimensions, each 0-100 (100 = the reference against itself):
@@ -276,12 +281,13 @@ def clip_ref(cl):
     return cut(L.load(os.path.join(ROOT, "ref", f"{cl['song']}.wav")), cl["from"], cl["to"])
 
 
-def render_window(song, t0, t1, seed=None):
+def render_window(song, t0, t1, seed=None, extra=()):
     import chirpbin
     with tempfile.TemporaryDirectory(dir="/tmp/lt" if os.path.isdir("/tmp/lt") else None) as d:
         out = os.path.join(d, "r.wav")
         sd = ["--seed", str(seed)] if seed is not None else []
-        r = subprocess.run(["nice", "-n", "15", chirpbin.resolve("chirp"), "render", "-f", os.path.abspath(song), *sd, "-o", out],
+        r = subprocess.run(["nice", "-n", "15", chirpbin.resolve("chirp"), "render", "-f", os.path.abspath(song), *sd, *extra,
+                            "-o", out],
                            capture_output=True, text=True, stdin=subprocess.DEVNULL, cwd=os.path.dirname(os.path.abspath(song)),
                            env={**os.environ, "RAYON_NUM_THREADS": "2"})
         if r.returncode:
@@ -307,6 +313,11 @@ def main(argv=None):
     ap.add_argument("--clips")
     ap.add_argument("-j", type=int, default=3)
     ap.add_argument("--json", action="store_true")
+    ap.add_argument("--context", metavar="TRACKS", help="with --clip: render the clip's ALBUM song (its master, buses and "
+                    "lanes) with these tracks soloed (comma-separated) and score the clip window: patches judged in the "
+                    "record's own master context")
+    ap.add_argument("--set", action="append", default=[], metavar="PATH=V", help="--context: chirp render --set overrides "
+                    "(e.g. tracks.3.patch=analog-bass)")
     ap.add_argument("--seeds", help="with --song: render these seeds (e.g. 0,3,7,11) and score their mean "
                     "(piano/guitar totals swing +-1-3 between seeds)")
     ap.add_argument("--record", metavar="NOTE")
@@ -355,6 +366,19 @@ def main(argv=None):
         if not cl:
             raise SystemExit(f"microscore: no clip {a.clip} in micro/clips.json")
         ref = clip_ref(cl)
+        if a.context:
+            song = os.path.join(ROOT, "songs", f"{cl['song']}.yaml")
+            extra = [x for t in a.context.split(",") if t for x in ("--solo", t)] + [x for v in a.set for x in ("--set", v)]
+            mono = cl["family"] in MONO_FAMILIES
+            seeds = [int(x) for x in a.seeds.split(",") if x] if a.seeds else [None]
+            per = [(k, score(ref, render_window(song, cl["from"], cl["to"], k, extra), mono=mono)) for k in seeds]
+            s = mean_scores([r for _, r in per]) if len(per) > 1 else per[0][1]
+            if len(per) > 1:
+                s["seeds"] = {str(k): r["total"] for k, r in per}
+            a.song = f"context:{cl['song']}:{a.context}" + (f" {' '.join(a.set)}" if a.set else "")
+            print(json.dumps(s) if a.json else row(f"{a.clip} (in context)", s))
+            record(a, cl, s)
+            return
         if a.song and a.seeds:
             mono = cl["family"] in MONO_FAMILIES
             per = [(int(x), score(ref, render_window(a.song, None, None, int(x)), mono=mono)) for x in a.seeds.split(",") if x]

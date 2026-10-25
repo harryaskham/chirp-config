@@ -28,6 +28,16 @@ engine until chirp can synthesise them closely.
 
 Canary: chirper-three (from 25 Oct).
 
+## In-context scoring (25 Oct)
+
+Clips whose song exists are scored IN CONTEXT: `microscore.py --clip ID --context TRACKS [--set tracks.N.patch=P]`
+renders the album song with the clip's instrument tracks soloed (its master, buses and lanes kept) over the clip window.
+A library patch is then judged as it sounds on that record. masteraudit across 111 songs found no common master tilt
+(median correction within +-2 dB, quartiles +-2-3 dB both ways): each master corrects toward its own record's colour,
+so a standard harness master would not help, and bare harnesses over-reward dark colour patches (chirper-three).
+Mind's Mirrors' guitars: bare harness 31.0, in context 49.2 on their album patches, 39.1 with clean-dry swapped in.
+Standalone harnesses (`micro/songs/`) remain for clips without a song file, and for building parts from scratch.
+
 ## Findings
 
 - **25 Oct, piano-recorded as the `piano` default: rejected.** chirper-three's piano-recorded (the built-in piano,
