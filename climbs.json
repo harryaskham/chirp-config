@@ -3990,14 +3990,14 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/battery.wav OUT.wav $(cat tools/battery-sections.txt)",
       "best": {
-        "score": 53.712,
-        "version": "v6",
+        "score": 54.084,
+        "version": "v7",
         "commit": "see git log songs/battery.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 6,
+      "rounds": 7,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
       "meta": {
@@ -4014,7 +4014,7 @@
       },
       "ref_file": "ref/albums/s-m/21.mp3",
       "last": {
-        "at": "2026-10-25T15:55:46Z",
+        "at": "2026-10-25T16:28:06Z",
         "who": "chirper-one"
       }
     }
