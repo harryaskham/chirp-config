@@ -4,7 +4,7 @@ the vowel and the coda at the note's end from the reference vocal, and write chi
 as per-note articulations (`^on=N`, `^off=N`; bind them in the patch: `onset: expr.on`, `coda: expr.off`).
 Measured from audio — no lyric text — so a synthesised singer starts and ends syllables the way the singer did.
 
-  stemconsonants.py VOCALS.wav SONG.yaml TRACK OUT.json [--key vox] [--codas]
+  stemconsonants.py VOCALS.wav SONG.yaml TRACK OUT.json [--key vox] [--codas] [--plosives]
 
 Onset window: the 90 ms before the note to 20 ms after; reference: the vowel 60-160 ms in. Classes (codes from the
 voice layer): unvoiced hiss with a high centroid → s 11 (sh 13 when the hiss centres at 2.5-4.5 kHz), weaker
@@ -64,7 +64,47 @@ def classify(pre, vowel, before, coda=False):
     return 0
 
 
-def run(stem, song, track, key="vox", codas=False):
+def plosive(win, vowel):
+    """A stop consonant in WIN (the 120 ms before a note's start to 20 ms after), opt-in (--plosives): a closure at
+    least 15 dB under the vowel for >= 10 ms, then an abrupt rise (>= 10 dB within 10 ms). Place from the burst frame's
+    centroid (p < 1.2 kHz, k 1.2-3 kHz, t above), voiced (b/d/g) when the closure keeps a voice bar (energy below
+    300 Hz within 30 dB of the vowel's). 0 when none. The default onset test needs the 70 ms before the window 32 dB
+    under the vowel and judges the whole window's spectrum, so it found no plosives on rap (chirper-three, hmu)."""
+    lv = feats(vowel)[0]
+    hop, n = int(0.005 * SR), int(0.010 * SR)
+    if len(win) < 6 * n or lv < -90:
+        return 0
+    frames = [win[i:i + n] for i in range(0, len(win) - n, hop)]
+    lev = np.array([10 * np.log10(np.mean(f ** 2) + 1e-12) for f in frames])
+    low = lev < lv - 15
+    f = np.fft.rfftfreq(n, 1 / SR)
+
+    def lowband(x):
+        sp = np.abs(np.fft.rfft(x * np.hanning(len(x)))) ** 2
+        ff = np.fft.rfftfreq(len(x), 1 / SR)
+        return 10 * np.log10(sp[(ff > 60) & (ff < 300)].sum() / len(x) + 1e-12)       # per sample: lengths differ
+    k = 0
+    while k < len(lev) - 3:
+        if not (low[k] and low[k + 1]):
+            k += 1
+            continue
+        j = k + 1
+        while j + 1 < len(lev) and low[j + 1]:
+            j += 1
+        rise = max(lev[j + 1:j + 3]) - lev[j] if j + 1 < len(lev) else 0
+        if rise >= 10:
+            b = j + 1 if lev[j + 1] - lev[j] >= 10 else j + 2
+            sp = np.abs(np.fft.rfft(frames[b] * np.hanning(n))) ** 2
+            cen = float((f * sp).sum() / (sp.sum() + 1e-12))
+            closure = np.concatenate(frames[k:j + 1])
+            voiced = lowband(closure) > lowband(vowel) - 30
+            place = 5 if 1200 <= cen <= 3000 else (1 if cen < 1200 else 3)       # k / p / t
+            return place + 1 if voiced else place                                 # g / b / d
+        k = j + 1
+    return 0
+
+
+def run(stem, song, track, key="vox", codas=False, plosives=False):
     x = L.load(stem).mean(1)
     pts = D.tempo_points(song)
     beats = np.array([b for b, _ in pts]); bpm = np.array([v for _, v in pts])
@@ -84,7 +124,8 @@ def run(stem, song, track, key="vox", codas=False):
         if body in ("R", "r", "_"):
             out.append(t); pos += ln; continue
         a, e = b2t(pos), b2t(pos + ln)
-        on = classify(seg(a - 0.09, a + 0.02), seg(a + 0.06, a + 0.16), seg(a - 0.16, a - 0.09))
+        on = (plosives and plosive(seg(a - 0.12, a + 0.02), seg(a + 0.06, a + 0.16))) or \
+            classify(seg(a - 0.09, a + 0.02), seg(a + 0.06, a + 0.16), seg(a - 0.16, a - 0.09))
         rest = re.sub(r"\^on=\d+|\^off=\d+", "", rest)
         if on:
             rest += f"^on={on}"
@@ -101,7 +142,7 @@ def run(stem, song, track, key="vox", codas=False):
 if __name__ == "__main__":
     a = sys.argv[1:]
     key = a[a.index("--key") + 1] if "--key" in a else "vox"
-    res, counts = run(a[0], a[1], a[2], key, "--codas" in a)
+    res, counts = run(a[0], a[1], a[2], key, "--codas" in a, "--plosives" in a)
     json.dump(res, open(a[3], "w"))
-    names = {0: "-", 1: "p", 3: "t", 5: "k", 7: "f", 11: "s", 13: "sh", 15: "h", 16: "m"}
+    names = {0: "-", 1: "p", 2: "b", 3: "t", 4: "d", 5: "k", 6: "g", 7: "f", 11: "s", 13: "sh", 15: "h", 16: "m"}
     print("onsets: " + ", ".join(f"{names.get(k, k)} {v}" for k, v in sorted(counts.items())))
