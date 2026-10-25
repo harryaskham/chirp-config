@@ -3645,14 +3645,14 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/nothing-else-matters.wav OUT.wav $(cat tools/nothing-else-matters-sections.txt)",
       "best": {
-        "score": 34.47,
-        "version": "v1",
+        "score": 50.248,
+        "version": "v2",
         "commit": "see git log songs/nothing-else-matters.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 1,
+      "rounds": 2,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
       "meta": {
@@ -3669,7 +3669,7 @@
       },
       "ref_file": "ref/albums/s-m/12.mp3",
       "last": {
-        "at": "2026-10-25T01:57:19Z",
+        "at": "2026-10-25T03:05:23Z",
         "who": "chirper-one"
       }
     },
