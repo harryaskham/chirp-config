@@ -49,3 +49,8 @@ Standalone harnesses (`micro/songs/`) remain for clips without a song file, and 
   closer to the records locally. That is the masking this benchmark is for: either the global terms reward brightness
   as fill (as with the S&M crowd bed) or a clip misses how the part sits in its mix. piano-recorded stays a named
   patch that songs opt into (Clair de Lune +3.4 / +4.65 refit).
+- **25 Oct, les-paul low-mid body (+2.5 / +5 dB peak at 250 Hz) as the default: rejected.** masterbypatch found
+  the 8 les-paul songs' masters boosting 141-356 Hz by ~+5 dB, across 4 albums (not an album confound). Refit
+  crossclimb: half mean -0.02 (thin-thing -0.39), full mean -0.16 (thin-thing -0.58, electioneering -0.46). A
+  patch-level TILT cannot beat refitted masters, since a master refit is itself a tilt. Library defaults can win
+  only on what a master cannot fix: timbre, transients, modulation, stereo. Point library work there.
