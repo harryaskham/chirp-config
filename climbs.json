@@ -3863,14 +3863,14 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/sad-but-true.wav OUT.wav $(cat tools/sad-but-true-sections.txt)",
       "best": {
-        "score": 55.095,
-        "version": "v3",
+        "score": 56.352,
+        "version": "v4",
         "commit": "see git log songs/sad-but-true.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 3,
+      "rounds": 4,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
       "meta": {
@@ -3887,7 +3887,7 @@
       },
       "ref_file": "ref/albums/s-m/18.mp3",
       "last": {
-        "at": "2026-10-24T23:21:45Z",
+        "at": "2026-10-25T02:29:50Z",
         "who": "chirper-one"
       }
     },
