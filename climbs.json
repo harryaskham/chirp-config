@@ -3735,15 +3735,15 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/likeness.py sections ref/for-whom-the-bell-tolls.wav OUT.wav $(cat tools/for-whom-the-bell-tolls-sections.txt)",
       "best": {
-        "score": 54.706,
-        "version": "v1",
+        "score": 59.705,
+        "version": "v2",
         "commit": "see git log songs/for-whom-the-bell-tolls.yaml",
-        "engine": "554cc45"
+        "engine": "85b3881"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 1,
+      "rounds": 2,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
       "meta": {
@@ -3760,7 +3760,7 @@
       },
       "ref_file": "ref/albums/s-m/14.mp3",
       "last": {
-        "at": "2026-10-24T20:50:22Z",
+        "at": "2026-10-25T14:09:27Z",
         "who": "chirper-zero"
       }
     },
