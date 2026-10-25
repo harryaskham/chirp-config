@@ -3479,14 +3479,14 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/the-memory-remains.wav OUT.wav $(cat tools/the-memory-remains-sections.txt)",
       "best": {
-        "score": 63.031,
-        "version": "v3",
+        "score": 63.744,
+        "version": "v4",
         "commit": "see git log songs/the-memory-remains.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 6,
+      "rounds": 7,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
       "meta": {
@@ -3503,7 +3503,7 @@
       },
       "ref_file": "ref/albums/s-m/07.mp3",
       "last": {
-        "at": "2026-10-25T18:07:44Z",
+        "at": "2026-10-25T19:06:39Z",
         "who": "chirper-one"
       }
     },
