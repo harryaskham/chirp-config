@@ -3772,15 +3772,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/human.wav OUT.wav $(cat tools/human-sections.txt)",
       "best": {
-        "score": 63.215,
-        "version": "v6",
+        "score": 63.808,
+        "version": "v7",
         "commit": "see git log songs/human.yaml",
         "engine": "554cc45"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 6,
+      "rounds": 7,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
       "meta": {
@@ -3797,7 +3797,7 @@
       },
       "ref_file": "ref/albums/s-m/15.mp3",
       "last": {
-        "at": "2026-10-25T18:47:46Z",
+        "at": "2026-10-25T20:48:36Z",
         "who": "chirper-one"
       }
     },
