@@ -3926,11 +3926,15 @@
       "source": "https://drive.google.com/file/d/1fuJwMDm2oEo0t-J5shg8MkM4v61FWICy (Harry's Drive, Music (Old Collection); S&M per ID3 tag or live duration)",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/enter-sandman.wav OUT.wav $(cat tools/enter-sandman-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 38.565,
+        "version": "v1",
+        "commit": "see git log songs/enter-sandman.yaml"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
       "meta": {
@@ -3945,7 +3949,11 @@
         "at": "2026-10-24T17:43:57Z",
         "note": null
       },
-      "ref_file": "ref/albums/s-m/20.mp3"
+      "ref_file": "ref/albums/s-m/20.mp3",
+      "last": {
+        "at": "2026-10-25T03:53:20Z",
+        "who": "chirper-one"
+      }
     },
     {
       "id": "battery",
