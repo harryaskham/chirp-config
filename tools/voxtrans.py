@@ -3,7 +3,10 @@
 /tmp/lt/voxtrans.py; evidence ref/evidence/chirper-zero/hu-r4).
 
   voxtrans.py STEM.wav OUT.json [--from S] [--to S] [--lo 80] [--hi 420] [--floor 24] [--prom 2.0] [--method shs|yin]
-                                [--conf 0.2] [--split 0.75] [--minlen 0.09]
+                                [--conf 0.2] [--split 0.75] [--minlen 0.09] [--numeric]
+
+OUT.json is song-ready: at/len as "18.520s" strings (a bare number in a song is BEATS: chirper-one's Fuel pasted raw
+numbers and scored 53.58 against 56.97), pitch as a MIDI number; --numeric writes plain seconds for scripts.
 
 Why: YIN on Hetfield's S&M vocal reads his 2nd/3rd harmonics (a strong ~930 Hz formant), and the old stem
 transcriptions predated tools/livestems.py (the crowd sat in the vocal stem) and were sparse (Human: 128 notes,
@@ -119,6 +122,11 @@ def notes_of(f0, lev, loud, t0=0.0, split=0.75, minlen=0.09):
     return notes
 
 
+def song_ready(notes):
+    """at/len as seconds strings: a bare number in a chirp song is beats."""
+    return [{**n, "at": f"{n['at']:.3f}s", "len": f"{n['len']:.3f}s"} for n in notes]
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("stem")
@@ -133,13 +141,14 @@ def main(argv=None):
     ap.add_argument("--conf", type=float, default=0.2)
     ap.add_argument("--split", type=float, default=0.75)
     ap.add_argument("--minlen", type=float, default=0.09)
+    ap.add_argument("--numeric", action="store_true", help="at/len as plain seconds (not song-ready)")
     a = ap.parse_args(argv)
     x = L.load(a.stem).astype(float)
     x = x.mean(1) if x.ndim > 1 else x
     f0, lev, loud = f0_track(x, a.t0, a.t1, a.lo, a.hi, a.floor, a.prom, a.method, a.conf)
     notes = notes_of(f0, lev, loud, a.t0, a.split, a.minlen)
     with open(a.out, "w") as f:
-        json.dump(notes, f)
+        json.dump(notes if a.numeric else song_ready(notes), f)
     ps = [n["pitch"] for n in notes]
     print(len(notes), "notes", "pitch", min(ps) if ps else None, max(ps) if ps else None,
           "median", float(np.median(ps)) if ps else None)

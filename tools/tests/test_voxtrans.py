@@ -36,6 +36,25 @@ class VoxTrans(unittest.TestCase):
         self.assertEqual([n["pitch"] for n in notes], line)
         self.assertTrue(all(0.4 < n["len"] < 0.7 for n in notes))
 
+    def test_output_is_song_ready_seconds_strings(self):
+        import json
+        import tempfile
+        d = tempfile.mkdtemp(prefix="voxtrans-test-")
+        wav, out = os.path.join(d, "v.wav"), os.path.join(d, "o.json")
+        import wave
+        x = sung([57, 59])
+        with wave.open(wav, "wb") as f:
+            f.setnchannels(1), f.setsampwidth(2), f.setframerate(V.SR)
+            f.writeframes((np.clip(x, -1, 1) * 32767).astype("<i2").tobytes())
+        V.main([wav, out, "--from", "0.5"])
+        notes = json.load(open(out))
+        self.assertTrue(notes and all(isinstance(n["at"], str) and n["at"].endswith("s") and n["len"].endswith("s") for n in notes))
+        self.assertGreaterEqual(float(notes[0]["at"][:-1]), 0.5)
+        V.main([wav, out, "--numeric"])
+        self.assertIsInstance(json.load(open(out))[0]["at"], float)
+        import shutil
+        shutil.rmtree(d, ignore_errors=True)
+
     def test_silence_gives_no_notes(self):
         f0, lev, loud = V.f0_track(np.zeros(V.SR * 2))
         self.assertEqual(V.notes_of(f0, lev, loud), [])
