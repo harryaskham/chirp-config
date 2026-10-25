@@ -3782,14 +3782,14 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/wherever-i-may-roam.wav OUT.wav $(cat tools/wherever-i-may-roam-sections.txt)",
       "best": {
-        "score": 47.51,
-        "version": "v1",
+        "score": 55.565,
+        "version": "v2",
         "commit": "see git log songs/wherever-i-may-roam.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 1,
+      "rounds": 2,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
       "meta": {
@@ -3806,7 +3806,7 @@
       },
       "ref_file": "ref/albums/s-m/16.mp3",
       "last": {
-        "at": "2026-10-24T23:58:26Z",
+        "at": "2026-10-25T01:13:35Z",
         "who": "chirper-one"
       }
     },
