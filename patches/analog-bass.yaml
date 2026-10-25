@@ -1,0 +1,11 @@
+about: "Analog mono saw bass (Juno / SH-101 style): one saw through a gentle 12 dB low-pass that plucks open on every note and settles dark, a fast attack and half sustain, legato glide between touching notes. Round dream-pop, synth-pop and indie-electronica basslines (Grimes' Genesis intro). Dry: add room in the song. Micro benchmark: genesis-bass-4 60.5 vs 45.8 for `bass`, 57.0 for `tuba` (chirper-three, 25 Oct 2026)."
+synth:
+  layers:
+    - {wave: saw, level: -12dB}
+  env:
+    f: {a: 2ms, d: 300ms, s: 0.1, r: 120ms}
+  filters:
+    - "hp cutoff=30"
+    - {kind: lp, cutoff: {value: 420, mod: [{src: env.f, amount: 1.2}, {src: vel, amount: 1.0}]}, q: 0.7, slope: 12}
+  amp: {a: 2ms, d: 200ms, s: 0.5, r: 300ms}
+play: {mono: true, legato: true, glide: 25ms, gate: 0.7, vel_sens: 0.6}
