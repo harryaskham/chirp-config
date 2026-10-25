@@ -1,0 +1,5 @@
+about: "Micro harness (chirper-three): Life in a Glasshouse 252-256 s, Thom's sung phrase. The album song's vox notes are misaligned in this window (silent for 1.6 s, a semitone low), so notes are from the vocal stem (tools/voxtrans.py, default SHS settings). Patch: the library `voice` (the album's lig-vox is song-local)."
+tempo: [{"at": "0b", "bpm": 120}]
+length: "4s"
+tracks:
+  - {name: "vox", patch: "voice", notes: [{"pitch": "m60", "vel": 0.969, "at": "0.000s", "len": "1.290s", "expr": {"vow": 0.5}}, {"pitch": "m60", "vel": 0.495, "at": "1.310s", "len": "0.130s", "expr": {"vow": 0.5}}, {"pitch": "m62", "vel": 0.953, "at": "1.530s", "len": "0.680s", "expr": {"vow": 0.5}}, {"pitch": "m60", "vel": 0.896, "at": "2.210s", "len": "1.790s", "expr": {"vow": 0.5}}]}
