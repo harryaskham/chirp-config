@@ -1,0 +1,5 @@
+about: "Micro harness (chirper-three): I Never Learnt to Share 263-271 s sub bass. Notes = songs/i-never-learnt-to-share.yaml bass canonical notes, shifted to the clip start; the album's library patch (sub)."
+tempo: [{"at": "0b", "bpm": 104.999}]
+length: "8s"
+tracks:
+  - {name: "bass", patch: "sub", notes: [{"pitch": "m38", "vel": 1.0, "at": "0.550000s", "len": "0.550000s"}, {"pitch": "m47", "vel": 1.0, "at": "1.400000s", "len": "0.400000s"}, {"pitch": "m38", "vel": 1.0, "at": "2.200000s", "len": "0.500000s"}, {"pitch": "m30", "vel": 1.0, "at": "3.100000s", "len": "0.600000s"}, {"pitch": "m35", "vel": 1.0, "at": "4.050000s", "len": "0.500000s"}, {"pitch": "m47", "vel": 1.0, "at": "4.900000s", "len": "0.300000s"}, {"pitch": "m28", "vel": 1.0, "at": "5.350000s", "len": "0.100000s"}, {"pitch": "m42", "vel": 1.0, "at": "5.700000s", "len": "0.500000s"}, {"pitch": "m40", "vel": 1.0, "at": "6.300000s", "len": "0.200000s"}, {"pitch": "m30", "vel": 1.0, "at": "6.550000s", "len": "0.700000s"}, {"pitch": "m31", "vel": 1.0, "at": "7.400000s", "len": "0.500000s"}]}

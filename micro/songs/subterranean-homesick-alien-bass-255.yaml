@@ -1,0 +1,5 @@
+about: "Micro harness (chirper-three): Subterranean Homesick Alien 255.5-263.5 s, the bass tail. The album song has only one bass note in this window, so notes are from the bass stem (tools/monotrans.py --range 28-60 --hop 0.02 --min-len 0.06); the album's library patch (finger-bass)."
+tempo: [{"at": "0b", "bpm": 75.44}]
+length: "8s"
+tracks:
+  - {name: "bass", patch: "finger-bass", notes: [{"pitch": "m44", "vel": 1.0, "at": "0.000s", "len": "2.180s"}, {"pitch": "m38", "vel": 0.828, "at": "2.260s", "len": "5.660s"}]}
