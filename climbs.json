@@ -4017,6 +4017,370 @@
         "at": "2026-10-25T20:33:21Z",
         "who": "chirper-one"
       }
+    },
+    {
+      "id": "broken-cog",
+      "song": "songs/broken-cog.yaml",
+      "reference": "Meshuggah — Broken Cog",
+      "source": "https://www.youtube.com/watch?v=ESgBunzLJyI",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/broken-cog.wav OUT.wav $(cat tools/broken-cog-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "extreme progressive metal, djent (8-string polymetric riffs)",
+      "meta": {
+        "artist": "Meshuggah",
+        "album": "Immutable",
+        "title": "Broken Cog",
+        "track": 1,
+        "year": 2022
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-26T01:25:32Z",
+        "note": "Harry, 26 Oct: pivot from S&M; climb only Immutable for now"
+      },
+      "ref_file": "ref/albums/immutable/01 broken-cog.webm"
+    },
+    {
+      "id": "the-abysmal-eye",
+      "song": "songs/the-abysmal-eye.yaml",
+      "reference": "Meshuggah — The Abysmal Eye",
+      "source": "https://www.youtube.com/watch?v=_7XHQ09C_6I",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/the-abysmal-eye.wav OUT.wav $(cat tools/the-abysmal-eye-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "extreme progressive metal, djent (8-string polymetric riffs)",
+      "meta": {
+        "artist": "Meshuggah",
+        "album": "Immutable",
+        "title": "The Abysmal Eye",
+        "track": 2,
+        "year": 2022
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-26T01:25:33Z",
+        "note": "Harry, 26 Oct: pivot from S&M; climb only Immutable for now"
+      },
+      "ref_file": "ref/albums/immutable/02 the-abysmal-eye.webm"
+    },
+    {
+      "id": "light-the-shortening-fuse",
+      "song": "songs/light-the-shortening-fuse.yaml",
+      "reference": "Meshuggah — Light the Shortening Fuse",
+      "source": "https://www.youtube.com/watch?v=fvPAfWLnXV0",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/light-the-shortening-fuse.wav OUT.wav $(cat tools/light-the-shortening-fuse-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "extreme progressive metal, djent (8-string polymetric riffs)",
+      "meta": {
+        "artist": "Meshuggah",
+        "album": "Immutable",
+        "title": "Light the Shortening Fuse",
+        "track": 3,
+        "year": 2022
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-26T01:25:34Z",
+        "note": "Harry, 26 Oct: pivot from S&M; climb only Immutable for now"
+      },
+      "ref_file": "ref/albums/immutable/03 light-the-shortening-fuse.webm"
+    },
+    {
+      "id": "phantoms",
+      "song": "songs/phantoms.yaml",
+      "reference": "Meshuggah — Phantoms",
+      "source": "https://www.youtube.com/watch?v=t0KUzIZggIs",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/phantoms.wav OUT.wav $(cat tools/phantoms-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "extreme progressive metal, djent (8-string polymetric riffs)",
+      "meta": {
+        "artist": "Meshuggah",
+        "album": "Immutable",
+        "title": "Phantoms",
+        "track": 4,
+        "year": 2022
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-26T01:25:35Z",
+        "note": "Harry, 26 Oct: pivot from S&M; climb only Immutable for now"
+      },
+      "ref_file": "ref/albums/immutable/04 phantoms.webm"
+    },
+    {
+      "id": "ligature-marks",
+      "song": "songs/ligature-marks.yaml",
+      "reference": "Meshuggah — Ligature Marks",
+      "source": "https://www.youtube.com/watch?v=23gPkJYoaNM",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/ligature-marks.wav OUT.wav $(cat tools/ligature-marks-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "extreme progressive metal, djent (8-string polymetric riffs)",
+      "meta": {
+        "artist": "Meshuggah",
+        "album": "Immutable",
+        "title": "Ligature Marks",
+        "track": 5,
+        "year": 2022
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-26T01:25:36Z",
+        "note": "Harry, 26 Oct: pivot from S&M; climb only Immutable for now"
+      },
+      "ref_file": "ref/albums/immutable/05 ligature-marks.webm"
+    },
+    {
+      "id": "god-he-sees-in-mirrors",
+      "song": "songs/god-he-sees-in-mirrors.yaml",
+      "reference": "Meshuggah — God He Sees in Mirrors",
+      "source": "https://www.youtube.com/watch?v=spfiiRlu0JM",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/god-he-sees-in-mirrors.wav OUT.wav $(cat tools/god-he-sees-in-mirrors-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "extreme progressive metal, djent (8-string polymetric riffs)",
+      "meta": {
+        "artist": "Meshuggah",
+        "album": "Immutable",
+        "title": "God He Sees in Mirrors",
+        "track": 6,
+        "year": 2022
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-26T01:25:37Z",
+        "note": "Harry, 26 Oct: pivot from S&M; climb only Immutable for now"
+      },
+      "ref_file": "ref/albums/immutable/06 god-he-sees-in-mirrors.webm"
+    },
+    {
+      "id": "they-move-below",
+      "song": "songs/they-move-below.yaml",
+      "reference": "Meshuggah — They Move Below",
+      "source": "https://www.youtube.com/watch?v=TM87DMK-q4o",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/they-move-below.wav OUT.wav $(cat tools/they-move-below-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "extreme progressive metal, djent (8-string polymetric riffs)",
+      "meta": {
+        "artist": "Meshuggah",
+        "album": "Immutable",
+        "title": "They Move Below",
+        "track": 7,
+        "year": 2022
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-26T01:25:40Z",
+        "note": "Harry, 26 Oct: pivot from S&M; climb only Immutable for now"
+      },
+      "ref_file": "ref/albums/immutable/07 they-move-below.webm"
+    },
+    {
+      "id": "kaleidoscope",
+      "song": "songs/kaleidoscope.yaml",
+      "reference": "Meshuggah — Kaleidoscope",
+      "source": "https://www.youtube.com/watch?v=cSFJ7Dnp-KI",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/kaleidoscope.wav OUT.wav $(cat tools/kaleidoscope-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "extreme progressive metal, djent (8-string polymetric riffs)",
+      "meta": {
+        "artist": "Meshuggah",
+        "album": "Immutable",
+        "title": "Kaleidoscope",
+        "track": 8,
+        "year": 2022
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-26T01:25:41Z",
+        "note": "Harry, 26 Oct: pivot from S&M; climb only Immutable for now"
+      },
+      "ref_file": "ref/albums/immutable/08 kaleidoscope.webm"
+    },
+    {
+      "id": "black-cathedral",
+      "song": "songs/black-cathedral.yaml",
+      "reference": "Meshuggah — Black Cathedral",
+      "source": "https://www.youtube.com/watch?v=xWOTpN5tbC8",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/black-cathedral.wav OUT.wav $(cat tools/black-cathedral-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "extreme progressive metal, djent (8-string polymetric riffs)",
+      "meta": {
+        "artist": "Meshuggah",
+        "album": "Immutable",
+        "title": "Black Cathedral",
+        "track": 9,
+        "year": 2022
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-26T01:25:42Z",
+        "note": "Harry, 26 Oct: pivot from S&M; climb only Immutable for now"
+      },
+      "ref_file": "ref/albums/immutable/09 black-cathedral.webm"
+    },
+    {
+      "id": "i-am-that-thirst",
+      "song": "songs/i-am-that-thirst.yaml",
+      "reference": "Meshuggah — I Am That Thirst",
+      "source": "https://www.youtube.com/watch?v=gCGYfG-Zggg",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/i-am-that-thirst.wav OUT.wav $(cat tools/i-am-that-thirst-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "extreme progressive metal, djent (8-string polymetric riffs)",
+      "meta": {
+        "artist": "Meshuggah",
+        "album": "Immutable",
+        "title": "I Am That Thirst",
+        "track": 10,
+        "year": 2022
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-26T01:25:43Z",
+        "note": "Harry, 26 Oct: pivot from S&M; climb only Immutable for now"
+      },
+      "ref_file": "ref/albums/immutable/10 i-am-that-thirst.webm"
+    },
+    {
+      "id": "the-faultless",
+      "song": "songs/the-faultless.yaml",
+      "reference": "Meshuggah — The Faultless",
+      "source": "https://www.youtube.com/watch?v=K2wKFQbryP0",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/the-faultless.wav OUT.wav $(cat tools/the-faultless-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "extreme progressive metal, djent (8-string polymetric riffs)",
+      "meta": {
+        "artist": "Meshuggah",
+        "album": "Immutable",
+        "title": "The Faultless",
+        "track": 11,
+        "year": 2022
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-26T01:25:45Z",
+        "note": "Harry, 26 Oct: pivot from S&M; climb only Immutable for now"
+      },
+      "ref_file": "ref/albums/immutable/11 the-faultless.webm"
+    },
+    {
+      "id": "armies-of-the-preposterous",
+      "song": "songs/armies-of-the-preposterous.yaml",
+      "reference": "Meshuggah — Armies of the Preposterous",
+      "source": "https://www.youtube.com/watch?v=950wnDB4eWw",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/armies-of-the-preposterous.wav OUT.wav $(cat tools/armies-of-the-preposterous-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "extreme progressive metal, djent (8-string polymetric riffs)",
+      "meta": {
+        "artist": "Meshuggah",
+        "album": "Immutable",
+        "title": "Armies of the Preposterous",
+        "track": 12,
+        "year": 2022
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-26T01:25:47Z",
+        "note": "Harry, 26 Oct: pivot from S&M; climb only Immutable for now"
+      },
+      "ref_file": "ref/albums/immutable/12 armies-of-the-preposterous.webm"
+    },
+    {
+      "id": "past-tense",
+      "song": "songs/past-tense.yaml",
+      "reference": "Meshuggah — Past Tense",
+      "source": "https://www.youtube.com/watch?v=UhxtG-3WzzY",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/past-tense.wav OUT.wav $(cat tools/past-tense-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "extreme progressive metal, djent (8-string polymetric riffs)",
+      "meta": {
+        "artist": "Meshuggah",
+        "album": "Immutable",
+        "title": "Past Tense",
+        "track": 13,
+        "year": 2022
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-26T01:25:48Z",
+        "note": "Harry, 26 Oct: pivot from S&M; climb only Immutable for now"
+      },
+      "ref_file": "ref/albums/immutable/13 past-tense.webm"
     }
   ],
   "focus": "S&M"
