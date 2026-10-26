@@ -71,3 +71,11 @@ Standalone harnesses (`micro/songs/`) remain for clips without a song file, and 
   them are taken out), so stem-referenced ENVELOPE scores reward staccato that isn't in the record. Rule: stems are fine
   for spectral/timbre/tone, but an envelope or articulation candidate must also gain on the full-mix, full-band section
   score (`microscore --section SONG:A-B` without --stem or --context) before it goes to a crossclimb.
+- **26 Oct, a room reverb on Immutable's metal-kit-dry: passes the full-mix rule, loses every song on STEREO.**
+  "reverb kind=room decay=0.7s mix=0.12 predelay=8ms" on the drums gained +0.52/+0.10/+0.12 on three the-faultless
+  windows scored against the full mix (the drums stem had said +3.90: the stem overstated it ~8x). The refit crossclimb
+  over the 11 Immutable climbs using metal-kit-dry: mean -1.98, all 11 worse. The same config reproduces the window score
+  exactly (54.29 -> 54.81), so this isn't a setup error. On the-faultless the song metric moves almost only in STEREO
+  (per-section side/mid): 82.8 -> 62.1, total 73.33 -> 71.31. The room's decorrelated side energy widens the whole image,
+  and the refit doesn't re-fit width. micro weights stereo .05 and saw -1.0 there. Rule: anything that adds
+  reverb/width (or removes it) must be checked on the song metric's stereo term too (`stereoscan.py ID`), or kept mono.
