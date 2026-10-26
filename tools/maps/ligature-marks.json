@@ -33,7 +33,17 @@
      "B1,F2,Bb2",
      "B1,B2"
     ]
-   ]
+   ],
+   "extra": {
+    "fx": [
+     {
+      "type": "eq",
+      "bands": [
+       "lowshelf cutoff=200 gain=4dB"
+      ]
+     }
+    ]
+   }
   },
   {
    "name": "gtr-r",
@@ -65,7 +75,17 @@
      "B1,F2,Bb2",
      "B1,B2"
     ]
-   ]
+   ],
+   "extra": {
+    "fx": [
+     {
+      "type": "eq",
+      "bands": [
+       "lowshelf cutoff=200 gain=4dB"
+      ]
+     }
+    ]
+   }
   },
   {
    "name": "lead",
