@@ -4010,8 +4010,8 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/battery.wav OUT.wav $(cat tools/battery-sections.txt)",
       "best": {
-        "score": 55.322,
-        "version": "v9",
+        "score": 53.309,
+        "version": "v10",
         "commit": "see git log songs/battery.yaml"
       },
       "passes": 1,
