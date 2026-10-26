@@ -3560,7 +3560,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 8,
+      "rounds": 9,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
       "meta": {
@@ -3577,7 +3577,7 @@
       },
       "ref_file": "ref/albums/s-m/09.mp3",
       "last": {
-        "at": "2026-10-25T21:08:01Z",
+        "at": "2026-10-26T00:42:41Z",
         "who": "chirper-one"
       }
     },
