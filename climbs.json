@@ -3973,8 +3973,8 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/enter-sandman.wav OUT.wav $(cat tools/enter-sandman-sections.txt)",
       "best": {
-        "score": 59.837,
-        "version": "v9",
+        "score": 55.174,
+        "version": "v10",
         "commit": "see git log songs/enter-sandman.yaml"
       },
       "passes": 1,
