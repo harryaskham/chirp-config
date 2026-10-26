@@ -3561,8 +3561,8 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/hero-of-the-day.wav OUT.wav $(cat tools/hero-of-the-day-sections.txt)",
       "best": {
-        "score": 62.286,
-        "version": "v7",
+        "score": 58.414,
+        "version": "v8",
         "commit": "see git log songs/hero-of-the-day.yaml"
       },
       "passes": 1,
