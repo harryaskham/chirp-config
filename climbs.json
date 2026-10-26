@@ -3375,8 +3375,8 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/of-wolf-and-man.wav OUT.wav $(cat tools/of-wolf-and-man-sections.txt)",
       "best": {
-        "score": 63.233,
-        "version": "v7",
+        "score": 60.329,
+        "version": "v8",
         "commit": "see git log songs/of-wolf-and-man.yaml"
       },
       "passes": 1,
