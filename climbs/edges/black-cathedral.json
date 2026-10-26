@@ -1,9 +1,9 @@
 {
  "id": "black-cathedral",
- "version": "v4",
+ "version": "v5",
  "edge": 3.0,
  "ref_seconds": 120.662,
- "at": "2026-10-26T04:06:37Z",
+ "at": "2026-10-26T09:13:32Z",
  "edges": {
   "head": {
    "level": -19.9945718865056,
