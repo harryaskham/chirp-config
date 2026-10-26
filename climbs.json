@@ -3718,7 +3718,7 @@
       "passes": 1,
       "enabled": true,
       "status": "paused",
-      "rounds": 10,
+      "rounds": 11,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
       "meta": {
@@ -3735,7 +3735,7 @@
       },
       "ref_file": "ref/albums/s-m/13.mp3",
       "last": {
-        "at": "2026-10-25T20:49:21Z",
+        "at": "2026-10-26T02:21:57Z",
         "who": "chirper-one"
       },
       "paused_by": "focus"
