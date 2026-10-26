@@ -1,0 +1,18 @@
+about: >-
+  obzen-kit without its room reverb (as metal-kit-dry is to metal-kit): obzen-kit's tone chain and
+  Bleed-fitted EQ (+5 dB 1.6 kHz crack, -4 dB at 63 and 180 Hz, -3 dB above 9 kHz), the B1 kick and the
+  drummer-perspective pans, with no room. The room is what costs stereo in Immutable's full mixes (micro
+  finding 5). Micro, --context all, 4 seeds (chirper-three, 26 Oct): as bc-kit's parent (bc's retuned toms
+  and pans kept) broken-cog-drums-328 54.66 -> 57.28 and broken-cog-drums-0 53.11 -> 58.02 (transients,
+  spectral, timbre and modulation up); holdout phantoms-drums-253, untuned, 54.20 -> 54.18 (transients +12,
+  tone -4.7, stereo -16.5 where its drummer-perspective pans replace metal-kit-dry's). stereoscan (whole
+  songs, seed 0): its pans move the image away from the record at 1.2-16 kHz on both songs (summed band
+  deviation 4.4 -> 7.2 dB broken-cog, 5.4 -> 7.9 phantoms). Not adopted anywhere; a candidate for
+  chirp-eco's crossclimb.
+extends: obzen-kit
+fx:
+  - {type: compressor, threshold: -20dB, ratio: 4, attack: 9ms, release: 80ms, makeup: 4dB}
+  - {type: drive, drive: 0.18, mix: 0.5}
+  - type: eq
+    bands: ["hp cutoff=30", "peak cutoff=62 q=1.1 gain=2.5dB", "peak cutoff=420 q=1 gain=-3.5dB", "peak cutoff=4.2k q=1 gain=2.5dB", "highshelf cutoff=10k gain=1.5dB"]
+  - {type: eq, bands: ["peak cutoff=1600 q=0.7 gain=5dB", "peak cutoff=63 q=1 gain=-4dB", "peak cutoff=180 q=1.2 gain=-4dB", "highshelf cutoff=9000 gain=-3dB"]}
