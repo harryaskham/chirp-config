@@ -3301,7 +3301,7 @@
       "metric": "python3 tools/likeness.py sections ref/the-call-of-ktulu.wav OUT.wav $(cat tools/the-call-of-ktulu-sections.txt)",
       "best": {
         "score": 58.765,
-        "version": "v8",
+        "version": "v9",
         "commit": "see git log songs/the-call-of-ktulu.yaml"
       },
       "passes": 1,
