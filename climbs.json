@@ -4271,14 +4271,14 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/black-cathedral.wav OUT.wav $(cat tools/black-cathedral-sections.txt)",
       "best": {
-        "score": 53.218,
-        "version": "v1",
+        "score": 53.975,
+        "version": "v2",
         "commit": "see git log songs/black-cathedral.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 1,
+      "rounds": 2,
       "priority": 1.0,
       "genre": "extreme progressive metal, djent (8-string polymetric riffs)",
       "meta": {
@@ -4295,7 +4295,7 @@
       },
       "ref_file": "ref/albums/immutable/09 black-cathedral.webm",
       "last": {
-        "at": "2026-10-26T01:52:24Z",
+        "at": "2026-10-26T02:33:34Z",
         "who": "chirper-one"
       }
     },
