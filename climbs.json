@@ -4045,15 +4045,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/broken-cog.wav OUT.wav $(cat tools/broken-cog-sections.txt)",
       "best": {
-        "score": 74.848,
-        "version": "v10",
+        "score": 75.265,
+        "version": "v11",
         "commit": "see git log songs/broken-cog.yaml",
         "engine": "85b3881"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 11,
+      "rounds": 12,
       "priority": 1.0,
       "genre": "extreme progressive metal, djent (8-string polymetric riffs)",
       "meta": {
@@ -4070,7 +4070,7 @@
       },
       "ref_file": "ref/albums/immutable/01 broken-cog.webm",
       "last": {
-        "at": "2026-10-26T22:15:47Z",
+        "at": "2026-10-26T22:31:41Z",
         "who": "chirper-one"
       }
     },
