@@ -12,6 +12,7 @@ costs a lot shows up too.
   crossclimb.py --b-cfg /tmp/cfg-copy                     # a patch change in a private config copy
   crossclimb.py --b-args "--volume 0dB" --songs bleed,pneuma -j 4
   crossclimb.py --b-cfg /tmp/cfg-copy --refit            # library fixes: let each side's master adapt first
+  crossclimb.py --b-cfg /tmp/cfg-copy --refit-width      # ... and its stereo too (balance/width-moving changes)
 
 Renders go to /tmp/crossclimb/<id>-{a,b}.wav (removed afterwards unless --keep).
 """
@@ -33,14 +34,17 @@ def first_json(text):
     return json.loads(text[i:]) if i >= 0 else None
 
 
-def side(name, binary, cfg, extra, threads, refit=False):
+def side(name, binary, cfg, extra, threads, refit=False, width=False):
     env = dict(os.environ)
     # One render thread by default: idle rayon workers spin, which counts as CPU time and would
     # triple a song's apparent cost; songs run in parallel instead (-j).
     env["RAYON_NUM_THREADS"] = str(threads)
     if cfg:
         env["XDG_CONFIG_HOME"] = os.path.dirname(os.path.abspath(cfg)) if os.path.basename(cfg.rstrip("/")) == "chirp" else cfg
-    return {"name": name, "bin": binary, "env": env, "args": shlex.split(extra or ""), "refit": refit}
+    s = {"name": name, "bin": binary, "env": env, "args": shlex.split(extra or ""), "refit": refit or width}
+    if width:
+        s["width"] = True
+    return s
 
 
 def run_one(climb, s, keep):
@@ -55,6 +59,7 @@ def run_one(climb, s, keep):
     dur = data.get("duration") or 0
     cpu = (data.get("timings") or {}).get("cpu_ms")
     raw = None
+    doc = None
     if s.get("refit"):
         raw = score(climb, wav)
         # Let this side's master adapt before scoring: fit mastereq.py's residual EQ to the render and append
@@ -84,6 +89,7 @@ def run_one(climb, s, keep):
         if (first_json(p.stdout) or {}).get("status") != "success":
             return {"error": "refit render: " + p.stderr.strip()[-160:]}
     got = score(climb, wav)
+    wfit = width_pass(climb, s, doc, wav) if s.get("width") and isinstance(got, float) else None
     if not keep:
         os.path.exists(wav) and os.remove(wav)
     if isinstance(got, str):
@@ -91,8 +97,46 @@ def run_one(climb, s, keep):
     # With --refit a side scores its better of raw and re-fitted: a refit that hurts a song (its own section
     # masters beat a generic EQ) must not handicap both sides alike and hide a loss (Saturnine, tight-kit air).
     best = max(got, raw) if isinstance(raw, float) else got
-    return {"score": best, "raw": raw, "refit": got if raw is not None else None,
-            "rt": (cpu / 1000 / dur) if cpu and dur else None, "short": SHORT.get(wav)}
+    row = {"score": best, "raw": raw, "refit": got if raw is not None else None,
+           "rt": (cpu / 1000 / dur) if cpu and dur else None, "short": SHORT.get(wav)}
+    if s.get("width"):
+        row["width"] = wfit if isinstance(wfit, float) else None
+        if isinstance(wfit, float):
+            row["score"] = max(best, wfit)
+        elif wfit:
+            row["width_error"] = wfit
+    return row
+
+
+def width_pass(climb, s, doc, wav):
+    """--refit-width: one widthfit --joint --clip 0.5,2 pass on the EQ-refit master against its render, re-rendered and
+    scored (chirper-zero's fair test: balance and width changes lose before their master's width is refit, e.g.
+    the-abysmal-eye's root+octave riffs -0.19 raw, +0.51 after one joint pass). The score, or an error string."""
+    ref = re.search(r"(ref/\S+\.wav)", climb["metric"])
+    sec = re.search(r"(tools/\S+-sections\.txt)", climb["metric"])
+    if not (ref and sec and doc):
+        return "width: no ref/sections in the metric"
+    out = doc.replace("-refit.json", "-width.json")
+    w = subprocess.run([sys.executable, os.path.join(ROOT, "tools/widthfit.py"), doc, out, wav, ref.group(1),
+                        sec.group(1), "--joint", "--clip", "0.5,2"], capture_output=True, text=True, cwd=ROOT)
+    if w.returncode or not os.path.exists(out):
+        return "width: " + (w.stderr.strip() or w.stdout.strip())[-160:]
+    p = subprocess.run([s["bin"], "render", "-f", out, *s["args"], "-o", wav, "--json"],
+                       capture_output=True, text=True, env=s["env"], cwd=ROOT)
+    if (first_json(p.stdout) or {}).get("status") != "success":
+        return "width render: " + p.stderr.strip()[-160:]
+    return score(climb, wav)
+
+
+def fmt_rt(r):
+    return f"{r['rt']:.2f}" if r.get("rt") is not None else "  - "
+
+
+def fmt_rf(r):
+    if not (isinstance(r.get("raw"), float) and isinstance(r.get("refit"), float)):
+        return ""
+    w = f", width {r['width']:.2f}" if isinstance(r.get("width"), float) else ", width ERR" if "width" in r else ""
+    return f" (raw {r['raw']:.2f}, refit {r['refit']:.2f}{w})"
 
 
 SHORT = {}   # render path -> the metric's coverage summary, when the render did not cover its sections (bd-066928)
@@ -127,6 +171,10 @@ def main():
                     help="also refit each side's master (mastereq.py residual EQ) and score each side at its better of raw and "
                          "refit: masters fitted to the current library double-correct a library fix, but a generic refit "
                          "can also hurt a song (CPU: the first render)")
+    ap.add_argument("--refit-width", action="store_true",
+                    help="--refit plus one widthfit --joint --clip 0.5,2 pass on each side's refit master, re-rendered and "
+                         "scored; each side keeps its best of raw/refit/width (for changes that move balance or stereo, which "
+                         "lose before the master's width is refit: chirper-zero). CPU: +1 render per side")
     ap.add_argument("--keep", action="store_true", help="keep the renders")
     ap.add_argument("--json", action="store_true", help="print the rows as JSON")
     a = ap.parse_args()
@@ -138,8 +186,8 @@ def main():
     if a.songs:
         want = set(a.songs.split(","))
         climbs = [c for c in climbs if c["id"] in want]
-    sa = side("a", a.a_bin, a.a_cfg, a.a_args, a.threads, a.refit)
-    sb = side("b", a.b_bin or a.a_bin, a.b_cfg, a.b_args, a.threads, a.refit)
+    sa = side("a", a.a_bin, a.a_cfg, a.a_args, a.threads, a.refit, a.refit_width)
+    sb = side("b", a.b_bin or a.a_bin, a.b_cfg, a.b_args, a.threads, a.refit, a.refit_width)
 
     def both(c):
         return c["id"], run_one(c, sa, a.keep), run_one(c, sb, a.keep)
@@ -152,14 +200,11 @@ def main():
                 if "error" in ra or "error" in rb:
                     print(f"{cid:30s} ERROR a: {ra.get('error', 'ok')} | b: {rb.get('error', 'ok')}", flush=True)
                 else:
-                    rt = lambda r: f"{r['rt']:.2f}" if r.get("rt") is not None else "  - "
-                    rf = lambda r: (f" (raw {r['raw']:.2f}, refit {r['refit']:.2f})"
-                                    if isinstance(r.get("raw"), float) and isinstance(r.get("refit"), float) else "")
                     sh = next((r["short"] for r in (ra, rb) if r.get("short")), None)
                     flag = (f"   SHORT: render {sh.get('candidate_seconds')} s < sections {sh.get('requested_end')} s"
                             if sh else "")   # compared over the covered part only (bd-066928)
                     print(f"{cid:30s} {ra['score']:7.2f} -> {rb['score']:7.2f}  {rb['score'] - ra['score']:+6.2f}"
-                          f"   cpu x RT {rt(ra)} -> {rt(rb)}{rf(ra)}{rf(rb)}{flag}", flush=True)
+                          f"   cpu x RT {fmt_rt(ra)} -> {fmt_rt(rb)}{fmt_rf(ra)}{fmt_rf(rb)}{flag}", flush=True)
     ok = [r for r in rows if "score" in r["a"] and "score" in r["b"]]
     if a.json:
         print(json.dumps(rows, indent=1))
