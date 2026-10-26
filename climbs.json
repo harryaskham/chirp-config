@@ -4153,11 +4153,15 @@
       "source": "https://www.youtube.com/watch?v=t0KUzIZggIs",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/phantoms.wav OUT.wav $(cat tools/phantoms-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 60.987,
+        "version": "v1",
+        "commit": "see git log songs/phantoms.yaml"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "extreme progressive metal, djent (8-string polymetric riffs)",
       "meta": {
@@ -4172,7 +4176,11 @@
         "at": "2026-10-26T01:25:35Z",
         "note": "Harry, 26 Oct: pivot from S&M; climb only Immutable for now"
       },
-      "ref_file": "ref/albums/immutable/04 phantoms.webm"
+      "ref_file": "ref/albums/immutable/04 phantoms.webm",
+      "last": {
+        "at": "2026-10-26T08:19:22Z",
+        "who": "chirper-one"
+      }
     },
     {
       "id": "ligature-marks",
