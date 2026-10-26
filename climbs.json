@@ -3933,8 +3933,8 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/likeness.py sections ref/one.wav OUT.wav $(cat tools/one-sections.txt)",
       "best": {
-        "score": 56.134,
-        "version": "v2",
+        "score": 53.783,
+        "version": "v3",
         "commit": "see git log songs/one.yaml",
         "engine": "85b3881"
       },
