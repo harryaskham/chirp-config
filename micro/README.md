@@ -103,3 +103,11 @@ so-what-other-373) are re-taken with `--context all`; the ledger's `song` field 
   The gentlest stereo-safe form, chirper-three's ls12 (post-cab eq += lowshelf 90 Hz +12 dB, highpass 35 Hz; flat on
   full-mix sections), lost too: mean -0.56 (ligature -1.32, broken-cog/kaleidoscope -0.84; they-move-below and armies
   +0.24 each). Guitar low end is closed as a library default.
+- **26 Oct, obzen-kit-dry as Immutable's kit base (metal-kit-dry := obzen-kit-dry): rejected.** chirper-three's drums
+  family (broken-cog-drums-328/-0, holdout phantoms-drums-253, --context all) liked it: +2.62 / +4.91, holdout -0.02.
+  At song level, all 11 metal-kit-dry songs lost even with crossclimb --refit-width (each side at its best of raw / EQ
+  refit / one widthfit --joint pass): mean -3.46 (the-faultless -4.75, ligature -4.55, they-move-below -4.52). The width
+  pass recovered +2..+5 per song on the candidate (vs +0.1..+0.6 on the album), so the test was fair to it. Level is not
+  the cause: matched to metal-kit-dry's RMS (gain -9.9 dB), 3 songs still lost (mean -2.13). Its comp, drive and +5 dB
+  1.6 kHz crack are a whole-mix balance change that 3-4 s exposed-drum windows can't judge (cf. finding 4). It stays a
+  library patch (opt-in). Tables: /tmp/lt/xc-okd.txt, xc-okd-lm.txt.
