@@ -3635,8 +3635,8 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/likeness.py sections ref/bleeding-me.wav OUT.wav $(cat tools/bleeding-me-sections.txt)",
       "best": {
-        "score": 60.394,
-        "version": "v2",
+        "score": 59.401,
+        "version": "v3",
         "commit": "see git log songs/bleeding-me.yaml",
         "engine": "85b3881"
       },
