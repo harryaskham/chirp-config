@@ -59,6 +59,12 @@ so-what-other-373) are re-taken with `--context all`; the ledger's `song` field 
   closer to the records locally. That is the masking this benchmark is for: either the global terms reward brightness
   as fill (as with the S&M crowd bed) or a clip misses how the part sits in its mix. piano-recorded stays a named
   patch that songs opt into (Clair de Lune +3.4 / +4.65 refit).
+  REOPENED 26 Oct with the narrow form (piano-recorded-narrow: width 1, plate mix 0.2; findings 5 and 7 in hand) and
+  crossclimb --refit-width over the 16 climbs reaching `piano`: mean -0.12 (better 4: clair-de-lune +1.00, daydreaming
+  +0.56, past-tense +0.22, mind-s-mirrors +0.17; worse 6: pyramid-song -1.37, saturnine -1.25, wuthering-heights -0.58,
+  take-five -0.39, karma-police -0.25, life-in-a-glasshouse -0.15; 6 within 0.05). Far closer than the wide form, but
+  not a default: it stays opt-in, for the songs that gained. (`piano` := piano-recorded-narrow is an extends cycle; the
+  test used the resolved patch, with the piano siblings frozen. Table: /tmp/lt/xc-piano.txt.)
 - **25 Oct, les-paul low-mid body (+2.5 / +5 dB peak at 250 Hz) as the default: rejected.** masterbypatch found
   the 8 les-paul songs' masters boosting 141-356 Hz by ~+5 dB, across 4 albums (not an album confound). Refit
   crossclimb: half mean -0.02 (thin-thing -0.39), full mean -0.16 (thin-thing -0.58, electioneering -0.46). A
