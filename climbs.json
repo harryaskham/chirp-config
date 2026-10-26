@@ -3861,8 +3861,8 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/outlaw-torn.wav OUT.wav $(cat tools/outlaw-torn-sections.txt)",
       "best": {
-        "score": 57.83,
-        "version": "v10",
+        "score": 57.002,
+        "version": "v11",
         "commit": "see git log songs/outlaw-torn.yaml"
       },
       "passes": 1,
