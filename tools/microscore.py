@@ -8,6 +8,13 @@ a micro benchmark that sees sound, not song shape: where our songs lean on globa
   microscore.py --clip ID --song micro/songs/ID.yaml [--seeds 0,3,7,11] --record NOTE [--as WHO]   (ledger)
   microscore.py --board                              the best recorded total per clip (holdouts marked)
   microscore.py --clip ID --context TRACKS [--set tracks.N.patch=P …] [--seeds …] [--record NOTE]
+  microscore.py --section SONG:A-B [--context TRACKS] [--stem FAMILY|PATH] [--song-file F] [--set …] [--seeds …]
+               [--try 'LABEL: PATH=V PATH=V' …] [--mono]
+        any window of an album song, not only benchmark clips (section micro-climbs; never written to the ledger):
+        the song rendered with --from/--to (bit-identical to the full render; cost runs to the window's end, far less
+        with TRACKS soloed) and scored against the record's mix over A-B, or with --stem the separated stem (FAMILY:
+        ref/stems/htdemucs_6s/SONG/FAMILY.wav, or a WAV path) where the part isn't exposed. --try scores variants on
+        the same seeds and prints each one's delta to the baseline.
         the clip's album song rendered with TRACKS soloed (its master, buses and lanes kept): patches judged in the
         record's own master context. masteraudit across 111 songs found no common master tilt (median correction
         within +-2 dB, quartiles +-2-3 dB both ways), so a standard harness master would not remove the bias; each
@@ -300,6 +307,64 @@ def row(name, s):
     return f"{name:34s} total {s['total']:6.2f} | {dims}"
 
 
+def parse_section(spec):
+    """'SONG:A-B' (seconds) -> (song, a, b)."""
+    song, _, rng = spec.rpartition(":")
+    a, _, b = rng.partition("-")
+    if not song or not a or not b or float(b) <= float(a):
+        raise SystemExit(f"microscore: --section wants SONG:A-B in seconds (got {spec!r})")
+    return song, float(a), float(b)
+
+
+def parse_try(spec):
+    """'LABEL: PATH=V PATH=V' -> (label, [PATH=V, …])."""
+    label, _, rest = spec.partition(":")
+    sets = rest.split()
+    if not label.strip() or not sets or any("=" not in x for x in sets):
+        raise SystemExit(f"microscore: --try wants 'LABEL: PATH=V [PATH=V …]' (got {spec!r})")
+    return label.strip(), sets
+
+
+def render_range(song, t0, t1, seed=None, extra=()):
+    """The song's t0..t1 s via chirp render --from/--to (bit-identical to cutting the full render)."""
+    return render_window(song, None, None, seed, [*extra, "--from", f"{t0:g}s", "--to", f"{t1:g}s"])
+
+
+def section(a):
+    cid, t0, t1 = parse_section(a.section)
+    song = a.song_file or os.path.join(ROOT, "songs", f"{cid}.yaml")
+    if a.stem:
+        path = a.stem if a.stem.endswith(".wav") else os.path.join(ROOT, "ref", "stems", "htdemucs_6s", cid, f"{a.stem}.wav")
+        if not os.path.exists(path):
+            raise SystemExit(f"microscore: no stem {path}")
+        ref = cut(L.load(path), t0, t1)
+    else:
+        ref = cut(L.load(os.path.join(ROOT, "ref", f"{cid}.wav")), t0, t1)
+    mono = a.mono or (a.stem in MONO_FAMILIES)
+    solo = [x for t in (a.context or "").split(",") if t for x in ("--solo", t)]
+    seeds = [int(x) for x in a.seeds.split(",") if x] if a.seeds else [None]
+    variants = [("baseline", [])] + [parse_try(t) for t in a.tries]
+    out = []
+    for label, sets in variants:
+        extra = solo + [x for v in a.set + sets for x in ("--set", v)]
+        per = [score(ref, render_range(song, t0, t1, k, extra), mono=mono) for k in seeds]
+        r = mean_scores(per) if len(per) > 1 else per[0]
+        if len(per) > 1:
+            r["seeds"] = {str(k): x["total"] for k, x in zip(seeds, per)}
+        out.append((label, sets, r))
+    if a.json:
+        print(json.dumps({"section": a.section, "stem": a.stem, "context": a.context, "seeds": seeds,
+                          "variants": [{"label": lb, "set": st, **r} for lb, st, r in out]}, indent=1))
+        return
+    base = out[0][2]["total"]
+    what = f"{cid} {t0:g}-{t1:g} s" + (f", {a.context} soloed" if a.context else "") + \
+        (f", against the {a.stem} stem" if a.stem else ", against the record's mix")
+    print(f"{what}; seeds {','.join('-' if k is None else str(k) for k in seeds)}")
+    for label, sets, r in out:
+        delta = "" if label == "baseline" else f"  ({r['total'] - base:+.2f})"
+        print(row(label[:34], r) + delta)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("files", nargs="*")
@@ -323,7 +388,17 @@ def main(argv=None):
     ap.add_argument("--record", metavar="NOTE")
     ap.add_argument("--as", dest="who", default=os.environ.get("CLIMB_AS") or os.environ.get("USER", "?"))
     ap.add_argument("--board", action="store_true")
+    ap.add_argument("--section", metavar="SONG:A-B", help="any window of an album song (seconds); see the usage above")
+    ap.add_argument("--stem", metavar="FAMILY|PATH", help="--section: score against this separated stem, not the mix")
+    ap.add_argument("--song-file", help="--section: render this song file (a variant) instead of songs/SONG.yaml")
+    ap.add_argument("--try", dest="tries", action="append", default=[], metavar="'LABEL: PATH=V …'",
+                    help="--section: a variant's --set overrides, scored on the same seeds against the baseline")
+    ap.add_argument("--mono", action="store_true", help="--section: score pitch (monophonic part)")
     a = ap.parse_args(argv)
+    if a.section:
+        if a.record is not None:
+            raise SystemExit("microscore: --section is never recorded (the ledger is the benchmark's)")
+        return section(a)
     if a.board:
         best = {}
         for e in ledger():
