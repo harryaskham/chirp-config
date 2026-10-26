@@ -409,6 +409,20 @@ def section(a):
     solo = [x for t in (a.context or "").split(",") if t for x in ("--solo", t)]
     seeds = [int(x) for x in a.seeds.split(",") if x] if a.seeds else [None]
     variants = [("baseline", [])] + [parse_try(t) for t in a.tries]
+    # one snapshot of the song for every variant and seed: the config checkout is shared, and a climber's commit
+    # mid-run would otherwise split the comparison across versions (the-faultless v4 -> v5 landed during one, 26 Oct)
+    snap = tempfile.NamedTemporaryFile("w", dir=os.path.dirname(os.path.abspath(song)), prefix=".microscore-",
+                                       suffix=".yaml", delete=False)
+    with snap, open(song) as f:
+        snap.write(f.read())
+    try:
+        out = section_runs(snap.name, variants, solo, a, ref, t0, t1, seeds, mono)
+    finally:
+        os.unlink(snap.name)
+    report_section(a, cid, t0, t1, seeds, out)
+
+
+def section_runs(song, variants, solo, a, ref, t0, t1, seeds, mono):
     out = []
     for label, sets in variants:
         extra = solo + [x for v in a.set + sets for x in ("--set", v)]
@@ -420,6 +434,10 @@ def section(a):
         if a.explain:
             r["explain"] = explain(ref, renders[0])
         out.append((label, sets, r))
+    return out
+
+
+def report_section(a, cid, t0, t1, seeds, out):
     if a.json:
         print(json.dumps({"section": a.section, "stem": a.stem, "context": a.context, "seeds": seeds,
                           "variants": [{"label": lb, "set": st, **r} for lb, st, r in out]}, indent=1))
