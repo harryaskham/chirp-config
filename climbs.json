@@ -4082,14 +4082,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/the-abysmal-eye.wav OUT.wav $(cat tools/the-abysmal-eye-sections.txt)",
       "best": {
-        "score": 69.908,
-        "version": "v5",
-        "commit": "see git log songs/the-abysmal-eye.yaml"
+        "score": 71.766,
+        "version": "v6",
+        "commit": "see git log songs/the-abysmal-eye.yaml",
+        "engine": "85b3881"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 5,
+      "rounds": 6,
       "priority": 1.0,
       "genre": "extreme progressive metal, djent (8-string polymetric riffs)",
       "meta": {
@@ -4106,8 +4107,8 @@
       },
       "ref_file": "ref/albums/immutable/02 the-abysmal-eye.webm",
       "last": {
-        "at": "2026-10-26T11:56:46Z",
-        "who": "chirper-one"
+        "at": "2026-10-26T12:53:15Z",
+        "who": "chirper-zero"
       }
     },
     {
