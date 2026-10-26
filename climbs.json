@@ -4347,7 +4347,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 10,
+      "rounds": 11,
       "priority": 1.0,
       "genre": "extreme progressive metal, djent (8-string polymetric riffs)",
       "meta": {
@@ -4364,8 +4364,8 @@
       },
       "ref_file": "ref/albums/immutable/09 black-cathedral.webm",
       "last": {
-        "at": "2026-10-26T16:53:42Z",
-        "who": "chirper-zero"
+        "at": "2026-10-26T20:56:28Z",
+        "who": "chirper-one"
       }
     },
     {
