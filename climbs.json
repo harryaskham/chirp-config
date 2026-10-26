@@ -4053,7 +4053,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 7,
+      "rounds": 8,
       "priority": 1.0,
       "genre": "extreme progressive metal, djent (8-string polymetric riffs)",
       "meta": {
@@ -4070,8 +4070,8 @@
       },
       "ref_file": "ref/albums/immutable/01 broken-cog.webm",
       "last": {
-        "at": "2026-10-26T11:38:22Z",
-        "who": "chirper-zero"
+        "at": "2026-10-26T14:11:06Z",
+        "who": "chirper-one"
       }
     },
     {
