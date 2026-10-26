@@ -4354,11 +4354,15 @@
       "source": "https://www.youtube.com/watch?v=gCGYfG-Zggg",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/i-am-that-thirst.wav OUT.wav $(cat tools/i-am-that-thirst-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 66.81,
+        "version": "v1",
+        "commit": "see git log songs/i-am-that-thirst.yaml"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "extreme progressive metal, djent (8-string polymetric riffs)",
       "meta": {
@@ -4373,7 +4377,11 @@
         "at": "2026-10-26T01:25:43Z",
         "note": "Harry, 26 Oct: pivot from S&M; climb only Immutable for now"
       },
-      "ref_file": "ref/albums/immutable/10 i-am-that-thirst.webm"
+      "ref_file": "ref/albums/immutable/10 i-am-that-thirst.webm",
+      "last": {
+        "at": "2026-10-26T06:50:54Z",
+        "who": "chirper-one"
+      }
     },
     {
       "id": "the-faultless",
