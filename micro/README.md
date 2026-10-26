@@ -63,3 +63,11 @@ Standalone harnesses (`micro/songs/`) remain for clips without a song file, and 
   stereo), not timbre. The guitars' level is unchanged (-0.1 dB: the amp compensates). So micro (level-matched, local
   envelope) and the song metric disagree on how much distortion the record has. Harry's ear is the tiebreak; a
   section-local lane would only be worth it if the song metric agreed somewhere, and it didn't in any section.
+- **26 Oct, tighter 8-string chugs (play.gate .88 -> .65, palm-mute decay ~0.35 -> ~0.1 s): micro yes, songs no, and why.**
+  All four riff clips gained (training +1.4/+4.4, holdouts +0.4/+1.0), and the refit crossclimb rejected it like the
+  gain change: mean -0.25, 5 of 7 songs worse. Scoring the same windows against the record's FULL MIX with the whole band
+  playing shrinks the gain: the-faultless 206.5 +1.24 vs the stem -> +0.46 vs the mix; 276.5 +3.89 (transients 40 -> 67)
+  -> -0.55 (transients 30 -> 29). A separator gates a dense mix's stem between chugs (the kick, bass and room that fill
+  them are taken out), so stem-referenced ENVELOPE scores reward staccato that isn't in the record. Rule: stems are fine
+  for spectral/timbre/tone, but an envelope or articulation candidate must also gain on the full-mix, full-band section
+  score (`microscore --section SONG:A-B` without --stem or --context) before it goes to a crossclimb.
