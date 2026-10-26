@@ -4237,7 +4237,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 9,
+      "rounds": 10,
       "priority": 1.0,
       "genre": "extreme progressive metal, djent (8-string polymetric riffs)",
       "meta": {
@@ -4254,7 +4254,7 @@
       },
       "ref_file": "ref/albums/immutable/06 god-he-sees-in-mirrors.webm",
       "last": {
-        "at": "2026-10-26T19:58:55Z",
+        "at": "2026-10-26T20:22:59Z",
         "who": "chirper-one"
       }
     },
