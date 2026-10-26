@@ -4383,7 +4383,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 5,
+      "rounds": 6,
       "priority": 1.0,
       "genre": "extreme progressive metal, djent (8-string polymetric riffs)",
       "meta": {
@@ -4400,7 +4400,7 @@
       },
       "ref_file": "ref/albums/immutable/10 i-am-that-thirst.webm",
       "last": {
-        "at": "2026-10-26T11:53:59Z",
+        "at": "2026-10-26T13:08:25Z",
         "who": "chirper-one"
       }
     },
