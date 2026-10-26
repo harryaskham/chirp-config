@@ -2,7 +2,7 @@
 """livestems: stems for a LIVE record. The crowd (applause, cheering) is separated first, then the band from the
 crowd-free mix, so the crowd doesn't land in the vocals and drums stems (Harry's S&M focus, 24 Oct).
 
-  livestems.py ID [--crowd mdx|roformer|none] [--sw] [--threads 4] [--force]
+  livestems.py ID [--crowd mdx|roformer|none] [--sw] [--threads 4] [--force] [--gpu [ORDINAL]]
   livestems.py --wav IN.wav --out DIR [same options]                 # any file, outside ref/stems
 
 1. crowd (default mdx): UVR-MDX-NET Crowd HQ 1, ~1.6x realtime on 4 threads; --crowd roformer: Mel-RoFormer crowd
@@ -35,6 +35,36 @@ SW = "BS-Roformer-SW.ckpt"
 STEMS6 = ("bass", "drums", "guitar", "other", "piano", "vocals")
 UV = ["uv", "run", "--python", "3.11", "--index", "https://download.pytorch.org/whl/cpu", "--index-strategy",
       "unsafe-best-match", "--with", "torch==2.5.1"]
+# --gpu (opt-in): the audio-separator models on an AMD GPU through ROCm. The ROCm 6.2 torch wheels segfault on the first
+# allocation on pocket4's 7900 XTX (the system and Prism run ROCm 7.2); torch 2.14.1+rocm7.2 runs it (26 TFLOP/s fp32,
+# BS-Roformer-SW at ~1x realtime vs >10x slower on 4 CPU threads). Settings from collective's templates/ml/shells/ml.nix.
+UV_GPU = ["uv", "run", "--python", "3.11", "--index", "https://download.pytorch.org/whl/rocm7.2", "--index-strategy",
+          "unsafe-best-match", "--with", "torch==2.14.1"]
+GPU = [None]                                # the HIP device ordinal in use, or None for the CPU path
+
+
+def gpu_agents(text):
+    """[(hip ordinal, gfx name, compute units)] for the GPU agents in `rocminfo` output, in HIP order."""
+    out = []
+    for block in text.split("*******")[1:]:
+        if "Device Type:" not in block or not any("Device Type:" in ln and "GPU" in ln for ln in block.splitlines()):
+            continue
+        name = next((ln.split(":", 1)[1].strip() for ln in block.splitlines() if ln.strip().startswith("Name:")
+                     and "gfx" in ln), "?")
+        cus = next((int(ln.split(":", 1)[1]) for ln in block.splitlines() if ln.strip().startswith("Compute Unit:")), 0)
+        out.append((len(out), name, cus))
+    return out
+
+
+def pick_gpu(spec):
+    """--gpu auto: the GPU agent with the most compute units (pocket4: the 7900 XTX, not the 890M); else an ordinal."""
+    if spec != "auto":
+        return str(int(spec))
+    r = subprocess.run(["rocminfo"], capture_output=True, text=True) if shutil.which("rocminfo") else None
+    agents = gpu_agents(r.stdout) if r and r.returncode == 0 else []
+    if not agents:
+        raise SystemExit("livestems: --gpu: no ROCm GPU agent found (rocminfo)")
+    return str(max(agents, key=lambda a: a[2])[0])
 
 
 CPUS = ["0-3"]
@@ -53,6 +83,8 @@ def env(threads):
     e = {k: v for k, v in os.environ.items() if k != "LD_LIBRARY_PATH"}
     e.update(OMP_NUM_THREADS=str(threads), MKL_NUM_THREADS=str(threads), OPENBLAS_NUM_THREADS="1",
              SSL_CERT_FILE=e.get("SSL_CERT_FILE", "/etc/ssl/certs/ca-certificates.crt"))
+    if GPU[0] is not None:
+        e.update(HIP_VISIBLE_DEVICES=GPU[0], HSA_OVERRIDE_GFX_VERSION="11.0.0", TORCH_BLAS_PREFER_HIPBLASLT="0")
     return e
 
 
@@ -65,7 +97,8 @@ def pick(files, label):
 
 def separate(model, wav, outdir, threads, extra=()):
     os.makedirs(outdir, exist_ok=True)
-    cmd = confine(["nice", "-n", "15", *UV, "--with", "audio-separator[cpu]", "audio-separator", wav, "-m", model,
+    uv = UV_GPU if GPU[0] is not None else UV
+    cmd = confine(["nice", "-n", "15", *uv, "--with", "audio-separator[cpu]", "audio-separator", wav, "-m", model,
                    "--model_file_dir", MODELS, "--output_dir", outdir, "--output_format", "WAV", *extra])
     r = subprocess.run(cmd, env=env(threads), capture_output=True, text=True, stdin=subprocess.DEVNULL)
     if r.returncode:
@@ -118,11 +151,15 @@ def main(argv=None):
     ap.add_argument("--out")
     ap.add_argument("--crowd", choices=("mdx", "roformer", "none"), default="mdx")
     ap.add_argument("--sw", action="store_true")
+    ap.add_argument("--gpu", nargs="?", const="auto", metavar="ORDINAL",
+                    help="run the audio-separator models (crowd, BS-Roformer-SW) on a ROCm GPU: auto = the one with the "
+                         "most compute units; htdemucs_6s stays on its pinned CPU path")
     ap.add_argument("--threads", type=int, default=4)
     ap.add_argument("--cpus", default="0-3", help="taskset CPU list every step is confined to")
     ap.add_argument("--force", action="store_true")
     a = ap.parse_args(argv)
     CPUS[0], QUOTA[0] = a.cpus, 100 * a.threads
+    GPU[0] = pick_gpu(a.gpu) if a.gpu else None
     if bool(a.id) == bool(a.wav) or (a.wav and not a.out):
         ap.error("give ID, or --wav IN --out DIR")
     name = a.id or os.path.splitext(os.path.basename(a.wav))[0]
