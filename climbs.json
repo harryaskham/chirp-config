@@ -4114,7 +4114,7 @@
       "song": "songs/light-the-shortening-fuse.yaml",
       "reference": "Meshuggah — Light the Shortening Fuse",
       "source": "https://www.youtube.com/watch?v=fvPAfWLnXV0",
-      "owner": null,
+      "owner": "chirper-zero",
       "metric": "python3 tools/likeness.py sections ref/light-the-shortening-fuse.wav OUT.wav $(cat tools/light-the-shortening-fuse-sections.txt)",
       "best": {
         "score": 68.682,
