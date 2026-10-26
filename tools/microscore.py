@@ -399,6 +399,15 @@ def render_range(song, t0, t1, seed=None, extra=()):
     return render_window(song, None, None, seed, [*extra, "--from", f"{t0:g}s", "--to", f"{t1:g}s"])
 
 
+def solo_args(context):
+    """chirp render --solo flags for --context TRACKS; 'all' (or nothing) solos nothing: the whole band, every track
+    sounding in the window (floors and sustains included), which is the fair candidate for a clip scored against the
+    record's MIX (micro/README: the in-context convention)."""
+    if not context or context.strip().lower() == "all":
+        return []
+    return [x for t in context.split(",") if t for x in ("--solo", t)]
+
+
 @contextlib.contextmanager
 def snapshot(song):
     """A private copy of SONG beside it (relative includes still resolve), deleted afterwards."""
@@ -420,7 +429,7 @@ def section(a):
     else:
         ref = cut(L.load(os.path.join(ROOT, "ref", f"{cid}.wav")), t0, t1)
     mono = a.mono or (a.stem in MONO_FAMILIES)
-    solo = [x for t in (a.context or "").split(",") if t for x in ("--solo", t)]
+    solo = solo_args(a.context)
     seeds = [int(x) for x in a.seeds.split(",") if x] if a.seeds else [None]
     variants = [("baseline", [])] + [parse_try(t) for t in a.tries]
     # one snapshot of the song for every variant and seed: the config checkout is shared, and a climber's commit
@@ -475,8 +484,9 @@ def main(argv=None):
     ap.add_argument("-j", type=int, default=3)
     ap.add_argument("--json", action="store_true")
     ap.add_argument("--context", metavar="TRACKS", help="with --clip: render the clip's ALBUM song (its master, buses and "
-                    "lanes) with these tracks soloed (comma-separated) and score the clip window: patches judged in the "
-                    "record's own master context")
+                    "lanes) with these tracks soloed (comma-separated; 'all' = the whole band, for clips scored "
+                    "against the record's mix) and score the clip window: patches judged in the record's own master "
+                    "context")
     ap.add_argument("--set", action="append", default=[], metavar="PATH=V", help="--context: chirp render --set overrides "
                     "(e.g. tracks.3.patch=analog-bass)")
     ap.add_argument("--seeds", help="with --song: render these seeds (e.g. 0,3,7,11) and score their mean "
@@ -541,7 +551,7 @@ def main(argv=None):
         ref = clip_ref(cl)
         if a.context:
             song = os.path.join(ROOT, "songs", f"{cl['song']}.yaml")
-            extra = [x for t in a.context.split(",") if t for x in ("--solo", t)] + [x for v in a.set for x in ("--set", v)]
+            extra = solo_args(a.context) + [x for v in a.set for x in ("--set", v)]
             mono = cl["family"] in MONO_FAMILIES
             seeds = [int(x) for x in a.seeds.split(",") if x] if a.seeds else [None]
             with snapshot(song) as snap:                 # one version for every seed (the checkout is shared)

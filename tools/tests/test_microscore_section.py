@@ -52,5 +52,12 @@ class Explain(unittest.TestCase):
         self.assertTrue(all(abs(b["diff_db"]) < 0.5 and b["corr"] > 0.99 for b in same["bands"]))
 
 
+class Context(unittest.TestCase):
+    def test_all_solos_nothing(self):
+        self.assertEqual(M.solo_args("all"), [])
+        self.assertEqual(M.solo_args(None), [])
+        self.assertEqual(M.solo_args("gtr-l,bass"), ["--solo", "gtr-l", "--solo", "bass"])
+
+
 if __name__ == "__main__":
     unittest.main()

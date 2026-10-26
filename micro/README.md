@@ -38,6 +38,16 @@ so a standard harness master would not help, and bare harnesses over-reward dark
 Mind's Mirrors' guitars: bare harness 31.0, in context 49.2 on their album patches, 39.1 with clean-dry swapped in.
 Standalone harnesses (`micro/songs/`) remain for clips without a song file, and for building parts from scratch.
 
+Which tracks to render (26 Oct, after chirper-three's i-other-7 erratum): match the candidate to the clip's REFERENCE.
+- A clip scored against the record's MIX (the default): `--context all`, the whole band over the window (every track
+  sounding there, sustained pads, drones and floor/noise tracks included), with the patch under test swapped in by
+  `--set`. Soloing only the family's tracks under-counts what the record holds: so-what-other-373's tone read 2.35
+  with the horn alone and 36.8 with the whole band (the upright and kit under the horn).
+- A clip scored against STEMS (`"ref": "stems:..."`, the riff family): `--context` the tracks those stems hold, since
+  the reference has nothing else in it.
+Baselines recorded under the old family-only habit (round 32: i-other-7, ingenue-other-10, pulk-pull-...-other-239,
+so-what-other-373) are re-taken with `--context all`; the ledger's `song` field (`context:ID:TRACKS`) tells them apart.
+
 ## Findings
 
 - **25 Oct, piano-recorded as the `piano` default: rejected.** chirper-three's piano-recorded (the built-in piano,
