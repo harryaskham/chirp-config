@@ -3898,8 +3898,8 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/sad-but-true.wav OUT.wav $(cat tools/sad-but-true-sections.txt)",
       "best": {
-        "score": 62.495,
-        "version": "v12",
+        "score": 60.947,
+        "version": "v13",
         "commit": "see git log songs/sad-but-true.yaml"
       },
       "passes": 1,
