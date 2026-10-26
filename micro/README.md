@@ -54,3 +54,12 @@ Standalone harnesses (`micro/songs/`) remain for clips without a song file, and 
   crossclimb: half mean -0.02 (thin-thing -0.39), full mean -0.16 (thin-thing -0.58, electioneering -0.46). A
   patch-level TILT cannot beat refitted masters, since a master refit is itself a tilt. Library defaults can win
   only on what a master cannot fix: timbre, transients, modulation, stereo. Point library work there.
+- **26 Oct, Immutable's 8-string with less pre-gain (m8-emg-l/r amp gain .8 -> .45/.40, ts .65-.7 -> .35/.30): micro yes, songs no.**
+  On the riff clips the lower gain won monotonically (the-faultless-riff-206 +1.3, riff-276 +5.3; holdout
+  ligature-marks-riff-122 +2.0, abysmal-eye-riff-213 flat), almost all of it transients (attack/envelope shape). The
+  refit crossclimb over the 7 songs using m8-emg rejected both settings: .45/.35 mean -0.21, .40/.30 mean -0.26, 6 of 7
+  worse, and the holdout SONGS the worst (-0.47, -0.52). By section the loss is broad, riff-heavy sections included
+  (ligature-marks 102-117 s at .68 guitar+bass share: -1.47), and moves song-level terms (loudness contour, master,
+  stereo), not timbre. The guitars' level is unchanged (-0.1 dB: the amp compensates). So micro (level-matched, local
+  envelope) and the song metric disagree on how much distortion the record has. Harry's ear is the tiebreak; a
+  section-local lane would only be worth it if the song metric agreed somewhere, and it didn't in any section.
