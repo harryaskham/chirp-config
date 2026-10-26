@@ -23,7 +23,7 @@ def score(song, seeds=(7, 11, 13), ref=None, sections=None):
     tag = os.path.splitext(os.path.basename(song))[0]
 
     def one(seed):
-        out = f"/tmp/seedscore-{tag}-{seed}.wav"
+        out = f"/tmp/seedscore-{os.getpid()}-{tag}-{seed}.wav"   # pid: concurrent masterstacks' held-out renders share tags (best/base)
         r = subprocess.run(["nice", "-n", "15", C, "render", "-f", song, "--seed", str(seed), "-o", out],
                            capture_output=True, text=True, cwd=os.path.join(HERE, "..", "songs"))
         if r.returncode:
