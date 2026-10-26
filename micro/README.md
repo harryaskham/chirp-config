@@ -100,3 +100,6 @@ so-what-other-373) are re-taken with `--context all`; the ledger's `song` field 
   loudness -5.2: more low end fills the side, blurs the chug onsets and pushes the limiter. What works instead is the
   arrangement: chirper-one's chug re-voicing (fifth dyads -> octaves via map subst) gained +1.9..+2.3 on I Am That
   Thirst and +0.7..+1.3 on Ligature Marks. Table: /tmp/lt/xc-lowall.txt.
+  The gentlest stereo-safe form, chirper-three's ls12 (post-cab eq += lowshelf 90 Hz +12 dB, highpass 35 Hz; flat on
+  full-mix sections), lost too: mean -0.56 (ligature -1.32, broken-cog/kaleidoscope -0.84; they-move-below and armies
+  +0.24 each). Guitar low end is closed as a library default.
