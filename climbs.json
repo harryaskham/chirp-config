@@ -4309,7 +4309,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 10,
+      "rounds": 11,
       "priority": 1.0,
       "genre": "extreme progressive metal, djent (8-string polymetric riffs)",
       "meta": {
@@ -4326,7 +4326,7 @@
       },
       "ref_file": "ref/albums/immutable/08 kaleidoscope.webm",
       "last": {
-        "at": "2026-10-26T11:26:56Z",
+        "at": "2026-10-26T12:43:22Z",
         "who": "chirper-one"
       }
     },
