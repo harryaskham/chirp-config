@@ -2,7 +2,7 @@
 """microclips: the micro benchmark's clip set (micro/clips.json): moments where one instrument is exposed, 1-10 s, from
 records we have stems for (Harry, 25 Oct; scored by tools/microscore.py).
 
-  microclips.py propose [ID …] [--all] [--min 1.5] [--max 8] [--share 0.7] [--per-song 3] [--json]
+  microclips.py propose [ID …] [--all] [--min 1.5] [--max 8] [--share 0.7] [--per-song 3] [--kit-std 6] [--json]
   microclips.py add SONG --from A --to B --family F [--holdout] [--note TEXT]
   microclips.py list
 
@@ -58,7 +58,20 @@ def shares(cid):
     return names, e / tot, 10 * np.log10(tot)
 
 
-def candidates(cid, mn=1.5, mx=8.0, share=0.7):
+def envelope_std(cid, a, b, stem="drums"):
+    """Std (dB) of a stem's 20 ms frame level over a..b s: a kit swings 8-25 dB between hits; a sustained roll
+    (S&M's timpani under 'one-drums-46', chirper-three: 3 dB) barely moves."""
+    x = L.load(os.path.join(ROOT, "ref", "stems", "htdemucs_6s", cid, f"{stem}.wav"))
+    x = x.mean(1) if x.ndim > 1 else x
+    seg = x[int(a * L.SR):int(b * L.SR)]
+    h = int(0.02 * L.SR)
+    n = len(seg) // h
+    if n < 2:
+        return 0.0
+    return float((10 * np.log10((seg[:n * h].reshape(n, h) ** 2).mean(1) + 1e-14)).std())
+
+
+def candidates(cid, mn=1.5, mx=8.0, share=0.7, kit_std=None):
     got = shares(cid)
     if got is None:
         return []
@@ -84,6 +97,8 @@ def candidates(cid, mn=1.5, mx=8.0, share=0.7):
                     a, b = s, k
                 out.append({"song": cid, "family": name, "from": round(a * HOP, 1), "to": round(b * HOP, 1),
                             "share": round(float(sh[i, a:b].mean()), 3), "rank": float(sh[i, a:b].mean() * (b - a) * HOP)})
+    if kit_std is not None:                    # opt-in: drums candidates must be a kit, not a sustained roll
+        out = [c for c in out if c["family"] != "drums" or envelope_std(cid, c["from"], c["to"]) >= kit_std]
     return sorted(out, key=lambda c: -c["rank"])
 
 
@@ -110,6 +125,8 @@ def main(argv=None):
     ap.add_argument("--max", type=float, default=8.0)
     ap.add_argument("--share", type=float, default=0.7)
     ap.add_argument("--per-song", type=int, default=3)
+    ap.add_argument("--kit-std", type=float, help="drums candidates need this much 20 ms level swing (dB; ~6): drops "
+                                                  "sustained rolls (timpani) the stem share alone mistakes for a kit")
     ap.add_argument("--from", dest="t0", type=float)
     ap.add_argument("--to", dest="t1", type=float)
     ap.add_argument("--family")
@@ -141,7 +158,7 @@ def main(argv=None):
     ids = a.ids or [c["id"] for c in reg if c.get("song") and (a.all or c.get("enabled"))]
     res = []
     for cid in ids:
-        res.extend(candidates(cid, a.min, a.max, a.share)[:a.per_song])
+        res.extend(candidates(cid, a.min, a.max, a.share, a.kit_std)[:a.per_song])
     if a.json:
         print(json.dumps(res, indent=1))
         return
