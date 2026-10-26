@@ -43,7 +43,17 @@
      "C2",
      "C2,C3"
     ]
-   ]
+   ],
+   "extra": {
+    "fx": [
+     {
+      "type": "eq",
+      "bands": [
+       "lowshelf cutoff=200 gain=4dB"
+      ]
+     }
+    ]
+   }
   },
   {
    "name": "gtr-r",
@@ -85,7 +95,17 @@
      "C2",
      "C2,C3"
     ]
-   ]
+   ],
+   "extra": {
+    "fx": [
+     {
+      "type": "eq",
+      "bands": [
+       "lowshelf cutoff=200 gain=4dB"
+      ]
+     }
+    ]
+   }
   },
   {
    "name": "lead",
