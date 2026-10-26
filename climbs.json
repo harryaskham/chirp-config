@@ -4448,14 +4448,14 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/armies-of-the-preposterous.wav OUT.wav $(cat tools/armies-of-the-preposterous-sections.txt)",
       "best": {
-        "score": 68.786,
-        "version": "v11",
+        "score": 68.943,
+        "version": "v12",
         "commit": "see git log songs/armies-of-the-preposterous.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 12,
+      "rounds": 13,
       "priority": 1.0,
       "genre": "extreme progressive metal, djent (8-string polymetric riffs)",
       "meta": {
@@ -4472,7 +4472,7 @@
       },
       "ref_file": "ref/albums/immutable/12 armies-of-the-preposterous.webm",
       "last": {
-        "at": "2026-10-26T14:49:35Z",
+        "at": "2026-10-26T17:01:38Z",
         "who": "chirper-one"
       }
     },
