@@ -4485,15 +4485,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/past-tense.wav OUT.wav $(cat tools/past-tense-sections.txt)",
       "best": {
-        "score": 60.817,
-        "version": "v10",
+        "score": 61.016,
+        "version": "v11",
         "commit": "see git log songs/past-tense.yaml",
         "engine": "85b3881"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 12,
+      "rounds": 13,
       "priority": 1.0,
       "genre": "extreme progressive metal, djent (8-string polymetric riffs)",
       "meta": {
@@ -4510,7 +4510,7 @@
       },
       "ref_file": "ref/albums/immutable/13 past-tense.webm",
       "last": {
-        "at": "2026-10-26T22:49:47Z",
+        "at": "2026-10-26T23:29:48Z",
         "who": "chirper-one"
       }
     }
