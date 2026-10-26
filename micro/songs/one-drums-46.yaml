@@ -1,0 +1,7 @@
+about: "Micro harness (chirper-three): One (Metallica, S&M) 46-54 s. one.yaml has no drum notes in this window; hits from the demucs drum stem via tools/drumtrans.py on library rock-kit (pieces k s h oh c rd t1 ft, grid 96 at 120 bpm): 4 kicks, 13 soft toms, 1 cymbal. The stem here is mostly a sustained low roll (kick band flat at -33 dB), pitched (79 and 111 Hz peaks), pulsing at 2.5 Hz: orchestral timpani or a hall bass drum, which the library has no patch for. Baseline only."
+tempo: 120
+length: "8s"
+tracks:
+  - {"name": "kick", "patch": "rock-kit", "score": "R/4.1979b k/10.7083b@127 k/0.4062b@118 k/0.3646b@108 k/1b@30"}
+  - {"name": "toms", "patch": "rock-kit", "score": "R/0.1042b t1/0.0417b@9 t1/0.2083b@12 ft/0.7083b@15 t1/0.2188b@9 ft/6.4792b@18 t1/2.2917b@16 t1/0.3646b@14 t1/3.875b@43 t1/1.25b@7 ft/0.1771b@10 t1/0.0417b@2 ft/0.1354b@7 t1/1b@1"}
+  - {"name": "cymbals", "patch": "rock-kit", "score": "R/2.6875b c/1b@1"}
