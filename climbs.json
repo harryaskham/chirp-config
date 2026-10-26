@@ -3338,8 +3338,8 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/master-of-puppets.wav OUT.wav $(cat tools/master-of-puppets-sections.txt)",
       "best": {
-        "score": 57.623,
-        "version": "v8",
+        "score": 54.829,
+        "version": "v9",
         "commit": "see git log songs/master-of-puppets.yaml"
       },
       "passes": 1,
