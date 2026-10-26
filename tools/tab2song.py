@@ -463,7 +463,7 @@ def build(mp):
         sc = part_score(lines, beats, ranges, 0 if placement else off_beats, p.get("remap"), p.get("drop", ()), p["name"], p.get("chord"), p.get("ring"))
         for art in list(mp.get("strip", [])) + list(p.get("strip", [])):   # e.g. "ph": drop ^ph articulations
             if art == "bend":   # drop bend= tokens (slides/bends); held notes stay
-                sc = re.sub(r"\s*bend=\S+", "", sc)
+                sc = re.sub(r"\s*bend=[^\s\]]*", "", sc)   # stop at ']' (a compressed repeat's close, `bend=]x3`)
             else:
                 sc = re.sub(r"\^" + re.escape(art) + r"(?![A-Za-z0-9_])", "", sc)
         tr = {"name": p["name"], "patch": p["patch"]}

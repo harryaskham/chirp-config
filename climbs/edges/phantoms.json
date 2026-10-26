@@ -1,9 +1,9 @@
 {
  "id": "phantoms",
- "version": "v2",
+ "version": "v3",
  "edge": 3.0,
  "ref_seconds": 293.759,
- "at": "2026-10-26T08:33:36Z",
+ "at": "2026-10-26T09:47:27Z",
  "edges": {
   "head": {
    "level": -12.368293927881162,
