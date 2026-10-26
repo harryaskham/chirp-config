@@ -3747,8 +3747,8 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/likeness.py sections ref/for-whom-the-bell-tolls.wav OUT.wav $(cat tools/for-whom-the-bell-tolls-sections.txt)",
       "best": {
-        "score": 59.705,
-        "version": "v2",
+        "score": 57.15,
+        "version": "v3",
         "commit": "see git log songs/for-whom-the-bell-tolls.yaml",
         "engine": "85b3881"
       },
