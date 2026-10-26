@@ -14,7 +14,16 @@
      105
     ]
    ],
-   "pan": -1
+   "pan": -1,
+   "subst": [
+    [
+     1,
+     105,
+     "Bb1,F2,Bb2,F3",
+     "Bb1,Bb2"
+    ]
+   ],
+   "gain": "-3.0dB"
   },
   {
    "name": "gtr-r",
@@ -26,7 +35,16 @@
      105
     ]
    ],
-   "pan": 1
+   "pan": 1,
+   "subst": [
+    [
+     1,
+     105,
+     "Bb1,F2,Bb2,F3",
+     "Bb1,Bb2"
+    ]
+   ],
+   "gain": "-3.0dB"
   },
   {
    "name": "lead",
@@ -38,7 +56,7 @@
      105
     ]
    ],
-   "gain": "-2dB"
+   "gain": "-5.0dB"
   },
   {
    "name": "bass",
@@ -50,7 +68,7 @@
      105
     ]
    ],
-   "gain": "-2dB"
+   "gain": "+4.0dB"
   },
   {
    "name": "bass8",
@@ -62,7 +80,7 @@
      105
     ]
    ],
-   "gain": "-8dB",
+   "gain": "-2.0dB",
    "transpose": 12
   },
   {
@@ -74,13 +92,14 @@
      1,
      105
     ]
-   ]
+   ],
+   "gain": "-3.0dB"
   },
   {
    "name": "vox",
    "score_file": "tools/maps/light-the-shortening-fuse-vox.txt",
    "patch": "kidman synth.amp.a=40ms",
-   "gain": "0dB"
+   "gain": "+4.0dB"
   }
  ],
  "repeat": [

@@ -4117,15 +4117,15 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/likeness.py sections ref/light-the-shortening-fuse.wav OUT.wav $(cat tools/light-the-shortening-fuse-sections.txt)",
       "best": {
-        "score": 68.682,
-        "version": "v1",
+        "score": 70.12,
+        "version": "v2",
         "commit": "see git log songs/light-the-shortening-fuse.yaml",
         "engine": "85b3881"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 1,
+      "rounds": 2,
       "priority": 1.0,
       "genre": "extreme progressive metal, djent (8-string polymetric riffs)",
       "meta": {
@@ -4142,7 +4142,7 @@
       },
       "ref_file": "ref/albums/immutable/03 light-the-shortening-fuse.webm",
       "last": {
-        "at": "2026-10-26T06:45:54Z",
+        "at": "2026-10-26T09:20:24Z",
         "who": "chirper-zero"
       }
     },
