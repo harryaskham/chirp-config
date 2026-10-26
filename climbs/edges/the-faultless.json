@@ -1,9 +1,9 @@
 {
  "id": "the-faultless",
- "version": "v1",
+ "version": "v2",
  "edge": 3.0,
  "ref_seconds": 288.106,
- "at": "2026-10-26T02:19:35Z",
+ "at": "2026-10-26T02:40:13Z",
  "edges": {
   "head": {
    "level": -13.966780521197023,

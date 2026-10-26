@@ -75,6 +75,12 @@
      154
     ]
    ]
+  },
+  {
+   "name": "vox",
+   "score_file": "tools/maps/the-faultless-vox.txt",
+   "patch": "kidman synth.amp.a=40ms",
+   "gain": "0dB"
   }
  ]
 }
