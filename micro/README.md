@@ -89,3 +89,14 @@ so-what-other-373) are re-taken with `--context all`; the ledger's `song` field 
   (per-section side/mid): 82.8 -> 62.1, total 73.33 -> 71.31. The room's decorrelated side energy widens the whole image,
   and the refit doesn't re-fit width. micro weights stereo .05 and saw -1.0 there. Rule: anything that adds
   reverb/width (or removes it) must be checked on the song metric's stereo term too (`stereoscan.py ID`), or kept mono.
+- **26 Oct, m8-emg "lowall" (amp tight 140 -> 70, bass +.2, resonance +.24): rejected; pitch-class fixes are
+  arrangement work, not more guitar low end.** chirper-one found Immutable's low register reads the wrong pitch class
+  (tools/partchroma.py: +5 / -4 clusters, the 3rd/5th harmonic over the root). chirp-eco traced the root's loss stage by
+  stage (F1, fundamental vs 3rd harmonic): string+pickup -20 dB, amp neutral, CAB IR -49 dB (all 15 irs/jester cut 44 Hz
+  27-31 dB under 131 Hz; tight and mix act before the cab, and pan is applied after a patch's fx, so a patch-level
+  mono_below never sees stereo). chirper-three's lowall halved the bad bars (the-abysmal-eye cos0 .74 -> .82), but the
+  refit crossclimb over all 7 m8-emg songs lost everywhere: mean -1.83 (ligature-marks -4.22, broken-cog -2.49).
+  Ligature by term: chroma +1.0, spectral +0.8, ltas +1.3 against stereo -20.2, tempo -9.0, rhythm -8.6, master -7.2,
+  loudness -5.2: more low end fills the side, blurs the chug onsets and pushes the limiter. What works instead is the
+  arrangement: chirper-one's chug re-voicing (fifth dyads -> octaves via map subst) gained +1.9..+2.3 on I Am That
+  Thirst and +0.7..+1.3 on Ligature Marks. Table: /tmp/lt/xc-lowall.txt.
