@@ -3823,8 +3823,8 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/wherever-i-may-roam.wav OUT.wav $(cat tools/wherever-i-may-roam-sections.txt)",
       "best": {
-        "score": 62.094,
-        "version": "v8",
+        "score": 58.112,
+        "version": "v9",
         "commit": "see git log songs/wherever-i-may-roam.yaml"
       },
       "passes": 1,
