@@ -4376,14 +4376,14 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/i-am-that-thirst.wav OUT.wav $(cat tools/i-am-that-thirst-sections.txt)",
       "best": {
-        "score": 73.347,
-        "version": "v11",
+        "score": 74.224,
+        "version": "v12",
         "commit": "see git log songs/i-am-that-thirst.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 12,
+      "rounds": 13,
       "priority": 1.0,
       "genre": "extreme progressive metal, djent (8-string polymetric riffs)",
       "meta": {
@@ -4400,7 +4400,7 @@
       },
       "ref_file": "ref/albums/immutable/10 i-am-that-thirst.webm",
       "last": {
-        "at": "2026-10-26T20:56:13Z",
+        "at": "2026-10-26T23:22:20Z",
         "who": "chirper-one"
       }
     },
