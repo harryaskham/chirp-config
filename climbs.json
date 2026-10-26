@@ -3444,8 +3444,8 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/fuel.wav OUT.wav $(cat tools/fuel-sections.txt)",
       "best": {
-        "score": 60.359,
-        "version": "v8",
+        "score": 54.451,
+        "version": "v9",
         "commit": "see git log songs/fuel.yaml"
       },
       "passes": 1,
