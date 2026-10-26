@@ -19,7 +19,8 @@
    },
    "strip": [
     "bend"
-   ]
+   ],
+   "gain": "-2.0dB"
   },
   {
    "name": "gtr-r",
@@ -37,7 +38,8 @@
    },
    "strip": [
     "bend"
-   ]
+   ],
+   "gain": "-2.0dB"
   },
   {
    "name": "lead",
@@ -49,7 +51,7 @@
      168
     ]
    ],
-   "gain": "-2dB",
+   "gain": "-4.0dB",
    "replace": {
     "168": "_/4b"
    }
@@ -66,7 +68,8 @@
    ],
    "drop": [
     "m98"
-   ]
+   ],
+   "gain": "-4.0dB"
   },
   {
    "name": "bass",
@@ -90,7 +93,7 @@
    "name": "vox",
    "score_file": "tools/maps/armies-of-the-preposterous-vox.txt",
    "patch": "kidman synth.amp.a=40ms",
-   "gain": "-3dB"
+   "gain": "+3.0dB"
   },
   {
    "name": "bass8",
