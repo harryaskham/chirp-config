@@ -3263,8 +3263,8 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/the-ecstasy-of-gold.wav OUT.wav $(cat tools/the-ecstasy-of-gold-sections.txt)",
       "best": {
-        "score": 65.446,
-        "version": "v7",
+        "score": 58.243,
+        "version": "v8",
         "commit": "see git log songs/the-ecstasy-of-gold.yaml"
       },
       "passes": 1,
