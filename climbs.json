@@ -4227,14 +4227,14 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/god-he-sees-in-mirrors.wav OUT.wav $(cat tools/god-he-sees-in-mirrors-sections.txt)",
       "best": {
-        "score": 62.974,
-        "version": "v4",
+        "score": 63.222,
+        "version": "v5",
         "commit": "see git log songs/god-he-sees-in-mirrors.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 4,
+      "rounds": 5,
       "priority": 1.0,
       "genre": "extreme progressive metal, djent (8-string polymetric riffs)",
       "meta": {
@@ -4251,7 +4251,7 @@
       },
       "ref_file": "ref/albums/immutable/06 god-he-sees-in-mirrors.webm",
       "last": {
-        "at": "2026-10-26T10:42:42Z",
+        "at": "2026-10-26T11:28:46Z",
         "who": "chirper-one"
       }
     },
