@@ -4455,7 +4455,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 11,
+      "rounds": 12,
       "priority": 1.0,
       "genre": "extreme progressive metal, djent (8-string polymetric riffs)",
       "meta": {
@@ -4472,7 +4472,7 @@
       },
       "ref_file": "ref/albums/immutable/12 armies-of-the-preposterous.webm",
       "last": {
-        "at": "2026-10-26T14:27:20Z",
+        "at": "2026-10-26T14:49:35Z",
         "who": "chirper-one"
       }
     },
