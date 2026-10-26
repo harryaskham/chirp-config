@@ -1,0 +1,9 @@
+about: >-
+  piano-recorded at width 1 with a lighter plate (mix 0.35 -> 0.2): the recorded concert grand's tone (built-in
+  piano, -12 dB shelf above 2.5 kHz, medium plate) without the wide spaced-pair image that micro finding 5 flags.
+  For songs whose records keep the piano narrow; wide records (clair-de-lune) keep piano-recorded. Micro,
+  --context all (chirper-three, 26 Oct): pyramid-song-piano-0 album piano 47.51 -> 48.27 (2-seed; stereo 37 -> 40,
+  where piano-recorded drops it to 17); clair-de-lune-piano-101 50.83 -> 55.40; holdouts untuned, 4-seed:
+  clair-de-lune-piano-164 42.09 -> 46.51 (every seed up), daydreaming-piano-11 48.04 -> 47.44 (timbre +5, tone -6.5,
+  stereo -7.5). Candidate for the `piano` default via chirp-eco's crossclimb --refit-width (finding 1 reopened).
+extends: "piano-recorded fx.2.width=1 fx.1.mix=0.2"
