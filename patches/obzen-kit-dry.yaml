@@ -7,8 +7,11 @@ about: >-
   spectral, timbre and modulation up); holdout phantoms-drums-253, untuned, 54.20 -> 54.18 (transients +12,
   tone -4.7, stereo -16.5 where its drummer-perspective pans replace metal-kit-dry's). stereoscan (whole
   songs, seed 0): its pans move the image away from the record at 1.2-16 kHz on both songs (summed band
-  deviation 4.4 -> 7.2 dB broken-cog, 5.4 -> 7.9 phantoms). Not adopted anywhere; a candidate for
-  chirp-eco's crossclimb.
+  deviation 4.4 -> 7.2 dB broken-cog, 5.4 -> 7.9 phantoms). REJECTED as Immutable's kit: chirp-eco's
+  crossclimb --refit-width (metal-kit-dry := obzen-kit-dry, 11 songs) mean -3.46, all 11 worse
+  (/tmp/lt/xc-okd.txt, 26 Oct). Cause: its chain over-brightens the DENSE full band (+4..+6.5 dB above 5 kHz in
+  broken-cog 230-238) and even its compressor alone loses there; the gains exist only where the drums are
+  exposed (micro finding 7). Opt-in only.
 extends: obzen-kit
 fx:
   - {type: compressor, threshold: -20dB, ratio: 4, attack: 9ms, release: 80ms, makeup: 4dB}
