@@ -33,6 +33,7 @@ total = their weighted mean (spectral .25, timbre .2, tone .15, transients .15, 
 pitch's weight is shared out when the clip is not monophonic). Read-only.
 """
 import argparse
+import contextlib
 import json
 import os
 import subprocess
@@ -398,6 +399,19 @@ def render_range(song, t0, t1, seed=None, extra=()):
     return render_window(song, None, None, seed, [*extra, "--from", f"{t0:g}s", "--to", f"{t1:g}s"])
 
 
+@contextlib.contextmanager
+def snapshot(song):
+    """A private copy of SONG beside it (relative includes still resolve), deleted afterwards."""
+    snap = tempfile.NamedTemporaryFile("w", dir=os.path.dirname(os.path.abspath(song)), prefix=".microscore-",
+                                       suffix=".yaml", delete=False)
+    with snap, open(song) as f:
+        snap.write(f.read())
+    try:
+        yield snap.name
+    finally:
+        os.unlink(snap.name)
+
+
 def section(a):
     cid, t0, t1 = parse_section(a.section)
     song = a.song_file or os.path.join(ROOT, "songs", f"{cid}.yaml")
@@ -411,14 +425,8 @@ def section(a):
     variants = [("baseline", [])] + [parse_try(t) for t in a.tries]
     # one snapshot of the song for every variant and seed: the config checkout is shared, and a climber's commit
     # mid-run would otherwise split the comparison across versions (the-faultless v4 -> v5 landed during one, 26 Oct)
-    snap = tempfile.NamedTemporaryFile("w", dir=os.path.dirname(os.path.abspath(song)), prefix=".microscore-",
-                                       suffix=".yaml", delete=False)
-    with snap, open(song) as f:
-        snap.write(f.read())
-    try:
-        out = section_runs(snap.name, variants, solo, a, ref, t0, t1, seeds, mono)
-    finally:
-        os.unlink(snap.name)
+    with snapshot(song) as snap:
+        out = section_runs(snap, variants, solo, a, ref, t0, t1, seeds, mono)
     report_section(a, cid, t0, t1, seeds, out)
 
 
@@ -536,7 +544,8 @@ def main(argv=None):
             extra = [x for t in a.context.split(",") if t for x in ("--solo", t)] + [x for v in a.set for x in ("--set", v)]
             mono = cl["family"] in MONO_FAMILIES
             seeds = [int(x) for x in a.seeds.split(",") if x] if a.seeds else [None]
-            renders = [(k, render_window(song, cl["from"], cl["to"], k, extra)) for k in seeds]
+            with snapshot(song) as snap:                 # one version for every seed (the checkout is shared)
+                renders = [(k, render_window(snap, cl["from"], cl["to"], k, extra)) for k in seeds]
             per = [(k, score(ref, x, mono=mono)) for k, x in renders]
             s = mean_scores([r for _, r in per]) if len(per) > 1 else per[0][1]
             if len(per) > 1:
