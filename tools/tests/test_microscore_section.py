@@ -34,5 +34,23 @@ class Section(unittest.TestCase):
         self.assertIn("never recorded", str(e.exception))
 
 
+class Explain(unittest.TestCase):
+    def test_missing_notes_are_named_and_bands_listed(self):
+        import numpy as np
+        rng = np.random.default_rng(0)
+        n = 4 * M.SR
+        ref = 0.3 * rng.normal(size=(n, 2))                       # a continuous wall
+        cand = ref.copy()
+        cand[n // 3:] = 0.0                                       # ours stops a third of the way in
+        ex = M.explain(ref, cand)
+        self.assertEqual(len(ex["bands"]), len(M.EXPLAIN_EDGES) - 1)
+        self.assertLess(ex["silent_record"], 0.05)
+        self.assertGreater(ex["silent_ours"], 0.5)
+        self.assertIn("NOTES MISSING", M.explain_text(ex))
+        same = M.explain(ref, ref.copy())
+        self.assertNotIn("NOTES MISSING", M.explain_text(same))
+        self.assertTrue(all(abs(b["diff_db"]) < 0.5 and b["corr"] > 0.99 for b in same["bands"]))
+
+
 if __name__ == "__main__":
     unittest.main()

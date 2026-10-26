@@ -9,7 +9,7 @@ a micro benchmark that sees sound, not song shape: where our songs lean on globa
   microscore.py --board                              the best recorded total per clip (holdouts marked)
   microscore.py --clip ID --context TRACKS [--set tracks.N.patch=P …] [--seeds …] [--record NOTE]
   microscore.py --section SONG:A-B [--context TRACKS] [--stem FAMILY|PATH] [--song-file F] [--set …] [--seeds …]
-               [--try 'LABEL: PATH=V PATH=V' …] [--mono]
+               [--try 'LABEL: PATH=V PATH=V' …] [--mono] [--explain]
         any window of an album song, not only benchmark clips (section micro-climbs; never written to the ledger):
         the song rendered with --from/--to (bit-identical to the full render; cost runs to the window's end, far less
         with TRACKS soloed) and scored against the record's mix over A-B, or with --stem the separated stem (FAMILY:
@@ -269,6 +269,55 @@ def score(ref, cand, mono=None):
     return out
 
 
+EXPLAIN_EDGES = (40, 80, 160, 320, 640, 1280, 2560, 5120, 10240, 16000)
+
+
+def explain(ref, cand):
+    """Where a clip's sound differs, per octave region (40 Hz-16 kHz), on the same aligned, level-matched pair score()
+    uses: the reference's level (dB re its loudest region), our level difference, each band's level swing over time
+    (std of its 46 ms frame level, dB: staccato chugs swing, a sustained wall doesn't) for both, and how well our band
+    envelope follows the record's (correlation). Points timbre/tone work at a band (chirper-three, the riff screen)."""
+    ref, cand = stereo2(ref), stereo2(cand)
+    if len(cand) < len(ref):
+        cand = np.concatenate([cand, np.zeros((len(ref) - len(cand), 2))])
+    cand = level_match(ref, align(ref, cand[:len(ref)]))
+    n = 2048
+    R, C = stft_mag(ref.mean(1), n) ** 2, stft_mag(cand.mean(1), n) ** 2
+    f = np.fft.rfftfreq(n, 1 / SR)
+    rows = []
+    for lo, hi in zip(EXPLAIN_EDGES[:-1], EXPLAIN_EDGES[1:]):
+        k = (f >= lo) & (f < hi)
+        er, ec = R[k].sum(0) + 1e-14, C[k].sum(0) + 1e-14                 # stft_mag: (bins, frames)
+        lr, lc = 10 * np.log10(er), 10 * np.log10(ec)
+        corr = float(np.corrcoef(lr, lc)[0, 1]) if lr.std() > 1e-6 and lc.std() > 1e-6 else 0.0
+        rows.append({"band": f"{lo}-{hi}", "ref_db": float(10 * np.log10(er.mean())),
+                     "diff_db": float(10 * np.log10(ec.mean() / er.mean())),
+                     "ref_swing": float(lr.std()), "our_swing": float(lc.std()), "corr": corr})
+    top = max(r["ref_db"] for r in rows)
+    for r in rows:
+        r["ref_db"] -= top
+
+    def silent(x):                            # share of 20 ms frames more than 50 dB under the clip's loudest
+        h = int(0.02 * SR)
+        m = len(x) // h
+        lv = 10 * np.log10((x[:m * h].mean(1).reshape(m, h) ** 2).mean(1) + 1e-14)
+        return float(np.mean(lv < lv.max() - 50)) if m else 0.0
+    return {"bands": rows, "silent_record": silent(ref), "silent_ours": silent(cand)}
+
+
+def explain_text(ex):
+    out = []
+    if ex["silent_ours"] - ex["silent_record"] >= 0.2:
+        out.append(f"    NOTES MISSING: ours is silent in {ex['silent_ours']:.0%} of 20 ms frames where the record is silent in "
+                   f"{ex['silent_record']:.0%}; the score measures absent notes, not sound (check bandend.py / the map here)")
+    out.append("    band Hz      record  ours-rec  swing rec/ours  env corr")
+    for r in ex["bands"]:
+        flag = "  <" if abs(r["diff_db"]) >= 6 or r["corr"] < 0.3 else ""
+        out.append(f"    {r['band']:>11s} {r['ref_db']:6.1f}   {r['diff_db']:+6.1f}    {r['ref_swing']:5.1f}/{r['our_swing']:<5.1f}   "
+                   f"{r['corr']:5.2f}{flag}")
+    return "\n".join(out)
+
+
 LEDGER = os.path.join(ROOT, "micro", "ledger.jsonl")
 
 
@@ -363,10 +412,13 @@ def section(a):
     out = []
     for label, sets in variants:
         extra = solo + [x for v in a.set + sets for x in ("--set", v)]
-        per = [score(ref, render_range(song, t0, t1, k, extra), mono=mono) for k in seeds]
+        renders = [render_range(song, t0, t1, k, extra) for k in seeds]
+        per = [score(ref, x, mono=mono) for x in renders]
         r = mean_scores(per) if len(per) > 1 else per[0]
         if len(per) > 1:
             r["seeds"] = {str(k): x["total"] for k, x in zip(seeds, per)}
+        if a.explain:
+            r["explain"] = explain(ref, renders[0])
         out.append((label, sets, r))
     if a.json:
         print(json.dumps({"section": a.section, "stem": a.stem, "context": a.context, "seeds": seeds,
@@ -379,6 +431,8 @@ def section(a):
     for label, sets, r in out:
         delta = "" if label == "baseline" else f"  ({r['total'] - base:+.2f})"
         print(row(label[:34], r) + delta)
+        if a.explain:
+            print(explain_text(r["explain"]))
 
 
 def main(argv=None):
@@ -410,6 +464,8 @@ def main(argv=None):
     ap.add_argument("--try", dest="tries", action="append", default=[], metavar="'LABEL: PATH=V …'",
                     help="--section: a variant's --set overrides, scored on the same seeds against the baseline")
     ap.add_argument("--mono", action="store_true", help="--section: score pitch (monophonic part)")
+    ap.add_argument("--explain", action="store_true", help="--section / --clip --context: per octave region, our level "
+                    "difference, level swing and envelope correlation against the record (the first seed's render)")
     a = ap.parse_args(argv)
     if a.section:
         if a.record is not None:
@@ -462,12 +518,15 @@ def main(argv=None):
             extra = [x for t in a.context.split(",") if t for x in ("--solo", t)] + [x for v in a.set for x in ("--set", v)]
             mono = cl["family"] in MONO_FAMILIES
             seeds = [int(x) for x in a.seeds.split(",") if x] if a.seeds else [None]
-            per = [(k, score(ref, render_window(song, cl["from"], cl["to"], k, extra), mono=mono)) for k in seeds]
+            renders = [(k, render_window(song, cl["from"], cl["to"], k, extra)) for k in seeds]
+            per = [(k, score(ref, x, mono=mono)) for k, x in renders]
             s = mean_scores([r for _, r in per]) if len(per) > 1 else per[0][1]
             if len(per) > 1:
                 s["seeds"] = {str(k): r["total"] for k, r in per}
             a.song = f"context:{cl['song']}:{a.context}" + (f" {' '.join(a.set)}" if a.set else "")
             print(json.dumps(s) if a.json else row(f"{a.clip} (in context)", s))
+            if a.explain and not a.json:
+                print(explain_text(explain(ref, renders[0][1])))
             record(a, cl, s)
             return
         if a.song and a.seeds:
