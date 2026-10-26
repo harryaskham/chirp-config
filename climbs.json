@@ -3269,7 +3269,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 10,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
@@ -3289,7 +3289,8 @@
       "last": {
         "at": "2026-10-26T01:06:37Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "the-call-of-ktulu",
@@ -3306,7 +3307,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 8,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
@@ -3326,7 +3327,8 @@
       "last": {
         "at": "2026-10-26T00:09:17Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "master-of-puppets",
@@ -3342,7 +3344,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 8,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
@@ -3362,7 +3364,8 @@
       "last": {
         "at": "2026-10-25T20:09:55Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "of-wolf-and-man",
@@ -3378,7 +3381,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 7,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
@@ -3398,7 +3401,8 @@
       "last": {
         "at": "2026-10-25T20:50:08Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "the-thing-that-should-not-be",
@@ -3414,7 +3418,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 7,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
@@ -3434,7 +3438,8 @@
       "last": {
         "at": "2026-10-25T20:28:48Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "fuel",
@@ -3450,7 +3455,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 10,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
@@ -3470,7 +3475,8 @@
       "last": {
         "at": "2026-10-26T01:12:28Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "the-memory-remains",
@@ -3486,7 +3492,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 10,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
@@ -3506,7 +3512,8 @@
       "last": {
         "at": "2026-10-26T01:16:29Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "no-leaf-clover",
@@ -3523,7 +3530,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 2,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
@@ -3543,7 +3550,8 @@
       "last": {
         "at": "2026-10-25T18:57:25Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "hero-of-the-day",
@@ -3559,7 +3567,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 9,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
@@ -3579,7 +3587,8 @@
       "last": {
         "at": "2026-10-26T00:42:41Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "devil-s-dance",
@@ -3596,7 +3605,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 2,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
@@ -3616,7 +3625,8 @@
       "last": {
         "at": "2026-10-25T12:28:22Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "bleeding-me",
@@ -3633,7 +3643,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 2,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
@@ -3653,7 +3663,8 @@
       "last": {
         "at": "2026-10-25T16:59:13Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "nothing-else-matters",
@@ -3669,7 +3680,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 9,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
@@ -3689,7 +3700,8 @@
       "last": {
         "at": "2026-10-26T01:20:13Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "until-it-sleeps",
@@ -3705,7 +3717,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 10,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
@@ -3725,7 +3737,8 @@
       "last": {
         "at": "2026-10-25T20:49:21Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "for-whom-the-bell-tolls",
@@ -3742,7 +3755,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 2,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
@@ -3762,7 +3775,8 @@
       "last": {
         "at": "2026-10-25T14:09:27Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "human",
@@ -3779,7 +3793,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 7,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
@@ -3799,7 +3813,8 @@
       "last": {
         "at": "2026-10-25T20:48:36Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "wherever-i-may-roam",
@@ -3815,7 +3830,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 9,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
@@ -3835,7 +3850,8 @@
       "last": {
         "at": "2026-10-25T20:54:31Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "outlaw-torn",
@@ -3851,7 +3867,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 10,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
@@ -3871,7 +3887,8 @@
       "last": {
         "at": "2026-10-26T00:43:02Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "sad-but-true",
@@ -3887,7 +3904,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 12,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
@@ -3907,7 +3924,8 @@
       "last": {
         "at": "2026-10-25T21:31:37Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "one",
@@ -3924,7 +3942,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 2,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
@@ -3944,7 +3962,8 @@
       "last": {
         "at": "2026-10-25T21:51:35Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "enter-sandman",
@@ -3960,7 +3979,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 10,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
@@ -3980,7 +3999,8 @@
       "last": {
         "at": "2026-10-25T21:45:44Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "battery",
@@ -3996,7 +4016,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 9,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
@@ -4016,7 +4036,8 @@
       "last": {
         "at": "2026-10-25T20:33:21Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "broken-cog",
@@ -4383,5 +4404,5 @@
       "ref_file": "ref/albums/immutable/13 past-tense.webm"
     }
   ],
-  "focus": "S&M"
+  "focus": "Immutable"
 }
