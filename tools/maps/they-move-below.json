@@ -14,7 +14,19 @@
      48
     ]
    ],
-   "pan": -0.7
+   "pan": -0.7,
+   "extra": {
+    "fx": [
+     {
+      "type": "eq",
+      "bands": [
+       "highshelf cutoff=400 gain=-9dB",
+       "lp cutoff=2500 q=0.7",
+       "lp cutoff=2500 q=0.7"
+      ]
+     }
+    ]
+   }
   },
   {
    "name": "clean-r",
@@ -34,6 +46,14 @@
       "time": "12ms",
       "mix": 1.0,
       "feedback": 0.0
+     },
+     {
+      "type": "eq",
+      "bands": [
+       "highshelf cutoff=400 gain=-9dB",
+       "lp cutoff=2500 q=0.7",
+       "lp cutoff=2500 q=0.7"
+      ]
      }
     ]
    }
@@ -49,7 +69,19 @@
     ]
    ],
    "pan": -0.4,
-   "gain": "-4dB"
+   "gain": "-4dB",
+   "extra": {
+    "fx": [
+     {
+      "type": "eq",
+      "bands": [
+       "highshelf cutoff=400 gain=-9dB",
+       "lp cutoff=2500 q=0.7",
+       "lp cutoff=2500 q=0.7"
+      ]
+     }
+    ]
+   }
   },
   {
    "name": "harm-hi",
@@ -62,7 +94,19 @@
     ]
    ],
    "pan": 0.4,
-   "gain": "-4dB"
+   "gain": "-4dB",
+   "extra": {
+    "fx": [
+     {
+      "type": "eq",
+      "bands": [
+       "highshelf cutoff=400 gain=-9dB",
+       "lp cutoff=2500 q=0.7",
+       "lp cutoff=2500 q=0.7"
+      ]
+     }
+    ]
+   }
   },
   {
    "name": "csolo",
@@ -74,7 +118,19 @@
      48
     ]
    ],
-   "gain": "-2dB"
+   "gain": "-2dB",
+   "extra": {
+    "fx": [
+     {
+      "type": "eq",
+      "bands": [
+       "highshelf cutoff=400 gain=-9dB",
+       "lp cutoff=2500 q=0.7",
+       "lp cutoff=2500 q=0.7"
+      ]
+     }
+    ]
+   }
   },
   {
    "name": "csolo2",
@@ -87,7 +143,19 @@
     ]
    ],
    "pan": 0.3,
-   "gain": "-6dB"
+   "gain": "-6dB",
+   "extra": {
+    "fx": [
+     {
+      "type": "eq",
+      "bands": [
+       "highshelf cutoff=400 gain=-9dB",
+       "lp cutoff=2500 q=0.7",
+       "lp cutoff=2500 q=0.7"
+      ]
+     }
+    ]
+   }
   },
   {
    "name": "gtr-l",
@@ -99,7 +167,8 @@
      184
     ]
    ],
-   "pan": -1
+   "pan": -1,
+   "gain": "-3.0dB"
   },
   {
    "name": "gtr-r",
@@ -111,7 +180,8 @@
      184
     ]
    ],
-   "pan": 1
+   "pan": 1,
+   "gain": "-3.0dB"
   },
   {
    "name": "lead",
@@ -148,7 +218,20 @@
      184
     ]
    ],
-   "gain": "-2dB"
+   "gain": "+4.0dB"
+  },
+  {
+   "name": "bass8",
+   "track": 8,
+   "patch": "bass-fat",
+   "bars": [
+    [
+     49,
+     184
+    ]
+   ],
+   "gain": "-4.0dB",
+   "transpose": 12
   },
   {
    "name": "drums",
@@ -172,7 +255,18 @@
     ]
    ],
    "chord": "low",
-   "gain": "+6.7dB"
+   "gain": "-4.3dB",
+   "transpose": 12,
+   "extra": {
+    "fx": [
+     {
+      "type": "eq",
+      "bands": [
+       "highshelf cutoff=300 gain=-6dB"
+      ]
+     }
+    ]
+   }
   }
  ]
 }
