@@ -93,6 +93,7 @@ def main(argv=None):
     ap.add_argument("--bars")
     ap.add_argument("--json", action="store_true")
     a = ap.parse_args(argv)
+    MS.exit_on_term()
     if bool(a.ours) == bool(a.render):
         ap.error("give --ours WAV or --render TRACKS")
     bars = bars_of(a.id)

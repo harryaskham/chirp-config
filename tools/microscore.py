@@ -35,7 +35,9 @@ pitch's weight is shared out when the clip is not monophonic). Read-only.
 import argparse
 import contextlib
 import json
+import glob
 import os
+import signal as _signal
 import subprocess
 import sys
 import tempfile
@@ -408,11 +410,46 @@ def solo_args(context):
     return [x for t in context.split(",") if t for x in ("--solo", t)]
 
 
+def alive(pid):
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    return True
+
+
+def sweep_snapshots(folder, legacy_age=6 * 3600):
+    """Remove orphaned snapshots in FOLDER: .microscore-PID-*.yaml whose PID is gone (a run killed before its finally
+    ran: chirper-three found three in songs/), and pre-PID .microscore-*.yaml older than LEGACY_AGE seconds."""
+    import time
+    gone = []
+    for f in glob.glob(os.path.join(folder, ".microscore-*.yaml")):
+        tag = os.path.basename(f)[len(".microscore-"):].split("-", 1)[0]
+        try:
+            stale = not alive(int(tag)) if tag.isdigit() else time.time() - os.path.getmtime(f) > legacy_age
+            if stale:
+                os.unlink(f)
+                gone.append(f)
+        except OSError:
+            pass
+    return gone
+
+
+def exit_on_term():
+    """SIGTERM -> SystemExit, so snapshot()'s finally deletes its copy when a run is stopped (timeouts, unit stops)."""
+    _signal.signal(_signal.SIGTERM, lambda *_: sys.exit(143))
+
+
 @contextlib.contextmanager
 def snapshot(song):
-    """A private copy of SONG beside it (relative includes still resolve), deleted afterwards."""
-    snap = tempfile.NamedTemporaryFile("w", dir=os.path.dirname(os.path.abspath(song)), prefix=".microscore-",
-                                       suffix=".yaml", delete=False)
+    """A private copy of SONG beside it (relative includes still resolve), deleted afterwards. Named with this PID,
+    and orphans of dead runs are swept first."""
+    folder = os.path.dirname(os.path.abspath(song))
+    sweep_snapshots(folder)
+    snap = tempfile.NamedTemporaryFile("w", dir=folder, prefix=f".microscore-{os.getpid()}-", suffix=".yaml",
+                                       delete=False)
     with snap, open(song) as f:
         snap.write(f.read())
     try:
@@ -503,6 +540,7 @@ def main(argv=None):
     ap.add_argument("--explain", action="store_true", help="--section / --clip --context: per octave region, our level "
                     "difference, level swing and envelope correlation against the record (the first seed's render)")
     a = ap.parse_args(argv)
+    exit_on_term()
     if a.section:
         if a.record is not None:
             raise SystemExit("microscore: --section is never recorded (the ledger is the benchmark's)")

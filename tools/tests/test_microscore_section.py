@@ -59,5 +59,27 @@ class Context(unittest.TestCase):
         self.assertEqual(M.solo_args("gtr-l,bass"), ["--solo", "gtr-l", "--solo", "bass"])
 
 
+class Snapshots(unittest.TestCase):
+    def test_named_with_pid_and_orphans_swept(self):
+        import tempfile as tf
+        import time
+        with tf.TemporaryDirectory() as d:
+            song = os.path.join(d, "s.yaml")
+            open(song, "w").write("tempo: 120\n")
+            dead = os.path.join(d, ".microscore-999999999-x.yaml")     # no such PID
+            mine = os.path.join(d, f".microscore-{os.getpid()}-y.yaml")
+            legacy_old = os.path.join(d, ".microscore-abc.yaml")
+            legacy_new = os.path.join(d, ".microscore-def.yaml")
+            for f in (dead, mine, legacy_old, legacy_new):
+                open(f, "w").write("x")
+            os.utime(legacy_old, (time.time() - 7 * 3600,) * 2)
+            with M.snapshot(song) as snap:
+                self.assertTrue(os.path.basename(snap).startswith(f".microscore-{os.getpid()}-"))
+                self.assertEqual(open(snap).read(), "tempo: 120\n")
+                self.assertFalse(os.path.exists(dead) or os.path.exists(legacy_old))
+                self.assertTrue(os.path.exists(mine) and os.path.exists(legacy_new))
+            self.assertFalse(os.path.exists(snap))
+
+
 if __name__ == "__main__":
     unittest.main()
