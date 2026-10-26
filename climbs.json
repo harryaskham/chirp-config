@@ -3663,10 +3663,9 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/nothing-else-matters.wav OUT.wav $(cat tools/nothing-else-matters-sections.txt)",
       "best": {
-        "score": 56.94,
-        "version": "v6",
-        "commit": "see git log songs/nothing-else-matters.yaml",
-        "engine": "85b3881"
+        "score": 51.553,
+        "version": "v7",
+        "commit": "see git log songs/nothing-else-matters.yaml"
       },
       "passes": 1,
       "enabled": true,
