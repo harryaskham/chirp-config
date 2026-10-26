@@ -14,7 +14,10 @@
      154
     ]
    ],
-   "pan": -1
+   "pan": -1,
+   "strip": [
+    "bend"
+   ]
   },
   {
    "name": "gtr-r",
@@ -26,7 +29,10 @@
      154
     ]
    ],
-   "pan": 1
+   "pan": 1,
+   "strip": [
+    "bend"
+   ]
   },
   {
    "name": "lead",
@@ -63,7 +69,10 @@
      154
     ]
    ],
-   "gain": "-2dB"
+   "gain": "-2dB",
+   "strip": [
+    "bend"
+   ]
   },
   {
    "name": "drums",
@@ -93,7 +102,10 @@
     ]
    ],
    "gain": "-8dB",
-   "transpose": 12
+   "transpose": 12,
+   "strip": [
+    "bend"
+   ]
   }
  ],
  "repeat": [
