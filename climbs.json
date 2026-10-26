@@ -4116,11 +4116,16 @@
       "source": "https://www.youtube.com/watch?v=fvPAfWLnXV0",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/light-the-shortening-fuse.wav OUT.wav $(cat tools/light-the-shortening-fuse-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 68.682,
+        "version": "v1",
+        "commit": "see git log songs/light-the-shortening-fuse.yaml",
+        "engine": "85b3881"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "extreme progressive metal, djent (8-string polymetric riffs)",
       "meta": {
@@ -4135,7 +4140,11 @@
         "at": "2026-10-26T01:25:34Z",
         "note": "Harry, 26 Oct: pivot from S&M; climb only Immutable for now"
       },
-      "ref_file": "ref/albums/immutable/03 light-the-shortening-fuse.webm"
+      "ref_file": "ref/albums/immutable/03 light-the-shortening-fuse.webm",
+      "last": {
+        "at": "2026-10-26T06:45:54Z",
+        "who": "chirper-zero"
+      }
     },
     {
       "id": "phantoms",
