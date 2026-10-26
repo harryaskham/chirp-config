@@ -392,6 +392,33 @@
    "holdout": true,
    "note": "8-string riff + bass (g .39 b .37)",
    "ref": "stems:guitar+bass"
+  },
+  {
+   "id": "broken-cog-drums-328",
+   "song": "broken-cog",
+   "from": 328.5,
+   "to": 332.5,
+   "family": "drums",
+   "holdout": false,
+   "note": "Immutable drums (Haake's kit), proposed by chirper-three round 59; mix-referenced: score with --context all"
+  },
+  {
+   "id": "broken-cog-drums-0",
+   "song": "broken-cog",
+   "from": 0.0,
+   "to": 3.5,
+   "family": "drums",
+   "holdout": false,
+   "note": "Immutable drums (Haake's kit), proposed by chirper-three round 59; mix-referenced: score with --context all"
+  },
+  {
+   "id": "phantoms-drums-253",
+   "song": "phantoms",
+   "from": 253.5,
+   "to": 256.5,
+   "family": "drums",
+   "holdout": true,
+   "note": "Immutable drums (Haake's kit), proposed by chirper-three round 59; mix-referenced: score with --context all"
   }
  ]
 }
