@@ -3522,8 +3522,8 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/likeness.py sections ref/no-leaf-clover.wav OUT.wav $(cat tools/no-leaf-clover-sections.txt)",
       "best": {
-        "score": 66.462,
-        "version": "v2",
+        "score": 63.113,
+        "version": "v3",
         "commit": "see git log songs/no-leaf-clover.yaml",
         "engine": "85b3881"
       },
