@@ -4228,11 +4228,16 @@
       "source": "https://www.youtube.com/watch?v=TM87DMK-q4o",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/they-move-below.wav OUT.wav $(cat tools/they-move-below-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 64.063,
+        "version": "v1",
+        "commit": "see git log songs/they-move-below.yaml",
+        "engine": "85b3881"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "extreme progressive metal, djent (8-string polymetric riffs)",
       "meta": {
@@ -4247,7 +4252,11 @@
         "at": "2026-10-26T01:25:40Z",
         "note": "Harry, 26 Oct: pivot from S&M; climb only Immutable for now"
       },
-      "ref_file": "ref/albums/immutable/07 they-move-below.webm"
+      "ref_file": "ref/albums/immutable/07 they-move-below.webm",
+      "last": {
+        "at": "2026-10-26T05:12:11Z",
+        "who": "chirper-zero"
+      }
     },
     {
       "id": "kaleidoscope",
