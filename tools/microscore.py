@@ -524,6 +524,10 @@ def main(argv=None):
                     "lanes) with these tracks soloed (comma-separated; 'all' = the whole band, for clips scored "
                     "against the record's mix) and score the clip window: patches judged in the record's own master "
                     "context")
+    ap.add_argument("--pitch-solo", metavar="TRACKS",
+                    help="with --clip --context: score PITCH on these tracks rendered solo against the clip's family stem "
+                         "(or its stems: ref), every other dimension on the --context render. Under --context all a mono "
+                         "family's pitch otherwise tracks the whole mix's f0, i.e. how dominant the part is (chirper-three)")
     ap.add_argument("--set", action="append", default=[], metavar="PATH=V", help="--context: chirp render --set overrides "
                     "(e.g. tracks.3.patch=analog-bass)")
     ap.add_argument("--seeds", help="with --song: render these seeds (e.g. 0,3,7,11) and score their mean "
@@ -592,13 +596,24 @@ def main(argv=None):
             extra = solo_args(a.context) + [x for v in a.set for x in ("--set", v)]
             mono = cl["family"] in MONO_FAMILIES
             seeds = [int(x) for x in a.seeds.split(",") if x] if a.seeds else [None]
+            pitch_solo = solo_args(a.pitch_solo) if a.pitch_solo else None
+            if mono and not solo_args(a.context) and not pitch_solo:
+                print("microscore: note: pitch under --context all tracks the f0 of the whole mix, i.e. how dominant the "
+                      "part is, not its tuning; --pitch-solo TRACKS scores pitch on the part alone vs its stem",
+                      file=sys.stderr)
             with snapshot(song) as snap:                 # one version for every seed (the checkout is shared)
                 renders = [(k, render_window(snap, cl["from"], cl["to"], k, extra)) for k in seeds]
+                solos = ({k: render_window(snap, cl["from"], cl["to"], k, pitch_solo + extra[len(solo_args(a.context)):])
+                          for k in seeds} if pitch_solo else None)
             per = [(k, score(ref, x, mono=mono)) for k, x in renders]
+            if solos:
+                pref = pitch_ref(cl)
+                per = [(k, with_pitch(r, score(pref, solos[k], mono=True))) for k, r in per]
             s = mean_scores([r for _, r in per]) if len(per) > 1 else per[0][1]
             if len(per) > 1:
                 s["seeds"] = {str(k): r["total"] for k, r in per}
-            a.song = f"context:{cl['song']}:{a.context}" + (f" {' '.join(a.set)}" if a.set else "")
+            a.song = (f"context:{cl['song']}:{a.context}" + (f" pitch-solo:{a.pitch_solo}" if a.pitch_solo else "")
+                      + (f" {' '.join(a.set)}" if a.set else ""))
             print(json.dumps(s) if a.json else row(f"{a.clip} (in context)", s))
             if a.explain and not a.json:
                 print(explain_text(explain(ref, renders[0][1])))
@@ -627,6 +642,24 @@ def main(argv=None):
         if not a.clip:
             raise SystemExit("microscore: --record needs --clip")
         record(a, cl, s)
+
+
+def pitch_ref(cl):
+    """The reference for --pitch-solo: the clip's stems when it is stem-referenced, else its family's stem."""
+    if str(cl.get("ref", "")).startswith("stems:"):
+        return clip_ref(cl)
+    return cut(stem_audio(cl["song"], cl["family"]), cl["from"], cl["to"])
+
+
+def with_pitch(s, p):
+    """S (a score() result) with its pitch dimension and raw pitch taken from P (a score() of our part rendered solo
+    against the family stem), and the total recomputed with the same weights."""
+    out = dict(s)
+    out["raw"] = dict(s.get("raw") or {})
+    out["pitch"], out["raw"]["pitch"], out["voiced"] = p["pitch"], (p.get("raw") or {}).get("pitch"), p.get("voiced")
+    w = {k: v for k, v in WEIGHTS.items() if out.get(k) is not None}
+    out["total"] = round(float(sum(w[k] * out[k] for k in w) / sum(w.values())), 2)
+    return out
 
 
 def mean_scores(rs):

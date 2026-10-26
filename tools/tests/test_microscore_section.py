@@ -81,5 +81,15 @@ class Snapshots(unittest.TestCase):
             self.assertFalse(os.path.exists(snap))
 
 
+class PitchSolo(unittest.TestCase):
+    def test_with_pitch_recomputes_total(self):
+        base = {"spectral": 50.0, "timbre": 50.0, "tone": 50.0, "transients": 50.0, "pitch": 0.0, "modulation": 50.0,
+                "stereo": 50.0, "total": 45.0, "voiced": 0.9, "raw": {"pitch": 900.0}}
+        out = M.with_pitch(base, {"pitch": 100.0, "voiced": 0.8, "raw": {"pitch": 1.0}})
+        self.assertEqual((out["pitch"], out["raw"]["pitch"], out["voiced"]), (100.0, 1.0, 0.8))
+        self.assertAlmostEqual(out["total"], 55.0)            # pitch weight .1 of 1.0: 50 + .1 * (100 - 50)
+        self.assertEqual(base["pitch"], 0.0)                   # the input is not mutated
+
+
 if __name__ == "__main__":
     unittest.main()
