@@ -3941,7 +3941,7 @@
       "passes": 1,
       "enabled": true,
       "status": "paused",
-      "rounds": 2,
+      "rounds": 3,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
       "meta": {
@@ -3958,7 +3958,7 @@
       },
       "ref_file": "ref/albums/s-m/19.mp3",
       "last": {
-        "at": "2026-10-25T21:51:35Z",
+        "at": "2026-10-26T02:48:28Z",
         "who": "chirper-zero"
       },
       "paused_by": "focus"
