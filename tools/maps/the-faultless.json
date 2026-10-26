@@ -82,5 +82,12 @@
    "patch": "kidman synth.amp.a=40ms",
    "gain": "0dB"
   }
+ ],
+ "repeat": [
+  [
+   151,
+   152,
+   1
+  ]
  ]
 }
