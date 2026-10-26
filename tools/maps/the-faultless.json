@@ -81,6 +81,19 @@
    "score_file": "tools/maps/the-faultless-vox.txt",
    "patch": "kidman synth.amp.a=40ms",
    "gain": "0dB"
+  },
+  {
+   "name": "bass8",
+   "track": 3,
+   "patch": "bass-fat",
+   "bars": [
+    [
+     1,
+     154
+    ]
+   ],
+   "gain": "-8dB",
+   "transpose": 12
   }
  ],
  "repeat": [
