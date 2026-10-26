@@ -4163,7 +4163,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 6,
+      "rounds": 7,
       "priority": 1.0,
       "genre": "extreme progressive metal, djent (8-string polymetric riffs)",
       "meta": {
@@ -4180,7 +4180,7 @@
       },
       "ref_file": "ref/albums/immutable/04 phantoms.webm",
       "last": {
-        "at": "2026-10-26T16:58:20Z",
+        "at": "2026-10-26T17:46:06Z",
         "who": "chirper-one"
       }
     },
