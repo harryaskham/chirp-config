@@ -3794,7 +3794,7 @@
       "passes": 1,
       "enabled": true,
       "status": "paused",
-      "rounds": 7,
+      "rounds": 8,
       "priority": 1.0,
       "genre": "heavy metal, symphonic metal (live)",
       "meta": {
@@ -3811,7 +3811,7 @@
       },
       "ref_file": "ref/albums/s-m/15.mp3",
       "last": {
-        "at": "2026-10-25T20:48:36Z",
+        "at": "2026-10-26T02:36:51Z",
         "who": "chirper-one"
       },
       "paused_by": "focus"
