@@ -3480,8 +3480,8 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/the-memory-remains.wav OUT.wav $(cat tools/the-memory-remains-sections.txt)",
       "best": {
-        "score": 64.278,
-        "version": "v5",
+        "score": 60.451,
+        "version": "v6",
         "commit": "see git log songs/the-memory-remains.yaml"
       },
       "passes": 1,
