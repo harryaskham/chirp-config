@@ -3412,8 +3412,8 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/the-thing-that-should-not-be.wav OUT.wav $(cat tools/the-thing-that-should-not-be-sections.txt)",
       "best": {
-        "score": 59.302,
-        "version": "v7",
+        "score": 53.85,
+        "version": "v8",
         "commit": "see git log songs/the-thing-that-should-not-be.yaml"
       },
       "passes": 1,
