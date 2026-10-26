@@ -342,6 +342,56 @@
    "family": "bass",
    "holdout": true,
    "note": "drum & bass sub/reese (holdout for sub-saturated)"
+  },
+  {
+   "id": "the-faultless-riff-276",
+   "song": "the-faultless",
+   "from": 276.5,
+   "to": 284.5,
+   "family": "riff",
+   "holdout": false,
+   "note": "8-string chug + bass doubling (g .41 b .58, 58% under 100 Hz)",
+   "ref": "stems:guitar+bass"
+  },
+  {
+   "id": "the-faultless-riff-206",
+   "song": "the-faultless",
+   "from": 206.5,
+   "to": 214.5,
+   "family": "riff",
+   "holdout": false,
+   "note": "8-string riff + bass (g .34 b .51)",
+   "ref": "stems:guitar+bass"
+  },
+  {
+   "id": "light-the-shortening-fuse-riff-160",
+   "song": "light-the-shortening-fuse",
+   "from": 160.0,
+   "to": 168.0,
+   "family": "riff",
+   "holdout": false,
+   "note": "8-string riff + bass (g .41 b .47)",
+   "ref": "stems:guitar+bass"
+  },
+  {
+   "id": "the-abysmal-eye-riff-213",
+   "song": "the-abysmal-eye",
+   "from": 213.5,
+   "to": 216.0,
+   "family": "riff",
+   "holdout": true,
+   "note": "8-string riff + bass (g .47 b .34)",
+   "ref": "stems:guitar+bass"
+  },
+  {
+   "id": "ligature-marks-riff-122",
+   "song": "ligature-marks",
+   "from": 122.5,
+   "to": 126.5,
+   "family": "riff",
+   "holdout": true,
+   "note": "8-string riff + bass (g .39 b .37)",
+   "ref": "stems:guitar+bass"
   }
  ]
 }

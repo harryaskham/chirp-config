@@ -2,8 +2,9 @@
 """microclips: the micro benchmark's clip set (micro/clips.json): moments where one instrument is exposed, 1-10 s, from
 records we have stems for (Harry, 25 Oct; scored by tools/microscore.py).
 
-  microclips.py propose [ID …] [--all] [--min 1.5] [--max 8] [--share 0.7] [--per-song 3] [--kit-std 6] [--json]
-  microclips.py add SONG --from A --to B --family F [--holdout] [--note TEXT]
+  microclips.py propose [ID …] [--all] [--min 1.5] [--max 8] [--share 0.7] [--per-song 3] [--kit-std 6]
+                        [--sum riff=guitar+bass] [--json]
+  microclips.py add SONG --from A --to B --family F [--holdout] [--note TEXT] [--ref-stems guitar+bass]
   microclips.py list
 
 propose: every 0.5 s frame of the song's htdemucs_6s stems (and ref/stems/crowd/ID/crowd.wav when tools/livestems.py
@@ -71,11 +72,15 @@ def envelope_std(cid, a, b, stem="drums"):
     return float((10 * np.log10((seg[:n * h].reshape(n, h) ** 2).mean(1) + 1e-14)).std())
 
 
-def candidates(cid, mn=1.5, mx=8.0, share=0.7, kit_std=None):
+def candidates(cid, mn=1.5, mx=8.0, share=0.7, kit_std=None, sums=()):
     got = shares(cid)
     if got is None:
         return []
     names, sh, lev = got
+    extra = [(fam, parts) for fam, parts in sums if all(x in names for x in parts)]
+    if extra:                                  # opt-in summed families (e.g. riff = guitar + bass): their shares add
+        names = names + [fam for fam, _ in extra]
+        sh = np.vstack([sh] + [sum(sh[names.index(x)] for x in parts)[None] for _, parts in extra])
     loud = np.percentile(lev, 95)
     out = []
     for i, name in enumerate(names):
@@ -102,6 +107,18 @@ def candidates(cid, mn=1.5, mx=8.0, share=0.7, kit_std=None):
     return sorted(out, key=lambda c: -c["rank"])
 
 
+def parse_sums(specs):
+    """['riff=guitar+bass', …] -> [('riff', ['guitar', 'bass']), …]."""
+    out = []
+    for sp in specs or ():
+        fam, _, parts = sp.partition("=")
+        ps = [x for x in parts.split("+") if x]
+        if not fam or len(ps) < 2 or any(x not in STEMS + ("crowd",) for x in ps):
+            raise SystemExit(f"microclips: --sum wants FAMILY=STEM+STEM from {', '.join(STEMS)} (got {sp!r})")
+        out.append((fam, ps))
+    return out
+
+
 def load_manifest():
     if os.path.exists(MANIFEST):
         return json.load(open(MANIFEST))
@@ -125,6 +142,10 @@ def main(argv=None):
     ap.add_argument("--max", type=float, default=8.0)
     ap.add_argument("--share", type=float, default=0.7)
     ap.add_argument("--per-song", type=int, default=3)
+    ap.add_argument("--sum", action="append", default=[], metavar="FAMILY=STEM+STEM",
+                    help="propose a summed family too, e.g. riff=guitar+bass (Immutable: the 8-string's low register lands "
+                         "in demucs' bass stem, so no guitar stem is ever exposed)")
+    ap.add_argument("--ref-stems", metavar="STEM+STEM", help="add: score the clip against these stems summed, not the mix")
     ap.add_argument("--kit-std", type=float, help="drums candidates need this much 20 ms level swing (dB; ~6): drops "
                                                   "sustained rolls (timpani) the stem share alone mistakes for a kit")
     ap.add_argument("--from", dest="t0", type=float)
@@ -150,7 +171,8 @@ def main(argv=None):
         m = load_manifest()
         cid = f"{song}-{a.family}-{int(a.t0)}"
         m["clips"] = [c for c in m["clips"] if c["id"] != cid] + [
-            {"id": cid, "song": song, "from": a.t0, "to": a.t1, "family": a.family, "holdout": a.holdout, "note": a.note}]
+            {"id": cid, "song": song, "from": a.t0, "to": a.t1, "family": a.family, "holdout": a.holdout, "note": a.note,
+             **({"ref": f"stems:{a.ref_stems}"} if a.ref_stems else {})}]
         save_manifest(m)
         print(f"added {cid}")
         return
@@ -158,7 +180,7 @@ def main(argv=None):
     ids = a.ids or [c["id"] for c in reg if c.get("song") and (a.all or c.get("enabled"))]
     res = []
     for cid in ids:
-        res.extend(candidates(cid, a.min, a.max, a.share, a.kit_std)[:a.per_song])
+        res.extend(candidates(cid, a.min, a.max, a.share, a.kit_std, parse_sums(a.sum))[:a.per_song])
     if a.json:
         print(json.dumps(res, indent=1))
         return

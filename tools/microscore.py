@@ -13,7 +13,7 @@ a micro benchmark that sees sound, not song shape: where our songs lean on globa
         any window of an album song, not only benchmark clips (section micro-climbs; never written to the ledger):
         the song rendered with --from/--to (bit-identical to the full render; cost runs to the window's end, far less
         with TRACKS soloed) and scored against the record's mix over A-B, or with --stem the separated stem (FAMILY:
-        ref/stems/htdemucs_6s/SONG/FAMILY.wav, or a WAV path) where the part isn't exposed. --try scores variants on
+        ref/stems/htdemucs_6s/SONG/FAMILY.wav, STEM+STEM summed, or a WAV path) where the part isn't exposed. --try scores variants on
         the same seeds and prints each one's delta to the baseline.
         the clip's album song rendered with TRACKS soloed (its master, buses and lanes kept): patches judged in the
         record's own master context. masteraudit across 111 songs found no common master tilt (median correction
@@ -284,7 +284,26 @@ def clips():
     return json.load(open(p))["clips"] if os.path.exists(p) else []
 
 
+def stem_audio(cid, spec):
+    """A song's separated stem: FAMILY (ref/stems/htdemucs_6s/SONG/FAMILY.wav), STEM+STEM summed (a riff clip: the
+    8-string's low register lands in demucs' bass stem), or a WAV path."""
+    if spec.endswith(".wav"):
+        if not os.path.exists(spec):
+            raise SystemExit(f"microscore: no stem {spec}")
+        return L.load(spec)
+    xs = []
+    for part in spec.split("+"):
+        path = os.path.join(ROOT, "ref", "stems", "htdemucs_6s", cid, f"{part}.wav")
+        if not os.path.exists(path):
+            raise SystemExit(f"microscore: no stem {path}")
+        xs.append(L.load(path))
+    n = min(len(x) for x in xs)
+    return sum(x[:n] for x in xs)
+
+
 def clip_ref(cl):
+    if str(cl.get("ref", "")).startswith("stems:"):        # a clip scored against summed stems, not the mix
+        return cut(stem_audio(cl["song"], cl["ref"][len("stems:"):]), cl["from"], cl["to"])
     return cut(L.load(os.path.join(ROOT, "ref", f"{cl['song']}.wav")), cl["from"], cl["to"])
 
 
@@ -334,10 +353,7 @@ def section(a):
     cid, t0, t1 = parse_section(a.section)
     song = a.song_file or os.path.join(ROOT, "songs", f"{cid}.yaml")
     if a.stem:
-        path = a.stem if a.stem.endswith(".wav") else os.path.join(ROOT, "ref", "stems", "htdemucs_6s", cid, f"{a.stem}.wav")
-        if not os.path.exists(path):
-            raise SystemExit(f"microscore: no stem {path}")
-        ref = cut(L.load(path), t0, t1)
+        ref = cut(stem_audio(cid, a.stem), t0, t1)
     else:
         ref = cut(L.load(os.path.join(ROOT, "ref", f"{cid}.wav")), t0, t1)
     mono = a.mono or (a.stem in MONO_FAMILIES)
