@@ -3,7 +3,7 @@
 them? (chirper-zero, Fitter Happier v2 +2.8 from stereo alone.)
 
   stereoscan.py [ID …] [--all] [-j 3] [--under 10] [--mono -40] [--win 10] [--min-pinned 10] [--keep DIR]
-                [--renders DIR] [--json]
+                [--renders DIR] [--json] [--mute crowd-l,crowd-r]
   stereoscan.py --wav OURS.wav --ref REF.wav [--song songs/ID.yaml]               # analysis only
 
 Default IDs: the focus's climbs (climbs.json `focus`), else every enabled climb; each is rendered with the adopted
@@ -137,6 +137,11 @@ def measure(ours_path, ref_path, a, song=None):
     return m
 
 
+def mute_args(names, mute):
+    """chirp render --mute flags for the comma list MUTE, keeping only tracks in NAMES (chirp refuses unknown ones)."""
+    return [x for t in (mute or "").split(",") if t in names for x in ("--mute", t)]
+
+
 def scan(cid, work, a):
     song = os.path.join(ROOT, "songs", f"{cid}.yaml")
     ref = os.path.join(ROOT, "ref", f"{cid}.wav")
@@ -147,7 +152,8 @@ def scan(cid, work, a):
         out = have
     else:
         out = os.path.join(work, f"{cid}.wav")
-        r = subprocess.run(["nice", "-n", "15", chirpbin.resolve("chirp"), "render", "-f", song, "-o", out],
+        mute = mute_args(driftscan.track_names(song), a.mute) if a.mute else []
+        r = subprocess.run(["nice", "-n", "15", chirpbin.resolve("chirp"), "render", "-f", song, *mute, "-o", out],
                            capture_output=True, text=True, stdin=subprocess.DEVNULL)
         if r.returncode:
             return cid, {"error": f"render failed: {r.stderr.strip()[-200:]}"}
@@ -197,6 +203,8 @@ def main(argv=None):
     ap.add_argument("--keep")
     ap.add_argument("--renders", help="use DIR/ID.wav renders when present (e.g. a floorscan --keep dir)")
     ap.add_argument("--json", action="store_true")
+    ap.add_argument("--mute", help="render with these tracks muted (comma list; absent ones skipped), e.g. crowd-l,crowd-r: "
+                                   "what the MUSIC alone gives the image when a noise bed supplies the side (wM, S&M)")
     ap.add_argument("--wav")
     ap.add_argument("--ref")
     ap.add_argument("--song")

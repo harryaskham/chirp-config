@@ -105,5 +105,13 @@ class Stereo(unittest.TestCase):
         self.assertIn("image matches", S.report("match", S.measure(self.p("match.wav"), self.p("ref.wav"), self.a), self.a))
 
 
+class Mute(unittest.TestCase):
+    def test_mute_keeps_only_tracks_the_song_has(self):
+        names = ["kit", "bass", "crowd-l", "crowd-r"]
+        self.assertEqual(S.mute_args(names, "crowd-l,crowd-r,applause"), ["--mute", "crowd-l", "--mute", "crowd-r"])
+        self.assertEqual(S.mute_args(names, ""), [])
+        self.assertEqual(S.mute_args(names, None), [])
+
+
 if __name__ == "__main__":
     unittest.main()
