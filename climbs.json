@@ -3711,8 +3711,8 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/until-it-sleeps.wav OUT.wav $(cat tools/until-it-sleeps-sections.txt)",
       "best": {
-        "score": 61.182,
-        "version": "v8",
+        "score": 59.851,
+        "version": "v9",
         "commit": "see git log songs/until-it-sleeps.yaml"
       },
       "passes": 1,
