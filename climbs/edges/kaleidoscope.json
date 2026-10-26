@@ -1,9 +1,9 @@
 {
  "id": "kaleidoscope",
- "version": "v3",
+ "version": "v4",
  "edge": 3.0,
  "ref_seconds": 247.004,
- "at": "2026-10-26T03:18:05Z",
+ "at": "2026-10-26T03:52:28Z",
  "edges": {
   "head": {
    "level": -18.584648224694064,

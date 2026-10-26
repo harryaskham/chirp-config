@@ -4257,14 +4257,14 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/kaleidoscope.wav OUT.wav $(cat tools/kaleidoscope-sections.txt)",
       "best": {
-        "score": 65.405,
-        "version": "v3",
+        "score": 66.119,
+        "version": "v4",
         "commit": "see git log songs/kaleidoscope.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 3,
+      "rounds": 4,
       "priority": 1.0,
       "genre": "extreme progressive metal, djent (8-string polymetric riffs)",
       "meta": {
@@ -4281,7 +4281,7 @@
       },
       "ref_file": "ref/albums/immutable/08 kaleidoscope.webm",
       "last": {
-        "at": "2026-10-26T03:18:03Z",
+        "at": "2026-10-26T03:52:27Z",
         "who": "chirper-one"
       }
     },
