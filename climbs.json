@@ -4090,7 +4090,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 13,
+      "rounds": 14,
       "priority": 1.0,
       "genre": "extreme progressive metal, djent (8-string polymetric riffs)",
       "meta": {
@@ -4107,8 +4107,8 @@
       },
       "ref_file": "ref/albums/immutable/02 the-abysmal-eye.webm",
       "last": {
-        "at": "2026-10-27T05:21:36Z",
-        "who": "chirper-one"
+        "at": "2026-10-27T05:46:52Z",
+        "who": "chirper-zero"
       }
     },
     {
