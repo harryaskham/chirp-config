@@ -4691,11 +4691,15 @@
       "source": "https://www.youtube.com/watch?v=rSvdQ6cDVI8",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/this-spiteful-snake.wav OUT.wav $(cat tools/this-spiteful-snake-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 52.246,
+        "version": "v1",
+        "commit": "see git log songs/this-spiteful-snake.yaml"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "progressive metal",
       "meta": {
@@ -4710,7 +4714,11 @@
         "at": "2026-10-27T09:53:40Z",
         "note": "Meshuggah's 2008 album, from the band's official YouTube release (OLAK5uy_nzbMHyETkwz59y37ylsotUTzi-FN9J6Us). F standard 8-string (Thordendal/Hagström; low F1 ~43.7 Hz), polymeter over 4/4; Bleed is the existing mature climb."
       },
-      "ref_file": "ref/albums/obzen/06 this-spiteful-snake.webm"
+      "ref_file": "ref/albums/obzen/06 this-spiteful-snake.webm",
+      "last": {
+        "at": "2026-10-27T10:45:06Z",
+        "who": "chirper-one"
+      }
     },
     {
       "id": "pineal-gland-optics",
