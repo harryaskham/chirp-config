@@ -138,6 +138,19 @@
    "gain": "-1.5dB"
   },
   {
+   "name": "bass16",
+   "track": 3,
+   "patch": "bass-fat",
+   "bars": [
+    [
+     1,
+     186
+    ]
+   ],
+   "gain": "-11.5dB",
+   "transpose": 24
+  },
+  {
    "name": "bass8",
    "track": 3,
    "patch": "bass-fat",
