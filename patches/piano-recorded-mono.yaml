@@ -1,0 +1,13 @@
+about: >-
+  The recorded concert grand's tone with no added width: the built-in piano, -12 dB shelf above 2.5 kHz and a
+  MONO plate (2.4 s, mix 0.2, width 0), with no width stage. piano-recorded's spaced-pair image (width 2) and
+  piano-recorded-narrow's stereo plate tail both cost whole-song stereo (pyramid-song: album stereo 91.5, narrow
+  69.0, narrow with a mono plate 83.5), and the songs' width lanes were fitted to the bare built-in piano (micro
+  finding 5). Extends `piano` directly so it can be resolved as a standalone piano.yaml. Micro, --context all, 4 seeds:
+  pyramid-song-piano-0 47.43 -> 47.83, clair-de-lune-piano-101 50.37 -> 54.74; holdouts untuned clair-de-lune-piano-164
+  42.09 -> 45.83, daydreaming-piano-11 48.04 -> 47.66. Whole song raw (seed 0): pyramid-song 68.6 -> 68.5 (stereo 91.5 ->
+  92.9), saturnine 74.3 -> 72.3 (stereo 90.1 -> 81.1, ltas 77.2 -> 69.4). chirper-three, 27 Oct.
+extends: piano
+fx:
+  - {type: eq, bands: [{kind: highshelf, cutoff: 2500, gain: -12dB, q: 0.7}]}
+  - {type: reverb, kind: plate, decay: 2.4s, mix: 0.2, predelay: 18ms, width: 0}
