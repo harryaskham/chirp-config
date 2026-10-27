@@ -4642,7 +4642,7 @@
       "song": "songs/lethargica.yaml",
       "reference": "Meshuggah — Lethargica",
       "source": "https://www.youtube.com/watch?v=UYLO1nqkCak",
-      "owner": null,
+      "owner": "chirper-one",
       "metric": "python3 tools/likeness.py sections ref/lethargica.wav OUT.wav $(cat tools/lethargica-sections.txt)",
       "best": {
         "score": 61.627,
