@@ -75,6 +75,22 @@
    ]
   },
   {
+   "name": "bass16",
+   "track": 3,
+   "patch": "bass-fat",
+   "bars": [
+    [
+     1,
+     154
+    ]
+   ],
+   "gain": "-12dB",
+   "strip": [
+    "bend"
+   ],
+   "transpose": 24
+  },
+  {
    "name": "drums",
    "track": 4,
    "patch": "metal-kit-dry",
