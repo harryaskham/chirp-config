@@ -1,9 +1,9 @@
 {
  "id": "ligature-marks",
- "version": "v14",
+ "version": "v15",
  "edge": 3.0,
  "ref_seconds": 313.017,
- "at": "2026-10-27T03:55:44Z",
+ "at": "2026-10-27T08:53:45Z",
  "edges": {
   "head": {
    "level": -12.352123189414247,
