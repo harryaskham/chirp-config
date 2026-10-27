@@ -194,7 +194,10 @@
      225
     ]
    ],
-   "gain": "-4.5dB"
+   "gain": "-4.5dB",
+   "strip": [
+    "bend"
+   ]
   },
   {
    "name": "bass",
