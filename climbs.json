@@ -40,7 +40,7 @@
       "id": "bleed",
       "song": "songs/bleed.yaml",
       "reference": "Meshuggah — Bleed (obZen, 2008), album version (YouTube U4GXNzom6ik, normalised); Songsterr tab 23825",
-      "owner": "chirp-climb2",
+      "owner": null,
       "metric": "python3 tools/likeness.py sections ref/bleed.wav OUT.wav $(cat tools/bleed-sections.txt)",
       "best": {
         "score": 75.537,
