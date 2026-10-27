@@ -106,5 +106,19 @@ class LowSine(unittest.TestCase):
         self.assertLess(dp, 15)
 
 
+class Hybrid(unittest.TestCase):
+    def test_hybrid_takes_yin_on_a_sine_and_shs_on_a_harmonic_tone(self):
+        t = np.arange(int(1.0 * M.SR)) / M.SR
+        sine = 0.3 * np.sin(2 * np.pi * 55.0 * t)
+        saw = 0.3 * sum(np.sin(2 * np.pi * 55.0 * h * t) / h for h in range(1, 40))
+        h = M.f0_frames(sine, "hybrid")
+        self.assertLess(abs(float(np.nanmedian(1200 * np.log2(h / 55.0)))), 10)
+        a, b = M.f0_frames(saw, "shs"), M.f0_frames(saw, "hybrid")
+        k = min(len(a), len(b))
+        np.testing.assert_allclose(a[:k], b[:k], equal_nan=True)
+        self.assertGreater(float(np.median(M.sinusoidality(sine, 50)[10:40])), 0.9)
+        self.assertLess(float(np.median(M.sinusoidality(saw, 50)[10:40])), 0.85)
+
+
 if __name__ == "__main__":
     unittest.main()

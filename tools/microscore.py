@@ -180,8 +180,47 @@ def f0_frames(x, method="shs"):
     an 82 Hz sine reads 41 Hz); "yin" stays within 5 cents there and on saws up to 110 Hz, but quantises lags above
     ~200 Hz (-14 c at 220, +17 at 440, -46 at 880). --pitch-solo uses yin for the bass family (sub-sine patches)."""
     import voxtrans
+    if method == "hybrid":
+        return f0_hybrid(x)
     f0, lev, _ = voxtrans.f0_track(x, lo=40.0, hi=1600.0, floor=30.0, prom=2.0, method=method)
     return f0
+
+
+def sinusoidality(x, n):
+    """Per f0 frame (10 ms hop, as voxtrans.f0_track): the share of 30-1000 Hz power within +-max(15%, 12 Hz) of the
+    strongest partial, in a 200 ms Hann window (a 60 ms window's main lobe is +-33 Hz, wider than a 41 Hz partial's
+    band). Near 1 for a lone sine; well under for a harmonic tone, a stem, or noise."""
+    sr, hop, win, nw, nf = SR, int(0.01 * SR), int(0.04 * SR), int(0.2 * SR), 32768
+    hw, fq = np.hanning(nw), np.fft.rfftfreq(nf, 1 / SR)
+    band = (fq >= 30) & (fq <= 1000)
+    out = np.zeros(n)
+    for k in range(n):
+        c = k * hop + win // 2 - nw // 2
+        if c < 0 or c + nw > len(x):
+            continue
+        pw = np.abs(np.fft.rfft(x[c:c + nw] * hw, nf)) ** 2
+        tot = pw[band].sum()
+        if tot <= 0:
+            continue
+        f = fq[band][int(np.argmax(pw[band]))]
+        w = max(0.15 * f, 12.0)
+        out[k] = pw[band & (fq >= f - w) & (fq <= f + w)].sum() / tot
+    del sr
+    return out
+
+
+def f0_hybrid(x, sine=0.85):
+    """SHS per frame, except YIN where the frame is a near-pure sine (sinusoidality > SINE): SHS misreads a lone low
+    partial (a 55 Hz sine reads -551 c), and YIN misreads real bass STEMS (octave errors on 15-26% of frames, fewer
+    voiced frames: chirper-three, round 79), so each covers the other's blind spot. On rendered bass patches E1-D3
+    both are exact except SHS on `sub` (18% of frames >600 c off)."""
+    import voxtrans
+    a, _, _ = voxtrans.f0_track(x, lo=40.0, hi=1600.0, floor=30.0, prom=2.0, method="shs")
+    b, _, _ = voxtrans.f0_track(x, lo=40.0, hi=1600.0, floor=30.0, prom=2.0, method="yin")
+    k = min(len(a), len(b))
+    a, b = a[:k], b[:k]
+    pure = (sinusoidality(x, k) > sine) & ~np.isnan(b)
+    return np.where(pure, b, a)
 
 
 def d_pitch(r, c, min_share=0.5, method="shs"):
@@ -612,13 +651,13 @@ def main(argv=None):
             per = [(k, score(ref, x, mono=mono)) for k, x in renders]
             if solos:
                 pref = pitch_ref(cl)
-                fm = "yin" if cl["family"] == "bass" else "shs"      # shs misreads pure low sines (f0_frames)
+                fm = "hybrid" if cl["family"] == "bass" else "shs"   # shs misreads pure low sines; yin misreads stems
                 per = [(k, with_pitch(r, score(pref, solos[k], mono=True, f0_method=fm))) for k, r in per]
             s = mean_scores([r for _, r in per]) if len(per) > 1 else per[0][1]
             if len(per) > 1:
                 s["seeds"] = {str(k): r["total"] for k, r in per}
             a.song = (f"context:{cl['song']}:{a.context}"
-                      + (f" pitch-solo:{a.pitch_solo}" + ("/yin" if cl["family"] == "bass" else "") if a.pitch_solo else "")
+                      + (f" pitch-solo:{a.pitch_solo}" + ("/hybrid" if cl["family"] == "bass" else "") if a.pitch_solo else "")
                       + (f" {' '.join(a.set)}" if a.set else ""))
             print(json.dumps(s) if a.json else row(f"{a.clip} (in context)", s))
             if a.explain and not a.json:
