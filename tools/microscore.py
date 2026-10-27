@@ -413,7 +413,11 @@ def render_window(song, t0, t1, seed=None, extra=()):
                            env={**os.environ, "RAYON_NUM_THREADS": "2"})
         if r.returncode:
             raise SystemExit(f"microscore: render failed: {r.stderr.strip()[-300:]}")
-        return cut(L.load(out), t0, t1)
+        x = L.load(out)
+        if t1 is not None and len(x) / SR < t1 - 0.05:
+            print(f"microscore: warning: the song renders {len(x) / SR:.2f} s but the window ends at {t1:.2f} s: "
+                  "the rest is scored as silence (the song stops early; e.g. thin-thing-bass-261)", file=sys.stderr)
+        return cut(x, t0, t1)
 
 
 def row(name, s):
