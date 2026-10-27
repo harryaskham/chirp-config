@@ -9259,7 +9259,7 @@
   {
    "name": "vox",
    "score_file": "tools/maps/bleed-vox-phones.txt",
-   "patch": "kidman synth.amp.a=40ms",
+   "patch": "kidman synth.amp.a=40ms synth.layers.0.scream=0.5",
    "gain": "6dB",
    "rest": [
     [
