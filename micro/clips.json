@@ -468,6 +468,16 @@
    "family": "drums",
    "holdout": true,
    "note": "obZen HOLDOUT (chirper-three): exposed drums (share .58), mix-referenced: --context all"
+  },
+  {
+   "id": "lethargica-riff-183",
+   "song": "lethargica",
+   "from": 183.5,
+   "to": 191.5,
+   "family": "riff",
+   "holdout": true,
+   "note": "obZen HOLDOUT (chirper-three): 8-string riff + bass, stem-referenced; bars 81-84, clear of the bars flagged for re-voicing (41-46, 60-80, 99-103, 124-136)",
+   "ref": "stems:guitar+bass"
   }
  ]
 }
