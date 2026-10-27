@@ -439,6 +439,35 @@
    "holdout": false,
    "note": "obZen riff training (chirper-three): 8-string riff + bass, stem-referenced; screening only (findings 3-7)",
    "ref": "stems:guitar+bass"
+  },
+  {
+   "id": "combustion-riff-201",
+   "song": "combustion",
+   "from": 201.5,
+   "to": 209.5,
+   "family": "riff",
+   "holdout": true,
+   "note": "obZen HOLDOUT (chirper-three): 8-string riff + bass, stem-referenced",
+   "ref": "stems:guitar+bass"
+  },
+  {
+   "id": "obzen-riff-184",
+   "song": "obzen",
+   "from": 184.0,
+   "to": 192.0,
+   "family": "riff",
+   "holdout": true,
+   "note": "obZen HOLDOUT (chirper-three): 8-string riff + bass, stem-referenced",
+   "ref": "stems:guitar+bass"
+  },
+  {
+   "id": "pineal-gland-optics-drums-281",
+   "song": "pineal-gland-optics",
+   "from": 281.5,
+   "to": 289.5,
+   "family": "drums",
+   "holdout": true,
+   "note": "obZen HOLDOUT (chirper-three): exposed drums (share .58), mix-referenced: --context all"
   }
  ]
 }
