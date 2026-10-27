@@ -43,19 +43,19 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/bleed.wav OUT.wav $(cat tools/bleed-sections.txt)",
       "best": {
-        "score": 75.537,
-        "version": "v55",
+        "score": 77.707,
+        "version": "v56",
         "commit": "see git log songs/bleed.yaml",
-        "engine": "a931418"
+        "engine": "85b3881"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 72,
+      "rounds": 73,
       "priority": 1,
       "genre": "extreme metal / djent",
       "last": {
-        "at": "2026-10-19T12:26:04Z",
+        "at": "2026-10-27T15:11:43Z",
         "who": "chirper-zero"
       },
       "meta": {
