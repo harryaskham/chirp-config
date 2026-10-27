@@ -88,13 +88,19 @@ def album_of(c):
     return (c.get("meta") or {}).get("album")
 
 
+def live(c):
+    """False for a dropped climb (e.g. obZen's `obzen-bleed`, an add-album duplicate of `bleed` at the same track
+    number): it is no neighbour, so bleed's tail is checked against lethargica (chirper-zero, 27 Oct)."""
+    return c.get("status") != "dropped"
+
+
 def neighbours(cid):
     """(previous, next) climbs on the same album, by track."""
     cs = registry()["climbs"]
     me = next((c for c in cs if c["id"] == cid), None)
     if not me or not album_of(me):
         return None, None, None
-    album = sorted([c for c in cs if album_of(c) == album_of(me)], key=lambda c: c["meta"].get("track") or 999)
+    album = sorted([c for c in cs if album_of(c) == album_of(me) and live(c)], key=lambda c: c["meta"].get("track") or 999)
     i = [c["id"] for c in album].index(cid)
     return me, (album[i - 1] if i > 0 else None), (album[i + 1] if i + 1 < len(album) else None)
 
@@ -217,7 +223,7 @@ def cmd_score(a):
     name = next((x for x in a if not x.startswith("--")), None) or (registry().get("focus") or (albums[0] if albums else None))
     if not name:
         sys.exit("no albums")
-    album = sorted([c for c in reg if album_of(c) == name], key=lambda c: c["meta"].get("track") or 999)
+    album = sorted([c for c in reg if album_of(c) == name and live(c)], key=lambda c: c["meta"].get("track") or 999)
     rows = []
     for x, y in zip(album, album[1:]):
         rx, ry = recorded(x["id"]), recorded(y["id"])

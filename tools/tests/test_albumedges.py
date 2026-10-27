@@ -65,5 +65,18 @@ class AbsoluteEdgeTests(unittest.TestCase):
         self.assertNotIn('quiet-band deltas', self.check(True))
 
 
+class DroppedNeighbour(unittest.TestCase):
+    def test_a_dropped_duplicate_is_no_neighbour(self):
+        reg = {"climbs": [
+            {"id": "electric-red", "status": "active", "meta": {"album": "obZen", "track": 2}},
+            {"id": "bleed", "status": "active", "meta": {"album": "obZen", "track": 3}},
+            {"id": "obzen-bleed", "status": "dropped", "meta": {"album": "obZen", "track": 3}},
+            {"id": "lethargica", "status": "requested", "meta": {"album": "obZen", "track": 4}},
+        ]}
+        with mock.patch.object(A, 'registry', return_value=reg):
+            me, prev, nxt = A.neighbours('bleed')
+        self.assertEqual((prev['id'], nxt['id']), ('electric-red', 'lethargica'))
+
+
 if __name__ == '__main__':
     unittest.main()
