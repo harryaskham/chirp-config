@@ -4551,7 +4551,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 6,
+      "rounds": 7,
       "priority": 1.0,
       "genre": "progressive metal",
       "meta": {
@@ -4568,7 +4568,7 @@
       },
       "ref_file": "ref/albums/obzen/01 combustion.webm",
       "last": {
-        "at": "2026-10-27T19:21:10Z",
+        "at": "2026-10-27T20:14:12Z",
         "who": "chirper-zero"
       }
     },
