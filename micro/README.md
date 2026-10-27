@@ -65,6 +65,12 @@ so-what-other-373) are re-taken with `--context all`; the ledger's `song` field 
   take-five -0.39, karma-police -0.25, life-in-a-glasshouse -0.15; 6 within 0.05). Far closer than the wide form, but
   not a default: it stays opt-in, for the songs that gained. (`piano` := piano-recorded-narrow is an extends cycle; the
   test used the resolved patch, with the piano siblings frozen. Table: /tmp/lt/xc-piano.txt.)
+  Then chirper-three's piano-recorded-mono (built-in piano + -12 dB shelf + mono plate, no width stage; it fixed
+  pyramid-song's whole-song stereo), same 16 songs, --refit-width: mean -0.13 (better 4: wuthering-heights +0.70,
+  clair-de-lune +0.59, daydreaming +0.28, mind-s-mirrors +0.25; worse 4: take-five -1.87, saturnine -1.36,
+  life-in-a-glasshouse -0.29, pyramid-song -0.27). SETTLED: three piano forms land near-neutral with different winners,
+  so the piano is a per-song choice among the opt-ins (piano-recorded for wide records, -narrow, -mono), not a library
+  default. Table: /tmp/lt/xc-pmono.txt.
 - **25 Oct, les-paul low-mid body (+2.5 / +5 dB peak at 250 Hz) as the default: rejected.** masterbypatch found
   the 8 les-paul songs' masters boosting 141-356 Hz by ~+5 dB, across 4 albums (not an album confound). Refit
   crossclimb: half mean -0.02 (thin-thing -0.39), full mean -0.16 (thin-thing -0.58, electioneering -0.46). A
