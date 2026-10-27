@@ -90,6 +90,25 @@
    ]
   },
   {
+   "name": "bass16",
+   "track": 4,
+   "patch": "bass-fat",
+   "bars": [
+    [
+     1,
+     168
+    ]
+   ],
+   "gain": "-10dB",
+   "replace": {
+    "168": "_/4b"
+   },
+   "strip": [
+    "bend"
+   ],
+   "transpose": 24
+  },
+  {
    "name": "vox",
    "score_file": "tools/maps/armies-of-the-preposterous-vox.txt",
    "patch": "kidman synth.amp.a=40ms",
