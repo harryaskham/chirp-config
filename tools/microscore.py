@@ -174,15 +174,19 @@ def s_transients(r, c):
     return float(max(0.0, (a @ b) / den)) * 100 if den > 0 else 0.0
 
 
-def f0_frames(x):
+def f0_frames(x, method="shs"):
+    """f0 per 10 ms frame. METHOD "shs" (subharmonic summation, the default) is exact on harmonic tones and voices but
+    reads a PURE low sine 0.5-12 semitones low between 41 and 82 Hz (its 60 ms window can't separate the candidates;
+    an 82 Hz sine reads 41 Hz); "yin" stays within 5 cents there and on saws up to 110 Hz, but quantises lags above
+    ~200 Hz (-14 c at 220, +17 at 440, -46 at 880). --pitch-solo uses yin for the bass family (sub-sine patches)."""
     import voxtrans
-    f0, lev, _ = voxtrans.f0_track(x, lo=40.0, hi=1600.0, floor=30.0, prom=2.0)
+    f0, lev, _ = voxtrans.f0_track(x, lo=40.0, hi=1600.0, floor=30.0, prom=2.0, method=method)
     return f0
 
 
-def d_pitch(r, c, min_share=0.5):
+def d_pitch(r, c, min_share=0.5, method="shs"):
     """(cents-equivalent distance, voiced share of the reference) or (None, share) when under MIN_SHARE is voiced."""
-    a, b = f0_frames(r), f0_frames(c)
+    a, b = f0_frames(r, method), f0_frames(c, method)
     k = min(len(a), len(b))
     a, b = a[:k], b[:k]
     va, vb = ~np.isnan(a), ~np.isnan(b)
@@ -244,7 +248,7 @@ def d_stereo(r, c):
 MONO_FAMILIES = ("bass", "vocals")
 
 
-def score(ref, cand, mono=None):
+def score(ref, cand, mono=None, f0_method="shs"):
     """{dimension: 0-100 (pitch None when the clip is not monophonic), 'total': weighted mean, 'raw': distances}.
     MONO: True/False forces whether pitch counts (a clip's family: bass and vocals); None decides by the share of
     voiced reference frames (pitch tracking a mixture is meaningless: the masking report read 0 on most clips)."""
@@ -260,7 +264,7 @@ def score(ref, cand, mono=None):
            "modulation": d_modulation(rm, cm), "stereo": d_stereo(ref, cand)}
     dims = {k: 100 * np.exp(-v / SCALES[k]) for k, v in raw.items()}
     dims["transients"] = s_transients(rm, cm)
-    dp, share = d_pitch(rm, cm, 0.1 if mono else 0.5) if mono is not False else (None, 0.0)
+    dp, share = d_pitch(rm, cm, 0.1 if mono else 0.5, f0_method) if mono is not False else (None, 0.0)
     raw["pitch"] = dp
     dims["pitch"] = None if dp is None else 100 * np.exp(-dp / SCALES["pitch"])
     w = {k: v for k, v in WEIGHTS.items() if dims[k] is not None}
@@ -608,11 +612,13 @@ def main(argv=None):
             per = [(k, score(ref, x, mono=mono)) for k, x in renders]
             if solos:
                 pref = pitch_ref(cl)
-                per = [(k, with_pitch(r, score(pref, solos[k], mono=True))) for k, r in per]
+                fm = "yin" if cl["family"] == "bass" else "shs"      # shs misreads pure low sines (f0_frames)
+                per = [(k, with_pitch(r, score(pref, solos[k], mono=True, f0_method=fm))) for k, r in per]
             s = mean_scores([r for _, r in per]) if len(per) > 1 else per[0][1]
             if len(per) > 1:
                 s["seeds"] = {str(k): r["total"] for k, r in per}
-            a.song = (f"context:{cl['song']}:{a.context}" + (f" pitch-solo:{a.pitch_solo}" if a.pitch_solo else "")
+            a.song = (f"context:{cl['song']}:{a.context}"
+                      + (f" pitch-solo:{a.pitch_solo}" + ("/yin" if cl["family"] == "bass" else "") if a.pitch_solo else "")
                       + (f" {' '.join(a.set)}" if a.set else ""))
             print(json.dumps(s) if a.json else row(f"{a.clip} (in context)", s))
             if a.explain and not a.json:

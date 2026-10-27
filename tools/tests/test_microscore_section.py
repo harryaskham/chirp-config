@@ -8,6 +8,8 @@ import os
 import sys
 import unittest
 
+import numpy as np
+
 TOOLS = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, TOOLS)
 import microscore as M  # noqa: E402
@@ -89,6 +91,19 @@ class PitchSolo(unittest.TestCase):
         self.assertEqual((out["pitch"], out["raw"]["pitch"], out["voiced"]), (100.0, 1.0, 0.8))
         self.assertAlmostEqual(out["total"], 55.0)            # pitch weight .1 of 1.0: 50 + .1 * (100 - 50)
         self.assertEqual(base["pitch"], 0.0)                   # the input is not mutated
+
+
+class LowSine(unittest.TestCase):
+    def test_yin_tracks_a_pure_low_sine_that_shs_misreads(self):
+        t = np.arange(int(1.0 * M.SR)) / M.SR
+        x = 0.3 * np.sin(2 * np.pi * 55.0 * t)
+        def cents(f0):
+            return float(np.nanmedian(1200 * np.log2(f0 / 55.0)))
+        self.assertLess(abs(cents(M.f0_frames(x, "yin"))), 10)
+        self.assertGreater(abs(cents(M.f0_frames(x))), 300)            # the default's known blind spot, documented
+        saw = 0.3 * sum(np.sin(2 * np.pi * 55.0 * h * t) / h for h in range(1, 40))
+        dp, _ = M.d_pitch(saw, x, 0.1, "yin")                          # same pitch, sine vs saw: ~0 cents under yin
+        self.assertLess(dp, 15)
 
 
 if __name__ == "__main__":
