@@ -58,7 +58,14 @@
         "at": "2026-10-19T12:26:04Z",
         "who": "chirper-zero"
       },
-      "paused_by": "focus"
+      "paused_by": "focus",
+      "meta": {
+        "artist": "Meshuggah",
+        "album": "obZen",
+        "title": "Bleed",
+        "track": 3,
+        "year": 2008
+      }
     },
     {
       "id": "pneuma",
