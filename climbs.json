@@ -4698,7 +4698,7 @@
       "song": "songs/this-spiteful-snake.yaml",
       "reference": "Meshuggah — This Spiteful Snake",
       "source": "https://www.youtube.com/watch?v=rSvdQ6cDVI8",
-      "owner": null,
+      "owner": "chirper-one",
       "metric": "python3 tools/likeness.py sections ref/this-spiteful-snake.wav OUT.wav $(cat tools/this-spiteful-snake-sections.txt)",
       "best": {
         "score": 55.597,
