@@ -419,6 +419,26 @@
    "family": "drums",
    "holdout": true,
    "note": "Immutable drums (Haake's kit), proposed by chirper-three round 59; mix-referenced: score with --context all"
+  },
+  {
+   "id": "bleed-riff-319",
+   "song": "bleed",
+   "from": 319.5,
+   "to": 327.5,
+   "family": "riff",
+   "holdout": false,
+   "note": "obZen riff training (chirper-three): 8-string riff + bass, stem-referenced; screening only (findings 3-7)",
+   "ref": "stems:guitar+bass"
+  },
+  {
+   "id": "bleed-riff-386",
+   "song": "bleed",
+   "from": 386.5,
+   "to": 394.5,
+   "family": "riff",
+   "holdout": false,
+   "note": "obZen riff training (chirper-three): 8-string riff + bass, stem-referenced; screening only (findings 3-7)",
+   "ref": "stems:guitar+bass"
   }
  ]
 }
