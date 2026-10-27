@@ -4515,6 +4515,258 @@
         "at": "2026-10-27T09:51:29Z",
         "who": "chirper-zero"
       }
+    },
+    {
+      "id": "combustion",
+      "song": "songs/combustion.yaml",
+      "reference": "Meshuggah — Combustion",
+      "source": "https://www.youtube.com/watch?v=2RTfZGysTZE",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/combustion.wav OUT.wav $(cat tools/combustion-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "progressive metal",
+      "meta": {
+        "artist": "Meshuggah",
+        "album": "obZen",
+        "title": "Combustion",
+        "track": 1,
+        "year": 2008
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-27T09:53:35Z",
+        "note": "Meshuggah's 2008 album, from the band's official YouTube release (OLAK5uy_nzbMHyETkwz59y37ylsotUTzi-FN9J6Us). F standard 8-string (Thordendal/Hagström; low F1 ~43.7 Hz), polymeter over 4/4; Bleed is the existing mature climb."
+      },
+      "ref_file": "ref/albums/obzen/01 combustion.webm"
+    },
+    {
+      "id": "electric-red",
+      "song": "songs/electric-red.yaml",
+      "reference": "Meshuggah — Electric Red",
+      "source": "https://www.youtube.com/watch?v=JvAZ7ewSsLg",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/electric-red.wav OUT.wav $(cat tools/electric-red-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "progressive metal",
+      "meta": {
+        "artist": "Meshuggah",
+        "album": "obZen",
+        "title": "Electric Red",
+        "track": 2,
+        "year": 2008
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-27T09:53:36Z",
+        "note": "Meshuggah's 2008 album, from the band's official YouTube release (OLAK5uy_nzbMHyETkwz59y37ylsotUTzi-FN9J6Us). F standard 8-string (Thordendal/Hagström; low F1 ~43.7 Hz), polymeter over 4/4; Bleed is the existing mature climb."
+      },
+      "ref_file": "ref/albums/obzen/02 electric-red.webm"
+    },
+    {
+      "id": "obzen-bleed",
+      "song": "songs/obzen-bleed.yaml",
+      "reference": "Meshuggah — Bleed",
+      "source": "https://www.youtube.com/watch?v=GTbYuIKibk4",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/obzen-bleed.wav OUT.wav $(cat tools/obzen-bleed-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "progressive metal",
+      "meta": {
+        "artist": "Meshuggah",
+        "album": "obZen",
+        "title": "Bleed",
+        "track": 3,
+        "year": 2008
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-27T09:53:38Z",
+        "note": "Meshuggah's 2008 album, from the band's official YouTube release (OLAK5uy_nzbMHyETkwz59y37ylsotUTzi-FN9J6Us). F standard 8-string (Thordendal/Hagström; low F1 ~43.7 Hz), polymeter over 4/4; Bleed is the existing mature climb."
+      },
+      "ref_file": "ref/albums/obzen/03 bleed.webm"
+    },
+    {
+      "id": "lethargica",
+      "song": "songs/lethargica.yaml",
+      "reference": "Meshuggah — Lethargica",
+      "source": "https://www.youtube.com/watch?v=UYLO1nqkCak",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/lethargica.wav OUT.wav $(cat tools/lethargica-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "progressive metal",
+      "meta": {
+        "artist": "Meshuggah",
+        "album": "obZen",
+        "title": "Lethargica",
+        "track": 4,
+        "year": 2008
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-27T09:53:39Z",
+        "note": "Meshuggah's 2008 album, from the band's official YouTube release (OLAK5uy_nzbMHyETkwz59y37ylsotUTzi-FN9J6Us). F standard 8-string (Thordendal/Hagström; low F1 ~43.7 Hz), polymeter over 4/4; Bleed is the existing mature climb."
+      },
+      "ref_file": "ref/albums/obzen/04 lethargica.webm"
+    },
+    {
+      "id": "obzen",
+      "song": "songs/obzen.yaml",
+      "reference": "Meshuggah — Obzen",
+      "source": "https://www.youtube.com/watch?v=bzZbTOhoOfM",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/obzen.wav OUT.wav $(cat tools/obzen-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "progressive metal",
+      "meta": {
+        "artist": "Meshuggah",
+        "album": "obZen",
+        "title": "Obzen",
+        "track": 5,
+        "year": 2008
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-27T09:53:40Z",
+        "note": "Meshuggah's 2008 album, from the band's official YouTube release (OLAK5uy_nzbMHyETkwz59y37ylsotUTzi-FN9J6Us). F standard 8-string (Thordendal/Hagström; low F1 ~43.7 Hz), polymeter over 4/4; Bleed is the existing mature climb."
+      },
+      "ref_file": "ref/albums/obzen/05 obzen.webm"
+    },
+    {
+      "id": "this-spiteful-snake",
+      "song": "songs/this-spiteful-snake.yaml",
+      "reference": "Meshuggah — This Spiteful Snake",
+      "source": "https://www.youtube.com/watch?v=rSvdQ6cDVI8",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/this-spiteful-snake.wav OUT.wav $(cat tools/this-spiteful-snake-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "progressive metal",
+      "meta": {
+        "artist": "Meshuggah",
+        "album": "obZen",
+        "title": "This Spiteful Snake",
+        "track": 6,
+        "year": 2008
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-27T09:53:40Z",
+        "note": "Meshuggah's 2008 album, from the band's official YouTube release (OLAK5uy_nzbMHyETkwz59y37ylsotUTzi-FN9J6Us). F standard 8-string (Thordendal/Hagström; low F1 ~43.7 Hz), polymeter over 4/4; Bleed is the existing mature climb."
+      },
+      "ref_file": "ref/albums/obzen/06 this-spiteful-snake.webm"
+    },
+    {
+      "id": "pineal-gland-optics",
+      "song": "songs/pineal-gland-optics.yaml",
+      "reference": "Meshuggah — Pineal Gland Optics",
+      "source": "https://www.youtube.com/watch?v=Q2XyaUGPN1A",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/pineal-gland-optics.wav OUT.wav $(cat tools/pineal-gland-optics-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "progressive metal",
+      "meta": {
+        "artist": "Meshuggah",
+        "album": "obZen",
+        "title": "Pineal Gland Optics",
+        "track": 7,
+        "year": 2008
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-27T09:53:41Z",
+        "note": "Meshuggah's 2008 album, from the band's official YouTube release (OLAK5uy_nzbMHyETkwz59y37ylsotUTzi-FN9J6Us). F standard 8-string (Thordendal/Hagström; low F1 ~43.7 Hz), polymeter over 4/4; Bleed is the existing mature climb."
+      },
+      "ref_file": "ref/albums/obzen/07 pineal-gland-optics.webm"
+    },
+    {
+      "id": "pravus",
+      "song": "songs/pravus.yaml",
+      "reference": "Meshuggah — Pravus",
+      "source": "https://www.youtube.com/watch?v=6JTsS2QFDqM",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/pravus.wav OUT.wav $(cat tools/pravus-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "progressive metal",
+      "meta": {
+        "artist": "Meshuggah",
+        "album": "obZen",
+        "title": "Pravus",
+        "track": 8,
+        "year": 2008
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-27T09:53:42Z",
+        "note": "Meshuggah's 2008 album, from the band's official YouTube release (OLAK5uy_nzbMHyETkwz59y37ylsotUTzi-FN9J6Us). F standard 8-string (Thordendal/Hagström; low F1 ~43.7 Hz), polymeter over 4/4; Bleed is the existing mature climb."
+      },
+      "ref_file": "ref/albums/obzen/08 pravus.webm"
+    },
+    {
+      "id": "dancers-to-a-discordant-system",
+      "song": "songs/dancers-to-a-discordant-system.yaml",
+      "reference": "Meshuggah — Dancers to a Discordant System",
+      "source": "https://www.youtube.com/watch?v=_YOhKnPq4lU",
+      "owner": null,
+      "metric": "python3 tools/likeness.py sections ref/dancers-to-a-discordant-system.wav OUT.wav $(cat tools/dancers-to-a-discordant-system-sections.txt)",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "progressive metal",
+      "meta": {
+        "artist": "Meshuggah",
+        "album": "obZen",
+        "title": "Dancers to a Discordant System",
+        "track": 9,
+        "year": 2008
+      },
+      "requested": {
+        "by": "harry",
+        "at": "2026-10-27T09:53:44Z",
+        "note": "Meshuggah's 2008 album, from the band's official YouTube release (OLAK5uy_nzbMHyETkwz59y37ylsotUTzi-FN9J6Us). F standard 8-string (Thordendal/Hagström; low F1 ~43.7 Hz), polymeter over 4/4; Bleed is the existing mature climb."
+      },
+      "ref_file": "ref/albums/obzen/09 dancers-to-a-discordant-system.webm"
     }
   ],
   "focus": "Immutable"
