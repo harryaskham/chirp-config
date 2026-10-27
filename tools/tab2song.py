@@ -361,6 +361,16 @@ def read_score_file(path):
     return by_bar
 
 
+def ceiling_note(head):
+    """A reminder when the map's head sets no top-level `ceiling`: the engine's limiter then holds -1 dBFS, so a song
+    sits 1.5-2 dB under a loud record that peaks at 0 (obZen: ceiling -0.1dB alone +1.0 in every section;
+    chirper-zero, 27 Oct). 110 of 132 songs set one (most -0.3dB); the 20 that didn't were all set up recently."""
+    if "ceiling" in (head or {}):
+        return None
+    return ('tab2song: the map head sets no "ceiling", so the engine limiter holds -1 dBFS; a loud record (peaks near '
+            '0 dBFS) wants "head": {"ceiling": "-0.3dB"} or "-0.1dB" (skill: obZen r2)')
+
+
 def build(mp):
     cache = mp["cache"]
     full = corrected_timeline(cache, mp)
@@ -479,6 +489,9 @@ def build(mp):
         tracks.append(tr)
     song = {"about": mp.get("about"), "tempo": tempo}   # a song is named by its file
     song.update(mp.get("head", {}))
+    note = ceiling_note(mp.get("head", {}))
+    if note:
+        print(note, file=sys.stderr)
     song["tracks"] = tracks
     return {k: v for k, v in song.items() if v is not None}
 
