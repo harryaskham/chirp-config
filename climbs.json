@@ -4734,7 +4734,7 @@
       "song": "songs/pineal-gland-optics.yaml",
       "reference": "Meshuggah — Pineal Gland Optics",
       "source": "https://www.youtube.com/watch?v=Q2XyaUGPN1A",
-      "owner": null,
+      "owner": "chirper-one",
       "metric": "python3 tools/likeness.py sections ref/pineal-gland-optics.wav OUT.wav $(cat tools/pineal-gland-optics-sections.txt)",
       "best": {
         "score": 73.211,
