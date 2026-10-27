@@ -4737,14 +4737,14 @@
       "owner": "chirper-one",
       "metric": "python3 tools/likeness.py sections ref/pineal-gland-optics.wav OUT.wav $(cat tools/pineal-gland-optics-sections.txt)",
       "best": {
-        "score": 73.211,
-        "version": "v3",
+        "score": 73.618,
+        "version": "v4",
         "commit": "see git log songs/pineal-gland-optics.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 4,
+      "rounds": 5,
       "priority": 1.0,
       "genre": "progressive metal",
       "meta": {
@@ -4761,7 +4761,7 @@
       },
       "ref_file": "ref/albums/obzen/07 pineal-gland-optics.webm",
       "last": {
-        "at": "2026-10-27T12:13:06Z",
+        "at": "2026-10-27T12:37:07Z",
         "who": "chirper-one"
       }
     },
