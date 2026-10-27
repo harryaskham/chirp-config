@@ -247,7 +247,7 @@
   {
    "name": "vox",
    "score_file": "tools/maps/obzen-vox.txt",
-   "patch": "kidman synth.amp.a=40ms",
+   "patch": "kidman synth.amp.a=40ms synth.layers.0.scream=0.5 synth.layers.0.fold=0.3",
    "gain": "-1.0dB",
    "rest": [
     [

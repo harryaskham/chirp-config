@@ -1,9 +1,9 @@
 {
  "id": "obzen",
- "version": "v4",
+ "version": "v5",
  "edge": 3.0,
  "ref_seconds": 264.387,
- "at": "2026-10-27T21:27:30Z",
+ "at": "2026-10-27T22:22:56Z",
  "edges": {
   "head": {
    "level": -11.60038171653902,
