@@ -4156,14 +4156,14 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/phantoms.wav OUT.wav $(cat tools/phantoms-sections.txt)",
       "best": {
-        "score": 67.589,
-        "version": "v9",
+        "score": 67.689,
+        "version": "v10",
         "commit": "see git log songs/phantoms.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 10,
+      "rounds": 11,
       "priority": 1.0,
       "genre": "extreme progressive metal, djent (8-string polymetric riffs)",
       "meta": {
@@ -4180,7 +4180,7 @@
       },
       "ref_file": "ref/albums/immutable/04 phantoms.webm",
       "last": {
-        "at": "2026-10-27T00:16:07Z",
+        "at": "2026-10-27T01:25:29Z",
         "who": "chirper-one"
       }
     },
