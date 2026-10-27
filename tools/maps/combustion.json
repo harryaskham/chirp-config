@@ -18,7 +18,81 @@
    "strip": [
     "bend"
    ],
-   "gain": "-2.5dB"
+   "gain": "-2.5dB",
+   "subst": [
+    [
+     1,
+     225,
+     "F1",
+     "F1,F2"
+    ],
+    [
+     1,
+     225,
+     "F#1",
+     "F#1,F#2"
+    ],
+    [
+     1,
+     225,
+     "G1",
+     "G1,G2"
+    ],
+    [
+     1,
+     225,
+     "Ab1",
+     "Ab1,Ab2"
+    ],
+    [
+     1,
+     225,
+     "A1",
+     "A1,A2"
+    ],
+    [
+     1,
+     225,
+     "Bb1",
+     "Bb1,Bb2"
+    ],
+    [
+     1,
+     225,
+     "B1",
+     "B1,B2"
+    ],
+    [
+     1,
+     225,
+     "C2",
+     "C2,C3"
+    ],
+    [
+     1,
+     225,
+     "C#2",
+     "C#2,C#3"
+    ],
+    [
+     1,
+     225,
+     "D2",
+     "D2,D3"
+    ],
+    [
+     1,
+     225,
+     "Eb2",
+     "Eb2,Eb3"
+    ],
+    [
+     1,
+     225,
+     "E2",
+     "E2,E3"
+    ]
+   ]
   },
   {
    "name": "gtr-r",
@@ -34,7 +108,81 @@
    "strip": [
     "bend"
    ],
-   "gain": "-2.5dB"
+   "gain": "-2.5dB",
+   "subst": [
+    [
+     1,
+     225,
+     "F1",
+     "F1,F2"
+    ],
+    [
+     1,
+     225,
+     "F#1",
+     "F#1,F#2"
+    ],
+    [
+     1,
+     225,
+     "G1",
+     "G1,G2"
+    ],
+    [
+     1,
+     225,
+     "Ab1",
+     "Ab1,Ab2"
+    ],
+    [
+     1,
+     225,
+     "A1",
+     "A1,A2"
+    ],
+    [
+     1,
+     225,
+     "Bb1",
+     "Bb1,Bb2"
+    ],
+    [
+     1,
+     225,
+     "B1",
+     "B1,B2"
+    ],
+    [
+     1,
+     225,
+     "C2",
+     "C2,C3"
+    ],
+    [
+     1,
+     225,
+     "C#2",
+     "C#2,C#3"
+    ],
+    [
+     1,
+     225,
+     "D2",
+     "D2,D3"
+    ],
+    [
+     1,
+     225,
+     "Eb2",
+     "Eb2,Eb3"
+    ],
+    [
+     1,
+     225,
+     "E2",
+     "E2,E3"
+    ]
+   ]
   },
   {
    "name": "lead",
@@ -79,9 +227,25 @@
    ]
   },
   {
+   "name": "bass24",
+   "track": 4,
+   "patch": "bass-fat",
+   "bars": [
+    [
+     1,
+     225
+    ]
+   ],
+   "gain": "-10.0dB",
+   "transpose": 24,
+   "strip": [
+    "bend"
+   ]
+  },
+  {
    "name": "drums",
    "track": 5,
-   "patch": "metal-kit-dry",
+   "patch": "cb-kit",
    "bars": [
     [
      1,
@@ -101,10 +265,34 @@
    "name": "vox",
    "score_file": "tools/maps/combustion-vox.txt",
    "patch": "kidman synth.amp.a=40ms",
-   "gain": "+4.0dB"
+   "gain": "-2.0dB",
+   "extra": {
+    "fx": [
+     {
+      "type": "eq",
+      "bands": [
+       "lowshelf cutoff=170 gain=-10dB",
+       "peak cutoff=600 q=2 gain=-6dB",
+       "peak cutoff=900 q=1.2 gain=10dB",
+       "peak cutoff=2400 q=2 gain=-5dB",
+       "highshelf cutoff=4000 gain=-7dB"
+      ]
+     }
+    ]
+   }
   }
  ],
  "head": {
-  "length": "248.65s"
+  "length": "248.65s",
+  "patches": {
+   "cb-kit": {
+    "extends": "metal-kit-dry",
+    "kit": {
+     "k": {
+      "pitch": "D2"
+     }
+    }
+   }
+  }
  }
 }
