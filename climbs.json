@@ -4579,11 +4579,16 @@
       "source": "https://www.youtube.com/watch?v=JvAZ7ewSsLg",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/electric-red.wav OUT.wav $(cat tools/electric-red-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 67.257,
+        "version": "v1",
+        "commit": "see git log songs/electric-red.yaml",
+        "engine": "85b3881"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "progressive metal",
       "meta": {
@@ -4598,7 +4603,11 @@
         "at": "2026-10-27T09:53:36Z",
         "note": "Meshuggah's 2008 album, from the band's official YouTube release (OLAK5uy_nzbMHyETkwz59y37ylsotUTzi-FN9J6Us). F standard 8-string (Thordendal/Hagström; low F1 ~43.7 Hz), polymeter over 4/4; Bleed is the existing mature climb."
       },
-      "ref_file": "ref/albums/obzen/02 electric-red.webm"
+      "ref_file": "ref/albums/obzen/02 electric-red.webm",
+      "last": {
+        "at": "2026-10-27T12:41:29Z",
+        "who": "chirper-zero"
+      }
     },
     {
       "id": "obzen-bleed",
