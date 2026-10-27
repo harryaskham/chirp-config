@@ -44,5 +44,13 @@ class Chroma(unittest.TestCase):
         self.assertEqual(s["bad"], [])
 
 
+class Detail(unittest.TestCase):
+    def test_top_pitch_classes(self):
+        prof = np.zeros(12)
+        prof[5], prof[4], prof[3] = 0.5, 0.3, 0.2              # F, E, D#
+        self.assertEqual(P.top(prof), [("F", 0.5), ("E", 0.3), ("D#", 0.2)])
+        self.assertEqual(P.fmt_top(P.top(prof)), "F 0.50 E 0.30 D# 0.20")
+
+
 if __name__ == "__main__":
     unittest.main()
