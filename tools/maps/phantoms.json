@@ -87,6 +87,22 @@
    ]
   },
   {
+   "name": "bass16",
+   "track": 4,
+   "patch": "bass-fat",
+   "bars": [
+    [
+     1,
+     133
+    ]
+   ],
+   "gain": "-10dB",
+   "strip": [
+    "bend"
+   ],
+   "transpose": 24
+  },
+  {
    "name": "bass8",
    "track": 4,
    "patch": "bass-fat",
