@@ -4645,14 +4645,14 @@
       "owner": "chirper-one",
       "metric": "python3 tools/likeness.py sections ref/lethargica.wav OUT.wav $(cat tools/lethargica-sections.txt)",
       "best": {
-        "score": 61.627,
-        "version": "v1",
+        "score": 64.688,
+        "version": "v2",
         "commit": "see git log songs/lethargica.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 1,
+      "rounds": 2,
       "priority": 1.0,
       "genre": "progressive metal",
       "meta": {
@@ -4669,7 +4669,7 @@
       },
       "ref_file": "ref/albums/obzen/04 lethargica.webm",
       "last": {
-        "at": "2026-10-27T15:03:12Z",
+        "at": "2026-10-27T15:30:05Z",
         "who": "chirper-one"
       }
     },
