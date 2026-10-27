@@ -4601,7 +4601,7 @@
       "best": null,
       "passes": 1,
       "enabled": false,
-      "status": "requested",
+      "status": "dropped",
       "rounds": 0,
       "priority": 1.0,
       "genre": "progressive metal",
