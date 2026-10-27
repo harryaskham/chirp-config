@@ -1,0 +1,13 @@
+about: >-
+  crowd-applause with its sub-125 Hz region tamed: the built-in's hall reverb kept, then a 130 Hz high-pass and
+  +3 dB around 900 Hz. crowd-applause was fitted 125 Hz-8 kHz on Human's closing applause; below 125 Hz it was never
+  fitted, and micro --explain reads ours +9..+18 dB over the record at 40-160 Hz and -4..-6 dB at 640-1280 Hz on both
+  S&M crowd training clips (human-crowd-250, master-of-puppets-crowd-525; crowd tracks alone read the same, so it's
+  the patch, not song bleed). Micro, --context all, 4 seeds: master-of-puppets-crowd-525 57.20 -> 59.88, human-crowd-250
+  43.88 -> 45.73 (high-pass alone: 58.69 / 45.75), but the HOLDOUT enter-sandman-crowd-445, untuned, 66.97 -> 63.49
+  (tone 74.5 -> 52.5): FAILS its holdout, so not a candidate. Opt-in only; S&M is paused and Harry chose the crowd
+  bed by ear. chirper-three, 27 Oct.
+extends: crowd-applause
+fx:
+  - {type: reverb, decay: 2.5s, mix: 0.3}
+  - {type: eq, bands: [{kind: hp, cutoff: 130, q: 0.7}, {kind: peak, cutoff: 900, q: 1.0, gain: 3dB}]}
