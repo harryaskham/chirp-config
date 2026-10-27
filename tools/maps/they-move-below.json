@@ -174,7 +174,7 @@
      {
       "type": "eq",
       "bands": [
-       "lowshelf cutoff=200 gain=6dB"
+       "lowshelf cutoff=200 gain=8dB"
       ]
      }
     ]
@@ -197,7 +197,7 @@
      {
       "type": "eq",
       "bands": [
-       "lowshelf cutoff=200 gain=6dB"
+       "lowshelf cutoff=200 gain=8dB"
       ]
      }
     ]
