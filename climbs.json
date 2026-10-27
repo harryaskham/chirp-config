@@ -4661,7 +4661,7 @@
       "song": "songs/obzen.yaml",
       "reference": "Meshuggah — Obzen",
       "source": "https://www.youtube.com/watch?v=bzZbTOhoOfM",
-      "owner": null,
+      "owner": "chirper-zero",
       "metric": "python3 tools/likeness.py sections ref/obzen.wav OUT.wav $(cat tools/obzen-sections.txt)",
       "best": {
         "score": 66.822,
