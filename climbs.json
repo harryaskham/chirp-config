@@ -4719,11 +4719,15 @@
       "source": "https://www.youtube.com/watch?v=Q2XyaUGPN1A",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/pineal-gland-optics.wav OUT.wav $(cat tools/pineal-gland-optics-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 70.863,
+        "version": "v1",
+        "commit": "see git log songs/pineal-gland-optics.yaml"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "progressive metal",
       "meta": {
@@ -4738,7 +4742,11 @@
         "at": "2026-10-27T09:53:41Z",
         "note": "Meshuggah's 2008 album, from the band's official YouTube release (OLAK5uy_nzbMHyETkwz59y37ylsotUTzi-FN9J6Us). F standard 8-string (Thordendal/Hagström; low F1 ~43.7 Hz), polymeter over 4/4; Bleed is the existing mature climb."
       },
-      "ref_file": "ref/albums/obzen/07 pineal-gland-optics.webm"
+      "ref_file": "ref/albums/obzen/07 pineal-gland-optics.webm",
+      "last": {
+        "at": "2026-10-27T10:37:25Z",
+        "who": "chirper-one"
+      }
     },
     {
       "id": "pravus",
