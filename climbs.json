@@ -4414,14 +4414,14 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/the-faultless.wav OUT.wav $(cat tools/the-faultless-sections.txt)",
       "best": {
-        "score": 76.333,
-        "version": "v17",
+        "score": 76.439,
+        "version": "v18",
         "commit": "see git log songs/the-faultless.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 18,
+      "rounds": 19,
       "priority": 1.0,
       "genre": "extreme progressive metal, djent (8-string polymetric riffs)",
       "meta": {
@@ -4438,7 +4438,7 @@
       },
       "ref_file": "ref/albums/immutable/11 the-faultless.webm",
       "last": {
-        "at": "2026-10-27T08:15:47Z",
+        "at": "2026-10-27T09:21:48Z",
         "who": "chirper-one"
       }
     },
