@@ -62,7 +62,17 @@
      "F#1,F#2,C2",
      "F#1,C2"
     ]
-   ]
+   ],
+   "extra": {
+    "fx": [
+     {
+      "type": "eq",
+      "bands": [
+       "peak cutoff=800 q=0.7 gain=-4dB"
+      ]
+     }
+    ]
+   }
   },
   {
    "name": "gtr-r",
@@ -122,7 +132,17 @@
      "F#1,F#2,C2",
      "F#1,C2"
     ]
-   ]
+   ],
+   "extra": {
+    "fx": [
+     {
+      "type": "eq",
+      "bands": [
+       "peak cutoff=800 q=0.7 gain=-4dB"
+      ]
+     }
+    ]
+   }
   },
   {
    "name": "lead",
