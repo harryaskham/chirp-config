@@ -4577,7 +4577,7 @@
       "song": "songs/electric-red.yaml",
       "reference": "Meshuggah — Electric Red",
       "source": "https://www.youtube.com/watch?v=JvAZ7ewSsLg",
-      "owner": null,
+      "owner": "chirper-zero",
       "metric": "python3 tools/likeness.py sections ref/electric-red.wav OUT.wav $(cat tools/electric-red-sections.txt)",
       "best": {
         "score": 67.257,
