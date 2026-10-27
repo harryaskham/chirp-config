@@ -4770,7 +4770,7 @@
       "song": "songs/pravus.yaml",
       "reference": "Meshuggah — Pravus",
       "source": "https://www.youtube.com/watch?v=6JTsS2QFDqM",
-      "owner": null,
+      "owner": "chirper-one",
       "metric": "python3 tools/likeness.py sections ref/pravus.wav OUT.wav $(cat tools/pravus-sections.txt)",
       "best": {
         "score": 61.532,
