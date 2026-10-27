@@ -514,6 +514,66 @@
      }
     ]
    }
+  },
+  {
+   "name": "bassf",
+   "track": 1,
+   "patch": "bass-fat",
+   "bars": [
+    [
+     77,
+     92
+    ],
+    [
+     109,
+     124
+    ]
+   ],
+   "transpose": -12,
+   "gain": "-2.7dB",
+   "strip": [
+    "bend"
+   ]
+  },
+  {
+   "name": "bassf8",
+   "track": 1,
+   "patch": "bass-fat",
+   "bars": [
+    [
+     77,
+     92
+    ],
+    [
+     109,
+     124
+    ]
+   ],
+   "transpose": 0,
+   "gain": "-4.7dB",
+   "strip": [
+    "bend"
+   ]
+  },
+  {
+   "name": "bassf24",
+   "track": 1,
+   "patch": "bass-fat",
+   "bars": [
+    [
+     77,
+     92
+    ],
+    [
+     109,
+     124
+    ]
+   ],
+   "transpose": 12,
+   "gain": "-6.7dB",
+   "strip": [
+    "bend"
+   ]
   }
  ],
  "head": {
