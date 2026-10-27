@@ -1,9 +1,9 @@
 {
  "id": "this-spiteful-snake",
- "version": "v6",
+ "version": "v7",
  "edge": 3.0,
  "ref_seconds": 292.44,
- "at": "2026-10-27T14:34:10Z",
+ "at": "2026-10-27T14:48:51Z",
  "edges": {
   "head": {
    "level": -13.80541439187726,
