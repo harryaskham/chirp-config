@@ -4644,11 +4644,15 @@
       "source": "https://www.youtube.com/watch?v=UYLO1nqkCak",
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/lethargica.wav OUT.wav $(cat tools/lethargica-sections.txt)",
-      "best": null,
+      "best": {
+        "score": 61.627,
+        "version": "v1",
+        "commit": "see git log songs/lethargica.yaml"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "progressive metal",
       "meta": {
@@ -4663,7 +4667,11 @@
         "at": "2026-10-27T09:53:39Z",
         "note": "Meshuggah's 2008 album, from the band's official YouTube release (OLAK5uy_nzbMHyETkwz59y37ylsotUTzi-FN9J6Us). F standard 8-string (Thordendal/Hagström; low F1 ~43.7 Hz), polymeter over 4/4; Bleed is the existing mature climb."
       },
-      "ref_file": "ref/albums/obzen/04 lethargica.webm"
+      "ref_file": "ref/albums/obzen/04 lethargica.webm",
+      "last": {
+        "at": "2026-10-27T15:03:12Z",
+        "who": "chirper-one"
+      }
     },
     {
       "id": "obzen",
