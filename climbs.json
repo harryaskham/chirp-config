@@ -4192,15 +4192,15 @@
       "owner": null,
       "metric": "python3 tools/likeness.py sections ref/ligature-marks.wav OUT.wav $(cat tools/ligature-marks-sections.txt)",
       "best": {
-        "score": 72.836,
-        "version": "v12",
+        "score": 73.282,
+        "version": "v13",
         "commit": "see git log songs/ligature-marks.yaml",
         "engine": "85b3881"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 12,
+      "rounds": 13,
       "priority": 1.0,
       "genre": "extreme progressive metal, djent (8-string polymetric riffs)",
       "meta": {
@@ -4217,8 +4217,8 @@
       },
       "ref_file": "ref/albums/immutable/05 ligature-marks.webm",
       "last": {
-        "at": "2026-10-26T22:10:48Z",
-        "who": "chirper-zero"
+        "at": "2026-10-27T00:27:33Z",
+        "who": "chirper-one"
       }
     },
     {
