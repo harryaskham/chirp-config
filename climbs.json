@@ -5038,7 +5038,7 @@
     {
       "id": "chirpers1-t6",
       "song": "songs/chirpers1-t6.yaml",
-      "reference": "Chirpers — Track 6 (untitled)",
+      "reference": "Chirpers — Thirteen Teeth",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers1-t6 OUT.wav",
@@ -5054,7 +5054,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "Ferrous Bloom",
-        "title": "Track 6 (untitled)",
+        "title": "Thirteen Teeth",
         "track": 6,
         "year": 2026
       },
