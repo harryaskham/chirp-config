@@ -64,8 +64,11 @@ def splice(cur, rep, parts, t0, t1):
             if k in src:
                 n[k] = copy.deepcopy(src[k])
         n["fx"] = [f for f in copy.deepcopy(src.get("fx", [])) if not (isinstance(f, dict) and "auto.mx" in json.dumps(f))]
-        if isinstance(n.get("gain"), dict):
-            n["gain"] = n["gain"].get("value", "0dB")
+        # keep the source's own automation lanes (e.g. the envelope lane auto.envl its gain mod reads), minus the
+        # mute lanes: flattening the gain to its value dropped the envelope lane, costing the replacement ~0.2/span
+        auto = {k: copy.deepcopy(v) for k, v in src.get("auto", {}).items() if not k.startswith("mx")}
+        if auto:
+            n["auto"] = auto
         d["tracks"].append(n)
     return d
 
