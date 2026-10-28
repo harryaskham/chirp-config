@@ -5087,7 +5087,7 @@
       "song": "songs/chirpers1-t8.yaml",
       "reference": "Chirpers — The Long Unwinding",
       "source": null,
-      "owner": null,
+      "owner": "chirper-one",
       "metric": "python3 tools/compscore.py chirpers1-t8 OUT.wav",
       "best": {
         "score": 78.45,
