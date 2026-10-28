@@ -23,7 +23,9 @@ class Rngsafe(unittest.TestCase):
         self.assertEqual(len(m["parts"]), 2)                       # the input map is untouched
 
     def test_splice_mutes_appends_last_and_copies_settings(self):
-        cur = {"tracks": [{"name": "gtr-l", "patch": "m8-emg-l", "pan": -1, "gain": {"value": "-3dB"}, "fx": ["eq"]},
+        gain = {"value": "-3dB", "mod": [{"src": "auto.envl", "amount": 1}]}
+        cur = {"tracks": [{"name": "gtr-l", "patch": "m8-emg-l", "pan": -1, "gain": gain, "fx": ["eq"],
+                           "auto": {"envl": {"points": [["0s", 0], ["5s", -6]]}}},
                           {"name": "bass", "patch": "bass-fat"}]}
         rep = {"tracks": [{"name": "gtr-lr", "patch": "x", "score": "F1/4"}]}
         d = R.splice(cur, rep, ["gtr-l"], 10.0, 20.0)
@@ -32,8 +34,10 @@ class Rngsafe(unittest.TestCase):
         self.assertEqual(g["auto"]["mx"]["points"][2], ["10.000s", -60])
         self.assertEqual(g["fx"][-1]["gain"]["mod"][0]["src"], "auto.mx")
         n = d["tracks"][2]
-        self.assertEqual((n["patch"], n["pan"], n["gain"], n["fx"], n["score"]), ("m8-emg-l", -1, "-3dB", ["eq"], "F1/4"))
-        self.assertNotIn("auto", cur["tracks"][0])                 # the input song is untouched
+        self.assertEqual((n["patch"], n["pan"], n["gain"], n["fx"], n["score"]), ("m8-emg-l", -1, gain, ["eq"], "F1/4"))
+        # the replacement keeps the source's own lanes (its gain mod reads auto.envl) but not the mute lane (9c6183ad)
+        self.assertEqual(sorted(n["auto"]), ["envl"])
+        self.assertNotIn("mx", cur["tracks"][0].get("auto", {}))   # the input song is untouched
 
 
 if __name__ == "__main__":
