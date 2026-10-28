@@ -13,7 +13,8 @@ import json, os
 ROOT = "/home/harry/.config/chirp"
 OUT = os.path.join(ROOT, "songs", "chirpers1-t1.yaml")
 TEMPO = 80
-BARS = 40
+BARS = 42
+STOP, SEED, HITS, HOLD = 36, (37, 38, 39), (40, 41), 42   # the Breach: stop, the seed returns, unison hits, held cluster
 S = 16                      # sixteenths per bar
 TOTAL = BARS * S
 
@@ -28,7 +29,7 @@ CELL5 = [0, 3]              # its diminution (3+2), used in the build
 def bar0(b):                # first sixteenth of 1-based bar b
     return (b - 1) * S
 
-SECTIONS = {"A": (1, 7), "B": (8, 14), "C": (15, 21), "D": (22, 28), "E": (29, 35), "F": (36, 40)}
+SECTIONS = {"A": (1, 7), "B": (8, 14), "C": (15, 21), "D": (22, 28), "E": (29, 35), "F": (36, 42)}
 def span(sec):
     a, z = SECTIONS[sec]
     return bar0(a), bar0(z + 1)
@@ -78,7 +79,7 @@ def ramp(t, a, z, v0, v1):  # velocity ramp across [a, z)
 # ---------- parts ----------
 def pad():
     chords = {}
-    for b in range(1, 41):
+    for b in range(1, STOP):
         if b <= 7:   ch = [F1 + 12, F1 + 19]                         # F2 C3: bare fifth
         elif b <= 14: ch = [F1 + 12, F1 + 19, F1 + 23]               # + E3: the maj7 colour
         elif b <= 21: ch = [F1 + 13, F1 + 20, F1 + 24] if (b - 15) % 4 in (2, 3) else [F1 + 12, F1 + 19, F1 + 23]
@@ -87,15 +88,16 @@ def pad():
         else:         ch = [F1 + 12, F1 + 18, F1 + 23, F1 + 25]
         chords[b] = ch
     ev, b = [], 1
-    while b <= 40:
+    while b < STOP:
         e = b
-        while e + 1 <= 40 and chords[e + 1] == chords[b] and e + 1 not in (8, 15, 22, 29, 36):
+        while e + 1 < STOP and chords[e + 1] == chords[b] and e + 1 not in (8, 15, 22, 29):
             e += 1
-        if b == 36:        # Breach: the pad drops out for the stop, returns for the last bar
-            b = 40; e = 40
         v = 52 if b < 15 else 62 if b < 29 else 74
         ev.append((bar0(b), (e - b + 1) * S, ",".join(nm(m) for m in chords[b]), v, ""))
         b = e + 1
+    # the Breach: silent for the stop; the opening's bare fifth returns under the seed; the cluster for the hold
+    ev.append((bar0(SEED[0]), len(SEED) * S, ",".join(nm(m) for m in (F1 + 12, F1 + 19)), 56, ""))
+    ev.append((bar0(HOLD), S, ",".join(nm(m) for m in (F1 + 12, F1 + 18, F1 + 23, F1 + 25)), 76, ""))
     return score(ev)
 
 def clean_a():               # the motif, stated: cell onsets walk through LATTICE (4 notes over 3 onsets)
@@ -111,6 +113,11 @@ def clean_a():               # the motif, stated: cell onsets walk through LATTI
         v = ramp(t, 0, bar0(15), 54, 70) if bar < 22 else 60 if bar < 29 else ramp(t, bar0(29), bar0(36), 64, 84)
         ev.append((t, nxt, nm(note), v, ""))
         k += 1
+    # the seed returns after the stop: the opening statement, alone, from the top of the line
+    a, z = bar0(SEED[0]), bar0(SEED[-1] + 1)
+    for k, (t, i, n) in enumerate(cell_onsets(a, z)):
+        nxt = (CELL7 + [7])[i + 1] - CELL7[i]
+        ev.append((t, nxt, nm(F1 + 24 + LATTICE[k % 4]), 60, ""))
     return score(ev)
 
 def clean_b():               # the motif inverted (E5 B4 Gb4 F4) and augmented: one note per cell, a sixteenth late
@@ -125,6 +132,10 @@ def clean_b():               # the motif inverted (E5 B4 Gb4 F4) and augmented: 
     for t, i, n in cell_onsets(a, z, CELL5, 5):
         if i == 0:
             ev.append((t + 1, 3, nm(inv[n % 4] + 12 if n % 8 >= 4 else inv[n % 4]), ramp(t, a, z, 62, 86), ""))
+    a, z = bar0(SEED[0]), bar0(SEED[-1] + 1)                  # and its inversion now sounds against the seed
+    for t, i, n in cell_onsets(a, z):
+        if i == 0:
+            ev.append((t + 1, 6, nm(inv[n % 4]), 54, ""))
     return score(ev)
 
 def lead():                  # the motif in long notes over the Lattice; tension held through the build
@@ -133,7 +144,7 @@ def lead():                  # the motif in long notes over the Lattice; tension
         ev.append((bar0(b), nb * S, nm(m), 66, ""))
     ev.append((bar0(29), 4 * S, nm(F1 + 47), 72, ""))          # E5 held
     ev.append((bar0(33), 3 * S, nm(F1 + 48), 80, ""))          # F5: the semitone pull upward
-    ev.append((bar0(40), S, nm(F1 + 49), 88, ""))              # Gb5 on the final cluster
+    ev.append((bar0(HOLD), S, nm(F1 + 49), 88, ""))            # Gb5 on the final cluster
     return score(ev)
 
 def bass():
@@ -152,15 +163,15 @@ def bass():
     for t, i, n in cell_onsets(a, z, CELL5, 5):
         ev.append((t, 2, nm(F1), ramp(t, a, z, 92, 112), ""))
     ev += breach_hits(lambda: nm(F1), 110)
-    ev.append((bar0(40), S, nm(F1), 112, ""))
+    ev.append((bar0(HOLD), S, nm(F1), 112, ""))
     return score(ev)
 
 def breach_hits(tok, v):
-    """Bar 36: one hit then silence; bars 37-39: the cell in unison, getting denser; bar 40 is held by the caller."""
-    ev = [(bar0(36), 4, tok(), v + 6, "")]
-    for b in (37, 38, 39):
+    """STOP: one hit then silence (the seed returns); HITS: the cell in unison, then denser; HOLD is the caller's."""
+    ev = [(bar0(STOP), 4, tok(), v + 6, "")]
+    for b in HITS:
         a, z = bar0(b), bar0(b + 1)
-        cell, ln = (CELL7, 7) if b < 39 else (CELL5, 5)
+        cell, ln = (CELL7, 7) if b < HITS[-1] else (CELL5, 5)
         for t, i, n in cell_onsets(a, z, cell, ln):
             ev.append((t, 2, tok(), v if i == 0 else v - 14, ""))
     return ev
@@ -182,10 +193,10 @@ def guitar():
             ev.append((t, 3, trit, ramp(t, a, z, 98, 118), op))
         else:
             ev.append((t, 2, nm(F1), ramp(t, a, z, 92, 114), pm))
-    ev.append((bar0(36), 8, clus, 122, op))
+    ev.append((bar0(STOP), 8, clus, 122, op))
     for st, ln, tok, v, pre in breach_hits(lambda: nm(F1), 112)[1:]:
         ev.append((st, ln, tok, v, pm))
-    ev.append((bar0(40), S, clus, 124, op))
+    ev.append((bar0(HOLD), S, clus, 124, op))
     return score(ev)
 
 def kick():
@@ -201,7 +212,7 @@ def kick():
     for t, i, n in cell_onsets(a, z, CELL5, 5):
         ev.append((t, 1, "k", ramp(t, a, z, 96, 118), ""))
     ev += [(st, 1, "k", v, "") for st, ln, tok, v, pre in breach_hits(lambda: "k", 112)]
-    ev.append((bar0(40), 1, "k", 124, ""))
+    ev.append((bar0(HOLD), 1, "k", 124, ""))
     return score(ev)
 
 def snare():
@@ -214,12 +225,11 @@ def snare():
     a = bar0(35) + 8                                            # roll into the stop
     for k in range(8):
         ev.append((a + k, 1, "s", 70 + 6 * k, ""))
-    for b in (37, 38):
-        ev.append((bar0(b) + 8, 1, "s", 112, ""))
-    a = bar0(39)
+    ev.append((bar0(HITS[0]) + 8, 1, "s", 112, ""))
+    a = bar0(HITS[-1])
     for k in range(16):                                         # the last bar before the hold: a full roll
         ev.append((a + k, 1, "s", 72 + 3 * k, ""))
-    ev.append((bar0(40), 1, "s", 124, ""))
+    ev.append((bar0(HOLD), 1, "s", 124, ""))
     return score(ev)
 
 def cymbals():
@@ -237,10 +247,12 @@ def cymbals():
         for e8 in range(8):
             tok = "c" if (b in (29, 33) and e8 == 0) else "rd"
             ev.append((bar0(b) + 2 * e8, 1, tok, 112 if tok == "c" else 80 + (10 if e8 % 2 == 0 else 0), ""))
-    ev.append((bar0(36), 1, "x", 120, ""))
-    for b in (37, 38):
-        ev.append((bar0(b), 1, "c", 108, ""))
-    ev.append((bar0(40), 1, "c", 124, ""))
+    ev.append((bar0(STOP), 1, "x", 120, ""))
+    for b in SEED:                                              # the seed's quiet bell, as in Growth
+        for q in range(4):
+            ev.append((bar0(b) + 4 * q, 1, "rb", 42, ""))
+    ev.append((bar0(HITS[0]), 1, "c", 112, ""))
+    ev.append((bar0(HOLD), 1, "c", 124, ""))
     return score(ev)
 
 def toms():                  # the distant percussion of the opening
@@ -254,6 +266,10 @@ def toms():                  # the distant percussion of the opening
                 ev.append((t, 1, "ft", v + (6 if n % 4 == 0 else 0), ""))
             elif sec == "C" and i == 2 and n % 2:
                 ev.append((t, 1, "t3", v - 8, ""))
+    a, z = bar0(SEED[0]), bar0(SEED[-1] + 1)                  # the distant floor tom returns with the seed
+    for t, i, n in cell_onsets(a, z):
+        if i == 0:
+            ev.append((t, 1, "ft", 44, ""))
     return score(ev)
 
 def tr(name, patch, sc, **kw):
