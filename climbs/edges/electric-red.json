@@ -1,9 +1,9 @@
 {
  "id": "electric-red",
- "version": "v5",
+ "version": "v6",
  "edge": 3.0,
  "ref_seconds": 351.053,
- "at": "2026-10-27T21:58:44Z",
+ "at": "2026-10-28T01:05:09Z",
  "edges": {
   "head": {
    "level": -12.676280707462798,
