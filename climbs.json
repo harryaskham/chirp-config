@@ -5091,14 +5091,14 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/compscore.py chirpers1-t6 OUT.wav",
       "best": {
-        "score": 96.139,
-        "version": "v4",
+        "score": 96.413,
+        "version": "v5",
         "commit": "see git log songs/chirpers1-t6.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 6,
+      "rounds": 7,
       "priority": 1.0,
       "genre": "polyrhythmic djent",
       "mode": "compose",
@@ -5116,7 +5116,7 @@
         "note": "COMPOSE (song, 180-240 s): The machine. The odd-meter centrepiece: a long polyrhythmic cycle (for example a phrase of 13 or 23 sixteenths against 4/4) that realigns at section boundaries; mechanical, precise, building."
       },
       "last": {
-        "at": "2026-10-28T15:41:14Z",
+        "at": "2026-10-28T16:40:08Z",
         "who": "chirper-zero"
       }
     },

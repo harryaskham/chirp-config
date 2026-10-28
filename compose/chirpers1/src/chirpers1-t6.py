@@ -37,7 +37,9 @@ SUB_END = float(os.environ.get("T6_SUB", "0"))
 HS_CUT = float(os.environ.get("T6_HSCUT", "3000"))
 FULLTIME = os.environ.get("T6_FULLTIME", "")
 DARKER = os.environ.get("T6_DARKER", "1") == "1"
-TONE = os.environ.get("T6_TONE", "s3")  # master tone: "" (v3), "s1" (no 5k boost, 10k -3), "s2" (s1 + 60 Hz +3)  # the machine's own colour: GOVERNOR C -> C#, the stall clock on F Gb B E C#  # sections whose snare drives on 2 and 4 (comma list)  # dB of low shelf over the last bars  # the hammer bar crash-lit (crash on quarters, open hat between)  # ... and its second half changes texture  # overdrive turns at bar 12: a clunk, roots up a semitone, the lead up an octave  # one beat of silence before each realignment
+TONE = os.environ.get("T6_TONE", "s3")
+BASS_DB = float(os.environ.get("T6_BASS", "-3"))
+LOWMID_DB = float(os.environ.get("T6_LOWMID", "-2"))  # a master cut at 580 Hz  # master tone: "" (v3), "s1" (no 5k boost, 10k -3), "s2" (s1 + 60 Hz +3)  # the machine's own colour: GOVERNOR C -> C#, the stall clock on F Gb B E C#  # sections whose snare drives on 2 and 4 (comma list)  # dB of low shelf over the last bars  # the hammer bar crash-lit (crash on quarters, open hat between)  # ... and its second half changes texture  # overdrive turns at bar 12: a clunk, roots up a semitone, the lead up an octave  # one beat of silence before each realignment
 FORM = [("spin", 13), ("engage", 13), ("mesh", 13), ("governor", 13), ("stall", 13), ("overdrive", 23), ("seize", 13)]
 
 
@@ -312,6 +314,8 @@ def master():
     bands = ["peak cutoff=350 q=0.8 gain=-3dB", "highshelf cutoff=5k gain=2dB"]
     if TONE in ("s1", "s2", "s3"):
         bands = ["peak cutoff=350 q=0.8 gain=-3dB", "highshelf cutoff=10k gain=%s" % ("-5dB" if TONE == "s3" else "-3dB")] + (["lowshelf cutoff=60 gain=3dB"] if TONE == "s2" else [])
+    if LOWMID_DB:
+        bands = bands + [f"peak cutoff=580 q=1 gain={LOWMID_DB:g}dB"]
     fx = [{"type": "eq", "bands": bands},
           {"type": "compressor", "threshold": "-24dB", "ratio": 2, "attack": "10ms", "release": "200ms", "makeup": "0dB"},
           {"type": "gain", "gain": f"+{MG:g}dB"}]
@@ -346,7 +350,7 @@ def song():
         {"name": "tick", "patch": "metal-kit", "gain": "-9dB", "pan": 0.35, "score": sc("tick")},
         {"name": "gtr-l", "patch": "m8-emg-l", "gain": "-4dB", "pan": -1, "score": sc("gtr-l")},
         {"name": "gtr-r", "patch": "m8-emg-r", "gain": "-4dB", "pan": 1, "score": sc("gtr-r")},
-        {"name": "bass", "patch": "bass-fat", "gain": "-5dB", "score": sc("bass")},
+        {"name": "bass", "patch": "bass-fat", "gain": f"{BASS_DB:+g}dB", "score": sc("bass")},
         {"name": "sub", "patch": "bass-fat", "gain": "-8dB", "score": sc("sub")},
         {"name": "drums", "patch": "metal-kit", "gain": "-3dB", "score": sc("drums")},
         {"name": "ping", "patch": "m8-twang-chorus", "gain": "-16dB", "pan": 0.6, "sends": {"dly": "-10dB"}, "score": sc("ping")},
