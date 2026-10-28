@@ -88,6 +88,16 @@ class Album(unittest.TestCase):
         self.assertIn("neighbours: 2 alb-t2", text)
 
 
+class Done(unittest.TestCase):
+    def test_first_kept_version_makes_the_composer_owner(self):
+        with open(os.path.join(TMP, "songs", "alb-t3.yaml"), "w") as f:
+            f.write("tempo: 120\n")
+        quiet(CH.C.cmd_done, ["alb-t3", "--version", "v1", "--score", "70", "--note", "composed", "--no-git",
+                              "--as", "chirper-two"])
+        c = reg()["alb-t3"]
+        self.assertEqual((c["status"], c["owner"], c["enabled"]), ("active", "chirper-two", True))
+
+
 class Ratings(unittest.TestCase):
     def test_harry_rating_feeds_human_with_stale_half_weight(self):
         quiet(RT.main, ["alb-t2", "7.5", "--note", "great intro riff", "--no-git"])

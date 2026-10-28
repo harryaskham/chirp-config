@@ -983,6 +983,8 @@ def cmd_done(a):
         if c["status"] == "requested" and os.path.exists(os.path.join(ROOT, c["song"])) and kept:
             c["status"] = "active"
             c["enabled"] = not c.get("oob")  # out-of-band climbs never join the playlist
+            if c.get("mode") == "compose" and not c.get("owner"):
+                c["owner"] = me  # a composed track belongs to its composer (compose/README.md); others send candidates
         c["last"] = {"at": h["at"], "who": me}
         if kept and opt(a, "--render") and (c.get("meta") or {}).get("album") and c.get("mode") != "compose":
             # the album plays gaplessly: compare this version's two joins with the kept version's (a warning, not a
