@@ -4761,7 +4761,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 15,
+      "rounds": 16,
       "priority": 1.0,
       "genre": "progressive metal",
       "meta": {
@@ -4778,7 +4778,7 @@
       },
       "ref_file": "ref/albums/obzen/07 pineal-gland-optics.webm",
       "last": {
-        "at": "2026-10-28T04:59:19Z",
+        "at": "2026-10-28T07:29:22Z",
         "who": "chirper-one"
       }
     },
