@@ -4871,14 +4871,14 @@
       "owner": "chirper-three",
       "metric": "python3 tools/compscore.py chirpers1-t1 OUT.wav",
       "best": {
-        "score": 85.43,
-        "version": "v4",
+        "score": 93.03,
+        "version": "v5",
         "commit": "see git log songs/chirpers1-t1.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 4,
+      "rounds": 5,
       "priority": 1.0,
       "genre": "polyrhythmic djent",
       "mode": "compose",
@@ -4896,7 +4896,7 @@
         "note": "COMPOSE (intro, 110-135 s): The opening. State the album's core motif (a short rhythmic cell plus an interval or harmonic colour) quietly: clean or ambient guitars, pads, distant percussion. Build tension toward the first song; the last seconds bleed straight into track 2."
       },
       "last": {
-        "at": "2026-10-28T11:48:17Z",
+        "at": "2026-10-28T12:21:34Z",
         "who": "chirper-three"
       },
       "chirp-eco": ""
