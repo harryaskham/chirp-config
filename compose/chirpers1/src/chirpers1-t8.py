@@ -22,6 +22,13 @@ OUT = os.path.join(ROOT, "songs", "chirpers1-t8.yaml")
 BPM, NB = 96, 196
 SPB = 60 / BPM
 
+NN = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
+def trn(n, k):
+    if not k: return n
+    p, o = n[:-1], int(n[-1]); p = {'F#': 'Gb', 'C#': 'Db'}.get(p, p)
+    v = NN.index(p) + 12 * o + k
+    return f'{NN[v % 12]}{v // 12}'
+
 def join(barmap):
     return ' | '.join(' '.join(barmap.get(m) or ['R/4b']) for m in range(1, NB + 1))
 
@@ -113,10 +120,11 @@ def cog(a, b, roots, full_time):
     return g, bs, hits
 
 # ---------------- D: the 11-cell (3+2+2+2+2) ----------------
-def climb(a, b):
+def climb(a, b, k=0):
     g, bs, hits = {}, {}, {}
     i = 0
     on = {0: 'F1,C2,F2@118', 3: 'F1@104^pm', 5: 'Gb1@108', 7: 'B1,F#2,B2@122', 9: 'Ab1@106'}
+    on = {q: ','.join(trn(x, k) for x in c.split('@')[0].split(',')) + '@' + c.split('@')[1] for q, c in on.items()}
     for m in range(a, b + 1):
         gt, bt, ht = [], [], []
         for s in range(16):
@@ -220,7 +228,9 @@ def build():
                 {m: pad_phryg(m, 72) for m in range(B[0], B[1] + 1)},
                 {m: pad_phryg(m, 48) for m in range(C2[0], C2[1] + 1)},
                 {m: pad_phryg(m, 80) for m in range(E[0], E[1])},
-                {m: [f'{COLD}/4b@70'] for m in range(F1[0], NB - 8)},
+                {m: [f'{COLD}/4b@70'] for m in range(F1[0], F2[0])},
+                {m: ['Db2,Ab2,C4,G4/4b@60'] for m in range(F2[0], F2[0] + 8)},
+                {m: [f'{COLD}/4b@58'] for m in range(F2[0] + 8, NB - 8)},
                 {m: [f'{CLUSTER[3:]},E3,B3,Gb5/4b@62'] if False else [f'F2,B2,E3,Gb4/4b@60'] for m in range(NB - 8, NB - 1)})
     clean = merge(lattice_clean(5, A[1], 62), arp(B[0], B[1], ARP5, 0.5, 74),
                   breath16(F1[0], F1[1], 66),
@@ -228,13 +238,17 @@ def build():
                   {m: [f'{LAT_LINE[(m - F2[0] - 14) % 4][:-1]}{int(LAT_LINE[(m - F2[0] - 14) % 4][-1]) + 1}/4b@54']
                    for m in range(F2[0] + 14, NB - 1)})
     gC1, bC1, hC1 = cog(*C1, lambda m: ('F1', 'B1'), False)
-    gC2, bC2, hC2 = cog(*C2, lambda m: ('Gb1', 'C2') if ((m - C2[0]) // 7) % 2 else ('F1', 'B1'), True)
-    gD, bD, hD = climb(D1[0], D2[1])
+    gC2, bC2, hC2 = cog(*C2, lambda m: ('F1', 'B1') if ((m - C2[0]) // 7) % 2 else ('Gb1', 'C2'), True)
+    gD, bD, hD = climb(*D1)
+    gD2, bD2, hD2 = climb(*D2, k=3)
+    gD.update(gD2); bD.update(bD2)
+    gC1[C1[1]] = [f'{CLUSTER}/2b@124', 'R/2b']; bC1[C1[1]] = ['F1/2b@120', 'R/2b']
     gE, bE = crush(*E)
     gtr = merge({m: ['F1,C2/4b@70'] for m in range(B[1] - 7, B[1] + 1)}, gC1, gC2, gD, gE)
     bass = merge({m: [f'{ROOTS[((m - 1) // 2) % 4]}/4b@84'] for m in range(B[0], B[1] + 1)}, bC1, bC2, bD, bE)
     drums = merge(drums_build(*B), drums_cell(*C1, hC1, False, 7), drums_cell(*C2, hC2, True, 7),
-                  drums_cell(D1[0], D2[1], hD, True, 11), drums_crush(*E))
+                  drums_cell(*D1, hD, True, 11), drums_cell(*D2, hD2, False, 11), drums_crush(*E),
+                  {C1[1]: drum_bar([[('c', 126), ('k', 126), ('x', 118)]] + [[]] * 15)})
     lead = merge(cyc(D1[0], D1[1], CLIMB), cyc(D2[0], D2[1], EXHALE2), cyc(E[0], E[1] - 1, CRUSHL),
                  {E[1]: ['Gb5/4b@116']})
     end_s = NB * 4 * SPB

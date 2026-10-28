@@ -46,10 +46,12 @@ The closer, 96 bpm, ~494 s; generator compose/chirpers1/src/chirpers1-t8.py. It 
 - **Gathering (B, 60-140 s):** a new 5-note clean figure F3 C4 Ab4 G4 Db4 on eighths (5 against 8; LATTICE's 5-cell
   as a melody) over F Phrygian pads Fm(add9) / Dbmaj7 / Bbm / Gb, two bars each; ride and toms crescendo.
 - **The cog (C, 140-260 s):** LATTICE's 7-cell (x..x.x.) as F1 chugs with an F1+B1 tritone stab every 4th cell,
-  half time, then full time with t5's F -> Gb root move every 7 bars.
+  half time, cut off by a cluster stab (F1 B1 E2) and a bar of silence, then full time from Gb with t5's
+  F <-> Gb root move every 7 bars.
 - **The climb (D, 260-340 s):** the cell extended to an **11-cell** (3+2+2+2+2: F5, F pm, Gb, B5 stab, Ab) with the
   CLIMB LINE (lead: Ab4-G4 | F4-C5 | Bb4 Ab4 G4 | F4 || Ab4-Bb4 | C5-Db5 | C5 Bb4 Ab4 | G4-B4), then t5's EXHALE
-  in augmentation x2 (E5 | B4 C5 | G4 | G4 A4 | E5 D5 | B4 | F4).
+  in augmentation x2 (E5 | B4 C5 | G4 | G4 A4 | E5 D5 | B4 | F4) while the 11-cell climbs a minor third (Ab) in
+  half time.
 - **The crush (E, 340-380 s):** half-time blocks F5 / Gb5 / F5-Ab5 / B5, ending on t1's cluster F1 B1 E2 with Gb5 on
   the lead.
 - **Dissolve (F, 380-494 s):** t5's BREATH CELL (F3 C4 E4 B4 G4) on sixteenths over the COLD CHORD, slowing to
