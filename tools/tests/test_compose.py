@@ -163,6 +163,13 @@ class Measures(unittest.TestCase):
         F = L.Feat(piece([(20, 110, 0.4, 1.0)]))
         self.assertAlmostEqual(CS.tempo(F.onset), L.tempo(F.onset), places=6)
 
+    def test_spectrum_tolerates_a_clean_track(self):
+        c = ctx_of(piece([(30, 110, 0.5, 1.0), (30, 147, 0.4, 0.5)]))
+        c["envelope"] = CS.profile(c["F"]) + np.where(np.arange(40) % 2, 5.0, -5.0)     # 5 dB off in every band
+        self.assertEqual(CS.m_spectrum(c)[0], 100.0)                                     # within the 6 dB default
+        c["album"] = {"tracks": [], "spectrum_tolerance_db": 3.0}
+        self.assertLess(CS.m_spectrum(c)[0], 60.0)
+
     def test_flow_and_distinct_need_neighbours(self):
         x = piece([(30, 110, 0.5, 1.0), (30, 147, 0.4, 0.5)])
         c = ctx_of(x)

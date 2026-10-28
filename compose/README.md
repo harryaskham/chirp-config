@@ -46,7 +46,7 @@ The total is a weighted mean of the terms that apply; weights are in `album.json
 | variety | .12 | contrast across sections: loudness range, timbre spread, density change |
 | recurrence | .10 | motifs that return, in a middle band (none = no development; all = one idea looped) |
 | rhythm | .08 | strong periodicities off the beat grid (polymeter, displacement) at a sane density |
-| spectrum | .07 | no large departure from the genre's spectrum envelope (a sanity check, not a target) |
+| spectrum | .07 | no departure beyond 6 dB from the genre's spectrum envelope: a broken-mix check, never a target (clean tracks are meant to differ) |
 | master | .06 | level, peak and crest in the album's ranges |
 | length | .04 | within the slot's length |
 | cohesion | .03 | timbre close enough to the rest of the album |

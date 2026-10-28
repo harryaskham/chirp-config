@@ -18,8 +18,9 @@ compose/ALBUM/album.json "weights", defaults below):
              middle band (none = no development of material; all = one idea looped).
   rhythm     rhythmic interest: strong onset periodicities off the main beat grid (polymeter, displacement) in a
              middle band, at a plausible onset density.
-  spectrum   the mix's long-term spectrum within a tolerance of the album's genre envelope (the genre_refs' average),
-             penalising only large departures (a sanity check on the mix, not a target to converge on).
+  spectrum   the mix's long-term spectrum within a tolerance (album.json spectrum_tolerance_db, default 6 dB) of the
+             album's genre envelope (the genre_refs' average): flags a broken mix (no low end, a harsh top), never a
+             clean or ambient track for being one (at 3 dB the clean intro lost ~6 total points: anti-variety).
   master     level, peak and crest factor in the album's ranges.
   length     duration within the slot's target range.
   cohesion   timbre close enough to the rest of the album (the other songs' saved features).
@@ -49,6 +50,8 @@ DEFAULT_WEIGHTS = {"human": 0.30, "peer": 0.05, "structure": 0.12, "variety": 0.
                    "rhythm": 0.08, "spectrum": 0.07, "master": 0.06, "length": 0.04, "cohesion": 0.03,
                    "distinct": 0.02, "flow": 0.03}
 # obZen/Immutable masters measure rms -13.5..-10.9 dBFS, crest 10.6-10.9 dB, peaks at 0.0
+SPECTRUM_TOL = 6.0        # dB beyond the genre envelope before the spectrum term counts (28 Oct: 3 dB punished the
+                          # album's clean tracks, Seed Crystal 39.5 / Five Breaths 61.5, pushing them toward the metal)
 DEFAULT_MASTER = {"rms": [-14.0, -9.5], "peak_max": 0.0, "crest": [9.0, 12.5]}
 
 
@@ -284,7 +287,8 @@ def m_spectrum(ctx):
     if env is None:
         return None, {}
     ours = profile(ctx["F"])
-    dev = np.maximum(0, np.abs(ours - env) - 3.0)
+    tol = float(ctx["album"].get("spectrum_tolerance_db", SPECTRUM_TOL))
+    dev = np.maximum(0, np.abs(ours - env) - tol)
     return float(100 * np.exp(-dev.mean() / 3.0)), {"mean_excess_db": round(float(dev.mean()), 2),
                                                     "worst_band": int(np.argmax(np.abs(ours - env)))}
 
