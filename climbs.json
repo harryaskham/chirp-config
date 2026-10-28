@@ -4725,7 +4725,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 23,
+      "rounds": 24,
       "priority": 1.0,
       "genre": "progressive metal",
       "meta": {
@@ -4742,7 +4742,7 @@
       },
       "ref_file": "ref/albums/obzen/06 this-spiteful-snake.webm",
       "last": {
-        "at": "2026-10-28T06:58:25Z",
+        "at": "2026-10-28T07:49:08Z",
         "who": "chirper-one"
       }
     },
