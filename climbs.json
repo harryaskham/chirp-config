@@ -4652,7 +4652,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 14,
+      "rounds": 15,
       "priority": 1.0,
       "genre": "progressive metal",
       "meta": {
@@ -4669,7 +4669,7 @@
       },
       "ref_file": "ref/albums/obzen/04 lethargica.webm",
       "last": {
-        "at": "2026-10-28T03:06:14Z",
+        "at": "2026-10-28T03:50:01Z",
         "who": "chirper-one"
       }
     },
