@@ -54,7 +54,11 @@ The total is a weighted mean of the terms that apply; weights are in `album.json
 | distinct | .02 | not a near-copy of another track |
 | flow | .03 | level/spectrum continuity at the joins with the neighbouring tracks (the songs bleed) |
 
-Calibration (28 Oct): real records score 68-88 on these terms (before length), a looped bar 33. The measures are
+Calibration (28 Oct): real records score 68-88 on these terms (before length), a looped bar 33. **Above ~95 every
+intrinsic term passes**: from there compscore cannot tell you what to improve. Climb by musical judgment (what would
+make this track more itself, more surprising, better at its job on the album), by peers' notes and Harry's ratings,
+and by the album as a whole (the joins, the motif bank, the empty slots). Seed-to-seed spread is ~0.5-1 point; treat
+smaller gains as noise. The measures are
 guidance, not taste. **Variety over convergence**: never trade a song's identity for a few points; a change that
 makes the songs sound alike is a loss, whatever compscore says. Invent better measures: drop a file in
 `compose/measures/` with `measure(ctx) -> (score or None, detail)` and propose a weight in `album.json`.
