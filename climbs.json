@@ -4853,6 +4853,238 @@
         "at": "2026-10-28T09:50:54Z",
         "who": "chirper-one"
       }
+    },
+    {
+      "id": "chirpers1-t1",
+      "song": "songs/chirpers1-t1.yaml",
+      "reference": "Chirpers — Track 1 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers1-t1 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "polyrhythmic djent",
+      "mode": "compose",
+      "album": "chirpers1",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers I (untitled)",
+        "title": "Track 1 (untitled)",
+        "track": 1,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-28T10:32:45Z",
+        "note": "COMPOSE (intro, 110-135 s): The opening. State the album's core motif (a short rhythmic cell plus an interval or harmonic colour) quietly: clean or ambient guitars, pads, distant percussion. Build tension toward the first song; the last seconds bleed straight into track 2."
+      }
+    },
+    {
+      "id": "chirpers1-t2",
+      "song": "songs/chirpers1-t2.yaml",
+      "reference": "Chirpers — Track 2 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers1-t2 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "polyrhythmic djent",
+      "mode": "compose",
+      "album": "chirpers1",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers I (untitled)",
+        "title": "Track 2 (untitled)",
+        "track": 2,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-28T10:32:45Z",
+        "note": "COMPOSE (song, 180-240 s): The statement. Full-force polymetric chug riffing over a steady 4/4 kit pulse; introduce the album's main riff language; high intensity with one release section."
+      }
+    },
+    {
+      "id": "chirpers1-t3",
+      "song": "songs/chirpers1-t3.yaml",
+      "reference": "Chirpers — Track 3 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers1-t3 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "polyrhythmic djent",
+      "mode": "compose",
+      "album": "chirpers1",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers I (untitled)",
+        "title": "Track 3 (untitled)",
+        "track": 3,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-28T10:32:45Z",
+        "note": "COMPOSE (song, 180-240 s): The groove. Mid-tempo, heavy, syncopated, with space and swing in the riffs; a hypnotic figure that slowly mutates. Medium intensity."
+      }
+    },
+    {
+      "id": "chirpers1-t4",
+      "song": "songs/chirpers1-t4.yaml",
+      "reference": "Chirpers — Track 4 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers1-t4 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "polyrhythmic djent",
+      "mode": "compose",
+      "album": "chirpers1",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers I (untitled)",
+        "title": "Track 4 (untitled)",
+        "track": 4,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-28T10:32:45Z",
+        "note": "COMPOSE (song, 180-240 s): The onslaught. The fastest, most frantic track: blast beats, dissonant clusters, short stabbing riffs, abrupt stops. Maximum intensity."
+      }
+    },
+    {
+      "id": "chirpers1-t5",
+      "song": "songs/chirpers1-t5.yaml",
+      "reference": "Chirpers — Track 5 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers1-t5 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "polyrhythmic djent",
+      "mode": "compose",
+      "album": "chirpers1",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers I (untitled)",
+        "title": "Track 5 (untitled)",
+        "track": 5,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-28T10:32:45Z",
+        "note": "COMPOSE (song, 180-240 s): The breath. Mostly clean and atmospheric (clean guitars, pads, a lead melody), a slow or floating feel, with one crushing heavy passage to keep the album's weight. The lowest intensity on the album."
+      }
+    },
+    {
+      "id": "chirpers1-t6",
+      "song": "songs/chirpers1-t6.yaml",
+      "reference": "Chirpers — Track 6 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers1-t6 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "polyrhythmic djent",
+      "mode": "compose",
+      "album": "chirpers1",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers I (untitled)",
+        "title": "Track 6 (untitled)",
+        "track": 6,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-28T10:32:45Z",
+        "note": "COMPOSE (song, 180-240 s): The machine. The odd-meter centrepiece: a long polyrhythmic cycle (for example a phrase of 13 or 23 sixteenths against 4/4) that realigns at section boundaries; mechanical, precise, building."
+      }
+    },
+    {
+      "id": "chirpers1-t7",
+      "song": "songs/chirpers1-t7.yaml",
+      "reference": "Chirpers — Track 7 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers1-t7 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "polyrhythmic djent",
+      "mode": "compose",
+      "album": "chirpers1",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers I (untitled)",
+        "title": "Track 7 (untitled)",
+        "track": 7,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-28T10:32:45Z",
+        "note": "COMPOSE (song, 180-240 s): The ascent. Melodic and soaring: dissonant, lyrical lead guitar over a churning low riff; an emotional climax build; reprise a motif from track 1 or 2, transformed."
+      }
+    },
+    {
+      "id": "chirpers1-t8",
+      "song": "songs/chirpers1-t8.yaml",
+      "reference": "Chirpers — Track 8 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers1-t8 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "polyrhythmic djent",
+      "mode": "compose",
+      "album": "chirpers1",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers I (untitled)",
+        "title": "Track 8 (untitled)",
+        "track": 8,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-28T10:32:45Z",
+        "note": "COMPOSE (outro, 450-510 s): The epic closer in several movements: slow-building, reprising and developing motifs from across the album, a crushing peak, and a long ambient dissolve to silence."
+      }
     }
   ],
   "focus": "obZen"
