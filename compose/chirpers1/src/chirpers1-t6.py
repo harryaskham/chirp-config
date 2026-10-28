@@ -43,7 +43,10 @@ LOWMID_DB = float(os.environ.get("T6_LOWMID", "-2"))
 HOCKET = os.environ.get("T6_HOCKET", "mesh,governor")
 RIGS = os.environ.get("T6_RIGS", "engage:m8-chug,governor:m8-fluence,overdrive:m8-fuzz")
 STALL_GATE = os.environ.get("T6_STALLGATE", "")
-GOV_OD = os.environ.get("T6_GOVOD", "fifth")  # the GOVERNOR's overdrive voice: "fifth" (pitch-shifted +7 harmony) or "ring" (ring mod 233 Hz)  # t5's BREATH GATE on the machine's 13-sixteenth cycle in the stall: "cln" or "cln,pad"  # section:rig swaps, e.g. "engage:m8-chug,governor:m8-fluence,overdrive:m8-fuzz"  # sections whose GEARTRAIN is split: gtr-l the accents/teeth/stabs, a crushed right guitar (chirper-three's SHARD) the chugs  # a master cut at 580 Hz  # master tone: "" (v3), "s1" (no 5k boost, 10k -3), "s2" (s1 + 60 Hz +3)  # the machine's own colour: GOVERNOR C -> C#, the stall clock on F Gb B E C#  # sections whose snare drives on 2 and 4 (comma list)  # dB of low shelf over the last bars  # the hammer bar crash-lit (crash on quarters, open hat between)  # ... and its second half changes texture  # overdrive turns at bar 12: a clunk, roots up a semitone, the lead up an octave  # one beat of silence before each realignment
+GOV_OD = os.environ.get("T6_GOVOD", "fifth")
+GOV_SEMI = int(os.environ.get("T6_GOVSEMI", "7"))  # the harmonizer interval
+GOV_SZ = os.environ.get("T6_GOVSZ", "")
+KIT_OD = os.environ.get("T6_KITOD", "metal-kit-punch")  # the overdrive's kit crushed (chirper-one's CRUSH KIT: OTT + drive) on this patch, e.g. metal-kit / metal-kit-punch  # the seizure's long-note GOVERNOR through a ring modulator ("ring")  # the GOVERNOR's overdrive voice: "fifth" (pitch-shifted +7 harmony) or "ring" (ring mod 233 Hz)  # t5's BREATH GATE on the machine's 13-sixteenth cycle in the stall: "cln" or "cln,pad"  # section:rig swaps, e.g. "engage:m8-chug,governor:m8-fluence,overdrive:m8-fuzz"  # sections whose GEARTRAIN is split: gtr-l the accents/teeth/stabs, a crushed right guitar (chirper-three's SHARD) the chugs  # a master cut at 580 Hz  # master tone: "" (v3), "s1" (no 5k boost, 10k -3), "s2" (s1 + 60 Hz +3)  # the machine's own colour: GOVERNOR C -> C#, the stall clock on F Gb B E C#  # sections whose snare drives on 2 and 4 (comma list)  # dB of low shelf over the last bars  # the hammer bar crash-lit (crash on quarters, open hat between)  # ... and its second half changes texture  # overdrive turns at bar 12: a clunk, roots up a semitone, the lead up an octave  # one beat of silence before each realignment
 FORM = [("spin", 13), ("engage", 13), ("mesh", 13), ("governor", 13), ("stall", 13), ("overdrive", 23), ("seize", 13)]
 
 
@@ -392,13 +395,25 @@ def song():
     T, total = build()
     rig_tracks = rig_swaps(T)
     gate_tracks = stall_gates(T)
+    if KIT_OD:
+        i = [x for x, _ in FORM].index("overdrive")
+        T["drums-od"] = [(rest(b), b) for _, b in T["drums"]]
+        T["drums-od"][i] = T["drums"][i]
+        T["drums"][i] = (rest(T["drums"][i][1]), T["drums"][i][1])
+    gov_sz = None
+    if GOV_SZ:
+        i = [x for x, _ in FORM].index("seize")
+        T["gov-sz"] = [(rest(b), b) for _, b in T["gov"]]
+        T["gov-sz"][i] = T["gov"][i]
+        T["gov"][i] = (rest(T["gov"][i][1]), T["gov"][i][1])
+        gov_sz = True
     gov_od = None
     if GOV_OD:
         i = [x for x, _ in FORM].index("overdrive")
         T["gov-od"] = [(rest(b), b) for _, b in T["gov"]]
         T["gov-od"][i] = T["gov"][i]
         T["gov"][i] = (rest(T["gov"][i][1]), T["gov"][i][1])
-        gov_od = {"fifth": [{"type": "pitch", "semitones": 7, "mix": 0.35}],
+        gov_od = {"fifth": [{"type": "pitch", "semitones": GOV_SEMI, "mix": 0.35}],
                   "ring": [{"type": "ring", "freq": 233, "mix": 0.4}]}[GOV_OD]
 
     def sc(name):
@@ -419,6 +434,15 @@ def song():
         {"name": "ping", "patch": "m8-twang-chorus", "gain": "-16dB", "pan": 0.6, "sends": {"dly": "-10dB"}, "score": sc("ping")},
         {"name": "gov", "patch": "m8-lead", "gain": "-9dB", "pan": 0.05, "score": sc("gov")},
     ]
+    if KIT_OD:
+        base = next(t for t in tracks if t["name"] == "drums")
+        tracks.append({"name": "drums-od", "patch": KIT_OD, "gain": base["gain"],
+                       "fx": [{"type": "ott", "depth": float(os.environ.get("T6_KITOTT", "0.4"))},
+                              {"type": "drive", "drive": 0.5, "mix": float(os.environ.get("T6_KITDRV", "0.25"))}], "score": sc("drums-od")})
+    if gov_sz:
+        base = next(t for t in tracks if t["name"] == "gov")
+        tracks.append({"name": "gov-sz", "patch": base["patch"], "gain": base["gain"], "pan": base.get("pan", 0),
+                       "fx": [{"type": "ring", "freq": 233, "mix": 0.4}], "score": sc("gov-sz")})
     if gov_od:
         base = next(t for t in tracks if t["name"] == "gov")
         tracks.append({"name": "gov-od", "patch": base["patch"], "gain": base["gain"], "pan": base.get("pan", 0),
