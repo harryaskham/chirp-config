@@ -7,7 +7,9 @@ about: >-
   exponentially and lingered: body/shell, wires and ring now decay near-linearly (curve 1) over 80 / 90 / 80 ms
   (were 140 / 220 / 160 ms at curve 4). drumpunch: broken-cog 43.1 -> 45.25 (r1) -> 50.99, the-faultless
   61.71 -> 66.88 -> 73.68 (snare 37.7 -> 61.6; punch 17.6 -> 13.6 dB vs the record's 12.5). Shorter exponential
-  tails (curve 4) were worse: punch rose to 20-33 dB.
+  tails (curve 4) were worse: punch rose to 20-33 dB. Validated on a song not used for tuning, the-abysmal-eye
+  100-200 (ae-kit, SW stems): 62.62 -> 81.44 (snare 35.9 -> 73.6). Tried and rejected: wires +3 dB (+2.6 / -0.2 /
+  -1.3 on broken-cog / the-faultless / the-abysmal-eye).
   Everything else is metal-kit-dry. Candidate only; library defaults need chirp-eco's crossclimb.
 extends: metal-kit-dry
 kit:
