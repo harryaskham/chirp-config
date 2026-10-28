@@ -292,6 +292,9 @@ def build():
     HALO = {F1[0] + i: [f'{LAT_LINE[(i // 5) % 4][:-1]}{int(LAT_LINE[(i // 5) % 4][-1]) + 1}/4b@70'] for i in range(F1[1] - F1[0] + 1)}
     # t5's BREATH GATE (chirper-zero) on the dissolve's pad: the BREATH CELL comes home with its own gate
     BPAD = {m: pad.pop(m) for m in list(pad) if m >= F1[0]}
+    # CRUSH KIT (a kit with character): the crush's drums move to their own track through OTT and a drive, so the
+    # peak's kit is squashed and saturated while the rest of the album's kit stays clean
+    CRUSHK = {m: drums.pop(m) for m in list(drums) if E[0] <= m <= E[1]}
     end_s = NB * 4 * SPB
     fade0 = (F2[0] + 6) * 4 * SPB
     return {
@@ -319,6 +322,8 @@ def build():
              'fx': [{'type': 'ring', 'freq': 233, 'mix': 0.6}], 'score': join(RING)},
             {'name': 'bpad', 'patch': 'juno-pad', 'gain': {'value': '-9dB', 'mod': [{'src': 'lfo.gt', 'amount': -6}]},
              'lfo': {'gt': {'wave': 'square', 'rate': '5/16'}}, 'score': join(BPAD)},
+            {'name': 'crushkit', 'patch': 'metal-kit-punch', 'gain': '-3dB',
+             'fx': [{'type': 'ott', 'depth': 0.6}, {'type': 'drive', 'drive': 0.5, 'mix': 0.4}], 'score': join(CRUSHK)},
             {'name': 'halo', 'patch': 'm8-clean', 'gain': '+4dB', 'pan': -0.3,
              'fx': [{'type': 'freeze', 'hold': 1, 'size': 0.8, 'mix': 0.5}, {'type': 'pitch', 'semitones': 12, 'mix': 0.25}],
              'score': join(HALO)},
