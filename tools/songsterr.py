@@ -3,7 +3,7 @@
 
   songsterr.py SONG_ID [TRACK…]        fetch the tab's meta + tracks (cached under ref/songsterr-SONG_ID/), print scores
   songsterr.py --cached DIR [TRACK…]   use already-fetched DIR/songsterr-N.json files
-  … [--bends peak|curve|mean] [--bend-step 0.125]   how a bent note's curve becomes bend= (see below)
+  … [--bends peak|curve|mean|path] [--bend-step 0.125]   how a bent note's curve becomes bend= or ^f0 (see below)
   … [--voice N]                        read the tab's Nth voice (default 0, the first; see below)
   … [--gm-map 39=cp,…]                 drums: General-MIDI note -> piece overrides, applied before a beat's pieces
                                        merge (see below)
@@ -21,6 +21,9 @@ Bends (a tab note's curve: points of (position 0-60 across the note, tone 25 = o
   curve  the curve itself: stepped bend= over holds every ~--bend-step beats, each step at the curve's mean over
          it (a tied continuation carries its own curve on); the time-averaged pitch follows the record (bd-954470)
   mean   one bend= at the curve's time-average
+  path   per note, no bend=: the curve (and slides in/out) as an expression path ^f0=a>b>... in cents across
+         the note, so a bend moves only its own note (a chord's widest curve); the patch must bind pitch to expr.f0
+         (amount 0.01). Opt-in (bd-90c9d2, chirper-one); peak/curve/mean output is unchanged.
 tab2song maps choose per part or map-wide ("bends", "bend_step").
 
 Voices: a staff can carry independent voices (e.g. a drum tab's cymbals in voice 0, kick and snare in voice 1). One
@@ -252,6 +255,8 @@ def measure_tokens(track, m, drums, bends="peak", step=0.125, voice=0, bar_beats
                 bend = 0.0
             elif bends == "mean":
                 bend = round(curve_mean(pts), 2)
+            elif bends == "path":
+                bend = {"path": pts}
             else:
                 bend = {"pieces": [(pts, t)]}
         arts = ""
@@ -274,6 +279,12 @@ def measure_tokens(track, m, drums, bends="peak", step=0.125, voice=0, bar_beats
     for item in out:
         body, t, suf = item[:3]
         bend = item[3] if len(item) > 3 else 0.0
+        if isinstance(bend, dict) and "path" in bend:
+            toks.append(f"{body}{fmt_len(t)}{suf_path(suf, bend['path'], t)}")
+            continue
+        if bends == "path" and body != "R" and ("^slidein" in suf or "^slidedown" in suf):
+            toks.append(f"{body}{fmt_len(t)}{suf_path(suf, None, t)}")
+            continue
         if isinstance(bend, dict):
             segs = curve_segments(bend["pieces"], step)
             if any(abs(v) > 1e-6 for _, v in segs):
@@ -318,6 +329,28 @@ def measure_tokens(track, m, drums, bends="peak", step=0.125, voice=0, bar_beats
     if abs(state) > 1e-6:
         toks.append("bend=")
     return " ".join(toks)
+
+
+def suf_path(suf, pts, t, n=9):
+    """bends=path (bd-90c9d2): a note's bend curve (and its slides) as a per-note expression path `^f0=a>b>…` in
+    cents, evenly spaced from note-on to release (patches bind pitch to expr.f0 with amount 0.01). A slide in rises
+    from 2 semitones below over the first 1/8 beat; a slide out falls 2 then 5 semitones over the last 1/4 beat."""
+    sin, sout = "^slidein" in suf, "^slidedown" in suf
+    suf = suf.replace("^slidein", "").replace("^slidedown", "")
+    k = n if not (sin or sout) else max(n, min(64, int(round(t / 0.0625)) + 1))
+    vals = []
+    for i in range(k):
+        pos = i / (k - 1)
+        c = 100.0 * curve_at(pts, 60.0 * pos) if pts else 0.0
+        if sin and pos * t < 0.125:
+            c += -200.0 * (1 - pos * t / 0.125)
+        if sout and (1 - pos) * t < 0.25:
+            f = 1 - (1 - pos) * t / 0.25
+            c += -200.0 * min(1.0, 2 * f) - 300.0 * max(0.0, 2 * f - 1)
+        vals.append(c)
+    if all(abs(v) < 0.5 for v in vals):
+        return suf
+    return suf + "^f0=" + ">".join(fmt_num(round(v)) for v in vals)
 
 
 def bend_curve(n):
