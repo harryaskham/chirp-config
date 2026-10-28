@@ -255,8 +255,13 @@ def cym():
 def ride():
     sec = 4 * 60 / TEMPO
     t = lambda b: f"{(b - 1) * sec:.2f}s"
-    pts = [(1, 0.0), (52.8, 0.0), (53.2, -5.0), (66, -5.0), (69, 0.0), (118, 0.0), (121, -4.0)]
+    pts = [(1, 0.0), (52.8, 0.0), (53.2, -5.0), (66, -5.0), (69, 0.0), (118, 0.0), (118.9, 0.0), (121, 1.5)]
     return [[t(b), v] for b, v in pts]
+
+def lowcut():
+    sec = 4 * 60 / TEMPO
+    t = lambda b: f"{(b - 1) * sec:.2f}s"
+    return [[t(1), 0.0], [t(118.9), 0.0], [t(120.5), 1.0], [t(121), 1.0]]
 
 def tr(name, patch, sc, **kw):
     d = {"name": name, "patch": patch, "score": sc}
@@ -284,9 +289,11 @@ def main():
         '  hall: {fx: ["reverb kind=hall decay=2.6s mix=1 predelay=20ms mono_below=150hz"]}',
         '  drums: {fx: [{"type": "compressor", "threshold": "-18dB", "ratio": 3, "attack": "10ms", "release": "90ms", "makeup": "2dB"}, "reverb kind=room decay=0.6s mix=0.07 predelay=6ms mono_below=200hz"]}',
         'master: ' + json.dumps({"fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.ride", "amount": 1}]}},
+                                       # the last two bars' low end clears under the held chord, meeting Moult's thin opening
+                                       {"type": "filter", "kind": "lowshelf", "cutoff": 140, "gain": {"value": "0dB", "mod": [{"src": "auto.lowcut", "amount": -18.0}]}},
                                        "glue threshold=-18dB ratio=2.5 attack=10ms release=150ms makeup=2dB",
                                        {"type": "gain", "gain": "10dB"}],
-                                "auto": {"ride": {"points": ride()}}}),
+                                "auto": {"ride": {"points": ride()}, "lowcut": {"points": lowcut()}}}),
         "tracks:",
     ]
     with open(OUT, "w") as f:
