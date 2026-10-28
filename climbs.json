@@ -5023,8 +5023,8 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/compscore.py chirpers1-t5 OUT.wav",
       "best": {
-        "score": 98.371,
-        "version": "v3",
+        "score": 98.096,
+        "version": "v4",
         "commit": "see git log songs/chirpers1-t5.yaml"
       },
       "passes": 1,
@@ -5051,8 +5051,8 @@
         "at": "2026-10-28T12:39:58Z",
         "who": "chirper-zero"
       },
-      "best.version": "v4",
-      "best.score": 98.096
+      "best.version": null,
+      "best.score": null
     },
     {
       "id": "chirpers1-t6",
