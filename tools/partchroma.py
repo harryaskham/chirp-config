@@ -3,7 +3,7 @@
 Immutable audit, promoted). tools/barchroma.py checks a TAB's notes against a stem; this checks the SOUND we render.
 
   partchroma.py ID --render TRACKS [--set PATH=V …] [--song-file F] --stem FAMILY|a+b|PATH [--lo 60 --hi 600]
-                [--bars A-B] [--json] [--detail]
+                [--bars A-B] [--json] [--detail] [--centred]
   partchroma.py ID --ours SOLO.wav --stem … (a render you made: chirp render --solo TRACK)
 
 Per bar of the map's performed clock (tools/maps/ID.json, tab2song.performed_timeline): 12-bin pitch-class profiles
@@ -49,10 +49,16 @@ def pc(x, lo=60.0, hi=600.0, n=8192):
     return c / max(c.sum(), 1e-12) if c.sum() > 0 else c
 
 
-def match(ref, ours):
-    """(cos at shift 0, best shift in -6..+5, best cos): the rotation of OURS (up by k semitones) closest to REF."""
+def match(ref, ours, centred=False):
+    """(cos at shift 0, best shift in -6..+5, best cos): the rotation of OURS (up by k semitones) closest to REF.
+    CENTRED subtracts the flat profile (1/12) first, as likeness's chroma term does, so cos0 is on its scale; the raw
+    cosine of two profiles is never below ~0.3 and reads high (chirper-two, 28 Oct)."""
     if ours.sum() == 0 or ref.sum() == 0:
         return None
+    if centred:
+        ref, ours = ref - 1 / 12, ours - 1 / 12
+        if not ref.any() or not ours.any():
+            return None
     cs = [float(np.dot(ref, np.roll(ours, k)) / np.linalg.norm(ref) / np.linalg.norm(ours)) for k in range(12)]
     return cs[0], (int(np.argmax(cs)) + 6) % 12 - 6, max(cs)
 
@@ -78,13 +84,13 @@ def fmt_top(t):
     return " ".join(f"{n} {v:.2f}" for n, v in t)
 
 
-def audit(ref, ours, bars, lo, hi, b0=1, b1=10 ** 6):
+def audit(ref, ours, bars, lo, hi, b0=1, b1=10 ** 6, centred=False):
     rows = []
     for m, s, e in bars:
         if not b0 <= m <= b1:
             continue
         pr, po = pc(ref[int(s * SR):int(e * SR)], lo, hi), pc(ours[int(s * SR):int(e * SR)], lo, hi)
-        r = match(pr, po)
+        r = match(pr, po, centred)
         if r:
             rows.append({"bar": m, "cos0": r[0], "shift": r[1], "best": r[2], "record": top(pr), "ours": top(po)})
     return rows
@@ -110,6 +116,8 @@ def main(argv=None):
     ap.add_argument("--bars")
     ap.add_argument("--json", action="store_true")
     ap.add_argument("--detail", action="store_true", help="per flagged bar, the top pitch classes of the record and of ours")
+    ap.add_argument("--centred", action="store_true", help="centre the profiles (minus 1/12) as likeness's chroma term does, "
+                    "so cos0 is on its scale (the default raw cosine reads high)")
     a = ap.parse_args(argv)
     MS.exit_on_term()
     if bool(a.ours) == bool(a.render):
@@ -124,7 +132,7 @@ def main(argv=None):
         extra = MS.solo_args(a.render) + [x for v in a.set for x in ("--set", v)]
         with MS.snapshot(song) as snap:
             ours = MS.render_window(snap, None, None, a.seed, extra).mean(1)
-    s = summary(audit(ref, ours, bars, a.lo, a.hi, b0, b1))
+    s = summary(audit(ref, ours, bars, a.lo, a.hi, b0, b1, a.centred))
     if not a.detail:
         s["bad"] = [{k: v for k, v in r.items() if k not in ("record", "ours")} for r in s["bad"]]
     if a.json:

@@ -52,5 +52,18 @@ class Detail(unittest.TestCase):
         self.assertEqual(P.fmt_top(P.top(prof)), "F 0.50 E 0.30 D# 0.20")
 
 
+class Centred(unittest.TestCase):
+    def test_centred_is_likeness_scale(self):
+        a = np.zeros(12)
+        a[5] = 1.0                                               # all F
+        b = np.full(12, 1 / 12)                                  # flat: no pitch content
+        raw = P.match(a / a.sum(), b)
+        self.assertGreater(raw[0], 0.25)                         # the raw cosine of 'F' vs 'nothing' still reads ~0.29
+        self.assertIsNone(P.match(a / a.sum(), b, centred=True))  # centred, a flat profile has no direction
+        c = np.zeros(12)
+        c[0] = 1.0                                               # all C: unrelated to F
+        self.assertLess(P.match(a, c, centred=True)[0], 0.0)    # centred: unrelated pitch reads below zero
+
+
 if __name__ == "__main__":
     unittest.main()
