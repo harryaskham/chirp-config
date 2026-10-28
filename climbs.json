@@ -5085,7 +5085,7 @@
     {
       "id": "chirpers1-t8",
       "song": "songs/chirpers1-t8.yaml",
-      "reference": "Chirpers — Track 8 (untitled)",
+      "reference": "Chirpers — The Long Unwinding",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers1-t8 OUT.wav",
@@ -5101,7 +5101,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "Ferrous Bloom",
-        "title": "Track 8 (untitled)",
+        "title": "The Long Unwinding",
         "track": 8,
         "year": 2026
       },
