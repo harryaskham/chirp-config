@@ -98,7 +98,9 @@ def pad():
         b = e + 1
     # the Breach: silent for the stop; the opening's bare fifth returns under the seed; the cluster for the hold
     ev.append((bar0(SEED[0]), len(SEED) * S, ",".join(nm(m) for m in (F1 + 12, F1 + 19)), 56, ""))
-    ev.append((bar0(HOLD), S, ",".join(nm(m) for m in (F1 + 12, F1 + 18, F1 + 23, F1 + 25)), 76, ""))
+    # the held cluster voiced from B2 up (F an octave higher, F3): the tail's 87 Hz F2 read +21 dB over Ingot's head,
+    # and the sub swell carries the F root below
+    ev.append((bar0(HOLD), S, ",".join(nm(m) for m in (F1 + 18, F1 + 23, F1 + 24, F1 + 25)), 76, ""))
     return score(ev)
 
 def clean_a():               # the motif, stated: cell onsets walk through LATTICE (4 notes over 3 onsets)
@@ -339,7 +341,7 @@ def main():
         tr("lead", "m8-lead", lead(), gain="-10dB", sends={"hall": "-4dB"},
            fx=["delay time=3/8 feedback=0.3 mix=0.2"]),
         tr("bass", "bass-fat", bass(), gain="-3dB"),
-        tr("sub", "seed-sub", sub_swell(), gain="-6dB"),
+        tr("sub", "seed-sub", sub_swell(), gain="0dB"),
         *[tr(f"xtal{k}", "seed-crystal", crystal(k), gain="-27dB", pan=pn, sends={"hall": "-8dB"})   # the CRYSTAL
           for k, pn in enumerate(("L30", "R30", "L60", "R60"))],
         tr("gtr-l", "m8-emg-l", guitar(), pan="L90", gain="-5dB", seed=7),
