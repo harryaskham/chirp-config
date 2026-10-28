@@ -3,7 +3,8 @@
 
 Identity: 80 BPM, 4/4 pulse; the album's core motif LATTICE = a 7-sixteenth cell (3+2+2) carrying the colour
 F-Gb-B-E (root, minor 2nd, tritone, major 7th). The cell cycles over the 16-sixteenth bar and realigns with the
-downbeat every 7 bars (bars 1, 8, 15, 22, 29, 36): each realignment opens a section. Quiet and clean, it grows into
+downbeat every 7 bars (bars 1, 8, 15, 22, 29): each realignment opens a section; the build (Threshold) runs one full
+cycle of the 5-cell (5 bars), then the Breach: a stop, the seed's return, unison hits and the held cluster. Quiet and clean, it grows into
 the full rig and ends on a sustained F-B-E cluster that rings straight into track 2.
 
 Emits songs/chirpers1-t1.yaml. Edit the music here, not the YAML.
@@ -14,7 +15,7 @@ ROOT = "/home/harry/.config/chirp"
 OUT = os.path.join(ROOT, "songs", "chirpers1-t1.yaml")
 TEMPO = 80
 BARS = 42
-STOP, SEED, HITS, HOLD = 36, (37, 38, 39), (40, 41), 42   # the Breach: stop, the seed returns, unison hits, held cluster
+STOP, SEED, HITS, HOLD = 34, (35, 36, 37, 38, 39), (40, 41), 42   # the Breach: stop, the seed returns, unison hits, held cluster
 S = 16                      # sixteenths per bar
 TOTAL = BARS * S
 
@@ -29,7 +30,7 @@ CELL5 = [0, 3]              # its diminution (3+2), used in the build
 def bar0(b):                # first sixteenth of 1-based bar b
     return (b - 1) * S
 
-SECTIONS = {"A": (1, 7), "B": (8, 14), "C": (15, 21), "D": (22, 28), "E": (29, 35), "F": (36, 42)}
+SECTIONS = {"A": (1, 7), "B": (8, 14), "C": (15, 21), "D": (22, 28), "E": (29, 33), "F": (34, 42)}
 def span(sec):
     a, z = SECTIONS[sec]
     return bar0(a), bar0(z + 1)
@@ -102,7 +103,7 @@ def pad():
 
 def clean_a():               # the motif, stated: cell onsets walk through LATTICE (4 notes over 3 onsets)
     ev = []
-    a, z = bar0(1), bar0(36)
+    a, z = bar0(1), bar0(STOP)
     k = 0
     for t, i, n in cell_onsets(a, z):
         nxt = (CELL7 + [7])[i + 1] - CELL7[i]
@@ -110,7 +111,7 @@ def clean_a():               # the motif, stated: cell onsets walk through LATTI
         bar = t // S + 1
         if 22 <= bar <= 28 and n % 2:                          # Pressure: thin to every other cell
             k += 1; continue
-        v = ramp(t, 0, bar0(15), 54, 70) if bar < 22 else 60 if bar < 29 else ramp(t, bar0(29), bar0(36), 64, 84)
+        v = ramp(t, 0, bar0(15), 54, 70) if bar < 22 else 60 if bar < 29 else ramp(t, bar0(29), bar0(STOP), 64, 84)
         ev.append((t, nxt, nm(note), v, ""))
         k += 1
     # the seed returns after the stop: the opening statement, alone, from the top of the line
@@ -142,8 +143,8 @@ def lead():                  # the motif in long notes over the Lattice; tension
     ev = []
     for (b, nb, m) in ((15, 2, F1 + 36), (17, 2, F1 + 37), (19, 2, F1 + 42), (21, 1, F1 + 47)):
         ev.append((bar0(b), nb * S, nm(m), 66, ""))
-    ev.append((bar0(29), 4 * S, nm(F1 + 47), 72, ""))          # E5 held
-    ev.append((bar0(33), 3 * S, nm(F1 + 48), 80, ""))          # F5: the semitone pull upward
+    ev.append((bar0(29), 3 * S, nm(F1 + 47), 72, ""))          # E5 held
+    ev.append((bar0(32), 2 * S, nm(F1 + 48), 80, ""))          # F5: the semitone pull upward
     ev.append((bar0(HOLD), S, nm(F1 + 49), 88, ""))            # Gb5 on the final cluster
     return score(ev)
 
@@ -219,10 +220,10 @@ def snare():
     ev = []
     for b in range(22, 29):
         ev.append((bar0(b) + 8, 1, "s", ramp(bar0(b), bar0(22), bar0(29), 66, 96), ""))   # half-time: beat 3
-    for b in range(29, 36):
+    for b in range(29, STOP):
         for q in (4, 12):
-            ev.append((bar0(b) + q, 1, "s", 104 if b < 35 else 110, ""))
-    a = bar0(35) + 8                                            # roll into the stop
+            ev.append((bar0(b) + q, 1, "s", 104 if b < STOP - 1 else 110, ""))
+    a = bar0(STOP - 1) + 8                                      # roll into the stop
     for k in range(8):
         ev.append((a + k, 1, "s", 70 + 6 * k, ""))
     ev.append((bar0(HITS[0]) + 8, 1, "s", 112, ""))
@@ -243,9 +244,9 @@ def cymbals():
     for b in range(22, 29):
         for e8 in range(8):
             ev.append((bar0(b) + 2 * e8, 1, "h", 58 + (10 if e8 % 2 == 0 else 0), ""))
-    for b in range(29, 36):
+    for b in range(29, STOP):
         for e8 in range(8):
-            tok = "c" if (b in (29, 33) and e8 == 0) else "rd"
+            tok = "c" if (b in (29, 32) and e8 == 0) else "rd"
             ev.append((bar0(b) + 2 * e8, 1, tok, 112 if tok == "c" else 80 + (10 if e8 % 2 == 0 else 0), ""))
     ev.append((bar0(STOP), 1, "x", 120, ""))
     for b in SEED:                                              # the seed's quiet bell, as in Growth
