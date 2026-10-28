@@ -459,7 +459,7 @@ def copy_in(src, dest_dir):
         r = subprocess.run(["scp", "-q", "-o", "BatchMode=yes", src, dest], capture_output=True, text=True, stdin=subprocess.DEVNULL)
         if r.returncode:
             die(f"scp {src}: {r.stderr.strip()[:200]}")
-    else:
+    elif not (os.path.exists(dest) and os.path.samefile(src, dest)):  # chirpers.py art writes into DEST_DIR itself
         shutil.copy2(src, dest)
     return dest
 
