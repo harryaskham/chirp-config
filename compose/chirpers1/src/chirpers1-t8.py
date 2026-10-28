@@ -289,7 +289,7 @@ def build():
         'master': {'fx': [{'type': 'eq', 'bands': ['peak cutoff=420 q=0.7 gain=-4dB', 'highshelf cutoff=3000 gain=2dB']}, {'type': 'gain', 'gain': '+15.5dB'},
                           {'type': 'compressor', 'threshold': '-14dB', 'ratio': 2.5, 'attack': '10ms', 'release': '120ms', 'makeup': '5dB'},
                           {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.fade', 'amount': 1}]}}],
-                   'auto': {'fade': {'points': [['0s', -14], ['8s', 0], [f'{fade0:.1f}s', 0],
+                   'auto': {'fade': {'points': [['0s', -17], ['10s', 0], [f'{fade0:.1f}s', 0],
                                                 [f'{end_s - 12:.1f}s', -30], [f'{end_s:.1f}s', -70]]}}},
         'tracks': [
             {'name': 'pad', 'patch': 'juno-pad', 'gain': '-9dB', 'score': join(pad)},
