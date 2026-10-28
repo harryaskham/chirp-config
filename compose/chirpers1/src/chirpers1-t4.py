@@ -17,6 +17,11 @@ import json
 import os
 
 OUT = os.environ.get("SPLINTER_OUT") or os.path.expanduser("~/.config/chirp/songs/chirpers1-t4.yaml")
+# Round 2 (kept as v2): J, Moult's tom roll keeps rolling as Ignition's backbeat for two bars under the ride (the
+# join from Moult 9.9 -> 8.0 dB; with Moult v3's swell 6.5). K (a warmer master tilt toward the album mean) was
+# tested and not taken: cohesion 60 -> 95 but structure and variety fell, total -0.14/-0.13, and it is convergence.
+# SPLINTER_R2=none for v1.
+R2 = set(filter(None, os.environ.get("SPLINTER_R2", "J").split(","))) - {"none"}
 BPM = 204
 STEP = 0.25
 BAR = 16
@@ -177,6 +182,12 @@ def build():
                 bass.add(st, 2, nm(F1), 110)
         s += 9
     for b in range(1, 12):
+        if "J" in R2 and b < 3:  # round 2: Moult's tom roll keeps rolling as the backbeat for two bars, under the ride
+            for i in range(0, BAR, 4):
+                hit(t + b * BAR + i, "rd", 90)
+            for o, p_ in ((4, "t3"), (10, "t3"), (12, "ft"), (14, "ft")):
+                hit(t + b * BAR + o, p_, 112)
+            continue
         (backbeat if b < 8 else blast)(t + b * BAR, "x")
     hit(t, "c", 124)
     hit(t + 8 * BAR, "c", 120)
@@ -380,8 +391,9 @@ def main():
         'volume: "2dB"',
         "buses: " + json.dumps({"kit": {"fx": ["rack:drum-bus-punch", {"type": "eq", "bands": ["highshelf cutoff=6000 gain=-6dB"]}]}}),
         "master: " + json.dumps({"fx": [
-            {"type": "eq", "bands": ["lowshelf cutoff=40 gain=-3dB", "peak cutoff=100 q=1 gain=2dB",
-                                     "peak cutoff=500 q=0.7 gain=-1dB", "highshelf cutoff=10000 gain=-4dB"]},
+            {"type": "eq", "bands": ["lowshelf cutoff=40 gain=-3dB", "peak cutoff=100 q=1 gain=2dB"] +
+             (["peak cutoff=350 q=0.7 gain=2dB", "highshelf cutoff=3000 gain=-2dB"] if "K" in R2 else
+              ["peak cutoff=500 q=0.7 gain=-1dB"]) + ["highshelf cutoff=10000 gain=-4dB"]},
             "glue threshold=-20dB ratio=2.5 attack=10ms release=120ms makeup=2dB",
             "clip drive=5dB ceiling=-0.5dB"]}),
         "tracks:",
