@@ -175,6 +175,14 @@ def build():
             hit(s, "k", v - 20)
     hit(t + 2 * BAR + 8, "s", 84)
     hit(t + 3 * BAR + 8, "s", 96)
+    if "T" in R3:  # tried in round 4, NOT kept (off by default): take over t2 "Ingot"'s held F-B: the bass holds F1
+        # from the downbeat, a pad holds F2 B2 for two bars, then the B falls a semitone to A (with C# above). The join
+        # from Ingot fell 22.7 -> 13.9 dB but flow stayed ~54 (anything over ~5 dB scores ~0 there) and the thin
+        # opening lost its contrast (variety 93.6 -> 86.9; total -0.36/-1.07). Moult opening thin out of Ingot's
+        # held chord is the point: the groove drops in.
+        bass.add(t, 2 * BAR, nm(F1), 84)
+        pad.add(t, 2 * BAR, ",".join(nm(n) for n in (F1 + 12, F1 + 18)), 86)
+        pad.add(t + 2 * BAR, 2 * BAR, ",".join(nm(n) for n in (F1 + 12, F1 + 16, F1 + 20)), 80)
     for i, p in enumerate(("t3", "t3", "ft", "ft")):
         hit(t + 3 * BAR + 12 + i, p, 90 + 6 * i)
     t += 4 * BAR
