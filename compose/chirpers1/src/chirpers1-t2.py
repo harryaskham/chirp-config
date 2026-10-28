@@ -156,8 +156,13 @@ def shard():
     ev += [(st + 1, 2, nm(F1 + 12 + p), 96, OP) for st, ln, kind, p in triad(a, z) if kind == "pivot" and st + 1 < z]
     return score(ev)
 
-def guitar(right=False):
-    return score(riff_events(octave_up_pivots=right))
+def guitar(right=False, part="all"):
+    """part: "all"; "main" (the right guitar without Statement II); "swap" (only the right guitar's Statement II)."""
+    ev = riff_events(octave_up_pivots=right)
+    if part != "all":
+        a, z = span("stmt2")
+        ev = [e for e in ev if (a <= e[0] < z) == (part == "swap")]
+    return score(ev)
 
 def bass():
     ev = []
@@ -293,7 +298,10 @@ def tr(name, patch, sc, **kw):
 def main():
     tracks = [
         tr("gtr-l", "m8-emg-l", guitar(), pan="L90", gain="-4dB", seed=7),
-        tr("gtr-r", "m8-emg-r", guitar(right=True), pan="R90", gain="-4dB", seed=13),
+        tr("gtr-r", "m8-emg-r", guitar(right=True, part="main"), pan="R90", gain="-4dB", seed=13),
+        # Statement II swaps the right guitar to the OCTAVE-FUZZ rig: an octave up blended in after the cab
+        tr("gtr-r8", "m8-emg-r", guitar(right=True, part="swap"), pan="R90", gain="-2dB", seed=13,
+           fx=[{"type": "pitch", "semitones": 12, "mix": 0.6}]),
         tr("shard", "m8-emg-r", shard(), gain="-6dB", seed=19,
            fx=[{"type": "crush", "bits": 6, "rate": 5000, "mix": 0.6}]),     # the SHARD rig: the m8 chain, bit-crushed
         tr("bass", "bass-fat", bass(), gain="-2dB", fx=[{"type": "duck", "by": "kick", "depth": "-3dB", "attack": "2ms", "release": "90ms"}]),

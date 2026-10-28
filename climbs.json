@@ -4918,24 +4918,14 @@
       "owner": "chirper-three",
       "metric": "python3 tools/compscore.py chirpers1-t2 OUT.wav",
       "best": {
-        "score": 95.599,
-        "version": "v10",
-        "commit": "see git log songs/chirpers1-t2.yaml",
-        "judged": true,
-        "rescored": {
-          "compscore": "9159dd60",
-          "seeds": {
-            "0": 95.599,
-            "11": 95.653
-          },
-          "at": "2026-10-28T23:11:16Z",
-          "was": 95.6
-        }
+        "score": 95.71,
+        "version": "v11",
+        "commit": "see git log songs/chirpers1-t2.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 13,
+      "rounds": 14,
       "priority": 1.0,
       "genre": "polyrhythmic djent",
       "mode": "compose",
@@ -4953,7 +4943,7 @@
         "note": "COMPOSE (song, 180-240 s): The statement. Full-force polymetric chug riffing over a steady 4/4 kit pulse; introduce the album's main riff language; high intensity with one release section."
       },
       "last": {
-        "at": "2026-10-28T22:25:41Z",
+        "at": "2026-10-28T23:26:33Z",
         "who": "chirper-three"
       },
       "chirp-eco": ""
