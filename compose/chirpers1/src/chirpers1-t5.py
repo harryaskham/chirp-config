@@ -31,7 +31,10 @@ WEIGHT_DB = float(os.environ.get("T5_WEIGHT", "3"))
 CLEAN_DB = float(os.environ.get("T5_CLEAN", "0"))
 JOIN_SUB = os.environ.get("T5_JOINSUB", "0") == "1"
 CLOCK_NOBASS = os.environ.get("T5_CLOCKNOBASS", "0") == "1"
-LOWMID_DB = float(os.environ.get("T5_LOWMID", "-2"))  # a master cut at 580 Hz (the cleans/pads low-mid)  # the clock (G) without the bass: t6's bass entry is the arrival  # less sub at the joins: a softer bass under the opening chord, no bass in the clock  # dB on the clean/pad tracks (the breath quieter against the weight)  # extra level on the heavy parts through E and E2  # render tail after the last bar  # master make-up gain (dB) before the ceiling
+LOWMID_DB = float(os.environ.get("T5_LOWMID", "-2"))
+GATE_DB = float(os.environ.get("T5_GATE", "0"))  # the BREATH GATE: the pad chopped by a square LFO on the 5-sixteenth cycle (+-dB)
+SWELL = os.environ.get("T5_SWELL", "")
+GATE_F = float(os.environ.get("T5_GATEF", "6"))  # the BREATH GATE only on the exhale's return (F): a gated pad appended last  # the EXHALE lead as volume swells: an amp attack (e.g. 280ms)  # a master cut at 580 Hz (the cleans/pads low-mid)  # the clock (G) without the bass: t6's bass entry is the arrival  # less sub at the joins: a softer bass under the opening chord, no bass in the clock  # dB on the clean/pad tracks (the breath quieter against the weight)  # extra level on the heavy parts through E and E2  # render tail after the last bar  # master make-up gain (dB) before the ceiling
 
 # ---------------------------------------------------------------- motifs
 # The breath cell's clean arpeggio per harmony (five notes each, F lydian throughout until the exhale's Db).
@@ -297,12 +300,20 @@ def song():
                                        [f"{e1 - 0.05:.2f}s", WEIGHT_DB], [f"{e1:.2f}s", 0]]}}
         return t
 
+    def gated(t):
+        """The BREATH GATE: a square LFO on the 5-sixteenth cycle chops the pad (realigning every 5 bars)."""
+        if not GATE_DB:
+            return t
+        t["gain"] = {"value": t["gain"], "mod": [{"src": "lfo.gt", "amount": GATE_DB}]}
+        t["lfo"] = {"gt": {"wave": "square", "rate": "5/16"}}
+        return t
+
     tracks = [
-        {"name": "pad", "patch": "juno-pad", "gain": f"{-14 + CLEAN_DB:+g}dB", "pan": 0, "sends": {"hall": "-8dB"}, "score": sc("pad")},
+        gated({"name": "pad", "patch": "juno-pad", "gain": f"{-14 + CLEAN_DB:+g}dB", "pan": 0, "sends": {"hall": "-8dB"}, "score": sc("pad")}),
         {"name": "glass", "patch": "pad-glass", "gain": f"{-16 + CLEAN_DB:+g}dB", "pan": 0.2, "score": sc("glass")},
         {"name": "cln", "patch": "m8-clean", "gain": f"{-9 + CLEAN_DB:+g}dB", "pan": -0.45, "sends": {"dly": "-12dB", "hall": "-12dB"}, "score": sc("cln")},
         {"name": "cln2", "patch": "m8-twang-chorus", "gain": f"{-15 + CLEAN_DB:+g}dB", "pan": 0.55, "sends": {"hall": "-10dB"}, "score": sc("cln2")},
-        {"name": "mel", "patch": "m8-clean", "gain": f"{-7 + CLEAN_DB:+g}dB", "pan": 0.1, "sends": {"dly": "-6dB", "hall": "-8dB"}, "score": sc("mel")},
+        {"name": "mel", "patch": "m8-clean" + (f" synth.amp.a={SWELL}" if SWELL else ""), "gain": f"{-7 + CLEAN_DB:+g}dB", "pan": 0.1, "sends": {"dly": "-6dB", "hall": "-8dB"}, "score": sc("mel")},
         {"name": "howl", "patch": "m8-lead", "gain": "-6dB", "pan": 0, "score": sc("howl")},
         weighted({"name": "bass", "patch": "bass-fat", "gain": "-6dB", "pan": 0, "score": sc("bass")}),
         weighted({"name": "gtr-l", "patch": "m8-emg-l", "gain": f"{GTR_DB:+g}dB", "pan": -1, "score": sc("gtr-l")}),
@@ -310,6 +321,19 @@ def song():
         weighted({"name": "drums", "patch": "metal-kit", "gain": "-4dB", "score": sc("drums")}),
         {"name": "tick", "patch": "metal-kit", "gain": "-12dB", "pan": 0.3, "score": sc("tick")},
     ]
+    if GATE_F:  # the exhale's pad chopped by the 5-sixteenth gate; the plain pad muted there (its notes unchanged)
+        bar_s = BAR * 60 / BPM
+        f_start = sum(n for sct, n in FORM[:FORM.index(("F", 10))]) * bar_s
+        f_end = f_start + 10 * bar_s
+        pad = tracks[0]
+        pad["gain"] = {"value": pad["gain"], "mod": [{"src": "auto.pf", "amount": 1}]}
+        pad["auto"] = {"pf": {"points": [["0s", 0], [f"{f_start - 0.05:.2f}s", 0], [f"{f_start:.2f}s", -60],
+                                        [f"{f_end:.2f}s", -60], [f"{f_end + 0.05:.2f}s", 0]]}}
+        pre = sum(n for sct, n in FORM[:FORM.index(("F", 10))]) * BAR
+        post = sum(n for sct, n in FORM[FORM.index(("F", 10)) + 1:]) * BAR
+        sc_g = " ".join([rest(pre)] + [tok(PAD[h], BAR, 66) for h in HARM["F"]] + [rest(post)])
+        tracks.append({"name": "padg", "patch": "juno-pad", "gain": {"value": f"{-14 + CLEAN_DB:+g}dB", "mod": [{"src": "lfo.gt", "amount": GATE_F}]},
+                       "lfo": {"gt": {"wave": "square", "rate": "5/16"}}, "pan": 0, "sends": {"hall": "-8dB"}, "score": sc_g})
     doc = {
         "about": ("Chirpers - Chirpers I, track 5 'The breath' (original composition, chirper-zero; generator "
                   "compose/chirpers1/src/chirpers1-t5.py). 64 bpm, F lydian: a clean five-sixteenth 'breath cell' "
