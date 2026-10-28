@@ -4868,7 +4868,7 @@
       "song": "songs/chirpers1-t1.yaml",
       "reference": "Chirpers — Seed Crystal",
       "source": null,
-      "owner": null,
+      "owner": "chirper-three",
       "metric": "python3 tools/compscore.py chirpers1-t1 OUT.wav",
       "best": {
         "score": 77.61,
@@ -4898,7 +4898,8 @@
       "last": {
         "at": "2026-10-28T10:48:42Z",
         "who": "chirper-three"
-      }
+      },
+      "chirp-eco": ""
     },
     {
       "id": "chirpers1-t2",
