@@ -30,7 +30,9 @@ plus Harry's ratings), and Harry's ear decides.
    compose/ALBUM/motifs.md`, then `compscore.py ALBUM-tN KEPT.wav --save`, which saves the kept render's features
    for the album terms. The song joins the playlist.
 6. **Keep climbing**: each round, make the one musical change you believe improves it most, A/B on paired seeds
-   (`compscore` on seeds 0/11), and keep it only if it wins AND stays itself.
+   (`compscore` on seeds 0/11), and keep it only if it wins AND stays itself. When you keep a version on musical
+   judgment though compscore does not rise (saturated, or within seed noise), record it with `climb.py done … --keep`
+   so the registry's best is the song file's version (flagged `judged`); Harry's ear can veto.
 
 `tools/chirpers.py status ALBUM` shows the album; `chirpers.py refresh ALBUM` re-renders every composed song and
 re-saves features (run it after several songs change).

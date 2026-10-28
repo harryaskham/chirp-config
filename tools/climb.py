@@ -948,7 +948,8 @@ def cmd_next(a):
 def cmd_done(a):
     pos = positional(a, ("--note", "--score", "--version", "--next", "--engine", "--as", "--with", "--render"))
     if not pos:
-        die("done ID --note TEXT [--score S --version vN] [--next TEXT] [--with FILE …]")
+        die("done ID --note TEXT [--score S --version vN [--keep]] [--next TEXT] [--with FILE …]  (--keep: a composition "
+            "kept on musical judgment though it does not outscore the best)")
     cid, note = pos[0], opt(a, "--note")
     if not note:
         die("done needs --note (what you tried and what happened — the next agent reads it)")
@@ -973,11 +974,20 @@ def cmd_done(a):
         c = find(reg, cid)
         best = c.get("best") or {}
         kept = score is not None and version is not None and (best.get("score") is None or score > float(best["score"]))
+        judged = "--keep" in a and not kept
+        if "--keep" in a and c.get("mode") != "compose":
+            die("--keep is for compositions (mode: compose), where Harry's ear outranks compscore; a reproduction keeps "
+                "a version only when it scores higher")
+        if judged:
+            if score is None or version is None:
+                die("--keep needs --score and --version (the kept version and what it measured)")
+            kept = True  # kept on musical judgment though it does not outscore the best (chirper-three's Ingot v3)
         c["rounds"] += 1
         h = {"round": c["rounds"], "at": now_iso(), "who": me, "score": score, "version": version, "kept": kept,
-             "note": note, "next": opt(a, "--next"), "engine": opt(a, "--engine")}
+             "note": note, "next": opt(a, "--next"), "engine": opt(a, "--engine"), "judged": True if judged else None}
         if kept:
-            c["best"] = {**best, "score": score, "version": version, "commit": "see git log " + c["song"]}
+            c["best"] = {**{k: v for k, v in best.items() if k not in ("judged", "rescored")}, "score": score,
+                         "version": version, "commit": "see git log " + c["song"], **({"judged": True} if judged else {})}
             if opt(a, "--engine"):
                 c["best"]["engine"] = opt(a, "--engine")
         if c["status"] == "requested" and os.path.exists(os.path.join(ROOT, c["song"])) and kept:

@@ -109,6 +109,21 @@ class Rebaseline(unittest.TestCase):
         self.assertIn("v2 (the song file) scores 95.686/95.968 on seeds 0/11", h["note"])
 
 
+class Keep(unittest.TestCase):
+    def test_keep_records_a_judged_version_for_compositions_only(self):
+        with open(os.path.join(TMP, "songs", "alb-t1.yaml"), "w") as f:
+            f.write("tempo: 80\n")
+        quiet(CH.C.cmd_done, ["alb-t1", "--version", "v1", "--score", "90", "--note", "v1", "--no-git", "--as", "c3"])
+        quiet(CH.C.cmd_done, ["alb-t1", "--version", "v2", "--score", "89.9", "--note", "by ear", "--keep", "--no-git",
+                              "--as", "c3"])
+        b = reg()["alb-t1"]["best"]
+        self.assertEqual((b["version"], b["score"], b.get("judged")), ("v2", 89.9, True))
+        quiet(CH.C.cmd_done, ["alb-t1", "--version", "v3", "--score", "91", "--note", "wins", "--no-git", "--as", "c3"])
+        self.assertNotIn("judged", reg()["alb-t1"]["best"])                 # a scored win clears the flag
+        with self.assertRaises(SystemExit):
+            quiet(CH.C.cmd_done, ["old-song", "--version", "v9", "--score", "1", "--note", "x", "--keep", "--no-git"])
+
+
 class Ratings(unittest.TestCase):
     def test_harry_rating_feeds_human_with_stale_half_weight(self):
         quiet(RT.main, ["alb-t2", "7.5", "--note", "great intro riff", "--no-git"])
