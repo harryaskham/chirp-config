@@ -5052,23 +5052,14 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/compscore.py chirpers1-t5 OUT.wav",
       "best": {
-        "score": 97.483,
-        "version": "v4",
-        "commit": "see git log songs/chirpers1-t5.yaml",
-        "rescored": {
-          "compscore": "14c8f947",
-          "seeds": {
-            "0": 97.483,
-            "11": 97.453
-          },
-          "at": "2026-10-28T14:21:58Z",
-          "was": 97.414
-        }
+        "score": 98.066,
+        "version": "v5",
+        "commit": "see git log songs/chirpers1-t5.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 6,
+      "rounds": 7,
       "priority": 1.0,
       "genre": "polyrhythmic djent",
       "mode": "compose",
@@ -5086,7 +5077,7 @@
         "note": "COMPOSE (song, 180-240 s): The breath. Mostly clean and atmospheric (clean guitars, pads, a lead melody), a slow or floating feel, with one crushing heavy passage to keep the album's weight. The lowest intensity on the album."
       },
       "last": {
-        "at": "2026-10-28T15:10:16Z",
+        "at": "2026-10-28T16:11:27Z",
         "who": "chirper-zero"
       },
       "best.version": null,

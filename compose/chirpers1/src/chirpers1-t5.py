@@ -27,7 +27,11 @@ MG = float(os.environ.get("T5_MG", "20"))
 HELD = os.environ.get("T5_HELD", "1") == "1"
 GTR_DB = float(os.environ.get("T5_GTR", "1"))
 TAIL = os.environ.get("T5_TAIL", "0.3s")
-WEIGHT_DB = float(os.environ.get("T5_WEIGHT", "3"))  # extra level on the heavy parts through E and E2  # render tail after the last bar  # master make-up gain (dB) before the ceiling
+WEIGHT_DB = float(os.environ.get("T5_WEIGHT", "3"))
+CLEAN_DB = float(os.environ.get("T5_CLEAN", "0"))
+JOIN_SUB = os.environ.get("T5_JOINSUB", "0") == "1"
+CLOCK_NOBASS = os.environ.get("T5_CLOCKNOBASS", "0") == "1"
+LOWMID_DB = float(os.environ.get("T5_LOWMID", "-2"))  # a master cut at 580 Hz (the cleans/pads low-mid)  # the clock (G) without the bass: t6's bass entry is the arrival  # less sub at the joins: a softer bass under the opening chord, no bass in the clock  # dB on the clean/pad tracks (the breath quieter against the weight)  # extra level on the heavy parts through E and E2  # render tail after the last bar  # master make-up gain (dB) before the ceiling
 
 # ---------------------------------------------------------------- motifs
 # The breath cell's clean arpeggio per harmony (five notes each, F lydian throughout until the exhale's Db).
@@ -151,7 +155,7 @@ def build():
             add("gtr-l", tok("F1,C2,F2,B2", BAR * 2, 112) + " " + rest(beats - BAR * 2), beats)
             add("gtr-r", tok("F1,C2,F2,B2", BAR * 2, 110) + " " + rest(beats - BAR * 2), beats)
             add("drums", "c,k/2b@120 " + rest(beats - 2), beats)
-            add("bass", tok("F1", BAR * 2, 108) + " " + rest(beats - BAR * 2), beats)
+            add("bass", tok("F1", BAR * 2, 60 if JOIN_SUB else 108) + " " + rest(beats - BAR * 2), beats)
             pad_bars("pad", HARM[sec], vel=60)
             s, phase2 = breath_clean(HARM[sec][2:], phase, vel=(70, 48))
             add("cln", rest(BAR * 2) + " " + s, beats); phase = phase2
@@ -259,7 +263,7 @@ def build():
             pad_bars("pad", HARM[sec], vel=64)
             s, _ = breath_clean(HARM[sec], 0, vel=(86, 56), cycle=13)
             add("cln", s, beats)
-            add("bass", " ".join(tok("F1", BAR, 66) for _ in range(n)), beats)
+            add("bass", rest(beats) if (JOIN_SUB or CLOCK_NOBASS) else " ".join(tok("F1", BAR, 66) for _ in range(n)), beats)
             # the clock: hats on every sixteenth, accent on the 13-count
             tk = []
             for b in range(n):
@@ -294,11 +298,11 @@ def song():
         return t
 
     tracks = [
-        {"name": "pad", "patch": "juno-pad", "gain": "-14dB", "pan": 0, "sends": {"hall": "-8dB"}, "score": sc("pad")},
-        {"name": "glass", "patch": "pad-glass", "gain": "-16dB", "pan": 0.2, "score": sc("glass")},
-        {"name": "cln", "patch": "m8-clean", "gain": "-9dB", "pan": -0.45, "sends": {"dly": "-12dB", "hall": "-12dB"}, "score": sc("cln")},
-        {"name": "cln2", "patch": "m8-twang-chorus", "gain": "-15dB", "pan": 0.55, "sends": {"hall": "-10dB"}, "score": sc("cln2")},
-        {"name": "mel", "patch": "m8-clean", "gain": "-7dB", "pan": 0.1, "sends": {"dly": "-6dB", "hall": "-8dB"}, "score": sc("mel")},
+        {"name": "pad", "patch": "juno-pad", "gain": f"{-14 + CLEAN_DB:+g}dB", "pan": 0, "sends": {"hall": "-8dB"}, "score": sc("pad")},
+        {"name": "glass", "patch": "pad-glass", "gain": f"{-16 + CLEAN_DB:+g}dB", "pan": 0.2, "score": sc("glass")},
+        {"name": "cln", "patch": "m8-clean", "gain": f"{-9 + CLEAN_DB:+g}dB", "pan": -0.45, "sends": {"dly": "-12dB", "hall": "-12dB"}, "score": sc("cln")},
+        {"name": "cln2", "patch": "m8-twang-chorus", "gain": f"{-15 + CLEAN_DB:+g}dB", "pan": 0.55, "sends": {"hall": "-10dB"}, "score": sc("cln2")},
+        {"name": "mel", "patch": "m8-clean", "gain": f"{-7 + CLEAN_DB:+g}dB", "pan": 0.1, "sends": {"dly": "-6dB", "hall": "-8dB"}, "score": sc("mel")},
         {"name": "howl", "patch": "m8-lead", "gain": "-6dB", "pan": 0, "score": sc("howl")},
         weighted({"name": "bass", "patch": "bass-fat", "gain": "-6dB", "pan": 0, "score": sc("bass")}),
         weighted({"name": "gtr-l", "patch": "m8-emg-l", "gain": f"{GTR_DB:+g}dB", "pan": -1, "score": sc("gtr-l")}),
@@ -320,7 +324,8 @@ def song():
             "dly": {"fx": ["delay time=3/16 feedback=.38 mix=1 ping_pong=true", "reverb kind=hall decay=2.4s mix=0.4"]},
         },
         "master": {"fx": [
-            {"type": "eq", "bands": ["peak cutoff=350 q=0.8 gain=-5dB", "highshelf cutoff=4k gain=5dB"]},
+            {"type": "eq", "bands": ["peak cutoff=350 q=0.8 gain=-5dB", "highshelf cutoff=4k gain=5dB"]
+             + ([f"peak cutoff=580 q=1 gain={LOWMID_DB:g}dB"] if LOWMID_DB else [])},
             {"type": "compressor", "threshold": "-28dB", "ratio": 2, "attack": "15ms", "release": "250ms", "makeup": "0dB"},
             {"type": "gain", "gain": f"+{MG:g}dB"},
         ]},

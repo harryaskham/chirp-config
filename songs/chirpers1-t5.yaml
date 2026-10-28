@@ -2,7 +2,7 @@ about: "Chirpers - Chirpers I, track 5 'The breath' (original composition, chirp
 tempo: 64
 ceiling: "-0.1dB"
 tail: "0.3s"
-master: {"fx": [{"type": "eq", "bands": ["peak cutoff=350 q=0.8 gain=-5dB", "highshelf cutoff=4k gain=5dB"]}, {"type": "compressor", "threshold": "-28dB", "ratio": 2, "attack": "15ms", "release": "250ms", "makeup": "0dB"}, {"type": "gain", "gain": "+20dB"}]}
+master: {"fx": [{"type": "eq", "bands": ["peak cutoff=350 q=0.8 gain=-5dB", "highshelf cutoff=4k gain=5dB", "peak cutoff=580 q=1 gain=-2dB"]}, {"type": "compressor", "threshold": "-28dB", "ratio": 2, "attack": "15ms", "release": "250ms", "makeup": "0dB"}, {"type": "gain", "gain": "+20dB"}]}
 buses:
   hall: {"fx": ["reverb kind=hall decay=3.2s mix=1 predelay=24ms"]}
   dly: {"fx": ["delay time=3/16 feedback=.38 mix=1 ping_pong=true", "reverb kind=hall decay=2.4s mix=0.4"]}
