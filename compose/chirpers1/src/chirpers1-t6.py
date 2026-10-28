@@ -41,7 +41,9 @@ TONE = os.environ.get("T6_TONE", "s3")
 BASS_DB = float(os.environ.get("T6_BASS", "-3"))
 LOWMID_DB = float(os.environ.get("T6_LOWMID", "-2"))
 HOCKET = os.environ.get("T6_HOCKET", "mesh,governor")
-RIGS = os.environ.get("T6_RIGS", "engage:m8-chug,governor:m8-fluence,overdrive:m8-fuzz")  # section:rig swaps, e.g. "engage:m8-chug,governor:m8-fluence,overdrive:m8-fuzz"  # sections whose GEARTRAIN is split: gtr-l the accents/teeth/stabs, a crushed right guitar (chirper-three's SHARD) the chugs  # a master cut at 580 Hz  # master tone: "" (v3), "s1" (no 5k boost, 10k -3), "s2" (s1 + 60 Hz +3)  # the machine's own colour: GOVERNOR C -> C#, the stall clock on F Gb B E C#  # sections whose snare drives on 2 and 4 (comma list)  # dB of low shelf over the last bars  # the hammer bar crash-lit (crash on quarters, open hat between)  # ... and its second half changes texture  # overdrive turns at bar 12: a clunk, roots up a semitone, the lead up an octave  # one beat of silence before each realignment
+RIGS = os.environ.get("T6_RIGS", "engage:m8-chug,governor:m8-fluence,overdrive:m8-fuzz")
+STALL_GATE = os.environ.get("T6_STALLGATE", "")
+GOV_OD = os.environ.get("T6_GOVOD", "fifth")  # the GOVERNOR's overdrive voice: "fifth" (pitch-shifted +7 harmony) or "ring" (ring mod 233 Hz)  # t5's BREATH GATE on the machine's 13-sixteenth cycle in the stall: "cln" or "cln,pad"  # section:rig swaps, e.g. "engage:m8-chug,governor:m8-fluence,overdrive:m8-fuzz"  # sections whose GEARTRAIN is split: gtr-l the accents/teeth/stabs, a crushed right guitar (chirper-three's SHARD) the chugs  # a master cut at 580 Hz  # master tone: "" (v3), "s1" (no 5k boost, 10k -3), "s2" (s1 + 60 Hz +3)  # the machine's own colour: GOVERNOR C -> C#, the stall clock on F Gb B E C#  # sections whose snare drives on 2 and 4 (comma list)  # dB of low shelf over the last bars  # the hammer bar crash-lit (crash on quarters, open hat between)  # ... and its second half changes texture  # overdrive turns at bar 12: a clunk, roots up a semitone, the lead up an octave  # one beat of silence before each realignment
 FORM = [("spin", 13), ("engage", 13), ("mesh", 13), ("governor", 13), ("stall", 13), ("overdrive", 23), ("seize", 13)]
 
 
@@ -372,9 +374,32 @@ def rig_swaps(T):
     return extra
 
 
+def stall_gates(T):
+    """The stall's clean clock (and pad) moved to gated twins: a square LFO on the 13-sixteenth cycle (t5's BREATH
+    GATE, on the machine's count), +-6 dB."""
+    extra = []
+    i = [x for x, _ in FORM].index("stall")
+    for src in [x for x in STALL_GATE.split(",") if x]:
+        tn = src + "-gate"
+        T[tn] = [(rest(b), b) for _, b in T[src]]
+        T[tn][i] = T[src][i]
+        T[src][i] = (rest(T[src][i][1]), T[src][i][1])
+        extra.append({"name": tn, "src": src})
+    return extra
+
+
 def song():
     T, total = build()
     rig_tracks = rig_swaps(T)
+    gate_tracks = stall_gates(T)
+    gov_od = None
+    if GOV_OD:
+        i = [x for x, _ in FORM].index("overdrive")
+        T["gov-od"] = [(rest(b), b) for _, b in T["gov"]]
+        T["gov-od"][i] = T["gov"][i]
+        T["gov"][i] = (rest(T["gov"][i][1]), T["gov"][i][1])
+        gov_od = {"fifth": [{"type": "pitch", "semitones": 7, "mix": 0.35}],
+                  "ring": [{"type": "ring", "freq": 233, "mix": 0.4}]}[GOV_OD]
 
     def sc(name):
         for s, b in T[name]:
@@ -394,6 +419,16 @@ def song():
         {"name": "ping", "patch": "m8-twang-chorus", "gain": "-16dB", "pan": 0.6, "sends": {"dly": "-10dB"}, "score": sc("ping")},
         {"name": "gov", "patch": "m8-lead", "gain": "-9dB", "pan": 0.05, "score": sc("gov")},
     ]
+    if gov_od:
+        base = next(t for t in tracks if t["name"] == "gov")
+        tracks.append({"name": "gov-od", "patch": base["patch"], "gain": base["gain"], "pan": base.get("pan", 0),
+                       "fx": gov_od, "score": sc("gov-od")})
+    for gt in gate_tracks:
+        base = next(t for t in tracks if t["name"] == gt["src"])
+        nt = {k: v for k, v in base.items() if k in ("patch", "pan", "sends")}
+        nt.update({"name": gt["name"], "gain": {"value": base["gain"], "mod": [{"src": "lfo.gt", "amount": 6}]},
+                   "lfo": {"gt": {"wave": "square", "rate": "13/16"}}, "score": sc(gt["name"])})
+        tracks.append(nt)
     for rt in rig_tracks:
         rt["score"] = sc(rt["name"])
         tracks.append(rt)
