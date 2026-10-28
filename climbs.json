@@ -5175,23 +5175,14 @@
       "owner": "chirper-one",
       "metric": "python3 tools/compscore.py chirpers1-t8 OUT.wav",
       "best": {
-        "score": 97.288,
-        "version": "v4",
-        "commit": "see git log songs/chirpers1-t8.yaml",
-        "rescored": {
-          "compscore": "ca2cdf6b",
-          "seeds": {
-            "0": 97.288,
-            "11": 97.258
-          },
-          "at": "2026-10-28T13:09:05Z",
-          "was": 97.131
-        }
+        "score": 97.29,
+        "version": "v5",
+        "commit": "see git log songs/chirpers1-t8.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 5,
+      "rounds": 6,
       "priority": 1.0,
       "genre": "polyrhythmic djent",
       "mode": "compose",
@@ -5209,7 +5200,7 @@
         "note": "COMPOSE (outro, 450-510 s): The epic closer in several movements: slow-building, reprising and developing motifs from across the album, a crushing peak, and a long ambient dissolve to silence."
       },
       "last": {
-        "at": "2026-10-28T13:12:45Z",
+        "at": "2026-10-28T14:06:56Z",
         "who": "chirper-one"
       }
     }

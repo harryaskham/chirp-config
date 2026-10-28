@@ -43,12 +43,14 @@ move.
 The closer, 96 bpm, ~494 s; generator compose/chirpers1/src/chirpers1-t8.py. It quotes and develops:
 - **Dawn (A, 0-60 s):** t5's COLD CHORD pad (F2 C3 E3 B3 G4) and t1's LATTICE line F3 Gb3 B3 E4 on the clean,
   walking on the 3+2+2 cell (as in t1, but slower and an octave of air above the pad).
-- **Gathering (B, 60-140 s):** a new 5-note clean figure F3 C4 Ab4 G4 Db4 on eighths (5 against 8; LATTICE's 5-cell
+- **Gathering (B, 60-140 s):** t6's GOVERNOR line an octave down on the clean (F3 B3 E4 F4 Gb4 F4 E4 B3 F3 Gb3 B3 C4 E4,
+  13 eighths), then a new 5-note clean figure F3 C4 Ab4 G4 Db4 on eighths (5 against 8; LATTICE's 5-cell
   as a melody) over F Phrygian pads Fm(add9) / Dbmaj7 / Bbm / Gb, two bars each; ride and toms crescendo.
 - **The cog (C, 140-260 s):** LATTICE's 7-cell (x..x.x.) as F1 chugs with an F1+B1 tritone stab every 4th cell,
-  half time, cut off by a cluster stab (F1 B1 E2) and a bar of silence, then full time from Gb with t5's
-  F <-> Gb root move every 7 bars.
-- **The climb (D, 260-340 s):** the cell extended to an **11-cell** (3+2+2+2+2: F5, F pm, Gb, B5 stab, Ab) with the
+  half time, cut off by a cluster stab (F1 B1 E2) and a bar of silence, then full time walking t4's
+  MINOR-THIRD AXIS (F -> Ab -> B -> D, 6 bars each, the stab a tritone above each root).
+- **The climb (D, 260-340 s):** the cell extended to an **11-cell**, its first half turning t3's THIRDS WHEEL
+  (F -> A -> C# -> F, 4 bars each) (3+2+2+2+2: F5, F pm, Gb, B5 stab, Ab) with the
   CLIMB LINE (lead: Ab4-G4 | F4-C5 | Bb4 Ab4 G4 | F4 || Ab4-Bb4 | C5-Db5 | C5 Bb4 Ab4 | G4-B4), then t5's EXHALE
   in augmentation x2 (E5 | B4 C5 | G4 | G4 A4 | E5 D5 | B4 | F4) while the 11-cell climbs a minor third (Ab) in
   half time.

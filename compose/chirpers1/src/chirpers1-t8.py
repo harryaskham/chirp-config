@@ -89,6 +89,7 @@ def lattice_clean(a, b, vel=66, octave=0):
 
 # ---------------- B: the 5-note arpeggio on eighths ----------------
 ARP5 = ['F3', 'C4', 'Ab4', 'G4', 'Db4']
+GOVERNOR = ['F3', 'B3', 'E4', 'F4', 'Gb4', 'F4', 'E4', 'B3', 'F3', 'Gb3', 'B3', 'C4', 'E4']   # t6's line, an octave down
 def arp(a, b, cell, step, vel):
     out = {}; i = 0
     for m in range(a, b + 1):
@@ -232,14 +233,17 @@ def build():
                 {m: ['Db2,Ab2,C4,G4/4b@60'] for m in range(F2[0], F2[0] + 8)},
                 {m: [f'{COLD}/4b@58'] for m in range(F2[0] + 8, NB - 8)},
                 {m: [f'{CLUSTER[3:]},E3,B3,Gb5/4b@62'] if False else [f'F2,B2,E3,Gb4/4b@60'] for m in range(NB - 8, NB - 1)})
-    clean = merge(lattice_clean(5, A[1], 62), arp(B[0], B[1], ARP5, 0.5, 74),
+    clean = merge(lattice_clean(5, A[1], 62), arp(B[0], B[0] + 15, GOVERNOR, 0.5, 72), arp(B[0] + 16, B[1], ARP5, 0.5, 74),
                   breath16(F1[0], F1[1], 66),
                   arp(F2[0], F2[0] + 7, BREATH, 0.5, 60), arp(F2[0] + 8, F2[0] + 13, BREATH, 1.0, 56),
                   {m: [f'{LAT_LINE[(m - F2[0] - 14) % 4][:-1]}{int(LAT_LINE[(m - F2[0] - 14) % 4][-1]) + 1}/4b@54']
                    for m in range(F2[0] + 14, NB - 1)})
     gC1, bC1, hC1 = cog(*C1, lambda m: ('F1', 'B1'), False)
-    gC2, bC2, hC2 = cog(*C2, lambda m: ('F1', 'B1') if ((m - C2[0]) // 7) % 2 else ('Gb1', 'C2'), True)
-    gD, bD, hD = climb(*D1)
+    AXIS = [('F1', 'B1'), ('Ab1', 'D2'), ('B1', 'F2'), ('D2', 'Ab2')]   # t4's minor-third axis
+    gC2, bC2, hC2 = cog(*C2, lambda m: AXIS[((m - C2[0]) // 6) % 4], True)
+    gD, bD, hD = {}, {}, {}
+    for q, k in enumerate((0, 4, 8, 0)):   # t3's THIRDS WHEEL: F -> A -> C# -> F, 4 bars each
+        g_, b_, h_ = climb(D1[0] + 4 * q, D1[0] + 4 * q + 3, k=k); gD.update(g_); bD.update(b_); hD.update(h_)
     gD2, bD2, hD2 = climb(*D2, k=3)
     gD.update(gD2); bD.update(bD2)
     gC1[C1[1]] = [f'{CLUSTER}/2b@124', 'R/2b']; bC1[C1[1]] = ['F1/2b@120', 'R/2b']
