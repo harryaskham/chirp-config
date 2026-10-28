@@ -108,7 +108,10 @@ def riff_events(octave_up_pivots=False):
     """The rhythm guitars' material for every section."""
     ev = []
     clus = chord(F1, F1 + 6, F1 + 11)
-    ev.append((bar0(1), 4 * S, clus, 112, OP))                                   # Ignition: the ringing cluster
+    ev.append((bar0(1), 2 * S, clus, 112, OP))                                   # Ignition: t1's cluster rings on
+    for st, ln, kind, p in triad(bar0(3), bar0(5)):                             # then TRIAD's rhythm gathers under it
+        ev.append((st, ln, nm(F1 + p) if kind == "pivot" else nm(F1), ramp(st, bar0(3), bar0(5), 70, 100),
+                   OP if kind == "pivot" else PM))
     for k, v0, v1 in (("stmt", 104, 112), ("stmt2", 106, 114), ("ret", 108, 116), ("bloom", 110, 120)):
         a, z = span(k)
         for st, ln, kind, p in triad(a, z):
@@ -185,9 +188,9 @@ def lead():
     return score(ev)
 
 def kick():
-    ev = [(bar0(b), 1, "k", 118, "") for b in (1, 2, 3, 4)]
+    ev = [(bar0(1), 1, "k", 118, "")]
     for st, ln, tok, v, pre in riff_events():
-        if bar0(5) <= st < bar0(85) and not (bar0(53) <= st < bar0(69)):
+        if bar0(3) <= st < bar0(85) and not (bar0(53) <= st < bar0(69)):
             ev.append((st, 1, "k", min(124, v + 2), ""))
     a, z = span("bloom")                        # polymeter: the kick plays Hinge's grouping under TRIAD
     for st, ln, kind, p in hinge(a, z):
@@ -202,6 +205,10 @@ def kick():
 
 def snare():
     ev = []
+    for e8 in range(8):                         # Ignition's build: eighths, then a sixteenth roll into the Statement
+        ev.append((bar0(3) + 2 * e8, 1, "s", 64 + 3 * e8, ""))
+    for k in range(16):
+        ev.append((bar0(4) + k, 1, "s", 86 + 2 * k, ""))
     for b in range(5, 117):
         if 53 <= b < 69:                       # release: a soft backbeat on 3
             ev.append((bar0(b) + 8, 1, "s", 70, ""))
