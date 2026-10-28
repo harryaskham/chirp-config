@@ -5041,7 +5041,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 11,
+      "rounds": 12,
       "priority": 1.0,
       "genre": "polyrhythmic djent",
       "mode": "compose",
@@ -5059,7 +5059,7 @@
         "note": "COMPOSE (song, 180-240 s): The breath. Mostly clean and atmospheric (clean guitars, pads, a lead melody), a slow or floating feel, with one crushing heavy passage to keep the album's weight. The lowest intensity on the album."
       },
       "last": {
-        "at": "2026-10-28T20:10:11Z",
+        "at": "2026-10-28T21:08:58Z",
         "who": "chirper-zero"
       },
       "best.version": null,
