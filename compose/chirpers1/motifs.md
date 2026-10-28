@@ -38,21 +38,23 @@ move.
 - **Joins:** it opens on one ringing F1-C2-F2-B2 chord and crash, decaying into the pad (the breath after t4's
   onslaught). It ends on the 13-count clock and the F lydian pad (into t6).
 
-## t8 "The Long Unwinding" (chirper-one): COG, CLIMB LINE, the dissolve (v1)
+## t8 "The Long Unwinding" (chirper-one): the album comes home and comes apart
 
-The closer, 96 bpm, six movements: dawn (0-60 s), gathering (60-140), the cog (140-260), the climb (260-340),
-the crush (340-380), dissolve (380-494).
-- **COG** (LATTICE's 7-cell idea as a chug): seven sixteenths `F1+C2+F2 acc, F1 pm, ., F1 pm, Gb1, F1 pm, .`
-  over 4/4 (realigns every 7 bars), kick in unison, snare on 3, china on each cell start. In the climb it grows
-  to an **11-cell** with a **B1-F#2-B2 tritone stab** (`acc pm . pm Gb pm . B-stab pm Ab .`).
-- **Five-note clean arpeggio** F3 C4 Ab4 G4 Db4 on eighths (5 against 8; dawn and gathering), returning in the
-  dissolve with B3 for Db4, slowing from eighths to quarters to halves.
-- **CLIMB LINE** (lead, 2-bar phrases): Ab4-G4 | F4-C5 | Bb4 Ab4 G4 | F4 || Ab4-Bb4 | C5-Db5 | C5 Bb4 Ab4 | G4-B4,
-  then held C5 / Db5 / C5-Bb4 / B4 over the crush.
-- **Harmony:** F Phrygian pads, 2 bars each: Fm(add9) F2 C3 Ab3 G4, Dbmaj7 Db2 Ab2 C4 G4, Bbm Bb1 F2 Db3 Ab3,
-  Gb Gb2 Db3 Bb3 F4. The crush moves F5 / Gb5 / F5-Ab5 / B5 (the tritone as the last word).
-- To do (v2): reprise the album's LATTICE (3+2+2 cell, F-Gb-B-E line, the F1 B1 E2 cluster), t5's EXHALE and
-  COLD CHORD in the climb, crush and dissolve.
+The closer, 96 bpm, ~494 s; generator compose/chirpers1/src/chirpers1-t8.py. It quotes and develops:
+- **Dawn (A, 0-60 s):** t5's COLD CHORD pad (F2 C3 E3 B3 G4) and t1's LATTICE line F3 Gb3 B3 E4 on the clean,
+  walking on the 3+2+2 cell (as in t1, but slower and an octave of air above the pad).
+- **Gathering (B, 60-140 s):** a new 5-note clean figure F3 C4 Ab4 G4 Db4 on eighths (5 against 8; LATTICE's 5-cell
+  as a melody) over F Phrygian pads Fm(add9) / Dbmaj7 / Bbm / Gb, two bars each; ride and toms crescendo.
+- **The cog (C, 140-260 s):** LATTICE's 7-cell (x..x.x.) as F1 chugs with an F1+B1 tritone stab every 4th cell,
+  half time, then full time with t5's F -> Gb root move every 7 bars.
+- **The climb (D, 260-340 s):** the cell extended to an **11-cell** (3+2+2+2+2: F5, F pm, Gb, B5 stab, Ab) with the
+  CLIMB LINE (lead: Ab4-G4 | F4-C5 | Bb4 Ab4 G4 | F4 || Ab4-Bb4 | C5-Db5 | C5 Bb4 Ab4 | G4-B4), then t5's EXHALE
+  in augmentation x2 (E5 | B4 C5 | G4 | G4 A4 | E5 D5 | B4 | F4).
+- **The crush (E, 340-380 s):** half-time blocks F5 / Gb5 / F5-Ab5 / B5, ending on t1's cluster F1 B1 E2 with Gb5 on
+  the lead.
+- **Dissolve (F, 380-494 s):** t5's BREATH CELL (F3 C4 E4 B4 G4) on sixteenths over the COLD CHORD, slowing to
+  eighths and quarters, then LATTICE's line once more in whole notes (F4 Gb4 B4 E5), and an F-B-E-Gb pad into
+  silence (master fade).
 
 ## t3 "Moult" (chirper-two): NINEFOLD, THIRDS WHEEL, HEXATONIC LINE
 
