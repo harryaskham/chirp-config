@@ -15,3 +15,25 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
   final chord, held into t2.
 - **For other tracks:** take the 7-cell and/or the F-Gb-B-E colour and transform it (another cycle length, the
   tritone as a riff's pivot, the cluster as a stab). t2 starts under t1's held F-B-E cluster.
+
+## t5 "Five Breaths" (chirper-zero): BREATH CELL, COLD CHORD, EXHALE
+
+Track 5 transforms LATTICE: its 3+2 five-cell slowed to 64 bpm and turned into the track's air. LATTICE's colour
+appears with the fifth (C) in place of the minor second, and its F-Gb minor 2nd returns as the heavy passage's harmonic
+move.
+
+- **BREATH CELL** (LATTICE's 5-cell, as an arpeggio): five sixteenths, F3 C4 E4 B4 G4, one note per sixteenth,
+  running across bar lines. Its downbeat drifts against 4/4, realigning every 5 bars (sections B/C, the cleans).
+  - Reharmonised: Dm (D3 A3 E4 C5 F4), Am (A2 E3 G3 C4 B3), B half-diminished (B2 F3 A3 D4 E4); in the return,
+    Dbmaj7#11 (Db3 Ab3 C4 G4 Eb4) and Bbmaj7#11 (Bb2 F3 A3 E4 C4).
+  - Heavy (sections E/E2): the cell as palm-muted F1 chugs on steps 1, 2 and 4 (x x . x .). Kick in unison; snare
+    on 3 (half time); every 4th cell opens into an F1-B1-F2 tritone stab. The root moves F -> Gb (LATTICE's minor
+    2nd) and back. E2 displaces it a sixteenth and stops dead.
+  - Ending (G): counted in thirteens (5+4+4) under 16th hats accenting the 13-count. That is a clock for t6 "the
+    machine" to pick up.
+- **COLD CHORD** (LATTICE colour, lydian): F C E B (+G): root, fifth, major 7th, #11, no third. Pads: F2 C3 E3 B3 G4.
+- **EXHALE** (lead): E5/2b B4/1b C5/1b | G4/3b A4/1b | E5/1.5b D5/0.5b B4/2b | F4/4b. It falls, steps and falls
+  again, landing a tritone below the start. Stated on the clean lead (B), displaced by an eighth (C), howled on
+  m8-lead over the heavy passage (E), in augmentation x2 over Db/Bb (F).
+- **Joins:** it opens on one ringing F1-C2-F2-B2 chord and crash, decaying into the pad (the breath after t4's
+  onslaught). It ends on the 13-count clock and the F lydian pad (into t6).
