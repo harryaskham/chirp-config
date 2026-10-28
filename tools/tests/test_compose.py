@@ -250,6 +250,8 @@ class Measures(unittest.TestCase):
                    "me": me}
             return CS.m_flow(ctx)[0]
         self.assertEqual(flow(4.0), 100.0)
+        wb = CS.worst_bands([0.0] * 39 + [12.0], [0.0] * 39 + [-6.0], n=1)
+        self.assertEqual(wb, [(14792, 18.0)])                 # the top band (centre ~14.8 kHz) sticks out by 18 dB
         self.assertGreater(flow(14.0) - flow(23.0), 10.0)     # was 6.8 vs 0.7 of a 50-point half: no gradient
 
     def test_flow_and_distinct_need_neighbours(self):

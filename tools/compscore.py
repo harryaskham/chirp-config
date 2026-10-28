@@ -130,6 +130,15 @@ def tempo(onset, lo=60, hi=200):
     return 60 * L.FPS / lags[ok][np.argmax(ac[ok])]
 
 
+BAND_HZ = np.sqrt(np.geomspace(30, 16000, 41)[:-1] * np.geomspace(30, 16000, 41)[1:])   # likeness's 40 band centres
+
+
+def worst_bands(mine, theirs, n=3):
+    """The bands where MINE sticks out from THEIRS most: [(centre Hz, dB)] (chirper-one's join method)."""
+    d = np.array(mine) - np.array(theirs)
+    return [(int(round(BAND_HZ[i])), round(float(d[i]), 1)) for i in np.argsort(-np.abs(d))[:n]]
+
+
 def profile(F, i0=0, i1=None):
     """Level-normalised long-term spectrum (40 log bands, dB minus their mean)."""
     p = F.logb[:, i0:i1].mean(1)
@@ -409,7 +418,8 @@ def m_flow(ctx):
         # graded far out (chirper-two: at a 4 dB decay a 14 dB join and a 23 dB one both scored ~0, so join work had
         # no gradient). For scale: obZen's real joins jump 35-77 dB (its tracks decay to silence), spectra 5-8 dB.
         s = 0.5 * band(jump, 0, 6.0, 12.0) + 0.5 * band(spec, 0, 3.0, 3.0)
-        joins[side] = {"with": t["id"], "level_jump_db": round(jump, 1), "spectral_db": round(spec, 2)}
+        joins[side] = {"with": t["id"], "level_jump_db": round(jump, 1), "spectral_db": round(spec, 2),
+                       "worst_bands_hz_db": worst_bands(mine["profile"], theirs["profile"])}   # + = this song louder
         scores.append(s)
     if not scores:
         return None, {}
