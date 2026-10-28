@@ -144,7 +144,11 @@ def riff_events(octave_up_pivots=False):
 def shard():
     """HINGE's hocket partner: the groups the m8 pair leaves out, open and crushed in the centre."""
     a, z = span("hinge")
-    return score([(st, ln, nm(F1 + p), 104, OP) for st, ln, kind, p in hinge(a, z) if kind == "shard"])
+    ev = [(st, ln, nm(F1 + p), 104, OP) for st, ln, kind, p in hinge(a, z) if kind == "shard"]
+    # Bloom: SHARD returns as TRIAD's shadow, each pivot answered a sixteenth late and an octave up (drifting with it)
+    a, z = span("bloom")
+    ev += [(st + 1, 2, nm(F1 + 12 + p), 96, OP) for st, ln, kind, p in triad(a, z) if kind == "pivot" and st + 1 < z]
+    return score(ev)
 
 def guitar(right=False):
     return score(riff_events(octave_up_pivots=right))
