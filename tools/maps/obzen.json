@@ -68,7 +68,7 @@
      {
       "type": "eq",
       "bands": [
-       "peak cutoff=800 q=0.7 gain=-4dB"
+       "peak cutoff=800 q=0.7 gain=-2dB"
       ]
      }
     ]
@@ -138,7 +138,7 @@
      {
       "type": "eq",
       "bands": [
-       "peak cutoff=800 q=0.7 gain=-4dB"
+       "peak cutoff=800 q=0.7 gain=-2dB"
       ]
      }
     ]
