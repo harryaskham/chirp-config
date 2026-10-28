@@ -24,6 +24,46 @@ SWING16 = float(os.environ.get("MOULT_SWING", "0.55"))
 # Round 3 (kept as v3): J, a ride-edge wash swells under the closing roll so Moult's end opens toward t4's cymbals
 # (the join's spectral jump 9.9 -> 7.1 dB). MOULT_R3=none for v2.
 R3 = set(filter(None, os.environ.get("MOULT_R3", "J").split(","))) - {"none"}
+# Round 6 (sound playground): W = the WHEEL KIT, physical coupled-head drums (chirp `type: drum`, bd-7d117e) whose
+# air-spring split is a major third, so every drum sounds a THIRDS WHEEL dyad, played as tuned toms in the Wheel,
+# the Hollow and the Lock (kept as v4 on judgment; MOULT_R6=none for v3).
+R6 = set(filter(None, os.environ.get("MOULT_R6", "W").split(","))) - {"none"}  # kept as v4
+# The wheel kit's toms by the root they voice: batter F2 sounds F2+A2, A2 sounds A2+C#3, C#3 sounds C#3+F3.
+WHEEL_TOM = {29: "t3", 33: "t2", 37: "t1"}
+
+
+def wheel_kit():
+    """Moult's kit: metal-kit-dry's cymbals and hats; kick, snare, ghost and toms rebuilt on the physical drum layer.
+    Matched heads and cavity 0.294 put the in-phase pair a major third (x1.26) above the batter's tuning: the kick's
+    batter is F1 and its air-raised pair A1; each tom's two loudest partials are neighbouring wheel notes."""
+    cav = 0.294
+
+    def piece(pitch, layer, filters, amp, drive, vs, gain="0dB"):
+        return {"pitch": pitch, "gain": gain, "patch": {"synth": {"layers": [dict(type="drum", **layer)],
+                "filters": filters, "amp": amp, "drive": drive}, "play": {"vel_sens": vs}}}
+    tom = dict(beater="stick", contact=1.6, decay="1.1s", sharp=45, reso=1.0, cavity=cav, reso_level=0.6, air=0.45,
+               strike=0.3, shell=0.3, damp=0.25, slap=0.5)
+    tamp = {"a": "0.2ms", "d": "1.3s", "s": 0, "r": "80ms", "curve": 3}
+    snare = dict(beater="stick", decay="0.35s", sharp=30, reso=1.5, cavity=0.35, reso_level=0.5, shell=0.45,
+                 shell_hz=480, wires=0.55, gap=0.25, wire_tone="4.5k", strike=0.3, damp=0.3, slap=0.8)
+    sf = ["hp cutoff=100", "peak cutoff=220 q=1 gain=2dB"]
+    samp = {"a": "0.2ms", "d": "450ms", "s": 0, "r": "30ms"}
+    return {"wheel-kit": {
+        "about": "Moult's wheel kit (chirper-two): metal-kit-dry with physical coupled-head drums whose cavity split "
+                 "is a major third, so each drum sounds a THIRDS WHEEL dyad (kick F1+A1; toms C#2+F2, F2+A2, A2+C#3, "
+                 "C#3+F3).",
+        "extends": "metal-kit-dry",
+        "kit": {
+            "k": piece("F1", dict(beater="felt", decay="0.45s", sharp=60, reso=1.0, cavity=cav, reso_level=0.6,
+                                  air=0.4, strike=0.15, damp=0.4, shell=0.15, slap=0.7),
+                       ["hp cutoff=28", "lowshelf cutoff=70 gain=2dB"],
+                       {"a": "0.2ms", "d": "600ms", "s": 0, "r": "30ms", "curve": 4}, 0.2, 0.45, gain="8dB"),
+            "s": piece("G3", snare, sf, samp, 0.15, 0.6),
+            "g": piece("G3", dict(snare, strike=0.15), sf, samp, 0.15, 0.6, gain="-16dB"),
+            "ft": piece("C#2", tom, ["hp cutoff=40"], tamp, 0.1, 0.55, gain="2.5dB"),
+            "t3": piece("F2", tom, ["hp cutoff=45"], tamp, 0.1, 0.55, gain="2.5dB"),
+            "t2": piece("A2", tom, ["hp cutoff=50"], tamp, 0.1, 0.55, gain="2.5dB"),
+            "t1": piece("C#3", tom, ["hp cutoff=55"], tamp, 0.1, 0.55, gain="2.5dB")}}}
 BPM = 96
 STEP = 0.25  # beats per sixteenth
 BAR = 16
@@ -228,6 +268,10 @@ def build():
                 g.add(s + o, 2, f"{nm(root)},{nm(root + 12)}", 108)
             bass.add(s + o, 3, nm(root), 108)
             hit(s + o, "k", 108)
+            if "W" in R6 and o:  # the toms answer the open roots: this root's wheel dyad
+                hit(s + o, WHEEL_TOM[root], 104 if o == 5 else 96)
+        if "W" in R6:  # the stab turns the wheel early: the next root's tom
+            hit(s + 12, WHEEL_TOM[(F1, A1, CS2)[min(b + 1, 11) // 4]], 108)
         for o in (3, 8):
             for g in (gl, gr):
                 g.add(s + o, 1, nm(root), 62, "pm")
@@ -254,8 +298,8 @@ def build():
         s = t + b * BAR
         if b >= 4:  # the bass stays out for the first half of the breath
             bass.add(s, 14, nm(A1), 56)
-            hit(s + 10, "k", 58)
-        hit(s, "k", 70 if b < 4 else 76)
+            hit(s + 10, "ft" if "W" in R6 else "k", 58)
+        hit(s, "ft" if "W" in R6 else "k", 70 if b < 4 else 76)  # W: a deep tom heartbeat (C#2+F2)
         hit(s + 8, "ss", 66)
         for i in range(0, BAR, 4):
             hit(s + i, "h", 38)
@@ -311,6 +355,9 @@ def build():
     if "D" in R2:
         halftime(t, 9, hats="oh", hat_vel=(64, 48), snare=100, pulse=lambda b: "rd")
         halftime(t + 9 * BAR, 9, hats="oh", hat_vel=(74, 56), snare=118, pulse=lambda b: "x")
+        if "W" in R6:  # the second cycle turns the wheel: its root's tom lands with every backbeat
+            for b in range(9, 18):
+                hit(t + b * BAR + 8, WHEEL_TOM[lat_root(t + b * BAR)], 112)
         for b in list(range(0, 9, 3)) + list(range(9, 18)):
             hit(t + b * BAR, "c", 112 if b < 9 else 120)
         pad.add(t + 9 * BAR, 9 * BAR, ",".join(nm(n) for n in (65, 69, 73)), 76)  # F4 A4 C#5 swells over cycle 2
@@ -375,7 +422,8 @@ def main():
         {"name": "gtr-l", "patch": "m8-emg-l", "pan": -1, "gain": "-2dB", "fx": [geq], "score": P["gl"].score(total, sw)},
         {"name": "gtr-r", "patch": "m8-emg-r", "pan": 1, "gain": "-2dB", "fx": [geq], "score": P["gr"].score(total, sw)},
         {"name": "bass", "patch": "bass-fat", "gain": "-1dB", "fx": [beq], "score": P["bass"].score(total, sw)},
-        {"name": "drums", "patch": "metal-kit-dry", "out": "kit", "score": P["drums"].score(total, sw)},
+        {"name": "drums", "patch": "wheel-kit" if "W" in R6 else "metal-kit-dry", "out": "kit",
+         "score": P["drums"].score(total, sw)},
         {"name": "lead", "patch": "m8-lead", "gain": "-5dB", "pan": 0.15, "fx": [delay, "reverb kind=plate decay=1.8s mix=0.18"],
          "score": P["lead"].score(total, sw)},
         {"name": "clean", "patch": "m8-twang-chorus", "gain": "-7dB", "pan": -0.25, "fx": [delay, "reverb kind=hall decay=2.4s mix=0.25"],
@@ -396,6 +444,7 @@ def main():
         'ceiling: "-0.1dB"',
         'volume: "4dB"',
         "buses: " + json.dumps({"kit": {"fx": ["rack:drum-bus-punch", {"type": "eq", "bands": ["highshelf cutoff=8000 gain=2dB"]}]}}),
+    ] + (["patches: " + json.dumps(wheel_kit())] if "W" in R6 else []) + [
         "master: " + json.dumps({"fx": [
             {"type": "eq", "bands": ["lowshelf cutoff=40 gain=-3dB", "peak cutoff=100 q=1 gain=3dB",
                                      "peak cutoff=500 q=0.7 gain=-2.5dB", "highshelf cutoff=3000 gain=3dB",

@@ -4947,24 +4947,16 @@
       "owner": "chirper-two",
       "metric": "python3 tools/compscore.py chirpers1-t3 OUT.wav",
       "best": {
-        "score": 95.217,
-        "version": "v3",
-        "commit": "45512465",
-        "engine": "85b3881",
-        "rescored": {
-          "compscore": "14c8f947",
-          "seeds": {
-            "0": 95.217,
-            "11": 95.241
-          },
-          "at": "2026-10-28T14:21:58Z",
-          "was": 94.666
-        }
+        "score": 95.145,
+        "version": "v4",
+        "commit": "see git log songs/chirpers1-t3.yaml",
+        "engine": "5906cbb3",
+        "judged": true
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 3,
+      "rounds": 4,
       "priority": 1.0,
       "genre": "polyrhythmic djent",
       "mode": "compose",
@@ -4982,7 +4974,7 @@
         "note": "COMPOSE (song, 180-240 s): The groove. Mid-tempo, heavy, syncopated, with space and swing in the riffs; a hypnotic figure that slowly mutates. Medium intensity."
       },
       "last": {
-        "at": "2026-10-28T12:20:19Z",
+        "at": "2026-10-28T20:23:16Z",
         "who": "chirper-two"
       },
       "chirp-eco": ""
