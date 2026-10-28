@@ -128,7 +128,7 @@ def riff_events(octave_up_pivots=False):
     a, z = span("exhale")
     for st, ln, kind, p in triad(a, bar0(117), half=True):
         ev.append((st, 6, nm(F1 + p), ramp(st, a, bar0(117), 112, 92), OP))
-    ev.append((bar0(117), 4 * S, chord(F1, F1 + 6, F1 + 12), 108, OP))         # held F-B cluster for t3
+    ev.append((bar0(117), S, chord(F1, F1 + 6, F1 + 12), 108, OP))              # the F-B cluster, one bar, then the guitars stop
     return ev
 
 def guitar(right=False):
@@ -144,7 +144,10 @@ def bass():
     ev = [e for e in ev if not (a <= e[0] < z)]
     for b in range(53, 69, 4):
         ev.append((bar0(b), 4 * S, nm(F1 + (0 if (b - 53) % 8 == 0 else 1)), 74, ""))
+    ev.append((bar0(118), 3 * S, nm(F1), 72, ""))                # the F rings on under the hand-off to Moult
     return score(ev)
+
+HANDOFF = bar0(118)   # the last 3 bars: Moult's pulse (96 BPM quarter = 144 BPM dotted quarter) arrives early
 
 def clean():                                    # the release: LATTICE's 7-cell in eighth-note augmentation
     ev = []
@@ -159,6 +162,8 @@ def clean():                                    # the release: LATTICE's 7-cell 
                 ev.append((st, nxt, nm(F1 + 36 + LATTICE[k % 4]), ramp(st, a, z, 62, 80), ""))
                 k += 1
         t += 14
+    for i, st in enumerate(range(HANDOFF, TOTAL, 6)):  # muted plucks on the dotted quarter: F-C, then A-C# (Moult's colour)
+        ev.append((st, 3, chord(F1 + 24, F1 + 31) if i < 4 else chord(F1 + 28, F1 + 32), 70 + 2 * i, PM))
     return score(ev)
 
 def pad():
@@ -167,7 +172,8 @@ def pad():
     for b in range(53, 69, 4):
         top = F1 + 25 if (b - 53) % 8 == 4 else F1 + 23
         ev.append((bar0(b), 4 * S, chord(F1 + 12, F1 + 18, top), 66, ""))
-    ev.append((bar0(117), 4 * S, chord(F1 + 12, F1 + 18, F1 + 24), 70, ""))
+    ev.append((bar0(117), 2 * S, chord(F1 + 12, F1 + 18, F1 + 24), 70, ""))
+    ev.append((bar0(119), 2 * S, chord(F1 + 12, F1 + 16, F1 + 20), 62, ""))  # F-A-C#: the colour leans into Moult
     return score(ev)
 
 def lead():
@@ -230,12 +236,15 @@ def cym():
         if kind == "pivot" and p == 1:
             ev.append((st, 1, "x", 108, ""))
     ev.append((bar0(117), 1, "c", 124, ""))
+    for st in range(HANDOFF, TOTAL, 6):         # closed hats on Moult's pulse, a ghost between
+        ev.append((st, 1, "h", 70, ""))
+        ev.append((st + 3, 1, "h", 42, ""))
     return score(ev)
 
 def ride():
     sec = 4 * 60 / TEMPO
     t = lambda b: f"{(b - 1) * sec:.2f}s"
-    pts = [(1, 0.0), (52.8, 0.0), (53.2, -5.0), (66, -5.0), (69, 0.0), (121, 0.0)]
+    pts = [(1, 0.0), (52.8, 0.0), (53.2, -5.0), (66, -5.0), (69, 0.0), (118, 0.0), (121, -4.0)]
     return [[t(b), v] for b, v in pts]
 
 def tr(name, patch, sc, **kw):
