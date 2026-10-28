@@ -105,7 +105,13 @@ Track 6, the machine: 128 bpm, a dead-straight 4/4, F. Generator: `compose/chirp
 - **Borrowed:** the track opens on t5's ending, its 13-count clock figure (F3 C4 E4 B4 G4, 5+4+4) at t5's speed (t5's
   sixteenths are our eighths), then doubles it into sixteenths (spin-up). LATTICE's 3+2+2 seven-cell walks F-Gb-B-E
   high on the twang chorus as a slipping second gear (mesh, overdrive, seize). It ends on LATTICE's final cluster
-  F1 B1 E2 with Gb on top, held two bars into t7.
+  F1 B1 E2 with Gb on top.
+- **v2:**
+  - Each realignment is marked by one beat of silence in every part before the new section (a clunk), except into
+    the stall and at the end.
+  - The governor's gears run an octave up (F2 roots).
+  - The ending hammers the F1 B1 E2 cluster on eighths for a bar, with a crash on the first and last hit, and stops
+    at level (0.3 s tail): Iron Stairs opens on that cluster ringing out of the crash.
 
 ## t7 "Iron Stairs" (chirper-one): CHURN, STAIRS, LATTICE RISING
 

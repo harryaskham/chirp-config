@@ -26,6 +26,9 @@ BPM = 128
 BAR = 4.0
 S16 = 0.25
 MG = float(os.environ.get("T6_MG", "15"))
+JOIN = os.environ.get("T6_JOIN", "1") == "1"   # end at level: a hammered cluster bar, 0.3 s tail
+GOVUP = os.environ.get("T6_GOVUP", "1") == "1"  # the governor's gears an octave up
+CLUNK = os.environ.get("T6_CLUNK", "1") == "1"  # one beat of silence before each realignment
 FORM = [("spin", 13), ("engage", 13), ("mesh", 13), ("governor", 13), ("stall", 13), ("overdrive", 23), ("seize", 13)]
 
 
@@ -180,6 +183,24 @@ def ticks(nbars, unit, vel=(78, 42)):
     return join(*[f"h1/{unit:g}b@{vel[0] if st % 13 == 0 else vel[1] + (st % 2) * 6}" for st in range(nbars * per_bar)])
 
 
+def truncate(score, beats):
+    """The score cut to its first `beats` beats (the last note shortened)."""
+    out, pos = [], 0.0
+    for t in score.split():
+        d = float(t.split("/")[1].split("b")[0])
+        if pos + d <= beats + 1e-9:
+            out.append(t); pos += d
+        else:
+            if beats - pos > 1e-9:
+                head, tail = t.split("/", 1)
+                out.append(f"{head}/{beats - pos:g}b" + tail[tail.index("b") + 1:])
+            pos = beats
+            break
+    if pos < beats - 1e-9:
+        out.append(rest(beats - pos))
+    return " ".join(out)
+
+
 # ---------------------------------------------------------------- arrangement
 def build():
     names = ("pad", "cln", "tick", "gtr-l", "gtr-r", "bass", "drums", "ping", "gov", "sub")
@@ -203,9 +224,16 @@ def build():
         elif sec in ("engage", "mesh", "governor", "seize"):
             roots = ["F1", "F1", "F#1", "G1", "F#1"] if sec == "governor" else ["F1"]
             pat = "O.oo.O.oo.S.." if sec == "governor" else GEAR  # the governor opens the gears: ringing octaves
+            if sec == "governor" and GOVUP:
+                roots = [up(r, 12) for r in roots]
             g, b, k, starts = riff(n if sec != "seize" else n - 2, pat, roots, vel=0.9 if sec == "engage" else 1.0,
                                    kick="accents" if sec == "engage" else "unison")
-            if sec == "seize":  # two final bars: LATTICE's cluster, held into t7
+            if sec == "seize" and JOIN:  # one more bar of gears, then the cluster hammered on eighths into t7
+                g2, b2, k2, _ = riff(1, GEAR, ["F1"], kick="unison")
+                g = join(g, g2, *[tok("F1,B1,E2", 0.5, 120) for _ in range(8)])
+                b = join(b, b2, *[tok("F1", 0.5, 112) for _ in range(8)])
+                k = join(k, k2, "c,k/0.5b@124", *["k/0.5b@112"] * 6, "c,k/0.5b@124")
+            elif sec == "seize":  # two final bars: LATTICE's cluster, held into t7
                 g = join(g, tok("F1,B1,E2", BAR * 2, 118)); b = join(b, tok("F1", BAR * 2, 110))
                 k = join(k, "c,k/2b@124", rest(BAR * 2 - 2))
             put("gtr-l", g, beats); put("bass", b, beats)
@@ -243,6 +271,10 @@ def build():
         for nm in names:
             if nm not in used:
                 put(nm, rest(beats), beats)
+        if CLUNK and sec not in ("seize", "stall"):
+            for nm in names:
+                sc, b0 = T[nm][-1]
+                T[nm][-1] = (truncate(sc, b0 - 1) + " " + rest(1), b0)
         t_beats += beats
     return T, t_beats
 
@@ -275,7 +307,7 @@ def song():
                   "13-count clock (gears: a second guitar, LATTICE's 7-cell as a high ping, the GOVERNOR lead in 13 "
                   "eighths), stalls, overdrives on 23 sixteenths (GEARTRAIN + two of t5's breath cells) and seizes on "
                   "LATTICE's cluster F1 B1 E2, held into t7."),
-        "tempo": BPM, "ceiling": "-0.1dB", "tail": "2s",
+        "tempo": BPM, "ceiling": "-0.1dB", "tail": "0.3s" if JOIN else "2s",
         "buses": {"hall": {"fx": ["reverb kind=hall decay=2.6s mix=1 predelay=20ms"]},
                   "dly": {"fx": ["delay time=3/16 feedback=.32 mix=1 ping_pong=true", "reverb kind=room decay=1.2s mix=0.3"]}},
         "master": {"fx": [{"type": "eq", "bands": ["peak cutoff=350 q=0.8 gain=-3dB", "highshelf cutoff=5k gain=2dB"]},
