@@ -124,6 +124,14 @@ class Keep(unittest.TestCase):
             quiet(CH.C.cmd_done, ["old-song", "--version", "v9", "--score", "1", "--note", "x", "--keep", "--no-git"])
 
 
+class RebaselineRace(unittest.TestCase):
+    def test_a_round_landing_mid_run_changes_the_snapshot(self):
+        before = {"rounds": 12, "best": {"version": "v8", "score": 97.735}}
+        self.assertEqual(CH.snapshot(before), (12, "v8"))
+        after = {"rounds": 13, "best": {"version": "v9", "score": 98.003}}   # Thirteen Teeth, 28 Oct 23:09
+        self.assertNotEqual(CH.snapshot(before), CH.snapshot(after))
+
+
 class Ratings(unittest.TestCase):
     def test_harry_rating_feeds_human_with_stale_half_weight(self):
         quiet(RT.main, ["alb-t2", "7.5", "--note", "great intro riff", "--no-git"])

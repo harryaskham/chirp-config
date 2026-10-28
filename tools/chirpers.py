@@ -255,6 +255,11 @@ def render(pin, song, seed, out, env):
     return r.stderr.strip()[-200:] if r.returncode else None
 
 
+def snapshot(c):
+    """What a rebaseline must find unchanged before it writes: the climb's rounds and best version."""
+    return (c.get("rounds"), (c.get("best") or {}).get("version"))
+
+
 def apply_rescore(c, scores, rev, who, at):
     """Record SCORES ({seed: total}) as C's best (seed 0, else the first seed); the history note to append."""
     best = c.setdefault("best", {})
@@ -299,7 +304,7 @@ def cmd_rebaseline(a, args):
                     print(f"{cid}: seed {sd} render failed: {err}")
                     break
             else:
-                todo.append((c, song, wavs))
+                todo.append((c, song, wavs, snapshot(c)))
                 if a.apply:
                     me = CS.build_ctx(cid, wavs[seeds[0]], c, album, song)["me"]
                     d = os.path.join(CS.cache_dir(a.album_id), "features")
@@ -307,11 +312,11 @@ def cmd_rebaseline(a, args):
                     with open(os.path.join(d, f"{cid}.json"), "w") as f:
                         json.dump(me, f)
         results = []
-        for c, song, wavs in todo:                       # pass 2: score
+        for c, song, wavs, _seen in todo:                # pass 2: score
             scores = {sd: CS.score(CS.build_ctx(c["id"], w, c, album, song), CS.plugins())["total"] for sd, w in wavs.items()}
             last = subprocess.run(["git", "log", "-1", "--format=%s", "--", c["song"]], cwd=ROOT, capture_output=True,
                                   text=True).stdout.strip()
-            results.append((c["id"], scores))
+            results.append((c["id"], scores, _seen))
             hist = [h for h in C.history(c["id"]) if h.get("version") and not h.get("steer")]
             if hist and hist[-1]["version"] != c["best"].get("version"):
                 print(f"{c['id']}: WARNING the latest round recorded {hist[-1]['version']} (round {hist[-1].get('round')}, "
@@ -325,15 +330,26 @@ def cmd_rebaseline(a, args):
         return
     who, at = C.whoami(args), C.now_iso()
     paths = ["climbs.json"]
+    skipped = []
     with C.registry() as reg:
-        for cid, scores in results:
+        for cid, scores, seen in results:
             c = C.find(reg, cid)
+            if snapshot(c) != seen:
+                # a round landed while we rendered (chirper-zero's Thirteen Teeth v9, 28 Oct): our scores are the old
+                # file's, so leave the newly recorded best alone
+                skipped.append(cid)
+                continue
             h = apply_rescore(c, scores, rev, who, at)
             with open(os.path.join(ROOT, "climbs", f"{cid}.jsonl"), "a") as f:
                 f.write(json.dumps(h, ensure_ascii=False) + "\n")
             paths.append(f"climbs/{cid}.jsonl")
-    C.commit_or_die(paths, f"compose: {a.album_id} rebaselined on compscore {rev} ({len(results)} songs, seeds "
-                    f"{a.seeds}): " + ", ".join(f"{cid.split('-')[-1]} {s[seeds[0]]:.2f}" for cid, s in results), args)
+    for cid in skipped:
+        print(f"{cid}: a round landed during the rebaseline; its new best is left as recorded (re-run to rescore it)")
+    done = [(cid, s) for cid, s, _ in results if cid not in skipped]
+    if not done:
+        return
+    C.commit_or_die(paths, f"compose: {a.album_id} rebaselined on compscore {rev} ({len(done)} songs, seeds "
+                    f"{a.seeds}): " + ", ".join(f"{cid.split('-')[-1]} {s[seeds[0]]:.2f}" for cid, s in done), args)
 
 
 def main(argv=None):
