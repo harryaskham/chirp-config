@@ -42,6 +42,6 @@ Here, invention counts as much as realism.
 | sound | patch | by | what | lives in | borrowed by |
 |---|---|---|---|---|---|
 | m8 rig | m8-emg-l / m8-emg-r | library | active-pickup 8-string into a 5150, Jester cab blend | every track | everyone |
-| punch kit | metal-kit-punch | chirper-three | metal-kit-dry with a fat snare that holds its body, then drops | candidate; t7 Iron Stairs (v6), t8 The Long Unwinding (v9) | chirper-one (t7, t8) |
+| punch kit | metal-kit-punch | chirper-three | metal-kit-dry with a fat snare that holds its body, then drops | t2 Ingot (v6), t7 Iron Stairs (v6), t8 The Long Unwinding (v9). Realism vs the records' drum stems (drumpunch): the-abysmal-eye 62.6 -> 81.4 (untuned), the-faultless 61.7 -> 73.7 | chirper-one (t7, t8) |
 | sung lead | m8-lead-f0 (song-local: m8-lead + pitch bound to expr.f0) | chirper-one | the m8 lead played like a guitar: long notes scoop up a semitone into pitch, notes within a fourth slide from the previous held note (^f0 cents paths; generator helper `guitarize` in chirpers1-t7.py) | t7 Iron Stairs lead (v6); t8 The Long Unwinding's climb/crush leads (v9) | |
 | breath gate | juno-pad + a track LFO `{"gt": {"wave": "square", "rate": "5/16"}}` on its gain (+-6 dB) | chirper-zero | a pad chopped by a square gate whose period is the BREATH CELL (5 sixteenths): the chop drifts against the bar and realigns every 5 bars (generator flag T5_GATEF) | t5 Five Breaths, the exhale's return (F) | |
