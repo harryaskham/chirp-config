@@ -64,7 +64,8 @@ def hinge(a, z):
     for b0 in range(a, z, S):
         n = (b0 - a) // S
         for g in (0, 3, 6, 9):
-            out.append((b0 + g, 3, "chug", 1 if (n % 2 and g == 0) else 0))
+            # the hocket: groups 2 and 4 jump from the wide m8 pair to the centred, crushed SHARD rig
+            out.append((b0 + g, 3, "shard" if g in (3, 9) else "chug", 1 if (n % 2 and g == 0) else 0))
         out.append((b0 + 12, 2, "stab", 6))
         out.append((b0 + 14, 1, "chug", 0))
         out.append((b0 + 15, 1, "chug", 0))
@@ -127,13 +128,18 @@ def riff_events(octave_up_pivots=False):
     for st, ln, kind, p in hinge(a, z):
         if kind == "stab":
             ev.append((st, ln, chord(F1, F1 + 6), 118, OP))
-        else:
+        elif kind == "chug":
             ev.append((st, ln, nm(F1 + p), 98 if p else 94, PM))
     a, z = span("exhale")
     for st, ln, kind, p in triad(a, bar0(117), half=True):
         ev.append((st, 6, nm(F1 + p), ramp(st, a, bar0(117), 112, 92), OP))
     ev.append((bar0(117), S, chord(F1, F1 + 6, F1 + 12), 108, OP))              # the F-B cluster, one bar, then the guitars stop
     return ev
+
+def shard():
+    """HINGE's hocket partner: the groups the m8 pair leaves out, open and crushed in the centre."""
+    a, z = span("hinge")
+    return score([(st, ln, nm(F1 + p), 104, OP) for st, ln, kind, p in hinge(a, z) if kind == "shard"])
 
 def guitar(right=False):
     return score(riff_events(octave_up_pivots=right))
@@ -273,6 +279,8 @@ def main():
     tracks = [
         tr("gtr-l", "m8-emg-l", guitar(), pan="L90", gain="-4dB", seed=7),
         tr("gtr-r", "m8-emg-r", guitar(right=True), pan="R90", gain="-4dB", seed=13),
+        tr("shard", "m8-emg-r", shard(), gain="-6dB", seed=19,
+           fx=[{"type": "crush", "bits": 6, "rate": 5000, "mix": 0.6}]),     # the SHARD rig: the m8 chain, bit-crushed
         tr("bass", "bass-fat", bass(), gain="-2dB", fx=[{"type": "duck", "by": "kick", "depth": "-3dB", "attack": "2ms", "release": "90ms"}]),
         tr("lead", "m8-lead", lead(), gain="-7dB", sends={"hall": "-8dB"}, fx=["delay time=3/8 feedback=0.3 mix=0.18"]),
         tr("clean", "m8-clean", clean(), pan="L30", gain="-3dB", sends={"hall": "-8dB"}, fx=["delay time=3/16 feedback=0.35 mix=0.25"]),
