@@ -4689,7 +4689,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 9,
+      "rounds": 10,
       "priority": 1.0,
       "genre": "progressive metal",
       "meta": {
@@ -4706,7 +4706,7 @@
       },
       "ref_file": "ref/albums/obzen/05 obzen.webm",
       "last": {
-        "at": "2026-10-28T03:49:54Z",
+        "at": "2026-10-28T05:16:37Z",
         "who": "chirper-zero"
       }
     },
