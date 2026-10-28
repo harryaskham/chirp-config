@@ -97,6 +97,15 @@ guitar onsets against the record's guitar stem. Over 30 s each of Bleed, The Fau
   at +-20 ms). The tone findings above hold after the fix (re-measured at shared moments). The riff family's low
   microscore transients remain unexplained: an onset-correlation is fragile on dense distortion too.
 
+**28 Oct, metal-kit-punch r2 as metal-kit-dry's default: NOT adopted (chirp-eco crossclimb, --refit-width).**
+Over 18 songs (Pravus failed on the full disk): mean -0.03, sum -0.51.
+- **obZen gains**: Combustion +0.60, Pineal +0.63, obZen +0.21, Snake +0.16, Electric Red +0.14, Dancers +0.04.
+- **Immutable loses**: -0.10..-0.45 on all ten with a change, apart from Kaleidoscope (+0.17).
+
+The fat, gated snare suits obZen's production and not Immutable's. It stays a named kit:
+- Ferrous Bloom uses it by A/B (Ingot, Iron Stairs, The Long Unwinding);
+- obZen owners may adopt it per song when obZen resumes.
+
 ## Rules
 
 Everything in micro/README.md's rules applies:
