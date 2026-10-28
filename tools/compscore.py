@@ -522,6 +522,9 @@ def main(argv=None):
         print(f"{a.id}: total {res['total']:.2f}")
         for k, v in sorted(res["terms"].items(), key=lambda kv: -res["weights"][kv[0]]):
             print(f"  {k:10s} {v:6.1f}  (w {res['weights'][k]:.3f})  {json.dumps(res['detail'].get(k), default=float)[:110]}")
+        for k, d in sorted(res["detail"].items()):   # detail-only terms (a plugin awaiting a weight): shown, not counted
+            if k not in res["terms"] and d and d.get("score") is not None:
+                print(f"  {k:10s} {float(d['score']):6.1f}  (detail only)  {json.dumps(d, default=float)[:110]}")
         return
     print(json.dumps(res, default=float))
 
