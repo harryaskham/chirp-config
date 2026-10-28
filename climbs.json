@@ -4681,15 +4681,15 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/likeness.py sections ref/obzen.wav OUT.wav $(cat tools/obzen-sections.txt)",
       "best": {
-        "score": 68.746,
-        "version": "v6",
+        "score": 68.784,
+        "version": "v7",
         "commit": "see git log songs/obzen.yaml",
         "engine": "85b3881"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 10,
+      "rounds": 11,
       "priority": 1.0,
       "genre": "progressive metal",
       "meta": {
@@ -4706,7 +4706,7 @@
       },
       "ref_file": "ref/albums/obzen/05 obzen.webm",
       "last": {
-        "at": "2026-10-28T05:16:37Z",
+        "at": "2026-10-28T06:47:26Z",
         "who": "chirper-zero"
       }
     },
