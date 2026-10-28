@@ -94,3 +94,16 @@ Engine work is opt-in and default-identical: chirp-eco checks byte-identical ren
 
 Composition mode is paused for this push. Ferrous Bloom keeps playing in the groove as a listening test bed, and
 library gains reach it through the shared patches.
+
+**28 Oct, articulations, first pass (chirper-one, bd-90c9d2).**
+
+- **What the engine already gives.** The m8 family's built-in pitch takes `env.bite`, `rand` and a delayed `lfo.vib`. Held notes grow vibrato after 380 ms at 0.2 depth, tab or no tab. With wM's expression paths (bd-8d7ab2), binding `expr.f0` (amount 0.01) adds per-note pitch curves in cents. A chord bends as one: its widest curve.
+- **Mapping in `tools/songsterr.py`.**
+  - New opt-in bend mode, `--bends path` (tab2song part key `"bends": "path"`, f29115d6). A bent note's curve becomes a per-note `^f0=a>b>…` in cents. Slides do too: in, from -2 semitones over 1/8 beat; out, -2 then -5 over the last 1/4.
+  - This replaces the track-wide `bend=` events, which moved every sounding note in the track. That is why the obZen maps strip them.
+  - Default output (peak/curve/mean) is byte-identical on Lethargica's and Pravus's tabs.
+  - The m8 patches need the binding: a song-local `extends` with pitch.mod = bite .15, rand .05, lfo.vib .2, expr.f0 .01 (the built-in list plus one).
+  - Palm mutes (`^pm`), dead notes (`^dead`), pinch harmonics (`^ph`), natural harmonics (`^nh=N`) and hammer-ons (`^h`, opt-in "articulations": ["hp"]) were already carried.
+- **A/B, Lethargica v12** (slides only; its tab has no lead bends). Bends and slides as paths on the rhythm pair: 69.27/68.95 vs 69.27/68.98. With the bass too: 69.21/68.98. Rhythm-pair vibrato off: 69.25/68.99; at 0.1: 69.24/68.95. All flat.
+- **How few bends obZen has.** Path notes per tab track: Pravus 4; Pineal 18/18 on the rhythm pair, 4 on the lead, 10 on the bass; Snake 10/10, bass 27; Dancers 19/32, solo 6, bass 19. Whole-song scores cannot see them. The riff clips (microscore/riffpunch) and ears must judge.
+- **Timing scatter** (riffpunch, Pineal 60-90 s). The record vs ours has an IQR of 38 ms (74% off by >10 ms). With the rhythm pair's strum and humanise at 0 it is 36.5 ms (71%). So the scatter is not our humanise. It is the record's own timing against the tab grid: drift or feel, wM's warp territory.
