@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """chirpers1-t3 "Moult" (Chirpers, Ferrous Bloom, track 3: the groove). Composed by chirper-two.
 
-Identity: 96 BPM, swung sixteenths (swing16 .6), half-time 4/4 kit. The hypnotic figure is NINEFOLD, a 9-sixteenth
+Identity: 96 BPM, swung sixteenths (swing16 .55), half-time 4/4 kit with the cymbal on the quarter. The hypnotic figure is NINEFOLD, a 9-sixteenth
 chug cell that realigns with the bar every 9 bars (so the A sections are 9 bars long and the realignment is the
 section boundary). It moults: one slot changes every few repeats (a chug becomes a ghost, a rest becomes a stab, a
 stab doubles), so the loop never quite repeats. Harmony is the THIRDS WHEEL: roots step by major thirds
@@ -13,7 +13,14 @@ Emits songs/chirpers1-t3.yaml. Edit the music here, not the YAML.
 import json
 import os
 
-OUT = os.path.expanduser("~/.config/chirp/songs/chirpers1-t3.yaml")
+OUT = os.environ.get("MOULT_OUT") or os.path.expanduser("~/.config/chirp/songs/chirpers1-t3.yaml")
+# Round 2 (kept as v2): P quarter-note cymbal pulse in the heavy sections; L less sub, more 80-120 Hz in the bass;
+# D dynamics inside the loud sections (Moult builds, Lock's second cycle hits harder under a pad swell); A the cell's
+# first chug is its accent; swing16 .6 -> .55: at .6 the odd-length cell flips swing parity every repeat and smears
+# its own 9-against-16 (the onset autocorrelation saw only eighths); at .55 the cycle is felt and the riff still swings.
+# MOULT_R2 / MOULT_SWING override them for A/B (MOULT_R2=none for v1's arrangement with MOULT_SWING=0.6).
+R2 = set(filter(None, os.environ.get("MOULT_R2", "P,L,D,A").split(","))) - {"none"}
+SWING16 = float(os.environ.get("MOULT_SWING", "0.55"))
 BPM = 96
 STEP = 0.25  # beats per sixteenth
 BAR = 16
@@ -85,23 +92,25 @@ def ninefold(gl, gr, bass, kick, start, bars, root_at, variant_at, phase_r=None,
             if t >= end or c == ".":
                 continue
             d = phase_r(t) if phase_r else 0
+            acc = accent(t) if callable(accent) else accent
+            head = "A" in R2 and i == 0  # A: the cell's first chug is its accent (kick and guitars), the rest sit back
             if c == "X":
                 for g, dd in ((gl, 0), (gr, d)):
-                    g.add(t + dd, 1, nm(root), accent - 6 * (i % 2), "pm")
-                bass.add(t, 1, nm(root), 104)
-                kick.append((t, 104))
+                    g.add(t + dd, 1, nm(root), min(127, acc + 10) if head else acc - 6 * (i % 2), "pm")
+                bass.add(t, 1, nm(root), 116 if head else 104)
+                kick.append((t, 124 if head else (92 if "A" in R2 else 104)))
             elif c == "x":
                 for g, dd in ((gl, 0), (gr, d)):
                     g.add(t + dd, 1, nm(root), 64, "pm")
             elif c == "O":
                 for g, dd in ((gl, 0), (gr, d)):
-                    g.add(t + dd, 2, f"{nm(root)},{nm(root + 12)}", accent)
+                    g.add(t + dd, 2, f"{nm(root)},{nm(root + 12)}", acc)
                 bass.add(t, 2, nm(root), 110)
-                kick.append((t, 112))
+                kick.append((t, 124 if head else 112))
             elif c == "S":
                 ch = ",".join(nm(n) for n in stab(root))
                 for g, dd in ((gl, 0), (gr, d)):
-                    g.add(t + dd, 2, ch, accent - 4)
+                    g.add(t + dd, 2, ch, acc - 4)
                 bass.add(t, 2, nm(root), 100)
         k += 1
         s += 9
@@ -122,11 +131,17 @@ def build():
     def hit(step, piece, vel):
         kit.setdefault(step, {})[piece] = max(vel, kit.get(step, {}).get(piece, 0))
 
-    def halftime(start, bars, hats="h", hat_vel=(78, 58), ghosts=True, snare=110):
+    def halftime(start, bars, hats="h", hat_vel=(78, 58), ghosts=True, snare=110, pulse=None):
+        """Half-time kit. With `pulse` (round 2, P) the cymbal states the 96 BPM quarter and nothing between, so
+        NINEFOLD's 9-against-16 is what moves: pulse(bar) names the cymbal for that bar."""
         for b in range(bars):
             s0 = start + b * BAR
-            for i in range(0, BAR, 2):
-                hit(s0 + i, hats, hat_vel[(i // 2) % 2])
+            if pulse and "P" in R2:
+                for i in range(0, BAR, 4):
+                    hit(s0 + i, pulse(b), 100 if i == 0 else 90)
+            else:
+                for i in range(0, BAR, 2):
+                    hit(s0 + i, hats, hat_vel[(i // 2) % 2])
             hit(s0 + 8, "s", snare)
             if ghosts and b % 2 == 1:
                 hit(s0 + 14, "g", 44)
@@ -164,7 +179,7 @@ def build():
     # 2. NINEFOLD (9 bars): the full rig; the moult walks 0 -> 1 -> 2.
     sec["ninefold"] = (t, 9)
     ninefold(gl, gr, bass, kick, t, 9, lambda s: F1, lambda k: min(k // 6, 2))
-    halftime(t, 9)
+    halftime(t, 9, pulse=lambda b: "h")
     hit(t, "c", 118)
     t += 9 * BAR
 
@@ -172,9 +187,10 @@ def build():
     # china on the first stab of each realignment-half.
     sec["moult"] = (t, 9)
     s0 = t
+    ramp = (lambda st: 100 + int(16 * (st - s0) / (9 * BAR))) if "D" in R2 else 110  # D: Moult builds
     ninefold(gl, gr, bass, kick, t, 9, lambda s: F1, lambda k: 3 + min(k // 6, 2),
-             phase_r=lambda st: 1 if st >= s0 + 5 * BAR else 0)
-    halftime(t, 9, ghosts=True)
+             phase_r=lambda st: 1 if st >= s0 + 5 * BAR else 0, accent=ramp)
+    halftime(t, 9, ghosts=True, pulse=lambda b: "rd" if b < 5 else "rb")
     hit(t, "c", 120)
     hit(t + 5 * BAR, "x", 112)
     for i, p in enumerate(("s", "s", "t2", "t3", "ft", "ft")):
@@ -236,7 +252,7 @@ def build():
     # swinging hexatonic line over it.
     sec["ninefold_a"] = (t, 9)
     ninefold(gl, gr, bass, kick, t, 9, lambda s: A1, lambda k: (6, 7, 4)[min(k // 6, 2)])
-    halftime(t, 9)
+    halftime(t, 9, pulse=lambda b: "h")
     hit(t, "c", 120)
     hl = [n + 12 for n in hexatonic(A1 + 24)]  # A4 C5 C#5 E5 F5 G#5 (the lead plays them an octave lower)
     phrase = [  # (bar, step, length in steps, index into hl)
@@ -259,7 +275,8 @@ def build():
             return F1
         return (F1, A1, CS2, F1, A1, CS2, F1, F1, F1)[min((s - s0 - 9 * BAR) // (2 * BAR), 8)]
     dummy_bass = Part("x")
-    ninefold(gl, gr, dummy_bass, kick, t, 18, lat_root, lambda k: (2, 5)[(k // 4) % 2], accent=114)
+    lock_acc = (lambda st: 106 if st < s0 + 9 * BAR else 120) if "D" in R2 else 114  # D: the 2nd cycle hits harder
+    ninefold(gl, gr, dummy_bass, kick, t, 18, lat_root, lambda k: (2, 5)[(k // 4) % 2], accent=lock_acc)
     # the bass borrows the album's LATTICE (t1): its 3+2+2 seven-cell, walking LATTICE's F-Gb-B-E line one note per
     # cell (4 against 3 onsets), so NINEFOLD's augmented stabs grind against LATTICE's minor 2nd, tritone and
     # major 7th; in the second cycle the line rides the thirds wheel (root, +1, +6, +11 on each wheel root).
@@ -271,9 +288,16 @@ def build():
             if s + i < t + 18 * BAR and c != ".":
                 bass.add(s + i, 2 if i == 0 else 1, nm(r), 112 if i == 0 else 98)
         s, cell = s + 7, cell + 1
-    halftime(t, 18, hats="oh", hat_vel=(70, 52))
-    for b in range(0, 18, 2):
-        hit(t + b * BAR, "c", 116)
+    if "D" in R2:
+        halftime(t, 9, hats="oh", hat_vel=(64, 48), snare=100, pulse=lambda b: "rd")
+        halftime(t + 9 * BAR, 9, hats="oh", hat_vel=(74, 56), snare=118, pulse=lambda b: "x")
+        for b in list(range(0, 9, 3)) + list(range(9, 18)):
+            hit(t + b * BAR, "c", 112 if b < 9 else 120)
+        pad.add(t + 9 * BAR, 9 * BAR, ",".join(nm(n) for n in (65, 69, 73)), 76)  # F4 A4 C#5 swells over cycle 2
+    else:
+        halftime(t, 18, hats="oh", hat_vel=(70, 52), pulse=lambda b: "rd" if b < 9 else "x")
+        for b in range(0, 18, 2):
+            hit(t + b * BAR, "c", 116)
     for st, ln, head, vel, mark in gl.ev:
         if st >= t + 9 * BAR and len(head.split(",")) == 3:  # the augmented stabs of the second cycle
             hit(st, "x", 100)
@@ -317,12 +341,14 @@ def build():
 
 def main():
     total, sec, P = build()
-    sw = "swing16=0.6"
+    sw = f"swing16={SWING16:g}"
     delay = {"type": "delay", "time": f"{60000 / BPM * 0.75:.1f}ms", "feedback": 0.32, "mix": 0.22}
     # Mix (v1): the first render sat -10 dB under the genre envelope at 77-122 Hz and +4..9 dB over it at 270-830 Hz,
     # with too much sub and too little 2.4-9.5 kHz: body into the bass, the box out of the guitars, air on the master.
     geq = {"type": "eq", "bands": ["peak cutoff=420 q=0.8 gain=-4dB", "highshelf cutoff=3000 gain=3dB"]}
     beq = {"type": "eq", "bands": ["lowshelf cutoff=45 gain=-4dB", "peak cutoff=100 q=0.9 gain=6dB"]}
+    if "L" in R2:  # round 2: less sub, more 80-120 Hz body
+        beq = {"type": "eq", "bands": ["lowshelf cutoff=55 gain=-7dB", "peak cutoff=105 q=0.8 gain=7dB"]}
     tracks = [
         {"name": "gtr-l", "patch": "m8-emg-l", "pan": -1, "gain": "-2dB", "fx": [geq], "score": P["gl"].score(total, sw)},
         {"name": "gtr-r", "patch": "m8-emg-r", "pan": 1, "gain": "-2dB", "fx": [geq], "score": P["gr"].score(total, sw)},
@@ -336,7 +362,7 @@ def main():
     ]
     secs = "; ".join(f"{k} {v[0] // BAR + 1}-{v[0] // BAR + v[1]}" for k, v in sec.items())
     about = ("Chirpers - Moult (Ferrous Bloom, track 3: the groove). Original composition by chirper-two, generated by "
-             "compose/chirpers1/src/chirpers1-t3.py. 96 BPM swung half-time; NINEFOLD, a 9-sixteenth chug cell that "
+             "compose/chirpers1/src/chirpers1-t3.py. 96 BPM swung half-time (swing16 .55), quarter-note cymbals; NINEFOLD, a 9-sixteenth chug cell that "
              "moults one slot at a time and realigns every 9 bars; the THIRDS WHEEL F-A-C# (augmented colour); the climax "
              "locks NINEFOLD against the album's LATTICE seven-cell on the bass. "
              f"Bars: {secs}.")
