@@ -1,8 +1,8 @@
 {
   "id": "chirpers1",
   "artist": "Chirpers",
-  "album": "Chirpers I (untitled)",
-  "named": false,
+  "album": "Ferrous Bloom",
+  "named": true,
   "year": 2026,
   "genre": "polyrhythmic djent",
   "brief": "An original, instrumental-first polyrhythmic djent album in the tradition of extended-range progressive metal (8-string in F standard, chugging polymeter over a steady 4/4 pulse), but entirely its own music: invent the riffs, rhythms, harmonies and forms; never copy or closely imitate an existing song, including the Meshuggah records we reproduce. One album: a shared tuning, sound world and motif bank that recurs and develops across the tracks, while each track has its own character (tempo, meter, texture, intensity). The songs bleed into one another: no gaps, each ending sets up the next opening. Harsh vocals (the kidman patch) are optional; use them sparingly if at all.",
@@ -100,5 +100,7 @@
       "brief": "The epic closer in several movements: slow-building, reprising and developing motifs from across the album, a crushing peak, and a long ambient dissolve to silence.",
       "id": "chirpers1-t8"
     }
-  ]
+  ],
+  "named_by": "harry@pocket4-nixos",
+  "named_at": "2026-10-28T10:38:38Z"
 }
