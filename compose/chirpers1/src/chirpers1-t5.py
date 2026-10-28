@@ -23,7 +23,9 @@ ROOT = os.path.expanduser("~/.config/chirp")
 OUT = os.path.join(ROOT, "songs", "chirpers1-t5.yaml")
 BPM = 64
 BAR = 4.0  # beats
-MG = float(os.environ.get("T5_MG", "20"))  # master make-up gain (dB) before the ceiling
+MG = float(os.environ.get("T5_MG", "20"))
+HELD = os.environ.get("T5_HELD", "1") == "1"
+GTR_DB = float(os.environ.get("T5_GTR", "1"))  # master make-up gain (dB) before the ceiling
 
 # ---------------------------------------------------------------- motifs
 # The breath cell's clean arpeggio per harmony (five notes each, F lydian throughout until the exhale's Db).
@@ -191,15 +193,23 @@ def build():
             used |= {"pad", "cln", "bass", "mel", "drums"} | ({"cln2", "glass"} if sec == "C" else set())
         elif sec == "D":
             # breath held: the cell in augmentation (quarters), thinning; a swell into the weight
+            held = HELD  # the last beat before the weight is silent: the held breath
             notes = []
             for b, h in enumerate(HARM[sec]):
                 c = CELLS[h]
-                notes.append(" ".join(tok(c[(b * 4 + j) % 5], 1, 66 - b * 4) for j in range(4)))
+                q = 3 if (held and b == len(HARM[sec]) - 1) else 4
+                notes.append(" ".join(tok(c[(b * 4 + j) % 5], 1, 66 - b * 4) for j in range(q)) + (" " + rest(1) if q == 3 else ""))
             add("cln", " ".join(notes), beats)
-            pad_bars("pad", HARM[sec], vel=72)
-            add("glass", rest(BAR * 2) + " " + tok("B3,E4,B4", BAR * 2, 70), beats)
-            add("drums", rest(BAR * 3) + " " + " ".join(f"s/0.25b@{40 + 5 * i}" for i in range(16)), beats)
-            add("bass", rest(BAR * 3) + " " + tok("F1", BAR, 60), beats)
+            if held:
+                add("pad", " ".join(tok(PAD[h], BAR, 72) for h in HARM[sec][:-1]) + " " + tok(PAD[HARM[sec][-1]], 3, 72) + " " + rest(1), beats)
+                add("glass", rest(BAR * 2) + " " + tok("B3,E4,B4", BAR * 2 - 1, 70) + " " + rest(1), beats)
+                add("drums", rest(BAR * 3) + " " + " ".join(f"s/0.25b@{40 + 6 * i}" for i in range(12)) + " " + rest(1), beats)
+                add("bass", rest(BAR * 3) + " " + tok("F1", 3, 60) + " " + rest(1), beats)
+            else:
+                pad_bars("pad", HARM[sec], vel=72)
+                add("glass", rest(BAR * 2) + " " + tok("B3,E4,B4", BAR * 2, 70), beats)
+                add("drums", rest(BAR * 3) + " " + " ".join(f"s/0.25b@{40 + 5 * i}" for i in range(16)), beats)
+                add("bass", rest(BAR * 3) + " " + tok("F1", BAR, 60), beats)
             used |= {"cln", "pad", "glass", "drums", "bass"}
         elif sec in ("E", "E2"):
             roots = (["F1"] * 4 + ["Gb1"] * 2 + ["F1"] * 2) if sec == "E" else (["F1", "Gb1", "F1", "F1"])
@@ -278,8 +288,8 @@ def song():
         {"name": "mel", "patch": "m8-clean", "gain": "-7dB", "pan": 0.1, "sends": {"dly": "-6dB", "hall": "-8dB"}, "score": sc("mel")},
         {"name": "howl", "patch": "m8-lead", "gain": "-6dB", "pan": 0, "score": sc("howl")},
         {"name": "bass", "patch": "bass-fat", "gain": "-6dB", "pan": 0, "score": sc("bass")},
-        {"name": "gtr-l", "patch": "m8-emg-l", "gain": "-1dB", "pan": -1, "score": sc("gtr-l")},
-        {"name": "gtr-r", "patch": "m8-emg-r", "gain": "-1dB", "pan": 1, "score": sc("gtr-r")},
+        {"name": "gtr-l", "patch": "m8-emg-l", "gain": f"{GTR_DB:+g}dB", "pan": -1, "score": sc("gtr-l")},
+        {"name": "gtr-r", "patch": "m8-emg-r", "gain": f"{GTR_DB:+g}dB", "pan": 1, "score": sc("gtr-r")},
         {"name": "drums", "patch": "metal-kit", "gain": "-4dB", "score": sc("drums")},
         {"name": "tick", "patch": "metal-kit", "gain": "-12dB", "pan": 0.3, "score": sc("tick")},
     ]
