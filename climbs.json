@@ -4718,14 +4718,14 @@
       "owner": "chirper-one",
       "metric": "python3 tools/likeness.py sections ref/this-spiteful-snake.wav OUT.wav $(cat tools/this-spiteful-snake-sections.txt)",
       "best": {
-        "score": 62.491,
-        "version": "v21",
+        "score": 62.684,
+        "version": "v22",
         "commit": "see git log songs/this-spiteful-snake.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 24,
+      "rounds": 25,
       "priority": 1.0,
       "genre": "progressive metal",
       "meta": {
@@ -4742,7 +4742,7 @@
       },
       "ref_file": "ref/albums/obzen/06 this-spiteful-snake.webm",
       "last": {
-        "at": "2026-10-28T07:49:08Z",
+        "at": "2026-10-28T09:37:05Z",
         "who": "chirper-one"
       }
     },
