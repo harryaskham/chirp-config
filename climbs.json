@@ -4972,7 +4972,7 @@
     {
       "id": "chirpers1-t4",
       "song": "songs/chirpers1-t4.yaml",
-      "reference": "Chirpers — Track 4 (untitled)",
+      "reference": "Chirpers — Splinterwork",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers1-t4 OUT.wav",
@@ -4988,7 +4988,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "Ferrous Bloom",
-        "title": "Track 4 (untitled)",
+        "title": "Splinterwork",
         "track": 4,
         "year": 2026
       },
