@@ -143,13 +143,56 @@ def build():
             {'name': 'gtr-l', 'patch': 'm8-emg-l', 'gain': '-5dB', 'pan': -1, 'score': join(gtr)},
             {'name': 'gtr-r', 'patch': 'm8-emg-r', 'gain': '-5dB', 'pan': 1, 'score': join(gtr)},
             {'name': 'bass', 'patch': 'bass-fat', 'gain': '-4dB', 'score': join(bass)},
-            {'name': 'drums', 'patch': 'metal-kit-dry', 'gain': '-2dB', 'score': join(kit)},
+            {'name': 'drums', 'patch': 'metal-kit-punch', 'gain': '-2dB', 'score': join(kit)},
             {'name': 'lead', 'patch': 'm8-lead', 'gain': '-6dB', 'pan': 0.1, 'score': join(lead)},
         ]}
 
+
+# ---- guitar-like lead expression (chirper-one, tone push / bd-90c9d2): ^f0 paths on m8-lead via a song-local twin ----
+import re as _re
+_NN = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
+_AL = {'C#': 'Db', 'D#': 'Eb', 'F#': 'Gb', 'G#': 'Ab', 'A#': 'Bb'}
+def _mid(n):
+    m = _re.match(r'([A-G][#b]?)(-?\d)$', n); return _NN.index(_AL.get(m[1], m[1])) + 12 * int(m[2])
+def guitarize(song, tracks=('lead',)):
+    """long notes (>= 2 beats) scoop up a semitone into the note; a note within 5 semitones of the previous held note
+    slides from it (^f0 cents paths); the lead patch gets a twin binding pitch to expr.f0 (amount 0.01)."""
+    pats = song.setdefault('patches', {})
+    def path(vals): return '^f0=' + '>'.join(str(int(round(v))) for v in vals)
+    for t in song['tracks']:
+        if t['name'] not in tracks:
+            continue
+        if t['patch'].split()[0] == 'm8-lead':
+            pats['m8-lead-f0'] = {'extends': t['patch'], 'synth': {'pitch': {'value': 0, 'mod': [
+                {'src': 'lfo.vib', 'amount': 0.3}, {'src': 'expr.f0', 'amount': 0.01}]}}}
+            t['patch'] = 'm8-lead-f0'
+        prev, nb = None, []
+        for bar in t['score'].split(' | '):
+            o = []
+            for tk in bar.split(' '):
+                m = _re.match(r'([A-G][#b]?-?\d)/([0-9.]+)b(.*)$', tk)
+                if not m:
+                    if tk.startswith('R'):
+                        prev = None
+                    o.append(tk); continue
+                n, dur, rest = m[1], float(m[2]), m[3]
+                p = _mid(n)
+                if dur >= 2:
+                    vals = [-100 + 100 * min(1, i / 1.5) for i in range(9)]
+                elif prev is not None and 0 < abs(p - prev) <= 5:
+                    d0 = (prev - p) * 100
+                    vals = [d0 * max(0, 1 - i / 1.2) for i in range(9)]
+                else:
+                    vals = None
+                o.append(tk if vals is None else f'{n}/{m[2]}b{rest}{path(vals)}')
+                prev = p
+            nb.append(' '.join(o))
+        t['score'] = ' | '.join(nb)
+    return song
+
 if __name__ == '__main__':
     out = sys.argv[1] if len(sys.argv) > 1 else OUT
-    song = build()
+    song = guitarize(build())
     if out.endswith('.json'):
         json.dump(song, open(out, 'w'), indent=1)
     else:
