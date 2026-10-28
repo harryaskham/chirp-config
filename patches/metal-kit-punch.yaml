@@ -3,6 +3,11 @@ about: >-
   records' drum stems found our snare thin and spiky: body (150-300 Hz) vs crack (1.5-5 kHz) about 2 / -2 dB on Broken
   Cog / The Faultless against the records' 12 / 14 dB, and punch (peak vs body 20-50 ms later) 20 / 18 dB against 10 /
   13 dB. Round 1: the snare's body and shell layers deeper (+8 / +6 dB) and the 220 Hz body peak +5 dB (was +3).
+  Round 2: the record's snare holds its body for ~20-50 ms then drops (a gated, fat shape), where ours fell off
+  exponentially and lingered: body/shell, wires and ring now decay near-linearly (curve 1) over 80 / 90 / 80 ms
+  (were 140 / 220 / 160 ms at curve 4). drumpunch: broken-cog 43.1 -> 45.25 (r1) -> 50.99, the-faultless
+  61.71 -> 66.88 -> 73.68 (snare 37.7 -> 61.6; punch 17.6 -> 13.6 dB vs the record's 12.5). Shorter exponential
+  tails (curve 4) were worse: punch rose to 20-33 dB.
   Everything else is metal-kit-dry. Candidate only; library defaults need chirp-eco's crossclimb.
 extends: metal-kit-dry
 kit:
@@ -21,10 +26,10 @@ kit:
         pitch: {value: 0, mod: [{src: env.p, amount: 5}, {src: rand, amount: 0.25}]}
         env:
           p: {a: 0.2ms, d: 16ms, s: 0}
-          body: {a: 0.2ms, d: 140ms, s: 0, curve: 4}
+          body: {a: 0.2ms, d: 80ms, s: 0, curve: 1}
           rim: {a: 0.1ms, d: 30ms, s: 0}
-          ring: {a: 0.2ms, d: 160ms, s: 0}
-          wires: {a: 0.4ms, d: 220ms, s: 0, curve: 4}
+          ring: {a: 0.2ms, d: 80ms, s: 0}
+          wires: {a: 0.4ms, d: 90ms, s: 0, curve: 1}
           crack: {a: 0.1ms, d: 10ms, s: 0}
         filters:
           - "hp cutoff=120"
