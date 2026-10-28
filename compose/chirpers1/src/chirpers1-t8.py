@@ -235,6 +235,9 @@ def cyc(a, b, phr):
 
 # ---------------- F: BREATH CELL (t5) and the last LATTICE ----------------
 BREATH = ['F3', 'C4', 'E4', 'B4', 'G4']
+# t7 'Iron Stairs': its LATTICE RISING phrase, half speed, as a memory in the dissolve
+STAIRS_ECHO = [['F4/4b@64'], ['Gb4/2b@62', 'B4/2b@64'], ['E5/4b@66'], ['D5/2b@62', 'C5/2b@60'], ['B4/4b@60'], ['Gb4/4b@58'],
+               ['F4/2b@56', 'B4/2b@56'], ['E5/4b@54']]
 def breath16(a, b, vel):
     return stream16(a, b, lambda i: f'{BREATH[i % 5]}@{vel}')
 
@@ -276,6 +279,7 @@ def build():
                   {C1[1]: drum_bar([[('c', 126), ('k', 126), ('x', 118)]] + [[]] * 15)})
     lead = merge(cyc(D1[0], D1[1], CLIMB), cyc(D2[0], D2[1], EXHALE2), cyc(E[0], E[1] - 1, CRUSHL),
                  {E[1]: ['Gb5/4b@116']})
+    ECHO = {F1[0] + 4 + i: [t] if isinstance(t, str) else t for i, t in enumerate(STAIRS_ECHO)}   # t7's LATTICE RISING, remembered
     end_s = NB * 4 * SPB
     fade0 = (F2[0] + 6) * 4 * SPB
     return {
@@ -294,6 +298,7 @@ def build():
             {'name': 'gtr-r', 'patch': 'm8-emg-r', 'gain': '-5dB', 'pan': 1, 'score': join(gtr)},
             {'name': 'bass', 'patch': 'bass-fat', 'gain': '-4dB', 'score': join(bass)},
             {'name': 'drums', 'patch': 'metal-kit-dry', 'gain': '-2dB', 'score': join(drums)},
+            {'name': 'echo', 'patch': 'm8-clean', 'gain': '-11dB', 'pan': 0.35, 'score': join(ECHO)},
             {'name': 'lead', 'patch': 'm8-lead', 'gain': '-8dB', 'pan': -0.15, 'score': join(lead)},
         ]}
 

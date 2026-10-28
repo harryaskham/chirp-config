@@ -57,7 +57,8 @@ The closer, 96 bpm, ~494 s; generator compose/chirpers1/src/chirpers1-t8.py. It 
   half time.
 - **The crush (E, 340-380 s):** half-time blocks F5 / Gb5 / F5-Ab5 / B5, ending on t1's cluster F1 B1 E2 with Gb5 on
   the lead.
-- **Dissolve (F, 380-494 s):** t5's BREATH CELL (F3 C4 E4 B4 G4) on sixteenths over the COLD CHORD, slowing to
+- **Dissolve (F, 380-494 s):** t5's BREATH CELL (F3 C4 E4 B4 G4) on sixteenths over the COLD CHORD, with t7's
+  LATTICE RISING remembered at half speed on a second clean guitar (F4 | Gb4 B4 | E5 | D5 C5 | B4 | Gb4 | F4 B4 | E5), slowing to
   eighths and quarters, then LATTICE's line once more in whole notes (F4 Gb4 B4 E5), and an F-B-E-Gb pad into
   silence (master fade).
 
