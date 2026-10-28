@@ -102,5 +102,10 @@
     }
   ],
   "named_by": "harry@pocket4-nixos",
-  "named_at": "2026-10-28T10:38:38Z"
+  "named_at": "2026-10-28T10:38:38Z",
+  "art": {
+    "file": "ref/albums/ferrous-bloom/cover-tti.png",
+    "prompt": "Album cover art for 'Ferrous Bloom' by Chirpers, an original polyrhythmic djent album. Dark, geometric, mechanical-organic imagery: interlocking gears or lattices dissolving into something living; deep blacks with one cold metallic accent colour.  Striking, abstract, no text, no letters, no band logo, square composition.",
+    "at": "2026-10-28T10:41:29Z"
+  }
 }
