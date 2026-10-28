@@ -297,6 +297,15 @@ SEED_TOMS = {"about": "Seed Crystal's toms: physical felt-mallet drums tuned to 
              "kit": {"ft": {"pitch": "F2", "gain": "12dB", "patch": felt_tom(1.2, 25)},      # felt is soft: +12 dB meets
                      "t3": {"pitch": "B2", "gain": "12dB", "patch": felt_tom(0.9, 30)}}}     # the old toms' level
 
+# The SUB SWELL: a pure F1 sine that fades in across the held cluster and peaks as Ingot's first kick and F1 bass land,
+# so the intro's last bar blooms into the floor t2 stands on (the join read 24 dB short at 38 Hz, 23 dB over at 83-97).
+SEED_SUB = {"about": "Seed Crystal's sub swell into Ingot (chirper-three): a sine with a 2.6 s attack.",
+            "synth": {"layers": [{"name": "sub", "wave": "sine"}, {"name": "oct", "wave": "sine", "ratio": 2, "level": "-14dB"}],
+                      "amp": {"a": "2600ms", "d": "0ms", "s": 1, "r": "600ms"}}}
+
+def sub_swell():
+    return score([(bar0(HOLD), S, nm(F1), 100, "")])
+
 def tr(name, patch, sc, **kw):
     d = {"name": name, "patch": patch, "score": sc}
     d.update(kw)
@@ -311,6 +320,7 @@ def main():
         tr("lead", "m8-lead", lead(), gain="-10dB", sends={"hall": "-4dB"},
            fx=["delay time=3/8 feedback=0.3 mix=0.2"]),
         tr("bass", "bass-fat", bass(), gain="-3dB"),
+        tr("sub", "seed-sub", sub_swell(), gain="-6dB"),
         tr("gtr-l", "m8-emg-l", guitar(), pan="L90", gain="-5dB", seed=7),
         tr("gtr-r", "m8-emg-r", guitar(), pan="R90", gain="-5dB", seed=13),
         tr("kick", "metal-kit-dry", kick(), out="drums"),
@@ -323,7 +333,7 @@ def main():
         f"tempo: {TEMPO}",
         'tail: "0.5s"',                # the held F-B-E cluster is still ringing when t2 begins (the songs bleed)
         'ceiling: "-0.1dB"',
-        'patches: ' + json.dumps({"seed-toms": SEED_TOMS}),
+        'patches: ' + json.dumps({"seed-toms": SEED_TOMS, "seed-sub": SEED_SUB}),
         "buses:",
         '  hall: {fx: ["reverb kind=hall decay=3.4s mix=1 predelay=25ms mono_below=150hz"]}',
         '  drums: {fx: [{"type": "compressor", "threshold": "-18dB", "ratio": 3, "attack": "10ms", "release": "90ms", "makeup": "2dB"}, "reverb kind=room decay=0.6s mix=0.08 predelay=6ms mono_below=200hz"]}',
