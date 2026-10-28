@@ -91,21 +91,22 @@ def phr(a, b, P, k=0):
     return out
 
 def build():
-    I, A, B, BR, C1, C2, X, RP, O = (1, 5), (6, 25), (26, 40), (41, 50), (51, 60), (61, 70), (71, 80), (81, 90), (91, 100)
+    I, A, B, A2, BR, C1, A3, C2, X, RP, O = (1, 5), (6, 20), (21, 30), (31, 35), (36, 45), (46, 55), (56, 60), (61, 70), (71, 80), (81, 90), (91, 100)
     gA, bA, hA = churn(*A, 'F1'); gB, bB, hB = churn(*B, 'Gb1')
     gC1, bC1, hC1 = churn(*C1, 'Ab1'); gC2, bC2, hC2 = churn(*C2, 'A1'); gX, bX, hX = churn(*X, 'B1'); gR, bR, hR = churn(*RP, 'F1')
-    gtr = merge({m: [f'F1,B1,F2/4b@{124 - 8 * (m - 1)}'] for m in range(I[0], I[1] + 1)}, gA, gB, gC1, gC2, gX, gR,
+    gA2, bA2, hA2 = churn(*A2, 'F1'); gA3, bA3, hA3 = churn(*A3, 'F1')
+    gtr = merge({m: [f'F1,B1,F2/4b@{124 - 8 * (m - 1)}'] for m in range(I[0], I[1] + 1)}, gA, gB, gA2, gC1, gA3, gC2, gX, gR,
                 {m: (['F1,C2,F2/4b@118'] if m == O[0] else ['F2,C3,E3,B3/4b@100'] if m == O[0] + 1 else ['R/4b'])
                  for m in range(O[0], O[1] + 1)})
-    bass = merge({m: ['F1/4b@90'] for m in range(I[0], I[1] + 1)}, bA, bB,
+    bass = merge({m: ['F1/4b@90'] for m in range(I[0], I[1] + 1)}, bA, bB, bA2, bA3,
                  {m: ['F1/4b@80'] for m in range(BR[0], BR[1] + 1)}, bC1, bC2, bX, bR, {O[0]: ['F1/4b@118'], O[0] + 1: ['F1/4b@100']})
-    kit = merge(drums(*A, hA), drums(*B, hB), drums(*C1, hC1), drums(*C2, hC2, ride=True), drums(*X, hX, crash_every=5, ride=False), drums(*RP, hR),
+    kit = merge(drums(*A, hA), drums(*B, hB), drums(*A2, hA2), drums(*A3, hA3), drums(*C1, hC1), drums(*C2, hC2, ride=True), drums(*X, hX, crash_every=5, ride=False), drums(*RP, hR),
                 {I[0]: drum_bar([[('c', 124), ('k', 124), ('x', 116)]] + [[]] * 15)},
                 {m: drum_bar([[('rd', 70)] if s % 4 == 0 else [] for s in range(16)][:8] + [[('s', 100), ('k', 96)]] + [[]] * 7)
                  for m in range(BR[0] + 4, BR[1] + 1)},
                 {O[0]: drum_bar([[('c', 126), ('k', 126), ('x', 118)]] + [[]] * 15)})
     lead = merge({m: ['E5/4b@80'] for m in range(I[0] + 1, I[1] + 1)},
-                 phr(A[0] + 4, A[1], L1, 0), phr(B[0], B[1], L1, 1),
+                 phr(A[0] + 4, A[1], L1, 0), phr(B[0], B[1], L1, 1), phr(A2[0], A2[1], L1, 0), phr(A3[0], A3[1], L1, 0),
                  phr(C1[0], C1[1], L2, 3), phr(C2[0], C2[1], L2, 4), phr(X[0], X[1], L3, 6), phr(RP[0], RP[1], L1, 12),
                  {O[0]: ['F5/4b@110'], O[0] + 1: ['E5/4b@96'], O[0] + 2: ['E5/4b@84']})
     clean = merge(*[{m: t} for m, t in []])

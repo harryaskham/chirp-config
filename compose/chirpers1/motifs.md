@@ -112,7 +112,7 @@ The ascent, 112 bpm, ~214 s; generator compose/chirpers1/src/chirpers1-t7.py.
   so sections are 5/10/15/20 bars. Palm-muted root chugs, kick in unison; every second cell's last onset opens into
   root+fifth+octave.
 - **STAIRS** (harmony): the churn's root climbs a step per section, F1 -> Gb1 -> Ab1 -> A1 -> B1 (the tritone as the
-  climax), then falls back to F for the reprise.
+  climax), returning to the F landing between steps (F Gb F | Ab F | A B | F): the stairs and the landing.
 - **LATTICE RISING** (t1's F-Gb-B-E line, transformed into the lead): F4 Gb4 B4 | E5 D5 | C5 B4 | Gb4, then
   F4 B4 E5 | F5 E5 | B4 C5 | Gb5, and at the climax B4 E5 F5 | Gb5 F5 | E5 B5 | F5; every phrase rides up with the
   stairs (+1, +3, +4, +6 semitones) and returns an octave higher over the F reprise.
