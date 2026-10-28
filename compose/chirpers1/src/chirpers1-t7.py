@@ -98,10 +98,11 @@ def build():
     gtr = merge({m: [f'F1,B1,F2/4b@{124 - 8 * (m - 1)}'] for m in range(I[0], I[1] + 1)}, gA, gB, gA2, gC1, gA3, gC2, gX, gR,
                 {m: (['F1,C2,F2/4b@118'] if m == O[0] else ['F2,C3,E3,B3/4b@100'] if m == O[0] + 1 else ['R/4b'])
                  for m in range(O[0], O[1] + 1)})
-    bass = merge({m: ['F1/4b@90'] for m in range(I[0], I[1] + 1)}, bA, bB, bA2, bA3,
+    bass = merge({m: ['F1/4b@90'] for m in range(I[0] + 2, I[1] + 1)}, bA, bB, bA2, bA3,
                  {m: ['F1/4b@80'] for m in range(BR[0], BR[1] + 1)}, bC1, bC2, bX, bR, {O[0]: ['F1/4b@118'], O[0] + 1: ['F1/4b@100']})
     kit = merge(drums(*A, hA), drums(*B, hB), drums(*A2, hA2), drums(*A3, hA3), drums(*C1, hC1), drums(*C2, hC2, ride=True), drums(*X, hX, crash_every=5, ride=False), drums(*RP, hR),
-                {I[0]: drum_bar([[('c', 124), ('k', 124), ('x', 116)]] + [[]] * 15)},
+                {I[0]: drum_bar([[('c', 124), ('k', 124), ('x', 116)]] + [[]] * 7 + [[('c', 116)]] + [[]] * 3 + [[('sp', 110)]] + [[]] * 3),
+                 I[0] + 1: drum_bar([[('c', 108)]] + [[]] * 15)},
                 {m: drum_bar([[('rd', 70)] if s % 4 == 0 else [] for s in range(16)][:8] + [[('s', 100), ('k', 96)]] + [[]] * 7)
                  for m in range(BR[0] + 4, BR[1] + 1)},
                 {O[0]: drum_bar([[('c', 126), ('k', 126), ('x', 118)]] + [[]] * 15)})
