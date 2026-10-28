@@ -4904,7 +4904,7 @@
     {
       "id": "chirpers1-t2",
       "song": "songs/chirpers1-t2.yaml",
-      "reference": "Chirpers — Track 2 (untitled)",
+      "reference": "Chirpers — Ingot",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers1-t2 OUT.wav",
@@ -4920,7 +4920,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "Ferrous Bloom",
-        "title": "Track 2 (untitled)",
+        "title": "Ingot",
         "track": 2,
         "year": 2026
       },
