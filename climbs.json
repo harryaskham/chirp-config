@@ -4826,14 +4826,14 @@
       "owner": "chirper-one",
       "metric": "python3 tools/likeness.py sections ref/dancers-to-a-discordant-system.wav OUT.wav $(cat tools/dancers-to-a-discordant-system-sections.txt)",
       "best": {
-        "score": 64.896,
-        "version": "v14",
+        "score": 65.083,
+        "version": "v15",
         "commit": "see git log songs/dancers-to-a-discordant-system.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 16,
+      "rounds": 17,
       "priority": 1.0,
       "genre": "progressive metal",
       "meta": {
@@ -4850,7 +4850,7 @@
       },
       "ref_file": "ref/albums/obzen/09 dancers-to-a-discordant-system.webm",
       "last": {
-        "at": "2026-10-28T05:26:41Z",
+        "at": "2026-10-28T08:50:07Z",
         "who": "chirper-one"
       }
     }
