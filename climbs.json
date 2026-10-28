@@ -4954,7 +4954,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 2,
+      "rounds": 3,
       "priority": 1.0,
       "genre": "polyrhythmic djent",
       "mode": "compose",
@@ -4972,7 +4972,7 @@
         "note": "COMPOSE (song, 180-240 s): The groove. Mid-tempo, heavy, syncopated, with space and swing in the riffs; a hypnotic figure that slowly mutates. Medium intensity."
       },
       "last": {
-        "at": "2026-10-28T11:54:01Z",
+        "at": "2026-10-28T12:20:19Z",
         "who": "chirper-two"
       },
       "chirp-eco": ""

@@ -21,6 +21,9 @@ OUT = os.environ.get("MOULT_OUT") or os.path.expanduser("~/.config/chirp/songs/c
 # MOULT_R2 / MOULT_SWING override them for A/B (MOULT_R2=none for v1's arrangement with MOULT_SWING=0.6).
 R2 = set(filter(None, os.environ.get("MOULT_R2", "P,L,D,A").split(","))) - {"none"}
 SWING16 = float(os.environ.get("MOULT_SWING", "0.55"))
+# Round 3 (kept as v3): J, a ride-edge wash swells under the closing roll so Moult's end opens toward t4's cymbals
+# (the join's spectral jump 9.9 -> 7.1 dB). MOULT_R3=none for v2.
+R3 = set(filter(None, os.environ.get("MOULT_R3", "J").split(","))) - {"none"}
 BPM = 96
 STEP = 0.25  # beats per sixteenth
 BAR = 16
@@ -328,6 +331,8 @@ def build():
             clean.add(t + 2 * BAR + 4 + o, 5, nm(hx[line[j]] + 12), 62)
     for i in range(12):
         hit(t + 6 * BAR - 12 + i, ("s", "t2", "t3", "ft")[i % 4] if i < 8 else "s", 70 + 4 * i)
+        if "J" in R3:  # round 3: a ride-edge wash swells under the roll, opening Moult's end toward t4's cymbals
+            hit(t + 6 * BAR - 12 + i, "rde", 50 + 5 * i)
     t += 6 * BAR
 
     for s, v in kick:
