@@ -36,7 +36,9 @@ import json
 import os
 import sys
 
-import numpy as np
+# a metric command runs from a plain shell: one BLAS thread, or a loaded box spins (chirper-one's first run, 28 Oct)
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+import numpy as np  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.environ.get("CLIMB_ROOT") or os.path.dirname(HERE)
@@ -102,6 +104,25 @@ def band(v, lo, hi, scale):
 
 
 # ── features ────────────────────────────────────────────────────────────────────────────────
+
+def autocorr(o, maxlag):
+    """np.correlate(o, o, 'full')[len(o) - 1:][:maxlag] by FFT: O(n log n). The direct form is O(n^2) and took 9
+    minutes on chirper-one's 494 s outro (likeness.tempo 336 s, the rhythm term 197 s)."""
+    n = len(o)
+    m = 1 << int(np.ceil(np.log2(max(2, 2 * n))))
+    f = np.fft.rfft(o, m)
+    return np.fft.irfft(f * np.conj(f), m)[:min(maxlag, n)]
+
+
+def tempo(onset, lo=60, hi=200):
+    """likeness.tempo with the FFT autocorrelation (the same lags and argmax)."""
+    o = onset - onset.mean()
+    ac = autocorr(o, int(np.ceil(60 * L.FPS / lo)) + 2)
+    lags = np.arange(len(ac))
+    bpm = np.where(lags > 0, 60 * L.FPS / np.maximum(lags, 1), 0)
+    ok = (bpm >= lo) & (bpm <= hi)
+    return 60 * L.FPS / lags[ok][np.argmax(ac[ok])]
+
 
 def profile(F, i0=0, i1=None):
     """Level-normalised long-term spectrum (40 log bands, dB minus their mean)."""
@@ -180,7 +201,7 @@ def features(x, F, dur):
     thr = np.percentile(onsets, 75)
     peaks = int(((onsets[1:-1] > onsets[:-2]) & (onsets[1:-1] >= onsets[2:]) & (onsets[1:-1] > thr)).sum())
     return {"dur": dur, "profile": profile(F).tolist(), "chroma": (ch / (ch.sum() + 1e-12)).tolist(),
-            "tempo": float(L.tempo(F.onset)), "density": peaks / max(dur, 1e-6),
+            "tempo": float(tempo(F.onset)), "density": peaks / max(dur, 1e-6),
             "head": {"level": lvl(head), "profile": profile(F, 0, n3).tolist()},
             "tail": {"level": lvl(tail), "profile": profile(F, max(0, F.n - n3), None).tolist()}}
 
@@ -319,7 +340,7 @@ def m_recurrence(ctx):
 def m_rhythm(ctx):
     F = ctx["F"]
     o = F.onset - F.onset.mean()
-    ac = np.correlate(o, o, mode="full")[len(o) - 1:]
+    ac = autocorr(o, int(4 * L.FPS) + 2)
     ac = ac / (ac[0] + 1e-12)
     lags = np.arange(2, min(len(ac) - 1, int(4 * L.FPS)))
     pk = lags[(ac[lags] > ac[lags - 1]) & (ac[lags] >= ac[lags + 1]) & (ac[lags] > 0.15)]

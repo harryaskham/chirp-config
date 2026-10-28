@@ -147,6 +147,12 @@ class Measures(unittest.TestCase):
         self.assertGreater(with_plugin["total"], base["total"])
         self.assertNotIn("human", base["terms"])                          # no rating: the term is skipped, not 0
 
+    def test_fft_autocorr_and_tempo_match_the_direct_forms(self):
+        o = np.random.default_rng(3).standard_normal(4000)
+        self.assertLess(float(np.abs(CS.autocorr(o, 500) - np.correlate(o, o, "full")[3999:4499]).max()), 1e-9)
+        F = L.Feat(piece([(20, 110, 0.4, 1.0)]))
+        self.assertAlmostEqual(CS.tempo(F.onset), L.tempo(F.onset), places=6)
+
     def test_flow_and_distinct_need_neighbours(self):
         x = piece([(30, 110, 0.5, 1.0), (30, 147, 0.4, 0.5)])
         c = ctx_of(x)
