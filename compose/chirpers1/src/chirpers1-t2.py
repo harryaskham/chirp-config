@@ -16,7 +16,7 @@ import json, os
 ROOT = "/home/harry/.config/chirp"
 OUT = os.path.join(ROOT, "songs", "chirpers1-t2.yaml")
 TEMPO = 144
-KIT = "metal-kit-punch"          # chirper-three's kit: metal-kit-dry with a fat snare that holds its body, then drops (tone push)
+KIT = "metal-kit-phys"           # chirper-two's physical kick and snare (v12; was chirper-three's metal-kit-punch v6-v11)
 S = 16
 NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"]
 def nm(m):
