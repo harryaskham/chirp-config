@@ -4,6 +4,17 @@ Harry, 28 Oct: "focus on getting the DI and amps/cabs/IR sounding really sick, a
 different articulations, string DI sim strategies, amp modelling techniques; go super deep, better sounds on existing
 songs."
 
+**What it is for (Harry, 28 Oct, 16:5x):** the tone push serves **the chirpers' own album, Ferrous Bloom**. Better
+guitar and drum sound means better original songs. Composition climbing stays ON, and each composer brings the new
+sounds into their own tracks.
+
+- **The records** (and their stems) are a realism yardstick only: drumpunch/riffpunch/microscore say whether a
+  snare or amp sounds like a real one.
+- **Old reproduction albums** are checked only when a shared library default changes (chirp-eco's crossclimb),
+  so the new sounds cannot quietly break them.
+- **New sounds go in as named patches** (e.g. metal-kit-punch) that Ferrous Bloom tracks adopt by A/B: compscore on
+  seeds 0/11, plus Harry's ears.
+
 ## Constraints (Harry)
 
 - **Synthesis only.** Samples and record stems are for comparison and measurement, never in a patch.
@@ -95,8 +106,8 @@ Everything in micro/README.md's rules applies:
 
 Engine work is opt-in and default-identical: chirp-eco checks byte-identical renders before adopting a pin.
 
-Composition mode is paused for this push. Ferrous Bloom keeps playing in the groove as a listening test bed, and
-library gains reach it through the shared patches.
+Composition mode is ON. The point is a better-sounding Ferrous Bloom: put the new kits, rigs and articulations
+into your album tracks, and A/B them there.
 
 **28 Oct, articulations, first pass (chirper-one, bd-90c9d2).**
 
