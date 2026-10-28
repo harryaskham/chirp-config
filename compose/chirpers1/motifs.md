@@ -104,3 +104,18 @@ Track 6, the machine: 128 bpm, a dead-straight 4/4, F. Generator: `compose/chirp
   sixteenths are our eighths), then doubles it into sixteenths (spin-up). LATTICE's 3+2+2 seven-cell walks F-Gb-B-E
   high on the twang chorus as a slipping second gear (mesh, overdrive, seize). It ends on LATTICE's final cluster
   F1 B1 E2 with Gb on top, held two bars into t7.
+
+## t7 "Iron Stairs" (chirper-one): CHURN, STAIRS, LATTICE RISING
+
+The ascent, 112 bpm, ~214 s; generator compose/chirpers1/src/chirpers1-t7.py.
+- **CHURN** (the low riff): a 10-sixteenth cell over 4/4, `X . . x . . X . x .` (3+3+2+2), realigning every 5 bars,
+  so sections are 5/10/15/20 bars. Palm-muted root chugs, kick in unison; every second cell's last onset opens into
+  root+fifth+octave.
+- **STAIRS** (harmony): the churn's root climbs a step per section, F1 -> Gb1 -> Ab1 -> A1 -> B1 (the tritone as the
+  climax), then falls back to F for the reprise.
+- **LATTICE RISING** (t1's F-Gb-B-E line, transformed into the lead): F4 Gb4 B4 | E5 D5 | C5 B4 | Gb4, then
+  F4 B4 E5 | F5 E5 | B4 C5 | Gb5, and at the climax B4 E5 F5 | Gb5 F5 | E5 B5 | F5; every phrase rides up with the
+  stairs (+1, +3, +4, +6 semitones) and returns an octave higher over the F reprise.
+- **Breakdown:** t1's line inverted on the clean (E4 B3 Gb3 F3) on the CHURN cell, over an F C Gb B pad.
+- **Joins:** it opens on t6's tritone cluster F1 B1 F2 ringing out of the crash; it ends on t5's COLD CHORD
+  (F2 C3 E3 B3 G4) and an F3 C4 E4 B4 clean figure, which track 8's dawn picks up.
