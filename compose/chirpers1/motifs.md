@@ -119,3 +119,33 @@ The ascent, 112 bpm, ~214 s; generator compose/chirpers1/src/chirpers1-t7.py.
 - **Breakdown:** t1's line inverted on the clean (E4 B3 Gb3 F3) on the CHURN cell, over an F C Gb B pad.
 - **Joins:** it opens on t6's tritone cluster F1 B1 F2 ringing out of the crash; it ends on t5's COLD CHORD
   (F2 C3 E3 B3 G4) and an F3 C4 E4 B4 clean figure, which track 8's dawn picks up.
+
+## t4 "Splinterwork" (chirper-two): SPLINTER, MINOR-THIRD AXIS, LATTICE CLUSTER
+
+Track 4 is the onslaught: 204 bpm, dead straight, the album's fastest. Generator:
+`compose/chirpers1/src/chirpers1-t4.py`.
+
+- **LATTICE CLUSTER** (borrowed from t1 and stacked): LATTICE's F-Gb-B-E colour as a single stab on each root:
+  root, b9, #11 (tritone plus an octave), maj7 (two octaves minus one). On F that is F1 Gb2 B2 E3. Every stab in
+  t4 is this chord.
+- **MINOR-THIRD AXIS** (harmony): roots F1 -> Ab1 -> B1 -> D2, the diminished axis. Moult's THIRDS WHEEL turns
+  by major thirds (augmented), Splinterwork turns by minor thirds (octatonic). Swarm walks the octatonic pairs
+  F/Gb, Ab/A, B/C and D/Eb.
+- **SPLINTER** (the riff): 11 sixteenths, `C..C..CTTT.`. That is three cluster stabs, 3+3, then a palm-muted
+  tremolo burst, 5. It realigns with the bar every 11 bars, so Splinter is 33 bars, three realignments: F plain over
+  a backbeat with the kick in unison; Ab with the tremolo filled in (`C..C..CTTTT`) over blasts; B dense
+  (`C.TC.TCTTT.`) over the hammer. Splinter II displaces it a sixteenth late as pure stabs (`C..C..C.C.C`) on D then
+  F, with the lead doubling each stab's b9 two octaves up.
+- **SWARM:** the two guitars tremolo a minor 2nd apart, hard left and right, so the cluster is split in stereo,
+  over double kick then blasts. The lead shrieks root+b9+#11 stabs.
+- **Abrupt stops as form:** Stop-start is single LATTICE-cluster hits with growing silence between them, a
+  tremolo burst with a snare roll every fourth bar, accelerating at the end (quarters, eighths, a tremolo bar)
+  into two beats of nothing. Collapse sheds SPLINTER one slot per repeat (11 sounding slots, 10 ... 1) until
+  three tutti hits and a choked crash.
+- **Maw** (the one half-time crush): ringing cluster, three chugs and a stab per bar on F then E. The lead plays
+  LATTICE in retrograde, E5 B4 Gb4 F4, four bars each.
+- **Borrowed from Moult (t3):** Ignition is NINEFOLD at 204 bpm (its stab now the LATTICE cluster). In Fracture
+  the album's cycles collide: guitars in SPLINTER's 11, bass and kick in NINEFOLD's 9, china and backbeat in 4/4.
+- **Joins:** Moult's closing roll lands on one ringing bar (the F cluster plus octave and a crash), with Moult's
+  final pad (F3 A3 C#4 F4) carried across for three bars. It ends on three tutti cluster hits, a choked crash and
+  0.44 s of dead air before t5's ringing F1-C2-F2-B2 chord.
