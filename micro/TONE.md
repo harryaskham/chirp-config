@@ -44,6 +44,27 @@ songs."
 - **Ears decide**: before calling a stream better, queue a reference/before/after set for Harry
   (`chirp live queue FILE --id groove --label NAME`, never over the groove).
 
+## Findings
+
+**28 Oct, drumpunch baseline (chirp-eco).** `tools/drumpunch.py --song ID --from A --to B` measures clean kick and
+snare hits from our own score, paired with the same moments on the record's drum stem.
+
+The separator noise floor (BS-Roformer against htdemucs on one song) scores **79-91** (kicks 94-98, snares 64-87).
+Our kits score **42-57**, so the gap is real. The same diagnosis holds on three songs:
+
+| piece | ours | record |
+|---|---|---|
+| snare decay to -20 dB (Bleed / Pineal) | 140 / 141 ms | 22 / 65 ms |
+| snare body (150-300 Hz) vs crack (1.5-5 kHz) | about -14 dB | about -3 dB |
+| snare rise | 11.5-12.5 ms | 4-5 ms |
+| kick rise (Pineal) | 11.5 ms | 4.5 ms |
+
+- **The snare** rings far too long (it rings out where the record's is tight), is thin (lacks body against its
+  crack) and attacks too softly.
+- **The kick attack** is soft on Pineal.
+
+That is the drum-machine sound: a real snare is fat, fast and tight.
+
 ## Rules
 
 Everything in micro/README.md's rules applies:
