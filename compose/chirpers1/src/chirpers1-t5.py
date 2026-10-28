@@ -26,7 +26,8 @@ BAR = 4.0  # beats
 MG = float(os.environ.get("T5_MG", "20"))
 HELD = os.environ.get("T5_HELD", "1") == "1"
 GTR_DB = float(os.environ.get("T5_GTR", "1"))
-TAIL = os.environ.get("T5_TAIL", "0.3s")  # render tail after the last bar  # master make-up gain (dB) before the ceiling
+TAIL = os.environ.get("T5_TAIL", "0.3s")
+WEIGHT_DB = float(os.environ.get("T5_WEIGHT", "3"))  # extra level on the heavy parts through E and E2  # render tail after the last bar  # master make-up gain (dB) before the ceiling
 
 # ---------------------------------------------------------------- motifs
 # The breath cell's clean arpeggio per harmony (five notes each, F lydian throughout until the exhale's Db).
@@ -281,6 +282,17 @@ def song():
         s = " | ".join(x for x, _ in T[name] if x)
         assert abs(sum(b for _, b in T[name]) - total_beats) < 1e-6, name
         return s
+    def weighted(t):
+        """A gain lane lifting the heavy parts through the weight (E, E2) by WEIGHT_DB."""
+        if not WEIGHT_DB:
+            return t
+        e0 = sum(n for s, n in FORM[:4]) * BAR * 60 / BPM
+        e1 = sum(n for s, n in FORM[:6]) * BAR * 60 / BPM
+        t["gain"] = {"value": t["gain"], "mod": [{"src": "auto.wt", "amount": 1}]}
+        t["auto"] = {"wt": {"points": [["0s", 0], [f"{e0 - 0.05:.2f}s", 0], [f"{e0:.2f}s", WEIGHT_DB],
+                                       [f"{e1 - 0.05:.2f}s", WEIGHT_DB], [f"{e1:.2f}s", 0]]}}
+        return t
+
     tracks = [
         {"name": "pad", "patch": "juno-pad", "gain": "-14dB", "pan": 0, "sends": {"hall": "-8dB"}, "score": sc("pad")},
         {"name": "glass", "patch": "pad-glass", "gain": "-16dB", "pan": 0.2, "score": sc("glass")},
@@ -288,10 +300,10 @@ def song():
         {"name": "cln2", "patch": "m8-twang-chorus", "gain": "-15dB", "pan": 0.55, "sends": {"hall": "-10dB"}, "score": sc("cln2")},
         {"name": "mel", "patch": "m8-clean", "gain": "-7dB", "pan": 0.1, "sends": {"dly": "-6dB", "hall": "-8dB"}, "score": sc("mel")},
         {"name": "howl", "patch": "m8-lead", "gain": "-6dB", "pan": 0, "score": sc("howl")},
-        {"name": "bass", "patch": "bass-fat", "gain": "-6dB", "pan": 0, "score": sc("bass")},
-        {"name": "gtr-l", "patch": "m8-emg-l", "gain": f"{GTR_DB:+g}dB", "pan": -1, "score": sc("gtr-l")},
-        {"name": "gtr-r", "patch": "m8-emg-r", "gain": f"{GTR_DB:+g}dB", "pan": 1, "score": sc("gtr-r")},
-        {"name": "drums", "patch": "metal-kit", "gain": "-4dB", "score": sc("drums")},
+        weighted({"name": "bass", "patch": "bass-fat", "gain": "-6dB", "pan": 0, "score": sc("bass")}),
+        weighted({"name": "gtr-l", "patch": "m8-emg-l", "gain": f"{GTR_DB:+g}dB", "pan": -1, "score": sc("gtr-l")}),
+        weighted({"name": "gtr-r", "patch": "m8-emg-r", "gain": f"{GTR_DB:+g}dB", "pan": 1, "score": sc("gtr-r")}),
+        weighted({"name": "drums", "patch": "metal-kit", "gain": "-4dB", "score": sc("drums")}),
         {"name": "tick", "patch": "metal-kit", "gain": "-12dB", "pan": 0.3, "score": sc("tick")},
     ]
     doc = {
