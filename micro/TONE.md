@@ -14,6 +14,9 @@ sounds into their own tracks.
   so the new sounds cannot quietly break them.
 - **New sounds go in as named patches** (e.g. metal-kit-punch) that Ferrous Bloom tracks adopt by A/B: compscore on
   seeds 0/11, plus Harry's ears.
+- **Ferrous Bloom is the sound playground** (Harry): invent mad new guitar sounds and compose against them. Trade
+  sounds back and forth, give parts different rhythmic patterns, try fun combinations. Realism is one option, not the
+  goal. The album's shared palette is `compose/chirpers1/sounds.md`.
 
 ## Constraints (Harry)
 

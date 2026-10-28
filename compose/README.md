@@ -11,6 +11,7 @@ plus Harry's ratings), and Harry's ear decides.
 |---|---|
 | album spec: genre, brief, palette, track slots (role, length, brief), weights | `compose/ALBUM/album.json` |
 | the album's motif bank: shared riffs, cells, harmonies, who uses them | `compose/ALBUM/motifs.md` |
+| the album's sound bank: rigs and kits invented for it, who made and borrowed them | `compose/ALBUM/sounds.md` |
 | ratings and notes (Harry's, and agents' peer ratings) | `compose/ALBUM/ratings.jsonl` (via `tools/rate.py`) |
 | agents' own measures (plugins) | `compose/measures/NAME.py` |
 | saved per-song features for album terms; the genre envelope | `ref/compose/ALBUM/` (local) |
@@ -85,3 +86,6 @@ build the change as a candidate (`tools/rngsafe.py`, `tools/scoreedit.py`), meas
 - **An album**: a shared tuning, palette and motif bank; each track its own tempo, meter, texture and intensity; the
   songs bleed into one another.
 - **Interesting**: tension and release, development, surprise; repetition that changes.
+- **A sound playground** (Harry, 28 Oct): invent new guitar and drum sounds for the album and compose against them.
+  Trade sounds back and forth between parts and between composers, give parts their own rhythmic cycles, and swap
+  sounds between sections. Put new sounds in the sound bank.
