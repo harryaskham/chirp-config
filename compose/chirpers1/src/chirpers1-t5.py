@@ -34,7 +34,11 @@ CLOCK_NOBASS = os.environ.get("T5_CLOCKNOBASS", "0") == "1"
 LOWMID_DB = float(os.environ.get("T5_LOWMID", "-2"))
 GATE_DB = float(os.environ.get("T5_GATE", "0"))  # the BREATH GATE: the pad chopped by a square LFO on the 5-sixteenth cycle (+-dB)
 SWELL = os.environ.get("T5_SWELL", "")
-GATE_F = float(os.environ.get("T5_GATEF", "6"))  # the BREATH GATE only on the exhale's return (F): a gated pad appended last  # the EXHALE lead as volume swells: an amp attack (e.g. 280ms)  # a master cut at 580 Hz (the cleans/pads low-mid)  # the clock (G) without the bass: t6's bass entry is the arrival  # less sub at the joins: a softer bass under the opening chord, no bass in the clock  # dB on the clean/pad tracks (the breath quieter against the weight)  # extra level on the heavy parts through E and E2  # render tail after the last bar  # master make-up gain (dB) before the ceiling
+GATE_F = float(os.environ.get("T5_GATEF", "6"))
+SUNG = os.environ.get("T5_SUNG", "")  # tracks whose EXHALE is sung (chirper-one's guitarize: scoops into long notes, slides between near ones)
+KIT = os.environ.get("T5_KIT", "metal-kit")
+SWELL_F = os.environ.get("T5_SWELLF", "")  # the augmented EXHALE (F) as volume swells: an amp attack, on its own track
+RING_D = float(os.environ.get("T5_RINGD", "233"))  # the held breath's glass chord (D) through a ring modulator at this frequency  # the drum patch (chirper-three's metal-kit-punch to try)  # the BREATH GATE only on the exhale's return (F): a gated pad appended last  # the EXHALE lead as volume swells: an amp attack (e.g. 280ms)  # a master cut at 580 Hz (the cleans/pads low-mid)  # the clock (G) without the bass: t6's bass entry is the arrival  # less sub at the joins: a softer bass under the opening chord, no bass in the clock  # dB on the clean/pad tracks (the breath quieter against the weight)  # extra level on the heavy parts through E and E2  # render tail after the last bar  # master make-up gain (dB) before the ceiling
 
 # ---------------------------------------------------------------- motifs
 # The breath cell's clean arpeggio per harmony (five notes each, F lydian throughout until the exhale's Db).
@@ -282,6 +286,46 @@ def build():
     return T
 
 
+import re as _re
+NAMES = {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}
+
+
+def _midi(n):
+    m = _re.match(r"([A-G])([#b]?)(-?\d)$", n)
+    return 12 * (int(m[3]) + 1) + NAMES[m[1]] + (1 if m[2] == "#" else -1 if m[2] == "b" else 0)
+
+
+def sung_score(score):
+    """chirper-one's guitarize (t7), on our EXHALE: a note of >= 2 beats scoops up a semitone into pitch; a note within a
+    fourth of the previous held note slides from it (^f0 cent paths, nine points over the note)."""
+    def path(vals):
+        return "^f0=" + ">".join(str(int(round(v))) for v in vals)
+    out, prev = [], None
+    for tk in score.split(" "):
+        m = _re.match(r"([A-G][#b]?-?\d)/([0-9.]+)b(.*)$", tk)
+        if not m:
+            if tk.startswith("R"):
+                prev = None
+            out.append(tk)
+            continue
+        n, dur, rest_ = m[1], float(m[2]), m[3]
+        p = _midi(n)
+        if dur >= 2:
+            vals = [-100 + 100 * min(1, i / 1.5) for i in range(9)]
+        elif prev is not None and 0 < abs(p - prev) <= 5:
+            d0 = (prev - p) * 100
+            vals = [d0 * max(0, 1 - i / 1.2) for i in range(9)]
+        else:
+            vals = None
+        out.append(tk if vals is None else f"{n}/{m[2]}b{rest_}{path(vals)}")
+        prev = p
+    return " ".join(out)
+
+
+def join_s(*xs):
+    return " ".join(x for x in xs if x)
+
+
 def song():
     T = build()
     total_beats = sum(n for _, n in FORM) * BAR
@@ -321,6 +365,46 @@ def song():
         weighted({"name": "drums", "patch": "metal-kit", "gain": "-4dB", "score": sc("drums")}),
         {"name": "tick", "patch": "metal-kit", "gain": "-12dB", "pan": 0.3, "score": sc("tick")},
     ]
+    def section_only(name, sec, new_name, patch, extra):
+        """Copy one section of a track onto a new track appended last; mute the original there with a gain lane."""
+        idx = [x for x, _ in FORM].index(sec)
+        pre = sum(n for _, n in FORM[:idx]) * BAR
+        post = sum(n for _, n in FORM[idx + 1:]) * BAR
+        piece = T[name][idx][0]
+        src = next(t for t in tracks if t["name"] == name)
+        bar_s = BAR * 60 / BPM
+        t0, t1 = pre / BAR * bar_s, (pre / BAR + dict(FORM)[sec]) * bar_s
+        lane = "m" + new_name.replace("-", "")
+        src["gain"] = {"value": src["gain"] if isinstance(src["gain"], str) else src["gain"]["value"],
+                       "mod": ([] if isinstance(src["gain"], str) else src["gain"]["mod"]) + [{"src": f"auto.{lane}", "amount": 1}]}
+        src.setdefault("auto", {})[lane] = {"points": [["0s", 0], [f"{t0 - 0.05:.2f}s", 0], [f"{t0:.2f}s", -60],
+                                                      [f"{t1:.2f}s", -60], [f"{t1 + 0.05:.2f}s", 0]]}
+        nt = {k: v for k, v in src.items() if k in ("pan", "sends")}
+        nt.update({"name": new_name, "patch": patch, "gain": src["gain"]["value"], "score": join_s(rest(pre), piece, rest(post))})
+        nt.update(extra)
+        return nt
+
+    extra_tracks = []
+    if SWELL_F:
+        extra_tracks.append(section_only("mel", "F", "mels", f"m8-clean synth.amp.a={SWELL_F}", {}))
+    if RING_D:
+        extra_tracks.append(section_only("glass", "D", "glassr", "pad-glass", {"fx": [{"type": "ring", "freq": RING_D, "mix": 0.6}]}))
+    patches = {}
+    for t in tracks:
+        if t["name"] in SUNG.split(","):
+            base = t["patch"].split()[0]
+            twin = base + "-f0"
+            if base == "m8-lead":
+                patches[twin] = {"extends": t["patch"], "synth": {"pitch": {"value": 0, "mod": [
+                    {"src": "lfo.vib", "amount": 0.3}, {"src": "expr.f0", "amount": 0.01}]}}}
+            else:  # the m8 pitch mods plus the f0 binding
+                patches[twin] = {"extends": t["patch"], "synth": {"pitch": {"value": 0, "mod": [
+                    {"src": "rand", "amount": 0.04}, {"src": "lfo.vib", "amount": 0.08},
+                    {"src": "expr.f0", "amount": 0.01}]}}}  # m8-clean's own pitch mods plus the f0 binding
+            t["patch"] = twin
+            t["score"] = " | ".join(sung_score(b) for b in t["score"].split(" | "))
+        if t["name"] in ("drums", "tick") and KIT != "metal-kit":
+            t["patch"] = KIT
     if GATE_F:  # the exhale's pad chopped by the 5-sixteenth gate; the plain pad muted there (its notes unchanged)
         bar_s = BAR * 60 / BPM
         f_start = sum(n for sct, n in FORM[:FORM.index(("F", 10))]) * bar_s
@@ -334,6 +418,7 @@ def song():
         sc_g = " ".join([rest(pre)] + [tok(PAD[h], BAR, 66) for h in HARM["F"]] + [rest(post)])
         tracks.append({"name": "padg", "patch": "juno-pad", "gain": {"value": f"{-14 + CLEAN_DB:+g}dB", "mod": [{"src": "lfo.gt", "amount": GATE_F}]},
                        "lfo": {"gt": {"wave": "square", "rate": "5/16"}}, "pan": 0, "sends": {"hall": "-8dB"}, "score": sc_g})
+    tracks += extra_tracks
     doc = {
         "about": ("Chirpers - Chirpers I, track 5 'The breath' (original composition, chirper-zero; generator "
                   "compose/chirpers1/src/chirpers1-t5.py). 64 bpm, F lydian: a clean five-sixteenth 'breath cell' "
@@ -355,12 +440,14 @@ def song():
         ]},
         "tracks": tracks,
     }
+    if patches:
+        doc["patches"] = patches
     return doc
 
 
 def dump(doc):
     lines = []
-    for k in ("about", "tempo", "ceiling", "tail", "master"):
+    for k in ("about", "tempo", "ceiling", "tail", "master") + (("patches",) if "patches" in doc else ()):
         lines.append(f"{k}: {json.dumps(doc[k])}")
     lines.append("buses:")
     for b, v in doc["buses"].items():
