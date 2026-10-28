@@ -50,7 +50,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 75,
       "priority": 1,
       "genre": "extreme metal / djent",
@@ -64,7 +64,8 @@
         "title": "Bleed",
         "track": 3,
         "year": 2008
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "pneuma",
@@ -4550,7 +4551,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 13,
       "priority": 1.0,
       "genre": "progressive metal",
@@ -4570,7 +4571,8 @@
       "last": {
         "at": "2026-10-28T08:16:48Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "electric-red",
@@ -4587,7 +4589,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 15,
       "priority": 1.0,
       "genre": "progressive metal",
@@ -4607,7 +4609,8 @@
       "last": {
         "at": "2026-10-28T09:53:43Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "obzen-bleed",
@@ -4651,7 +4654,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 17,
       "priority": 1.0,
       "genre": "progressive metal",
@@ -4671,7 +4674,8 @@
       "last": {
         "at": "2026-10-28T09:13:40Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "obzen",
@@ -4688,7 +4692,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 14,
       "priority": 1.0,
       "genre": "progressive metal",
@@ -4708,7 +4712,8 @@
       "last": {
         "at": "2026-10-28T10:28:16Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "this-spiteful-snake",
@@ -4724,7 +4729,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 25,
       "priority": 1.0,
       "genre": "progressive metal",
@@ -4744,7 +4749,8 @@
       "last": {
         "at": "2026-10-28T09:37:05Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "pineal-gland-optics",
@@ -4760,7 +4766,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 18,
       "priority": 1.0,
       "genre": "progressive metal",
@@ -4780,7 +4786,8 @@
       "last": {
         "at": "2026-10-28T10:19:09Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "pravus",
@@ -4796,7 +4803,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 19,
       "priority": 1.0,
       "genre": "progressive metal",
@@ -4816,7 +4823,8 @@
       "last": {
         "at": "2026-10-28T06:28:38Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "dancers-to-a-discordant-system",
@@ -4832,7 +4840,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 18,
       "priority": 1.0,
       "genre": "progressive metal",
@@ -4852,7 +4860,8 @@
       "last": {
         "at": "2026-10-28T09:50:54Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers1-t1",
@@ -5087,5 +5096,5 @@
       }
     }
   ],
-  "focus": "obZen"
+  "focus": "Chirpers I (untitled)"
 }
