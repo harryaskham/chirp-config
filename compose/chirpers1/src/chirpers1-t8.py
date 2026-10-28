@@ -310,7 +310,7 @@ def build():
             {'name': 'gtr-r', 'patch': 'm8-emg-r', 'gain': '-5dB', 'pan': 1, 'score': join(gtr)},
             {'name': 'bass', 'patch': 'bass-fat', 'gain': '-4dB', 'score': join(bass)},
             {'name': 'drums', 'patch': 'metal-kit-punch', 'gain': '-2dB', 'score': join(drums)},
-            {'name': 'echo', 'patch': 'm8-clean', 'gain': '-11dB', 'pan': 0.35, 'score': join(ECHO)},
+            {'name': 'echo', 'patch': 'm8-clean', 'gain': '-1dB', 'pan': 0.35, 'score': join(ECHO)},
             {'name': 'lead', 'patch': 'm8-lead', 'gain': '-8dB', 'pan': -0.15, 'fx': ['delay time=3/8 feedback=0.3 mix=0.15'], 'score': join(lead)},
             {'name': 'fuzz', 'patch': 'm8-emg-r', 'gain': '-7dB', 'pan': 0,
              'fx': [{'type': 'pitch', 'semitones': -12, 'mix': 0.6}, {'type': 'crush', 'bits': 8, 'rate': 1, 'mix': 0.25}],
@@ -319,7 +319,7 @@ def build():
              'fx': [{'type': 'ring', 'freq': 233, 'mix': 0.6}], 'score': join(RING)},
             {'name': 'bpad', 'patch': 'juno-pad', 'gain': {'value': '-9dB', 'mod': [{'src': 'lfo.gt', 'amount': -6}]},
              'lfo': {'gt': {'wave': 'square', 'rate': '5/16'}}, 'score': join(BPAD)},
-            {'name': 'halo', 'patch': 'm8-clean', 'gain': '-13dB', 'pan': -0.3,
+            {'name': 'halo', 'patch': 'm8-clean', 'gain': '+4dB', 'pan': -0.3,
              'fx': [{'type': 'freeze', 'hold': 1, 'size': 0.8, 'mix': 0.5}, {'type': 'pitch', 'semitones': 12, 'mix': 0.25}],
              'score': join(HALO)},
         ]}
