@@ -4990,7 +4990,7 @@
     {
       "id": "chirpers1-t5",
       "song": "songs/chirpers1-t5.yaml",
-      "reference": "Chirpers — Track 5 (untitled)",
+      "reference": "Chirpers — Five Breaths",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers1-t5 OUT.wav",
@@ -5006,7 +5006,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "Ferrous Bloom",
-        "title": "Track 5 (untitled)",
+        "title": "Five Breaths",
         "track": 5,
         "year": 2026
       },
