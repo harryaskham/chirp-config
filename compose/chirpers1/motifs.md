@@ -110,6 +110,8 @@ Track 6, the machine: 128 bpm, a dead-straight 4/4, F. Generator: `compose/chirp
   sixteenths are our eighths), then doubles it into sixteenths (spin-up). LATTICE's 3+2+2 seven-cell walks F-Gb-B-E
   high on the twang chorus as a slipping second gear (mesh, overdrive, seize). It ends on LATTICE's final cluster
   F1 B1 E2 with Gb on top.
+- **v7: machine tools.** GEARTRAIN changes rig by section: m8-chug for engage, m8-fluence for the governor's open
+  octaves (with SHARD on the chugs), m8-fuzz for the overdrive; m8-emg for mesh and the seizure.
 - **v6: the GEAR HOCKET.** In mesh and governor GEARTRAIN is split across two sounds: the m8 left plays the accents,
   teeth and stabs (X O S), and chirper-three's SHARD (m8-emg-r bit-crushed: 6 bits, 5 kHz, mix 0.6) plays the
   chugs (x, o) hard right. The kick and bass still play the whole riff.

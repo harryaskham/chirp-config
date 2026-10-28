@@ -40,7 +40,8 @@ DARKER = os.environ.get("T6_DARKER", "1") == "1"
 TONE = os.environ.get("T6_TONE", "s3")
 BASS_DB = float(os.environ.get("T6_BASS", "-3"))
 LOWMID_DB = float(os.environ.get("T6_LOWMID", "-2"))
-HOCKET = os.environ.get("T6_HOCKET", "mesh,governor")  # sections whose GEARTRAIN is split: gtr-l the accents/teeth/stabs, a crushed right guitar (chirper-three's SHARD) the chugs  # a master cut at 580 Hz  # master tone: "" (v3), "s1" (no 5k boost, 10k -3), "s2" (s1 + 60 Hz +3)  # the machine's own colour: GOVERNOR C -> C#, the stall clock on F Gb B E C#  # sections whose snare drives on 2 and 4 (comma list)  # dB of low shelf over the last bars  # the hammer bar crash-lit (crash on quarters, open hat between)  # ... and its second half changes texture  # overdrive turns at bar 12: a clunk, roots up a semitone, the lead up an octave  # one beat of silence before each realignment
+HOCKET = os.environ.get("T6_HOCKET", "mesh,governor")
+RIGS = os.environ.get("T6_RIGS", "engage:m8-chug,governor:m8-fluence,overdrive:m8-fuzz")  # section:rig swaps, e.g. "engage:m8-chug,governor:m8-fluence,overdrive:m8-fuzz"  # sections whose GEARTRAIN is split: gtr-l the accents/teeth/stabs, a crushed right guitar (chirper-three's SHARD) the chugs  # a master cut at 580 Hz  # master tone: "" (v3), "s1" (no 5k boost, 10k -3), "s2" (s1 + 60 Hz +3)  # the machine's own colour: GOVERNOR C -> C#, the stall clock on F Gb B E C#  # sections whose snare drives on 2 and 4 (comma list)  # dB of low shelf over the last bars  # the hammer bar crash-lit (crash on quarters, open hat between)  # ... and its second half changes texture  # overdrive turns at bar 12: a clunk, roots up a semitone, the lead up an octave  # one beat of silence before each realignment
 FORM = [("spin", 13), ("engage", 13), ("mesh", 13), ("governor", 13), ("stall", 13), ("overdrive", 23), ("seize", 13)]
 
 
@@ -352,8 +353,28 @@ def master():
     return m
 
 
+def rig_swaps(T):
+    """Move the guitar pair's notes in the given sections onto rig tracks (a different patch per section)."""
+    extra = []
+    names = [x for x, _ in FORM]
+    for item in [x for x in RIGS.split(",") if x]:
+        sec, rig = item.split(":")
+        i = names.index(sec)
+        for side, pan in (("l", -1), ("r", 1)):
+            src = f"gtr-{side}"
+            tn = f"{rig}-{side}"
+            if tn not in T:
+                T[tn] = [(rest(b), b) for _, b in T[src]]
+                patch = f"{rig}-{side}" if os.path.exists(os.path.join(ROOT, "patches", f"{rig}-{side}.yaml")) else rig
+                extra.append({"name": tn, "patch": patch, "gain": "-4dB", "pan": pan})
+            T[tn][i] = T[src][i]
+            T[src][i] = (rest(T[src][i][1]), T[src][i][1])
+    return extra
+
+
 def song():
     T, total = build()
+    rig_tracks = rig_swaps(T)
 
     def sc(name):
         for s, b in T[name]:
@@ -373,6 +394,9 @@ def song():
         {"name": "ping", "patch": "m8-twang-chorus", "gain": "-16dB", "pan": 0.6, "sends": {"dly": "-10dB"}, "score": sc("ping")},
         {"name": "gov", "patch": "m8-lead", "gain": "-9dB", "pan": 0.05, "score": sc("gov")},
     ]
+    for rt in rig_tracks:
+        rt["score"] = sc(rt["name"])
+        tracks.append(rt)
     if HOCKET:  # chirper-three's SHARD (m8-emg-r bit-crushed), here as the gear hocket's chug voice, hard right
         tracks.append({"name": "shard", "patch": "m8-emg-r", "gain": "-4dB", "pan": 1,
                        "fx": [{"type": "crush", "bits": 6, "rate": 5000, "mix": 0.6}], "score": sc("shard")})
