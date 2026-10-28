@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """compscore: the metric for COMPOSED songs (composition mode, compose/README.md), which have no record to match.
 
-  compscore.py ID OUT.wav [--save] [--text]
+  compscore.py ID OUT.wav [--save] [--text] [--song FILE]
 
 Prints JSON like likeness ({"total": …, "terms": {name: 0-100}, "weights": {…}, "detail": {…}}), so it works as a
 climb's `metric` (`python3 tools/compscore.py ID OUT.wav`). --save also stores this render's features for the album
 terms (ref/compose/ALBUM/features/ID.json): pass it when you record a kept version (`chirpers.py refresh` re-renders
-the whole album and saves every song's). --text prints a readable table instead of JSON.
+the whole album and saves every song's). --text prints a readable table instead of JSON. --song names the song file
+the render came from (default songs/ID.yaml): its declared `tempo` sets the rhythm term's beat grid.
 
 Terms (0-100 each; the total is their weighted mean over the terms that apply; weights come from the album's
 compose/ALBUM/album.json "weights", defaults below):
@@ -16,8 +17,9 @@ compose/ALBUM/album.json "weights", defaults below):
   variety    within-song contrast across sections: loudness range, timbre spread, onset-density change.
   recurrence motifs return: the share of later sections that closely match an earlier, non-adjacent one, in a
              middle band (none = no development of material; all = one idea looped).
-  rhythm     rhythmic interest: strong onset periodicities off the main beat grid (polymeter, displacement) in a
-             middle band, at a plausible onset density.
+  rhythm     rhythmic interest: strong onset periodicities off the eighth-note grid of the song's declared tempo
+             (polymeter cells of odd sixteenths, displacement) in a middle band, at a plausible onset density. Without
+             a declared tempo the beat is estimated (a swung half-time 96 read as 64: chirper-two, 28 Oct).
   spectrum   the mix's long-term spectrum within a tolerance (album.json spectrum_tolerance_db, default 6 dB) of the
              album's genre envelope (the genre_refs' average): flags a broken mix (no low end, a harsh top), never a
              clean or ambient track for being one (at 3 dB the clean intro lost ~6 total points: anti-variety).
@@ -35,6 +37,7 @@ import glob
 import importlib.util
 import json
 import os
+import re
 import sys
 
 # a metric command runs from a plain shell: one BLAS thread, or a loaded box spins (chirper-one's first run, 28 Oct)
@@ -350,17 +353,19 @@ def m_rhythm(ctx):
     pk = lags[(ac[lags] > ac[lags - 1]) & (ac[lags] >= ac[lags + 1]) & (ac[lags] > 0.15)]
     if len(pk) == 0:
         return 0.0, {}
-    # the pulse: the strongest autocorrelation peak between 0.25 and 1.2 s (a tempo estimate's rounding would make
-    # every multiple drift off-grid: a looped 120 BPM bar read 122 and scored 100 here)
+    # the pulse: the song's declared tempo when we have it; else the strongest autocorrelation peak between 0.25 and
+    # 1.2 s (a tempo estimate's rounding would make every multiple drift off-grid: a looped 120 BPM bar read 122)
     beat = [k for k in pk if 0.25 * L.FPS <= k <= 1.2 * L.FPS] or list(pk)
-    P = float(max(beat, key=lambda k: ac[k]))
-    bpm = 60 * L.FPS / P
+    est = 60 * L.FPS / float(max(beat, key=lambda k: ac[k]))
+    bpm = float(ctx.get("bpm") or est)
+    P = 60 * L.FPS / bpm
     grid = P / 2
     off = [k for k in pk if min(k % grid, grid - k % grid) > max(1.5, 0.04 * k)]
     share = float(sum(ac[k] for k in off) / sum(ac[k] for k in pk))
     dens = ctx["density"]
     return 0.7 * band(share, 0.15, 0.6, 0.08) + 0.3 * band(dens, 1.5, 10.0, 2.0), {
-        "tempo": round(bpm, 1), "offgrid_share": round(share, 2), "onsets_per_s": round(dens, 2)}
+        "tempo": round(bpm, 1), "declared": bool(ctx.get("bpm")), "pulse_estimate": round(est, 1),
+        "offgrid_share": round(share, 2), "onsets_per_s": round(dens, 2)}
 
 
 def m_cohesion(ctx):
@@ -427,7 +432,23 @@ def plugins():
 
 # ── scoring ─────────────────────────────────────────────────────────────────────────────────
 
-def build_ctx(cid, wav, climb, album):
+def declared_tempo(song):
+    """The song file's top-level tempo (BPM), or None. A JSON song's `tempo`; a YAML song's top-level `tempo:` line
+    (generator-written songs use YAML songfmt's restricted parser rejects)."""
+    try:
+        with open(song) as f:
+            text = f.read()
+        if text.lstrip().startswith("{"):
+            t = json.loads(text).get("tempo")
+        else:
+            m = re.search(r"^tempo:\s*([0-9.]+)\s*(?:#.*)?$", text, re.M)
+            t = m.group(1) if m else None
+        return float(t) if t else None
+    except (OSError, ValueError, TypeError, AttributeError):
+        return None
+
+
+def build_ctx(cid, wav, climb, album, song=None):
     x = L.load(wav)
     F = L.Feat(x)
     dur = len(x) / L.SR
@@ -438,7 +459,8 @@ def build_ctx(cid, wav, climb, album):
     return {"id": cid, "wav": wav, "x": x, "F": F, "dur": dur, "album": album, "slot": slot, "sections": secs,
             "me": me, "density": me["density"], "others": others_features(album["id"], cid),
             "ratings": ratings(album["id"]), "owner": climb.get("owner"),
-            "version": (climb.get("best") or {}).get("version"), "envelope": genre_envelope(album)}
+            "version": (climb.get("best") or {}).get("version"), "envelope": genre_envelope(album),
+            "bpm": declared_tempo(song or os.path.join(ROOT, climb.get("song") or f"songs/{cid}.yaml"))}
 
 
 def score(ctx, extra=None):
@@ -465,13 +487,14 @@ def main(argv=None):
     ap.add_argument("wav")
     ap.add_argument("--save", action="store_true", help="store this render's features for the album terms")
     ap.add_argument("--text", action="store_true")
+    ap.add_argument("--song", help="the song file the render came from (default: the climb's song)")
     a = ap.parse_args(argv)
     climb = climb_of(a.id)
     album_id = climb.get("album") or (climb.get("compose") or {}).get("album")
     if not album_id:
         raise SystemExit(f"compscore: {a.id} is not a composition (no album id)")
     album = load_album(album_id)
-    ctx = build_ctx(a.id, a.wav, climb, album)
+    ctx = build_ctx(a.id, a.wav, climb, album, a.song)
     res = score(ctx, plugins())
     if a.save:
         d = os.path.join(cache_dir(album_id), "features")

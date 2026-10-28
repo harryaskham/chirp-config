@@ -170,6 +170,21 @@ class Measures(unittest.TestCase):
         c["album"] = {"tracks": [], "spectrum_tolerance_db": 3.0}
         self.assertLess(CS.m_spectrum(c)[0], 60.0)
 
+    def test_declared_tempo_sets_the_rhythm_grid(self):
+        d = tempfile.mkdtemp(dir=TMP)
+        for name, text in (("a.yaml", "about: x\ntempo: 96  # bpm\ntracks:\n  - name: g\n"), ("b.json", '{"tempo": 128}'),
+                           ("c.yaml", "about: none\n")):
+            with open(os.path.join(d, name), "w") as f:
+                f.write(text)
+        self.assertEqual([CS.declared_tempo(os.path.join(d, n)) for n in ("a.yaml", "b.json", "c.yaml", "missing")],
+                         [96.0, 128.0, None, None])
+        c = ctx_of(piece([(30, 110, 0.5, 1.0), (30, 147, 0.375, 0.6)]))
+        est = CS.m_rhythm(c)[1]
+        self.assertFalse(est["declared"])
+        c["bpm"] = 120.0
+        dec = CS.m_rhythm(c)[1]
+        self.assertEqual((dec["declared"], dec["tempo"], dec["pulse_estimate"]), (True, 120.0, est["pulse_estimate"]))
+
     def test_flow_and_distinct_need_neighbours(self):
         x = piece([(30, 110, 0.5, 1.0), (30, 147, 0.4, 0.5)])
         c = ctx_of(x)

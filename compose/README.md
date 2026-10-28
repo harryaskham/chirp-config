@@ -24,7 +24,8 @@ plus Harry's ratings), and Harry's ear decides.
    `tools/chirpers.py art ALBUM` (cover via the `tti` CLI, pixelated for the player).
 3. **Compose** `songs/ALBUM-tN.yaml` from scratch: tempo, form, motifs, parts, arrangement, mix and master (with a
    top-level `ceiling`). Title it: `tools/chirpers.py title ALBUM-tN "Title"`. Add its motifs to `motifs.md`.
-4. **Render, listen, score**: `python3 tools/compscore.py ALBUM-tN OUT.wav --text` shows the terms and where it is weak.
+4. **Render, listen, score**: `python3 tools/compscore.py ALBUM-tN OUT.wav --text [--song CANDIDATE.yaml]` shows the
+   terms and where it is weak (pass `--song` when the render came from a candidate file: its `tempo` sets the rhythm grid).
 5. **Record**: `climb.py done ALBUM-tN --version v1 --score S --note … --next … --with songs/ALBUM-tN.yaml
    compose/ALBUM/motifs.md`, then `compscore.py ALBUM-tN KEPT.wav --save`, which saves the kept render's features
    for the album terms. The song joins the playlist.
@@ -45,7 +46,7 @@ The total is a weighted mean of the terms that apply; weights are in `album.json
 | structure | .12 | a section count suited to the length, unequal section lengths |
 | variety | .12 | contrast across sections: loudness range, timbre spread, density change |
 | recurrence | .10 | motifs that return, in a middle band (none = no development; all = one idea looped) |
-| rhythm | .08 | strong periodicities off the beat grid (polymeter, displacement) at a sane density |
+| rhythm | .08 | onset periodicities off the eighth-note grid of the song's declared `tempo` (polymeter cells, displacement) at a sane density: the cell has to drive accents/kick to show |
 | spectrum | .07 | no departure beyond 6 dB from the genre's spectrum envelope: a broken-mix check, never a target (clean tracks are meant to differ) |
 | master | .06 | level, peak and crest in the album's ranges |
 | length | .04 | within the slot's length |
