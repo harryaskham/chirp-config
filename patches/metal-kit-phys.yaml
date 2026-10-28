@@ -1,0 +1,11 @@
+about: >
+  metal-kit-dry with chirper-two's physical kick and snare (chirp `type: drum`, bd-7d117e; opt-in, not a default).
+  Realism round 28 Oct: against the record drum stems (tools/drumpunch.py, 30-90 s of bleed, combustion, electric-red,
+  obzen, dancers, the-abysmal-eye) mean 58.3 -> 61.2 (snare 50.6 -> 59.6: longer ring, body and wires; kick 66.1 -> 62.8);
+  in context on broken-cog-drums-0/328 55.2 -> 60.1 and 51.9 -> 53.2. Holdouts NOT held: phantoms-253 -1.7 (seeds 0/11),
+  pineal-281 -0.4, rasputin-0 +2.4 (applied to its kit). Kick: plastic beater, coupled heads, short body; snare: stick,
+  resonant head 1.5x, shell, wires through a 0.1 gap. Cymbals, hats and toms are metal-kit-dry's.
+extends: metal-kit-dry
+kit:
+  k: {"patch": {"synth": {"layers": [{"type": "drum", "beater": "plastic", "decay": "0.45s", "sharp": 90, "reso": 1.06, "cavity": 0.25, "reso_level": 0.35, "air": 0.5, "strike": 0.08, "damp": 0.6, "shell": 0.1, "contact": 1.4, "slap": 0.45}], "filters": [{"kind": "peak", "cutoff": {"value": "4.2k", "mod": [{"src": "rand", "amount": 0.1}]}, "q": 1, "gain": {"value": "3dB", "mod": [{"src": "vel", "amount": 5}]}}, "lowshelf cutoff=75 gain=4dB"], "amp": {"a": "0.2ms", "d": "400ms", "s": 0, "r": "25ms", "curve": 1.5}, "drive": 0.35}, "play": {"vel_sens": 0.45}}}
+  s: {"patch": {"synth": {"layers": [{"type": "drum", "beater": "stick", "contact": 0.6, "decay": "0.4s", "sharp": 30, "reso": 1.5, "cavity": 0.3, "reso_level": 0.5, "shell": 0.3, "shell_hz": 500, "wires": 0.85, "gap": 0.1, "wire_tone": "7k", "strike": 0.3, "damp": 0.3, "slap": 1.2}], "filters": ["hp cutoff=150"], "amp": {"a": "0.1ms", "d": "500ms", "s": 0, "r": "30ms"}, "drive": 0.2}, "play": {"vel_sens": 0.65}}}
