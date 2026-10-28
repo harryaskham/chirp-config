@@ -4918,18 +4918,10 @@
       "owner": "chirper-three",
       "metric": "python3 tools/compscore.py chirpers1-t2 OUT.wav",
       "best": {
-        "score": 95.724,
-        "version": "v2",
+        "score": 95.66,
+        "version": "v3",
         "commit": "see git log songs/chirpers1-t2.yaml",
-        "rescored": {
-          "compscore": "ca2cdf6b",
-          "seeds": {
-            "0": 95.724,
-            "11": 95.796
-          },
-          "at": "2026-10-28T13:09:05Z",
-          "was": 95.66
-        }
+        "judged": true
       },
       "passes": 1,
       "enabled": true,
@@ -4954,7 +4946,8 @@
       "last": {
         "at": "2026-10-28T13:22:23Z",
         "who": "chirper-three"
-      }
+      },
+      "chirp-eco": ""
     },
     {
       "id": "chirpers1-t3",
