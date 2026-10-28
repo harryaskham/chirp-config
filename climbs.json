@@ -5050,7 +5050,9 @@
       "last": {
         "at": "2026-10-28T12:39:58Z",
         "who": "chirper-zero"
-      }
+      },
+      "best.version": "v4",
+      "best.score": 98.096
     },
     {
       "id": "chirpers1-t6",
