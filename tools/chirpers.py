@@ -312,6 +312,11 @@ def cmd_rebaseline(a, args):
             last = subprocess.run(["git", "log", "-1", "--format=%s", "--", c["song"]], cwd=ROOT, capture_output=True,
                                   text=True).stdout.strip()
             results.append((c["id"], scores))
+            hist = [h for h in C.history(c["id"]) if h.get("version") and not h.get("steer")]
+            if hist and hist[-1]["version"] != c["best"].get("version"):
+                print(f"{c['id']}: WARNING the latest round recorded {hist[-1]['version']} (round {hist[-1].get('round')}, "
+                      f"not kept) while best is {c['best'].get('version')}: if the song file is {hist[-1]['version']} "
+                      f"(a judgment keep), re-point best (climb.py set … best=…, judged) — the scores below are its file's")
             print(f"{c['id']:14s} best {c['best'].get('version'):4s} {c['best'].get('score')!s:>8} -> "
                   + " ".join(f"s{k} {v:.3f}" for k, v in scores.items()) + f"   (song file: {last[:60]})")
     finally:
