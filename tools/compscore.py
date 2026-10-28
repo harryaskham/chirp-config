@@ -406,7 +406,9 @@ def m_flow(ctx):
         theirs = oth[t["id"]]["tail" if side == "in" else "head"]
         jump = abs(mine["level"] - theirs["level"])
         spec = float(np.abs(np.array(mine["profile"]) - np.array(theirs["profile"])).mean())
-        s = 0.5 * band(jump, 0, 6.0, 4.0) + 0.5 * band(spec, 0, 3.0, 2.0)
+        # graded far out (chirper-two: at a 4 dB decay a 14 dB join and a 23 dB one both scored ~0, so join work had
+        # no gradient). For scale: obZen's real joins jump 35-77 dB (its tracks decay to silence), spectra 5-8 dB.
+        s = 0.5 * band(jump, 0, 6.0, 12.0) + 0.5 * band(spec, 0, 3.0, 3.0)
         joins[side] = {"with": t["id"], "level_jump_db": round(jump, 1), "spectral_db": round(spec, 2)}
         scores.append(s)
     if not scores:

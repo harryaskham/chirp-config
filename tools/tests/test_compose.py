@@ -217,6 +217,16 @@ class Measures(unittest.TestCase):
         b = CS.m_structure(ctx([61, 10, 10, 10, 11, 20, 19, 123, 81, 41, 51, 20, 36]))[0]      # one merge: cv .86
         self.assertEqual((a, b), (100.0, 100.0))
 
+    def test_flow_grades_large_joins(self):
+        def flow(jump):
+            me = {"head": {"level": -20.0, "profile": [0.0] * 40}, "tail": {"level": -20.0, "profile": [0.0] * 40}}
+            nb = {"head": {"level": -20.0, "profile": [0.0] * 40}, "tail": {"level": -20.0 - jump, "profile": [0.0] * 40}}
+            ctx = {"others": {"a": nb}, "slot": {"n": 2}, "album": {"tracks": [{"n": 1, "id": "a"}, {"n": 2, "id": "p"}]},
+                   "me": me}
+            return CS.m_flow(ctx)[0]
+        self.assertEqual(flow(4.0), 100.0)
+        self.assertGreater(flow(14.0) - flow(23.0), 10.0)     # was 6.8 vs 0.7 of a 50-point half: no gradient
+
     def test_flow_and_distinct_need_neighbours(self):
         x = piece([(30, 110, 0.5, 1.0), (30, 147, 0.4, 0.5)])
         c = ctx_of(x)
