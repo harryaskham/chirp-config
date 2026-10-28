@@ -1,0 +1,36 @@
+about: >-
+  metal-kit-dry with a fatter, more realistic snare (chirper-three, tone push 28 Oct). drumpunch.py against the
+  records' drum stems found our snare thin and spiky: body (150-300 Hz) vs crack (1.5-5 kHz) about 2 / -2 dB on Broken
+  Cog / The Faultless against the records' 12 / 14 dB, and punch (peak vs body 20-50 ms later) 20 / 18 dB against 10 /
+  13 dB. Round 1: the snare's body and shell layers deeper (+8 / +6 dB) and the 220 Hz body peak +5 dB (was +3).
+  Everything else is metal-kit-dry. Candidate only; library defaults need chirp-eco's crossclimb.
+extends: metal-kit-dry
+kit:
+  s:
+    pitch: A3
+    gain: 1dB
+    patch:
+      synth:
+        layers:
+          - {name: body, wave: triangle, level: {value: -60dB, mod: [{src: env.body, amount: 68}, {src: vel, amount: 8}]}}
+          - {name: shell, ratio: 1.62, level: {value: -60dB, mod: [{src: env.body, amount: 58}, {src: vel, amount: 6}, {src: rand, amount: 2}]}}
+          - {name: rim, wave: square, fixed: 1650, level: {value: -66dB, mod: [{src: env.rim, amount: 56}, {src: vel, amount: 6}, {src: rand, amount: 2}]}}
+          - {name: ring, wave: sine, fixed: 3100, level: {value: -66dB, mod: [{src: env.ring, amount: 50}]}}
+          - {name: wires, type: noise, level: {value: -66dB, mod: [{src: env.wires, amount: 62}, {src: vel, amount: 6}]}}
+          - {name: crack, type: noise, level: {value: -70dB, mod: [{src: env.crack, amount: 66}, {src: vel, amount: 10}]}}
+        pitch: {value: 0, mod: [{src: env.p, amount: 5}, {src: rand, amount: 0.25}]}
+        env:
+          p: {a: 0.2ms, d: 16ms, s: 0}
+          body: {a: 0.2ms, d: 140ms, s: 0, curve: 4}
+          rim: {a: 0.1ms, d: 30ms, s: 0}
+          ring: {a: 0.2ms, d: 160ms, s: 0}
+          wires: {a: 0.4ms, d: 220ms, s: 0, curve: 4}
+          crack: {a: 0.1ms, d: 10ms, s: 0}
+        filters:
+          - "hp cutoff=120"
+          - {kind: peak, cutoff: {value: 4.5k, mod: [{src: rand, amount: 0.15}]}, q: 0.8, gain: {value: 1dB, mod: [{src: vel, amount: 6}]}}
+          - "peak cutoff=220 q=1 gain=5dB"
+          - {kind: lp, cutoff: {value: 7k, mod: [{src: vel, amount: 1.6}]}}
+        amp: {a: 0.2ms, d: 320ms, s: 0, r: 30ms}
+        drive: 0.28
+      play: {vel_sens: 0.7}
