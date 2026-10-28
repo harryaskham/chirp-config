@@ -65,6 +65,21 @@ Our kits score **42-57**, so the gap is real. The same diagnosis holds on three 
 
 That is the drum-machine sound: a real snare is fat, fast and tight.
 
+**28 Oct, riffpunch baseline (chirp-eco).** `tools/riffpunch.py --song ID --from A --to B` measures our clean
+guitar onsets against the record's guitar stem. Over 30 s each of Bleed, The Faultless and Pineal, ours scores
+41-46, against a separator floor of 67-86.
+
+- **Grain** (spectral flatness of 1-4 kHz in the sustain) is the robust, large gap: ours **0.13-0.22**, the records
+  **0.34-0.41**. The two separators agree within 0.02. Our distorted guitars lack the noise between their harmonics,
+  the synth-guitar tell. Levers: contact grain and pick scrape, string/pickup nonlinearity (bd-dfbe0c), and amp-stage
+  intermodulation (bd-b1f325).
+- **Mid scoop** (400 Hz-1 kHz vs 1-4 kHz) is not deep enough: ours -2 to -5.5 dB, the records -6 to -12 dB; the
+  separators agree within ~1 dB. This is the tone stack's job (bd-b1f325's TMB stack).
+- **Fizz** (6-10 kHz vs 1-4 kHz) is rig-specific: The Faultless and Pineal rigs have **+13 dB** too much, Bleed
+  -6 dB too little. Judge fizz against bs_roformer refs only: htdemucs loses 3-11 dB up there.
+- **Timing scatter** (IQR 29-39 ms against a 0-20 ms floor) partly explains the riff family's near-zero microscore
+  transients (an onset-correlation measure): part of that gap is alignment, not attack shape.
+
 ## Rules
 
 Everything in micro/README.md's rules applies:
