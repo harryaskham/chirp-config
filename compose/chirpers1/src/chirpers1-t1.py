@@ -306,6 +306,25 @@ SEED_SUB = {"about": "Seed Crystal's sub swell into Ingot (chirper-three): a sin
 def sub_swell():
     return score([(bar0(HOLD), S, nm(F1), 100, "")])
 
+# The CRYSTAL: the seed's return grows LATTICE's cluster note by note. Each voice strikes with an inharmonic chime ping
+# and then sustains (a near-harmonic additive body), so F, Gb, B and E pile up into the chord the Breach hits and holds.
+SEED_CRYSTAL = {"about": "Seed Crystal's growing cluster (chirper-three): a chime strike over a sustained glassy body.",
+                "synth": {"layers": [
+                    {"name": "body", "type": "additive", "partials": [[1, 1], [2.0, 0.22], [3.0, 0.1], [5.04, 0.05]]},
+                    {"name": "strike", "type": "additive", "partials": [[1, 0.7], [2.76, 0.35], [5.4, 0.18]],
+                     "level": {"value": "-60dB", "mod": [{"src": "env.st", "amount": 60}]}}],
+                          "env": {"st": {"a": "0.5ms", "d": "600ms", "s": 0, "curve": 3}},
+                          "amp": {"a": "60ms", "d": "0ms", "s": 1, "r": "900ms"}},
+                "play": {"vel_sens": 0.4}}
+
+def crystal(k):
+    """Voice k of the growing cluster: LATTICE[k] enters on the seed's cell 2k and holds until the hits."""
+    a, z = bar0(SEED[0]), bar0(HITS[0])
+    for t, i, n in cell_onsets(a, z):
+        if i == 0 and n == 2 * k:
+            return score([(t, z - t, nm(F1 + 36 + LATTICE[k]), 70, "")])
+    return score([])
+
 def tr(name, patch, sc, **kw):
     d = {"name": name, "patch": patch, "score": sc}
     d.update(kw)
@@ -321,6 +340,8 @@ def main():
            fx=["delay time=3/8 feedback=0.3 mix=0.2"]),
         tr("bass", "bass-fat", bass(), gain="-3dB"),
         tr("sub", "seed-sub", sub_swell(), gain="-6dB"),
+        *[tr(f"xtal{k}", "seed-crystal", crystal(k), gain="-27dB", pan=pn, sends={"hall": "-8dB"})   # the CRYSTAL
+          for k, pn in enumerate(("L30", "R30", "L60", "R60"))],
         tr("gtr-l", "m8-emg-l", guitar(), pan="L90", gain="-5dB", seed=7),
         tr("gtr-r", "m8-emg-r", guitar(), pan="R90", gain="-5dB", seed=13),
         tr("kick", "metal-kit-dry", kick(), out="drums"),
@@ -333,7 +354,7 @@ def main():
         f"tempo: {TEMPO}",
         'tail: "0.5s"',                # the held F-B-E cluster is still ringing when t2 begins (the songs bleed)
         'ceiling: "-0.1dB"',
-        'patches: ' + json.dumps({"seed-toms": SEED_TOMS, "seed-sub": SEED_SUB}),
+        'patches: ' + json.dumps({"seed-toms": SEED_TOMS, "seed-sub": SEED_SUB, "seed-crystal": SEED_CRYSTAL}),
         "buses:",
         '  hall: {fx: ["reverb kind=hall decay=3.4s mix=1 predelay=25ms mono_below=150hz"]}',
         '  drums: {fx: [{"type": "compressor", "threshold": "-18dB", "ratio": 3, "attack": "10ms", "release": "90ms", "makeup": "2dB"}, "reverb kind=room decay=0.6s mix=0.08 predelay=6ms mono_below=200hz"]}',
