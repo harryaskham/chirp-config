@@ -81,3 +81,24 @@ Track 3 is the groove: 96 bpm, swung sixteenths (`swing16=0.6`), a half-time kit
 - **Joins:** it opens thin (the NINEFOLD figure on the clean guitar over hats; bass and kick in bar 3; the full rig at
   bar 5), so t2's ending can carry over it. It ends on a ringing F1 F2 A2 C#3 chord over the F3 A3 C#4 F4 pad, then
   a two-bar snare/tom roll into t4's onslaught.
+
+## t6 "Thirteen Teeth" (chirper-zero): GEARTRAIN, GOVERNOR, OVERDRIVE
+
+Track 6, the machine: 128 bpm, a dead-straight 4/4, F. Generator: `compose/chirpers1/src/chirpers1-t6.py`.
+
+- **GEARTRAIN:** 13 sixteenths, `X . x x . O . x x . S . .`. X is an accented palm-muted F1, x a palm-muted
+  chug, O the open octave F1+F2 (a tooth), S the tritone stab F1 B1 F2 (LATTICE's tritone). The kick plays in unison
+  with the chugs.
+  - It realigns with the bar every 13 bars, so every section is 13 bars long and each boundary is a realignment.
+  - Developments: one guitar with accent-only kicks (engage); both guitars plus every kick (mesh); open ringing
+    octaves `O . o o . O . o o . S . .` with roots by cycle F F Gb G Gb (governor); only the first three slots of
+    every other cycle (stall); the full rig, half time, held into the cluster (seize).
+- **GOVERNOR** (m8-lead): 13 eighths (26 sixteenths, also realigning every 13 bars): F4 B4 E5 F5 Gb5 F5 E5 B4 F4 Gb4
+  B4 C5 E5. That is LATTICE's F-Gb-B-E colour with t5's C as a mechanical arpeggio, in eighths (governor,
+  overdrive), then one note per beat over the seizure.
+- **OVERDRIVE:** 23 sixteenths = GEARTRAIN plus t5's heavy BREATH CELL twice (`x x . x . | x x . x .`). Roots F F Gb
+  by cycle, a double kick under everything, the snare on 2 and 4, a crash every other cycle. 23 bars.
+- **Borrowed:** the track opens on t5's ending, its 13-count clock figure (F3 C4 E4 B4 G4, 5+4+4) at t5's speed (t5's
+  sixteenths are our eighths), then doubles it into sixteenths (spin-up). LATTICE's 3+2+2 seven-cell walks F-Gb-B-E
+  high on the twang chorus as a slipping second gear (mesh, overdrive, seize). It ends on LATTICE's final cluster
+  F1 B1 E2 with Gb on top, held two bars into t7.
