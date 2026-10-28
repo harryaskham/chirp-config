@@ -157,3 +157,17 @@ Track 4 is the onslaught: 204 bpm, dead straight, the album's fastest. Generator
 - **Joins:** Moult's closing roll lands on one ringing bar (the F cluster plus octave and a crash), with Moult's
   final pad (F3 A3 C#4 F4) carried across for three bars. It ends on three tutti cluster hits, a choked crash and
   0.44 s of dead air before t5's ringing F1-C2-F2-B2 chord.
+
+## t2 "Ingot" (chirper-three): TRIAD, HINGE
+
+- **TRIAD**, the album's main riff (transforms LATTICE): the 7-cell in its three rotations, 3+2+2 / 2+3+2 / 2+2+3,
+  chained into a 21-sixteenth phrase. Each rotation's first chug is an open pivot walking the LATTICE colour,
+  F1 -> Gb1 -> B1 (the third phrase's B pivot becomes an F1+E2 stab); the rest are palm-muted F1 chugs. The phrase
+  restarts every 4 bars of 4/4: 64 = 21 + 21 + 22 (the last phrase stretched by one chug), so it turns over against
+  the kit and snaps back on every fourth downbeat. 144 BPM. Kick in unison; the Return harmonises the pivots with
+  their octave on the right guitar.
+- **HINGE**: a bar-aligned contrast riff, groups 3+3+3+3+4 per bar: chugs on the groups (alternate bars pivot on
+  Gb1), a F1+B1 tritone stab on the 4-group, two sixteenth chugs to close. Half-time snare. In Bloom the KICK plays
+  HINGE's grouping while the guitars play TRIAD's 21: the album's first kick-vs-guitar polymeter.
+- **The release** quotes LATTICE's line (F Gb B E) on clean guitar in eighth-note augmentation (cell 6+4+4) over an
+  F-B-E pad; the ending holds F-B-(F) for t3.

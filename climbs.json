@@ -4906,13 +4906,17 @@
       "song": "songs/chirpers1-t2.yaml",
       "reference": "Chirpers — Ingot",
       "source": null,
-      "owner": null,
+      "owner": "chirper-three",
       "metric": "python3 tools/compscore.py chirpers1-t2 OUT.wav",
-      "best": null,
+      "best": {
+        "score": 94.0,
+        "version": "v1",
+        "commit": "see git log songs/chirpers1-t2.yaml"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "polyrhythmic djent",
       "mode": "compose",
@@ -4928,6 +4932,10 @@
         "by": "chirp-eco",
         "at": "2026-10-28T10:32:45Z",
         "note": "COMPOSE (song, 180-240 s): The statement. Full-force polymetric chug riffing over a steady 4/4 kit pulse; introduce the album's main riff language; high intensity with one release section."
+      },
+      "last": {
+        "at": "2026-10-28T12:20:01Z",
+        "who": "chirper-three"
       }
     },
     {
