@@ -28,7 +28,15 @@ S16 = 0.25
 MG = float(os.environ.get("T6_MG", "15"))
 JOIN = os.environ.get("T6_JOIN", "1") == "1"   # end at level: a hammered cluster bar, 0.3 s tail
 GOVUP = os.environ.get("T6_GOVUP", "1") == "1"  # the governor's gears an octave up
-CLUNK = os.environ.get("T6_CLUNK", "1") == "1"  # one beat of silence before each realignment
+CLUNK = os.environ.get("T6_CLUNK", "1") == "1"
+OVTURN = os.environ.get("T6_OVTURN", "0") == "1"
+OVTURN2 = os.environ.get("T6_OVTURN2", "0") == "1"
+BRIGHT_END = os.environ.get("T6_BRIGHT", "0") == "1"
+DARK_END = float(os.environ.get("T6_DARK", "0"))  # dB of high-shelf cut over the last bars (meets t7's darker opening)
+SUB_END = float(os.environ.get("T6_SUB", "0"))
+HS_CUT = float(os.environ.get("T6_HSCUT", "3000"))
+FULLTIME = os.environ.get("T6_FULLTIME", "")
+DARKER = os.environ.get("T6_DARKER", "1") == "1"  # the machine's own colour: GOVERNOR C -> C#, the stall clock on F Gb B E C#  # sections whose snare drives on 2 and 4 (comma list)  # dB of low shelf over the last bars  # the hammer bar crash-lit (crash on quarters, open hat between)  # ... and its second half changes texture  # overdrive turns at bar 12: a clunk, roots up a semitone, the lead up an octave  # one beat of silence before each realignment
 FORM = [("spin", 13), ("engage", 13), ("mesh", 13), ("governor", 13), ("stall", 13), ("overdrive", 23), ("seize", 13)]
 
 
@@ -137,6 +145,8 @@ def kit_layer(nbars, kick_tokens, snare="3", hats="8", ride=False, crash_at=(), 
 
 
 GOVERNOR = ["F4", "B4", "E5", "F5", "F#5", "F5", "E5", "B4", "F4", "F#4", "B4", "C5", "E5"]
+if os.environ.get("T6_DARKER", "1") == "1":
+    GOVERNOR = [("C#5" if n == "C5" else n) for n in GOVERNOR]
 
 
 def governor(nbars, octave=0, vel=92, long=False):
@@ -166,9 +176,9 @@ def ping7(nbars, vel=70):
     return join(*out)
 
 
-def clock13(nbars, unit=0.5, vel=(92, 54)):
+def clock13(nbars, unit=0.5, vel=(92, 54), cell=None):
     """t5's ending figure (F3 C4 E4 B4 G4 counted 5+4+4) on the clean, at `unit` beats per note."""
-    cell = ["F3", "C4", "E4", "B4", "G4"]
+    cell = cell or ["F3", "C4", "E4", "B4", "G4"]
     per_bar = int(BAR / unit)
     out = []
     for st in range(nbars * per_bar):
@@ -232,14 +242,18 @@ def build():
                 g2, b2, k2, _ = riff(1, GEAR, ["F1"], kick="unison")
                 g = join(g, g2, *[tok("F1,B1,E2", 0.5, 120) for _ in range(8)])
                 b = join(b, b2, *[tok("F1", 0.5, 112) for _ in range(8)])
-                k = join(k, k2, "c,k/0.5b@124", *["k/0.5b@112"] * 6, "c,k/0.5b@124")
+                if BRIGHT_END:
+                    k = join(k, k2, *[("c,k/0.5b@124" if j % 2 == 0 else "oh,k/0.5b@112") for j in range(7)], "c,k/0.5b@124")
+                else:
+                    k = join(k, k2, "c,k/0.5b@124", *["k/0.5b@112"] * 6, "c,k/0.5b@124")
             elif sec == "seize":  # two final bars: LATTICE's cluster, held into t7
                 g = join(g, tok("F1,B1,E2", BAR * 2, 118)); b = join(b, tok("F1", BAR * 2, 110))
                 k = join(k, "c,k/2b@124", rest(BAR * 2 - 2))
             put("gtr-l", g, beats); put("bass", b, beats)
             if sec != "engage":
                 put("gtr-r", g, beats); used.add("gtr-r")
-            put("drums", kit_layer(n, k, snare="3" if sec in ("engage", "mesh", "governor", "seize") else "24",
+            half = sec in ("engage", "mesh", "governor", "seize") and sec not in FULLTIME.split(",")
+            put("drums", kit_layer(n, k, snare="3" if half else "24",
                                    hats={"engage": "4", "governor": "16"}.get(sec, "8"), ride=(sec == "governor"), crash_at={0}), beats)
             if sec in ("mesh", "seize"):
                 put("ping", ping7(n if sec == "mesh" else n - 2) + (" " + rest(BAR * 2) if sec == "seize" else ""), beats); used.add("ping")
@@ -257,16 +271,30 @@ def build():
             put("gtr-l", g, beats); put("gtr-r", g, beats); put("bass", b, beats)
             put("drums", kit_layer(n, k, snare="none", hats="none"), beats)
             put("pad", join(*[tok("F2,C3,E3,B3,G4" if i % 2 == 0 else "F2,F#2,B2,E3", BAR, 60) for i in range(n)]), beats)
-            put("cln", clock13(n, 0.25, (80, 50)), beats)
+            put("cln", clock13(n, 0.25, (80, 50), cell=["F3", "F#3", "B3", "E4", "C#4"] if DARKER else None), beats)
             used |= {"gtr-l", "gtr-r", "bass", "drums", "pad", "cln"}
         elif sec == "overdrive":
             pat = GEAR + "xx.x." + "xx.x."  # 23
-            g, b, k, starts = riff(n, pat, ["F1", "F1", "F#1"], vel=1.05, kick="double")
+            halves = [(12, ["F1", "F1", "F#1"], 0), (n - 12, ["F#1", "F#1", "G1"], 1)] if OVTURN else [(n, ["F1", "F1", "F#1"], 0)]
+            parts = {x: [] for x in ("gtr", "bass", "drums", "gov", "ping", "sub")}
+            for hi, (nb, roots, octv) in enumerate(halves):
+                shift = OVTURN2 and hi == 1  # the second gear: unison kick, ride eighths, no ping
+                g, b, k, starts = riff(nb, pat, roots, vel=1.05, kick="unison" if shift else "double")
+                d = kit_layer(nb, k, snare="24", hats="8" if shift else "16", ride=shift, crash_at=set(starts[::2]) | {0}, accent13=False)
+                gv = governor(nb, octave=octv, vel=94 + 4 * octv)
+                pg = rest(nb * BAR) if shift else ping7(nb, vel=64)
+                sb = join(*[tok(roots[0], BAR * 1, 70) if i % 4 == 0 else rest(BAR) for i in range(nb)])
+                piece = {"gtr": g, "bass": b, "drums": d, "gov": gv, "ping": pg, "sub": sb}
+                if OVTURN and hi == 0:  # the turn: one beat of silence before the second half
+                    piece = {kk: truncate(v, nb * BAR - 1) + " " + rest(1) for kk, v in piece.items()}
+                for kk, v in piece.items():
+                    parts[kk].append(v)
+            g, b = join(*parts["gtr"]), join(*parts["bass"])
             put("gtr-l", g, beats); put("gtr-r", g, beats); put("bass", b, beats)
-            put("drums", kit_layer(n, k, snare="24", hats="16", crash_at=set(starts[::2]), accent13=False), beats)
-            put("gov", governor(n, vel=94), beats)
-            put("ping", ping7(n, vel=64), beats)
-            put("sub", join(*[tok("F1", BAR * 1, 70) if i % 4 == 0 else rest(BAR) for i in range(n)]), beats)
+            put("drums", join(*parts["drums"]), beats)
+            put("gov", join(*parts["gov"]), beats)
+            put("ping", join(*parts["ping"]), beats)
+            put("sub", join(*parts["sub"]), beats)
             used |= {"gtr-l", "gtr-r", "bass", "drums", "gov", "ping", "sub"}
         for nm in names:
             if nm not in used:
@@ -277,6 +305,26 @@ def build():
                 T[nm][-1] = (truncate(sc, b0 - 1) + " " + rest(1), b0)
         t_beats += beats
     return T, t_beats
+
+
+def master():
+    fx = [{"type": "eq", "bands": ["peak cutoff=350 q=0.8 gain=-3dB", "highshelf cutoff=5k gain=2dB"]},
+          {"type": "compressor", "threshold": "-24dB", "ratio": 2, "attack": "10ms", "release": "200ms", "makeup": "0dB"},
+          {"type": "gain", "gain": f"+{MG:g}dB"}]
+    m = {"fx": fx}
+    if DARK_END or SUB_END:
+        end = sum(n for _, n in FORM) * BAR * 60 / BPM
+        t0, t1 = end - BAR * 2 * 60 / BPM, end - BAR * 1 * 60 / BPM  # ramp over the second-last bar, full over the hammer bar
+        bands, auto = [], {}
+        if DARK_END:
+            bands.append({"kind": "highshelf", "cutoff": HS_CUT, "q": 0.7, "gain": {"value": "0dB", "mod": [{"src": "auto.ehs", "amount": 1}]}})
+            auto["ehs"] = {"points": [["0s", 0], [f"{t0:.3f}s", 0], [f"{t1:.3f}s", -DARK_END], [f"{end + 5:.3f}s", -DARK_END]]}
+        if SUB_END:
+            bands.append({"kind": "lowshelf", "cutoff": 60, "q": 0.7, "gain": {"value": "0dB", "mod": [{"src": "auto.els", "amount": 1}]}})
+            auto["els"] = {"points": [["0s", 0], [f"{t0:.3f}s", 0], [f"{t1:.3f}s", SUB_END], [f"{end + 5:.3f}s", SUB_END]]}
+        fx.insert(0, {"type": "eq", "bands": bands})
+        m["auto"] = auto
+    return m
 
 
 def song():
@@ -310,9 +358,7 @@ def song():
         "tempo": BPM, "ceiling": "-0.1dB", "tail": "0.3s" if JOIN else "2s",
         "buses": {"hall": {"fx": ["reverb kind=hall decay=2.6s mix=1 predelay=20ms"]},
                   "dly": {"fx": ["delay time=3/16 feedback=.32 mix=1 ping_pong=true", "reverb kind=room decay=1.2s mix=0.3"]}},
-        "master": {"fx": [{"type": "eq", "bands": ["peak cutoff=350 q=0.8 gain=-3dB", "highshelf cutoff=5k gain=2dB"]},
-                          {"type": "compressor", "threshold": "-24dB", "ratio": 2, "attack": "10ms", "release": "200ms", "makeup": "0dB"},
-                          {"type": "gain", "gain": f"+{MG:g}dB"}]},
+        "master": master(),
         "tracks": tracks,
     }
 

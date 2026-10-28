@@ -109,6 +109,9 @@ Track 6, the machine: 128 bpm, a dead-straight 4/4, F. Generator: `compose/chirp
   sixteenths are our eighths), then doubles it into sixteenths (spin-up). LATTICE's 3+2+2 seven-cell walks F-Gb-B-E
   high on the twang chorus as a slipping second gear (mesh, overdrive, seize). It ends on LATTICE's final cluster
   F1 B1 E2 with Gb on top.
+- **v3:** the machine's own colour, apart from t5's F lydian (its C, G, E, B stay only in the spin-up handoff).
+  - GOVERNOR: C5 -> C#5 (F4 B4 E5 F5 Gb5 F5 E5 B4 F4 Gb4 B4 C#5 E5).
+  - The stall's clean clock runs on F3 Gb3 B3 E4 C#4: LATTICE's colour plus the machine's C#, counted 5+4+4.
 - **v2:**
   - Each realignment is marked by one beat of silence in every part before the new section (a clunk), except into
     the stall and at the end.
