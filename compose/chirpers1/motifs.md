@@ -175,9 +175,10 @@ Track 4 is the onslaught: 204 bpm, dead straight, the album's fastest. Generator
 
 - **TRIAD**, the album's main riff (transforms LATTICE): the 7-cell in its three rotations, 3+2+2 / 2+3+2 / 2+2+3,
   chained into a 21-sixteenth phrase. Each rotation's first chug is an open pivot walking the LATTICE colour,
-  F1 -> Gb1 -> B1 (the third phrase's B pivot becomes an F1+E2 stab); the rest are palm-muted F1 chugs. The phrase
-  restarts every 4 bars of 4/4: 64 = 21 + 21 + 22 (the last phrase stretched by one chug), so it turns over against
-  the kit and snaps back on every fourth downbeat. 144 BPM. Kick in unison; the Return harmonises the pivots with
+  F1 -> Gb1 -> B1 (the third phrase's B pivot becomes an F1+E2 stab); the rest are palm-muted F1 chugs. Since v8 the
+  phrase runs FREE through each 16-bar section (12 x 21 + a 4-sixteenth tail), drifting against the 4/4 while the
+  cymbals keep the bar frame (chinas every 4 bars); until v7 it snapped back every 4 bars (64 = 21 + 21 + 22).
+  The polymeter measure now names the 21-cycle (z 3.0; was 7 at 1.96, score 19 -> 100). 144 BPM. Kick in unison; the Return harmonises the pivots with
   their octave on the right guitar.
 - **HINGE**: a bar-aligned contrast riff, groups 3+3+3+3+4 per bar: chugs on the groups (alternate bars pivot on
   Gb1), a F1+B1 tritone stab on the 4-group, two sixteenth chugs to close. Half-time snare. In Bloom the KICK plays
