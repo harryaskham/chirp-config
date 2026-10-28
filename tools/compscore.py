@@ -329,19 +329,19 @@ def _sim(s, t):
     return float(a @ b / (np.linalg.norm(a) * np.linalg.norm(b) + 1e-9))
 
 
-RETURN = 0.6              # a section 'returns' when its mean frame matches an earlier non-adjacent one this well
+RETURN = (0.45, 0.75)     # a section's return strength ramps 0 -> 1 as its best match to an earlier non-adjacent
+                          # section goes 0.45 -> 0.75. A hard 0.6 cut flipped Seed Crystal between seeds (one section
+                          # matched 0.62 on seed 0, 0.598 on seed 11: recurrence 57.4 vs 18.9, total 88.1 vs 82.6)
 
 
 def m_recurrence(ctx):
     secs = ctx["sections"]
     if len(secs) < 3:
         return 30.0, {"sections": len(secs)}
-    returns = 0
-    for i in range(2, len(secs)):
-        if max(_sim(secs[i], secs[j]) for j in range(0, i - 1)) >= RETURN:
-            returns += 1
-    frac = returns / (len(secs) - 2)
-    return band(frac, 0.25, 0.7, 0.15), {"returns": returns, "of": len(secs) - 2, "share": round(frac, 2)}
+    best = [max(_sim(secs[i], secs[j]) for j in range(0, i - 1)) for i in range(2, len(secs))]
+    frac = float(np.mean([np.clip((b - RETURN[0]) / (RETURN[1] - RETURN[0]), 0, 1) for b in best]))
+    return band(frac, 0.25, 0.7, 0.15), {"returns": sum(b >= 0.6 for b in best), "of": len(best), "share": round(frac, 3),
+                                         "best_matches": [round(b, 2) for b in best]}
 
 
 def m_rhythm(ctx):
