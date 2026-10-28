@@ -5111,18 +5111,9 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/compscore.py chirpers1-t6 OUT.wav",
       "best": {
-        "score": 97.735,
+        "score": 98.003,
         "version": "v9",
-        "commit": "see git log songs/chirpers1-t6.yaml",
-        "rescored": {
-          "compscore": "9159dd60",
-          "seeds": {
-            "0": 97.735,
-            "11": 98.328
-          },
-          "at": "2026-10-28T23:11:16Z",
-          "was": 98.003
-        }
+        "commit": "see git log songs/chirpers1-t6.yaml"
       },
       "passes": 1,
       "enabled": true,
@@ -5147,7 +5138,8 @@
       "last": {
         "at": "2026-10-28T23:09:47Z",
         "who": "chirper-zero"
-      }
+      },
+      "chirp-eco": ""
     },
     {
       "id": "chirpers1-t7",
