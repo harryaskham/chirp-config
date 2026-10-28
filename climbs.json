@@ -4543,15 +4543,15 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/likeness.py sections ref/combustion.wav OUT.wav $(cat tools/combustion-sections.txt)",
       "best": {
-        "score": 70.738,
-        "version": "v6",
+        "score": 70.811,
+        "version": "v7",
         "commit": "see git log songs/combustion.yaml",
         "engine": "85b3881"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 7,
+      "rounds": 8,
       "priority": 1.0,
       "genre": "progressive metal",
       "meta": {
@@ -4568,7 +4568,7 @@
       },
       "ref_file": "ref/albums/obzen/01 combustion.webm",
       "last": {
-        "at": "2026-10-27T20:14:12Z",
+        "at": "2026-10-28T00:22:03Z",
         "who": "chirper-zero"
       }
     },

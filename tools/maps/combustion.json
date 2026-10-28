@@ -366,7 +366,7 @@
   {
    "name": "vox",
    "score_file": "tools/maps/combustion-vox.txt",
-   "patch": "kidman synth.amp.a=40ms",
+   "patch": "kidman synth.amp.a=40ms synth.layers.0.scream=0.5",
    "gain": "-2.0dB",
    "extra": {
     "fx": [

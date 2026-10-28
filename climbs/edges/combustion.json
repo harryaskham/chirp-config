@@ -1,9 +1,9 @@
 {
  "id": "combustion",
- "version": "v6",
+ "version": "v7",
  "edge": 3.0,
  "ref_seconds": 248.653,
- "at": "2026-10-27T19:21:11Z",
+ "at": "2026-10-28T00:22:04Z",
  "edges": {
   "head": {
    "level": -24.04558783854356,
