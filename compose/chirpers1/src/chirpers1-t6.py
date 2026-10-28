@@ -39,7 +39,8 @@ FULLTIME = os.environ.get("T6_FULLTIME", "")
 DARKER = os.environ.get("T6_DARKER", "1") == "1"
 TONE = os.environ.get("T6_TONE", "s3")
 BASS_DB = float(os.environ.get("T6_BASS", "-3"))
-LOWMID_DB = float(os.environ.get("T6_LOWMID", "-2"))  # a master cut at 580 Hz  # master tone: "" (v3), "s1" (no 5k boost, 10k -3), "s2" (s1 + 60 Hz +3)  # the machine's own colour: GOVERNOR C -> C#, the stall clock on F Gb B E C#  # sections whose snare drives on 2 and 4 (comma list)  # dB of low shelf over the last bars  # the hammer bar crash-lit (crash on quarters, open hat between)  # ... and its second half changes texture  # overdrive turns at bar 12: a clunk, roots up a semitone, the lead up an octave  # one beat of silence before each realignment
+LOWMID_DB = float(os.environ.get("T6_LOWMID", "-2"))
+HOCKET = os.environ.get("T6_HOCKET", "mesh,governor")  # sections whose GEARTRAIN is split: gtr-l the accents/teeth/stabs, a crushed right guitar (chirper-three's SHARD) the chugs  # a master cut at 580 Hz  # master tone: "" (v3), "s1" (no 5k boost, 10k -3), "s2" (s1 + 60 Hz +3)  # the machine's own colour: GOVERNOR C -> C#, the stall clock on F Gb B E C#  # sections whose snare drives on 2 and 4 (comma list)  # dB of low shelf over the last bars  # the hammer bar crash-lit (crash on quarters, open hat between)  # ... and its second half changes texture  # overdrive turns at bar 12: a clunk, roots up a semitone, the lead up an octave  # one beat of silence before each realignment
 FORM = [("spin", 13), ("engage", 13), ("mesh", 13), ("governor", 13), ("stall", 13), ("overdrive", 23), ("seize", 13)]
 
 
@@ -90,6 +91,18 @@ def gear_steps(pattern, root, vel_scale=1.0):
             g.append(rest(S16)); b.append(rest(S16)); k.append(rest(S16))
         i += 1
     return g, b, k
+
+
+def split_gear(score, pattern, keep):
+    """Rest every token whose pattern slot is not in `keep` (the score is one riff() guitar line; stabs span 2 slots)."""
+    out, slot = [], 0
+    toks = score.split()
+    for t in toks:
+        d16 = int(round(float(t.split("/")[1].split("b")[0]) * 4))
+        c = pattern[slot % len(pattern)]
+        out.append(t if (not t.startswith("R/") and c in keep) else "R/" + t.split("/")[1].split("@")[0].split("^")[0])
+        slot += d16
+    return " ".join(out)
 
 
 def riff(nbars, pattern, roots=None, vel=1.0, mute_every=0, kick="unison"):
@@ -216,7 +229,7 @@ def truncate(score, beats):
 
 # ---------------------------------------------------------------- arrangement
 def build():
-    names = ("pad", "cln", "tick", "gtr-l", "gtr-r", "bass", "drums", "ping", "gov", "sub")
+    names = ("pad", "cln", "tick", "gtr-l", "gtr-r", "bass", "drums", "ping", "gov", "sub", "shard")
     T = {n: [] for n in names}
 
     def put(name, s, beats):
@@ -252,9 +265,13 @@ def build():
             elif sec == "seize":  # two final bars: LATTICE's cluster, held into t7
                 g = join(g, tok("F1,B1,E2", BAR * 2, 118)); b = join(b, tok("F1", BAR * 2, 110))
                 k = join(k, "c,k/2b@124", rest(BAR * 2 - 2))
-            put("gtr-l", g, beats); put("bass", b, beats)
-            if sec != "engage":
-                put("gtr-r", g, beats); used.add("gtr-r")
+            if sec in HOCKET.split(","):  # the gear hocket: accents left, chugs crushed on the right
+                put("gtr-l", split_gear(g, pat, "XOS"), beats); put("bass", b, beats)
+                put("shard", split_gear(g, pat, "xo"), beats); used.add("shard")
+            else:
+                put("gtr-l", g, beats); put("bass", b, beats)
+                if sec != "engage":
+                    put("gtr-r", g, beats); used.add("gtr-r")
             half = sec in ("engage", "mesh", "governor", "seize") and sec not in FULLTIME.split(",")
             put("drums", kit_layer(n, k, snare="3" if half else "24",
                                    hats={"engage": "4", "governor": "16"}.get(sec, "8"), ride=(sec == "governor"), crash_at={0}), beats)
@@ -356,6 +373,9 @@ def song():
         {"name": "ping", "patch": "m8-twang-chorus", "gain": "-16dB", "pan": 0.6, "sends": {"dly": "-10dB"}, "score": sc("ping")},
         {"name": "gov", "patch": "m8-lead", "gain": "-9dB", "pan": 0.05, "score": sc("gov")},
     ]
+    if HOCKET:  # chirper-three's SHARD (m8-emg-r bit-crushed), here as the gear hocket's chug voice, hard right
+        tracks.append({"name": "shard", "patch": "m8-emg-r", "gain": "-4dB", "pan": 1,
+                       "fx": [{"type": "crush", "bits": 6, "rate": 5000, "mix": 0.6}], "score": sc("shard")})
     return {
         "about": ("Chirpers - Ferrous Bloom, track 6 'The machine' (original composition, chirper-zero; generator "
                   "compose/chirpers1/src/chirpers1-t6.py). 128 bpm 4/4 in F. GEARTRAIN, a 13-sixteenth chug riff, "
