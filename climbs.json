@@ -4946,9 +4946,9 @@
       "owner": "chirper-two",
       "metric": "python3 tools/compscore.py chirpers1-t3 OUT.wav",
       "best": {
-        "score": 97.54,
-        "version": "v2",
-        "commit": "see git log songs/chirpers1-t3.yaml",
+        "score": 95.686,
+        "version": "v3",
+        "commit": "45512465",
         "engine": "85b3881"
       },
       "passes": 1,
