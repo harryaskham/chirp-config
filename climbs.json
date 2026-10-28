@@ -4919,7 +4919,7 @@
       "metric": "python3 tools/compscore.py chirpers1-t2 OUT.wav",
       "best": {
         "score": 95.608,
-        "version": "v3",
+        "version": "v4",
         "commit": "see git log songs/chirpers1-t2.yaml",
         "judged": true,
         "rescored": {
@@ -4928,7 +4928,7 @@
             "0": 95.608,
             "11": 95.624
           },
-          "at": "2026-10-28T14:21:58Z",
+          "at": "2026-10-28T14:52:00Z",
           "was": 95.66
         }
       },
