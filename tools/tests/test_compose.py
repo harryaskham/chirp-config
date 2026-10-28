@@ -98,6 +98,17 @@ class Done(unittest.TestCase):
         self.assertEqual((c["status"], c["owner"], c["enabled"]), ("active", "chirper-two", True))
 
 
+class Rebaseline(unittest.TestCase):
+    def test_apply_rescore_keeps_the_old_score_and_notes_it(self):
+        c = {"id": "x", "rounds": 4, "best": {"score": 97.54, "version": "v2"}}
+        h = CH.apply_rescore(c, {0: 95.6861, 11: 95.968}, "abc123", "chirp-eco", "2026-10-28T12:40:00Z")
+        self.assertEqual(c["best"]["score"], 95.686)
+        self.assertEqual(c["best"]["rescored"], {"compscore": "abc123", "seeds": {"0": 95.686, "11": 95.968},
+                                                 "at": "2026-10-28T12:40:00Z", "was": 97.54})
+        self.assertTrue(h["steer"])
+        self.assertIn("v2 (the song file) scores 95.686/95.968 on seeds 0/11", h["note"])
+
+
 class Ratings(unittest.TestCase):
     def test_harry_rating_feeds_human_with_stale_half_weight(self):
         quiet(RT.main, ["alb-t2", "7.5", "--note", "great intro riff", "--no-git"])
@@ -111,6 +122,8 @@ class Ratings(unittest.TestCase):
         rs[0]["version"] = "v1"
         self.assertEqual(CS.m_human(ctx)[1]["weight_scale"], 0.5)          # rated an older version
         self.assertEqual(CS.m_peer(ctx)[0], 60.0)                           # chirper-two, not the owner
+        rs += [{"id": "alb-t2", "who": "harry", "note": "a note, no score"}, {"id": "alb-t2", "who": "chirper-zero", "note": "n"}]
+        self.assertEqual((CS.m_human(ctx)[0], CS.m_peer(ctx)[0]), (75.0, 60.0))   # note-only entries never crash or count
         with self.assertRaises(SystemExit):
             quiet(RT.main, ["old-song", "5", "--no-git"])                   # only compositions are rated
 

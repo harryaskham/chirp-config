@@ -10,6 +10,12 @@ climbing them on tools/compscore.py (no record to match) and Harry's ratings (to
   chirpers.py status [ALBUM_ID]                      tracks, composers, lengths, best scores, latest ratings
   chirpers.py refresh ALBUM_ID [--ids a,b]           render each composed song (seed 0, groove pin) and save its
                                                      features for the album terms (cohesion, distinct, flow)
+  chirpers.py rebaseline ALBUM_ID [--ids a,b] [--seeds 0,11] [--apply]
+                                                     after a compscore change: render each composed song's current
+                                                     file on the seeds, re-score, and (with --apply) record the new
+                                                     seed-0 score as its best (the old one kept under best.rescored,
+                                                     a note in its history) and save its features, so `done` compares
+                                                     like with like (Moult v3 was refused against an old-scale v2)
 
 SPEC.json: {"artist", "album" (a placeholder until named), "year", "genre", "brief", "palette", "bleed",
 "genre_refs": [climb ids whose records give the genre's spectrum envelope], "master": {...}, "weights": {...},
@@ -237,6 +243,94 @@ def cmd_refresh(a, args):
             print(f"{cid}: features saved, compscore {tot}")
 
 
+def render(pin, song, seed, out, env):
+    """Render SONG (copied into songs/ so its relative includes resolve) at SEED to OUT; the error text or None."""
+    snap = os.path.join(ROOT, "songs", f".chirpers-{os.getpid()}-{os.path.basename(song)}")
+    shutil.copy(song, snap)
+    try:
+        r = subprocess.run(["nice", "-n", "15", pin, "render", "-f", os.path.basename(snap), "--seed", str(seed), "-o", out],
+                           cwd=os.path.join(ROOT, "songs"), env=env, capture_output=True, text=True)
+    finally:
+        os.unlink(snap)
+    return r.stderr.strip()[-200:] if r.returncode else None
+
+
+def apply_rescore(c, scores, rev, who, at):
+    """Record SCORES ({seed: total}) as C's best (seed 0, else the first seed); the history note to append."""
+    best = c.setdefault("best", {})
+    old = best.get("score")
+    first = scores.get(0, next(iter(scores.values())))
+    best["score"] = round(float(first), 3)
+    best["rescored"] = {"compscore": rev, "seeds": {str(k): round(float(v), 3) for k, v in scores.items()}, "at": at,
+                        "was": old}
+    seeds = "/".join(str(k) for k in scores)
+    vals = "/".join(f"{v:.3f}" for v in scores.values())
+    return {"round": c.get("rounds", 0), "at": at, "who": who, "steer": True,
+            "note": f"rebaselined on compscore {rev}: {best.get('version')} (the song file) scores {vals} on seeds {seeds}; "
+                    f"best was {old} on an older compscore. Compare candidates against this."}
+
+
+def cmd_rebaseline(a, args):
+    sys.path.insert(0, HERE)
+    import compscore as CS
+    album = CS.load_album(a.album_id)
+    reg = C.load()
+    pin = open(os.path.join(ROOT, "tools", "groove-pin")).read().strip()
+    seeds = [int(x) for x in a.seeds.split(",")]
+    ids = a.ids.split(",") if a.ids else [t["id"] for t in album["tracks"]]
+    env = dict(os.environ, RAYON_NUM_THREADS="4")
+    env.pop("LD_LIBRARY_PATH", None)
+    rev = subprocess.run(["git", "log", "-1", "--format=%h", "--", "tools/compscore.py"], cwd=ROOT, capture_output=True,
+                         text=True).stdout.strip() or "?"
+    work = tempfile.mkdtemp(prefix="rebaseline-", dir="/tmp/lt" if os.path.isdir("/tmp/lt") else None)
+    todo = []
+    try:
+        for cid in ids:                                   # pass 1: render, and save features so pass 2's album terms
+            c = next((c for c in reg["climbs"] if c["id"] == cid), None)        # see every song's current version
+            if not c or not os.path.exists(os.path.join(ROOT, c["song"])) or not (c.get("best") or {}).get("version"):
+                continue
+            song = os.path.join(work, f"{cid}.yaml")
+            shutil.copy(os.path.join(ROOT, c["song"]), song)
+            wavs = {}
+            for sd in seeds:
+                wavs[sd] = os.path.join(work, f"{cid}-s{sd}.wav")
+                err = render(pin, song, sd, wavs[sd], env)
+                if err:
+                    print(f"{cid}: seed {sd} render failed: {err}")
+                    break
+            else:
+                todo.append((c, song, wavs))
+                if a.apply:
+                    me = CS.build_ctx(cid, wavs[seeds[0]], c, album, song)["me"]
+                    d = os.path.join(CS.cache_dir(a.album_id), "features")
+                    os.makedirs(d, exist_ok=True)
+                    with open(os.path.join(d, f"{cid}.json"), "w") as f:
+                        json.dump(me, f)
+        results = []
+        for c, song, wavs in todo:                       # pass 2: score
+            scores = {sd: CS.score(CS.build_ctx(c["id"], w, c, album, song), CS.plugins())["total"] for sd, w in wavs.items()}
+            last = subprocess.run(["git", "log", "-1", "--format=%s", "--", c["song"]], cwd=ROOT, capture_output=True,
+                                  text=True).stdout.strip()
+            results.append((c["id"], scores))
+            print(f"{c['id']:14s} best {c['best'].get('version'):4s} {c['best'].get('score')!s:>8} -> "
+                  + " ".join(f"s{k} {v:.3f}" for k, v in scores.items()) + f"   (song file: {last[:60]})")
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+    if not a.apply or not results:
+        return
+    who, at = C.whoami(args), C.now_iso()
+    paths = ["climbs.json"]
+    with C.registry() as reg:
+        for cid, scores in results:
+            c = C.find(reg, cid)
+            h = apply_rescore(c, scores, rev, who, at)
+            with open(os.path.join(ROOT, "climbs", f"{cid}.jsonl"), "a") as f:
+                f.write(json.dumps(h, ensure_ascii=False) + "\n")
+            paths.append(f"climbs/{cid}.jsonl")
+    C.commit_or_die(paths, f"compose: {a.album_id} rebaselined on compscore {rev} ({len(results)} songs, seeds "
+                    f"{a.seeds}): " + ", ".join(f"{cid.split('-')[-1]} {s[seeds[0]]:.2f}" for cid, s in results), args)
+
+
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
@@ -260,6 +354,11 @@ def main(argv=None):
     p = sub.add_parser("refresh")
     p.add_argument("album_id")
     p.add_argument("--ids")
+    p = sub.add_parser("rebaseline")
+    p.add_argument("album_id")
+    p.add_argument("--ids")
+    p.add_argument("--seeds", default="0,11")
+    p.add_argument("--apply", action="store_true")
     known, skip = [], False
     for i, x in enumerate(argv):            # climb.py's own flags (--as NAME, --no-git) go to its helpers, not argparse
         if skip:
@@ -272,7 +371,7 @@ def main(argv=None):
             known.append(x)
     a = ap.parse_args(known)
     {"new": cmd_new, "name": cmd_name, "title": cmd_title, "art": cmd_art, "status": cmd_status,
-     "refresh": cmd_refresh}[a.cmd](a, argv)
+     "refresh": cmd_refresh, "rebaseline": cmd_rebaseline}[a.cmd](a, argv)
 
 
 if __name__ == "__main__":

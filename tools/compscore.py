@@ -250,7 +250,7 @@ def genre_envelope(album):
 # ── measures ────────────────────────────────────────────────────────────────────────────────
 
 def m_human(ctx):
-    rs = [r for r in ctx["ratings"] if r.get("id") == ctx["id"] and r.get("who") == "harry"]
+    rs = [r for r in ctx["ratings"] if r.get("id") == ctx["id"] and r.get("who") == "harry" and "score" in r]  # notes skip
     if not rs:
         return None, {}
     r = rs[-1]
@@ -263,7 +263,7 @@ def m_peer(ctx):
     owner = ctx.get("owner")
     latest = {}
     for r in ctx["ratings"]:
-        if r.get("id") == ctx["id"] and r.get("who") not in ("harry", owner, None):
+        if r.get("id") == ctx["id"] and r.get("who") not in ("harry", owner, None) and "score" in r:
             latest[r["who"]] = float(r["score"])
     if not latest:
         return None, {}
