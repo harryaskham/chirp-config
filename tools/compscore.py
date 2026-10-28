@@ -17,9 +17,10 @@ compose/ALBUM/album.json "weights", defaults below):
   variety    within-song contrast across sections: loudness range, timbre spread, onset-density change.
   recurrence motifs return: the share of later sections that closely match an earlier, non-adjacent one, in a
              middle band (none = no development of material; all = one idea looped).
-  rhythm     rhythmic interest: strong onset periodicities off the eighth-note grid of the song's declared tempo
-             (polymeter cells of odd sixteenths, displacement) in a middle band, at a plausible onset density. Without
-             a declared tempo the beat is estimated (a swung half-time 96 read as 64: chirper-two, 28 Oct).
+  rhythm     rhythmic interest: the share of onset periodicity (local autocorrelation maxima, weighted by squared
+             height, no cutoff) off the eighth-note grid of the song's declared tempo, in a middle band, at a plausible
+             onset density. Without a declared tempo the beat is estimated. A crude polymeter proxy (real Meshuggah
+             records score low: their cycles sit on the sixteenth grid); a beat-synchronous measure would be better.
   spectrum   the mix's long-term spectrum within a tolerance (album.json spectrum_tolerance_db, default 6 dB) of the
              album's genre envelope (the genre_refs' average): flags a broken mix (no low end, a harsh top), never a
              clean or ambient track for being one (at 3 dB the clean intro lost ~6 total points: anti-variety).
@@ -360,7 +361,10 @@ def m_rhythm(ctx):
     ac = autocorr(o, int(4 * L.FPS) + 2)
     ac = ac / (ac[0] + 1e-12)
     lags = np.arange(2, min(len(ac) - 1, int(4 * L.FPS)))
-    pk = lags[(ac[lags] > ac[lags - 1]) & (ac[lags] >= ac[lags + 1]) & (ac[lags] > 0.15)]
+    # every positive local maximum, weighted by its squared height: no cutoff. A fixed 0.15 cut made the term depend on
+    # global normalisation: chirper-two's silent stop-starts in Splinterwork (sparse loud hits) shrank every peak,
+    # the off-grid ones fell under 0.15 and rhythm went 100 -> 45; Pyramid Song (top peak 0.17) scored 17.
+    pk = lags[(ac[lags] > ac[lags - 1]) & (ac[lags] >= ac[lags + 1]) & (ac[lags] > 0)]
     if len(pk) == 0:
         return 0.0, {}
     # the pulse: the song's declared tempo when we have it; else the strongest autocorrelation peak between 0.25 and
@@ -371,9 +375,9 @@ def m_rhythm(ctx):
     P = 60 * L.FPS / bpm
     grid = P / 2
     off = [k for k in pk if min(k % grid, grid - k % grid) > max(1.5, 0.04 * k)]
-    share = float(sum(ac[k] for k in off) / sum(ac[k] for k in pk))
+    share = float(sum(ac[k] ** 2 for k in off) / sum(ac[k] ** 2 for k in pk))
     dens = ctx["density"]
-    return 0.7 * band(share, 0.15, 0.6, 0.08) + 0.3 * band(dens, 1.5, 10.0, 2.0), {
+    return 0.7 * band(share, 0.1, 0.6, 0.1) + 0.3 * band(dens, 1.5, 10.0, 2.0), {
         "tempo": round(bpm, 1), "declared": bool(ctx.get("bpm")), "pulse_estimate": round(est, 1),
         "offgrid_share": round(share, 2), "onsets_per_s": round(dens, 2)}
 
