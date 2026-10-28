@@ -175,6 +175,15 @@ def build():
             hit(s, "k", v - 20)
     hit(t + 2 * BAR + 8, "s", 84)
     hit(t + 3 * BAR + 8, "s", 96)
+    # Round 5 (28 Oct, compscore 14c8f947), NOT kept, all off: the Ingot -> Moult seam from Moult's side. v3
+    # 95.217/95.241 (seam: level 0.9 dB, spectral 19.0, Moult -47 dB at 83 Hz). B 94.338/94.286 (spectral 10.5, level
+    # 7.2), B2 94.007/93.925 (level 14.2), T 94.333/94.240: every low end under the Tide lifts its level and costs
+    # variety ~7 (93.6 -> 87): the thin opening is Moult's contrast. The seam is left to Ingot's last bar.
+    if "B" in R3:  # only the bass carries Ingot's low F under the first two bars
+        bass.add(t, 2 * BAR, nm(F1), 80)
+    if "B2" in R3:  # the same, an octave up and softer: F2 (87 Hz, its 2nd harmonic ~262 Hz) is what the seam lacks;
+        # the riff's F1 then drops in at bar 3
+        bass.add(t, 2 * BAR, nm(F1 + 12), 60)
     if "T" in R3:  # tried in round 4, NOT kept (off by default): take over t2 "Ingot"'s held F-B: the bass holds F1
         # from the downbeat, a pad holds F2 B2 for two bars, then the B falls a semitone to A (with C# above). The join
         # from Ingot fell 22.7 -> 13.9 dB but flow stayed ~54 (anything over ~5 dB scores ~0 there) and the thin
