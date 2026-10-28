@@ -4588,7 +4588,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 9,
+      "rounds": 10,
       "priority": 1.0,
       "genre": "progressive metal",
       "meta": {
@@ -4605,7 +4605,7 @@
       },
       "ref_file": "ref/albums/obzen/02 electric-red.webm",
       "last": {
-        "at": "2026-10-28T01:05:08Z",
+        "at": "2026-10-28T02:50:41Z",
         "who": "chirper-zero"
       }
     },
