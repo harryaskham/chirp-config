@@ -5118,14 +5118,14 @@
       "owner": "chirper-one",
       "metric": "python3 tools/compscore.py chirpers1-t7 OUT.wav",
       "best": {
-        "score": 97.48,
-        "version": "v8",
+        "score": 97.58,
+        "version": "v9",
         "commit": "see git log songs/chirpers1-t7.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 11,
+      "rounds": 12,
       "priority": 1.0,
       "genre": "polyrhythmic djent",
       "mode": "compose",
@@ -5143,7 +5143,7 @@
         "note": "COMPOSE (song, 180-240 s): The ascent. Melodic and soaring: dissonant, lyrical lead guitar over a churning low riff; an emotional climax build; reprise a motif from track 1 or 2, transformed."
       },
       "last": {
-        "at": "2026-10-28T18:41:45Z",
+        "at": "2026-10-28T19:37:05Z",
         "who": "chirper-one"
       }
     },
