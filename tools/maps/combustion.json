@@ -164,7 +164,15 @@
        ]
       ]
      }
-    }
+    },
+    "fx": [
+     {
+      "type": "eq",
+      "bands": [
+       "peak cutoff=560 q=1 gain=-4dB"
+      ]
+     }
+    ]
    }
   },
   {
@@ -255,7 +263,17 @@
      "E2",
      "E2,E3"
     ]
-   ]
+   ],
+   "extra": {
+    "fx": [
+     {
+      "type": "eq",
+      "bands": [
+       "peak cutoff=560 q=1 gain=-4dB"
+      ]
+     }
+    ]
+   }
   },
   {
    "name": "lead",
@@ -569,7 +587,17 @@
      "E2",
      "E2,E3"
     ]
-   ]
+   ],
+   "extra": {
+    "fx": [
+     {
+      "type": "eq",
+      "bands": [
+       "peak cutoff=560 q=1 gain=-4dB"
+      ]
+     }
+    ]
+   }
   }
  ],
  "head": {
