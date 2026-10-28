@@ -1,7 +1,7 @@
 about: "Chirpers - Chirpers I, track 5 'The breath' (original composition, chirper-zero; generator compose/chirpers1/src/chirpers1-t5.py). 64 bpm, F lydian: a clean five-sixteenth 'breath cell' rippling against the bar, pads and a falling lead ('exhale'); one crushing half-time passage of the same cell in F against Gb; the figure returns over Db/Bb, the lead in augmentation; the ending counts the cell in thirteens for track 6."
 tempo: 64
 ceiling: "-0.1dB"
-tail: "3s"
+tail: "0.3s"
 master: {"fx": [{"type": "eq", "bands": ["peak cutoff=350 q=0.8 gain=-5dB", "highshelf cutoff=4k gain=5dB"]}, {"type": "compressor", "threshold": "-28dB", "ratio": 2, "attack": "15ms", "release": "250ms", "makeup": "0dB"}, {"type": "gain", "gain": "+20dB"}]}
 buses:
   hall: {"fx": ["reverb kind=hall decay=3.2s mix=1 predelay=24ms"]}

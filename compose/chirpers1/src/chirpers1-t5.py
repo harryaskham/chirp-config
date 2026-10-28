@@ -25,7 +25,8 @@ BPM = 64
 BAR = 4.0  # beats
 MG = float(os.environ.get("T5_MG", "20"))
 HELD = os.environ.get("T5_HELD", "1") == "1"
-GTR_DB = float(os.environ.get("T5_GTR", "1"))  # master make-up gain (dB) before the ceiling
+GTR_DB = float(os.environ.get("T5_GTR", "1"))
+TAIL = os.environ.get("T5_TAIL", "0.3s")  # render tail after the last bar  # master make-up gain (dB) before the ceiling
 
 # ---------------------------------------------------------------- motifs
 # The breath cell's clean arpeggio per harmony (five notes each, F lydian throughout until the exhale's Db).
@@ -301,7 +302,7 @@ def song():
                   "counts the cell in thirteens for track 6."),
         "tempo": BPM,
         "ceiling": "-0.1dB",
-        "tail": "3s",
+        "tail": TAIL,
         "buses": {
             "hall": {"fx": ["reverb kind=hall decay=3.2s mix=1 predelay=24ms"]},
             "dly": {"fx": ["delay time=3/16 feedback=.38 mix=1 ping_pong=true", "reverb kind=hall decay=2.4s mix=0.4"]},
