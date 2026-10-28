@@ -36,7 +36,8 @@ DARK_END = float(os.environ.get("T6_DARK", "0"))  # dB of high-shelf cut over th
 SUB_END = float(os.environ.get("T6_SUB", "0"))
 HS_CUT = float(os.environ.get("T6_HSCUT", "3000"))
 FULLTIME = os.environ.get("T6_FULLTIME", "")
-DARKER = os.environ.get("T6_DARKER", "1") == "1"  # the machine's own colour: GOVERNOR C -> C#, the stall clock on F Gb B E C#  # sections whose snare drives on 2 and 4 (comma list)  # dB of low shelf over the last bars  # the hammer bar crash-lit (crash on quarters, open hat between)  # ... and its second half changes texture  # overdrive turns at bar 12: a clunk, roots up a semitone, the lead up an octave  # one beat of silence before each realignment
+DARKER = os.environ.get("T6_DARKER", "1") == "1"
+TONE = os.environ.get("T6_TONE", "s3")  # master tone: "" (v3), "s1" (no 5k boost, 10k -3), "s2" (s1 + 60 Hz +3)  # the machine's own colour: GOVERNOR C -> C#, the stall clock on F Gb B E C#  # sections whose snare drives on 2 and 4 (comma list)  # dB of low shelf over the last bars  # the hammer bar crash-lit (crash on quarters, open hat between)  # ... and its second half changes texture  # overdrive turns at bar 12: a clunk, roots up a semitone, the lead up an octave  # one beat of silence before each realignment
 FORM = [("spin", 13), ("engage", 13), ("mesh", 13), ("governor", 13), ("stall", 13), ("overdrive", 23), ("seize", 13)]
 
 
@@ -308,7 +309,10 @@ def build():
 
 
 def master():
-    fx = [{"type": "eq", "bands": ["peak cutoff=350 q=0.8 gain=-3dB", "highshelf cutoff=5k gain=2dB"]},
+    bands = ["peak cutoff=350 q=0.8 gain=-3dB", "highshelf cutoff=5k gain=2dB"]
+    if TONE in ("s1", "s2", "s3"):
+        bands = ["peak cutoff=350 q=0.8 gain=-3dB", "highshelf cutoff=10k gain=%s" % ("-5dB" if TONE == "s3" else "-3dB")] + (["lowshelf cutoff=60 gain=3dB"] if TONE == "s2" else [])
+    fx = [{"type": "eq", "bands": bands},
           {"type": "compressor", "threshold": "-24dB", "ratio": 2, "attack": "10ms", "release": "200ms", "makeup": "0dB"},
           {"type": "gain", "gain": f"+{MG:g}dB"}]
     m = {"fx": fx}

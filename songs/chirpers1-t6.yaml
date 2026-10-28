@@ -2,7 +2,7 @@ about: "Chirpers - Ferrous Bloom, track 6 'The machine' (original composition, c
 tempo: 128
 ceiling: "-0.1dB"
 tail: "0.3s"
-master: {"fx": [{"type": "eq", "bands": ["peak cutoff=350 q=0.8 gain=-3dB", "highshelf cutoff=5k gain=2dB"]}, {"type": "compressor", "threshold": "-24dB", "ratio": 2, "attack": "10ms", "release": "200ms", "makeup": "0dB"}, {"type": "gain", "gain": "+15dB"}]}
+master: {"fx": [{"type": "eq", "bands": ["peak cutoff=350 q=0.8 gain=-3dB", "highshelf cutoff=10k gain=-5dB"]}, {"type": "compressor", "threshold": "-24dB", "ratio": 2, "attack": "10ms", "release": "200ms", "makeup": "0dB"}, {"type": "gain", "gain": "+15dB"}]}
 buses:
   hall: {"fx": ["reverb kind=hall decay=2.6s mix=1 predelay=20ms"]}
   dly: {"fx": ["delay time=3/16 feedback=.32 mix=1 ping_pong=true", "reverb kind=room decay=1.2s mix=0.3"]}
