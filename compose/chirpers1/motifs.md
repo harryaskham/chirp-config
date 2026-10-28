@@ -182,7 +182,8 @@ Track 4 is the onslaught: 204 bpm, dead straight, the album's fastest. Generator
   phrase runs FREE through each 16-bar section (12 x 21 + a 4-sixteenth tail), drifting against the 4/4 while the
   cymbals keep the bar frame (chinas every 4 bars); until v7 it snapped back every 4 bars (64 = 21 + 21 + 22).
   The polymeter measure now names the 21-cycle (z 3.0; was 7 at 1.96, score 19 -> 100). 144 BPM. Kick in unison; the Return harmonises the pivots with
-  their octave on the right guitar.
+  their octave on the right guitar, and (v10) puts a ride bell on every pivot: the guitar's cell in the kit, drifting
+  against the hats' straight eighths (accent on the B pivot).
 - **HINGE**: a bar-aligned contrast riff, groups 3+3+3+3+4 per bar: chugs on the groups (alternate bars pivot on
   Gb1), a F1+B1 tritone stab on the 4-group, two sixteenth chugs to close. Half-time snare. In Bloom the KICK plays
   HINGE's grouping while the guitars play TRIAD's 21: the album's first kick-vs-guitar polymeter.
