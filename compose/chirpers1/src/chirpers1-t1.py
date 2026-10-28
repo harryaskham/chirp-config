@@ -284,9 +284,9 @@ def ride():
 def felt_tom(decay_s, sharp):
     """A physical tom (chirper-two's drum layer, bd-7d117e) struck with a felt mallet: soft attack, open resonant head."""
     return {"synth": {"layers": [{"type": "drum", "beater": "felt", "decay": f"{decay_s}s", "sharp": sharp, "reso": 1.0,
-                                  # light head/cavity coupling: at reso_level .5 / cavity .4 the coupled heads split the
-                                  # fundamental and the strongest partial sits at 1.33x the note, so the tom loses its pitch
-                                  "cavity": 0.1, "reso_level": 0.1, "air": 0.5, "strike": 0.3, "shell": 0.3, "damp": 0.2}],
+                                  # full head/cavity coupling (richer partials); tune_sounding (pin 73554f44) keeps the tom
+                                  # at its written pitch, where the coupled heads alone read 1.33x high
+                                  "cavity": 0.4, "reso_level": 0.5, "tune_sounding": True, "air": 0.5, "strike": 0.3, "shell": 0.3, "damp": 0.2}],
                       "filters": ["hp cutoff=40", "peak cutoff=2k q=1 gain=1dB"],
                       "amp": {"a": "0.5ms", "d": f"{int(decay_s * 900)}ms", "s": 0, "r": "120ms", "curve": 3}, "drive": 0.05},
             "play": {"vel_sens": 0.55}}
