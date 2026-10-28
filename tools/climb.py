@@ -748,6 +748,63 @@ def visible(hist):
     return hist[i:]
 
 
+def compose_brief(c):
+    """A composition climb's brief (compose/README.md): its slot, the album, its neighbours and the latest ratings."""
+    out = []
+    try:
+        with open(os.path.join(ROOT, "compose", c["album"], "album.json")) as f:
+            album = json.load(f)
+    except (OSError, ValueError, KeyError):
+        return [f"  COMPOSITION (album spec compose/{c.get('album')}/album.json missing)"]
+    slot = next((t for t in album.get("tracks", []) if t.get("id") == c["id"]), {})
+    n, total = slot.get("n"), len(album.get("tracks", []))
+    lo, hi = slot.get("length", ["?", "?"])
+    out.append(f"  COMPOSITION — an ORIGINAL song for '{album['album']}' by {album['artist']} ({album.get('genre', '')}), "
+               f"track {n}/{total}: {slot.get('role', 'song')}, {lo}-{hi} s. Read compose/README.md and the skill's "
+               f"§Composition mode; the album brief and palette are in compose/{album['id']}/album.json, its motif bank "
+               f"in compose/{album['id']}/motifs.md. Never copy or closely imitate an existing song.")
+    if slot.get("brief"):
+        out.append(f"  slot: {slot['brief']}")
+    if album.get("brief"):
+        out.append(f"  album: {album['brief']}")
+    reg = load()
+    nbs = []
+    for nb in (n - 1 if n else None, n + 1 if n else None):
+        t = next((t for t in album.get("tracks", []) if t.get("n") == nb), None)
+        if t:
+            o = next((x for x in reg["climbs"] if x["id"] == t["id"]), {})
+            done = os.path.exists(os.path.join(ROOT, o.get("song", "") or "-"))
+            nbs.append(f"{t['n']} {t['id']} '{(o.get('meta') or {}).get('title', '?')}' "
+                       f"({'composed' if done else 'empty'}{', ' + o['owner'] if o.get('owner') else ''})")
+    if nbs:
+        out.append(f"  neighbours: {'; '.join(nbs)}" + (" — the songs bleed into one another: shape your first and last "
+                                                       "seconds to meet theirs (compscore's flow term)" if album.get("bleed") else ""))
+    if not album.get("named"):
+        out.append(f"  the album has no name yet: the first agent to get here names it — "
+                   f"`tools/chirpers.py name {album['id']} \"…\"` (then `chirpers.py art {album['id']}`)")
+    if c["status"] == "requested":
+        out.append(f"  FIRST ROUND — compose it from scratch: write songs/{c['id']}.yaml with the library's patches, fx and "
+                   f"mix tools (tempo, form, motifs, parts, arrangement, master with a ceiling), title it "
+                   f"(`tools/chirpers.py title {c['id']} \"…\"`), add its motifs to the album's bank, render it, score it "
+                   f"(`python3 tools/compscore.py {c['id']} OUT.wav --text`), LISTEN, then `climb.py done {c['id']} --version v1 "
+                   f"--score S --note … --next … --with songs/{c['id']}.yaml compose/{album['id']}/motifs.md` (it joins "
+                   f"the playlist); save its features with compscore --save on the kept render.")
+    else:
+        out.append(f"  this round: listen to it in the album's order, read the ratings and notes below and compscore's "
+                   f"weakest terms (--text), then make the one musical change you believe improves it most (a section, "
+                   f"a motif's development, an arrangement, a sound, the mix, a transition); keep it if it wins on paired "
+                   f"seeds and stays itself (variety over convergence); `climb.py done {c['id']} …` and compscore --save.")
+    rp = os.path.join(ROOT, "compose", album["id"], "ratings.jsonl")
+    if os.path.exists(rp):
+        with open(rp) as f:
+            rs = [json.loads(ln) for ln in f if ln.strip()]
+        mine = [r for r in rs if r.get("id") == c["id"]][-4:]
+        for r in mine:
+            out.append(f"  RATING {r['at'][:16]} {r.get('who')} {r.get('score', '')}{'/10' if 'score' in r else 'note'}"
+                       f" ({r.get('version') or '-'}){': ' + r['note'] if r.get('note') else ''}")
+    return out
+
+
 def brief(c, hist):
     best = c.get("best") or {}
     lines = [f"{c['id']} — {c.get('reference', '')}",
@@ -760,17 +817,23 @@ def brief(c, hist):
     if req.get("note"):
         lines.append(f"  request note: {req['note']}")
     meta = c.get("meta") or {}
-    if meta.get("album"):
+    if c.get("mode") == "compose":
+        lines += compose_brief(c)
+    elif meta.get("album"):
         lines.append(f"  album {meta['album']} track {meta.get('track', '?')} ({meta.get('artist', '')}, {meta.get('year', '')}) — "
                      f"the registry holds its meta (the playlist shows it); songs/{c['id']}.yaml carries `meta:` "
                      f"once the groove's pinned binary supports it (main 8c95a3d+; until then put it in `about:`); the album "
                      f"plays end to end, so match the record's level at the song's first and last seconds: "
                      f"`tools/albumedges.py check {c['id']} RENDER.wav` shows your edges against the record and "
                      f"both transitions; pass `--render RENDER.wav` to done so a kept version's edges are recorded")
-    if c["status"] == "requested" and c.get("ref_file"):
+    if c.get("mode") == "compose":
+        pass
+    elif c["status"] == "requested" and c.get("ref_file"):
         lines.append(f"  the reference is ready: ref/{c['id']}.wav (from {c['ref_file']}, one master for the album — "
                      f"do not replace it with a download)")
-    if c["status"] == "requested":
+    if c.get("mode") == "compose":
+        pass
+    elif c["status"] == "requested":
         lines.append(
             f"  FIRST ROUND — set it up ({SKILL}, §Setup): find the official upload (record it: "
             f"`climb.py set {c['id']} source=URL genre=…`), reference audio to ref/{c['id']}.wav, stems, a tab if "
@@ -921,7 +984,7 @@ def cmd_done(a):
             c["status"] = "active"
             c["enabled"] = not c.get("oob")  # out-of-band climbs never join the playlist
         c["last"] = {"at": h["at"], "who": me}
-        if kept and opt(a, "--render") and (c.get("meta") or {}).get("album"):
+        if kept and opt(a, "--render") and (c.get("meta") or {}).get("album") and c.get("mode") != "compose":
             # the album plays gaplessly: compare this version's two joins with the kept version's (a warning, not a
             # gate — chirper-zero found Hedphelym v2 and Ageispolis v2 each lost one)
             try:
@@ -936,7 +999,7 @@ def cmd_done(a):
         with open(os.path.join(HIST, f"{cid}.jsonl"), "a") as f:
             f.write(json.dumps({k: v for k, v in h.items() if v is not None}, ensure_ascii=False) + "\n")
     edges = []
-    if kept and opt(a, "--render") and (c.get("meta") or {}).get("album"):
+    if kept and opt(a, "--render") and (c.get("meta") or {}).get("album") and c.get("mode") != "compose":
         # An album song's kept render: its edges, for the album's transitions (albumedges.py score).
         ae = _albumedges()
         try:
