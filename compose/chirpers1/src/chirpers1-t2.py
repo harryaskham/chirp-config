@@ -230,8 +230,12 @@ def cym():
             for q in range(4):
                 ev.append((bar0(b) + 4 * q, 1, "rb", 64, ""))
             continue
+        restart = any(SEC[k][0] < b <= SEC[k][1] and (b - SEC[k][0]) % 4 == 0 for k in ("stmt", "stmt2", "ret", "bloom"))
         if b in (5, 21, 37, 69, 85, 105):
             ev.append((bar0(b), 1, "c", 124, ""))
+            start = 2
+        elif restart:                           # TRIAD snaps back every 4 bars: a china marks the realignment
+            ev.append((bar0(b), 1, "x", 112, ""))
             start = 2
         else:
             start = 0
