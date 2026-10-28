@@ -4790,14 +4790,14 @@
       "owner": "chirper-one",
       "metric": "python3 tools/likeness.py sections ref/pravus.wav OUT.wav $(cat tools/pravus-sections.txt)",
       "best": {
-        "score": 65.659,
-        "version": "v13",
+        "score": 67.007,
+        "version": "v14",
         "commit": "see git log songs/pravus.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 14,
+      "rounds": 15,
       "priority": 1.0,
       "genre": "progressive metal",
       "meta": {
@@ -4814,7 +4814,7 @@
       },
       "ref_file": "ref/albums/obzen/08 pravus.webm",
       "last": {
-        "at": "2026-10-28T00:54:45Z",
+        "at": "2026-10-28T01:38:33Z",
         "who": "chirper-one"
       }
     },
