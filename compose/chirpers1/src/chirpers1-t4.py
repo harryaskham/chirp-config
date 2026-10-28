@@ -22,6 +22,13 @@ OUT = os.environ.get("SPLINTER_OUT") or os.path.expanduser("~/.config/chirp/song
 # tested and not taken: cohesion 60 -> 95 but structure and variety fell, total -0.14/-0.13, and it is convergence.
 # SPLINTER_R2=none for v1.
 R2 = set(filter(None, os.environ.get("SPLINTER_R2", "J").split(","))) - {"none"}
+# Round 3 (kept as v3): M, Maw without cymbals (kick, snare and the crush only); L, SHARDS on the lead over Splinter's
+# third cycle; E, the choked last hit is t5's opening chord. Tested, not kept (off): S, dead stops in Stop-start
+# (choked crashes, shorter hits): the gaps go silent, but compscore's rhythm term falls 100 -> 45 because its
+# off-grid peaks came from those ringing crashes, not from SPLINTER (at 204 BPM the 0.04*lag tolerance swallows
+# odd-sixteenth lags past ~0.9 s); H, a china/kick accent on every cell's first stab: no change (-0.14/-0.17).
+# SPLINTER_R3=none for v2.
+R3 = set(filter(None, os.environ.get("SPLINTER_R3", "M,L,E").split(","))) - {"none"}
 BPM = 204
 STEP = 0.25
 BAR = 16
@@ -111,10 +118,13 @@ def build():
                 if t >= end or c == ".":
                     continue
                 if c == "C":
-                    both(t, 2, ch(cluster(r)), acc)
+                    head = "H" in R3 and i == 0  # H: each cell's first stab is its accent (china, kick, harder)
+                    both(t, 2, ch(cluster(r)), acc + (8 if head else 0))
                     bass.add(t, 2, nm(r), acc)
-                    if kick:
-                        hit(t, "k", 120)
+                    if kick or head:
+                        hit(t, "k", 127 if head else 120)
+                    if head:
+                        hit(t, "x", 116)
                 elif c == "T":
                     both(t, 1, nm(r), acc - 18 + 6 * (i % 2), "pm")
                     bass.add(t, 1, nm(r), 98)
@@ -146,8 +156,9 @@ def build():
                 hit(s0 + i, "k", 96)
 
     def halftime(s0, cym="x"):
-        for i in range(0, BAR, 4):
-            hit(s0 + i, cym, 88)
+        for i in range(0, BAR, 4 if cym else BAR):
+            if cym:
+                hit(s0 + i, cym, 88)
         hit(s0 + 8, "s", 120)
 
     def fill(s0, n=8, pieces=("s", "t1", "t2", "t3", "ft")):
@@ -200,6 +211,14 @@ def build():
     for c, (root, kind, drum) in enumerate(((F1, "plain", "back"), (AB1, "fill", "blast"), (B1, "dense", "hammer"))):
         s0 = t + c * 11 * BAR
         splinter(s0, 11, lambda st, r=root: r, lambda k, kd=kind: kd, kick=(drum == "back"))
+        if "L" in R3 and c == 2:  # round 3, L: SHARDS on the lead over the third cycle: the cluster's b9, #11 and
+            # maj7 rise one per stab, then fall to the root during the tremolo burst (C5 F5 A#5 | B4 on B)
+            for k in range(0, 11 * BAR // 11):
+                cs = s0 + k * 11
+                if cs >= s0 + 11 * BAR:
+                    break
+                for o, n, ln in ((0, 13, 2), (3, 18, 2), (6, 23, 1), (7, 0, 3)):
+                    lead.add(cs + o, ln, nm(root + 24 + n + (12 if n == 0 else 0)), 104 if n else 96)
         for b in range(11):
             {"back": backbeat, "blast": blast, "hammer": hammer}[drum](s0 + b * BAR)
         hit(s0, "c", 124)
@@ -237,10 +256,11 @@ def build():
         if g < 4:
             for b, onsets in ((0, (0,)), (1, (0,)), (2, (0, 6))):
                 for o in onsets:
-                    both(g0 + b * BAR + o, 3, ch(cluster(r)), 118)
-                    bass.add(g0 + b * BAR + o, 3, nm(r), 118)
+                    hl = 2 if "S" in R3 else 3  # S: shorter hits, so the gaps go dead
+                    both(g0 + b * BAR + o, hl, ch(cluster(r)), 118)
+                    bass.add(g0 + b * BAR + o, hl, nm(r), 118)
                     hit(g0 + b * BAR + o, "k", 124)
-                    hit(g0 + b * BAR + o, "c" if o == 0 else "x", 118)
+                    hit(g0 + b * BAR + o, "cch" if "S" in R3 else ("c" if o == 0 else "x"), 118)
             s3 = g0 + 3 * BAR
             for i in range(8, BAR):
                 both(s3 + i, 1, nm(r), 92 + 3 * (i - 8), "pm")
@@ -278,7 +298,7 @@ def build():
             bass.add(s0 + o, 1, nm(r if r < 36 else r - 12), 104)
             hit(s0 + o, "k", 108)
         both(s0 + 12, 4, ch(cluster(r)[:3]), 110)
-        halftime(s0, "x" if b % 2 else "c")
+        halftime(s0, None if "M" in R3 else ("x" if b % 2 else "c"))  # M: Maw without cymbals
     for i, n in enumerate((76, 71, 66, 65)):  # E5 B4 Gb4 F4, four bars each
         lead.add(t + i * 4 * BAR, 4 * BAR - 2, nm(n), 100)
     fill(t + 15 * BAR, 12)
@@ -347,7 +367,9 @@ def build():
     s = max(s, end_hits - 4)
     for j, o in enumerate((0, 4, 8)):
         st = end_hits + o
-        both(st, 3 if j < 2 else 6, ch(cluster(F1) + [F1 + 12]), 124)
+        last = ch((F1, F1 + 7, F1 + 12, F1 + 18)) if ("E" in R3 and j == 2) else ch(cluster(F1) + [F1 + 12])
+        both(st, 3 if j < 2 else 6, last, 124)  # E: the choked last hit IS t5's opening chord (F1 C2 F2 B2),
+        # cut dead here and let ring there
         bass.add(st, 3 if j < 2 else 6, nm(F1), 124)
         hit(st, "k", 127)
         hit(st, "s", 124)

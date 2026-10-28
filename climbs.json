@@ -5005,24 +5005,15 @@
       "owner": "chirper-two",
       "metric": "python3 tools/compscore.py chirpers1-t4 OUT.wav",
       "best": {
-        "score": 92.027,
-        "version": "v2",
+        "score": 92.632,
+        "version": "v3",
         "commit": "see git log songs/chirpers1-t4.yaml",
-        "engine": "85b3881",
-        "rescored": {
-          "compscore": "ca2cdf6b",
-          "seeds": {
-            "0": 92.027,
-            "11": 92.235
-          },
-          "at": "2026-10-28T13:09:05Z",
-          "was": 91.728
-        }
+        "engine": "85b3881"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 2,
+      "rounds": 3,
       "priority": 1.0,
       "genre": "polyrhythmic djent",
       "mode": "compose",
@@ -5040,7 +5031,7 @@
         "note": "COMPOSE (song, 180-240 s): The onslaught. The fastest, most frantic track: blast beats, dissonant clusters, short stabbing riffs, abrupt stops. Maximum intensity."
       },
       "last": {
-        "at": "2026-10-28T12:20:22Z",
+        "at": "2026-10-28T13:40:40Z",
         "who": "chirper-two"
       }
     },

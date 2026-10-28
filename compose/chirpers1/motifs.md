@@ -150,13 +150,16 @@ Track 4 is the onslaught: 204 bpm, dead straight, the album's fastest. Generator
   tremolo burst with a snare roll every fourth bar, accelerating at the end (quarters, eighths, a tremolo bar)
   into two beats of nothing. Collapse sheds SPLINTER one slot per repeat (11 sounding slots, 10 ... 1) until
   three tutti hits and a choked crash.
-- **Maw** (the one half-time crush): ringing cluster, three chugs and a stab per bar on F then E. The lead plays
-  LATTICE in retrograde, E5 B4 Gb4 F4, four bars each.
+- **Maw** (the one half-time crush): ringing cluster, three chugs and a stab per bar on F then E, kick and snare only
+  (no cymbals, from v3). The lead plays LATTICE in retrograde, E5 B4 Gb4 F4, four bars each.
+- **SHARDS** (lead, v3, Splinter's third cycle on B): one note per stab climbing the cluster's colour tones, b9 #11
+  maj7 (C5 F5 A#5), then falling to the root (B4) through the tremolo burst; once per 11-sixteenth cell.
 - **Borrowed from Moult (t3):** Ignition is NINEFOLD at 204 bpm (its stab now the LATTICE cluster). In Fracture
   the album's cycles collide: guitars in SPLINTER's 11, bass and kick in NINEFOLD's 9, china and backbeat in 4/4.
 - **Joins:** Moult's closing roll lands on one ringing bar (the F cluster plus octave and a crash), with Moult's
-  final pad (F3 A3 C#4 F4) carried across for three bars. It ends on three tutti cluster hits, a choked crash and
-  0.44 s of dead air before t5's ringing F1-C2-F2-B2 chord.
+  final pad (F3 A3 C#4 F4) carried across for three bars, and its tom roll keeps rolling as Ignition's backbeat for
+  two bars (v2). It ends on three tutti hits, two LATTICE clusters and then t5's own opening chord F1 C2 F2 B2
+  (v3), choked dead; after 0.44 s of dead air t5 lets the same chord ring.
 
 ## t2 "Ingot" (chirper-three): TRIAD, HINGE
 
