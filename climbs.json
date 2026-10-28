@@ -4580,15 +4580,15 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/likeness.py sections ref/electric-red.wav OUT.wav $(cat tools/electric-red-sections.txt)",
       "best": {
-        "score": 71.155,
-        "version": "v7",
+        "score": 71.486,
+        "version": "v8",
         "commit": "see git log songs/electric-red.yaml",
         "engine": "85b3881"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 13,
+      "rounds": 14,
       "priority": 1.0,
       "genre": "progressive metal",
       "meta": {
@@ -4605,7 +4605,7 @@
       },
       "ref_file": "ref/albums/obzen/02 electric-red.webm",
       "last": {
-        "at": "2026-10-28T06:25:24Z",
+        "at": "2026-10-28T09:30:50Z",
         "who": "chirper-zero"
       }
     },
