@@ -62,6 +62,9 @@ ids = [l.strip() for l in open("tools/playlist-ids")] if os.path.exists("tools/p
 by = {x["id"]: x for x in c}
 print(next((by[i]["song"] for i in ids if i in by), c[0]["song"]))')
   src_args=(-f "$here/../$first")
+  # label the first song with its climb id (rate.py now / the player's :rate find it) when the binary has --label
+  # (bd-7013f4); otherwise its label is its opening notes until the playlist takes over
+  if "$C" --help 2>/dev/null | grep -q -- "--label"; then src_args+=(--label "$(basename "$first" .yaml)"); fi
 else
   src_args=(-s "${1:-live-suite}")
 fi
