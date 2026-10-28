@@ -303,7 +303,8 @@ def m_structure(ctx):
     count = band(n, lo, hi, 2.0)
     lens = np.array([s["b"] - s["a"] for s in secs])
     cv = float(lens.std() / lens.mean()) if n > 1 else 0.0
-    shape = band(cv, 0.2, 0.7, 0.2)
+    shape = band(cv, 0.2, 1.0, 0.3)   # records measure 0.36-0.93 (Combustion .91, Daydreaming .88, Pyramid .93); a 0.7
+                                       # edge also flipped The Long Unwinding between seeds (one merged boundary: .66 vs .86)
     return 0.6 * count + 0.4 * shape, {"sections": n, "target": [round(lo, 1), round(hi, 1)], "length_cv": round(cv, 2)}
 
 

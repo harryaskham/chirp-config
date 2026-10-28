@@ -193,6 +193,17 @@ class Measures(unittest.TestCase):
         lo, hi = CS.m_recurrence(ctx(0.598))[0], CS.m_recurrence(ctx(0.62))[0]
         self.assertLess(abs(hi - lo), 5.0)                     # was 18.9 vs 57.4 across a hard 0.6 cut
 
+    def test_structure_tolerates_record_like_section_lengths(self):
+        def ctx(lens):
+            t, secs = 0.0, []
+            for n in lens:
+                secs.append({"a": t, "b": t + n})
+                t += n
+            return {"sections": secs, "dur": t}
+        a = CS.m_structure(ctx([61, 10, 10, 10, 11, 20, 19, 62, 61, 81, 41, 51, 20, 36]))[0]   # cv .66
+        b = CS.m_structure(ctx([61, 10, 10, 10, 11, 20, 19, 123, 81, 41, 51, 20, 36]))[0]      # one merge: cv .86
+        self.assertEqual((a, b), (100.0, 100.0))
+
     def test_flow_and_distinct_need_neighbours(self):
         x = piece([(30, 110, 0.5, 1.0), (30, 147, 0.4, 0.5)])
         c = ctx_of(x)
