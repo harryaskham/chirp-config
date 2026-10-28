@@ -53,3 +53,31 @@ the crush (340-380), dissolve (380-494).
   Gb Gb2 Db3 Bb3 F4. The crush moves F5 / Gb5 / F5-Ab5 / B5 (the tritone as the last word).
 - To do (v2): reprise the album's LATTICE (3+2+2 cell, F-Gb-B-E line, the F1 B1 E2 cluster), t5's EXHALE and
   COLD CHORD in the climb, crush and dissolve.
+
+## t3 "Moult" (chirper-two): NINEFOLD, THIRDS WHEEL, HEXATONIC LINE
+
+Track 3 is the groove: 96 bpm, swung sixteenths (`swing16=0.6`), a half-time kit with the snare on 3. Generator:
+`compose/chirpers1/src/chirpers1-t3.py` (edit the music there, not the YAML).
+
+- **NINEFOLD** (the hypnotic figure): a 9-sixteenth cell over 4/4 that realigns with the downbeat every 9 bars, so
+  t3's riff sections are 9 bars long and each realignment is a section boundary. Slots: X = palm-muted root chug,
+  x = ghost, O = open root plus octave, S = augmented stab, . = rest. Statement `X.XX.x.S.` on F1.
+  - **It moults**, changing one or two slots every few repeats: `X.XX.x.SX`, `X.XXxx.SX`, `XX.Xxx.SX`
+    (displacement), `XX.Xx.SSX` (the stab doubles), `XX.X.xSS.`, `O..X.xSS.` (space), `O.xX.xS.x`.
+  - **Developments:** first heard on the clean guitar (chugs as muted F3 plucks, the stab as a soft F3 A3 C#4); the
+    right guitar slips a sixteenth late for 4 bars (phasing); it returns a major third up on A1.
+- **THIRDS WHEEL** (harmony): roots step by major thirds, F1 -> A1 -> C#2 -> F1 (the augmented axis). Every stab is
+  root + octave + major 3rd + augmented 5th (on F: F2 A2 C#3), so t3's colour is the hexatonic scale
+  F G# A C C# E rather than phrygian or locrian. The wheel riff is 5+5+6: open roots on 0, 5 and 10, ghosts on 3 and
+  8, the stab on 12.
+- **HEXATONIC LINE** (clean guitar, then the lead): a fixed path through F3 G#3 A3 C4 C#4 E4 (indices
+  0 2 4 5 3 1 2 4 0 3 5 4 2 1 3 0), five notes a bar (sixteenths 0 3 6 10 12) under a dotted-eighth delay. It is
+  the breath (Hollow) and returns slower, an octave up, over the final ring-out. Lead over NINEFOLD on A: E4/2b F4/1b
+  E4/1b | C#4/4b | C4/2b C#4/1b E4/1b | G#4/4b | A3/1.5b G#4/0.5b F4/2b | E4/2b C#4/2b | C4/1b C#4/1b E4/2b | C#4/4b | A3/3b.
+- **Borrowed from LATTICE (t1):** the climax ("Lock") puts the bass on LATTICE's 3+2+2 seven-cell, walking its
+  F-Gb-B-E line one note per cell, under NINEFOLD's augmented stabs: 9 against 7 against 16, and LATTICE's minor 2nd,
+  tritone and major 7th grinding against the augmented triad. In the second cycle the LATTICE line rides the thirds
+  wheel (root, +1, +6, +11 on F, A and C#).
+- **Joins:** it opens thin (the NINEFOLD figure on the clean guitar over hats; bass and kick in bar 3; the full rig at
+  bar 5), so t2's ending can carry over it. It ends on a ringing F1 F2 A2 C#3 chord over the F3 A3 C#4 F4 pad, then
+  a two-bar snare/tom roll into t4's onslaught.

@@ -1,0 +1,365 @@
+#!/usr/bin/env python3
+"""chirpers1-t3 "Moult" (Chirpers, Ferrous Bloom, track 3: the groove). Composed by chirper-two.
+
+Identity: 96 BPM, swung sixteenths (swing16 .6), half-time 4/4 kit. The hypnotic figure is NINEFOLD, a 9-sixteenth
+chug cell that realigns with the bar every 9 bars (so the A sections are 9 bars long and the realignment is the
+section boundary). It moults: one slot changes every few repeats (a chug becomes a ghost, a rest becomes a stab, a
+stab doubles), so the loop never quite repeats. Harmony is the THIRDS WHEEL: roots step by major thirds
+F -> A -> C# -> F (the augmented-triad axis), and every stab is root + octave + major 3rd + augmented 5th, so the
+song's colour is the hexatonic F G# A C C# E rather than the usual phrygian/locrian.
+
+Emits songs/chirpers1-t3.yaml. Edit the music here, not the YAML.
+"""
+import json
+import os
+
+OUT = os.path.expanduser("~/.config/chirp/songs/chirpers1-t3.yaml")
+BPM = 96
+STEP = 0.25  # beats per sixteenth
+BAR = 16
+NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+F1, A1, CS2 = 29, 33, 37  # the wheel's three roots (8-string F standard: F1 is the low open string)
+
+
+def nm(m):
+    return f"{NAMES[m % 12]}{m // 12 - 1}"
+
+
+class Part:
+    """Events on the sixteenth grid: (step, length in steps, head, velocity, mark)."""
+
+    def __init__(self, name):
+        self.name, self.ev = name, []
+
+    def add(self, step, length, head, vel, mark=""):
+        self.ev.append((step, length, head, vel, mark))
+
+    def score(self, total, prefix=""):
+        merged = {}
+        for e in sorted(self.ev, key=lambda e: (e[0], -e[3])):
+            merged.setdefault(e[0], e)  # one event per step: the loudest wins
+        ev = sorted(merged.values())
+        toks, pos = ([prefix] if prefix else []), 0
+        for i, (s, ln, head, vel, mark) in enumerate(ev):
+            assert s >= pos, (self.name, s, pos, head)
+            nxt = ev[i + 1][0] if i + 1 < len(ev) else total
+            ln = min(ln, nxt - s)
+            if s > pos:
+                toks.append(f"R/{(s - pos) * STEP:g}b")
+            toks.append(f"{head}/{ln * STEP:g}b@{vel}" + (f"^{mark}" if mark else ""))
+            pos = s + ln
+        if total > pos:
+            toks.append(f"R/{(total - pos) * STEP:g}b")
+        return " ".join(toks)
+
+
+# ---------------- motifs ----------------
+# NINEFOLD: 9 slots. X palm-muted root chug, x ghost (dead) chug, O open root ring, S augmented stab, . rest.
+# The moult: each variant changes one or two slots of the previous one.
+NINEFOLD = [
+    "X.XX.x.S.",  # 0  statement
+    "X.XX.x.SX",  # 1  a chug grows on the tail
+    "X.XXxx.SX",  # 2  a ghost fills the gap
+    "XX.Xxx.SX",  # 3  the second chug slips one sixteenth earlier (displacement)
+    "XX.Xx.SSX",  # 4  the stab doubles
+    "XX.X.xSS.",  # 5  the tail sheds
+    "O..X.xSS.",  # 6  the head opens up: space
+    "O.xX.xS.x",  # 7  stab truncated, ghosts at the edges
+]
+
+
+def stab(root):
+    """Root + octave + major third + augmented fifth, voiced on the upper strings."""
+    return [root + 12, root + 16, root + 20]
+
+
+def ninefold(gl, gr, bass, kick, start, bars, root_at, variant_at, phase_r=None, accent=110):
+    """Lay the 9-cell from `start` for `bars` bars. root_at(step) and variant_at(k) pick the root and the
+    moult for repeat k; phase_r(step) -> extra sixteenths of delay for the right guitar (phasing)."""
+    end = start + bars * BAR
+    k, s = 0, start
+    while s < end:
+        pat, root = NINEFOLD[variant_at(k)], root_at(s)
+        for i, c in enumerate(pat):
+            t = s + i
+            if t >= end or c == ".":
+                continue
+            d = phase_r(t) if phase_r else 0
+            if c == "X":
+                for g, dd in ((gl, 0), (gr, d)):
+                    g.add(t + dd, 1, nm(root), accent - 6 * (i % 2), "pm")
+                bass.add(t, 1, nm(root), 104)
+                kick.append((t, 104))
+            elif c == "x":
+                for g, dd in ((gl, 0), (gr, d)):
+                    g.add(t + dd, 1, nm(root), 64, "pm")
+            elif c == "O":
+                for g, dd in ((gl, 0), (gr, d)):
+                    g.add(t + dd, 2, f"{nm(root)},{nm(root + 12)}", accent)
+                bass.add(t, 2, nm(root), 110)
+                kick.append((t, 112))
+            elif c == "S":
+                ch = ",".join(nm(n) for n in stab(root))
+                for g, dd in ((gl, 0), (gr, d)):
+                    g.add(t + dd, 2, ch, accent - 4)
+                bass.add(t, 2, nm(root), 100)
+        k += 1
+        s += 9
+
+
+def hexatonic(root):
+    """F G# A C C# E on any root: alternating minor 3rd / minor 2nd (the augmented scale)."""
+    return [root + x for x in (0, 3, 4, 7, 8, 11)]
+
+
+# ---------------- the song ----------------
+def build():
+    gl, gr, bass = Part("gtr-l"), Part("gtr-r"), Part("bass")
+    drums, lead, clean, pad = Part("drums"), Part("lead"), Part("clean"), Part("pad")
+    kick = []          # (step, vel) kicks that lock to the guitar
+    kit = {}           # step -> {piece: vel}
+
+    def hit(step, piece, vel):
+        kit.setdefault(step, {})[piece] = max(vel, kit.get(step, {}).get(piece, 0))
+
+    def halftime(start, bars, hats="h", hat_vel=(78, 58), ghosts=True, snare=110):
+        for b in range(bars):
+            s0 = start + b * BAR
+            for i in range(0, BAR, 2):
+                hit(s0 + i, hats, hat_vel[(i // 2) % 2])
+            hit(s0 + 8, "s", snare)
+            if ghosts and b % 2 == 1:
+                hit(s0 + 14, "g", 44)
+                hit(s0 + 5, "g", 36)
+
+    sec = {}
+    t = 0
+
+    # 1. TIDE (4 bars): the cell alone on the left guitar and bass, kit hats only; the pulse arrives in bar 3.
+    sec["tide"] = (t, 4)
+    tl, tr, tb, tk = Part("x"), Part("x"), Part("x"), []
+    ninefold(tl, tr, tb, tk, t, 4, lambda s: F1, lambda k: 0, accent=96)
+    # the figure is first heard on the clean guitar: chugs become muted F3 plucks, the stab a soft augmented triad;
+    # the bass joins in bar 3, the rhythm pair only at bar 5 (the clean figure becomes the chug riff)
+    for st, ln, head, vel, mark in tl.ev:
+        if "," in head:
+            clean.add(st, ln, ",".join(nm(n + 12) for n in stab(F1)), 64)
+        else:
+            clean.add(st, 1, nm(F1 + 24), max(46, vel - 40))
+    for ev in tb.ev:
+        if ev[0] >= t + 2 * BAR:
+            bass.add(*ev[:3], ev[3] - 16, ev[4])
+    for b in range(4):
+        for i in range(0, BAR, 2):
+            hit(t + b * BAR + i, "h", 40 + 8 * b)
+    for s, v in tk:
+        if s >= t + 2 * BAR:
+            hit(s, "k", v - 20)
+    hit(t + 2 * BAR + 8, "s", 84)
+    hit(t + 3 * BAR + 8, "s", 96)
+    for i, p in enumerate(("t3", "t3", "ft", "ft")):
+        hit(t + 3 * BAR + 12 + i, p, 90 + 6 * i)
+    t += 4 * BAR
+
+    # 2. NINEFOLD (9 bars): the full rig; the moult walks 0 -> 1 -> 2.
+    sec["ninefold"] = (t, 9)
+    ninefold(gl, gr, bass, kick, t, 9, lambda s: F1, lambda k: min(k // 6, 2))
+    halftime(t, 9)
+    hit(t, "c", 118)
+    t += 9 * BAR
+
+    # 3. MOULT (9 bars): variants 3 -> 5; the right guitar slips one sixteenth late in the last 4 bars (phasing),
+    # china on the first stab of each realignment-half.
+    sec["moult"] = (t, 9)
+    s0 = t
+    ninefold(gl, gr, bass, kick, t, 9, lambda s: F1, lambda k: 3 + min(k // 6, 2),
+             phase_r=lambda st: 1 if st >= s0 + 5 * BAR else 0)
+    halftime(t, 9, ghosts=True)
+    hit(t, "c", 120)
+    hit(t + 5 * BAR, "x", 112)
+    for i, p in enumerate(("s", "s", "t2", "t3", "ft", "ft")):
+        hit(t + 9 * BAR - 6 + i, p, 92 + 5 * i)
+    t += 9 * BAR
+
+    # 4. THIRDS WHEEL (12 bars): roots F -> A -> C#, 4 bars each. Riff 5+5+6: open roots on 0, 5, 10, an augmented
+    # stab on 12, ghosts on 3 and 8. A clean guitar pings the augmented arpeggio with a dotted-eighth delay.
+    sec["wheel"] = (t, 12)
+    for b in range(12):
+        root = (F1, A1, CS2)[b // 4]
+        s = t + b * BAR
+        for o in (0, 5, 10):
+            for g in (gl, gr):
+                g.add(s + o, 2, f"{nm(root)},{nm(root + 12)}", 108)
+            bass.add(s + o, 3, nm(root), 108)
+            hit(s + o, "k", 108)
+        for o in (3, 8):
+            for g in (gl, gr):
+                g.add(s + o, 1, nm(root), 62, "pm")
+        ch = ",".join(nm(n) for n in stab(root))
+        for g in (gl, gr):
+            g.add(s + 12, 3, ch, 104)
+        bass.add(s + 12, 3, nm(root), 100)
+        for i in range(0, BAR, 2):
+            hit(s + i, "h", 74 if i % 4 == 0 else 56)
+        hit(s + 8, "s", 108)
+        arp = [root + 24, root + 28, root + 32, root + 28]
+        for j, o in enumerate((2, 7, 13)):
+            clean.add(s + o, 3, nm(arp[(b + j) % 4]), 76)
+        if b % 4 == 0:
+            hit(s, "c", 112)
+    t += 12 * BAR
+
+    # 5. HOLLOW (8 bars): the rhythm pair drops out. Clean hexatonic arpeggio in eighths with space, bass holds,
+    # the pad holds the augmented triad, sidestick on 3, kick on 1 and the 'and' of 3.
+    sec["hollow"] = (t, 8)
+    hx = hexatonic(53)  # F3 G#3 A3 C4 C#4 E4
+    line = [0, 2, 4, 5, 3, 1, 2, 4, 0, 3, 5, 4, 2, 1, 3, 0]  # a fixed path through the six notes
+    for b in range(8):
+        s = t + b * BAR
+        if b >= 4:  # the bass stays out for the first half of the breath
+            bass.add(s, 14, nm(A1), 56)
+            hit(s + 10, "k", 58)
+        hit(s, "k", 70 if b < 4 else 76)
+        hit(s + 8, "ss", 66)
+        for i in range(0, BAR, 4):
+            hit(s + i, "h", 38)
+        for j, o in enumerate((0, 3, 6, 10, 12)):
+            n = hx[line[(b * 5 + j) % len(line)]] + (12 if b >= 6 and j == 4 else 0)
+            clean.add(s + o, 2 if o != 12 else 4, nm(n), 70 + 4 * (j % 2))
+    pad.add(t, 4 * BAR, ",".join(nm(n) for n in (53, 57, 61)), 70)
+    pad.add(t + 4 * BAR, 4 * BAR, ",".join(nm(n) for n in (57, 61, 65)), 74)
+    for i, p in enumerate(("t1", "t1", "t2", "t2", "t3", "t3", "ft", "ft")):
+        hit(t + 8 * BAR - 8 + i, p, 80 + 5 * i)
+    t += 8 * BAR
+
+    # 6. NINEFOLD IN A (9 bars): the cell returns a major third up, wearing variants 6, 7, 4, and a lead sings a
+    # swinging hexatonic line over it.
+    sec["ninefold_a"] = (t, 9)
+    ninefold(gl, gr, bass, kick, t, 9, lambda s: A1, lambda k: (6, 7, 4)[min(k // 6, 2)])
+    halftime(t, 9)
+    hit(t, "c", 120)
+    hl = [n + 12 for n in hexatonic(A1 + 24)]  # A4 C5 C#5 E5 F5 G#5 (the lead plays them an octave lower)
+    phrase = [  # (bar, step, length in steps, index into hl)
+        (0, 0, 8, 3), (0, 8, 4, 4), (0, 12, 4, 3), (1, 0, 16, 2),
+        (2, 0, 8, 1), (2, 8, 4, 2), (2, 12, 4, 3), (3, 0, 16, 5),
+        (4, 0, 6, 0), (4, 6, 2, 5), (4, 8, 8, 4), (5, 0, 8, 3), (5, 8, 8, 2),
+        (6, 0, 4, 1), (6, 4, 4, 2), (6, 8, 8, 3), (7, 0, 16, 2), (8, 0, 12, 0),
+    ]
+    for b, st, ln, i in phrase:
+        lead.add(t + b * BAR + st, ln, nm(hl[i] - 12), 92)
+    t += 9 * BAR
+
+    # 7. LOCK (18 bars): two realignment cycles. The guitars keep NINEFOLD (variants 2/5), the bass leaves them
+    # for the album's LATTICE seven-cell, so 9 against 7 against 16. Second cycle: the root turns the thirds wheel every two
+    # bars, and the china marks every stab.
+    sec["lock"] = (t, 18)
+    s0 = t
+    def lat_root(s):
+        if s < s0 + 9 * BAR:
+            return F1
+        return (F1, A1, CS2, F1, A1, CS2, F1, F1, F1)[min((s - s0 - 9 * BAR) // (2 * BAR), 8)]
+    dummy_bass = Part("x")
+    ninefold(gl, gr, dummy_bass, kick, t, 18, lat_root, lambda k: (2, 5)[(k // 4) % 2], accent=114)
+    # the bass borrows the album's LATTICE (t1): its 3+2+2 seven-cell, walking LATTICE's F-Gb-B-E line one note per
+    # cell (4 against 3 onsets), so NINEFOLD's augmented stabs grind against LATTICE's minor 2nd, tritone and
+    # major 7th; in the second cycle the line rides the thirds wheel (root, +1, +6, +11 on each wheel root).
+    seven, line4 = "X..X.X.", (0, 1, 6, 11)
+    s, cell = t, 0
+    while s < t + 18 * BAR:
+        r = lat_root(s) + line4[cell % 4]
+        for i, c in enumerate(seven):
+            if s + i < t + 18 * BAR and c != ".":
+                bass.add(s + i, 2 if i == 0 else 1, nm(r), 112 if i == 0 else 98)
+        s, cell = s + 7, cell + 1
+    halftime(t, 18, hats="oh", hat_vel=(70, 52))
+    for b in range(0, 18, 2):
+        hit(t + b * BAR, "c", 116)
+    for st, ln, head, vel, mark in gl.ev:
+        if st >= t + 9 * BAR and len(head.split(",")) == 3:  # the augmented stabs of the second cycle
+            hit(st, "x", 100)
+    t += 18 * BAR
+
+    # 8. SILT (6 bars): the cell sheds to its first chug, the stab rings over the pad, then a tom/snare roll into
+    # track 4 (the onslaught).
+    sec["silt"] = (t, 6)
+    ninefold(gl, gr, bass, kick, t, 2, lambda s: F1, lambda k: (0, 6, 6, 7)[min(k, 3)], accent=104)
+    for b in (2, 3):
+        s = t + b * BAR
+        for o in (0, 9):
+            for g in (gl, gr):
+                g.add(s + o, 1, nm(F1), 96 - 10 * (b - 2), "pm")
+            bass.add(s + o, 1, nm(F1), 96)
+            hit(s + o, "k", 96)
+        hit(s + 8, "s", 96)
+    ring = ",".join(nm(n) for n in (F1, F1 + 12) + tuple(stab(F1)))
+    for g in (gl, gr):
+        g.add(t + 4 * BAR, 2 * BAR - 4, ring, 104)
+    bass.add(t + 4 * BAR, 2 * BAR - 4, nm(F1), 104)
+    hit(t + 4 * BAR, "c", 118)
+    hit(t + 4 * BAR, "k", 110)
+    pad.add(t, 6 * BAR, ",".join(nm(n) for n in (53, 57, 61, 65)), 80)
+    # the Hollow's clean line comes back over the ring-out, an octave up and slower: the breath before track 4
+    for j, o in enumerate((0, 6, 12, 18, 24, 30)):
+        if o + 2 * BAR < 6 * BAR - 12:
+            clean.add(t + 2 * BAR + 4 + o, 5, nm(hx[line[j]] + 12), 62)
+    for i in range(12):
+        hit(t + 6 * BAR - 12 + i, ("s", "t2", "t3", "ft")[i % 4] if i < 8 else "s", 70 + 4 * i)
+    t += 6 * BAR
+
+    for s, v in kick:
+        hit(s, "k", v)
+    for s in sorted(kit):
+        pieces = kit[s]
+        head = ",".join(sorted(pieces))
+        drums.add(s, 1, head, max(pieces.values()))
+    return t, sec, dict(gl=gl, gr=gr, bass=bass, drums=drums, lead=lead, clean=clean, pad=pad)
+
+
+def main():
+    total, sec, P = build()
+    sw = "swing16=0.6"
+    delay = {"type": "delay", "time": f"{60000 / BPM * 0.75:.1f}ms", "feedback": 0.32, "mix": 0.22}
+    # Mix (v1): the first render sat -10 dB under the genre envelope at 77-122 Hz and +4..9 dB over it at 270-830 Hz,
+    # with too much sub and too little 2.4-9.5 kHz: body into the bass, the box out of the guitars, air on the master.
+    geq = {"type": "eq", "bands": ["peak cutoff=420 q=0.8 gain=-4dB", "highshelf cutoff=3000 gain=3dB"]}
+    beq = {"type": "eq", "bands": ["lowshelf cutoff=45 gain=-4dB", "peak cutoff=100 q=0.9 gain=6dB"]}
+    tracks = [
+        {"name": "gtr-l", "patch": "m8-emg-l", "pan": -1, "gain": "-2dB", "fx": [geq], "score": P["gl"].score(total, sw)},
+        {"name": "gtr-r", "patch": "m8-emg-r", "pan": 1, "gain": "-2dB", "fx": [geq], "score": P["gr"].score(total, sw)},
+        {"name": "bass", "patch": "bass-fat", "gain": "-1dB", "fx": [beq], "score": P["bass"].score(total, sw)},
+        {"name": "drums", "patch": "metal-kit-dry", "out": "kit", "score": P["drums"].score(total, sw)},
+        {"name": "lead", "patch": "m8-lead", "gain": "-5dB", "pan": 0.15, "fx": [delay, "reverb kind=plate decay=1.8s mix=0.18"],
+         "score": P["lead"].score(total, sw)},
+        {"name": "clean", "patch": "m8-twang-chorus", "gain": "-7dB", "pan": -0.25, "fx": [delay, "reverb kind=hall decay=2.4s mix=0.25"],
+         "score": P["clean"].score(total, sw)},
+        {"name": "pad", "patch": "juno-pad", "gain": "-14dB", "score": P["pad"].score(total)},
+    ]
+    secs = "; ".join(f"{k} {v[0] // BAR + 1}-{v[0] // BAR + v[1]}" for k, v in sec.items())
+    about = ("Chirpers - Moult (Ferrous Bloom, track 3: the groove). Original composition by chirper-two, generated by "
+             "compose/chirpers1/src/chirpers1-t3.py. 96 BPM swung half-time; NINEFOLD, a 9-sixteenth chug cell that "
+             "moults one slot at a time and realigns every 9 bars; the THIRDS WHEEL F-A-C# (augmented colour); the climax "
+             "locks NINEFOLD against the album's LATTICE seven-cell on the bass. "
+             f"Bars: {secs}.")
+    lines = [
+        f"about: {json.dumps(about)}",
+        "meta: " + json.dumps({"artist": "Chirpers", "album": "Ferrous Bloom", "title": "Moult", "track": 3, "year": 2026}),
+        f"tempo: {BPM}",
+        f'length: "{total * STEP:g}b"',
+        'ceiling: "-0.1dB"',
+        'volume: "4dB"',
+        "buses: " + json.dumps({"kit": {"fx": ["rack:drum-bus-punch", {"type": "eq", "bands": ["highshelf cutoff=8000 gain=2dB"]}]}}),
+        "master: " + json.dumps({"fx": [
+            {"type": "eq", "bands": ["lowshelf cutoff=40 gain=-3dB", "peak cutoff=100 q=1 gain=3dB",
+                                     "peak cutoff=500 q=0.7 gain=-2.5dB", "highshelf cutoff=3000 gain=3dB",
+                                     "highshelf cutoff=12000 gain=-2dB"]},
+            "glue threshold=-20dB ratio=2.5 attack=10ms release=160ms makeup=2dB",
+            "clip drive=5dB ceiling=-0.5dB"]}),
+        "tracks:",
+    ]
+    lines += ["  - " + json.dumps(t) for t in tracks]
+    open(OUT, "w").write("\n".join(lines) + "\n")
+    print(f"wrote {OUT}: {total // BAR} bars, {total * STEP / BPM * 60:.1f} s; {secs}")
+
+
+if __name__ == "__main__":
+    main()
