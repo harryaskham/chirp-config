@@ -23,6 +23,11 @@ Per clean onset, on both sides (the ref's peak searched within +-30 ms of ours a
 Reported: each side's medians, the median paired difference, and the offset's median and spread. Score as drumpunch
 (100 * exp(-mean(|diff| / tolerance) / 2)) over the tone measures; timing is reported, not scored.
 
+Timing caveat (chirper-one, 28 Oct): in sustained distortion the record's per-note attack peak is not resolvable;
+a peak picked at random in the +-30 ms window gives IQR 30 ms and 67% off by >10 ms, which is what our songs read.
+So the offset line is shown with that baseline and is NOT evidence of drift unless it is far below it; the tone
+measures are taken at the same moment on both sides (no per-note re-alignment), after a global lag capped at +-20 ms.
+
 Separator floor (28 Oct; htdemucs vs bs_roformer guitar stems of one song, 30 s each of Bleed, Faultless, Pineal):
 total 67-86. grain agrees within 0.02 and scoop within ~1 dB, so trust those. fizz differs by 3-11 dB (htdemucs
 loses the top), so judge fizz only against bs_roformer refs. Timing is noisy on sustained distortion (IQR up to 20 ms
@@ -127,7 +132,9 @@ def compare(ref, ours, ts, shift):
         if po is None or pr is None:
             continue
         offs.append((pr + shift - po) * 1000)
-        mo, mr = measure_note(yo, ob, t, nxt), measure_note(yr, rb, t - shift + (pr + shift - po), nxt - shift)
+        # both sides at the same moment: per-note attack peaks are not resolvable in sustained distortion (chirper-one:
+        # a random pick in the +-30 ms window gives the same IQR), so no per-note re-alignment
+        mo, mr = measure_note(yo, ob, t, nxt), measure_note(yr, rb, t - shift, nxt - shift)
         if mo and mr and not any(np.isnan(v) for v in (*mo.values(), *mr.values())):
             rows.append((mr, mo))
     if not rows:
@@ -168,6 +175,8 @@ def main(argv=None):
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--stems", default="guitar")
     ap.add_argument("--ours")
+    ap.add_argument("--max-lag", type=float, default=20.0, help="global lag search, +-ms (default 20: songs are map-aligned; "
+                    "a wider search found -100 ms on Pineal, chirper-one)")
     ap.add_argument("--json", action="store_true")
     a = ap.parse_args(argv)
     song, t0, t1 = a.song, a.t0, a.t1
@@ -188,7 +197,7 @@ def main(argv=None):
     ref_x = full[int(t0 * SR):int(t1 * SR)]
     ours_x = L.load(a.ours) if a.ours else D.render_ours(song_file, t0, t1, tracks, a.seed, a.set)
     cts = [t - t0 for t in clean(ts) if t0 <= t < t1]
-    shift = D.lag(D.bandpass(D.mono(ref_x), 150, 8000), D.bandpass(D.mono(ours_x), 150, 8000))
+    shift = D.lag(D.bandpass(D.mono(ref_x), 150, 8000), D.bandpass(D.mono(ours_x), 150, 8000), max_s=a.max_lag / 1000)
     res = compare(ref_x, ours_x, cts, shift)
     res.update(label=f"{song} {t0:g}-{t1:g} s", tracks=tracks, lag_ms=round(shift * 1000, 1), stems=a.stems)
     if a.json:
@@ -199,7 +208,8 @@ def main(argv=None):
     if res.get("offset_ms"):
         o = res["offset_ms"]
         print(f"  timing: record vs ours median {o['median']:+.1f} ms, IQR {o['iqr']:.1f} ms, "
-              f"{o['abs_over_10ms'] * 100:.0f}% off by >10 ms")
+              f"{o['abs_over_10ms'] * 100:.0f}% off by >10 ms  (random peaks in the +-30 ms window: IQR 30, 67%: "
+              f"at or near that, the stem's attacks are unresolvable, not our timing)")
     if res.get("diff"):
         print("  " + "  ".join(f"{k} {res['ref'][k]:.2f}->{res['ours'][k]:.2f}" for k in TOL))
 

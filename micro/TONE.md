@@ -77,8 +77,11 @@ guitar onsets against the record's guitar stem. Over 30 s each of Bleed, The Fau
   separators agree within ~1 dB. This is the tone stack's job (bd-b1f325's TMB stack).
 - **Fizz** (6-10 kHz vs 1-4 kHz) is rig-specific: The Faultless and Pineal rigs have **+13 dB** too much, Bleed
   -6 dB too little. Judge fizz against bs_roformer refs only: htdemucs loses 3-11 dB up there.
-- **Timing scatter** (IQR 29-39 ms against a 0-20 ms floor) partly explains the riff family's near-zero microscore
-  transients (an onset-correlation measure): part of that gap is alignment, not attack shape.
+- ~~Timing scatter explains the riff transients~~ **RETRACTED** (chirper-one): per-note attack peaks are not
+  resolvable in a sustained-distortion stem. A random pick in the +-30 ms window gives IQR 30 ms and 67% off by
+  >10 ms, which is exactly what we read, and the global lag search wandered to -100 ms on aligned songs (now capped
+  at +-20 ms). The tone findings above hold after the fix (re-measured at shared moments). The riff family's low
+  microscore transients remain unexplained: an onset-correlation is fragile on dense distortion too.
 
 ## Rules
 
