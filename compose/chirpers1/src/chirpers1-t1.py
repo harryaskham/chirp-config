@@ -273,6 +273,14 @@ def toms():                  # the distant percussion of the opening
             ev.append((t, 1, "ft", 44, ""))
     return score(ev)
 
+def ride():
+    """The master's dynamics (dB before the glue): the intro starts quietly and grows; the seed's return drops back."""
+    sec = 4 * 60 / TEMPO                                        # seconds per bar
+    t = lambda b: f"{(b - 1) * sec:.2f}s"
+    pts = [(1, -6.0), (8, -6.0), (15, -3.0), (22, -1.0), (22.05, 0.0), (STOP + 0.25, 0.0), (STOP + 0.9, -6.0),
+           (SEED[-1] + 0.85, -6.0), (HITS[0], 0.0), (HOLD + 2, 0.0)]
+    return [[t(b), v] for b, v in pts]
+
 def tr(name, patch, sc, **kw):
     d = {"name": name, "patch": patch, "score": sc}
     d.update(kw)
@@ -302,7 +310,10 @@ def main():
         "buses:",
         '  hall: {fx: ["reverb kind=hall decay=3.4s mix=1 predelay=25ms mono_below=150hz"]}',
         '  drums: {fx: [{"type": "compressor", "threshold": "-18dB", "ratio": 3, "attack": "10ms", "release": "90ms", "makeup": "2dB"}, "reverb kind=room decay=0.6s mix=0.08 predelay=6ms mono_below=200hz"]}',
-        'master: {"fx": ["glue threshold=-20dB ratio=2.5 attack=10ms release=150ms makeup=3dB", {"type": "gain", "gain": "9dB"}]}',
+        'master: ' + json.dumps({"fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.ride", "amount": 1}]}},
+                                   "glue threshold=-20dB ratio=2.5 attack=10ms release=150ms makeup=3dB",
+                                   {"type": "gain", "gain": "11.5dB"}],
+                            "auto": {"ride": {"points": ride()}}}),
         "tracks:",
     ]
     lines = head + ["  - " + json.dumps(t) for t in tracks]
