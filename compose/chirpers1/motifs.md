@@ -47,7 +47,8 @@ The closer, 96 bpm, ~494 s; generator compose/chirpers1/src/chirpers1-t8.py. It 
   13 eighths), then a new 5-note clean figure F3 C4 Ab4 G4 Db4 on eighths (5 against 8; LATTICE's 5-cell
   as a melody) over F Phrygian pads Fm(add9) / Dbmaj7 / Bbm / Gb, two bars each; ride and toms crescendo.
 - **The cog (C, 140-260 s):** LATTICE's 7-cell (x..x.x.) as F1 chugs with an F1+B1 tritone stab every 4th cell,
-  half time, cut off by a cluster stab (F1 B1 E2) and a bar of silence, then full time walking t4's
+  half time; after 12 bars t2's TRIAD takes over (the cell's three rotations chained to 21 sixteenths, pivots
+  F1 -> Gb1 -> F1+E2), cut off by a cluster stab (F1 B1 E2) and a bar of silence, then full time walking t4's
   MINOR-THIRD AXIS (F -> Ab -> B -> D, 6 bars each, the stab a tritone above each root).
 - **The climb (D, 260-340 s):** the cell extended to an **11-cell**, its first half turning t3's THIRDS WHEEL
   (F -> A -> C# -> F, 4 bars each) (3+2+2+2+2: F5, F pm, Gb, B5 stab, Ab) with the

@@ -120,6 +120,25 @@ def cog(a, b, roots, full_time):
         g[m], bs[m], hits[m] = gt, bt, ht
     return g, bs, hits
 
+# ---------------- t2's TRIAD: the 7-cell's three rotations chained (21 sixteenths) ----------------
+TRIAD = [(0, 'F1/0.25b@118'), (3, 'F1/0.25b@104^pm'), (5, 'F1/0.25b@104^pm'),
+         (7, 'Gb1/0.25b@118'), (9, 'F1/0.25b@104^pm'), (12, 'F1/0.25b@104^pm'),
+         (14, 'F1,E2/0.25b@122'), (16, 'F1/0.25b@104^pm'), (18, 'F1/0.25b@104^pm')]
+def triad(a, b):
+    on = dict(TRIAD); g, bs, hits = {}, {}, {}; i = 0
+    for m in range(a, b + 1):
+        gt, bt, ht = [], [], []
+        for s in range(16):
+            p = i % 21; i += 1
+            c = on.get(p)
+            if c is None:
+                gt.append('R/0.25b'); bt.append('R/0.25b'); ht.append(None)
+            else:
+                gt.append(c); bt.append(c.split(',')[0].split('/')[0] + '/0.25b@' + c.split('@')[1].split('^')[0])
+                ht.append('stab' if p == 14 else 'acc' if p in (0, 7) else 'pm')
+        g[m], bs[m], hits[m] = gt, bt, ht
+    return g, bs, hits
+
 # ---------------- D: the 11-cell (3+2+2+2+2) ----------------
 def climb(a, b, k=0):
     g, bs, hits = {}, {}, {}
@@ -246,6 +265,8 @@ def build():
         g_, b_, h_ = climb(D1[0] + 4 * q, D1[0] + 4 * q + 3, k=k); gD.update(g_); bD.update(b_); hD.update(h_)
     gD2, bD2, hD2 = climb(*D2, k=3)
     gD.update(gD2); bD.update(bD2)
+    gT, bT, hT = triad(C1[0] + 12, C1[1] - 1)   # t2's TRIAD takes over the cog's second half
+    gC1.update(gT); bC1.update(bT); hC1.update(hT)
     gC1[C1[1]] = [f'{CLUSTER}/2b@124', 'R/2b']; bC1[C1[1]] = ['F1/2b@120', 'R/2b']
     gE, bE = crush(*E)
     gtr = merge({m: ['F1,C2/4b@70'] for m in range(B[1] - 7, B[1] + 1)}, gC1, gC2, gD, gE)
