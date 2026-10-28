@@ -5075,7 +5075,7 @@
     {
       "id": "chirpers1-t7",
       "song": "songs/chirpers1-t7.yaml",
-      "reference": "Chirpers — Track 7 (untitled)",
+      "reference": "Chirpers — Iron Stairs",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers1-t7 OUT.wav",
@@ -5091,7 +5091,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "Ferrous Bloom",
-        "title": "Track 7 (untitled)",
+        "title": "Iron Stairs",
         "track": 7,
         "year": 2026
       },
