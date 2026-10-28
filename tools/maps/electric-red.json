@@ -1010,17 +1010,147 @@
       "pitch": "C2"
      },
      "t1": {
-      "pitch": "F#3"
+      "pitch": "F#3",
+      "patch": "wm-tom-TR3"
      },
      "t2": {
-      "pitch": "C3"
+      "pitch": "C3",
+      "patch": "wm-tom-TR3"
      },
      "t3": {
-      "pitch": "G#2"
+      "pitch": "G#2",
+      "patch": "wm-tom-TR3"
      },
      "ft": {
-      "pitch": "F2"
+      "pitch": "F2",
+      "patch": "wm-tom-TR3"
      }
+    }
+   },
+   "wm-tom-TR3": {
+    "about": "prog-tom (wM drum-tonality variant)",
+    "synth": {
+     "layers": [
+      {
+       "name": "head",
+       "wave": "sine",
+       "level": "-4dB"
+      },
+      {
+       "name": "modes",
+       "type": "additive",
+       "partials": [
+        [
+         1.59,
+         0.5
+        ],
+        [
+         2.14,
+         0.3
+        ],
+        [
+         2.65,
+         0.15
+        ]
+       ],
+       "damp": 6,
+       "level": {
+        "value": "-10dB",
+        "mod": [
+         {
+          "src": "vel",
+          "amount": 6
+         }
+        ]
+       }
+      },
+      {
+       "name": "stick",
+       "type": "noise",
+       "level": {
+        "value": "-66dB",
+        "mod": [
+         {
+          "src": "env.att",
+          "amount": 56
+         },
+         {
+          "src": "vel",
+          "amount": 8
+         }
+        ]
+       }
+      },
+      {
+       "name": "skin",
+       "type": "noise",
+       "color": "pink",
+       "level": {
+        "value": "-60dB",
+        "mod": [
+         {
+          "src": "env.skin",
+          "amount": 52
+         },
+         {
+          "src": "vel",
+          "amount": 4
+         }
+        ]
+       }
+      }
+     ],
+     "pitch": {
+      "value": 0,
+      "mod": [
+       {
+        "src": "env.p",
+        "amount": 2.5
+       },
+       {
+        "src": "vel",
+        "amount": 1
+       },
+       {
+        "src": "rand",
+        "amount": 0.2
+       }
+      ]
+     },
+     "env": {
+      "p": {
+       "a": "0.3ms",
+       "d": "140ms",
+       "s": 0,
+       "curve": 3
+      },
+      "att": {
+       "a": "0.1ms",
+       "d": "6ms",
+       "s": 0
+      },
+      "skin": {
+       "a": "0.5ms",
+       "d": "300ms",
+       "s": 0,
+       "curve": 4
+      }
+     },
+     "filters": [
+      "hp cutoff=50",
+      "peak cutoff=3k q=1 gain=2dB"
+     ],
+     "amp": {
+      "a": "0.3ms",
+      "d": "700ms",
+      "s": 0,
+      "r": "60ms",
+      "curve": 4
+     },
+     "drive": 0.1
+    },
+    "play": {
+     "vel_sens": 0.55
     }
    }
   },
