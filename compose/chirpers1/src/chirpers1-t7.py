@@ -135,7 +135,7 @@ def build():
         'master': {'fx': [{'type': 'eq', 'bands': ['peak cutoff=420 q=0.7 gain=-3dB']}, {'type': 'gain', 'gain': '+14.5dB'},
                           {'type': 'compressor', 'threshold': '-14dB', 'ratio': 2.5, 'attack': '10ms', 'release': '120ms', 'makeup': '5dB'},
                           {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.fade', 'amount': 1}]}}],
-                   'auto': {'fade': {'points': [['0s', 0], [f'{(O[0] + 3) * 4 * SPB:.1f}s', 0], [f'{end_s:.1f}s', -12]]}}},
+                   'auto': {'fade': {'points': [['0s', -5], ['3s', -2], ['6s', 0], [f'{(O[0] + 3) * 4 * SPB:.1f}s', 0], [f'{end_s:.1f}s', -12]]}}},
         'tracks': [
             {'name': 'pad', 'patch': 'juno-pad', 'gain': '-9dB', 'score': join(pad)},
             {'name': 'clean', 'patch': 'm8-clean', 'gain': '-8dB', 'pan': -0.2, 'score': join(cl)},
