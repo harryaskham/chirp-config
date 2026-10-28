@@ -280,6 +280,16 @@ def build():
     lead = merge(cyc(D1[0], D1[1], CLIMB), cyc(D2[0], D2[1], EXHALE2), cyc(E[0], E[1] - 1, CRUSHL),
                  {E[1]: ['Gb5/4b@116']})
     ECHO = {F1[0] + 4 + i: [t] if isinstance(t, str) else t for i, t in enumerate(STAIRS_ECHO)}   # t7's LATTICE RISING, remembered
+    # ---- the sound playground (Harry, 28 Oct): three new rigs traded against the m8 pair ----
+    # FUZZ: the crush's second half doubled by an octave-down, bit-crushed m8 (the crush grows a sub-floor)
+    FUZZ = {m: gE[m] for m in range(E[0] + 8, E[1] + 1)}
+    # RING: the climb's tritone stabs alone, through a ring modulator (hocketed against the pair's chugs)
+    hits_all = dict(hD); hits_all.update(hD2)
+    RING = {}
+    for m in range(D1[0], D2[1] + 1):
+        RING[m] = [tk if h == 'stab' else 'R/0.25b' for tk, h in zip(gD[m], hits_all[m])]
+    # HALO: LATTICE's line as long frozen notes over the dissolve's breath cell (e-bow-like sustain, octave shimmer)
+    HALO = {F1[0] + i: [f'{LAT_LINE[(i // 5) % 4][:-1]}{int(LAT_LINE[(i // 5) % 4][-1]) + 1}/4b@70'] for i in range(F1[1] - F1[0] + 1)}
     end_s = NB * 4 * SPB
     fade0 = (F2[0] + 6) * 4 * SPB
     return {
@@ -300,6 +310,14 @@ def build():
             {'name': 'drums', 'patch': 'metal-kit-punch', 'gain': '-2dB', 'score': join(drums)},
             {'name': 'echo', 'patch': 'm8-clean', 'gain': '-11dB', 'pan': 0.35, 'score': join(ECHO)},
             {'name': 'lead', 'patch': 'm8-lead', 'gain': '-8dB', 'pan': -0.15, 'score': join(lead)},
+            {'name': 'fuzz', 'patch': 'm8-emg-r', 'gain': '-7dB', 'pan': 0,
+             'fx': [{'type': 'pitch', 'semitones': -12, 'mix': 0.6}, {'type': 'crush', 'bits': 8, 'rate': 1, 'mix': 0.25}],
+             'score': join(FUZZ)},
+            {'name': 'ring', 'patch': 'm8-emg-l', 'gain': '-9dB', 'pan': 0.35,
+             'fx': [{'type': 'ring', 'freq': 233, 'mix': 0.6}], 'score': join(RING)},
+            {'name': 'halo', 'patch': 'm8-clean', 'gain': '-13dB', 'pan': -0.3,
+             'fx': [{'type': 'freeze', 'hold': 1, 'size': 0.8, 'mix': 0.5}, {'type': 'pitch', 'semitones': 12, 'mix': 0.25}],
+             'score': join(HALO)},
         ]}
 
 # ---- guitar-like lead expression (chirper-one, tone push / bd-90c9d2): ^f0 paths on m8-lead via a song-local twin ----
