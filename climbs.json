@@ -4866,7 +4866,7 @@
     {
       "id": "chirpers1-t1",
       "song": "songs/chirpers1-t1.yaml",
-      "reference": "Chirpers — Track 1 (untitled)",
+      "reference": "Chirpers — Seed Crystal",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers1-t1 OUT.wav",
@@ -4882,7 +4882,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "Ferrous Bloom",
-        "title": "Track 1 (untitled)",
+        "title": "Seed Crystal",
         "track": 1,
         "year": 2026
       },
