@@ -32,14 +32,32 @@ def default_who(argv):
     return "harry"
 
 
+def resolve_now(status, ids):
+    """The climb id a live status is playing: its label when that is a climb, else the playlist's current entry.
+    Raises SystemExit with a usable message otherwise (after a groove restart the first song plays unlabelled: its
+    label is its opening notes, e.g. 'F2,C3/1+1+…')."""
+    label = status.get("label")
+    if label in ids:
+        return label
+    pl = status.get("playlist") or {}
+    cur, entries = pl.get("current"), pl.get("entries") or []
+    if isinstance(cur, int) and 0 <= cur < len(entries):
+        cur = entries[cur]
+    if isinstance(cur, dict) and cur.get("label") in ids:
+        return cur["label"]
+    raise SystemExit(f"rate: the groove is playing {str(label)[:40]!r}, which is not a climb (after a restart the first "
+                     f"song plays unlabelled until the playlist takes over); rate it by id: rate.py ID SCORE")
+
+
 def playing_now():
-    """The climb id the groove is playing (its live status label), or None."""
+    """The climb id the groove is playing, or None when the groove is unreachable."""
     groove = os.path.join(os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}"), "chirp-groove")
     try:
         r = subprocess.run([groove, "--json", "live", "status"], capture_output=True, text=True, timeout=10)
-        return (json.loads(r.stdout).get("data") or {}).get("label")
+        status = json.loads(r.stdout).get("data") or {}
     except (OSError, ValueError, subprocess.TimeoutExpired):
         return None
+    return resolve_now(status, {c["id"] for c in C.load()["climbs"]})
 
 
 def ratings_path(album_id):

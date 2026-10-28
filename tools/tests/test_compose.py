@@ -142,6 +142,16 @@ class Ratings(unittest.TestCase):
         with self.assertRaises(SystemExit):
             quiet(RT.main, ["old-song", "5", "--no-git"])                   # only compositions are rated
 
+    def test_now_resolves_the_playing_climb(self):
+        ids = {"alb-t1", "alb-t2"}
+        self.assertEqual(RT.resolve_now({"label": "alb-t2"}, ids), "alb-t2")
+        entries = [{"label": "alb-t1"}, {"label": "alb-t2"}]
+        self.assertEqual(RT.resolve_now({"label": "F2,C3/1+1", "playlist": {"current": 0, "entries": entries}}, ids), "alb-t1")
+        self.assertEqual(RT.resolve_now({"label": "x", "playlist": {"current": {"label": "alb-t2"}}}, ids), "alb-t2")
+        with self.assertRaises(SystemExit) as e:
+            RT.resolve_now({"label": "F2,C3/1+1+1", "playlist": {"current": None, "entries": entries}}, ids)
+        self.assertIn("rate it by id", str(e.exception))
+
 
 def piece(sections, sr=L.SR):
     """Concatenated synthetic sections: (seconds, root Hz, pulse period s, level)."""
