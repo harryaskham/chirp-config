@@ -23,3 +23,9 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
   guitar, a ride bell on the 7.
 - **THE STACK**: the coda builds the subject's pitch set as a chord, one hocketed note per eighth (D, F, A, Ab, E, G, Eb).
 
+
+## t3 Glass Arithmetic (chirper-one)
+- **GROUPING ROW** (one per bar, cycling): 3+3+2, 2+2+3, 3+2+2+2, 3+3+3+2, 3+3+2, 2+3, 3+2+2+2, 3+3+2+2+3 (eighths); B's row 3+3+3+3, 2+2+2+3+3, 3+3+3+3, 3+2+3+2+2; the breakdown 3+2; the build 2+2 then one more 3 each bar (2+2+3 ... 2+2+3+3+3+3+3+3).
+- **THE BRAID**: two tapped loops over the bar's chord, 5 notes (left, sixteenths) and 7 notes (right, eighths), running on across the bar lines.
+- **GLASS TUNE** (marimba): chord-tone indices 0 2 4 3 1 4 2 0, one per group (B), or in dotted eighths straight through the groupings (the build and the last return).
+- Harmony: Emaj9 C#m9 Amaj7(9) B6/9 (A), Gmaj9 Em9 Cmaj7#11 D6/9 (B); the last return a whole step up.
