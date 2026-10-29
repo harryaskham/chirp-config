@@ -28,7 +28,10 @@ V2 = os.environ.get("T9_V2", "1") == "1"
 V3 = os.environ.get("T9_V3", "1") == "1"
 CHOP = os.environ.get("T9_CHOP", "catch")
 RIMLATE = os.environ.get("T9_RIMLATE", "45")  # the rim click's drag behind the beat (ms)
-ANSWER = os.environ.get("T9_ANSWER", "1") == "1"  # the last A: the guitar answers the flute at every phrase end (a falling fill on the 4th bar's last two beats)  # wM's MPC chop: "catch" = the cassette chews the bar before THE CATCH (master); "both" = and the guitar chopped in the outro's last four bars  # the form made audible: a master dynamics lane by section and a STOP at every seam (the band stops mid-bar, the rim fills)  # the draft's fixes: an upright bass (borrowed from Odd Hours t1), the master off the flute's presence and onto the lows, the bridge without the percussion
+ANSWER = os.environ.get("T9_ANSWER", "1") == "1"
+DENS = os.environ.get("T9_DENS", "1") == "1"  # density contrast: the bridge sparer (two plucks a bar, no rim), the last A busier (pandeiro jingles on the off-16ths)
+IND_DB = os.environ.get("T9_INDDB", "-13")
+INDICATOR = os.environ.get("T9_INDICATOR", "")  # the car's indicator ticking through the intro and the outro (tick-tock every 380 ms, out of time with the bossa); "" off, "io" intro+outro, "all" the whole way, quieter  # the last A: the guitar answers the flute at every phrase end (a falling fill on the 4th bar's last two beats)  # wM's MPC chop: "catch" = the cassette chews the bar before THE CATCH (master); "both" = and the guitar chopped in the outro's last four bars  # the form made audible: a master dynamics lane by section and a STOP at every seam (the band stops mid-bar, the rim fills)  # the draft's fixes: an upright bass (borrowed from Odd Hours t1), the master off the flute's presence and onto the lows, the bridge without the percussion
 S = 0.25
 
 NOTE = {"C": 0, "C#": 1, "Db": 1, "D": 2, "D#": 3, "Eb": 3, "E": 4, "F": 5, "F#": 6, "Gb": 6, "G": 7, "G#": 8, "Ab": 8,
@@ -92,10 +95,12 @@ def chords_for(sec, b):
     return (B_CH if sec == "B" else A_CH)[b % 8]
 
 
-def guitar(c, b, vel=70):
+def guitar(c, b, vel=70, sparse=False):
     root, v = CH[c]
     ch = ",".join(nm(n) for n in v)
     hits = (0, 3, 6, 10, 13) if b % 2 == 0 else (2, 6, 9, 12, 14)
+    if sparse:
+        hits = (3, 10) if b % 2 == 0 else (6, 12)
     ev = [(st, ch, 2, vel - (6 if st % 4 else 0)) for st in hits if st not in (0, 8)]
     return grid(ev)
 
@@ -130,7 +135,7 @@ def tune(notes, vel=82, shift=0):
 
 
 def build():
-    names = ("guitar", "thumb", "perc", "rim", "flute", "rhodes", "rpad", "bass") + (("gfill",) if ANSWER else ())
+    names = ("guitar", "thumb", "perc", "rim", "flute", "rhodes", "rpad", "bass") + (("gfill",) if ANSWER else ()) + (("pand",) if DENS else ())
     T = {n: [] for n in names}
     rng = random.Random(9)
     times, t = {}, 0.0
@@ -140,7 +145,7 @@ def build():
             c = chords_for(sec, b)
             nxt = chords_for(sec, b + 1) if b + 1 < nb else (chords_for(FORM[si + 1][0], 0) if si + 1 < len(FORM) else c)
             bar = {n: R(4) for n in names}
-            bar["guitar"] = guitar(c, b, vel=64 if sec in ("intro", "outro") else 70)
+            bar["guitar"] = guitar(c, b, vel=64 if sec in ("intro", "outro") else 70, sparse=(DENS and sec == "B"))
             bar["thumb"] = thumb(c, b, nxt)
             if V2 and sec not in ("intro",):
                 root = CH[c][0]
@@ -151,8 +156,10 @@ def build():
                 bar["bass"] = grid(ev) if sec != "catch" else R(4)
             if sec not in ("intro", "catch") and not (V2 and sec == "B"):
                 bar["perc"] = perc(b, rng)
-                if sec != "outro":
+                if sec != "outro" and not (DENS and sec == "B"):
                     bar["rim"] = rim(b)
+                if DENS and sec == "A2":
+                    bar["pand"] = grid([(st, "pd", 1, 52 if st % 4 == 3 else 40) for st in range(1, 16, 2)])
             if sec in ("A", "A2"):
                 bar["flute"] = tune(A_END if b % 16 == 15 else A_TUNE[b % 8], vel=84 if sec == "A" else 88)
                 if ANSWER and sec == "A2" and b % 4 == 3:  # the guitar answers: a falling run down the chord's tones in the bar's last two beats
@@ -227,7 +234,23 @@ def song():
     gcp = [["0s", 0], [f"{o0 - 0.02:.3f}s", 0], [f"{o0:.3f}s", 1], [f"{total + 8:.2f}s", 1]]
     gchop = ([{"type": "chop", "slices": 8, "pattern": "0 . 2 . r4 . 6 _", "mix": {"value": 0, "mod": [{"src": "auto.gcp", "amount": 1}]}}]
              if CHOP == "both" else [])
-    tracks = [
+    ind = []
+    if INDICATOR:
+        spans = ([(0.0, times["A"] + 2), (times["outro"], total)] if INDICATOR == "io" else [(0.0, total)])
+        pos = 0.0
+        toks = []
+        for a, b in spans:
+            if a > pos:
+                toks.append(f"R/{int(round((a - pos) * 1000))}ms")
+                pos = a
+            k = 0
+            while pos + 0.38 <= b:
+                toks.append(f"{'wb' if k % 2 == 0 else 'wbl'}/380ms@{58 if k % 2 == 0 else 50}")
+                pos += 0.38
+                k += 1
+        ind = [{"name": "indicator", "patch": "room-kit", "gain": "-18dB" if INDICATOR == "all" else f"{IND_DB}dB", "pan": -0.6,
+                "fx": [{"type": "eq", "bands": ["hp cutoff=900", "peak cutoff=2500 q=1 gain=3dB"]}, deck], "score": " ".join(toks)}]
+    tracks = ind + [
         {"name": "guitar", "patch": "nylon", "pan": -0.15, "fx": [deck] + gchop, **({"auto": {"gcp": {"points": gcp}}} if gchop else {}), "sends": {"room": "-12dB"}, "score": sc("guitar")},
         {"name": "thumb", "patch": "nylon", "gain": "2dB", "pan": -0.1, "fx": [deck], "score": sc("thumb")},
         {"name": "perc", "patch": "samba-kit", "gain": "-10dB", "pan": 0.2, "score": "swing16=0.56 " + sc("perc")},
@@ -238,6 +261,8 @@ def song():
     ]
     if V2:
         tracks.append({"name": "bass", "patch": "upright", "gain": "4dB", "score": sc("bass")})
+    if DENS:
+        tracks.append({"name": "pand", "patch": "samba-kit", "gain": "-12dB", "pan": 0.35, "score": f"swing16={os.environ.get('T9_PANDSW', '0.56')} " + sc("pand")})
     if ANSWER:
         tracks.append({"name": "gfill", "patch": "nylon", "gain": "-2dB", "pan": 0.25, "fx": [deck], "sends": {"room": "-10dB"}, "score": sc("gfill")})
     return {
