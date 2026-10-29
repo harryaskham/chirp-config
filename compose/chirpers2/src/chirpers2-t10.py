@@ -37,7 +37,9 @@ CONGA_EQ = os.environ.get("T10_CONGAEQ", "0") == "1"  # a 250 Hz -3 dB cut on th
 KEEP_FT = os.environ.get("T10_KEEPFT", "1") == "1"  # keep the room-kit floor tom under the congas (its low end) instead of the tumba
 SUNG = os.environ.get("T10_SUNG", "1") == "1"  # the descarga's CORO sung: a baritone (maynard) an octave under, wordless dream voices at pitch
 QUINTO = os.environ.get("T10_QUINTO", "1") == "1"  # the quinto improvises in the descarga's solo bars: open tones and slaps drawn per bar
-PSOLO = os.environ.get("T10_PSOLO", "1") == "1"  # a 16-bar piano solo over the montuno groove between the son and the mambo (octave lines, horns out)
+PSOLO = os.environ.get("T10_PSOLO", "1") == "1"
+SYL = os.environ.get("T10_SYL", "1") == "1"
+CORO_DB = os.environ.get("T10_CORODB", "-1")  # the sung coro's level (dB)  # the coro sings vocables, not just vowels: la - ye - lo | ma - ye (onset consonants l y l | m y)  # a 16-bar piano solo over the montuno groove between the son and the mambo (octave lines, horns out)
 
 # sections: (name, meter, bpm (quarter), bars)
 FORM = [("bembe", "12/8", 156, 12), ("son", "4/4", 208, 40), ("mambo", "4/4", 208, 24), ("siete", "7/4", 208, 12),
@@ -444,7 +446,9 @@ def build():
                     bar["horns"] = line(CORO[b % 2], vel=102, shift=up + (b // 8) * 0)
                     if SUNG:  # the coro: vowels a / e / o by note, the baritone an octave under the horns
                         vows = [0.5, 0.75, 0.25]
-                        bar["coro"] = J(*[R(d) if n == "R" else f"{nm(mi(n) + up - 12)}/{d:g}b@{92}^vow={vows[k % 3]}"
+                        syl = [[(19, 0.5), (22, 0.75), (19, 0.25)], [(16, 0.5), (22, 0.75)]][b % 2]  # la ye lo | ma ye
+                        bar["coro"] = J(*[R(d) if n == "R" else (f"{nm(mi(n) + up - 12)}/{d:g}b@{92}^vow={syl[k][1]}^on={syl[k][0]}" if SYL
+                                                                 else f"{nm(mi(n) + up - 12)}/{d:g}b@{92}^vow={vows[k % 3]}")
                                           for k, (n, d) in enumerate(CORO[b % 2])])
                         bar["coro2"] = line(CORO[b % 2], vel=80, shift=up)
                 else:
@@ -553,7 +557,7 @@ def song():
         {"name": "pad", "patch": "juno-pad", "gain": "-18dB", "sends": {"room": "-8dB"}, "score": sc("pad")},
     ]
     if SUNG:
-        tracks.append({"name": "coro", "patch": "maynard", "gain": "-4dB", "pan": -0.1, "sends": {"room": "-7dB"}, "score": sc("coro")})
+        tracks.append({"name": "coro", "patch": "maynard", "gain": f"{CORO_DB}dB", "pan": -0.1, "sends": {"room": "-7dB"}, "score": sc("coro")})
         tracks.append({"name": "coro2", "patch": "dream-vox", "gain": "-10dB", "pan": 0.25, "sends": {"room": "-6dB"}, "score": sc("coro2")})
     if MONA:
         tracks.append({"name": "mona", "patch": "horn", "gain": "-7dB", "pan": -0.3, "sends": {"room": "-9dB"}, "score": sc("mona")})
