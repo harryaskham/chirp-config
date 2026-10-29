@@ -34,7 +34,8 @@ RIDE3 = os.environ.get("T9_RIDE3", "1") == "1"
 RECAP = os.environ.get("T9_RECAP", "1") == "1"
 BASSOLO = os.environ.get("T9_BASSOLO", "0") == "1"
 SEGUE = os.environ.get("T9_SEGUE", "1") == "1"
-ARCH = os.environ.get("T9_ARCH", "1") == "1"  # the dusk replays the dawn (its piano figures and washes, bar for bar) with the fretless singing over it: the day ends as it began  # under the last chord, Cierre's bembe bell arrives at Cierre's own tempo (eighths of 192 ms): the segue into the closer  # the open section becomes the fretless's solo (high, singing, sliding), the guitar swelling behind  # the return replays the song's EXPOSURE melody (a recapitulation) with the full band  # the ride on dotted eighths across the 11/8 (with the guitar): the cymbal's own cycle  # the guitar's dotted-eighth ostinato (0.75 beats: seven per 11/8 bar) in the ostinato and return  # 1 = kit -12 dB + highshelf -5 @4k; 2 = kit -10 dB, no shelf
+ARCH = os.environ.get("T9_ARCH", "1") == "1"
+MOTIF = os.environ.get("T9_MOTIF", "1") == "1"  # EXPOSURE as a sequence: every bar the leap of a fourth up into the chord's 9th (one shape carried down the changes)  # the dusk replays the dawn (its piano figures and washes, bar for bar) with the fretless singing over it: the day ends as it began  # under the last chord, Cierre's bembe bell arrives at Cierre's own tempo (eighths of 192 ms): the segue into the closer  # the open section becomes the fretless's solo (high, singing, sliding), the guitar swelling behind  # the return replays the song's EXPOSURE melody (a recapitulation) with the full band  # the ride on dotted eighths across the 11/8 (with the guitar): the cymbal's own cycle  # the guitar's dotted-eighth ostinato (0.75 beats: seven per 11/8 bar) in the ostinato and return  # 1 = kit -12 dB + highshelf -5 @4k; 2 = kit -10 dB, no shelf
 
 NOTE = {"C": 0, "C#": 1, "Db": 1, "D": 2, "D#": 3, "Eb": 3, "E": 4, "F": 5, "F#": 6, "Gb": 6, "G": 7, "G#": 8, "Ab": 8,
         "A": 9, "A#": 10, "Bb": 10, "B": 11}
@@ -139,6 +140,10 @@ def exposure(c, beats, rng, lo=62, hi=81, vel=86, prev=None):
     cands = [m for m in range(lo, hi + 1) if (m - r) % 12 in col]
     tgt = rng.choice(cands) if prev is None else min(cands, key=lambda m: abs(m - prev) + rng.random() * 6)
     leap = tgt + rng.choice([-7, -5, -9, 5])
+    if MOTIF:
+        nines = [m for m in range(lo, hi + 1) if (m - r) % 12 == 2]
+        tgt = nines[len(nines) // 2] if prev is None else min(nines, key=lambda m: abs(m - prev))
+        leap = tgt - 5
     if beats >= 5:
         pick = [tok(nm(leap), 0.5, vel - 10), tok(nm(tgt), beats - 1.5, vel + 4), R(1)]
     else:
