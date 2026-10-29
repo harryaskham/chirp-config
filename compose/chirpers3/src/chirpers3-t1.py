@@ -137,9 +137,27 @@ def build():
             {'name': 'crackle', 'patch': 'fx-crackle', 'gain': '-8dB', 'score': f"C4/{total - 0.2:.4f}b@85 R/0.2b"},
         ]}
 
+def run_out_groove(song):
+    """THE RUN-OUT GROOVE: the turntable's stops and spins act on the music, not on the needle - the tape-stops move
+    from the master onto every musical track (each with its own copy of the lanes), and the crackle track is left
+    alone, so when the record stops at the end the needle keeps riding the run-out groove's crackle into the next
+    track (and the master's end fade only goes to -8 dB)"""
+    m = song['master']
+    stops = [f for f in m['fx'] if isinstance(f, dict) and f.get('type') == 'tapestop']
+    m['fx'] = [f for f in m['fx'] if not (isinstance(f, dict) and f.get('type') == 'tapestop')]
+    lanes = {k: m['auto'].pop(k) for k in ('ts', 'sb') if k in m['auto']}
+    for t in song['tracks']:
+        if t['name'] == 'crackle':
+            continue
+        t['fx'] = [dict(f) for f in stops] + list(t.get('fx', []))
+        t.setdefault('auto', {}).update({k: json.loads(json.dumps(v)) for k, v in lanes.items()})
+    pts = m['auto']['fade']['points']
+    pts[-1][1] = -8
+    return song
+
 if __name__ == '__main__':
     out = sys.argv[1] if len(sys.argv) > 1 else OUT
-    song = build()
+    song = run_out_groove(build())
     if out.endswith('.json'):
         json.dump(song, open(out, 'w'), indent=1)
     else:
