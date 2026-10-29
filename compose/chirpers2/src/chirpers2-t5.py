@@ -144,13 +144,14 @@ def comp_bar(b, vel):
 def build():
     B = bars()
     P = {k: [] for k in ('wurli', 'flute', 'organ', 'bass', 'kit', 'horn')}
+    guide = [63]
     for b in B:
         s, e8 = b['sec'], b['e8']
         R = [rest(e8)]
         if s == 'coda':
             lad = ladder(b, 53)
             P['wurli'].append([tok(','.join(nm(m) for m in lad[:5]), 2, 80)] + ['R/2b'])
-            P['flute'].append([tok(nm(lad[6]), 3, 70), 'R/1b'])
+            P['flute'].append([tok(nm(lad[6]) if i_ % 2 == 0 else nm(lad[5]), 0.25, 64 + i_) for i_ in range(12)] + ['R/1b'])   # a trill that blooms over the held chord
             P['organ'].append([tok(','.join(nm(m) for m in ladder(b, 41)[:3]), 3, 70), 'R/1b'])
             P['bass'].append([tok(nm(b['root'] - 24), 3, 96), 'R/1b'])
             P['kit'].append(['c,k/4b@110'])
@@ -164,7 +165,17 @@ def build():
             P['kit'].append(kit_bar(b, 'light') if b['i'] >= 2 else R)
         elif s == 'verse':
             P['wurli'].append(comp_bar(b, 72)); P['flute'].append(tune_bar(b, 72, 86, shift=3))
-            P['organ'].append(R); P['horn'].append(R)
+            P['organ'].append(R)
+            # GUIDE-TONE COUNTER-LINE (the verse's second half): the horn holds the 3rd or the 7th of each chord,
+            # whichever is nearest the last note, so a slow line moves by the smallest steps under the flute while
+            # the chords leap by thirds
+            if b['i'] >= 12:
+                pcs = [(b['root'] + Q[b['q']][x]) % 12 for x in (1, 3)]
+                cands = [m for m in range(55, 72) if m % 12 in pcs]
+                guide[0] = min(cands, key=lambda m: (abs(m - guide[0]), m))
+                P['horn'].append([tok(nm(guide[0]), e8 / 2 - 0.1, 74 + (b['i'] - 12)), 'R/0.1b'])
+            else:
+                P['horn'].append(R)
             P['bass'].append(bass_bar(b, top_up)); P['kit'].append(kit_bar(b, 'light'))
         elif s == 'fuzz':
             # CALL AND RESPONSE: twice (bars 8 and 16) the flute answers the organ with a bar of the kettle tune
