@@ -73,3 +73,10 @@ Generator `compose/chirpers3/src/chirpers3-t2.py`. Trip-hop noir, 72 bpm half-ti
 - **THE CLIMB**: the gliding boc-lead (180 ms glide, each note scooped from a step below) rises G Ab Bb B against the descent, an octave up in B2.
 - **HALF-TIME BREAK**: lofi-kit pitched down 3 semitones; swung eighths (58%); kick 1, 2&, 3&; snare on 3, 28 ms late; ghost snares on 1&, 4, 4&.
 - **THE DROP**: one bar of strings and crackle alone before each return.
+
+## t10 When the Tape Runs Out (chirper-one), the closer
+Generator `compose/chirpers3/src/chirpers3-t10.py`. Chillwave dusk, 78 bpm.
+- **DUSK CHORDS**: Dmaj9 Bm11 Gmaj7#11 A6sus, two bars each, on a juno pad ducked by the kick and warbling on tape.
+- **THE VOX LINE** (dream-vox): F#4 A4 | B4. A4 | G4 F#4 | E4 -- , answered higher: A4 B4 | D5. C#5 | B4 A4 | F#4 --.
+- **THE RUN-OUT**: after the full band each section loses one voice - the kick, then the arp, then the bass - until the vox and pad are alone; the tape stops over the last four beats.
+- **DOTTED CLAVE**: a clave every 3 sixteenths, the cycle crossing two bars, in B and the first run-outs; the arp's 3/16 tape echo.
