@@ -5793,7 +5793,7 @@
     {
       "id": "chirpers3-t7",
       "song": "songs/chirpers3-t7.yaml",
-      "reference": "Chirpers — Track 7 (untitled)",
+      "reference": "Chirpers — After the Beat, Rain",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers3-t7 OUT.wav",
@@ -5809,7 +5809,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "Tape Weather",
-        "title": "Track 7 (untitled)",
+        "title": "After the Beat, Rain",
         "track": 7,
         "year": 2026
       },
