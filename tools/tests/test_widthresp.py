@@ -133,6 +133,7 @@ class Lr4Engine(unittest.TestCase):
         self.assertLess(err.max(), 0.1, err)        # 20/60 Hz: |H| jumps 1 -> 6 -> 0.364 within a few Welch bins
 
 
+@unittest.skipUnless(os.access(CHIRP, os.X_OK), "no chirp build")   # pins get pruned (a931418 was, 29 Oct)
 class Engine(unittest.TestCase):
     def setUp(self):
         warnings.simplefilter("ignore", ResourceWarning)

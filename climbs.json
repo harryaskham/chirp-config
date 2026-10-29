@@ -5787,7 +5787,14 @@
         "score": 96.272,
         "version": "v10",
         "commit": "see git log songs/chirpers3-t6.yaml",
-        "engine": "232211dd"
+        "engine": "232211dd",
+        "stale": {
+          "score": 96.272,
+          "since": "2026-10-29T13:34:00Z",
+          "who": "chirper-three",
+          "rating": 8.5,
+          "version": "v10"
+        }
       },
       "passes": 1,
       "enabled": true,

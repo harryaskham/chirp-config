@@ -137,7 +137,7 @@ class Ratings(unittest.TestCase):
     def test_harry_rating_feeds_human_with_stale_half_weight(self):
         quiet(RT.main, ["alb-t2", "7.5", "--note", "great intro riff", "--no-git"])
         quiet(RT.main, ["alb-t2", "6", "--who", "chirper-two", "--no-git"])
-        rs = CS.ratings("alb")
+        rs = [r for r in CS.ratings("alb") if r["id"] == "alb-t2"]   # the album file also holds other tracks' ratings
         self.assertEqual([(r["who"], r["score"]) for r in rs], [("harry", 7.5), ("chirper-two", 6.0)])
         ctx = {"id": "alb-t2", "ratings": rs, "version": None, "owner": "chirper-one"}
         s, d = CS.m_human(ctx)
@@ -151,12 +151,39 @@ class Ratings(unittest.TestCase):
         with self.assertRaises(SystemExit):
             quiet(RT.main, ["old-song", "5", "--no-git"])                   # only compositions are rated
 
+    def test_a_rating_makes_the_best_stale_until_it_is_re_measured(self):
+        # chirper-three, 29 Oct: Harry rated Hail on a Music Box v3 8.0; like for like v3 fell 98.15 -> 92.50, and v4's
+        # 92.58 was logged as not kept against the stored pre-rating 98.15
+        with open(os.path.join(TMP, "songs", "alb-t3.yaml"), "w") as f:
+            f.write("tempo: 86\n")
+        quiet(CH.C.cmd_done, ["alb-t3", "--version", "v3", "--score", "98.15", "--note", "v3", "--no-git", "--as", "chirper-two"])
+        quiet(RT.main, ["alb-t3", "6", "--who", "chirper-two", "--no-git"])           # the owner's own rating: not a term
+        self.assertNotIn("stale", reg()["alb-t3"]["best"])
+        quiet(RT.main, ["alb-t3", "8", "--note", "glitch resample", "--no-git"])
+        st = reg()["alb-t3"]["best"]["stale"]
+        self.assertEqual((st["who"], st["rating"], st["version"], st["score"]), ("harry", 8.0, "v3", 98.15))
+        self.assertIn("BEST IS STALE: 98.15 (v3)", "\n".join(CH.C.compose_brief(reg()["alb-t3"])))
+        rounds = reg()["alb-t3"]["rounds"]
+        with self.assertRaises(SystemExit):                                  # refuses an unfair comparison, records nothing
+            quiet(CH.C.cmd_done, ["alb-t3", "--version", "v4", "--score", "92.58", "--note", "v4", "--no-git", "--as", "chirper-two"])
+        self.assertEqual(reg()["alb-t3"]["rounds"], rounds)
+        quiet(CH.C.cmd_done, ["alb-t3", "--version", "v4", "--score", "92.58", "--best-now", "92.50", "--note", "v4",
+                              "--no-git", "--as", "chirper-two"])
+        b = reg()["alb-t3"]["best"]
+        self.assertEqual((b["version"], b["score"]), ("v4", 92.58))          # kept like for like
+        self.assertNotIn("stale", b)
+        quiet(CH.C.cmd_done, ["alb-t3", "--version", "v5", "--score", "92.0", "--note", "worse", "--no-git", "--as", "chirper-two"])
+        self.assertEqual(reg()["alb-t3"]["best"]["version"], "v4")          # an ordinary loss records as before
+        c = {"best": {"score": 92.58, "version": "v4", "stale": {"since": "x"}}, "rounds": 3}
+        CH.apply_rescore(c, {0: 92.4}, "r", "eco", "t")
+        self.assertNotIn("stale", c["best"])                                # a rebaseline clears it too
+
     def test_now_resolves_the_playing_climb(self):
-        ids = {"alb-t1", "alb-t2"}
-        self.assertEqual(RT.resolve_now({"label": "alb-t2"}, ids), "alb-t2")
-        entries = [{"label": "alb-t1"}, {"label": "alb-t2"}]
+        ids = {"alb-t1", "alb-t3"}
+        self.assertEqual(RT.resolve_now({"label": "alb-t3"}, ids), "alb-t3")
+        entries = [{"label": "alb-t1"}, {"label": "alb-t3"}]
         self.assertEqual(RT.resolve_now({"label": "F2,C3/1+1", "playlist": {"current": 0, "entries": entries}}, ids), "alb-t1")
-        self.assertEqual(RT.resolve_now({"label": "x", "playlist": {"current": {"label": "alb-t2"}}}, ids), "alb-t2")
+        self.assertEqual(RT.resolve_now({"label": "x", "playlist": {"current": {"label": "alb-t3"}}}, ids), "alb-t3")
         with self.assertRaises(SystemExit) as e:
             RT.resolve_now({"label": "F2,C3/1+1+1", "playlist": {"current": None, "entries": entries}}, ids)
         self.assertIn("rate it by id", str(e.exception))

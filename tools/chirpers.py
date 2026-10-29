@@ -263,6 +263,7 @@ def snapshot(c):
 def apply_rescore(c, scores, rev, who, at):
     """Record SCORES ({seed: total}) as C's best (seed 0, else the first seed); the history note to append."""
     best = c.setdefault("best", {})
+    best.pop("stale", None)                              # re-measured under today's ratings
     old = best.get("score")
     first = scores.get(0, next(iter(scores.values())))
     best["score"] = round(float(first), 3)

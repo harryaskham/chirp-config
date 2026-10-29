@@ -80,8 +80,19 @@ def record(cid, score, note, who, argv):
     os.makedirs(os.path.dirname(p), exist_ok=True)
     with open(p, "a") as f:
         f.write(json.dumps(e, ensure_ascii=False) + "\n")
+    paths = [os.path.relpath(p, ROOT)]
+    if score is not None and who != c.get("owner") and (c.get("best") or {}).get("score") is not None:
+        # A rating moves compscore's total (human .30, peer .05) but not the stored best, so `done` would compare a
+        # new round against a pre-rating number (chirper-three: Hail on a Music Box v3 98.15 -> 92.50 like for like
+        # after Harry's 8.0, and v4 92.58 logged as not kept, 29 Oct). Mark the best stale until it is re-measured.
+        with C.registry() as reg2:
+            b = C.find(reg2, cid).get("best") or {}
+            if b.get("score") is not None:
+                b["stale"] = {**b.get("stale", {"score": b["score"]}), "since": e["at"], "who": who, "rating": score,
+                              "version": e["version"]}
+        paths.append("climbs.json")
     what = f"{score}/10" if score is not None else "note"
-    C.commit_or_die([os.path.relpath(p, ROOT)], f"compose: {who} rates {cid} {what}"
+    C.commit_or_die(paths, f"compose: {who} rates {cid} {what}"
                     + (f": {note[:60]}" if note else ""), argv)
     return e
 
