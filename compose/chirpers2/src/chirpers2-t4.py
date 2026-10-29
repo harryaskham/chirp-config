@@ -92,6 +92,10 @@ WALK = [(10, "maj7"), (2, "m7"), (11, "maj7"), (3, "m7"), (0, "maj7"), (4, "m7")
 # chord's root long under the tom chords, and holding the D pedal as the mirror closes; M = the master's top shelf
 # lowered (+2 -> +0.5 dB): the brushes' air sat 9 dB over the genre.
 R17 = set(filter(None, os.environ.get("T4_R17", "A,M").split(","))) - {"none"}
+# Round 18 (v18): P = TRIPLETS ACROSS THE MIRROR: in the piano solo's first phrase the right hand phrases in
+# triplet quarters (three against two, floating over the bridge meters), a palindromic line (0 2 4 6 4 2) on each
+# chord, and the ride bell joins the triplet pulse.
+R18 = set(filter(None, os.environ.get("T4_R18", "P").split(","))) - {"none"}
 BTHEME = {0: [(0, 3, 4), (3, 1, 3), (4, 4, 2)], 1: [(0, 2, 1), (2, 2, 2), (4, 3, 4)], 2: [(0, 5, 6)],
           3: [(0, 2, 4), (2, 2, 5), (4, 2, 4)]}  # t2's night cell, degrees on eighths (None = rest)
 TRIP = "T" in os.environ.get("T4_OPTS", "")  # triplet brush ghosts before the backbeats (off: no gain)
@@ -493,7 +497,26 @@ def build():
                         T["tom"].add(swing_at(start, e, swung), 0.45, f"{nm(dy[0])},{nm(dy[1])}",
                                      v - 22 + 4 * (e - c8))
             root, voic, scale = CH[name0]
-            for e8 in range(m):
+            trip = "P" in R18 and pidx == min(b[4] for b in bars if b[3] == "piano")
+            if trip:  # triplet quarters across the bar
+                first = min(b[0] for b in bars if b[3] == "piano")
+                j = int(-(-(start - first) // (2 / 3)))
+                while first + j * 2 / 3 < start + m / 2 - 1e-6:
+                    at = first + j * 2 / 3
+                    e = int((at - start) * 2)
+                    cn = name0
+                    for c8, cnn in chords:
+                        if c8 <= e:
+                            cn = cnn
+                    r0, _, sc = CH[cn]
+                    dg = [0, 2, 4, 6, 4, 2][j % 6]
+                    note = r0 + 24 + sc[dg % len(sc)] + (12 if dg >= len(sc) else 0)
+                    while note > 84:
+                        note -= 12
+                    T["pno"].add(at, 0.6, nm(note), v - 2 + (8 if j % 3 == 0 else 0))
+                    T["drums"].add(at, 0.3, "rb", v - 18 + (6 if j % 3 == 0 else 0))
+                    j += 1
+            for e8 in range(m if not trip else 0):
                 if (e8 + pidx) % 3 == 2:
                     continue  # breath: a rest every third eighth
                 deg = scale[(e8 * 3 + pos + pidx) % len(scale)]
