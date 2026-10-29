@@ -117,6 +117,10 @@ R11 = set(filter(None, os.environ.get("T6_R11", "L,C,V").split(","))) - {"none"}
 # seasick in the drop (2), still worn after it (1.4 in the outro); H = THE HUM, BACKWARDS: the hummed sigh plays once
 # more at A3's end, and wM's `chop` replays it in the outro as reversed slices (r7 r6 . r4 _ r2 r1 r0).
 R12 = set(filter(None, os.environ.get("T6_R12", "W,H").split(","))) - {"none"}
+# Round 13 (v13), per-voice fx (pin 3eee6a72+): P = THE HUM SCATTERS: every hummed chop carries its own effects,
+# a pan read from its random value (each slice somewhere new), a crush that bites harder the harder it is played,
+# and a low-pass that opens with velocity: the chops become voices around the room instead of one line.
+R13 = set(filter(None, os.environ.get("T6_R13", "P").split(","))) - {"none"}
 FORM = [("intro", 4), ("A", 16), ("switch", 8), ("A2", 16), ("drop", 4), ("A3", 12), ("outro", 4)]
 LEVEL = {"intro": 58, "A": 72, "switch": 66, "A2": 78, "drop": 56, "A3": 80, "outro": 56}
 DRUMS = {"A", "switch", "A2", "A3"}
@@ -155,7 +159,8 @@ def build():
             T["vout"].add(start, 8.0, "C4", v)
         if sec == "A" and "V" in R11 and i % 4 in (1, 3):  # the hummed chops answer the vibes
             for o, s8 in ((0.5, 0), (1.0, 1), (2.0, 2) if i % 4 == 1 else (2.0, 4), (3.0, 3) if i % 4 == 1 else (3.0, 6)):
-                T["vox"].add(start + o + 0.04, 0.95, nm(60 + s8), v - 4)
+                T["vox"].add(start + o + 0.04, 0.95, nm(60 + s8),
+                             v - 4 + ((-14, 6, -6, 10)[[0.5, 1.0, 2.0, 3.0].index(o)] if "P" in R13 else 0))
         if sec == "A3" and "C" in R10 and i >= 2:  # chops: the bar's chord slice, on the off-beats
             sl = 2 * (i % 4) if not (i % 8 == 7) else 1
             for o, dsl in ((1.5, 0), (2.75, 1), (3.5, 0)):
@@ -356,6 +361,13 @@ def palette_patches():
         out["c2-hum-chop"] = {"about": "chirper-two: the shadow song `hum` (the voice engine humming t6's sigh) cut into "
                                        "eight one-beat slices (C4 slice 1 ... G4 slice 8).",
                               "synth": {"layers": [{"type": "sample", "song": "hum", "root": "C4", "slices": 8}],
+                                        **({"fx": [
+                                            {"type": "pan", "pan": {"value": 0, "mod": [{"src": "rand", "amount": 0.85}]}},
+                                            {"type": "crush", "bits": 9, "rate": 9000,
+                                             "mix": {"value": 0.0, "mod": [{"src": "vel", "amount": 0.7}]}},
+                                            {"type": "filter", "kind": "lp", "q": 0.8,
+                                             "cutoff": {"value": 1200, "mod": [{"src": "vel", "amount": 2.0}]}}]}
+                                           if "P" in R13 else {}),
                                         "amp": {"a": "4ms", "d": "0s", "s": 1, "r": "60ms"}}}
     return out
 
