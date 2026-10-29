@@ -265,7 +265,7 @@ def build():
             {'name': 'horn', 'patch': 'horn', 'gain': '-6dB', 'pan': -0.1, 'score': J('horn')},
             {'name': 'box', 'patch': 'music-box', 'gain': '-2dB', 'pan': 0.3, 'score': J('box')},
             {'name': 'celesta', 'patch': 'celesta', 'gain': '-4dB', 'pan': -0.3, 'score': J('celesta')},
-            {'name': 'clar', 'patch': 'clarinet', 'gain': '-8dB', 'score': J('clar')},
+            {'name': 'clar', 'patch': 'clarinet', 'gain': '-11dB', 'score': J('clar')},
         ]}
 
 if __name__ == '__main__':
