@@ -438,6 +438,10 @@ VOICED = {"c4-toy": voiced("toy-piano", 0.45, 7000, 3000), "c4-box": voiced("mus
           "c4-vox": {"extends": "lead-tape", "synth": {"fx": [
               {"type": "formant", "vowel": {"value": 0.5, "mod": [{"src": "rand", "amount": 0.35}]}, "q": 8, "mix": 1}]}}}
 
+BREATHE = {"type": "pump", "every": "1/4", "depth": 0.5, "attack": "5ms", "hold": "20ms", "release": "220ms"}  # wM's pump
+# (keyed on the kick track it did not duck here; the quarter grid is the classic lo-fi breath; subtle in this
+# mix: the pad's one-beat envelope periodicity 0.06 -> 0.11; deeper did not measure stronger)
+
 CHOP = {"type": "chop", "slices": 8, "pattern": "0 0 r3 2 . 5 r7 _", "length": "1/1", "mix": 1}   # wM's resampler
 
 # wM's lo-fi toolkit (bd-9ef6a7): Dilla-ish wonk on the kit, a late snare and an early kick, each bar its own swing
@@ -474,9 +478,10 @@ def main():
            fx=[{"type": "cloud", "size": "150ms", "density": 18, "position": "500ms", "spray": "400ms", "pitch": 12,
                 "scatter": 0.2, "reverse": 0.4, "spread": 0.9, "mix": 0.85, "seed": 3}]),
         tr("cpiano", "tape-piano", pan="L30", gain="-6dB", sends={"space": "-9dB"}),     # the breakdown's counter-line
-        tr("pad", "juno-pad", gain="-14dB", fx=["lp cutoff=2200", "tape wow=9 flutter=2 seed=11"], sends={"space": "-8dB"}),
+        tr("pad", "juno-pad", gain="-14dB", fx=["lp cutoff=2200", "tape wow=9 flutter=2 seed=11", BREATHE],
+           sends={"space": "-8dB"}),                                                    # the pad BREATHES with the kick
         tr("bass", "analog-bass", gain="0dB"),
-        tr("sub", "sub", gain="-4dB"),
+        tr("sub", "sub", gain="-4dB", fx=[BREATHE]),
         tr("sq", "analog-bass", gain="-10dB", pan="R15", lfo={"sw": {"wave": "sine", "rate": "1/2"}},     # the SQUELCH
            fx=[{"type": "filter", "kind": "ladder", "cutoff": {"value": 700, "mod": [{"src": "lfo.sw", "amount": 500}]}, "q": 12}]),
         tr("kick", KIT, out="drums", gain="4dB"),
@@ -503,7 +508,7 @@ def main():
             {"type": "stutter", "slice": "1/16", "repeats": 3, "chance": 0.08, "seed": 7},
             "lp cutoff=10k", {"type": "tape", "drive": 0.35, "warmth": 0.5, "mix": 1},
             {"type": "compressor", "threshold": "-18dB", "ratio": 3, "attack": "8ms", "release": "120ms", "makeup": "3dB"}]) + ']}',
-        '  space: {fx: ["reverb kind=hall decay=3.2s mix=1 predelay=30ms mono_below=200hz"]}',
+        '  space: {fx: ["reverb kind=hall decay=3.2s mix=1 predelay=30ms mono_below=200hz shimmer=0.25"]}',   # a halo
         'master: ' + json.dumps({"fx": [{"type": "pitch", "semitones": {"value": 0, "mod": [{"src": "auto.rs", "amount": -4}]},
                                         "mix": 1},       # the RESAMPLE: the whole band slows like a sampler (Harry's note)
                                        {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.fi", "amount": 1}]}},
