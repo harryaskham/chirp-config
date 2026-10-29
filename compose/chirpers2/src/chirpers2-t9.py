@@ -37,7 +37,9 @@ SEGUE = os.environ.get("T9_SEGUE", "1") == "1"
 ARCH = os.environ.get("T9_ARCH", "1") == "1"
 MOTIF = os.environ.get("T9_MOTIF", "1") == "1"
 VIBES = os.environ.get("T9_VIBES", "1") == "1"
-KLANG = os.environ.get("T9_KLANG", "1") == "1"  # EXPOSURE passes bar by bar tenor -> guitar -> piano in the song (chirper-one's note), whole again on the tenor in the return
+KLANG = os.environ.get("T9_KLANG", "1") == "1"
+LIFT = int(os.environ.get("T9_LIFT", "0"))
+CANON = os.environ.get("T9_CANON", "1") == "1"  # in the return the strings answer the tenor in canon: last bar's EXPOSURE an octave down  # the return's last eight bars lifted (semitones; 3 = a minor third up): the climax rises  # EXPOSURE passes bar by bar tenor -> guitar -> piano in the song (chirper-one's note), whole again on the tenor in the return
 VIB_BARS = int(os.environ.get("T9_VIBBARS", "4"))  # how many dawn bars the vibes answer in
 VIB_DB = os.environ.get("T9_VIBDB", "-14")
 VIB_DUSK = os.environ.get("T9_VIBDUSK", "0") == "1"  # the arch carries the vibes into the dusk too  # the vibes' track gain (dB)  # chirper-two's vibes (t8's c2-vibes, borrowed) answer t8's coda in the dawn, and come back in the dusk  # EXPOSURE as a sequence: every bar the leap of a fourth up into the chord's 9th (one shape carried down the changes)  # the dusk replays the dawn (its piano figures and washes, bar for bar) with the fretless singing over it: the day ends as it began  # under the last chord, Cierre's bembe bell arrives at Cierre's own tempo (eighths of 192 ms): the segue into the closer  # the open section becomes the fretless's solo (high, singing, sliding), the guitar swelling behind  # the return replays the song's EXPOSURE melody (a recapitulation) with the full band  # the ride on dotted eighths across the 11/8 (with the guitar): the cymbal's own cycle  # the guitar's dotted-eighth ostinato (0.75 beats: seven per 11/8 bar) in the ostinato and return  # 1 = kit -12 dB + highshelf -5 @4k; 2 = kit -10 dB, no shelf
@@ -54,6 +56,23 @@ def nm(m):
 def NOTE_IDX(t):
     head = t.split("/", 1)[0]
     return 12 * (int(head[-1]) + 1) + NOTE[head[:-1]]
+
+
+def transpose(piece, n):
+    """Shift every pitched token (notes, comma chords) by n semitones; rests and kit pieces untouched."""
+    if not n:
+        return piece
+    out = []
+    for t in piece.split():
+        if "/" not in t:
+            out.append(t)
+            continue
+        head, rest = t.split("/", 1)
+        parts = head.split(",")
+        if all(p[:-1] in NOTE and p[-1].isdigit() for p in parts):
+            head = ",".join(nm(12 * (int(p[-1]) + 1) + NOTE[p[:-1]] + n) for p in parts)
+        out.append(head + "/" + rest)
+    return " ".join(out)
 
 
 def tok(n, d, v=None):
@@ -328,6 +347,13 @@ def build():
                     bar["piano"] = held("Emaj9", beats * 2, 46)
                     bar["bass"] = tok("E2", beats * 2, 70)
                     bar["strings"] = held("Emaj9", beats * 2, 38)
+            if CANON and sec == "return" and b > 0:
+                prev_line = T["tenor"][-1]
+                if prev_line and not prev_line.startswith("R/"):
+                    bar["strings"] = " ".join(t if t.startswith("R/") else t.rsplit("@", 1)[0] + "@64" for t in transpose(prev_line, -12).split())
+            if LIFT and sec == "return" and b >= nb - 8:
+                for k in ("piano", "bass", "tenor", "gtr", "strings"):
+                    bar[k] = transpose(bar[k], LIFT)
             if b == nb - 1 and sec != "dusk":  # the break: the band stops at the bar's middle, the toms fill
                 half = int(beats) // 2 + 0.5 * (beats % 1 == 0.5) if beats != 5.5 else 3
                 for n in names:
