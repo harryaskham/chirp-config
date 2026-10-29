@@ -279,18 +279,32 @@ def improv_bar(who, st, ln, ci, prev, vel):
 
 
 def trades(t):
+    """A hushed chamber episode after the loud middle: the soloists trade quietly over a walking bass, the kit drops to
+    the hat pedal marking each bar's groups, one soft wurli chord a bar; it wakes for the last wheel turn into the stretto."""
     wheel = [7, 5, 6, 9]
     pt, ps = 69, 58
     for i in range(24):
         ln = wheel[i % 4]
+        late = i >= 20
         who = ("tpt", "sax")[(i if i < 16 else i // 2) % 2]       # single bars, then pairs
+        v = (84 + i // 3) if late else (60 + i // 2)
         if who == "tpt":
-            pt = improv_bar("tpt", t, ln, i, pt, 84 + i // 3)
+            pt = improv_bar("tpt", t, ln, i, pt, v)
         else:
-            ps = improv_bar("sax", t, ln, i, ps, 84 + i // 3)
+            ps = improv_bar("sax", t, ln, i, ps, v)
         bar(t, ln, "trades", i)
-        harmony_bar(t, ln, i, 70 + i // 2, walk=True)
-        kit_bar(t, ln, i, 84 + i // 2, fill=(i % 8 == 7))
+        if late:
+            harmony_bar(t, ln, i, 70 + i // 2, walk=True)
+            kit_bar(t, ln, i, 84 + i // 2, fill=(i == 23))
+        else:
+            harmony_bar(t, ln, i, 72, walk=True, stabs=False)     # the walking bass keeps the trio's floor
+            root, iv = chord_at(i)
+            P["keys"].add(t, ln - 0.5, ",".join(nm(60 + ((root + x) % 12)) for x in iv[1:]), 46)
+            opts = GROUPS.get(ln)
+            x = t
+            for g in opts[i % len(opts)]:                       # the ride on each group start, nothing else
+                P["hat"].add(x, 1, "hp", 64 if x == t else 52)     # the hat pedal's chick on each group
+                x += g
         if i % 4 == 3:                                            # the marimba answers each wheel turn
             line(P["mar"], t + ln - 3, [(7, 1), (6, 1), (2, 1)], D4 + 12, 76)
         t += ln
@@ -332,6 +346,15 @@ def coda(t):
     return t + 16
 
 
+def dyn_lane():
+    """Master dynamics (dB, after the glue): the trades hush by 6 dB until their last wheel turn."""
+    sec = lambda e: e / 2 * 60 / BPM
+    ts = [b for b in BARS if b[2] == "trades"]
+    a, w = ts[0][0], ts[20][0]
+    pts = [(0, 0.0), (a - 0.2, 0.0), (a + 1.0, -6.0), (w - 1.0, -6.0), (w + 0.5, 0.0)]
+    return [[f"{sec(e):.2f}s", v] for e, v in pts]
+
+
 def main():
     t = 0.0
     for sec in (statement, fugue, black_page, cross, trades, stretto, coda):
@@ -368,7 +391,11 @@ def main():
         "buses:",
         '  room: {fx: ["reverb kind=room decay=1.1s mix=1 predelay=12ms mono_below=150hz"]}',
         '  drums: {fx: [{"type": "compressor", "threshold": "-20dB", "ratio": 2.5, "attack": "12ms", "release": "100ms", "makeup": "2dB"}, "reverb kind=room decay=0.8s mix=0.12 predelay=8ms mono_below=200hz"]}',
-        'master: ' + json.dumps({"fx": ["glue threshold=-20dB ratio=2 attack=15ms release=200ms makeup=2dB", {"type": "gain", "gain": "6dB"}]}),
+        'master: ' + json.dumps({"fx": ["glue threshold=-20dB ratio=2 attack=15ms release=200ms makeup=2dB",
+                                       # the dynamic arc AFTER the glue (so it is not squashed back): the trades hush
+                                       {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}},
+                                       {"type": "gain", "gain": "6dB"}],
+                                "auto": {"dyn": {"points": dyn_lane()}}}),
         "tracks:",
     ]
     with open(OUT, "w") as f:
