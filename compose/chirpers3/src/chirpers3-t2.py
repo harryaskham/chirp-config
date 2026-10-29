@@ -159,7 +159,7 @@ def build():
             {'name': 'cello', 'patch': 'cello', 'gain': '-6dB', 'pan': -0.3, 'notes': notes(cello)},
             # LIVING KEYS (chirper-two's per-voice fx): every rhodes stab lands in its own place in the stereo field,
             # opens its own resonant ladder as hard as it is struck, and crushes a little more when hit harder
-            {'name': 'rhodes', 'patch': {'extends': 'epiano-tine', 'synth': {'fx': [
+            {'name': 'rhodes', 'patch': {'extends': 'epiano-tine', 'play': {'release': {'patch': 'epiano-damper', 'decay': '2s'}}, 'synth': {'tine': {'sense': 0.5, 'key': -0.25}, 'fx': [
                 {'type': 'pan', 'pan': {'value': 0, 'mod': [{'src': 'rand', 'amount': 0.8}]}},
                 {'type': 'filter', 'kind': 'ladder', 'q': 5, 'cutoff': {'value': 700, 'mod': [{'src': 'vel', 'amount': 2.5}]}},
                 {'type': 'crush', 'bits': 10, 'rate': 16000, 'mix': {'value': 0, 'mod': [{'src': 'vel', 'amount': 0.6}]}}]}},

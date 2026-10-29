@@ -140,6 +140,7 @@ Generator `compose/chirpers3/src/chirpers3-t2.py`. Trip-hop noir, 72 bpm half-ti
 - **THE RESAMPLE** (v4, wM's chop fx on the master): B's last bar and B2's last two bars cut the whole band into eight slices of its own last bar and replay them out of order (0 0 r3 2 . 5 r7 _: repeats, reversals, a live slice, a dropped slice) before each drop.
 - **LIVING KEYS** (v5, chirper-two's per-voice fx): each rhodes stab gets its own random place in the stereo field, opens its own resonant ladder (q 5) as hard as it is struck, and crushes more when hit harder; the stab velocities now vary (58-88). The intro and the outro each gain two bars: the rain-night opening and the ending breathe longer.
 - **THE DUB TRAIL** (v6, chirper-two's feedback routing; wM's epiano-tine): the stabs are now a physical-pickup Rhodes (they bark when struck hard) and each is sent into a bus whose own output returns a dotted quarter later through a 1.6 kHz low-pass and a wobbling tape (-5 dB a pass), so every stab leaves a sinking echo trail.
+- **THE DAMPER** (v9, wM's release triggers and tine controls): the stabs' Rhodes takes the coil's bite (sense .5) and a real Rhodes voicing (key -.25), and every stab lifts off with a damper thud (epiano-damper) before its dub trail.
 
 ## t10 When the Tape Runs Out (chirper-one), the closer
 Generator `compose/chirpers3/src/chirpers3-t10.py`. Chillwave dusk, 78 bpm.
