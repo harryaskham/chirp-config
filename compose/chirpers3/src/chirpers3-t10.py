@@ -20,6 +20,9 @@ SPB = 60 / BPM
 NN = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
 def nm(m): return f"{NN[m % 12]}{m // 12 - 1}"
 
+# the B section (the vox's full song) turns to its own progression - Gmaj7#11 A6sus F#m11 Bm9 (IV V iii vi) - so the
+# sunset peak is a new place, not the same loop with a voice on it
+CHORDS_B = [(31, [50, 54, 59, 61, 66]), (33, [52, 57, 59, 62, 66]), (30, [49, 52, 57, 59, 64]), (35, [50, 54, 57, 61, 64])]
 CHORDS = [(38, [54, 57, 61, 64, 66]), (35, [50, 54, 57, 61, 64]), (31, [50, 54, 59, 61, 66]), (33, [52, 57, 59, 62, 66])]
 # the vox melody: two 4-bar phrases (MIDI, beats), the second answering higher
 VOX = [[(66, 2), (69, 2)], [(71, 3), (69, 1)], [(67, 2), (66, 2)], [(64, 4)],
@@ -49,7 +52,7 @@ def build():
     bars, t = [], 0.0
     for name, n in FORM:
         for i in range(n):
-            bars.append({'sec': name, 'i': i, 't': t, 'c': CHORDS[(len(bars) // 4) % 4]}); t += 4.0
+            bars.append({'sec': name, 'i': i, 't': t, 'c': (CHORDS_B if name == 'B' else CHORDS)[(len(bars) // 4) % 4]}); t += 4.0
     total = t
     kit, pad, bass, arp, vox = [], [], [], [], []
     for k, b in enumerate(bars):
@@ -118,7 +121,7 @@ def build():
         'master': {'fx': [{'type': 'chop', 'slices': 8, 'pattern': '0 0 r1 . 3 r3 _ 5', 'length': '1/1', 'mix': {'value': 0, 'mod': [{'src': 'auto.chew', 'amount': 1}]}},
                           {'type': 'tapestop', 'time': '4b', 'mix': 1, 'stop': {'value': 0, 'mod': [{'src': 'auto.ts', 'amount': 1}]}},
                           {'type': 'eq', 'bands': ['highpass cutoff=30', 'lowshelf cutoff=70 gain=6dB', 'peak cutoff=400 q=1 gain=-4dB', 'highshelf cutoff=6000 gain=7dB']},
-                          {'type': 'gain', 'gain': '+18dB'},
+                          {'type': 'gain', 'gain': '+20dB'},
                           {'type': 'compressor', 'threshold': '-18dB', 'ratio': 3, 'attack': '15ms', 'release': '180ms', 'makeup': '2dB'},
                           {'type': 'compressor', 'threshold': '-10dB', 'ratio': 6, 'attack': '1ms', 'release': '60ms', 'makeup': '3dB'},
                           {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.fade', 'amount': 1}]}}],
