@@ -324,7 +324,7 @@ def cross(t):
                 P["tpt" if n % 2 == 0 else "sax"].add(x, d * 0.85, nm(D4 + K + p + (12 if n % 2 == 0 else 0)), 88)
             x += d
         P["keys"].add(x - 7, 0.6, ",".join(nm(m + K) for m in ((62, 67, 72) if n % 2 else (64, 69, 74))), 74)
-        P["ride"].add(x - 7, 1, "D5", 100)                         # the ride bell marks the 7
+        P["ride"].add(x - 7, 1, "D5", 76)                          # the ride bell marks the 7 (tamed v17)
         n += 1
     x, n = a, 0                    # flute + marimba + guitar: QUARTER-NOTE TRIPLETS, six to the bar: 3 against the horns' 7
     fig = [(0, 4 / 3), (-5, 4 / 3), (-1, 4 / 3), (-4, 4 / 3), (0, 4 / 3), (2, 4 / 3)]
@@ -340,7 +340,7 @@ def cross(t):
         bar(t, 8, "cross", i)
         kit_bar(t, 8, i, 94 + (i // 3) * 2, fill=(i == 11), hats=False)
         for q in range(6):                                          # the hats join the triplets
-            P["hat"].add(t + q * 4 / 3, 0.5, "h", 80 if q % 3 == 0 else 62)
+            P["hat"].add(t + q * 4 / 3, 0.5, "h", 66 if q % 3 == 0 else 50)
         t += 8
     return t
 

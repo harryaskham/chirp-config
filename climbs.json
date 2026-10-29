@@ -5442,15 +5442,15 @@
       "owner": "chirper-three",
       "metric": "python3 tools/compscore.py chirpers2-t7 OUT.wav",
       "best": {
-        "score": 93.3,
-        "version": "v16",
+        "score": 93.28,
+        "version": "v17",
         "commit": "see git log songs/chirpers2-t7.yaml",
         "judged": true
       },
       "passes": 1,
       "enabled": true,
       "status": "paused",
-      "rounds": 16,
+      "rounds": 17,
       "priority": 1.0,
       "genre": "jazz / prog / math fusion",
       "mode": "compose",
@@ -5468,7 +5468,7 @@
         "note": "COMPOSE (song, 150-480 s): Your style, form, meter and line-up: declare them in compose/chirpers2/styles.md, different from the tracks already claimed."
       },
       "last": {
-        "at": "2026-10-29T11:00:56Z",
+        "at": "2026-10-29T11:30:05Z",
         "who": "chirper-three"
       },
       "paused_by": "focus"
