@@ -85,6 +85,10 @@ R4 = set(filter(None, os.environ.get("T6_R4", "R").split(","))) - {"none"}
 # with only the rain and the record's surface; the radio-muffled keys enter in the intro's third bar, as if heard
 # through the window.
 R5 = set(filter(None, os.environ.get("T6_R5", "F").split(","))) - {"none"}
+# Round 6 (v6): D = DUB THROWS in the switch-up, answering t5 Low Pressure (chirper-zero's dub next door): the
+# mallet snare and the rim go to a dub send (a dotted-eighth ping-pong tape echo, a spring), and every other bar
+# one vibes note is thrown into the echo.
+R6 = set(filter(None, os.environ.get("T6_R6", "D").split(","))) - {"none"}
 FORM = [("intro", 4), ("A", 16), ("switch", 8), ("A2", 16), ("drop", 4), ("A3", 12), ("outro", 4)]
 LEVEL = {"intro": 58, "A": 72, "switch": 66, "A2": 78, "drop": 56, "A3": 80, "outro": 56}
 DRUMS = {"A", "switch", "A2", "A3"}
@@ -92,7 +96,8 @@ DRUMS = {"A", "switch", "A2", "A3"}
 
 def build():
     rng = random.Random(6)
-    T = {k: Track(k) for k in ("keys", "kw", "bass", "sub", "vibes", "drums", "crackle", "hiss", "rain", "thunder")}
+    T = {k: Track(k) for k in ("keys", "kw", "bass", "sub", "vibes", "drums", "crackle", "hiss", "rain", "thunder",
+                               "dub", "vdub")}
     rrng = random.Random(66)  # the weather's own dice (the music's stay as they were)
     bars, b = [], 0
     for name, n in FORM:
@@ -158,7 +163,7 @@ def build():
             for kb in kicks:
                 d.add(start + kb - 0.035, 0.5, "k", v + (4 if kb == 0 else -6))
             for sb in ([2.0] if half else [1.0, 3.0]):
-                d.add(start + sb + 0.09 + drift, 0.5, "ms", v - 2)
+                (T["dub"] if half and "D" in R6 else d).add(start + sb + 0.09 + drift, 0.5, "ms", v - 2)
             for s16 in range(16 if not half else 0):  # brush taps on the swung sixteenths, drifting
                 pos16 = s16 // 2 * 0.5 + (0.33 if s16 % 2 else 0.0)
                 if s16 % 2 and rng.random() < (0.1 if sec == "A3" else 0.45):
@@ -171,7 +176,9 @@ def build():
                 for k, (o, piece) in enumerate(((3.25, "mt1"), (3.5, "mt1"), (3.75, "mt2"))):
                     d.add(start + o + 0.03 * k, 0.3, piece, v - 6 - 2 * k)
             if half and i % 2 == 1:
-                d.add(start + 3.5 + 0.05, 0.3, "rc", v - 10)
+                (T["dub"] if "D" in R6 else d).add(start + 3.5 + 0.05, 0.3, "rc", v - 10)
+                if "D" in R6:  # a vibes throw into the echo
+                    T["vdub"].add(start + 1.5 + 0.04, 0.4, nm(sorted(voic)[-1] + 14), v - 8)
         elif sec == "drop":
             d.add(start, 3.8, "bs", v - 18)
         # ---- the weather ----
@@ -292,6 +299,14 @@ def main():
          "fx": ["tape drive=0.35 warmth=0.6", "lp cutoff=11000",
                 {"type": "crush", "bits": 12, "rate": 18000, "mix": 0.25},
                 "reverb kind=room decay=0.7s mix=0.12"], "score": T["drums"].score(total)},
+        *([{"name": "dub", "patch": "c2-lofi-kit", "gain": "0dB",
+             "fx": [{"type": "delay", "time": "3/16", "feedback": 0.55, "ping_pong": True, "tone": 2500, "mix": 0.5},
+                    "reverb kind=spring decay=2.2s mix=0.35", "tape drive=0.35 warmth=0.6"],
+             "score": T["dub"].score(total)},
+            {"name": "vibes-dub", "patch": "c2-vibes", "pan": -0.2, "gain": "-7dB",
+             "fx": [{"type": "delay", "time": "3/16", "feedback": 0.62, "ping_pong": True, "tone": 2200, "mix": 0.6},
+                    "lp cutoff=3000", "reverb kind=spring decay=2.4s mix=0.3"], "score": T["vdub"].score(total)}]
+          if "D" in R6 else []),
         {"name": "crackle", "patch": "c2-crackle", "pan": 0.05, "gain": "-20dB", "score": T["crackle"].score(total)},
         *([{"name": "rain", "patch": "c2-rain", "pan": -0.2, "gain": "-22dB",
              "fx": ["reverb kind=room decay=0.6s mix=0.25", "width width=1.6"], "score": T["rain"].score(total)},
