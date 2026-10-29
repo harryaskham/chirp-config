@@ -74,3 +74,9 @@ Generator `compose/chirpers2/src/chirpers2-t4.py`. A chamber-jazz brush trio wit
 - **KETTLE TUNE** (wurli + flute in unison; the horn in augmentation in the hymn): a contour over the bar's chord-tone ladder, indices 3 4 5 4 2 3 1 2 4 6 5 3 2 0, read two steps further each bar and fitted to the meter (7/8: 2+1+1+2+1 eighths).
 - **CONTRARY BASS**: root on the one, then the bass walks the chord against the tune's direction.
 - **13/8 FUZZ RIFF**: 3+3+3+2+2, the root on each group, an octave leap on the 2s; two chords a third apart (Dm9 / Bbmaj7) swapping every 2 bars, the pair climbing a whole step every 8 bars.
+
+## t6 Quarter to Sixteen (chirper-one)
+- **15/16 GROOVE**: 4+4+4+3 sixteenths. Synth bass cell (sixteenth positions: interval, length) 0:root 3, 3:+12 1, 4:5th 2, 7:b7 1, 8:root 2, 10:b3 1, 11:4th 1, 12:5th 3; clav stabs on 1 3 6 9 11 14; kick 0 7 10, backbeats 4 and 12, ghost snares 2 6 9 14.
+- **PLANING**: rootless m9 shapes sliding in parallel, one chord per bar: Abm9 Abm9 Bm9 Bbm9 Abm9 Gbm9 Gm9 Abm9; the bridge a key away (Em9 Gm9 Fm9 Dm9 Em9 Am9 Gm9 Ebm9); the shout climbs Ab Bb B Db Eb Db B Bb Ab Gb G Ab.
+- **HORN THEME** (Ab Dorian, brass with the saxes a fifth below): a 4-bar phrase, the second phrase answering a fourth higher.
+- **DISPLACED HITS** (the shout): a 3-hit horn figure (0, 6, 10) sliding one sixteenth later every bar until it comes home to the one.
