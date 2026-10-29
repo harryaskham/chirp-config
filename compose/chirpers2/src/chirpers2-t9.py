@@ -37,6 +37,7 @@ SEGUE = os.environ.get("T9_SEGUE", "1") == "1"
 ARCH = os.environ.get("T9_ARCH", "1") == "1"
 MOTIF = os.environ.get("T9_MOTIF", "1") == "1"
 VIBES = os.environ.get("T9_VIBES", "1") == "1"
+KLANG = os.environ.get("T9_KLANG", "1") == "1"  # EXPOSURE passes bar by bar tenor -> guitar -> piano in the song (chirper-one's note), whole again on the tenor in the return
 VIB_BARS = int(os.environ.get("T9_VIBBARS", "4"))  # how many dawn bars the vibes answer in
 VIB_DB = os.environ.get("T9_VIBDB", "-14")
 VIB_DUSK = os.environ.get("T9_VIBDUSK", "0") == "1"  # the arch carries the vibes into the dusk too  # the vibes' track gain (dB)  # chirper-two's vibes (t8's c2-vibes, borrowed) answer t8's coda in the dawn, and come back in the dusk  # EXPOSURE as a sequence: every bar the leap of a fourth up into the chord's 9th (one shape carried down the changes)  # the dusk replays the dawn (its piano figures and washes, bar for bar) with the fretless singing over it: the day ends as it began  # under the last chord, Cierre's bembe bell arrives at Cierre's own tempo (eighths of 192 ms): the segue into the closer  # the open section becomes the fretless's solo (high, singing, sliding), the guitar swelling behind  # the return replays the song's EXPOSURE melody (a recapitulation) with the full band  # the ride on dotted eighths across the 11/8 (with the guitar): the cymbal's own cycle  # the guitar's dotted-eighth ostinato (0.75 beats: seven per 11/8 bar) in the ostinato and return  # 1 = kit -12 dB + highshelf -5 @4k; 2 = kit -10 dB, no shelf
@@ -48,6 +49,11 @@ NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
 def nm(m):
     return f"{NAMES[m % 12]}{m // 12 - 1}"
+
+
+def NOTE_IDX(t):
+    head = t.split("/", 1)[0]
+    return 12 * (int(head[-1]) + 1) + NOTE[head[:-1]]
 
 
 def tok(n, d, v=None):
@@ -243,7 +249,7 @@ def cut(piece, beats):
 
 # ------------------------------------------------------------------ arrangement
 def build():
-    names = ("piano", "bass", "tenor", "gtr", "strings", "kit") + (("vibes",) if VIBES else ())
+    names = ("piano", "bass", "tenor", "gtr", "strings", "kit") + (("vibes",) if VIBES else ()) + (("pmel",) if KLANG else ())
     T = {n: [] for n in names}
     seg_at = [0.0]
     beat_pos = 0.0
@@ -284,6 +290,11 @@ def build():
                 song_lines.append(bar["tenor"])
                 if b % 2 == 1:
                     bar["gtr"] = guitar_swell(c, beats, rng)
+                if KLANG and b % 3 == 1:  # the guitar takes the bar's gesture (its swell steps aside)
+                    bar["gtr"], bar["tenor"] = bar["tenor"], R(beats)
+                elif KLANG and b % 3 == 2:  # the piano's right hand takes it, an octave up, over its own arpeggio
+                    bar["pmel"] = " ".join(t if t.startswith("R/") else nm(NOTE_IDX(t) + 12) + "/" + t.split("/", 1)[1] for t in bar["tenor"].split())
+                    bar["tenor"] = R(beats)
             elif sec == "open":
                 bar["strings"] = held(c, beats, 48)
                 bar["bass"] = fretless(c, beats, b, sing=True)
@@ -368,6 +379,8 @@ def song():
         {"name": "kit", "patch": "room-kit", "gain": "-12dB", "sends": {"hall": "-10dB"},
          "fx": [{"type": "eq", "bands": ["highshelf cutoff=4000 gain=-5dB"]}], "score": sc("kit")},
     ]
+    if KLANG:
+        tracks.append({"name": "pmel", "patch": "piano", "gain": "-5dB", "pan": -0.1, "sends": {"hall": "-7dB"}, "score": sc("pmel")})
     if VIBES:
         tracks.append({"name": "vibes", "patch": "c2-vibes", "gain": f"{VIB_DB}dB", "pan": 0.25, "sends": {"hall": "-8dB", "dly": "-14dB"}, "score": sc("vibes")})
     if SEGUE:
