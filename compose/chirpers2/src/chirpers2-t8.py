@@ -113,6 +113,11 @@ DOORS = [[(0, 3), (-1, 1), (-3, 1), (-4, 1), (-5, 3), (-4, 3)], [(-3, 1), (-1, 1
 # 0 2 4 3 1 4 2 0 in dotted eighths (eight to the 12/8 bar, exactly), over the stepping marimbas.
 R19 = set(filter(None, os.environ.get("T8_R19", "G").split(","))) - {"none"}
 GLASS = [0, 2, 4, 3, 1, 4, 2, 0]
+# Round 20 (v20): H6 = t6 Quarter to Sixteen's DISPLACED HITS answered (chirper-one: a 3-hit figure at sixteenths
+# 0, 6, 10 sliding later every bar until it comes home): through the unison the bass marimba, the bow and the frame
+# drum's dum hit it, sliding three sixteenths a bar, so after eight bars (24 sixteenths, one 12/8 bar) it is home
+# as the marimbas are: two processes arriving together.
+R20 = set(filter(None, os.environ.get("T8_R20", "H6").split(","))) - {"none"}
 SUBJECT = [(0, 1), (3, 1), (7, 1), (6, 2), (2, 2), (5, 1), (1, 1), (4, 1), (0, 2)]  # t7: semitones, eighths
 BAR = 6.0  # a 12/8 bar, in quarter beats
 
@@ -469,6 +474,17 @@ def build():
                     fd.add(start + 5, 1, "sw", v - 12)
         elif sec == "coda" and i == 0:
             fd.add(start, 6, "sw", v - 18)
+    if "H6" in R20:  # t6's displaced hits through the unison
+        for bb in [x for x in bars if x[1] == "unison"]:
+            st, ui = bb[0], bb[2]
+            ch = HOME[(ui // 4) % 4]
+            for h in (0, 6, 10):
+                at = st + ((h + 3 * ui) % 24) / 4
+                root = deg(ch, 0) - 24
+                while root < 33:
+                    root += 12
+                T["bm"].add(at, 0.4, nm(root), LEVEL["unison"] + 4)
+                T["fd"].add(at + 0.003, 0.3, "dum", LEVEL["unison"] - 4)
     if "F" in R14 and "M" in R11:  # the last floor: a low Eb under the final echo
         last = [bb for bb in bars if bb[1] == "coda"][-1]
         T["bm"].add(last[0] + 1.5, BAR * 0.9, nm(HOME[0][0] - 24), LEVEL["coda"] + 6)
