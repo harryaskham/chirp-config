@@ -45,7 +45,11 @@ SPACE = os.environ.get("T5_SPACE", "0.72")
 SKBASE = os.environ.get("T5_SKBASE", "rhodes")
 BUBPATCH = os.environ.get("T5_BUBPATCH", "wurli")
 VDRY = os.environ.get("T5_VDRY", "1") == "1"
-DYNL = os.environ.get("T5_DYN", "1") == "1"  # the desk's faders by section: intro -4, breakdown -4, return +2, outro -2 dB (the version and the riddim at 0)
+DYNL = os.environ.get("T5_DYN", "1") == "1"
+STEPPERS = os.environ.get("T5_STEPPERS", "")
+ISOLO = os.environ.get("T5_ISOLO", "1") == "1"
+IDRY = os.environ.get("T5_IDRY", "1") == "1"  # ...and the intro's skank stays out of the tape loop (only the spring)  # the intro is the skank alone in the spring, all four bars; the riddim drops at bar five
+MHATS = os.environ.get("T5_MHATS", "0") == "1"  # the melodica section's hats open up to soft 16ths, the drummer lifting under the tune  # the return goes STEPPERS: the kick on every beat under the one-drop's rim; "16" adds soft 16th hats  # the desk's faders by section: intro -4, breakdown -4, return +2, outro -2 dB (the version and the riddim at 0)
 STRIP = os.environ.get("T5_STRIP", "")  # chirper-three's note: a true dub strip-down - the breakdown is bass and drums alone for all 8 bars, 3 dB down, and the return slams back 2 dB up; "hold" keeps THE HOLD over the first four, "dry" drops it  # the version runs DRY between the throws: the skank's steady echo send drops ~26 dB through the version, so only the throws feed the tape loop and the drop-outs are real silence  # the bubble's keys: wurli, or wM's physical pickup epiano-reed  # the living skank's base e-piano: rhodes, or wM's physical pickup epiano-tine (the stabs bark)  # chirper-two's feedback routing: the echo as a tape loop - one dotted-eighth delay, then the bus's own output fed back through a low-pass and a tape deck, each repeat darker and more warped; gain e.g. 0.62  # THE HOLD: the version's last chord thrown into a hall and FROZEN (wM's reverb freeze) under the breakdown's bass and drums, let go when the skank comes in alone  # chirper-two's per-voice fx: every skank stab lands at its own random place in the stereo field with its own tone (pin 3eee6a72)  # wM's tapestop as a sound-system REWIND (spin 3, a vinyl pull-back): "end" = on the outro's last bar; "mid" = at the turn into the version (instead of that seam's stutter)  # wM's MPC chop at the desk: "skank" = the rhodes chopped through the version; "lead" = the melodica chopped through the return  # the one-drop's rim dragged late by hand (ms), the kick and hats kept steady  # the one-drop played by hand (play.humanize): "40,-10,25" = rim late, kick early, hats late (ms), plus swing drift and a drunk lean
 VINYL = os.environ.get("T5_VINYL", "1") == "1"
 GLITCH = os.environ.get("T5_GLITCH", "stutter") in ("1", "stop", "stutter")
@@ -140,6 +144,14 @@ def drums(sec, b, rng, full=True):
         ev += [(12, "so", 1, 70), (13, "so", 1, 76), (14, "oh", 1, 84), (15, "so", 1, 88)]
     if sec == "intro" and b < 2:
         return grid([(e[0], "h", 1, 40) for e in ev if e[1] == "h"])
+    if MHATS and sec == "melodica":
+        have = {e[0] for e in ev}
+        ev += [(st, "h", 1, 48 if st % 2 else 58) for st in range(16) if st not in have and st != 8]
+    if STEPPERS and sec == "return":
+        ev += [(st, "k", 1, 100) for st in (0, 4, 12)]
+        if STEPPERS == "16":
+            have = {e[0] for e in ev}
+            ev += [(st, "h", 1, 46) for st in range(1, 16, 2) if st not in have]
     return grid(ev)
 
 
@@ -194,7 +206,7 @@ def build():
             c = chs[b % len(chs)]
             up = set(ALL)
             if sec == "intro":
-                up = {"skank"} if b < (4 if EVEN else 2) else {"skank", "drums"} | ({"bass"} if EVEN and b >= 6 else set())
+                up = {"skank"} if (b < (4 if EVEN else 2) or ISOLO) else {"skank", "drums"} | ({"bass"} if EVEN and b >= 6 else set())
             elif sec == "riddim":
                 up = {"drums", "bass", "skank"} | ({"bubble"} if b >= 4 else set())
             elif sec in ("melodica", "return"):
@@ -273,7 +285,8 @@ def song():
     if VDRY:
         v0 = times["version"]
         v1 = v0 + 16 * 4 * 60 / BPM
-        vd = [["0s", 0], [f"{v0 - 0.05:.3f}s", 0], [f"{v0:.3f}s", -26], [f"{v1 - 0.05:.3f}s", -26], [f"{v1:.3f}s", 0], [f"{total + 8:.2f}s", 0]]
+        i1 = times["riddim"]
+        vd = ([["0s", -26], [f"{i1 - 0.05:.3f}s", -26], [f"{i1:.3f}s", 0]] if IDRY else [["0s", 0]]) + [[f"{v0 - 0.05:.3f}s", 0], [f"{v0:.3f}s", -26], [f"{v1 - 0.05:.3f}s", -26], [f"{v1:.3f}s", 0], [f"{total + 8:.2f}s", 0]]
         lane = {**lane, "vd": {"points": vd}}
     tracks = [
         {"name": "drums", "patch": ("room-kit" + (f" play.humanize.nudge.so={RIMDRAG}ms" if RIMDRAG else "") if not NUDGE else
