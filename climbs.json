@@ -5717,7 +5717,7 @@
     {
       "id": "chirpers3-t5",
       "song": "songs/chirpers3-t5.yaml",
-      "reference": "Chirpers — Track 5 (untitled)",
+      "reference": "Chirpers — Low Pressure",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers3-t5 OUT.wav",
@@ -5733,7 +5733,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "Tape Weather",
-        "title": "Track 5 (untitled)",
+        "title": "Low Pressure",
         "track": 5,
         "year": 2026
       },
