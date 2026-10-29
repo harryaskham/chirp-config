@@ -46,3 +46,14 @@ Generator `compose/chirpers3/src/chirpers3-t7.py`. Ambient tape loops, a nominal
 - **THE DOOR OPENS** (v2): across the loops' densest stretch (beats 70-150) the beat through the wall comes nearer (its lo-pass opens two octaves and closes again), and a fretless walks in under the pad, following its chords (F, then D: root, fifth, octave), then leaves.
 - **A MEMORY THROUGH THE DOOR** (v3): while the door is open, t6 Late on Purpose's vibes SIGH (t6's struck, motored vibes, `E5 C5 A4` falling) sounds three times, as if heard from next door, over the loops.
 
+## t4 Hail on a Music Box (chirper-three)
+- **THE CLOCKWORK**: three gears, mechanically straight against a swung, hand-played beat: a TOY PIANO on a
+  5-sixteenth cycle (hits on steps 0 and 3; Ab5 F5 Eb6 Db6 Bb5 F5, Db major pentatonic), a MUSIC BOX on a 7-sixteenth
+  cycle (0, 2, 4; Db6 Ab5 Bb5 F6 Eb6) and Ferrous Bloom's CRYSTAL on the quarters arpeggiating the chord. They realign
+  only every 140 sixteenths (8.75 bars).
+- **THE HIDDEN MELODY**: a tape lead sings wherever a toy-piano note and a music-box note coincide, holding until the
+  next coincidence (an octave under the toy; an octave up in the return and the full section): a melody the gears make.
+- **HAIL**: in the glitch break the toy's notes are torn into falling 32nd retriggers, 3-6 at a time, between music-box
+  answers.
+- Harmony: Dbmaj9 | Cm7(11) | Fm9 | Bbm9, two bars each; 86 bpm; a 16th swing of 0.58 on the beat only.
+
