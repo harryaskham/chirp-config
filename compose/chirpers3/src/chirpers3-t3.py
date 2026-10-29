@@ -26,10 +26,10 @@ LOOP = [([41, 56, 60, 63, 67], [44, 58, 63, 67, 70]),     # Fm9 | Abmaj9
         ([39, 55, 58, 62, 65], [37, 53, 56, 60, 63]),     # Eb6/9 | Dbmaj9
         ([41, 56, 60, 63, 67], [46, 56, 61, 63, 68]),     # Fm9 | Bbm11
         ([36, 52, 55, 58, 63], [36, 52, 55, 59, 62])]     # C7#9 | C7b9
-FORM = [('intro', 4), ('A', 8), ('A2', 8), ('break', 4), ('A3', 8), ('last', 8), ('outro', 4)]
+FORM = [('intro', 4), ('A', 8), ('A2', 8), ('break', 4), ('Ar', 8), ('A3', 8), ('last', 8), ('outro', 4)]
 # the trips: (section, bar index) -> bar length in beats (a bar cut short)
 TRIPS = {('A', 3): 3.5, ('A2', 7): 3.0, ('A3', 3): 3.5, ('A3', 5): 3.0, ('A3', 7): 3.5}
-DRIFT = {'intro': 0.5, 'A': 1.0, 'A2': 1.3, 'break': 1.0, 'A3': 1.8, 'last': 0.35, 'outro': 0.6}
+DRIFT = {'intro': 0.5, 'A': 1.0, 'Ar': 1.0, 'A2': 1.3, 'break': 1.0, 'A3': 1.8, 'last': 0.35, 'outro': 0.6}
 
 _seed = [12345]
 def rnd():
@@ -42,7 +42,12 @@ def bars():
     for name, n in FORM:
         for i in range(n):
             ln = TRIPS.get((name, i), 4.0)
-            out.append({'sec': name, 'i': i, 'beats': ln, 't': t, 'loop': LOOP[i % 4]})
+            lp = LOOP[i % 4]
+            if name in ('A2', 'last'):
+                # the second groove and the last chorus move the loop up a fourth (Bbm9 Dbmaj9 | Ab6/9 Gbmaj9 ...):
+                # a key lift the song returns to, so its sections turn and come back
+                lp = tuple([m + 5 for m in ch] for ch in lp)
+            out.append({'sec': name, 'i': i, 'beats': ln, 't': t, 'loop': lp})
             t += ln
     return out, t
 
@@ -76,7 +81,7 @@ def build():
         ms = lambda x: x / 1000 / SPB      # milliseconds -> beats
         n16 = int(L * 4)
         # ---- drums (the beat sections) ----
-        if sec in ('A', 'A2', 'A3', 'last'):
+        if sec in ('A', 'Ar', 'A2', 'A3', 'last'):
             kicks = [0, 7, 10] if b['i'] % 2 == 0 else [0, 6, 11]
             for s in kicks:
                 if s < n16: kit.append((t0 + swing(s) + ms(-15 * dr) + ms(4 * rnd()), 'k', 0.25, 104 if s == 0 else 92))
@@ -112,7 +117,7 @@ def build():
             ph = [(0.5, 72, 0.5), (1.0, 75, 0.75), (2.0, 72, 0.5), (2.5, 70, 1.25)] if b['i'] % 2 == 0 else \
                  [(0.25, 68, 0.5), (0.75, 70, 0.5), (1.5, 67, 1.5)]
             for at, m, d in ph:
-                lead.append((t0 + at + ms(25 * dr * rnd()), nm(m - (2 if b['i'] % 4 >= 2 else 0)), d, 80))
+                lead.append((t0 + at + ms(25 * dr * rnd()), nm(m - (2 if b['i'] % 4 >= 2 else 0) + (5 if sec in ('A2', 'last') else 0)), d, 80))
     # the crackle under everything
     crackle.append((0.0, 'C4', total - 0.5, 70))
     end_s = total * SPB
@@ -134,7 +139,7 @@ def build():
                            'mix': {'value': 0, 'mod': [{'src': 'auto.gl', 'amount': 1}]}},
                           {'type': 'tape', 'drive': 0.35, 'warmth': 0.6, 'mix': 0.6},
                           {'type': 'tapestop', 'time': '2b', 'mix': 1, 'stop': {'value': 0, 'mod': [{'src': 'auto.ts', 'amount': 1}]}},
-                          {'type': 'eq', 'bands': ['highpass cutoff=35', 'peak cutoff=215 q=0.9 gain=-9dB', 'peak cutoff=52 q=1.2 gain=-5dB', 'highshelf cutoff=6000 gain=6dB']},
+                          {'type': 'eq', 'bands': ['highpass cutoff=30', 'peak cutoff=45 q=1 gain=6dB', 'peak cutoff=225 q=0.8 gain=-11dB', 'peak cutoff=400 q=1 gain=-5dB', 'peak cutoff=1000 q=1 gain=4dB', 'peak cutoff=1900 q=1 gain=-4dB', 'highshelf cutoff=6000 gain=6dB']},
                           {'type': 'gain', 'gain': '+17dB'},
                           {'type': 'compressor', 'threshold': '-18dB', 'ratio': 3, 'attack': '15ms', 'release': '180ms', 'makeup': '2dB'},
                           {'type': 'compressor', 'threshold': '-10dB', 'ratio': 6, 'attack': '1ms', 'release': '60ms', 'makeup': '4dB'},
