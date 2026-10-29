@@ -114,12 +114,13 @@ def build():
                           {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.fade', 'amount': 1}]}}],
                    'auto': {'fade': {'points': [['0s', -10], ['6s', -2], ['14s', 0], [f'{end_s - 10:.2f}s', 0], [f'{end_s:.2f}s', -30]]}}},
         'tracks': [
-            {'name': 'kit', 'patch': 'lofi-kit', 'gain': '-1dB', 'fx': [{'type': 'pitch', 'semitones': -3, 'mix': 1}], 'score': line(kit, total)},
+            # wM's lo-fi toolkit: the pitched-down break through SP-1200-style 12-bit sampling; the rhodes stabs on a warbling tape
+            {'name': 'kit', 'patch': 'lofi-kit', 'gain': '-1dB', 'fx': [{'type': 'pitch', 'semitones': -3, 'mix': 1}, 'crush bits=12 rate=26kHz mix=0.5'], 'score': line(kit, total)},
             {'name': 'strings', 'patch': 'mellotron-strings', 'gain': '-8dB', 'notes': notes(strings)},
             {'name': 'vox', 'patch': 'vox-pad', 'gain': '-10dB', 'pan': 0.2, 'notes': notes(vox)},
             {'name': 'lead', 'patch': 'boc-lead glide=180ms', 'gain': '-8dB', 'pan': -0.2, 'score': line(lead, total)},
             {'name': 'sub', 'patch': 'sub-saturated', 'gain': '-4dB', 'score': line(sub, total)},
-            {'name': 'rhodes', 'patch': 'rhodes', 'gain': '-9dB', 'pan': 0.35, 'score': line(rhodes, total)},
+            {'name': 'rhodes', 'patch': 'rhodes', 'gain': '-9dB', 'pan': 0.35, 'fx': ['tape drive=0.15 mix=0.5 wow=10 flutter=2 drift=1 tone=6500 sweep=0.6 seed=3'], 'score': line(rhodes, total)},
             {'name': 'crackle', 'patch': 'fx-crackle', 'gain': '-8dB', 'score': line(crackle, total)},
         ]}
 
