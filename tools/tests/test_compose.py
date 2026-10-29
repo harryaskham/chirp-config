@@ -83,7 +83,8 @@ class Album(unittest.TestCase):
     def test_compose_brief(self):
         c = CH.C.find(CH.C.load(), "alb-t1")
         text = CH.C.brief(c, [])
-        self.assertIn("COMPOSITION", text)
+        self.assertIn("SONGWRITING", text)
+        self.assertIn("IN REAL TIME", text)
         self.assertIn("compose it from scratch", text)
         self.assertIn("neighbours: 2 alb-t2", text)
 

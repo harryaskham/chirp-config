@@ -759,8 +759,12 @@ def compose_brief(c):
     slot = next((t for t in album.get("tracks", []) if t.get("id") == c["id"]), {})
     n, total = slot.get("n"), len(album.get("tracks", []))
     lo, hi = slot.get("length", ["?", "?"])
-    out.append(f"  COMPOSITION — an ORIGINAL song for '{album['album']}' by {album['artist']} ({album.get('genre', '')}), "
-               f"track {n}/{total}: {slot.get('role', 'song')}, {lo}-{hi} s. Read compose/README.md and the skill's "
+    out.append(f"  SONGWRITING — we are writing the album '{album['album']}' by {album['artist']} ({album.get('genre', '')}) "
+               f"TOGETHER, IN REAL TIME: Harry listens on the groove as the songs change, rates and leaves notes, and "
+               f"the chirpers write, rewrite and answer each other's ideas round by round. This is a songwriting climb, "
+               f"not a metric climb.")
+    out.append(f"  Your song: an ORIGINAL, track {n}/{total}: {slot.get('role', 'song')}, {lo}-{hi} s. "
+               f"Read compose/README.md and the skill's "
                f"§Composition mode; the album brief and palette are in compose/{album['id']}/album.json, its motif bank "
                f"in compose/{album['id']}/motifs.md. Never copy or closely imitate an existing song.")
     if slot.get("brief"):
@@ -790,7 +794,7 @@ def compose_brief(c):
                    f"--score S --note … --next … --with songs/{c['id']}.yaml compose/{album['id']}/motifs.md` (it joins "
                    f"the playlist); save its features with compscore --save on the kept render.")
     else:
-        out.append(f"  this round (Harry, 29 Oct): make a RICH, audible improvement. Every pass can change anything, so make "
+        out.append(f"  this songwriting round (Harry, 29 Oct): make a RICH, audible improvement. Every pass can change anything, so make "
                    f"the song better every time, and never record a no-change round. Pick something substantial: a new "
                    f"section or a rewritten one, a motif developed further, a new sound or instrument, a solo or a counter-"
                    f"line, reharmonisation, a rhythmic or meter idea, a richer arrangement, dynamics and builds, the mix, "

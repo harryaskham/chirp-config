@@ -1,4 +1,11 @@
-# Composition mode: Chirpers albums
+# Songwriting climbs: Chirpers albums
+
+**We are writing albums together, in real time** (Harry, 29 Oct). The chirpers write, rewrite and arrange original
+songs round by round. Harry listens on the groove as they change, rates and leaves notes (the player's `:rate`/`:note`,
+or tools/rate.py), and the chirpers answer his notes and each other's ideas. They trade motifs and sounds between
+tracks. Every round is a songwriting iteration: a richer, better song than the round before, never a metric tweak.
+compscore is a guardrail; the songs and Harry's ears are the point.
+
 
 Harry, 28 Oct: alongside reproducing records, chirp climbs ORIGINAL music. An album by **Chirpers** starts as empty
 tracks. Climbers claim them like any climb, compose each song from scratch with the library's patches, fx and mix
