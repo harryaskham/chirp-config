@@ -31,7 +31,9 @@ DTRIP = os.environ.get("T1_DTRIP", "1") == "1"  # the drummer's second bar in th
 SUB = os.environ.get("T1_SUB", "-8")
 REHARM = os.environ.get("T1_REHARM", "1") == "1"
 TAGTRIP = os.environ.get("T1_TAGTRIP", "1") == "1"
-TAGHORN = os.environ.get("T1_TAGHORN", "1") == "1"  # the tag's last bar: the horns run up G7b9 in quarter-note triplets into C (the head's last bar, augmented across the beat)  # in the tag, the drummer answers the horns' turnaround in triplet eighths (bars 2 and 4)  # the head out reharmonised (Abmaj7#11 Cm11 Bbm9 Dbmaj7#11 Cm11 Fm9 Db7#11 G7alt), the horn in thirds, and a 4-bar TAG on the turnaround  # the upright's sine under the string (dB)  # 1 = v1 balance; 2 = kit -13 dB + highshelf -5 @4k, bass +4, master shelf +6 @150, highshelf -4 @6k
+TAGHORN = os.environ.get("T1_TAGHORN", "1") == "1"
+LOCKED = os.environ.get("T1_LOCKED", "1") == "1"  # the waltz's last eight bars in locked hands: the piano's line harmonised in block chords
+INTROTEN = os.environ.get("T1_INTROTEN", "1") == "1"  # the intro's last two bars: the tenor foreshadows SEVEN DOORS, soft  # the tag's last bar: the horns run up G7b9 in quarter-note triplets into C (the head's last bar, augmented across the beat)  # in the tag, the drummer answers the horns' turnaround in triplet eighths (bars 2 and 4)  # the head out reharmonised (Abmaj7#11 Cm11 Bbm9 Dbmaj7#11 Cm11 Fm9 Db7#11 G7alt), the horn in thirds, and a 4-bar TAG on the turnaround  # the upright's sine under the string (dB)  # 1 = v1 balance; 2 = kit -13 dB + highshelf -5 @4k, bass +4, master shelf +6 @150, highshelf -4 @6k
 
 # (name, beats per bar, bars, swing)
 FORM = [("intro", 7, 4, SWING), ("headA", 7, 8, SWING), ("bridge", 4, 8, 0.5), ("headA2", 7, 8, SWING),
@@ -303,6 +305,23 @@ def thirds(notes, chs):
     return out
 
 
+def locked(piece, c):
+    """Locked hands (Shearing / Garland): each melody note doubled an octave below, with the two chord tones nearest
+    under it filling the octave - the line becomes a moving block of chords."""
+    root, sc, v = CH[c]
+    pcs = sorted({n % 12 for n in v} | {root % 12})
+    out = []
+    for t in piece.split():
+        if t.startswith("R/"):
+            out.append(t)
+            continue
+        head, rest = t.split("/", 1)
+        m = mi(head)
+        under = [n for n in range(m - 11, m) if n % 12 in pcs][-2:]
+        out.append(",".join(nm(n) for n in [m - 12] + under + [m]) + "/" + rest)
+    return " ".join(out)
+
+
 def chords_for(sec, nb):
     if sec in ("intro", "coda"):
         return ["Cm11", "Cm11", "Dbmaj7#11", "Dbmaj7#11"][:nb]
@@ -337,6 +356,8 @@ def build():
             bar = {n: R(beats) for n in names}
             if sec == "intro":
                 bar["piano"] = comp(c, beats, rng, vel=58, b=b)
+                if INTROTEN and b >= 2:  # the doors heard through the wall: SEVEN DOORS' bar 2 and bar 4 climbs, soft
+                    bar["tenor"] = line(HEAD[1] if b == 2 else HEAD[3], vel=66)
                 bar["bass"] = walk(c, nxt, beats, rng, two=True)
                 bar["kit"] = J(*([tok("rd", 1, 60 + 4 * b)] + [tok("rd", 1, 52)] * (beats - 1)))
             elif sec in ("headA", "headA2", "headout", "tag"):
@@ -368,6 +389,8 @@ def build():
                 bar["kit"] = ride(beats, rng, b, sec, vel=80 + b // 4)
             elif sec == "waltz":
                 bar["piano"] = J(solo(c, beats, rng, 60, 86, vel=80, rest_p=0.1 if b % 4 == 3 else 0.0))
+                if LOCKED and b >= 24:
+                    bar["piano"] = locked(bar["piano"], c)
                 bar["horn"] = comp(c, beats, rng, vel=40, b=b) if b >= 16 else R(beats)  # the horn pads the second half
                 bar["bass"] = walk(c, nxt, beats, rng, two=(b % 8 < 2))
                 bar["kit"] = ride(beats, rng, b, sec, vel=70)
