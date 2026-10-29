@@ -118,6 +118,10 @@ R22 = set(filter(None, os.environ.get("T4_R22", "P").split(","))) - {"none"}
 # -14.0 dB, louder than the trades and 1.3 dB under the peak, and the seed was as loud as the intro. The seed is now
 # softer than the intro it grows into, and the chorale a real hush, so the peak erupts out of it.
 R23 = set(filter(None, os.environ.get("T4_R23", "Y").split(","))) - {"none"}
+# Round 24 (v24): T = STOP-TIME in the peak's second phrase: in its outer bars the rhythm section (bass, piano left
+# hand, rhodes, drums) only hits the one together (root, chord, kick and stick snare) and leaves the melody alone in
+# the silence; the centre bar brings everyone back; a palindrome of stops.
+R24 = set(filter(None, os.environ.get("T4_R24", "T").split(","))) - {"none"}
 BTHEME = {0: [(0, 3, 4), (3, 1, 3), (4, 4, 2)], 1: [(0, 2, 1), (2, 2, 2), (4, 3, 4)], 2: [(0, 5, 6)],
           3: [(0, 2, 4), (2, 2, 5), (4, 2, 4)]}  # t2's night cell, degrees on eighths (None = rest)
 TRIP = "T" in os.environ.get("T4_OPTS", "")  # triplet brush ghosts before the backbeats (off: no gain)
@@ -670,6 +674,21 @@ def build():
         T["tom"].add(last + o / 2, ln / 2, nm(midi(n) - 12), 70 - 3 * k)
     T["pno_lh"].add(last + 2.0, 2.0, "D3,A3,C4,E4,F4,G4", 62)
     T["bass"].add(last + 2.0, 2.0, "D2", 60)
+    if "T" in R24:  # stop-time: the peak's second phrase, outer bars
+        pk = [b for b in bars if b[3] == "peak"]
+        last_p = max(b[4] for b in pk)
+        stops = [b for b in pk if b[4] == last_p and b[2] != 3]
+        for b in stops:
+            s0, s1 = b[0], b[0] + b[1] / 2
+            for name in ("bass", "pno_lh", "rhodes", "drums"):
+                T[name].ev = [e for e in T[name].ev if not (s0 + 0.05 <= e[0] < s1 - 1e-6)]
+            ch = bar_chords(b[1], b[5], b[2])[0][1]
+            r0, vc, _ = CH[ch]
+            vo = ",".join(nm(r0 + 12 + x) for x in vc) if r0 < 48 else ",".join(nm(r0 + x) for x in vc)
+            T["bass"].add(s0, 0.45, nm(low(r0)), 112)
+            T["pno_lh"].add(s0, 0.45, vo, 100)
+            T["drums"].add(s0, 0.3, "k", 110)
+            T["drums"].add(s0, 0.3, "st", 108)
     if "U" in R13:  # head 2 up a whole step: transpose every pitched event inside it
         h2 = [b for b in bars if b[3] == "head2"]
         lo, hi = h2[0][0], h2[-1][0] + h2[-1][1] / 2
