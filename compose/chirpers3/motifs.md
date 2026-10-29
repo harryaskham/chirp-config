@@ -28,4 +28,5 @@ Generator `compose/chirpers3/src/chirpers3-t5.py`. Dub-wise space, 70 bpm one-dr
 - **THE VERSION** (the dub mix as the arrangement): 16 bars where the desk decides who plays, bar by bar (drums+bass / +skank / bass+skank / all / drums alone / ... / the skank alone in the spring), the B part's harmony arriving under the drop-outs.
 - **THE SIGH GROWS** (v3): through A2 and A3 the vibes' sigh becomes a four-bar tune per chord loop: the sigh falling, its inversion rising, the sigh again from a fourth lower, and a held top note (the chord's 9th above).
 - **TAPE WEATHER** (v4, the album's name made literal): rain on the window, synthesised (band-passed noise droplets at random, wide), thick in the intro, the drop and the outro and a faint drizzle under the grooves; distant thunder (a low noise swell) rolls through the drop.
+- **THE WEATHER COMES IN FIRST** (v5): the record starts from near-silence, fading up over six beats with only the rain and the record's surface; the radio-muffled keys enter in the intro's third bar, as if heard through the window. (It also meets t5 Low Pressure's fading dub tail: the seam's level jump fell from 67 to 24 dB.)
 

@@ -81,6 +81,10 @@ R3 = set(filter(None, os.environ.get("T6_R3", "T,M").split(","))) - {"none"}
 # droplets, band-passed, random), thick in the intro, the drop and the outro and a faint drizzle under the grooves,
 # and distant thunder (a low noise swell) rolling through the drop.
 R4 = set(filter(None, os.environ.get("T6_R4", "R").split(","))) - {"none"}
+# Round 5 (v5): F = THE WEATHER COMES IN FIRST: the record starts from near-silence (a master fade over six beats)
+# with only the rain and the record's surface; the radio-muffled keys enter in the intro's third bar, as if heard
+# through the window.
+R5 = set(filter(None, os.environ.get("T6_R5", "F").split(","))) - {"none"}
 FORM = [("intro", 4), ("A", 16), ("switch", 8), ("A2", 16), ("drop", 4), ("A3", 12), ("outro", 4)]
 LEVEL = {"intro": 58, "A": 72, "switch": 66, "A2": 78, "drop": 56, "A3": 80, "outro": 56}
 DRUMS = {"A", "switch", "A2", "A3"}
@@ -108,6 +112,8 @@ def build():
         # ---- keys: the chord a hair late, strummed; a soft re-hit on the and of three ----
         drag = 0.05 if sec != "intro" else 0.0
         K = T["kw"] if sec == "drop" and "W" in R2 else T["keys"]  # the drop's chords on the warped tape
+        if sec == "intro" and i < 2 and "F" in R5:
+            K = Track("_")  # the window is shut for two bars: weather only
         K.add(start + drag, 2.4 if sec != "switch" else 3.8, ",".join(nm(x) for x in voic), v - 6)
         if sec in ("A", "A2", "A3") and i % 2 == 1:
             T["keys"].add(start + 2.5 + drag, 1.3, ",".join(nm(x) for x in voic[1:]), v - 18)
@@ -311,10 +317,14 @@ def main():
         "master: " + json.dumps({"fx": [{"type": "eq", "bands": ["hp cutoff=30", "highshelf cutoff=8000 gain=0dB"]}]
                                  + ([{"type": "filter", "kind": "lp", "cutoff": {"value": 18000, "mod": [{"src": "auto.dive", "amount": -4.0}]}}]
                                     if "F" in R2 else [])
+                                 + ([{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.fadein", "amount": 1}]}}]
+                                    if "F" in R5 else [])
                                  + ["tape drive=0.2 warmth=0.5",
                                     "glue threshold=-20dB ratio=1.6 attack=20ms release=250ms makeup=1dB"],
-                                 **({"auto": {"dive": {"points": [["0b", 0.0], [f"{d0}b", 0.0], [f"{a3 - 1}b", 1.0],
-                                                                    [f"{a3}b", 0.0]]}}} if "F" in R2 else {})}),
+                                 **({"auto": {**({"dive": {"points": [["0b", 0.0], [f"{d0}b", 0.0], [f"{a3 - 1}b", 1.0],
+                                                                       [f"{a3}b", 0.0]]}} if "F" in R2 else {}),
+                                              **({"fadein": {"points": [["0b", -30.0], ["6b", 0.0]]}} if "F" in R5 else {})}}
+                                    if ("F" in R2 or "F" in R5) else {})}),
         "tracks:",
     ]
     lines += ["  - " + json.dumps(t) for t in tracks]
