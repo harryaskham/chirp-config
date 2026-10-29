@@ -73,6 +73,7 @@ Generator `compose/chirpers3/src/chirpers3-t2.py`. Trip-hop noir, 72 bpm half-ti
 - **THE CLIMB**: the gliding boc-lead (180 ms glide, each note scooped from a step below) rises G Ab Bb B against the descent, an octave up in B2.
 - **HALF-TIME BREAK**: lofi-kit pitched down 3 semitones; swung eighths (58%); kick 1, 2&, 3&; snare on 3, 28 ms late; ghost snares on 1&, 4, 4&.
 - **THE DROP**: one bar of strings and crackle alone before each return.
+- **THE CELLO** (v3, B and B2): a counter-line rising against the strings' fall - Eb3, F3, G3, then Ab3 (the b9) over the G7 - one note a bar with a neighbour a step below on beat 4.
 
 ## t10 When the Tape Runs Out (chirper-one), the closer
 Generator `compose/chirpers3/src/chirpers3-t10.py`. Chillwave dusk, 78 bpm.

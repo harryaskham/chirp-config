@@ -61,7 +61,7 @@ def build():
             bars.append({'sec': name, 'i': i, 't': t, 'c': c}); t += 4.0
     total = t
     ms = lambda x: x / 1000 / SPB
-    kit, strings, vox, lead, sub, rhodes, crackle = [], [], [], [], [], [], []
+    kit, strings, vox, lead, sub, rhodes, crackle, cello = [], [], [], [], [], [], [], []
     for k, b in enumerate(bars):
         s, t0, (root, ch, top) = b['sec'], b['t'], b['c']
         beat = s in ('A', 'B', 'A2', 'B2')
@@ -96,6 +96,14 @@ def build():
             sub.append((t0, nm(root - 12 if root > 33 else root), 3.0, 100))
             if nxt != root:
                 sub.append((t0 + 3.0, nm(nxt - 12 if nxt > 33 else nxt), 1.0, 92))
+        # ---- THE CELLO (B and B2): a counter-line rising against the strings' fall - Eb, F, G, then the b9 (Ab) over
+        # the G7 - one note a bar, then a neighbour a step below on beat 4, so the low line climbs while the top
+        # line descends, the two closing in
+        if s in ('B', 'B2'):
+            tgt = {36: 51, 34: 53, 32: 55, 31: 56}.get(root, 51 + (3 if root > 36 else 0))
+            if root not in (31, 32, 34, 36): tgt = {39: 54, 37: 56, 35: 58, 34: 59}.get(root, 54)
+            cello.append((t0 + 3.0, tgt - 2, 0.95, 70))
+            cello.append((t0, tgt, 2.9, 80))
         # ---- rhodes stabs in A2 and B2 on the and of 2 and of 4 ----
         if s in ('A2', 'B2'):
             for at in (1.62, 3.62):
@@ -120,6 +128,7 @@ def build():
             {'name': 'vox', 'patch': 'vox-pad', 'gain': '-10dB', 'pan': 0.2, 'notes': notes(vox)},
             {'name': 'lead', 'patch': 'boc-lead glide=180ms', 'gain': '-8dB', 'pan': -0.2, 'score': line(lead, total)},
             {'name': 'sub', 'patch': 'sub-saturated', 'gain': '-4dB', 'score': line(sub, total)},
+            {'name': 'cello', 'patch': 'cello', 'gain': '-6dB', 'pan': -0.3, 'notes': notes(cello)},
             {'name': 'rhodes', 'patch': 'rhodes', 'gain': '-9dB', 'pan': 0.35, 'fx': ['tape drive=0.15 mix=0.5 wow=10 flutter=2 drift=1 tone=6500 sweep=0.6 seed=3'], 'score': line(rhodes, total)},
             {'name': 'crackle', 'patch': 'fx-crackle', 'gain': '-8dB', 'score': line(crackle, total)},
         ]}
