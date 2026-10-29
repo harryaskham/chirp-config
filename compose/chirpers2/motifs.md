@@ -49,3 +49,8 @@ Generator `compose/chirpers2/src/chirpers2-t4.py`. A chamber-jazz brush trio wit
 - **SEVEN DOORS** (tenor, the horn a fourth below): the head, eight bars of swung 7/4 (4+3) in C dorian / Db lydian with a G7alt turnaround. `C5. Bb4 G4 F4 Eb4 F4~ | G4 Bb4 C5 D5 Eb5~~~ | F5 Eb5 C5 Ab4~ G4 Ab4~ | Bb4 C5 Db5 Eb5 F5 G5~~` (bar 4 climbs to the lydian G5), then `Eb5. D5 C5 Bb4 G4~~ | F4 G4 Bb4 C5 D5 F5~~~ | Eb5 Db5 B4 Ab4 F4 Eb4~ | D4 F4 Ab4 B4 D5 C5~~` (bar 8 runs up G7b9 into C).
 - **WHOLE-STEP STAIR** (the bridge, 4/4, straight eighths, unison horns an octave apart): Ebmaj9, Dbmaj9, Bmaj7#11, Bb7sus, two bars each, falling in whole steps; one figure sequenced down the stair: `Bb4 D5 F5. Eb5 | D5~ Bb4 G4`.
 - The **HOURS**: the meter changes with each chorus: 7/4 head, 4/4 bridge, 4/4 tenor solo, 3/4 piano waltz, 7/4 trades (two bars each, tenor and drums).
+
+## t9 Slow Shutter (chirper-zero)
+- **SHUTTER** (the 11/8 ostinato, 3+3+3+2 eighths at quarter = 132): the fretless on each group's first eighth (the low root, fifth, ninth, octave), the piano arpeggiating the chord in eighths with its order rotated every bar; the chord changes every bar through Emaj9 C#m11 Amaj9#11 F#m9 Dmaj7#11 Bsus13 Gmaj9#11 B7sus (second time E/G# and Cmaj7#11 for C#m11 and Bsus13).
+- **THE CLOCK**: the guitar and the ride on dotted eighths (seven per 11/8 bar, a sixteenth over): a cycle of 3 sixteenths turning against the 22-sixteenth bar.
+- **EXPOSURE** (tenor, high and slow): one long colour tone per bar (the 9th, #11 or 13th), approached by a leap; the return replays it with the full band.
