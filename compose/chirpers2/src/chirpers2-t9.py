@@ -33,7 +33,8 @@ DOTTED = os.environ.get("T9_DOTTED", "1") == "1"
 RIDE3 = os.environ.get("T9_RIDE3", "1") == "1"
 RECAP = os.environ.get("T9_RECAP", "1") == "1"
 BASSOLO = os.environ.get("T9_BASSOLO", "0") == "1"
-SEGUE = os.environ.get("T9_SEGUE", "1") == "1"  # under the last chord, Cierre's bembe bell arrives at Cierre's own tempo (eighths of 192 ms): the segue into the closer  # the open section becomes the fretless's solo (high, singing, sliding), the guitar swelling behind  # the return replays the song's EXPOSURE melody (a recapitulation) with the full band  # the ride on dotted eighths across the 11/8 (with the guitar): the cymbal's own cycle  # the guitar's dotted-eighth ostinato (0.75 beats: seven per 11/8 bar) in the ostinato and return  # 1 = kit -12 dB + highshelf -5 @4k; 2 = kit -10 dB, no shelf
+SEGUE = os.environ.get("T9_SEGUE", "1") == "1"
+ARCH = os.environ.get("T9_ARCH", "1") == "1"  # the dusk replays the dawn (its piano figures and washes, bar for bar) with the fretless singing over it: the day ends as it began  # under the last chord, Cierre's bembe bell arrives at Cierre's own tempo (eighths of 192 ms): the segue into the closer  # the open section becomes the fretless's solo (high, singing, sliding), the guitar swelling behind  # the return replays the song's EXPOSURE melody (a recapitulation) with the full band  # the ride on dotted eighths across the 11/8 (with the guitar): the cymbal's own cycle  # the guitar's dotted-eighth ostinato (0.75 beats: seven per 11/8 bar) in the ostinato and return  # 1 = kit -12 dB + highshelf -5 @4k; 2 = kit -10 dB, no shelf
 
 NOTE = {"C": 0, "C#": 1, "Db": 1, "D": 2, "D#": 3, "Eb": 3, "E": 4, "F": 5, "F#": 6, "Gb": 6, "G": 7, "G#": 8, "Ab": 8,
         "A": 9, "A#": 10, "Bb": 10, "B": 11}
@@ -237,6 +238,7 @@ def build():
     times, t = {}, 0.0
     prev = None
     song_lines = []
+    dawn_bars = []
     for si, (sec, nb, _, chs) in enumerate(FORM):
         start = t
         for b in range(nb):
@@ -248,6 +250,7 @@ def build():
                 bar["kit"] = wash(beats) if b % 2 == 1 else R(beats)
                 if b >= 4:
                     bar["strings"] = held(c, beats, 40)
+                dawn_bars.append(dict(bar))
             elif sec == "ostinato":
                 bar["piano"] = arpeggio(c, b, beats, 60 + b // 2)
                 bar["bass"] = fretless(c, beats, b) if b >= 2 else R(beats)
@@ -289,6 +292,9 @@ def build():
             elif sec == "dusk":
                 bar["bass"] = fretless(c, beats, b, sing=True)
                 bar["piano"] = arpeggio(c, b, beats, 44 - 2 * b) if b % 2 == 0 else J(held(c, beats - 1, 40), R(1))
+                if ARCH and b < nb - 1 and b < len(dawn_bars) and bar_beats("dawn", b) == beats:
+                    for k in ("piano", "kit", "strings"):
+                        bar[k] = dawn_bars[b][k]
                 if b == nb - 1:
                     seg_at[0] = beat_pos
                     bar["piano"] = held("Emaj9", beats * 2, 46)

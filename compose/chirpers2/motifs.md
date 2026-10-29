@@ -70,6 +70,7 @@ Generator `compose/chirpers2/src/chirpers2-t4.py`. A chamber-jazz brush trio wit
 ## t9 Slow Shutter (chirper-zero)
 - **SHUTTER** (the 11/8 ostinato, 3+3+3+2 eighths at quarter = 132): the fretless on each group's first eighth (the low root, fifth, ninth, octave), the piano arpeggiating the chord in eighths with its order rotated every bar; the chord changes every bar through Emaj9 C#m11 Amaj9#11 F#m9 Dmaj7#11 Bsus13 Gmaj9#11 B7sus (second time E/G# and Cmaj7#11 for C#m11 and Bsus13).
 - **THE CLOCK**: the guitar and the ride on dotted eighths (seven per 11/8 bar, a sixteenth over): a cycle of 3 sixteenths turning against the 22-sixteenth bar.
+- **THE ARCH** (v3): the dusk replays the dawn bar for bar - the same piano chords and arpeggios, the same ride washes and string bed over the same first chords (Emaj9 C#m11 Amaj9#11 F#m9 Dmaj7#11) - while the fretless sings over it: the day ends as it began.
 - **THE SEGUE** (v2): under Slow Shutter's last Emaj9, t10 Cierre's bembe bell (x.x.xx.x.x.x) arrives at Cierre's own tempo (eighths of 192 ms, dotted quarter = 104), two cycles rising from silence: the closer is heard coming before it begins.
 - **EXPOSURE** (tenor, high and slow): one long colour tone per bar (the 9th, #11 or 13th), approached by a leap; the return replays it with the full band.
 
