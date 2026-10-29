@@ -65,6 +65,11 @@ DOOR = (70, 150)
 # Round 3 (v3): M = A MEMORY through the open door: t6 Late on Purpose's vibes SIGH (the struck, motored vibes of t6,
 # E5 C5 A4 falling, late) sounds three times while the door is open, as if heard from next door, over the loops.
 R3 = set(filter(None, os.environ.get("T7_R3", "M").split(","))) - {"none"}
+# Round 4 (v4): B = THE TAPE RUNS BACKWARDS: a shadow song (`songs: loopsrc`, never a track) renders 24 beats of t7's
+# own bowed-vibes and tape-piano loops, and after the door closes a sampler plays it REVERSED, an octave down at
+# half speed (beat 152 to the end: the loops swelling in backwards as the real ones leave). Two passes cut the
+# piece into too many sections (16); one long pass keeps the drift whole.
+R4 = set(filter(None, os.environ.get("T7_R4", "B").split(","))) - {"none"}
 
 # the loops: (track, loop length in beats, enter, leave, [(offset, length, notes)], velocity)
 LOOPS = [
@@ -79,7 +84,9 @@ LOOPS = [
 def build():
     rng = random.Random(7)
     T = {k: Track(k) for k in ("vib", "pno", "pad", "whi", "drone", "rain", "crackle", "hiss", "pulse", "bass",
-                               "sigh")}
+                               "sigh", "rev")}
+    if "B" in R4:
+        T["rev"].add(152.0, 52.0, "C3", 92)  # one long reversed pass, an octave down at half speed
     for tr, L, enter, leave, phrase, vel in LOOPS:
         k = 0
         while True:
@@ -126,6 +133,30 @@ def build():
                     T["bass"].add(at + 7.05, 2.5, nm(root + 12), 50)
             k += 1
     return T
+
+
+def loopsrc_song():
+    """A shadow source: 24 beats of the bowed-vibes and tape-piano loops (their own phrases), worn, never played."""
+    def score(tr):
+        _, L, _, _, phrase, vel = next(x for x in LOOPS if x[0] == tr)
+        ev, toks, pos = [], [], 0.0
+        for k in range(3):
+            for o, ln, notes in phrase:
+                if k * L + o < 24:
+                    ev.append((k * L + o, min(ln, 24 - (k * L + o)), notes))
+        for s, ln, notes in sorted(ev):
+            if s > pos:
+                toks.append(f"R/{s - pos:g}b")
+            toks.append(f"{notes}/{ln:g}b@70")
+            pos = s + ln
+        return " ".join(toks)
+    wow = {"type": "chorus", "rate": 0.27, "depth": 0.5, "voices": 1, "mix": 1.0}
+    return {"tempo": BPM, "length": "24b", "tail": "1s", "patches": {"c2-bowed-vibes": patches()["c2-bowed-vibes"]},
+            "tracks": [{"name": "vib", "patch": "c2-bowed-vibes", "fx": [wow, "reverb kind=hall decay=3s mix=0.3"],
+                        "score": score("vib")},
+                       {"name": "pno", "patch": "tape-piano", "gain": "-2dB",
+                        "fx": [wow, "tape drive=0.35 warmth=0.7", "reverb kind=hall decay=3s mix=0.3"],
+                        "score": score("pno")}]}
 
 
 def patches():
@@ -205,6 +236,9 @@ def main():
         *([{"name": "sigh", "patch": "c2-vibes", "pan": 0.35, "gain": "-6dB",
             "fx": [dict(wow, rate=0.35), "lp cutoff=2600", "reverb kind=hall decay=3s mix=0.4"],
             "score": T["sigh"].score(TOTAL)}] if "M" in R3 else []),
+        *([{"name": "loops-reversed", "patch": "c2-loops-rev", "pan": 0.15, "gain": "-3dB",
+            "fx": ["lp cutoff=3800", {"type": "crush", "bits": 12, "rate": 14000, "mix": 0.25},
+                   "reverb kind=hall decay=4s mix=0.35"], "score": T["rev"].score(TOTAL)}] if "B" in R4 else []),
         {"name": "crackle", "patch": "c2-crackle", "gain": "-30dB", "score": T["crackle"].score(TOTAL)},
         {"name": "hiss", "patch": "c2-hiss", "gain": "-36dB", "score": T["hiss"].score(TOTAL)},
     ]
@@ -222,7 +256,11 @@ def main():
         'tail: "5s"',
         'ceiling: "-0.5dB"',
         'volume: "4dB"',
-        "patches: " + json.dumps(patches()),
+        "patches: " + json.dumps({**patches(), **({"c2-loops-rev": {
+            "about": "chirper-two: t7's own loops, resampled from the shadow song `loopsrc` and played backwards.",
+            "synth": {"layers": [{"type": "sample", "song": "loopsrc", "root": "C4", "reverse": True}],
+                      "amp": {"a": "1.5s", "d": "0s", "s": 1, "r": "3s"}}}} if "B" in R4 else {})}),
+        *(["songs: " + json.dumps({"loopsrc": loopsrc_song()})] if "B" in R4 else []),
         "master: " + json.dumps({"fx": [{"type": "eq", "bands": ["hp cutoff=28"]}, "tape drive=0.2 warmth=0.5",
                                         "glue threshold=-22dB ratio=1.5 attack=40ms release=400ms makeup=1dB"]}),
         "tracks:",
