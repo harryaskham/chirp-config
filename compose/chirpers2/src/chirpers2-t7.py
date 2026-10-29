@@ -78,7 +78,8 @@ class Part:
         return " ".join(toks)
 
 
-P = {k: Part() for k in ("mar", "flute", "tpt", "sax", "gtr", "keys", "bass", "kick", "snare", "hat", "toms", "ride")}
+P = {k: Part() for k in ("mar", "flute", "tpt", "sax", "gtr", "keys", "bass", "kick", "snare", "hat", "toms", "ride",
+                         "clock", "sub")}
 BARS = []          # (start eighths, length eighths, section, index in section)
 rng = random.Random(7)
 
@@ -367,6 +368,32 @@ def coda(t):
     return t + 16
 
 
+def clock(spans):
+    """THE CLOCK: a toy piano ticking every 5 sixteenths (2.5 eighths), cycling the subject's pitches high up, accented
+    every fourth tick: a gear that turns against every meter (3 vs 5 vs 7 under cross purposes) and lands somewhere new
+    in each bar. It ticks through the fugue and cross purposes only, so the other sections keep their own density."""
+    k = 0
+    for name, v0 in (("fugue", 64), ("cross", 72)):           # where it is a third party to the argument
+        a, z = spans[name]
+        x = a
+        while x < z - 0.25:
+            p, _ = SUBJ[k % len(SUBJ)]
+            P["clock"].add(x, 1.0, nm(D4 + 24 + p), v0 + (14 if k % 4 == 0 else 0))
+            x += 2.5
+            k += 1
+
+
+def sub_floor(spans):
+    """The SUB: the bass doubled an octave down by a sine in the loud sections (the lows sat 11-17 dB under the album
+    at 38-71 Hz; after chirper-one's 'low end under the fretless' in t2, transformed: it follows the whole bass line)."""
+    quiet = (spans["trades"][0], [b for b in BARS if b[2] == "trades"][20][0])
+    for st, ln, head, vel in P["bass"].ev:
+        if quiet[0] <= st < quiet[1] or st < 2 * SUBJ_LEN:
+            continue
+        m = NAMES.index(head[:-1]) + 12 * (int(head[-1]) + 1) - 12        # an octave under the bass
+        P["sub"].add(st, ln, nm(m + 12 if m < 26 else m), vel)           # never under D1 (37 Hz)
+
+
 def dyn_lane():
     """Master dynamics (dB, after the glue): the trades hush by 6 dB until their last wheel turn."""
     sec = lambda e: e / 2 * 60 / BPM
@@ -378,9 +405,14 @@ def dyn_lane():
 
 def main():
     t = 0.0
+    spans = {}
     for sec in (statement, fugue, black_page, cross, trades, stretto, coda):
+        a = t
         t = sec(t)
+        spans[sec.__name__] = (a, t)
     total = t
+    clock(spans)
+    sub_floor(spans)
     MAR = {"about": "Cross Purposes' marimba (chirper-three): additive wooden-bar partials 1 / 3.93 / 9.2 with a mallet click.",
            "synth": {"layers": [{"name": "bar", "type": "additive", "partials": [[1, 1], [3.93, 0.32], [9.2, 0.07]]},
                                 {"name": "click", "type": "noise", "level": {"value": "-70dB", "mod": [{"src": "env.ck", "amount": 40}]}}],
@@ -388,6 +420,8 @@ def main():
                      "filters": ["hp cutoff=120"],
                      "amp": {"a": "1ms", "d": "650ms", "s": 0, "r": "80ms", "curve": 3}},
            "play": {"vel_sens": 0.6}}
+    SUB = {"about": "Cross Purposes' sub (chirper-three): a sine an octave under the bass, a soft attack, sustained.",
+           "synth": {"layers": [{"name": "sub", "wave": "sine"}], "amp": {"a": "8ms", "d": "300ms", "s": 0.7, "r": "60ms"}}}
     tr = lambda name, patch, **kw: dict({"name": name, "patch": patch, "score": P[name].score(total)}, **kw)
     tracks = [
         tr("mar", "c3-marimba", pan="L40", gain="-4dB", sends={"room": "-10dB"}),
@@ -397,6 +431,8 @@ def main():
         tr("gtr", "starcaster-clean", pan="L60", gain="-6dB", sends={"room": "-12dB"}),
         tr("keys", "wurli", pan="R60", gain="-7dB", sends={"room": "-12dB"}),
         tr("bass", "bass-di", gain="-3dB"),
+        tr("sub", "c3-sub", gain="-9dB"),                                   # the sub floor under the loud sections
+        tr("clock", "toy-piano", pan="R15", gain="-4dB", sends={"room": "-14dB"}),   # the CLOCK, every 5 sixteenths
         tr("kick", "prog-kit", out="drums"),
         tr("snare", "prog-kit", out="drums"),
         tr("hat", "prog-kit", out="drums", gain="-4dB"),
@@ -408,7 +444,7 @@ def main():
         f"tempo: {BPM}",
         'tail: "2s"',
         'ceiling: "-0.3dB"',
-        "patches: " + json.dumps({"c3-marimba": MAR}),
+        "patches: " + json.dumps({"c3-marimba": MAR, "c3-sub": SUB}),
         "buses:",
         '  room: {fx: ["reverb kind=room decay=1.1s mix=1 predelay=12ms mono_below=150hz"]}',
         '  drums: {fx: [{"type": "compressor", "threshold": "-20dB", "ratio": 2.5, "attack": "12ms", "release": "100ms", "makeup": "2dB"}, "reverb kind=room decay=0.8s mix=0.12 predelay=8ms mono_below=200hz"]}',
