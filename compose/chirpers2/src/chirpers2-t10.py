@@ -25,22 +25,25 @@ MG = float(os.environ.get("T10_MG", "10"))
 DYN = os.environ.get("T10_DYN", "1") == "1"
 EQ = os.environ.get("T10_EQ", "2")  # master eq: 1 = v1 (shelf +3 @100, 800 -2); 2 = shelf +6 @120, 700 q0.6 -3
 LOWB = os.environ.get("T10_LOWB", "0") == "1"  # the tumbao's anticipated root an octave lower (the baby bass's floor)
-KICK = os.environ.get("T10_KICK", "0") == "1"
-SEAM = os.environ.get("T10_SEAM", "1") == "1"
-MAMBO_KEY = int(os.environ.get("T10_MAMBOKEY", "0"))
+KICK = os.environ.get("T10_KICK", "0") == "1"  # more bombo: the ponche on 4 in the mambo/cierre, dotted quarters in the descarga
+SEAM = os.environ.get("T10_SEAM", "1") == "1"  # every section's last bar breaks at its middle into a timbale fill (the seams read)
+MAMBO_KEY = int(os.environ.get("T10_MAMBOKEY", "0"))  # the mambo transposed (semitones): +5 = up a fourth, to G minor
 QUOTE = os.environ.get("T10_QUOTE", "1") == "1"  # the 7/4 interlude quotes the album's opener: SEVEN DOORS (t1 Doors at Seven), up a step into D
-MONA = os.environ.get("T10_MONA", "cierre") in ("1", "cierre")
-MONA_WHERE = os.environ.get("T10_MONA", "cierre")
-CONGAS = os.environ.get("T10_CONGAS", "1") == "1"
+MONA = os.environ.get("T10_MONA", "cierre") in ("1", "cierre")  # the mona: a second horn riff interlocking with the mambo's
+MONA_WHERE = os.environ.get("T10_MONA", "cierre")  # "1": the mambo's second half and the shout; "cierre": the shout only
+CONGAS = os.environ.get("T10_CONGAS", "1") == "1"  # real congas on the physical drum layer (quinto, conga, slap) for the kit's toms
 CONGA_DB = float(os.environ.get("T10_CONGADB", "0"))  # the congas' level offset (dB)
-CONGA_EQ = os.environ.get("T10_CONGAEQ", "0") == "1"
-KEEP_FT = os.environ.get("T10_KEEPFT", "1") == "1"
-SUNG = os.environ.get("T10_SUNG", "1") == "1"
-QUINTO = os.environ.get("T10_QUINTO", "1") == "1"  # the quinto improvises in the descarga's solo bars: open tones and slaps drawn per bar, answering the soloist  # the descarga's CORO sung: a baritone (maynard) an octave under, wordless dream voices at pitch, over the horns  # keep the room-kit floor tom under the congas (its low end) instead of the tumba  # a 250 Hz -3 dB cut on the congas (the box)  # real congas on the physical drum layer (quinto, conga, tumba, slap) for the kit's toms  # "1": the mambo's second half and the shout; "cierre": the shout only  # the mona: a second horn riff interlocking with the mambo's (the mambo's second half and the shout)  # the mambo transposed (semitones): +5 = up a fourth, to G minor  # every section's last bar breaks at its middle into a timbale fill (the seams read)  # more bombo: the ponche on 4 in the mambo/cierre, dotted quarters in the descarga  # section dynamics on the master (after the compressor)
+CONGA_EQ = os.environ.get("T10_CONGAEQ", "0") == "1"  # a 250 Hz -3 dB cut on the congas (the box)
+KEEP_FT = os.environ.get("T10_KEEPFT", "1") == "1"  # keep the room-kit floor tom under the congas (its low end) instead of the tumba
+SUNG = os.environ.get("T10_SUNG", "1") == "1"  # the descarga's CORO sung: a baritone (maynard) an octave under, wordless dream voices at pitch
+QUINTO = os.environ.get("T10_QUINTO", "1") == "1"  # the quinto improvises in the descarga's solo bars: open tones and slaps drawn per bar
+PSOLO = os.environ.get("T10_PSOLO", "1") == "1"  # a 16-bar piano solo over the montuno groove between the son and the mambo (octave lines, horns out)
 
 # sections: (name, meter, bpm (quarter), bars)
 FORM = [("bembe", "12/8", 156, 12), ("son", "4/4", 208, 40), ("mambo", "4/4", 208, 24), ("siete", "7/4", 208, 12),
         ("descarga", "12/8", 174, 28), ("cierre", "4/4", 208, 10)]
+if PSOLO:
+    FORM.insert(2, ("psolo", "4/4", 208, 16))
 BEATS = {"12/8": 6, "4/4": 4, "7/4": 7}
 
 NOTE = {"C": 0, "C#": 1, "Db": 1, "D": 2, "D#": 3, "Eb": 3, "E": 4, "F": 5, "F#": 6, "Gb": 6, "G": 7, "G#": 8, "Ab": 8,
@@ -142,7 +145,7 @@ MONA_RIFF = [  # the mona: low horns in the mambo riff's gaps
 def harm(sec, b):
     if sec == "bembe":
         return ["Dm9", "Gm9/D"][b % 2]
-    if sec in ("son", "mambo", "cierre"):
+    if sec in ("son", "mambo", "cierre", "psolo"):
         return SON_PROG[b % 4]
     if sec == "siete":
         if QUOTE and b < 8:
@@ -242,7 +245,7 @@ def drums(sec, b, beats, dens=1):
                 h.append("t1")
             if sec == "descarga" and dens > 1 and i in (3, 9):
                 h.append("s")
-        elif sec in ("son", "mambo", "cierre"):
+        elif sec in ("son", "mambo", "cierre", "psolo"):
             # cascara-ish ride bell on quarters, conga tumbao (open tones on 4 and 4&), bombo on 2& of the 3-side bar
             if i % 2 == 0:
                 h.append("rbs" if sec != "son" or b >= 8 else "cowm")
@@ -273,7 +276,7 @@ def drums(sec, b, beats, dens=1):
                 h = [x for x in h if x != "t1"] + qpat[i].split(",")
         if CONGAS:
             h = [{"t1": "qo", "t2": "co", "ft": ("ft" if KEEP_FT else "to")}.get(x, x) for x in h]
-            if sec in ("son", "mambo", "cierre") and i == 2:
+            if sec in ("son", "mambo", "cierre", "psolo") and i == 2:
                 h.append("cs")  # the tumbao's slap on 2
             if sec in ("bembe", "descarga") and i in (2, 8):
                 h.append("cs")
@@ -294,6 +297,35 @@ MAMBO = [  # horn-section mambo riff (4/4), answering the montuno: short, punchy
     [("R", 0.5), ("A4", 0.5), ("C5", 0.5), ("D5", 0.5), ("R", 0.5), ("F5", 1), ("R", 0.5)],
     [("E5", 0.5), ("R", 0.5), ("D5", 0.5), ("C5", 1), ("A4", 0.5), ("R", 1)],
 ]
+
+
+SCALES = {"Dm9": [0, 2, 3, 5, 7, 9, 10], "G13": [0, 2, 4, 5, 7, 9, 10], "Cmaj7#11": [0, 2, 4, 6, 7, 9, 11],
+          "A7b13": [0, 1, 3, 4, 6, 8, 10]}
+PSOLO_RHY = ["x.xx.x.x", ".x.xx.xx", "xx.x.xx.", "x..x.x.x"]  # the solo's eighth-note cells; bar 4 of each 4 repeats bar 1's
+
+
+def piano_solo(c, b, rng, vel=90):
+    """The piano's solo over the montuno: a right hand in octaves (dyads an octave apart), lines drawn from the
+    chord's scale in syncopated eighth cells, the top climbing over the 16 bars."""
+    root = CH[c][0] % 12
+    pcs = {(root + x) % 12 for x in SCALES[c]}
+    lo, hi = 67 + b // 2, 84 + b // 2
+    pool = [m for m in range(lo, hi + 1) if m % 12 in pcs]
+    cell = PSOLO_RHY[(b % 4) if b % 4 != 3 else 0]
+    i = rng.randrange(len(pool) // 3, 2 * len(pool) // 3)
+    up = rng.random() < 0.5
+    out = []
+    for k, ch in enumerate(cell):
+        if ch == "x":
+            m = pool[i]
+            out.append(tok(f"{nm(m - 12)},{nm(m)}", 0.5, vel + (6 if k == 0 else 0) - (8 if k % 2 else 0)))
+            i += (1 if up else -1) * rng.choice([1, 1, 2])
+            if i <= 0 or i >= len(pool) - 1:
+                up = not up
+                i = max(0, min(len(pool) - 1, i))
+        else:
+            out.append(R(0.5))
+    return J(*out)
 
 
 def line(notes, vel=92, shift=0):
@@ -324,6 +356,7 @@ def build():
     T = {n: [] for n in names}
     tempo = []
     beat0 = 0.0
+    prng = random.Random(16)
     for si, (sec, meter, bpm, nb) in enumerate(FORM):
         beats = BEATS[meter]
         tempo.append({"at": f"{beat0:g}b", "bpm": bpm, "meter": meter})
@@ -347,7 +380,10 @@ def build():
                 bar["kit"] = drums(sec, b, beats, dens)
                 bar["bass"] = tumbao(c, nxt, b, beats)
                 disp = (b // 4) % 2
-                if sec == "son":
+                if sec == "psolo":  # the piano's turn: octave lines over clave, congas and tumbao; the horns lay out
+                    bar["piano"] = piano_solo(c, b, prng)
+                    bar["pad"] = comp(c, b, beats, vel=40)
+                elif sec == "son":
                     bar["piano"] = montuno(c, b, disp, vel=82 + (b // 8) * 2)
                     if b >= 16:
                         bar["trumpet"] = line(THEME[b % 4], vel=94, shift=(12 if b >= 32 else 0) if b % 8 < 4 else 0)
@@ -459,9 +495,9 @@ def master():
     m = {"fx": fx}
     if DYN:  # the suite's arc: an intimate bembe, the son and mambo up, the 7/4 interlude down, the descarga building, the cierre on top
         st = section_times()
-        lv = {"bembe": -6, "son": -2, "mambo": 0, "siete": -6, "descarga": -3, "cierre": num("T10_CIERRE", "5")}
+        lv = {"bembe": -6, "son": -2, "psolo": -3, "mambo": 0, "siete": -6, "descarga": -3, "cierre": num("T10_CIERRE", "5")}
         pts = [["0s", lv["bembe"]]]
-        for sec in ("son", "mambo", "siete", "descarga", "cierre"):
+        for sec in [n for n, *_ in FORM][1:]:
             a = st[sec][0]
             prev = pts[-1][1]
             pts += [[f"{a - 0.6:.2f}s", prev], [f"{a:.2f}s", lv[sec]]]
