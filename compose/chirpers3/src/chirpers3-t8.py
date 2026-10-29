@@ -32,7 +32,9 @@ H3 = os.environ.get("T8_H3", "0") == "1"
 CH3 = os.environ.get("T8_CH3", "1") == "1"  # the last groove's chops as a dotted-eighth chain (every 3 sixteenths, across the bar lines), the voice carrying the cross-rhythm
 RESAMPLE = os.environ.get("T8_RESAMPLE", "1") == "1"
 LATE = os.environ.get("T8_LATE", "65")
-VCHOP = os.environ.get("T8_VCHOP", "climax")  # wM's MPC chop on the voice: "stop" = through THE STOP; "climax" = through the last groove (the chain resampled)  # the claps (and optionally the hats) dragged late by hand: "45" or "45,25" (ms; play.humanize.nudge)  # master stutter bursts (3/16 slices) on the last half-bar before groove 2 and before the breakdown  # the HATS on the 3-sixteenth cycle instead (the loud voice carries the cross-rhythm; the shaker off)  # the shaker on a 3-sixteenth cycle (dotted eighths) running across the bar: the garage cross-rhythm  # groove 2 becomes THE STOP: half-time (kick 1, rim 3, no hats), rhodes chords for the pad, the B loop  # the v1 rework: a B loop for groove 2, a heavier shuffle with more off-16th hats, the sub up, the mud out
+VCHOP = os.environ.get("T8_VCHOP", "climax")
+WEAR = os.environ.get("T8_WEAR", "0") == "1"
+LIFT = int(os.environ.get("T8_LIFT", "2"))  # the last groove lifted (semitones): the night loop up a step for the final run  # the tape wears (deck warp lanes): the beatless breakdown drifts seasick (1.6), the outro wears out (1 -> 2)  # wM's MPC chop on the voice: "stop" = through THE STOP; "climax" = through the last groove (the chain resampled)  # the claps (and optionally the hats) dragged late by hand: "45" or "45,25" (ms; play.humanize.nudge)  # master stutter bursts (3/16 slices) on the last half-bar before groove 2 and before the breakdown  # the HATS on the 3-sixteenth cycle instead (the loud voice carries the cross-rhythm; the shaker off)  # the shaker on a 3-sixteenth cycle (dotted eighths) running across the bar: the garage cross-rhythm  # groove 2 becomes THE STOP: half-time (kick 1, rim 3, no hats), rhodes chords for the pad, the B loop  # the v1 rework: a B loop for groove 2, a heavier shuffle with more off-16th hats, the sub up, the mud out
 S = 0.25
 
 NOTE = {"C": 0, "C#": 1, "Db": 1, "D": 2, "D#": 3, "Eb": 3, "E": 4, "F": 5, "F#": 6, "Gb": 6, "G": 7, "G#": 8, "Ab": 8,
@@ -109,7 +111,11 @@ def drums(b, rng, sec):
 
 
 def chord(b, sec=""):
-    return (LOOP_B if V2 and sec == "groove2" else LOOP)[b % 4]
+    c = (LOOP_B if V2 and sec == "groove2" else LOOP)[b % 4]
+    if LIFT and sec == "groove3":
+        name, r, v, tones = c
+        return (name, r + LIFT, [n + LIFT for n in v], [n + LIFT for n in tones])
+    return c
 
 
 def sub(b, sec=""):
@@ -146,9 +152,9 @@ def chops(b, rng, up=0, dense=False, sec=""):
     return J(*out)
 
 
-def chop_chain(b, up=12):
+def chop_chain(b, up=12, sec=""):
     """The chops in a dotted-eighth chain: one syllable every 3 sixteenths, cycling 9th-5th-3rd of the chord."""
-    _, _, _, tones = chord(b)
+    _, _, _, tones = chord(b, sec)
     off = (3 - (b * 16) % 3) % 3
     out, pos = [], 0
     for k, st in enumerate(range(off, 16, 3)):
@@ -185,9 +191,9 @@ def build():
                 if sec != "groove" or b >= 8:
                     bar["chops"] = chops(gb, rng, up=12 if sec == "groove3" else 0, dense=(sec != "groove"), sec=sec)
                 if sec == "groove3":
-                    bar["glass"] = pad(gb, 50)
+                    bar["glass"] = pad(gb, 50, sec=sec)
                     if CH3:
-                        bar["chops"] = chop_chain(gb)
+                        bar["chops"] = chop_chain(gb, sec=sec)
             elif sec == "breakdown":
                 bar["pad"] = pad(gb, 62)
                 bar["glass"] = pad(gb, 54)
@@ -236,6 +242,16 @@ def song():
     T = build()
     sc = lambda n, pre="": (pre + " " if pre else "") + " | ".join(T[n])  # noqa: E731
     deck = "tape drive=0.12 mix=1 wow=12 flutter=2 drift=1 tone=6500 sweep=0.6 seed=8"
+    wear_auto = {}
+    if WEAR:
+        st, total = section_starts()
+        bd0, bd1 = st["breakdown"], st["groove3"]
+        o0 = st["outro"]
+        wr = [["0s", 1], [f"{bd0 - 0.3:.2f}s", 1], [f"{bd0 + 0.5:.2f}s", 1.6], [f"{bd1 - 0.5:.2f}s", 1.6], [f"{bd1:.2f}s", 1],
+              [f"{o0:.2f}s", 1], [f"{total:.2f}s", 2], [f"{total + 8:.2f}s", 2]]
+        deck = {"type": "tape", "drive": 0.12, "mix": 1, "wow": 12, "flutter": 2, "drift": 1, "tone": 6500, "sweep": 0.6, "seed": 8,
+                "warp": {"value": 0, "mod": [{"src": "auto.wr", "amount": 1}]}}
+        wear_auto = {"wr": {"points": wr}}
     chop = {"about": "Tape Weather t8: the chop voice - chirp's voice layer with a short tract (a higher, younger voice), "
                      "a fast attack and a short release, the vowel and onset consonant written per note.",
             "synth": {"layers": [{"type": "voice", "tract": 0.82, "breath": 0.4,
@@ -255,6 +271,8 @@ def song():
          "sends": {"hall": "-6dB", "echo": "-12dB"}, "score": sc("chops", "swing16=0.62")},
     ]
     tracks = [vchop_track(t) if t["name"] == "chops" else t for t in tracks]
+    if wear_auto:
+        tracks = [({**t, "auto": {**t.get("auto", {}), **wear_auto}} if deck in t.get("fx", []) else t) for t in tracks]
     doc = {
         "about": ("Chirpers - Tape Weather, track 8 (original composition, chirper-zero; generator "
                   "compose/chirpers3/src/chirpers3-t8.py). Night-bus 2-step: lo-fi UK garage at 136 bpm - a shuffled, "
