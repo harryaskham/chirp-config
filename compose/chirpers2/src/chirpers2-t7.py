@@ -19,7 +19,7 @@ GENTLE GIANT / ZAPPA COUNTERPOINT: a through-composed chamber-prog piece where t
                  each traded bar develops the subject (cyclic start, on the bar's chord, as written / inverted / retrograde);
                  the hushed part is a SWINGING BRUSH TRIO: flute and jazz guitar trade swung bars, a Rhodes through
                  wM's Bassman stack comps, the bass walks, chirper-two's brushes; the horns take the straight wake-up;
-    6 STRETTO    subject entries every two eighths in every voice, the climax;
+    6 STRETTO    subject entries every two eighths in every voice, the climax, a whole tone up (E) after a B7alt pivot;
     7 CODA       the subject in augmentation (bass + flute), then the final chord built one hocketed note at a time.
 - KIT: prog-kit, groupings follow each meter (7 = 2+2+3 or 3+2+2 alternating bar by bar, 5 = 3+2 / 2+3, 9 = 2+2+2+3,
   6 = 3+3, 8 = 3+3+2): kick on group starts, snare on the last group, hats on the eighths.
@@ -124,8 +124,8 @@ def bar(st, ln, sec, i):
     BARS.append((st, ln, sec, i))
 
 
-def harmony_bar(st, ln, ci, vel=80, bass=True, stabs=True, walk=False):
-    root, iv = chord_at(ci)
+def harmony_bar(st, ln, ci, vel=80, bass=True, stabs=True, walk=False, chord=None):
+    root, iv = chord or chord_at(ci)
     if stabs:
         voic = [60 + ((root + x) % 12) for x in iv[1:]]
         head = ",".join(nm(m) for m in sorted(set(voic)))
@@ -236,16 +236,20 @@ def black_page(t):
 
 
 # ---------- 4 CROSS PURPOSES ----------
+CROSS_KEY = 0  # tried 3 (cross purposes in F): recurrence unmoved (its matches are timbral), s11 -1.0; kept in D
+
+
 def cross(t):
     a, z = t, t + 12 * 8
+    K = CROSS_KEY
     x = a                                                         # horns + wurli: the subject's 7/8 bar, cycling
     n = 0
     while x < z:
         for p, d in SUBJ[:5]:
             if x < z:
-                P["tpt" if n % 2 == 0 else "sax"].add(x, d * 0.85, nm(D4 + p + (12 if n % 2 == 0 else 0)), 88)
+                P["tpt" if n % 2 == 0 else "sax"].add(x, d * 0.85, nm(D4 + K + p + (12 if n % 2 == 0 else 0)), 88)
             x += d
-        P["keys"].add(x - 7, 0.6, "D4,G4,C5" if n % 2 else "E4,A4,D5", 74)
+        P["keys"].add(x - 7, 0.6, ",".join(nm(m + K) for m in ((62, 67, 72) if n % 2 else (64, 69, 74))), 74)
         P["ride"].add(x - 7, 1, "D5", 100)                         # the ride bell marks the 7
         n += 1
     x, n = a, 0                    # flute + marimba + guitar: QUARTER-NOTE TRIPLETS, six to the bar: 3 against the horns' 7
@@ -253,11 +257,11 @@ def cross(t):
     while x < z - 1e-6:
         for p, d in fig:
             who = ("flute", "mar", "gtr")[n % 3]
-            base = D4 + 12 if who != "gtr" else D4
+            base = (D4 + 12 if who != "gtr" else D4) + K
             P[who].add(x, d * 0.9, nm(base + p + (3 if n % 4 == 3 else 0)), 82)
             x += d
         n += 1
-    line(P["bass"], a, SUBJ * 4, D4 - 24, 100, scale=2.0)          # the subject augmented, four times
+    line(P["bass"], a, SUBJ * 4, D4 - 24 + K, 100, scale=2.0)      # the subject augmented, four times
     for i in range(12):
         bar(t, 8, "cross", i)
         kit_bar(t, 8, i, 94 + (i // 3) * 2, fill=(i == 11), hats=False)
@@ -361,7 +365,8 @@ def trades(t):
         motif_bar(who, t, ln, i, v, swung=not late)
         bar(t, ln, "trades", i)
         if late:
-            harmony_bar(t, ln, i, 70 + i // 2, walk=True)
+            # the last bar pivots on B7alt, the dominant of E, where the stretto climbs
+            harmony_bar(t, ln, i, 70 + i // 2, walk=True, chord=(11, [0, 4, 10, 13, 15]) if i == 23 else None)
             kit_bar(t, ln, i, 84 + i // 2, fill=(i == 23))
         else:
             walk_quarters(t, ln, i, 76)
@@ -375,10 +380,14 @@ def trades(t):
 
 
 # ---------- 6 STRETTO ----------
+LIFT = 2      # the stretto climbs a whole tone (E) for the climax; the coda steps home to D
+
+
 def stretto(t):
     a = t
     entries = [("bass", D4 - 24), ("gtr", D4 - 12), ("sax", D4 - 12), ("keys", D4), ("tpt", D4 + 7), ("mar", D4 + 12),
                ("flute", D4 + 12)]
+    entries = [(who, base + LIFT) for who, base in entries]
     for j, (who, base) in enumerate(entries):
         e = line(P[who], a + 2 * j, SUBJ, base, 96 + j)
         line(P[who], e, INV, base, 92 + j)
@@ -417,9 +426,10 @@ def clock(spans):
     for name, v0 in (("fugue", 64), ("cross", 72)):           # where it is a third party to the argument
         a, z = spans[name]
         x = a
+        key = CROSS_KEY if name == "cross" else 0
         while x < z - 0.25:
             p, _ = SUBJ[k % len(SUBJ)]
-            P["clock"].add(x, 1.0, nm(D4 + 24 + p), v0 + (14 if k % 4 == 0 else 0))
+            P["clock"].add(x, 1.0, nm(D4 + 24 + key + p), v0 + (14 if k % 4 == 0 else 0))
             x += 2.5
             k += 1
 

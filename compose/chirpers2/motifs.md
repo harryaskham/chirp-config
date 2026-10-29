@@ -32,6 +32,8 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
   length less a breath (sax and muted trumpet, single bars then pairs, over the 7 5 6 9 wheel).
 - **THE CLOCK** (since v5): the subject's pitches two octaves up on a toy piano, one every 5 sixteenths, accent every
   fourth: a gear turning through the fugue and cross purposes (3 vs 5 vs 7), landing somewhere new in each bar.
+- **THE LIFT** (since v8): the trades' last bar pivots on B7alt and the STRETTO's seven entries climb a whole tone, to
+  E, for the climax; the coda's augmentation steps home to D.
 - **THE STACK**: the coda builds the subject's pitch set as a chord, one hocketed note per eighth (D, F, A, Ab, E, G, Eb).
 
 
