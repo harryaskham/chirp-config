@@ -86,14 +86,16 @@ def build():
                 # THE VOCAL CHOP (the chopper: the built-in vox-chops cut into 16): the hard flip gets a hook of chopped
                 # voice - a two-bar figure of slices in eighths, answered by its own variation - over the two records
                 VHOOK = [[3, None, 3, 7, None, 9, 7, None], [3, None, 3, 7, None, 12, 11, 9]]
-                for bar in range(4):
-                    if bar % 2 == 1 and blk % 2 == 0:
-                        continue
+                # (v13) the hook and the sax TRADE: the voice takes the first two bars of each four, the sax answers in
+                # the last two
+                for bar in range(2):
                     for e, sl_ in enumerate(VHOOK[bar % 2]):
                         if sl_ is not None:
                             vchop.append((t0 + bar * 4 + e * 0.5 + (0.05 if e % 2 else 0), sl(sl_), 0.45, 92 if e == 0 else 82))
             if name in ('sax', 'flip2', 'down'):
                 for ph in range(2):
+                    if name == 'flip2' and ph == 0:
+                        continue
                     for at, m, d in SAX[(blk * 2 + ph) % 2]:
                         sax.append((t0 + ph * 8 + at, nm(m + (12 if name == 'flip2' and ph == 1 else 0)), d, 92))
             sections.append((name, t0))
@@ -131,9 +133,9 @@ def build():
                             'ts': {'points': [['0s', 1], [f'{2 * SPB:.2f}s', 1], [f'{2 * SPB + 0.02:.2f}s', 0], [f'{end_s - 4 * SPB:.2f}s', 0], [f'{end_s - 4 * SPB + 0.02:.2f}s', 1]]},
                             'fade': {'points': [['0s', -6], ['6s', 0], [f'{end_s - 8:.2f}s', 0], [f'{end_s:.2f}s', -24]]}}},
         'tracks': [
-            # THE PUMP (wM's pump fx): the flipped sample ducks under the boom-bap kick (-10 dB, back over 260 ms), the
+            # THE PUMP (wM's pump fx): the flipped sample ducks under the boom-bap kick (-10 dB, a slow 460 ms swell back, curve .5), the
             # beat-tape breath; the sax gets a hall with a little octave shimmer in its tail
-            {'name': 'chops', 'patch': 'chop-souljazz', 'gain': '-2dB', 'auto': {'cp': {'points': cp}}, 'fx': [{'type': 'pump', 'on': 'kit.k', 'depth': '-10dB', 'attack': '3ms', 'release': '260ms'}, {'type': 'chop', 'slices': 8, 'pattern': '0 r1 2 2 . r5 6 _', 'length': '1/1', 'mix': {'value': 0, 'mod': [{'src': 'auto.cp', 'amount': 1}]}}, 'tape drive=0.15 mix=0.5 wow=8 flutter=2 drift=1 tone=7000 sweep=0.5 seed=6'], 'score': line(chops, total)},
+            {'name': 'chops', 'patch': 'chop-souljazz', 'gain': '-2dB', 'auto': {'cp': {'points': cp}}, 'fx': [{'type': 'pump', 'on': 'kit.k', 'depth': '-10dB', 'attack': '3ms', 'release': '460ms', 'curve': 0.5}, {'type': 'chop', 'slices': 8, 'pattern': '0 r1 2 2 . r5 6 _', 'length': '1/1', 'mix': {'value': 0, 'mod': [{'src': 'auto.cp', 'amount': 1}]}}, 'tape drive=0.15 mix=0.5 wow=8 flutter=2 drift=1 tone=7000 sweep=0.5 seed=6'], 'score': line(chops, total)},
             # the record as found: the same slices through a muffled filter, like a record playing in the next room
             # THE SECOND RECORD (the dig): mid-song the digger pulls another record, an ethio-jazz side, muffled and
             # worn under the sax; the hard flip then chops it in with the soul-jazz

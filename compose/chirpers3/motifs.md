@@ -177,6 +177,7 @@ Generator `compose/chirpers3/src/chirpers3-t1.py`. A beat-tape intro at 86 bpm o
 - **THE LAST GRAINS** (v9, wM's cloud fx on the record as found): as the record lifts, its last bars dissolve into a granular cloud (160 ms grains, a third reversed) that freezes on the final bar and hangs over the run-out crackle.
 - **THE BREATH AND THE HALO** (v10, wM's pump and reverb shimmer): the flipped sample ducks 10 dB under every boom-bap kick (pump keyed on kit.k, 260 ms swell), the beat-tape breath; the sax sings into a hall whose tail climbs an octave (shimmer .35).
 - **THE VOCAL CHOP** (v11, the chopper: the built-in vox-chops in 16 slices): the hard flip gets a chopped-voice hook over the two records - slices 4 . 4 8 . 10 8 . | 4 . 4 8 . 13 12 10 in eighths, on tape with a dotted-sixteenth echo.
+- **THE TRADE** (v12): in the hard flip the chopped voice and the sax trade - the voice takes the first two bars of each four, the sax answers (an octave up) in the last two; the pump's swell is slowed to 460 ms with a soft curve (chirp-eco's tip), so the sample breathes instead of clicking.
 - **THE STUTTER BUILD**: slice 13 in quarters, eighths, sixteenths (trading with 14), then 1 and 14 in eighths.
 - **THE SAX** (tenor, physical reed, C mixolydian): G4 Bb4 C5 . D5 C5 . Bb4 G4 -- / C5 D5 Eb5 . D5 C5 Bb4 G4 --, answered by the chops; an octave up in the hard flip.
 
