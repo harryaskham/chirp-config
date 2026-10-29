@@ -151,6 +151,10 @@ R25 = set(filter(None, os.environ.get("T8_R25", "P,C").split(","))) - {"none"}
 # over the rolled chorale each chord's colour tone, and over the coda's last two bars the E lydian #11, held, toward
 # t9's ECM air; P = the two phasing marimbas panned wide (-0.75 / +0.75), so the phase is heard in space.
 R26 = set(filter(None, os.environ.get("T8_R26", "W,P").split(","))) - {"none"}
+# Round 27 (v27): H = a HALO at the opening: the bowed vibes swell once over the cell's last two bars (Eb lydian's
+# #11, the colour the coda ends on in E), so the piece begins and ends in the bowed bar's air; F = the melody's FIRST
+# palindrome in four mallets too (thirds), foreshadowing the peak.
+R27 = set(filter(None, os.environ.get("T8_R27", "H,F").split(","))) - {"none"}
 SUBJECT = [(0, 1), (3, 1), (7, 1), (6, 2), (2, 2), (5, 1), (1, 1), (4, 1), (0, 2)]  # t7: semitones, eighths
 BAR = 6.0  # a 12/8 bar, in quarter beats
 
@@ -385,7 +389,7 @@ def build():
                     chord = REHARM[min(3, int((at - start) // BAR))]
                 swell = 12 - 4 * abs(j - mid)  # dynamics mirror too: up to the centre, back down
                 head = nm(vr(deg(chord, d) + 12))
-                if sec == "peak" and "T" in R3:  # four mallets: a diatonic third under the line
+                if (sec == "peak" and "T" in R3) or (sec == "melody" and i == 0 and "F" in R27):  # four mallets
                     head += "," + nm(vr(deg(chord, d - 2) + 12))
                 T["vib"].add(at, ln / 2 * 0.98, head, v - 4 + swell)
                 if sec == "peak" and "C" in R25:  # the canon, a dotted quarter behind
@@ -546,6 +550,9 @@ def build():
                     root += 12
                 T["bm"].add(at, 0.4, nm(root), LEVEL["unison"] + 4)
                 T["fd"].add(at + 0.003, 0.3, "dum", LEVEL["unison"] - 4)
+    if "H" in R27 and "W" in R26:  # the halo over the opening cell
+        ce = [bb for bb in bars if bb[1] == "cell"]
+        T["bowed"].add(ce[-2][0], 2 * BAR * 0.95, nm(vr(deg(HOME[0], 3) + 12)), LEVEL["cell"] - 4)
     if "W" in R26:  # the bowed #11 over the coda's last two bars
         co = [bb for bb in bars if bb[1] == "coda"]
         T["bowed"].add(co[-2][0], 2 * BAR * 0.95, nm(vr(deg(HOME[0], 3) + 12)), LEVEL["coda"])
