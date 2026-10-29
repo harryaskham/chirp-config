@@ -20,6 +20,7 @@ SPB = 60 / BPM
 NN = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
 def nm(m): return f"{NN[m % 12]}{m // 12 - 1}"
 
+# (v9) the harmony slows in the long sections: A holds each chord eight bars, B six
 # the B section (the vox's full song) turns to its own progression - Gmaj7#11 A6sus F#m11 Bm9 (IV V iii vi) - so the
 # sunset peak is a new place, not the same loop with a voice on it
 CHORDS_B = [(31, [50, 54, 59, 61, 66]), (33, [52, 57, 59, 62, 66]), (30, [49, 52, 57, 59, 64]), (35, [50, 54, 57, 61, 64])]
@@ -52,7 +53,7 @@ def build():
     bars, t = [], 0.0
     for name, n in FORM:
         for i in range(n):
-            bars.append({'sec': name, 'i': i, 't': t, 'c': (CHORDS_B if name == 'B' else CHORDS)[(len(bars) // 4) % 4]}); t += 4.0
+            bars.append({'sec': name, 'i': i, 't': t, 'c': (CHORDS_B[(i // 6) % 4] if name == 'B' else CHORDS[(i // 8) % 4] if name == 'A' else CHORDS[(len(bars) // 4) % 4])}); t += 4.0
     total = t
     kit, pad, bass, arp, vox = [], [], [], [], []
     for k, b in enumerate(bars):

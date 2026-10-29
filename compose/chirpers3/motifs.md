@@ -152,6 +152,7 @@ Generator `compose/chirpers3/src/chirpers3-t10.py`. Chillwave dusk, 78 bpm.
 - **THE WEAR** (v5, chirper-two's tape-deck warp): the pad's and the vox's tape wear harder as the voices leave - wow and flutter x1 through the band, x1.4 in the second run-out, x1.8 in the third, x2 at the end; the dusk chords now change every four bars, slower as the light goes.
 - **THE LAST BREATH** (v6, wM's cloud fx on the vox): in the end section the vox's last phrase dissolves into 200 ms grains as it fades, and the grains freeze on its final note, hanging over the bare pad as the tape stops.
 - **THE PEAK'S OWN CHORDS** (v7): the B section (the vox's full song, the filter sweep's peak) turns to its own progression - Gmaj7#11 A6sus F#m11 Bm9 (IV V iii vi), four bars each - instead of the dusk loop; the run-outs return to the dusk chords.
+- **SLOWER LIGHT** (v9): the harmony slows in the long sections - the first groove holds each dusk chord eight bars (Dmaj9, then Bm11), the vox's peak holds each of its chords six bars.
 
 ## t8 Window Seat (chirper-zero)
 Generator `compose/chirpers3/src/chirpers3-t8.py`. Night-bus 2-step, 136 bpm, F# minor.
