@@ -28,7 +28,9 @@ MG = float(os.environ.get("T8_MG", "10"))
 V2 = os.environ.get("T8_V2", "1") == "1"
 BUS = os.environ.get("T8_BUS", "1") == "1"
 SH3 = os.environ.get("T8_SH3", "1") == "1"
-H3 = os.environ.get("T8_H3", "0") == "1"  # the HATS on the 3-sixteenth cycle instead (the loud voice carries the cross-rhythm; the shaker off)  # the shaker on a 3-sixteenth cycle (dotted eighths) running across the bar: the garage cross-rhythm  # groove 2 becomes THE STOP: half-time (kick 1, rim 3, no hats), rhodes chords for the pad, the B loop  # the v1 rework: a B loop for groove 2, a heavier shuffle with more off-16th hats, the sub up, the mud out
+H3 = os.environ.get("T8_H3", "0") == "1"
+CH3 = os.environ.get("T8_CH3", "1") == "1"  # the last groove's chops as a dotted-eighth chain (every 3 sixteenths, across the bar lines), the voice carrying the cross-rhythm
+RESAMPLE = os.environ.get("T8_RESAMPLE", "1") == "1"  # master stutter bursts (3/16 slices) on the last half-bar before groove 2 and before the breakdown  # the HATS on the 3-sixteenth cycle instead (the loud voice carries the cross-rhythm; the shaker off)  # the shaker on a 3-sixteenth cycle (dotted eighths) running across the bar: the garage cross-rhythm  # groove 2 becomes THE STOP: half-time (kick 1, rim 3, no hats), rhodes chords for the pad, the B loop  # the v1 rework: a B loop for groove 2, a heavier shuffle with more off-16th hats, the sub up, the mud out
 S = 0.25
 
 NOTE = {"C": 0, "C#": 1, "Db": 1, "D": 2, "D#": 3, "Eb": 3, "E": 4, "F": 5, "F#": 6, "Gb": 6, "G": 7, "G#": 8, "Ab": 8,
@@ -142,6 +144,21 @@ def chops(b, rng, up=0, dense=False, sec=""):
     return J(*out)
 
 
+def chop_chain(b, up=12):
+    """The chops in a dotted-eighth chain: one syllable every 3 sixteenths, cycling 9th-5th-3rd of the chord."""
+    _, _, _, tones = chord(b)
+    off = (3 - (b * 16) % 3) % 3
+    out, pos = [], 0
+    for k, st in enumerate(range(off, 16, 3)):
+        n = tones[((b * 16 + st) // 3) % 3]
+        vow, on = VOWELS[((b * 16 + st) // 3) % 3]
+        out.append(R((st - pos) * S))
+        out.append(f"{nm(n + up)}/{S:g}b@{70 if k % 2 == 0 else 58}^vow={vow}^on={on}")
+        pos = st + 1
+    out.append(R((16 - pos) * S))
+    return J(*out)
+
+
 def build():
     names = ("drums", "sub", "pad", "glass", "chops", "rhodes")
     T = {n: [] for n in names}
@@ -167,6 +184,8 @@ def build():
                     bar["chops"] = chops(gb, rng, up=12 if sec == "groove3" else 0, dense=(sec != "groove"), sec=sec)
                 if sec == "groove3":
                     bar["glass"] = pad(gb, 50)
+                    if CH3:
+                        bar["chops"] = chop_chain(gb)
             elif sec == "breakdown":
                 bar["pad"] = pad(gb, 62)
                 bar["glass"] = pad(gb, 54)
@@ -182,6 +201,14 @@ def build():
                 T[n].append(bar[n])
             gb += 1
     return T
+
+
+def section_starts():
+    t, out = 0.0, {}
+    for sec, nb in FORM:
+        out[sec] = t
+        t += nb * 4 * 60 / BPM
+    return out, t
 
 
 def song():
@@ -204,7 +231,7 @@ def song():
         {"name": "chops", "patch": "chop-vox", "gain": "-6dB", "pan": -0.15, "fx": [deck],
          "sends": {"hall": "-6dB", "echo": "-12dB"}, "score": sc("chops", "swing16=0.62")},
     ]
-    return {
+    doc = {
         "about": ("Chirpers - Tape Weather, track 8 (original composition, chirper-zero; generator "
                   "compose/chirpers3/src/chirpers3-t8.py). Night-bus 2-step: lo-fi UK garage at 136 bpm - a shuffled, "
                   "skippy 2-step under a worn F#m9 | Dmaj9 | Bm11 | C#7sus loop and wordless chopped voices."),
@@ -215,9 +242,37 @@ def song():
                                                    else ["peak cutoff=640 q=0.8 gain=-4dB", "highshelf cutoff=6000 gain=2dB"])},
                           "vinyl crackle=0.3 dust=0.25 noise=-62dB rumble=0.2 warp=3 wear=0.3 seed=8",
                           {"type": "compressor", "threshold": "-20dB", "ratio": 2, "attack": "15ms", "release": "200ms", "makeup": "0dB"},
-                          {"type": "gain", "gain": f"+{MG + (2 if V2 else 0):g}dB"}]},
+                          {"type": "gain", "gain": f"+{MG + (2 if V2 else 0):g}dB"}] + resample_fx()},
         "tracks": tracks,
     }
+    if RESAMPLE:
+        doc["master"]["auto"] = resample_auto()
+    return doc
+
+
+def resample_fx():
+    if not RESAMPLE:
+        return []
+    st, total = section_starts()
+    half = 2 * 60 / BPM
+    gl = [["0s", 0]]
+    for a in (st["groove2"] - half, st["breakdown"] - half):
+        gl += [[f"{a - 0.02:.3f}s", 0], [f"{a:.3f}s", 1], [f"{a + half - 0.03:.3f}s", 1], [f"{a + half:.3f}s", 0]]
+    gl.append([f"{total + 8:.2f}s", 0])
+    return [{"type": "stutter", "slice": "3/16", "repeats": 3, "chance": 1, "decay": 0.15, "seed": 8,
+             "mix": {"value": 0, "mod": [{"src": "auto.gl", "amount": 1}]}}]
+
+
+def resample_auto():
+    if not RESAMPLE:
+        return {}
+    st, total = section_starts()
+    half = 2 * 60 / BPM
+    gl = [["0s", 0]]
+    for a in (st["groove2"] - half, st["breakdown"] - half):
+        gl += [[f"{a - 0.02:.3f}s", 0], [f"{a:.3f}s", 1], [f"{a + half - 0.03:.3f}s", 1], [f"{a + half:.3f}s", 0]]
+    gl.append([f"{total + 8:.2f}s", 0])
+    return {"gl": {"points": gl}}
 
 
 def dump(doc):
