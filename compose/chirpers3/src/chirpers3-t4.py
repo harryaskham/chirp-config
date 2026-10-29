@@ -480,7 +480,7 @@ def main():
         tr("cbox", "c4-box", pan="R35", gain="-6dB", out="toys", fx=[TOY_CHOP]),
         tr("xtal", "fb-crystal", pan="R10", gain="-24dB", out="toys"),
         tr("lead", "lead-tape", pan="L10", gain="-9dB", sends={"space": "-10dB"}),
-        tr("rlead", "epiano-tine", pan="L10", gain="-4dB", sends={"space": "-9dB", "echo": "-14dB"},   # the return's
+        tr("rlead", "epiano-tine synth.tine.sense=0.5 synth.tine.key=-0.25", pan="L10", gain="-4dB", sends={"space": "-9dB", "echo": "-14dB"},   # the return's
            fx=["tape wow=10 flutter=2 seed=17"]),                                        # hidden melody, on a barking Rhodes
         tr("boxsong", "c4-box", pan="R15", gain="2dB", sends={"space": "-9dB"}),          # THE BOX SINGS (bars 49-52)
         tr("hail", "c4-hail", pan="C", gain="4dB", out="toys", fx=["comb cutoff=138.6 q=6"]),   # hail on a metal roof
@@ -490,7 +490,7 @@ def main():
         tr("mist", "music-box", gain="-6dB", sends={"space": "-6dB"},                   # the MIST: hail into grains
            fx=[{"type": "cloud", "size": "150ms", "density": 18, "position": "500ms", "spray": "400ms", "pitch": 12,
                 "scatter": 0.2, "reverse": 0.4, "spread": 0.9, "mix": 0.85, "seed": 3}]),
-        tr("cpiano", "epiano-tine", pan="L30", gain="-6dB", sends={"space": "-9dB"},     # the breakdown's counter-line,
+        tr("cpiano", "epiano-tine synth.tine.sense=0.5 synth.tine.key=-0.25", pan="L30", gain="-6dB", sends={"space": "-9dB"},     # the breakdown's counter-line,
            fx=["tape wow=8 flutter=2 seed=13"]),                                         # on wM's tine pickup
         tr("pad", "juno-pad", gain="-14dB", fx=["lp cutoff=2200", "tape wow=9 flutter=2 seed=11", BREATHE],
            sends={"space": "-8dB"}),                                                    # the pad BREATHES with the kick
