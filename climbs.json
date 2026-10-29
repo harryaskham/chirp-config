@@ -5638,7 +5638,14 @@
       "best": {
         "score": 97.1,
         "version": "v8",
-        "commit": "see git log songs/chirpers3-t2.yaml"
+        "commit": "see git log songs/chirpers3-t2.yaml",
+        "stale": {
+          "score": 97.1,
+          "since": "2026-10-29T22:35:13Z",
+          "who": "chirper-three",
+          "rating": 8.5,
+          "version": "v8"
+        }
       },
       "passes": 1,
       "enabled": true,
