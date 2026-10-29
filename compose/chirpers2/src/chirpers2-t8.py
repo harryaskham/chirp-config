@@ -61,6 +61,10 @@ R6 = set(filter(None, os.environ.get("T8_R6", "X").split(","))) - {"none"}
 # the vibes' palindrome takes each note's own bar's chord, so one mirror is heard over moving harmony.
 R7 = set(filter(None, os.environ.get("T8_R7", "M").split(","))) - {"none"}
 REHARM = [(68, "maj9"), (67, "m9"), (66, "maj7#11"), (65, "m9"), (58, "13sus"), (58, "7alt"), (60, "m9"), (58, "7alt")]
+# Round 8 (v8): S = the bowed bass SINGS in the bridge's second half: a palindromic melody in its upper register
+# (half up, half back, on the bridge's chords), a counter-melody to the marimba's t7 subject, the sub holding the
+# root; 5 = the vibes solo's runs in QUINTUPLETS (ten notes over two beats).
+R8 = set(filter(None, os.environ.get("T8_R8", "S,5").split(","))) - {"none"}
 SUBJECT = [(0, 1), (3, 1), (7, 1), (6, 2), (2, 2), (5, 1), (1, 1), (4, 1), (0, 2)]  # t7: semitones, eighths
 BAR = 6.0  # a 12/8 bar, in quarter beats
 
@@ -229,8 +233,12 @@ def build():
         elif sec in ("solo", "trades") and not mar:  # the vibes solo (and the vibes' bars of the trades): a run, dotted-eighth groups, a triplet fall, a held note
             if i % 2 == 0:
                 d0 = rng.choice([0, 2, 4])
-                for s in range(8):  # a sixteenth run up
-                    T["vib"].add(start + s * 0.25, 0.24, nm(vr(deg(chord, d0 + s))), v - 10 + s * 2)
+                if "5" in R8:
+                    for s in range(10):  # a quintuplet run up: ten notes over two beats
+                        T["vib"].add(start + s * 0.2, 0.19, nm(vr(deg(chord, d0 + s))), v - 10 + s * 2)
+                else:
+                    for s in range(8):  # a sixteenth run up
+                        T["vib"].add(start + s * 0.25, 0.24, nm(vr(deg(chord, d0 + s))), v - 10 + s * 2)
                 top = d0 + 8
                 for g in range(4):  # dotted-eighth groups, stepping down by thirds
                     T["vib"].add(start + 2 + g * 0.75, 0.7, nm(vr(deg(chord, top - 2 * g))), v - 2 - g * 2)
@@ -262,6 +270,15 @@ def build():
                 T["bass"].add(beat, 1.95, head, v - 10 + acc)
                 if cyc in (0, 2):  # the sub: the 4/4 bar's strong beats an octave under the bow
                     T["sub"].add(beat, 1.9, nm(note - 12 if note - 12 >= 24 else note), v - 8 + acc)
+        elif sec == "bridge" and "S" in R8 and i >= 8:  # the bass sings: a 4-bar palindrome, high in its range
+            root = chord[0] - 24 if chord[0] - 24 >= 28 else chord[0] - 12
+            if i % 4 == 0:
+                half = [(4, 6), (6, 3), (7, 3), (9, 6), (8, 6)]  # 24 eighths
+                at = start
+                for d, ln in palindrome(half):
+                    T["bass"].add(at, ln / 2 * 0.97, nm(deg((root + 12, chord[1]), d)), v + 4)
+                    at += ln / 2
+            T["sub"].add(start, BAR * 0.95, nm(root - 12 if root - 12 >= 24 else root), v - 4)  # the floor, firmer
         elif sec == "bridge" and "A" in R2:  # the cell in augmentation: dotted quarters, three bars a statement
             root = chord[0] - 24 if chord[0] - 24 >= 28 else chord[0] - 12
             if i % 4 < 3:
