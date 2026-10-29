@@ -101,6 +101,10 @@ R18 = set(filter(None, os.environ.get("T4_R18", "P").split(","))) - {"none"}
 # (44 eighths a phrase), so the figure is displaced anew in every bar, each hit the chord of its moment.
 R19 = set(filter(None, os.environ.get("T4_R19", "M").split(","))) - {"none"}
 MONTUNO = [1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1]
+# Round 20 (v20): X = t9 Slow Shutter's EXPOSURE answered (chirper-zero: one long colour tone a bar, approached by
+# a leap): in the coda the French horn sings each bar's colour (the voicing's top: a 9th, 11th or 13th), leaping up
+# a sixth into it, above the piano's t8 cell and the tom canon.
+R20 = set(filter(None, os.environ.get("T4_R20", "X").split(","))) - {"none"}
 BTHEME = {0: [(0, 3, 4), (3, 1, 3), (4, 4, 2)], 1: [(0, 2, 1), (2, 2, 2), (4, 3, 4)], 2: [(0, 5, 6)],
           3: [(0, 2, 4), (2, 2, 5), (4, 2, 4)]}  # t2's night cell, degrees on eighths (None = rest)
 TRIP = "T" in os.environ.get("T4_OPTS", "")  # triplet brush ghosts before the backbeats (off: no gain)
@@ -617,6 +621,15 @@ def build():
             d.add(start, 0.5, "c", 110)
         if section == "coda" and pos == 6:
             d.add(start + 2, 2.0, "bsl", 60)
+        if section == "coda" and "X" in R20 and "W" in R8:  # exposure: one colour a bar, leapt into
+            r0, vc, _ = CH[name0]
+            col = r0 + 12 + vc[-1]
+            while col > 72:
+                col -= 12
+            while col < 60:
+                col += 12
+            T["horn"].add(start, 0.45, nm(col - 9), v - 6)
+            T["horn"].add(start + 0.5, (m - 1) / 2 * 0.95, nm(col), v + 2)
         if section == "coda" and "C" in R4 and pidx == min(b[4] for b in bars if b[3] == "coda"):
             first = min(b[0] for b in bars if b[3] == "coda")
             e0 = int(round((start - first) * 2))
