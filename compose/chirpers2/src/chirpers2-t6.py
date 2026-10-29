@@ -268,8 +268,8 @@ def build():
             {'name': 'brass', 'patch': 'horn-section', 'gain': '-6dB', 'pan': 0.2, 'score': J('brass')},
             {'name': 'saxes', 'patch': 'sax-section', 'gain': '-7dB', 'pan': -0.15, 'score': J('saxes')},
             {'name': 'lead', 'patch': 'synth-lead glide=80ms', 'gain': '-8dB', 'pan': 0.1, 'score': J('lead')},
-            {'name': 'vibes', 'patch': 'vibes', 'gain': '-5dB', 'pan': 0.3, 'score': J('vibes')},
-            {'name': 'alto', 'patch': 'alto-sax', 'gain': '-10dB', 'pan': -0.3, 'score': J('alto')},
+            {'name': 'vibes', 'patch': 'vibes', 'gain': '-2dB', 'pan': 0.3, 'score': J('vibes')},
+            {'name': 'alto', 'patch': 'alto-sax', 'gain': '-6dB', 'pan': -0.3, 'score': J('alto')},
             # the last two bars of the out-theme doubled through wM's fixed stutter: the horns' last word glitches
             {'name': 'glitch', 'patch': 'horn-section', 'gain': '-9dB', 'pan': 0.35,
              'fx': [{'type': 'stutter', 'slice': '1/16', 'repeats': 3, 'chance': 0.5, 'decay': 0.2, 'seed': 15, 'mix': 1}], 'score': J('glitch')},
