@@ -1,5 +1,5 @@
 about: "Harder chug rig (left of a pair): compressor pedal into a Mark-voiced amp with a big screamer push and very tight lows, cookie-monster/kitten-slayer cab blend, 110 Hz thump, fizz dip, and a fast gate so stops are surgical. Pair with m8-chug-r."
-extends: "m8 layers.0.pick=0.12 layers.0.pickup=0.085 layers.0.click=0.2 layers.0.scrape=0.12 layers.0.thump=expr.pm*0.7 layers.0.squeak=expr.move*0.6"
+extends: "m8 layers.0.pick=0.12 layers.0.pickup=0.085 layers.0.click=0.2 layers.0.scrape=0.12 layers.0.thump=expr.pm*0.7 layers.0.squeak=expr.move*0.6 layers.0.planes=0.3 layers.0.beat=1.5"
 fx:
   - {type: sympathetic, decay: 1.2s, mix: 0.06}
   - {type: compressor, threshold: -20dB, ratio: 4, attack: 2ms, release: 60ms, makeup: 3dB}

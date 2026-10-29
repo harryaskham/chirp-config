@@ -1,5 +1,5 @@
 about: "Lead with a slapback: the sustaining 8-string, 5150, cab, a single 95 ms echo and a tight room — aggressive, close, for fast runs and shred."
-extends: "m8 layers.0.decay.value=7s layers.0.bright.value=0.8 layers.0.click=0.12 layers.0.scrape=0.08 layers.0.squeak=expr.move*0.6"
+extends: "m8 layers.0.decay.value=7s layers.0.bright.value=0.8 layers.0.click=0.12 layers.0.scrape=0.08 layers.0.squeak=expr.move*0.6 layers.0.planes=0.3 layers.0.beat=1.5"
 fx:
   - {type: sympathetic, notes: "F1,Bb1,Eb2,Ab2,Db3,Gb3,Bb3,Eb4", decay: 1.2s, mix: 0.06}
   - {type: amp, model: "5150", gain: 0.92, ts: 0.75, tight: 150, boost: 6dB, bass: 0.48, mid: 0.7, treble: 0.58, presence: 0.6, resonance: 0.55, sag: 0.25, bloom: 0.3}

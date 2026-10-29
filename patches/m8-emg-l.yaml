@@ -1,6 +1,6 @@
 {
  "about": "Active-pickup double (left): flat, compressed EMG-style DI into a 5150, thick cab blend (kaiju-tamer/big-bubba). Pair with m8-emg-r.",
- "extends": "m8 layers.0.pickup=0.08 layers.0.coil=0.25 layers.0.pickup_hz=3200 layers.0.pickup_q=0.8 layers.0.pick=0.12 layers.0.click=0.2 layers.0.scrape=0.12 layers.0.thump=expr.pm*0.7 layers.0.squeak=expr.move*0.6",
+ "extends": "m8 layers.0.pickup=0.08 layers.0.coil=0.25 layers.0.pickup_hz=3200 layers.0.pickup_q=0.8 layers.0.pick=0.12 layers.0.click=0.2 layers.0.scrape=0.12 layers.0.thump=expr.pm*0.7 layers.0.squeak=expr.move*0.6 layers.0.planes=0.3 layers.0.beat=1.5",
  "fx": [
   {
    "type": "sympathetic",

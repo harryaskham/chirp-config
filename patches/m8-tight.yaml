@@ -1,5 +1,5 @@
 about: "Smoother modern rhythm rig for polymetric/djent riffs: the 8-string into a lower-gain Gojira-voiced amp with a tighter low end, two-IR cab blend, 3 kHz fizz dip and a gentle high shelf, plus a small room so it sits like the lead. Less caustic on clusters and tritones."
-extends: "m8 layers.0.click=0.2 layers.0.scrape=0.12 layers.0.thump=expr.pm*0.7 layers.0.squeak=expr.move*0.6"
+extends: "m8 layers.0.click=0.2 layers.0.scrape=0.12 layers.0.thump=expr.pm*0.7 layers.0.squeak=expr.move*0.6 layers.0.planes=0.3 layers.0.beat=1.5"
 fx:
   - {type: sympathetic, decay: 1.2s, mix: 0.06}
   - {type: amp, model: gojira, gain: 0.62, ts: 0.5, tight: 110, boost: 3dB, bass: 0.58, mid: 0.58, treble: 0.52, presence: 0.5, resonance: 0.62, sag: 0.22, bloom: 0.35}

@@ -1,5 +1,5 @@
 about: "Monstrous lead: long-sustaining 8-string into a 5150-style amp with a screamer and mid push, two-mic cab IR, ping-pong delay and a big room. `^h` hammer-on/legato (no pick), `^ph` pinch squeal, `^nh=N` harmonics, bends with bend=."
-extends: "m8 layers.0.decay.value=9s layers.0.bright.value=0.82"
+extends: "m8 layers.0.decay.value=9s layers.0.bright.value=0.82 layers.0.planes=0.3 layers.0.beat=1.5"
 synth:
   lfo:
     vib: {wave: sine, rate: 5.6hz, delay: 280ms, fade: 350ms, retrig: true}

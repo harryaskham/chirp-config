@@ -1,5 +1,5 @@
 about: "Fuzz rig for doom, sludge and slams: a folding fuzz pedal into a crunch amp, woolly and huge; cab blend, low-mid weight, fizz tamed, long plate."
-extends: "m8 layers.0.decay.value=6s layers.0.click=0.2 layers.0.scrape=0.12 layers.0.thump=expr.pm*0.7 layers.0.squeak=expr.move*0.6"
+extends: "m8 layers.0.decay.value=6s layers.0.click=0.2 layers.0.scrape=0.12 layers.0.thump=expr.pm*0.7 layers.0.squeak=expr.move*0.6 layers.0.planes=0.3 layers.0.beat=1.5"
 fx:
   - {type: sympathetic, decay: 1.2s, mix: 0.06}
   - {type: drive, drive: 0.75, shape: fold, mix: 0.85}

@@ -1,5 +1,5 @@
 about: 8-string through a Nolly-style rig — screamer into the tightest, glassy amp, real DV-77/SM57 4×12 IR (Jester, CC0), glue compression and gate. Same articulations as m8.
-extends: m8
+extends: m8 layers.0.planes=0.3 layers.0.beat=1.5
 fx:
   - {type: amp, model: nolly, gain: 0.72, ts: 0.55, tight: 102, boost: 5dB, bass: 0.56, mid: 0.56, treble: 0.7, presence: 0.74, resonance: 0.68, sag: 0.12}
   - {type: ir, file: jester/darth-genocider, length: 120ms}

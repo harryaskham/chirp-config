@@ -1,5 +1,5 @@
 about: "Lead into a dark tape echo: the sustaining 8-string, 5150, cab, quarter-note delay with a rolled-off tone and tape warmth, wide hall — big, evil melodic leads."
-extends: "m8 layers.0.decay.value=9s layers.0.bright.value=0.8 layers.0.click=0.12 layers.0.scrape=0.08 layers.0.squeak=expr.move*0.6"
+extends: "m8 layers.0.decay.value=9s layers.0.bright.value=0.8 layers.0.click=0.12 layers.0.scrape=0.08 layers.0.squeak=expr.move*0.6 layers.0.planes=0.3 layers.0.beat=1.5"
 synth:
   lfo:
     vib: {wave: sine, rate: 5.4hz, delay: 300ms, fade: 400ms, retrig: true}

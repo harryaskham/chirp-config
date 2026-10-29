@@ -1,5 +1,5 @@
 about: "Big ringing 8-string for open hits that are left to play out: long sustain into a saturated amp, two-IR cab, dotted-16th ping-pong delay and a wide hall with predelay. Use with gaps after each hit (gate 3–6)."
-extends: "m8 layers.0.decay.value=8s layers.0.click=0.2 layers.0.scrape=0.12 layers.0.thump=expr.pm*0.7 layers.0.squeak=expr.move*0.6"
+extends: "m8 layers.0.decay.value=8s layers.0.click=0.2 layers.0.scrape=0.12 layers.0.thump=expr.pm*0.7 layers.0.squeak=expr.move*0.6 layers.0.planes=0.3 layers.0.beat=1.5"
 fx:
   - {type: sympathetic, decay: 1.2s, mix: 0.06}
   - {type: amp, model: gojira, gain: 0.7, ts: 0.55, tight: 100, boost: 4dB, bass: 0.6, mid: 0.62, treble: 0.52, presence: 0.5, resonance: 0.7, sag: 0.35, bloom: 0.35}
