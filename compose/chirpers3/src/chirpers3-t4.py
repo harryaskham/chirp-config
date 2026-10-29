@@ -475,6 +475,11 @@ def main():
         '  space: {fx: ["reverb kind=hall decay=3.2s mix=1 predelay=30ms mono_below=200hz"]}',
         'master: ' + json.dumps({"fx": [{"type": "pitch", "semitones": {"value": 0, "mod": [{"src": "auto.rs", "amount": -4}]},
                                         "mix": 1},       # the RESAMPLE: the whole band slows like a sampler (Harry's note)
+                                       {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.fi", "amount": 1}]}},
+                                       # THE NEEDLE DROPS: the song fades in out of t3's quiet ending (in-join was 22 dB)
+                                       {"type": "filter", "kind": "lp",
+                                        "cutoff": {"value": 18000, "mod": [{"src": "auto.op", "amount": -16500}]}},
+                                       # ...muffled at first (1.5 kHz), opening as the box comes up to speed (bars 1-4)
                                        {"type": "tapestop", "stop": {"value": 0, "mod": [{"src": "auto.ts", "amount": 1}]},
                                         "time": "1b", "up": "1b", "curve": 0.5, "mix": 1},   # the tape STOPS (holding,
                                        # then dropping), and SPINS BACK UP into the return (the record keeps turning)
@@ -486,6 +491,9 @@ def main():
                                        "glue threshold=-24dB ratio=3 attack=15ms release=200ms makeup=3dB",
                                        {"type": "gain", "gain": "11dB"}],
                                 "auto": {"rs": {"points": resample_lane()}, "ts": {"points": tapestop_lane()},
+                                         "fi": {"points": [["0s", -20.0], [f"{2 * S / 4 * 60 / BPM:.3f}s", 0.0]]},
+                                         "op": {"points": [["0s", 1.0], [f"{1 * S / 4 * 60 / BPM:.3f}s", 0.85],
+                                                           [f"{4 * S / 4 * 60 / BPM:.3f}s", 0.0]]},
                                          "wear": {"points": wear_lane()}}}),
         "tracks:",
     ]
