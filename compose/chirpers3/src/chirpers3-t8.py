@@ -25,25 +25,26 @@ ROOT = os.path.expanduser("~/.config/chirp")
 OUT = os.environ.get("T8_OUT") or os.path.join(ROOT, "songs", "chirpers3-t8.yaml")
 BPM = 136
 MG = float(os.environ.get("T8_MG", "10"))
-V2 = os.environ.get("T8_V2", "1") == "1"
-BUS = os.environ.get("T8_BUS", "1") == "1"
-SH3 = os.environ.get("T8_SH3", "1") == "1"
-H3 = os.environ.get("T8_H3", "0") == "1"
+V2 = os.environ.get("T8_V2", "1") == "1"  # the v1 rework: a B loop for groove 2, a heavier shuffle with more off-16th hats, the sub up, the mud out
+BUS = os.environ.get("T8_BUS", "1") == "1"  # groove 2 becomes THE STOP: half-time (kick 1, rim 3, no hats), rhodes chords for the pad, the B loop
+SH3 = os.environ.get("T8_SH3", "1") == "1"  # the shaker on a 3-sixteenth cycle (dotted eighths) running across the bar: the garage cross-rhythm
+H3 = os.environ.get("T8_H3", "0") == "1"  # the HATS on the 3-sixteenth cycle instead (the loud voice carries the cross-rhythm; the shaker off)
 CH3 = os.environ.get("T8_CH3", "1") == "1"  # the last groove's chops as a dotted-eighth chain (every 3 sixteenths, across the bar lines), the voice carrying the cross-rhythm
-RESAMPLE = os.environ.get("T8_RESAMPLE", "1") == "1"
-LATE = os.environ.get("T8_LATE", "65")
-VCHOP = os.environ.get("T8_VCHOP", "climax")
-WEAR = os.environ.get("T8_WEAR", "0") == "1"
-LIFT = int(os.environ.get("T8_LIFT", "2"))
-BRAKE = os.environ.get("T8_BRAKE", "hard")
-PUMP = os.environ.get("T8_PUMP", "-8")
-SPACE = os.environ.get("T8_SPACE", "")
-FOG = os.environ.get("T8_FOG", "1") == "1"
-ENGINE = os.environ.get("T8_ENGINE", "1") == "1"
-PUMPKEY = os.environ.get("T8_PUMPKEY", "0") == "1"
-DUCK = os.environ.get("T8_DUCK", "-10")
-DUCKUP = float(os.environ.get("T8_DUCKUP", "4"))
-BREATH = os.environ.get("T8_BREATH", "300,0.5")  # chirp-eco's recipe: the real pump with a slow swell instead of the gain lane - "release_ms,curve", e.g. "300,0.5" (keyed drums.k, depth = DUCK)  # bring the ducked pads up (dB) so the breathing is heard  # the breathing made real: a gain lane on the pads built from the kick times (dB dip, e.g. -8), back over 200 ms  # the pump keyed from a muted ghost track of the kicks alone (drums.k missed kicks written in chords like k,h)  # the bus idling: the intro's eight bars sit on the sub's low F# (the night loop's root), the engine hum under the pad, meeting t7's warm tail  # the window fogs: the hall FREEZES through the breakdown's bars 2-7 (wM's reverb freeze), the pads and chops held as a wash  # the chops' echo as a tape loop (feedback routing): one dotted-eighth delay, its own output fed back through a low-pass and a tape deck  # wM's pump: the pads and the rhodes breathe on the kick (keyed from drums.k), depth in dB, e.g. -8  # the bus brakes at the last stop (wM's tapestop on the master, the last bar): "hard" = curve 4 over 2 beats; "soft" = curve 1.6 over 4  # the last groove lifted (semitones): the night loop up a step for the final run  # the tape wears (deck warp lanes): the beatless breakdown drifts seasick (1.6), the outro wears out (1 -> 2)  # wM's MPC chop on the voice: "stop" = through THE STOP; "climax" = through the last groove (the chain resampled)  # the claps (and optionally the hats) dragged late by hand: "45" or "45,25" (ms; play.humanize.nudge)  # master stutter bursts (3/16 slices) on the last half-bar before groove 2 and before the breakdown  # the HATS on the 3-sixteenth cycle instead (the loud voice carries the cross-rhythm; the shaker off)  # the shaker on a 3-sixteenth cycle (dotted eighths) running across the bar: the garage cross-rhythm  # groove 2 becomes THE STOP: half-time (kick 1, rim 3, no hats), rhodes chords for the pad, the B loop  # the v1 rework: a B loop for groove 2, a heavier shuffle with more off-16th hats, the sub up, the mud out
+RESAMPLE = os.environ.get("T8_RESAMPLE", "1") == "1"  # master stutter bursts (3/16 slices) on the last half-bar before groove 2 and before the breakdown
+LATE = os.environ.get("T8_LATE", "65")  # the claps (and optionally the hats) dragged late by hand: "45" or "45,25" (ms; play.humanize.nudge)
+VCHOP = os.environ.get("T8_VCHOP", "climax")  # wM's MPC chop on the voice: "stop" = through THE STOP; "climax" = through the last groove (the chain resampled)
+WEAR = os.environ.get("T8_WEAR", "0") == "1"  # the tape wears (deck warp lanes): the beatless breakdown drifts seasick (1.6), the outro wears out (1 -> 2)
+LIFT = int(os.environ.get("T8_LIFT", "2"))  # the last groove lifted (semitones): the night loop up a step for the final run
+BRAKE = os.environ.get("T8_BRAKE", "hard")  # the bus brakes at the last stop (wM's tapestop on the master, the last bar): "hard" = curve 4 over 2 beats; "soft" = curve 1.6 over 4
+PUMP = os.environ.get("T8_PUMP", "-8")  # wM's pump: the pads and the rhodes breathe on the kick (keyed from drums.k), depth in dB, e.g. -8
+SPACE = os.environ.get("T8_SPACE", "")  # the chops' echo as a tape loop (feedback routing): one dotted-eighth delay, its own output fed back through a low-pass and a tape deck
+FOG = os.environ.get("T8_FOG", "1") == "1"  # the window fogs: the hall FREEZES through the breakdown's bars 2-7 (wM's reverb freeze), the pads and chops held as a wash
+ENGINE = os.environ.get("T8_ENGINE", "1") == "1"  # the bus idling: the intro's eight bars sit on the sub's low F# (the night loop's root), the engine hum under the pad, meeting t7's warm tail
+PUMPKEY = os.environ.get("T8_PUMPKEY", "0") == "1"  # the pump keyed from a muted ghost track of the kicks alone (drums.k missed kicks written in chords like k,h)
+DUCK = os.environ.get("T8_DUCK", "-10")  # the breathing made real: a gain lane on the pads built from the kick times (dB dip, e.g. -8), back over 200 ms
+DUCKUP = float(os.environ.get("T8_DUCKUP", "4"))  # bring the ducked pads up (dB) so the breathing is heard
+BREATH = os.environ.get("T8_BREATH", "300,0.5")  # chirp-eco's recipe: the real pump with a slow swell instead of the gain lane - "release_ms,curve", e.g. "300,0.5" (keyed drums.k, depth = DUCK)
+CODA = os.environ.get("T8_CODA", "2.5s")  # after the brakes, the engine idles: two bars of the sub's root and a faint pad after the tape spins back up (1 beat); value = the song tail, e.g. "5s" / "2.5s"
 S = 0.25
 
 NOTE = {"C": 0, "C#": 1, "Db": 1, "D": 2, "D#": 3, "Eb": 3, "E": 4, "F": 5, "F#": 6, "Gb": 6, "G": 7, "G#": 8, "Ab": 8,
@@ -85,7 +86,7 @@ LOOP = [("F#m9", 30, [57, 61, 64, 68], [68, 61, 57]), ("Dmaj9", 26, [57, 61, 64,
 LOOP_B = [("Dmaj9", 26, [57, 61, 64, 66], [64, 57, 54]), ("E6/9", 28, [56, 59, 61, 66], [66, 59, 56]),
           ("C#m7", 37, [56, 59, 61, 64], [63, 56, 52]), ("Bm9", 35, [54, 57, 61, 62], [61, 54, 50])]
 
-FORM = [("intro", 8), ("groove", 16), ("groove2", 16), ("breakdown", 8), ("groove3", 16), ("outro", 16)]
+FORM = [("intro", 8), ("groove", 16), ("groove2", 16), ("breakdown", 8), ("groove3", 16), ("outro", 16)] + ([("coda", 2)] if CODA else [])
 SKIPS = [10, 11, 7, 10, 11, 10, 7, 11]  # where the skip-kick lands, bar by bar
 
 
@@ -216,6 +217,10 @@ def build():
                 bar["pad"] = pad(gb, 58 - 2 * b)
                 if b < 12:
                     bar["chops"] = chops(gb, rng)
+            elif sec == "coda":
+                _, r, _, _ = chord(gb)
+                bar["sub"] = f"{nm(r)}/4b@{62 - 10 * b}"
+                bar["pad"] = pad(gb, 34 - 6 * b)
             for n in names:
                 T[n].append(bar[n])
             gb += 1
@@ -338,7 +343,7 @@ def song():
         "about": ("Chirpers - Tape Weather, track 8 (original composition, chirper-zero; generator "
                   "compose/chirpers3/src/chirpers3-t8.py). Night-bus 2-step: lo-fi UK garage at 136 bpm - a shuffled, "
                   "skippy 2-step under a worn F#m9 | Dmaj9 | Bm11 | C#7sus loop and wordless chopped voices."),
-        "tempo": BPM, "ceiling": "-0.3dB", "tail": "5s", "patches": {"chop-vox": chop},
+        "tempo": BPM, "ceiling": "-0.3dB", "tail": CODA or "5s", "patches": {"chop-vox": chop},
         "buses": {"hall": ({"fx": ["reverb kind=hall decay=3.2s size=0.9 mix=1 predelay=24ms"]} if not FOG else
                            {"fx": [{"type": "reverb", "kind": "hall", "decay": "3.2s", "size": 0.9, "mix": 1, "predelay": "24ms",
                                     "freeze": {"value": 0, "mod": [{"src": "auto.fog", "amount": 1}]}}],
@@ -358,10 +363,14 @@ def song():
         doc["master"]["auto"] = resample_auto()
     if BRAKE:
         st, total = section_starts()
-        t0 = total - 4 * 60 / BPM
+        end = st["coda"] if CODA else total
+        t0 = end - 4 * 60 / BPM
         doc["master"]["fx"].append({"type": "tapestop", "time": "2b" if BRAKE == "hard" else "4b", "curve": 4 if BRAKE == "hard" else 1.6,
+                                    **({"up": "1b"} if CODA else {}),
                                     "stop": {"value": 0, "mod": [{"src": "auto.brk", "amount": 1}]}})
-        doc["master"].setdefault("auto", {})["brk"] = {"points": [["0s", 0], [f"{t0 - 0.02:.3f}s", 0], [f"{t0:.3f}s", 1], [f"{total + 8:.2f}s", 1]]}
+        pts = [["0s", 0], [f"{t0 - 0.02:.3f}s", 0], [f"{t0:.3f}s", 1]]
+        pts += ([[f"{end - 0.02:.3f}s", 1], [f"{end:.3f}s", 0], [f"{total + 8:.2f}s", 0]] if CODA else [[f"{total + 8:.2f}s", 1]])
+        doc["master"].setdefault("auto", {})["brk"] = {"points": pts}
     return doc
 
 
