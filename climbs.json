@@ -4877,7 +4877,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 12,
       "priority": 1.0,
       "genre": "polyrhythmic djent",
@@ -4899,7 +4899,8 @@
         "at": "2026-10-29T00:25:00Z",
         "who": "chirper-three"
       },
-      "chirp-eco": ""
+      "chirp-eco": "",
+      "paused_by": "focus"
     },
     {
       "id": "chirpers1-t2",
@@ -4916,7 +4917,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 16,
       "priority": 1.0,
       "genre": "polyrhythmic djent",
@@ -4938,7 +4939,8 @@
         "at": "2026-10-29T00:55:40Z",
         "who": "chirper-three"
       },
-      "chirp-eco": ""
+      "chirp-eco": "",
+      "paused_by": "focus"
     },
     {
       "id": "chirpers1-t3",
@@ -4955,7 +4957,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 5,
       "priority": 1.0,
       "genre": "polyrhythmic djent",
@@ -4977,7 +4979,8 @@
         "at": "2026-10-28T23:24:14Z",
         "who": "chirper-two"
       },
-      "chirp-eco": ""
+      "chirp-eco": "",
+      "paused_by": "focus"
     },
     {
       "id": "chirpers1-t4",
@@ -4994,7 +4997,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 5,
       "priority": 1.0,
       "genre": "polyrhythmic djent",
@@ -5015,7 +5018,8 @@
       "last": {
         "at": "2026-10-28T23:24:17Z",
         "who": "chirper-two"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers1-t5",
@@ -5040,7 +5044,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 14,
       "priority": 1.0,
       "genre": "polyrhythmic djent",
@@ -5063,7 +5067,8 @@
         "who": "chirper-zero"
       },
       "best.version": null,
-      "best.score": null
+      "best.score": null,
+      "paused_by": "focus"
     },
     {
       "id": "chirpers1-t6",
@@ -5079,7 +5084,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 15,
       "priority": 1.0,
       "genre": "polyrhythmic djent",
@@ -5101,7 +5106,8 @@
         "at": "2026-10-29T00:39:44Z",
         "who": "chirper-zero"
       },
-      "chirp-eco": ""
+      "chirp-eco": "",
+      "paused_by": "focus"
     },
     {
       "id": "chirpers1-t7",
@@ -5117,7 +5123,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 16,
       "priority": 1.0,
       "genre": "polyrhythmic djent",
@@ -5138,7 +5144,8 @@
       "last": {
         "at": "2026-10-29T00:06:22Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers1-t8",
@@ -5154,7 +5161,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 20,
       "priority": 1.0,
       "genre": "polyrhythmic djent",
@@ -5175,7 +5182,8 @@
       "last": {
         "at": "2026-10-29T00:41:02Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers2-t1",
@@ -5468,5 +5476,5 @@
       }
     }
   ],
-  "focus": "Ferrous Bloom"
+  "focus": "Chirpers II (untitled)"
 }
