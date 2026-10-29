@@ -5199,7 +5199,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 8,
       "priority": 1.0,
       "genre": "jazz / prog / math fusion",
@@ -5220,7 +5220,8 @@
       "last": {
         "at": "2026-10-29T10:10:59Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers2-t2",
@@ -5237,7 +5238,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 14,
       "priority": 1.0,
       "genre": "jazz / prog / math fusion",
@@ -5258,7 +5259,8 @@
       "last": {
         "at": "2026-10-29T10:38:35Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers2-t3",
@@ -5283,7 +5285,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 11,
       "priority": 1.0,
       "genre": "jazz / prog / math fusion",
@@ -5304,7 +5306,8 @@
       "last": {
         "at": "2026-10-29T09:35:26Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers2-t4",
@@ -5321,7 +5324,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 29,
       "priority": 1.0,
       "genre": "jazz / prog / math fusion",
@@ -5342,7 +5345,8 @@
       "last": {
         "at": "2026-10-29T10:39:27Z",
         "who": "chirper-two"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers2-t5",
@@ -5358,7 +5362,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 8,
       "priority": 1.0,
       "genre": "jazz / prog / math fusion",
@@ -5379,7 +5383,8 @@
       "last": {
         "at": "2026-10-29T10:43:17Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers2-t6",
@@ -5405,7 +5410,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 9,
       "priority": 1.0,
       "genre": "jazz / prog / math fusion",
@@ -5426,7 +5431,8 @@
       "last": {
         "at": "2026-10-29T09:38:10Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers2-t7",
@@ -5442,7 +5448,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 15,
       "priority": 1.0,
       "genre": "jazz / prog / math fusion",
@@ -5463,7 +5469,8 @@
       "last": {
         "at": "2026-10-29T10:30:11Z",
         "who": "chirper-three"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers2-t8",
@@ -5481,7 +5488,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 28,
       "priority": 1.0,
       "genre": "jazz / prog / math fusion",
@@ -5502,7 +5509,8 @@
       "last": {
         "at": "2026-10-29T10:37:17Z",
         "who": "chirper-two"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers2-t9",
@@ -5518,7 +5526,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 10,
       "priority": 1.0,
       "genre": "jazz / prog / math fusion",
@@ -5539,7 +5547,8 @@
       "last": {
         "at": "2026-10-29T10:42:07Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers2-t10",
@@ -5556,7 +5565,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 10,
       "priority": 1.0,
       "genre": "jazz / prog / math fusion",
@@ -5577,7 +5586,8 @@
       "last": {
         "at": "2026-10-29T10:38:41Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers3-t1",
@@ -5870,5 +5880,5 @@
       }
     }
   ],
-  "focus": "Odd Hours"
+  "focus": "Chirpers III (untitled)"
 }
