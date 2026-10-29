@@ -63,6 +63,7 @@ Generator `compose/chirpers2/src/chirpers2-t4.py`. A chamber-jazz brush trio wit
 - **CHORALE TURNS OVER** (v3): in the chorale's mirror bars (after the centre) the tom voicings invert, the top voice dropping an octave beneath the other two.
 - **ECHO TRADES** (v3): in the trades the tom choir answers a sixteenth late, like an echo across the room.
 - **DRUM FEATURE** (v4, a new 7-bar section after the trades; the band drops out): a palindrome in itself. The brushes play bars 1-3 (sixteenth patterns 3/4 `x..x..x.xx.x`, 5/8 `x.xx..x.x.`, 7/8 `x..xx..x..x.xx`); the centre 4/4 bar is symmetric (`x..x.x.xx.x.x..x`), brushes in its first half and toms in its second; then the tom choir sings bars 3, 2, 1 BACKWARDS (each onset mirrored in its bar) on D minor pentatonic. A single bass D marks the centre.
+- **THE SEED** (v5, before the intro): the palindrome grows from its centre. First the centre bar alone (4/4), then the middle three (7/8 4/4 7/8), then the middle five (5/8 7/8 4/4 7/8 5/8). Each plays the head softly at its place in the full mirror (melody, harmony and colour), over a D pedal; the intro then plays the full seven.
 - **t8's CELL in the coda** (v4): the piano plays Mallet Chamber in Phase's 12-eighth cell (in D dorian) unbroken across the coda's first phrase, so the cell phases against the 44-eighth palindrome: the two chirper-two tracks recognise each other.
 
 

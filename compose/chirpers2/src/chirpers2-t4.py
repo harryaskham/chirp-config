@@ -39,7 +39,11 @@ NIGHT = [1, None, 5, 1, 7, None, 4, 5, 1, None, 3, 5, 7]
 R4 = set(filter(None, os.environ.get("T4_R4", "F,C").split(","))) - {"none"}
 SOLO = {0: [0, 3, 6, 8, 9, 11], 1: [0, 2, 3, 6, 8], 2: [0, 3, 4, 7, 10, 12, 13], 3: [0, 3, 5, 7, 8, 10, 12, 15]}
 PENT = ["D3", "F3", "G3", "A3", "C4", "D4", "F4"]
-T8_CELL = [0, 4, 8, 4, 2, 4, 5, 4, 1, 4, 2, 6]  # t8's cell, scale degrees  # t2's night cell, degrees on eighths (None = rest)
+T8_CELL = [0, 4, 8, 4, 2, 4, 5, 4, 1, 4, 2, 6]  # t8's cell, scale degrees
+# Round 5 (v5): G = the palindrome GROWS FROM ITS CENTRE before the intro: the centre bar alone (4/4), then the
+# middle three (7/8 4/4 7/8), then the middle five (5/8 7/8 4/4 7/8 5/8), each playing the head at its place in the
+# full mirror (melody, harmony and colour), softly over a D pedal; then the intro's full seven.
+R5 = set(filter(None, os.environ.get("T4_R5", "G").split(","))) - {"none"}  # t2's night cell, degrees on eighths (None = rest)
 TRIP = "T" in os.environ.get("T4_OPTS", "")  # triplet brush ghosts before the backbeats (off: no gain)
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 PC = {n: i for i, n in enumerate(NAMES)}
@@ -170,11 +174,17 @@ def build():
     bars = []   # (start beat, meter, pos, section, phrase index, centre)
     sec = []
 
-    def add_phrase(section, meters, centre, pidx):
+    def add_phrase(section, meters, centre, pidx, off=0):
         start = bars[-1][0] + bars[-1][1] / 2 if bars else 0.0
         for pos, m in enumerate(meters):
-            bars.append((start, m, pos, section, pidx, centre))
+            bars.append((start, m, pos + off, section, pidx, centre))
             start += m / 2
+
+    if "G" in R5:  # the seed: 1, 3, 5 bars of the mirror (the centre rotation is not advanced)
+        for L in (1, 3, 5):
+            off = (7 - L) // 2
+            add_phrase("seed", METERS[off:off + L], CENTRES[0], -1, off)
+        sec.append(("seed", 0.0, len(bars)))
 
     form = [("intro", METERS, 2), ("head", METERS, 2), ("bridge", BRIDGE, 2), ("trade", METERS, 4)] + ([("drums", METERS, 1)] if "F" in R4 else []) + [
             ("piano", BRIDGE, 2)] + ([("chorale", METERS, 1)] if "H" in R2 else []) + [("peak", METERS, 2), ("head2", METERS, 2), ("coda", METERS, 2)]  # the form mirrors too
@@ -188,10 +198,10 @@ def build():
     total = bars[-1][0] + bars[-1][1] / 2 + 4.0  # a ring-out
 
     # dynamics: each phrase swells to its centre bar; sections set the level
-    LEVEL = {"intro": 50, "head": 68, "bridge": 74, "trade": 84, "piano": 70, "peak": 104, "head2": 64, "coda": 48,
+    LEVEL = {"seed": 44, "intro": 50, "head": 68, "bridge": 74, "trade": 84, "piano": 70, "peak": 104, "head2": 64, "coda": 48,
              "chorale": 62, "drums": 84}
     # the bass's role per section: a two-feel under the heads, a pedal under the bridge, walking under the solos
-    BASS = {"intro": "two", "head": "two", "bridge": "pedal", "trade": "walk", "piano": "walk", "peak": "walk",
+    BASS = {"seed": "pedal", "intro": "two", "head": "two", "bridge": "pedal", "trade": "walk", "piano": "walk", "peak": "walk",
             "head2": "two", "coda": "two", "chorale": "pedal", "drums": "tacet"}
 
     def dyn(i):
@@ -257,7 +267,7 @@ def build():
                     g8 += g
 
         # ---- the melody (head sections), with the colour palindrome ----
-        if section in ("head", "head2", "peak"):
+        if section in ("head", "head2", "peak", "seed"):
             line = head_bar(pos, m, centre)
             if section == "head2" and pos == 3:   # the return: the centre bar a fifth lower, half time
                 line = [(o, ln, nm(midi(n) - 7)) for o, ln, n in line]
