@@ -179,19 +179,29 @@ def bass():
 
 HANDOFF = bar0(118)   # the last 3 bars: Moult's pulse (96 BPM quarter = 144 BPM dotted quarter) arrives early
 
-def clean():                                    # the release: LATTICE's 7-cell in eighth-note augmentation
+def release_line(octave=0):
+    """The release: LATTICE's 7-cell in eighth-note augmentation (3+2+2 eighths = 6+4+4 sixteenths)."""
     ev = []
     a, z = span("release")
     k = 0
     t = a
     while t < z:
-        for i, o in enumerate([0, 6, 10]):      # 3+2+2 eighths = 6+4+4 sixteenths
+        for i, o in enumerate([0, 6, 10]):
             st = t + o
             if st < z:
                 nxt = ([0, 6, 10] + [14])[i + 1] - o
-                ev.append((st, nxt, nm(F1 + 36 + LATTICE[k % 4]), ramp(st, a, z, 62, 80), ""))
+                ev.append((st, nxt, nm(F1 + 36 + 12 * octave + LATTICE[k % 4]), ramp(st, a, z, 62, 80), ""))
                 k += 1
         t += 14
+    return ev
+
+def crystal():
+    """Seed Crystal's CRYSTAL (patches/fb-crystal) answers across the album: from bar 61 it doubles the release's clean
+    line an octave up, a chime-struck halo over the same cell."""
+    return score([e for e in release_line(octave=1) if e[0] >= bar0(61)])
+
+def clean():                                    # the release: LATTICE's 7-cell in eighth-note augmentation
+    ev = release_line()
     for i, st in enumerate(range(HANDOFF, TOTAL, 6)):  # muted plucks on the dotted quarter: F-C, then A-C# (Moult's colour)
         ev.append((st, 3, chord(F1 + 24, F1 + 31) if i < 4 else chord(F1 + 28, F1 + 32), 70 + 2 * i, PM))
     return score(ev)
@@ -308,6 +318,7 @@ def main():
         tr("lead", "m8-lead", lead(), gain="-7dB", sends={"hall": "-8dB"}, fx=["delay time=3/8 feedback=0.3 mix=0.18"]),
         tr("clean", "m8-clean", clean(), pan="L30", gain="-3dB", sends={"hall": "-8dB"}, fx=["delay time=3/16 feedback=0.35 mix=0.25"]),
         tr("pad", "pad-glass", pad(), gain="-8dB", sends={"hall": "-6dB"}),
+        tr("crystal", "fb-crystal", crystal(), gain="-26dB", pan="R30", sends={"hall": "-6dB"}),   # t1's crystal, borrowed
         tr("kick", KIT, kick(), out="drums"),
         tr("snare", KIT, snare(), out="drums"),
         tr("cym", KIT, cym(), out="drums"),

@@ -1,0 +1,3 @@
+about: "Ferrous Bloom's CRYSTAL (chirper-three; from Seed Crystal): an inharmonic chime strike (partials 1 / 2.76 / 5.4, 0.6 s) over a sustained near-harmonic additive body (60 ms attack, full sustain, 0.9 s release). Loud when sustained: about -27 dB track gain sits it under a quiet section."
+synth: {"layers": [{"name": "body", "type": "additive", "partials": [[1, 1], [2.0, 0.22], [3.0, 0.1], [5.04, 0.05]]}, {"name": "strike", "type": "additive", "partials": [[1, 0.7], [2.76, 0.35], [5.4, 0.18]], "level": {"value": "-60dB", "mod": [{"src": "env.st", "amount": 60}]}}], "env": {"st": {"a": "0.5ms", "d": "600ms", "s": 0, "curve": 3}}, "amp": {"a": "60ms", "d": "0ms", "s": 1, "r": "900ms"}}
+play: {"vel_sens": 0.4}
