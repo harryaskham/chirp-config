@@ -1,0 +1,136 @@
+#!/usr/bin/env python3
+"""chirpers3-t2 (chirper-one): TRIP-HOP NOIR for 'Tape Weather' (Chirpers III).
+
+Slow, heavy and cinematic: a rainy-night film score with a beat, at 72 bpm.
+- The break: half-time (the snare on 3), dragged through a dusty sampler and pitched down, with ghost notes.
+- Minor mellotron strings carry a line that DESCENDS a step every four bars: Cm9, Bb6, Abmaj7, G7b9 (i, bVII, bVI, V).
+- Against it, a gliding theremin-like lead (boc-lead, long glide) CLIMBS (G, Ab, Bb, B).
+- Also: a wordless vox pad, a sub bass that slides between roots, sparse rhodes stabs, and crackle.
+- Before each return, the break drops out for a bar of strings and crackle.
+
+Form: intro (strings and crackle), A (the break enters), B (+ lead, vox), drop, A2 (+ rhodes), B2 (the lead an
+octave up), drop, outro.
+Emits songs/chirpers3-t2.yaml (JSON through tools/songfmt.py). Edit the music here, not the YAML.
+"""
+import json, os, subprocess, sys, tempfile
+
+ROOT = "/home/harry/.config/chirp"
+OUT = os.path.join(ROOT, "songs", "chirpers3-t2.yaml")
+BPM = 72
+SPB = 60 / BPM
+NN = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
+def nm(m): return f"{NN[m % 12]}{m // 12 - 1}"
+
+# the 16-bar cycle: four bars a chord (MIDI voicings), the strings' top line descending C Bb Ab G
+CYCLE = [(36, [48, 55, 58, 62, 63], 72), (34, [46, 53, 57, 58, 62], 70), (32, [44, 51, 55, 60, 63], 68), (31, [43, 50, 53, 56, 59], 67)]
+LEAD = [67, 68, 70, 71]          # the lead climbs G Ab Bb B against the strings' fall
+FORM = [('intro', 4), ('A', 8), ('B', 8), ('drop', 1), ('A2', 6), ('B2', 12), ('drop2', 1), ('outro', 6)]
+
+_seed = [777]
+def rnd():
+    _seed[0] = (_seed[0] * 1103515245 + 12345) & 0x7fffffff
+    return (_seed[0] / 0x7fffffff) * 2 - 1
+
+def line(events, total):
+    ev = sorted(events)
+    toks, t = [], 0.0
+    for k, (at, p, d, v) in enumerate(ev):
+        if at < t - 1e-6: continue
+        if at > t + 1e-4: toks.append(f"R/{at - t:.4f}b")
+        nxt = ev[k + 1][0] if k + 1 < len(ev) else total
+        d = max(0.02, min(d, nxt - at))
+        toks.append(f"{p}/{d:.4f}b@{v}"); t = at + d
+    if total > t + 1e-4: toks.append(f"R/{total - t:.4f}b")
+    return ' '.join(toks)
+
+def notes(events):
+    return [{'at': f'{at * SPB:.4f}s', 'len': f'{d * SPB:.4f}s', 'pitch': m, 'vel': round(v / 127, 3)} for at, m, d, v in events]
+
+def build():
+    bars, t = [], 0.0
+    for name, n in FORM:
+        for i in range(n):
+            # THE LONG DESCENT: the chords change by section, not by bar - the i - bVII - bVI - V fall spread over
+            # the whole song: intro/A/A2/outro on Cm9 (A turns to Abmaj7 for its second half), B falls i -> bVII,
+            # B2 falls bVI -> V and then lifts a minor third for its last four bars (the climax)
+            HC = {'intro': [0], 'A': [0, 2], 'B': [0, 1], 'drop': [3], 'A2': [0], 'B2': [2, 3, 'lift'], 'drop2': [3], 'outro': [0]}[name]
+            idx = HC[min(len(HC) - 1, i * len(HC) // n)]
+            c = CYCLE[3] if idx == 'lift' else CYCLE[idx]
+            if idx == 'lift':
+                c = (c[0] + 3, [m + 3 for m in c[1]], c[2] + 3)
+            bars.append({'sec': name, 'i': i, 't': t, 'c': c}); t += 4.0
+    total = t
+    ms = lambda x: x / 1000 / SPB
+    kit, strings, vox, lead, sub, rhodes, crackle = [], [], [], [], [], [], []
+    for k, b in enumerate(bars):
+        s, t0, (root, ch, top) = b['sec'], b['t'], b['c']
+        beat = s in ('A', 'B', 'A2', 'B2')
+        # ---- the half-time break (swung eighths, snare on 3, ghost notes, a lazy open hat) ----
+        if beat:
+            sw = lambda e: (e // 2) * 1.0 + (0.58 if e % 2 else 0.0)        # swung eighths
+            for e, v in ((0, 110), (3, 92), (5, 96)):
+                kit.append((t0 + sw(e) + ms(-8 + 4 * rnd()), 'k', 0.4, v))
+            kit.append((t0 + 2.0 + ms(28), 's', 0.5, 112))
+            for e in (1, 6, 7):
+                kit.append((t0 + sw(e) + ms(20 + 8 * rnd()), 's', 0.2, 44 + int(8 * rnd())))
+            for e in range(8):
+                if e in (3, 5) and s in ('A', 'A2'): continue
+                kit.append((t0 + sw(e) + ms(6 * rnd()), 'oh' if e == 7 and b['i'] % 4 == 3 else 'h', 0.25, 80 if e % 2 == 0 else 62))
+        # ---- strings: the chord, its top line the descending voice ----
+        if s != 'outro' or b['i'] < 3:
+            for j, m in enumerate(ch):
+                strings.append((t0 + j * 0.02, m, 3.9, 70 if s in ('drop', 'drop2', 'intro') else 62))
+            strings.append((t0 + 0.05, top, 3.9, 74))
+        # ---- vox pad in the B sections: the chord's 3rd and 7th, wordless ----
+        if s in ('B', 'B2'):
+            for m in (ch[2] + 12, ch[3] + 12):
+                vox.append((t0, m, 3.95, 58))
+        # ---- the lead: one long gliding note a bar, climbing against the strings, an octave up in B2 ----
+        if s in ('B', 'B2', 'outro'):
+            m = LEAD[CYCLE.index(b['c']) if b['c'] in CYCLE else 3] + (12 if s == 'B2' else 0) + (3 if b['c'] not in CYCLE else 0)
+            lead.append((t0 + 0.5, nm(m - 2), 0.5, 76))       # the glide starts a step below
+            lead.append((t0 + 1.0, nm(m), 2.8, 86))
+        # ---- sub: the root, sliding into the next chord's root in the bar's last beat ----
+        if beat:
+            nxt = bars[k + 1]['c'][0] if k + 1 < len(bars) else root
+            sub.append((t0, nm(root - 12 if root > 33 else root), 3.0, 100))
+            if nxt != root:
+                sub.append((t0 + 3.0, nm(nxt - 12 if nxt > 33 else nxt), 1.0, 92))
+        # ---- rhodes stabs in A2 and B2 on the and of 2 and of 4 ----
+        if s in ('A2', 'B2'):
+            for at in (1.62, 3.62):
+                rhodes.append((t0 + at + ms(20), ','.join(nm(m + 12) for m in ch[1:4]), 0.3, 70))
+    crackle.append((0.0, 'C4', total - 0.2, 80))
+    end_s = total * SPB
+    return {
+        'about': "Chirpers - Tape Weather (Chirpers III), track 2 by chirper-one: TRIP-HOP NOIR. Generated by "
+                 "compose/chirpers3/src/chirpers3-t2.py; see its docstring and compose/chirpers3/styles.md.",
+        'tempo': BPM, 'length': f'{end_s + 3:.2f}s', 'ceiling': '-0.1dB',
+        'master': {'fx': [{'type': 'tape', 'drive': 0.3, 'warmth': 0.6, 'mix': 0.5},
+                          {'type': 'eq', 'bands': ['highpass cutoff=30', 'peak cutoff=40 q=1 gain=-8dB', 'peak cutoff=220 q=0.9 gain=-6dB', 'peak cutoff=1900 q=1 gain=-4dB', 'highshelf cutoff=6000 gain=8dB']},
+                          {'type': 'gain', 'gain': '+16dB'},
+                          {'type': 'compressor', 'threshold': '-18dB', 'ratio': 3, 'attack': '15ms', 'release': '180ms', 'makeup': '2dB'},
+                          {'type': 'compressor', 'threshold': '-10dB', 'ratio': 6, 'attack': '1ms', 'release': '60ms', 'makeup': '4dB'},
+                          {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.fade', 'amount': 1}]}}],
+                   'auto': {'fade': {'points': [['0s', -10], ['6s', -2], ['14s', 0], [f'{end_s - 10:.2f}s', 0], [f'{end_s:.2f}s', -30]]}}},
+        'tracks': [
+            {'name': 'kit', 'patch': 'lofi-kit', 'gain': '-1dB', 'fx': [{'type': 'pitch', 'semitones': -3, 'mix': 1}], 'score': line(kit, total)},
+            {'name': 'strings', 'patch': 'mellotron-strings', 'gain': '-8dB', 'notes': notes(strings)},
+            {'name': 'vox', 'patch': 'vox-pad', 'gain': '-10dB', 'pan': 0.2, 'notes': notes(vox)},
+            {'name': 'lead', 'patch': 'boc-lead glide=180ms', 'gain': '-8dB', 'pan': -0.2, 'score': line(lead, total)},
+            {'name': 'sub', 'patch': 'sub-saturated', 'gain': '-4dB', 'score': line(sub, total)},
+            {'name': 'rhodes', 'patch': 'rhodes', 'gain': '-9dB', 'pan': 0.35, 'score': line(rhodes, total)},
+            {'name': 'crackle', 'patch': 'fx-crackle', 'gain': '-8dB', 'score': line(crackle, total)},
+        ]}
+
+if __name__ == '__main__':
+    out = sys.argv[1] if len(sys.argv) > 1 else OUT
+    song = build()
+    if out.endswith('.json'):
+        json.dump(song, open(out, 'w'), indent=1)
+    else:
+        with tempfile.NamedTemporaryFile('w', suffix='.json', delete=False) as f:
+            json.dump(song, f)
+        subprocess.run(['python3', os.path.join(ROOT, 'tools', 'songfmt.py'), 'yaml', f.name, '-o', out], check=True)
+        os.unlink(f.name)
+    print('wrote', out, song['length'])

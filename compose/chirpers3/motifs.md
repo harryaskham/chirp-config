@@ -57,3 +57,10 @@ Generator `compose/chirpers3/src/chirpers3-t7.py`. Ambient tape loops, a nominal
   answers.
 - Harmony: Dbmaj9 | Cm7(11) | Fm9 | Bbm9, two bars each; 86 bpm; a 16th swing of 0.58 on the beat only.
 
+
+## t2 Streetlight Hiss (chirper-one)
+Generator `compose/chirpers3/src/chirpers3-t2.py`. Trip-hop noir, 72 bpm half-time.
+- **THE LONG DESCENT**: Cm9 - Bb6 - Abmaj7 - G7b9 (i bVII bVI V) spread over the whole song, the strings' top voice falling C Bb Ab G; the last four bars of B2 lift a minor third (Ebm9 ... Bb7b9).
+- **THE CLIMB**: the gliding boc-lead (180 ms glide, each note scooped from a step below) rises G Ab Bb B against the descent, an octave up in B2.
+- **HALF-TIME BREAK**: lofi-kit pitched down 3 semitones; swung eighths (58%); kick 1, 2&, 3&; snare on 3, 28 ms late; ghost snares on 1&, 4, 4&.
+- **THE DROP**: one bar of strings and crackle alone before each return.
