@@ -138,6 +138,9 @@ SWING_BY = {"seed": 0.56, "intro": 0.56, "head": 0.60, "trade": 0.64, "peak": 0.
 # each melody note with three chord tones closed beneath it and the melody doubled an octave down (Shearing-style),
 # so the palindrome's piano colour is a full chamber texture.
 R27 = set(filter(None, os.environ.get("T4_R27", "L").split(","))) - {"none"}
+# Round 28 (v28): 3 = a BRAID OF THREE: in the intro the tom choir joins the piano's 7 and the rhodes' 5 with a
+# 3-note palindrome (0 4 0) in dotted quarters, so three loops of 7, 5 and 3 braid across the meter palindrome.
+R28 = set(filter(None, os.environ.get("T4_R28", "3").split(","))) - {"none"}
 BTHEME = {0: [(0, 3, 4), (3, 1, 3), (4, 4, 2)], 1: [(0, 2, 1), (2, 2, 2), (4, 3, 4)], 2: [(0, 5, 6)],
           3: [(0, 2, 4), (2, 2, 5), (4, 2, 4)]}  # t2's night cell, degrees on eighths (None = rest)
 TRIP = "T" in os.environ.get("T4_OPTS", "")  # triplet brush ghosts before the backbeats (off: no gain)
@@ -514,6 +517,14 @@ def build():
                 while n7 > 76:
                     n7 -= 12
                 T["pno"].add(swing_at(start, e, swung), 0.45, nm(n7), v - 4 + (6 if k % 7 == 0 else 0))
+                if k % 3 == 0 and "3" in R28:  # the toms' 3-loop, in dotted quarters
+                    d3 = [0, 4, 0][(k // 3) % 3]
+                    n3 = r0 + sc[d3 % len(sc)]
+                    while n3 > 57:
+                        n3 -= 12
+                    while n3 < 45:
+                        n3 += 12
+                    T["tom"].add(swing_at(start, e, swung), 1.3, nm(n3), v - 6 + (6 if (k // 3) % 3 == 0 else 0))
                 if k % 2 == 0:
                     d5 = [0, 2, 4, 2, 0][(k // 2) % 5]
                     n5 = r0 + 12 + sc[d5 % len(sc)]
