@@ -411,6 +411,17 @@ def resample_lane():
     return [[f"{sec(e):.3f}s", v] for e, v in pts]
 
 
+def voiced(base, spread, lp, lp_var):
+    """A per-voice variant (chirper-two's synth.fx): every note pans to its own random place and gets its own tone."""
+    return {"extends": base, "synth": {"fx": [
+        {"type": "pan", "pan": {"value": 0, "mod": [{"src": "rand", "amount": spread}]}},
+        {"type": "filter", "kind": "lp", "cutoff": {"value": lp, "mod": [{"src": "rand", "amount": lp_var}]}}]}}
+
+
+# LIVING TINES (the gears: no two notes quite alike) and SCATTERED HAIL (every stone lands somewhere else)
+VOICED = {"c4-toy": voiced("toy-piano", 0.45, 7000, 3000), "c4-box": voiced("music-box", 0.45, 7000, 3000),
+          "c4-hail": voiced("toy-piano", 1.0, 5000, 3500)}
+
 CHOP = {"type": "chop", "slices": 8, "pattern": "0 0 r3 2 . 5 r7 _", "length": "1/1", "mix": 1}   # wM's resampler
 
 # wM's lo-fi toolkit (bd-9ef6a7): Dilla-ish wonk on the kit, a late snare and an early kick, each bar its own swing
@@ -432,13 +443,13 @@ def main():
     sec = lambda e: e / 4 * 60 / BPM
     tr = lambda name, patch, **kw: dict({"name": name, "patch": patch, "score": P[name].score()}, **kw)
     tracks = [
-        tr("toy", "toy-piano", pan="L35", gain="-6dB", out="toys"),
-        tr("box", "music-box", pan="R35", gain="-6dB", out="toys"),
-        tr("ctoy", "toy-piano", pan="L35", gain="-6dB", out="toys", fx=[TOY_CHOP]),      # the resampled music box
-        tr("cbox", "music-box", pan="R35", gain="-6dB", out="toys", fx=[TOY_CHOP]),
+        tr("toy", "c4-toy", pan="L35", gain="-6dB", out="toys"),
+        tr("box", "c4-box", pan="R35", gain="-6dB", out="toys"),
+        tr("ctoy", "c4-toy", pan="L35", gain="-6dB", out="toys", fx=[TOY_CHOP]),      # the resampled music box
+        tr("cbox", "c4-box", pan="R35", gain="-6dB", out="toys", fx=[TOY_CHOP]),
         tr("xtal", "fb-crystal", pan="R10", gain="-24dB", out="toys"),
         tr("lead", "lead-tape", pan="L10", gain="-9dB", sends={"space": "-10dB"}),
-        tr("hail", "toy-piano", pan="L20", gain="4dB", out="toys", fx=["comb cutoff=138.6 q=6"]),   # hail on a metal roof
+        tr("hail", "c4-hail", pan="C", gain="4dB", out="toys", fx=["comb cutoff=138.6 q=6"]),   # hail on a metal roof
         tr("desc", "boc-lead", pan="R20", gain="-4dB", sends={"space": "-9dB"}),     # the second hidden melody
         tr("mist", "music-box", gain="-6dB", sends={"space": "-6dB"},                   # the MIST: hail into grains
            fx=[{"type": "cloud", "size": "150ms", "density": 18, "position": "500ms", "spray": "400ms", "pitch": 12,
@@ -460,6 +471,7 @@ def main():
         f"tempo: {BPM}",
         'tail: "2.5s"',
         'ceiling: "-0.5dB"',
+        "patches: " + json.dumps(VOICED),
         "buses:",
         '  toys: {fx: [' + ", ".join(json.dumps(f) for f in [
             {"type": "tape", "wow": 14, "flutter": 3, "drift": 1, "tone": "8kHz", "sweep": 0.6, "squash": 0.3,
