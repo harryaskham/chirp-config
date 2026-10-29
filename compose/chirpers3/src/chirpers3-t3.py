@@ -75,7 +75,7 @@ def swing(s16):
 
 def build():
     B, total = bars()
-    kit, piano, bass, lead, crackle = [], [], [], [], []
+    kit, piano, bass, lead, crackle, wurli = [], [], [], [], [], []
     for b in B:
         sec, t0, L, dr = b['sec'], b['t'], b['beats'], DRIFT[b['sec']]
         ms = lambda x: x / 1000 / SPB      # milliseconds -> beats
@@ -104,7 +104,10 @@ def build():
             at = t0 + half * 2.0 + (ms(40 * dr) if half else ms(10 * dr))
             if at >= t0 + L: continue
             for j, m in enumerate(ch[1:]):
-                piano.append((at + ms(18 * j * (1 + dr / 2)), nm(m), (2.0 if half == 0 else L - 2.0) - 0.1, 64 - 3 * j))
+                # SECTION COLOURS (so each turn of the form is heard): the intro and the outro play the loop on a
+                # warbling wurli, the bookends of the song; the first lift (A2) voices it an octave higher
+                up = 12 if sec == 'A2' else 0
+                (wurli if sec in ('intro', 'outro') else piano).append((at + ms(18 * j * (1 + dr / 2)), nm(m + up), (2.0 if half == 0 else L - 2.0) - 0.1, 64 - 3 * j))
         # ---- bass: the root late and gliding to the next chord's root ----
         if sec not in ('intro', 'outro'):
             r0, r1 = b['loop'][0][0], b['loop'][1][0]
@@ -151,6 +154,8 @@ def build():
         'tracks': [
             # wM's lo-fi toolkit (pin 232211dd): the kit through SP-1200-style sampling, the piano through a warbling tape deck
             {'name': 'kit', 'patch': 'lofi-kit', 'gain': '-2dB', 'fx': ['crush bits=12 rate=26kHz mix=0.5'], 'score': line(kit, total)},
+            {'name': 'wurli', 'patch': 'wurli', 'gain': '-3dB', 'pan': 0.1, 'fx': ['tape drive=0.2 mix=0.6 wow=18 flutter=3 drift=2 tone=5500 sweep=0.7 seed=21'],
+             'notes': [{'at': f'{at * SPB:.4f}s', 'len': f'{d * SPB:.4f}s', 'pitch': NN.index(p[:-1]) + 12 * (int(p[-1]) + 1), 'vel': v / 127} for at, p, d, v in wurli]},
             {'name': 'piano', 'patch': 'tape-piano', 'gain': '-4dB', 'pan': -0.15, 'fx': ['tape drive=0.15 mix=0.5 wow=12 flutter=2.5 drift=1.2 tone=6500 sweep=0.6 seed=4'], 'score': line(piano, total) if False else None,
              'notes': [{'at': f'{at * SPB:.4f}s', 'len': f'{d * SPB:.4f}s', 'pitch': p_midi, 'vel': v / 127}
                        for at, p, d, v in piano for p_midi in [NN.index(p[:-1]) + 12 * (int(p[-1]) + 1)]]},
@@ -165,7 +170,7 @@ if __name__ == '__main__':
     song = build()
     for t in song['tracks']:
         if t.get('score') is None:
-            t.pop('score')
+            t.pop('score', None)
     song['tracks'] = [t for t in song['tracks'] if t['name'] != 'tapestop']
     if out.endswith('.json'):
         json.dump(song, open(out, 'w'), indent=1)
