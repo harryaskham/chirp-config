@@ -121,8 +121,13 @@ def solo_bar(b):
     i = b['i']; n = b['n16']
     s = {}
     if i < 4:
+        # BENDS: each long note is scooped into from a whole step below (a sixteenth grace that the mono lead's
+        # glide turns into a bend up); the phrase's last note falls back a half step (a bend down)
         for j, p in enumerate((0, 6, 10)):
-            s[p] = (nm(dor(SOLO_D[(i * 3 + j) % 16] + 2, 68)), 4 if p < 10 else 5, 96)
+            m = dor(SOLO_D[(i * 3 + j) % 16] + 2, 68)
+            s[p] = (nm(m - 2), 1, 84)
+            s[p + 1] = (nm(m), 3 if p < 10 else 3, 98)
+            if p == 10: s[p + 4] = (nm(m - 1), 1, 80)
     elif i < 10:
         for j, p in enumerate(range(0, n, 2)):
             s[p] = (nm(dor(SOLO_D[(i * 5 + j) % 16] + i // 3, 68)), 2, 92 + (8 if j % 4 == 0 else 0))
@@ -175,7 +180,16 @@ def build():
             P['bass'].append(grid_to_toks({0: (nm(b['root'] - 12), 2, 108)}, n))   # one bass hit on each one
             for k_ in ('clav', 'pad', 'vibes', 'lead', 'brass', 'saxes', 'glitch'): P[k_].append(R)
             continue
-        P['bass'].append(bass_bar(b) if s != 'intro' else R)
+        if s == 'theme' and b['i'] == 15:
+            # a BASS FILL into the bridge: the last theme bar's second half runs down the Dorian in sixteenths to
+            # the bridge's new root
+            bb = bass_bar(b)
+            fill = {p: (nm(dor(7 - (p - 8), 32)), 1, 96 + (p - 8)) for p in range(8, b['n16'])}
+            bs = {0: (nm(b['root'] - 12), 3, 110), 4: (nm(b['root'] - 5), 2, 96)}
+            bs.update(fill)
+            P['bass'].append(grid_to_toks(bs, b['n16']))
+        else:
+            P['bass'].append(bass_bar(b) if s != 'intro' else R)
         P['clav'].append(clav_bar(b) if s != 'bridge' else R)
         P['kit'].append(kit_bar(b, s) if not (s == 'intro' and b['i'] < 2) else R)
         P['pad'].append([tok(chord(b['root'], 55), n / 4, 60)] if s in ('bridge', 'solo') else R)
@@ -231,7 +245,7 @@ def build():
             {'name': 'kit', 'patch': 'tight-kit', 'gain': '-4dB', 'score': J('kit')},
             {'name': 'brass', 'patch': 'horn-section', 'gain': '-6dB', 'pan': 0.2, 'score': J('brass')},
             {'name': 'saxes', 'patch': 'sax-section', 'gain': '-7dB', 'pan': -0.15, 'score': J('saxes')},
-            {'name': 'lead', 'patch': 'synth-lead', 'gain': '-8dB', 'pan': 0.1, 'score': J('lead')},
+            {'name': 'lead', 'patch': 'synth-lead glide=80ms', 'gain': '-8dB', 'pan': 0.1, 'score': J('lead')},
             {'name': 'vibes', 'patch': 'vibes', 'gain': '-5dB', 'pan': 0.3, 'score': J('vibes')},
             # the last two bars of the out-theme doubled through wM's fixed stutter: the horns' last word glitches
             {'name': 'glitch', 'patch': 'horn-section', 'gain': '-9dB', 'pan': 0.35,
