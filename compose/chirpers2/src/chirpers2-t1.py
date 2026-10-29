@@ -25,7 +25,10 @@ MG = float(os.environ.get("T1_MG", "13"))
 BPM = 176
 SWING = float(os.environ.get("T1_SWING", "0.70"))
 SCALAR = os.environ.get("T1_TEMPO", "scalar") == "scalar"  # a scalar tempo (compscore's rhythm grid reads it); meters dropped
-MIX = os.environ.get("T1_MIX", "2")  # 1 = v1 balance; 2 = kit -13 dB + highshelf -5 @4k, bass +4, master shelf +6 @150, highshelf -4 @6k
+MIX = os.environ.get("T1_MIX", "2")
+TRIP = os.environ.get("T1_TRIP", "1") == "1"  # every 4th bar of the tenor solo phrases in quarter-note triplets (3 over 2)
+DTRIP = os.environ.get("T1_DTRIP", "1") == "1"  # the drummer's second bar in the trades in triplet eighths
+SUB = os.environ.get("T1_SUB", "-8")  # the upright's sine under the string (dB)  # 1 = v1 balance; 2 = kit -13 dB + highshelf -5 @4k, bass +4, master shelf +6 @150, highshelf -4 @6k
 
 # (name, beats per bar, bars, swing)
 FORM = [("intro", 7, 4, SWING), ("headA", 7, 8, SWING), ("bridge", 4, 8, 0.5), ("headA2", 7, 8, SWING),
@@ -197,6 +200,33 @@ def ride(beats, rng, b, sec, vel=82):
     return J(*out)
 
 
+def trip_bar(c, beats, rng, lo, hi, vel=96):
+    """A bar phrased in quarter-note triplets (/6 = 2/3 beat): the line steps through the chord's scale three notes
+    per two beats, crossing the bar's swing - the hard-bop horn's 3-over-2."""
+    root, sc, _ = CH[c]
+    pcs = sorted({(root + x) % 12 for x in sc})
+    pool = [m for m in range(lo, hi + 1) if m % 12 in pcs]
+    i = rng.randrange(len(pool) // 3, 2 * len(pool) // 3)
+    step = rng.choice([1, -1])
+    out = []
+    for k in range(int(beats * 3 // 2)):
+        out.append(f"{nm(pool[i])}/6@{vel + (6 if k % 3 == 0 else -4)}")
+        i = max(0, min(len(pool) - 1, i + step * rng.choice([1, 1, 2])))
+    rem = beats - (beats * 3 // 2) * 2 / 3
+    return J(*out, R(rem))
+
+
+def drum_trip(beats, rng, vel=96):
+    """The drummer's triplet answer: triplet eighths (/12) around snare and toms, kick on each beat."""
+    out = []
+    for i in range(beats * 3):
+        p = ["s", "t1", "t2", "s", "ft", "t2"][(i + rng.randrange(2)) % 6]
+        if i % 3 == 0:
+            p += ",k"
+        out.append(f"{p}/12@{vel + (8 if i % 3 == 0 else -10) + rng.randint(-6, 4)}")
+    return J(*out)
+
+
 def drum_solo(beats, rng, vel=96):
     """Two bars of the drummer's answer in the trades: snare/tom phrases in swung eighths, kick punctuation."""
     out = []
@@ -295,7 +325,8 @@ def build():
                 bar["bass"] = walk(c, nxt, beats, rng, two=(b < 2))
                 bar["kit"] = ride(beats, rng, b, sec, vel=78)
             elif sec == "tenor":
-                bar["tenor"] = solo(c, beats, rng, 51, 79, vel=88 + b // 4, rest_p=0.08 if b % 4 == 3 else 0.0)
+                bar["tenor"] = (trip_bar(c, beats, rng, 55, 79, vel=92 + b // 4) if TRIP and b % 4 == 2
+                                else solo(c, beats, rng, 51, 79, vel=88 + b // 4, rest_p=0.08 if b % 4 == 3 else 0.0))
                 bar["piano"] = comp(c, beats, rng, vel=64 + b // 4, b=b)
                 bar["bass"] = walk(c, nxt, beats, rng)
                 bar["kit"] = ride(beats, rng, b, sec, vel=80 + b // 4)
@@ -311,7 +342,7 @@ def build():
                     bar["bass"] = walk(c, nxt, beats, rng)
                     bar["kit"] = ride(beats, rng, b, sec, vel=86)
                 else:
-                    bar["kit"] = drum_solo(beats, rng)
+                    bar["kit"] = drum_trip(beats, rng) if DTRIP and b % 2 == 1 else drum_solo(beats, rng)
             elif sec == "coda":  # the vamp thins to the held last chord: Cm(add9) over the low C, the horn on the 9th
                 if b < 2:
                     bar["piano"] = comp(c, beats, rng, vel=60, b=b)
@@ -348,10 +379,13 @@ def cut(piece, beats):
         if pos >= beats - 1e-9:
             break
         head, rest = t.split("/", 1)
-        dur = rest.split("b", 1)[0]
-        tail = rest[len(dur) + 1:]
-        d = float(dur)
-        out.append(f"{head}/{min(d, beats - pos):g}b{tail}")
+        k = min([i for i in (rest.find("@"), rest.find("^")) if i >= 0] or [len(rest)])
+        dur, tail = rest[:k], rest[k:]
+        d = float(dur[:-1]) if dur.endswith("b") else 4.0 / float(dur)  # beats, or a note value (/6 = 2/3 beat)
+        if d <= beats - pos + 1e-9:
+            out.append(t)
+        else:
+            out.append(f"{head}/{beats - pos:.6g}b{tail}")
         pos += d
     if pos < beats - 1e-9:
         out.append(R(beats - pos))
@@ -392,7 +426,7 @@ UPRIGHT = {
             {"name": "string", "type": "pluck", "stiff": 0.12, "buzz": 0.02, "pick": 0.45,
              "decay": {"value": "1.6s", "mod": [{"src": "vel", "amount": 0.3}]},
              "bright": {"value": 0.3, "mod": [{"src": "vel", "amount": 0.2}, {"src": "rand", "amount": 0.04}]}},
-            {"name": "sub", "wave": "sine", "level": "-14dB"},
+            {"name": "sub", "wave": "sine", "level": f"{SUB}dB"},
             {"name": "thump", "type": "noise", "level": {"value": "-60dB", "mod": [{"src": "env.th", "amount": 34}]}},
         ],
         "pitch": {"value": 0, "mod": [{"src": "env.tw", "amount": 0.2}, {"src": "rand", "amount": 0.03}]},
