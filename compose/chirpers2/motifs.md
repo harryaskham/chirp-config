@@ -136,6 +136,7 @@ Generator `compose/chirpers2/src/chirpers2-t8.py`. A kit-less vibes-and-marimba 
 - The vibes now stay in a real vibraphone's range (F3-F6); earlier versions climbed to D7 on the Abmaj9 phrases.
 - **THE BLUR** (v4, a 4-bar marimba break after the bridge): the two marimbas alone, the high one stuck a THIRD of an eighth behind: the phase caught between steps, neither unison nor the next offset. Eb lydian for two bars, Bb13sus for two, into the peak.
 - **THE PEAK REHARMONISED** (v5): the climax climbs a cycle of major thirds, Ebmaj7#11 | Gmaj7#11 | Bmaj7#11 | Bb13sus (each four bars, all lydian), and the phasing cell, the four-mallet palindromes and the bowed bass ride it, before Bb13sus leads home to the unison.
+- **THE TUTTI** (v9): on the peak's last bar all four players (vibes, both marimbas, bowed bass and frame drum) play the cell in rhythmic unison, the arrival before the marimbas fall back into unison. The opening phase section is now 12 bars (a step every three), so the process starts sooner.
 - **THE GROWING ECHO** (v5, the coda): the second vibraphone's lag drifts from a dotted eighth to a dotted quarter across the last mirror, so the phasing process reaches the melody itself.
 - **FIVE AGAINST FOUR** (v4, the peak): the frame drum's teks fall 1.2 beats apart, five across the bar's four dotted quarters, under the phasing.
 

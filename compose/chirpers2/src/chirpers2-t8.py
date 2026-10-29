@@ -65,6 +65,10 @@ REHARM = [(68, "maj9"), (67, "m9"), (66, "maj7#11"), (65, "m9"), (58, "13sus"), 
 # (half up, half back, on the bridge's chords), a counter-melody to the marimba's t7 subject, the sub holding the
 # root; 5 = the vibes solo's runs in QUINTUPLETS (ten notes over two beats).
 R8 = set(filter(None, os.environ.get("T8_R8", "S,5").split(","))) - {"none"}
+# Round 9 (v9): C = the opening PHASE section COMPRESSED to 12 bars (a step every three bars, the third a blur), so
+# the process gets going sooner; U = a TUTTI on the peak's last bar: vibes, both marimbas, bowed bass and frame drum
+# play the cell together in rhythmic unison, the arrival before the return to unison.
+R9 = set(filter(None, os.environ.get("T8_R9", "C,U").split(","))) - {"none"}
 SUBJECT = [(0, 1), (3, 1), (7, 1), (6, 2), (2, 2), (5, 1), (1, 1), (4, 1), (0, 2)]  # t7: semitones, eighths
 BAR = 6.0  # a 12/8 bar, in quarter beats
 
@@ -134,7 +138,7 @@ class Track:
         return " ".join(toks)
 
 
-FORM = [("cell", 4), ("phase", 16), ("melody", 16)] + ([("solo", 8)] if "V" in R3 else []) + \
+FORM = [("cell", 4), ("phase", 12 if "C" in R9 else 16), ("melody", 16)] + ([("solo", 8)] if "V" in R3 else []) + \
        ([("trades", 8)] if "X" in R6 else []) + \
        [("bridge", 16)] + ([("blur", 4)] if "B" in R4 else []) + [("peak", 16), ("unison", 8), ("coda", 6)]
 LEVEL = {"cell": 70, "phase": 76, "melody": 82, "bridge": 74, "peak": 96, "unison": 80, "coda": 60, "solo": 84,
@@ -189,8 +193,9 @@ def build():
                 acc = 10 if e % 3 == 0 else 0
                 T["m1"].add(start + e / 2, 0.45, nm(deg(chord, cell[e]) - 12), v - 8 + acc)  # the low marimba
         if sec in ("phase", "melody", "peak"):
-            k = {"phase": 0, "melody": 4, "peak": 8}[sec] + i // 4
-            off = k + (0.5 if i % 4 == 3 else 0.0)  # the blur bar: half an eighth on toward the next step
+            span = 3 if sec == "phase" and "C" in R9 else 4
+            k = {"phase": 0, "melody": 4, "peak": 8}[sec] + i // span
+            off = k + (0.5 if i % span == span - 1 else 0.0)  # the blur bar: half an eighth on toward the next step
             for e in range(12):
                 at = start + ((e + off) % 12) / 2
                 p2 = deg(chord, cell[e])
@@ -338,6 +343,15 @@ def build():
                     fd.add(start + 5, 1, "sw", v - 12)
         elif sec == "coda" and i == 0:
             fd.add(start, 6, "sw", v - 18)
+    if "U" in R9:  # the tutti: the peak's last bar, everyone on the cell
+        last = [bb for bb in bars if bb[1] == "peak"][-1]
+        start, chord, v = last[0], (PEAK if "H" in R5 else HOME)[3], LEVEL["peak"]
+        for e in range(12):
+            p0 = deg(chord, CELL[e])
+            acc = 12 if e % 3 == 0 else 0
+            T["vib"].add(start + e / 2, 0.45, nm(vr(p0 + 12)), v - 8 + acc)
+            T["bass"].add(start + e / 2, 0.45, nm(p0 - 24 if p0 - 24 >= 28 else p0 - 12), v - 6 + acc)
+            T["fd"].add(start + e / 2, 0.3, "dum" if e % 3 == 0 else "tek", v - 8 + acc)
     sec = []
     for name, n in FORM:
         first = next(bb for bb in bars if bb[1] == name)
