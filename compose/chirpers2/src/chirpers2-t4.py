@@ -110,6 +110,10 @@ R20 = set(filter(None, os.environ.get("T4_R20", "X").split(","))) - {"none"}
 # tune cycling through the palindromic solo.
 R21 = set(filter(None, os.environ.get("T4_R21", "S").split(","))) - {"none"}
 SUBJ_RETRO = [0, 4, 1, 5, 2, 6, 7, 3, 0]  # t7's subject (0 3 7 6 2 5 1 4 0) read backwards, semitones over D3
+# Round 22 (v22): P = t6 Quarter to Sixteen's PLANING answered (chirper-one: rootless m9 shapes sliding in parallel,
+# a chord a bar): in the tom chorale's mirror half the tom choir planes one m9 shape up by semitones, Cm9 C#m9 Dm9,
+# home to D, where the first half sang the harmonic palindrome.
+R22 = set(filter(None, os.environ.get("T4_R22", "P").split(","))) - {"none"}
 BTHEME = {0: [(0, 3, 4), (3, 1, 3), (4, 4, 2)], 1: [(0, 2, 1), (2, 2, 2), (4, 3, 4)], 2: [(0, 5, 6)],
           3: [(0, 2, 4), (2, 2, 5), (4, 2, 4)]}  # t2's night cell, degrees on eighths (None = rest)
 TRIP = "T" in os.environ.get("T4_OPTS", "")  # triplet brush ghosts before the backbeats (off: no gain)
@@ -495,6 +499,9 @@ def build():
                 ch3 = (top - 12 + voic[0], top + voic[1] - 12, top + voic[3] - 12)
                 if pos > 3 and "V" in R3:  # the mirror bars: the voicing turns over (top voice under the others)
                     ch3 = (ch3[2] - 12, ch3[0], ch3[1])
+                if pos > 3 and "P" in R22:  # planing: one rootless m9 shape (b3 b7 9) sliding up to D
+                    pr = 48 + (pos - 4)  # C3, C#3, D3
+                    ch3 = (pr + 3, pr + 10, pr + 14)
                 T["tom"].add(start + c8 / 2, (end8 - c8) / 2 * 0.95, ",".join(nm(x) for x in ch3), v + 8)
         elif section == "piano":  # piano solo: right hand lines over left-hand shells
             for c8, vo in comp:
