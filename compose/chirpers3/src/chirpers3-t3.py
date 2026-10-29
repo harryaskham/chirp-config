@@ -133,8 +133,9 @@ def build():
                             'fade': {'points': [['0s', -8], ['4s', 0], [f'{tb - 1.0:.2f}s', 0], [f'{tb:.2f}s', -14],
                                                 [f'{tb + 2.0:.2f}s', -4], [f'{end_s - 8:.2f}s', 0], [f'{end_s:.2f}s', -30]]}}},
         'tracks': [
-            {'name': 'kit', 'patch': 'lofi-kit', 'gain': '-2dB', 'score': line(kit, total)},
-            {'name': 'piano', 'patch': 'tape-piano', 'gain': '-4dB', 'pan': -0.15, 'score': line(piano, total) if False else None,
+            # wM's lo-fi toolkit (pin 232211dd): the kit through SP-1200-style sampling, the piano through a warbling tape deck
+            {'name': 'kit', 'patch': 'lofi-kit', 'gain': '-2dB', 'fx': ['crush bits=12 rate=26kHz mix=0.5'], 'score': line(kit, total)},
+            {'name': 'piano', 'patch': 'tape-piano', 'gain': '-4dB', 'pan': -0.15, 'fx': ['tape drive=0.15 mix=0.5 wow=12 flutter=2.5 drift=1.2 tone=6500 sweep=0.6 seed=4'], 'score': line(piano, total) if False else None,
              'notes': [{'at': f'{at * SPB:.4f}s', 'len': f'{d * SPB:.4f}s', 'pitch': p_midi, 'vel': v / 127}
                        for at, p, d, v in piano for p_midi in [NN.index(p[:-1]) + 12 * (int(p[-1]) + 1)]]},
             {'name': 'bass', 'patch': 'analog-bass', 'gain': '-3dB', 'score': line(bass, total)},
