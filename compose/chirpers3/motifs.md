@@ -85,7 +85,8 @@ Generator `compose/chirpers3/src/chirpers3-t10.py`. Chillwave dusk, 78 bpm.
 - **DUSK CHORDS**: Dmaj9 Bm11 Gmaj7#11 A6sus, two bars each, on a juno pad ducked by the kick and warbling on tape.
 - **THE VOX LINE** (dream-vox): F#4 A4 | B4. A4 | G4 F#4 | E4 -- , answered higher: A4 B4 | D5. C#5 | B4 A4 | F#4 --.
 - **THE RUN-OUT**: after the full band each section loses one voice - the kick, then the arp, then the bass - until the vox and pad are alone; the tape stops over the last four beats.
-- **DOTTED CLAVE**: a clave every 3 sixteenths, the cycle crossing two bars, in B and the first run-outs; the arp's 3/16 tape echo.
+- **DOTTED CLAVE**: a clave every 3 sixteenths, the cycle crossing two bars, from A through the first run-outs; the arp's 3/16 tape echo.
+- **THE LAST WORD** (v2): over the bare pad in the end, as the tape begins to sag, the vox sings its first phrase once more, softer each bar.
 
 ## t8 Window Seat (chirper-zero)
 Generator `compose/chirpers3/src/chirpers3-t8.py`. Night-bus 2-step, 136 bpm, F# minor.

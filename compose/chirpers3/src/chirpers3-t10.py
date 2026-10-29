@@ -24,11 +24,11 @@ CHORDS = [(38, [54, 57, 61, 64, 66]), (35, [50, 54, 57, 61, 64]), (31, [50, 54, 
 # the vox melody: two 4-bar phrases (MIDI, beats), the second answering higher
 VOX = [[(66, 2), (69, 2)], [(71, 3), (69, 1)], [(67, 2), (66, 2)], [(64, 4)],
        [(69, 2), (71, 2)], [(74, 3), (73, 1)], [(71, 2), (69, 2)], [(66, 4)]]
-FORM = [('dawn', 8), ('A', 16), ('B', 16), ('runout1', 8), ('runout2', 8), ('runout3', 8), ('end', 6)]
+FORM = [('dawn', 8), ('A', 16), ('B', 24), ('runout1', 8), ('runout2', 8), ('runout3', 8), ('end', 6)]
 HAS = {   # which voices play in each section (the run-out removes one at a time)
     'dawn': {'pad', 'voxfrag'}, 'A': {'pad', 'kick', 'kit', 'bass', 'arp'}, 'B': {'pad', 'kick', 'kit', 'bass', 'arp', 'vox'},
     'runout1': {'pad', 'kit', 'bass', 'arp', 'vox'}, 'runout2': {'pad', 'kit', 'bass', 'vox'},
-    'runout3': {'pad', 'vox'}, 'end': {'pad'}}
+    'runout3': {'pad', 'vox'}, 'end': {'pad', 'lastvox'}}
 
 def line(events, total):
     ev = sorted(events)
@@ -64,7 +64,7 @@ def build():
             for q in (1, 3): kit.append((t0 + q, 'cp' if s in ('B', 'runout1') else 's', 0.25, 84))
             for e in range(8):
                 if e % 2: kit.append((t0 + e * 0.5, 'h', 0.25, 70 if e % 4 == 1 else 60))
-        if 'kit' in h and s in ('B', 'runout1', 'runout2'):
+        if 'kit' in h and s in ('A', 'B', 'runout1', 'runout2'):
             # a CLAVE in dotted eighths (every 3 sixteenths, two bars across) - the dusk's slow-turning second clock
             for q in range(16):
                 if ((k % 2) * 16 + q) % 3 == 0:
@@ -76,6 +76,12 @@ def build():
             seq = ch[1:] + ch[-2:0:-1]
             for e in range(16):
                 arp.append((t0 + e * 0.25, nm(seq[e % len(seq)] + 12), 0.22, 70 if e % 4 == 0 else 58))
+        if 'lastvox' in h and b['i'] < 4:
+            # THE LAST WORD: over the bare pad, as the tape begins to sag, the vox sings the first phrase once more,
+            # softer each bar
+            at = t0
+            for m, d in VOX[b['i']]:
+                vox.append((at, m, d - 0.1, 60 - 4 * b['i'])); at += d
         if 'vox' in h or ('voxfrag' in h and b['i'] >= 4):
             phrase = VOX[(k - (8 if s == 'B' else 0)) % 8] if 'vox' in h else VOX[3 + (b['i'] % 2) * 4]
             at = t0
