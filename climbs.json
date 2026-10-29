@@ -5479,7 +5479,7 @@
     {
       "id": "chirpers2-t9",
       "song": "songs/chirpers2-t9.yaml",
-      "reference": "Chirpers — Track 9 (untitled)",
+      "reference": "Chirpers — Slow Shutter",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers2-t9 OUT.wav",
@@ -5495,7 +5495,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "Odd Hours",
-        "title": "Track 9 (untitled)",
+        "title": "Slow Shutter",
         "track": 9,
         "year": 2026
       },
