@@ -73,12 +73,14 @@ Generator `compose/chirpers3/src/chirpers3-t7.py`. Ambient tape loops, a nominal
   out at bar 55; the last sound is one music-box note three semitones flat.
 - **THE BASS ANSWERS** (since v3): the root, a reply on the swung and-of-3 (the fifth, or the ninth up high on
   alternate chords), then a chromatic walk down into each change.
-- **THE SECOND HIDDEN MELODY** (since v6, the full section): where the music box's 7 meets the crystal's 9, a soft
+- **THE SECOND HIDDEN MELODY** (since v6, the full section; since v7 the return too): where the music box's 7 meets the crystal's gear, a soft
   boc-lead under the first melody sings the box's note an octave down and holds to the next meeting (7 meetings in 8
   bars: a slow descant made by the gears).
 - **HAIL**: in the glitch break the toy's notes are torn into falling 32nd retriggers, 3-6 at a time, between music-box
   answers; since v6 they ring through a COMB filter tuned to Db (138.6 Hz), like hail on a metal roof.
-- Harmony: Dbmaj9 | Cm7(11) | Fm9 | Bbm9, two bars each; 86 bpm; a 16th swing of 0.58 on the beat only.
+- Harmony: Dbmaj9 | Cm7(11) | Fm9 | Bbm9, two bars each; 86 bpm; a 16th swing of 0.58 on the beat only. Since v7 a
+  BRIDGE ends the breakdown: after four bars at home it turns Gbmaj9 | Fm7 | Ebm9 | Ab13sus, one chord a bar (IV iii ii
+  V), and lands home in Db for the full section (the only place the loop's harmony ever moves).
 
 
 ## t2 Streetlight Hiss (chirper-one)

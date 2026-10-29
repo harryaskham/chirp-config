@@ -11,7 +11,8 @@ GLITCHY IDM-LITE, a broken music box in a lo-fi beat.
   dropped hats, crushed and low-passed, with the drum bus stuttering now and then.
 - GLITCHES: probabilistic stutter on the toy and drum buses, plus composed HAIL (a toy note retriggered as 32nds)
   in the break.
-- HARMONY: Dbmaj9 | Cm7(11) | Fm9 | Bbm9, two bars each; wM's tape deck (wow, flutter, hiss) on the toys, the pad
+- HARMONY: Dbmaj9 | Cm7(11) | Fm9 | Bbm9, two bars each, with a BRIDGE in the breakdown (Gbmaj9 | Fm7 | Ebm9 |
+  Ab13sus, turning home); wM's tape deck (wow, flutter, hiss) on the toys, the pad
   and the master, his vinyl (crackle, dust, warp) on the master; the kit's wonk from play.humanize (late snare,
   early kick, swing drift).
 - THE GEAR CHANGE: the return turns the toy to a 6 against the box's 7 (a dotted-eighth hemiola); the full section
@@ -94,11 +95,18 @@ class Part:
         return " ".join(toks)
 
 
-P = {k: Part() for k in ("toy", "box", "xtal", "lead", "pad", "bass", "sub", "kick", "snare", "hat", "perc", "cpiano", "hail", "desc")}
+P = {k: Part() for k in ("toy", "box", "xtal", "lead", "pad", "bass", "sub", "kick", "snare", "hat", "perc", "cpiano", "hail", "desc", "sq")}
 rng = random.Random(4)
 
 
+BRIDGE = [(6, [0, 4, 7, 11, 14]), (5, [0, 3, 7, 10, 14]), (3, [0, 3, 7, 10, 14]), (8, [0, 5, 7, 10, 21])]
+# the breakdown's BRIDGE (its last 4 bars, one chord a bar): Gbmaj9 | Fm7 | Ebm9 | Ab13sus (IV iii ii V), turning
+# home to Db for the full section
+
+
 def chord_at(bar):
+    if 41 <= bar <= 44:                                   # the breakdown settles at home for 4 bars, then turns
+        return BRIDGE[bar - 41]
     return CHORDS[((bar - 1) // 2) % 4]
 
 
@@ -217,14 +225,14 @@ def clockwork():
             root, iv = chord_at(bar)
             m = 68 + ((root + iv[q % len(iv)] - 8) % 12)
             P["xtal"].add(x, 3, nm(m), 52 if name in ("intro", "breakdown") else 58)
-            if name == "full":
+            if name in ("full", "return"):
                 xtal_full[x] = m
             q += 1
     return sorted(set(toy_on) & set(box_on)), toy_on, box_on, xtal_full
 
 
 def descant(box_on, xtal_full):
-    """THE SECOND HIDDEN MELODY (the full section): where the music box's 7 meets the crystal's 9, a soft voice under
+    """THE SECOND HIDDEN MELODY (the return and the full section): where the music box's 7 meets the crystal's gear, a soft voice under
     the first melody sings the box's note an octave down and holds to the next meeting: two tunes made by the gears."""
     meet = sorted(set(box_on) & set(xtal_full))
     for i, st in enumerate(meet):
@@ -294,6 +302,14 @@ def glitch_hail():
         i += 1
 
 
+def squelch():
+    """The full section's SQUELCH: the bass line doubled through chirper-two's ladder filter, resonant, its cutoff swept
+    by a slow LFO, for the last big section only."""
+    for st, ln, head, vel in list(P["bass"].ev):
+        if b0(45) <= st < b0(53):
+            P["sq"].add(st, ln, head, vel - 6)
+
+
 def counter_line():
     """The breakdown's COUNTER-MELODY: a tape piano walking the chords' guide tones in half notes (the third, then the
     seventh), voice-led to the nearest, answering the soft hidden melody while the beat is out."""
@@ -308,23 +324,35 @@ def counter_line():
             prev = m
 
 
+def chord_spans():
+    """(bar, bars) per chord: two bars each, one bar each through the bridge (bars 41-44)."""
+    out, bar = [], 1
+    while bar <= BARS:
+        n = 1 if 41 <= bar <= 44 else 2
+        out.append((bar, n))
+        bar += n
+    return out
+
+
 def harmony():
-    for bar in range(1, BARS + 1, 2):
+    for bar, n in chord_spans():
         root, iv = chord_at(bar)
         sec = sec_of(bar)
         if bar >= 5:
             voic = sorted({56 + ((root + x - 8) % 12) for x in iv})
-            P["pad"].add(b0(bar), 2 * S - 0.5, ",".join(nm(m) for m in voic), 56 if sec in ("intro", "breakdown") else 62)
+            P["pad"].add(b0(bar), n * S - 0.5, ",".join(nm(m) for m in voic), 56 if sec in ("intro", "breakdown") else 62)
         if sec not in ("intro", "glitch") and bar < 57:
             r = 37 + ((root - 1) % 12)
-            nxt = 37 + ((chord_at(bar + 2)[0] - 1) % 12)
+            nxt = 37 + ((chord_at(bar + n)[0] - 1) % 12)
             ans = r + (7 if (bar // 2) % 2 == 0 else 14)            # the fifth, or the ninth up high
+            last = b0(bar) + (n - 1) * S                              # the chord's last bar
             P["bass"].add(b0(bar), 10, nm(r), 86)                    # the root...
-            P["bass"].add(b0(bar) + swing(11), 3, nm(ans), 72)        # ...answered on the swung and-of-3...
-            P["bass"].add(b0(bar) + S, 12, nm(r), 80)
-            P["bass"].add(b0(bar) + S + swing(13), 1.2, nm(nxt + 2), 66)   # ...then a walk down into the next chord
-            P["bass"].add(b0(bar) + S + swing(15), 1.0, nm(nxt + 1), 70)
-            P["sub"].add(b0(bar), 2 * S - 1, nm(r - 12), 90)          # the warm floor an octave under the bass
+            P["bass"].add(b0(bar) + swing(11), 3 if n == 2 else 1.5, nm(ans), 72)   # ...answered on the swung and-of-3...
+            if n == 2:
+                P["bass"].add(last, 12, nm(r), 80)
+            P["bass"].add(last + swing(13), 1.2, nm(nxt + 2), 66)    # ...then a walk down into the next chord
+            P["bass"].add(last + swing(15), 1.0, nm(nxt + 1), 70)
+            P["sub"].add(b0(bar), n * S - 1, nm(r - 12), 90)          # the warm floor an octave under the bass
 
 
 def resample_lane():
@@ -349,6 +377,7 @@ def main():
     glitch_hail()
     harmony()
     counter_line()
+    squelch()
     sec = lambda e: e / 4 * 60 / BPM
     tr = lambda name, patch, **kw: dict({"name": name, "patch": patch, "score": P[name].score()}, **kw)
     tracks = [
@@ -362,6 +391,8 @@ def main():
         tr("pad", "juno-pad", gain="-14dB", fx=["lp cutoff=2200", "tape wow=9 flutter=2 seed=11"], sends={"space": "-8dB"}),
         tr("bass", "analog-bass", gain="0dB"),
         tr("sub", "sub", gain="-4dB"),
+        tr("sq", "analog-bass", gain="-10dB", pan="R15", lfo={"sw": {"wave": "sine", "rate": "1/2"}},     # the SQUELCH
+           fx=[{"type": "filter", "kind": "ladder", "cutoff": {"value": 700, "mod": [{"src": "lfo.sw", "amount": 500}]}, "q": 12}]),
         tr("kick", KIT, out="drums", gain="4dB"),
         tr("snare", KIT, out="drums"),
         tr("hat", KIT, out="drums", gain="-6dB"),
