@@ -85,6 +85,10 @@ R6 = set(filter(None, os.environ.get("T7_R6", "P,S").split(","))) - {"none"}
 # silence (`0 r1 2 . r4 5 6 r7`), so the tail drifts on instead of stopping. (Moving the whistle's entry to the door
 # and the vibes' exit to the piano's only shifted the section boundaries and cost recurrence: tried, reverted.)
 R7 = set(filter(None, os.environ.get("T7_R7", "D,C").split(","))) - {"none"}
+# Round 8 (v8): L = THE PAD NEVER BREATHES OUT: the juno's two chords overlap and dissolve into each other (Fmaj7 for
+# 14 beats, then Dm9 for the loop's other 15, its release crossing into the next), so the pad is one continuous swell instead of two
+# entries with silences between (each re-entry read as a new section: seed 0 split at 41 and 51.5 s).
+R8 = set(filter(None, os.environ.get("T7_R8", "L").split(","))) - {"none"}
 
 # the loops: (track, loop length in beats, enter, leave, [(offset, length, notes)], velocity)
 LOOPS = [
@@ -94,6 +98,8 @@ LOOPS = [
     ("whi", 31, 62, 150, [(3, 2, "C6"), (8, 4, "A5"), (20, 3, "E6")], 50),
     ("drone", 37, 0, 204, [(0, 20, "F1"), (20, 15, "C2")], 72),
 ]
+if "L" in R8:
+    LOOPS[2] = ("pad", 29, LOOPS[2][2], LOOPS[2][3], [(0, 14, "F3,A3,C4,E4"), (14, 15, "D3,F3,A3,C4,E4")], LOOPS[2][5])
 if "S" in R6:
     LOOPS[1] = ("pno", 23, 26, 170, LOOPS[1][4], LOOPS[1][5])
     LOOPS[2] = ("pad", 29, 26, 170, LOOPS[2][4], LOOPS[2][5])
