@@ -67,6 +67,10 @@ R10 = set(filter(None, os.environ.get("T4_R10", "T").split(","))) - {"none"}
 # Round 11 (v11): K = a CANON in head 1: the rhodes follows the melody two beats behind, an octave down, so the line
 # spills across the changing meters and every bar hears the previous bar's tune against its own.
 R11 = set(filter(None, os.environ.get("T4_R11", "K").split(","))) - {"none"}
+# Round 12 (v12): C = the trades' last phrase turns COLLECTIVE: trumpet and tom choir play together in every bar
+# (the tom an answer a third below, still a sixteenth late), a climax before the drum feature; S = the SEED is sung
+# by the tom choir alone (the drums plant the palindrome), over the rhodes.
+R12 = set(filter(None, os.environ.get("T4_R12", "C,S").split(","))) - {"none"}
 BTHEME = {0: [(0, 3, 4), (3, 1, 3), (4, 4, 2)], 1: [(0, 2, 1), (2, 2, 2), (4, 3, 4)], 2: [(0, 5, 6)],
           3: [(0, 2, 4), (2, 2, 5), (4, 2, 4)]}  # t2's night cell, degrees on eighths (None = rest)
 TRIP = "T" in os.environ.get("T4_OPTS", "")  # triplet brush ghosts before the backbeats (off: no gain)
@@ -335,7 +339,7 @@ def build():
             line = head_bar(pos, m, centre)
             if section == "head2" and pos == 3:   # the return: the centre bar a fifth lower, half time
                 line = [(o, ln, nm(midi(n) - 7)) for o, ln, n in line]
-            if section == "unseed":  # the shrink: the tom choir sings it all
+            if section == "unseed" or (section == "seed" and "S" in R12):  # the tom choir sings it all
                 voice = "tom"
             else:
                 voice = VOICE[pos] if section != "peak" else ("tpt" if pos % 2 == 0 else "tom")
@@ -361,18 +365,20 @@ def build():
             for o, ln, n in cell:
                 T["tpt" if pos == 0 else "tom"].add(swing_at(start, o, swung), ln / 2 * 0.95, n, v + 6)
         elif section == "trade":
-            voice = "tpt" if m in (6, 7) else "tom"
+            collective = "C" in R12 and pidx == max(b[4] for b in bars if b[3] == "trade")
+            voices = ["tpt", "tom"] if collective else ["tpt" if m in (6, 7) else "tom"]
             root, voic, scale = CH[name0]
             # a line built from the head's own cells, transposed onto this chord and varied per phrase
             cell = HEAD[[0, 1, 2, 2][min(pos, 3)]] if pos != 3 else centre_line(centre)
             shift = [0, 2, -3, 5][pidx % 4]
-            for j, (o, ln, n) in enumerate(cell):
-                if o >= m:
-                    continue
-                deg = scale[(j * 2 + pidx) % len(scale)]
-                note = root + 24 + deg + shift if voice == "tpt" else root + 12 + deg
-                at = swing_at(start, o, swung) + (0.25 if voice == "tom" and "X" in R3 else 0)
-                T[voice].add(at, min(ln, m - o) / 2 * 0.9, nm(note), v + (6 if j == 0 else 0))
+            for voice in voices:
+                for j, (o, ln, n) in enumerate(cell):
+                    if o >= m:
+                        continue
+                    deg = scale[(j * 2 + pidx + (2 if collective and voice == "tom" else 0)) % len(scale)]
+                    note = root + 24 + deg + shift if voice == "tpt" else root + 12 + deg
+                    at = swing_at(start, o, swung) + (0.25 if voice == "tom" and "X" in R3 else 0)
+                    T[voice].add(at, min(ln, m - o) / 2 * 0.9, nm(note), v + (6 if j == 0 else 0) - (4 if collective and voice == "tom" else 0))
         if section == "bridge" and "T" in R10:  # the bridge theme
             src = BTHEME[min(pos, 6 - pos)]
             line = src if pos <= 3 else [(m - o - ln, ln, dg) for o, ln, dg in reversed(src)]
