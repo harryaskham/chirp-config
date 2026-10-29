@@ -29,7 +29,11 @@ SEAM = os.environ.get("T10_SEAM", "1") == "1"
 MAMBO_KEY = int(os.environ.get("T10_MAMBOKEY", "0"))
 QUOTE = os.environ.get("T10_QUOTE", "1") == "1"  # the 7/4 interlude quotes the album's opener: SEVEN DOORS (t1 Doors at Seven), up a step into D
 MONA = os.environ.get("T10_MONA", "cierre") in ("1", "cierre")
-MONA_WHERE = os.environ.get("T10_MONA", "cierre")  # "1": the mambo's second half and the shout; "cierre": the shout only  # the mona: a second horn riff interlocking with the mambo's (the mambo's second half and the shout)  # the mambo transposed (semitones): +5 = up a fourth, to G minor  # every section's last bar breaks at its middle into a timbale fill (the seams read)  # more bombo: the ponche on 4 in the mambo/cierre, dotted quarters in the descarga  # section dynamics on the master (after the compressor)
+MONA_WHERE = os.environ.get("T10_MONA", "cierre")
+CONGAS = os.environ.get("T10_CONGAS", "1") == "1"
+CONGA_DB = float(os.environ.get("T10_CONGADB", "0"))  # the congas' level offset (dB)
+CONGA_EQ = os.environ.get("T10_CONGAEQ", "0") == "1"
+KEEP_FT = os.environ.get("T10_KEEPFT", "1") == "1"  # keep the room-kit floor tom under the congas (its low end) instead of the tumba  # a 250 Hz -3 dB cut on the congas (the box)  # real congas on the physical drum layer (quinto, conga, tumba, slap) for the kit's toms  # "1": the mambo's second half and the shout; "cierre": the shout only  # the mona: a second horn riff interlocking with the mambo's (the mambo's second half and the shout)  # the mambo transposed (semitones): +5 = up a fourth, to G minor  # every section's last bar breaks at its middle into a timbale fill (the seams read)  # more bombo: the ponche on 4 in the mambo/cierre, dotted quarters in the descarga  # section dynamics on the master (after the compressor)
 
 # sections: (name, meter, bpm (quarter), bars)
 FORM = [("bembe", "12/8", 156, 12), ("son", "4/4", 208, 40), ("mambo", "4/4", 208, 24), ("siete", "7/4", 208, 12),
@@ -258,6 +262,12 @@ def drums(sec, b, beats, dens=1):
                 h.append("k")
             if i in (4, 8, 12):
                 h.append("so")
+        if CONGAS:
+            h = [{"t1": "qo", "t2": "co", "ft": ("ft" if KEEP_FT else "to")}.get(x, x) for x in h]
+            if sec in ("son", "mambo", "cierre") and i == 2:
+                h.append("cs")  # the tumbao's slap on 2
+            if sec in ("bembe", "descarga") and i in (2, 8):
+                h.append("cs")
         v = 92 if (i == 0) else 74
         out.append((",".join(h) + f"/0.5b@{v}") if h else R(0.5))
     return J(*out)
@@ -428,7 +438,7 @@ def section_times():
 
 def master():
     bands = (["lowshelf cutoff=100 gain=3dB", "peak cutoff=800 q=0.8 gain=-2dB"] if EQ == "1" else
-             ["lowshelf cutoff=120 gain=6dB", "peak cutoff=700 q=0.6 gain=-3dB"])
+             [f"lowshelf cutoff=120 gain={os.environ.get('T10_LS', '12')}dB", "peak cutoff=700 q=0.6 gain=-3dB"])
     fx = [{"type": "eq", "bands": bands},
           {"type": "compressor", "threshold": "-22dB", "ratio": 2, "attack": "15ms", "release": "200ms", "makeup": "0dB"},
           {"type": "gain", "gain": f"+{MG:g}dB"}]
@@ -449,6 +459,25 @@ def master():
     return m
 
 
+def conga_kit():
+    """Cierre's congas (chirper-zero) on chirper-two's physical drum layer (bd-7d117e): open-bottomed hand drums, so no
+    resonant head and little air; a short felt contact for the open tones (the palm-and-fingers stroke), a hard plastic
+    contact with full slap for the slap; tuned and sounding at pitch."""
+    def conga(pitch, slap=False, gain="0dB"):
+        layer = {"type": "drum", "beater": "plastic" if slap else "felt", "contact": 0.5 if slap else 0.8,
+                 "decay": "0.18s" if slap else "0.55s", "sharp": 60 if slap else 30, "reso": 1.0, "cavity": 0.15,
+                 "reso_level": 0.0, "air": 0.15, "strike": 0.35 if slap else 0.25, "shell": 0.35, "slap": 1.0 if slap else 0.3,
+                 "tune_sounding": True, "stereo": 0.3}
+        amp = {"a": "0.3ms", "d": "250ms" if slap else "700ms", "s": 0, "r": "60ms", "curve": 3}
+        g = float(gain.replace("dB", "")) + CONGA_DB
+        filt = ["hp cutoff=120"] + (["peak cutoff=250 q=1 gain=-3dB"] if CONGA_EQ else [])
+        return {"pitch": pitch, "gain": f"{g:g}dB", "patch": {"synth": {"layers": [layer], "filters": filt, "amp": amp},
+                                                         "play": {"vel_sens": 0.6}}}
+    return {"cierre-kit": {"about": "Cierre's kit: room-kit plus congas on the physical drum layer (qo quinto E4, co conga B3, "
+                                    "to tumba G3, cs slap).", "extends": "room-kit",
+                           "kit": {"qo": conga("E4"), "co": conga("B3"), "to": conga("G3", gain="2dB"), "cs": conga("B3", slap=True, gain="-2dB")}}}
+
+
 def song():
     T, tempo, total = build()
 
@@ -464,7 +493,7 @@ def song():
     tracks = [
         {"name": "piano", "patch": "piano", "gain": "-6dB", "pan": -0.25, "sends": {"room": "-12dB"}, "score": sc("piano")},
         {"name": "bass", "patch": "fretless", "gain": "-1dB", "score": sc("bass")},
-        {"name": "kit", "patch": "room-kit", "gain": "-6dB", "score": sc("kit")},
+        {"name": "kit", "patch": "cierre-kit" if CONGAS else "room-kit", "gain": "-6dB", "score": sc("kit")},
         {"name": "clave", "patch": "room-kit", "gain": "-8dB", "pan": 0.3, "score": sc("clave")},
         {"name": "bell", "patch": "room-kit", "gain": "-9dB", "pan": -0.35, "score": sc("bell")},
         {"name": "trumpet", "patch": "trumpet-mute", "gain": "-6dB", "pan": 0.2, "sends": {"room": "-10dB"}, "score": sc("trumpet")},
@@ -482,6 +511,7 @@ def song():
                   "7/4 interlude on a stretched 3+2+2 clave (rhodes) -> an afro 12/8 descarga with a coro, rising D to E "
                   "-> cierre and a last Dmaj9#11. One pulse throughout by metric modulation (dotted quarter 104 = half note 104)."),
         "tempo": tempo, "ceiling": "-0.1dB", "tail": "3s",
+        **({"patches": conga_kit()} if CONGAS else {}),
         "buses": {"room": {"fx": ["reverb kind=room decay=1.4s size=0.7 mix=1 predelay=14ms"]}},
         "master": master(),
         "tracks": tracks,
@@ -489,7 +519,7 @@ def song():
 
 
 def dump(doc):
-    lines = [f"{k}: {json.dumps(doc[k])}" for k in ("about", "tempo", "ceiling", "tail", "master")]
+    lines = [f"{k}: {json.dumps(doc[k])}" for k in ("about", "tempo", "ceiling", "tail") + (("patches",) if "patches" in doc else ()) + ("master",)]
     lines.append("buses:")
     lines += [f"  {b}: {json.dumps(v)}" for b, v in doc["buses"].items()]
     lines.append("tracks:")
