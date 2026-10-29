@@ -17,6 +17,8 @@ NN = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
 def nm(m): return f"{NN[m % 12]}{m // 12 - 1}"
 WHEEL = [8, 7, 10, 9, 6]                 # eighths per bar
 STRETCH = [11, 13, 11, 13, 9]
+# the orchestration wheel's doublings (intro/break/outro): off - with the sub they broke the returns (recurrence 100 -> 31)
+WHEEL_DOUBLES = False
 MODES = {'dorian': [0, 2, 3, 5, 7, 9, 10], 'lydian': [0, 2, 4, 6, 7, 9, 11], 'phrygdom': [0, 1, 4, 5, 7, 8, 10]}
 
 # form: (name, bars, root midi (bass octave), mode, wheel)
@@ -109,13 +111,18 @@ def rest(b): return [f"R/{b['e8'] / 2:g}b"]
 
 def build():
     B = bars()
-    parts = {k: [] for k in ('bass', 'kit', 'rhodes', 'wah', 'tpt', 'ten')}
+    parts = {k: [] for k in ('bass', 'kit', 'rhodes', 'wah', 'tpt', 'ten', 'sub')}
     for k, b in enumerate(B):
         sec = b['sec']; lead = k % 5   # who carries the cell this bar (beyond the bass)
         parts['bass'].append(bass(b, k) if sec != 'break' or b['i'] < 8 else bass(b, k))
         parts['kit'].append(kit(b, k, sec) if not (sec == 'intro' and b['i'] < 2) else rest(b))
         parts['rhodes'].append(rhodes(b, k) if (sec != 'intro' or b['i'] >= 5) and sec != 'break' else (rhodes(b, k) if sec == 'break' and b['i'] >= 6 else rest(b)))
         parts['wah'].append(wah(b, k) if sec in ('A', 'B', 'climax') or (sec == 'trades' and lead in (2, 4)) else rest(b))
+        # SUB: the bar's root an octave under the fretless on the downbeat (the low end jazz-rock records keep under the bass)
+        parts['sub'].append([tok(nm(b['root'] - 12), min(1.5, b['e8'] / 2), 96), f"R/{b['e8'] / 2 - min(1.5, b['e8'] / 2):g}b"]
+                            if sec != 'intro' or b['i'] >= 5 else rest(b))
+        # ORCHESTRATION WHEEL: in the intro, the break and the outro the NIGHT CELL is doubled two octaves up by a
+        # different voice every bar (none, rhodes, wah, tenor, trumpet), so no two consecutive bars sound alike
         if sec == 'A':
             parts['tpt'].append(horn_line(b, k, b['i'], 96) if b['i'] % 4 != 3 else rest(b))
             parts['ten'].append(horn_line(b, k, b['i'] + 3, 78) if b['i'] % 4 == 3 else rest(b))
@@ -134,6 +141,22 @@ def build():
         else:
             parts['tpt'].append(rest(b)); parts['ten'].append(rest(b))
     total_beats = sum(b['e8'] for b in B) / 2
+    # the doubling voices (built after, per voice, so each has its own track)
+    for v in ('dr', 'dw', 'dt', 'dp'):
+        parts[v] = []
+    for k, b in enumerate(B):
+        who = {1: 'dr', 2: 'dw', 3: 'dt', 4: 'dp'}.get(k % 5) if b['sec'] in ('intro', 'break', 'outro') else None
+        cell = bass(b, k)
+        up = []
+        for x in cell:
+            if x.startswith('R'):
+                up.append(x)
+            else:
+                n_, rest_ = x.split('/', 1)
+                m_ = NN.index(n_[:-1]) + 12 * (int(n_[-1]) + 1)
+                up.append(f"{nm(m_ + 24)}/{rest_.split('@')[0]}@70")
+        for v in ('dr', 'dw', 'dt', 'dp'):
+            parts[v].append(up if v == who else rest(b))
     end_s = total_beats * 60 / BPM
     J = lambda p: ' | '.join(' '.join(x) for x in parts[p])
     return {
@@ -150,6 +173,11 @@ def build():
             {'name': 'rhodes', 'patch': 'rhodes-rotary', 'gain': '-6dB', 'pan': -0.3,
              'fx': [{'type': 'amp', 'model': 'clean', 'stack': 'bassman', 'gain': 0.35, 'mix': 0.6}], 'score': J('rhodes')},
             {'name': 'wah', 'patch': 'lead-wah', 'gain': '-14dB', 'pan': 0.45, 'score': J('wah')},
+            {'name': 'sub', 'patch': 'sub-saturated', 'gain': '-15dB', 'score': J('sub')},
+            *([{'name': 'dr', 'patch': 'rhodes', 'gain': '-10dB', 'pan': -0.4, 'score': J('dr')},
+               {'name': 'dw', 'patch': 'starcaster-clean', 'gain': '-12dB', 'pan': 0.5, 'score': J('dw')},
+               {'name': 'dt', 'patch': 'tenor-sax-synth', 'gain': '-12dB', 'pan': -0.15, 'score': J('dt')},
+               {'name': 'dp', 'patch': 'trumpet-mute', 'gain': '-12dB', 'pan': 0.2, 'score': J('dp')}] if WHEEL_DOUBLES else []),
             {'name': 'tpt', 'patch': 'trumpet-mute', 'gain': '-6dB', 'pan': 0.15, 'score': J('tpt')},
             {'name': 'ten', 'patch': 'tenor-sax-synth', 'gain': '-7dB', 'pan': -0.2, 'score': J('ten')},
         ]}

@@ -13,3 +13,5 @@ vibes, a lead that trades fours with itself in two sounds.
 
 | sound | patch | by | what | lives in | borrowed by |
 |---|---|---|---|---|---|
+| rhodes through a Bassman | rhodes-rotary + fx amp (model clean, stack bassman, gain .35, mix .6; wM's white-box amp) | chirper-one | the rotary rhodes pushed into a tweed-style stack: warm hair on the comping chords | t2 Turnstile Hours | |
+| low end under the fretless | sub-saturated, -15 dB, the bar's root an octave under the bass on each downbeat | chirper-one | what jazz-rock records keep under the bass: v3's sub closed the album envelope's 38-182 Hz gap (spectrum 86 -> 99) | t2 Turnstile Hours (v3) | |
