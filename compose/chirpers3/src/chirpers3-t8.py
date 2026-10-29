@@ -39,7 +39,10 @@ BRAKE = os.environ.get("T8_BRAKE", "hard")
 PUMP = os.environ.get("T8_PUMP", "-8")
 SPACE = os.environ.get("T8_SPACE", "")
 FOG = os.environ.get("T8_FOG", "1") == "1"
-ENGINE = os.environ.get("T8_ENGINE", "1") == "1"  # the bus idling: the intro's eight bars sit on the sub's low F# (the night loop's root), the engine hum under the pad, meeting t7's warm tail  # the window fogs: the hall FREEZES through the breakdown's bars 2-7 (wM's reverb freeze), the pads and chops held as a wash  # the chops' echo as a tape loop (feedback routing): one dotted-eighth delay, its own output fed back through a low-pass and a tape deck  # wM's pump: the pads and the rhodes breathe on the kick (keyed from drums.k), depth in dB, e.g. -8  # the bus brakes at the last stop (wM's tapestop on the master, the last bar): "hard" = curve 4 over 2 beats; "soft" = curve 1.6 over 4  # the last groove lifted (semitones): the night loop up a step for the final run  # the tape wears (deck warp lanes): the beatless breakdown drifts seasick (1.6), the outro wears out (1 -> 2)  # wM's MPC chop on the voice: "stop" = through THE STOP; "climax" = through the last groove (the chain resampled)  # the claps (and optionally the hats) dragged late by hand: "45" or "45,25" (ms; play.humanize.nudge)  # master stutter bursts (3/16 slices) on the last half-bar before groove 2 and before the breakdown  # the HATS on the 3-sixteenth cycle instead (the loud voice carries the cross-rhythm; the shaker off)  # the shaker on a 3-sixteenth cycle (dotted eighths) running across the bar: the garage cross-rhythm  # groove 2 becomes THE STOP: half-time (kick 1, rim 3, no hats), rhodes chords for the pad, the B loop  # the v1 rework: a B loop for groove 2, a heavier shuffle with more off-16th hats, the sub up, the mud out
+ENGINE = os.environ.get("T8_ENGINE", "1") == "1"
+PUMPKEY = os.environ.get("T8_PUMPKEY", "0") == "1"
+DUCK = os.environ.get("T8_DUCK", "-10")
+DUCKUP = float(os.environ.get("T8_DUCKUP", "4"))  # bring the ducked pads up (dB) so the breathing is heard  # the breathing made real: a gain lane on the pads built from the kick times (dB dip, e.g. -8), back over 200 ms  # the pump keyed from a muted ghost track of the kicks alone (drums.k missed kicks written in chords like k,h)  # the bus idling: the intro's eight bars sit on the sub's low F# (the night loop's root), the engine hum under the pad, meeting t7's warm tail  # the window fogs: the hall FREEZES through the breakdown's bars 2-7 (wM's reverb freeze), the pads and chops held as a wash  # the chops' echo as a tape loop (feedback routing): one dotted-eighth delay, its own output fed back through a low-pass and a tape deck  # wM's pump: the pads and the rhodes breathe on the kick (keyed from drums.k), depth in dB, e.g. -8  # the bus brakes at the last stop (wM's tapestop on the master, the last bar): "hard" = curve 4 over 2 beats; "soft" = curve 1.6 over 4  # the last groove lifted (semitones): the night loop up a step for the final run  # the tape wears (deck warp lanes): the beatless breakdown drifts seasick (1.6), the outro wears out (1 -> 2)  # wM's MPC chop on the voice: "stop" = through THE STOP; "climax" = through the last groove (the chain resampled)  # the claps (and optionally the hats) dragged late by hand: "45" or "45,25" (ms; play.humanize.nudge)  # master stutter bursts (3/16 slices) on the last half-bar before groove 2 and before the breakdown  # the HATS on the 3-sixteenth cycle instead (the loud voice carries the cross-rhythm; the shaker off)  # the shaker on a 3-sixteenth cycle (dotted eighths) running across the bar: the garage cross-rhythm  # groove 2 becomes THE STOP: half-time (kick 1, rim 3, no hats), rhodes chords for the pad, the B loop  # the v1 rework: a B loop for groove 2, a heavier shuffle with more off-16th hats, the sub up, the mud out
 S = 0.25
 
 NOTE = {"C": 0, "C#": 1, "Db": 1, "D": 2, "D#": 3, "Eb": 3, "E": 4, "F": 5, "F#": 6, "Gb": 6, "G": 7, "G#": 8, "Ab": 8,
@@ -277,10 +280,48 @@ def song():
         {"name": "chops", "patch": "chop-vox", "gain": "-6dB", "pan": -0.15, "fx": [deck],
          "sends": {"hall": "-6dB", "echo": "-12dB"}, "score": sc("chops", "swing16=0.62")},
     ]
+    if DUCK:  # kick times from the drum score (16th grid; swing16 0.7 moves odd 16ths 0.1 beat late)
+        kicks, pos = [], 0.0
+        for bar in T["drums"]:
+            for tk in bar.split():
+                head, rest = tk.split("/", 1)
+                d = float(rest.split("b", 1)[0])
+                if not head.startswith("R") and "k" in head.split(","):
+                    st = round(pos / 0.25)
+                    kicks.append(pos + (0.1 if st % 2 == 1 else 0.0))
+                pos += d
+        spb = 60 / BPM
+        depth = float(DUCK)
+        pts = [["0s", 0]]
+        for kb in kicks:
+            t0 = kb * spb
+            if float(pts[-1][0][:-1]) < t0 - 0.002:
+                pts.append([f"{t0 - 0.002:.3f}s", 0])
+            pts += [[f"{t0 + 0.004:.3f}s", depth], [f"{t0 + 0.06:.3f}s", depth / 2], [f"{t0 + 0.2:.3f}s", 0]]
+        clean = [pts[0]]
+        for p in pts[1:]:
+            if float(p[0][:-1]) > float(clean[-1][0][:-1]):
+                clean.append(p)
+        for t in tracks:
+            if t["name"] in ("pad", "glass", "rhodes"):
+                g = t["gain"]
+                if DUCKUP and t["name"] in ("pad", "glass"):
+                    g = f"{float(g[:-2]) + DUCKUP:g}dB"
+                t["gain"] = {"value": g, "mod": [{"src": "auto.dk", "amount": 1}]}
+                t["auto"] = {**t.get("auto", {}), "dk": {"points": clean}}
+    if PUMP and PUMPKEY:  # a ghost track: the kicks alone, muted, to drive the pump
+        ghost = []
+        for bar in T["drums"]:
+            out = []
+            for tk in bar.split():
+                head, rest = tk.split("/", 1)
+                out.append(("k/" + rest) if (not head.startswith("R") and "k" in head.split(",")) else ("R/" + rest.split("@")[0]))
+            ghost.append(" ".join(out))
+        tracks.append({"name": "pumpkey", "patch": "lofi-kit", "mute": True, "score": "swing16=0.7 " + " | ".join(ghost)})
     if PUMP:
         for t in tracks:
             if t["name"] in ("pad", "glass", "rhodes"):
-                t["fx"] = list(t["fx"]) + [{"type": "pump", "on": "drums.k", "depth": f"{PUMP}dB", "attack": "4ms", "release": "200ms", "curve": 2}]
+                t["fx"] = list(t["fx"]) + [{"type": "pump", "on": "pumpkey" if PUMPKEY else "drums.k", "depth": f"{PUMP}dB", "attack": "4ms", "release": "200ms", "curve": 2}]
     tracks = [vchop_track(t) if t["name"] == "chops" else t for t in tracks]
     if wear_auto:
         tracks = [({**t, "auto": {**t.get("auto", {}), **wear_auto}} if deck in t.get("fx", []) else t) for t in tracks]
