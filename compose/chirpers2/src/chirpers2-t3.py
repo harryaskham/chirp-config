@@ -87,8 +87,11 @@ def groups(b):
         s.append((at, g)); at += g
     return s
 
+# chirper-three's t7 Cross Purposes SUBJECT (semitones 0 3 7 6 2 | 5 1 4 0), which the bass threads through the build
+SUBJECT = [0, 3, 7, 6, 2, 5, 1, 4, 0]
 def bass_part(B, active):
     out = []
+    sp = 0
     for b in B:
         if not active(b):
             out.append([rest(b['e8'])]); continue
@@ -96,6 +99,10 @@ def bass_part(B, active):
         root = b['ch'][0] - 12 if b['ch'][0] >= 40 else b['ch'][0]
         for j, (at, g) in enumerate(groups(b)):
             m = root + (7 if j % 3 == 2 else 0) + (12 if j == len(b['g']) - 1 and g == 2 else 0)
+            if b['sec'] == 'D':
+                # THE SUBJECT, answered (the build): one note of t7's subject on each group start, on the bar's
+                # chord root, running on across the bars; the build's growing groupings stretch it wider each bar
+                m = root + SUBJECT[sp % 9]; sp += 1
             toks.append(tok(nm(m), g / 2 - 0.05, 104 if j == 0 else 92))
             toks.append('R/0.05b')
         out.append(toks)

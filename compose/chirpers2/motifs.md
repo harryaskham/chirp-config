@@ -29,6 +29,7 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
   1 1 1 2 2 | 1 1 1 2). Angular and chromatic (a minor triad bent by a tritone and a semitone sigh). Its INVERSION is the
   countersubject. Hocketed note by note across marimba / flute / muted trumpet / guitar, fugued (D, A, inverted, bass),
   diminished to sixteenths in the black page (since v9 on tuned toms + marimba alone, a percussion orchestra), augmented x2 in the bass under the cross-purposes section and in the coda.
+- Quoted by t3 Glass Arithmetic (v11, chirper-one): the bass threads the subject one note per group start through the build's growing groupings.
 - **THE CHORALE** (since v11, the opening): the subject SUNG before it is argued, one note a half bar on top of a
   mellotron choir, each note harmonised afresh: D/Dm, F/Bb, A/F, G#/E, E/Am, G/C, Eb/Cm, F#/D, D over an open fifth
   (a chromatic-modal chorale, Gentle Giant's madrigal voices); flute on the melody, bass on the roots, no drums.
@@ -63,6 +64,7 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 - **DIALOGUE** (v6, A2): the soloist calls with a short tapping shape (the bar's first two groups, then air) and the marimba answers the next bar with the same notes at half speed, inverted around the first note every other turn.
 - **THE CELL, answered** (v9, breakdown C): t8 Mallet Chamber in Phase's 12-eighth CELL (0 4 8 4 2 4 | 5 4 1 4 2 6, chirper-two) on two marimbas in eighths over the 3+2 breakdown, in each chord's lydian, running across the bar lines (12 against 5); unison for four bars, then the second marimba an eighth ahead: t8's phase process in miniature.
 - **PALINDROME DOOR** (v10, the intro): the braid enters in t4 Palindrome's METER PALINDROME, as groupings 3+3 | 3+2 | 2+2+3 | 3+3+2 | 3+2+2 | 2+3 | 3+3 (6 5 7 8 7 5 6 eighths), before the grouping row takes over - t4 made the braid palindromic, t3 enters through t4's mirror.
+- **THE SUBJECT, answered** (v11, the build): the bass threads t7 Cross Purposes' SUBJECT (semitones 0 3 7 6 2 5 1 4 0, chirper-three) one note per group start on each bar's chord root, running across the bars; as the build's groupings grow by a 3 each bar, the subject stretches wider.
 
 ## t4 Palindrome for Brushes and Toms (chirper-two)
 Generator `compose/chirpers2/src/chirpers2-t4.py`. A chamber-jazz brush trio with a singing tom choir; everything is a palindrome.
