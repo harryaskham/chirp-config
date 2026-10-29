@@ -42,7 +42,7 @@ TOY_SEQ = [80, 77, 87, 85, 82, 77]      # Ab5 F5 Eb6 Db6 Bb5 F5 (Db major pentat
 BOX_SEQ = [85, 80, 82, 89, 87]          # Db6 Ab5 Bb5 F6 Eb6
 
 SECTIONS = [("intro", 1, 8), ("beat", 9, 16), ("melody", 17, 24), ("glitch", 25, 28), ("return", 29, 36),
-            ("breakdown", 37, 44), ("full", 45, 52), ("outro", 53, 58)]
+            ("breakdown", 37, 44), ("full", 45, 52), ("outro", 53, 58), ("coda", 59, 62)]
 BARS = SECTIONS[-1][2]
 TOTAL = BARS * S
 
@@ -146,6 +146,30 @@ def ratchet():
     P["ratchet"].add(b0(4), 0.5, "rs", 82)                   # the last click: the spring is set
 
 
+def coda(coinc, toy_on):
+    """THE CODA: wound again. After the wind-down, a bar of record noise and then two short turns of the key; the box,
+    alone, starts the hidden melody once more (the gears' tune from bar 17, two octaves up), slowing as the spring gives
+    out, every gap a little longer, and it stops a note before the phrase resolves."""
+    for turn, (x, n) in enumerate(((b0(59) + 4, 6), (b0(59) + 10, 7))):
+        gap = 1.1
+        for i in range(n):
+            P["ratchet"].add(x, 0.4, "rs", 60 + 8 * turn + 2 * i)
+            x += gap
+            gap *= 0.84
+    root, iv = chord_at(1)                                         # the home chord held under it, and a low floor
+    P["pad"].add(b0(60), TOTAL - b0(60) - 1, ",".join(nm(m) for m in sorted({56 + ((root + x - 8) % 12) for x in iv})), 58)
+    P["sub"].add(b0(60), TOTAL - b0(60) - 1, nm(37 + ((root - 1) % 12) - 12), 84)
+    tune = [(st, toy_on[st]) for st in coinc if b0(17) <= st < b0(21)][:8]
+    x, stretch = float(b0(60)), 1.0
+    for i, (st, pch) in enumerate(tune[:5]):     # five notes; the sixth (home, the tune's first note) never comes
+        gap = (tune[i + 1][0] - st) * stretch
+        if x + min(gap, 12) > TOTAL - 1:
+            break
+        P["box"].add(x, min(gap, 12) * 0.95, nm(pch + 12), 74 - 3 * i)
+        x += gap
+        stretch *= 1.18
+
+
 def stall(bar):
     """THE NEAR-STALL (the glitch break's last bar, a hint of the ending mid-song): the hail stops, the gears slow and
     sag fast within the bar (gaps widening, pitch falling a tone), and the beat drops out after beat 2; then the return
@@ -204,6 +228,8 @@ def clockwork():
         if name == "outro":
             k, j = wind_down(a, z, toy_on, box_on, k, j)
             continue
+        if name == "coda":
+            continue                                            # the coda is wound by hand (coda())
         if name == "intro":
             wind_up(1, 4)
             lo = b0(5)                                          # the gears run at speed from bar 5
@@ -405,7 +431,7 @@ def harmony():
     for bar, n in chord_spans():
         root, iv = chord_at(bar)
         sec = sec_of(bar)
-        if bar >= 5:
+        if 5 <= bar <= 58:
             voic = sorted({56 + ((root + x - 8) % 12) for x in iv})
             P["pad"].add(b0(bar), n * S - 0.5, ",".join(nm(m) for m in voic), 56 if sec in ("intro", "breakdown") else 62)
         if sec not in ("intro", "glitch") and bar < 57:
@@ -427,7 +453,8 @@ def wear_lane():
     the glitch break, clean and close in the breakdown, and wearing out (1 -> 2) as the music box runs down."""
     sec = lambda e: e / 4 * 60 / BPM
     pts = [(0, 1.0), (b0(25) - 2, 1.0), (b0(25), 1.6), (b0(29) - 2, 1.6), (b0(29), 1.0), (b0(37) - 2, 1.0),
-           (b0(37), 0.7), (b0(45) - 2, 0.7), (b0(45), 1.0), (b0(53), 1.0), (TOTAL, 2.0)]
+           (b0(37), 0.7), (b0(45) - 2, 0.7), (b0(45), 1.0), (b0(53), 1.0), (b0(59) - 1, 2.0), (b0(59), 1.3),
+           (TOTAL, 1.7)]
     return [[f"{sec(e):.3f}s", v] for e, v in pts]
 
 
@@ -445,7 +472,8 @@ def resample_lane():
     return; and a slow sag through the wind-down. Before the tape and vinyl, so the record's hiss stays steady."""
     sec = lambda e: e / 4 * 60 / BPM
     pts = [(0, 0.0), (b0(28) - 0.5, 0.0), (b0(28) + 8, 1.0), (b0(29) - 0.6, 1.0), (b0(29), 0.0),
-           (b0(53), 0.0), (TOTAL, 1.0)]
+           (b0(53), 0.0), (b0(59) - 0.5, 1.0), (b0(59), 0.0), (b0(61), 0.0), (TOTAL, 0.3)]
+    # the coda snaps back to true pitch (the box rewound) and sags a little again as its spring gives out
     return [[f"{sec(e):.3f}s", v] for e, v in pts]
 
 
@@ -484,6 +512,7 @@ KIT = ("lofi-kit play.humanize.nudge.s=22ms play.humanize.nudge.k=-8ms play.huma
 def main():
     coinc, toy_on, box_on, xtal_full = clockwork()
     melody(coinc, toy_on)
+    coda(coinc, toy_on)
     n_desc = descant(box_on, xtal_full)
     beat()
     glitch_hail()

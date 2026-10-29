@@ -79,6 +79,11 @@ Generator `compose/chirpers3/src/chirpers3-t7.py`. Ambient tape loops, a nominal
 - **THE NEEDLE DROP** (since v12, the first bars): the song fades in from -20 dB over two bars and opens from a
   muffled 1.5 kHz to full over four, as the box winds up to speed, so it emerges out of t3's quiet ending (in-join
   level jump 22 -> 11 dB, flow 50 -> 60); the vinyl crackle and hiss sit after the filter, there from the first moment.
+- **THE CODA: WOUND AGAIN** (since v24, bars 59-62): after the wind-down has run the box out, a bar of record noise,
+  then two short turns of THE KEY; the box, alone over the home chord (Dbmaj9 held on the pad, a low Db on the sub),
+  starts the hidden melody once more (its first notes from bar 17, two octaves up: F6 . . Ab6 Eb7 Db7 Bb6), every gap
+  a little longer (x1.18) as the spring gives out, and stops before the phrase comes home (the F that would end it never
+  comes). The pad and sub keep the join into t5 level (a box alone ended 10 dB under it).
 - **THE KEY** (since v22, the intro): the winding is heard: three turns of the key across the wind-up, each a burst of
   ratchet clicks speeding up then pausing (7, 8, 9 clicks, louder each turn), rimclicks rung through a high comb on Db
   (554 Hz), small and metallic like a music box's spring, and one last click as the spring sets.
