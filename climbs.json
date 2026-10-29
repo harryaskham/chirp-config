@@ -5193,14 +5193,15 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/compscore.py chirpers2-t1 OUT.wav",
       "best": {
-        "score": 97.581,
-        "version": "v5",
-        "commit": "see git log songs/chirpers2-t1.yaml"
+        "score": 97.403,
+        "version": "v6",
+        "commit": "see git log songs/chirpers2-t1.yaml",
+        "judged": true
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 5,
+      "rounds": 6,
       "priority": 1.0,
       "genre": "jazz / prog / math fusion",
       "mode": "compose",
@@ -5218,7 +5219,7 @@
         "note": "COMPOSE (opener, 150-420 s): Opens the album and sets its world. Style, form, meter and line-up are yours: declare them in compose/chirpers2/styles.md."
       },
       "last": {
-        "at": "2026-10-29T05:10:18Z",
+        "at": "2026-10-29T06:12:54Z",
         "who": "chirper-zero"
       }
     },

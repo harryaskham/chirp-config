@@ -35,7 +35,9 @@ TAGHORN = os.environ.get("T1_TAGHORN", "1") == "1"
 LOCKED = os.environ.get("T1_LOCKED", "1") == "1"  # the waltz's last eight bars in locked hands: the piano's line harmonised in block chords
 INTROTEN = os.environ.get("T1_INTROTEN", "1") == "1"
 BSOLO = os.environ.get("T1_BSOLO", "1") == "1"
-BTRIP = os.environ.get("T1_BTRIP", "1") == "1"  # the bass solo phrases every 4th bar in quarter-note triplets too  # a 16-bar upright solo in 4/4 after the waltz: the bass sings, the piano lays out every other bar, the ride drops  # the intro's last two bars: the tenor foreshadows SEVEN DOORS, soft  # the tag's last bar: the horns run up G7b9 in quarter-note triplets into C (the head's last bar, augmented across the beat)  # in the tag, the drummer answers the horns' turnaround in triplet eighths (bars 2 and 4)  # the head out reharmonised (Abmaj7#11 Cm11 Bbm9 Dbmaj7#11 Cm11 Fm9 Db7#11 G7alt), the horn in thirds, and a 4-bar TAG on the turnaround  # the upright's sine under the string (dB)  # 1 = v1 balance; 2 = kit -13 dB + highshelf -5 @4k, bass +4, master shelf +6 @150, highshelf -4 @6k
+BTRIP = os.environ.get("T1_BTRIP", "1") == "1"
+STAIRUP = os.environ.get("T1_STAIRUP", "1") == "1"
+STAIRTRIP = os.environ.get("T1_STAIRTRIP", "0") == "1"  # the climbing stair's second bar of each pair in quarter-note triplets (THREE OVER TWO)  # the bridge returns after the head out, inverted: the WHOLE-STEP STAIR climbs (Bb7sus Bmaj7#11 Dbmaj9 Ebmaj9)  # the bass solo phrases every 4th bar in quarter-note triplets too  # a 16-bar upright solo in 4/4 after the waltz: the bass sings, the piano lays out every other bar, the ride drops  # the intro's last two bars: the tenor foreshadows SEVEN DOORS, soft  # the tag's last bar: the horns run up G7b9 in quarter-note triplets into C (the head's last bar, augmented across the beat)  # in the tag, the drummer answers the horns' turnaround in triplet eighths (bars 2 and 4)  # the head out reharmonised (Abmaj7#11 Cm11 Bbm9 Dbmaj7#11 Cm11 Fm9 Db7#11 G7alt), the horn in thirds, and a 4-bar TAG on the turnaround  # the upright's sine under the string (dB)  # 1 = v1 balance; 2 = kit -13 dB + highshelf -5 @4k, bass +4, master shelf +6 @150, highshelf -4 @6k
 
 # (name, beats per bar, bars, swing)
 FORM = [("intro", 7, 4, SWING), ("headA", 7, 8, SWING), ("bridge", 4, 8, 0.5), ("headA2", 7, 8, SWING),
@@ -43,6 +45,8 @@ FORM = [("intro", 7, 4, SWING), ("headA", 7, 8, SWING), ("bridge", 4, 8, 0.5), (
         ("coda", 7, 4, SWING)]
 if REHARM:
     FORM.insert(8, ("tag", 7, 4, SWING))
+if STAIRUP:
+    FORM.insert([n for n, *_ in FORM].index("headout") + 1, ("stairup", 4, 8, 0.5))
 if BSOLO:
     FORM.insert([n for n, *_ in FORM].index("trades"), ("bsolo", 4, 16, SWING))
 METER = {7: "7/4", 4: "4/4", 3: "3/4"}
@@ -337,6 +341,8 @@ def chords_for(sec, nb):
         return HEAD_CH
     if sec == "bridge":
         return BRIDGE_CH
+    if sec == "stairup":
+        return ["Bb7sus", "Bb7sus", "Bmaj7#11", "Bmaj7#11", "Dbmaj9", "Dbmaj9", "Ebmaj9", "Ebmaj9"]
     if sec == "tenor":
         return TENOR_CH
     if sec == "waltz":
@@ -387,6 +393,18 @@ def build():
                 bar["piano"] = comp(c, beats, rng, vel=66, b=b)
                 bar["bass"] = walk(c, nxt, beats, rng, two=(b < 2))
                 bar["kit"] = ride(beats, rng, b, sec, vel=78)
+            elif sec == "stairup":  # the stair climbs back: the bridge's figure pairs in reverse order, the horn a third under
+                hb = BRIDGE[[6, 7, 4, 5, 2, 3, 0, 1][b]]
+                bar["tenor"] = line(hb, vel=98)
+                bar["horn"] = line(thirds(hb, [c] * len(hb)), vel=88)
+                if STAIRTRIP and b % 2 == 1:
+                    ns = [n for n, _ in hb if n != "R"][:3]
+                    hs = [n for n, _ in thirds([(n, 1) for n in ns], [c] * 3)]
+                    bar["tenor"] = J(*[f"{n}/6@{100 + 2 * i}" for i, n in enumerate(ns)], tok(ns[-1], 2, 96))
+                    bar["horn"] = J(*[f"{n}/6@{88 + 2 * i}" for i, n in enumerate(hs)], tok(hs[-1], 2, 86))
+                bar["piano"] = comp(c, beats, rng, vel=70, b=b)
+                bar["bass"] = walk(c, nxt, beats, rng)
+                bar["kit"] = ride(beats, rng, b, sec, vel=84)
             elif sec == "tenor":
                 bar["tenor"] = (trip_bar(c, beats, rng, 55, 79, vel=92 + b // 4) if TRIP and b % 4 == 2
                                 else solo(c, beats, rng, 51, 79, vel=88 + b // 4, rest_p=0.08 if b % 4 == 3 else 0.0))
@@ -478,7 +496,7 @@ def master():
           {"type": "compressor", "threshold": "-22dB", "ratio": 2, "attack": "15ms", "release": "200ms", "makeup": "0dB"},
           {"type": "gain", "gain": f"+{MG:g}dB"}]
     st = section_times()
-    lv = {"intro": -7, "headA": -2, "bridge": -3, "headA2": -1, "tenor": 0, "waltz": -6, "trades": 1, "headout": 2, "tag": 3, "coda": -3, "bsolo": -5}
+    lv = {"intro": -7, "headA": -2, "bridge": -3, "headA2": -1, "tenor": 0, "waltz": -6, "trades": 1, "headout": 2, "tag": 3, "coda": -3, "bsolo": -5, "stairup": 3}
     pts = [["0s", lv["intro"]]]
     for sec, *_ in FORM[1:]:
         a = st[sec][0]

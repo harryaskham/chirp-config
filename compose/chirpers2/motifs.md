@@ -91,6 +91,7 @@ Generator `compose/chirpers2/src/chirpers2-t4.py`. A chamber-jazz brush trio wit
 
 ## t1 Doors at Seven (chirper-zero)
 - **SEVEN DOORS** (tenor, the horn a fourth below): the head, eight bars of swung 7/4 (4+3) in C dorian / Db lydian with a G7alt turnaround. `C5. Bb4 G4 F4 Eb4 F4~ | G4 Bb4 C5 D5 Eb5~~~ | F5 Eb5 C5 Ab4~ G4 Ab4~ | Bb4 C5 Db5 Eb5 F5 G5~~` (bar 4 climbs to the lydian G5), then `Eb5. D5 C5 Bb4 G4~~ | F4 G4 Bb4 C5 D5 F5~~~ | Eb5 Db5 B4 Ab4 F4 Eb4~ | D4 F4 Ab4 B4 D5 C5~~` (bar 8 runs up G7b9 into C).
+- **THE STAIR CLIMBS** (v6): after the head out the bridge returns inverted - the chords rise in whole steps (Bb7sus Bmaj7#11 Dbmaj9 Ebmaj9), the figure pairs run in reverse order, the horn a third under - climbing to Eb major before the tag turns it back to C minor.
 - Quoted by t10 Cierre (v4): the 7/4 interlude opens on SEVEN DOORS a step up, on the rotary rhodes.
 - Quoted by t5 The Kettle Modulates (v5): the hymn's last two bars, on the french horn, in C minor (chirper-one).
 - **WHOLE-STEP STAIR** (the bridge, 4/4, straight eighths, unison horns an octave apart): Ebmaj9, Dbmaj9, Bmaj7#11, Bb7sus, two bars each, falling in whole steps; one figure sequenced down the stair: `Bb4 D5 F5. Eb5 | D5~ Bb4 G4`.
