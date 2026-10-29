@@ -103,6 +103,11 @@ R16 = set(filter(None, os.environ.get("T8_R16", "R").split(","))) - {"none"}
 # QUADRUPLETS, sixteen even strokes across the 12/8 bar (a straight 4/4 sixteenth feel laid over the marimbas'
 # triple eighths), accented every fourth.
 R17 = set(filter(None, os.environ.get("T8_R17", "Q").split(","))) - {"none"}
+# Round 18 (v18): S7 = t1 Doors at Seven's SEVEN DOORS head (chirper-zero; quoted by t4 and t10 too) on the vibes
+# in the bridge's first half: its opening two bars as scale degrees, set in 12/8 (C. Bb G F | Eb. F. | G Bb C D.
+# Eb~~), on the bridge's chords, then a held colour tone; the album's front door heard through the mallets.
+R18 = set(filter(None, os.environ.get("T8_R18", "S7").split(","))) - {"none"}
+DOORS = [[(0, 3), (-1, 1), (-3, 1), (-4, 1), (-5, 3), (-4, 3)], [(-3, 1), (-1, 1), (0, 1), (1, 3), (2, 6)]]
 SUBJECT = [(0, 1), (3, 1), (7, 1), (6, 2), (2, 2), (5, 1), (1, 1), (4, 1), (0, 2)]  # t7: semitones, eighths
 BAR = 6.0  # a 12/8 bar, in quarter beats
 
@@ -328,6 +333,14 @@ def build():
                 T["vib"].add(at, ln / 2 * 0.98, head, v - 4 + swell)
                 at += ln / 2
             chord = ph_chord
+        elif sec == "bridge" and i < 8 and "S7" in R18:  # SEVEN DOORS, then a held colour tone
+            if i % 4 < 2:
+                at = start
+                for d, ln in DOORS[i % 4]:
+                    T["vib"].add(at, ln / 2 * 0.95, nm(vr(deg(chord, d + 7) + 12)), v + 2)
+                    at += ln / 2
+            elif i % 4 == 2:
+                T["vib"].add(start, 2 * BAR * 0.95, nm(vr(deg(chord, 6) + 12)), v - 6)
         elif sec == "bridge" and i % 4 == 0:
             for j, d in enumerate([4, 6, 9, 8, 8, 9, 6, 4]):
                 T["vib"].add(start + j * 3, 2.9, nm(vr(deg(chord, d) + 12)), v - 10 + (6 if j in (3, 4) else 0))
