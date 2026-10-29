@@ -24,7 +24,7 @@ def nm(m): return f"{NN[m % 12]}{m // 12 - 1}"
 # the 16-bar cycle: four bars a chord (MIDI voicings), the strings' top line descending C Bb Ab G
 CYCLE = [(36, [48, 55, 58, 62, 63], 72), (34, [46, 53, 57, 58, 62], 70), (32, [44, 51, 55, 60, 63], 68), (31, [43, 50, 53, 56, 59], 67)]
 LEAD = [67, 68, 70, 71]          # the lead climbs G Ab Bb B against the strings' fall
-FORM = [('intro', 4), ('A', 8), ('B', 8), ('drop', 1), ('A2', 6), ('B2', 12), ('drop2', 1), ('outro', 6)]
+FORM = [('intro', 6), ('A', 8), ('B', 8), ('drop', 1), ('A2', 6), ('B2', 12), ('drop2', 1), ('outro', 8)]
 
 _seed = [777]
 def rnd():
@@ -107,7 +107,7 @@ def build():
         # ---- rhodes stabs in A2 and B2 on the and of 2 and of 4 ----
         if s in ('A2', 'B2'):
             for at in (1.62, 3.62):
-                rhodes.append((t0 + at + ms(20), ','.join(nm(m + 12) for m in ch[1:4]), 0.3, 70))
+                rhodes.append((t0 + at + ms(20), ','.join(nm(m + 12) for m in ch[1:4]), 0.3, 58 + int(30 * (0.5 + 0.5 * rnd()))))
     crackle.append((0.0, 'C4', total - 0.2, 80))
     end_s = total * SPB
     # THE RESAMPLE (wM's chop fx on the master): at the end of each B section the whole band is cut into eight slices
@@ -142,7 +142,13 @@ def build():
             {'name': 'lead', 'patch': 'boc-lead glide=180ms', 'gain': '-8dB', 'pan': -0.2, 'score': line(lead, total)},
             {'name': 'sub', 'patch': 'sub-saturated', 'gain': '-4dB', 'score': line(sub, total)},
             {'name': 'cello', 'patch': 'cello', 'gain': '-6dB', 'pan': -0.3, 'notes': notes(cello)},
-            {'name': 'rhodes', 'patch': 'rhodes', 'gain': '-9dB', 'pan': 0.35, 'fx': ['tape drive=0.15 mix=0.5 wow=10 flutter=2 drift=1 tone=6500 sweep=0.6 seed=3'], 'score': line(rhodes, total)},
+            # LIVING KEYS (chirper-two's per-voice fx): every rhodes stab lands in its own place in the stereo field,
+            # opens its own resonant ladder as hard as it is struck, and crushes a little more when hit harder
+            {'name': 'rhodes', 'patch': {'extends': 'rhodes', 'synth': {'fx': [
+                {'type': 'pan', 'pan': {'value': 0, 'mod': [{'src': 'rand', 'amount': 0.8}]}},
+                {'type': 'filter', 'kind': 'ladder', 'q': 5, 'cutoff': {'value': 700, 'mod': [{'src': 'vel', 'amount': 2.5}]}},
+                {'type': 'crush', 'bits': 10, 'rate': 16000, 'mix': {'value': 0, 'mod': [{'src': 'vel', 'amount': 0.6}]}}]}},
+             'gain': '-7dB', 'pan': 0.2, 'fx': ['tape drive=0.15 mix=0.5 wow=10 flutter=2 drift=1 tone=6500 sweep=0.6 seed=3'], 'score': line(rhodes, total)},
             {'name': 'crackle', 'patch': 'fx-crackle', 'gain': '-8dB', 'score': line(crackle, total)},
         ]}
 
