@@ -96,6 +96,7 @@ Generator `compose/chirpers3/src/chirpers3-t10.py`. Chillwave dusk, 78 bpm.
 - **THE RUN-OUT**: after the full band each section loses one voice - the kick, then the arp, then the bass - until the vox and pad are alone; the tape stops over the last four beats.
 - **DOTTED CLAVE**: a clave every 3 sixteenths, the cycle crossing two bars, from A through the first run-outs; the arp's 3/16 tape echo.
 - **THE LAST WORD** (v2): over the bare pad in the end, as the tape begins to sag, the vox sings its first phrase once more, softer each bar.
+- **THE SWEEP** (v3): the arp behind chirper-two's resonant ladder filter (q 9), nearly shut through A, opening across the whole of B (450 Hz -> about 4 kHz, the sunset peak) and closing through the first run-out before the arp leaves; the song's feel drifts 4 ms over 4-bar spans (wM's drift).
 
 ## t8 Window Seat (chirper-zero)
 Generator `compose/chirpers3/src/chirpers3-t8.py`. Night-bus 2-step, 136 bpm, F# minor.
