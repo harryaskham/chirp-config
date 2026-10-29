@@ -31,7 +31,9 @@ KIT = os.environ.get("T9_KIT", "1")
 STEADY = os.environ.get("T9_STEADY", "0") == "1"  # the ostinato as a figure: a fixed arpeggio contour and tom pattern (harmony still moves every bar)
 DOTTED = os.environ.get("T9_DOTTED", "1") == "1"
 RIDE3 = os.environ.get("T9_RIDE3", "1") == "1"
-RECAP = os.environ.get("T9_RECAP", "1") == "1"  # the return replays the song's EXPOSURE melody (a recapitulation) with the full band  # the ride on dotted eighths across the 11/8 (with the guitar): the cymbal's own cycle  # the guitar's dotted-eighth ostinato (0.75 beats: seven per 11/8 bar) in the ostinato and return  # 1 = kit -12 dB + highshelf -5 @4k; 2 = kit -10 dB, no shelf
+RECAP = os.environ.get("T9_RECAP", "1") == "1"
+BASSOLO = os.environ.get("T9_BASSOLO", "0") == "1"
+SEGUE = os.environ.get("T9_SEGUE", "1") == "1"  # under the last chord, Cierre's bembe bell arrives at Cierre's own tempo (eighths of 192 ms): the segue into the closer  # the open section becomes the fretless's solo (high, singing, sliding), the guitar swelling behind  # the return replays the song's EXPOSURE melody (a recapitulation) with the full band  # the ride on dotted eighths across the 11/8 (with the guitar): the cymbal's own cycle  # the guitar's dotted-eighth ostinato (0.75 beats: seven per 11/8 bar) in the ostinato and return  # 1 = kit -12 dB + highshelf -5 @4k; 2 = kit -10 dB, no shelf
 
 NOTE = {"C": 0, "C#": 1, "Db": 1, "D": 2, "D#": 3, "Eb": 3, "E": 4, "F": 5, "F#": 6, "Gb": 6, "G": 7, "G#": 8, "Ab": 8,
         "A": 9, "A#": 10, "Bb": 10, "B": 11}
@@ -111,6 +113,18 @@ def fretless(c, beats, b, sing=False):
     notes = [lo, r + 7, r + 14, r + 12] if b % 2 == 0 else [lo, r + 12, r + 7, r + 14]
     durs = [1.5, 1.5, 1.5, 1]
     return J(*[tok(nm(n), d, 88 - 6 * i) for i, (n, d) in enumerate(zip(notes, durs))])
+
+
+def bass_solo(c, beats, rng, vel=88):
+    """The fretless sings: a high line (D3-A4) over the free bar - a long colour tone, a turn of three eighths, a
+    held landing - with the mwah opening on each long note."""
+    r, _, col = CH[c]
+    cands = [m for m in range(50, 70) if (m - r) % 12 in col + [0, 7]]
+    a = rng.choice(cands)
+    b2 = min(cands, key=lambda m: abs(m - (a + rng.choice([-5, -3, 3, 5, 7]))))
+    turn = [a + rng.choice([2, -1]), a + rng.choice([4, 1]), b2 + rng.choice([2, -2])]
+    long1 = max(1.0, beats - 1.5 - 2.0)
+    return J(tok(nm(a), long1, vel + 4), *[tok(nm(n), 0.5, vel - 8) for n in turn], tok(nm(b2), beats - long1 - 1.5, vel))
 
 
 def held(c, beats, vel=56):
@@ -217,6 +231,8 @@ def cut(piece, beats):
 def build():
     names = ("piano", "bass", "tenor", "gtr", "strings", "kit")
     T = {n: [] for n in names}
+    seg_at = [0.0]
+    beat_pos = 0.0
     rng = random.Random(9)
     times, t = {}, 0.0
     prev = None
@@ -252,6 +268,10 @@ def build():
                 bar["strings"] = held(c, beats, 48)
                 bar["bass"] = fretless(c, beats, b, sing=True)
                 bar["gtr"], prev = exposure(c, beats, rng, lo=64, hi=86, vel=82, prev=prev)
+                if BASSOLO:
+                    bar["bass"] = bass_solo(c, beats, rng)
+                    bar["gtr"] = guitar_swell(c, beats, rng, vel=54)
+                    bar["piano"] = J(tok(nm(CH[c][0] - 12 + 24), beats, 52))  # the piano holds the root low, the bass is free
                 bar["kit"] = wash(beats, 40) if b % 2 == 0 else R(beats)
                 if b % 2 == 1:
                     bar["piano"] = J(R(1), held(c, beats - 1, 46))
@@ -270,6 +290,7 @@ def build():
                 bar["bass"] = fretless(c, beats, b, sing=True)
                 bar["piano"] = arpeggio(c, b, beats, 44 - 2 * b) if b % 2 == 0 else J(held(c, beats - 1, 40), R(1))
                 if b == nb - 1:
+                    seg_at[0] = beat_pos
                     bar["piano"] = held("Emaj9", beats * 2, 46)
                     bar["bass"] = tok("E2", beats * 2, 70)
                     bar["strings"] = held("Emaj9", beats * 2, 38)
@@ -284,7 +305,12 @@ def build():
             for n in names:
                 T[n].append(bar[n])
             t += beats * 60 / BPM
+            beat_pos += beats
         times[sec] = (start, t)
+    if SEGUE:  # Cierre's bembe bell (x.x.xx.x.x.x), two cycles at dotted quarter = 104, rising from silence
+        pat = "x.x.xx.x.x.x" * 2
+        toks = [f"cow/192ms@{int(34 + 50 * i / len(pat))}" if ch == "x" else "R/192ms" for i, ch in enumerate(pat)]
+        T["bell"] = [f"R/{seg_at[0]:g}b " + " ".join(toks)]
     return T, times
 
 
@@ -319,6 +345,8 @@ def song():
         {"name": "kit", "patch": "room-kit", "gain": "-12dB", "sends": {"hall": "-10dB"},
          "fx": [{"type": "eq", "bands": ["highshelf cutoff=4000 gain=-5dB"]}], "score": sc("kit")},
     ]
+    if SEGUE:
+        tracks.append({"name": "bell", "patch": "room-kit", "gain": "-12dB", "pan": -0.35, "sends": {"hall": "-10dB"}, "score": sc("bell")})
     if KIT == "2":
         tracks[-1]["gain"] = "-10dB"
         del tracks[-1]["fx"]
