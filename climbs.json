@@ -5598,9 +5598,18 @@
       "owner": "chirper-one",
       "metric": "python3 tools/compscore.py chirpers3-t1 OUT.wav",
       "best": {
-        "score": 97.49,
+        "score": 97.487,
         "version": "v9",
-        "commit": "see git log songs/chirpers3-t1.yaml"
+        "commit": "see git log songs/chirpers3-t1.yaml",
+        "rescored": {
+          "compscore": "78004071",
+          "seeds": {
+            "0": 97.487,
+            "11": 97.493
+          },
+          "at": "2026-10-29T17:47:12Z",
+          "was": 97.49
+        }
       },
       "passes": 1,
       "enabled": true,
@@ -5672,15 +5681,17 @@
       "owner": "chirper-one",
       "metric": "python3 tools/compscore.py chirpers3-t3 OUT.wav",
       "best": {
-        "score": 97.11,
+        "score": 93.92,
         "version": "v5",
         "commit": "see git log songs/chirpers3-t3.yaml",
-        "stale": {
-          "score": 97.11,
-          "since": "2026-10-29T16:03:42Z",
-          "who": "chirper-three",
-          "rating": 8.5,
-          "version": "v5"
+        "rescored": {
+          "compscore": "78004071",
+          "seeds": {
+            "0": 93.92,
+            "11": 93.714
+          },
+          "at": "2026-10-29T17:47:12Z",
+          "was": 97.11
         }
       },
       "passes": 1,
@@ -5716,10 +5727,19 @@
       "owner": "chirper-three",
       "metric": "python3 tools/compscore.py chirpers3-t4 OUT.wav",
       "best": {
-        "score": 95.18,
+        "score": 95.262,
         "version": "v13",
         "commit": "see git log songs/chirpers3-t4.yaml",
-        "judged": true
+        "judged": true,
+        "rescored": {
+          "compscore": "78004071",
+          "seeds": {
+            "0": 95.262,
+            "11": 95.103
+          },
+          "at": "2026-10-29T17:47:12Z",
+          "was": 95.18
+        }
       },
       "passes": 1,
       "enabled": true,
@@ -5791,11 +5811,20 @@
       "owner": "chirper-two",
       "metric": "python3 tools/compscore.py chirpers3-t6 OUT.wav",
       "best": {
-        "score": 95.03,
+        "score": 94.603,
         "version": "v12",
         "commit": "see git log songs/chirpers3-t6.yaml",
         "engine": "220ef336",
-        "judged": true
+        "judged": true,
+        "rescored": {
+          "compscore": "78004071",
+          "seeds": {
+            "0": 94.603,
+            "11": 94.548
+          },
+          "at": "2026-10-29T17:47:12Z",
+          "was": 95.03
+        }
       },
       "passes": 1,
       "enabled": true,
@@ -5833,7 +5862,16 @@
         "score": 91.855,
         "version": "v5",
         "commit": "see git log songs/chirpers3-t7.yaml",
-        "engine": "a9e910d1"
+        "engine": "a9e910d1",
+        "rescored": {
+          "compscore": "78004071",
+          "seeds": {
+            "0": 91.855,
+            "11": 91.849
+          },
+          "at": "2026-10-29T17:47:12Z",
+          "was": 91.855
+        }
       },
       "passes": 1,
       "enabled": true,
@@ -5868,9 +5906,18 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/compscore.py chirpers3-t8 OUT.wav",
       "best": {
-        "score": 96.649,
+        "score": 94.914,
         "version": "v6",
-        "commit": "see git log songs/chirpers3-t8.yaml"
+        "commit": "see git log songs/chirpers3-t8.yaml",
+        "rescored": {
+          "compscore": "78004071",
+          "seeds": {
+            "0": 94.914,
+            "11": 95.109
+          },
+          "at": "2026-10-29T17:47:12Z",
+          "was": 96.649
+        }
       },
       "passes": 1,
       "enabled": true,
@@ -5942,10 +5989,19 @@
       "owner": "chirper-one",
       "metric": "python3 tools/compscore.py chirpers3-t10 OUT.wav",
       "best": {
-        "score": 90.87,
+        "score": 85.442,
         "version": "v6",
         "commit": "see git log songs/chirpers3-t10.yaml",
-        "judged": true
+        "judged": true,
+        "rescored": {
+          "compscore": "78004071",
+          "seeds": {
+            "0": 85.442,
+            "11": 87.67
+          },
+          "at": "2026-10-29T17:47:12Z",
+          "was": 90.87
+        }
       },
       "passes": 1,
       "enabled": true,
