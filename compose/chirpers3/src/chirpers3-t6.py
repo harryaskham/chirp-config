@@ -112,6 +112,11 @@ R10 = set(filter(None, os.environ.get("T6_R10", "S,C").split(","))) - {"none"}
 # chirp's voice engine hum t6's sigh ("mm-oo", tape-worn), and a sampler cuts it into eight one-beat slices that
 # answer the vibes in the first A section.
 R11 = set(filter(None, os.environ.get("T6_R11", "L,C,V").split(","))) - {"none"}
+# Round 12 (v12), on pin 220ef336: W = THE TAPE WEARS OUT across the song: the keys get a real tape deck (wow 8,
+# flutter 2, drift) whose `warp` follows a wear lane, near-new in the intro (0), loosening through A, the switch and A2,
+# seasick in the drop (2), still worn after it (1.4 in the outro); H = THE HUM, BACKWARDS: the hummed sigh plays once
+# more at A3's end, and wM's `chop` replays it in the outro as reversed slices (r7 r6 . r4 _ r2 r1 r0).
+R12 = set(filter(None, os.environ.get("T6_R12", "W,H").split(","))) - {"none"}
 FORM = [("intro", 4), ("A", 16), ("switch", 8), ("A2", 16), ("drop", 4), ("A3", 12), ("outro", 4)]
 LEVEL = {"intro": 58, "A": 72, "switch": 66, "A2": 78, "drop": 56, "A3": 80, "outro": 56}
 DRUMS = {"A", "switch", "A2", "A3"}
@@ -120,7 +125,7 @@ DRUMS = {"A", "switch", "A2", "A3"}
 def build():
     rng = random.Random(6)
     T = {k: Track(k) for k in ("keys", "kw", "bass", "sub", "vibes", "drums", "crackle", "hiss", "rain", "thunder",
-                               "dub", "vdub", "rs", "chop", "rsrev", "lb", "cbr", "vox")}
+                               "dub", "vdub", "rs", "chop", "rsrev", "lb", "cbr", "vox", "vout")}
     rrng = random.Random(66)  # the weather's own dice (the music's stay as they were)
     bars, pos = [], 0.0
     for name, n in FORM:
@@ -146,6 +151,8 @@ def build():
                 T["rs"].add(start, 16.0, "C3", 100)
             if i == 4:
                 T["rsrev"].add(start, 16.0, "C3", 96)
+        if sec == "A3" and i == n - 1 and "H" in R12 and "V" in R11:  # the hum, once more, to be chopped backwards
+            T["vout"].add(start, 8.0, "C4", v)
         if sec == "A" and "V" in R11 and i % 4 in (1, 3):  # the hummed chops answer the vibes
             for o, s8 in ((0.5, 0), (1.0, 1), (2.0, 2) if i % 4 == 1 else (2.0, 4), (3.0, 3) if i % 4 == 1 else (3.0, 6)):
                 T["vox"].add(start + o + 0.04, 0.95, nm(60 + s8), v - 4)
@@ -341,6 +348,10 @@ def palette_patches():
                                                         "cutoff": {"value": 150, "mod": [{"src": "env.f", "amount": 2.5}]}}],
                                            "env": {"f": {"a": "5ms", "d": "700ms", "s": 0.15}},
                                            "amp": {"a": "4ms", "d": "900ms", "s": 0.7, "r": "180ms"}}}
+    if "V" in R11 and "H" in R12:
+        out["c2-hum"] = {"about": "chirper-two: the shadow song `hum`, whole (for the outro's chop fx).",
+                         "synth": {"layers": [{"type": "sample", "song": "hum", "root": "C4"}],
+                                   "amp": {"a": "4ms", "d": "0s", "s": 1, "r": "200ms"}}}
     if "V" in R11:
         out["c2-hum-chop"] = {"about": "chirper-two: the shadow song `hum` (the voice engine humming t6's sigh) cut into "
                                        "eight one-beat slices (C4 slice 1 ... G4 slice 8).",
@@ -371,19 +382,27 @@ def main():
     croot_pts = [["0b", 0.0]]  # the comb follows the switch's roots Bb A Ab G (two bars each), in octaves
     for k in range(4):
         croot_pts += [[f"{s0w + 8 * k}b", -k / 12], [f"{s0w + 8 * k + 7.99}b", -k / 12]]
+    st = {n: s for n, s, k in sec}
+    wear_pts = [["0b", 0.0], [f"{st['A']}b", 0.3], [f"{st['switch']}b", 0.5], [f"{st['A2']}b", 0.6],
+                [f"{st['drop']}b", 0.9], [f"{st['A3'] - 0.5}b", 2.0], [f"{st['A3']}b", 1.0], [f"{st['outro']}b", 1.4],
+                [f"{total}b", 1.4]]
     warp_pts = [["0b", 0.0], [f"{d0}b", 0.0], [f"{a3 - 0.5}b", 1.0], [f"{a3}b", 0.0]]
     wow = {"type": "chorus", "rate": 0.35, "depth": 0.55, "voices": 1, "mix": 1.0}
     wow_k = wow
     flutter = {"type": "chorus", "rate": 5.5, "depth": 0.08, "voices": 1, "mix": 0.5}
     tracks = [
         {"name": "keys", "patch": "wurli", "pan": -0.1, "gain": "-6dB",
-         "fx": [wow_k, flutter, "tape drive=0.3 warmth=0.65",
+         "fx": [wow_k, flutter,
+                ({"type": "tape", "drive": 0.3, "warmth": 0.65, "wow": 8, "flutter": 2, "drift": 1, "seed": 6,
+                  "warp": {"value": 0.0, "mod": [{"src": "auto.wear", "amount": 1}]}} if "W" in R12
+                 else "tape drive=0.3 warmth=0.65"),
                 ({"type": "filter", "kind": "lp", "cutoff": {"value": 5000, "mod": [{"src": "auto.warp", "amount": -1.5}]}}
                  if "W" in R2 else "lp cutoff=5000"),
                 ({"type": "crush", "bits": 12, "rate": 16000, "mix": {"value": 0.3, "mod": [{"src": "auto.warp", "amount": 0.5}]}}
                  if "W" in R2 else {"type": "crush", "bits": 12, "rate": 16000, "mix": 0.3}),
                 "reverb kind=room decay=1.2s mix=0.18"], "score": T["keys"].score(total),
-         **({"auto": {"warp": {"points": warp_pts}}} if "W" in R2 else {})},
+         **({"auto": {**({"warp": {"points": warp_pts}} if "W" in R2 else {}),
+                      **({"wear": {"points": wear_pts}} if "W" in R12 else {})}} if ("W" in R2 or "W" in R12) else {})},
         *([{"name": "keys-warped", "patch": "wurli", "pan": 0.05, "gain": "-5dB",
              "fx": [{"type": "chorus", "rate": 0.18, "depth": 0.95, "voices": 1, "mix": 1.0},
                     {"type": "chorus", "rate": 3.1, "depth": 0.2, "voices": 1, "mix": 0.6},
@@ -418,6 +437,10 @@ def main():
                     "cutoff": {"value": 233.08, "mod": [{"src": "auto.croot", "amount": 1}]}},
                    "reverb kind=room decay=1.0s mix=0.2"],
             "auto": {"croot": {"points": croot_pts}}, "score": T["cbr"].score(total)}] if "C" in R11 else []),
+        *([{"name": "hum-backwards", "patch": "c2-hum", "pan": 0.2, "gain": "-1dB",
+            "fx": [{"type": "chop", "slices": 8, "length": "1/1", "pattern": "r7 r6 . r4 _ r2 r1 r0"},
+                   "hp cutoff=180", "reverb kind=hall decay=2.4s mix=0.3"], "score": T["vout"].score(total)}]
+          if "H" in R12 and "V" in R11 else []),
         *([{"name": "hum-chops", "patch": "c2-hum-chop", "pan": -0.25, "gain": "4dB",
             "fx": ["hp cutoff=180", "reverb kind=plate decay=1.4s mix=0.22"], "score": T["vox"].score(total)}]
           if "V" in R11 else []),
