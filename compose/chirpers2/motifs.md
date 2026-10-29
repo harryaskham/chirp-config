@@ -6,6 +6,7 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 - **METER WHEEL**: bar lengths 8, 7, 10, 9, 6 eighths (4/4 7/8 5/4 9/8 3/4) turning without stop under 4-bar phrases (realign every 20 bars); the climax stretches it to 11, 13, 11, 13, 9.
 - **NIGHT CELL** (fretless): degrees 1 . 5 1 7 . 4 5 1 . 3 5 7 on eighths, a 13-step cycle cut to each bar, so the bar's start lands somewhere new each time.
 - **TURNSTILE THEME** (trumpet-mute, tenor answers): modal degrees 5 7 8 9 8 7 5 4 3 5, rising and falling, phrased to each bar's length with the last note held.
+- **TURNSTILE HEAD** (v12, A, replaces the theme generator there): the trumpet CLICKS three eighths then HOLDS for whatever the bar has left (short in 7/8, long in 5/4): bar 1 degrees 5 6 8 -> 9, bar 2 8 6 5 -> 3, bar 3 the first a third up (7 8 10 -> 11), bar 4 the tenor answers with the click inverted (5 4 2 -> 1); under the holds the tenor echoes the click's last two notes; every second phrase the click starts an eighth late.
 - Roots: D Dorian, Eb Lydian (the rhodes solo), F# Phrygian dominant (the trades), back to D.
 - **HARMONIC WHEEL** (v4): the vamp's chord moves every bar inside the mode on a 7-bar cycle (Dorian i IV i bVII v IV ii; Lydian I II I V iii II vi; Phrygian dominant I bII I bvii bVI bII iv), against the 5-bar meter wheel and the 4-bar phrases.
 - **ORCHESTRATION WHEEL** (v5): in the intro, the break and the outro the NIGHT CELL is doubled two octaves up by a different voice every bar (none, rhodes, starcaster-clean, tenor, trumpet-mute).

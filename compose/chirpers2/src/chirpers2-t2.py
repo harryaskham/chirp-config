@@ -172,6 +172,33 @@ def trade_answer(b, call):
     if t < e16: out.append(f"R/{(e16 - t) / 4:g}b")
     return out
 
+def turnstile_head(b):
+    """THE TURNSTILE HEAD (A): a composed 4-bar phrase that every bar of the meter wheel bends. The trumpet CLICKS
+    three eighths and then HOLDS for whatever the bar has left - so in 7/8 the hold is short, in 5/4 it is long, and
+    the same click lands differently every time the wheel turns. Bar 1 clicks up into the 9th, bar 2 answers down,
+    bar 3 is bar 1 a third higher, bar 4 the tenor answers with the click inverted; under the trumpet's holds the
+    tenor echoes the click's last two notes. Every second phrase the click sticks: it starts an eighth late."""
+    i, e8 = b['i'], b['e8']
+    pos, n = i % 4, i // 4
+    late = 1 if n % 2 else 0
+    c = b['cd']
+    def notes(degs, hold, octv, vel, start):
+        toks = []
+        if start: toks.append(f"R/{start / 2:g}b")
+        t = start
+        for d in degs:
+            toks.append(tok(nm(deg(b, c + d, octv)), 0.5, vel + (6 if d == degs[0] else 0))); t += 1
+        if e8 - t > 0:
+            toks.append(tok(nm(deg(b, c + hold, octv)), (e8 - t) / 2 - 0.1, vel - 4)); toks.append('R/0.1b')
+        return toks
+    if pos == 3:
+        return rest(b), notes([4, 3, 1], 0, 1, 90, late)
+    degs, hold = {0: ([4, 5, 7], 8), 1: ([7, 5, 4], 2), 2: ([6, 7, 9], 10)}[pos]
+    tpt = notes(degs, hold, 2, 98, late)
+    # the tenor's echo of the click's last two notes, in the hold's last two eighths, an octave down
+    ten = [f"R/{(e8 - 2) / 2:g}b"] + [tok(nm(deg(b, c + d, 1)), 0.5, 78) for d in degs[1:]] if e8 - late - 3 >= 3 else rest(b)
+    return tpt, ten
+
 def horn_line(b, k, start_deg, vel):
     """a phrase across the bar: quarter-ish notes, the last one held"""
     toks, e8, j = [], b['e8'], 0
@@ -202,8 +229,8 @@ def build():
         # ORCHESTRATION WHEEL: in the intro, the break and the outro the NIGHT CELL is doubled two octaves up by a
         # different voice every bar (none, rhodes, wah, tenor, trumpet), so no two consecutive bars sound alike
         if sec == 'A':
-            parts['tpt'].append(horn_line(b, k, b['i'], 96) if b['i'] % 4 != 3 else rest(b))
-            parts['ten'].append(horn_line(b, k, b['i'] + 3, 78) if b['i'] % 4 == 3 else rest(b))
+            t_, n_ = turnstile_head(b)
+            parts['tpt'].append(t_); parts['ten'].append(n_)
         elif sec == 'B':   # the rhodes 'solos' (the cell climbs), horns lay out but for stabs
             parts['tpt'].append(rest(b)); parts['ten'].append(rest(b))
             parts['rhodes'][-1] = rhodes_solo(b, 86)
