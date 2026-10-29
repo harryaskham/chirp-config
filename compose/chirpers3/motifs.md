@@ -78,6 +78,9 @@ Generator `compose/chirpers3/src/chirpers3-t7.py`. Ambient tape loops, a nominal
 - **THE SECOND HIDDEN MELODY** (since v6, the full section; since v7 the return too): where the music box's 7 meets the crystal's gear, a soft
   boc-lead under the first melody sings the box's note an octave down and holds to the next meeting (7 meetings in 8
   bars: a slow descant made by the gears).
+- **THE TAPE WEARS** (since v10): wM's deck `warp` (a multiplier on wow and flutter) follows the song: 1.0 most of the
+  way, 1.6 in the glitch break (rough), 0.7 in the breakdown (clean and close), and 1 -> 2 through the wind-down, so the
+  tape wears out as the music box runs down (on the toy bus fully, on the master at half depth).
 - **THE TAPE STOP** (since v9): the near-stall ends for real: after the band's resample dive, wM's tapestop brings the
   tape to a halt in the bar's second half (the vinyl keeps turning on top), then the return snaps back at speed.
 - **THE RESAMPLED MUSIC BOX** (since v9): at the full section's phrase ends (bars 48 and 52) the toy piano and the box

@@ -376,6 +376,15 @@ def harmony():
             P["sub"].add(b0(bar), n * S - 1, nm(r - 12), 90)          # the warm floor an octave under the bass
 
 
+def wear_lane():
+    """THE TAPE WEARS (wM's deck warp, 0..2, a multiplier on wow and flutter): normal through most of the song, rough in
+    the glitch break, clean and close in the breakdown, and wearing out (1 -> 2) as the music box runs down."""
+    sec = lambda e: e / 4 * 60 / BPM
+    pts = [(0, 1.0), (b0(25) - 2, 1.0), (b0(25), 1.6), (b0(29) - 2, 1.6), (b0(29), 1.0), (b0(37) - 2, 1.0),
+           (b0(37), 0.7), (b0(45) - 2, 0.7), (b0(45), 1.0), (b0(53), 1.0), (TOTAL, 2.0)]
+    return [[f"{sec(e):.3f}s", v] for e, v in pts]
+
+
 def tapestop_lane():
     """The tape stops dead in the near-stall's second half (after the resample dive) and restarts for the return."""
     sec = lambda e: e / 4 * 60 / BPM
@@ -440,10 +449,12 @@ def main():
         'ceiling: "-0.5dB"',
         "buses:",
         '  toys: {fx: [' + ", ".join(json.dumps(f) for f in [
-            "tape wow=14 flutter=3 drift=1 tone=8kHz sweep=0.6 squash=0.3 hiss=-62dB seed=4",   # the wow (wM's deck)
+            {"type": "tape", "wow": 14, "flutter": 3, "drift": 1, "tone": "8kHz", "sweep": 0.6, "squash": 0.3,
+             "hiss": "-62dB", "seed": 4, "warp": {"value": 0, "mod": [{"src": "auto.wear", "amount": 1}]}},  # the wow, worn
             {"type": "crush", "bits": 10, "rate": 22000, "mix": 0.3},
             {"type": "stutter", "slice": "1/32", "repeats": 4, "chance": 0.07, "seed": 41},
-            "lp cutoff=10k", "reverb kind=room decay=1.4s mix=0.18 predelay=10ms"]) + ']}',
+            "lp cutoff=10k", "reverb kind=room decay=1.4s mix=0.18 predelay=10ms"]) + '], auto: '
+        + json.dumps({"wear": {"points": wear_lane()}}) + '}',
         '  drums: {fx: [' + ", ".join(json.dumps(f) for f in [
             {"type": "stutter", "slice": "1/16", "repeats": 3, "chance": 0.08, "seed": 7},
             "lp cutoff=10k", {"type": "tape", "drive": 0.35, "warmth": 0.5, "mix": 1},
@@ -453,12 +464,15 @@ def main():
                                         "mix": 1},       # the RESAMPLE: the whole band slows like a sampler (Harry's note)
                                        {"type": "tapestop", "stop": {"value": 0, "mod": [{"src": "auto.ts", "amount": 1}]},
                                         "time": "1.1s", "mix": 1},   # and the tape really STOPS (the record keeps turning)
-                                       "tape drive=0.25 mix=0.5 squash=0.4 hiss=-56dB wow=4 flutter=1 seed=7",
+                                       {"type": "tape", "drive": 0.25, "mix": 0.5, "squash": 0.4, "hiss": "-56dB", "wow": 4,
+                                        "flutter": 1, "seed": 7,
+                                        "warp": {"value": 0.5, "mod": [{"src": "auto.wear", "amount": 0.5}]}},
                                        "vinyl crackle=0.4 dust=0.35 noise=-62dB rumble=0.3 warp=5 wear=0.4 seed=5",
                                        {"type": "eq", "bands": [{"kind": "peak", "cutoff": 600, "gain": "-3dB", "q": 0.8}]},
                                        "glue threshold=-24dB ratio=3 attack=15ms release=200ms makeup=3dB",
                                        {"type": "gain", "gain": "11dB"}],
-                                "auto": {"rs": {"points": resample_lane()}, "ts": {"points": tapestop_lane()}}}),
+                                "auto": {"rs": {"points": resample_lane()}, "ts": {"points": tapestop_lane()},
+                                         "wear": {"points": wear_lane()}}}),
         "tracks:",
     ]
     with open(OUT, "w") as f:
