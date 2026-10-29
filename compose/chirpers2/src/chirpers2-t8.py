@@ -73,6 +73,10 @@ R9 = set(filter(None, os.environ.get("T8_R9", "C,U").split(","))) - {"none"}
 # the vibes singing a palindrome over Cm9 -> Bb13sus and the bass answering note against note in CONTRARY MOTION;
 # marimbas alone, then vibes and bass alone, then everyone.
 R10 = set(filter(None, os.environ.get("T8_R10", "D").split(","))) - {"none"}
+# Round 11 (v11): M = a BASS MARIMBA (song-local: wooden-bar partials 1 / 4, a 1.3 s ring, no low cut): the cell's
+# dotted-quarter notes two octaves under the high marimba through the phase, melody, solo, trades and peak, and the
+# whole cell in the unison: three marimbas, the process given a floor.
+R11 = set(filter(None, os.environ.get("T8_R11", "M").split(","))) - {"none"}
 SUBJECT = [(0, 1), (3, 1), (7, 1), (6, 2), (2, 2), (5, 1), (1, 1), (4, 1), (0, 2)]  # t7: semitones, eighths
 BAR = 6.0  # a 12/8 bar, in quarter beats
 
@@ -152,7 +156,7 @@ if "D" in R2:
 
 
 def build():
-    T = {k: Track(k) for k in ("m1", "m2", "vib", "echo", "bass", "sub", "fd")}
+    T = {k: Track(k) for k in ("m1", "m2", "vib", "echo", "bass", "sub", "fd", "bm")}
     import random
     rng = random.Random(8)
     bars, b = [], 0
@@ -234,6 +238,15 @@ def build():
         elif sec == "blur":  # stuck a third of an eighth behind
             for e in range(12):
                 T["m2"].add(start + (e + 1 / 3) / 2, 0.45, nm(deg(chord, cell[e])), v - 6 + (8 if e % 3 == 0 else 0))
+        if "M" in R11 and sec in ("phase", "melody", "solo", "trades", "peak", "unison") and not mar:
+            for e in range(12):
+                if sec == "unison" or e % 3 == 0:
+                    bp = deg(chord, cell[e]) - 24
+                    while bp > 52:
+                        bp -= 12
+                    while bp < 33:
+                        bp += 12
+                    T["bm"].add(start + e / 2, 1.4 if e % 3 == 0 else 0.45, nm(bp), v - 6 + (6 if e % 6 == 0 else 0))
         # ---- the vibes ----
         if sec in ("melody", "peak", "unison") and i % 4 == 0:
             half = HALVES[(i // 4 + (2 if sec == "peak" else 0)) % 4]
@@ -414,7 +427,17 @@ def patches():
     sub = {"about": "chirper-two's sub for Odd Hours t8: a soft sine an octave under the bowed bass (after chirper-three's "
                     "c3-sub in Cross Purposes).",
            "synth": {"layers": [{"name": "sub", "wave": "sine"}], "amp": {"a": "30ms", "d": "400ms", "s": 0.75, "r": "150ms"}}}
-    return {"c3-marimba": marimba, "c2-vibes": vibes, "c2-frame": frame, "c2-sub": sub}
+    bassmar = {"about": "chirper-two's bass marimba for Odd Hours t8: wide wooden bars, partials 1 / 4 (tuned for the "
+                        "low register), a soft yarn mallet, a 1.3 s ring and no low cut: the marimbas' floor.",
+               "synth": {"layers": [{"name": "bar", "type": "additive", "partials": [[1, 1], [4.0, 0.22], [9.8, 0.03]]},
+                                    {"name": "click", "type": "noise", "level": {"value": "-74dB", "mod": [{"src": "env.ck", "amount": 34}]}}],
+                         "env": {"ck": {"a": "0.3ms", "d": "6ms", "s": 0}}, "filters": ["hp cutoff=32", "lp cutoff=3k"],
+                         "amp": {"a": "2ms", "d": "1.3s", "s": 0, "r": "120ms", "curve": 3}},
+               "play": {"vel_sens": 0.6}}
+    out = {"c3-marimba": marimba, "c2-vibes": vibes, "c2-frame": frame, "c2-sub": sub}
+    if "M" in R11:
+        out["c2-bass-marimba"] = bassmar
+    return out
 
 
 def main():
@@ -429,6 +452,9 @@ def main():
         {"name": "frame", "patch": "c2-frame", "pan": 0.15, "gain": "0dB",
          "fx": ["reverb kind=room decay=1.0s mix=0.15"], "score": T["fd"].score(total)},
     ]
+    if "M" in R11:
+        tracks.insert(2, {"name": "bass-marimba", "patch": "c2-bass-marimba", "pan": -0.2, "gain": "0dB", "fx": [hall],
+                          "score": T["bm"].score(total)})
     if "E" in R3:
         tracks.insert(3, {"name": "vibes-echo", "patch": "c2-vibes", "pan": -0.45, "gain": "-3dB", "fx": [hall],
                           "score": T["echo"].score(total)})
