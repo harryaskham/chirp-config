@@ -220,6 +220,23 @@ def build():
     mar = marimba_part(B, lambda b: b['sec'] in ('B', 'A3', 'D') or (b['sec'] == 'outro' and b['i'] < 4))
     solo = solo_part(B)
     dialogue(B, solo, mar)
+    # GLASS: on the last return (A3, a whole step up) a glockenspiel doubles the marimba's dotted line an octave
+    # up on every group's first note only, a sparkle that marks the key change
+    glock = []
+    for k, b in enumerate(B):
+        if b['sec'] == 'A3' and mar[k] and not mar[k][0].startswith('R'):
+            line, t16, starts = [], 0, {at * 2 for at, g in groups(b)}
+            for x in mar[k]:
+                n_, r_ = x.split('/', 1)
+                ln = float(r_.split('b')[0])
+                if t16 in starts and not n_.startswith('R'):
+                    line.append(f"{nm(NN.index(n_[:-1]) + 12 * (int(n_[-1]) + 1) + 12)}/{ln:g}b@{80}")
+                else:
+                    line.append(f"R/{ln:g}b")
+                t16 += int(round(ln * 4))
+            glock.append(line)
+        else:
+            glock.append([rest(b['e8'])])
     # the build ends in a STOP: its last bar is one unison hit and a bar of air before the last return
     stop_after_one([g1, g2, bass, kit, mar], B, 'D', 11)
     total_beats = sum(b['e8'] for b in B) / 2
@@ -251,6 +268,7 @@ def build():
             {'name': 'kit', 'patch': 'prog-kit', 'gain': '-4dB', 'score': J(kit)},
             {'name': 'solo', 'patch': 'starcaster-clean', 'gain': '-4dB', 'pan': -0.3, 'fx': [{'type': 'delay', 'time': '3/16', 'feedback': 0.3, 'mix': 0.25}], 'score': J(solo)},
             {'name': 'marimba', 'patch': 'marimba', 'gain': '-4dB', 'pan': 0.1, 'score': J(mar)},
+            {'name': 'glock', 'patch': 'glock', 'gain': '-10dB', 'pan': 0.4, 'score': J(glock)},
         ]}
 
 if __name__ == '__main__':
