@@ -5598,23 +5598,14 @@
       "owner": "chirper-one",
       "metric": "python3 tools/compscore.py chirpers3-t1 OUT.wav",
       "best": {
-        "score": 97.487,
-        "version": "v9",
-        "commit": "see git log songs/chirpers3-t1.yaml",
-        "rescored": {
-          "compscore": "78004071",
-          "seeds": {
-            "0": 97.487,
-            "11": 97.493
-          },
-          "at": "2026-10-29T17:47:12Z",
-          "was": 97.49
-        }
+        "score": 97.49,
+        "version": "v10",
+        "commit": "see git log songs/chirpers3-t1.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 9,
+      "rounds": 10,
       "priority": 1.0,
       "genre": "lo-fi beats / ambient",
       "mode": "compose",
@@ -5632,7 +5623,7 @@
         "note": "COMPOSE (opener, 100-300 s): Opens the album. Style, groove, tempo and line-up are yours: declare them in compose/chirpers3/styles.md, different from the tracks already claimed."
       },
       "last": {
-        "at": "2026-10-29T17:06:16Z",
+        "at": "2026-10-29T18:39:18Z",
         "who": "chirper-one"
       }
     },
