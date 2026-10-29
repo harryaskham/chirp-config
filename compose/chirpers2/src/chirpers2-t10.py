@@ -41,7 +41,9 @@ PSOLO = os.environ.get("T10_PSOLO", "1") == "1"
 SYL = os.environ.get("T10_SYL", "1") == "1"
 CORO_DB = os.environ.get("T10_CORODB", "-1")
 EXPQ = os.environ.get("T10_EXPQ", "1") == "1"  # in the descarga's E dorian half the trumpet's solo bars quote t9 Slow Shutter's EXPOSURE (C#5-F#5, F#4-B4)
-PERC = os.environ.get("T10_PERC", "1") == "1"  # the descarga's last bars before its break: the percussion alone (congas, bell, shaker, clave), everyone else out  # the sung coro's level (dB)  # the coro sings vocables, not just vowels: la - ye - lo | ma - ye (onset consonants l y l | m y)  # a 16-bar piano solo over the montuno groove between the son and the mambo (octave lines, horns out)
+PERC = os.environ.get("T10_PERC", "1") == "1"
+KEYHAND = os.environ.get("T10_KEYHAND", "1") == "1"  # the bembe's first four bars hold Slow Shutter's last chord (Emaj9) under the bell, slipping to Dm9 as the piano enters
+FINALVOX = os.environ.get("T10_FINALVOX", "1") == "1"  # the coro's voices sing the last chord (Dmaj9#11): the baritone on D, the choir on F# and A  # the descarga's last bars before its break: the percussion alone (congas, bell, shaker, clave), everyone else out  # the sung coro's level (dB)  # the coro sings vocables, not just vowels: la - ye - lo | ma - ye (onset consonants l y l | m y)  # a 16-bar piano solo over the montuno groove between the son and the mambo (octave lines, horns out)
 
 # sections: (name, meter, bpm (quarter), bars)
 FORM = [("bembe", "12/8", 156, 12), ("son", "4/4", 208, 40), ("mambo", "4/4", 208, 24), ("siete", "7/4", 208, 12),
@@ -125,6 +127,7 @@ CH = {
     "Em11": (40, [55, 57, 62, 66]),       # G A D F#
     "Dmaj9#11": (38, [54, 57, 61, 64, 68]),  # F# A C# E G#
     "Ebmaj7#11": (39, [55, 57, 62, 65]),  # G A D F (Eb lydian)
+    "Emaj9": (40, [54, 56, 59, 63]),  # F# G# B D# (Slow Shutter's last chord)
 }
 SON_PROG = ["Dm9", "G13", "Cmaj7#11", "A7b13"]
 
@@ -377,6 +380,8 @@ def build():
                 if b >= 8:
                     bar["bass"] = tumbao(c, nxt, b, beats)
                 bar["pad"] = comp(c, b, beats, vel=50)
+                if KEYHAND and b < 4:  # Slow Shutter's Emaj9 still in the air; the piano's entrance moves it down to D
+                    bar["pad"] = comp("Emaj9", 0, beats, vel=50 - 3 * b)
             elif sec in ("son", "mambo", "cierre"):
                 side = 3 if (b + flip) % 2 == 0 else 2
                 bar["clave"] = clave(beats, side)
@@ -427,6 +432,9 @@ def build():
                             bar["kit"] = J(tok("c,k", 1, 118), R(beats * 2 - 1))
                             bar["trumpet"] = tok("F#5", beats * 2, 96)
                             bar["rhodes"] = tok(last, beats * 2, 80)
+                            if FINALVOX and SUNG:  # the voices join the last chord
+                                bar["coro"] = f"D3/{beats * 2:g}b@84^vow=0.5^on=16"
+                                bar["coro2"] = tok("F#4,A4", beats * 2, 72)
                         else:
                             for k in names:
                                 bar[k] = ""  # covered by the held notes of bar 8
