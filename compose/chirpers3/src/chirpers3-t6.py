@@ -121,6 +121,11 @@ R12 = set(filter(None, os.environ.get("T6_R12", "W,H").split(","))) - {"none"}
 # a pan read from its random value (each slice somewhere new), a crush that bites harder the harder it is played,
 # and a low-pass that opens with velocity: the chops become voices around the room instead of one line.
 R13 = set(filter(None, os.environ.get("T6_R13", "P").split(","))) - {"none"}
+# Round 14 (v14), wM's physical e-piano pickups (pin 7adf6cd2): R = the keys move to `epiano-reed` (a steel reed by a
+# charged pickup: it snarls when you dig in), both the main and the drop's warped keys; T = the switch-up's bounce is
+# rendered on `epiano-tine` (a Rhodes tine past its pickup, barking): the half-time section changes instrument.
+R14 = set(filter(None, os.environ.get("T6_R14", "T").split(","))) - {"none"}  # R tried: the reed keys drifted from
+# the album's sound (cohesion 80 -> 64): the wurli stays the song's voice
 FORM = [("intro", 4), ("A", 16), ("switch", 8), ("A2", 16), ("drop", 4), ("A3", 12), ("outro", 4)]
 LEVEL = {"intro": 58, "A": 72, "switch": 66, "A2": 78, "drop": 56, "A3": 80, "outro": 56}
 DRUMS = {"A", "switch", "A2", "A3"}
@@ -324,11 +329,11 @@ def patches():
     return out
 
 
-def bounce_song(loop=None, up=0):
+def bounce_song(loop=None, up=0, patch="wurli"):
     """A shadow source: four wurli bars of a chord loop through tape (rendered inside this song, never played)."""
     score = " ".join(",".join(nm(x + up) for x in voic) + "/1@70" for _, voic in (loop or A_LOOP))
     return {"tempo": BPM, "length": "16b", "tail": "0.5s",
-            "tracks": [{"name": "keys", "patch": "wurli",
+            "tracks": [{"name": "keys", "patch": patch,
                         "fx": [{"type": "chorus", "rate": 0.35, "depth": 0.55, "voices": 1, "mix": 1.0},
                                "tape drive=0.35 warmth=0.7", "lp cutoff=4500"], "score": score}]}
 
@@ -403,7 +408,7 @@ def main():
     wow_k = wow
     flutter = {"type": "chorus", "rate": 5.5, "depth": 0.08, "voices": 1, "mix": 0.5}
     tracks = [
-        {"name": "keys", "patch": "wurli", "pan": -0.1, "gain": "-6dB",
+        {"name": "keys", "patch": "epiano-reed" if "R" in R14 else "wurli", "pan": -0.1, "gain": "-6dB",
          "fx": [wow_k, flutter,
                 ({"type": "tape", "drive": 0.3, "warmth": 0.65, "wow": 8, "flutter": 2, "drift": 1, "seed": 6,
                   "warp": {"value": 0.0, "mod": [{"src": "auto.wear", "amount": 1}]}} if "W" in R12
@@ -415,7 +420,7 @@ def main():
                 "reverb kind=room decay=1.2s mix=0.18"], "score": T["keys"].score(total),
          **({"auto": {**({"warp": {"points": warp_pts}} if "W" in R2 else {}),
                       **({"wear": {"points": wear_pts}} if "W" in R12 else {})}} if ("W" in R2 or "W" in R12) else {})},
-        *([{"name": "keys-warped", "patch": "wurli", "pan": 0.05, "gain": "-5dB",
+        *([{"name": "keys-warped", "patch": "epiano-reed" if "R" in R14 else "wurli", "pan": 0.05, "gain": "-5dB",
              "fx": [{"type": "chorus", "rate": 0.18, "depth": 0.95, "voices": 1, "mix": 1.0},
                     {"type": "chorus", "rate": 3.1, "depth": 0.2, "voices": 1, "mix": 0.6},
                     "tape drive=0.5 warmth=0.8", "lp cutoff=2200",
@@ -484,7 +489,7 @@ def main():
         'ceiling: "-0.5dB"',
         'volume: "3dB"',
         "patches: " + json.dumps({**patches(), **(resample_patches() if R10 else {}), **palette_patches()}),
-        *(["songs: " + json.dumps({**({"bounce": bounce_song(), "bounceb": bounce_song(B_LOOP, 12)} if R10 else {}),
+        *(["songs: " + json.dumps({**({"bounce": bounce_song(), "bounceb": bounce_song(B_LOOP, 12, "epiano-tine" if "T" in R14 else "wurli")} if R10 else {}),
                                     **({"hum": hum_song()} if "V" in R11 else {})})] if (R10 or "V" in R11) else []),
         "master: " + json.dumps({"fx": [{"type": "eq", "bands": ["hp cutoff=30", "highshelf cutoff=8000 gain=0dB"]}]
                                  + ([{"type": "filter", "kind": "lp", "cutoff": {"value": 18000, "mod": [{"src": "auto.dive", "amount": -4.0}]}}]
