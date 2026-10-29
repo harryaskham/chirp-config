@@ -24,7 +24,8 @@ GENTLE GIANT / ZAPPA COUNTERPOINT: a through-composed chamber-prog piece where t
                  each traded bar develops the subject (cyclic start, on the bar's chord, as written / inverted / retrograde);
                  the hushed part is a SWINGING BRUSH TRIO: flute and jazz guitar trade swung bars, a Rhodes through
                  wM's Bassman stack comps, the bass walks, chirper-two's brushes; the horns take the straight wake-up;
-    6 STRETTO    subject entries every two eighths in every voice, the climax, a whole tone up (E) after a B7alt pivot;
+    6 STRETTO    subject entries every two eighths in every voice, the climax, a whole tone up (E) after a B7alt pivot,
+                 over bars that GROW BY A 3 (t3's build: 2+2, 2+2+3, ... 2+2+3+3+3+3), wurli stabs on every group;
     7 CODA       THE ANSWER to chirper-two's t8: their 12-eighth CELL on two marimbas phasing an eighth a bar, the
                  subject augmented bass -> flute, the clock across; then the CHORALE returns singing the INVERSION
                  (fuller: trumpet and sax join, resolving to D major), and the final chord is built one hocketed note at a time.
@@ -106,10 +107,11 @@ def chord_at(i):
     return PROG[i % len(PROG)]
 
 
-def kit_bar(st, ln, k, vel=96, fill=False, hats=True):
+def kit_bar(st, ln, k, vel=96, fill=False, hats=True, grp=None):
     """Kick on group starts, snare on the last group, hats on the eighths; the grouping alternates bar by bar."""
-    opts = GROUPS.get(ln) or [[2] * (ln // 2) + ([ln % 2] if ln % 2 else [])]
-    grp = opts[k % len(opts)]
+    if grp is None:
+        opts = GROUPS.get(ln) or [[2] * (ln // 2) + ([ln % 2] if ln % 2 else [])]
+        grp = opts[k % len(opts)]
     t = st
     for gi, g in enumerate(grp):
         if gi == len(grp) - 1 and len(grp) > 1:
@@ -509,10 +511,18 @@ def stretto(t):
     for j, (who, base) in enumerate(entries):
         e = line(P[who], a + 2 * j, SUBJ, base, 96 + j)
         line(P[who], e, INV, base, 92 + j)
-    for i in range(8):
-        ln = 7 if i % 2 == 0 else 5
+    # the bars GROW BY A 3 each (chirper-one's t3 build, borrowed): 2+2, 2+2+3, ... 2+2+3+3+3+3, the accents piling
+    # up under the crowding entries; the wurli stabs every group start
+    for i in range(5):
+        grp = [2, 2] + [3] * i
+        ln = sum(grp)
         bar(t, ln, "stretto", i)
-        kit_bar(t, ln, i, 104 + i, fill=(i == 7))
+        kit_bar(t, ln, i, 102 + 2 * i, fill=(i == 4), grp=grp)
+        x = t
+        root, iv = chord_at(i + 3)
+        for g in grp:
+            P["keys"].add(x, 0.6, ",".join(nm(60 + ((root + LIFT + y) % 12)) for y in iv[1:]), 84 + 2 * i)
+            x += g
         t += ln
     return t
 

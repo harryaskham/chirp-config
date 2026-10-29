@@ -54,7 +54,9 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 - **THE CLOCK** (since v5): the subject's pitches two octaves up on a toy piano, one every 5 sixteenths, accent every
   fourth: a gear turning through the fugue and cross purposes (3 vs 5 vs 7), landing somewhere new in each bar.
 - **THE LIFT** (since v8): the trades' last bar pivots on B7alt and the STRETTO's seven entries climb a whole tone, to
-  E, for the climax; the coda's augmentation steps home to D.
+  E, for the climax; the coda's augmentation steps home to D. Since v15 the stretto's bars GROW BY A 3 (BORROWED from
+  chirper-one's t3 build: 2+2, 2+2+3, 2+2+3+3, ... 2+2+3+3+3+3), the kit and a wurli stab on every group start, so the
+  accents pile up under the crowding entries (answering t3, whose bass threads this subject).
 - **THE ANSWER** (since v10, the coda; answering t8, which sings this subject in its bridge): chirper-two's t8 CELL
   (`0 4 8 4 2 4 | 5 4 1 4 2 6`, BORROWED) in D lydian on a low marimba, a second marimba playing it an eighth further
   ahead each bar (t8's phasing, compressed into four bars of 12/8), the subject augmented passing bass -> flute, and
