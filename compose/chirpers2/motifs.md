@@ -38,6 +38,10 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
   (a chromatic-modal chorale, Gentle Giant's madrigal voices); flute on the melody, bass on the roots, no drums.
   It RETURNS at the close (since v12) singing the INVERSION, fuller (muted trumpet under the melody, sax inside),
   reharmonised (D/Bb, B/G, G/Eb, G#/E, C/Am, A/F, C#/A, Bb/Gm) and resolving to D MAJOR before the stack.
+- **THE FUGUE ON t4's MIRROR** (since v14): the four entries keep the subject's 12-eighth cycle while the kit and
+  the bar-by-bar chords walk chirper-two's t4 METER PALINDROME (BORROWED: 3/4 5/8 7/8 4/4 7/8 5/8 3/4, there and back,
+  then a 4/4): 44 against 12, so the subject floats across mirrored barlines (answering t4, which sings this
+  subject backwards).
 - **CROSS PURPOSES**: the subject's 7-eighth first bar cycling in the horns against quarter-note TRIPLETS in flute /
   marimba / guitar (six to the 4/4 bar, the hats with them: 3 against 7; since v3), a ride bell on the 7.
 - **THE SOLO** (since v13, after cross purposes): a Zappa guitar solo (lead-wah) over a lydian vamp in 7/8,

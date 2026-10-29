@@ -11,6 +11,7 @@ GENTLE GIANT / ZAPPA COUNTERPOINT: a through-composed chamber-prog piece where t
     1 STATEMENT  the subject HOCKETED note by note across marimba / flute / muted trumpet / guitar (the rotation turns
                  one place each time), then in unison, then inverted low under hocketed fragments;
     2 FUGUE      four entries (sax at D, trumpet at A, guitar inverted, bass), each continuing with the countersubject,
+                 on their own 12-eighth cycle while the kit and chords walk t4's METER PALINDROME (6 5 7 8 7 5 6 eighths);
                  so each bar's texture differs; wurli stabs a new chord every bar;
     3 BLACK PAGE a PERCUSSION ORCHESTRA in sixteenth meters (11 13 9 15 11 13 7 17 sixteenths): the subject in
                  diminution on tuned toms + marimba, bass and kick on the threes, snare on the twos;
@@ -242,6 +243,7 @@ def statement(t):
 
 
 # ---------- 2 FUGUE ----------
+T4_PALINDROME = [6, 5, 7, 8, 7, 5, 6]     # chirper-two's t4 meters in eighths (3/4 5/8 7/8 4/4 7/8 5/8 3/4), borrowed
 def fugue(t):
     a = t
     voices = [("sax", D4 - 12, SUBJ, 0), ("tpt", D4 + 7, SUBJ, 1), ("gtr", D4 - 12, INV, 2), ("bass", D4 - 24, SUBJ, 3)]
@@ -252,11 +254,12 @@ def fugue(t):
         e = line(P[who], e, cs, base + (5 if k % 2 else -2), 86)          # the countersubject, displaced
         if k < 2:
             line(P[who], e, SUBJ[:5], base + 3, 84)                       # a free tail on the subject's head
-    for i in range(16):                                         # 8 subject units of 7 + 5
-        ln = 7 if i % 2 == 0 else 5
+    # the kit and the chords walk chirper-two's t4 METER PALINDROME (3/4 5/8 7/8 4/4 7/8 5/8 3/4, there and back),
+    # while the entries keep the subject's own 12-eighth cycle: the fugue floats across t4's mirrored barlines
+    for i, ln in enumerate(T4_PALINDROME * 2 + [8]):              # 44 + 44 + 8 = 96 eighths
         bar(t, ln, "fugue", i)
-        harmony_bar(t, ln, i, 76 + 2 * (i // 4), bass=(i < 6))
-        kit_bar(t, ln, i // 2, 88 + i, fill=(i % 4 == 3))
+        harmony_bar(t, ln, i, 76 + 2 * (i // 4), bass=(t - a < 3 * SUBJ_LEN))
+        kit_bar(t, ln, i, 88 + i, fill=(i % 7 == 6))
         if i >= 8 and i % 2 == 0:                                 # the marimba doubles the inner voice's head
             line(P["mar"], t, SUBJ[:3], D4 + 12 + (i % 5), 74)
         t += ln
