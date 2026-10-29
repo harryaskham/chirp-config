@@ -147,6 +147,10 @@ R24 = set(filter(None, os.environ.get("T8_R24", "E,T").split(","))) - {"none"}
 # peak's last bar, where the tutti plays the cell together (it was 11.75 there); C = a VIBES CANON at the peak: the
 # second vibraphone answers the four-mallet palindromes a dotted quarter behind.
 R25 = set(filter(None, os.environ.get("T8_R25", "P,C").split(","))) - {"none"}
+# Round 26 (v26): W = BOWED VIBES (a new sound: the vibraphone bar bowed, a slow swell and a long sustain, no motor):
+# over the rolled chorale each chord's colour tone, and over the coda's last two bars the E lydian #11, held, toward
+# t9's ECM air; P = the two phasing marimbas panned wide (-0.75 / +0.75), so the phase is heard in space.
+R26 = set(filter(None, os.environ.get("T8_R26", "W,P").split(","))) - {"none"}
 SUBJECT = [(0, 1), (3, 1), (7, 1), (6, 2), (2, 2), (5, 1), (1, 1), (4, 1), (0, 2)]  # t7: semitones, eighths
 BAR = 6.0  # a 12/8 bar, in quarter beats
 
@@ -233,7 +237,7 @@ if "D" in R2:
 
 
 def build():
-    T = {k: Track(k) for k in ("m1", "m2", "vib", "echo", "bass", "sub", "fd", "bm", "clock")}
+    T = {k: Track(k) for k in ("m1", "m2", "vib", "echo", "bass", "sub", "fd", "bm", "clock", "bowed")}
     import random
     rng = random.Random(8)
     bars, b = [], 0
@@ -270,6 +274,8 @@ def build():
             chord = HOME[0] if i < 2 else HOME[3]
         if sec == "chorale":
             chord = HOME[i % 4]
+            if "W" in R26:  # the bow on the vibes: the chord's colour tone
+                T["bowed"].add(start, BAR * 0.98, nm(vr(deg(chord, 5) + 12)), v - 2)
             for tr, degs, base in (("m1", (0, 4), -12), ("m2", (2, 6), 0)):
                 p1, p2 = (deg(chord, d) + base for d in degs)
                 for r in range(40):  # 32nds for five beats, alternating the two notes, swelling then dying
@@ -540,6 +546,9 @@ def build():
                     root += 12
                 T["bm"].add(at, 0.4, nm(root), LEVEL["unison"] + 4)
                 T["fd"].add(at + 0.003, 0.3, "dum", LEVEL["unison"] - 4)
+    if "W" in R26:  # the bowed #11 over the coda's last two bars
+        co = [bb for bb in bars if bb[1] == "coda"]
+        T["bowed"].add(co[-2][0], 2 * BAR * 0.95, nm(vr(deg(HOME[0], 3) + 12)), LEVEL["coda"])
     if "F" in R14 and "M" in R11:  # the last floor: a low Eb under the final echo
         last = [bb for bb in bars if bb[1] == "coda"][-1]
         T["bm"].add(last[0] + 1.5, BAR * 0.9, nm(HOME[0][0] - 24), LEVEL["coda"] + 6)
@@ -629,6 +638,15 @@ def patches():
                          "amp": {"a": "2ms", "d": "1.3s", "s": 0, "r": "120ms", "curve": 3}},
                "play": {"vel_sens": 0.6}}
     out = {"c3-marimba": marimba, "c2-vibes": vibes, "c2-frame": frame, "c2-sub": sub}
+    if "W" in R26:
+        out["c2-bowed-vibes"] = {"about": "chirper-two's bowed vibraphone for Odd Hours t8: the bar bowed (partials 1 / 4 / "
+                                          "10 with a slow swell and a long sustain, no motor): the ECM colour of the "
+                                          "mallet family.",
+                                 "synth": {"layers": [{"name": "bar", "type": "additive",
+                                                       "partials": [[1, 1], [4.0, 0.1], [10.0, 0.015]]}],
+                                           "filters": ["hp cutoff=150", "lp cutoff=6k"],
+                                           "amp": {"a": "350ms", "d": "1.5s", "s": 0.7, "r": "1.2s"}},
+                                 "play": {"vel_sens": 0.5}}
     if "M" in R11:
         out["c2-bass-marimba"] = bassmar
     return out
@@ -638,14 +656,17 @@ def main():
     total, bars, sec, T = build()
     hall = "reverb kind=hall decay=2.4s mix=0.22 predelay=20ms"
     tracks = [
-        {"name": "marimba-1", "patch": "c3-marimba", "pan": -0.5, "gain": "-3dB", "fx": [hall], "score": T["m1"].score(total)},
-        {"name": "marimba-2", "patch": "c3-marimba", "pan": 0.5, "gain": "-4dB", "fx": [hall], "score": T["m2"].score(total)},
+        {"name": "marimba-1", "patch": "c3-marimba", "pan": -0.75 if "P" in R26 else -0.5, "gain": "-3dB", "fx": [hall], "score": T["m1"].score(total)},
+        {"name": "marimba-2", "patch": "c3-marimba", "pan": 0.75 if "P" in R26 else 0.5, "gain": "-4dB", "fx": [hall], "score": T["m2"].score(total)},
         {"name": "vibes", "patch": "c2-vibes", "pan": 0.05, "gain": "0dB", "fx": [hall], "score": T["vib"].score(total)},
         {"name": "bass", "patch": "tagelharpa-bass-bowed", "pan": -0.05, "gain": "1dB", "score": T["bass"].score(total)},
         {"name": "sub", "patch": "c2-sub", "gain": "-4dB", "score": T["sub"].score(total)},
         {"name": "frame", "patch": "c2-frame", "pan": 0.15, "gain": "0dB",
          "fx": ["reverb kind=room decay=1.0s mix=0.15"], "score": T["fd"].score(total)},
     ]
+    if "W" in R26:
+        tracks.append({"name": "bowed-vibes", "patch": "c2-bowed-vibes", "pan": 0.1, "gain": "-6dB", "fx": [hall],
+                       "score": T["bowed"].score(total)})
     if "K" in R13:
         tracks.append({"name": "clock", "patch": "toy-piano", "pan": 0.3, "gain": "-6dB", "fx": [hall],
                        "score": T["clock"].score(total)})
