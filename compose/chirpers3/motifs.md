@@ -81,3 +81,10 @@ Generator `compose/chirpers3/src/chirpers3-t10.py`. Chillwave dusk, 78 bpm.
 - **THE VOX LINE** (dream-vox): F#4 A4 | B4. A4 | G4 F#4 | E4 -- , answered higher: A4 B4 | D5. C#5 | B4 A4 | F#4 --.
 - **THE RUN-OUT**: after the full band each section loses one voice - the kick, then the arp, then the bass - until the vox and pad are alone; the tape stops over the last four beats.
 - **DOTTED CLAVE**: a clave every 3 sixteenths, the cycle crossing two bars, in B and the first run-outs; the arp's 3/16 tape echo.
+
+## t8 Window Seat (chirper-zero)
+Generator `compose/chirpers3/src/chirpers3-t8.py`. Night-bus 2-step, 136 bpm, F# minor.
+- **SKIP** (the 2-step bar, 16th grid, swung 0.7): kick on 1 and a SKIP-KICK that wanders bar by bar (step 10, 11 or 7), claps on 2 and 4, hats on the off-16ths with gaps, a shaker on a 3-sixteenth cycle running across the bar lines (the garage cross-rhythm), rim rolls into every eighth bar; the sub follows the two kicks.
+- **NIGHT LOOP**: F#m9 | Dmaj9 | Bm11 | C#7sus on a juno pad through wM's tape deck; THE STOP's loop Dmaj9 | E6/9 | C#m7 | Bm9.
+- **THE CHOPS** (a song-local voice: chirp's voice layer with a short tract, fast attack): one-syllable fragments - la / mo / ye - in a falling three-note cell (the chord's 9th, 5th, 3rd) on the off-beats after the claps, the third held; an octave up in the last groove.
+- **THE STOP** (groove 2): the bus idles - half-time (kick on 1, a rim on 3), rhodes chords instead of the pad, the B loop, the chops on every clap.
