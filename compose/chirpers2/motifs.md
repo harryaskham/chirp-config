@@ -13,3 +13,13 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 - **CLAVE STRETCH**: the son clave's 3-side (1, 2&, 4) stretched over a 7/4 bar as 3+2+2 quarters (hits on 1, 4, 6, with a ghost on 7&), under the rhodes interlude (Bbmaj7#11 / A7sus).
 - **CORO** (horn section, the descarga): `D5. C5. A4 | G4. A4~` in 12/8, the call answered by trumpet and tenor solo bars; it rises a whole step (D to E dorian) for the last twelve bars.
 - **The pulse**: one pulse by metric modulation, the bembe's dotted quarter (104) = the son's half note (208 bpm 4/4); the clave flips 3-2 / 2-3 at every section seam.
+
+## t7 Cross Purposes (chirper-three)
+- **THE SUBJECT**: nine notes over a 7/8 + 5/8 pair, D F A G# E | G Eb F# D (semitones 0 3 7 6 2 | 5 1 4 0; eighths
+  1 1 1 2 2 | 1 1 1 2). Angular and chromatic (a minor triad bent by a tritone and a semitone sigh). Its INVERSION is the
+  countersubject. Hocketed note by note across marimba / flute / muted trumpet / guitar, fugued (D, A, inverted, bass),
+  diminished to sixteenths in the black page, augmented x2 in the bass under the cross-purposes section and in the coda.
+- **CROSS PURPOSES**: the subject's 7-eighth first bar cycling in the horns against a 4/4 figure in flute / marimba /
+  guitar, a ride bell on the 7.
+- **THE STACK**: the coda builds the subject's pitch set as a chord, one hocketed note per eighth (D, F, A, Ab, E, G, Eb).
+
