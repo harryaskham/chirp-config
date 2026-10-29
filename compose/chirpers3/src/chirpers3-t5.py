@@ -36,7 +36,9 @@ BUB3 = os.environ.get("T5_BUB3", "0") == "1"
 LECHO = os.environ.get("T5_LECHO", "1") == "1"
 DECK = os.environ.get("T5_DECK", "1")  # "1": the deck on keys and leads; "lead": on the lead and its echo only (the skank keeps the granular wow)  # wM's tape deck (pin 232211dd) on the keys and the leads instead of the granular wow: wow/flutter in cents, drift, darkening dips
 NUDGE = os.environ.get("T5_NUDGE", "")  # the one-drop played by hand (play.humanize): "40,-10,25" = rim late, kick early, hats late (ms), plus swing drift and a drunk lean
-VINYL = os.environ.get("T5_VINYL", "1") == "1"  # wM's vinyl fx on the master instead of the crackle and hiss tracks  # the melodica's written echo: its line again a dotted eighth late, softer, panned opposite, into the spring
+VINYL = os.environ.get("T5_VINYL", "1") == "1"
+GLITCH = os.environ.get("T5_GLITCH", "stutter") in ("1", "stop", "stutter")
+GLITCH_KIND = os.environ.get("T5_GLITCH", "stutter")  # "1": both; "stop": the tape stop only; "stutter": the stutter bursts only  # the desk resamples: master stutter bursts in the version (bars 4 and 12, second halves) and a TAPE STOP (an octave dive on the last beat) into the breakdown  # wM's vinyl fx on the master instead of the crackle and hiss tracks  # the melodica's written echo: its line again a dotted eighth late, softer, panned opposite, into the spring
 DSKANK = os.environ.get("T5_DSKANK", "0")  # "1": everywhere; "drive": the riddim, the version and the return only (the melodica gets space)  # the double skank: a chop and its sixteenth echo on 2 and 4 (chk-a), the second softer  # the bubble on a dotted-eighth cycle (every 3 sixteenths), turning across the bar  # the drums' EIGHTH swing (the hats sit on 8ths, so swing16 never moved them): e.g. 0.64, the lazy drag
 CRK = os.environ.get("T5_CRK", "2")  # crackle: 1 = draft (-20 dB, 18% of 32nds); 2 = sparser and quieter (-28 dB, 8%)
 MEQ = os.environ.get("T5_MEQ", "3")  # master eq: 1 = draft (shelf +3 @110, highshelf -4 @7k); 2 = mids -6 @600 q0.8, -3 @300, no top cut
@@ -292,11 +294,33 @@ def song():
                                 "synth": {"layers": [{"wave": "square"}], "lfo": {"sw": {"wave": "tri", "rate": "2.5hz"}},
                                           "pitch": {"value": 0, "mod": [{"src": "lfo.sw", "amount": 7}]},
                                           "filters": ["lp cutoff=2.4k"], "amp": {"a": "30ms", "s": 1, "r": "500ms"}}}
-    master = {"fx": [{"type": "eq", "bands": bands},
+    glitch_fx, glitch_auto = [], {}
+    if GLITCH:
+        bar = 4 * 60 / BPM
+        v0 = times["version"]
+        g1, g2 = v0 + 3 * bar + bar / 2, v0 + 11 * bar + bar / 2
+        if os.environ.get("T5_GSEAM", "1") == "1":  # at the seams instead: the riddim's and the melodica's last half-bars
+            g1, g2 = times["melodica"] - bar / 2, times["version"] - bar / 2
+        stop = times["breakdown"] - 60 / BPM
+        gl = [["0s", 0]]
+        for a in ((g1, g2) if GLITCH_KIND in ("1", "stutter") else ()):
+            gl += [[f"{a - 0.02:.3f}s", 0], [f"{a:.3f}s", 1], [f"{a + bar / 2 - 0.05:.3f}s", 1], [f"{a + bar / 2:.3f}s", 0]]
+        gl.append([f"{total + 8:.2f}s", 0])
+        ts = [["0s", 0], [f"{stop:.3f}s", 0], [f"{stop + 60 / BPM - 0.02:.3f}s", -12], [f"{stop + 60 / BPM:.3f}s", 0], [f"{total + 8:.2f}s", 0]]
+        tmv = 1 if GLITCH_KIND in ("1", "stop") else 0
+        tm = [["0s", 0], [f"{stop - 0.02:.3f}s", 0], [f"{stop:.3f}s", tmv], [f"{stop + 60 / BPM - 0.01:.3f}s", tmv], [f"{stop + 60 / BPM:.3f}s", 0], [f"{total + 8:.2f}s", 0]]
+        glitch_fx = [{"type": "stutter", "slice": os.environ.get("T5_GSLICE", "3/16"), "repeats": int(os.environ.get("T5_GREP", "3")), "chance": 1, "decay": 0.15, "seed": 5,
+                      "mix": {"value": 0, "mod": [{"src": "auto.gl", "amount": 1}]}},
+                     {"type": "pitch", "semitones": {"value": 0, "mod": [{"src": "auto.ts", "amount": 1}]},
+                      "mix": {"value": 0, "mod": [{"src": "auto.tm", "amount": 1}]}}]
+        glitch_auto = {"gl": {"points": gl}, "ts": {"points": ts}, "tm": {"points": tm}}
+    master = {"fx": [{"type": "eq", "bands": bands}, *glitch_fx,
                      *(["vinyl crackle=0.35 dust=0.3 noise=-62dB rumble=0.25 warp=4 wear=0.35 seed=5"] if VINYL else []),
                      {"type": "tape", "drive": 0.35, "warmth": 0.5, "mix": 1},
                      {"type": "compressor", "threshold": "-20dB", "ratio": 2, "attack": "20ms", "release": "220ms", "makeup": "0dB"},
                      {"type": "gain", "gain": f"+{MG:g}dB"}]}
+    if glitch_auto:
+        master["auto"] = glitch_auto
     return {
         "about": ("Chirpers - Tape Weather, track 5 (original composition, chirper-zero; generator "
                   "compose/chirpers3/src/chirpers3-t5.py). Dub-wise space: an original one-drop riddim in A minor at 70 bpm "
