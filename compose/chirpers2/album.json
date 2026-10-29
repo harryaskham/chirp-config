@@ -32,7 +32,8 @@
   },
   "weights": {
     "variety": 0.15,
-    "flow": 0.01
+    "flow": 0.01,
+    "barvariety": 0.08
   },
   "tracks": [
     {
