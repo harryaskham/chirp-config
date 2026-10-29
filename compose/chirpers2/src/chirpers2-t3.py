@@ -172,6 +172,34 @@ def solo_part(B):
         out.append(toks)
     return out
 
+def dialogue(B, solo, mar):
+    """A2's DIALOGUE: over the braid, the soloist and the marimba talk in 2-bar turns. The guitar CALLS with a short
+    tapping shape (the first two groups of the bar, then air); the marimba ANSWERS the next bar with the same notes in
+    its register at half speed, the shape turned upside down every other time, so each answer bends the question."""
+    last = None
+    for k, b in enumerate(B):
+        if b['sec'] != 'A2':
+            continue
+        turn = b['i'] % 2
+        if turn == 0:
+            ch, toks, notes, t = b['ch'], [], [], 0
+            for j, (at, g) in enumerate(groups(b)[:2]):
+                shape = SOLO_SHAPES[(b['i'] // 2 + j) % len(SOLO_SHAPES)]
+                base = ch[j % len(ch)] + 24
+                for n in range(g * 2):
+                    m = base + shape[n % len(shape)]
+                    toks.append(tok(nm(m), 0.25, 96 if n == 0 else 80)); notes.append(m); t += 1
+            toks.append(f"R/{(b['e8'] * 2 - t) / 4:g}b")
+            solo[k] = toks; last = notes
+        elif last:
+            seq = last if (b['i'] // 2) % 2 == 0 else [2 * last[0] - m for m in last]   # inverted around its first note
+            toks, t = [], 0
+            for m in seq[: b['e8']]:
+                toks.append(tok(nm(m), 0.5, 90 if t == 0 else 78)); t += 1
+            if t < b['e8']:
+                toks.append(f"R/{(b['e8'] - t) / 2:g}b")
+            mar[k] = toks
+
 def stop_after_one(parts, B, sec, i):
     """THE STOP: in bar I of SEC everything plays its first note and then rests to the bar line"""
     for p in parts:
@@ -191,6 +219,7 @@ def build():
     kit = kit_part(B, lambda b: full(b), half=lambda b: b['sec'] == 'B', tap16=lambda b: b['sec'] in ('A', 'A2', 'A3', 'D', 'B', 'S'))
     mar = marimba_part(B, lambda b: b['sec'] in ('B', 'A3', 'D') or (b['sec'] == 'outro' and b['i'] < 4))
     solo = solo_part(B)
+    dialogue(B, solo, mar)
     # the build ends in a STOP: its last bar is one unison hit and a bar of air before the last return
     stop_after_one([g1, g2, bass, kit, mar], B, 'D', 11)
     total_beats = sum(b['e8'] for b in B) / 2

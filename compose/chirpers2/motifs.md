@@ -42,6 +42,7 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 - Harmony: Emaj9 C#m9 Amaj7(9) B6/9 (A), Gmaj9 Em9 Cmaj7#11 D6/9 (B); the last return a whole step up.
 - **TAPPED SOLO** (v5, section S after B): the left guitar breaks out of its 5-loop into two-octave tapping shapes in sixteenths, one shape per group of the bar's grouping (0 2 4 7 9 7 4 2 / 0 4 7 11 9 7 4 0 / 2 4 6 9 11 9 6 4 / 0 3 7 10 12 10 7 3), widening bar by bar, the last two bars an octave up; a 3/16 echo.
 - **THE STOP** (v5): the build's last bar is one unison hit and a bar of air before the last return.
+- **DIALOGUE** (v6, A2): the soloist calls with a short tapping shape (the bar's first two groups, then air) and the marimba answers the next bar with the same notes at half speed, inverted around the first note every other turn.
 
 ## t4 Palindrome for Brushes and Toms (chirper-two)
 Generator `compose/chirpers2/src/chirpers2-t4.py`. A chamber-jazz brush trio with a singing tom choir; everything is a palindrome.
