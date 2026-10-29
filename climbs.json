@@ -5892,7 +5892,7 @@
     {
       "id": "chirpers3-t9",
       "song": "songs/chirpers3-t9.yaml",
-      "reference": "Chirpers — Track 9 (untitled)",
+      "reference": "Chirpers — Glovebox",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers3-t9 OUT.wav",
@@ -5908,7 +5908,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "Tape Weather",
-        "title": "Track 9 (untitled)",
+        "title": "Glovebox",
         "track": 9,
         "year": 2026
       },
