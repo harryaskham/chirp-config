@@ -66,6 +66,8 @@ Generator `compose/chirpers3/src/chirpers3-t7.py`. Ambient tape loops, a nominal
   only every 140 sixteenths (8.75 bars).
 - **THE HIDDEN MELODY**: a tape lead sings wherever a toy-piano note and a music-box note coincide, holding until the
   next coincidence (an octave under the toy; an octave up in the return and the full section): a melody the gears make.
+  Since v19 it CHANGES VOICE by section: in the return it is sung by a barking Rhodes (wM's epiano-tine, played hard,
+  a touch of the dub echo), the tape lead elsewhere.
 - **THE GEAR CHANGE** (since v2): the gears change ratio by section, so the hidden melody (where toy and box meet)
   changes rhythm with them: the return turns the toy to a 6 against the box's 7 (a dotted-eighth hemiola), the full
   section puts the crystal on a 9 (three odd gears: 5, 7, 9).

@@ -97,7 +97,7 @@ class Part:
 
 
 P = {k: Part() for k in ("toy", "box", "xtal", "lead", "pad", "bass", "sub", "kick", "snare", "hat", "perc", "cpiano", "hail", "desc", "sq",
-                         "ckick", "csnare", "chat", "ctoy", "cbox", "mist", "vox", "boxsong", "throw")}
+                         "ckick", "csnare", "chat", "ctoy", "cbox", "mist", "vox", "boxsong", "throw", "rlead")}
 rng = random.Random(4)
 
 
@@ -251,7 +251,11 @@ def melody(coinc, toy_on):
             continue
         nxt = coinc[i + 1] if i + 1 < len(coinc) else st + 8
         up = 12 if sec in ("return", "full") else 0
-        P["lead"].add(st, min(nxt - st, 12) * 0.95, nm(toy_on[st] - 12 + up), 70 if sec != "breakdown" else 56)
+        # the hidden melody CHANGES VOICE by section: the tape lead, but in the return a barking Rhodes (epiano-tine)
+        dest = "rlead" if sec == "return" else "lead"
+        vel = 70 if sec != "breakdown" else 56
+        P[dest].add(st, min(nxt - st, 12) * 0.95, nm(toy_on[st] - 12 + up - (12 if dest == "rlead" else 0)),
+                    vel + (16 if dest == "rlead" else 0))
         if b0(49) <= st < b0(53):
             # THE BOX SINGS: the last four bars before the wind-down, the music box itself plays the tune its gears
             # have been making all along, an octave above the lead, clear in its own voice; then it runs down
@@ -476,6 +480,8 @@ def main():
         tr("cbox", "c4-box", pan="R35", gain="-6dB", out="toys", fx=[TOY_CHOP]),
         tr("xtal", "fb-crystal", pan="R10", gain="-24dB", out="toys"),
         tr("lead", "lead-tape", pan="L10", gain="-9dB", sends={"space": "-10dB"}),
+        tr("rlead", "epiano-tine", pan="L10", gain="-4dB", sends={"space": "-9dB", "echo": "-14dB"},   # the return's
+           fx=["tape wow=10 flutter=2 seed=17"]),                                        # hidden melody, on a barking Rhodes
         tr("boxsong", "c4-box", pan="R15", gain="2dB", sends={"space": "-9dB"}),          # THE BOX SINGS (bars 49-52)
         tr("hail", "c4-hail", pan="C", gain="4dB", out="toys", fx=["comb cutoff=138.6 q=6"]),   # hail on a metal roof
         tr("desc", "boc-lead", pan="R20", gain="-4dB", sends={"space": "-9dB"}),     # the second hidden melody
