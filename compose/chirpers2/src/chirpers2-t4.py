@@ -71,6 +71,10 @@ R11 = set(filter(None, os.environ.get("T4_R11", "K").split(","))) - {"none"}
 # (the tom an answer a third below, still a sixteenth late), a climax before the drum feature; S = the SEED is sung
 # by the tom choir alone (the drums plant the palindrome), over the rhodes.
 R12 = set(filter(None, os.environ.get("T4_R12", "C,S").split(","))) - {"none"}
+# Round 13 (v13): U = head 2 goes UP A WHOLE STEP (every pitched part: the palindrome returns in E, the coda falls
+# back home to D); K = the drummer picks up STICKS for the collective trades (the peak's stick snare, ride hemiola
+# and centre crash arrive a section early).
+R13 = set(filter(None, os.environ.get("T4_R13", "U").split(","))) - {"none"}  # K tried: brighter, -0.1
 BTHEME = {0: [(0, 3, 4), (3, 1, 3), (4, 4, 2)], 1: [(0, 2, 1), (2, 2, 2), (4, 3, 4)], 2: [(0, 5, 6)],
           3: [(0, 2, 4), (2, 2, 5), (4, 2, 4)]}  # t2's night cell, degrees on eighths (None = rest)
 TRIP = "T" in os.environ.get("T4_OPTS", "")  # triplet brush ghosts before the backbeats (off: no gain)
@@ -459,7 +463,8 @@ def build():
 
         # ---- drums: brushes (sticks at the peak) ----
         d = T["drums"]
-        peak = section == "peak"
+        peak = section == "peak" or ("K" in R13 and "C" in R12 and section == "trade"
+                                      and pidx == max(b[4] for b in bars if b[3] == "trade"))
         if section == "chorale" or section == "unseed":
             d.add(start, m / 2 * 0.95, "bsl", v - 14)
             if section == "unseed" and "D" in R7:
@@ -529,6 +534,14 @@ def build():
         T["tom"].add(last + o / 2, ln / 2, nm(midi(n) - 12), 70 - 3 * k)
     T["pno_lh"].add(last + 2.0, 2.0, "D3,A3,C4,E4,F4,G4", 62)
     T["bass"].add(last + 2.0, 2.0, "D2", 60)
+    if "U" in R13:  # head 2 up a whole step: transpose every pitched event inside it
+        h2 = [b for b in bars if b[3] == "head2"]
+        lo, hi = h2[0][0], h2[-1][0] + h2[-1][1] / 2
+        for name, tr in T.items():
+            if name == "drums":
+                continue
+            tr.ev = [(s, ln, ",".join(nm(midi(x) + 2) for x in head.split(",")) if lo - 1e-6 <= s < hi - 1e-6 else head,
+                      vel, mark) for s, ln, head, vel, mark in tr.ev]
     return total, bars, sec, T
 
 
