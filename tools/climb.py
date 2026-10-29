@@ -790,10 +790,14 @@ def compose_brief(c):
                    f"--score S --note … --next … --with songs/{c['id']}.yaml compose/{album['id']}/motifs.md` (it joins "
                    f"the playlist); save its features with compscore --save on the kept render.")
     else:
-        out.append(f"  this round: listen to it in the album's order, read the ratings and notes below and compscore's "
-                   f"weakest terms (--text), then make the one musical change you believe improves it most (a section, "
-                   f"a motif's development, an arrangement, a sound, the mix, a transition); keep it if it wins on paired "
-                   f"seeds and stays itself (variety over convergence); `climb.py done {c['id']} …` and compscore --save.")
+        out.append(f"  this round (Harry, 29 Oct): make a RICH, audible improvement. Every pass can change anything, so make "
+                   f"the song better every time, and never record a no-change round. Pick something substantial: a new "
+                   f"section or a rewritten one, a motif developed further, a new sound or instrument, a solo or a counter-"
+                   f"line, reharmonisation, a rhythmic or meter idea, a richer arrangement, dynamics and builds, the mix, "
+                   f"the transitions. Several at once is fine. Read the ratings and notes below and compscore's weakest "
+                   f"terms (--text) for ideas. compscore is a guardrail, not a gate: near its ceiling, keep what sounds "
+                   f"better on judgment (`climb.py done … --keep`) unless it clearly breaks something. Variety over "
+                   f"convergence. Then `climb.py done {c['id']} …` and compscore --save.")
     rp = os.path.join(ROOT, "compose", album["id"], "ratings.jsonl")
     if os.path.exists(rp):
         with open(rp) as f:
