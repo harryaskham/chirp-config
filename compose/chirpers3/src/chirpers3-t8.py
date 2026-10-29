@@ -30,7 +30,8 @@ BUS = os.environ.get("T8_BUS", "1") == "1"
 SH3 = os.environ.get("T8_SH3", "1") == "1"
 H3 = os.environ.get("T8_H3", "0") == "1"
 CH3 = os.environ.get("T8_CH3", "1") == "1"  # the last groove's chops as a dotted-eighth chain (every 3 sixteenths, across the bar lines), the voice carrying the cross-rhythm
-RESAMPLE = os.environ.get("T8_RESAMPLE", "1") == "1"  # master stutter bursts (3/16 slices) on the last half-bar before groove 2 and before the breakdown  # the HATS on the 3-sixteenth cycle instead (the loud voice carries the cross-rhythm; the shaker off)  # the shaker on a 3-sixteenth cycle (dotted eighths) running across the bar: the garage cross-rhythm  # groove 2 becomes THE STOP: half-time (kick 1, rim 3, no hats), rhodes chords for the pad, the B loop  # the v1 rework: a B loop for groove 2, a heavier shuffle with more off-16th hats, the sub up, the mud out
+RESAMPLE = os.environ.get("T8_RESAMPLE", "1") == "1"
+LATE = os.environ.get("T8_LATE", "65")  # the claps (and optionally the hats) dragged late by hand: "45" or "45,25" (ms; play.humanize.nudge)  # master stutter bursts (3/16 slices) on the last half-bar before groove 2 and before the breakdown  # the HATS on the 3-sixteenth cycle instead (the loud voice carries the cross-rhythm; the shaker off)  # the shaker on a 3-sixteenth cycle (dotted eighths) running across the bar: the garage cross-rhythm  # groove 2 becomes THE STOP: half-time (kick 1, rim 3, no hats), rhodes chords for the pad, the B loop  # the v1 rework: a B loop for groove 2, a heavier shuffle with more off-16th hats, the sub up, the mud out
 S = 0.25
 
 NOTE = {"C": 0, "C#": 1, "Db": 1, "D": 2, "D#": 3, "Eb": 3, "E": 4, "F": 5, "F#": 6, "Gb": 6, "G": 7, "G#": 8, "Ab": 8,
@@ -222,7 +223,8 @@ def song():
                       "amp": {"a": "6ms", "d": "0s", "s": 1, "r": "70ms"}},
             "play": {"mono": True}}
     tracks = [
-        {"name": "drums", "patch": "lofi-kit", "gain": "-4dB", "score": sc("drums", "swing16=0.7" if V2 else "swing16=0.62")},
+        {"name": "drums", "patch": ("lofi-kit" if not LATE else "lofi-kit play.humanize.nudge.cp={}ms".format(LATE.split(",")[0])
+                                     + (" play.humanize.nudge.h={}ms".format(LATE.split(",")[1]) if "," in LATE else "")), "gain": "-4dB", "score": sc("drums", "swing16=0.7" if V2 else "swing16=0.62")},
         {"name": "sub", "patch": "analog-bass", "gain": "2dB" if V2 else "-2dB", "fx": [{"type": "filter", "kind": "lowpass", "cutoff": 180}],
          "score": sc("sub")},
         {"name": "pad", "patch": "juno-pad", "gain": "-13dB", "fx": [deck], "sends": {"hall": "-10dB"}, "score": sc("pad")},
