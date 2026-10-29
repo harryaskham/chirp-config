@@ -23,7 +23,7 @@ Generator `compose/chirpers3/src/chirpers3-t3.py`. Warped boom-bap off a worn sa
 ## t5 Low Pressure (chirper-zero)
 Generator `compose/chirpers3/src/chirpers3-t5.py`. Dub-wise space, 70 bpm one-drop, A minor.
 - **RIDDIM** (sub bass, 16th grid): `A1~ . . A1 . . C2~ . E2~~ . . . D2~ C2~ | D2~ . . D2 . . F2~ . A1~~ . . C2 E2~ G1~`; the B part on Fmaj7 | E7sus. In the version every other bar DROPS THE ONE (its first note left out).
-- **ONE-DROP + STEPPERS HATS**: kick and rim together on 3 only; the hats on a 3+3+2 sixteenth cell (0 3 6 | 8 11 14) dragged by an eighth swing (0.64); rim ghosts; a rim roll into every fourth bar.
+- **ONE-DROP + STEPPERS HATS**: kick and rim together on 3 only (since v5 the rim drags 60 ms behind the kick, a lazy hand on the one-drop); the hats on a 3+3+2 sixteenth cell (0 3 6 | 8 11 14) dragged by an eighth swing (0.64); rim ghosts; a rim roll into every fourth bar.
 - **SKANK + BUBBLE**: rhodes stabs on beats 2 and 4 into the spring; a wurli bubble on the e-and-a's.
 - **THE CALL** (boc-lead, a melodica-ish voice): eight bars of A minor pentatonic, `E5 . C5 D5 E5~ | . D5 C5 A4~ | G4 A4 C5 E5 G5 | F5. E5 D5~ | E5~~~ | A5 G5 F5 E5 D5 | C5 A4 G4 E4 | A4~~~`, each four-bar phrase THROWN into the echo on its last off-beat.
 - **THE ANSWER** (v2): THE CALL is answered by itself - a second boc-lead, softer and panned opposite into the spring, plays the melodica's line a dotted eighth late, so every phrase has its echo written into the arrangement as well as thrown into the tape delay.
@@ -106,3 +106,9 @@ Generator `compose/chirpers3/src/chirpers3-t8.py`. Night-bus 2-step, 136 bpm, F#
   - The SWITCH-UP plays `bounceb` (its own chords, rendered an octave up) an octave down. Tape-style, that is half speed: four bars fill the switch's eight. It plays forwards for four bars, then the same tape BACKWARDS, the chords swelling in.
   - A3's off-beats CHOP `bounce` (the A loop) into eight half-bar slices, MPC-style, each bar playing the slice of its own chord.
 
+
+## t1 Crate Dig (chirper-one), the opener
+Generator `compose/chirpers3/src/chirpers3-t1.py`. A beat-tape intro at 86 bpm on chop-souljazz (16 quarter-note slices of the library's 4-bar soul-jazz part).
+- **THE FLIP**: the record as found (slices 1-16 in order, muffled through a 1.2 kHz low-pass and a wobbly tape), then flipped: a two-bar chop cycle 1 2 1 4 9 2 11 4, the sax's four-bar flip 1 2 1 4 5 5 7 8 9 2 11 4 13 14 5 16, the harder flip 13 14 13 4 1 2 1 7 with the last quarter of each bar split into two eighth stabs; then found again as the record lifts.
+- **THE STUTTER BUILD**: slice 13 in quarters, eighths, sixteenths (trading with 14), then 1 and 14 in eighths.
+- **THE SAX** (tenor, physical reed, C mixolydian): G4 Bb4 C5 . D5 C5 . Bb4 G4 -- / C5 D5 Eb5 . D5 C5 Bb4 G4 --, answered by the chops; an octave up in the hard flip.

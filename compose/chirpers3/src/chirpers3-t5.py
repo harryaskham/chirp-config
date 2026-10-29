@@ -35,7 +35,8 @@ EVEN = os.environ.get("T5_EVEN", "0") == "1"  # an 8-bar intro (the skank alone 
 BUB3 = os.environ.get("T5_BUB3", "0") == "1"
 LECHO = os.environ.get("T5_LECHO", "1") == "1"
 DECK = os.environ.get("T5_DECK", "1")  # "1": the deck on keys and leads; "lead": on the lead and its echo only (the skank keeps the granular wow)  # wM's tape deck (pin 232211dd) on the keys and the leads instead of the granular wow: wow/flutter in cents, drift, darkening dips
-NUDGE = os.environ.get("T5_NUDGE", "")  # the one-drop played by hand (play.humanize): "40,-10,25" = rim late, kick early, hats late (ms), plus swing drift and a drunk lean
+NUDGE = os.environ.get("T5_NUDGE", "")
+RIMDRAG = os.environ.get("T5_RIMDRAG", "60")  # the one-drop's rim dragged late by hand (ms), the kick and hats kept steady  # the one-drop played by hand (play.humanize): "40,-10,25" = rim late, kick early, hats late (ms), plus swing drift and a drunk lean
 VINYL = os.environ.get("T5_VINYL", "1") == "1"
 GLITCH = os.environ.get("T5_GLITCH", "stutter") in ("1", "stop", "stutter")
 GLITCH_KIND = os.environ.get("T5_GLITCH", "stutter")  # "1": both; "stop": the tape stop only; "stutter": the stutter bursts only  # the desk resamples: master stutter bursts in the version (bars 4 and 12, second halves) and a TAPE STOP (an octave dive on the last beat) into the breakdown  # wM's vinyl fx on the master instead of the crackle and hiss tracks  # the melodica's written echo: its line again a dotted eighth late, softer, panned opposite, into the spring
@@ -257,7 +258,7 @@ def song():
     lane = {"thr": {"points": throw_lane(throws, total)}}
     thr_send = lambda base: {"value": f"{base}dB", "mod": [{"src": "auto.thr", "amount": 1}]}  # noqa: E731
     tracks = [
-        {"name": "drums", "patch": ("room-kit" if not NUDGE else
+        {"name": "drums", "patch": ("room-kit" + (f" play.humanize.nudge.so={RIMDRAG}ms" if RIMDRAG else "") if not NUDGE else
                                      "room-kit play.humanize.nudge.so={}ms play.humanize.nudge.k={}ms play.humanize.nudge.h={}ms "
                                      "play.humanize.swing_drift=0.04 play.humanize.drunk=6ms".format(*NUDGE.split(","))), "gain": "-6dB", "sends": {"spring": "-16dB", "echo": thr_send(-22)},
          "fx": [{"type": "eq", "bands": ["highshelf cutoff=6000 gain=-6dB"]}], "auto": lane, "score": sc("drums", HATSW, DRAG or None)},
