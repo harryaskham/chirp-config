@@ -43,7 +43,8 @@
         300
       ],
       "brief": "Opens the album. Style, groove, tempo and line-up are yours: declare them in compose/chirpers3/styles.md, different from the tracks already claimed.",
-      "id": "chirpers3-t1"
+      "id": "chirpers3-t1",
+      "title": "Crate Dig"
     },
     {
       "n": 2,

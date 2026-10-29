@@ -5593,7 +5593,7 @@
     {
       "id": "chirpers3-t1",
       "song": "songs/chirpers3-t1.yaml",
-      "reference": "Chirpers — Track 1 (untitled)",
+      "reference": "Chirpers — Crate Dig",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers3-t1 OUT.wav",
@@ -5609,7 +5609,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "Tape Weather",
-        "title": "Track 1 (untitled)",
+        "title": "Crate Dig",
         "track": 1,
         "year": 2026
       },
