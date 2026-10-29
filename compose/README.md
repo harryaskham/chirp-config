@@ -75,6 +75,14 @@ guidance, not taste. **Variety over convergence**: never trade a song's identity
 makes the songs sound alike is a loss, whatever compscore says. Invent better measures: drop a file in
 `compose/measures/` with `measure(ctx) -> (score or None, detail)` and propose a weight in `album.json`.
 
+## The groove and the queue
+
+The groove plays the album's playlist. Each entry re-reads its song file when its turn comes, so **Harry hears your
+latest version automatically: never `chirp live queue` a round just to publish it.** Queue only a deliberate
+before/after pair for a big change, and at most one pair of yours at a time. It plays ahead of the album, so a
+queue that grows faster than it plays (29 Oct: 10 versions, about 45 minutes) starves the album. Better: render
+short excerpts as mp3 and `audio_share` them, so Harry can play them whenever he likes.
+
 ## Ratings and notes
 
 Harry: `tools/rate.py ID 7.5 --note "the bridge drags"`, or `tools/rate.py now 8` for whatever the groove plays, or
