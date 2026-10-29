@@ -16,8 +16,10 @@ GLITCHY IDM-LITE, a broken music box in a lo-fi beat.
   early kick, swing drift).
 - THE GEAR CHANGE: the return turns the toy to a 6 against the box's 7 (a dotted-eighth hemiola); the full section
   puts the crystal on a 9, three odd gears; so the hidden melody's rhythm changes section by section.
-- FORM (58 bars, 86 bpm): intro (toys enter one by one), beat, melody, glitch break, return, breakdown, full, and
-  the WIND-DOWN (the music box runs down: gears lengthen, pitches sag, the beat gives out).
+- FORM (58 bars, 86 bpm): the WIND-UP (the key turned: gears speed up and rise to pitch), beat, melody, glitch
+  break ending in a NEAR-STALL (the box almost runs down mid-song, then snaps back), return, breakdown, full, and
+  the WIND-DOWN (the music box runs down: gears lengthen, pitches sag, the beat gives out). Harry liked the ending's
+  'glitch resample' (v3, 8.0), so it now frames the song.
 - THE BASS ANSWERS: the root, a reply on the swung and-of-3 (fifth or ninth), a chromatic walk into each change.
 
 Emits songs/chirpers3-t4.yaml. Edit the music here.
@@ -100,6 +102,38 @@ def chord_at(bar):
     return CHORDS[((bar - 1) // 2) % 4]
 
 
+def wind_up(a, z):
+    """THE WIND-UP (the intro, answering the wind-down Harry liked): the key is turned and the box comes up to speed:
+    bar by bar the gears' cycles shorten (toy 10..5, box 17..7, crystal 8..4 sixteenths) and the pitches rise from
+    three semitones flat to true, the notes swelling."""
+    k = j = 0
+    span = z - a
+    for bar in range(a, z + 1):
+        n = z - bar                                             # 3, 2, 1, 0: how far from speed
+        lo, hi = b0(bar), b0(bar + 1)
+        sag, fade = -((n * 3 + 2) // 3), 6 * n
+        if bar >= 2:
+            for x in range(lo, hi, 5 + n + (n > 1)):
+                P["toy"].add(x, 1.6 + n * 0.4, nm(TOY_SEQ[k % len(TOY_SEQ)] + sag), 62 - fade)
+                k += 1
+        for x in range(lo, hi, 7 + 3 * n):
+            P["box"].add(x, 1.8 + n * 0.5, nm(BOX_SEQ[j % len(BOX_SEQ)] + sag), 58 - fade)
+            j += 1
+
+
+def stall(bar):
+    """THE NEAR-STALL (the glitch break's last bar, a hint of the ending mid-song): the hail stops, the gears slow and
+    sag fast within the bar (gaps widening, pitch falling a tone), and the beat drops out after beat 2; then the return
+    snaps back at speed, as if the key got another turn."""
+    x, gap, i = b0(bar), 2.0, 0
+    while x < b0(bar) + 13:
+        P["toy"].add(x, gap * 0.8, nm(TOY_SEQ[i % len(TOY_SEQ)] - (i // 2)), 70 - 5 * i)
+        P["box"].add(x + gap / 2, gap * 0.8, nm(BOX_SEQ[i % len(BOX_SEQ)] - (i // 2) - 1), 62 - 5 * i)
+        x += gap
+        gap *= 1.35
+        i += 1
+
+
 def wind_down(a, z, toy_on, box_on, k, j):
     """THE WIND-DOWN: the music box runs down. Bar by bar each gear's cycle lengthens (toy 5..10, box 7..17, crystal
     4..9 sixteenths), the pitches sag a semitone every two bars as the mechanism slows, and the notes fade; the last
@@ -143,9 +177,11 @@ def clockwork():
         lo, hi = b0(a), b0(z + 1)
         tl, bl, xl = gear(name)
         if name == "outro":
-            windup = wind_down(a, z, toy_on, box_on, k, j)
-            k, j = windup
+            k, j = wind_down(a, z, toy_on, box_on, k, j)
             continue
+        if name == "intro":
+            wind_up(1, 4)
+            lo = b0(5)                                          # the gears run at speed from bar 5
         for x in range(lo, hi, tl):
             for o in ((0, 3) if tl == 5 else (0, 3) if tl == 6 else (0,)):
                 st = x + o
@@ -206,6 +242,11 @@ def beat():
             continue
         a = b0(bar)
         soft = sec == "beat"
+        if bar == 28:                                           # the stall: two beats, then nothing
+            P["kick"].add(a, 1, "k", 96)
+            P["snare"].add(a + 4, 1, "s", 88)
+            P["hat"].add(a + swing(2), 0.5, "h", 52)
+            continue
         for k in KICKS[(bar * 5) % len(KICKS)]:
             P["kick"].add(a + swing(k), 1, "k", (84 if soft else 100) - (10 if k else 0))
         if not soft:
@@ -227,7 +268,8 @@ def beat():
 
 def glitch_hail():
     """The break: the toys are torn into hail: single notes retriggered as 32nds, falling."""
-    a, z = b0(25), b0(29)
+    a, z = b0(25), b0(28)                                      # bar 28 is the near-stall
+    stall(28)
     x = a
     i = 0
     while x < z:
