@@ -148,6 +148,7 @@ Generator `compose/chirpers3/src/chirpers3-t1.py`. A beat-tape intro at 86 bpm o
 - **THE SECOND RECORD** (v6): in the dig the digger pulls another record - chop-ethiojazz (the library's ethio-jazz part), muffled, worn and wobbling under the sax - and the hard flip then chops it in: its slices 1 5 6 4 9 10 13 3 take beats 2 and 3 of alternate bars, two records arguing inside one beat.
 - **THE SPIN-BACK** (v7, wM's tapestop spin and spin-up): the album's first beats now spin UP like a deck coming to speed (the stop released with a 2-beat spin-up), and at the end of the sax section the digger spins the record back - a vinyl rewind over two beats - before the dig.
 - **THE RUN-OUT GROOVE** (v8): the turntable's stops act on the music, not the needle - when the record stops at the end, the crackle keeps riding the run-out groove into Streetlight Hiss (which starts on crackle and strings).
+- **THE LAST GRAINS** (v9, wM's cloud fx on the record as found): as the record lifts, its last bars dissolve into a granular cloud (160 ms grains, a third reversed) that freezes on the final bar and hangs over the run-out crackle.
 - **THE STUTTER BUILD**: slice 13 in quarters, eighths, sixteenths (trading with 14), then 1 and 14 in eighths.
 - **THE SAX** (tenor, physical reed, C mixolydian): G4 Bb4 C5 . D5 C5 . Bb4 G4 -- / C5 D5 Eb5 . D5 C5 Bb4 G4 --, answered by the chops; an octave up in the hard flip.
 

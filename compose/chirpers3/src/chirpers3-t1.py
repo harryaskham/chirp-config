@@ -45,6 +45,9 @@ def line(events, total):
     if total > t + 1e-4: toks.append(f"R/{total - t:.4f}b")
     return ' '.join(toks)
 
+SECTIONS = []
+TOTAL = 0.0
+
 def build():
     chops, muff, kit, sax, sub, muff2, chops2 = [], [], [], [], [], [], []
     t = 0.0
@@ -87,6 +90,7 @@ def build():
             t += 16.0
     total = t
     end_s = total * SPB
+    SECTIONS[:] = sections; globals()['TOTAL'] = total
     # THE SPIN-BACK (wM's tapestop spin): at the end of the sax section the digger spins the record back - a vinyl
     # rewind over the last two beats - and pulls the next record (the dig)
     t_dig = [t0 for n_, t0 in sections if n_ == 'down'][0]
@@ -153,6 +157,18 @@ def run_out_groove(song):
         t.setdefault('auto', {}).update({k: json.loads(json.dumps(v)) for k, v in lanes.items()})
     pts = m['auto']['fade']['points']
     pts[-1][1] = -8
+    # THE LAST GRAINS (wM's cloud fx on the record as found): as the record lifts at the end, its last bars break
+    # into a granular cloud that freezes - the record's last sound hanging in the air over the run-out crackle
+    last_t = [t0 for n_, t0 in SECTIONS if n_ == 'last'][0] * SPB
+    end_t = (TOTAL - 0.5) * SPB
+    for t in song['tracks']:
+        if t['name'] == 'found':
+            t['fx'].append({'type': 'cloud', 'size': '160ms', 'density': 16, 'position': '450ms', 'spray': '350ms', 'pitch': 0,
+                            'scatter': 0.15, 'reverse': 0.35, 'spread': 0.9, 'seed': 4,
+                            'freeze': {'value': 0, 'mod': [{'src': 'auto.fz', 'amount': 1}]},
+                            'mix': {'value': 0, 'mod': [{'src': 'auto.cm', 'amount': 1}]}})
+            t['auto']['cm'] = {'points': [['0s', 0], [f'{last_t + 4 * 4 * SPB * 0.5:.3f}s', 0], [f'{last_t + 4 * 4 * SPB * 0.75:.3f}s', 0.6], [f'{end_t:.3f}s', 0.7]]}
+            t['auto']['fz'] = {'points': [['0s', 0], [f'{last_t + 4 * 4 * SPB * 0.75 - 0.02:.3f}s', 0], [f'{last_t + 4 * 4 * SPB * 0.75:.3f}s', 1]]}
     return song
 
 if __name__ == '__main__':
