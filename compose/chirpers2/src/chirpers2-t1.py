@@ -37,7 +37,9 @@ INTROTEN = os.environ.get("T1_INTROTEN", "1") == "1"
 BSOLO = os.environ.get("T1_BSOLO", "1") == "1"
 BTRIP = os.environ.get("T1_BTRIP", "1") == "1"
 STAIRUP = os.environ.get("T1_STAIRUP", "1") == "1"
-STAIRTRIP = os.environ.get("T1_STAIRTRIP", "0") == "1"  # the climbing stair's second bar of each pair in quarter-note triplets (THREE OVER TWO)  # the bridge returns after the head out, inverted: the WHOLE-STEP STAIR climbs (Bb7sus Bmaj7#11 Dbmaj9 Ebmaj9)  # the bass solo phrases every 4th bar in quarter-note triplets too  # a 16-bar upright solo in 4/4 after the waltz: the bass sings, the piano lays out every other bar, the ride drops  # the intro's last two bars: the tenor foreshadows SEVEN DOORS, soft  # the tag's last bar: the horns run up G7b9 in quarter-note triplets into C (the head's last bar, augmented across the beat)  # in the tag, the drummer answers the horns' turnaround in triplet eighths (bars 2 and 4)  # the head out reharmonised (Abmaj7#11 Cm11 Bbm9 Dbmaj7#11 Cm11 Fm9 Db7#11 G7alt), the horn in thirds, and a 4-bar TAG on the turnaround  # the upright's sine under the string (dB)  # 1 = v1 balance; 2 = kit -13 dB + highshelf -5 @4k, bass +4, master shelf +6 @150, highshelf -4 @6k
+STAIRTRIP = os.environ.get("T1_STAIRTRIP", "0") == "1"
+PLANES = os.environ.get("T1_PLANES", "")
+OVERTURE = os.environ.get("T1_OVERTURE", "1") == "1"  # the tenor solo quotes the album's themes (the opener as overture): t2 t7 t8 t10 t4 t9  # the upright's string in two polarisations (pin df4ae6aa): "0.3" or "0.3,1.5" (planes, beat)  # the climbing stair's second bar of each pair in quarter-note triplets (THREE OVER TWO)  # the bridge returns after the head out, inverted: the WHOLE-STEP STAIR climbs (Bb7sus Bmaj7#11 Dbmaj9 Ebmaj9)  # the bass solo phrases every 4th bar in quarter-note triplets too  # a 16-bar upright solo in 4/4 after the waltz: the bass sings, the piano lays out every other bar, the ride drops  # the intro's last two bars: the tenor foreshadows SEVEN DOORS, soft  # the tag's last bar: the horns run up G7b9 in quarter-note triplets into C (the head's last bar, augmented across the beat)  # in the tag, the drummer answers the horns' turnaround in triplet eighths (bars 2 and 4)  # the head out reharmonised (Abmaj7#11 Cm11 Bbm9 Dbmaj7#11 Cm11 Fm9 Db7#11 G7alt), the horn in thirds, and a 4-bar TAG on the turnaround  # the upright's sine under the string (dB)  # 1 = v1 balance; 2 = kit -13 dB + highshelf -5 @4k, bass +4, master shelf +6 @150, highshelf -4 @6k
 
 # (name, beats per bar, bars, swing)
 FORM = [("intro", 7, 4, SWING), ("headA", 7, 8, SWING), ("bridge", 4, 8, 0.5), ("headA2", 7, 8, SWING),
@@ -117,6 +119,23 @@ BRIDGE = [  # WHOLE-STEP STAIR: one figure sequenced down the falling major chor
     [("F4", 1), ("Ab4", 1), ("C5", 1), ("Eb5", 1)], [("D5", 1.5), ("C5", 0.5), ("Bb4", 2)],
 ]
 NOTE.update({"A#": 10, "C#": 1, "D#": 3, "F#": 6})
+
+
+# THE OVERTURE: tenor-solo bars that quote the album's other tracks, each fitted to the solo's chord (motifs.md)
+OVERTURE_Q = {
+    0: [("G4", .5), ("Bb4", .5), ("C5", .5), ("D5", .5), ("C5", .5), ("Bb4", .5), ("G4", .5), ("F4", .5)],  # t2 TURNSTILE THEME (chirper-one), C dorian 5 7 8 9 8 7 5 4 ...
+    1: [("Eb4", .5), ("G4", 3.5)],                                                                       # ... 3 5
+    4: [("C5", .5), ("Eb5", .5), ("G5", .5), ("F#5", 1), ("D5", 1), ("R", .5)],                           # t7 THE SUBJECT (chirper-three), from C
+    5: [("F5", .5), ("Db5", .5), ("E5", .5), ("C5", 1), ("R", 1.5)],
+    8: [("Db4", .5), ("Ab4", .5), ("Eb5", .5), ("Ab4", .5), ("F4", .5), ("Ab4", .5), ("Bb4", .5), ("Ab4", .5)],  # t8 THE CELL (chirper-two), Db lydian
+    9: [("Eb4", .5), ("Ab4", .5), ("F4", .5), ("C5", 2.5)],
+    16: [("C5", 1.5), ("Bb4", 1.5), ("G4", 1)],                                                          # t10 CORO (chirper-zero), in C
+    17: [("F4", 1.5), ("G4", 2.5)],
+    20: [("G4", 1), ("F4", .5), ("Eb4", .5), ("D4", 1), ("R", 1)],                                       # t4 MIRROR MELODY (chirper-two), a step down
+    21: [("C5", .5), ("D5", .5), ("Eb5", 1), ("D5", .5), ("C5", .5), ("R", 1)],
+    24: [("C5", .5), ("F5", 3.5)],                                                                       # t9 EXPOSURE (chirper-zero): a fourth up into Ebm11's 9th
+    25: [("Bb4", .5), ("Eb5", 3), ("R", .5)],
+}
 
 
 def line(notes, vel=92, shift=0):
@@ -408,6 +427,8 @@ def build():
             elif sec == "tenor":
                 bar["tenor"] = (trip_bar(c, beats, rng, 55, 79, vel=92 + b // 4) if TRIP and b % 4 == 2
                                 else solo(c, beats, rng, 51, 79, vel=88 + b // 4, rest_p=0.08 if b % 4 == 3 else 0.0))
+                if OVERTURE and b in OVERTURE_Q:
+                    bar["tenor"] = line(OVERTURE_Q[b], vel=94 + b // 4)
                 bar["piano"] = comp(c, beats, rng, vel=64 + b // 4, b=b)
                 bar["bass"] = walk(c, nxt, beats, rng)
                 bar["kit"] = ride(beats, rng, b, sec, vel=80 + b // 4)
@@ -512,6 +533,8 @@ UPRIGHT = {
     "synth": {
         "layers": [
             {"name": "string", "type": "pluck", "stiff": 0.12, "buzz": 0.02, "pick": 0.45,
+             **({"planes": float(PLANES.split(",")[0])} if PLANES else {}),
+             **({"beat": float(PLANES.split(",")[1])} if "," in PLANES else {}),
              "decay": {"value": "1.6s", "mod": [{"src": "vel", "amount": 0.3}]},
              "bright": {"value": 0.3, "mod": [{"src": "vel", "amount": 0.2}, {"src": "rand", "amount": 0.04}]}},
             {"name": "sub", "wave": "sine", "level": f"{SUB}dB"},
