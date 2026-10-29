@@ -132,6 +132,13 @@ if "Y" in R22:
     LEVEL_Y = {"solo": 66, "trades": 72, "duet": 46}
 else:
     LEVEL_Y = {}
+# Round 23 (v23): B = t10 Cierre's BEMBE bell (chirper-zero; the 12/8 bell x.x.xx.x.x.x) on the frame drum's rim
+# in the opening, once the drum enters: the closer's pulse under the first cell; N = t2 Turnstile Hours' NIGHT CELL
+# (chirper-one, 13 steps: 1 . 5 1 7 . 4 5 1 . 3 5 7) on the bowed bass through the phase section, 13 against the
+# marimbas' 12: the bass phases too, slipping an eighth every cycle.
+R23 = set(filter(None, os.environ.get("T8_R23", "N").split(","))) - {"none"}  # B tried: on-grid rim strokes, rhythm -0.1
+BEMBE = [1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1]
+NIGHT = [1, None, 5, 1, 7, None, 4, 5, 1, None, 3, 5, 7]
 SUBJECT = [(0, 1), (3, 1), (7, 1), (6, 2), (2, 2), (5, 1), (1, 1), (4, 1), (0, 2)]  # t7: semitones, eighths
 BAR = 6.0  # a 12/8 bar, in quarter beats
 
@@ -403,7 +410,18 @@ def build():
                     T["echo"].add(at + lag, ln / 2 * 1.1, nm(vr(deg(HOME[0], d) + 12)), v - 14 + (4 if "G" in R5 else 0))
                 at += ln / 2 * 1.25
         # ---- the bowed bass: half notes in 4/4 against the 12/8 ----
-        if sec in ("phase", "melody", "peak", "unison", "solo", "trades") and not (sec == "phase" and i < 4):
+        if sec == "phase" and "N" in R23 and i >= 4:  # the night cell, 13 against 12
+            first = next(bb[0] for bb in bars if bb[1] == "phase") + 4 * BAR
+            root = chord[0] - 24 if chord[0] - 24 >= 28 else chord[0] - 12
+            for e in range(12):
+                k = int(round((start - first) * 2)) + e
+                d = NIGHT[k % 13]
+                if d is None:
+                    continue
+                T["bass"].add(start + e / 2, 0.47, nm(deg((root, chord[1]), d - 1)), v - 8 + (8 if k % 13 == 0 else 0))
+            if i % 2 == 0:
+                T["sub"].add(start, BAR * 0.95, nm(root - 12 if root - 12 >= 24 else root), v - 10)
+        elif sec in ("phase", "melody", "peak", "unison", "solo", "trades") and not (sec == "phase" and i < 4):
             for h in range(3):
                 beat = start + 2 * h
                 cyc = int(round(beat / 2)) % 4  # position in the 8-beat (4/4 bar) cycle
@@ -445,6 +463,10 @@ def build():
         fd = T["fd"]
         if sec == "cell" and i >= 2:
             fd.add(start, 1, "dum", v - 14)
+            if "B" in R23:  # Cierre's bembe on the rim
+                for e, x in enumerate(BEMBE):
+                    if x and e:
+                        fd.add(start + e / 2, 0.25, "tek", v - 22 + (6 if e in (4, 7) else 0))
         elif sec in ("solo", "trades"):  # dotted-eighth ghosts: eight against the four dotted quarters
             fd.add(start, 1, "dum", v - 8)
             fd.add(start + 3, 1, "dum", v - 14)
