@@ -16,6 +16,7 @@ GENTLE GIANT / ZAPPA COUNTERPOINT: a through-composed chamber-prog piece where t
                  TRIPLETS (3 against 7, hats on the triplets), the subject
                  augmented in the bass, a ride bell on the 7 (12 bars of 4/4);
     5 TRADES     sax and trumpet trade single bars, then pairs, over a meter wheel 7 5 6 9 (24 bars), walking bass;
+                 each traded bar develops the subject (cyclic start, on the bar's chord, as written / inverted / retrograde);
     6 STRETTO    subject entries every two eighths in every voice, the climax;
     7 CODA       the subject in augmentation (bass + flute), then the final chord built one hocketed note at a time.
 - KIT: prog-kit, groupings follow each meter (7 = 2+2+3 or 3+2+2 alternating bar by bar, 5 = 3+2 / 2+3, 9 = 2+2+2+3,
@@ -281,6 +282,26 @@ def improv_bar(who, st, ln, ci, prev, vel):
     return p
 
 
+def motif_bar(who, st, ln, i, vel):
+    """A traded bar as MOTIVIC DEVELOPMENT: the subject read cyclically from a moving start, transposed onto the bar's
+    chord root, alternately as written, inverted and in retrograde, filling the bar less a breath."""
+    root, _ = chord_at(i)
+    lo = 62 if who == "tpt" else 50
+    base = lo + ((root - lo) % 12)
+    form = i % 3
+    seq = SUBJ if form != 2 else SUBJ[::-1]
+    k = (2 * i) % len(seq)
+    x = 0.0
+    while x < ln - 1 - 1e-6:
+        p, d = seq[k % len(seq)]
+        if form == 1:
+            p = -p
+        d = min(d, ln - 1 - x)
+        P[who].add(st + x, d * 0.92, nm(base + p), vel + (6 if x == 0 else 0))
+        x += d
+        k += 1
+
+
 def trades(t):
     """A hushed chamber episode after the loud middle: the soloists trade quietly over a walking bass, the kit drops to
     the hat pedal marking each bar's groups, one soft wurli chord a bar; it wakes for the last wheel turn into the stretto."""
@@ -291,10 +312,7 @@ def trades(t):
         late = i >= 20
         who = ("tpt", "sax")[(i if i < 16 else i // 2) % 2]       # single bars, then pairs
         v = (84 + i // 3) if late else (60 + i // 2)
-        if who == "tpt":
-            pt = improv_bar("tpt", t, ln, i, pt, v)
-        else:
-            ps = improv_bar("sax", t, ln, i, ps, v)
+        motif_bar(who, t, ln, i, v)
         bar(t, ln, "trades", i)
         if late:
             harmony_bar(t, ln, i, 70 + i // 2, walk=True)

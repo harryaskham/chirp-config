@@ -23,6 +23,9 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
   diminished to sixteenths in the black page, augmented x2 in the bass under the cross-purposes section and in the coda.
 - **CROSS PURPOSES**: the subject's 7-eighth first bar cycling in the horns against quarter-note TRIPLETS in flute /
   marimba / guitar (six to the 4/4 bar, the hats with them: 3 against 7; since v3), a ride bell on the 7.
+- **THE TRADES** (since v4): every traded bar develops the subject: read cyclically from a start that moves two notes
+  a bar, transposed onto the bar's chord root, alternately as written, inverted and in retrograde, cut to the bar's
+  length less a breath (sax and muted trumpet, single bars then pairs, over the 7 5 6 9 wheel).
 - **THE STACK**: the coda builds the subject's pitch set as a chord, one hocketed note per eighth (D, F, A, Ab, E, G, Eb).
 
 
