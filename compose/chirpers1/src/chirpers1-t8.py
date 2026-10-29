@@ -298,6 +298,8 @@ def build():
     # CRUSH KIT (a kit with character): the crush's drums move to their own track through OTT and a drive, so the
     # peak's kit is squashed and saturated while the rest of the album's kit stays clean
     CRUSHK = {m: drums.pop(m) for m in list(drums) if E[0] <= m <= E[1]}
+    # DAWN on the e-bow: LATTICE's line in the opening sung by the sustaining, swelling string instead of the plucked clean
+    DAWN = {m: clean.pop(m) for m in list(clean) if m <= A[1]}
     end_s = NB * 4 * SPB
     fade0 = (F2[0] + 6) * 4 * SPB
     return {
@@ -327,6 +329,7 @@ def build():
              'lfo': {'gt': {'wave': 'square', 'rate': '5/16'}}, 'score': join(BPAD)},
             {'name': 'crushkit', 'patch': PHYS_STEREO, 'gain': '-3dB',
              'fx': [{'type': 'ott', 'depth': 0.6}, {'type': 'drive', 'drive': 0.5, 'mix': 0.4}], 'score': join(CRUSHK)},
+            {'name': 'dawn', 'patch': 'ebow', 'gain': '-12dB', 'pan': 0.2, 'score': join(DAWN)},
             {'name': 'halo', 'patch': 'm8-clean', 'gain': '+4dB', 'pan': -0.3,
              'fx': [{'type': 'freeze', 'hold': 1, 'size': 0.8, 'mix': 0.5}, {'type': 'pitch', 'semitones': 12, 'mix': 0.25}],
              'score': join(HALO)},
