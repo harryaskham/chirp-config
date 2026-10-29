@@ -30,7 +30,8 @@ CHOP = os.environ.get("T9_CHOP", "catch")
 RIMLATE = os.environ.get("T9_RIMLATE", "45")  # the rim click's drag behind the beat (ms)
 ANSWER = os.environ.get("T9_ANSWER", "1") == "1"
 DENS = os.environ.get("T9_DENS", "1") == "1"
-WEAR = os.environ.get("T9_WEAR", "1") == "1"  # the tape wears (chirper-two's deck warp, pin 220ef336): harder through the bridge (1.4), and the side running out over the outro (1 -> 2)  # density contrast: the bridge sparer (two plucks a bar, no rim), the last A busier (pandeiro jingles on the off-16ths)
+WEAR = os.environ.get("T9_WEAR", "1") == "1"
+TSTOP = os.environ.get("T9_TSTOP", "both")  # wM's tapestop on the master: "end" = the side runs out and the deck stops over the outro's last two bars; "both" = and the catch ends in a stop that spins back up into the last A  # the tape wears (chirper-two's deck warp, pin 220ef336): harder through the bridge (1.4), and the side running out over the outro (1 -> 2)  # density contrast: the bridge sparer (two plucks a bar, no rim), the last A busier (pandeiro jingles on the off-16ths)
 IND_DB = os.environ.get("T9_INDDB", "-13")
 INDICATOR = os.environ.get("T9_INDICATOR", "")  # the car's indicator ticking through the intro and the outro (tick-tock every 380 ms, out of time with the bossa); "" off, "io" intro+outro, "all" the whole way, quieter  # the last A: the guitar answers the flute at every phrase end (a falling fill on the 4th bar's last two beats)  # wM's MPC chop: "catch" = the cassette chews the bar before THE CATCH (master); "both" = and the guitar chopped in the outro's last four bars  # the form made audible: a master dynamics lane by section and a STOP at every seam (the band stops mid-bar, the rim fills)  # the draft's fixes: an upright bass (borrowed from Odd Hours t1), the master off the flute's presence and onto the lows, the bridge without the percussion
 S = 0.25
@@ -212,6 +213,17 @@ NYLON = {
 }
 
 
+def ts_lane(times, total, bar):
+    """The stop lane: the outro's last two bars (8 beats) run the deck down; with "both", the catch's last beat too."""
+    end0 = total - 2 * bar
+    pts = [["0s", 0]]
+    if TSTOP == "both":
+        c1 = times["catch"] + 2 * bar - 60 / BPM  # the catch's last beat: a stop, released on the downbeat (it spins back up)
+        pts += [[f"{c1 - 0.02:.3f}s", 0], [f"{c1:.3f}s", 1], [f"{c1 + 60 / BPM - 0.02:.3f}s", 1], [f"{c1 + 60 / BPM:.3f}s", 0]]
+    pts += [[f"{end0 - 0.02:.3f}s", 0], [f"{end0:.3f}s", 1], [f"{total + 8:.2f}s", 1]]
+    return pts
+
+
 def dyn_lane(times, total):
     lv = {"intro": -6, "A": 0, "B": -4, "Ar": -2, "catch": -8, "A2": 1, "outro": -6}
     pts = [["0s", lv["intro"]]]
@@ -296,9 +308,10 @@ def song():
                            "mix": {"value": 0, "mod": [{"src": "auto.cm", "amount": 1}]}},
                           "vinyl crackle=0.35 dust=0.3 noise=-62dB rumble=0.25 warp=5 wear=0.4 seed=9",
                           {"type": "compressor", "threshold": "-20dB", "ratio": 2, "attack": "15ms", "release": "200ms", "makeup": "0dB"},
-                          {"type": "gain", "gain": f"+{MG:g}dB"}] + ([{"type": "chop", "slices": 8, "pattern": "0 r1 2 2 _ 5 r6 7",
+                          {"type": "gain", "gain": f"+{MG:g}dB"}] + ([{"type": "tapestop", "time": "8b", "curve": 1.2, "up": "1b",
+                                                                      "stop": {"value": 0, "mod": [{"src": "auto.ts", "amount": 1}]}}] if TSTOP else []) + ([{"type": "chop", "slices": 8, "pattern": "0 r1 2 2 _ 5 r6 7",
                                                                        "mix": {"value": 0, "mod": [{"src": "auto.cp", "amount": 1}]}}] if CHOP else []) + ([{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}}] if V3 else []),
-                   "auto": {"cat": {"points": catch}, "cm": {"points": cm}, **({"cp": {"points": cm}} if CHOP else {}), **({"dyn": {"points": dyn_lane(times, total)}} if V3 else {})}},
+                   "auto": {**({"ts": {"points": ts_lane(times, total, bar)}} if TSTOP else {}), "cat": {"points": catch}, "cm": {"points": cm}, **({"cp": {"points": cm}} if CHOP else {}), **({"dyn": {"points": dyn_lane(times, total)}} if V3 else {})}},
         "tracks": tracks,
     }
 
