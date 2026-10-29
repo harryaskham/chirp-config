@@ -43,6 +43,7 @@ FHARM = os.environ.get("T9_FHARM", "1") == "1"  # the last A's last eight bars: 
 EPIANO = os.environ.get("T9_EPIANO", "tine")  # wM's physical pickup e-piano in place of the rhodes (the bridge pad and the instrumental A): "tine" / "reed"
 IND_DB = os.environ.get("T9_INDDB", "-13")
 INDICATOR = os.environ.get("T9_INDICATOR", "")  # the car's indicator ticking through the intro and the outro (tick-tock every 380 ms, out of time with the bossa); "" off, "io" intro+outro, "all" the whole way, quieter
+TDAMP = os.environ.get("T9_TDAMP", "0")  # wM's release triggers on the tines: the rhodes tune and the bridge's pad let go with the e-piano's damper thud (gain dB, e.g. "0", "6")
 GDRAG = os.environ.get("T9_GDRAG", "40")  # the comping guitar laid back: the whole part dragged late by hand (ms), the bossa's lazy right hand (chirper-three's note)
 CODA = os.environ.get("T9_CODA", "")  # the side runs out but the car drives on: after the deck stops, the indicator ticks over the road's rumble; "road" = ticks + rumble, "tick" = ticks only, "rumble" = the road alone, "beat" = ticks on the beat (500 ms) + rumble
 S = 0.25
@@ -324,8 +325,8 @@ def song():
         {"name": "perc", "patch": "samba-kit" + (f" play.humanize.nudge.sd={SURDRAG}ms" if SURDRAG else ""), "gain": "-10dB", "pan": 0.2, "score": f"swing16={GZSW} " + sc("perc")},
         {"name": "rim", "patch": f"room-kit play.humanize.nudge.so={RIMLATE}ms", "gain": "-12dB", "pan": 0.3, "score": sc("rim")},
         {"name": "flute", "patch": "mellotron-flute", "gain": "-6dB", "pan": 0.1, "fx": [deck], "sends": {"room": "-8dB"}, "score": sc("flute")},
-        {"name": "rhodes", "patch": f"epiano-{EPIANO}" if EPIANO else "rhodes", "gain": "-7dB", "pan": 0.2, "fx": [deck], "sends": {"room": "-10dB"}, "score": sc("rhodes")},
-        {"name": "rpad", "patch": f"epiano-{EPIANO}" if EPIANO else "rhodes", "gain": "-14dB", "pan": -0.25, "fx": [deck], "sends": {"room": "-8dB"}, "score": sc("rpad")},
+        {"name": "rhodes", "patch": "tine-damped" if TDAMP else (f"epiano-{EPIANO}" if EPIANO else "rhodes"), "gain": "-7dB", "pan": 0.2, "fx": [deck], "sends": {"room": "-10dB"}, "score": sc("rhodes")},
+        {"name": "rpad", "patch": "tine-damped" if TDAMP else (f"epiano-{EPIANO}" if EPIANO else "rhodes"), "gain": "-14dB", "pan": -0.25, "fx": [deck], "sends": {"room": "-8dB"}, "score": sc("rpad")},
     ]
     if V2:
         tracks.append({"name": "bass", "patch": "upright", "gain": "4dB", "score": sc("bass")})
@@ -352,7 +353,10 @@ def song():
         "tempo": BPM, "ceiling": "-0.3dB", "tail": "1s" if CODA else "4s", "feel": {"drift": "5ms", "drift_bars": 4},
         "patches": {"nylon": ({**NYLON, "synth": {**NYLON["synth"], "fx": (LIVE_FX if LIVEKIND == "1" else
                                                                        [{"type": "pan", "pan": {"value": 0, "mod": [{"src": "rand", "amount": 0.25}]}}])}}
-                              if LIVEGTR else NYLON), **({"upright": upright} if V2 else {})},
+                              if LIVEGTR else NYLON), **({"upright": upright} if V2 else {}),
+                    **({"tine-damped": {"about": "Tape Weather t9: the tine e-piano with the damper's key-off (wM's release triggers).",
+                                        "extends": f"epiano-{EPIANO}" if EPIANO else "rhodes",
+                                        "play": {"release": {"patch": "epiano-damper", "decay": "2s", "gain": f"{TDAMP}dB"}}}} if TDAMP else {})},
         "buses": {"room": {"fx": ["reverb kind=room decay=1.4s size=0.6 mix=1 predelay=12ms"]},
                   **({"haze": {"fx": [{"type": "cloud", "size": "150ms", "density": 18, "position": "500ms", "spray": "400ms",
                                          "spread": 0.8, "reverse": 0.25, "mix": 1},
