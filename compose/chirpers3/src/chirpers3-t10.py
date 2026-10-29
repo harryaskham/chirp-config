@@ -100,6 +100,11 @@ def build():
     secs = {b['sec']: b['t'] * SPB for b in reversed(bars)}
     wear = [['0s', 1.0], [f"{secs['runout2']:.2f}s", 1.0], [f"{secs['runout2'] + 6:.2f}s", 1.4],
             [f"{secs['runout3']:.2f}s", 1.4], [f"{secs['runout3'] + 6:.2f}s", 1.8], [f"{secs['end']:.2f}s", 1.8], [f"{secs['end'] + 5:.2f}s", 2.0]]
+    # THE LAST BREATH (wM's cloud fx on the vox): the vox's last word dissolves into grains as it fades, and the
+    # grains FREEZE on its final note, hanging over the bare pad while the tape stops under them
+    t_end = secs['end']
+    vm = [['0s', 0], [f'{t_end + 2 * 4 * SPB:.2f}s', 0], [f'{t_end + 4 * 4 * SPB:.2f}s', 0.7]]
+    vf = [['0s', 0], [f'{t_end + 3.5 * 4 * SPB - 0.02:.2f}s', 0], [f'{t_end + 3.5 * 4 * SPB:.2f}s', 1]]
     # THE TAPE CHEWS (wM's chop fx on the master): in the last two bars of the third run-out the deck starts eating
     # the tape - the bar is cut into eight and replayed with doubles, reversals and gaps - just before the end section
     tr3 = [b['t'] for b in bars if b['sec'] == 'runout3'][0]
@@ -128,8 +133,10 @@ def build():
              'notes': notes(pad)},
             {'name': 'bass', 'patch': 'analog-bass', 'gain': '-5dB', 'score': line(bass, total)},
             {'name': 'arp', 'patch': 'arp-pluck', 'gain': '-10dB', 'pan': 0.3, 'auto': {'sw': {'points': sw}}, 'fx': [{'type': 'filter', 'kind': 'ladder', 'cutoff': {'value': 450, 'mod': [{'src': 'auto.sw', 'amount': 3.2}]}, 'q': 9}, 'tape drive=0.15 mix=0.5 wow=10 flutter=2.5 drift=1 tone=6500 sweep=0.6 seed=2', {'type': 'delay', 'time': '3/16', 'feedback': 0.35, 'mix': 0.3}], 'score': line(arp, total)},
-            {'name': 'vox', 'patch': 'dream-vox', 'gain': '-6dB', 'pan': -0.1, 'auto': {'wear': {'points': wear}},
-             'fx': [{'type': 'tape', 'drive': 0.05, 'mix': 0.4, 'wow': 8, 'flutter': 1.5, 'drift': 1, 'tone': 8000, 'sweep': 0.4, 'seed': 14,
+            {'name': 'vox', 'patch': 'dream-vox', 'gain': '-6dB', 'pan': -0.1, 'auto': {'wear': {'points': wear}, 'vm': {'points': vm}, 'vf': {'points': vf}},
+             'fx': [{'type': 'cloud', 'size': '200ms', 'density': 14, 'position': '600ms', 'spray': '450ms', 'pitch': 0, 'scatter': 0.1, 'reverse': 0.3, 'spread': 0.9, 'seed': 6,
+                     'freeze': {'value': 0, 'mod': [{'src': 'auto.vf', 'amount': 1}]}, 'mix': {'value': 0, 'mod': [{'src': 'auto.vm', 'amount': 1}]}},
+                    {'type': 'tape', 'drive': 0.05, 'mix': 0.4, 'wow': 8, 'flutter': 1.5, 'drift': 1, 'tone': 8000, 'sweep': 0.4, 'seed': 14,
                      'warp': {'value': 0, 'mod': [{'src': 'auto.wear', 'amount': 1}]}}], 'notes': notes(vox)},
             {'name': 'crackle', 'patch': 'fx-crackle', 'gain': '-8dB', 'score': f"C4/{total - 0.2:.4f}b@80 R/0.2b"},
         ]}

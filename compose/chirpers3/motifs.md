@@ -123,6 +123,7 @@ Generator `compose/chirpers3/src/chirpers3-t10.py`. Chillwave dusk, 78 bpm.
 - **THE SWEEP** (v3): the arp behind chirper-two's resonant ladder filter (q 9), nearly shut through A, opening across the whole of B (450 Hz -> about 4 kHz, the sunset peak) and closing through the first run-out before the arp leaves; the song's feel drifts 4 ms over 4-bar spans (wM's drift).
 - **THE TAPE CHEWS** (v4, wM's chop fx on the master): the last two bars of the third run-out are cut into eight and replayed with doubles, reversals and gaps (0 0 r1 . 3 r3 _ 5) - the deck eating the tape just before the end section, where the vox's last word and the tape-stop follow.
 - **THE WEAR** (v5, chirper-two's tape-deck warp): the pad's and the vox's tape wear harder as the voices leave - wow and flutter x1 through the band, x1.4 in the second run-out, x1.8 in the third, x2 at the end; the dusk chords now change every four bars, slower as the light goes.
+- **THE LAST BREATH** (v6, wM's cloud fx on the vox): in the end section the vox's last phrase dissolves into 200 ms grains as it fades, and the grains freeze on its final note, hanging over the bare pad as the tape stops.
 
 ## t8 Window Seat (chirper-zero)
 Generator `compose/chirpers3/src/chirpers3-t8.py`. Night-bus 2-step, 136 bpm, F# minor.
