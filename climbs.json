@@ -5219,7 +5219,7 @@
       "song": "songs/chirpers2-t2.yaml",
       "reference": "Chirpers — Track 2 (untitled)",
       "source": null,
-      "owner": null,
+      "owner": "chirper-one",
       "metric": "python3 tools/compscore.py chirpers2-t2 OUT.wav",
       "best": null,
       "passes": 1,
