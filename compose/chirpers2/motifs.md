@@ -109,4 +109,8 @@ Generator `compose/chirpers2/src/chirpers2-t8.py`. A kit-less vibes-and-marimba 
 - **AUGMENTATION** (v2, the bridge): the bowed bass plays the inverted cell in dotted quarters (four a bar, three bars a statement, the fourth a held root): the marimbas' figure, slowed fourfold, as a counter-line.
 - **THE SUBJECT, answered** (v2): in the bridge's second half the borrowed marimba (t7's own) sings t7 Cross Purposes' SUBJECT (chirper-three: semitones 0 3 7 6 2 | 5 1 4 0, eighths 1 1 1 2 2 | 1 1 1 2 = exactly one 12/8 bar) on each bar's chord root, alternating with its inversion: the instrument remembers its first song.
 - **DYNAMICS** (v2): the bridge drops away (soft marimbas), and the peak grows (the phasing marimba doubled an octave below, sixteenth frame-drum fills into each phrase).
+- **VIBES SOLO** (v3, a new 8-bar section after the melody): chords every two bars (the home four, twice as fast); the high marimba rests and the low one keeps the cell. Two-bar shapes: a sixteenth run up, then four dotted-eighth notes stepping down in thirds | a triplet fall, a held colour tone, a two-eighth pickup. The frame drum ghosts dotted eighths, eight against the four dotted quarters.
+- **FOUR MALLETS** (v3): the peak's palindromic phrases in diatonic thirds.
+- **DOTTED-EIGHTH ECHO** (v3, the coda): a second vibraphone, panned opposite, repeats the last mirror a dotted eighth behind: t9 Slow Shutter's dotted-eighth CLOCK, heard just before it begins.
+- The vibes now stay in a real vibraphone's range (F3-F6); earlier versions climbed to D7 on the Abmaj9 phrases.
 

@@ -27,6 +27,22 @@ BPM = 112
 # through the bridge, a counter-line; S = SUBJECT answered: in the bridge's second half the borrowed marimba sings
 # its first song's tune, t7 Cross Purposes' SUBJECT (chirper-three; exactly one 12/8 bar), then its inversion.
 R2 = set(filter(None, os.environ.get("T8_R2", "D,A,S").split(","))) - {"none"}
+# Round 3 (v3): V = a VIBES SOLO, a new 8-bar section after the melody (chords every two bars; the high marimba
+# rests and the low one keeps the cell; sixteenth runs, dotted-eighth groups and triplet falls; the frame drum ghosts
+# dotted eighths, eight against the bar's four dotted quarters); T = the peak's melody in THIRDS (four mallets);
+# E = the coda's vibes ECHOED a dotted eighth later (t9 Slow Shutter's dotted-eighth clock, at the t8/t9 seam).
+# R = the vibes kept in a real vibraphone's range, F3..F6 (v1-v2 climbed to D7 on the Abmaj9 phrases)
+R3 = set(filter(None, os.environ.get("T8_R3", "V,T,E,R").split(","))) - {"none"}
+
+
+def vr(m):
+    """A vibes note: folded into F3..F6 when R is on."""
+    if "R" in R3:
+        while m > 89:
+            m -= 12
+        while m < 53:
+            m += 12
+    return m
 SUBJECT = [(0, 1), (3, 1), (7, 1), (6, 2), (2, 2), (5, 1), (1, 1), (4, 1), (0, 2)]  # t7: semitones, eighths
 BAR = 6.0  # a 12/8 bar, in quarter beats
 
@@ -96,14 +112,17 @@ class Track:
         return " ".join(toks)
 
 
-FORM = [("cell", 4), ("phase", 16), ("melody", 16), ("bridge", 16), ("peak", 16), ("unison", 8), ("coda", 6)]
-LEVEL = {"cell": 70, "phase": 76, "melody": 82, "bridge": 74, "peak": 96, "unison": 80, "coda": 60}
+FORM = [("cell", 4), ("phase", 16), ("melody", 16)] + ([("solo", 8)] if "V" in R3 else []) + \
+       [("bridge", 16), ("peak", 16), ("unison", 8), ("coda", 6)]
+LEVEL = {"cell": 70, "phase": 76, "melody": 82, "bridge": 74, "peak": 96, "unison": 80, "coda": 60, "solo": 84}
 if "D" in R2:
     LEVEL.update({"bridge": 62, "peak": 104, "unison": 76})
 
 
 def build():
-    T = {k: Track(k) for k in ("m1", "m2", "vib", "bass", "sub", "fd")}
+    T = {k: Track(k) for k in ("m1", "m2", "vib", "echo", "bass", "sub", "fd")}
+    import random
+    rng = random.Random(8)
     bars, b = [], 0
     for name, n in FORM:
         for i in range(n):
@@ -115,6 +134,8 @@ def build():
         v = LEVEL[sec]
         prog = BRIDGE if sec == "bridge" else HOME
         chord = prog[(i // 4) % 4] if sec not in ("cell", "coda") else HOME[0]
+        if sec == "solo":
+            chord = HOME[(i // 2) % 4]
         if sec == "coda":
             chord = HOME[i // 2 % 2 * 0]  # the coda rests on the home chord
         cell = CELL_INV if sec == "bridge" else CELL
@@ -150,19 +171,39 @@ def build():
             at, mid = start, len(phrase) // 2
             for j, (d, ln) in enumerate(phrase):
                 swell = 12 - 4 * abs(j - mid)  # dynamics mirror too: up to the centre, back down
-                T["vib"].add(at, ln / 2 * 0.98, nm(deg(chord, d) + 12), v - 4 + swell)
+                head = nm(vr(deg(chord, d) + 12))
+                if sec == "peak" and "T" in R3:  # four mallets: a diatonic third under the line
+                    head += "," + nm(vr(deg(chord, d - 2) + 12))
+                T["vib"].add(at, ln / 2 * 0.98, head, v - 4 + swell)
                 at += ln / 2
         elif sec == "bridge" and i % 4 == 0:
             for j, d in enumerate([4, 6, 9, 8, 8, 9, 6, 4]):
-                T["vib"].add(start + j * 3, 2.9, nm(deg(chord, d) + 12), v - 10 + (6 if j in (3, 4) else 0))
+                T["vib"].add(start + j * 3, 2.9, nm(vr(deg(chord, d) + 12)), v - 10 + (6 if j in (3, 4) else 0))
+        elif sec == "solo":  # the vibes solo: a run, dotted-eighth groups, a triplet fall, a held note
+            if i % 2 == 0:
+                d0 = rng.choice([0, 2, 4])
+                for s in range(8):  # a sixteenth run up
+                    T["vib"].add(start + s * 0.25, 0.24, nm(vr(deg(chord, d0 + s))), v - 10 + s * 2)
+                top = d0 + 8
+                for g in range(4):  # dotted-eighth groups, stepping down by thirds
+                    T["vib"].add(start + 2 + g * 0.75, 0.7, nm(vr(deg(chord, top - 2 * g))), v - 2 - g * 2)
+            else:
+                d1 = rng.choice([7, 8, 9])
+                for s in range(6):  # a triplet fall
+                    T["vib"].add(start + s / 3, 0.32, nm(vr(deg(chord, d1 - s))), v - 4 - s)
+                T["vib"].add(start + 2, 2.9, nm(vr(deg(chord, rng.choice([2, 4, 6])))), v - 2)
+                T["vib"].add(start + 5, 0.45, nm(vr(deg(chord, 4))), v - 12)
+                T["vib"].add(start + 5.5, 0.45, nm(vr(deg(chord, 5))), v - 10)
         elif sec == "coda" and i == 0:  # one mirror, slowed by a quarter: five bars of the six
             phrase = palindrome(HALVES[0][:3] + [(9, 6)])  # a short mirror, slowing
             at = start
             for d, ln in phrase:
-                T["vib"].add(at, ln / 2 * 1.2, nm(deg(HOME[0], d) + 12), v)
+                T["vib"].add(at, ln / 2 * 1.2, nm(vr(deg(HOME[0], d) + 12)), v)
+                if "E" in R3:  # the echo, a dotted eighth behind (t9's clock)
+                    T["echo"].add(at + 0.75, ln / 2 * 1.1, nm(vr(deg(HOME[0], d) + 12)), v - 14)
                 at += ln / 2 * 1.25
         # ---- the bowed bass: half notes in 4/4 against the 12/8 ----
-        if sec in ("phase", "melody", "peak", "unison") and not (sec == "phase" and i < 4):
+        if sec in ("phase", "melody", "peak", "unison", "solo") and not (sec == "phase" and i < 4):
             for h in range(3):
                 beat = start + 2 * h
                 cyc = int(round(beat / 2)) % 4  # position in the 8-beat (4/4 bar) cycle
@@ -195,6 +236,12 @@ def build():
         fd = T["fd"]
         if sec == "cell" and i >= 2:
             fd.add(start, 1, "dum", v - 14)
+        elif sec == "solo":  # dotted-eighth ghosts: eight against the four dotted quarters
+            fd.add(start, 1, "dum", v - 8)
+            fd.add(start + 3, 1, "dum", v - 14)
+            for g in range(8):
+                fd.add(start + g * 0.75 + (0.01 if g in (0, 4) else 0), 0.25, "tek" if g % 2 == 0 else "gh",
+                       v - (14 if g % 2 == 0 else 24))
         elif sec in ("phase", "melody", "unison"):
             fd.add(start, 1, "dum", v - 6)
             fd.add(start + 3, 1, "dum", v - 12)
@@ -281,6 +328,9 @@ def main():
         {"name": "frame", "patch": "c2-frame", "pan": 0.15, "gain": "0dB",
          "fx": ["reverb kind=room decay=1.0s mix=0.15"], "score": T["fd"].score(total)},
     ]
+    if "E" in R3:
+        tracks.insert(3, {"name": "vibes-echo", "patch": "c2-vibes", "pan": -0.45, "gain": "-3dB", "fx": [hall],
+                          "score": T["echo"].score(total)})
     secs = "; ".join(f"{n} from {s:.0f}b ({k} bars)" for n, s, k in sec)
     about = ("Chirpers - Odd Hours, track 8. Original composition by chirper-two, generated by "
              "compose/chirpers2/src/chirpers2-t8.py. Mallet chamber in phase: two marimbas phase one 12-eighth cell "
