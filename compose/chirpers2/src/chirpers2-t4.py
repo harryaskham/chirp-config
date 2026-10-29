@@ -46,7 +46,11 @@ T8_CELL = [0, 4, 8, 4, 2, 4, 5, 4, 1, 4, 2, 6]  # t8's cell, scale degrees
 R5 = set(filter(None, os.environ.get("T4_R5", "G").split(","))) - {"none"}
 # Round 6 (v6): S = the form SHRINKS BACK after the coda (the middle five, the middle three, the centre alone): the
 # growth is a palindrome too, and the song ends on its axis; R = rhodes pads under the seed and the shrink.
-R6 = set(filter(None, os.environ.get("T4_R6", "S,R").split(","))) - {"none"}  # t2's night cell, degrees on eighths (None = rest)
+R6 = set(filter(None, os.environ.get("T4_R6", "S,R").split(","))) - {"none"}
+# Round 7 (v7): B = a FRETLESS SOLO after the piano solo, over the bridge's mirrored meters: the night cell (t2,
+# chirper-one) breaks free, cycling on and climbing an octave every other cycle, the centre bar one long held note
+# two octaves up (the axis); D = a soft ride under the shrink.
+R7 = set(filter(None, os.environ.get("T4_R7", "B,D").split(","))) - {"none"}  # t2's night cell, degrees on eighths (None = rest)
 TRIP = "T" in os.environ.get("T4_OPTS", "")  # triplet brush ghosts before the backbeats (off: no gain)
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 PC = {n: i for i, n in enumerate(NAMES)}
@@ -190,7 +194,7 @@ def build():
         sec.append(("seed", 0.0, len(bars)))
 
     form = [("intro", METERS, 2), ("head", METERS, 2), ("bridge", BRIDGE, 2), ("trade", METERS, 4)] + ([("drums", METERS, 1)] if "F" in R4 else []) + [
-            ("piano", BRIDGE, 2)] + ([("chorale", METERS, 1)] if "H" in R2 else []) + [("peak", METERS, 2), ("head2", METERS, 2), ("coda", METERS, 1 if "S" in R6 else 2)]  # the form mirrors too
+            ("piano", BRIDGE, 2)] + ([("bsolo", BRIDGE, 1)] if "B" in R7 else []) + ([("chorale", METERS, 1)] if "H" in R2 else []) + [("peak", METERS, 2), ("head2", METERS, 2), ("coda", METERS, 1 if "S" in R6 else 2)]  # the form mirrors too
     p = 0
     for name, meters, n in form + ([("unseed", None, 3)] if "S" in R6 else []):
         if meters is None:  # the shrink: 5, 3, 1 bars of the mirror, the coda's centre held
@@ -208,10 +212,10 @@ def build():
     total = bars[-1][0] + bars[-1][1] / 2 + 4.0  # a ring-out
 
     # dynamics: each phrase swells to its centre bar; sections set the level
-    LEVEL = {"seed": 44, "unseed": 44, "intro": 50, "head": 68, "bridge": 74, "trade": 84, "piano": 70, "peak": 104, "head2": 64, "coda": 48,
+    LEVEL = {"bsolo": 76, "seed": 44, "unseed": 44, "intro": 50, "head": 68, "bridge": 74, "trade": 84, "piano": 70, "peak": 104, "head2": 64, "coda": 48,
              "chorale": 62, "drums": 84}
     # the bass's role per section: a two-feel under the heads, a pedal under the bridge, walking under the solos
-    BASS = {"seed": "pedal", "unseed": "pedal", "intro": "two", "head": "two", "bridge": "pedal", "trade": "walk", "piano": "walk", "peak": "walk",
+    BASS = {"bsolo": "solo", "seed": "pedal", "unseed": "pedal", "intro": "two", "head": "two", "bridge": "pedal", "trade": "walk", "piano": "walk", "peak": "walk",
             "head2": "two", "coda": "two", "chorale": "pedal", "drums": "tacet"}
 
     def dyn(i):
@@ -245,7 +249,29 @@ def build():
                 root, voic, scale = CH[cn]
                 note = low(root) + scale[(d - 1) % len(scale)]
                 T["bass"].add(swing_at(start, e, swung), 0.45, nm(note), v - 6 + (8 if (e0 + e) % 13 == 0 else 0))
-        if role == "night":
+        if role == "solo":  # the fretless solo: the night cell set free
+            first = min(b[0] for b in bars if b[3] == "bsolo")
+            e0 = int(round((start - first) * 2))
+            root, voic, scale = CH[name0]
+            if pos == 3:
+                T["bass"].add(start, m / 2 * 0.95, nm(low(root) + 24), v + 4)
+            else:
+                for e in range(m):
+                    k = e0 + e
+                    d = NIGHT[k % 13]
+                    if d is None:
+                        continue
+                    cn = name0
+                    for c8, cnn in chords:
+                        if c8 <= e:
+                            cn = cnn
+                    r2, _, sc2 = CH[cn]
+                    note = low(r2) + 12 + sc2[(d - 1) % len(sc2)] + (12 if (k // 13) % 2 else 0)
+                    at = swing_at(start, e, swung)
+                    if k % 13 == 0 and k:  # a sixteenth grace from a semitone below into each new cycle
+                        T["bass"].add(at - 0.25, 0.22, nm(note - 1), v - 6)
+                    T["bass"].add(at, 0.45, nm(note), v + (8 if k % 13 == 0 else 0))
+        elif role == "night":
             pass
         elif role == "tacet":
             if pos == 3:
@@ -360,6 +386,9 @@ def build():
         peak = section == "peak"
         if section == "chorale" or section == "unseed":
             d.add(start, m / 2 * 0.95, "bsl", v - 14)
+            if section == "unseed" and "D" in R7:
+                for bt in range(m // 2):
+                    d.add(start + bt, 0.5, "rd", v - 20)
             continue
         if section == "drums":  # the drum feature: brushes, the split centre, the tom choir's retrograde
             L16 = m * 2
