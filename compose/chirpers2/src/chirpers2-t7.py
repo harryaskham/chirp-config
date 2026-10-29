@@ -17,7 +17,8 @@ GENTLE GIANT / ZAPPA COUNTERPOINT: a through-composed chamber-prog piece where t
                  augmented in the bass, a ride bell on the 7 (12 bars of 4/4);
     5 TRADES     sax and trumpet trade single bars, then pairs, over a meter wheel 7 5 6 9 (24 bars), walking bass;
                  each traded bar develops the subject (cyclic start, on the bar's chord, as written / inverted / retrograde);
-                 the hushed part is a SWINGING BRUSH TRIO (swung soloists, walking quarters, chirper-two's brushes);
+                 the hushed part is a SWINGING BRUSH TRIO: flute and jazz guitar trade swung bars, a Rhodes through
+                 wM's Bassman stack comps, the bass walks, chirper-two's brushes; the horns take the straight wake-up;
     6 STRETTO    subject entries every two eighths in every voice, the climax;
     7 CODA       the subject in augmentation (bass + flute), then the final chord built one hocketed note at a time.
 - KIT: prog-kit, groupings follow each meter (7 = 2+2+3 or 3+2+2 alternating bar by bar, 5 = 3+2 / 2+3, 9 = 2+2+2+3,
@@ -80,7 +81,7 @@ class Part:
 
 
 P = {k: Part() for k in ("mar", "flute", "tpt", "sax", "gtr", "keys", "bass", "kick", "snare", "hat", "toms", "ride",
-                         "clock", "sub", "brush", "tap")}
+                         "clock", "sub", "brush", "tap", "rhodes")}
 BARS = []          # (start eighths, length eighths, section, index in section)
 rng = random.Random(7)
 
@@ -298,7 +299,7 @@ def motif_bar(who, st, ln, i, vel, swung=False):
     """A traded bar as MOTIVIC DEVELOPMENT: the subject read cyclically from a moving start, transposed onto the bar's
     chord root, alternately as written, inverted and in retrograde, filling the bar less a breath."""
     root, _ = chord_at(i)
-    lo = 62 if who == "tpt" else 50
+    lo = {"tpt": 62, "sax": 50, "flute": 74, "gtr": 55}[who]
     base = lo + ((root - lo) % 12)
     form = i % 3
     seq = SUBJ if form != 2 else SUBJ[::-1]
@@ -352,7 +353,10 @@ def trades(t):
     for i in range(24):
         ln = wheel[i % 4]
         late = i >= 20
-        who = ("tpt", "sax")[(i if i < 16 else i // 2) % 2]       # single bars, then pairs
+        # the swung trio trades between FLUTE and JAZZ GUITAR (their own colours, not the fugue's horns); the horns take
+        # the straight last wheel turn into the stretto
+        pair = ("tpt", "sax") if late else ("flute", "gtr")
+        who = pair[(i if i < 16 else i // 2) % 2]                 # single bars, then pairs
         v = (84 + i // 3) if late else (60 + i // 2)
         motif_bar(who, t, ln, i, v, swung=not late)
         bar(t, ln, "trades", i)
@@ -361,8 +365,8 @@ def trades(t):
             kit_bar(t, ln, i, 84 + i // 2, fill=(i == 23))
         else:
             walk_quarters(t, ln, i, 76)
-            root, iv = chord_at(i)
-            P["keys"].add(t + swing(1), ln - 1.5, ",".join(nm(60 + ((root + x) % 12)) for x in iv[1:]), 46)  # comp on the and
+            root, iv = chord_at(i)                               # a rootless Rhodes voicing through a Bassman, on the and
+            P["rhodes"].add(t + swing(1), ln - 1.5, ",".join(nm(55 + ((root + x - 7) % 12)) for x in iv[1:]), 58)
             brush_bar(t, ln, i, 70)
         if i % 4 == 3:                                            # the marimba answers each wheel turn
             line(P["mar"], t + ln - 3, [(7, 1), (6, 1), (2, 1)], D4 + 12, 76)
@@ -482,6 +486,8 @@ def main():
         tr("sax", "tenor-sax-synth", pan="R20", gain="-5dB", sends={"room": "-12dB"}),
         tr("gtr", "starcaster-clean", pan="L60", gain="-6dB", sends={"room": "-12dB"}),
         tr("keys", "wurli", pan="R60", gain="-7dB", sends={"room": "-12dB"}),
+        tr("rhodes", "rhodes-rotary", pan="R35", gain="-6dB", sends={"room": "-10dB"},      # the trio's comp: wM's amp,
+           fx=[{"type": "amp", "model": "clean", "stack": "bassman", "gain": 0.35, "mix": 0.6}]),  # chirper-one's recipe
         tr("bass", "bass-di", gain="-3dB"),
         tr("sub", "c3-sub", gain="-9dB"),                                   # the sub floor under the loud sections
         tr("clock", "toy-piano", pan="R15", gain="-4dB", sends={"room": "-14dB"}),   # the CLOCK, every 5 sixteenths
