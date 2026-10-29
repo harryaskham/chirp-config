@@ -17,8 +17,9 @@ NN = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
 def nm(m): return f"{NN[m % 12]}{m // 12 - 1}"
 WHEEL = [8, 7, 10, 9, 6]                 # eighths per bar
 STRETCH = [11, 13, 11, 13, 9]
-# the orchestration wheel's doublings (intro/break/outro): off - with the sub they broke the returns (recurrence 100 -> 31)
-WHEEL_DOUBLES = False
+# the orchestration wheel's doublings (intro/break/outro): on since v5 (with v3's sub and no harmonic wheel they broke
+# the returns, recurrence 100 -> 31; with the harmonic wheel the returns hold)
+WHEEL_DOUBLES = True
 # HARMONIC RHYTHM (bar by bar): the vamp's chord moves every bar inside the mode, an 7-bar cycle against the 5-bar wheel
 # and the 4-bar phrases (scale degrees from the section's root; the bass cell, the rhodes and the sub follow it)
 PROG = {'dorian': [0, 3, 0, 6, 4, 3, 1], 'lydian': [0, 1, 0, 4, 2, 1, 5], 'phrygdom': [0, 1, 0, 6, 5, 1, 3]}

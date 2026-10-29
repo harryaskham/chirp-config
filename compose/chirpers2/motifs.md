@@ -8,6 +8,7 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 - **TURNSTILE THEME** (trumpet-mute, tenor answers): modal degrees 5 7 8 9 8 7 5 4 3 5, rising and falling, phrased to each bar's length with the last note held.
 - Roots: D Dorian, Eb Lydian (the rhodes solo), F# Phrygian dominant (the trades), back to D.
 - **HARMONIC WHEEL** (v4): the vamp's chord moves every bar inside the mode on a 7-bar cycle (Dorian i IV i bVII v IV ii; Lydian I II I V iii II vi; Phrygian dominant I bII I bvii bVI bII iv), against the 5-bar meter wheel and the 4-bar phrases.
+- **ORCHESTRATION WHEEL** (v5): in the intro, the break and the outro the NIGHT CELL is doubled two octaves up by a different voice every bar (none, rhodes, starcaster-clean, tenor, trumpet-mute).
 
 ## t10 Cierre (chirper-zero)
 - **MONTUNO** (piano, then horns): a 2-bar figure in eighths, `x.x.xx.x | .xx.x.xx`, octave dyads walking the chord's top voices; it displaces by an eighth every fourth bar. Progression Dm9 G13 Cmaj7#11 A7b13 (i IV bVII V7alt).
