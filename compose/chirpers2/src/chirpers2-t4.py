@@ -96,6 +96,11 @@ R17 = set(filter(None, os.environ.get("T4_R17", "A,M").split(","))) - {"none"}
 # triplet quarters (three against two, floating over the bridge meters), a palindromic line (0 2 4 6 4 2) on each
 # chord, and the ride bell joins the triplet pulse.
 R18 = set(filter(None, os.environ.get("T4_R18", "P").split(","))) - {"none"}
+# Round 19 (v19): M = t10 Cierre's MONTUNO answered (chirper-zero: x.x.xx.x | .xx.x.xx): at the peak the piano's
+# left hand leaves its comping for the montuno, one 16-eighth cycle running unbroken across the meter palindrome
+# (44 eighths a phrase), so the figure is displaced anew in every bar, each hit the chord of its moment.
+R19 = set(filter(None, os.environ.get("T4_R19", "M").split(","))) - {"none"}
+MONTUNO = [1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1]
 BTHEME = {0: [(0, 3, 4), (3, 1, 3), (4, 4, 2)], 1: [(0, 2, 1), (2, 2, 2), (4, 3, 4)], 2: [(0, 5, 6)],
           3: [(0, 2, 4), (2, 2, 5), (4, 2, 4)]}  # t2's night cell, degrees on eighths (None = rest)
 TRIP = "T" in os.environ.get("T4_OPTS", "")  # triplet brush ghosts before the backbeats (off: no gain)
@@ -526,7 +531,15 @@ def build():
             pattern = {6: [(1, 1), (4, 2)], 8: [(1, 1), (3, 1), (6, 2)], 5: [(0, 3)], 7: [(0, 2), (4, 3)]}[m]
             if pidx % 2:  # every other phrase: anticipations instead
                 pattern = {6: [(0, 2), (5, 1)], 8: [(0, 2), (4, 1), (7, 1)], 5: [(3, 2)], 7: [(2, 2), (6, 1)]}[m]
-            if section in ("chorale", "drums", "link") or (section == "unseed" and "R" in R6):
+            if section == "peak" and "M" in R19:  # the montuno
+                first = min(b[0] for b in bars if b[3] == "peak")
+                e0 = int(round((start - first) * 2))
+                for e in range(m):
+                    if MONTUNO[(e0 + e) % 16]:
+                        cn_vo = [vo for c8, vo in comp if c8 <= e][-1]
+                        T["pno_lh"].add(swing_at(start, e, swung), 0.4, cn_vo,
+                                        v - 12 + (6 if (e0 + e) % 8 == 0 else 0))
+            elif section in ("chorale", "drums", "link") or (section == "unseed" and "R" in R6):
                 pass  # (the shrink: the rhodes alone carries the chords)
             elif not (section in ("head", "head2") and VOICE[pos] == "pno"):
                 for o, ln in pattern:
