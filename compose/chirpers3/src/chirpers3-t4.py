@@ -11,7 +11,11 @@ GLITCHY IDM-LITE, a broken music box in a lo-fi beat.
   dropped hats, crushed and low-passed, with the drum bus stuttering now and then.
 - GLITCHES: probabilistic stutter on the toy and drum buses, plus composed HAIL (a toy note retriggered as 32nds)
   in the break.
-- HARMONY: Dbmaj9 | Cm7(11) | Fm9 | Bbm9, two bars each; vinyl crackle under everything; wow on the toys.
+- HARMONY: Dbmaj9 | Cm7(11) | Fm9 | Bbm9, two bars each; wM's tape deck (wow, flutter, hiss) on the toys, the pad
+  and the master, his vinyl (crackle, dust, warp) on the master; the kit's wonk from play.humanize (late snare,
+  early kick, swing drift).
+- THE GEAR CHANGE: the return turns the toy to a 6 against the box's 7 (a dotted-eighth hemiola); the full section
+  puts the crystal on a 9, three odd gears; so the hidden melody's rhythm changes section by section.
 - FORM (58 bars, 86 bpm): intro (toys enter one by one), beat, melody, glitch break, return, breakdown, full, outro.
 
 Emits songs/chirpers3-t4.yaml. Edit the music here.
@@ -86,7 +90,7 @@ class Part:
         return " ".join(toks)
 
 
-P = {k: Part() for k in ("toy", "box", "xtal", "lead", "pad", "bass", "sub", "kick", "snare", "hat", "perc", "vinyl")}
+P = {k: Part() for k in ("toy", "box", "xtal", "lead", "pad", "bass", "sub", "kick", "snare", "hat", "perc")}
 rng = random.Random(4)
 
 
@@ -94,48 +98,58 @@ def chord_at(bar):
     return CHORDS[((bar - 1) // 2) % 4]
 
 
+GEARS = {"return": (6, 7, 4), "full": (5, 7, 9)}   # (toy, box, crystal) cycles by section; else (5, 7, 4)
+
+
+def gear(sec):
+    return GEARS.get(sec, (5, 7, 4))
+
+
 def clockwork():
-    """The three gears, mechanically straight; each section decides which gears turn. Returns the onsets for the
-    hidden melody (toy and box coinciding)."""
+    """The three gears, mechanically straight; each section decides which gears turn and at what ratio (the GEAR
+    CHANGE: the return turns the toy to a 6, a dotted-eighth hemiola against the box's 7; the full section puts the
+    crystal on a 9, three odd gears). Returns the onsets for the hidden melody (toy and box coinciding)."""
     toy_on, box_on = {}, {}
-    k = 0
-    for x in range(0, TOTAL, 5):
-        for o in (0, 3):
-            st = x + o
-            if st >= TOTAL:
-                continue
-            bar = st // S + 1
-            sec = sec_of(bar)
-            if (sec == "intro" and bar < 5) or (sec == "outro" and bar >= 54) or sec == "glitch":
+    k = j = 0
+    for name, a, z in SECTIONS:
+        lo, hi = b0(a), b0(z + 1)
+        tl, bl, xl = gear(name)
+        for x in range(lo, hi, tl):
+            for o in ((0, 3) if tl == 5 else (0, 3) if tl == 6 else (0,)):
+                st = x + o
+                if st >= hi:
+                    continue
+                bar = st // S + 1
+                if (name == "intro" and bar < 5) or (name == "outro" and bar >= 54) or name == "glitch":
+                    k += 1
+                    continue
+                pch = TOY_SEQ[k % len(TOY_SEQ)]
+                v = (58 if name in ("intro", "breakdown") else 66) + (8 if o == 0 else 0)
+                P["toy"].add(st, 1.6, nm(pch), v)
+                toy_on[st] = pch
                 k += 1
+        for x in range(lo, hi, bl):
+            for o in (0, 2, 4):
+                st = x + o
+                if st >= hi:
+                    continue
+                bar = st // S + 1
+                if (name == "intro" and bar < 3) or (name == "outro" and bar >= 56) or name == "glitch":
+                    j += 1
+                    continue
+                pch = BOX_SEQ[j % len(BOX_SEQ)]
+                P["box"].add(st, 1.8, nm(pch), (54 if name in ("intro", "breakdown") else 62) + (6 if o == 0 else 0))
+                box_on[st] = pch
+                j += 1
+        q = 0
+        for x in range(lo, hi, xl):                             # the crystal: chord tones on its own gear
+            bar = x // S + 1
+            if bar == BARS:
                 continue
-            p = TOY_SEQ[k % len(TOY_SEQ)]
-            v = (58 if sec in ("intro", "breakdown") else 66) + (8 if o == 0 else 0)
-            P["toy"].add(st, 1.6, nm(p), v)
-            toy_on[st] = p
-            k += 1
-    k = 0
-    for x in range(0, TOTAL, 7):
-        for o in (0, 2, 4):
-            st = x + o
-            if st >= TOTAL:
-                continue
-            bar = st // S + 1
-            sec = sec_of(bar)
-            if (sec == "intro" and bar < 3) or (sec == "outro" and bar >= 56) or sec == "glitch":
-                k += 1
-                continue
-            p = BOX_SEQ[k % len(BOX_SEQ)]
-            P["box"].add(st, 1.8, nm(p), (54 if sec in ("intro", "breakdown") else 62) + (6 if o == 0 else 0))
-            box_on[st] = p
-            k += 1
-    for bar in range(1, BARS + 1):                              # the crystal: the chord, one tone a quarter
-        root, iv = chord_at(bar)
-        if sec_of(bar) == "outro" and bar == BARS:
-            continue
-        for q in range(4):
-            m = 68 + ((root + iv[(q + bar) % len(iv)] - 8) % 12)
-            P["xtal"].add(b0(bar) + 4 * q, 3, nm(m), 52 if sec_of(bar) in ("intro", "breakdown") else 58)
+            root, iv = chord_at(bar)
+            m = 68 + ((root + iv[q % len(iv)] - 8) % 12)
+            P["xtal"].add(x, 3, nm(m), 52 if name in ("intro", "breakdown") else 58)
+            q += 1
     return sorted(set(toy_on) & set(box_on)), toy_on
 
 
@@ -164,9 +178,9 @@ def beat():
             P["kick"].add(a + swing(k), 1, "k", (84 if soft else 100) - (10 if k else 0))
         if not soft:
             for s in (4, 12):
-                P["snare"].add(a + s + 0.15, 1, "s", 92 + rng.randint(-6, 4))     # dragged a hair late
+                P["snare"].add(a + s, 1, "s", 92 + rng.randint(-6, 4))            # dragged late by the kit's nudge
             if rng.random() < 0.6:
-                P["snare"].add(a + swing(rng.choice([7, 11, 15])), 0.5, "g", 40 + rng.randint(0, 12))
+                P["snare"].add(a + swing(rng.choice([7, 11, 15])), 0.5, "rs", 44 + rng.randint(0, 12))
         for e in range(0, 16, 1 if sec in ("full", "return") else 2):
             if rng.random() < 0.12:
                 continue                                                         # a dropped hat
@@ -176,7 +190,7 @@ def beat():
                 P["snare"].add(a + 12 + j * 0.5, 0.5, "s", 50 + 8 * j)
         if sec == "full" and bar % 2 == 0:
             for e in range(0, 16, 2):
-                P["perc"].add(a + swing(e + 1), 0.5, "shk", 44 + rng.randint(0, 10))
+                P["perc"].add(a + swing(e + 1), 0.5, "sh", 44 + rng.randint(0, 10))
 
 
 def glitch_hail():
@@ -206,7 +220,11 @@ def harmony():
             P["bass"].add(b0(bar), 1.5 * S, nm(r), 86)
             P["bass"].add(b0(bar) + 1.5 * S + swing(2), 0.5 * S - 2.5, nm(r + 7), 70)
             P["sub"].add(b0(bar), 2 * S - 1, nm(r - 12), 90)          # the warm floor an octave under the bass
-    P["vinyl"].add(0, TOTAL, "C4", 80)
+
+
+# wM's lo-fi toolkit (bd-9ef6a7): Dilla-ish wonk on the kit, a late snare and an early kick, each bar its own swing
+KIT = ("lofi-kit play.humanize.nudge.s=22ms play.humanize.nudge.k=-8ms play.humanize.swing_drift=0.04 "
+       "play.humanize.drunk=4ms")
 
 
 def main():
@@ -222,14 +240,13 @@ def main():
         tr("box", "music-box", pan="R35", gain="-6dB", out="toys"),
         tr("xtal", "fb-crystal", pan="R10", gain="-24dB", out="toys"),
         tr("lead", "lead-tape", pan="L10", gain="-9dB", sends={"space": "-10dB"}),
-        tr("pad", "juno-pad", gain="-14dB", fx=["lp cutoff=2200"], sends={"space": "-8dB"}),
+        tr("pad", "juno-pad", gain="-14dB", fx=["lp cutoff=2200", "tape wow=9 flutter=2 seed=11"], sends={"space": "-8dB"}),
         tr("bass", "analog-bass", gain="0dB"),
         tr("sub", "sub", gain="-4dB"),
-        tr("kick", "tight-kit", out="drums", gain="4dB"),
-        tr("snare", "tight-kit", out="drums"),
-        tr("hat", "tight-kit", out="drums", gain="-6dB"),
-        tr("perc", "tight-kit", out="drums", gain="-8dB"),
-        tr("vinyl", "vinyl", gain="-22dB"),
+        tr("kick", KIT, out="drums", gain="4dB"),
+        tr("snare", KIT, out="drums"),
+        tr("hat", KIT, out="drums", gain="-6dB"),
+        tr("perc", KIT, out="drums", gain="-8dB"),
     ]
     head = [
         'about: "Chirpers - Tape Weather, track 4: Hail on a Music Box (chirper-three). Glitchy IDM-lite: a broken music box in a lo-fi beat; toy cycles of 5, 7 and 4 sixteenths, a melody made where the gears coincide, a hand-played swung beat that stutters. Generated by compose/chirpers3/src/chirpers3-t4.py."',
@@ -238,17 +255,18 @@ def main():
         'ceiling: "-0.5dB"',
         "buses:",
         '  toys: {fx: [' + ", ".join(json.dumps(f) for f in [
-            {"type": "chorus", "rate": 0.27, "depth": 0.8, "voices": 1, "mix": 1.0},             # the wow
+            "tape wow=14 flutter=3 drift=1 tone=8kHz sweep=0.6 squash=0.3 hiss=-62dB seed=4",   # the wow (wM's deck)
             {"type": "crush", "bits": 10, "rate": 22000, "mix": 0.3},
             {"type": "stutter", "slice": "1/32", "repeats": 4, "chance": 0.07, "seed": 41},
-            "lp cutoff=7k", "reverb kind=room decay=1.4s mix=0.18 predelay=10ms"]) + ']}',
+            "lp cutoff=10k", "reverb kind=room decay=1.4s mix=0.18 predelay=10ms"]) + ']}',
         '  drums: {fx: [' + ", ".join(json.dumps(f) for f in [
-            {"type": "crush", "bits": 12, "rate": 16000, "mix": 0.4},
             {"type": "stutter", "slice": "1/16", "repeats": 3, "chance": 0.08, "seed": 7},
-            "lp cutoff=6k", {"type": "tape", "drive": 0.35, "warmth": 0.5, "mix": 1},
+            "lp cutoff=10k", {"type": "tape", "drive": 0.35, "warmth": 0.5, "mix": 1},
             {"type": "compressor", "threshold": "-18dB", "ratio": 3, "attack": "8ms", "release": "120ms", "makeup": "3dB"}]) + ']}',
         '  space: {fx: ["reverb kind=hall decay=3.2s mix=1 predelay=30ms mono_below=200hz"]}',
-        'master: ' + json.dumps({"fx": [{"type": "tape", "drive": 0.2, "warmth": 0.4, "mix": 1},
+        'master: ' + json.dumps({"fx": ["tape drive=0.25 mix=0.5 squash=0.4 hiss=-56dB wow=4 flutter=1 seed=7",
+                                       "vinyl crackle=0.4 dust=0.35 noise=-62dB rumble=0.3 warp=5 wear=0.4 seed=5",
+                                       {"type": "eq", "bands": [{"kind": "peak", "cutoff": 600, "gain": "-3dB", "q": 0.8}]},
                                        "glue threshold=-24dB ratio=3 attack=15ms release=200ms makeup=3dB",
                                        {"type": "gain", "gain": "11dB"}]}),
         "tracks:",
