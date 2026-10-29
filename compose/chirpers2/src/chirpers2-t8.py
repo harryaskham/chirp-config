@@ -124,6 +124,14 @@ R20 = set(filter(None, os.environ.get("T8_R20", "H6").split(","))) - {"none"}
 R21 = set(filter(None, os.environ.get("T8_R21", "W5").split(","))) - {"none"}
 WALK5 = [(63, "maj7#11"), (67, "m9"), (64, "maj7#11"), (68, "m9"), (65, "maj7#11"), (57, "m9"), (66, "maj7#11"),
          (58, "m9")]
+# Round 22 (v22): Y = the DYNAMIC ARC redrawn from measured section RMS: the vibes solo (-10.7 dB) was as loud as the
+# peak (-10.6) and the intimate duet (-11.8) louder than the bridge (-13.1). The solo and the trades come down and
+# the duet becomes a whisper, so the peak is the top of the piece.
+R22 = set(filter(None, os.environ.get("T8_R22", "Y").split(","))) - {"none"}
+if "Y" in R22:
+    LEVEL_Y = {"solo": 66, "trades": 72, "duet": 46}
+else:
+    LEVEL_Y = {}
 SUBJECT = [(0, 1), (3, 1), (7, 1), (6, 2), (2, 2), (5, 1), (1, 1), (4, 1), (0, 2)]  # t7: semitones, eighths
 BAR = 6.0  # a 12/8 bar, in quarter beats
 
@@ -198,6 +206,7 @@ FORM = [("cell", 4), ("phase", 12 if "C" in R9 else 16), ("melody", 16)] + ([("s
        [("bridge", 16)] + ([("blur", 4)] if "B" in R4 else []) + ([("duet", 4)] if "D" in R10 else []) + [("peak", 16), ("unison", 8)] + ([("chorale", 4)] if "R" in R16 else []) + [("coda", 6)]
 LEVEL = {"cell": 70, "phase": 76, "melody": 82, "bridge": 74, "peak": 96, "unison": 80, "coda": 60, "solo": 84,
          "blur": 76, "trades": 86, "duet": 70, "chorale": 66}
+LEVEL.update(LEVEL_Y)
 if "D" in R2:
     LEVEL.update({"bridge": 62, "peak": 104, "unison": 76})
 
