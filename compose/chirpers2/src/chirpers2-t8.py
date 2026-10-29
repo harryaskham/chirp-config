@@ -56,6 +56,11 @@ PEAK = [(63, "maj7#11"), (67, "maj7#11"), (59, "maj7#11"), (58, "13sus")]  # Eb4
 # (chords every two bars). In the marimba's bars the high marimba keeps the cell half a bar out of phase and the
 # low one solos: a quintuplet run up, dotted eighths down, a roll on a colour tone.
 R6 = set(filter(None, os.environ.get("T8_R6", "X").split(","))) - {"none"}
+# Round 7 (v7): M = the melody section's second half REHARMONISED, a chord a bar: a chromatic descent Abmaj9 | Gm9 |
+# Gbmaj7#11 | Fm9 (the third phrase; the fourth keeps Bb13sus: a turnaround there unsettled the form on some seeds);
+# the vibes' palindrome takes each note's own bar's chord, so one mirror is heard over moving harmony.
+R7 = set(filter(None, os.environ.get("T8_R7", "M").split(","))) - {"none"}
+REHARM = [(68, "maj9"), (67, "m9"), (66, "maj7#11"), (65, "m9"), (58, "13sus"), (58, "7alt"), (60, "m9"), (58, "7alt")]
 SUBJECT = [(0, 1), (3, 1), (7, 1), (6, 2), (2, 2), (5, 1), (1, 1), (4, 1), (0, 2)]  # t7: semitones, eighths
 BAR = 6.0  # a 12/8 bar, in quarter beats
 
@@ -67,7 +72,7 @@ def nm(m):
 
 
 SCALES = {"maj7#11": [0, 2, 4, 6, 7, 9, 11], "m9": [0, 2, 3, 5, 7, 9, 10], "maj9": [0, 2, 4, 5, 7, 9, 11],
-          "13sus": [0, 2, 4, 5, 7, 9, 10]}
+          "13sus": [0, 2, 4, 5, 7, 9, 10], "7alt": [0, 1, 3, 4, 6, 8, 10]}
 HOME = [(63, "maj7#11"), (60, "m9"), (68, "maj9"), (58, "13sus")]     # Eb4, C4, Ab4, Bb3
 BRIDGE = [(66, "maj7#11"), (63, "m9"), (59, "maj9"), (61, "13sus")]   # Gb4, Eb4, B3, Db4
 
@@ -151,6 +156,8 @@ def build():
         chord = prog[(i // 4) % 4] if sec not in ("cell", "coda") else HOME[0]
         if sec in ("solo", "trades"):
             chord = HOME[(i // 2) % 4]
+        if sec == "melody" and "M" in R7 and 8 <= i < 12:
+            chord = REHARM[i - 8]
         mar = sec == "trades" and (i // 2) % 2 == 1  # the low marimba's turn
         if sec == "blur":
             chord = HOME[0] if i < 2 else HOME[3]
@@ -205,13 +212,17 @@ def build():
             half = HALVES[(i // 4 + (2 if sec == "peak" else 0)) % 4]
             phrase = palindrome(half)
             at, mid = start, len(phrase) // 2
+            ph_chord = chord
             for j, (d, ln) in enumerate(phrase):
+                if sec == "melody" and "M" in R7 and i == 8:  # each note takes its own bar's chord
+                    chord = REHARM[min(3, int((at - start) // BAR))]
                 swell = 12 - 4 * abs(j - mid)  # dynamics mirror too: up to the centre, back down
                 head = nm(vr(deg(chord, d) + 12))
                 if sec == "peak" and "T" in R3:  # four mallets: a diatonic third under the line
                     head += "," + nm(vr(deg(chord, d - 2) + 12))
                 T["vib"].add(at, ln / 2 * 0.98, head, v - 4 + swell)
                 at += ln / 2
+            chord = ph_chord
         elif sec == "bridge" and i % 4 == 0:
             for j, d in enumerate([4, 6, 9, 8, 8, 9, 6, 4]):
                 T["vib"].add(start + j * 3, 2.9, nm(vr(deg(chord, d) + 12)), v - 10 + (6 if j in (3, 4) else 0))
