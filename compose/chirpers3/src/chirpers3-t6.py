@@ -136,6 +136,10 @@ R15 = set(filter(None, os.environ.get("T6_R15", "O").split(","))) - {"none"}
 # throw now also feed a bus that comes back into itself every dotted quarter at -6 dB through a lo-pass, a worn tape
 # and a limiter (feedback routing, engine PR #35): each echo darker and more worn than the last.
 R16 = set(filter(None, os.environ.get("T6_R16", "B,F").split(","))) - {"none"}
+# Round 17 (v17), wM's pump: U = THE ROOM BREATHES WITH THE KICK: the keys and the vibes dip on every felt kick
+# (`pump` keyed to drums.k, so the duck follows the kick's early push) and swell back over two-thirds of a beat
+# (release 500 ms, curve 0.8: a soft breath, not a click-duck), the old lo-fi sidechain made from notes, not audio.
+R17 = set(filter(None, os.environ.get("T6_R17", "U").split(","))) - {"none"}
 FORM = [("intro", 4), ("A", 16), ("switch", 8), ("A2", 16), ("drop", 4), ("A3", 12), ("outro", 4)]
 LEVEL = {"intro": 58, "A": 72, "switch": 66, "A2": 78, "drop": 56, "A3": 80, "outro": 56}
 DRUMS = {"A", "switch", "A2", "A3"}
@@ -490,6 +494,11 @@ def main():
              "compose/chirpers3/src/chirpers3-t6.py. Wonky brush drag: bedroom-jazz lo-fi on a physical soft-mallet "
              "and brush kit, unquantised (kick early, snare late, brushes drifting), tape-warped wurli chords sinking "
              f"a semitone a bar, a lazy fretless, dusty vibes, crackle and hiss. 78 bpm. Sections: {secs}.")
+    if "U" in R17:
+        for tr in tracks:
+            if tr["name"] in ("keys", "vibes"):
+                tr["fx"] = [{"type": "pump", "on": "drums.k", "depth": "-7dB" if tr["name"] == "keys" else "-5dB",
+                             "attack": "8ms", "release": "500ms", "curve": 0.8}] + tr["fx"]
     if "F" in R16:
         for tr in tracks:
             if tr["name"] in ("dub", "vibes-dub"):
