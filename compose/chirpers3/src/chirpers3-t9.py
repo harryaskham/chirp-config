@@ -29,7 +29,8 @@ V3 = os.environ.get("T9_V3", "1") == "1"
 CHOP = os.environ.get("T9_CHOP", "catch")
 RIMLATE = os.environ.get("T9_RIMLATE", "45")  # the rim click's drag behind the beat (ms)
 ANSWER = os.environ.get("T9_ANSWER", "1") == "1"
-DENS = os.environ.get("T9_DENS", "1") == "1"  # density contrast: the bridge sparer (two plucks a bar, no rim), the last A busier (pandeiro jingles on the off-16ths)
+DENS = os.environ.get("T9_DENS", "1") == "1"
+WEAR = os.environ.get("T9_WEAR", "1") == "1"  # the tape wears (chirper-two's deck warp, pin 220ef336): harder through the bridge (1.4), and the side running out over the outro (1 -> 2)  # density contrast: the bridge sparer (two plucks a bar, no rim), the last A busier (pandeiro jingles on the off-16ths)
 IND_DB = os.environ.get("T9_INDDB", "-13")
 INDICATOR = os.environ.get("T9_INDICATOR", "")  # the car's indicator ticking through the intro and the outro (tick-tock every 380 ms, out of time with the bossa); "" off, "io" intro+outro, "all" the whole way, quieter  # the last A: the guitar answers the flute at every phrase end (a falling fill on the 4th bar's last two beats)  # wM's MPC chop: "catch" = the cassette chews the bar before THE CATCH (master); "both" = and the guitar chopped in the outro's last four bars  # the form made audible: a master dynamics lane by section and a STOP at every seam (the band stops mid-bar, the rim fills)  # the draft's fixes: an upright bass (borrowed from Odd Hours t1), the master off the flute's presence and onto the lows, the bridge without the percussion
 S = 0.25
@@ -225,6 +226,15 @@ def song():
     T, times, total = build()
     sc = lambda n: " | ".join(T[n])  # noqa: E731
     deck = "tape drive=0.15 mix=1 wow=18 flutter=3 drift=1.5 tone=6000 sweep=0.7 seed=9"
+    wear_auto = {}
+    if WEAR:
+        b0, b1 = times["B"], times["B"] + 8 * 4 * 60 / BPM
+        o0 = times["outro"]
+        wr = [["0s", 1], [f"{b0 - 0.5:.2f}s", 1], [f"{b0 + 0.5:.2f}s", 1.4], [f"{b1 - 0.5:.2f}s", 1.4], [f"{b1 + 0.5:.2f}s", 1],
+              [f"{o0:.2f}s", 1], [f"{total:.2f}s", 2], [f"{total + 8:.2f}s", 2]]
+        deck = {"type": "tape", "drive": 0.15, "mix": 1, "wow": 18, "flutter": 3, "drift": 1.5, "tone": 6000, "sweep": 0.7, "seed": 9,
+                "warp": {"value": 0, "mod": [{"src": "auto.wr", "amount": 1}]}}
+        wear_auto = {"wr": {"points": wr}}
     bar = 4 * 60 / BPM
     c0 = times["catch"]
     catch = [["0s", 0], [f"{c0:.3f}s", 0], [f"{c0 + bar * 0.6:.3f}s", -1.5], [f"{c0 + bar * 1.4:.3f}s", -0.7], [f"{c0 + 2 * bar:.3f}s", 0], [f"{total + 8:.2f}s", 0]]
@@ -250,6 +260,11 @@ def song():
                 k += 1
         ind = [{"name": "indicator", "patch": "room-kit", "gain": "-18dB" if INDICATOR == "all" else f"{IND_DB}dB", "pan": -0.6,
                 "fx": [{"type": "eq", "bands": ["hp cutoff=900", "peak cutoff=2500 q=1 gain=3dB"]}, deck], "score": " ".join(toks)}]
+    def wa(tr):
+        if wear_auto and deck in tr.get("fx", []):
+            tr = dict(tr)
+            tr["auto"] = {**tr.get("auto", {}), **wear_auto}
+        return tr
     tracks = ind + [
         {"name": "guitar", "patch": "nylon", "pan": -0.15, "fx": [deck] + gchop, **({"auto": {"gcp": {"points": gcp}}} if gchop else {}), "sends": {"room": "-12dB"}, "score": sc("guitar")},
         {"name": "thumb", "patch": "nylon", "gain": "2dB", "pan": -0.1, "fx": [deck], "score": sc("thumb")},
@@ -261,10 +276,12 @@ def song():
     ]
     if V2:
         tracks.append({"name": "bass", "patch": "upright", "gain": "4dB", "score": sc("bass")})
+    tracks = [wa(t) for t in tracks]
     if DENS:
         tracks.append({"name": "pand", "patch": "samba-kit", "gain": "-12dB", "pan": 0.35, "score": f"swing16={os.environ.get('T9_PANDSW', '0.56')} " + sc("pand")})
     if ANSWER:
         tracks.append({"name": "gfill", "patch": "nylon", "gain": "-2dB", "pan": 0.25, "fx": [deck], "sends": {"room": "-10dB"}, "score": sc("gfill")})
+    tracks = [wa(t) for t in tracks]
     return {
         "about": ("Chirpers - Tape Weather, track 9 (original composition, chirper-zero; generator "
                   "compose/chirpers3/src/chirpers3-t9.py). Cassette bossa: an original bossa nova in D at 120 bpm, played on "
