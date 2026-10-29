@@ -5904,7 +5904,7 @@
     {
       "id": "chirpers3-t10",
       "song": "songs/chirpers3-t10.yaml",
-      "reference": "Chirpers — Track 10 (untitled)",
+      "reference": "Chirpers — When the Tape Runs Out",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers3-t10 OUT.wav",
@@ -5920,7 +5920,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "Tape Weather",
-        "title": "Track 10 (untitled)",
+        "title": "When the Tape Runs Out",
         "track": 10,
         "year": 2026
       },

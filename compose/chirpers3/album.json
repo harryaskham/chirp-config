@@ -139,7 +139,8 @@
         420
       ],
       "brief": "Closes the album. Style, groove, tempo and line-up are yours: declare them in compose/chirpers3/styles.md, different from the tracks already claimed.",
-      "id": "chirpers3-t10"
+      "id": "chirpers3-t10",
+      "title": "When the Tape Runs Out"
     }
   ],
   "named_by": "harry@pocket4-nixos",
