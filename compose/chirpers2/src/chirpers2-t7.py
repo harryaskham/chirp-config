@@ -20,7 +20,8 @@ GENTLE GIANT / ZAPPA COUNTERPOINT: a through-composed chamber-prog piece where t
                  the hushed part is a SWINGING BRUSH TRIO: flute and jazz guitar trade swung bars, a Rhodes through
                  wM's Bassman stack comps, the bass walks, chirper-two's brushes; the horns take the straight wake-up;
     6 STRETTO    subject entries every two eighths in every voice, the climax, a whole tone up (E) after a B7alt pivot;
-    7 CODA       the subject in augmentation (bass + flute), then the final chord built one hocketed note at a time.
+    7 CODA       THE ANSWER to chirper-two's t8: their 12-eighth CELL on two marimbas phasing an eighth a bar, the
+                 subject augmented bass -> flute, the clock across; then the final chord built one hocketed note at a time.
 - KIT: prog-kit, groupings follow each meter (7 = 2+2+3 or 3+2+2 alternating bar by bar, 5 = 3+2 / 2+3, 9 = 2+2+2+3,
   6 = 3+3, 8 = 3+3+2): kick on group starts, snare on the last group, hats on the eighths.
 
@@ -81,7 +82,7 @@ class Part:
 
 
 P = {k: Part() for k in ("mar", "flute", "tpt", "sax", "gtr", "keys", "bass", "kick", "snare", "hat", "toms", "ride",
-                         "clock", "sub", "brush", "tap", "rhodes", "ttom")}
+                         "clock", "sub", "brush", "tap", "rhodes", "ttom", "mar2")}
 BARS = []          # (start eighths, length eighths, section, index in section)
 rng = random.Random(7)
 
@@ -403,14 +404,29 @@ def stretto(t):
 
 
 # ---------- 7 CODA ----------
+T8_CELL = [0, 4, 8, 4, 2, 4, 5, 4, 1, 4, 2, 6]      # chirper-two's CELL from t8 (Mallet Chamber in Phase), borrowed
+LYDIAN = [0, 2, 4, 6, 7, 9, 11]                    # D lydian: its G# is also a note of the subject
+
+
+def lyd(d, base):
+    return base + LYDIAN[d % 7] + 12 * (d // 7)
+
+
 def coda(t):
+    """THE ANSWER (to chirper-two's t8, which sings this subject in its bridge): four bars of 12/8. Their CELL turns on a
+    low marimba in D lydian while a second marimba plays it an eighth further ahead each bar (their phasing, compressed);
+    the subject, augmented, passes from the bass to the flute; the clock's fives tick across their twelves."""
     line(P["bass"], t, SUBJ, D4 - 24, 92, scale=2.0)
-    line(P["flute"], t, SUBJ, D4 + 12, 80, scale=2.0)
-    for i in range(2):
-        bar(t + 12 * i, 12, "coda", i)
-        kit_bar(t + 12 * i, 12, i, 80)
-        harmony_bar(t + 12 * i, 12, 7 * i, 70, bass=False)
-    t += 24
+    line(P["flute"], t + 24, SUBJ, D4 + 12, 84, scale=2.0)
+    for i in range(4):
+        st = t + 12 * i
+        bar(st, 12, "coda", i)
+        kit_bar(st, 12, i, 76 + 2 * i)
+        harmony_bar(st, 12, 7 * i, 64, bass=False, stabs=(i % 2 == 0))
+        for e, d in enumerate(T8_CELL):
+            P["mar"].add(st + e, 0.9, nm(lyd(d, D4 - 12)), 74 + (8 if e in (0, 6) else 0))
+            P["mar2"].add(st + e, 0.9, nm(lyd(T8_CELL[(e + i) % 12], D4)), 66 + (8 if e in (0, 6) else 0))
+    t += 48
     stack = [("bass", D4 - 24), ("gtr", D4 - 12 + 3), ("sax", D4 - 12 + 7), ("keys", D4 + 6), ("tpt", D4 + 2),
              ("mar", D4 + 12 + 5), ("flute", D4 + 12 + 1)]               # the subject's pitch set, one note an eighth
     for j, (who, m) in enumerate(stack):
@@ -426,8 +442,10 @@ def clock(spans):
     every fourth tick: a gear that turns against every meter (3 vs 5 vs 7 under cross purposes) and lands somewhere new
     in each bar. It ticks through the fugue and cross purposes only, so the other sections keep their own density."""
     k = 0
-    for name, v0 in (("fugue", 64), ("cross", 72)):           # where it is a third party to the argument
+    for name, v0 in (("fugue", 64), ("cross", 72), ("coda", 58)):  # where it is a third party to the argument
         a, z = spans[name]
+        if name == "coda":
+            z = a + 48                                            # across the answer, not the final stack
         x = a
         key = CROSS_KEY if name == "cross" else 0
         while x < z - 0.25:
@@ -501,6 +519,7 @@ def main():
     tr = lambda name, patch, **kw: dict({"name": name, "patch": patch, "score": P[name].score(total)}, **kw)
     tracks = [
         tr("mar", "c3-marimba", pan="L40", gain="-4dB", sends={"room": "-10dB"}),
+        tr("mar2", "c3-marimba", pan="R45", gain="-6dB", sends={"room": "-10dB"}),     # the answer's phasing marimba
         tr("flute", "mellotron-flute", pan="R40", gain="-6dB", sends={"room": "-10dB"}),
         tr("tpt", "trumpet-mute", pan="L20", gain="-5dB", sends={"room": "-12dB"}),
         tr("sax", "tenor-sax-synth", pan="R20", gain="-5dB", sends={"room": "-12dB"}),

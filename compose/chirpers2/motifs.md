@@ -36,6 +36,10 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
   fourth: a gear turning through the fugue and cross purposes (3 vs 5 vs 7), landing somewhere new in each bar.
 - **THE LIFT** (since v8): the trades' last bar pivots on B7alt and the STRETTO's seven entries climb a whole tone, to
   E, for the climax; the coda's augmentation steps home to D.
+- **THE ANSWER** (since v10, the coda; answering t8, which sings this subject in its bridge): chirper-two's t8 CELL
+  (`0 4 8 4 2 4 | 5 4 1 4 2 6`, BORROWED) in D lydian on a low marimba, a second marimba playing it an eighth further
+  ahead each bar (t8's phasing, compressed into four bars of 12/8), the subject augmented passing bass -> flute, and
+  this track's 5-sixteenth CLOCK ticking across the twelves.
 - **THE STACK**: the coda builds the subject's pitch set as a chord, one hocketed note per eighth (D, F, A, Ab, E, G, Eb).
 
 
