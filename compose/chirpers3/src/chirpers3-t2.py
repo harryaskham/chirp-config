@@ -68,14 +68,24 @@ def build():
         # ---- the half-time break (swung eighths, snare on 3, ghost notes, a lazy open hat) ----
         if beat:
             sw = lambda e: (e // 2) * 1.0 + (0.58 if e % 2 else 0.0)        # swung eighths
-            for e, v in ((0, 110), (3, 92), (5, 96)):
+            # THE BREAK BREATHES BAR BY BAR (a four-bar drum phrase): bar 1 the plain break; bar 2 the kick pushes
+            # (an extra kick on 2-and, the 3-and kick dropped); bar 3 the ghosts thicken and the hats open on the 4;
+            # bar 4 ends in a fill - the snare doubled in sixteenths across beat 4 into the next phrase
+            ph = b['i'] % 4
+            kicks = {0: ((0, 110), (3, 92), (5, 96)), 1: ((0, 110), (3, 92), (4, 88)), 2: ((0, 110), (3, 92), (5, 96)), 3: ((0, 110), (3, 92))}[ph]
+            for e, v in kicks:
                 kit.append((t0 + sw(e) + ms(-8 + 4 * rnd()), 'k', 0.4, v))
             kit.append((t0 + 2.0 + ms(28), 's', 0.5, 112))
-            for e in (1, 6, 7):
+            ghosts = (1, 6, 7) if ph != 2 else (1, 2, 5, 6, 7)
+            for e in ghosts:
                 kit.append((t0 + sw(e) + ms(20 + 8 * rnd()), 's', 0.2, 44 + int(8 * rnd())))
             for e in range(8):
                 if e in (3, 5) and s in ('A', 'A2'): continue
-                kit.append((t0 + sw(e) + ms(6 * rnd()), 'oh' if e == 7 and b['i'] % 4 == 3 else 'h', 0.25, 80 if e % 2 == 0 else 62))
+                if ph == 3 and e >= 6: continue
+                kit.append((t0 + sw(e) + ms(6 * rnd()), 'oh' if (e == 7 and ph == 2) or (e == 5 and ph == 1) else 'h', 0.25, 80 if e % 2 == 0 else 62))
+            if ph == 3:
+                for q in range(4):
+                    kit.append((t0 + 3.0 + q * 0.25 + ms(10), 's', 0.2, 70 + 10 * q))
         # ---- strings: the chord, its top line the descending voice ----
         if s != 'outro' or b['i'] < 3:
             for j, m in enumerate(ch):

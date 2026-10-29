@@ -127,6 +127,7 @@ Generator `compose/chirpers3/src/chirpers3-t2.py`. Trip-hop noir, 72 bpm half-ti
 - **THE LONG DESCENT**: Cm9 - Bb6 - Abmaj7 - G7b9 (i bVII bVI V) spread over the whole song, the strings' top voice falling C Bb Ab G; the last four bars of B2 lift a minor third (Ebm9 ... Bb7b9).
 - **THE CLIMB**: the gliding boc-lead (180 ms glide, each note scooped from a step below) rises G Ab Bb B against the descent, an octave up in B2.
 - **HALF-TIME BREAK**: lofi-kit pitched down 3 semitones; swung eighths (58%); kick 1, 2&, 3&; snare on 3, 28 ms late; ghost snares on 1&, 4, 4&.
+- **FOUR-BAR DRUM PHRASE** (v7): bar 1 the plain break; bar 2 the kick pushes (2-and in, 3-and out) with an open hat; bar 3 the ghost snares thicken and the hat opens on the 4; bar 4 drops its last hats for a sixteenth snare fill across beat 4.
 - **THE DROP**: one bar of strings and crackle alone before each return.
 - **THE CELLO** (v3, B and B2): a counter-line rising against the strings' fall - Eb3, F3, G3, then Ab3 (the b9) over the G7 - one note a bar with a neighbour a step below on beat 4.
 - **THE RESAMPLE** (v4, wM's chop fx on the master): B's last bar and B2's last two bars cut the whole band into eight slices of its own last bar and replay them out of order (0 0 r3 2 . 5 r7 _: repeats, reversals, a live slice, a dropped slice) before each drop.
