@@ -24,25 +24,27 @@ ROOT = os.path.expanduser("~/.config/chirp")
 OUT = os.environ.get("T9_OUT") or os.path.join(ROOT, "songs", "chirpers3-t9.yaml")
 BPM = 120
 MG = float(os.environ.get("T9_MG", "11"))
-V2 = os.environ.get("T9_V2", "1") == "1"
-V3 = os.environ.get("T9_V3", "1") == "1"
-CHOP = os.environ.get("T9_CHOP", "catch")
+V2 = os.environ.get("T9_V2", "1") == "1"  # the draft's fixes: an upright bass (borrowed from Odd Hours t1), the master off the flute's presence and onto the lows, the bridge without the percussion
+V3 = os.environ.get("T9_V3", "1") == "1"  # the form made audible: a master dynamics lane by section and a STOP at every seam (the band stops mid-bar, the rim fills)
+CHOP = os.environ.get("T9_CHOP", "catch")  # wM's MPC chop: "catch" = the cassette chews the bar before THE CATCH (master); "both" = and the guitar chopped in the outro's last four bars
 RIMLATE = os.environ.get("T9_RIMLATE", "45")  # the rim click's drag behind the beat (ms)
-ANSWER = os.environ.get("T9_ANSWER", "1") == "1"
-DENS = os.environ.get("T9_DENS", "1") == "1"
-WEAR = os.environ.get("T9_WEAR", "1") == "1"
-TSTOP = os.environ.get("T9_TSTOP", "both")
-LIVEGTR = os.environ.get("T9_LIVEGTR", "0") in ("1", "pan")
-LIVEKIND = os.environ.get("T9_LIVEGTR", "0")
-HAZE = os.environ.get("T9_HAZE", "1") == "1"
-PAND3 = os.environ.get("T9_PAND3", "0") == "1"
-SURDRAG = os.environ.get("T9_SURDRAG", "")
-GZSW = os.environ.get("T9_GZSW", "0.56")
-GZ3 = os.environ.get("T9_GZ3", "64")  # the ganza accents a 16th-level 3+3+2 (0 3 6 | 8 11 14), the partido-alto lean: accent velocity, e.g. 64  # the ganza's 16th swing (and the pandeiro's, unless T9_PANDSW): 0.56 near-straight; ~0.6 leans into the samba swing
-FHARM = os.environ.get("T9_FHARM", "1") == "1"
-EPIANO = os.environ.get("T9_EPIANO", "tine")  # wM's physical pickup e-piano in place of the rhodes (the bridge pad and the instrumental A): "tine" / "reed"  # the last A's last eight bars: a second flute a diatonic third under the tune (D major / the chord's tones)  # the open surdo (the dotted pulse on 6 and 14) dragged late by hand (ms)  # the last A's pandeiro on a dotted-eighth cycle (every 3 sixteenths, across the bar lines) instead of every off-16th  # wM's cloud (granular) as heat haze: the bridge's flute and rhodes are sent into a shimmering grain cloud  # "1": pan + tone per pluck; "pan": a small place per pluck only  # per-voice fx on the nylon (pin 3eee6a72): every pluck its own small place and its own tone  # wM's tapestop on the master: "end" = the side runs out and the deck stops over the outro's last two bars; "both" = and the catch ends in a stop that spins back up into the last A  # the tape wears (chirper-two's deck warp, pin 220ef336): harder through the bridge (1.4), and the side running out over the outro (1 -> 2)  # density contrast: the bridge sparer (two plucks a bar, no rim), the last A busier (pandeiro jingles on the off-16ths)
+ANSWER = os.environ.get("T9_ANSWER", "1") == "1"  # the last A: the guitar answers the flute at every phrase end (a falling fill on the 4th bar's last two beats)
+DENS = os.environ.get("T9_DENS", "1") == "1"  # density contrast: the bridge sparer (two plucks a bar, no rim), the last A busier (pandeiro jingles on the off-16ths)
+WEAR = os.environ.get("T9_WEAR", "1") == "1"  # the tape wears (chirper-two's deck warp, pin 220ef336): harder through the bridge (1.4), and the side running out over the outro (1 -> 2)
+TSTOP = os.environ.get("T9_TSTOP", "both")  # wM's tapestop on the master: "end" = the side runs out and the deck stops over the outro's last two bars; "both" = and the catch ends in a stop that spins back up into the last A
+LIVEGTR = os.environ.get("T9_LIVEGTR", "0") in ("1", "pan")  # per-voice fx on the nylon (pin 3eee6a72): every pluck its own small place and its own tone
+LIVEKIND = os.environ.get("T9_LIVEGTR", "0")  # "1": pan + tone per pluck; "pan": a small place per pluck only
+HAZE = os.environ.get("T9_HAZE", "1") == "1"  # wM's cloud (granular) as heat haze: the bridge's flute and rhodes are sent into a shimmering grain cloud
+PAND3 = os.environ.get("T9_PAND3", "0") == "1"  # the last A's pandeiro on a dotted-eighth cycle (every 3 sixteenths, across the bar lines) instead of every off-16th
+SURDRAG = os.environ.get("T9_SURDRAG", "")  # the open surdo (the dotted pulse on 6 and 14) dragged late by hand (ms)
+GZSW = os.environ.get("T9_GZSW", "0.56")  # the ganza's 16th swing (and the pandeiro's, unless T9_PANDSW): 0.56 near-straight; ~0.6 leans into the samba swing
+GZ3 = os.environ.get("T9_GZ3", "64")  # the ganza accents a 16th-level 3+3+2 (0 3 6 | 8 11 14), the partido-alto lean: accent velocity, e.g. 64
+FHARM = os.environ.get("T9_FHARM", "1") == "1"  # the last A's last eight bars: a second flute a diatonic third under the tune (D major / the chord's tones)
+EPIANO = os.environ.get("T9_EPIANO", "tine")  # wM's physical pickup e-piano in place of the rhodes (the bridge pad and the instrumental A): "tine" / "reed"
 IND_DB = os.environ.get("T9_INDDB", "-13")
-INDICATOR = os.environ.get("T9_INDICATOR", "")  # the car's indicator ticking through the intro and the outro (tick-tock every 380 ms, out of time with the bossa); "" off, "io" intro+outro, "all" the whole way, quieter  # the last A: the guitar answers the flute at every phrase end (a falling fill on the 4th bar's last two beats)  # wM's MPC chop: "catch" = the cassette chews the bar before THE CATCH (master); "both" = and the guitar chopped in the outro's last four bars  # the form made audible: a master dynamics lane by section and a STOP at every seam (the band stops mid-bar, the rim fills)  # the draft's fixes: an upright bass (borrowed from Odd Hours t1), the master off the flute's presence and onto the lows, the bridge without the percussion
+INDICATOR = os.environ.get("T9_INDICATOR", "")  # the car's indicator ticking through the intro and the outro (tick-tock every 380 ms, out of time with the bossa); "" off, "io" intro+outro, "all" the whole way, quieter
+GDRAG = os.environ.get("T9_GDRAG", "40")  # the comping guitar laid back: the whole part dragged late by hand (ms), the bossa's lazy right hand (chirper-three's note)
+CODA = os.environ.get("T9_CODA", "")  # the side runs out but the car drives on: after the deck stops, the indicator ticks over the road's rumble; "road" = ticks + rumble, "tick" = ticks only, "rumble" = the road alone, "beat" = ticks on the beat (500 ms) + rumble
 S = 0.25
 
 NOTE = {"C": 0, "C#": 1, "Db": 1, "D": 2, "D#": 3, "Eb": 3, "E": 4, "F": 5, "F#": 6, "Gb": 6, "G": 7, "G#": 8, "Ab": 8,
@@ -246,7 +248,8 @@ def ts_lane(times, total, bar):
     if TSTOP == "both":
         c1 = times["catch"] + 2 * bar - 60 / BPM  # the catch's last beat: a stop, released on the downbeat (it spins back up)
         pts += [[f"{c1 - 0.02:.3f}s", 0], [f"{c1:.3f}s", 1], [f"{c1 + 60 / BPM - 0.02:.3f}s", 1], [f"{c1 + 60 / BPM:.3f}s", 0]]
-    pts += [[f"{end0 - 0.02:.3f}s", 0], [f"{end0:.3f}s", 1], [f"{total + 8:.2f}s", 1]]
+    pts += [[f"{end0 - 0.02:.3f}s", 0], [f"{end0:.3f}s", 1]]
+    pts += [[f"{total - 0.02:.3f}s", 1], [f"{total:.3f}s", 0], [f"{total + 8:.2f}s", 0]] if CODA else [[f"{total + 8:.2f}s", 1]]
     return pts
 
 
@@ -298,13 +301,25 @@ def song():
                 k += 1
         ind = [{"name": "indicator", "patch": "room-kit", "gain": "-18dB" if INDICATOR == "all" else f"{IND_DB}dB", "pan": -0.6,
                 "fx": [{"type": "eq", "bands": ["hp cutoff=900", "peak cutoff=2500 q=1 gain=3dB"]}, deck], "score": " ".join(toks)}]
+    if CODA:  # after the deck stops (total), half a second of nothing, then four seconds of the car
+        tick = 500 if CODA == "beat" else 380
+        toks = [f"R/{int(round((total + 0.5) * 1000))}ms"] + [f"{'wb' if k % 2 == 0 else 'wbl'}/{tick}ms@{58 - k if k % 2 == 0 else 50 - k}" for k in range(4000 // tick + 1)]
+        tracks_coda = [{"name": "cindicator", "patch": "room-kit", "gain": f"{IND_DB}dB", "pan": -0.6,
+                        "fx": [{"type": "eq", "bands": ["hp cutoff=900", "peak cutoff=2500 q=1 gain=3dB"]}], "score": " ".join(toks)}]
+        if CODA == "rumble":
+            tracks_coda = []
+        if CODA in ("road", "rumble", "beat"):
+            tracks_coda.append({"name": "road", "patch": "vinyl", "gain": "-8dB",
+                                "fx": [{"type": "filter", "kind": "lowpass", "cutoff": 320, "q": 0.7}],
+                                "score": f"R/{int(round((total + 0.3) * 1000))}ms C4/4400ms@64"})
     def wa(tr):
         if wear_auto and deck in tr.get("fx", []):
             tr = dict(tr)
             tr["auto"] = {**tr.get("auto", {}), **wear_auto}
         return tr
     tracks = ind + [
-        {"name": "guitar", "patch": "nylon", "pan": -0.15, "fx": [deck] + gchop, **({"auto": {"gcp": {"points": gcp}}} if gchop else {}), "sends": {"room": "-12dB"}, "score": sc("guitar")},
+        {"name": "guitar", "patch": "nylon", "pan": -0.15, "fx": [deck] + gchop, **({"auto": {"gcp": {"points": gcp}}} if gchop else {}), "sends": {"room": "-12dB"},
+         "score": (f"R/{GDRAG}ms " if GDRAG else "") + sc("guitar")},
         {"name": "thumb", "patch": "nylon", "gain": "2dB", "pan": -0.1, "fx": [deck], "score": sc("thumb")},
         {"name": "perc", "patch": "samba-kit" + (f" play.humanize.nudge.sd={SURDRAG}ms" if SURDRAG else ""), "gain": "-10dB", "pan": 0.2, "score": f"swing16={GZSW} " + sc("perc")},
         {"name": "rim", "patch": f"room-kit play.humanize.nudge.so={RIMLATE}ms", "gain": "-12dB", "pan": 0.3, "score": sc("rim")},
@@ -334,7 +349,7 @@ def song():
                   "compose/chirpers3/src/chirpers3-t9.py). Cassette bossa: an original bossa nova in D at 120 bpm, played on "
                   "a song-local nylon guitar, mellotron flute, rhodes, surdo and ganza, through a tape deck pushed hard "
                   "and on vinyl; once, the cassette catches."),
-        "tempo": BPM, "ceiling": "-0.3dB", "tail": "4s", "feel": {"drift": "5ms", "drift_bars": 4},
+        "tempo": BPM, "ceiling": "-0.3dB", "tail": "1s" if CODA else "4s", "feel": {"drift": "5ms", "drift_bars": 4},
         "patches": {"nylon": ({**NYLON, "synth": {**NYLON["synth"], "fx": (LIVE_FX if LIVEKIND == "1" else
                                                                        [{"type": "pan", "pan": {"value": 0, "mod": [{"src": "rand", "amount": 0.25}]}}])}}
                               if LIVEGTR else NYLON), **({"upright": upright} if V2 else {})},
@@ -352,7 +367,7 @@ def song():
                                                                       "stop": {"value": 0, "mod": [{"src": "auto.ts", "amount": 1}]}}] if TSTOP else []) + ([{"type": "chop", "slices": 8, "pattern": "0 r1 2 2 _ 5 r6 7",
                                                                        "mix": {"value": 0, "mod": [{"src": "auto.cp", "amount": 1}]}}] if CHOP else []) + ([{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}}] if V3 else []),
                    "auto": {**({"ts": {"points": ts_lane(times, total, bar)}} if TSTOP else {}), "cat": {"points": catch}, "cm": {"points": cm}, **({"cp": {"points": cm}} if CHOP else {}), **({"dyn": {"points": dyn_lane(times, total)}} if V3 else {})}},
-        "tracks": tracks,
+        "tracks": tracks + (tracks_coda if CODA else []),
     }
 
 
