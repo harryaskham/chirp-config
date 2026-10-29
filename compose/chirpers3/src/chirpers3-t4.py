@@ -94,7 +94,7 @@ class Part:
         return " ".join(toks)
 
 
-P = {k: Part() for k in ("toy", "box", "xtal", "lead", "pad", "bass", "sub", "kick", "snare", "hat", "perc", "cpiano")}
+P = {k: Part() for k in ("toy", "box", "xtal", "lead", "pad", "bass", "sub", "kick", "snare", "hat", "perc", "cpiano", "hail", "desc")}
 rng = random.Random(4)
 
 
@@ -171,7 +171,7 @@ def clockwork():
     """The three gears, mechanically straight; each section decides which gears turn and at what ratio (the GEAR
     CHANGE: the return turns the toy to a 6, a dotted-eighth hemiola against the box's 7; the full section puts the
     crystal on a 9, three odd gears). Returns the onsets for the hidden melody (toy and box coinciding)."""
-    toy_on, box_on = {}, {}
+    toy_on, box_on, xtal_full = {}, {}, {}
     k = j = 0
     for name, a, z in SECTIONS:
         lo, hi = b0(a), b0(z + 1)
@@ -217,8 +217,20 @@ def clockwork():
             root, iv = chord_at(bar)
             m = 68 + ((root + iv[q % len(iv)] - 8) % 12)
             P["xtal"].add(x, 3, nm(m), 52 if name in ("intro", "breakdown") else 58)
+            if name == "full":
+                xtal_full[x] = m
             q += 1
-    return sorted(set(toy_on) & set(box_on)), toy_on
+    return sorted(set(toy_on) & set(box_on)), toy_on, box_on, xtal_full
+
+
+def descant(box_on, xtal_full):
+    """THE SECOND HIDDEN MELODY (the full section): where the music box's 7 meets the crystal's 9, a soft voice under
+    the first melody sings the box's note an octave down and holds to the next meeting: two tunes made by the gears."""
+    meet = sorted(set(box_on) & set(xtal_full))
+    for i, st in enumerate(meet):
+        nxt = meet[i + 1] if i + 1 < len(meet) else st + 12
+        P["desc"].add(st, min(nxt - st, 16) * 0.95, nm(box_on[st] - 12), 60)
+    return len(meet)
 
 
 def melody(coinc, toy_on):
@@ -276,7 +288,7 @@ def glitch_hail():
         p = TOY_SEQ[i % len(TOY_SEQ)] + (12 if i % 3 == 0 else 0)
         n = rng.choice([3, 4, 6])
         for j in range(n):
-            P["toy"].add(x + j * 0.5, 0.45, nm(p - j), 70 - 4 * j)
+            P["hail"].add(x + j * 0.5, 0.45, nm(p - j), 70 - 4 * j)      # HAIL ON METAL: through a comb on Db
         P["box"].add(x + n * 0.5 + 1, 1.5, nm(BOX_SEQ[i % len(BOX_SEQ)]), 58)
         x += rng.choice([5, 7, 4])
         i += 1
@@ -326,12 +338,13 @@ def resample_lane():
 
 # wM's lo-fi toolkit (bd-9ef6a7): Dilla-ish wonk on the kit, a late snare and an early kick, each bar its own swing
 KIT = ("lofi-kit play.humanize.nudge.s=22ms play.humanize.nudge.k=-8ms play.humanize.swing_drift=0.04 "
-       "play.humanize.drunk=4ms")
+       "play.humanize.drunk=4ms play.humanize.drift=5ms")       # drift works now (wM): the kit wanders over bars
 
 
 def main():
-    coinc, toy_on = clockwork()
+    coinc, toy_on, box_on, xtal_full = clockwork()
     melody(coinc, toy_on)
+    n_desc = descant(box_on, xtal_full)
     beat()
     glitch_hail()
     harmony()
@@ -343,6 +356,8 @@ def main():
         tr("box", "music-box", pan="R35", gain="-6dB", out="toys"),
         tr("xtal", "fb-crystal", pan="R10", gain="-24dB", out="toys"),
         tr("lead", "lead-tape", pan="L10", gain="-9dB", sends={"space": "-10dB"}),
+        tr("hail", "toy-piano", pan="L20", gain="4dB", out="toys", fx=["comb cutoff=138.6 q=6"]),   # hail on a metal roof
+        tr("desc", "boc-lead", pan="R20", gain="-4dB", sends={"space": "-9dB"}),     # the second hidden melody
         tr("cpiano", "tape-piano", pan="L30", gain="-6dB", sends={"space": "-9dB"}),     # the breakdown's counter-line
         tr("pad", "juno-pad", gain="-14dB", fx=["lp cutoff=2200", "tape wow=9 flutter=2 seed=11"], sends={"space": "-8dB"}),
         tr("bass", "analog-bass", gain="0dB"),
@@ -382,7 +397,7 @@ def main():
         f.write("\n".join(head) + "\n")
         for d in tracks:
             f.write("  - " + json.dumps(d) + "\n")
-    print(f"wrote {OUT}: {BARS} bars, {sec(TOTAL):.0f} s; {len(coinc)} gear coincidences")
+    print(f"wrote {OUT}: {BARS} bars, {sec(TOTAL):.0f} s; {len(coinc)} gear coincidences, {n_desc} for the descant")
 
 
 if __name__ == "__main__":
