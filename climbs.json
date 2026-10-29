@@ -5651,7 +5651,7 @@
     {
       "id": "chirpers3-t3",
       "song": "songs/chirpers3-t3.yaml",
-      "reference": "Chirpers — Track 3 (untitled)",
+      "reference": "Chirpers — Late for the Grid",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers3-t3 OUT.wav",
@@ -5667,7 +5667,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "Tape Weather",
-        "title": "Track 3 (untitled)",
+        "title": "Late for the Grid",
         "track": 3,
         "year": 2026
       },
