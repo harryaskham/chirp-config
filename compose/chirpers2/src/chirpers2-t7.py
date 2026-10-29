@@ -10,8 +10,8 @@ GENTLE GIANT / ZAPPA COUNTERPOINT: a through-composed chamber-prog piece where t
                  one place each time), then in unison, then inverted low under hocketed fragments;
     2 FUGUE      four entries (sax at D, trumpet at A, guitar inverted, bass), each continuing with the countersubject,
                  so each bar's texture differs; wurli stabs a new chord every bar;
-    3 BLACK PAGE a rhythmic unison for the whole band in sixteenth meters (11 13 9 15 11 13 7 17 sixteenths), the
-                 subject's pitches in diminution, toms on every hit;
+    3 BLACK PAGE a PERCUSSION ORCHESTRA in sixteenth meters (11 13 9 15 11 13 7 17 sixteenths): the subject in
+                 diminution on tuned toms + marimba, bass and kick on the threes, snare on the twos;
     4 CROSS      CROSS PURPOSES: horns + wurli in 7/8 cycles against flute + marimba + guitar in quarter-note
                  TRIPLETS (3 against 7, hats on the triplets), the subject
                  augmented in the bass, a ride bell on the 7 (12 bars of 4/4);
@@ -81,7 +81,7 @@ class Part:
 
 
 P = {k: Part() for k in ("mar", "flute", "tpt", "sax", "gtr", "keys", "bass", "kick", "snare", "hat", "toms", "ride",
-                         "clock", "sub", "brush", "tap", "rhodes")}
+                         "clock", "sub", "brush", "tap", "rhodes", "ttom")}
 BARS = []          # (start eighths, length eighths, section, index in section)
 rng = random.Random(7)
 
@@ -204,8 +204,10 @@ def fugue(t):
 
 # ---------- 3 BLACK PAGE ----------
 def black_page(t):
+    """A PERCUSSION ORCHESTRA (after Zappa's Black Page, first a drum solo): the subject in diminution on TUNED TOMS
+    (chirper-two's physical drum layer, borrowed from t4's tom choir and tightened), the marimba an octave above, bass
+    and kick on the threes, snare on the twos; the flute, horns, guitar and keys fall silent."""
     meters16 = [11, 13, 9, 15, 11, 13, 7, 17]
-    tom_of = {0: "ft", 1: "t3", 2: "t2", 3: "t1"}
     k = 0
     for i, m in enumerate(meters16):
         ln = m / 2                                               # eighths
@@ -222,15 +224,16 @@ def black_page(t):
         for g in groups:
             p, _ = SUBJ[k % len(SUBJ)]
             st = t + x / 2
-            v = 104 if x == 0 else 92
-            for who, base in (("mar", D4), ("flute", D4 + 12), ("tpt", D4), ("sax", D4 - 12), ("gtr", D4 - 12),
-                              ("bass", D4 - 24)):
-                P[who].add(st, g / 2 * 0.7, nm(base + p), v)
-            P["toms"].add(st, 0.5, tom_of[(p // 2) % 4], v)
-            P["kick" if g == 3 else "snare"].add(st, 0.5, "k" if g == 3 else "s", v - 6)
+            v = 108 if x == 0 else 94
+            P["ttom"].add(st, g / 2, nm(D4 - 12 + p), v)
+            P["mar"].add(st, g / 2 * 0.8, nm(D4 + p), v - 8)
+            if g == 3:
+                P["bass"].add(st, g / 2 * 0.8, nm(D4 - 24 + p), v - 4)
+                P["kick"].add(st, 0.5, "k", v - 6)
+            else:
+                P["snare"].add(st, 0.5, "s", v - 10)
             x += g
             k += 1
-        P["keys"].add(t, 0.5, "D4,Ab4,Db5,G5", 90)
         t += ln
     return t
 
@@ -488,6 +491,13 @@ def main():
                        "k": piece("G1", dict(type="drum", beater="felt", decay="0.5s", sharp=40, reso=1.0, cavity=0.25,
                                              reso_level=0.6, air=0.4, strike=0.25, damp=0.3, slap=0.3, stereo=0.2),
                                   {"a": "0.5ms", "d": "600ms", "s": 0, "r": "40ms", "curve": 2}, "6dB", ("hp cutoff=45",))}}
+    TTOMS = {"about": "Cross Purposes' tuned toms (chirper-three): chirper-two's t4 tom choir (physical drum layer, "
+                      "tune_sounding) tightened for the black page's sixteenths: crisper stick, half the decay.",
+             "synth": {"layers": [{"type": "drum", "beater": "stick", "contact": 1.5, "decay": "0.55s", "sharp": 45,
+                                   "reso": 1.0, "cavity": 0.25, "tune_sounding": True, "reso_level": 0.5, "air": 0.45,
+                                   "strike": 0.3, "shell": 0.25, "slap": 0.6, "stereo": 0.5}],
+                       "filters": ["hp cutoff=60"], "amp": {"a": "0.3ms", "d": "700ms", "s": 0, "r": "80ms", "curve": 3}},
+             "play": {"vel_sens": 0.6}}
     tr = lambda name, patch, **kw: dict({"name": name, "patch": patch, "score": P[name].score(total)}, **kw)
     tracks = [
         tr("mar", "c3-marimba", pan="L40", gain="-4dB", sends={"room": "-10dB"}),
@@ -505,6 +515,7 @@ def main():
         tr("snare", "prog-kit", out="drums"),
         tr("hat", "prog-kit", out="drums", gain="-4dB"),
         tr("toms", "prog-kit", out="drums"),
+        tr("ttom", "c3-ttoms", pan="L10", gain="2dB", sends={"room": "-12dB"}),    # the black page's tuned toms
         tr("ride", "modal-ride", out="drums", gain="-8dB"),
         tr("brush", "c3-brushes", out="drums", gain="-20dB"),          # chirper-two's brushes: the sweeps
         tr("tap", "c3-brushes", out="drums", gain="-14dB"),            # taps and the feathered kick
@@ -514,7 +525,7 @@ def main():
         f"tempo: {BPM}",
         'tail: "2s"',
         'ceiling: "-0.3dB"',
-        "patches: " + json.dumps({"c3-marimba": MAR, "c3-sub": SUB, "c3-brushes": BRUSHES}),
+        "patches: " + json.dumps({"c3-marimba": MAR, "c3-sub": SUB, "c3-brushes": BRUSHES, "c3-ttoms": TTOMS}),
         "buses:",
         '  room: {fx: ["reverb kind=room decay=1.1s mix=1 predelay=12ms mono_below=150hz"]}',
         '  drums: {fx: [{"type": "compressor", "threshold": "-20dB", "ratio": 2.5, "attack": "12ms", "release": "100ms", "makeup": "2dB"}, "reverb kind=room decay=0.8s mix=0.12 predelay=8ms mono_below=200hz"]}',

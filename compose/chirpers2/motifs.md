@@ -25,7 +25,7 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 - **THE SUBJECT**: nine notes over a 7/8 + 5/8 pair, D F A G# E | G Eb F# D (semitones 0 3 7 6 2 | 5 1 4 0; eighths
   1 1 1 2 2 | 1 1 1 2). Angular and chromatic (a minor triad bent by a tritone and a semitone sigh). Its INVERSION is the
   countersubject. Hocketed note by note across marimba / flute / muted trumpet / guitar, fugued (D, A, inverted, bass),
-  diminished to sixteenths in the black page, augmented x2 in the bass under the cross-purposes section and in the coda.
+  diminished to sixteenths in the black page (since v9 on tuned toms + marimba alone, a percussion orchestra), augmented x2 in the bass under the cross-purposes section and in the coda.
 - **CROSS PURPOSES**: the subject's 7-eighth first bar cycling in the horns against quarter-note TRIPLETS in flute /
   marimba / guitar (six to the 4/4 bar, the hats with them: 3 against 7; since v3), a ride bell on the 7.
 - **THE TRADES** (since v4): every traded bar develops the subject: read cyclically from a start that moves two notes
