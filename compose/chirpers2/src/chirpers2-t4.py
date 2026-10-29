@@ -128,6 +128,12 @@ R24 = set(filter(None, os.environ.get("T4_R24", "T").split(","))) - {"none"}
 R25 = set(filter(None, os.environ.get("T4_R25", "C").split(","))) - {"none"}
 CADENZA = [("D5", 1.0), ("E5", 0.75), ("F5", 0.55), ("A5", 0.4), ("C6", 2.2), ("A5", 0.4), ("F5", 0.55), ("E5", 0.75),
            ("D5", 1.4)]
+# Round 26 (v26): G = THE SWING GROWS: the swung eighths' lilt follows the arc, nearly straight in the seed and the
+# intro (0.56), easing into the heads (0.60), digging in for the trades (0.64) and the peak (0.66, almost triplet),
+# relaxing in head 2 (0.62) and settling in the coda and the shrink (0.58).
+R26 = set(filter(None, os.environ.get("T4_R26", "G").split(","))) - {"none"}
+SWING_BY = {"seed": 0.56, "intro": 0.56, "head": 0.60, "trade": 0.64, "peak": 0.66, "head2": 0.62, "coda": 0.58,
+            "unseed": 0.58}
 BTHEME = {0: [(0, 3, 4), (3, 1, 3), (4, 4, 2)], 1: [(0, 2, 1), (2, 2, 2), (4, 3, 4)], 2: [(0, 5, 6)],
           3: [(0, 2, 4), (2, 2, 5), (4, 2, 4)]}  # t2's night cell, degrees on eighths (None = rest)
 TRIP = "T" in os.environ.get("T4_OPTS", "")  # triplet brush ghosts before the backbeats (off: no gain)
@@ -312,8 +318,13 @@ def build():
         return LEVEL[section] + 10 - 3 * abs(pos - 3)
 
     tom_k = [0]  # the drum feature's tom-note counter
+
+    global SWING
+    base_swing = SWING
     for i, (start, m, pos, section, pidx, centre) in enumerate(bars):
         swung = SWUNG[m]
+        if "G" in R26:
+            SWING = SWING_BY.get(section, base_swing)
         v = dyn(i)
         chords = bar_chords(m, centre, pos) if m in (5, 6, 7, 8) else [(0, "Dm9")]
         if section == "trade" and "W" in R16 and pidx == sorted({b[4] for b in bars if b[3] == "trade"})[2]:
@@ -688,6 +699,7 @@ def build():
         T["tom"].add(last + o / 2, ln / 2, nm(midi(n) - 12), 70 - 3 * k)
     T["pno_lh"].add(last + 2.0, 2.0, "D3,A3,C4,E4,F4,G4", 62)
     T["bass"].add(last + 2.0, 2.0, "D2", 60)
+    SWING = base_swing
     if "T" in R24:  # stop-time: the peak's second phrase, outer bars
         pk = [b for b in bars if b[3] == "peak"]
         last_p = max(b[4] for b in pk)
