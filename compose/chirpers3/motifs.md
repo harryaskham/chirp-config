@@ -16,6 +16,7 @@ Generator `compose/chirpers3/src/chirpers3-t3.py`. Warped boom-bap off a worn sa
 - **THE DRIFT**: every hit placed off the grid in milliseconds - kick 15 ms early, snare 35 ms late, hats scattered +/-20 ms, the piano's second chord 40 ms late - all scaled by a per-section drift (intro .5, A 1, A2 1.3, A3 1.8, the last chorus snapped back to .35).
 - **THE TRIPS**: bars cut short (3.5 or 3 beats) at A bar 4, A2 bar 8, A3 bars 4, 6 and 8: the loop stumbles and catches itself.
 - **DOTTED SHAKER**: a straight shaker every 3 sixteenths against the swung hats, a second clock that never lines up.
+- **THE GLITCH** (v4): each TRIP bar's second half opens the master's stutter (sixteenth slices, 3 repeats, seeded): the loop stumbles and skips like a sampler losing its place, then catches itself on the next downbeat.
 - **ROLLED LOOP** (tape-piano, each note ~18 ms after the last): Fm9 Abmaj9 | Eb6/9 Dbmaj9 | Fm9 Bbm11 | C7#9 C7b9.
 - **THE HOOK** (boc-lead): a 2-bar phrase, C5 Eb5 C5 Bb4 | Ab4 Bb4 G4, the second pair of bars a step lower.
 
