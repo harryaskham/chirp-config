@@ -28,12 +28,17 @@ SCALAR = os.environ.get("T1_TEMPO", "scalar") == "scalar"  # a scalar tempo (com
 MIX = os.environ.get("T1_MIX", "2")
 TRIP = os.environ.get("T1_TRIP", "1") == "1"  # every 4th bar of the tenor solo phrases in quarter-note triplets (3 over 2)
 DTRIP = os.environ.get("T1_DTRIP", "1") == "1"  # the drummer's second bar in the trades in triplet eighths
-SUB = os.environ.get("T1_SUB", "-8")  # the upright's sine under the string (dB)  # 1 = v1 balance; 2 = kit -13 dB + highshelf -5 @4k, bass +4, master shelf +6 @150, highshelf -4 @6k
+SUB = os.environ.get("T1_SUB", "-8")
+REHARM = os.environ.get("T1_REHARM", "1") == "1"
+TAGTRIP = os.environ.get("T1_TAGTRIP", "1") == "1"
+TAGHORN = os.environ.get("T1_TAGHORN", "1") == "1"  # the tag's last bar: the horns run up G7b9 in quarter-note triplets into C (the head's last bar, augmented across the beat)  # in the tag, the drummer answers the horns' turnaround in triplet eighths (bars 2 and 4)  # the head out reharmonised (Abmaj7#11 Cm11 Bbm9 Dbmaj7#11 Cm11 Fm9 Db7#11 G7alt), the horn in thirds, and a 4-bar TAG on the turnaround  # the upright's sine under the string (dB)  # 1 = v1 balance; 2 = kit -13 dB + highshelf -5 @4k, bass +4, master shelf +6 @150, highshelf -4 @6k
 
 # (name, beats per bar, bars, swing)
 FORM = [("intro", 7, 4, SWING), ("headA", 7, 8, SWING), ("bridge", 4, 8, 0.5), ("headA2", 7, 8, SWING),
         ("tenor", 4, 32, SWING), ("waltz", 3, 32, SWING), ("trades", 7, 8, SWING), ("headout", 7, 8, SWING),
         ("coda", 7, 4, SWING)]
+if REHARM:
+    FORM.insert(8, ("tag", 7, 4, SWING))
 METER = {7: "7/4", 4: "4/4", 3: "3/4"}
 
 NOTE = {"C": 0, "C#": 1, "Db": 1, "D": 2, "D#": 3, "Eb": 3, "E": 4, "F": 5, "F#": 6, "Gb": 6, "G": 7, "G#": 8, "Ab": 8,
@@ -76,8 +81,11 @@ CH = {
     "Ebmaj7": (39, [0, 2, 4, 5, 7, 9, 11], [50, 55, 58, 62]),         # D G Bb D
     "Abmaj7#11": (44, [0, 2, 4, 6, 7, 9, 11], [55, 60, 62, 67]),      # G C D G
     "Ebm11": (39, [0, 2, 3, 5, 7, 9, 10], [54, 58, 61, 65]),          # Gb Bb Db F
+    "Db7#11": (37, [0, 2, 4, 6, 7, 9, 10], [53, 55, 59, 63]),         # F G B Eb (the tritone sub for G7)
 }
 HEAD_CH = ["Cm11", "Cm11", "Dbmaj7#11", "Dbmaj7#11", "Cm11", "Cm11", "G7alt", "G7alt"]
+OUT_CH = ["Abmaj7#11", "Cm11", "Bbm9", "Dbmaj7#11", "Cm11", "Fm9", "Db7#11", "G7alt"]  # the head out, reharmonised
+TAG_CH = ["Db7#11", "G7alt", "Db7#11", "G7alt"]
 BRIDGE_CH = ["Ebmaj9", "Ebmaj9", "Dbmaj9", "Dbmaj9", "Bmaj7#11", "Bmaj7#11", "Bb7sus", "Bb7sus"]
 TENOR_CH = ["Cm11"] * 8 + ["Dbmaj7#11"] * 8 + ["Cm11"] * 8 + ["Ebm11"] * 4 + ["G7alt"] * 4
 WALTZ_CH = (["Fm9"] * 4 + ["Bbm9"] * 4 + ["Ebmaj7"] * 4 + ["Abmaj7#11"] * 4) * 2
@@ -280,9 +288,28 @@ def solo(c, beats, rng, lo, hi, vel=94, rest_p=0.0):
 
 
 # ------------------------------------------------------------------ arrangement
+def thirds(notes, chs):
+    """The horn a diatonic third under the tenor: the chord-scale tone 3 or 4 semitones below (else a fourth)."""
+    out = []
+    for (n, d), c in zip(notes, chs):
+        if n == "R":
+            out.append((n, d))
+            continue
+        root, sc, _ = CH[c]
+        pcs = {(root + x) % 12 for x in sc}
+        m = mi(n)
+        h = next((m - k for k in (3, 4, 5) if (m - k) % 12 in pcs), m - 5)
+        out.append((nm(h), d))
+    return out
+
+
 def chords_for(sec, nb):
     if sec in ("intro", "coda"):
         return ["Cm11", "Cm11", "Dbmaj7#11", "Dbmaj7#11"][:nb]
+    if sec == "headout" and REHARM:
+        return OUT_CH
+    if sec == "tag":
+        return TAG_CH
     if sec in ("headA", "headA2", "headout"):
         return HEAD_CH
     if sec == "bridge":
@@ -312,12 +339,21 @@ def build():
                 bar["piano"] = comp(c, beats, rng, vel=58, b=b)
                 bar["bass"] = walk(c, nxt, beats, rng, two=True)
                 bar["kit"] = J(*([tok("rd", 1, 60 + 4 * b)] + [tok("rd", 1, 52)] * (beats - 1)))
-            elif sec in ("headA", "headA2", "headout"):
-                bar["tenor"] = line(HEAD[b], vel=96 + (4 if sec == "headout" else 0))
-                bar["horn"] = line(HEAD[b], vel=84, shift=-5)
+            elif sec in ("headA", "headA2", "headout", "tag"):
+                hb = HEAD[b] if sec != "tag" else HEAD[6 + b % 2]
+                bar["tenor"] = line(hb, vel=96 + (4 if sec in ("headout", "tag") else 0))
+                bar["horn"] = line(hb, vel=84, shift=-5)
+                if REHARM and sec in ("headout", "tag"):
+                    bar["horn"] = line(thirds(hb, [c] * len(hb)), vel=86)
                 bar["piano"] = comp(c, beats, rng, vel=68, b=b)
                 bar["bass"] = walk(c, nxt, beats, rng)
                 bar["kit"] = ride(beats, rng, b, sec)
+                if TAGHORN and sec == "tag" and b == nb - 1:
+                    run = ["D4", "F4", "Ab4", "B4", "D5", "F5"]
+                    bar["tenor"] = J(*[f"{n}/6@{100 + 2 * i}" for i, n in enumerate(run)], tok("Eb5", 3, 108))
+                    bar["horn"] = J(*[f"{nm(mi(n) - (3 if i % 2 else 4))}/6@{88 + 2 * i}" for i, n in enumerate(run)], tok("C5", 3, 96))
+                if TAGTRIP and sec == "tag" and b % 2 == 1:
+                    bar["kit"] = drum_trip(beats, rng, vel=90)
             elif sec == "bridge":
                 bar["tenor"] = line(BRIDGE[b], vel=94)
                 bar["horn"] = line(BRIDGE[b], vel=86, shift=-12)
@@ -408,7 +444,7 @@ def master():
           {"type": "compressor", "threshold": "-22dB", "ratio": 2, "attack": "15ms", "release": "200ms", "makeup": "0dB"},
           {"type": "gain", "gain": f"+{MG:g}dB"}]
     st = section_times()
-    lv = {"intro": -7, "headA": -2, "bridge": -3, "headA2": -1, "tenor": 0, "waltz": -6, "trades": 1, "headout": 2, "coda": -3}
+    lv = {"intro": -7, "headA": -2, "bridge": -3, "headA2": -1, "tenor": 0, "waltz": -6, "trades": 1, "headout": 2, "tag": 3, "coda": -3}
     pts = [["0s", lv["intro"]]]
     for sec, *_ in FORM[1:]:
         a = st[sec][0]
