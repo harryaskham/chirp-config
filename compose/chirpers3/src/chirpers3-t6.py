@@ -89,6 +89,10 @@ R5 = set(filter(None, os.environ.get("T6_R5", "F").split(","))) - {"none"}
 # mallet snare and the rim go to a dub send (a dotted-eighth ping-pong tape echo, a spring), and every other bar
 # one vibes note is thrown into the echo.
 R6 = set(filter(None, os.environ.get("T6_R6", "D").split(","))) - {"none"}
+# Round 7 (v7): J = THE TAPE TRIPS once, answering t3 Late for the Grid (chirper-one's warped boom-bap, whose loop
+# trips and catches itself): in A3 the eighth bar loses its fourth beat (everything drops out for it), and the next
+# bar lands a beat early: one happy accident.
+R7 = set(filter(None, os.environ.get("T6_R7", "J").split(","))) - {"none"}
 FORM = [("intro", 4), ("A", 16), ("switch", 8), ("A2", 16), ("drop", 4), ("A3", 12), ("outro", 4)]
 LEVEL = {"intro": 58, "A": 72, "switch": 66, "A2": 78, "drop": 56, "A3": 80, "outro": 56}
 DRUMS = {"A", "switch", "A2", "A3"}
@@ -99,12 +103,12 @@ def build():
     T = {k: Track(k) for k in ("keys", "kw", "bass", "sub", "vibes", "drums", "crackle", "hiss", "rain", "thunder",
                                "dub", "vdub")}
     rrng = random.Random(66)  # the weather's own dice (the music's stay as they were)
-    bars, b = [], 0
+    bars, pos = [], 0.0
     for name, n in FORM:
         for i in range(n):
-            bars.append((b * 4.0, name, i, n))
-            b += 1
-    total = len(bars) * 4.0
+            bars.append((pos, name, i, n))
+            pos += 3.0 if (name == "A3" and i == 7 and "J" in R7) else 4.0
+    total = pos
     drift = 0.0
     for start, sec, i, n in bars:
         v = LEVEL[sec]
@@ -181,6 +185,10 @@ def build():
                     T["vdub"].add(start + 1.5 + 0.04, 0.4, nm(sorted(voic)[-1] + 14), v - 8)
         elif sec == "drop":
             d.add(start, 3.8, "bs", v - 18)
+        if sec == "A3" and i == 7 and "J" in R7:  # the trip: the bar's fourth beat never happens
+            for tr in T.values():
+                tr.ev = [e for e in tr.ev if not (start + 3.0 - 1e-6 <= e[0] < start + 4.0)]
+                tr.ev = [(s, min(ln, start + 3.0 - s) if s < start + 3.0 < s + ln else ln, h, vel) for s, ln, h, vel in tr.ev]
         # ---- the weather ----
         if "R" in R4:
             heavy = sec in ("intro", "drop", "outro")
