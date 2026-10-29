@@ -1,0 +1,161 @@
+#!/usr/bin/env python3
+"""chirpers2-t2 (chirper-one): ELECTRIC NIGHT-GROOVE for 'Odd Hours' (Chirpers II).
+
+Dark electric-Miles-ish modal funk. The band is the groove, and the soloists ride it.
+- METER WHEEL: bar lengths turn 4/4, 7/8, 5/4, 9/8, 3/4 (8, 7, 10, 9, 6 eighths) and never stop; phrases are 4 bars, so
+  phrase and meter realign every 20 bars. The climax stretches the wheel to 11/8, 13/8.
+- Roots by section: D Dorian (A), Eb Lydian (B), F# Phrygian dominant (trades), back to D.
+- Every bar another voice carries the vamp's cell (bass always; then rhodes, wah, trumpet, tenor in rotation).
+Emits songs/chirpers2-t2.yaml (JSON through tools/songfmt.py). Edit the music here, not the YAML.
+"""
+import json, os, subprocess, sys, tempfile
+
+ROOT = "/home/harry/.config/chirp"
+OUT = os.path.join(ROOT, "songs", "chirpers2-t2.yaml")
+BPM = 100
+NN = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
+def nm(m): return f"{NN[m % 12]}{m // 12 - 1}"
+WHEEL = [8, 7, 10, 9, 6]                 # eighths per bar
+STRETCH = [11, 13, 11, 13, 9]
+MODES = {'dorian': [0, 2, 3, 5, 7, 9, 10], 'lydian': [0, 2, 4, 6, 7, 9, 11], 'phrygdom': [0, 1, 4, 5, 7, 8, 10]}
+
+# form: (name, bars, root midi (bass octave), mode, wheel)
+FORM = [('intro', 10, 38, 'dorian', WHEEL), ('A', 20, 38, 'dorian', WHEEL), ('B', 20, 39, 'lydian', WHEEL),
+        ('trades', 20, 42, 'phrygdom', WHEEL), ('break', 10, 38, 'dorian', WHEEL), ('climax', 15, 38, 'dorian', STRETCH),
+        ('outro', 10, 38, 'dorian', WHEEL)]
+
+def bars():
+    out = []
+    for name, n, root, mode, wheel in FORM:
+        for i in range(n):
+            out.append({'sec': name, 'i': i, 'n': n, 'root': root, 'mode': MODES[mode], 'e8': wheel[i % len(wheel)]})
+    return out
+
+def deg(b, d, octv=0):
+    sc = b['mode']; return b['root'] + sc[d % 7] + 12 * (d // 7 + octv)
+
+def tok(n, beats, vel, art=''):
+    return f"{n}/{beats:g}b@{vel}{art}"
+
+# ---- the parts ----
+BASSCELL = [0, None, 4, 0, 6, None, 3, 4, 0, None, 2, 4, 6]   # degrees on eighths (None = rest), cut to the bar
+def bass(b, k):
+    toks = []
+    for e in range(b['e8']):
+        d = BASSCELL[(e + k) % len(BASSCELL)] if e else 0
+        if d is None:
+            toks.append('R/0.5b')
+        else:
+            toks.append(tok(nm(deg(b, d)), 0.5, 100 if e == 0 else 84))
+    return toks
+
+def kit(b, k, sec):
+    sl = []
+    for e in range(b['e8']):
+        for half in (0, 1):
+            p = []
+            if half == 0 and (e == 0 or (e % 3 == 2 and sec not in ('intro',))):
+                p.append(('k', 110 if e == 0 else 92))
+            if half == 0 and e in (b['e8'] // 2, b['e8'] - 2) and sec != 'intro':
+                p.append(('s', 104))
+            p.append(('h', 70 if half else 84))
+            if sec in ('climax',) and e == 0 and half == 0:
+                p.append(('c', 110))
+            sl.append(p)
+    return [(','.join(sorted({x[0] for x in s})) + f'/0.25b@{max(x[1] for x in s)}') if s else 'R/0.25b' for s in sl]
+
+def chord(b, top=0):
+    return ','.join(nm(deg(b, d, 1) + 12) for d in (0, 2, 4, 6, 8)[top:top + 4])
+
+def rhodes(b, k):
+    e8 = b['e8']; toks = []
+    hits = {1: 0, 4: 1, e8 - 2: 2}
+    for e in range(e8):
+        if e in hits:
+            toks.append(tok(chord(b, hits[e] % 2), 0.5, 74))
+        else:
+            toks.append('R/0.5b')
+    return toks
+
+def wah(b, k):
+    toks = []
+    for e in range(b['e8'] * 2):
+        if e % 4 in (1, 3) or e % 7 == 0:
+            toks.append(tok(f"{nm(deg(b, 2, 1) + 12)},{nm(deg(b, 6, 1) + 12)}", 0.25, 64, '^pm' if e % 4 == 1 else ''))
+        else:
+            toks.append('R/0.25b')
+    return toks
+
+THEME = [4, 6, 7, 8, 7, 6, 4, 3, 2, 4]   # degrees, a rising-falling modal line
+def horn_line(b, k, start_deg, vel):
+    """a phrase across the bar: quarter-ish notes, the last one held"""
+    toks, e8, j = [], b['e8'], 0
+    t = 0
+    while t < e8:
+        ln = 3 if (t + 3 >= e8) else (2 if (k + j) % 3 else 1)
+        ln = min(ln, e8 - t)
+        d = THEME[(start_deg + j) % len(THEME)]
+        toks.append(tok(nm(deg(b, d, 2)), ln / 2, vel))
+        t += ln; j += 1
+    return toks
+
+def rest(b): return [f"R/{b['e8'] / 2:g}b"]
+
+def build():
+    B = bars()
+    parts = {k: [] for k in ('bass', 'kit', 'rhodes', 'wah', 'tpt', 'ten')}
+    for k, b in enumerate(B):
+        sec = b['sec']; lead = k % 5   # who carries the cell this bar (beyond the bass)
+        parts['bass'].append(bass(b, k) if sec != 'break' or b['i'] < 8 else bass(b, k))
+        parts['kit'].append(kit(b, k, sec) if not (sec == 'intro' and b['i'] < 2) else rest(b))
+        parts['rhodes'].append(rhodes(b, k) if (sec != 'intro' or b['i'] >= 5) and sec != 'break' else (rhodes(b, k) if sec == 'break' and b['i'] >= 6 else rest(b)))
+        parts['wah'].append(wah(b, k) if sec in ('A', 'B', 'climax') or (sec == 'trades' and lead in (2, 4)) else rest(b))
+        if sec == 'A':
+            parts['tpt'].append(horn_line(b, k, b['i'], 96) if b['i'] % 4 != 3 else rest(b))
+            parts['ten'].append(horn_line(b, k, b['i'] + 3, 78) if b['i'] % 4 == 3 else rest(b))
+        elif sec == 'B':   # the rhodes 'solos' (the cell climbs), horns lay out but for stabs
+            parts['tpt'].append(rest(b)); parts['ten'].append(rest(b))
+            parts['rhodes'][-1] = horn_line(b, k, b['i'] * 2, 82)
+        elif sec == 'trades':   # trading bars: trumpet / tenor alternate
+            parts['tpt'].append(horn_line(b, k, b['i'], 100) if b['i'] % 2 == 0 else rest(b))
+            parts['ten'].append(horn_line(b, k, b['i'] + 5, 92) if b['i'] % 2 == 1 else rest(b))
+        elif sec == 'climax':
+            parts['tpt'].append(horn_line(b, k, b['i'] + 2, 110))
+            parts['ten'].append(horn_line(b, k, b['i'] + 6, 98))
+        elif sec == 'outro':
+            parts['tpt'].append(horn_line(b, k, b['i'], 80 - 3 * b['i']) if b['i'] < 6 else rest(b))
+            parts['ten'].append(rest(b))
+        else:
+            parts['tpt'].append(rest(b)); parts['ten'].append(rest(b))
+    total_beats = sum(b['e8'] for b in B) / 2
+    end_s = total_beats * 60 / BPM
+    J = lambda p: ' | '.join(' '.join(x) for x in parts[p])
+    return {
+        'about': "Chirpers - Odd Hours (Chirpers II), track 2 by chirper-one: ELECTRIC NIGHT-GROOVE. Generated by "
+                 "compose/chirpers2/src/chirpers2-t2.py; see its docstring and compose/chirpers2/styles.md.",
+        'tempo': BPM, 'length': f'{end_s + 3:.2f}s', 'ceiling': '-0.1dB',
+        'master': {'fx': [{'type': 'gain', 'gain': '+8dB'},
+                          {'type': 'compressor', 'threshold': '-16dB', 'ratio': 2, 'attack': '15ms', 'release': '150ms', 'makeup': '2dB'},
+                          {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.fade', 'amount': 1}]}}],
+                   'auto': {'fade': {'points': [['0s', 0], [f'{end_s - 14:.1f}s', 0], [f'{end_s:.1f}s', -40]]}}},
+        'tracks': [
+            {'name': 'bass', 'patch': 'fretless', 'gain': '-2dB', 'score': J('bass')},
+            {'name': 'kit', 'patch': 'tight-kit', 'gain': '-4dB', 'score': J('kit')},
+            {'name': 'rhodes', 'patch': 'rhodes-rotary', 'gain': '-6dB', 'pan': -0.3,
+             'fx': [{'type': 'amp', 'model': 'clean', 'stack': 'bassman', 'gain': 0.35, 'mix': 0.6}], 'score': J('rhodes')},
+            {'name': 'wah', 'patch': 'lead-wah', 'gain': '-14dB', 'pan': 0.45, 'score': J('wah')},
+            {'name': 'tpt', 'patch': 'trumpet-mute', 'gain': '-6dB', 'pan': 0.15, 'score': J('tpt')},
+            {'name': 'ten', 'patch': 'tenor-sax-synth', 'gain': '-7dB', 'pan': -0.2, 'score': J('ten')},
+        ]}
+
+if __name__ == '__main__':
+    out = sys.argv[1] if len(sys.argv) > 1 else OUT
+    song = build()
+    if out.endswith('.json'):
+        json.dump(song, open(out, 'w'), indent=1)
+    else:
+        with tempfile.NamedTemporaryFile('w', suffix='.json', delete=False) as f:
+            json.dump(song, f)
+        subprocess.run(['python3', os.path.join(ROOT, 'tools', 'songfmt.py'), 'yaml', f.name, '-o', out], check=True)
+        os.unlink(f.name)
+    print('wrote', out, song['length'])
