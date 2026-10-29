@@ -54,7 +54,11 @@ R7 = set(filter(None, os.environ.get("T4_R7", "B,D").split(","))) - {"none"}
 # Round 8 (v8): K = tom-choir BACKGROUNDS under the piano solo's second phrase (rolled guide-tone dyads, swelling
 # through each chord, the voices swapping in the mirror bars, like horn backgrounds); W = head 2's trumpet bars on
 # a FRENCH HORN: the return in a warmer colour.
-R8 = set(filter(None, os.environ.get("T4_R8", "K,W").split(","))) - {"none"}  # t2's night cell, degrees on eighths (None = rest)
+R8 = set(filter(None, os.environ.get("T4_R8", "K,W").split(","))) - {"none"}
+# Round 9 (v9): P = the French horn doubles the trumpet an octave down at the PEAK (a brass climax, and the horn
+# heard before it takes head 2); Q = in the fretless solo's odd bars (5/8, 7/8) the night cell falls in DOTTED
+# EIGHTHS, across the bar instead of on it.
+R9 = set(filter(None, os.environ.get("T4_R9", "P,Q").split(","))) - {"none"}  # t2's night cell, degrees on eighths (None = rest)
 TRIP = "T" in os.environ.get("T4_OPTS", "")  # triplet brush ghosts before the backbeats (off: no gain)
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 PC = {n: i for i, n in enumerate(NAMES)}
@@ -259,6 +263,16 @@ def build():
             root, voic, scale = CH[name0]
             if pos == 3:
                 T["bass"].add(start, m / 2 * 0.95, nm(low(root) + 24), v + 4)
+            elif m in (5, 7) and "Q" in R9:  # dotted eighths across the odd bar
+                k = e0
+                for q in range(int((m / 2) // 0.75) + (1 if (m / 2) % 0.75 > 0.3 else 0)):
+                    while NIGHT[k % 13] is None:
+                        k += 1
+                    d = NIGHT[k % 13]
+                    r2, _, sc2 = CH[name0]
+                    note = low(r2) + 12 + sc2[(d - 1) % len(sc2)] + (12 if (k // 13) % 2 else 0)
+                    T["bass"].add(start + q * 0.75, 0.7, nm(note), v + (6 if q == 0 else 0))
+                    k += 1
             else:
                 for e in range(m):
                     k = e0 + e
@@ -322,6 +336,8 @@ def build():
                 T[voice].add(at, ln / 2 * 0.95, n if voice != "tom" else nm(midi(n) - 12), v + 4)
                 if section == "peak" and voice == "tpt":  # unison in the piano an octave down at the peak
                     T["pno"].add(at, ln / 2 * 0.9, nm(midi(n) - 12), v)
+                    if "P" in R9 and "W" in R8:  # and the horn, an octave down: brass
+                        T["horn"].add(at, ln / 2 * 0.95, nm(midi(n) - 12), v - 4)
                 if section == "head2" and "C" in R2 and voice != "tom":  # the mirror canon: inverted about D5,
                     T["tom"].add(at, ln / 2 * 0.95, nm(2 * 74 - midi(n) - 12), v)  # an octave down, contrary motion
         # ---- trading: trumpet takes the 3/4 and 7/8 bars, the tom choir the 5/8 and 4/4 ----
