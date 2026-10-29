@@ -18,7 +18,8 @@ GLITCHY IDM-LITE, a broken music box in a lo-fi beat.
   early kick, swing drift).
 - THE GEAR CHANGE: the return turns the toy to a 6 against the box's 7 (a dotted-eighth hemiola); the full section
   puts the crystal on a 9, three odd gears; so the hidden melody's rhythm changes section by section.
-- FORM (58 bars, 86 bpm): the WIND-UP (the key turned: gears speed up and rise to pitch), beat, melody, glitch
+- FORM (58 bars, 86 bpm): the WIND-UP (the key turned, audibly: three ratchet bursts; gears speed up and rise to
+  pitch), beat, melody, glitch
   break ending in a NEAR-STALL (the box almost runs down mid-song, then snaps back), return, breakdown, full, and
   the WIND-DOWN (the music box runs down: gears lengthen, pitches sag, the beat gives out). Harry liked the ending's
   'glitch resample' (v3, 8.0), so it now frames the song.
@@ -97,7 +98,7 @@ class Part:
 
 
 P = {k: Part() for k in ("toy", "box", "xtal", "lead", "pad", "bass", "sub", "kick", "snare", "hat", "perc", "cpiano", "hail", "desc", "sq",
-                         "ckick", "csnare", "chat", "ctoy", "cbox", "mist", "vox", "boxsong", "throw", "rlead")}
+                         "ckick", "csnare", "chat", "ctoy", "cbox", "mist", "vox", "boxsong", "throw", "rlead", "ratchet")}
 rng = random.Random(4)
 
 
@@ -129,6 +130,20 @@ def wind_up(a, z):
         for x in range(lo, hi, 7 + 3 * n):
             P["box"].add(x, 1.8 + n * 0.5, nm(BOX_SEQ[j % len(BOX_SEQ)] + sag), 58 - fade)
             j += 1
+
+
+def ratchet():
+    """THE KEY BEING WOUND (the intro): three turns of the key across the wind-up, each a burst of ratchet clicks that
+    speeds up then pauses (a hand turning, resting, turning again), louder each turn as the gears answer; rimclicks
+    rung through a high comb tuned to Db, small and metallic like a music box's spring."""
+    for turn, (bar, n) in enumerate(((1, 7), (2, 8), (3, 9))):
+        x = b0(bar) + 2
+        gap = 1.4
+        for i in range(n):
+            P["ratchet"].add(x, 0.4, "rs", 48 + 8 * turn + 2 * i)
+            x += gap
+            gap *= 0.84                                   # the turn speeds up
+    P["ratchet"].add(b0(4), 0.5, "rs", 82)                   # the last click: the spring is set
 
 
 def stall(bar):
@@ -470,6 +485,7 @@ def main():
     squelch()
     mist()
     vox_chops()
+    ratchet()
     chop_toys()
     sec = lambda e: e / 4 * 60 / BPM
     tr = lambda name, patch, **kw: dict({"name": name, "patch": patch, "score": P[name].score()}, **kw)
@@ -502,7 +518,9 @@ def main():
         tr("snare", KIT, out="drums"),
         tr("hat", KIT, out="drums", gain="-6dB"),
         tr("perc", KIT, out="drums", gain="-8dB"),
-        tr("throw", KIT, out="drums", gain="2dB", sends={"echo": "0dB"}),   # the stall's snare, thrown into the dub echo,
+        tr("throw", KIT, out="drums", gain="2dB", sends={"echo": "0dB"}),
+        tr("ratchet", KIT, pan="R25", gain="10dB", sends={"space": "-14dB"},          # the key being wound (intro)
+           fx=["hp cutoff=900", "comb cutoff=554.4 q=5"]),   # the stall's snare, thrown into the dub echo,
         # whose repeats are then caught by the master's tape stop: they slow, sag and die with the tape
         *[tr(n, KIT, out="drums", gain=g, fx=[CHOP]) for n, g in (("ckick", "4dB"), ("csnare", "0dB"), ("chat", "-6dB"))],
     ]

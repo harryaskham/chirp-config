@@ -76,6 +76,9 @@ Generator `compose/chirpers3/src/chirpers3-t7.py`. Ambient tape loops, a nominal
 - **THE NEEDLE DROP** (since v12, the first bars): the song fades in from -20 dB over two bars and opens from a
   muffled 1.5 kHz to full over four, as the box winds up to speed, so it emerges out of t3's quiet ending (in-join
   level jump 22 -> 11 dB, flow 50 -> 60); the vinyl crackle and hiss sit after the filter, there from the first moment.
+- **THE KEY** (since v22, the intro): the winding is heard: three turns of the key across the wind-up, each a burst of
+  ratchet clicks speeding up then pausing (7, 8, 9 clicks, louder each turn), rimclicks rung through a high comb on Db
+  (554 Hz), small and metallic like a music box's spring, and one last click as the spring sets.
 - **THE WIND-UP** (since v4, the intro; answering Harry's 8.0 note on the ending's "glitch resample"): the key is
   turned: bar by bar the gears' cycles shorten (toy 10..5, box 17..7) and the pitches rise from three semitones flat
   to true. And a **NEAR-STALL** at the glitch break's last bar: the gears slow and sag a tone within one bar, the beat
