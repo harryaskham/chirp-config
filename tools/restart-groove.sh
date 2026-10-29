@@ -33,6 +33,9 @@ log=${TMPDIR:-/tmp}/chirp-evolve.log
 systemctl --user stop 'chirp-evolve-*.service' 'chirp-playlist-*.service' 2>/dev/null
 safe_pgrep -f "^[^ ]*python3 $here/evolve.py" | xargs -r kill
 safe_pgrep -f "^[^ ]*python3 $here/playlist.py" | xargs -r kill
+# What the groove is playing now (its climb id), so a `playlist` restart resumes there instead of going back to the
+# first track (every pin adoption replayed track 1, 29 Oct). GROOVE_START=ID picks the start explicitly.
+now_label=$("$src" --json live status 2>/dev/null | python3 -c 'import json,sys; d=json.load(sys.stdin).get("data") or {}; print(str(d.get("label") or "").lstrip("▶ "))' 2>/dev/null)
 # Stop with the new binary first (the pinned copy may be missing or older); any build speaks the socket protocol.
 # Musical stop (fade out on a bar line) where the build supports it; otherwise a plain stop.
 "$src" stop groove --at bar --fade 800ms >/dev/null 2>&1 || "$src" stop groove >/dev/null 2>&1 || { [ -x "$C" ] && "$C" stop groove >/dev/null 2>&1; }
@@ -54,13 +57,18 @@ fi
 # groove to tools/playlist.py, which keeps the session's native playlist equal to the enabled climbs (each
 # file re-read at its turn, so new best versions play; players show the whole rotation).
 if [ "${1:-}" = playlist ]; then
-  first=$(cd "$here/.." && python3 -c '
+  first=$(cd "$here/.." && GROOVE_NOW="${GROOVE_START:-$now_label}" python3 -c '
 import json, os
 c = [x for x in json.load(open("climbs.json"))["climbs"] if x.get("enabled", True) and x.get("song")]
 # a focus playlist (tools/playlist-ids, one id per line) starts with its first id that has a song
 ids = [l.strip() for l in open("tools/playlist-ids")] if os.path.exists("tools/playlist-ids") else []
 by = {x["id"]: x for x in c}
-print(next((by[i]["song"] for i in ids if i in by), c[0]["song"]))')
+now = os.environ.get("GROOVE_NOW", "")
+# resume the track that was playing when it belongs to the rotation and has a song; else the first
+if now in by and (not ids or now in ids) and os.path.exists(by[now]["song"]):
+    print(by[now]["song"])
+else:
+    print(next((by[i]["song"] for i in ids if i in by), c[0]["song"]))')
   src_args=(-f "$here/../$first")
   # label the first song with its climb id (rate.py now / the player's :rate find it) when the binary has --label
   # (bd-7013f4); otherwise its label is its opening notes until the playlist takes over
