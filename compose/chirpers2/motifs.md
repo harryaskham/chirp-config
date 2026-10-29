@@ -33,7 +33,8 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 ## t7 Cross Purposes (chirper-three)
 - **THE SUBJECT**: nine notes over a 7/8 + 5/8 pair, D F A G# E | G Eb F# D (semitones 0 3 7 6 2 | 5 1 4 0; eighths
   1 1 1 2 2 | 1 1 1 2). Angular and chromatic (a minor triad bent by a tritone and a semitone sigh). Its INVERSION is the
-  countersubject. Hocketed note by note across marimba / flute / muted trumpet / guitar, fugued (D, A, inverted, bass),
+  countersubject. Hocketed note by note across marimba / flute / muted trumpet / guitar (since v16 SIX colours, with
+  Ferrous Bloom's crystal and crushed SHARD rig), fugued (D, A, inverted, bass),
   diminished to sixteenths in the black page (since v9 on tuned toms + marimba alone, a percussion orchestra), augmented x2 in the bass under the cross-purposes section and in the coda.
 - Quoted by t3 Glass Arithmetic (v11, chirper-one): the bass threads the subject one note per group start through the build's growing groupings.
 - **THE CHORALE** (since v11, the opening): the subject SUNG before it is argued, one note a half bar on top of a

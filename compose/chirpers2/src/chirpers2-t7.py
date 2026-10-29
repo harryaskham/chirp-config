@@ -8,7 +8,8 @@ GENTLE GIANT / ZAPPA COUNTERPOINT: a through-composed chamber-prog piece where t
 - FORM (every bar changes something; the meters say how long each bar is, in eighths):
     0 CHORALE    the subject SUNG first: a slow mellotron-choir chorale, each note harmonised afresh (Dm Bb F E Am C
                  Cm D D5), flute on top, bass on the roots, no drums;
-    1 STATEMENT  the subject HOCKETED note by note across marimba / flute / muted trumpet / guitar (the rotation turns
+    1 STATEMENT  the subject HOCKETED note by note across SIX colours: marimba / flute / Ferrous Bloom's crystal /
+                 muted trumpet / Ferrous Bloom's crushed SHARD rig / guitar (the rotation turns
                  one place each time), then in unison, then inverted low under hocketed fragments;
     2 FUGUE      four entries (sax at D, trumpet at A, guitar inverted, bass), each continuing with the countersubject,
                  on their own 12-eighth cycle while the kit and chords walk t4's METER PALINDROME (6 5 7 8 7 5 6 eighths);
@@ -89,7 +90,7 @@ class Part:
 
 
 P = {k: Part() for k in ("mar", "flute", "tpt", "sax", "gtr", "keys", "bass", "kick", "snare", "hat", "toms", "ride",
-                         "clock", "sub", "brush", "tap", "rhodes", "ttom", "mar2", "choir", "lead")}
+                         "clock", "sub", "brush", "tap", "rhodes", "ttom", "mar2", "choir", "lead", "xtal", "shard", "fluteh", "gtrh")}
 BARS = []          # (start eighths, length eighths, section, index in section)
 rng = random.Random(7)
 
@@ -213,13 +214,17 @@ def chorale(t):
 
 # ---------- 1 STATEMENT ----------
 def statement(t):
-    rot = ["mar", "flute", "tpt", "gtr"]
+    # SIX colours, two borrowed from Ferrous Bloom (the chime-struck CRYSTAL and the bit-crushed SHARD rig): every note of
+    # the subject jumps to a new sound, Zappa's orchestration by extremes; the rotation turns a place each pass
+    rot = ["mar", "flute", "xtal", "tpt", "shard", "gtr"]
     for rep in range(2):                                       # the subject hocketed, rotation turning
         x = t
         for j, (p, d) in enumerate(SUBJ):
-            who = rot[(j + rep) % 4]
-            base = D4 - 12 if who == "gtr" else D4
-            P[who].add(x, d * 0.9, nm(base + p), 78 + 6 * rep)
+            who = rot[(j + rep) % len(rot)]
+            base = D4 - 12 if who in ("gtr", "shard") else D4
+            bal = {"mar": -24, "flute": 0, "xtal": 0, "tpt": 4, "shard": 0, "gtr": 0}[who]     # one line, six colours
+            dest = {"flute": "fluteh", "gtr": "gtrh"}.get(who, who)    # the soft colours get hocket-only, louder tracks
+            P[dest].add(x, d * 0.9, nm(base + p), 78 + 6 * rep + bal)
             x += d
         bar(t, 7, "statement", 2 * rep); bar(t + 7, 5, "statement", 2 * rep + 1)
         for k in range(2):
@@ -644,6 +649,11 @@ def main():
     tr = lambda name, patch, **kw: dict({"name": name, "patch": patch, "score": P[name].score(total)}, **kw)
     tracks = [
         tr("mar", "c3-marimba", pan="L40", gain="-4dB", sends={"room": "-10dB"}),
+        tr("fluteh", "mellotron-flute", pan="R40", gain="2dB", sends={"room": "-10dB"}),  # the hocket's flute notes
+        tr("gtrh", "starcaster-clean", pan="L60", gain="2dB", sends={"room": "-12dB"}),   # the hocket's guitar notes
+        tr("xtal", "fb-crystal", pan="R25", gain="-18dB", sends={"room": "-8dB"}),     # Ferrous Bloom's crystal
+        tr("shard", "m8-emg-r", pan="C", gain="-8dB", seed=19,                           # Ferrous Bloom's SHARD rig
+           fx=[{"type": "crush", "bits": 6, "rate": 5000, "mix": 0.6}]),
         tr("lead", "lead-wah", pan="L15", gain="-3dB", sends={"room": "-12dB"}),        # the Zappa solo
         tr("choir", "mellotron-choir", gain="-4dB", sends={"room": "-8dB"}),            # the opening chorale
         tr("mar2", "c3-marimba", pan="R45", gain="-6dB", sends={"room": "-10dB"}),     # the answer's phasing marimba
