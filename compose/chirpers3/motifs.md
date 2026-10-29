@@ -77,6 +77,9 @@ Generator `compose/chirpers3/src/chirpers3-t7.py`. Ambient tape loops, a nominal
 - **THE SECOND HIDDEN MELODY** (since v6, the full section; since v7 the return too): where the music box's 7 meets the crystal's gear, a soft
   boc-lead under the first melody sings the box's note an octave down and holds to the next meeting (7 meetings in 8
   bars: a slow descant made by the gears).
+- **THE RESAMPLED BREAK** (since v8): the glitch break's beat goes through wM's CHOP: bar 24 feeds it live, then bars
+  25-27 replay the beat's own last bar as 8 slices in the order `0 0 r3 2 . 5 r7 _` (repeats, reversals, one live
+  slice, a dropout), under the hail, before the near-stall.
 - **HAIL**: in the glitch break the toy's notes are torn into falling 32nd retriggers, 3-6 at a time, between music-box
   answers; since v6 they ring through a COMB filter tuned to Db (138.6 Hz), like hail on a metal roof.
 - Harmony: Dbmaj9 | Cm7(11) | Fm9 | Bbm9, two bars each; 86 bpm; a 16th swing of 0.58 on the beat only. Since v7 a
