@@ -39,7 +39,9 @@ MOTIF = os.environ.get("T9_MOTIF", "1") == "1"
 VIBES = os.environ.get("T9_VIBES", "1") == "1"
 KLANG = os.environ.get("T9_KLANG", "1") == "1"
 LIFT = int(os.environ.get("T9_LIFT", "0"))
-CANON = os.environ.get("T9_CANON", "1") == "1"  # in the return the strings answer the tenor in canon: last bar's EXPOSURE an octave down  # the return's last eight bars lifted (semitones; 3 = a minor third up): the climax rises  # EXPOSURE passes bar by bar tenor -> guitar -> piano in the song (chirper-one's note), whole again on the tenor in the return
+CANON = os.environ.get("T9_CANON", "1") == "1"
+HORNOPEN = os.environ.get("T9_HORNOPEN", "0") == "1"
+HORNANS = os.environ.get("T9_HORNANS", "1") == "1"  # the open section's horn ANSWERS inside each bar: the guitar's fourth, then late in the bar t4's sixth on the horn  # the open section as a dialogue: the french horn's EXPOSURE as t4 transformed it (a sixth up into a colour tone) on even bars, the guitar's fourth on odd  # in the return the strings answer the tenor in canon: last bar's EXPOSURE an octave down  # the return's last eight bars lifted (semitones; 3 = a minor third up): the climax rises  # EXPOSURE passes bar by bar tenor -> guitar -> piano in the song (chirper-one's note), whole again on the tenor in the return
 VIB_BARS = int(os.environ.get("T9_VIBBARS", "4"))  # how many dawn bars the vibes answer in
 VIB_DB = os.environ.get("T9_VIBDB", "-14")
 VIB_DUSK = os.environ.get("T9_VIBDUSK", "0") == "1"  # the arch carries the vibes into the dusk too  # the vibes' track gain (dB)  # chirper-two's vibes (t8's c2-vibes, borrowed) answer t8's coda in the dawn, and come back in the dusk  # EXPOSURE as a sequence: every bar the leap of a fourth up into the chord's 9th (one shape carried down the changes)  # the dusk replays the dawn (its piano figures and washes, bar for bar) with the fretless singing over it: the day ends as it began  # under the last chord, Cierre's bembe bell arrives at Cierre's own tempo (eighths of 192 ms): the segue into the closer  # the open section becomes the fretless's solo (high, singing, sliding), the guitar swelling behind  # the return replays the song's EXPOSURE melody (a recapitulation) with the full band  # the ride on dotted eighths across the 11/8 (with the guitar): the cymbal's own cycle  # the guitar's dotted-eighth ostinato (0.75 beats: seven per 11/8 bar) in the ostinato and return  # 1 = kit -12 dB + highshelf -5 @4k; 2 = kit -10 dB, no shelf
@@ -268,7 +270,7 @@ def cut(piece, beats):
 
 # ------------------------------------------------------------------ arrangement
 def build():
-    names = ("piano", "bass", "tenor", "gtr", "strings", "kit") + (("vibes",) if VIBES else ()) + (("pmel",) if KLANG else ())
+    names = ("piano", "bass", "tenor", "gtr", "strings", "kit") + (("vibes",) if VIBES else ()) + (("pmel",) if KLANG else ()) + (("horn",) if (HORNOPEN or HORNANS) else ())
     T = {n: [] for n in names}
     seg_at = [0.0]
     beat_pos = 0.0
@@ -318,6 +320,17 @@ def build():
                 bar["strings"] = held(c, beats, 48)
                 bar["bass"] = fretless(c, beats, b, sing=True)
                 bar["gtr"], prev = exposure(c, beats, rng, lo=64, hi=86, vel=82, prev=prev)
+                if HORNANS:  # call and response in every bar: the guitar's gesture, then the horn's sixth answering it late
+                    r, _, col = CH[c]
+                    tgts = [m for m in range(60, 77) if (m - r) % 12 in col]
+                    tgt = min(tgts, key=lambda m: abs(m - ((prev or 82) - 12)))
+                    bar["horn"] = J(R(beats - 2.5), tok(nm(tgt - 9), 0.5, 72), tok(nm(tgt), 2, 82))
+                if HORNOPEN and b % 2 == 0:  # chirper-two's answer in t4's coda, answered: the horn leaps a sixth
+                    r, _, col = CH[c]
+                    tgts = [m for m in range(60, 77) if (m - r) % 12 in col]
+                    tgt = min(tgts, key=lambda m: abs(m - (prev or 70)))
+                    bar["horn"] = J(tok(nm(tgt - 9), 1, 74), tok(nm(tgt), beats - 2, 84), R(1))
+                    bar["gtr"] = R(beats)
                 if BASSOLO:
                     bar["bass"] = bass_solo(c, beats, rng)
                     bar["gtr"] = guitar_swell(c, beats, rng, vel=54)
@@ -405,6 +418,8 @@ def song():
         {"name": "kit", "patch": "room-kit", "gain": "-12dB", "sends": {"hall": "-10dB"},
          "fx": [{"type": "eq", "bands": ["highshelf cutoff=4000 gain=-5dB"]}], "score": sc("kit")},
     ]
+    if HORNOPEN or HORNANS:
+        tracks.append({"name": "horn", "patch": "horn", "gain": "-7dB", "pan": -0.25, "sends": {"hall": "-6dB"}, "score": sc("horn")})
     if KLANG:
         tracks.append({"name": "pmel", "patch": "piano", "gain": "-5dB", "pan": -0.1, "sends": {"hall": "-7dB"}, "score": sc("pmel")})
     if VIBES:
