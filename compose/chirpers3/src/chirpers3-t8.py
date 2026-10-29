@@ -31,7 +31,8 @@ SH3 = os.environ.get("T8_SH3", "1") == "1"
 H3 = os.environ.get("T8_H3", "0") == "1"
 CH3 = os.environ.get("T8_CH3", "1") == "1"  # the last groove's chops as a dotted-eighth chain (every 3 sixteenths, across the bar lines), the voice carrying the cross-rhythm
 RESAMPLE = os.environ.get("T8_RESAMPLE", "1") == "1"
-LATE = os.environ.get("T8_LATE", "65")  # the claps (and optionally the hats) dragged late by hand: "45" or "45,25" (ms; play.humanize.nudge)  # master stutter bursts (3/16 slices) on the last half-bar before groove 2 and before the breakdown  # the HATS on the 3-sixteenth cycle instead (the loud voice carries the cross-rhythm; the shaker off)  # the shaker on a 3-sixteenth cycle (dotted eighths) running across the bar: the garage cross-rhythm  # groove 2 becomes THE STOP: half-time (kick 1, rim 3, no hats), rhodes chords for the pad, the B loop  # the v1 rework: a B loop for groove 2, a heavier shuffle with more off-16th hats, the sub up, the mud out
+LATE = os.environ.get("T8_LATE", "65")
+VCHOP = os.environ.get("T8_VCHOP", "climax")  # wM's MPC chop on the voice: "stop" = through THE STOP; "climax" = through the last groove (the chain resampled)  # the claps (and optionally the hats) dragged late by hand: "45" or "45,25" (ms; play.humanize.nudge)  # master stutter bursts (3/16 slices) on the last half-bar before groove 2 and before the breakdown  # the HATS on the 3-sixteenth cycle instead (the loud voice carries the cross-rhythm; the shaker off)  # the shaker on a 3-sixteenth cycle (dotted eighths) running across the bar: the garage cross-rhythm  # groove 2 becomes THE STOP: half-time (kick 1, rim 3, no hats), rhodes chords for the pad, the B loop  # the v1 rework: a B loop for groove 2, a heavier shuffle with more off-16th hats, the sub up, the mud out
 S = 0.25
 
 NOTE = {"C": 0, "C#": 1, "Db": 1, "D": 2, "D#": 3, "Eb": 3, "E": 4, "F": 5, "F#": 6, "Gb": 6, "G": 7, "G#": 8, "Ab": 8,
@@ -204,6 +205,25 @@ def build():
     return T
 
 
+def vchop_track(track):
+    """Resample the voice: the chop replays the previous bar of the chops in eight slices, a garage vocal flip."""
+    if not VCHOP:
+        return track
+    st, total = section_starts()
+    secs = {"stop": ["groove2"], "climax": ["groove3"], "both": ["groove2", "groove3"]}[VCHOP]
+    lane = [["0s", 0]]
+    for sec in secs:
+        a = st[sec]
+        b = a + dict(FORM)[sec] * 4 * 60 / BPM
+        lane += [[f"{a - 0.02:.3f}s", 0], [f"{a:.3f}s", 1], [f"{b - 0.02:.3f}s", 1], [f"{b:.3f}s", 0]]
+    lane.append([f"{total + 8:.2f}s", 0])
+    track = dict(track)
+    track["fx"] = list(track["fx"]) + [{"type": "chop", "slices": 8, "pattern": "0 0 . r3 _ 5 r6 .",
+                                        "mix": {"value": 0, "mod": [{"src": "auto.vc", "amount": 1}]}}]
+    track["auto"] = {"vc": {"points": lane}}
+    return track
+
+
 def section_starts():
     t, out = 0.0, {}
     for sec, nb in FORM:
@@ -230,9 +250,11 @@ def song():
         {"name": "pad", "patch": "juno-pad", "gain": "-13dB", "fx": [deck], "sends": {"hall": "-10dB"}, "score": sc("pad")},
         {"name": "glass", "patch": "pad-glass", "gain": "-15dB", "pan": 0.3, "fx": [deck], "sends": {"hall": "-8dB"}, "score": sc("glass")},
         {"name": "rhodes", "patch": "rhodes", "gain": "-9dB", "pan": 0.2, "fx": [deck], "sends": {"hall": "-12dB", "echo": "-14dB"}, "score": sc("rhodes")},
+        *([] if not VCHOP else []),
         {"name": "chops", "patch": "chop-vox", "gain": "-6dB", "pan": -0.15, "fx": [deck],
          "sends": {"hall": "-6dB", "echo": "-12dB"}, "score": sc("chops", "swing16=0.62")},
     ]
+    tracks = [vchop_track(t) if t["name"] == "chops" else t for t in tracks]
     doc = {
         "about": ("Chirpers - Tape Weather, track 8 (original composition, chirper-zero; generator "
                   "compose/chirpers3/src/chirpers3-t8.py). Night-bus 2-step: lo-fi UK garage at 136 bpm - a shuffled, "
