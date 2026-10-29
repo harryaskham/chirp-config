@@ -197,7 +197,16 @@ def build():
             P['bass'].append(bass_bar(b, top_up) if b['i'] >= 2 else R)
             P['kit'].append(kit_bar(b, 'light') if b['i'] >= 2 else R)
         elif s == 'verse':
-            P['wurli'].append(comp_bar(b, 72)); P['flute'].append(tune_bar(b, 72, 86, shift=3))
+            P['wurli'].append(comp_bar(b, 72))
+            if b['i'] >= 20:
+                # EXPOSURE, answered (the verse's last four bars): the flute takes t9 Slow Shutter's gesture
+                # (chirper-zero) - a leap of a fourth up into the chord's 9th, held across the bar - on each chord
+                # of the thirds walk, so the line falls in one recognisable shape while the harmony zig-zags
+                ninth = b['root'] + 14
+                while ninth < 74: ninth += 12
+                P['flute'].append([tok(nm(ninth - 5), 0.5, 80), tok(nm(ninth), e8 / 2 - 0.6, 90), 'R/0.1b'])
+            else:
+                P['flute'].append(tune_bar(b, 72, 86, shift=3))
             P['organ'].append(R)
             # GUIDE-TONE COUNTER-LINE (the verse's second half): the horn holds the 3rd or the 7th of each chord,
             # whichever is nearest the last note, so a slow line moves by the smallest steps under the flute while
