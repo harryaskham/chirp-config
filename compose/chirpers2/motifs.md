@@ -132,6 +132,7 @@ Generator `compose/chirpers2/src/chirpers2-t4.py`. A chamber-jazz brush trio wit
 - **THE BREAK** (v2, kit alone before the shout, 6 bars): the 15 regrouped bar by bar - the groove's bones with a three-tom pick-up, accents every 5 sixteenths (5+5+5), every 3 (3x5), 5s and 3s again, then a sixteenth roll down t1 t2 t3 ft into the shout's crash; the bass hits each one.
 - **OUT-THEME REHARMONISED** (v5): the theme's last statement over tritone substitutes on every other bar - Abm9 Dm9 Bm9 Fm9 Abm9 Dm9 Am9 Abm9 - ending on a half-step slide home (A -> Ab).
 - **BRIDGE TUNE** (v6, vibes over the 7+7): three 4-bar phrases - the cell as written (rising), turned upside down (falling), then climbing a step a bar to a held top B5; under it a soft alto-sax COUNTER-LINE of guide tones (G F Eb F G G F Gb G F Eb F), one a bar.
+- **CHICKEN SCRATCH** (v8, guitar): sixteenth scratches of the bar's rootless m9 top on the archtop (wM's DI string), palm-muted ghosts on the off-sixteenths, open stabs on 2 6 9 13 - between the clav's hits (1 3 6 9 11 14).
 
 ## t8 Mallet Chamber in Phase (chirper-two)
 Generator `compose/chirpers2/src/chirpers2-t8.py`. A kit-less vibes-and-marimba quartet: process music meets chamber jazz. 112 bpm, 12/8.
