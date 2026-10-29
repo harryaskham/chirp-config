@@ -26,3 +26,5 @@ Generator `compose/chirpers3/src/chirpers3-t5.py`. Dub-wise space, 70 bpm one-dr
 - **SKANK + BUBBLE**: rhodes stabs on beats 2 and 4 into the spring; a wurli bubble on the e-and-a's.
 - **THE CALL** (boc-lead, a melodica-ish voice): eight bars of A minor pentatonic, `E5 . C5 D5 E5~ | . D5 C5 A4~ | G4 A4 C5 E5 G5 | F5. E5 D5~ | E5~~~ | A5 G5 F5 E5 D5 | C5 A4 G4 E4 | A4~~~`, each four-bar phrase THROWN into the echo on its last off-beat.
 - **THE VERSION** (the dub mix as the arrangement): 16 bars where the desk decides who plays, bar by bar (drums+bass / +skank / bass+skank / all / drums alone / ... / the skank alone in the spring), the B part's harmony arriving under the drop-outs.
+- **THE SIGH GROWS** (v3): through A2 and A3 the vibes' sigh becomes a four-bar tune per chord loop: the sigh falling, its inversion rising, the sigh again from a fourth lower, and a held top note (the chord's 9th above).
+

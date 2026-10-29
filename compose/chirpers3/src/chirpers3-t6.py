@@ -73,6 +73,10 @@ B_LOOP = [(34, [50, 53, 57, 60]),   # Bbmaj9: Bb1 | D3 F3 A3 C4
 # the drop (18 kHz down to ~1 kHz) and opens again; N = the NEEDLE LIFTS: the drop's last beat is silence but for a
 # crackle burst, and A3 lands.
 R2 = set(filter(None, os.environ.get("T6_R2", "W,F,N").split(","))) - {"none"}
+# Round 3 (v3): T = the vibes' SIGH GROWS INTO A TUNE through A2 and A3, a four-bar phrase per chord loop: the sigh
+# falling, its inversion rising, the sigh again from lower, and a held top note; M = the mix: the fretless darker
+# (less mid), the brush taps brighter.
+R3 = set(filter(None, os.environ.get("T6_R3", "T,M").split(","))) - {"none"}
 FORM = [("intro", 4), ("A", 16), ("switch", 8), ("A2", 16), ("drop", 4), ("A3", 12), ("outro", 4)]
 LEVEL = {"intro": 58, "A": 72, "switch": 66, "A2": 78, "drop": 56, "A3": 80, "outro": 56}
 DRUMS = {"A", "switch", "A2", "A3"}
@@ -120,11 +124,20 @@ def build():
                 if i % 4 == 3:
                     T["bass"].add(start + 3.5 + late, 0.45, nm(root + 1 if i % 8 == 7 else root - 1), v - 10)
         # ---- dusty vibes: a falling three-note sigh, late, every other bar of the A sections ----
-        if sec in ("A2", "A3") and i % 2 == 0 or (sec == "A" and i % 4 == 2):
+        tune = "T" in R3 and sec in ("A2", "A3")
+        if (sec in ("A2", "A3") and i % 2 == 0 and not tune) or (sec == "A" and i % 4 == 2) or tune:
             top = sorted(voic)[-1] + 12
             sigh = [top, top - 3 if (top - 3) % 12 in {x % 12 for x in voic} else top - 4, top - 5]
-            for k, (o, nn) in enumerate(zip((1.55, 1.95, 2.75), sigh)):
-                T["vibes"].add(start + o + rng.uniform(-0.02, 0.04), 0.9 if k == 2 else 0.4, nm(nn), v - 10 - 3 * k)
+            ph = i % 4 if tune else 0
+            if ph == 1:  # the sigh inverted: rising
+                sigh = list(reversed(sigh))
+            elif ph == 2:  # the sigh from lower
+                sigh = [x - 5 for x in sigh]
+            if ph == 3:  # the held top
+                T["vibes"].add(start + 1.55 + rng.uniform(-0.02, 0.04), 2.2, nm(top + 2), v - 8)
+            else:
+                for k, (o, nn) in enumerate(zip((1.55, 1.95, 2.75), sigh)):
+                    T["vibes"].add(start + o + rng.uniform(-0.02, 0.04), 0.9 if k == 2 else 0.4, nm(nn), v - 10 - 3 * k)
         # ---- the drummer ----
         d = T["drums"]
         if sec in DRUMS:
@@ -187,8 +200,8 @@ def patches():
                          {"a": "0.5ms", "d": "650ms", "s": 0, "r": "50ms", "curve": 2}, "10dB", ("hp cutoff=28",)),
                "ms": drum("D3", dict(brush, beater="felt", contact=1.4, wires=0.5, decay="0.28s", slap=0.5),
                           {"a": "0.5ms", "d": "500ms", "s": 0, "r": "60ms", "curve": 2}, "-2dB", ("hp cutoff=90",)),
-               "bt": drum("E3", brush, {"a": "0.5ms", "d": "600ms", "s": 0, "r": "60ms", "curve": 2}, "-2dB",
-                          ("hp cutoff=120",)),
+               "bt": drum("E3", brush, {"a": "0.5ms", "d": "600ms", "s": 0, "r": "60ms", "curve": 2},
+                          "-2dB" if "M" not in R3 else "1dB", ("hp cutoff=%d" % (120 if "M" not in R3 else 400),)),
                "bs": drum("E3", dict(brush, sweep="0.9s"), {"a": "30ms", "d": "1.2s", "s": 0, "r": "100ms", "curve": 1},
                           "-5dB", ("hp cutoff=150",)),
                "mt1": drum("A2", dict(type="drum", beater="felt", decay="0.6s", sharp=30, reso=1.0, cavity=0.2,
@@ -241,7 +254,8 @@ def main():
                     "tape drive=0.5 warmth=0.8", "lp cutoff=2200",
                     {"type": "crush", "bits": 10, "rate": 11000, "mix": 0.55},
                     "reverb kind=hall decay=2.5s mix=0.3"], "score": T["kw"].score(total)}] if "W" in R2 else []),
-        {"name": "bass", "patch": "fretless", "gain": "1dB", "fx": ["lp cutoff=900", "tape drive=0.2 warmth=0.5"],
+        {"name": "bass", "patch": "fretless", "gain": "1dB" if "M" not in R3 else "0dB",
+         "fx": ["lp cutoff=%d" % (900 if "M" not in R3 else 600), "tape drive=0.2 warmth=0.5"],
          "score": T["bass"].score(total)},
         {"name": "sub", "patch": "c2-sub", "gain": "-5dB", "score": T["sub"].score(total)},
         {"name": "vibes", "patch": "c2-vibes", "pan": 0.3, "gain": "-6dB",
