@@ -26,7 +26,9 @@ BPM = 120
 MG = float(os.environ.get("T9_MG", "11"))
 V2 = os.environ.get("T9_V2", "1") == "1"
 V3 = os.environ.get("T9_V3", "1") == "1"
-CHOP = os.environ.get("T9_CHOP", "catch")  # wM's MPC chop: "catch" = the cassette chews the bar before THE CATCH (master); "both" = and the guitar chopped in the outro's last four bars  # the form made audible: a master dynamics lane by section and a STOP at every seam (the band stops mid-bar, the rim fills)  # the draft's fixes: an upright bass (borrowed from Odd Hours t1), the master off the flute's presence and onto the lows, the bridge without the percussion
+CHOP = os.environ.get("T9_CHOP", "catch")
+RIMLATE = os.environ.get("T9_RIMLATE", "45")  # the rim click's drag behind the beat (ms)
+ANSWER = os.environ.get("T9_ANSWER", "1") == "1"  # the last A: the guitar answers the flute at every phrase end (a falling fill on the 4th bar's last two beats)  # wM's MPC chop: "catch" = the cassette chews the bar before THE CATCH (master); "both" = and the guitar chopped in the outro's last four bars  # the form made audible: a master dynamics lane by section and a STOP at every seam (the band stops mid-bar, the rim fills)  # the draft's fixes: an upright bass (borrowed from Odd Hours t1), the master off the flute's presence and onto the lows, the bridge without the percussion
 S = 0.25
 
 NOTE = {"C": 0, "C#": 1, "Db": 1, "D": 2, "D#": 3, "Eb": 3, "E": 4, "F": 5, "F#": 6, "Gb": 6, "G": 7, "G#": 8, "Ab": 8,
@@ -128,7 +130,7 @@ def tune(notes, vel=82, shift=0):
 
 
 def build():
-    names = ("guitar", "thumb", "perc", "rim", "flute", "rhodes", "rpad", "bass")
+    names = ("guitar", "thumb", "perc", "rim", "flute", "rhodes", "rpad", "bass") + (("gfill",) if ANSWER else ())
     T = {n: [] for n in names}
     rng = random.Random(9)
     times, t = {}, 0.0
@@ -153,6 +155,11 @@ def build():
                     bar["rim"] = rim(b)
             if sec in ("A", "A2"):
                 bar["flute"] = tune(A_END if b % 16 == 15 else A_TUNE[b % 8], vel=84 if sec == "A" else 88)
+                if ANSWER and sec == "A2" and b % 4 == 3:  # the guitar answers: a falling run down the chord's tones in the bar's last two beats
+                    root, v = CH[c]
+                    run = sorted(v, reverse=True) + [v[0] - 12 + 12]
+                    fill = [(8 + 2 * k, nm(n + 12), 2, 74 - 3 * k) for k, n in enumerate(run[:4])]
+                    bar["gfill"] = grid(fill)
             elif sec == "B":
                 bar["flute"] = tune(B_TUNE[b], vel=86)
                 bar["rpad"] = f"{','.join(nm(n + 12) for n in CH[c][1])}/4b@50"
@@ -224,13 +231,15 @@ def song():
         {"name": "guitar", "patch": "nylon", "pan": -0.15, "fx": [deck] + gchop, **({"auto": {"gcp": {"points": gcp}}} if gchop else {}), "sends": {"room": "-12dB"}, "score": sc("guitar")},
         {"name": "thumb", "patch": "nylon", "gain": "2dB", "pan": -0.1, "fx": [deck], "score": sc("thumb")},
         {"name": "perc", "patch": "samba-kit", "gain": "-10dB", "pan": 0.2, "score": "swing16=0.56 " + sc("perc")},
-        {"name": "rim", "patch": "room-kit play.humanize.nudge.so=45ms", "gain": "-12dB", "pan": 0.3, "score": sc("rim")},
+        {"name": "rim", "patch": f"room-kit play.humanize.nudge.so={RIMLATE}ms", "gain": "-12dB", "pan": 0.3, "score": sc("rim")},
         {"name": "flute", "patch": "mellotron-flute", "gain": "-6dB", "pan": 0.1, "fx": [deck], "sends": {"room": "-8dB"}, "score": sc("flute")},
         {"name": "rhodes", "patch": "rhodes", "gain": "-7dB", "pan": 0.2, "fx": [deck], "sends": {"room": "-10dB"}, "score": sc("rhodes")},
         {"name": "rpad", "patch": "rhodes", "gain": "-14dB", "pan": -0.25, "fx": [deck], "sends": {"room": "-8dB"}, "score": sc("rpad")},
     ]
     if V2:
         tracks.append({"name": "bass", "patch": "upright", "gain": "4dB", "score": sc("bass")})
+    if ANSWER:
+        tracks.append({"name": "gfill", "patch": "nylon", "gain": "-2dB", "pan": 0.25, "fx": [deck], "sends": {"room": "-10dB"}, "score": sc("gfill")})
     return {
         "about": ("Chirpers - Tape Weather, track 9 (original composition, chirper-zero; generator "
                   "compose/chirpers3/src/chirpers3-t9.py). Cassette bossa: an original bossa nova in D at 120 bpm, played on "
