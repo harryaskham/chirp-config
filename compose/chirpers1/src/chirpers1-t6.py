@@ -46,7 +46,9 @@ STALL_GATE = os.environ.get("T6_STALLGATE", "")
 GOV_OD = os.environ.get("T6_GOVOD", "fifth")
 GOV_SEMI = int(os.environ.get("T6_GOVSEMI", "7"))  # the harmonizer interval
 GOV_SZ = os.environ.get("T6_GOVSZ", "")
-KIT_OD = os.environ.get("T6_KITOD", "metal-kit-punch")  # the overdrive's kit crushed (chirper-one's CRUSH KIT: OTT + drive) on this patch, e.g. metal-kit / metal-kit-punch  # the seizure's long-note GOVERNOR through a ring modulator ("ring")  # the GOVERNOR's overdrive voice: "fifth" (pitch-shifted +7 harmony) or "ring" (ring mod 233 Hz)  # t5's BREATH GATE on the machine's 13-sixteenth cycle in the stall: "cln" or "cln,pad"  # section:rig swaps, e.g. "engage:m8-chug,governor:m8-fluence,overdrive:m8-fuzz"  # sections whose GEARTRAIN is split: gtr-l the accents/teeth/stabs, a crushed right guitar (chirper-three's SHARD) the chugs  # a master cut at 580 Hz  # master tone: "" (v3), "s1" (no 5k boost, 10k -3), "s2" (s1 + 60 Hz +3)  # the machine's own colour: GOVERNOR C -> C#, the stall clock on F Gb B E C#  # sections whose snare drives on 2 and 4 (comma list)  # dB of low shelf over the last bars  # the hammer bar crash-lit (crash on quarters, open hat between)  # ... and its second half changes texture  # overdrive turns at bar 12: a clunk, roots up a semitone, the lead up an octave  # one beat of silence before each realignment
+KIT_OD = os.environ.get("T6_KITOD", "metal-kit-punch")
+PHASE = os.environ.get("T6_PHASE", "")
+CLANK = os.environ.get("T6_CLANK", "")  # a metallic clank (kit piece, e.g. cow / x) on every gear cycle's first sixteenth  # engage: a right-hand copy of the gear a sixteenth late on this patch ("m8-chug-r" or "shard")  # the overdrive's kit crushed (chirper-one's CRUSH KIT: OTT + drive) on this patch, e.g. metal-kit / metal-kit-punch  # the seizure's long-note GOVERNOR through a ring modulator ("ring")  # the GOVERNOR's overdrive voice: "fifth" (pitch-shifted +7 harmony) or "ring" (ring mod 233 Hz)  # t5's BREATH GATE on the machine's 13-sixteenth cycle in the stall: "cln" or "cln,pad"  # section:rig swaps, e.g. "engage:m8-chug,governor:m8-fluence,overdrive:m8-fuzz"  # sections whose GEARTRAIN is split: gtr-l the accents/teeth/stabs, a crushed right guitar (chirper-three's SHARD) the chugs  # a master cut at 580 Hz  # master tone: "" (v3), "s1" (no 5k boost, 10k -3), "s2" (s1 + 60 Hz +3)  # the machine's own colour: GOVERNOR C -> C#, the stall clock on F Gb B E C#  # sections whose snare drives on 2 and 4 (comma list)  # dB of low shelf over the last bars  # the hammer bar crash-lit (crash on quarters, open hat between)  # ... and its second half changes texture  # overdrive turns at bar 12: a clunk, roots up a semitone, the lead up an octave  # one beat of silence before each realignment
 FORM = [("spin", 13), ("engage", 13), ("mesh", 13), ("governor", 13), ("stall", 13), ("overdrive", 23), ("seize", 13)]
 
 
@@ -137,7 +139,7 @@ def riff(nbars, pattern, roots=None, vel=1.0, mute_every=0, kick="unison"):
     return join(*G), join(*B), join(*K), starts
 
 
-def kit_layer(nbars, kick_tokens, snare="3", hats="8", ride=False, crash_at=(), accent13=False):
+def kit_layer(nbars, kick_tokens, snare="3", hats="8", ride=False, crash_at=(), accent13=False, clank_at=()):
     """Merge a kick line (sixteenth tokens, some 0.5b) with a steady pulse: snare on beat 3 (half time) or on 2 and
     4, hats on 8ths or 16ths (accent every 13 when accent13), crashes at the given 16th positions."""
     toks = kick_tokens.split() if kick_tokens else [rest(S16)] * (nbars * 16)
@@ -156,6 +158,8 @@ def kit_layer(nbars, kick_tokens, snare="3", hats="8", ride=False, crash_at=(), 
             extra.append("h1")
         if pos in crash_at:
             extra.append("c")
+        if CLANK and pos in clank_at:
+            extra.append(CLANK)
         if t.startswith("R/"):
             out.append(",".join(extra) + f"/{d16 / 4:g}b@{(84 if 's' in extra else 70) if not accent13 or pos % 13 else 96}" if extra else t)
         else:
@@ -280,7 +284,8 @@ def build():
                     put("gtr-r", g, beats); used.add("gtr-r")
             half = sec in ("engage", "mesh", "governor", "seize") and sec not in FULLTIME.split(",")
             put("drums", kit_layer(n, k, snare="3" if half else "24",
-                                   hats={"engage": "4", "governor": "16"}.get(sec, "8"), ride=(sec == "governor"), crash_at={0}), beats)
+                                   hats={"engage": "4", "governor": "16"}.get(sec, "8"), ride=(sec == "governor"), crash_at={0},
+                                   clank_at=set(starts)), beats)
             if sec in ("mesh", "seize"):
                 put("ping", ping7(n if sec == "mesh" else n - 2) + (" " + rest(BAR * 2) if sec == "seize" else ""), beats); used.add("ping")
             if sec == "governor":
@@ -306,7 +311,8 @@ def build():
             for hi, (nb, roots, octv) in enumerate(halves):
                 shift = OVTURN2 and hi == 1  # the second gear: unison kick, ride eighths, no ping
                 g, b, k, starts = riff(nb, pat, roots, vel=1.05, kick="unison" if shift else "double")
-                d = kit_layer(nb, k, snare="24", hats="8" if shift else "16", ride=shift, crash_at=set(starts[::2]) | {0}, accent13=False)
+                d = kit_layer(nb, k, snare="24", hats="8" if shift else "16", ride=shift, crash_at=set(starts[::2]) | {0}, accent13=False,
+                              clank_at=set(starts))
                 gv = governor(nb, octave=octv, vel=94 + 4 * octv)
                 pg = rest(nb * BAR) if shift else ping7(nb, vel=64)
                 sb = join(*[tok(roots[0], BAR * 1, 70) if i % 4 == 0 else rest(BAR) for i in range(nb)])
@@ -395,6 +401,12 @@ def song():
     T, total = build()
     rig_tracks = rig_swaps(T)
     gate_tracks = stall_gates(T)
+    if PHASE:  # the slipping gear: engage's riff a sixteenth late on the right
+        i = [x for x, _ in FORM].index("engage")
+        src_name = next((n for n in T if n.endswith("-l") and n != "gtr-l" and not T[n][i][0].startswith("R/") ), "gtr-l")
+        piece, b = T[src_name][i]
+        T["phase"] = [(rest(bb), bb) for _, bb in T["gtr-l"]]
+        T["phase"][i] = (truncate("R/0.25b " + piece, b), b)
     if KIT_OD:
         i = [x for x, _ in FORM].index("overdrive")
         T["drums-od"] = [(rest(b), b) for _, b in T["drums"]]
@@ -434,6 +446,12 @@ def song():
         {"name": "ping", "patch": "m8-twang-chorus", "gain": "-16dB", "pan": 0.6, "sends": {"dly": "-10dB"}, "score": sc("ping")},
         {"name": "gov", "patch": "m8-lead", "gain": "-9dB", "pan": 0.05, "score": sc("gov")},
     ]
+    if PHASE:
+        if PHASE == "shard":
+            tracks.append({"name": "phase", "patch": "m8-emg-r", "gain": "-5dB", "pan": 1,
+                           "fx": [{"type": "crush", "bits": 6, "rate": 5000, "mix": 0.6}], "score": sc("phase")})
+        else:
+            tracks.append({"name": "phase", "patch": PHASE, "gain": "-5dB", "pan": 1, "score": sc("phase")})
     if KIT_OD:
         base = next(t for t in tracks if t["name"] == "drums")
         tracks.append({"name": "drums-od", "patch": KIT_OD, "gain": base["gain"],

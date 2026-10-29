@@ -38,7 +38,10 @@ GATE_F = float(os.environ.get("T5_GATEF", "6"))
 SUNG = os.environ.get("T5_SUNG", "")  # tracks whose EXHALE is sung (chirper-one's guitarize: scoops into long notes, slides between near ones)
 KIT = os.environ.get("T5_KIT", "metal-kit")
 SWELL_F = os.environ.get("T5_SWELLF", "")  # the augmented EXHALE (F) as volume swells: an amp attack, on its own track
-RING_D = float(os.environ.get("T5_RINGD", "233"))  # the held breath's glass chord (D) through a ring modulator at this frequency  # the drum patch (chirper-three's metal-kit-punch to try)  # the BREATH GATE only on the exhale's return (F): a gated pad appended last  # the EXHALE lead as volume swells: an amp attack (e.g. 280ms)  # a master cut at 580 Hz (the cleans/pads low-mid)  # the clock (G) without the bass: t6's bass entry is the arrival  # less sub at the joins: a softer bass under the opening chord, no bass in the clock  # dB on the clean/pad tracks (the breath quieter against the weight)  # extra level on the heavy parts through E and E2  # render tail after the last bar  # master make-up gain (dB) before the ceiling
+RING_D = float(os.environ.get("T5_RINGD", "233"))
+FREEZE = os.environ.get("T5_FREEZE", "")
+HOWL_HARM = os.environ.get("T5_HOWLHARM", "")
+KIT_HALL = os.environ.get("T5_KITHALL", "")  # a hall send on the main kit (dB), e.g. with the physical kit  # the howled EXHALE over the weight through a pitch shifter: semitones (e.g. 7, -12)  # "stop": the weight's last stab frozen across E2's dead stop; "gap": the ring glass frozen across the held breath  # the held breath's glass chord (D) through a ring modulator at this frequency  # the drum patch (chirper-three's metal-kit-punch to try)  # the BREATH GATE only on the exhale's return (F): a gated pad appended last  # the EXHALE lead as volume swells: an amp attack (e.g. 280ms)  # a master cut at 580 Hz (the cleans/pads low-mid)  # the clock (G) without the bass: t6's bass entry is the arrival  # less sub at the joins: a softer bass under the opening chord, no bass in the clock  # dB on the clean/pad tracks (the breath quieter against the weight)  # extra level on the heavy parts through E and E2  # render tail after the last bar  # master make-up gain (dB) before the ceiling
 
 # ---------------------------------------------------------------- motifs
 # The breath cell's clean arpeggio per harmony (five notes each, F lydian throughout until the exhale's Db).
@@ -403,8 +406,10 @@ def song():
                     {"src": "expr.f0", "amount": 0.01}]}}}  # m8-clean's own pitch mods plus the f0 binding
             t["patch"] = twin
             t["score"] = " | ".join(sung_score(b) for b in t["score"].split(" | "))
-        if t["name"] in ("drums", "tick") and KIT != "metal-kit":
+        if t["name"] == "drums" and KIT != "metal-kit":
             t["patch"] = KIT
+        if t["name"] == "drums" and KIT_HALL:
+            t["sends"] = {"hall": f"{KIT_HALL}dB"}
     if GATE_F:  # the exhale's pad chopped by the 5-sixteenth gate; the plain pad muted there (its notes unchanged)
         bar_s = BAR * 60 / BPM
         f_start = sum(n for sct, n in FORM[:FORM.index(("F", 10))]) * bar_s
@@ -418,7 +423,27 @@ def song():
         sc_g = " ".join([rest(pre)] + [tok(PAD[h], BAR, 66) for h in HARM["F"]] + [rest(post)])
         tracks.append({"name": "padg", "patch": "juno-pad", "gain": {"value": f"{-14 + CLEAN_DB:+g}dB", "mod": [{"src": "lfo.gt", "amount": GATE_F}]},
                        "lfo": {"gt": {"wave": "square", "rate": "5/16"}}, "pan": 0, "sends": {"hall": "-8dB"}, "score": sc_g})
+    if HOWL_HARM:
+        for t in tracks:
+            if t["name"] == "howl":
+                t.setdefault("fx", []).append({"type": "pitch", "semitones": int(HOWL_HARM), "mix": 0.35})
     tracks += extra_tracks
+    bar_s = BAR * 60 / BPM
+    def freeze(t, a, b):
+        t.setdefault("fx", []).append({"type": "freeze", "size": "180ms", "mix": 0.7,
+                                       "hold": {"value": 0, "mod": [{"src": "auto.frz", "amount": 1}]}})
+        t.setdefault("auto", {})["frz"] = {"points": [["0s", 0], [f"{a:.2f}s", 0], [f"{a + 0.05:.2f}s", 1],
+                                                    [f"{b - 0.05:.2f}s", 1], [f"{b:.2f}s", 0]]}
+    if "stop" in FREEZE.split(","):  # E2's last bar: one stab, then three beats of the stab frozen
+        e2_last = (sum(n for _, n in FORM[:6]) - 1) * bar_s
+        for t in tracks:
+            if t["name"] in ("gtr-l", "gtr-r"):
+                freeze(t, e2_last + 0.05, e2_last + bar_s - 0.1)
+    if "gap" in FREEZE.split(","):  # the held breath's beat: the ring glass frozen instead of silence
+        d_end = sum(n for _, n in FORM[:4]) * bar_s
+        for t in tracks:
+            if t["name"] == "glassr":
+                freeze(t, d_end - bar_s / 4 - 0.05, d_end - 0.05)
     doc = {
         "about": ("Chirpers - Chirpers I, track 5 'The breath' (original composition, chirper-zero; generator "
                   "compose/chirpers1/src/chirpers1-t5.py). 64 bpm, F lydian: a clean five-sixteenth 'breath cell' "
