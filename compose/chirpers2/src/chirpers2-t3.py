@@ -158,7 +158,7 @@ def build():
     g1 = loop_part(B, 5, 1, 70, lambda b: b['sec'] != 'B' or b['i'] % 2 == 0, step=TAP)
     g2 = loop_part(B, 7, 1, 64, lambda b: (b['sec'] != 'intro' or b['i'] >= 4) and b['sec'] not in ('outro',) and not (b['sec'] == 'C' and b['i'] < 4), offset=3)
     bass = bass_part(B, lambda b: full(b) or (b['sec'] == 'C' and b['i'] >= 4))
-    kit = kit_part(B, lambda b: full(b), half=lambda b: b['sec'] == 'B', tap16=lambda b: b['sec'] in ('A', 'A2', 'A3', 'D'))
+    kit = kit_part(B, lambda b: full(b), half=lambda b: b['sec'] == 'B', tap16=lambda b: b['sec'] in ('A', 'A2', 'A3', 'D', 'B'))
     mar = marimba_part(B, lambda b: b['sec'] in ('B', 'A3', 'D') or (b['sec'] == 'outro' and b['i'] < 4))
     total_beats = sum(b['e8'] for b in B) / 2
     end_s = total_beats * 60 / BPM
