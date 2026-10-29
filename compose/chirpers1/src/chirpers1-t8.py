@@ -241,6 +241,9 @@ STAIRS_ECHO = [['F4/4b@64'], ['Gb4/2b@62', 'B4/2b@64'], ['E5/4b@66'], ['D5/2b@62
 def breath16(a, b, vel):
     return stream16(a, b, lambda i: f'{BREATH[i % 5]}@{vel}')
 
+# chirper-two's physical kick/snare kit with its two-mic stereo opened (pin aac4ee81): the bodies stay centred, rings spread
+PHYS_STEREO = 'metal-kit-phys kit.s.patch.synth.layers.0.stereo=0.5 kit.k.patch.synth.layers.0.stereo=0.3'
+
 def build():
     A, B = (1, 24), (25, 56)
     C1, C2 = (57, 80), (81, 104)
@@ -312,7 +315,7 @@ def build():
             {'name': 'gtr-l', 'patch': 'm8-emg-l', 'gain': '-5dB', 'pan': -1, 'score': join(gtr)},
             {'name': 'gtr-r', 'patch': 'm8-emg-r', 'gain': '-5dB', 'pan': 1, 'score': join(gtr)},
             {'name': 'bass', 'patch': 'bass-fat', 'gain': '-4dB', 'score': join(bass)},
-            {'name': 'drums', 'patch': 'metal-kit-phys', 'gain': '-2dB', 'score': join(drums)},
+            {'name': 'drums', 'patch': PHYS_STEREO, 'gain': '-2dB', 'score': join(drums)},
             {'name': 'echo', 'patch': 'm8-clean', 'gain': '-1dB', 'pan': 0.35, 'score': join(ECHO)},
             {'name': 'lead', 'patch': 'm8-lead', 'gain': '-8dB', 'pan': -0.15, 'fx': ['delay time=3/8 feedback=0.3 mix=0.15'], 'score': join(lead)},
             {'name': 'fuzz', 'patch': 'm8-emg-r', 'gain': '-7dB', 'pan': 0,
@@ -322,7 +325,7 @@ def build():
              'fx': [{'type': 'ring', 'freq': 233, 'mix': 0.6}], 'score': join(RING)},
             {'name': 'bpad', 'patch': 'juno-pad', 'gain': {'value': '-9dB', 'mod': [{'src': 'lfo.gt', 'amount': -6}]},
              'lfo': {'gt': {'wave': 'square', 'rate': '5/16'}}, 'score': join(BPAD)},
-            {'name': 'crushkit', 'patch': 'metal-kit-phys', 'gain': '-3dB',
+            {'name': 'crushkit', 'patch': PHYS_STEREO, 'gain': '-3dB',
              'fx': [{'type': 'ott', 'depth': 0.6}, {'type': 'drive', 'drive': 0.5, 'mix': 0.4}], 'score': join(CRUSHK)},
             {'name': 'halo', 'patch': 'm8-clean', 'gain': '+4dB', 'pan': -0.3,
              'fx': [{'type': 'freeze', 'hold': 1, 'size': 0.8, 'mix': 0.5}, {'type': 'pitch', 'semitones': 12, 'mix': 0.25}],
