@@ -141,6 +141,10 @@ R27 = set(filter(None, os.environ.get("T4_R27", "L").split(","))) - {"none"}
 # Round 28 (v28): 3 = a BRAID OF THREE: in the intro the tom choir joins the piano's 7 and the rhodes' 5 with a
 # 3-note palindrome (0 4 0) in dotted quarters, so three loops of 7, 5 and 3 braid across the meter palindrome.
 R28 = set(filter(None, os.environ.get("T4_R28", "3").split(","))) - {"none"}
+# Round 29 (v29): I = the COLOUR PALINDROME INVERTED in head 1's second phrase: trumpet and tom choir swap places
+# (tom - piano - trumpet - tom - trumpet - piano - tom), still a palindrome, so the second time through the tune
+# is heard in its other colours.
+R29 = set(filter(None, os.environ.get("T4_R29", "I").split(","))) - {"none"}
 BTHEME = {0: [(0, 3, 4), (3, 1, 3), (4, 4, 2)], 1: [(0, 2, 1), (2, 2, 2), (4, 3, 4)], 2: [(0, 5, 6)],
           3: [(0, 2, 4), (2, 2, 5), (4, 2, 4)]}  # t2's night cell, degrees on eighths (None = rest)
 TRIP = "T" in os.environ.get("T4_OPTS", "")  # triplet brush ghosts before the backbeats (off: no gain)
@@ -434,6 +438,8 @@ def build():
                 voice = VOICE[pos] if section != "peak" else ("tpt" if pos % 2 == 0 else "tom")
                 if section == "head2" and voice == "tpt" and "W" in R8:
                     voice = "horn"
+                if section == "head" and "I" in R29 and pidx == max(b[4] for b in bars if b[3] == "head"):
+                    voice = {"tpt": "tom", "tom": "tpt"}.get(voice, voice)
             for o, ln, n in line:
                 at = swing_at(start, o, swung)
                 head_n = n if voice != "tom" else nm(midi(n) - 12)
