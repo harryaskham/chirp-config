@@ -33,7 +33,10 @@ DRAG = os.environ.get("T5_DRAG", "0.64")
 SIREN = os.environ.get("T5_SIREN", "0") == "1"  # a dub siren (song-local square wave, its pitch wailing on a triangle LFO) on the version's phrase ends
 EVEN = os.environ.get("T5_EVEN", "0") == "1"  # an 8-bar intro (the skank alone for four) and an 8-bar outro, so the sections sit nearer in length
 BUB3 = os.environ.get("T5_BUB3", "0") == "1"
-LECHO = os.environ.get("T5_LECHO", "1") == "1"  # the melodica's written echo: its line again a dotted eighth late, softer, panned opposite, into the spring
+LECHO = os.environ.get("T5_LECHO", "1") == "1"
+DECK = os.environ.get("T5_DECK", "1")  # "1": the deck on keys and leads; "lead": on the lead and its echo only (the skank keeps the granular wow)  # wM's tape deck (pin 232211dd) on the keys and the leads instead of the granular wow: wow/flutter in cents, drift, darkening dips
+NUDGE = os.environ.get("T5_NUDGE", "")  # the one-drop played by hand (play.humanize): "40,-10,25" = rim late, kick early, hats late (ms), plus swing drift and a drunk lean
+VINYL = os.environ.get("T5_VINYL", "1") == "1"  # wM's vinyl fx on the master instead of the crackle and hiss tracks  # the melodica's written echo: its line again a dotted eighth late, softer, panned opposite, into the spring
 DSKANK = os.environ.get("T5_DSKANK", "0")  # "1": everywhere; "drive": the riddim, the version and the return only (the melodica gets space)  # the double skank: a chop and its sixteenth echo on 2 and 4 (chk-a), the second softer  # the bubble on a dotted-eighth cycle (every 3 sixteenths), turning across the bar  # the drums' EIGHTH swing (the hats sit on 8ths, so swing16 never moved them): e.g. 0.64, the lazy drag
 CRK = os.environ.get("T5_CRK", "2")  # crackle: 1 = draft (-20 dB, 18% of 32nds); 2 = sparser and quieter (-28 dB, 8%)
 MEQ = os.environ.get("T5_MEQ", "3")  # master eq: 1 = draft (shelf +3 @110, highshelf -4 @7k); 2 = mids -6 @600 q0.8, -3 @300, no top cut
@@ -244,11 +247,17 @@ def song():
         return (f"swing={swing8} " + s) if swing8 else s
 
     wow = ([{"type": "pitch", "semitones": {"value": 0, "mod": [{"src": "lfo.wow", "amount": 0.12}]}, "mix": 1}] if WOW else [])
+    deck = ["tape drive=0.12 mix=1 wow=14 flutter=2.5 drift=1 tone=6500 sweep=0.6 seed=4"]
+    lead_fx = deck if DECK in ("1", "lead") else wow
+    if DECK == "1":
+        wow = deck
     lfo = {"wow": "sine rate=0.37hz"} if WOW else {}
     lane = {"thr": {"points": throw_lane(throws, total)}}
     thr_send = lambda base: {"value": f"{base}dB", "mod": [{"src": "auto.thr", "amount": 1}]}  # noqa: E731
     tracks = [
-        {"name": "drums", "patch": "room-kit", "gain": "-6dB", "sends": {"spring": "-16dB", "echo": thr_send(-22)},
+        {"name": "drums", "patch": ("room-kit" if not NUDGE else
+                                     "room-kit play.humanize.nudge.so={}ms play.humanize.nudge.k={}ms play.humanize.nudge.h={}ms "
+                                     "play.humanize.swing_drift=0.04 play.humanize.drunk=6ms".format(*NUDGE.split(","))), "gain": "-6dB", "sends": {"spring": "-16dB", "echo": thr_send(-22)},
          "fx": [{"type": "eq", "bands": ["highshelf cutoff=6000 gain=-6dB"]}], "auto": lane, "score": sc("drums", HATSW, DRAG or None)},
         {"name": "bass", "patch": "analog-bass", "gain": "0dB", "fx": [{"type": "filter", "kind": "lowpass", "cutoff": 420}],
          "score": sc("bass")},
@@ -256,13 +265,13 @@ def song():
          "sends": {"spring": "-6dB", "echo": thr_send(-14)}, "auto": lane, "score": sc("skank", 0.58)},
         {"name": "bubble", "patch": "wurli", "gain": "-12dB", "pan": 0.3, "fx": wow, "lfo": lfo,
          "sends": {"spring": "-12dB"}, "score": sc("bubble", 0.58)},
-        {"name": "lead", "patch": "boc-lead", "gain": "-7dB", "pan": 0.1, "fx": wow, "lfo": lfo,
+        {"name": "lead", "patch": "boc-lead", "gain": "-7dB", "pan": 0.1, "fx": lead_fx, "lfo": lfo,
          "sends": {"spring": "-10dB", "echo": thr_send(-9)}, "auto": lane, "score": sc("lead")},
-        {"name": "crackle", "patch": "vinyl-crackle", "gain": "-20dB" if CRK == "1" else "-28dB", "score": sc("crackle")},
-        {"name": "hiss", "patch": "vinyl-hiss", "gain": "-34dB", "score": sc("hiss")},
+        {"name": "crackle", "patch": "vinyl-crackle", **({"mute": True} if VINYL else {}), "gain": "-20dB" if CRK == "1" else "-28dB", "score": sc("crackle")},
+        {"name": "hiss", "patch": "vinyl-hiss", "gain": "-34dB", **({"mute": True} if VINYL else {}), "score": sc("hiss")},
     ]
     if LECHO:
-        tracks.append({"name": "lecho", "patch": "boc-lead", "gain": "-11dB", "pan": -0.5, "fx": wow, "lfo": lfo,
+        tracks.append({"name": "lecho", "patch": "boc-lead", "gain": "-11dB", "pan": -0.5, "fx": lead_fx, "lfo": lfo,
                        "sends": {"spring": "-6dB"}, "score": " ".join(T["lecho"])})
     if SIREN:
         tracks.append({"name": "siren", "patch": "dub-siren", "gain": "-14dB", "pan": 0.4,
@@ -284,6 +293,7 @@ def song():
                                           "pitch": {"value": 0, "mod": [{"src": "lfo.sw", "amount": 7}]},
                                           "filters": ["lp cutoff=2.4k"], "amp": {"a": "30ms", "s": 1, "r": "500ms"}}}
     master = {"fx": [{"type": "eq", "bands": bands},
+                     *(["vinyl crackle=0.35 dust=0.3 noise=-62dB rumble=0.25 warp=4 wear=0.35 seed=5"] if VINYL else []),
                      {"type": "tape", "drive": 0.35, "warmth": 0.5, "mix": 1},
                      {"type": "compressor", "threshold": "-20dB", "ratio": 2, "attack": "20ms", "release": "220ms", "makeup": "0dB"},
                      {"type": "gain", "gain": f"+{MG:g}dB"}]}
