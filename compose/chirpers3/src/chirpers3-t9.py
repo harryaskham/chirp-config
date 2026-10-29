@@ -31,7 +31,10 @@ RIMLATE = os.environ.get("T9_RIMLATE", "45")  # the rim click's drag behind the 
 ANSWER = os.environ.get("T9_ANSWER", "1") == "1"
 DENS = os.environ.get("T9_DENS", "1") == "1"
 WEAR = os.environ.get("T9_WEAR", "1") == "1"
-TSTOP = os.environ.get("T9_TSTOP", "both")  # wM's tapestop on the master: "end" = the side runs out and the deck stops over the outro's last two bars; "both" = and the catch ends in a stop that spins back up into the last A  # the tape wears (chirper-two's deck warp, pin 220ef336): harder through the bridge (1.4), and the side running out over the outro (1 -> 2)  # density contrast: the bridge sparer (two plucks a bar, no rim), the last A busier (pandeiro jingles on the off-16ths)
+TSTOP = os.environ.get("T9_TSTOP", "both")
+LIVEGTR = os.environ.get("T9_LIVEGTR", "0") in ("1", "pan")
+LIVEKIND = os.environ.get("T9_LIVEGTR", "0")
+HAZE = os.environ.get("T9_HAZE", "1") == "1"  # wM's cloud (granular) as heat haze: the bridge's flute and rhodes are sent into a shimmering grain cloud  # "1": pan + tone per pluck; "pan": a small place per pluck only  # per-voice fx on the nylon (pin 3eee6a72): every pluck its own small place and its own tone  # wM's tapestop on the master: "end" = the side runs out and the deck stops over the outro's last two bars; "both" = and the catch ends in a stop that spins back up into the last A  # the tape wears (chirper-two's deck warp, pin 220ef336): harder through the bridge (1.4), and the side running out over the outro (1 -> 2)  # density contrast: the bridge sparer (two plucks a bar, no rim), the last A busier (pandeiro jingles on the off-16ths)
 IND_DB = os.environ.get("T9_INDDB", "-13")
 INDICATOR = os.environ.get("T9_INDICATOR", "")  # the car's indicator ticking through the intro and the outro (tick-tock every 380 ms, out of time with the bossa); "" off, "io" intro+outro, "all" the whole way, quieter  # the last A: the guitar answers the flute at every phrase end (a falling fill on the 4th bar's last two beats)  # wM's MPC chop: "catch" = the cassette chews the bar before THE CATCH (master); "both" = and the guitar chopped in the outro's last four bars  # the form made audible: a master dynamics lane by section and a STOP at every seam (the band stops mid-bar, the rim fills)  # the draft's fixes: an upright bass (borrowed from Odd Hours t1), the master off the flute's presence and onto the lows, the bridge without the percussion
 S = 0.25
@@ -200,6 +203,9 @@ def build():
     return T, times, t
 
 
+LIVE_FX = [{"type": "pan", "pan": {"value": 0, "mod": [{"src": "rand", "amount": 0.3}]}},
+           {"type": "filter", "kind": "lowpass", "cutoff": {"value": 3200, "mod": [{"src": "rand", "amount": 0.5}]}, "q": 0.9}]
+
 NYLON = {
     "about": "Tape Weather t9: a nylon-string guitar on the pluck string model - soft fingers (pick .6), no buzz, a "
              "low stiffness, two planes beating (wM's string), a dark top and a warm body.",
@@ -289,6 +295,13 @@ def song():
     if V2:
         tracks.append({"name": "bass", "patch": "upright", "gain": "4dB", "score": sc("bass")})
     tracks = [wa(t) for t in tracks]
+    if HAZE:
+        b0, b1 = times["B"], times["B"] + 8 * 4 * 60 / BPM
+        hz = [["0s", 0], [f"{b0 - 0.5:.2f}s", 0], [f"{b0 + 1.0:.2f}s", 1], [f"{b1 - 1.0:.2f}s", 1], [f"{b1:.2f}s", 0], [f"{total + 8:.2f}s", 0]]
+        for t in tracks:
+            if t["name"] in ("flute", "rpad"):
+                t["sends"] = {**t.get("sends", {}), "haze": {"value": "-60dB", "mod": [{"src": "auto.hz", "amount": float(os.environ.get("T9_HAZEDB", "56"))}]}}
+                t["auto"] = {**t.get("auto", {}), "hz": {"points": hz}}
     if DENS:
         tracks.append({"name": "pand", "patch": "samba-kit", "gain": "-12dB", "pan": 0.35, "score": f"swing16={os.environ.get('T9_PANDSW', '0.56')} " + sc("pand")})
     if ANSWER:
@@ -300,8 +313,13 @@ def song():
                   "a song-local nylon guitar, mellotron flute, rhodes, surdo and ganza, through a tape deck pushed hard "
                   "and on vinyl; once, the cassette catches."),
         "tempo": BPM, "ceiling": "-0.3dB", "tail": "4s", "feel": {"drift": "5ms", "drift_bars": 4},
-        "patches": {"nylon": NYLON, **({"upright": upright} if V2 else {})},
-        "buses": {"room": {"fx": ["reverb kind=room decay=1.4s size=0.6 mix=1 predelay=12ms"]}},
+        "patches": {"nylon": ({**NYLON, "synth": {**NYLON["synth"], "fx": (LIVE_FX if LIVEKIND == "1" else
+                                                                       [{"type": "pan", "pan": {"value": 0, "mod": [{"src": "rand", "amount": 0.25}]}}])}}
+                              if LIVEGTR else NYLON), **({"upright": upright} if V2 else {})},
+        "buses": {"room": {"fx": ["reverb kind=room decay=1.4s size=0.6 mix=1 predelay=12ms"]},
+                  **({"haze": {"fx": [{"type": "cloud", "size": "150ms", "density": 18, "position": "500ms", "spray": "400ms",
+                                         "spread": 0.8, "reverse": 0.25, "mix": 1},
+                                        "reverb kind=hall decay=2.5s size=0.8 mix=0.5 predelay=20ms"]}} if HAZE else {})},
         "master": {"fx": [{"type": "eq", "bands": (["lowshelf cutoff=150 gain=6dB", "peak cutoff=1100 q=0.6 gain=-8dB", "highshelf cutoff=6000 gain=2dB"] if V2
                                                    else ["peak cutoff=300 q=0.8 gain=-3dB", "highshelf cutoff=6000 gain=2dB"])},
                           {"type": "pitch", "semitones": {"value": 0, "mod": [{"src": "auto.cat", "amount": 1}]},
