@@ -83,6 +83,11 @@ R14 = set(filter(None, os.environ.get("T4_R14", "L,A").split(","))) - {"none"}
 # bar lines): in the intro, two PALINDROMIC loops braid across the palindromic meters, the piano's 7 (0 1 3 4 3 1 0 in
 # eighths) and the rhodes' 5 (0 2 4 2 0 in quarters), on each moment's chord, never meeting the 44-eighth phrase.
 R15 = set(filter(None, os.environ.get("T4_R15", "B").split(","))) - {"none"}
+# Round 16 (v16): W = t5 The Kettle Modulates' THIRDS WALK answered (chirper-one: up a major third to a m7, down a
+# minor third to a maj7, climbing a semitone every two bars): the trades' third phrase walks Bbmaj7 Dm7 Bmaj7 D#m7
+# Cmaj7 Em7 C#maj7, a bar each, and the collective phrase resolves up a semitone to Dm9.
+R16 = set(filter(None, os.environ.get("T4_R16", "W").split(","))) - {"none"}
+WALK = [(10, "maj7"), (2, "m7"), (11, "maj7"), (3, "m7"), (0, "maj7"), (4, "m7"), (1, "maj7")]
 BTHEME = {0: [(0, 3, 4), (3, 1, 3), (4, 4, 2)], 1: [(0, 2, 1), (2, 2, 2), (4, 3, 4)], 2: [(0, 5, 6)],
           3: [(0, 2, 4), (2, 2, 5), (4, 2, 4)]}  # t2's night cell, degrees on eighths (None = rest)
 TRIP = "T" in os.environ.get("T4_OPTS", "")  # triplet brush ghosts before the backbeats (off: no gain)
@@ -125,6 +130,9 @@ CH = {
 }
 # the centre bar's door, phrase by phrase
 CENTRES = [("Ebmaj9", "Abmaj7#11"), ("Emaj9", "Amaj7"), ("Fm9", "Dbmaj7#11"), ("Cm11", "F13")]
+for _pc, _k in WALK:
+    CH[f"walk{_pc}{_k}"] = (41 + (_pc - 5) % 12, [4, 7, 11, 14] if _k == "maj7" else [3, 7, 10, 14],
+                            [0, 2, 4, 6, 7, 9, 11] if _k == "maj7" else [0, 2, 3, 5, 7, 9, 10])
 
 
 def low(root):
@@ -265,6 +273,9 @@ def build():
         swung = SWUNG[m]
         v = dyn(i)
         chords = bar_chords(m, centre, pos) if m in (5, 6, 7, 8) else [(0, "Dm9")]
+        if section == "trade" and "W" in R16 and pidx == sorted({b[4] for b in bars if b[3] == "trade"})[2]:
+            pc, kd = WALK[pos]
+            chords = [(0, f"walk{pc}{kd}")]
         if section == "bridge":  # the bridge's meters are read from the centre: harmony follows its own mirror
             chords = bar_chords(m, centre, [3, 2, 1, 0, 1, 2, 3][pos] if pos != 3 else 0)
             if pos == 0 or pos == 6:
