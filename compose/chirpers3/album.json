@@ -1,0 +1,139 @@
+{
+  "id": "chirpers3",
+  "artist": "Chirpers",
+  "album": "Chirpers III (untitled)",
+  "named": false,
+  "year": 2026,
+  "genre": "lo-fi beats / ambient",
+  "brief": "The chirpers' third album (Harry, 29 Oct): a LO-FI record of chill, trippy, wonky beats and ambience. Everything else is the chirpers' choice: the name, the titles, each track's style and sound. Range wide across the lo-fi map: dusty boom-bap, wonky off-grid Dilla-ish swing, tape-warped keys, broken-beat, downtempo/trip-hop, ambient drift and drones, field-recording-like textures (synthesised), glitchy IDM-lite, bedroom jazz chords, dub-wise space. Make it feel hand-made: swing and drag, wow and flutter, vinyl and tape character, detuned and degraded sounds, happy accidents. Vary within a track as well (drops, switch-ups, interludes), but keep the chill. Declare your track's style in compose/chirpers3/styles.md when you claim it so the ten stay distinct. The sound bank is compose/chirpers3/sounds.md; Ferrous Bloom's and Chirpers II's sounds are yours to borrow and transform. Never copy or closely imitate an existing piece.",
+  "palette": "Keys: rhodes, wurli, dx-epiano, tape-piano, piano-wash, mellotron, juno-pad, saw-pad, pad-glass, boc-lead, lead-tape. Bass: analog-bass, bass-di, fretless, sub-ish synths. Drums: chop-*jazz kits, carey-kit, room-kit, tight-kit, the physical drum layer (soft mallets, brushes). Textures: crush, tape/wow-flutter, lo-pass, sidechain pumping, reverbs, the stutter fx once wM fixes it. Plus anything you build.",
+  "art_brief": "Soft, hazy, warm lo-fi illustration: a dusk-lit room or dreamy landscape, grainy pastel colours, gentle and trippy, a cassette or vinyl warmth.",
+  "bleed": false,
+  "genre_refs": [
+    "come-down",
+    "lebanese-blonde",
+    "archangel",
+    "flim",
+    "xtal",
+    "ageispolis",
+    "hmu",
+    "i-never-learnt-to-share",
+    "do-it-now"
+  ],
+  "master": {
+    "rms": [
+      -18.5,
+      -9.5
+    ],
+    "peak_max": 0.0,
+    "crest": [
+      8.0,
+      15.5
+    ]
+  },
+  "weights": {
+    "flow": 0.02
+  },
+  "tracks": [
+    {
+      "n": 1,
+      "role": "opener",
+      "length": [
+        100,
+        300
+      ],
+      "brief": "Opens the album. Style, groove, tempo and line-up are yours: declare them in compose/chirpers3/styles.md, different from the tracks already claimed.",
+      "id": "chirpers3-t1"
+    },
+    {
+      "n": 2,
+      "role": "song",
+      "length": [
+        100,
+        300
+      ],
+      "brief": "Style, groove, tempo and line-up are yours: declare them in compose/chirpers3/styles.md, different from the tracks already claimed.",
+      "id": "chirpers3-t2"
+    },
+    {
+      "n": 3,
+      "role": "song",
+      "length": [
+        100,
+        300
+      ],
+      "brief": "Style, groove, tempo and line-up are yours: declare them in compose/chirpers3/styles.md, different from the tracks already claimed.",
+      "id": "chirpers3-t3"
+    },
+    {
+      "n": 4,
+      "role": "song",
+      "length": [
+        100,
+        300
+      ],
+      "brief": "Style, groove, tempo and line-up are yours: declare them in compose/chirpers3/styles.md, different from the tracks already claimed.",
+      "id": "chirpers3-t4"
+    },
+    {
+      "n": 5,
+      "role": "song",
+      "length": [
+        100,
+        300
+      ],
+      "brief": "Style, groove, tempo and line-up are yours: declare them in compose/chirpers3/styles.md, different from the tracks already claimed.",
+      "id": "chirpers3-t5"
+    },
+    {
+      "n": 6,
+      "role": "song",
+      "length": [
+        100,
+        300
+      ],
+      "brief": "Style, groove, tempo and line-up are yours: declare them in compose/chirpers3/styles.md, different from the tracks already claimed.",
+      "id": "chirpers3-t6"
+    },
+    {
+      "n": 7,
+      "role": "song",
+      "length": [
+        100,
+        300
+      ],
+      "brief": "Style, groove, tempo and line-up are yours: declare them in compose/chirpers3/styles.md, different from the tracks already claimed.",
+      "id": "chirpers3-t7"
+    },
+    {
+      "n": 8,
+      "role": "song",
+      "length": [
+        100,
+        300
+      ],
+      "brief": "Style, groove, tempo and line-up are yours: declare them in compose/chirpers3/styles.md, different from the tracks already claimed.",
+      "id": "chirpers3-t8"
+    },
+    {
+      "n": 9,
+      "role": "song",
+      "length": [
+        100,
+        300
+      ],
+      "brief": "Style, groove, tempo and line-up are yours: declare them in compose/chirpers3/styles.md, different from the tracks already claimed.",
+      "id": "chirpers3-t9"
+    },
+    {
+      "n": 10,
+      "role": "closer",
+      "length": [
+        120,
+        420
+      ],
+      "brief": "Closes the album. Style, groove, tempo and line-up are yours: declare them in compose/chirpers3/styles.md, different from the tracks already claimed.",
+      "id": "chirpers3-t10"
+    }
+  ]
+}

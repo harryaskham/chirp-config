@@ -5578,6 +5578,296 @@
         "at": "2026-10-29T10:38:41Z",
         "who": "chirper-zero"
       }
+    },
+    {
+      "id": "chirpers3-t1",
+      "song": "songs/chirpers3-t1.yaml",
+      "reference": "Chirpers — Track 1 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers3-t1 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "lo-fi beats / ambient",
+      "mode": "compose",
+      "album": "chirpers3",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers III (untitled)",
+        "title": "Track 1 (untitled)",
+        "track": 1,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-29T11:00:04Z",
+        "note": "COMPOSE (opener, 100-300 s): Opens the album. Style, groove, tempo and line-up are yours: declare them in compose/chirpers3/styles.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers3-t2",
+      "song": "songs/chirpers3-t2.yaml",
+      "reference": "Chirpers — Track 2 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers3-t2 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "lo-fi beats / ambient",
+      "mode": "compose",
+      "album": "chirpers3",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers III (untitled)",
+        "title": "Track 2 (untitled)",
+        "track": 2,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-29T11:00:04Z",
+        "note": "COMPOSE (song, 100-300 s): Style, groove, tempo and line-up are yours: declare them in compose/chirpers3/styles.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers3-t3",
+      "song": "songs/chirpers3-t3.yaml",
+      "reference": "Chirpers — Track 3 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers3-t3 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "lo-fi beats / ambient",
+      "mode": "compose",
+      "album": "chirpers3",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers III (untitled)",
+        "title": "Track 3 (untitled)",
+        "track": 3,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-29T11:00:04Z",
+        "note": "COMPOSE (song, 100-300 s): Style, groove, tempo and line-up are yours: declare them in compose/chirpers3/styles.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers3-t4",
+      "song": "songs/chirpers3-t4.yaml",
+      "reference": "Chirpers — Track 4 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers3-t4 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "lo-fi beats / ambient",
+      "mode": "compose",
+      "album": "chirpers3",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers III (untitled)",
+        "title": "Track 4 (untitled)",
+        "track": 4,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-29T11:00:04Z",
+        "note": "COMPOSE (song, 100-300 s): Style, groove, tempo and line-up are yours: declare them in compose/chirpers3/styles.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers3-t5",
+      "song": "songs/chirpers3-t5.yaml",
+      "reference": "Chirpers — Track 5 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers3-t5 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "lo-fi beats / ambient",
+      "mode": "compose",
+      "album": "chirpers3",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers III (untitled)",
+        "title": "Track 5 (untitled)",
+        "track": 5,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-29T11:00:04Z",
+        "note": "COMPOSE (song, 100-300 s): Style, groove, tempo and line-up are yours: declare them in compose/chirpers3/styles.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers3-t6",
+      "song": "songs/chirpers3-t6.yaml",
+      "reference": "Chirpers — Track 6 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers3-t6 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "lo-fi beats / ambient",
+      "mode": "compose",
+      "album": "chirpers3",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers III (untitled)",
+        "title": "Track 6 (untitled)",
+        "track": 6,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-29T11:00:04Z",
+        "note": "COMPOSE (song, 100-300 s): Style, groove, tempo and line-up are yours: declare them in compose/chirpers3/styles.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers3-t7",
+      "song": "songs/chirpers3-t7.yaml",
+      "reference": "Chirpers — Track 7 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers3-t7 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "lo-fi beats / ambient",
+      "mode": "compose",
+      "album": "chirpers3",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers III (untitled)",
+        "title": "Track 7 (untitled)",
+        "track": 7,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-29T11:00:04Z",
+        "note": "COMPOSE (song, 100-300 s): Style, groove, tempo and line-up are yours: declare them in compose/chirpers3/styles.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers3-t8",
+      "song": "songs/chirpers3-t8.yaml",
+      "reference": "Chirpers — Track 8 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers3-t8 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "lo-fi beats / ambient",
+      "mode": "compose",
+      "album": "chirpers3",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers III (untitled)",
+        "title": "Track 8 (untitled)",
+        "track": 8,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-29T11:00:04Z",
+        "note": "COMPOSE (song, 100-300 s): Style, groove, tempo and line-up are yours: declare them in compose/chirpers3/styles.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers3-t9",
+      "song": "songs/chirpers3-t9.yaml",
+      "reference": "Chirpers — Track 9 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers3-t9 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "lo-fi beats / ambient",
+      "mode": "compose",
+      "album": "chirpers3",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers III (untitled)",
+        "title": "Track 9 (untitled)",
+        "track": 9,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-29T11:00:04Z",
+        "note": "COMPOSE (song, 100-300 s): Style, groove, tempo and line-up are yours: declare them in compose/chirpers3/styles.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers3-t10",
+      "song": "songs/chirpers3-t10.yaml",
+      "reference": "Chirpers — Track 10 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers3-t10 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "lo-fi beats / ambient",
+      "mode": "compose",
+      "album": "chirpers3",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers III (untitled)",
+        "title": "Track 10 (untitled)",
+        "track": 10,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-29T11:00:04Z",
+        "note": "COMPOSE (closer, 120-420 s): Closes the album. Style, groove, tempo and line-up are yours: declare them in compose/chirpers3/styles.md, different from the tracks already claimed."
+      }
     }
   ],
   "focus": "Odd Hours"
