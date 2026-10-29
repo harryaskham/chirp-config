@@ -25,7 +25,8 @@ OUT = os.environ.get("T9_OUT") or os.path.join(ROOT, "songs", "chirpers3-t9.yaml
 BPM = 120
 MG = float(os.environ.get("T9_MG", "11"))
 V2 = os.environ.get("T9_V2", "1") == "1"
-V3 = os.environ.get("T9_V3", "1") == "1"  # the form made audible: a master dynamics lane by section and a STOP at every seam (the band stops mid-bar, the rim fills)  # the draft's fixes: an upright bass (borrowed from Odd Hours t1), the master off the flute's presence and onto the lows, the bridge without the percussion
+V3 = os.environ.get("T9_V3", "1") == "1"
+CHOP = os.environ.get("T9_CHOP", "catch")  # wM's MPC chop: "catch" = the cassette chews the bar before THE CATCH (master); "both" = and the guitar chopped in the outro's last four bars  # the form made audible: a master dynamics lane by section and a STOP at every seam (the band stops mid-bar, the rim fills)  # the draft's fixes: an upright bass (borrowed from Odd Hours t1), the master off the flute's presence and onto the lows, the bridge without the percussion
 S = 0.25
 
 NOTE = {"C": 0, "C#": 1, "Db": 1, "D": 2, "D#": 3, "Eb": 3, "E": 4, "F": 5, "F#": 6, "Gb": 6, "G": 7, "G#": 8, "Ab": 8,
@@ -215,8 +216,12 @@ def song():
     catch = [["0s", 0], [f"{c0:.3f}s", 0], [f"{c0 + bar * 0.6:.3f}s", -1.5], [f"{c0 + bar * 1.4:.3f}s", -0.7], [f"{c0 + 2 * bar:.3f}s", 0], [f"{total + 8:.2f}s", 0]]
     cm = [["0s", 0], [f"{c0 - 0.02:.3f}s", 0], [f"{c0:.3f}s", 1], [f"{c0 + 2 * bar - 0.02:.3f}s", 1], [f"{c0 + 2 * bar:.3f}s", 0], [f"{total + 8:.2f}s", 0]]
     upright = json.loads(open(os.path.join(ROOT, "songs", "chirpers2-t1.yaml")).read().split("patches: ", 1)[1].split("\n", 1)[0])["upright"] if V2 else None
+    o0 = times["outro"] + 4 * bar
+    gcp = [["0s", 0], [f"{o0 - 0.02:.3f}s", 0], [f"{o0:.3f}s", 1], [f"{total + 8:.2f}s", 1]]
+    gchop = ([{"type": "chop", "slices": 8, "pattern": "0 . 2 . r4 . 6 _", "mix": {"value": 0, "mod": [{"src": "auto.gcp", "amount": 1}]}}]
+             if CHOP == "both" else [])
     tracks = [
-        {"name": "guitar", "patch": "nylon", "pan": -0.15, "fx": [deck], "sends": {"room": "-12dB"}, "score": sc("guitar")},
+        {"name": "guitar", "patch": "nylon", "pan": -0.15, "fx": [deck] + gchop, **({"auto": {"gcp": {"points": gcp}}} if gchop else {}), "sends": {"room": "-12dB"}, "score": sc("guitar")},
         {"name": "thumb", "patch": "nylon", "gain": "2dB", "pan": -0.1, "fx": [deck], "score": sc("thumb")},
         {"name": "perc", "patch": "samba-kit", "gain": "-10dB", "pan": 0.2, "score": "swing16=0.56 " + sc("perc")},
         {"name": "rim", "patch": "room-kit play.humanize.nudge.so=45ms", "gain": "-12dB", "pan": 0.3, "score": sc("rim")},
@@ -240,8 +245,9 @@ def song():
                            "mix": {"value": 0, "mod": [{"src": "auto.cm", "amount": 1}]}},
                           "vinyl crackle=0.35 dust=0.3 noise=-62dB rumble=0.25 warp=5 wear=0.4 seed=9",
                           {"type": "compressor", "threshold": "-20dB", "ratio": 2, "attack": "15ms", "release": "200ms", "makeup": "0dB"},
-                          {"type": "gain", "gain": f"+{MG:g}dB"}] + ([{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}}] if V3 else []),
-                   "auto": {"cat": {"points": catch}, "cm": {"points": cm}, **({"dyn": {"points": dyn_lane(times, total)}} if V3 else {})}},
+                          {"type": "gain", "gain": f"+{MG:g}dB"}] + ([{"type": "chop", "slices": 8, "pattern": "0 r1 2 2 _ 5 r6 7",
+                                                                       "mix": {"value": 0, "mod": [{"src": "auto.cp", "amount": 1}]}}] if CHOP else []) + ([{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}}] if V3 else []),
+                   "auto": {"cat": {"points": catch}, "cm": {"points": cm}, **({"cp": {"points": cm}} if CHOP else {}), **({"dyn": {"points": dyn_lane(times, total)}} if V3 else {})}},
         "tracks": tracks,
     }
 
