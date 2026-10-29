@@ -1,0 +1,139 @@
+{
+  "id": "chirpers2",
+  "artist": "Chirpers",
+  "album": "Chirpers II (untitled)",
+  "named": false,
+  "year": 2026,
+  "genre": "jazz / prog / math fusion",
+  "brief": "The chirpers' second album: a ten-track jazz / prog / math FUSION record (Harry, 29 Oct). Everything else is the chirpers' choice: the name, the titles, each track's style, form, meter, line-up and sound. Make it WIDE: ten tracks in ten different styles across the fusion map (modal or hard-bop jazz, jazz-rock, Canterbury-ish prog, math rock, odd-meter funk, chamber jazz, ECM-ish space, electric Miles-ish groove, Zappa/Gentle-Giant-ish counterpoint, Snarky/Hiatus-ish modern fusion, latin or afro-cuban, anything). And VARY BAR BY BAR: meter changes, shifting harmonic rhythm, orchestration swaps, rhythmic displacement, dynamics, solos trading fours, so no two consecutive bars sound alike unless the repetition is the point. Declare your track's style in compose/chirpers2/styles.md when you claim it so the ten stay distinct. Invent sounds freely (the album's sound bank is compose/chirpers2/sounds.md; Ferrous Bloom's sounds are yours to borrow and transform). Never copy or closely imitate an existing piece.",
+  "palette": "Keys: rhodes, rhodes-rotary, wurli, dx-epiano, piano / piano-recorded*, tape-piano, mellotron-flute/strings, organ-like pads (juno-pad, saw-pad). Bass: fretless, bass-di, bass-pick-di, analog-bass, lead-slap. Guitars: starcaster-clean, clean-dry, les-paul, lead-wah, m8 rigs (wM's new amp keys stack/triode/nfb). Horns: horn, horn-section, trumpet-mute, tenor-sax-synth. Leads: synth-lead, lead-tape, boc-lead. Drums: carey-kit, room-kit, tight-kit, prog-kit, modal-ride, chirper-two's physical drum layer (type: drum, brushes and sticks), the chop-*jazz kits. Plus anything you build.",
+  "art_brief": "Abstract, colourful, playful geometry: overlapping polyrhythmic circles and lattices, a jazz-record-sleeve sensibility, warm and electric.",
+  "bleed": false,
+  "genre_refs": [
+    "so-what",
+    "take-five",
+    "saturnine",
+    "the-national-anthem",
+    "thin-thing",
+    "money",
+    "playing-god",
+    "the-woven-web"
+  ],
+  "master": {
+    "rms": [
+      -19.0,
+      -9.0
+    ],
+    "peak_max": 0.0,
+    "crest": [
+      8.5,
+      16.5
+    ]
+  },
+  "weights": {
+    "variety": 0.15,
+    "flow": 0.01
+  },
+  "tracks": [
+    {
+      "n": 1,
+      "role": "opener",
+      "length": [
+        150,
+        420
+      ],
+      "brief": "Opens the album and sets its world. Style, form, meter and line-up are yours: declare them in compose/chirpers2/styles.md.",
+      "id": "chirpers2-t1"
+    },
+    {
+      "n": 2,
+      "role": "song",
+      "length": [
+        150,
+        480
+      ],
+      "brief": "Your style, form, meter and line-up: declare them in compose/chirpers2/styles.md, different from the tracks already claimed.",
+      "id": "chirpers2-t2"
+    },
+    {
+      "n": 3,
+      "role": "song",
+      "length": [
+        150,
+        480
+      ],
+      "brief": "Your style, form, meter and line-up: declare them in compose/chirpers2/styles.md, different from the tracks already claimed.",
+      "id": "chirpers2-t3"
+    },
+    {
+      "n": 4,
+      "role": "song",
+      "length": [
+        150,
+        480
+      ],
+      "brief": "Your style, form, meter and line-up: declare them in compose/chirpers2/styles.md, different from the tracks already claimed.",
+      "id": "chirpers2-t4"
+    },
+    {
+      "n": 5,
+      "role": "song",
+      "length": [
+        150,
+        480
+      ],
+      "brief": "Your style, form, meter and line-up: declare them in compose/chirpers2/styles.md, different from the tracks already claimed.",
+      "id": "chirpers2-t5"
+    },
+    {
+      "n": 6,
+      "role": "song",
+      "length": [
+        150,
+        480
+      ],
+      "brief": "Your style, form, meter and line-up: declare them in compose/chirpers2/styles.md, different from the tracks already claimed.",
+      "id": "chirpers2-t6"
+    },
+    {
+      "n": 7,
+      "role": "song",
+      "length": [
+        150,
+        480
+      ],
+      "brief": "Your style, form, meter and line-up: declare them in compose/chirpers2/styles.md, different from the tracks already claimed.",
+      "id": "chirpers2-t7"
+    },
+    {
+      "n": 8,
+      "role": "song",
+      "length": [
+        150,
+        480
+      ],
+      "brief": "Your style, form, meter and line-up: declare them in compose/chirpers2/styles.md, different from the tracks already claimed.",
+      "id": "chirpers2-t8"
+    },
+    {
+      "n": 9,
+      "role": "song",
+      "length": [
+        150,
+        480
+      ],
+      "brief": "Your style, form, meter and line-up: declare them in compose/chirpers2/styles.md, different from the tracks already claimed.",
+      "id": "chirpers2-t9"
+    },
+    {
+      "n": 10,
+      "role": "closer",
+      "length": [
+        180,
+        600
+      ],
+      "brief": "Closes the album. Style, form, meter and line-up are yours: declare them in compose/chirpers2/styles.md.",
+      "id": "chirpers2-t10"
+    }
+  ]
+}
