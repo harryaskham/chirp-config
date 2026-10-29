@@ -5738,7 +5738,7 @@
     {
       "id": "chirpers3-t6",
       "song": "songs/chirpers3-t6.yaml",
-      "reference": "Chirpers — Track 6 (untitled)",
+      "reference": "Chirpers — Late on Purpose",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers3-t6 OUT.wav",
@@ -5754,7 +5754,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "Tape Weather",
-        "title": "Track 6 (untitled)",
+        "title": "Late on Purpose",
         "track": 6,
         "year": 2026
       },
