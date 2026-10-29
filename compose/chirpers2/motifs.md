@@ -85,6 +85,7 @@ Generator `compose/chirpers2/src/chirpers2-t4.py`. A chamber-jazz brush trio wit
 - **FORM MIRROR**: intro (two-feel) / coda (two-feel, then the tom choir sings the opening cell backwards over a Dm(add11) ring); head / head 2 (the centre bar a fifth lower).
 - **THE LINK** (v14): one 4/4 bar before head 2, the trumpet alone over a brush sweep, a palindromic pivot into E: `A B C# E. C# B A`. In the coda the tom choir answers the piano's t8 cell in canon, a beat behind and an octave down.
 - **HEAD 2 IN E** (v13): the return goes up a whole step. Every pitched part (horn, piano, toms, fretless, rhodes) plays the palindrome transposed to E, and the coda falls back home to D.
+- **LOCKED HANDS** (v27, head 1): the piano's bars of the colour palindrome are played in block chords, each melody note with three chord tones closed beneath it and the melody doubled an octave down (Shearing-style).
 - **CANON ACROSS THE BAR LINES** (v11, head 1): the rhodes follows the melody two beats behind, an octave down. Because every bar has a different length, the canon spills across the bar lines and each bar hears the previous bar's tune against its own; head 2 answers it with the mirror canon.
 - **MIRROR CANON** (v2, head 2): while the trumpet and piano carry the line, the tom choir sings it INVERTED about D5 an octave down: the time palindrome gets its pitch mirror, in contrary motion.
 - **THE BOW** (v17): an arco bass enters only in the tom chorale, singing each chord's root long beneath the tom chords: the one bowed sound in the piece, at its quietest moment.

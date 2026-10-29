@@ -134,6 +134,10 @@ CADENZA = [("D5", 1.0), ("E5", 0.75), ("F5", 0.55), ("A5", 0.4), ("C6", 2.2), ("
 R26 = set(filter(None, os.environ.get("T4_R26", "G").split(","))) - {"none"}
 SWING_BY = {"seed": 0.56, "intro": 0.56, "head": 0.60, "trade": 0.64, "peak": 0.66, "head2": 0.62, "coda": 0.58,
             "unseed": 0.58}
+# Round 27 (v27): L = LOCKED HANDS: in head 1 the piano's bars of the colour palindrome are played in block chords,
+# each melody note with three chord tones closed beneath it and the melody doubled an octave down (Shearing-style),
+# so the palindrome's piano colour is a full chamber texture.
+R27 = set(filter(None, os.environ.get("T4_R27", "L").split(","))) - {"none"}
 BTHEME = {0: [(0, 3, 4), (3, 1, 3), (4, 4, 2)], 1: [(0, 2, 1), (2, 2, 2), (4, 3, 4)], 2: [(0, 5, 6)],
           3: [(0, 2, 4), (2, 2, 5), (4, 2, 4)]}  # t2's night cell, degrees on eighths (None = rest)
 TRIP = "T" in os.environ.get("T4_OPTS", "")  # triplet brush ghosts before the backbeats (off: no gain)
@@ -429,7 +433,17 @@ def build():
                     voice = "horn"
             for o, ln, n in line:
                 at = swing_at(start, o, swung)
-                T[voice].add(at, ln / 2 * 0.95, n if voice != "tom" else nm(midi(n) - 12), v + 4)
+                head_n = n if voice != "tom" else nm(midi(n) - 12)
+                if voice == "pno" and section == "head" and "L" in R27:  # locked hands
+                    mm = midi(n)
+                    r0, vc, _ = CH[[cnn for c8, cnn in chords if c8 <= o][-1]]
+                    pcs = sorted({(r0 + x) % 12 for x in vc} | {r0 % 12})
+                    below = []
+                    for k in range(1, 12):
+                        if (mm - k) % 12 in pcs and len(below) < 3:
+                            below.append(mm - k)
+                    head_n = ",".join(nm(x) for x in [mm] + below + [mm - 12])
+                T[voice].add(at, ln / 2 * 0.95, head_n, v + 4)
                 if section == "head" and "K" in R11:  # the canon, two beats behind on the rhodes
                     T["rhodes"].add(at + 2.0, ln / 2 * 0.9, nm(midi(n) - 12), v - 2)
                 if section == "peak" and voice == "tpt":  # unison in the piano an octave down at the peak
