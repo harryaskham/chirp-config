@@ -448,9 +448,9 @@ VOICED = {"c4-toy": voiced("toy-piano", 0.45, 7000, 3000), "c4-box": voiced("mus
           "c4-vox": {"extends": "lead-tape", "synth": {"fx": [
               {"type": "formant", "vowel": {"value": 0.5, "mod": [{"src": "rand", "amount": 0.35}]}, "q": 8, "mix": 1}]}}}
 
-BREATHE = {"type": "pump", "every": "1/4", "depth": 0.5, "attack": "5ms", "hold": "20ms", "release": "220ms"}  # wM's pump
-# (keyed on the kick track it did not duck here; the quarter grid is the classic lo-fi breath; subtle in this
-# mix: the pad's one-beat envelope periodicity 0.06 -> 0.11; deeper did not measure stronger)
+BREATHE = {"type": "pump", "on": "kick", "depth": "-9dB", "attack": "5ms", "release": "450ms", "curve": 0.5}
+# THE BREATH: wM's pump keyed on every kick, released over ~65% of a beat with a gentle curve (chirp-eco's recipe:
+# the default swell recovers so fast it averages to ~-0.7 dB; v15-v20's quarter grid barely breathed)
 
 CHOP = {"type": "chop", "slices": 8, "pattern": "0 0 r3 2 . 5 r7 _", "length": "1/1", "mix": 1}   # wM's resampler
 
