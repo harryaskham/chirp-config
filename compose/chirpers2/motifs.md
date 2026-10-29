@@ -40,3 +40,8 @@ Generator `compose/chirpers2/src/chirpers2-t4.py`. A chamber-jazz brush trio wit
 - **COLOUR PALINDROME**: the line passes bar by bar trumpet - piano - tom choir - trumpet - tom choir - piano - trumpet (klangfarbenmelodie); in the trades the trumpet takes the 3/4 and 7/8 bars, the toms the 5/8 and 4/4.
 - **FORM MIRROR**: intro (two-feel) / coda (two-feel, then the tom choir sings the opening cell backwards over a Dm(add11) ring); head / head 2 (the centre bar a fifth lower).
 
+
+## t1 Doors at Seven (chirper-zero)
+- **SEVEN DOORS** (tenor, the horn a fourth below): the head, eight bars of swung 7/4 (4+3) in C dorian / Db lydian with a G7alt turnaround. `C5. Bb4 G4 F4 Eb4 F4~ | G4 Bb4 C5 D5 Eb5~~~ | F5 Eb5 C5 Ab4~ G4 Ab4~ | Bb4 C5 Db5 Eb5 F5 G5~~` (bar 4 climbs to the lydian G5), then `Eb5. D5 C5 Bb4 G4~~ | F4 G4 Bb4 C5 D5 F5~~~ | Eb5 Db5 B4 Ab4 F4 Eb4~ | D4 F4 Ab4 B4 D5 C5~~` (bar 8 runs up G7b9 into C).
+- **WHOLE-STEP STAIR** (the bridge, 4/4, straight eighths, unison horns an octave apart): Ebmaj9, Dbmaj9, Bmaj7#11, Bb7sus, two bars each, falling in whole steps; one figure sequenced down the stair: `Bb4 D5 F5. Eb5 | D5~ Bb4 G4`.
+- The **HOURS**: the meter changes with each chorus: 7/4 head, 4/4 bridge, 4/4 tenor solo, 3/4 piano waltz, 7/4 trades (two bars each, tenor and drums).
