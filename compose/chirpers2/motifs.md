@@ -160,5 +160,6 @@ Generator `compose/chirpers2/src/chirpers2-t8.py`. A kit-less vibes-and-marimba 
 - **THREE-WAY TRADES** (v12): the trades' last turn goes to the bass marimba (vibes, low marimba, vibes, BASS MARIMBA): a triplet arpeggio up and dotted quarters down, then triplet quarters falling to a held root, with the low marimba back on the cell beneath it.
 - **THREE MARIMBAS** (v11): a BASS MARIMBA joins, playing the cell's dotted-quarter notes two octaves under the high marimba through the phase, melody, solo, trades and peak, and the whole cell in the unison, so three marimbas close the process together.
 - **THE DUET** (v10, 4 bars between the blur and the peak): the vibes and the bowed bass alone, the vibes singing one palindrome over Cm9 -> Bb13sus while the bass answers note against note in contrary motion (degree 9 - d). The marimbas alone, then the vibes and bass alone, then everyone.
+- **FOUR AGAINST THREE** (v17, the melody, the solo and the trades): the frame drum's ghosts become quadruplets, sixteen even strokes across the 12/8 bar, accented every fourth: a straight 4/4 sixteenth feel laid over the marimbas' triple eighths (and the peak keeps its five against four).
 - **FIVE AGAINST FOUR** (v4, the peak): the frame drum's teks fall 1.2 beats apart, five across the bar's four dotted quarters, under the phasing.
 

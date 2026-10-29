@@ -99,6 +99,10 @@ R15 = set(filter(None, os.environ.get("T8_R15", "G").split(","))) - {"none"}
 # marimba rolls (each hand a two-note roll in alternating 32nds, swelling and dying away through the bar), the bass
 # marimba ringing the roots and the bow beneath: the instrument's own lyric voice, after the process ends.
 R16 = set(filter(None, os.environ.get("T8_R16", "R").split(","))) - {"none"}
+# Round 17 (v17): Q = FOUR AGAINST THREE: in the melody, the solo and the trades the frame drum's ghosts become
+# QUADRUPLETS, sixteen even strokes across the 12/8 bar (a straight 4/4 sixteenth feel laid over the marimbas'
+# triple eighths), accented every fourth.
+R17 = set(filter(None, os.environ.get("T8_R17", "Q").split(","))) - {"none"}
 SUBJECT = [(0, 1), (3, 1), (7, 1), (6, 2), (2, 2), (5, 1), (1, 1), (4, 1), (0, 2)]  # t7: semitones, eighths
 BAR = 6.0  # a 12/8 bar, in quarter beats
 
@@ -401,15 +405,24 @@ def build():
         elif sec in ("solo", "trades"):  # dotted-eighth ghosts: eight against the four dotted quarters
             fd.add(start, 1, "dum", v - 8)
             fd.add(start + 3, 1, "dum", v - 14)
-            for g in range(8):
-                fd.add(start + g * 0.75 + (0.01 if g in (0, 4) else 0), 0.25, "tek" if g % 2 == 0 else "gh",
-                       v - (14 if g % 2 == 0 else 24))
+            if "Q" in R17:
+                for q in range(16):
+                    fd.add(start + q * 0.375 + (0.01 if q in (0, 8) else 0), 0.2, "tek" if q % 4 == 0 else "gh",
+                           v - (14 if q % 4 == 0 else 26))
+            else:
+                for g in range(8):
+                    fd.add(start + g * 0.75 + (0.01 if g in (0, 4) else 0), 0.25, "tek" if g % 2 == 0 else "gh",
+                           v - (14 if g % 2 == 0 else 24))
         elif sec in ("phase", "melody", "unison"):
             fd.add(start, 1, "dum", v - 6)
             fd.add(start + 3, 1, "dum", v - 12)
             fd.add(start + 1.5, 0.5, "tek", v - 12)
             fd.add(start + 4.5, 0.5, "tek", v - 10)
-            if sec == "melody":
+            if sec == "melody" and "Q" in R17:
+                for q in range(16):
+                    if q % 4:
+                        fd.add(start + q * 0.375, 0.2, "gh", v - 30 + (4 if q % 2 == 0 else 0))
+            elif sec == "melody":
                 for e in (2, 5, 8, 11):
                     fd.add(start + e / 2, 0.3, "gh", v - 30)
         elif sec == "bridge":
