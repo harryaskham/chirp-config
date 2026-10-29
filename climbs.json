@@ -5622,7 +5622,7 @@
     {
       "id": "chirpers3-t2",
       "song": "songs/chirpers3-t2.yaml",
-      "reference": "Chirpers — Track 2 (untitled)",
+      "reference": "Chirpers — Streetlight Hiss",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers3-t2 OUT.wav",
@@ -5638,7 +5638,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "Tape Weather",
-        "title": "Track 2 (untitled)",
+        "title": "Streetlight Hiss",
         "track": 2,
         "year": 2026
       },
