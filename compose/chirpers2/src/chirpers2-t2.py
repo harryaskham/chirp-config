@@ -137,6 +137,41 @@ def rhodes_solo(b, vel):
         toks.append(f"R/{(e16 - t) / 4:g}b")
     return toks
 
+def trade_call(b, n):
+    """a trade: a 4-note chord cell (root 3rd 5th 7th order turned by n), entered from a semitone below, sequenced a
+    step higher each trade; later trades fragment it (repeat its first two notes, rests between)"""
+    e16 = b['e8'] * 2; toks, t = [], 0
+    cell = [(0, 2, 4, 6), (2, 4, 6, 7), (4, 2, 0, 1), (6, 4, 2, 4), (1, 3, 5, 7)][n % 5]
+    base = n
+    frag = n >= 5
+    seq = [cell[0], cell[1], cell[0], cell[1], cell[2]] if frag else list(cell)
+    toks.append(tok(nm(deg(b, base + seq[0], 2) - 1), 0.25, 82)); t += 1
+    for j, d in enumerate(seq):
+        ln = 2 if j < len(seq) - 1 else 4
+        if frag and j % 2 == 1: ln = 1
+        if t + ln > e16: break
+        toks.append(tok(nm(deg(b, base + d, 2)), ln / 4, 104 if j == 0 else 94)); t += ln
+        if frag and j % 2 == 1 and t < e16:
+            toks.append('R/0.25b'); t += 1
+    if t < e16: toks.append(f"R/{(e16 - t) / 4:g}b")
+    return toks
+
+def trade_answer(b, call):
+    """the answer: the call's notes mirrored around its first note, same rhythm, in the tenor's octave"""
+    if not call: return rest(b)
+    first = None; out = []; t = 0; e16 = b['e8'] * 2
+    for x in call:
+        n_, r_ = x.split('/', 1)
+        ln = float(r_.split('b')[0])
+        if n_ == 'R':
+            out.append(f"R/{ln:g}b"); t += ln * 4; continue
+        m_ = NN.index(n_[:-1]) + 12 * (int(n_[-1]) + 1)
+        if first is None: first = m_
+        if t + ln * 4 > e16: break
+        out.append(f"{nm(2 * first - m_ - 12)}/{ln:g}b@{int(r_.split('@')[1]) - 6}"); t += ln * 4
+    if t < e16: out.append(f"R/{(e16 - t) / 4:g}b")
+    return out
+
 def horn_line(b, k, start_deg, vel):
     """a phrase across the bar: quarter-ish notes, the last one held"""
     toks, e8, j = [], b['e8'], 0
@@ -154,6 +189,7 @@ def rest(b): return [f"R/{b['e8'] / 2:g}b"]
 def build():
     B = bars()
     parts = {k: [] for k in ('bass', 'kit', 'rhodes', 'wah', 'tpt', 'ten', 'sub')}
+    last_call = [None]
     for k, b in enumerate(B):
         sec = b['sec']; lead = k % 5   # who carries the cell this bar (beyond the bass)
         parts['bass'].append(bass(b, k) if sec != 'break' or b['i'] < 8 else bass(b, k))
@@ -179,8 +215,15 @@ def build():
                 parts['tpt'].append(rhodes_solo(q, 100) if b['i'] == 0 else rest(b))
                 parts['ten'].append(rhodes_solo(q, 94) if b['i'] == 1 else rest(b))
             else:
-                parts['tpt'].append(horn_line(b, k, b['i'], 100) if b['i'] % 2 == 0 else rest(b))
-                parts['ten'].append(horn_line(b, k, b['i'] + 5, 92) if b['i'] % 2 == 1 else rest(b))
+                # THE TRADES ARGUE: each trumpet bar takes the last idea and develops it (a 4-note cell from the
+                # chord, sequenced a step higher each time and fragmented as the trades go on); each tenor bar answers
+                # the trumpet's bar UPSIDE DOWN (mirrored around its first note), a bar of conversation each
+                if b['i'] % 2 == 0:
+                    line = trade_call(b, b['i'] // 2)
+                    last_call[0] = line
+                    parts['tpt'].append(line); parts['ten'].append(rest(b))
+                else:
+                    parts['tpt'].append(rest(b)); parts['ten'].append(trade_answer(b, last_call[0]))
         elif sec == 'climax':
             # THE CELL COMES HOME: over the stretched wheel the horns stop soloing and join the bass on the NIGHT
             # CELL in octaves (trumpet two octaves up, tenor one), every third bar breaking back out into the line,

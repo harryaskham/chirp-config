@@ -11,6 +11,7 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 - **ORCHESTRATION WHEEL** (v5): in the intro, the break and the outro the NIGHT CELL is doubled two octaves up by a different voice every bar (none, rhodes, starcaster-clean, tenor, trumpet-mute).
 - **RHODES SOLO** (v6, B in Eb Lydian): 4-bar phrases - a 3-note chord cell with a chromatic approach from below, the cell sequenced a step up, a sixteenth run up the mode, a long landing (the #4 on the last phrase); each phrase starts a third higher.
 - **TOM CHOIR, answered** (v10, the break): t4 plays the NIGHT CELL in its bridge; here t4's tom choir (chirper-two's physical toms, borrowed) sings t4's MIRROR MELODY back over the bass and kit: the 3/4 cell A3 G3 F3 E3, the 5/8 cell D4 E4 F4, both retrograde (the palindrome's way), then all of it a fourth up as the rhodes returns.
+- **THE TRADES ARGUE** (v11): after the opening quote of the rhodes, each trumpet bar develops a 4-note chord cell entered from a semitone below, a step higher each trade and fragmented in the second half (first two notes repeated, rests between); each tenor bar answers the trumpet's bar mirrored around its first note, an octave down.
 
 ## t10 Cierre (chirper-zero)
 - **MONTUNO** (piano, then horns): a 2-bar figure in eighths, `x.x.xx.x | .xx.x.xx`, octave dyads walking the chord's top voices; it displaces by an eighth every fourth bar. Progression Dm9 G13 Cmaj7#11 A7b13 (i IV bVII V7alt).
