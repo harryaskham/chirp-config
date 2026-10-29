@@ -25,6 +25,7 @@ FOUND = list(range(16))
 FLIP1 = [0, 1, 0, 3, 8, 1, 10, 3] * 2      # two-bar flips: the new beat's cycle is half the sample's
 FLIP1B = [0, 1, 0, 3, 4, 4, 6, 7, 8, 1, 10, 3, 12, 13, 4, 15]   # the sax section's four-bar flip
 FLIP2 = [12, 13, 12, 3, 0, 1, 0, 6] * 2
+ETHIO = [0, 4, 5, 3, 8, 9, 12, 2]          # the second record's slices used in the hard flip
 # per section: (name, 4-bar blocks, pattern, muffled?)
 FORM = [('found', 1, 'found'), ('flip', 2, 'flip1'), ('sax', 4, 'flip1b'), ('down', 1, 'found'), ('stutter', 1, 'stutter'),
         ('flip2', 3, 'flip2'), ('last', 1, 'found')]
@@ -45,7 +46,7 @@ def line(events, total):
     return ' '.join(toks)
 
 def build():
-    chops, muff, kit, sax, sub = [], [], [], [], []
+    chops, muff, kit, sax, sub, muff2, chops2 = [], [], [], [], [], [], []
     t = 0.0
     sections = []
     for name, blocks, pat in FORM:
@@ -59,9 +60,13 @@ def build():
                 for s in range(8): chops.append((t0 + 12 + s * 0.5, sl(0 if s % 2 == 0 else 13), 0.45, 100))
             else:
                 order = {'found': FOUND, 'flip1': FLIP1, 'flip1b': FLIP1B, 'flip2': FLIP2}[pat]
-                target = muff if name in ('found', 'last', 'down') else chops
+                target = muff if name in ('found', 'last') else (muff2 if name == 'down' else chops)
                 for q, i in enumerate(order):
-                    if pat == 'flip2' and q % 4 == 3:
+                    if pat == 'flip2' and q % 4 in (1, 2) and q % 8 != 2:
+                        # THE SECOND RECORD in the hard flip: the dig's ethio-jazz slices take beats 2 and 3 of
+                        # alternate bars, so two records argue inside one beat
+                        chops2.append((t0 + q, sl(ETHIO[q % 8]), 0.97, 90))
+                    elif pat == 'flip2' and q % 4 == 3:
                         # the harder flip: the last quarter of every bar is two eighth stabs of a different slice
                         target.append((t0 + q, sl(i), 0.45, 96)); target.append((t0 + q + 0.5, sl((i + 5) % 16), 0.45, 90))
                     else:
@@ -108,6 +113,14 @@ def build():
         'tracks': [
             {'name': 'chops', 'patch': 'chop-souljazz', 'gain': '-2dB', 'auto': {'cp': {'points': cp}}, 'fx': [{'type': 'chop', 'slices': 8, 'pattern': '0 r1 2 2 . r5 6 _', 'length': '1/1', 'mix': {'value': 0, 'mod': [{'src': 'auto.cp', 'amount': 1}]}}, 'tape drive=0.15 mix=0.5 wow=8 flutter=2 drift=1 tone=7000 sweep=0.5 seed=6'], 'score': line(chops, total)},
             # the record as found: the same slices through a muffled filter, like a record playing in the next room
+            # THE SECOND RECORD (the dig): mid-song the digger pulls another record, an ethio-jazz side, muffled and
+            # worn under the sax; the hard flip then chops it in with the soul-jazz
+            {'name': 'found2', 'patch': 'chop-ethiojazz', 'gain': '-4dB', 'fx': [{'type': 'filter', 'kind': 'lp', 'cutoff': 1400, 'q': 0.7},
+                                                                                'vinyl crackle=0.7 dust=0.6 noise=-56dB rumble=0.4 warp=10 wear=0.7 seed=9',
+                                                                                'tape drive=0.15 mix=0.6 wow=16 flutter=3 drift=2 tone=5000 sweep=0.7 seed=12'],
+             'score': line(muff2, total)},
+            {'name': 'chops2', 'patch': 'chop-ethiojazz', 'gain': '-4dB', 'pan': -0.2, 'fx': ['tape drive=0.15 mix=0.5 wow=8 flutter=2 drift=1 tone=7000 sweep=0.5 seed=13'],
+             'score': line(chops2, total)},
             {'name': 'found', 'patch': 'chop-souljazz', 'gain': '-4dB', 'fx': [{'type': 'filter', 'kind': 'lp', 'cutoff': 1200, 'q': 0.7},
                                                                               'vinyl crackle=0.6 dust=0.5 noise=-58dB rumble=0.4 warp=8 wear=0.6 seed=5',
                                                                               'tape drive=0.15 mix=0.6 wow=14 flutter=3 drift=2 tone=5000 sweep=0.7 seed=11'],

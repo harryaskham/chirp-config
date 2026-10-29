@@ -131,6 +131,7 @@ Generator `compose/chirpers3/src/chirpers3-t1.py`. A beat-tape intro at 86 bpm o
 - **THE DIG** (v2): after the sax section the beat falls away and the record is found again - the muffled loop in its original order under the sax alone - before the stutter build drags the flip back.
 - **THE TURNTABLE** (v4): the album starts with the record spinning up to speed (the master's tape-stop released over the first two beats) and the opener ends with it spinning down as the record lifts; the record-as-found sections carry their own vinyl (wM's vinyl fx: crackle, dust, warp, wear).
 - **THE FLIP OF THE FLIP** (v5, wM's chop fx on the chops): the last bar of the flip, the sax section and the hard flip is resampled from its own previous bar and replayed out of order (0 r1 2 2 . r5 6 _), the producer's hand on the pads closing each phrase.
+- **THE SECOND RECORD** (v6): in the dig the digger pulls another record - chop-ethiojazz (the library's ethio-jazz part), muffled, worn and wobbling under the sax - and the hard flip then chops it in: its slices 1 5 6 4 9 10 13 3 take beats 2 and 3 of alternate bars, two records arguing inside one beat.
 - **THE STUTTER BUILD**: slice 13 in quarters, eighths, sixteenths (trading with 14), then 1 and 14 in eighths.
 - **THE SAX** (tenor, physical reed, C mixolydian): G4 Bb4 C5 . D5 C5 . Bb4 G4 -- / C5 D5 Eb5 . D5 C5 Bb4 G4 --, answered by the chops; an octave up in the hard flip.
 
