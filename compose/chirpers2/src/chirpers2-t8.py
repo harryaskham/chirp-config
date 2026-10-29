@@ -77,6 +77,10 @@ R10 = set(filter(None, os.environ.get("T8_R10", "D").split(","))) - {"none"}
 # dotted-quarter notes two octaves under the high marimba through the phase, melody, solo, trades and peak, and the
 # whole cell in the unison: three marimbas, the process given a floor.
 R11 = set(filter(None, os.environ.get("T8_R11", "M").split(","))) - {"none"}
+# Round 12 (v12): 3 = THREE-WAY TRADES: the trades' last turn goes to the BASS MARIMBA (vibes, low marimba, vibes,
+# bass marimba): a triplet arpeggio up and dotted quarters down, then triplet quarters falling to a held root, the
+# low marimba back on the cell beneath it.
+R12 = set(filter(None, os.environ.get("T8_R12", "3").split(","))) - {"none"}
 SUBJECT = [(0, 1), (3, 1), (7, 1), (6, 2), (2, 2), (5, 1), (1, 1), (4, 1), (0, 2)]  # t7: semitones, eighths
 BAR = 6.0  # a 12/8 bar, in quarter beats
 
@@ -174,7 +178,19 @@ def build():
             chord = HOME[(i // 2) % 4]
         if sec == "melody" and "M" in R7 and 8 <= i < 12:
             chord = REHARM[i - 8]
-        mar = sec == "trades" and (i // 2) % 2 == 1  # the low marimba's turn
+        bmsolo = "3" in R12 and "M" in R11 and sec == "trades" and i >= 6  # the bass marimba's turn
+        mar = sec == "trades" and (i // 2) % 2 == 1 and not bmsolo  # the low marimba's turn
+        if bmsolo:
+            if i == 6:
+                arp = [0, 2, 4, 6, 7, 9]
+                for s, dg in enumerate(arp):  # a triplet arpeggio up
+                    T["bm"].add(start + s / 3, 0.32, nm(deg(chord, dg) - 24 + 12), v - 6 + 2 * s)
+                for q, dg in enumerate([8, 6, 4]):  # dotted quarters down
+                    T["bm"].add(start + 2 + q * 1.5, 1.4, nm(deg(chord, dg) - 24 + 12), v - 2 - 2 * q)
+            else:
+                for s, dg in enumerate([7, 6, 4, 3, 2, 1]):  # triplet quarters falling
+                    T["bm"].add(start + s * 2 / 3, 0.62, nm(deg(chord, dg) - 24 + 12), v - 4 - s)
+                T["bm"].add(start + 4, 1.9, nm(deg(chord, 0) - 24 + 12), v)
         if sec == "blur":
             chord = HOME[0] if i < 2 else HOME[3]
         if sec == "duet":
@@ -238,7 +254,7 @@ def build():
         elif sec == "blur":  # stuck a third of an eighth behind
             for e in range(12):
                 T["m2"].add(start + (e + 1 / 3) / 2, 0.45, nm(deg(chord, cell[e])), v - 6 + (8 if e % 3 == 0 else 0))
-        if "M" in R11 and sec in ("phase", "melody", "solo", "trades", "peak", "unison") and not mar:
+        if "M" in R11 and sec in ("phase", "melody", "solo", "trades", "peak", "unison") and not mar and not bmsolo:
             for e in range(12):
                 if sec == "unison" or e % 3 == 0:
                     bp = deg(chord, cell[e]) - 24
@@ -266,7 +282,7 @@ def build():
         elif sec == "bridge" and i % 4 == 0:
             for j, d in enumerate([4, 6, 9, 8, 8, 9, 6, 4]):
                 T["vib"].add(start + j * 3, 2.9, nm(vr(deg(chord, d) + 12)), v - 10 + (6 if j in (3, 4) else 0))
-        elif sec in ("solo", "trades") and not mar:  # the vibes solo (and the vibes' bars of the trades): a run, dotted-eighth groups, a triplet fall, a held note
+        elif sec in ("solo", "trades") and not mar and not bmsolo:  # the vibes solo (and the vibes' bars of the trades): a run, dotted-eighth groups, a triplet fall, a held note
             if i % 2 == 0:
                 d0 = rng.choice([0, 2, 4])
                 if "5" in R8:
