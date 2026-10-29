@@ -29,32 +29,34 @@ S = 0.25  # a sixteenth, in beats
 ECHO = os.environ.get("T5_ECHO", "3/16")  # the tape echo's time: 3/16 = a dotted eighth (echoes off the eighth grid)
 HATSW = float(os.environ.get("T5_HATSW", "0.66"))  # the hats' 16th swing
 HATS = os.environ.get("T5_HATS", "tresillo")  # 8ths, or "tresillo": 3+3+2 sixteenths (0 3 6 8 11 14), the steppers' hats against the one-drop
-DRAG = os.environ.get("T5_DRAG", "0.64")
+DRAG = os.environ.get("T5_DRAG", "0.64")  # the drums' EIGHTH swing (the hats sit on 8ths, so swing16 never moved them): e.g. 0.64, the lazy drag
 SIREN = os.environ.get("T5_SIREN", "0") == "1"  # a dub siren (song-local square wave, its pitch wailing on a triangle LFO) on the version's phrase ends
 EVEN = os.environ.get("T5_EVEN", "0") == "1"  # an 8-bar intro (the skank alone for four) and an 8-bar outro, so the sections sit nearer in length
-BUB3 = os.environ.get("T5_BUB3", "0") == "1"
-LECHO = os.environ.get("T5_LECHO", "1") == "1"
+BUB3 = os.environ.get("T5_BUB3", "0") == "1"  # the bubble on a dotted-eighth cycle (every 3 sixteenths), turning across the bar
+LECHO = os.environ.get("T5_LECHO", "1") == "1"  # the melodica's written echo: its line again a dotted eighth late, softer, panned opposite, into the spring
 DECK = os.environ.get("T5_DECK", "1")  # "1": the deck on keys and leads; "lead": on the lead and its echo only (the skank keeps the granular wow)  # wM's tape deck (pin 232211dd) on the keys and the leads instead of the granular wow: wow/flutter in cents, drift, darkening dips
-NUDGE = os.environ.get("T5_NUDGE", "")
-RIMDRAG = os.environ.get("T5_RIMDRAG", "60")
-TCHOP = os.environ.get("T5_TCHOP", "lead")
-REWIND = os.environ.get("T5_REWIND", "end")
-LIVING = os.environ.get("T5_LIVING", "1") == "1"
-HOLD = os.environ.get("T5_HOLD", "1") == "1" and os.environ.get("T5_STRIP", "") != "dry"
-SPACE = os.environ.get("T5_SPACE", "0.72")
-SKBASE = os.environ.get("T5_SKBASE", "rhodes")
-BUBPATCH = os.environ.get("T5_BUBPATCH", "wurli")
-VDRY = os.environ.get("T5_VDRY", "1") == "1"
-DYNL = os.environ.get("T5_DYN", "1") == "1"
-STEPPERS = os.environ.get("T5_STEPPERS", "")
-ISOLO = os.environ.get("T5_ISOLO", "1") == "1"
-IDRY = os.environ.get("T5_IDRY", "1") == "1"  # ...and the intro's skank stays out of the tape loop (only the spring)  # the intro is the skank alone in the spring, all four bars; the riddim drops at bar five
-MHATS = os.environ.get("T5_MHATS", "0") == "1"  # the melodica section's hats open up to soft 16ths, the drummer lifting under the tune  # the return goes STEPPERS: the kick on every beat under the one-drop's rim; "16" adds soft 16th hats  # the desk's faders by section: intro -4, breakdown -4, return +2, outro -2 dB (the version and the riddim at 0)
-STRIP = os.environ.get("T5_STRIP", "")  # chirper-three's note: a true dub strip-down - the breakdown is bass and drums alone for all 8 bars, 3 dB down, and the return slams back 2 dB up; "hold" keeps THE HOLD over the first four, "dry" drops it  # the version runs DRY between the throws: the skank's steady echo send drops ~26 dB through the version, so only the throws feed the tape loop and the drop-outs are real silence  # the bubble's keys: wurli, or wM's physical pickup epiano-reed  # the living skank's base e-piano: rhodes, or wM's physical pickup epiano-tine (the stabs bark)  # chirper-two's feedback routing: the echo as a tape loop - one dotted-eighth delay, then the bus's own output fed back through a low-pass and a tape deck, each repeat darker and more warped; gain e.g. 0.62  # THE HOLD: the version's last chord thrown into a hall and FROZEN (wM's reverb freeze) under the breakdown's bass and drums, let go when the skank comes in alone  # chirper-two's per-voice fx: every skank stab lands at its own random place in the stereo field with its own tone (pin 3eee6a72)  # wM's tapestop as a sound-system REWIND (spin 3, a vinyl pull-back): "end" = on the outro's last bar; "mid" = at the turn into the version (instead of that seam's stutter)  # wM's MPC chop at the desk: "skank" = the rhodes chopped through the version; "lead" = the melodica chopped through the return  # the one-drop's rim dragged late by hand (ms), the kick and hats kept steady  # the one-drop played by hand (play.humanize): "40,-10,25" = rim late, kick early, hats late (ms), plus swing drift and a drunk lean
-VINYL = os.environ.get("T5_VINYL", "1") == "1"
-GLITCH = os.environ.get("T5_GLITCH", "stutter") in ("1", "stop", "stutter")
-GLITCH_KIND = os.environ.get("T5_GLITCH", "stutter")  # "1": both; "stop": the tape stop only; "stutter": the stutter bursts only  # the desk resamples: master stutter bursts in the version (bars 4 and 12, second halves) and a TAPE STOP (an octave dive on the last beat) into the breakdown  # wM's vinyl fx on the master instead of the crackle and hiss tracks  # the melodica's written echo: its line again a dotted eighth late, softer, panned opposite, into the spring
-DSKANK = os.environ.get("T5_DSKANK", "0")  # "1": everywhere; "drive": the riddim, the version and the return only (the melodica gets space)  # the double skank: a chop and its sixteenth echo on 2 and 4 (chk-a), the second softer  # the bubble on a dotted-eighth cycle (every 3 sixteenths), turning across the bar  # the drums' EIGHTH swing (the hats sit on 8ths, so swing16 never moved them): e.g. 0.64, the lazy drag
+NUDGE = os.environ.get("T5_NUDGE", "")  # the one-drop played by hand (play.humanize): "40,-10,25" = rim late, kick early, hats late (ms), plus swing drift and a drunk lean
+RIMDRAG = os.environ.get("T5_RIMDRAG", "60")  # the one-drop's rim dragged late by hand (ms), the kick and hats kept steady
+TCHOP = os.environ.get("T5_TCHOP", "lead")  # wM's MPC chop at the desk: "skank" = the rhodes chopped through the version; "lead" = the melodica chopped through the return
+REWIND = os.environ.get("T5_REWIND", "end")  # wM's tapestop as a sound-system REWIND (spin 3, a vinyl pull-back): "end" = on the outro's last bar; "mid" = at the turn into the version (instead of that seam's stutter)
+LIVING = os.environ.get("T5_LIVING", "1") == "1"  # chirper-two's per-voice fx: every skank stab lands at its own random place in the stereo field with its own tone (pin 3eee6a72)
+HOLD = os.environ.get("T5_HOLD", "1") == "1" and os.environ.get("T5_STRIP", "") != "dry"  # THE HOLD: the version's last chord thrown into a hall and FROZEN (wM's reverb freeze) under the breakdown's bass and drums, let go when the skank comes in alone
+SPACE = os.environ.get("T5_SPACE", "0.72")  # chirper-two's feedback routing: the echo as a tape loop - one dotted-eighth delay, then the bus's own output fed back through a low-pass and a tape deck, each repeat darker and more warped; gain e.g. 0.62
+SKBASE = os.environ.get("T5_SKBASE", "rhodes")  # the living skank's base e-piano: rhodes, or wM's physical pickup epiano-tine (the stabs bark)
+BUBPATCH = os.environ.get("T5_BUBPATCH", "wurli")  # the bubble's keys: wurli, or wM's physical pickup epiano-reed
+VDRY = os.environ.get("T5_VDRY", "1") == "1"  # the version runs DRY between the throws: the skank's steady echo send drops ~26 dB through the version, so only the throws feed the tape loop and the drop-outs are real silence
+DYNL = os.environ.get("T5_DYN", "1") == "1"  # the desk's faders by section: intro -4, breakdown -4, return +2, outro -2 dB (the version and the riddim at 0)
+STEPPERS = os.environ.get("T5_STEPPERS", "")  # the return goes STEPPERS: the kick on every beat under the one-drop's rim; "16" adds soft 16th hats
+ISOLO = os.environ.get("T5_ISOLO", "1") == "1"  # the intro is the skank alone in the spring, all four bars; the riddim drops at bar five
+RELTRIG = os.environ.get("T5_RELTRIG", "6")  # wM's release triggers: the skank's keys let go with the e-piano's damper thud (a choked tine burst + felt) at each stab's end; value = gain in dB ("0", "6"); with T5_RELBUB=1 the bubble's wurli too
+RELBUB = os.environ.get("T5_RELBUB", "0") == "1"
+IDRY = os.environ.get("T5_IDRY", "1") == "1"  # ...and the intro's skank stays out of the tape loop (only the spring)
+MHATS = os.environ.get("T5_MHATS", "0") == "1"  # the melodica section's hats open up to soft 16ths, the drummer lifting under the tune
+STRIP = os.environ.get("T5_STRIP", "")  # chirper-three's note: a true dub strip-down - the breakdown is bass and drums alone for all 8 bars, 3 dB down, and the return slams back 2 dB up; "hold" keeps THE HOLD over the first four, "dry" drops it
+VINYL = os.environ.get("T5_VINYL", "1") == "1"  # wM's vinyl fx on the master instead of the crackle and hiss tracks
+GLITCH = os.environ.get("T5_GLITCH", "stutter") in ("1", "stop", "stutter")  # the desk resamples: master stutter bursts in the version (bars 4 and 12, second halves) and a TAPE STOP (an octave dive on the last beat) into the breakdown
+GLITCH_KIND = os.environ.get("T5_GLITCH", "stutter")  # "1": both; "stop": the tape stop only; "stutter": the stutter bursts only
+DSKANK = os.environ.get("T5_DSKANK", "0")  # "1": everywhere; "drive": the riddim, the version and the return only (the melodica gets space)  # the double skank: a chop and its sixteenth echo on 2 and 4 (chk-a), the second softer
 CRK = os.environ.get("T5_CRK", "2")  # crackle: 1 = draft (-20 dB, 18% of 32nds); 2 = sparser and quieter (-28 dB, 8%)
 MEQ = os.environ.get("T5_MEQ", "3")  # master eq: 1 = draft (shelf +3 @110, highshelf -4 @7k); 2 = mids -6 @600 q0.8, -3 @300, no top cut
 
@@ -298,7 +300,7 @@ def song():
         {"name": "skank", "patch": "living-skank" if LIVING else "rhodes", "gain": "-6dB", "pan": -0.2, "fx": wow, "lfo": lfo,
          "sends": {"spring": "-6dB", "echo": (thr_send(-14) if not VDRY else {"value": "-14dB", "mod": [{"src": "auto.thr", "amount": 1}, {"src": "auto.vd", "amount": 1}]})},
          "auto": lane, "score": sc("skank", 0.58)},
-        {"name": "bubble", "patch": BUBPATCH, "gain": "-12dB", "pan": 0.3, "fx": wow, "lfo": lfo,
+        {"name": "bubble", "patch": "bubble-keys" if (RELTRIG and RELBUB) else BUBPATCH, "gain": "-12dB", "pan": 0.3, "fx": wow, "lfo": lfo,
          "sends": {"spring": "-12dB"}, "score": sc("bubble", 0.58)},
         {"name": "lead", "patch": "boc-lead", "gain": "-7dB", "pan": 0.1, "fx": lead_fx, "lfo": lfo,
          "sends": {"spring": "-10dB", "echo": thr_send(-9)}, "auto": lane, "score": sc("lead")},
@@ -314,9 +316,12 @@ def song():
     patches = {
         **({"living-skank": {"about": "Tape Weather t5: the rhodes skank with per-voice fx - each stab panned to its own random place and low-passed to its own tone.",
                              "extends": SKBASE,
+                             **({"play": {"release": {"patch": "epiano-damper", "decay": "2s", "gain": f"{RELTRIG}dB"}}} if RELTRIG else {}),
                              "synth": {"fx": [{"type": "pan", "pan": {"value": 0, "mod": [{"src": "rand", "amount": 0.8}]}},
                                               {"type": "filter", "kind": "lowpass", "cutoff": {"value": 2600, "mod": [{"src": "rand", "amount": 1.0}]}, "q": 1.4}]}}}
            if LIVING else {}),
+        **({"bubble-keys": {"about": "Tape Weather t5: the bubble's wurli with the damper's key-off at each note's end.", "extends": BUBPATCH,
+                            "play": {"release": {"patch": "epiano-damper", "decay": "2s", "gain": f"{RELTRIG}dB"}}}} if (RELTRIG and RELBUB) else {}),
         "vinyl-hiss": {"about": "Tape Weather t5: vinyl/tape hiss - pink noise, band-passed, steady.",
                        "synth": {"layers": [{"type": "noise", "color": "pink"}], "filters": ["bp cutoff=3k q=0.5"],
                                  "amp": {"a": "40ms", "s": 1, "r": "120ms"}}},
