@@ -27,6 +27,11 @@ SWING = float(os.environ.get("T4_SWING", "0.62"))  # where a swung off-beat eigh
 # Q = SEVEN DOORS answered (t1 Doors at Seven's head cell, quoted by Cierre too: the trumpet opens the trades with
 # it in D, the tom choir answers with its retrograde); D = dotted-eighth ride hemiola across the peak (chirper-one).
 R2 = set(filter(None, os.environ.get("T4_R2", "C,H,Q,D").split(","))) - {"none"}
+# Round 3 (v3): N = t2 Turnstile Hours' NIGHT CELL on the fretless through the bridge (chirper-one's 13-step cycle
+# cut across the palindrome's meters: a counter-line); V = the tom chorale's voicings turn over on the way back (the
+# top voice drops an octave in the mirror bars); X = in the trades the toms answer a sixteenth late (an echo).
+R3 = set(filter(None, os.environ.get("T4_R3", "N,V,X").split(","))) - {"none"}
+NIGHT = [1, None, 5, 1, 7, None, 4, 5, 1, None, 3, 5, 7]  # t2's night cell, degrees on eighths (None = rest)
 TRIP = "T" in os.environ.get("T4_OPTS", "")  # triplet brush ghosts before the backbeats (off: no gain)
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 PC = {n: i for i, n in enumerate(NAMES)}
@@ -197,7 +202,24 @@ def build():
 
         # ---- bass (fretless): its role changes by section; walking quarters in swung bars, grouped in odd ones ----
         role = BASS[section]
-        if role == "pedal":
+        if section == "bridge" and "N" in R3:
+            role = "night"
+            first = min(b[0] for b in bars if b[3] == "bridge")
+            e0 = int(round((start - first) * 2))  # eighths since the bridge began: the 13-cycle runs on through bars
+            for e in range(m):
+                d = NIGHT[(e0 + e) % 13]
+                if d is None:
+                    continue
+                cn = name0
+                for c8, cnn in chords:
+                    if c8 <= e:
+                        cn = cnn
+                root, voic, scale = CH[cn]
+                note = low(root) + scale[(d - 1) % len(scale)]
+                T["bass"].add(swing_at(start, e, swung), 0.45, nm(note), v - 6 + (8 if (e0 + e) % 13 == 0 else 0))
+        if role == "night":
+            pass
+        elif role == "pedal":
             T["bass"].add(start, m / 2 * 0.95, "D2", v - 6)
         elif role == "two":
             for ci, (c8, cn) in enumerate(chords):
@@ -255,7 +277,7 @@ def build():
                     continue
                 deg = scale[(j * 2 + pidx) % len(scale)]
                 note = root + 24 + deg + shift if voice == "tpt" else root + 12 + deg
-                at = swing_at(start, o, swung)
+                at = swing_at(start, o, swung) + (0.25 if voice == "tom" and "X" in R3 else 0)
                 T[voice].add(at, min(ln, m - o) / 2 * 0.9, nm(note), v + (6 if j == 0 else 0))
         # ---- piano: comping (rootless voicings), or the melody when VOICE says so ----
         comp = []
@@ -268,8 +290,10 @@ def build():
                 root, voic, scale = CH[cn]
                 end8 = chords[ci + 1][0] if ci + 1 < len(chords) else m
                 top = root + 24 if root < 48 else root + 12
-                T["tom"].add(start + c8 / 2, (end8 - c8) / 2 * 0.95,
-                             ",".join(nm(x) for x in (top - 12 + voic[0], top + voic[1] - 12, top + voic[3] - 12)), v + 8)
+                ch3 = (top - 12 + voic[0], top + voic[1] - 12, top + voic[3] - 12)
+                if pos > 3 and "V" in R3:  # the mirror bars: the voicing turns over (top voice under the others)
+                    ch3 = (ch3[2] - 12, ch3[0], ch3[1])
+                T["tom"].add(start + c8 / 2, (end8 - c8) / 2 * 0.95, ",".join(nm(x) for x in ch3), v + 8)
         elif section == "piano":  # piano solo: right hand lines over left-hand shells
             for c8, vo in comp:
                 T["pno_lh"].add(start + c8 / 2, 1.0, vo, v - 10)
