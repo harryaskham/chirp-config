@@ -97,7 +97,7 @@ class Part:
 
 
 P = {k: Part() for k in ("toy", "box", "xtal", "lead", "pad", "bass", "sub", "kick", "snare", "hat", "perc", "cpiano", "hail", "desc", "sq",
-                         "ckick", "csnare", "chat")}
+                         "ckick", "csnare", "chat", "ctoy", "cbox")}
 rng = random.Random(4)
 
 
@@ -307,6 +307,22 @@ def glitch_hail():
         i += 1
 
 
+TOY_CHOP = {"type": "chop", "slices": 8, "pattern": "0 . 2 r2 4 . 6 r7", "length": "1/1", "mix": 1}
+
+
+def chop_toys():
+    """The full section's phrase ends (bars 48 and 52) RESAMPLE THE MUSIC BOX: the toy piano and the box play bars
+    47-48 and 51-52 through their own chop, the first bar feeding it live, the second cut from it (live slices,
+    repeats, reversals), so the clockwork stutters on itself where the phrases turn."""
+    spans = [(b0(47), b0(49)), (b0(51), b0(53))]
+    for src in ("toy", "box"):
+        keep, moved = [], []
+        for e in P[src].ev:
+            (moved if any(a <= e[0] < z for a, z in spans) else keep).append(e)
+        P[src].ev = keep
+        P["c" + src].ev.extend(moved)
+
+
 def squelch():
     """The full section's SQUELCH: the bass line doubled through chirper-two's ladder filter, resonant, its cutoff swept
     by a slow LFO, for the last big section only."""
@@ -360,6 +376,14 @@ def harmony():
             P["sub"].add(b0(bar), n * S - 1, nm(r - 12), 90)          # the warm floor an octave under the bass
 
 
+def tapestop_lane():
+    """The tape stops dead in the near-stall's second half (after the resample dive) and restarts for the return."""
+    sec = lambda e: e / 4 * 60 / BPM
+    pts = [(0, 0.0), (b0(28) + 8, 0.0), (b0(28) + 8.1, 1.0), (b0(29) - 0.3, 1.0), (b0(29) - 0.2, 0.0), (TOTAL, 0.0)]
+    # (a final stop at the very end was tried: it silenced the join into t5, flow 50 -> 27; the wind-down ends it)
+    return [[f"{sec(e):.3f}s", v] for e, v in pts]
+
+
 def resample_lane():
     """The whole band dives like a slowed sampler: 4 semitones over the near-stall's first half, snapping back at the
     return; and a slow sag through the wind-down. Before the tape and vinyl, so the record's hiss stays steady."""
@@ -385,11 +409,14 @@ def main():
     harmony()
     counter_line()
     squelch()
+    chop_toys()
     sec = lambda e: e / 4 * 60 / BPM
     tr = lambda name, patch, **kw: dict({"name": name, "patch": patch, "score": P[name].score()}, **kw)
     tracks = [
         tr("toy", "toy-piano", pan="L35", gain="-6dB", out="toys"),
         tr("box", "music-box", pan="R35", gain="-6dB", out="toys"),
+        tr("ctoy", "toy-piano", pan="L35", gain="-6dB", out="toys", fx=[TOY_CHOP]),      # the resampled music box
+        tr("cbox", "music-box", pan="R35", gain="-6dB", out="toys", fx=[TOY_CHOP]),
         tr("xtal", "fb-crystal", pan="R10", gain="-24dB", out="toys"),
         tr("lead", "lead-tape", pan="L10", gain="-9dB", sends={"space": "-10dB"}),
         tr("hail", "toy-piano", pan="L20", gain="4dB", out="toys", fx=["comb cutoff=138.6 q=6"]),   # hail on a metal roof
@@ -424,12 +451,14 @@ def main():
         '  space: {fx: ["reverb kind=hall decay=3.2s mix=1 predelay=30ms mono_below=200hz"]}',
         'master: ' + json.dumps({"fx": [{"type": "pitch", "semitones": {"value": 0, "mod": [{"src": "auto.rs", "amount": -4}]},
                                         "mix": 1},       # the RESAMPLE: the whole band slows like a sampler (Harry's note)
+                                       {"type": "tapestop", "stop": {"value": 0, "mod": [{"src": "auto.ts", "amount": 1}]},
+                                        "time": "1.1s", "mix": 1},   # and the tape really STOPS (the record keeps turning)
                                        "tape drive=0.25 mix=0.5 squash=0.4 hiss=-56dB wow=4 flutter=1 seed=7",
                                        "vinyl crackle=0.4 dust=0.35 noise=-62dB rumble=0.3 warp=5 wear=0.4 seed=5",
                                        {"type": "eq", "bands": [{"kind": "peak", "cutoff": 600, "gain": "-3dB", "q": 0.8}]},
                                        "glue threshold=-24dB ratio=3 attack=15ms release=200ms makeup=3dB",
                                        {"type": "gain", "gain": "11dB"}],
-                                "auto": {"rs": {"points": resample_lane()}}}),
+                                "auto": {"rs": {"points": resample_lane()}, "ts": {"points": tapestop_lane()}}}),
         "tracks:",
     ]
     with open(OUT, "w") as f:

@@ -78,6 +78,11 @@ Generator `compose/chirpers3/src/chirpers3-t7.py`. Ambient tape loops, a nominal
 - **THE SECOND HIDDEN MELODY** (since v6, the full section; since v7 the return too): where the music box's 7 meets the crystal's gear, a soft
   boc-lead under the first melody sings the box's note an octave down and holds to the next meeting (7 meetings in 8
   bars: a slow descant made by the gears).
+- **THE TAPE STOP** (since v9): the near-stall ends for real: after the band's resample dive, wM's tapestop brings the
+  tape to a halt in the bar's second half (the vinyl keeps turning on top), then the return snaps back at speed.
+- **THE RESAMPLED MUSIC BOX** (since v9): at the full section's phrase ends (bars 48 and 52) the toy piano and the box
+  play through their own chop (`0 . 2 r2 4 . 6 r7`), the clockwork stuttering on itself where the phrase turns, while
+  the hidden melody sings on over it.
 - **THE RESAMPLED BREAK** (since v8): the glitch break's beat goes through wM's CHOP: bar 24 feeds it live, then bars
   25-27 replay the beat's own last bar as 8 slices in the order `0 0 r3 2 . 5 r7 _` (repeats, reversals, one live
   slice, a dropout), under the hail, before the near-stall.
