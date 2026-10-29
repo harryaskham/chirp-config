@@ -108,6 +108,11 @@ R17 = set(filter(None, os.environ.get("T8_R17", "Q").split(","))) - {"none"}
 # Eb~~), on the bridge's chords, then a held colour tone; the album's front door heard through the mallets.
 R18 = set(filter(None, os.environ.get("T8_R18", "S7").split(","))) - {"none"}
 DOORS = [[(0, 3), (-1, 1), (-3, 1), (-4, 1), (-5, 3), (-4, 3)], [(-3, 1), (-1, 1), (0, 1), (1, 3), (2, 6)]]
+# Round 19 (v19): G = t3 Glass Arithmetic's GLASS TUNE answered back (chirper-one, whose v9 runs this track's cell
+# through its 3+2 breakdown): in the phase section's second half the vibes enter softly with it, chord-tone indices
+# 0 2 4 3 1 4 2 0 in dotted eighths (eight to the 12/8 bar, exactly), over the stepping marimbas.
+R19 = set(filter(None, os.environ.get("T8_R19", "G").split(","))) - {"none"}
+GLASS = [0, 2, 4, 3, 1, 4, 2, 0]
 SUBJECT = [(0, 1), (3, 1), (7, 1), (6, 2), (2, 2), (5, 1), (1, 1), (4, 1), (0, 2)]  # t7: semitones, eighths
 BAR = 6.0  # a 12/8 bar, in quarter beats
 
@@ -317,6 +322,9 @@ def build():
                     while bp < 33:
                         bp += 12
                     T["bm"].add(start + e / 2, 1.4 if e % 3 == 0 else 0.45, nm(bp), v - 6 + (6 if e % 6 == 0 else 0))
+        if sec == "phase" and "G" in R19 and i >= n // 2:  # the glass tune, answered
+            for g, ix in enumerate(GLASS):
+                T["vib"].add(start + g * 0.75, 0.7, nm(vr(deg(chord, 2 * ix) + 12)), v - 14 + (6 if g % 4 == 0 else 0) + 2 * (i - n // 2))
         # ---- the vibes ----
         if sec in ("melody", "peak", "unison") and i % 4 == 0:
             half = HALVES[(i // 4 + (2 if sec == "peak" else 0)) % 4]
