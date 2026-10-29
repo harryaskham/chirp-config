@@ -218,6 +218,16 @@ def build():
                 up.append(f"{nm(m_ + 24)}/{rest_.split('@')[0]}@70")
         for v in ('dr', 'dw', 'dt', 'dp'):
             parts[v].append(up if v == who else rest(b))
+    # THE UNRAVELLING (outro): the band leaves the vamp one voice every two bars - the wah, then the rhodes, then the
+    # trumpet's line and the doublings, then the kit - until the fretless and the sub play the NIGHT CELL alone,
+    # as the song began
+    leave = [('wah',), ('rhodes',), ('tpt', 'dr', 'dw', 'dt', 'dp'), ('kit',)]
+    for k, b in enumerate(B):
+        if b['sec'] == 'outro':
+            for step, voices in enumerate(leave):
+                if b['i'] >= 2 * (step + 1):
+                    for v in voices:
+                        parts[v][k] = rest(b)
     end_s = total_beats * 60 / BPM
     J = lambda p: ' | '.join(' '.join(x) for x in parts[p])
     return {
