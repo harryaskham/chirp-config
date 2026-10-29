@@ -91,6 +91,10 @@ R13 = set(filter(None, os.environ.get("T8_R13", "K").split(","))) - {"none"}  # 
 # skeleton alone for a bar, then the low marimba's cell joins it (and the frame drum after); F = the coda ends on the
 # bass marimba's low Eb, ringing under the vibes' last echo.
 R14 = set(filter(None, os.environ.get("T8_R14", "I,F").split(","))) - {"none"}
+# Round 15 (v15): G = TRUE PHASING at the peak: instead of stepping an eighth every four bars, the high marimba
+# DRIFTS a quarter of an eighth every bar (offsets 8, 8.25, 8.5 ... 11.75, arriving at 12 = unison), the gradual
+# phase the discrete steps imitated, at the climax.
+R15 = set(filter(None, os.environ.get("T8_R15", "G").split(","))) - {"none"}
 SUBJECT = [(0, 1), (3, 1), (7, 1), (6, 2), (2, 2), (5, 1), (1, 1), (4, 1), (0, 2)]  # t7: semitones, eighths
 BAR = 6.0  # a 12/8 bar, in quarter beats
 
@@ -254,6 +258,8 @@ def build():
             span = 3 if sec == "phase" and "C" in R9 else 4
             k = {"phase": 0, "melody": 4, "peak": 8}[sec] + i // span
             off = k + (0.5 if i % span == span - 1 else 0.0)  # the blur bar: half an eighth on toward the next step
+            if sec == "peak" and "G" in R15:
+                off = 8 + i * 0.25  # the drift
             for e in range(12):
                 at = start + ((e + off) % 12) / 2
                 p2 = deg(chord, cell[e])
