@@ -29,7 +29,7 @@ E = 4
 CH_A = [[52, 56, 59, 63, 66], [49, 52, 56, 59, 63], [45, 49, 52, 56, 63], [47, 51, 54, 56, 61]]  # Emaj9 C#m9 Amaj7(9) B6/9
 CH_B = [[43, 47, 50, 54, 57], [40, 43, 47, 50, 54], [48, 52, 55, 59, 66], [50, 54, 57, 59, 64]]  # Gmaj9 Em9 Cmaj7#11 D6/9
 
-FORM = [('intro', 8, 'A'), ('A', 16, 'A'), ('B', 16, 'B'), ('A2', 16, 'A'), ('C', 8, 'C'), ('D', 12, 'D'),
+FORM = [('intro', 8, 'A'), ('A', 16, 'A'), ('B', 16, 'B'), ('S', 8, 'S'), ('A2', 16, 'A'), ('C', 8, 'C'), ('D', 12, 'D'),
         ('A3', 16, 'A'), ('outro', 8, 'A')]
 
 def bars():
@@ -41,6 +41,8 @@ def bars():
                 g = ROW_A[i % len(ROW_A)]; ch = CH_A[(i // 2) % 4]
             elif kind == 'B':
                 g = ROW_B[i % len(ROW_B)]; ch = CH_B[(i // 2) % 4]
+            elif kind == 'S':          # the solo break: B's harmony on A's row, one chord per bar
+                g = ROW_A[i % len(ROW_A)]; ch = CH_B[i % 4]
             elif kind == 'C':
                 g = ROW_C[0]; ch = CH_A[(i // 2) % 2 * 2]
             else:
@@ -151,15 +153,46 @@ def marimba_part(B, active):
         out.append(toks)
     return out
 
+SOLO_SHAPES = [(0, 2, 4, 7, 9, 7, 4, 2), (0, 4, 7, 11, 9, 7, 4, 0), (2, 4, 6, 9, 11, 9, 6, 4), (0, 3, 7, 10, 12, 10, 7, 3)]
+def solo_part(B):
+    """THE TAPPED SOLO (section S): the left guitar breaks out of its 5-loop into wide two-octave tapping arpeggios in
+    sixteenths. Each group of the bar's grouping gets its own shape climbing from a new chord tone, the shapes widen
+    bar by bar, and the last two bars climb an octave for the hand-off back to the braid."""
+    out = []
+    for b in B:
+        if b['sec'] != 'S':
+            out.append([rest(b['e8'])]); continue
+        toks, ch = [], b['ch']
+        oct_up = 12 if b['i'] >= 6 else 0
+        for j, (at, g) in enumerate(groups(b)):
+            shape = SOLO_SHAPES[(b['i'] + j) % len(SOLO_SHAPES)]
+            base = ch[(j + b['i']) % len(ch)] + 24 + oct_up
+            for n in range(g * 2):
+                toks.append(tok(nm(base + shape[n % len(shape)] + (12 if b['i'] >= 3 and n >= 4 else 0)), 0.25, 96 if n == 0 else (84 if n % 2 == 0 else 74)))
+        out.append(toks)
+    return out
+
+def stop_after_one(parts, B, sec, i):
+    """THE STOP: in bar I of SEC everything plays its first note and then rests to the bar line"""
+    for p in parts:
+        for k, b in enumerate(B):
+            if b['sec'] == sec and b['i'] == i and p[k] and not p[k][0].startswith('R'):
+                first = p[k][0]
+                dur = float(first.split('/')[1].split('b')[0])
+                p[k] = [first, f"R/{b['e8'] / 2 - dur:g}b"] if b['e8'] / 2 - dur > 0 else [first]
+
 def build():
     B = bars()
-    full = lambda b: b['sec'] in ('A', 'A2', 'A3', 'B', 'D')
+    full = lambda b: b['sec'] in ('A', 'A2', 'A3', 'B', 'D', 'S')
     TAP = lambda b: 0.25 if b['sec'] in ('A', 'A2', 'A3', 'D') else 0.5     # tapping sixteenths where the band plays
-    g1 = loop_part(B, 5, 1, 70, lambda b: b['sec'] != 'B' or b['i'] % 2 == 0, step=TAP)
-    g2 = loop_part(B, 7, 1, 64, lambda b: (b['sec'] != 'intro' or b['i'] >= 4) and b['sec'] not in ('outro',) and not (b['sec'] == 'C' and b['i'] < 4), offset=3)
+    g1 = loop_part(B, 5, 1, 70, lambda b: b['sec'] not in ('B', 'S') or (b['sec'] == 'B' and b['i'] % 2 == 0), step=TAP)
+    g2 = loop_part(B, 7, 1, 64, lambda b: (b['sec'] != 'intro' or b['i'] >= 4) and b['sec'] not in ('outro', 'S') and not (b['sec'] == 'C' and b['i'] < 4), offset=3)
     bass = bass_part(B, lambda b: full(b) or (b['sec'] == 'C' and b['i'] >= 4))
-    kit = kit_part(B, lambda b: full(b), half=lambda b: b['sec'] == 'B', tap16=lambda b: b['sec'] in ('A', 'A2', 'A3', 'D', 'B'))
+    kit = kit_part(B, lambda b: full(b), half=lambda b: b['sec'] == 'B', tap16=lambda b: b['sec'] in ('A', 'A2', 'A3', 'D', 'B', 'S'))
     mar = marimba_part(B, lambda b: b['sec'] in ('B', 'A3', 'D') or (b['sec'] == 'outro' and b['i'] < 4))
+    solo = solo_part(B)
+    # the build ends in a STOP: its last bar is one unison hit and a bar of air before the last return
+    stop_after_one([g1, g2, bass, kit, mar], B, 'D', 11)
     total_beats = sum(b['e8'] for b in B) / 2
     end_s = total_beats * 60 / BPM
     # DYNAMICS: the quiet sections sit 7 dB under the band (a lane on the master; ramps of one bar)
@@ -187,6 +220,7 @@ def build():
             {'name': 'gtr2', 'patch': 'clean-dry', 'gain': '-7dB', 'pan': 0.5, 'score': J(g2)},
             {'name': 'bass', 'patch': 'bass-pick-di', 'gain': '-2dB', 'score': J(bass)},
             {'name': 'kit', 'patch': 'prog-kit', 'gain': '-4dB', 'score': J(kit)},
+            {'name': 'solo', 'patch': 'starcaster-clean', 'gain': '-4dB', 'pan': -0.3, 'fx': [{'type': 'delay', 'time': '3/16', 'feedback': 0.3, 'mix': 0.25}], 'score': J(solo)},
             {'name': 'marimba', 'patch': 'marimba', 'gain': '-4dB', 'pan': 0.1, 'score': J(mar)},
         ]}
 
