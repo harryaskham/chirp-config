@@ -29,7 +29,7 @@ TOM_CHOIR = {'synth': {'layers': [{'type': 'drum', 'beater': 'stick', 'contact':
 MODES = {'dorian': [0, 2, 3, 5, 7, 9, 10], 'lydian': [0, 2, 4, 6, 7, 9, 11], 'phrygdom': [0, 1, 4, 5, 7, 8, 10]}
 
 # form: (name, bars, root midi (bass octave), mode, wheel)
-FORM = [('intro', 10, 38, 'dorian', WHEEL), ('A', 20, 38, 'dorian', WHEEL), ('B', 20, 39, 'lydian', WHEEL),
+FORM = [('prelude', 6, 38, 'dorian', [8, 8, 8, 8, 8, 8]), ('intro', 10, 38, 'dorian', WHEEL), ('A', 20, 38, 'dorian', WHEEL), ('B', 20, 39, 'lydian', WHEEL),
         ('trades', 20, 42, 'phrygdom', WHEEL), ('break', 10, 38, 'dorian', WHEEL), ('climax', 15, 38, 'dorian', STRETCH),
         ('outro', 10, 38, 'dorian', WHEEL)]
 
@@ -219,6 +219,17 @@ def build():
     last_call = [None]
     for k, b in enumerate(B):
         sec = b['sec']; lead = k % 5   # who carries the cell this bar (beyond the bass)
+        if sec == 'prelude':
+            # THE PRELUDE (before the groove, 6 bars of 4/4, no time yet): the rotary rhodes holds each chord of the
+            # harmonic wheel, the muted trumpet sings the NIGHT CELL's notes in long tones (the cell augmented eightfold),
+            # and the ride swells from nothing; then the fretless starts the groove alone
+            i = b['i']
+            parts['rhodes'].append([tok(chord(b, 0), 3.8, 56 + 2 * i), 'R/0.2b'])
+            parts['tpt'].append([tok(nm(deg(b, (0, 4, 0, 6, 3, 4)[i], 2)), 3.5, 66 + 3 * i), 'R/0.5b'])
+            parts['kit'].append([f"rd/0.5b@{34 + 4 * i + j}" for j in range(8)] if i >= 2 else rest(b))
+            parts['sub'].append([tok(nm(b['root'] - 12), 3.9, 60 + 4 * i), 'R/0.1b'])   # a low D pedal under the wash
+            for v in ('bass', 'wah', 'ten'): parts[v].append(rest(b))
+            continue
         parts['bass'].append(bass(b, k) if sec != 'break' or b['i'] < 8 else bass(b, k))
         parts['kit'].append(kit(b, k, sec) if not (sec == 'intro' and b['i'] < 2) else rest(b))
         parts['rhodes'].append(rhodes(b, k) if (sec != 'intro' or b['i'] >= 5) and sec != 'break' else (rhodes(b, k) if sec == 'break' and b['i'] >= 6 else rest(b)))
