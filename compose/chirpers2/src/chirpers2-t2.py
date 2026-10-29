@@ -179,8 +179,23 @@ def build():
                 parts['tpt'].append(horn_line(b, k, b['i'], 100) if b['i'] % 2 == 0 else rest(b))
                 parts['ten'].append(horn_line(b, k, b['i'] + 5, 92) if b['i'] % 2 == 1 else rest(b))
         elif sec == 'climax':
-            parts['tpt'].append(horn_line(b, k, b['i'] + 2, 110))
-            parts['ten'].append(horn_line(b, k, b['i'] + 6, 98))
+            # THE CELL COMES HOME: over the stretched wheel the horns stop soloing and join the bass on the NIGHT
+            # CELL in octaves (trumpet two octaves up, tenor one), every third bar breaking back out into the line,
+            # so the climax is the whole band hammering the song's first idea
+            if b['i'] % 3 == 2:
+                parts['tpt'].append(horn_line(b, k, b['i'] + 2, 112))
+                parts['ten'].append(horn_line(b, k, b['i'] + 6, 100))
+            else:
+                def up(cell, octs, v):
+                    o_ = []
+                    for x in cell:
+                        if x.startswith('R'): o_.append(x); continue
+                        n_, r_ = x.split('/', 1)
+                        m_ = NN.index(n_[:-1]) + 12 * (int(n_[-1]) + 1) + 12 * octs
+                        o_.append(f"{nm(m_)}/{r_.split('@')[0]}@{v}")
+                    return o_
+                parts['tpt'].append(up(bass(b, k), 2, 108))
+                parts['ten'].append(up(bass(b, k), 1, 100))
         elif sec == 'outro':
             parts['tpt'].append(horn_line(b, k, b['i'], 80 - 3 * b['i']) if b['i'] < 6 else rest(b))
             parts['ten'].append(rest(b))
