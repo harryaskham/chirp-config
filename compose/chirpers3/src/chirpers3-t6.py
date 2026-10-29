@@ -68,6 +68,11 @@ B_LOOP = [(34, [50, 53, 57, 60]),   # Bbmaj9: Bb1 | D3 F3 A3 C4
           (32, [48, 51, 55, 62]),   # Abmaj7#11
           (31, [53, 57, 60, 64])]   # G13sus: G1 | F3 A3 C4 E4
 
+# Round 2 (v2): the DROP becomes an event. W = the wurli's tape warps until the chords seasick (the wow deepens and
+# slows, the top wears away, the crush rises) and snaps back at A3; F = the whole mix sinks under a lo-pass through
+# the drop (18 kHz down to ~1 kHz) and opens again; N = the NEEDLE LIFTS: the drop's last beat is silence but for a
+# crackle burst, and A3 lands.
+R2 = set(filter(None, os.environ.get("T6_R2", "W,F,N").split(","))) - {"none"}
 FORM = [("intro", 4), ("A", 16), ("switch", 8), ("A2", 16), ("drop", 4), ("A3", 12), ("outro", 4)]
 LEVEL = {"intro": 58, "A": 72, "switch": 66, "A2": 78, "drop": 56, "A3": 80, "outro": 56}
 DRUMS = {"A", "switch", "A2", "A3"}
@@ -75,7 +80,7 @@ DRUMS = {"A", "switch", "A2", "A3"}
 
 def build():
     rng = random.Random(6)
-    T = {k: Track(k) for k in ("keys", "bass", "sub", "vibes", "drums", "crackle", "hiss")}
+    T = {k: Track(k) for k in ("keys", "kw", "bass", "sub", "vibes", "drums", "crackle", "hiss")}
     bars, b = [], 0
     for name, n in FORM:
         for i in range(n):
@@ -93,11 +98,12 @@ def build():
                 root, voic = A_TURN
         # ---- keys: the chord a hair late, strummed; a soft re-hit on the and of three ----
         drag = 0.05 if sec != "intro" else 0.0
-        T["keys"].add(start + drag, 2.4 if sec != "switch" else 3.8, ",".join(nm(x) for x in voic), v - 6)
+        K = T["kw"] if sec == "drop" and "W" in R2 else T["keys"]  # the drop's chords on the warped tape
+        K.add(start + drag, 2.4 if sec != "switch" else 3.8, ",".join(nm(x) for x in voic), v - 6)
         if sec in ("A", "A2", "A3") and i % 2 == 1:
             T["keys"].add(start + 2.5 + drag, 1.3, ",".join(nm(x) for x in voic[1:]), v - 18)
         if sec in ("intro", "drop", "outro"):
-            T["keys"].add(start + 2.0 + drag, 1.9, ",".join(nm(x) for x in voic[:3]), v - 14)
+            K.add(start + 2.0 + drag, 1.9, ",".join(nm(x) for x in voic[:3]), v - 14)
         # ---- bass: behind the beat ----
         if sec in DRUMS:
             late = 0.04
@@ -148,6 +154,16 @@ def build():
         for _ in range(rng.randint(5, 11)):
             T["crackle"].add(start + rng.uniform(0, 3.95), 0.06, "C5", rng.randint(30, 80))
     T["hiss"].add(0.0, total - 0.1, "C4", 60)
+    if "N" in R2:  # the needle lifts on the drop's last beat
+        dr = [bb for bb in bars if bb[1] == "drop"]
+        lift0, lift1 = dr[-1][0] + 3.0, dr[-1][0] + 4.0
+        for name, tr in T.items():
+            if name == "hiss":
+                continue
+            tr.ev = [e for e in tr.ev if not (lift0 - 1e-6 <= e[0] < lift1)]
+            tr.ev = [(s, min(ln, lift0 - s) if s < lift0 < s + ln else ln, h, vel) for s, ln, h, vel in tr.ev]
+        for k in range(14):
+            T["crackle"].add(lift0 + k * 0.05 + rng.uniform(0, 0.03), 0.05, "C5", 70 + rng.randint(0, 30))
     sec = []
     for name, n in FORM:
         first = next(bb for bb in bars if bb[1] == name)
@@ -204,13 +220,27 @@ def patches():
 
 def main():
     total, bars, sec, T = build()
+    d0 = next(s for n, s, k in sec if n == "drop")
+    a3 = next(s for n, s, k in sec if n == "A3")
+    warp_pts = [["0b", 0.0], [f"{d0}b", 0.0], [f"{a3 - 0.5}b", 1.0], [f"{a3}b", 0.0]]
     wow = {"type": "chorus", "rate": 0.35, "depth": 0.55, "voices": 1, "mix": 1.0}
+    wow_k = wow
     flutter = {"type": "chorus", "rate": 5.5, "depth": 0.08, "voices": 1, "mix": 0.5}
     tracks = [
         {"name": "keys", "patch": "wurli", "pan": -0.1, "gain": "-6dB",
-         "fx": [wow, flutter, "tape drive=0.3 warmth=0.65", "lp cutoff=5000",
-                {"type": "crush", "bits": 12, "rate": 16000, "mix": 0.3},
-                "reverb kind=room decay=1.2s mix=0.18"], "score": T["keys"].score(total)},
+         "fx": [wow_k, flutter, "tape drive=0.3 warmth=0.65",
+                ({"type": "filter", "kind": "lp", "cutoff": {"value": 5000, "mod": [{"src": "auto.warp", "amount": -1.5}]}}
+                 if "W" in R2 else "lp cutoff=5000"),
+                ({"type": "crush", "bits": 12, "rate": 16000, "mix": {"value": 0.3, "mod": [{"src": "auto.warp", "amount": 0.5}]}}
+                 if "W" in R2 else {"type": "crush", "bits": 12, "rate": 16000, "mix": 0.3}),
+                "reverb kind=room decay=1.2s mix=0.18"], "score": T["keys"].score(total),
+         **({"auto": {"warp": {"points": warp_pts}}} if "W" in R2 else {})},
+        *([{"name": "keys-warped", "patch": "wurli", "pan": 0.05, "gain": "-5dB",
+             "fx": [{"type": "chorus", "rate": 0.18, "depth": 0.95, "voices": 1, "mix": 1.0},
+                    {"type": "chorus", "rate": 3.1, "depth": 0.2, "voices": 1, "mix": 0.6},
+                    "tape drive=0.5 warmth=0.8", "lp cutoff=2200",
+                    {"type": "crush", "bits": 10, "rate": 11000, "mix": 0.55},
+                    "reverb kind=hall decay=2.5s mix=0.3"], "score": T["kw"].score(total)}] if "W" in R2 else []),
         {"name": "bass", "patch": "fretless", "gain": "1dB", "fx": ["lp cutoff=900", "tape drive=0.2 warmth=0.5"],
          "score": T["bass"].score(total)},
         {"name": "sub", "patch": "c2-sub", "gain": "-5dB", "score": T["sub"].score(total)},
@@ -238,9 +268,13 @@ def main():
         'ceiling: "-0.5dB"',
         'volume: "3dB"',
         "patches: " + json.dumps(patches()),
-        "master: " + json.dumps({"fx": [{"type": "eq", "bands": ["hp cutoff=30", "highshelf cutoff=8000 gain=0dB"]},
-                                        "tape drive=0.2 warmth=0.5",
-                                        "glue threshold=-20dB ratio=1.6 attack=20ms release=250ms makeup=1dB"]}),
+        "master: " + json.dumps({"fx": [{"type": "eq", "bands": ["hp cutoff=30", "highshelf cutoff=8000 gain=0dB"]}]
+                                 + ([{"type": "filter", "kind": "lp", "cutoff": {"value": 18000, "mod": [{"src": "auto.dive", "amount": -4.0}]}}]
+                                    if "F" in R2 else [])
+                                 + ["tape drive=0.2 warmth=0.5",
+                                    "glue threshold=-20dB ratio=1.6 attack=20ms release=250ms makeup=1dB"],
+                                 **({"auto": {"dive": {"points": [["0b", 0.0], [f"{d0}b", 0.0], [f"{a3 - 1}b", 1.0],
+                                                                    [f"{a3}b", 0.0]]}}} if "F" in R2 else {})}),
         "tracks:",
     ]
     lines += ["  - " + json.dumps(t) for t in tracks]

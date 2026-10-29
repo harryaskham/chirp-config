@@ -8,4 +8,5 @@ Generator `compose/chirpers3/src/chirpers3-t6.py`. Wonky brush drag, 78 bpm, 4/4
 - **THE SINK** (harmony): Fmaj9 | Em7 | Ebmaj7#11 | Dm9, sinking a semitone a bar, with every other phrase leaning home through A7b13. The switch-up sinks a fourth lower in half time (Bbmaj9 | Am7 | Abmaj7#11 | G13sus).
 - **THE SIGH** (dusty vibes): a falling three-note figure from the chord's top (top, a third down, a fourth down), late on the and of two.
 - **THE WARP**: the wurli through a full-wet slow chorus (wow, 0.35 Hz) and a fast shallow one (flutter, 5.5 Hz), tape and crush.
+- **THE DROP** (v2): the four drop bars are an event. The wurli's chords move to a second, warped tape (a deeper, slower wow at 0.18 Hz, a wobbly flutter, more drive, crush and a darker top) until the chords seasick, while the whole mix sinks under a lo-pass (18 kHz falling four octaves) and opens again. On the drop's last beat the NEEDLE LIFTS: silence but for a burst of crackle, and A3 lands.
 
