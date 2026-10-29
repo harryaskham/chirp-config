@@ -123,6 +123,15 @@ def build():
                 lead.append((t0 + at + ms(25 * dr * rnd()), nm(m - (2 if b['i'] % 4 >= 2 else 0) + (5 if sec in ('A2', 'last') else 0)), d, 80))
     # the crackle under everything
     crackle.append((0.0, 'C4', total - 0.5, 70))
+    # THE CHOPS (the break): after the tape-stop, an MPC-style chop of the library's lofihop part re-sequenced over
+    # the piano and bass - slices in an order the original never played, swung
+    chops = []
+    CHOP = [[0, 0, 5, 3, 0, 7, 6, 2], [0, 0, 5, 3, 9, 9, 6, 11], [4, 0, 5, 3, 0, 7, 13, 13], [0, 5, 3, 0, 15, 14, 12, 12]]
+    for b in B:
+        if b['sec'] != 'break':
+            continue
+        for e, sl in enumerate(CHOP[b['i'] % 4]):
+            chops.append((b['t'] + e * 0.5 + (0.08 if e % 2 else 0.0), nm(60 + sl), 0.42, 92 if e % 2 == 0 else 78))
     end_s = total * SPB
     # the master: a real TAPE-STOP into the break (the tapestop fx held for the two beats before it) and a dip
     tb = [b['t'] for b in B if b['sec'] == 'break' and b['i'] == 0][0] * SPB
@@ -162,6 +171,7 @@ def build():
             {'name': 'bass', 'patch': 'analog-bass', 'gain': '-3dB', 'score': line(bass, total)},
             {'name': 'lead', 'patch': 'boc-lead', 'gain': '-9dB', 'pan': 0.25, 'score': line(lead, total)},
             {'name': 'crackle', 'patch': 'fx-crackle', 'gain': '-7dB', 'score': line(crackle, total)},
+            {'name': 'chops', 'patch': 'chop-lofihop', 'gain': '-6dB', 'pan': 0.1, 'score': line(chops, total)},
             {'name': 'tapestop', 'patch': 'tape-piano', 'gain': '-60dB', 'score': f"R/{total - 0.5:.4f}b"},
         ]}
 
