@@ -213,11 +213,26 @@ def build():
     B = bars()
     full = lambda b: b['sec'] in ('A', 'A2', 'A3', 'B', 'D', 'S')
     TAP = lambda b: 0.25 if b['sec'] in ('A', 'A2', 'A3', 'D') else 0.5     # tapping sixteenths where the band plays
-    g1 = loop_part(B, 5, 1, 70, lambda b: b['sec'] not in ('B', 'S') or (b['sec'] == 'B' and b['i'] % 2 == 0), step=TAP)
+    g1 = loop_part(B, 5, 1, 70, lambda b: b['sec'] not in ('B', 'S', 'outro') or (b['sec'] == 'B' and b['i'] % 2 == 0) or (b['sec'] == 'outro' and b['i'] < 4), step=TAP)
     g2 = loop_part(B, 7, 1, 64, lambda b: (b['sec'] != 'intro' or b['i'] >= 4) and b['sec'] not in ('outro', 'S') and not (b['sec'] == 'C' and b['i'] < 4), offset=3)
     bass = bass_part(B, lambda b: full(b) or (b['sec'] == 'C' and b['i'] >= 4))
     kit = kit_part(B, lambda b: full(b), half=lambda b: b['sec'] == 'B', tap16=lambda b: b['sec'] in ('A', 'A2', 'A3', 'D', 'B', 'S'))
     mar = marimba_part(B, lambda b: b['sec'] in ('B', 'A3', 'D') or (b['sec'] == 'outro' and b['i'] < 4))
+    # THE LAST WORD (outro): the braid stops after four bars and the marimba is left alone with the GLASS TUNE, its
+    # notes lengthening bar by bar (eighths, dotted eighths, quarters, then one held roll on the tonic chord)
+    for k, b in enumerate(B):
+        if b['sec'] == 'outro' and b['i'] >= 4:
+            j = b['i'] - 4
+            if j == 3:
+                ch = ','.join(nm(m + 26) for m in CH_A[0][:4])   # the home chord of the last key (F#maj7)
+                mar[k] = [f"{ch}/{b['e8'] / 2 - 0.25:g}b@70", 'R/0.25b']
+                continue
+            step16 = (2, 3, 4)[j]
+            toks, t16, n16, q = [], 0, b['e8'] * 2, 0
+            while t16 < n16:
+                ln = min(step16, n16 - t16)
+                toks.append(tok(nm(b['ch'][TUNE[(b['k'] + q) % len(TUNE)]] + 24), ln / 4, 84 - 6 * j)); t16 += ln; q += 1
+            mar[k] = toks
     solo = solo_part(B)
     dialogue(B, solo, mar)
     # GLASS: on the last return (A3, a whole step up) a glockenspiel doubles the marimba's dotted line an octave
