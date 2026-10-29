@@ -59,6 +59,7 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 - **THE STOP** (v5): the build's last bar is one unison hit and a bar of air before the last return.
 - **DIALOGUE** (v6, A2): the soloist calls with a short tapping shape (the bar's first two groups, then air) and the marimba answers the next bar with the same notes at half speed, inverted around the first note every other turn.
 - **THE CELL, answered** (v9, breakdown C): t8 Mallet Chamber in Phase's 12-eighth CELL (0 4 8 4 2 4 | 5 4 1 4 2 6, chirper-two) on two marimbas in eighths over the 3+2 breakdown, in each chord's lydian, running across the bar lines (12 against 5); unison for four bars, then the second marimba an eighth ahead: t8's phase process in miniature.
+- **PALINDROME DOOR** (v10, the intro): the braid enters in t4 Palindrome's METER PALINDROME, as groupings 3+3 | 3+2 | 2+2+3 | 3+3+2 | 3+2+2 | 2+3 | 3+3 (6 5 7 8 7 5 6 eighths), before the grouping row takes over - t4 made the braid palindromic, t3 enters through t4's mirror.
 
 ## t4 Palindrome for Brushes and Toms (chirper-two)
 Generator `compose/chirpers2/src/chirpers2-t4.py`. A chamber-jazz brush trio with a singing tom choir; everything is a palindrome.

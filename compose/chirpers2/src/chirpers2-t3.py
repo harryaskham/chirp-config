@@ -22,6 +22,9 @@ def nm(m): return f"{NN[m % 12]}{m // 12 - 1}"
 ROW_A = [(3, 3, 2), (2, 2, 3), (3, 2, 2, 2), (3, 3, 3, 2), (3, 3, 2), (2, 3), (3, 2, 2, 2), (3, 3, 2, 2, 3)]
 ROW_B = [(3, 3, 3, 3), (2, 2, 2, 3, 3), (3, 3, 3, 3), (3, 2, 3, 2, 2)]
 ROW_C = [(3, 2)]
+# chirper-two's t4 meter palindrome (3/4 5/8 7/8 4/4 7/8 5/8 3/4) as groupings: t4 answered this song's braid with
+# palindromes, so the braid now enters in t4's mirrored meters before the row takes over
+ROW_PAL = [(3, 3), (3, 2), (2, 2, 3), (3, 3, 2), (3, 2, 2), (2, 3), (3, 3)]
 def row_d(i): return (2, 2) + (3,) * (1 + i % 6)          # the build: one more 3 each bar, six steps
 
 # chords (pitch sets, MIDI) per bar, cycling
@@ -47,6 +50,8 @@ def bars():
                 g = ROW_C[0]; ch = CH_A[(i // 2) % 2 * 2]
             else:
                 g = row_d(i); ch = CH_B[i % 4] if i < 6 else CH_A[i % 4]
+            if name == 'intro' and i < 7:    # the braid enters in t4 Palindrome's METER PALINDROME (6 5 7 8 7 5 6)
+                g = ROW_PAL[i]
             if name in ('A3', 'outro'):      # the last return is a whole step up: F# major
                 ch = [m + 2 for m in ch]
             out.append({'sec': name, 'i': i, 'n': n, 'g': g, 'e8': sum(g), 'ch': ch, 'k': k})
@@ -209,6 +214,9 @@ def stop_after_one(parts, B, sec, i):
                 dur = float(first.split('/')[1].split('b')[0])
                 p[k] = [first, f"R/{b['e8'] / 2 - dur:g}b"] if b['e8'] / 2 - dur > 0 else [first]
 
+# wM's DI string (pin df4ae6aa): a second string polarisation, so the tapped notes decay in two stages and beat
+DI = ' synth.layers.0.planes=0.3 synth.layers.0.beat=1.5'
+
 def build():
     B = bars()
     full = lambda b: b['sec'] in ('A', 'A2', 'A3', 'B', 'D', 'S')
@@ -296,11 +304,11 @@ def build():
                           {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.fade', 'amount': 1}]}}],
                    'auto': {'dyn': {'points': dyn}, 'fade': {'points': [['0s', 0], [f'{end_s - 8:.1f}s', 0], [f'{end_s:.1f}s', -40]]}}},
         'tracks': [
-            {'name': 'gtr1', 'patch': 'starcaster-clean', 'gain': '-6dB', 'pan': -0.5, 'score': J(g1)},
-            {'name': 'gtr2', 'patch': 'clean-dry', 'gain': '-7dB', 'pan': 0.5, 'score': J(g2)},
+            {'name': 'gtr1', 'patch': 'starcaster-clean' + DI, 'gain': '-6dB', 'pan': -0.5, 'score': J(g1)},
+            {'name': 'gtr2', 'patch': 'clean-dry' + DI, 'gain': '-7dB', 'pan': 0.5, 'score': J(g2)},
             {'name': 'bass', 'patch': 'bass-pick-di', 'gain': '-2dB', 'score': J(bass)},
             {'name': 'kit', 'patch': 'prog-kit', 'gain': '-4dB', 'score': J(kit)},
-            {'name': 'solo', 'patch': 'starcaster-clean', 'gain': '-4dB', 'pan': -0.3, 'fx': [{'type': 'delay', 'time': '3/16', 'feedback': 0.3, 'mix': 0.25}], 'score': J(solo)},
+            {'name': 'solo', 'patch': 'starcaster-clean' + DI, 'gain': '-4dB', 'pan': -0.3, 'fx': [{'type': 'delay', 'time': '3/16', 'feedback': 0.3, 'mix': 0.25}], 'score': J(solo)},
             {'name': 'marimba', 'patch': 'marimba', 'gain': '-4dB', 'pan': 0.1, 'score': J(mar)},
             {'name': 'mar2', 'patch': 'marimba', 'gain': '-5dB', 'pan': -0.45, 'score': J(mar2)},
             {'name': 'glock', 'patch': 'glock', 'gain': '-10dB', 'pan': 0.4, 'score': J(glock)},
