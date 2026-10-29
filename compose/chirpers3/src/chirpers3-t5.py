@@ -41,7 +41,10 @@ TCHOP = os.environ.get("T5_TCHOP", "lead")
 REWIND = os.environ.get("T5_REWIND", "end")
 LIVING = os.environ.get("T5_LIVING", "1") == "1"
 HOLD = os.environ.get("T5_HOLD", "1") == "1"
-SPACE = os.environ.get("T5_SPACE", "0.72")  # chirper-two's feedback routing: the echo as a tape loop - one dotted-eighth delay, then the bus's own output fed back through a low-pass and a tape deck, each repeat darker and more warped; gain e.g. 0.62  # THE HOLD: the version's last chord thrown into a hall and FROZEN (wM's reverb freeze) under the breakdown's bass and drums, let go when the skank comes in alone  # chirper-two's per-voice fx: every skank stab lands at its own random place in the stereo field with its own tone (pin 3eee6a72)  # wM's tapestop as a sound-system REWIND (spin 3, a vinyl pull-back): "end" = on the outro's last bar; "mid" = at the turn into the version (instead of that seam's stutter)  # wM's MPC chop at the desk: "skank" = the rhodes chopped through the version; "lead" = the melodica chopped through the return  # the one-drop's rim dragged late by hand (ms), the kick and hats kept steady  # the one-drop played by hand (play.humanize): "40,-10,25" = rim late, kick early, hats late (ms), plus swing drift and a drunk lean
+SPACE = os.environ.get("T5_SPACE", "0.72")
+SKBASE = os.environ.get("T5_SKBASE", "rhodes")
+BUBPATCH = os.environ.get("T5_BUBPATCH", "wurli")
+VDRY = os.environ.get("T5_VDRY", "1") == "1"  # the version runs DRY between the throws: the skank's steady echo send drops ~26 dB through the version, so only the throws feed the tape loop and the drop-outs are real silence  # the bubble's keys: wurli, or wM's physical pickup epiano-reed  # the living skank's base e-piano: rhodes, or wM's physical pickup epiano-tine (the stabs bark)  # chirper-two's feedback routing: the echo as a tape loop - one dotted-eighth delay, then the bus's own output fed back through a low-pass and a tape deck, each repeat darker and more warped; gain e.g. 0.62  # THE HOLD: the version's last chord thrown into a hall and FROZEN (wM's reverb freeze) under the breakdown's bass and drums, let go when the skank comes in alone  # chirper-two's per-voice fx: every skank stab lands at its own random place in the stereo field with its own tone (pin 3eee6a72)  # wM's tapestop as a sound-system REWIND (spin 3, a vinyl pull-back): "end" = on the outro's last bar; "mid" = at the turn into the version (instead of that seam's stutter)  # wM's MPC chop at the desk: "skank" = the rhodes chopped through the version; "lead" = the melodica chopped through the return  # the one-drop's rim dragged late by hand (ms), the kick and hats kept steady  # the one-drop played by hand (play.humanize): "40,-10,25" = rim late, kick early, hats late (ms), plus swing drift and a drunk lean
 VINYL = os.environ.get("T5_VINYL", "1") == "1"
 GLITCH = os.environ.get("T5_GLITCH", "stutter") in ("1", "stop", "stutter")
 GLITCH_KIND = os.environ.get("T5_GLITCH", "stutter")  # "1": both; "stop": the tape stop only; "stutter": the stutter bursts only  # the desk resamples: master stutter bursts in the version (bars 4 and 12, second halves) and a TAPE STOP (an octave dive on the last beat) into the breakdown  # wM's vinyl fx on the master instead of the crackle and hiss tracks  # the melodica's written echo: its line again a dotted eighth late, softer, panned opposite, into the spring
@@ -262,6 +265,11 @@ def song():
     lfo = {"wow": "sine rate=0.37hz"} if WOW else {}
     lane = {"thr": {"points": throw_lane(throws, total)}}
     thr_send = lambda base: {"value": f"{base}dB", "mod": [{"src": "auto.thr", "amount": 1}]}  # noqa: E731
+    if VDRY:
+        v0 = times["version"]
+        v1 = v0 + 16 * 4 * 60 / BPM
+        vd = [["0s", 0], [f"{v0 - 0.05:.3f}s", 0], [f"{v0:.3f}s", -26], [f"{v1 - 0.05:.3f}s", -26], [f"{v1:.3f}s", 0], [f"{total + 8:.2f}s", 0]]
+        lane = {**lane, "vd": {"points": vd}}
     tracks = [
         {"name": "drums", "patch": ("room-kit" + (f" play.humanize.nudge.so={RIMDRAG}ms" if RIMDRAG else "") if not NUDGE else
                                      "room-kit play.humanize.nudge.so={}ms play.humanize.nudge.k={}ms play.humanize.nudge.h={}ms "
@@ -270,8 +278,9 @@ def song():
         {"name": "bass", "patch": "analog-bass", "gain": "0dB", "fx": [{"type": "filter", "kind": "lowpass", "cutoff": 420}],
          "score": sc("bass")},
         {"name": "skank", "patch": "living-skank" if LIVING else "rhodes", "gain": "-6dB", "pan": -0.2, "fx": wow, "lfo": lfo,
-         "sends": {"spring": "-6dB", "echo": thr_send(-14)}, "auto": lane, "score": sc("skank", 0.58)},
-        {"name": "bubble", "patch": "wurli", "gain": "-12dB", "pan": 0.3, "fx": wow, "lfo": lfo,
+         "sends": {"spring": "-6dB", "echo": (thr_send(-14) if not VDRY else {"value": "-14dB", "mod": [{"src": "auto.thr", "amount": 1}, {"src": "auto.vd", "amount": 1}]})},
+         "auto": lane, "score": sc("skank", 0.58)},
+        {"name": "bubble", "patch": BUBPATCH, "gain": "-12dB", "pan": 0.3, "fx": wow, "lfo": lfo,
          "sends": {"spring": "-12dB"}, "score": sc("bubble", 0.58)},
         {"name": "lead", "patch": "boc-lead", "gain": "-7dB", "pan": 0.1, "fx": lead_fx, "lfo": lfo,
          "sends": {"spring": "-10dB", "echo": thr_send(-9)}, "auto": lane, "score": sc("lead")},
@@ -286,7 +295,7 @@ def song():
                        "sends": {"echo": "-4dB", "spring": "-8dB"}, "score": sc("siren")})
     patches = {
         **({"living-skank": {"about": "Tape Weather t5: the rhodes skank with per-voice fx - each stab panned to its own random place and low-passed to its own tone.",
-                             "extends": "rhodes",
+                             "extends": SKBASE,
                              "synth": {"fx": [{"type": "pan", "pan": {"value": 0, "mod": [{"src": "rand", "amount": 0.8}]}},
                                               {"type": "filter", "kind": "lowpass", "cutoff": {"value": 2600, "mod": [{"src": "rand", "amount": 1.0}]}, "q": 1.4}]}}}
            if LIVING else {}),
