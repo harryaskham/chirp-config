@@ -139,6 +139,10 @@ else:
 R23 = set(filter(None, os.environ.get("T8_R23", "N").split(","))) - {"none"}  # B tried: on-grid rim strokes, rhythm -0.1
 BEMBE = [1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1]
 NIGHT = [1, None, 5, 1, 7, None, 4, 5, 1, None, 3, 5, 7]
+# Round 24 (v24): E = the HAND-OFF: halfway through the unison every pitched part slips up a semitone, Eb lydian to
+# E lydian, and the chorale and coda stay there, so t8 ends on a low E and hands t9 Slow Shutter (which opens on
+# Emaj9) its key; T = the phase and melody blur bars drift a THIRD of an eighth (as the blur break does), not half.
+R24 = set(filter(None, os.environ.get("T8_R24", "E,T").split(","))) - {"none"}
 SUBJECT = [(0, 1), (3, 1), (7, 1), (6, 2), (2, 2), (5, 1), (1, 1), (4, 1), (0, 2)]  # t7: semitones, eighths
 BAR = 6.0  # a 12/8 bar, in quarter beats
 
@@ -147,6 +151,12 @@ NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"]
 
 def nm(m):
     return f"{NAMES[m % 12]}{m // 12 - 1}"
+
+
+def PCN(n):
+    """'Eb4' -> 63 (inverse of nm)."""
+    name, octv = n[:-1], int(n[-1])
+    return 12 * (octv + 1) + NAMES.index(name)
 
 
 SCALES = {"maj7#11": [0, 2, 4, 6, 7, 9, 11], "m9": [0, 2, 3, 5, 7, 9, 10], "maj9": [0, 2, 4, 5, 7, 9, 11],
@@ -319,7 +329,7 @@ def build():
         if sec in ("phase", "melody", "peak"):
             span = 3 if sec == "phase" and "C" in R9 else 4
             k = {"phase": 0, "melody": 4, "peak": 8}[sec] + i // span
-            off = k + (0.5 if i % span == span - 1 else 0.0)  # the blur bar: half an eighth on toward the next step
+            off = k + ((1 / 3 if "T" in R24 else 0.5) if i % span == span - 1 else 0.0)  # the blur bar
             if sec == "peak" and "G" in R15:
                 off = 8 + i * 0.25  # the drift
             for e in range(12):
@@ -553,6 +563,14 @@ def build():
             T["vib"].add(start + e / 2, 0.45, nm(vr(p0 + 12)), v - 8 + acc)
             T["bass"].add(start + e / 2, 0.45, nm(p0 - 24 if p0 - 24 >= 28 else p0 - 12), v - 6 + acc)
             T["fd"].add(start + e / 2, 0.3, "dum" if e % 3 == 0 else "tek", v - 8 + acc)
+    if "E" in R24:  # the hand-off: up a semitone from the unison's fifth bar to the end
+        un = [bb for bb in bars if bb[1] == "unison"]
+        lift = un[len(un) // 2][0]
+        for name, tr in T.items():
+            if name == "fd":
+                continue
+            tr.ev = [(s, ln, ",".join(nm(PCN(x) + 1) for x in head.split(",")) if s >= lift - 1e-6 else head, vel)
+                     for s, ln, head, vel in tr.ev]
     sec = []
     for name, n in FORM:
         first = next(bb for bb in bars if bb[1] == name)
