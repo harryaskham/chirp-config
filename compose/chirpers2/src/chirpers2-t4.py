@@ -122,6 +122,12 @@ R23 = set(filter(None, os.environ.get("T4_R23", "Y").split(","))) - {"none"}
 # hand, rhodes, drums) only hits the one together (root, chord, kick and stick snare) and leaves the melody alone in
 # the silence; the centre bar brings everyone back; a palindrome of stops.
 R24 = set(filter(None, os.environ.get("T4_R24", "T").split(","))) - {"none"}
+# Round 25 (v25): C = a TRUMPET CADENZA at the very end, after the shrink: the muted trumpet alone over one brush
+# sweep, a palindrome in free rhythm (accelerating into its peak, a held C6, and slowing out of it), before the tom
+# choir's last word and the piano's final chord.
+R25 = set(filter(None, os.environ.get("T4_R25", "C").split(","))) - {"none"}
+CADENZA = [("D5", 1.0), ("E5", 0.75), ("F5", 0.55), ("A5", 0.4), ("C6", 2.2), ("A5", 0.4), ("F5", 0.55), ("E5", 0.75),
+           ("D5", 1.4)]
 BTHEME = {0: [(0, 3, 4), (3, 1, 3), (4, 4, 2)], 1: [(0, 2, 1), (2, 2, 2), (4, 3, 4)], 2: [(0, 5, 6)],
           3: [(0, 2, 4), (2, 2, 5), (4, 2, 4)]}  # t2's night cell, degrees on eighths (None = rest)
 TRIP = "T" in os.environ.get("T4_OPTS", "")  # triplet brush ghosts before the backbeats (off: no gain)
@@ -272,7 +278,7 @@ def build():
     form = [("intro", METERS, 2), ("head", METERS, 2), ("bridge", BRIDGE, 2), ("trade", METERS, 4)] + ([("drums", METERS, 1)] if "F" in R4 else []) + [
             ("piano", BRIDGE, 2)] + ([("bsolo", BRIDGE, 1)] if "B" in R7 else []) + ([("chorale", METERS, 1)] if "H" in R2 else []) + [("peak", METERS, 2)] + ([("link", None, 1)] if "L" in R14 else []) + [("head2", METERS, 2), ("coda", METERS, 1 if "S" in R6 else 2)]  # the form mirrors too
     p = 0
-    for name, meters, n in form + ([("unseed", None, 3)] if "S" in R6 else []):
+    for name, meters, n in form + ([("unseed", None, 3)] if "S" in R6 else []) + ([("cadenza", [8, 8], 1)] if "C" in R25 else []):
         if meters is None and name == "link":  # the link: one 4/4 bar at the centre's place
             first = len(bars)
             add_phrase(name, [8], CENTRES[0], -3, 3)
@@ -293,12 +299,12 @@ def build():
     total = bars[-1][0] + bars[-1][1] / 2 + 4.0  # a ring-out
 
     # dynamics: each phrase swells to its centre bar; sections set the level
-    LEVEL = {"link": 64, "bsolo": 76, "seed": 44, "unseed": 44, "intro": 50, "head": 68, "bridge": 74, "trade": 84, "piano": 70, "peak": 104, "head2": 64, "coda": 48,
+    LEVEL = {"cadenza": 60, "link": 64, "bsolo": 76, "seed": 44, "unseed": 44, "intro": 50, "head": 68, "bridge": 74, "trade": 84, "piano": 70, "peak": 104, "head2": 64, "coda": 48,
              "chorale": 62, "drums": 84}
     if "Y" in R23:
         LEVEL.update({"seed": 36, "chorale": 46})
     # the bass's role per section: a two-feel under the heads, a pedal under the bridge, walking under the solos
-    BASS = {"link": "none", "bsolo": "solo", "seed": "pedal", "unseed": "pedal", "intro": "two", "head": "two", "bridge": "pedal", "trade": "walk", "piano": "walk", "peak": "walk",
+    BASS = {"cadenza": "none", "link": "none", "bsolo": "solo", "seed": "pedal", "unseed": "pedal", "intro": "two", "head": "two", "bridge": "pedal", "trade": "walk", "piano": "walk", "peak": "walk",
             "head2": "two", "coda": "two", "chorale": "pedal", "drums": "tacet"}
 
     def dyn(i):
@@ -566,7 +572,7 @@ def build():
                         cn_vo = [vo for c8, vo in comp if c8 <= e][-1]
                         T["pno_lh"].add(swing_at(start, e, swung), 0.4, cn_vo,
                                         v - 12 + (6 if (e0 + e) % 8 == 0 else 0))
-            elif section in ("chorale", "drums", "link") or (section == "unseed" and "R" in R6):
+            elif section in ("chorale", "drums", "link", "cadenza") or (section == "unseed" and "R" in R6):
                 pass  # (the shrink: the rhodes alone carries the chords)
             elif not (section in ("head", "head2") and VOICE[pos] == "pno"):
                 for o, ln in pattern:
@@ -583,6 +589,14 @@ def build():
         d = T["drums"]
         peak = section == "peak" or ("K" in R13 and "C" in R12 and section == "trade"
                                       and pidx == max(b[4] for b in bars if b[3] == "trade"))
+        if section == "cadenza":
+            if pos == 0:
+                d.add(start, 4.0, "bsl", v - 20)
+                at = start
+                for n, ln in CADENZA:
+                    T["tpt"].add(at, ln * 0.95, n, v + (10 if n == "C6" else 0))
+                    at += ln
+            continue
         if section == "link":
             d.add(start, m / 2 * 0.95, "bsl", v - 16)
             for o, ln, n in [(0, 1, "A4"), (1, 1, "B4"), (2, 1, "C#5"), (3, 2, "E5"), (5, 1, "C#5"), (6, 1, "B4"),
