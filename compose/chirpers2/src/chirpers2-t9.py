@@ -42,7 +42,9 @@ LIFT = int(os.environ.get("T9_LIFT", "0"))
 CANON = os.environ.get("T9_CANON", "1") == "1"
 HORNOPEN = os.environ.get("T9_HORNOPEN", "0") == "1"
 HORNANS = os.environ.get("T9_HORNANS", "1") == "1"
-FAREWELL = os.environ.get("T9_FAREWELL", "1") == "1"  # the dusk: the tenor's last EXPOSURE, in augmentation (a slow fourth up into each chord's 9th, held through the bar), over the arch  # the open section's horn ANSWERS inside each bar: the guitar's fourth, then late in the bar t4's sixth on the horn  # the open section as a dialogue: the french horn's EXPOSURE as t4 transformed it (a sixth up into a colour tone) on even bars, the guitar's fourth on odd  # in the return the strings answer the tenor in canon: last bar's EXPOSURE an octave down  # the return's last eight bars lifted (semitones; 3 = a minor third up): the climax rises  # EXPOSURE passes bar by bar tenor -> guitar -> piano in the song (chirper-one's note), whole again on the tenor in the return
+FAREWELL = os.environ.get("T9_FAREWELL", "1") == "1"
+LOWE = os.environ.get("T9_LOWE", "0") == "1"
+VIB_DLY = os.environ.get("T9_VIBDLY", "-6")  # the dawn vibes' send to the dotted-eighth delay (dB): t8's coda echo, echoed back  # the dawn's first two bars: the fretless catches t8's last low E (E1), held and fading under the piano  # the dusk: the tenor's last EXPOSURE, in augmentation (a slow fourth up into each chord's 9th, held through the bar), over the arch  # the open section's horn ANSWERS inside each bar: the guitar's fourth, then late in the bar t4's sixth on the horn  # the open section as a dialogue: the french horn's EXPOSURE as t4 transformed it (a sixth up into a colour tone) on even bars, the guitar's fourth on odd  # in the return the strings answer the tenor in canon: last bar's EXPOSURE an octave down  # the return's last eight bars lifted (semitones; 3 = a minor third up): the climax rises  # EXPOSURE passes bar by bar tenor -> guitar -> piano in the song (chirper-one's note), whole again on the tenor in the return
 VIB_BARS = int(os.environ.get("T9_VIBBARS", "4"))  # how many dawn bars the vibes answer in
 VIB_DB = os.environ.get("T9_VIBDB", "-14")
 VIB_DUSK = os.environ.get("T9_VIBDUSK", "0") == "1"  # the arch carries the vibes into the dusk too  # the vibes' track gain (dB)  # chirper-two's vibes (t8's c2-vibes, borrowed) answer t8's coda in the dawn, and come back in the dusk  # EXPOSURE as a sequence: every bar the leap of a fourth up into the chord's 9th (one shape carried down the changes)  # the dusk replays the dawn (its piano figures and washes, bar for bar) with the fretless singing over it: the day ends as it began  # under the last chord, Cierre's bembe bell arrives at Cierre's own tempo (eighths of 192 ms): the segue into the closer  # the open section becomes the fretless's solo (high, singing, sliding), the guitar swelling behind  # the return replays the song's EXPOSURE melody (a recapitulation) with the full band  # the ride on dotted eighths across the 11/8 (with the guitar): the cymbal's own cycle  # the guitar's dotted-eighth ostinato (0.75 beats: seven per 11/8 bar) in the ostinato and return  # 1 = kit -12 dB + highshelf -5 @4k; 2 = kit -10 dB, no shelf
@@ -288,6 +290,8 @@ def build():
             bar = {n: R(beats) for n in names}
             if sec == "dawn":
                 bar["piano"] = J(held(c, beats - 0.5, 50 + 2 * b), R(0.5)) if b % 2 == 0 else arpeggio(c, b, beats, 48)
+                if LOWE and b < int(os.environ.get("T9_LOWEBARS", "2")):  # t8 ends on a low E (its bass marimba); the fretless holds it into the dawn
+                    bar["bass"] = tok("E1", beats, int(os.environ.get("T9_LOWEVEL", "70")) - 12 * b)
                 if VIBES and b < VIB_BARS:  # t8's vibes answer: one colour tone per bar, struck with the piano and left to ring under the motor
                     r, _, col = CH[c]
                     tone = [m for m in range(72, 89) if (m - r) % 12 in col][b % 3]
@@ -429,7 +433,7 @@ def song():
     if KLANG:
         tracks.append({"name": "pmel", "patch": "piano", "gain": "-5dB", "pan": -0.1, "sends": {"hall": "-7dB"}, "score": sc("pmel")})
     if VIBES:
-        tracks.append({"name": "vibes", "patch": "c2-vibes", "gain": f"{VIB_DB}dB", "pan": 0.25, "sends": {"hall": "-8dB", "dly": "-14dB"}, "score": sc("vibes")})
+        tracks.append({"name": "vibes", "patch": "c2-vibes", "gain": f"{VIB_DB}dB", "pan": 0.25, "sends": {"hall": "-8dB", "dly": f"{VIB_DLY}dB"}, "score": sc("vibes")})
     if SEGUE:
         tracks.append({"name": "bell", "patch": "room-kit", "gain": "-12dB", "pan": -0.35, "sends": {"hall": "-10dB"}, "score": sc("bell")})
     if KIT == "2":
