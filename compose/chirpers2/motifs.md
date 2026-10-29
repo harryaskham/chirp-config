@@ -155,6 +155,7 @@ Generator `compose/chirpers2/src/chirpers2-t4.py`. A chamber-jazz brush trio wit
 - **THE KETTLE** (v4, a 9/8 music-box interlude between the verse and the fuzz, 2+2+2+3): the kettle tune on a music box, a celesta in canon a bar later a fourth lower, a clarinet holding root and fifth; the last bar the flute whistles a chromatic run up an octave and a half (the kettle boils) over a snare crescendo into the fuzz.
 - **THE DOOR** (v5, the hymn's last two bars): the hymn turns to C minor (Cm9, Fm7) and the horn quotes t1 Doors at Seven's SEVEN DOORS head cell in its own key (C5. Bb4 G4 F4 | Eb4 F4~), joining t4 and t10 in quoting the opener.
 - **EXPOSURE, answered** (v7, the verse's last four bars): the flute takes t9 Slow Shutter's gesture (chirper-zero) - a leap of a fourth up into the chord's 9th, held across the bar - on each chord of the thirds walk.
+- **THE FUZZ BASS SPEAKS** (v8, fuzz bars 9-12): the organ steps back and a fuzz bass solos over the 13/8: each group starts on the riff's anchor, the gaps climb the chord's tones in eighths with a chromatic step into the next anchor, every other bar an octave higher.
 
 ## t6 Quarter to Sixteen (chirper-one)
 - **15/16 GROOVE**: 4+4+4+3 sixteenths. Synth bass cell (sixteenth positions: interval, length) 0:root 3, 3:+12 1, 4:5th 2, 7:b7 1, 8:root 2, 10:b3 1, 11:4th 1, 12:5th 3; clav stabs on 1 3 6 9 11 14; kick 0 7 10, backbeats 4 and 12, ghost snares 2 6 9 14.

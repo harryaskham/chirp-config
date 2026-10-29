@@ -145,9 +145,25 @@ def comp_bar(b, vel):
         toks.append(tok(ch, g / 2 - 0.1, vel - (10 if j else 0))); toks.append('R/0.1b')
     return toks
 
+def fuzz_bass_bar(b):
+    """the fuzz-bass solo bar over the 13/8 groups: each group starts on the riff's anchor note, then climbs the
+    chord's tones in eighths with a chromatic step into the next group's anchor"""
+    lad = ladder(b, 38 + (12 if b['i'] % 2 else 0))
+    toks = []
+    for j, (at, g) in enumerate(groups(b)):
+        anchor = b['root'] - 12 + (12 if g == 2 else 0) + (12 if b['i'] % 2 else 0)
+        toks.append(tok(nm(anchor), 0.5, 108))
+        for e in range(1, g):
+            if e == g - 1 and j + 1 < len(b['g']):
+                nxt = b['root'] - 12 + (12 if b['g'][j + 1] == 2 else 0) + (12 if b['i'] % 2 else 0)
+                toks.append(tok(nm(nxt - 1), 0.5, 92))       # chromatic approach into the next anchor
+            else:
+                toks.append(tok(nm(lad[(j * 2 + e + b['i']) % 5]), 0.5, 96))
+    return toks
+
 def build():
     B = bars()
-    P = {k: [] for k in ('wurli', 'flute', 'organ', 'bass', 'kit', 'horn', 'box', 'celesta', 'clar')}
+    P = {k: [] for k in ('wurli', 'flute', 'organ', 'bass', 'kit', 'horn', 'box', 'celesta', 'clar', 'fbass')}
     canon = [None]
     guide = [63]
     for b in B:
@@ -161,7 +177,7 @@ def build():
             P['bass'].append([tok(nm(b['root'] - 24), 3, 96), 'R/1b'])
             P['kit'].append(['c,k/4b@110'])
             P['horn'].append([tok(nm(ladder(b, 60)[1]), 3, 70), 'R/1b'])
-            for k_ in ('box', 'celesta', 'clar'): P[k_].append(R)
+            for k_ in ('box', 'celesta', 'clar', 'fbass'): P[k_].append(R)
             continue
         top_up = CONTOUR[(b['k'] * 2) % len(CONTOUR)] < CONTOUR[(b['k'] * 2 + 3) % len(CONTOUR)]
         if s == 'kettle':
@@ -188,9 +204,10 @@ def build():
                 P['kit'].append(['R/' + f"{e8 / 2 - 1:g}b", 's/0.25b@70', 's/0.25b@84', 's/0.25b@98', 's/0.25b@112'])
             else:
                 P['flute'].append(R); P['kit'].append(R)
-            for k_ in ('wurli', 'organ', 'bass', 'horn'): P[k_].append(R)
+            for k_ in ('wurli', 'organ', 'bass', 'horn', 'fbass'): P[k_].append(R)
             continue
         for k_ in ('box', 'celesta', 'clar'): P[k_].append(R)
+        if s != 'fuzz': P['fbass'].append(R)
         if s == 'overture':
             P['wurli'].append(tune_bar(b, 60, 84)); P['flute'].append(tune_bar(b, 72, 80) if b['i'] >= 2 else R)
             P['organ'].append(R); P['horn'].append(R)
@@ -228,8 +245,16 @@ def build():
             sol = solo_bar(b, 92) if not answer else R
             if b['i'] >= 16 and sol is not R:
                 sol = [x if x.startswith('R') else (lambda n_, r_: f"{nm(NN.index(n_[:-1]) + 12 * int(n_[-1]))},{n_}/{r_}")(*x.split('/', 1)) for x in sol]
+            # THE FUZZ BASS SPEAKS (bars 9-12): the organ steps back and the bass takes the solo on a fuzz bass -
+            # the riff's group starts kept as anchors, the gaps filled with climbing chord tones and chromatic
+            # approaches, every other bar an octave higher
+            if 8 <= b['i'] <= 11:
+                sol = R
+                P['fbass'].append(fuzz_bass_bar(b)); P['bass'].append(R)
+            else:
+                P['fbass'].append(R); P['bass'].append(riff_bar(b))
             P['organ'].append(sol); P['horn'].append(R)
-            P['bass'].append(riff_bar(b)); P['kit'].append(kit_bar(b, 'fuzz'))
+            P['kit'].append(kit_bar(b, 'fuzz'))
         elif s == 'hymn':
             P['wurli'].append(comp_bar(b, 64)); P['organ'].append(R)
             if b['i'] >= 10:
@@ -272,6 +297,7 @@ def build():
             {'name': 'bass', 'patch': 'bass-pick-di', 'gain': '-2dB', 'score': J('bass')},
             {'name': 'kit', 'patch': 'room-kit', 'gain': '-4dB', 'score': J('kit')},
             {'name': 'horn', 'patch': 'horn', 'gain': '-6dB', 'pan': -0.1, 'score': J('horn')},
+            {'name': 'fbass', 'patch': 'bass-fuzz', 'gain': '-3dB', 'score': J('fbass')},
             {'name': 'box', 'patch': 'music-box', 'gain': '-2dB', 'pan': 0.3, 'score': J('box')},
             {'name': 'celesta', 'patch': 'celesta', 'gain': '-4dB', 'pan': -0.3, 'score': J('celesta')},
             {'name': 'clar', 'patch': 'clarinet', 'gain': '-11dB', 'score': J('clar')},
