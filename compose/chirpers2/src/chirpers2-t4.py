@@ -31,7 +31,15 @@ R2 = set(filter(None, os.environ.get("T4_R2", "C,H,Q,D").split(","))) - {"none"}
 # cut across the palindrome's meters: a counter-line); V = the tom chorale's voicings turn over on the way back (the
 # top voice drops an octave in the mirror bars); X = in the trades the toms answer a sixteenth late (an echo).
 R3 = set(filter(None, os.environ.get("T4_R3", "N,V,X").split(","))) - {"none"}
-NIGHT = [1, None, 5, 1, 7, None, 4, 5, 1, None, 3, 5, 7]  # t2's night cell, degrees on eighths (None = rest)
+NIGHT = [1, None, 5, 1, 7, None, 4, 5, 1, None, 3, 5, 7]
+# Round 4 (v4): F = a DRUM FEATURE after the trades, a palindrome in itself: brushes alone for the first three bars,
+# the centre bar split between brushes and tom choir, then the tom choir sings the brushes' rhythms backwards
+# (bar 6-k is bar k's retrograde, on the sixteenth grid); C = the coda quotes t8 Mallet Chamber in Phase's CELL on
+# piano, running unbroken across the meters (12 eighths against 44), so it phases against the palindrome.
+R4 = set(filter(None, os.environ.get("T4_R4", "F,C").split(","))) - {"none"}
+SOLO = {0: [0, 3, 6, 8, 9, 11], 1: [0, 2, 3, 6, 8], 2: [0, 3, 4, 7, 10, 12, 13], 3: [0, 3, 5, 7, 8, 10, 12, 15]}
+PENT = ["D3", "F3", "G3", "A3", "C4", "D4", "F4"]
+T8_CELL = [0, 4, 8, 4, 2, 4, 5, 4, 1, 4, 2, 6]  # t8's cell, scale degrees  # t2's night cell, degrees on eighths (None = rest)
 TRIP = "T" in os.environ.get("T4_OPTS", "")  # triplet brush ghosts before the backbeats (off: no gain)
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 PC = {n: i for i, n in enumerate(NAMES)}
@@ -168,7 +176,7 @@ def build():
             bars.append((start, m, pos, section, pidx, centre))
             start += m / 2
 
-    form = [("intro", METERS, 2), ("head", METERS, 2), ("bridge", BRIDGE, 2), ("trade", METERS, 4),
+    form = [("intro", METERS, 2), ("head", METERS, 2), ("bridge", BRIDGE, 2), ("trade", METERS, 4)] + ([("drums", METERS, 1)] if "F" in R4 else []) + [
             ("piano", BRIDGE, 2)] + ([("chorale", METERS, 1)] if "H" in R2 else []) + [("peak", METERS, 2), ("head2", METERS, 2), ("coda", METERS, 2)]  # the form mirrors too
     p = 0
     for name, meters, n in form:
@@ -181,10 +189,10 @@ def build():
 
     # dynamics: each phrase swells to its centre bar; sections set the level
     LEVEL = {"intro": 50, "head": 68, "bridge": 74, "trade": 84, "piano": 70, "peak": 104, "head2": 64, "coda": 48,
-             "chorale": 62}
+             "chorale": 62, "drums": 84}
     # the bass's role per section: a two-feel under the heads, a pedal under the bridge, walking under the solos
     BASS = {"intro": "two", "head": "two", "bridge": "pedal", "trade": "walk", "piano": "walk", "peak": "walk",
-            "head2": "two", "coda": "two", "chorale": "pedal"}
+            "head2": "two", "coda": "two", "chorale": "pedal", "drums": "tacet"}
 
     def dyn(i):
         start, m, pos, section, pidx, centre = bars[i]
@@ -219,6 +227,9 @@ def build():
                 T["bass"].add(swing_at(start, e, swung), 0.45, nm(note), v - 6 + (8 if (e0 + e) % 13 == 0 else 0))
         if role == "night":
             pass
+        elif role == "tacet":
+            if pos == 3:
+                T["bass"].add(start, 1.0, "D2", v - 4)
         elif role == "pedal":
             T["bass"].add(start, m / 2 * 0.95, "D2", v - 6)
         elif role == "two":
@@ -308,7 +319,7 @@ def build():
             pattern = {6: [(1, 1), (4, 2)], 8: [(1, 1), (3, 1), (6, 2)], 5: [(0, 3)], 7: [(0, 2), (4, 3)]}[m]
             if pidx % 2:  # every other phrase: anticipations instead
                 pattern = {6: [(0, 2), (5, 1)], 8: [(0, 2), (4, 1), (7, 1)], 5: [(3, 2)], 7: [(2, 2), (6, 1)]}[m]
-            if section == "chorale":
+            if section in ("chorale", "drums"):
                 pass
             elif not (section in ("head", "head2") and VOICE[pos] == "pno"):
                 for o, ln in pattern:
@@ -326,6 +337,22 @@ def build():
         peak = section == "peak"
         if section == "chorale":
             d.add(start, m / 2 * 0.95, "bsl", v - 14)
+            continue
+        if section == "drums":  # the drum feature: brushes, the split centre, the tom choir's retrograde
+            L16 = m * 2
+            src = SOLO[min(pos, 6 - pos)]
+            hits = src if pos <= 3 else sorted(L16 - 1 - s for s in src)
+            for j, s in enumerate(hits):
+                at = start + s / 4
+                acc = 10 if j == 0 or s % 4 == 0 else 0
+                if pos < 3 or (pos == 3 and s < 8):
+                    d.add(at, 0.25, "k" if j == 0 else ("st" if acc else "bt"), v - 8 + acc)
+                    if j == 0:
+                        d.add(at, m / 2 * 0.9, "bs", v - 20)
+                else:
+                    k = j if pos == 3 else len(hits) - 1 - j
+                    T["tom"].add(at, 0.24, PENT[(k + pos) % len(PENT)], v - 2 + acc)
+            d.add(start, 0.5, "hf", v - 18)
             continue
         if peak and "D" in R2:  # dotted eighths on the ride across the peak's bars, against every meter
             first = min(b[0] for b in bars if b[3] == "peak")
@@ -360,6 +387,13 @@ def build():
             d.add(start, 0.5, "c", 110)
         if section == "coda" and pos == 6:
             d.add(start + 2, 2.0, "bsl", 60)
+        if section == "coda" and "C" in R4 and pidx == min(b[4] for b in bars if b[3] == "coda"):
+            first = min(b[0] for b in bars if b[3] == "coda")
+            e0 = int(round((start - first) * 2))
+            for e in range(m):
+                dg = T8_CELL[(e0 + e) % 12]
+                T["pno"].add(start + e / 2, 0.45, nm(62 + 12 * (dg // 7) + [0, 2, 3, 5, 7, 9, 10][dg % 7]),
+                             v - 6 + (8 if (e0 + e) % 12 == 0 else 0))
 
     # coda: the tom choir sings the head's opening cell backwards alone, the piano's last chord rings
     last = bars[-1][0] + bars[-1][1] / 2

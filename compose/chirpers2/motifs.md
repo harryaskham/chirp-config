@@ -61,6 +61,8 @@ Generator `compose/chirpers2/src/chirpers2-t4.py`. A chamber-jazz brush trio wit
 - **NIGHT CELL, answered** (v3, the bridge): the fretless takes t2 Turnstile Hours' 13-step NIGHT CELL (1 . 5 1 7 . 4 5 1 . 3 5 7, chirper-one), running unbroken across the bridge's mirrored meters (8 7 5 6 5 7 8 = 46 eighths, so the cell lands somewhere new every bar), over each chord's scale: a counter-line under the mirror.
 - **CHORALE TURNS OVER** (v3): in the chorale's mirror bars (after the centre) the tom voicings invert, the top voice dropping an octave beneath the other two.
 - **ECHO TRADES** (v3): in the trades the tom choir answers a sixteenth late, like an echo across the room.
+- **DRUM FEATURE** (v4, a new 7-bar section after the trades; the band drops out): a palindrome in itself. The brushes play bars 1-3 (sixteenth patterns 3/4 `x..x..x.xx.x`, 5/8 `x.xx..x.x.`, 7/8 `x..xx..x..x.xx`); the centre 4/4 bar is symmetric (`x..x.x.xx.x.x..x`), brushes in its first half and toms in its second; then the tom choir sings bars 3, 2, 1 BACKWARDS (each onset mirrored in its bar) on D minor pentatonic. A single bass D marks the centre.
+- **t8's CELL in the coda** (v4): the piano plays Mallet Chamber in Phase's 12-eighth cell (in D dorian) unbroken across the coda's first phrase, so the cell phases against the 44-eighth palindrome: the two chirper-two tracks recognise each other.
 
 
 ## t1 Doors at Seven (chirper-zero)
