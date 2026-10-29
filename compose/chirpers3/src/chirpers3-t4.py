@@ -94,7 +94,7 @@ class Part:
         return " ".join(toks)
 
 
-P = {k: Part() for k in ("toy", "box", "xtal", "lead", "pad", "bass", "sub", "kick", "snare", "hat", "perc")}
+P = {k: Part() for k in ("toy", "box", "xtal", "lead", "pad", "bass", "sub", "kick", "snare", "hat", "perc", "cpiano")}
 rng = random.Random(4)
 
 
@@ -282,6 +282,20 @@ def glitch_hail():
         i += 1
 
 
+def counter_line():
+    """The breakdown's COUNTER-MELODY: a tape piano walking the chords' guide tones in half notes (the third, then the
+    seventh), voice-led to the nearest, answering the soft hidden melody while the beat is out."""
+    prev = 65
+    for bar in range(37, 45):
+        root, iv = chord_at(bar)
+        for h, deg in enumerate((iv[1], iv[3])):
+            pc = (root + deg) % 12
+            cands = [m for m in range(58, 76) if m % 12 == pc]
+            m = min(cands, key=lambda c: abs(c - prev))
+            P["cpiano"].add(b0(bar) + 8 * h, 7.5, nm(m), 58 + (4 if h == 0 else 0))
+            prev = m
+
+
 def harmony():
     for bar in range(1, BARS + 1, 2):
         root, iv = chord_at(bar)
@@ -301,6 +315,15 @@ def harmony():
             P["sub"].add(b0(bar), 2 * S - 1, nm(r - 12), 90)          # the warm floor an octave under the bass
 
 
+def resample_lane():
+    """The whole band dives like a slowed sampler: 4 semitones over the near-stall's first half, snapping back at the
+    return; and a slow sag through the wind-down. Before the tape and vinyl, so the record's hiss stays steady."""
+    sec = lambda e: e / 4 * 60 / BPM
+    pts = [(0, 0.0), (b0(28) - 0.5, 0.0), (b0(28) + 8, 1.0), (b0(29) - 0.6, 1.0), (b0(29), 0.0),
+           (b0(53), 0.0), (TOTAL, 1.0)]
+    return [[f"{sec(e):.3f}s", v] for e, v in pts]
+
+
 # wM's lo-fi toolkit (bd-9ef6a7): Dilla-ish wonk on the kit, a late snare and an early kick, each bar its own swing
 KIT = ("lofi-kit play.humanize.nudge.s=22ms play.humanize.nudge.k=-8ms play.humanize.swing_drift=0.04 "
        "play.humanize.drunk=4ms")
@@ -312,6 +335,7 @@ def main():
     beat()
     glitch_hail()
     harmony()
+    counter_line()
     sec = lambda e: e / 4 * 60 / BPM
     tr = lambda name, patch, **kw: dict({"name": name, "patch": patch, "score": P[name].score()}, **kw)
     tracks = [
@@ -319,6 +343,7 @@ def main():
         tr("box", "music-box", pan="R35", gain="-6dB", out="toys"),
         tr("xtal", "fb-crystal", pan="R10", gain="-24dB", out="toys"),
         tr("lead", "lead-tape", pan="L10", gain="-9dB", sends={"space": "-10dB"}),
+        tr("cpiano", "tape-piano", pan="L30", gain="-6dB", sends={"space": "-9dB"}),     # the breakdown's counter-line
         tr("pad", "juno-pad", gain="-14dB", fx=["lp cutoff=2200", "tape wow=9 flutter=2 seed=11"], sends={"space": "-8dB"}),
         tr("bass", "analog-bass", gain="0dB"),
         tr("sub", "sub", gain="-4dB"),
@@ -343,11 +368,14 @@ def main():
             "lp cutoff=10k", {"type": "tape", "drive": 0.35, "warmth": 0.5, "mix": 1},
             {"type": "compressor", "threshold": "-18dB", "ratio": 3, "attack": "8ms", "release": "120ms", "makeup": "3dB"}]) + ']}',
         '  space: {fx: ["reverb kind=hall decay=3.2s mix=1 predelay=30ms mono_below=200hz"]}',
-        'master: ' + json.dumps({"fx": ["tape drive=0.25 mix=0.5 squash=0.4 hiss=-56dB wow=4 flutter=1 seed=7",
+        'master: ' + json.dumps({"fx": [{"type": "pitch", "semitones": {"value": 0, "mod": [{"src": "auto.rs", "amount": -4}]},
+                                        "mix": 1},       # the RESAMPLE: the whole band slows like a sampler (Harry's note)
+                                       "tape drive=0.25 mix=0.5 squash=0.4 hiss=-56dB wow=4 flutter=1 seed=7",
                                        "vinyl crackle=0.4 dust=0.35 noise=-62dB rumble=0.3 warp=5 wear=0.4 seed=5",
                                        {"type": "eq", "bands": [{"kind": "peak", "cutoff": 600, "gain": "-3dB", "q": 0.8}]},
                                        "glue threshold=-24dB ratio=3 attack=15ms release=200ms makeup=3dB",
-                                       {"type": "gain", "gain": "11dB"}]}),
+                                       {"type": "gain", "gain": "11dB"}],
+                                "auto": {"rs": {"points": resample_lane()}}}),
         "tracks:",
     ]
     with open(OUT, "w") as f:

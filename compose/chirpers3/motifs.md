@@ -63,6 +63,11 @@ Generator `compose/chirpers3/src/chirpers3-t7.py`. Ambient tape loops, a nominal
   turned: bar by bar the gears' cycles shorten (toy 10..5, box 17..7) and the pitches rise from three semitones flat
   to true. And a **NEAR-STALL** at the glitch break's last bar: the gears slow and sag a tone within one bar, the beat
   drops out after beat 2, then the return snaps back at speed.
+- **THE RESAMPLE** (since v5): the WHOLE BAND dives like a slowed sampler, not only the toys: a master pitch stage
+  (before the tape and vinyl, so the record's hiss stays steady) drops 4 semitones over the near-stall's first half and
+  snaps back for the return, and sags slowly through the wind-down under the toys' own sag.
+- **THE COUNTER-LINE** (since v5, the breakdown): a tape piano walking the chords' guide tones in half notes (third,
+  then seventh, voice-led), answering the soft hidden melody while the beat is out.
 - **THE WIND-DOWN** (since v3, the outro): the music box RUNS DOWN: bar by bar each gear's cycle lengthens (toy
   5..10, box 7..17, crystal 4..9 sixteenths), the pitches sag a semitone every two bars, the notes fade, the beat gives
   out at bar 55; the last sound is one music-box note three semitones flat.
