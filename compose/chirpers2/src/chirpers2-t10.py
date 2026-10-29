@@ -17,6 +17,7 @@ Run: python3 compose/chirpers2/src/chirpers2-t10.py  (writes songs/chirpers2-t10
 """
 import json
 import os
+import random
 
 ROOT = os.path.expanduser("~/.config/chirp")
 OUT = os.environ.get("T10_OUT") or os.path.join(ROOT, "songs", "chirpers2-t10.yaml")
@@ -33,7 +34,9 @@ MONA_WHERE = os.environ.get("T10_MONA", "cierre")
 CONGAS = os.environ.get("T10_CONGAS", "1") == "1"
 CONGA_DB = float(os.environ.get("T10_CONGADB", "0"))  # the congas' level offset (dB)
 CONGA_EQ = os.environ.get("T10_CONGAEQ", "0") == "1"
-KEEP_FT = os.environ.get("T10_KEEPFT", "1") == "1"  # keep the room-kit floor tom under the congas (its low end) instead of the tumba  # a 250 Hz -3 dB cut on the congas (the box)  # real congas on the physical drum layer (quinto, conga, tumba, slap) for the kit's toms  # "1": the mambo's second half and the shout; "cierre": the shout only  # the mona: a second horn riff interlocking with the mambo's (the mambo's second half and the shout)  # the mambo transposed (semitones): +5 = up a fourth, to G minor  # every section's last bar breaks at its middle into a timbale fill (the seams read)  # more bombo: the ponche on 4 in the mambo/cierre, dotted quarters in the descarga  # section dynamics on the master (after the compressor)
+KEEP_FT = os.environ.get("T10_KEEPFT", "1") == "1"
+SUNG = os.environ.get("T10_SUNG", "1") == "1"
+QUINTO = os.environ.get("T10_QUINTO", "1") == "1"  # the quinto improvises in the descarga's solo bars: open tones and slaps drawn per bar, answering the soloist  # the descarga's CORO sung: a baritone (maynard) an octave under, wordless dream voices at pitch, over the horns  # keep the room-kit floor tom under the congas (its low end) instead of the tumba  # a 250 Hz -3 dB cut on the congas (the box)  # real congas on the physical drum layer (quinto, conga, tumba, slap) for the kit's toms  # "1": the mambo's second half and the shout; "cierre": the shout only  # the mona: a second horn riff interlocking with the mambo's (the mambo's second half and the shout)  # the mambo transposed (semitones): +5 = up a fourth, to G minor  # every section's last bar breaks at its middle into a timbale fill (the seams read)  # more bombo: the ponche on 4 in the mambo/cierre, dotted quarters in the descarga  # section dynamics on the master (after the compressor)
 
 # sections: (name, meter, bpm (quarter), bars)
 FORM = [("bembe", "12/8", 156, 12), ("son", "4/4", 208, 40), ("mambo", "4/4", 208, 24), ("siete", "7/4", 208, 12),
@@ -262,6 +265,12 @@ def drums(sec, b, beats, dens=1):
                 h.append("k")
             if i in (4, 8, 12):
                 h.append("so")
+        if CONGAS and QUINTO and sec == "descarga" and b % 4 in (2, 3):
+            if i == 0:
+                qr = random.Random(1000 + b)
+                qpat = {j: qr.choice(["qo", "qo", "cs", "qo,co", "co"]) for j in range(n8) if qr.random() < 0.45}
+            if i in qpat:
+                h = [x for x in h if x != "t1"] + qpat[i].split(",")
         if CONGAS:
             h = [{"t1": "qo", "t2": "co", "ft": ("ft" if KEEP_FT else "to")}.get(x, x) for x in h]
             if sec in ("son", "mambo", "cierre") and i == 2:
@@ -311,7 +320,7 @@ def solo_bar(b, beats, scale_root=62, seed=0, vel=88):
 
 # ---------------------------------------------------------------- arrangement
 def build():
-    names = ("piano", "bass", "kit", "clave", "bell", "trumpet", "tenor", "horns", "rhodes", "pad") + (("mona",) if MONA else ())
+    names = ("piano", "bass", "kit", "clave", "bell", "trumpet", "tenor", "horns", "rhodes", "pad") + (("mona",) if MONA else ()) + (("coro", "coro2") if SUNG else ())
     T = {n: [] for n in names}
     tempo = []
     beat0 = 0.0
@@ -397,6 +406,11 @@ def build():
                 up = 2 if b >= 16 else 0
                 if b % 4 in (0, 1):
                     bar["horns"] = line(CORO[b % 2], vel=102, shift=up + (b // 8) * 0)
+                    if SUNG:  # the coro: vowels a / e / o by note, the baritone an octave under the horns
+                        vows = [0.5, 0.75, 0.25]
+                        bar["coro"] = J(*[R(d) if n == "R" else f"{nm(mi(n) + up - 12)}/{d:g}b@{92}^vow={vows[k % 3]}"
+                                          for k, (n, d) in enumerate(CORO[b % 2])])
+                        bar["coro2"] = line(CORO[b % 2], vel=80, shift=up)
                 else:
                     who = "trumpet" if (b // 4) % 2 == 0 else "tenor"
                     bar[who] = solo_bar(b, beats, 62 + up if who == "trumpet" else 50 + up, seed=b, vel=94)
@@ -502,6 +516,9 @@ def song():
         {"name": "rhodes", "patch": "rhodes-rotary", "gain": "-7dB", "pan": 0.3, "sends": {"room": "-10dB"}, "score": sc("rhodes")},
         {"name": "pad", "patch": "juno-pad", "gain": "-18dB", "sends": {"room": "-8dB"}, "score": sc("pad")},
     ]
+    if SUNG:
+        tracks.append({"name": "coro", "patch": "maynard", "gain": "-4dB", "pan": -0.1, "sends": {"room": "-7dB"}, "score": sc("coro")})
+        tracks.append({"name": "coro2", "patch": "dream-vox", "gain": "-10dB", "pan": 0.25, "sends": {"room": "-6dB"}, "score": sc("coro2")})
     if MONA:
         tracks.append({"name": "mona", "patch": "horn", "gain": "-7dB", "pan": -0.3, "sends": {"room": "-9dB"}, "score": sc("mona")})
     return {
