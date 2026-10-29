@@ -156,7 +156,7 @@ def build():
         'patches': {'stair-toms': {'about': "Iron Stairs' toms: physical stick toms (chirper-two's drum layer) tuned to the STAIRS (B A Ab F).",
                                    'extends': 'metal-kit-punch',
                                    'kit': {k: {'pitch': p_, 'gain': '6dB', 'patch': {'synth': {'layers': [{'type': 'drum', 'beater': 'stick', 'decay': f'{d_}s', 'sharp': 35, 'reso': 1.0,
-                                            'cavity': 0.1, 'reso_level': 0.1, 'air': 0.5, 'strike': 0.3, 'shell': 0.4, 'damp': 0.25, 'tune_sounding': True}],
+                                            'cavity': 0.1, 'reso_level': 0.1, 'air': 0.5, 'strike': 0.3, 'shell': 0.4, 'damp': 0.25, 'tune_sounding': True, 'stereo': 0.7}],
                                             'filters': ['hp cutoff=40', 'peak cutoff=3k q=1 gain=2dB'],
                                             'amp': {'a': '0.3ms', 'd': f'{int(d_ * 900)}ms', 's': 0, 'r': '100ms', 'curve': 3}, 'drive': 0.08},
                                             'play': {'vel_sens': 0.6}}}
