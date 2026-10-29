@@ -105,6 +105,11 @@ MONTUNO = [1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1]
 # a leap): in the coda the French horn sings each bar's colour (the voicing's top: a 9th, 11th or 13th), leaping up
 # a sixth into it, above the piano's t8 cell and the tom canon.
 R20 = set(filter(None, os.environ.get("T4_R20", "X").split(","))) - {"none"}
+# Round 21 (v21): S = t7 Cross Purposes' SUBJECT answered (chirper-three; in D, like this track): in the drum
+# feature the tom choir sings it BACKWARDS (D F# Eb G E G# A F D) on the brushes' retrograde rhythms, the borrowed
+# tune cycling through the palindromic solo.
+R21 = set(filter(None, os.environ.get("T4_R21", "S").split(","))) - {"none"}
+SUBJ_RETRO = [0, 4, 1, 5, 2, 6, 7, 3, 0]  # t7's subject (0 3 7 6 2 5 1 4 0) read backwards, semitones over D3
 BTHEME = {0: [(0, 3, 4), (3, 1, 3), (4, 4, 2)], 1: [(0, 2, 1), (2, 2, 2), (4, 3, 4)], 2: [(0, 5, 6)],
           3: [(0, 2, 4), (2, 2, 5), (4, 2, 4)]}  # t2's night cell, degrees on eighths (None = rest)
 TRIP = "T" in os.environ.get("T4_OPTS", "")  # triplet brush ghosts before the backbeats (off: no gain)
@@ -286,6 +291,7 @@ def build():
         start, m, pos, section, pidx, centre = bars[i]
         return LEVEL[section] + 10 - 3 * abs(pos - 3)
 
+    tom_k = [0]  # the drum feature's tom-note counter
     for i, (start, m, pos, section, pidx, centre) in enumerate(bars):
         swung = SWUNG[m]
         v = dyn(i)
@@ -585,7 +591,11 @@ def build():
                         d.add(at, m / 2 * 0.9, "bs", v - 20)
                 else:
                     k = j if pos == 3 else len(hits) - 1 - j
-                    T["tom"].add(at, 0.24, PENT[(k + pos) % len(PENT)], v - 2 + acc)
+                    if "S" in R21:
+                        tom_k[0] += 1
+                        T["tom"].add(at, 0.24, nm(50 + SUBJ_RETRO[(tom_k[0] - 1) % 9]), v - 2 + acc)
+                    else:
+                        T["tom"].add(at, 0.24, PENT[(k + pos) % len(PENT)], v - 2 + acc)
             d.add(start, 0.5, "hf", v - 18)
             continue
         if peak and "D" in R2:  # dotted eighths on the ride across the peak's bars, against every meter
