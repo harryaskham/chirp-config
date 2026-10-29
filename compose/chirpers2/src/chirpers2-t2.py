@@ -19,6 +19,9 @@ WHEEL = [8, 7, 10, 9, 6]                 # eighths per bar
 STRETCH = [11, 13, 11, 13, 9]
 # the orchestration wheel's doublings (intro/break/outro): off - with the sub they broke the returns (recurrence 100 -> 31)
 WHEEL_DOUBLES = False
+# HARMONIC RHYTHM (bar by bar): the vamp's chord moves every bar inside the mode, an 7-bar cycle against the 5-bar wheel
+# and the 4-bar phrases (scale degrees from the section's root; the bass cell, the rhodes and the sub follow it)
+PROG = {'dorian': [0, 3, 0, 6, 4, 3, 1], 'lydian': [0, 1, 0, 4, 2, 1, 5], 'phrygdom': [0, 1, 0, 6, 5, 1, 3]}
 MODES = {'dorian': [0, 2, 3, 5, 7, 9, 10], 'lydian': [0, 2, 4, 6, 7, 9, 11], 'phrygdom': [0, 1, 4, 5, 7, 8, 10]}
 
 # form: (name, bars, root midi (bass octave), mode, wheel)
@@ -30,7 +33,8 @@ def bars():
     out = []
     for name, n, root, mode, wheel in FORM:
         for i in range(n):
-            out.append({'sec': name, 'i': i, 'n': n, 'root': root, 'mode': MODES[mode], 'e8': wheel[i % len(wheel)]})
+            out.append({'sec': name, 'i': i, 'n': n, 'root': root, 'mode': MODES[mode], 'e8': wheel[i % len(wheel)],
+                        'cd': PROG[mode][i % len(PROG[mode])] if name != 'break' else 0})
     return out
 
 def deg(b, d, octv=0):
@@ -48,7 +52,7 @@ def bass(b, k):
         if d is None:
             toks.append('R/0.5b')
         else:
-            toks.append(tok(nm(deg(b, d)), 0.5, 100 if e == 0 else 84))
+            toks.append(tok(nm(deg(b, d + b['cd'])), 0.5, 100 if e == 0 else 84))
     return toks
 
 def kit(b, k, sec):
@@ -73,7 +77,7 @@ def kit(b, k, sec):
     return [(','.join(sorted({x[0] for x in s})) + f'/0.25b@{max(x[1] for x in s)}') if s else 'R/0.25b' for s in sl]
 
 def chord(b, top=0):
-    return ','.join(nm(deg(b, d, 1) + 12) for d in (0, 2, 4, 6, 8)[top:top + 4])
+    return ','.join(nm(deg(b, d + b['cd'], 1) + 12) for d in (0, 2, 4, 6, 8)[top:top + 4])
 
 def rhodes(b, k):
     e8 = b['e8']; toks = []
@@ -119,7 +123,7 @@ def build():
         parts['rhodes'].append(rhodes(b, k) if (sec != 'intro' or b['i'] >= 5) and sec != 'break' else (rhodes(b, k) if sec == 'break' and b['i'] >= 6 else rest(b)))
         parts['wah'].append(wah(b, k) if sec in ('A', 'B', 'climax') or (sec == 'trades' and lead in (2, 4)) else rest(b))
         # SUB: the bar's root an octave under the fretless on the downbeat (the low end jazz-rock records keep under the bass)
-        parts['sub'].append([tok(nm(b['root'] - 12), min(1.5, b['e8'] / 2), 96), f"R/{b['e8'] / 2 - min(1.5, b['e8'] / 2):g}b"]
+        parts['sub'].append([tok(nm(deg(b, b['cd']) - 12 - (12 if deg(b, b['cd']) - b['root'] > 6 else 0)), min(1.5, b['e8'] / 2), 96), f"R/{b['e8'] / 2 - min(1.5, b['e8'] / 2):g}b"]
                             if sec != 'intro' or b['i'] >= 5 else rest(b))
         # ORCHESTRATION WHEEL: in the intro, the break and the outro the NIGHT CELL is doubled two octaves up by a
         # different voice every bar (none, rhodes, wah, tenor, trumpet), so no two consecutive bars sound alike
