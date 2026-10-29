@@ -89,6 +89,10 @@ R7 = set(filter(None, os.environ.get("T7_R7", "D,C").split(","))) - {"none"}
 # 14 beats, then Dm9 for the loop's other 15, its release crossing into the next), so the pad is one continuous swell instead of two
 # entries with silences between (each re-entry read as a new section: seed 0 split at 41 and 51.5 s).
 R8 = set(filter(None, os.environ.get("T7_R8", "L").split(","))) - {"none"}
+# Round 9 (v9): Q = THE RAIN SINGS: while the door is open (beats 70-150) a second, denser rain falls through a comb
+# filter tuned to F3 (the piece's root, q 12; engine PR #32), so the drops ring at F and its harmonics against the
+# window; the plain rain goes on under it.
+R9 = set(filter(None, os.environ.get("T7_R9", "Q").split(","))) - {"none"}
 
 # the loops: (track, loop length in beats, enter, leave, [(offset, length, notes)], velocity)
 LOOPS = [
@@ -108,7 +112,7 @@ if "S" in R6:
 def build():
     rng = random.Random(7)
     T = {k: Track(k) for k in ("vib", "pno", "pad", "whi", "drone", "rain", "crackle", "hiss", "pulse", "bass",
-                               "sigh", "rev")}
+                               "sigh", "rev", "srain")}
     if "B" in R4:
         T["rev"].add(152.0, 52.0, "C3", 92)  # one long reversed pass, an octave down at half speed
     for tr, L, enter, leave, phrase, vel in LOOPS:
@@ -133,6 +137,12 @@ def build():
         if rng.random() < 0.2:
             T["crackle"].add(beat + rng.uniform(0, 0.98), 0.06, "C5", rng.randint(25, 60))
     T["hiss"].add(0.0, TOTAL - 0.1, "C4", 60)
+    if "Q" in R9:  # the singing rain: its own dice, so the plain rain is untouched
+        qrng = random.Random(99)
+        for beat in range(DOOR[0], DOOR[1]):
+            edge = min(1.0, (beat - DOOR[0]) / 16.0, (DOOR[1] - beat) / 16.0)
+            for _ in range(qrng.randint(2, 5)):
+                T["srain"].add(beat + qrng.uniform(0, 0.98), 0.05, "C5", int(qrng.randint(40, 90) * (0.3 + 0.7 * edge)))
     # a heartbeat through the wall: a felt kick every four beats and a brush sweep, only while three loops play
     for beat in range(0, int(TOTAL), 2):
         busy = sum(1 for _, _, e, l, _, _ in LOOPS[:4] if e <= beat < l)
@@ -264,6 +274,9 @@ def main():
             "fx": ([{"type": "chop", "slices": 8, "length": "2/1", "pattern": "0 r1 2 . r4 5 6 r7" if "C" in R7 else "0 r1 2 . r4 5 _ r7"}] if "C" in R5 else [])
                   + ["lp cutoff=3800", {"type": "crush", "bits": 12, "rate": 14000, "mix": 0.25},
                      "reverb kind=hall decay=4s mix=0.35"], "score": T["rev"].score(TOTAL)}] if "B" in R4 else []),
+        *([{"name": "singing-rain", "patch": "c2-rain", "pan": 0.1, "gain": "38dB",
+            "fx": ["comb cutoff=174.61 q=12", "lp cutoff=3500", "width width=1.5",
+                   "reverb kind=hall decay=3s mix=0.35"], "score": T["srain"].score(TOTAL)}] if "Q" in R9 else []),
         {"name": "crackle", "patch": "c2-crackle", "gain": "-30dB", "score": T["crackle"].score(TOTAL)},
         {"name": "hiss", "patch": "c2-hiss", "gain": "-36dB", "score": T["hiss"].score(TOTAL)},
     ]
