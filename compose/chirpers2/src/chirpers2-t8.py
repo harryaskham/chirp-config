@@ -69,6 +69,10 @@ R8 = set(filter(None, os.environ.get("T8_R8", "S,5").split(","))) - {"none"}
 # the process gets going sooner; U = a TUTTI on the peak's last bar: vibes, both marimbas, bowed bass and frame drum
 # play the cell together in rhythmic unison, the arrival before the return to unison.
 R9 = set(filter(None, os.environ.get("T8_R9", "C,U").split(","))) - {"none"}
+# Round 10 (v10): D = a DUET before the peak (4 bars, after the marimbas' blur): the vibes and the bowed bass alone,
+# the vibes singing a palindrome over Cm9 -> Bb13sus and the bass answering note against note in CONTRARY MOTION;
+# marimbas alone, then vibes and bass alone, then everyone.
+R10 = set(filter(None, os.environ.get("T8_R10", "D").split(","))) - {"none"}
 SUBJECT = [(0, 1), (3, 1), (7, 1), (6, 2), (2, 2), (5, 1), (1, 1), (4, 1), (0, 2)]  # t7: semitones, eighths
 BAR = 6.0  # a 12/8 bar, in quarter beats
 
@@ -140,9 +144,9 @@ class Track:
 
 FORM = [("cell", 4), ("phase", 12 if "C" in R9 else 16), ("melody", 16)] + ([("solo", 8)] if "V" in R3 else []) + \
        ([("trades", 8)] if "X" in R6 else []) + \
-       [("bridge", 16)] + ([("blur", 4)] if "B" in R4 else []) + [("peak", 16), ("unison", 8), ("coda", 6)]
+       [("bridge", 16)] + ([("blur", 4)] if "B" in R4 else []) + ([("duet", 4)] if "D" in R10 else []) + [("peak", 16), ("unison", 8), ("coda", 6)]
 LEVEL = {"cell": 70, "phase": 76, "melody": 82, "bridge": 74, "peak": 96, "unison": 80, "coda": 60, "solo": 84,
-         "blur": 76, "trades": 86}
+         "blur": 76, "trades": 86, "duet": 70}
 if "D" in R2:
     LEVEL.update({"bridge": 62, "peak": 104, "unison": 76})
 
@@ -169,6 +173,20 @@ def build():
         mar = sec == "trades" and (i // 2) % 2 == 1  # the low marimba's turn
         if sec == "blur":
             chord = HOME[0] if i < 2 else HOME[3]
+        if sec == "duet":
+            chord = HOME[1] if i < 2 else HOME[3]
+            if i == 0:  # the duet: one palindrome, the bass in contrary motion beneath it
+                at = start
+                for d, ln in palindrome(HALVES[3]):
+                    ch = HOME[1] if at - start < 2 * BAR else HOME[3]
+                    T["vib"].add(at, ln / 2 * 0.98, nm(vr(deg(ch, d) + 12)), v + 2)
+                    broot = ch[0] - 24 if ch[0] - 24 >= 28 else ch[0] - 12
+                    T["bass"].add(at, ln / 2 * 0.97, nm(deg((broot, ch[1]), max(0, 9 - d))), v - 2)
+                    at += ln / 2
+            if i % 2 == 0:
+                T["fd"].add(start, 2 * BAR * 0.9, "sw", v - 18)
+                T["sub"].add(start, 2 * BAR * 0.95, nm((chord[0] - 24 if chord[0] - 24 >= 28 else chord[0] - 12) - 12), v - 10)
+            continue
         if sec == "coda":
             chord = HOME[i // 2 % 2 * 0]  # the coda rests on the home chord
         cell = CELL_INV if sec == "bridge" else CELL
