@@ -118,6 +118,12 @@ GLASS = [0, 2, 4, 3, 1, 4, 2, 0]
 # drum's dum hit it, sliding three sixteenths a bar, so after eight bars (24 sixteenths, one 12/8 bar) it is home
 # as the marimbas are: two processes arriving together.
 R20 = set(filter(None, os.environ.get("T8_R20", "H6").split(","))) - {"none"}
+# Round 21 (v21): W5 = t5 The Kettle Modulates' THIRDS WALK answered (chirper-one: up a major third to a minor
+# chord, down a minor third to a major, climbing a semitone every two bars): the vibes solo now blows over it, a chord
+# a bar, Ebmaj7#11 Gm9 Emaj7#11 G#m9 Fmaj7#11 Am9 F#maj7#11 Bbm9, and Bbm9 leads home to the trades' Eb.
+R21 = set(filter(None, os.environ.get("T8_R21", "W5").split(","))) - {"none"}
+WALK5 = [(63, "maj7#11"), (67, "m9"), (64, "maj7#11"), (68, "m9"), (65, "maj7#11"), (57, "m9"), (66, "maj7#11"),
+         (58, "m9")]
 SUBJECT = [(0, 1), (3, 1), (7, 1), (6, 2), (2, 2), (5, 1), (1, 1), (4, 1), (0, 2)]  # t7: semitones, eighths
 BAR = 6.0  # a 12/8 bar, in quarter beats
 
@@ -213,6 +219,8 @@ def build():
         chord = prog[(i // 4) % 4] if sec not in ("cell", "coda") else HOME[0]
         if sec in ("solo", "trades"):
             chord = HOME[(i // 2) % 4]
+        if sec == "solo" and "W5" in R21:
+            chord = WALK5[i]
         if sec == "melody" and "M" in R7 and 8 <= i < 12:
             chord = REHARM[i - 8]
         bmsolo = "3" in R12 and "M" in R11 and sec == "trades" and i >= 6  # the bass marimba's turn
