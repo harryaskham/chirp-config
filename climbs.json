@@ -5529,23 +5529,15 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/compscore.py chirpers2-t10 OUT.wav",
       "best": {
-        "score": 99.595,
-        "version": "v3",
+        "score": 97.823,
+        "version": "v4",
         "commit": "see git log songs/chirpers2-t10.yaml",
-        "rescored": {
-          "compscore": "9159dd60",
-          "seeds": {
-            "0": 99.595,
-            "11": 99.584
-          },
-          "at": "2026-10-29T02:20:56Z",
-          "was": 99.595
-        }
+        "judged": true
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 3,
+      "rounds": 4,
       "priority": 1.0,
       "genre": "jazz / prog / math fusion",
       "mode": "compose",
@@ -5563,7 +5555,7 @@
         "note": "COMPOSE (closer, 180-600 s): Closes the album. Style, form, meter and line-up are yours: declare them in compose/chirpers2/styles.md."
       },
       "last": {
-        "at": "2026-10-29T01:47:12Z",
+        "at": "2026-10-29T03:10:50Z",
         "who": "chirper-zero"
       }
     }

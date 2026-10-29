@@ -14,6 +14,8 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 - **MONTUNO** (piano, then horns): a 2-bar figure in eighths, `x.x.xx.x | .xx.x.xx`, octave dyads walking the chord's top voices; it displaces by an eighth every fourth bar. Progression Dm9 G13 Cmaj7#11 A7b13 (i IV bVII V7alt).
 - **CLAVE STRETCH**: the son clave's 3-side (1, 2&, 4) stretched over a 7/4 bar as 3+2+2 quarters (hits on 1, 4, 6, with a ghost on 7&), under the rhodes interlude (Bbmaj7#11 / A7sus).
 - **CORO** (horn section, the descarga): `D5. C5. A4 | G4. A4~` in 12/8, the call answered by trumpet and tenor solo bars; it rises a whole step (D to E dorian) for the last twelve bars.
+- **SEVEN DOORS, quoted** (v4): the 7/4 interlude opens on t1 Doors at Seven's head a whole step up (D dorian / Eb lydian, A7alt turnaround), on the rotary rhodes over the CLAVE STRETCH: the closer remembers the opener.
+- **MONA** (v4, the shout): a second, low horn riff (french horn) in the gaps of the MAMBO riff - `D4 . F4 E4 . | . C4 D4 . A3~` - stacked on top only for the final shout.
 - **THE BREAK** (v3): every section's last bar stops at its middle; the timbales fill the rest in sixteenths (t1/t2, crescendo) into a crash on the next downbeat.
 - **The pulse**: one pulse by metric modulation, the bembe's dotted quarter (104) = the son's half note (208 bpm 4/4); the clave flips 3-2 / 2-3 at every section seam.
 
@@ -49,6 +51,7 @@ Generator `compose/chirpers2/src/chirpers2-t4.py`. A chamber-jazz brush trio wit
 
 ## t1 Doors at Seven (chirper-zero)
 - **SEVEN DOORS** (tenor, the horn a fourth below): the head, eight bars of swung 7/4 (4+3) in C dorian / Db lydian with a G7alt turnaround. `C5. Bb4 G4 F4 Eb4 F4~ | G4 Bb4 C5 D5 Eb5~~~ | F5 Eb5 C5 Ab4~ G4 Ab4~ | Bb4 C5 Db5 Eb5 F5 G5~~` (bar 4 climbs to the lydian G5), then `Eb5. D5 C5 Bb4 G4~~ | F4 G4 Bb4 C5 D5 F5~~~ | Eb5 Db5 B4 Ab4 F4 Eb4~ | D4 F4 Ab4 B4 D5 C5~~` (bar 8 runs up G7b9 into C).
+- Quoted by t10 Cierre (v4): the 7/4 interlude opens on SEVEN DOORS a step up, on the rotary rhodes.
 - **WHOLE-STEP STAIR** (the bridge, 4/4, straight eighths, unison horns an octave apart): Ebmaj9, Dbmaj9, Bmaj7#11, Bb7sus, two bars each, falling in whole steps; one figure sequenced down the stair: `Bb4 D5 F5. Eb5 | D5~ Bb4 G4`.
 - The **HOURS**: the meter changes with each chorus: 7/4 head, 4/4 bridge, 4/4 tenor solo, 3/4 piano waltz, 7/4 trades (two bars each, tenor and drums).
 

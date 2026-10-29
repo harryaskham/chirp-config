@@ -26,7 +26,10 @@ EQ = os.environ.get("T10_EQ", "2")  # master eq: 1 = v1 (shelf +3 @100, 800 -2);
 LOWB = os.environ.get("T10_LOWB", "0") == "1"  # the tumbao's anticipated root an octave lower (the baby bass's floor)
 KICK = os.environ.get("T10_KICK", "0") == "1"
 SEAM = os.environ.get("T10_SEAM", "1") == "1"
-MAMBO_KEY = int(os.environ.get("T10_MAMBOKEY", "0"))  # the mambo transposed (semitones): +5 = up a fourth, to G minor  # every section's last bar breaks at its middle into a timbale fill (the seams read)  # more bombo: the ponche on 4 in the mambo/cierre, dotted quarters in the descarga  # section dynamics on the master (after the compressor)
+MAMBO_KEY = int(os.environ.get("T10_MAMBOKEY", "0"))
+QUOTE = os.environ.get("T10_QUOTE", "1") == "1"  # the 7/4 interlude quotes the album's opener: SEVEN DOORS (t1 Doors at Seven), up a step into D
+MONA = os.environ.get("T10_MONA", "cierre") in ("1", "cierre")
+MONA_WHERE = os.environ.get("T10_MONA", "cierre")  # "1": the mambo's second half and the shout; "cierre": the shout only  # the mona: a second horn riff interlocking with the mambo's (the mambo's second half and the shout)  # the mambo transposed (semitones): +5 = up a fourth, to G minor  # every section's last bar breaks at its middle into a timbale fill (the seams read)  # more bombo: the ponche on 4 in the mambo/cierre, dotted quarters in the descarga  # section dynamics on the master (after the compressor)
 
 # sections: (name, meter, bpm (quarter), bars)
 FORM = [("bembe", "12/8", 156, 12), ("son", "4/4", 208, 40), ("mambo", "4/4", 208, 24), ("siete", "7/4", 208, 12),
@@ -107,8 +110,26 @@ CH = {
     "Dm11": (38, [53, 55, 60, 64]),       # F G C E
     "Em11": (40, [55, 57, 62, 66]),       # G A D F#
     "Dmaj9#11": (38, [54, 57, 61, 64, 68]),  # F# A C# E G#
+    "Ebmaj7#11": (39, [55, 57, 62, 65]),  # G A D F (Eb lydian)
 }
 SON_PROG = ["Dm9", "G13", "Cmaj7#11", "A7b13"]
+
+
+SEVEN_DOORS = [  # t1 Doors at Seven's head (chirper-zero), quoted in the 7/4 interlude a whole step up (C -> D dorian)
+    [("C5", 1.5), ("Bb4", 0.5), ("G4", 1), ("F4", 1), ("Eb4", 1), ("F4", 2)],
+    [("G4", 0.5), ("Bb4", 0.5), ("C5", 0.5), ("D5", 0.5), ("Eb5", 3), ("R", 2)],
+    [("F5", 1), ("Eb5", 0.5), ("C5", 0.5), ("Ab4", 2), ("G4", 1), ("Ab4", 2)],
+    [("Bb4", 0.5), ("C5", 0.5), ("Db5", 1), ("Eb5", 1), ("F5", 1), ("G5", 3)],
+    [("Eb5", 1.5), ("D5", 0.5), ("C5", 1), ("Bb4", 1), ("G4", 3)],
+    [("F4", 0.5), ("G4", 0.5), ("Bb4", 1), ("C5", 0.5), ("D5", 0.5), ("F5", 4)],
+    [("Eb5", 1), ("Db5", 1), ("B4", 1), ("Ab4", 1), ("F4", 1), ("Eb4", 2)],
+    [("D4", 1), ("F4", 0.5), ("Ab4", 0.5), ("B4", 1), ("D5", 1), ("C5", 3)],
+]
+QUOTE_CH = ["Dm11", "Dm11", "Ebmaj7#11", "Ebmaj7#11", "Dm11", "Dm11", "A7b13", "A7b13"]
+MONA_RIFF = [  # the mona: low horns in the mambo riff's gaps
+    [("D4", 1), ("R", 0.5), ("F4", 0.5), ("E4", 1), ("R", 1)],
+    [("R", 0.5), ("C4", 0.5), ("D4", 1), ("R", 0.5), ("A3", 1.5)],
+]
 
 
 def harm(sec, b):
@@ -117,6 +138,8 @@ def harm(sec, b):
     if sec in ("son", "mambo", "cierre"):
         return SON_PROG[b % 4]
     if sec == "siete":
+        if QUOTE and b < 8:
+            return QUOTE_CH[b]
         return ["Bbmaj7#11", "A7sus"][(b // 2) % 2]
     if sec == "descarga":
         return "Dm11" if b < 16 else "Em11"
@@ -278,7 +301,7 @@ def solo_bar(b, beats, scale_root=62, seed=0, vel=88):
 
 # ---------------------------------------------------------------- arrangement
 def build():
-    names = ("piano", "bass", "kit", "clave", "bell", "trumpet", "tenor", "horns", "rhodes", "pad")
+    names = ("piano", "bass", "kit", "clave", "bell", "trumpet", "tenor", "horns", "rhodes", "pad") + (("mona",) if MONA else ())
     T = {n: [] for n in names}
     tempo = []
     beat0 = 0.0
@@ -313,6 +336,8 @@ def build():
                         bar["horns"] = line(MAMBO[b % 2], vel=96)
                 elif sec == "mambo":
                     bar["horns"] = line(MAMBO[b % 2], vel=100, shift=(0 if b < 12 else 2))
+                    if MONA and MONA_WHERE == "1" and b >= 12:
+                        bar["mona"] = line(MONA_RIFF[b % 2], vel=92, shift=2)
                     bar["piano"] = montuno(c, b, disp, vel=78)
                     # trading fours: trumpet then tenor, a composed solo line each
                     if (b // 4) % 2 == 0:
@@ -322,6 +347,8 @@ def build():
                 else:  # cierre: the shout, then the break on the clave's rhythm and the last chord
                     if b < 6:
                         bar["horns"] = line(MAMBO[b % 2], vel=108, shift=2)
+                        if MONA:
+                            bar["mona"] = line(MONA_RIFF[b % 2], vel=100, shift=2)
                         bar["trumpet"] = line(THEME[b % 4], vel=100, shift=12)
                         bar["piano"] = montuno(c, b, 0, vel=90)
                     elif b < 8:  # the cierre: everyone on the clave's 3-side hits
@@ -349,6 +376,8 @@ def build():
                 bar["kit"] = drums(sec, b, beats)
                 bar["bass"] = tumbao(c, nxt, b, beats)
                 bar["rhodes"] = line(SIETE[b % 2], vel=82, shift=(0 if b < 8 else 12))
+                if QUOTE and b < 8:
+                    bar["rhodes"] = line(SEVEN_DOORS[b], vel=84, shift=2)
                 bar["pad"] = comp(c, b, beats, vel=56)
             elif sec == "descarga":
                 bar["bell"] = bell(beats, b, hemiola=(b % 8 == 7))
@@ -406,7 +435,7 @@ def master():
     m = {"fx": fx}
     if DYN:  # the suite's arc: an intimate bembe, the son and mambo up, the 7/4 interlude down, the descarga building, the cierre on top
         st = section_times()
-        lv = {"bembe": -6, "son": -2, "mambo": 0, "siete": -6, "descarga": -3, "cierre": num("T10_CIERRE", "4")}
+        lv = {"bembe": -6, "son": -2, "mambo": 0, "siete": -6, "descarga": -3, "cierre": num("T10_CIERRE", "5")}
         pts = [["0s", lv["bembe"]]]
         for sec in ("son", "mambo", "siete", "descarga", "cierre"):
             a = st[sec][0]
@@ -444,6 +473,8 @@ def song():
         {"name": "rhodes", "patch": "rhodes-rotary", "gain": "-7dB", "pan": 0.3, "sends": {"room": "-10dB"}, "score": sc("rhodes")},
         {"name": "pad", "patch": "juno-pad", "gain": "-18dB", "sends": {"room": "-8dB"}, "score": sc("pad")},
     ]
+    if MONA:
+        tracks.append({"name": "mona", "patch": "horn", "gain": "-7dB", "pan": -0.3, "sends": {"room": "-9dB"}, "score": sc("mona")})
     return {
         "about": ("Chirpers - Odd Hours, track 10 (the closer; original composition, chirper-zero; generator "
                   "compose/chirpers2/src/chirpers2-t10.py). An Afro-Cuban / Latin-jazz suite in clave, D minor: 12/8 "
