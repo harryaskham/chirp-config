@@ -96,6 +96,9 @@ R7 = set(filter(None, os.environ.get("T6_R7", "J").split(","))) - {"none"}
 # Round 8 (v8): H = THE HAND-OFF to t7 (After the Beat, Rain): the outro's last two bars leave the rain alone (the
 # keys stop, the weather does not), so t6 ends in the same rain t7 begins in.
 R8 = set(filter(None, os.environ.get("T6_R8", "H").split(","))) - {"none"}
+# Round 9 (v9): T = the rain runs to the very end: a short tail (0.5 s, was 3 s of silence after the last drop), so
+# t6 hands t7 a shower, not a silence.
+R9 = set(filter(None, os.environ.get("T6_R9", "T").split(","))) - {"none"}
 FORM = [("intro", 4), ("A", 16), ("switch", 8), ("A2", 16), ("drop", 4), ("A3", 12), ("outro", 4)]
 LEVEL = {"intro": 58, "A": 72, "switch": 66, "A2": 78, "drop": 56, "A3": 80, "outro": 56}
 DRUMS = {"A", "switch", "A2", "A3"}
@@ -338,7 +341,7 @@ def main():
                                "year": 2026}),
         f"tempo: {BPM}",
         f'length: "{total:g}b"',
-        'tail: "3s"',
+        'tail: "%s"' % ("0.5s" if "T" in R9 else "3s"),
         'ceiling: "-0.5dB"',
         'volume: "3dB"',
         "patches: " + json.dumps(patches()),
