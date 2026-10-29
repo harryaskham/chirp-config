@@ -36,7 +36,8 @@ BUB3 = os.environ.get("T5_BUB3", "0") == "1"
 LECHO = os.environ.get("T5_LECHO", "1") == "1"
 DECK = os.environ.get("T5_DECK", "1")  # "1": the deck on keys and leads; "lead": on the lead and its echo only (the skank keeps the granular wow)  # wM's tape deck (pin 232211dd) on the keys and the leads instead of the granular wow: wow/flutter in cents, drift, darkening dips
 NUDGE = os.environ.get("T5_NUDGE", "")
-RIMDRAG = os.environ.get("T5_RIMDRAG", "60")  # the one-drop's rim dragged late by hand (ms), the kick and hats kept steady  # the one-drop played by hand (play.humanize): "40,-10,25" = rim late, kick early, hats late (ms), plus swing drift and a drunk lean
+RIMDRAG = os.environ.get("T5_RIMDRAG", "60")
+TCHOP = os.environ.get("T5_TCHOP", "lead")  # wM's MPC chop at the desk: "skank" = the rhodes chopped through the version; "lead" = the melodica chopped through the return  # the one-drop's rim dragged late by hand (ms), the kick and hats kept steady  # the one-drop played by hand (play.humanize): "40,-10,25" = rim late, kick early, hats late (ms), plus swing drift and a drunk lean
 VINYL = os.environ.get("T5_VINYL", "1") == "1"
 GLITCH = os.environ.get("T5_GLITCH", "stutter") in ("1", "stop", "stutter")
 GLITCH_KIND = os.environ.get("T5_GLITCH", "stutter")  # "1": both; "stop": the tape stop only; "stutter": the stutter bursts only  # the desk resamples: master stutter bursts in the version (bars 4 and 12, second halves) and a TAPE STOP (an octave dive on the last beat) into the breakdown  # wM's vinyl fx on the master instead of the crackle and hiss tracks  # the melodica's written echo: its line again a dotted eighth late, softer, panned opposite, into the spring
@@ -315,6 +316,16 @@ def song():
                      {"type": "pitch", "semitones": {"value": 0, "mod": [{"src": "auto.ts", "amount": 1}]},
                       "mix": {"value": 0, "mod": [{"src": "auto.tm", "amount": 1}]}}]
         glitch_auto = {"gl": {"points": gl}, "ts": {"points": ts}, "tm": {"points": tm}}
+    for name, sec in ({"skank": [("skank", "version")], "lead": [("lead", "return")],
+                       "both": [("skank", "version"), ("lead", "return")]}.get(TCHOP, [])):
+        a = times[sec]
+        b2 = a + dict((n, nb) for n, nb, _ in FORM)[sec] * 4 * 60 / BPM
+        lanec = [["0s", 0], [f"{a - 0.02:.3f}s", 0], [f"{a:.3f}s", 1], [f"{b2 - 0.02:.3f}s", 1], [f"{b2:.3f}s", 0], [f"{total + 8:.2f}s", 0]]
+        for tr in tracks:
+            if tr["name"] == name:
+                tr["fx"] = list(tr["fx"]) + [{"type": "chop", "slices": 8, "pattern": "0 r1 . _ 4 r5 . _" if name == "skank" else "0 . r2 . 4 4 . r7",
+                                             "mix": {"value": 0, "mod": [{"src": "auto.ch", "amount": 1}]}}]
+                tr["auto"] = {**tr.get("auto", {}), "ch": {"points": lanec}}
     master = {"fx": [{"type": "eq", "bands": bands}, *glitch_fx,
                      *(["vinyl crackle=0.35 dust=0.3 noise=-62dB rumble=0.25 warp=4 wear=0.35 seed=5"] if VINYL else []),
                      {"type": "tape", "drive": 0.35, "warmth": 0.5, "mix": 1},
