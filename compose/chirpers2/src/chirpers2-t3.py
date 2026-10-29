@@ -235,6 +235,25 @@ def build():
             mar[k] = toks
     solo = solo_part(B)
     dialogue(B, solo, mar)
+    # THE CELL, answered (breakdown C, 3+2): chirper-two's Mallet Chamber in Phase (t8) phases a 12-eighth marimba
+    # CELL (degrees 0 4 8 4 2 4 | 5 4 1 4 2 6); here two marimbas play it in eighths over the 5/8 breakdown in each
+    # chord's lydian, running across the bar lines (12 against 5), in unison for four bars, then the second steps
+    # an eighth ahead: t8's process in miniature, inside the math rock
+    T8CELL = [0, 4, 8, 4, 2, 4, 5, 4, 1, 4, 2, 6]
+    LYD = [0, 2, 4, 6, 7, 9, 11]
+    mar2 = []
+    pos = 0
+    for k, b in enumerate(B):
+        if b['sec'] != 'C':
+            mar2.append([rest(b['e8'])]); continue
+        root = b['ch'][0] % 12 + 60
+        def cellnote(q):
+            d = T8CELL[q % 12]
+            return nm(root + LYD[d % 7] + 12 * (d // 7))
+        mar[k] = [tok(cellnote(pos + e), 0.5, 88 if (pos + e) % 12 == 0 else 74) for e in range(b['e8'])]
+        ahead = 1 if b['i'] >= 4 else 0
+        mar2.append([tok(cellnote(pos + e + ahead), 0.5, 84 if (pos + e + ahead) % 12 == 0 else 70) for e in range(b['e8'])])
+        pos += b['e8']
     # GLASS: on the last return (A3, a whole step up) a glockenspiel doubles the marimba's dotted line an octave
     # up on every group's first note only, a sparkle that marks the key change
     glock = []
@@ -283,6 +302,7 @@ def build():
             {'name': 'kit', 'patch': 'prog-kit', 'gain': '-4dB', 'score': J(kit)},
             {'name': 'solo', 'patch': 'starcaster-clean', 'gain': '-4dB', 'pan': -0.3, 'fx': [{'type': 'delay', 'time': '3/16', 'feedback': 0.3, 'mix': 0.25}], 'score': J(solo)},
             {'name': 'marimba', 'patch': 'marimba', 'gain': '-4dB', 'pan': 0.1, 'score': J(mar)},
+            {'name': 'mar2', 'patch': 'marimba', 'gain': '-5dB', 'pan': -0.45, 'score': J(mar2)},
             {'name': 'glock', 'patch': 'glock', 'gain': '-10dB', 'pan': 0.4, 'score': J(glock)},
         ]}
 

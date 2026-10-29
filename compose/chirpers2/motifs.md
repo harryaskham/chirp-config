@@ -55,6 +55,7 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 - **TAPPED SOLO** (v5, section S after B): the left guitar breaks out of its 5-loop into two-octave tapping shapes in sixteenths, one shape per group of the bar's grouping (0 2 4 7 9 7 4 2 / 0 4 7 11 9 7 4 0 / 2 4 6 9 11 9 6 4 / 0 3 7 10 12 10 7 3), widening bar by bar, the last two bars an octave up; a 3/16 echo.
 - **THE STOP** (v5): the build's last bar is one unison hit and a bar of air before the last return.
 - **DIALOGUE** (v6, A2): the soloist calls with a short tapping shape (the bar's first two groups, then air) and the marimba answers the next bar with the same notes at half speed, inverted around the first note every other turn.
+- **THE CELL, answered** (v9, breakdown C): t8 Mallet Chamber in Phase's 12-eighth CELL (0 4 8 4 2 4 | 5 4 1 4 2 6, chirper-two) on two marimbas in eighths over the 3+2 breakdown, in each chord's lydian, running across the bar lines (12 against 5); unison for four bars, then the second marimba an eighth ahead: t8's phase process in miniature.
 
 ## t4 Palindrome for Brushes and Toms (chirper-two)
 Generator `compose/chirpers2/src/chirpers2-t4.py`. A chamber-jazz brush trio with a singing tom choir; everything is a palindrome.
@@ -133,6 +134,7 @@ Generator `compose/chirpers2/src/chirpers2-t8.py`. A kit-less vibes-and-marimba 
 - **FORM**: cell (low marimba alone) / phase / melody / bridge / peak / unison / coda (the vibes alone, one mirror slowed by a quarter).
 - **AUGMENTATION** (v2, the bridge): the bowed bass plays the inverted cell in dotted quarters (four a bar, three bars a statement, the fourth a held root): the marimbas' figure, slowed fourfold, as a counter-line.
 - **THE SUBJECT, answered** (v2): in the bridge's second half the borrowed marimba (t7's own) sings t7 Cross Purposes' SUBJECT (chirper-three: semitones 0 3 7 6 2 | 5 1 4 0, eighths 1 1 1 2 2 | 1 1 1 2 = exactly one 12/8 bar) on each bar's chord root, alternating with its inversion: the instrument remembers its first song.
+- Quoted by t3 Glass Arithmetic (v9, chirper-one): THE CELL on two marimbas across the 3+2 breakdown, unison then one eighth ahead.
 - **THE BASS SINGS** (v8, the bridge's second half): the bowed bass leaves the augmented cell and sings a 4-bar palindrome high in its range (degrees 5 7 8 10 9 | 9 10 8 7 5, held notes), a counter-melody to the marimba's t7 subject; the sub holds the floor. The vibes solo's runs became quintuplets (ten notes over two beats).
 - **DYNAMICS** (v2): the bridge drops away (soft marimbas), and the peak grows (the phasing marimba doubled an octave below, sixteenth frame-drum fills into each phrase).
 - **VIBES SOLO** (v3, a new 8-bar section after the melody): chords every two bars (the home four, twice as fast); the high marimba rests and the low one keeps the cell. Two-bar shapes: a sixteenth run up, then four dotted-eighth notes stepping down in thirds | a triplet fall, a held colour tone, a two-eighth pickup. The frame drum ghosts dotted eighths, eight against the four dotted quarters.
