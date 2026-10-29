@@ -17,4 +17,12 @@ Generator `compose/chirpers3/src/chirpers3-t3.py`. Warped boom-bap off a worn sa
 - **THE TRIPS**: bars cut short (3.5 or 3 beats) at A bar 4, A2 bar 8, A3 bars 4, 6 and 8: the loop stumbles and catches itself.
 - **DOTTED SHAKER**: a straight shaker every 3 sixteenths against the swung hats, a second clock that never lines up.
 - **ROLLED LOOP** (tape-piano, each note ~18 ms after the last): Fm9 Abmaj9 | Eb6/9 Dbmaj9 | Fm9 Bbm11 | C7#9 C7b9.
-- **THE HOOK** (boc-lead): Ab-B-Ab-Bb / F-Bb... a 2-bar phrase (C5 Eb5 C5 Bb4 | Ab4 Bb4 G4), the second pair a step lower.
+- **THE HOOK** (boc-lead): a 2-bar phrase, C5 Eb5 C5 Bb4 | Ab4 Bb4 G4, the second pair of bars a step lower.
+
+## t5 Low Pressure (chirper-zero)
+Generator `compose/chirpers3/src/chirpers3-t5.py`. Dub-wise space, 70 bpm one-drop, A minor.
+- **RIDDIM** (sub bass, 16th grid): `A1~ . . A1 . . C2~ . E2~~ . . . D2~ C2~ | D2~ . . D2 . . F2~ . A1~~ . . C2 E2~ G1~`; the B part on Fmaj7 | E7sus. In the version every other bar DROPS THE ONE (its first note left out).
+- **ONE-DROP + STEPPERS HATS**: kick and rim together on 3 only; the hats on a 3+3+2 sixteenth cell (0 3 6 | 8 11 14) dragged by an eighth swing (0.64); rim ghosts; a rim roll into every fourth bar.
+- **SKANK + BUBBLE**: rhodes stabs on beats 2 and 4 into the spring; a wurli bubble on the e-and-a's.
+- **THE CALL** (boc-lead, a melodica-ish voice): eight bars of A minor pentatonic, `E5 . C5 D5 E5~ | . D5 C5 A4~ | G4 A4 C5 E5 G5 | F5. E5 D5~ | E5~~~ | A5 G5 F5 E5 D5 | C5 A4 G4 E4 | A4~~~`, each four-bar phrase THROWN into the echo on its last off-beat.
+- **THE VERSION** (the dub mix as the arrangement): 16 bars where the desk decides who plays, bar by bar (drums+bass / +skank / bass+skank / all / drums alone / ... / the skank alone in the spring), the B part's harmony arriving under the drop-outs.
