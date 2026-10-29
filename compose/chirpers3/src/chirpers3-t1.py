@@ -49,7 +49,7 @@ SECTIONS = []
 TOTAL = 0.0
 
 def build():
-    chops, muff, kit, sax, sub, muff2, chops2 = [], [], [], [], [], [], []
+    chops, muff, kit, sax, sub, muff2, chops2, vchop = [], [], [], [], [], [], [], []
     t = 0.0
     sections = []
     for name, blocks, pat in FORM:
@@ -82,6 +82,16 @@ def build():
                     for at in (1, 3): kit.append((b0 + at + 0.03, 's', 0.25, 96))
                     sub.append((b0, 'C2' if FLIP1[bar * 4] < 8 else 'F2', 1.5, 96))
                     sub.append((b0 + 2.5, 'C2', 1.0, 86))
+            if name == 'flip2':
+                # THE VOCAL CHOP (the chopper: the built-in vox-chops cut into 16): the hard flip gets a hook of chopped
+                # voice - a two-bar figure of slices in eighths, answered by its own variation - over the two records
+                VHOOK = [[3, None, 3, 7, None, 9, 7, None], [3, None, 3, 7, None, 12, 11, 9]]
+                for bar in range(4):
+                    if bar % 2 == 1 and blk % 2 == 0:
+                        continue
+                    for e, sl_ in enumerate(VHOOK[bar % 2]):
+                        if sl_ is not None:
+                            vchop.append((t0 + bar * 4 + e * 0.5 + (0.05 if e % 2 else 0), sl(sl_), 0.45, 92 if e == 0 else 82))
             if name in ('sax', 'flip2', 'down'):
                 for ph in range(2):
                     for at, m, d in SAX[(blk * 2 + ph) % 2]:
@@ -138,6 +148,7 @@ def build():
                                                                               'tape drive=0.15 mix=0.6 wow=14 flutter=3 drift=2 tone=5000 sweep=0.7 seed=11'],
              'score': line(muff, total)},
             {'name': 'kit', 'patch': 'lofi-kit', 'gain': '-5dB', 'fx': ['crush bits=12 rate=26kHz mix=0.5'], 'score': line(kit, total)},
+            {'name': 'vchop', 'patch': 'chopper', 'gain': '-5dB', 'pan': -0.15, 'fx': ['tape drive=0.15 mix=0.5 wow=8 flutter=2 drift=1 tone=6500 sweep=0.5 seed=31', {'type': 'delay', 'time': '3/16', 'feedback': 0.25, 'mix': 0.2}], 'score': line(vchop, total)},
             {'name': 'sax', 'patch': 'tenor-sax', 'gain': '-6dB', 'pan': 0.2, 'fx': [{'type': 'reverb', 'kind': 'hall', 'decay': '3s', 'shimmer': 0.35, 'mix': 0.2}], 'score': line(sax, total)},
             {'name': 'sub', 'patch': 'sub-saturated', 'gain': '-8dB', 'score': line(sub, total)},
             {'name': 'crackle', 'patch': 'fx-crackle', 'gain': '-8dB', 'score': f"C4/{total - 0.2:.4f}b@85 R/0.2b"},
