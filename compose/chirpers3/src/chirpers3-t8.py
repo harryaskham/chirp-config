@@ -45,6 +45,9 @@ DUCK = os.environ.get("T8_DUCK", "-10")  # the breathing made real: a gain lane 
 DUCKUP = float(os.environ.get("T8_DUCKUP", "4"))  # bring the ducked pads up (dB) so the breathing is heard
 BREATH = os.environ.get("T8_BREATH", "300,0.5")  # chirp-eco's recipe: the real pump with a slow swell instead of the gain lane - "release_ms,curve", e.g. "300,0.5" (keyed drums.k, depth = DUCK)
 CODA = os.environ.get("T8_CODA", "2.5s")  # after the brakes, the engine idles: two bars of the sub's root and a faint pad after the tape spins back up (1 beat); value = the song tail, e.g. "5s" / "2.5s"
+INTROLP = os.environ.get("T8_INTROLP", "0") == "1"  # boarding: the master starts muffled (a low-pass from ~500 Hz) and opens across the intro's eight bars, as if the doors close and the bus comes into focus
+INTROPAD = int(os.environ.get("T8_INTROPAD", "0"))  # the intro's juno louder by this much velocity (the warm mids t7 ends on)
+RDAMP = os.environ.get("T8_RDAMP", "6")  # THE STOP's rhodes on wM's physical tine e-piano, letting go with the damper's key-off (release triggers); value = damper gain dB
 S = 0.25
 
 NOTE = {"C": 0, "C#": 1, "Db": 1, "D": 2, "D#": 3, "Eb": 3, "E": 4, "F": 5, "F#": 6, "Gb": 6, "G": 7, "G#": 8, "Ab": 8,
@@ -186,7 +189,7 @@ def build():
         for b in range(nb):
             bar = {n: R(4) for n in names}
             if sec == "intro":
-                bar["pad"] = pad(gb, 44 + 2 * b)
+                bar["pad"] = pad(gb, 44 + INTROPAD + 2 * b)
                 if ENGINE:
                     bar["sub"] = f"F#1/4b@{60 + 2 * b}"
                 if b >= 4:
@@ -281,7 +284,7 @@ def song():
          "score": sc("sub")},
         {"name": "pad", "patch": "juno-pad", "gain": "-13dB", "fx": [deck], "sends": {"hall": "-10dB"}, "score": sc("pad")},
         {"name": "glass", "patch": "pad-glass", "gain": "-15dB", "pan": 0.3, "fx": [deck], "sends": {"hall": "-8dB"}, "score": sc("glass")},
-        {"name": "rhodes", "patch": "rhodes", "gain": "-9dB", "pan": 0.2, "fx": [deck], "sends": {"hall": "-12dB", "echo": "-14dB"}, "score": sc("rhodes")},
+        {"name": "rhodes", "patch": "tine-damped" if RDAMP else "rhodes", "gain": "-9dB", "pan": 0.2, "fx": [deck], "sends": {"hall": "-12dB", "echo": "-14dB"}, "score": sc("rhodes")},
         *([] if not VCHOP else []),
         {"name": "chops", "patch": "chop-vox", "gain": "-6dB", "pan": -0.15, "fx": [deck],
          "sends": {"hall": "-6dB", "echo": "-12dB"}, "score": sc("chops", "swing16=0.62")},
@@ -343,7 +346,8 @@ def song():
         "about": ("Chirpers - Tape Weather, track 8 (original composition, chirper-zero; generator "
                   "compose/chirpers3/src/chirpers3-t8.py). Night-bus 2-step: lo-fi UK garage at 136 bpm - a shuffled, "
                   "skippy 2-step under a worn F#m9 | Dmaj9 | Bm11 | C#7sus loop and wordless chopped voices."),
-        "tempo": BPM, "ceiling": "-0.3dB", "tail": CODA or "5s", "patches": {"chop-vox": chop},
+        "tempo": BPM, "ceiling": "-0.3dB", "tail": CODA or "5s", "patches": {"chop-vox": chop, **({"tine-damped": {"about": "Tape Weather t8: THE STOP's rhodes - the physical tine e-piano with the damper's key-off.", "extends": "epiano-tine",
+                                                                                      "play": {"release": {"patch": "epiano-damper", "decay": "2s", "gain": f"{RDAMP}dB"}}}} if RDAMP else {})},
         "buses": {"hall": ({"fx": ["reverb kind=hall decay=3.2s size=0.9 mix=1 predelay=24ms"]} if not FOG else
                            {"fx": [{"type": "reverb", "kind": "hall", "decay": "3.2s", "size": 0.9, "mix": 1, "predelay": "24ms",
                                     "freeze": {"value": 0, "mod": [{"src": "auto.fog", "amount": 1}]}}],
@@ -361,6 +365,12 @@ def song():
     }
     if RESAMPLE:
         doc["master"]["auto"] = resample_auto()
+    if INTROLP:
+        st, total = section_starts()
+        g = st["groove"]
+        pts = [["0s", -19500]] + [[f"{g * f:.3f}s", -(20000 - 500 * (40 ** f))] for f in (0.25, 0.5, 0.75, 0.9)] + [[f"{g:.3f}s", 0], [f"{total + 8:.2f}s", 0]]
+        doc["master"]["fx"].insert(0, {"type": "filter", "kind": "lowpass", "cutoff": {"value": 20000, "mod": [{"src": "auto.ilp", "amount": 1}]}, "q": 0.7})
+        doc["master"].setdefault("auto", {})["ilp"] = {"points": pts}
     if BRAKE:
         st, total = section_starts()
         end = st["coda"] if CODA else total
