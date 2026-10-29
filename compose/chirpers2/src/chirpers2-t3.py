@@ -119,6 +119,9 @@ def kit_part(B, active, half=lambda b: False, tap16=lambda b: False):
                 if tap16(b):
                     n16 = e * 2 + h
                     p.append(('h', 94 if n16 % 3 == 0 else 52))
+                    # GHOSTS: a soft snare on the sixteenth before each group start (the pick-up that pushes the bar)
+                    if h == 1 and any(at == e + 1 for at, g in groups(b)[1:]):
+                        p.append(('s', 60))
                 elif h == 0:
                     p.append(('h', 86 if e % 2 == 0 else 66))
                 toks.append((','.join(sorted({x[0] for x in p})) + f'/0.25b@{max(x[1] for x in p)}') if p else 'R/0.25b')
