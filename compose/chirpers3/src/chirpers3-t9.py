@@ -37,6 +37,8 @@ LIVEKIND = os.environ.get("T9_LIVEGTR", "0")
 HAZE = os.environ.get("T9_HAZE", "1") == "1"
 PAND3 = os.environ.get("T9_PAND3", "0") == "1"
 SURDRAG = os.environ.get("T9_SURDRAG", "")
+GZSW = os.environ.get("T9_GZSW", "0.56")
+GZ3 = os.environ.get("T9_GZ3", "64")  # the ganza accents a 16th-level 3+3+2 (0 3 6 | 8 11 14), the partido-alto lean: accent velocity, e.g. 64  # the ganza's 16th swing (and the pandeiro's, unless T9_PANDSW): 0.56 near-straight; ~0.6 leans into the samba swing
 FHARM = os.environ.get("T9_FHARM", "1") == "1"
 EPIANO = os.environ.get("T9_EPIANO", "tine")  # wM's physical pickup e-piano in place of the rhodes (the bridge pad and the instrumental A): "tine" / "reed"  # the last A's last eight bars: a second flute a diatonic third under the tune (D major / the chord's tones)  # the open surdo (the dotted pulse on 6 and 14) dragged late by hand (ms)  # the last A's pandeiro on a dotted-eighth cycle (every 3 sixteenths, across the bar lines) instead of every off-16th  # wM's cloud (granular) as heat haze: the bridge's flute and rhodes are sent into a shimmering grain cloud  # "1": pan + tone per pluck; "pan": a small place per pluck only  # per-voice fx on the nylon (pin 3eee6a72): every pluck its own small place and its own tone  # wM's tapestop on the master: "end" = the side runs out and the deck stops over the outro's last two bars; "both" = and the catch ends in a stop that spins back up into the last A  # the tape wears (chirper-two's deck warp, pin 220ef336): harder through the bridge (1.4), and the side running out over the outro (1 -> 2)  # density contrast: the bridge sparer (two plucks a bar, no rim), the last A busier (pandeiro jingles on the off-16ths)
 IND_DB = os.environ.get("T9_INDDB", "-13")
@@ -131,7 +133,8 @@ def perc(b, rng):
         if st in (6, 14):
             p.append("sd")
         p.append("gz")
-        ev.append((st, ",".join(p), 1, (88 if "sm" in p else 74 if "sd" in p else (56 if st % 4 == 2 else 40)) + rng.randint(-4, 4)))
+        gzv = (int(GZ3) if st in (0, 3, 6, 8, 11, 14) else 38) if GZ3 else (56 if st % 4 == 2 else 40)
+        ev.append((st, ",".join(p), 1, (88 if "sm" in p else 74 if "sd" in p else gzv) + rng.randint(-4, 4)))
     return grid(ev)
 
 
@@ -303,7 +306,7 @@ def song():
     tracks = ind + [
         {"name": "guitar", "patch": "nylon", "pan": -0.15, "fx": [deck] + gchop, **({"auto": {"gcp": {"points": gcp}}} if gchop else {}), "sends": {"room": "-12dB"}, "score": sc("guitar")},
         {"name": "thumb", "patch": "nylon", "gain": "2dB", "pan": -0.1, "fx": [deck], "score": sc("thumb")},
-        {"name": "perc", "patch": "samba-kit" + (f" play.humanize.nudge.sd={SURDRAG}ms" if SURDRAG else ""), "gain": "-10dB", "pan": 0.2, "score": "swing16=0.56 " + sc("perc")},
+        {"name": "perc", "patch": "samba-kit" + (f" play.humanize.nudge.sd={SURDRAG}ms" if SURDRAG else ""), "gain": "-10dB", "pan": 0.2, "score": f"swing16={GZSW} " + sc("perc")},
         {"name": "rim", "patch": f"room-kit play.humanize.nudge.so={RIMLATE}ms", "gain": "-12dB", "pan": 0.3, "score": sc("rim")},
         {"name": "flute", "patch": "mellotron-flute", "gain": "-6dB", "pan": 0.1, "fx": [deck], "sends": {"room": "-8dB"}, "score": sc("flute")},
         {"name": "rhodes", "patch": f"epiano-{EPIANO}" if EPIANO else "rhodes", "gain": "-7dB", "pan": 0.2, "fx": [deck], "sends": {"room": "-10dB"}, "score": sc("rhodes")},
@@ -322,7 +325,7 @@ def song():
     if FHARM:
         tracks.append(wa({"name": "flute2", "patch": "mellotron-flute", "gain": "-10dB", "pan": -0.2, "fx": [deck], "sends": {"room": "-8dB"}, "score": sc("flute2")}))
     if DENS:
-        tracks.append({"name": "pand", "patch": "samba-kit", "gain": "-12dB", "pan": 0.35, "score": f"swing16={os.environ.get('T9_PANDSW', '0.56')} " + sc("pand")})
+        tracks.append({"name": "pand", "patch": "samba-kit", "gain": "-12dB", "pan": 0.35, "score": f"swing16={os.environ.get('T9_PANDSW', GZSW)} " + sc("pand")})
     if ANSWER:
         tracks.append({"name": "gfill", "patch": "nylon", "gain": "-2dB", "pan": 0.25, "fx": [deck], "sends": {"room": "-10dB"}, "score": sc("gfill")})
     tracks = [wa(t) for t in tracks]
