@@ -6,6 +6,8 @@ GENTLE GIANT / ZAPPA COUNTERPOINT: a through-composed chamber-prog piece where t
 - THE SUBJECT: nine notes over a 7/8 + 5/8 pair, D F A G# E | G Eb F# D (semitones 0 3 7 6 2 | 5 1 4 0), angular
   and chromatic; its INVERSION is the countersubject.
 - FORM (every bar changes something; the meters say how long each bar is, in eighths):
+    0 CHORALE    the subject SUNG first: a slow mellotron-choir chorale, each note harmonised afresh (Dm Bb F E Am C
+                 Cm D D5), flute on top, bass on the roots, no drums;
     1 STATEMENT  the subject HOCKETED note by note across marimba / flute / muted trumpet / guitar (the rotation turns
                  one place each time), then in unison, then inverted low under hocketed fragments;
     2 FUGUE      four entries (sax at D, trumpet at A, guitar inverted, bass), each continuing with the countersubject,
@@ -82,7 +84,7 @@ class Part:
 
 
 P = {k: Part() for k in ("mar", "flute", "tpt", "sax", "gtr", "keys", "bass", "kick", "snare", "hat", "toms", "ride",
-                         "clock", "sub", "brush", "tap", "rhodes", "ttom", "mar2")}
+                         "clock", "sub", "brush", "tap", "rhodes", "ttom", "mar2", "choir")}
 BARS = []          # (start eighths, length eighths, section, index in section)
 rng = random.Random(7)
 
@@ -146,6 +148,38 @@ def harmony_bar(st, ln, ci, vel=80, bass=True, stabs=True, walk=False, chord=Non
         else:
             P["bass"].add(st, ln - 1, nm(b), vel + 10)
             P["bass"].add(st + ln - 1, 1, nm(b + 7), vel)
+
+
+# ---------- 0 CHORALE ----------
+CHORALE = [  # (melody semitones from D4, chord root pitch class, chord tones above the root)
+    (0, 2, [0, 3, 7]),      # D   over Dm
+    (3, 10, [0, 4, 7]),     # F   over Bb
+    (7, 5, [0, 4, 7]),      # A   over F
+    (6, 4, [0, 4, 7]),      # G#  over E
+    (2, 9, [0, 3, 7]),      # E   over Am
+    (5, 0, [0, 4, 7]),      # G   over C
+    (1, 0, [0, 3, 7]),      # Eb  over Cm
+    (4, 2, [0, 4, 7]),      # F#  over D
+    (0, 2, [0, 7, 12]),     # D   over an open fifth
+]
+
+
+def chorale(t):
+    """The piece opens by SINGING the subject before arguing it (Gentle Giant's madrigal voices): a slow chorale, one
+    note a half bar, the subject on top of a mellotron choir, each note harmonised afresh (Dm Bb F E Am C Cm D D5),
+    the flute on the melody, the bass on the roots; no drums, rising into the hocket."""
+    for j, (p, root, iv) in enumerate(CHORALE):
+        ln = 8 if j == len(CHORALE) - 1 else 4
+        v = 54 + 3 * j
+        mel = D4 + 12 + p
+        inner = sorted({mel - 12 - ((mel - 12 - (48 + root + x)) % 12) for x in iv} - {mel})   # chord tones below the melody
+        P["choir"].add(t, ln * 0.97, ",".join(nm(m) for m in inner + [mel]), v)
+        P["flute"].add(t, ln * 0.95, nm(mel), v - 6)
+        P["bass"].add(t, ln * 0.95, nm(36 + ((root - 0) % 12)), v)
+        if j % 2 == 0:
+            bar(t, 8, "chorale", j // 2)
+        t += ln
+    return t
 
 
 # ---------- 1 STATEMENT ----------
@@ -478,7 +512,7 @@ def dyn_lane():
 def main():
     t = 0.0
     spans = {}
-    for sec in (statement, fugue, black_page, cross, trades, stretto, coda):
+    for sec in (chorale, statement, fugue, black_page, cross, trades, stretto, coda):
         a = t
         t = sec(t)
         spans[sec.__name__] = (a, t)
@@ -519,6 +553,7 @@ def main():
     tr = lambda name, patch, **kw: dict({"name": name, "patch": patch, "score": P[name].score(total)}, **kw)
     tracks = [
         tr("mar", "c3-marimba", pan="L40", gain="-4dB", sends={"room": "-10dB"}),
+        tr("choir", "mellotron-choir", gain="-4dB", sends={"room": "-8dB"}),            # the opening chorale
         tr("mar2", "c3-marimba", pan="R45", gain="-6dB", sends={"room": "-10dB"}),     # the answer's phasing marimba
         tr("flute", "mellotron-flute", pan="R40", gain="-6dB", sends={"room": "-10dB"}),
         tr("tpt", "trumpet-mute", pan="L20", gain="-5dB", sends={"room": "-12dB"}),
