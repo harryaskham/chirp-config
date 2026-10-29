@@ -5,7 +5,8 @@ A crate-digger's first track: a soul-jazz record is found, then flipped on an MP
 - The sample is chop-souljazz: the library's 4-bar soul-jazz part cut into 16 slices, one a quarter note
   (C4 = slice 1).
 - THE FLIP as form. Each section rearranges the same 16 slices further from the original order:
-  found (in order, muffled like a record on the shelf), then flipped, then stuttered, then flipped harder,
+  found (in order, muffled like a record on the shelf), then flipped, then (after the sax) the record found again
+  under the sax alone, then stuttered, then flipped harder,
   then found again as the record lifts.
 - A light boom-bap kick and snare reinforce the flip. A tenor sax (physical reed) answers the chops in C mixolydian.
 Emits songs/chirpers3-t1.yaml (JSON through tools/songfmt.py). Edit the music here, not the YAML.
@@ -25,7 +26,7 @@ FLIP1 = [0, 1, 0, 3, 8, 1, 10, 3] * 2      # two-bar flips: the new beat's cycle
 FLIP1B = [0, 1, 0, 3, 4, 4, 6, 7, 8, 1, 10, 3, 12, 13, 4, 15]   # the sax section's four-bar flip
 FLIP2 = [12, 13, 12, 3, 0, 1, 0, 6] * 2
 # per section: (name, 4-bar blocks, pattern, muffled?)
-FORM = [('found', 1, 'found'), ('flip', 2, 'flip1'), ('sax', 4, 'flip1b'), ('stutter', 1, 'stutter'),
+FORM = [('found', 1, 'found'), ('flip', 2, 'flip1'), ('sax', 4, 'flip1b'), ('down', 1, 'found'), ('stutter', 1, 'stutter'),
         ('flip2', 3, 'flip2'), ('last', 1, 'found')]
 # the sax: a call per 2 bars (C mixolydian), answered by the chops
 SAX = [[(0.5, 67, 0.5), (1.0, 70, 0.5), (1.5, 72, 1.0), (3.0, 74, 0.5), (3.5, 72, 1.5), (5.0, 70, 0.5), (5.5, 67, 2.0)],
@@ -58,7 +59,7 @@ def build():
                 for s in range(8): chops.append((t0 + 12 + s * 0.5, sl(0 if s % 2 == 0 else 13), 0.45, 100))
             else:
                 order = {'found': FOUND, 'flip1': FLIP1, 'flip1b': FLIP1B, 'flip2': FLIP2}[pat]
-                target = muff if name in ('found', 'last') else chops
+                target = muff if name in ('found', 'last', 'down') else chops
                 for q, i in enumerate(order):
                     if pat == 'flip2' and q % 4 == 3:
                         # the harder flip: the last quarter of every bar is two eighth stabs of a different slice
@@ -66,14 +67,14 @@ def build():
                     else:
                         target.append((t0 + q, sl(i), 0.97, 92 if q % 4 == 0 else 84))
             # the reinforcing kit: boom-bap kick and snare once the flip starts
-            if name not in ('found', 'last'):
+            if name not in ('found', 'last', 'down'):
                 for bar in range(4):
                     b0 = t0 + bar * 4
                     for at in (0, 1.75, 2.5): kit.append((b0 + at + 0.01, 'k', 0.25, 104 if at == 0 else 90))
                     for at in (1, 3): kit.append((b0 + at + 0.03, 's', 0.25, 96))
                     sub.append((b0, 'C2' if FLIP1[bar * 4] < 8 else 'F2', 1.5, 96))
                     sub.append((b0 + 2.5, 'C2', 1.0, 86))
-            if name in ('sax', 'flip2'):
+            if name in ('sax', 'flip2', 'down'):
                 for ph in range(2):
                     for at, m, d in SAX[(blk * 2 + ph) % 2]:
                         sax.append((t0 + ph * 8 + at, nm(m + (12 if name == 'flip2' and ph == 1 else 0)), d, 92))
