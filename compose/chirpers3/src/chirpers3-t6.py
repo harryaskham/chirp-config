@@ -131,6 +131,11 @@ R14 = set(filter(None, os.environ.get("T6_R14", "T").split(","))) - {"none"}  # 
 # drop's warp lane, which already darkens its filter and raises its crush, while the song-long wear lane peaks on its
 # tape deck: the listener hears the one instrument's tape go seasick, not a switch.
 R15 = set(filter(None, os.environ.get("T6_R15", "O").split(","))) - {"none"}
+# Round 16 (v16), pin 83d78d71: B = the switch's Rhodes bounce barks brighter (wM's tine pickup `sense` 0.5, its
+# reach easing up the keyboard with `key` -0.25); F = A DUB LOOP under the throws: the snare/rim throws and the vibes
+# throw now also feed a bus that comes back into itself every dotted quarter at -6 dB through a lo-pass, a worn tape
+# and a limiter (feedback routing, engine PR #35): each echo darker and more worn than the last.
+R16 = set(filter(None, os.environ.get("T6_R16", "B,F").split(","))) - {"none"}
 FORM = [("intro", 4), ("A", 16), ("switch", 8), ("A2", 16), ("drop", 4), ("A3", 12), ("outro", 4)]
 LEVEL = {"intro": 58, "A": 72, "switch": 66, "A2": 78, "drop": 56, "A3": 80, "outro": 56}
 DRUMS = {"A", "switch", "A2", "A3"}
@@ -485,6 +490,10 @@ def main():
              "compose/chirpers3/src/chirpers3-t6.py. Wonky brush drag: bedroom-jazz lo-fi on a physical soft-mallet "
              "and brush kit, unquantised (kick early, snare late, brushes drifting), tape-warped wurli chords sinking "
              f"a semitone a bar, a lazy fretless, dusty vibes, crackle and hiss. 78 bpm. Sections: {secs}.")
+    if "F" in R16:
+        for tr in tracks:
+            if tr["name"] in ("dub", "vibes-dub"):
+                tr["sends"] = {"dubloop": "-6dB"}
     lines = [
         f"about: {json.dumps(about)}",
         "meta: " + json.dumps({"artist": "Chirpers", "album": "Tape Weather", "title": "Late on Purpose", "track": 6,
@@ -495,8 +504,14 @@ def main():
         'ceiling: "-0.5dB"',
         'volume: "3dB"',
         "patches: " + json.dumps({**patches(), **(resample_patches() if R10 else {}), **palette_patches()}),
-        *(["songs: " + json.dumps({**({"bounce": bounce_song(), "bounceb": bounce_song(B_LOOP, 12, "epiano-tine" if "T" in R14 else "wurli")} if R10 else {}),
+        *(["songs: " + json.dumps({**({"bounce": bounce_song(), "bounceb": bounce_song(B_LOOP, 12, ("epiano-tine synth.tine.sense=0.5 synth.tine.key=-0.25" if "B" in R16
+                                                         else "epiano-tine") if "T" in R14 else "wurli")} if R10 else {}),
                                     **({"hum": hum_song()} if "V" in R11 else {})})] if (R10 or "V" in R11) else []),
+        *(["buses: " + json.dumps({"dubloop": {
+            "gain": "-3dB",
+            "fx": ["lp cutoff=1500", {"type": "tape", "drive": 0.45, "warmth": 0.75, "wow": 7, "flutter": 2, "seed": 16},
+                   "hp cutoff=150", "limiter ceiling=-8dB"],
+            "returns": [{"from": "dubloop", "gain": "-6dB", "time": "3/8"}]}})] if "F" in R16 else []),
         "master: " + json.dumps({"fx": [{"type": "eq", "bands": ["hp cutoff=30", "highshelf cutoff=8000 gain=0dB"]}]
                                  + ([{"type": "filter", "kind": "lp", "cutoff": {"value": 18000, "mod": [{"src": "auto.dive", "amount": -4.0}]}}]
                                     if "F" in R2 else [])
