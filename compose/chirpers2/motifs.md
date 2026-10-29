@@ -90,3 +90,13 @@ Generator `compose/chirpers2/src/chirpers2-t4.py`. A chamber-jazz brush trio wit
 - **HORN THEME** (Ab Dorian, brass with the saxes a fifth below): a 4-bar phrase, the second phrase answering a fourth higher.
 - **DISPLACED HITS** (the shout): a 3-hit horn figure (0, 6, 10) sliding one sixteenth later every bar until it comes home to the one.
 - **THE BREAK** (v2, kit alone before the shout, 6 bars): the 15 regrouped bar by bar - the groove's bones with a three-tom pick-up, accents every 5 sixteenths (5+5+5), every 3 (3x5), 5s and 3s again, then a sixteenth roll down t1 t2 t3 ft into the shout's crash; the bass hits each one.
+
+## t8 Mallet Chamber in Phase (chirper-two)
+Generator `compose/chirpers2/src/chirpers2-t8.py`. A kit-less vibes-and-marimba quartet: process music meets chamber jazz. 112 bpm, 12/8.
+- **THE CELL** (marimbas): 12 eighths as scale degrees over the chord, `0 4 8 4 2 4 | 5 4 1 4 2 6`; in Eb lydian `Eb Bb F Bb G Bb | C Bb F Bb G D`. The low marimba plays it an octave down, the high marimba at pitch.
+- **PHASE** (the process): the high marimba steps one eighth ahead every four bars, and the fourth bar of each step BLURS half an eighth ahead (a sixteenth off the grid). It walks through all twelve offsets over the phase, melody and peak sections and arrives back in UNISON.
+- **12/8 AGAINST 4/4**: the bowed bass walks half notes in an 8-beat cycle (degrees 1 5 2 3, turning 1 7 6 5 on each chord's last bar) against the 6-beat bar, realigning where the chord changes; a sine sub doubles its strong beats.
+- **PALINDROME PHRASES** (vibes; t4's idea carried over): each four-bar phrase is half + retrograde, with the centre note held double and the dynamics mirrored (up to the centre and back). Four half-phrases rotate per chord.
+- **HARMONY**: Ebmaj7#11 | Cm9 | Abmaj9 | Bb13sus, four bars each (one collection, A turning to Ab); the bridge is up a minor third (Gbmaj7#11 | Ebm9 | Bmaj9 | Db13sus) on the INVERTED CELL (8 - degree), in unison and then in canon at half a bar, a third up.
+- **FORM**: cell (low marimba alone) / phase / melody / bridge / peak / unison / coda (the vibes alone, one mirror slowed by a quarter).
+
