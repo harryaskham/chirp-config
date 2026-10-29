@@ -114,6 +114,10 @@ SUBJ_RETRO = [0, 4, 1, 5, 2, 6, 7, 3, 0]  # t7's subject (0 3 7 6 2 5 1 4 0) rea
 # a chord a bar): in the tom chorale's mirror half the tom choir planes one m9 shape up by semitones, Cm9 C#m9 Dm9,
 # home to D, where the first half sang the harmonic palindrome.
 R22 = set(filter(None, os.environ.get("T4_R22", "P").split(","))) - {"none"}
+# Round 23 (v23): Y = the DYNAMIC ARC redrawn. Measured section RMS: the chorale ("the quiet before the peak") was
+# -14.0 dB, louder than the trades and 1.3 dB under the peak, and the seed was as loud as the intro. The seed is now
+# softer than the intro it grows into, and the chorale a real hush, so the peak erupts out of it.
+R23 = set(filter(None, os.environ.get("T4_R23", "Y").split(","))) - {"none"}
 BTHEME = {0: [(0, 3, 4), (3, 1, 3), (4, 4, 2)], 1: [(0, 2, 1), (2, 2, 2), (4, 3, 4)], 2: [(0, 5, 6)],
           3: [(0, 2, 4), (2, 2, 5), (4, 2, 4)]}  # t2's night cell, degrees on eighths (None = rest)
 TRIP = "T" in os.environ.get("T4_OPTS", "")  # triplet brush ghosts before the backbeats (off: no gain)
@@ -287,6 +291,8 @@ def build():
     # dynamics: each phrase swells to its centre bar; sections set the level
     LEVEL = {"link": 64, "bsolo": 76, "seed": 44, "unseed": 44, "intro": 50, "head": 68, "bridge": 74, "trade": 84, "piano": 70, "peak": 104, "head2": 64, "coda": 48,
              "chorale": 62, "drums": 84}
+    if "Y" in R23:
+        LEVEL.update({"seed": 36, "chorale": 46})
     # the bass's role per section: a two-feel under the heads, a pedal under the bridge, walking under the solos
     BASS = {"link": "none", "bsolo": "solo", "seed": "pedal", "unseed": "pedal", "intro": "two", "head": "two", "bridge": "pedal", "trade": "walk", "piano": "walk", "peak": "walk",
             "head2": "two", "coda": "two", "chorale": "pedal", "drums": "tacet"}
@@ -502,7 +508,7 @@ def build():
                 if pos > 3 and "P" in R22:  # planing: one rootless m9 shape (b3 b7 9) sliding up to D
                     pr = 48 + (pos - 4)  # C3, C#3, D3
                     ch3 = (pr + 3, pr + 10, pr + 14)
-                T["tom"].add(start + c8 / 2, (end8 - c8) / 2 * 0.95, ",".join(nm(x) for x in ch3), v + 8)
+                T["tom"].add(start + c8 / 2, (end8 - c8) / 2 * 0.95, ",".join(nm(x) for x in ch3), v + (2 if "Y" in R23 else 8))
         elif section == "piano":  # piano solo: right hand lines over left-hand shells
             for c8, vo in comp:
                 T["pno_lh"].add(start + c8 / 2, 1.0, vo, v - 10)
