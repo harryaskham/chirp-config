@@ -58,7 +58,14 @@ R8 = set(filter(None, os.environ.get("T4_R8", "K,W").split(","))) - {"none"}
 # Round 9 (v9): P = the French horn doubles the trumpet an octave down at the PEAK (a brass climax, and the horn
 # heard before it takes head 2); Q = in the fretless solo's odd bars (5/8, 7/8) the night cell falls in DOTTED
 # EIGHTHS, across the bar instead of on it.
-R9 = set(filter(None, os.environ.get("T4_R9", "P,Q").split(","))) - {"none"}  # t2's night cell, degrees on eighths (None = rest)
+R9 = set(filter(None, os.environ.get("T4_R9", "P,Q").split(","))) - {"none"}
+# Round 10 (v10): T = THE BRIDGE THEME (the bridge had no tune): a new palindrome over the bridge's mirrored meters,
+# (offset, eighths, scale degree) per bar, bars 4-6 the retrograde of 2-0 and the centre bar a palindrome itself.
+# The trumpet sings it the first time; the second time the roles reverse: the tom choir sings it and the trumpet
+# holds the chord's ninth above, softly.
+R10 = set(filter(None, os.environ.get("T4_R10", "T").split(","))) - {"none"}
+BTHEME = {0: [(0, 3, 4), (3, 1, 3), (4, 4, 2)], 1: [(0, 2, 1), (2, 2, 2), (4, 3, 4)], 2: [(0, 5, 6)],
+          3: [(0, 2, 4), (2, 2, 5), (4, 2, 4)]}  # t2's night cell, degrees on eighths (None = rest)
 TRIP = "T" in os.environ.get("T4_OPTS", "")  # triplet brush ghosts before the backbeats (off: no gain)
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 PC = {n: i for i, n in enumerate(NAMES)}
@@ -361,6 +368,30 @@ def build():
                 note = root + 24 + deg + shift if voice == "tpt" else root + 12 + deg
                 at = swing_at(start, o, swung) + (0.25 if voice == "tom" and "X" in R3 else 0)
                 T[voice].add(at, min(ln, m - o) / 2 * 0.9, nm(note), v + (6 if j == 0 else 0))
+        if section == "bridge" and "T" in R10:  # the bridge theme
+            src = BTHEME[min(pos, 6 - pos)]
+            line = src if pos <= 3 else [(m - o - ln, ln, dg) for o, ln, dg in reversed(src)]
+            second = pidx == max(b[4] for b in bars if b[3] == "bridge")
+            for o, ln, dg in line:
+                cn = name0
+                for c8, cnn in chords:
+                    if c8 <= o:
+                        cn = cnn
+                r0, _, sc = CH[cn]
+                note = r0 + 24 + sc[dg % len(sc)] + 12 * (dg // len(sc))
+                while note > 79:
+                    note -= 12
+                at = swing_at(start, o, swung)
+                if second:
+                    T["tom"].add(at, ln / 2 * 0.95, nm(note - 12), v + 2)
+                else:
+                    T["tpt"].add(at, ln / 2 * 0.95, nm(note), v)
+            if second:  # the trumpet holds the ninth above, softly
+                r0, _, sc = CH[name0]
+                n9 = r0 + 24 + sc[1] + 12
+                while n9 > 81:
+                    n9 -= 12
+                T["tpt"].add(start, m / 2 * 0.9, nm(n9), v - 16)
         # ---- piano: comping (rootless voicings), or the melody when VOICE says so ----
         comp = []
         for c8, cn in chords:
