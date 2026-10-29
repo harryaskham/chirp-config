@@ -137,5 +137,10 @@
     }
   ],
   "named_by": "harry@pocket4-nixos",
-  "named_at": "2026-10-29T00:59:33Z"
+  "named_at": "2026-10-29T00:59:33Z",
+  "art": {
+    "file": "ref/albums/odd-hours/cover-tti.png",
+    "prompt": "Album cover art for 'Odd Hours' by Chirpers, an original jazz / prog / math fusion album. Abstract, colourful, playful geometry: overlapping polyrhythmic circles and lattices, a jazz-record-sleeve sensibility, warm and electric.  Striking, abstract, no text, no letters, no band logo, square composition.",
+    "at": "2026-10-29T01:01:41Z"
+  }
 }
