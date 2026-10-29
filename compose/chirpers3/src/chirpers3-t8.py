@@ -36,7 +36,9 @@ VCHOP = os.environ.get("T8_VCHOP", "climax")
 WEAR = os.environ.get("T8_WEAR", "0") == "1"
 LIFT = int(os.environ.get("T8_LIFT", "2"))
 BRAKE = os.environ.get("T8_BRAKE", "hard")
-PUMP = os.environ.get("T8_PUMP", "-8")  # wM's pump: the pads and the rhodes breathe on the kick (keyed from drums.k), depth in dB, e.g. -8  # the bus brakes at the last stop (wM's tapestop on the master, the last bar): "hard" = curve 4 over 2 beats; "soft" = curve 1.6 over 4  # the last groove lifted (semitones): the night loop up a step for the final run  # the tape wears (deck warp lanes): the beatless breakdown drifts seasick (1.6), the outro wears out (1 -> 2)  # wM's MPC chop on the voice: "stop" = through THE STOP; "climax" = through the last groove (the chain resampled)  # the claps (and optionally the hats) dragged late by hand: "45" or "45,25" (ms; play.humanize.nudge)  # master stutter bursts (3/16 slices) on the last half-bar before groove 2 and before the breakdown  # the HATS on the 3-sixteenth cycle instead (the loud voice carries the cross-rhythm; the shaker off)  # the shaker on a 3-sixteenth cycle (dotted eighths) running across the bar: the garage cross-rhythm  # groove 2 becomes THE STOP: half-time (kick 1, rim 3, no hats), rhodes chords for the pad, the B loop  # the v1 rework: a B loop for groove 2, a heavier shuffle with more off-16th hats, the sub up, the mud out
+PUMP = os.environ.get("T8_PUMP", "-8")
+SPACE = os.environ.get("T8_SPACE", "")
+FOG = os.environ.get("T8_FOG", "1") == "1"  # the window fogs: the hall FREEZES through the breakdown's bars 2-7 (wM's reverb freeze), the pads and chops held as a wash  # the chops' echo as a tape loop (feedback routing): one dotted-eighth delay, its own output fed back through a low-pass and a tape deck  # wM's pump: the pads and the rhodes breathe on the kick (keyed from drums.k), depth in dB, e.g. -8  # the bus brakes at the last stop (wM's tapestop on the master, the last bar): "hard" = curve 4 over 2 beats; "soft" = curve 1.6 over 4  # the last groove lifted (semitones): the night loop up a step for the final run  # the tape wears (deck warp lanes): the beatless breakdown drifts seasick (1.6), the outro wears out (1 -> 2)  # wM's MPC chop on the voice: "stop" = through THE STOP; "climax" = through the last groove (the chain resampled)  # the claps (and optionally the hats) dragged late by hand: "45" or "45,25" (ms; play.humanize.nudge)  # master stutter bursts (3/16 slices) on the last half-bar before groove 2 and before the breakdown  # the HATS on the 3-sixteenth cycle instead (the loud voice carries the cross-rhythm; the shaker off)  # the shaker on a 3-sixteenth cycle (dotted eighths) running across the bar: the garage cross-rhythm  # groove 2 becomes THE STOP: half-time (kick 1, rim 3, no hats), rhodes chords for the pad, the B loop  # the v1 rework: a B loop for groove 2, a heavier shuffle with more off-16th hats, the sub up, the mud out
 S = 0.25
 
 NOTE = {"C": 0, "C#": 1, "Db": 1, "D": 2, "D#": 3, "Eb": 3, "E": 4, "F": 5, "F#": 6, "Gb": 6, "G": 7, "G#": 8, "Ab": 8,
@@ -284,8 +286,14 @@ def song():
                   "compose/chirpers3/src/chirpers3-t8.py). Night-bus 2-step: lo-fi UK garage at 136 bpm - a shuffled, "
                   "skippy 2-step under a worn F#m9 | Dmaj9 | Bm11 | C#7sus loop and wordless chopped voices."),
         "tempo": BPM, "ceiling": "-0.3dB", "tail": "5s", "patches": {"chop-vox": chop},
-        "buses": {"hall": {"fx": ["reverb kind=hall decay=3.2s size=0.9 mix=1 predelay=24ms"]},
-                  "echo": {"fx": ["delay time=3/16 feedback=0.45 mix=1 tone=2200"]}},
+        "buses": {"hall": ({"fx": ["reverb kind=hall decay=3.2s size=0.9 mix=1 predelay=24ms"]} if not FOG else
+                           {"fx": [{"type": "reverb", "kind": "hall", "decay": "3.2s", "size": 0.9, "mix": 1, "predelay": "24ms",
+                                    "freeze": {"value": 0, "mod": [{"src": "auto.fog", "amount": 1}]}}],
+                            "auto": {"fog": {"points": fog_lane()}}}),
+                  "echo": ({"fx": ["delay time=3/16 feedback=0.45 mix=1 tone=2200"]} if not SPACE else
+                           {"fx": ["delay time=3/16 feedback=0 mix=1 tone=2800", {"type": "filter", "kind": "lowpass", "cutoff": 2200, "q": 0.8},
+                                   "tape drive=0.2 mix=1 wow=12 flutter=3 drift=1 tone=5500 sweep=0.6 seed=8"],
+                            "returns": [{"from": "echo", "gain": float(SPACE), "time": "6ms"}]})},
         "master": {"fx": [{"type": "eq", "bands": (["peak cutoff=280 q=0.8 gain=-5dB", "peak cutoff=640 q=0.8 gain=-3dB", "highshelf cutoff=6000 gain=4dB"] if V2
                                                    else ["peak cutoff=640 q=0.8 gain=-4dB", "highshelf cutoff=6000 gain=2dB"])},
                           "vinyl crackle=0.3 dust=0.25 noise=-62dB rumble=0.2 warp=3 wear=0.3 seed=8",
@@ -302,6 +310,13 @@ def song():
                                     "stop": {"value": 0, "mod": [{"src": "auto.brk", "amount": 1}]}})
         doc["master"].setdefault("auto", {})["brk"] = {"points": [["0s", 0], [f"{t0 - 0.02:.3f}s", 0], [f"{t0:.3f}s", 1], [f"{total + 8:.2f}s", 1]]}
     return doc
+
+
+def fog_lane():
+    st, total = section_starts()
+    bar = 4 * 60 / BPM
+    a, b = st["breakdown"] + 1.5 * bar, st["breakdown"] + 7.5 * bar
+    return [["0s", 0], [f"{a - 0.02:.3f}s", 0], [f"{a:.3f}s", 1], [f"{b - 0.02:.3f}s", 1], [f"{b:.3f}s", 0], [f"{total + 8:.2f}s", 0]]
 
 
 def resample_fx():
