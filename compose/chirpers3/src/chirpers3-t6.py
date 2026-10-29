@@ -99,6 +99,12 @@ R8 = set(filter(None, os.environ.get("T6_R8", "H").split(","))) - {"none"}
 # Round 9 (v9): T = the rain runs to the very end: a short tail (0.5 s, was 3 s of silence after the last drop), so
 # t6 hands t7 a shower, not a silence.
 R9 = set(filter(None, os.environ.get("T6_R9", "T").split(","))) - {"none"}
+# Round 10 (v10): RESAMPLED, no WAVs. Shadow songs (`songs:`, never played as tracks) render four wurli bars through
+# tape; patches sample them. S = the SLOWED SWITCH-UP: `bounceb` (the switch's B loop, rendered an octave up) plays
+# an octave down (tape-style, so half speed: four bars fill the switch's eight), forwards for four bars and then
+# BACKWARDS (the same tape reversed, the chords swelling in), the live keys silent; C = CHOPS in A3: `bounce` (the A
+# loop) cut into eight half-bar slices, re-sequenced MPC-style as off-beat stabs (each bar the slice of its chord).
+R10 = set(filter(None, os.environ.get("T6_R10", "S,C").split(","))) - {"none"}
 FORM = [("intro", 4), ("A", 16), ("switch", 8), ("A2", 16), ("drop", 4), ("A3", 12), ("outro", 4)]
 LEVEL = {"intro": 58, "A": 72, "switch": 66, "A2": 78, "drop": 56, "A3": 80, "outro": 56}
 DRUMS = {"A", "switch", "A2", "A3"}
@@ -107,7 +113,7 @@ DRUMS = {"A", "switch", "A2", "A3"}
 def build():
     rng = random.Random(6)
     T = {k: Track(k) for k in ("keys", "kw", "bass", "sub", "vibes", "drums", "crackle", "hiss", "rain", "thunder",
-                               "dub", "vdub")}
+                               "dub", "vdub", "rs", "chop", "rsrev")}
     rrng = random.Random(66)  # the weather's own dice (the music's stay as they were)
     bars, pos = [], 0.0
     for name, n in FORM:
@@ -127,6 +133,16 @@ def build():
         # ---- keys: the chord a hair late, strummed; a soft re-hit on the and of three ----
         drag = 0.05 if sec != "intro" else 0.0
         K = T["kw"] if sec == "drop" and "W" in R2 else T["keys"]  # the drop's chords on the warped tape
+        if sec == "switch" and "S" in R10:
+            K = Track("_")  # the live keys rest: the resampled bounce plays the switch
+            if i == 0:  # the first half forwards, the second half the same tape played backwards
+                T["rs"].add(start, 16.0, "C3", 100)
+            if i == 4:
+                T["rsrev"].add(start, 16.0, "C3", 96)
+        if sec == "A3" and "C" in R10 and i >= 2:  # chops: the bar's chord slice, on the off-beats
+            sl = 2 * (i % 4) if not (i % 8 == 7) else 1
+            for o, dsl in ((1.5, 0), (2.75, 1), (3.5, 0)):
+                T["chop"].add(start + o + 0.03, 0.45, nm(60 + (sl + dsl) % 8), v - (6 if o == 1.5 else 12))
         if sec == "intro" and i < 2 and "F" in R5:
             K = Track("_")  # the window is shut for two bars: weather only
         if sec == "outro" and i >= 2 and "H" in R8:
@@ -282,6 +298,29 @@ def patches():
     return out
 
 
+def bounce_song(loop=None, up=0):
+    """A shadow source: four wurli bars of a chord loop through tape (rendered inside this song, never played)."""
+    score = " ".join(",".join(nm(x + up) for x in voic) + "/1@70" for _, voic in (loop or A_LOOP))
+    return {"tempo": BPM, "length": "16b", "tail": "0.5s",
+            "tracks": [{"name": "keys", "patch": "wurli",
+                        "fx": [{"type": "chorus", "rate": 0.35, "depth": 0.55, "voices": 1, "mix": 1.0},
+                               "tape drive=0.35 warmth=0.7", "lp cutoff=4500"], "score": score}]}
+
+
+def resample_patches():
+    return {"c2-bounce": {"about": "chirper-two: t6's own A loop, resampled from the shadow song `bounce` (tape-style: "
+                                   "pitch and speed together, so C3 is an octave down at half speed).",
+                          "synth": {"layers": [{"type": "sample", "song": "bounceb", "root": "C4"}],
+                                    "amp": {"a": "5ms", "d": "0s", "s": 1, "r": "400ms"}}},
+            "c2-bounce-rev": {"about": "chirper-two: the bounce played backwards (reverse: the chords swell in).",
+                              "synth": {"layers": [{"type": "sample", "song": "bounceb", "root": "C4", "reverse": True}],
+                                        "amp": {"a": "5ms", "d": "0s", "s": 1, "r": "400ms"}}},
+            "c2-bounce-chop": {"about": "chirper-two: the bounce chopped into eight half-bar slices (MPC-style: C4 slice 1 "
+                                        "... G4 slice 8, each at its own pitch).",
+                               "synth": {"layers": [{"type": "sample", "song": "bounce", "root": "C4", "slices": 8}],
+                                         "amp": {"a": "2ms", "d": "0s", "s": 1, "r": "40ms"}}}}
+
+
 def main():
     total, bars, sec, T = build()
     d0 = next(s for n, s, k in sec if n == "drop")
@@ -323,6 +362,15 @@ def main():
              "fx": [{"type": "delay", "time": "3/16", "feedback": 0.62, "ping_pong": True, "tone": 2200, "mix": 0.6},
                     "lp cutoff=3000", "reverb kind=spring decay=2.4s mix=0.3"], "score": T["vdub"].score(total)}]
           if "D" in R6 else []),
+        *([{"name": "resampled", "patch": "c2-bounce", "pan": -0.05, "gain": "-2dB",
+            "fx": ["lp cutoff=3500", {"type": "crush", "bits": 12, "rate": 14000, "mix": 0.3},
+                   "reverb kind=room decay=1.4s mix=0.25"], "score": T["rs"].score(total)}] if "S" in R10 else []),
+        *([{"name": "resampled-rev", "patch": "c2-bounce-rev", "pan": 0.1, "gain": "-3dB",
+            "fx": ["lp cutoff=3000", {"type": "crush", "bits": 11, "rate": 12000, "mix": 0.35},
+                   "reverb kind=hall decay=2.2s mix=0.3"], "score": T["rsrev"].score(total)}] if "S" in R10 else []),
+        *([{"name": "chops", "patch": "c2-bounce-chop", "pan": 0.2, "gain": "-5dB",
+            "fx": ["hp cutoff=250", "reverb kind=plate decay=1.0s mix=0.2"], "score": T["chop"].score(total)}]
+          if "C" in R10 else []),
         {"name": "crackle", "patch": "c2-crackle", "pan": 0.05, "gain": "-20dB", "score": T["crackle"].score(total)},
         *([{"name": "rain", "patch": "c2-rain", "pan": -0.2, "gain": "-22dB",
              "fx": ["reverb kind=room decay=0.6s mix=0.25", "width width=1.6"], "score": T["rain"].score(total)},
@@ -344,7 +392,8 @@ def main():
         'tail: "%s"' % ("0.5s" if "T" in R9 else "3s"),
         'ceiling: "-0.5dB"',
         'volume: "3dB"',
-        "patches: " + json.dumps(patches()),
+        "patches: " + json.dumps({**patches(), **(resample_patches() if R10 else {})}),
+        *(["songs: " + json.dumps({"bounce": bounce_song(), "bounceb": bounce_song(B_LOOP, 12)})] if R10 else []),
         "master: " + json.dumps({"fx": [{"type": "eq", "bands": ["hp cutoff=30", "highshelf cutoff=8000 gain=0dB"]}]
                                  + ([{"type": "filter", "kind": "lp", "cutoff": {"value": 18000, "mod": [{"src": "auto.dive", "amount": -4.0}]}}]
                                     if "F" in R2 else [])

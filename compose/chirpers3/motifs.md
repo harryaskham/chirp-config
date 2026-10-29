@@ -88,3 +88,7 @@ Generator `compose/chirpers3/src/chirpers3-t8.py`. Night-bus 2-step, 136 bpm, F#
 - **NIGHT LOOP**: F#m9 | Dmaj9 | Bm11 | C#7sus on a juno pad through wM's tape deck; THE STOP's loop Dmaj9 | E6/9 | C#m7 | Bm9.
 - **THE CHOPS** (a song-local voice: chirp's voice layer with a short tract, fast attack): one-syllable fragments - la / mo / ye - in a falling three-note cell (the chord's 9th, 5th, 3rd) on the off-beats after the claps, the third held; an octave up in the last groove.
 - **THE STOP** (groove 2): the bus idles - half-time (kick on 1, a rim on 3), rhodes chords instead of the pad, the B loop, the chops on every clap.
+- **RESAMPLED, no WAVs** (v10): shadow songs inside t6 (`songs: bounce, bounceb`, never played as tracks) render four wurli bars through tape, and patches sample them.
+  - The SWITCH-UP plays `bounceb` (its own chords, rendered an octave up) an octave down. Tape-style, that is half speed: four bars fill the switch's eight. It plays forwards for four bars, then the same tape BACKWARDS, the chords swelling in.
+  - A3's off-beats CHOP `bounce` (the A loop) into eight half-bar slices, MPC-style, each bar playing the slice of its own chord.
+
