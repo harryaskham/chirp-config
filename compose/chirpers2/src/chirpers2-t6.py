@@ -154,6 +154,8 @@ def vibes_bar(b):
         s = {0: (nm(dor(11, 68) - 4), 12, 92)}
     return grid_to_toks(s, b['n16'])
 
+MONT = 'x.x.xx.x.xx.x.xx'   # t10 Cierre's MONTUNO (chirper-zero), two bars of eighths
+
 def funk_gtr_bar(b):
     """CHICKEN SCRATCH (wM's DI string on the jazz-box archtop): sixteenth scratches of the bar's rootless m9 top,
     palm-muted ghosts on the off-sixteenths and open stabs on 2, 6, 9 and 13 - the accents fall between the clav's"""
@@ -199,7 +201,7 @@ def drum_break(b):
 def build():
     B = bars()
     P = {k: [] for k in ('bass', 'clav', 'kit', 'brass', 'saxes', 'lead', 'vibes', 'pad', 'glitch', 'alto', 'gtr')}
-    alto_last = [67]
+    alto_last = [67]; mont_pos = [0]
     for b in B:
         s, n = b['sec'], b['n16']
         R = [rest16(n)]
@@ -225,7 +227,21 @@ def build():
             P['bass'].append(grid_to_toks(bs, b['n16']))
         else:
             P['bass'].append(bass_bar(b) if s != 'intro' else R)
-        P['clav'].append(clav_bar(b) if s != 'bridge' else R)
+        if s == 'solo':
+            # THE MONTUNO, answered: under the synth solo the clav leaves its stabs for t10 Cierre's MONTUNO
+            # (chirper-zero: x.x.xx.x | .xx.x.xx in eighths, octave dyads on the chord's top voice), running on
+            # an eighth grid straight across the 15/16 bar lines, so the figure lands a sixteenth earlier each bar
+            ms = [m_ for m_ in chord(b['root'], 64).split(',')]
+            topn = ms[-1]; tm = NN.index(topn[:-1]) + 12 * (int(topn[-1]) + 1)
+            slots = {}
+            for p16 in range(b['n16']):
+                g16 = mont_pos[0] + p16
+                if g16 % 2 == 0 and MONT[(g16 // 2) % 16] == 'x':
+                    slots[p16] = (f"{nm(tm - 12)},{nm(tm)}", 2, 92 if (g16 // 2) % 8 == 0 else 80)
+            mont_pos[0] += b['n16']
+            P['clav'].append(grid_to_toks(slots, b['n16']))
+        else:
+            P['clav'].append(clav_bar(b) if s != 'bridge' else R)
         P['kit'].append(kit_bar(b, s) if not (s == 'intro' and b['i'] < 2) else R)
         P['pad'].append([tok(chord(b['root'], 55), n / 4, 60)] if s in ('bridge', 'solo') else R)
         P['vibes'].append(vibes_bar(b) if s == 'bridge' else R)

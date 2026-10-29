@@ -15,6 +15,7 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 
 ## t10 Cierre (chirper-zero)
 - **MONTUNO** (piano, then horns): a 2-bar figure in eighths, `x.x.xx.x | .xx.x.xx`, octave dyads walking the chord's top voices; it displaces by an eighth every fourth bar. Progression Dm9 G13 Cmaj7#11 A7b13 (i IV bVII V7alt).
+- Quoted by t6 Quarter to Sixteen (v9, chirper-one): the clav plays the MONTUNO under the synth solo, straight across the 15/16 bar lines.
 - **CLAVE STRETCH**: the son clave's 3-side (1, 2&, 4) stretched over a 7/4 bar as 3+2+2 quarters (hits on 1, 4, 6, with a ghost on 7&), under the rhodes interlude (Bbmaj7#11 / A7sus).
 - **THE PIANO'S TURN** (v7): between the son and the mambo, sixteen bars for the piano over clave, congas and tumbao (horns out, the pad low, the master 3 dB down): a right hand in octaves on syncopated eighth cells (`x.xx.x.x`, `.x.xx.xx`, `xx.x.xx.`, the fourth bar repeating the first), lines from each chord's scale (D dorian, G mixolydian, C lydian, A altered), the top climbing a semitone every two bars.
 - **CORO, sung** (v6; v8 with syllables): in the descarga the call is SUNG as well as played - since v8 on vocables, `la - ye - lo | ma - ye` (onset consonants l y l | m y on the voice engine) - a baritone (maynard, vowels a / e / o by note) an octave under the horns and wordless dream voices at pitch - and in the solo bars the quinto improvises (open tones, slaps, the conga answering), drawn per bar.
@@ -143,6 +144,7 @@ Generator `compose/chirpers2/src/chirpers2-t4.py`. A chamber-jazz brush trio wit
 - **OUT-THEME REHARMONISED** (v5): the theme's last statement over tritone substitutes on every other bar - Abm9 Dm9 Bm9 Fm9 Abm9 Dm9 Am9 Abm9 - ending on a half-step slide home (A -> Ab).
 - **BRIDGE TUNE** (v6, vibes over the 7+7): three 4-bar phrases - the cell as written (rising), turned upside down (falling), then climbing a step a bar to a held top B5; under it a soft alto-sax COUNTER-LINE of guide tones (G F Eb F G G F Gb G F Eb F), one a bar.
 - **CHICKEN SCRATCH** (v8, guitar): sixteenth scratches of the bar's rootless m9 top on the archtop (wM's DI string), palm-muted ghosts on the off-sixteenths, open stabs on 2 6 9 13 - between the clav's hits (1 3 6 9 11 14).
+- **THE MONTUNO, answered** (v9, under the synth solo): the clav plays t10 Cierre's MONTUNO (x.x.xx.x | .xx.x.xx, chirper-zero) in octave dyads on the chord's top voice, on an eighth grid running straight across the 15/16 bar lines, so it lands a sixteenth earlier every bar.
 
 ## t8 Mallet Chamber in Phase (chirper-two)
 Generator `compose/chirpers2/src/chirpers2-t8.py`. A kit-less vibes-and-marimba quartet: process music meets chamber jazz. 112 bpm, 12/8.
