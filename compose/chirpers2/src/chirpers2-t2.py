@@ -100,6 +100,40 @@ def wah(b, k):
     return toks
 
 THEME = [4, 6, 7, 8, 7, 6, 4, 3, 2, 4]   # degrees, a rising-falling modal line
+def rhodes_solo(b, vel):
+    """THE RHODES SOLO (B, Eb Lydian over the harmonic wheel): 4-bar phrases that grow over the 20 bars.
+    Bar 1 states a 3-note cell from the chord (with a chromatic approach from below), bar 2 sequences it a step up,
+    bar 3 runs sixteenths up the mode, bar 4 lands on a long note (the #4, the Lydian colour, on the last phrase).
+    Each phrase starts a third higher and the runs get longer: a solo that climbs and opens out."""
+    i = b['i']; ph, pos = i // 4, i % 4
+    base = 2 + 2 * ph + b['cd']              # degree the phrase starts on (a third higher each phrase)
+    while base > 7: base -= 7                # kept in the solo's octave (G4-D6)
+    e16 = b['e8'] * 2
+    toks, t = [], 0
+    def add(d, ln, v, chrom=0):
+        nonlocal t
+        ln = min(ln, e16 - t)
+        if ln <= 0: return
+        toks.append(tok(nm(deg(b, d, 2) + chrom), ln / 4, v)); t += ln
+    if pos in (0, 1):
+        c = base + pos                       # the sequence: a step up
+        add(c, 1, vel - 10, chrom=-1)        # chromatic approach from below
+        add(c, 2, vel + 6); add(c + 2, 2, vel); add(c + 4, 3, vel + 4)
+        while t < e16:
+            add(c + 2 if (t // 2) % 2 else c + 1, 2, vel - 8)
+    elif pos == 2:
+        d = base - 7 - (e16 // 2 - 4)        # start low enough that the run lands near where the phrase began
+        while t < e16:                       # the run: sixteenths up the mode, longer each phrase
+            add(d, 1, vel + (6 if t % 4 == 0 else -4)); d += 1
+    else:
+        land = 3 if ph == 4 else base + 4    # #4 (degree 3 in Lydian) on the last phrase
+        add(land, max(4, e16 - 4), vel + 8)
+        while t < e16:
+            add(land - 1, 2, vel - 12)
+    if t < e16:
+        toks.append(f"R/{(e16 - t) / 4:g}b")
+    return toks
+
 def horn_line(b, k, start_deg, vel):
     """a phrase across the bar: quarter-ish notes, the last one held"""
     toks, e8, j = [], b['e8'], 0
@@ -133,7 +167,7 @@ def build():
             parts['ten'].append(horn_line(b, k, b['i'] + 3, 78) if b['i'] % 4 == 3 else rest(b))
         elif sec == 'B':   # the rhodes 'solos' (the cell climbs), horns lay out but for stabs
             parts['tpt'].append(rest(b)); parts['ten'].append(rest(b))
-            parts['rhodes'][-1] = horn_line(b, k, b['i'] * 2, 82)
+            parts['rhodes'][-1] = rhodes_solo(b, 86)
         elif sec == 'trades':   # trading bars: trumpet / tenor alternate
             parts['tpt'].append(horn_line(b, k, b['i'], 100) if b['i'] % 2 == 0 else rest(b))
             parts['ten'].append(horn_line(b, k, b['i'] + 5, 92) if b['i'] % 2 == 1 else rest(b))
