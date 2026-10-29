@@ -23,6 +23,9 @@ WHEEL_DOUBLES = True
 # HARMONIC RHYTHM (bar by bar): the vamp's chord moves every bar inside the mode, an 7-bar cycle against the 5-bar wheel
 # and the 4-bar phrases (scale degrees from the section's root; the bass cell, the rhodes and the sub follow it)
 PROG = {'dorian': [0, 3, 0, 6, 4, 3, 1], 'lydian': [0, 1, 0, 4, 2, 1, 5], 'phrygdom': [0, 1, 0, 6, 5, 1, 3]}
+# chirper-two's tom choir from Palindrome for Brushes and Toms (t4): physical toms (drum layer, tune_sounding)
+TOM_CHOIR = {'synth': {'layers': [{'type': 'drum', 'beater': 'stick', 'contact': 1.5, 'decay': '1.1s', 'sharp': 35, 'reso': 1.0, 'cavity': 0.25, 'tune_sounding': True, 'reso_level': 0.5, 'air': 0.45, 'strike': 0.3, 'shell': 0.25, 'slap': 0.5, 'stereo': 0.5}], 'filters': ['hp cutoff=60'], 'amp': {'a': '0.3ms', 'd': '1.4s', 's': 0, 'r': '120ms', 'curve': 3}}, 'play': {'vel_sens': 0.6}}
+
 MODES = {'dorian': [0, 2, 3, 5, 7, 9, 10], 'lydian': [0, 2, 4, 6, 7, 9, 11], 'phrygdom': [0, 1, 4, 5, 7, 8, 10]}
 
 # form: (name, bars, root midi (bass octave), mode, wheel)
@@ -228,6 +231,27 @@ def build():
                 if b['i'] >= 2 * (step + 1):
                     for v in voices:
                         parts[v][k] = rest(b)
+    # THE TOM CHOIR ANSWERS (the break): chirper-two's Palindrome for Brushes and Toms (t4) plays this song's NIGHT
+    # CELL through its bridge; here its tom choir (t4's singing physical toms, borrowed) sings t4's MIRROR MELODY
+    # back over the bass and kit - its 3/4 cell (A G F E) and 5/8 cell (D E F), then both retrograde, the
+    # palindrome's way - and in the break's second half the same a fourth up, as the rhodes comes back in
+    parts['toms'] = []
+    CELL_A = [('A3', 2), ('G3', 1), ('F3', 1), ('E3', 2)]; CELL_B = [('D4', 1), ('E4', 1), ('F4', 3)]
+    def fit(notes, e8, up=0):
+        o_, t_ = [], 0
+        for n_, ln in notes:
+            if t_ + ln > e8: break
+            m_ = NN.index(n_[:-1]) + 12 * (int(n_[-1]) + 1) + up
+            o_.append(f"{nm(m_)}/{ln / 2 - 0.05:g}b@84"); o_.append('R/0.05b'); t_ += ln
+        if t_ < e8: o_.append(f"R/{(e8 - t_) / 2:g}b")
+        return o_
+    PLAN = [CELL_A, CELL_B, CELL_B[::-1], CELL_A[::-1], None]
+    for k, b in enumerate(B):
+        if b['sec'] == 'break':
+            ph = PLAN[b['i'] % 5]
+            parts['toms'].append(fit(ph, b['e8'], 5 if b['i'] >= 5 else 0) if ph else rest(b))
+        else:
+            parts['toms'].append(rest(b))
     end_s = total_beats * 60 / BPM
     J = lambda p: ' | '.join(' '.join(x) for x in parts[p])
     return {
@@ -249,6 +273,7 @@ def build():
                {'name': 'dw', 'patch': 'starcaster-clean', 'gain': '-12dB', 'pan': 0.5, 'score': J('dw')},
                {'name': 'dt', 'patch': 'tenor-sax-synth', 'gain': '-12dB', 'pan': -0.15, 'score': J('dt')},
                {'name': 'dp', 'patch': 'trumpet-mute', 'gain': '-12dB', 'pan': 0.2, 'score': J('dp')}] if WHEEL_DOUBLES else []),
+            {'name': 'toms', 'patch': TOM_CHOIR, 'gain': '+8dB', 'pan': -0.05, 'fx': ['reverb kind=room decay=0.9s mix=0.15'], 'score': J('toms')},
             {'name': 'tpt', 'patch': 'trumpet-mute', 'gain': '-6dB', 'pan': 0.15, 'score': J('tpt')},
             {'name': 'ten', 'patch': 'tenor-sax-synth', 'gain': '-7dB', 'pan': -0.2, 'score': J('ten')},
         ]}
