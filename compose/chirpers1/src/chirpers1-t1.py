@@ -346,8 +346,8 @@ def main():
           for k, pn in enumerate(("L30", "R30", "L60", "R60"))],
         tr("gtr-l", "m8-emg-l", guitar(), pan="L90", gain="-5dB", seed=7),
         tr("gtr-r", "m8-emg-r", guitar(), pan="R90", gain="-5dB", seed=13),
-        tr("kick", "metal-kit-dry", kick(), out="drums"),
-        tr("snare", "metal-kit-dry", snare(), out="drums"),
+        tr("kick", "metal-kit-phys", kick(), out="drums"),        # chirper-two's physical kick and snare (v11)
+        tr("snare", "metal-kit-phys", snare(), out="drums"),
         tr("cym", "metal-kit-dry", cymbals(), out="drums"),
         tr("toms", "seed-toms", toms(), out="drums", sends={"hall": "-9dB"}),
     ]
