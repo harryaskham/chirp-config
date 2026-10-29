@@ -39,7 +39,8 @@ BTRIP = os.environ.get("T1_BTRIP", "1") == "1"
 STAIRUP = os.environ.get("T1_STAIRUP", "1") == "1"
 STAIRTRIP = os.environ.get("T1_STAIRTRIP", "0") == "1"
 PLANES = os.environ.get("T1_PLANES", "")
-OVERTURE = os.environ.get("T1_OVERTURE", "1") == "1"  # the tenor solo quotes the album's themes (the opener as overture): t2 t7 t8 t10 t4 t9  # the upright's string in two polarisations (pin df4ae6aa): "0.3" or "0.3,1.5" (planes, beat)  # the climbing stair's second bar of each pair in quarter-note triplets (THREE OVER TWO)  # the bridge returns after the head out, inverted: the WHOLE-STEP STAIR climbs (Bb7sus Bmaj7#11 Dbmaj9 Ebmaj9)  # the bass solo phrases every 4th bar in quarter-note triplets too  # a 16-bar upright solo in 4/4 after the waltz: the bass sings, the piano lays out every other bar, the ride drops  # the intro's last two bars: the tenor foreshadows SEVEN DOORS, soft  # the tag's last bar: the horns run up G7b9 in quarter-note triplets into C (the head's last bar, augmented across the beat)  # in the tag, the drummer answers the horns' turnaround in triplet eighths (bars 2 and 4)  # the head out reharmonised (Abmaj7#11 Cm11 Bbm9 Dbmaj7#11 Cm11 Fm9 Db7#11 G7alt), the horn in thirds, and a 4-bar TAG on the turnaround  # the upright's sine under the string (dB)  # 1 = v1 balance; 2 = kit -13 dB + highshelf -5 @4k, bass +4, master shelf +6 @150, highshelf -4 @6k
+OVERTURE = os.environ.get("T1_OVERTURE", "1") == "1"
+OVERTRADES = os.environ.get("T1_OVERTRADES", "1") == "1"  # the 7/4 trades' tenor phrases quote chirper-one's t3 GLASS TUNE and t5 GUIDE-TONE LINE  # the tenor solo quotes the album's themes (the opener as overture): t2 t7 t8 t10 t4 t9  # the upright's string in two polarisations (pin df4ae6aa): "0.3" or "0.3,1.5" (planes, beat)  # the climbing stair's second bar of each pair in quarter-note triplets (THREE OVER TWO)  # the bridge returns after the head out, inverted: the WHOLE-STEP STAIR climbs (Bb7sus Bmaj7#11 Dbmaj9 Ebmaj9)  # the bass solo phrases every 4th bar in quarter-note triplets too  # a 16-bar upright solo in 4/4 after the waltz: the bass sings, the piano lays out every other bar, the ride drops  # the intro's last two bars: the tenor foreshadows SEVEN DOORS, soft  # the tag's last bar: the horns run up G7b9 in quarter-note triplets into C (the head's last bar, augmented across the beat)  # in the tag, the drummer answers the horns' turnaround in triplet eighths (bars 2 and 4)  # the head out reharmonised (Abmaj7#11 Cm11 Bbm9 Dbmaj7#11 Cm11 Fm9 Db7#11 G7alt), the horn in thirds, and a 4-bar TAG on the turnaround  # the upright's sine under the string (dB)  # 1 = v1 balance; 2 = kit -13 dB + highshelf -5 @4k, bass +4, master shelf +6 @150, highshelf -4 @6k
 
 # (name, beats per bar, bars, swing)
 FORM = [("intro", 7, 4, SWING), ("headA", 7, 8, SWING), ("bridge", 4, 8, 0.5), ("headA2", 7, 8, SWING),
@@ -135,6 +136,14 @@ OVERTURE_Q = {
     21: [("C5", .5), ("D5", .5), ("Eb5", 1), ("D5", .5), ("C5", .5), ("R", 1)],
     24: [("C5", .5), ("F5", 3.5)],                                                                       # t9 EXPOSURE (chirper-zero): a fourth up into Ebm11's 9th
     25: [("Bb4", .5), ("Eb5", 3), ("R", .5)],
+}
+
+
+TRADES_Q = {  # the trades' tenor phrases (7/4), two of them quotes
+    0: [("C5", 1), ("G5", 1), ("D5", 1.5), ("Bb4", 1.5), ("Eb5", 2)],      # t3 GLASS TUNE (chirper-one): chord-tone indices 0 2 4 3 1 4 2 0 on Cm11
+    1: [("D5", 1.5), ("G4", 1.5), ("C5", 4)],
+    4: [("C5", 1.5), ("Bb4", 1.5), ("Ab4", 2), ("B4", 2)],                 # t5 GUIDE-TONE LINE (chirper-one): C Bb Ab B A C Bb Db, chromatic and slow
+    5: [("A4", 1.5), ("C5", 1.5), ("Bb4", 2), ("Db5", 2)],
 }
 
 
@@ -447,6 +456,8 @@ def build():
             elif sec == "trades":  # tenor two bars, drums two bars
                 if (b // 2) % 2 == 0:
                     bar["tenor"] = solo(c, beats, rng, 55, 82, vel=98)
+                    if OVERTRADES and b in TRADES_Q:
+                        bar["tenor"] = line(TRADES_Q[b], vel=100)
                     bar["piano"] = comp(c, beats, rng, vel=70, b=b)
                     bar["bass"] = walk(c, nxt, beats, rng)
                     bar["kit"] = ride(beats, rng, b, sec, vel=86)
