@@ -35,7 +35,11 @@ RECAP = os.environ.get("T9_RECAP", "1") == "1"
 BASSOLO = os.environ.get("T9_BASSOLO", "0") == "1"
 SEGUE = os.environ.get("T9_SEGUE", "1") == "1"
 ARCH = os.environ.get("T9_ARCH", "1") == "1"
-MOTIF = os.environ.get("T9_MOTIF", "1") == "1"  # EXPOSURE as a sequence: every bar the leap of a fourth up into the chord's 9th (one shape carried down the changes)  # the dusk replays the dawn (its piano figures and washes, bar for bar) with the fretless singing over it: the day ends as it began  # under the last chord, Cierre's bembe bell arrives at Cierre's own tempo (eighths of 192 ms): the segue into the closer  # the open section becomes the fretless's solo (high, singing, sliding), the guitar swelling behind  # the return replays the song's EXPOSURE melody (a recapitulation) with the full band  # the ride on dotted eighths across the 11/8 (with the guitar): the cymbal's own cycle  # the guitar's dotted-eighth ostinato (0.75 beats: seven per 11/8 bar) in the ostinato and return  # 1 = kit -12 dB + highshelf -5 @4k; 2 = kit -10 dB, no shelf
+MOTIF = os.environ.get("T9_MOTIF", "1") == "1"
+VIBES = os.environ.get("T9_VIBES", "1") == "1"
+VIB_BARS = int(os.environ.get("T9_VIBBARS", "4"))  # how many dawn bars the vibes answer in
+VIB_DB = os.environ.get("T9_VIBDB", "-14")
+VIB_DUSK = os.environ.get("T9_VIBDUSK", "0") == "1"  # the arch carries the vibes into the dusk too  # the vibes' track gain (dB)  # chirper-two's vibes (t8's c2-vibes, borrowed) answer t8's coda in the dawn, and come back in the dusk  # EXPOSURE as a sequence: every bar the leap of a fourth up into the chord's 9th (one shape carried down the changes)  # the dusk replays the dawn (its piano figures and washes, bar for bar) with the fretless singing over it: the day ends as it began  # under the last chord, Cierre's bembe bell arrives at Cierre's own tempo (eighths of 192 ms): the segue into the closer  # the open section becomes the fretless's solo (high, singing, sliding), the guitar swelling behind  # the return replays the song's EXPOSURE melody (a recapitulation) with the full band  # the ride on dotted eighths across the 11/8 (with the guitar): the cymbal's own cycle  # the guitar's dotted-eighth ostinato (0.75 beats: seven per 11/8 bar) in the ostinato and return  # 1 = kit -12 dB + highshelf -5 @4k; 2 = kit -10 dB, no shelf
 
 NOTE = {"C": 0, "C#": 1, "Db": 1, "D": 2, "D#": 3, "Eb": 3, "E": 4, "F": 5, "F#": 6, "Gb": 6, "G": 7, "G#": 8, "Ab": 8,
         "A": 9, "A#": 10, "Bb": 10, "B": 11}
@@ -56,6 +60,10 @@ def R(d):
 
 def J(*xs):
     return " ".join(x for x in xs if x)
+
+
+# chirper-two's vibraphone from t8 Mallet Chamber in Phase (song-local c2-vibes, copied 29 Oct 05:1x; credited in sounds.md)
+C2_VIBES = {"about": "chirper-two's vibraphone for Odd Hours t8: aluminium-bar partials 1 / 4 / 10 (tuned bars), a soft yarn-mallet tick, a long ring, and the MOTOR: a 5.2 Hz tremolo on the bar.", "synth": {"layers": [{"name": "bar", "type": "additive", "partials": [[1, 1], [4.0, 0.16], [10.0, 0.025]], "level": {"value": "0dB", "mod": [{"src": "lfo.motor", "amount": 3}]}}, {"name": "tick", "type": "noise", "level": {"value": "-72dB", "mod": [{"src": "env.tk", "amount": 36}]}}], "env": {"tk": {"a": "0.3ms", "d": "4ms", "s": 0}}, "lfo": {"motor": {"wave": "sine", "rate": "5.2hz"}}, "filters": ["hp cutoff=150", "lp cutoff=7k"], "amp": {"a": "2ms", "d": "3.2s", "s": 0, "r": "500ms", "curve": 2}}, "play": {"vel_sens": 0.55}}
 
 
 # chords: bass root midi, voicing (piano), colour tones (pcs relative to root) for the melody
@@ -235,7 +243,7 @@ def cut(piece, beats):
 
 # ------------------------------------------------------------------ arrangement
 def build():
-    names = ("piano", "bass", "tenor", "gtr", "strings", "kit")
+    names = ("piano", "bass", "tenor", "gtr", "strings", "kit") + (("vibes",) if VIBES else ())
     T = {n: [] for n in names}
     seg_at = [0.0]
     beat_pos = 0.0
@@ -252,6 +260,10 @@ def build():
             bar = {n: R(beats) for n in names}
             if sec == "dawn":
                 bar["piano"] = J(held(c, beats - 0.5, 50 + 2 * b), R(0.5)) if b % 2 == 0 else arpeggio(c, b, beats, 48)
+                if VIBES and b < VIB_BARS:  # t8's vibes answer: one colour tone per bar, struck with the piano and left to ring under the motor
+                    r, _, col = CH[c]
+                    tone = [m for m in range(72, 89) if (m - r) % 12 in col][b % 3]
+                    bar["vibes"] = J(tok(nm(tone), beats - 0.5, 70 + b), R(0.5))
                 bar["kit"] = wash(beats) if b % 2 == 1 else R(beats)
                 if b >= 4:
                     bar["strings"] = held(c, beats, 40)
@@ -298,7 +310,7 @@ def build():
                 bar["bass"] = fretless(c, beats, b, sing=True)
                 bar["piano"] = arpeggio(c, b, beats, 44 - 2 * b) if b % 2 == 0 else J(held(c, beats - 1, 40), R(1))
                 if ARCH and b < nb - 1 and b < len(dawn_bars) and bar_beats("dawn", b) == beats:
-                    for k in ("piano", "kit", "strings"):
+                    for k in ("piano", "kit", "strings") + (("vibes",) if VIBES and VIB_DUSK else ()):
                         bar[k] = dawn_bars[b][k]
                 if b == nb - 1:
                     seg_at[0] = beat_pos
@@ -356,6 +368,8 @@ def song():
         {"name": "kit", "patch": "room-kit", "gain": "-12dB", "sends": {"hall": "-10dB"},
          "fx": [{"type": "eq", "bands": ["highshelf cutoff=4000 gain=-5dB"]}], "score": sc("kit")},
     ]
+    if VIBES:
+        tracks.append({"name": "vibes", "patch": "c2-vibes", "gain": f"{VIB_DB}dB", "pan": 0.25, "sends": {"hall": "-8dB", "dly": "-14dB"}, "score": sc("vibes")})
     if SEGUE:
         tracks.append({"name": "bell", "patch": "room-kit", "gain": "-12dB", "pan": -0.35, "sends": {"hall": "-10dB"}, "score": sc("bell")})
     if KIT == "2":
@@ -367,6 +381,7 @@ def song():
                   "by free-sounding passages in long values; the harmony moves every bar through lydian colours. dawn -> "
                   "ostinato -> song (high tenor) -> open (the guitar sings) -> return (tutti 11/8) -> dusk on Emaj9."),
         "tempo": BPM, "ceiling": "-0.1dB", "tail": "4s",
+        **({"patches": {"c2-vibes": C2_VIBES}} if VIBES else {}),
         "buses": {"hall": {"fx": ["reverb kind=hall decay=4.5s size=0.95 mix=1 predelay=40ms"]},
                   "dly": {"fx": [f"delay time={DLY} feedback=0.45 mix=1 tone=2500"]}},
         "master": master(times),
@@ -375,7 +390,7 @@ def song():
 
 
 def dump(doc):
-    lines = [f"{k}: {json.dumps(doc[k])}" for k in ("about", "tempo", "ceiling", "tail", "master")]
+    lines = [f"{k}: {json.dumps(doc[k])}" for k in ("about", "tempo", "ceiling", "tail") + (("patches",) if "patches" in doc else ()) + ("master",)]
     lines.append("buses:")
     lines += [f"  {b}: {json.dumps(v)}" for b, v in doc["buses"].items()]
     lines.append("tracks:")
