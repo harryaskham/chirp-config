@@ -465,13 +465,28 @@ def declared_tempo(song):
         return None
 
 
+def music_end(x, sr, floor_db=-60.0, win=0.1):
+    """Seconds to the end of the last 100 ms window above FLOOR_DB (dBFS RMS): where the music stops. A tapestop on
+    the last bar leaves seconds of digital silence, which section_bounds read as a section of its own (chirper-zero:
+    Window Seat's brake moved recurrence 74-79 -> 100 and the total 92.25 -> 96.65, 29 Oct). The full length still
+    counts for length, master and the album joins: on the record the silence is there."""
+    n = int(win * sr)
+    if n <= 0 or len(x) < n:
+        return len(x) / sr
+    m = x.astype(float).mean(1) if x.ndim > 1 else x.astype(float)
+    k = len(m) // n
+    rms = np.sqrt((m[:k * n].reshape(k, n) ** 2).mean(1))
+    loud = np.nonzero(20 * np.log10(rms + 1e-12) > floor_db)[0]
+    return len(x) / sr if not len(loud) else min(len(x) / sr, (loud[-1] + 1) * win)
+
+
 def build_ctx(cid, wav, climb, album, song=None):
     x = L.load(wav)
     F = L.Feat(x)
     dur = len(x) / L.SR
     slot = next((t for t in album.get("tracks", []) if t.get("id") == cid), None)
     X = frames(F)
-    secs = section_feats(F, x, section_bounds(F, dur, X), X)
+    secs = section_feats(F, x, section_bounds(F, music_end(x, L.SR), X), X)
     me = features(x, F, dur)
     return {"id": cid, "wav": wav, "x": x, "F": F, "dur": dur, "album": album, "slot": slot, "sections": secs,
             "me": me, "density": me["density"], "others": others_features(album["id"], cid),

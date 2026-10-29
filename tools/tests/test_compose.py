@@ -290,6 +290,20 @@ class Measures(unittest.TestCase):
         self.assertEqual(wb, [(14792, 18.0)])                 # the top band (centre ~14.8 kHz) sticks out by 18 dB
         self.assertGreater(flow(14.0) - flow(23.0), 10.0)     # was 6.8 vs 0.7 of a 50-point half: no gradient
 
+    def test_music_end_ignores_a_dead_stop_s_silence(self):
+        # chirper-zero, 29 Oct: a tapestop on the last bar leaves seconds of digital silence that section_bounds read as
+        # a section of its own (Window Seat: total 92.25 -> 96.65); sections now end where the music does
+        sr = 48000
+        t = np.arange(10 * sr) / sr
+        x = np.stack([0.3 * np.sin(2 * np.pi * 220 * t)] * 2, 1)
+        x[7 * sr:] = 0.0                                                     # the deck stops at 7 s
+        x[int(6.9 * sr):7 * sr] *= np.linspace(1, 0.0005, int(0.1 * sr))[:, None]
+        self.assertAlmostEqual(CS.music_end(x, sr), 7.0, places=1)
+        self.assertAlmostEqual(CS.music_end(x[:7 * sr], sr), 7.0, places=1)   # no tail: unchanged
+        x[int(8.5 * sr):int(8.6 * sr)] = 1e-4                                # -80 dBFS hiss is still silence
+        self.assertAlmostEqual(CS.music_end(x, sr), 7.0, places=1)
+        self.assertEqual(CS.music_end(np.zeros((sr, 2)), sr), 1.0)          # all silent: the whole length
+
     def test_flow_and_distinct_need_neighbours(self):
         x = piece([(30, 110, 0.5, 1.0), (30, 147, 0.4, 0.5)])
         c = ctx_of(x)
