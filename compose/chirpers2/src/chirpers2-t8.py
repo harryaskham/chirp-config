@@ -87,6 +87,10 @@ R12 = set(filter(None, os.environ.get("T8_R12", "3").split(","))) - {"none"}
 # the frame drum plays its 3+3+3+2 grouping over the last two bars, an 11-eighth cycle against the 12-eighth bar
 # (over the whole coda it blurred the pulse: rhythm -2).
 R13 = set(filter(None, os.environ.get("T8_R13", "K").split(","))) - {"none"}  # S tried: on-grid strokes, rhythm -2
+# Round 14 (v14): I = the opening ASSEMBLED FROM THE FLOOR: the bass marimba plays the cell's dotted-quarter
+# skeleton alone for a bar, then the low marimba's cell joins it (and the frame drum after); F = the coda ends on the
+# bass marimba's low Eb, ringing under the vibes' last echo.
+R14 = set(filter(None, os.environ.get("T8_R14", "I,F").split(","))) - {"none"}
 SUBJECT = [(0, 1), (3, 1), (7, 1), (6, 2), (2, 2), (5, 1), (1, 1), (4, 1), (0, 2)]  # t7: semitones, eighths
 BAR = 6.0  # a 12/8 bar, in quarter beats
 
@@ -217,7 +221,17 @@ def build():
             chord = HOME[i // 2 % 2 * 0]  # the coda rests on the home chord
         cell = CELL_INV if sec == "bridge" else CELL
         # ---- the marimbas ----
-        if mar:  # the low marimba solos
+        if sec == "cell" and "I" in R14 and "M" in R11:  # the floor first
+            for e in range(0, 12, 3):
+                bp = deg(chord, cell[e]) - 24
+                while bp > 52:
+                    bp -= 12
+                while bp < 33:
+                    bp += 12
+                T["bm"].add(start + e / 2, 1.4, nm(bp), v - 2 + (6 if e == 0 else 0))
+        if sec == "cell" and "I" in R14 and i == 0:
+            pass  # the low marimba waits a bar
+        elif mar:  # the low marimba solos
             if i % 2 == 0:
                 d0 = rng.choice([0, 1, 2])
                 for s in range(10):  # a quintuplet run up over two beats
@@ -396,6 +410,9 @@ def build():
                     fd.add(start + 5, 1, "sw", v - 12)
         elif sec == "coda" and i == 0:
             fd.add(start, 6, "sw", v - 18)
+    if "F" in R14 and "M" in R11:  # the last floor: a low Eb under the final echo
+        last = [bb for bb in bars if bb[1] == "coda"][-1]
+        T["bm"].add(last[0] + 1.5, BAR * 0.9, nm(HOME[0][0] - 24), LEVEL["coda"] + 6)
     if "K" in R13:  # t7's clock through the unison
         un = [bb for bb in bars if bb[1] == "unison"]
         s0, s1 = un[0][0], un[-1][0] + BAR
