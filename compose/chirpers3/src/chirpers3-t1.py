@@ -113,6 +113,10 @@ def build():
     for name, t0 in sections:
         ends[name] = t0 + 16.0
     spans = [(ends[n] - 4.0, ends[n]) for n in ('flip', 'sax', 'flip2') if n in ends]
+    # THE GLITCH BUILD (v13): the stutter section's last two bars are resampled too - the stuttered slice itself
+    # chopped and reversed by the chop fx (the same lane), so the build ends in a glitch-resample, not just a roll
+    if 'stutter' in ends:
+        spans.append((ends['stutter'] - 8.0, ends['stutter']))
     cp = [['0s', 0]]
     for a_, e_ in sorted(spans):
         cp += [[f'{a_ * SPB - 0.02:.3f}s', 0], [f'{a_ * SPB:.3f}s', 1], [f'{e_ * SPB - 0.02:.3f}s', 1], [f'{e_ * SPB:.3f}s', 0]]
