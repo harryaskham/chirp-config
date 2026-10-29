@@ -17,6 +17,7 @@ GENTLE GIANT / ZAPPA COUNTERPOINT: a through-composed chamber-prog piece where t
                  augmented in the bass, a ride bell on the 7 (12 bars of 4/4);
     5 TRADES     sax and trumpet trade single bars, then pairs, over a meter wheel 7 5 6 9 (24 bars), walking bass;
                  each traded bar develops the subject (cyclic start, on the bar's chord, as written / inverted / retrograde);
+                 the hushed part is a SWINGING BRUSH TRIO (swung soloists, walking quarters, chirper-two's brushes);
     6 STRETTO    subject entries every two eighths in every voice, the climax;
     7 CODA       the subject in augmentation (bass + flute), then the final chord built one hocketed note at a time.
 - KIT: prog-kit, groupings follow each meter (7 = 2+2+3 or 3+2+2 alternating bar by bar, 5 = 3+2 / 2+3, 9 = 2+2+2+3,
@@ -79,7 +80,7 @@ class Part:
 
 
 P = {k: Part() for k in ("mar", "flute", "tpt", "sax", "gtr", "keys", "bass", "kick", "snare", "hat", "toms", "ride",
-                         "clock", "sub")}
+                         "clock", "sub", "brush", "tap")}
 BARS = []          # (start eighths, length eighths, section, index in section)
 rng = random.Random(7)
 
@@ -283,7 +284,17 @@ def improv_bar(who, st, ln, ci, prev, vel):
     return p
 
 
-def motif_bar(who, st, ln, i, vel):
+SWING = 0.62          # where a swung off-beat eighth lands within its beat (0.5 straight, 0.667 triplet)
+
+
+def swing(x):
+    """Map a position in eighths onto a swung beat: the first eighth of each beat stretches to SWING of it."""
+    beat = 2.0 * int(x // 2)
+    f = x - beat
+    return beat + (f * 2 * SWING if f <= 1 else 2 * SWING + (f - 1) * (2 - 2 * SWING))
+
+
+def motif_bar(who, st, ln, i, vel, swung=False):
     """A traded bar as MOTIVIC DEVELOPMENT: the subject read cyclically from a moving start, transposed onto the bar's
     chord root, alternately as written, inverted and in retrograde, filling the bar less a breath."""
     root, _ = chord_at(i)
@@ -298,9 +309,39 @@ def motif_bar(who, st, ln, i, vel):
         if form == 1:
             p = -p
         d = min(d, ln - 1 - x)
-        P[who].add(st + x, d * 0.92, nm(base + p), vel + (6 if x == 0 else 0))
+        a, b = (swing(x), swing(x + d)) if swung else (x, x + d)
+        P[who].add(st + a, (b - a) * 0.92, nm(base + p), vel + (6 if x == 0 else 0))
         x += d
         k += 1
+
+
+def walk_quarters(st, ln, ci, vel):
+    """A walking bass on the quarters: chord tones up the bar, a chromatic approach into the next bar's root; an odd
+    bar ends with a half-beat pickup."""
+    root, iv = chord_at(ci)
+    nxt = 38 + ((chord_at(ci + 1)[0] - 2) % 12)
+    b = 38 + ((root - 2) % 12)
+    tones = [b, b + iv[1], b + iv[2], b + (iv[3] if len(iv) > 3 else 12)]
+    beats = int(ln // 2)
+    for q in range(beats):
+        last = q == beats - 1 and ln % 2 == 0
+        m = (nxt + (1 if (ci + q) % 2 else -1)) if last else tones[q % len(tones)]
+        P["bass"].add(st + 2 * q, 1.9, nm(m), vel + (6 if q == 0 else 0))
+    if ln % 2:
+        P["bass"].add(st + 2 * beats, 0.9, nm(nxt - 1), vel - 4)
+
+
+def brush_bar(st, ln, i, vel):
+    """chirper-two's brush kit (borrowed from t4): a sweep through the bar, taps on alternate beats, the ride on every
+    beat with its swung skip, all under the soloists (no kick: the hush keeps its floor in the bass)."""
+    P["brush"].add(st, ln * 0.95, "bs" if ln < 8 else "bsl", vel - 18)
+    beats = int(ln // 2)
+    for q in range(beats):
+        x = st + 2 * q
+        P["ride"].add(x, 0.9, "D5", vel - 50)
+        if q % 2 == 1:
+            P["tap"].add(x, 0.5, "bt", vel - 4)
+            P["ride"].add(x + 2 * SWING, 0.4, "D5", vel - 56)
 
 
 def trades(t):
@@ -313,20 +354,16 @@ def trades(t):
         late = i >= 20
         who = ("tpt", "sax")[(i if i < 16 else i // 2) % 2]       # single bars, then pairs
         v = (84 + i // 3) if late else (60 + i // 2)
-        motif_bar(who, t, ln, i, v)
+        motif_bar(who, t, ln, i, v, swung=not late)
         bar(t, ln, "trades", i)
         if late:
             harmony_bar(t, ln, i, 70 + i // 2, walk=True)
             kit_bar(t, ln, i, 84 + i // 2, fill=(i == 23))
         else:
-            harmony_bar(t, ln, i, 72, walk=True, stabs=False)     # the walking bass keeps the trio's floor
+            walk_quarters(t, ln, i, 76)
             root, iv = chord_at(i)
-            P["keys"].add(t, ln - 0.5, ",".join(nm(60 + ((root + x) % 12)) for x in iv[1:]), 46)
-            opts = GROUPS.get(ln)
-            x = t
-            for g in opts[i % len(opts)]:                       # the ride on each group start, nothing else
-                P["hat"].add(x, 1, "hp", 64 if x == t else 52)     # the hat pedal's chick on each group
-                x += g
+            P["keys"].add(t + swing(1), ln - 1.5, ",".join(nm(60 + ((root + x) % 12)) for x in iv[1:]), 46)  # comp on the and
+            brush_bar(t, ln, i, 70)
         if i % 4 == 3:                                            # the marimba answers each wheel turn
             line(P["mar"], t + ln - 3, [(7, 1), (6, 1), (2, 1)], D4 + 12, 76)
         t += ln
@@ -422,6 +459,21 @@ def main():
            "play": {"vel_sens": 0.6}}
     SUB = {"about": "Cross Purposes' sub (chirper-three): a sine an octave under the bass, a soft attack, sustained.",
            "synth": {"layers": [{"name": "sub", "wave": "sine"}], "amp": {"a": "8ms", "d": "300ms", "s": 0.7, "r": "60ms"}}}
+    sn = dict(type="drum", beater="brush", decay="0.32s", sharp=20, reso=1.45, cavity=0.3, reso_level=0.5, shell=0.3,
+              shell_hz=480, wires=0.5, gap=0.25, wire_tone="5.5k", strike=0.35, damp=0.3, slap=0.7, stereo=0.4)
+
+    def piece(pitch, layer, amp, gain="0dB", filters=("hp cutoff=90",)):
+        return {"pitch": pitch, "gain": gain, "patch": {"synth": {"layers": [layer], "filters": list(filters), "amp": amp},
+                                                          "play": {"vel_sens": 0.7}}}
+    BRUSHES = {"about": "Borrowed from chirper-two's t4 brush kit (Odd Hours): physical-layer brush taps (bt), sweeps "
+                        "(bs, bsl) and a feathered felt kick (k), over room-kit.",
+               "extends": "room-kit",
+               "kit": {"bt": piece("E3", sn, {"a": "0.5ms", "d": "700ms", "s": 0, "r": "60ms", "curve": 2}),
+                       "bs": piece("E3", dict(sn, sweep="0.55s"), {"a": "20ms", "d": "900ms", "s": 0, "r": "80ms", "curve": 1}, "-3dB"),
+                       "bsl": piece("E3", dict(sn, sweep="1.2s"), {"a": "40ms", "d": "1.6s", "s": 0, "r": "120ms", "curve": 1}, "-3dB"),
+                       "k": piece("G1", dict(type="drum", beater="felt", decay="0.5s", sharp=40, reso=1.0, cavity=0.25,
+                                             reso_level=0.6, air=0.4, strike=0.25, damp=0.3, slap=0.3, stereo=0.2),
+                                  {"a": "0.5ms", "d": "600ms", "s": 0, "r": "40ms", "curve": 2}, "6dB", ("hp cutoff=45",))}}
     tr = lambda name, patch, **kw: dict({"name": name, "patch": patch, "score": P[name].score(total)}, **kw)
     tracks = [
         tr("mar", "c3-marimba", pan="L40", gain="-4dB", sends={"room": "-10dB"}),
@@ -438,13 +490,15 @@ def main():
         tr("hat", "prog-kit", out="drums", gain="-4dB"),
         tr("toms", "prog-kit", out="drums"),
         tr("ride", "modal-ride", out="drums", gain="-8dB"),
+        tr("brush", "c3-brushes", out="drums", gain="-20dB"),          # chirper-two's brushes: the sweeps
+        tr("tap", "c3-brushes", out="drums", gain="-14dB"),            # taps and the feathered kick
     ]
     head = [
         'about: "Chirpers - Odd Hours, track 7: Cross Purposes (chirper-three). Gentle Giant / Zappa counterpoint: a nine-note subject over 7/8 + 5/8, hocketed, fugued, black-paged, set at cross purposes (7 against 4), traded and stretto\'d. Generated by compose/chirpers2/src/chirpers2-t7.py."',
         f"tempo: {BPM}",
         'tail: "2s"',
         'ceiling: "-0.3dB"',
-        "patches: " + json.dumps({"c3-marimba": MAR, "c3-sub": SUB}),
+        "patches: " + json.dumps({"c3-marimba": MAR, "c3-sub": SUB, "c3-brushes": BRUSHES}),
         "buses:",
         '  room: {fx: ["reverb kind=room decay=1.1s mix=1 predelay=12ms mono_below=150hz"]}',
         '  drums: {fx: [{"type": "compressor", "threshold": "-20dB", "ratio": 2.5, "attack": "12ms", "release": "100ms", "makeup": "2dB"}, "reverb kind=room decay=0.8s mix=0.12 predelay=8ms mono_below=200hz"]}',
