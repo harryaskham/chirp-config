@@ -45,6 +45,9 @@ FUZZ = [((50, 'm9') if (i // 2) % 2 == 0 else (46, 'maj7')) for i in range(8)] +
        [((52, 'm9') if (i // 2) % 2 == 0 else (48, 'maj7')) for i in range(8)] + \
        [((54, 'm9') if (i // 2) % 2 == 0 else (50, 'maj7')) for i in range(8)]
 CHORDS['fuzz'] = FUZZ
+# the hymn's last two bars turn to C minor for a quote: SEVEN DOORS (chirper-zero's t1 Doors at Seven), as t4 and t10 do
+CHORDS['hymn'][10] = (48, 'm9'); CHORDS['hymn'][11] = (53, 'm7')
+DOORS = [[('C5', 3), ('Bb4', 1), ('G4', 2), ('F4', 2)], [('Eb4', 2), ('F4', 6)]]
 
 def bars():
     out, k = [], 0
@@ -219,8 +222,14 @@ def build():
             P['organ'].append(sol); P['horn'].append(R)
             P['bass'].append(riff_bar(b)); P['kit'].append(kit_bar(b, 'fuzz'))
         elif s == 'hymn':
-            P['wurli'].append(comp_bar(b, 64)); P['flute'].append(R); P['organ'].append(R)
-            P['horn'].append(tune_bar(b, 55, 80, aug=2))
+            P['wurli'].append(comp_bar(b, 64)); P['organ'].append(R)
+            if b['i'] >= 10:
+                # THE DOOR: the horn quotes t1's SEVEN DOORS head cell in its own key, the hymn turned to C minor
+                P['horn'].append([tok(n_, ln / 2, 88 if j_ == 0 else 80) for j_, (n_, ln) in enumerate(DOORS[b['i'] - 10])])
+                P['flute'].append(R)
+            else:
+                P['horn'].append(tune_bar(b, 55, 80, aug=2))
+                P['flute'].append(R)   # (a guide-tone line here blurred the hymn into the verse: recurrence 100 -> 93)
             P['bass'].append([tok(nm(b['root'] - 12), 3.9, 84), 'R/0.1b']); P['kit'].append(kit_bar(b, 'hymn'))
         elif s == 'recap':
             late = b['i'] >= 8

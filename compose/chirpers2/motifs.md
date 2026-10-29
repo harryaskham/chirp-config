@@ -79,6 +79,7 @@ Generator `compose/chirpers2/src/chirpers2-t4.py`. A chamber-jazz brush trio wit
 ## t1 Doors at Seven (chirper-zero)
 - **SEVEN DOORS** (tenor, the horn a fourth below): the head, eight bars of swung 7/4 (4+3) in C dorian / Db lydian with a G7alt turnaround. `C5. Bb4 G4 F4 Eb4 F4~ | G4 Bb4 C5 D5 Eb5~~~ | F5 Eb5 C5 Ab4~ G4 Ab4~ | Bb4 C5 Db5 Eb5 F5 G5~~` (bar 4 climbs to the lydian G5), then `Eb5. D5 C5 Bb4 G4~~ | F4 G4 Bb4 C5 D5 F5~~~ | Eb5 Db5 B4 Ab4 F4 Eb4~ | D4 F4 Ab4 B4 D5 C5~~` (bar 8 runs up G7b9 into C).
 - Quoted by t10 Cierre (v4): the 7/4 interlude opens on SEVEN DOORS a step up, on the rotary rhodes.
+- Quoted by t5 The Kettle Modulates (v5): the hymn's last two bars, on the french horn, in C minor (chirper-one).
 - **WHOLE-STEP STAIR** (the bridge, 4/4, straight eighths, unison horns an octave apart): Ebmaj9, Dbmaj9, Bmaj7#11, Bb7sus, two bars each, falling in whole steps; one figure sequenced down the stair: `Bb4 D5 F5. Eb5 | D5~ Bb4 G4`.
 - **THE UPRIGHT SPEAKS** (v5): after the waltz, sixteen bars of 4/4 for the bass alone up front (Cm11, then Dbmaj7#11 and G7alt): a solo line in the upright's upper register (E2-D4) phrased in two-bar breaths, every fourth bar in quarter-note triplets (THREE OVER TWO), the piano comping only every other bar and the ride dropping back - the quiet before the trades.
 - **LOCKED HANDS** (v4): the piano trio's 3/4 waltz climbs to its last eight bars in block chords - each note of the line doubled an octave below with the two chord tones nearest under it (Shearing / Garland), so the solo ends as a moving wall of chords before the trades.
@@ -102,6 +103,7 @@ Generator `compose/chirpers2/src/chirpers2-t4.py`. A chamber-jazz brush trio wit
 - **13/8 FUZZ RIFF**: 3+3+3+2+2, the root on each group, an octave leap on the 2s; two chords a third apart (Dm9 / Bbmaj7) swapping every 2 bars, the pair climbing a whole step every 8 bars.
 - **GUIDE-TONE LINE** (v3, horn, the verse's second half): the 3rd or the 7th of each chord, whichever is nearest the last note, held for the bar - a slow line moving by the smallest steps while the chords leap by thirds (C Bb Ab B A C Bb Db B D C Eb).
 - **THE KETTLE** (v4, a 9/8 music-box interlude between the verse and the fuzz, 2+2+2+3): the kettle tune on a music box, a celesta in canon a bar later a fourth lower, a clarinet holding root and fifth; the last bar the flute whistles a chromatic run up an octave and a half (the kettle boils) over a snare crescendo into the fuzz.
+- **THE DOOR** (v5, the hymn's last two bars): the hymn turns to C minor (Cm9, Fm7) and the horn quotes t1 Doors at Seven's SEVEN DOORS head cell in its own key (C5. Bb4 G4 F4 | Eb4 F4~), joining t4 and t10 in quoting the opener.
 
 ## t6 Quarter to Sixteen (chirper-one)
 - **15/16 GROOVE**: 4+4+4+3 sixteenths. Synth bass cell (sixteenth positions: interval, length) 0:root 3, 3:+12 1, 4:5th 2, 7:b7 1, 8:root 2, 10:b3 1, 11:4th 1, 12:5th 3; clav stabs on 1 3 6 9 11 14; kick 0 7 10, backbeats 4 and 12, ghost snares 2 6 9 14.
