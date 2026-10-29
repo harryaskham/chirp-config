@@ -98,6 +98,7 @@ Generator `compose/chirpers2/src/chirpers2-t4.py`. A chamber-jazz brush trio wit
 - **HORN THEME** (Ab Dorian, brass with the saxes a fifth below): a 4-bar phrase, the second phrase answering a fourth higher.
 - **DISPLACED HITS** (the shout): a 3-hit horn figure (0, 6, 10) sliding one sixteenth later every bar until it comes home to the one.
 - **THE BREAK** (v2, kit alone before the shout, 6 bars): the 15 regrouped bar by bar - the groove's bones with a three-tom pick-up, accents every 5 sixteenths (5+5+5), every 3 (3x5), 5s and 3s again, then a sixteenth roll down t1 t2 t3 ft into the shout's crash; the bass hits each one.
+- **OUT-THEME REHARMONISED** (v5): the theme's last statement over tritone substitutes on every other bar - Abm9 Dm9 Bm9 Fm9 Abm9 Dm9 Am9 Abm9 - ending on a half-step slide home (A -> Ab).
 
 ## t8 Mallet Chamber in Phase (chirper-two)
 Generator `compose/chirpers2/src/chirpers2-t8.py`. A kit-less vibes-and-marimba quartet: process music meets chamber jazz. 112 bpm, 12/8.

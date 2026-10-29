@@ -26,9 +26,12 @@ G15 = (4, 4, 4, 3); G7 = (4, 3, 4, 3)   # the bridge: two 7/8 bars per bar (14 s
 PLANE_A = [44, 44, 47, 46, 44, 42, 43, 44]          # Abm9 Abm9 Bm9 Bbm9 Abm9 Gbm9 Gm9 Abm9
 PLANE_B = [40, 43, 41, 38, 40, 45, 43, 39]           # the bridge: Em9 Gm9 Fm9 Dm9 Em9 Am9 Gm9 Ebm9 (a key away)
 PLANE_S = [44, 46, 47, 49, 51, 49, 47, 46, 44, 42, 43, 44]   # the shout climbs and falls back
+# the OUT-THEME REHARMONISED: the same horn melody over tritone substitutes on every other bar (Abm9 Dm9 Bm9 Fm9), and
+# the last two bars a chromatic descent home (A -> Ab), so the final statement sounds new under a known tune
+PLANE_O = [44, 50, 47, 41, 44, 50, 45, 44]
 
 FORM = [('intro', 4, G15, PLANE_A), ('groove', 16, G15, PLANE_A), ('theme', 16, G15, PLANE_A), ('bridge', 12, G7, PLANE_B),
-        ('solo', 16, G15, PLANE_A), ('break', 6, G15, [44]), ('shout', 12, G15, PLANE_S), ('out', 8, G15, PLANE_A), ('tag', 1, (4,), [44])]
+        ('solo', 16, G15, PLANE_A), ('break', 6, G15, [44]), ('shout', 12, G15, PLANE_S), ('out', 8, G15, PLANE_O), ('tag', 1, (4,), [44])]
 
 def bars():
     out, k = [], 0
