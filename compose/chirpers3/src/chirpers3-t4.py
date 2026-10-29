@@ -357,7 +357,8 @@ def squelch():
 
 
 def counter_line():
-    """The breakdown's COUNTER-MELODY: a tape piano walking the chords' guide tones in half notes (the third, then the
+    """The breakdown's COUNTER-MELODY: an electric piano (wM's tine pickup: clean soft, barking when pressed through the
+    bridge) walking the chords' guide tones in half notes (the third, then the
     seventh), voice-led to the nearest, answering the soft hidden melody while the beat is out."""
     prev = 65
     for bar in range(37, 45):
@@ -366,7 +367,8 @@ def counter_line():
             pc = (root + deg) % 12
             cands = [m for m in range(58, 76) if m % 12 == pc]
             m = min(cands, key=lambda c: abs(c - prev))
-            P["cpiano"].add(b0(bar) + 8 * h, 7.5, nm(m), 58 + (4 if h == 0 else 0))
+            lean = 20 if bar >= 41 else 0                     # leaning in through the bridge: the tine starts to bark
+            P["cpiano"].add(b0(bar) + 8 * h, 7.5, nm(m), 62 + (4 if h == 0 else 0) + lean)
             prev = m
 
 
@@ -477,12 +479,13 @@ def main():
         tr("boxsong", "c4-box", pan="R15", gain="2dB", sends={"space": "-9dB"}),          # THE BOX SINGS (bars 49-52)
         tr("hail", "c4-hail", pan="C", gain="4dB", out="toys", fx=["comb cutoff=138.6 q=6"]),   # hail on a metal roof
         tr("desc", "boc-lead", pan="R20", gain="-4dB", sends={"space": "-9dB"}),     # the second hidden melody
-        tr("vox", "c4-vox", pan="L15", gain="-4dB", sends={"space": "-7dB"},
+        tr("vox", "c4-vox", pan="L15", gain="-4dB", sends={"space": "-7dB", "echo": "-4dB"},
            fx=[{"type": "tape", "wow": 10, "flutter": 2, "seed": 9}]),                  # the VOX CHOP answers
         tr("mist", "music-box", gain="-6dB", sends={"space": "-6dB"},                   # the MIST: hail into grains
            fx=[{"type": "cloud", "size": "150ms", "density": 18, "position": "500ms", "spray": "400ms", "pitch": 12,
                 "scatter": 0.2, "reverse": 0.4, "spread": 0.9, "mix": 0.85, "seed": 3}]),
-        tr("cpiano", "tape-piano", pan="L30", gain="-6dB", sends={"space": "-9dB"}),     # the breakdown's counter-line
+        tr("cpiano", "epiano-tine", pan="L30", gain="-6dB", sends={"space": "-9dB"},     # the breakdown's counter-line,
+           fx=["tape wow=8 flutter=2 seed=13"]),                                         # on wM's tine pickup
         tr("pad", "juno-pad", gain="-14dB", fx=["lp cutoff=2200", "tape wow=9 flutter=2 seed=11", BREATHE],
            sends={"space": "-8dB"}),                                                    # the pad BREATHES with the kick
         tr("bass", "analog-bass", gain="0dB"),
@@ -514,6 +517,11 @@ def main():
             "lp cutoff=10k", {"type": "tape", "drive": 0.35, "warmth": 0.5, "mix": 1},
             {"type": "compressor", "threshold": "-18dB", "ratio": 3, "attack": "8ms", "release": "120ms", "makeup": "3dB"}]) + ']}',
         '  space: {fx: ["reverb kind=hall decay=3.2s mix=1 predelay=30ms mono_below=200hz shimmer=0.25"]}',   # a halo
+        # THE DUB ECHO (chirper-two's feedback routing): the bus hears itself a dotted eighth ago through a band-pass and a
+        # tape deck, so every repeat comes back darker and more worn (gain .55: it dies away)
+        '  echo: ' + json.dumps({"fx": ["hp cutoff=350", "lp cutoff=2600",
+                                         {"type": "tape", "wow": 12, "flutter": 3, "drive": 0.3, "seed": 6}],
+                                  "returns": [{"from": "echo", "gain": 0.55, "time": f"{3 * 60 / BPM / 4 * 1000:.0f}ms"}]}),
         'master: ' + json.dumps({"fx": [{"type": "pitch", "semitones": {"value": 0, "mod": [{"src": "auto.rs", "amount": -4}]},
                                         "mix": 1},       # the RESAMPLE: the whole band slows like a sampler (Harry's note)
                                        {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.fi", "amount": 1}]}},

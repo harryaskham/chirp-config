@@ -77,7 +77,8 @@ Generator `compose/chirpers3/src/chirpers3-t7.py`. Ambient tape loops, a nominal
   (before the tape and vinyl, so the record's hiss stays steady) drops 4 semitones over the near-stall's first half and
   snaps back for the return, and sags slowly through the wind-down under the toys' own sag.
 - **THE COUNTER-LINE** (since v5, the breakdown): a tape piano walking the chords' guide tones in half notes (third,
-  then seventh, voice-led), answering the soft hidden melody while the beat is out.
+  then seventh, voice-led), answering the soft hidden melody while the beat is out; since v17 on wM's epiano-tine
+  (clean at first, leaning in and barking through the bridge).
 - **THE WIND-DOWN** (since v3, the outro): the music box RUNS DOWN: bar by bar each gear's cycle lengthens (toy
   5..10, box 7..17, crystal 4..9 sixteenths), the pitches sag a semitone every two bars, the notes fade, the beat gives
   out at bar 55; the last sound is one music-box note three semitones flat.
@@ -85,7 +86,8 @@ Generator `compose/chirpers3/src/chirpers3-t7.py`. Ambient tape loops, a nominal
   alternate chords), then a chromatic walk down into each change.
 - **THE VOX CHOP** (since v14): a lo-fi vocal-chop ANSWER at the end of every second bar of the melody section, returning
   with it in the return and the full section: two short sung chops, the chord's fifth falling to its third (on the
-  and-of-3 and on 4), each its own vowel.
+  and-of-3 and on 4), each its own vowel; since v17 every chop is THROWN into a dub echo (dotted-eighth repeats that
+  darken through a band-pass and a tape deck).
 - **THE BOX SINGS** (since v16, bars 49-52, just before the wind-down): the music box itself plays the hidden melody it
   has been making all along, an octave above the lead (here Bb6 Ab6 F6 Db7 Bb6 F6 Ab6 Eb7), clear in its own voice;
   then it runs down. The emergent tune, finally stated.
