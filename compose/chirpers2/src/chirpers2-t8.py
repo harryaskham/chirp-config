@@ -52,6 +52,10 @@ R4 = set(filter(None, os.environ.get("T8_R4", "B,Q").split(","))) - {"none"}
 # eighth behind at first and a dotted quarter by the end: the phasing process reaches the melody itself.
 R5 = set(filter(None, os.environ.get("T8_R5", "H,G").split(","))) - {"none"}
 PEAK = [(63, "maj7#11"), (67, "maj7#11"), (59, "maj7#11"), (58, "13sus")]  # Eb4, G4, B3, Bb3
+# Round 6 (v6): X = TRADES after the vibes solo: 8 bars, the vibes and the LOW MARIMBA trading two-bar phrases
+# (chords every two bars). In the marimba's bars the high marimba keeps the cell half a bar out of phase and the
+# low one solos: a quintuplet run up, dotted eighths down, a roll on a colour tone.
+R6 = set(filter(None, os.environ.get("T8_R6", "X").split(","))) - {"none"}
 SUBJECT = [(0, 1), (3, 1), (7, 1), (6, 2), (2, 2), (5, 1), (1, 1), (4, 1), (0, 2)]  # t7: semitones, eighths
 BAR = 6.0  # a 12/8 bar, in quarter beats
 
@@ -122,9 +126,10 @@ class Track:
 
 
 FORM = [("cell", 4), ("phase", 16), ("melody", 16)] + ([("solo", 8)] if "V" in R3 else []) + \
+       ([("trades", 8)] if "X" in R6 else []) + \
        [("bridge", 16)] + ([("blur", 4)] if "B" in R4 else []) + [("peak", 16), ("unison", 8), ("coda", 6)]
 LEVEL = {"cell": 70, "phase": 76, "melody": 82, "bridge": 74, "peak": 96, "unison": 80, "coda": 60, "solo": 84,
-         "blur": 76}
+         "blur": 76, "trades": 86}
 if "D" in R2:
     LEVEL.update({"bridge": 62, "peak": 104, "unison": 76})
 
@@ -144,15 +149,31 @@ def build():
         v = LEVEL[sec]
         prog = BRIDGE if sec == "bridge" else (PEAK if sec == "peak" and "H" in R5 else HOME)
         chord = prog[(i // 4) % 4] if sec not in ("cell", "coda") else HOME[0]
-        if sec == "solo":
+        if sec in ("solo", "trades"):
             chord = HOME[(i // 2) % 4]
+        mar = sec == "trades" and (i // 2) % 2 == 1  # the low marimba's turn
         if sec == "blur":
             chord = HOME[0] if i < 2 else HOME[3]
         if sec == "coda":
             chord = HOME[i // 2 % 2 * 0]  # the coda rests on the home chord
         cell = CELL_INV if sec == "bridge" else CELL
         # ---- the marimbas ----
-        if sec != "coda":
+        if mar:  # the low marimba solos
+            if i % 2 == 0:
+                d0 = rng.choice([0, 1, 2])
+                for s in range(10):  # a quintuplet run up over two beats
+                    T["m1"].add(start + s * 0.2, 0.19, nm(deg(chord, d0 + s) - 12), v - 8 + s)
+                for g in range(4):
+                    T["m1"].add(start + 2 + g * 0.75, 0.7, nm(deg(chord, d0 + 9 - 2 * g) - 12), v - 2 - 2 * g)
+            else:
+                tone = deg(chord, rng.choice([4, 6])) - 12
+                for r in range(16):  # a roll: 32nds for two beats, swelling
+                    T["m1"].add(start + r * 0.125, 0.12, nm(tone), v - 20 + r)
+                for q in range(4):
+                    T["m1"].add(start + 2 + q * 0.5 + (0.5 if q >= 2 else 0), 0.45, nm(deg(chord, [4, 2, 1, 0][q]) - 12), v - 4)
+            for e in range(12):  # the high marimba keeps the cell, half a bar out
+                T["m2"].add(start + ((e + 6) % 12) / 2, 0.45, nm(deg(chord, cell[e])), v - 16 + (6 if e % 3 == 0 else 0))
+        elif sec != "coda":
             for e in range(12):
                 acc = 10 if e % 3 == 0 else 0
                 T["m1"].add(start + e / 2, 0.45, nm(deg(chord, cell[e]) - 12), v - 8 + acc)  # the low marimba
@@ -194,7 +215,7 @@ def build():
         elif sec == "bridge" and i % 4 == 0:
             for j, d in enumerate([4, 6, 9, 8, 8, 9, 6, 4]):
                 T["vib"].add(start + j * 3, 2.9, nm(vr(deg(chord, d) + 12)), v - 10 + (6 if j in (3, 4) else 0))
-        elif sec == "solo":  # the vibes solo: a run, dotted-eighth groups, a triplet fall, a held note
+        elif sec in ("solo", "trades") and not mar:  # the vibes solo (and the vibes' bars of the trades): a run, dotted-eighth groups, a triplet fall, a held note
             if i % 2 == 0:
                 d0 = rng.choice([0, 2, 4])
                 for s in range(8):  # a sixteenth run up
@@ -219,7 +240,7 @@ def build():
                     T["echo"].add(at + lag, ln / 2 * 1.1, nm(vr(deg(HOME[0], d) + 12)), v - 14 + (4 if "G" in R5 else 0))
                 at += ln / 2 * 1.25
         # ---- the bowed bass: half notes in 4/4 against the 12/8 ----
-        if sec in ("phase", "melody", "peak", "unison", "solo") and not (sec == "phase" and i < 4):
+        if sec in ("phase", "melody", "peak", "unison", "solo", "trades") and not (sec == "phase" and i < 4):
             for h in range(3):
                 beat = start + 2 * h
                 cyc = int(round(beat / 2)) % 4  # position in the 8-beat (4/4 bar) cycle
@@ -252,7 +273,7 @@ def build():
         fd = T["fd"]
         if sec == "cell" and i >= 2:
             fd.add(start, 1, "dum", v - 14)
-        elif sec == "solo":  # dotted-eighth ghosts: eight against the four dotted quarters
+        elif sec in ("solo", "trades"):  # dotted-eighth ghosts: eight against the four dotted quarters
             fd.add(start, 1, "dum", v - 8)
             fd.add(start + 3, 1, "dum", v - 14)
             for g in range(8):
