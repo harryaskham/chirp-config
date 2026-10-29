@@ -30,3 +30,12 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 - **THE BRAID**: two tapped loops over the bar's chord, 5 notes (left, sixteenths) and 7 notes (right, eighths), running on across the bar lines.
 - **GLASS TUNE** (marimba): chord-tone indices 0 2 4 3 1 4 2 0, one per group (B), or in dotted eighths straight through the groupings (the build and the last return).
 - Harmony: Emaj9 C#m9 Amaj7(9) B6/9 (A), Gmaj9 Em9 Cmaj7#11 D6/9 (B); the last return a whole step up.
+
+## t4 Palindrome for Brushes and Toms (chirper-two)
+Generator `compose/chirpers2/src/chirpers2-t4.py`. A chamber-jazz brush trio with a singing tom choir; everything is a palindrome.
+- **METER PALINDROME**: bars of 6 5 7 8 7 5 6 eighths (3/4 5/8 7/8 4/4 7/8 5/8 3/4), 44 eighths a phrase; the bridge reads it from the centre out (8 7 5 6 5 7 8). Swung eighths (0.62) in the 3/4 and 4/4 bars, straight in the odd ones (grouped 3+2 and 2+2+3).
+- **HARMONIC PALINDROME**: Dm9 | Bbmaj7#11 | G13sus (-> Fmaj7/G in the 7/8's last 3) | CENTRE | G13sus | Bbmaj7#11 | Dm9. The centre bar is the only door out of the mirror, and it moves each time round: Ebmaj9-Abmaj7#11, Emaj9-Amaj7, Fm9-Dbmaj7#11, Cm11-F13.
+- **MIRROR MELODY**: bar k is the retrograde (pitch and rhythm) of bar 6-k: 3/4 A4/q G4/e F4/e E4/q | 5/8 D5 E5 F5/q. | 7/8 C5 D5 E5 A4/q G4/q | centre: up its first chord's 3rd-5th-7th and back down (a palindrome itself) | then the mirrors.
+- **COLOUR PALINDROME**: the line passes bar by bar trumpet - piano - tom choir - trumpet - tom choir - piano - trumpet (klangfarbenmelodie); in the trades the trumpet takes the 3/4 and 7/8 bars, the toms the 5/8 and 4/4.
+- **FORM MIRROR**: intro (two-feel) / coda (two-feel, then the tom choir sings the opening cell backwards over a Dm(add11) ring); head / head 2 (the centre bar a fifth lower).
+
