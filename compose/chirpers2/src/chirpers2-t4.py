@@ -22,6 +22,11 @@ import os
 OUT = os.environ.get("T4_OUT") or os.path.expanduser("~/.config/chirp/songs/chirpers2-t4.yaml")
 BPM = 132
 SWING = float(os.environ.get("T4_SWING", "0.62"))  # where a swung off-beat eighth lands (0.667 = triplet: tried, rhythm flat, recurrence lost)
+# Round 2 (songwriting, v2): C = MIRROR CANON (head 2: the tom choir sings the line inverted, in contrary motion);
+# H = TOM CHORALE (a new section after the piano solo: the harmonic palindrome as tom-choir chords over sweeps);
+# Q = SEVEN DOORS answered (t1 Doors at Seven's head cell, quoted by Cierre too: the trumpet opens the trades with
+# it in D, the tom choir answers with its retrograde); D = dotted-eighth ride hemiola across the peak (chirper-one).
+R2 = set(filter(None, os.environ.get("T4_R2", "C,H,Q,D").split(","))) - {"none"}
 TRIP = "T" in os.environ.get("T4_OPTS", "")  # triplet brush ghosts before the backbeats (off: no gain)
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 PC = {n: i for i, n in enumerate(NAMES)}
@@ -159,7 +164,7 @@ def build():
             start += m / 2
 
     form = [("intro", METERS, 2), ("head", METERS, 2), ("bridge", BRIDGE, 2), ("trade", METERS, 4),
-            ("piano", BRIDGE, 2), ("peak", METERS, 2), ("head2", METERS, 2), ("coda", METERS, 2)]  # the form mirrors too
+            ("piano", BRIDGE, 2)] + ([("chorale", METERS, 1)] if "H" in R2 else []) + [("peak", METERS, 2), ("head2", METERS, 2), ("coda", METERS, 2)]  # the form mirrors too
     p = 0
     for name, meters, n in form:
         first = len(bars)
@@ -170,10 +175,11 @@ def build():
     total = bars[-1][0] + bars[-1][1] / 2 + 4.0  # a ring-out
 
     # dynamics: each phrase swells to its centre bar; sections set the level
-    LEVEL = {"intro": 50, "head": 68, "bridge": 74, "trade": 84, "piano": 70, "peak": 104, "head2": 64, "coda": 48}
+    LEVEL = {"intro": 50, "head": 68, "bridge": 74, "trade": 84, "piano": 70, "peak": 104, "head2": 64, "coda": 48,
+             "chorale": 62}
     # the bass's role per section: a two-feel under the heads, a pedal under the bridge, walking under the solos
     BASS = {"intro": "two", "head": "two", "bridge": "pedal", "trade": "walk", "piano": "walk", "peak": "walk",
-            "head2": "two", "coda": "two"}
+            "head2": "two", "coda": "two", "chorale": "pedal"}
 
     def dyn(i):
         start, m, pos, section, pidx, centre = bars[i]
@@ -228,8 +234,17 @@ def build():
                 T[voice].add(at, ln / 2 * 0.95, n if voice != "tom" else nm(midi(n) - 12), v + 4)
                 if section == "peak" and voice == "tpt":  # unison in the piano an octave down at the peak
                     T["pno"].add(at, ln / 2 * 0.9, nm(midi(n) - 12), v)
+                if section == "head2" and "C" in R2 and voice != "tom":  # the mirror canon: inverted about D5,
+                    T["tom"].add(at, ln / 2 * 0.95, nm(2 * 74 - midi(n) - 12), v)  # an octave down, contrary motion
         # ---- trading: trumpet takes the 3/4 and 7/8 bars, the tom choir the 5/8 and 4/4 ----
-        if section == "trade":
+        first_trade = section == "trade" and pidx == min(b[4] for b in bars if b[3] == "trade")
+        if first_trade and "Q" in R2 and pos in (0, 1):
+            # SEVEN DOORS (t1), its opening cell in D: D5. C5 A4 G4 F4 on the trumpet; the toms answer backwards
+            cell = [(0, 3, "D5"), (3, 1, "C5"), (4, 1, "A4"), (5, 1, "G4")] if pos == 0 else \
+                   [(0, 1, "G3"), (1, 1, "A3"), (2, 1, "C4"), (3, 2, "D4")]
+            for o, ln, n in cell:
+                T["tpt" if pos == 0 else "tom"].add(swing_at(start, o, swung), ln / 2 * 0.95, n, v + 6)
+        elif section == "trade":
             voice = "tpt" if m in (6, 7) else "tom"
             root, voic, scale = CH[name0]
             # a line built from the head's own cells, transposed onto this chord and varied per phrase
@@ -248,7 +263,14 @@ def build():
             root, voic, scale = CH[cn]
             vo = ",".join(nm(root + 12 + x) for x in voic) if root < 48 else ",".join(nm(root + x) for x in voic)
             comp.append((c8, vo))
-        if section == "piano":  # piano solo: right hand lines over left-hand shells
+        if section == "chorale":  # the tom choir as a chorale: the bar's chords, three toms each
+            for ci, (c8, cn) in enumerate(chords):
+                root, voic, scale = CH[cn]
+                end8 = chords[ci + 1][0] if ci + 1 < len(chords) else m
+                top = root + 24 if root < 48 else root + 12
+                T["tom"].add(start + c8 / 2, (end8 - c8) / 2 * 0.95,
+                             ",".join(nm(x) for x in (top - 12 + voic[0], top + voic[1] - 12, top + voic[3] - 12)), v + 8)
+        elif section == "piano":  # piano solo: right hand lines over left-hand shells
             for c8, vo in comp:
                 T["pno_lh"].add(start + c8 / 2, 1.0, vo, v - 10)
             root, voic, scale = CH[name0]
@@ -262,7 +284,9 @@ def build():
             pattern = {6: [(1, 1), (4, 2)], 8: [(1, 1), (3, 1), (6, 2)], 5: [(0, 3)], 7: [(0, 2), (4, 3)]}[m]
             if pidx % 2:  # every other phrase: anticipations instead
                 pattern = {6: [(0, 2), (5, 1)], 8: [(0, 2), (4, 1), (7, 1)], 5: [(3, 2)], 7: [(2, 2), (6, 1)]}[m]
-            if not (section in ("head", "head2") and VOICE[pos] == "pno"):
+            if section == "chorale":
+                pass
+            elif not (section in ("head", "head2") and VOICE[pos] == "pno"):
                 for o, ln in pattern:
                     cn_vo = [vo for c8, vo in comp if c8 <= o][-1]
                     T["pno_lh"].add(swing_at(start, o, swung), ln / 2 * 0.9, cn_vo, v - 16)
@@ -276,6 +300,15 @@ def build():
         # ---- drums: brushes (sticks at the peak) ----
         d = T["drums"]
         peak = section == "peak"
+        if section == "chorale":
+            d.add(start, m / 2 * 0.95, "bsl", v - 14)
+            continue
+        if peak and "D" in R2:  # dotted eighths on the ride across the peak's bars, against every meter
+            first = min(b[0] for b in bars if b[3] == "peak")
+            k = int(-(-(start - first) // 0.75))
+            while first + k * 0.75 < start + m / 2 - 1e-6:
+                d.add(first + k * 0.75, 0.3, "rb", v - 10 + (8 if k % 4 == 0 else 0))
+                k += 1
         if swung:
             beats = m // 2
             if not peak:
