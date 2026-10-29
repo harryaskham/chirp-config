@@ -20,8 +20,8 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
   1 1 1 2 2 | 1 1 1 2). Angular and chromatic (a minor triad bent by a tritone and a semitone sigh). Its INVERSION is the
   countersubject. Hocketed note by note across marimba / flute / muted trumpet / guitar, fugued (D, A, inverted, bass),
   diminished to sixteenths in the black page, augmented x2 in the bass under the cross-purposes section and in the coda.
-- **CROSS PURPOSES**: the subject's 7-eighth first bar cycling in the horns against a 4/4 figure in flute / marimba /
-  guitar, a ride bell on the 7.
+- **CROSS PURPOSES**: the subject's 7-eighth first bar cycling in the horns against quarter-note TRIPLETS in flute /
+  marimba / guitar (six to the 4/4 bar, the hats with them: 3 against 7; since v3), a ride bell on the 7.
 - **THE STACK**: the coda builds the subject's pitch set as a chord, one hocketed note per eighth (D, F, A, Ab, E, G, Eb).
 
 

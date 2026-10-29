@@ -12,7 +12,8 @@ GENTLE GIANT / ZAPPA COUNTERPOINT: a through-composed chamber-prog piece where t
                  so each bar's texture differs; wurli stabs a new chord every bar;
     3 BLACK PAGE a rhythmic unison for the whole band in sixteenth meters (11 13 9 15 11 13 7 17 sixteenths), the
                  subject's pitches in diminution, toms on every hit;
-    4 CROSS      CROSS PURPOSES: horns + wurli in 7/8 cycles against flute + marimba + guitar in 4/4, the subject
+    4 CROSS      CROSS PURPOSES: horns + wurli in 7/8 cycles against flute + marimba + guitar in quarter-note
+                 TRIPLETS (3 against 7, hats on the triplets), the subject
                  augmented in the bass, a ride bell on the 7 (12 bars of 4/4);
     5 TRADES     sax and trumpet trade single bars, then pairs, over a meter wheel 7 5 6 9 (24 bars), walking bass;
     6 STRETTO    subject entries every two eighths in every voice, the climax;
@@ -94,7 +95,7 @@ def chord_at(i):
     return PROG[i % len(PROG)]
 
 
-def kit_bar(st, ln, k, vel=96, fill=False):
+def kit_bar(st, ln, k, vel=96, fill=False, hats=True):
     """Kick on group starts, snare on the last group, hats on the eighths; the grouping alternates bar by bar."""
     opts = GROUPS.get(ln) or [[2] * (ln // 2) + ([ln % 2] if ln % 2 else [])]
     grp = opts[k % len(opts)]
@@ -105,7 +106,7 @@ def kit_bar(st, ln, k, vel=96, fill=False):
         else:
             P["kick"].add(t, 1, "k", vel + (8 if gi == 0 else 0))
         t += g
-    for e in range(int(ln)):
+    for e in range(int(ln) if hats else 0):
         accent = e == 0 or e in [sum(grp[:j]) for j in range(len(grp))]
         P["hat"].add(st + e, 1, "h", (vel - 14) if accent else (vel - 30))
     if rng.random() < 0.5 and ln >= 6:                                        # a ghost before the snare
@@ -243,9 +244,9 @@ def cross(t):
         P["keys"].add(x - 7, 0.6, "D4,G4,C5" if n % 2 else "E4,A4,D5", 74)
         P["ride"].add(x - 7, 1, "D5", 100)                         # the ride bell marks the 7
         n += 1
-    x, n = a, 0                                                   # flute + marimba + guitar: 4/4, the inversion's tail
-    fig = [(0, 1.5), (-5, 0.5), (-1, 1), (-4, 1), (0, 2), (2, 2)]
-    while x < z:
+    x, n = a, 0                    # flute + marimba + guitar: QUARTER-NOTE TRIPLETS, six to the bar: 3 against the horns' 7
+    fig = [(0, 4 / 3), (-5, 4 / 3), (-1, 4 / 3), (-4, 4 / 3), (0, 4 / 3), (2, 4 / 3)]
+    while x < z - 1e-6:
         for p, d in fig:
             who = ("flute", "mar", "gtr")[n % 3]
             base = D4 + 12 if who != "gtr" else D4
@@ -255,7 +256,9 @@ def cross(t):
     line(P["bass"], a, SUBJ * 4, D4 - 24, 100, scale=2.0)          # the subject augmented, four times
     for i in range(12):
         bar(t, 8, "cross", i)
-        kit_bar(t, 8, i, 94 + (i // 3) * 2, fill=(i == 11))
+        kit_bar(t, 8, i, 94 + (i // 3) * 2, fill=(i == 11), hats=False)
+        for q in range(6):                                          # the hats join the triplets
+            P["hat"].add(t + q * 4 / 3, 0.5, "h", 80 if q % 3 == 0 else 62)
         t += 8
     return t
 
