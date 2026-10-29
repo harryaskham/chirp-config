@@ -24,7 +24,9 @@ MG = float(os.environ.get("T10_MG", "10"))
 DYN = os.environ.get("T10_DYN", "1") == "1"
 EQ = os.environ.get("T10_EQ", "2")  # master eq: 1 = v1 (shelf +3 @100, 800 -2); 2 = shelf +6 @120, 700 q0.6 -3
 LOWB = os.environ.get("T10_LOWB", "0") == "1"  # the tumbao's anticipated root an octave lower (the baby bass's floor)
-KICK = os.environ.get("T10_KICK", "0") == "1"  # more bombo: the ponche on 4 in the mambo/cierre, dotted quarters in the descarga  # section dynamics on the master (after the compressor)
+KICK = os.environ.get("T10_KICK", "0") == "1"
+SEAM = os.environ.get("T10_SEAM", "1") == "1"
+MAMBO_KEY = int(os.environ.get("T10_MAMBOKEY", "0"))  # the mambo transposed (semitones): +5 = up a fourth, to G minor  # every section's last bar breaks at its middle into a timbale fill (the seams read)  # more bombo: the ponche on 4 in the mambo/cierre, dotted quarters in the descarga  # section dynamics on the master (after the compressor)
 
 # sections: (name, meter, bpm (quarter), bars)
 FORM = [("bembe", "12/8", 156, 12), ("son", "4/4", 208, 40), ("mambo", "4/4", 208, 24), ("siete", "7/4", 208, 12),
@@ -55,6 +57,38 @@ def R(d):
 
 def J(*xs):
     return " ".join(x for x in xs if x)
+
+
+def transpose(piece, n):
+    """Shift every pitched token (notes and comma chords) by n semitones; rests and kit pieces untouched."""
+    if not n:
+        return piece
+    out = []
+    for t in piece.split():
+        head, rest = t.split("/", 1) if "/" in t else (t, None)
+        parts = head.split(",")
+        if all(p[:-1] in NOTE and p[-1].isdigit() for p in parts):
+            head = ",".join(nm(mi(p) + n) for p in parts)
+        out.append(head + ("/" + rest if rest is not None else ""))
+    return " ".join(out)
+
+
+def cut(piece, beats):
+    """The first `beats` of a bar's tokens (notes clipped at the cut)."""
+    out, pos = [], 0.0
+    for t in piece.split():
+        if pos >= beats - 1e-9:
+            break
+        head, rest = t.split("/", 1)
+        dur = rest.split("b", 1)[0]
+        tail = rest[len(dur) + 1:]
+        d = float(dur)
+        d2 = min(d, beats - pos)
+        out.append(f"{head}/{d2:g}b{tail}")
+        pos += d
+    if pos < beats - 1e-9:
+        out.append(R(beats - pos))
+    return " ".join(out)
 
 
 def chord(names):
@@ -327,10 +361,31 @@ def build():
                 else:
                     who = "trumpet" if (b // 4) % 2 == 0 else "tenor"
                     bar[who] = solo_bar(b, beats, 62 + up if who == "trumpet" else 50 + up, seed=b, vel=94)
+            if MAMBO_KEY and sec == "mambo":
+                for n in names:
+                    if n not in ("kit", "clave", "bell"):
+                        bar[n] = transpose(bar[n], MAMBO_KEY)
+            if SEAM and b == nb - 1 and sec != "cierre":  # the break: the band stops at the bar's middle; timbales fill
+                half = beats / 2
+                for n in names:
+                    if n in ("kit", "clave", "bell"):
+                        continue
+                    bar[n] = J(cut(bar[n], half), R(beats - half))
+                n16 = int((beats - half) * 4)
+                fill = [("t1" if i % 4 < 2 else "t2") + f"/0.25b@{80 + 3 * i}" for i in range(n16 - 2)]
+                fill += [tok("c,k", 0.5, 118)]
+                bar["kit"] = J(cut(bar["kit"], half), *fill)
+                bar["clave"] = J(cut(bar["clave"], half), R(beats - half))
+                bar["bell"] = J(cut(bar["bell"], half), R(beats - half))
             for n in names:
                 T[n].append((bar[n], beats))
             beat0 += beats
     return T, tempo, beat0
+
+
+def num(name, default):
+    v = float(os.environ.get(name, default))
+    return int(v) if v == int(v) else v
 
 
 def section_times():
@@ -351,14 +406,14 @@ def master():
     m = {"fx": fx}
     if DYN:  # the suite's arc: an intimate bembe, the son and mambo up, the 7/4 interlude down, the descarga building, the cierre on top
         st = section_times()
-        lv = {"bembe": -6, "son": -2, "mambo": 0, "siete": -6, "descarga": -3, "cierre": 2}
+        lv = {"bembe": -6, "son": -2, "mambo": 0, "siete": -6, "descarga": -3, "cierre": num("T10_CIERRE", "4")}
         pts = [["0s", lv["bembe"]]]
         for sec in ("son", "mambo", "siete", "descarga", "cierre"):
             a = st[sec][0]
             prev = pts[-1][1]
             pts += [[f"{a - 0.6:.2f}s", prev], [f"{a:.2f}s", lv[sec]]]
             if sec == "descarga":  # the descarga builds -3 -> +1 over its length
-                pts += [[f"{st[sec][1] - 0.8:.2f}s", 1]]
+                pts += [[f"{st[sec][1] - 0.8:.2f}s", num("T10_DESEND", "1")]]
         pts += [[f"{st['cierre'][1] + 10:.2f}s", lv["cierre"]]]
         fx.append({"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}})
         m["auto"] = {"dyn": {"points": pts}}

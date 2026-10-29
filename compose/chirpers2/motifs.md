@@ -12,6 +12,7 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 - **MONTUNO** (piano, then horns): a 2-bar figure in eighths, `x.x.xx.x | .xx.x.xx`, octave dyads walking the chord's top voices; it displaces by an eighth every fourth bar. Progression Dm9 G13 Cmaj7#11 A7b13 (i IV bVII V7alt).
 - **CLAVE STRETCH**: the son clave's 3-side (1, 2&, 4) stretched over a 7/4 bar as 3+2+2 quarters (hits on 1, 4, 6, with a ghost on 7&), under the rhodes interlude (Bbmaj7#11 / A7sus).
 - **CORO** (horn section, the descarga): `D5. C5. A4 | G4. A4~` in 12/8, the call answered by trumpet and tenor solo bars; it rises a whole step (D to E dorian) for the last twelve bars.
+- **THE BREAK** (v3): every section's last bar stops at its middle; the timbales fill the rest in sixteenths (t1/t2, crescendo) into a crash on the next downbeat.
 - **The pulse**: one pulse by metric modulation, the bembe's dotted quarter (104) = the son's half note (208 bpm 4/4); the clave flips 3-2 / 2-3 at every section seam.
 
 ## t7 Cross Purposes (chirper-three)
