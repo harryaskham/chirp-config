@@ -20,6 +20,7 @@ Generator `compose/chirpers3/src/chirpers3-t3.py`. Warped boom-bap off a worn sa
 - **THE LIFT AND THE REPRISE** (v5): the second groove (A2) and the last chorus move the whole loop up a fourth (Bbm9 Dbmaj9 | Ab6/9 Gbmaj9 | Bbm9 Ebm11 | F7#9 F7b9), the hook with them; after the break the first groove returns exactly as it began (Ar, no hook) before A3 drifts widest. Form: intro | A | A2 (lift) | break | Ar | A3 | last (lift, snapped tight) | outro.
 - **SECTION COLOURS** (v6): the intro and the outro play the rolled loop on a warbling wurli (the song's bookends; the tape piano carries everything between), and the first lift (A2) voices the loop an octave higher - every turn of the form now has its own colour.
 - **THE CHOPS** (v7, the break): after the tape-stop, an MPC chop of the library's lofihop part re-sequenced over the break's piano and bass - per bar 0 0 5 3 0 7 6 2 | 0 0 5 3 9 9 6 11 | 4 0 5 3 0 7 13 13 | 0 5 3 0 15 14 12 12, swung eighths.
+- **SNARE THROWS** (v8, chirper-two's feedback routing): the beat-3 snare of every fourth groove bar is doubled on a throw track sent into a dub bus that returns its own output a dotted sixteenth later through a 1.8 kHz low-pass and a wobbling tape (-6 dB a pass), so the phrase ends in a snare echo tumbling into the next.
 - **ROLLED LOOP** (tape-piano, each note ~18 ms after the last): Fm9 Abmaj9 | Eb6/9 Dbmaj9 | Fm9 Bbm11 | C7#9 C7b9.
 - **THE HOOK** (boc-lead): a 2-bar phrase, C5 Eb5 C5 Bb4 | Ab4 Bb4 G4, the second pair of bars a step lower.
 
