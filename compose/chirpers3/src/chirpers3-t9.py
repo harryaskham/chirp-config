@@ -34,7 +34,10 @@ WEAR = os.environ.get("T9_WEAR", "1") == "1"
 TSTOP = os.environ.get("T9_TSTOP", "both")
 LIVEGTR = os.environ.get("T9_LIVEGTR", "0") in ("1", "pan")
 LIVEKIND = os.environ.get("T9_LIVEGTR", "0")
-HAZE = os.environ.get("T9_HAZE", "1") == "1"  # wM's cloud (granular) as heat haze: the bridge's flute and rhodes are sent into a shimmering grain cloud  # "1": pan + tone per pluck; "pan": a small place per pluck only  # per-voice fx on the nylon (pin 3eee6a72): every pluck its own small place and its own tone  # wM's tapestop on the master: "end" = the side runs out and the deck stops over the outro's last two bars; "both" = and the catch ends in a stop that spins back up into the last A  # the tape wears (chirper-two's deck warp, pin 220ef336): harder through the bridge (1.4), and the side running out over the outro (1 -> 2)  # density contrast: the bridge sparer (two plucks a bar, no rim), the last A busier (pandeiro jingles on the off-16ths)
+HAZE = os.environ.get("T9_HAZE", "1") == "1"
+PAND3 = os.environ.get("T9_PAND3", "0") == "1"
+SURDRAG = os.environ.get("T9_SURDRAG", "")
+FHARM = os.environ.get("T9_FHARM", "1") == "1"  # the last A's last eight bars: a second flute a diatonic third under the tune (D major / the chord's tones)  # the open surdo (the dotted pulse on 6 and 14) dragged late by hand (ms)  # the last A's pandeiro on a dotted-eighth cycle (every 3 sixteenths, across the bar lines) instead of every off-16th  # wM's cloud (granular) as heat haze: the bridge's flute and rhodes are sent into a shimmering grain cloud  # "1": pan + tone per pluck; "pan": a small place per pluck only  # per-voice fx on the nylon (pin 3eee6a72): every pluck its own small place and its own tone  # wM's tapestop on the master: "end" = the side runs out and the deck stops over the outro's last two bars; "both" = and the catch ends in a stop that spins back up into the last A  # the tape wears (chirper-two's deck warp, pin 220ef336): harder through the bridge (1.4), and the side running out over the outro (1 -> 2)  # density contrast: the bridge sparer (two plucks a bar, no rim), the last A busier (pandeiro jingles on the off-16ths)
 IND_DB = os.environ.get("T9_INDDB", "-13")
 INDICATOR = os.environ.get("T9_INDICATOR", "")  # the car's indicator ticking through the intro and the outro (tick-tock every 380 ms, out of time with the bossa); "" off, "io" intro+outro, "all" the whole way, quieter  # the last A: the guitar answers the flute at every phrase end (a falling fill on the 4th bar's last two beats)  # wM's MPC chop: "catch" = the cassette chews the bar before THE CATCH (master); "both" = and the guitar chopped in the outro's last four bars  # the form made audible: a master dynamics lane by section and a STOP at every seam (the band stops mid-bar, the rim fills)  # the draft's fixes: an upright bass (borrowed from Odd Hours t1), the master off the flute's presence and onto the lows, the bridge without the percussion
 S = 0.25
@@ -140,7 +143,7 @@ def tune(notes, vel=82, shift=0):
 
 
 def build():
-    names = ("guitar", "thumb", "perc", "rim", "flute", "rhodes", "rpad", "bass") + (("gfill",) if ANSWER else ()) + (("pand",) if DENS else ())
+    names = ("guitar", "thumb", "perc", "rim", "flute", "rhodes", "rpad", "bass") + (("gfill",) if ANSWER else ()) + (("pand",) if DENS else ()) + (("flute2",) if FHARM else ())
     T = {n: [] for n in names}
     rng = random.Random(9)
     times, t = {}, 0.0
@@ -165,8 +168,21 @@ def build():
                     bar["rim"] = rim(b)
                 if DENS and sec == "A2":
                     bar["pand"] = grid([(st, "pd", 1, 52 if st % 4 == 3 else 40) for st in range(1, 16, 2)])
+                    if PAND3:
+                        off = (3 - (b * 16) % 3) % 3
+                        bar["pand"] = grid([(st, "pd", 1, 60 if ((b * 16 + st) // 3) % 2 == 0 else 46) for st in range(off, 16, 3)])
             if sec in ("A", "A2"):
                 bar["flute"] = tune(A_END if b % 16 == 15 else A_TUNE[b % 8], vel=84 if sec == "A" else 88)
+                if FHARM and sec == "A2" and b >= 8:
+                    notes = A_END if b % 16 == 15 else A_TUNE[b % 8]
+                    scale = [2, 4, 6, 7, 9, 11, 1]  # D major pitch classes
+                    def third_under(n):
+                        m = 12 * (int(n[-1]) + 1) + NOTE[n[:-1]]
+                        for k in (3, 4):
+                            if (m - k) % 12 in scale:
+                                return nm(m - k)
+                        return nm(m - 3)
+                    bar["flute2"] = J(*[R(d) if n == "R" else f"{third_under(n)}/{d:g}b@72" for n, d in notes])
                 if ANSWER and sec == "A2" and b % 4 == 3:  # the guitar answers: a falling run down the chord's tones in the bar's last two beats
                     root, v = CH[c]
                     run = sorted(v, reverse=True) + [v[0] - 12 + 12]
@@ -286,7 +302,7 @@ def song():
     tracks = ind + [
         {"name": "guitar", "patch": "nylon", "pan": -0.15, "fx": [deck] + gchop, **({"auto": {"gcp": {"points": gcp}}} if gchop else {}), "sends": {"room": "-12dB"}, "score": sc("guitar")},
         {"name": "thumb", "patch": "nylon", "gain": "2dB", "pan": -0.1, "fx": [deck], "score": sc("thumb")},
-        {"name": "perc", "patch": "samba-kit", "gain": "-10dB", "pan": 0.2, "score": "swing16=0.56 " + sc("perc")},
+        {"name": "perc", "patch": "samba-kit" + (f" play.humanize.nudge.sd={SURDRAG}ms" if SURDRAG else ""), "gain": "-10dB", "pan": 0.2, "score": "swing16=0.56 " + sc("perc")},
         {"name": "rim", "patch": f"room-kit play.humanize.nudge.so={RIMLATE}ms", "gain": "-12dB", "pan": 0.3, "score": sc("rim")},
         {"name": "flute", "patch": "mellotron-flute", "gain": "-6dB", "pan": 0.1, "fx": [deck], "sends": {"room": "-8dB"}, "score": sc("flute")},
         {"name": "rhodes", "patch": "rhodes", "gain": "-7dB", "pan": 0.2, "fx": [deck], "sends": {"room": "-10dB"}, "score": sc("rhodes")},
@@ -302,6 +318,8 @@ def song():
             if t["name"] in ("flute", "rpad"):
                 t["sends"] = {**t.get("sends", {}), "haze": {"value": "-60dB", "mod": [{"src": "auto.hz", "amount": float(os.environ.get("T9_HAZEDB", "56"))}]}}
                 t["auto"] = {**t.get("auto", {}), "hz": {"points": hz}}
+    if FHARM:
+        tracks.append(wa({"name": "flute2", "patch": "mellotron-flute", "gain": "-10dB", "pan": -0.2, "fx": [deck], "sends": {"room": "-8dB"}, "score": sc("flute2")}))
     if DENS:
         tracks.append({"name": "pand", "patch": "samba-kit", "gain": "-12dB", "pan": 0.35, "score": f"swing16={os.environ.get('T9_PANDSW', '0.56')} " + sc("pand")})
     if ANSWER:
