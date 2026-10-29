@@ -35,9 +35,10 @@ def third_walk(start, n, first_up=True):
 
 # meters as eighth-groupings
 M7 = (2, 2, 3); M5 = (3, 2); M6 = (3, 3); M13 = (3, 3, 3, 2, 2); M4 = (2, 2, 2, 2)
-FORM = [('overture', 12, [M7]), ('verse', 24, [M5, M6]), ('fuzz', 24, [M13]), ('hymn', 12, [M4]), ('recap', 16, [M7]),
+M9_8 = (2, 2, 2, 3)
+FORM = [('overture', 12, [M7]), ('verse', 24, [M5, M6]), ('kettle', 8, [M9_8]), ('fuzz', 24, [M13]), ('hymn', 12, [M4]), ('recap', 16, [M7]),
         ('coda', 1, [(4, 4)])]
-CHORDS = {'overture': third_walk(53, 12), 'verse': third_walk(50, 24), 'fuzz': None, 'hymn': third_walk(48, 12),
+CHORDS = {'overture': third_walk(53, 12), 'verse': third_walk(50, 24), 'kettle': third_walk(55, 8), 'fuzz': None, 'hymn': third_walk(48, 12),
           'recap': third_walk(57, 16), 'coda': [(53, 'maj9')]}
 # the fuzz riff sits on two chords a third apart, swapping every 2 bars, and climbs a whole step every 8 bars
 FUZZ = [((50, 'm9') if (i // 2) % 2 == 0 else (46, 'maj7')) for i in range(8)] + \
@@ -64,7 +65,7 @@ def ladder(b, lo):
 
 # THE TUNE: a contour over the chord ladder (index steps), with a rhythm in eighths fitted to each bar's meter
 CONTOUR = [3, 4, 5, 4, 2, 3, 1, 2, 4, 6, 5, 3, 2, 0]
-RHY = {7: (2, 1, 1, 2, 1), 5: (1, 1, 2, 1), 6: (2, 1, 1, 1, 1), 8: (3, 1, 2, 2), 13: (3, 3, 3, 2, 2)}
+RHY = {7: (2, 1, 1, 2, 1), 5: (1, 1, 2, 1), 6: (2, 1, 1, 1, 1), 8: (3, 1, 2, 2), 9: (2, 1, 1, 2, 3), 13: (3, 3, 3, 2, 2)}
 def tune_bar(b, lo, vel, aug=1, shift=0):
     lad = ladder(b, lo)
     rh = RHY[b['e8']] if aug == 1 else (2, 2, 2, 2)
@@ -143,7 +144,8 @@ def comp_bar(b, vel):
 
 def build():
     B = bars()
-    P = {k: [] for k in ('wurli', 'flute', 'organ', 'bass', 'kit', 'horn')}
+    P = {k: [] for k in ('wurli', 'flute', 'organ', 'bass', 'kit', 'horn', 'box', 'celesta', 'clar')}
+    canon = [None]
     guide = [63]
     for b in B:
         s, e8 = b['sec'], b['e8']
@@ -156,8 +158,36 @@ def build():
             P['bass'].append([tok(nm(b['root'] - 24), 3, 96), 'R/1b'])
             P['kit'].append(['c,k/4b@110'])
             P['horn'].append([tok(nm(ladder(b, 60)[1]), 3, 70), 'R/1b'])
+            for k_ in ('box', 'celesta', 'clar'): P[k_].append(R)
             continue
         top_up = CONTOUR[(b['k'] * 2) % len(CONTOUR)] < CONTOUR[(b['k'] * 2 + 3) % len(CONTOUR)]
+        if s == 'kettle':
+            # THE KETTLE (a music-box interlude in 9/8 between the verse and the fuzz): the tune on a music box, a
+            # celesta following it in canon a bar later and a fourth lower, a clarinet holding the root and fifth;
+            # in the last bar the flute whistles a chromatic run up an octave (the kettle boils) into the fuzz
+            tb = tune_bar(b, 72, 84)
+            P['box'].append(tb)
+            if canon[0]:
+                fol = []
+                for x in canon[0]:
+                    n_, r_ = x.split('/', 1)
+                    fol.append(f"{nm(NN.index(n_[:-1]) + 12 * (int(n_[-1]) + 1) - 5)}/{r_.split('@')[0]}@74")
+                tot = sum(float(x.split('/')[1].split('b')[0]) for x in fol)
+                if tot < e8 / 2: fol.append(f"R/{e8 / 2 - tot:g}b")
+                P['celesta'].append(fol)
+            else:
+                P['celesta'].append(R)
+            canon[0] = [x for x in tb if not x.startswith('R')] if sum(float(x.split('/')[1].split('b')[0]) for x in tb) == e8 / 2 else None
+            P['clar'].append([tok(f"{nm(b['root'] - 12)},{nm(b['root'] - 5)}", e8 / 2 - 0.1, 66), 'R/0.1b'])
+            if b['i'] == 7:
+                n16 = e8 * 2; st = b['root'] + 19
+                P['flute'].append([tok(nm(st + j_), 0.25, 60 + j_ * 3) for j_ in range(n16)])
+                P['kit'].append(['R/' + f"{e8 / 2 - 1:g}b", 's/0.25b@70', 's/0.25b@84', 's/0.25b@98', 's/0.25b@112'])
+            else:
+                P['flute'].append(R); P['kit'].append(R)
+            for k_ in ('wurli', 'organ', 'bass', 'horn'): P[k_].append(R)
+            continue
+        for k_ in ('box', 'celesta', 'clar'): P[k_].append(R)
         if s == 'overture':
             P['wurli'].append(tune_bar(b, 60, 84)); P['flute'].append(tune_bar(b, 72, 80) if b['i'] >= 2 else R)
             P['organ'].append(R); P['horn'].append(R)
@@ -201,7 +231,7 @@ def build():
     end_s = total_beats * 60 / BPM
     pts, t = [], 0.0
     for b in B:
-        lv = -9 if b['sec'] == 'hymn' else (-6 if b['sec'] == 'overture' and b['i'] < 2 else (-3 if b['sec'] == 'verse' else 0))
+        lv = -6 if b['sec'] == 'kettle' else -9 if b['sec'] == 'hymn' else (-6 if b['sec'] == 'overture' and b['i'] < 2 else (-3 if b['sec'] == 'verse' else 0))
         pts.append([t, lv]); t += b['e8'] * 0.5 * 60 / BPM
     dyn = [[f'{pts[0][0]:.3f}s', pts[0][1]]]
     for i in range(1, len(pts)):
@@ -224,6 +254,9 @@ def build():
             {'name': 'bass', 'patch': 'bass-pick-di', 'gain': '-2dB', 'score': J('bass')},
             {'name': 'kit', 'patch': 'room-kit', 'gain': '-4dB', 'score': J('kit')},
             {'name': 'horn', 'patch': 'horn', 'gain': '-6dB', 'pan': -0.1, 'score': J('horn')},
+            {'name': 'box', 'patch': 'music-box', 'gain': '-2dB', 'pan': 0.3, 'score': J('box')},
+            {'name': 'celesta', 'patch': 'celesta', 'gain': '-4dB', 'pan': -0.3, 'score': J('celesta')},
+            {'name': 'clar', 'patch': 'clarinet', 'gain': '-8dB', 'score': J('clar')},
         ]}
 
 if __name__ == '__main__':

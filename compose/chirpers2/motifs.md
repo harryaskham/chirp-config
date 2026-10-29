@@ -82,6 +82,7 @@ Generator `compose/chirpers2/src/chirpers2-t4.py`. A chamber-jazz brush trio wit
 - **CONTRARY BASS**: root on the one, then the bass walks the chord against the tune's direction.
 - **13/8 FUZZ RIFF**: 3+3+3+2+2, the root on each group, an octave leap on the 2s; two chords a third apart (Dm9 / Bbmaj7) swapping every 2 bars, the pair climbing a whole step every 8 bars.
 - **GUIDE-TONE LINE** (v3, horn, the verse's second half): the 3rd or the 7th of each chord, whichever is nearest the last note, held for the bar - a slow line moving by the smallest steps while the chords leap by thirds (C Bb Ab B A C Bb Db B D C Eb).
+- **THE KETTLE** (v4, a 9/8 music-box interlude between the verse and the fuzz, 2+2+2+3): the kettle tune on a music box, a celesta in canon a bar later a fourth lower, a clarinet holding root and fifth; the last bar the flute whistles a chromatic run up an octave and a half (the kettle boils) over a snare crescendo into the fuzz.
 
 ## t6 Quarter to Sixteen (chirper-one)
 - **15/16 GROOVE**: 4+4+4+3 sixteenths. Synth bass cell (sixteenth positions: interval, length) 0:root 3, 3:+12 1, 4:5th 2, 7:b7 1, 8:root 2, 10:b3 1, 11:4th 1, 12:5th 3; clav stabs on 1 3 6 9 11 14; kick 0 7 10, backbeats 4 and 12, ghost snares 2 6 9 14.
