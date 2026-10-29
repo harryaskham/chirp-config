@@ -140,9 +140,26 @@ def solo_bar(b):
     return grid_to_toks(s, n)
 
 def vibes_bar(b):
+    """THE BRIDGE TUNE (vibes), three 4-bar phrases over the 7+7: the cell as written (rising 4 6 5 7), then turned
+    upside down (falling), then climbing a step each bar to a long held top note in the last bar"""
     ph = [(0, 4, 4), (4, 6, 3), (7, 5, 2), (9, 7, 5)]
-    s = {p: (nm(dor(d + b['i'] % 3, 68) - 4), ln, 84) for p, d, ln in ph}
+    i = b['i']; part = i // 4
+    if part == 0:
+        s = {p: (nm(dor(d + i % 3, 68) - 4), ln, 84) for p, d, ln in ph}
+    elif part == 1:
+        s = {p: (nm(dor(10 - d + i % 3, 68) - 4), ln, 80) for p, d, ln in ph}
+    elif i < 11:
+        s = {p: (nm(dor(d + 2 * (i - 8) + 1, 68) - 4), ln, 86 + 2 * (i - 8)) for p, d, ln in ph}
+    else:
+        s = {0: (nm(dor(11, 68) - 4), 12, 92)}
     return grid_to_toks(s, b['n16'])
+
+def alto_bar(b, last):
+    """the bridge's COUNTER-LINE (alto sax, soft): one long guide tone a bar (the chord's 3rd or 7th nearest the last)"""
+    pcs = [(b['root'] + M9[x]) % 12 for x in (1, 3)]
+    cands = [m for m in range(60, 76) if m % 12 in pcs]
+    last[0] = min(cands, key=lambda m: (abs(m - last[0]), m))
+    return [tok(nm(last[0]), b['n16'] / 4 - 0.1, 66 + b['i']), 'R/0.1b']
 
 def drum_break(b):
     """THE BREAK (6 bars of kit alone before the shout): the 15 regrouped every bar. Bar 1 the groove's bones and a
@@ -167,7 +184,8 @@ def drum_break(b):
 
 def build():
     B = bars()
-    P = {k: [] for k in ('bass', 'clav', 'kit', 'brass', 'saxes', 'lead', 'vibes', 'pad', 'glitch')}
+    P = {k: [] for k in ('bass', 'clav', 'kit', 'brass', 'saxes', 'lead', 'vibes', 'pad', 'glitch', 'alto')}
+    alto_last = [67]
     for b in B:
         s, n = b['sec'], b['n16']
         R = [rest16(n)]
@@ -176,12 +194,12 @@ def build():
             for k_, v in (('bass', tok(nm(32), 1, 116)), ('clav', tok(ch, 1, 100)), ('kit', 'c,k,s/1b@120'),
                           ('brass', tok(ch, 1, 116)), ('saxes', tok(chord(44, 55), 1, 110))):
                 P[k_].append([v]); 
-            for k_ in ('lead', 'vibes', 'pad', 'glitch'): P[k_].append(R)
+            for k_ in ('lead', 'vibes', 'pad', 'glitch', 'alto'): P[k_].append(R)
             continue
         if s == 'break':
             P['kit'].append(drum_break(b))
             P['bass'].append(grid_to_toks({0: (nm(b['root'] - 12), 2, 108)}, n))   # one bass hit on each one
-            for k_ in ('clav', 'pad', 'vibes', 'lead', 'brass', 'saxes', 'glitch'): P[k_].append(R)
+            for k_ in ('clav', 'pad', 'vibes', 'lead', 'brass', 'saxes', 'glitch', 'alto'): P[k_].append(R)
             continue
         if s == 'theme' and b['i'] == 15:
             # a BASS FILL into the bridge: the last theme bar's second half runs down the Dorian in sixteenths to
@@ -197,6 +215,7 @@ def build():
         P['kit'].append(kit_bar(b, s) if not (s == 'intro' and b['i'] < 2) else R)
         P['pad'].append([tok(chord(b['root'], 55), n / 4, 60)] if s in ('bridge', 'solo') else R)
         P['vibes'].append(vibes_bar(b) if s == 'bridge' else R)
+        P['alto'].append(alto_bar(b, alto_last) if s == 'bridge' else R)
         P['lead'].append(solo_bar(b) if s == 'solo' else R)
         P['glitch'].append(R)
         if s == 'theme':
@@ -250,6 +269,7 @@ def build():
             {'name': 'saxes', 'patch': 'sax-section', 'gain': '-7dB', 'pan': -0.15, 'score': J('saxes')},
             {'name': 'lead', 'patch': 'synth-lead glide=80ms', 'gain': '-8dB', 'pan': 0.1, 'score': J('lead')},
             {'name': 'vibes', 'patch': 'vibes', 'gain': '-5dB', 'pan': 0.3, 'score': J('vibes')},
+            {'name': 'alto', 'patch': 'alto-sax', 'gain': '-10dB', 'pan': -0.3, 'score': J('alto')},
             # the last two bars of the out-theme doubled through wM's fixed stutter: the horns' last word glitches
             {'name': 'glitch', 'patch': 'horn-section', 'gain': '-9dB', 'pan': 0.35,
              'fx': [{'type': 'stutter', 'slice': '1/16', 'repeats': 3, 'chance': 0.5, 'decay': 0.2, 'seed': 15, 'mix': 1}], 'score': J('glitch')},
