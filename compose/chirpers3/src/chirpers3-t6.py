@@ -93,6 +93,9 @@ R6 = set(filter(None, os.environ.get("T6_R6", "D").split(","))) - {"none"}
 # trips and catches itself): in A3 the eighth bar loses its fourth beat (everything drops out for it), and the next
 # bar lands a beat early: one happy accident.
 R7 = set(filter(None, os.environ.get("T6_R7", "J").split(","))) - {"none"}
+# Round 8 (v8): H = THE HAND-OFF to t7 (After the Beat, Rain): the outro's last two bars leave the rain alone (the
+# keys stop, the weather does not), so t6 ends in the same rain t7 begins in.
+R8 = set(filter(None, os.environ.get("T6_R8", "H").split(","))) - {"none"}
 FORM = [("intro", 4), ("A", 16), ("switch", 8), ("A2", 16), ("drop", 4), ("A3", 12), ("outro", 4)]
 LEVEL = {"intro": 58, "A": 72, "switch": 66, "A2": 78, "drop": 56, "A3": 80, "outro": 56}
 DRUMS = {"A", "switch", "A2", "A3"}
@@ -123,6 +126,8 @@ def build():
         K = T["kw"] if sec == "drop" and "W" in R2 else T["keys"]  # the drop's chords on the warped tape
         if sec == "intro" and i < 2 and "F" in R5:
             K = Track("_")  # the window is shut for two bars: weather only
+        if sec == "outro" and i >= 2 and "H" in R8:
+            K = Track("_")  # the keys stop; the rain goes on into t7
         K.add(start + drag, 2.4 if sec != "switch" else 3.8, ",".join(nm(x) for x in voic), v - 6)
         if sec in ("A", "A2", "A3") and i % 2 == 1:
             T["keys"].add(start + 2.5 + drag, 1.3, ",".join(nm(x) for x in voic[1:]), v - 18)

@@ -31,6 +31,7 @@ Generator `compose/chirpers3/src/chirpers3-t5.py`. Dub-wise space, 70 bpm one-dr
 - **THE WEATHER COMES IN FIRST** (v5): the record starts from near-silence, fading up over six beats with only the rain and the record's surface; the radio-muffled keys enter in the intro's third bar, as if heard through the window. (It also meets t5 Low Pressure's fading dub tail: the seam's level jump fell from 67 to 24 dB.)
 - **DUB THROWS** (v6, the half-time switch-up; answering t5 Low Pressure, chirper-zero's dub next door): the mallet snare and the rim go to a dub send (a dotted-eighth ping-pong tape echo and a spring), and every other bar one vibes note (the chord's 9th) is thrown into the echo.
 - **THE TAPE TRIPS** (v7, A3; answering t3 Late for the Grid, chirper-one, whose loop trips and catches itself): once, the eighth bar of A3 loses its fourth beat. The band drops out for it and the next bar lands a beat early, while the rain and the crackle carry on through the gap: the room keeps raining while the tape stumbles.
+- **THE HAND-OFF** (v8): the outro's last two bars leave the rain alone (the keys stop, the weather does not), so t6 ends in the same rain t7 After the Beat, Rain begins in.
 
 ## t7 After the Beat, Rain (chirper-two)
 Generator `compose/chirpers3/src/chirpers3-t7.py`. Ambient tape loops, a nominal 60 bpm (a beat is a second).
