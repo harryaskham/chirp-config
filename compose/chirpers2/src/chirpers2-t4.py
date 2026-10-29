@@ -43,7 +43,10 @@ T8_CELL = [0, 4, 8, 4, 2, 4, 5, 4, 1, 4, 2, 6]  # t8's cell, scale degrees
 # Round 5 (v5): G = the palindrome GROWS FROM ITS CENTRE before the intro: the centre bar alone (4/4), then the
 # middle three (7/8 4/4 7/8), then the middle five (5/8 7/8 4/4 7/8 5/8), each playing the head at its place in the
 # full mirror (melody, harmony and colour), softly over a D pedal; then the intro's full seven.
-R5 = set(filter(None, os.environ.get("T4_R5", "G").split(","))) - {"none"}  # t2's night cell, degrees on eighths (None = rest)
+R5 = set(filter(None, os.environ.get("T4_R5", "G").split(","))) - {"none"}
+# Round 6 (v6): S = the form SHRINKS BACK after the coda (the middle five, the middle three, the centre alone): the
+# growth is a palindrome too, and the song ends on its axis; R = rhodes pads under the seed and the shrink.
+R6 = set(filter(None, os.environ.get("T4_R6", "S,R").split(","))) - {"none"}  # t2's night cell, degrees on eighths (None = rest)
 TRIP = "T" in os.environ.get("T4_OPTS", "")  # triplet brush ghosts before the backbeats (off: no gain)
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 PC = {n: i for i, n in enumerate(NAMES)}
@@ -187,9 +190,16 @@ def build():
         sec.append(("seed", 0.0, len(bars)))
 
     form = [("intro", METERS, 2), ("head", METERS, 2), ("bridge", BRIDGE, 2), ("trade", METERS, 4)] + ([("drums", METERS, 1)] if "F" in R4 else []) + [
-            ("piano", BRIDGE, 2)] + ([("chorale", METERS, 1)] if "H" in R2 else []) + [("peak", METERS, 2), ("head2", METERS, 2), ("coda", METERS, 2)]  # the form mirrors too
+            ("piano", BRIDGE, 2)] + ([("chorale", METERS, 1)] if "H" in R2 else []) + [("peak", METERS, 2), ("head2", METERS, 2), ("coda", METERS, 1 if "S" in R6 else 2)]  # the form mirrors too
     p = 0
-    for name, meters, n in form:
+    for name, meters, n in form + ([("unseed", None, 3)] if "S" in R6 else []):
+        if meters is None:  # the shrink: 5, 3, 1 bars of the mirror, the coda's centre held
+            first = len(bars)
+            for L in (5, 3, 1):
+                off = (7 - L) // 2
+                add_phrase(name, METERS[off:off + L], CENTRES[0], -2, off)
+            sec.append((name, bars[first][0], len(bars) - first))
+            continue
         first = len(bars)
         for k in range(n):
             add_phrase(name, meters, CENTRES[p % len(CENTRES)], p)
@@ -198,10 +208,10 @@ def build():
     total = bars[-1][0] + bars[-1][1] / 2 + 4.0  # a ring-out
 
     # dynamics: each phrase swells to its centre bar; sections set the level
-    LEVEL = {"seed": 44, "intro": 50, "head": 68, "bridge": 74, "trade": 84, "piano": 70, "peak": 104, "head2": 64, "coda": 48,
+    LEVEL = {"seed": 44, "unseed": 44, "intro": 50, "head": 68, "bridge": 74, "trade": 84, "piano": 70, "peak": 104, "head2": 64, "coda": 48,
              "chorale": 62, "drums": 84}
     # the bass's role per section: a two-feel under the heads, a pedal under the bridge, walking under the solos
-    BASS = {"seed": "pedal", "intro": "two", "head": "two", "bridge": "pedal", "trade": "walk", "piano": "walk", "peak": "walk",
+    BASS = {"seed": "pedal", "unseed": "pedal", "intro": "two", "head": "two", "bridge": "pedal", "trade": "walk", "piano": "walk", "peak": "walk",
             "head2": "two", "coda": "two", "chorale": "pedal", "drums": "tacet"}
 
     def dyn(i):
@@ -267,11 +277,14 @@ def build():
                     g8 += g
 
         # ---- the melody (head sections), with the colour palindrome ----
-        if section in ("head", "head2", "peak", "seed"):
+        if section in ("head", "head2", "peak", "seed", "unseed"):
             line = head_bar(pos, m, centre)
             if section == "head2" and pos == 3:   # the return: the centre bar a fifth lower, half time
                 line = [(o, ln, nm(midi(n) - 7)) for o, ln, n in line]
-            voice = VOICE[pos] if section != "peak" else ("tpt" if pos % 2 == 0 else "tom")
+            if section == "unseed":  # the shrink: the tom choir sings it all
+                voice = "tom"
+            else:
+                voice = VOICE[pos] if section != "peak" else ("tpt" if pos % 2 == 0 else "tom")
             for o, ln, n in line:
                 at = swing_at(start, o, swung)
                 T[voice].add(at, ln / 2 * 0.95, n if voice != "tom" else nm(midi(n) - 12), v + 4)
@@ -329,8 +342,8 @@ def build():
             pattern = {6: [(1, 1), (4, 2)], 8: [(1, 1), (3, 1), (6, 2)], 5: [(0, 3)], 7: [(0, 2), (4, 3)]}[m]
             if pidx % 2:  # every other phrase: anticipations instead
                 pattern = {6: [(0, 2), (5, 1)], 8: [(0, 2), (4, 1), (7, 1)], 5: [(3, 2)], 7: [(2, 2), (6, 1)]}[m]
-            if section in ("chorale", "drums"):
-                pass
+            if section in ("chorale", "drums") or (section == "unseed" and "R" in R6):
+                pass  # (the shrink: the rhodes alone carries the chords)
             elif not (section in ("head", "head2") and VOICE[pos] == "pno"):
                 for o, ln in pattern:
                     cn_vo = [vo for c8, vo in comp if c8 <= o][-1]
@@ -338,14 +351,14 @@ def build():
             else:
                 T["pno_lh"].add(start, m / 2 * 0.9, comp[0][1], v - 16)
         # ---- rhodes through a Bassman stack: pads in the bridge, chords in the peak ----
-        if section in ("bridge", "peak"):
+        if section in ("bridge", "peak") or (section in ("seed", "unseed") and "R" in R6):
             for c8, vo in comp:
-                T["rhodes"].add(start + c8 / 2, (m - c8) / 2 * 0.95, vo, v - 8)
+                T["rhodes"].add(start + c8 / 2, (m - c8) / 2 * 0.95, vo, v - (8 if section in ("bridge", "peak") else 4))
 
         # ---- drums: brushes (sticks at the peak) ----
         d = T["drums"]
         peak = section == "peak"
-        if section == "chorale":
+        if section == "chorale" or section == "unseed":
             d.add(start, m / 2 * 0.95, "bsl", v - 14)
             continue
         if section == "drums":  # the drum feature: brushes, the split centre, the tom choir's retrograde
