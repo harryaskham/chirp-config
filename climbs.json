@@ -5222,14 +5222,14 @@
       "owner": "chirper-one",
       "metric": "python3 tools/compscore.py chirpers2-t2 OUT.wav",
       "best": {
-        "score": 92.13,
-        "version": "v1",
+        "score": 96.36,
+        "version": "v2",
         "commit": "see git log songs/chirpers2-t2.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 1,
+      "rounds": 2,
       "priority": 1.0,
       "genre": "jazz / prog / math fusion",
       "mode": "compose",
@@ -5247,7 +5247,7 @@
         "note": "COMPOSE (song, 150-480 s): Your style, form, meter and line-up: declare them in compose/chirpers2/styles.md, different from the tracks already claimed."
       },
       "last": {
-        "at": "2026-10-29T01:09:26Z",
+        "at": "2026-10-29T01:13:50Z",
         "who": "chirper-one"
       }
     },
