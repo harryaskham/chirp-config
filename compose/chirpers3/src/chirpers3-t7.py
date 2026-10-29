@@ -74,6 +74,11 @@ R4 = set(filter(None, os.environ.get("T7_R4", "B").split(","))) - {"none"}
 # bars into eight one-beat slices and replayed rearranged, `0 r1 2 . r4 5 _ r7` (a slice flipped forwards again here
 # and there, the live tape let through once, one beat of silence): the backwards swell stutters and catches.
 R5 = set(filter(None, os.environ.get("T7_R5", "C").split(","))) - {"none"}
+# Round 6 (v6), on per-voice fx (pin 3eee6a72+): P = THE LOOPS WANDER IN SPACE: the bowed vibes and the whistle
+# carry a per-voice pan read from each note's random value, so every pass of a loop lands somewhere new in the room;
+# S = a calmer architecture: the tape piano and the pad enter together (beat 26) and leave together (beat 170),
+# one door opening and one closing instead of four (the piece read as 15 sections).
+R6 = set(filter(None, os.environ.get("T7_R6", "P,S").split(","))) - {"none"}
 
 # the loops: (track, loop length in beats, enter, leave, [(offset, length, notes)], velocity)
 LOOPS = [
@@ -83,6 +88,9 @@ LOOPS = [
     ("whi", 31, 62, 150, [(3, 2, "C6"), (8, 4, "A5"), (20, 3, "E6")], 50),
     ("drone", 37, 0, 204, [(0, 20, "F1"), (20, 15, "C2")], 72),
 ]
+if "S" in R6:
+    LOOPS[1] = ("pno", 23, 26, 170, LOOPS[1][4], LOOPS[1][5])
+    LOOPS[2] = ("pad", 29, 26, 170, LOOPS[2][4], LOOPS[2][5])
 
 
 def build():
@@ -165,11 +173,11 @@ def loopsrc_song():
 
 def patches():
     bowed = {"about": "Odd Hours t8's bowed vibraphone (chirper-two): bar partials 1 / 4 / 10, a slow swell, no motor.",
-             "synth": {"layers": [{"name": "bar", "type": "additive", "partials": [[1, 1], [4.0, 0.1], [10.0, 0.015]]}],
+             "synth": {**({"fx": [{"type": "pan", "pan": {"value": 0, "mod": [{"src": "rand", "amount": 0.75}]}}]} if "P" in R6 else {}), "layers": [{"name": "bar", "type": "additive", "partials": [[1, 1], [4.0, 0.1], [10.0, 0.015]]}],
                        "filters": ["hp cutoff=150", "lp cutoff=6k"],
                        "amp": {"a": "350ms", "d": "1.5s", "s": 0.7, "r": "1.2s"}}, "play": {"vel_sens": 0.5}}
     whistle = {"about": "chirper-two's whistle: a sine with a breathy edge and a slow vibrato.",
-               "synth": {"pitch": {"value": 0, "mod": [{"src": "lfo.vib", "amount": 12}]},
+               "synth": {**({"fx": [{"type": "pan", "pan": {"value": 0, "mod": [{"src": "rand", "amount": 0.75}]}}]} if "P" in R6 else {}), "pitch": {"value": 0, "mod": [{"src": "lfo.vib", "amount": 12}]},
                          "layers": [{"name": "tone", "wave": "sine"},
                                     {"name": "breath", "type": "noise", "level": "-34dB"}],
                          "lfo": {"vib": {"wave": "sine", "rate": "4.6hz"}},
