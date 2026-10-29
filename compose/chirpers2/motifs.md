@@ -103,4 +103,7 @@ Generator `compose/chirpers2/src/chirpers2-t8.py`. A kit-less vibes-and-marimba 
 - **PALINDROME PHRASES** (vibes; t4's idea carried over): each four-bar phrase is half + retrograde, with the centre note held double and the dynamics mirrored (up to the centre and back). Four half-phrases rotate per chord.
 - **HARMONY**: Ebmaj7#11 | Cm9 | Abmaj9 | Bb13sus, four bars each (one collection, A turning to Ab); the bridge is up a minor third (Gbmaj7#11 | Ebm9 | Bmaj9 | Db13sus) on the INVERTED CELL (8 - degree), in unison and then in canon at half a bar, a third up.
 - **FORM**: cell (low marimba alone) / phase / melody / bridge / peak / unison / coda (the vibes alone, one mirror slowed by a quarter).
+- **AUGMENTATION** (v2, the bridge): the bowed bass plays the inverted cell in dotted quarters (four a bar, three bars a statement, the fourth a held root): the marimbas' figure, slowed fourfold, as a counter-line.
+- **THE SUBJECT, answered** (v2): in the bridge's second half the borrowed marimba (t7's own) sings t7 Cross Purposes' SUBJECT (chirper-three: semitones 0 3 7 6 2 | 5 1 4 0, eighths 1 1 1 2 2 | 1 1 1 2 = exactly one 12/8 bar) on each bar's chord root, alternating with its inversion: the instrument remembers its first song.
+- **DYNAMICS** (v2): the bridge drops away (soft marimbas), and the peak grows (the phasing marimba doubled an octave below, sixteenth frame-drum fills into each phrase).
 

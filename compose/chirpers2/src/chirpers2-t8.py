@@ -22,6 +22,12 @@ import os
 
 OUT = os.environ.get("T8_OUT") or os.path.expanduser("~/.config/chirp/songs/chirpers2-t8.yaml")
 BPM = 112
+# Round 2 (v2): D = dynamics (the bridge drops away: soft marimbas, no sub; the peak grows: the phasing marimba in
+# octaves, sixteenth fills on the frame drum); A = the bowed bass takes the CELL in augmentation (dotted quarters)
+# through the bridge, a counter-line; S = SUBJECT answered: in the bridge's second half the borrowed marimba sings
+# its first song's tune, t7 Cross Purposes' SUBJECT (chirper-three; exactly one 12/8 bar), then its inversion.
+R2 = set(filter(None, os.environ.get("T8_R2", "D,A,S").split(","))) - {"none"}
+SUBJECT = [(0, 1), (3, 1), (7, 1), (6, 2), (2, 2), (5, 1), (1, 1), (4, 1), (0, 2)]  # t7: semitones, eighths
 BAR = 6.0  # a 12/8 bar, in quarter beats
 
 NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"]
@@ -92,6 +98,8 @@ class Track:
 
 FORM = [("cell", 4), ("phase", 16), ("melody", 16), ("bridge", 16), ("peak", 16), ("unison", 8), ("coda", 6)]
 LEVEL = {"cell": 70, "phase": 76, "melody": 82, "bridge": 74, "peak": 96, "unison": 80, "coda": 60}
+if "D" in R2:
+    LEVEL.update({"bridge": 62, "peak": 104, "unison": 76})
 
 
 def build():
@@ -120,10 +128,18 @@ def build():
             off = k + (0.5 if i % 4 == 3 else 0.0)  # the blur bar: half an eighth on toward the next step
             for e in range(12):
                 at = start + ((e + off) % 12) / 2
-                T["m2"].add(at, 0.45, nm(deg(chord, cell[e])), v - 12 + (8 if e % 3 == 0 else 0))
+                p2 = deg(chord, cell[e])
+                head = nm(p2) + ("," + nm(p2 - 12) if sec == "peak" and "D" in R2 else "")  # octaves at the peak (below)
+                T["m2"].add(at, 0.45, head, v - 12 + (8 if e % 3 == 0 else 0))
         elif sec == "unison" or (sec == "bridge" and i < 8):
             for e in range(12):
                 T["m2"].add(start + e / 2, 0.45, nm(deg(chord, cell[e]) + (0 if sec == "unison" else 12)), v - 14)
+        elif sec == "bridge" and "S" in R2:  # t7's SUBJECT on the bar's chord root, then its inversion
+            sign = 1 if i % 2 == 0 else -1
+            at = start
+            for semi, ln in SUBJECT:
+                T["m2"].add(at, ln / 2 * 0.9, nm(chord[0] + 12 + sign * semi), v - 4)
+                at += ln / 2
         elif sec == "bridge":  # canon at half a bar, a third above
             for e in range(12):
                 T["m2"].add(start + ((e + 6) % 12) / 2, 0.45, nm(deg(chord, cell[e] + 2)), v - 12)
@@ -157,6 +173,17 @@ def build():
                 T["bass"].add(beat, 1.95, head, v - 10 + acc)
                 if cyc in (0, 2):  # the sub: the 4/4 bar's strong beats an octave under the bow
                     T["sub"].add(beat, 1.9, nm(note - 12 if note - 12 >= 24 else note), v - 8 + acc)
+        elif sec == "bridge" and "A" in R2:  # the cell in augmentation: dotted quarters, three bars a statement
+            root = chord[0] - 24 if chord[0] - 24 >= 28 else chord[0] - 12
+            if i % 4 < 3:
+                for q in range(4):
+                    d = CELL_INV[(i % 4) * 4 + q]
+                    bn = deg((root, chord[1]), d)
+                    T["bass"].add(start + q * 1.5, 1.45, nm(bn), v + (6 if q == 0 else 0))
+                    if q == 0:
+                        T["sub"].add(start, BAR * 0.95, nm(root - 12 if root - 12 >= 24 else root), v - 12)
+            else:
+                T["bass"].add(start, BAR * 0.98, nm(root), v - 2)
         elif sec == "bridge":
             root = chord[0] - 24 if chord[0] - 24 >= 28 else chord[0] - 12
             bn = root if i % 2 == 0 else deg((root, chord[1]), 4)
@@ -188,7 +215,11 @@ def build():
                 fd.add(start + e / 2, 0.25, "gh", v - 26)
             fd.add(start + 4.75, 0.25, "tek", v - 16)  # a sixteenth grace into the third dotted quarter
             if i % 4 == 3:
-                fd.add(start + 5, 1, "sw", v - 12)
+                if "D" in R2:  # a sixteenth fill into the next phrase
+                    for s16 in range(8):
+                        fd.add(start + 4 + s16 * 0.25, 0.25, "tek" if s16 % 2 == 0 else "gh", v - 16 + s16 * 2)
+                else:
+                    fd.add(start + 5, 1, "sw", v - 12)
         elif sec == "coda" and i == 0:
             fd.add(start, 6, "sw", v - 18)
     sec = []
@@ -246,7 +277,7 @@ def main():
         {"name": "marimba-2", "patch": "c3-marimba", "pan": 0.5, "gain": "-4dB", "fx": [hall], "score": T["m2"].score(total)},
         {"name": "vibes", "patch": "c2-vibes", "pan": 0.05, "gain": "0dB", "fx": [hall], "score": T["vib"].score(total)},
         {"name": "bass", "patch": "tagelharpa-bass-bowed", "pan": -0.05, "gain": "1dB", "score": T["bass"].score(total)},
-        {"name": "sub", "patch": "c2-sub", "gain": "-8dB", "score": T["sub"].score(total)},
+        {"name": "sub", "patch": "c2-sub", "gain": "-4dB", "score": T["sub"].score(total)},
         {"name": "frame", "patch": "c2-frame", "pan": 0.15, "gain": "0dB",
          "fx": ["reverb kind=room decay=1.0s mix=0.15"], "score": T["fd"].score(total)},
     ]
