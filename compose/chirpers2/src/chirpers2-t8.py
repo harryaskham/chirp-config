@@ -155,6 +155,9 @@ R26 = set(filter(None, os.environ.get("T8_R26", "W,P").split(","))) - {"none"}
 # #11, the colour the coda ends on in E), so the piece begins and ends in the bowed bar's air; F = the melody's FIRST
 # palindrome in four mallets too (thirds), foreshadowing the peak.
 R27 = set(filter(None, os.environ.get("T8_R27", "H,F").split(","))) - {"none"}
+# Round 28 (v28): D = a BOWED DUET: the duet's vibes palindrome moves to the bowed vibes, so both voices of the duet
+# (bowed bar and bowed bass) are bowed: the one passage in the piece where nothing is struck.
+R28 = set(filter(None, os.environ.get("T8_R28", "D").split(","))) - {"none"}
 SUBJECT = [(0, 1), (3, 1), (7, 1), (6, 2), (2, 2), (5, 1), (1, 1), (4, 1), (0, 2)]  # t7: semitones, eighths
 BAR = 6.0  # a 12/8 bar, in quarter beats
 
@@ -299,7 +302,8 @@ def build():
                 at = start
                 for d, ln in palindrome(HALVES[3]):
                     ch = HOME[1] if at - start < 2 * BAR else HOME[3]
-                    T["vib"].add(at, ln / 2 * 0.98, nm(vr(deg(ch, d) + 12)), v + 2)
+                    T["bowed" if "D" in R28 and "W" in R26 else "vib"].add(at, ln / 2 * 0.98, nm(vr(deg(ch, d) + 12)),
+                                                                            v + (8 if "D" in R28 else 2))
                     broot = ch[0] - 24 if ch[0] - 24 >= 28 else ch[0] - 12
                     T["bass"].add(at, ln / 2 * 0.97, nm(deg((broot, ch[1]), max(0, 9 - d))), v - 2)
                     at += ln / 2
