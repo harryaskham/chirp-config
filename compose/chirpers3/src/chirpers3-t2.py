@@ -143,7 +143,7 @@ def build():
                           'returns': [{'from': 'dub', 'gain': '-5dB', 'time': '3/8'}]}},
         'master': {'fx': [{'type': 'chop', 'slices': 8, 'pattern': '0 0 r3 2 . 5 r7 _', 'length': '1/1', 'mix': {'value': 0, 'mod': [{'src': 'auto.ch', 'amount': 1}]}},
                           {'type': 'tape', 'drive': 0.3, 'warmth': 0.6, 'mix': 0.5},
-                          {'type': 'eq', 'bands': ['highpass cutoff=30', 'peak cutoff=40 q=1 gain=-8dB', 'peak cutoff=220 q=0.9 gain=-6dB', 'peak cutoff=1900 q=1 gain=-4dB', 'highshelf cutoff=6000 gain=8dB']},
+                          {'type': 'eq', 'bands': ['highpass cutoff=30', 'peak cutoff=40 q=1 gain=-8dB', 'peak cutoff=220 q=0.9 gain=-6dB', 'peak cutoff=450 q=0.8 gain=-6dB', 'peak cutoff=2000 q=0.8 gain=3dB', 'highshelf cutoff=6000 gain=8dB']},
                           {'type': 'gain', 'gain': '+16dB'},
                           {'type': 'compressor', 'threshold': '-18dB', 'ratio': 3, 'attack': '15ms', 'release': '180ms', 'makeup': '2dB'},
                           {'type': 'compressor', 'threshold': '-10dB', 'ratio': 6, 'attack': '1ms', 'release': '60ms', 'makeup': '4dB'},
