@@ -36,6 +36,9 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
   reharmonised (D/Bb, B/G, G/Eb, G#/E, C/Am, A/F, C#/A, Bb/Gm) and resolving to D MAJOR before the stack.
 - **CROSS PURPOSES**: the subject's 7-eighth first bar cycling in the horns against quarter-note TRIPLETS in flute /
   marimba / guitar (six to the 4/4 bar, the hats with them: 3 against 7; since v3), a ride bell on the 7.
+- **THE SOLO** (since v13, after cross purposes): a Zappa guitar solo (lead-wah) over a lydian vamp in 7/8,
+  Dmaj7#11 | E/D, bass on a 2+2+3 D pedal: each bar a different gesture: a subject fragment ending on a held note,
+  a QUINTUPLET run up D lydian (5 to the beat), a SEXTUPLET run down, a breath and a high cry (G# rising to A).
 - **THE TRADES** (since v4): every traded bar develops the subject: read cyclically from a start that moves two notes
   a bar, transposed onto the bar's chord root, alternately as written, inverted and in retrograde, cut to the bar's
   length less a breath (sax and muted trumpet, single bars then pairs, over the 7 5 6 9 wheel).

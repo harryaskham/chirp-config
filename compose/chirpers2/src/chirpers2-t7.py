@@ -17,6 +17,8 @@ GENTLE GIANT / ZAPPA COUNTERPOINT: a through-composed chamber-prog piece where t
     4 CROSS      CROSS PURPOSES: horns + wurli in 7/8 cycles against flute + marimba + guitar in quarter-note
                  TRIPLETS (3 against 7, hats on the triplets), the subject
                  augmented in the bass, a ride bell on the 7 (12 bars of 4/4);
+    4b SOLO      a ZAPPA GUITAR SOLO (wah lead) over a lydian vamp in 7/8 (Dmaj7#11 | E/D): subject fragments,
+                 quintuplet runs up, sextuplet runs down, a high cry; 2+2+3 D-pedal bass, the Rhodes on the vamp;
     5 TRADES     sax and trumpet trade single bars, then pairs, over a meter wheel 7 5 6 9 (24 bars), walking bass;
                  each traded bar develops the subject (cyclic start, on the bar's chord, as written / inverted / retrograde);
                  the hushed part is a SWINGING BRUSH TRIO: flute and jazz guitar trade swung bars, a Rhodes through
@@ -85,7 +87,7 @@ class Part:
 
 
 P = {k: Part() for k in ("mar", "flute", "tpt", "sax", "gtr", "keys", "bass", "kick", "snare", "hat", "toms", "ride",
-                         "clock", "sub", "brush", "tap", "rhodes", "ttom", "mar2", "choir")}
+                         "clock", "sub", "brush", "tap", "rhodes", "ttom", "mar2", "choir", "lead")}
 BARS = []          # (start eighths, length eighths, section, index in section)
 rng = random.Random(7)
 
@@ -333,6 +335,57 @@ def cross(t):
     return t
 
 
+# ---------- 4b THE SOLO ----------
+LYD = [0, 2, 4, 6, 7, 9, 11]          # D lydian
+
+
+def lyd_note(i):
+    return D4 + LYDIAN[i % 7] + 12 * (i // 7)
+
+
+def solo(t):
+    """A ZAPPA GUITAR SOLO over a lydian vamp in 7/8 (Dmaj7#11 | E/D), between cross purposes and the hush: the wah
+    lead varies bar by bar between a subject fragment ending on a held note, a QUINTUPLET run up the scale, a SEXTUPLET
+    run down, and a breath before a high cry; the bass holds a 2+2+3 D-pedal ostinato, the Rhodes stabs the vamp."""
+    a = t
+    srng = random.Random(29)
+    for i in range(8):
+        ln = 7
+        bar(t, ln, "solo", i)
+        kit_bar(t, ln, i, 96 + i)
+        e_over_d = i % 2 == 1
+        chord = "E4,Ab4,B4,D5" if e_over_d else "Gb4,A4,Db5,E5"
+        for o in (0, 4):
+            P["rhodes"].add(t + o, 1.5, chord, 76)
+        for o, d, m in ((0, 2, 38), (2, 2, 38), (4, 1, 45), (5, 2, 49 if e_over_d else 50)):
+            P["bass"].add(t + o, d * 0.9, nm(m), 96 if o == 0 else 84)
+        kind = (0, 1, 2, 3, 1, 0, 2, 3)[i]
+        v = 96 + i
+        if kind == 0:                       # a subject fragment, the last note held
+            k0 = (2 * i) % 9
+            x = 0.0
+            for j in range(4):
+                p, _ = SUBJ[(k0 + j) % 9]
+                d = 1 if j < 3 else 3.5
+                P["lead"].add(t + x, d * 0.95, nm(D4 + 12 + p), v + (6 if j == 3 else 0))
+                x += d
+        elif kind == 1:                     # quintuplet sixteenths up the lydian scale: 5 to the beat for two beats
+            s0 = srng.randrange(5, 9)
+            for j in range(10):
+                P["lead"].add(t + j * 0.4, 0.38, nm(lyd_note(s0 + j)), v - 6 + (8 if j % 5 == 0 else 0))
+            P["lead"].add(t + 4, 3, nm(lyd_note(s0 + 11)), v + 6)
+        elif kind == 2:                     # sextuplets down: 6 to the beat for two beats, then a low growl
+            s0 = srng.randrange(12, 15)
+            for j in range(12):
+                P["lead"].add(t + j / 3, 0.32, nm(lyd_note(s0 - j)), v - 6 + (8 if j % 6 == 0 else 0))
+            P["lead"].add(t + 4, 2.5, nm(lyd_note(s0 - 13)), v)
+        else:                               # a breath, then the high cry (the #11 resolving up)
+            P["lead"].add(t + 1.5, 2.5, nm(D4 + 24 + 8), v + 4)
+            P["lead"].add(t + 4, 2.8, nm(D4 + 24 + 9), v + 8)
+        t += ln
+    return t
+
+
 # ---------- 5 TRADES ----------
 def improv_bar(who, st, ln, ci, prev, vel):
     root, iv = chord_at(ci)
@@ -537,7 +590,7 @@ def dyn_lane():
 def main():
     t = 0.0
     spans = {}
-    for sec in (chorale, statement, fugue, black_page, cross, trades, stretto, coda):
+    for sec in (chorale, statement, fugue, black_page, cross, solo, trades, stretto, coda):
         a = t
         t = sec(t)
         spans[sec.__name__] = (a, t)
@@ -578,6 +631,7 @@ def main():
     tr = lambda name, patch, **kw: dict({"name": name, "patch": patch, "score": P[name].score(total)}, **kw)
     tracks = [
         tr("mar", "c3-marimba", pan="L40", gain="-4dB", sends={"room": "-10dB"}),
+        tr("lead", "lead-wah", pan="L15", gain="-3dB", sends={"room": "-12dB"}),        # the Zappa solo
         tr("choir", "mellotron-choir", gain="-4dB", sends={"room": "-8dB"}),            # the opening chorale
         tr("mar2", "c3-marimba", pan="R45", gain="-6dB", sends={"room": "-10dB"}),     # the answer's phasing marimba
         tr("flute", "mellotron-flute", pan="R40", gain="-6dB", sends={"room": "-10dB"}),
