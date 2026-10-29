@@ -126,6 +126,11 @@ R13 = set(filter(None, os.environ.get("T6_R13", "P").split(","))) - {"none"}
 # rendered on `epiano-tine` (a Rhodes tine past its pickup, barking): the half-time section changes instrument.
 R14 = set(filter(None, os.environ.get("T6_R14", "T").split(","))) - {"none"}  # R tried: the reed keys drifted from
 # the album's sound (cohesion 80 -> 64): the wurli stays the song's voice
+# Round 15 (v15), modulatable chorus depth (engine PR #33): O = ONE TAPE: the drop no longer hands its chords to a
+# second "warped" keys track; the same wurli warps in place. Its wow (the chorus) deepens from 0.55 to 0.95 on the
+# drop's warp lane, which already darkens its filter and raises its crush, while the song-long wear lane peaks on its
+# tape deck: the listener hears the one instrument's tape go seasick, not a switch.
+R15 = set(filter(None, os.environ.get("T6_R15", "O").split(","))) - {"none"}
 FORM = [("intro", 4), ("A", 16), ("switch", 8), ("A2", 16), ("drop", 4), ("A3", 12), ("outro", 4)]
 LEVEL = {"intro": 58, "A": 72, "switch": 66, "A2": 78, "drop": 56, "A3": 80, "outro": 56}
 DRUMS = {"A", "switch", "A2", "A3"}
@@ -153,7 +158,7 @@ def build():
                 root, voic = A_TURN
         # ---- keys: the chord a hair late, strummed; a soft re-hit on the and of three ----
         drag = 0.05 if sec != "intro" else 0.0
-        K = T["kw"] if sec == "drop" and "W" in R2 else T["keys"]  # the drop's chords on the warped tape
+        K = T["kw"] if sec == "drop" and "W" in R2 and "O" not in R15 else T["keys"]  # the drop's chords
         if sec == "switch" and "S" in R10:
             K = Track("_")  # the live keys rest: the resampled bounce plays the switch
             if i == 0:  # the first half forwards, the second half the same tape played backwards
@@ -405,7 +410,8 @@ def main():
                 [f"{total}b", 1.4]]
     warp_pts = [["0b", 0.0], [f"{d0}b", 0.0], [f"{a3 - 0.5}b", 1.0], [f"{a3}b", 0.0]]
     wow = {"type": "chorus", "rate": 0.35, "depth": 0.55, "voices": 1, "mix": 1.0}
-    wow_k = wow
+    wow_k = (dict(wow, depth={"value": 0.55, "mod": [{"src": "auto.warp", "amount": 0.4}]})
+             if "O" in R15 and "W" in R2 else wow)
     flutter = {"type": "chorus", "rate": 5.5, "depth": 0.08, "voices": 1, "mix": 0.5}
     tracks = [
         {"name": "keys", "patch": "epiano-reed" if "R" in R14 else "wurli", "pan": -0.1, "gain": "-6dB",
@@ -425,7 +431,7 @@ def main():
                     {"type": "chorus", "rate": 3.1, "depth": 0.2, "voices": 1, "mix": 0.6},
                     "tape drive=0.5 warmth=0.8", "lp cutoff=2200",
                     {"type": "crush", "bits": 10, "rate": 11000, "mix": 0.55},
-                    "reverb kind=hall decay=2.5s mix=0.3"], "score": T["kw"].score(total)}] if "W" in R2 else []),
+                    "reverb kind=hall decay=2.5s mix=0.3"], "score": T["kw"].score(total)}] if "W" in R2 and "O" not in R15 else []),
         {"name": "bass", "patch": "fretless", "gain": "1dB" if "M" not in R3 else "0dB",
          "fx": ["lp cutoff=%d" % (900 if "M" not in R3 else 600), "tape drive=0.2 warmth=0.5"],
          "score": T["bass"].score(total)},
