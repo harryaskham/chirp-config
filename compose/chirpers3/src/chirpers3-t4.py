@@ -97,7 +97,7 @@ class Part:
 
 
 P = {k: Part() for k in ("toy", "box", "xtal", "lead", "pad", "bass", "sub", "kick", "snare", "hat", "perc", "cpiano", "hail", "desc", "sq",
-                         "ckick", "csnare", "chat", "ctoy", "cbox")}
+                         "ckick", "csnare", "chat", "ctoy", "cbox", "mist")}
 rng = random.Random(4)
 
 
@@ -323,6 +323,14 @@ def chop_toys():
         P["c" + src].ev.extend(moved)
 
 
+def mist():
+    """THE MIST (the breakdown): the music box's notes also feed a granular CLOUD (wM's), smeared into a shimmering bed
+    under the bridge and the counter-line: after the break's hail, the breakdown's hail turns to mist."""
+    for e in P["box"].ev:
+        if b0(37) <= e[0] < b0(45):
+            P["mist"].add(e[0], 6, e[2], e[3])
+
+
 def squelch():
     """The full section's SQUELCH: the bass line doubled through chirper-two's ladder filter, resonant, its cutoff swept
     by a slow LFO, for the last big section only."""
@@ -386,9 +394,10 @@ def wear_lane():
 
 
 def tapestop_lane():
-    """The tape stops dead in the near-stall's second half (after the resample dive) and restarts for the return."""
+    """The tape stops in the near-stall's second half (after the resample dive) and spins back up into the return."""
     sec = lambda e: e / 4 * 60 / BPM
-    pts = [(0, 0.0), (b0(28) + 8, 0.0), (b0(28) + 8.1, 1.0), (b0(29) - 0.3, 1.0), (b0(29) - 0.2, 0.0), (TOTAL, 0.0)]
+    pts = [(0, 0.0), (b0(28) + 7, 0.0), (b0(28) + 7.1, 1.0), (b0(28) + 11.9, 1.0), (b0(28) + 12, 0.0), (TOTAL, 0.0)]
+    # stop just before beat 2-and-a-half, release on beat 4: the 1-beat spin-up lands on the return's downbeat
     # (a final stop at the very end was tried: it silenced the join into t5, flow 50 -> 27; the wind-down ends it)
     return [[f"{sec(e):.3f}s", v] for e, v in pts]
 
@@ -418,6 +427,7 @@ def main():
     harmony()
     counter_line()
     squelch()
+    mist()
     chop_toys()
     sec = lambda e: e / 4 * 60 / BPM
     tr = lambda name, patch, **kw: dict({"name": name, "patch": patch, "score": P[name].score()}, **kw)
@@ -430,6 +440,9 @@ def main():
         tr("lead", "lead-tape", pan="L10", gain="-9dB", sends={"space": "-10dB"}),
         tr("hail", "toy-piano", pan="L20", gain="4dB", out="toys", fx=["comb cutoff=138.6 q=6"]),   # hail on a metal roof
         tr("desc", "boc-lead", pan="R20", gain="-4dB", sends={"space": "-9dB"}),     # the second hidden melody
+        tr("mist", "music-box", gain="-6dB", sends={"space": "-6dB"},                   # the MIST: hail into grains
+           fx=[{"type": "cloud", "size": "150ms", "density": 18, "position": "500ms", "spray": "400ms", "pitch": 12,
+                "scatter": 0.2, "reverse": 0.4, "spread": 0.9, "mix": 0.85, "seed": 3}]),
         tr("cpiano", "tape-piano", pan="L30", gain="-6dB", sends={"space": "-9dB"}),     # the breakdown's counter-line
         tr("pad", "juno-pad", gain="-14dB", fx=["lp cutoff=2200", "tape wow=9 flutter=2 seed=11"], sends={"space": "-8dB"}),
         tr("bass", "analog-bass", gain="0dB"),
@@ -463,7 +476,8 @@ def main():
         'master: ' + json.dumps({"fx": [{"type": "pitch", "semitones": {"value": 0, "mod": [{"src": "auto.rs", "amount": -4}]},
                                         "mix": 1},       # the RESAMPLE: the whole band slows like a sampler (Harry's note)
                                        {"type": "tapestop", "stop": {"value": 0, "mod": [{"src": "auto.ts", "amount": 1}]},
-                                        "time": "1.1s", "mix": 1},   # and the tape really STOPS (the record keeps turning)
+                                        "time": "1b", "up": "1b", "curve": 0.5, "mix": 1},   # the tape STOPS (holding,
+                                       # then dropping), and SPINS BACK UP into the return (the record keeps turning)
                                        {"type": "tape", "drive": 0.25, "mix": 0.5, "squash": 0.4, "hiss": "-56dB", "wow": 4,
                                         "flutter": 1, "seed": 7,
                                         "warp": {"value": 0.5, "mod": [{"src": "auto.wear", "amount": 0.5}]}},

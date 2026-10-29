@@ -82,7 +82,11 @@ Generator `compose/chirpers3/src/chirpers3-t7.py`. Ambient tape loops, a nominal
   way, 1.6 in the glitch break (rough), 0.7 in the breakdown (clean and close), and 1 -> 2 through the wind-down, so the
   tape wears out as the music box runs down (on the toy bus fully, on the master at half depth).
 - **THE TAPE STOP** (since v9): the near-stall ends for real: after the band's resample dive, wM's tapestop brings the
-  tape to a halt in the bar's second half (the vinyl keeps turning on top), then the return snaps back at speed.
+  tape to a halt in the bar's second half (the vinyl keeps turning on top); since v11 it holds before it drops
+  (curve .5) and SPINS BACK UP over a beat (up: 1b), landing on the return's downbeat, like a key turned by hand.
+- **THE MIST** (since v11, the breakdown): the music box's notes also feed wM's granular CLOUD (150 ms grains, density
+  18, spray 400 ms, an octave-up shimmer, 40% reversed, wide), a bed of smeared grains under the bridge: after the
+  break's hail, the breakdown's hail turns to mist.
 - **THE RESAMPLED MUSIC BOX** (since v9): at the full section's phrase ends (bars 48 and 52) the toy piano and the box
   play through their own chop (`0 . 2 r2 4 . 6 r7`), the clockwork stuttering on itself where the phrase turns, while
   the hidden melody sings on over it.
