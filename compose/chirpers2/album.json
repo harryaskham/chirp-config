@@ -134,7 +134,8 @@
         600
       ],
       "brief": "Closes the album. Style, form, meter and line-up are yours: declare them in compose/chirpers2/styles.md.",
-      "id": "chirpers2-t10"
+      "id": "chirpers2-t10",
+      "title": "Cierre"
     }
   ],
   "named_by": "harry@pocket4-nixos",
