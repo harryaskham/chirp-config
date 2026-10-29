@@ -95,6 +95,10 @@ R14 = set(filter(None, os.environ.get("T8_R14", "I,F").split(","))) - {"none"}
 # DRIFTS a quarter of an eighth every bar (offsets 8, 8.25, 8.5 ... 11.75, arriving at 12 = unison), the gradual
 # phase the discrete steps imitated, at the climax.
 R15 = set(filter(None, os.environ.get("T8_R15", "G").split(","))) - {"none"}
+# Round 16 (v16): R = a ROLLED MARIMBA CHORALE (4 bars between the unison and the coda): the home chords as
+# marimba rolls (each hand a two-note roll in alternating 32nds, swelling and dying away through the bar), the bass
+# marimba ringing the roots and the bow beneath: the instrument's own lyric voice, after the process ends.
+R16 = set(filter(None, os.environ.get("T8_R16", "R").split(","))) - {"none"}
 SUBJECT = [(0, 1), (3, 1), (7, 1), (6, 2), (2, 2), (5, 1), (1, 1), (4, 1), (0, 2)]  # t7: semitones, eighths
 BAR = 6.0  # a 12/8 bar, in quarter beats
 
@@ -166,9 +170,9 @@ class Track:
 
 FORM = [("cell", 4), ("phase", 12 if "C" in R9 else 16), ("melody", 16)] + ([("solo", 8)] if "V" in R3 else []) + \
        ([("trades", 8)] if "X" in R6 else []) + \
-       [("bridge", 16)] + ([("blur", 4)] if "B" in R4 else []) + ([("duet", 4)] if "D" in R10 else []) + [("peak", 16), ("unison", 8), ("coda", 6)]
+       [("bridge", 16)] + ([("blur", 4)] if "B" in R4 else []) + ([("duet", 4)] if "D" in R10 else []) + [("peak", 16), ("unison", 8)] + ([("chorale", 4)] if "R" in R16 else []) + [("coda", 6)]
 LEVEL = {"cell": 70, "phase": 76, "melody": 82, "bridge": 74, "peak": 96, "unison": 80, "coda": 60, "solo": 84,
-         "blur": 76, "trades": 86, "duet": 70}
+         "blur": 76, "trades": 86, "duet": 70, "chorale": 66}
 if "D" in R2:
     LEVEL.update({"bridge": 62, "peak": 104, "unison": 76})
 
@@ -207,6 +211,21 @@ def build():
                 T["bm"].add(start + 4, 1.9, nm(deg(chord, 0) - 24 + 12), v)
         if sec == "blur":
             chord = HOME[0] if i < 2 else HOME[3]
+        if sec == "chorale":
+            chord = HOME[i % 4]
+            for tr, degs, base in (("m1", (0, 4), -12), ("m2", (2, 6), 0)):
+                p1, p2 = (deg(chord, d) + base for d in degs)
+                for r in range(40):  # 32nds for five beats, alternating the two notes, swelling then dying
+                    sw = 1 - abs(r - 20) / 20
+                    T[tr].add(start + r * 0.125, 0.12, nm(p1 if r % 2 == 0 else p2), int(v - 24 + 22 * sw))
+            if "M" in R11:
+                bp = deg(chord, 0) - 24
+                while bp < 33:
+                    bp += 12
+                T["bm"].add(start, BAR * 0.9, nm(bp), v - 2)
+            broot = chord[0] - 24 if chord[0] - 24 >= 28 else chord[0] - 12
+            T["bass"].add(start, BAR * 0.97, nm(broot), v - 8)
+            continue
         if sec == "duet":
             chord = HOME[1] if i < 2 else HOME[3]
             if i == 0:  # the duet: one palindrome, the bass in contrary motion beneath it
