@@ -97,7 +97,7 @@ class Part:
 
 
 P = {k: Part() for k in ("toy", "box", "xtal", "lead", "pad", "bass", "sub", "kick", "snare", "hat", "perc", "cpiano", "hail", "desc", "sq",
-                         "ckick", "csnare", "chat", "ctoy", "cbox", "mist", "vox", "boxsong")}
+                         "ckick", "csnare", "chat", "ctoy", "cbox", "mist", "vox", "boxsong", "throw")}
 rng = random.Random(4)
 
 
@@ -270,7 +270,7 @@ def beat():
         soft = sec == "beat"
         if bar == 28:                                           # the stall: two beats, then nothing
             P["kick"].add(a, 1, "k", 96)
-            P["snare"].add(a + 4, 1, "s", 88)
+            P["throw"].add(a + 4, 1, "s", 96)                   # the last snare before the stop: a DUB THROW
             P["hat"].add(a + swing(2), 0.5, "h", 52)
             continue
         # THE RESAMPLED BREAK: bars 24-27 play through the CHOP tracks (wM's MPC-style chop): bar 24 feeds it live,
@@ -496,6 +496,8 @@ def main():
         tr("snare", KIT, out="drums"),
         tr("hat", KIT, out="drums", gain="-6dB"),
         tr("perc", KIT, out="drums", gain="-8dB"),
+        tr("throw", KIT, out="drums", gain="2dB", sends={"echo": "0dB"}),   # the stall's snare, thrown into the dub echo,
+        # whose repeats are then caught by the master's tape stop: they slow, sag and die with the tape
         *[tr(n, KIT, out="drums", gain=g, fx=[CHOP]) for n, g in (("ckick", "4dB"), ("csnare", "0dB"), ("chat", "-6dB"))],
     ]
     head = [
