@@ -70,6 +70,10 @@ R3 = set(filter(None, os.environ.get("T7_R3", "M").split(","))) - {"none"}
 # half speed (beat 152 to the end: the loops swelling in backwards as the real ones leave). Two passes cut the
 # piece into too many sections (16); one long pass keeps the drift whole.
 R4 = set(filter(None, os.environ.get("T7_R4", "B").split(","))) - {"none"}
+# Round 5 (v5): C = THE BACKWARDS TAPE, CHOPPED (wM's chop fx, pin a9e910d1): the reversed loops are cut every two
+# bars into eight one-beat slices and replayed rearranged, `0 r1 2 . r4 5 _ r7` (a slice flipped forwards again here
+# and there, the live tape let through once, one beat of silence): the backwards swell stutters and catches.
+R5 = set(filter(None, os.environ.get("T7_R5", "C").split(","))) - {"none"}
 
 # the loops: (track, loop length in beats, enter, leave, [(offset, length, notes)], velocity)
 LOOPS = [
@@ -237,8 +241,9 @@ def main():
             "fx": [dict(wow, rate=0.35), "lp cutoff=2600", "reverb kind=hall decay=3s mix=0.4"],
             "score": T["sigh"].score(TOTAL)}] if "M" in R3 else []),
         *([{"name": "loops-reversed", "patch": "c2-loops-rev", "pan": 0.15, "gain": "-3dB",
-            "fx": ["lp cutoff=3800", {"type": "crush", "bits": 12, "rate": 14000, "mix": 0.25},
-                   "reverb kind=hall decay=4s mix=0.35"], "score": T["rev"].score(TOTAL)}] if "B" in R4 else []),
+            "fx": ([{"type": "chop", "slices": 8, "length": "2/1", "pattern": "0 r1 2 . r4 5 _ r7"}] if "C" in R5 else [])
+                  + ["lp cutoff=3800", {"type": "crush", "bits": 12, "rate": 14000, "mix": 0.25},
+                     "reverb kind=hall decay=4s mix=0.35"], "score": T["rev"].score(TOTAL)}] if "B" in R4 else []),
         {"name": "crackle", "patch": "c2-crackle", "gain": "-30dB", "score": T["crackle"].score(TOTAL)},
         {"name": "hiss", "patch": "c2-hiss", "gain": "-36dB", "score": T["hiss"].score(TOTAL)},
     ]
