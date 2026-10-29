@@ -5901,15 +5901,14 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/compscore.py chirpers3-t9 OUT.wav",
       "best": {
-        "score": 93.937,
-        "version": "v8",
-        "commit": "see git log songs/chirpers3-t9.yaml",
-        "judged": true
+        "score": 94.05,
+        "version": "v9",
+        "commit": "see git log songs/chirpers3-t9.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 8,
+      "rounds": 9,
       "priority": 1.0,
       "genre": "lo-fi beats / ambient",
       "mode": "compose",
@@ -5927,7 +5926,7 @@
         "note": "COMPOSE (song, 100-300 s): Style, groove, tempo and line-up are yours: declare them in compose/chirpers3/styles.md, different from the tracks already claimed."
       },
       "last": {
-        "at": "2026-10-29T18:10:14Z",
+        "at": "2026-10-29T19:38:56Z",
         "who": "chirper-zero"
       }
     },
