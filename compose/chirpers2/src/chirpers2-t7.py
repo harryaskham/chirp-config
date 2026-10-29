@@ -23,7 +23,8 @@ GENTLE GIANT / ZAPPA COUNTERPOINT: a through-composed chamber-prog piece where t
                  wM's Bassman stack comps, the bass walks, chirper-two's brushes; the horns take the straight wake-up;
     6 STRETTO    subject entries every two eighths in every voice, the climax, a whole tone up (E) after a B7alt pivot;
     7 CODA       THE ANSWER to chirper-two's t8: their 12-eighth CELL on two marimbas phasing an eighth a bar, the
-                 subject augmented bass -> flute, the clock across; then the final chord built one hocketed note at a time.
+                 subject augmented bass -> flute, the clock across; then the CHORALE returns singing the INVERSION
+                 (fuller: trumpet and sax join, resolving to D major), and the final chord is built one hocketed note at a time.
 - KIT: prog-kit, groupings follow each meter (7 = 2+2+3 or 3+2+2 alternating bar by bar, 5 = 3+2 / 2+3, 9 = 2+2+2+3,
   6 = 3+3, 8 = 3+3+2): kick on group starts, snare on the last group, hats on the eighths.
 
@@ -164,22 +165,45 @@ CHORALE = [  # (melody semitones from D4, chord root pitch class, chord tones ab
 ]
 
 
+CHORALE_INV = [  # the close: the INVERSION sung, reharmonised, resolving to D major
+    (0, 10, [0, 4, 7]),     # D   over Bb
+    (-3, 7, [0, 4, 7]),     # B   over G
+    (-7, 3, [0, 4, 7]),     # G   over Eb
+    (-6, 4, [0, 4, 7]),     # G#  over E   (the opening's G#/E, mirrored)
+    (-2, 9, [0, 3, 7]),     # C   over Am
+    (-5, 5, [0, 4, 7]),     # A   over F
+    (-1, 9, [0, 4, 7]),     # C#  over A
+    (-4, 7, [0, 3, 7]),     # Bb  over Gm
+    (0, 2, [0, 4, 7]),      # D   over D major: the dispute resolves
+]
+
+
+def sing(t, rows, v0, full=False, sec="chorale"):
+    """A chorale: the melody on top of the mellotron choir, one note a half bar (the last a whole bar), each harmonised
+    afresh; flute on the melody, bass on the roots; `full` adds the muted trumpet an octave under the melody and the
+    sax on an inner voice."""
+    for j, (p, root, iv) in enumerate(rows):
+        ln = 8 if j == len(rows) - 1 else 4
+        v = v0 + 3 * j
+        mel = D4 + 12 + p
+        inner = sorted({mel - 12 - ((mel - 12 - (48 + root + x)) % 12) for x in iv} - {mel})
+        P["choir"].add(t, ln * 0.97, ",".join(nm(m) for m in inner + [mel]), v)
+        P["flute"].add(t, ln * 0.95, nm(mel), v - 6)
+        P["bass"].add(t, ln * 0.95, nm(36 + root), v)
+        if full:
+            P["tpt"].add(t, ln * 0.95, nm(mel - 12), v - 4)
+            P["sax"].add(t, ln * 0.95, nm(inner[0]), v - 8)
+        if j % 2 == 0:
+            bar(t, 8, sec, j // 2)
+        t += ln
+    return t
+
+
 def chorale(t):
     """The piece opens by SINGING the subject before arguing it (Gentle Giant's madrigal voices): a slow chorale, one
     note a half bar, the subject on top of a mellotron choir, each note harmonised afresh (Dm Bb F E Am C Cm D D5),
     the flute on the melody, the bass on the roots; no drums, rising into the hocket."""
-    for j, (p, root, iv) in enumerate(CHORALE):
-        ln = 8 if j == len(CHORALE) - 1 else 4
-        v = 54 + 3 * j
-        mel = D4 + 12 + p
-        inner = sorted({mel - 12 - ((mel - 12 - (48 + root + x)) % 12) for x in iv} - {mel})   # chord tones below the melody
-        P["choir"].add(t, ln * 0.97, ",".join(nm(m) for m in inner + [mel]), v)
-        P["flute"].add(t, ln * 0.95, nm(mel), v - 6)
-        P["bass"].add(t, ln * 0.95, nm(36 + ((root - 0) % 12)), v)
-        if j % 2 == 0:
-            bar(t, 8, "chorale", j // 2)
-        t += ln
-    return t
+    return sing(t, CHORALE, 54)
 
 
 # ---------- 1 STATEMENT ----------
@@ -461,6 +485,7 @@ def coda(t):
             P["mar"].add(st + e, 0.9, nm(lyd(d, D4 - 12)), 74 + (8 if e in (0, 6) else 0))
             P["mar2"].add(st + e, 0.9, nm(lyd(T8_CELL[(e + i) % 12], D4)), 66 + (8 if e in (0, 6) else 0))
     t += 48
+    t = sing(t, CHORALE_INV, 66, full=True, sec="coda")              # the close sings the inversion, resolving to D major
     stack = [("bass", D4 - 24), ("gtr", D4 - 12 + 3), ("sax", D4 - 12 + 7), ("keys", D4 + 6), ("tpt", D4 + 2),
              ("mar", D4 + 12 + 5), ("flute", D4 + 12 + 1)]               # the subject's pitch set, one note an eighth
     for j, (who, m) in enumerate(stack):

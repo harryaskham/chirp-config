@@ -32,6 +32,8 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 - **THE CHORALE** (since v11, the opening): the subject SUNG before it is argued, one note a half bar on top of a
   mellotron choir, each note harmonised afresh: D/Dm, F/Bb, A/F, G#/E, E/Am, G/C, Eb/Cm, F#/D, D over an open fifth
   (a chromatic-modal chorale, Gentle Giant's madrigal voices); flute on the melody, bass on the roots, no drums.
+  It RETURNS at the close (since v12) singing the INVERSION, fuller (muted trumpet under the melody, sax inside),
+  reharmonised (D/Bb, B/G, G/Eb, G#/E, C/Am, A/F, C#/A, Bb/Gm) and resolving to D MAJOR before the stack.
 - **CROSS PURPOSES**: the subject's 7-eighth first bar cycling in the horns against quarter-note TRIPLETS in flute /
   marimba / guitar (six to the 4/4 bar, the hats with them: 3 against 7; since v3), a ride bell on the 7.
 - **THE TRADES** (since v4): every traded bar develops the subject: read cyclically from a start that moves two notes
