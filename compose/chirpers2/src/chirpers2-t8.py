@@ -47,6 +47,11 @@ def vr(m):
 # of an eighth behind (the phase caught between steps: neither unison nor the next offset), Eb lydian to Bb13sus;
 # Q = the peak's frame drum plays FIVE against the bar's four dotted quarters (teks 1.2 beats apart).
 R4 = set(filter(None, os.environ.get("T8_R4", "B,Q").split(","))) - {"none"}
+# Round 5 (v5): H = the PEAK REHARMONISED up a cycle of major thirds, Ebmaj7#11 | Gmaj7#11 | Bmaj7#11 | Bb13sus
+# (the cell and the palindromes ride the new chords; the lift of the climax); G = the coda's echo GROWS, a dotted
+# eighth behind at first and a dotted quarter by the end: the phasing process reaches the melody itself.
+R5 = set(filter(None, os.environ.get("T8_R5", "H,G").split(","))) - {"none"}
+PEAK = [(63, "maj7#11"), (67, "maj7#11"), (59, "maj7#11"), (58, "13sus")]  # Eb4, G4, B3, Bb3
 SUBJECT = [(0, 1), (3, 1), (7, 1), (6, 2), (2, 2), (5, 1), (1, 1), (4, 1), (0, 2)]  # t7: semitones, eighths
 BAR = 6.0  # a 12/8 bar, in quarter beats
 
@@ -137,7 +142,7 @@ def build():
     step = 0  # marimba 2's phase offset in eighths; it climbs 0..11 over phase, melody and peak
     for bi, (start, sec, i, n) in enumerate(bars):
         v = LEVEL[sec]
-        prog = BRIDGE if sec == "bridge" else HOME
+        prog = BRIDGE if sec == "bridge" else (PEAK if sec == "peak" and "H" in R5 else HOME)
         chord = prog[(i // 4) % 4] if sec not in ("cell", "coda") else HOME[0]
         if sec == "solo":
             chord = HOME[(i // 2) % 4]
@@ -207,10 +212,11 @@ def build():
         elif sec == "coda" and i == 0:  # one mirror, slowed by a quarter: five bars of the six
             phrase = palindrome(HALVES[0][:3] + [(9, 6)])  # a short mirror, slowing
             at = start
-            for d, ln in phrase:
+            for j, (d, ln) in enumerate(phrase):
                 T["vib"].add(at, ln / 2 * 1.2, nm(vr(deg(HOME[0], d) + 12)), v)
-                if "E" in R3:  # the echo, a dotted eighth behind (t9's clock)
-                    T["echo"].add(at + 0.75, ln / 2 * 1.1, nm(vr(deg(HOME[0], d) + 12)), v - 14)
+                if "E" in R3:  # the echo, a dotted eighth behind (t9's clock); with G it drifts to a dotted quarter
+                    lag = 0.75 + (0.75 * j / max(1, len(phrase) - 1) if "G" in R5 else 0)
+                    T["echo"].add(at + lag, ln / 2 * 1.1, nm(vr(deg(HOME[0], d) + 12)), v - 14 + (4 if "G" in R5 else 0))
                 at += ln / 2 * 1.25
         # ---- the bowed bass: half notes in 4/4 against the 12/8 ----
         if sec in ("phase", "melody", "peak", "unison", "solo") and not (sec == "phase" and i < 4):
