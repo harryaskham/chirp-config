@@ -21,7 +21,10 @@ import os
 ROOT = os.path.expanduser("~/.config/chirp")
 OUT = os.environ.get("T10_OUT") or os.path.join(ROOT, "songs", "chirpers2-t10.yaml")
 MG = float(os.environ.get("T10_MG", "10"))
-DYN = os.environ.get("T10_DYN", "1") == "1"  # section dynamics on the master (after the compressor)
+DYN = os.environ.get("T10_DYN", "1") == "1"
+EQ = os.environ.get("T10_EQ", "2")  # master eq: 1 = v1 (shelf +3 @100, 800 -2); 2 = shelf +6 @120, 700 q0.6 -3
+LOWB = os.environ.get("T10_LOWB", "0") == "1"  # the tumbao's anticipated root an octave lower (the baby bass's floor)
+KICK = os.environ.get("T10_KICK", "0") == "1"  # more bombo: the ponche on 4 in the mambo/cierre, dotted quarters in the descarga  # section dynamics on the master (after the compressor)
 
 # sections: (name, meter, bpm (quarter), bars)
 FORM = [("bembe", "12/8", 156, 12), ("son", "4/4", 208, 40), ("mambo", "4/4", 208, 24), ("siete", "7/4", 208, 12),
@@ -131,10 +134,11 @@ def tumbao(c, nxt, b, beats):
     bembe bass on dotted quarters; in 7/4 a 3+2+2 ostinato."""
     r = CH[c][0]
     rn = CH[nxt][0]
+    lo = -12 if LOWB else 0
     if beats == 4:
-        return J(R(1.5), tok(nm(rn), 1.5, 96), tok(nm(rn + 7), 1, 88))
+        return J(R(1.5), tok(nm(rn + lo), 1.5, 96), tok(nm(rn + 7), 1, 88))
     if beats == 6:
-        return J(tok(nm(r), 1.5, 92), R(1.5), tok(nm(r + 7), 1, 84), tok(nm(r + 12), 0.5, 80), tok(nm(r), 1.5, 90))
+        return J(tok(nm(r + lo), 1.5, 92), R(1.5), tok(nm(r + 7), 1, 84), tok(nm(r + 12), 0.5, 80), tok(nm(r), 1.5, 90))
     if beats == 7:
         return J(tok(nm(r), 3, 94), tok(nm(r + 7), 2, 86), tok(nm(r + 10), 2, 84))
     return tok(nm(r), beats, 90)
@@ -168,6 +172,8 @@ def drums(sec, b, beats, dens=1):
                 h.append("t2")
             if i in (0, 6) and (sec == "descarga" or b >= 4):
                 h.append("k")
+            if KICK and sec == "descarga" and i in (3, 9):
+                h.append("k")
             if sec == "descarga" and i in (5, 11):
                 h.append("t1")
             if sec == "descarga" and dens > 1 and i in (3, 9):
@@ -181,6 +187,8 @@ def drums(sec, b, beats, dens=1):
             if i == 5:
                 h.append("ft")
             if i == 3 and b % 2 == 0:
+                h.append("k")
+            if KICK and sec != "son" and i == 6:
                 h.append("k")
             if sec != "son" and i in (2, 6):
                 h.append("so")
@@ -335,7 +343,9 @@ def section_times():
 
 
 def master():
-    fx = [{"type": "eq", "bands": ["lowshelf cutoff=100 gain=3dB", "peak cutoff=800 q=0.8 gain=-2dB"]},
+    bands = (["lowshelf cutoff=100 gain=3dB", "peak cutoff=800 q=0.8 gain=-2dB"] if EQ == "1" else
+             ["lowshelf cutoff=120 gain=6dB", "peak cutoff=700 q=0.6 gain=-3dB"])
+    fx = [{"type": "eq", "bands": bands},
           {"type": "compressor", "threshold": "-22dB", "ratio": 2, "attack": "15ms", "release": "200ms", "makeup": "0dB"},
           {"type": "gain", "gain": f"+{MG:g}dB"}]
     m = {"fx": fx}

@@ -2,7 +2,7 @@ about: "Chirpers - Odd Hours, track 10 (the closer; original composition, chirpe
 tempo: [{"at": "0b", "bpm": 156, "meter": "12/8"}, {"at": "72b", "bpm": 208, "meter": "4/4"}, {"at": "232b", "bpm": 208, "meter": "4/4"}, {"at": "328b", "bpm": 208, "meter": "7/4"}, {"at": "412b", "bpm": 174, "meter": "12/8"}, {"at": "580b", "bpm": 208, "meter": "4/4"}]
 ceiling: "-0.1dB"
 tail: "3s"
-master: {"fx": [{"type": "eq", "bands": ["lowshelf cutoff=100 gain=3dB", "peak cutoff=800 q=0.8 gain=-2dB"]}, {"type": "compressor", "threshold": "-22dB", "ratio": 2, "attack": "15ms", "release": "200ms", "makeup": "0dB"}, {"type": "gain", "gain": "+10dB"}, {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}}], "auto": {"dyn": {"points": [["0s", -6], ["27.09s", -6], ["27.69s", -2], ["73.25s", -2], ["73.85s", 0], ["100.94s", 0], ["101.54s", -6], ["125.17s", -6], ["125.77s", -3], ["182.90s", 1], ["183.10s", 1], ["183.70s", 2], ["205.24s", 2]]}}}
+master: {"fx": [{"type": "eq", "bands": ["lowshelf cutoff=120 gain=6dB", "peak cutoff=700 q=0.6 gain=-3dB"]}, {"type": "compressor", "threshold": "-22dB", "ratio": 2, "attack": "15ms", "release": "200ms", "makeup": "0dB"}, {"type": "gain", "gain": "+10dB"}, {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}}], "auto": {"dyn": {"points": [["0s", -6], ["27.09s", -6], ["27.69s", -2], ["73.25s", -2], ["73.85s", 0], ["100.94s", 0], ["101.54s", -6], ["125.17s", -6], ["125.77s", -3], ["182.90s", 1], ["183.10s", 1], ["183.70s", 2], ["205.24s", 2]]}}}
 buses:
   room: {"fx": ["reverb kind=room decay=1.4s size=0.7 mix=1 predelay=14ms"]}
 tracks:
