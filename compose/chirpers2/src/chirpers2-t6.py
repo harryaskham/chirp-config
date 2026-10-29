@@ -159,7 +159,7 @@ def drum_break(b):
 
 def build():
     B = bars()
-    P = {k: [] for k in ('bass', 'clav', 'kit', 'brass', 'saxes', 'lead', 'vibes', 'pad')}
+    P = {k: [] for k in ('bass', 'clav', 'kit', 'brass', 'saxes', 'lead', 'vibes', 'pad', 'glitch')}
     for b in B:
         s, n = b['sec'], b['n16']
         R = [rest16(n)]
@@ -168,12 +168,12 @@ def build():
             for k_, v in (('bass', tok(nm(32), 1, 116)), ('clav', tok(ch, 1, 100)), ('kit', 'c,k,s/1b@120'),
                           ('brass', tok(ch, 1, 116)), ('saxes', tok(chord(44, 55), 1, 110))):
                 P[k_].append([v]); 
-            for k_ in ('lead', 'vibes', 'pad'): P[k_].append(R)
+            for k_ in ('lead', 'vibes', 'pad', 'glitch'): P[k_].append(R)
             continue
         if s == 'break':
             P['kit'].append(drum_break(b))
             P['bass'].append(grid_to_toks({0: (nm(b['root'] - 12), 2, 108)}, n))   # one bass hit on each one
-            for k_ in ('clav', 'pad', 'vibes', 'lead', 'brass', 'saxes'): P[k_].append(R)
+            for k_ in ('clav', 'pad', 'vibes', 'lead', 'brass', 'saxes', 'glitch'): P[k_].append(R)
             continue
         P['bass'].append(bass_bar(b) if s != 'intro' else R)
         P['clav'].append(clav_bar(b) if s != 'bridge' else R)
@@ -181,8 +181,17 @@ def build():
         P['pad'].append([tok(chord(b['root'], 55), n / 4, 60)] if s in ('bridge', 'solo') else R)
         P['vibes'].append(vibes_bar(b) if s == 'bridge' else R)
         P['lead'].append(solo_bar(b) if s == 'solo' else R)
-        if s in ('theme', 'out'):
+        P['glitch'].append(R)
+        if s == 'theme':
             P['brass'].append(theme_bar(b, 0, 104)); P['saxes'].append(theme_bar(b, -7, 96))
+        elif s == 'out':
+            # the out-theme as CALL AND RESPONSE: brass take the even bars, saxes answer on the odd ones a fourth
+            # lower, and both come together for the last two bars, which also go to the GLITCH track
+            together = b['i'] >= 6
+            P['brass'].append(theme_bar(b, 0, 106) if b['i'] % 2 == 0 or together else R)
+            P['saxes'].append(theme_bar(b, -3, 100) if b['i'] % 2 == 1 or together else R)
+            if together:
+                P['glitch'][-1] = theme_bar(b, 0, 96)
         elif s == 'groove':
             # the horns' stabs at the end of every second bar: a call the clav answers
             P['brass'].append(grid_to_toks({12: (chord(b['root'], 62), 2, 104)}, n) if b['i'] % 2 else R)
@@ -224,6 +233,9 @@ def build():
             {'name': 'saxes', 'patch': 'sax-section', 'gain': '-7dB', 'pan': -0.15, 'score': J('saxes')},
             {'name': 'lead', 'patch': 'synth-lead', 'gain': '-8dB', 'pan': 0.1, 'score': J('lead')},
             {'name': 'vibes', 'patch': 'vibes', 'gain': '-5dB', 'pan': 0.3, 'score': J('vibes')},
+            # the last two bars of the out-theme doubled through wM's fixed stutter: the horns' last word glitches
+            {'name': 'glitch', 'patch': 'horn-section', 'gain': '-9dB', 'pan': 0.35,
+             'fx': [{'type': 'stutter', 'slice': '1/16', 'repeats': 3, 'chance': 0.5, 'decay': 0.2, 'seed': 15, 'mix': 1}], 'score': J('glitch')},
             {'name': 'pad', 'patch': 'juno-pad', 'gain': '-16dB', 'score': J('pad')},
         ]}
 
