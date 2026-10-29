@@ -88,6 +88,10 @@ R15 = set(filter(None, os.environ.get("T4_R15", "B").split(","))) - {"none"}
 # Cmaj7 Em7 C#maj7, a bar each, and the collective phrase resolves up a semitone to Dm9.
 R16 = set(filter(None, os.environ.get("T4_R16", "W").split(","))) - {"none"}
 WALK = [(10, "maj7"), (2, "m7"), (11, "maj7"), (3, "m7"), (0, "maj7"), (4, "m7"), (1, "maj7")]
+# Round 17 (v17): A = an ARCO BASS (the bow): a bowed bass enters only in the chorale and the shrink, singing each
+# chord's root long under the tom chords, and holding the D pedal as the mirror closes; M = the master's top shelf
+# lowered (+2 -> +0.5 dB): the brushes' air sat 9 dB over the genre.
+R17 = set(filter(None, os.environ.get("T4_R17", "A,M").split(","))) - {"none"}
 BTHEME = {0: [(0, 3, 4), (3, 1, 3), (4, 4, 2)], 1: [(0, 2, 1), (2, 2, 2), (4, 3, 4)], 2: [(0, 5, 6)],
           3: [(0, 2, 4), (2, 2, 5), (4, 2, 4)]}  # t2's night cell, degrees on eighths (None = rest)
 TRIP = "T" in os.environ.get("T4_OPTS", "")  # triplet brush ghosts before the backbeats (off: no gain)
@@ -219,7 +223,7 @@ def swing_at(bar_start, e8, swung):
 
 
 def build():
-    T = {k: Track(k) for k in ("tpt", "pno", "tom", "bass", "drums", "rhodes", "pno_lh", "horn")}
+    T = {k: Track(k) for k in ("tpt", "pno", "tom", "bass", "drums", "rhodes", "pno_lh", "horn", "arco")}
     bars = []   # (start beat, meter, pos, section, phrase index, centre)
     sec = []
 
@@ -458,6 +462,12 @@ def build():
             root, voic, scale = CH[cn]
             vo = ",".join(nm(root + 12 + x) for x in voic) if root < 48 else ",".join(nm(root + x) for x in voic)
             comp.append((c8, vo))
+        if "A" in R17 and section == "chorale":  # the bow (in the shrink too, it made the two alike: variety -6)
+            for ci, (c8, cn) in enumerate(chords):
+                r0 = CH[cn][0]
+                end8 = chords[ci + 1][0] if ci + 1 < len(chords) else m
+                T["arco"].add(start + c8 / 2, (end8 - c8) / 2 * 0.97,
+                              nm(low(r0) if section == "chorale" else 38), v - 2)
         if section == "chorale":  # the tom choir as a chorale: the bar's chords, three toms each
             for ci, (c8, cn) in enumerate(chords):
                 root, voic, scale = CH[cn]
@@ -641,6 +651,8 @@ def main():
         {"name": "toms", "patch": tom, "pan": -0.05, "gain": "3dB",
          "fx": ["reverb kind=room decay=0.9s mix=0.15"], "score": T["tom"].score(total)},
         {"name": "bass", "patch": "fretless", "gain": "-1dB", "score": T["bass"].score(total)},
+        *([{"name": "arco", "patch": "tagelharpa-bass-bowed", "pan": -0.1, "gain": "-4dB",
+            "score": T["arco"].score(total)}] if "A" in R17 else []),
         {"name": "drums", "patch": "brush-kit", "gain": "0dB", "fx": ["reverb kind=room decay=0.8s mix=0.12"],
          "score": T["drums"].score(total)},
         {"name": "rhodes", "patch": "rhodes-rotary", "pan": 0.3, "gain": "-11dB",
@@ -662,7 +674,7 @@ def main():
         'volume: "5dB"',
         "patches: " + json.dumps(kit()),
         "master: " + json.dumps({"fx": [{"type": "eq", "bands": ["hp cutoff=32", "peak cutoff=800 q=0.7 gain=-3dB",
-                                                                   "highshelf cutoff=5000 gain=2dB"]},
+                                                                   "highshelf cutoff=5000 gain=%s" % ("0.5dB" if "M" in R17 else "2dB")]},
                                         "glue threshold=-20dB ratio=1.3 attack=25ms release=250ms makeup=1dB"]}),
         "tracks:",
     ]

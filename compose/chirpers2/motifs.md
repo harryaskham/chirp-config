@@ -69,6 +69,7 @@ Generator `compose/chirpers2/src/chirpers2-t4.py`. A chamber-jazz brush trio wit
 - **HEAD 2 IN E** (v13): the return goes up a whole step. Every pitched part (horn, piano, toms, fretless, rhodes) plays the palindrome transposed to E, and the coda falls back home to D.
 - **CANON ACROSS THE BAR LINES** (v11, head 1): the rhodes follows the melody two beats behind, an octave down. Because every bar has a different length, the canon spills across the bar lines and each bar hears the previous bar's tune against its own; head 2 answers it with the mirror canon.
 - **MIRROR CANON** (v2, head 2): while the trumpet and piano carry the line, the tom choir sings it INVERTED about D5 an octave down: the time palindrome gets its pitch mirror, in contrary motion.
+- **THE BOW** (v17): an arco bass enters only in the tom chorale, singing each chord's root long beneath the tom chords: the one bowed sound in the piece, at its quietest moment.
 - **TOM CHORALE** (v2, a new 7-bar section between the piano solo and the peak): the harmonic palindrome as three-tom chords, one per chord, over long brush sweeps and the bass's D pedal; the quiet before the peak.
 - **SEVEN DOORS, answered** (v2): the trades open on t1 Doors at Seven's head cell in D (D5. C5 A4 G4 on the trumpet, in the 3/4 bar); the tom choir answers with it backwards (G3 A3 C4 D4, the 5/8 bar), the palindrome's way of quoting. Cierre quotes the same head a step up.
 - **PEAK HEMIOLA** (v2): dotted eighths on the ride bell across the peak, continuous over the changing meters (chirper-one's 3-sixteenth idea).
