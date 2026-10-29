@@ -97,7 +97,7 @@ class Part:
 
 
 P = {k: Part() for k in ("toy", "box", "xtal", "lead", "pad", "bass", "sub", "kick", "snare", "hat", "perc", "cpiano", "hail", "desc", "sq",
-                         "ckick", "csnare", "chat", "ctoy", "cbox", "mist")}
+                         "ckick", "csnare", "chat", "ctoy", "cbox", "mist", "vox")}
 rng = random.Random(4)
 
 
@@ -323,6 +323,19 @@ def chop_toys():
         P["c" + src].ev.extend(moved)
 
 
+def vox_chops():
+    """THE VOX CHOP (the melody section, returning with it in the return and the full section): a lo-fi vocal-chop
+    answer at the end of every second bar: two
+    short sung chops, the chord's fifth falling to its third, on the and-of-3 and on 4, each its own vowel."""
+    for bar in list(range(18, 25, 2)) + list(range(30, 37, 2)) + list(range(46, 53, 2)):   # born with the melody
+        root, iv = chord_at(bar)
+        fifth = 68 + ((root + iv[2] - 8) % 12)
+        third = 68 + ((root + iv[1] - 8) % 12)
+        third = third if third < fifth else third - 12
+        P["vox"].add(b0(bar) + swing(10), 1.6, nm(fifth), 74)
+        P["vox"].add(b0(bar) + 12, 2.6, nm(third), 70)
+
+
 def mist():
     """THE MIST (the breakdown): the music box's notes also feed a granular CLOUD (wM's), smeared into a shimmering bed
     under the bridge and the counter-line: after the break's hail, the breakdown's hail turns to mist."""
@@ -420,7 +433,10 @@ def voiced(base, spread, lp, lp_var):
 
 # LIVING TINES (the gears: no two notes quite alike) and SCATTERED HAIL (every stone lands somewhere else)
 VOICED = {"c4-toy": voiced("toy-piano", 0.45, 7000, 3000), "c4-box": voiced("music-box", 0.45, 7000, 3000),
-          "c4-hail": voiced("toy-piano", 1.0, 5000, 3500)}
+          "c4-hail": voiced("toy-piano", 1.0, 5000, 3500),
+          # the VOX CHOP: a tape lead sung through a per-voice formant, each chop its own vowel around 'ah'
+          "c4-vox": {"extends": "lead-tape", "synth": {"fx": [
+              {"type": "formant", "vowel": {"value": 0.5, "mod": [{"src": "rand", "amount": 0.35}]}, "q": 8, "mix": 1}]}}}
 
 CHOP = {"type": "chop", "slices": 8, "pattern": "0 0 r3 2 . 5 r7 _", "length": "1/1", "mix": 1}   # wM's resampler
 
@@ -439,6 +455,7 @@ def main():
     counter_line()
     squelch()
     mist()
+    vox_chops()
     chop_toys()
     sec = lambda e: e / 4 * 60 / BPM
     tr = lambda name, patch, **kw: dict({"name": name, "patch": patch, "score": P[name].score()}, **kw)
@@ -451,6 +468,8 @@ def main():
         tr("lead", "lead-tape", pan="L10", gain="-9dB", sends={"space": "-10dB"}),
         tr("hail", "c4-hail", pan="C", gain="4dB", out="toys", fx=["comb cutoff=138.6 q=6"]),   # hail on a metal roof
         tr("desc", "boc-lead", pan="R20", gain="-4dB", sends={"space": "-9dB"}),     # the second hidden melody
+        tr("vox", "c4-vox", pan="L15", gain="-4dB", sends={"space": "-7dB"},
+           fx=[{"type": "tape", "wow": 10, "flutter": 2, "seed": 9}]),                  # the VOX CHOP answers
         tr("mist", "music-box", gain="-6dB", sends={"space": "-6dB"},                   # the MIST: hail into grains
            fx=[{"type": "cloud", "size": "150ms", "density": 18, "position": "500ms", "spray": "400ms", "pitch": 12,
                 "scatter": 0.2, "reverse": 0.4, "spread": 0.9, "mix": 0.85, "seed": 3}]),

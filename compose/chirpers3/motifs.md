@@ -79,6 +79,9 @@ Generator `compose/chirpers3/src/chirpers3-t7.py`. Ambient tape loops, a nominal
   out at bar 55; the last sound is one music-box note three semitones flat.
 - **THE BASS ANSWERS** (since v3): the root, a reply on the swung and-of-3 (the fifth, or the ninth up high on
   alternate chords), then a chromatic walk down into each change.
+- **THE VOX CHOP** (since v14): a lo-fi vocal-chop ANSWER at the end of every second bar of the melody section, returning
+  with it in the return and the full section: two short sung chops, the chord's fifth falling to its third (on the
+  and-of-3 and on 4), each its own vowel.
 - **THE SECOND HIDDEN MELODY** (since v6, the full section; since v7 the return too): where the music box's 7 meets the crystal's gear, a soft
   boc-lead under the first melody sings the box's note an octave down and holds to the next meeting (7 meetings in 8
   bars: a slow descant made by the gears).
