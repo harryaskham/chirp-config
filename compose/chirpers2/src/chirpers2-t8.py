@@ -81,6 +81,12 @@ R11 = set(filter(None, os.environ.get("T8_R11", "M").split(","))) - {"none"}
 # bass marimba): a triplet arpeggio up and dotted quarters down, then triplet quarters falling to a held root, the
 # low marimba back on the cell beneath it.
 R12 = set(filter(None, os.environ.get("T8_R12", "3").split(","))) - {"none"}
+# Round 13 (v13), answering the answers: K = t7 Cross Purposes' CLOCK (chirper-three, whose coda now phases this
+# track's cell): in the unison, the t7 SUBJECT's pitches two octaves up on a toy piano, one every five sixteenths,
+# turning across the 12/8; S = t9 Slow Shutter's SHUTTER (chirper-zero, whose dawn borrows these vibes): in the coda
+# the frame drum plays its 3+3+3+2 grouping over the last two bars, an 11-eighth cycle against the 12-eighth bar
+# (over the whole coda it blurred the pulse: rhythm -2).
+R13 = set(filter(None, os.environ.get("T8_R13", "K").split(","))) - {"none"}  # S tried: on-grid strokes, rhythm -2
 SUBJECT = [(0, 1), (3, 1), (7, 1), (6, 2), (2, 2), (5, 1), (1, 1), (4, 1), (0, 2)]  # t7: semitones, eighths
 BAR = 6.0  # a 12/8 bar, in quarter beats
 
@@ -160,7 +166,7 @@ if "D" in R2:
 
 
 def build():
-    T = {k: Track(k) for k in ("m1", "m2", "vib", "echo", "bass", "sub", "fd", "bm")}
+    T = {k: Track(k) for k in ("m1", "m2", "vib", "echo", "bass", "sub", "fd", "bm", "clock")}
     import random
     rng = random.Random(8)
     bars, b = [], 0
@@ -390,6 +396,23 @@ def build():
                     fd.add(start + 5, 1, "sw", v - 12)
         elif sec == "coda" and i == 0:
             fd.add(start, 6, "sw", v - 18)
+    if "K" in R13:  # t7's clock through the unison
+        un = [bb for bb in bars if bb[1] == "unison"]
+        s0, s1 = un[0][0], un[-1][0] + BAR
+        k, at = 0, s0
+        while at < s1 - 1e-6:
+            semi = SUBJECT[k % len(SUBJECT)][0]
+            T["clock"].add(at, 0.5, nm(HOME[0][0] + 24 + semi), LEVEL["unison"] - 14 + (12 if k % 4 == 0 else 0))
+            k += 1
+            at += 1.25
+    if "S" in R13:  # Slow Shutter's 3+3+3+2 against the coda's twelves
+        co = [bb for bb in bars if bb[1] == "coda"]
+        s0, s1 = co[-2][0], co[-1][0] + BAR  # the last two bars: the shutter heard as t9 approaches
+        e, g = 0, 0
+        while s0 + e / 2 < s1 - 1e-6:
+            T["fd"].add(s0 + e / 2, 0.3, "dum" if g % 4 == 0 else "tek", LEVEL["coda"] - (6 if g % 4 == 0 else 14) - e // 12)
+            e += [3, 3, 3, 2][g % 4]
+            g += 1
     if "U" in R9:  # the tutti: the peak's last bar, everyone on the cell
         last = [bb for bb in bars if bb[1] == "peak"][-1]
         start, chord, v = last[0], (PEAK if "H" in R5 else HOME)[3], LEVEL["peak"]
@@ -468,6 +491,9 @@ def main():
         {"name": "frame", "patch": "c2-frame", "pan": 0.15, "gain": "0dB",
          "fx": ["reverb kind=room decay=1.0s mix=0.15"], "score": T["fd"].score(total)},
     ]
+    if "K" in R13:
+        tracks.append({"name": "clock", "patch": "toy-piano", "pan": 0.3, "gain": "-6dB", "fx": [hall],
+                       "score": T["clock"].score(total)})
     if "M" in R11:
         tracks.insert(2, {"name": "bass-marimba", "patch": "c2-bass-marimba", "pan": -0.2, "gain": "0dB", "fx": [hall],
                           "score": T["bm"].score(total)})
