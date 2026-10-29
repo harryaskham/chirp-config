@@ -62,6 +62,9 @@ class Track:
 # following its chords (F, then D), then leaves.
 R2 = set(filter(None, os.environ.get("T7_R2", "O").split(","))) - {"none"}
 DOOR = (70, 150)
+# Round 3 (v3): M = A MEMORY through the open door: t6 Late on Purpose's vibes SIGH (the struck, motored vibes of t6,
+# E5 C5 A4 falling, late) sounds three times while the door is open, as if heard from next door, over the loops.
+R3 = set(filter(None, os.environ.get("T7_R3", "M").split(","))) - {"none"}
 
 # the loops: (track, loop length in beats, enter, leave, [(offset, length, notes)], velocity)
 LOOPS = [
@@ -75,7 +78,8 @@ LOOPS = [
 
 def build():
     rng = random.Random(7)
-    T = {k: Track(k) for k in ("vib", "pno", "pad", "whi", "drone", "rain", "crackle", "hiss", "pulse", "bass")}
+    T = {k: Track(k) for k in ("vib", "pno", "pad", "whi", "drone", "rain", "crackle", "hiss", "pulse", "bass",
+                               "sigh")}
     for tr, L, enter, leave, phrase, vel in LOOPS:
         k = 0
         while True:
@@ -104,6 +108,10 @@ def build():
         if busy >= 3:
             T["pulse"].add(beat + 0.02, 0.6, "k", 62 + (6 if beat % 4 == 0 else 0) + rng.randint(-4, 4))
             T["pulse"].add(beat + 1.0 + rng.uniform(0.0, 0.05), 0.9, "bt", 46 + rng.randint(-4, 4))
+    if "M" in R3:  # t6's sigh, remembered
+        for b0 in (94, 110, 126):
+            for k, (o, n) in enumerate(((0.5, "E5"), (1.0, "C5"), (1.75, "A4"))):
+                T["sigh"].add(b0 + o, 0.9 if k == 2 else 0.4, n, 66 - 3 * k)
     if "O" in R2:  # the fretless follows the pad's 29-beat loop through the door's window
         k = 0
         while True:
@@ -158,7 +166,13 @@ def patches():
                    "bs": {"pitch": "E3", "gain": "-4dB", "patch": {"synth": {"layers": [dict(brush, sweep="1.2s")],
                           "filters": ["hp cutoff=200", "lp cutoff=4k"],
                           "amp": {"a": "40ms", "d": "1.4s", "s": 0, "r": "120ms", "curve": 1}}, "play": {"vel_sens": 0.7}}}}}
-    return {"c2-far-kit": far, "c2-bowed-vibes": bowed, "c2-whistle": whistle, "c2-drone": drone, "c2-rain": rain,
+    struck = {"about": "Odd Hours t8's vibraphone (chirper-two), as t6 uses it: partials 1 / 4 / 10, a 5.2 Hz motor.",
+              "synth": {"layers": [{"name": "bar", "type": "additive", "partials": [[1, 1], [4.0, 0.16], [10.0, 0.025]],
+                                    "level": {"value": "0dB", "mod": [{"src": "lfo.motor", "amount": 3}]}}],
+                        "lfo": {"motor": {"wave": "sine", "rate": "5.2hz"}},
+                        "filters": ["hp cutoff=150", "lp cutoff=7k"],
+                        "amp": {"a": "2ms", "d": "3.2s", "s": 0, "r": "500ms", "curve": 2}}, "play": {"vel_sens": 0.55}}
+    return {**({"c2-vibes": struck} if "M" in R3 else {}), "c2-far-kit": far, "c2-bowed-vibes": bowed, "c2-whistle": whistle, "c2-drone": drone, "c2-rain": rain,
             "c2-crackle": crackle, "c2-hiss": hiss}
 
 
@@ -188,6 +202,9 @@ def main():
         *([{"name": "fretless", "patch": "fretless", "pan": -0.05, "gain": "-4dB",
             "fx": ["lp cutoff=700", "tape drive=0.2 warmth=0.5", "reverb kind=room decay=1.0s mix=0.2"],
             "score": T["bass"].score(TOTAL)}] if "O" in R2 else []),
+        *([{"name": "sigh", "patch": "c2-vibes", "pan": 0.35, "gain": "-6dB",
+            "fx": [dict(wow, rate=0.35), "lp cutoff=2600", "reverb kind=hall decay=3s mix=0.4"],
+            "score": T["sigh"].score(TOTAL)}] if "M" in R3 else []),
         {"name": "crackle", "patch": "c2-crackle", "gain": "-30dB", "score": T["crackle"].score(TOTAL)},
         {"name": "hiss", "patch": "c2-hiss", "gain": "-36dB", "score": T["hiss"].score(TOTAL)},
     ]
