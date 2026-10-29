@@ -105,6 +105,13 @@ R9 = set(filter(None, os.environ.get("T6_R9", "T").split(","))) - {"none"}
 # BACKWARDS (the same tape reversed, the chords swelling in), the live keys silent; C = CHOPS in A3: `bounce` (the A
 # loop) cut into eight half-bar slices, re-sequenced MPC-style as off-beat stabs (each bar the slice of its chord).
 R10 = set(filter(None, os.environ.get("T6_R10", "S,C").split(","))) - {"none"}
+# Round 11 (v11), the new palette (pin a9affd66): L = a LADDER BASS in the drop: a saw + sine through chirp's
+# Moog-style ladder (q 10, an envelope opening the cutoff on each note) growls under the seasick chords;
+# C = COMBED BRUSHES in the switch-up: the brush sweeps go through a comb tuned to each chord's root (two octaves
+# up), so the sweeps sing the switch's sinking roots; V = A HUMMED VOCAL, resampled and chopped: a shadow song has
+# chirp's voice engine hum t6's sigh ("mm-oo", tape-worn), and a sampler cuts it into eight one-beat slices that
+# answer the vibes in the first A section.
+R11 = set(filter(None, os.environ.get("T6_R11", "L,C,V").split(","))) - {"none"}
 FORM = [("intro", 4), ("A", 16), ("switch", 8), ("A2", 16), ("drop", 4), ("A3", 12), ("outro", 4)]
 LEVEL = {"intro": 58, "A": 72, "switch": 66, "A2": 78, "drop": 56, "A3": 80, "outro": 56}
 DRUMS = {"A", "switch", "A2", "A3"}
@@ -113,7 +120,7 @@ DRUMS = {"A", "switch", "A2", "A3"}
 def build():
     rng = random.Random(6)
     T = {k: Track(k) for k in ("keys", "kw", "bass", "sub", "vibes", "drums", "crackle", "hiss", "rain", "thunder",
-                               "dub", "vdub", "rs", "chop", "rsrev")}
+                               "dub", "vdub", "rs", "chop", "rsrev", "lb", "cbr", "vox")}
     rrng = random.Random(66)  # the weather's own dice (the music's stay as they were)
     bars, pos = [], 0.0
     for name, n in FORM:
@@ -139,6 +146,9 @@ def build():
                 T["rs"].add(start, 16.0, "C3", 100)
             if i == 4:
                 T["rsrev"].add(start, 16.0, "C3", 96)
+        if sec == "A" and "V" in R11 and i % 4 in (1, 3):  # the hummed chops answer the vibes
+            for o, s8 in ((0.5, 0), (1.0, 1), (2.0, 2) if i % 4 == 1 else (2.0, 4), (3.0, 3) if i % 4 == 1 else (3.0, 6)):
+                T["vox"].add(start + o + 0.04, 0.95, nm(60 + s8), v - 4)
         if sec == "A3" and "C" in R10 and i >= 2:  # chops: the bar's chord slice, on the off-beats
             sl = 2 * (i % 4) if not (i % 8 == 7) else 1
             for o, dsl in ((1.5, 0), (2.75, 1), (3.5, 0)):
@@ -198,8 +208,9 @@ def build():
                     continue
                 vel = v - (14 if s16 % 4 == 0 else 22 if s16 % 2 == 0 else 30)
                 d.add(start + pos16 + drift + rng.uniform(-0.02, 0.02), 0.2, "bt", vel)
-            d.add(start, 1.9, "bs", v - 22)
-            d.add(start + 2.0, 1.9, "bs", v - 24)
+            sw = T["cbr"] if half and "C" in R11 else d
+            sw.add(start, 1.9, "bs", v - (10 if sw is not d else 22))
+            sw.add(start + 2.0, 1.9, "bs", v - (12 if sw is not d else 24))
             if i % 4 == 3 and not half:  # a mallet-tom fill dragging into the next bar
                 for k, (o, piece) in enumerate(((3.25, "mt1"), (3.5, "mt1"), (3.75, "mt2"))):
                     d.add(start + o + 0.03 * k, 0.3, piece, v - 6 - 2 * k)
@@ -209,6 +220,9 @@ def build():
                     T["vdub"].add(start + 1.5 + 0.04, 0.4, nm(sorted(voic)[-1] + 14), v - 8)
         elif sec == "drop":
             d.add(start, 3.8, "bs", v - 18)
+            if "L" in R11:  # the ladder growls under the warp
+                T["lb"].add(start + 0.02, 2.4, nm(root), v + 20)
+                T["lb"].add(start + 2.5, 1.3, nm(root + 12 if i % 2 else root + 7), v + 12)
         if sec == "A3" and i == 7 and "J" in R7:  # the trip: the bar's fourth beat never happens
             for tr in T.values():
                 tr.ev = [e for e in tr.ev if not (start + 3.0 - 1e-6 <= e[0] < start + 4.0)]
@@ -307,6 +321,34 @@ def bounce_song(loop=None, up=0):
                                "tape drive=0.35 warmth=0.7", "lp cutoff=4500"], "score": score}]}
 
 
+def hum_song():
+    """A shadow source: chirp's voice engine humming t6's sigh ("mm-oo"), tape-worn, eight beats."""
+    return {"tempo": BPM, "length": "8b", "tail": "0.3s",
+            "tracks": [{"name": "hum", "patch": "voice", "gain": "-2dB",
+                        "fx": [{"type": "chorus", "rate": 0.4, "depth": 0.45, "voices": 1, "mix": 1.0},
+                               "tape drive=0.3 warmth=0.7", "lp cutoff=4000"],
+                        "score": "E4/4@84^u^on=16 C4/4@76^u A3/2@72^u A3/4@74^u^on=16 C4/4@76^u E4/4@80^u G4/4@86^u"}]}
+
+
+def palette_patches():
+    out = {}
+    if "L" in R11:
+        out["c2-ladder-bass"] = {"about": "chirper-two's ladder bass (t6 drop): a saw and a sine through chirp's Moog-style "
+                                          "ladder, q 10, an envelope opening the cutoff on every note.",
+                                 "play": {"mono": True, "glide": "40ms"},
+                                 "synth": {"layers": [{"wave": "saw"}, {"wave": "sine", "level": "-4dB"}],
+                                           "filters": [{"kind": "ladder", "q": 10,
+                                                        "cutoff": {"value": 150, "mod": [{"src": "env.f", "amount": 2.5}]}}],
+                                           "env": {"f": {"a": "5ms", "d": "700ms", "s": 0.15}},
+                                           "amp": {"a": "4ms", "d": "900ms", "s": 0.7, "r": "180ms"}}}
+    if "V" in R11:
+        out["c2-hum-chop"] = {"about": "chirper-two: the shadow song `hum` (the voice engine humming t6's sigh) cut into "
+                                       "eight one-beat slices (C4 slice 1 ... G4 slice 8).",
+                              "synth": {"layers": [{"type": "sample", "song": "hum", "root": "C4", "slices": 8}],
+                                        "amp": {"a": "4ms", "d": "0s", "s": 1, "r": "60ms"}}}
+    return out
+
+
 def resample_patches():
     return {"c2-bounce": {"about": "chirper-two: t6's own A loop, resampled from the shadow song `bounce` (tape-style: "
                                    "pitch and speed together, so C3 is an octave down at half speed).",
@@ -325,6 +367,10 @@ def main():
     total, bars, sec, T = build()
     d0 = next(s for n, s, k in sec if n == "drop")
     a3 = next(s for n, s, k in sec if n == "A3")
+    s0w = next(s for n, s, k in sec if n == "switch")
+    croot_pts = [["0b", 0.0]]  # the comb follows the switch's roots Bb A Ab G (two bars each), in octaves
+    for k in range(4):
+        croot_pts += [[f"{s0w + 8 * k}b", -k / 12], [f"{s0w + 8 * k + 7.99}b", -k / 12]]
     warp_pts = [["0b", 0.0], [f"{d0}b", 0.0], [f"{a3 - 0.5}b", 1.0], [f"{a3}b", 0.0]]
     wow = {"type": "chorus", "rate": 0.35, "depth": 0.55, "voices": 1, "mix": 1.0}
     wow_k = wow
@@ -365,6 +411,16 @@ def main():
         *([{"name": "resampled", "patch": "c2-bounce", "pan": -0.05, "gain": "-2dB",
             "fx": ["lp cutoff=3500", {"type": "crush", "bits": 12, "rate": 14000, "mix": 0.3},
                    "reverb kind=room decay=1.4s mix=0.25"], "score": T["rs"].score(total)}] if "S" in R10 else []),
+        *([{"name": "ladder-bass", "patch": "c2-ladder-bass", "gain": "-16dB",
+            "fx": ["tape drive=0.4 warmth=0.6"], "score": T["lb"].score(total)}] if "L" in R11 else []),
+        *([{"name": "combed-brushes", "patch": "c2-lofi-kit", "pan": 0.1, "gain": "-2dB",
+            "fx": [{"type": "filter", "kind": "comb", "q": 14,
+                    "cutoff": {"value": 233.08, "mod": [{"src": "auto.croot", "amount": 1}]}},
+                   "reverb kind=room decay=1.0s mix=0.2"],
+            "auto": {"croot": {"points": croot_pts}}, "score": T["cbr"].score(total)}] if "C" in R11 else []),
+        *([{"name": "hum-chops", "patch": "c2-hum-chop", "pan": -0.25, "gain": "4dB",
+            "fx": ["hp cutoff=180", "reverb kind=plate decay=1.4s mix=0.22"], "score": T["vox"].score(total)}]
+          if "V" in R11 else []),
         *([{"name": "resampled-rev", "patch": "c2-bounce-rev", "pan": 0.1, "gain": "-3dB",
             "fx": ["lp cutoff=3000", {"type": "crush", "bits": 11, "rate": 12000, "mix": 0.35},
                    "reverb kind=hall decay=2.2s mix=0.3"], "score": T["rsrev"].score(total)}] if "S" in R10 else []),
@@ -392,8 +448,9 @@ def main():
         'tail: "%s"' % ("0.5s" if "T" in R9 else "3s"),
         'ceiling: "-0.5dB"',
         'volume: "3dB"',
-        "patches: " + json.dumps({**patches(), **(resample_patches() if R10 else {})}),
-        *(["songs: " + json.dumps({"bounce": bounce_song(), "bounceb": bounce_song(B_LOOP, 12)})] if R10 else []),
+        "patches: " + json.dumps({**patches(), **(resample_patches() if R10 else {}), **palette_patches()}),
+        *(["songs: " + json.dumps({**({"bounce": bounce_song(), "bounceb": bounce_song(B_LOOP, 12)} if R10 else {}),
+                                    **({"hum": hum_song()} if "V" in R11 else {})})] if (R10 or "V" in R11) else []),
         "master: " + json.dumps({"fx": [{"type": "eq", "bands": ["hp cutoff=30", "highshelf cutoff=8000 gain=0dB"]}]
                                  + ([{"type": "filter", "kind": "lp", "cutoff": {"value": 18000, "mod": [{"src": "auto.dive", "amount": -4.0}]}}]
                                     if "F" in R2 else [])
