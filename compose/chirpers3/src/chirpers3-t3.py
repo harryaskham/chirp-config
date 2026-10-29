@@ -75,7 +75,7 @@ def swing(s16):
 
 def build():
     B, total = bars()
-    kit, piano, bass, lead, crackle, wurli, flute = [], [], [], [], [], [], []
+    kit, piano, bass, lead, crackle, wurli, flute, rhodes = [], [], [], [], [], [], [], []
     for b in B:
         sec, t0, L, dr = b['sec'], b['t'], b['beats'], DRIFT[b['sec']]
         ms = lambda x: x / 1000 / SPB      # milliseconds -> beats
@@ -116,6 +116,14 @@ def build():
             if L > 2.0:
                 bass.append((t0 + 2.0 + ms(45 * dr), nm(r1), min(1.5, L - 2.1), 94))
         # ---- the hook (boc-lead): a 2-bar phrase answered a step lower, in A2 and A3 and doubled in 'last' ----
+        if sec == 'A3':
+            # THE RHODES (A3, the widest drift): a physical-pickup Rhodes answers the hook with short off-beat chord
+            # stabs (the and of 2, the and of 4), the second one barking harder, each lifted off with a damper
+            # thud (wM's release triggers) - the band's keyboard player leaning in as the beat staggers
+            for half, at in enumerate((1.5, 3.5)):
+                if at >= L: continue
+                ch = b['loop'][half]
+                rhodes.append((t0 + at + ms(30 * dr * (1 + rnd())), ','.join(nm(m + 12) for m in ch[1:4]), 0.35, 74 + 18 * half))
         if sec == 'Ar' and L >= 3.5:
             # THE FLUTE (the reprise): when the first groove comes back after the break, a lazy flute sings over it
             # instead of the hook - two long notes a bar from the top of each chord (the top voice, or the one under it
@@ -186,6 +194,7 @@ def build():
              'notes': [{'at': f'{at * SPB:.4f}s', 'len': f'{d * SPB:.4f}s', 'pitch': p_midi, 'vel': v / 127}
                        for at, p, d, v in piano for p_midi in [NN.index(p[:-1]) + 12 * (int(p[-1]) + 1)]]},
             {'name': 'bass', 'patch': 'analog-bass', 'gain': '-3dB', 'score': line(bass, total)},
+            {'name': 'rhodes', 'patch': 'epiano-tine synth.tine.sense=0.5 synth.tine.key=-0.25 play.release.patch=epiano-damper play.release.decay=2s', 'gain': '-7dB', 'pan': 0.3, 'score': line(rhodes, total)},
             {'name': 'flute', 'patch': 'mellotron-flute', 'gain': '-7dB', 'pan': -0.3, 'fx': ['tape drive=0.1 mix=0.5 wow=14 flutter=3 drift=1.5 tone=6000 sweep=0.6 seed=33'], 'score': line(flute, total)},
             {'name': 'lead', 'patch': 'boc-lead', 'gain': '-9dB', 'pan': 0.25, 'score': line(lead, total)},
             {'name': 'crackle', 'patch': 'fx-crackle', 'gain': '-7dB', 'score': line(crackle, total)},
