@@ -39,7 +39,9 @@ SUNG = os.environ.get("T10_SUNG", "1") == "1"  # the descarga's CORO sung: a bar
 QUINTO = os.environ.get("T10_QUINTO", "1") == "1"  # the quinto improvises in the descarga's solo bars: open tones and slaps drawn per bar
 PSOLO = os.environ.get("T10_PSOLO", "1") == "1"
 SYL = os.environ.get("T10_SYL", "1") == "1"
-CORO_DB = os.environ.get("T10_CORODB", "-1")  # the sung coro's level (dB)  # the coro sings vocables, not just vowels: la - ye - lo | ma - ye (onset consonants l y l | m y)  # a 16-bar piano solo over the montuno groove between the son and the mambo (octave lines, horns out)
+CORO_DB = os.environ.get("T10_CORODB", "-1")
+EXPQ = os.environ.get("T10_EXPQ", "1") == "1"  # in the descarga's E dorian half the trumpet's solo bars quote t9 Slow Shutter's EXPOSURE (C#5-F#5, F#4-B4)
+PERC = os.environ.get("T10_PERC", "1") == "1"  # the descarga's last bars before its break: the percussion alone (congas, bell, shaker, clave), everyone else out  # the sung coro's level (dB)  # the coro sings vocables, not just vowels: la - ye - lo | ma - ye (onset consonants l y l | m y)  # a 16-bar piano solo over the montuno groove between the son and the mambo (octave lines, horns out)
 
 # sections: (name, meter, bpm (quarter), bars)
 FORM = [("bembe", "12/8", 156, 12), ("son", "4/4", 208, 40), ("mambo", "4/4", 208, 24), ("siete", "7/4", 208, 12),
@@ -454,6 +456,13 @@ def build():
                 else:
                     who = "trumpet" if (b // 4) % 2 == 0 else "tenor"
                     bar[who] = solo_bar(b, beats, 62 + up if who == "trumpet" else 50 + up, seed=b, vel=94)
+                    if EXPQ and b >= 16 and who == "trumpet":  # Slow Shutter's EXPOSURE, a fourth up into Em11's 9th, then into its 5th
+                        bar[who] = (J(tok("C#5", 0.5, 88), tok("F#5", 4.5, 98), R(1)) if b % 4 == 2
+                                    else J(tok("F#4", 0.5, 86), tok("B4", 4.5, 96), R(1)))
+                if PERC and nb - 4 <= b < nb - 1:  # the breakdown: the percussion alone before the break
+                    for k in ("piano", "bass", "horns", "trumpet", "tenor", "coro", "coro2", "pad", "rhodes", "mona"):
+                        if k in bar:
+                            bar[k] = R(beats)
             if MAMBO_KEY and sec == "mambo":
                 for n in names:
                     if n not in ("kit", "clave", "bell"):
