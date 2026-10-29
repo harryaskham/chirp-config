@@ -140,6 +140,13 @@ R16 = set(filter(None, os.environ.get("T6_R16", "B,F").split(","))) - {"none"}
 # (`pump` keyed to drums.k, so the duck follows the kick's early push) and swell back over two-thirds of a beat
 # (release 500 ms, curve 0.8: a soft breath, not a click-duck), the old lo-fi sidechain made from notes, not audio.
 R17 = set(filter(None, os.environ.get("T6_R17", "U").split(","))) - {"none"}
+# Round 18 (v18), wM's release triggers (pin 911c15dd): D = the Rhodes bounce gets its DAMPER: every key-off thuds
+# (`play.release` epiano-damper), and those thuds go through the switch's resampling too (slowed into low knocks, then
+# sucked in backwards); A = A RHODES ANSWER in A3: on each phrase's fourth bar a short Rhodes stab (barking tine,
+# damper on release) answers the vibes on the and of two and the and of three.
+R18 = set(filter(None, os.environ.get("T6_R18", "D,A").split(","))) - {"none"}
+RHODES = "epiano-tine synth.tine.sense=0.5 synth.tine.key=-0.25"
+DAMPER = " play.release.patch=epiano-damper play.release.decay=2s"
 FORM = [("intro", 4), ("A", 16), ("switch", 8), ("A2", 16), ("drop", 4), ("A3", 12), ("outro", 4)]
 LEVEL = {"intro": 58, "A": 72, "switch": 66, "A2": 78, "drop": 56, "A3": 80, "outro": 56}
 DRUMS = {"A", "switch", "A2", "A3"}
@@ -148,7 +155,7 @@ DRUMS = {"A", "switch", "A2", "A3"}
 def build():
     rng = random.Random(6)
     T = {k: Track(k) for k in ("keys", "kw", "bass", "sub", "vibes", "drums", "crackle", "hiss", "rain", "thunder",
-                               "dub", "vdub", "rs", "chop", "rsrev", "lb", "cbr", "vox", "vout")}
+                               "dub", "vdub", "rs", "chop", "rsrev", "lb", "cbr", "vox", "vout", "rh")}
     rrng = random.Random(66)  # the weather's own dice (the music's stay as they were)
     bars, pos = [], 0.0
     for name, n in FORM:
@@ -174,6 +181,10 @@ def build():
                 T["rs"].add(start, 16.0, "C3", 100)
             if i == 4:
                 T["rsrev"].add(start, 16.0, "C3", 96)
+        if sec == "A3" and "A" in R18 and i % 4 == 3 and i != 7:  # the Rhodes answers
+            top3 = sorted(voic)[1:]
+            T["rh"].add(start + 1.5 + 0.03, 0.4, ",".join(nm(x) for x in top3), v - 10)
+            T["rh"].add(start + 2.5 + 0.05, 0.3, ",".join(nm(x) for x in top3), v - 16)
         if sec == "A3" and i == n - 1 and "H" in R12 and "V" in R11:  # the hum, once more, to be chopped backwards
             T["vout"].add(start, 8.0, "C4", v)
         if sec == "A" and "V" in R11 and i % 4 in (1, 3):  # the hummed chops answer the vibes
@@ -469,6 +480,9 @@ def main():
                     "cutoff": {"value": 233.08, "mod": [{"src": "auto.croot", "amount": 1}]}},
                    "reverb kind=room decay=1.0s mix=0.2"],
             "auto": {"croot": {"points": croot_pts}}, "score": T["cbr"].score(total)}] if "C" in R11 else []),
+        *([{"name": "rhodes", "patch": RHODES + DAMPER, "pan": 0.25, "gain": "2dB",
+            "fx": ["tape drive=0.3 warmth=0.6", "lp cutoff=4500", "reverb kind=room decay=1.2s mix=0.2"],
+            "score": T["rh"].score(total)}] if "A" in R18 else []),
         *([{"name": "hum-backwards", "patch": "c2-hum", "pan": 0.2, "gain": "-1dB",
             "fx": [{"type": "chop", "slices": 8, "length": "1/1", "pattern": "r7 r6 . r4 _ r2 r1 r0"},
                    "hp cutoff=180", "reverb kind=hall decay=2.4s mix=0.3"], "score": T["vout"].score(total)}]
@@ -513,7 +527,7 @@ def main():
         'ceiling: "-0.5dB"',
         'volume: "3dB"',
         "patches: " + json.dumps({**patches(), **(resample_patches() if R10 else {}), **palette_patches()}),
-        *(["songs: " + json.dumps({**({"bounce": bounce_song(), "bounceb": bounce_song(B_LOOP, 12, ("epiano-tine synth.tine.sense=0.5 synth.tine.key=-0.25" if "B" in R16
+        *(["songs: " + json.dumps({**({"bounce": bounce_song(), "bounceb": bounce_song(B_LOOP, 12, ((RHODES + (DAMPER if "D" in R18 else "")) if "B" in R16
                                                          else "epiano-tine") if "T" in R14 else "wurli")} if R10 else {}),
                                     **({"hum": hum_song()} if "V" in R11 else {})})] if (R10 or "V" in R11) else []),
         *(["buses: " + json.dumps({"dubloop": {
