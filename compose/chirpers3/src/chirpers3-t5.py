@@ -29,7 +29,12 @@ S = 0.25  # a sixteenth, in beats
 ECHO = os.environ.get("T5_ECHO", "3/16")  # the tape echo's time: 3/16 = a dotted eighth (echoes off the eighth grid)
 HATSW = float(os.environ.get("T5_HATSW", "0.66"))  # the hats' 16th swing
 HATS = os.environ.get("T5_HATS", "tresillo")  # 8ths, or "tresillo": 3+3+2 sixteenths (0 3 6 8 11 14), the steppers' hats against the one-drop
-DRAG = os.environ.get("T5_DRAG", "0.64")  # the drums' EIGHTH swing (the hats sit on 8ths, so swing16 never moved them): e.g. 0.64, the lazy drag
+DRAG = os.environ.get("T5_DRAG", "0.64")
+SIREN = os.environ.get("T5_SIREN", "0") == "1"  # a dub siren (song-local square wave, its pitch wailing on a triangle LFO) on the version's phrase ends
+EVEN = os.environ.get("T5_EVEN", "0") == "1"  # an 8-bar intro (the skank alone for four) and an 8-bar outro, so the sections sit nearer in length
+BUB3 = os.environ.get("T5_BUB3", "0") == "1"
+LECHO = os.environ.get("T5_LECHO", "1") == "1"  # the melodica's written echo: its line again a dotted eighth late, softer, panned opposite, into the spring
+DSKANK = os.environ.get("T5_DSKANK", "0")  # "1": everywhere; "drive": the riddim, the version and the return only (the melodica gets space)  # the double skank: a chop and its sixteenth echo on 2 and 4 (chk-a), the second softer  # the bubble on a dotted-eighth cycle (every 3 sixteenths), turning across the bar  # the drums' EIGHTH swing (the hats sit on 8ths, so swing16 never moved them): e.g. 0.64, the lazy drag
 CRK = os.environ.get("T5_CRK", "2")  # crackle: 1 = draft (-20 dB, 18% of 32nds); 2 = sparser and quieter (-28 dB, 8%)
 MEQ = os.environ.get("T5_MEQ", "3")  # master eq: 1 = draft (shelf +3 @110, highshelf -4 @7k); 2 = mids -6 @600 q0.8, -3 @300, no top cut
 
@@ -92,9 +97,9 @@ CALL = [  # THE CALL: eight bars of the lead (beats)
 ]
 
 # (name, bars, chords)
-FORM = [("intro", 4, ["Am7", "Dm7"]), ("riddim", 16, ["Am7", "Dm7"]), ("melodica", 16, ["Am7", "Dm7"]),
+FORM = [("intro", 8 if EVEN else 4, ["Am7", "Dm7"]), ("riddim", 16, ["Am7", "Dm7"]), ("melodica", 16, ["Am7", "Dm7"]),
         ("version", 16, ["Am7", "Dm7", "Am7", "Dm7", "Fmaj7", "E7sus", "Fmaj7", "E7sus"]),
-        ("breakdown", 8, ["Am7", "Dm7"]), ("return", 8, ["Am7", "Dm7"]), ("outro", 6, ["Am7", "Dm7"])]
+        ("breakdown", 8, ["Am7", "Dm7"]), ("return", 8, ["Am7", "Dm7"]), ("outro", 8 if EVEN else 6, ["Am7", "Dm7"])]
 ALL = {"drums", "bass", "skank", "bubble", "lead"}
 VERSION_MIX = [  # the dub mix, bar by bar: who is up on the desk
     {"drums", "bass"}, {"drums", "bass", "skank"}, {"bass", "skank"}, {"drums", "bass", "skank", "bubble"},
@@ -126,14 +131,19 @@ def bass(c, drop_one=False):
     return grid(ev)
 
 
-def skank(c):
+def skank(c, sec=""):
     v, _ = CHORDS[c]
     ch = ",".join(nm(n) for n in v)
+    if DSKANK == "1" or (DSKANK == "drive" and sec in ("riddim", "version", "return")):
+        return grid([(4, ch, 1, 86), (5, ch, 1, 66), (12, ch, 1, 90), (13, ch, 1, 70)])
     return grid([(4, ch, 1, 86), (12, ch, 1, 90)])
 
 
-def bubble(c):
+def bubble(c, b=0):
     _, (lo, hi) = CHORDS[c]
+    if BUB3:  # a dotted-eighth cycle: every third sixteenth, low-high alternating, carried across the bar line
+        start = (3 - (b * 16) % 3) % 3
+        return grid([(st, nm(lo if ((b * 16 + st) // 3) % 2 == 0 else hi), 1, 66) for st in range(start, 16, 3)])
     ev = []
     for beat in range(4):
         ev += [(beat * 4 + 2, nm(lo), 1, 64), (beat * 4 + 3, nm(hi), 1, 70)]
@@ -157,13 +167,15 @@ def build():
     T = {n: [] for n in names}
     rng = random.Random(5)
     t, times, throws = 0.0, {}, []
+    gb = 0
+    siren = []
     for sec, nb, chs in FORM:
         times[sec] = t
         for b in range(nb):
             c = chs[b % len(chs)]
             up = set(ALL)
             if sec == "intro":
-                up = {"skank"} if b < 2 else {"skank", "drums"}
+                up = {"skank"} if b < (4 if EVEN else 2) else {"skank", "drums"} | ({"bass"} if EVEN and b >= 6 else set())
             elif sec == "riddim":
                 up = {"drums", "bass", "skank"} | ({"bubble"} if b >= 4 else set())
             elif sec in ("melodica", "return"):
@@ -173,7 +185,8 @@ def build():
             elif sec == "breakdown":
                 up = {"drums", "bass"} if b < 4 else {"skank"}
             elif sec == "outro":
-                up = [ALL, ALL - {"lead"}, {"drums", "bass", "skank"}, {"drums", "skank"}, {"skank"}, set()][b]
+                up = ([ALL, ALL, ALL - {"lead"}, ALL - {"lead"}, {"drums", "bass", "skank"}, {"drums", "skank"}, {"skank"}, set()] if EVEN
+                      else [ALL, ALL - {"lead"}, {"drums", "bass", "skank"}, {"drums", "skank"}, {"skank"}, set()])[b]
             bar = {n: R(4) for n in names}
             if "drums" in up:
                 bar["drums"] = drums(sec, b, rng)
@@ -182,9 +195,9 @@ def build():
             if "bass" in up:
                 bar["bass"] = bass(c, drop_one=(sec == "version" and b % 2 == 1))
             if "skank" in up:
-                bar["skank"] = skank(c)
+                bar["skank"] = skank(c, sec)
             if "bubble" in up:
-                bar["bubble"] = bubble(c)
+                bar["bubble"] = bubble(c, gb)
             if "lead" in up and sec in ("melodica", "return"):
                 bar["lead"] = lead(b, vel=88 if sec == "melodica" else 94)
             bar["crackle"] = crackle(rng)
@@ -192,9 +205,25 @@ def build():
             bt = t + 4 * 60 / BPM
             if b % 4 == 3 and sec != "intro":  # the echo THROW on the phrase's last off-beat
                 throws.append(bt - 60 / BPM * 1.0)
+            if SIREN:
+                siren.append(f"A5/2b@70 R/2b" if sec == "version" and b % 4 == 3 else ("E5/4b@58" if sec == "outro" and b == 2 else "R/4b"))
             for n in names:
                 T[n].append(bar[n])
             t = bt
+            gb += 1
+    if SIREN:
+        T["siren"] = siren
+    if LECHO:  # the lead's line shifted 0.75 beat late across the bar lines (one continuous stream), softer
+        stream = " ".join(T["lead"]).split()
+        out = ["R/0.75b"]
+        for tk in stream:
+            if tk.startswith("R/"):
+                out.append(tk)
+            else:
+                head, rest = tk.split("/", 1)
+                dur, vel = rest.split("@")
+                out.append(f"{head}/{dur}@{max(20, int(vel) - 26)}")
+        T["lecho"] = [" ".join(out)]
     return T, times, t, throws
 
 
@@ -232,6 +261,12 @@ def song():
         {"name": "crackle", "patch": "vinyl-crackle", "gain": "-20dB" if CRK == "1" else "-28dB", "score": sc("crackle")},
         {"name": "hiss", "patch": "vinyl-hiss", "gain": "-34dB", "score": sc("hiss")},
     ]
+    if LECHO:
+        tracks.append({"name": "lecho", "patch": "boc-lead", "gain": "-11dB", "pan": -0.5, "fx": wow, "lfo": lfo,
+                       "sends": {"spring": "-6dB"}, "score": " ".join(T["lecho"])})
+    if SIREN:
+        tracks.append({"name": "siren", "patch": "dub-siren", "gain": "-14dB", "pan": 0.4,
+                       "sends": {"echo": "-4dB", "spring": "-8dB"}, "score": sc("siren")})
     patches = {
         "vinyl-hiss": {"about": "Tape Weather t5: vinyl/tape hiss - pink noise, band-passed, steady.",
                        "synth": {"layers": [{"type": "noise", "color": "pink"}], "filters": ["bp cutoff=3k q=0.5"],
@@ -243,6 +278,11 @@ def song():
     bands = (["lowshelf cutoff=110 gain=3dB", "highshelf cutoff=7000 gain=-4dB"] if MEQ == "1" else
              ["lowshelf cutoff=110 gain=3dB", "peak cutoff=600 q=0.8 gain=-6dB", "peak cutoff=300 q=1 gain=-3dB"] if MEQ == "2" else
              ["peak cutoff=640 q=0.8 gain=-9dB", "peak cutoff=300 q=1 gain=-3dB", "highshelf cutoff=6000 gain=4dB"])
+    if SIREN:
+        patches["dub-siren"] = {"about": "Tape Weather t5: the dub siren - a square wave whose pitch wails up and down a fifth on a 2.5 Hz triangle, low-passed.",
+                                "synth": {"layers": [{"wave": "square"}], "lfo": {"sw": {"wave": "tri", "rate": "2.5hz"}},
+                                          "pitch": {"value": 0, "mod": [{"src": "lfo.sw", "amount": 7}]},
+                                          "filters": ["lp cutoff=2.4k"], "amp": {"a": "30ms", "s": 1, "r": "500ms"}}}
     master = {"fx": [{"type": "eq", "bands": bands},
                      {"type": "tape", "drive": 0.35, "warmth": 0.5, "mix": 1},
                      {"type": "compressor", "threshold": "-20dB", "ratio": 2, "attack": "20ms", "release": "220ms", "makeup": "0dB"},
