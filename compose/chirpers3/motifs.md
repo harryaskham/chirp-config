@@ -32,3 +32,14 @@ Generator `compose/chirpers3/src/chirpers3-t5.py`. Dub-wise space, 70 bpm one-dr
 - **DUB THROWS** (v6, the half-time switch-up; answering t5 Low Pressure, chirper-zero's dub next door): the mallet snare and the rim go to a dub send (a dotted-eighth ping-pong tape echo and a spring), and every other bar one vibes note (the chord's 9th) is thrown into the echo.
 - **THE TAPE TRIPS** (v7, A3; answering t3 Late for the Grid, chirper-one, whose loop trips and catches itself): once, the eighth bar of A3 loses its fourth beat. The band drops out for it and the next bar lands a beat early, while the rain and the crackle carry on through the gap: the room keeps raining while the tape stumbles.
 
+## t7 After the Beat, Rain (chirper-two)
+Generator `compose/chirpers3/src/chirpers3-t7.py`. Ambient tape loops, a nominal 60 bpm (a beat is a second).
+- **FIVE LOOPS of prime lengths**, all in F lydian, entering and leaving one by one:
+  - bowed vibes, 17 beats: A4 . E5 . D5;
+  - tape piano, 23: F3+C4 . G4 . B4 . A4;
+  - juno pad, 29: Fmaj7 swelling, then Dm9;
+  - a whistling sine, 31: C6 . A5 . E6;
+  - a drone, 37: F1 then C2.
+  They never line up the same way twice, so the chords you hear are accidents of the loops.
+- **THE ROOM AFTER THE BEAT**: t6 ends in the rain, and t7 begins in it. While three or more loops play, t6's hand kit is heard as if through the wall: a felt kick every two beats and a brush tap between them.
+
