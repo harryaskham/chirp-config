@@ -16,7 +16,9 @@ GLITCHY IDM-LITE, a broken music box in a lo-fi beat.
   early kick, swing drift).
 - THE GEAR CHANGE: the return turns the toy to a 6 against the box's 7 (a dotted-eighth hemiola); the full section
   puts the crystal on a 9, three odd gears; so the hidden melody's rhythm changes section by section.
-- FORM (58 bars, 86 bpm): intro (toys enter one by one), beat, melody, glitch break, return, breakdown, full, outro.
+- FORM (58 bars, 86 bpm): intro (toys enter one by one), beat, melody, glitch break, return, breakdown, full, and
+  the WIND-DOWN (the music box runs down: gears lengthen, pitches sag, the beat gives out).
+- THE BASS ANSWERS: the root, a reply on the swung and-of-3 (fifth or ninth), a chromatic walk into each change.
 
 Emits songs/chirpers3-t4.yaml. Edit the music here.
 """
@@ -98,6 +100,32 @@ def chord_at(bar):
     return CHORDS[((bar - 1) // 2) % 4]
 
 
+def wind_down(a, z, toy_on, box_on, k, j):
+    """THE WIND-DOWN: the music box runs down. Bar by bar each gear's cycle lengthens (toy 5..10, box 7..17, crystal
+    4..9 sixteenths), the pitches sag a semitone every two bars as the mechanism slows, and the notes fade; the last
+    sound is one sagging music-box note."""
+    for bar in range(a, z + 1):
+        n = bar - a
+        lo, hi = b0(bar), b0(bar + 1)
+        sag, fade = -(n // 2), 6 * n
+        for x in range(lo, hi, 5 + n):
+            pch = TOY_SEQ[k % len(TOY_SEQ)] + sag
+            P["toy"].add(x, 1.6 + n * 0.4, nm(pch), 64 - fade)
+            toy_on[x] = pch
+            k += 1
+        for x in range(lo, hi, 7 + 2 * n):
+            pch = BOX_SEQ[j % len(BOX_SEQ)] + sag
+            P["box"].add(x, 1.8 + n * 0.5, nm(pch), 60 - fade)
+            box_on[x] = pch
+            j += 1
+        if bar < z:
+            root, iv = chord_at(bar)
+            for q, x in enumerate(range(lo, hi, 4 + n)):
+                P["xtal"].add(x, 3, nm(68 + ((root + iv[q % len(iv)] - 8) % 12) + sag), 54 - fade)
+    P["box"].add(b0(z) + 6, 10, nm(BOX_SEQ[0] - 3), 40)                  # the last, sagging note
+    return k, j
+
+
 GEARS = {"return": (6, 7, 4), "full": (5, 7, 9)}   # (toy, box, crystal) cycles by section; else (5, 7, 4)
 
 
@@ -114,6 +142,10 @@ def clockwork():
     for name, a, z in SECTIONS:
         lo, hi = b0(a), b0(z + 1)
         tl, bl, xl = gear(name)
+        if name == "outro":
+            windup = wind_down(a, z, toy_on, box_on, k, j)
+            k, j = windup
+            continue
         for x in range(lo, hi, tl):
             for o in ((0, 3) if tl == 5 else (0, 3) if tl == 6 else (0,)):
                 st = x + o
@@ -170,7 +202,7 @@ KICKS = [[0, 10], [0, 7, 10], [0, 3, 10], [0, 9, 11], [0, 10, 14], [0, 6, 10]]
 def beat():
     for bar in range(1, BARS + 1):
         sec = sec_of(bar)
-        if sec in ("intro", "breakdown") or bar > 56:
+        if sec in ("intro", "breakdown") or bar > 54:
             continue
         a = b0(bar)
         soft = sec == "beat"
@@ -217,8 +249,13 @@ def harmony():
             P["pad"].add(b0(bar), 2 * S - 0.5, ",".join(nm(m) for m in voic), 56 if sec in ("intro", "breakdown") else 62)
         if sec not in ("intro", "glitch") and bar < 57:
             r = 37 + ((root - 1) % 12)
-            P["bass"].add(b0(bar), 1.5 * S, nm(r), 86)
-            P["bass"].add(b0(bar) + 1.5 * S + swing(2), 0.5 * S - 2.5, nm(r + 7), 70)
+            nxt = 37 + ((chord_at(bar + 2)[0] - 1) % 12)
+            ans = r + (7 if (bar // 2) % 2 == 0 else 14)            # the fifth, or the ninth up high
+            P["bass"].add(b0(bar), 10, nm(r), 86)                    # the root...
+            P["bass"].add(b0(bar) + swing(11), 3, nm(ans), 72)        # ...answered on the swung and-of-3...
+            P["bass"].add(b0(bar) + S, 12, nm(r), 80)
+            P["bass"].add(b0(bar) + S + swing(13), 1.2, nm(nxt + 2), 66)   # ...then a walk down into the next chord
+            P["bass"].add(b0(bar) + S + swing(15), 1.0, nm(nxt + 1), 70)
             P["sub"].add(b0(bar), 2 * S - 1, nm(r - 12), 90)          # the warm floor an octave under the bass
 
 

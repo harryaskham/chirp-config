@@ -57,6 +57,11 @@ Generator `compose/chirpers3/src/chirpers3-t7.py`. Ambient tape loops, a nominal
 - **THE GEAR CHANGE** (since v2): the gears change ratio by section, so the hidden melody (where toy and box meet)
   changes rhythm with them: the return turns the toy to a 6 against the box's 7 (a dotted-eighth hemiola), the full
   section puts the crystal on a 9 (three odd gears: 5, 7, 9).
+- **THE WIND-DOWN** (since v3, the outro): the music box RUNS DOWN: bar by bar each gear's cycle lengthens (toy
+  5..10, box 7..17, crystal 4..9 sixteenths), the pitches sag a semitone every two bars, the notes fade, the beat gives
+  out at bar 55; the last sound is one music-box note three semitones flat.
+- **THE BASS ANSWERS** (since v3): the root, a reply on the swung and-of-3 (the fifth, or the ninth up high on
+  alternate chords), then a chromatic walk down into each change.
 - **HAIL**: in the glitch break the toy's notes are torn into falling 32nd retriggers, 3-6 at a time, between music-box
   answers.
 - Harmony: Dbmaj9 | Cm7(11) | Fm9 | Bbm9, two bars each; 86 bpm; a 16th swing of 0.58 on the beat only.
