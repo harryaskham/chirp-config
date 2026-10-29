@@ -167,8 +167,15 @@ def build():
             P['organ'].append(R); P['horn'].append(R)
             P['bass'].append(bass_bar(b, top_up)); P['kit'].append(kit_bar(b, 'light'))
         elif s == 'fuzz':
-            P['wurli'].append(comp_bar(b, 70) if b['i'] % 2 else R); P['flute'].append(R)
-            P['organ'].append(solo_bar(b, 92)); P['horn'].append(R)
+            # CALL AND RESPONSE: twice (bars 8 and 16) the flute answers the organ with a bar of the kettle tune
+            # (re-voiced on the riff's chord); in the last 8 bars the answers stop and the organ doubles itself an octave down
+            answer = b['i'] in (7, 15)
+            P['wurli'].append(comp_bar(b, 70) if b['i'] % 2 else R)
+            P['flute'].append(tune_bar(b, 65, 90) if answer else R)
+            sol = solo_bar(b, 92) if not answer else R
+            if b['i'] >= 16 and sol is not R:
+                sol = [x if x.startswith('R') else (lambda n_, r_: f"{nm(NN.index(n_[:-1]) + 12 * int(n_[-1]))},{n_}/{r_}")(*x.split('/', 1)) for x in sol]
+            P['organ'].append(sol); P['horn'].append(R)
             P['bass'].append(riff_bar(b)); P['kit'].append(kit_bar(b, 'fuzz'))
         elif s == 'hymn':
             P['wurli'].append(comp_bar(b, 64)); P['flute'].append(R); P['organ'].append(R)
