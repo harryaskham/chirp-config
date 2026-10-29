@@ -174,7 +174,7 @@ def build():
             {'name': 'kit', 'patch': 'lofi-kit', 'gain': '-2dB', 'fx': ['crush bits=12 rate=26kHz mix=0.5'], 'score': line(kit, total)},
             {'name': 'wurli', 'patch': 'wurli', 'gain': '-3dB', 'pan': 0.1, 'fx': ['tape drive=0.2 mix=0.6 wow=18 flutter=3 drift=2 tone=5500 sweep=0.7 seed=21'],
              'notes': [{'at': f'{at * SPB:.4f}s', 'len': f'{d * SPB:.4f}s', 'pitch': NN.index(p[:-1]) + 12 * (int(p[-1]) + 1), 'vel': v / 127} for at, p, d, v in wurli]},
-            {'name': 'piano', 'patch': 'tape-piano', 'gain': '-4dB', 'pan': -0.15, 'fx': ['tape drive=0.15 mix=0.5 wow=12 flutter=2.5 drift=1.2 tone=6500 sweep=0.6 seed=4'], 'score': line(piano, total) if False else None,
+            {'name': 'piano', 'patch': 'tape-piano', 'gain': '-4dB', 'pan': -0.15, 'fx': [{'type': 'pump', 'on': 'kit.k', 'depth': '-7dB', 'attack': '4ms', 'release': '480ms', 'curve': 0.5}, 'tape drive=0.15 mix=0.5 wow=12 flutter=2.5 drift=1.2 tone=6500 sweep=0.6 seed=4'], 'score': line(piano, total) if False else None,
              'notes': [{'at': f'{at * SPB:.4f}s', 'len': f'{d * SPB:.4f}s', 'pitch': p_midi, 'vel': v / 127}
                        for at, p, d, v in piano for p_midi in [NN.index(p[:-1]) + 12 * (int(p[-1]) + 1)]]},
             {'name': 'bass', 'patch': 'analog-bass', 'gain': '-3dB', 'score': line(bass, total)},
