@@ -64,6 +64,9 @@ R9 = set(filter(None, os.environ.get("T4_R9", "P,Q").split(","))) - {"none"}
 # The trumpet sings it the first time; the second time the roles reverse: the tom choir sings it and the trumpet
 # holds the chord's ninth above, softly.
 R10 = set(filter(None, os.environ.get("T4_R10", "T").split(","))) - {"none"}
+# Round 11 (v11): K = a CANON in head 1: the rhodes follows the melody two beats behind, an octave down, so the line
+# spills across the changing meters and every bar hears the previous bar's tune against its own.
+R11 = set(filter(None, os.environ.get("T4_R11", "K").split(","))) - {"none"}
 BTHEME = {0: [(0, 3, 4), (3, 1, 3), (4, 4, 2)], 1: [(0, 2, 1), (2, 2, 2), (4, 3, 4)], 2: [(0, 5, 6)],
           3: [(0, 2, 4), (2, 2, 5), (4, 2, 4)]}  # t2's night cell, degrees on eighths (None = rest)
 TRIP = "T" in os.environ.get("T4_OPTS", "")  # triplet brush ghosts before the backbeats (off: no gain)
@@ -341,6 +344,8 @@ def build():
             for o, ln, n in line:
                 at = swing_at(start, o, swung)
                 T[voice].add(at, ln / 2 * 0.95, n if voice != "tom" else nm(midi(n) - 12), v + 4)
+                if section == "head" and "K" in R11:  # the canon, two beats behind on the rhodes
+                    T["rhodes"].add(at + 2.0, ln / 2 * 0.9, nm(midi(n) - 12), v - 2)
                 if section == "peak" and voice == "tpt":  # unison in the piano an octave down at the peak
                     T["pno"].add(at, ln / 2 * 0.9, nm(midi(n) - 12), v)
                     if "P" in R9 and "W" in R8:  # and the horn, an octave down: brass
