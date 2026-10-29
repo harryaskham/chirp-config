@@ -79,6 +79,10 @@ R13 = set(filter(None, os.environ.get("T4_R13", "U").split(","))) - {"none"}  # 
 # (A B C# E. C# B A); A = in the coda the tom choir answers the piano's t8 cell in CANON, a beat behind, an octave
 # down.
 R14 = set(filter(None, os.environ.get("T4_R14", "L,A").split(","))) - {"none"}
+# Round 15 (v15): B = t3 Glass Arithmetic's BRAID answered (chirper-one: two loops of 5 and 7 running across the
+# bar lines): in the intro, two PALINDROMIC loops braid across the palindromic meters, the piano's 7 (0 1 3 4 3 1 0 in
+# eighths) and the rhodes' 5 (0 2 4 2 0 in quarters), on each moment's chord, never meeting the 44-eighth phrase.
+R15 = set(filter(None, os.environ.get("T4_R15", "B").split(","))) - {"none"}
 BTHEME = {0: [(0, 3, 4), (3, 1, 3), (4, 4, 2)], 1: [(0, 2, 1), (2, 2, 2), (4, 3, 4)], 2: [(0, 5, 6)],
           3: [(0, 2, 4), (2, 2, 5), (4, 2, 4)]}  # t2's night cell, degrees on eighths (None = rest)
 TRIP = "T" in os.environ.get("T4_OPTS", "")  # triplet brush ghosts before the backbeats (off: no gain)
@@ -416,6 +420,27 @@ def build():
                 while n9 > 81:
                     n9 -= 12
                 T["tpt"].add(start, m / 2 * 0.9, nm(n9), v - 16)
+        if section == "intro" and "B" in R15:  # the braid
+            first = min(b[0] for b in bars if b[3] == "intro")
+            e0 = int(round((start - first) * 2))
+            for e in range(m):
+                cn = name0
+                for c8, cnn in chords:
+                    if c8 <= e:
+                        cn = cnn
+                r0, _, sc = CH[cn]
+                k = e0 + e
+                d7 = [0, 1, 3, 4, 3, 1, 0][k % 7]
+                n7 = r0 + 24 + sc[d7 % len(sc)]
+                while n7 > 76:
+                    n7 -= 12
+                T["pno"].add(swing_at(start, e, swung), 0.45, nm(n7), v - 4 + (6 if k % 7 == 0 else 0))
+                if k % 2 == 0:
+                    d5 = [0, 2, 4, 2, 0][(k // 2) % 5]
+                    n5 = r0 + 12 + sc[d5 % len(sc)]
+                    while n5 > 64:
+                        n5 -= 12
+                    T["rhodes"].add(swing_at(start, e, swung), 0.9, nm(n5), v - 2 + (6 if (k // 2) % 5 == 0 else 0))
         # ---- piano: comping (rootless voicings), or the melody when VOICE says so ----
         comp = []
         for c8, cn in chords:
