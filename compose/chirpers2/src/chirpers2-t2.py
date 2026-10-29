@@ -270,8 +270,13 @@ def build():
                 parts['tpt'].append(up(bass(b, k), 2, 108))
                 parts['ten'].append(up(bass(b, k), 1, 100))
         elif sec == 'outro':
-            parts['tpt'].append(horn_line(b, k, b['i'], 80 - 3 * b['i']) if b['i'] < 6 else rest(b))
-            parts['ten'].append(rest(b))
+            # HEAD OUT: the turnstile head's first phrase comes back over the unravelling band (trumpet and the
+            # tenor's echoes), then the trumpet leaves with the others
+            if b['i'] < 4:
+                t_, n_ = turnstile_head(dict(b, i=b['i']))
+                parts['tpt'].append(t_); parts['ten'].append(n_)
+            else:
+                parts['tpt'].append(rest(b)); parts['ten'].append(rest(b))
         else:
             parts['tpt'].append(rest(b)); parts['ten'].append(rest(b))
     total_beats = sum(b['e8'] for b in B) / 2
@@ -294,7 +299,7 @@ def build():
     # THE UNRAVELLING (outro): the band leaves the vamp one voice every two bars - the wah, then the rhodes, then the
     # trumpet's line and the doublings, then the kit - until the fretless and the sub play the NIGHT CELL alone,
     # as the song began
-    leave = [('wah',), ('rhodes',), ('tpt', 'dr', 'dw', 'dt', 'dp'), ('kit',)]
+    leave = [('wah',), ('rhodes',), ('tpt', 'ten', 'dr', 'dw', 'dt', 'dp'), ('kit',)]
     for k, b in enumerate(B):
         if b['sec'] == 'outro':
             for step, voices in enumerate(leave):
