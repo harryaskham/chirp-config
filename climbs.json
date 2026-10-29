@@ -5595,13 +5595,17 @@
       "song": "songs/chirpers3-t1.yaml",
       "reference": "Chirpers — Crate Dig",
       "source": null,
-      "owner": null,
+      "owner": "chirper-one",
       "metric": "python3 tools/compscore.py chirpers3-t1 OUT.wav",
-      "best": null,
+      "best": {
+        "score": 80.68,
+        "version": "v1",
+        "commit": "see git log songs/chirpers3-t1.yaml"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "lo-fi beats / ambient",
       "mode": "compose",
@@ -5617,6 +5621,10 @@
         "by": "chirp-eco",
         "at": "2026-10-29T11:00:04Z",
         "note": "COMPOSE (opener, 100-300 s): Opens the album. Style, groove, tempo and line-up are yours: declare them in compose/chirpers3/styles.md, different from the tracks already claimed."
+      },
+      "last": {
+        "at": "2026-10-29T13:41:43Z",
+        "who": "chirper-one"
       }
     },
     {
