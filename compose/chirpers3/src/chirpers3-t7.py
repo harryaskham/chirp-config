@@ -79,6 +79,12 @@ R5 = set(filter(None, os.environ.get("T7_R5", "C").split(","))) - {"none"}
 # S = a calmer architecture: the tape piano and the pad enter together (beat 26) and leave together (beat 170),
 # one door opening and one closing instead of four (the piece read as 15 sections).
 R6 = set(filter(None, os.environ.get("T7_R6", "P,S").split(","))) - {"none"}
+# Round 7 (v7), feedback routing (engine PR #35): D = A DUB ROOM: a bus with a lo-pass, a worn tape and a limiter
+# whose output comes back into itself every 1.5 s (`returns`, -5 dB), so what is sent there circles and darkens:
+# the whistle, t6's remembered sigh and the beat through the wall; C = the backwards tape's chop loses its beat of
+# silence (`0 r1 2 . r4 5 6 r7`), so the tail drifts on instead of stopping. (Moving the whistle's entry to the door
+# and the vibes' exit to the piano's only shifted the section boundaries and cost recurrence: tried, reverted.)
+R7 = set(filter(None, os.environ.get("T7_R7", "D,C").split(","))) - {"none"}
 
 # the loops: (track, loop length in beats, enter, leave, [(offset, length, notes)], velocity)
 LOOPS = [
@@ -249,7 +255,7 @@ def main():
             "fx": [dict(wow, rate=0.35), "lp cutoff=2600", "reverb kind=hall decay=3s mix=0.4"],
             "score": T["sigh"].score(TOTAL)}] if "M" in R3 else []),
         *([{"name": "loops-reversed", "patch": "c2-loops-rev", "pan": 0.15, "gain": "-3dB",
-            "fx": ([{"type": "chop", "slices": 8, "length": "2/1", "pattern": "0 r1 2 . r4 5 _ r7"}] if "C" in R5 else [])
+            "fx": ([{"type": "chop", "slices": 8, "length": "2/1", "pattern": "0 r1 2 . r4 5 6 r7" if "C" in R7 else "0 r1 2 . r4 5 _ r7"}] if "C" in R5 else [])
                   + ["lp cutoff=3800", {"type": "crush", "bits": 12, "rate": 14000, "mix": 0.25},
                      "reverb kind=hall decay=4s mix=0.35"], "score": T["rev"].score(TOTAL)}] if "B" in R4 else []),
         {"name": "crackle", "patch": "c2-crackle", "gain": "-30dB", "score": T["crackle"].score(TOTAL)},
@@ -260,6 +266,10 @@ def main():
              "lengths (17, 23, 29, 31, 37 beats) on bowed vibes, tape piano, a juno pad, a whistling sine and a drone, "
              "in F lydian, sliding against each other and never lining up the same way twice; the rain from t6 still "
              "falling. Nominal 60 bpm.")
+    if "D" in R7:
+        for tr in tracks:
+            if tr["name"] in ("whistle", "sigh", "pulse"):
+                tr["sends"] = {"dubroom": {"whistle": "-4dB", "sigh": "-2dB", "pulse": "-6dB"}[tr["name"]]}
     lines = [
         f"about: {json.dumps(about)}",
         "meta: " + json.dumps({"artist": "Chirpers", "album": "Tape Weather", "title": "After the Beat, Rain", "track": 7,
@@ -274,6 +284,11 @@ def main():
             "synth": {"layers": [{"type": "sample", "song": "loopsrc", "root": "C4", "reverse": True}],
                       "amp": {"a": "1.5s", "d": "0s", "s": 1, "r": "3s"}}}} if "B" in R4 else {})}),
         *(["songs: " + json.dumps({"loopsrc": loopsrc_song()})] if "B" in R4 else []),
+        *(["buses: " + json.dumps({"dubroom": {
+            "gain": "-4dB",
+            "fx": ["lp cutoff=1800", {"type": "tape", "drive": 0.4, "warmth": 0.7, "wow": 6, "flutter": 1.5, "seed": 7},
+                   "hp cutoff=120", "limiter ceiling=-6dB"],
+            "returns": [{"from": "dubroom", "gain": "-5dB", "time": "3/8"}]}})] if "D" in R7 else []),
         "master: " + json.dumps({"fx": [{"type": "eq", "bands": ["hp cutoff=28"]}, "tape drive=0.2 warmth=0.5",
                                         "glue threshold=-22dB ratio=1.5 attack=40ms release=400ms makeup=1dB"]}),
         "tracks:",
