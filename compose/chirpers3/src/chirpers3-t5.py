@@ -37,7 +37,8 @@ LECHO = os.environ.get("T5_LECHO", "1") == "1"
 DECK = os.environ.get("T5_DECK", "1")  # "1": the deck on keys and leads; "lead": on the lead and its echo only (the skank keeps the granular wow)  # wM's tape deck (pin 232211dd) on the keys and the leads instead of the granular wow: wow/flutter in cents, drift, darkening dips
 NUDGE = os.environ.get("T5_NUDGE", "")
 RIMDRAG = os.environ.get("T5_RIMDRAG", "60")
-TCHOP = os.environ.get("T5_TCHOP", "lead")  # wM's MPC chop at the desk: "skank" = the rhodes chopped through the version; "lead" = the melodica chopped through the return  # the one-drop's rim dragged late by hand (ms), the kick and hats kept steady  # the one-drop played by hand (play.humanize): "40,-10,25" = rim late, kick early, hats late (ms), plus swing drift and a drunk lean
+TCHOP = os.environ.get("T5_TCHOP", "lead")
+REWIND = os.environ.get("T5_REWIND", "end")  # wM's tapestop as a sound-system REWIND (spin 3, a vinyl pull-back): "end" = on the outro's last bar; "mid" = at the turn into the version (instead of that seam's stutter)  # wM's MPC chop at the desk: "skank" = the rhodes chopped through the version; "lead" = the melodica chopped through the return  # the one-drop's rim dragged late by hand (ms), the kick and hats kept steady  # the one-drop played by hand (play.humanize): "40,-10,25" = rim late, kick early, hats late (ms), plus swing drift and a drunk lean
 VINYL = os.environ.get("T5_VINYL", "1") == "1"
 GLITCH = os.environ.get("T5_GLITCH", "stutter") in ("1", "stop", "stutter")
 GLITCH_KIND = os.environ.get("T5_GLITCH", "stutter")  # "1": both; "stop": the tape stop only; "stutter": the stutter bursts only  # the desk resamples: master stutter bursts in the version (bars 4 and 12, second halves) and a TAPE STOP (an octave dive on the last beat) into the breakdown  # wM's vinyl fx on the master instead of the crackle and hiss tracks  # the melodica's written echo: its line again a dotted eighth late, softer, panned opposite, into the spring
@@ -303,9 +304,11 @@ def song():
         g1, g2 = v0 + 3 * bar + bar / 2, v0 + 11 * bar + bar / 2
         if os.environ.get("T5_GSEAM", "1") == "1":  # at the seams instead: the riddim's and the melodica's last half-bars
             g1, g2 = times["melodica"] - bar / 2, times["version"] - bar / 2
+            if REWIND == "mid":  # the turn into the version is the rewind's now, not the stutter's
+                g2 = -100
         stop = times["breakdown"] - 60 / BPM
         gl = [["0s", 0]]
-        for a in ((g1, g2) if GLITCH_KIND in ("1", "stutter") else ()):
+        for a in ([x for x in (g1, g2) if x > 0] if GLITCH_KIND in ("1", "stutter") else ()):
             gl += [[f"{a - 0.02:.3f}s", 0], [f"{a:.3f}s", 1], [f"{a + bar / 2 - 0.05:.3f}s", 1], [f"{a + bar / 2:.3f}s", 0]]
         gl.append([f"{total + 8:.2f}s", 0])
         ts = [["0s", 0], [f"{stop:.3f}s", 0], [f"{stop + 60 / BPM - 0.02:.3f}s", -12], [f"{stop + 60 / BPM:.3f}s", 0], [f"{total + 8:.2f}s", 0]]
@@ -331,6 +334,14 @@ def song():
                      {"type": "tape", "drive": 0.35, "warmth": 0.5, "mix": 1},
                      {"type": "compressor", "threshold": "-20dB", "ratio": 2, "attack": "20ms", "release": "220ms", "makeup": "0dB"},
                      {"type": "gain", "gain": f"+{MG:g}dB"}]}
+    if REWIND:
+        bar_s = 4 * 60 / BPM
+        t0 = (total - bar_s) if REWIND == "end" else (times["version"] - bar_s / 2)
+        rw = [["0s", 0], [f"{t0 - 0.02:.3f}s", 0], [f"{t0:.3f}s", 1]]
+        rw += ([[f"{total + 8:.2f}s", 1]] if REWIND == "end" else [[f"{t0 + bar_s / 2 - 0.02:.3f}s", 1], [f"{t0 + bar_s / 2:.3f}s", 0], [f"{total + 8:.2f}s", 0]])
+        master["fx"].append({"type": "tapestop", "time": "2b", "spin": 3, "curve": 1.6,
+                             "stop": {"value": 0, "mod": [{"src": "auto.rw", "amount": 1}]}})
+        glitch_auto = {**glitch_auto, "rw": {"points": rw}}
     if glitch_auto:
         master["auto"] = glitch_auto
     return {
