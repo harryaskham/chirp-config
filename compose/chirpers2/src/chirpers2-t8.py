@@ -143,6 +143,10 @@ NIGHT = [1, None, 5, 1, 7, None, 4, 5, 1, None, 3, 5, 7]
 # E lydian, and the chorale and coda stay there, so t8 ends on a low E and hands t9 Slow Shutter (which opens on
 # Emaj9) its key; T = the phase and melody blur bars drift a THIRD of an eighth (as the blur break does), not half.
 R24 = set(filter(None, os.environ.get("T8_R24", "E,T").split(","))) - {"none"}
+# Round 25 (v25): P = the peak's drift re-timed to 4/15 of an eighth a bar, so the phase closes EXACTLY on the
+# peak's last bar, where the tutti plays the cell together (it was 11.75 there); C = a VIBES CANON at the peak: the
+# second vibraphone answers the four-mallet palindromes a dotted quarter behind.
+R25 = set(filter(None, os.environ.get("T8_R25", "P,C").split(","))) - {"none"}
 SUBJECT = [(0, 1), (3, 1), (7, 1), (6, 2), (2, 2), (5, 1), (1, 1), (4, 1), (0, 2)]  # t7: semitones, eighths
 BAR = 6.0  # a 12/8 bar, in quarter beats
 
@@ -331,7 +335,7 @@ def build():
             k = {"phase": 0, "melody": 4, "peak": 8}[sec] + i // span
             off = k + ((1 / 3 if "T" in R24 else 0.5) if i % span == span - 1 else 0.0)  # the blur bar
             if sec == "peak" and "G" in R15:
-                off = 8 + i * 0.25  # the drift
+                off = 8 + i * (4 / 15 if "P" in R25 else 0.25)  # the drift
             for e in range(12):
                 at = start + ((e + off) % 12) / 2
                 p2 = deg(chord, cell[e])
@@ -378,6 +382,8 @@ def build():
                 if sec == "peak" and "T" in R3:  # four mallets: a diatonic third under the line
                     head += "," + nm(vr(deg(chord, d - 2) + 12))
                 T["vib"].add(at, ln / 2 * 0.98, head, v - 4 + swell)
+                if sec == "peak" and "C" in R25:  # the canon, a dotted quarter behind
+                    T["echo"].add(at + 1.5, ln / 2 * 0.9, head.split(",")[0], v - 14 + swell)
                 at += ln / 2
             chord = ph_chord
         elif sec == "bridge" and i < 8 and "S7" in R18:  # SEVEN DOORS, then a held colour tone
