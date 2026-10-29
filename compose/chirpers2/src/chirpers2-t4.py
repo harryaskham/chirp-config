@@ -50,7 +50,11 @@ R6 = set(filter(None, os.environ.get("T4_R6", "S,R").split(","))) - {"none"}
 # Round 7 (v7): B = a FRETLESS SOLO after the piano solo, over the bridge's mirrored meters: the night cell (t2,
 # chirper-one) breaks free, cycling on and climbing an octave every other cycle, the centre bar one long held note
 # two octaves up (the axis); D = a soft ride under the shrink.
-R7 = set(filter(None, os.environ.get("T4_R7", "B,D").split(","))) - {"none"}  # t2's night cell, degrees on eighths (None = rest)
+R7 = set(filter(None, os.environ.get("T4_R7", "B,D").split(","))) - {"none"}
+# Round 8 (v8): K = tom-choir BACKGROUNDS under the piano solo's second phrase (rolled guide-tone dyads, swelling
+# through each chord, the voices swapping in the mirror bars, like horn backgrounds); W = head 2's trumpet bars on
+# a FRENCH HORN: the return in a warmer colour.
+R8 = set(filter(None, os.environ.get("T4_R8", "K,W").split(","))) - {"none"}  # t2's night cell, degrees on eighths (None = rest)
 TRIP = "T" in os.environ.get("T4_OPTS", "")  # triplet brush ghosts before the backbeats (off: no gain)
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 PC = {n: i for i, n in enumerate(NAMES)}
@@ -177,7 +181,7 @@ def swing_at(bar_start, e8, swung):
 
 
 def build():
-    T = {k: Track(k) for k in ("tpt", "pno", "tom", "bass", "drums", "rhodes", "pno_lh")}
+    T = {k: Track(k) for k in ("tpt", "pno", "tom", "bass", "drums", "rhodes", "pno_lh", "horn")}
     bars = []   # (start beat, meter, pos, section, phrase index, centre)
     sec = []
 
@@ -311,6 +315,8 @@ def build():
                 voice = "tom"
             else:
                 voice = VOICE[pos] if section != "peak" else ("tpt" if pos % 2 == 0 else "tom")
+                if section == "head2" and voice == "tpt" and "W" in R8:
+                    voice = "horn"
             for o, ln, n in line:
                 at = swing_at(start, o, swung)
                 T[voice].add(at, ln / 2 * 0.95, n if voice != "tom" else nm(midi(n) - 12), v + 4)
@@ -357,6 +363,18 @@ def build():
         elif section == "piano":  # piano solo: right hand lines over left-hand shells
             for c8, vo in comp:
                 T["pno_lh"].add(start + c8 / 2, 1.0, vo, v - 10)
+            if "K" in R8 and pidx == max(b[4] for b in bars if b[3] == "piano"):  # tom-choir backgrounds
+                for ci, (c8, cn) in enumerate(chords):
+                    r0, vc, _ = CH[cn]
+                    end8 = chords[ci + 1][0] if ci + 1 < len(chords) else m
+                    base = r0 + 12 if r0 < 48 else r0
+                    while base > 50:
+                        base -= 12
+                    lo, hi = base + 12 + vc[0], base + 12 + vc[1]
+                    dy = (lo, hi) if pos <= 3 else (hi - 12, lo)
+                    for e in range(c8, end8):
+                        T["tom"].add(swing_at(start, e, swung), 0.45, f"{nm(dy[0])},{nm(dy[1])}",
+                                     v - 22 + 4 * (e - c8))
             root, voic, scale = CH[name0]
             for e8 in range(m):
                 if (e8 + pidx) % 3 == 2:
@@ -491,6 +509,8 @@ def main():
     tracks = [
         {"name": "trumpet", "patch": "trumpet-mute", "pan": 0.2, "gain": "-1dB",
          "fx": ["reverb kind=hall decay=1.8s mix=0.18"], "score": T["tpt"].score(total)},
+        *([{"name": "horn", "patch": "horn", "pan": 0.25, "gain": "-3dB", "fx": ["reverb kind=hall decay=1.8s mix=0.2"],
+             "score": T["horn"].score(total)}] if "W" in R8 else []),
         {"name": "piano", "patch": "piano-recorded", "pan": -0.15, "gain": "-2dB", "score": T["pno"].score(total)},
         {"name": "piano-lh", "patch": "piano-recorded", "pan": -0.25, "gain": "-6dB", "score": T["pno_lh"].score(total)},
         {"name": "toms", "patch": tom, "pan": -0.05, "gain": "3dB",
