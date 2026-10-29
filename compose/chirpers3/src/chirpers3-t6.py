@@ -77,6 +77,10 @@ R2 = set(filter(None, os.environ.get("T6_R2", "W,F,N").split(","))) - {"none"}
 # falling, its inversion rising, the sigh again from lower, and a held top note; M = the mix: the fretless darker
 # (less mid), the brush taps brighter.
 R3 = set(filter(None, os.environ.get("T6_R3", "T,M").split(","))) - {"none"}
+# Round 4 (v4): R = TAPE WEATHER (the album's name, made literal): rain on the window, synthesised (soft noise
+# droplets, band-passed, random), thick in the intro, the drop and the outro and a faint drizzle under the grooves,
+# and distant thunder (a low noise swell) rolling through the drop.
+R4 = set(filter(None, os.environ.get("T6_R4", "R").split(","))) - {"none"}
 FORM = [("intro", 4), ("A", 16), ("switch", 8), ("A2", 16), ("drop", 4), ("A3", 12), ("outro", 4)]
 LEVEL = {"intro": 58, "A": 72, "switch": 66, "A2": 78, "drop": 56, "A3": 80, "outro": 56}
 DRUMS = {"A", "switch", "A2", "A3"}
@@ -84,7 +88,8 @@ DRUMS = {"A", "switch", "A2", "A3"}
 
 def build():
     rng = random.Random(6)
-    T = {k: Track(k) for k in ("keys", "kw", "bass", "sub", "vibes", "drums", "crackle", "hiss")}
+    T = {k: Track(k) for k in ("keys", "kw", "bass", "sub", "vibes", "drums", "crackle", "hiss", "rain", "thunder")}
+    rrng = random.Random(66)  # the weather's own dice (the music's stay as they were)
     bars, b = [], 0
     for name, n in FORM:
         for i in range(n):
@@ -163,6 +168,13 @@ def build():
                 d.add(start + 3.5 + 0.05, 0.3, "rc", v - 10)
         elif sec == "drop":
             d.add(start, 3.8, "bs", v - 18)
+        # ---- the weather ----
+        if "R" in R4:
+            heavy = sec in ("intro", "drop", "outro")
+            for _ in range(rrng.randint(34, 46) if heavy else rrng.randint(6, 10)):
+                T["rain"].add(start + rrng.uniform(0, 3.97), 0.05, "C5", rrng.randint(20, 70 if heavy else 45))
+            if sec == "drop" and i == 0:
+                T["thunder"].add(start + 0.5, 7.0, "C2", 90)
         # ---- vinyl crackle and hiss ----
         for _ in range(rng.randint(5, 11)):
             T["crackle"].add(start + rng.uniform(0, 3.95), 0.06, "C5", rng.randint(30, 80))
@@ -228,7 +240,17 @@ def patches():
                       "amp": {"a": "2s", "d": "1s", "s": 1.0, "r": "3s"}}}
     sub = {"about": "chirper-two's sub: a sine an octave under the fretless's long notes.",
            "synth": {"layers": [{"name": "sub", "wave": "sine"}], "amp": {"a": "140ms", "d": "500ms", "s": 0.8, "r": "200ms"}}}
-    return {"c2-lofi-kit": kit, "c2-vibes": vibes, "c2-crackle": crackle, "c2-hiss": hiss, "c2-sub": sub}
+    out = {"c2-lofi-kit": kit, "c2-vibes": vibes, "c2-crackle": crackle, "c2-hiss": hiss, "c2-sub": sub}
+    if "R" in R4:
+        out["c2-rain"] = {"about": "chirper-two's rain: a droplet of band-passed noise (8 ms), scattered at random.",
+                          "synth": {"layers": [{"name": "drop", "type": "noise"}],
+                                    "filters": ["hp cutoff=900", "lp cutoff=5500"],
+                                    "amp": {"a": "0.3ms", "d": "9ms", "s": 0, "r": "6ms", "curve": 2}},
+                          "play": {"vel_sens": 1.0}}
+        out["c2-thunder"] = {"about": "chirper-two's distant thunder: low noise swelling and rolling away.",
+                             "synth": {"layers": [{"name": "roll", "type": "noise"}], "filters": ["lp cutoff=180"],
+                                       "amp": {"a": "1.2s", "d": "4s", "s": 0.2, "r": "2.5s", "curve": 2}}}
+    return out
 
 
 def main():
@@ -265,6 +287,10 @@ def main():
                 {"type": "crush", "bits": 12, "rate": 18000, "mix": 0.25},
                 "reverb kind=room decay=0.7s mix=0.12"], "score": T["drums"].score(total)},
         {"name": "crackle", "patch": "c2-crackle", "pan": 0.05, "gain": "-20dB", "score": T["crackle"].score(total)},
+        *([{"name": "rain", "patch": "c2-rain", "pan": -0.2, "gain": "-22dB",
+             "fx": ["reverb kind=room decay=0.6s mix=0.25", "width width=1.6"], "score": T["rain"].score(total)},
+           {"name": "thunder", "patch": "c2-thunder", "gain": "-8dB", "fx": ["reverb kind=hall decay=3s mix=0.4"],
+            "score": T["thunder"].score(total)}] if "R" in R4 else []),
         {"name": "hiss", "patch": "c2-hiss", "gain": "-36dB", "score": T["hiss"].score(total)},
     ]
     secs = "; ".join(f"{n} from {s:.0f}b ({k} bars)" for n, s, k in sec)
