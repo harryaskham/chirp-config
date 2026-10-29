@@ -57,6 +57,12 @@ class Track:
         return " ".join(toks)
 
 
+# Round 2 (v2): O = THE DOOR OPENS in the middle: across the loops' densest stretch (beats 70-150) the beat through the
+# wall comes nearer (its lo-pass opens two octaves and closes again), and a fretless walks in under the pad,
+# following its chords (F, then D), then leaves.
+R2 = set(filter(None, os.environ.get("T7_R2", "O").split(","))) - {"none"}
+DOOR = (70, 150)
+
 # the loops: (track, loop length in beats, enter, leave, [(offset, length, notes)], velocity)
 LOOPS = [
     ("vib", 17, 10, 186, [(0, 4, "A4"), (6, 5, "E5"), (12, 3, "D5")], 70),
@@ -69,7 +75,7 @@ LOOPS = [
 
 def build():
     rng = random.Random(7)
-    T = {k: Track(k) for k in ("vib", "pno", "pad", "whi", "drone", "rain", "crackle", "hiss", "pulse")}
+    T = {k: Track(k) for k in ("vib", "pno", "pad", "whi", "drone", "rain", "crackle", "hiss", "pulse", "bass")}
     for tr, L, enter, leave, phrase, vel in LOOPS:
         k = 0
         while True:
@@ -98,6 +104,19 @@ def build():
         if busy >= 3:
             T["pulse"].add(beat + 0.02, 0.6, "k", 62 + (6 if beat % 4 == 0 else 0) + rng.randint(-4, 4))
             T["pulse"].add(beat + 1.0 + rng.uniform(0.0, 0.05), 0.9, "bt", 46 + rng.randint(-4, 4))
+    if "O" in R2:  # the fretless follows the pad's 29-beat loop through the door's window
+        k = 0
+        while True:
+            base = 38 + k * 29
+            if base >= DOOR[1]:
+                break
+            for o, ln, root in ((0, 10, 41), (14, 10, 38)):
+                at = base + o
+                if DOOR[0] <= at < DOOR[1]:
+                    T["bass"].add(at + 0.05, 3.5, nm(root), 64)
+                    T["bass"].add(at + 4.05, 2.5, nm(root + 7), 54)
+                    T["bass"].add(at + 7.05, 2.5, nm(root + 12), 50)
+            k += 1
     return T
 
 
@@ -160,8 +179,15 @@ def main():
         {"name": "drone", "patch": "c2-drone", "gain": "-30dB", "fx": ["lp cutoff=300"], "score": T["drone"].score(TOTAL)},
         {"name": "rain", "patch": "c2-rain", "pan": -0.15, "gain": "-30dB",
          "fx": ["reverb kind=room decay=0.6s mix=0.25", "width width=1.6"], "score": T["rain"].score(TOTAL)},
-        {"name": "pulse", "patch": "c2-far-kit", "gain": "-6dB", "fx": ["reverb kind=room decay=1.2s mix=0.35"],
-         "score": T["pulse"].score(TOTAL)},
+        {"name": "pulse", "patch": "c2-far-kit", "gain": "-6dB",
+         "fx": ([{"type": "filter", "kind": "lp", "cutoff": {"value": 1200, "mod": [{"src": "auto.door", "amount": 2.2}]}}]
+                if "O" in R2 else []) + ["reverb kind=room decay=1.2s mix=0.35"],
+         "score": T["pulse"].score(TOTAL),
+         **({"auto": {"door": {"points": [["0b", 0.0], [f"{DOOR[0]}b", 0.0], [f"{(DOOR[0] + DOOR[1]) // 2}b", 1.0],
+                                          [f"{DOOR[1]}b", 0.0]]}}} if "O" in R2 else {})},
+        *([{"name": "fretless", "patch": "fretless", "pan": -0.05, "gain": "-4dB",
+            "fx": ["lp cutoff=700", "tape drive=0.2 warmth=0.5", "reverb kind=room decay=1.0s mix=0.2"],
+            "score": T["bass"].score(TOTAL)}] if "O" in R2 else []),
         {"name": "crackle", "patch": "c2-crackle", "gain": "-30dB", "score": T["crackle"].score(TOTAL)},
         {"name": "hiss", "patch": "c2-hiss", "gain": "-36dB", "score": T["hiss"].score(TOTAL)},
     ]
