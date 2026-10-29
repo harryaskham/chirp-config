@@ -5894,13 +5894,17 @@
       "song": "songs/chirpers3-t9.yaml",
       "reference": "Chirpers — Glovebox",
       "source": null,
-      "owner": null,
+      "owner": "chirper-zero",
       "metric": "python3 tools/compscore.py chirpers3-t9 OUT.wav",
-      "best": null,
+      "best": {
+        "score": 92.134,
+        "version": "v1",
+        "commit": "see git log songs/chirpers3-t9.yaml"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "lo-fi beats / ambient",
       "mode": "compose",
@@ -5916,6 +5920,10 @@
         "by": "chirp-eco",
         "at": "2026-10-29T11:00:04Z",
         "note": "COMPOSE (song, 100-300 s): Style, groove, tempo and line-up are yours: declare them in compose/chirpers3/styles.md, different from the tracks already claimed."
+      },
+      "last": {
+        "at": "2026-10-29T14:11:41Z",
+        "who": "chirper-zero"
       }
     },
     {

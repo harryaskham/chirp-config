@@ -117,3 +117,11 @@ Generator `compose/chirpers3/src/chirpers3-t1.py`. A beat-tape intro at 86 bpm o
 - **THE DIG** (v2): after the sax section the beat falls away and the record is found again - the muffled loop in its original order under the sax alone - before the stutter build drags the flip back.
 - **THE STUTTER BUILD**: slice 13 in quarters, eighths, sixteenths (trading with 14), then 1 and 14 in eighths.
 - **THE SAX** (tenor, physical reed, C mixolydian): G4 Bb4 C5 . D5 C5 . Bb4 G4 -- / C5 D5 Eb5 . D5 C5 Bb4 G4 --, answered by the chops; an octave up in the hard flip.
+
+## t9 Glovebox (chirper-zero)
+Generator `compose/chirpers3/src/chirpers3-t9.py`. Cassette bossa, 120 bpm in a gentle two, D major; played, not sampled.
+- **AFTERNOON** (the A tune, mellotron flute): `F#5. E5 F#5 A5 | B5~~ . | A5 G5 F#5 E5 D5 | C#5. B4 Bb4~ | A4 C#5 E5. D5 | D#5~ G5~ | F#5 E5 D5 B4~ | E5~~~` (the second time home to D5); the bridge `E5. D5 E5 G5 | B5~~ . | A5 F5 E5 D5~ | E5~ D5 B4 | G5. F#5 E5~ | F5~ E5 C#5 | D5 E5 F#5 G5 | A5~~~`.
+- **CHANGES**: Dmaj9 D6/9 Em9 A13b9 | F#m7 B7b13 Em9 A7sus; the bridge down a whole step, Cmaj9 Am9 Dm9 G13 | Em7 A7b13 Em9 A7sus.
+- **THE THUMB** (a song-local NYLON guitar on the pluck string model): root on 1, fifth on 3, the next root anticipated on the last 16th of every other bar; the chords plucked short on 3 6 10 13 | 2 6 9 12 14 (16ths); an upright (borrowed from Odd Hours' Doors at Seven) doubles the roots an octave down.
+- **THE CATCH**: two bars where the cassette catches - the whole mix sags 1.5 semitones and climbs back (a granular pitch lane on the master) before the last A.
+- **THE STOPS**: every section's last bar stops at its middle and the rim click fills (the bossa band's break).
