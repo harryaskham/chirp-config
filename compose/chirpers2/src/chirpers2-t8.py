@@ -43,6 +43,10 @@ def vr(m):
         while m < 53:
             m += 12
     return m
+# Round 4 (v4): B = a BLUR BREAK after the bridge: the two marimbas alone for four bars, the high one stuck a THIRD
+# of an eighth behind (the phase caught between steps: neither unison nor the next offset), Eb lydian to Bb13sus;
+# Q = the peak's frame drum plays FIVE against the bar's four dotted quarters (teks 1.2 beats apart).
+R4 = set(filter(None, os.environ.get("T8_R4", "B,Q").split(","))) - {"none"}
 SUBJECT = [(0, 1), (3, 1), (7, 1), (6, 2), (2, 2), (5, 1), (1, 1), (4, 1), (0, 2)]  # t7: semitones, eighths
 BAR = 6.0  # a 12/8 bar, in quarter beats
 
@@ -113,8 +117,9 @@ class Track:
 
 
 FORM = [("cell", 4), ("phase", 16), ("melody", 16)] + ([("solo", 8)] if "V" in R3 else []) + \
-       [("bridge", 16), ("peak", 16), ("unison", 8), ("coda", 6)]
-LEVEL = {"cell": 70, "phase": 76, "melody": 82, "bridge": 74, "peak": 96, "unison": 80, "coda": 60, "solo": 84}
+       [("bridge", 16)] + ([("blur", 4)] if "B" in R4 else []) + [("peak", 16), ("unison", 8), ("coda", 6)]
+LEVEL = {"cell": 70, "phase": 76, "melody": 82, "bridge": 74, "peak": 96, "unison": 80, "coda": 60, "solo": 84,
+         "blur": 76}
 if "D" in R2:
     LEVEL.update({"bridge": 62, "peak": 104, "unison": 76})
 
@@ -136,6 +141,8 @@ def build():
         chord = prog[(i // 4) % 4] if sec not in ("cell", "coda") else HOME[0]
         if sec == "solo":
             chord = HOME[(i // 2) % 4]
+        if sec == "blur":
+            chord = HOME[0] if i < 2 else HOME[3]
         if sec == "coda":
             chord = HOME[i // 2 % 2 * 0]  # the coda rests on the home chord
         cell = CELL_INV if sec == "bridge" else CELL
@@ -164,6 +171,9 @@ def build():
         elif sec == "bridge":  # canon at half a bar, a third above
             for e in range(12):
                 T["m2"].add(start + ((e + 6) % 12) / 2, 0.45, nm(deg(chord, cell[e] + 2)), v - 12)
+        elif sec == "blur":  # stuck a third of an eighth behind
+            for e in range(12):
+                T["m2"].add(start + (e + 1 / 3) / 2, 0.45, nm(deg(chord, cell[e])), v - 6 + (8 if e % 3 == 0 else 0))
         # ---- the vibes ----
         if sec in ("melody", "peak", "unison") and i % 4 == 0:
             half = HALVES[(i // 4 + (2 if sec == "peak" else 0)) % 4]
@@ -256,10 +266,14 @@ def build():
         elif sec == "peak":
             fd.add(start, 1, "dum", v - 2)
             fd.add(start + 3, 1, "dum", v - 8)
-            for e in (3, 9):
-                fd.add(start + e / 2, 0.5, "tek", v - 6)
-            for e in (2, 5, 8, 11):
-                fd.add(start + e / 2, 0.25, "gh", v - 26)
+            if "Q" in R4:  # five against four: teks 1.2 beats apart
+                for q in range(5):
+                    fd.add(start + q * 1.2 + (0.02 if q == 0 else 0), 0.3, "tek", v - 10 + (6 if q == 0 else 0))
+            else:
+                for e in (3, 9):
+                    fd.add(start + e / 2, 0.5, "tek", v - 6)
+                for e in (2, 5, 8, 11):
+                    fd.add(start + e / 2, 0.25, "gh", v - 26)
             fd.add(start + 4.75, 0.25, "tek", v - 16)  # a sixteenth grace into the third dotted quarter
             if i % 4 == 3:
                 if "D" in R2:  # a sixteenth fill into the next phrase
