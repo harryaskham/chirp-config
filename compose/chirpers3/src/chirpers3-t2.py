@@ -61,7 +61,8 @@ def build():
             bars.append({'sec': name, 'i': i, 't': t, 'c': c}); t += 4.0
     total = t
     ms = lambda x: x / 1000 / SPB
-    kit, strings, vox, lead, sub, rhodes, crackle, cello = [], [], [], [], [], [], [], []
+    kit, strings, vox, lead, sub, rhodes, crackle, cello, segue = [], [], [], [], [], [], [], [], []
+    n_outro = dict(FORM)['outro']
     for k, b in enumerate(bars):
         s, t0, (root, ch, top) = b['sec'], b['t'], b['c']
         beat = s in ('A', 'B', 'A2', 'B2')
@@ -91,6 +92,12 @@ def build():
             for j, m in enumerate(ch):
                 strings.append((t0 + j * 0.02, m, 3.9, 70 if s in ('drop', 'drop2', 'intro') else 62))
             strings.append((t0 + 0.05, top, 3.9, 74))
+        # ---- THE SEGUE (the outro's last two bars): a warbling wurli plays Late for the Grid's first chord (Fm9,
+        # rolled as t3 rolls it), so the noir hands its last breath to the next track's opening (chirper-three's note
+        # on the album's widest seam) ----
+        if s == 'outro' and b['i'] >= n_outro - 2:
+            for j, m in enumerate((56, 60, 63, 67)):
+                segue.append((t0 + j * 0.03, m, 3.9, 58 + 4 * (b['i'] - n_outro + 2)))
         # ---- vox pad in the B sections: the chord's 3rd and 7th, wordless ----
         if s in ('B', 'B2'):
             for m in (ch[2] + 12, ch[3] + 12):
@@ -148,7 +155,7 @@ def build():
                           {'type': 'compressor', 'threshold': '-18dB', 'ratio': 3, 'attack': '15ms', 'release': '180ms', 'makeup': '2dB'},
                           {'type': 'compressor', 'threshold': '-10dB', 'ratio': 6, 'attack': '1ms', 'release': '60ms', 'makeup': '4dB'},
                           {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.fade', 'amount': 1}]}}],
-                   'auto': {'ch': {'points': ch_pts}, 'fade': {'points': [['0s', -10], ['6s', -2], ['14s', 0], [f'{end_s - 10:.2f}s', 0], [f'{end_s:.2f}s', -30]]}}},
+                   'auto': {'ch': {'points': ch_pts}, 'fade': {'points': [['0s', -10], ['6s', -2], ['14s', 0], [f'{end_s - 10:.2f}s', 0], [f'{end_s:.2f}s', -14]]}}},
         'tracks': [
             # wM's lo-fi toolkit: the pitched-down break through SP-1200-style 12-bit sampling; the rhodes stabs on a warbling tape
             {'name': 'kit', 'patch': 'lofi-kit', 'gain': '-1dB', 'fx': [{'type': 'pitch', 'semitones': -3, 'mix': 1}, 'crush bits=12 rate=26kHz mix=0.5'], 'score': line(kit, total)},
@@ -164,6 +171,7 @@ def build():
                 {'type': 'filter', 'kind': 'ladder', 'q': 5, 'cutoff': {'value': 700, 'mod': [{'src': 'vel', 'amount': 2.5}]}},
                 {'type': 'crush', 'bits': 10, 'rate': 16000, 'mix': {'value': 0, 'mod': [{'src': 'vel', 'amount': 0.6}]}}]}},
              'gain': '-7dB', 'pan': 0.2, 'sends': {'dub': '-6dB'}, 'fx': ['tape drive=0.15 mix=0.5 wow=10 flutter=2 drift=1 tone=6500 sweep=0.6 seed=3'], 'score': line(rhodes, total)},
+            {'name': 'segue', 'patch': 'wurli', 'gain': '-4dB', 'pan': 0.1, 'fx': ['tape drive=0.2 mix=0.6 wow=18 flutter=3 drift=2 tone=5500 sweep=0.7 seed=21'], 'notes': notes(segue)},
             {'name': 'crackle', 'patch': 'fx-crackle', 'gain': '-8dB', 'score': line(crackle, total)},
         ]}
 
