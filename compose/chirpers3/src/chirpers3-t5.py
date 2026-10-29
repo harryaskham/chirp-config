@@ -40,7 +40,8 @@ RIMDRAG = os.environ.get("T5_RIMDRAG", "60")
 TCHOP = os.environ.get("T5_TCHOP", "lead")
 REWIND = os.environ.get("T5_REWIND", "end")
 LIVING = os.environ.get("T5_LIVING", "1") == "1"
-HOLD = os.environ.get("T5_HOLD", "1") == "1"  # THE HOLD: the version's last chord thrown into a hall and FROZEN (wM's reverb freeze) under the breakdown's bass and drums, let go when the skank comes in alone  # chirper-two's per-voice fx: every skank stab lands at its own random place in the stereo field with its own tone (pin 3eee6a72)  # wM's tapestop as a sound-system REWIND (spin 3, a vinyl pull-back): "end" = on the outro's last bar; "mid" = at the turn into the version (instead of that seam's stutter)  # wM's MPC chop at the desk: "skank" = the rhodes chopped through the version; "lead" = the melodica chopped through the return  # the one-drop's rim dragged late by hand (ms), the kick and hats kept steady  # the one-drop played by hand (play.humanize): "40,-10,25" = rim late, kick early, hats late (ms), plus swing drift and a drunk lean
+HOLD = os.environ.get("T5_HOLD", "1") == "1"
+SPACE = os.environ.get("T5_SPACE", "0.72")  # chirper-two's feedback routing: the echo as a tape loop - one dotted-eighth delay, then the bus's own output fed back through a low-pass and a tape deck, each repeat darker and more warped; gain e.g. 0.62  # THE HOLD: the version's last chord thrown into a hall and FROZEN (wM's reverb freeze) under the breakdown's bass and drums, let go when the skank comes in alone  # chirper-two's per-voice fx: every skank stab lands at its own random place in the stereo field with its own tone (pin 3eee6a72)  # wM's tapestop as a sound-system REWIND (spin 3, a vinyl pull-back): "end" = on the outro's last bar; "mid" = at the turn into the version (instead of that seam's stutter)  # wM's MPC chop at the desk: "skank" = the rhodes chopped through the version; "lead" = the melodica chopped through the return  # the one-drop's rim dragged late by hand (ms), the kick and hats kept steady  # the one-drop played by hand (play.humanize): "40,-10,25" = rim late, kick early, hats late (ms), plus swing drift and a drunk lean
 VINYL = os.environ.get("T5_VINYL", "1") == "1"
 GLITCH = os.environ.get("T5_GLITCH", "stutter") in ("1", "stop", "stutter")
 GLITCH_KIND = os.environ.get("T5_GLITCH", "stutter")  # "1": both; "stop": the tape stop only; "stutter": the stutter bursts only  # the desk resamples: master stutter bursts in the version (bars 4 and 12, second halves) and a TAPE STOP (an octave dive on the last beat) into the breakdown  # wM's vinyl fx on the master instead of the crackle and hiss tracks  # the melodica's written echo: its line again a dotted eighth late, softer, panned opposite, into the spring
@@ -369,7 +370,11 @@ def song():
                   "mixed live - the mute plan is the arrangement - into a feedback tape echo and a spring, with echo throws, "
                   "tape wow on the keys, vinyl hiss and crackle."),
         "tempo": BPM, "ceiling": "-0.3dB", "tail": "6s", "patches": patches,
-        "buses": {**({"hold": hold_bus} if HOLD else {}), "echo": {"fx": [f"delay time={ECHO} feedback=0.62 mix=1 tone=1600"]},
+        "buses": {**({"hold": hold_bus} if HOLD else {}),
+                  "echo": ({"fx": [f"delay time={ECHO} feedback=0.62 mix=1 tone=1600"]} if not SPACE else
+                           {"fx": [f"delay time={ECHO} feedback=0 mix=1 tone=2400", {"type": "filter", "kind": "lowpass", "cutoff": 1800, "q": 0.8},
+                                   "tape drive=0.2 mix=1 wow=10 flutter=3 drift=1 tone=5000 sweep=0.6 seed=5"],
+                            "returns": [{"from": "echo", "gain": float(SPACE), "time": "6ms"}]}),
                   "spring": {"fx": ["reverb kind=spring decay=2.4s mix=1 predelay=6ms"]}},
         "master": master, "tracks": tracks,
     }
