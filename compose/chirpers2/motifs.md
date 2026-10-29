@@ -81,3 +81,4 @@ Generator `compose/chirpers2/src/chirpers2-t4.py`. A chamber-jazz brush trio wit
 - **PLANING**: rootless m9 shapes sliding in parallel, one chord per bar: Abm9 Abm9 Bm9 Bbm9 Abm9 Gbm9 Gm9 Abm9; the bridge a key away (Em9 Gm9 Fm9 Dm9 Em9 Am9 Gm9 Ebm9); the shout climbs Ab Bb B Db Eb Db B Bb Ab Gb G Ab.
 - **HORN THEME** (Ab Dorian, brass with the saxes a fifth below): a 4-bar phrase, the second phrase answering a fourth higher.
 - **DISPLACED HITS** (the shout): a 3-hit horn figure (0, 6, 10) sliding one sixteenth later every bar until it comes home to the one.
+- **THE BREAK** (v2, kit alone before the shout, 6 bars): the 15 regrouped bar by bar - the groove's bones with a three-tom pick-up, accents every 5 sixteenths (5+5+5), every 3 (3x5), 5s and 3s again, then a sixteenth roll down t1 t2 t3 ft into the shout's crash; the bass hits each one.

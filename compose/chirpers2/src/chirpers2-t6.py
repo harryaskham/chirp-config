@@ -28,7 +28,7 @@ PLANE_B = [40, 43, 41, 38, 40, 45, 43, 39]           # the bridge: Em9 Gm9 Fm9 D
 PLANE_S = [44, 46, 47, 49, 51, 49, 47, 46, 44, 42, 43, 44]   # the shout climbs and falls back
 
 FORM = [('intro', 4, G15, PLANE_A), ('groove', 16, G15, PLANE_A), ('theme', 16, G15, PLANE_A), ('bridge', 12, G7, PLANE_B),
-        ('solo', 16, G15, PLANE_A), ('shout', 12, G15, PLANE_S), ('out', 8, G15, PLANE_A), ('tag', 1, (4,), [44])]
+        ('solo', 16, G15, PLANE_A), ('break', 6, G15, [44]), ('shout', 12, G15, PLANE_S), ('out', 8, G15, PLANE_A), ('tag', 1, (4,), [44])]
 
 def bars():
     out, k = [], 0
@@ -136,6 +136,27 @@ def vibes_bar(b):
     s = {p: (nm(dor(d + b['i'] % 3, 68) - 4), ln, 84) for p, d, ln in ph}
     return grid_to_toks(s, b['n16'])
 
+def drum_break(b):
+    """THE BREAK (6 bars of kit alone before the shout): the 15 regrouped every bar. Bar 1 the groove's bones and a
+    three-tom pick-up; bar 2 accents every 5 sixteenths (5+5+5 against the 4+4+4+3); bar 3 every 3 (3+3+3+3+3);
+    then 5s and 3s again, then a sixteenth roll down the toms into the shout's crash."""
+    i, n = (0, 1, 2, 1, 2, 3)[b['i']], b['n16']
+    sl = [[] for _ in range(n)]
+    if i == 0:
+        for p in (0, 7, 10): sl[p].append(('k', 110))
+        sl[4].append(('s', 116))
+        for j, p in enumerate((12, 13, 14)): sl[p].append((('t1', 't2', 't3')[j], 104))
+    elif i in (1, 2):
+        step = 5 if i == 1 else 3
+        for p in range(n):
+            acc = p % step == 0
+            sl[p].append(('s' if acc else 'h', 114 if acc else 52))
+            if acc and p % (step * 2) == 0: sl[p].append(('k', 104))
+    else:
+        toms = ['t1'] * 4 + ['t2'] * 4 + ['t3'] * 4 + ['ft'] * 3
+        for p in range(n): sl[p].append((toms[p], 96 + p * 2))
+    return [(','.join(sorted({x[0] for x in s_})) + f'/0.25b@{max(x[1] for x in s_)}') if s_ else 'R/0.25b' for s_ in sl]
+
 def build():
     B = bars()
     P = {k: [] for k in ('bass', 'clav', 'kit', 'brass', 'saxes', 'lead', 'vibes', 'pad')}
@@ -148,6 +169,11 @@ def build():
                           ('brass', tok(ch, 1, 116)), ('saxes', tok(chord(44, 55), 1, 110))):
                 P[k_].append([v]); 
             for k_ in ('lead', 'vibes', 'pad'): P[k_].append(R)
+            continue
+        if s == 'break':
+            P['kit'].append(drum_break(b))
+            P['bass'].append(grid_to_toks({0: (nm(b['root'] - 12), 2, 108)}, n))   # one bass hit on each one
+            for k_ in ('clav', 'pad', 'vibes', 'lead', 'brass', 'saxes'): P[k_].append(R)
             continue
         P['bass'].append(bass_bar(b) if s != 'intro' else R)
         P['clav'].append(clav_bar(b) if s != 'bridge' else R)
