@@ -6,7 +6,7 @@ under a dreamy wordless vox melody, a slow arpeggio through a warbling tape deck
 THE RUN-OUT is the form. After the full band, every section loses something - the kick, then the arp, then the bass
 - until only the vox and the pad are left; then the tape slows to a stop and the record ends in crackle.
 
-Harmony: Dmaj9, Bm11, Gmaj7#11, A6sus, two bars each.
+Harmony: Dmaj9, Bm11, Gmaj7#11, A6sus, four bars each (v5; two bars each before).
 Form: dawn (pad and crackle, the vox fragment), A (the band), B (+ the vox melody), runout1 (no kick), runout2 (no
 arp), runout3 (no bass), end (the pad alone, the tape stops).
 Emits songs/chirpers3-t10.yaml (JSON through tools/songfmt.py). Edit the music here, not the YAML.
@@ -49,7 +49,7 @@ def build():
     bars, t = [], 0.0
     for name, n in FORM:
         for i in range(n):
-            bars.append({'sec': name, 'i': i, 't': t, 'c': CHORDS[(len(bars) // 2) % 4]}); t += 4.0
+            bars.append({'sec': name, 'i': i, 't': t, 'c': CHORDS[(len(bars) // 4) % 4]}); t += 4.0
     total = t
     kit, pad, bass, arp, vox = [], [], [], [], []
     for k, b in enumerate(bars):
@@ -95,6 +95,11 @@ def build():
     tr1 = [b['t'] for b in bars if b['sec'] == 'runout1'][0] * SPB
     tr2 = [b['t'] for b in bars if b['sec'] == 'runout2'][0] * SPB
     sw = [['0s', 0.1], [f'{tb:.2f}s', 0.15], [f'{tr1:.2f}s', 1.0], [f'{tr2:.2f}s', 0.2]]
+    # THE WEAR (chirper-two's tape-deck warp): the pad's and the vox's tape wears harder as the voices leave - the
+    # wow and flutter at x1 through the full band, x1.4 in the second run-out, x1.8 in the third, x2 at the end
+    secs = {b['sec']: b['t'] * SPB for b in reversed(bars)}
+    wear = [['0s', 1.0], [f"{secs['runout2']:.2f}s", 1.0], [f"{secs['runout2'] + 6:.2f}s", 1.4],
+            [f"{secs['runout3']:.2f}s", 1.4], [f"{secs['runout3'] + 6:.2f}s", 1.8], [f"{secs['end']:.2f}s", 1.8], [f"{secs['end'] + 5:.2f}s", 2.0]]
     # THE TAPE CHEWS (wM's chop fx on the master): in the last two bars of the third run-out the deck starts eating
     # the tape - the bar is cut into eight and replayed with doubles, reversals and gaps - just before the end section
     tr3 = [b['t'] for b in bars if b['sec'] == 'runout3'][0]
@@ -108,7 +113,7 @@ def build():
         'master': {'fx': [{'type': 'chop', 'slices': 8, 'pattern': '0 0 r1 . 3 r3 _ 5', 'length': '1/1', 'mix': {'value': 0, 'mod': [{'src': 'auto.chew', 'amount': 1}]}},
                           {'type': 'tapestop', 'time': '4b', 'mix': 1, 'stop': {'value': 0, 'mod': [{'src': 'auto.ts', 'amount': 1}]}},
                           {'type': 'eq', 'bands': ['highpass cutoff=30', 'lowshelf cutoff=70 gain=6dB', 'peak cutoff=400 q=1 gain=-4dB', 'highshelf cutoff=6000 gain=7dB']},
-                          {'type': 'gain', 'gain': '+16dB'},
+                          {'type': 'gain', 'gain': '+18dB'},
                           {'type': 'compressor', 'threshold': '-18dB', 'ratio': 3, 'attack': '15ms', 'release': '180ms', 'makeup': '2dB'},
                           {'type': 'compressor', 'threshold': '-10dB', 'ratio': 6, 'attack': '1ms', 'release': '60ms', 'makeup': '3dB'},
                           {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.fade', 'amount': 1}]}}],
@@ -117,11 +122,15 @@ def build():
         'tracks': [
             {'name': 'kit', 'patch': 'electro-kit', 'gain': '-4dB', 'fx': ['crush bits=12 rate=26kHz mix=0.4'], 'score': line(kit, total)},
             {'name': 'pad', 'patch': 'juno-pad', 'gain': '-8dB', 'fx': [{'type': 'duck', 'by': 'kit', 'depth': 0.6, 'attack': '5ms', 'release': '220ms'},
-                                                                          'tape drive=0.1 mix=0.5 wow=14 flutter=2 drift=1.5 tone=7000 sweep=0.5 seed=8'],
+                                                                          {'type': 'tape', 'drive': 0.1, 'mix': 0.5, 'wow': 14, 'flutter': 2, 'drift': 1.5, 'tone': 7000, 'sweep': 0.5, 'seed': 8,
+                                                                           'warp': {'value': 0, 'mod': [{'src': 'auto.wear', 'amount': 1}]}}],
+             'auto': {'wear': {'points': wear}},
              'notes': notes(pad)},
             {'name': 'bass', 'patch': 'analog-bass', 'gain': '-5dB', 'score': line(bass, total)},
             {'name': 'arp', 'patch': 'arp-pluck', 'gain': '-10dB', 'pan': 0.3, 'auto': {'sw': {'points': sw}}, 'fx': [{'type': 'filter', 'kind': 'ladder', 'cutoff': {'value': 450, 'mod': [{'src': 'auto.sw', 'amount': 3.2}]}, 'q': 9}, 'tape drive=0.15 mix=0.5 wow=10 flutter=2.5 drift=1 tone=6500 sweep=0.6 seed=2', {'type': 'delay', 'time': '3/16', 'feedback': 0.35, 'mix': 0.3}], 'score': line(arp, total)},
-            {'name': 'vox', 'patch': 'dream-vox', 'gain': '-6dB', 'pan': -0.1, 'notes': notes(vox)},
+            {'name': 'vox', 'patch': 'dream-vox', 'gain': '-6dB', 'pan': -0.1, 'auto': {'wear': {'points': wear}},
+             'fx': [{'type': 'tape', 'drive': 0.05, 'mix': 0.4, 'wow': 8, 'flutter': 1.5, 'drift': 1, 'tone': 8000, 'sweep': 0.4, 'seed': 14,
+                     'warp': {'value': 0, 'mod': [{'src': 'auto.wear', 'amount': 1}]}}], 'notes': notes(vox)},
             {'name': 'crackle', 'patch': 'fx-crackle', 'gain': '-8dB', 'score': f"C4/{total - 0.2:.4f}b@80 R/0.2b"},
         ]}
 

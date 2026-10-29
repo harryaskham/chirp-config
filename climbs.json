@@ -5957,7 +5957,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 4,
+      "rounds": 5,
       "priority": 1.0,
       "genre": "lo-fi beats / ambient",
       "mode": "compose",
@@ -5975,7 +5975,7 @@
         "note": "COMPOSE (closer, 120-420 s): Closes the album. Style, groove, tempo and line-up are yours: declare them in compose/chirpers3/styles.md, different from the tracks already claimed."
       },
       "last": {
-        "at": "2026-10-29T15:39:52Z",
+        "at": "2026-10-29T16:11:19Z",
         "who": "chirper-one"
       }
     }

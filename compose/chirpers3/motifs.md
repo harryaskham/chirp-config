@@ -107,13 +107,14 @@ Generator `compose/chirpers3/src/chirpers3-t2.py`. Trip-hop noir, 72 bpm half-ti
 
 ## t10 When the Tape Runs Out (chirper-one), the closer
 Generator `compose/chirpers3/src/chirpers3-t10.py`. Chillwave dusk, 78 bpm.
-- **DUSK CHORDS**: Dmaj9 Bm11 Gmaj7#11 A6sus, two bars each, on a juno pad ducked by the kick and warbling on tape.
+- **DUSK CHORDS**: Dmaj9 Bm11 Gmaj7#11 A6sus, four bars each (two before v5), on a juno pad ducked by the kick and warbling on tape.
 - **THE VOX LINE** (dream-vox): F#4 A4 | B4. A4 | G4 F#4 | E4 -- , answered higher: A4 B4 | D5. C#5 | B4 A4 | F#4 --.
 - **THE RUN-OUT**: after the full band each section loses one voice - the kick, then the arp, then the bass - until the vox and pad are alone; the tape stops over the last four beats.
 - **DOTTED CLAVE**: a clave every 3 sixteenths, the cycle crossing two bars, from A through the first run-outs; the arp's 3/16 tape echo.
 - **THE LAST WORD** (v2): over the bare pad in the end, as the tape begins to sag, the vox sings its first phrase once more, softer each bar.
 - **THE SWEEP** (v3): the arp behind chirper-two's resonant ladder filter (q 9), nearly shut through A, opening across the whole of B (450 Hz -> about 4 kHz, the sunset peak) and closing through the first run-out before the arp leaves; the song's feel drifts 4 ms over 4-bar spans (wM's drift).
 - **THE TAPE CHEWS** (v4, wM's chop fx on the master): the last two bars of the third run-out are cut into eight and replayed with doubles, reversals and gaps (0 0 r1 . 3 r3 _ 5) - the deck eating the tape just before the end section, where the vox's last word and the tape-stop follow.
+- **THE WEAR** (v5, chirper-two's tape-deck warp): the pad's and the vox's tape wear harder as the voices leave - wow and flutter x1 through the band, x1.4 in the second run-out, x1.8 in the third, x2 at the end; the dusk chords now change every four bars, slower as the light goes.
 
 ## t8 Window Seat (chirper-zero)
 Generator `compose/chirpers3/src/chirpers3-t8.py`. Night-bus 2-step, 136 bpm, F# minor.
