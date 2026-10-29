@@ -169,8 +169,15 @@ def build():
             parts['tpt'].append(rest(b)); parts['ten'].append(rest(b))
             parts['rhodes'][-1] = rhodes_solo(b, 86)
         elif sec == 'trades':   # trading bars: trumpet / tenor alternate
-            parts['tpt'].append(horn_line(b, k, b['i'], 100) if b['i'] % 2 == 0 else rest(b))
-            parts['ten'].append(horn_line(b, k, b['i'] + 5, 92) if b['i'] % 2 == 1 else rest(b))
+            if b['i'] < 2:
+                # THE ANSWER: the trades open with the trumpet and tenor quoting the rhodes solo's last phrase
+                # (its cell and the cell a step up), re-heard in F# Phrygian dominant, before trading their own bars
+                q = dict(b, i=16 + b['i'])
+                parts['tpt'].append(rhodes_solo(q, 100) if b['i'] == 0 else rest(b))
+                parts['ten'].append(rhodes_solo(q, 94) if b['i'] == 1 else rest(b))
+            else:
+                parts['tpt'].append(horn_line(b, k, b['i'], 100) if b['i'] % 2 == 0 else rest(b))
+                parts['ten'].append(horn_line(b, k, b['i'] + 5, 92) if b['i'] % 2 == 1 else rest(b))
         elif sec == 'climax':
             parts['tpt'].append(horn_line(b, k, b['i'] + 2, 110))
             parts['ten'].append(horn_line(b, k, b['i'] + 6, 98))
