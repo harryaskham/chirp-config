@@ -56,3 +56,9 @@ Generator `compose/chirpers2/src/chirpers2-t4.py`. A chamber-jazz brush trio wit
 - **SHUTTER** (the 11/8 ostinato, 3+3+3+2 eighths at quarter = 132): the fretless on each group's first eighth (the low root, fifth, ninth, octave), the piano arpeggiating the chord in eighths with its order rotated every bar; the chord changes every bar through Emaj9 C#m11 Amaj9#11 F#m9 Dmaj7#11 Bsus13 Gmaj9#11 B7sus (second time E/G# and Cmaj7#11 for C#m11 and Bsus13).
 - **THE CLOCK**: the guitar and the ride on dotted eighths (seven per 11/8 bar, a sixteenth over): a cycle of 3 sixteenths turning against the 22-sixteenth bar.
 - **EXPOSURE** (tenor, high and slow): one long colour tone per bar (the 9th, #11 or 13th), approached by a leap; the return replays it with the full band.
+
+## t5 The Kettle Modulates (chirper-one)
+- **THIRDS WALK**: the chord moves every bar by a third, alternately up a major third and down a minor third (a zig-zag that climbs a semitone every two bars), maj7 and m7 alternating: from F, Fmaj7 Am7 F#maj7 Bbm7 Gmaj7 Bm7 Abmaj7 Cm7 ...
+- **KETTLE TUNE** (wurli + flute in unison; the horn in augmentation in the hymn): a contour over the bar's chord-tone ladder, indices 3 4 5 4 2 3 1 2 4 6 5 3 2 0, read two steps further each bar and fitted to the meter (7/8: 2+1+1+2+1 eighths).
+- **CONTRARY BASS**: root on the one, then the bass walks the chord against the tune's direction.
+- **13/8 FUZZ RIFF**: 3+3+3+2+2, the root on each group, an octave leap on the 2s; two chords a third apart (Dm9 / Bbmaj7) swapping every 2 bars, the pair climbing a whole step every 8 bars.
