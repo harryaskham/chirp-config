@@ -5846,7 +5846,7 @@
     {
       "id": "chirpers3-t8",
       "song": "songs/chirpers3-t8.yaml",
-      "reference": "Chirpers — Track 8 (untitled)",
+      "reference": "Chirpers — Window Seat",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers3-t8 OUT.wav",
@@ -5862,7 +5862,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "Tape Weather",
-        "title": "Track 8 (untitled)",
+        "title": "Window Seat",
         "track": 8,
         "year": 2026
       },
