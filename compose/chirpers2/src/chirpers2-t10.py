@@ -1,0 +1,407 @@
+#!/usr/bin/env python3
+"""chirpers2-t10 (Odd Hours, the closer) - generator for songs/chirpers2-t10.yaml (chirper-zero).
+
+AFRO-CUBAN / LATIN-JAZZ CLOSER: a suite in clave, D minor, that grows from an intimate 12/8 bembe into a son
+montuno, a horn mambo, a 7/4 interlude, an afro 12/8 descarga and a final cierre. Metric modulation keeps one pulse:
+the bembe's dotted quarter (104) becomes the son's half note (208 bpm 4/4); the 7/4 keeps the quarter; the descarga
+pushes the dotted quarter to 116.
+
+Motifs (compose/chirpers2/motifs.md):
+  MONTUNO      the piano's 2-bar figure in eighths (x.x.xx.x | .xx.x.xx), dyads walking the chord's top voice; it
+               displaces by an eighth every fourth bar and passes to the horns in the mambo.
+  CLAVE STRETCH the son clave's 3-side (1, 2&, 4) stretched over 7 quarters as 3+2+2 in the 7/4 interlude.
+  CORO         the descarga's call: D5 C5 A4 | G4 A4 (dotted), answered by the trumpet, a step higher each time round.
+Bar by bar: the clave flips 3-2 / 2-3 at section seams, the bembe bell alternates 6/8 and 3/4 groupings, chords
+re-voice every bar, the tumbao anticipates the next chord, melody passes piano -> trumpet -> horns -> rhodes -> tenor.
+Run: python3 compose/chirpers2/src/chirpers2-t10.py  (writes songs/chirpers2-t10.yaml)
+"""
+import json
+import os
+
+ROOT = os.path.expanduser("~/.config/chirp")
+OUT = os.environ.get("T10_OUT") or os.path.join(ROOT, "songs", "chirpers2-t10.yaml")
+MG = float(os.environ.get("T10_MG", "10"))
+DYN = os.environ.get("T10_DYN", "1") == "1"  # section dynamics on the master (after the compressor)
+
+# sections: (name, meter, bpm (quarter), bars)
+FORM = [("bembe", "12/8", 156, 12), ("son", "4/4", 208, 40), ("mambo", "4/4", 208, 24), ("siete", "7/4", 208, 12),
+        ("descarga", "12/8", 174, 28), ("cierre", "4/4", 208, 10)]
+BEATS = {"12/8": 6, "4/4": 4, "7/4": 7}
+
+NOTE = {"C": 0, "C#": 1, "Db": 1, "D": 2, "D#": 3, "Eb": 3, "E": 4, "F": 5, "F#": 6, "Gb": 6, "G": 7, "G#": 8, "Ab": 8,
+        "A": 9, "A#": 10, "Bb": 10, "B": 11}
+NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
+
+
+def nm(m):
+    return f"{NAMES[m % 12]}{m // 12 - 1}"
+
+
+def mi(n):
+    p, o = n[:-1], int(n[-1])
+    return 12 * (o + 1) + NOTE[p]
+
+
+def tok(n, d, v=None, art=""):
+    return f"{n}/{d:g}b" + (f"@{int(v)}" if v is not None else "") + art
+
+
+def R(d):
+    return f"R/{d:g}b" if d > 1e-9 else ""
+
+
+def J(*xs):
+    return " ".join(x for x in xs if x)
+
+
+def chord(names):
+    return ",".join(names)
+
+
+# harmony (voicings as midi lists; root for the bass)
+CH = {
+    "Dm9": (38, [53, 57, 60, 64]),        # F A C E over D
+    "Gm9/D": (38, [53, 58, 62, 69]),      # F Bb D A (pedal D)
+    "G13": (43, [53, 59, 64, 69]),        # F B E A
+    "Cmaj7#11": (36, [52, 54, 59, 64]),   # E F# B E
+    "A7b13": (45, [55, 61, 65, 70]),      # G C# F Bb
+    "Bbmaj7#11": (46, [57, 62, 64, 69]),  # A D E A
+    "A7sus": (45, [55, 62, 64, 71]),      # G D E B
+    "Dm11": (38, [53, 55, 60, 64]),       # F G C E
+    "Em11": (40, [55, 57, 62, 66]),       # G A D F#
+    "Dmaj9#11": (38, [54, 57, 61, 64, 68]),  # F# A C# E G#
+}
+SON_PROG = ["Dm9", "G13", "Cmaj7#11", "A7b13"]
+
+
+def harm(sec, b):
+    if sec == "bembe":
+        return ["Dm9", "Gm9/D"][b % 2]
+    if sec in ("son", "mambo", "cierre"):
+        return SON_PROG[b % 4]
+    if sec == "siete":
+        return ["Bbmaj7#11", "A7sus"][(b // 2) % 2]
+    if sec == "descarga":
+        return "Dm11" if b < 16 else "Em11"
+    return "Dm9"
+
+
+def voicing(c, b):
+    """Re-voice every bar: rotate the top voice up an octave on odd bars (inversions walk)."""
+    root, v = CH[c]
+    v = list(v)
+    if b % 2:
+        v = v[1:] + [v[0] + 12]
+    return root, v
+
+
+# ---------------------------------------------------------------- parts per bar
+def montuno(c, b, disp=0, vel=86):
+    """Piano MONTUNO in eighths: 2-bar figure; dyads of the top voice and the voice an octave below; displaced by
+    `disp` eighths (the displacement shifts every 4th bar)."""
+    root, v = voicing(c, b)
+    top = sorted(v)[-2:]
+    pat = "x.x.xx.x" if b % 2 == 0 else ".xx.x.xx"
+    pat = (pat[-disp:] + pat[:-disp]) if disp else pat
+    out = []
+    for i, ch in enumerate(pat):
+        if ch == "x":
+            n = top[i % 2]
+            out.append(tok(chord([nm(n - 12), nm(n)]), 0.5, vel - (10 if i % 2 else 0)))
+        else:
+            out.append(R(0.5))
+    return J(*out)
+
+
+def comp(c, b, beats, vel=70, style="block"):
+    """A held or stabbed chord for keys/pads."""
+    root, v = voicing(c, b)
+    names = chord([nm(n) for n in v])
+    if style == "block":
+        return tok(names, beats, vel)
+    if style == "stab":  # two stabs: on 1 and the and of 2 (4/4) / on 1 and 4 (12/8)
+        if beats == 4:
+            return J(tok(names, 1, vel), R(0.5), tok(names, 1, vel - 8), R(1.5))
+        return J(tok(names, 1.5, vel), tok(names, 1.5, vel - 8), R(3))
+    return tok(names, beats, vel)
+
+
+def tumbao(c, nxt, b, beats):
+    """Bass: in 4/4 the son tumbao - the next chord's root anticipated on 2&, its fifth on 4 (tied feel); in 12/8 the
+    bembe bass on dotted quarters; in 7/4 a 3+2+2 ostinato."""
+    r = CH[c][0]
+    rn = CH[nxt][0]
+    if beats == 4:
+        return J(R(1.5), tok(nm(rn), 1.5, 96), tok(nm(rn + 7), 1, 88))
+    if beats == 6:
+        return J(tok(nm(r), 1.5, 92), R(1.5), tok(nm(r + 7), 1, 84), tok(nm(r + 12), 0.5, 80), tok(nm(r), 1.5, 90))
+    if beats == 7:
+        return J(tok(nm(r), 3, 94), tok(nm(r + 7), 2, 86), tok(nm(r + 10), 2, 84))
+    return tok(nm(r), beats, 90)
+
+
+def clave(beats, side):
+    """Son clave in 4/4 (3-side: 1, 2&, 4 ; 2-side: 2, 3); the CLAVE STRETCH in 7/4 (3+2+2: 1, 4, 6, and a ghost on 7&)."""
+    if beats == 4:
+        return J(tok("clv", 1.5, 100), tok("clv", 1.5, 96), tok("clv", 1, 100)) if side == 3 else J(R(1), tok("clv", 1, 98), tok("clv", 2, 98))
+    if beats == 7:
+        return J(tok("clv", 3, 102), tok("clv", 2, 96), tok("clv", 1.5, 96), tok("clv", 0.5, 70))
+    return R(beats)
+
+
+def bell(beats, b, hemiola=False):
+    """The bembe bell over a 12/8 bar (eighths): x.x.xx.x.x.x; on hemiola bars the 3/4 grouping (every quarter)."""
+    pat = "x.x.x.x.x.x." if hemiola else "x.x.xx.x.x.x"
+    return J(*[tok("cow", 0.5, 100 if i == 0 else 84) if c == "x" else R(0.5) for i, c in enumerate(pat)])
+
+
+def drums(sec, b, beats, dens=1):
+    """The kit + congas (t1 = quinto, t2 = conga, ft = tumba) and shaker, one token per eighth (12/8, 4/4, 7/4)."""
+    n8 = int(beats * 2)
+    out = []
+    for i in range(n8):
+        h = []
+        if sec in ("bembe", "descarga"):
+            if i % 1 == 0:
+                h.append("shk")
+            if i in (3, 4, 9, 10):
+                h.append("t2")
+            if i in (0, 6) and (sec == "descarga" or b >= 4):
+                h.append("k")
+            if sec == "descarga" and i in (5, 11):
+                h.append("t1")
+            if sec == "descarga" and dens > 1 and i in (3, 9):
+                h.append("s")
+        elif sec in ("son", "mambo", "cierre"):
+            # cascara-ish ride bell on quarters, conga tumbao (open tones on 4 and 4&), bombo on 2& of the 3-side bar
+            if i % 2 == 0:
+                h.append("rbs" if sec != "son" or b >= 8 else "cowm")
+            if i in (6, 7):
+                h.append("t2")
+            if i == 5:
+                h.append("ft")
+            if i == 3 and b % 2 == 0:
+                h.append("k")
+            if sec != "son" and i in (2, 6):
+                h.append("so")
+            if dens > 1 and i in (2, 6):
+                h.append("s")
+        elif sec == "siete":
+            if i % 2 == 0:
+                h.append("rc")
+            if i in (0, 6, 10):
+                h.append("k")
+            if i in (4, 8, 12):
+                h.append("so")
+        v = 92 if (i == 0) else 74
+        out.append((",".join(h) + f"/0.5b@{v}") if h else R(0.5))
+    return J(*out)
+
+
+THEME = [  # trumpet's son theme, 4 bars of 4/4 over the progression
+    [("A4", 1.5), ("G4", 0.5), ("F4", 1), ("E4", 1)],
+    [("D4", 1), ("F4", 0.5), ("A4", 1), ("C5", 1.5)],
+    [("E5", 1), ("D5", 0.5), ("B4", 0.5), ("F#4", 2)],
+    [("G4", 0.5), ("Bb4", 0.5), ("C#5", 1), ("E5", 2)],
+]
+SIETE = [[("A4", 2), ("E5", 1), ("D5", 2), ("A4", 2)], [("G4", 3), ("B4", 2), ("E5", 2)]]  # rhodes, 7/4
+CORO = [("D5", 1.5), ("C5", 1.5), ("A4", 3)], [("G4", 1.5), ("A4", 4.5)]  # 12/8, two bars
+MAMBO = [  # horn-section mambo riff (4/4), answering the montuno: short, punchy, syncopated
+    [("R", 0.5), ("A4", 0.5), ("C5", 0.5), ("D5", 0.5), ("R", 0.5), ("F5", 1), ("R", 0.5)],
+    [("E5", 0.5), ("R", 0.5), ("D5", 0.5), ("C5", 1), ("A4", 0.5), ("R", 1)],
+]
+
+
+def line(notes, vel=92, shift=0):
+    out = []
+    for n, d in notes:
+        out.append(R(d) if n == "R" else tok(nm(mi(n) + shift), d, vel))
+    return J(*out)
+
+
+def solo_bar(b, beats, scale_root=62, seed=0, vel=88):
+    """A composed 'improvised' line: a dorian run in eighths with a held note at the end, contour by bar."""
+    dor = [0, 2, 3, 5, 7, 9, 10]
+    n8 = int(beats * 2)
+    out, step = [], (b * 3 + seed) % 7
+    up = (b + seed) % 2 == 0
+    for i in range(n8 - 2):
+        deg = dor[step % 7] + 12 * (step // 7)
+        out.append(tok(nm(scale_root + deg), 0.5, vel - (0 if i % 2 == 0 else 8)))
+        step += (1 if up else -1) * (1 if i % 3 else 2)
+        step = max(-3, min(10, step))
+    out.append(tok(nm(scale_root + dor[step % 7] + 12 * (step // 7)), 1, vel + 4))
+    return J(*out)
+
+
+# ---------------------------------------------------------------- arrangement
+def build():
+    names = ("piano", "bass", "kit", "clave", "bell", "trumpet", "tenor", "horns", "rhodes", "pad")
+    T = {n: [] for n in names}
+    tempo = []
+    beat0 = 0.0
+    for si, (sec, meter, bpm, nb) in enumerate(FORM):
+        beats = BEATS[meter]
+        tempo.append({"at": f"{beat0:g}b", "bpm": bpm, "meter": meter})
+        flip = si % 2  # the clave flips 3-2 / 2-3 at every section seam
+        for b in range(nb):
+            c = harm(sec, b)
+            nxt = harm(sec, b + 1) if b + 1 < nb else c
+            bar = {n: R(beats) for n in names}
+            if sec == "bembe":
+                bar["bell"] = bell(beats, b, hemiola=(b % 4 == 3))
+                bar["kit"] = drums(sec, b, beats)
+                if b >= 4:
+                    bar["piano"] = comp(c, b, beats, vel=62 + b, style="stab")
+                if b >= 8:
+                    bar["bass"] = tumbao(c, nxt, b, beats)
+                bar["pad"] = comp(c, b, beats, vel=50)
+            elif sec in ("son", "mambo", "cierre"):
+                side = 3 if (b + flip) % 2 == 0 else 2
+                bar["clave"] = clave(beats, side)
+                dens = 2 if sec != "son" else 1
+                bar["kit"] = drums(sec, b, beats, dens)
+                bar["bass"] = tumbao(c, nxt, b, beats)
+                disp = (b // 4) % 2
+                if sec == "son":
+                    bar["piano"] = montuno(c, b, disp, vel=82 + (b // 8) * 2)
+                    if b >= 16:
+                        bar["trumpet"] = line(THEME[b % 4], vel=94, shift=(12 if b >= 32 else 0) if b % 8 < 4 else 0)
+                    if b >= 24 and b % 4 in (2, 3):
+                        bar["horns"] = line(MAMBO[b % 2], vel=96)
+                elif sec == "mambo":
+                    bar["horns"] = line(MAMBO[b % 2], vel=100, shift=(0 if b < 12 else 2))
+                    bar["piano"] = montuno(c, b, disp, vel=78)
+                    # trading fours: trumpet then tenor, a composed solo line each
+                    if (b // 4) % 2 == 0:
+                        bar["trumpet"] = solo_bar(b, beats, 62, seed=1, vel=92)
+                    else:
+                        bar["tenor"] = solo_bar(b, beats, 50, seed=3, vel=90)
+                else:  # cierre: the shout, then the break on the clave's rhythm and the last chord
+                    if b < 6:
+                        bar["horns"] = line(MAMBO[b % 2], vel=108, shift=2)
+                        bar["trumpet"] = line(THEME[b % 4], vel=100, shift=12)
+                        bar["piano"] = montuno(c, b, 0, vel=90)
+                    elif b < 8:  # the cierre: everyone on the clave's 3-side hits
+                        hit = chord([nm(n) for n in CH["A7b13"][1]])
+                        hits = J(tok(hit, 1.5, 116), tok(hit, 1.5, 112), tok(hit, 1, 118))
+                        for k in ("piano", "horns"):
+                            bar[k] = hits
+                        bar["bass"] = J(tok("A1", 1.5, 116), tok("A1", 1.5, 112), tok("A1", 1, 118))
+                        bar["kit"] = J(tok("c,k", 1.5, 120), tok("s,k", 1.5, 116), tok("c,k", 1, 124))
+                        bar["clave"] = clave(beats, 3)
+                    else:  # the last chord, held two bars: Dmaj9#11 (the album ends in the light)
+                        last = chord([nm(n) for n in CH["Dmaj9#11"][1]])
+                        if b == 8:
+                            for k in ("piano", "horns", "pad"):
+                                bar[k] = tok(last, beats * 2, 104)
+                            bar["bass"] = tok("D2", beats * 2, 104)
+                            bar["kit"] = J(tok("c,k", 1, 118), R(beats * 2 - 1))
+                            bar["trumpet"] = tok("F#5", beats * 2, 96)
+                            bar["rhodes"] = tok(last, beats * 2, 80)
+                        else:
+                            for k in names:
+                                bar[k] = ""  # covered by the held notes of bar 8
+            elif sec == "siete":
+                bar["clave"] = clave(beats, 3)
+                bar["kit"] = drums(sec, b, beats)
+                bar["bass"] = tumbao(c, nxt, b, beats)
+                bar["rhodes"] = line(SIETE[b % 2], vel=82, shift=(0 if b < 8 else 12))
+                bar["pad"] = comp(c, b, beats, vel=56)
+            elif sec == "descarga":
+                bar["bell"] = bell(beats, b, hemiola=(b % 8 == 7))
+                bar["kit"] = drums(sec, b, beats, dens=(2 if b >= 12 else 1))
+                bar["bass"] = tumbao(c, nxt, b, beats)
+                bar["piano"] = comp(c, b, beats, vel=78, style="stab")
+                up = 2 if b >= 16 else 0
+                if b % 4 in (0, 1):
+                    bar["horns"] = line(CORO[b % 2], vel=102, shift=up + (b // 8) * 0)
+                else:
+                    who = "trumpet" if (b // 4) % 2 == 0 else "tenor"
+                    bar[who] = solo_bar(b, beats, 62 + up if who == "trumpet" else 50 + up, seed=b, vel=94)
+            for n in names:
+                T[n].append((bar[n], beats))
+            beat0 += beats
+    return T, tempo, beat0
+
+
+def section_times():
+    t, out = 0.0, {}
+    for sec, meter, bpm, nb in FORM:
+        d = BEATS[meter] * nb * 60 / bpm
+        out[sec] = (t, t + d)
+        t += d
+    return out
+
+
+def master():
+    fx = [{"type": "eq", "bands": ["lowshelf cutoff=100 gain=3dB", "peak cutoff=800 q=0.8 gain=-2dB"]},
+          {"type": "compressor", "threshold": "-22dB", "ratio": 2, "attack": "15ms", "release": "200ms", "makeup": "0dB"},
+          {"type": "gain", "gain": f"+{MG:g}dB"}]
+    m = {"fx": fx}
+    if DYN:  # the suite's arc: an intimate bembe, the son and mambo up, the 7/4 interlude down, the descarga building, the cierre on top
+        st = section_times()
+        lv = {"bembe": -6, "son": -2, "mambo": 0, "siete": -6, "descarga": -3, "cierre": 2}
+        pts = [["0s", lv["bembe"]]]
+        for sec in ("son", "mambo", "siete", "descarga", "cierre"):
+            a = st[sec][0]
+            prev = pts[-1][1]
+            pts += [[f"{a - 0.6:.2f}s", prev], [f"{a:.2f}s", lv[sec]]]
+            if sec == "descarga":  # the descarga builds -3 -> +1 over its length
+                pts += [[f"{st[sec][1] - 0.8:.2f}s", 1]]
+        pts += [[f"{st['cierre'][1] + 10:.2f}s", lv["cierre"]]]
+        fx.append({"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}})
+        m["auto"] = {"dyn": {"points": pts}}
+    return m
+
+
+def song():
+    T, tempo, total = build()
+
+    def sc(name):
+        bars = []
+        skip_hold = 0.0
+        for s, b in T[name]:
+            if s == "":
+                continue
+            bars.append(s)
+        return " | ".join(bars)
+
+    tracks = [
+        {"name": "piano", "patch": "piano", "gain": "-6dB", "pan": -0.25, "sends": {"room": "-12dB"}, "score": sc("piano")},
+        {"name": "bass", "patch": "fretless", "gain": "-1dB", "score": sc("bass")},
+        {"name": "kit", "patch": "room-kit", "gain": "-6dB", "score": sc("kit")},
+        {"name": "clave", "patch": "room-kit", "gain": "-8dB", "pan": 0.3, "score": sc("clave")},
+        {"name": "bell", "patch": "room-kit", "gain": "-9dB", "pan": -0.35, "score": sc("bell")},
+        {"name": "trumpet", "patch": "trumpet-mute", "gain": "-6dB", "pan": 0.2, "sends": {"room": "-10dB"}, "score": sc("trumpet")},
+        {"name": "tenor", "patch": "tenor-sax-synth", "gain": "-7dB", "pan": -0.2, "sends": {"room": "-10dB"}, "score": sc("tenor")},
+        {"name": "horns", "patch": "horn-section", "gain": "-6dB", "pan": 0.1, "sends": {"room": "-9dB"}, "score": sc("horns")},
+        {"name": "rhodes", "patch": "rhodes-rotary", "gain": "-7dB", "pan": 0.3, "sends": {"room": "-10dB"}, "score": sc("rhodes")},
+        {"name": "pad", "patch": "juno-pad", "gain": "-18dB", "sends": {"room": "-8dB"}, "score": sc("pad")},
+    ]
+    return {
+        "about": ("Chirpers - Odd Hours, track 10 (the closer; original composition, chirper-zero; generator "
+                  "compose/chirpers2/src/chirpers2-t10.py). An Afro-Cuban / Latin-jazz suite in clave, D minor: 12/8 "
+                  "bembe -> 4/4 son montuno (3-2) -> horn mambo with trumpet and tenor trading fours (clave flipped) -> a "
+                  "7/4 interlude on a stretched 3+2+2 clave (rhodes) -> an afro 12/8 descarga with a coro, rising D to E "
+                  "-> cierre and a last Dmaj9#11. One pulse throughout by metric modulation (dotted quarter 104 = half note 104)."),
+        "tempo": tempo, "ceiling": "-0.1dB", "tail": "3s",
+        "buses": {"room": {"fx": ["reverb kind=room decay=1.4s size=0.7 mix=1 predelay=14ms"]}},
+        "master": master(),
+        "tracks": tracks,
+    }
+
+
+def dump(doc):
+    lines = [f"{k}: {json.dumps(doc[k])}" for k in ("about", "tempo", "ceiling", "tail", "master")]
+    lines.append("buses:")
+    lines += [f"  {b}: {json.dumps(v)}" for b, v in doc["buses"].items()]
+    lines.append("tracks:")
+    lines += ["  - " + json.dumps(t) for t in doc["tracks"]]
+    return "\n".join(lines) + "\n"
+
+
+if __name__ == "__main__":
+    text = dump(song())
+    open(OUT, "w").write(text)
+    print("wrote", OUT)

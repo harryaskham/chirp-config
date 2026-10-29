@@ -5459,13 +5459,17 @@
       "song": "songs/chirpers2-t10.yaml",
       "reference": "Chirpers — Cierre",
       "source": null,
-      "owner": null,
+      "owner": "chirper-zero",
       "metric": "python3 tools/compscore.py chirpers2-t10 OUT.wav",
-      "best": null,
+      "best": {
+        "score": 95.88,
+        "version": "v1",
+        "commit": "see git log songs/chirpers2-t10.yaml"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "jazz / prog / math fusion",
       "mode": "compose",
@@ -5481,6 +5485,10 @@
         "by": "chirp-eco",
         "at": "2026-10-29T00:57:17Z",
         "note": "COMPOSE (closer, 180-600 s): Closes the album. Style, form, meter and line-up are yours: declare them in compose/chirpers2/styles.md."
+      },
+      "last": {
+        "at": "2026-10-29T01:14:40Z",
+        "who": "chirper-zero"
       }
     }
   ],
