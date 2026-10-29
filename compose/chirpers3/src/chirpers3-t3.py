@@ -75,7 +75,7 @@ def swing(s16):
 
 def build():
     B, total = bars()
-    kit, piano, bass, lead, crackle, wurli = [], [], [], [], [], []
+    kit, piano, bass, lead, crackle, wurli, flute = [], [], [], [], [], [], []
     for b in B:
         sec, t0, L, dr = b['sec'], b['t'], b['beats'], DRIFT[b['sec']]
         ms = lambda x: x / 1000 / SPB      # milliseconds -> beats
@@ -116,6 +116,14 @@ def build():
             if L > 2.0:
                 bass.append((t0 + 2.0 + ms(45 * dr), nm(r1), min(1.5, L - 2.1), 94))
         # ---- the hook (boc-lead): a 2-bar phrase answered a step lower, in A2 and A3 and doubled in 'last' ----
+        if sec == 'Ar' and L >= 3.5:
+            # THE FLUTE (the reprise): when the first groove comes back after the break, a lazy flute sings over it
+            # instead of the hook - two long notes a bar from the top of each chord (the top voice, or the one under it
+            # on odd bars), dragged later than anything else in the song
+            top = b['loop'][0][-1] + 12
+            nxt = b['loop'][1][-1] + 12
+            flute.append((t0 + 0.5 + ms(60 * dr), nm(top), 1.4, 72))
+            flute.append((t0 + 2.25 + ms(80 * dr), nm(nxt if b['i'] % 2 == 0 else b['loop'][1][-2] + 12), 1.6, 66))
         if sec in ('A2', 'A3', 'last') and L >= 3.5:
             ph = [(0.5, 72, 0.5), (1.0, 75, 0.75), (2.0, 72, 0.5), (2.5, 70, 1.25)] if b['i'] % 2 == 0 else \
                  [(0.25, 68, 0.5), (0.75, 70, 0.5), (1.5, 67, 1.5)]
@@ -178,6 +186,7 @@ def build():
              'notes': [{'at': f'{at * SPB:.4f}s', 'len': f'{d * SPB:.4f}s', 'pitch': p_midi, 'vel': v / 127}
                        for at, p, d, v in piano for p_midi in [NN.index(p[:-1]) + 12 * (int(p[-1]) + 1)]]},
             {'name': 'bass', 'patch': 'analog-bass', 'gain': '-3dB', 'score': line(bass, total)},
+            {'name': 'flute', 'patch': 'mellotron-flute', 'gain': '-7dB', 'pan': -0.3, 'fx': ['tape drive=0.1 mix=0.5 wow=14 flutter=3 drift=1.5 tone=6000 sweep=0.6 seed=33'], 'score': line(flute, total)},
             {'name': 'lead', 'patch': 'boc-lead', 'gain': '-9dB', 'pan': 0.25, 'score': line(lead, total)},
             {'name': 'crackle', 'patch': 'fx-crackle', 'gain': '-7dB', 'score': line(crackle, total)},
             {'name': 'throw', 'patch': 'lofi-kit', 'gain': '-2dB', 'fx': ['crush bits=12 rate=26kHz mix=0.5'], 'sends': {'dub': '0dB'}, 'score': line(throws, total)},

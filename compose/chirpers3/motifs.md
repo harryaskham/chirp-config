@@ -22,6 +22,7 @@ Generator `compose/chirpers3/src/chirpers3-t3.py`. Warped boom-bap off a worn sa
 - **THE CHOPS** (v7, the break): after the tape-stop, an MPC chop of the library's lofihop part re-sequenced over the break's piano and bass - per bar 0 0 5 3 0 7 6 2 | 0 0 5 3 9 9 6 11 | 4 0 5 3 0 7 13 13 | 0 5 3 0 15 14 12 12, swung eighths.
 - **SNARE THROWS** (v8, chirper-two's feedback routing): the beat-3 snare of every fourth groove bar is doubled on a throw track sent into a dub bus that returns its own output a dotted sixteenth later through a 1.8 kHz low-pass and a wobbling tape (-6 dB a pass), so the phrase ends in a snare echo tumbling into the next.
 - **THE BREATH** (v9, wM's pump): the rolled tape-piano chords duck 7 dB under every kick and swell back slowly (480 ms, curve .5), so the drunk beat leans on the chords.
+- **THE FLUTE** (v10, the reprise): when the first groove returns after the break, a tape-wobbly mellotron flute sings over it instead of the hook - two long chord-top notes a bar (G5 Bb5 | F5 C5 | G5 Ab5 | Eb5 B4 ...), dragged 60-80 ms behind the beat.
 - **ROLLED LOOP** (tape-piano, each note ~18 ms after the last): Fm9 Abmaj9 | Eb6/9 Dbmaj9 | Fm9 Bbm11 | C7#9 C7b9.
 - **THE HOOK** (boc-lead): a 2-bar phrase, C5 Eb5 C5 Bb4 | Ab4 Bb4 G4, the second pair of bars a step lower.
 
