@@ -38,7 +38,8 @@ DECK = os.environ.get("T5_DECK", "1")  # "1": the deck on keys and leads; "lead"
 NUDGE = os.environ.get("T5_NUDGE", "")
 RIMDRAG = os.environ.get("T5_RIMDRAG", "60")
 TCHOP = os.environ.get("T5_TCHOP", "lead")
-REWIND = os.environ.get("T5_REWIND", "end")  # wM's tapestop as a sound-system REWIND (spin 3, a vinyl pull-back): "end" = on the outro's last bar; "mid" = at the turn into the version (instead of that seam's stutter)  # wM's MPC chop at the desk: "skank" = the rhodes chopped through the version; "lead" = the melodica chopped through the return  # the one-drop's rim dragged late by hand (ms), the kick and hats kept steady  # the one-drop played by hand (play.humanize): "40,-10,25" = rim late, kick early, hats late (ms), plus swing drift and a drunk lean
+REWIND = os.environ.get("T5_REWIND", "end")
+LIVING = os.environ.get("T5_LIVING", "1") == "1"  # chirper-two's per-voice fx: every skank stab lands at its own random place in the stereo field with its own tone (pin 3eee6a72)  # wM's tapestop as a sound-system REWIND (spin 3, a vinyl pull-back): "end" = on the outro's last bar; "mid" = at the turn into the version (instead of that seam's stutter)  # wM's MPC chop at the desk: "skank" = the rhodes chopped through the version; "lead" = the melodica chopped through the return  # the one-drop's rim dragged late by hand (ms), the kick and hats kept steady  # the one-drop played by hand (play.humanize): "40,-10,25" = rim late, kick early, hats late (ms), plus swing drift and a drunk lean
 VINYL = os.environ.get("T5_VINYL", "1") == "1"
 GLITCH = os.environ.get("T5_GLITCH", "stutter") in ("1", "stop", "stutter")
 GLITCH_KIND = os.environ.get("T5_GLITCH", "stutter")  # "1": both; "stop": the tape stop only; "stutter": the stutter bursts only  # the desk resamples: master stutter bursts in the version (bars 4 and 12, second halves) and a TAPE STOP (an octave dive on the last beat) into the breakdown  # wM's vinyl fx on the master instead of the crackle and hiss tracks  # the melodica's written echo: its line again a dotted eighth late, softer, panned opposite, into the spring
@@ -266,7 +267,7 @@ def song():
          "fx": [{"type": "eq", "bands": ["highshelf cutoff=6000 gain=-6dB"]}], "auto": lane, "score": sc("drums", HATSW, DRAG or None)},
         {"name": "bass", "patch": "analog-bass", "gain": "0dB", "fx": [{"type": "filter", "kind": "lowpass", "cutoff": 420}],
          "score": sc("bass")},
-        {"name": "skank", "patch": "rhodes", "gain": "-6dB", "pan": -0.2, "fx": wow, "lfo": lfo,
+        {"name": "skank", "patch": "living-skank" if LIVING else "rhodes", "gain": "-6dB", "pan": -0.2, "fx": wow, "lfo": lfo,
          "sends": {"spring": "-6dB", "echo": thr_send(-14)}, "auto": lane, "score": sc("skank", 0.58)},
         {"name": "bubble", "patch": "wurli", "gain": "-12dB", "pan": 0.3, "fx": wow, "lfo": lfo,
          "sends": {"spring": "-12dB"}, "score": sc("bubble", 0.58)},
@@ -282,6 +283,11 @@ def song():
         tracks.append({"name": "siren", "patch": "dub-siren", "gain": "-14dB", "pan": 0.4,
                        "sends": {"echo": "-4dB", "spring": "-8dB"}, "score": sc("siren")})
     patches = {
+        **({"living-skank": {"about": "Tape Weather t5: the rhodes skank with per-voice fx - each stab panned to its own random place and low-passed to its own tone.",
+                             "extends": "rhodes",
+                             "synth": {"fx": [{"type": "pan", "pan": {"value": 0, "mod": [{"src": "rand", "amount": 0.8}]}},
+                                              {"type": "filter", "kind": "lowpass", "cutoff": {"value": 2600, "mod": [{"src": "rand", "amount": 1.0}]}, "q": 1.4}]}}}
+           if LIVING else {}),
         "vinyl-hiss": {"about": "Tape Weather t5: vinyl/tape hiss - pink noise, band-passed, steady.",
                        "synth": {"layers": [{"type": "noise", "color": "pink"}], "filters": ["bp cutoff=3k q=0.5"],
                                  "amp": {"a": "40ms", "s": 1, "r": "120ms"}}},
