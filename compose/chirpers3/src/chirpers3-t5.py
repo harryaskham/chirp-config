@@ -40,11 +40,13 @@ RIMDRAG = os.environ.get("T5_RIMDRAG", "60")
 TCHOP = os.environ.get("T5_TCHOP", "lead")
 REWIND = os.environ.get("T5_REWIND", "end")
 LIVING = os.environ.get("T5_LIVING", "1") == "1"
-HOLD = os.environ.get("T5_HOLD", "1") == "1"
+HOLD = os.environ.get("T5_HOLD", "1") == "1" and os.environ.get("T5_STRIP", "") != "dry"
 SPACE = os.environ.get("T5_SPACE", "0.72")
 SKBASE = os.environ.get("T5_SKBASE", "rhodes")
 BUBPATCH = os.environ.get("T5_BUBPATCH", "wurli")
-VDRY = os.environ.get("T5_VDRY", "1") == "1"  # the version runs DRY between the throws: the skank's steady echo send drops ~26 dB through the version, so only the throws feed the tape loop and the drop-outs are real silence  # the bubble's keys: wurli, or wM's physical pickup epiano-reed  # the living skank's base e-piano: rhodes, or wM's physical pickup epiano-tine (the stabs bark)  # chirper-two's feedback routing: the echo as a tape loop - one dotted-eighth delay, then the bus's own output fed back through a low-pass and a tape deck, each repeat darker and more warped; gain e.g. 0.62  # THE HOLD: the version's last chord thrown into a hall and FROZEN (wM's reverb freeze) under the breakdown's bass and drums, let go when the skank comes in alone  # chirper-two's per-voice fx: every skank stab lands at its own random place in the stereo field with its own tone (pin 3eee6a72)  # wM's tapestop as a sound-system REWIND (spin 3, a vinyl pull-back): "end" = on the outro's last bar; "mid" = at the turn into the version (instead of that seam's stutter)  # wM's MPC chop at the desk: "skank" = the rhodes chopped through the version; "lead" = the melodica chopped through the return  # the one-drop's rim dragged late by hand (ms), the kick and hats kept steady  # the one-drop played by hand (play.humanize): "40,-10,25" = rim late, kick early, hats late (ms), plus swing drift and a drunk lean
+VDRY = os.environ.get("T5_VDRY", "1") == "1"
+DYNL = os.environ.get("T5_DYN", "1") == "1"  # the desk's faders by section: intro -4, breakdown -4, return +2, outro -2 dB (the version and the riddim at 0)
+STRIP = os.environ.get("T5_STRIP", "")  # chirper-three's note: a true dub strip-down - the breakdown is bass and drums alone for all 8 bars, 3 dB down, and the return slams back 2 dB up; "hold" keeps THE HOLD over the first four, "dry" drops it  # the version runs DRY between the throws: the skank's steady echo send drops ~26 dB through the version, so only the throws feed the tape loop and the drop-outs are real silence  # the bubble's keys: wurli, or wM's physical pickup epiano-reed  # the living skank's base e-piano: rhodes, or wM's physical pickup epiano-tine (the stabs bark)  # chirper-two's feedback routing: the echo as a tape loop - one dotted-eighth delay, then the bus's own output fed back through a low-pass and a tape deck, each repeat darker and more warped; gain e.g. 0.62  # THE HOLD: the version's last chord thrown into a hall and FROZEN (wM's reverb freeze) under the breakdown's bass and drums, let go when the skank comes in alone  # chirper-two's per-voice fx: every skank stab lands at its own random place in the stereo field with its own tone (pin 3eee6a72)  # wM's tapestop as a sound-system REWIND (spin 3, a vinyl pull-back): "end" = on the outro's last bar; "mid" = at the turn into the version (instead of that seam's stutter)  # wM's MPC chop at the desk: "skank" = the rhodes chopped through the version; "lead" = the melodica chopped through the return  # the one-drop's rim dragged late by hand (ms), the kick and hats kept steady  # the one-drop played by hand (play.humanize): "40,-10,25" = rim late, kick early, hats late (ms), plus swing drift and a drunk lean
 VINYL = os.environ.get("T5_VINYL", "1") == "1"
 GLITCH = os.environ.get("T5_GLITCH", "stutter") in ("1", "stop", "stutter")
 GLITCH_KIND = os.environ.get("T5_GLITCH", "stutter")  # "1": both; "stop": the tape stop only; "stutter": the stutter bursts only  # the desk resamples: master stutter bursts in the version (bars 4 and 12, second halves) and a TAPE STOP (an octave dive on the last beat) into the breakdown  # wM's vinyl fx on the master instead of the crackle and hiss tracks  # the melodica's written echo: its line again a dotted eighth late, softer, panned opposite, into the spring
@@ -126,6 +128,9 @@ VERSION_MIX = [  # the dub mix, bar by bar: who is up on the desk
 def drums(sec, b, rng, full=True):
     """The one-drop: kick and rim together on 3, hats on the 8ths (swung), ghost rims, a rim roll at phrase ends."""
     ev = [(8, "k,so", 1, 108)]
+    if STRIP == "bare" and sec == "breakdown":  # the strip-down: the one-drop's bones only
+        rng.random()
+        return grid(ev)
     for st in ((0, 3, 6, 11, 14) if HATS == "tresillo" else range(0, 16, 2)):
         if st != 8:
             ev.append((st, "h", 1, 70 if st % 4 else 80))
@@ -197,7 +202,7 @@ def build():
             elif sec == "version":
                 up = VERSION_MIX[b]
             elif sec == "breakdown":
-                up = {"drums", "bass"} if b < 4 else {"skank"}
+                up = {"drums", "bass"} if (b < 4 or STRIP) else {"skank"}
             elif sec == "outro":
                 up = ([ALL, ALL, ALL - {"lead"}, ALL - {"lead"}, {"drums", "bass", "skank"}, {"drums", "skank"}, {"skank"}, set()] if EVEN
                       else [ALL, ALL - {"lead"}, {"drums", "bass", "skank"}, {"drums", "skank"}, {"skank"}, set()])[b]
@@ -346,11 +351,30 @@ def song():
                 tr["fx"] = list(tr["fx"]) + [{"type": "chop", "slices": 8, "pattern": "0 r1 . _ 4 r5 . _" if name == "skank" else "0 . r2 . 4 4 . r7",
                                              "mix": {"value": 0, "mod": [{"src": "auto.ch", "amount": 1}]}}]
                 tr["auto"] = {**tr.get("auto", {}), "ch": {"points": lanec}}
+    strip_fx, strip_auto = [], {}
+    if DYNL and not STRIP:
+        lv = {"intro": -4, "riddim": 0, "melodica": 0, "version": 0, "breakdown": -4, "return": 2, "outro": -2}
+        pts = [["0s", lv["intro"]]]
+        for sec, _, _ in FORM[1:]:
+            a = times[sec]
+            pts += [[f"{a - 0.3:.2f}s", pts[-1][1]], [f"{a:.2f}s", lv[sec]]]
+        pts.append([f"{total + 8:.2f}s", lv["outro"]])
+        strip_fx = [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.lv", "amount": 1}]}}]
+        strip_auto = {"lv": {"points": pts}}
+    if STRIP:
+        bar_s = 4 * 60 / BPM
+        b0, r0 = times["breakdown"], times["return"]
+        r1 = r0 + 8 * bar_s
+        dip = -5 if STRIP == "bare" else -3
+        st = [["0s", 0], [f"{b0 - 0.3:.2f}s", 0], [f"{b0:.2f}s", dip], [f"{r0 - 0.05:.2f}s", dip], [f"{r0:.2f}s", 2], [f"{r1 - 0.3:.2f}s", 2],
+              [f"{r1:.2f}s", 0], [f"{total + 8:.2f}s", 0]]
+        strip_fx = [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.lv", "amount": 1}]}}]
+        strip_auto = {"lv": {"points": st}}
     master = {"fx": [{"type": "eq", "bands": bands}, *glitch_fx,
                      *(["vinyl crackle=0.35 dust=0.3 noise=-62dB rumble=0.25 warp=4 wear=0.35 seed=5"] if VINYL else []),
                      {"type": "tape", "drive": 0.35, "warmth": 0.5, "mix": 1},
                      {"type": "compressor", "threshold": "-20dB", "ratio": 2, "attack": "20ms", "release": "220ms", "makeup": "0dB"},
-                     {"type": "gain", "gain": f"+{MG:g}dB"}]}
+                     {"type": "gain", "gain": f"+{MG:g}dB"}, *strip_fx]}
     if REWIND:
         bar_s = 4 * 60 / BPM
         t0 = (total - bar_s) if REWIND == "end" else (times["version"] - bar_s / 2)
@@ -371,6 +395,7 @@ def song():
                 t["auto"] = {**t.get("auto", {}), "hs": {"points": hs}}
         hold_bus = {"fx": [{"type": "reverb", "kind": "hall", "decay": "4s", "size": 0.9, "mix": 1,
                             "freeze": {"value": 0, "mod": [{"src": "auto.fz", "amount": 1}]}}], "auto": {"fz": {"points": fz}}}
+    glitch_auto = {**glitch_auto, **strip_auto}
     if glitch_auto:
         master["auto"] = glitch_auto
     return {
