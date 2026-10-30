@@ -27,6 +27,8 @@ BAR = 4 * SPB
 S = 0.25
 RECIPE = float(os.environ.get("C5T10_RECIPE", "6"))
 RCLIP = os.environ.get("C5T10_RCLIP", "-2.8")
+TPLIM = os.environ.get("C5T10_TPLIM", "")  # wM's true-peak limiter (true_peak: true, 4x oversampled, 5 ms lookahead, never clamps) as the master's last stage at this ceiling (dB), instead of the clip and the 16 kHz low-pass
+LOWLIFT = os.environ.get("C5T10_LOWLIFT", "3")  # the master's 100 Hz lifted (dB): the liquid bass's body
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 FORM = [("intro", 16), ("build", 8), ("A", 32), ("breakdown", 16), ("B", 32), ("lift", 16), ("dissolve", 24)]
@@ -247,17 +249,18 @@ def song():
     doc = {
         "about": "Chirpers - Soft Concrete (Chirpers V), track 10 by chirper-zero: EUPHORIC LIQUID CLOSER, streetlights off. Generated "
                  "by compose/chirpers5/src/chirpers5-t10.py; see its docstring and compose/chirpers5/styles.md.",
-        "tempo": BPM, "ceiling": "-1dB", "volume": "0dB", "tail": "3s",
+        "tempo": BPM, "ceiling": "-1dB", "volume": "0dB", **({"true_peak": True} if TPLIM else {}), "tail": "3s",
         "patches": {"city-air": {"about": "Soft Concrete t10: the city at dawn - pink noise, band-passed low, steady.",
                                  "synth": {"layers": [{"type": "noise", "color": "pink"}], "filters": ["bp cutoff=500 q=0.4"],
                                            "amp": {"a": "2s", "s": 1, "r": "2s"}}}},
-        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=26", "peak cutoff=80 q=0.8 gain=2dB", "peak cutoff=300 q=0.8 gain=-6dB", "highshelf cutoff=6000 gain=3dB"]},
+        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=26", "peak cutoff=80 q=0.8 gain=2dB", *([f"peak cutoff=100 q=0.8 gain={LOWLIFT}dB"] if LOWLIFT else []), "peak cutoff=300 q=0.8 gain=-6dB", "highshelf cutoff=6000 gain=3dB"]},
                           {"type": "compressor", "threshold": "-16dB", "ratio": 2, "attack": "10ms", "release": "150ms", "makeup": "0dB"},
                           {"type": "gain", "gain": f"+{RECIPE:g}dB"},
                           {"type": "compressor", "threshold": "-5dB", "ratio": 10, "attack": "0.3ms", "release": "60ms", "makeup": "0dB"},
                           {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}},
-                          {"type": "clip", "ceiling": f"{RCLIP}dB", "knee": 0.8, "link": True},
-                          {"type": "filter", "kind": "lowpass", "cutoff": 16000, "q": 0.5}],
+                          *([f"limiter ceiling={TPLIM}dB release=80ms"] if TPLIM else
+                            [{"type": "clip", "ceiling": f"{RCLIP}dB", "knee": 0.8, "link": True},
+                             {"type": "filter", "kind": "lowpass", "cutoff": 16000, "q": 0.5}])],
                    "auto": {"dyn": lane(dyn, {d1 + 24})}},
         "buses": {
             "drums": {"fx": [{"type": "compressor", "threshold": "-16dB", "ratio": 4, "attack": "1ms", "release": "80ms", "makeup": "0dB"},
@@ -284,7 +287,7 @@ def song():
 
 
 def dump(doc):
-    lines = [f"{k}: {json.dumps(doc[k])}" for k in ("about", "tempo", "ceiling", "volume", "tail", "patches", "master") if k in doc]
+    lines = [f"{k}: {json.dumps(doc[k])}" for k in ("about", "tempo", "ceiling", "volume", "true_peak", "tail", "patches", "master") if k in doc]
     lines.append("buses:")
     lines += [f"  {b}: {json.dumps(v)}" for b, v in doc["buses"].items()]
     lines.append("tracks:")
