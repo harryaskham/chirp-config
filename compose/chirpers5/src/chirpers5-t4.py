@@ -40,7 +40,7 @@ SOFTCLIP = os.environ.get("C5T4_SOFTCLIP", "")
 KIT = os.environ.get("C5T4_KIT", "machine-kit")
 KITCLIP = os.environ.get("C5T4_KITCLIP", "")
 MCLIP = os.environ.get("C5T4_MCLIP", "0")
-RECIPE = os.environ.get("C5T4_RECIPE", "8")
+RECIPE = os.environ.get("C5T4_RECIPE", "6")
 VOL0 = os.environ.get("C5T4_VOL0", "1") == "1"
 RLIM = os.environ.get("C5T4_RLIM", "-1.5")
 RREL = os.environ.get("C5T4_RREL", "80ms")
@@ -57,6 +57,19 @@ AMENUP = os.environ.get("C5T4_AMENUP", "")
 WOB = os.environ.get("C5T4_WOB", "1/6")
 TAILS = os.environ.get("C5T4_TAIL", "1s")  # the render tail: the join into Underpass (t5) compares the last 3 s
 RINGOUT = os.environ.get("C5T4_RINGOUT", "1") == "1"  # the Rhodes stays to the end: the outro's last four bars ring a soft whole-bar chord each, so the closing D7sus(b9) hands its body (180-470 Hz) to Underpass's Gm9  # the half-time middle's reese wobbles: its own track through a resonant low-pass swept by an LFO at this rate (e.g. "1/8", "1/6") - glitchstep's wobble under the cracks  # the amen roll forward: "up" = louder (-8 dB, high-pass 200 Hz); "sync" = and re-sequenced with its snare slice on the 16ths 7, 11, 14 (ghost snares between the 2-step's hits)  # chirper-one's note: the phrase cracks cross the bar line - "and4" = from the and-of-4 through the next downbeat (to its and); "half" = the half-bar crack carried on through the downbeat  # the second drop's reese walks: root, octave, fifth, root, flat seventh across the bar (gliding), while the sub keeps the root - the return develops instead of repeating  # a triplet hat (8th triplets, twelve to the bar) against the straight 2-step through the drops and the climax: the garage's three over the roller's four; value = gain dB  # the amen ghost roll's 16th swing  # the master's 100 Hz lifted (dB): the roller's bass body  # a gentle low-pass after the final clip (Hz): the clip's sharp corners are what overshoot between samples  # the recipe's last stage as a soft-knee clip (ceiling dB) instead of the limiter: rounded, never pinned  # the safety limiter's release  # the recipe's safety limiter ceiling (dB): low enough that the inter-sample peaks stay under -1 dBTP  # the song's volume at 0 dB (the default leaves ~3 dB of headroom below the ceiling unused)  # chirper-two's Overpass Rain levels recipe (the album's -12.5 LUFS target): the drums bus compressed (-16 dB, 4:1, 1 ms) then soft-clipped at -11 dB; the master a glue, then this many dB into a fast compressor (-5 dB, 10:1, 0.3 ms), then a -1.5 dB limiter as a net  # a soft-knee clip at the end of the master (ceiling dB) that rounds the compressors' transient overshoots below the song ceiling, so the engine's hard clamp never acts  # "ceiling,makeup": the kit's clicks rounded by a soft-knee clip on its own track (stereo-linked), then made up - the transient that set the master's peak is gone, the body stays  # the 2-step kit (machine-kit's clicks spike ~6 dB over the mix; 909 is rounder)  # a soft clip (drive, full mix) at the end of the master: spikes the compressors are too slow for are rounded, not clamped  # a final trim (dB) so the master never meets the engine's hard ceiling (no clamp, no inter-sample overs) until the limiter fix lands  # the kick's click rounded by a soft drive on the kit (amount), before its compressor  # the bass out of the kick's way: the sub back at -8 dB and the pumps duck in 1 ms (the kick and the bass onsets were summing into the ceiling)  # the kit's click tamed at the source: a fast compressor on the kick and snare (0.3 ms attack), so the master never meets its ceiling  # the song ceiling (-2 dB leaves room for inter-sample peaks: true peak <= -1 dBTP)  # the master's body raised: a slow glue (-24 dB, 3:1, 30 ms) then the fast peak stage with this much makeup (dB)  # the sustained parts up (pad +5, reese and sub +4, Rhodes +3, voice +2): the liquid fullness carries the loudness, the drums keep their transients  # the drums glued and rounded on their bus (a soft drive and a firmer compressor) so the master is loud without a limiter pinning the kick
+
+# Harry's Soft Concrete notes (30 Oct, 15:45): swing vs stutter, bass weight, use the toolbox deliberately, a touch darker
+SUBUP = os.environ.get("C5T4_SUBUP", "-4")  # the sub up (gain dB) with phantom harmonics (-3 dB): a solid mono floor that reads on small speakers
+ALINE = os.environ.get("C5T4_ALINE", "1") == "1"  # the first drop's bass is a line, not a drone: root, root, the octave on the 2-step kick, the fifth as a pickup (the second drop keeps THE WALK)
+RMOVE = os.environ.get("C5T4_RMOVE", "1") == "1"  # the reese driven (mid harmonics) and its low-pass breathing on a 5-bar LFO, resonance up
+BSWEEP = os.environ.get("C5T4_BSWEEP", "1") == "1"  # the build's drums climb out of a high-pass (about 1.3 kHz down to nothing over its last four bars)
+TAPE = os.environ.get("C5T4_TAPE", "0") == "1"  # the roller's last beat before the half-time middle: the whole mix tape-stops into it (the floor gives way through the crack)
+PADMOVE = os.environ.get("C5T4_PADMOVE", "0") == "1"  # the pad moves: a notch swept on a 7-bar LFO, the pan drifting on a 5-bar one
+DARK = os.environ.get("C5T4_DARK", "0")  # the master's 6 kHz shelf at this (dB, was +3): more night than dusk
+TPON = os.environ.get("C5T4_TPON", "1") == "1"
+SLICE = os.environ.get("C5T4_SLICE", "1/8")
+VOLUME = os.environ.get("C5T4_VOLUME", "-1")
+RGAIN = os.environ.get("C5T4_RGAIN", "-7")  # the reese's gain (dB, was -5): driven, it reads at a lower level and leaves the master its crest  # the song's output volume (dB, was 0): the driven bass added level, so the whole master comes down to the album's -12.5 LUFS untouched  # the stutter's first slice: "1/8" repeats on the 8th grid, which the kit's 16th swing doesn't move, before the roll accelerates  # true_peak: true (the album's levels rule)
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 FORM = [("intro", 16), ("build", 8), ("A", 32), ("half", 16), ("B", 32), ("climax", 16), ("outro", 16)]
@@ -159,6 +172,8 @@ def reese_line(sec, b, gb):
 
 def bass(sec, b, gb):
     root = CH[gb % 4][0]
+    if ALINE and sec in ROLLER:
+        return grid([(0, nm(root), 6, 104), (6, nm(root), 4, 90), (10, nm(root + 12), 4, 100), (14, nm(root + 7), 2, 92)])
     if sec in ROLLER or (sec == "build" and b >= 6):
         return grid([(0, nm(root), 10, 100), (10, nm(root), 6, 92)])
     if sec == "half" and not WOB:
@@ -269,23 +284,24 @@ def song():
     sc = lambda n, pre="": (pre + " " if pre else "") + " | ".join(T[n])  # noqa: E731
     dyn = [(0, -5), (st["build"], -3), (st["A"], 0), (st["half"], -3), (st["B"], 0), (st["climax"], 1), (st["outro"], -4)]
     pump = lambda d: {"type": "pump", "on": "kit.k", "depth": f"{d}dB", "attack": "1ms" if BASSOUT else "4ms", "release": "230ms", "curve": 0.6}  # noqa: E731
-    stutter = {"type": "stutter", "slice": "1/16", "repeats": 7, "chance": 1, "roll": 0.7, "floor": "1/64", "pitch": 1.5,
+    stutter = {"type": "stutter", "slice": SLICE, "repeats": 7, "chance": 1, "roll": 0.7, "floor": "1/64", "pitch": 1.5,
                "decay": 0.05, "seed": 4, "mix": {"value": 0, "mod": [{"src": "auto.crk", "amount": 1}]}}
     doc = {
         "about": "Chirpers - Soft Concrete (Chirpers V), track 4 by chirper-zero: LIQUID GLITCHSTEP, hairline. Generated by "
                  "compose/chirpers5/src/chirpers5-t4.py; see its docstring and compose/chirpers5/styles.md.",
-        "tempo": BPM, "ceiling": CEIL, **({"volume": "0dB"} if VOL0 else {}), "tail": TAILS,
+        "tempo": BPM, "ceiling": CEIL, **({"volume": f"{VOLUME}dB" if VOLUME else "0dB"} if VOL0 else {}), **({"true_peak": True} if TPON else {}), "tail": TAILS,
         "patches": {"rhodes-damped": {"about": "Soft Concrete t4: the physical tine Rhodes with the damper's key-off (release triggers).",
                                       "extends": "epiano-tine", "play": {"release": {"patch": "epiano-damper", "decay": "2s", "gain": "3dB"}}}},
         "master": ({"fx": [{"type": "eq", "bands": ["highpass cutoff=26", "peak cutoff=45 q=1 gain=-3dB", *([f"peak cutoff=100 q=0.8 gain={LOWLIFT}dB"] if LOWLIFT else []),
-                                                    "peak cutoff=300 q=0.8 gain=-3dB", "highshelf cutoff=6000 gain=3dB"]},
+                                                    "peak cutoff=300 q=0.8 gain=-3dB", f"highshelf cutoff=6000 gain={DARK or 3}dB"]},
                            {"type": "compressor", "threshold": "-16dB", "ratio": 2, "attack": "10ms", "release": "150ms", "makeup": "0dB"},
                            {"type": "gain", "gain": f"+{float(RECIPE):g}dB"},
                            {"type": "compressor", "threshold": "-5dB", "ratio": 10, "attack": "0.3ms", "release": "60ms", "makeup": "0dB"},
                            {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}},
                            ({"type": "clip", "ceiling": f"{RCLIP}dB", "knee": 0.8, "link": True} if RCLIP else f"limiter ceiling={RLIM}dB release={RREL}"),
-                           *([{"type": "filter", "kind": "lowpass", "cutoff": float(TOPLP), "q": 0.5}] if TOPLP else [])],
-                    "auto": {"dyn": lane(dyn)}} if RECIPE else
+                           *([{"type": "filter", "kind": "lowpass", "cutoff": float(TOPLP), "q": 0.5}] if TOPLP else []),
+                           *([{"type": "tapestop", "stop": {"value": 0, "mod": [{"src": "auto.ts", "amount": 1}]}, "time": "1b", "curve": 1.6}] if TAPE else [])],
+                    "auto": {"dyn": lane(dyn), **({"ts": lane([(0, 0), (st["half"] - 0.25, 1), (st["half"], 0)])} if TAPE else {})}} if RECIPE else
                    {"fx": [{"type": "eq", "bands": ["highpass cutoff=26", "peak cutoff=45 q=1 gain=-3dB", "peak cutoff=300 q=0.8 gain=-3dB", "highshelf cutoff=6000 gain=3dB"]},
                           {"type": "gain", "gain": f"+{MG:g}dB"},
                           ({"type": "compressor", "threshold": "-24dB", "ratio": 3, "attack": "30ms", "release": "200ms", "makeup": "4dB"} if MCOMP else
@@ -299,11 +315,11 @@ def song():
                           *([{"type": "gain", "gain": f"{float(TRIM):+g}dB"}] if TRIM else [])],
                    "auto": {"dyn": lane(dyn)}}),
         "buses": {
-            "drums": {"fx": [stutter] + ([{"type": "compressor", "threshold": "-16dB", "ratio": 4, "attack": "1ms", "release": "80ms", "makeup": "0dB"},
+            "drums": {"fx": ([{"type": "filter", "kind": "hp", "cutoff": {"value": 20, "mod": [{"src": "auto.bs", "amount": 6}]}, "q": 0.7}] if BSWEEP else []) + [stutter] + ([{"type": "compressor", "threshold": "-16dB", "ratio": 4, "attack": "1ms", "release": "80ms", "makeup": "0dB"},
                                           {"type": "clip", "ceiling": "-11dB", "knee": 0.7, "link": True}] if RECIPE else []) + ([] if RECIPE else ([{"type": "drive", "drive": 0.3, "mix": 0.5},
                                           {"type": "compressor", "threshold": "-20dB", "ratio": 4, "attack": "3ms", "release": "80ms", "makeup": "4dB"}] if DBUS else
                                          [{"type": "compressor", "threshold": "-14dB", "ratio": 3, "attack": "5ms", "release": "90ms", "makeup": "2dB"}])),
-                      "auto": {"crk": cracks()}},
+                      "auto": {"crk": cracks(), **({"bs": lane([(0, 0), (st["build"] + 4, 1), (st["A"], 0)], {st["A"]})} if BSWEEP else {})}},
             "hall": {"fx": ["reverb kind=hall decay=2.8s size=0.85 mix=1 predelay=20ms"]},
             "echo": {"fx": ["delay time=3/16 feedback=0.4 mix=1 tone=3000"]},
         },
@@ -317,10 +333,17 @@ def song():
             {"name": "amen", "patch": "amen-chops", "gain": "-8dB" if AMENUP else "-12dB", "out": "drums",
              "fx": [{"type": "filter", "kind": "highpass", "cutoff": 200 if AMENUP else 350, "q": 0.7}],
              "score": sc("amen", f"swing16={ASWING}" if ASWING else "")},
-            {"name": "bass", "patch": "reese", "gain": "-5dB" if LUSH else "-9dB", "fx": [pump(-6), {"type": "filter", "kind": "lowpass", "cutoff": 900, "q": 1.2}], "score": sc("reese" if BWALK else "bass")},
-            {"name": "sub", "patch": "sub-sine", "gain": "-4dB" if (LUSH and not BASSOUT) else "-8dB", "fx": [pump(-6)], "score": sc("bass")},
+            {"name": "bass", "patch": "reese", "gain": f"{RGAIN}dB" if RGAIN else ("-5dB" if LUSH else "-9dB"),
+             "fx": [pump(-6)] + ([{"type": "drive", "drive": 0.35, "mix": 0.6}, {"type": "filter", "kind": "lowpass", "cutoff": {"value": 850, "mod": [{"src": "lfo.r", "amount": 0.7}]}, "q": 2}]
+                                 if RMOVE else [{"type": "filter", "kind": "lowpass", "cutoff": 900, "q": 1.2}]),
+             **({"lfo": {"r": "sine rate=5/1"}} if RMOVE else {}), "score": sc("reese" if BWALK else "bass")},
+            {"name": "sub", "patch": "sub-sine", "gain": f"{SUBUP}dB" if SUBUP else ("-4dB" if (LUSH and not BASSOUT) else "-8dB"),
+             "fx": [pump(-6)] + ([{"type": "phantom", "cutoff": 100, "harmonics": "-3dB"}] if SUBUP else []), "score": sc("bass")},
             {"name": "rhodes", "patch": "rhodes-damped", "gain": "-5dB" if LUSH else "-8dB", "pan": -0.15, "fx": [pump(-4)], "sends": {"hall": "-12dB"}, "score": sc("rhodes")},
-            {"name": "pad", "patch": "juno-pad", "gain": "-11dB" if LUSH else "-16dB", "fx": [pump(-6)], "sends": {"hall": "-8dB"}, "score": sc("pad")},
+            {"name": "pad", "patch": "juno-pad", "gain": "-11dB" if LUSH else "-16dB",
+             "fx": [pump(-6)] + ([{"type": "filter", "kind": "notch", "cutoff": {"value": 900, "mod": [{"src": "lfo.n", "amount": 1.2}]}, "q": 1.2},
+                                  {"type": "pan", "pan": {"value": 0, "mod": [{"src": "lfo.p", "amount": 0.4}]}}] if PADMOVE else []),
+             **({"lfo": {"n": "sine rate=7/1", "p": "sine rate=5/1"}} if PADMOVE else {}), "sends": {"hall": "-8dB"}, "score": sc("pad")},
             {"name": "voice", "patch": "voice", "gain": "-8dB" if LUSH else "-10dB", "pan": 0.2, "sends": {"hall": "-6dB", "echo": f"{VECHO or -12}dB"}, "score": sc("voice")},
             *([{"name": "wob", "patch": "reese", "gain": "-6dB", "lfo": {"w": f"sine rate={WOB}"},
                 "fx": [pump(-6), {"type": "filter", "kind": "lowpass", "cutoff": {"value": 500, "mod": [{"src": "lfo.w", "amount": 1.6}]}, "q": 4}],
@@ -333,7 +356,7 @@ def song():
 
 
 def dump(doc):
-    lines = [f"{k}: {json.dumps(doc[k])}" for k in ("about", "tempo", "ceiling", "volume", "tail", "patches", "master") if k in doc]
+    lines = [f"{k}: {json.dumps(doc[k])}" for k in ("about", "tempo", "ceiling", "volume", "true_peak", "tail", "patches", "master") if k in doc]
     lines.append("buses:")
     lines += [f"  {b}: {json.dumps(v)}" for b, v in doc["buses"].items()]
     lines.append("tracks:")
