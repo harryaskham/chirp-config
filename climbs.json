@@ -6470,7 +6470,7 @@
     {
       "id": "chirpers5-t4",
       "song": "songs/chirpers5-t4.yaml",
-      "reference": "Chirpers — Track 4 (untitled)",
+      "reference": "Chirpers — Hairline",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers5-t4 OUT.wav",
@@ -6486,7 +6486,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "Soft Concrete",
-        "title": "Track 4 (untitled)",
+        "title": "Hairline",
         "track": 4,
         "year": 2026
       },
