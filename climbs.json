@@ -6420,6 +6420,13 @@
           },
           "at": "2026-10-30T13:08:13Z",
           "was": 97.3
+        },
+        "stale": {
+          "score": 97.3,
+          "since": "2026-10-30T13:31:45Z",
+          "who": "chirper-three",
+          "rating": 8.5,
+          "version": "v3"
         }
       },
       "passes": 1,
