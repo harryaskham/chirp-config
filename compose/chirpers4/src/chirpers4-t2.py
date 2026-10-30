@@ -135,8 +135,11 @@ def build():
                    'auto': {'dyn': {'points': dyn}}},
         'tracks': [
             {'name': 'kit', 'patch': '909', 'gain': '-2dB', 'sends': {'rumble': '-15dB'}, 'score': merge_kit(kit, total)},
-            {'name': 'bass', 'patch': 'reese', 'gain': '-9dB',
-             'fx': [{'type': 'pump', 'on': 'kit.k', 'depth': '-9dB', 'release': '300ms', 'curve': 0.6}], 'score': line(bass, total)},
+            # (v3) THE BREATHING REESE: a slow LFO (one cycle every eight bars) sweeps a low-pass over the rolling bass, so the
+            # sixteenths open and close like a tide under the gallop instead of sitting still
+            {'name': 'bass', 'patch': 'reese', 'gain': '-9dB', 'lfo': {'tide': 'sine rate=8/1 phase=0.75'},
+             'fx': [{'type': 'filter', 'kind': 'lp', 'q': 1.1, 'cutoff': {'value': 2000, 'mod': [{'src': 'lfo.tide', 'amount': 1.0}]}},
+                    {'type': 'pump', 'on': 'kit.k', 'depth': '-9dB', 'release': '300ms', 'curve': 0.6}], 'score': line(bass, total)},
             {'name': 'galA', 'patch': gal, 'gain': '-13dB', 'pan': -0.15, 'sends': {'space': '-10dB'}, 'fx': ['lp cutoff=3200'], 'score': line(ga, total)},
             {'name': 'galB', 'patch': gal, 'gain': '-13dB', 'sends': {'space': '-10dB'}, 'fx': ['lp cutoff=3200'],
              'pan': {'value': 0.15, 'mod': [{'src': 'auto.split', 'amount': 0.7}]}, 'auto': {'split': {'points': pan_pts}},
