@@ -45,8 +45,10 @@
     "type": "eq",
     "bands": [
      "highpass cutoff=26",
-     "peak cutoff=300 q=0.8 gain=-2dB",
-     "highshelf cutoff=8000 gain=-3dB"
+     "peak cutoff=450 q=0.8 gain=-3dB",
+     "peak cutoff=1050 q=1.0 gain=2dB",
+     "peak cutoff=3000 q=1.0 gain=1dB",
+     "highshelf cutoff=9000 gain=-5dB"
     ]
    },
    {

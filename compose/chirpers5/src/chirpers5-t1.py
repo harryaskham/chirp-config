@@ -246,8 +246,9 @@ def main():
                                   "hp cutoff=400"]}},
         # v2: chirper-two's clean liquid master (the album's agreed -12.5 LUFS, no flat runs): glue, +7 dB into a fast
         # smooth compressor, the limiter only a safety net (the engine's limiter pins samples whenever it engages)
-        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=26", "peak cutoff=300 q=0.8 gain=-2dB",
-                                                    "highshelf cutoff=8000 gain=-3dB"]},
+        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=26", "peak cutoff=450 q=0.8 gain=-3dB",
+                                                    "peak cutoff=1050 q=1.0 gain=2dB", "peak cutoff=3000 q=1.0 gain=1dB",
+                                                    "highshelf cutoff=9000 gain=-5dB"]},   # v8: each register its share
                           {"type": "filter", "kind": "lp", "cutoff": {"value": 600, "mod": [{"src": "auto.lp", "amount": 19000}]}},
                           {"type": "tape", "drive": 0.2, "mix": 0.4, "hiss": "-66dB", "wow": 2, "flutter": 1, "seed": 3},
                           {"type": "compressor", "threshold": "-22dB", "ratio": 2.5, "attack": "15ms", "release": "150ms",
