@@ -131,7 +131,7 @@ def build():
         'buses': {'rumble': {'fx': ['reverb kind=hall decay=2.8s mix=1', 'lp cutoff=160', 'drive drive=0.5 mix=1',
                                     {'type': 'pump', 'on': 'kit.k', 'depth': '-12dB', 'release': '280ms', 'curve': 0.6}], 'returns': []},
                   'hall': {'fx': ['reverb kind=hall decay=3.5s mix=1', 'hp cutoff=300'], 'returns': []}},
-        'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=32', 'peak cutoff=45 q=1 gain=-5dB', 'lowshelf cutoff=150 gain=-5dB', 'peak cutoff=160 q=0.8 gain=-3dB',
+        'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=32', 'peak cutoff=45 q=1 gain=-5dB', 'lowshelf cutoff=150 gain=-5dB', 'peak cutoff=44 q=1.2 gain=-3dB', 'peak cutoff=62 q=1.2 gain=-3dB', 'peak cutoff=180 q=0.8 gain=-5dB',
                                                    'peak cutoff=900 q=0.7 gain=3dB', 'peak cutoff=2200 q=0.7 gain=4dB', 'highshelf cutoff=4000 gain=7dB']},
                           {'type': 'filter', 'kind': 'lp', 'q': 0.9, 'cutoff': {'value': 18000, 'mod': [{'src': 'auto.op', 'amount': -5.5}]}},
                           {'type': 'gain', 'gain': '+16dB'},
@@ -141,7 +141,7 @@ def build():
                           {'type': 'gain', 'gain': '+8dB'}, 'limiter ceiling=-0.3dB'],
                    'auto': {'dyn': {'points': dyn}, 'op': {'points': [['0s', 1], [f"{secs['A'] - 4 * 4 * SPB:.3f}s", 0.6], [f"{secs['A']:.3f}s", 0]]}}},
         'tracks': [
-            {'name': 'kit', 'patch': '909', 'gain': '-2dB', 'sends': {'rumble': '-11dB'}, 'score': merge_kit(kit, total)},
+            {'name': 'kit', 'patch': '909', 'gain': '-2dB', 'sends': {'rumble': '-13dB'}, 'score': merge_kit(kit, total)},
             {'name': 'reese', 'patch': 'reese', 'gain': '-10dB', 'fx': [{'type': 'pump', 'on': 'kit.k', 'depth': '-9dB', 'release': '280ms', 'curve': 0.6}], 'score': line(reese, total)},
             {'name': 'hoover', 'patch': 'hoover', 'gain': '-11dB', 'sends': {'hall': '-14dB'},
              'fx': [{'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '280ms', 'curve': 0.6}], 'score': line(hoov, total)},
