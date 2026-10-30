@@ -11,6 +11,8 @@ Liquid drum & bass at 174 bpm that starts in the dark and drives into the light:
 - THE MEETING: the break puts the reese's line over the piano's held major chords - the dark tune in the light key.
 - THE DAWN BREAKS (v5): the last beat before each drop is caught and replayed rising (a stutter with a pitch ramp),
   the dark winding itself up into the light.
+- FINAL ROUND (v6, Harry's notes): the bar before the second drop plays straight so the wind-up stutter agrees with it;
+  the sub gains phantom harmonics and drive and pumps harder; darker (the top eased, a 12 kHz low-pass).
 - THE HANDOVER: the outro ends on a held Ebmaj9 with a low G under it, ringing into Hairline's Gm9 (chirper-zero's
   t4), and the render tail is short.
 - The amen rolls straight (no garage skip - that is Last Night Bus) with a crash every phrase and a machine-kit kick
@@ -77,7 +79,9 @@ def build():
                 kick.append((t0, 'k', 0.25, 118)); kick.append((t0 + 2.5, 'k', 0.25, 108))
             for e, sl in enumerate(ROLL[k % 2]):
                 v = (112 if sl in (0, 9, 13, 4, 7, 15, 22) else 82) - (10 if s in DARK else 0)
-                amen.append((t0 + e * 0.5 + (0.03 if e % 2 else 0.0), nm(36 + sl), 0.5, v))
+                # (v6) the bar whose last beat winds up into the drop plays straight, so the stutter's straight repeats agree
+                sw = 0.0 if (s == 'verse2' and i == 7) else 0.03
+                amen.append((t0 + e * 0.5 + (sw if e % 2 else 0.0), nm(36 + sl), 0.5, v))
             if s in DROPS and i % 8 == 0:
                 crash.append((t0, 'c', 3.5, 100))
         if s == 'build' or (s == 'break' and i >= 12):
@@ -138,14 +142,14 @@ def build():
         'tempo': BPM, 'length': f'{end_s + 1.2:.2f}s', 'ceiling': '-1dB', 'volume': '0dB', 'true_peak': True,
         'buses': {'hall': {'fx': ['reverb kind=hall decay=3.2s mix=1', 'hp cutoff=250'], 'returns': []}},
         'master': {'fx': [{'type': 'filter', 'kind': 'lp', 'q': 0.7, 'cutoff': {'value': 18000, 'mod': [{'src': 'auto.op', 'amount': -4.9}]}},
-                          {'type': 'eq', 'bands': ['highpass cutoff=28', 'lowshelf cutoff=160 gain=4dB', 'peak cutoff=1100 q=0.9 gain=-4dB', 'highshelf cutoff=8000 gain=-2dB']},
+                          {'type': 'eq', 'bands': ['highpass cutoff=28', 'lowshelf cutoff=160 gain=4dB', 'peak cutoff=1100 q=0.9 gain=-4dB', 'highshelf cutoff=7000 gain=-3.5dB']},
                           {'type': 'compressor', 'threshold': '-22dB', 'ratio': 2.5, 'attack': '15ms', 'release': '150ms', 'makeup': '2dB'},
                           {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.dyn', 'amount': 1}]}},
                           {'type': 'gain', 'gain': '+9.5dB'},
                           {'type': 'compressor', 'threshold': '-5dB', 'ratio': 10, 'attack': '0.3ms', 'release': '60ms', 'makeup': '0dB'},
                           {'type': 'stutter', 'slice': '1/16', 'repeats': 4, 'pitch': 3, 'chance': 1,
                            'mix': {'value': 0, 'mod': [{'src': 'auto.wind', 'amount': 1}]}},
-                          'lp cutoff=15000',
+                          'lp cutoff=12000',
                           {'type': 'clip', 'drive': '0dB', 'ceiling': '-1.8dB', 'knee': 0.55, 'link': True}],
                    'auto': {'dyn': {'points': dyn}, 'op': {'points': op}, 'wind': {'points': wind}}},
         'tracks': [
@@ -154,7 +158,10 @@ def build():
              'score': line(amen, total)},
             {'name': 'kick', 'patch': 'machine-kit', 'gain': '-6dB', 'score': line(kick, total)},
             {'name': 'crash', 'patch': 'break-kit', 'gain': '-14dB', 'score': line(crash, total)},
-            {'name': 'sub', 'patch': 'sub', 'gain': '+1dB', 'fx': [{'type': 'pump', 'on': 'amen', 'depth': '-4dB', 'release': '230ms', 'curve': 0.6}],
+            # (v6) the sub with weight that reads on small speakers: phantom harmonics above 90 Hz, a little drive
+            {'name': 'sub', 'patch': 'sub', 'gain': '+1dB', 'fx': [{'type': 'phantom', 'cutoff': 90, 'harmonics': '-10dB', 'odd': 0.4},
+                                                                 {'type': 'drive', 'drive': 0.2, 'mix': 0.3},
+                                                                 {'type': 'pump', 'on': 'amen', 'depth': '-5dB', 'release': '230ms', 'curve': 0.6}],
              'score': line(sub, total)},
             # THE REESE LEAD: overlapping notes glide; its low-pass breathes on an eight-bar LFO
             {'name': 'lead', 'patch': 'reese', 'gain': '-9dB', 'sends': {'hall': '-14dB'}, 'lfo': {'breath': 'sine rate=8/1 phase=0.75'},
