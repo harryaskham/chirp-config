@@ -39,6 +39,8 @@ Generator `compose/chirpers5/src/chirpers5-t4.py`. Liquid glitchstep, 174 bpm, G
 - **THE VOICE**: four bars, wordless: E5 (2.5) F#5 | E5 (3) C#5 | C#5 (2.5) B4 | C#5 (3.5); every other phrase in the drops, every phrase in the break and the intro's second half; strings double it an octave down in the second drop.
 - **THE SUNRISE**: the break's last eight bars carry wM's shepard-pad (an endless rise) under a snare roll at eighths, then sixteenths; the build before the first drop is a snare roll quarters -> eighths -> sixteenths.
 - **THE OPENING**: the whole mix through a low-pass that opens from 600 Hz across the intro and the build.
+- **THE LIFT** (v2): the last sixteen bars of the second drop and the outro go up a semitone, A major to Bb major - piano, strings, voice, sub and reese together, the anthem's key change for the final run.
+- **THE CHEST** (v2): a machine-kit kick under the amen's own kicks (the one and the and-of-3), and the piano's drop stabs gain a left-hand octave on the root (two and three octaves above the sub).
 
 ## t10 Streetlights Off (chirper-zero)
 Generator `compose/chirpers5/src/chirpers5-t10.py`. The closer: euphoric liquid D&B, 172 bpm, Db major (the last drop in D).
