@@ -44,7 +44,8 @@ MKICK_DB = os.environ.get("C4T7_MKICKDB", "0")
 HATLFO = os.environ.get("C4T7_HATLFO", "1") == "1"
 TAIL = os.environ.get("C4T7_TAIL", "2s")
 LIMG = os.environ.get("C4T7_LIMG", "0")
-LIMREL = os.environ.get("C4T7_LIMREL", "200ms")  # the safety limiter's release  # levels (Harry: "are we clipping?"): a final limiter at -1.5 dB (80 ms release) with this much gain into it, and the song ceiling at -1 dB  # the song's tail after the last bar (default 3 s)  # the 909's hats and claps split from the kick onto their own track, through a high-pass opening and closing on a 7-bar sine and a 3-bar triangle, drifting on a 5-bar sine  # the machine kick's level  # chirper-two's analog machine-kit for the kick alone (its own track): "kd" = the hard driven kick, "k" = the 909-circuit kick; the 909 keeps the hats, claps and the peak's kh layer  # the bursts' colour on a 5-bar sweep (a band-pass moving 500 Hz-4 kHz) and their place in the field on a 5-bar sine  # the master's lows cleaned (45 Hz -8, 155 Hz -3) and its top opened (6 kHz +3)  # a DJ's outro: only the kick (and its rumble) runs to the end, the rest leaves as before  # the outro mirrors the intro: the kick and the rumble all the way, the clank, the hats leaving at bar 9, no reese and no noise
+LIMREL = os.environ.get("C4T7_LIMREL", "200ms")
+PULLOUT = os.environ.get("C4T7_PULLOUT", "2")  # the reveal: the build's last beats go silent (the master drops out) before the drop - "2" = the last two beats, "1" = the last beat  # the safety limiter's release  # levels (Harry: "are we clipping?"): a final limiter at -1.5 dB (80 ms release) with this much gain into it, and the song ceiling at -1 dB  # the song's tail after the last bar (default 3 s)  # the 909's hats and claps split from the kick onto their own track, through a high-pass opening and closing on a 7-bar sine and a 3-bar triangle, drifting on a 5-bar sine  # the machine kick's level  # chirper-two's analog machine-kit for the kick alone (its own track): "kd" = the hard driven kick, "k" = the 909-circuit kick; the 909 keeps the hats, claps and the peak's kh layer  # the bursts' colour on a 5-bar sweep (a band-pass moving 500 Hz-4 kHz) and their place in the field on a 5-bar sine  # the master's lows cleaned (45 Hz -8, 155 Hz -3) and its top opened (6 kHz +3)  # a DJ's outro: only the kick (and its rumble) runs to the end, the rest leaves as before  # the outro mirrors the intro: the kick and the rumble all the way, the clank, the hats leaving at bar 9, no reese and no noise
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 FORM = [("intro", 16), ("A", 32), ("build", 16), ("B", 32), ("break", 8), ("C", 32), ("outro", 16)]
@@ -207,6 +208,9 @@ def song():
     st, total = starts()
     sc = lambda n: " | ".join(T[n])  # noqa: E731
     dyn = [(0, -6), (st["A"], 0), (st["build"], -2), (st["B"], 1), (st["break"], -7), (st["C"], 1), (st["outro"], -5)]
+    if PULLOUT:
+        gi = [i for i, (bar, _) in enumerate(dyn) if bar == st["B"]][0]
+        dyn.insert(gi, (st["B"] - float(PULLOUT) / 4, -60))
     bopen = [(0, -0.5), (st["A"], -0.4), (st["build"], 0), (st["B"], 0.3), (st["break"], -0.2), (st["C"], 0.8), (st["outro"], -0.3)]
     pump = lambda d: {"type": "pump", "on": f"kick.{MKICK}" if MKICK else "kit.k", "depth": f"{d}dB", "attack": "4ms", "release": "280ms", "curve": 0.6}  # noqa: E731
     patches = {
