@@ -32,6 +32,8 @@ BAR = 4 * SPB
 S = 0.25
 MG = float(os.environ.get("C4T8_MG", "18"))
 ROOMFB = float(os.environ.get("C4T8_ROOMFB", "0.74"))
+RIM3 = os.environ.get("C4T8_RIM3", "1") == "1"  # the echo's grid played: the rim every three 16ths (a dotted eighth) across the bar lines through A, B and the peak - three against the kick's four
+WETUP = float(os.environ.get("C4T8_WETUP", "0"))  # the room's send raised (dB) through A and B, the echo stream louder against the kick
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 FORM = [("intro", 16), ("build", 16), ("A", 32), ("break", 16), ("B", 32), ("peak", 16), ("outro", 16)]
@@ -98,7 +100,11 @@ def kit(sec, b, gb):
                 continue
             n = gb * 16 + st
             add(st, "h", 96 if n % 5 == 0 else 50)
-    if sec in ("A", "B", "peak") and b % 2 == 1:
+    if RIM3 and sec in ("A", "B", "peak"):
+        for st in range(16):
+            if (gb * 16 + st) % 3 == 0:
+                add(st, "rs", 78)
+    elif sec in ("A", "B", "peak") and b % 2 == 1:
         add(11, "rs", 70)
     if sec == "peak":
         for st in (4, 12):
@@ -171,7 +177,8 @@ def song():
     sc = lambda n: " | ".join(T[n])  # noqa: E731
     # STREAM SPLIT: the dry stab sinks and the room's send rises; the break is all room; B restores the dry stab
     dry = [(0, 0), (st["A"], -2), (st["A"] + 16, -5), (st["break"], -14), (st["B"], -2), (st["peak"], -4), (st["outro"], -6)]
-    wet = [(0, -8), (st["A"], -6), (st["A"] + 16, -3), (st["break"], 2), (st["B"], -6), (st["peak"], -2), (st["outro"], 0)]
+    up = (lambda x: x + WETUP) if WETUP else (lambda x: x)  # noqa: E731
+    wet = [(0, -8), (st["A"], up(-6)), (st["A"] + 16, up(-3)), (st["break"], 2), (st["B"], up(-6)), (st["peak"], -2), (st["outro"], 0)]
     dyn = [(0, -6), (st["build"], -3), (st["A"], 0), (st["break"], -7), (st["B"], 0), (st["peak"], 1), (st["outro"], -5)]
     frz = [(0, 0), (st["break"] + 2, 1), (st["break"] + 12, 0)]
     pump = lambda d: {"type": "pump", "on": "kit.k", "depth": f"{d}dB", "attack": "4ms", "release": "320ms", "curve": 0.6}  # noqa: E731
