@@ -6898,7 +6898,7 @@
     {
       "id": "chirpers6-t6",
       "song": "songs/chirpers6-t6.yaml",
-      "reference": "Chirpers — Track 6 (untitled)",
+      "reference": "Chirpers — The Last Train",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers6-t6 OUT.wav",
@@ -6914,7 +6914,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "All the Lights Left On",
-        "title": "Track 6 (untitled)",
+        "title": "The Last Train",
         "track": 6,
         "year": 2026
       },
