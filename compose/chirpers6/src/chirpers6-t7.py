@@ -17,6 +17,8 @@ V.   MACHINE (7/8 -> 4/4, 64 bars): two chug rigs take the interlock riff in 7/8
      sixteen bars square into 4/4 and the tremolo guitars and strings lift it - the building's machinery at full load.
 VI.  ROOF (4/4, 36 bars): the climb resolves to F major on the roof - the drums for 24 bars, then only wind, the guitars ringing open chords, THE FIGURE
      once more on the e-bow, slow; the lift's last word, far below: "ground floor."
+(v3) The office at night: a photocopier's scan sweeps every 7/8 bar of the machine's drums-and-bass opening (and the
+atrium's second half); a phone rings, unanswered, three times in the stairwell.
 Levels: dynamic (album rms -21..-11, crest 9..18): light glue, soft clip under a -1 dB ceiling, true_peak on.
 Emits songs/chirpers6-t7.yaml (JSON through tools/songfmt.py). Edit the music here, not the YAML.
 """
@@ -70,7 +72,7 @@ def build():
     for b in bars:
         secs.setdefault(b['sec'], b['t'])
     T = {k: [] for k in ('clock', 'chime', 'lift', 'gtr1', 'gtr2', 'bass', 'kit', 'celesta', 'cello', 'chugl', 'chugr',
-                         'fuzz', 'trem', 'strings', 'ebow', 'wind', 'sub', 'ring')}
+                         'fuzz', 'trem', 'strings', 'ebow', 'wind', 'sub', 'ring', 'copier', 'phone')}
     g2 = 0.0     # the second guitar's own 4/4 clock (it ignores the bar lines)
     for k, b in enumerate(bars):
         s, t0, i, bl = b['sec'], b['t'], b['i'], b['bl']
@@ -174,6 +176,16 @@ def build():
     T['lift'] += say(['g-ow1', 'ih0-ng', 'ah1-p'], secs['atrium'] + 4.0)
     T['chime'] += [(secs['roof'] + 31 * 4.0, 'E6', 1.5, 60), (secs['roof'] + 31 * 4.0 + 0.6, 'C6', 2.0, 56)]
     T['lift'] += say(GROUND, secs['roof'] + 31 * 4.0 + 2.0, 55)
+    # (v3) THE OFFICE AT NIGHT: a photocopier scanning in the machine's opening bars - its sweep on every 7/8 bar, the
+    # building's machinery literally keeping the meter - and a phone ringing, unanswered, in the stairwell
+    for b in bars:
+        if (b['sec'] == 'machine' and b['i'] < 16) or (b['sec'] == 'atrium' and b['i'] >= 16):
+            T['copier'].append((b['t'], 'C4', min(2.0, b['bl'] - 0.1), 74))
+    for rep in range(3):
+        a0 = secs['stair'] + 8 * 3.0 + rep * 6.0
+        x = 0.0
+        while x < 2.0 - 1e-6:
+            T['phone'].append((a0 + x, 'E6' if int(x * 8) % 2 == 0 else 'C6', 0.12, 62)); x += 0.125
     T['wind'].append((secs['roof'], 'C4', total - secs['roof'], 80))
     lv = {'lobby': -6, 'interlock': -2, 'stair': -7, 'atrium': -4, 'machine': 0, 'roof': -1}
     dyn = []
@@ -217,6 +229,10 @@ def build():
             tr('ring', 'clean-chorus', '-11dB', sends={'hall': '-6dB', 'echo': '-12dB'}),
             tr('ebow', 'ebow', '-9dB', sends={'hall': '-6dB'}),
             tr('wind', 'fx-wind', '-14dB'),
+            tr('copier', 'fx-sweep', '-18dB', fx=['hp cutoff=600', 'lp cutoff=5000'], sends={'hall': '-10dB'}),
+            tr('phone', {'synth': {'layers': [{'type': 'osc', 'wave': 'sine'}, {'type': 'osc', 'wave': 'square', 'level': 0.15}],
+                                   'amp': {'a': '2ms', 'd': '40ms', 's': 0.8, 'r': '20ms'}}}, '-22dB',
+               fx=['hp cutoff=400', 'lp cutoff=3400'], sends={'hall': '-2dB'}),
         ]}
 
 if __name__ == '__main__':
