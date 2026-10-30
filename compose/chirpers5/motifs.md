@@ -18,7 +18,7 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 
 ## t1 First Light (chirper-three), the opener
 Generator `compose/chirpers5/src/chirpers5-t1.py`. 2-step liquid, 174 bpm, C minor / Eb major.
-- **THE 2-STEP**: kick on 0 and the skip on 10 (the and-of-3; a pickup on 7 every fourth bar), snare on 4 and 12 with soft ghosts on 7 and 15, sixteenth hats swung like garage (the off sixteenths 0.075 of a beat late), accents on the e's.
+- **THE 2-STEP**: kick on 0 and THE SKIP, which since v3 wanders bar by bar like a drummer's (steps 10, 11, 10, then 7 and 10 together on every fourth bar), snare on 4 and 12 with soft ghosts on the off-sixteenths (3, 9, 14), sixteenth hats swung like garage (the off sixteenths 0.075 of a beat late) with their accents in a 3-3-2 (0 3 6 | 8 11 14).
 - **THE CHORDS** (two bars each): Abmaj9 | Gm9 | Cm9 | Bb13sus, a juno pad held under an epiano comping in the 2-step's gaps (the and-of-1, the a-of-2, the and-of-3 of the second bar), its damper on each release.
 - **THE HOOK** (vocal chop, two bars of sixteenths): `G5 . . Eb5 . . F5 . . . G5 . . . . . | Bb5 . . G5 . . F5 . . . Eb5`, sparse in the intro, every other phrase in the drops, alone in the break.
 - **THE AMEN BED**: wM's amen-chops re-sequenced from its ghost and ride slices only (never its kicks or main snares), quietly, high-passed, one hit re-pitched (+2) or reversed now and then.

@@ -103,15 +103,16 @@ def drums():
         if full or half:
             part("kick").add(x16(bar, 0), 0.5, "k", 112)
             if full:
-                part("kick").add(x16(bar, 10), 0.5, "k", 100)             # THE SKIP: the 2-step's and-of-3
+                skip = SKIPS[bar % 4]                                     # THE SKIP WANDERS (v3): 10 11 10 7
+                part("kick").add(x16(bar, skip), 0.5, "k", 100)
                 if bar % 4 == 0:
-                    part("kick").add(x16(bar, 7), 0.4, "k", 78)           # a pickup every fourth bar
+                    part("kick").add(x16(bar, 10), 0.4, "k", 84)          # the fourth bar doubles it: 7 and 10
             if full:
                 for s in (4, 12):
                     part("snare").add(x16(bar, s) + 0.01, 0.5, "s", 104 + hand.randint(-4, 4))
-                for s in (7, 15):
+                for s in (3, 9, 14):                                      # ghosts on the off-sixteenths (v3)
                     if hand.random() < 0.6:
-                        part("snare").add(x16(bar, s), 0.25, "s", 40 + hand.randint(-6, 8))   # ghosts
+                        part("snare").add(x16(bar, s), 0.25, "s", 40 + hand.randint(-6, 8))
             else:
                 part("snare").add(x16(bar, 8) + 0.01, 0.5, "s", 100)       # half-time: the snare on 3
         hats = (sec == "intro" and bar >= 9) or sec in ("build", "drop", "drop2") or (sec == "outro" and bar < 125)
@@ -119,13 +120,14 @@ def drums():
             for s in range(16):
                 if sec == "intro" and s % 2 == 0:
                     continue
-                v = (72 if s % 4 == 2 else 50 if s % 2 else 60) + hand.randint(-6, 6)
+                v = (74 if s in (0, 3, 6, 8, 11, 14) else 48) + hand.randint(-6, 6)   # the 3-3-2 push (v3)
                 if sec == "intro":
                     v -= 12
                 part("hats").add(x16(bar, s), 0.2, "h", v)
 
 
-AMEN = [2, 3, 6, 7, 9, 11, 13, 14, 15]       # the amen's ghost and ride slices (not its kicks and main snares)
+AMEN = [2, 3, 6, 7, 9, 11, 13, 14, 15]
+SKIPS = [7, 10, 11, 10]      # the 2-step's second kick, bar by bar (bar % 4): a drummer's skip, not a loop's       # the amen's ghost and ride slices (not its kicks and main snares)
 
 
 def amen_bed():
