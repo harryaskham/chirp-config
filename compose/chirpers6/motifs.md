@@ -77,6 +77,7 @@ Generator `compose/chirpers6/src/chirpers6-t4.py`. Slowcore waltz into a shoegaz
 - **THE WARM-UP** (v2): the lamp starts as sodium lamps do - the ballast buzz and the relay first, the hum entering a bar later.
 - **THE WALL'S STAGES** (v2, made distinct): bare strums and fuzz, no pad; then the pad and the buried choir; then the major glimpse with the strums tremolo-picked in 16ths, a shimmer; then the drop and the return.
 - **LIGHTS OUT IN FOUR** (v2): the drowned piano alone with the waltz in G; the clean guitar, fretless and brushes join; the ebow's last line over them (B4 . A4 | G4 . . F#4 G4); the piano and the hum alone as the last lamps go off - the last in the bar before the end, then a 1 s tail.
+- **GLIDE GUITAR** (v3): half the wall runs through a pitch shifter wobbling +-0.35 semitone on a 1.5-bar LFO - the tremolo arm held while strumming, the seasick bend of a shoegaze wall - and the whole wall pumps from the kick (-4 dB, 300 ms), so it breathes with the 6/8.
 - **THE FLICKER**: the wall bus gated to -40 dB on irregular sixteenths, failing more and more (seeded), stuttered, and tape-stopped over its last bar; the hum and the relay come back.
 
 ## t2 Every Window (chirper-three)

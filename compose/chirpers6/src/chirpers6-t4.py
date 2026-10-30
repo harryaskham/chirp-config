@@ -30,12 +30,17 @@ OUT = os.environ.get("C6T4_OUT") or os.path.join(ROOT, "songs", "chirpers6-t4.ya
 BPM = 72
 S = 0.25  # beats per sixteenth
 BAR = 12  # sixteenths in a 3/4 bar
-MGAIN = float(os.environ.get("C6T4_MGAIN", "5"))
+MGAIN = float(os.environ.get("C6T4_MGAIN", "6.5"))
 WARMUP = os.environ.get("C6T4_WARMUP", "1") == "1"  # the lamp warms up: the buzz and the relay first, the hum entering after a bar (sodium lamps start dim and rise)
 WALLSTAGES = os.environ.get("C6T4_WALLSTAGES", "1") == "1"  # the wall's stages made distinct: bare strums and fuzz; then the pad and the choir; then the major glimpse with the strums tremolo-picked in 16ths (shimmer)
 LOSTAGES = os.environ.get("C6T4_LOSTAGES", "1") == "1"  # lights out in four stages: the piano alone; the clean guitar and brushes join; the ebow's last line over them; the piano and the hum alone
 EQ = os.environ.get("C6T4_EQ", "1") == "1"
-LATEOFF = os.environ.get("C6T4_LATEOFF", "1") == "1"  # the last lamp goes off in the last bar but one (not three bars early), and the render tail is 1 s: the hand-over into Leave the Lights On has no dead air  # the crunch guitars' 2.4 kHz down 4 dB on the wall bus, the master's top up 3 dB from 8 kHz
+LATEOFF = os.environ.get("C6T4_LATEOFF", "1") == "1"
+SUBMODE = os.environ.get("C6T4_SUBMODE", "")  # "c": the sub's C and A roots an octave up (C1 and A1 were piling up at 32 and 51 Hz); "none": no sub
+HPF = os.environ.get("C6T4_HPF", "28")  # the master's high-pass (Hz)
+TOP = os.environ.get("C6T4_TOP", "3")
+WPUMP = os.environ.get("C6T4_WPUMP", "1") == "1"  # the wall breathes with the kick: the wall bus pumps (sidechain) from the rock kit's kick, -4 dB
+GLIDE = os.environ.get("C6T4_GLIDE", "1") == "1"  # glide guitar: half the wall through a pitch shifter wobbling +-0.35 semitone on a 1.5-bar LFO (the tremolo arm held while strumming)  # the master's 8 kHz shelf (dB) with the EQ on  # the last lamp goes off in the last bar but one (not three bars early), and the render tail is 1 s: the hand-over into Leave the Lights On has no dead air  # the crunch guitars' 2.4 kHz down 4 dB on the wall bus, the master's top up 3 dB from 8 kHz
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 NOTE = {"C": 0, "C#": 1, "Db": 1, "D": 2, "D#": 3, "Eb": 3, "E": 4, "F": 5, "F#": 6, "G": 7, "G#": 8, "Ab": 8, "A": 9,
@@ -183,8 +188,8 @@ def build():
             if sec in ("waltz", "bloom") or (sec == "lightsout" and lo_stage in (-1, 1, 2)):
                 add("fretless", at, nm(r + 12), 8, 86)
                 add("fretless", at + 8, nm(r + 19), 4, 70)
-            if sec in ("wall",):
-                add("sub", at, nm(r), BAR, 96)
+            if sec in ("wall",) and SUBMODE != "none":
+                add("sub", at, nm(r + 12 if (SUBMODE == "c" and r in (24, 33)) else r), BAR, 96)
                 add("fretless", at, nm(r + 12), 6, 96)
                 add("fretless", at + 6, nm(r + 12), 6, 88)
 
@@ -324,19 +329,22 @@ def song():
                              "synth": {"layers": ["sine fixed=62", {"type": "noise", "color": "brown"}], "filters": ["lp cutoff=400"],
                                        "amp": {"a": "1ms", "d": "220ms", "s": 0, "r": "120ms"}}},
         },
-        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=28", "peak cutoff=300 q=0.8 gain=-2dB", "highshelf cutoff=7000 gain=0dB", *(["highshelf cutoff=8000 gain=3dB"] if EQ else [])]},
+        "master": {"fx": [{"type": "eq", "bands": [f"highpass cutoff={HPF}", "peak cutoff=300 q=0.8 gain=-2dB", "highshelf cutoff=7000 gain=0dB", *([f"highshelf cutoff=8000 gain={TOP}dB"] if EQ else [])]},
                           {"type": "compressor", "threshold": "-18dB", "ratio": 2, "attack": "20ms", "release": "250ms", "makeup": "0dB"},
                           {"type": "gain", "gain": f"+{MGAIN:g}dB"},
                           {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}}],
                    "auto": {"dyn": dyn}},
         "buses": {
             "drums": {"fx": [{"type": "compressor", "threshold": "-14dB", "ratio": 3, "attack": "6ms", "release": "100ms", "makeup": "1dB"}]},
-            "wall": {"fx": ([{"type": "eq", "bands": ["peak cutoff=2400 q=0.9 gain=-4dB"]}] if EQ else []) + [{"type": "chorus", "depth": 0.6, "rate": 0.7, "mix": 0.5},
+            "wall": {"fx": ([{"type": "eq", "bands": ["peak cutoff=2400 q=0.9 gain=-4dB"]}] if EQ else [])
+                           + ([{"type": "pitch", "semitones": {"value": 0, "mod": [{"src": "lfo.g", "amount": 0.35}]}, "mix": 0.5, "grain": "60ms"}] if GLIDE else [])
+                           + ([{"type": "pump", "on": "kit.k", "depth": "-4dB", "attack": "2ms", "release": "300ms", "curve": 0.8}] if WPUMP else [])
+                           + [{"type": "chorus", "depth": 0.6, "rate": 0.7, "mix": 0.5},
                             {"type": "stutter", "slice": "1/16", "repeats": 3, "chance": 0.35, "roll": 1, "seed": 3,
                              "mix": {"value": 0, "mod": [{"src": "auto.stu", "amount": 1}]}},
                             {"type": "tapestop", "stop": {"value": 0, "mod": [{"src": "auto.ts", "amount": 1}]}, "time": "3b", "curve": 1.4},
                             {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.fl", "amount": 1}]}}],
-                     "sends": {"hall": "-4dB"},
+                     "sends": {"hall": "-4dB"}, **({"lfo": {"g": "sine rate=3/2"}} if GLIDE else {}),
                      "auto": {"fl": flicker_gate(), "stu": lane([(0, 0), (fl, 1), (fl + 16 * BAR, 0)]),
                               "ts": lane([(0, 0), (fl + 15 * BAR, 1), (fl + 16 * BAR, 0)])}},
             "hall": {"fx": ["reverb kind=hall decay=4.5s size=1 mix=1 predelay=40ms", "lp cutoff=9000"]},
