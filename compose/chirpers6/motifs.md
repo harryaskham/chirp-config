@@ -27,3 +27,9 @@ Generator `compose/chirpers6/src/chirpers6-t3.py`. Instrumental post-metal, 132 
 - **7 AGAINST 4**: in DERAILED the wheels' 14-sixteenth cycle comes back over the 16-sixteenth doom bars - the train is back, and neither gives way.
 - **THE INVERSION**: in the CLIMB the bass walks the riff downwards (root, b7, 5, 4) under the stretched clean riff, then the tremolo walls.
 
+## t1 The Mast (chirper-two)
+- **T, THE THEME**: F#4 E4 D4 A3 B3 (2 1 1 2 4 beats), falling and lifting; never played the same way twice: slow in delay (I), answered in eighths (II), at half speed on celesta (III), in triplets (IV), in long values a tone up on a tape-echo lead with glockenspiel (V), its first three notes on piano with no ending (VI).
+- **THE NIGHT SERVICE** (radio voice, ARPAbet, a syllable a beat): "This is the night service. All the lights are left on. Keep your radio on." / "Snow on the line. We are still here." / at the end, slowed and lowered: "All the lights are left on."
+- **THE VIOLIN'S ANSWER** (climb): F#5 E5 D5 C#5 B4 A4 B4 D5, the theme's shape stretched upward.
+- Chords: brushes Dmaj9 A6 Bm9 Gmaj7#11, then Bm9 Gmaj7 D/F# Em9; snowfall Gmaj7 Em9 Bm9 A6; climb Bm G D A (G D A Bm); the lights in E: E B C#m A.
+
