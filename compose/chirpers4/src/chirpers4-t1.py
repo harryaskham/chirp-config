@@ -27,7 +27,8 @@ S = 0.25
 MG = float(os.environ.get("C4T1_MG", "18"))
 CLOSE8 = os.environ.get("C4T1_CLOSE8", "1") == "1"  # the door closes over eight bars, then the corridor again: only the kick's thud through the wall to the end (a mirror of the opening)
 SWING = os.environ.get("C4T1_SWING", "")
-TRES = os.environ.get("C4T1_TRES", "1") == "1"  # the cell on a 3+3+2 16th grid (0 3 6 8 11 14), the 7 notes cycling through it - syncopated against the kick  # a light 16th swing on the kit and the cell, e.g. 0.58
+TRES = os.environ.get("C4T1_TRES", "1") == "1"
+CLOSELV = os.environ.get("C4T1_CLOSELV", "r4")  # the close's level (dB, default -4): you are right outside the door, the club still loud through it  # the cell on a 3+3+2 16th grid (0 3 6 8 11 14), the 7 notes cycling through it - syncopated against the kick  # a light 16th swing on the kit and the cell, e.g. 0.58
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 FORM = [("corridor", 16), ("door", 8), ("A", 32), ("deep", 16), ("B", 32), ("close", 16)]
@@ -167,7 +168,11 @@ def song():
     wall = [(0, -6.5), (d0, -6.5), (d1, 0), (c0, 0), (c1, -6.5)] + ([(total, -6.5)] if CLOSE8 else [])
     wall_ramp = {d1, c1}
     room = [(0, 0), (d0, 0), (d1, -1), (c0, -1), (c1, 0)]  # the damp room's send: present behind the wall, gone inside
-    dyn = [(0, -6), (st["door"], -3), (st["A"], 0), (st["deep"], -5), (st["B"], 1), (st["close"], -4)]
+    dyn = [(0, -6), (st["door"], -3), (st["A"], 0), (st["deep"], -5), (st["B"], 1), (st["close"], float(CLOSELV) if (CLOSELV and not CLOSELV.startswith("r")) else -4)]
+    dyn_ramp = None
+    if CLOSELV.startswith("r"):  # the close holds the floor's level while the wall shuts, gaining as it muffles (the music stays as loud to the body)
+        dyn = dyn[:-1] + [(st["close"], 1), (st["close"] + 8, float(CLOSELV[1:]))]
+        dyn_ramp = {st["close"] + 8}
     pump = lambda d: {"type": "pump", "on": "kit.k", "depth": f"{d}dB", "attack": "4ms", "release": "330ms", "curve": 0.6}  # noqa: E731
     patches = {
         "deep-pluck": {"about": "Phantom Downbeat t1: the deep pluck - a saw and a square an octave down into a resonant 24 dB "
@@ -195,7 +200,7 @@ def song():
                           {"type": "compressor", "threshold": "-16dB", "ratio": 3, "attack": "10ms", "release": "120ms", "makeup": "2dB"},
                           {"type": "compressor", "threshold": "-6dB", "ratio": 10, "attack": "0.5ms", "release": "40ms", "makeup": "1dB"},
                           {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}}],
-                   "auto": {"dyn": lane(dyn)}},
+                   "auto": {"dyn": lane(dyn, dyn_ramp)}},
         "buses": {
             "club": {"fx": [{"type": "filter", "kind": "lowpass", "slope": 24, "cutoff": {"value": 18000, "mod": [{"src": "auto.wall", "amount": 1}]}, "q": 0.7}],
                      "sends": {"damp": {"value": "-60dB", "mod": [{"src": "auto.room", "amount": 54}]}},
