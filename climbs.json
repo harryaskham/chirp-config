@@ -6800,7 +6800,7 @@
     {
       "id": "chirpers6-t2",
       "song": "songs/chirpers6-t2.yaml",
-      "reference": "Chirpers — Track 2 (untitled)",
+      "reference": "Chirpers — Every Window",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers6-t2 OUT.wav",
@@ -6816,7 +6816,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "All the Lights Left On",
-        "title": "Track 2 (untitled)",
+        "title": "Every Window",
         "track": 2,
         "year": 2026
       },
