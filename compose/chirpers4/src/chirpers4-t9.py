@@ -66,7 +66,7 @@ def build():
         for i in range(n):
             bars.append({'sec': name, 'i': i, 'n': n, 't': t}); t += 4.0
     total = t
-    kit, bass, stab, sub, riser = [], [], [], [], []
+    kit, bass, stab, kick, riser = [], [], [], [], []
     for b in bars:
         s, t0, h, i = b['sec'], b['t'], HAS[b['sec']], b['i']
         g0 = int(round(t0 * 4))                       # global sixteenth index of the bar's one
@@ -75,8 +75,7 @@ def build():
             g = g0 + q
             at = t0 + q * 0.25 + (0.035 if q % 2 else 0.0)   # the odd sixteenths lean late (a little swing)
             if 'kick' in h and q % 4 == 0 and not (s == 'intro' and i < 8):   # (v3) the kick waits eight bars
-                kit.append((at, 'k', 0.25, 120))
-                sub.append((at, nm(28), 0.9, 110))
+                kick.append((at, 'kr', 0.25, 120))   # (v4) the machine's rumble kick: the rumble swells after each hit
             if 'hat' in h and q % 4 == 2:
                 kit.append((at, 'h', 0.25, 92))
             if 'hat' in h and q % 2 == 1 and s in ('B', 'C'):
@@ -149,15 +148,17 @@ def build():
                           {'type': 'gain', 'gain': '+8dB'}, 'limiter ceiling=-0.3dB'],
                    'auto': {'dyn': {'points': dyn}}},
         'tracks': [
-            {'name': 'kit', 'patch': '909', 'gain': '-2dB', 'sends': {'rumble': '-15dB'}, 'score': merge_kit(kit, total)},
-            {'name': 'sub', 'patch': '808', 'gain': '-17dB', 'fx': [{'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '300ms', 'curve': 0.6}], 'score': line(sub, total)},
+            # (v4) THE KICK: chirper-two's machine-kit rumble kick (kr) on its own track, its deep-techno rumble swelling in
+            # after every hit - the chest-hit and the tail in one circuit, in place of the 909 kick plus an 808 sub
+            {'name': 'kick', 'patch': 'machine-kit', 'gain': '-2dB', 'sends': {'rumble': '-18dB'}, 'score': merge_kit(kick, total)},
+            {'name': 'kit', 'patch': '909', 'gain': '-2dB', 'score': merge_kit(kit, total)},
             # THE PHANTOM BASS: harmonics 2-5 only (no fundamental), driven, pumping against the kick
             {'name': 'bass', 'patch': {'synth': {'layers': [{'type': 'additive', 'partials': [[2, 1.0], [3, 0.8], [4, 0.6], [5, 0.45]]}],
                                                  'amp': {'a': '2ms', 'd': '180ms', 's': 0.5, 'r': '60ms'}}},
-             'gain': '-12dB', 'fx': [{'type': 'drive', 'drive': 0.3, 'mix': 0.5}, {'type': 'pump', 'on': 'kit.k', 'depth': '-9dB', 'release': '300ms', 'curve': 0.6}],
+             'gain': '-12dB', 'fx': [{'type': 'drive', 'drive': 0.3, 'mix': 0.5}, {'type': 'pump', 'on': 'kick', 'depth': '-9dB', 'release': '300ms', 'curve': 0.6}],
              'notes': [{'at': f'{at * SPB:.4f}s', 'len': f'{d * SPB:.4f}s', 'pitch': m, 'vel': round(v / 127, 3)} for at, m, d, v in bass]},
             {'name': 'stab', 'patch': 'brass-stab', 'gain': '-5dB', 'pan': 0.2,
-             'fx': [{'type': 'filter', 'kind': 'comb', 'cutoff': 330, 'q': 7}, {'type': 'pump', 'on': 'kit.k', 'depth': '-8dB', 'release': '300ms', 'curve': 0.6},
+             'fx': [{'type': 'filter', 'kind': 'comb', 'cutoff': 330, 'q': 7}, {'type': 'pump', 'on': 'kick', 'depth': '-8dB', 'release': '300ms', 'curve': 0.6},
                     {'type': 'delay', 'time': '3/16', 'feedback': 0.35, 'mix': 0.25}], 'score': line(stab, total)},
             {'name': 'riser', 'patch': 'fx-riser-shepard', 'gain': '-10dB', 'score': line(riser, total)},
         ]}
