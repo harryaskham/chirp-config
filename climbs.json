@@ -6866,7 +6866,7 @@
     {
       "id": "chirpers6-t4",
       "song": "songs/chirpers6-t4.yaml",
-      "reference": "Chirpers — Track 4 (untitled)",
+      "reference": "Chirpers — Sodium",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers6-t4 OUT.wav",
@@ -6882,7 +6882,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "All the Lights Left On",
-        "title": "Track 4 (untitled)",
+        "title": "Sodium",
         "track": 4,
         "year": 2026
       },
