@@ -298,6 +298,15 @@ class Measures(unittest.TestCase):
         lo, hi = CS.m_recurrence(ctx(0.598))[0], CS.m_recurrence(ctx(0.62))[0]
         self.assertLess(abs(hi - lo), 5.0)                     # was 18.9 vs 57.4 across a hard 0.6 cut
 
+    def test_recurrence_band_is_the_albums_to_tune(self):
+        # chirper-two, 30 Oct: a slow post-rock crescendo reads as too repetitive under the fixed 0.25-0.7 band
+        v = [np.array([1.0, 0.0])] * 6                          # every section returns: share 1.0
+        c = {"sections": [{"vec": x} for x in v]}
+        base = CS.m_recurrence(c)[0]
+        self.assertEqual(base, CS.m_recurrence({**c, "album": {"weights": {}}})[0])   # no params: unchanged
+        tuned = CS.m_recurrence({**c, "album": {"params": {"recurrence": {"band": [0.25, 1.0]}}}})[0]
+        self.assertGreater(tuned, base)
+
     def test_structure_tolerates_record_like_section_lengths(self):
         def ctx(lens):
             t, secs = 0.0, []

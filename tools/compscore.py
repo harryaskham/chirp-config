@@ -351,8 +351,11 @@ def m_recurrence(ctx):
         return 30.0, {"sections": len(secs)}
     best = [max(_sim(secs[i], secs[j]) for j in range(0, i - 1)) for i in range(2, len(secs))]
     frac = float(np.mean([np.clip((b - RETURN[0]) / (RETURN[1] - RETURN[0]), 0, 1) for b in best]))
-    return band(frac, 0.25, 0.7, 0.15), {"returns": sum(b >= 0.6 for b in best), "of": len(best), "share": round(frac, 3),
-                                         "best_matches": [round(b, 2) for b in best]}
+    # the band of returning material is the album's to tune (Harry, 30 Oct: the metric is the composers'): a slow
+    # post-rock crescendo is cut into many similar sections, so it can want a higher ceiling than 0.7
+    lo, hi = (((ctx.get("album") or {}).get("params") or {}).get("recurrence") or {}).get("band", (0.25, 0.7))
+    return band(frac, float(lo), float(hi), 0.15), {"returns": sum(b >= 0.6 for b in best), "of": len(best),
+                                                    "share": round(frac, 3), "best_matches": [round(b, 2) for b in best]}
 
 
 def m_rhythm(ctx):
