@@ -6811,7 +6811,7 @@
     {
       "id": "chirpers6-t3",
       "song": "songs/chirpers6-t3.yaml",
-      "reference": "Chirpers — Track 3 (untitled)",
+      "reference": "Chirpers — Night Freight",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers6-t3 OUT.wav",
@@ -6827,7 +6827,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "All the Lights Left On",
-        "title": "Track 3 (untitled)",
+        "title": "Night Freight",
         "track": 3,
         "year": 2026
       },
