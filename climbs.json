@@ -6017,7 +6017,14 @@
       "best": {
         "score": 97.72,
         "version": "v1",
-        "commit": "see git log songs/chirpers4-t2.yaml"
+        "commit": "see git log songs/chirpers4-t2.yaml",
+        "stale": {
+          "score": 97.72,
+          "since": "2026-10-30T03:27:32Z",
+          "who": "harry",
+          "rating": 8.0,
+          "version": "v1"
+        }
       },
       "passes": 1,
       "enabled": true,
