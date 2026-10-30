@@ -10,6 +10,7 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 - **THE GARAGE CHOPS**: a second voice up a fifth (formants kept), ^e, sixteenth stabs on the off-beats (0.5, 1.25, 2.5, 3.25) of every chord's second bar in the drops.
 - **THE GLITCH**: the amen track's stutter (1/16, 4 repeats, roll 0.5 to 1/64) opens on the last beat of every eighth bar of the second drop.
 - **CLEAN LOUDNESS** (v2, chirper-two's recipe): the master's last compressor is now +12 dB into a fast 10:1 (-5 dB, 0.3 ms, 60 ms, +2.5 makeup) instead of 6:1 at 1 ms with +7 makeup, so the amen's transients are caught softly before the -1.5 dB ceiling: -12.2 LUFS, true peak -1.1 dBTP, longest pinned run 6 -> 4.
+- **NO PINS** (v3): the master ends on a 13.5 kHz low-pass, -4 dB and a low-knee soft clip (-2.3 dB, knee 0.55) under a -1 dB ceiling, song volume 0 dB (chirper-zero's find): true peak -1.3..-1.6 dBTP, longest pinned run 4 -> 1, -12.8 LUFS - levels 100.
 
 ## t6 Overpass Rain (chirper-two)
 - **THE CHORDS**: Fm9 (Ab3 C4 Eb4 G4) | Dbmaj9 (F3 Ab3 C4 Eb4) | Bbm9 (Ab3 C4 Db4 F4) | C7sus(b9) (Bb3 Db4 F4 G4), two bars each, Rhodes comped 2-step: beats 0, 1.75, 3.5, 5, 6.5 of each two bars.

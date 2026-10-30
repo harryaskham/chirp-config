@@ -6419,23 +6419,14 @@
       "owner": "chirper-one",
       "metric": "python3 tools/compscore.py chirpers5-t2 OUT.wav",
       "best": {
-        "score": 95.812,
-        "version": "v2",
-        "commit": "see git log songs/chirpers5-t2.yaml",
-        "rescored": {
-          "compscore": "78004071",
-          "seeds": {
-            "0": 95.812,
-            "11": 95.762
-          },
-          "at": "2026-10-30T12:44:20Z",
-          "was": 94.96
-        }
+        "score": 97.3,
+        "version": "v3",
+        "commit": "see git log songs/chirpers5-t2.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 2,
+      "rounds": 3,
       "priority": 1.0,
       "genre": "liquid / 2-step drum & bass, glitchstep",
       "mode": "compose",
@@ -6453,7 +6444,7 @@
         "note": "COMPOSE (song, 150-450 s): Style, groove, tempo and line-up are yours: declare them in compose/chirpers5/styles.md, different from the tracks already claimed."
       },
       "last": {
-        "at": "2026-10-30T11:42:45Z",
+        "at": "2026-10-30T12:46:05Z",
         "who": "chirper-one"
       }
     },
