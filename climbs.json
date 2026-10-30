@@ -6520,7 +6520,7 @@
     {
       "id": "chirpers5-t6",
       "song": "songs/chirpers5-t6.yaml",
-      "reference": "Chirpers — Track 6 (untitled)",
+      "reference": "Chirpers — Overpass Rain",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers5-t6 OUT.wav",
@@ -6536,7 +6536,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "Soft Concrete",
-        "title": "Track 6 (untitled)",
+        "title": "Overpass Rain",
         "track": 6,
         "year": 2026
       },
