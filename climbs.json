@@ -6753,7 +6753,7 @@
     {
       "id": "chirpers6-t1",
       "song": "songs/chirpers6-t1.yaml",
-      "reference": "Chirpers — Track 1 (untitled)",
+      "reference": "Chirpers — The Mast",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers6-t1 OUT.wav",
@@ -6769,7 +6769,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "All the Lights Left On",
-        "title": "Track 1 (untitled)",
+        "title": "The Mast",
         "track": 1,
         "year": 2026
       },
