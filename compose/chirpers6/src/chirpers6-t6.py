@@ -93,8 +93,19 @@ MELODY = [(0, 0, "B4", 4), (1, 0, "A4", 2), (1, 2, "G4", 2), (2, 0, "D5", 3), (2
 MELODY_MAJ = [(0, 0, "B4", 4), (1, 0, "C#5", 2), (1, 2, "B4", 2), (2, 0, "E5", 3), (2, 3, "C#5", 1), (3, 0, "D#5", 4)]
 
 
+def shape(notes, bar):
+    """v7, RETURNS CHANGE (chirper-one's note): each four-bar statement of the arpeggio takes a different shape -
+    rising, falling (the same notes reversed), or with its top lifted an octave - so no phrase repeats exactly."""
+    v = ((bar - 1) // 4) % 3
+    if v == 1:
+        return list(reversed(notes))
+    if v == 2:
+        return [m + 12 if k in (3, 4, 5) else m for k, m in enumerate(notes)]
+    return list(notes)
+
+
 def theme(bar, arp, vel, name="gtr1", every=1, octave=0):
-    for k, m in enumerate(arp[(bar - 1) % 4]):
+    for k, m in enumerate(shape(arp[(bar - 1) % 4], bar)):
         if k % every:
             continue
         part(name).add(b0(bar) + k / 2, 0.55 * every, nm(m + octave), vel - (6 if k % 2 else 0))
@@ -180,6 +191,9 @@ def platform_departure():
                 part("kit").add(b0(bar) + b, 0.5, "rd", 60 + 4 * (bar - 41))
             part("kit").add(b0(bar), 0.5, "t2", 70)
         if bar >= 49:
+            if bar % 4 == 0:                                           # v7: a tom fill closing each phrase
+                for j, piece in enumerate(("t1", "t1", "t2", "t3")):
+                    part("kit").add(b0(bar) + 3 + j / 4, 0.25, piece, 104 + 4 * j)
             for b in range(4):
                 part("kit").add(b0(bar) + b, 0.5, "k" if b in (0, 2) else "s", 96 if b in (1, 3) else 100)
                 part("kit").add(b0(bar) + b + 0.5, 0.25, "h" if bar < 57 else "c", 70 if bar < 57 else 84)
@@ -207,7 +221,8 @@ def freight():
     x, i = b0(89), 0
     while x < b0(133):
         iv = RIFF[i % 5]
-        if iv is not None:
+        breath = any(b0(br) + 2 <= x < b0(br + 1) for br in (104, 120))   # v7: the riff stops for half a bar
+        if iv is not None and not breath:
             m = 28 + iv                                                  # E1 (an 8-string's low E)
             v = 108 if i % 5 == 0 else 92
             for side in ("chugl", "chugr"):
@@ -219,6 +234,9 @@ def freight():
         i += 1
     for bar in range(89, 133):
         part("kit").add(b0(bar) + 2, 0.5, "s", 112)                       # half-time snare on 3
+        if bar % 8 == 0 and bar not in (104, 120):                         # v7: a snare roll into the next phrase
+            for j in range(8):
+                part("kit").add(b0(bar) + 2 + j / 4, 0.25, "s", 100 + 2 * j)
         for b in range(4):
             part("kit").add(b0(bar) + b, 0.5, "rd" if bar < 105 else "c", 76)
         if bar >= 113:                                                    # the melody AUGMENTED over the riff
@@ -241,6 +259,9 @@ def arrival():
                     part("lead").add(b0(bar) + s, ln * 0.95, n, 90 if bar >= 161 else 80)
         part("bass").add(b0(bar), 3.9, nm(ROOTS_MAJOR[(bar - 1) % 4]), 88)
         part("sub").add(b0(bar), 3.9, nm(ROOTS_MAJOR[(bar - 1) % 4] - 12), 92)
+        if bar >= 141 and bar % 4 == 0:                                   # v7: a tom fill closing each phrase
+            for j, piece in enumerate(("t1", "t2", "t3", "t3")):
+                part("kit").add(b0(bar) + 3 + j / 4, 0.25, piece, 106 + 3 * j)
         if bar >= 141:
             for k in range(8):                                             # driving eighths on the floor tom
                 part("kit").add(b0(bar) + k / 2, 0.4, "t3" if bar < 153 else "k", 84 if k % 2 else 96)
