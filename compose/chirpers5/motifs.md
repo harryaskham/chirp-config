@@ -43,6 +43,7 @@ Generator `compose/chirpers5/src/chirpers5-t4.py`. Liquid glitchstep, 174 bpm, G
 - **THE DARK**: G minor (Gm - Ebmaj7 - Cm - D roots, two bars each). A reese lead plays an eight-bar line, brooding and gliding: G3 Bb3 A3 G3 | Eb3 F3 G3 | C4 Bb3 A3 G3 | F#3 A3 G3 (overlapping notes), its low-pass (1.4 kHz) breathing on an eight-bar LFO; a low juno pad and the sub under it; no piano, no voice.
 - **THE LIGHT**: the drops turn to Bb major - Ebmaj9 - Bbmaj7 - Fadd9 - Gm9 - and a concert grand arrives for the first time, house stabs (one, and-of-2, four) with a left-hand root; the reese drops to bass (root + 12, three hits a bar).
 - **THE MEETING**: the break holds the light chords on the piano while the reese plays the dark line over them (its F# becomes F in the light).
+- **THE DAWN BREAKS** (v5): the master's last beat before each drop is caught and replayed rising - wM's stutter with a pitch ramp (1/16 slices, 4 repeats, +3 semitones a repeat) - so the dark verse winds itself up into the light; the drop lands on the clean one.
 - **THE HANDOVER**: the last four bars hold Ebmaj9 over a low G (pad and piano) into Hairline's Gm9; the render tail is 1.2 s.
 - (v2's semitone lift is withdrawn: it is Streetlights Off's.)
 
