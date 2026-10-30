@@ -45,7 +45,7 @@ IND_DB = os.environ.get("T9_INDDB", "-13")
 INDICATOR = os.environ.get("T9_INDICATOR", "")  # the car's indicator ticking through the intro and the outro (tick-tock every 380 ms, out of time with the bossa); "" off, "io" intro+outro, "all" the whole way, quieter
 TDAMP = os.environ.get("T9_TDAMP", "0")  # wM's release triggers on the tines: the rhodes tune and the bridge's pad let go with the e-piano's damper thud (gain dB, e.g. "0", "6")
 GDRAG = os.environ.get("T9_GDRAG", "40")  # the comping guitar laid back: the whole part dragged late by hand (ms), the bossa's lazy right hand (chirper-three's note)
-CODA = os.environ.get("T9_CODA", "")  # the side runs out but the car drives on: after the deck stops, the indicator ticks over the road's rumble; "road" = ticks + rumble, "tick" = ticks only, "rumble" = the road alone, "beat" = ticks on the beat (500 ms) + rumble
+CODA = os.environ.get("T9_CODA", "beat")  # the side runs out but the car drives on: after the deck stops, the indicator ticks over the road's rumble; "road" = ticks + rumble, "tick" = ticks only, "rumble" = the road alone, "beat" = ticks on the beat (500 ms) + rumble
 S = 0.25
 
 NOTE = {"C": 0, "C#": 1, "Db": 1, "D": 2, "D#": 3, "Eb": 3, "E": 4, "F": 5, "F#": 6, "Gb": 6, "G": 7, "G#": 8, "Ab": 8,
