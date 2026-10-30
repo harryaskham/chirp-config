@@ -121,6 +121,9 @@ def field():
 # THE STATION VOICE speaks (v3, ARPAbet through chirp's voice engine, as chirper-two's The Mast does): the platform's
 # announcement, and at the end, slower and lower, its answer (the album's title in it)
 PA_FIRST = [["p-l-ae1-t", "f-ao1-r-m", "t-uw1"], ["dh-ah0", "l-ae1-s-t", "t-r-ey1-n", "ih1-z", "n-aw1", "d-ih0", "p-aa1-r", "t-ih0-ng"]]
+RADIO_WORDS = [["ih1-z", "eh1-n", "iy0", "w-ah2-n", "s-t-ih1-l", "ah0", "w-ey1-k"],
+               ["dh-ah0", "l-ay1-n-z", "aa1-r", "d-aw1-n", "p-ae1-s-t", "dh-ah0", "r-ih1", "v-er0"],
+               ["k-iy1-p", "g-ow1", "ih0-ng"], ["k-iy1-p", "g-ow1", "ih0-ng"]]
 PA_LAST = [["dh-ah0", "l-ae1-s-t", "t-r-ey1-n", "hh-ae1-z", "g-ao1-n"], ["dh-ah0", "l-ay1-t-s", "aa1-r", "l-eh1-f-t", "aa1-n"]]
 
 
@@ -141,17 +144,22 @@ def voices():
     engine's formants gliding vowel to vowel in a speech rhythm, words just out of reach through a band-pass."""
     speak("pa", b0(5), PA_FIRST)
     speak("pa", b0(189), PA_LAST, step=0.8, base="G2")      # slower, lower: the last announcement
+    # THE RADIO IN THE TUNNEL (v5): a broadcast drifting in and out: wordless murmur between stations, and three
+    # phrases surfacing from the static - a voice someone in the dark is tuning towards
     hand = random.Random(66)
-    x = b0(69)
-    while x < b0(85):
-        phrase = hand.randint(5, 11)
-        pitch = hand.choice([50, 52, 53])                              # a low speaking voice, D3-F3
-        for i in range(phrase):
-            ln = hand.choice([0.25, 0.25, 0.5, 0.5, 0.75])
-            part("radio").add(x, ln * 0.85, nm(pitch + hand.choice([0, 0, 2, -1, 3]) - (i // 4)), 74 + hand.randint(-8, 8))
-            x += ln
-        x += hand.choice([1.0, 1.5, 2.0])                               # a breath between phrases
-
+    for a, z in ((69, 71), (74, 77), (80, 83)):
+        x = b0(a)
+        while x < b0(z):
+            phrase = hand.randint(4, 8)
+            pitch = hand.choice([50, 52, 53])
+            for i in range(phrase):
+                ln = hand.choice([0.25, 0.25, 0.5, 0.5, 0.75])
+                part("radio").add(x, ln * 0.85, nm(pitch + hand.choice([0, 0, 2, -1, 3]) - (i // 4)), 70 + hand.randint(-8, 8))
+                x += ln
+            x += hand.choice([0.75, 1.0, 1.5])
+    speak("words", b0(71), [RADIO_WORDS[0]], step=0.7, base="F#2")
+    speak("words", b0(77), [RADIO_WORDS[1]], step=0.7, base="F#2")
+    speak("words", b0(83), RADIO_WORDS[2:], step=0.8, base="F#2")
 
 def platform_departure():
     hand = random.Random(1)
@@ -294,6 +302,9 @@ def main():
     arrival()
     station()
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
+    # THE TUNING (v5): the radio's band-pass drifts +-0.6 octave around 1.4 kHz on a 7-bar LFO (OCTAVES), crushed
+    TUNING = [{"type": "filter", "kind": "bp", "q": 1.1, "cutoff": {"value": 1400, "mod": [{"src": "lfo.tune", "amount": 0.6}]}},
+              {"type": "crush", "bits": 8, "rate": 11000, "mix": 0.5}]
     radio_fx = [{"type": "filter", "kind": "bp", "cutoff": 1400, "q": 1.2}, {"type": "crush", "bits": 8, "rate": 11000, "mix": 0.6}]
     song = {
         "about": "Chirpers - All the Lights Left On (Chirpers VI), track 6 by chirper-three: THE LAST TRAIN. Post-rock / "
@@ -344,7 +355,10 @@ def main():
             tr("pa", "voice-speech", gain="-6dB", fx=[{"type": "filter", "kind": "bp", "cutoff": 1500, "q": 0.9},
                                                      {"type": "crush", "bits": 10, "rate": 16000, "mix": 0.4}],
                sends={"station": "-2dB"}),          # v3: the station voice SPEAKS, through a PA
-            tr("radio", "c6-voice", gain="-12dB", fx=radio_fx + [{"type": "pitch", "semitones": 0, "formant": -2}]),
+            tr("radio", "c6-voice", gain="-13dB", lfo={"tune": {"wave": "sine", "rate": "28b"}},
+               fx=TUNING + [{"type": "pitch", "semitones": 0, "formant": -2}]),     # between stations
+            tr("words", "voice-speech", gain="-5dB", lfo={"tune": {"wave": "sine", "rate": "28b"}},
+               fx=TUNING, sends={"hall": "-14dB"}),                                  # v5: the radio's words
             tr("gtr1", "starcaster-clean", gain="-8dB", pan=-0.3, sends={"hall": "-10dB"}),
             tr("gtr2", "m8-clean", gain="-10dB", pan=0.3, sends={"hall": "-8dB"}),
             tr("trem", "m8-clean", gain="-13dB", pan=0.15, sends={"hall": "-6dB"}),
