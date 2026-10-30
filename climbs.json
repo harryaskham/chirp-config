@@ -5605,7 +5605,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 13,
       "priority": 1.0,
       "genre": "lo-fi beats / ambient",
@@ -5626,7 +5626,8 @@
       "last": {
         "at": "2026-10-29T23:06:22Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers3-t2",
@@ -5642,7 +5643,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 11,
       "priority": 1.0,
       "genre": "lo-fi beats / ambient",
@@ -5663,7 +5664,8 @@
       "last": {
         "at": "2026-10-30T00:52:35Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers3-t3",
@@ -5680,7 +5682,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 11,
       "priority": 1.0,
       "genre": "lo-fi beats / ambient",
@@ -5701,7 +5703,8 @@
       "last": {
         "at": "2026-10-29T22:36:17Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers3-t4",
@@ -5718,7 +5721,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 29,
       "priority": 1.0,
       "genre": "lo-fi beats / ambient",
@@ -5739,7 +5742,8 @@
       "last": {
         "at": "2026-10-30T01:33:50Z",
         "who": "chirper-three"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers3-t5",
@@ -5756,7 +5760,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 16,
       "priority": 1.0,
       "genre": "lo-fi beats / ambient",
@@ -5777,7 +5781,8 @@
       "last": {
         "at": "2026-10-30T01:43:34Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers3-t6",
@@ -5795,7 +5800,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 18,
       "priority": 1.0,
       "genre": "lo-fi beats / ambient",
@@ -5816,7 +5821,8 @@
       "last": {
         "at": "2026-10-29T22:37:58Z",
         "who": "chirper-two"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers3-t7",
@@ -5834,7 +5840,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 10,
       "priority": 1.0,
       "genre": "lo-fi beats / ambient",
@@ -5855,7 +5861,8 @@
       "last": {
         "at": "2026-10-30T00:57:35Z",
         "who": "chirper-two"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers3-t8",
@@ -5871,7 +5878,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 15,
       "priority": 1.0,
       "genre": "lo-fi beats / ambient",
@@ -5892,7 +5899,8 @@
       "last": {
         "at": "2026-10-30T01:46:32Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers3-t9",
@@ -5908,7 +5916,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 13,
       "priority": 1.0,
       "genre": "lo-fi beats / ambient",
@@ -5929,7 +5937,8 @@
       "last": {
         "at": "2026-10-30T00:52:25Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers3-t10",
@@ -5946,7 +5955,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 12,
       "priority": 1.0,
       "genre": "lo-fi beats / ambient",
@@ -5967,7 +5976,8 @@
       "last": {
         "at": "2026-10-30T01:36:56Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers4-t1",
@@ -6260,5 +6270,5 @@
       }
     }
   ],
-  "focus": "Tape Weather"
+  "focus": "Chirpers IV (untitled)"
 }
