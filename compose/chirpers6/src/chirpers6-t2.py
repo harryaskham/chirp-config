@@ -150,8 +150,8 @@ def streets():
     hand = random.Random(3)
     for bar in range(49, 81):
         root, v = MAJOR[(bar - 1) % 4]
-        part("bass").add(b0(bar), 3.8, nm(root), 84)
-        part("strings").add(b0(bar), 3.9, ",".join(nm(m) for m in v), 56 + (bar - 49))
+        part("bass").add(b0(bar), 3.8, nm(root + (12 if root < 38 else 0)), 84)
+        part("strings").add(b0(bar), 3.9, ",".join(nm(m + 12) for m in v), 56 + (bar - 49))
         for k in range(16):                                           # tremolo: chord tones in sixteenths
             m = v[(k // 4) % 4] + 12
             part("trem").add(b0(bar) + k / 4, 0.24, nm(m), 52 + (bar - 49) + hand.randint(-4, 4))
@@ -181,9 +181,9 @@ def all_windows():
     for bar in range(97, 129):
         root, v = MAJOR[(bar - 1) % 4]
         g = bar - 97
-        part("bass").add(b0(bar), 3.8, nm(root), 92)
+        part("bass").add(b0(bar), 3.8, nm(root + (12 if root < 38 else 0)), 92)
         part("cb").add(b0(bar), 3.9, nm(root), 70 + g // 2)            # the contrabass under everything
-        part("strings").add(b0(bar), 3.9, ",".join(nm(m) for m in v), 64 + g)
+        part("strings").add(b0(bar), 3.9, ",".join(nm(m + 12) for m in v), 64 + g)
         part("cellos").add(b0(bar), 3.9, nm(root + 12) + "," + nm(v[0]), 64 + g)
         for k in range(16):
             m = v[(k // 4) % 4] + 12
@@ -224,11 +224,11 @@ def dawn():
             for k in range(16):
                 part("trem").add(b0(bar) + k / 4, 0.24, nm(v[(k // 4) % 4] + 12), 64 + hand.randint(-4, 4))
         if "bass" in alive:
-            part("bass").add(b0(bar), 3.8, nm(root), 84)
+            part("bass").add(b0(bar), 3.8, nm(root + (12 if root < 38 else 0)), 84)
         if "cb" in alive:
             part("cb").add(b0(bar), 3.9, nm(root), 70)
         if "strings" in alive:
-            part("strings").add(b0(bar), 3.9, ",".join(nm(m) for m in v), 64)
+            part("strings").add(b0(bar), 3.9, ",".join(nm(m + 12) for m in v), 64)
         if "cellos" in alive:
             part("cellos").add(b0(bar), 3.9, nm(root + 12), 64)
     theme("violin", 137, 74, bars=8)
@@ -271,12 +271,12 @@ def main():
                                                                                         [3.0, 0.2], [4.07, 0.15]]}],
                                           "amp": {"a": "2ms", "d": "4s", "s": 0, "r": "3s"}}}},
         "buses": {"hall": {"fx": ["reverb kind=hall decay=4.8s mix=1 predelay=45ms", "hp cutoff=180"]}},
-        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=38", "peak cutoff=300 q=0.9 gain=-4dB",
-                                                    "highshelf cutoff=6000 gain=-1dB"]},
+        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=42", "peak cutoff=300 q=0.9 gain=-4dB",
+                                                    "highshelf cutoff=6000 gain=1dB"]},
                           {"type": "compressor", "threshold": "-20dB", "ratio": 2, "attack": "25ms", "release": "250ms",
                            "makeup": "0dB"},
                           {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}},
-                          {"type": "gain", "gain": "+9dB"},
+                          {"type": "gain", "gain": "+11dB"},
                           "limiter ceiling=-1.2dB release=120ms"],
                    "auto": {"dyn": {"points": dyn_lane()}}},
         "tracks": [

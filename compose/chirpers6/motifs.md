@@ -78,5 +78,6 @@ Generator `compose/chirpers6/src/chirpers6-t4.py`. Slowcore waltz into a shoegaz
 Generator `compose/chirpers6/src/chirpers6-t2.py`. Orchestral post-rock, 72 bpm, D major / B minor, ~8.5 min.
 - **THE WINDOW THEME** (8 bars, over Dmaj7 | Bm9 | Gmaj7#11 | A6sus twice): `F#5. E5 D5~ | C#5~~ B4 | D5. C#5 B4~ | A4~~~ | F#5. A5 F#5~ | E5~~ D5 | C#5. B4 G4~ | A4~~~`.
 - **THROUGH EVERY WINDOW**: the piano alone (the hill); celesta with a cello on the roots; a kitchen radio's waltz (a one-two-three lilt over the four, strings band-passed and crushed, crackle); a music box at double speed; a violin alone; the band's lead guitar (the streets); the piano in B MINOR at midnight under a bell striking twelve; the BRASS AUGMENTED (twice as slow) at the summit; the piano alone at dawn, its first phrase only.
+- **THE ORCHESTRATION** (since v2): the strings' chords an octave up (F#4-E5) in the band sections, high and lush, leaving the low mids to the cellos and piano; the bass guitar's roots an octave up where they fell below D2, so it carries the 60-120 Hz body while the contrabass keeps the deep octave alone.
 - **THE FAREWELL** (dawn): every two bars one instrument leaves, a window going dark: brass, drums and the fuzz wall, the tremolo, the bass, the contrabass, the strings, the cellos, the violin; the piano last, then the wind.
 
