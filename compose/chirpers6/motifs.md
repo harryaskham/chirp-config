@@ -16,6 +16,7 @@ Generator `compose/chirpers6/src/chirpers6-t6.py`. Post-rock / post-metal journe
 - **THE CRESCENDO** (III): five stages of eight bars - toms and ride, then crash, then kick and snare and the e-bow theme, then the ride's edge wash - the tremolo guitars (thirty-seconds on the chord tones) and strings louder each stage; the sub enters at stage two.
 - **THE FIRE** (IV): E5 - C5 - G5 - D5 on two chug rigs hard left and right (one, and-of-2, 3, 4, and-of-4), fuzz bass and sub on the roots, half-time kit, the drums doubling in the last eight bars; the wall tape-stops over the last two beats into V.
 - **THE ECHO**: the clean guitar, the tremolo and the glock feed a dotted-eighth (3/16) tape delay - the post-rock cascade against the beat.
+- **THE DOOR OPENS** (v2): through III the whole mix sits behind a master low-pass that starts at 4 kHz and opens across the five stages, wide open as IV lands - the crescendo heard as distance closing; in IV the strings and the lead pump against the kick (-5 / -3 dB, 500 ms).
 - **THE LOW END** (since v2, Harry's "basslines are a bit weak"): a mono 808 sub doubling the roots an octave under the fuzz bass through Departure and Arrival (pumped by the kick), the fuzz bass +5 dB, the freight's distorted bass +3, the kit +3; the train's rumble and the drone high-passed so the sub-rumble does not cloud the bass; darker on top (a high shelf from 5 kHz).
 
 ## t3 Night Freight (chirper-zero)

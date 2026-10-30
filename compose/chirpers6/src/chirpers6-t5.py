@@ -12,6 +12,8 @@ III. SIGNAL (40 bars): the drums arrive as toms and ride, a picked bass walks th
      theme is added - the crescendo is earned, not switched on.
 IV.  FIRE (24 bars): post-metal: two chug rigs left and right on E5 - C5 - G5 - D5, a fuzz bass, crashes and a heavy
      half-time kit; THE SIGNAL on a dark tape-echo lead an octave up, then in the last eight bars the drums double.
+     (v2) The crescendo also climbs out from behind a low-pass that opens stage by stage, and the strings and lead
+     breathe against the kick in the fire.
 V.   ASH (16 bars): the wall tape-stops into feedback and silence; rain; a music box plays THE SIGNAL in E MAJOR (the
      G sharpened), and the voice comes back, quieter and closer still: "leave the lights on."
 Levels: post-rock is dynamic (album master rms -21..-11, crest 9..18): a light glue, then a soft clip under a -1 dB
@@ -164,6 +166,10 @@ def build():
     dyn[0][0] = '0s'
     # V: the wall tape-stops over the last two beats of the fire
     ta = secs['ash'] * SPB
+    # (v2) THE DOOR OPENS: through the crescendo the whole mix climbs out from behind a low-pass - 4 kHz at the start of
+    # III, opening a little each eight-bar stage, wide open as the fire lands - so the build is heard as distance closing
+    t3, t4 = secs['signal'] * SPB, secs['fire'] * SPB
+    door = [['0s', 0], [f'{t3 - 0.05:.3f}s', 0], [f'{t3:.3f}s', 1], [f'{t4 - 0.05:.3f}s', 0.12], [f'{t4:.3f}s', 0]]
     ts = [['0s', 0], [f'{ta - 2 * SPB:.3f}s', 0], [f'{ta - 2 * SPB + 0.01:.3f}s', 1], [f'{ta - 0.01:.3f}s', 1], [f'{ta:.3f}s', 0]]
     # the narrator is in the room, not on a radio (the radio voice is chirper-two's opener): close, dry, over old tape hiss
     radio_fx = ['hp cutoff=110', 'lp cutoff=6500', {'type': 'tape', 'drive': 0.2, 'mix': 0.4, 'wow': 6, 'flutter': 2, 'seed': 9}]
@@ -181,9 +187,10 @@ def build():
                           {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.dyn', 'amount': 1}]}},
                           {'type': 'tapestop', 'time': '2b', 'mix': 1, 'stop': {'value': 0, 'mod': [{'src': 'auto.ts', 'amount': 1}]}},
                           {'type': 'gain', 'gain': '+6dB'},
+                          {'type': 'filter', 'kind': 'lp', 'q': 0.7, 'cutoff': {'value': 16000, 'mod': [{'src': 'auto.door', 'amount': -2.0}]}},
                           'lp cutoff=13000',
                           {'type': 'clip', 'drive': '0dB', 'ceiling': '-2dB', 'knee': 0.55, 'link': True}],
-                   'auto': {'dyn': {'points': dyn}, 'ts': {'points': ts}}},
+                   'auto': {'dyn': {'points': dyn}, 'ts': {'points': ts}, 'door': {'points': door}}},
         'tracks': [
             tr('wind', 'fx-wind', '-14dB'),
             tr('static', 'fx-crackle', '-10dB', fx=['hp cutoff=1500']),
@@ -196,12 +203,13 @@ def build():
             tr('kit', 'metal-kit', '-6dB', sends={'hall': '-16dB'}),
             tr('bass', 'bass-pick-di', '-6dB'),
             tr('trem', 'clean-chorus', '-12dB', pan=0.3, sends={'tape': '-8dB', 'hall': '-10dB'}),
-            tr('strings', 'strings', '-10dB', sends={'hall': '-8dB'}),
+            # (v2) the strings and the lead breathe against the kick in the fire (a sidechain pump)
+            tr('strings', 'strings', '-10dB', sends={'hall': '-8dB'}, fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-5dB', 'release': '500ms', 'curve': 0.6}]),
             tr('chugl', 'm8-chug-l', '-9dB', pan=-0.9),
             tr('chugr', 'm8-chug-r', '-9dB', pan=0.9),
             tr('fuzz', 'bass-fuzz', '-8dB'),
             tr('sub', 'sub', '-6dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-4dB', 'release': '500ms', 'curve': 0.6}]),
-            tr('lead', 'lead-tape', '-9dB', sends={'hall': '-10dB'}),
+            tr('lead', 'lead-tape', '-9dB', sends={'hall': '-10dB'}, fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-3dB', 'release': '500ms', 'curve': 0.6}]),
             tr('box', 'music-box', '-10dB', sends={'hall': '-6dB'}),
             tr('rain', 'fx-rain', '-12dB'),
             tr('voice', 'voice-speech', '-6dB', sends={'hall': '-10dB'}),
