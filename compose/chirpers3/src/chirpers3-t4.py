@@ -344,10 +344,17 @@ def beat():
                 P[SN].add(a + s, 1, "s", 92 + rng.randint(-6, 4))                # dragged late by the kit's nudge
             if rng.random() < 0.6:
                 P[SN].add(a + swing(rng.choice([7, 11, 15])), 0.5, "rs", 44 + rng.randint(0, 12))
+        # THE OPEN HAT (wM's dusty-kit): at the return's and the full section's phrase turns (even bars) the last
+        # closed hats give way to an open hat on the and-of-4, ringing over the barline until the pedal closes it
+        opn = sec in ("return", "full") and bar % 2 == 0 and H == "hat"
         for e in range(0, 16, 1 if sec in ("full", "return") else 2):
             if rng.random() < 0.12:
                 continue                                                         # a dropped hat
-            P[H].add(a + swing(e), 0.5, "h", (64 if e % 4 == 0 else 46) + rng.randint(-6, 6))
+            v = (64 if e % 4 == 0 else 46) + rng.randint(-6, 6)
+            if not (opn and e >= 14):
+                P[H].add(a + swing(e), 0.5, "h", v)
+        if opn:
+            P[H].add(a + swing(14), 2.4, "oh", 70)
         if sec == "glitch":                                                      # HAIL: rolls and retriggers
             for j in range(8):
                 P[SN].add(a + 12 + j * 0.5, 0.5, "s", 50 + 8 * j)
@@ -534,8 +541,9 @@ BREATHE = {"type": "pump", "on": "kick", "depth": "-9dB", "attack": "5ms", "rele
 
 CHOP = {"type": "chop", "slices": 8, "pattern": "0 0 r3 2 . 5 r7 _", "length": "1/1", "mix": 1}   # wM's resampler
 
-# wM's lo-fi toolkit (bd-9ef6a7): Dilla-ish wonk on the kit, a late snare and an early kick, each bar its own swing
-KIT = ("lofi-kit play.humanize.nudge.s=22ms play.humanize.nudge.k=-8ms play.humanize.swing_drift=0.04 "
+# wM's lo-fi toolkit (bd-9ef6a7): since v27 on wM's DUSTY-KIT (the kick buzzes the snare wires, the open hat closes
+# with a pedal chick); Dilla-ish wonk on the kit, a late snare and an early kick, each bar its own swing
+KIT = ("dusty-kit play.humanize.nudge.s=22ms play.humanize.nudge.k=-8ms play.humanize.swing_drift=0.04 "
        "play.humanize.drunk=4ms play.humanize.drift=5ms")       # drift works now (wM): the kit wanders over bars
 
 
