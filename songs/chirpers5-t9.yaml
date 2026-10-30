@@ -16,8 +16,49 @@
      "release": "70ms",
      "makeup": "2dB"
     },
-    "clip ceiling=-11dB knee=0.7 link=true"
-   ]
+    "clip ceiling=-11dB knee=0.7 link=true",
+    {
+     "type": "chop",
+     "slices": 16,
+     "pattern": "0 1 2 3 4 5 6 7 8 9 10 11 12 12 12 12",
+     "length": "1/1",
+     "mix": {
+      "value": 0,
+      "mod": [
+       {
+        "src": "auto.st",
+        "amount": 1
+       }
+      ]
+     }
+    }
+   ],
+   "auto": {
+    "st": {
+     "points": [
+      [
+       "0s",
+       0.0
+      ],
+      [
+       "42.739s",
+       0.0
+      ],
+      [
+       "42.759s",
+       1.0
+      ],
+      [
+       "44.118s",
+       1.0
+      ],
+      [
+       "44.138s",
+       0.0
+      ]
+     ]
+    }
+   }
   },
   "space": {
    "fx": [
@@ -34,7 +75,7 @@
     "bands": [
      "highpass cutoff=26",
      "peak cutoff=300 q=0.8 gain=-2dB",
-     "highshelf cutoff=9000 gain=-2dB"
+     "highshelf cutoff=7000 gain=-5dB"
     ]
    },
    {
@@ -49,6 +90,22 @@
       }
      ]
     }
+   },
+   {
+    "type": "tapestop",
+    "stop": {
+     "value": 0,
+     "mod": [
+      {
+       "src": "auto.ts",
+       "amount": 1
+      }
+     ]
+    },
+    "time": "1b",
+    "up": "0.25b",
+    "curve": 0.5,
+    "mix": 1
    },
    {
     "type": "tape",
@@ -161,6 +218,30 @@
       1.0
      ]
     ]
+   },
+   "ts": {
+    "points": [
+     [
+      "0s",
+      0.0
+     ],
+     [
+      "109.655s",
+      0.0
+     ],
+     [
+      "109.672s",
+      1.0
+     ],
+     [
+      "110.315s",
+      1.0
+     ],
+     [
+      "110.345s",
+      0.0
+     ]
+    ]
    }
   }
  },
@@ -234,8 +315,14 @@
    "name": "sub",
    "patch": "808",
    "score": "R/64b A1/3.95b@90 R/0.05b A1/3.95b@90 R/0.05b D1/3.95b@90 R/0.05b D1/3.95b@90 R/0.05b G1/3.95b@90 R/0.05b G1/3.95b@90 R/0.05b Gb1/3.95b@90 R/0.05b B1/3.95b@90 R/0.05b A1/3.95b@90 R/0.05b A1/3.95b@90 R/0.05b D1/3.95b@90 R/0.05b D1/3.95b@90 R/0.05b G1/3.95b@90 R/0.05b G1/3.95b@90 R/0.05b Gb1/3.95b@90 R/0.05b B1/3.95b@90 R/0.05b A1/3.95b@90 R/0.05b A1/3.95b@90 R/0.05b D1/3.95b@90 R/0.05b D1/3.95b@90 R/0.05b G1/3.95b@90 R/0.05b G1/3.95b@90 R/0.05b Gb1/3.95b@90 R/0.05b B1/3.95b@90 R/0.05b A1/3.95b@90 R/0.05b A1/3.95b@90 R/0.05b D1/3.95b@90 R/0.05b D1/3.95b@90 R/0.05b G1/3.95b@90 R/0.05b G1/3.95b@90 R/0.05b Gb1/3.95b@90 R/0.05b B1/3.95b@90 R/0.05b A1/3.95b@90 R/0.05b A1/3.95b@90 R/0.05b D1/3.95b@90 R/0.05b D1/3.95b@90 R/0.05b G1/3.95b@90 R/0.05b G1/3.95b@90 R/0.05b Gb1/3.95b@90 R/0.05b B1/3.95b@90 R/0.05b A1/3.95b@90 R/0.05b A1/3.95b@90 R/0.05b D1/3.95b@90 R/0.05b D1/3.95b@90 R/0.05b G1/3.95b@90 R/0.05b G1/3.95b@90 R/0.05b Gb1/3.95b@90 R/0.05b B1/3.95b@90 R/64.05b A1/3.95b@90 R/0.05b A1/3.95b@90 R/0.05b D1/3.95b@90 R/0.05b D1/3.95b@90 R/0.05b G1/3.95b@90 R/0.05b G1/3.95b@90 R/0.05b Gb1/3.95b@90 R/0.05b B1/3.95b@90 R/0.05b A1/3.95b@90 R/0.05b A1/3.95b@90 R/0.05b D1/3.95b@90 R/0.05b D1/3.95b@90 R/0.05b G1/3.95b@90 R/0.05b G1/3.95b@90 R/0.05b Gb1/3.95b@90 R/0.05b B1/3.95b@90 R/0.05b A1/3.95b@90 R/0.05b A1/3.95b@90 R/0.05b D1/3.95b@90 R/0.05b D1/3.95b@90 R/0.05b G1/3.95b@90 R/0.05b G1/3.95b@90 R/0.05b Gb1/3.95b@90 R/0.05b B1/3.95b@90 R/0.05b A1/3.95b@90 R/0.05b A1/3.95b@90 R/0.05b D1/3.95b@90 R/0.05b D1/3.95b@90 R/0.05b G1/3.95b@90 R/0.05b G1/3.95b@90 R/0.05b Gb1/3.95b@90 R/0.05b B1/3.95b@90 R/48.05b Db1/15.8b@84 R/0.2b",
-   "gain": "-12dB",
+   "gain": "-8dB",
    "fx": [
+    {
+     "type": "phantom",
+     "harmonics": "-4dB",
+     "odd": 0.4,
+     "remove": 0.0
+    },
     {
      "type": "pump",
      "on": "kick",
@@ -248,7 +335,7 @@
   },
   {
    "name": "keys",
-   "patch": "epiano-tine synth.tine.sense=0.4 play.release.patch=epiano-damper play.release.decay=2s",
+   "patch": "epiano-tine synth.tine.sense=0.25 play.release.patch=epiano-damper play.release.decay=2s",
    "score": "G3,C4,E4,G4,B4/1.4b@68 R/2.6b G3,C4,E4,G4,B4/1.4b@74 R/2.6b Gb3,A3,C4,E4,Gb4/1.4b@73 R/2.6b Gb3,A3,C4,E4,Gb4/1.4b@71 R/2.6b Gb3,B3,D4,Gb4,A4/1.4b@69 R/0.1b B3,D4,Gb4,A4/1b@53 R/1.5b Gb3,B3,D4,Gb4,A4/1.4b@74 R/0.1b B3,D4,Gb4,A4/1b@60 R/1.5b A3,C4,E4,Gb4,A4/1.4b@75 R/0.1b C4,E4,Gb4,A4/1b@59 R/1.5b A3,D4,Eb4,Gb4,A4/1.4b@74 R/0.1b D4,Eb4,Gb4,A4/1b@59 R/1.5b G3,C4,E4,G4,B4/1.4b@67 R/0.1b C4,E4,G4,B4/1b@58 R/1.5b G3,C4,E4,G4,B4/1.4b@69 R/0.1b C4,E4,G4,B4/1b@57 R/1.5b Gb3,A3,C4,E4,Gb4/1.4b@66 R/0.1b A3,C4,E4,Gb4/1b@59 R/1.5b Gb3,A3,C4,E4,Gb4/1.4b@74 R/0.1b A3,C4,E4,Gb4/1b@62 R/1.5b Gb3,B3,D4,Gb4,A4/1.4b@73 R/0.1b B3,D4,Gb4,A4/1b@56 R/1.5b Gb3,B3,D4,Gb4,A4/1.4b@71 R/0.1b B3,D4,Gb4,A4/1b@57 R/1.5b A3,C4,E4,Gb4,A4/1.4b@67 R/0.1b C4,E4,Gb4,A4/1b@59 R/1.5b A3,D4,Eb4,Gb4,A4/1.4b@74 R/0.1b D4,Eb4,Gb4,A4/1b@61 R/1.5b G3,C4,E4,G4,B4/1.4b@69 R/0.1b C4,E4,G4,B4/1b@61 R/1.5b G3,C4,E4,G4,B4/1.4b@65 R/0.1b C4,E4,G4,B4/1b@59 R/1.5b Gb3,A3,C4,E4,Gb4/1.4b@70 R/0.1b A3,C4,E4,Gb4/1b@63 R/1.5b Gb3,A3,C4,E4,Gb4/1.4b@65 R/0.1b A3,C4,E4,Gb4/1b@58 R/1.5b Gb3,B3,D4,Gb4,A4/1.4b@70 R/0.1b B3,D4,Gb4,A4/1b@55 R/1.5b Gb3,B3,D4,Gb4,A4/1.4b@71 R/0.1b B3,D4,Gb4,A4/1b@54 R/1.5b A3,C4,E4,Gb4,A4/1.4b@68 R/0.1b C4,E4,Gb4,A4/1b@63 R/1.5b A3,D4,Eb4,Gb4,A4/1.4b@66 R/0.1b D4,Eb4,Gb4,A4/1b@54 R/1.5b G3,C4,E4,G4,B4/1.4b@66 R/0.1b C4,E4,G4,B4/1b@58 R/1.5b G3,C4,E4,G4,B4/1.4b@66 R/0.1b C4,E4,G4,B4/1b@53 R/1.5b Gb3,A3,C4,E4,Gb4/1.4b@75 R/0.1b A3,C4,E4,Gb4/1b@54 R/1.5b Gb3,A3,C4,E4,Gb4/1.4b@69 R/0.1b A3,C4,E4,Gb4/1b@60 R/1.5b Gb3,B3,D4,Gb4,A4/1.4b@71 R/0.1b B3,D4,Gb4,A4/1b@55 R/1.5b Gb3,B3,D4,Gb4,A4/1.4b@68 R/0.1b B3,D4,Gb4,A4/1b@53 R/1.5b A3,C4,E4,Gb4,A4/1.4b@70 R/0.1b C4,E4,Gb4,A4/1b@56 R/1.5b A3,D4,Eb4,Gb4,A4/1.4b@73 R/0.1b D4,Eb4,Gb4,A4/1b@56 R/1.5b G3,C4,E4,G4,B4/1.4b@73 R/0.1b C4,E4,G4,B4/1b@57 R/1.5b G3,C4,E4,G4,B4/1.4b@74 R/0.1b C4,E4,G4,B4/1b@54 R/1.5b Gb3,A3,C4,E4,Gb4/1.4b@70 R/0.1b A3,C4,E4,Gb4/1b@56 R/1.5b Gb3,A3,C4,E4,Gb4/1.4b@67 R/0.1b A3,C4,E4,Gb4/1b@53 R/1.5b Gb3,B3,D4,Gb4,A4/1.4b@69 R/0.1b B3,D4,Gb4,A4/1b@62 R/1.5b Gb3,B3,D4,Gb4,A4/1.4b@65 R/0.1b B3,D4,Gb4,A4/1b@55 R/1.5b A3,C4,E4,Gb4,A4/1.4b@73 R/0.1b C4,E4,Gb4,A4/1b@61 R/1.5b A3,D4,Eb4,Gb4,A4/1.4b@71 R/0.1b D4,Eb4,Gb4,A4/1b@62 R/1.5b G3,C4,E4,G4,B4/1.4b@73 R/0.1b C4,E4,G4,B4/1b@53 R/1.5b G3,C4,E4,G4,B4/1.4b@70 R/0.1b C4,E4,G4,B4/1b@60 R/1.5b Gb3,A3,C4,E4,Gb4/1.4b@71 R/0.1b A3,C4,E4,Gb4/1b@53 R/1.5b Gb3,A3,C4,E4,Gb4/1.4b@71 R/0.1b A3,C4,E4,Gb4/1b@60 R/1.5b Gb3,B3,D4,Gb4,A4/1.4b@71 R/0.1b B3,D4,Gb4,A4/1b@56 R/1.5b Gb3,B3,D4,Gb4,A4/1.4b@66 R/0.1b B3,D4,Gb4,A4/1b@60 R/1.5b A3,C4,E4,Gb4,A4/1.4b@66 R/0.1b C4,E4,Gb4,A4/1b@58 R/1.5b A3,D4,Eb4,Gb4,A4/1.4b@67 R/0.1b D4,Eb4,Gb4,A4/1b@56 R/1.5b G3,C4,E4,G4,B4/1.4b@71 R/0.1b C4,E4,G4,B4/1b@55 R/1.5b G3,C4,E4,G4,B4/1.4b@69 R/0.1b C4,E4,G4,B4/1b@62 R/1.5b Gb3,A3,C4,E4,Gb4/1.4b@68 R/0.1b A3,C4,E4,Gb4/1b@54 R/1.5b Gb3,A3,C4,E4,Gb4/1.4b@67 R/0.1b A3,C4,E4,Gb4/1b@54 R/1.5b Gb3,B3,D4,Gb4,A4/1.4b@69 R/0.1b B3,D4,Gb4,A4/1b@58 R/1.5b Gb3,B3,D4,Gb4,A4/1.4b@68 R/0.1b B3,D4,Gb4,A4/1b@59 R/1.5b A3,C4,E4,Gb4,A4/1.4b@75 R/0.1b C4,E4,Gb4,A4/1b@60 R/1.5b A3,D4,Eb4,Gb4,A4/1.4b@72 R/0.1b D4,Eb4,Gb4,A4/1b@61 R/1.5b G3,C4,E4,G4,B4/1.4b@74 R/0.1b C4,E4,G4,B4/1b@61 R/1.5b G3,C4,E4,G4,B4/1.4b@74 R/0.1b C4,E4,G4,B4/1b@62 R/1.5b Gb3,A3,C4,E4,Gb4/1.4b@71 R/0.1b A3,C4,E4,Gb4/1b@56 R/1.5b Gb3,A3,C4,E4,Gb4/1.4b@71 R/0.1b A3,C4,E4,Gb4/1b@60 R/1.5b Gb3,B3,D4,Gb4,A4/1.4b@66 R/0.1b B3,D4,Gb4,A4/1b@59 R/1.5b Gb3,B3,D4,Gb4,A4/1.4b@75 R/0.1b B3,D4,Gb4,A4/1b@54 R/1.5b A3,C4,E4,Gb4,A4/1.4b@67 R/0.1b C4,E4,Gb4,A4/1b@62 R/1.5b A3,D4,Eb4,Gb4,A4/1.4b@71 R/0.1b D4,Eb4,Gb4,A4/1b@54 R/1.5b G3,C4,E4,G4,B4/1.4b@65 R/0.1b C4,E4,G4,B4/1b@58 R/1.5b G3,C4,E4,G4,B4/1.4b@72 R/0.1b C4,E4,G4,B4/1b@62 R/1.5b Gb3,A3,C4,E4,Gb4/1.4b@75 R/0.1b A3,C4,E4,Gb4/1b@58 R/1.5b Gb3,A3,C4,E4,Gb4/1.4b@65 R/0.1b A3,C4,E4,Gb4/1b@53 R/1.5b Gb3,B3,D4,Gb4,A4/1.4b@70 R/0.1b B3,D4,Gb4,A4/1b@58 R/1.5b Gb3,B3,D4,Gb4,A4/1.4b@71 R/0.1b B3,D4,Gb4,A4/1b@59 R/1.5b A3,C4,E4,Gb4,A4/1.4b@72 R/0.1b C4,E4,Gb4,A4/1b@54 R/1.5b A3,D4,Eb4,Gb4,A4/1.4b@68 R/0.1b D4,Eb4,Gb4,A4/1b@63 R/1.5b G3,C4,E4,G4,B4/1.4b@74 R/0.1b C4,E4,G4,B4/1b@60 R/1.5b G3,C4,E4,G4,B4/1.4b@71 R/0.1b C4,E4,G4,B4/1b@55 R/1.5b Gb3,A3,C4,E4,Gb4/1.4b@73 R/0.1b A3,C4,E4,Gb4/1b@58 R/1.5b Gb3,A3,C4,E4,Gb4/1.4b@66 R/0.1b A3,C4,E4,Gb4/1b@57 R/1.5b Gb3,B3,D4,Gb4,A4/1.4b@66 R/0.1b B3,D4,Gb4,A4/1b@63 R/1.5b Gb3,B3,D4,Gb4,A4/1.4b@71 R/0.1b B3,D4,Gb4,A4/1b@54 R/1.5b A3,C4,E4,Gb4,A4/1.4b@72 R/0.1b C4,E4,Gb4,A4/1b@61 R/1.5b A3,D4,Eb4,Gb4,A4/1.4b@69 R/0.1b D4,Eb4,Gb4,A4/1b@54 R/1.5b G3,C4,E4,G4,B4/1.4b@73 R/0.1b C4,E4,G4,B4/1b@58 R/1.5b G3,C4,E4,G4,B4/1.4b@75 R/0.1b C4,E4,G4,B4/1b@57 R/1.5b Gb3,A3,C4,E4,Gb4/1.4b@75 R/0.1b A3,C4,E4,Gb4/1b@60 R/1.5b Gb3,A3,C4,E4,Gb4/1.4b@67 R/0.1b A3,C4,E4,Gb4/1b@63 R/1.5b Gb3,B3,D4,Gb4,A4/1.4b@66 R/0.1b B3,D4,Gb4,A4/1b@61 R/1.5b Gb3,B3,D4,Gb4,A4/1.4b@67 R/0.1b B3,D4,Gb4,A4/1b@60 R/1.5b A3,C4,E4,Gb4,A4/1.4b@73 R/0.1b C4,E4,Gb4,A4/1b@61 R/1.5b A3,D4,Eb4,Gb4,A4/1.4b@65 R/0.1b D4,Eb4,Gb4,A4/1b@55 R/1.5b G3,C4,E4,G4,B4/1.4b@71 R/0.1b C4,E4,G4,B4/1b@60 R/1.5b G3,C4,E4,G4,B4/1.4b@74 R/0.1b C4,E4,G4,B4/1b@54 R/1.5b Gb3,A3,C4,E4,Gb4/1.4b@71 R/0.1b A3,C4,E4,Gb4/1b@63 R/1.5b Gb3,A3,C4,E4,Gb4/1.4b@68 R/0.1b A3,C4,E4,Gb4/1b@61 R/1.5b Gb3,B3,D4,Gb4,A4/1.4b@72 R/0.1b B3,D4,Gb4,A4/1b@59 R/1.5b Gb3,B3,D4,Gb4,A4/1.4b@73 R/0.1b B3,D4,Gb4,A4/1b@63 R/1.5b A3,C4,E4,Gb4,A4/1.4b@75 R/0.1b C4,E4,Gb4,A4/1b@53 R/1.5b A3,D4,Eb4,Gb4,A4/1.4b@68 R/0.1b D4,Eb4,Gb4,A4/1b@56 R/1.5b G3,C4,E4,G4,B4/1.4b@74 R/0.1b C4,E4,G4,B4/1b@57 R/1.5b G3,C4,E4,G4,B4/1.4b@65 R/0.1b C4,E4,G4,B4/1b@58 R/1.5b Gb3,A3,C4,E4,Gb4/1.4b@70 R/0.1b A3,C4,E4,Gb4/1b@58 R/1.5b Gb3,A3,C4,E4,Gb4/1.4b@66 R/0.1b A3,C4,E4,Gb4/1b@58 R/1.5b Gb3,B3,D4,Gb4,A4/1.4b@70 R/0.1b B3,D4,Gb4,A4/1b@54 R/1.5b Gb3,B3,D4,Gb4,A4/1.4b@72 R/0.1b B3,D4,Gb4,A4/1b@60 R/1.5b A3,C4,E4,Gb4,A4/1.4b@65 R/0.1b C4,E4,Gb4,A4/1b@60 R/1.5b A3,D4,Eb4,Gb4,A4/1.4b@69 R/0.1b D4,Eb4,Gb4,A4/1b@58 R/1.5b G3,C4,E4,G4,B4/1.4b@68 R/0.1b C4,E4,G4,B4/1b@57 R/1.5b G3,C4,E4,G4,B4/1.4b@68 R/0.1b C4,E4,G4,B4/1b@53 R/1.5b Gb3,A3,C4,E4,Gb4/1.4b@66 R/0.1b A3,C4,E4,Gb4/1b@62 R/1.5b Gb3,A3,C4,E4,Gb4/1.4b@70 R/0.1b A3,C4,E4,Gb4/1b@59 R/1.5b Gb3,B3,D4,Gb4,A4/1.4b@65 R/0.1b B3,D4,Gb4,A4/1b@56 R/1.5b Gb3,B3,D4,Gb4,A4/1.4b@66 R/0.1b B3,D4,Gb4,A4/1b@58 R/1.5b A3,C4,E4,Gb4,A4/1.4b@72 R/0.1b C4,E4,Gb4,A4/1b@57 R/1.5b A3,D4,Eb4,Gb4,A4/1.4b@66 R/0.1b D4,Eb4,Gb4,A4/1b@53 R/1.5b G3,C4,E4,G4,B4/1.4b@75 R/0.1b C4,E4,G4,B4/1b@54 R/1.5b G3,C4,E4,G4,B4/1.4b@68 R/0.1b C4,E4,G4,B4/1b@60 R/1.5b Gb3,A3,C4,E4,Gb4/1.4b@69 R/0.1b A3,C4,E4,Gb4/1b@62 R/1.5b Gb3,A3,C4,E4,Gb4/1.4b@73 R/0.1b A3,C4,E4,Gb4/1b@59 R/1.5b Gb3,B3,D4,Gb4,A4/1.4b@71 R/0.1b B3,D4,Gb4,A4/1b@61 R/1.5b Gb3,B3,D4,Gb4,A4/1.4b@72 R/0.1b B3,D4,Gb4,A4/1b@58 R/1.5b A3,C4,E4,Gb4,A4/1.4b@65 R/0.1b C4,E4,Gb4,A4/1b@55 R/1.5b A3,D4,Eb4,Gb4,A4/1.4b@66 R/0.1b D4,Eb4,Gb4,A4/1b@58 R/1.5b G3,C4,E4,G4,B4/1.4b@72 R/0.1b C4,E4,G4,B4/1b@63 R/1.5b G3,C4,E4,G4,B4/1.4b@70 R/0.1b C4,E4,G4,B4/1b@62 R/1.5b Gb3,A3,C4,E4,Gb4/1.4b@65 R/0.1b A3,C4,E4,Gb4/1b@55 R/1.5b Gb3,A3,C4,E4,Gb4/1.4b@68 R/0.1b A3,C4,E4,Gb4/1b@56 R/1.5b Db3,Ab3,C4,Eb4,F4,Ab4/15.8b@74 R/0.2b",
    "gain": "-7dB",
    "pan": -0.2,
@@ -284,7 +371,10 @@
    "pan": 0.3,
    "sends": {
     "space": "-14dB"
-   }
+   },
+   "fx": [
+    "lp cutoff=4500"
+   ]
   },
   {
    "name": "horns",

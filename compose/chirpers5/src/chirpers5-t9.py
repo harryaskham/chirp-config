@@ -202,7 +202,13 @@ def lanes():
             dyn.append([f"{max(0.0, t0 - 0.2):.3f}s", dyn[-1][1]])
         dyn.append([f"{t0:.3f}s", float(LEVEL[name])])
     lp = [["0s", 0.0], [f"{sec(b0(17)):.3f}s", 0.0], [f"{sec(b0(33)) - 0.05:.3f}s", 1.0], [f"{sec(b0(33)):.3f}s", 1.0]]
-    return dyn, lp
+    # v4: the tape stop: the break's last half bar winds down (bar 80, beats 3-4), the band crashes back at 81
+    ts = [["0s", 0.0], [f"{sec(b0(80) + 2):.3f}s", 0.0], [f"{sec(b0(80) + 2.05):.3f}s", 1.0],
+          [f"{sec(b0(81)) - 0.03:.3f}s", 1.0], [f"{sec(b0(81)):.3f}s", 0.0]]
+    # the build's stutter: the chop open for bar 32
+    st = [["0s", 0.0], [f"{sec(b0(32)) - 0.02:.3f}s", 0.0], [f"{sec(b0(32)):.3f}s", 1.0],
+          [f"{sec(b0(33)) - 0.02:.3f}s", 1.0], [f"{sec(b0(33)):.3f}s", 0.0]]
+    return dyn, lp, ts, st
 
 
 def main():
@@ -211,7 +217,7 @@ def main():
     band()
     solo()
     last_chord()
-    dyn, lp = lanes()
+    dyn, lp, ts, st = lanes()
     pump = {"type": "pump", "on": "kick", "depth": "-6dB", "attack": "3ms", "release": "230ms", "curve": 0.6}
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
     song = {
@@ -225,11 +231,18 @@ def main():
         "volume": "0dB",
         "buses": {"drums": {"fx": [{"type": "compressor", "threshold": "-16dB", "ratio": 4, "attack": "1ms",
                                      "release": "70ms", "makeup": "2dB"},
-                                    "clip ceiling=-11dB knee=0.7 link=true"]},
+                                    "clip ceiling=-11dB knee=0.7 link=true",
+                                    # v4: THE BUILD STUTTERS (a straight-grid chop, opened by a lane for the build's last
+                                    # bar): bar 32 replays bar 31's sixteenths, its last quarter one sixteenth four times
+                                    {"type": "chop", "slices": 16, "pattern": "0 1 2 3 4 5 6 7 8 9 10 11 12 12 12 12",
+                                     "length": "1/1", "mix": {"value": 0, "mod": [{"src": "auto.st", "amount": 1}]}}],
+                            "auto": {"st": {"points": st}}},
                   "space": {"fx": ["reverb kind=room decay=1.6s mix=1 predelay=15ms", "hp cutoff=300", "lp cutoff=8000"]}},
         "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=26", "peak cutoff=300 q=0.8 gain=-2dB",
-                                                    "highshelf cutoff=9000 gain=-2dB"]},
+                                                    "highshelf cutoff=7000 gain=-5dB"]},   # v4: darker
                           {"type": "filter", "kind": "lp", "cutoff": {"value": 800, "mod": [{"src": "auto.lp", "amount": 18500}]}},
+                          {"type": "tapestop", "stop": {"value": 0, "mod": [{"src": "auto.ts", "amount": 1}]},
+                           "time": "1b", "up": "0.25b", "curve": 0.5, "mix": 1},   # v4: THE BREAK'S TAPE STOP
                           {"type": "tape", "drive": 0.2, "mix": 0.4, "hiss": "-68dB", "wow": 1, "flutter": 1, "seed": 9},
                           {"type": "compressor", "threshold": "-22dB", "ratio": 2.5, "attack": "15ms", "release": "150ms",
                            "makeup": "0dB"},
@@ -238,7 +251,7 @@ def main():
                           {"type": "compressor", "threshold": "-5dB", "ratio": 10, "attack": "0.3ms", "release": "60ms",
                            "makeup": "0dB"},
                           "limiter ceiling=-1.2dB release=80ms"],
-                   "auto": {"dyn": {"points": dyn}, "lp": {"points": lp}}},
+                   "auto": {"dyn": {"points": dyn}, "lp": {"points": lp}, "ts": {"points": ts}}},
         "tracks": [
             tr("kick", "tight-kit", gain="-4dB", out="drums"),
             tr("snare", "tight-kit", gain="-5dB", out="drums", sends={"space": "-14dB"}),
@@ -246,12 +259,13 @@ def main():
             tr("bass", "bass-di", gain="-4dB", fx=[{"type": "eq", "bands": ["peak cutoff=150 q=0.9 gain=3dB"]},  # v3: body
                                                    {"type": "compressor", "threshold": "-18dB", "ratio": 4,
                                                     "attack": "5ms", "release": "80ms", "makeup": "3dB"}, pump]),
-            tr("sub", "808", gain="-12dB", fx=[pump]),
-            tr("keys", "epiano-tine synth.tine.sense=0.4 play.release.patch=epiano-damper play.release.decay=2s",
+            tr("sub", "808", gain="-8dB", fx=[{"type": "phantom", "harmonics": "-4dB", "odd": 0.4, "remove": 0.0},
+                                              pump]),   # v4: a sub with authority, heard on small speakers too
+            tr("keys", "epiano-tine synth.tine.sense=0.25 play.release.patch=epiano-damper play.release.decay=2s",
                gain="-7dB", pan=-0.2, sends={"space": "-10dB"},
                lfo={"kp": {"wave": "sine", "rate": "20b"}},
                fx=[{"type": "pan", "pan": {"value": -0.2, "mod": [{"src": "lfo.kp", "amount": 0.2}]}}]),
-            tr("gtr", "cutting-guitar", gain="-10dB", pan=0.3, sends={"space": "-14dB"}),
+            tr("gtr", "cutting-guitar", gain="-10dB", pan=0.3, sends={"space": "-14dB"}, fx=["lp cutoff=4500"]),
             tr("horns", "horn-section", gain="-9dB", pan=0.1, sends={"space": "-8dB"}),
             tr("wah", "lead-wah", gain="-8dB", pan=-0.05, sends={"space": "-8dB"}),
         ],
