@@ -6612,7 +6612,7 @@
     {
       "id": "chirpers5-t8",
       "song": "songs/chirpers5-t8.yaml",
-      "reference": "Chirpers — Track 8 (untitled)",
+      "reference": "Chirpers — Wet Brick",
       "source": null,
       "owner": "chirper-one",
       "metric": "python3 tools/compscore.py chirpers5-t8 OUT.wav",
@@ -6632,7 +6632,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "Soft Concrete",
-        "title": "Track 8 (untitled)",
+        "title": "Wet Brick",
         "track": 8,
         "year": 2026
       },
