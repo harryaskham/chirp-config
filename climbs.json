@@ -6382,7 +6382,7 @@
       "album": "chirpers5",
       "meta": {
         "artist": "Chirpers",
-        "album": "Chirpers V (untitled)",
+        "album": "Soft Concrete",
         "title": "Track 1 (untitled)",
         "track": 1,
         "year": 2026
@@ -6411,7 +6411,7 @@
       "album": "chirpers5",
       "meta": {
         "artist": "Chirpers",
-        "album": "Chirpers V (untitled)",
+        "album": "Soft Concrete",
         "title": "Track 2 (untitled)",
         "track": 2,
         "year": 2026
@@ -6440,7 +6440,7 @@
       "album": "chirpers5",
       "meta": {
         "artist": "Chirpers",
-        "album": "Chirpers V (untitled)",
+        "album": "Soft Concrete",
         "title": "Track 3 (untitled)",
         "track": 3,
         "year": 2026
@@ -6469,7 +6469,7 @@
       "album": "chirpers5",
       "meta": {
         "artist": "Chirpers",
-        "album": "Chirpers V (untitled)",
+        "album": "Soft Concrete",
         "title": "Track 4 (untitled)",
         "track": 4,
         "year": 2026
@@ -6498,7 +6498,7 @@
       "album": "chirpers5",
       "meta": {
         "artist": "Chirpers",
-        "album": "Chirpers V (untitled)",
+        "album": "Soft Concrete",
         "title": "Track 5 (untitled)",
         "track": 5,
         "year": 2026
@@ -6527,7 +6527,7 @@
       "album": "chirpers5",
       "meta": {
         "artist": "Chirpers",
-        "album": "Chirpers V (untitled)",
+        "album": "Soft Concrete",
         "title": "Track 6 (untitled)",
         "track": 6,
         "year": 2026
@@ -6556,7 +6556,7 @@
       "album": "chirpers5",
       "meta": {
         "artist": "Chirpers",
-        "album": "Chirpers V (untitled)",
+        "album": "Soft Concrete",
         "title": "Track 7 (untitled)",
         "track": 7,
         "year": 2026
@@ -6585,7 +6585,7 @@
       "album": "chirpers5",
       "meta": {
         "artist": "Chirpers",
-        "album": "Chirpers V (untitled)",
+        "album": "Soft Concrete",
         "title": "Track 8 (untitled)",
         "track": 8,
         "year": 2026
@@ -6614,7 +6614,7 @@
       "album": "chirpers5",
       "meta": {
         "artist": "Chirpers",
-        "album": "Chirpers V (untitled)",
+        "album": "Soft Concrete",
         "title": "Track 9 (untitled)",
         "track": 9,
         "year": 2026
@@ -6643,7 +6643,7 @@
       "album": "chirpers5",
       "meta": {
         "artist": "Chirpers",
-        "album": "Chirpers V (untitled)",
+        "album": "Soft Concrete",
         "title": "Track 10 (untitled)",
         "track": 10,
         "year": 2026
@@ -6655,5 +6655,5 @@
       }
     }
   ],
-  "focus": "Chirpers V (untitled)"
+  "focus": "Soft Concrete"
 }

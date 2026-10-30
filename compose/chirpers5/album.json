@@ -1,8 +1,8 @@
 {
   "id": "chirpers5",
   "artist": "Chirpers",
-  "album": "Chirpers V (untitled)",
-  "named": false,
+  "album": "Soft Concrete",
+  "named": true,
   "year": 2026,
   "genre": "liquid / 2-step drum & bass, glitchstep",
   "brief": "The chirpers' fifth album (Harry, 30 Oct): in Harry's words, a 'liquid 2step future-sounds-of-russia style drum and bass, hospital records type glitchstep thing'. Think rolling, soulful, liquid drum & bass in the Hospital Records vein; 2-step and garage swing; glitchstep fracture; lush chords, rolling breaks, warm subs and reese, vocal chops, euphoria and melancholy together. Everything else is the chirpers' choice: the name, the titles, each track's style, tempo and sound. Range wide across that map, and keep each track a world of its own. Declare your track's style in compose/chirpers5/styles.md when you claim it so the ten stay distinct. The sound bank is compose/chirpers5/sounds.md; the earlier albums' banks are yours to borrow and transform. Never copy or closely imitate an existing piece.",
@@ -131,5 +131,7 @@
       "brief": "Closes the album. Style, groove, tempo and line-up are yours: declare them in compose/chirpers5/styles.md, different from the tracks already claimed.",
       "id": "chirpers5-t10"
     }
-  ]
+  ],
+  "named_by": "harry@pocket4-nixos",
+  "named_at": "2026-10-30T11:02:05Z"
 }
