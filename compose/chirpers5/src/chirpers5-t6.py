@@ -74,6 +74,13 @@ if "J" in R2:
     R2 |= {"E", "S"}
 if "M" in R2:
     R2 |= {"P", "F"}
+# Round 3 (v3), the FINAL round, on Harry's Soft Concrete notes. (Overpass Rain has no swing: its stutters and chops
+# already sit on the straight grid.) B = A BASS THAT READS: the mono sub gains a mid layer from wM's phantom fx (its
+# 2nd-6th harmonics, following its level, so the line reads on small speakers), still pumped by the kick; T = THE
+# TOOLBOX IN THE TRANSITIONS: the first drop ends on a TAPE STOP (the whole mix winds down over its last beat into
+# the break), and through the build the amen climbs through a resonant LOW-PASS swept from 400 Hz to wide open; D = A SHADE
+# DARKER: the master's top comes down 1.5 dB above 6 kHz; P = true-peak limiting on the master.
+R3 = set(filter(None, os.environ.get("T6_R3", "B,T,D,P").split(","))) - {"none"}
 FORM = [("intro", 16), ("A", 32), ("break", 16), ("build", 8), ("B", 32), ("outro", 16)]
 # (bass root, Rhodes voicing), two bars each
 CHORDS = [(41, [56, 60, 63, 67]),   # Fm9: F2 | Ab3 C4 Eb4 G4
@@ -187,6 +194,11 @@ def main():
     roll = [["0b", 0.0], [f"{st['break'] - 4}b", 0.0], [f"{st['break'] - 4 + 0.01}b", 1.0], [f"{st['break']}b", 1.0],
             [f"{st['break'] + 0.01}b", 0.0], [f"{st['B'] - 4}b", 0.0], [f"{st['B'] - 4 + 0.01}b", 1.0],
             [f"{st['B']}b", 1.0], [f"{st['B'] + 0.01}b", 0.0]]
+    # the resonant low-pass on the amen: wide open (5.6 octaves over 400 Hz) except through the build, where it climbs
+    sweep = [["0b", 5.6], [f"{st['build'] - 0.01}b", 5.6], [f"{st['build']}b", 0.0], [f"{st['B'] - 0.25}b", 4.5],
+             [f"{st['B']}b", 5.6], [f"{total}b", 5.6]]
+    tstop = [["0b", 0.0], [f"{st['break'] - 1}b", 0.0], [f"{st['break'] - 0.99}b", 1.0], [f"{st['break']}b", 1.0],
+             [f"{st['break'] + 0.01}b", 0.0], [f"{total}b", 0.0]]
     rhodes = "epiano-tine synth.tine.sense=0.4 play.release.patch=epiano-damper play.release.decay=2s"
     tracks = [
         {"name": "rhodes", "patch": rhodes, "gain": "-4dB", "pan": -0.1,
@@ -205,12 +217,16 @@ def main():
          "fx": ["hp cutoff=60",
                 {"type": "stutter", "slice": "1/8", "repeats": 8, "roll": 0.5, "pitch": 1,
                  "chance": {"value": 0, "mod": [{"src": "auto.roll", "amount": 1}]}},
+                *([{"type": "filter", "kind": "lp", "q": 1.8,
+                    "cutoff": {"value": 400, "mod": [{"src": "auto.sweep", "amount": 1.0}]}}] if "T" in R3 else []),
                 "reverb kind=room decay=0.5s mix=0.1"],
-         "auto": {"roll": {"points": roll}}, "score": T["amen"].score(total)},
+         "auto": {"roll": {"points": roll}, **({"sweep": {"points": sweep}} if "T" in R3 else {})},
+         "score": T["amen"].score(total)},
         {"name": "kick", "patch": "break-kit", "gain": "-6dB", "fx": ["lp cutoff=3000"], "score": T["kick"].score(total)},
         {"name": "snare", "patch": "break-kit", "gain": "-9dB", "score": T["snare"].score(total)},
         {"name": "sub", "patch": "sub-sine", "gain": "-4dB",
-         "fx": [{"type": "pump", "on": "kick.k", "depth": "-6dB", "attack": "2ms", "release": "150ms", "curve": 0.8}],
+         "fx": [{"type": "pump", "on": "kick.k", "depth": "-6dB", "attack": "2ms", "release": "150ms", "curve": 0.8}]
+                + ([{"type": "phantom", "cutoff": "120hz", "harmonics": "-4dB", "odd": 0.4}] if "B" in R3 else []),
          "score": T["sub"].score(total)},
         {"name": "reese", "patch": "reese", "gain": "-16dB", "fx": ["lp cutoff=700", "hp cutoff=80"],
          "score": T["reese"].score(total)},
@@ -251,13 +267,18 @@ def main():
             {"type": "compressor", "threshold": "-16dB", "ratio": 4, "attack": "1ms", "release": "70ms",
              "makeup": "2dB"},
             f"clip ceiling={DRUM_CLIP:g}dB knee=0.7 link=true"]}}),
-        "master: " + json.dumps({"fx": [{"type": "eq", "bands": ["hp cutoff=25"]},
+        *(["true_peak: true"] if "P" in R3 else []),
+        "master: " + json.dumps({"fx": [{"type": "eq", "bands": ["hp cutoff=25"]
+                                          + (["highshelf cutoff=6000 gain=-1.5dB"] if "D" in R3 else [])},
                                         "glue threshold=-22dB ratio=2.5 attack=10ms release=150ms makeup=1dB",
                                         "tape drive=0.2 warmth=0.4",
                                         {"type": "gain", "gain": f"{LVL_GAIN:g}dB"},
                                         {"type": "compressor", "threshold": f"{PEAK_T:g}dB", "ratio": 10,
                                          "attack": "0.3ms", "release": "60ms", "makeup": "0dB"},
-                                        "limiter ceiling=-1.5dB release=80ms"]}),
+                                        "limiter ceiling=-1.5dB release=80ms"]
+                                 + ([{"type": "tapestop", "stop": {"value": 0, "mod": [{"src": "auto.tstop", "amount": 1}]},
+                                      "time": "1b", "curve": 1.6}] if "T" in R3 else []),
+                                 **({"auto": {"tstop": {"points": tstop}}} if "T" in R3 else {})}),
         "tracks:",
     ]
     lines += ["  - " + json.dumps(t) for t in tracks]
