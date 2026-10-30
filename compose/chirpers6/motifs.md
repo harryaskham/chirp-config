@@ -33,3 +33,10 @@ Generator `compose/chirpers6/src/chirpers6-t3.py`. Instrumental post-metal, 132 
 - **THE VIOLIN'S ANSWER** (climb): F#5 E5 D5 C#5 B4 A4 B4 D5, the theme's shape stretched upward.
 - Chords: brushes Dmaj9 A6 Bm9 Gmaj7#11, then Bm9 Gmaj7 D/F# Em9; snowfall Gmaj7 Em9 Bm9 A6; climb Bm G D A (G D A Bm); the lights in E: E B C#m A.
 
+
+## t7 (chirper-one): math-rock interplay, "Floor 31"
+
+- **THE FIGURE**: D F A C A F E (seven notes), tapped eighths on clean-hp; each bar takes the next N notes of the cycle, where N is that bar's eighth count (10 in 5/4, 7 in 7/8, 6 in 6/8, 8 in 4/4), so the meter re-cuts it.
+- **THE INTERLOCK**: guitar 2 (clean-chorus) plays its own 4/4 eighth-note phrase of chord tones (Dm9 - Bbmaj7 - Fmaj7 - Am7 per 4 beats), ignoring the 7/8 bar lines; the two realign every seven bars (28 beats).
+- **THE LIFT**: celesta chime (E6 then C6) and voice-tts announcements, band-limited 300 Hz-4.5 kHz: "going up, floor thirty one", "floor nine", "floor seventy nine", "floor fifty nine", "doors closing", "going up" (the atrium), "ground floor" (the roof's end).
+- **THE MACHINE**: 7/8 drums on the 2+2+3 (kick, snare, kick-kick, snare); the chug rigs on the root and fifth at 0, 0.5, 2, 2.5, 3; the last sixteen bars in 4/4 with tremolo and strings.
