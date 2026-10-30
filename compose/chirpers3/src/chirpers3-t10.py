@@ -55,7 +55,7 @@ def build():
         for i in range(n):
             bars.append({'sec': name, 'i': i, 't': t, 'c': (CHORDS_B[(i // 6) % 4] if name == 'B' else CHORDS[(i // 8) % 4] if name == 'A' else CHORDS[(len(bars) // 4) % 4])}); t += 4.0
     total = t
-    kit, pad, bass, arp, vox, locked = [], [], [], [], [], []
+    kit, pad, bass, arp, vox, locked, harm = [], [], [], [], [], [], []
     for k, b in enumerate(bars):
         s, t0, (root, ch) = b['sec'], b['t'], b['c']
         h = HAS[s]
@@ -96,7 +96,16 @@ def build():
             phrase = VOX[(k - (8 if s == 'B' else 0)) % 8] if 'vox' in h else VOX[3 + (b['i'] % 2) * 4]
             at = t0
             for m, d in phrase:
-                vox.append((at, m, d - 0.1, 78 if s in ('B', 'runout1', 'runout2') else 64)); at += d
+                vox.append((at, m, d - 0.1, 78 if s in ('B', 'runout1', 'runout2') else 64))
+                if s == 'B' and b['i'] >= 12:
+                    # THE HARMONY (the peak's second half): a second voice a diatonic third above (D major) joins the
+                    # vox line, so the sunset's peak swells from one voice to a pair
+                    D_MAJ = [2, 4, 6, 7, 9, 11, 1]
+                    pc = m % 12
+                    idx = D_MAJ.index(pc) if pc in D_MAJ else 0
+                    up = (D_MAJ[(idx + 2) % 7] - pc) % 12
+                    harm.append((at + 0.02, m + up, d - 0.12, 66))
+                at += d
     end_s = total * SPB
     # THE SWEEP (chirper-two's new ladder filter): the arp lives behind a resonant 4-pole that stays nearly shut
     # through A, opens over the whole of B (450 Hz -> 4 kHz, the song's sunset peak), and closes again through the
@@ -149,6 +158,7 @@ def build():
                      'freeze': {'value': 0, 'mod': [{'src': 'auto.vf', 'amount': 1}]}, 'mix': {'value': 0, 'mod': [{'src': 'auto.vm', 'amount': 1}]}},
                     {'type': 'tape', 'drive': 0.05, 'mix': 0.4, 'wow': 8, 'flutter': 1.5, 'drift': 1, 'tone': 8000, 'sweep': 0.4, 'seed': 14,
                      'warp': {'value': 0, 'mod': [{'src': 'auto.wear', 'amount': 1}]}}], 'notes': notes(vox)},
+            {'name': 'harm', 'patch': 'dream-vox', 'gain': '-9dB', 'pan': 0.25, 'notes': notes(harm)},
             {'name': 'locked', 'patch': 'dream-vox', 'gain': '-8dB', 'fx': [{'type': 'filter', 'kind': 'lp', 'cutoff': 1500, 'q': 0.7},
                                                                              'tape drive=0.2 mix=0.7 wow=22 flutter=4 drift=2 tone=4000 sweep=0.8 seed=41'],
              'notes': notes(locked)},
