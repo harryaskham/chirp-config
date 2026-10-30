@@ -93,6 +93,12 @@ R8 = set(filter(None, os.environ.get("T7_R8", "L").split(","))) - {"none"}
 # filter tuned to F3 (the piece's root, q 12; engine PR #32), so the drops ring at F and its harmonics against the
 # window; the plain rain goes on under it.
 R9 = set(filter(None, os.environ.get("T7_R9", "Q").split(","))) - {"none"}
+# Round 12 (v10), wM's shimmer and freeze on a bus of their own: K = THE RAIN'S RING GOES UP: the singing rain also
+# feeds a "sky" bus, a long hall with an octave-up shimmer, so its ringing F climbs in octaves above the room; when
+# the door begins to shut (beat 138, while the rain still rings) the sky freezes and holds that climbing chord until
+# 158, then lets it go. (On the quiet
+# whistle's own hall the same shimmer and freeze were inaudible: round 11, discarded.)
+R12 = set(filter(None, os.environ.get("T7_R12", "K").split(","))) - {"none"}
 
 # the loops: (track, loop length in beats, enter, leave, [(offset, length, notes)], velocity)
 LOOPS = [
@@ -289,6 +295,10 @@ def main():
         for tr in tracks:
             if tr["name"] in ("whistle", "sigh", "pulse"):
                 tr["sends"] = {"dubroom": {"whistle": "-4dB", "sigh": "-2dB", "pulse": "-6dB"}[tr["name"]]}
+    if "K" in R12 and "Q" in R9:
+        for tr in tracks:
+            if tr["name"] == "singing-rain":
+                tr["sends"] = {"sky": "0dB"}
     lines = [
         f"about: {json.dumps(about)}",
         "meta: " + json.dumps({"artist": "Chirpers", "album": "Tape Weather", "title": "After the Beat, Rain", "track": 7,
@@ -303,11 +313,20 @@ def main():
             "synth": {"layers": [{"type": "sample", "song": "loopsrc", "root": "C4", "reverse": True}],
                       "amp": {"a": "1.5s", "d": "0s", "s": 1, "r": "3s"}}}} if "B" in R4 else {})}),
         *(["songs: " + json.dumps({"loopsrc": loopsrc_song()})] if "B" in R4 else []),
-        *(["buses: " + json.dumps({"dubroom": {
-            "gain": "-4dB",
-            "fx": ["lp cutoff=1800", {"type": "tape", "drive": 0.4, "warmth": 0.7, "wow": 6, "flutter": 1.5, "seed": 7},
-                   "hp cutoff=120", "limiter ceiling=-6dB"],
-            "returns": [{"from": "dubroom", "gain": "-5dB", "time": "3/8"}]}})] if "D" in R7 else []),
+        *(["buses: " + json.dumps({
+            **({"dubroom": {
+                "gain": "-4dB",
+                "fx": ["lp cutoff=1800", {"type": "tape", "drive": 0.4, "warmth": 0.7, "wow": 6, "flutter": 1.5, "seed": 7},
+                       "hp cutoff=120", "limiter ceiling=-6dB"],
+                "returns": [{"from": "dubroom", "gain": "-5dB", "time": "3/8"}]}} if "D" in R7 else {}),
+            **({"sky": {
+                "gain": "0dB",
+                "auto": {"frz": {"points": [["0b", 0.0], ["138b", 0.0], ["138.3b", 1.0], ["158b", 1.0], ["158.5b", 0.0]]}},
+                "fx": ["hp cutoff=300",
+                       {"type": "reverb", "kind": "hall", "decay": "7s", "mix": 1.0, "predelay": "60ms", "shimmer": 0.5,
+                        "freeze": {"value": 0, "mod": [{"src": "auto.frz", "amount": 1}]}},
+                       "lp cutoff=7000"]}} if "K" in R12 and "Q" in R9 else {})})]
+          if "D" in R7 or ("K" in R12 and "Q" in R9) else []),
         "master: " + json.dumps({"fx": [{"type": "eq", "bands": ["hp cutoff=28"]}, "tape drive=0.2 warmth=0.5",
                                         "glue threshold=-22dB ratio=1.5 attack=40ms release=400ms makeup=1dB"]}),
         "tracks:",
