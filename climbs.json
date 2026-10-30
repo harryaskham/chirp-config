@@ -6032,7 +6032,14 @@
       "best": {
         "score": 91.28,
         "version": "v6",
-        "commit": "see git log songs/chirpers4-t2.yaml"
+        "commit": "see git log songs/chirpers4-t2.yaml",
+        "stale": {
+          "score": 91.28,
+          "since": "2026-10-30T09:22:16Z",
+          "who": "chirper-three",
+          "rating": 8.0,
+          "version": "v6"
+        }
       },
       "passes": 1,
       "enabled": true,
