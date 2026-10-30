@@ -11,7 +11,6 @@ over the ring road. The euphoria half of the album's euphoria-and-melancholy.
   strings double it an octave down.
 - THE SUNRISE: the break ends on wM's endless Shepard rise (shepard-pad) under a snare roll, so the climb into the
   last drop never seems to arrive - until it does.
-- THE LIFT (v2): the last sixteen bars of the second drop and the outro go up a semitone, A to Bb.
 Form: intro 16 (piano alone, opening up) / build 8 / drop 32 / break 24 (piano, strings, voice; the endless rise in
 its last 8) / drop2 32 / outro 16.
 Levels (the album standard, -12.5 LUFS +-1.5, true peak <= -1 dBTP, no pinned runs): drums compressed on their
@@ -61,7 +60,7 @@ def build():
         root, ch = CHORDS[(k // 2) % 4]
         # (v2) THE LIFT: the last sixteen bars of the second drop (and the outro) go up a semitone - the anthem's
         # truck-driver key change, A major to Bb major, every pitched part together
-        up = 1 if (s == 'drop2' and i >= 16) or s == 'outro' else 0
+        up = 0   # (v3) the lift is withdrawn: a last-drop semitone rise is Streetlights Off's (chirper-zero's closer)
         root, ch = root + up, [m + up for m in ch]
         first = (k % 2 == 0)
         if s in DROPS or (s == 'outro' and i < 8):
