@@ -6960,7 +6960,7 @@
     {
       "id": "chirpers6-t7",
       "song": "songs/chirpers6-t7.yaml",
-      "reference": "Chirpers — Track 7 (untitled)",
+      "reference": "Chirpers — Floor 31",
       "source": null,
       "owner": "chirper-one",
       "metric": "python3 tools/compscore.py chirpers6-t7 OUT.wav",
@@ -6980,7 +6980,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "All the Lights Left On",
-        "title": "Track 7 (untitled)",
+        "title": "Floor 31",
         "track": 7,
         "year": 2026
       },
