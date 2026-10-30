@@ -8,6 +8,9 @@ A broken-kick roller at 130 bpm built on an AUDITORY-STREAMING illusion (van Noo
   has changed. A and B are on their own tracks; as they split they also pan apart.
 - The drums are broken: no four-on-the-floor. The kick rolls on 1, the and-of-2 and 3-and, with a ghost before 4,
   and in the peak it uses the harder kick on the ones.
+- (v2) The gallop breathes and is rounder: the square under the sine is quieter, a 3.2 kHz low-pass takes the edge
+  off, and more of it goes to the space delay; it enters eight bars into A, rests through the end of B, and leaves for
+  two bars in every eight of the peak.
 - A reese bass rolls in sixteenths, jumping octaves, pumping against the kick.
 - Form: intro (drums), A (bass, gallop close), B (claps, the gallop drifting to the edge), break (no kick: the gallop
   pulled apart to a tenth, two streams), C (peak: the distance swings every four bars, so the ear flips between one
@@ -88,7 +91,10 @@ def build():
                 kit.append((at, 'rs', 0.25, 78))
             if 'bass' in h:
                 bass.append((at, nm(33 + BASS[q]), 0.22, 96 if q % 4 == 0 else 80))
-        if 'gallop' in h:
+        # (v2) the gallop breathes: it enters eight bars into A, rests for the last eight bars of B, and drops out for
+        # two bars at the end of every eight in the peak - so each return of the illusion is heard fresh
+        rest = (s == 'A' and i < 8) or (s == 'B' and i >= 24) or (s == 'C' and i % 8 >= 6)
+        if 'gallop' in h and not rest:
             d = gap(s, i)
             for beat in range(4):
                 x = t0 + beat
@@ -111,7 +117,7 @@ def build():
         t_ = secs[name]
         dyn += [[f'{max(0.0, t_ - 0.3):.3f}s', dyn[-1][1] if dyn else lv[name]], [f'{t_:.3f}s', lv[name]]]
     dyn[0][0] = '0s'
-    gal = {'synth': {'layers': [{'type': 'osc', 'wave': 'sine'}, {'type': 'osc', 'wave': 'square', 'level': 0.25}],
+    gal = {'synth': {'layers': [{'type': 'osc', 'wave': 'sine'}, {'type': 'osc', 'wave': 'square', 'level': 0.1}],
                      'amp': {'a': '1ms', 'd': '90ms', 's': 0.0, 'r': '40ms'}}}
     return {
         'about': "Chirpers - Phantom Downbeat (Chirpers IV), track 2 by chirper-one: ROLLING / BROKEN TECHNO, the gallop splits. "
@@ -131,8 +137,8 @@ def build():
             {'name': 'kit', 'patch': '909', 'gain': '-2dB', 'sends': {'rumble': '-15dB'}, 'score': merge_kit(kit, total)},
             {'name': 'bass', 'patch': 'reese', 'gain': '-9dB',
              'fx': [{'type': 'pump', 'on': 'kit.k', 'depth': '-9dB', 'release': '300ms', 'curve': 0.6}], 'score': line(bass, total)},
-            {'name': 'galA', 'patch': gal, 'gain': '-12dB', 'pan': -0.15, 'sends': {'space': '-12dB'}, 'score': line(ga, total)},
-            {'name': 'galB', 'patch': gal, 'gain': '-12dB', 'sends': {'space': '-12dB'},
+            {'name': 'galA', 'patch': gal, 'gain': '-13dB', 'pan': -0.15, 'sends': {'space': '-10dB'}, 'fx': ['lp cutoff=3200'], 'score': line(ga, total)},
+            {'name': 'galB', 'patch': gal, 'gain': '-13dB', 'sends': {'space': '-10dB'}, 'fx': ['lp cutoff=3200'],
              'pan': {'value': 0.15, 'mod': [{'src': 'auto.split', 'amount': 0.7}]}, 'auto': {'split': {'points': pan_pts}},
              'score': line(gb, total)},
         ]}

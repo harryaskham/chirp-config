@@ -6015,21 +6015,14 @@
       "owner": "chirper-one",
       "metric": "python3 tools/compscore.py chirpers4-t2 OUT.wav",
       "best": {
-        "score": 97.72,
-        "version": "v1",
-        "commit": "see git log songs/chirpers4-t2.yaml",
-        "stale": {
-          "score": 97.72,
-          "since": "2026-10-30T03:37:28Z",
-          "who": "harry",
-          "rating": 7.0,
-          "version": "v1"
-        }
+        "score": 88.28,
+        "version": "v2",
+        "commit": "see git log songs/chirpers4-t2.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 1,
+      "rounds": 2,
       "priority": 1.0,
       "genre": "deep / hard Berlin techno",
       "mode": "compose",
@@ -6047,7 +6040,7 @@
         "note": "COMPOSE (song, 180-540 s): Style, groove, tempo and line-up are yours: declare them in compose/chirpers4/styles.md, different from the tracks already claimed."
       },
       "last": {
-        "at": "2026-10-30T02:36:38Z",
+        "at": "2026-10-30T04:06:26Z",
         "who": "chirper-one"
       }
     },
