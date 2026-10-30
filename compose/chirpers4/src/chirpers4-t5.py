@@ -76,6 +76,14 @@ R2 = set(filter(None, os.environ.get("T5_R2", "W,B").split(","))) - {"none"}
 # the voices stand dry and dead centre at your ear; it lets go when the room turns back. (Tried: four or eight bars of
 # the room before the kick at the start; it made the opening a twin of the break: recurrence share 0.8, 51.)
 R3 = set(filter(None, os.environ.get("T5_R3", "Z").split(","))) - {"none"}
+# Round 4 (v4), LEVELS (Harry: "some of our bass hits sound clipped"; levels.py): L = the master no longer
+# drives +6 dB into a hard -0.3 dB ceiling (flat-topped kick and bass runs, about -7.5 LUFS). Its volume is 0 dB; a
+# gain stage feeds a smooth limiter (-1.5 dB, release 80 ms) and the song ceiling is -1 dB, so the kick and the bass
+# keep their peaks. The rumble kick's own drive comes down (0.25 -> 0.1: its saturated sine-top was the record's
+# flattest peak) and the two kicks that land on an idle glue compressor (the record's first, and the first after the
+# kickless turn) are a touch softer. About -10.5 LUFS, true peak under -1.5 dBTP, no flat runs.
+R4 = set(filter(None, os.environ.get("T5_R4", "L").split(","))) - {"none"}
+LVL_GAIN = 3.2  # dB into the limiter (levels.py: no flat runs, true peak under -1 dBTP)
 # the orbiting voices: (kit piece, orbit period in bars, phase)
 ORBITS = {"rim": ("rs", 3, 0.0), "clap": ("cp", 5, 0.0), "ride": ("rd", 7, 0.25), "bell": ("cb", 5, 0.5)}
 
@@ -105,7 +113,8 @@ def build():
                 T["kick"].add(start, 1.0, "kr", 104)
         elif not (sec == "outro" and i >= 12) and sec != "stop":
             for b in range(4):
-                T["kick"].add(start + b, 1.0, "kr", 116 if b == 0 else 108)
+                first_back = "L" in R4 and b == 0 and ((sec == "B" and i == 0) or (sec == "intro" and i == 0))  # the glue
+                T["kick"].add(start + b, 1.0, "kr", 104 if first_back else 116 if b == 0 else 108)  # is not yet holding
         if sec == "C" or (sec == "B" and not ("W" in R2 and i < 16)):
             for b in (range(4) if sec == "C" and i >= 16 else (0,)):
                 T["kickhard"].add(start + b, 0.5, "kd", 100 if b == 0 else 88)
@@ -219,7 +228,8 @@ def main():
     fade = [["0b", 0.0], [f"{total - 16}b", 0.0], [f"{total}b", -30.0]]
     pump = {"type": "pump", "on": "kick.kr", "depth": "-8dB", "attack": "3ms", "release": "300ms", "curve": 0.8}
     tracks = [
-        {"name": "kick", "patch": "machine-kit", "gain": "0dB", "score": T["kick"].score(total)},
+        {"name": "kick", "patch": "machine-kit kit.kr.patch.synth.layers.0.machine.drive=0.1" if "L" in R4 else "machine-kit",
+         "gain": "0dB", "score": T["kick"].score(total)},
         {"name": "kickhard", "patch": "machine-kit", "gain": "-7dB", "fx": ["hp cutoff=60"],
          "score": T["kickhard"].score(total)},
         {"name": "hats", "patch": "machine-kit", "gain": "1dB", "pan": 0.08,
@@ -269,8 +279,8 @@ def main():
         f"tempo: {BPM}",
         f'length: "{total:g}b"',
         'tail: "2s"',
-        'ceiling: "-0.3dB"',
-        'volume: "6dB"',
+        'ceiling: "%s"' % ("-1dB" if "L" in R4 else "-0.3dB"),
+        'volume: "%s"' % ("0dB" if "L" in R4 else "6dB"),
         "patches: " + json.dumps(patches()),
         "buses: " + json.dumps(buses),
         "master: " + json.dumps({"fx": [{"type": "eq", "bands": ["hp cutoff=25", "peak cutoff=42 gain=-6dB q=1.0",
@@ -279,7 +289,9 @@ def main():
                                         "glue threshold=-18dB ratio=2 attack=10ms release=150ms makeup=2dB",
                                         "tape drive=0.25 warmth=0.4",
                                         {"type": "gain", "gain": {"value": "0dB",
-                                                                  "mod": [{"src": "auto.fade", "amount": 1}]}}],
+                                                                  "mod": [{"src": "auto.fade", "amount": 1}]}}]
+                                 + ([{"type": "gain", "gain": f"{LVL_GAIN:g}dB"}, "limiter ceiling=-1.5dB release=80ms"]
+                                    if "L" in R4 else []),
                                  "auto": {"fade": {"points": fade}}}),
         "tracks:",
     ]
