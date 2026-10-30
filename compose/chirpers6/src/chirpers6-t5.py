@@ -5,7 +5,8 @@ A Godspeed-style suite in five movements, 70 bpm, E minor: a narrator reading a 
 into a fire, and what is left after. Nothing loops to fill time: each movement transforms the one theme - THE SIGNAL,
 a four-note figure (B - G - A - E, falling then answering) - and the voice returns changed at the end.
 I.   STATIC (16 bars): wind and old tape hiss; a narrator close in the room (wM's speech voice, dry, a little tape wow): "this is the last broadcast. if you can hear this, leave the lights on." (the narrator reading it, not the radio) A low drone opens.
-II.  PROCESSION (40 bars): cellos hold E; a glockenspiel plays THE SIGNAL slowly; a clean guitar arpeggiates Em - C -
+II.  PROCESSION (40 bars): the narrator reads on (v3) - "the city is quiet now. the buses stopped at nine. someone
+     left a radio on in an empty room. and every window is lit." - while cellos hold E; a glockenspiel plays THE SIGNAL slowly; a clean guitar arpeggiates Em - C -
      G - D into a dotted-eighth echo (the post-rock delay, cascading against the beat); an e-bow sings THE SIGNAL long and high over the second half. No drums.
 III. SIGNAL (40 bars): the drums arrive as toms and ride, a picked bass walks the roots, the clean guitars turn to
      TREMOLO (thirty-second notes) and the strings swell; every eight bars the band climbs louder and a voice of the
@@ -38,6 +39,15 @@ WORDS = [("dh-ih1-s", 0), ("ih1-z", 0), ("dh-ah0", -20), ("l-ae1-s-t", 30), ("b-
          ("ih1-f", 0), ("y-uw1", 20), ("k-ae1-n", 0), ("hh-ih1-r", 40), ("dh-ih1-s", -40),
          None,
          ("l-iy1-v", 20), ("dh-ah0", 0), ("l-ay1-t-s", 50), ("aa1-n", -80)]
+# (v3) THE LETTER: the narrator goes on over the procession - the empty city, read like a letter
+LETTER = [("dh-ah0", 0), ("s-ih1", 20), ("t-iy0", -10), ("ih1-z", 0), ("k-w-ay1", 30), ("ah0-t", -20), ("n-aw1", -60),
+          None, None,
+          ("dh-ah0", 0), ("b-ah1", 20), ("s-ih0-z", 0), ("s-t-aa1-p-t", 30), ("ae1-t", 0), ("n-ay1-n", -70),
+          None, None,
+          ("s-ah1-m", 20), ("w-ah0-n", 0), ("l-eh1-f-t", 30), ("ah0", 0), ("r-ey1", 40), ("d-iy0", 0), ("ow0", -20),
+          ("aa1-n", 10), None, ("ih0-n", 0), ("ae0-n", 0), ("eh1-m-p", 30), ("t-iy0", 0), ("r-uw1-m", -60),
+          None, None, None,
+          ("ae1-n-d", 0), ("eh1-v", 30), ("r-iy0", 0), ("w-ih1-n", 40), ("d-ow0", 0), ("ih1-z", 0), ("l-ih1-t", -80)]
 LAST = [("l-iy1-v", 10), ("dh-ah0", 0), ("l-ay1-t-s", 30), ("aa1-n", -60)]
 
 def line(events, total):
@@ -79,6 +89,7 @@ def build():
     T['static'].append((0.0, 'C4', secs['procession'] + 4.0, 84))
     T['radio'] += speech(WORDS, 6.0)
     T['radio'] += speech(WORDS[7:], 40.0, 43)          # it repeats, breaking up
+    T['radio'] += speech(LETTER, secs['procession'] + 6 * 4.0, 44)   # (v3) the letter, over the procession
     T['drone'].append((24.0, 'E2', secs['signal'] - 24.0, 70))
     for b in bars:
         s, t0, i, n = b['sec'], b['t'], b['i'], b['n']
