@@ -132,7 +132,7 @@ SKIPS = [7, 10, 11, 10]      # the 2-step's second kick, bar by bar (bar % 4): a
 def amen_bed():
     """A quiet re-sequenced amen under the drops: its ghost slices, rolling, one re-pitched or reversed now and then."""
     hand = random.Random(7)
-    for bar in list(range(33, 65)) + list(range(81, 113)):
+    for bar in list(range(41, 65)) + list(range(81, 113)):     # v5: drop 1 waits 8 bars for the bed
         for s in range(16):
             if s in (0, 4, 10, 12) or hand.random() < 0.35:
                 continue
@@ -172,7 +172,7 @@ def chops():
         sec = sec_of(bar)
         if sec == "intro" and bar % 4 != 1:
             continue
-        if sec in ("drop", "drop2") and ((bar - 1) // 4) % 2 == 1:
+        if sec in ("drop", "drop2") and ((bar - 1) // 4) % 2 == 1 or 33 <= bar < 41:   # v5: drop 1 opens bare
             continue
         if sec == "build" or (sec == "outro" and bar > 117):
             continue
@@ -216,6 +216,7 @@ def main():
         "tempo": BPM,
         "tail": "3s",
         "ceiling": "-1.0dB",
+        "true_peak": True,               # v5: wM's clipping fix: limiters oversample 4x with lookahead, never clamp
         "volume": "0dB",
         "buses": {"drums": {"fx": [{"type": "compressor", "threshold": "-16dB", "ratio": 4, "attack": "1ms",
                                      "release": "70ms", "makeup": "2dB"},
@@ -232,10 +233,10 @@ def main():
                           {"type": "compressor", "threshold": "-22dB", "ratio": 2.5, "attack": "15ms", "release": "150ms",
                            "makeup": "0dB"},
                           {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}},
-                          {"type": "gain", "gain": "+12dB"},     # (+7 in the recipe; this mix has more headroom)
+                          {"type": "gain", "gain": "+12.5dB"},   # (+7 in the recipe; this mix has more headroom)
                           {"type": "compressor", "threshold": "-5dB", "ratio": 10, "attack": "0.3ms", "release": "60ms",
                            "makeup": "0dB"},
-                          "limiter ceiling=-2.5dB release=80ms"],   # true peak under -1 dBTP (inter-sample margin)
+                          "limiter ceiling=-1.2dB release=80ms"],   # v5: true-peak limiter (song true_peak), no clamping
                    "auto": {"dyn": {"points": dyn}, "lp": {"points": lp}}},
         "tracks": [
             tr("kick", "tight-kit", gain="-4dB", out="drums"),
