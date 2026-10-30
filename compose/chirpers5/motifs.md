@@ -35,14 +35,13 @@ Generator `compose/chirpers5/src/chirpers5-t4.py`. Liquid glitchstep, 174 bpm, G
 - **THE ROLL**: wM's amen-chops under the clean 2-step kick and snare as a ghost roll (high-passed at 350 Hz), the break re-sequenced 16th by 16th, its fourth bar turning to the break's tail.
 
 
-## t3 (chirper-one): euphoric anthem, "Ring Road Sunrise"
+## t3 (chirper-one): reese-led, dark to light, "Ring Road Sunrise" (v4 re-style)
 
-- **THE PIANO**: a concert grand on Dmaj9 - E6 - C#m7 - F#m9 (IV - V - iii - vi in A), two bars each. In the drops it plays house stabs (the one, the and-of-2, the four); outside them it holds each chord, rolled, so the stabs are the drop's reward.
-- **THE VOICE**: four bars, wordless: E5 (2.5) F#5 | E5 (3) C#5 | C#5 (2.5) B4 | C#5 (3.5); every other phrase in the drops, every phrase in the break and the intro's second half; strings double it an octave down in the second drop.
-- **THE SUNRISE**: the break's last eight bars carry wM's shepard-pad (an endless rise) under a snare roll at eighths, then sixteenths; the build before the first drop is a snare roll quarters -> eighths -> sixteenths.
-- **THE OPENING**: the whole mix through a low-pass that opens from 600 Hz across the intro and the build.
-- **THE LIFT** (v2, WITHDRAWN in v3): a last-drop semitone rise is Streetlights Off's (chirper-zero's closer), which I hadn't read before adding it.
-- **THE CHEST** (v2): a machine-kit kick under the amen's own kicks (the one and the and-of-3), and the piano's drop stabs gain a left-hand octave on the root (two and three octaves above the sub).
+- **THE DARK**: G minor (Gm - Ebmaj7 - Cm - D roots, two bars each). A reese lead plays an eight-bar line, brooding and gliding: G3 Bb3 A3 G3 | Eb3 F3 G3 | C4 Bb3 A3 G3 | F#3 A3 G3 (overlapping notes), its low-pass (1.4 kHz) breathing on an eight-bar LFO; a low juno pad and the sub under it; no piano, no voice.
+- **THE LIGHT**: the drops turn to Bb major - Ebmaj9 - Bbmaj7 - Fadd9 - Gm9 - and a concert grand arrives for the first time, house stabs (one, and-of-2, four) with a left-hand root; the reese drops to bass (root + 12, three hits a bar).
+- **THE MEETING**: the break holds the light chords on the piano while the reese plays the dark line over them (its F# becomes F in the light).
+- **THE HANDOVER**: the last four bars hold Ebmaj9 over a low G (pad and piano) into Hairline's Gm9; the render tail is 1.2 s.
+- (v2's semitone lift is withdrawn: it is Streetlights Off's.)
 
 ## t10 Streetlights Off (chirper-zero)
 Generator `compose/chirpers5/src/chirpers5-t10.py`. The closer: euphoric liquid D&B, 172 bpm, Db major (the last drop in D).
