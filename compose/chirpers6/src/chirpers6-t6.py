@@ -268,6 +268,23 @@ def dyn_lane():
     return pts
 
 
+def em_lane():
+    """The low-pass closed at Freight's first downbeat (400 Hz), opening over four bars."""
+    sec = lambda beats: beats * 60 / BPM
+    a = b0(89)
+    pts = [(0, 0.0), (a - 0.05, 0.0), (a, 1.0), (a + 4, 0.8), (a + 8, 0.5), (a + 12, 0.2), (a + 16, 0.0), (TOTAL, 0.0)]
+    # (a frequency's mod amount is in OCTAVES: -5 x 1 = 18 kHz / 32 = ~560 Hz; -17600 or -60 silenced the section)
+    return [[f"{sec(b):.3f}s", v] for b, v in pts]
+
+
+def ts_lane():
+    """The tape stop over Arrival's last two beats (bar 184, beats 3-4); released as the empty station begins."""
+    sec = lambda beats: beats * 60 / BPM
+    a = b0(184) + 2
+    pts = [(0, 0.0), (a - 0.02, 0.0), (a, 1.0), (b0(185) - 0.02, 1.0), (b0(185), 0.0), (TOTAL, 0.0)]
+    return [[f"{sec(b):.3f}s", v] for b, v in pts]
+
+
 def main():
     field()
     voices()
@@ -303,12 +320,19 @@ def main():
                   "station": {"fx": ["reverb kind=hall decay=2.5s mix=0.5 predelay=60ms", "hp cutoff=300", "lp cutoff=4000"]}},
         "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=30", "peak cutoff=350 q=0.8 gain=-1dB",
                                                     "highshelf cutoff=5000 gain=-4dB"]},   # v2: darker, the low end kept
+                          # v4: THE TRAIN LEAVES THE TUNNEL: Freight starts behind a closed low-pass that opens over its
+                          # first four bars, the riff approaching muffled then bursting into the open
+                          {"type": "filter", "kind": "lp",
+                           "cutoff": {"value": 18000, "mod": [{"src": "auto.em", "amount": -5}]}},   # (OCTAVES)
+                          # v4: THE TRAIN STOPS: the end of Arrival winds down on a tape stop, a train braking to a halt
+                          {"type": "tapestop", "stop": {"value": 0, "mod": [{"src": "auto.ts", "amount": 1}]},
+                           "time": "2b", "up": "0.05b", "curve": 0.6, "mix": 1},
                           {"type": "compressor", "threshold": "-20dB", "ratio": 2, "attack": "20ms", "release": "200ms",
                            "makeup": "0dB"},
                           {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}},
                           {"type": "gain", "gain": "+10dB"},
                           "limiter ceiling=-1.2dB release=120ms"],
-                   "auto": {"dyn": {"points": dyn_lane()}}},
+                   "auto": {"dyn": {"points": dyn_lane()}, "em": {"points": em_lane()}, "ts": {"points": ts_lane()}}},
         "tracks": [
             tr("rain", "rain", gain="-14dB"),
             tr("wind", "wind", gain="-16dB"),

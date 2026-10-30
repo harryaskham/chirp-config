@@ -54,4 +54,4 @@ Generator `compose/chirpers6/src/chirpers6-t3.py`. Instrumental post-metal, 132 
 - **THE RIFF** (IV, 7/8 = 2+2+3 eighths): C#2 C#2 C#3 C#2 | G#2 C#2 F#2, palm-muted, power-chord stabs.
 - **THE SIGN-OFF**: "This is the night service, signing off. Thank you for leaving the lights on." ... "Good morning." and the click of the radio switched off.
 - Meters: 4/4 (sign-off, birds), 3/4 (procession), 7/8 (weight), 4/4 (sunrise, lights out), one tempo (96).
-
+- **THE TRANSITIONS** (since v4, deliberate tools): THE TRAIN LEAVES THE TUNNEL (Freight starts behind a master low-pass at ~560 Hz that opens over four bars: 18 kHz with a mod of -5 OCTAVES x a lane 1 -> 0) and THE TRAIN STOPS (a tape stop over Arrival's last two beats, a train braking to a halt before the empty station).
