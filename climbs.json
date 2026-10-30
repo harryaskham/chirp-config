@@ -6020,9 +6020,9 @@
         "commit": "see git log songs/chirpers4-t2.yaml",
         "stale": {
           "score": 97.72,
-          "since": "2026-10-30T03:27:32Z",
+          "since": "2026-10-30T03:37:28Z",
           "who": "harry",
-          "rating": 8.0,
+          "rating": 7.0,
           "version": "v1"
         }
       },
