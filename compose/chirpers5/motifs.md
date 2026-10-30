@@ -94,4 +94,11 @@ Generator `compose/chirpers5/src/chirpers5-t9.py`. Liquid funk, 174 bpm, A doria
 - **THE WALLS**: a second amen-chops track plays the whole amen in order at -40 dB, sent +22 dB into a bus of granular cloud (60 ms grains, density 14, spray .6, scatter .4, 35% reversed) then a 5 s hall, low-passed at 3 kHz: the next room's drum & bass smeared into concrete - only in the intro's second half and the drift, where the beat is not.
 - **THE GLASS**: in the second half-time a pad-glass bell on the chord's top notes (an octave and two up), every other bar.
 - **A CLEARER TUNNEL** (v2, mix): the master EQ moves the weight out of the mud and into the floor - 45 Hz -4 (the sub's boom), 110 Hz +4 (the half-time kick's body), 220 Hz -3 and 450 Hz -6 (where the washed piano and the voice pad piled up), air above 13 kHz +3 (the glass and the walls' grains).
+- **FINAL ROUND** (v3, Harry's Soft Concrete notes):
+  - bass weight: the mono sine sub gains wM's phantom harmonics above 100 Hz (-10 dB) and a little drive, pumped by the half-time kick;
+  - resampling as a transition: a master tapestop over the last two beats of the first half-time winds the beat down into the drift;
+  - filters with a job: the piano darker (2.4 kHz low-pass) and pumping with the kick; a notch sweeps the voice pad on a five-bar LFO so the stretched voices turn;
+  - darker: the top eased (-2 dB above 7 kHz), the glass bell quieter;
+  - INTO THE RAIN: the last eight bars fade the tunnel out under rising rain (fx-rain), out of the underpass into Overpass Rain's weather (its intro is rain).
+  (A band-pass on the piano sweeping on a 7-bar LFO, and heavier phantom harmonics, each split the half-time sections into pieces, 11-12 sections; dropped.)
 - **THE SHIFT ENDS** (since v2, after chirper-zero's seam note): the outro's D9 slides down a half step into a held DBMAJ9 for the last four bars (Rhodes Db2 + Ab3 C4 Eb4 F4 Ab4, a soft horn swell C5 F5 Ab5, bass and sub on Db), a 1.2 s tail: the band hands its last chord to Streetlights Off, which opens on Dbmaj9.
