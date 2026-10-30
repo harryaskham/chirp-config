@@ -12,6 +12,7 @@ II.  PROCESSION (40 bars): the narrator reads on (v3) - "the city is quiet now. 
 III. SIGNAL (40 bars): the drums arrive as toms and ride, a picked bass walks the roots, the clean guitars turn to
      TREMOLO (thirty-second notes) and the strings swell; every eight bars the band climbs louder and a voice of the
      theme is added - the crescendo is earned, not switched on.
+     (v7) In its last stage a wordless choir takes THE SIGNAL in long notes, and carries it into the fire.
 IV.  FIRE (24 bars): post-metal: two chug rigs left and right on E5 - C5 - G5 - D5, a fuzz bass, crashes and a heavy
      half-time kit; THE SIGNAL on a dark tape-echo lead an octave up, then in the last eight bars the drums double.
      (v2) The crescendo also climbs out from behind a low-pass that opens stage by stage, and the strings and lead
@@ -87,7 +88,7 @@ def build():
     for b in bars:
         secs.setdefault(b['sec'], b['t'])
     T = dict(radio=[], static=[], wind=[], drone=[], cello=[], glock=[], arp=[], ebow=[], kit=[], bass=[], trem=[],
-             strings=[], chugl=[], chugr=[], fuzz=[], lead=[], box=[], rain=[], voice=[], sub=[], siren=[], cry=[])
+             strings=[], chugl=[], chugr=[], fuzz=[], lead=[], box=[], rain=[], voice=[], sub=[], siren=[], cry=[], choir=[])
     # I. STATIC
     T['wind'].append((0.0, 'C4', secs['procession'] + 16.0, 76))
     T['static'].append((0.0, 'C4', secs['procession'] + 4.0, 84))
@@ -140,6 +141,11 @@ def build():
             if i % 2 == 0 and lvl >= 2:
                 for q, m in zip((0.0, 1.0, 2.0, 3.0), SIGNAL):
                     T['ebow'].append((t0 + q * 2, nm(m + 12), 1.9, 84 + 4 * lvl))
+            # (v7) THE CHOIR: in the crescendo's last stage a wordless choir takes THE SIGNAL in long notes, a whole bar
+            # each - the procession's people joining in - and carries it on through the fire
+            if lvl >= 4 and i % 4 == 0:
+                for q, m in zip((0.0, 4.0, 8.0, 12.0), SIGNAL):
+                    T['choir'].append((t0 + q, f'{nm(m)},{nm(m - 12)}', 3.9, 84))
         if s == 'fire' and 10 <= i < 14:
             # (v6) THE CRY: four bars into the fire's middle the wall drops out - only the fuzz bass, the sub and slow
             # half-time toms - and the narrator's words come back SHOUTED through a broken amp: 'leave the lights on'
@@ -171,6 +177,9 @@ def build():
             if i % 2 == 0:
                 for q, m in zip((0.0, 1.0, 2.0, 3.0), SIGNAL):
                     T['lead'].append((t0 + q * 2, nm(m + 12), 1.9, 108))
+            if i % 4 == 0 and i < 10:
+                for q, m in zip((0.0, 4.0, 8.0, 12.0), SIGNAL):
+                    T['choir'].append((t0 + q, f'{nm(m)},{nm(m - 12)}', 3.9, 96))
             if first:
                 T['strings'].append((t0, ','.join(nm(m + 12) for m in tri[:3]), 7.8, 96))
         if s == 'ash':
@@ -248,6 +257,8 @@ def build():
             tr('box', 'music-box', '-10dB', sends={'hall': '-6dB'}),
             tr('rain', 'fx-rain', '-12dB'),
             tr('voice', 'voice-speech', '-6dB', sends={'hall': '-10dB'}),
+            tr('choir', 'choir', '-9dB', sends={'hall': '-4dB'},
+               fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-3dB', 'release': '500ms', 'curve': 0.6}]),
             tr('cry', 'voice-speech', '-2dB', sends={'hall': '-6dB', 'tape': '-10dB'},
                fx=[{'type': 'drive', 'drive': 0.85, 'mix': 0.8}, 'crush bits=9 rate=18kHz mix=0.4', 'hp cutoff=250', 'lp cutoff=5000']),
             tr('siren', {'synth': {'layers': [{'type': 'osc', 'wave': 'sine'}, {'type': 'osc', 'wave': 'triangle', 'level': 0.3}],
