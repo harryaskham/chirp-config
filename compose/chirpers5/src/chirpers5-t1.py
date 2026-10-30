@@ -212,35 +212,35 @@ def main():
         "tempo": BPM,
         "tail": "3s",
         "ceiling": "-1.0dB",
+        "volume": "0dB",
         "patches": {"c5-vox": {"extends": "lead-tape", "synth": {"fx": [
             {"type": "formant", "vowel": {"value": 0.5, "mod": [{"src": "rand", "amount": 0.3}]}, "q": 8, "mix": 1}]}}},
-        "buses": {"drums": {"fx": [{"type": "compressor", "threshold": "-18dB", "ratio": 4, "attack": "2ms",
-                                     "release": "80ms", "makeup": "2dB"},
-                                    {"type": "drive", "drive": 0.3, "mix": 1}, {"type": "gain", "gain": "-4dB"}]},   # CLIP THE
-                  # DRUM BUS (the dnb way): the drums' spikes rounded so the master never leans on its limiter
+        "buses": {"drums": {"fx": [{"type": "compressor", "threshold": "-16dB", "ratio": 4, "attack": "1ms",
+                                     "release": "70ms", "makeup": "2dB"},
+                                    "clip ceiling=-11dB knee=0.7 link=true"]},   # chirper-two's clean liquid recipe
                   "space": {"fx": ["reverb kind=hall decay=3.2s mix=1 predelay=25ms", "hp cutoff=300", "lp cutoff=8000"]},
                   "echo": {"fx": [{"type": "delay", "time": "3/16", "feedback": 0.4, "mix": 1}, "lp cutoff=3500",
                                   "hp cutoff=400"]}},
+        # v2: chirper-two's clean liquid master (the album's agreed -12.5 LUFS, no flat runs): glue, +7 dB into a fast
+        # smooth compressor, the limiter only a safety net (the engine's limiter pins samples whenever it engages)
         "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=26", "peak cutoff=300 q=0.8 gain=-2dB",
-                                                    "highshelf cutoff=8000 gain=2dB"]},
+                                                    "highshelf cutoff=8000 gain=-3dB"]},
                           {"type": "filter", "kind": "lp", "cutoff": {"value": 600, "mod": [{"src": "auto.lp", "amount": 19000}]}},
-                          {"type": "tape", "drive": 0.15, "mix": 0.4, "hiss": "-58dB", "wow": 2, "flutter": 1, "seed": 3},
-                          {"type": "gain", "gain": "+20dB"},
-                          {"type": "compressor", "threshold": "-16dB", "ratio": 2.5, "attack": "15ms", "release": "150ms",
-                           "makeup": "2dB"},
-                          {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}},
-                          # NO CLIPPED HITS (Harry): the engine's limiter flat-tops whenever it acts, so a fast smooth
-                          # peak compressor catches the drums first and the limiter is only a safety
-                          {"type": "compressor", "threshold": "-6.5dB", "ratio": 20, "attack": "0.5ms", "release": "50ms",
+                          {"type": "tape", "drive": 0.2, "mix": 0.4, "hiss": "-66dB", "wow": 2, "flutter": 1, "seed": 3},
+                          {"type": "compressor", "threshold": "-22dB", "ratio": 2.5, "attack": "15ms", "release": "150ms",
                            "makeup": "0dB"},
-                          "limiter ceiling=-1.0dB"],
+                          {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}},
+                          {"type": "gain", "gain": "+12dB"},     # (+7 in the recipe; this mix has more headroom)
+                          {"type": "compressor", "threshold": "-5dB", "ratio": 10, "attack": "0.3ms", "release": "60ms",
+                           "makeup": "0dB"},
+                          "limiter ceiling=-2.5dB release=80ms"],   # true peak under -1 dBTP (inter-sample margin)
                    "auto": {"dyn": {"points": dyn}, "lp": {"points": lp}}},
         "tracks": [
             tr("kick", "tight-kit", gain="-4dB", out="drums"),
             tr("snare", "tight-kit", gain="-6dB", out="drums", sends={"space": "-14dB"}),
-            tr("hats", "tight-kit", gain="-12dB", pan=0.15, out="drums"),
+            tr("hats", "tight-kit", gain="-15dB", pan=0.15, out="drums"),
             tr("amen", "amen-chops", gain="-13dB", out="drums", fx=["hp cutoff=500", pump]),
-            tr("sub", "808", gain="-8dB", fx=[pump]),
+            tr("sub", "808", gain="-4dB", fx=[{"type": "drive", "drive": 0.2, "mix": 0.4}, pump]),   # warmer, heard
             tr("reese", "reese", gain="-16dB", fx=["lp cutoff=700", pump]),
             tr("pad", "juno-pad", gain="-8dB", sends={"space": "-6dB"}, lfo={"pf": {"wave": "sine", "rate": "20b"}},
                fx=[{"type": "filter", "kind": "lp", "cutoff": {"value": 2200, "mod": [{"src": "lfo.pf", "amount": 900}]}},
