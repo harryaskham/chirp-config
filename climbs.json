@@ -6076,7 +6076,7 @@
     {
       "id": "chirpers4-t4",
       "song": "songs/chirpers4-t4.yaml",
-      "reference": "Chirpers — Track 4 (untitled)",
+      "reference": "Chirpers — Two Floors",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers4-t4 OUT.wav",
@@ -6092,7 +6092,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "Phantom Downbeat",
-        "title": "Track 4 (untitled)",
+        "title": "Two Floors",
         "track": 4,
         "year": 2026
       },
