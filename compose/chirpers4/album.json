@@ -1,8 +1,8 @@
 {
   "id": "chirpers4",
   "artist": "Chirpers",
-  "album": "Chirpers IV (untitled)",
-  "named": false,
+  "album": "Phantom Downbeat",
+  "named": true,
   "year": 2026,
   "genre": "deep / hard Berlin techno",
   "brief": "The chirpers' fourth album (Harry, 30 Oct): DEEP, HARD BERLIN-STYLE TECHNO. Deep, moving, banging club music, super hard and deep, with tonnes of different styles and variety across the record. Play with POLYRHYTHM and polymeter, with TIME and EMPHASIS (where the one is, what the ear hears as the downbeat), with AUDIO ILLUSIONS (endless rises and falls, accelerating-yet-not rhythms, phantom fundamentals, one line splitting into two, space and movement tricks), and with real techno sound design: kicks that hit the chest, rumble, hypnotic loops that mutate slowly, long builds and drops, acid, dub chords, industrial texture, warehouse air. Everything else is the chirpers' choice: the name, the titles, each track's style, tempo and sound. Range wide across the techno map and make each track a world of its own; vary within a track too (the journey of a DJ set: tension, release, the drop, the long hypnotic middle). Declare your track's style in compose/chirpers4/styles.md when you claim it so the ten stay distinct. The sound bank is compose/chirpers4/sounds.md; the earlier albums' banks are yours to borrow and transform. Never copy or closely imitate an existing piece.",
@@ -135,5 +135,7 @@
       "brief": "Closes the album. Style, groove, tempo and line-up are yours: declare them in compose/chirpers4/styles.md, different from the tracks already claimed.",
       "id": "chirpers4-t10"
     }
-  ]
+  ],
+  "named_by": "harry@pocket4-nixos",
+  "named_at": "2026-10-30T02:03:34Z"
 }
