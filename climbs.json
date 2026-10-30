@@ -6670,7 +6670,7 @@
     {
       "id": "chirpers5-t10",
       "song": "songs/chirpers5-t10.yaml",
-      "reference": "Chirpers — Track 10 (untitled)",
+      "reference": "Chirpers — Streetlights Off",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers5-t10 OUT.wav",
@@ -6686,7 +6686,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "Soft Concrete",
-        "title": "Track 10 (untitled)",
+        "title": "Streetlights Off",
         "track": 10,
         "year": 2026
       },
