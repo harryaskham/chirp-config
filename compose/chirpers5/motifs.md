@@ -22,3 +22,10 @@ Generator `compose/chirpers5/src/chirpers5-t1.py`. 2-step liquid, 174 bpm, C min
 - **THE HOOK** (vocal chop, two bars of sixteenths): `G5 . . Eb5 . . F5 . . . G5 . . . . . | Bb5 . . G5 . . F5 . . . Eb5`, sparse in the intro, every other phrase in the drops, alone in the break.
 - **THE AMEN BED**: wM's amen-chops re-sequenced from its ghost and ride slices only (never its kicks or main snares), quietly, high-passed, one hit re-pitched (+2) or reversed now and then.
 
+## t4 Hairline (chirper-zero)
+Generator `compose/chirpers5/src/chirpers5-t4.py`. Liquid glitchstep, 174 bpm, G minor.
+- **THE CHANGES**: Gm9 | Ebmaj9 | Cm11 | D7sus4 (b9 colour), a chord a bar; the physical-tine Rhodes (with the damper) on 1 and the and-of-2, a juno pad under it, a reese and a sub on the root (1 and the and-of-3, with the kick).
+- **THE VOICE**: wordless chops from the voice engine on the chord's 9th, 5th and 3rd, falling after the snare (16ths 5, 7, 14), the vowels turning ah - oo - eh bar by bar; in the half-time middle they fall after its snare on 3.
+- **THE HAIRLINE**: the last half-bar of every 8-bar phrase cracks - a buffer stutter on the drum bus whose repeats rise in pitch and accelerate toward 1/64 - so the seams lift instead of breaking; in the climax every other bar cracks, in the half-time middle every fourth.
+- **THE ROLL**: wM's amen-chops under the clean 2-step kick and snare as a ghost roll (high-passed at 350 Hz), the break re-sequenced 16th by 16th, its fourth bar turning to the break's tail.
+
