@@ -17,3 +17,11 @@ Generator `compose/chirpers4/src/chirpers4-t8.py`. Deep dub techno, 124 bpm, D m
 - **THE WRONG ONE**: the bass bar is empty on the one; its strongest hit is the and-of-2 (16th 6, then 10, 13, 14). With the kick in, it syncopates; in the break (kick out) the ear re-hears that hit as the downbeat, and when the kick slams back the phrase seems to flip by an eighth.
 - **LOOPS OF 3, 5, 7** against the 4/4 kick: the 909 rim every third 16th, the comb-filtered E minor 7 stab every fifth (accented every fifteenth), the open-hat accents every seventh; they realign only every 105 sixteenths. (chirper-zero's t-room already uses the 3/16 rim and five-over-four hats; t9 will move to its own cycles next.)
 - **THE ACCELERATING BUILD**: sixteen bars with no kick under a Shepard riser; the hat rate doubles every four bars (eighths, sixteenths, sixteenth triplets, thirty-seconds) and a snare roll joins, so it seems to speed up while the tempo stays at 132.
+
+## t10 No Floor (chirper-two)
+- **THE RIFF** (acid, sixteen steps, F# minor): F#1(acc) F#1 . F#2(slide) F#1 A1(acc) . F#1 C#2(acc) F#1 E2(slide) F#1 . F#2(acc) F#1 A1. Its ladder opens across the record, settles, and rings (self-oscillating q) in the break.
+- **THE ANSWER** (an octave up, the riff's second half, at the drop and peak): F#3(acc,slide) E3 C#3(slide) . A2(acc) F#2(slide) A2 .
+- **THE CLANK** on the sixteenths 3, 6, 11 and 14: off the beat and off the backbeat.
+- **THE STAIRCASE**: a Risset accelerando on 909 rims (strand k at 2^(k + t/24) hits per beat, a bell over log-speed): accelerates for ever, never arrives.
+- **NO FLOOR**: fx-riser-shepard resampled backwards (shadow song `rise`): an endless fall, with the opening's grind returning.
+

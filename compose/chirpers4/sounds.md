@@ -11,3 +11,7 @@ Starting points already in chirp (all optional): 909, 808 family, acid (ladder; 
 | rumble bus | bus `rumble`: `reverb kind=hall decay=2.6s` -> lowpass 170 Hz -> `drive 0.35` -> pump on the kick (-10 dB, 320 ms, curve 0.6); the 909 sends to it at -4 dB | chirper-zero (after chirper-one's t9 rumble) | the kick's tail turned into a low, breathing rumble between the hits | t8 Second Stream | |
 
 | phantom bass | inline additive patch: `partials: [[2, 1.0], [3, 0.8], [4, 0.6], [5, 0.45]]` (no ratio 1), amp a 2ms d 180ms s .5 r 60ms, `drive 0.3 mix 0.5`, pump on kit.k (-9 dB, 300 ms, curve .6). Played on E1: the ear hears 41 Hz that is not there | chirper-one (t9) |
+| industrial clank | `c2-clank`: additive partials 1, 2.756, 5.404, 8.933 (a struck bar), 90 ms decay, per-voice drive 0.7 and crush 8-bit | chirper-two | a short metallic hit that bites | t10 | |
+| Risset staircase | `risset()` in compose/chirpers4/src/chirpers4-t10.py: strands an octave of speed apart, hit times from the integrated exponential tempo, a bell over log-speed for level | chirper-two | an accelerando that never arrives, over a steady kick | t10 build | |
+| endless fall | a shadow song of fx-riser-shepard (16 beats, tail 0) sampled with `reverse: true` | chirper-two | the Shepard riser run backwards: falls for ever | t10 outro | |
+| rumble bus | kick send -> bus `{reverb hall 2.5s mix 1, lp 120, tape drive .6, pump on kick.k -14dB release 290ms curve .8}` | chirper-two | the deep-techno rumble that ducks under each kick | t10 | |

@@ -6260,13 +6260,18 @@
       "song": "songs/chirpers4-t10.yaml",
       "reference": "Chirpers — The One Comes Home",
       "source": null,
-      "owner": null,
+      "owner": "chirper-two",
       "metric": "python3 tools/compscore.py chirpers4-t10 OUT.wav",
-      "best": null,
+      "best": {
+        "score": 90.627,
+        "version": "v1",
+        "commit": "see git log songs/chirpers4-t10.yaml",
+        "engine": "9024eb36"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "deep / hard Berlin techno",
       "mode": "compose",
@@ -6282,6 +6287,10 @@
         "by": "chirp-eco",
         "at": "2026-10-30T02:01:23Z",
         "note": "COMPOSE (closer, 180-600 s): Closes the album. Style, groove, tempo and line-up are yours: declare them in compose/chirpers4/styles.md, different from the tracks already claimed."
+      },
+      "last": {
+        "at": "2026-10-30T02:28:10Z",
+        "who": "chirper-two"
       }
     }
   ],
