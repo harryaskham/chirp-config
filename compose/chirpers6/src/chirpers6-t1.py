@@ -73,6 +73,11 @@ class Track:
 # failing; then the peak returns with a choir singing the theme at half speed against the lead; B = THE BEACON: the
 # mast's red light, a slow ping every two bars, in the carrier and in the coda.
 R2 = set(filter(None, os.environ.get("T1_R2", "X,S,F,B").split(","))) - {"none"}
+# Round 3 (v3): G = THE VOICE DISSOLVES INTO SNOW: in the snowfall the radio's words pass into a granular cloud of
+# themselves (grains of the voice, scattered, some reversed, spread wide) and, as the message ends, the cloud freezes
+# and holds them hanging in the air for twelve bars before it thaws; B = AIR: the top of the record opens (the master
+# lifts 2 dB above 6 kHz, the kit's cymbals are the brighter rock kit), against the album's measured envelope.
+R3 = set(filter(None, os.environ.get("T1_R3", "G,B").split(","))) - {"none"}
 # movements, in bars of 4/4 at 140 bpm
 FORM = [("carrier", 48), ("brushes", 64), ("snowfall", 32), ("climb", 64), ("climb-e", 24), ("lights", 56),
         ("still", 40)]
@@ -98,7 +103,7 @@ SPEECH_3 = [["ao1-l", "dh-ah0", "l-ay1-t-s", "aa1-r", "l-eh1-f-t", "aa1-n"]]
 def build():
     rng = random.Random(1)
     wrng = random.Random(11)
-    names = ["choir", "hum", "relay", "beacon", "g1", "g2", "lead", "wall", "bass", "sub", "brush", "kit", "strings", "violin", "cello", "celesta",
+    names = ["radiosnow", "choir", "hum", "relay", "beacon", "g1", "g2", "lead", "wall", "bass", "sub", "brush", "kit", "strings", "violin", "cello", "celesta",
              "glock", "piano", "radio", "radio2", "static", "whistle", "wind"]
     Tr = {k: Track(k) for k in names}
     bars, pos = [], 0.0
@@ -172,7 +177,7 @@ def build():
             if i in (0, 16):
                 theme(Tr["celesta"], start + 2.0, 2.0, 12, 70)  # T at half speed, up an octave
             if i == 6:
-                speak(Tr["radio"], start, SPEECH_2)
+                speak(Tr["radiosnow"] if "G" in R3 else Tr["radio"], start, SPEECH_2)
             if i == 24:
                 Tr["whistle"].add(start, 8.0, "C5", 76)
         # ---------------- IV CLIMB ----------------
@@ -366,6 +371,9 @@ def main():
     dist = [["0b", 0.0], [f"{climb0}b", 0.0], [f"{st['lights']}b", 1.0], [f"{st['still']}b", 1.0],
             [f"{st['still'] + 0.01}b", 0.0], [f"{total}b", 0.0]]
     # the fader ride: the brushes sit back, the climb climbs, the lights are the loudest place
+    s_end = st["snowfall"] + 6 * 4 + 22  # the snowfall's message ends (6 bars in, 22 beats long)
+    sfrz = [["0b", 0.0], [f"{s_end - 1}b", 0.0], [f"{s_end - 0.9}b", 1.0], [f"{s_end + 48}b", 1.0],
+            [f"{s_end + 48.1}b", 0.0], [f"{total}b", 0.0]]
     dyn = [["0b", 0.0], [f"{st['brushes']}b", -6.0], [f"{st['snowfall'] - 0.01}b", -6.0], [f"{st['snowfall']}b", 0.0],
            [f"{st['climb']}b", -9.0], [f"{st['lights'] - 0.01}b", -1.0], [f"{st['lights']}b", 0.0],
            [f"{st['still']}b", 0.0], [f"{total}b", 0.0]]
@@ -390,7 +398,7 @@ def main():
          "score": Tr["sub"].score(total)},
         {"name": "brush", "patch": "brush-kit", "gain": "-4dB", "fx": ["reverb kind=room decay=1.0s mix=0.18"],
          "score": Tr["brush"].score(total)},
-        {"name": "kit", "patch": "rock-kit-dark", "gain": "-4dB", "fx": ["reverb kind=room decay=1.3s mix=0.18"],
+        {"name": "kit", "patch": "rock-kit" if "B" in R3 else "rock-kit-dark", "gain": "-4dB", "fx": ["reverb kind=room decay=1.3s mix=0.18"],
          "score": Tr["kit"].score(total)},
         {"name": "strings", "patch": "strings", "gain": "-12dB", "fx": ["hp cutoff=120"], "score": Tr["strings"].score(total)},
         {"name": "violin", "patch": "violin", "gain": "-16dB", "pan": 0.2, "score": Tr["violin"].score(total)},
@@ -412,6 +420,12 @@ def main():
                    "reverb kind=hall decay=5s mix=0.5"], "score": Tr["beacon"].score(total)}] if R2 else []),
         {"name": "radio", "patch": "voice-speech", "gain": "-4dB", "pan": -0.1, "fx": radio_fx,
          "score": Tr["radio"].score(total)},
+        *([{"name": "radio-snow", "patch": "voice-speech", "gain": "-3dB", "pan": -0.05,
+            "fx": radio_fx + [{"type": "cloud", "size": "140ms", "density": 18, "position": "500ms", "spray": "400ms",
+                               "pitch": 0, "scatter": 0.4, "reverse": 0.4, "spread": 0.9, "mix": 0.6,
+                               "freeze": {"value": 0, "mod": [{"src": "auto.sfrz", "amount": 1}]}},
+                              "reverb kind=hall decay=4s mix=0.35"],
+            "auto": {"sfrz": {"points": sfrz}}, "score": Tr["radiosnow"].score(total)}] if "G" in R3 else []),
         {"name": "radio-late", "patch": "voice-speech", "gain": "-5dB", "pan": 0.1,
          "fx": [{"type": "pitch", "semitones": -3, "formant": -3}] + radio_fx + ["reverb kind=hall decay=3s mix=0.3"],
          "score": Tr["radio2"].score(total)},
@@ -438,7 +452,8 @@ def main():
         'volume: "0dB"',
         "true_peak: true",
         "patches: " + json.dumps(patches()),
-        "master: " + json.dumps({"fx": [{"type": "eq", "bands": ["hp cutoff=25", "highshelf cutoff=7000 gain=-1dB"]},
+        "master: " + json.dumps({"fx": [{"type": "eq", "bands": ["hp cutoff=25", "highshelf cutoff=6000 gain=2dB"
+                                                               if "B" in R3 else "highshelf cutoff=7000 gain=-1dB"]},
                                         "glue threshold=-20dB ratio=1.8 attack=20ms release=200ms makeup=1dB",
                                         {"type": "gain", "gain": {"value": f"{LVL_GAIN:g}dB",
                                                                   "mod": [{"src": "auto.dyn", "amount": 1}]}},

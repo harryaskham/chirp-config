@@ -49,6 +49,7 @@ Generator `compose/chirpers6/src/chirpers6-t3.py`. Instrumental post-metal, 132 
 - **THE NIGHT SERVICE** (radio voice, ARPAbet, a syllable a beat): "This is the night service. All the lights are left on. Keep your radio on." / "Snow on the line. We are still here." / at the end, slowed and lowered: "All the lights are left on."
 - **THE VIOLIN'S ANSWER** (climb): F#5 E5 D5 C#5 B4 A4 B4 D5, the theme's shape stretched upward.
 - **v2**: the climb's and the peak's tremolo in SEXTUPLETS; THE FALSE SUMMIT (the band cuts away for four bars, strings and the radio: "Keep your radio on."); THE LIGHTS FLICKER (inside the peak, eight bars of half-time kick, sub, mains hum and relay clicks, the theme slowed on a far glockenspiel); then a CHOIR sings the theme at half speed against the lead; THE BEACON (the mast's red light, a ping every two bars) in the carrier and the coda.
+- **v3**: THE VOICE DISSOLVES INTO SNOW: the snowfall's radio words pass into a granular cloud of themselves (wM's cloud: 140 ms grains, scattered, some reversed, spread wide) that freezes as the message ends and hangs for twelve bars. AIR: the master lifts 2 dB above 6 kHz and the cymbals are the brighter rock kit.
 - Chords: brushes Dmaj9 A6 Bm9 Gmaj7#11, then Bm9 Gmaj7 D/F# Em9; snowfall Gmaj7 Em9 Bm9 A6; climb Bm G D A (G D A Bm); the lights in E: E B C#m A.
 
 
