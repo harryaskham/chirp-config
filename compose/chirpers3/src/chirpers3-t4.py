@@ -98,7 +98,7 @@ class Part:
 
 
 P = {k: Part() for k in ("toy", "box", "xtal", "lead", "pad", "bass", "sub", "kick", "snare", "hat", "perc", "cpiano", "hail", "desc", "sq",
-                         "ckick", "csnare", "chat", "ctoy", "cbox", "mist", "vox", "boxsong", "throw", "rlead", "ratchet")}
+                         "ckick", "csnare", "chat", "ctoy", "cbox", "mist", "vox", "boxsong", "throw", "rlead", "ratchet", "flute")}
 rng = random.Random(4)
 
 
@@ -144,6 +144,22 @@ def ratchet():
             x += gap
             gap *= 0.84                                   # the turn speeds up
     P["ratchet"].add(b0(4), 0.5, "rs", 82)                   # the last click: the spring is set
+
+
+# THE BRIDGE TUNE (bars 41-44): the one composed melody in a song of found ones, on a mellotron flute through tape,
+# leaning on each bridge chord's colour (Gbmaj9's 7th, Ebm9's 9th, Ab13sus's 13th) and holding its last note, F, into
+# bar 45, where it becomes the third of Dbmaj9: the bridge comes home. (bar, sixteenth, length, pitch)
+BRIDGE_TUNE = [(41, 0, 6, "F5"), (41, 6, 2, "Db5"), (41, 8, 8, "Bb4"),
+               (42, 0, 3, "Ab4"), (42, 3, 3, "C5"), (42, 6, 10, "Eb5"),
+               (43, 0, 4, "F5"), (43, 4, 4, "Gb5"), (43, 8, 2, "F5"), (43, 10, 6, "Db5"),
+               (44, 0, 6, "Eb5"), (44, 6, 2, "Db5"), (44, 8, 12, "F5")]
+
+
+def bridge_tune():
+    hand = random.Random(41)                                    # its own hand (the rest of the song's dice unchanged)
+    for i, (bar, x, ln, pch) in enumerate(BRIDGE_TUNE):
+        late = 0.25 + 0.15 * hand.random()                       # played by hand: a touch behind
+        P["flute"].add(b0(bar) + x + late, ln - 0.4, pch, 66 + (8 if x == 0 else 0) + hand.randint(-4, 4))
 
 
 def coda(coinc, toy_on):
@@ -288,8 +304,8 @@ def melody(coinc, toy_on):
     """THE HIDDEN MELODY: a tape lead on every toy/box coincidence, held to the next, an octave under the toy."""
     for i, st in enumerate(coinc):
         sec = sec_of(st // S + 1)
-        if sec not in ("melody", "return", "full", "breakdown"):
-            continue
+        if sec not in ("melody", "return", "full", "breakdown") or 41 <= st // S + 1 <= 44:
+            continue                                            # (the bridge belongs to the flute's tune)
         nxt = coinc[i + 1] if i + 1 < len(coinc) else st + 8
         up = 12 if sec in ("return", "full") else 0
         # the hidden melody CHANGES VOICE by section: the tape lead, but in the return a barking Rhodes (epiano-tine)
@@ -527,6 +543,7 @@ def main():
     coinc, toy_on, box_on, xtal_full = clockwork()
     melody(coinc, toy_on)
     coda(coinc, toy_on)
+    bridge_tune()
     n_desc = descant(box_on, xtal_full)
     beat()
     glitch_hail()
@@ -569,6 +586,8 @@ def main():
         tr("hat", KIT, out="drums", gain="-6dB"),
         tr("perc", KIT, out="drums", gain="-8dB"),
         tr("throw", KIT, out="drums", gain="2dB", sends={"echo": "0dB"}),
+        tr("flute", "mellotron-flute", pan="R12", gain="-1dB", sends={"space": "-8dB", "echo": "-12dB"},   # THE BRIDGE
+           fx=["tape wow=14 flutter=3 seed=21"]),                                                      # TUNE
         tr("ratchet", KIT, pan="R25", gain="10dB", sends={"space": "-14dB"},          # the key being wound (intro)
            fx=["hp cutoff=900", "comb cutoff=554.4 q=5"]),   # the stall's snare, thrown into the dub echo,
         # whose repeats are then caught by the master's tape stop: they slow, sag and die with the tape

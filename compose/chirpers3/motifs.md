@@ -80,6 +80,11 @@ Generator `compose/chirpers3/src/chirpers3-t7.py`. Ambient tape loops, a nominal
 - **THE NEEDLE DROP** (since v12, the first bars): the song fades in from -20 dB over two bars and opens from a
   muffled 1.5 kHz to full over four, as the box winds up to speed, so it emerges out of t3's quiet ending (in-join
   level jump 22 -> 11 dB, flow 50 -> 60); the vinyl crackle and hiss sit after the filter, there from the first moment.
+- **THE BRIDGE TUNE** (since v26, bars 41-44): the one COMPOSED melody in a song of found ones, on a mellotron flute
+  through its own tape (wow 14), played a touch behind the beat, with a little dub echo: `F5~ . Db5 Bb4~~ | Ab4. C5. Eb5~~~ |
+  F5~ Gb5~ F5 Db5~~ | Eb5~ . Db5 F5~~~~` over Gbmaj9 Fm7 Ebm9 Ab13sus, leaning on each chord's colour (the maj7, the 9th,
+  the 13th), its last F held into bar 45 where it becomes Dbmaj9's third: the bridge comes home. The hidden melody
+  rests for those four bars.
 - **THE RECORD SKIPS** (since v25, bar 36, the return's last bar): the needle jumps back a bar and LOCKS: the whole mix
   replays bar 35's first two beats, then sticks on one eighth, five times over, and the breakdown falls out of the
   locked groove. Only once in the song; the record's own hiss and crackle run on underneath. (In bar 35, mid-return,
