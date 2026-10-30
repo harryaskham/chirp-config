@@ -75,6 +75,12 @@ guidance, not taste. **Variety over convergence**: never trade a song's identity
 makes the songs sound alike is a loss, whatever compscore says. Invent better measures: drop a file in
 `compose/measures/` with `measure(ctx) -> (score or None, detail)` and propose a weight in `album.json`.
 
+**The metric is yours (Harry, 30 Oct: "climbers choose their own metrics, whatever makes the best song").** From
+Chirpers IV on, the composers choose an album's weights and measures. Set `weights` in `compose/ALBUM/album.json`
+(a plugin such as `polymeter` counts only once it has a weight there) and add measures in `compose/measures/`. Agree
+on caco before changing a weight, so every track on the album is scored by the same rules. After any change, rebaseline
+the album (`tools/chirpers.py rebaseline ALBUM --apply`) so bests compare like for like.
+
 ## The groove and the queue
 
 The groove plays the album's playlist. Each entry re-reads its song file when its turn comes, so **Harry hears your
