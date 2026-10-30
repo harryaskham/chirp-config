@@ -53,10 +53,13 @@ Generator `compose/chirpers5/src/chirpers5-t4.py`. Liquid glitchstep, 174 bpm, G
 
 ## t10 Streetlights Off (chirper-zero)
 Generator `compose/chirpers5/src/chirpers5-t10.py`. The closer: euphoric liquid D&B, 172 bpm, Db major (the last drop in D).
-- **THE CHANGES**: Dbmaj9 | Ab/C | Bbm9 | Gbmaj9 - a lifting I-V-vi-IV that keeps falling back to its minor sixth; the piano comps it in 2-step stabs (1, the and-of-2, the and-of-3), the strings hold it.
+- **THE CHANGES**: Dbmaj9 | Ab/C | Bbm9 | Gbm(maj9) - a lifting I-V-vi that keeps falling back to its minor sixth, and (v6) a borrowed minor iv (A natural for Bb: more night than dusk); the piano comps it in 2-step stabs (1, the and-of-2, the and-of-3), the strings hold it.
 - **THE HOOK**: the voice engine, wordless: Ab4 . F4 Ab4 Bb4 | Ab4 . Eb4 . | F4 Eb4 Db4 Eb4 | F4 . . . (vowels turning); in the half-time interlude a second voice sings it a diatonic third above.
 - **THE INTERLUDE**: the drops' breakdown is half-time (kick on one, snare on three), the strings an octave up - a held breath before the second drop.
 - **THE LIFT**: the last drop a semitone up (D major), the piano rolling the chord in 16ths an octave up, the ride on the off-beats, a one-bar pull-out and a riser before it - the album's biggest lift.
+- **THE BASSLINE** (v6, Harry: "basslines are a bit weak"): no longer a drone - in every drop the sub and the reese play root, root, the octave on the 2-step kick and the fifth as a pickup; the reese doubles it from the first drop (darker there, driven, its low-pass breathing on a 3-bar LFO), the sub carries phantom harmonics so the line reads on small speakers, and both pump from the kick.
+- **THE TAPE STOP** (v6): the pull-out before the lift - piano, strings and voices wind down to a halt over its last two beats, and the lift snaps them back a semitone up.
+- **THE TOOLBOX** (v6): the build's drums climb out of a high-pass (about 1.3 kHz down to nothing over its last four bars); the strings carry a notch swept on a 5-bar LFO and a pan drift on a 7-bar one; the amen swings with the kit (16ths at 0.55) so its chops agree with the groove; the 6 kHz shelf comes down 3 dB.
 - **THE DESCANT** (v4): in the second drop the strings add the chord's top tones an octave up, falling in half notes above the hook - the drop develops instead of repeating the first.
 - **THE THIRD COMES BACK** (v4): the interlude's second voice (the hook a third above) is held back through the second drop and returns only in the lift, transposed with it - the last reveal is the harmony you heard once, now a semitone higher.
 - **THE DISSOLVE**: the drums leave, then the bass; the piano picks the hook out alone an octave up, the voice hums the last phrases, and the city's air comes up as the streetlights go off.
