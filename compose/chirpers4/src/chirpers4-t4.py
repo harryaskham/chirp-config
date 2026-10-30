@@ -83,7 +83,7 @@ class Part:
         return " ".join(toks)
 
 
-P = {k: Part() for k in ("four", "kh", "toms", "clap", "hats", "shek", "conga", "bell", "bass", "sub", "stab", "pad",
+P = {k: Part() for k in ("four", "kh", "toms", "boom", "clap", "hats", "shek", "conga", "bell", "bass", "sub", "stab", "pad",
                          "riser")}
 
 G = 7                                       # G minor
@@ -110,6 +110,7 @@ def floors():
                 if sec == "both" and bar < 53:
                     v -= 24 - 6 * (bar - 49)                         # the tribe arrives over four bars
                 P["toms"].add(st(bar, s), 1.2, nm(tom_pitch[i]), v)
+                P["boom"].add(st(bar, s), 0.6, nm(tom_pitch[i]), v + 6)     # THE TRIBE'S CHEST-HIT: an 808 under each tom
             if bar % 4 == 0:                                         # a fill into the next phrase, falling
                 for j, s in enumerate((9, 10, 11)):
                     P["toms"].add(st(bar, s) + 0.02, 0.3, nm(G + 33 - 4 * j), 80 + 6 * j)
@@ -152,6 +153,8 @@ def shuffle():
             acc = (0, 3, 6, 9)
         for s in range(12):
             v = (92 if s in acc else 48 + (8 if s % 2 else 0)) + hand.randint(-6, 6)
+            if sec == "break" and (s not in acc or bar == 96):
+                continue                            # the break: only the accents, flipping; bar 96 is a blackout
             if sec == "intro":
                 v -= 16
             P["shek"].add(st(bar, s), 0.3, "sk", v)
@@ -167,7 +170,7 @@ def congas():
     pat = dict(CONGA)
     for bar in range(17, 129):
         sec = sec_of(bar)
-        if sec == "break" and bar < 89:
+        if sec == "break" and (bar < 89 or bar == 96):
             continue
         if bar % 4 == 1 and bar > 17:
             src = hand.choice(sorted(pat))
@@ -184,7 +187,7 @@ BELL = (0, 2, 3, 5, 7, 8, 10)
 
 def bell():
     """An agogo line in the break and the drop: seven of the twelve steps, low on the floor's beats."""
-    for bar in list(range(85, 97)) + list(range(105, 129)):
+    for bar in list(range(85, 96)) + list(range(105, 129)):
         for s in BELL:
             P["bell"].add(st(bar, s), 0.3, "al" if s in (0, 8) else "ah", 74 if s in (0, 8) else 60)
 
@@ -201,14 +204,14 @@ def bass():
         alt = {0: 0, 1: 0, 2: 3, 3: -2}[(bar // 2) % 4]   # G G Bb F: the line moves every two bars
         if sec in ("groove", "both", "drop", "outro") and bar >= 17 and bar < 141:
             steps = (1, 2, 4, 5, 7, 8, 10, 11)
-        elif sec == "slow":
+        elif sec == "slow" and bar >= 69:                # the slow floor opens bare: toms, boom, shekere
             steps = (2, 3, 6, 7, 10, 11)
         else:
             steps = ()
         for s in steps:
             pch = root + (alt if s in (10, 11) else 0) + (12 if s == 11 and bar % 4 == 3 else 0)
             P["bass"].add(st(bar, s), STEP * 0.8, nm(pch), (94 if s in (2, 5, 8, 11, 3, 7) else 78) + hand.randint(-5, 5))
-        if sec != "outro" or bar < 137:
+        if (sec != "outro" or bar < 137) and sec not in THREE_ON:     # under the three-floor the boom is the low end
             P["sub"].add(b0(bar), BAR - 0.05, nm(G + 19 + (alt if alt != 3 else 3)), 90)
 
 
@@ -229,7 +232,7 @@ def stab():
 
 def breakdown():
     """The break's drone (Gm add9, juno through a low-pass) and the Shepard riser in its last eight bars."""
-    P["pad"].add(b0(81), 16 * BAR - 0.1, ",".join(nm(m) for m in (G + 43, G + 46, G + 50, G + 57)), 70)
+    P["pad"].add(b0(81), 15 * BAR - 0.1, ",".join(nm(m) for m in (G + 43, G + 46, G + 50, G + 57)), 70)
     P["riser"].add(b0(89), 8 * BAR - 0.1, "C4", 90)
 
 
@@ -291,6 +294,7 @@ def main():
             tr("kh", "909", gain="-8dB", fx=["lp cutoff=6000"]),
             tr("toms", "prog-tom", gain="-6dB", sends={"rumble": "-18dB", "room": "-14dB"},  # the tribe's floor
                fx=[{"type": "drive", "drive": 0.35, "mix": 0.5}]),
+            tr("boom", "808", gain="-14dB", fx=[{"type": "drive", "drive": 0.3, "mix": 0.4}]),
             tr("clap", "909", gain="-2dB", sends={"room": "-8dB"}),
             tr("hats", "909", gain="-7dB", pan=0.1),
             tr("shek", "afro-perc", gain="-5dB", pan=-0.2, sends={"room": "-18dB"}),        # THE PIVOT
