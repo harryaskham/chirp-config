@@ -89,6 +89,8 @@ P = {k: Part() for k in ("four", "toms", "boom", "chant", "clap", "hats", "shek"
                          "riser")}
 
 G = 7                                       # G minor
+PIVOT = 64      # THE PIVOT BAR (v7): before the slow floor, everything stops but the shekere, already accenting the
+                # three: for one bar the pivot alone tells the ear the tempo, then the toms land as the new floor
 FOUR_ON = {"intro", "groove", "both", "drop", "outro"}
 THREE_ON = {"both", "slow", "drop"}
 
@@ -100,6 +102,8 @@ def floors():
     tom_pitch = [G + 26, G + 26, G + 21]                # D2 D2 A1 ... the tribe's floor sings a falling fourth
     for bar in range(1, BARS + 1):
         sec = sec_of(bar)
+        if bar == PIVOT:
+            continue
         if sec in FOUR_ON and not (sec == "outro" and bar > 142) and bar >= 9:   # patience: the kick waits for bar 9
             for s in (0, 3, 6, 9):
                 P["four"].add(st(bar, s), 0.5, "k", 116 if s == 0 else 110)
@@ -122,6 +126,8 @@ def backbeat():
     hand = random.Random(9)
     for bar in range(1, BARS + 1):
         sec = sec_of(bar)
+        if bar == PIVOT:
+            continue
         four = (sec in ("groove", "both", "drop") or (sec == "outro" and bar < 137)) and bar >= 21 \
             and not (97 <= bar < 105)                    # the drop lands on the two floors alone; the clap at 105
         three = sec == "slow"
@@ -148,7 +154,7 @@ def shuffle():
         sec = sec_of(bar)
         if 81 <= bar <= 84:
             continue                                        # the break opens on the drone alone: both floors gone
-        if sec == "slow":
+        if sec == "slow" or bar == PIVOT:
             acc = (0, 4, 8)
         elif sec == "break":
             acc = (0, 3, 6, 9) if ((bar - 81) // 2) % 2 == 0 else (0, 4, 8)
@@ -169,7 +175,7 @@ def bass():
     hand = random.Random(31)
     for bar in range(9, BARS + 1):
         sec = sec_of(bar)
-        if sec == "break":
+        if sec == "break" or bar == PIVOT:
             continue
         root = G + 31                                     # G2
         alt = {0: 0, 1: 0, 2: 3, 3: -2}[(bar // 2) % 4]   # G G Bb F: the line moves every two bars
@@ -193,7 +199,7 @@ def stab():
     tribe is hinted at before it plays; every eighth bar it answers a third higher."""
     for bar in range(33, 129):
         sec = sec_of(bar)
-        if sec == "break" or 97 <= bar < 113:          # the drop waits 16 bars for the stab
+        if sec == "break" or 97 <= bar < 113 or bar == PIVOT:   # the drop waits 16 bars for the stab
             continue
         if bar % 2 == 0 and sec in ("groove",):
             continue
