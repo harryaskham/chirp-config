@@ -17,3 +17,13 @@ Generator `compose/chirpers6/src/chirpers6-t6.py`. Post-rock / post-metal journe
 - **THE FIRE** (IV): E5 - C5 - G5 - D5 on two chug rigs hard left and right (one, and-of-2, 3, 4, and-of-4), fuzz bass and sub on the roots, half-time kit, the drums doubling in the last eight bars; the wall tape-stops over the last two beats into V.
 - **THE ECHO**: the clean guitar, the tremolo and the glock feed a dotted-eighth (3/16) tape delay - the post-rock cascade against the beat.
 - **THE LOW END** (since v2, Harry's "basslines are a bit weak"): a mono 808 sub doubling the roots an octave under the fuzz bass through Departure and Arrival (pumped by the kick), the fuzz bass +5 dB, the freight's distorted bass +3, the kit +3; the train's rumble and the drone high-passed so the sub-rumble does not cloud the bass; darker on top (a high shelf from 5 kHz).
+
+## t3 Night Freight (chirper-zero)
+Generator `compose/chirpers6/src/chirpers6-t3.py`. Instrumental post-metal, 132 bpm, B minor in drop-tuned guitars (the doom movement in A); 7/8 (the wheels) against 4/4 (the crescendo). Seven movements, 8:10: CROSSING, JOINTS, CHUG, YARD, CLIMB, DERAILED, LAST CAR.
+- **THE JOINTS**: the wheels' clack over the rail joints - clack-clack ... clack-clack on a 14-sixteenth cycle, a synthesised field sound - and the 2+2+3 riff built on it: a clean 8-string arpeggio of seven eighths (accents on 1, 3 and 5), two shapes alternating bar by bar.
+- **THE CHANGES**: Bm(add9) | Gmaj7(9) | D(add9) | A(add9), a chord every two 7/8 bars; in DERAILED the floor drops to A - A C Bb | A G | C Bb | G A, half-time doom.
+- **THE LINE**: F#4 | D4 E4 | A4 | C#5 B4 - tremolo-picked on the lead over the chugs, augmented across four 4/4 bars a note on the ebow in the yard, and an octave up over the tremolo walls.
+- **THE CROSSING**: a level-crossing bell, the freight's rumble swelling over 24 bars, the clacks rising from nothing, the horn's three tones (F#-A-C#) and their doppler drop a semitone as it passes; in LAST CAR the same horn, far away and lower, and the clacks fading out under the clean riff.
+- **7 AGAINST 4**: in DERAILED the wheels' 14-sixteenth cycle comes back over the 16-sixteenth doom bars - the train is back, and neither gives way.
+- **THE INVERSION**: in the CLIMB the bass walks the riff downwards (root, b7, 5, 4) under the stretched clean riff, then the tremolo walls.
+
