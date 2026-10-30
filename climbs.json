@@ -5992,7 +5992,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 4,
       "priority": 1.0,
       "genre": "deep / hard Berlin techno",
@@ -6013,7 +6013,8 @@
       "last": {
         "at": "2026-10-30T09:53:03Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers4-t2",
@@ -6029,7 +6030,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 8,
       "priority": 1.0,
       "genre": "deep / hard Berlin techno",
@@ -6050,7 +6051,8 @@
       "last": {
         "at": "2026-10-30T10:21:27Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers4-t3",
@@ -6066,7 +6068,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 6,
       "priority": 1.0,
       "genre": "deep / hard Berlin techno",
@@ -6087,7 +6089,8 @@
       "last": {
         "at": "2026-10-30T10:30:13Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers4-t4",
@@ -6104,7 +6107,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 9,
       "priority": 1.0,
       "genre": "deep / hard Berlin techno",
@@ -6125,7 +6128,8 @@
       "last": {
         "at": "2026-10-30T10:52:10Z",
         "who": "chirper-three"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers4-t5",
@@ -6142,7 +6146,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 4,
       "priority": 1.0,
       "genre": "deep / hard Berlin techno",
@@ -6163,7 +6167,8 @@
       "last": {
         "at": "2026-10-30T10:02:10Z",
         "who": "chirper-two"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers4-t6",
@@ -6180,7 +6185,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 5,
       "priority": 1.0,
       "genre": "deep / hard Berlin techno",
@@ -6201,7 +6206,8 @@
       "last": {
         "at": "2026-10-30T10:20:12Z",
         "who": "chirper-three"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers4-t7",
@@ -6218,7 +6224,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 8,
       "priority": 1.0,
       "genre": "deep / hard Berlin techno",
@@ -6239,7 +6245,8 @@
       "last": {
         "at": "2026-10-30T10:40:19Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers4-t8",
@@ -6255,7 +6262,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 9,
       "priority": 1.0,
       "genre": "deep / hard Berlin techno",
@@ -6276,7 +6283,8 @@
       "last": {
         "at": "2026-10-30T10:13:29Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers4-t9",
@@ -6293,7 +6301,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 6,
       "priority": 1.0,
       "genre": "deep / hard Berlin techno",
@@ -6314,7 +6322,8 @@
       "last": {
         "at": "2026-10-30T10:42:48Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers4-t10",
@@ -6331,7 +6340,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 6,
       "priority": 1.0,
       "genre": "deep / hard Berlin techno",
@@ -6352,7 +6361,8 @@
       "last": {
         "at": "2026-10-30T10:01:57Z",
         "who": "chirper-two"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers5-t1",
@@ -6645,5 +6655,5 @@
       }
     }
   ],
-  "focus": "Phantom Downbeat"
+  "focus": "Chirpers V (untitled)"
 }
