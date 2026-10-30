@@ -154,7 +154,7 @@ def shuffle():
         sec = sec_of(bar)
         if 81 <= bar <= 84:
             continue                                        # the break opens on the drone alone: both floors gone
-        if sec == "slow" or bar == PIVOT:
+        if sec == "slow" or bar == PIVOT or bar >= 143:    # (v9: the last two bars end on the tribe's three)
             acc = (0, 4, 8)
         elif sec == "break":
             acc = (0, 3, 6, 9) if ((bar - 81) // 2) % 2 == 0 else (0, 4, 8)
@@ -276,7 +276,7 @@ def main():
         "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=30", "peak cutoff=45 q=1.2 gain=-6dB",
                                                     "lowshelf cutoff=120 gain=-2dB", "peak cutoff=420 q=0.8 gain=3dB",
                                                     "peak cutoff=2500 q=0.7 gain=2dB", "highshelf cutoff=7000 gain=-1dB"]},
-                          {"type": "gain", "gain": "+19dB"},     # v8: 3 dB less into the limiter (it clamps)
+                          {"type": "gain", "gain": "+19.5dB"},   # v8: less into the limiter (it clamps); v9 +0.5
                           {"type": "compressor", "threshold": "-14dB", "ratio": 3, "attack": "12ms", "release": "140ms",
                            "makeup": "2dB"},
                           {"type": "drive", "drive": 0.4, "mix": 0.35},  # parallel saturation: the spikes rounded
@@ -286,7 +286,9 @@ def main():
                    "auto": {"dyn": {"points": dyn_lane()}}},
         "tracks": [
             tr("four", "909", gain="0dB", sends={"rumble": "-20dB"}),                       # the machine's floor
-            tr("toms", "prog-tom", gain="-6dB", sends={"rumble": "-24dB", "room": "-14dB"},  # the tribe's floor
+            tr("toms", "prog-tom", gain="-6dB", sends={"rumble": "-24dB", "room": "-14dB"},
+               lfo={"tp": {"wave": "sine", "rate": "28b"}},          # v9: the tribe drifts in space (7 bars); the
+               pan={"value": 0, "mod": [{"src": "lfo.tp", "amount": 0.3}]},   # machine stays centred  # the tribe's floor
                fx=[{"type": "drive", "drive": 0.35, "mix": 0.5}]),
             tr("boom", "808", gain="-14dB", fx=[{"type": "drive", "drive": 0.3, "mix": 0.4}]),
             tr("clap", "909", gain="-2dB", sends={"room": "-8dB"}),
