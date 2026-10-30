@@ -117,5 +117,10 @@
     }
   ],
   "named_by": "harry@pocket4-nixos",
-  "named_at": "2026-10-30T17:02:25Z"
+  "named_at": "2026-10-30T17:02:25Z",
+  "art": {
+    "file": "ref/albums/all-the-lights-left-on/cover-tti.png",
+    "prompt": "Album cover art for 'All the Lights Left On' by Chirpers, an original post-rock / post-metal album. Post-rock sleeve: a grainy, sun-bleached film photograph of a vast empty landscape at the edge of something enormous, a lone pylon or rail line under a huge sky, dust and light, muted earth tones. Album cover for 'All the Lights Left On' by Chirpers, post-rock: a vast dark plain at night under a huge sky, a distant small town with every window still lit, a lone radio mast with a red light, faint aurora-like haze, cinematic, wide, melancholic and hopeful, muted indigo, slate and warm window-gold, film grain, no text Striking, abstract, no text, no letters, no band logo, square composition.",
+    "at": "2026-10-30T17:04:16Z"
+  }
 }
