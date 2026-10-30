@@ -35,7 +35,9 @@ OMIRROR = os.environ.get("C4T7_OMIRROR", "0") == "1"
 OKICK = os.environ.get("C4T7_OKICK", "0") == "1"
 HOOVER = os.environ.get("C4T7_HOOVER", "1") == "1"
 HOOVER_DB = os.environ.get("C4T7_HOOVERDB", "-6")  # the stab's level  # the peak-time siren: a hoover stab (F, C and the flat ninth Gb, a dark power chord) on the first beat of every fourth bar through B and C
-EQ2 = os.environ.get("C4T7_EQ2", "0") == "1"  # the master's lows cleaned (45 Hz -8, 155 Hz -3) and its top opened (6 kHz +3)  # a DJ's outro: only the kick (and its rumble) runs to the end, the rest leaves as before  # the outro mirrors the intro: the kick and the rumble all the way, the clank, the hats leaving at bar 9, no reese and no noise
+EQ2 = os.environ.get("C4T7_EQ2", "0") == "1"
+BASSLFO = os.environ.get("C4T7_BASSLFO", "1") == "1"  # Harry's LFO note: the reese through a resonant low-pass that drifts on a 7-bar sine and a 3-bar triangle, opened by section (closed in A, open at the peak)
+NOISELFO = os.environ.get("C4T7_NOISELFO", "1") == "1"  # the bursts' colour on a 5-bar sweep (a band-pass moving 500 Hz-4 kHz) and their place in the field on a 5-bar sine  # the master's lows cleaned (45 Hz -8, 155 Hz -3) and its top opened (6 kHz +3)  # a DJ's outro: only the kick (and its rumble) runs to the end, the rest leaves as before  # the outro mirrors the intro: the kick and the rumble all the way, the clank, the hats leaving at bar 9, no reese and no noise
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 FORM = [("intro", 16), ("A", 32), ("build", 16), ("B", 32), ("break", 8), ("C", 32), ("outro", 16)]
@@ -165,6 +167,7 @@ def song():
     st, total = starts()
     sc = lambda n: " | ".join(T[n])  # noqa: E731
     dyn = [(0, -6), (st["A"], 0), (st["build"], -2), (st["B"], 1), (st["break"], -7), (st["C"], 1), (st["outro"], -5)]
+    bopen = [(0, -0.5), (st["A"], -0.4), (st["build"], 0), (st["B"], 0.3), (st["break"], -0.2), (st["C"], 0.8), (st["outro"], -0.3)]
     pump = lambda d: {"type": "pump", "on": "kit.k", "depth": f"{d}dB", "attack": "4ms", "release": "280ms", "curve": 0.6}  # noqa: E731
     patches = {
         "burst": {"about": "Phantom Downbeat t7: the continuity burst - pink and white noise, band-limited 40 Hz-6 kHz, slammed and "
@@ -202,8 +205,16 @@ def song():
         },
         "tracks": [
             {"name": "kit", "patch": "909", "gain": "0dB", "sends": {"rumble": "-3dB"}, "score": sc("kit")},
-            {"name": "bass", "patch": "reese", "gain": "-6dB", "fx": [pump(-6)], "score": sc("bass")},
-            {"name": "noise", "patch": "burst", "gain": "-8dB", "sends": {"hall": "-14dB"}, "score": sc("noise")},
+            {"name": "bass", "patch": "reese", "gain": "-6dB",
+             "fx": ([{"type": "filter", "kind": "lowpass", "cutoff": {"value": 600, "mod": [{"src": "lfo.a", "amount": 1.1}, {"src": "lfo.b", "amount": 0.5},
+                                                                                          {"src": "auto.bopen", "amount": 1.0}]}, "q": 3.5}] if BASSLFO else []) + [pump(-6)],
+             **({"lfo": {"a": "sine rate=7/1", "b": "tri rate=3/1 phase=0.5"}, "auto": {"bopen": lane(bopen)}} if BASSLFO else {}),
+             "score": sc("bass")},
+            {"name": "noise", "patch": "burst", "gain": "-8dB", "sends": {"hall": "-14dB"},
+             **({"lfo": {"c": "sine rate=5/1", "p": "sine rate=5/1 phase=0.25"},
+                 "pan": {"value": 0, "mod": [{"src": "lfo.p", "amount": 0.5}]},
+                 "fx": [{"type": "filter", "kind": "bandpass", "cutoff": {"value": 1400, "mod": [{"src": "lfo.c", "amount": 1.5}]}, "q": 0.6}]} if NOISELFO else {}),
+             "score": sc("noise")},
             {"name": "clank", "patch": "c2-clank", "gain": "-10dB", "pan": 0.3, "sends": {"hall": "-8dB"}, "score": sc("clank")},
             {"name": "riser", "patch": "fx-riser-noise", "gain": "-14dB", "score": sc("riser")},
             *([{"name": "hoover", "patch": "hoover", "gain": f"{HOOVER_DB}dB", "fx": [pump(-6)], "sends": {"hall": "-6dB"}, "score": sc("hoover")}] if HOOVER else []),
