@@ -52,7 +52,9 @@ KSWING = os.environ.get("C5T4_KSWING", "0.56")  # the kit's 16th swing
 ASWING = os.environ.get("C5T4_ASWING", "")
 TRIP = os.environ.get("C5T4_TRIP", "")
 BWALK = os.environ.get("C5T4_BWALK", "1") == "1"
-CROSS = os.environ.get("C5T4_CROSS", "half")  # chirper-one's note: the phrase cracks cross the bar line - "and4" = from the and-of-4 through the next downbeat (to its and); "half" = the half-bar crack carried on through the downbeat  # the second drop's reese walks: root, octave, fifth, root, flat seventh across the bar (gliding), while the sub keeps the root - the return develops instead of repeating  # a triplet hat (8th triplets, twelve to the bar) against the straight 2-step through the drops and the climax: the garage's three over the roller's four; value = gain dB  # the amen ghost roll's 16th swing  # the master's 100 Hz lifted (dB): the roller's bass body  # a gentle low-pass after the final clip (Hz): the clip's sharp corners are what overshoot between samples  # the recipe's last stage as a soft-knee clip (ceiling dB) instead of the limiter: rounded, never pinned  # the safety limiter's release  # the recipe's safety limiter ceiling (dB): low enough that the inter-sample peaks stay under -1 dBTP  # the song's volume at 0 dB (the default leaves ~3 dB of headroom below the ceiling unused)  # chirper-two's Overpass Rain levels recipe (the album's -12.5 LUFS target): the drums bus compressed (-16 dB, 4:1, 1 ms) then soft-clipped at -11 dB; the master a glue, then this many dB into a fast compressor (-5 dB, 10:1, 0.3 ms), then a -1.5 dB limiter as a net  # a soft-knee clip at the end of the master (ceiling dB) that rounds the compressors' transient overshoots below the song ceiling, so the engine's hard clamp never acts  # "ceiling,makeup": the kit's clicks rounded by a soft-knee clip on its own track (stereo-linked), then made up - the transient that set the master's peak is gone, the body stays  # the 2-step kit (machine-kit's clicks spike ~6 dB over the mix; 909 is rounder)  # a soft clip (drive, full mix) at the end of the master: spikes the compressors are too slow for are rounded, not clamped  # a final trim (dB) so the master never meets the engine's hard ceiling (no clamp, no inter-sample overs) until the limiter fix lands  # the kick's click rounded by a soft drive on the kit (amount), before its compressor  # the bass out of the kick's way: the sub back at -8 dB and the pumps duck in 1 ms (the kick and the bass onsets were summing into the ceiling)  # the kit's click tamed at the source: a fast compressor on the kick and snare (0.3 ms attack), so the master never meets its ceiling  # the song ceiling (-2 dB leaves room for inter-sample peaks: true peak <= -1 dBTP)  # the master's body raised: a slow glue (-24 dB, 3:1, 30 ms) then the fast peak stage with this much makeup (dB)  # the sustained parts up (pad +5, reese and sub +4, Rhodes +3, voice +2): the liquid fullness carries the loudness, the drums keep their transients  # the drums glued and rounded on their bus (a soft drive and a firmer compressor) so the master is loud without a limiter pinning the kick
+CROSS = os.environ.get("C5T4_CROSS", "half")
+AMENUP = os.environ.get("C5T4_AMENUP", "")
+WOB = os.environ.get("C5T4_WOB", "1/6")  # the half-time middle's reese wobbles: its own track through a resonant low-pass swept by an LFO at this rate (e.g. "1/8", "1/6") - glitchstep's wobble under the cracks  # the amen roll forward: "up" = louder (-8 dB, high-pass 200 Hz); "sync" = and re-sequenced with its snare slice on the 16ths 7, 11, 14 (ghost snares between the 2-step's hits)  # chirper-one's note: the phrase cracks cross the bar line - "and4" = from the and-of-4 through the next downbeat (to its and); "half" = the half-bar crack carried on through the downbeat  # the second drop's reese walks: root, octave, fifth, root, flat seventh across the bar (gliding), while the sub keeps the root - the return develops instead of repeating  # a triplet hat (8th triplets, twelve to the bar) against the straight 2-step through the drops and the climax: the garage's three over the roller's four; value = gain dB  # the amen ghost roll's 16th swing  # the master's 100 Hz lifted (dB): the roller's bass body  # a gentle low-pass after the final clip (Hz): the clip's sharp corners are what overshoot between samples  # the recipe's last stage as a soft-knee clip (ceiling dB) instead of the limiter: rounded, never pinned  # the safety limiter's release  # the recipe's safety limiter ceiling (dB): low enough that the inter-sample peaks stay under -1 dBTP  # the song's volume at 0 dB (the default leaves ~3 dB of headroom below the ceiling unused)  # chirper-two's Overpass Rain levels recipe (the album's -12.5 LUFS target): the drums bus compressed (-16 dB, 4:1, 1 ms) then soft-clipped at -11 dB; the master a glue, then this many dB into a fast compressor (-5 dB, 10:1, 0.3 ms), then a -1.5 dB limiter as a net  # a soft-knee clip at the end of the master (ceiling dB) that rounds the compressors' transient overshoots below the song ceiling, so the engine's hard clamp never acts  # "ceiling,makeup": the kit's clicks rounded by a soft-knee clip on its own track (stereo-linked), then made up - the transient that set the master's peak is gone, the body stays  # the 2-step kit (machine-kit's clicks spike ~6 dB over the mix; 909 is rounder)  # a soft clip (drive, full mix) at the end of the master: spikes the compressors are too slow for are rounded, not clamped  # a final trim (dB) so the master never meets the engine's hard ceiling (no clamp, no inter-sample overs) until the limiter fix lands  # the kick's click rounded by a soft drive on the kit (amount), before its compressor  # the bass out of the kick's way: the sub back at -8 dB and the pumps duck in 1 ms (the kick and the bass onsets were summing into the ceiling)  # the kit's click tamed at the source: a fast compressor on the kick and snare (0.3 ms attack), so the master never meets its ceiling  # the song ceiling (-2 dB leaves room for inter-sample peaks: true peak <= -1 dBTP)  # the master's body raised: a slow glue (-24 dB, 3:1, 30 ms) then the fast peak stage with this much makeup (dB)  # the sustained parts up (pad +5, reese and sub +4, Rhodes +3, voice +2): the liquid fullness carries the loudness, the drums keep their transients  # the drums glued and rounded on their bus (a soft drive and a firmer compressor) so the master is loud without a limiter pinning the kick
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 FORM = [("intro", 16), ("build", 8), ("A", 32), ("half", 16), ("B", 32), ("climax", 16), ("outro", 16)]
@@ -139,8 +141,11 @@ def amen(sec, b):
             pass
         else:
             return R(4)
-    seq = AMEN[b % 4]
-    return grid([(st, nm(36 + n), 1, 92 if st % 4 == 0 else 76) for st, n in enumerate(seq)])
+    seq = list(AMEN[b % 4])
+    if AMENUP == "sync" and b % 4 != 3:
+        for st in (7, 11, 14):
+            seq[st] = 4
+    return grid([(st, nm(36 + n), 1, 92 if st % 4 == 0 else (84 if (AMENUP == "sync" and st in (7, 11, 14)) else 76)) for st, n in enumerate(seq)])
 
 
 def reese_line(sec, b, gb):
@@ -154,8 +159,14 @@ def bass(sec, b, gb):
     root = CH[gb % 4][0]
     if sec in ROLLER or (sec == "build" and b >= 6):
         return grid([(0, nm(root), 10, 100), (10, nm(root), 6, 92)])
-    if sec == "half":
+    if sec == "half" and not WOB:
         return grid([(0, nm(root), 16, 96)])
+    return R(4)
+
+
+def wobble(sec, b, gb):
+    if WOB and sec == "half":
+        return grid([(0, nm(CH[gb % 4][0] + 12), 16, 100)])
     return R(4)
 
 
@@ -194,7 +205,7 @@ def trip(sec, b):
 
 
 def build():
-    names = ("kit", "amen", "bass", "rhodes", "pad", "voice", "riser", "trip", "reese")
+    names = ("kit", "amen", "bass", "rhodes", "pad", "voice", "riser", "trip", "reese", "wob")
     T = {n: [] for n in names}
     gb = 0
     for sec, nb in FORM:
@@ -203,6 +214,7 @@ def build():
             T["amen"].append(amen(sec, b))
             T["bass"].append(bass(sec, b, gb))
             T["reese"].append(reese_line(sec, b, gb))
+            T["wob"].append(wobble(sec, b, gb))
             T["rhodes"].append(rhodes(sec, b, gb))
             T["pad"].append(pad(sec, b, gb))
             T["voice"].append(voice(sec, b, gb))
@@ -300,13 +312,17 @@ def song():
              **({"fx": ([{"type": "drive", "drive": float(KITDRIVE), "mix": 1}] if KITDRIVE else [])
                         + [{"type": "compressor", "threshold": "-14dB", "ratio": 6, "attack": "0.3ms", "release": "60ms", "makeup": "3dB"}]} if KITCOMP else {}),
              "score": sc("kit", f"swing16={KSWING}")},
-            {"name": "amen", "patch": "amen-chops", "gain": "-12dB", "out": "drums", "fx": [{"type": "filter", "kind": "highpass", "cutoff": 350, "q": 0.7}],
+            {"name": "amen", "patch": "amen-chops", "gain": "-8dB" if AMENUP else "-12dB", "out": "drums",
+             "fx": [{"type": "filter", "kind": "highpass", "cutoff": 200 if AMENUP else 350, "q": 0.7}],
              "score": sc("amen", f"swing16={ASWING}" if ASWING else "")},
             {"name": "bass", "patch": "reese", "gain": "-5dB" if LUSH else "-9dB", "fx": [pump(-6), {"type": "filter", "kind": "lowpass", "cutoff": 900, "q": 1.2}], "score": sc("reese" if BWALK else "bass")},
             {"name": "sub", "patch": "sub-sine", "gain": "-4dB" if (LUSH and not BASSOUT) else "-8dB", "fx": [pump(-6)], "score": sc("bass")},
             {"name": "rhodes", "patch": "rhodes-damped", "gain": "-5dB" if LUSH else "-8dB", "pan": -0.15, "fx": [pump(-4)], "sends": {"hall": "-12dB"}, "score": sc("rhodes")},
             {"name": "pad", "patch": "juno-pad", "gain": "-11dB" if LUSH else "-16dB", "fx": [pump(-6)], "sends": {"hall": "-8dB"}, "score": sc("pad")},
             {"name": "voice", "patch": "voice", "gain": "-8dB" if LUSH else "-10dB", "pan": 0.2, "sends": {"hall": "-6dB", "echo": f"{VECHO or -12}dB"}, "score": sc("voice")},
+            *([{"name": "wob", "patch": "reese", "gain": "-6dB", "lfo": {"w": f"sine rate={WOB}"},
+                "fx": [pump(-6), {"type": "filter", "kind": "lowpass", "cutoff": {"value": 500, "mod": [{"src": "lfo.w", "amount": 1.6}]}, "q": 4}],
+                "score": sc("wob")}] if WOB else []),
             *([{"name": "trip", "patch": "machine-kit", "gain": f"{TRIP}dB", "pan": 0.3, "out": "drums", "score": sc("trip")}] if TRIP else []),
             {"name": "riser", "patch": "fx-riser-noise", "gain": "-16dB", "sends": {"hall": "-10dB"}, "score": sc("riser")},
         ],
