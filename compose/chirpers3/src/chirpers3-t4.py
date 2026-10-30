@@ -155,11 +155,22 @@ BRIDGE_TUNE = [(41, 0, 6, "F5"), (41, 6, 2, "Db5"), (41, 8, 8, "Bb4"),
                (44, 0, 6, "Eb5"), (44, 6, 2, "Db5"), (44, 8, 12, "F5")]
 
 
+# ...and THE TUNE REMEMBERED (the wind-down, bars 53-58): as the box runs down, the flute recalls the bridge's falling
+# opening (bent to the Fm9) and then its homecoming gesture, Eb Db F, twice, each time slower and softer, the second
+# landing on Dbmaj9's F (home) as the gears die, sagging with the whole band. (The coda's box never reaches that F.)
+OUTRO_TUNE = [(53, 0, 6, "F5", 62), (53, 6, 2, "Eb5", 56), (53, 8, 10, "C5", 58),
+              (55, 0, 6, "Eb5", 58), (55, 6, 2, "Db5", 52), (55, 8, 14, "F5", 56),
+              (57, 0, 8, "Eb5", 52), (57, 8, 4, "Db5", 46), (57, 12, 20, "F5", 50)]
+
+
 def bridge_tune():
     hand = random.Random(41)                                    # its own hand (the rest of the song's dice unchanged)
     for i, (bar, x, ln, pch) in enumerate(BRIDGE_TUNE):
         late = 0.25 + 0.15 * hand.random()                       # played by hand: a touch behind
         P["flute"].add(b0(bar) + x + late, ln - 0.4, pch, 66 + (8 if x == 0 else 0) + hand.randint(-4, 4))
+    for bar, x, ln, pch, vel in OUTRO_TUNE:
+        late = 0.3 + 0.3 * hand.random()                        # later still: the hand slowing with the box
+        P["flute"].add(b0(bar) + x + late, ln - 0.4, pch, vel)
 
 
 def coda(coinc, toy_on):
