@@ -15,6 +15,7 @@ IV.  FIRE (24 bars): post-metal: two chug rigs left and right on E5 - C5 - G5 - 
      half-time kit; THE SIGNAL on a dark tape-echo lead an octave up, then in the last eight bars the drums double.
      (v2) The crescendo also climbs out from behind a low-pass that opens stage by stage, and the strings and lead
      breathe against the kick in the fire.
+     (v4) A distant siren wails under the crescendo from its third stage, through the fire, and faintly in the ash.
 V.   ASH (16 bars): the wall tape-stops into feedback and silence; rain; a music box plays THE SIGNAL in E MAJOR (the
      G sharpened), and the voice comes back, quieter and closer still: "leave the lights on."
 Levels: post-rock is dynamic (album master rms -21..-11, crest 9..18): a light glue, then a soft clip under a -1 dB
@@ -83,7 +84,7 @@ def build():
     for b in bars:
         secs.setdefault(b['sec'], b['t'])
     T = dict(radio=[], static=[], wind=[], drone=[], cello=[], glock=[], arp=[], ebow=[], kit=[], bass=[], trem=[],
-             strings=[], chugl=[], chugr=[], fuzz=[], lead=[], box=[], rain=[], voice=[], sub=[])
+             strings=[], chugl=[], chugr=[], fuzz=[], lead=[], box=[], rain=[], voice=[], sub=[], siren=[])
     # I. STATIC
     T['wind'].append((0.0, 'C4', secs['procession'] + 16.0, 76))
     T['static'].append((0.0, 'C4', secs['procession'] + 4.0, 84))
@@ -167,6 +168,10 @@ def build():
                 T['cello'].append((t0 + 4.0, 'E2,B2,G#3', 16 * 4 - 6.0, 62))
             if i == 8:
                 T['voice'] += speech(LAST, t0 + 1.0, 45)
+    # (v4) THE SIREN: a distant air-raid wail (a sine whose pitch swings five semitones on a two-bar LFO, far off in the
+    # hall) rises under the crescendo from its third stage and through the fire, and once more, fainter, in the ash
+    T['siren'].append((secs['signal'] + 16 * 4.0, 'A4', 24 * 4.0 + 24 * 4.0 - 0.5, 70))
+    T['siren'].append((secs['ash'] + 6 * 4.0, 'A4', 6 * 4.0, 46))
     end_b = total
     # dynamics: the crescendo is in the playing, the master only shapes the movements a little
     lv = {'static': -4, 'procession': -2, 'signal': 0, 'fire': 0, 'ash': -3}
@@ -224,6 +229,10 @@ def build():
             tr('box', 'music-box', '-10dB', sends={'hall': '-6dB'}),
             tr('rain', 'fx-rain', '-12dB'),
             tr('voice', 'voice-speech', '-6dB', sends={'hall': '-10dB'}),
+            tr('siren', {'synth': {'layers': [{'type': 'osc', 'wave': 'sine'}, {'type': 'osc', 'wave': 'triangle', 'level': 0.3}],
+                                   'amp': {'a': '6s', 'd': '1s', 's': 1, 'r': '5s'}}}, '-24dB', sends={'hall': '0dB'},
+               lfo={'wail': 'sine rate=2/1 phase=0'},
+               fx=[{'type': 'pitch', 'semitones': {'value': 0, 'mod': [{'src': 'lfo.wail', 'amount': 5}]}, 'formant': 0}, 'lp cutoff=1800', 'hp cutoff=250']),
         ]}
 
 if __name__ == '__main__':
