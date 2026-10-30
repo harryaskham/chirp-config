@@ -6770,6 +6770,13 @@
           },
           "at": "2026-10-30T19:27:22Z",
           "was": 86.742
+        },
+        "stale": {
+          "score": 94.061,
+          "since": "2026-10-30T20:42:33Z",
+          "who": "chirper-one",
+          "rating": 8.5,
+          "version": "v2"
         }
       },
       "passes": 1,
