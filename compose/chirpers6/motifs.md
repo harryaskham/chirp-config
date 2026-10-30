@@ -38,6 +38,7 @@ Generator `compose/chirpers6/src/chirpers6-t3.py`. Instrumental post-metal, 132 
 - **THE CHAIN ALONE** (v5, chirper-one's note): one changed bar a phrase - in the chug the fourth bar of every eight drops the rigs, the fuzz and the kit, and the crane's chain clanks alone over the sub before the riff slams back; in the climb the fourth bar drops its back half.
 - **THE CRANE BRAKES** (v5): the chug's last stab tape-stops into the stacks.
 - **THE LOW END BREATHES** (v5): the fuzz bass, the sub and both rigs pump from the kick; the fuzz bass's low-pass breathes on a 7-bar LFO (the crane's number).
+- **THE ECHO BETWEEN THE EIGHTHS** (v7): the clean riff, its answering harmonics, the tremolo lead and the ebow send to a dotted-eighth delay (3/16, feedback 0.38, darkened at 2.8 kHz, into the hall) - the post-rock echo, whose repeats fall between the 7/8's eighths, so the clean riff in the joints and the last ship ripples across the bar instead of ticking on it.
 - **DARKER** (v6, Harry's carried note): the master adds 5 dB of body at 150 Hz and takes 4 dB of fizz out at 3.5 kHz, so the drop-tuned rigs sit on a floor instead of over it.
 - **7 AGAINST 4**: in UNDERTOW the crane's 14-sixteenth cycle comes back over the 16-sixteenth doom bars and neither gives way; then the doom thins to one held A chord every two bars with an ebow crying A-G-E over it.
 - **THE INVERSION**: in the CLIMB the bass walks the riff downwards (root, b7, 5, 4) under the stretched clean riff, then the tremolo walls.

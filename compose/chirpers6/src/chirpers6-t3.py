@@ -45,7 +45,9 @@ PUMP = os.environ.get("C6T3_PUMP", "1") == "1"  # the low end breathes with the 
 BASSLFO = os.environ.get("C6T3_BASSLFO", "1") == "1"  # the fuzz bass through a low-pass breathing on a 7-bar LFO (the crane's number), resonance up
 TSTOP = os.environ.get("C6T3_TSTOP", "1") == "1"
 LANDMARK = os.environ.get("C6T3_LANDMARK", "1") == "1"
-TILT = os.environ.get("C6T3_TILT", "5,4")  # "low,high": the master's 150 Hz up and 3.5 kHz down (dB) - the body under the guitars, the fizz down; darker  # chirper-one's note (9.0): one changed bar a phrase - in the chug the fourth bar of every 8 is the crane's chain alone over the sub (the rigs, the fuzz and the kit drop out), and in the climb the fourth bar drops its back half  # the chug's last stab tape-stops: the crane brakes before the stacks  # a second ship answers the foghorn from further out (A and E, lower and quieter)  # reverse-cymbal swells drawn into the chug, the climb's full kit, the undertow and the last ship  # the crane operator on a handheld intercom in the stacks ("seven, clear to lift" - the 7 is the meter), and in the last ship's bars "last one, lights stay on"  # the movements develop instead of looping: the chug in four stages (the riff, its grouping rotated 3+2+2, the line over it, a stabbing peak and a break), a second clean guitar's harmonics answering in the joints, the doom thinning to held chords and an ebow cry
+TILT = os.environ.get("C6T3_TILT", "5,4")
+SYNC = os.environ.get("C6T3_SYNC", "0") == "1"
+DLY = os.environ.get("C6T3_DLY", "-8")  # a dotted-eighth delay bus (3/16, the post-rock echo whose repeats fall between the eighths): the clean riff, the harmonics, the tremolo lead and the ebow send to it at this level (dB)  # the kick finds the 16ths: in the chug's third stage (THE LINE over the riff) the kick plays 0, 3, 6, 8, 11 (with the rigs accenting the 3 and the 11), and the climb's full kit pushes on the 3 and the 11  # "low,high": the master's 150 Hz up and 3.5 kHz down (dB) - the body under the guitars, the fizz down; darker  # chirper-one's note (9.0): one changed bar a phrase - in the chug the fourth bar of every 8 is the crane's chain alone over the sub (the rigs, the fuzz and the kit drop out), and in the climb the fourth bar drops its back half  # the chug's last stab tape-stops: the crane brakes before the stacks  # a second ship answers the foghorn from further out (A and E, lower and quieter)  # reverse-cymbal swells drawn into the chug, the climb's full kit, the undertow and the last ship  # the crane operator on a handheld intercom in the stacks ("seven, clear to lift" - the 7 is the meter), and in the last ship's bars "last one, lights stay on"  # the movements develop instead of looping: the chug in four stages (the riff, its grouping rotated 3+2+2, the line over it, a stabbing peak and a break), a second clean guitar's harmonics answering in the joints, the doom thinning to held chords and an ebow cry
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 SEVEN, FOUR = 14, 16
@@ -235,6 +237,8 @@ def build():
             if DEV and b == 63:  # the break before the yard: one stab, then nothing
                 hits, ring = (), (0, 3)
             accents = (6, 10) if stage == 1 else (0, 4)
+            if SYNC and stage == 2:
+                hits = tuple(sorted(set(hits) | {3, 11})) if ring and ring[0] == 8 else hits
             for st in hits:
                 add("chugl", at + st, nm(r) + "^pm", 1, 104 if st in accents else 92)
                 add("chugr", at + st, nm(r) + "^pm", 1, 102 if st in accents else 90)
@@ -358,6 +362,9 @@ def build():
             elif stage == 3:
                 kit += [(st, "k", 108 if st % 2 else 118) for st in range(14)] + [(4, "s", 120), (8, "s", 120), (12, "s", 116)]
                 kit += [(0, "c", 122)] if b % 4 == 0 else [(0, "x", 108)]
+            elif SYNC and stage == 2:  # syncopated: the kick on the 16ths between the eighths
+                kit += [(0, "k", 118), (3, "k", 108), (6, "k", 112), (8, "k", 114), (11, "k", 110), (4, "s", 112), (12, "s", 116)]
+                kit += [(st, "rd", 76 if st % 4 == 0 else 62) for st in range(0, 14, 2)]
             else:
                 kit += [(0, "k", 118), (2, "k", 104), (8, "k", 114), (4, "s", 112), (11, "s", 116)]
                 kit += [(st, "rd", 76 if st % 4 == 0 else 62) for st in range(0, 14, 2)]
@@ -372,6 +379,8 @@ def build():
                     kit += [(0, "c", 112)]
             else:
                 kit += [(st, "k", 112) for st in range(0, 16, 2)] + [(4, "s", 118), (12, "s", 118)]
+                if SYNC:
+                    kit += [(3, "k", 104), (11, "k", 106)]
                 kit += [(st, "rde", 90) for st in range(0, 16, 4)]
                 if b % 2 == 0:
                     kit += [(0, "c", 122)]
@@ -504,6 +513,7 @@ def song():
             "drums": {"fx": [{"type": "compressor", "threshold": "-14dB", "ratio": 3, "attack": "5ms", "release": "90ms", "makeup": "1dB"}]},
             "hall": {"fx": ["reverb kind=hall decay=3.5s size=0.9 mix=1 predelay=30ms"]},
             "yard": {"fx": ["reverb kind=hall decay=6s size=1 mix=1 predelay=60ms", "lp cutoff=2500"]},
+            **({"dly": {"fx": ["delay time=3/16 feedback=0.38 mix=1 tone=2800", "hp cutoff=250"], "sends": {"hall": "-8dB"}}} if DLY else {}),
         },
         "tracks": [
             {"name": "bell", "patch": "bell", "gain": "-20dB", "pan": 0.35, "sends": {"yard": "-6dB"}, "score": sc("bell")},
@@ -526,9 +536,9 @@ def song():
             *([{"name": "vox", "patch": "voice-speech", "gain": "-8dB", "pan": -0.3,
                 "fx": [{"type": "filter", "kind": "hp", "cutoff": 400, "q": 0.7}, {"type": "filter", "kind": "lp", "cutoff": 3200, "q": 0.9},
                        {"type": "drive", "drive": 0.45, "mix": 1}], "sends": {"yard": "-10dB"}, "score": sc("vox")}] if VOX else []),
-            *([{"name": "harm", "patch": "clean-chorus", "gain": "-12dB", "pan": 0.45, "sends": {"hall": "-6dB"}, "score": sc("harm")}] if DEV else []),
+            *([{"name": "harm", "patch": "clean-chorus", "gain": "-12dB", "pan": 0.45, "sends": {"hall": "-6dB", **({"dly": f"{DLY}dB"} if DLY else {})}, "score": sc("harm")}] if DEV else []),
             {"name": "wind", "patch": "fx-wind", "gain": "-18dB", "score": sc("wind")},
-            {"name": "clean", "patch": "clean-chorus", "gain": "-8dB", "pan": -0.15, "sends": {"hall": "-10dB"}, "score": sc("clean")},
+            {"name": "clean", "patch": "clean-chorus", "gain": "-8dB", "pan": -0.15, "sends": {"hall": "-10dB", **({"dly": f"{DLY}dB"} if DLY else {})}, "score": sc("clean")},
             {"name": "fretless", "patch": "fretless-bass", "gain": "-6dB", "score": sc("fretless")},
             {"name": "chugl", "patch": "m8-rhythm-l", "gain": "-10dB", "pan": -0.7, **({"fx": [PUMPFX(-3)]} if PUMP else {}), "score": sc("chugl")},
             {"name": "chugr", "patch": "m8-rhythm-r", "gain": "-10dB", "pan": 0.7, **({"fx": [PUMPFX(-3)]} if PUMP else {}), "score": sc("chugr")},
@@ -538,9 +548,9 @@ def song():
              **({"lfo": {"b": "sine rate=7/1"}} if BASSLFO else {}), "score": sc("fuzz")},
             {"name": "sub", "patch": "sub-sine", "gain": "-10dB", **({"fx": [PUMPFX(-6)]} if PUMP else {}), "score": sc("sub")},
             {"name": "kit", "patch": "room-kit", "gain": "-2dB", "out": "drums", "score": sc("kit")},
-            {"name": "lead", "patch": "m8-lead-guitar", "gain": "-14dB", "pan": 0.2, "sends": {"hall": "-8dB"}, "score": sc("lead")},
+            {"name": "lead", "patch": "m8-lead-guitar", "gain": "-14dB", "pan": 0.2, "sends": {"hall": "-8dB", **({"dly": f"{DLY}dB"} if DLY else {})}, "score": sc("lead")},
             {"name": "cello", "patch": "cellos", "gain": "-8dB", "sends": {"hall": "-6dB"}, "score": sc("cello")},
-            {"name": "ebow", "patch": "ebow", "gain": "-10dB", "pan": 0.1, "sends": {"hall": "-8dB"}, "score": sc("ebow")},
+            {"name": "ebow", "patch": "ebow", "gain": "-10dB", "pan": 0.1, "sends": {"hall": "-8dB", **({"dly": f"{DLY}dB"} if DLY else {})}, "score": sc("ebow")},
             {"name": "yardmetal", "patch": "metal-kit", "gain": "-14dB", "pan": 0.5, "sends": {"yard": "0dB"}, "score": sc("yardmetal")},
         ],
     }

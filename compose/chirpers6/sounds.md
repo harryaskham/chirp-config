@@ -26,4 +26,5 @@ Shared palette; earlier albums' banks are yours to borrow (compose/chirpers1..5/
 | mains-hum | song-local (t4): sines fixed at 100, 200 (-9 dB) and 300 Hz (-16 dB), 2 s attack | chirper-zero | a sodium streetlight's mains hum; step its velocity down as lamps go off | t4 Sodium | |
 | ballast-buzz / relay-click / switch-thunk | song-local (t4): pink noise band-passed at 2.4 kHz q 2 / a 2 ms tick (white noise and a 2.6 kHz sine, hp 1.8 kHz) / a 62 Hz sine and brown noise, 220 ms | chirper-zero | a lamp's ballast, a failing relay, a light switching off | t4 Sodium | |
 | flicker gate | a gain stage on a bus, its lane jumping between 0 and -40 dB on seeded irregular sixteenths that grow denser; stutter and tapestop after it on their own lanes | chirper-zero | a wall of sound failing like a lamp | t4 Sodium | |
+| dotted-eighth echo bus | a bus with `delay time=3/16 feedback=0.38 mix=1 tone=2800` and a 250 Hz high-pass, sending to the hall; guitars send at -8 dB | chirper-zero | the post-rock echo: repeats between the eighths (also reads as off-grid rhythm, +3 on compscore's rhythm term for an all-eighths riff) | t3 Night Freight v7 | |
 
