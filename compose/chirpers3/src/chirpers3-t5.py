@@ -50,6 +50,9 @@ STEPPERS = os.environ.get("T5_STEPPERS", "")  # the return goes STEPPERS: the ki
 ISOLO = os.environ.get("T5_ISOLO", "1") == "1"  # the intro is the skank alone in the spring, all four bars; the riddim drops at bar five
 RELTRIG = os.environ.get("T5_RELTRIG", "6")  # wM's release triggers: the skank's keys let go with the e-piano's damper thud (a choked tine burst + felt) at each stab's end; value = gain in dB ("0", "6"); with T5_RELBUB=1 the bubble's wurli too
 RELBUB = os.environ.get("T5_RELBUB", "0") == "1"
+BOUT = os.environ.get("T5_BOUT", "")
+LHARM = os.environ.get("T5_LHARM", "1") == "1"
+LH_DB = os.environ.get("T5_LHDB", "-15")  # the harmony's level  # the return's melodica doubled a diatonic third under (A minor), a second player answering in harmony  # the echo-out: through the breakdown's skank-alone half every stab goes into the tape loop (the skank's echo send up by this many dB)
 IDRY = os.environ.get("T5_IDRY", "1") == "1"  # ...and the intro's skank stays out of the tape loop (only the spring)
 MHATS = os.environ.get("T5_MHATS", "0") == "1"  # the melodica section's hats open up to soft 16ths, the drummer lifting under the tune
 STRIP = os.environ.get("T5_STRIP", "")  # chirper-three's note: a true dub strip-down - the breakdown is bass and drums alone for all 8 bars, 3 dB down, and the return slams back 2 dB up; "hold" keeps THE HOLD over the first four, "dry" drops it
@@ -290,6 +293,11 @@ def song():
         i1 = times["riddim"]
         vd = ([["0s", -26], [f"{i1 - 0.05:.3f}s", -26], [f"{i1:.3f}s", 0]] if IDRY else [["0s", 0]]) + [[f"{v0 - 0.05:.3f}s", 0], [f"{v0:.3f}s", -26], [f"{v1 - 0.05:.3f}s", -26], [f"{v1:.3f}s", 0], [f"{total + 8:.2f}s", 0]]
         lane = {**lane, "vd": {"points": vd}}
+    if BOUT:
+        bar_s = 4 * 60 / BPM
+        b4, b8 = times["breakdown"] + 4 * bar_s, times["breakdown"] + 8 * bar_s
+        lane = {**lane, "bo": {"points": [["0s", 0], [f"{b4 - 0.05:.3f}s", 0], [f"{b4:.3f}s", float(BOUT)], [f"{b8 - 0.05:.3f}s", float(BOUT)],
+                                           [f"{b8:.3f}s", 0], [f"{total + 8:.2f}s", 0]]}}
     tracks = [
         {"name": "drums", "patch": ("room-kit" + (f" play.humanize.nudge.so={RIMDRAG}ms" if RIMDRAG else "") if not NUDGE else
                                      "room-kit play.humanize.nudge.so={}ms play.humanize.nudge.k={}ms play.humanize.nudge.h={}ms "
@@ -298,7 +306,8 @@ def song():
         {"name": "bass", "patch": "analog-bass", "gain": "0dB", "fx": [{"type": "filter", "kind": "lowpass", "cutoff": 420}],
          "score": sc("bass")},
         {"name": "skank", "patch": "living-skank" if LIVING else "rhodes", "gain": "-6dB", "pan": -0.2, "fx": wow, "lfo": lfo,
-         "sends": {"spring": "-6dB", "echo": (thr_send(-14) if not VDRY else {"value": "-14dB", "mod": [{"src": "auto.thr", "amount": 1}, {"src": "auto.vd", "amount": 1}]})},
+         "sends": {"spring": "-6dB", "echo": (thr_send(-14) if not VDRY else {"value": "-14dB", "mod": [{"src": "auto.thr", "amount": 1}, {"src": "auto.vd", "amount": 1}]
+                                                                                                    + ([{"src": "auto.bo", "amount": 1}] if BOUT else [])})},
          "auto": lane, "score": sc("skank", 0.58)},
         {"name": "bubble", "patch": "bubble-keys" if (RELTRIG and RELBUB) else BUBPATCH, "gain": "-12dB", "pan": 0.3, "fx": wow, "lfo": lfo,
          "sends": {"spring": "-12dB"}, "score": sc("bubble", 0.58)},
@@ -307,6 +316,27 @@ def song():
         {"name": "crackle", "patch": "vinyl-crackle", **({"mute": True} if VINYL else {}), "gain": "-20dB" if CRK == "1" else "-28dB", "score": sc("crackle")},
         {"name": "hiss", "patch": "vinyl-hiss", "gain": "-34dB", **({"mute": True} if VINYL else {}), "score": sc("hiss")},
     ]
+    if LHARM:  # the return's melodica a diatonic third under (A natural minor): C/D drop to the A/B below
+        bars2 = []
+        r0 = sum(nb for sec, nb, _ in FORM[:[f[0] for f in FORM].index("return")])
+        r1 = r0 + dict((f[0], f[1]) for f in FORM)["return"]
+        for i, bar in enumerate(T["lead"]):
+            if not r0 <= i < r1:
+                bars2.append("R/4b")
+                continue
+            out = []
+            for tok in bar.split():
+                head, rest = tok.split("/", 1)
+                if head.startswith("R"):
+                    out.append(tok)
+                    continue
+                letter, octv = head[0], int(head[-1])
+                k = "ABCDEFG".index(letter) - 2
+                dur, vel = rest.split("@")
+                out.append(f"{'ABCDEFG'[k % 7]}{octv - 1 if letter in 'CD' else octv}/{dur}@{max(20, int(vel) - 8)}")
+            bars2.append(" ".join(out))
+        tracks.append({"name": "lead2", "patch": "boc-lead", "gain": f"{LH_DB}dB", "pan": -0.35, "fx": lead_fx, "lfo": lfo,
+                       "sends": {"spring": "-8dB"}, "score": " | ".join(bars2)})
     if LECHO:
         tracks.append({"name": "lecho", "patch": "boc-lead", "gain": "-11dB", "pan": -0.5, "fx": lead_fx, "lfo": lfo,
                        "sends": {"spring": "-6dB"}, "score": " ".join(T["lecho"])})
