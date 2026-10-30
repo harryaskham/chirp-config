@@ -7,8 +7,7 @@ The groove is UK-garage 2-step at drum & bass tempo: a kick on the one and a ski
 the snare on 2 and 4 (steps 4 and 12) with soft ghosts, and sixteenth hats SWUNG like garage (the off sixteenths
 late); under the drops a quiet bed of wM's synthesised amen, re-sequenced from its ghost slices, rolls underneath.
 Lush ninth chords (a juno pad held, an epiano comping in the 2-step's gaps with its damper), a warm sub on the
-roots pumped by the kick, a short vocal-chop hook (a tape voice through a formant filter, made bigger with
-formant-preserving pitch), and only in the second drop a soft drifting reese. Patient entries (Harry: refine, don't
+roots pumped by the kick, a short hook on a breathy low whistle (a vocal chop until v4), and only in the second drop a soft drifting reese. Patient entries (Harry: refine, don't
 overcook): it opens half-time and drumless, chords and chops in tape hiss, and lets the drums in through a filter.
 
 FORM (128 bars, 174 bpm, ~2:57):
@@ -166,7 +165,7 @@ HOOK = [(0, "G5"), (3, "Eb5"), (6, "F5"), (10, "G5"), (16, "Bb5"), (19, "G5"), (
 
 
 def chops():
-    """THE HOOK: a vocal chop over two bars (sixteenths), sparse in the intro, every other phrase in the drops,
+    """THE HOOK (since v4 on a low whistle, legato, an octave down; v1-v3 a vocal chop) over two bars, sparse in the intro, every other phrase in the drops,
     alone in the break."""
     hand = random.Random(5)
     for bar in range(5, 125, 2):
@@ -177,9 +176,12 @@ def chops():
             continue
         if sec == "build" or (sec == "outro" and bar > 117):
             continue
-        for s, n in HOOK:
+        for k, (s, n) in enumerate(HOOK):
             bb = bar + s // 16
-            part("vox").add(x16(bb, s % 16), 0.4, n, 84 + hand.randint(-8, 6))
+            nxt = HOOK[k + 1][0] if k + 1 < len(HOOK) else 32
+            m = NAMES.index(n[:-1]) + 12 * (int(n[-1]) + 1)   # at pitch (G5-Bb5): it fills the mix's 1 kHz hole; an
+            # octave down it crowded 300-400 Hz (+8..+11 dB over the genre)
+            part("hook").add(x16(bb, s % 16), (nxt - s) / 4 * 0.9, nm(m), 84 + hand.randint(-8, 6))   # legato
 
 
 LEVEL = {"intro": -4, "build": -2, "drop": 0, "break": -5, "drop2": 0, "outro": -4}
@@ -215,8 +217,6 @@ def main():
         "tail": "3s",
         "ceiling": "-1.0dB",
         "volume": "0dB",
-        "patches": {"c5-vox": {"extends": "lead-tape", "synth": {"fx": [
-            {"type": "formant", "vowel": {"value": 0.5, "mod": [{"src": "rand", "amount": 0.3}]}, "q": 8, "mix": 1}]}}},
         "buses": {"drums": {"fx": [{"type": "compressor", "threshold": "-16dB", "ratio": 4, "attack": "1ms",
                                      "release": "70ms", "makeup": "2dB"},
                                     "clip ceiling=-11dB knee=0.7 link=true"]},   # chirper-two's clean liquid recipe
@@ -240,7 +240,7 @@ def main():
         "tracks": [
             tr("kick", "tight-kit", gain="-4dB", out="drums"),
             tr("snare", "tight-kit", gain="-6dB", out="drums", sends={"space": "-14dB"}),
-            tr("hats", "tight-kit", gain="-15dB", pan=0.15, out="drums"),
+            tr("hats", "tight-kit", gain="-13dB", pan=0.15, out="drums"),
             tr("amen", "amen-chops", gain="-13dB", out="drums", fx=["hp cutoff=500", pump]),
             tr("sub", "808", gain="-4dB", fx=[{"type": "drive", "drive": 0.2, "mix": 0.4}, pump]),   # warmer, heard
             tr("reese", "reese", gain="-16dB", fx=["lp cutoff=700", pump]),
@@ -249,8 +249,8 @@ def main():
                    pump]),
             tr("keys", "epiano-tine synth.tine.sense=0.4 play.release.patch=epiano-damper play.release.decay=2s",
                gain="-6dB", pan=-0.15, sends={"space": "-10dB", "echo": "-16dB"}),
-            tr("vox", "c5-vox", gain="-6dB", pan=0.1, sends={"space": "-8dB", "echo": "-10dB"},
-               fx=[{"type": "pitch", "semitones": 0, "formant": -3}]),
+            tr("hook", "low-whistle", gain="-7dB", pan=0.1, sends={"space": "-8dB", "echo": "-12dB"}),   # v4: the hook
+            # on a breathy low whistle, not a vocal chop (the vocal side is chirper-one's Last Night Bus)
             tr("riser", "fx-riser-shepard", gain="-14dB"),
         ],
     }
