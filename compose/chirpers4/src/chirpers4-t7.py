@@ -40,7 +40,8 @@ EQ3 = os.environ.get("C4T7_EQ2", "3") == "3"  # the deeper cut: 45 Hz -11, 155 H
 BASSLFO = os.environ.get("C4T7_BASSLFO", "1") == "1"  # Harry's LFO note: the reese through a resonant low-pass that drifts on a 7-bar sine and a 3-bar triangle, opened by section (closed in A, open at the peak)
 NOISELFO = os.environ.get("C4T7_NOISELFO", "1") == "1"
 MKICK = os.environ.get("C4T7_MKICK", "")
-MKICK_DB = os.environ.get("C4T7_MKICKDB", "0")  # the machine kick's level  # chirper-two's analog machine-kit for the kick alone (its own track): "kd" = the hard driven kick, "k" = the 909-circuit kick; the 909 keeps the hats, claps and the peak's kh layer  # the bursts' colour on a 5-bar sweep (a band-pass moving 500 Hz-4 kHz) and their place in the field on a 5-bar sine  # the master's lows cleaned (45 Hz -8, 155 Hz -3) and its top opened (6 kHz +3)  # a DJ's outro: only the kick (and its rumble) runs to the end, the rest leaves as before  # the outro mirrors the intro: the kick and the rumble all the way, the clank, the hats leaving at bar 9, no reese and no noise
+MKICK_DB = os.environ.get("C4T7_MKICKDB", "0")
+HATLFO = os.environ.get("C4T7_HATLFO", "1") == "1"  # the 909's hats and claps split from the kick onto their own track, through a high-pass opening and closing on a 7-bar sine and a 3-bar triangle, drifting on a 5-bar sine  # the machine kick's level  # chirper-two's analog machine-kit for the kick alone (its own track): "kd" = the hard driven kick, "k" = the 909-circuit kick; the 909 keeps the hats, claps and the peak's kh layer  # the bursts' colour on a 5-bar sweep (a band-pass moving 500 Hz-4 kHz) and their place in the field on a 5-bar sine  # the master's lows cleaned (45 Hz -8, 155 Hz -3) and its top opened (6 kHz +3)  # a DJ's outro: only the kick (and its rumble) runs to the end, the rest leaves as before  # the outro mirrors the intro: the kick and the rumble all the way, the clank, the hats leaving at bar 9, no reese and no noise
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 FORM = [("intro", 16), ("A", 32), ("build", 16), ("B", 32), ("break", 8), ("C", 32), ("outro", 16)]
@@ -122,6 +123,22 @@ def split_bars(bars, kick):
             ps = head.split(",")
             keep = [MKICK] if (kick and "_KICK" in ps) else ([] if kick else [p for p in ps if p != "_KICK"])
             toks.append((",".join(keep) + "/" + rest) if keep else ("R/" + rest.split("@")[0]))
+        out.append(" ".join(toks))
+    return out
+
+
+def hatsplit(bars, kicks):
+    """Split the 909 bars: kicks=True keeps k/kh (the kick track), False keeps the hats and claps (the moving hats track)."""
+    out = []
+    for bar in bars:
+        toks = []
+        for tk in bar.split():
+            head, rest = tk.split("/", 1)
+            if head.startswith("R"):
+                toks.append(tk)
+                continue
+            ps = [p for p in head.split(",") if (p in ("k", "kh")) == kicks]
+            toks.append((",".join(ps) + "/" + rest) if ps else ("R/" + rest.split("@")[0]))
         out.append(" ".join(toks))
     return out
 
@@ -226,6 +243,12 @@ def song():
         "tracks": [
             *([{"name": "kick", "patch": "machine-kit", "gain": f"{MKICK_DB}dB", "sends": {"rumble": "-3dB"}, "score": " | ".join(split_bars(T["kit"], True))},
                {"name": "kit", "patch": "909", "gain": "0dB", "sends": {"rumble": "-3dB"}, "score": " | ".join(split_bars(T["kit"], False))}] if MKICK else
+              [{"name": "kit", "patch": "909", "gain": "0dB", "sends": {"rumble": "-3dB"}, "score": " | ".join(hatsplit(T["kit"], True))},
+               {"name": "hats", "patch": "909", "gain": "0dB",
+                "lfo": {"h": "sine rate=7/1", "j": "tri rate=3/1 phase=0.5", "q": "sine rate=5/1 phase=0.25"},
+                "pan": {"value": 0, "mod": [{"src": "lfo.q", "amount": 0.3}]},
+                "fx": [{"type": "filter", "kind": "highpass", "cutoff": {"value": 900, "mod": [{"src": "lfo.h", "amount": 1.0}, {"src": "lfo.j", "amount": 0.4}]}, "q": 0.8}],
+                "score": " | ".join(hatsplit(T["kit"], False))}] if HATLFO else
               [{"name": "kit", "patch": "909", "gain": "0dB", "sends": {"rumble": "-3dB"}, "score": sc("kit")}]),
             {"name": "bass", "patch": "reese", "gain": "-6dB",
              "fx": ([{"type": "filter", "kind": "lowpass", "cutoff": {"value": 600, "mod": [{"src": "lfo.a", "amount": 1.1}, {"src": "lfo.b", "amount": 0.5},
