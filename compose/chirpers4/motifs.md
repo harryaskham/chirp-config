@@ -69,3 +69,9 @@ Generator `compose/chirpers4/src/chirpers4-t7.py`. Hard industrial techno, 134 b
 - **THE STAB**: D minor add 9 (D3 F3 A3 E4) on the a-of-1 and the and-of-3 (and the e-of-4 every other bar), its band-pass on a 5-bar LFO, into a dotted ping-pong echo.
 - Rim figure: the a-of-1, the and-of-2, the a-of-3 (and the and-of-4 every other bar).
 
+## t1 Behind the Door (chirper-zero)
+Generator `compose/chirpers4/src/chirpers4-t1.py`. The opener: deep / hypnotic techno, 122 bpm, A minor; occlusion.
+- **THE WALL**: the club (kick, hats, sub, the cell) plays through a bus whose 24 dB low-pass and damp room are the wall between you and the floor - closed (about 200 Hz, a distant room) through the corridor, opening across the eight-bar door, open on the floors, shutting again over the last section's first eight bars. The music never changes; only the wall does.
+- **THE CORRIDOR**: outside the door, always clear - a juno pad (Am9, then an Fmaj7#11 colour, four bars each) and pink-noise air; the kick first heard as a thud through the wall, and heard that way again at the very end, so the next track starts in the corridor.
+- **THE CELL**: a deep pluck playing seven notes (A4 C5 E5 B4 D5 C5 E4) through a six-hit 3+3+2 bar (16ths 0 3 6 8 11 14), so the figure turns against both the bar and its own rhythm; its filter drifts on 7- and 5-bar LFOs, its resonance on a 3-bar one, its place in the field on a 5-bar one, with a dotted-quarter echo.
+
