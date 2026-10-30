@@ -11,6 +11,8 @@ jungle producer works an MPC - over a deep, dubby liquid bed.
 - THE BED: a juno pad on Fm9 - Dbmaj7 - Ebsus2 - Cm7, four bars each (slow, dubby), with a dotted-quarter echo on a
   Rhodes stab answering every chord.
 - THE VOICE: a low wordless "ooh" (formants down) in the break, the only melody, into a long hall.
+- (v3, Harry's Soft Concrete notes) the boom gains weight (phantom harmonics, drive, harder pump) and the mix is darker
+  (the top eased 1.5 dB, a 12 kHz low-pass).
 Form: intro 16 / drop 32 / break 16 (bed, voice, the boom alone) / drop2 32 (heavier edits; its first sixteen bars
 DRY - no pad, the break and the boom alone - v2) / outro 16.
 Levels on the album standard (-12.5 LUFS +-1.5, true peak <= -1 dBTP, no pinned runs): drums compressed on their
@@ -120,12 +122,12 @@ def build():
         'buses': {'hall': {'fx': ['reverb kind=hall decay=3.8s mix=1', 'hp cutoff=250'], 'returns': []},
                   'echo': {'fx': [{'type': 'delay', 'time': '3/8', 'feedback': 0.45, 'mix': 1}, 'lp cutoff=2500', 'hp cutoff=300'], 'returns': []}},
         'master': {'fx': [{'type': 'filter', 'kind': 'lp', 'q': 0.7, 'cutoff': {'value': 18000, 'mod': [{'src': 'auto.op', 'amount': -4.5}]}},
-                          {'type': 'eq', 'bands': ['highpass cutoff=28', 'peak cutoff=120 q=0.8 gain=2dB', 'peak cutoff=1100 q=0.9 gain=-3dB', 'highshelf cutoff=8000 gain=-2dB']},
+                          {'type': 'eq', 'bands': ['highpass cutoff=28', 'peak cutoff=120 q=0.8 gain=2dB', 'peak cutoff=1100 q=0.9 gain=-3dB', 'highshelf cutoff=7000 gain=-3.5dB']},
                           {'type': 'compressor', 'threshold': '-22dB', 'ratio': 2.5, 'attack': '15ms', 'release': '150ms', 'makeup': '2dB'},
                           {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.dyn', 'amount': 1}]}},
                           {'type': 'gain', 'gain': '+9dB'},
                           {'type': 'compressor', 'threshold': '-5dB', 'ratio': 10, 'attack': '0.3ms', 'release': '60ms', 'makeup': '1.5dB'},
-                          'lp cutoff=13500',
+                          'lp cutoff=12000',
                           {'type': 'clip', 'drive': '0dB', 'ceiling': '-2.3dB', 'knee': 0.55, 'link': True}],
                    'auto': {'dyn': {'points': dyn}, 'op': {'points': op}}},
         'tracks': [
@@ -134,7 +136,11 @@ def build():
                     {'type': 'stutter', 'slice': '1/16', 'repeats': 4, 'roll': 0.5, 'floor': '1/64', 'chance': 1,
                      'mix': {'value': 0, 'mod': [{'src': 'auto.gl', 'amount': 1}]}}],
              'auto': {'gl': {'points': gl}}, 'score': line(amen, total)},
-            {'name': 'boom', 'patch': '808', 'gain': '-4dB', 'fx': [{'type': 'pump', 'on': 'amen', 'depth': '-3dB', 'release': '230ms', 'curve': 0.6}],
+            # (v3) the boom gains weight that reads on small speakers: wM's phantom harmonics above 90 Hz and a little drive,
+            # pumped harder by the break
+            {'name': 'boom', 'patch': '808', 'gain': '-4dB', 'fx': [{'type': 'phantom', 'cutoff': 90, 'harmonics': '-10dB', 'odd': 0.4},
+                                                                {'type': 'drive', 'drive': 0.2, 'mix': 0.3},
+                                                                {'type': 'pump', 'on': 'amen', 'depth': '-5dB', 'release': '230ms', 'curve': 0.6}],
              'score': line(boom, total)},
             {'name': 'pad', 'patch': 'juno-pad', 'gain': '-12dB', 'sends': {'hall': '-10dB'},
              'fx': [{'type': 'pump', 'on': 'amen', 'depth': '-5dB', 'release': '230ms', 'curve': 0.6}], 'score': line(pad, total)},
