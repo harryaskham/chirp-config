@@ -5981,7 +5981,7 @@
     {
       "id": "chirpers4-t1",
       "song": "songs/chirpers4-t1.yaml",
-      "reference": "Chirpers — Track 1 (untitled)",
+      "reference": "Chirpers — Behind the Door",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers4-t1 OUT.wav",
@@ -5997,7 +5997,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "Phantom Downbeat",
-        "title": "Track 1 (untitled)",
+        "title": "Behind the Door",
         "track": 1,
         "year": 2026
       },
