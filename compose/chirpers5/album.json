@@ -1,0 +1,135 @@
+{
+  "id": "chirpers5",
+  "artist": "Chirpers",
+  "album": "Chirpers V (untitled)",
+  "named": false,
+  "year": 2026,
+  "genre": "liquid / 2-step drum & bass, glitchstep",
+  "brief": "The chirpers' fifth album (Harry, 30 Oct): in Harry's words, a 'liquid 2step future-sounds-of-russia style drum and bass, hospital records type glitchstep thing'. Think rolling, soulful, liquid drum & bass in the Hospital Records vein; 2-step and garage swing; glitchstep fracture; lush chords, rolling breaks, warm subs and reese, vocal chops, euphoria and melancholy together. Everything else is the chirpers' choice: the name, the titles, each track's style, tempo and sound. Range wide across that map, and keep each track a world of its own. Declare your track's style in compose/chirpers5/styles.md when you claim it so the ten stay distinct. The sound bank is compose/chirpers5/sounds.md; the earlier albums' banks are yours to borrow and transform. Never copy or closely imitate an existing piece.",
+  "palette": "Breaks and drums: the physical drum layer, tight-kit, dusty-kit, lofi-kit, 909/808, chop (slice and re-sequence a bar), kit links and release triggers. Bass: reese, hoover, 808 family, sub synths, the ladder. Keys and pads: epiano-tine (+ damper), rhodes, juno-pad, saw-pad, pad-glass, piano-wash, strings. Voice: the voice engine with formant-preserving pitch for chops. Space and glitch: pump, feedback echo rooms, reverb freeze/shimmer, cloud, chop, tapestop, crush, tape. Plus anything you build.",
+  "art_brief": "Liquid drum & bass sleeve: rain-wet city lights at night smeared into motion blur, deep blues and teal with a warm amber glow, glossy and soulful, with a thin glitchy digital fracture.",
+  "bleed": false,
+  "genre_refs": [
+    "archangel",
+    "baddadan",
+    "diplodocus",
+    "flim",
+    "i-never-learnt-to-share"
+  ],
+  "master": {
+    "rms": [
+      -14.0,
+      -7.0
+    ],
+    "peak_max": 0.0,
+    "crest": [
+      6.5,
+      13.0
+    ]
+  },
+  "weights": {
+    "flow": 0.02
+  },
+  "tracks": [
+    {
+      "n": 1,
+      "role": "opener",
+      "length": [
+        120,
+        420
+      ],
+      "brief": "Opens the album. Style, groove, tempo and line-up are yours: declare them in compose/chirpers5/styles.md, different from the tracks already claimed.",
+      "id": "chirpers5-t1"
+    },
+    {
+      "n": 2,
+      "role": "song",
+      "length": [
+        150,
+        450
+      ],
+      "brief": "Style, groove, tempo and line-up are yours: declare them in compose/chirpers5/styles.md, different from the tracks already claimed.",
+      "id": "chirpers5-t2"
+    },
+    {
+      "n": 3,
+      "role": "song",
+      "length": [
+        150,
+        450
+      ],
+      "brief": "Style, groove, tempo and line-up are yours: declare them in compose/chirpers5/styles.md, different from the tracks already claimed.",
+      "id": "chirpers5-t3"
+    },
+    {
+      "n": 4,
+      "role": "song",
+      "length": [
+        150,
+        450
+      ],
+      "brief": "Style, groove, tempo and line-up are yours: declare them in compose/chirpers5/styles.md, different from the tracks already claimed.",
+      "id": "chirpers5-t4"
+    },
+    {
+      "n": 5,
+      "role": "song",
+      "length": [
+        150,
+        450
+      ],
+      "brief": "Style, groove, tempo and line-up are yours: declare them in compose/chirpers5/styles.md, different from the tracks already claimed.",
+      "id": "chirpers5-t5"
+    },
+    {
+      "n": 6,
+      "role": "song",
+      "length": [
+        150,
+        450
+      ],
+      "brief": "Style, groove, tempo and line-up are yours: declare them in compose/chirpers5/styles.md, different from the tracks already claimed.",
+      "id": "chirpers5-t6"
+    },
+    {
+      "n": 7,
+      "role": "song",
+      "length": [
+        150,
+        450
+      ],
+      "brief": "Style, groove, tempo and line-up are yours: declare them in compose/chirpers5/styles.md, different from the tracks already claimed.",
+      "id": "chirpers5-t7"
+    },
+    {
+      "n": 8,
+      "role": "song",
+      "length": [
+        150,
+        450
+      ],
+      "brief": "Style, groove, tempo and line-up are yours: declare them in compose/chirpers5/styles.md, different from the tracks already claimed.",
+      "id": "chirpers5-t8"
+    },
+    {
+      "n": 9,
+      "role": "song",
+      "length": [
+        150,
+        450
+      ],
+      "brief": "Style, groove, tempo and line-up are yours: declare them in compose/chirpers5/styles.md, different from the tracks already claimed.",
+      "id": "chirpers5-t9"
+    },
+    {
+      "n": 10,
+      "role": "closer",
+      "length": [
+        150,
+        480
+      ],
+      "brief": "Closes the album. Style, groove, tempo and line-up are yours: declare them in compose/chirpers5/styles.md, different from the tracks already claimed.",
+      "id": "chirpers5-t10"
+    }
+  ]
+}
