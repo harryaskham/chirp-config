@@ -28,11 +28,11 @@ CHORDS = [(38, [54, 57, 61, 64, 66]), (35, [50, 54, 57, 61, 64]), (31, [50, 54, 
 # the vox melody: two 4-bar phrases (MIDI, beats), the second answering higher
 VOX = [[(66, 2), (69, 2)], [(71, 3), (69, 1)], [(67, 2), (66, 2)], [(64, 4)],
        [(69, 2), (71, 2)], [(74, 3), (73, 1)], [(71, 2), (69, 2)], [(66, 4)]]
-FORM = [('dawn', 8), ('A', 16), ('B', 24), ('runout1', 8), ('runout2', 8), ('runout3', 8), ('end', 6)]
+FORM = [('dawn', 8), ('A', 16), ('B', 24), ('runout1', 8), ('runout2', 8), ('runout3', 8), ('end', 6), ('lock', 4)]
 HAS = {   # which voices play in each section (the run-out removes one at a time)
     'dawn': {'pad', 'voxfrag'}, 'A': {'pad', 'kick', 'kit', 'bass', 'arp'}, 'B': {'pad', 'kick', 'kit', 'bass', 'arp', 'vox'},
     'runout1': {'pad', 'kit', 'bass', 'arp', 'vox'}, 'runout2': {'pad', 'kit', 'bass', 'vox'},
-    'runout3': {'pad', 'vox'}, 'end': {'pad', 'lastvox'}}
+    'runout3': {'pad', 'vox'}, 'end': {'pad', 'lastvox'}, 'lock': set()}
 
 def line(events, total):
     ev = sorted(events)
@@ -55,7 +55,7 @@ def build():
         for i in range(n):
             bars.append({'sec': name, 'i': i, 't': t, 'c': (CHORDS_B[(i // 6) % 4] if name == 'B' else CHORDS[(i // 8) % 4] if name == 'A' else CHORDS[(len(bars) // 4) % 4])}); t += 4.0
     total = t
-    kit, pad, bass, arp, vox = [], [], [], [], []
+    kit, pad, bass, arp, vox, locked = [], [], [], [], [], []
     for k, b in enumerate(bars):
         s, t0, (root, ch) = b['sec'], b['t'], b['c']
         h = HAS[s]
@@ -80,6 +80,12 @@ def build():
             seq = ch[1:] + ch[-2:0:-1]
             for e in range(16):
                 arp.append((t0 + e * 0.25, nm(seq[e % len(seq)] + 12), 0.22, 70 if e % 4 == 0 else 58))
+        if s == 'lock':
+            # THE LOCKED GROOVE (after the tape stops): the needle sticks in the record's run-out - a two-beat shred of
+            # the vox line (F#4, A4) repeats, muffled and wobbling, over a louder crackle, until it fades
+            for q in range(2):
+                locked.append((t0 + 2 * q, 66, 0.9, 64 - 3 * b['i']))
+                locked.append((t0 + 2 * q + 1, 69, 0.9, 60 - 3 * b['i']))
         if 'lastvox' in h and b['i'] < 4:
             # THE LAST WORD: over the bare pad, as the tape begins to sag, the vox sings the first phrase once more,
             # softer each bar
@@ -109,6 +115,7 @@ def build():
     t_end = secs['end']
     vm = [['0s', 0], [f'{t_end + 2 * 4 * SPB:.2f}s', 0], [f'{t_end + 4 * 4 * SPB:.2f}s', 0.7]]
     vf = [['0s', 0], [f'{t_end + 3.5 * 4 * SPB - 0.02:.2f}s', 0], [f'{t_end + 3.5 * 4 * SPB:.2f}s', 1]]
+    t_lock = secs['lock']
     # THE TAPE CHEWS (wM's chop fx on the master): in the last two bars of the third run-out the deck starts eating
     # the tape - the bar is cut into eight and replayed with doubles, reversals and gaps - just before the end section
     tr3 = [b['t'] for b in bars if b['sec'] == 'runout3'][0]
@@ -126,7 +133,7 @@ def build():
                           {'type': 'compressor', 'threshold': '-18dB', 'ratio': 3, 'attack': '15ms', 'release': '180ms', 'makeup': '2dB'},
                           {'type': 'compressor', 'threshold': '-10dB', 'ratio': 6, 'attack': '1ms', 'release': '60ms', 'makeup': '3dB'},
                           {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.fade', 'amount': 1}]}}],
-                   'auto': {'chew': {'points': chew}, 'ts': {'points': [['0s', 0], [f'{end_s - 4 * 4 * SPB:.2f}s', 0], [f'{end_s - 4 * 4 * SPB + 0.05:.2f}s', 1]]},
+                   'auto': {'chew': {'points': chew}, 'ts': {'points': [['0s', 0], [f'{t_lock - 4 * 4 * SPB:.2f}s', 0], [f'{t_lock - 4 * 4 * SPB + 0.05:.2f}s', 1], [f'{t_lock - 0.05:.2f}s', 1], [f'{t_lock:.2f}s', 0]]},
                             'fade': {'points': [['0s', -14], ['20s', -10], ['24.5s', 0], [f'{t_end - 2:.2f}s', 0], [f'{t_end:.2f}s', -9], [f'{end_s:.2f}s', -20]]}}},
         'tracks': [
             {'name': 'kit', 'patch': 'electro-kit', 'gain': '-4dB', 'fx': ['crush bits=12 rate=26kHz mix=0.4'], 'score': line(kit, total)},
@@ -142,6 +149,9 @@ def build():
                      'freeze': {'value': 0, 'mod': [{'src': 'auto.vf', 'amount': 1}]}, 'mix': {'value': 0, 'mod': [{'src': 'auto.vm', 'amount': 1}]}},
                     {'type': 'tape', 'drive': 0.05, 'mix': 0.4, 'wow': 8, 'flutter': 1.5, 'drift': 1, 'tone': 8000, 'sweep': 0.4, 'seed': 14,
                      'warp': {'value': 0, 'mod': [{'src': 'auto.wear', 'amount': 1}]}}], 'notes': notes(vox)},
+            {'name': 'locked', 'patch': 'dream-vox', 'gain': '-8dB', 'fx': [{'type': 'filter', 'kind': 'lp', 'cutoff': 1500, 'q': 0.7},
+                                                                             'tape drive=0.2 mix=0.7 wow=22 flutter=4 drift=2 tone=4000 sweep=0.8 seed=41'],
+             'notes': notes(locked)},
             {'name': 'crackle', 'patch': 'fx-crackle', 'gain': '-8dB', 'score': f"C4/{total - 0.2:.4f}b@80 R/0.2b"},
         ]}
 
