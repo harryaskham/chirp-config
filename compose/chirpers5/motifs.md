@@ -76,6 +76,7 @@ Generator `compose/chirpers5/src/chirpers5-t10.py`. The closer: euphoric liquid 
 - **THE COUNTER-REESE** (second drop, an octave up): 8ve b7 5 | m3+8ve 8ve.
 - **THE ROLLER**: amen slices 0 1 2 3 | 9 13(a-of-3) 2 7; the kick on 1 and the a-of-3, snares on 2 and 4; half-time break: kick 1, snare 3.
 - **THE END HUMS** (v2): the outro carries the pad and the held reese hum (the intro's mirror) to the last bar, a 0.5 s tail: no more four bars of silence before Wet Brick.
+- **FINAL ROUND** (v3, Harry's notes): the mono sub up 2 dB with phantom harmonics, the reese (its mid layer) driven harder, both pumped; the first drop ends on a VINYL SPIN-BACK into the half-time break; the build rings a second amen through a COMB filter climbing two octaves into the second drop; the top down 1.5 dB above 6 kHz.
 
 ## t9 Late Shift (chirper-three)
 Generator `compose/chirpers5/src/chirpers5-t9.py`. Liquid funk, 174 bpm, A dorian.

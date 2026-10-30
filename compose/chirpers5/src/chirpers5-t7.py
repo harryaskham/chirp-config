@@ -64,6 +64,12 @@ class Track:
 # Concrete Hum hands Wet Brick a room, not a gap.
 # (G, a ghost on the a-of-4 leaning into each bar, was tried: it did not move the groove; off by default.)
 R2 = set(filter(None, os.environ.get("T7_R2", "J").split(","))) - {"none"}
+# Round 3 (v3), the FINAL round, on Harry's Soft Concrete notes. (No swing here either: the rolls sit on the straight
+# grid.) B = A BASS THAT READS: the mono sub comes up 2 dB and gains wM's phantom harmonics; the reese, its mid layer,
+# drives its tape a little harder; both pumped by the kick; T = THE TOOLBOX IN THE TRANSITIONS: the first drop ends on
+# a VINYL SPIN-BACK into the half-time break, and through the build a second copy of the amen rings through a COMB
+# filter whose pitch climbs two octaves into the second drop; D = A SHADE DARKER: the top down 1.5 dB above 6 kHz.
+R3 = set(filter(None, os.environ.get("T7_R3", "B,T,D").split(","))) - {"none"}
 FORM = [("intro", 16), ("A", 32), ("half", 16), ("build", 8), ("B", 40), ("outro", 16)]
 CHORDS = [(43, [58, 62, 65, 69]),   # Gm9: G2 | Bb3 D4 F4 A4
           (39, [55, 58, 62, 67]),   # Ebmaj7(9): Eb2 | G3 Bb3 D4 G4
@@ -83,7 +89,7 @@ ROLL_FILL = [(0.0, 0, 0, 0), (0.5, 1, -10, 0), (1.0, 2, 0, 0), (1.5, 3, -18, 0),
 
 def build():
     rng = random.Random(7)
-    T = {k: Track(k) for k in ("reese", "counter", "sub", "pad", "rhodes", "amen", "kick", "snare", "hats")}
+    T = {k: Track(k) for k in ("reese", "counter", "sub", "pad", "rhodes", "amen", "kick", "snare", "hats", "comb")}
     bars, pos = [], 0.0
     for name, n in FORM:
         for i in range(n):
@@ -125,6 +131,8 @@ def build():
                 if sec == "build" and i < 4 and b not in (0.0, 1.0, 2.5, 3.0):
                     continue
                 T["amen"].add(start + b, 0.5, nm(36 + sl), 100 + dv - (12 if soft else 0), f"^tune={tune}" if tune else "")
+                if "T" in R3 and sec == "build":  # the build's ringing copy
+                    T["comb"].add(start + b, 0.5, nm(36 + sl), 100 + dv, f"^tune={tune}" if tune else "")
         if drop or sec == "build":
             for b in (0.0, 2.75):  # the second kick on the a-of-3: the roller leans
                 T["kick"].add(start + b, 0.5, "k", 104 if b == 0 else 94)
@@ -156,6 +164,9 @@ def main():
              [f"{st['B']}b", 0.2], [f"{st['outro']}b", 0.0], [f"{total}b", -1.5]]
     pump = {"type": "pump", "on": "kick.k", "depth": "-7dB", "attack": "3ms", "release": "230ms", "curve": 0.8}
     rhodes = "epiano-tine synth.tine.sense=0.4 play.release.patch=epiano-damper play.release.decay=1.5s"
+    cpitch = [["0b", 0.0], [f"{st['build']}b", 0.0], [f"{st['B']}b", 2.0], [f"{total}b", 2.0]]
+    spin = [["0b", 0.0], [f"{st['half'] - 1}b", 0.0], [f"{st['half'] - 0.99}b", 1.0], [f"{st['half']}b", 1.0],
+            [f"{st['half'] + 0.01}b", 0.0], [f"{total}b", 0.0]]
     tracks = [
         {"name": "reese", "patch": "reese", "gain": "-7dB",
          "lfo": {"a": "sine rate=3/1", "b": "tri rate=5/1 phase=0.25", "n": "sine rate=7/1 phase=0.5"},
@@ -165,7 +176,7 @@ def main():
                                                   {"src": "auto.ropen", "amount": 1.0}]}},
                 {"type": "filter", "kind": "notch", "q": 2.0,
                  "cutoff": {"value": 600, "mod": [{"src": "lfo.n", "amount": 1.2}]}},
-                "hp cutoff=45", "tape drive=0.35 warmth=0.5"],
+                "hp cutoff=45", "tape drive=%g warmth=0.5" % (0.55 if "B" in R3 else 0.35)],
          "auto": {"ropen": {"points": ropen}}, "score": T["reese"].score(total)},
         {"name": "counter", "patch": "reese", "gain": "-15dB", "pan": 0.25,
          "lfo": {"c": "sine rate=5/1 phase=0.6"},
@@ -173,8 +184,9 @@ def main():
                        "cutoff": {"value": 1600, "mod": [{"src": "lfo.c", "amount": 0.6}]}},
                 "hp cutoff=150", {"type": "delay", "time": "3/16", "feedback": 0.25, "mix": 0.18, "tone": 2500}],
          "score": T["counter"].score(total)},
-        {"name": "sub", "patch": "sub-sine", "gain": "-6dB",
-         "fx": [{"type": "pump", "on": "kick.k", "depth": "-6dB", "attack": "2ms", "release": "150ms", "curve": 0.8}],
+        {"name": "sub", "patch": "sub-sine", "gain": "-4dB" if "B" in R3 else "-6dB",
+         "fx": [{"type": "pump", "on": "kick.k", "depth": "-6dB", "attack": "2ms", "release": "150ms", "curve": 0.8}]
+                + ([{"type": "phantom", "cutoff": "120hz", "harmonics": "-6dB", "odd": 0.4}] if "B" in R3 else []),
          "score": T["sub"].score(total)},
         {"name": "pad", "patch": "juno-pad", "gain": "-18dB", "fx": [pump, "hp cutoff=350"], "score": T["pad"].score(total)},
         {"name": "rhodes", "patch": rhodes, "gain": "-9dB", "pan": -0.2,
@@ -187,6 +199,11 @@ def main():
                  "chance": {"value": 0, "mod": [{"src": "auto.roll", "amount": 1}]}},
                 "reverb kind=room decay=0.5s mix=0.1"],
          "auto": {"roll": {"points": roll}}, "score": T["amen"].score(total)},
+        *([{"name": "amen-comb", "patch": "amen-chops", "gain": "-14dB", "pan": 0.2,
+            "fx": [{"type": "filter", "kind": "comb", "q": 12,
+                    "cutoff": {"value": 196, "mod": [{"src": "auto.cp", "amount": 1.0}]}},
+                   "hp cutoff=200", "reverb kind=plate decay=1.2s mix=0.2"],
+            "auto": {"cp": {"points": cpitch}}, "score": T["comb"].score(total)}] if "T" in R3 else []),
         {"name": "kick", "patch": "break-kit", "gain": "-6dB", "out": "drums", "fx": ["lp cutoff=3000"],
          "score": T["kick"].score(total)},
         {"name": "snare", "patch": "break-kit", "gain": "-9dB", "out": "drums", "score": T["snare"].score(total)},
@@ -212,11 +229,15 @@ def main():
         "buses: " + json.dumps({"drums": {"gain": "0dB", "fx": [
             {"type": "compressor", "threshold": "-16dB", "ratio": 4, "attack": "1ms", "release": "70ms",
              "makeup": "2dB"}]}}),
-        "master: " + json.dumps({"fx": [{"type": "eq", "bands": ["hp cutoff=25"]},
+        "master: " + json.dumps({"fx": [{"type": "eq", "bands": ["hp cutoff=25"]
+                                          + (["highshelf cutoff=6000 gain=-1.5dB"] if "D" in R3 else [])},
                                         "glue threshold=-22dB ratio=2.5 attack=10ms release=150ms makeup=1dB",
                                         "tape drive=0.2 warmth=0.4",
                                         {"type": "gain", "gain": f"{LVL_GAIN:g}dB"},
-                                        {"type": "limiter", "ceiling": "-1.2dB", "release": "80ms"}]}),
+                                        {"type": "limiter", "ceiling": "-1.2dB", "release": "80ms"}]
+                                 + ([{"type": "tapestop", "stop": {"value": 0, "mod": [{"src": "auto.spin", "amount": 1}]},
+                                      "time": "1b", "spin": 3}] if "T" in R3 else []),
+                                 **({"auto": {"spin": {"points": spin}}} if "T" in R3 else {})}),
         "tracks:",
     ]
     lines += ["  - " + json.dumps(t) for t in tracks]
