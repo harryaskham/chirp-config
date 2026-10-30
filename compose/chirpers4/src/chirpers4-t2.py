@@ -74,7 +74,11 @@ def build():
         for i in range(n):
             bars.append({'sec': name, 'i': i, 'n': n, 't': t}); t += 4.0
     total = t
-    kit, bass, ga, gb = [], [], [], []
+    kit, bass, ga, gb, pad = [], [], [], [], []
+    # (v7) THE CORRIDOR'S CHORD: Behind the Door (t1) ends in its corridor on a deep Am9 pad; The Gallop Splits opens
+    # with that chord still ringing (A2 C3 E3 G3 B3), fading over the first eight bars as the broken kick takes the floor
+    for k in range(2):
+        pad.append((k * 16.0, ','.join(nm(m) for m in (45, 48, 52, 55, 59)), 15.8, 70 - 14 * k))
     for b in bars:
         s, t0, h, i = b['sec'], b['t'], HAS[b['sec']], b['i']
         # (v5) THE TIDE TURNS: in the second groove and the peak the whole floor moves, eight bars per step, A - F - C - G
@@ -153,6 +157,7 @@ def build():
             {'name': 'bass', 'patch': 'reese', 'gain': '-9dB', 'lfo': {'tide': 'sine rate=8/1 phase=0.75'},
              'fx': [{'type': 'filter', 'kind': 'lp', 'q': 1.1, 'cutoff': {'value': 2000, 'mod': [{'src': 'lfo.tide', 'amount': 1.0}]}},
                     {'type': 'pump', 'on': 'kit.k', 'depth': '-9dB', 'release': '300ms', 'curve': 0.6}], 'score': line(bass, total)},
+            {'name': 'pad', 'patch': 'juno-pad', 'gain': '-10dB', 'fx': ['lp cutoff=2500'], 'score': line(pad, total)},
             {'name': 'galA', 'patch': gal, 'gain': '-13dB', 'pan': -0.15, 'sends': {'space': '-10dB'}, 'fx': ['lp cutoff=3200'], 'score': line(ga, total)},
             {'name': 'galB', 'patch': gal, 'gain': '-13dB', 'sends': {'space': '-10dB'}, 'fx': ['lp cutoff=3200'],
              'pan': {'value': 0.15, 'mod': [{'src': 'auto.split', 'amount': 0.7}]}, 'auto': {'split': {'points': pan_pts}},

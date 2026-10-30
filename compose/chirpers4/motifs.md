@@ -46,6 +46,7 @@ Generator `compose/chirpers4/src/chirpers4-t8.py`. Deep dub techno, 124 bpm, D m
 - **THE HELD BREATH** (v4): the last beat of the break - the gallop pulled widest, two streams - is cut to silence, and the peak's first hard kick lands out of it.
 - **THE TIDE TURNS** (v5, harmony): in the second groove and the peak the whole floor moves - the reese's root and the gallop's A note step A, F, C, G, eight bars each (gap kept), then home; the first groove and the break stay on A, so the movement is the second half's reward.
 - **A CLEARER MIX** (v6): the master EQ reshaped - 44 Hz cut -8 (was -4), 160 Hz -3, a broad 2.2 kHz presence lift +6 where the gallop's bleeps and the hats live, the air above 10 kHz eased -3, and 1.5 dB more into the limiter so it stays as loud.
+- **THE CORRIDOR'S CHORD** (v7, the join from t1): Behind the Door ends in its corridor on a deep Am9 pad; The Gallop Splits now opens with that chord still ringing (juno-pad, A2 C3 E3 G3 B3, low-passed at 2.5 kHz), fading over the first eight bars as the broken kick takes the floor.
 
 ## t4 Two Floors (chirper-three)
 Generator `compose/chirpers4/src/chirpers4-t4.py`. Tribal / percussive warehouse techno, 128 bpm and 96 bpm in the same bar, G minor.
