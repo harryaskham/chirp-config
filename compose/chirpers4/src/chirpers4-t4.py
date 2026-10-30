@@ -9,9 +9,10 @@ at 128 bpm. Under a kick on every fourth step (0 4 8, three to the bar: the TRIB
 twelve steps become straight sixteenths at 96 bpm. Nothing about the grid or the bar changes; only which floor the
 ear stands on.
 
-FORM (144 bars, 128 bpm, ~4:30):
-  intro  1-16   the machine's floor: 909 kick + rumble; the shekere's shuffle enters
-  groove 17-48  four on the floor: clap, open hats, congas, the rolling bass; the stab already hints at three
+FORM (144 bars, 128 bpm, ~4:30); since v4 (Harry: "too busy ... all comes in too fast n heavy") fewer parts, each
+entering patiently, and slow odd-length LFOs instead of more layers:
+  intro  1-16   the shekere's shuffle alone (bars 1-4), the hats (5), the 909 and its rumble (9), the sub (13)
+  groove 17-48  the rolling bass (17), the clap (21); the stab (33) already hints at three
   both   49-64  TWO FLOORS: the toms' three-floor joins the 909's four (4 against 3): the ear can stand on either
   slow   65-80  the 909 leaves: the toms carry it, the hats and clap move to the three-floor: the floor slows to 96
   break  81-96  no kicks: the shekere's accents flip between 4 and 3 every two bars (the ear cannot tell which floor);
@@ -83,7 +84,7 @@ class Part:
         return " ".join(toks)
 
 
-P = {k: Part() for k in ("four", "kh", "toms", "boom", "chant", "clap", "hats", "shek", "conga", "bell", "bass", "sub", "stab", "pad",
+P = {k: Part() for k in ("four", "toms", "boom", "chant", "clap", "hats", "shek", "bass", "sub", "stab", "pad",
                          "riser")}
 
 G = 7                                       # G minor
@@ -98,12 +99,9 @@ def floors():
     tom_pitch = [G + 26, G + 26, G + 21]                # D2 D2 A1 ... the tribe's floor sings a falling fourth
     for bar in range(1, BARS + 1):
         sec = sec_of(bar)
-        if sec in FOUR_ON and not (sec == "outro" and bar > 142):
+        if sec in FOUR_ON and not (sec == "outro" and bar > 142) and bar >= 9:   # patience: the kick waits for bar 9
             for s in (0, 3, 6, 9):
                 P["four"].add(st(bar, s), 0.5, "k", 116 if s == 0 else 110)
-            if sec == "drop" and bar < 105:
-                for s in (0, 3, 6, 9):
-                    P["kh"].add(st(bar, s), 0.5, "kh", 96)          # the drop's distorted layer
         if sec in THREE_ON:
             for i, s in enumerate((0, 4, 8)):
                 v = (104 if i == 0 else 94) + hand.randint(-4, 4)
@@ -122,12 +120,13 @@ def backbeat():
     hand = random.Random(9)
     for bar in range(1, BARS + 1):
         sec = sec_of(bar)
-        four = sec in ("groove", "both", "drop") or (sec == "outro" and bar < 137)
+        four = (sec in ("groove", "both", "drop") or (sec == "outro" and bar < 137)) and bar >= 21
         three = sec == "slow"
         if four:
             for b in (1, 3):
                 P["clap"].add(b0(bar) + b + 0.012, 0.5, "cp", 100 + hand.randint(-5, 3))
-        if (four or (sec == "intro" and bar > 8)):
+        hat_on = sec in ("intro", "groove", "both", "drop") or (sec == "outro" and bar < 137)
+        if hat_on and bar >= 5:
             for b in range(4):
                 P["hats"].add(b0(bar) + b + 0.5, 0.25, "oh", 84 if sec != "intro" else 66)
         if three:
@@ -141,7 +140,7 @@ def shuffle():
     """THE PIVOT: the shekere on all twelve steps. Its accents say which floor: on 0 3 6 9 under the four, on 0 4 8
     under the three; in the break they flip every two bars, so the ear cannot settle (a Necker cube for tempo)."""
     hand = random.Random(12)
-    for bar in range(5, BARS + 1):
+    for bar in range(1, BARS + 1):
         sec = sec_of(bar)
         if 81 <= bar <= 84:
             continue                                        # the break opens on the drone alone: both floors gone
@@ -158,38 +157,6 @@ def shuffle():
             if sec == "intro":
                 v -= 16
             P["shek"].add(st(bar, s), 0.3, "sk", v)
-
-
-CONGA = {0: "lo", 2: "mu", 4: "sl", 5: "o", 7: "mu", 8: "sl", 10: "o", 11: "mu"}
-
-
-def congas():
-    """A tribal conga line on the pivot grid; its slaps (4 and 8) lean towards the three-floor before it exists, and
-    every fourth bar one hit moves (the loop mutates)."""
-    hand = random.Random(21)
-    pat = dict(CONGA)
-    for bar in range(17, 129):
-        sec = sec_of(bar)
-        if sec == "break" and (bar < 89 or bar == 96):
-            continue
-        if bar % 4 == 1 and bar > 17:
-            src = hand.choice(sorted(pat))
-            dst = (src + hand.choice([-1, 1])) % 12
-            if dst not in pat:
-                pat[dst] = pat.pop(src)
-        for s, piece in pat.items():
-            v = {"lo": 96, "sl": 90, "o": 80, "mu": 62}[piece] + hand.randint(-8, 6)
-            P["conga"].add(st(bar, s), 0.3, piece, v)
-
-
-BELL = (0, 2, 3, 5, 7, 8, 10)
-
-
-def bell():
-    """An agogo line in the break and the drop: seven of the twelve steps, low on the floor's beats."""
-    for bar in list(range(85, 96)) + list(range(105, 129)):
-        for s in BELL:
-            P["bell"].add(st(bar, s), 0.3, "al" if s in (0, 8) else "ah", 74 if s in (0, 8) else 60)
 
 
 def bass():
@@ -211,14 +178,14 @@ def bass():
         for s in steps:
             pch = root + (alt if s in (10, 11) else 0) + (12 if s == 11 and bar % 4 == 3 else 0)
             P["bass"].add(st(bar, s), STEP * 0.8, nm(pch), (94 if s in (2, 5, 8, 11, 3, 7) else 78) + hand.randint(-5, 5))
-        if (sec != "outro" or bar < 137) and sec not in THREE_ON:     # under the three-floor the boom is the low end
+        if (sec != "outro" or bar < 137) and sec not in THREE_ON and bar >= 13:     # under the three-floor the boom is the low end
             P["sub"].add(b0(bar), BAR - 0.05, nm(G + 19 + (alt if alt != 3 else 3)), 90)
 
 
 def stab():
     """THE STAB, a Gm9 through a comb: on steps 2 6 10 (the three-floor's off-beats) from the groove on, so the
     tribe is hinted at before it plays; every eighth bar it answers a third higher."""
-    for bar in range(25, 129):
+    for bar in range(33, 129):
         sec = sec_of(bar)
         if sec == "break":
             continue
@@ -236,19 +203,10 @@ def chant():
     hand = random.Random(53)
     for bar in range(53, 129):
         sec = sec_of(bar)
-        if sec == "break" or (sec == "both" and bar % 2 == 0) or sec == "groove":
+        if sec == "break" or bar % 2 == 0 or sec == "groove" or bar < 57:     # restraint: every other bar
             continue
         pch = G + 55 if bar % 2 else G + 48                       # D4 / G3
         P["chant"].add(st(bar, 8), 0.45, nm(pch), 104 + hand.randint(-6, 4))
-
-
-def stab_lane():
-    """THE STAB OPENS (a hypnotic mutation): its low-pass climbs slowly through the long groove and again through the
-    drop, the same loop getting brighter for 24 and 32 bars, dark again in between."""
-    sec = lambda beats: beats * 60 / BPM
-    pts = [(0, 0), (b0(25), 0), (b0(49) - 0.5, 4500), (b0(49), 2000), (b0(97) - 0.5, 2000), (b0(97), 300),
-           (b0(129) - 0.5, 5500), (b0(129), 2000), (TOTAL, 2000)]
-    return [[f"{sec(b):.3f}s", float(v)] for b, v in pts]
 
 
 def breakdown():
@@ -276,8 +234,6 @@ def main():
     floors()
     backbeat()
     shuffle()
-    congas()
-    bell()
     bass()
     stab()
     chant()
@@ -317,21 +273,23 @@ def main():
                    "auto": {"dyn": {"points": dyn_lane()}}},
         "tracks": [
             tr("four", "909", gain="0dB", sends={"rumble": "-14dB"}),                       # the machine's floor
-            tr("kh", "909", gain="-8dB", fx=["lp cutoff=6000"]),
             tr("toms", "prog-tom", gain="-6dB", sends={"rumble": "-18dB", "room": "-14dB"},  # the tribe's floor
                fx=[{"type": "drive", "drive": 0.35, "mix": 0.5}]),
             tr("boom", "808", gain="-14dB", fx=[{"type": "drive", "drive": 0.3, "mix": 0.4}]),
             tr("clap", "909", gain="-2dB", sends={"room": "-8dB"}),
             tr("hats", "909", gain="-7dB", pan=0.1),
-            tr("shek", "afro-perc", gain="-5dB", pan=-0.2, sends={"room": "-18dB"}),        # THE PIVOT
-            tr("conga", "congas", gain="-4dB", pan=0.25, sends={"room": "-14dB"}),
-            tr("bell", "afro-perc", gain="-10dB", pan=-0.35, sends={"room": "-12dB"}),
-            tr("bass", "analog-bass", gain="-6dB", fx=["lp cutoff=1400", pump("-8dB")]),
+            tr("shek", "afro-perc", gain="-5dB", sends={"room": "-18dB"},                    # THE PIVOT, drifting
+               lfo={"pn": {"wave": "sine", "rate": "28b"}},                                # across the field
+               fx=[{"type": "pan", "pan": {"value": -0.1, "mod": [{"src": "lfo.pn", "amount": 0.45}]}}]),  # (7 bars)
+            tr("bass", "analog-bass", gain="-6dB", lfo={"bf": {"wave": "sine", "rate": "12b"}},      # its filter
+               fx=[{"type": "filter", "kind": "lp", "q": 1.5,                                   # breathes on a
+                    "cutoff": {"value": 1000, "mod": [{"src": "lfo.bf", "amount": 550}]}}, pump("-8dB")]),  # 3-bar LFO
             tr("sub", "808", gain="-24dB", fx=[pump("-10dB")]),
             tr("stab", "brass-stab", gain="-5dB", pan=-0.15, sends={"room": "-10dB"},
-               auto={"sf": {"points": stab_lane()}},
-               fx=[{"type": "filter", "kind": "lp", "q": 2.5,
-                    "cutoff": {"value": 500, "mod": [{"src": "auto.sf", "amount": 1}]}},
+               lfo={"sf": {"wave": "sine", "rate": "20b"}, "sq": {"wave": "sine", "rate": "28b"}},
+               fx=[{"type": "filter", "kind": "lp",                      # the stab's filter on a 5-bar LFO and its
+                    "q": {"value": 3, "mod": [{"src": "lfo.sq", "amount": 2}]},           # resonance on a 7-bar one:
+                    "cutoff": {"value": 1700, "mod": [{"src": "lfo.sf", "amount": 1300}]}},  # never the same twice
                    {"type": "filter", "kind": "comb", "cutoff": 196, "q": 6},
                    {"type": "delay", "time": f"{2 * STEP * beat_s * 1000:.0f}ms", "feedback": 0.38, "mix": 0.3},
                    pump("-8dB")]),
