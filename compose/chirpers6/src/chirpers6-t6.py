@@ -13,7 +13,8 @@ formants in a speech rhythm, words just out of reach.
   III TUNNEL         65-88   everything drops: a drone, static, the radio monologue, the theme in fragments
   IV  FREIGHT        89-136  post-metal: the theme ground into a riff of FIVE eighths against the four, paired
                              chug rigs, fuzz bass; the melody augmented above it; a tremolo wall and feedback
-  V   ARRIVAL        137-184 the theme in E major, the band climbing to the last peak
+  V   ARRIVAL        137-184 the theme in E major, the band climbing to the last peak; since v6 a wordless choir sings
+                             the last peak (169-184)
   VI  EMPTY STATION  185-208 rain again, the station voice once more, the theme's first bar alone, unresolved
 """
 import json
@@ -253,6 +254,23 @@ def arrival():
                 part("trem").add(b0(bar) + k / 4, 0.24, nm(m + 12), 70 + hand.randint(-4, 4))
 
 
+CHORDS_MAJOR = [[52, 56, 59, 64], [49, 56, 61, 64], [49, 57, 61, 64], [47, 54, 59, 63]]   # E C#m7 A/C# B (choir)
+
+
+def choir():
+    """THE ARRIVAL SINGS (v6): at the last peak only (bars 169-184), a wordless choir: the arrival's chords held and
+    the E-major melody in long notes an octave down, swelling bar by bar. The journey has had machines, rain and broken
+    radios; at the arrival, voices."""
+    for bar in range(169, 185):
+        k = (bar - 1) % 4
+        v = 56 + (bar - 169) * 3
+        part("choir").add(b0(bar), BAR - 0.1, ",".join(nm(m) for m in CHORDS_MAJOR[k]), v)
+        for bo, s, n, ln in MELODY_MAJ:
+            if (bar - 169) % 4 == bo:
+                base, octv = n[:-1], int(n[-1]) - 1
+                part("choirlead").add(b0(bar) + s, ln * 0.97, f"{base}{octv}", v + 10)
+
+
 def station():
     for bar in (193, 194, 197, 198, 201):                                 # the theme's first bar, alone, sparse
         theme(bar, ARP_MINOR, 60, "gtr1", every=2)
@@ -301,6 +319,7 @@ def main():
     freight()
     arrival()
     station()
+    choir()
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
     # THE TUNING (v5): the radio's band-pass drifts +-0.6 octave around 1.4 kHz on a 7-bar LFO (OCTAVES), crushed
     TUNING = [{"type": "filter", "kind": "bp", "q": 1.1, "cutoff": {"value": 1400, "mod": [{"src": "lfo.tune", "amount": 0.6}]}},
@@ -375,6 +394,8 @@ def main():
             tr("lead", "lead-tape", gain="-9dB", sends={"hall": "-8dB"}),
             tr("wall", "m8-fuzz", gain="-16dB", sends={"hall": "-6dB"}),
             tr("fbk", "m8-fuzz", gain="-14dB", sends={"hall": "-4dB"}),
+            tr("choir", "choir", gain="-10dB", sends={"hall": "-4dB"}),              # v6: the arrival sings
+            tr("choirlead", "choir", gain="-8dB", pan=0.05, sends={"hall": "-4dB"}),
         ],
     }
     with open(OUT, "w") as f:

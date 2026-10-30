@@ -627,6 +627,25 @@
    "sends": {
     "hall": "-4dB"
    }
+  },
+  {
+   "name": "choir",
+   "patch": "choir",
+   "score": "R/672b E3,Ab3,B3,E4/3.9b@56 R/0.1b Db3,Ab3,Db4,E4/3.9b@59 R/0.1b Db3,A3,Db4,E4/3.9b@62 R/0.1b B2,Gb3,B3,Eb4/3.9b@65 R/0.1b E3,Ab3,B3,E4/3.9b@68 R/0.1b Db3,Ab3,Db4,E4/3.9b@71 R/0.1b Db3,A3,Db4,E4/3.9b@74 R/0.1b B2,Gb3,B3,Eb4/3.9b@77 R/0.1b E3,Ab3,B3,E4/3.9b@80 R/0.1b Db3,Ab3,Db4,E4/3.9b@83 R/0.1b Db3,A3,Db4,E4/3.9b@86 R/0.1b B2,Gb3,B3,Eb4/3.9b@89 R/0.1b E3,Ab3,B3,E4/3.9b@92 R/0.1b Db3,Ab3,Db4,E4/3.9b@95 R/0.1b Db3,A3,Db4,E4/3.9b@98 R/0.1b B2,Gb3,B3,Eb4/3.9b@101 R/96.1b",
+   "gain": "-10dB",
+   "sends": {
+    "hall": "-4dB"
+   }
+  },
+  {
+   "name": "choirlead",
+   "patch": "choir",
+   "score": "R/672b B3/3.88b@66 R/0.12b C#4/1.94b@69 R/0.06b B3/1.94b@69 R/0.06b E4/2.91b@72 R/0.09b C#4/0.97b@72 R/0.03b D#4/3.88b@75 R/0.12b B3/3.88b@78 R/0.12b C#4/1.94b@81 R/0.06b B3/1.94b@81 R/0.06b E4/2.91b@84 R/0.09b C#4/0.97b@84 R/0.03b D#4/3.88b@87 R/0.12b B3/3.88b@90 R/0.12b C#4/1.94b@93 R/0.06b B3/1.94b@93 R/0.06b E4/2.91b@96 R/0.09b C#4/0.97b@96 R/0.03b D#4/3.88b@99 R/0.12b B3/3.88b@102 R/0.12b C#4/1.94b@105 R/0.06b B3/1.94b@105 R/0.06b E4/2.91b@108 R/0.09b C#4/0.97b@108 R/0.03b D#4/3.88b@111 R/96.12b",
+   "gain": "-8dB",
+   "pan": 0.05,
+   "sends": {
+    "hall": "-4dB"
+   }
   }
  ]
 }
