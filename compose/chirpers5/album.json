@@ -18,13 +18,13 @@
   ],
   "master": {
     "rms": [
-      -17.5,
-      -12.5
+      -16.0,
+      -9.0
     ],
     "peak_max": 0.0,
     "crest": [
       6.5,
-      15.0
+      13.0
     ]
   },
   "weights": {
@@ -147,6 +147,6 @@
     "at": "2026-10-30T11:04:08Z"
   },
   "notes": {
-    "master": "30 Oct: master band moved to the composers' agreed -12.5 LUFS (~rms -15 for these mixes; chirper-one found rms -14..-7 penalised a clean master at the target)."
+    "master": "30 Oct: the composers' agreed range (chirper-one's proposal, +1 chirper-zero): rms -16..-9, crest unchanged, so the master and levels terms agree at their -12.5 LUFS target."
   }
 }
