@@ -33,7 +33,10 @@ S = 0.25  # beats per sixteenth
 MGAIN = float(os.environ.get("C6T3_MGAIN", "5"))
 PORT = os.environ.get("C6T3_PORT", "1") == "1"  # the freight goes by sea (the trains are The Last Train's): a buoy bell, waves, a ship's engine throbbing, a gantry crane's chain clanking through its sheave on the 14-sixteenth cycle, a foghorn; the yard becomes the container stacks
 DEV = os.environ.get("C6T3_DEV", "1") == "1"
-VOX = os.environ.get("C6T3_VOX", "1") == "1"  # the crane operator on a handheld intercom in the stacks ("seven, clear to lift" - the 7 is the meter), and in the last ship's bars "last one, lights stay on"  # the movements develop instead of looping: the chug in four stages (the riff, its grouping rotated 3+2+2, the line over it, a stabbing peak and a break), a second clean guitar's harmonics answering in the joints, the doom thinning to held chords and an ebow cry
+VOX = os.environ.get("C6T3_VOX", "1") == "1"
+LIFT = os.environ.get("C6T3_LIFT", "1") == "1"  # the climb's last 16 bars (the full kit) a whole tone up, in C# - so the undertow's fall to A is a major third down
+FILLS = os.environ.get("C6T3_FILLS", "1") == "1"  # a drummer's vocabulary: tom fills on the last half-bar of every 8-bar phrase in the chug, the climb and the undertow; snare rolls into the chug and into the climb's full kit
+SWELLS = os.environ.get("C6T3_SWELLS", "1") == "1"  # reverse-cymbal swells drawn into the chug, the climb's full kit, the undertow and the last ship  # the crane operator on a handheld intercom in the stacks ("seven, clear to lift" - the 7 is the meter), and in the last ship's bars "last one, lights stay on"  # the movements develop instead of looping: the chug in four stages (the riff, its grouping rotated 3+2+2, the line over it, a stabbing peak and a break), a second clean guitar's harmonics answering in the joints, the doom thinning to held chords and an ebow cry
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 SEVEN, FOUR = 14, 16
@@ -48,7 +51,7 @@ LINE = [[("F#4", 28)], [("D4", 14), ("E4", 14)], [("A4", 28)], [("C#5", 14), ("B
 NOTE = {"C": 0, "C#": 1, "Db": 1, "D": 2, "D#": 3, "Eb": 3, "E": 4, "F": 5, "F#": 6, "G": 7, "G#": 8, "Ab": 8, "A": 9,
         "A#": 10, "Bb": 10, "B": 11}
 TRACKS = ("bell", "rumble", "clack", "horn", "wind", "clean", "fretless", "chugl", "chugr", "fuzz", "sub", "kit", "lead",
-          "cello", "ebow", "yardmetal", "waves", "hiss", "beep", "harm", "vox")
+          "cello", "ebow", "yardmetal", "waves", "hiss", "beep", "harm", "vox", "swell")
 
 
 def nm(m):
@@ -103,8 +106,11 @@ def sec_start(name):
 
 
 def chord_of(sec, b, steps):
-    """One chord per two bars."""
-    return CH[(b // 2) % 4]
+    """One chord per two bars (LIFT: the climb's last 16 bars a whole tone up)."""
+    r, v = CH[(b // 2) % 4]
+    if LIFT and sec == "climb" and b >= 32:
+        return r + 2, [n + 2 for n in v]
+    return r, v
 
 
 def build():
@@ -256,7 +262,7 @@ def build():
             cell = LINE[(b // 2) % 4]
             st = 0
             for n, l in cell:
-                add("ebow", at + st, nm(midi(n) + 12), l * 32 // 28, 96)
+                add("ebow", at + st, nm(midi(n) + 12 + (2 if (LIFT and b >= 32) else 0)), l * 32 // 28, 96)
                 st += l * 32 // 28
 
         # --- PORT: the buoy bell rocks on the swell (irregular), the stacks' sounds
@@ -346,6 +352,15 @@ def build():
             kit += [(0, "k", 120), (6, "k", 108), (8, "s", 122), (4, "x", 100), (12, "x", 106)]
             if b % 4 == 0:
                 kit += [(0, "c", 124)]
+        nbars = dict((n, c) for n, c, _ in FORM)[sec]
+        if FILLS and sec in ("chug", "climb", "derailed") and b % 8 == 7 and not (sec == "derailed" and DEV and b >= 32) and not (sec == "chug" and DEV and b == 63):
+            toms = ["t1", "t1", "t2", "t2", "t3", "t3", "ft", "ft"][: steps - 8]
+            kit = [k for k in kit if k[0] < 8] + [(8 + i, t, 92 + 4 * i) for i, t in enumerate(toms)]
+        if FILLS and ((sec == "joints" and b == nbars - 1) or (sec == "climb" and b == 31)):
+            kit = [k for k in kit if k[0] < steps // 2] + [(st, "s", 70 + 6 * (st - steps // 2)) for st in range(steps // 2, steps)]
+        if SWELLS and ((sec == "joints" and b == nbars - 1) or (sec == "climb" and b == 31) or (sec == "climb" and b == nbars - 1)
+                       or (sec == "derailed" and b == nbars - 1)):
+            add("swell", at + steps - 8, "C4", 8, 96)
         for st, piece, vel in kit:
             add("kit", at + st, piece, 1, vel)
 
@@ -445,6 +460,7 @@ def song():
             *([{"name": "waves", "patch": "fx-ocean", "gain": "-16dB", "score": sc("waves")},
                {"name": "hiss", "patch": "air-hiss", "gain": "-22dB", "pan": 0.4, "sends": {"yard": "-6dB"}, "score": sc("hiss")},
                {"name": "beep", "patch": "reverse-beep", "gain": "-34dB", "pan": -0.5, "sends": {"yard": "0dB"}, "score": sc("beep")}] if PORT else []),
+            *([{"name": "swell", "patch": "fx-revcym", "gain": "-14dB", "sends": {"hall": "-8dB"}, "score": sc("swell")}] if SWELLS else []),
             *([{"name": "vox", "patch": "voice-speech", "gain": "-8dB", "pan": -0.3,
                 "fx": [{"type": "filter", "kind": "hp", "cutoff": 400, "q": 0.7}, {"type": "filter", "kind": "lp", "cutoff": 3200, "q": 0.9},
                        {"type": "drive", "drive": 0.45, "mix": 1}], "sends": {"yard": "-10dB"}, "score": sc("vox")}] if VOX else []),
