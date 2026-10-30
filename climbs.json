@@ -6999,13 +6999,18 @@
       "song": "songs/chirpers6-t8.yaml",
       "reference": "Chirpers — Sign-off",
       "source": null,
-      "owner": null,
+      "owner": "chirper-two",
       "metric": "python3 tools/compscore.py chirpers6-t8 OUT.wav",
-      "best": null,
+      "best": {
+        "score": 71.71,
+        "version": "v1",
+        "commit": "see git log songs/chirpers6-t8.yaml",
+        "engine": "60ec1b66"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "post-rock / post-metal",
       "mode": "compose",
@@ -7021,6 +7026,10 @@
         "by": "chirp-eco",
         "at": "2026-10-30T16:52:03Z",
         "note": "COMPOSE (closer, 480-1200 s): Closes the album. Style, form, tempo and line-up are yours: declare them in compose/chirpers6/styles.md, different from the tracks already claimed."
+      },
+      "last": {
+        "at": "2026-10-30T18:58:12Z",
+        "who": "chirper-two"
       }
     }
   ],

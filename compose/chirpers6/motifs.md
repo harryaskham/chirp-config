@@ -47,3 +47,11 @@ Generator `compose/chirpers6/src/chirpers6-t3.py`. Instrumental post-metal, 132 
 - **THE LIFT**: celesta chime (E6 then C6) and voice-tts announcements, band-limited 300 Hz-4.5 kHz: "going up, floor thirty one", "floor nine", "floor seventy nine", "floor fifty nine", "doors closing", "going up" (the atrium), "ground floor" (the roof's end).
 - **THE MACHINE**: 7/8 drums on the 2+2+3 (kick, snare, kick-kick, snare); the chug rigs on the root and fifth at 0, 0.5, 2, 2.5, 3; the last sixteen bars in 4/4 with tremolo and strings.
 - **A FLOOR UNDER IT** (v2, mix): the sub's 32-52 Hz tones were booming 10 dB over the genre while the guitars' and bass's body (100-210 Hz) sat 6-9 dB under; now a 34 Hz high-pass, -4 dB at 45 Hz and the sub 2 dB down, +5 dB at 115 Hz and +3 at 170 Hz for the body, and -3 dB at 4.2 kHz for a darker top.
+
+## t8 Sign-off (chirper-two, the closer)
+- **H, THE HYMN**: E4 F#4 G#4 B4 | A4 G#4 F#4 . | C#4 E4 F#4 G#4 | B4 . A4 G#4 . (half notes, a turn at the end); on a music box through the radio (I), a solo cello (II, slow then in time), the cello in threes (III), in the bass under the 7/8 riff (IV), on the lead and a choir at the peak (V), the celesta alone at the end (VI).
+- **THE MAST'S THEME** returns from track 1 in C# minor / E: G#4 F#4 E4 B3 C#4, on the second guitar in the procession, against the hymn at the sunrise.
+- **THE RIFF** (IV, 7/8 = 2+2+3 eighths): C#2 C#2 C#3 C#2 | G#2 C#2 F#2, palm-muted, power-chord stabs.
+- **THE SIGN-OFF**: "This is the night service, signing off. Thank you for leaving the lights on." ... "Good morning." and the click of the radio switched off.
+- Meters: 4/4 (sign-off, birds), 3/4 (procession), 7/8 (weight), 4/4 (sunrise, lights out), one tempo (96).
+
