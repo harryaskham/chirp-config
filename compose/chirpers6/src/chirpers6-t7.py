@@ -15,7 +15,8 @@ IV.  ATRIUM (5/4, 32 bars): the lobby again, changed - both guitars, the bass, a
      the lift goes up again.
 V.   MACHINE (7/8 -> 4/4, 64 bars): two chug rigs take the interlock riff in 7/8, the full kit, a fuzz bass; the last
      sixteen bars square into 4/4 and the tremolo guitars and strings lift it - the building's machinery at full load.
-VI.  ROOF (4/4, 36 bars): the climb resolves to F major on the roof - the drums for 24 bars, then only wind, the guitars ringing open chords, THE FIGURE
+VI.  ROOF (4/4, 36 bars): the climb resolves to F major on the roof - and there, for sixteen bars, the two guitars
+     finally AGREE, playing THE FIGURE in unison on the same 4/4 bar (v4) - - the drums for 24 bars, then only wind, the guitars ringing open chords, THE FIGURE
      once more on the e-bow, slow; the lift's last word, far below: "ground floor."
 (v3) The office at night: a photocopier's scan sweeps every 7/8 bar of the machine's drums-and-bass opening (and the
 atrium's second half); a phone rings, unanswered, three times in the stairwell.
@@ -72,7 +73,7 @@ def build():
     for b in bars:
         secs.setdefault(b['sec'], b['t'])
     T = {k: [] for k in ('clock', 'chime', 'lift', 'gtr1', 'gtr2', 'bass', 'kit', 'celesta', 'cello', 'chugl', 'chugr',
-                         'fuzz', 'trem', 'strings', 'ebow', 'wind', 'sub', 'ring', 'copier', 'phone')}
+                         'fuzz', 'trem', 'strings', 'ebow', 'wind', 'sub', 'ring', 'copier', 'phone', 'unison')}
     g2 = 0.0     # the second guitar's own 4/4 clock (it ignores the bar lines)
     for k, b in enumerate(bars):
         s, t0, i, bl = b['sec'], b['t'], b['i'], b['bl']
@@ -157,6 +158,12 @@ def build():
             if i >= 48 and i % 2 == 0:
                 T['strings'].append((t0, ','.join(nm(m) for m in ch[:3]), bl * 2 - 0.2, 92))
         # V: the roof - open ringing chords, THE FIGURE on the e-bow, wind
+        # (v4) ON THE ROOF THE GUITARS AGREE: for sixteen bars both guitars play THE FIGURE in unison, an octave apart,
+        # on the same 4/4 bar - after the whole building of disagreement about where the bar is, they finally meet
+        if s == 'roof' and 8 <= i < 24:
+            for e in range(8):
+                m = FIGURE[(i * 8 + e) % 7]
+                T['unison'].append((t0 + e * 0.5, f'{nm(m - 12)},{nm(m)}', 0.45, 96 if e == 0 else 84))
         if s == 'roof' and i < 28:
             T['ring'].append((t0, ','.join(nm(m) for m in [root + 12] + ch), 3.9, 84))
             if i % 2 == 0 and i < 32:
@@ -229,6 +236,7 @@ def build():
             tr('ring', 'clean-chorus', '-11dB', sends={'hall': '-6dB', 'echo': '-12dB'}),
             tr('ebow', 'ebow', '-9dB', sends={'hall': '-6dB'}),
             tr('wind', 'fx-wind', '-14dB'),
+            tr('unison', 'clean-chorus', '-5dB', sends={'echo': '-8dB', 'hall': '-8dB'}),
             tr('copier', 'fx-sweep', '-18dB', fx=['hp cutoff=600', 'lp cutoff=5000'], sends={'hall': '-10dB'}),
             tr('phone', {'synth': {'layers': [{'type': 'osc', 'wave': 'sine'}, {'type': 'osc', 'wave': 'square', 'level': 0.15}],
                                    'amp': {'a': '2ms', 'd': '40ms', 's': 0.8, 'r': '20ms'}}}, '-22dB',
