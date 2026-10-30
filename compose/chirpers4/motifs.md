@@ -79,6 +79,7 @@ Generator `compose/chirpers4/src/chirpers4-t7.py`. Hard industrial techno, 134 b
 - **THE GALLOP**: the boom bass on each off-beat, the and then the a: D2 D2 D2 F2 | D2 D2 A2 G2, a D3 pickup every fourth bar.
 - **THE STAB**: D minor add 9 (D3 F3 A3 E4) on the a-of-1 and the and-of-3 (and the e-of-4 every other bar), its band-pass on a 5-bar LFO, into a dotted ping-pong echo.
 - **PATIENCE** (v2): the stab approaches through A's first sixteen bars, from a whisper to full strength; the hard kick waits for B's second half, and the cowbell for B's second half and then every fourth bar. The boom bass breathes: a low-pass on a 9-bar LFO, its own odd cycle against the orbits' 3, 5 and 7.
+- **THE ROOM HOLDS ITS ECHO** (v3; wM's reverb freeze on a bus): at THE STOP the hall the orbits were turning in freezes (+18 dB while held): the last turn's echo hangs in the air, a still chord of metal, while the voices stand dry at your ear; it lets go as the room turns back.
 - Rim figure: the a-of-1, the and-of-2, the a-of-3 (and the and-of-4 every other bar).
 
 ## t1 Behind the Door (chirper-zero)
