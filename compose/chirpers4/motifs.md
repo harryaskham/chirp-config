@@ -22,6 +22,7 @@ Generator `compose/chirpers4/src/chirpers4-t8.py`. Deep dub techno, 124 bpm, D m
 
 ## t10 No Floor (chirper-two)
 - **THE RIFF** (acid, sixteen steps, F# minor): F#1(acc) F#1 . F#2(slide) F#1 A1(acc) . F#1 C#2(acc) F#1 E2(slide) F#1 . F#2(acc) F#1 A1. Its ladder opens across the record, settles, and rings (self-oscillating q) in the break.
+- **THE THROB** (v2, Harry's note): the riff's own 303 voice (`c2-throb`: saw + sub square into a self-oscillating ladder). Its cutoff follows a per-note envelope (deeper on accents) and two song-time LFOs, 3 and 5 bars long; a 7-bar LFO moves the resonance, so the three line up only every 105 bars. The pattern evolves on the same notes: accents rotate every 4 bars (as written / in threes across the bar / on the off-beats), slides move every 5, every 7th bar throws its tail up an octave, and in the drop and the peak the holes fill so it throbs on every sixteenth, pumped -9 dB by the kick.
 - **THE ANSWER** (an octave up, the riff's second half, at the drop and peak): F#3(acc,slide) E3 C#3(slide) . A2(acc) F#2(slide) A2 .
 - **THE CLANK** on the sixteenths 3, 6, 11 and 14: off the beat and off the backbeat.
 - **THE STAIRCASE**: a Risset accelerando on 909 rims (strand k at 2^(k + t/24) hits per beat, a bell over log-speed): accelerates for ever, never arrives.

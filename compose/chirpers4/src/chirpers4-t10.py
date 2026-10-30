@@ -76,6 +76,17 @@ RIFF = [(30, 1, 0), (30, 0, 0), (None, 0, 0), (42, 0, 1), (30, 0, 0), (33, 1, 0)
 ANSWER = [(None, 0, 0)] * 8 + [(54, 1, 1), (52, 0, 0), (49, 0, 1), (None, 0, 0), (45, 1, 0), (42, 0, 1),
                                (45, 0, 0), (None, 0, 0)]
 CLANK = (3, 6, 11, 14)  # the clank's sixteenths: off the beat, off the backbeat
+# Round 2 (v2), Harry's note "more interesting acid throb bass": T = THE THROB: the riff moves to its own 303 voice
+# (c2-throb: a saw and a sub square into a self-oscillating ladder) whose cutoff follows a snappy per-note envelope
+# (deeper on accents) and two slow LFOs on song time, 3 bars and 5 bars long, while a 7-bar LFO moves its resonance,
+# so the squelch never sits still and the three cycles only line up every 105 bars; E = THE PATTERN EVOLVES: the same
+# notes, but the accents rotate every four bars (as written / in threes across the bar / on the off-beats), the
+# slides move every five, every seventh bar throws its tail an octave up, and in the drop and the peak the riff's
+# holes fill so the bass throbs on every sixteenth; P = it breathes harder with the kick (pump -9 dB, release 290 ms,
+# about two-thirds of a beat, curve 0.8).
+R2 = set(filter(None, os.environ.get("T10_R2", "T,E,P").split(","))) - {"none"}
+ACC_MASKS = [None, {0, 3, 6, 9, 12, 15}, {2, 6, 10, 14}]       # as written / threes / off-beats
+SLIDE_MASKS = [None, {3, 7, 10, 14}, {1, 5, 9, 13}]
 
 
 def risset(T, t0, length, cycle=32.0, strands=range(-4, 4), base=1.0, width=4.0):
@@ -135,6 +146,15 @@ def build():
         # ---- the acid ----
         if sec in ("acid", "staircase", "drop", "again", "break", "peak") or (sec == "nofloor" and i < 16):
             for s, (m, acc, sl) in enumerate(RIFF):
+                if "E" in R2:
+                    if m is None and hard:
+                        m = RIFF[s - 1][0] if RIFF[s - 1][0] is not None else 30  # the holes fill: the throb
+                    am = ACC_MASKS[(bi // 4) % 3]
+                    acc = acc if am is None else (s in am)
+                    sm = SLIDE_MASKS[(bi // 5) % 3]
+                    sl = sl if sm is None else (s in sm)
+                    if m is not None and bi % 7 == 6 and s >= 12:
+                        m += 12  # every seventh bar throws its tail up an octave
                 if m is None:
                     continue
                 if sec == "break" and i >= 12 and s % 4 != 0:
@@ -180,7 +200,26 @@ def build():
 
 
 def patches():
-    return {
+    throb = {"c2-throb": {"about": "chirper-two's throbbing 303 (No Floor v2): a saw and a sub square an octave down "
+                                    "into a self-oscillating ladder whose cutoff follows a snappy per-note envelope "
+                                    "(deeper on accents), the track's slow LFOs a (3 bars) and b (5 bars) and its "
+                                    "`aopen` lane; the 7-bar LFO c and the `aq` lane move the resonance. Mono, "
+                                    "legato: overlapping notes slide.",
+                          "synth": {"layers": ["saw", {"wave": "square", "semi": -12, "level": "-12dB"}],
+                                    "env": {"f": {"a": "0.5ms", "d": "170ms", "s": 0.04, "r": "60ms"}},
+                                    "filters": [{"kind": "ladder",
+                                                 "q": {"value": 8, "mod": [{"src": "lfo.c", "amount": 5},
+                                                                           {"src": "auto.aq", "amount": 9}]},
+                                                 "cutoff": {"value": 150, "mod": [
+                                                     {"src": "env.f", "amount": 3.6},
+                                                     {"src": "vel", "amount": 1.6},
+                                                     {"src": "lfo.a", "amount": 0.8},
+                                                     {"src": "lfo.b", "amount": 0.5},
+                                                     {"src": "auto.aopen", "amount": 1.0}]}}],
+                                    "amp": {"a": "1ms", "d": "0s", "s": 1, "r": "40ms"},
+                                    "drive": 0.5},
+                          "play": {"mono": True, "legato": True, "glide": "55ms", "gate": 0.8, "vel_sens": 0.6}}}
+    return {**(throb if "T" in R2 else {}),
         "c2-clank": {"about": "chirper-two's industrial clank: four inharmonic struck-bar partials (1, 2.76, 5.40, "
                               "8.93), a very short decay, driven and bit-crushed per voice.",
                      "synth": {"layers": [{"type": "additive",
@@ -240,13 +279,18 @@ def main():
         {"name": "staircase", "patch": "909", "gain": "-3dB", "pan": -0.1,
          "fx": ["hp cutoff=250", {"type": "delay", "time": "1/8", "feedback": 0.2, "mix": 0.15, "tone": 4000},
                 "reverb kind=plate decay=1.4s mix=0.25"], "score": T["stair"].score(total)},
-        {"name": "acid", "patch": "acid", "gain": "-9dB", "pan": -0.1,
+        ({"name": "acid", "patch": "c2-throb", "gain": "-8dB", "pan": -0.1,
+          "lfo": {"a": "sine rate=3/1", "b": "tri rate=5/1 phase=0.25", "c": "sine rate=7/1 phase=0.5"},
+          "fx": ["tape drive=0.6 warmth=0.4",
+                 {"type": "delay", "time": "3/16", "feedback": 0.3, "mix": 0.15, "tone": 2800}],
+          "auto": {"aopen": {"points": aopen}, "aq": {"points": aq}}, "score": T["acid"].score(total)} if "T" in R2 else
+         {"name": "acid", "patch": "acid", "gain": "-9dB", "pan": -0.1,
          "fx": [{"type": "filter", "kind": "ladder",
                  "q": {"value": 6, "mod": [{"src": "auto.aq", "amount": 12}]},
                  "cutoff": {"value": 260, "mod": [{"src": "auto.aopen", "amount": 1.0}]}},
                 "tape drive=0.6 warmth=0.4",
                 {"type": "delay", "time": "3/16", "feedback": 0.3, "mix": 0.18, "tone": 3000}],
-         "auto": {"aopen": {"points": aopen}, "aq": {"points": aq}}, "score": T["acid"].score(total)},
+         "auto": {"aopen": {"points": aopen}, "aq": {"points": aq}}, "score": T["acid"].score(total)}),
         {"name": "acid-answer", "patch": "acid", "gain": "-13dB", "pan": 0.3,
          "fx": [{"type": "filter", "kind": "ladder", "q": 10, "cutoff": 1400}, "tape drive=0.5 warmth=0.4",
                 {"type": "delay", "time": "3/8", "feedback": 0.35, "mix": 0.25, "tone": 2500}],
@@ -270,8 +314,9 @@ def main():
     }
     for tr in tracks:  # the acid, the clank and the noise breathe with the kick (release ~2/3 beat)
         if tr["name"] in ("acid", "acid-answer", "clank", "noise"):
-            tr["fx"] = [{"type": "pump", "on": "kick.k", "depth": "-6dB", "attack": "3ms", "release": "290ms",
-                         "curve": 0.8}] + tr["fx"]
+            deep = tr["name"] == "acid" and "P" in R2
+            tr["fx"] = [{"type": "pump", "on": "kick.k", "depth": "-9dB" if deep else "-6dB", "attack": "3ms",
+                         "release": "290ms", "curve": 0.8}] + tr["fx"]
     secs = "; ".join(f"{n} from {s:.0f}b ({k} bars)" for n, s, k in sec)
     about = ("Chirpers - Phantom Downbeat, track 10 (the closer). Original composition by chirper-two, generated by "
              "compose/chirpers4/src/chirpers4-t10.py. Acid / industrial techno at 138 bpm in F# minor: an industrial "
