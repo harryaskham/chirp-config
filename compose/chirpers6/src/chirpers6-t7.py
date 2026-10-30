@@ -15,7 +15,8 @@ IV.  ATRIUM (5/4, 32 bars): the lobby again, changed - both guitars, the bass, a
      the lift goes up again.
 V.   MACHINE (7/8 -> 4/4, 64 bars): two chug rigs take the interlock riff in 7/8, the full kit, a fuzz bass; the last
      sixteen bars square into 4/4 and the tremolo guitars and strings lift it - the building's machinery at full load.
-VI.  ROOF (4/4, 36 bars): the climb resolves to F major on the roof - and there, for sixteen bars, the two guitars
+     (v6) Over its last eight bars an endless Shepard rise - the lift climbing past every floor at once.
+VI.  ROOF (4/4, 36 bars): the chime and 'roof'; the climb resolves to F major on the roof - and there, for sixteen bars, the two guitars
      finally AGREE, playing THE FIGURE in unison on the same 4/4 bar (v4) - - the drums for 24 bars, then only wind, the guitars ringing open chords, THE FIGURE
      once more on the e-bow, slow; the lift's last word, far below: "ground floor."
 (v3) The office at night: a photocopier's scan sweeps every 7/8 bar of the machine's drums-and-bass opening (and the
@@ -73,7 +74,7 @@ def build():
     for b in bars:
         secs.setdefault(b['sec'], b['t'])
     T = {k: [] for k in ('clock', 'chime', 'lift', 'gtr1', 'gtr2', 'bass', 'kit', 'celesta', 'cello', 'chugl', 'chugr',
-                         'fuzz', 'trem', 'strings', 'ebow', 'wind', 'sub', 'ring', 'copier', 'phone', 'unison', 'hum')}
+                         'fuzz', 'trem', 'strings', 'ebow', 'wind', 'sub', 'ring', 'copier', 'phone', 'unison', 'hum', 'rise')}
     g2 = 0.0     # the second guitar's own 4/4 clock (it ignores the bar lines)
     for k, b in enumerate(bars):
         s, t0, i, bl = b['sec'], b['t'], b['i'], b['bl']
@@ -199,6 +200,14 @@ def build():
         x = 0.0
         while x < 2.0 - 1e-6:
             T['phone'].append((a0 + x, 'E6' if int(x * 8) % 2 == 0 else 'C6', 0.12, 62)); x += 0.125
+    # (v6) THE LIFT TO THE ROOF: over the machine's last eight bars an endlessly rising Shepard tone (the lift climbing
+    # past every floor at once) builds under the wall, and the roof opens with the chime and the voice: 'roof'
+    a0 = secs['roof'] - 8 * 3.5
+    x = a0
+    while x < secs['roof'] - 0.01:
+        T['rise'].append((x, 'C4', min(4.0, secs['roof'] - x), 76 + int((x - a0) * 1.2))); x += 4.0
+    T['chime'] += [(secs['roof'] + 0.5, 'E6', 1.5, 74), (secs['roof'] + 1.1, 'C6', 2.0, 70)]
+    T['lift'] += say(['r-uw1-f'], secs['roof'] + 2.6)
     T['wind'].append((secs['roof'], 'C4', total - secs['roof'], 80))
     lv = {'lobby': -6, 'interlock': -2, 'stair': -7, 'atrium': -4, 'machine': 0, 'roof': -1}
     dyn = []
@@ -242,6 +251,7 @@ def build():
             tr('ring', 'clean-chorus', '-11dB', sends={'hall': '-6dB', 'echo': '-12dB'}),
             tr('ebow', 'ebow', '-9dB', sends={'hall': '-6dB'}),
             tr('wind', 'fx-wind', '-14dB'),
+            tr('rise', 'fx-riser-shepard', '-13dB', sends={'hall': '-10dB'}),
             tr('hum', 'voice', '-10dB', fx=[{'type': 'pitch', 'semitones': 0, 'formant': -2}], sends={'hall': '-6dB'}),
             tr('unison', 'clean-chorus', '-5dB', sends={'echo': '-8dB', 'hall': '-8dB'}),
             tr('copier', 'fx-sweep', '-18dB', fx=['hp cutoff=600', 'lp cutoff=5000'], sends={'hall': '-10dB'}),
