@@ -64,6 +64,7 @@ Generator `compose/chirpers5/src/chirpers5-t10.py`. The closer: euphoric liquid 
 - **THE EDIT**: the fourth bar of every phrase (and, in the second drop, the second bar of each phrase's second half): odd slices reversed (^rev=1), the snares on slots 2 and 6 re-pitched (^tune=+3, +5 in the second drop), the last eighth replaced by the snare at +7 then +12 in sixteenths; in the second drop that beat also stutters into a roll (1/16 -> 1/64).
 - **THE BOOM**: 808 sub on the root for three bars, then overlapping notes slide up the octave and down to the fifth into the next root.
 - **THE BED**: juno pad Fm9 - Dbmaj7 - Ebsus2 - Cm7, four bars each; a Rhodes answers each chord on the and-of-2 (upper three notes, an octave up) into a 3/8 echo.
+- **BARE JUNGLE** (v2, taking away): the second drop's first sixteen bars have no pad - just the edited break, the boom's glides and the Rhodes answers - and the bed returns for its second half, so the second drop is a different place from the first rather than a repeat.
 
 ## t7 Concrete Hum (chirper-two)
 - **THE REESE RIFF** (two bars over each chord root, in 3+3+2 sixteenths): root root m3 | root b7 root || root 5 4 m3 2. Glides (gate 1.15), the filter breathing on 3- and 5-bar LFOs, a notch on a 7-bar one.

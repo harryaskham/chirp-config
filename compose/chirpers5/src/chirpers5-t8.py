@@ -11,7 +11,8 @@ jungle producer works an MPC - over a deep, dubby liquid bed.
 - THE BED: a juno pad on Fm9 - Dbmaj7 - Ebsus2 - Cm7, four bars each (slow, dubby), with a dotted-quarter echo on a
   Rhodes stab answering every chord.
 - THE VOICE: a low wordless "ooh" (formants down) in the break, the only melody, into a long hall.
-Form: intro 16 / drop 32 / break 16 (bed, voice, the boom alone) / drop2 32 (heavier edits) / outro 16.
+Form: intro 16 / drop 32 / break 16 (bed, voice, the boom alone) / drop2 32 (heavier edits; its first sixteen bars
+DRY - no pad, the break and the boom alone - v2) / outro 16.
 Levels on the album standard (-12.5 LUFS +-1.5, true peak <= -1 dBTP, no pinned runs): drums compressed on their
 track; master glue, +9 dB into a fast 10:1 compressor (+1.5 makeup), a 13.5 kHz low-pass, then a SOFT clip (ceiling
 -2.3 dB, knee 0.55 - the low knee rounds early, so no corners and no inter-sample overs), -1 dB ceiling, volume 0 dB:
@@ -79,7 +80,9 @@ def build():
                         continue
                 amen.append((at, nm(36 + sl) + attr, 0.5, 108 if e in (0, 2, 4, 6) else 88))
         # the bed: the pad holds each chord four bars
-        if k % 4 == 0:
+        # (v2) the second drop starts DRY - no pad for its first sixteen bars, the break and the boom alone, jungle
+        # bare - and the bed returns for its second half
+        if k % 4 == 0 and not (s == 'drop2' and i < 16):
             pad.append((t0, ','.join(nm(m) for m in ch), 15.8, 78 if s != 'break' else 86))
         # the Rhodes answers each chord on the and-of-2 of its first bar, into the dotted-quarter echo
         if k % 4 == 0 and s != 'intro':
