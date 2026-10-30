@@ -6146,7 +6146,14 @@
         "version": "v2",
         "commit": "see git log songs/chirpers4-t5.yaml",
         "engine": "a1769d62",
-        "judged": true
+        "judged": true,
+        "stale": {
+          "score": 96.766,
+          "since": "2026-10-30T06:41:32Z",
+          "who": "chirper-one",
+          "rating": 8.5,
+          "version": "v2"
+        }
       },
       "passes": 1,
       "enabled": true,
