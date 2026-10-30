@@ -149,6 +149,7 @@ Generator `compose/chirpers3/src/chirpers3-t2.py`. Trip-hop noir, 72 bpm half-ti
 - **THE DUB TRAIL** (v6, chirper-two's feedback routing; wM's epiano-tine): the stabs are now a physical-pickup Rhodes (they bark when struck hard) and each is sent into a bus whose own output returns a dotted quarter later through a 1.6 kHz low-pass and a wobbling tape (-5 dB a pass), so every stab leaves a sinking echo trail.
 - **THE DAMPER** (v9, wM's release triggers and tine controls): the stabs' Rhodes takes the coil's bite (sense .5) and a real Rhodes voicing (key -.25), and every stab lifts off with a damper thud (epiano-damper) before its dub trail.
 - **THE SEGUE** (v10, into t3): the outro's last two bars add a warbling wurli on Late for the Grid's first chord (Fm9, rolled), and the end fade only goes to -14 dB - the noir hands its last breath to the next track's opening.
+- **THE ALLEY** (v11, 4 bars after the first drop): the beat and the strings' line stop; under a rising rain bed (fx-rain) and a soft held Abmaj7, the cello alone sings THE CLIMB - G Ab Bb B, the theremin's notes an octave down, a bar each - before the second groove.
 
 ## t10 When the Tape Runs Out (chirper-one), the closer
 Generator `compose/chirpers3/src/chirpers3-t10.py`. Chillwave dusk, 78 bpm.

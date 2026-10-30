@@ -24,7 +24,7 @@ def nm(m): return f"{NN[m % 12]}{m // 12 - 1}"
 # the 16-bar cycle: four bars a chord (MIDI voicings), the strings' top line descending C Bb Ab G
 CYCLE = [(36, [48, 55, 58, 62, 63], 72), (34, [46, 53, 57, 58, 62], 70), (32, [44, 51, 55, 60, 63], 68), (31, [43, 50, 53, 56, 59], 67)]
 LEAD = [67, 68, 70, 71]          # the lead climbs G Ab Bb B against the strings' fall
-FORM = [('intro', 6), ('A', 8), ('B', 8), ('drop', 1), ('A2', 6), ('B2', 12), ('drop2', 1), ('outro', 8)]
+FORM = [('intro', 6), ('A', 8), ('B', 8), ('drop', 1), ('alley', 4), ('A2', 6), ('B2', 12), ('drop2', 1), ('outro', 8)]
 
 _seed = [777]
 def rnd():
@@ -53,7 +53,7 @@ def build():
             # THE LONG DESCENT: the chords change by section, not by bar - the i - bVII - bVI - V fall spread over
             # the whole song: intro/A/A2/outro on Cm9 (A turns to Abmaj7 for its second half), B falls i -> bVII,
             # B2 falls bVI -> V and then lifts a minor third for its last four bars (the climax)
-            HC = {'intro': [0], 'A': [0, 2], 'B': [0, 1], 'drop': [3], 'A2': [0], 'B2': [2, 3, 'lift'], 'drop2': [3], 'outro': [0]}[name]
+            HC = {'intro': [0], 'A': [0, 2], 'B': [0, 1], 'drop': [3], 'alley': [2], 'A2': [0], 'B2': [2, 3, 'lift'], 'drop2': [3], 'outro': [0]}[name]
             idx = HC[min(len(HC) - 1, i * len(HC) // n)]
             c = CYCLE[3] if idx == 'lift' else CYCLE[idx]
             if idx == 'lift':
@@ -61,7 +61,7 @@ def build():
             bars.append({'sec': name, 'i': i, 't': t, 'c': c}); t += 4.0
     total = t
     ms = lambda x: x / 1000 / SPB
-    kit, strings, vox, lead, sub, rhodes, crackle, cello, segue = [], [], [], [], [], [], [], [], []
+    kit, strings, vox, lead, sub, rhodes, crackle, cello, segue, rain = [], [], [], [], [], [], [], [], [], []
     n_outro = dict(FORM)['outro']
     for k, b in enumerate(bars):
         s, t0, (root, ch, top) = b['sec'], b['t'], b['c']
@@ -90,8 +90,8 @@ def build():
         # ---- strings: the chord, its top line the descending voice ----
         if s != 'outro' or b['i'] < 3:
             for j, m in enumerate(ch):
-                strings.append((t0 + j * 0.02, m, 3.9, 70 if s in ('drop', 'drop2', 'intro') else 62))
-            strings.append((t0 + 0.05, top, 3.9, 74))
+                strings.append((t0 + j * 0.02, m, 3.9, 50 if s == 'alley' else (70 if s in ('drop', 'drop2', 'intro') else 62)))
+            if s != 'alley': strings.append((t0 + 0.05, top, 3.9, 74))
         # ---- THE SEGUE (the outro's last two bars): a warbling wurli plays Late for the Grid's first chord (Fm9,
         # rolled as t3 rolls it), so the noir hands its last breath to the next track's opening (chirper-three's note
         # on the album's widest seam) ----
@@ -121,6 +121,11 @@ def build():
             if root not in (31, 32, 34, 36): tgt = {39: 54, 37: 56, 35: 58, 34: 59}.get(root, 54)
             cello.append((t0 + 3.0, tgt - 2, 0.95, 70))
             cello.append((t0, tgt, 2.9, 80))
+        # ---- THE ALLEY (4 bars after the first drop): the beat and the strings' line stop; under a rain bed the cello
+        # alone sings THE CLIMB (G Ab Bb B, the theremin's notes, a bar each, an octave down), over one held Abmaj7 ----
+        if s == 'alley':
+            cello.append((t0 + 0.1, (55, 56, 58, 59)[b['i']], 3.8, 84 + 2 * b['i']))
+            rain.append((t0, 'C4', 4.0, 70 + 6 * b['i']))
         # ---- rhodes stabs in A2 and B2 on the and of 2 and of 4 ----
         if s in ('A2', 'B2'):
             for at in (1.62, 3.62):
@@ -173,6 +178,7 @@ def build():
              'gain': '-7dB', 'pan': 0.2, 'sends': {'dub': '-6dB'}, 'fx': ['tape drive=0.15 mix=0.5 wow=10 flutter=2 drift=1 tone=6500 sweep=0.6 seed=3'], 'score': line(rhodes, total)},
             {'name': 'segue', 'patch': 'wurli', 'gain': '-4dB', 'pan': 0.1, 'fx': ['tape drive=0.2 mix=0.6 wow=18 flutter=3 drift=2 tone=5500 sweep=0.7 seed=21'], 'notes': notes(segue)},
             {'name': 'crackle', 'patch': 'fx-crackle', 'gain': '-8dB', 'score': line(crackle, total)},
+            {'name': 'rain', 'patch': 'fx-rain', 'gain': '-10dB', 'score': line(rain, total)},
         ]}
 
 if __name__ == '__main__':
