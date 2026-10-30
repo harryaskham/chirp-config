@@ -25,3 +25,8 @@ Generator `compose/chirpers4/src/chirpers4-t8.py`. Deep dub techno, 124 bpm, D m
 - **THE STAIRCASE**: a Risset accelerando on 909 rims (strand k at 2^(k + t/24) hits per beat, a bell over log-speed): accelerates for ever, never arrives.
 - **NO FLOOR**: fx-riser-shepard resampled backwards (shadow song `rise`): an endless fall, with the opening's grind returning.
 
+
+## t2 (chirper-one): rolling / broken techno, "the gallop splits"
+
+- **THE GALLOP** (van Noorden's streaming illusion): two short sine-square bleeps play A-B-A-rest in sixteenths every beat (A = A4). The control is the gap between A and B: 1-2 semitones in A (one galloping stream), drifting 2 -> 5 through B (to the edge), pulled apart 5 -> 16 in the break (two streams: A at twice B's rate, and the gallop is gone), and in the peak it swings every four bars (2, 16, 3, 19, 2, 12, 4, 24) so the ear flips between one gallop and two streams on the same timing. B's pan follows the gap (centre -> right), so the split is also a space trick.
+- **THE BROKEN ROLL**: kick on 16ths 0, 6, 10 and a ghost on 13; reese sixteenths on A1 with octave jumps (0 0 12 0 0 12 0 7 | 0 0 12 0 10 0 12 0), pumping on the kick.
