@@ -37,7 +37,10 @@ WETUP = float(os.environ.get("C4T8_WETUP", "0"))
 OUTKICK = os.environ.get("C4T8_OUTKICK", "0") == "1"  # a DJ's outro: the kick and the sub run to the end (the stab and the room fade), so the next track is mixed in over a floor
 PHANTOM = os.environ.get("C4T8_PHANTOM", "oh")
 BREATHE = os.environ.get("C4T8_BREATHE", "1") == "1"  # Harry's LFO note: the stab breathes on odd lengths - its low-pass drifts on a 7-bar sine and a 5-bar triangle, its resonance on a 3-bar sine, its place in the field on a 5-bar sine - and a section lane opens it across the arc (dark intro and break, open A, brightest peak)
-NORISER = os.environ.get("C4T8_NORISER", "1") == "1"  # restraint: the Shepard riser goes (Shepard and Risset are No Floor's)  # the break made the illusion: no hats at all (nothing left on the kick's grid), the rim's 3/16 cycle from the break's fifth bar, so the echoes and the rim are the only pulse; "gap" = and a pull-out (the master drops out) on the break's last half-bar before B slams in  # the room's send raised (dB) through A and B, the echo stream louder against the kick
+NORISER = os.environ.get("C4T8_NORISER", "1") == "1"
+MKIT = os.environ.get("C4T8_MKIT", "split-k")  # chirper-two's analog machine-kit: "kr" = its rumble kick (the deep-techno swell after each hit), "k" = its 909-style kick; "krn" = kr with the rumble bus removed
+KICKP = "kr" if MKIT in ("kr", "krn", "split-kr") else "k"
+SPLIT = MKIT.startswith("split")  # "split-k" / "split-kr": only the kick moves to the machine kit (its own track); the 909 keeps the hats, rim, claps and ride  # restraint: the Shepard riser goes (Shepard and Risset are No Floor's)  # the break made the illusion: no hats at all (nothing left on the kick's grid), the rim's 3/16 cycle from the break's fifth bar, so the echoes and the rim are the only pulse; "gap" = and a pull-out (the master drops out) on the break's last half-bar before B slams in  # the room's send raised (dB) through A and B, the echo stream louder against the kick
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 FORM = [("intro", 16), ("build", 16), ("A", 32), ("break", 16), ("B", 32), ("peak", 16), ("outro", 16)]
@@ -94,7 +97,7 @@ def kit(sec, b, gb):
     kick = sec not in ("break",) and not (sec == "outro" and b >= 12 and not OUTKICK)
     if kick:
         for st in (0, 4, 8, 12):
-            add(st, "k", 118 if st == 0 else 110)
+            add(st, "_KICK", 118 if st == 0 else 110) if SPLIT else add(st, KICKP, 118 if st == 0 else 110)
     if PHANTOM == "oh" and sec == "break":  # only the off-beat open hats (the 4/4 grid's marker) leave; the 16ths fit both grids
         if b >= 4:
             for st in range(16):
@@ -143,6 +146,35 @@ def accents(sec, b, gb):
     if not (sec in ("A", "B", "peak") or (sec == "build" and b >= 8)):
         return R(4)
     return grid([(st, "C5", 1, 100 if (gb * 16 + st) % 20 == 0 else 84) for st in range(16) if (gb * 16 + st) % 5 == 0])
+
+
+def kick_bars(bars):
+    """The split kit's kick track: each bar keeps only its _KICK hits (as the machine kit's kick), the rest rests."""
+    out = []
+    for bar in bars:
+        toks = []
+        for tk in bar.split():
+            head, rest = tk.split("/", 1)
+            if "_KICK" in head.split(","):
+                dur, vel = rest.split("@")
+                toks.append(f"{KICKP}/{dur}@{vel}")
+            else:
+                toks.append("R/" + rest.split("@")[0])
+        out.append(" ".join(toks))
+    return out
+
+
+def strip_kick(bars):
+    """The split kit's 909 track: the same bars without the kick."""
+    out = []
+    for bar in bars:
+        toks = []
+        for tk in bar.split():
+            head, rest = tk.split("/", 1)
+            ps = [p for p in head.split(",") if p != "_KICK"]
+            toks.append((",".join(ps) + "/" + rest) if ps and not head.startswith("R") else ("R/" + rest.split("@")[0]) if not head.startswith("R") else tk)
+        out.append(" ".join(toks))
+    return out
 
 
 def sub(sec, b):
@@ -208,7 +240,7 @@ def song():
         dyn = dyn[:]
         gi = [i for i, (bar, _) in enumerate(dyn) if bar == st["B"]][0]
         dyn.insert(gi, (st["B"] - 0.5, -60))
-    pump = lambda d: {"type": "pump", "on": "kit.k", "depth": f"{d}dB", "attack": "4ms", "release": "320ms", "curve": 0.6}  # noqa: E731
+    pump = lambda d: {"type": "pump", "on": f"kick.{KICKP}" if SPLIT else f"kit.{KICKP}", "depth": f"{d}dB", "attack": "4ms", "release": "320ms", "curve": 0.6}  # noqa: E731
     patches = {
         "dub-chord": {"about": "Phantom Downbeat t8: the dub-techno chord - two detuned saws and a pulse through a low-pass that snaps "
                                "open and closes fast, a short stab for the echo room to carry.",
@@ -242,7 +274,9 @@ def song():
                      "auto": {"frz": lane(frz)}},
         },
         "tracks": [
-            {"name": "kit", "patch": "909", "gain": "0dB", "sends": {"rumble": "-4dB"}, "score": sc("kit")},
+            *([{"name": "kick", "patch": "machine-kit", "gain": "0dB", "sends": {"rumble": "-4dB"}, "score": " | ".join(kick_bars(T["kit"]))},
+               {"name": "kit", "patch": "909", "gain": "0dB", "score": " | ".join(strip_kick(T["kit"]))}] if SPLIT else
+              [{"name": "kit", "patch": "machine-kit" if MKIT else "909", "gain": "0dB", "sends": ({} if MKIT == "krn" else {"rumble": "-4dB"}), "score": sc("kit")}]),
             {"name": "sub", "patch": "sub-sine", "gain": "-9dB", "fx": [pump(-8)], "score": sc("sub")},
             {"name": "stab", "patch": "dub-chord", "gain": {"value": "-10dB", "mod": [{"src": "auto.dry", "amount": 1}]},
              "pan": ({"value": -0.1, "mod": [{"src": "lfo.p", "amount": 0.45}]} if BREATHE else -0.1),
