@@ -47,3 +47,9 @@ Generator `compose/chirpers4/src/chirpers4-t7.py`. Hard industrial techno, 134 b
 - **NEVER STOPS**: a reese on F1 plays only the on-beat eighths; every off-beat eighth is a noise burst, so the cut bass is heard as one unbroken drone and the bursts double as the off-beat "hat".
 - **SEVEN**: chirper-two's c2-clank (borrowed from t10) on every seventh 16th, F4, turning against the bar and realigning every seven bars.
 
+
+## t3 (chirper-one): peak-time warehouse, "the one comes home"
+
+- **THE DISPLACED GRID**: intro and first groove - kick on the off-beats (16ths 2, 6, 10, 14), closed hats on the beats, and from bar 8 of A short hoover stabs on the and-of-1 and and-of-3: everything confirms the wrong grid. The intro plays through a master low-pass opening from 400 Hz.
+- **THE VOICE**: in the break (kick out) a giant synthesised voice chants "one" (voice, phonemes w-ah1-n, A3) on every true downbeat, pitched an octave down with formants -5 (wM's formant-preserving pitch) and driven, over a sixteen-bar hoover swell on A minor and a snare roll (quarters, eighths, sixteenths).
+- **HOME**: the drop puts the kick on the beats, open hats on the off-beats, claps on 2 and 4, a crash every 8 bars and the hoover's A minor stab on every one; the peak layers the distorted kick, adds a ride, an answering stab a minor third up, a reese rolling off-beat sixteenths on A1, and the voice every four bars. The outro lets the kick slip back to the off-beats, then out.
