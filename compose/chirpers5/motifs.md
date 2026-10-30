@@ -73,6 +73,7 @@ Generator `compose/chirpers5/src/chirpers5-t10.py`. The closer: euphoric liquid 
 - **THE CHORDS**, four bars each: Gm9 (Bb3 D4 F4 A4) | Ebmaj9 (G3 Bb3 D4 G4) | Cm9 (Bb3 D4 Eb4 G4) | D7(b9) (C4 Eb4 F#4 A4); Rhodes stabs on the a-of-1 and the a-of-3 every other bar.
 - **THE COUNTER-REESE** (second drop, an octave up): 8ve b7 5 | m3+8ve 8ve.
 - **THE ROLLER**: amen slices 0 1 2 3 | 9 13(a-of-3) 2 7; the kick on 1 and the a-of-3, snares on 2 and 4; half-time break: kick 1, snare 3.
+- **THE END HUMS** (v2): the outro carries the pad and the held reese hum (the intro's mirror) to the last bar, a 0.5 s tail: no more four bars of silence before Wet Brick.
 
 ## t9 Late Shift (chirper-three)
 Generator `compose/chirpers5/src/chirpers5-t9.py`. Liquid funk, 174 bpm, A dorian.

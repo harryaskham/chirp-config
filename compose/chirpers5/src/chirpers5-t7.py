@@ -59,6 +59,11 @@ class Track:
         return " ".join(toks)
 
 
+# Round 2 (v2), polish for the running order: J = THE END HUMS: the outro no longer runs out into four bars of
+# silence; the pad and the held reese hum (the intro's mirror) carry it to the last bar, a short tail (0.5 s), so
+# Concrete Hum hands Wet Brick a room, not a gap.
+# (G, a ghost on the a-of-4 leaning into each bar, was tried: it did not move the groove; off by default.)
+R2 = set(filter(None, os.environ.get("T7_R2", "J").split(","))) - {"none"}
 FORM = [("intro", 16), ("A", 32), ("half", 16), ("build", 8), ("B", 40), ("outro", 16)]
 CHORDS = [(43, [58, 62, 65, 69]),   # Gm9: G2 | Bb3 D4 F4 A4
           (39, [55, 58, 62, 67]),   # Ebmaj7(9): Eb2 | G3 Bb3 D4 G4
@@ -93,7 +98,7 @@ def build():
         if (drop or sec == "build" or (sec == "outro" and i < 8)) and i % 2 == 0:
             for b, ln, off in RIFF:
                 T["reese"].add(start + b, ln, nm(r + 12 + off), 104 if b in (0.0, 4.0) else 92, "^gate=1.15")
-        elif sec == "intro" and i >= 8 and i % 4 == 0:
+        elif (sec == "intro" and i >= 8 and i % 4 == 0) or ("J" in R2 and sec == "outro" and i in (8, 12)):
             T["reese"].add(start, 16.0, nm(r + 12), 76)  # the hum, held, filtered: the reese waiting
         elif sec == "half":
             T["reese"].add(start, 4.0, nm(r + 12), 90, "^gate=1.05")  # drawn out, a note a bar
@@ -105,7 +110,7 @@ def build():
             T["sub"].add(start, 1.8, nm(r), 100)
             T["sub"].add(start + 2.5, 1.3, nm(r), 92)
         # ---- the frame: a pad (four bars a chord) and Rhodes stabs ----
-        if i % 4 == 0 and sec != "outro" or (sec == "outro" and i % 4 == 0 and i < 12):
+        if i % 4 == 0 and sec != "outro" or (sec == "outro" and i % 4 == 0 and (i < 12 or "J" in R2)):
             T["pad"].add(start, 15.9, ",".join(nm(x + 12) for x in voic[1:]), 58)
         if drop and i % 2 == 1:
             for b in (0.75, 2.75):
@@ -114,7 +119,7 @@ def build():
         half = sec == "half"
         rolling = drop or sec == "build" or (sec == "intro" and i >= 12) or (sec == "outro" and i < 8)
         if rolling:
-            pat = ROLL_FILL if (i % 8 == 7 or (sec == "build" and i == n - 1)) else ROLL
+            pat = ROLL_FILL if (i % 8 == 7 or (sec == "build" and i == n - 1)) else (ROLL + [(3.75, 6, -20, 2)] if "G" in R2 else ROLL)
             soft = sec in ("intro", "outro")
             for b, sl, dv, tune in pat:
                 if sec == "build" and i < 4 and b not in (0.0, 1.0, 2.5, 3.0):
@@ -200,7 +205,7 @@ def main():
                                "track": 7, "year": 2026}),
         f"tempo: {BPM}",
         f'length: "{total:g}b"',
-        'tail: "2s"',
+        'tail: "%s"' % ("0.5s" if "J" in R2 else "2s"),
         'ceiling: "-1dB"',
         'volume: "0dB"',
         "true_peak: true",
