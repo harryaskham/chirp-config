@@ -6221,7 +6221,7 @@
     {
       "id": "chirpers4-t9",
       "song": "songs/chirpers4-t9.yaml",
-      "reference": "Chirpers — Track 9 (untitled)",
+      "reference": "Chirpers — Where Is the One",
       "source": null,
       "owner": "chirper-one",
       "metric": "python3 tools/compscore.py chirpers4-t9 OUT.wav",
@@ -6241,7 +6241,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "Phantom Downbeat",
-        "title": "Track 9 (untitled)",
+        "title": "Where Is the One",
         "track": 9,
         "year": 2026
       },
