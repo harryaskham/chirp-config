@@ -6614,7 +6614,7 @@
     {
       "id": "chirpers5-t7",
       "song": "songs/chirpers5-t7.yaml",
-      "reference": "Chirpers — Track 7 (untitled)",
+      "reference": "Chirpers — Concrete Hum",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers5-t7 OUT.wav",
@@ -6630,7 +6630,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "Soft Concrete",
-        "title": "Track 7 (untitled)",
+        "title": "Concrete Hum",
         "track": 7,
         "year": 2026
       },
