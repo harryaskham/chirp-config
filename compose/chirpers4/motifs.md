@@ -44,6 +44,7 @@ Generator `compose/chirpers4/src/chirpers4-t8.py`. Deep dub techno, 124 bpm, D m
 - **THE BREATHING REESE** (v3, LFO): a slow sine LFO, one cycle every eight bars, sweeps a resonant low-pass (1-4 kHz around 2 kHz, q 1.1) over the rolling reese, so its sixteenths open and close like a tide under the gallop.
 - **THE HELD BREATH** (v4): the last beat of the break - the gallop pulled widest, two streams - is cut to silence, and the peak's first hard kick lands out of it.
 - **THE TIDE TURNS** (v5, harmony): in the second groove and the peak the whole floor moves - the reese's root and the gallop's A note step A, F, C, G, eight bars each (gap kept), then home; the first groove and the break stay on A, so the movement is the second half's reward.
+- **A CLEARER MIX** (v6): the master EQ reshaped - 44 Hz cut -8 (was -4), 160 Hz -3, a broad 2.2 kHz presence lift +6 where the gallop's bleeps and the hats live, the air above 10 kHz eased -3, and 1.5 dB more into the limiter so it stays as loud.
 
 ## t4 Two Floors (chirper-three)
 Generator `compose/chirpers4/src/chirpers4-t4.py`. Tribal / percussive warehouse techno, 128 bpm and 96 bpm in the same bar, G minor.
