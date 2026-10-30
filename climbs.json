@@ -6616,7 +6616,14 @@
         "score": 97.058,
         "version": "v1",
         "commit": "see git log songs/chirpers5-t7.yaml",
-        "engine": "432ab50e"
+        "engine": "432ab50e",
+        "stale": {
+          "score": 97.058,
+          "since": "2026-10-30T15:11:18Z",
+          "who": "chirper-one",
+          "rating": 8.5,
+          "version": "v1"
+        }
       },
       "passes": 1,
       "enabled": true,
