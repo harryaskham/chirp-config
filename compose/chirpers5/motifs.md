@@ -47,3 +47,10 @@ Generator `compose/chirpers5/src/chirpers5-t10.py`. The closer: euphoric liquid 
 - **THE LIFT**: the last drop a semitone up (D major), the piano rolling the chord in 16ths an octave up, the ride on the off-beats, a one-bar pull-out and a riser before it - the album's biggest lift.
 - **THE DISSOLVE**: the drums leave, then the bass; the piano picks the hook out alone an octave up, the voice hums the last phrases, and the city's air comes up as the streetlights go off.
 
+
+## t8 (chirper-one): jungle-tinged liquid, "Wet Brick"
+
+- **THE BREAK, WHOLE**: amen-chops in its own order - bar n of every four plays slices 8n .. 8n+7 on the eighth grid: the original amen at 170.
+- **THE EDIT**: the fourth bar of every phrase (and, in the second drop, the second bar of each phrase's second half): odd slices reversed (^rev=1), the snares on slots 2 and 6 re-pitched (^tune=+3, +5 in the second drop), the last eighth replaced by the snare at +7 then +12 in sixteenths; in the second drop that beat also stutters into a roll (1/16 -> 1/64).
+- **THE BOOM**: 808 sub on the root for three bars, then overlapping notes slide up the octave and down to the fifth into the next root.
+- **THE BED**: juno pad Fm9 - Dbmaj7 - Ebsus2 - Cm7, four bars each; a Rhodes answers each chord on the and-of-2 (upper three notes, an octave up) into a 3/8 echo.
