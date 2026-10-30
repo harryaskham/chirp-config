@@ -36,7 +36,10 @@ DEV = os.environ.get("C6T3_DEV", "1") == "1"
 VOX = os.environ.get("C6T3_VOX", "1") == "1"
 LIFT = os.environ.get("C6T3_LIFT", "1") == "1"  # the climb's last 16 bars (the full kit) a whole tone up, in C# - so the undertow's fall to A is a major third down
 FILLS = os.environ.get("C6T3_FILLS", "1") == "1"  # a drummer's vocabulary: tom fills on the last half-bar of every 8-bar phrase in the chug, the climb and the undertow; snare rolls into the chug and into the climb's full kit
-SWELLS = os.environ.get("C6T3_SWELLS", "1") == "1"  # reverse-cymbal swells drawn into the chug, the climb's full kit, the undertow and the last ship  # the crane operator on a handheld intercom in the stacks ("seven, clear to lift" - the 7 is the meter), and in the last ship's bars "last one, lights stay on"  # the movements develop instead of looping: the chug in four stages (the riff, its grouping rotated 3+2+2, the line over it, a stabbing peak and a break), a second clean guitar's harmonics answering in the joints, the doom thinning to held chords and an ebow cry
+SWELLS = os.environ.get("C6T3_SWELLS", "1") == "1"
+HOIST = os.environ.get("C6T3_HOIST", "1") == "1"  # the operator's words move the crane: after "clear to lift" a hoist motor whines upward far across the stacks, after "lowering" it falls away and a container lands
+WINDDOWN = os.environ.get("C6T3_WINDDOWN", "1") == "1"  # in the last ship the crane winds down: its chain's clank cycle stretches (14, 14, 16, 18, 20, 24, 28, 34, 42 sixteenths) and stops, under the clean riff
+ANSWER = os.environ.get("C6T3_ANSWER", "1") == "1"  # a second ship answers the foghorn from further out (A and E, lower and quieter)  # reverse-cymbal swells drawn into the chug, the climb's full kit, the undertow and the last ship  # the crane operator on a handheld intercom in the stacks ("seven, clear to lift" - the 7 is the meter), and in the last ship's bars "last one, lights stay on"  # the movements develop instead of looping: the chug in four stages (the riff, its grouping rotated 3+2+2, the line over it, a stabbing peak and a break), a second clean guitar's harmonics answering in the joints, the doom thinning to held chords and an ebow cry
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 SEVEN, FOUR = 14, 16
@@ -51,7 +54,7 @@ LINE = [[("F#4", 28)], [("D4", 14), ("E4", 14)], [("A4", 28)], [("C#5", 14), ("B
 NOTE = {"C": 0, "C#": 1, "Db": 1, "D": 2, "D#": 3, "Eb": 3, "E": 4, "F": 5, "F#": 6, "G": 7, "G#": 8, "Ab": 8, "A": 9,
         "A#": 10, "Bb": 10, "B": 11}
 TRACKS = ("bell", "rumble", "clack", "horn", "wind", "clean", "fretless", "chugl", "chugr", "fuzz", "sub", "kit", "lead",
-          "cello", "ebow", "yardmetal", "waves", "hiss", "beep", "harm", "vox", "swell")
+          "cello", "ebow", "yardmetal", "waves", "hiss", "beep", "harm", "vox", "swell", "horn2", "hoist", "lower", "clank2")
 
 
 def nm(m):
@@ -134,7 +137,17 @@ def build():
     s6 = sec_start("derailed")
     clacks(s6 + 16 * 16, sec_start("lastcar"), 70, 118)  # the train comes back: 7 against the 4
     s7 = sec_start("lastcar")
-    clacks(s7, s7 + 16 * 14, 70, 20)  # the last car receding
+    if WINDDOWN and PORT:  # the crane winds down: each cycle longer, the pairs softer, then nothing
+        t, k = s7, 0
+        for cyc in (14, 14, 14, 14, 16, 16, 18, 18, 20, 22, 24, 28, 34, 42):
+            v = 112 - 5 * k
+            half = cyc * 8 // 14
+            for off, acc in ((0, 1.0), (2, 0.8), (half, 1.0), (half + 2, 0.8)):
+                add("clank2", t + off, "C4" if acc == 1.0 else "D4", 1, v * acc)
+            t += cyc
+            k += 1
+    else:
+        clacks(s7, s7 + 16 * 14, 70, 20)  # the last car receding
 
     for sec, b, steps, at in bars:
         r, v = chord_of(sec, b, steps)
@@ -163,6 +176,8 @@ def build():
                 put("horn", "B1,F#2", 104, 0, 3 * 14)  # the foghorn: two low tones, long
             if sec == "lastcar" and b == 10:
                 put("horn", "B1,F#2", 70, 0, 3 * 14)  # another ship, further out
+            if ANSWER and ((sec == "crossing" and b == 18) or (sec == "lastcar" and b == 16)):
+                put("horn2", "A1,E2", 72 if sec == "crossing" else 48, 0, 3 * 14)  # answered from further out
             if (sec == "crossing" and b == 0) or (sec == "lastcar" and b == 0):
                 add("waves", at, "C3", (32 if sec == "crossing" else 32) * 14, 64 if sec == "crossing" else 52)
         if (sec == "crossing" and b == 0) or (sec == "yard" and b == 0) or (sec == "lastcar" and b == 12):
@@ -300,6 +315,15 @@ def build():
                 for k, syl in enumerate(words):
                     last = k == len(words) - 1
                     add("vox", at + 2 + 2 * k, "A2^ph=" + syl + ("^f0=0>-60" if last else ""), 3 if last else 2, 84)
+        # --- HOIST: the operator's words move the crane
+        if HOIST and PORT and sec == "yard":
+            if b in (7, 28):
+                add("hoist", at, "C3", 16, 76)  # "clear to lift": the hoist whines upward
+            if b == 14:
+                add("lower", at, "C3", 16, 70)  # "lowering"
+            if b == 15:
+                add("yardmetal", at + 4, "ft", 2, 96)  # the container lands
+                add("yardmetal", at + 5, "cbl", 2, 78)
         # --- DEV: a second clean guitar's natural harmonics answer the riff in the joints
         if DEV and sec == "joints" and b >= 24:
             for st_, i in ((6, 5), (12, 3)):
@@ -460,6 +484,13 @@ def song():
             *([{"name": "waves", "patch": "fx-ocean", "gain": "-16dB", "score": sc("waves")},
                {"name": "hiss", "patch": "air-hiss", "gain": "-22dB", "pan": 0.4, "sends": {"yard": "-6dB"}, "score": sc("hiss")},
                {"name": "beep", "patch": "reverse-beep", "gain": "-34dB", "pan": -0.5, "sends": {"yard": "0dB"}, "score": sc("beep")}] if PORT else []),
+            *([{"name": "clank2", "patch": "crane-chain", "gain": "-4dB", "pan": -0.35, "sends": {"yard": "-8dB"}, "score": sc("clank2")}] if (WINDDOWN and PORT) else []),
+            *([{"name": "horn2", "patch": "brass-synth", "gain": "-18dB", "pan": 0.5, "fx": [{"type": "filter", "kind": "lp", "cutoff": 700, "q": 0.7}],
+                "sends": {"yard": "0dB"}, "score": sc("horn2")}] if ANSWER else []),
+            *([{"name": "hoist", "patch": "fx-riser-pitch", "gain": "-2dB", "pan": 0.3,
+                "fx": [{"type": "filter", "kind": "bp", "cutoff": 1000, "q": 0.7}], "sends": {"yard": "-4dB"}, "score": sc("hoist")},
+               {"name": "lower", "patch": "fx-downlifter", "gain": "-2dB", "pan": 0.3,
+                "fx": [{"type": "filter", "kind": "bp", "cutoff": 1000, "q": 0.7}], "sends": {"yard": "-4dB"}, "score": sc("lower")}] if HOIST else []),
             *([{"name": "swell", "patch": "fx-revcym", "gain": "-14dB", "sends": {"hall": "-8dB"}, "score": sc("swell")}] if SWELLS else []),
             *([{"name": "vox", "patch": "voice-speech", "gain": "-8dB", "pan": -0.3,
                 "fx": [{"type": "filter", "kind": "hp", "cutoff": 400, "q": 0.7}, {"type": "filter", "kind": "lp", "cutoff": 3200, "q": 0.9},
