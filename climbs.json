@@ -6442,7 +6442,7 @@
     {
       "id": "chirpers5-t3",
       "song": "songs/chirpers5-t3.yaml",
-      "reference": "Chirpers — Track 3 (untitled)",
+      "reference": "Chirpers — Ring Road Sunrise",
       "source": null,
       "owner": "chirper-one",
       "metric": "python3 tools/compscore.py chirpers5-t3 OUT.wav",
@@ -6462,7 +6462,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "Soft Concrete",
-        "title": "Track 3 (untitled)",
+        "title": "Ring Road Sunrise",
         "track": 3,
         "year": 2026
       },
