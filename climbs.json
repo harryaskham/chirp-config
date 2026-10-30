@@ -6171,7 +6171,7 @@
     {
       "id": "chirpers4-t7",
       "song": "songs/chirpers4-t7.yaml",
-      "reference": "Chirpers — Track 7 (untitled)",
+      "reference": "Chirpers — Under the Noise",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers4-t7 OUT.wav",
@@ -6187,7 +6187,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "Phantom Downbeat",
-        "title": "Track 7 (untitled)",
+        "title": "Under the Noise",
         "track": 7,
         "year": 2026
       },
