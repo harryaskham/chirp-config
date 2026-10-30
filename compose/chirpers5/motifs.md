@@ -52,6 +52,8 @@ Generator `compose/chirpers5/src/chirpers5-t10.py`. The closer: euphoric liquid 
 - **THE HOOK**: the voice engine, wordless: Ab4 . F4 Ab4 Bb4 | Ab4 . Eb4 . | F4 Eb4 Db4 Eb4 | F4 . . . (vowels turning); in the half-time interlude a second voice sings it a diatonic third above.
 - **THE INTERLUDE**: the drops' breakdown is half-time (kick on one, snare on three), the strings an octave up - a held breath before the second drop.
 - **THE LIFT**: the last drop a semitone up (D major), the piano rolling the chord in 16ths an octave up, the ride on the off-beats, a one-bar pull-out and a riser before it - the album's biggest lift.
+- **THE DESCANT** (v4): in the second drop the strings add the chord's top tones an octave up, falling in half notes above the hook - the drop develops instead of repeating the first.
+- **THE THIRD COMES BACK** (v4): the interlude's second voice (the hook a third above) is held back through the second drop and returns only in the lift, transposed with it - the last reveal is the harmony you heard once, now a semitone higher.
 - **THE DISSOLVE**: the drums leave, then the bass; the piano picks the hook out alone an octave up, the voice hums the last phrases, and the city's air comes up as the streetlights go off.
 
 

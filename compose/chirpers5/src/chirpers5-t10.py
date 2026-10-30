@@ -29,7 +29,9 @@ RECIPE = float(os.environ.get("C5T10_RECIPE", "6"))
 RCLIP = os.environ.get("C5T10_RCLIP", "-2.0")
 TPLIM = os.environ.get("C5T10_TPLIM", "")  # wM's true-peak limiter (true_peak: true, 4x oversampled, 5 ms lookahead, never clamps) as the master's last stage at this ceiling (dB), instead of the clip and the 16 kHz low-pass
 LOWLIFT = os.environ.get("C5T10_LOWLIFT", "3")
-MIDEQ = os.environ.get("C5T10_MIDEQ", "-3,-4")  # "low,mid": the 300 Hz cut eased to this (dB) and 1 kHz taken down by this (the piano and the voice's formants were forward of the album)  # the master's 100 Hz lifted (dB): the liquid bass's body
+MIDEQ = os.environ.get("C5T10_MIDEQ", "-3,-4")
+HARMIN = os.environ.get("C5T10_HARMIN", "lift")  # where else the hook's third-above voice sings, besides the interlude: "B" (the second drop and the lift) or "lift" (the lift only)
+DESC = os.environ.get("C5T10_DESC", "1") == "1"  # the strings gain a descant in the second drop: the chord's top tones an octave up, falling in half notes  # "low,mid": the 300 Hz cut eased to this (dB) and 1 kHz taken down by this (the piano and the voice's formants were forward of the album)  # the master's 100 Hz lifted (dB): the liquid bass's body
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 FORM = [("intro", 16), ("build", 8), ("A", 32), ("breakdown", 16), ("B", 32), ("lift", 16), ("dissolve", 24)]
@@ -163,6 +165,10 @@ def strings(sec, b, gb):
         return R(4)
     v = [n + up(sec) + (12 if sec in ("lift", "breakdown") else 0) for n in CH[gb % 4][1]]
     vel = {"intro": 46, "build": 52, "A": 56, "breakdown": 64, "B": 58, "lift": 66, "dissolve": 50}[sec]
+    if DESC and sec == "B":
+        top = sorted(v)[-2:]
+        a, c = top[1] + 12, top[0] + 12
+        return J(f"{','.join(nm(n) for n in v[1:])},{nm(a)}/2b@{vel}", f"{','.join(nm(n) for n in v[1:])},{nm(c)}/2b@{vel}")
     return f"{','.join(nm(n) for n in v[1:])}/4b@{vel}"
 
 
@@ -181,7 +187,8 @@ def voice(sec, b, gb):
 
 def harmony(sec, b, gb):
     """In the interlude the hook gains a second voice a diatonic third above (Db major)."""
-    if sec != "breakdown":
+    secs = {"": ("breakdown",), "B": ("breakdown", "B", "lift"), "lift": ("breakdown", "lift")}[HARMIN]
+    if sec not in secs:
         return R(4)
     scale = [1, 3, 5, 6, 8, 10, 0]
     cell = HOOK[gb % 4]
@@ -192,7 +199,7 @@ def harmony(sec, b, gb):
             pc = m % 12
             i = scale.index(pc) if pc in scale else 0
             m2 = m + ((scale[(i + 2) % 7] - pc) % 12)
-            toks.append((st, nm(m2) + VOWELS[(gb + k + 1) % 4], d, 72))
+            toks.append((st, nm(m2 + up(sec)) + VOWELS[(gb + k + 1) % 4], d, 72))
         st += d
     return grid(toks)
 
