@@ -33,7 +33,9 @@ S = 0.25
 MG = float(os.environ.get("C4T8_MG", "18"))
 ROOMFB = float(os.environ.get("C4T8_ROOMFB", "0.74"))
 RIM3 = os.environ.get("C4T8_RIM3", "1") == "1"  # the echo's grid played: the rim every three 16ths (a dotted eighth) across the bar lines through A, B and the peak - three against the kick's four
-WETUP = float(os.environ.get("C4T8_WETUP", "0"))  # the room's send raised (dB) through A and B, the echo stream louder against the kick
+WETUP = float(os.environ.get("C4T8_WETUP", "0"))
+OUTKICK = os.environ.get("C4T8_OUTKICK", "0") == "1"  # a DJ's outro: the kick and the sub run to the end (the stab and the room fade), so the next track is mixed in over a floor
+PHANTOM = os.environ.get("C4T8_PHANTOM", "oh")  # the break made the illusion: no hats at all (nothing left on the kick's grid), the rim's 3/16 cycle from the break's fifth bar, so the echoes and the rim are the only pulse; "gap" = and a pull-out (the master drops out) on the break's last half-bar before B slams in  # the room's send raised (dB) through A and B, the echo stream louder against the kick
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 FORM = [("intro", 16), ("build", 16), ("A", 32), ("break", 16), ("B", 32), ("peak", 16), ("outro", 16)]
@@ -87,10 +89,28 @@ def kit(sec, b, gb):
     def add(st, piece, vel):
         ev.setdefault(st, []).append((piece, vel))
 
-    kick = sec not in ("break",) and not (sec == "outro" and b >= 12)
+    kick = sec not in ("break",) and not (sec == "outro" and b >= 12 and not OUTKICK)
     if kick:
         for st in (0, 4, 8, 12):
             add(st, "k", 118 if st == 0 else 110)
+    if PHANTOM == "oh" and sec == "break":  # only the off-beat open hats (the 4/4 grid's marker) leave; the 16ths fit both grids
+        if b >= 4:
+            for st in range(16):
+                if (gb * 16 + st) % 3 == 0:
+                    add(st, "rs", 72 + 2 * (b - 4))
+        if b >= 8:
+            for st in range(16):
+                if st not in (2, 6, 10, 14):
+                    add(st, "h", 96 if (gb * 16 + st) % 5 == 0 else 50)
+        out = [(st, ",".join(p for p, _ in v), 1, max(vv for _, vv in v)) for st, v in ev.items()]
+        return grid(out) if out else R(4)
+    if PHANTOM and PHANTOM != "oh" and sec == "break":
+        if b >= 4:
+            for st in range(16):
+                if (gb * 16 + st) % 3 == 0:
+                    add(st, "rs", 72 + 2 * (b - 4))
+        out = [(st, ",".join(p for p, _ in v), 1, max(vv for _, vv in v)) for st, v in ev.items()]
+        return grid(out) if out else R(4)
     if sec not in ("intro",) or b >= 8:
         for st in (2, 6, 10, 14):
             add(st, "oh", 74 if sec in ("A", "B", "peak") else 60)
@@ -181,6 +201,10 @@ def song():
     wet = [(0, -8), (st["A"], up(-6)), (st["A"] + 16, up(-3)), (st["break"], 2), (st["B"], up(-6)), (st["peak"], -2), (st["outro"], 0)]
     dyn = [(0, -6), (st["build"], -3), (st["A"], 0), (st["break"], -7), (st["B"], 0), (st["peak"], 1), (st["outro"], -5)]
     frz = [(0, 0), (st["break"] + 2, 1), (st["break"] + 12, 0)]
+    if PHANTOM == "gap":  # (only with the full phantom)  # the pull-out: the last half-bar of the break goes silent, then B slams in
+        dyn = dyn[:]
+        gi = [i for i, (bar, _) in enumerate(dyn) if bar == st["B"]][0]
+        dyn.insert(gi, (st["B"] - 0.5, -60))
     pump = lambda d: {"type": "pump", "on": "kit.k", "depth": f"{d}dB", "attack": "4ms", "release": "320ms", "curve": 0.6}  # noqa: E731
     patches = {
         "dub-chord": {"about": "Phantom Downbeat t8: the dub-techno chord - two detuned saws and a pulse through a low-pass that snaps "
