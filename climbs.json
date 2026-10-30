@@ -6684,7 +6684,7 @@
     {
       "id": "chirpers5-t9",
       "song": "songs/chirpers5-t9.yaml",
-      "reference": "Chirpers — Track 9 (untitled)",
+      "reference": "Chirpers — Late Shift",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers5-t9 OUT.wav",
@@ -6700,7 +6700,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "Soft Concrete",
-        "title": "Track 9 (untitled)",
+        "title": "Late Shift",
         "track": 9,
         "year": 2026
       },
