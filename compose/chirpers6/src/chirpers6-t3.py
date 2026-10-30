@@ -44,7 +44,8 @@ ENDFIX = os.environ.get("C6T3_ENDFIX", "1") == "1"  # no dead air into Sodium: t
 PUMP = os.environ.get("C6T3_PUMP", "1") == "1"  # the low end breathes with the kick: the fuzz bass, the sub and both rigs pump (sidechain) from the room kit's kick
 BASSLFO = os.environ.get("C6T3_BASSLFO", "1") == "1"  # the fuzz bass through a low-pass breathing on a 7-bar LFO (the crane's number), resonance up
 TSTOP = os.environ.get("C6T3_TSTOP", "1") == "1"
-LANDMARK = os.environ.get("C6T3_LANDMARK", "1") == "1"  # chirper-one's note (9.0): one changed bar a phrase - in the chug the fourth bar of every 8 is the crane's chain alone over the sub (the rigs, the fuzz and the kit drop out), and in the climb the fourth bar drops its back half  # the chug's last stab tape-stops: the crane brakes before the stacks  # a second ship answers the foghorn from further out (A and E, lower and quieter)  # reverse-cymbal swells drawn into the chug, the climb's full kit, the undertow and the last ship  # the crane operator on a handheld intercom in the stacks ("seven, clear to lift" - the 7 is the meter), and in the last ship's bars "last one, lights stay on"  # the movements develop instead of looping: the chug in four stages (the riff, its grouping rotated 3+2+2, the line over it, a stabbing peak and a break), a second clean guitar's harmonics answering in the joints, the doom thinning to held chords and an ebow cry
+LANDMARK = os.environ.get("C6T3_LANDMARK", "1") == "1"
+TILT = os.environ.get("C6T3_TILT", "5,4")  # "low,high": the master's 150 Hz up and 3.5 kHz down (dB) - the body under the guitars, the fizz down; darker  # chirper-one's note (9.0): one changed bar a phrase - in the chug the fourth bar of every 8 is the crane's chain alone over the sub (the rigs, the fuzz and the kit drop out), and in the climb the fourth bar drops its back half  # the chug's last stab tape-stops: the crane brakes before the stacks  # a second ship answers the foghorn from further out (A and E, lower and quieter)  # reverse-cymbal swells drawn into the chug, the climb's full kit, the undertow and the last ship  # the crane operator on a handheld intercom in the stacks ("seven, clear to lift" - the 7 is the meter), and in the last ship's bars "last one, lights stay on"  # the movements develop instead of looping: the chug in four stages (the riff, its grouping rotated 3+2+2, the line over it, a stabbing peak and a break), a second clean guitar's harmonics answering in the joints, the doom thinning to held chords and an ebow cry
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 SEVEN, FOUR = 14, 16
@@ -492,7 +493,8 @@ def song():
                             "synth": {"layers": [{"type": "noise", "color": "white"}, "sine fixed=820 level=-6dB", "sine fixed=1370 level=-10dB"],
                                       "filters": ["bp cutoff=1600 q=0.7"], "amp": {"a": "0.5ms", "d": "70ms", "s": 0, "r": "40ms"}}},
         },
-        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=28", "peak cutoff=300 q=0.8 gain=-2dB", "highshelf cutoff=7000 gain=-1dB"]},
+        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=28", "peak cutoff=300 q=0.8 gain=-2dB", "highshelf cutoff=7000 gain=-1dB",
+                                                   *([f"peak cutoff=150 q=0.7 gain={TILT.split(',')[0]}dB", f"peak cutoff=3500 q=0.7 gain=-{TILT.split(',')[1]}dB"] if TILT else [])]},
                           {"type": "compressor", "threshold": "-18dB", "ratio": 2, "attack": "15ms", "release": "200ms", "makeup": "0dB"},
                           {"type": "gain", "gain": f"+{MGAIN:g}dB"},
                           {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}},
