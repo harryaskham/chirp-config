@@ -32,6 +32,7 @@ Generator `compose/chirpers4/src/chirpers4-t8.py`. Deep dub techno, 124 bpm, D m
 - **THE STAIRCASE**: a Risset accelerando on 909 rims (strand k at 2^(k + t/24) hits per beat, a bell over log-speed): accelerates for ever, never arrives.
 - **NO FLOOR**: fx-riser-shepard resampled backwards (shadow song `rise`): an endless fall, with the opening's grind returning.
 - **NO FLOOR, SEAMLESS** (v3, wM's shepard layer): the fall is now two true Shepard-Risset tones on song time on F#, a middle one falling an octave every 2 bars and a low one every 4 bars, coming in over four bars: no seam every 16 beats. And the acid enters patiently: its first eight bars play only the accented notes.
+- **ANALOG METAL** (v4): the hats, the ride, the claps and the crash on machine-kit (the six metallic squares, multi-burst claps); the 909 kick stays. The hats' high-pass sweeps on a 6-bar LFO against the acid's 3, 5 and 7.
 
 
 ## t2 (chirper-one): rolling / broken techno, "the gallop splits"

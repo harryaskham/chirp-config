@@ -91,6 +91,11 @@ R2 = set(filter(None, os.environ.get("T10_R2", "T,E,P").split(","))) - {"none"}
 # one every 4 bars under it, coming in over four bars; P = THE ACID ENTERS PATIENTLY: for its first eight bars the
 # throb plays only its accented notes, then the whole riff.
 R3 = set(filter(None, os.environ.get("T10_R3", "F,P").split(","))) - {"none"}
+# Round 4 (v4), polish: M = THE METAL IS ANALOG: the hats, the ride, the claps and the crash move to chirper-two's
+# machine-kit (the six metallic squares of the 808/909 circuits, multi-burst claps); the 909 kick and its distorted
+# layer stay. H = THE HATS BREATHE: their high-pass sweeps on a 6-bar song-time LFO (an odd cycle against the
+# acid's 3, 5 and 7), so the top end opens and closes as the riff turns.
+R4 = set(filter(None, os.environ.get("T10_R4", "M,H").split(","))) - {"none"}
 ACC_MASKS = [None, {0, 3, 6, 9, 12, 15}, {2, 6, 10, 14}]       # as written / threes / off-beats
 SLIDE_MASKS = [None, {3, 7, 10, 14}, {1, 5, 9, 13}]
 
@@ -148,7 +153,7 @@ def build():
             for b in range(4):
                 T["hats"].add(start + b + 0.02, 0.5, "rd", 74)
             if i % 8 == 0:
-                T["drums"].add(start, 1.0, "c", 104)
+                T["drums"].add(start, 1.0, "cy" if "M" in R4 else "c", 104)
         # ---- the acid ----
         if sec in ("acid", "staircase", "drop", "again", "break", "peak") or (sec == "nofloor" and i < 16):
             for s, (m, acc, sl) in enumerate(RIFF):
@@ -294,10 +299,14 @@ def main():
          "auto": {"kopen": {"points": kopen}}, "score": T["kick"].score(total)},
         {"name": "kick-hard", "patch": "909", "gain": "-6dB", "fx": ["hp cutoff=70", "drive drive=0.6"],
          "score": T["kh"].score(total)},
-        {"name": "drums", "patch": "909", "gain": "-2dB", "fx": ["reverb kind=room decay=0.9s mix=0.15"],
+        {"name": "drums", "patch": "machine-kit" if "M" in R4 else "909", "gain": "-2dB",
+         "fx": ["reverb kind=room decay=0.9s mix=0.15"],
          "score": T["drums"].score(total)},
-        {"name": "hats", "patch": "909", "gain": "2dB", "pan": 0.05,
-         "fx": ["hp cutoff=400", "highshelf cutoff=7000 gain=3dB", "reverb kind=room decay=0.6s mix=0.12"],
+        {"name": "hats", "patch": "machine-kit" if "M" in R4 else "909", "gain": "2dB", "pan": 0.05,
+         "fx": [({"type": "filter", "kind": "hp", "cutoff": {"value": 500, "mod": [{"src": "lfo.h", "amount": 0.9}]}}
+                 if "H" in R4 else "hp cutoff=400"),
+                "highshelf cutoff=7000 gain=3dB", "reverb kind=room decay=0.6s mix=0.12"],
+         **({"lfo": {"h": "sine rate=6/1 phase=0.5"}} if "H" in R4 else {}),
          "score": T["hats"].score(total)},
         {"name": "staircase", "patch": "909", "gain": "-3dB", "pan": -0.1,
          "fx": ["hp cutoff=250", {"type": "delay", "time": "1/8", "feedback": 0.2, "mix": 0.15, "tone": 4000},
