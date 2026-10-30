@@ -48,6 +48,8 @@ CODA = os.environ.get("T8_CODA", "2.5s")  # after the brakes, the engine idles: 
 INTROLP = os.environ.get("T8_INTROLP", "0") == "1"  # boarding: the master starts muffled (a low-pass from ~500 Hz) and opens across the intro's eight bars, as if the doors close and the bus comes into focus
 INTROPAD = int(os.environ.get("T8_INTROPAD", "0"))  # the intro's juno louder by this much velocity (the warm mids t7 ends on)
 RDAMP = os.environ.get("T8_RDAMP", "6")  # THE STOP's rhodes on wM's physical tine e-piano, letting go with the damper's key-off (release triggers); value = damper gain dB
+CODAHOLD = os.environ.get("T8_CODAHOLD", "3")
+CODAVEL = os.environ.get("T8_CODAVEL", "72,48")  # the held idle's sub and pad velocities  # the idle holds steady instead of fading (the bus waiting at the stop): "2" = two bars level, "3" = three bars
 S = 0.25
 
 NOTE = {"C": 0, "C#": 1, "Db": 1, "D": 2, "D#": 3, "Eb": 3, "E": 4, "F": 5, "F#": 6, "Gb": 6, "G": 7, "G#": 8, "Ab": 8,
@@ -89,7 +91,7 @@ LOOP = [("F#m9", 30, [57, 61, 64, 68], [68, 61, 57]), ("Dmaj9", 26, [57, 61, 64,
 LOOP_B = [("Dmaj9", 26, [57, 61, 64, 66], [64, 57, 54]), ("E6/9", 28, [56, 59, 61, 66], [66, 59, 56]),
           ("C#m7", 37, [56, 59, 61, 64], [63, 56, 52]), ("Bm9", 35, [54, 57, 61, 62], [61, 54, 50])]
 
-FORM = [("intro", 8), ("groove", 16), ("groove2", 16), ("breakdown", 8), ("groove3", 16), ("outro", 16)] + ([("coda", 2)] if CODA else [])
+FORM = [("intro", 8), ("groove", 16), ("groove2", 16), ("breakdown", 8), ("groove3", 16), ("outro", 16)] + ([("coda", int(CODAHOLD or 2))] if CODA else [])
 SKIPS = [10, 11, 7, 10, 11, 10, 7, 11]  # where the skip-kick lands, bar by bar
 
 
@@ -222,8 +224,9 @@ def build():
                     bar["chops"] = chops(gb, rng)
             elif sec == "coda":
                 _, r, _, _ = chord(gb)
-                bar["sub"] = f"{nm(r)}/4b@{62 - 10 * b}"
-                bar["pad"] = pad(gb, 34 - 6 * b)
+                cv_sub, cv_pad = (int(x) for x in CODAVEL.split(","))
+                bar["sub"] = f"{nm(r)}/4b@{cv_sub if CODAHOLD else 62 - 10 * b}"
+                bar["pad"] = pad(gb, cv_pad if CODAHOLD else 34 - 6 * b)
             for n in names:
                 T[n].append(bar[n])
             gb += 1
