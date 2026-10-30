@@ -6010,7 +6010,7 @@
     {
       "id": "chirpers4-t2",
       "song": "songs/chirpers4-t2.yaml",
-      "reference": "Chirpers — Track 2 (untitled)",
+      "reference": "Chirpers — The Gallop Splits",
       "source": null,
       "owner": "chirper-one",
       "metric": "python3 tools/compscore.py chirpers4-t2 OUT.wav",
@@ -6030,7 +6030,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "Phantom Downbeat",
-        "title": "Track 2 (untitled)",
+        "title": "The Gallop Splits",
         "track": 2,
         "year": 2026
       },
