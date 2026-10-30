@@ -6516,7 +6516,7 @@
     {
       "id": "chirpers5-t5",
       "song": "songs/chirpers5-t5.yaml",
-      "reference": "Chirpers — Track 5 (untitled)",
+      "reference": "Chirpers — Underpass",
       "source": null,
       "owner": "chirper-one",
       "metric": "python3 tools/compscore.py chirpers5-t5 OUT.wav",
@@ -6536,7 +6536,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "Soft Concrete",
-        "title": "Track 5 (untitled)",
+        "title": "Underpass",
         "track": 5,
         "year": 2026
       },
