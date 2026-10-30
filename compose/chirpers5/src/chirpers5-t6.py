@@ -61,6 +61,19 @@ class Track:
 LVL_GAIN = 7  # dB into the master's peak compressor and limiter (levels.py: TP under -1 dBTP, no flat runs)
 DRUM_CLIP = -11  # the drum bus's soft clip: shaves the break's spikes
 PEAK_T = -5  # the master's fast peak compressor (smooth, so nothing is pinned)
+# Round 2 (v2), polish for the album's running order: J = THE JOINS: the record opens with the Rhodes already
+# playing, softly, under the first rain (it no longer waits four bars), and it closes with the chords held: the
+# Rhodes plays through the outro and its last chord rings out with the pad over the rain, a short tail (0.5 s), so
+# Overpass Rain hands Concrete Hum a room, not a silence; M = THE CHORDS BREATHE: the Rhodes drifts across the
+# stereo field on a 3-bar song-time LFO and the pad's filter opens and closes on a 5-bar one.
+R2 = set(filter(None, os.environ.get("T6_R2", "E,P").split(","))) - {"none"}
+# (J = the whole join, the Rhodes from the first bar too: the opening then matched the outro and the break, recurrence
+# share 0.8; M = the pad's filter on a 5-bar LFO too: the sections' timbres converged, variety 78. Tried, dropped.)
+# E = the ending only (held chords, the pad over the rain, a 0.5 s tail); P = the Rhodes' 3-bar stereo drift only.
+if "J" in R2:
+    R2 |= {"E", "S"}
+if "M" in R2:
+    R2 |= {"P", "F"}
 FORM = [("intro", 16), ("A", 32), ("break", 16), ("build", 8), ("B", 32), ("outro", 16)]
 # (bass root, Rhodes voicing), two bars each
 CHORDS = [(41, [56, 60, 63, 67]),   # Fm9: F2 | Ab3 C4 Eb4 G4
@@ -92,12 +105,15 @@ def build():
         root, voic = CHORDS[(i // 2) % 4]
         drop = sec in ("A", "B")
         # ---- Rhodes: the 2-step comp, from the intro's fifth bar ----
-        if i % 2 == 0 and not (sec == "intro" and i < 4) and not (sec == "outro" and i >= 12):
-            for o, ln, dv in COMP:
-                v = (72 if sec in ("intro", "break", "outro") else 80) + dv
+        held = "E" in R2 and sec == "outro" and i >= 12
+        if i % 2 == 0 and not (sec == "intro" and i < 4 and "S" not in R2) and not (sec == "outro" and i >= 12 and not held):
+            if held:  # the last chords, held over the rain
+                T["rhodes"].add(start + 0.02, 7.8, ",".join(nm(x) for x in voic), 66 if i < 14 else 60)
+            for o, ln, dv in (COMP if not held else ()):
+                v = (72 if sec in ("intro", "break", "outro") else 80) + dv - (10 if "S" in R2 and sec == "intro" and i < 4 else 0)
                 T["rhodes"].add(start + o + 0.02, ln, ",".join(nm(x) for x in voic), v)
         # ---- the pad: held, high, from the first drop ----
-        if i % 2 == 0 and sec in ("A", "break", "build", "B"):
+        if i % 2 == 0 and (sec in ("A", "break", "build", "B") or ("E" in R2 and sec == "outro" and i >= 12)):
             T["pad"].add(start, 7.9, ",".join(nm(x + 12) for x in voic[1:]), 60)
         # ---- the roller ----
         if drop or (sec == "intro" and i >= 8) or sec == "build" or (sec == "outro" and i < 8):
@@ -174,11 +190,17 @@ def main():
     rhodes = "epiano-tine synth.tine.sense=0.4 play.release.patch=epiano-damper play.release.decay=2s"
     tracks = [
         {"name": "rhodes", "patch": rhodes, "gain": "-4dB", "pan": -0.1,
+         **({"lfo": {"d": "sine rate=3/1"}} if "P" in R2 else {}),
          "fx": [{"type": "chorus", "rate": 0.6, "depth": 0.35, "voices": 2, "mix": 0.45},
                 "tape drive=0.25 warmth=0.6", "peak cutoff=300 gain=-3dB q=0.8", "hp cutoff=120",
+                *([{"type": "pan", "pan": {"value": 0, "mod": [{"src": "lfo.d", "amount": 0.45}]}}] if "P" in R2 else []),
                 "reverb kind=hall decay=2.4s mix=0.25"],
          "score": T["rhodes"].score(total)},
-        {"name": "pad", "patch": "juno-pad", "gain": "-16dB", "fx": ["hp cutoff=300"], "score": T["pad"].score(total)},
+        {"name": "pad", "patch": "juno-pad", "gain": "-16dB",
+         "fx": ["hp cutoff=300"] + ([{"type": "filter", "kind": "lp", "q": 0.8,
+                                       "cutoff": {"value": 3000, "mod": [{"src": "lfo.p", "amount": 1.0}]}}]
+                                     if "F" in R2 else []),
+         **({"lfo": {"p": "sine rate=5/1 phase=0.25"}} if "F" in R2 else {}), "score": T["pad"].score(total)},
         {"name": "amen", "patch": "amen-chops", "gain": "-5dB",
          "fx": ["hp cutoff=60",
                 {"type": "stutter", "slice": "1/8", "repeats": 8, "roll": 0.5, "pitch": 1,
@@ -220,7 +242,7 @@ def main():
                                "track": 6, "year": 2026}),
         f"tempo: {BPM}",
         f'length: "{total:g}b"',
-        'tail: "2s"',
+        'tail: "%s"' % ("0.5s" if "E" in R2 else "2s"),
         'ceiling: "-1dB"',
         'volume: "0dB"',
         "patches: " + json.dumps(patches()),
