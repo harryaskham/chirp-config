@@ -96,6 +96,10 @@ R3 = set(filter(None, os.environ.get("T10_R3", "F,P").split(","))) - {"none"}
 # layer stay. H = THE HATS BREATHE: their high-pass sweeps on a 6-bar song-time LFO (an odd cycle against the
 # acid's 3, 5 and 7), so the top end opens and closes as the riff turns.
 R4 = set(filter(None, os.environ.get("T10_R4", "M,H").split(","))) - {"none"}
+# Round 5 (v5), polish: R = THE RISE IS SEAMLESS TOO: the break's endless rise, like v3's fall, becomes one true
+# Shepard-Risset tone on F# on song time (climbing an octave every 2 bars, swelling in over four), not sixteen riser
+# notes stitched every bar; it stops a beat before the peak, leaving the room's silence.
+R5 = set(filter(None, os.environ.get("T10_R5", "R").split(","))) - {"none"}
 ACC_MASKS = [None, {0, 3, 6, 9, 12, 15}, {2, 6, 10, 14}]       # as written / threes / off-beats
 SLIDE_MASKS = [None, {3, 7, 10, 14}, {1, 5, 9, 13}]
 
@@ -194,7 +198,10 @@ def build():
             T["rumble"].add(start, 16.0, nm(30), 90)
         # ---- the endless rise (break) and the endless fall (no floor) ----
         if sec == "break":
-            T["riser"].add(start, 4.0, "C4", 70 + 2 * i)
+            if "R" not in R5:
+                T["riser"].add(start, 4.0, "C4", 70 + 2 * i)
+            elif i == 0:
+                T["riser"].add(start, 4.0 * n - 1.0, "F#3", 96)
         if "F" in R3:
             if sec == "nofloor" and i == 4:
                 T["fall"].add(start, 4.0 * (n - 4), "F#3", 96)
@@ -247,7 +254,18 @@ def patches():
                                           "filters": [{"kind": "lp", "cutoff": 3000, "q": 0.6}],
                                           "amp": {"a": "7s", "s": 1, "r": "3s"}},
                                 "play": {"gate": 1.0, "vel_sens": 0.2}}}
-    return {**(throb if "T" in R2 else {}), **(fall if "F" in R3 else {}),
+    rise = {"c2-endless-rise": {"about": "chirper-two's endless rise (No Floor v5): a Shepard-Risset tone on song time "
+                                         "climbing an octave every 2 bars on the note's pitch class, a detuned twin "
+                                         "beside it; four bars to swell in.",
+                                "synth": {"layers": [
+                                    {"type": "shepard", "shepard": {"octaves": 9, "cycle": "2bar", "center": "520hz",
+                                                                    "width": 1.3}},
+                                    {"type": "shepard", "cents": 7, "level": "-4dB",
+                                     "shepard": {"octaves": 9, "cycle": "2bar", "center": "520hz", "width": 1.3}}],
+                                          "filters": [{"kind": "lp", "cutoff": 6000, "q": 0.6}],
+                                          "amp": {"a": "7s", "s": 1, "r": "200ms"}},
+                                "play": {"gate": 1.0, "vel_sens": 0.2}}}
+    return {**(throb if "T" in R2 else {}), **(fall if "F" in R3 else {}), **(rise if "R" in R5 else {}),
         "c2-clank": {"about": "chirper-two's industrial clank: four inharmonic struck-bar partials (1, 2.76, 5.40, "
                               "8.93), a very short decay, driven and bit-crushed per voice.",
                      "synth": {"layers": [{"type": "additive",
@@ -332,7 +350,8 @@ def main():
         {"name": "noise", "patch": "c2-noise", "gain": "-22dB", "fx": ["width width=1.5"],
          "score": T["noise"].score(total)},
         {"name": "rumble-drone", "patch": "c2-rumble-drone", "gain": "-16dB", "score": T["rumble"].score(total)},
-        {"name": "riser", "patch": "fx-riser-shepard", "gain": "-10dB",
+        {"name": "riser", "patch": "c2-endless-rise" if "R" in R5 else "fx-riser-shepard",
+         "gain": "-11dB" if "R" in R5 else "-10dB",
          "fx": ["reverb kind=hall decay=3s mix=0.35"], "score": T["riser"].score(total)},
         ({"name": "fall", "patch": "c2-endless-fall", "gain": "-6dB",
           "fx": ["reverb kind=hall decay=4s mix=0.35"], "score": T["fall"].score(total)} if "F" in R3 else
