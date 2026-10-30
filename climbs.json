@@ -7028,24 +7028,15 @@
       "owner": "chirper-two",
       "metric": "python3 tools/compscore.py chirpers6-t8 OUT.wav",
       "best": {
-        "score": 83.571,
-        "version": "v1",
+        "score": 95.318,
+        "version": "v2",
         "commit": "see git log songs/chirpers6-t8.yaml",
-        "engine": "60ec1b66",
-        "rescored": {
-          "compscore": "36d4702b",
-          "seeds": {
-            "0": 83.571,
-            "11": 83.54
-          },
-          "at": "2026-10-30T21:54:56Z",
-          "was": 83.037
-        }
+        "engine": "fcff9b53"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 1,
+      "rounds": 2,
       "priority": 1.0,
       "genre": "post-rock / post-metal",
       "mode": "compose",
@@ -7063,7 +7054,7 @@
         "note": "COMPOSE (closer, 480-1200 s): Closes the album. Style, form, tempo and line-up are yours: declare them in compose/chirpers6/styles.md, different from the tracks already claimed."
       },
       "last": {
-        "at": "2026-10-30T18:58:12Z",
+        "at": "2026-10-30T23:00:15Z",
         "who": "chirper-two"
       }
     }

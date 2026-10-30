@@ -66,6 +66,18 @@ class Track:
         return " ".join(toks)
 
 
+# Round 2 (v2): H = SLOWER HARMONY: the sunrise and the lights-out change chord every four bars (not two), and the
+# weight's crash marks eight-bar phrases (not four), so the movements breathe in long phrases; P = THE PEAK IS EARNED:
+# a beat of silence before the sunrise's last stage, and that stage lifts a semitone to F major (the hymn, the theme,
+# the chords and the choir all rise with it); W = THE WEIGHT IS HEAVIER: the 8-string riff doubled (a second
+# player, panned), a kick on every group of the 2+2+3, and the fader no longer holds it back; S = THE RADIO IN THE
+# PROCESSION: a field report through the radio, "Clear skies by morning. The roads are open."
+# C = CONTINUOUS LINES: the melodic voices no longer switch on and off every few bars (which cut the movements into
+# ten-second shards): the hymn runs whole and unbroken in the weight's bass, The Mast's theme repeats as a cantus
+# under the procession and as a near-continuous counterline against the hymn at the sunrise, and the sunrise's tremolo
+# wall drones on the key (E, then F) while the strings and the bass move under it.
+R2 = set(filter(None, os.environ.get("T8_R2", "H,P,W,S,C").split(","))) - {"none"}
+SPEECH_REPORT = [["k-l-ih1-r", "s-k-ay1-z", "b-ay1", "m-ao1-r", "n-ih0-ng"], ["dh-ah0", "r-ow1-d-z", "aa1-r", "ow1", "p-ah0-n"]]
 # (movement, bars, beats per bar)
 FORM = [("signoff", 16, 4.0), ("birds", 32, 4.0), ("procession", 64, 3.0), ("weight", 48, 3.5),
         ("sunrise", 64, 4.0), ("lightsout", 40, 4.0)]
@@ -85,7 +97,7 @@ SPEECH_MORNING = [["g-uh1-d", "m-ao1-r", "n-ih0-ng"]]
 def build():
     rng = random.Random(8)
     brng = random.Random(88)  # the birds' own dice
-    names = ["musicbox", "celesta", "cello", "fretless", "sub", "kit", "cym", "strings", "g1", "g2", "riff", "lead",
+    names = ["riff2", "musicbox", "celesta", "cello", "fretless", "sub", "kit", "cym", "strings", "g1", "g2", "riff", "lead",
              "choir", "glock", "radio", "static", "carrier", "birds", "wind", "click"]
     Tr = {k: Track(k) for k in names}
     bars, pos = [], 0.0
@@ -162,10 +174,15 @@ def build():
             if i % 4 == 0:
                 Tr["fretless"].add(start, 11.8, nm(root), 84)
                 Tr["strings"].add(start, 11.8, ",".join(nm(x) for x in voic), 60 + i // 2)
-            if i in (16, 32, 48):  # The Mast's theme returns, changed: in C# minor, in threes
+            if "C" in R2:
+                if i >= 16 and (i - 16) % 5 == 0 and i + 5 <= n:  # the theme as a cantus, back to back
+                    line(Tr["g2"], start, T_CSM, 1.5, 12, 72)
+            elif i in (16, 32, 48):  # The Mast's theme returns, changed: in C# minor, in threes
                 line(Tr["g2"], start, T_CSM, 1.5, 12, 76)
             if i in (24, 40):
                 line(Tr["cello"], start, HYMN, 1.5, -12, 80)
+            if "S" in R2 and i == 34:
+                speak(Tr["radio"], start, SPEECH_REPORT)
         # ---------------- IV WEIGHT (7/8) ----------------
         elif sec == "weight":
             breath = 32 <= i < 40
@@ -178,35 +195,52 @@ def build():
                     line(Tr["celesta"], start, HYMN, 0.875, 0, 84)
                 continue
             for b, ln, m in RIFF:
-                Tr["riff"].add(start + b, ln, nm(m + 12) if m == 25 else ",".join((nm(m + 12), nm(m + 19))),
+                for rt in (("riff", "riff2") if "W" in R2 else ("riff",)):
+                    Tr[rt].add(start + b + (0.006 if rt == "riff2" else 0.0), ln,
+                               nm(m + 12) if m == 25 else ",".join((nm(m + 12), nm(m + 19))),
                                104 if b in (0.0, 1.0, 2.0) else 88, "^pm" if m == 25 and b not in (0.0,) else "")
             Tr["sub"].add(start, bl - 0.1, nm(root_c + 12), 100)
             # the physical kit, hit hard: plastic beater, rimshots on the 2+2+3's accents
             Tr["kit"].add(start, 0.5, "kp", 110)
             Tr["kit"].add(start + 2.0, 0.5, "kp", 100)
+            if "W" in R2:
+                Tr["kit"].add(start + 1.0 - 0.004, 0.5, "kp", 96)  # a kick on every group of the 2+2+3
             Tr["kit"].add(start + 1.0, 0.5, "rs", 112 if heavy else 104)
             Tr["kit"].add(start + 3.0, 0.5, "rs", 108 if heavy else 98)
-            Tr["cym"].add(start, 1.0, "c" if i % 4 == 0 else "rd", 96 if i % 4 == 0 else 80)
+            phrase = 8 if "H" in R2 else 4
+            Tr["cym"].add(start, 1.0, "c" if i % phrase == 0 else "rd", 96 if i % phrase == 0 else 80)
             if heavy:
                 Tr["cym"].add(start + 2.0, 1.0, "x", 90)
-            if i % 8 == 0:  # the hymn in the bass, two bars a phrase
+            if "C" in R2:
+                if i % 8 == 0:  # the hymn whole and unbroken in the bass (32 beats over eight 7/8 bars)
+                    line(Tr["fretless"], start, HYMN, 0.875, -24, 100, "")
+            elif i % 8 == 0:  # the hymn in the bass, two bars a phrase
                 line(Tr["fretless"], start, HYMN[:7], 0.875, -24, 100, "")
             if i % 2 == 0:
                 Tr["strings"].add(start, 6.8, "C#3,G#3,C#4", 84 if heavy else 72)
         # ---------------- V SUNRISE ----------------
         elif sec == "sunrise":
-            root, voic = EMAJ[(i // 2) % 4]
+            root, voic = EMAJ[((i // (8 if "C" in R2 else 4)) if "H" in R2 else (i // 2)) % 4]
             stage = 0 if i < 16 else (1 if i < 48 else 2)
+            lift = 1 if ("P" in R2 and stage == 2) else 0  # the last stage, a semitone higher: F major
+            root, voic = root + lift, [x + lift for x in voic]
             v = (70, 96, 112)[stage]
             # the hymn on the lead and the choir; The Mast's theme against it
             if i % 8 == 0:
-                line(Tr["lead"], start, HYMN, 1.0, 0 if stage < 2 else 12, v)
+                line(Tr["lead"], start, HYMN, 1.0, (0 if stage < 2 else 12) + lift, v)
                 if stage >= 1:
-                    line(Tr["choir"], start, HYMN, 1.0, -12, 90)
-            if i % 8 == 4 and stage >= 1:
-                line(Tr["g2"], start + 2.0, T_CSM, 1.0, 12, v - 6)
-                line(Tr["glock"], start + 2.0, T_CSM, 1.0, 24, 76)
+                    line(Tr["choir"], start, HYMN, 1.0, -12 + lift, 90)
+            if "C" in R2:
+                if i % 8 == 0 and stage >= 1:  # the theme three times through each eight bars: a counterline
+                    for k in range(3):
+                        line(Tr["g2"], start + 2.0 + 10.0 * k, T_CSM, 1.0, 12 + lift, v - 6)
+                        line(Tr["glock"], start + 2.0 + 10.0 * k, T_CSM, 1.0, 24 + lift, 72)
+            elif i % 8 == 4 and stage >= 1:
+                line(Tr["g2"], start + 2.0, T_CSM, 1.0, 12 + lift, v - 6)
+                line(Tr["glock"], start + 2.0, T_CSM, 1.0, 24 + lift, 76)
             top = sorted(voic)[-3:]
+            if "C" in R2:  # the wall drones on the key (root, fifth, octave) while the strings and the bass move
+                top = [64 + lift, 71 + lift, 76 + lift]
             if stage >= 1:  # the wall
                 for s in range(24):
                     Tr["g1"].add(start + s / 6, 1 / 6 * 0.95, nm(top[(s // 3) % 3] + 12), v - 10 + (8 if s % 6 == 0 else 0))
@@ -223,7 +257,8 @@ def build():
             Tr["kit"].add(start + 1.0, 0.5, "s" if stage < 2 else "rs", v)
             Tr["kit"].add(start + 3.0, 0.5, "s" if stage < 2 else "rs", v)
             if stage >= 1:
-                Tr["cym"].add(start, 1.0, "c" if i % 2 == 0 else "c2", v - 4)
+                if not ("H" in R2 and i % (8 if "C" in R2 else 4) != 0 and stage < 2):
+                    Tr["cym"].add(start, 1.0, "c" if i % 2 == 0 else "c2", v - 4)
                 for b in range(8):
                     Tr["cym"].add(start + 0.5 * b, 0.5, "rd", v - 24 + (8 if b % 2 == 0 else 0))
             else:
@@ -234,7 +269,9 @@ def build():
                     Tr["kit"].add(start + 2.0 + 0.25 * k, 0.25, piece, v - 6 + 2 * k)
         # ---------------- VI LIGHTS OUT ----------------
         elif sec == "lightsout":
-            root, voic = EMAJ[(i // 2) % 4]
+            root, voic = EMAJ[((i // 4) if "H" in R2 else (i // 2)) % 4]
+            if "P" in R2:  # the lights go out in F, the key the sunrise reached
+                root, voic = root + 1, [x + 1 for x in voic]
             # each part leaves in turn: kit (4), wall (8), strings (12), lead and choir (16), bass (20), guitar (24),
             # then the hymn alone on the celesta, the radio, the click, the birds
             if i < 4:
@@ -248,14 +285,14 @@ def build():
             if i < 12 and i % 2 == 0:
                 Tr["strings"].add(start, 7.8, ",".join(nm(x) for x in voic), 84 - 4 * i)
             if i in (0, 8):
-                line(Tr["lead"], start, HYMN, 1.0, 0, 92 - 3 * i)
+                line(Tr["lead"], start, HYMN, 1.0, 1 if "P" in R2 else 0, 92 - 3 * i)
             if i < 20 and i % 2 == 0:
                 Tr["fretless"].add(start, 7.8, nm(root), 80 - 2 * i)
             if 8 <= i < 24:
                 for k in range(8):
                     Tr["g2"].add(start + 0.5 * k, 0.9, nm(sorted(voic)[[0, 1, 2, 3, 2, 1, 2, 3][k]] + 12), 66 - i)
             if i == 24:
-                line(Tr["celesta"], start, HYMN, 1.0, 12, 60)
+                line(Tr["celesta"], start, HYMN, 1.0, 13 if "P" in R2 else 12, 60)
             if i == 30:
                 speak(Tr["radio"], start, SPEECH_MORNING)
             if i == 33:
@@ -271,6 +308,13 @@ def build():
                                 brng.randint(40, 90))
         if i % 8 == 0 and sec in ("signoff", "birds", "lightsout"):
             Tr["wind"].add(start, 8.0 * bl, "C4", 66)
+    if "P" in R2:  # a beat of silence before the last stage of the sunrise
+        sun = next(bb for bb in bars if bb[1] == "sunrise")[0]
+        edge = sun + 48 * 4.0
+        for tr in Tr.values():
+            tr.ev = [e for e in tr.ev if not (edge - 1.0 - 1e-6 <= e[0] < edge)]
+            tr.ev = [(s, min(ln, edge - 1.0 - s) if s < edge - 1.0 < s + ln else ln, h, vel, art)
+                     for s, ln, h, vel, art in tr.ev]
     sec = []
     for name, n, bl in FORM:
         first = next(bb for bb in bars if bb[1] == name)
@@ -347,7 +391,8 @@ def main():
     total, bars, sec, Tr = build()
     st = {n: s for n, s, k in sec}
     # the fader ride: quiet start, the procession sits back, the weight is heavy but not the peak, the sunrise climbs
-    dyn = [["0b", 0.0], [f"{st['procession']}b", -5.0], [f"{st['weight'] - 0.01}b", -2.0], [f"{st['weight']}b", 0.0],
+    dyn = [["0b", 0.0], [f"{st['procession']}b", -5.0], [f"{st['weight'] - 0.01}b", -2.0],
+           [f"{st['weight']}b", 1.0 if "W" in R2 else 0.0],
            [f"{st['sunrise'] - 0.01}b", 0.0], [f"{st['sunrise']}b", -6.0], [f"{st['sunrise'] + 64}b", -3.0],
            [f"{st['sunrise'] + 192}b", 0.0], [f"{st['lightsout']}b", 0.0], [f"{total}b", 0.0]]
     pump = {"type": "pump", "on": "kit.kp", "depth": "-5dB", "attack": "3ms", "release": "380ms", "curve": 0.8}
@@ -377,7 +422,10 @@ def main():
         {"name": "g2", "patch": "clean-chorus", "gain": "-10dB", "pan": 0.35,
          "fx": [{"type": "delay", "time": "3/8", "feedback": 0.4, "mix": 0.3, "ping_pong": True, "tone": 3000},
                 "reverb kind=hall decay=4s mix=0.35"], "score": Tr["g2"].score(total)},
-        {"name": "riff", "patch": "m8", "gain": "-10dB", "fx": ["lp cutoff=5000"], "score": Tr["riff"].score(total)},
+        {"name": "riff", "patch": "m8", "gain": "-10dB", **({"pan": -0.3} if "W" in R2 else {}), "fx": ["lp cutoff=5000"],
+         "score": Tr["riff"].score(total)},
+        *([{"name": "riff2", "patch": "m8", "gain": "-11dB", "pan": 0.3, "fx": ["lp cutoff=4500"],
+            "score": Tr["riff2"].score(total)}] if "W" in R2 else []),
         {"name": "lead", "patch": "lead-tape", "gain": "-12dB", "pan": 0.1, "score": Tr["lead"].score(total)},
         {"name": "choir", "patch": "choir", "gain": "-10dB", "fx": ["reverb kind=hall decay=4s mix=0.3"],
          "score": Tr["choir"].score(total)},
