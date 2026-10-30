@@ -1,0 +1,139 @@
+{
+  "id": "chirpers4",
+  "artist": "Chirpers",
+  "album": "Chirpers IV (untitled)",
+  "named": false,
+  "year": 2026,
+  "genre": "deep / hard Berlin techno",
+  "brief": "The chirpers' fourth album (Harry, 30 Oct): DEEP, HARD BERLIN-STYLE TECHNO. Deep, moving, banging club music, super hard and deep, with tonnes of different styles and variety across the record. Play with POLYRHYTHM and polymeter, with TIME and EMPHASIS (where the one is, what the ear hears as the downbeat), with AUDIO ILLUSIONS (endless rises and falls, accelerating-yet-not rhythms, phantom fundamentals, one line splitting into two, space and movement tricks), and with real techno sound design: kicks that hit the chest, rumble, hypnotic loops that mutate slowly, long builds and drops, acid, dub chords, industrial texture, warehouse air. Everything else is the chirpers' choice: the name, the titles, each track's style, tempo and sound. Range wide across the techno map and make each track a world of its own; vary within a track too (the journey of a DJ set: tension, release, the drop, the long hypnotic middle). Declare your track's style in compose/chirpers4/styles.md when you claim it so the ten stay distinct. The sound bank is compose/chirpers4/sounds.md; the earlier albums' banks are yours to borrow and transform. Never copy or closely imitate an existing piece.",
+  "palette": "Drums: 909, 808 family, metal-kit-*, tight-kit, lofi-kit, dusty-kit, haake-hat, the physical drum layer, kit links (also) and release triggers. Bass/leads: acid (the ladder at high q self-oscillates), reese, hoover, analog-bass, sub synths, brass-stab. Space and motion: pump (release ~2/3 beat, curve <= 1 to breathe), feedback routing (dub-techno echo rooms), reverb freeze/shimmer, cloud, chop, tapestop, comb/ladder, per-voice fx, fx-riser-shepard. Plus anything you build or ask wM / chirper-two to build.",
+  "art_brief": "Dark, monochrome Berlin club art: raw concrete, a strobe cutting through smoke, steel and shadow, industrial geometry, deep blacks with one cold accent light.",
+  "bleed": false,
+  "genre_refs": [
+    "pulsewidth",
+    "green-calx",
+    "schottkey-7th-path",
+    "delphium",
+    "hedphelym",
+    "actium",
+    "heliosphan",
+    "i-feel-love",
+    "dance-yrself-clean"
+  ],
+  "master": {
+    "rms": [
+      -14.0,
+      -6.0
+    ],
+    "peak_max": 0.0,
+    "crest": [
+      6.0,
+      13.0
+    ]
+  },
+  "weights": {
+    "flow": 0.02
+  },
+  "tracks": [
+    {
+      "n": 1,
+      "role": "opener",
+      "length": [
+        180,
+        480
+      ],
+      "brief": "Opens the album. Style, groove, tempo and line-up are yours: declare them in compose/chirpers4/styles.md, different from the tracks already claimed.",
+      "id": "chirpers4-t1"
+    },
+    {
+      "n": 2,
+      "role": "song",
+      "length": [
+        180,
+        540
+      ],
+      "brief": "Style, groove, tempo and line-up are yours: declare them in compose/chirpers4/styles.md, different from the tracks already claimed.",
+      "id": "chirpers4-t2"
+    },
+    {
+      "n": 3,
+      "role": "song",
+      "length": [
+        180,
+        540
+      ],
+      "brief": "Style, groove, tempo and line-up are yours: declare them in compose/chirpers4/styles.md, different from the tracks already claimed.",
+      "id": "chirpers4-t3"
+    },
+    {
+      "n": 4,
+      "role": "song",
+      "length": [
+        180,
+        540
+      ],
+      "brief": "Style, groove, tempo and line-up are yours: declare them in compose/chirpers4/styles.md, different from the tracks already claimed.",
+      "id": "chirpers4-t4"
+    },
+    {
+      "n": 5,
+      "role": "song",
+      "length": [
+        180,
+        540
+      ],
+      "brief": "Style, groove, tempo and line-up are yours: declare them in compose/chirpers4/styles.md, different from the tracks already claimed.",
+      "id": "chirpers4-t5"
+    },
+    {
+      "n": 6,
+      "role": "song",
+      "length": [
+        180,
+        540
+      ],
+      "brief": "Style, groove, tempo and line-up are yours: declare them in compose/chirpers4/styles.md, different from the tracks already claimed.",
+      "id": "chirpers4-t6"
+    },
+    {
+      "n": 7,
+      "role": "song",
+      "length": [
+        180,
+        540
+      ],
+      "brief": "Style, groove, tempo and line-up are yours: declare them in compose/chirpers4/styles.md, different from the tracks already claimed.",
+      "id": "chirpers4-t7"
+    },
+    {
+      "n": 8,
+      "role": "song",
+      "length": [
+        180,
+        540
+      ],
+      "brief": "Style, groove, tempo and line-up are yours: declare them in compose/chirpers4/styles.md, different from the tracks already claimed.",
+      "id": "chirpers4-t8"
+    },
+    {
+      "n": 9,
+      "role": "song",
+      "length": [
+        180,
+        540
+      ],
+      "brief": "Style, groove, tempo and line-up are yours: declare them in compose/chirpers4/styles.md, different from the tracks already claimed.",
+      "id": "chirpers4-t9"
+    },
+    {
+      "n": 10,
+      "role": "closer",
+      "length": [
+        180,
+        600
+      ],
+      "brief": "Closes the album. Style, groove, tempo and line-up are yours: declare them in compose/chirpers4/styles.md, different from the tracks already claimed.",
+      "id": "chirpers4-t10"
+    }
+  ]
+}
