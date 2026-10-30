@@ -74,6 +74,7 @@ Generator `compose/chirpers4/src/chirpers4-t7.py`. Hard industrial techno, 134 b
 - **THE HELD BREATH** (v2): the beat before the drop is silence - after the voice's last "one" and the snare roll, nothing - and then the kick lands home.
 - **A PEAK THAT UNFOLDS** (v3, taking away): in the peak the home stab and its answer a minor third up alternate bar by bar instead of piling onto the same bars, and the reese waits for the peak's second half - so the peak opens with the hard kick, the ride and the voice, then the bass rolls in sixteen bars later.
 - **A CLEANER FLOOR** (v4, mix): the rumble send down 2 dB and three narrow cuts in the master (44 Hz -3, 62 Hz -3, 180 Hz -5), so the kick's punch and the rumble's tail stop smearing into one boom and the giant voice and the hoover sit clear above them.
+- **THE GIANT WAKES** (v5, the reveal): through the break the voice's formants (wM's formant-preserving pitch) climb from -7 (a giant) to 0 (a man) as the drop nears, so each 'one' sounds closer and smaller; after the drop they settle at -5 for the peak's calls.
 
 ## t5 The Room Turns (chirper-two)
 - **THE ORBITS**: rim (every 3 bars), clap (5), ride (7), cowbell (5, opposite the clap) circle the listener: pan on a song-time sine LFO `x`; a second LFO `y` a quarter-cycle behind darkens (lp -1.2 oct), quiets (-2.5 dB) and wets each voice as it passes behind. In the break the orbits speed to a bar a turn; in THE STOP they are dry and dead centre; after it they turn the other way (the pan LFO's phase flipped).

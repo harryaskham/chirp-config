@@ -147,7 +147,11 @@ def build():
              'fx': [{'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '280ms', 'curve': 0.6}], 'score': line(hoov, total)},
             # THE GIANT VOICE: an octave down with its formants pulled lower still (wM's formant-preserving pitch)
             {'name': 'voice', 'patch': 'voice', 'gain': '-6dB', 'sends': {'hall': '-6dB'},
-             'fx': [{'type': 'pitch', 'semitones': -12, 'formant': -5}, {'type': 'drive', 'drive': 0.3, 'mix': 0.4}],
+             'fx': [{'type': 'pitch', 'semitones': -12, 'formant': {'value': -7, 'mod': [{'src': 'auto.giant', 'amount': 7}]}}, {'type': 'drive', 'drive': 0.3, 'mix': 0.4}],
+             # (v5) THE GIANT WAKES: through the break the voice's formants climb from -7 (a giant) to 0 (a man) as the drop
+             # nears, then fall back for the peak's calls - the voice seems to grow closer and smaller as the one comes home
+             'auto': {'giant': {'points': [['0s', 0], [f"{secs['break']:.3f}s", 0], [f"{secs['drop'] - 2 * 4 * SPB:.3f}s", 0.55],
+                                           [f"{secs['drop'] - 0.05:.3f}s", 1.0], [f"{secs['drop'] + 0.5:.3f}s", 0.3], [f"{secs['peak']:.3f}s", 0.3]]}},
              'score': line(voice, total)},
         ]}
 
