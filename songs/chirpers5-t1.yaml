@@ -48,7 +48,7 @@
      "peak cutoff=450 q=0.8 gain=-3dB",
      "peak cutoff=1050 q=1.0 gain=2dB",
      "peak cutoff=3000 q=1.0 gain=1dB",
-     "highshelf cutoff=9000 gain=-5dB"
+     "highshelf cutoff=7000 gain=-7dB"
     ]
    },
    {
@@ -236,7 +236,7 @@
   {
    "name": "roll",
    "patch": "amen-chops",
-   "score": "R/320b C2/0.5b@93 R/0.04b D2/0.46b@77 Eb2/0.5b@73 R/0.04b Gb2/0.46b@72 Ab3/0.5b@88 R/0.04b Eb4/0.46b@70 F4/0.5b@78 R/0.04b B3/0.46b@68 C2/0.5b@91 R/0.04b D2/0.46b@76 Eb2/0.5b@75 R/0.04b Gb2/0.46b@77 E2/0.5b@87 R/0.04b B2/0.46b@73 Db3/0.5b@76 R/0.04b G2/0.46b@77 C2/0.5b@97 R/0.04b D2/0.46b@68 Eb2/0.5b@79 R/0.04b Gb2/0.46b@74 Ab3/0.5b@88 R/0.04b Eb4/0.46b@79 F4/0.5b@75 R/0.04b B3/0.46b@79 C2/0.5b@92 R/0.04b D2/0.46b@70 Eb2/0.5b@70 R/0.04b Gb2/0.46b@71 E2/0.5b@86 R/0.04b B2/0.46b@69 Db3/0.5b@70 R/0.04b G2/0.46b@76^tune=3 C2/0.5b@95 R/0.04b D2/0.46b@69 Eb2/0.5b@80 R/0.04b Gb2/0.46b@79 Ab3/0.5b@92 R/0.04b Eb4/0.46b@80 F4/0.5b@79 R/0.04b B3/0.46b@69 C2/0.5b@90 R/0.04b D2/0.46b@71 Eb2/0.5b@78 R/0.04b Gb2/0.46b@71 E2/0.5b@97 R/0.04b B2/0.46b@80 Db3/0.5b@74 R/0.04b G2/0.46b@69 C2/0.5b@98 R/0.04b D2/0.46b@72 Eb2/0.5b@71 R/0.04b Gb2/0.46b@74 Ab3/0.5b@90 R/0.04b Eb4/0.46b@73 F4/0.5b@80 R/0.04b B3/0.46b@68 C2/0.5b@89 R/0.04b D2/0.46b@79 Eb2/0.5b@68 R/0.04b Gb2/0.46b@74 E2/0.5b@86 R/0.04b B2/0.46b@74 Db3/0.5b@75 R/0.04b G2/0.46b@70^tune=3 C2/0.5b@86 R/0.04b D2/0.46b@71 Eb2/0.5b@74 R/0.04b Gb2/0.46b@79 Ab3/0.5b@87 R/0.04b Eb4/0.46b@77 F4/0.5b@68 R/0.04b B3/0.46b@69 C2/0.5b@98 R/0.04b D2/0.46b@77 Eb2/0.5b@71 R/0.04b Gb2/0.46b@71 E2/0.5b@91 R/0.04b B2/0.46b@68 Db3/0.5b@69 R/0.04b G2/0.46b@70 C2/0.5b@94 R/0.04b D2/0.46b@68 Eb2/0.5b@76 R/0.04b Gb2/0.46b@69 Ab3/0.5b@95 R/0.04b Eb4/0.46b@75 F4/0.5b@76 R/0.04b B3/0.46b@71 C2/0.5b@92 R/0.04b D2/0.46b@69 Eb2/0.5b@74 R/0.04b Gb2/0.46b@71 E2/0.5b@96 R/0.04b B2/0.46b@80 Db3/0.5b@69 R/0.04b G2/0.46b@79^tune=3 C2/0.5b@95 R/0.04b D2/0.46b@70 Eb2/0.5b@70 R/0.04b Gb2/0.46b@77 Ab3/0.5b@97 R/0.04b Eb4/0.46b@68 F4/0.5b@68 R/0.04b B3/0.46b@72 C2/0.5b@94 R/0.04b D2/0.46b@78 Eb2/0.5b@77 R/0.04b Gb2/0.46b@70 E2/0.5b@97 R/0.04b B2/0.46b@72 Db3/0.5b@79 R/0.04b G2/0.46b@77 C2/0.5b@86 R/0.04b D2/0.46b@69 Eb2/0.5b@79 R/0.04b Gb2/0.46b@74 Ab3/0.5b@89 R/0.04b Eb4/0.46b@70 F4/0.5b@77 R/0.04b B3/0.46b@76 C2/0.5b@86 R/0.04b D2/0.46b@79 Eb2/0.5b@73 R/0.04b Gb2/0.46b@78 E2/0.5b@94 R/0.04b B2/0.46b@77 Db3/0.5b@77 R/0.04b G2/0.46b@80^tune=3 C2/0.5b@97 R/0.04b D2/0.46b@69 Eb2/0.5b@73 R/0.04b Gb2/0.46b@69 Ab3/0.5b@95 R/0.04b Eb4/0.46b@73 F4/0.5b@75 R/0.04b B3/0.46b@71 C2/0.5b@92 R/0.04b D2/0.46b@71 Eb2/0.5b@77 R/0.04b Gb2/0.46b@79 E2/0.5b@86 R/0.04b B2/0.46b@74 Db3/0.5b@80 R/0.04b G2/0.46b@77 C2/0.5b@91 R/0.04b D2/0.46b@68 Eb2/0.5b@74 R/0.04b Gb2/0.46b@69 Ab3/0.5b@89 R/0.04b Eb4/0.46b@71 F4/0.5b@75 R/0.04b B3/0.46b@72 C2/0.5b@91 R/0.04b D2/0.46b@69 Eb2/0.5b@72 R/0.04b Gb2/0.46b@78 E2/0.5b@90 R/0.04b B2/0.46b@69 Db3/0.5b@76 R/0.04b G2/0.46b@80^tune=3 C2/0.5b@86 R/0.04b D2/0.46b@68 Eb2/0.5b@74 R/0.04b Gb2/0.46b@80 Ab3/0.5b@94 R/0.04b Eb4/0.46b@80 F4/0.5b@74 R/0.04b B3/0.46b@75 C2/0.5b@91 R/0.04b D2/0.46b@79 Eb2/0.5b@80 R/0.04b Gb2/0.46b@71 E2/0.5b@95 R/0.04b B2/0.46b@79 Db3/0.5b@69 R/0.04b G2/0.46b@74 C2/0.5b@96 R/0.04b D2/0.46b@71 Eb2/0.5b@69 R/0.04b Gb2/0.46b@80 Ab3/0.5b@92 R/0.04b Eb4/0.46b@76 F4/0.5b@73 R/0.04b B3/0.46b@76 C2/0.5b@91 R/0.04b D2/0.46b@70 Eb2/0.5b@78 R/0.04b Gb2/0.46b@72 E2/0.5b@88 R/0.04b B2/0.46b@79 Db3/0.5b@72 R/0.04b G2/0.46b@68^tune=3 C2/0.5b@86 R/0.04b D2/0.46b@80 Eb2/0.5b@70 R/0.04b Gb2/0.46b@72 Ab3/0.5b@88 R/0.04b Eb4/0.46b@69 F4/0.5b@77 R/0.04b B3/0.46b@70 C2/0.5b@86 R/0.04b D2/0.46b@68 Eb2/0.5b@68 R/0.04b Gb2/0.46b@75 E2/0.5b@89 R/0.04b B2/0.46b@80 Db3/0.5b@74 R/0.04b G2/0.46b@72 C2/0.5b@95 R/0.04b D2/0.46b@68 Eb2/0.5b@80 R/0.04b Gb2/0.46b@73 Ab3/0.5b@90 R/0.04b Eb4/0.46b@70 F4/0.5b@75 R/0.04b B3/0.46b@76 C2/0.5b@90 R/0.04b D2/0.46b@70 Eb2/0.5b@69 R/0.04b Gb2/0.46b@79 E2/0.5b@94 R/0.04b B2/0.46b@72 Db3/0.5b@79 R/0.04b G2/0.46b@69^tune=3 C2/0.5b@87 R/0.04b D2/0.46b@74 Eb2/0.5b@75 R/0.04b Gb2/0.46b@70 Ab3/0.5b@97 R/0.04b Eb4/0.46b@76 F4/0.5b@80 R/0.04b B3/0.46b@80 C2/0.5b@92 R/0.04b D2/0.46b@77 Eb2/0.5b@80 R/0.04b Gb2/0.46b@70 E2/0.5b@96 R/0.04b B2/0.46b@79 Db3/0.5b@72 R/0.04b G2/0.46b@80 C2/0.5b@95 R/0.04b D2/0.46b@77 Eb2/0.5b@75 R/0.04b Gb2/0.46b@73 Ab3/0.5b@87 R/0.04b Eb4/0.46b@68 F4/0.5b@72 R/0.04b B3/0.46b@76 C2/0.5b@88 R/0.04b D2/0.46b@70 Eb2/0.5b@80 R/0.04b Gb2/0.46b@78 E2/0.5b@87 R/0.04b B2/0.46b@70 Db3/0.5b@80 R/0.04b G2/0.5b@80^tune=3 R/63.96b",
+   "score": "R/320b C2/0.5b@93 D2/0.5b@77 Eb2/0.5b@73 Gb2/0.5b@72 Ab3/0.5b@88 Eb4/0.5b@70 F4/0.5b@78 B3/0.5b@68 C2/0.5b@91 D2/0.5b@76 Eb2/0.5b@75 Gb2/0.5b@77 E2/0.5b@87 B2/0.5b@73 Db3/0.5b@76 G2/0.5b@77 C2/0.5b@97 D2/0.5b@68 Eb2/0.5b@79 Gb2/0.5b@74 Ab3/0.5b@88 Eb4/0.5b@79 F4/0.5b@75 B3/0.5b@79 C2/0.5b@92 D2/0.5b@70 Eb2/0.5b@70 Gb2/0.5b@71 E2/0.5b@86 B2/0.5b@69 Db3/0.5b@70 G2/0.5b@76^tune=3 C2/0.5b@95 D2/0.5b@69 Eb2/0.5b@80 Gb2/0.5b@79 Ab3/0.5b@92 Eb4/0.5b@80 F4/0.5b@79 B3/0.5b@69 C2/0.5b@90 D2/0.5b@71 Eb2/0.5b@78 Gb2/0.5b@71 E2/0.5b@97 B2/0.5b@80 Db3/0.5b@74 G2/0.5b@69 C2/0.5b@98 D2/0.5b@72 Eb2/0.5b@71 Gb2/0.5b@74 Ab3/0.5b@90 Eb4/0.5b@73 F4/0.5b@80 B3/0.5b@68 C2/0.5b@89 D2/0.5b@79 Eb2/0.5b@68 Gb2/0.5b@74 E2/0.5b@86 B2/0.5b@74 Db3/0.5b@75 G2/0.5b@70^tune=3 C2/0.5b@86 D2/0.5b@71 Eb2/0.5b@74 Gb2/0.5b@79 Ab3/0.5b@87 Eb4/0.5b@77 F4/0.5b@68 B3/0.5b@69 C2/0.5b@98 D2/0.5b@77 Eb2/0.5b@71 Gb2/0.5b@71 E2/0.5b@91 B2/0.5b@68 Db3/0.5b@69 G2/0.5b@70 C2/0.5b@94 D2/0.5b@68 Eb2/0.5b@76 Gb2/0.5b@69 Ab3/0.5b@95 Eb4/0.5b@75 F4/0.5b@76 B3/0.5b@71 C2/0.5b@92 D2/0.5b@69 Eb2/0.5b@74 Gb2/0.5b@71 E2/0.5b@96 B2/0.5b@80 Db3/0.5b@69 G2/0.5b@79^tune=3 C2/0.5b@95 D2/0.5b@70 Eb2/0.5b@70 Gb2/0.5b@77 Ab3/0.5b@97 Eb4/0.5b@68 F4/0.5b@68 B3/0.5b@72 C2/0.5b@94 D2/0.5b@78 Eb2/0.5b@77 Gb2/0.5b@70 E2/0.5b@97 B2/0.5b@72 Db3/0.5b@79 G2/0.5b@77 C2/0.5b@86 D2/0.5b@69 Eb2/0.5b@79 Gb2/0.5b@74 Ab3/0.5b@89 Eb4/0.5b@70 F4/0.5b@77 B3/0.5b@76 C2/0.5b@86 D2/0.5b@79 Eb2/0.5b@73 Gb2/0.5b@78 E2/0.5b@94 B2/0.5b@77 Db3/0.5b@77 G2/0.5b@80^tune=3 C2/0.5b@97 D2/0.5b@69 Eb2/0.5b@73 Gb2/0.5b@69 Ab3/0.5b@95 Eb4/0.5b@73 F4/0.5b@75 B3/0.5b@71 C2/0.5b@92 D2/0.5b@71 Eb2/0.5b@77 Gb2/0.5b@79 E2/0.5b@86 B2/0.5b@74 Db3/0.5b@80 G2/0.5b@77 C2/0.5b@91 D2/0.5b@68 Eb2/0.5b@74 Gb2/0.5b@69 Ab3/0.5b@89 Eb4/0.5b@71 F4/0.5b@75 B3/0.5b@72 C2/0.5b@91 D2/0.5b@69 Eb2/0.5b@72 Gb2/0.5b@78 E2/0.5b@90 B2/0.5b@69 Db3/0.5b@76 G2/0.5b@80^tune=3 C2/0.5b@86 D2/0.5b@68 Eb2/0.5b@74 Gb2/0.5b@80 Ab3/0.5b@94 Eb4/0.5b@80 F4/0.5b@74 B3/0.5b@75 C2/0.5b@91 D2/0.5b@79 Eb2/0.5b@80 Gb2/0.5b@71 E2/0.5b@95 B2/0.5b@79 Db3/0.5b@69 G2/0.5b@74 C2/0.5b@96 D2/0.5b@71 Eb2/0.5b@69 Gb2/0.5b@80 Ab3/0.5b@92 Eb4/0.5b@76 F4/0.5b@73 B3/0.5b@76 C2/0.5b@91 D2/0.5b@70 Eb2/0.5b@78 Gb2/0.5b@72 E2/0.5b@88 B2/0.5b@79 Db3/0.5b@72 G2/0.5b@68^tune=3 C2/0.5b@86 D2/0.5b@80 Eb2/0.5b@70 Gb2/0.5b@72 Ab3/0.5b@88 Eb4/0.5b@69 F4/0.5b@77 B3/0.5b@70 C2/0.5b@86 D2/0.5b@68 Eb2/0.5b@68 Gb2/0.5b@75 E2/0.5b@89 B2/0.5b@80 Db3/0.5b@74 G2/0.5b@72 C2/0.5b@95 D2/0.5b@68 Eb2/0.5b@80 Gb2/0.5b@73 Ab3/0.5b@90 Eb4/0.5b@70 F4/0.5b@75 B3/0.5b@76 C2/0.5b@90 D2/0.5b@70 Eb2/0.5b@69 Gb2/0.5b@79 E2/0.5b@94 B2/0.5b@72 Db3/0.5b@79 G2/0.5b@69^tune=3 C2/0.5b@87 D2/0.5b@74 Eb2/0.5b@75 Gb2/0.5b@70 Ab3/0.5b@97 Eb4/0.5b@76 F4/0.5b@80 B3/0.5b@80 C2/0.5b@92 D2/0.5b@77 Eb2/0.5b@80 Gb2/0.5b@70 E2/0.5b@96 B2/0.5b@79 Db3/0.5b@72 G2/0.5b@80 C2/0.5b@95 D2/0.5b@77 Eb2/0.5b@75 Gb2/0.5b@73 Ab3/0.5b@87 Eb4/0.5b@68 F4/0.5b@72 B3/0.5b@76 C2/0.5b@88 D2/0.5b@70 Eb2/0.5b@80 Gb2/0.5b@78 E2/0.5b@87 B2/0.5b@70 Db3/0.5b@80 G2/0.5b@80^tune=3 R/64b",
    "gain": "-10dB",
    "out": "drums",
    "fx": [
@@ -263,6 +263,12 @@
      "mix": 0.4
     },
     {
+     "type": "phantom",
+     "harmonics": "-4dB",
+     "odd": 0.4,
+     "remove": 0.0
+    },
+    {
      "type": "pump",
      "on": "kick",
      "depth": "-8dB",
@@ -276,7 +282,7 @@
    "name": "reese",
    "patch": "reese",
    "score": "R/320b Ab2/7.9b@70 R/0.1b G2/7.9b@70 R/0.1b C2/7.9b@70 R/0.1b Bb2/7.9b@70 R/0.1b Ab2/7.9b@70 R/0.1b G2/7.9b@70 R/0.1b C2/7.9b@70 R/0.1b Bb2/7.9b@70 R/0.1b Ab2/7.9b@70 R/0.1b G2/7.9b@70 R/0.1b C2/7.9b@70 R/0.1b Bb2/7.9b@70 R/0.1b Ab2/7.9b@70 R/0.1b G2/7.9b@70 R/0.1b C2/7.9b@70 R/0.1b Bb2/7.9b@70 R/64.1b",
-   "gain": "-16dB",
+   "gain": "-12dB",
    "fx": [
     "lp cutoff=700",
     {
@@ -292,7 +298,7 @@
   {
    "name": "pad",
    "patch": "juno-pad",
-   "score": "Ab3,C4,Eb4,G4,Bb4/7.9b@66 R/0.1b G3,Bb3,D4,F4,A4/7.9b@66 R/0.1b G3,C4,Eb4,G4,D5/7.9b@66 R/0.1b Bb3,Eb4,F4,Ab4,C5/7.9b@66 R/0.1b Ab3,C4,Eb4,G4,Bb4/7.9b@66 R/0.1b G3,Bb3,D4,F4,A4/7.9b@66 R/0.1b G3,C4,Eb4,G4,D5/7.9b@66 R/0.1b Bb3,Eb4,F4,Ab4,C5/7.9b@66 R/0.1b Ab3,C4,Eb4,G4,Bb4/7.9b@58 R/0.1b G3,Bb3,D4,F4,A4/7.9b@58 R/0.1b G3,C4,Eb4,G4,D5/7.9b@58 R/0.1b Bb3,Eb4,F4,Ab4,C5/7.9b@58 R/0.1b Ab3,C4,Eb4,G4,Bb4/7.9b@58 R/0.1b G3,Bb3,D4,F4,A4/7.9b@58 R/0.1b G3,C4,Eb4,G4,D5/7.9b@58 R/0.1b Bb3,Eb4,F4,Ab4,C5/7.9b@58 R/0.1b Ab3,C4,Eb4,G4,Bb4/7.9b@58 R/0.1b G3,Bb3,D4,F4,A4/7.9b@58 R/0.1b G3,C4,Eb4,G4,D5/7.9b@58 R/0.1b Bb3,Eb4,F4,Ab4,C5/7.9b@58 R/0.1b Ab3,C4,Eb4,G4,Bb4/7.9b@58 R/0.1b G3,Bb3,D4,F4,A4/7.9b@58 R/0.1b G3,C4,Eb4,G4,D5/7.9b@58 R/0.1b Bb3,Eb4,F4,Ab4,C5/7.9b@58 R/0.1b Ab3,C4,Eb4,G4,Bb4/7.9b@58 R/0.1b G3,Bb3,D4,F4,A4/7.9b@58 R/0.1b G3,C4,Eb4,G4,D5/7.9b@58 R/0.1b Bb3,Eb4,F4,Ab4,C5/7.9b@58 R/0.1b Ab3,C4,Eb4,G4,Bb4/7.9b@58 R/0.1b G3,Bb3,D4,F4,A4/7.9b@58 R/0.1b G3,C4,Eb4,G4,D5/7.9b@58 R/0.1b Bb3,Eb4,F4,Ab4,C5/7.9b@58 R/0.1b Ab3,C4,Eb4,G4,Bb4/7.9b@66 R/0.1b G3,Bb3,D4,F4,A4/7.9b@66 R/0.1b G3,C4,Eb4,G4,D5/7.9b@66 R/0.1b Bb3,Eb4,F4,Ab4,C5/7.9b@66 R/0.1b Ab3,C4,Eb4,G4,Bb4/7.9b@66 R/0.1b G3,Bb3,D4,F4,A4/7.9b@66 R/0.1b G3,C4,Eb4,G4,D5/7.9b@66 R/0.1b Bb3,Eb4,F4,Ab4,C5/7.9b@66 R/0.1b Ab3,C4,Eb4,G4,Bb4/7.9b@58 R/0.1b G3,Bb3,D4,F4,A4/7.9b@58 R/0.1b G3,C4,Eb4,G4,D5/7.9b@58 R/0.1b Bb3,Eb4,F4,Ab4,C5/7.9b@58 R/0.1b Ab3,C4,Eb4,G4,Bb4/7.9b@58 R/0.1b G3,Bb3,D4,F4,A4/7.9b@58 R/0.1b G3,C4,Eb4,G4,D5/7.9b@58 R/0.1b Bb3,Eb4,F4,Ab4,C5/7.9b@58 R/0.1b Ab3,C4,Eb4,G4,Bb4/7.9b@58 R/0.1b G3,Bb3,D4,F4,A4/7.9b@58 R/0.1b G3,C4,Eb4,G4,D5/7.9b@58 R/0.1b Bb3,Eb4,F4,Ab4,C5/7.9b@58 R/0.1b Ab3,C4,Eb4,G4,Bb4/7.9b@58 R/0.1b G3,Bb3,D4,F4,A4/7.9b@58 R/0.1b G3,C4,Eb4,G4,D5/7.9b@58 R/0.1b Bb3,Eb4,F4,Ab4,C5/7.9b@58 R/0.1b Ab3,C4,Eb4,G4,Bb4/7.9b@58 R/0.1b G3,Bb3,D4,F4,A4/7.9b@58 R/0.1b G3,C4,Eb4,G4,D5/7.9b@58 R/0.1b Bb3,Eb4,F4,Ab4,C5/7.9b@58 R/0.1b Ab3,C4,Eb4,G4,Bb4/7.9b@58 R/0.1b G3,Bb3,D4,F4,A4/7.9b@58 R/16.1b",
+   "score": "Ab3,C4,Eb4,G4,Bb4/7.9b@66 R/0.1b G3,Bb3,D4,F4,A4/7.9b@66 R/0.1b G3,C4,Eb4,G4,D5/7.9b@66 R/0.1b Bb3,Eb4,F4,Ab4,C5/7.9b@66 R/0.1b Ab3,C4,Eb4,G4,Bb4/7.9b@66 R/0.1b G3,Bb3,D4,F4,A4/7.9b@66 R/0.1b G3,C4,Eb4,G4,D5/7.9b@66 R/0.1b Bb3,Eb4,F4,Ab4,C5/7.9b@66 R/0.1b Ab3,C4,Eb4,G4,Bb4/7.9b@58 R/0.1b G3,Bb3,D4,F4,A4/7.9b@58 R/0.1b G3,C4,Eb4,G4,D5/7.9b@58 R/0.1b Bb3,Eb4,F4,Ab4,C5/7.9b@58 R/0.1b Ab3,C4,Eb4,G4,Bb4/7.9b@58 R/0.1b G3,Bb3,D4,F4,A4/7.9b@58 R/0.1b G3,C4,Eb4,G4,D5/7.9b@58 R/0.1b Bb3,Eb4,F4,Ab4,C5/7.9b@58 R/0.1b Ab3,C4,Eb4,G4,Bb4/7.9b@58 R/0.1b G3,Bb3,D4,F4,A4/7.9b@58 R/0.1b G3,C4,Eb4,G4,D5/7.9b@58 R/0.1b Bb3,Eb4,F4,Ab4,C5/7.9b@58 R/0.1b Ab3,C4,Eb4,G4,Bb4/7.9b@58 R/0.1b G3,Bb3,D4,F4,A4/7.9b@58 R/0.1b G3,C4,Eb4,G4,D5/7.9b@58 R/0.1b Bb3,Eb4,F4,Ab4,C5/7.9b@58 R/0.1b Ab3,C4,Eb4,G4,Bb4/7.9b@58 R/0.1b G3,Bb3,D4,F4,A4/7.9b@58 R/0.1b G3,C4,Eb4,G4,D5/7.9b@58 R/0.1b Bb3,Eb4,F4,Ab4,C5/7.9b@58 R/0.1b Ab3,C4,Eb4,G4,Bb4/7.9b@58 R/0.1b G3,Bb3,D4,F4,A4/7.9b@58 R/0.1b G3,C4,Eb4,G4,D5/7.9b@58 R/0.1b Bb3,Eb4,F4,Ab4,C5/7.9b@58 R/64.1b Ab3,C4,Eb4,G4,Bb4/7.9b@58 R/0.1b G3,Bb3,D4,F4,A4/7.9b@58 R/0.1b G3,C4,Eb4,G4,D5/7.9b@58 R/0.1b Bb3,Eb4,F4,Ab4,C5/7.9b@58 R/0.1b Ab3,C4,Eb4,G4,Bb4/7.9b@58 R/0.1b G3,Bb3,D4,F4,A4/7.9b@58 R/0.1b G3,C4,Eb4,G4,D5/7.9b@58 R/0.1b Bb3,Eb4,F4,Ab4,C5/7.9b@58 R/0.1b Ab3,C4,Eb4,G4,Bb4/7.9b@58 R/0.1b G3,Bb3,D4,F4,A4/7.9b@58 R/0.1b G3,C4,Eb4,G4,D5/7.9b@58 R/0.1b Bb3,Eb4,F4,Ab4,C5/7.9b@58 R/0.1b Ab3,C4,Eb4,G4,Bb4/7.9b@58 R/0.1b G3,Bb3,D4,F4,A4/7.9b@58 R/0.1b G3,C4,Eb4,G4,D5/7.9b@58 R/0.1b Bb3,Eb4,F4,Ab4,C5/7.9b@58 R/0.1b Ab3,C4,Eb4,G4,Bb4/7.9b@58 R/0.1b G3,Bb3,D4,F4,A4/7.9b@58 R/0.1b G3,C4,Eb4,G4,D5/7.9b@58 R/0.1b Bb3,Eb4,F4,Ab4,C5/7.9b@58 R/0.1b Ab3,C4,Eb4,G4,Bb4/7.9b@58 R/0.1b G3,Bb3,D4,F4,A4/7.9b@58 R/16.1b",
    "gain": "-8dB",
    "sends": {
     "space": "-6dB"
@@ -308,11 +314,11 @@
      "type": "filter",
      "kind": "lp",
      "cutoff": {
-      "value": 2200,
+      "value": 1600,
       "mod": [
        {
         "src": "lfo.pf",
-        "amount": 900
+        "amount": 700
        }
       ]
      }
@@ -328,14 +334,111 @@
    ]
   },
   {
+   "name": "padb",
+   "patch": "juno-pad",
+   "score": "R/256b Ab3,C4,Eb4,G4,Bb4/7.9b@66 R/0.1b G3,Bb3,D4,F4,A4/7.9b@66 R/0.1b G3,C4,Eb4,G4,D5/7.9b@66 R/0.1b Bb3,Eb4,F4,Ab4,C5/7.9b@66 R/0.1b Ab3,C4,Eb4,G4,Bb4/7.9b@66 R/0.1b G3,Bb3,D4,F4,A4/7.9b@66 R/0.1b G3,C4,Eb4,G4,D5/7.9b@66 R/0.1b Bb3,Eb4,F4,Ab4,C5/7.9b@66 R/192.1b",
+   "gain": "-6dB",
+   "sends": {
+    "space": "-4dB"
+   },
+   "fx": [
+    "lp cutoff=1600",
+    {
+     "type": "filter",
+     "kind": "bp",
+     "q": 1.6,
+     "cutoff": {
+      "value": 300,
+      "mod": [
+       {
+        "src": "auto.bp",
+        "amount": 1
+       }
+      ]
+     }
+    }
+   ],
+   "auto": {
+    "bp": {
+     "points": [
+      [
+       "0s",
+       0.0
+      ],
+      [
+       "88.276s",
+       0.0
+      ],
+      [
+       "110.295s",
+       2700.0
+      ],
+      [
+       "110.345s",
+       2700.0
+      ]
+     ]
+    }
+   }
+  },
+  {
    "name": "keys",
-   "patch": "epiano-tine synth.tine.sense=0.4 play.release.patch=epiano-damper play.release.decay=2s",
-   "score": "Ab3,C4,Eb4,G4,Bb4/1.5b@60 R/6.5b G3,Bb3,D4,F4,A4/1.5b@60 R/6.5b G3,C4,Eb4,G4,D5/1.5b@60 R/6.5b Bb3,Eb4,F4,Ab4,C5/1.5b@60 R/6.5b Ab3,C4,Eb4,G4,Bb4/1.5b@60 R/6.5b G3,Bb3,D4,F4,A4/1.5b@60 R/6.5b G3,C4,Eb4,G4,D5/1.5b@60 R/6.5b Bb3,Eb4,F4,Ab4,C5/1.5b@60 R/7b C4,Eb4,G4,Bb4/0.6b@67 R/0.735b C4,Eb4,G4,Bb4/0.6b@73 R/2.065b C4,Eb4,G4,Bb4/0.6b@72 R/1.735b C4,Eb4,G4,Bb4/0.6b@66 R/1.065b Bb4,D4,F4,A4/0.6b@69 R/0.735b Bb4,D4,F4,A4/0.6b@73 R/2.065b Bb4,D4,F4,A4/0.6b@71 R/1.735b Bb4,D4,F4,A4/0.6b@74 R/1.065b C4,Eb4,G4,D5/0.6b@73 R/0.735b C4,Eb4,G4,D5/0.6b@65 R/2.065b C4,Eb4,G4,D5/0.6b@73 R/1.735b C4,Eb4,G4,D5/0.6b@64 R/1.065b Eb4,F4,Ab4,C5/0.6b@71 R/0.735b Eb4,F4,Ab4,C5/0.6b@68 R/2.065b Eb4,F4,Ab4,C5/0.6b@72 R/1.735b Eb4,F4,Ab4,C5/0.6b@67 R/1.065b C4,Eb4,G4,Bb4/0.6b@67 R/0.735b C4,Eb4,G4,Bb4/0.6b@75 R/2.065b C4,Eb4,G4,Bb4/0.6b@71 R/1.735b C4,Eb4,G4,Bb4/0.6b@72 R/1.065b Bb4,D4,F4,A4/0.6b@72 R/0.735b Bb4,D4,F4,A4/0.6b@71 R/2.065b Bb4,D4,F4,A4/0.6b@70 R/1.735b Bb4,D4,F4,A4/0.6b@74 R/1.065b C4,Eb4,G4,D5/0.6b@66 R/0.735b C4,Eb4,G4,D5/0.6b@67 R/2.065b C4,Eb4,G4,D5/0.6b@74 R/1.735b C4,Eb4,G4,D5/0.6b@66 R/1.065b Eb4,F4,Ab4,C5/0.6b@72 R/0.735b Eb4,F4,Ab4,C5/0.6b@70 R/2.065b Eb4,F4,Ab4,C5/0.6b@75 R/1.735b Eb4,F4,Ab4,C5/0.6b@64 R/1.065b C4,Eb4,G4,Bb4/0.6b@74 R/0.735b C4,Eb4,G4,Bb4/0.6b@76 R/2.065b C4,Eb4,G4,Bb4/0.6b@65 R/1.735b C4,Eb4,G4,Bb4/0.6b@66 R/1.065b Bb4,D4,F4,A4/0.6b@76 R/0.735b Bb4,D4,F4,A4/0.6b@73 R/2.065b Bb4,D4,F4,A4/0.6b@64 R/1.735b Bb4,D4,F4,A4/0.6b@68 R/1.065b C4,Eb4,G4,D5/0.6b@76 R/0.735b C4,Eb4,G4,D5/0.6b@64 R/2.065b C4,Eb4,G4,D5/0.6b@68 R/1.735b C4,Eb4,G4,D5/0.6b@71 R/1.065b Eb4,F4,Ab4,C5/0.6b@73 R/0.735b Eb4,F4,Ab4,C5/0.6b@75 R/2.065b Eb4,F4,Ab4,C5/0.6b@70 R/1.735b Eb4,F4,Ab4,C5/0.6b@75 R/1.065b C4,Eb4,G4,Bb4/0.6b@76 R/0.735b C4,Eb4,G4,Bb4/0.6b@70 R/2.065b C4,Eb4,G4,Bb4/0.6b@70 R/1.735b C4,Eb4,G4,Bb4/0.6b@75 R/1.065b Bb4,D4,F4,A4/0.6b@76 R/0.735b Bb4,D4,F4,A4/0.6b@73 R/2.065b Bb4,D4,F4,A4/0.6b@71 R/1.735b Bb4,D4,F4,A4/0.6b@66 R/1.065b C4,Eb4,G4,D5/0.6b@69 R/0.735b C4,Eb4,G4,D5/0.6b@65 R/2.065b C4,Eb4,G4,D5/0.6b@64 R/1.735b C4,Eb4,G4,D5/0.6b@66 R/1.065b Eb4,F4,Ab4,C5/0.6b@71 R/0.735b Eb4,F4,Ab4,C5/0.6b@67 R/2.065b Eb4,F4,Ab4,C5/0.6b@68 R/1.735b Eb4,F4,Ab4,C5/0.6b@74 R/1.065b C4,Eb4,G4,Bb4/0.6b@70 R/0.735b C4,Eb4,G4,Bb4/0.6b@76 R/2.065b C4,Eb4,G4,Bb4/0.6b@74 R/1.735b C4,Eb4,G4,Bb4/0.6b@68 R/1.065b Bb4,D4,F4,A4/0.6b@70 R/0.735b Bb4,D4,F4,A4/0.6b@72 R/2.065b Bb4,D4,F4,A4/0.6b@70 R/1.735b Bb4,D4,F4,A4/0.6b@73 R/1.065b C4,Eb4,G4,D5/0.6b@69 R/0.735b C4,Eb4,G4,D5/0.6b@72 R/2.065b C4,Eb4,G4,D5/0.6b@73 R/1.735b C4,Eb4,G4,D5/0.6b@70 R/1.065b Eb4,F4,Ab4,C5/0.6b@73 R/0.735b Eb4,F4,Ab4,C5/0.6b@67 R/2.065b Eb4,F4,Ab4,C5/0.6b@69 R/1.735b Eb4,F4,Ab4,C5/0.6b@74 R/1.065b C4,Eb4,G4,Bb4/0.6b@64 R/0.735b C4,Eb4,G4,Bb4/0.6b@68 R/2.065b C4,Eb4,G4,Bb4/0.6b@73 R/1.735b C4,Eb4,G4,Bb4/0.6b@74 R/1.065b Bb4,D4,F4,A4/0.6b@75 R/0.735b Bb4,D4,F4,A4/0.6b@66 R/2.065b Bb4,D4,F4,A4/0.6b@75 R/1.735b Bb4,D4,F4,A4/0.6b@69 R/1.065b C4,Eb4,G4,D5/0.6b@72 R/0.735b C4,Eb4,G4,D5/0.6b@73 R/2.065b C4,Eb4,G4,D5/0.6b@73 R/1.735b C4,Eb4,G4,D5/0.6b@65 R/1.065b Eb4,F4,Ab4,C5/0.6b@75 R/0.735b Eb4,F4,Ab4,C5/0.6b@74 R/2.065b Eb4,F4,Ab4,C5/0.6b@67 R/1.735b Eb4,F4,Ab4,C5/0.6b@74 R/0.565b Ab3,C4,Eb4,G4,Bb4/1.5b@60 R/6.5b G3,Bb3,D4,F4,A4/1.5b@60 R/6.5b G3,C4,Eb4,G4,D5/1.5b@60 R/6.5b Bb3,Eb4,F4,Ab4,C5/1.5b@60 R/6.5b Ab3,C4,Eb4,G4,Bb4/1.5b@60 R/6.5b G3,Bb3,D4,F4,A4/1.5b@60 R/6.5b G3,C4,Eb4,G4,D5/1.5b@60 R/6.5b Bb3,Eb4,F4,Ab4,C5/1.5b@60 R/7b C4,Eb4,G4,Bb4/0.6b@73 R/0.735b C4,Eb4,G4,Bb4/0.6b@68 R/2.065b C4,Eb4,G4,Bb4/0.6b@68 R/1.735b C4,Eb4,G4,Bb4/0.6b@65 R/1.065b Bb4,D4,F4,A4/0.6b@65 R/0.735b Bb4,D4,F4,A4/0.6b@71 R/2.065b Bb4,D4,F4,A4/0.6b@74 R/1.735b Bb4,D4,F4,A4/0.6b@71 R/1.065b C4,Eb4,G4,D5/0.6b@65 R/0.735b C4,Eb4,G4,D5/0.6b@69 R/2.065b C4,Eb4,G4,D5/0.6b@76 R/1.735b C4,Eb4,G4,D5/0.6b@65 R/1.065b Eb4,F4,Ab4,C5/0.6b@70 R/0.735b Eb4,F4,Ab4,C5/0.6b@66 R/2.065b Eb4,F4,Ab4,C5/0.6b@64 R/1.735b Eb4,F4,Ab4,C5/0.6b@68 R/1.065b C4,Eb4,G4,Bb4/0.6b@70 R/0.735b C4,Eb4,G4,Bb4/0.6b@76 R/2.065b C4,Eb4,G4,Bb4/0.6b@70 R/1.735b C4,Eb4,G4,Bb4/0.6b@65 R/1.065b Bb4,D4,F4,A4/0.6b@64 R/0.735b Bb4,D4,F4,A4/0.6b@73 R/2.065b Bb4,D4,F4,A4/0.6b@73 R/1.735b Bb4,D4,F4,A4/0.6b@76 R/1.065b C4,Eb4,G4,D5/0.6b@64 R/0.735b C4,Eb4,G4,D5/0.6b@70 R/2.065b C4,Eb4,G4,D5/0.6b@75 R/1.735b C4,Eb4,G4,D5/0.6b@73 R/1.065b Eb4,F4,Ab4,C5/0.6b@69 R/0.735b Eb4,F4,Ab4,C5/0.6b@72 R/2.065b Eb4,F4,Ab4,C5/0.6b@68 R/1.735b Eb4,F4,Ab4,C5/0.6b@72 R/1.065b C4,Eb4,G4,Bb4/0.6b@67 R/0.735b C4,Eb4,G4,Bb4/0.6b@64 R/2.065b C4,Eb4,G4,Bb4/0.6b@68 R/1.735b C4,Eb4,G4,Bb4/0.6b@64 R/1.065b Bb4,D4,F4,A4/0.6b@65 R/0.735b Bb4,D4,F4,A4/0.6b@65 R/2.065b Bb4,D4,F4,A4/0.6b@73 R/1.735b Bb4,D4,F4,A4/0.6b@72 R/1.065b C4,Eb4,G4,D5/0.6b@64 R/0.735b C4,Eb4,G4,D5/0.6b@67 R/2.065b C4,Eb4,G4,D5/0.6b@70 R/1.735b C4,Eb4,G4,D5/0.6b@68 R/1.065b Eb4,F4,Ab4,C5/0.6b@73 R/0.735b Eb4,F4,Ab4,C5/0.6b@68 R/2.065b Eb4,F4,Ab4,C5/0.6b@66 R/1.735b Eb4,F4,Ab4,C5/0.6b@75 R/1.065b C4,Eb4,G4,Bb4/0.6b@64 R/0.735b C4,Eb4,G4,Bb4/0.6b@69 R/2.065b C4,Eb4,G4,Bb4/0.6b@69 R/1.735b C4,Eb4,G4,Bb4/0.6b@69 R/1.065b Bb4,D4,F4,A4/0.6b@66 R/0.735b Bb4,D4,F4,A4/0.6b@70 R/2.065b Bb4,D4,F4,A4/0.6b@70 R/1.735b Bb4,D4,F4,A4/0.6b@71 R/1.065b C4,Eb4,G4,D5/0.6b@72 R/0.735b C4,Eb4,G4,D5/0.6b@70 R/2.065b C4,Eb4,G4,D5/0.6b@74 R/1.735b C4,Eb4,G4,D5/0.6b@73 R/1.065b Eb4,F4,Ab4,C5/0.6b@74 R/0.735b Eb4,F4,Ab4,C5/0.6b@72 R/2.065b Eb4,F4,Ab4,C5/0.6b@65 R/1.735b Eb4,F4,Ab4,C5/0.6b@73 R/0.565b Ab3,C4,Eb4,G4,Bb4/1.5b@60 R/6.5b G3,Bb3,D4,F4,A4/1.5b@60 R/6.5b G3,C4,Eb4,G4,D5/1.5b@60 R/6.5b Bb3,Eb4,F4,Ab4,C5/1.5b@60 R/38.5b",
+   "patch": "epiano-tine synth.tine.sense=0.2 play.release.patch=epiano-damper play.release.decay=2s",
+   "score": "Ab3,C4,Eb4,G4,Bb4/1.5b@60 R/6.5b G3,Bb3,D4,F4,A4/1.5b@60 R/6.5b G3,C4,Eb4,G4,D5/1.5b@60 R/6.5b Bb3,Eb4,F4,Ab4,C5/1.5b@60 R/6.5b Ab3,C4,Eb4,G4,Bb4/1.5b@60 R/6.5b G3,Bb3,D4,F4,A4/1.5b@60 R/6.5b G3,C4,Eb4,G4,D5/1.5b@60 R/6.5b Bb3,Eb4,F4,Ab4,C5/1.5b@60 R/7b C4,Eb4,G4,Bb4/0.6b@67 R/0.735b C4,Eb4,G4,Bb4/0.6b@73 R/2.065b C4,Eb4,G4,Bb4/0.6b@72 R/1.735b C4,Eb4,G4,Bb4/0.6b@66 R/1.065b Bb4,D4,F4,A4/0.6b@69 R/0.735b Bb4,D4,F4,A4/0.6b@73 R/2.065b Bb4,D4,F4,A4/0.6b@71 R/1.735b Bb4,D4,F4,A4/0.6b@74 R/1.065b C4,Eb4,G4,D5/0.6b@73 R/0.735b C4,Eb4,G4,D5/0.6b@65 R/2.065b C4,Eb4,G4,D5/0.6b@73 R/1.735b C4,Eb4,G4,D5/0.6b@64 R/1.065b Eb4,F4,Ab4,C5/0.6b@71 R/0.735b Eb4,F4,Ab4,C5/0.6b@68 R/2.065b Eb4,F4,Ab4,C5/0.6b@72 R/1.735b Eb4,F4,Ab4,C5/0.6b@67 R/1.065b C4,Eb4,G4,Bb4/0.6b@67 R/0.735b C4,Eb4,G4,Bb4/0.6b@75 R/2.065b C4,Eb4,G4,Bb4/0.6b@71 R/1.735b C4,Eb4,G4,Bb4/0.6b@72 R/1.065b Bb4,D4,F4,A4/0.6b@72 R/0.735b Bb4,D4,F4,A4/0.6b@71 R/2.065b Bb4,D4,F4,A4/0.6b@70 R/1.735b Bb4,D4,F4,A4/0.6b@74 R/1.065b C4,Eb4,G4,D5/0.6b@66 R/0.735b C4,Eb4,G4,D5/0.6b@67 R/2.065b C4,Eb4,G4,D5/0.6b@74 R/1.735b C4,Eb4,G4,D5/0.6b@66 R/1.065b Eb4,F4,Ab4,C5/0.6b@72 R/0.735b Eb4,F4,Ab4,C5/0.6b@70 R/2.065b Eb4,F4,Ab4,C5/0.6b@75 R/1.735b Eb4,F4,Ab4,C5/0.6b@64 R/1.065b C4,Eb4,G4,Bb4/0.6b@74 R/0.735b C4,Eb4,G4,Bb4/0.6b@76 R/2.065b C4,Eb4,G4,Bb4/0.6b@65 R/1.735b C4,Eb4,G4,Bb4/0.6b@66 R/1.065b Bb4,D4,F4,A4/0.6b@76 R/0.735b Bb4,D4,F4,A4/0.6b@73 R/2.065b Bb4,D4,F4,A4/0.6b@64 R/1.735b Bb4,D4,F4,A4/0.6b@68 R/1.065b C4,Eb4,G4,D5/0.6b@76 R/0.735b C4,Eb4,G4,D5/0.6b@64 R/2.065b C4,Eb4,G4,D5/0.6b@68 R/1.735b C4,Eb4,G4,D5/0.6b@71 R/1.065b Eb4,F4,Ab4,C5/0.6b@73 R/0.735b Eb4,F4,Ab4,C5/0.6b@75 R/2.065b Eb4,F4,Ab4,C5/0.6b@70 R/1.735b Eb4,F4,Ab4,C5/0.6b@75 R/1.065b C4,Eb4,G4,Bb4/0.6b@76 R/0.735b C4,Eb4,G4,Bb4/0.6b@70 R/2.065b C4,Eb4,G4,Bb4/0.6b@70 R/1.735b C4,Eb4,G4,Bb4/0.6b@75 R/1.065b Bb4,D4,F4,A4/0.6b@76 R/0.735b Bb4,D4,F4,A4/0.6b@73 R/2.065b Bb4,D4,F4,A4/0.6b@71 R/1.735b Bb4,D4,F4,A4/0.6b@66 R/1.065b C4,Eb4,G4,D5/0.6b@69 R/0.735b C4,Eb4,G4,D5/0.6b@65 R/2.065b C4,Eb4,G4,D5/0.6b@64 R/1.735b C4,Eb4,G4,D5/0.6b@66 R/1.065b Eb4,F4,Ab4,C5/0.6b@71 R/0.735b Eb4,F4,Ab4,C5/0.6b@67 R/2.065b Eb4,F4,Ab4,C5/0.6b@68 R/1.735b Eb4,F4,Ab4,C5/0.6b@74 R/1.065b C4,Eb4,G4,Bb4/0.6b@70 R/0.735b C4,Eb4,G4,Bb4/0.6b@76 R/2.065b C4,Eb4,G4,Bb4/0.6b@74 R/1.735b C4,Eb4,G4,Bb4/0.6b@68 R/1.065b Bb4,D4,F4,A4/0.6b@70 R/0.735b Bb4,D4,F4,A4/0.6b@72 R/2.065b Bb4,D4,F4,A4/0.6b@70 R/1.735b Bb4,D4,F4,A4/0.6b@73 R/1.065b C4,Eb4,G4,D5/0.6b@69 R/0.735b C4,Eb4,G4,D5/0.6b@72 R/2.065b C4,Eb4,G4,D5/0.6b@73 R/1.735b C4,Eb4,G4,D5/0.6b@70 R/1.065b Eb4,F4,Ab4,C5/0.6b@73 R/0.735b Eb4,F4,Ab4,C5/0.6b@67 R/2.065b Eb4,F4,Ab4,C5/0.6b@69 R/1.735b Eb4,F4,Ab4,C5/0.6b@74 R/1.065b C4,Eb4,G4,Bb4/0.6b@64 R/0.735b C4,Eb4,G4,Bb4/0.6b@68 R/2.065b C4,Eb4,G4,Bb4/0.6b@73 R/1.735b C4,Eb4,G4,Bb4/0.6b@74 R/1.065b Bb4,D4,F4,A4/0.6b@75 R/0.735b Bb4,D4,F4,A4/0.6b@66 R/2.065b Bb4,D4,F4,A4/0.6b@75 R/1.735b Bb4,D4,F4,A4/0.6b@69 R/1.065b C4,Eb4,G4,D5/0.6b@72 R/0.735b C4,Eb4,G4,D5/0.6b@73 R/2.065b C4,Eb4,G4,D5/0.6b@73 R/1.735b C4,Eb4,G4,D5/0.6b@65 R/1.065b Eb4,F4,Ab4,C5/0.6b@75 R/0.735b Eb4,F4,Ab4,C5/0.6b@74 R/2.065b Eb4,F4,Ab4,C5/0.6b@67 R/1.735b Eb4,F4,Ab4,C5/0.6b@74 R/65.065b C4,Eb4,G4,Bb4/0.6b@73 R/0.735b C4,Eb4,G4,Bb4/0.6b@68 R/2.065b C4,Eb4,G4,Bb4/0.6b@68 R/1.735b C4,Eb4,G4,Bb4/0.6b@65 R/1.065b Bb4,D4,F4,A4/0.6b@65 R/0.735b Bb4,D4,F4,A4/0.6b@71 R/2.065b Bb4,D4,F4,A4/0.6b@74 R/1.735b Bb4,D4,F4,A4/0.6b@71 R/1.065b C4,Eb4,G4,D5/0.6b@65 R/0.735b C4,Eb4,G4,D5/0.6b@69 R/2.065b C4,Eb4,G4,D5/0.6b@76 R/1.735b C4,Eb4,G4,D5/0.6b@65 R/1.065b Eb4,F4,Ab4,C5/0.6b@70 R/0.735b Eb4,F4,Ab4,C5/0.6b@66 R/2.065b Eb4,F4,Ab4,C5/0.6b@64 R/1.735b Eb4,F4,Ab4,C5/0.6b@68 R/1.065b C4,Eb4,G4,Bb4/0.6b@70 R/0.735b C4,Eb4,G4,Bb4/0.6b@76 R/2.065b C4,Eb4,G4,Bb4/0.6b@70 R/1.735b C4,Eb4,G4,Bb4/0.6b@65 R/1.065b Bb4,D4,F4,A4/0.6b@64 R/0.735b Bb4,D4,F4,A4/0.6b@73 R/2.065b Bb4,D4,F4,A4/0.6b@73 R/1.735b Bb4,D4,F4,A4/0.6b@76 R/1.065b C4,Eb4,G4,D5/0.6b@64 R/0.735b C4,Eb4,G4,D5/0.6b@70 R/2.065b C4,Eb4,G4,D5/0.6b@75 R/1.735b C4,Eb4,G4,D5/0.6b@73 R/1.065b Eb4,F4,Ab4,C5/0.6b@69 R/0.735b Eb4,F4,Ab4,C5/0.6b@72 R/2.065b Eb4,F4,Ab4,C5/0.6b@68 R/1.735b Eb4,F4,Ab4,C5/0.6b@72 R/1.065b C4,Eb4,G4,Bb4/0.6b@67 R/0.735b C4,Eb4,G4,Bb4/0.6b@64 R/2.065b C4,Eb4,G4,Bb4/0.6b@68 R/1.735b C4,Eb4,G4,Bb4/0.6b@64 R/1.065b Bb4,D4,F4,A4/0.6b@65 R/0.735b Bb4,D4,F4,A4/0.6b@65 R/2.065b Bb4,D4,F4,A4/0.6b@73 R/1.735b Bb4,D4,F4,A4/0.6b@72 R/1.065b C4,Eb4,G4,D5/0.6b@64 R/0.735b C4,Eb4,G4,D5/0.6b@67 R/2.065b C4,Eb4,G4,D5/0.6b@70 R/1.735b C4,Eb4,G4,D5/0.6b@68 R/1.065b Eb4,F4,Ab4,C5/0.6b@73 R/0.735b Eb4,F4,Ab4,C5/0.6b@68 R/2.065b Eb4,F4,Ab4,C5/0.6b@66 R/1.735b Eb4,F4,Ab4,C5/0.6b@75 R/1.065b C4,Eb4,G4,Bb4/0.6b@64 R/0.735b C4,Eb4,G4,Bb4/0.6b@69 R/2.065b C4,Eb4,G4,Bb4/0.6b@69 R/1.735b C4,Eb4,G4,Bb4/0.6b@69 R/1.065b Bb4,D4,F4,A4/0.6b@66 R/0.735b Bb4,D4,F4,A4/0.6b@70 R/2.065b Bb4,D4,F4,A4/0.6b@70 R/1.735b Bb4,D4,F4,A4/0.6b@71 R/1.065b C4,Eb4,G4,D5/0.6b@72 R/0.735b C4,Eb4,G4,D5/0.6b@70 R/2.065b C4,Eb4,G4,D5/0.6b@74 R/1.735b C4,Eb4,G4,D5/0.6b@73 R/1.065b Eb4,F4,Ab4,C5/0.6b@74 R/0.735b Eb4,F4,Ab4,C5/0.6b@72 R/2.065b Eb4,F4,Ab4,C5/0.6b@65 R/1.735b Eb4,F4,Ab4,C5/0.6b@73 R/0.565b Ab3,C4,Eb4,G4,Bb4/1.5b@60 R/6.5b G3,Bb3,D4,F4,A4/1.5b@60 R/6.5b G3,C4,Eb4,G4,D5/1.5b@60 R/6.5b Bb3,Eb4,F4,Ab4,C5/1.5b@60 R/38.5b",
    "gain": "-6dB",
    "pan": -0.15,
    "sends": {
     "space": "-10dB",
     "echo": "-16dB"
+   }
+  },
+  {
+   "name": "keysb",
+   "patch": "epiano-tine synth.tine.sense=0.2 play.release.patch=epiano-damper play.release.decay=2s",
+   "score": "R/256b Ab3,C4,Eb4,G4,Bb4/1.5b@60 R/6.5b G3,Bb3,D4,F4,A4/1.5b@60 R/6.5b G3,C4,Eb4,G4,D5/1.5b@60 R/6.5b Bb3,Eb4,F4,Ab4,C5/1.5b@60 R/6.5b Ab3,C4,Eb4,G4,Bb4/1.5b@60 R/6.5b G3,Bb3,D4,F4,A4/1.5b@60 R/6.5b G3,C4,Eb4,G4,D5/1.5b@60 R/6.5b Bb3,Eb4,F4,Ab4,C5/1.5b@60 R/198.5b",
+   "gain": "-4dB",
+   "pan": -0.15,
+   "sends": {
+    "space": "-8dB",
+    "echo": "-14dB"
+   },
+   "fx": [
+    {
+     "type": "filter",
+     "kind": "bp",
+     "q": 1.6,
+     "cutoff": {
+      "value": 300,
+      "mod": [
+       {
+        "src": "auto.bp",
+        "amount": 1
+       }
+      ]
+     }
+    }
+   ],
+   "auto": {
+    "bp": {
+     "points": [
+      [
+       "0s",
+       0.0
+      ],
+      [
+       "88.276s",
+       0.0
+      ],
+      [
+       "110.295s",
+       2700.0
+      ],
+      [
+       "110.345s",
+       2700.0
+      ]
+     ]
+    }
    }
   },
   {

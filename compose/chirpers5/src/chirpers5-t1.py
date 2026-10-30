@@ -154,7 +154,7 @@ def roller():
     hand = random.Random(9)
     for bar in range(81, 113):
         for k, sl in enumerate(ROLL):
-            at = b0(bar) + k / 2 + (0.04 if k % 2 else 0.0)
+            at = b0(bar) + k / 2         # v9: straight, on the hats' grid (the laid-back off-eighths fought the swing)
             mod = "^tune=3" if (bar % 4 == 0 and k == 7) else ""
             part("roll").add(at, 0.5, nm(36 + sl + 16 * (bar % 2 if k >= 4 else 0)) + mod,
                              (92 if k in (0, 4) else 74) + hand.randint(-6, 6))
@@ -165,14 +165,16 @@ def harmony():
     for bar in range(1, 125, 2):
         sec = sec_of(bar)
         root, voic = chord_at(bar)
-        part("pad").add(b0(bar), 2 * BAR - 0.1, ",".join(nm(m) for m in voic), 66 if sec in ("intro", "break") else 58)
+        pk = "padb" if sec == "break" else "pad"                       # v9: the break's pad and keys on their own
+        kk = "keysb" if sec == "break" else "keys"                     # tracks, through the band-pass sweep
+        part(pk).add(b0(bar), 2 * BAR - 0.1, ",".join(nm(m) for m in voic), 66 if sec in ("intro", "break") else 58)
         if sec in ("drop", "drop2", "build"):
             # the keys comp in the 2-step's gaps: the and-of-1, the a-of-2, and the and-of-3 of the second bar
             for b, s in ((bar, 2), (bar, 7), (bar + 1, 2), (bar + 1, 11)):
                 part("keys").add(x16(b, s), 0.6, ",".join(nm(m + 12 if m < 60 else m) for m in voic[1:]),
                                  70 + hand.randint(-6, 6))
         elif sec in ("intro", "break") or (sec == "outro" and bar < 121):
-            part("keys").add(b0(bar), 1.5, ",".join(nm(m) for m in voic), 60)
+            part(kk).add(b0(bar), 1.5, ",".join(nm(m) for m in voic), 60)
         if sec in ("drop", "drop2", "build") and bar >= 25:
             r = 24 + root                                                  # the sub on the roots (C1..Bb1)
             part("sub").add(b0(bar), 2 * BAR - 0.1, nm(r if r >= 26 else r + 12), 96)
@@ -219,6 +221,18 @@ def lanes():
     return dyn, lp
 
 
+# v9: THE BREAK SWEEPS - a band-pass on the pad and the keys, only in the break (its mix opens there), rising from
+# 300 Hz to 3 kHz over the sixteen bars, so the breakdown travels instead of sitting
+BP = {"type": "filter", "kind": "bp", "q": 1.6, "cutoff": {"value": 300, "mod": [{"src": "auto.bp", "amount": 1}]}}
+
+
+def bp_lanes():
+    sec = lambda beats: beats * 60 / BPM
+    a, z = sec(b0(65)), sec(b0(81))
+    bp = [["0s", 0.0], [f"{a:.3f}s", 0.0], [f"{z - 0.05:.3f}s", 2700.0], [f"{z:.3f}s", 2700.0]]   # 300 Hz + lane
+    return {"bp": {"points": bp}}
+
+
 def main():
     drums()
     amen_bed()
@@ -227,6 +241,7 @@ def main():
     chops()
     part("riser").add(b0(77), 4 * BAR - 0.1, "C4", 80)
     dyn, lp = lanes()
+    bp_auto = bp_lanes()
     pump = {"type": "pump", "on": "kick", "depth": "-8dB", "attack": "3ms", "release": "230ms", "curve": 0.6}
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
     song = {
@@ -248,7 +263,7 @@ def main():
         # smooth compressor, the limiter only a safety net (the engine's limiter pins samples whenever it engages)
         "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=26", "peak cutoff=450 q=0.8 gain=-3dB",
                                                     "peak cutoff=1050 q=1.0 gain=2dB", "peak cutoff=3000 q=1.0 gain=1dB",
-                                                    "highshelf cutoff=9000 gain=-5dB"]},   # v8: each register its share
+                                                    "highshelf cutoff=7000 gain=-7dB"]},   # v9: darker, more night
                           {"type": "filter", "kind": "lp", "cutoff": {"value": 600, "mod": [{"src": "auto.lp", "amount": 19000}]}},
                           {"type": "tape", "drive": 0.2, "mix": 0.4, "hiss": "-66dB", "wow": 2, "flutter": 1, "seed": 3},
                           {"type": "compressor", "threshold": "-22dB", "ratio": 2.5, "attack": "15ms", "release": "150ms",
@@ -266,13 +281,18 @@ def main():
             tr("rim", "tight-kit", gain="-9dB", pan=-0.2, out="drums", sends={"space": "-16dB"}),   # v6: the swing, heard
             tr("amen", "amen-chops", gain="-13dB", out="drums", fx=["hp cutoff=500", pump]),
             tr("roll", "amen-chops", gain="-10dB", out="drums", fx=["hp cutoff=150", pump]),   # v7: the roller
-            tr("sub", "808", gain="-4dB", fx=[{"type": "drive", "drive": 0.2, "mix": 0.4}, pump]),   # warmer, heard
-            tr("reese", "reese", gain="-16dB", fx=["lp cutoff=700", pump]),
+            tr("sub", "808", gain="-4dB", fx=[{"type": "drive", "drive": 0.2, "mix": 0.4},
+                                              {"type": "phantom", "harmonics": "-4dB", "odd": 0.4, "remove": 0.0},
+                                              pump]),   # v9: wM's phantom puts the sub's harmonics on small speakers
+            tr("reese", "reese", gain="-12dB", fx=["lp cutoff=700", pump]),
             tr("pad", "juno-pad", gain="-8dB", sends={"space": "-6dB"}, lfo={"pf": {"wave": "sine", "rate": "20b"}},
-               fx=[{"type": "filter", "kind": "lp", "cutoff": {"value": 2200, "mod": [{"src": "lfo.pf", "amount": 900}]}},
+               fx=[{"type": "filter", "kind": "lp", "cutoff": {"value": 1600, "mod": [{"src": "lfo.pf", "amount": 700}]}},
                    pump]),
-            tr("keys", "epiano-tine synth.tine.sense=0.4 play.release.patch=epiano-damper play.release.decay=2s",
+            tr("padb", "juno-pad", gain="-6dB", sends={"space": "-4dB"}, fx=["lp cutoff=1600", BP], auto=bp_auto),
+            tr("keys", "epiano-tine synth.tine.sense=0.2 play.release.patch=epiano-damper play.release.decay=2s",
                gain="-6dB", pan=-0.15, sends={"space": "-10dB", "echo": "-16dB"}),
+            tr("keysb", "epiano-tine synth.tine.sense=0.2 play.release.patch=epiano-damper play.release.decay=2s",
+               gain="-4dB", pan=-0.15, sends={"space": "-8dB", "echo": "-14dB"}, fx=[BP], auto=bp_auto),
             tr("hook", "low-whistle", gain="-7dB", pan=0.1, sends={"space": "-8dB", "echo": "-12dB"}),   # v4: the hook
             # on a breathy low whistle, not a vocal chop (the vocal side is chirper-one's Last Night Bus)
             tr("riser", "fx-riser-shepard", gain="-14dB"),
