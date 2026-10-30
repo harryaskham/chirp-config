@@ -151,6 +151,8 @@ def platform_departure():
                     part("gtr2").add(b0(bar) + s, ln * 0.95, n, 74)
         if bar >= 33:
             part("bass").add(b0(bar), 3.9, nm(ROOTS_MINOR[(bar - 1) % 4]), 84)
+            if bar >= 41:
+                part("sub").add(b0(bar), 3.9, nm(ROOTS_MINOR[(bar - 1) % 4] - 12), 90)
         if 41 <= bar < 49:                                              # drums enter patiently: toms and ride
             for b in range(4):
                 part("kit").add(b0(bar) + b, 0.5, "rd", 60 + 4 * (bar - 41))
@@ -215,6 +217,7 @@ def arrival():
                 if (bar - 145) % 4 == bo:
                     part("lead").add(b0(bar) + s, ln * 0.95, n, 90 if bar >= 161 else 80)
         part("bass").add(b0(bar), 3.9, nm(ROOTS_MAJOR[(bar - 1) % 4]), 88)
+        part("sub").add(b0(bar), 3.9, nm(ROOTS_MAJOR[(bar - 1) % 4] - 12), 92)
         if bar >= 141:
             for k in range(8):                                             # driving eighths on the floor tom
                 part("kit").add(b0(bar) + k / 2, 0.4, "t3" if bar < 153 else "k", 84 if k % 2 else 96)
@@ -284,9 +287,8 @@ def main():
                                            "filters": ["lp cutoff=500"]}}},
         "buses": {"hall": {"fx": ["reverb kind=hall decay=4.5s mix=1 predelay=40ms", "hp cutoff=200"]},
                   "station": {"fx": ["reverb kind=hall decay=2.5s mix=0.5 predelay=60ms", "hp cutoff=300", "lp cutoff=4000"]}},
-        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=36", "lowshelf cutoff=70 gain=-3dB",
-                                                    "peak cutoff=350 q=0.8 gain=-2dB",
-                                                    "highshelf cutoff=8000 gain=-3dB"]},
+        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=30", "peak cutoff=350 q=0.8 gain=-1dB",
+                                                    "highshelf cutoff=5000 gain=-4dB"]},   # v2: darker, the low end kept
                           {"type": "compressor", "threshold": "-20dB", "ratio": 2, "attack": "20ms", "release": "200ms",
                            "makeup": "0dB"},
                           {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}},
@@ -297,7 +299,7 @@ def main():
             tr("rain", "rain", gain="-14dB"),
             tr("wind", "wind", gain="-16dB"),
             tr("rumble", "c6-rumble", gain="-6dB", lfo={"rp": {"wave": "sine", "rate": "32b"}},
-               fx=[{"type": "pan", "pan": {"value": 0, "mod": [{"src": "lfo.rp", "amount": 0.7}]}}]),   # passing by
+               fx=["hp cutoff=45", {"type": "pan", "pan": {"value": 0, "mod": [{"src": "lfo.rp", "amount": 0.7}]}}]),
             tr("clack", "metal-kit-phys", gain="-14dB", fx=["lp cutoff=2500"], sends={"hall": "-10dB"}),
             tr("horn", "c6-horn", gain="-16dB", sends={"hall": "-4dB"}),
             tr("static", "c6-static", gain="-26dB", fx=[{"type": "crush", "bits": 6, "rate": 8000, "mix": 0.5}]),
@@ -308,12 +310,14 @@ def main():
             tr("trem", "m8-clean", gain="-13dB", pan=0.15, sends={"hall": "-6dB"}),
             tr("frag", "starcaster-clean", gain="-10dB", pan=0.2, sends={"hall": "-2dB"},
                fx=[{"type": "delay", "time": "3/8", "feedback": 0.55, "mix": 0.45}]),
-            tr("drone", "c6-drone", gain="-18dB", sends={"hall": "-6dB"}, lfo={"df": {"wave": "sine", "rate": "28b"}}),
-            tr("bass", "bass-fuzz", gain="-10dB"),
-            tr("kit", "room-kit", gain="-6dB", sends={"hall": "-14dB"}),
+            tr("drone", "c6-drone", gain="-18dB", fx=["hp cutoff=50"], sends={"hall": "-6dB"}, lfo={"df": {"wave": "sine", "rate": "28b"}}),
+            tr("bass", "bass-fuzz", gain="-5dB"),
+            tr("sub", "808", gain="-12dB", fx=[{"type": "pump", "on": "kit.k", "depth": "-6dB", "release": "400ms",
+                                               "curve": 0.6}]),   # v2: a sub under the theme's movements
+            tr("kit", "room-kit", gain="-3dB", sends={"hall": "-14dB"}),
             tr("chugl", "m8-chug-l", gain="-10dB", pan=-0.7),
             tr("chugr", "m8-chug-r", gain="-10dB", pan=0.7),
-            tr("fbass", "m8-bass-dist", gain="-9dB"),
+            tr("fbass", "m8-bass-dist", gain="-6dB"),
             tr("lead", "lead-tape", gain="-9dB", sends={"hall": "-8dB"}),
             tr("wall", "m8-fuzz", gain="-16dB", sends={"hall": "-6dB"}),
             tr("fbk", "m8-fuzz", gain="-14dB", sends={"hall": "-4dB"}),
