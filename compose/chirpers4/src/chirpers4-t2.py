@@ -11,6 +11,8 @@ A broken-kick roller at 130 bpm built on an AUDITORY-STREAMING illusion (van Noo
 - (v2) The gallop breathes and is rounder: the square under the sine is quieter, a 3.2 kHz low-pass takes the edge
   off, and more of it goes to the space delay; it enters eight bars into A, rests through the end of B, and leaves for
   two bars in every eight of the peak.
+- (v5) In the second groove and the peak the floor moves: the reese's root and the gallop's A step A - F - C - G,
+  eight bars each.
 - A reese bass rolls in sixteenths, jumping octaves, pumping against the kick.
 - Form: intro (drums), A (bass, gallop close), B (claps, the gallop drifting to the edge), break (no kick: the gallop
   pulled apart to a tenth, two streams), C (peak: the distance swings every four bars, so the ear flips between one
@@ -75,6 +77,10 @@ def build():
     kit, bass, ga, gb = [], [], [], []
     for b in bars:
         s, t0, h, i = b['sec'], b['t'], HAS[b['sec']], b['i']
+        # (v5) THE TIDE TURNS: in the second groove and the peak the whole floor moves, eight bars per step, A - F - C - G
+        # (the reese's root and the gallop's A note together, the gap kept), then home; the first groove and the break
+        # stay on A, so the harmony is a reward for the second half
+        rt = (0, -4, 3, -2)[(i // 8) % 4] if s in ('B', 'C') else 0
         for q in range(16):
             at = t0 + q * 0.25 + (0.03 if q % 2 else 0.0)
             if 'kick' in h:
@@ -90,7 +96,7 @@ def build():
             if 'rim' in h and q in (3, 7, 11):
                 kit.append((at, 'rs', 0.25, 78))
             if 'bass' in h:
-                bass.append((at, nm(33 + BASS[q]), 0.22, 96 if q % 4 == 0 else 80))
+                bass.append((at, nm(33 + rt + BASS[q]), 0.22, 96 if q % 4 == 0 else 80))
         # (v2) the gallop breathes: it enters eight bars into A, rests for the last eight bars of B, and drops out for
         # two bars at the end of every eight in the peak - so each return of the illusion is heard fresh
         rest = (s == 'A' and i < 8) or (s == 'B' and i >= 24) or (s == 'C' and i % 8 >= 6)
@@ -98,9 +104,9 @@ def build():
             d = gap(s, i)
             for beat in range(4):
                 x = t0 + beat
-                ga.append((x, nm(A_NOTE), 0.2, 92))
-                gb.append((x + 0.25, nm(A_NOTE + d), 0.2, 88))
-                ga.append((x + 0.5, nm(A_NOTE), 0.2, 84))
+                ga.append((x, nm(A_NOTE + rt), 0.2, 92))
+                gb.append((x + 0.25, nm(A_NOTE + rt + d), 0.2, 88))
+                ga.append((x + 0.5, nm(A_NOTE + rt), 0.2, 84))
     kit = [k for k in kit if k[3] > 0]
     end_s = total * SPB
     secs = {}
