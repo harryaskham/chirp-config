@@ -29,6 +29,13 @@ class Peaks(unittest.TestCase):
         self.assertAlmostEqual(20 * np.log10(np.abs(y).max()), -3.01, delta=0.02)
         self.assertGreater(20 * np.log10(LV.true_peak(y[:, None])), -0.2)
 
+    def test_clean_low_bass_is_not_flat_but_a_clamp_is(self):
+        # wM, 30 Oct: a 40 Hz sine at the ceiling stayed within 0.01 dB of its crest for ~18 samples, so the old FLAT
+        # flag fired on clean bass; identical samples are the clipping signature
+        x = 0.89 * np.sin(2 * np.pi * 40 * T[:SR])
+        self.assertLessEqual(LV.pinned_run(x[:, None]), 2)
+        self.assertGreaterEqual(LV.pinned_run(np.clip(1.5 * x, -0.89, 0.89)[:, None]), 4)
+
     def test_flat_top_run(self):
         z = np.zeros(1000)
         z[100:110] = 1.0

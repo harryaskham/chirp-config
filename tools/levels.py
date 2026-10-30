@@ -14,8 +14,10 @@ limiter caps sample peaks at the song's ceiling (config -1 dBFS), so the risks i
 
 Columns: sample peak (dBFS), true peak (dBTP, 4x oversampled), integrated loudness (LUFS), max short-term (3 s)
 loudness, PLR (true peak - LUFS), % of samples within 0.1 dB of the track's peak, and the longest run of consecutive
-samples within 0.01 dB of it (>= 4 means flat-topped). Flags: TP>0 (inter-sample overs), TP>-1 (above the usual
-streaming ceiling), FLAT (a run of 4+ pinned samples), and for an album LOUD/QUIET (more than 2 LU from its median).
+samples IDENTICAL to it (within 1e-6; >= 4 means flat-topped: a clamp or hard clip writes the same value again and
+again, while a clean 40 Hz sine stays within 0.01 dB of its crest for ~18 samples but repeats no value, wM 30 Oct).
+Flags: TP>0 (inter-sample overs), TP>-1 (above the usual streaming ceiling), FLAT (a run of 4+ pinned samples), and
+for an album LOUD/QUIET (more than 2 LU from its median).
 """
 import argparse
 import json
@@ -99,6 +101,15 @@ def longest_run(mask):
     return int((np.flatnonzero(d == -1) - np.flatnonzero(d == 1)).max())
 
 
+def pinned_run(x, peak=None):
+    """Longest run of samples identical to the peak (relative 1e-6): the signature of a clamp or hard clipper. A
+    tolerance in dB (0.01) also counted the flat crest of clean low bass (40 Hz: ~18 samples at 48 kHz)."""
+    a = np.abs(x)
+    peak = float(a.max()) if peak is None else peak
+    pinned = a >= peak * (1 - 1e-6)
+    return max(longest_run(pinned[:, c]) for c in range(x.shape[1])) if x.ndim > 1 else longest_run(pinned)
+
+
 def measure(path):
     import likeness as L
     x = L.load(path).astype(np.float64)
@@ -107,8 +118,7 @@ def measure(path):
     peak = float(a.max()) or 1e-12
     pdb = 20 * np.log10(peak)
     near = a >= peak * 10 ** (-0.1 / 20)
-    pinned = a >= peak * 10 ** (-0.01 / 20)
-    run = max(longest_run(pinned[:, c]) for c in range(x.shape[1])) if x.ndim > 1 else longest_run(pinned)
+    run = pinned_run(x, peak)
     tp = 20 * np.log10(true_peak(x) or 1e-12)
     integ, st = loudness(x, sr)
     flags = (["TP>0"] if tp > 0 else ["TP>-1"] if tp > -1 else []) + (["FLAT"] if run >= 4 else [])

@@ -7,7 +7,7 @@ master limiter caps, so flat-topped kicks and inter-sample overs went unseen. Th
 
   score = 100 - 15 per dB of true peak above -1 dBTP - 5 per pinned sample beyond 3 in the longest flat run (>= 0)
 
-so a clean master (TP <= -1 dBTP, no run of 4+ samples within 0.01 dB of the peak) scores 100, and No Floor v5
+so a clean master (TP <= -1 dBTP, no run of 4+ samples identical to the peak) scores 100, and No Floor v5
 (TP -0.02, run 53) scores 0. Detail: true peak, longest pinned run, integrated LUFS, PLR.
 
 Detail-only until the album sets a weight (the metric is the composers', Harry 30 Oct): with no `levels` key in
@@ -29,8 +29,7 @@ def analyse(x, sr):
     x = x.astype(np.float64)
     a = np.abs(x)
     peak = float(a.max()) or 1e-12
-    pinned = a >= peak * 10 ** (-0.01 / 20)
-    run = max(LV.longest_run(pinned[:, c]) for c in range(x.shape[1])) if x.ndim > 1 else LV.longest_run(pinned)
+    run = LV.pinned_run(x, peak)
     tp = 20 * np.log10(LV.true_peak(x) or 1e-12)
     lufs, _ = LV.loudness(x, sr)
     score = max(0.0, 100.0 - 15.0 * max(0.0, tp + 1.0) - 5.0 * max(0, run - 3))
