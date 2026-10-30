@@ -18,13 +18,13 @@
   ],
   "master": {
     "rms": [
-      -14.0,
-      -7.0
+      -17.5,
+      -12.5
     ],
     "peak_max": 0.0,
     "crest": [
       6.5,
-      13.0
+      15.0
     ]
   },
   "weights": {
@@ -144,5 +144,8 @@
     "file": "ref/albums/soft-concrete/cover-tti.png",
     "prompt": "Album cover art for 'Soft Concrete' by Chirpers, an original liquid / 2-step drum & bass, glitchstep album. Liquid drum & bass sleeve: rain-wet city lights at night smeared into motion blur, deep blues and teal with a warm amber glow, glossy and soulful, with a thin glitchy digital fracture. Album cover for 'Soft Concrete' by Chirpers, liquid drum and bass: a rain-soaked concrete overpass at night, city lights smeared into soft motion-blurred streaks of teal and deep blue with warm amber sodium glow, puddle reflections, gentle and soulful, a thin glitchy digital fracture line crossing the image, no text Striking, abstract, no text, no letters, no band logo, square composition.",
     "at": "2026-10-30T11:04:08Z"
+  },
+  "notes": {
+    "master": "30 Oct: master band moved to the composers' agreed -12.5 LUFS (~rms -15 for these mixes; chirper-one found rms -14..-7 penalised a clean master at the target)."
   }
 }
