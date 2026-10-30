@@ -134,7 +134,8 @@ def bass():
         if sec == "intro":
             line = [n for n in line if n[0] in (0, 8)]                   # it enters with roots and fifths only
         for s, iv, ln, v in line:
-            part("bass").add(x16(bar, s), ln / 4 * 0.9, nm(root - 12 + iv), v + hand.randint(-5, 5))
+            late = 0.0       # (late ghosts tried in v3: the rhythm smeared, 81 -> 70)
+            part("bass").add(x16(bar, s) + late, ln / 4 * 0.9, nm(root - 12 + iv), v + hand.randint(-5, 5))
         if sec in ("drop", "drop2", "build"):
             part("sub").add(b0(bar), BAR - 0.05, nm(root - 12), 90)
 
@@ -242,7 +243,8 @@ def main():
             tr("kick", "tight-kit", gain="-4dB", out="drums"),
             tr("snare", "tight-kit", gain="-5dB", out="drums", sends={"space": "-14dB"}),
             tr("roll", "amen-chops", gain="-8dB", out="drums", fx=["hp cutoff=120", pump]),
-            tr("bass", "bass-di", gain="-4dB", fx=[{"type": "compressor", "threshold": "-18dB", "ratio": 4,
+            tr("bass", "bass-di", gain="-4dB", fx=[{"type": "eq", "bands": ["peak cutoff=150 q=0.9 gain=3dB"]},  # v3: body
+                                                   {"type": "compressor", "threshold": "-18dB", "ratio": 4,
                                                     "attack": "5ms", "release": "80ms", "makeup": "3dB"}, pump]),
             tr("sub", "808", gain="-12dB", fx=[pump]),
             tr("keys", "epiano-tine synth.tine.sense=0.4 play.release.patch=epiano-damper play.release.decay=2s",

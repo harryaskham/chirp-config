@@ -207,6 +207,12 @@
    "gain": "-4dB",
    "fx": [
     {
+     "type": "eq",
+     "bands": [
+      "peak cutoff=150 q=0.9 gain=3dB"
+     ]
+    },
+    {
      "type": "compressor",
      "threshold": "-18dB",
      "ratio": 4,
