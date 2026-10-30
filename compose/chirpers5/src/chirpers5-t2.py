@@ -94,8 +94,10 @@ def build():
                 reese.append((t0 + 3.0, nm(root + 24), 0.9, 80))
         # the garage chops: in the drops, short pitched vocal stabs on the off-beats of the chord's second bar
         if s in ('drop', 'drop2') and not first:
-            for q, idx in ((0.5, 0), (1.25, 1), (2.5, 0), (3.25, 2)):
-                chops.append((t0 + q + 0.04, f"{nm(ch[-1 - idx] + 12)}^e", 0.22, 96))
+            # (v4) THE WORDS: the chops now sing the title in garage fragments - 'night', 'bus', 'night', 'home' -
+            # the vocal sample a garage producer would have chopped, synthesised
+            for (q, idx), ph in zip(((0.5, 0), (1.25, 1), (2.5, 0), (3.25, 2)), ('n-ay1-t', 'b-ah1-s', 'n-ay1-t', 'hh-ow1-m')):
+                chops.append((t0 + q + 0.04, f"{nm(ch[-1 - idx] + 12)}^ph={ph}", 0.3 if ph == 'hh-ow1-m' else 0.22, 96))
         # the hook: every other chord in the drops, every chord in the break
         if (s in ('drop', 'drop2') and first and (k // 2) % 2 == 0) or (s == 'break' and first):
             for at, idx, ln in HOOK:
