@@ -30,6 +30,7 @@ Generator `compose/chirpers5/src/chirpers5-t4.py`. Liquid glitchstep, 174 bpm, G
 - **THE VOICE**: wordless chops from the voice engine on the chord's 9th, 5th and 3rd, falling after the snare (16ths 5, 7, 14), the vowels turning ah - oo - eh bar by bar; in the half-time middle they fall after its snare on 3.
 - **THE HAIRLINE**: the last half-bar of every 8-bar phrase cracks - a buffer stutter on the drum bus whose repeats rise in pitch and accelerate toward 1/64 - so the seams lift instead of breaking; in the climax every other bar cracks, in the half-time middle every fourth.
 - **THE KIT, LEANED ON** (v3): the 2-step kick and snare driven (0.5) and squeezed by a fast compressor on their own track, so the backbeat snaps and the kick has a front edge - the roller pushes now instead of sitting square under the chords.
+- **THE WALK** (v4): in the second drop and the climax the reese leaves the root and walks - root (3 sixteenths), octave (3), fifth (4), root (4), flat seventh (2), gliding between them - while the sub keeps the root underneath, so the return develops instead of repeating.
 - **THE ROLL**: wM's amen-chops under the clean 2-step kick and snare as a ghost roll (high-passed at 350 Hz), the break re-sequenced 16th by 16th, its fourth bar turning to the break's tail.
 
 
