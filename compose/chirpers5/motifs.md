@@ -76,3 +76,10 @@ Generator `compose/chirpers5/src/chirpers5-t9.py`. Liquid funk, 174 bpm, A doria
 - **THE STABS** (horn section): `da-da-DAAT` on sixteenths 10 12 14 at the end of every fourth bar (every second in drop 2).
 - **THE SOLO** (lead-wah, the break, twice): `E5 . G5 A5~ | G5 E5 D5~ B4~ | C5 D5 E5 F#5~~ | E5 D5 B4~~ | A4 C5 E5 G5 B5~~ | A5 G5~ E5~ | F#5~ A5 C6~ | B5~ A5 F#5~~`.
 
+
+## t5 (chirper-one): ambient / half-time interlude, "Underpass"
+
+- **THE TUNNEL**: piano-wash holds Gm9 - Ebmaj7 - Cm9 - Dbmaj7 (four bars each, rolled) and moves the album from Hairline's G minor to Overpass Rain's F minor, ending on a held Fm9.
+- **THE HALF-TIME**: amen slices at (beat, slice) 0/0 kick, 1.5/3 ghost, 2/4 snare, 3.25/10, 3.5/6 - the one and the three - with the sub on the root every two bars; only in the two half-time sections.
+- **THE WALLS**: a second amen-chops track plays the whole amen in order at -40 dB, sent +22 dB into a bus of granular cloud (60 ms grains, density 14, spray .6, scatter .4, 35% reversed) then a 5 s hall, low-passed at 3 kHz: the next room's drum & bass smeared into concrete - only in the intro's second half and the drift, where the beat is not.
+- **THE GLASS**: in the second half-time a pad-glass bell on the chord's top notes (an octave and two up), every other bar.
