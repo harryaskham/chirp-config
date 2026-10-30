@@ -8,6 +8,7 @@ I.   STATIC (16 bars): wind and old tape hiss; a narrator close in the room (wM'
 II.  PROCESSION (40 bars): the narrator reads on (v3) - "the city is quiet now. the buses stopped at nine. someone
      left a radio on in an empty room. and every window is lit." - while cellos hold E; a glockenspiel plays THE SIGNAL slowly; a clean guitar arpeggiates Em - C -
      G - D into a dotted-eighth echo (the post-rock delay, cascading against the beat); an e-bow sings THE SIGNAL long and high over the second half. No drums.
+     (v5) Its last two bars freeze in the hall - the last notes hang in the air - until the first tom lands.
 III. SIGNAL (40 bars): the drums arrive as toms and ride, a picked bass walks the roots, the clean guitars turn to
      TREMOLO (thirty-second notes) and the strings swell; every eight bars the band climbs louder and a voice of the
      theme is added - the crescendo is earned, not switched on.
@@ -185,6 +186,9 @@ def build():
     # (v2) THE DOOR OPENS: through the crescendo the whole mix climbs out from behind a low-pass - 4 kHz at the start of
     # III, opening a little each eight-bar stage, wide open as the fire lands - so the build is heard as distance closing
     t3, t4 = secs['signal'] * SPB, secs['fire'] * SPB
+    # (v5) THE HELD BREATH: over the procession's last two bars the hall freezes - the glockenspiel's and the e-bow's
+    # last notes hang in the air, a held chord - and it lets go as the first tom of the Signal lands
+    frz = [['0s', 0], [f'{t3 - 8 * SPB:.3f}s', 0], [f'{t3 - 8 * SPB + 0.3:.3f}s', 1], [f'{t3 + 2 * SPB:.3f}s', 1], [f'{t3 + 4 * SPB:.3f}s', 0]]
     door = [['0s', 0], [f'{t3 - 0.05:.3f}s', 0], [f'{t3:.3f}s', 1], [f'{t4 - 0.05:.3f}s', 0.12], [f'{t4:.3f}s', 0]]
     ts = [['0s', 0], [f'{ta - 2 * SPB:.3f}s', 0], [f'{ta - 2 * SPB + 0.01:.3f}s', 1], [f'{ta - 0.01:.3f}s', 1], [f'{ta:.3f}s', 0]]
     # the narrator is in the room, not on a radio (the radio voice is chirper-two's opener): close, dry, over old tape hiss
@@ -196,7 +200,9 @@ def build():
         # a band, not a grid: every part drifts a few milliseconds, the feel of people playing together
         'feel': {'drift': '7ms', 'drift_bars': 2},
         'tempo': BPM, 'length': f'{total * SPB + 3:.2f}s', 'ceiling': '-1dB', 'volume': '0dB', 'true_peak': True,
-        'buses': {'hall': {'fx': ['reverb kind=hall decay=4.5s mix=1', 'hp cutoff=200'], 'returns': []},
+        'buses': {'hall': {'fx': [{'type': 'reverb', 'kind': 'hall', 'decay': '4.5s', 'mix': 1,
+                                   'freeze': {'value': 0, 'mod': [{'src': 'auto.frz', 'amount': 1}]}}, 'hp cutoff=200'],
+                           'auto': {'frz': {'points': frz}}, 'returns': []},
                   'tape': {'fx': [{'type': 'delay', 'time': '3/16', 'feedback': 0.5, 'mix': 1}, 'lp cutoff=3000', 'hp cutoff=250'], 'returns': []}},
         'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=28', 'lowshelf cutoff=90 gain=3dB', 'peak cutoff=1900 q=0.8 gain=-3dB', 'highshelf cutoff=7000 gain=-3dB']},
                           {'type': 'compressor', 'threshold': '-20dB', 'ratio': 2, 'attack': '20ms', 'release': '200ms', 'makeup': '2dB'},
