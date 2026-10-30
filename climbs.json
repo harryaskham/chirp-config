@@ -6323,15 +6323,15 @@
       "owner": "chirper-two",
       "metric": "python3 tools/compscore.py chirpers4-t10 OUT.wav",
       "best": {
-        "score": 96.899,
-        "version": "v2",
+        "score": 97.303,
+        "version": "v3",
         "commit": "see git log songs/chirpers4-t10.yaml",
-        "engine": "3c2c411f"
+        "engine": "a1769d62"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 2,
+      "rounds": 3,
       "priority": 1.0,
       "genre": "deep / hard Berlin techno",
       "mode": "compose",
@@ -6349,7 +6349,7 @@
         "note": "COMPOSE (closer, 180-600 s): Closes the album. Style, groove, tempo and line-up are yours: declare them in compose/chirpers4/styles.md, different from the tracks already claimed."
       },
       "last": {
-        "at": "2026-10-30T03:37:09Z",
+        "at": "2026-10-30T05:21:50Z",
         "who": "chirper-two"
       }
     }

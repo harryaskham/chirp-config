@@ -85,6 +85,12 @@ CLANK = (3, 6, 11, 14)  # the clank's sixteenths: off the beat, off the backbeat
 # holes fill so the bass throbs on every sixteenth; P = it breathes harder with the kick (pump -9 dB, release 290 ms,
 # about two-thirds of a beat, curve 0.8).
 R2 = set(filter(None, os.environ.get("T10_R2", "T,E,P").split(","))) - {"none"}
+# Round 3 (v3), polish (Harry: patient entries, better LFO motion; wM's illusion engine in pin a1769d62): F = THE FALL
+# IS SEAMLESS: the outro's endless fall is no longer the riser sample played backwards (stitched every 16 beats) but
+# two true Shepard-Risset tones on song time, on F#: one falling an octave every 2 bars in the middle register, a low
+# one every 4 bars under it, coming in over four bars; P = THE ACID ENTERS PATIENTLY: for its first eight bars the
+# throb plays only its accented notes, then the whole riff.
+R3 = set(filter(None, os.environ.get("T10_R3", "F,P").split(","))) - {"none"}
 ACC_MASKS = [None, {0, 3, 6, 9, 12, 15}, {2, 6, 10, 14}]       # as written / threes / off-beats
 SLIDE_MASKS = [None, {3, 7, 10, 14}, {1, 5, 9, 13}]
 
@@ -157,6 +163,8 @@ def build():
                         m += 12  # every seventh bar throws its tail up an octave
                 if m is None:
                     continue
+                if "P" in R3 and sec == "acid" and i < 8 and not acc:
+                    continue  # the patient entry: accents only
                 if sec == "break" and i >= 12 and s % 4 != 0:
                     continue  # the riff thins to its downbeats before the peak
                 T["acid"].add(start + s * S16, 0.33 if sl else 0.2, nm(m), 118 if acc else 76)
@@ -182,7 +190,10 @@ def build():
         # ---- the endless rise (break) and the endless fall (no floor) ----
         if sec == "break":
             T["riser"].add(start, 4.0, "C4", 70 + 2 * i)
-        if sec == "nofloor" and i % 4 == 0:
+        if "F" in R3:
+            if sec == "nofloor" and i == 4:
+                T["fall"].add(start, 4.0 * (n - 4), "F#3", 96)
+        elif sec == "nofloor" and i % 4 == 0:
             T["fall"].add(start, 16.0, "C4", 100)
     st = {}
     for name, n in FORM:
@@ -219,7 +230,19 @@ def patches():
                                     "amp": {"a": "1ms", "d": "0s", "s": 1, "r": "40ms"},
                                     "drive": 0.5},
                           "play": {"mono": True, "legato": True, "glide": "55ms", "gate": 0.8, "vel_sens": 0.6}}}
-    return {**(throb if "T" in R2 else {}),
+    fall = {"c2-endless-fall": {"about": "chirper-two's endless fall (No Floor v3): two Shepard-Risset tones on song "
+                                         "time, a middle one falling an octave every 2 bars and a low one every 4 bars, "
+                                         "on the note's pitch class; four bars to come in.",
+                                "synth": {"layers": [
+                                    {"type": "shepard", "shepard": {"octaves": 8, "cycle": "2bar", "down": True,
+                                                                    "center": "330hz", "width": 1.2}},
+                                    {"type": "shepard", "level": "-3dB",
+                                     "shepard": {"octaves": 8, "cycle": "4bar", "down": True, "center": "110hz",
+                                                 "width": 1.0}}],
+                                          "filters": [{"kind": "lp", "cutoff": 3000, "q": 0.6}],
+                                          "amp": {"a": "7s", "s": 1, "r": "3s"}},
+                                "play": {"gate": 1.0, "vel_sens": 0.2}}}
+    return {**(throb if "T" in R2 else {}), **(fall if "F" in R3 else {}),
         "c2-clank": {"about": "chirper-two's industrial clank: four inharmonic struck-bar partials (1, 2.76, 5.40, "
                               "8.93), a very short decay, driven and bit-crushed per voice.",
                      "synth": {"layers": [{"type": "additive",
@@ -302,8 +325,10 @@ def main():
         {"name": "rumble-drone", "patch": "c2-rumble-drone", "gain": "-16dB", "score": T["rumble"].score(total)},
         {"name": "riser", "patch": "fx-riser-shepard", "gain": "-10dB",
          "fx": ["reverb kind=hall decay=3s mix=0.35"], "score": T["riser"].score(total)},
-        {"name": "fall", "patch": "c2-shepard-fall", "gain": "-8dB",
-         "fx": ["reverb kind=hall decay=4s mix=0.4"], "score": T["fall"].score(total)},
+        ({"name": "fall", "patch": "c2-endless-fall", "gain": "-6dB",
+          "fx": ["reverb kind=hall decay=4s mix=0.35"], "score": T["fall"].score(total)} if "F" in R3 else
+         {"name": "fall", "patch": "c2-shepard-fall", "gain": "-8dB",
+         "fx": ["reverb kind=hall decay=4s mix=0.4"], "score": T["fall"].score(total)}),
     ]
     buses = {
         "rumble": {"gain": "-9dB",
