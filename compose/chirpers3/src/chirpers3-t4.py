@@ -467,6 +467,20 @@ def tapestop_lane():
     return [[f"{sec(e):.3f}s", v] for e, v in pts]
 
 
+SKIP_BAR = 36
+SKIP_PATTERN = "0 1 2 3 3 3 3 3"
+
+
+def skip_lane():
+    """THE RECORD SKIPS, once, in the return: the whole mix (before the tape and the vinyl, so the record's own noise
+    runs on) plays bar 35 from a chop of bar 34: its first two beats again, then stuck on one eighth, five times over,
+    until the needle jumps free at bar 36."""
+    sec = lambda e: e / 4 * 60 / BPM
+    a, z = b0(SKIP_BAR), b0(SKIP_BAR + 1)
+    pts = [(0, 0.0), (a - 0.05, 0.0), (a, 1.0), (z - 0.05, 1.0), (z, 0.0), (TOTAL, 0.0)]
+    return [[f"{sec(e):.3f}s", v] for e, v in pts]
+
+
 def resample_lane():
     """The whole band dives like a slowed sampler: 4 semitones over the near-stall's first half, snapping back at the
     return; and a slow sag through the wind-down. Before the tape and vinyl, so the record's hiss stays steady."""
@@ -594,6 +608,9 @@ def main():
                                        {"type": "tapestop", "stop": {"value": 0, "mod": [{"src": "auto.ts", "amount": 1}]},
                                         "time": "1b", "up": "1b", "curve": 0.5, "mix": 1},   # the tape STOPS (holding,
                                        # then dropping), and SPINS BACK UP into the return (the record keeps turning)
+                                       {"type": "chop", "slices": 8, "pattern": SKIP_PATTERN, "length": "1/1",
+                                        "mix": {"value": 0, "mod": [{"src": "auto.sk", "amount": 1}]}},
+                                       # THE RECORD SKIPS (bar 35): the needle jumps back a bar and locks in a groove
                                        {"type": "tape", "drive": 0.25, "mix": 0.5, "squash": 0.4, "hiss": "-56dB", "wow": 4,
                                         "flutter": 1, "seed": 7,
                                         "warp": {"value": 0.5, "mod": [{"src": "auto.wear", "amount": 0.5}]}},
@@ -602,6 +619,7 @@ def main():
                                        "glue threshold=-24dB ratio=3 attack=15ms release=200ms makeup=3dB",
                                        {"type": "gain", "gain": "11dB"}],
                                 "auto": {"rs": {"points": resample_lane()}, "ts": {"points": tapestop_lane()},
+                                         "sk": {"points": skip_lane()},
                                          "fi": {"points": [["0s", -20.0], [f"{2 * S / 4 * 60 / BPM:.3f}s", 0.0]]},
                                          "op": {"points": [["0s", 1.0], [f"{1 * S / 4 * 60 / BPM:.3f}s", 0.85],
                                                            [f"{4 * S / 4 * 60 / BPM:.3f}s", 0.0]]},

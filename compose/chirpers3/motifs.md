@@ -80,6 +80,10 @@ Generator `compose/chirpers3/src/chirpers3-t7.py`. Ambient tape loops, a nominal
 - **THE NEEDLE DROP** (since v12, the first bars): the song fades in from -20 dB over two bars and opens from a
   muffled 1.5 kHz to full over four, as the box winds up to speed, so it emerges out of t3's quiet ending (in-join
   level jump 22 -> 11 dB, flow 50 -> 60); the vinyl crackle and hiss sit after the filter, there from the first moment.
+- **THE RECORD SKIPS** (since v25, bar 36, the return's last bar): the needle jumps back a bar and LOCKS: the whole mix
+  replays bar 35's first two beats, then sticks on one eighth, five times over, and the breakdown falls out of the
+  locked groove. Only once in the song; the record's own hiss and crackle run on underneath. (In bar 35, mid-return,
+  compscore heard it as a 12th section, over the structure band; on the section's last bar it costs nothing.)
 - **THE CODA: WOUND AGAIN** (since v24, bars 59-62): after the wind-down has run the box out, a bar of record noise,
   then two short turns of THE KEY; the box, alone over the home chord (Dbmaj9 held on the pad, a low Db on the sub),
   starts the hidden melody once more (its first notes from bar 17, two octaves up: F6 . . Ab6 Eb7 Db7 Bb6), every gap
