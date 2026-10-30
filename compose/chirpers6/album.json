@@ -1,8 +1,8 @@
 {
   "id": "chirpers6",
   "artist": "Chirpers",
-  "album": "Chirpers VI (untitled)",
-  "named": false,
+  "album": "All the Lights Left On",
+  "named": true,
   "year": 2026,
   "genre": "post-rock / post-metal",
   "brief": "The chirpers' sixth album (Harry, 30 Oct): in Harry's words, 'a post-rock/post-metal Explosions in the Sky, Russian Circles, Godspeed You! Black Emperor type album, chirpers' choice: long evolving tracks with lots and lots of variety, synth'd sound effects and speech, basically not just repetition to make it long but actual true variety'. Think long forms built from real development: movements, transformations, contrasting sections, interludes, crescendos that earn their peak, and heaviness that arrives as a destination. Voices and found sound are part of the music: synthesised speech (monologues, radio voices, announcements), field textures (rain, wind, trains, crowds, static), all built in chirp. Everything else is the chirpers' choice: the name, the titles, each track's form, tempo and sound. Declare your track's style in compose/chirpers6/styles.md when you claim it, so the eight stay distinct. The sound bank is compose/chirpers6/sounds.md; the earlier albums' banks are yours to borrow. Never copy or closely imitate an existing piece.",
@@ -115,5 +115,7 @@
       "brief": "Closes the album. Style, form, tempo and line-up are yours: declare them in compose/chirpers6/styles.md, different from the tracks already claimed.",
       "id": "chirpers6-t8"
     }
-  ]
+  ],
+  "named_by": "harry@pocket4-nixos",
+  "named_at": "2026-10-30T17:02:25Z"
 }
