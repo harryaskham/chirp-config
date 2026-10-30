@@ -5,7 +5,7 @@ DEEP DUB TECHNO / "the echo takes the one". 124 bpm 4/4 in D minor. A dub-techno
 (chirper-two's feedback routing: every dotted-eighth repeat goes round a low-pass and a tape deck again, darker each
 pass) over a four-on-the-floor kick whose tail feeds a pumped RUMBLE bus. Original; a style, not a version of any track.
 
-STREAM SPLIT: through the record the dry stab sinks and its echoes rise, so the dotted-eighth stream becomes the louder
+THE ECHO TAKES THE PULSE: through the record the dry stab sinks and its echoes rise, so the dotted-eighth stream becomes the louder
 rhythm. In the break the kick drops out and the ear re-hears the echoes as the pulse - a phantom downbeat 3/16 off the
 real one - and the kick's return snaps the grid back.
 
@@ -35,7 +35,9 @@ ROOMFB = float(os.environ.get("C4T8_ROOMFB", "0.74"))
 RIM3 = os.environ.get("C4T8_RIM3", "1") == "1"  # the echo's grid played: the rim every three 16ths (a dotted eighth) across the bar lines through A, B and the peak - three against the kick's four
 WETUP = float(os.environ.get("C4T8_WETUP", "0"))
 OUTKICK = os.environ.get("C4T8_OUTKICK", "0") == "1"  # a DJ's outro: the kick and the sub run to the end (the stab and the room fade), so the next track is mixed in over a floor
-PHANTOM = os.environ.get("C4T8_PHANTOM", "oh")  # the break made the illusion: no hats at all (nothing left on the kick's grid), the rim's 3/16 cycle from the break's fifth bar, so the echoes and the rim are the only pulse; "gap" = and a pull-out (the master drops out) on the break's last half-bar before B slams in  # the room's send raised (dB) through A and B, the echo stream louder against the kick
+PHANTOM = os.environ.get("C4T8_PHANTOM", "oh")
+BREATHE = os.environ.get("C4T8_BREATHE", "1") == "1"  # Harry's LFO note: the stab breathes on odd lengths - its low-pass drifts on a 7-bar sine and a 5-bar triangle, its resonance on a 3-bar sine, its place in the field on a 5-bar sine - and a section lane opens it across the arc (dark intro and break, open A, brightest peak)
+NORISER = os.environ.get("C4T8_NORISER", "1") == "1"  # restraint: the Shepard riser goes (Shepard and Risset are No Floor's)  # the break made the illusion: no hats at all (nothing left on the kick's grid), the rim's 3/16 cycle from the break's fifth bar, so the echoes and the rim are the only pulse; "gap" = and a pull-out (the master drops out) on the break's last half-bar before B slams in  # the room's send raised (dB) through A and B, the echo stream louder against the kick
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 FORM = [("intro", 16), ("build", 16), ("A", 32), ("break", 16), ("B", 32), ("peak", 16), ("outro", 16)]
@@ -201,6 +203,7 @@ def song():
     wet = [(0, -8), (st["A"], up(-6)), (st["A"] + 16, up(-3)), (st["break"], 2), (st["B"], up(-6)), (st["peak"], -2), (st["outro"], 0)]
     dyn = [(0, -6), (st["build"], -3), (st["A"], 0), (st["break"], -7), (st["B"], 0), (st["peak"], 1), (st["outro"], -5)]
     frz = [(0, 0), (st["break"] + 2, 1), (st["break"] + 12, 0)]
+    opn = [(0, -0.8), (st["build"], -0.4), (st["A"], 0), (st["A"] + 16, 0.3), (st["break"], -0.6), (st["B"], 0.2), (st["peak"], 0.6), (st["outro"], -0.3)]
     if PHANTOM == "gap":  # (only with the full phantom)  # the pull-out: the last half-bar of the break goes silent, then B slams in
         dyn = dyn[:]
         gi = [i for i, (bar, _) in enumerate(dyn) if bar == st["B"]][0]
@@ -212,7 +215,9 @@ def song():
                       "play": {"vel_sens": 0.5},
                       "synth": {"layers": ["saw", "saw detune=9", "pulse width=0.35 level=-6dB"],
                                 "env": {"f": {"a": "1ms", "d": "220ms", "s": 0.05, "r": "80ms"}},
-                                "filters": [{"kind": "lp", "cutoff": {"value": 420, "mod": [{"src": "env.f", "amount": 3.2}, {"src": "vel", "amount": 1.2}]}, "q": 2.2}],
+                                "filters": [{"kind": "lp", "cutoff": {"value": 420, "mod": [{"src": "env.f", "amount": 3.2}, {"src": "vel", "amount": 1.2}]
+                                                                    + ([{"src": "lfo.a", "amount": 0.9}, {"src": "lfo.b", "amount": 0.5}, {"src": "auto.open", "amount": 1.0}] if BREATHE else [])},
+                                             "q": ({"value": 3.5, "mod": [{"src": "lfo.c", "amount": 2.5}]} if BREATHE else 2.2)}],
                                 "amp": {"a": "2ms", "d": "300ms", "s": 0, "r": "120ms"}}},
     }
     doc = {
@@ -239,11 +244,13 @@ def song():
         "tracks": [
             {"name": "kit", "patch": "909", "gain": "0dB", "sends": {"rumble": "-4dB"}, "score": sc("kit")},
             {"name": "sub", "patch": "sub-sine", "gain": "-9dB", "fx": [pump(-8)], "score": sc("sub")},
-            {"name": "stab", "patch": "dub-chord", "gain": {"value": "-10dB", "mod": [{"src": "auto.dry", "amount": 1}]}, "pan": -0.1,
+            {"name": "stab", "patch": "dub-chord", "gain": {"value": "-10dB", "mod": [{"src": "auto.dry", "amount": 1}]},
+             "pan": ({"value": -0.1, "mod": [{"src": "lfo.p", "amount": 0.45}]} if BREATHE else -0.1),
+             **({"lfo": {"a": "sine rate=7/1", "b": "tri rate=5/1 phase=0.25", "c": "sine rate=3/1 phase=0.5", "p": "sine rate=5/1 phase=0.75"}} if BREATHE else {}),
              "fx": [pump(-6)], "sends": {"room": {"value": "0dB", "mod": [{"src": "auto.wet", "amount": 1}]}, "wash": "-12dB"},
-             "auto": {"dry": lane(dry), "wet": lane(wet)}, "score": sc("stab")},
+             "auto": {"dry": lane(dry), "wet": lane(wet), **({"open": lane(opn)} if BREATHE else {})}, "score": sc("stab")},
             {"name": "acc", "patch": "haake-hat", "gain": "-2dB", "pan": 0.3, "sends": {"room": "-14dB"}, "score": sc("acc")},
-            {"name": "riser", "patch": "fx-riser-shepard", "gain": "-16dB", "sends": {"wash": "-10dB"}, "score": sc("riser")},
+            *([] if NORISER else [{"name": "riser", "patch": "fx-riser-shepard", "gain": "-16dB", "sends": {"wash": "-10dB"}, "score": sc("riser")}]),
         ],
     }
     return doc
