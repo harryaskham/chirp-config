@@ -315,6 +315,14 @@ def dyn_lane():
     return pts
 
 
+def tb_lane():
+    """The tremolo's band-pass: closed (600 Hz) as Departure's tremolo enters at bar 49, open (~3 kHz) by the peak at
+    bar 64 and open for the Arrival's tremolo."""
+    sec = lambda beats: beats * 60 / BPM
+    pts = [(0, 0.0), (b0(49), 0.0), (b0(57), 0.45), (b0(64), 1.0), (TOTAL, 1.0)]
+    return [[f"{sec(b):.3f}s", v] for b, v in pts]
+
+
 def em_lane():
     """The low-pass closed at Freight's first downbeat (400 Hz), opening over four bars."""
     sec = lambda beats: beats * 60 / BPM
@@ -369,8 +377,9 @@ def main():
                                            "filters": ["lp cutoff=500"]}}},
         "buses": {"hall": {"fx": ["reverb kind=hall decay=4.5s mix=1 predelay=40ms", "hp cutoff=200"]},
                   "station": {"fx": ["reverb kind=hall decay=2.5s mix=0.5 predelay=60ms", "hp cutoff=300", "lp cutoff=4000"]}},
-        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=30", "peak cutoff=350 q=0.8 gain=-1dB",
-                                                    "highshelf cutoff=5000 gain=-4dB"]},   # v2: darker, the low end kept
+        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=30", "lowshelf cutoff=110 gain=4dB",
+                                                    "peak cutoff=350 q=0.8 gain=-1dB", "peak cutoff=1500 q=0.6 gain=-3dB",
+                                                    "highshelf cutoff=5000 gain=-4dB"]},   # v8: heavier and darker
                           # v4: THE TRAIN LEAVES THE TUNNEL: Freight starts behind a closed low-pass that opens over its
                           # first four bars, the riff approaching muffled then bursting into the open
                           {"type": "filter", "kind": "lp",
@@ -401,7 +410,9 @@ def main():
                fx=TUNING, sends={"hall": "-14dB"}),                                  # v5: the radio's words
             tr("gtr1", "starcaster-clean", gain="-8dB", pan=-0.3, sends={"hall": "-10dB"}),
             tr("gtr2", "m8-clean", gain="-10dB", pan=0.3, sends={"hall": "-8dB"}),
-            tr("trem", "m8-clean", gain="-13dB", pan=0.15, sends={"hall": "-6dB"}),
+            tr("trem", "m8-clean", gain="-12dB", pan=0.15, sends={"hall": "-6dB"}, auto={"tb": {"points": tb_lane()}},
+               fx=[{"type": "filter", "kind": "bp", "q": 0.8,      # v8: THE CRESCENDO OPENS: a band-pass rising
+                    "cutoff": {"value": 600, "mod": [{"src": "auto.tb", "amount": 2.3}]}}]),   # 2.3 octaves over 49-64
             tr("frag", "starcaster-clean", gain="-10dB", pan=0.2, sends={"hall": "-2dB"},
                fx=[{"type": "delay", "time": "3/8", "feedback": 0.55, "mix": 0.45}]),
             tr("drone", "c6-drone", gain="-18dB", fx=["hp cutoff=50"], sends={"hall": "-6dB"}, lfo={"df": {"wave": "sine", "rate": "28b"}}),
