@@ -74,3 +74,9 @@ Generator `compose/chirpers6/src/chirpers6-t4.py`. Slowcore waltz into a shoegaz
 - **LIGHTS OUT IN FOUR** (v2): the drowned piano alone with the waltz in G; the clean guitar, fretless and brushes join; the ebow's last line over them (B4 . A4 | G4 . . F#4 G4); the piano and the hum alone as the last lamps go off - the last in the bar before the end, then a 1 s tail.
 - **THE FLICKER**: the wall bus gated to -40 dB on irregular sixteenths, failing more and more (seeded), stuttered, and tape-stopped over its last bar; the hum and the relay come back.
 
+## t2 Every Window (chirper-three)
+Generator `compose/chirpers6/src/chirpers6-t2.py`. Orchestral post-rock, 72 bpm, D major / B minor, ~8.5 min.
+- **THE WINDOW THEME** (8 bars, over Dmaj7 | Bm9 | Gmaj7#11 | A6sus twice): `F#5. E5 D5~ | C#5~~ B4 | D5. C#5 B4~ | A4~~~ | F#5. A5 F#5~ | E5~~ D5 | C#5. B4 G4~ | A4~~~`.
+- **THROUGH EVERY WINDOW**: the piano alone (the hill); celesta with a cello on the roots; a kitchen radio's waltz (a one-two-three lilt over the four, strings band-passed and crushed, crackle); a music box at double speed; a violin alone; the band's lead guitar (the streets); the piano in B MINOR at midnight under a bell striking twelve; the BRASS AUGMENTED (twice as slow) at the summit; the piano alone at dawn, its first phrase only.
+- **THE FAREWELL** (dawn): every two bars one instrument leaves, a window going dark: brass, drums and the fuzz wall, the tremolo, the bass, the contrabass, the strings, the cellos, the violin; the piano last, then the wind.
+
