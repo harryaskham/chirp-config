@@ -132,7 +132,7 @@ CHORD = [(55, "h"), (62, "dq"), (65, "q"), (69, "t")]       # G3 D4 F4 A4: half,
 
 def chord():
     """THE CHORD THAT PLAYS A RHYTHM: held, its four voices beating at four rates. Where it plays."""
-    spans = [(1, 49, 84), (49, 65, 64), (81, 97, 92), (129, 145, 84)]
+    spans = [(1, 17, 84), (17, 49, 52), (49, 65, 52), (81, 97, 70), (129, 145, 84)]   # it hands over to the bass
     for i, (m, rate) in enumerate(CHORD):
         for a, z, v in spans:
             part(f"ch{i}").add(b0(a), b0(z) - b0(a), nm(m), v)
@@ -145,7 +145,7 @@ def drums():
         kick = bar >= 9 and sec != "break" and bar <= 140
         if kick:
             for b in range(4):
-                part("kick").add(b0(bar) + b, 0.5, "kr", 112 if b == 0 else 106)
+                part("kick").add(b0(bar) + b, 0.5, "k", 112 if b == 0 else 106)   # the punchy kick: the throb is the rumble
         if bar >= 25 and sec not in ("break", "intro") and bar <= 136:
             for b in (1, 3):
                 part("clap").add(b0(bar) + b + 0.032, 0.5, "cp", 98 + hand.randint(-4, 4))   # dragged ~15 ms
@@ -161,6 +161,9 @@ def drums():
                     v = (78 if acc else 40) + hand.randint(-6, 6) + (6 if sec in ("drive", "drop") else 0)
                     late = 0.03 if i % 2 else 0.0
                     part("hats").add(b0(bar) + i / 4 + late, 0.2, "h", v)
+        if bar >= 41 and sec in ("groove", "shift", "drive", "drop"):       # THE RIM on the 3-3-2's off accents
+            for i in (3, 6, 11, 14):
+                part("rim").add(b0(bar) + i / 4 + 0.02, 0.2, "rs", 72 + hand.randint(-6, 6))
         if bar >= 33 and sec in ("groove", "shift", "drive", "drop"):
             for b in range(4):
                 part("ohat").add(b0(bar) + b + 0.5, 0.4, "oh", 74 + hand.randint(-4, 4))
@@ -185,12 +188,15 @@ def main():
     chord()
     drums()
     beat_s = 60 / BPM
-    patches = {f"c6-throb-{r}": pair_patch(BASS, RATES[r], fund=0.5) for r in ("h", "q", "t", "e", "s")}  # less 49 Hz
+    patches = {f"c6-throb-{r}": pair_patch(BASS, RATES[r], harmonics=6, tilt=0.8, fund=0.5)    # less 49 Hz; six pairs
+               for r in ("h", "q", "t", "e", "s")}                      # so the throb sounds above the kick's band
     for i, (m, rate) in enumerate(CHORD):
         patches[f"c6-chord-{i}"] = pair_patch(m, RATES[rate], harmonics=3, tilt=1.4, a="400ms", r="2.5s")
     pump = {"type": "pump", "on": "kick", "depth": "-6dB", "attack": "3ms", "release": "300ms", "curve": 0.6}
     tracks = [
-        {"name": "kick", "patch": "machine-kit", "gain": "0dB", "score": part("kick").score()},
+        {"name": "kick", "patch": "machine-kit", "gain": "-1.5dB", "score": part("kick").score()},
+        {"name": "rim", "patch": "machine-kit", "gain": "-10dB", "pan": 0.25, "sends": {"room": "-12dB"},
+         "score": part("rim").score()},
         {"name": "clap", "patch": "machine-kit", "gain": "-5dB", "sends": {"room": "-9dB"}, "score": part("clap").score()},
         {"name": "hats", "patch": "machine-kit", "gain": "-5dB", "lfo": {"hp": {"wave": "sine", "rate": "20b"}},
          "fx": [{"type": "pan", "pan": {"value": 0.05, "mod": [{"src": "lfo.hp", "amount": 0.35}]}}],     # 5 bars
@@ -200,11 +206,11 @@ def main():
     for r in ("h", "q", "t", "e", "s"):
         name = "throb_" + r
         if name in P:
-            tracks.append({"name": name, "patch": f"c6-throb-{r}", "gain": "-7dB",
+            tracks.append({"name": name, "patch": f"c6-throb-{r}", "gain": "-5dB",
                            "lfo": {"bl": {"wave": "sine", "rate": "12b"}},                  # the buzz breathes (3 bars)
                            "fx": [{"type": "filter", "kind": "lp", "q": 1.2,
-                                   "cutoff": {"value": 420, "mod": [{"src": "lfo.bl", "amount": 160}]}},
-                                  {"type": "drive", "drive": 0.25, "mix": 0.4}],
+                                   "cutoff": {"value": 900, "mod": [{"src": "lfo.bl", "amount": 300}]}}],
+                           # (no drive: saturation filled the troughs where the pairs cancel)
                            "score": part(name).score()})
     for i, (m, rate) in enumerate(CHORD):
         tracks.append({"name": f"ch{i}", "patch": f"c6-chord-{i}", "gain": "-9dB", "pan": [-0.3, 0.3, -0.15, 0.15][i],
@@ -225,7 +231,7 @@ def main():
                                                     "peak cutoff=320 q=0.8 gain=-2dB", "peak cutoff=2500 q=0.7 gain=2dB",
                                                     "highshelf cutoff=5000 gain=5dB"]},
                           {"type": "gain", "gain": "+18dB"},
-                          {"type": "compressor", "threshold": "-14dB", "ratio": 3, "attack": "12ms", "release": "140ms",
+                          {"type": "compressor", "threshold": "-11dB", "ratio": 3, "attack": "25ms", "release": "140ms",
                            "makeup": "2dB"},
                           {"type": "drive", "drive": 0.4, "mix": 0.35},
                           {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}},
