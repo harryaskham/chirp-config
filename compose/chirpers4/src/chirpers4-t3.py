@@ -12,7 +12,8 @@ The answer to Where Is the One (t9): there the one gets lost; here it is found.
   one leaves again.
 - THE FILTERED START: the intro plays through a master low-pass that opens from 400 Hz into the first groove; the
   beat before the drop is silence (v2).
-- In the peak a reese rolls off-beat sixteenths on A1.
+- In the peak's second half a reese rolls off-beat sixteenths on A1; the peak's home stab and its answer a minor
+  third up alternate bar by bar (v3: less piled up).
 - The bass is RUMBLE: the kick fed through a dark hall, low-passed, driven and pumped (Berlin warehouse low end).
 
 Form: intro, A (the displaced groove), break (the voice), drop (home), peak (voice and ride), outro (it slips).
@@ -86,7 +87,7 @@ def build():
         if s in ('drop', 'peak') and i % 8 == 0:
             kit.append((t0, 'c', 0.25, 110))
         # THE PEAK'S REESE: off-beat sixteenths rolling on A1, the octave on the and-of-4
-        if s == 'peak':
+        if s == 'peak' and i >= 16:          # (v3) the reese waits for the peak's second half
             for q in (2, 3, 6, 7, 10, 11, 14, 15):
                 reese.append((t0 + q * 0.25, nm(45 if q == 14 else 33), 0.22, 100 if q % 4 == 2 else 84))
         # the voice: "one" on the true downbeats - every bar in the break, every four bars in the peak
@@ -100,7 +101,9 @@ def build():
             for x in (0.5, 2.5):
                 hoov.append((t0 + x, ','.join(nm(m) for m in HOOVER), 0.2, 84 + i))
         if s in ('drop', 'peak'):
-            hoov.append((t0, ','.join(nm(m) for m in HOOVER), 0.45, 118))
+            # (v3) in the peak the home stab and its answer alternate bar by bar instead of piling up
+            if s == 'drop' or i % 2 == 0:
+                hoov.append((t0, ','.join(nm(m) for m in HOOVER), 0.45, 118))
             if s == 'peak' and i % 2 == 1:
                 hoov.append((t0 + 2.5, ','.join(nm(m + 3) for m in HOOVER), 0.4, 100))
     end_s = total * SPB
