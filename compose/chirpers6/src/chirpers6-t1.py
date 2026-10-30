@@ -65,6 +65,14 @@ class Track:
         return " ".join(toks)
 
 
+# Round 2 (v2): X = THE TREMOLO IN TRIPLETS: the climb's and the peak's tremolo guitars pick in sextuplets (six to the
+# beat), so the whole climb lives in the triplet feel its theme set up; S = THE FALSE SUMMIT: at the end of the climb's
+# second phase the band cuts away for four bars, strings alone and the radio cutting through ("Keep your radio on."),
+# then the climb resumes harder; F = THE LIGHTS FLICKER: half-way through the peak the wall and the kit drop out for
+# eight bars: a half-time kick and the sub, the mains HUM swelling and RELAY CLICKS, as if the town's lights were
+# failing; then the peak returns with a choir singing the theme at half speed against the lead; B = THE BEACON: the
+# mast's red light, a slow ping every two bars, in the carrier and in the coda.
+R2 = set(filter(None, os.environ.get("T1_R2", "X,S,F,B").split(","))) - {"none"}
 # movements, in bars of 4/4 at 140 bpm
 FORM = [("carrier", 48), ("brushes", 64), ("snowfall", 32), ("climb", 64), ("climb-e", 24), ("lights", 56),
         ("still", 40)]
@@ -90,7 +98,7 @@ SPEECH_3 = [["ao1-l", "dh-ah0", "l-ay1-t-s", "aa1-r", "l-eh1-f-t", "aa1-n"]]
 def build():
     rng = random.Random(1)
     wrng = random.Random(11)
-    names = ["g1", "g2", "lead", "wall", "bass", "sub", "brush", "kit", "strings", "violin", "cello", "celesta",
+    names = ["choir", "hum", "relay", "beacon", "g1", "g2", "lead", "wall", "bass", "sub", "brush", "kit", "strings", "violin", "cello", "celesta",
              "glock", "piano", "radio", "radio2", "static", "whistle", "wind"]
     Tr = {k: Track(k) for k in names}
     bars, pos = [], 0.0
@@ -183,17 +191,25 @@ def build():
                     Tr["violin"].add(t0, d * 0.98, nm(m), 70 + int(20 * prog))
                     t0 += d
             # the bass drives eighths; the sub on the roots
-            for k in range(8):
+            for k in range(8 if not ("S" in R2 and cphase == 1 and i >= 44) else 0):
                 Tr["bass"].add(start + 0.5 * k, 0.45, nm(root), 70 + int(30 * prog) - (8 if k % 2 else 0))
-            if ci >= 48:
+            if ci >= 48 and not ("S" in R2 and cphase == 1 and i >= 44):
                 Tr["sub"].add(start, 3.9, nm(root - 12 if root >= 36 else root), 80 + int(20 * prog))
             # tremolo guitars on the top two chord tones, sixteenths, louder as it climbs
             top = sorted(voic)[-2:]
-            for s in range(16):
-                m = top[(s // 4) % 2] + 12
-                Tr["g1"].add(start + 0.25 * s, 0.24, nm(m), 50 + int(50 * prog) + (6 if s % 4 == 0 else 0))
+            summit = "S" in R2 and cphase == 1 and i >= 44  # the false summit: the band cuts away
+            if summit and i == 44:
+                speak(Tr["radio"], start + 1.0, [SPEECH_1[2]])
+            if "X" in R2:
+                for s in range(24 if not summit else 0):
+                    m = top[(s // 6) % 2] + 12
+                    Tr["g1"].add(start + s / 6, 1 / 6 * 0.95, nm(m), 50 + int(50 * prog) + (6 if s % 6 == 0 else 0))
+            else:
+                for s in range(16):
+                    m = top[(s // 4) % 2] + 12
+                    Tr["g1"].add(start + 0.25 * s, 0.24, nm(m), 50 + int(50 * prog) + (6 if s % 4 == 0 else 0))
             # T in triplets on the second guitar: each beat three notes of the theme's cycle
-            if ci >= 8:
+            if ci >= 8 and not ("S" in R2 and cphase == 1 and i >= 44):
                 seq = [m for m, d in T]
                 for b in range(4):
                     for k in range(3):
@@ -203,7 +219,9 @@ def build():
             if i % 2 == 0:
                 Tr["strings"].add(start, 7.8, ",".join(nm(x) for x in voic), 46 + int(50 * prog))
             # drums: toms under mallets, then sticks, then the full kit (12/8 feel)
-            if ci < 24:
+            if "S" in R2 and cphase == 1 and i >= 44:
+                pass  # the false summit: no drums
+            elif ci < 24:
                 for b in range(4):
                     Tr["kit"].add(start + b, 0.5, "ft", 40 + ci + (8 if b == 0 else 0))
                     Tr["kit"].add(start + b + 2 / 3, 0.3, "t1", 30 + ci)
@@ -233,12 +251,30 @@ def build():
         # ---------------- V THE LIGHTS ----------------
         elif sec == "lights":
             root, voic = LIGHTS[(i // 2) % 4]
+            flicker = "F" in R2 and 28 <= i < 36
+            if flicker:  # the lights flicker: a half-time skeleton, the mains hum, relays
+                Tr["kit"].add(start, 0.5, "k", 100)
+                Tr["kit"].add(start + 2.0, 0.5, "ss", 70)
+                Tr["sub"].add(start, 3.9, nm(root - 12 if root >= 36 else root), 96)
+                if i == 28:
+                    Tr["hum"].add(start, 31.8, "A1", 90)
+                for _ in range(rng.randint(2, 6)):
+                    Tr["relay"].add(start + round(rng.uniform(0, 3.9) * 4) / 4, 0.1, "C4", rng.randint(60, 110))
+                if i == 28:
+                    theme(Tr["glock"], start + 4.0, 3.0, 26, 60)  # the theme, slowed, far off
+                continue
+            if "F" in R2 and i in (36, 46):  # the return: a choir sings the theme at half speed against the lead
+                theme(Tr["choir"], start, 2.0, 2 - 12, 92)
             for k in range(8):
                 Tr["bass"].add(start + 0.5 * k, 0.45, nm(root), 104 - (8 if k % 2 else 0))
             Tr["sub"].add(start, 3.9, nm(root - 12 if root >= 36 else root), 104)
             top = sorted(voic)[-3:]
-            for s in range(16):  # the wall: tremolo on three chord tones
-                Tr["g1"].add(start + 0.25 * s, 0.24, nm(top[(s // 2) % 3] + 12), 100 + (8 if s % 4 == 0 else 0))
+            if "X" in R2:  # the wall: tremolo on three chord tones, in sextuplets
+                for s in range(24):
+                    Tr["g1"].add(start + s / 6, 1 / 6 * 0.95, nm(top[(s // 3) % 3] + 12), 100 + (8 if s % 6 == 0 else 0))
+            else:
+                for s in range(16):  # the wall: tremolo on three chord tones
+                    Tr["g1"].add(start + 0.25 * s, 0.24, nm(top[(s // 2) % 3] + 12), 100 + (8 if s % 4 == 0 else 0))
             if i % 2 == 0:
                 Tr["wall"].add(start, 7.8, ",".join(nm(x) for x in (root, root + 7, root + 12)), 96)
                 Tr["strings"].add(start, 7.8, ",".join(nm(x) for x in voic), 100)
@@ -274,6 +310,8 @@ def build():
                 speak(Tr["radio2"], start, SPEECH_3, slow=1.6, base="F2")
             if i == 34:
                 Tr["whistle"].add(start, 8.0, "C5", 60)
+        if "B" in R2 and sec in ("carrier", "still") and i % 2 == 0:  # the mast's red light
+            Tr["beacon"].add(start + 0.02, 1.5, "A5", 60)
         # ---------------- the field: static and wind, thinning as the band plays ----------------
         quiet = sec in ("carrier", "snowfall", "still")
         for _ in range(wrng.randint(10, 18) if quiet else wrng.randint(0, 2)):
@@ -288,7 +326,22 @@ def build():
 
 
 def patches():
-    return {
+    extra = {
+        "c2-mains-hum": {"about": "chirper-two: mains hum, a buzzing 55 Hz saw and its harmonics swelling and wavering.",
+                         "synth": {"layers": [{"wave": "saw"}, {"wave": "square", "ratio": 2, "level": "-8dB"}],
+                                   "filters": ["lp cutoff=900", "hp cutoff=40"],
+                                   "lfo": {"waver": {"wave": "sine", "rate": "0.7hz"}},
+                                   "amp": {"a": "4s", "d": "1s", "s": 0.9, "r": "800ms"}}},
+        "c2-relay": {"about": "chirper-two: a relay clicking: a 1 ms metallic tick and its bounce.",
+                     "synth": {"layers": [{"type": "noise"}, {"type": "additive", "partials": [[1, 1], [2.7, 0.5]],
+                                                              "level": "-10dB"}],
+                               "filters": ["hp cutoff=1500"], "amp": {"a": "0.1ms", "d": "6ms", "s": 0, "r": "4ms"}},
+                     "play": {"vel_sens": 1.0}},
+        "c2-beacon": {"about": "chirper-two: the mast's red light as a sound: a soft sine ping with a long tail.",
+                      "synth": {"layers": [{"wave": "sine"}, {"wave": "sine", "ratio": 2.01, "level": "-14dB"}],
+                                "amp": {"a": "3ms", "d": "1.4s", "s": 0, "r": "300ms", "curve": 2}}},
+    } if R2 else {}
+    return {**extra,
         "c2-static": {"about": "chirper-two: shortwave static, a 4 ms noise tick band-passed like a radio.",
                       "synth": {"layers": [{"type": "noise"}], "filters": ["hp cutoff=900", "lp cutoff=4500"],
                                 "amp": {"a": "0.2ms", "d": "4ms", "s": 0, "r": "3ms"}}, "play": {"vel_sens": 1.0}},
@@ -348,6 +401,15 @@ def main():
          "fx": ["reverb kind=hall decay=3s mix=0.35"], "score": Tr["glock"].score(total)},
         {"name": "piano", "patch": "piano", "gain": "-6dB", "fx": ["reverb kind=hall decay=3.5s mix=0.3"],
          "score": Tr["piano"].score(total)},
+        *([{"name": "choir", "patch": "choir", "gain": "-10dB", "fx": ["reverb kind=hall decay=4s mix=0.3"],
+             "score": Tr["choir"].score(total)},
+           {"name": "hum", "patch": "c2-mains-hum", "gain": "-18dB", "fx": [{"type": "tremolo", "rate": 6.0, "depth": 0.3}],
+            "score": Tr["hum"].score(total)},
+           {"name": "relay", "patch": "c2-relay", "gain": "-14dB", "pan": 0.3,
+            "fx": ["reverb kind=room decay=0.6s mix=0.25"], "score": Tr["relay"].score(total)},
+           {"name": "beacon", "patch": "c2-beacon", "gain": "-20dB", "pan": 0.4,
+            "fx": [{"type": "delay", "time": "3/4", "feedback": 0.3, "mix": 0.3, "tone": 2500},
+                   "reverb kind=hall decay=5s mix=0.5"], "score": Tr["beacon"].score(total)}] if R2 else []),
         {"name": "radio", "patch": "voice-speech", "gain": "-4dB", "pan": -0.1, "fx": radio_fx,
          "score": Tr["radio"].score(total)},
         {"name": "radio-late", "patch": "voice-speech", "gain": "-5dB", "pan": 0.1,
