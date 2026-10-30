@@ -10,7 +10,7 @@ I.   LOBBY (5/4, 16 bars): a clock ticks; the lift chimes (two celesta notes) an
 II.  INTERLOCK (7/8, 64 bars): a second guitar enters in 4/4 phrases against the first's 7/8 - the two realign only
      every seven bars; bass and a drummer accenting the 2+2+3; the lift voice calls floors between phrases.
 III. STAIRWELL (6/8, 32 bars, quiet): the drums leave; celesta and a cello play THE FIGURE slowed into compound time,
-     the clock ticking under it; "doors closing."
+     the clock ticking under it; "doors closing." In its second half someone on the stairs hums THE FIGURE (v5).
 IV.  ATRIUM (5/4, 32 bars): the lobby again, changed - both guitars, the bass, a soft ride, the celesta answering;
      the lift goes up again.
 V.   MACHINE (7/8 -> 4/4, 64 bars): two chug rigs take the interlock riff in 7/8, the full kit, a fuzz bass; the last
@@ -73,7 +73,7 @@ def build():
     for b in bars:
         secs.setdefault(b['sec'], b['t'])
     T = {k: [] for k in ('clock', 'chime', 'lift', 'gtr1', 'gtr2', 'bass', 'kit', 'celesta', 'cello', 'chugl', 'chugr',
-                         'fuzz', 'trem', 'strings', 'ebow', 'wind', 'sub', 'ring', 'copier', 'phone', 'unison')}
+                         'fuzz', 'trem', 'strings', 'ebow', 'wind', 'sub', 'ring', 'copier', 'phone', 'unison', 'hum')}
     g2 = 0.0     # the second guitar's own 4/4 clock (it ignores the bar lines)
     for k, b in enumerate(bars):
         s, t0, i, bl = b['sec'], b['t'], b['i'], b['bl']
@@ -145,9 +145,15 @@ def build():
         # III: celesta and cello play THE FIGURE in 6/8 (dotted quarters and eighths)
         if s == 'stair':
             for e, q in enumerate((0.0, 1.0, 1.5, 2.0, 2.5)):
-                T['celesta'].append((t0 + q, nm(FIGURE[(i * 5 + e) % 7] + 12), 0.9, 70))
+                if i < 16:   # (v5) the celesta hands THE FIGURE to the humming voice halfway down the stairs
+                    T['celesta'].append((t0 + q, nm(FIGURE[(i * 5 + e) % 7] + 12), 0.9, 70))
             if i % 2 == 0:
                 T['cello'].append((t0, nm(root - 12), 5.9, 72))
+            # (v5) THE CLEANER HUMS: in the stairwell's second half someone on the stairs hums THE FIGURE to herself,
+            # slowly (a note a dotted quarter), wordless and low - the building's one human voice that isn't the lift
+            if i >= 16:
+                for e, q in enumerate((0.0, 1.5)):
+                    T['hum'].append((t0 + q, nm(FIGURE[(i * 2 + e) % 7] - 12) + '^u', 1.4, 78))
         # IV: the chug rigs take the interlock riff (root and fifth on the 2+2+3)
         if s == 'machine' and i >= 16:
             five = f"{nm(root)},{nm(root + 7)},{nm(root + 12)}"
@@ -236,6 +242,7 @@ def build():
             tr('ring', 'clean-chorus', '-11dB', sends={'hall': '-6dB', 'echo': '-12dB'}),
             tr('ebow', 'ebow', '-9dB', sends={'hall': '-6dB'}),
             tr('wind', 'fx-wind', '-14dB'),
+            tr('hum', 'voice', '-10dB', fx=[{'type': 'pitch', 'semitones': 0, 'formant': -2}], sends={'hall': '-6dB'}),
             tr('unison', 'clean-chorus', '-5dB', sends={'echo': '-8dB', 'hall': '-8dB'}),
             tr('copier', 'fx-sweep', '-18dB', fx=['hp cutoff=600', 'lp cutoff=5000'], sends={'hall': '-10dB'}),
             tr('phone', {'synth': {'layers': [{'type': 'osc', 'wave': 'sine'}, {'type': 'osc', 'wave': 'square', 'level': 0.15}],
