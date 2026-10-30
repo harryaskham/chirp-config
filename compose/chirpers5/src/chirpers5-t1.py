@@ -31,7 +31,7 @@ SECTIONS = [("intro", 1, 16), ("build", 17, 32), ("drop", 33, 64), ("break", 65,
             ("outro", 113, 128)]
 BARS = SECTIONS[-1][2]
 TOTAL = BARS * BAR
-SW = 0.075                                   # garage swing: the off sixteenths this many beats late
+SW = 0.085                                   # garage swing: the off sixteenths this many beats late (~29 ms, v6)
 
 
 def nm(m):
@@ -109,6 +109,9 @@ def drums():
             if full:
                 for s in (4, 12):
                     part("snare").add(x16(bar, s) + 0.01, 0.5, "s", 104 + hand.randint(-4, 4))
+                if sec in ("drop", "drop2"):
+                    for s in (7, 14):                                     # THE RIM (v6): a swung rimshot on the
+                        part("rim").add(x16(bar, s), 0.25, "rs", 80 + hand.randint(-6, 4))   # off-sixteenths
                 for s in (3, 9, 14):                                      # ghosts on the off-sixteenths (v3)
                     if hand.random() < 0.6:
                         part("snare").add(x16(bar, s), 0.25, "s", 40 + hand.randint(-6, 8))
@@ -242,6 +245,7 @@ def main():
             tr("kick", "tight-kit", gain="-4dB", out="drums"),
             tr("snare", "tight-kit", gain="-6dB", out="drums", sends={"space": "-14dB"}),
             tr("hats", "tight-kit", gain="-13dB", pan=0.15, out="drums"),
+            tr("rim", "tight-kit", gain="-9dB", pan=-0.2, out="drums", sends={"space": "-16dB"}),   # v6: the swing, heard
             tr("amen", "amen-chops", gain="-13dB", out="drums", fx=["hp cutoff=500", pump]),
             tr("sub", "808", gain="-4dB", fx=[{"type": "drive", "drive": 0.2, "mix": 0.4}, pump]),   # warmer, heard
             tr("reese", "reese", gain="-16dB", fx=["lp cutoff=700", pump]),
