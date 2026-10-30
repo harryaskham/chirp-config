@@ -6869,7 +6869,7 @@
     {
       "id": "chirpers6-t5",
       "song": "songs/chirpers6-t5.yaml",
-      "reference": "Chirpers — Track 5 (untitled)",
+      "reference": "Chirpers — Leave the Lights On",
       "source": null,
       "owner": "chirper-one",
       "metric": "python3 tools/compscore.py chirpers6-t5 OUT.wav",
@@ -6889,7 +6889,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "All the Lights Left On",
-        "title": "Track 5 (untitled)",
+        "title": "Leave the Lights On",
         "track": 5,
         "year": 2026
       },
