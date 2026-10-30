@@ -6145,7 +6145,14 @@
         "score": 96.24,
         "version": "v3",
         "commit": "see git log songs/chirpers4-t5.yaml",
-        "engine": "b93526ee"
+        "engine": "b93526ee",
+        "stale": {
+          "score": 96.24,
+          "since": "2026-10-30T09:22:13Z",
+          "who": "chirper-three",
+          "rating": 8.5,
+          "version": "v3"
+        }
       },
       "passes": 1,
       "enabled": true,
