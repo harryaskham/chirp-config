@@ -19,7 +19,8 @@ FORM (144 bars, 130 bpm, ~4:26):
   intro  1-16   the chord alone (its own polyrhythm), the hats (5), the kick (9)
   groove 17-48  the throb bass in quarters, breathing against the kick; the clap (25), open hats (33)
   shift  49-64  the same held bass throbs in TRIPLETS: three against the kick's four, by interference
-  drive  65-80  the throb in eighths
+  drift  65-80  (since v4) THE DRIFT: the throb's rate is 17/16 of the tempo, so the pulse slides against the kick and
+                comes round again every four bars (chirper-one's idea: the beating going off the grid)
   break  81-96  no kick: the throb steps up every four bars, quarters, triplets, eighths, sixteenths: an acceleration
                 made of interference, under the chord
   drop   97-128 the kick back, the throb in quarters, then eighths for the peak
@@ -36,7 +37,7 @@ BEAT_HZ = BPM / 60.0
 BAR = 4.0
 NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"]
 
-SECTIONS = [("intro", 1, 16), ("groove", 17, 48), ("shift", 49, 64), ("drive", 65, 80), ("break", 81, 96),
+SECTIONS = [("intro", 1, 16), ("groove", 17, 48), ("shift", 49, 64), ("drift", 65, 80), ("break", 81, 96),
             ("drop", 97, 128), ("outro", 129, 144)]
 BARS = SECTIONS[-1][2]
 TOTAL = BARS * BAR
@@ -86,7 +87,9 @@ class Part:
 
 
 # throb rates as multiples of the beat: half notes, dotted quarters, quarters, triplets, eighths, sixteenths
-RATES = {"h": 0.5, "dq": 2 / 3, "q": 1.0, "t": 1.5, "e": 2.0, "s": 4.0}
+RATES = {"h": 0.5, "dq": 2 / 3, "q": 1.0, "t": 1.5, "e": 2.0, "s": 4.0, "d": 17 / 16}
+# "d", THE DRIFT (v4, after chirper-one's note): a beat rate that is NOT the tempo's: the pulse slides off the off-beat,
+# through the kick and back once every sixteen beats - the locked illusion unlocking, then snapping back
 BASS = 31                                    # G1
 
 
@@ -111,7 +114,7 @@ def part(name):
 
 def throb_plan():
     """(start bar, end bar, rate) for the throb bass."""
-    plan = [(17, 49, "q"), (49, 65, "t"), (65, 81, "e"),
+    plan = [(17, 49, "q"), (49, 65, "t"), (65, 81, "d"),
             (81, 85, "q"), (85, 89, "t"), (89, 93, "e"), (93, 97, "s"),
             (97, 113, "q"), (113, 129, "e"), (129, 137, "h")]
     return plan
@@ -159,18 +162,18 @@ def drums():
                 # rest ghosts, a hand on them (the e and a pushed late)
                 for i in range(16):
                     acc = i in (0, 3, 6, 8, 11, 14)
-                    v = (78 if acc else 40) + hand.randint(-6, 6) + (6 if sec in ("drive", "drop") else 0)
+                    v = (78 if acc else 40) + hand.randint(-6, 6) + (6 if sec in ("drift", "drop") else 0)
                     late = 0.03 if i % 2 else 0.0
                     part("hats").add(b0(bar) + i / 4 + late, 0.2, "h", v)
-        if bar >= 41 and sec in ("groove", "shift", "drive", "drop"):       # THE RIM on the 3-3-2's off accents
+        if bar >= 41 and sec in ("groove", "shift", "drift", "drop"):       # THE RIM on the 3-3-2's off accents
             for i in (3, 6, 11, 14):
                 part("rim").add(b0(bar) + i / 4 + 0.02, 0.2, "rs", 72 + hand.randint(-6, 6))
-        if bar >= 33 and sec in ("groove", "shift", "drive", "drop"):
+        if bar >= 33 and sec in ("groove", "shift", "drift", "drop"):
             for b in range(4):
                 part("ohat").add(b0(bar) + b + 0.5, 0.4, "oh", 74 + hand.randint(-4, 4))
 
 
-LEVEL = {"intro": -3, "groove": -1, "shift": -1, "drive": 0, "break": -9, "drop": 0, "outro": -6}
+LEVEL = {"intro": -3, "groove": -1, "shift": -1, "drift": 0, "break": -9, "drop": 0, "outro": -6}
 
 
 def dyn_lane():
@@ -190,7 +193,7 @@ def main():
     drums()
     beat_s = 60 / BPM
     patches = {f"c6-throb-{r}": pair_patch(BASS, RATES[r], harmonics=6, tilt=0.8, fund=0.5, cluster=3)  # a PULSE
-               for r in ("h", "q", "t", "e", "s")}                      # so the throb sounds above the kick's band
+               for r in ("h", "q", "t", "e", "s", "d")}                 # so the throb sounds above the kick's band
     for i, (m, rate) in enumerate(CHORD):
         patches[f"c6-chord-{i}"] = pair_patch(m, RATES[rate], harmonics=3, tilt=1.4, a="400ms", r="2.5s")
     pump = {"type": "pump", "on": "kick", "depth": "-6dB", "attack": "3ms", "release": "300ms", "curve": 0.6}
@@ -204,13 +207,14 @@ def main():
          "score": part("hats").score()},
         {"name": "ohat", "patch": "machine-kit", "gain": "-8dB", "pan": -0.1, "score": part("ohat").score()},
     ]
-    for r in ("h", "q", "t", "e", "s"):
+    for r in ("h", "q", "t", "e", "s", "d"):
         name = "throb_" + r
         if name in P:
             tracks.append({"name": name, "patch": f"c6-throb-{r}", "gain": "-5dB",
                            "lfo": {"bl": {"wave": "sine", "rate": "12b"}},                  # the buzz breathes (3 bars)
                            "fx": [{"type": "filter", "kind": "lp", "q": 1.2,
-                                   "cutoff": {"value": 900, "mod": [{"src": "lfo.bl", "amount": 300}]}}],
+                                   "cutoff": {"value": 1800 if r == "d" else 900,      # the drift is brighter
+                                              "mod": [{"src": "lfo.bl", "amount": 300}]}}],
                            # (no drive: saturation filled the troughs where the pairs cancel)
                            "score": part(name).score()})
     for i, (m, rate) in enumerate(CHORD):
