@@ -118,7 +118,8 @@
         1200
       ],
       "brief": "Closes the album. Style, form, tempo and line-up are yours: declare them in compose/chirpers6/styles.md, different from the tracks already claimed.",
-      "id": "chirpers6-t8"
+      "id": "chirpers6-t8",
+      "title": "Sign-off"
     }
   ],
   "named_by": "harry@pocket4-nixos",

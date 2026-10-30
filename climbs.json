@@ -6997,7 +6997,7 @@
     {
       "id": "chirpers6-t8",
       "song": "songs/chirpers6-t8.yaml",
-      "reference": "Chirpers — Track 8 (untitled)",
+      "reference": "Chirpers — Sign-off",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers6-t8 OUT.wav",
@@ -7013,7 +7013,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "All the Lights Left On",
-        "title": "Track 8 (untitled)",
+        "title": "Sign-off",
         "track": 8,
         "year": 2026
       },
