@@ -6739,6 +6739,238 @@
         "at": "2026-10-30T16:24:12Z",
         "who": "chirper-zero"
       }
+    },
+    {
+      "id": "chirpers6-t1",
+      "song": "songs/chirpers6-t1.yaml",
+      "reference": "Chirpers — Track 1 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers6-t1 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "post-rock / post-metal",
+      "mode": "compose",
+      "album": "chirpers6",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers VI (untitled)",
+        "title": "Track 1 (untitled)",
+        "track": 1,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-30T16:52:03Z",
+        "note": "COMPOSE (opener, 300-840 s): Opens the album. Style, form, tempo and line-up are yours: declare them in compose/chirpers6/styles.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers6-t2",
+      "song": "songs/chirpers6-t2.yaml",
+      "reference": "Chirpers — Track 2 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers6-t2 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "post-rock / post-metal",
+      "mode": "compose",
+      "album": "chirpers6",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers VI (untitled)",
+        "title": "Track 2 (untitled)",
+        "track": 2,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-30T16:52:03Z",
+        "note": "COMPOSE (song, 420-1080 s): Style, form, tempo and line-up are yours: declare them in compose/chirpers6/styles.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers6-t3",
+      "song": "songs/chirpers6-t3.yaml",
+      "reference": "Chirpers — Track 3 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers6-t3 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "post-rock / post-metal",
+      "mode": "compose",
+      "album": "chirpers6",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers VI (untitled)",
+        "title": "Track 3 (untitled)",
+        "track": 3,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-30T16:52:03Z",
+        "note": "COMPOSE (song, 420-1080 s): Style, form, tempo and line-up are yours: declare them in compose/chirpers6/styles.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers6-t4",
+      "song": "songs/chirpers6-t4.yaml",
+      "reference": "Chirpers — Track 4 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers6-t4 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "post-rock / post-metal",
+      "mode": "compose",
+      "album": "chirpers6",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers VI (untitled)",
+        "title": "Track 4 (untitled)",
+        "track": 4,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-30T16:52:03Z",
+        "note": "COMPOSE (song, 420-1080 s): Style, form, tempo and line-up are yours: declare them in compose/chirpers6/styles.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers6-t5",
+      "song": "songs/chirpers6-t5.yaml",
+      "reference": "Chirpers — Track 5 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers6-t5 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "post-rock / post-metal",
+      "mode": "compose",
+      "album": "chirpers6",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers VI (untitled)",
+        "title": "Track 5 (untitled)",
+        "track": 5,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-30T16:52:03Z",
+        "note": "COMPOSE (song, 420-1080 s): Style, form, tempo and line-up are yours: declare them in compose/chirpers6/styles.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers6-t6",
+      "song": "songs/chirpers6-t6.yaml",
+      "reference": "Chirpers — Track 6 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers6-t6 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "post-rock / post-metal",
+      "mode": "compose",
+      "album": "chirpers6",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers VI (untitled)",
+        "title": "Track 6 (untitled)",
+        "track": 6,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-30T16:52:03Z",
+        "note": "COMPOSE (song, 420-1080 s): Style, form, tempo and line-up are yours: declare them in compose/chirpers6/styles.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers6-t7",
+      "song": "songs/chirpers6-t7.yaml",
+      "reference": "Chirpers — Track 7 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers6-t7 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "post-rock / post-metal",
+      "mode": "compose",
+      "album": "chirpers6",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers VI (untitled)",
+        "title": "Track 7 (untitled)",
+        "track": 7,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-30T16:52:03Z",
+        "note": "COMPOSE (song, 420-1080 s): Style, form, tempo and line-up are yours: declare them in compose/chirpers6/styles.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers6-t8",
+      "song": "songs/chirpers6-t8.yaml",
+      "reference": "Chirpers — Track 8 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers6-t8 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "post-rock / post-metal",
+      "mode": "compose",
+      "album": "chirpers6",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers VI (untitled)",
+        "title": "Track 8 (untitled)",
+        "track": 8,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-30T16:52:03Z",
+        "note": "COMPOSE (closer, 480-1200 s): Closes the album. Style, form, tempo and line-up are yours: declare them in compose/chirpers6/styles.md, different from the tracks already claimed."
+      }
     }
   ],
   "focus": "Soft Concrete"

@@ -1,0 +1,119 @@
+{
+  "id": "chirpers6",
+  "artist": "Chirpers",
+  "album": "Chirpers VI (untitled)",
+  "named": false,
+  "year": 2026,
+  "genre": "post-rock / post-metal",
+  "brief": "The chirpers' sixth album (Harry, 30 Oct): in Harry's words, 'a post-rock/post-metal Explosions in the Sky, Russian Circles, Godspeed You! Black Emperor type album, chirpers' choice: long evolving tracks with lots and lots of variety, synth'd sound effects and speech, basically not just repetition to make it long but actual true variety'. Think long forms built from real development: movements, transformations, contrasting sections, interludes, crescendos that earn their peak, and heaviness that arrives as a destination. Voices and found sound are part of the music: synthesised speech (monologues, radio voices, announcements), field textures (rain, wind, trains, crowds, static), all built in chirp. Everything else is the chirpers' choice: the name, the titles, each track's form, tempo and sound. Declare your track's style in compose/chirpers6/styles.md when you claim it, so the eight stay distinct. The sound bank is compose/chirpers6/sounds.md; the earlier albums' banks are yours to borrow. Never copy or closely imitate an existing piece.",
+  "palette": "Guitars: the DI string, amp rigs and cabs from Ferrous Bloom, tremolo picking, delay walls, swells. Bass: bass-di, fretless, synth subs, phantom. Drums: the physical drum layer (brushes to full kit), metal kits, machine-kit. Strings, keys and colour: strings, piano-wash, glockenspiel-like mallets, epiano-tine, pads, shepard layers. Voice and sound effects: the voice engine (speech), formant pitch, crowd, noise beds, cloud, tapestop, chop, feedback rooms, reverb freeze/shimmer, risset. Plus anything you build.",
+  "art_brief": "Post-rock sleeve: a grainy, sun-bleached film photograph of a vast empty landscape at the edge of something enormous, a lone pylon or rail line under a huge sky, dust and light, muted earth tones.",
+  "bleed": false,
+  "genre_refs": [
+    "pneuma",
+    "the-woven-web",
+    "thin-thing",
+    "pyramid-song",
+    "exit-music-for-a-film",
+    "climbing-up-the-walls",
+    "paranoid-android",
+    "the-tourist",
+    "lucky"
+  ],
+  "master": {
+    "rms": [
+      -21.0,
+      -11.0
+    ],
+    "peak_max": 0.0,
+    "crest": [
+      9.0,
+      18.0
+    ]
+  },
+  "weights": {
+    "flow": 0.02
+  },
+  "tracks": [
+    {
+      "n": 1,
+      "role": "opener",
+      "length": [
+        300,
+        840
+      ],
+      "brief": "Opens the album. Style, form, tempo and line-up are yours: declare them in compose/chirpers6/styles.md, different from the tracks already claimed.",
+      "id": "chirpers6-t1"
+    },
+    {
+      "n": 2,
+      "role": "song",
+      "length": [
+        420,
+        1080
+      ],
+      "brief": "Style, form, tempo and line-up are yours: declare them in compose/chirpers6/styles.md, different from the tracks already claimed.",
+      "id": "chirpers6-t2"
+    },
+    {
+      "n": 3,
+      "role": "song",
+      "length": [
+        420,
+        1080
+      ],
+      "brief": "Style, form, tempo and line-up are yours: declare them in compose/chirpers6/styles.md, different from the tracks already claimed.",
+      "id": "chirpers6-t3"
+    },
+    {
+      "n": 4,
+      "role": "song",
+      "length": [
+        420,
+        1080
+      ],
+      "brief": "Style, form, tempo and line-up are yours: declare them in compose/chirpers6/styles.md, different from the tracks already claimed.",
+      "id": "chirpers6-t4"
+    },
+    {
+      "n": 5,
+      "role": "song",
+      "length": [
+        420,
+        1080
+      ],
+      "brief": "Style, form, tempo and line-up are yours: declare them in compose/chirpers6/styles.md, different from the tracks already claimed.",
+      "id": "chirpers6-t5"
+    },
+    {
+      "n": 6,
+      "role": "song",
+      "length": [
+        420,
+        1080
+      ],
+      "brief": "Style, form, tempo and line-up are yours: declare them in compose/chirpers6/styles.md, different from the tracks already claimed.",
+      "id": "chirpers6-t6"
+    },
+    {
+      "n": 7,
+      "role": "song",
+      "length": [
+        420,
+        1080
+      ],
+      "brief": "Style, form, tempo and line-up are yours: declare them in compose/chirpers6/styles.md, different from the tracks already claimed.",
+      "id": "chirpers6-t7"
+    },
+    {
+      "n": 8,
+      "role": "closer",
+      "length": [
+        480,
+        1200
+      ],
+      "brief": "Closes the album. Style, form, tempo and line-up are yours: declare them in compose/chirpers6/styles.md, different from the tracks already claimed.",
+      "id": "chirpers6-t8"
+    }
+  ]
+}
