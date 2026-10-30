@@ -137,5 +137,10 @@
     }
   ],
   "named_by": "harry@pocket4-nixos",
-  "named_at": "2026-10-30T02:03:34Z"
+  "named_at": "2026-10-30T02:03:34Z",
+  "art": {
+    "file": "ref/albums/phantom-downbeat/cover-tti.png",
+    "prompt": "Album cover art for 'Phantom Downbeat' by Chirpers, an original deep / hard Berlin techno album. Dark, monochrome Berlin club art: raw concrete, a strobe cutting through smoke, steel and shadow, industrial geometry, deep blacks with one cold accent light.  Striking, abstract, no text, no letters, no band logo, square composition.",
+    "at": "2026-10-30T02:06:16Z"
+  }
 }
