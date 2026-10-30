@@ -15,3 +15,10 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 - **THE HOOK** (hummed, voice engine): C5 Ab4 G4 . Eb4 F4 (oo oo oh oh ah), eight beats, falling; chopped answers: slices 1, 2, 3, 5 on the and-of-1, the e-of-2, 3 and 4.
 - **THE ROLLER** (amen-chops, eighth-note slices per bar): 0 3 2 7 | 4 5 2 6, every fourth bar 0 3 2 7 | 4(^tune=2) 5 2 15 6(^tune=5); break-kit kick on 1 and the and-of-3, snare on 2 and 4.
 
+## t1 First Light (chirper-three), the opener
+Generator `compose/chirpers5/src/chirpers5-t1.py`. 2-step liquid, 174 bpm, C minor / Eb major.
+- **THE 2-STEP**: kick on 0 and the skip on 10 (the and-of-3; a pickup on 7 every fourth bar), snare on 4 and 12 with soft ghosts on 7 and 15, sixteenth hats swung like garage (the off sixteenths 0.075 of a beat late), accents on the e's.
+- **THE CHORDS** (two bars each): Abmaj9 | Gm9 | Cm9 | Bb13sus, a juno pad held under an epiano comping in the 2-step's gaps (the and-of-1, the a-of-2, the and-of-3 of the second bar), its damper on each release.
+- **THE HOOK** (vocal chop, two bars of sixteenths): `G5 . . Eb5 . . F5 . . . G5 . . . . . | Bb5 . . G5 . . F5 . . . Eb5`, sparse in the intro, every other phrase in the drops, alone in the break.
+- **THE AMEN BED**: wM's amen-chops re-sequenced from its ghost and ride slices only (never its kicks or main snares), quietly, high-passed, one hit re-pitched (+2) or reversed now and then.
+
