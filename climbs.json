@@ -6580,6 +6580,13 @@
           },
           "at": "2026-10-30T13:08:13Z",
           "was": 97.825
+        },
+        "stale": {
+          "score": 97.825,
+          "since": "2026-10-30T13:16:01Z",
+          "who": "chirper-one",
+          "rating": 8.5,
+          "version": "v1"
         }
       },
       "passes": 1,
