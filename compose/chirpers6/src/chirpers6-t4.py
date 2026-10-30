@@ -4,8 +4,8 @@
 SLOWCORE WALTZ INTO A SHOEGAZE WALL / "sodium". 3/4 at 72 bpm, E minor (the last movement in its relative G major).
 The orange sodium streetlights left on all night: their hum and flicker are the found sound. A slow, bare waltz under a
 lamp blooms into a wall of chorus-and-fuzz guitars with the melody buried inside it; the wall fails as the lamps flicker
-(gated, stuttered, tape-stopped), and the waltz comes back in the major as the lamps go off one by one. No speech: the
-electricity is the voice. Original; a style, not a version of any track.
+(gated, stuttered, tape-stopped), and the waltz comes back in the major as the lamps go off one by one. The only words
+(v4): someone counting the lamps out, eight down to one. Original; a style, not a version of any track.
 
 Form (3/4 bars): I HUM 16 (the mains hum and a buzzing ballast, a failing lamp's relay clicking, one guitar note
 swelling) / II WALTZ 32 (a clean guitar and a fretless in 3/4, brushes, THE WALTZ) / III BLOOM 32 (reverse swells into
@@ -40,7 +40,9 @@ SUBMODE = os.environ.get("C6T4_SUBMODE", "")  # "c": the sub's C and A roots an 
 HPF = os.environ.get("C6T4_HPF", "28")  # the master's high-pass (Hz)
 TOP = os.environ.get("C6T4_TOP", "3")
 WPUMP = os.environ.get("C6T4_WPUMP", "1") == "1"  # the wall breathes with the kick: the wall bus pumps (sidechain) from the rock kit's kick, -4 dB
-GLIDE = os.environ.get("C6T4_GLIDE", "1") == "1"  # glide guitar: half the wall through a pitch shifter wobbling +-0.35 semitone on a 1.5-bar LFO (the tremolo arm held while strumming)  # the master's 8 kHz shelf (dB) with the EQ on  # the last lamp goes off in the last bar but one (not three bars early), and the render tail is 1 s: the hand-over into Leave the Lights On has no dead air  # the crunch guitars' 2.4 kHz down 4 dB on the wall bus, the master's top up 3 dB from 8 kHz
+GLIDE = os.environ.get("C6T4_GLIDE", "1") == "1"
+COUNT = os.environ.get("C6T4_COUNT", "1") == "1"  # someone counts the lamps out: a close, dry voice says the number of each lamp as it goes off in LIGHTS OUT, eight down to one
+BUZZIN = os.environ.get("C6T4_BUZZIN", "1") == "1"  # the ballast buzz enters a bar in, after the first relay clicks  # glide guitar: half the wall through a pitch shifter wobbling +-0.35 semitone on a 1.5-bar LFO (the tremolo arm held while strumming)  # the master's 8 kHz shelf (dB) with the EQ on  # the last lamp goes off in the last bar but one (not three bars early), and the render tail is 1 s: the hand-over into Leave the Lights On has no dead air  # the crunch guitars' 2.4 kHz down 4 dB on the wall bus, the master's top up 3 dB from 8 kHz
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 NOTE = {"C": 0, "C#": 1, "Db": 1, "D": 2, "D#": 3, "Eb": 3, "E": 4, "F": 5, "F#": 6, "G": 7, "G#": 8, "Ab": 8, "A": 9,
@@ -60,7 +62,7 @@ WALTZ = [[("B4", 12)], [("A4", 4), ("G4", 4), ("F#4", 4)], [("G4", 8), ("E4", 4)
 WALTZG = [[("D5", 12)], [("C5", 4), ("B4", 4), ("A4", 4)], [("B4", 8), ("G4", 4)], [("F#4", 12)],
           [("G4", 4), ("A4", 4), ("B4", 4)], [("C5", 8), ("D5", 4)], [("A4", 12)], [("B4", 8), ("R", 4)]]
 TRACKS = ("hum", "buzz", "click", "thunk", "clean", "glide", "fretless", "kit", "brush", "ebow", "swell", "strumL", "strumR",
-          "fuzz", "pad", "choir", "sub", "piano")
+          "fuzz", "pad", "choir", "sub", "piano", "count")
 
 
 def nm(m):
@@ -107,7 +109,7 @@ def build():
     total = total_steps()
     # THE LAMP: the hum held through the hum, low under the waltz, gone in the wall, back in the flicker, stepping down at the end
     add("hum", BAR if WARMUP else 0, "C4", sec_start("bloom") - (BAR if WARMUP else 0), 92)
-    add("buzz", 0, "C4", sec_start("waltz") + 8 * BAR, 80)
+    add("buzz", BAR if BUZZIN else 0, "C4", sec_start("waltz") + 8 * BAR - (BAR if BUZZIN else 0), 80)
     add("hum", sec_start("flicker"), "C4", 16 * BAR, 96)
     lo = sec_start("lightsout")
     offs = [0, 6, 11, 15, 19, 22, 25, 28, 31] if LATEOFF else [0, 6, 11, 15, 19, 22, 25, 27, 29]  # the lamps going off, bar by bar
@@ -115,6 +117,11 @@ def build():
         add("hum", lo + offs[k] * BAR, "C4", (offs[k + 1] - offs[k]) * BAR, 96 - 10 * k)
         add("thunk", lo + offs[k + 1] * BAR, "C2", 2, 100 - 4 * k)
         add("click", lo + offs[k + 1] * BAR + 1, "C5", 1, 90)
+        if COUNT:  # the count, a beat after each lamp goes: eight ... one
+            words = [["ey1-t"], ["s-eh1", "v-ah0-n"], ["s-ih1-k-s"], ["f-ay1-v"], ["f-ao1-r"], ["th-r-iy1"], ["t-uw1"], ["w-ah1-n"]][k]
+            for j, syl in enumerate(words):
+                last = j == len(words) - 1
+                add("count", lo + offs[k + 1] * BAR + 4 + 2 * j, "G2^ph=" + syl + ("^f0=0>-50" if last else ""), 3 if last else 2, 70 - 2 * k)
     # the failing lamp's relay: irregular clicks in the hum and the flicker
     for sec, dens in (("hum", 0.18), ("flicker", 0.35)):
         a = sec_start(sec)
@@ -367,6 +374,8 @@ def song():
             {"name": "pad", "patch": "saw-pad", "gain": "-16dB", "out": "wall", "score": sc("pad")},
             {"name": "choir", "patch": "dream-vox", "gain": "-12dB", "out": "wall", "score": sc("choir")},
             {"name": "sub", "patch": "sub-sine", "gain": "-16dB", "score": sc("sub")},
+            *([{"name": "count", "patch": "voice-speech", "gain": "-10dB", "pan": 0.1,
+                "fx": [{"type": "filter", "kind": "hp", "cutoff": 120, "q": 0.7}, "reverb kind=room decay=0.6s mix=0.15"], "score": sc("count")}] if COUNT else []),
             {"name": "piano", "patch": "piano-wash", "gain": "-6dB", "pan": -0.1, "score": sc("piano")},
         ],
     }

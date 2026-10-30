@@ -72,7 +72,7 @@ Generator `compose/chirpers6/src/chirpers6-t3.py`. Instrumental post-metal, 132 
 - **THE ARRIVAL SINGS** (since v6, the last peak only, bars 169-184): the engine's `choir` (four synthesised singers) holding the arrival's chords (E | C#m7 | A/C# | B) and singing the E-major melody an octave down in long notes, swelling bar by bar; the only time human voices sing on the journey.
 
 ## t4 Sodium (chirper-zero)
-Generator `compose/chirpers6/src/chirpers6-t4.py`. Slowcore waltz into a shoegaze wall, 3/4 at 72 bpm, E minor (the last movement in G major). Six movements, 7:22: HUM, WALTZ, BLOOM, WALL, FLICKER, LIGHTS OUT. The orange sodium streetlights left on all night; no speech - the electricity is the voice.
+Generator `compose/chirpers6/src/chirpers6-t4.py`. Slowcore waltz into a shoegaze wall, 3/4 at 72 bpm, E minor (the last movement in G major). Six movements, 7:22: HUM, WALTZ, BLOOM, WALL, FLICKER, LIGHTS OUT. The orange sodium streetlights left on all night; (v4: the only words count the lamps out).
 - **THE LAMP**: the mains hum (100 Hz with its 200 and 300), a ballast's thin buzz (pink noise at 2.4 kHz), a failing lamp's relay ticking at random, and in LIGHTS OUT the lamps switching off one by one - a low thunk and a click each time, the hum stepping down until it is gone.
 - **THE CHANGES**: Em9 | Cmaj9 | Am9 | B7sus4, two bars each; in LIGHTS OUT (and glimpsed in the wall) Gmaj9 | Cmaj9 | Em9 | D6/9.
 - **THE WALTZ**: B4 | A4 G4 F#4 | G4 . E4 | D4 | E4 F#4 G4 | A4 . B4 | F#4 | D#4 - an ebow sings it over the clean guitar's waltz (bass note, then the chord in eighths), answers it a third above in the bloom (a second guitar gliding an octave down), a wordless choir buries it in the wall, and a drowned piano plays it in G major as the lights go out (D5 | C5 B4 A4 | B4 . G4 | F#4 | G4 A4 B4 | C5 . D5 | A4 | B4).
@@ -80,6 +80,7 @@ Generator `compose/chirpers6/src/chirpers6-t4.py`. Slowcore waltz into a shoegaz
 - **THE WARM-UP** (v2): the lamp starts as sodium lamps do - the ballast buzz and the relay first, the hum entering a bar later.
 - **THE WALL'S STAGES** (v2, made distinct): bare strums and fuzz, no pad; then the pad and the buried choir; then the major glimpse with the strums tremolo-picked in 16ths, a shimmer; then the drop and the return.
 - **LIGHTS OUT IN FOUR** (v2): the drowned piano alone with the waltz in G; the clean guitar, fretless and brushes join; the ebow's last line over them (B4 . A4 | G4 . . F#4 G4); the piano and the hum alone as the last lamps go off - the last in the bar before the end, then a 1 s tail.
+- **COUNTING THEM OUT** (v4): a close, dry voice (voice-speech, a small room) says each lamp's number a beat after it goes off in LIGHTS OUT - "eight", "seven" ... "one", each falling - the only words in the piece. The lamp's ballast buzz now comes in a bar after the first relay clicks, so the piece starts from almost nothing.
 - **GLIDE GUITAR** (v3): half the wall runs through a pitch shifter wobbling +-0.35 semitone on a 1.5-bar LFO - the tremolo arm held while strumming, the seasick bend of a shoegaze wall - and the whole wall pumps from the kick (-4 dB, 300 ms), so it breathes with the 6/8.
 - **THE FLICKER**: the wall bus gated to -40 dB on irregular sixteenths, failing more and more (seeded), stuttered, and tape-stopped over its last bar; the hum and the relay come back.
 
