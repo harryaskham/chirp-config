@@ -39,7 +39,12 @@ FILLS = os.environ.get("C6T3_FILLS", "1") == "1"  # a drummer's vocabulary: tom 
 SWELLS = os.environ.get("C6T3_SWELLS", "1") == "1"
 HOIST = os.environ.get("C6T3_HOIST", "1") == "1"  # the operator's words move the crane: after "clear to lift" a hoist motor whines upward far across the stacks, after "lowering" it falls away and a container lands
 WINDDOWN = os.environ.get("C6T3_WINDDOWN", "1") == "1"  # in the last ship the crane winds down: its chain's clank cycle stretches (14, 14, 16, 18, 20, 24, 28, 34, 42 sixteenths) and stops, under the clean riff
-ANSWER = os.environ.get("C6T3_ANSWER", "1") == "1"  # a second ship answers the foghorn from further out (A and E, lower and quieter)  # reverse-cymbal swells drawn into the chug, the climb's full kit, the undertow and the last ship  # the crane operator on a handheld intercom in the stacks ("seven, clear to lift" - the 7 is the meter), and in the last ship's bars "last one, lights stay on"  # the movements develop instead of looping: the chug in four stages (the riff, its grouping rotated 3+2+2, the line over it, a stabbing peak and a break), a second clean guitar's harmonics answering in the joints, the doom thinning to held chords and an ebow cry
+ANSWER = os.environ.get("C6T3_ANSWER", "1") == "1"
+ENDFIX = os.environ.get("C6T3_ENDFIX", "1") == "1"  # no dead air into Sodium: the buoy bell rings to the last bar, the waves are held to the end, and the render tail is 1 s
+PUMP = os.environ.get("C6T3_PUMP", "1") == "1"  # the low end breathes with the kick: the fuzz bass, the sub and both rigs pump (sidechain) from the room kit's kick
+BASSLFO = os.environ.get("C6T3_BASSLFO", "1") == "1"  # the fuzz bass through a low-pass breathing on a 7-bar LFO (the crane's number), resonance up
+TSTOP = os.environ.get("C6T3_TSTOP", "1") == "1"
+LANDMARK = os.environ.get("C6T3_LANDMARK", "1") == "1"  # chirper-one's note (9.0): one changed bar a phrase - in the chug the fourth bar of every 8 is the crane's chain alone over the sub (the rigs, the fuzz and the kit drop out), and in the climb the fourth bar drops its back half  # the chug's last stab tape-stops: the crane brakes before the stacks  # a second ship answers the foghorn from further out (A and E, lower and quieter)  # reverse-cymbal swells drawn into the chug, the climb's full kit, the undertow and the last ship  # the crane operator on a handheld intercom in the stacks ("seven, clear to lift" - the 7 is the meter), and in the last ship's bars "last one, lights stay on"  # the movements develop instead of looping: the chug in four stages (the riff, its grouping rotated 3+2+2, the line over it, a stabbing peak and a break), a second clean guitar's harmonics answering in the joints, the doom thinning to held chords and an ebow cry
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 SEVEN, FOUR = 14, 16
@@ -281,7 +286,7 @@ def build():
                 st += l * 32 // 28
 
         # --- PORT: the buoy bell rocks on the swell (irregular), the stacks' sounds
-        if PORT and ((sec == "crossing" and b < 28) or (sec == "lastcar" and b < 24)):
+        if PORT and ((sec == "crossing" and b < 28) or (sec == "lastcar" and b < (32 if ENDFIX else 24))):
             gaps = (9, 7, 11, 6, 10, 8, 12)
             t0 = at
             if b == 0 or (sec == "crossing" and b == 0):
@@ -388,6 +393,19 @@ def build():
         for st, piece, vel in kit:
             add("kit", at + st, piece, 1, vel)
 
+    if LANDMARK:  # one changed bar a phrase
+        for sec, b, steps, at in bars:
+            hole = None
+            if sec == "chug" and b % 8 == 3 and (not DEV or b // 16 != 3):
+                hole = (at, at + steps, ("chugl", "chugr", "fuzz", "kit", "lead"))
+                for ph in (0, 2, 8, 10):
+                    add("clack", at + ph, "C4" if ph in (0, 8) else "D4", 1, 118 if ph in (0, 8) else 100)
+            elif sec == "climb" and b % 8 == 3:
+                hole = (at + 8, at + steps, ("kit", "chugl", "chugr"))
+            if hole:
+                a, z, trs = hole
+                for tr in trs:
+                    ev[tr] = [e for e in ev[tr] if not (a <= e[0] < z)]
     # absolute events -> one continuous score per track (long holds simply run on)
     return {k: stream(ev[k], total) for k in TRACKS}
 
@@ -434,6 +452,16 @@ def lane(points):
     return {"points": pts}
 
 
+def PUMPFX(d):
+    return {"type": "pump", "on": "kit.k", "depth": f"{d}dB", "attack": "1ms", "release": "180ms", "curve": 0.8}
+
+
+def tslane():
+    """The chug's last stab winds down: the tape stops from its second eighth to the stacks' downbeat."""
+    a, y = sec_start("yard") - 14 + 2, sec_start("yard")
+    return lane([(0, 0), (a - 0.05, 0), (a, 1), (y - 0.05, 1), (y, 0)])
+
+
 def song():
     T = build()
     sc = lambda n: T[n]  # noqa: E731
@@ -444,7 +472,7 @@ def song():
     doc = {
         "about": "Chirpers - All the Lights Left On (Chirpers VI), track 3 by chirper-zero: INSTRUMENTAL POST-METAL, night freight. "
                  "Generated by compose/chirpers6/src/chirpers6-t3.py; see its docstring and compose/chirpers6/styles.md.",
-        "tempo": BPM, "ceiling": "-1.2dB", "volume": "0dB", "true_peak": True, "tail": "2s",
+        "tempo": BPM, "ceiling": "-1.2dB", "volume": "0dB", "true_peak": True, "tail": "1s" if ENDFIX else "2s",
         "patches": {
             **({"ship-engine": {"about": "night freight (the port): a ship's diesel - brown noise low-passed with a 46 Hz hum, throbbing (tremolo on the track)",
                                "synth": {"layers": [{"type": "noise", "color": "brown"}, "sine fixed=46 level=-8dB"], "filters": ["lp cutoff=130 q=0.8"],
@@ -467,8 +495,9 @@ def song():
         "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=28", "peak cutoff=300 q=0.8 gain=-2dB", "highshelf cutoff=7000 gain=-1dB"]},
                           {"type": "compressor", "threshold": "-18dB", "ratio": 2, "attack": "15ms", "release": "200ms", "makeup": "0dB"},
                           {"type": "gain", "gain": f"+{MGAIN:g}dB"},
-                          {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}}],
-                   "auto": {"dyn": dyn}},
+                          {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}},
+                          *([{"type": "tapestop", "stop": {"value": 0, "mod": [{"src": "auto.ts", "amount": 1}]}, "time": "1.5b", "curve": 1.6}] if TSTOP else [])],
+                   "auto": {"dyn": dyn, **({"ts": tslane()} if TSTOP else {})}},
         "buses": {
             "drums": {"fx": [{"type": "compressor", "threshold": "-14dB", "ratio": 3, "attack": "5ms", "release": "90ms", "makeup": "1dB"}]},
             "hall": {"fx": ["reverb kind=hall decay=3.5s size=0.9 mix=1 predelay=30ms"]},
@@ -499,10 +528,13 @@ def song():
             {"name": "wind", "patch": "fx-wind", "gain": "-18dB", "score": sc("wind")},
             {"name": "clean", "patch": "clean-chorus", "gain": "-8dB", "pan": -0.15, "sends": {"hall": "-10dB"}, "score": sc("clean")},
             {"name": "fretless", "patch": "fretless-bass", "gain": "-6dB", "score": sc("fretless")},
-            {"name": "chugl", "patch": "m8-rhythm-l", "gain": "-10dB", "pan": -0.7, "score": sc("chugl")},
-            {"name": "chugr", "patch": "m8-rhythm-r", "gain": "-10dB", "pan": 0.7, "score": sc("chugr")},
-            {"name": "fuzz", "patch": "bass-fuzz", "gain": "-8dB", "score": sc("fuzz")},
-            {"name": "sub", "patch": "sub-sine", "gain": "-10dB", "score": sc("sub")},
+            {"name": "chugl", "patch": "m8-rhythm-l", "gain": "-10dB", "pan": -0.7, **({"fx": [PUMPFX(-3)]} if PUMP else {}), "score": sc("chugl")},
+            {"name": "chugr", "patch": "m8-rhythm-r", "gain": "-10dB", "pan": 0.7, **({"fx": [PUMPFX(-3)]} if PUMP else {}), "score": sc("chugr")},
+            {"name": "fuzz", "patch": "bass-fuzz", "gain": "-8dB",
+             **({"fx": ([PUMPFX(-5)] if PUMP else []) + ([{"type": "filter", "kind": "lp", "cutoff": {"value": 700, "mod": [{"src": "lfo.b", "amount": 1.0}]}, "q": 1.6}] if BASSLFO else [])}
+                if (PUMP or BASSLFO) else {}),
+             **({"lfo": {"b": "sine rate=7/1"}} if BASSLFO else {}), "score": sc("fuzz")},
+            {"name": "sub", "patch": "sub-sine", "gain": "-10dB", **({"fx": [PUMPFX(-6)]} if PUMP else {}), "score": sc("sub")},
             {"name": "kit", "patch": "room-kit", "gain": "-2dB", "out": "drums", "score": sc("kit")},
             {"name": "lead", "patch": "m8-lead-guitar", "gain": "-14dB", "pan": 0.2, "sends": {"hall": "-8dB"}, "score": sc("lead")},
             {"name": "cello", "patch": "cellos", "gain": "-8dB", "sends": {"hall": "-6dB"}, "score": sc("cello")},

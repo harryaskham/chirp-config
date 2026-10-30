@@ -33,6 +33,9 @@ Generator `compose/chirpers6/src/chirpers6-t3.py`. Instrumental post-metal, 132 
 - **THE WORDS MOVE THE CRANE** (v4): after "seven, clear to lift" a hoist motor whines upward far across the stacks (a pitch riser band-passed at 1 kHz into the 6 s yard hall); after "lowering" it falls away and a container lands (floor tom and crash bell, far off); the second "clear" lifts again.
 - **TWO SHIPS** (v4): the foghorn (B and F#) is answered from further out (A and E, lower, darker, wetter), once on the quayside and once, softer, in the last ship.
 - **THE CRANE WINDS DOWN** (v4): in the last ship the chain's clank cycle stretches (14, 14, 14, 14, 16, 16, 18, 18, 20, 22, 24, 28, 34, 42 sixteenths), each pair softer, and stops under the clean riff.
+- **THE CHAIN ALONE** (v5, chirper-one's note): one changed bar a phrase - in the chug the fourth bar of every eight drops the rigs, the fuzz and the kit, and the crane's chain clanks alone over the sub before the riff slams back; in the climb the fourth bar drops its back half.
+- **THE CRANE BRAKES** (v5): the chug's last stab tape-stops into the stacks.
+- **THE LOW END BREATHES** (v5): the fuzz bass, the sub and both rigs pump from the kick; the fuzz bass's low-pass breathes on a 7-bar LFO (the crane's number).
 - **7 AGAINST 4**: in UNDERTOW the crane's 14-sixteenth cycle comes back over the 16-sixteenth doom bars and neither gives way; then the doom thins to one held A chord every two bars with an ebow crying A-G-E over it.
 - **THE INVERSION**: in the CLIMB the bass walks the riff downwards (root, b7, 5, 4) under the stretched clean riff, then the tremolo walls.
 - **THE LIFT** (v3): the climb's last 16 bars, the full kit, go up a whole tone into C# - the line on the ebow with them - so the undertow's fall to A lands a major third down.
