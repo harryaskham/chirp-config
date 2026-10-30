@@ -68,3 +68,11 @@ Generator `compose/chirpers5/src/chirpers5-t10.py`. The closer: euphoric liquid 
 - **THE COUNTER-REESE** (second drop, an octave up): 8ve b7 5 | m3+8ve 8ve.
 - **THE ROLLER**: amen slices 0 1 2 3 | 9 13(a-of-3) 2 7; the kick on 1 and the a-of-3, snares on 2 and 4; half-time break: kick 1, snare 3.
 
+## t9 Late Shift (chirper-three)
+Generator `compose/chirpers5/src/chirpers5-t9.py`. Liquid funk, 174 bpm, A dorian.
+- **THE CHANGES** (a bar each, eight-bar cycle): Am9 Am9 | D9 D9 | Gmaj9 Gmaj9 | F#m7b5 B7#9; Rhodes on the one and re-struck rootless on the and-of-2.
+- **THE FUNK LINE** (finger bass, sixteenths from the root): A `0~~ 8va . b7~ 5~ 0 b3~ . 4 5`, B `0~ 0 8va~ . b7 5~~ . 4 b3~ 2 0` alternating bars, ghosts at low velocity; an 808 sub doubles the roots.
+- **THE CHOPS** (cutting guitar): off-eighths 2 6 10 14 with sixteenth pushes on 7 and 15, the chord's upper voices an octave up.
+- **THE STABS** (horn section): `da-da-DAAT` on sixteenths 10 12 14 at the end of every fourth bar (every second in drop 2).
+- **THE SOLO** (lead-wah, the break, twice): `E5 . G5 A5~ | G5 E5 D5~ B4~ | C5 D5 E5 F#5~~ | E5 D5 B4~~ | A4 C5 E5 G5 B5~~ | A5 G5~ E5~ | F#5~ A5 C6~ | B5~ A5 F#5~~`.
+
