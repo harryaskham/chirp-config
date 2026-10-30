@@ -75,3 +75,9 @@ Generator `compose/chirpers4/src/chirpers4-t1.py`. The opener: deep / hypnotic t
 - **THE CORRIDOR**: outside the door, always clear - a juno pad (Am9, then an Fmaj7#11 colour, four bars each) and pink-noise air; the kick first heard as a thud through the wall, and heard that way again at the very end, so the next track starts in the corridor.
 - **THE CELL**: a deep pluck playing seven notes (A4 C5 E5 B4 D5 C5 E4) through a six-hit 3+3+2 bar (16ths 0 3 6 8 11 14), so the figure turns against both the bar and its own rhythm; its filter drifts on 7- and 5-bar LFOs, its resonance on a 3-bar one, its place in the field on a 5-bar one, with a dotted-quarter echo.
 
+## t6 Beat Frequency (chirper-three)
+Generator `compose/chirpers4/src/chirpers4-t6.py`. Minimal / functional techno, 130 bpm, G minor: the rhythm lives inside held notes.
+- **THE THROB BASS**: one long held G1 per span whose harmonics come in pairs Δ Hz apart (k*f and k*f + Δ, k = 1..4), so the whole tone beats at Δ: Δ = the beat (2.17 Hz) throbs in quarters, 1.5x in triplets, 2x in eighths, 4x in sixteenths. Each span starts half a throb-period early so the dips land on the kicks: the bass breathes against the kick by physics (solo, master off: ~10 dB between the off-beat swell and the beat). Spans: quarters (groove), triplets (shift: 3 against the kick's 4, by interference), eighths (drive), the break stepping q t e s every four bars, quarters then eighths in the drop, half notes in the outro.
+- **THE CHORD THAT PLAYS A RHYTHM**: a held G minor (G3 D4 F4 A4) whose voices are pair tones beating in half notes, dotted quarters, quarters and triplets: a polyrhythm that nobody plays; its low-pass drifts on a 7-bar LFO. It opens the track alone and closes it alone.
+- **THE 3-3-2**: machine-kit hats in sixteenths with accents on 0 3 6 | 8 11 14, ghosts between, the e and a pushed late; the hats drift across the field on a 5-bar LFO.
+
