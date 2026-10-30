@@ -64,6 +64,13 @@ FORM = [("intro", 16), ("A", 32), ("turn", 16), ("B", 32), ("stop", 8), ("C", 32
 S16 = 0.25
 STAB = [50, 53, 57, 64]          # D3 F3 A3 E4: D minor add 9
 BASS = [38, 38, 38, 41, 38, 38, 45, 43]  # D2 ... F2 ... A2 G2: the boom bass, one note per beat, two bars
+# Round 2 (v2), polish (Harry: patient entries, better LFO motion, don't overcook): W = THE ENTRIES WAIT: the stab
+# approaches from far off through A's first sixteen bars (from a whisper to its full strength) instead of arriving
+# at once, the hard kick waits for the second half of B, and the cowbell comes only in B's second half and then
+# every fourth bar; B = THE BASS BREATHES: a low-pass on the boom bass opens and closes on a 9-bar LFO (its own odd
+# cycle against the orbits' 3, 5 and 7), so its driven harmonics swell and recede. (Tried: holding the stab back
+# entirely, and leaning the hats' off-sixteenths late; both cost the groove its syncopation.)
+R2 = set(filter(None, os.environ.get("T5_R2", "W,B").split(","))) - {"none"}
 # the orbiting voices: (kit piece, orbit period in bars, phase)
 ORBITS = {"rim": ("rs", 3, 0.0), "clap": ("cp", 5, 0.0), "ride": ("rd", 7, 0.25), "bell": ("cb", 5, 0.5)}
 
@@ -94,7 +101,7 @@ def build():
         elif not (sec == "outro" and i >= 12) and sec != "stop":
             for b in range(4):
                 T["kick"].add(start + b, 1.0, "kr", 116 if b == 0 else 108)
-        if sec in ("B", "C"):
+        if sec == "C" or (sec == "B" and not ("W" in R2 and i < 16)):
             for b in (range(4) if sec == "C" and i >= 16 else (0,)):
                 T["kickhard"].add(start + b, 0.5, "kd", 100 if b == 0 else 88)
         # ---- hats: sixteenths, the off-eighth leaning; an open hat on the off-beat ----
@@ -122,7 +129,8 @@ def build():
         if sec in ("B", "stop", "C"):
             for b in (0.5, 1.5, 2.5, 3.5):
                 T["ride" + o].add(start + b + 0.015, 0.5, "rd", 76)
-            if i % 2 == 1:
+            bell = (i % 2 == 1) if "W" not in R2 else (i % 4 == 3 and not (sec == "B" and i < 16))
+            if bell:
                 T["bell" + o].add(start + 1.75, 0.3, "cb", 88)
                 T["bell" + o].add(start + 2.5, 0.3, "cb", 76)
         # ---- the boom bass: a gallop on each off-beat (the and, then the a), pumped ----
@@ -137,10 +145,11 @@ def build():
         # ---- the stab: on the a-of-1 and the and-of-3, breathing ----
         if sec in ("A", "B", "C", "turn") or (sec == "outro" and i < 8):
             chord = ",".join(nm(x) for x in STAB)
-            T["stab"].add(start + 0.75, 0.2, chord, 96)
-            T["stab"].add(start + 2.5, 0.2, chord, 84)
+            far = 1.0 if not ("W" in R2 and sec == "A" and i < 16) else 0.35 + 0.65 * i / 16  # it approaches
+            T["stab"].add(start + 0.75, 0.2, chord, int(96 * far))
+            T["stab"].add(start + 2.5, 0.2, chord, int(84 * far))
             if i % 2 == 1:
-                T["stab"].add(start + 3.25, 0.2, chord, 78)
+                T["stab"].add(start + 3.25, 0.2, chord, int(78 * far))
         # ---- air: a noise wash in the intro, the turn and the outro ----
         if sec in ("intro", "turn", "outro") and i % 8 == 0:
             T["air"].add(start, 32.0, "C4", 80)
@@ -212,7 +221,11 @@ def main():
          "fx": [{"type": "filter", "kind": "hp", "cutoff": {"value": 500, "mod": [{"src": "lfo.h", "amount": 0.8}]}},
                 "reverb kind=room decay=0.5s mix=0.1"],
          "lfo": {"h": "sine rate=6/1"}, "score": T["hats"].score(total)},
-        {"name": "bass", "patch": "c2-boom-bass", "gain": "-4dB", "fx": [pump, "hp cutoff=30"],
+        {"name": "bass", "patch": "c2-boom-bass", "gain": "-4dB",
+         "fx": [pump, "hp cutoff=30"] + ([{"type": "filter", "kind": "lp", "q": 0.9,
+                                            "cutoff": {"value": 700, "mod": [{"src": "lfo.b", "amount": 1.3}]}}]
+                                          if "B" in R2 else []),
+         **({"lfo": {"b": "sine rate=9/1 phase=0.75"}} if "B" in R2 else {}),
          "score": T["bass"].score(total)},
         {"name": "stab", "patch": "c2-hypno-stab", "gain": "-14dB", "pan": -0.1,
          "lfo": {"s": "sine rate=5/1 phase=0.75"},
