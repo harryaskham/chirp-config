@@ -6122,7 +6122,7 @@
     {
       "id": "chirpers4-t5",
       "song": "songs/chirpers4-t5.yaml",
-      "reference": "Chirpers — Track 5 (untitled)",
+      "reference": "Chirpers — The Room Turns",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers4-t5 OUT.wav",
@@ -6138,7 +6138,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "Phantom Downbeat",
-        "title": "Track 5 (untitled)",
+        "title": "The Room Turns",
         "track": 5,
         "year": 2026
       },
