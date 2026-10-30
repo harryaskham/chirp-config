@@ -136,10 +136,13 @@ CHORD = [(55, "h"), (62, "dq"), (65, "q"), (69, "t")]       # G3 D4 F4 A4: half,
 
 def chord():
     """THE CHORD THAT PLAYS A RHYTHM: held, its four voices beating at four rates. Where it plays."""
-    spans = [(1, 17, 84), (17, 49, 52), (49, 65, 52), (81, 97, 70), (129, 145, 84)]   # it hands over to the bass
+    spans = [(1, 17, 84), (17, 49, 52), (49, 65, 52), (129, 145, 84)]   # it hands over to the bass
     for i, (m, rate) in enumerate(CHORD):
         for a, z, v in spans:
             part(f"ch{i}").add(b0(a), b0(z) - b0(a), nm(m), v)
+        # THE WORLD ACCELERATES (v5): in the break the same chord beats at TWICE its rates, its polyrhythm
+        # speeding up with the bass's steps (half notes -> quarters, dotted quarters -> three a bar, ...)
+        part(f"cb{i}").add(b0(81), b0(97) - b0(81), nm(m), 70)
 
 
 def drums():
@@ -196,6 +199,7 @@ def main():
                for r in ("h", "q", "t", "e", "s", "d")}                 # so the throb sounds above the kick's band
     for i, (m, rate) in enumerate(CHORD):
         patches[f"c6-chord-{i}"] = pair_patch(m, RATES[rate], harmonics=3, tilt=1.4, a="400ms", r="2.5s")
+        patches[f"c6-chordx2-{i}"] = pair_patch(m, 2 * RATES[rate], harmonics=3, tilt=1.4, a="400ms", r="2.5s")
     pump = {"type": "pump", "on": "kick", "depth": "-6dB", "attack": "3ms", "release": "300ms", "curve": 0.6}
     tracks = [
         {"name": "kick", "patch": "machine-kit", "gain": "-1.5dB", "score": part("kick").score()},
@@ -223,6 +227,12 @@ def main():
                        "fx": [{"type": "filter", "kind": "lp",
                                "cutoff": {"value": 2200, "mod": [{"src": "lfo.cf", "amount": 1200}]}}],
                        "sends": {"room": "-8dB"}, "score": part(f"ch{i}").score()})
+    for i, (m, rate) in enumerate(CHORD):
+        tracks.append({"name": f"cb{i}", "patch": f"c6-chordx2-{i}", "gain": "-9dB", "pan": [-0.3, 0.3, -0.15, 0.15][i],
+                       "lfo": {"cf": {"wave": "sine", "rate": "28b"}},                         # 7 bars
+                       "fx": [{"type": "filter", "kind": "lp",
+                               "cutoff": {"value": 2200, "mod": [{"src": "lfo.cf", "amount": 1200}]}}],
+                       "sends": {"room": "-8dB"}, "score": part(f"cb{i}").score()})
     song = {
         "about": "Chirpers - Phantom Downbeat (Chirpers IV), track 6 by chirper-three: BEAT FREQUENCY. Minimal / "
                  "functional techno where the rhythm lives inside held notes (interference beating: harmonic pairs "
