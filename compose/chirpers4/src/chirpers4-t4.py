@@ -109,7 +109,8 @@ def floors():
                 if sec == "both" and bar < 53:
                     v -= 24 - 6 * (bar - 49)                         # the tribe arrives over four bars
                 P["toms"].add(st(bar, s), 1.2, nm(tom_pitch[i]), v)
-                P["boom"].add(st(bar, s), 0.6, nm(tom_pitch[i]), v + 6)     # THE TRIBE'S CHEST-HIT: an 808 under each tom
+                if not (s == 0 and sec in ("both", "drop")):            # (the one belongs to the 909 when both play)
+                    P["boom"].add(st(bar, s), 0.6, nm(tom_pitch[i]), v + 6)  # THE TRIBE'S CHEST-HIT: an 808 under each tom
             if bar % 4 == 0:                                         # a fill into the next phrase, falling
                 for j, s in enumerate((9, 10, 11)):
                     P["toms"].add(st(bar, s) + 0.02, 0.3, nm(G + 33 - 4 * j), 80 + 6 * j)
@@ -172,7 +173,9 @@ def bass():
             continue
         root = G + 31                                     # G2
         alt = {0: 0, 1: 0, 2: 3, 3: -2}[(bar // 2) % 4]   # G G Bb F: the line moves every two bars
-        if sec in ("groove", "both", "drop", "outro") and bar >= 17 and bar < 141:
+        if sec in ("both", "drop"):
+            steps = (1, 2, 5, 7, 10, 11)                 # THE INTERLOCK: only the gaps between both floors' hits
+        elif sec in ("groove", "outro") and bar >= 17 and bar < 141:
             steps = (1, 2, 4, 5, 7, 8, 10, 11)
         elif sec == "slow" and bar >= 69:                # the slow floor opens bare: toms, boom, shekere
             steps = (2, 3, 6, 7, 10, 11)
@@ -276,8 +279,8 @@ def main():
                           "limiter ceiling=-0.3dB"],
                    "auto": {"dyn": {"points": dyn_lane()}}},
         "tracks": [
-            tr("four", "909", gain="0dB", sends={"rumble": "-14dB"}),                       # the machine's floor
-            tr("toms", "prog-tom", gain="-6dB", sends={"rumble": "-18dB", "room": "-14dB"},  # the tribe's floor
+            tr("four", "909", gain="0dB", sends={"rumble": "-20dB"}),                       # the machine's floor
+            tr("toms", "prog-tom", gain="-6dB", sends={"rumble": "-24dB", "room": "-14dB"},  # the tribe's floor
                fx=[{"type": "drive", "drive": 0.35, "mix": 0.5}]),
             tr("boom", "808", gain="-14dB", fx=[{"type": "drive", "drive": 0.3, "mix": 0.4}]),
             tr("clap", "909", gain="-2dB", sends={"room": "-8dB"}),
