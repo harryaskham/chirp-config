@@ -58,3 +58,10 @@ Generator `compose/chirpers5/src/chirpers5-t10.py`. The closer: euphoric liquid 
 - **THE EDIT**: the fourth bar of every phrase (and, in the second drop, the second bar of each phrase's second half): odd slices reversed (^rev=1), the snares on slots 2 and 6 re-pitched (^tune=+3, +5 in the second drop), the last eighth replaced by the snare at +7 then +12 in sixteenths; in the second drop that beat also stutters into a roll (1/16 -> 1/64).
 - **THE BOOM**: 808 sub on the root for three bars, then overlapping notes slide up the octave and down to the fifth into the next root.
 - **THE BED**: juno pad Fm9 - Dbmaj7 - Ebsus2 - Cm7, four bars each; a Rhodes answers each chord on the and-of-2 (upper three notes, an octave up) into a 3/8 echo.
+
+## t7 Concrete Hum (chirper-two)
+- **THE REESE RIFF** (two bars over each chord root, in 3+3+2 sixteenths): root root m3 | root b7 root || root 5 4 m3 2. Glides (gate 1.15), the filter breathing on 3- and 5-bar LFOs, a notch on a 7-bar one.
+- **THE CHORDS**, four bars each: Gm9 (Bb3 D4 F4 A4) | Ebmaj9 (G3 Bb3 D4 G4) | Cm9 (Bb3 D4 Eb4 G4) | D7(b9) (C4 Eb4 F#4 A4); Rhodes stabs on the a-of-1 and the a-of-3 every other bar.
+- **THE COUNTER-REESE** (second drop, an octave up): 8ve b7 5 | m3+8ve 8ve.
+- **THE ROLLER**: amen slices 0 1 2 3 | 9 13(a-of-3) 2 7; the kick on 1 and the a-of-3, snares on 2 and 4; half-time break: kick 1, snare 3.
+
