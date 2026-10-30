@@ -62,3 +62,10 @@ Generator `compose/chirpers4/src/chirpers4-t7.py`. Hard industrial techno, 134 b
 - **HOME**: the drop puts the kick on the beats, open hats on the off-beats, claps on 2 and 4, a crash every 8 bars and the hoover's A minor stab on every one; the peak layers the distorted kick, adds a ride, an answering stab a minor third up, a reese rolling off-beat sixteenths on A1, and the voice every four bars. The outro lets the kick slip back to the off-beats, then out.
 - **THE HELD BREATH** (v2): the beat before the drop is silence - after the voice's last "one" and the snare roll, nothing - and then the kick lands home.
 - **A PEAK THAT UNFOLDS** (v3, taking away): in the peak the home stab and its answer a minor third up alternate bar by bar instead of piling onto the same bars, and the reese waits for the peak's second half - so the peak opens with the hard kick, the ride and the voice, then the bass rolls in sixteen bars later.
+
+## t5 The Room Turns (chirper-two)
+- **THE ORBITS**: rim (every 3 bars), clap (5), ride (7), cowbell (5, opposite the clap) circle the listener: pan on a song-time sine LFO `x`; a second LFO `y` a quarter-cycle behind darkens (lp -1.2 oct), quiets (-2.5 dB) and wets each voice as it passes behind. In the break the orbits speed to a bar a turn; in THE STOP they are dry and dead centre; after it they turn the other way (the pan LFO's phase flipped).
+- **THE GALLOP**: the boom bass on each off-beat, the and then the a: D2 D2 D2 F2 | D2 D2 A2 G2, a D3 pickup every fourth bar.
+- **THE STAB**: D minor add 9 (D3 F3 A3 E4) on the a-of-1 and the and-of-3 (and the e-of-4 every other bar), its band-pass on a 5-bar LFO, into a dotted ping-pong echo.
+- Rim figure: the a-of-1, the and-of-2, the a-of-3 (and the and-of-4 every other bar).
+
