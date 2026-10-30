@@ -90,16 +90,17 @@ RATES = {"h": 0.5, "dq": 2 / 3, "q": 1.0, "t": 1.5, "e": 2.0, "s": 4.0}
 BASS = 31                                    # G1
 
 
-def pair_patch(m, rate, harmonics=4, tilt=1.0, a="30ms", r="120ms", fund=1.0):
-    """A tone whose harmonics come in pairs Δ Hz apart (Δ = rate x the beat), so the held note beats in time."""
+def pair_patch(m, rate, harmonics=4, tilt=1.0, a="30ms", r="120ms", fund=1.0, cluster=2):
+    """A tone whose harmonics each come as a CLUSTER of tones Δ Hz apart (Δ = rate x the beat), so the held note
+    beats in time. Two per harmonic (a pair) swell and fade smoothly; three (since v3, the throb) make a sharper
+    envelope - a narrow peak once a period with near silence either side and a small bump between - a PULSE."""
     d = rate * BEAT_HZ / hz(m)
     parts = []
     for k in range(1, harmonics + 1):
-        amp = round((fund if k == 1 else 1.0) / k ** tilt, 3)
-        parts += [[k, amp], [round(k + d, 6), amp]]
+        amp = round((fund if k == 1 else 1.0) / k ** tilt / cluster * 2, 3)
+        parts += [[round(k + j * d, 6), amp] for j in range(cluster)]
     return {"synth": {"layers": [{"type": "additive", "partials": parts}],
                       "amp": {"a": a, "d": "0s", "s": 1, "r": r}}}
-
 
 P = {}
 
@@ -188,7 +189,7 @@ def main():
     chord()
     drums()
     beat_s = 60 / BPM
-    patches = {f"c6-throb-{r}": pair_patch(BASS, RATES[r], harmonics=6, tilt=0.8, fund=0.5)    # less 49 Hz; six pairs
+    patches = {f"c6-throb-{r}": pair_patch(BASS, RATES[r], harmonics=6, tilt=0.8, fund=0.5, cluster=3)  # a PULSE
                for r in ("h", "q", "t", "e", "s")}                      # so the throb sounds above the kick's band
     for i, (m, rate) in enumerate(CHORD):
         patches[f"c6-chord-{i}"] = pair_patch(m, RATES[rate], harmonics=3, tilt=1.4, a="400ms", r="2.5s")
