@@ -6247,14 +6247,14 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/compscore.py chirpers4-t8 OUT.wav",
       "best": {
-        "score": 96.652,
-        "version": "v8",
+        "score": 98.041,
+        "version": "v9",
         "commit": "see git log songs/chirpers4-t8.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 8,
+      "rounds": 9,
       "priority": 1.0,
       "genre": "deep / hard Berlin techno",
       "mode": "compose",
@@ -6272,7 +6272,7 @@
         "note": "COMPOSE (song, 180-540 s): Style, groove, tempo and line-up are yours: declare them in compose/chirpers4/styles.md, different from the tracks already claimed."
       },
       "last": {
-        "at": "2026-10-30T09:46:37Z",
+        "at": "2026-10-30T10:13:29Z",
         "who": "chirper-zero"
       }
     },
