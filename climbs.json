@@ -6378,7 +6378,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 9,
       "priority": 1.0,
       "genre": "liquid / 2-step drum & bass, glitchstep",
@@ -6399,7 +6399,8 @@
       "last": {
         "at": "2026-10-30T16:08:05Z",
         "who": "chirper-three"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers5-t2",
@@ -6415,7 +6416,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 5,
       "priority": 1.0,
       "genre": "liquid / 2-step drum & bass, glitchstep",
@@ -6436,7 +6437,8 @@
       "last": {
         "at": "2026-10-30T16:36:40Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers5-t3",
@@ -6453,7 +6455,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 6,
       "priority": 1.0,
       "genre": "liquid / 2-step drum & bass, glitchstep",
@@ -6474,7 +6476,8 @@
       "last": {
         "at": "2026-10-30T16:40:27Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers5-t4",
@@ -6490,7 +6493,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 8,
       "priority": 1.0,
       "genre": "liquid / 2-step drum & bass, glitchstep",
@@ -6511,7 +6514,8 @@
       "last": {
         "at": "2026-10-30T16:49:35Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers5-t5",
@@ -6527,7 +6531,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 3,
       "priority": 1.0,
       "genre": "liquid / 2-step drum & bass, glitchstep",
@@ -6548,7 +6552,8 @@
       "last": {
         "at": "2026-10-30T16:12:47Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers5-t6",
@@ -6565,7 +6570,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 3,
       "priority": 1.0,
       "genre": "liquid / 2-step drum & bass, glitchstep",
@@ -6586,7 +6591,8 @@
       "last": {
         "at": "2026-10-30T16:04:57Z",
         "who": "chirper-two"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers5-t7",
@@ -6604,7 +6610,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 3,
       "priority": 1.0,
       "genre": "liquid / 2-step drum & bass, glitchstep",
@@ -6625,7 +6631,8 @@
       "last": {
         "at": "2026-10-30T16:09:07Z",
         "who": "chirper-two"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers5-t8",
@@ -6642,7 +6649,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 3,
       "priority": 1.0,
       "genre": "liquid / 2-step drum & bass, glitchstep",
@@ -6663,7 +6670,8 @@
       "last": {
         "at": "2026-10-30T16:21:06Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers5-t9",
@@ -6679,7 +6687,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 4,
       "priority": 1.0,
       "genre": "liquid / 2-step drum & bass, glitchstep",
@@ -6700,7 +6708,8 @@
       "last": {
         "at": "2026-10-30T16:35:44Z",
         "who": "chirper-three"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers5-t10",
@@ -6717,7 +6726,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 6,
       "priority": 1.0,
       "genre": "liquid / 2-step drum & bass, glitchstep",
@@ -6738,7 +6747,8 @@
       "last": {
         "at": "2026-10-30T16:24:12Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers6-t1",
@@ -6973,5 +6983,5 @@
       }
     }
   ],
-  "focus": "Soft Concrete"
+  "focus": "Chirpers VI (untitled)"
 }
