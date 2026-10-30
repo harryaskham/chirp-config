@@ -7,7 +7,8 @@ lift that keeps announcing floors, a clock, a cleaner's long shift - and at the 
 Nothing loops: THE FIGURE (a seven-note tapping line, D-F-A-C-A-F-E) is re-cut by every meter it passes through.
 I.   LOBBY (5/4, 16 bars): a clock ticks; the lift chimes (two celesta notes) and its voice speaks ("going up. floor
      thirty one."); the first guitar taps THE FIGURE in 5/4 (it doesn't fit - seven notes against ten eighths).
-II.  INTERLOCK (7/8, 64 bars): a second guitar enters in 4/4 phrases against the first's 7/8 - the two realign only
+II.  INTERLOCK (7/8, 64 bars, v7: each time the lift's doors open, its tinny speaker leaks two bars of muzak - THE
+     FIGURE as lounge bossa - over the band): a second guitar enters in 4/4 phrases against the first's 7/8 - the two realign only
      every seven bars; bass and a drummer accenting the 2+2+3; the lift voice calls floors between phrases.
 III. STAIRWELL (6/8, 32 bars, quiet): the drums leave; celesta and a cello play THE FIGURE slowed into compound time,
      the clock ticking under it; "doors closing." In its second half someone on the stairs hums THE FIGURE (v5).
@@ -74,7 +75,7 @@ def build():
     for b in bars:
         secs.setdefault(b['sec'], b['t'])
     T = {k: [] for k in ('clock', 'chime', 'lift', 'gtr1', 'gtr2', 'bass', 'kit', 'celesta', 'cello', 'chugl', 'chugr',
-                         'fuzz', 'trem', 'strings', 'ebow', 'wind', 'sub', 'ring', 'copier', 'phone', 'unison', 'hum', 'rise')}
+                         'fuzz', 'trem', 'strings', 'ebow', 'wind', 'sub', 'ring', 'copier', 'phone', 'unison', 'hum', 'rise', 'muzak')}
     g2 = 0.0     # the second guitar's own 4/4 clock (it ignores the bar lines)
     for k, b in enumerate(bars):
         s, t0, i, bl = b['sec'], b['t'], b['i'], b['bl']
@@ -181,6 +182,12 @@ def build():
     # the lift: chime and voice
     T['chime'] += [(2.0, 'E6', 1.5, 80), (2.6, 'C6', 2.0, 76)]
     T['lift'] += say([w for w in GOING_UP if w], 4.0)
+    # (v7) THE LIFT MUSIC: each time the doors open on a floor, the lift's own little speaker leaks two bars of muzak -
+    # THE FIGURE as lounge bossa on a tinny Rhodes - over the band, until the doors close again
+    for j in range(len(FLOORS)):
+        a = secs['interlock'] + (j + 1) * 7 * 3.5 + 1.0 + 2.0
+        for e, q in enumerate((0.0, 0.75, 1.5, 2.5, 3.0, 4.0, 4.75, 5.5, 6.5)):
+            T['muzak'].append((a + q, nm(FIGURE[(e + j) % 7] + 12) + ',' + nm(FIGURE[(e + j + 2) % 7] + 12), 0.6, 76))
     for j, fl in enumerate(FLOORS):
         a = secs['interlock'] + (j + 1) * 7 * 3.5 + 1.0
         T['chime'] += [(a - 1.5, 'E6', 1.2, 70), (a - 0.9, 'C6', 1.6, 66)]
@@ -252,6 +259,7 @@ def build():
             tr('ebow', 'ebow', '-9dB', sends={'hall': '-6dB'}),
             tr('wind', 'fx-wind', '-14dB'),
             tr('rise', 'fx-riser-shepard', '-13dB', sends={'hall': '-10dB'}),
+            tr('muzak', 'epiano-tine', '-12dB', pan=0.5, fx=['hp cutoff=500', 'lp cutoff=3200', {'type': 'drive', 'drive': 0.3, 'mix': 0.4}]),
             tr('hum', 'voice', '-10dB', fx=[{'type': 'pitch', 'semitones': 0, 'formant': -2}], sends={'hall': '-6dB'}),
             tr('unison', 'clean-chorus', '-5dB', sends={'echo': '-8dB', 'hall': '-8dB'}),
             tr('copier', 'fx-sweep', '-18dB', fx=['hp cutoff=600', 'lp cutoff=5000'], sends={'hall': '-10dB'}),
