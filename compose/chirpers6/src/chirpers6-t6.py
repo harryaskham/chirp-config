@@ -3,7 +3,7 @@
 
 Post-rock / post-metal in six movements, about ten minutes: a night journey. The THEME is a clean-guitar arpeggio
 (Em9 | Cmaj7#11 | G6/B | Dsus2) with a long-note melody over it; it is never looped to fill time: it is stated alone,
-answered, broken into fragments in the tunnel, ground into a seven-beat riff in the freight movement, sung augmented
+answered, broken into fragments in the tunnel, ground into a five-eighths riff in the freight movement, sung augmented
 over it, and returns in E MAJOR on arrival. Field sounds are part of the music: rain, wind, a train passing (rumble,
 rail joints, a two-tone horn), radio static, and a station voice and a radio monologue made by the voice engine's
 formants in a speech rhythm, words just out of reach.
@@ -11,7 +11,7 @@ formants in a speech rhythm, words just out of reach.
   I   PLATFORM       1-24    rain, a train passing, the station voice; the lone guitar states the theme
   II  DEPARTURE      25-64   a second guitar answers, bass and drums enter patiently, the first crescendo (tremolo)
   III TUNNEL         65-88   everything drops: a drone, static, the radio monologue, the theme in fragments
-  IV  FREIGHT        89-136  post-metal: the theme ground into a riff of seven eighths against the four, paired
+  IV  FREIGHT        89-136  post-metal: the theme ground into a riff of FIVE eighths against the four, paired
                              chug rigs, fuzz bass; the melody augmented above it; a tremolo wall and feedback
   V   ARRIVAL        137-184 the theme in E major, the band climbing to the last peak
   VI  EMPTY STATION  185-208 rain again, the station voice once more, the theme's first bar alone, unresolved
@@ -62,7 +62,8 @@ class Part:
                 continue
             if s - pos > 1e-5:
                 toks.append(f"R/{s - pos:.5g}b")
-            toks.append(f"{head}/{ln:.5g}b@{vel}")
+            base, _, mods = head.partition("^")
+            toks.append(f"{base}/{ln:.5g}b@{vel}" + (f"^{mods}" if mods else ""))
             pos = s + ln
         if total - pos > 1e-5:
             toks.append(f"R/{total - pos:.5g}b")
@@ -117,17 +118,29 @@ def field():
     part("static").add(b0(65), b0(89) - b0(65) - 0.1, "C4", 66)
 
 
-VOICE_STATION = [(0, "A3", 0.5), (0.5, "G3", 0.25), (0.75, "A3", 0.5), (1.5, "B3", 0.75), (2.5, "A3", 0.25),
-                 (2.75, "G3", 0.25), (3.0, "F#3", 1.0), (4.5, "A3", 0.5), (5.0, "A3", 0.25), (5.25, "G3", 0.5),
-                 (6.0, "E3", 1.5)]
+# THE STATION VOICE speaks (v3, ARPAbet through chirp's voice engine, as chirper-two's The Mast does): the platform's
+# announcement, and at the end, slower and lower, its answer (the album's title in it)
+PA_FIRST = [["p-l-ae1-t", "f-ao1-r-m", "t-uw1"], ["dh-ah0", "l-ae1-s-t", "t-r-ey1-n", "ih1-z", "n-aw1", "d-ih0", "p-aa1-r", "t-ih0-ng"]]
+PA_LAST = [["dh-ah0", "l-ae1-s-t", "t-r-ey1-n", "hh-ae1-z", "g-ao1-n"], ["dh-ah0", "l-ay1-t-s", "aa1-r", "l-eh1-f-t", "aa1-n"]]
+
+
+def speak(name, start, lines, step=0.6, base="A2"):
+    t = start
+    for line in lines:
+        for k, syl in enumerate(line):
+            last = k == len(line) - 1
+            f0 = "0>-30>-90" if last else ("0>15>0" if k == 0 else "0>-10")
+            part(name).add(t, 0.92 * step, f"{base}^ph={syl}^f0={f0}", 86 - (6 if syl.endswith("0") else 0))
+            t += step
+        t += 1.5                                             # a breath between lines
+    return t
 
 
 def voices():
     """THE STATION VOICE (bars 5-6 and, changed and slower, 189-190) and THE RADIO MONOLOGUE (the tunnel): the voice
     engine's formants gliding vowel to vowel in a speech rhythm, words just out of reach through a band-pass."""
-    for at0, slow in ((b0(5), 1.0), (b0(189), 1.25)):
-        for t, n, ln in VOICE_STATION:
-            part("pa").add(at0 + t * slow, ln * slow * 0.9, n, 80)
+    speak("pa", b0(5), PA_FIRST)
+    speak("pa", b0(189), PA_LAST, step=0.8, base="G2")      # slower, lower: the last announcement
     hand = random.Random(66)
     x = b0(69)
     while x < b0(85):
@@ -176,21 +189,22 @@ def tunnel():
             part("frag").add(b0(bar) + k, 1.5, nm(arp[k] + 12), 62)
 
 
-RIFF = [0, 0, None, 3, 0, 2, -2]          # THE RIFF: seven eighths, the theme's intervals ground low (E G F# D)
+RIFF = [0, 0, 3, 2, -2]       # THE RIFF (v3): FIVE eighths against the four, the theme's intervals ground low
+# (E E G F# D); the seven-against-four is chirper-zero's Night Freight
 
 
 def freight():
     hand = random.Random(4)
     x, i = b0(89), 0
     while x < b0(133):
-        iv = RIFF[i % 7]
+        iv = RIFF[i % 5]
         if iv is not None:
             m = 28 + iv                                                  # E1 (an 8-string's low E)
-            v = 108 if i % 7 == 0 else 92
+            v = 108 if i % 5 == 0 else 92
             for side in ("chugl", "chugr"):
                 part(side).add(x, 0.45, nm(m), v + hand.randint(-4, 4))
             part("fbass").add(x, 0.45, nm(m + 12), v)
-            if i % 7 in (0, 3):
+            if i % 5 in (0, 3):
                 part("kit").add(x, 0.5, "k", 110)
         x += 0.5
         i += 1
@@ -303,7 +317,9 @@ def main():
             tr("clack", "metal-kit-phys", gain="-14dB", fx=["lp cutoff=2500"], sends={"hall": "-10dB"}),
             tr("horn", "c6-horn", gain="-16dB", sends={"hall": "-4dB"}),
             tr("static", "c6-static", gain="-26dB", fx=[{"type": "crush", "bits": 6, "rate": 8000, "mix": 0.5}]),
-            tr("pa", "c6-voice", gain="-10dB", fx=radio_fx, sends={"station": "-2dB"}),          # the station voice
+            tr("pa", "voice-speech", gain="-6dB", fx=[{"type": "filter", "kind": "bp", "cutoff": 1500, "q": 0.9},
+                                                     {"type": "crush", "bits": 10, "rate": 16000, "mix": 0.4}],
+               sends={"station": "-2dB"}),          # v3: the station voice SPEAKS, through a PA
             tr("radio", "c6-voice", gain="-12dB", fx=radio_fx + [{"type": "pitch", "semitones": 0, "formant": -2}]),
             tr("gtr1", "starcaster-clean", gain="-8dB", pan=-0.3, sends={"hall": "-10dB"}),
             tr("gtr2", "m8-clean", gain="-10dB", pan=0.3, sends={"hall": "-8dB"}),
