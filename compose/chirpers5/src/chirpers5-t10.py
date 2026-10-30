@@ -26,9 +26,10 @@ SPB = 60 / BPM
 BAR = 4 * SPB
 S = 0.25
 RECIPE = float(os.environ.get("C5T10_RECIPE", "6"))
-RCLIP = os.environ.get("C5T10_RCLIP", "-2.8")
+RCLIP = os.environ.get("C5T10_RCLIP", "-2.0")
 TPLIM = os.environ.get("C5T10_TPLIM", "")  # wM's true-peak limiter (true_peak: true, 4x oversampled, 5 ms lookahead, never clamps) as the master's last stage at this ceiling (dB), instead of the clip and the 16 kHz low-pass
-LOWLIFT = os.environ.get("C5T10_LOWLIFT", "3")  # the master's 100 Hz lifted (dB): the liquid bass's body
+LOWLIFT = os.environ.get("C5T10_LOWLIFT", "3")
+MIDEQ = os.environ.get("C5T10_MIDEQ", "-3,-4")  # "low,mid": the 300 Hz cut eased to this (dB) and 1 kHz taken down by this (the piano and the voice's formants were forward of the album)  # the master's 100 Hz lifted (dB): the liquid bass's body
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 FORM = [("intro", 16), ("build", 8), ("A", 32), ("breakdown", 16), ("B", 32), ("lift", 16), ("dissolve", 24)]
@@ -253,7 +254,9 @@ def song():
         "patches": {"city-air": {"about": "Soft Concrete t10: the city at dawn - pink noise, band-passed low, steady.",
                                  "synth": {"layers": [{"type": "noise", "color": "pink"}], "filters": ["bp cutoff=500 q=0.4"],
                                            "amp": {"a": "2s", "s": 1, "r": "2s"}}}},
-        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=26", "peak cutoff=80 q=0.8 gain=2dB", *([f"peak cutoff=100 q=0.8 gain={LOWLIFT}dB"] if LOWLIFT else []), "peak cutoff=300 q=0.8 gain=-6dB", "highshelf cutoff=6000 gain=3dB"]},
+        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=26", "peak cutoff=80 q=0.8 gain=2dB", *([f"peak cutoff=100 q=0.8 gain={LOWLIFT}dB"] if LOWLIFT else []),
+                                                   f"peak cutoff=300 q=0.8 gain={MIDEQ.split(',')[0] if MIDEQ else -6}dB",
+                                                   *([f"peak cutoff=1000 q=0.8 gain={MIDEQ.split(',')[1]}dB"] if MIDEQ else []), "highshelf cutoff=6000 gain=3dB"]},
                           {"type": "compressor", "threshold": "-16dB", "ratio": 2, "attack": "10ms", "release": "150ms", "makeup": "0dB"},
                           {"type": "gain", "gain": f"+{RECIPE:g}dB"},
                           {"type": "compressor", "threshold": "-5dB", "ratio": 10, "attack": "0.3ms", "release": "60ms", "makeup": "0dB"},
