@@ -39,7 +39,10 @@ PHANTOM = os.environ.get("C4T8_PHANTOM", "oh")
 BREATHE = os.environ.get("C4T8_BREATHE", "1") == "1"  # Harry's LFO note: the stab breathes on odd lengths - its low-pass drifts on a 7-bar sine and a 5-bar triangle, its resonance on a 3-bar sine, its place in the field on a 5-bar sine - and a section lane opens it across the arc (dark intro and break, open A, brightest peak)
 NORISER = os.environ.get("C4T8_NORISER", "1") == "1"
 MKIT = os.environ.get("C4T8_MKIT", "split-k")  # chirper-two's analog machine-kit: "kr" = its rumble kick (the deep-techno swell after each hit), "k" = its 909-style kick; "krn" = kr with the rumble bus removed
-MEQ2 = os.environ.get("C4T8_MEQ2", "1") == "1"  # the low end cleared for the analog kick: 40 Hz -9, 100 Hz -4, a 5 kHz lift
+MEQ2 = os.environ.get("C4T8_MEQ2", "1") == "1"
+KDRIVE = os.environ.get("C4T8_KDRIVE", "")  # the analog kick softly clipped before the bus (drive amount): its peak tamed so the master is loud without the limiter's squash
+HATLFO = os.environ.get("C4T8_HATLFO", "1") == "1"
+DIPS = float(os.environ.get("C4T8_DIPS", "0"))  # the quiet sections' dips made shallower by this many dB (the intro, the break, the outro)  # the 909 layer (hats, rim, claps, ride) through a high-pass that opens and closes on a 7-bar sine and a 3-bar triangle, its place drifting on a 5-bar sine  # the low end cleared for the analog kick: 40 Hz -9, 100 Hz -4, a 5 kHz lift
 KICKP = "kr" if MKIT in ("kr", "krn", "split-kr") else "k"
 SPLIT = MKIT.startswith("split")  # "split-k" / "split-kr": only the kick moves to the machine kit (its own track); the 909 keeps the hats, rim, claps and ride  # restraint: the Shepard riser goes (Shepard and Risset are No Floor's)  # the break made the illusion: no hats at all (nothing left on the kick's grid), the rim's 3/16 cycle from the break's fifth bar, so the echoes and the rim are the only pulse; "gap" = and a pull-out (the master drops out) on the break's last half-bar before B slams in  # the room's send raised (dB) through A and B, the echo stream louder against the kick
 
@@ -234,7 +237,8 @@ def song():
     dry = [(0, 0), (st["A"], -2), (st["A"] + 16, -5), (st["break"], -14), (st["B"], -2), (st["peak"], -4), (st["outro"], -6)]
     up = (lambda x: x + WETUP) if WETUP else (lambda x: x)  # noqa: E731
     wet = [(0, -8), (st["A"], up(-6)), (st["A"] + 16, up(-3)), (st["break"], 2), (st["B"], up(-6)), (st["peak"], -2), (st["outro"], 0)]
-    dyn = [(0, -6), (st["build"], -3), (st["A"], 0), (st["break"], -7), (st["B"], 0), (st["peak"], 1), (st["outro"], -5)]
+    dd = (lambda x: x + DIPS) if DIPS else (lambda x: x)  # noqa: E731
+    dyn = [(0, dd(-6)), (st["build"], -3), (st["A"], 0), (st["break"], dd(-7)), (st["B"], 0), (st["peak"], 1), (st["outro"], dd(-5))]
     frz = [(0, 0), (st["break"] + 2, 1), (st["break"] + 12, 0)]
     opn = [(0, -0.8), (st["build"], -0.4), (st["A"], 0), (st["A"] + 16, 0.3), (st["break"], -0.6), (st["B"], 0.2), (st["peak"], 0.6), (st["outro"], -0.3)]
     if PHANTOM == "gap":  # (only with the full phantom)  # the pull-out: the last half-bar of the break goes silent, then B slams in
@@ -277,8 +281,13 @@ def song():
                      "auto": {"frz": lane(frz)}},
         },
         "tracks": [
-            *([{"name": "kick", "patch": "machine-kit", "gain": "0dB", "sends": {"rumble": "-4dB"}, "score": " | ".join(kick_bars(T["kit"]))},
-               {"name": "kit", "patch": "909", "gain": "0dB", "score": " | ".join(strip_kick(T["kit"]))}] if SPLIT else
+            *([{"name": "kick", "patch": "machine-kit", "gain": "0dB", "sends": {"rumble": "-4dB"},
+                **({"fx": [{"type": "drive", "drive": float(KDRIVE), "mix": 1}]} if KDRIVE else {}), "score": " | ".join(kick_bars(T["kit"]))},
+               {"name": "kit", "patch": "909", "gain": "0dB",
+                **({"lfo": {"h": "sine rate=7/1", "j": "tri rate=3/1 phase=0.5", "q": "sine rate=5/1 phase=0.25"},
+                    "pan": {"value": 0, "mod": [{"src": "lfo.q", "amount": 0.3}]},
+                    "fx": [{"type": "filter", "kind": "highpass", "cutoff": {"value": 900, "mod": [{"src": "lfo.h", "amount": 1.0}, {"src": "lfo.j", "amount": 0.4}]}, "q": 0.8}]} if HATLFO else {}),
+                "score": " | ".join(strip_kick(T["kit"]))}] if SPLIT else
               [{"name": "kit", "patch": "machine-kit" if MKIT else "909", "gain": "0dB", "sends": ({} if MKIT == "krn" else {"rumble": "-4dB"}), "score": sc("kit")}]),
             {"name": "sub", "patch": "sub-sine", "gain": "-9dB", "fx": [pump(-8)], "score": sc("sub")},
             {"name": "stab", "patch": "dub-chord", "gain": {"value": "-10dB", "mod": [{"src": "auto.dry", "amount": 1}]},
