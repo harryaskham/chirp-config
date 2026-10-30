@@ -147,6 +147,10 @@ R17 = set(filter(None, os.environ.get("T6_R17", "U").split(","))) - {"none"}
 R18 = set(filter(None, os.environ.get("T6_R18", "D,A").split(","))) - {"none"}
 RHODES = "epiano-tine synth.tine.sense=0.5 synth.tine.key=-0.25"
 DAMPER = " play.release.patch=epiano-damper play.release.decay=2s"
+# Round 19 (v19): E = THE MUD LIFTS: against the album's long-term spectrum the song sat 5-7 dB heavy at 400-750 Hz
+# and 5-7 dB shy at 1.4-4 kHz (cohesion 76). A wide master cut at 550 Hz and a gentle presence lift at 2.5 kHz:
+# the wurli keeps its warmth, but the brushes, the vibes and the Rhodes's bark come forward out of the felt.
+R19 = set(filter(None, os.environ.get("T6_R19", "E").split(","))) - {"none"}
 FORM = [("intro", 4), ("A", 16), ("switch", 8), ("A2", 16), ("drop", 4), ("A3", 12), ("outro", 4)]
 LEVEL = {"intro": 58, "A": 72, "switch": 66, "A2": 78, "drop": 56, "A3": 80, "outro": 56}
 DRUMS = {"A", "switch", "A2", "A3"}
@@ -535,7 +539,9 @@ def main():
             "fx": ["lp cutoff=1500", {"type": "tape", "drive": 0.45, "warmth": 0.75, "wow": 7, "flutter": 2, "seed": 16},
                    "hp cutoff=150", "limiter ceiling=-8dB"],
             "returns": [{"from": "dubloop", "gain": "-6dB", "time": "3/8"}]}})] if "F" in R16 else []),
-        "master: " + json.dumps({"fx": [{"type": "eq", "bands": ["hp cutoff=30", "highshelf cutoff=8000 gain=0dB"]}]
+        "master: " + json.dumps({"fx": [{"type": "eq", "bands": ["hp cutoff=30", "highshelf cutoff=8000 gain=0dB"]
+                                          + (["peak cutoff=550 gain=-3.5dB q=0.7", "peak cutoff=2500 gain=3dB q=0.6"]
+                                             if "E" in R19 else [])}]
                                  + ([{"type": "filter", "kind": "lp", "cutoff": {"value": 18000, "mod": [{"src": "auto.dive", "amount": -4.0}]}}]
                                     if "F" in R2 else [])
                                  + ([{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.fadein", "amount": 1}]}}]
