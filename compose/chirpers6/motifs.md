@@ -8,3 +8,11 @@ Generator `compose/chirpers6/src/chirpers6-t6.py`. Post-rock / post-metal journe
 - **ITS TRANSFORMATIONS**: in fragments (the tunnel: two or three arpeggio notes far apart through a long delay); ground into THE RIFF (freight: seven eighths, E E . G E F# D on an 8-string's low E, against the 4/4, doubled by paired chug rigs and a fuzz bass, the kick on the riff's 1 and 4), the melody AUGMENTED above it; in E MAJOR (arrival: E | C#m7 | Aadd9/C# | Bsus4-B, the melody B4 | C#5 B4 | E5 C#5 | D#5); and its first bar alone at the end.
 - **THE FIELD**: rain, wind, a train passing (a brown-noise rumble swelling and panning by, rail-joint clacks speeding up then slowing, a two-tone horn A3/C#4), radio static; THE STATION VOICE and THE RADIO MONOLOGUE: a saw/pulse/breath voice through a formant filter (vowel random per syllable) in a speech rhythm, band-passed and crushed like a PA or a radio, words just out of reach.
 
+
+## t5 (chirper-one): apocalyptic spoken-word suite, "Leave the Lights On"
+
+- **THE SIGNAL**: B4 G4 A4 E4 (falling, then answering), half-notes - glockenspiel (II), e-bow an octave up (II's second half, III), the top of the tremolo wall (III), tape-echo lead (IV), music box in E MAJOR, G -> G# (V).
+- **THE WORDS**: "this is the last broadcast. if you can hear this, leave the lights on." - wM's speech voice (ARPAbet, ^f0 intonation paths), close and dry with a little tape wow, twice in I (the second breaking off); "leave the lights on" alone, closer, in V.
+- **THE CRESCENDO** (III): five stages of eight bars - toms and ride, then crash, then kick and snare and the e-bow theme, then the ride's edge wash - the tremolo guitars (thirty-seconds on the chord tones) and strings louder each stage; the sub enters at stage two.
+- **THE FIRE** (IV): E5 - C5 - G5 - D5 on two chug rigs hard left and right (one, and-of-2, 3, 4, and-of-4), fuzz bass and sub on the roots, half-time kit, the drums doubling in the last eight bars; the wall tape-stops over the last two beats into V.
+- **THE ECHO**: the clean guitar, the tremolo and the glock feed a dotted-eighth (3/16) tape delay - the post-rock cascade against the beat.
