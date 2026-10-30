@@ -125,6 +125,22 @@ class Keep(unittest.TestCase):
             quiet(CH.C.cmd_done, ["old-song", "--version", "v9", "--score", "1", "--note", "x", "--keep", "--no-git"])
 
 
+class LatestRatings(unittest.TestCase):
+    def test_a_note_after_a_score_keeps_the_score(self):
+        # Harry, 30 Oct: "10.0/10" then a note "genuine banger" crashed chirpers.py status (KeyError: 'score')
+        d = os.path.join(TMP, "compose", "lr")
+        os.makedirs(d, exist_ok=True)
+        rows = [{"id": "x", "who": "harry", "score": 10.0}, {"id": "x", "who": "harry", "note": "genuine banger"},
+                {"id": "y", "who": "harry", "note": "too busy"}, {"id": "y", "who": "harry", "score": 4.0},
+                {"id": "z", "who": "harry", "note": "only a note"}]
+        with open(os.path.join(d, "ratings.jsonl"), "w") as f:
+            f.write("".join(json.dumps(r) + "\n" for r in rows))
+        rt = CH.latest_ratings("lr")
+        self.assertEqual((rt["x"]["harry"]["score"], rt["x"]["harry"]["note"]), (10.0, "genuine banger"))
+        self.assertEqual((rt["y"]["harry"]["score"], rt["y"]["harry"]["note"]), (4.0, "too busy"))
+        self.assertNotIn("score", rt["z"]["harry"])
+
+
 class RebaselineRace(unittest.TestCase):
     def test_a_round_landing_mid_run_changes_the_snapshot(self):
         before = {"rounds": 12, "best": {"version": "v8", "score": 97.735}}

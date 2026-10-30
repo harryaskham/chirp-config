@@ -184,6 +184,8 @@ def cmd_art(a, args):
 
 
 def latest_ratings(album_id):
+    """{id: {who: entry}}: each rater's latest SCORED entry, carrying their latest note (a note-only entry after a
+    score, as the player's :note writes, must not hide the score: Harry's notes on Phantom Downbeat, 30 Oct)."""
     p = os.path.join(ROOT, "compose", album_id, "ratings.jsonl")
     out = {}
     if os.path.exists(p):
@@ -191,7 +193,12 @@ def latest_ratings(album_id):
             for ln in f:
                 if ln.strip():
                     r = json.loads(ln)
-                    out.setdefault(r["id"], {})[r.get("who")] = r
+                    mine = out.setdefault(r["id"], {})
+                    prev = mine.get(r.get("who")) or {}
+                    if "score" in r:
+                        mine[r.get("who")] = dict(r) if r.get("note") or not prev.get("note") else {**r, "note": prev["note"]}
+                    elif r.get("note"):
+                        mine[r.get("who")] = {**prev, "id": r["id"], "who": r.get("who"), "note": r["note"]}
     return out
 
 
@@ -211,7 +218,8 @@ def cmd_status(a, args):
             print(f"  {t['n']:2d} {t['id']:14s} {(c.get('meta') or {}).get('title', '?')[:28]:28s} {t['role']:6s} "
                   f"{t['length'][0]}-{t['length'][1]}s  {c.get('status', '?'):9s} owner {c.get('owner') or '-':14s} "
                   f"{'composed' if song else 'empty   '} best {best.get('score', '—')} {best.get('version', '')}"
-                  + (f"  harry {h['score']}/10" if h else ""))
+                  + (f"  harry {h['score']}/10" if h and "score" in h else "")
+                  + (f" ({h['note'][:40]})" if h and h.get("note") else ""))
 
 
 def cmd_refresh(a, args):
