@@ -6522,13 +6522,18 @@
       "song": "songs/chirpers5-t6.yaml",
       "reference": "Chirpers — Overpass Rain",
       "source": null,
-      "owner": null,
+      "owner": "chirper-two",
       "metric": "python3 tools/compscore.py chirpers5-t6 OUT.wav",
-      "best": null,
+      "best": {
+        "score": 97.64,
+        "version": "v1",
+        "commit": "see git log songs/chirpers5-t6.yaml",
+        "engine": "b93526ee"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "liquid / 2-step drum & bass, glitchstep",
       "mode": "compose",
@@ -6544,6 +6549,10 @@
         "by": "chirp-eco",
         "at": "2026-10-30T11:00:02Z",
         "note": "COMPOSE (song, 150-450 s): Style, groove, tempo and line-up are yours: declare them in compose/chirpers5/styles.md, different from the tracks already claimed."
+      },
+      "last": {
+        "at": "2026-10-30T11:21:12Z",
+        "who": "chirper-two"
       }
     },
     {
