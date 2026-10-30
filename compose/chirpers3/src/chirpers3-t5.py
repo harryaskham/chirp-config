@@ -52,7 +52,17 @@ RELTRIG = os.environ.get("T5_RELTRIG", "6")  # wM's release triggers: the skank'
 RELBUB = os.environ.get("T5_RELBUB", "0") == "1"
 BOUT = os.environ.get("T5_BOUT", "")
 LHARM = os.environ.get("T5_LHARM", "1") == "1"
-LH_DB = os.environ.get("T5_LHDB", "-15")  # the harmony's level  # the return's melodica doubled a diatonic third under (A minor), a second player answering in harmony  # the echo-out: through the breakdown's skank-alone half every stab goes into the tape loop (the skank's echo send up by this many dB)
+LH_DB = os.environ.get("T5_LHDB", "-15")
+RUNOUT = os.environ.get("T5_RUNOUT", "0") in ("1", "clicks")
+RUNKIND = os.environ.get("T5_RUNOUT", "0")
+TAIL = os.environ.get("T5_TAIL", "")
+BONES = os.environ.get("T5_BONES", "0") == "1"
+VCRK = os.environ.get("T5_VCRK", "")
+VHS = os.environ.get("T5_VHS", "")
+RDROP = os.environ.get("T5_RDROP", "0") == "1"
+WIRES = os.environ.get("T5_WIRES", "")
+WIRE_DB = os.environ.get("T5_WIREDB", "-32,-38")  # the links' levels: kick, rim
+SPRINGKICK = os.environ.get("T5_SPRINGKICK", "0")  # the engineer kicks the spring tank: a thud-and-hiss burst slammed into the spring at the version's and the return's downbeats; value = send dB  # wM's dusty snare wires on the room kit: the one-drop's kick buzzes the snare (dusty-kit's `sb` linked at -32 dB); "rim" = the rim click too (-38 dB)  # the selector's drop-out halfway through the riddim: bars 9-10 the skank alone, then the riddim slams back  # with a lighter crackle, the top it carried put back by a master high shelf at 3.5 kHz (dB)  # the master vinyl's crackle,dust (lighter: the clicks stop masking the arrangement's own rhythm), e.g. "0.15,0.15"  # the breakdown's first half stripped to the one-drop's bones: kick and rim on three only, no hats, under the bass and THE HOLD (the skank-alone half kept)  # the song's tail after the last bar (the rewind's dead air): "" = 6 s  # after the rewind, the needle rides the run-out groove: the record's hiss and its locked-groove click every 1.8 s (33 1/3 rpm), five seconds, then t6  # the harmony's level  # the return's melodica doubled a diatonic third under (A minor), a second player answering in harmony  # the echo-out: through the breakdown's skank-alone half every stab goes into the tape loop (the skank's echo send up by this many dB)
 IDRY = os.environ.get("T5_IDRY", "1") == "1"  # ...and the intro's skank stays out of the tape loop (only the spring)
 MHATS = os.environ.get("T5_MHATS", "0") == "1"  # the melodica section's hats open up to soft 16ths, the drummer lifting under the tune
 STRIP = os.environ.get("T5_STRIP", "")  # chirper-three's note: a true dub strip-down - the breakdown is bass and drums alone for all 8 bars, 3 dB down, and the return slams back 2 dB up; "hold" keeps THE HOLD over the first four, "dry" drops it
@@ -137,7 +147,7 @@ VERSION_MIX = [  # the dub mix, bar by bar: who is up on the desk
 def drums(sec, b, rng, full=True):
     """The one-drop: kick and rim together on 3, hats on the 8ths (swung), ghost rims, a rim roll at phrase ends."""
     ev = [(8, "k,so", 1, 108)]
-    if STRIP == "bare" and sec == "breakdown":  # the strip-down: the one-drop's bones only
+    if (STRIP == "bare" and sec == "breakdown") or (BONES and sec == "breakdown" and b < 4):  # the one-drop's bones only
         rng.random()
         return grid(ev)
     for st in ((0, 3, 6, 11, 14) if HATS == "tresillo" else range(0, 16, 2)):
@@ -214,6 +224,8 @@ def build():
                 up = {"skank"} if (b < (4 if EVEN else 2) or ISOLO) else {"skank", "drums"} | ({"bass"} if EVEN and b >= 6 else set())
             elif sec == "riddim":
                 up = {"drums", "bass", "skank"} | ({"bubble"} if b >= 4 else set())
+                if RDROP and b in (8, 9):
+                    up = {"skank"}
             elif sec in ("melodica", "return"):
                 up = ALL
             elif sec == "version":
@@ -299,7 +311,7 @@ def song():
         lane = {**lane, "bo": {"points": [["0s", 0], [f"{b4 - 0.05:.3f}s", 0], [f"{b4:.3f}s", float(BOUT)], [f"{b8 - 0.05:.3f}s", float(BOUT)],
                                            [f"{b8:.3f}s", 0], [f"{total + 8:.2f}s", 0]]}}
     tracks = [
-        {"name": "drums", "patch": ("room-kit" + (f" play.humanize.nudge.so={RIMDRAG}ms" if RIMDRAG else "") if not NUDGE else
+        {"name": "drums", "patch": (("dusty-room" if WIRES else "room-kit") + (f" play.humanize.nudge.so={RIMDRAG}ms" if RIMDRAG else "") if not NUDGE else
                                      "room-kit play.humanize.nudge.so={}ms play.humanize.nudge.k={}ms play.humanize.nudge.h={}ms "
                                      "play.humanize.swing_drift=0.04 play.humanize.drunk=6ms".format(*NUDGE.split(","))), "gain": "-6dB", "sends": {"spring": "-16dB", "echo": thr_send(-22)},
          "fx": [{"type": "eq", "bands": ["highshelf cutoff=6000 gain=-6dB"]}], "auto": lane, "score": sc("drums", HATSW, DRAG or None)},
@@ -316,6 +328,20 @@ def song():
         {"name": "crackle", "patch": "vinyl-crackle", **({"mute": True} if VINYL else {}), "gain": "-20dB" if CRK == "1" else "-28dB", "score": sc("crackle")},
         {"name": "hiss", "patch": "vinyl-hiss", "gain": "-34dB", **({"mute": True} if VINYL else {}), "score": sc("hiss")},
     ]
+    if SPRINGKICK:
+        hits = [times["version"], times["return"]]
+        toks, pos = [], 0.0
+        for a in hits:
+            toks.append(f"R/{int(round((a - pos) * 1000))}ms")
+            toks.append("C3/400ms@110")
+            pos = a + 0.4
+        tracks.append({"name": "springkick", "patch": "spring-kick", "gain": "-14dB", "sends": {"spring": f"{SPRINGKICK}dB"}, "score": " ".join(toks)})
+    if RUNOUT:
+        t_ms = int(round((total + 0.6) * 1000))
+        if RUNKIND == "1":
+            tracks.append({"name": "runout-hiss", "patch": "vinyl-hiss", "gain": "-30dB", "score": f"R/{t_ms}ms C4/5000ms@60"})
+        tracks.append({"name": "runout-click", "patch": "vinyl-crackle", "gain": "-12dB" if RUNKIND == "1" else "-18dB",
+                       "score": f"R/{t_ms}ms " + " ".join(f"C5/1800ms@{70 - 6 * k}" for k in range(3))})
     if LHARM:  # the return's melodica a diatonic third under (A natural minor): C/D drop to the A/B below
         bars2 = []
         r0 = sum(nb for sec, nb, _ in FORM[:[f[0] for f in FORM].index("return")])
@@ -343,7 +369,18 @@ def song():
     if SIREN:
         tracks.append({"name": "siren", "patch": "dub-siren", "gain": "-14dB", "pan": 0.4,
                        "sends": {"echo": "-4dB", "spring": "-8dB"}, "score": sc("siren")})
+    SB = {"pan": -0.05, "patch": {"play": {"vel_sens": 0.4},
+                                  "synth": {"amp": {"a": "3ms", "curve": 3, "d": "110ms", "r": "20ms", "s": 0},
+                                            "filters": ["hp cutoff=1800", "peak cutoff=4k q=1.2 gain=4dB", {"cutoff": "7k", "kind": "lp"}],
+                                            "layers": [{"type": "noise"}, {"color": "pink", "level": "-6dB", "type": "noise"}],
+                                            "pitch": {"value": 0, "mod": [{"src": "rand", "amount": 0.3}]}}}}
     patches = {
+        **({"spring-kick": {"about": "Tape Weather t5: a kicked spring tank's excitation - a thud and a burst of hiss, 80 ms.",
+                            "synth": {"layers": [{"type": "noise"}, "sine fixed=70 level=-4dB"],
+                                      "filters": ["hp cutoff=40"], "amp": {"a": "0.5ms", "d": "90ms", "s": 0, "r": "30ms", "curve": 3}}}} if SPRINGKICK else {}),
+        **({"dusty-room": {"about": "Tape Weather t5: the room kit with dusty-kit's snare wires (wM, bd-15ff20): the kick (and the rim) buzz the snare.",
+                           "extends": "room-kit",
+                           "kit": {"sb": SB, "k": {"also": {"sb": f"{WIRE_DB.split(',')[0]}dB"}}, **({"so": {"also": {"sb": f"{WIRE_DB.split(',')[1]}dB"}}} if WIRES == "rim" else {})}}} if WIRES else {}),
         **({"living-skank": {"about": "Tape Weather t5: the rhodes skank with per-voice fx - each stab panned to its own random place and low-passed to its own tone.",
                              "extends": SKBASE,
                              **({"play": {"release": {"patch": "epiano-damper", "decay": "2s", "gain": f"{RELTRIG}dB"}}} if RELTRIG else {}),
@@ -418,8 +455,10 @@ def song():
               [f"{r1:.2f}s", 0], [f"{total + 8:.2f}s", 0]]
         strip_fx = [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.lv", "amount": 1}]}}]
         strip_auto = {"lv": {"points": st}}
+    if VHS:
+        bands = list(bands) + [f"highshelf cutoff=3500 gain={VHS}dB"]
     master = {"fx": [{"type": "eq", "bands": bands}, *glitch_fx,
-                     *(["vinyl crackle=0.35 dust=0.3 noise=-62dB rumble=0.25 warp=4 wear=0.35 seed=5"] if VINYL else []),
+                     *([(f"vinyl crackle={VCRK.split(',')[0]} dust={VCRK.split(',')[1]} noise=-62dB rumble=0.25 warp=4 wear=0.35 seed=5" if VCRK else "vinyl crackle=0.35 dust=0.3 noise=-62dB rumble=0.25 warp=4 wear=0.35 seed=5")] if VINYL else []),
                      {"type": "tape", "drive": 0.35, "warmth": 0.5, "mix": 1},
                      {"type": "compressor", "threshold": "-20dB", "ratio": 2, "attack": "20ms", "release": "220ms", "makeup": "0dB"},
                      {"type": "gain", "gain": f"+{MG:g}dB"}, *strip_fx]}
@@ -427,7 +466,7 @@ def song():
         bar_s = 4 * 60 / BPM
         t0 = (total - bar_s) if REWIND == "end" else (times["version"] - bar_s / 2)
         rw = [["0s", 0], [f"{t0 - 0.02:.3f}s", 0], [f"{t0:.3f}s", 1]]
-        rw += ([[f"{total + 8:.2f}s", 1]] if REWIND == "end" else [[f"{t0 + bar_s / 2 - 0.02:.3f}s", 1], [f"{t0 + bar_s / 2:.3f}s", 0], [f"{total + 8:.2f}s", 0]])
+        rw += (([[f"{total - 0.02:.3f}s", 1], [f"{total:.3f}s", 0], [f"{total + 8:.2f}s", 0]] if RUNOUT else [[f"{total + 8:.2f}s", 1]]) if REWIND == "end" else [[f"{t0 + bar_s / 2 - 0.02:.3f}s", 1], [f"{t0 + bar_s / 2:.3f}s", 0], [f"{total + 8:.2f}s", 0]])
         master["fx"].append({"type": "tapestop", "time": "2b", "spin": 3, "curve": 1.6,
                              "stop": {"value": 0, "mod": [{"src": "auto.rw", "amount": 1}]}})
         glitch_auto = {**glitch_auto, "rw": {"points": rw}}
@@ -451,7 +490,7 @@ def song():
                   "compose/chirpers3/src/chirpers3-t5.py). Dub-wise space: an original one-drop riddim in A minor at 70 bpm "
                   "mixed live - the mute plan is the arrangement - into a feedback tape echo and a spring, with echo throws, "
                   "tape wow on the keys, vinyl hiss and crackle."),
-        "tempo": BPM, "ceiling": "-0.3dB", "tail": "6s", "patches": patches,
+        "tempo": BPM, "ceiling": "-0.3dB", "tail": TAIL or ("1s" if RUNOUT else "6s"), "patches": patches,
         "buses": {**({"hold": hold_bus} if HOLD else {}),
                   "echo": ({"fx": [f"delay time={ECHO} feedback=0.62 mix=1 tone=1600"]} if not SPACE else
                            {"fx": [f"delay time={ECHO} feedback=0 mix=1 tone=2400", {"type": "filter", "kind": "lowpass", "cutoff": 1800, "q": 0.8},
