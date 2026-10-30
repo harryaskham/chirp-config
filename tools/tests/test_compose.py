@@ -298,6 +298,19 @@ class Measures(unittest.TestCase):
         lo, hi = CS.m_recurrence(ctx(0.598))[0], CS.m_recurrence(ctx(0.62))[0]
         self.assertLess(abs(hi - lo), 5.0)                     # was 18.9 vs 57.4 across a hard 0.6 cut
 
+    def test_profile_ignores_bands_with_no_fft_bins(self):
+        # chirper-zero, 30 Oct: bands 0 (30-35 Hz) and 3 (48-56 Hz) hold no bins at NFFT 4096 / 48 kHz
+        self.assertEqual([i for i in range(40) if not CS.LIVE[i]], [0, 3])
+
+        class F:
+            logb = np.full((40, 4), -30.0)
+        F.logb[[0, 3]] = -100.0                                   # the empty bands' floor
+        F.logb[10] = -20.0
+        p = CS.profile(F)
+        self.assertEqual((p[0], p[3]), (0.0, 0.0))
+        self.assertAlmostEqual(float(p[CS.LIVE].mean()), 0.0)    # normalised over live bands only
+        self.assertAlmostEqual(float(p[10] - p[11]), 10.0)
+
     def test_recurrence_band_is_the_albums_to_tune(self):
         # chirper-two, 30 Oct: a slow post-rock crescendo reads as too repetitive under the fixed 0.25-0.7 band
         v = [np.array([1.0, 0.0])] * 6                          # every section returns: share 1.0

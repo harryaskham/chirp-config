@@ -140,10 +140,22 @@ def worst_bands(mine, theirs, n=3):
     return [(int(round(BAND_HZ[i])), round(float(d[i]), 1)) for i in np.argsort(-np.abs(d))[:n]]
 
 
+# Bands of likeness's 40 (30 Hz-16 kHz, log-spaced) that hold at least one FFT bin. At NFFT 4096 / 48 kHz (11.7 Hz bins)
+# bands 0 (30-35 Hz) and 3 (48-56 Hz) are empty: they read a constant -100 dB floor in every profile, dragged its mean
+# and added ~0.33 dB to every spectrum excess (chirper-zero, 30 Oct: Sodium's spectrum 86 would be ~96).
+_BF = np.fft.rfftfreq(L.NFFT, 1 / L.SR)
+_BE = np.geomspace(30, 16000, 41)
+LIVE = np.array([bool(((_BF >= a) & (_BF < b)).any()) for a, b in zip(_BE[:-1], _BE[1:])])
+PROFILE_V = 2   # bump when profile() changes, so cached genre envelopes are recomputed
+
+
 def profile(F, i0=0, i1=None):
-    """Level-normalised long-term spectrum (40 log bands, dB minus their mean)."""
+    """Level-normalised long-term spectrum (40 log bands, dB minus the mean of the bands that hold FFT bins; empty
+    bands read 0 so they never differ between two profiles)."""
     p = F.logb[:, i0:i1].mean(1)
-    return p - p.mean()
+    out = p - p[LIVE].mean()
+    out[~LIVE] = 0.0
+    return out
 
 
 NOVELTY = 0.15            # normalised checkerboard novelty a section boundary must reach (calibrated 28 Oct: real
@@ -241,7 +253,7 @@ def genre_envelope(album):
     if os.path.exists(path):
         with open(path) as f:
             d = json.load(f)
-        if d.get("refs") == refs:
+        if d.get("refs") == refs and d.get("v") == PROFILE_V:
             return np.array(d["envelope"])
     profs = []
     for r in refs:
@@ -253,7 +265,7 @@ def genre_envelope(album):
     env = np.mean(profs, axis=0)
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w") as f:
-        json.dump({"refs": refs, "envelope": env.tolist()}, f)
+        json.dump({"refs": refs, "v": PROFILE_V, "envelope": env.tolist()}, f)
     return env
 
 
