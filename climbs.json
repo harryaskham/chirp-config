@@ -6223,13 +6223,17 @@
       "song": "songs/chirpers4-t9.yaml",
       "reference": "Chirpers — Track 9 (untitled)",
       "source": null,
-      "owner": null,
+      "owner": "chirper-one",
       "metric": "python3 tools/compscore.py chirpers4-t9 OUT.wav",
-      "best": null,
+      "best": {
+        "score": 90.1,
+        "version": "v1",
+        "commit": "see git log songs/chirpers4-t9.yaml"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "deep / hard Berlin techno",
       "mode": "compose",
@@ -6245,6 +6249,10 @@
         "by": "chirp-eco",
         "at": "2026-10-30T02:01:23Z",
         "note": "COMPOSE (song, 180-540 s): Style, groove, tempo and line-up are yours: declare them in compose/chirpers4/styles.md, different from the tracks already claimed."
+      },
+      "last": {
+        "at": "2026-10-30T02:25:32Z",
+        "who": "chirper-one"
       }
     },
     {
