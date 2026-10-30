@@ -50,6 +50,8 @@ INTROPAD = int(os.environ.get("T8_INTROPAD", "0"))  # the intro's juno louder by
 RDAMP = os.environ.get("T8_RDAMP", "6")  # THE STOP's rhodes on wM's physical tine e-piano, letting go with the damper's key-off (release triggers); value = damper gain dB
 CODAHOLD = os.environ.get("T8_CODAHOLD", "3")
 CODAVEL = os.environ.get("T8_CODAVEL", "72,48")  # the held idle's sub and pad velocities  # the idle holds steady instead of fading (the bus waiting at the stop): "2" = two bars level, "3" = three bars
+DUSTY = os.environ.get("T8_DUSTY", "0") == "1"
+BELL = os.environ.get("T8_BELL", "-8")  # someone rings for the stop: a two-tone stop-request bell (C#6 A5) on the last half-bar before THE STOP and before the brakes; value = gain dB  # wM's dusty-kit for the 2-step: the kick buzzes the snare wires, the open hats close with a pedal chick
 S = 0.25
 
 NOTE = {"C": 0, "C#": 1, "Db": 1, "D": 2, "D#": 3, "Eb": 3, "E": 4, "F": 5, "F#": 6, "Gb": 6, "G": 7, "G#": 8, "Ab": 8,
@@ -260,6 +262,9 @@ def section_starts():
     return out, t
 
 
+KIT = "dusty-kit" if DUSTY else "lofi-kit"
+
+
 def song():
     T = build()
     sc = lambda n, pre="": (pre + " " if pre else "") + " | ".join(T[n])  # noqa: E731
@@ -281,7 +286,7 @@ def song():
                       "amp": {"a": "6ms", "d": "0s", "s": 1, "r": "70ms"}},
             "play": {"mono": True}}
     tracks = [
-        {"name": "drums", "patch": ("lofi-kit" if not LATE else "lofi-kit play.humanize.nudge.cp={}ms".format(LATE.split(",")[0])
+        {"name": "drums", "patch": (KIT if not LATE else KIT + " play.humanize.nudge.cp={}ms".format(LATE.split(",")[0])
                                      + (" play.humanize.nudge.h={}ms".format(LATE.split(",")[1]) if "," in LATE else "")), "gain": "-4dB", "score": sc("drums", "swing16=0.7" if V2 else "swing16=0.62")},
         {"name": "sub", "patch": "analog-bass", "gain": "2dB" if V2 else "-2dB", "fx": [{"type": "filter", "kind": "lowpass", "cutoff": 180}],
          "score": sc("sub")},
@@ -329,6 +334,17 @@ def song():
                     g = f"{float(g[:-2]) + DUCKUP:g}dB"
                 t["gain"] = {"value": g, "mod": [{"src": "auto.dk", "amount": 1}]}
                 t["auto"] = {**t.get("auto", {}), "dk": {"points": clean}}
+    if BELL:
+        st, total = section_starts()
+        bar = 4 * 60 / BPM
+        brake = (st["coda"] if CODA else total) - bar
+        rings = [st["groove2"] - bar / 2, brake - bar / 2]
+        toks, pos = [], 0.0
+        for a in rings:
+            toks.append(f"R/{int(round((a - pos) * 1000))}ms")
+            toks += ["C#6/300ms@84", "A5/900ms@76"]
+            pos = a + 1.2
+        tracks.append({"name": "bell", "patch": "bell", "gain": f"{BELL}dB", "pan": 0.35, "sends": {"hall": "-6dB"}, "score": " ".join(toks)})
     if PUMP and PUMPKEY:  # a ghost track: the kicks alone, muted, to drive the pump
         ghost = []
         for bar in T["drums"]:
