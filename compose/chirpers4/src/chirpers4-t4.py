@@ -276,13 +276,13 @@ def main():
         "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=30", "peak cutoff=45 q=1.2 gain=-6dB",
                                                     "lowshelf cutoff=120 gain=-2dB", "peak cutoff=420 q=0.8 gain=3dB",
                                                     "peak cutoff=2500 q=0.7 gain=2dB", "highshelf cutoff=7000 gain=-1dB"]},
-                          {"type": "gain", "gain": "+22dB"},
+                          {"type": "gain", "gain": "+19dB"},     # v8: 3 dB less into the limiter (it clamps)
                           {"type": "compressor", "threshold": "-14dB", "ratio": 3, "attack": "12ms", "release": "140ms",
                            "makeup": "2dB"},
                           {"type": "drive", "drive": 0.4, "mix": 0.35},  # parallel saturation: the spikes rounded
                           {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}},
                           # the set's dynamics AFTER the saturation, so the break's drop is not squashed back up
-                          "limiter ceiling=-0.3dB"],
+                          "limiter ceiling=-1.0dB"],             # v8: true peak under -1 dBTP
                    "auto": {"dyn": {"points": dyn_lane()}}},
         "tracks": [
             tr("four", "909", gain="0dB", sends={"rumble": "-20dB"}),                       # the machine's floor

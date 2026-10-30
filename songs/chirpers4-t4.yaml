@@ -80,7 +80,7 @@
    },
    {
     "type": "gain",
-    "gain": "+22dB"
+    "gain": "+19dB"
    },
    {
     "type": "compressor",
@@ -107,7 +107,7 @@
      ]
     }
    },
-   "limiter ceiling=-0.3dB"
+   "limiter ceiling=-1.0dB"
   ],
   "auto": {
    "dyn": {
