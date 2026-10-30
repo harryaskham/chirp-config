@@ -41,3 +41,9 @@ Generator `compose/chirpers4/src/chirpers4-t4.py`. Tribal / percussive warehouse
 - **THE STAB** (Gm9 brass stab through a comb on G, a triplet-quarter echo): on steps 2 6 10, the three-floor's off-beats, from the groove on: the tribe is hinted at before it plays.
 - **THE NECKER BREAK**: four bars of drone with no floor, then the shekere's ACCENTS ALONE (since v2: four or three hits a bar, nothing between) flip between 4 and 3 every two bars (the ear cannot settle) under the bell and a Shepard riser; bar 96 is a BLACKOUT (only the riser's tail); the drop is the four-floor slamming back over the three. The slow section also opens bare (toms, boom, shekere; the bass from bar 69).
 
+## t7 Under the Noise (chirper-zero)
+Generator `compose/chirpers4/src/chirpers4-t7.py`. Hard industrial techno, 134 bpm, F minor; auditory continuity (Warren's induction): what a loud noise could have hidden is heard as still there.
+- **THE PHANTOM KICK** (the build): the kick is taken away beat by beat - beat four (bars 1-4), two and four (5-8), three of four (9-12), all four (13-16) - and each missing kick is replaced by a slammed noise burst, so the four-on-the-floor keeps thumping in the ear with no kick in it; the drop puts the real kick back.
+- **NEVER STOPS**: a reese on F1 plays only the on-beat eighths; every off-beat eighth is a noise burst, so the cut bass is heard as one unbroken drone and the bursts double as the off-beat "hat".
+- **SEVEN**: chirper-two's c2-clank (borrowed from t10) on every seventh 16th, F4, turning against the bar and realigning every seven bars.
+

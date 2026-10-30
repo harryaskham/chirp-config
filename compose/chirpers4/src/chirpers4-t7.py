@@ -1,0 +1,211 @@
+#!/usr/bin/env python3
+"""chirpers4-t7 (Phantom Downbeat, track 7) - generator for songs/chirpers4-t7.yaml (chirper-zero).
+
+HARD INDUSTRIAL TECHNO / "the kick under the noise". 134 bpm 4/4 in F minor. AUDITORY CONTINUITY (Warren's auditory
+induction): a sound cut out and replaced by a loud burst of noise is still heard - the brain fills in what the noise
+could have hidden. Original; a style, not a version of any track.
+
+THE PHANTOM KICK: through the build the kick is taken away beat by beat - the fourth beat, then two and four, then
+three of four, then all four - and every missing kick is replaced by a slammed burst of noise, so the four-on-the-floor
+keeps thumping in the ear with no kick in it. The drop puts the real kick back.
+THE BASS THAT NEVER STOPS: a reese held on F1 is cut on every off-beat eighth and each gap is filled with the noise,
+heard as one unbroken drone (the bursts double as the off-beat "hat").
+
+Form (bars): intro 16 (kick, rumble, the clank) / A 32 (the groove, the reese and its noise) / build 16 (the phantom
+kick) / B 32 (the drop: the kick back, claps) / break 8 (no kick: the reese and the noise alone) / C 32 (the peak: the
+distorted kick layered in) / outro 16.
+
+Motifs (compose/chirpers4/motifs.md):
+  THE PHANTOM KICK  above.
+  NEVER STOPS       the reese on the on-beat eighths, noise on the off-beat eighths.
+  SEVEN             chirper-two's c2-clank (borrowed) on every seventh 16th, turning against the bar (realigns every 7 bars).
+Run: python3 compose/chirpers4/src/chirpers4-t7.py  (writes songs/chirpers4-t7.yaml)
+"""
+import json
+import os
+
+ROOT = os.path.expanduser("~/.config/chirp")
+OUT = os.environ.get("C4T7_OUT") or os.path.join(ROOT, "songs", "chirpers4-t7.yaml")
+BPM = 134
+SPB = 60 / BPM
+BAR = 4 * SPB
+S = 0.25
+MG = float(os.environ.get("C4T7_MG", "18"))
+
+NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
+FORM = [("intro", 16), ("A", 32), ("build", 16), ("B", 32), ("break", 8), ("C", 32), ("outro", 16)]
+GROOVE = ("A", "B", "C")
+
+
+def R(d):
+    return f"R/{d:g}b" if d > 1e-9 else ""
+
+
+def J(*xs):
+    return " ".join(x for x in xs if x)
+
+
+def grid(events, steps=16):
+    ev = sorted(events)
+    out, pos = [], 0
+    for i, (st, head, ln, vel) in enumerate(ev):
+        if st < pos:
+            continue
+        nxt = ev[i + 1][0] if i + 1 < len(ev) else steps
+        ln = max(1, min(ln, nxt - st, steps - st))
+        out.append(R((st - pos) * S))
+        out.append(f"{head}/{ln * S:g}b@{int(vel)}")
+        pos = st + ln
+    out.append(R((steps - pos) * S))
+    return J(*out)
+
+
+def starts():
+    t, out = 0, {}
+    for sec, nb in FORM:
+        out[sec] = t
+        t += nb
+    return out, t
+
+
+def missing(sec, b):
+    """THE PHANTOM KICK: which beats (16th steps) of the build have lost their kick."""
+    if sec != "build":
+        return ()
+    return {0: (12,), 1: (4, 12), 2: (4, 8, 12), 3: (0, 4, 8, 12)}[b // 4]
+
+
+def kit(sec, b):
+    ev = {}
+
+    def add(st, piece, vel):
+        ev.setdefault(st, []).append((piece, vel))
+
+    if sec not in ("break",) and not (sec == "outro" and b >= 12):
+        for st in (0, 4, 8, 12):
+            if st not in missing(sec, b):
+                add(st, "k", 120 if st == 0 else 112)
+                if sec == "C":
+                    add(st, "kh", 78)
+    if sec in GROOVE or sec == "build" or (sec == "intro" and b >= 8) or (sec == "outro" and b < 12):
+        for st in range(16):
+            if st % 4 == 2:
+                continue  # the off-beat 8ths belong to the noise
+            add(st, "h", 92 if st % 2 == 1 else 60)
+    if sec in ("B", "C"):
+        for st in (4, 12):
+            add(st, "cp", 100)
+    out = [(st, ",".join(p for p, _ in v), 1, max(vv for _, vv in v)) for st, v in ev.items()]
+    return grid(out) if out else R(4)
+
+
+def bass(sec, b):
+    """NEVER STOPS: the reese on the on-beat eighths (steps 0-1, 4-5, 8-9, 12-13)."""
+    if sec == "intro" or (sec == "outro" and b >= 8):
+        return R(4)
+    return grid([(st, "F1", 2, 100) for st in (0, 4, 8, 12)])
+
+
+def noise(sec, b):
+    """The bursts: every off-beat eighth wherever the reese plays (filling its gaps), and every missing kick."""
+    ev = []
+    if not (sec == "intro" or (sec == "outro" and b >= 8)):
+        ev += [(st, "C5", 2, 104 if st in (6, 14) else 96) for st in (2, 6, 10, 14)]
+    ev += [(st, "C5", 2, 124) for st in missing(sec, b)]
+    return grid(ev) if ev else R(4)
+
+
+def clank(sec, b, gb):
+    """SEVEN: the clank on every seventh 16th, across the bar lines."""
+    if sec == "intro" and b < 4:
+        return R(4)
+    return grid([(st, "F4", 1, 100 if (gb * 16 + st) % 28 == 0 else 82) for st in range(16) if (gb * 16 + st) % 7 == 0]) or R(4)
+
+
+def build():
+    names = ("kit", "bass", "noise", "clank", "riser")
+    T = {n: [] for n in names}
+    gb = 0
+    for sec, nb in FORM:
+        for b in range(nb):
+            T["kit"].append(kit(sec, b))
+            T["bass"].append(bass(sec, b))
+            T["noise"].append(noise(sec, b))
+            T["clank"].append(clank(sec, b, gb))
+            T["riser"].append("C4/4b@90" if (sec == "build" and b >= nb - 4) else R(4))
+            gb += 1
+    return T
+
+
+def lane(points):
+    st, total = starts()
+    pts = [["0s", points[0][1]]]
+    for bar, val in points:
+        t = bar * BAR
+        if t > 0:
+            pts += [[f"{max(0.0, t - 0.05):.3f}s", pts[-1][1]], [f"{t:.3f}s", val]]
+    pts.append([f"{total * BAR + 8:.2f}s", pts[-1][1]])
+    return {"points": pts}
+
+
+def song():
+    T = build()
+    st, total = starts()
+    sc = lambda n: " | ".join(T[n])  # noqa: E731
+    dyn = [(0, -6), (st["A"], 0), (st["build"], -2), (st["B"], 1), (st["break"], -7), (st["C"], 1), (st["outro"], -5)]
+    pump = lambda d: {"type": "pump", "on": "kit.k", "depth": f"{d}dB", "attack": "4ms", "release": "280ms", "curve": 0.6}  # noqa: E731
+    patches = {
+        "burst": {"about": "Phantom Downbeat t7: the continuity burst - pink and white noise, band-limited 40 Hz-6 kHz, slammed and "
+                           "cut short: loud enough over the bass's band that what it hides is heard as still there.",
+                  "play": {"vel_sens": 0.6},
+                  "synth": {"layers": [{"type": "noise", "color": "pink"}, {"type": "noise", "level": "-8dB"}],
+                            "filters": ["hp cutoff=40", {"kind": "lp", "cutoff": 6000, "q": 0.7}],
+                            "amp": {"a": "1ms", "d": "150ms", "s": 0.2, "r": "30ms", "curve": 2}}},
+        "c2-clank": {"about": "chirper-two's industrial clank (borrowed from t10): four inharmonic struck-bar partials (1, 2.76, 5.40, "
+                              "8.93), a very short decay, driven and bit-crushed per voice.",
+                     "synth": {"layers": [{"type": "additive", "partials": [[1, 1], [2.756, 0.6], [5.404, 0.4], [8.933, 0.25]]}],
+                               "filters": ["hp cutoff=300"],
+                               "fx": [{"type": "drive", "drive": 0.7}, {"type": "crush", "bits": 8, "rate": 16000, "mix": 0.5}],
+                               "amp": {"a": "0.3ms", "d": "90ms", "s": 0, "r": "30ms", "curve": 2}},
+                     "play": {"vel_sens": 0.8}},
+    }
+    doc = {
+        "about": "Chirpers - Phantom Downbeat (Chirpers IV), track 7 by chirper-zero: HARD INDUSTRIAL TECHNO, the kick under the noise. "
+                 "Generated by compose/chirpers4/src/chirpers4-t7.py; see its docstring and compose/chirpers4/styles.md.",
+        "tempo": BPM, "ceiling": "-0.3dB", "tail": "3s", "patches": patches,
+        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=24", "peak cutoff=45 q=1 gain=-4dB", "peak cutoff=320 q=0.8 gain=-3dB",
+                                                   "highshelf cutoff=2500 gain=6dB"]},
+                          {"type": "gain", "gain": f"+{MG:g}dB"},
+                          {"type": "drive", "drive": 0.3, "mix": 0.6},
+                          {"type": "compressor", "threshold": "-16dB", "ratio": 3, "attack": "10ms", "release": "120ms", "makeup": "2dB"},
+                          {"type": "compressor", "threshold": "-6dB", "ratio": 10, "attack": "0.5ms", "release": "40ms", "makeup": "1dB"},
+                          {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}}],
+                   "auto": {"dyn": lane(dyn)}},
+        "buses": {
+            "rumble": {"fx": ["reverb kind=hall decay=2.2s size=0.85 mix=1", {"type": "filter", "kind": "lowpass", "cutoff": 160, "q": 0.7},
+                              "drive drive=0.5 mix=1", pump(-10)]},
+            "hall": {"fx": ["reverb kind=hall decay=1.6s size=0.7 mix=1 predelay=10ms"]},
+        },
+        "tracks": [
+            {"name": "kit", "patch": "909", "gain": "0dB", "sends": {"rumble": "-3dB"}, "score": sc("kit")},
+            {"name": "bass", "patch": "reese", "gain": "-6dB", "fx": [pump(-6)], "score": sc("bass")},
+            {"name": "noise", "patch": "burst", "gain": "-8dB", "sends": {"hall": "-14dB"}, "score": sc("noise")},
+            {"name": "clank", "patch": "c2-clank", "gain": "-10dB", "pan": 0.3, "sends": {"hall": "-8dB"}, "score": sc("clank")},
+            {"name": "riser", "patch": "fx-riser-noise", "gain": "-14dB", "score": sc("riser")},
+        ],
+    }
+    return doc
+
+
+def dump(doc):
+    lines = [f"{k}: {json.dumps(doc[k])}" for k in ("about", "tempo", "ceiling", "tail", "patches", "master")]
+    lines.append("buses:")
+    lines += [f"  {b}: {json.dumps(v)}" for b, v in doc["buses"].items()]
+    lines.append("tracks:")
+    lines += ["  - " + json.dumps(t) for t in doc["tracks"]]
+    return "\n".join(lines) + "\n"
+
+
+if __name__ == "__main__":
+    open(OUT, "w").write(dump(song()))
+    print("wrote", OUT)
