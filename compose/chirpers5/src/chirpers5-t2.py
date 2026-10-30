@@ -20,8 +20,9 @@ together. (chirper-two's Overpass Rain is the album's straight soulful roller; t
 Form: intro 16 (keys, the roll filtered in from bar 9) / drop 32 / break 16 / drop2 32 / outro 16.
 Levels (Harry's clipped-bass note): the amen has its own fast compressor, the master gets loud on two compressors (no
 gain into a limiter), a 15 kHz low-pass and a -1.5 dB ceiling: true peak -1.1 dBTP, about -12 LUFS.
-Levels (Harry's clipped-bass note): the amen has its own fast compressor, the master gets loud on two compressors (no
-gain into a limiter), a 15 kHz low-pass and a -1.5 dB ceiling: true peak -1.1 dBTP, about -11.7 LUFS.
+Levels (Harry's clipped-bass note; v2 after chirper-two's recipe): the amen has its own fast compressor; the master
+glues, then +12 dB into a fast 10:1 compressor (-5 dB, 0.3 ms attack, 60 ms release, +2.5 makeup) that catches the
+transients softly, a 15 kHz low-pass and a -1.5 dB ceiling: true peak -1.1 dBTP, -12.2 LUFS, longest pinned run 4.
 Emits songs/chirpers5-t2.yaml (JSON through tools/songfmt.py). Edit the music here, not the YAML.
 """
 import json, os, subprocess, sys, tempfile
@@ -126,7 +127,7 @@ def build():
         'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=28', 'lowshelf cutoff=120 gain=3dB', 'peak cutoff=250 q=0.8 gain=-2dB', 'highshelf cutoff=6000 gain=-4dB']},
                           {'type': 'gain', 'gain': '+14dB'},
                           {'type': 'compressor', 'threshold': '-16dB', 'ratio': 2.5, 'attack': '15ms', 'release': '150ms', 'makeup': '2dB'},
-                          {'type': 'compressor', 'threshold': '-8dB', 'ratio': 6, 'attack': '1ms', 'release': '60ms', 'makeup': '7dB'},
+                          {'type': 'gain', 'gain': '+12dB'}, {'type': 'compressor', 'threshold': '-5dB', 'ratio': 10, 'attack': '0.3ms', 'release': '60ms', 'makeup': '2.5dB'},
                           {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.dyn', 'amount': 1}]}},
                           'lp cutoff=15000'],
                    'auto': {'dyn': {'points': dyn}}},
