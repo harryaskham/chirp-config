@@ -6367,7 +6367,7 @@
     {
       "id": "chirpers5-t1",
       "song": "songs/chirpers5-t1.yaml",
-      "reference": "Chirpers — Track 1 (untitled)",
+      "reference": "Chirpers — First Light",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers5-t1 OUT.wav",
@@ -6383,7 +6383,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "Soft Concrete",
-        "title": "Track 1 (untitled)",
+        "title": "First Light",
         "track": 1,
         "year": 2026
       },
