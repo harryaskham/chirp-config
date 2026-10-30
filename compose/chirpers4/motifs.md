@@ -45,6 +45,7 @@ Generator `compose/chirpers4/src/chirpers4-t4.py`. Tribal / percussive warehouse
 Generator `compose/chirpers4/src/chirpers4-t7.py`. Hard industrial techno, 134 bpm, F minor; auditory continuity (Warren's induction): what a loud noise could have hidden is heard as still there.
 - **THE PHANTOM KICK** (the build): the kick is taken away beat by beat - beat four (bars 1-4), two and four (5-8), three of four (9-12), all four (13-16) - and each missing kick is replaced by a slammed noise burst, so the four-on-the-floor keeps thumping in the ear with no kick in it; the drop puts the real kick back.
 - **NEVER STOPS**: a reese on F1 plays only the on-beat eighths; every off-beat eighth is a noise burst, so the cut bass is heard as one unbroken drone and the bursts double as the off-beat "hat".
+- **THE SIREN** (v2): a hoover stab on the first beat of every fourth bar through B and C - F2, C3 and the flat ninth Gb3, a dark power chord diving into each hit - the peak-time alarm over the noise.
 - **SEVEN**: chirper-two's c2-clank (borrowed from t10) on every seventh 16th, F4, turning against the bar and realigning every seven bars.
 
 
