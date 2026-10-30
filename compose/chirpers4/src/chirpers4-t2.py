@@ -117,6 +117,13 @@ def build():
         t_ = secs[name]
         dyn += [[f'{max(0.0, t_ - 0.3):.3f}s', dyn[-1][1] if dyn else lv[name]], [f'{t_:.3f}s', lv[name]]]
     dyn[0][0] = '0s'
+    # (v4) THE HELD BREATH: the last beat of the break - the gallop at its widest, split into two streams - is cut to
+    # silence, and the peak's first hard kick lands out of it
+    tg = secs['C']; g0 = tg - SPB
+    pts = [(float(p[0][:-1]), p[1]) for p in dyn]
+    before = [p for p in pts if p[0] <= g0 - 0.02]; after = [p for p in pts if p[0] >= tg - 0.004]
+    pts = before + [(g0 - 0.01, before[-1][1]), (g0, -40), (tg - 0.006, -40)] + after
+    dyn = [['0s', pts[0][1]]] + [[f'{t_:.3f}s', v] for t_, v in pts if t_ > 0]
     gal = {'synth': {'layers': [{'type': 'osc', 'wave': 'sine'}, {'type': 'osc', 'wave': 'square', 'level': 0.1}],
                      'amp': {'a': '1ms', 'd': '90ms', 's': 0.0, 'r': '40ms'}}}
     return {

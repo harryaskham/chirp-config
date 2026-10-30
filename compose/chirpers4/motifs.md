@@ -41,6 +41,7 @@ Generator `compose/chirpers4/src/chirpers4-t8.py`. Deep dub techno, 124 bpm, D m
 - **THE BROKEN ROLL**: kick on 16ths 0, 6, 10 and a ghost on 13; reese sixteenths on A1 with octave jumps (0 0 12 0 0 12 0 7 | 0 0 12 0 10 0 12 0), pumping on the kick.
 - **THE GALLOP BREATHES** (v2, polish): rounder bleeps (square under the sine down to .1, a 3.2 kHz low-pass, more into the space delay) and rests - it enters eight bars into A, leaves for the last eight bars of B, and drops out for two bars in every eight of the peak, so each return of the illusion is heard fresh instead of running for four minutes.
 - **THE BREATHING REESE** (v3, LFO): a slow sine LFO, one cycle every eight bars, sweeps a resonant low-pass (1-4 kHz around 2 kHz, q 1.1) over the rolling reese, so its sixteenths open and close like a tide under the gallop.
+- **THE HELD BREATH** (v4): the last beat of the break - the gallop pulled widest, two streams - is cut to silence, and the peak's first hard kick lands out of it.
 
 ## t4 Two Floors (chirper-three)
 Generator `compose/chirpers4/src/chirpers4-t4.py`. Tribal / percussive warehouse techno, 128 bpm and 96 bpm in the same bar, G minor.
