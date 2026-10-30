@@ -135,13 +135,29 @@ SKIPS = [7, 10, 11, 10]      # the 2-step's second kick, bar by bar (bar % 4): a
 def amen_bed():
     """A quiet re-sequenced amen under the drops: its ghost slices, rolling, one re-pitched or reversed now and then."""
     hand = random.Random(7)
-    for bar in list(range(41, 65)) + list(range(81, 113)):     # v5: drop 1 waits 8 bars for the bed
+    for bar in range(41, 65):     # v5: drop 1 waits 8 bars for the bed (v7: drop 2 has the ROLLER instead)
         for s in range(16):
             if s in (0, 4, 10, 12) or hand.random() < 0.35:
                 continue
             sl = hand.choice(AMEN) + 16 * (bar % 2)
             mod = "^tune=2" if hand.random() < 0.08 else ("^rev=1" if hand.random() < 0.05 else "")
             part("amen").add(x16(bar, s), 0.25, nm(36 + sl) + mod, 60 + hand.randint(-10, 10))
+
+
+ROLL = [0, 2, 3, 6, 4, 11, 13, 7]      # the roller's eighth-note slices (v7)
+
+
+def roller():
+    """THE AMEN COMES FORWARD (v7): in the second drop the bed becomes a ROLLER, eighth-note slices of wM's amen in
+    their own order, the off-eighths laid back like a hand on the pads, every fourth bar's last hit pitched up three
+    semitones into the next phrase: the opener ends in the album's rolling world."""
+    hand = random.Random(9)
+    for bar in range(81, 113):
+        for k, sl in enumerate(ROLL):
+            at = b0(bar) + k / 2 + (0.04 if k % 2 else 0.0)
+            mod = "^tune=3" if (bar % 4 == 0 and k == 7) else ""
+            part("roll").add(at, 0.5, nm(36 + sl + 16 * (bar % 2 if k >= 4 else 0)) + mod,
+                             (92 if k in (0, 4) else 74) + hand.randint(-6, 6))
 
 
 def harmony():
@@ -206,6 +222,7 @@ def lanes():
 def main():
     drums()
     amen_bed()
+    roller()
     harmony()
     chops()
     part("riser").add(b0(77), 4 * BAR - 0.1, "C4", 80)
@@ -247,6 +264,7 @@ def main():
             tr("hats", "tight-kit", gain="-13dB", pan=0.15, out="drums"),
             tr("rim", "tight-kit", gain="-9dB", pan=-0.2, out="drums", sends={"space": "-16dB"}),   # v6: the swing, heard
             tr("amen", "amen-chops", gain="-13dB", out="drums", fx=["hp cutoff=500", pump]),
+            tr("roll", "amen-chops", gain="-10dB", out="drums", fx=["hp cutoff=150", pump]),   # v7: the roller
             tr("sub", "808", gain="-4dB", fx=[{"type": "drive", "drive": 0.2, "mix": 0.4}, pump]),   # warmer, heard
             tr("reese", "reese", gain="-16dB", fx=["lp cutoff=700", pump]),
             tr("pad", "juno-pad", gain="-8dB", sends={"space": "-6dB"}, lfo={"pf": {"wave": "sine", "rate": "20b"}},
