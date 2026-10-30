@@ -20,6 +20,9 @@ together. (chirper-two's Overpass Rain is the album's straight soulful roller; t
 Form: intro 16 (keys, the roll filtered in from bar 9) / drop 32 / break 16 / drop2 32 / outro 16.
 Levels (Harry's clipped-bass note): the amen has its own fast compressor, the master gets loud on two compressors (no
 gain into a limiter), a 15 kHz low-pass and a -1.5 dB ceiling: true peak -1.1 dBTP, about -12 LUFS.
+Final round (v5, Harry's Soft Concrete notes): the shuffle straightens for each bar whose last beat stutters into a
+roll, so the roll's straight repeats grow out of a straight bar; the sub gains phantom harmonics and drive and pumps
+harder; darker (the top -1.5 dB more, a 12 kHz low-pass).
 Levels (Harry's clipped-bass note; v2 after chirper-two's recipe): the amen has its own fast compressor; the master
 glues, then +12 dB into a fast 10:1 compressor (-5 dB, 0.3 ms attack, 60 ms release, +2.5 makeup) that catches the
 transients softly; (v3) then a 13.5 kHz low-pass, -4 dB, and a low-knee soft clip (-2.3 dB, knee 0.55) under a -1 dB
@@ -67,14 +70,17 @@ def build():
         root, ch = CHORDS[(k // 2) % 4]
         first = (k % 2 == 0)
         drums = s in ('drop', 'drop2') or (s == 'intro' and i >= 8) or (s == 'outro' and i < 8)
+        # (v5) THE SHUFFLE GIVES WAY: in the bars whose last beat stutters into a roll, the swing straightens for the whole
+        # bar, so the roll's straight repeats grow out of a straight bar instead of fighting the shuffle (Harry's note)
+        sw = 0.0 if (s == 'drop2' and i % 8 == 7) else 0.04
         if drums:
             pat = ROLL[k % 2]
             # (2-step shuffle) the off-eighths lean late, and two skippy sixteenths are added - a ghost before the
             # snare on 2 and a kick on the e-of-4 - UK garage's skip under a D&B roll
             for q, sl, v in ((1.75, 2, 70), (3.25, 1, 92)):
-                amen.append((t0 + q + 0.04, nm(36 + sl), 0.25, v))
+                amen.append((t0 + q + sw, nm(36 + sl), 0.25, v))
             for e, sl in enumerate(pat):
-                at = t0 + e * 0.5 + (0.04 if e % 2 else 0.0)
+                at = t0 + e * 0.5 + (sw if e % 2 else 0.0)
                 v = 112 if sl in (0, 9, 13, 4, 7, 15, 22) else 84
                 amen.append((at, nm(36 + sl), 0.5, v))
         # keys: the chord on the one of each chord's first bar, re-struck on the and-of-2 of the second
@@ -97,7 +103,7 @@ def build():
             # (v4) THE WORDS: the chops now sing the title in garage fragments - 'night', 'bus', 'night', 'home' -
             # the vocal sample a garage producer would have chopped, synthesised
             for (q, idx), ph in zip(((0.5, 0), (1.25, 1), (2.5, 0), (3.25, 2)), ('n-ay1-t', 'b-ah1-s', 'n-ay1-t', 'hh-ow1-m')):
-                chops.append((t0 + q + 0.04, f"{nm(ch[-1 - idx] + 12)}^ph={ph}", 0.3 if ph == 'hh-ow1-m' else 0.22, 96))
+                chops.append((t0 + q + sw, f"{nm(ch[-1 - idx] + 12)}^ph={ph}", 0.3 if ph == 'hh-ow1-m' else 0.22, 96))
         # the hook: every other chord in the drops, every chord in the break
         if (s in ('drop', 'drop2') and first and (k // 2) % 2 == 0) or (s == 'break' and first):
             for at, idx, ln in HOOK:
@@ -127,12 +133,12 @@ def build():
         'tempo': BPM, 'length': f'{end_s + 2:.2f}s', 'ceiling': '-1dB', 'volume': '0dB',
         'buses': {'echo': {'fx': [{'type': 'delay', 'time': '3/16', 'feedback': 0.35, 'mix': 1}, 'lp cutoff=4000', 'hp cutoff=300'], 'returns': []},
                   'hall': {'fx': ['reverb kind=hall decay=3.2s mix=1', 'hp cutoff=250'], 'returns': []}},
-        'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=28', 'lowshelf cutoff=120 gain=3dB', 'peak cutoff=250 q=0.8 gain=-2dB', 'highshelf cutoff=6000 gain=-4dB']},
+        'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=28', 'lowshelf cutoff=120 gain=3dB', 'peak cutoff=250 q=0.8 gain=-2dB', 'highshelf cutoff=6000 gain=-5.5dB']},
                           {'type': 'gain', 'gain': '+14dB'},
                           {'type': 'compressor', 'threshold': '-16dB', 'ratio': 2.5, 'attack': '15ms', 'release': '150ms', 'makeup': '2dB'},
                           {'type': 'gain', 'gain': '+12dB'}, {'type': 'compressor', 'threshold': '-5dB', 'ratio': 10, 'attack': '0.3ms', 'release': '60ms', 'makeup': '2.5dB'},
                           {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.dyn', 'amount': 1}]}},
-                          'lp cutoff=13500', {'type': 'gain', 'gain': '-4dB'}, {'type': 'clip', 'drive': '0dB', 'ceiling': '-2.3dB', 'knee': 0.55, 'link': True}],
+                          'lp cutoff=12000', {'type': 'gain', 'gain': '-4dB'}, {'type': 'clip', 'drive': '0dB', 'ceiling': '-2.3dB', 'knee': 0.55, 'link': True}],
                    'auto': {'dyn': {'points': dyn}}},
         'tracks': [
             {'name': 'amen', 'patch': 'amen-chops', 'gain': '-7dB',
@@ -141,7 +147,10 @@ def build():
                     {'type': 'stutter', 'slice': '1/16', 'repeats': 4, 'roll': 0.5, 'floor': '1/64', 'chance': 1,
                      'mix': {'value': 0, 'mod': [{'src': 'auto.gl', 'amount': 1}]}}],
              'auto': {'op': {'points': filt}, 'gl': {'points': gl}}, 'score': line(amen, total)},
-            {'name': 'sub', 'patch': 'sub', 'gain': '-1dB', 'fx': [{'type': 'pump', 'on': 'amen', 'depth': '-4dB', 'release': '230ms', 'curve': 0.6}],
+            # (v5) the sub with weight that reads on small speakers: phantom harmonics above 90 Hz, a little drive
+            {'name': 'sub', 'patch': 'sub', 'gain': '-1dB', 'fx': [{'type': 'phantom', 'cutoff': 90, 'harmonics': '-10dB', 'odd': 0.4},
+                                                                 {'type': 'drive', 'drive': 0.2, 'mix': 0.3},
+                                                                 {'type': 'pump', 'on': 'amen', 'depth': '-5dB', 'release': '230ms', 'curve': 0.6}],
              'score': line(sub, total)},
             {'name': 'reese', 'patch': 'reese', 'gain': '-10dB', 'fx': ['lp cutoff=1400', {'type': 'pump', 'on': 'amen', 'depth': '-7dB', 'release': '230ms', 'curve': 0.6}],
              'score': line(reese, total)},
