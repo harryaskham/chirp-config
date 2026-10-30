@@ -2,23 +2,25 @@
 """chirpers6-t3 (All the Lights Left On, track 3) - generator for songs/chirpers6-t3.yaml (chirper-zero).
 
 INSTRUMENTAL POST-METAL / "night freight". 132 bpm, B minor in drop-tuned guitars (the heaviest movement down in A).
-A freight train crosses the album at night, and the wheels' clack over the rail joints becomes the riff's odd meter:
-7/8 (the wheels) against 4/4 (the crescendo). Riff-led, heavy/light, no singer. Original; a style, not a version of
-any track.
+Freight by sea (v2: the trains are The Last Train's): a container port at night, where a gantry crane's chain clanking
+through its sheave becomes the riff's odd meter - 7/8 (the crane) against 4/4 (the crescendo). Riff-led, heavy/light; the
+only voice is the crane operator's intercom. Original; a style, not a version of any track.
 
-Form (bars, meter): I CROSSING 32 x 7/8 (a level-crossing bell, the freight approaching: rumble, wheel clacks in 7, a
-three-tone horn that drops as it passes) / II JOINTS 40 x 7/8 (a clean 8-string arpeggio riff on the clack rhythm,
-fretless bass, rims and toms) / III CHUG 64 x 7/8 (the riff drop-tuned on doubled rigs, fuzz bass, a room kit; a
-tremolo-picked lead on top in the second half) / IV YARD 32 x 4/4 (the train gone: wind, distant metal, a cello drone,
-an ebow sings the line augmented) / V CLIMB 48 x 4/4 (toms to full kit, the clean riff stretched to 4/4, then tremolo
-walls; the bass walks the riff inverted) / VI DERAILED 40 x 4/4 (half-time doom in A: china, sub, and the wheels' 7
-returning against the 4 - the train comes back) / VII LAST CAR 32 x 7/8 (the clean riff alone with the bell, the train
-receding, wind).
+Form (bars, meter; the code keeps v1's section names): I QUAYSIDE ("crossing") 32 x 7/8 (a buoy bell rocking on the swell,
+waves, a ship's engine throbbing, the crane starting - its chain clanks in 7 - and the foghorn's two low tones) / II
+JOINTS 40 x 7/8 (a clean 8-string arpeggio riff on the clank rhythm, fretless bass, rims and toms; a second guitar's
+harmonics answer) / III CHUG 64 x 7/8 in four stages (the riff drop-tuned on doubled rigs; its grouping rotated 3+2+2;
+the tremolo line on top; a stabbing peak over double kick, and a one-stab break) / IV STACKS ("yard") 32 x 4/4 (wind,
+containers set down, air brakes, a reversing alarm far off, the operator: "seven, clear to lift"; a cello drone, an
+ebow sings the line augmented) / V CLIMB 48 x 4/4 (toms to full kit, the clean riff stretched to 4/4, then tremolo
+walls; the bass walks the riff inverted) / VI UNDERTOW ("derailed") 40 x 4/4 (half-time doom in A, china, sub, the
+crane's 7 returning against the 4; then the doom thins to held chords and an ebow cry) / VII LAST SHIP ("lastcar")
+32 x 7/8 (the clean riff alone with the buoy bell, the foghorn further out, "last one, lights stay on", waves).
 
 Motifs (compose/chirpers6/motifs.md):
-  THE JOINTS   the wheels' clack - clack-clack ... clack-clack on a 14-sixteenth cycle - and the 2+2+3 riff built on it.
+  THE JOINTS   the crane chain's clank - clank-clank ... clank-clank on a 14-sixteenth cycle - and the 2+2+3 riff on it.
   THE CHANGES  Bm(add9) | Gmaj7 | D(add9) | A(add9), two 7/8 bars (or one 4/4 bar pair) each.
-  THE LINE     F#4 | D4 E4 | A4 | C#5 B4 - tremolo-picked in the chug, augmented on the ebow in the yard.
+  THE LINE     F#4 | D4 E4 | A4 | C#5 B4 - tremolo-picked in the chug, augmented on the ebow in the stacks.
 Run: python3 compose/chirpers6/src/chirpers6-t3.py  (writes songs/chirpers6-t3.yaml)
 """
 import json
@@ -29,6 +31,9 @@ OUT = os.environ.get("C6T3_OUT") or os.path.join(ROOT, "songs", "chirpers6-t3.ya
 BPM = 132
 S = 0.25  # beats per sixteenth
 MGAIN = float(os.environ.get("C6T3_MGAIN", "5"))
+PORT = os.environ.get("C6T3_PORT", "1") == "1"  # the freight goes by sea (the trains are The Last Train's): a buoy bell, waves, a ship's engine throbbing, a gantry crane's chain clanking through its sheave on the 14-sixteenth cycle, a foghorn; the yard becomes the container stacks
+DEV = os.environ.get("C6T3_DEV", "1") == "1"
+VOX = os.environ.get("C6T3_VOX", "1") == "1"  # the crane operator on a handheld intercom in the stacks ("seven, clear to lift" - the 7 is the meter), and in the last ship's bars "last one, lights stay on"  # the movements develop instead of looping: the chug in four stages (the riff, its grouping rotated 3+2+2, the line over it, a stabbing peak and a break), a second clean guitar's harmonics answering in the joints, the doom thinning to held chords and an ebow cry
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 SEVEN, FOUR = 14, 16
@@ -43,7 +48,7 @@ LINE = [[("F#4", 28)], [("D4", 14), ("E4", 14)], [("A4", 28)], [("C#5", 14), ("B
 NOTE = {"C": 0, "C#": 1, "Db": 1, "D": 2, "D#": 3, "Eb": 3, "E": 4, "F": 5, "F#": 6, "G": 7, "G#": 8, "Ab": 8, "A": 9,
         "A#": 10, "Bb": 10, "B": 11}
 TRACKS = ("bell", "rumble", "clack", "horn", "wind", "clean", "fretless", "chugl", "chugr", "fuzz", "sub", "kit", "lead",
-          "cello", "ebow", "yardmetal")
+          "cello", "ebow", "yardmetal", "waves", "hiss", "beep", "harm", "vox")
 
 
 def nm(m):
@@ -133,19 +138,27 @@ def build():
             add(tr, at + st, head, steps - st if l is None else l, vel)
 
         # --- field sounds
-        if (sec == "crossing" and b < 24) or (sec == "lastcar" and 4 <= b < 20):
+        if not PORT and ((sec == "crossing" and b < 24) or (sec == "lastcar" and 4 <= b < 20)):
             for q in range(0, steps, 4):
                 add("bell", at + q, "E5", 2, 72 if sec == "crossing" else 50)
         if sec == "crossing" and b == 8:
-            add("rumble", at, "C3", 24 * 14, 100)  # the freight's rumble, held across the crossing
+            add("rumble", at, "C3", 24 * 14, 100)  # the freight's rumble (PORT: the ship's engine), held
         if sec == "lastcar" and b == 0:
             add("rumble", at, "C3", 20 * 14, 70)
-        if sec == "crossing" and b in (18, 20):
-            put("horn", "F#4,A4,C#5", 96, 0, 14 + 7)  # the horn, three tones
-        if sec == "crossing" and b == 22:
-            put("horn", "F4,G#4,C5", 84, 0, 14 + 10)  # passing: the doppler drop
-        if sec == "lastcar" and b == 6:
-            put("horn", "E4,G4,B4", 54, 0, 21)  # far away now
+        if not PORT:
+            if sec == "crossing" and b in (18, 20):
+                put("horn", "F#4,A4,C#5", 96, 0, 14 + 7)  # the horn, three tones
+            if sec == "crossing" and b == 22:
+                put("horn", "F4,G#4,C5", 84, 0, 14 + 10)  # passing: the doppler drop
+            if sec == "lastcar" and b == 6:
+                put("horn", "E4,G4,B4", 54, 0, 21)  # far away now
+        else:
+            if sec == "crossing" and b in (14, 22):
+                put("horn", "B1,F#2", 104, 0, 3 * 14)  # the foghorn: two low tones, long
+            if sec == "lastcar" and b == 10:
+                put("horn", "B1,F#2", 70, 0, 3 * 14)  # another ship, further out
+            if (sec == "crossing" and b == 0) or (sec == "lastcar" and b == 0):
+                add("waves", at, "C3", (32 if sec == "crossing" else 32) * 14, 64 if sec == "crossing" else 52)
         if (sec == "crossing" and b == 0) or (sec == "yard" and b == 0) or (sec == "lastcar" and b == 12):
             nb = {"crossing": 32, "yard": 32, "lastcar": 20}[sec]
             add("wind", at, "C4", nb * steps, 70 if sec != "crossing" else 50)
@@ -180,16 +193,31 @@ def build():
         if sec in ("chug",) or (sec == "climb" and b >= 32):
             put("sub", nm(r), 90)
         if sec == "derailed":
-            put("sub", nm(DOOM[b % 4][0]), 96)
+            put("sub", nm(33 if (DEV and b >= 32) else DOOM[b % 4][0]), 96)
 
         # --- the heavy rigs
         if sec == "chug":
             pc = lambda n: f"{nm(n)},{nm(n + 7)},{nm(n + 12)}"  # noqa: E731
-            for st in (0, 1, 2, 4, 5, 6):
-                add("chugl", at + st, nm(r) + "^pm", 1, 104 if st in (0, 4) else 92)
-                add("chugr", at + st, nm(r) + "^pm", 1, 102 if st in (0, 4) else 90)
-            add("chugl", at + 8, pc(r), 6, 118)
-            add("chugr", at + 8, pc(r), 6, 116)
+            stage = b // 16 if DEV else 0
+            if stage == 1:  # the grouping rotated: 3+2+2 - the open chord first, the chugs after
+                hits, ring = (6, 7, 8, 10, 11, 12), (0, 6)
+            elif stage == 3:  # the peak: stabs on every group, ringing
+                hits, ring = (), None
+            else:
+                hits, ring = (0, 1, 2, 4, 5, 6), (8, 6)
+            if DEV and b == 63:  # the break before the yard: one stab, then nothing
+                hits, ring = (), (0, 3)
+            accents = (6, 10) if stage == 1 else (0, 4)
+            for st in hits:
+                add("chugl", at + st, nm(r) + "^pm", 1, 104 if st in accents else 92)
+                add("chugr", at + st, nm(r) + "^pm", 1, 102 if st in accents else 90)
+            if ring:
+                add("chugl", at + ring[0], pc(r), ring[1], 118)
+                add("chugr", at + ring[0], pc(r), ring[1], 116)
+            if stage == 3 and b != 63:
+                for st, l in ((0, 4), (4, 4), (8, 6)):
+                    add("chugl", at + st, pc(r), l, 120)
+                    add("chugr", at + st, pc(r), l, 118)
         if sec == "climb" and b >= 16:  # tremolo walls: power chords picked in 16ths
             pc = f"{nm(r)},{nm(r + 7)},{nm(r + 12)}"
             vel = 80 + (b - 16)
@@ -197,7 +225,15 @@ def build():
             add("chugl", at + 8, pc + "^r=8", 8, vel)
             add("chugr", at, pc + "^r=8", 8, vel - 2)
             add("chugr", at + 8, pc + "^r=8", 8, vel - 2)
-        if sec == "derailed":
+        if DEV and sec == "derailed" and b >= 32:  # the doom thins: one held chord every two bars, the ebow crying over it
+            if b % 2 == 0:
+                add("chugl", at, f"{nm(33)},{nm(40)},{nm(45)}", 32, 104 - 4 * (b - 32))
+                add("chugr", at, f"{nm(33)},{nm(40)},{nm(45)}", 32, 102 - 4 * (b - 32))
+            if b == 32:
+                add("ebow", at, "A5", 48, 100)
+                add("ebow", at + 48, "G5", 32, 90)
+                add("ebow", at + 80, "E5", 48, 84)
+        elif sec == "derailed":
             d = DOOM[b % 4]
             for st, n, l in d[1]:
                 add("chugl", at + st, f"{nm(n)},{nm(n + 7)},{nm(n + 12)}", l, 120)
@@ -223,6 +259,46 @@ def build():
                 add("ebow", at + st, nm(midi(n) + 12), l * 32 // 28, 96)
                 st += l * 32 // 28
 
+        # --- PORT: the buoy bell rocks on the swell (irregular), the stacks' sounds
+        if PORT and ((sec == "crossing" and b < 28) or (sec == "lastcar" and b < 24)):
+            gaps = (9, 7, 11, 6, 10, 8, 12)
+            t0 = at
+            if b == 0 or (sec == "crossing" and b == 0):
+                pass
+            for k in range(0, steps):
+                gt = at + k
+                acc, n = 0, 0
+                while acc < gt - (sec_start(sec)):
+                    acc += gaps[n % len(gaps)]
+                    n += 1
+                if acc == gt - sec_start(sec):
+                    add("bell", gt, "B4" if n % 3 else "A#4", 3, (66 if sec == "crossing" else 46) - 6 * (n % 2))
+        if PORT and sec == "yard":
+            if b % 7 == 3:
+                for q in range(0, 16, 4):
+                    add("beep", at + q, "C4", 2, 60)  # a straddle carrier reversing, far off
+            if b % 3 == 1:
+                add("hiss", at + 10, "C4", 6, 80)  # air brakes
+            if b % 5 == 0:
+                add("yardmetal", at + 2, "ft", 2, 84)  # a container set down
+        # --- VOX: the crane operator's intercom (voice-speech, ARPAbet syllables, an eighth each; the last falls)
+        if VOX:
+            lines = {("yard", 6): ["s-eh1", "v-ah0-n", "k-l-ih1-r", "t-uw0", "l-ih1-f-t"],
+                     ("yard", 13): ["l-ow1", "er0", "ih0-ng"],
+                     ("yard", 20): ["hh-ow1-l-d"],
+                     ("yard", 27): ["s-eh1", "v-ah0-n", "ao1-l", "k-l-ih1-r"],
+                     ("lastcar", 14): ["l-ae1-s-t", "w-ah1-n"],
+                     ("lastcar", 16): ["l-ay1-t-s", "s-t-ey1", "aa1-n"]}
+            words = lines.get((sec, b))
+            if words:
+                for k, syl in enumerate(words):
+                    last = k == len(words) - 1
+                    add("vox", at + 2 + 2 * k, "A2^ph=" + syl + ("^f0=0>-60" if last else ""), 3 if last else 2, 84)
+        # --- DEV: a second clean guitar's natural harmonics answer the riff in the joints
+        if DEV and sec == "joints" and b >= 24:
+            for st_, i in ((6, 5), (12, 3)):
+                add("harm", at + st_, nm(v[i] + 12) + "^nh=2", 2, 70)
+
         # --- distant metal in the yard (every 5 bars: the odd length keeps it from settling)
         if sec == "yard" and b % 5 == 2:
             add("yardmetal", at + 6, "cbl", 2, 70)
@@ -237,9 +313,19 @@ def build():
             if b >= 32:
                 kit += [(st, "hf", 50) for st in range(0, 14, 2)]
         elif sec == "chug":
-            kit += [(0, "k", 118), (2, "k", 104), (8, "k", 114), (4, "s", 112), (11, "s", 116)]
-            kit += [(st, "rd", 76 if st % 4 == 0 else 62) for st in range(0, 14, 2)]
-            if b % 8 == 0:
+            stage = b // 16 if DEV else 0
+            if DEV and b == 63:
+                kit += [(0, "k", 120), (0, "c", 124)]
+            elif stage == 1:
+                kit += [(0, "k", 118), (6, "s", 114), (8, "k", 104), (10, "k", 108), (12, "s", 116)]
+                kit += [(st, "rd", 76 if st % 4 == 0 else 62) for st in range(0, 14, 2)]
+            elif stage == 3:
+                kit += [(st, "k", 108 if st % 2 else 118) for st in range(14)] + [(4, "s", 120), (8, "s", 120), (12, "s", 116)]
+                kit += [(0, "c", 122)] if b % 4 == 0 else [(0, "x", 108)]
+            else:
+                kit += [(0, "k", 118), (2, "k", 104), (8, "k", 114), (4, "s", 112), (11, "s", 116)]
+                kit += [(st, "rd", 76 if st % 4 == 0 else 62) for st in range(0, 14, 2)]
+            if b % 8 == 0 and not (DEV and (stage == 3 or b == 63)):
                 kit += [(0, "c", 118)]
         elif sec == "climb":
             if b < 16:
@@ -253,6 +339,9 @@ def build():
                 kit += [(st, "rde", 90) for st in range(0, 16, 4)]
                 if b % 2 == 0:
                     kit += [(0, "c", 122)]
+        elif sec == "derailed" and DEV and b >= 32:
+            if b % 2 == 0:
+                kit += [(0, "k", 112), (0, "c", 110 - 3 * (b - 32))]
         elif sec == "derailed":
             kit += [(0, "k", 120), (6, "k", 108), (8, "s", 122), (4, "x", 100), (12, "x", 106)]
             if b % 4 == 0:
@@ -318,6 +407,17 @@ def song():
                  "Generated by compose/chirpers6/src/chirpers6-t3.py; see its docstring and compose/chirpers6/styles.md.",
         "tempo": BPM, "ceiling": "-1.2dB", "volume": "0dB", "true_peak": True, "tail": "2s",
         "patches": {
+            **({"ship-engine": {"about": "night freight (the port): a ship's diesel - brown noise low-passed with a 46 Hz hum, throbbing (tremolo on the track)",
+                               "synth": {"layers": [{"type": "noise", "color": "brown"}, "sine fixed=46 level=-8dB"], "filters": ["lp cutoff=130 q=0.8"],
+                                         "amp": {"a": "6s", "s": 1, "r": "6s"}}},
+                "crane-chain": {"about": "night freight (the port): a gantry crane's chain link over its sheave - a noise crack and two low metal partials",
+                                "synth": {"layers": [{"type": "noise", "color": "white"}, "sine fixed=560 level=-5dB", "sine fixed=1040 level=-9dB"],
+                                          "filters": ["bp cutoff=1200 q=0.7"], "amp": {"a": "0.5ms", "d": "90ms", "s": 0, "r": "50ms"}}},
+                "air-hiss": {"about": "night freight (the port): air brakes releasing - white noise band-passed at 4 kHz, a second's decay",
+                             "synth": {"layers": [{"type": "noise", "color": "white"}], "filters": ["bp cutoff=4000 q=0.6"],
+                                       "amp": {"a": "5ms", "d": "900ms", "s": 0, "r": "200ms"}}},
+                "reverse-beep": {"about": "night freight (the port): a straddle carrier's reversing alarm, far off",
+                                 "synth": {"layers": ["sine fixed=1160"], "amp": {"a": "2ms", "s": 1, "r": "10ms"}}}} if PORT else {}),
             "rail-rumble": {"about": "night freight: the train's rumble - brown noise low-passed, swelling in and out over seconds",
                             "synth": {"layers": [{"type": "noise", "color": "brown"}], "filters": ["lp cutoff=160 q=0.8"],
                                       "amp": {"a": "6s", "s": 1, "r": "6s"}}},
@@ -337,10 +437,18 @@ def song():
         },
         "tracks": [
             {"name": "bell", "patch": "bell", "gain": "-20dB", "pan": 0.35, "sends": {"yard": "-6dB"}, "score": sc("bell")},
-            {"name": "rumble", "patch": "rail-rumble", "gain": "-12dB", "score": sc("rumble")},
-            {"name": "clack", "patch": "wheel-clack", "gain": "-14dB", "pan": -0.2, "sends": {"yard": "-14dB"}, "score": sc("clack")},
-            {"name": "horn", "patch": "brass-synth", "gain": "-16dB", "fx": [{"type": "filter", "kind": "lp", "cutoff": 2200, "q": 0.7}],
+            {"name": "rumble", "patch": "ship-engine" if PORT else "rail-rumble", "gain": "-12dB",
+             **({"fx": [{"type": "tremolo", "depth": 0.45, "rate": 2.7}]} if PORT else {}), "score": sc("rumble")},
+            {"name": "clack", "patch": "crane-chain" if PORT else "wheel-clack", "gain": "-14dB", "pan": -0.2, "sends": {"yard": "-14dB"}, "score": sc("clack")},
+            {"name": "horn", "patch": "brass-synth", "gain": "-12dB" if PORT else "-16dB", "fx": [{"type": "filter", "kind": "lp", "cutoff": 900 if PORT else 2200, "q": 0.7}],
              "sends": {"yard": "-4dB"}, "score": sc("horn")},
+            *([{"name": "waves", "patch": "fx-ocean", "gain": "-16dB", "score": sc("waves")},
+               {"name": "hiss", "patch": "air-hiss", "gain": "-22dB", "pan": 0.4, "sends": {"yard": "-6dB"}, "score": sc("hiss")},
+               {"name": "beep", "patch": "reverse-beep", "gain": "-34dB", "pan": -0.5, "sends": {"yard": "0dB"}, "score": sc("beep")}] if PORT else []),
+            *([{"name": "vox", "patch": "voice-speech", "gain": "-8dB", "pan": -0.3,
+                "fx": [{"type": "filter", "kind": "hp", "cutoff": 400, "q": 0.7}, {"type": "filter", "kind": "lp", "cutoff": 3200, "q": 0.9},
+                       {"type": "drive", "drive": 0.45, "mix": 1}], "sends": {"yard": "-10dB"}, "score": sc("vox")}] if VOX else []),
+            *([{"name": "harm", "patch": "clean-chorus", "gain": "-12dB", "pan": 0.45, "sends": {"hall": "-6dB"}, "score": sc("harm")}] if DEV else []),
             {"name": "wind", "patch": "fx-wind", "gain": "-18dB", "score": sc("wind")},
             {"name": "clean", "patch": "clean-chorus", "gain": "-8dB", "pan": -0.15, "sends": {"hall": "-10dB"}, "score": sc("clean")},
             {"name": "fretless", "patch": "fretless-bass", "gain": "-6dB", "score": sc("fretless")},
