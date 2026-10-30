@@ -100,6 +100,12 @@ R4 = set(filter(None, os.environ.get("T10_R4", "M,H").split(","))) - {"none"}
 # Shepard-Risset tone on F# on song time (climbing an octave every 2 bars, swelling in over four), not sixteen riser
 # notes stitched every bar; it stops a beat before the peak, leaving the room's silence.
 R5 = set(filter(None, os.environ.get("T10_R5", "R").split(","))) - {"none"}
+# Round 6 (v6), LEVELS (Harry: "some of our bass hits sound clipped"; levels.py): L = the master no longer
+# drives +6 dB into a hard -0.3 dB ceiling (flat-topped kick and bass runs, about -7.5 LUFS). Its volume is 0 dB; a
+# gain stage feeds a smooth limiter (-1.5 dB, release 80 ms) and the song ceiling is -1 dB, so the kick and the bass
+# keep their peaks: about -9.5 LUFS, true peak under -1 dBTP, no flat runs.
+R6 = set(filter(None, os.environ.get("T10_R6", "L").split(","))) - {"none"}
+LVL_GAIN = 3.5  # dB into the limiter (levels.py: no flat runs, true peak under -1 dBTP)
 ACC_MASKS = [None, {0, 3, 6, 9, 12, 15}, {2, 6, 10, 14}]       # as written / threes / off-beats
 SLIDE_MASKS = [None, {3, 7, 10, 14}, {1, 5, 9, 13}]
 
@@ -383,8 +389,8 @@ def main():
         f"tempo: {BPM}",
         f'length: "{total:g}b"',
         'tail: "2s"',
-        'ceiling: "-0.3dB"',
-        'volume: "6dB"',
+        'ceiling: "%s"' % ("-1dB" if "L" in R6 else "-0.3dB"),
+        'volume: "%s"' % ("0dB" if "L" in R6 else "6dB"),
         "patches: " + json.dumps(patches()),
         "songs: " + json.dumps({"rise": rise_song()}),
         "buses: " + json.dumps(buses),
@@ -395,7 +401,9 @@ def main():
                                         "glue threshold=-18dB ratio=2 attack=10ms release=150ms makeup=2dB",
                                         "tape drive=0.3 warmth=0.4",
                                         {"type": "gain", "gain": {"value": "0dB",
-                                                                  "mod": [{"src": "auto.fade", "amount": 1}]}}],
+                                                                  "mod": [{"src": "auto.fade", "amount": 1}]}}]
+                                 + ([{"type": "gain", "gain": f"{LVL_GAIN:g}dB"}, "limiter ceiling=-1.5dB release=80ms"]
+                                    if "L" in R6 else []),
                                  "auto": {"fade": {"points": fade}}}),
         "tracks:",
     ]
