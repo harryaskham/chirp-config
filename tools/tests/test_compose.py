@@ -141,6 +141,21 @@ class LatestRatings(unittest.TestCase):
         self.assertNotIn("score", rt["z"]["harry"])
 
 
+class ReleasePlan(unittest.TestCase):
+    def test_tracks_meet_the_median_without_passing_minus_one_dbtp(self):
+        rows = [{"lufs": -12.0, "true_peak_dbtp": -2.0}, {"lufs": -7.5, "true_peak_dbtp": -0.02},
+                {"lufs": -13.0, "true_peak_dbtp": -1.5}]
+        target, plan = CH.release_plan(rows)
+        self.assertEqual(target, -12.0)                                     # the median
+        self.assertEqual([p["gain_db"] for p in plan], [0.0, -4.5, 0.5])    # down 4.5; the third wants +1 but has
+        self.assertEqual([p["capped"] for p in plan], [False, False, True]) # only 0.5 dB of room to -1 dBTP
+        target, plan = CH.release_plan(rows, -10.0)
+        self.assertEqual(plan[2]["gain_db"], 0.5)                           # wants +3, only 0.5 dB of TP room
+        self.assertTrue(plan[2]["capped"])
+        self.assertTrue(all(p["tp_out"] <= -1.0 + 1e-9 for p in plan))
+        json.dumps(CH.release_plan([{"lufs": np.float64(-12.0), "true_peak_dbtp": np.float64(-0.5)}] * 3)[1])  # numpy in, JSON out
+
+
 class RebaselineRace(unittest.TestCase):
     def test_a_round_landing_mid_run_changes_the_snapshot(self):
         before = {"rounds": 12, "best": {"version": "v8", "score": 97.735}}

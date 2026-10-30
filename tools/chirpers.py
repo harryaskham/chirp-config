@@ -16,6 +16,11 @@ climbing them on tools/compscore.py (no record to match) and Harry's ratings (to
                                                      seed-0 score as its best (the old one kept under best.rescored,
                                                      a note in its history) and save its features, so `done` compares
                                                      like with like (Moult v3 was refused against an old-scale v2)
+  chirpers.py release ALBUM_ID [--lufs L] [--out DIR] [--legacy-limiter]
+                                                     finish an album: render each composed track (seed 0, groove pin,
+                                                     true-peak limiter), match loudness to the median (or L) without
+                                                     passing -1 dBTP, export tagged MP3s with the cover to
+                                                     ~/Music/Chirpers/ALBUM/ and a release.json levels report
 
 SPEC.json: {"artist", "album" (a placeholder until named), "year", "genre", "brief", "palette", "bleed",
 "genre_refs": [climb ids whose records give the genre's spectrum envelope], "master": {...}, "weights": {...},
@@ -361,6 +366,90 @@ def cmd_rebaseline(a, args):
                     f"{a.seeds}): " + ", ".join(f"{cid.split('-')[-1]} {s[seeds[0]]:.2f}" for cid, s in done), args)
 
 
+def release_plan(rows, target=None, tp_ceiling=-1.0):
+    """Per-track gain (dB) to bring each track to the album's TARGET integrated loudness (default: the median), never
+    past TP_CEILING dBTP. rows: [{lufs, true_peak_dbtp}]. Returns [{gain_db, lufs_out, tp_out, capped}]."""
+    t = float(sorted(r["lufs"] for r in rows)[len(rows) // 2]) if target is None else float(target)
+    out = []
+    for r in rows:
+        want = t - r["lufs"]
+        room = tp_ceiling - r["true_peak_dbtp"]
+        g = min(want, room)
+        g, want = float(g), float(want)          # levels' numbers are numpy: release.json needs plain floats and bools
+        out.append({"gain_db": round(g, 2), "lufs_out": round(float(r["lufs"]) + g, 1),
+                    "tp_out": round(float(r["true_peak_dbtp"]) + g, 2), "capped": bool(g < want - 0.05)})
+    return t, out
+
+
+def cmd_release(a, args):
+    """Render, loudness-match and export an album as tagged MP3s with its cover (Harry's process review, 30 Oct: albums
+    are started but never finished)."""
+    import concurrent.futures as cf
+    sys.path.insert(0, HERE)
+    import levels as LV
+    album = load_album(a.album_id)
+    reg = C.load()
+    pin = open(os.path.join(ROOT, "tools", "groove-pin")).read().strip()
+    tracks = []
+    for t in album["tracks"]:
+        c = next((c for c in reg["climbs"] if c["id"] == t["id"]), {})
+        if c.get("song") and os.path.exists(os.path.join(ROOT, c["song"])):
+            tracks.append((t["n"], t["id"], (c.get("meta") or {}).get("title") or t["id"], os.path.join(ROOT, c["song"])))
+    if not tracks:
+        sys.exit(f"release: {a.album_id} has no composed tracks")
+    name = album["album"]
+    out_dir = os.path.expanduser(os.path.join(a.out, "".join(ch for ch in name if ch not in '/\\:*?"<>|')))
+    os.makedirs(out_dir, exist_ok=True)
+    work = tempfile.mkdtemp(prefix="release-", dir="/tmp/lt" if os.path.isdir("/tmp/lt") else None)
+    env = dict(os.environ, RAYON_NUM_THREADS="3")
+    env.pop("LD_LIBRARY_PATH", None)
+
+    def render(tr):
+        n, cid, title, song = tr
+        snap, wav = os.path.join(work, f"{cid}.yaml"), os.path.join(work, f"{cid}.wav")
+        shutil.copy(song, snap)
+        cmd = [pin, "render", "-f", snap, "--seed", str(a.seed), "-o", wav] + ([] if a.legacy_limiter else ["--set", "true_peak=true"])
+        r = subprocess.run(cmd, capture_output=True, text=True, env=env)
+        return tr, wav if r.returncode == 0 else None, r.stderr[-300:]
+
+    rows = []
+    try:
+        with cf.ThreadPoolExecutor(max_workers=a.jobs) as ex:
+            for (n, cid, title, song), wav, err in ex.map(render, tracks):
+                if not wav:
+                    print(f"{cid}: render failed: {err}", file=sys.stderr)
+                    continue
+                m = LV.measure(wav)
+                rows.append({"n": n, "id": cid, "title": title, "wav": wav, "lufs": float(m["lufs"]),
+                             "true_peak_dbtp": float(m["true_peak_dbtp"]), "longest_pinned_run": int(m["longest_pinned_run"]),
+                             "dur": float(m["dur"])})
+        rows.sort(key=lambda r: r["n"])
+        target, plan = release_plan(rows, a.lufs)
+        art = (album.get("art") or {}).get("file")
+        art = os.path.join(ROOT, art) if art and os.path.exists(os.path.join(ROOT, art)) else None
+        report = {"album": name, "artist": album["artist"], "target_lufs": round(target, 1), "pin": os.path.basename(pin),
+                  "seed": a.seed, "true_peak_limiter": not a.legacy_limiter, "tracks": []}
+        for r, p in zip(rows, plan):
+            safe = "".join(ch for ch in r["title"] if ch not in '/\\:*?"<>|')
+            mp3 = os.path.join(out_dir, f"{r['n']:02d} - {safe}.mp3")
+            cmd = ["ffmpeg", "-y", "-loglevel", "error", "-i", r["wav"]] + (["-i", art] if art else []) + [
+                "-map", "0:a"] + (["-map", "1:v", "-c:v", "png", "-disposition:v", "attached_pic"] if art else []) + [
+                "-af", f"volume={p['gain_db']}dB", "-c:a", "libmp3lame", "-q:a", "0", "-id3v2_version", "3",
+                "-metadata", f"title={r['title']}", "-metadata", f"artist={album['artist']}", "-metadata", f"album={name}",
+                "-metadata", f"track={r['n']}/{len(album['tracks'])}", "-metadata", f"date={album.get('year', '')}", mp3]
+            ok = subprocess.run(cmd, capture_output=True, text=True).returncode == 0
+            report["tracks"].append({**{k: r[k] for k in ("n", "id", "title", "dur", "lufs", "true_peak_dbtp",
+                                                           "longest_pinned_run")}, **p, "file": os.path.basename(mp3) if ok else None})
+            print(f"{r['n']:2d} {r['title'][:28]:28s} {r['lufs']:6.1f} LUFS  TP {r['true_peak_dbtp']:6.2f}  gain {p['gain_db']:+5.1f}"
+                  f" -> {p['lufs_out']:6.1f} LUFS TP {p['tp_out']:6.2f}{'  (capped by true peak)' if p['capped'] else ''}"
+                  f"{'  FLAT ' + str(r['longest_pinned_run']) if r['longest_pinned_run'] >= 4 else ''}{'' if ok else '  ENCODE FAILED'}")
+        with open(os.path.join(out_dir, "release.json"), "w") as f:
+            json.dump(report, f, indent=1)
+        print(f"{name}: {len(rows)} tracks at {target:.1f} LUFS -> {out_dir}")
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+
+
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
@@ -389,6 +478,13 @@ def main(argv=None):
     p.add_argument("--ids")
     p.add_argument("--seeds", default="0,11")
     p.add_argument("--apply", action="store_true")
+    p = sub.add_parser("release")
+    p.add_argument("album_id")
+    p.add_argument("--lufs", type=float, help="target integrated loudness (default: the album's median)")
+    p.add_argument("--out", default="~/Music/Chirpers")
+    p.add_argument("--seed", type=int, default=0)
+    p.add_argument("--jobs", type=int, default=3)
+    p.add_argument("--legacy-limiter", action="store_true", help="render without true_peak (the legacy clamp limiter)")
     known, skip = [], False
     for i, x in enumerate(argv):            # climb.py's own flags (--as NAME, --no-git) go to its helpers, not argparse
         if skip:
@@ -401,7 +497,7 @@ def main(argv=None):
             known.append(x)
     a = ap.parse_args(known)
     {"new": cmd_new, "name": cmd_name, "title": cmd_title, "art": cmd_art, "status": cmd_status,
-     "refresh": cmd_refresh, "rebaseline": cmd_rebaseline}[a.cmd](a, argv)
+     "refresh": cmd_refresh, "rebaseline": cmd_rebaseline, "release": cmd_release}[a.cmd](a, argv)
 
 
 if __name__ == "__main__":
