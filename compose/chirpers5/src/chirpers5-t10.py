@@ -28,10 +28,11 @@ S = 0.25
 RECIPE = float(os.environ.get("C5T10_RECIPE", "6"))
 RCLIP = os.environ.get("C5T10_RCLIP", "-2.0")
 TPLIM = os.environ.get("C5T10_TPLIM", "")  # wM's true-peak limiter (true_peak: true, 4x oversampled, 5 ms lookahead, never clamps) as the master's last stage at this ceiling (dB), instead of the clip and the 16 kHz low-pass
-LOWLIFT = os.environ.get("C5T10_LOWLIFT", "3")
+LOWLIFT = os.environ.get("C5T10_LOWLIFT", "7")
 MIDEQ = os.environ.get("C5T10_MIDEQ", "-3,-4")
 HARMIN = os.environ.get("C5T10_HARMIN", "lift")  # where else the hook's third-above voice sings, besides the interlude: "B" (the second drop and the lift) or "lift" (the lift only)
-DESC = os.environ.get("C5T10_DESC", "1") == "1"  # the strings gain a descant in the second drop: the chord's top tones an octave up, falling in half notes  # "low,mid": the 300 Hz cut eased to this (dB) and 1 kHz taken down by this (the piano and the voice's formants were forward of the album)  # the master's 100 Hz lifted (dB): the liquid bass's body
+DESC = os.environ.get("C5T10_DESC", "1") == "1"
+DAWN = int(os.environ.get("C5T10_DAWN", "0"))  # the opening piano heard through the window: a low-pass from about 620 Hz opening to 14 kHz over this many bars (Late Shift hands over on a dark held Dbmaj9)  # the strings gain a descant in the second drop: the chord's top tones an octave up, falling in half notes  # "low,mid": the 300 Hz cut eased to this (dB) and 1 kHz taken down by this (the piano and the voice's formants were forward of the album)  # the master's 100 Hz lifted (dB): the liquid bass's body
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 FORM = [("intro", 16), ("build", 8), ("A", 32), ("breakdown", 16), ("B", 32), ("lift", 16), ("dissolve", 24)]
@@ -285,7 +286,10 @@ def song():
             {"name": "amen", "patch": "amen-chops", "gain": "-13dB", "out": "drums", "fx": [{"type": "filter", "kind": "highpass", "cutoff": 400, "q": 0.7}], "score": sc("amen")},
             {"name": "sub", "patch": "sub-sine", "gain": "1dB", "fx": [pump(-6)], "score": sc("bass")},
             {"name": "reese", "patch": "reese", "gain": "-8dB", "fx": [pump(-6), {"type": "filter", "kind": "lowpass", "cutoff": 1200, "q": 1}], "score": sc("reese")},
-            {"name": "piano", "patch": "piano-recorded", "gain": "-6dB", "pan": -0.1, "fx": [pump(-4)], "sends": {"hall": "-12dB"}, "score": sc("piano")},
+            {"name": "piano", "patch": "piano-recorded", "gain": "-6dB", "pan": -0.1,
+             "fx": [pump(-4)] + ([{"type": "filter", "kind": "lowpass", "cutoff": {"value": 14000, "mod": [{"src": "auto.pf", "amount": -4.5}]}, "q": 0.7}] if DAWN else []),
+             **({"auto": {"pf": lane([(0, 1), (DAWN, 0)], {DAWN})}} if DAWN else {}),
+             "sends": {"hall": "-12dB"}, "score": sc("piano")},
             {"name": "strings", "patch": "strings-synth", "gain": "-12dB", "pan": 0.1, "fx": [pump(-5)], "sends": {"hall": "-8dB"}, "score": sc("strings")},
             {"name": "voice", "patch": "voice", "gain": "-7dB", "pan": 0.05, "sends": {"hall": "-6dB", "echo": "-14dB"}, "score": sc("voice")},
             {"name": "harmony", "patch": "voice", "gain": "-11dB", "pan": -0.25, "sends": {"hall": "-4dB"}, "score": sc("harmony")},
