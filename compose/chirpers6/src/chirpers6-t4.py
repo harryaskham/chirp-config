@@ -31,6 +31,11 @@ BPM = 72
 S = 0.25  # beats per sixteenth
 BAR = 12  # sixteenths in a 3/4 bar
 MGAIN = float(os.environ.get("C6T4_MGAIN", "5"))
+WARMUP = os.environ.get("C6T4_WARMUP", "1") == "1"  # the lamp warms up: the buzz and the relay first, the hum entering after a bar (sodium lamps start dim and rise)
+WALLSTAGES = os.environ.get("C6T4_WALLSTAGES", "1") == "1"  # the wall's stages made distinct: bare strums and fuzz; then the pad and the choir; then the major glimpse with the strums tremolo-picked in 16ths (shimmer)
+LOSTAGES = os.environ.get("C6T4_LOSTAGES", "1") == "1"  # lights out in four stages: the piano alone; the clean guitar and brushes join; the ebow's last line over them; the piano and the hum alone
+EQ = os.environ.get("C6T4_EQ", "1") == "1"
+LATEOFF = os.environ.get("C6T4_LATEOFF", "1") == "1"  # the last lamp goes off in the last bar but one (not three bars early), and the render tail is 1 s: the hand-over into Leave the Lights On has no dead air  # the crunch guitars' 2.4 kHz down 4 dB on the wall bus, the master's top up 3 dB from 8 kHz
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 NOTE = {"C": 0, "C#": 1, "Db": 1, "D": 2, "D#": 3, "Eb": 3, "E": 4, "F": 5, "F#": 6, "G": 7, "G#": 8, "Ab": 8, "A": 9,
@@ -96,11 +101,11 @@ def build():
 
     total = total_steps()
     # THE LAMP: the hum held through the hum, low under the waltz, gone in the wall, back in the flicker, stepping down at the end
-    add("hum", 0, "C4", sec_start("bloom"), 92)
+    add("hum", BAR if WARMUP else 0, "C4", sec_start("bloom") - (BAR if WARMUP else 0), 92)
     add("buzz", 0, "C4", sec_start("waltz") + 8 * BAR, 80)
     add("hum", sec_start("flicker"), "C4", 16 * BAR, 96)
     lo = sec_start("lightsout")
-    offs = [0, 6, 11, 15, 19, 22, 25, 27, 29]  # the lamps going off, bar by bar
+    offs = [0, 6, 11, 15, 19, 22, 25, 28, 31] if LATEOFF else [0, 6, 11, 15, 19, 22, 25, 27, 29]  # the lamps going off, bar by bar
     for k in range(len(offs) - 1):
         add("hum", lo + offs[k] * BAR, "C4", (offs[k + 1] - offs[k]) * BAR, 96 - 10 * k)
         add("thunk", lo + offs[k + 1] * BAR, "C2", 2, 100 - 4 * k)
@@ -127,7 +132,8 @@ def build():
                 add("ebow", at, "B3", 5 * BAR, 70)
 
             # --- the clean waltz guitar: bass note then the chord in eighths (r, 5, 9, 3, 5, 9)
-            if sec in ("waltz", "bloom", "lightsout") or (sec == "hum" and b >= 12):
+            lo_stage = b // 8 if (LOSTAGES and sec == "lightsout") else -1
+            if (sec in ("waltz", "bloom") or (sec == "lightsout" and lo_stage in (-1, 1, 2)) or (sec == "hum" and b >= 12)):
                 idx = [0, 2, 4, 1, 2, 3]
                 vel0 = 70 if sec != "hum" else 54
                 for k, i in enumerate(idx):
@@ -169,7 +175,12 @@ def build():
                     add("piano", at, nm(r + 12), 4, 62)
 
             # --- bass
-            if sec in ("waltz", "bloom", "lightsout"):
+            if LOSTAGES and sec == "lightsout" and lo_stage == 2 and b % 8 == 0:
+                st_ = 0
+                for n, l in [("B4", 24), ("A4", 12), ("G4", 36), ("F#4", 12), ("G4", 12)]:  # the ebow's last line
+                    add("ebow", at + st_, n, l, 80)
+                    st_ += l
+            if sec in ("waltz", "bloom") or (sec == "lightsout" and lo_stage in (-1, 1, 2)):
                 add("fretless", at, nm(r + 12), 8, 86)
                 add("fretless", at + 8, nm(r + 19), 4, 70)
             if sec in ("wall",):
@@ -184,12 +195,17 @@ def build():
             # --- the wall: chorused crunch guitars strumming eighths L/R, the fuzz rig holding, the saw pad
             if sec in ("wall", "flicker") and not (ws == 3 and b < 40):
                 ch = ",".join(nm(n) for n in v[:4])
-                for k in range(6):
-                    add("strumL", at + 2 * k, ch, 2, 100 if k % 3 == 0 else 86)
-                    add("strumR", at + 2 * k + 1 if k < 5 else at + 2 * k, ch, 1 if k < 5 else 2, 96 if k % 3 == 0 else 82)
+                if WALLSTAGES and ws == 2:  # the major glimpse: the strums tremolo-picked in 16ths, a shimmer
+                    for k in range(3):
+                        add("strumL", at + 4 * k, ch + "^r=4", 4, 96)
+                        add("strumR", at + 4 * k, ch + "^r=4", 4, 92)
+                else:
+                    for k in range(6):
+                        add("strumL", at + 2 * k, ch, 2, 100 if k % 3 == 0 else 86)
+                        add("strumR", at + 2 * k + 1 if k < 5 else at + 2 * k, ch, 1 if k < 5 else 2, 96 if k % 3 == 0 else 82)
             if sec in ("wall", "flicker") and b % 2 == 0:
                 add("fuzz", at, f"{nm(r + 12)},{nm(r + 19)},{nm(r + 24)}", 2 * BAR, 110)
-                if not (ws == 3 and b < 40):
+                if not (ws == 3 and b < 40) and not (WALLSTAGES and ws == 0):
                     add("pad", at, ",".join(nm(n + 12) for n in v[1:4]), 2 * BAR, 90)
 
             # --- drums
@@ -219,7 +235,7 @@ def build():
                     kit = [k for k in kit if k[0] < 6] + [(6 + i, t, 96 + 4 * i) for i, t in enumerate(["t1", "t2", "t2", "t3", "ft", "ft"])]
             elif sec == "flicker":
                 kit += [(0, "k", 112), (6, "s", 112)]
-            elif sec == "lightsout" and 8 <= b < 24:
+            elif sec == "lightsout" and (lo_stage in (1, 2) if LOSTAGES else 8 <= b < 24):
                 kit += [(0, "k", 70), (4, "ss", 56), (8, "ss", 58)]
             sticks = (sec == "bloom" and b >= 16) or sec in ("wall", "flicker")
             for st, piece, vel in kit:
@@ -293,7 +309,7 @@ def song():
     doc = {
         "about": "Chirpers - All the Lights Left On (Chirpers VI), track 4 by chirper-zero: SLOWCORE WALTZ INTO A SHOEGAZE WALL, sodium. "
                  "Generated by compose/chirpers6/src/chirpers6-t4.py; see its docstring and compose/chirpers6/styles.md.",
-        "tempo": BPM, "ceiling": "-1.2dB", "volume": "0dB", "true_peak": True, "tail": "2s",
+        "tempo": BPM, "ceiling": "-1.2dB", "volume": "0dB", "true_peak": True, "tail": "1s" if LATEOFF else "2s",
         "patches": {
             "mains-hum": {"about": "sodium: the streetlights' mains hum - 100 Hz with its 200 and 300 Hz, steady",
                           "synth": {"layers": ["sine fixed=100", "sine fixed=200 level=-9dB", "sine fixed=300 level=-16dB"],
@@ -308,14 +324,14 @@ def song():
                              "synth": {"layers": ["sine fixed=62", {"type": "noise", "color": "brown"}], "filters": ["lp cutoff=400"],
                                        "amp": {"a": "1ms", "d": "220ms", "s": 0, "r": "120ms"}}},
         },
-        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=28", "peak cutoff=300 q=0.8 gain=-2dB", "highshelf cutoff=7000 gain=0dB"]},
+        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=28", "peak cutoff=300 q=0.8 gain=-2dB", "highshelf cutoff=7000 gain=0dB", *(["highshelf cutoff=8000 gain=3dB"] if EQ else [])]},
                           {"type": "compressor", "threshold": "-18dB", "ratio": 2, "attack": "20ms", "release": "250ms", "makeup": "0dB"},
                           {"type": "gain", "gain": f"+{MGAIN:g}dB"},
                           {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}}],
                    "auto": {"dyn": dyn}},
         "buses": {
             "drums": {"fx": [{"type": "compressor", "threshold": "-14dB", "ratio": 3, "attack": "6ms", "release": "100ms", "makeup": "1dB"}]},
-            "wall": {"fx": [{"type": "chorus", "depth": 0.6, "rate": 0.7, "mix": 0.5},
+            "wall": {"fx": ([{"type": "eq", "bands": ["peak cutoff=2400 q=0.9 gain=-4dB"]}] if EQ else []) + [{"type": "chorus", "depth": 0.6, "rate": 0.7, "mix": 0.5},
                             {"type": "stutter", "slice": "1/16", "repeats": 3, "chance": 0.35, "roll": 1, "seed": 3,
                              "mix": {"value": 0, "mod": [{"src": "auto.stu", "amount": 1}]}},
                             {"type": "tapestop", "stop": {"value": 0, "mod": [{"src": "auto.ts", "amount": 1}]}, "time": "3b", "curve": 1.4},
