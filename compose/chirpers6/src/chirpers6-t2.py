@@ -138,6 +138,11 @@ def windows():
                               66 if k == 0 else 54)
     theme("radio", 25, 62, shift=0, bars=8)
     part("crackle").add(b0(25), b0(33) - b0(25) - 0.1, "C4", 60)
+    # v4: the radio's late-night DJ, as the waltz ends: "For everyone still up tonight." (ARPAbet, through the radio)
+    t0 = b0(32)
+    for k, syl in enumerate(["f-ao1-r", "eh1-v", "r-iy0", "w-ah2-n", "s-t-ih1-l", "ah1-p", "t-ah0", "n-ay1-t"]):
+        f0 = "0>-30>-90" if k == 7 else ("0>15>0" if k == 0 else "0>-10")
+        part("dj").add(t0 + k * 0.5, 0.46, f"A2^ph={syl}^f0={f0}", 84 - (6 if syl.endswith("0") else 0))
     # (c) a music box: the theme twice as fast, high, a little worn
     theme("mbox", 33, 76, shift=12, scale=0.5)
     theme("mbox", 37, 72, shift=12, scale=0.5)
@@ -276,8 +281,10 @@ def main():
                                                                                         [3.0, 0.2], [4.07, 0.15]]}],
                                           "amp": {"a": "2ms", "d": "4s", "s": 0, "r": "3s"}}}},
         "buses": {"hall": {"fx": ["reverb kind=hall decay=4.8s mix=1 predelay=45ms", "hp cutoff=180"]}},
-        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=42", "peak cutoff=300 q=0.9 gain=-4dB",
-                                                    "highshelf cutoff=6000 gain=1dB"]},
+        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=36", "lowshelf cutoff=100 gain=5dB",
+                                                    "peak cutoff=300 q=0.9 gain=-3dB", "peak cutoff=600 q=0.6 gain=-4dB",
+                                                    "peak cutoff=1500 q=0.7 gain=-2dB",
+                                                    "highshelf cutoff=7000 gain=2dB"]},   # v4: heavier, the mids cleared
                           {"type": "compressor", "threshold": "-20dB", "ratio": 2, "attack": "25ms", "release": "250ms",
                            "makeup": "0dB"},
                           {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}},
@@ -297,8 +304,11 @@ def main():
             tr("violin", "violin", gain="-8dB", pan=0.15, sends={"hall": "-6dB"}),
             tr("strings", "strings", gain="-10dB", sends={"hall": "-6dB"}),
             tr("cellos", "cellos", gain="-9dB", pan=-0.25, sends={"hall": "-8dB"}),
-            tr("cb", "contrabass", gain="-5dB", sends={"hall": "-12dB"}),
-            tr("bass", "bass-pick-di", gain="-4dB"),
+            tr("cb", "contrabass", gain="-3dB", sends={"hall": "-12dB"}),
+            tr("bass", "bass-pick-di", gain="-2dB"),
+            tr("dj", "voice-speech", gain="-8dB", pan=0.35,                 # v4: the kitchen radio's DJ
+               fx=[{"type": "filter", "kind": "bp", "cutoff": 1300, "q": 1.2},
+                   {"type": "crush", "bits": 8, "rate": 9000, "mix": 0.5}]),
             tr("trem", "m8-clean", gain="-13dB", pan=0.3, sends={"hall": "-6dB"}),
             tr("wall", "m8-fuzz", gain="-18dB", pan=-0.3, sends={"hall": "-6dB"}),
             tr("lead", "starcaster-clean", gain="-8dB", pan=-0.1, sends={"hall": "-8dB"}),

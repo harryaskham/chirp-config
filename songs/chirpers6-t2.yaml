@@ -68,9 +68,12 @@
    {
     "type": "eq",
     "bands": [
-     "highpass cutoff=42",
-     "peak cutoff=300 q=0.9 gain=-4dB",
-     "highshelf cutoff=6000 gain=1dB"
+     "highpass cutoff=36",
+     "lowshelf cutoff=100 gain=5dB",
+     "peak cutoff=300 q=0.9 gain=-3dB",
+     "peak cutoff=600 q=0.6 gain=-4dB",
+     "peak cutoff=1500 q=0.7 gain=-2dB",
+     "highshelf cutoff=7000 gain=2dB"
     ]
    },
    {
@@ -275,7 +278,7 @@
    "name": "cb",
    "patch": "contrabass",
    "score": "R/384b D2/3.9b@70 R/0.1b B1/3.9b@70 R/0.1b G1/3.9b@71 R/0.1b A1/3.9b@71 R/0.1b D2/3.9b@72 R/0.1b B1/3.9b@72 R/0.1b G1/3.9b@73 R/0.1b A1/3.9b@73 R/0.1b D2/3.9b@74 R/0.1b B1/3.9b@74 R/0.1b G1/3.9b@75 R/0.1b A1/3.9b@75 R/0.1b D2/3.9b@76 R/0.1b B1/3.9b@76 R/0.1b G1/3.9b@77 R/0.1b A1/3.9b@77 R/0.1b D2/3.9b@78 R/0.1b B1/3.9b@78 R/0.1b G1/3.9b@79 R/0.1b A1/3.9b@79 R/0.1b D2/3.9b@80 R/0.1b B1/3.9b@80 R/0.1b G1/3.9b@81 R/0.1b A1/3.9b@81 R/0.1b D2/3.9b@82 R/0.1b B1/3.9b@82 R/0.1b G1/3.9b@83 R/0.1b A1/3.9b@83 R/0.1b D2/3.9b@84 R/0.1b B1/3.9b@84 R/0.1b G1/3.9b@85 R/0.1b A1/3.9b@85 R/0.1b D2/3.9b@70 R/0.1b B1/3.9b@70 R/0.1b G1/3.9b@70 R/0.1b A1/3.9b@70 R/0.1b D2/3.9b@70 R/0.1b B1/3.9b@70 R/0.1b G1/3.9b@70 R/0.1b A1/3.9b@70 R/0.1b D2/3.9b@70 R/0.1b B1/3.9b@70 R/42.1b B1/13.8b@34 R/0.2b",
-   "gain": "-5dB",
+   "gain": "-3dB",
    "sends": {
     "hall": "-12dB"
    }
@@ -284,7 +287,28 @@
    "name": "bass",
    "patch": "bass-pick-di",
    "score": "R/192b D2/3.8b@84 R/0.2b B2/3.8b@84 R/0.2b G2/3.8b@84 R/0.2b A2/3.8b@84 R/0.2b D2/3.8b@84 R/0.2b B2/3.8b@84 R/0.2b G2/3.8b@84 R/0.2b A2/3.8b@84 R/0.2b D2/3.8b@84 R/0.2b B2/3.8b@84 R/0.2b G2/3.8b@84 R/0.2b A2/3.8b@84 R/0.2b D2/3.8b@84 R/0.2b B2/3.8b@84 R/0.2b G2/3.8b@84 R/0.2b A2/3.8b@84 R/0.2b D2/3.8b@84 R/0.2b B2/3.8b@84 R/0.2b G2/3.8b@84 R/0.2b A2/3.8b@84 R/0.2b D2/3.8b@84 R/0.2b B2/3.8b@84 R/0.2b G2/3.8b@84 R/0.2b A2/3.8b@84 R/0.2b D2/3.8b@84 R/0.2b B2/3.8b@84 R/0.2b G2/3.8b@84 R/0.2b A2/3.8b@84 R/0.2b D2/3.8b@84 R/0.2b B2/3.8b@84 R/0.2b G2/3.8b@84 R/0.2b A2/3.8b@84 R/64.2b D2/3.8b@92 R/0.2b B2/3.8b@92 R/0.2b G2/3.8b@92 R/0.2b A2/3.8b@92 R/0.2b D2/3.8b@92 R/0.2b B2/3.8b@92 R/0.2b G2/3.8b@92 R/0.2b A2/3.8b@92 R/0.2b D2/3.8b@92 R/0.2b B2/3.8b@92 R/0.2b G2/3.8b@92 R/0.2b A2/3.8b@92 R/0.2b D2/3.8b@92 R/0.2b B2/3.8b@92 R/0.2b G2/3.8b@92 R/0.2b A2/3.8b@92 R/0.2b D2/3.8b@92 R/0.2b B2/3.8b@92 R/0.2b G2/3.8b@92 R/0.2b A2/3.8b@92 R/0.2b D2/3.8b@92 R/0.2b B2/3.8b@92 R/0.2b G2/3.8b@92 R/0.2b A2/3.8b@92 R/0.2b D2/3.8b@92 R/0.2b B2/3.8b@92 R/0.2b G2/3.8b@92 R/0.2b A2/3.8b@92 R/0.2b D2/3.8b@92 R/0.2b B2/3.8b@92 R/0.2b G2/3.8b@92 R/0.2b A2/3.8b@92 R/0.2b D2/3.8b@84 R/0.2b B2/3.8b@84 R/0.2b G2/3.8b@84 R/0.2b A2/3.8b@84 R/0.2b D2/3.8b@84 R/0.2b B2/3.8b@84 R/0.2b G2/3.8b@84 R/0.2b A2/3.8b@84 R/64.2b",
-   "gain": "-4dB"
+   "gain": "-2dB"
+  },
+  {
+   "name": "dj",
+   "patch": "voice-speech",
+   "score": "R/124b A2/0.46b@84^ph=f-ao1-r^f0=0>15>0 R/0.04b A2/0.46b@84^ph=eh1-v^f0=0>-10 R/0.04b A2/0.46b@78^ph=r-iy0^f0=0>-10 R/0.04b A2/0.46b@84^ph=w-ah2-n^f0=0>-10 R/0.04b A2/0.46b@84^ph=s-t-ih1-l^f0=0>-10 R/0.04b A2/0.46b@84^ph=ah1-p^f0=0>-10 R/0.04b A2/0.46b@78^ph=t-ah0^f0=0>-10 R/0.04b A2/0.46b@84^ph=n-ay1-t^f0=0>-30>-90 R/480.04b",
+   "gain": "-8dB",
+   "pan": 0.35,
+   "fx": [
+    {
+     "type": "filter",
+     "kind": "bp",
+     "cutoff": 1300,
+     "q": 1.2
+    },
+    {
+     "type": "crush",
+     "bits": 8,
+     "rate": 9000,
+     "mix": 0.5
+    }
+   ]
   },
   {
    "name": "trem",
