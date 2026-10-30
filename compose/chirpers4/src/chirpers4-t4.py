@@ -17,7 +17,8 @@ entering patiently, and slow odd-length LFOs instead of more layers:
   slow   65-80  the 909 leaves: the toms carry it, the hats and clap move to the three-floor: the floor slows to 96
   break  81-96  no kicks: the shekere's accents flip between 4 and 3 every two bars (the ear cannot tell which floor);
                 a drone, the bell, a Shepard riser
-  drop   97-128 the four-floor slams back (with a distorted 909 layer) and the toms stay: both floors at full weight
+  drop   97-128 the four-floor slams back over the three: since v5 the two floors ALONE first (with the shekere and
+                the bass), the hats at 101, the clap at 105, the stab and the chant only at 113
   outro  129-144 the machine's floor and the shuffle, thinning out
 """
 import json
@@ -120,12 +121,14 @@ def backbeat():
     hand = random.Random(9)
     for bar in range(1, BARS + 1):
         sec = sec_of(bar)
-        four = (sec in ("groove", "both", "drop") or (sec == "outro" and bar < 137)) and bar >= 21
+        four = (sec in ("groove", "both", "drop") or (sec == "outro" and bar < 137)) and bar >= 21 \
+            and not (97 <= bar < 105)                    # the drop lands on the two floors alone; the clap at 105
         three = sec == "slow"
         if four:
             for b in (1, 3):
                 P["clap"].add(b0(bar) + b + 0.012, 0.5, "cp", 100 + hand.randint(-5, 3))
-        hat_on = sec in ("intro", "groove", "both", "drop") or (sec == "outro" and bar < 137)
+        hat_on = (sec in ("intro", "groove", "both", "drop") or (sec == "outro" and bar < 137)) \
+            and not (97 <= bar < 101)                    # the hats back at 101
         if hat_on and bar >= 5:
             for b in range(4):
                 P["hats"].add(b0(bar) + b + 0.5, 0.25, "oh", 84 if sec != "intro" else 66)
@@ -187,7 +190,7 @@ def stab():
     tribe is hinted at before it plays; every eighth bar it answers a third higher."""
     for bar in range(33, 129):
         sec = sec_of(bar)
-        if sec == "break":
+        if sec == "break" or 97 <= bar < 113:          # the drop waits 16 bars for the stab
             continue
         if bar % 2 == 0 and sec in ("groove",):
             continue
@@ -203,7 +206,8 @@ def chant():
     hand = random.Random(53)
     for bar in range(53, 129):
         sec = sec_of(bar)
-        if sec == "break" or bar % 2 == 0 or sec == "groove" or bar < 57:     # restraint: every other bar
+        if sec == "break" or bar % 2 == 0 or sec == "groove" or bar < 57 or 97 <= bar < 113:  # every other bar; the
+            # drop's first 16 bars are the floors' alone
             continue
         pch = G + 55 if bar % 2 else G + 48                       # D4 / G3
         P["chant"].add(st(bar, 8), 0.45, nm(pch), 104 + hand.randint(-6, 4))
