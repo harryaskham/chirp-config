@@ -6242,7 +6242,7 @@
     {
       "id": "chirpers4-t10",
       "song": "songs/chirpers4-t10.yaml",
-      "reference": "Chirpers — Track 10 (untitled)",
+      "reference": "Chirpers — The One Comes Home",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers4-t10 OUT.wav",
@@ -6258,7 +6258,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "Phantom Downbeat",
-        "title": "Track 10 (untitled)",
+        "title": "The One Comes Home",
         "track": 10,
         "year": 2026
       },
