@@ -6184,7 +6184,7 @@
     {
       "id": "chirpers4-t8",
       "song": "songs/chirpers4-t8.yaml",
-      "reference": "Chirpers — Track 8 (untitled)",
+      "reference": "Chirpers — Second Stream",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers4-t8 OUT.wav",
@@ -6200,7 +6200,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "Phantom Downbeat",
-        "title": "Track 8 (untitled)",
+        "title": "Second Stream",
         "track": 8,
         "year": 2026
       },
