@@ -28,5 +28,6 @@ Generator `compose/chirpers5/src/chirpers5-t4.py`. Liquid glitchstep, 174 bpm, G
 - **THE CHANGES**: Gm9 | Ebmaj9 | Cm11 | D7sus4 (b9 colour), a chord a bar; the physical-tine Rhodes (with the damper) on 1 and the and-of-2, a juno pad under it, a reese and a sub on the root (1 and the and-of-3, with the kick).
 - **THE VOICE**: wordless chops from the voice engine on the chord's 9th, 5th and 3rd, falling after the snare (16ths 5, 7, 14), the vowels turning ah - oo - eh bar by bar; in the half-time middle they fall after its snare on 3.
 - **THE HAIRLINE**: the last half-bar of every 8-bar phrase cracks - a buffer stutter on the drum bus whose repeats rise in pitch and accelerate toward 1/64 - so the seams lift instead of breaking; in the climax every other bar cracks, in the half-time middle every fourth.
+- **THE KIT, LEANED ON** (v3): the 2-step kick and snare driven (0.5) and squeezed by a fast compressor on their own track, so the backbeat snaps and the kick has a front edge - the roller pushes now instead of sitting square under the chords.
 - **THE ROLL**: wM's amen-chops under the clean 2-step kick and snare as a ghost roll (high-passed at 350 Hz), the break re-sequenced 16th by 16th, its fourth bar turning to the break's tail.
 
