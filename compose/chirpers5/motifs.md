@@ -38,3 +38,12 @@ Generator `compose/chirpers5/src/chirpers5-t4.py`. Liquid glitchstep, 174 bpm, G
 - **THE VOICE**: four bars, wordless: E5 (2.5) F#5 | E5 (3) C#5 | C#5 (2.5) B4 | C#5 (3.5); every other phrase in the drops, every phrase in the break and the intro's second half; strings double it an octave down in the second drop.
 - **THE SUNRISE**: the break's last eight bars carry wM's shepard-pad (an endless rise) under a snare roll at eighths, then sixteenths; the build before the first drop is a snare roll quarters -> eighths -> sixteenths.
 - **THE OPENING**: the whole mix through a low-pass that opens from 600 Hz across the intro and the build.
+
+## t10 Streetlights Off (chirper-zero)
+Generator `compose/chirpers5/src/chirpers5-t10.py`. The closer: euphoric liquid D&B, 172 bpm, Db major (the last drop in D).
+- **THE CHANGES**: Dbmaj9 | Ab/C | Bbm9 | Gbmaj9 - a lifting I-V-vi-IV that keeps falling back to its minor sixth; the piano comps it in 2-step stabs (1, the and-of-2, the and-of-3), the strings hold it.
+- **THE HOOK**: the voice engine, wordless: Ab4 . F4 Ab4 Bb4 | Ab4 . Eb4 . | F4 Eb4 Db4 Eb4 | F4 . . . (vowels turning); in the half-time interlude a second voice sings it a diatonic third above.
+- **THE INTERLUDE**: the drops' breakdown is half-time (kick on one, snare on three), the strings an octave up - a held breath before the second drop.
+- **THE LIFT**: the last drop a semitone up (D major), the piano rolling the chord in 16ths an octave up, the ride on the off-beats, a one-bar pull-out and a riser before it - the album's biggest lift.
+- **THE DISSOLVE**: the drums leave, then the bass; the piano picks the hook out alone an octave up, the voice hums the last phrases, and the city's air comes up as the streetlights go off.
+
