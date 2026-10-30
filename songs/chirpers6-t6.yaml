@@ -375,6 +375,54 @@
    }
   },
   {
+   "name": "farhorn",
+   "patch": "c6-horn",
+   "score": "R/809b G3,B3/1.2b@50 R/0.2b G3,B3/1.2b@50 R/20.4b",
+   "gain": "-24dB",
+   "fx": [
+    "lp cutoff=700"
+   ],
+   "sends": {
+    "hall": "0dB"
+   }
+  },
+  {
+   "name": "farrumble",
+   "patch": "c6-rumble",
+   "score": "R/800b E1/24b@50 R/8b",
+   "gain": "-14dB",
+   "fx": [
+    "hp cutoff=45",
+    "lp cutoff=120"
+   ],
+   "sends": {
+    "hall": "-6dB"
+   }
+  },
+  {
+   "name": "chime",
+   "patch": "celesta",
+   "score": "R/13b E5/1.4b@92 R/0.1b C5/1.8b@88 R/732.7b E5/1.4b@60 R/0.1b C5/1.8b@56 R/79.7b",
+   "gain": "-1dB",
+   "sends": {
+    "station": "-2dB"
+   },
+   "fx": [
+    {
+     "type": "filter",
+     "kind": "bp",
+     "cutoff": 1500,
+     "q": 0.9
+    },
+    {
+     "type": "crush",
+     "bits": 10,
+     "rate": 16000,
+     "mix": 0.4
+    }
+   ]
+  },
+  {
    "name": "static",
    "patch": "c6-static",
    "score": "R/256b C4/95.9b@66 R/480.1b",

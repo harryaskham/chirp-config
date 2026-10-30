@@ -6955,13 +6955,14 @@
       "metric": "python3 tools/compscore.py chirpers6-t6 OUT.wav",
       "best": {
         "score": 94.79,
-        "version": "v8",
-        "commit": "see git log songs/chirpers6-t6.yaml"
+        "version": "v9",
+        "commit": "see git log songs/chirpers6-t6.yaml",
+        "judged": true
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 8,
+      "rounds": 9,
       "priority": 1.0,
       "genre": "post-rock / post-metal",
       "mode": "compose",
@@ -6979,7 +6980,7 @@
         "note": "COMPOSE (song, 420-1080 s): Style, form, tempo and line-up are yours: declare them in compose/chirpers6/styles.md, different from the tracks already claimed."
       },
       "last": {
-        "at": "2026-10-30T21:56:45Z",
+        "at": "2026-10-30T23:00:20Z",
         "who": "chirper-three"
       }
     },

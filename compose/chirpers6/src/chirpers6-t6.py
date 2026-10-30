@@ -154,8 +154,16 @@ def speak(name, start, lines, step=0.6, base="A2"):
 def voices():
     """THE STATION VOICE (bars 5-6 and, changed and slower, 189-190) and THE RADIO MONOLOGUE (the tunnel): the voice
     engine's formants gliding vowel to vowel in a speech rhythm, words just out of reach through a band-pass."""
+    # v9: THE STATION CHIME before each announcement: a descending major third on celesta through the PA
+    for at, v in ((b0(4) + 1, 92), (b0(188) + 1, 60)):        # loud over the passing train; soft in the empty station
+        part("chime").add(at, 1.4, "E5", v)
+        part("chime").add(at + 1.5, 1.8, "C5", v - 4)
     speak("pa", b0(5), PA_FIRST)
     speak("pa", b0(189), PA_LAST, step=0.8, base="G2")      # slower, lower: the last announcement
+    # v9: THE LAST TRAIN LEAVES: far off at the end, a rumble passing away and the horn a semitone lower (receding)
+    part("farrumble").add(b0(201), 6 * BAR, "E1", 50)
+    for at in (b0(203) + 1, b0(203) + 2.4):
+        part("farhorn").add(at, 1.2, "G3,B3", 50)
     # THE RADIO IN THE TUNNEL (v5): a broadcast drifting in and out: wordless murmur between stations, and three
     # phrases surfacing from the static - a voice someone in the dark is tuning towards
     hand = random.Random(66)
@@ -400,6 +408,11 @@ def main():
                fx=["hp cutoff=45", {"type": "pan", "pan": {"value": 0, "mod": [{"src": "lfo.rp", "amount": 0.7}]}}]),
             tr("clack", "metal-kit-phys", gain="-14dB", fx=["lp cutoff=2500"], sends={"hall": "-10dB"}),
             tr("horn", "c6-horn", gain="-16dB", sends={"hall": "-4dB"}),
+            tr("farhorn", "c6-horn", gain="-24dB", fx=["lp cutoff=700"], sends={"hall": "0dB"}),        # v9: receding
+            tr("farrumble", "c6-rumble", gain="-14dB", fx=["hp cutoff=45", "lp cutoff=120"], sends={"hall": "-6dB"}),
+            tr("chime", "celesta", gain="-1dB", sends={"station": "-2dB"},                           # v9: the PA chime
+               fx=[{"type": "filter", "kind": "bp", "cutoff": 1500, "q": 0.9},
+                   {"type": "crush", "bits": 10, "rate": 16000, "mix": 0.4}]),
             tr("static", "c6-static", gain="-26dB", fx=[{"type": "crush", "bits": 6, "rate": 8000, "mix": 0.5}]),
             tr("pa", "voice-speech", gain="-6dB", fx=[{"type": "filter", "kind": "bp", "cutoff": 1500, "q": 0.9},
                                                      {"type": "crush", "bits": 10, "rate": 16000, "mix": 0.4}],
