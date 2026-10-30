@@ -81,7 +81,9 @@ def build():
             if 'hat' in h and q % 2 == 1 and s in ('B', 'C'):
                 kit.append((at, 'h', 0.25, 58))
             if 'rim' in h and g % 3 == 0:
-                kit.append((at, 'rs', 0.25, 96 if s != 'break' else 110))
+                # (v6) the three-cycle moves from the 909 rim (chirper-zero's Second Stream owns the 3/16 rim) to the
+                # machine-kit's cowbell: the same three-against-four, a metallic, pitched clank
+                kick.append((at, 'cb', 0.25, 90 if s != 'break' else 104))
             if 'acc' in h and g % 7 == 0:
                 kit.append((at, 'oh', 0.25, 100))
             if 'clap' in h and q % 4 == 2:
