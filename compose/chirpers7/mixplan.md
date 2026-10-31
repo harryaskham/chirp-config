@@ -41,8 +41,8 @@ Each seam is composed into BOTH songs: the outgoing track's last bars carry what
 | t7 -> t8 | t7 last 16 bars: kick, clicks, claps for 8, and the octave-illusion tones on G#/C# fading out by bar 12 | (t8's owner) | 121 | C#m -> C#m (12A, same key) | 16 | the clicks and the four-to-the-floor; t8 can pick up the tones' pitch class | chirper-one: yes |
 | t8 -> t9 | | | | | | | |
 | t9 -> t10 | | | | | | | |
-| t10 -> t11 | | | | | | | |
-| t11 -> t12 | | | | | | | |
+| t10 -> t11 | (t10's owner) | t11 first 16 bars: kick, hats and the sub on Eb - no pairs, no bass line | 122.5 | D#m -> Ebm (2A, same key) | 16 | (t10's owner to propose) | chirper-one: yes |
+| t11 -> t12 | t11 last 16 bars: kick, hats, the sub and the rolling bass for 12, the low-centred tritone pair (Eb / A) fading | (t12's owner) | 123 | Ebm -> Bbm (2A -> 3A, a fifth) | 16 | the kick and the bass at 123; the Shepard pair's pitch classes (Eb, A) can ring into t12 | chirper-one: yes |
 | t12 -> t13 | | | | | | | |
 | t13 -> t14 | | | | | | | |
 | t14 -> t15 | (t14's owner) its last 16 bars stripped to kick, hats and an F minor root/fifth | t15 bars 1-16: rumble kick, off-beat hats, the sub holding C2 (F minor's fifth, C minor's root); nothing else pitched; stabs from bar 25 | 124 | Fm -> Cm, a fifth up (4A -> 5A) | 16 | the four-on-the-floor and the C underneath | chirper-zero (t15) proposes |

@@ -33,3 +33,9 @@ Generator `compose/chirpers7/src/chirpers7-t16.py`. Rolling hypnotic minimal hou
 - **THE STAIR**: falling (D Bb A G) as stabs over B2; rising (G A Bb D) in the outro, handing t17 its D.
 - **SEAMS**: bars 1-16 rumble kick, hats and the sub holding G1 (t15's outro, at 123); bars 161-176 rumble kick, hats and a held D2 (t17's tonic), 123 -> 122.
 
+
+## t11 (chirper-one): modern minimal, "Both Ways"
+
+- **THE PAIRS**: Shepard tones (8 octave-spaced partials under a Gaussian envelope, width 1.1 octaves) - each bar a step of THE STAIR (Eb, F, Gb, Bb; a step every eight bars) on the one for a dotted quarter, answered by its tritone (A, B, C, E) on the and-of-2; in B and C every other bar adds the pair reversed on the four.
+- **THE TURN**: two copies of the pairs - envelope centred at 250 Hz and at 1 kHz - cross-faded by gain lanes: low alone in A, low -> high through B, high alone in the break (where the Shepard position glides up an octave), both at once in C, low in the outro.
+- **THE BASS**: a rolling sixteenth line (root, octave, fifth, minor seventh) through a ladder breathing on 5- and 7-bar LFOs, pumped by the kick; a sub on the root.
