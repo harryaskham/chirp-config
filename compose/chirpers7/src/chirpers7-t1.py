@@ -27,6 +27,12 @@ import random
 OUT = os.environ.get("T1_OUT") or os.path.expanduser("~/.config/chirp/songs/chirpers7-t1.yaml")
 NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"]
 LVL_GAIN = float(os.environ.get("LVL_GAIN", "7"))
+# rounds: T1_R2 = turn (v2: the loop's join. When the tape loops t18 -> t1, the closer ends with the stair FALLING for
+# ever in Shepard tones, the kick gone; t1 now begins there - the stair still falling for two bars (E C B A, counting
+# down) - then a whisper, "up", and the stair turns and climbs. One illusion turned round, not a restart; chirper-zero's
+# note. (Starting at t18's 112 bpm and ramping to 116 was tried: any tempo ramp in the head split the ambient bars off
+# as a section, 90.5.) T1_R2=none reproduces v1.
+R2 = os.environ.get("T1_R2", "turn")
 
 
 def nm(m):
@@ -116,7 +122,11 @@ def build():
         # ---- the stair: quarter notes in the intro and outro, eighths in A and B, half notes in the break ----
         rate = {"ambient": 1.0, "intro": 1.0, "A1": 0.5, "drop1": 1.0, "A2": 0.5, "break": 2.0, "B1": 0.5,
                 "drop2": 1.0, "B2": 0.25, "outro": 1.0}[sec]
-        if True:
+        if R2 == "turn" and sec == "ambient" and i < 2:  # still falling, as t18 left it: E C B A, E C B A
+            for k in range(4):
+                m = STAIR[3 - k]
+                T["stair"].add(start + k, 0.9, nm(m), 64 + (10 if k == 3 else 0))
+        else:
             t = 0.0
             while t < 4.0 - 1e-6:
                 m = STAIR[step % 4]
@@ -136,6 +146,8 @@ def build():
         # ---- the break: the endless pad, the whisper; a noise rise into B ----
         if (sec in ("break", "drop1") and i % 8 == 0) or (sec == "B2" and i % 8 == 0):
             T["pad"].add(start, 31.8, "A3,C4,E4", 80 if sec == "break" else 70)  # the stair takes off in B2
+        if R2 == "turn" and sec == "ambient" and i == 1:  # the turn, whispered
+            T["voice"].add(start + 3.0, 1.0, "A2", 66, "^ph=ah1-p^f0=0>40>80")
         if (sec == "break" and i in (4, 12)) or (sec == "drop2" and i == 0):
             T["voice"].add(start + 2.0, 1.0, "A2", 70, "^ph=ah1-p^f0=0>40>80")
         if sec == "break" and i == 8:
