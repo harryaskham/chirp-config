@@ -45,6 +45,8 @@ REF3 = os.environ.get("C7T18_REF3", "ocx")  # chirper-one's octave notes and wM'
 SRV = os.environ.get("C7T18_SRV", "stair-up")  # the Shepard-Risset arp's voice ("stair-up": the stair's own Shepard tone)
 SRG = os.environ.get("C7T18_SRG", "-14")
 HATWARP = os.environ.get("C7T18_HATWARP", "1") == "1"  # wM's track warp in ALL: the hats drift a sixteenth behind the kick and back, then a sixteenth ahead and back (poly accel/decel against the steady kick), locked again for the coda
+ROOMS = os.environ.get("C7T18_ROOMS", "2") != "0"
+ROOMSD = os.environ.get("C7T18_ROOMS", "2") == "2"  # deeper rooms: continuity -3, octave/scale -5, Huggins -6; interlock +1.5, ALL +3  # the listening illusions get quieter rooms (continuity -2, octave and scale -3, Huggins -4 dB) and the stacks rise (interlock +1, ALL +2): the odyssey's level breathes (its sections spanned only 4.6 dB)
 ILV = float(os.environ.get("C7T18_ILV", "0"))  # every illusion track's level offset (dB)
 
 ERISER = os.environ.get("C7T18_ERISER", "-10")  # wM's endless Shepard riser (fx-riser-endless) over the 8 bars into all: pitch, noise and filter rising for ever, stopping dead on the drop (Harry: 'risers and staircases v good'); level in dB
@@ -377,9 +379,13 @@ def song():
     # the section lane: the seam at its neighbour's level, panels level, the interlock and all up, the coda down; the
     # Zwicker bars drop to digital silence
     pts = [(0, 1.5), (16 * BAR, -1), (st["g0"], 0)]
+    quiet = {"continuity": -3, "octave": -5, "scale": -5, "huggins": -6} if ROOMSD else {"continuity": -2, "octave": -3, "scale": -3, "huggins": -4}
     for sec, nb in FORM:
+        if ROOMS and sec.startswith("g"):
+            g = GALLERY[int(sec[1:])]
+            pts.append((st[sec], quiet.get(g, 0)))
         if sec.startswith("i") or sec == "all":
-            pts.append((st[sec], 0.5 if sec.startswith("i") else 1))
+            pts.append((st[sec], (((1.5 if ROOMSD else 1) if ROOMS else 0.5) if sec.startswith("i") else ((3 if ROOMSD else 2) if ROOMS else 1))))
         if sec == "coda":
             pts += [(st["coda"], -2), (st["coda"] + 16 * BAR, -4)]
     for bar in sorted(silent):
