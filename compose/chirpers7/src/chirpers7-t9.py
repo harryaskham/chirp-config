@@ -39,6 +39,11 @@ KEY_UP = (81, 88)                            # v6: the counted hemiola a fourth 
 KICKLESS = [(41, 44), (57, 58), (73, 88), (105, 106)]
 # v4: THE PHANTOM DOWNBEAT itself: every eighth bar of the groove and the drop, beat one is a hole - no kick, bass, sub,
 # stab or hat on the one - and the ear supplies the downbeat that isn't played
+# v9: THE FLOOR SLIDES: the flips so far jump; in the drop's second half the kick, claps and hats drift smoothly to an
+# eighth behind over eight bars and back over eight (track warp), the riff, stabs and cowbell staying on the grid -
+# the downbeat moves continuously; re-locked at bar 129, long before the seam
+SLIDE = [{"over": "112bar", "to": 0}, {"over": "8bar", "to": 0.5, "curve": "smooth"},
+         {"over": "8bar", "to": 0, "curve": "smooth"}]
 GHOST_ONE = {24, 32, 40, 96, 104, 120, 128, 136}
 
 
@@ -299,10 +304,10 @@ def main():
                            "makeup": "0dB"}],
                    "auto": {"dyn": {"points": lanes()}}},
         "tracks": [
-            tr("kick", "machine-kit", gain="-14dB"),
-            tr("hats", "machine-kit", gain="3dB", pan=0.1, lfo={"hh": {"wave": "sine", "rate": "20b"}},
+            tr("kick", "machine-kit", gain="-14dB", warp=SLIDE),
+            tr("hats", "machine-kit", gain="3dB", pan=0.1, warp=SLIDE, lfo={"hh": {"wave": "sine", "rate": "20b"}},
                fx=[{"type": "filter", "kind": "hp", "cutoff": {"value": 3000, "mod": [{"src": "lfo.hh", "amount": 0.6}]}}]),
-            tr("clap", "machine-kit", gain="-3dB", sends={"room": "-8dB"}),
+            tr("clap", "machine-kit", gain="-3dB", warp=SLIDE, sends={"room": "-8dB"}),
             tr("bass", "acid", gain="-6dB", lfo={"bc": {"wave": "sine", "rate": "36b"}},
                auto={"dk": {"points": [["0b", 0.0], [f"{b0(73)}b", 0.0], [f"{b0(76)}b", -1.5], [f"{b0(87)}b", -1.5],
                                        [f"{b0(89)}b", 0.0], [f"{TOTAL}b", 0.0]]}},     # v5: the break goes dark
