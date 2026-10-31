@@ -7227,7 +7227,7 @@
     {
       "id": "chirpers7-t4",
       "song": "songs/chirpers7-t4.yaml",
-      "reference": "Chirpers — Track 4 (untitled)",
+      "reference": "Chirpers — The Tritone Question",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers7-t4 OUT.wav",
@@ -7243,7 +7243,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "The Endless Stair",
-        "title": "Track 4 (untitled)",
+        "title": "The Tritone Question",
         "track": 4,
         "year": 2026
       },
