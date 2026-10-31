@@ -156,7 +156,7 @@ def harmony():
         sec = sec_of(bar)
         lo = root_at(bar) - 12
         if sec in ("intro", "one") or (sec == "outro" and bar < 161):
-            part("sub").add(b0(bar), BAR - 0.1, nm(B2 - 12), 92)
+            part("subin" if sec == "intro" else "sub").add(b0(bar), BAR - 0.1, nm(B2 - 12), 92)   # v8: the seam's B1
         elif sec in ("split", "drop"):
             part("sub").add(b0(bar), 1.4, nm(lo), 98)
             part("sub").add(b0(bar) + 1.5, 0.4, nm(lo), 78)
@@ -184,7 +184,7 @@ ROLLS = [["0b", 0.0], [f"{b0(96) - 0.01:.2f}b", 0.0], [f"{b0(96):.2f}b", 1.0], [
          [f"{b0(145) - 0.01:.2f}b", 1.0], [f"{b0(145):.2f}b", 0.0], [f"{TOTAL:.2f}b", 0.0]]
 
 
-LEVEL = {"intro": -8, "one": -5, "split": -2, "break": -9, "drop": 0, "outro": -6}
+LEVEL = {"intro": -4, "one": -5, "split": -2, "break": -9, "drop": 0, "outro": -6}
 
 
 def lanes():
@@ -245,6 +245,7 @@ def main():
             tr("hats", "machine-kit", gain="-5dB", pan=0.1, lfo={"hh": {"wave": "sine", "rate": "20b"}},
                fx=[{"type": "filter", "kind": "hp", "cutoff": {"value": 2500, "mod": [{"src": "lfo.hh", "amount": 0.7}]}}]),
             tr("clap", "machine-kit", gain="-7dB", sends={"room": "-8dB"}),
+            tr("subin", "808", gain="-3dB", fx=[{"type": "phantom", "harmonics": "-6dB", "odd": 0.4, "remove": 0.0}]),
             tr("sub", "808", gain="-12dB", fx=[{"type": "phantom", "harmonics": "-6dB", "odd": 0.4, "remove": 0.0}, pump]),
             acid_tr("acidA", -1.0),
             acid_tr("acidB", 1.0),
