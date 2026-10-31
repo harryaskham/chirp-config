@@ -16,6 +16,8 @@ climbing them on tools/compscore.py (no record to match) and Harry's ratings (to
                                                      seed-0 score as its best (the old one kept under best.rescored,
                                                      a note in its history) and save its features, so `done` compares
                                                      like with like (Moult v3 was refused against an old-scale v2)
+  chirpers.py illusion ALBUM_ID N TRACK[,TRACK..]       how present a track's illusion is in its mix: LU against
+                                                     the mix, % of the track near the front, gaps, a timeline
   chirpers.py seam ALBUM_ID N [--swap BAR] [--out DIR]  one seam tN -> tN+1 as the live mix plays it: sub and
                                                      full-band level per bar (linear and the mixer swap), mp3s
   chirpers.py seams ALBUM_ID [--flam-ms MS] [--dead-s S]   audit a mixtape's DJ seams: beat drift across each
@@ -833,6 +835,74 @@ def cmd_seam(a, argv=None):
         shutil.rmtree(work, ignore_errors=True)
 
 
+def illusion_presence(full, ill, sr, near_lu=10.0, floor=-45.0):
+    """How present the soloed illusion ILL is in the FULL mix: (illusion - mix integrated LU, share of the music's
+    seconds where the illusion's 3 s loudness is within NEAR_LU of the mix's, longest such gap in seconds, per-second
+    'near' mask). Both renders unnormalised (loudness off), else the solo is mastered up to the song's target."""
+    import levels as LV
+    fi, _ = LV.loudness(full, sr)
+    ii, _ = LV.loudness(ill, sr)
+
+    def st(x):
+        y = LV.k_weight(x, sr)
+        pw = (y ** 2).sum(axis=1) if y.ndim > 1 else y ** 2
+        n3, h = int(3 * sr), int(sr)
+        if len(pw) < n3:
+            return np.array([-0.691 + 10 * np.log10(pw.mean() + 1e-20)])
+        c = np.concatenate([[0.0], np.cumsum(pw)])
+        k = np.arange(0, len(pw) - n3 + 1, h)
+        return -0.691 + 10 * np.log10((c[k + n3] - c[k]) / n3 + 1e-20)
+    a, b = st(full), st(ill)
+    m = min(len(a), len(b))
+    a, b = a[:m], b[:m]
+    on = a > floor
+    near = (b >= a - near_lu) & on
+    gap = best = 0
+    for v in near:
+        gap = 0 if v else gap + 1
+        best = max(best, gap)
+    return ii - fi, float(near.sum() / max(on.sum(), 1)), best, near
+
+
+def cmd_illusion(a, argv=None):
+    """One track's illusion against its mix: level, share of the track near the front, the longest gap, a timeline."""
+    sys.path.insert(0, HERE)
+    import likeness as L
+    pin = a.pin or open(os.path.join(HERE, "groove-pin")).read().strip()
+    album = load_album(a.album_id)
+    t = next((t for t in album.get("tracks", []) if t["n"] == a.n), None)
+    if not t:
+        raise SystemExit(f"illusion: {a.album_id} has no t{a.n}")
+    song = os.path.join(ROOT, "songs", f"{t['id']}.yaml")
+    tracks = [x for x in a.tracks.split(",") if x]
+    work = tempfile.mkdtemp(prefix="chirp-illusion-")
+    try:
+        fw, iw = os.path.join(work, "full.wav"), os.path.join(work, "ill.wav")
+        base = ["nice", "-n", "12", pin, "render", "-f", song, "--seed", str(a.seed), "--set", "loudness=null"]
+        procs = [subprocess.Popen(base + ["-o", fw], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE),
+                 subprocess.Popen(base + sum([["--solo", x] for x in tracks], []) + ["-o", iw],
+                                  stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)]
+        for pr in procs:
+            if pr.wait():
+                raise SystemExit(f"illusion: render failed: {pr.stderr.read().decode()[-300:]}")
+        full, ill = L.load(fw), L.load(iw)
+        lu, share, gap, near = illusion_presence(full, ill, L.SR, a.near)
+        print(f"{t['id']} ({t.get('title') or ''}): illusion = {', '.join(tracks)}")
+        print(f"  {lu:+.1f} LU against the mix; within {a.near:g} LU of the mix for {100 * share:.0f}% of the track; "
+              f"longest stretch without: {gap} s")
+        print("  timeline (each cell 30 s; # = illusion near the front most of it, + some of it, . none):")
+        cells = []
+        for k in range(0, len(near), 30):
+            f = near[k:k + 30].mean() if len(near[k:k + 30]) else 0
+            cells.append("#" if f >= 0.67 else "+" if f >= 0.2 else ".")
+        print("  " + " ".join(f"{(30 * k) // 60}:{(30 * k) % 60:02d}{c}" for k, c in enumerate(cells)))
+        if a.json:
+            print(json.dumps({"id": t["id"], "tracks": tracks, "lu": round(lu, 2), "share": round(share, 3), "gap_s": gap,
+                              "timeline": "".join(cells)}))
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+
+
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
@@ -883,6 +953,14 @@ def main(argv=None):
     p.add_argument("--pin", help="chirp binary (default: tools/groove-pin)")
     p.add_argument("--out", default="/tmp/chirp-seams", help="where the mp3s go")
     p.add_argument("--json", action="store_true")
+    p = sub.add_parser("illusion", help="how present a track's illusion parts are in its mix (level, share, gaps, timeline)")
+    p.add_argument("album_id")
+    p.add_argument("n", type=int, help="the track number")
+    p.add_argument("tracks", help="the illusion's track names, comma-separated (soloed against the full mix)")
+    p.add_argument("--near", type=float, default=10.0, help="'near the front' = within this many LU of the mix")
+    p.add_argument("--seed", type=int, default=0)
+    p.add_argument("--pin", help="chirp binary (default: tools/groove-pin)")
+    p.add_argument("--json", action="store_true")
     p = sub.add_parser("seams", help="audit a mixtape's DJ seams: tempo drift across each overlap, dead air at the ends")
     p.add_argument("album_id")
     p.add_argument("--pin", help="chirp binary (default: tools/groove-pin)")
@@ -901,7 +979,8 @@ def main(argv=None):
             known.append(x)
     a = ap.parse_args(known)
     {"new": cmd_new, "name": cmd_name, "title": cmd_title, "art": cmd_art, "status": cmd_status,
-     "refresh": cmd_refresh, "rebaseline": cmd_rebaseline, "release": cmd_release, "seams": cmd_seams, "seam": cmd_seam}[a.cmd](a, argv)
+     "refresh": cmd_refresh, "rebaseline": cmd_rebaseline, "release": cmd_release, "seams": cmd_seams, "seam": cmd_seam,
+     "illusion": cmd_illusion}[a.cmd](a, argv)
 
 
 if __name__ == "__main__":

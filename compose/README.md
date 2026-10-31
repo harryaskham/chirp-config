@@ -102,6 +102,9 @@ An album with `compose/ALBUM/mixplan.md` plays as a DJ mix. The seam table (`| s
 - **`chirpers.py seam ALBUM N`**: one seam (tN -> tN+1) as the live mix plays it: both songs rendered, the overlap laid
   on the outgoing bar line, sub (< 120 Hz) and full-band level per bar for the linear crossfade and the mixer swap,
   and mp3s with 8 bars either side in /tmp/chirp-seams (to listen to, or `audio_share`). About a minute.
+- **`chirpers.py illusion ALBUM N TRACK[,TRACK...]`** (any album): how present a track's illusion parts are in its
+  mix: soloed against the full render (both unnormalised), their level against the mix, the share of the track
+  where they sit within 10 LU of it, the longest stretch without, and a 30 s timeline. About 30 s.
 - **`chirpers.py release ALBUM --mix [--swap [BAR]]`**: the continuous mixtape file, with a tracklist and CUE.
   `--swap` adds a DJ bass swap at 120 Hz in every overlap: the highs crossfade, and the lows stay the outgoing track's
   until the midpoint (or BAR bars in), then hand over within a beat. An optional `swap` column in the seam table

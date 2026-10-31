@@ -228,6 +228,19 @@ class SeamTempo(unittest.TestCase):
         self.assertGreater(1000 * (a[-1] - b[-1]), 50)               # 16 bars gliding 122 -> 123 under 123: ~60 ms
 
 
+class IllusionPresence(unittest.TestCase):
+    def test_a_buried_half_and_a_present_half(self):
+        sr, n = 48000, 48000 * 40
+        tt = np.arange(n) / sr
+        bed = (0.3 * np.sin(2 * np.pi * 220 * tt)).astype(np.float32)
+        ill = np.where(tt < 20, 0.003, 0.3).astype(np.float32) * np.sin(2 * np.pi * 330 * tt).astype(np.float32)
+        full = np.stack([bed + ill] * 2, axis=1)
+        lu, share, gap, near = CH.illusion_presence(full, np.stack([ill] * 2, axis=1), sr)
+        self.assertAlmostEqual(share, 0.5, delta=0.12)      # buried 40 dB for the first 20 s, level after
+        self.assertGreaterEqual(gap, 15)
+        self.assertLess(lu, 0)
+
+
 class Mixtape(unittest.TestCase):
     def test_seams_overlap_with_a_linear_crossfade_that_cannot_clip(self):
         a = np.full((100, 2), 0.9, dtype=np.float32)
