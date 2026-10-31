@@ -94,8 +94,17 @@ def part(n):
 
 
 # the chord walk, two bars each, growing as the stair grows: D#m9 | Bmaj7 | G#m9 | A#7sus
-CHORDS = [(DS1 + 24, [54, 58, 61, 65]), (DS1 + 20, [51, 54, 58, 61]), (DS1 + 17, [51, 54, 56, 59]),
-          (DS1 + 19, [53, 56, 58, 61])]
+# v8: darker, wonkier: D#m9 | Emaj7#11 (the Phrygian bII) | Bmaj7 with a hidden minor second (A# against B) |
+# A#7b9 (a dark dominant that never quite resolves); two bars each
+CHORDS = [(DS1 + 24, [54, 58, 61, 65]), (DS1 + 25, [56, 59, 63, 70]), (DS1 + 20, [51, 54, 58, 59]),
+          (DS1 + 19, [50, 53, 56, 59])]
+# v8: THE SILENCES COME INTO THE GROOVE: every eight bars a two-beat burst of noise notched at the NEXT break's note,
+# then beat one of the next bar is a hole (everything out) - a one-beat after-tone, foreshadowing the stair
+HINTS = {24: 0, 32: 0, 52: 1, 60: 1, 68: 1, 84: 2, 92: 2, 100: 2, 116: 3, 124: 3}
+
+
+def in_hole(at):
+    return any(b0(h + 1) - 1e-6 <= at < b0(h + 1) + 1.0 for h in HINTS)
 BASS_A = [(0, 0.45, 0), (0.75, 0.2, 0), (1.5, 0.45, 7), (2.5, 0.2, 0), (2.75, 0.45, 10), (3.5, 0.3, 12)]
 BASS_C = [(0, 0.7, 0), (1.25, 0.2, 12), (1.75, 0.45, 7), (3.0, 0.45, 3), (3.75, 0.2, 5)]
 
@@ -167,6 +176,26 @@ def after_tones_together():
         part("stairpad").add(b0(a), n * BAR - 0.2, ",".join(nm(m) for m in (63, 65, 66, 70, 75)), 74 if a == 142 else 80)
 
 
+BEDS = {0: (17, 40), 1: (45, 72), 2: (77, 104), 3: (109, 128)}
+OUTBED = (145, 160)                          # the outro's first half: back on D#, the stair's first step (a circle)
+
+
+def hints():
+    for h, k in HINTS.items():
+        part(f"hint{k}").add(b0(h) + 2, 2.0, "C4", 96)
+    # v8: THE BED: under each groove section a quiet hiss carrying the coming break's notch, breathing on a slow LFO -
+    # the illusion's raw material always present (and a texture that doesn't quite sit); it swells into the break
+    for k, (a, z) in BEDS.items():
+        part(f"bed{k}").add(b0(a), b0(z + 1) - b0(a) - 0.05, "C4", 80)
+    part("bed0").add(b0(OUTBED[0]), b0(OUTBED[1] + 1) - b0(OUTBED[0]) - 0.05, "C4", 72)
+
+
+def carve_holes():
+    for n in ("kick", "hats", "rim", "clap", "bass", "sub", "rhodes", "rhodesdub", "bell"):
+        if n in P:
+            P[n].ev = [e for e in P[n].ev if not in_hole(e[0])]
+
+
 def harmony():
     for bar in range(1, BARS + 1):
         sec = sec_of(bar)
@@ -177,9 +206,10 @@ def harmony():
             part("subin" if sec == "intro" else "sub").add(b0(bar), BAR - 0.1, nm(DS1), 96)   # the intro level with t9's tail
             continue
         fig = BASS_C if sec in ("C", "D", "E") else BASS_A
+        broot = DS1 + 24 if sec in ("A", "B") else root      # v8: a D# PEDAL under the moving chords through A and B
         for at, ln, iv in fig:
-            part("bass").add(b0(bar) + at, ln, nm(root - 24 + 12 + iv), 100 if at == 0 else 84)
-        sr = root - 24 if root - 24 >= DS1 else root - 12                    # never below D#1
+            part("bass").add(b0(bar) + at, ln, nm(broot - 24 + 12 + iv), 100 if at == 0 else 84)
+        sr = broot - 24 if broot - 24 >= DS1 else broot - 12                 # never below D#1
         part("sub").add(b0(bar), 1.8, nm(sr), 96)
         part("sub").add(b0(bar) + 2, 1.8, nm(sr), 90)
         # the Rhodes on the sixteenth 'a's (3 and 11), and from C a third hit on 14
@@ -213,6 +243,8 @@ def main():
     after_tones_together()
     drums()
     harmony()
+    hints()
+    carve_holes()
     tempo = [{"at": "0b", "bpm": 122}, {"at": f"{b0(17):.0f}b", "bpm": 122},
              {"at": f"{b0(153):.0f}b", "bpm": 122.5, "ramp": True}]
     pump = {"type": "pump", "on": "kick", "depth": "-7dB", "attack": "3ms", "release": "320ms", "curve": 0.7}
@@ -221,6 +253,13 @@ def main():
     nz = []
     for k, m in enumerate(STAIR):
         f = 440 * 2 ** ((m - 69) / 12) * 1.08              # centred a little above the note: the after-tone sits low
+        nz.append(tr(f"bed{k}", noise, gain="-24dB", lfo={"br": {"wave": "sine", "rate": "28b"}},
+                     fx=[{"type": "filter", "kind": "notch", "cutoff": round(f * r, 1), "q": 1.5} for r in (0.9, 1.0, 1.1)]
+                        + [{"type": "filter", "kind": "lp", "cutoff": {"value": 6000, "mod": [{"src": "lfo.br", "amount": 0.7}]}},
+                           {"type": "filter", "kind": "hp", "cutoff": 200}]))
+        nz.append(tr(f"hint{k}", noise, gain="-12dB",
+                     fx=[{"type": "filter", "kind": "notch", "cutoff": round(f * r, 1), "q": 1.5} for r in (0.9, 1.0, 1.1)]
+                        + [{"type": "filter", "kind": "lp", "cutoff": 9000}, {"type": "filter", "kind": "hp", "cutoff": 150}]))
         nz.append(tr(f"nz{k}", noise, gain="-8dB",
                      fx=[{"type": "filter", "kind": "notch", "cutoff": round(f * r, 1), "q": 1.5} for r in (0.9, 1.0, 1.1)]
                         + [{"type": "filter", "kind": "lp", "cutoff": [9000, 6000, 12000, 4000][k]},
