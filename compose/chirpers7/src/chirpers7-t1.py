@@ -52,6 +52,10 @@ R5 = os.environ.get("T1_R5", "dark")
 # copies an octave of pitch AND tempo apart, so it climbs and speeds up together for ever - into B1. Harry: "risers
 # and staircases v good here". T1_R6=none reproduces v5.
 R6 = os.environ.get("T1_R6", "spiral")
+# T1_R7 = riser (v7, wM's time-play part 2): the noise rises become endless Shepard risers (fx-riser-endless, tinted
+# A) - eight bars through the break's second half into B1, and four over each drop (drop1 gains one) into A2 and B2,
+# each stopping dead on the downbeat it was climbing to. T1_R7=none reproduces v6.
+R7 = os.environ.get("T1_R7", "riser")
 SPIRAL = "A3/0.25b@80 B3/0.25b@70 C4/0.25b@72 E4/0.25b@76 A4/0.25b@72 B4/0.25b@66 C5/0.25b@68 E5/0.25b@64"
 DARK5 = {"F": (-4, [53, 57, 59, 64]),       # Fmaj7#11: F3 A3 B3 E4 over F
          "Dm": (-7, [53, 55, 60, 64]),      # Dm11: F3 G3 C4 E4 over D
@@ -103,7 +107,7 @@ BASS = [(0.5, 33), (1.75, 33), (2.5, 40), (3.25, 33), (3.5, 36)]  # A1 . E2 A1 C
 
 def build():
     rng = random.Random(1)
-    T = {k: Track(k) for k in ("kick", "hats", "clap", "rim", "bass", "stair", "chord", "pad", "voice", "rise")}
+    T = {k: Track(k) for k in ("kick", "hats", "clap", "rim", "bass", "stair", "chord", "pad", "voice", "rise", "rise16")}
     bars, pos = [], 0.0
     for name, n in FORM:
         for i in range(n):
@@ -199,9 +203,12 @@ def build():
         if (sec == "break" and i in (4, 12)) or (sec == "drop2" and i == 0):
             T["voice"].add(start + 2.0, 1.0, "A2", 70, "^ph=ah1-p^f0=0>40>80")
         if sec == "break" and i == 8:
-            T["rise"].add(start, 32.0, "C4", 90)
+            T["rise"].add(start, 32.0, "A3" if R7 == "riser" else "C4", 80 if R7 == "riser" else 90)
         if sec == "drop2" and i == 0:
-            T["rise"].add(start, 16.0, "C4", 96)
+            (T["rise16"] if R7 == "riser" else T["rise"]).add(start, 16.0, "A3" if R7 == "riser" else "C4",
+                                                               80 if R7 == "riser" else 96)
+        if R7 == "riser" and sec == "drop1" and i == 0:
+            T["rise16"].add(start, 16.0, "A3", 76)
     sec = []
     for name, n in FORM:
         first = next(bb for bb in bars if bb[1] == name)
@@ -267,7 +274,10 @@ def main():
         {"name": "voice", "patch": "voice-speech", "gain": "-14dB", "pan": -0.2,
          "fx": ["hp cutoff=300", {"type": "delay", "time": "3/8", "feedback": 0.4, "mix": 0.35, "tone": 2500},
                 "reverb kind=hall decay=4s mix=0.5"], "score": T["voice"].score(total)},
-        {"name": "rise", "patch": "c2-rise", "gain": "-20dB", "fx": ["width width=1.5"], "score": T["rise"].score(total)},
+        *([{"name": "rise", "patch": "fx-riser-endless amp.a=32b", "gain": "-13dB", "score": T["rise"].score(total)},
+           {"name": "rise16", "patch": "fx-riser-endless amp.a=16b", "gain": "-13dB", "score": T["rise16"].score(total)}]
+          if R7 == "riser" else
+          [{"name": "rise", "patch": "c2-rise", "gain": "-20dB", "fx": ["width width=1.5"], "score": T["rise"].score(total)}]),
     ] + ([{"name": "spiral", "patch": "pluck", "gain": "-12dB", "at": f"{st['break']:g}b",
            "risset": {"cycle": "4bar", "layers": 4, "length": "16bar", "pitch": True},
            "sends": {"room": "-8dB"}, "fx": ["hp cutoff=180", "width width=1.6",
