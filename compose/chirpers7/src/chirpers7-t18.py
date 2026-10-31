@@ -37,6 +37,8 @@ HEAD = os.environ.get("C7T18_HEAD", "")  # the seam-in's colour meets t17's tail
 MIDS = os.environ.get("C7T18_MIDS", "1") == "1"  # the seam-in meets t17's tail in the mids: soft rims on the 16ths before each beat's off (3 7 11 15) under the first 16 bars, and the held D2 a touch softer (t18's head read 6-18 dB heavier below 220 Hz and 7-11 dB lighter 0.6-4 kHz than t17's last seconds)
 MIDBARS = int(os.environ.get("C7T18_MIDBARS", "8"))  # how many seam bars carry the rims
 HOMERIM = os.environ.get("C7T18_HOMERIM", "0") == "1"  # home (A minor) keeps the seam's rims: the 16th before each beat's end (3 7 11 15), soft - the comedown's tick
+BRK = os.environ.get("C7T18_BRK", "lh")  # the break deeper: "l" its level -8.5 dB (was -7); "lh" also no hats at all (the falling chords and the stair alone)
+MIDVEL = os.environ.get("C7T18_MIDVEL", "64,54")  # the seam rims' velocities (on the 3 and 11, on the 7 and 15)
 A2OPEN = os.environ.get("C7T18_A2OPEN", "0") == "1"  # A2 lifts: every off-beat hat open (with the clap's arrival), so A's second half is a section of its own
 SPEC = os.environ.get("C7T18_SPEC", "0") == "1"
 SPEC2 = os.environ.get("C7T18_SPEC2", "0") == "1"
@@ -136,7 +138,7 @@ def build():
                 for q in (0, 4, 8, 12):
                     add("kick", at + q, "k", 1, (104 if q == 0 else 96) - (10 if sec == "outro" else 0))
             # hats: off-beats (open in home), a soft shaker on the 16ths in the grooves
-            if not (sec == "break" and b < 12) and not (last and b >= 24) and not (OUTRO and sec == "outro"):
+            if not (sec == "break" and (b < 12 or "h" in BRK)) and not (last and b >= 24) and not (OUTRO and sec == "outro"):
                 for q in (2, 6, 10, 14):
                     add("hats", at + q, "oh" if ((sec == "home" and q in (6, 14)) or (FORM2 and sec == "B" and b >= 16) or (A2OPEN and sec == "A" and b >= 16)) else "h", 1, 66)
                 if sec in ("A", "B", "home") and not (HOME2 and sec == "home" and b >= 16):
@@ -158,8 +160,9 @@ def build():
                 if b % 4 == 0:
                     add("sub", at, "D2", 4 * BAR, 76 if MIDS else 88)
                 if MIDS and b < MIDBARS:
+                    mv = [int(x) for x in MIDVEL.split(",")]
                     for q in (3, 7, 11, 15):
-                        add("clap", at + q, "rs", 1, 64 if q in (3, 11) else 54)
+                        add("clap", at + q, "rs", 1, mv[0] if q in (3, 11) else mv[1])
             elif last:
                 if b == 16:
                     add("sub", at, "A1", 16 * BAR, 80)
@@ -232,7 +235,7 @@ def song():
     total_b = total_steps() // 4
     tempo = [{"at": "0b", "bpm": BPM0}, {"at": beats(st["outro"]), "bpm": BPM0}, {"at": f"{total_b}b", "bpm": BPM1, "ramp": True}]
     pump = {"type": "pump", "on": "kick.k", "depth": "-5dB", "attack": "2ms", "release": "220ms", "curve": 0.7}
-    dyn = lane([(0, float(INLIFT) if INLIFT else -4), (st["intro"] + 16 * BAR, -3), (st["A"], -1), (st["A"] + 16 * BAR, 0), (st["break"], -7), (st["B"], 0),
+    dyn = lane([(0, float(INLIFT) if INLIFT else -4), (st["intro"] + 16 * BAR, -3), (st["A"], -1), (st["A"] + 16 * BAR, 0), (st["break"], -8.5 if BRK else -7), (st["B"], 0),
                 (st["home"], 1), (st["outro"], -2), (st["outro"] + 16 * BAR, -5)])
     doc = {
         "about": "Chirpers - The Endless Stair (Chirpers VII), track 18 by chirper-zero: THE CLOSER, ambient deep house, the stair "
