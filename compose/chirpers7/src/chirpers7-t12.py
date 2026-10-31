@@ -124,8 +124,9 @@ def build():
         T['stab'] = [ev for ev in T['stab'] if not (e - 9.5 <= ev[0] < e)]
         # (v3) THE THROW: under each wash the echo's feedback climbs toward self-oscillation, the dub engineer's hand on the
         # knob, and is cut dead with everything else at the silence
-        fbl += [[f'{e - 9.0:.2f}b', 0], [f'{e - 1.05:.2f}b', 0.33], [f'{e - 1.0:.2f}b', -0.5], [f'{e + 0.5:.2f}b', -0.5], [f'{e + 0.55:.2f}b', 0]]
-        thr += [[f'{e - 9.0:.2f}b', 0], [f'{e - 1.05:.2f}b', 10], [f'{e - 1.0:.2f}b', -40], [f'{e + 0.5:.2f}b', -40], [f'{e + 0.55:.2f}b', 0]]
+        # (v19) the throw now rings THROUGH the drop beat and is cut on the downbeat
+        fbl += [[f'{e - 9.0:.2f}b', 0], [f'{e - 0.05:.2f}b', 0.33], [f'{e:.2f}b', -0.5], [f'{e + 0.5:.2f}b', -0.5], [f'{e + 0.55:.2f}b', 0]]
+        thr += [[f'{e - 9.0:.2f}b', 0], [f'{e - 0.05:.2f}b', 10], [f'{e:.2f}b', -40], [f'{e + 0.5:.2f}b', -40], [f'{e + 0.55:.2f}b', 0]]
         # in C the Rhodes plays the ghost's note out loud on the downbeat after the silence
         # (v11) the speakers get the illusion too: from B on, the Rhodes answers every wash with the ghost's melody, played
         if secs['A'] < e < secs['outro']:     # (v15) the answers from the first groove on
@@ -139,12 +140,11 @@ def build():
     for name, _ in FORM:
         t_ = secs[name]
         pts += [(max(0.0, t_ - 0.5), pts[-1][1] if pts else lv[name]), (t_, lv[name])]
-    # the beat of silence after each wash
+    # (v19) THE DUB DROP instead of a dead silence (Harry heard one-beat holes as glitches on a neighbour): at each phrase
+    # end the drums drop out for one beat while the bass holds and the echo throw rings on, then the downbeat lands
     for g in gaps:
-        before = [p for p in pts if p[0] <= g - 0.05]
-        lvl = before[-1][1]
-        after = [p for p in pts if p[0] >= g + 1.0]
-        pts = before + [(g - 0.02, lvl), (g, -45), (g + 0.98, -45), (g + 1.0, lvl)] + after
+        for key in ('kit', 'cyc'):
+            T[key] = [ev for ev in T[key] if not (g - 0.01 <= ev[0] < g + 1.0)]
     dyn = [[f'{p[0]:.2f}b', p[1]] for p in pts]
     dyn[0][0] = '0b'
     wash = {'synth': {'layers': [{'type': 'noise', 'color': 'pink'}], 'amp': {'a': '2.5s', 'd': '1s', 's': 1, 'r': '4ms'}}}
