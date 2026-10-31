@@ -51,6 +51,8 @@ PADEQ = os.environ.get("C7T18_PADEQ", "1") == "1"  # the glass pads' chord tones
 DROPOUT = os.environ.get("C7T18_DROPOUT", "1") == "1"  # chirper-one's note: near the end of ALL AT ONCE the illusions leave one a bar, in the reverse of the order they came in, until the falling stair stands alone (then the tape stops and the silence)
 REV = ["decel", "turn", "scale", "accel", "huggins", "continuity", "octave", "phantom", "stream", "tritone", "speech", "pole", "shepard"]
 HEADLV = [float(x) if "." in x else int(x) for x in os.environ.get("C7T18_HEADLV", "3,0.5").split(",")]  # the seam head's level lane (dB at bar 1, at bar 16): meets The Room Turns' tail in the live crossfade
+COH = os.environ.get("C7T18_COH", "1") == "1"  # t17 v18's fix (measured 22:15): coherent Haas pairs - one source per pair, near ear direct and far ear through 18 ms, dry - so the turning panel's precedence cue exists (separate noise-kit tracks gave the ears different hits)
+COHB = {}
 ILV = float(os.environ.get("C7T18_ILV", "0"))  # every illusion track's level offset (dB)
 
 ERISER = os.environ.get("C7T18_ERISER", "-10")  # wM's endless Shepard riser (fx-riser-endless) over the 8 bars into all: pitch, noise and filter rising for ever, stopping dead on the drop (Harry: 'risers and staircases v good'); level in dB
@@ -431,6 +433,16 @@ def song():
             return {"name": name, "patch": "dusty-kit", "gain": ilv(-4), "pan": pan,
                     "lfo": {"x": {"wave": "sine", "rate": "6/1", "phase": phase, "unipolar": True}},
                     "fx": fx, "sends": {"room": "-12dB"}, "score": score}
+        if COH:
+            def pair(name, near, phase):
+                nb, fb = f"tc{name}n", f"tc{name}f"
+                COHB[nb] = {"fx": [{"type": "pan", "pan": near, "width": 0}], "returns": []}
+                COHB[fb] = {"fx": [{"type": "delay", "time": "18ms", "feedback": 0, "mix": 1}, {"type": "pan", "pan": -near, "width": 0}], "returns": []}
+                return {"name": f"turn{name}", "patch": "dusty-kit", "gain": ilv(-4),
+                        "lfo": {"x": {"wave": "sine", "rate": "6/1", "phase": phase, "unipolar": True}},
+                        "fx": [{"type": "gain", "gain": {"value": "-12dB", "mod": [{"src": "lfo.x", "amount": 12}]}}],
+                        "out": nb, "sends": {fb: "0dB"}, "score": score}
+            return [pair("A", -1, 0.0), pair("B", 1, 0.5)]
         return [side("turnLl", -1, False, 0.0), side("turnLr", 1, True, 0.0), side("turnRl", -1, True, 0.5), side("turnRr", 1, False, 0.5)]
 
     # the Huggins ghost walks the stair (A F E D around A5) along the wash phrases
@@ -536,6 +548,7 @@ def song():
 def dump(doc):
     lines = [f"{k}: {json.dumps(doc[k])}" for k in ("about", "tempo", "ceiling", "loudness", "tail", "patches", "master") if k in doc]
     lines.append("buses:")
+    doc["buses"].update(COHB)
     lines += [f"  {b}: {json.dumps(v)}" for b, v in doc["buses"].items()]
     lines.append("tracks:")
     lines += ["  - " + json.dumps(t) for t in doc["tracks"]]
