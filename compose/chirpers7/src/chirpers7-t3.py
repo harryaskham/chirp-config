@@ -128,6 +128,15 @@ def build():
         # (v10, after chirper-zero's note) THE PROOF, in the break: its first eight bars give the phrase back as plain speech,
         # alone over the pad - after 32 bars of repetitions, the listener's own ear supplies the tune; then the sung double
         # answers for the last eight
+        # (v12) THE STEP RISER - time-play built from the phrase itself: in the break's last bar the word 'step' stutters
+        # faster and faster, climbing the stair, and lands on the F# where the last groove steps up a tone
+        if s == 'break' and i == 15:
+            gaps_ = [0.5 * 0.82 ** n for n in range(14)]
+            sc = 4.0 / sum(gaps_)
+            at, notes = 0.0, [52, 54, 55, 57, 59, 61, 62, 64, 66, 67, 69, 71, 73, 74]
+            for n, g in enumerate(gaps_):
+                T['speech'].append((t0 + at, f'{nm(notes[n])}^ph=s-t-eh1-p^f0=0>0', max(0.06, g * sc * 0.8), 80 + n))
+                at += g * sc
         if s == 'break' and first:
             if i < 8:
                 T['speech'] += phrase(t0, 0.0, vel=94)
