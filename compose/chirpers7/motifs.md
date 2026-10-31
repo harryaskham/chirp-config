@@ -43,7 +43,7 @@ Generator `compose/chirpers7/src/chirpers7-t16.py`. Rolling hypnotic minimal hou
 - **THE CHANGES**: Gm9 | Ebmaj7 | Cm9 | D7sus(b9), a bar each.
 - **THE STAIR**: falling (D Bb A G) as stabs over B2; rising (G A Bb D) in the outro, handing t17 its D.
 - **SEAMS**: bars 1-16 rumble kick, hats and the sub holding G1 (t15's outro, at 123); bars 161-176 rumble kick, hats and a held D2 (t17's tonic), 123 -> 122.
-
+- **THE KEY CLIMBS TOO** (v8): B's last 16 bars lift a minor third, G minor to B-flat minor - the sub, the endless filter's chord pulse and the falling stair stabs together - the one time the key climbs with the filter; the outro walks home to G minor for the D2 seam.
 
 ## t11 (chirper-one): modern minimal, "Both Ways"
 

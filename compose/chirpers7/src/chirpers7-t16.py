@@ -38,6 +38,7 @@ SWAP = os.environ.get("C7T16_SWAP", "0") == "1"
 SWAPBARS = int(os.environ.get("C7T16_SWAPBARS", "16"))  # how many overlap bars the incoming lows wait (16: until the overlap ends; 8: the crossfade's midpoint, where the linear fade has both sides at half)  # a DJ's bass swap at the seam in: for the 16 overlap bars the kick is high-passed at 110 Hz (its own track) and the held sub is out - the outgoing track carries the low end; the full kick and sub land at bar 17
 
 BRK = os.environ.get("C7T16_BRK", "hl")  # the break deeper: "h" no hats at all (the pulse and the endless filter alone); "hl" also its level 1.5 dB down
+KEYUP = int(os.environ.get("C7T16_KEYUP", "3"))  # B's last 16 bars lift KEYUP semitones (the filter climbs for ever and, once, so does the key); the outro walks home to G minor for the seam
 SEAMV = int(os.environ.get("C7T16_SEAMV", "70"))  # the held G1's velocity under the seam in (meets t15's tail sub in the live crossfade)
 EQ4 = os.environ.get("C7T16_EQ4", "a")  # "a": 45 Hz -6 dB and the low shelf -9 (37-60 Hz read 8-12 dB over the album); "b": also the hats 3 dB up, 3.5 kHz +3 and the shelves +6 at 4 kHz, +3 at 9 kHz (3-15 kHz read 2-5 dB dark)
 DENS = os.environ.get("C7T16_DENS", "")  # density contrast between sections: "q" the break's pulse on the quarters only (the filter breathes); "s" a sixteenth shaker under B's last 16 bars (the peak runs); "h" the build and A1 hats in eighths
@@ -112,6 +113,8 @@ def build():
         for b in range(nb):
             at = a0 + b * BAR
             r, deg, v = CH[b % 4]
+            ku = KEYUP if (sec == "B" and b >= 32) else 0
+            r, v = r + ku, [n + ku for n in v]
             seam_in = sec == "intro" and b < 16
             seam_out = sec == "outro" and b >= 16
             # --- kick
@@ -174,7 +177,7 @@ def build():
                     add("perc", at + q, "sh", 1, 70 if q % 4 == 2 else (58 if q % 2 else 48))
             # --- B2: THE STAIR falling as stabs on top (D Bb A G)
             if sec == "B" and b >= 24 and b % 2 == 0:
-                for k, n in enumerate((74, 70, 69, 67)):
+                for k, n in enumerate((74 + ku, 70 + ku, 69 + ku, 67 + ku)):
                     add("stair", at + 4 * k + 2, nm(n), 2, 88 - 2 * k)
             # --- THE STAIR as stabs in the outro (degrees 1 2 3 5 of G minor, then D handed over)
             if sec == "outro" and 4 <= b < 16 and b % 4 == 0:
