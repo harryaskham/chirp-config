@@ -150,6 +150,13 @@ def drums():
                     part("clap").add(b0(bar) + b + 0.012, 0.5, "cp", 92 + hand.randint(-4, 4))
 
 
+def after_tones_together():
+    """v6: THE AFTER-TONES TOGETHER: the four notes the silences gave one at a time (D# F F# A#) sound at last as one
+    chord under the peak, held in two long swells while their low-pass opens."""
+    for a, n in ((142, 6), (148, 5)):
+        part("stairpad").add(b0(a), n * BAR - 0.2, ",".join(nm(m) for m in (63, 65, 66, 70, 75)), 74 if a == 142 else 80)
+
+
 def harmony():
     for bar in range(1, BARS + 1):
         sec = sec_of(bar)
@@ -192,6 +199,7 @@ def lanes():
 
 def main():
     zwicker()
+    after_tones_together()
     drums()
     harmony()
     tempo = [{"at": "0b", "bpm": 122}, {"at": f"{b0(17):.0f}b", "bpm": 122},
@@ -246,6 +254,10 @@ def main():
             tr("rhodesdub", "epiano-tine synth.tine.sense=0.3", gain="-5dB", pan=-0.15,
                sends={"hall": "-10dB", "dub": "-5dB"},   # v3: DUB CHORDS in D and E: each stab trails dotted-eighth echoes
                fx=[{"type": "filter", "kind": "lp", "cutoff": 4000}, pump]),
+            tr("stairpad", "juno-pad", gain="-3dB", sends={"hall": "-6dB"},
+               auto={"po": {"points": [["0b", 0.0], [f"{b0(142)}b", 0.0], [f"{b0(150)}b", 1.6], [f"{TOTAL}b", 1.6]]}},
+               fx=[{"type": "filter", "kind": "lp", "q": 0.7,
+                    "cutoff": {"value": 1000, "mod": [{"src": "auto.po", "amount": 1.0}]}}]),
             tr("bell", "glock", gain="-8dB", pan=0.2, sends={"hall": "-6dB"}),
         ] + nz,
     }
