@@ -168,7 +168,13 @@ def build():
             tr('kit', 'machine-kit', '-4dB', sends={'hall': '-18dB'}),
             tr('cyc', 'machine-kit', '-9dB', pan=-0.35, sends={'echo': '-6dB'}, fx=['hp cutoff=300']),
             tr('sub', 'sub', '-10dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '320ms', 'curve': 0.6}]),
-            tr('stab', 'epiano-tine', '-9dB', sends={'echo': '-4dB'}, fx=['lp cutoff=2600', {'type': 'pump', 'on': 'kit.k', 'depth': '-4dB', 'release': '320ms', 'curve': 0.6}]),
+            # (v14) SEASICK DUB (Harry: 'slight wow on ONE element', 'subtly off'): the stab's own clock drifts against the
+            # kick - a sixteenth behind through the first groove, a sixteenth ahead through the second, a dotted sixteenth
+            # behind in the last - easing out and back and re-locking each time; the pump stays on the kick
+            dict(tr('stab', 'epiano-tine', '-9dB', sends={'echo': '-4dB'}, fx=['lp cutoff=2600', {'type': 'pump', 'on': 'kit.k', 'depth': '-4dB', 'release': '320ms', 'curve': 0.6}]),
+                 warp=[{'over': '16bar', 'to': 0}, {'over': '8bar', 'to': 0.25, 'curve': 'smooth'}, {'over': '8bar', 'to': 0, 'curve': 'smooth'}, {'over': '8bar', 'to': 0},
+                       {'over': '8bar', 'to': -0.25, 'curve': 'smooth'}, {'over': '8bar', 'to': 0, 'curve': 'smooth'}, {'over': '16bar', 'to': 0},
+                       {'over': '24bar', 'to': 0}, {'over': '8bar', 'to': 0.375, 'curve': 'smooth'}, {'over': '8bar', 'to': 0, 'curve': 'smooth'}]),
             tr('pad', 'juno-pad', '-12dB', sends={'hall': '-8dB'}),
             # the hiss goes dry and identical to both ears: straight to the left, and through a high-Q allpass to the right
             tr('wash', wash, '-14dB', fx=['hp cutoff=200', 'lp cutoff=9000'], out='hugL', sends={'hugR': '0dB'}),
