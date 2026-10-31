@@ -126,7 +126,7 @@ def drums():
     hand = random.Random(5)
     for bar in range(1, BARS + 1):
         sec = sec_of(bar)
-        if sec == "break" or bar > 174:
+        if sec == "break":
             continue
         for b in range(4):
             part("kick").add(b0(bar) + b, 0.5, "k", 112 if b == 0 else 106)
@@ -223,7 +223,7 @@ def main():
                            "makeup": "0dB"}],    # catch the kick's peaks; the song's loudness masters (true-peak limited)
                    "auto": {"dyn": {"points": dyn}}},
         "tracks": [
-            tr("kick", "machine-kit", gain="-4dB"),
+            tr("kick", "machine-kit", gain="-10dB"),
             tr("hats", "machine-kit", gain="-5dB", pan=0.1, lfo={"hh": {"wave": "sine", "rate": "20b"}},
                fx=[{"type": "filter", "kind": "hp", "cutoff": {"value": 2500, "mod": [{"src": "lfo.hh", "amount": 0.7}]}}]),
             tr("clap", "machine-kit", gain="-7dB", sends={"room": "-8dB"}),
