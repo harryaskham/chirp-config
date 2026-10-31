@@ -25,7 +25,9 @@ BPM_IN, BPM_OUT = 123.0, 123.5
 NN = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
 def nm(m): return f"{NN[m % 12]}{m // 12 - 1}"
 
-FORM = [('intro', 16), ('A', 32), ('B', 32), ('break', 16), ('C', 32), ('outro', 16)]
+# (v9) a dub form, not the tape's template: a shorter first groove and a long, deep 24-bar break where the washes sing
+# alone three times - dub lives in its drop-outs
+FORM = [('intro', 16), ('A', 24), ('B', 32), ('break', 24), ('C', 32), ('outro', 16)]
 CH = [(34, [61, 65, 68, 72]), (30, [61, 65, 66, 70]), (39, [61, 63, 66, 70]), (41, [60, 63, 65, 68])]
 STAIR_ST = [0, 2, 3, 7]                       # Bb C Db F, semitones above Bb
 GHOST_HZ = 932.33                             # Bb5: the ghost's home (the allpass's centre)
@@ -82,11 +84,10 @@ def build():
             T['pad'].append((t0, ','.join(nm(m - 12) for m in ch), 15.8, 74))
     # THE WASHES: two bars of hiss before each phrase end (every 16 bars from bar 16), the ghost stair inside, then a beat of silence
     gm, gaps, fbl, thr = [['0b', 0]], [], [['0b', 0]], [['0b', 0]]
-    ends = [16 * n for n in range(2, int(total // 64) + 1)]
-    ends = [e * 4 for e in ends if e * 4 < total - 8]
-    # also inside the break: two washes, eight bars apart
+    # (v9) the washes fall on the form's own seams: halfway through A, into B and halfway through it, every eight bars of
+    # the break, into C and halfway through it, and into the outro
     tb = secs['break']
-    ends = sorted(set(ends + [tb + 32, tb + 64]))
+    ends = sorted({secs['A'] + 64, secs['B'], secs['B'] + 64, tb + 32, tb + 64, secs['C'], secs['C'] + 64, secs['outro']})
     for n, e in enumerate(ends):
         st = STAIR_ST[n % 4]
         a0 = e - 9.0
