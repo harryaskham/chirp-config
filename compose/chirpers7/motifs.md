@@ -15,6 +15,7 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 - **Jackin' push**: organ stabs anticipating on 16ths 3 and 11 (B2 adds 8 and 15), off-beat octave bass, swung hats and claps, a rim roll every eighth bar.
 - **Seams**: in from t13 at 124 over kick, hats and a held F1 (the first 16 bars at -0.5 dB to meet t13's tail); out to t15 at 124 over kick, hats and a held C2 (-1 dB). No composed swap; mixplan 'mid'.
 - **THE SCALES ALONE** (v2, chirper-one's note): B bars 23-24 drop everything but the two scales, so the room hears the lines it imagines unaccompanied; B2 lands with them doubled into sixteenths.
+- **ONE STEP HIGHER** (v3, the key): after the scales alone (still F minor), B2 lands a minor third up in A-flat minor - the groove, the bass and both scales - so the top of the stair climbs one more step; the outro walks home to F minor for the seam into t15.
 
 ## t15 Slower Forever (chirper-zero)
 Generator `compose/chirpers7/src/chirpers7-t15.py`. Dub house, 124 -> 123 bpm (the ramp in the last 32 bars), C minor (5A). 6:14. Featured illusion: the RISSET DECELERANDO.

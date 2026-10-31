@@ -27,6 +27,7 @@ SEAMLV = os.environ.get("C7T14_SEAMLV", "-0.5,1")  # the seam bars' levels (firs
 SOLO = os.environ.get("C7T14_SOLO", "1") == "1"  # chirper-one's note: B bars 23-24 the scales alone, unaccompanied, so the room hears the two lines it imagines before the groove folds them back in (and B2 lands with them in 16ths)
 PRES = os.environ.get("C7T14_PRES", "1") == "1"  # presence: the clap 3 dB up and 3.5 kHz +3 dB (2.6-4.2 kHz read 7-9 dB under the album)
 DOT = os.environ.get("C7T14_DOT", "")  # a dotted-eighth rim and shaker cycle (every third 16th across the bar lines) in the named sections: "B" or "A,B"
+KEYUP = int(os.environ.get("C7T14_KEYUP", "3"))  # B2 lands in another key: after the scales alone (still F minor), the groove and both scales come back KEYUP semitones up (3: A-flat minor - the top of the stair goes one step higher), and the outro walks home to F minor for the seam
 ANTIC = os.environ.get("C7T14_ANTIC", "1") == "1"  # the organ stabs anticipate: on the a-of-1 and the a-of-3 (16ths 3 and 11), jackin' pushes
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
@@ -100,6 +101,8 @@ def build():
         for b in range(nb):
             at = a0 + b * BAR
             r, v = CH[b % 4]
+            ku = KEYUP if (sec == "B" and b >= 24) else 0
+            r, v = r + ku, [n + ku for n in v]
             seam_in = sec == "intro" and b < 16
             seam_out = sec == "outro" and b >= 16
             solo = SOLO and sec == "B" and b in (22, 23)
@@ -162,7 +165,7 @@ def build():
                 vel = 70 if (sec == "A") else (84 if sec in ("break", "B") else 64 - 2 * b)
                 for k, q in enumerate(range(0, 16, step16)):
                     i = k % 8
-                    lo, hi = ASC[i], DESC[i]
+                    lo, hi = ASC[i] + ku, DESC[i] + ku
                     left, right = (lo, hi) if i % 2 == 0 else (hi, lo)
                     add("earL", at + q, nm(left), step16, vel)
                     add("earR", at + q, nm(right), step16, vel)
