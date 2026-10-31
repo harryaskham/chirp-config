@@ -34,6 +34,7 @@ SCALEG = os.environ.get("C7T14_SCALEG", "-9")
 RISER = os.environ.get("C7T14_RISER", "1") == "1"  # a Shepard STAIR ACCELERANDO into B: the stair (F G Ab C) on Shepard tones, half notes speeding to sixteenths over the break's last eight bars (speaker-safe, where the dichotic scales are not)
 WOW = os.environ.get("C7T14_WOW", "0") == "1"  # Harry 15:00 'slight wow on ONE element': the organ stabs alone through a worn tape (wow 9 cents, flutter 1.5)
 HWARP = os.environ.get("C7T14_HWARP", "1") == "1"  # Harry 14:50 poly accel/decel: through B the hats drift a sixteenth behind the kick and back, then ahead and back (track warp), locked again for the outro
+STAIRB = os.environ.get("C7T14_STAIRB", "80")  # Harry 21:32 on t10 ('illusions not heard'): the TOP OF THE STAIR made audible on any speaker - through B2 (bars 25-46) the stair (Ab Bb Cb Eb, a minor third up with the key) climbs on Shepard tones in quarter notes under the crossing scales and never gets higher; value = velocity
 ANTIC = os.environ.get("C7T14_ANTIC", "1") == "1"  # the organ stabs anticipate: on the a-of-1 and the a-of-3 (16ths 3 and 11), jackin' pushes
 
 ERISER = os.environ.get("C7T14_ERISER", "-10")  # wM's endless Shepard riser (fx-riser-endless) over the 8 bars into B: pitch, noise and filter rising for ever, stopping dead on the drop (Harry: 'risers and staircases v good'); level in dB
@@ -182,6 +183,10 @@ def build():
                     add("earR", at + q, nm(right), step16, vel)
             if sec == "break" and b % 4 == 0:
                 add("pad", at, ",".join(nm(n) for n in v), 4 * BAR, 70)
+            if STAIRB and sec == "B" and 24 <= b < 46:
+                for j, q in enumerate((0, 4, 8, 12)):
+                    k = (b - 24) * 4 + j
+                    add("riser", at + q, nm([65, 67, 68, 72][k % 4] + ku + 12 * (k // 4 % 2)), 4, int(STAIRB))
     if RISER:   # the stair accelerando: step n+1 lands 8 * (1/8)^(t/len) sixteenths after step n across the break's last 8 bars
         a0, ln = sec_start("break") + 8 * BAR, 8 * BAR
         t, k, up = 0.0, 0, [65, 67, 68, 72]
@@ -246,7 +251,7 @@ def song():
             {"name": "sub", "patch": "sub", "gain": "-16dB", "fx": [pump, {"type": "phantom", "cutoff": 100, "harmonics": "-6dB"}], "score": T["sub"]},
             {"name": "bass", "patch": "bass", "gain": "-14dB", "fx": [pump, {"type": "filter", "kind": "lp", "cutoff": 900, "q": 1.2}], "score": T["bass"]},
             {"name": "organ", "patch": "organ", "gain": "-12dB", "pan": -0.15, "fx": [pump, *([{"type": "tape", "drive": 0.0, "mix": 0.4, "wow": 9, "flutter": 1.5, "drift": 1, "tone": 12000, "seed": 14}] if WOW else [])], "sends": {"room": "-8dB"}, "score": "swing16=0.6 " + T["organ"]},
-            *([{"name": "riser", "patch": "stair-up", "gain": "-9dB", "sends": {"hall": "-8dB"}, "score": T["riser"]}] if RISER else []),
+            *([{"name": "riser", "patch": "stair-up", "gain": "-9dB", "sends": {"hall": "-8dB"}, "score": T["riser"]}] if (RISER or STAIRB) else []),
             {"name": "earL", "patch": "blip", "gain": f"{SCALEG}dB", "pan": -1, "sends": {"hall": "-14dB"}, "score": T["earL"]},
             {"name": "earR", "patch": "blip", "gain": f"{SCALEG}dB", "pan": 1, "sends": {"hall": "-14dB"}, "score": T["earR"]},
             {"name": "pad", "patch": "pad-glass", "gain": "-14dB", "sends": {"hall": "-6dB"}, "score": T["pad"]},
