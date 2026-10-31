@@ -115,9 +115,9 @@ def build():
     padop = [['0b', 0], [f'{tb:.1f}b', 0], [f'{tc - 1:.1f}b', 1], [f'{tc:.1f}b', 0]]
     # (v12) THE RUSH LEADS: the accelerando was 17 LU under the mix (Harry: 'most tracks have no illusion'); now it is the
     # hook - up front and bright, from the intro's last eight bars to the outro, with a decelerating counter-bed against it
-    risset = lambda at_bar, nbars, gain='-1dB': {
+    risset = lambda at_bar, nbars, gain='-1dB', ratio=None: {
         'name': f'rush{at_bar}', 'patch': 'machine-kit', 'gain': gain, 'pan': 0.15, 'at': f'{at_bar * 4}b',
-        'risset': {'cycle': '8bar', 'down': False, 'layers': 3, 'length': f'{nbars}bar'},
+        'risset': dict({'cycle': '8bar', 'down': False, 'layers': 3, 'length': f'{nbars}bar'}, **({'ratio': ratio} if ratio else {})),
         'sends': {'hall': '-14dB'}, 'score': RISSET_PAT, 'fx': ['hp cutoff=250']}
     fall = lambda at_bar, nbars: {
         'name': f'fall{at_bar}', 'patch': 'machine-kit', 'gain': '-5dB', 'pan': -0.3, 'at': f'{at_bar * 4}b',
@@ -150,7 +150,10 @@ def build():
             tr('pad', 'juno-pad', '-12dB', sends={'hall': '-8dB'},
                fx=['hp cutoff=180', {'type': 'filter', 'kind': 'lp', 'q': 0.8, 'cutoff': {'value': 600, 'mod': [{'src': 'auto.op', 'amount': 3.0}]}}],
                auto={'op': {'points': padop}}),
-            risset(8, 8, '-6dB'), risset(start_A, LEN['A']), risset(int(secs['B'] // 4), LEN['B']), risset(int(secs['C'] // 4), LEN['C']),
+            # (v15) THE PEAK CHANGES GEAR: for eight bars in the middle of the long peak the rush's copies sit a 3:2 metric
+            # modulation apart instead of an octave of tempo (wM's risset ratio) - the accelerando turns into a hemiola for a
+            # while, then back - so the 48-bar plateau is not one unchanged loop
+            risset(8, 8, '-6dB'), risset(start_A, LEN['A']), risset(int(secs['B'] // 4), LEN['B']), risset(int(secs['C'] // 4), 16), risset(int(secs['C'] // 4) + 16, 8, '-1dB', '3:2'), risset(int(secs['C'] // 4) + 24, LEN['C'] - 24),
             risset(int(secs['outro'] // 4), 8, '-5dB'),
             # (v13) THE SPIRAL IN THE LIFT: across the whole eight-bar lift the percussion rush gives way to a plucked arp of the
             # stair running as a Shepard-Risset
