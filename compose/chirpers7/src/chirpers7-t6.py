@@ -164,6 +164,17 @@ def taken_apart():
                 part(f"h{h}").add(b0(bar) + b, 0.7 if b % 2 == 0 else 0.4, nm(FS1), 92 if b == 0 else 80)
 
 
+def stair_nobody_plays():
+    """v7: THE STAIR NOBODY PLAYS: in the second drop the pure partials 3..6 play the stair (F#3 G#3 A3 C#4) as half-note
+    pulses - for F#3 that is 555, 740, 925, 1110 Hz, nothing at 185 - and the ear hears the melody where nothing sounds;
+    no single partial even moves by step, only the note they imply does."""
+    for bar in range(121, 141):
+        m = 54 + STAIR[(bar - 121) % 4]                  # F#3 G#3 A3 C#4 (MIDI 54 = F#3)
+        for b in (0, 2):
+            for h in range(3, 7):
+                part(f"h{h}").add(b0(bar) + b, 1.7, nm(m), 84 - 4 * (h - 3) - (6 if b else 0))
+
+
 def drums():
     hand = random.Random(6)
     for bar in range(1, BARS + 1):
@@ -257,6 +268,7 @@ def lanes():
 def main():
     bass_line()
     taken_apart()
+    stair_nobody_plays()
     drums()
     stabs()
     congas()
@@ -292,7 +304,7 @@ def main():
                   "hall": {"fx": ["reverb kind=hall decay=3s mix=1 predelay=25ms", "hp cutoff=200"]},
                   "dub": {"fx": ["delay time=3/8 mix=1 feedback=0.5", "hp cutoff=500", "lp cutoff=2800",
                                  "reverb kind=hall decay=2.5s mix=0.3"]}},
-        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=25", "lowshelf cutoff=220 gain=-6dB",
+        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=25", "lowshelf cutoff=220 gain=-6dB", "peak cutoff=160 q=0.8 gain=-2dB",
                                                     "highshelf cutoff=4000 gain=3dB"]},   # tilt: the bass's shape kept
                           {"type": "compressor", "threshold": "-20dB", "ratio": 2.5, "attack": "15ms", "release": "150ms",
                            "makeup": "0dB"},
