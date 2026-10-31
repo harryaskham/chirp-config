@@ -24,7 +24,10 @@ S = 0.25
 BAR = 16
 MGAIN = float(os.environ.get("C7T17_MGAIN", "8"))
 FCOMP = os.environ.get("C7T17_FCOMP", "-16,0.3ms")
-TICK = os.environ.get("C7T17_TICK", "0") == "1"  # a crisp machine-kit 16th tick under the dusty kit (parked: the rhythm term didn't move)
+TICK = os.environ.get("C7T17_TICK", "0") == "1"
+SYNC = os.environ.get("C7T17_SYNC", "1") == "1"  # the lazy Rhodes on the "a" of 1 and 3 (16ths 3 and 11), the sub answering on the 16th before the 3
+SEC = os.environ.get("C7T17_SEC", "1") == "1"
+LOOP3 = os.environ.get("C7T17_LOOP3", "1") == "1"  # the turning loop on a dotted-eighth cycle (every third 16th, across the bar lines): it turns in space and against the bar at once  # the halves made distinct: A2 a third Rhodes stab; B2 opens with four bars of no kick (a breath: the loop, the keys and the dust), then the doubled clap  # a crisp machine-kit 16th tick under the dusty kit (parked: the rhythm term didn't move)
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 FORM = [("intro", 32), ("A", 32), ("break", 24), ("B", 40), ("outro", 32)]
@@ -100,16 +103,17 @@ def build():
             r, v = CH[b % 4]
             seam_in = sec == "intro" and b < 16
             seam_out = sec == "outro" and b >= 16
-            if sec != "break":
+            if sec != "break" and not (SEC and sec == "B" and 20 <= b < 24):
                 for q in (0, 4, 8, 12):
                     add("kick", at + q, "k", 1, 116 if q == 0 else 108)
             if not (sec == "break" and b < 20):
                 for q in (2, 6, 10, 14):
-                    add("hats", at + q, "oh" if (sec in ("A", "B") and q == 14 and b % 4 == 3) else "h", 1, 72)
+                    opn = (sec in ("A", "B") and q == 14 and b % 4 == 3) or (SEC and sec == "A" and b >= 16)
+                    add("hats", at + q, "oh" if opn else "h", 1, 72)
                 if not seam_in and not seam_out:
                     for q in (1, 5, 9, 13):
                         add("hats", at + q, "sh", 1, 50)
-            if sec in ("A", "B") or (sec == "intro" and b >= 24) or (sec == "outro" and b < 16):
+            if sec in ("A", "B") or (not SEC and ((sec == "intro" and b >= 24) or (sec == "outro" and b < 16))):
                 for q in (4, 12):
                     add("clap", at + q, "cp,sn" if (sec == "B" and b >= 20) else "cp", 1, 92)
             # a crisp 16th tick under the dusty kit in the grooves (the lo-fi hats alone are too soft to articulate the 16ths)
@@ -123,12 +127,22 @@ def build():
             elif sec in ("A", "B") or (sec == "intro" and b >= 16) or (sec == "outro"):
                 add("sub", at, nm(r), 6, 98)
                 add("sub", at + 7, nm(r), 2, 80)
-                add("sub", at + 10, nm(r + 7), 4, 88)
+                if SYNC:
+                    add("sub", at + 9, nm(r + 7), 2, 90)
+                    add("sub", at + 11, nm(r + 7), 3, 84)
+                else:
+                    add("sub", at + 10, nm(r + 7), 4, 88)
             # the Rhodes: lazy chords on the and-of-1 and the 3; in the break, held in the dust
             if sec in ("A", "B") or (sec == "intro" and b >= 20) or (sec == "outro" and b < 16):
                 ch = ",".join(nm(n) for n in v)
-                add("keys", at + 2, ch, 5, 78)
-                add("keys", at + 9, ch, 6, 70)
+                if SYNC:
+                    add("keys", at + 3, ch, 5, 82)
+                    add("keys", at + 11, ch, 4, 76)
+                    if SEC and sec == "A" and b >= 16:
+                        add("keys", at + 14, ch, 2, 70)
+                else:
+                    add("keys", at + 2, ch, 5, 78)
+                    add("keys", at + 9, ch, 6, 70)
             if sec == "break" and b % 2 == 0:
                 add("keys", at, ",".join(nm(n) for n in v), 2 * BAR, 64)
             # THE STAIR on top in A2 and the outro (D E F A, a beat each)
@@ -137,8 +151,14 @@ def build():
                     add("stair", at + 4 * k, nm(n), 3, 84 - 2 * k)
             # the turning loop: rims and shaker on the 16ths (it plays from bar 17 to the seam out)
             if not seam_in and not seam_out and not (sec == "intro" and b < 20):
-                for q, piece, vel in ((0, "rs", 84), (3, "sh", 70), (6, "rs", 80), (7, "sh", 60), (10, "rs", 86), (11, "sh", 64), (13, "rs", 72), (15, "sh", 58)):
-                    add("loop", at + q, piece, 1, vel)
+                if LOOP3:
+                    for q in range(16):
+                        k = (at + q) - sec_start("intro")
+                        if k % 3 == 0:
+                            add("loop", at + q, "rs" if (k // 3) % 2 == 0 else "sh", 1, 86 if (k // 3) % 4 == 0 else 74)
+                else:
+                    for q, piece, vel in ((0, "rs", 84), (3, "sh", 70), (6, "rs", 80), (7, "sh", 60), (10, "rs", 86), (11, "sh", 64), (13, "rs", 72), (15, "sh", 58)):
+                        add("loop", at + q, piece, 1, vel)
             # the binaural beat under the break
             if sec == "break" and b % 8 == 0:
                 add("binl", at, "C4", 8 * BAR, 80)

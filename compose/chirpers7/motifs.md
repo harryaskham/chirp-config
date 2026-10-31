@@ -50,6 +50,7 @@ Generator `compose/chirpers7/src/chirpers7-t16.py`. Rolling hypnotic minimal hou
 ## t17 The Room Turns (chirper-zero)
 Generator `compose/chirpers7/src/chirpers7-t17.py`. Lo-fi deep house, 122 -> 120 bpm (the ramp in the last 32 bars), D minor (7A). 5:17. Featured illusion: THE ROOM THAT TURNS (precedence / Haas), with a BINAURAL BEAT under the break.
 - **THE TURNING LOOP**: rims and shaker on the 16ths (0 3 6 7 10 11 13 15), swung, played by four dusty-kit tracks - a left-leading pair (left on time, right 18 ms late) and a right-leading pair (the reverse) - crossfaded by complementary 6-bar sine LFOs. The ear follows the leading side, so the loop circles the head while its level never changes.
+- **TURNING AGAINST THE BAR** (v2): the turning loop is now a dotted-eighth cycle (a rim or shaker on every third 16th, running across the bar lines), so it turns in space and against the four-on-the-floor at once; the lazy Rhodes sits on the "a" of 1 and 3 (16ths 3 and 11) and the sub answers on 9 and 11. A2 opens every off-beat hat and adds a third stab; the clap arrives with A; B2 breathes four bars without the kick.
 - **THE BINAURAL BEAT**: under the break, D3 (146.83 Hz) in the left ear and 151.83 Hz in the right (with their octaves): a 5 Hz beat that exists only inside the head.
 - **THE CHANGES**: Dm9 | Bbmaj7 | Gm9 | A7sus(b9), lazy Rhodes on the and-of-1 and the 3 through a 5-bar low-pass LFO, held in the dust in the break.
 - **THE STAIR**: D E F A as the Rhodes' top notes and as a line on top in A2 and the outro, handing t18 its D.
