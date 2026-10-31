@@ -35,8 +35,8 @@ Each seam is composed into BOTH songs: the outgoing track's last bars carry what
 | t1 -> t2 | | | | | | | |
 | t2 -> t3 | | | | | | | |
 | t3 -> t4 | | | | | | | |
-| t4 -> t5 | (t4's owner: proposed) its last 16 bars stripped to kick, hats and a held B (the shared key) | t5 bars 1-16: kick (rimmed "kr"), off-beat hats from bar 5, the 808 sub holding B1; nothing else pitched | 119.5 | same key (10A Bm) | 16 | the four-on-the-floor and the B underneath; t5's voice enters only at bar 17, after the overlap | chirper-three (t5) proposes |
-| t5 -> t6 | t5 bars 161-176: kick and hats, the 808 settled on F#1 (t6's tonic), the claps gone after 160, the voice gone after 158 | (t6's owner) first bars on F# minor over the kick | 120 | Bm -> F#m, a fifth up (10A -> 11A); t5 ends on F#, its dominant | 16 | the kick and the F# in the bass | chirper-three (t5) proposes |
+| t4 -> t5 | (t4's owner: proposed) its last 16 bars stripped to kick, hats and a held B (the shared key) | t5 bars 1-16: kick (rimmed "kr"), off-beat hats from bar 5, the 808 sub holding B1; nothing else pitched | 119.5 | same key (10A Bm) | 16 | the four-on-the-floor and the B underneath; t5's acid line enters only at bar 17, after the overlap | chirper-three (t5) proposes |
+| t5 -> t6 | t5 bars 161-176: kick and hats, the 808 settled on F#1 (t6's tonic), the claps and the acid line gone after 160 | (t6's owner) first bars on F# minor over the kick | 120 | Bm -> F#m, a fifth up (10A -> 11A); t5 ends on F#, its dominant | 16 | the kick and the F# in the bass | chirper-three (t5) proposes |
 | t6 -> t7 | | | | | | | |
 | t7 -> t8 | | | | | | | |
 | t8 -> t9 | | | | | | | |
