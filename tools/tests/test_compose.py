@@ -215,6 +215,12 @@ class SeamTempo(unittest.TestCase):
         t = CH.beat_times(CH.tempo_fn([{"at": "0b", "bpm": 120}]), 0, 64)
         self.assertAlmostEqual(t[-1], 32.0, places=6)              # 64 beats at 120 bpm = 32 s
 
+    def test_a_seam_starts_on_the_outgoing_bar_line(self):
+        bpm = CH.tempo_fn([{"at": "0b", "bpm": 120}])
+        times = CH.beat_times(bpm, 0, 41)                           # 40 beats = 10 bars; the music ends at beat 40
+        tl = {"bpm": bpm, "secs": 20.1, "times": times, "end_beat": 40}
+        self.assertAlmostEqual(CH.seam_start(tl, 4), 12.0, places=6)    # 4 bars before the last bar line (beat 24)
+
     def test_a_ramp_under_a_fixed_tempo_drifts(self):
         out = CH.tempo_fn([{"at": "0b", "bpm": 122}, {"at": "64b", "bpm": 123, "ramp": True}])
         fixed = CH.tempo_fn([{"at": "0b", "bpm": 123}])

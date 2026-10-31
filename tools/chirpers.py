@@ -16,6 +16,8 @@ climbing them on tools/compscore.py (no record to match) and Harry's ratings (to
                                                      seed-0 score as its best (the old one kept under best.rescored,
                                                      a note in its history) and save its features, so `done` compares
                                                      like with like (Moult v3 was refused against an old-scale v2)
+  chirpers.py seam ALBUM_ID N [--swap BAR] [--out DIR]  one seam tN -> tN+1 as the live mix plays it: sub and
+                                                     full-band level per bar (linear and the mixer swap), mp3s
   chirpers.py seams ALBUM_ID [--flam-ms MS] [--dead-s S]   audit a mixtape's DJ seams: beat drift across each
                                                      overlap (tempo ramps, mismatches), dead air after the last bar
   chirpers.py release ALBUM_ID [--lufs L] [--out DIR] [--legacy-limiter] [--mix [--overlap-bars N]]
@@ -571,19 +573,18 @@ def mix_release(a, album, rows, plan, pin, work, out_dir, art, env):
     info = []
     for r in rows:
         snap = os.path.join(work, f"{r['id']}.yaml")
-        pl = subprocess.run([pin, "plan", "-f", snap, "--json"], capture_output=True, text=True, env=env)
-        try:
-            d = json.loads(pl.stdout)
-            secs = float((d.get("data") or d)["seconds"])
-        except (ValueError, KeyError, TypeError):
-            secs = None
-        info.append({"secs": secs, "bpm": CS.declared_tempo(snap) or 120.0})
+        tl = song_timeline(pin, snap)
+        info.append({"secs": tl["secs"] if tl else None, "tl": tl, "bpm": CS.declared_tempo(snap) or 120.0})
     starts, t = [], 0.0
     for i, r in enumerate(rows):
         if i:
-            prev = rows[i - 1]
+            prev, tl = rows[i - 1], info[i - 1]["tl"]
             bars = seams.get((prev["n"], r["n"]), default)
-            ov = bars * 4 * 60.0 / info[i - 1]["bpm"]
+            if tl:     # the outgoing bar line BARS bars before its last bar, as the live mix places it
+                ov = tl["secs"] - seam_start(tl, bars)
+                info[i - 1]["bpm"] = tl["bpm"](tl["end_beat"] - 0.01)
+            else:
+                ov = bars * 4 * 60.0 / info[i - 1]["bpm"]
             t = starts[-1] + (info[i - 1]["secs"] or prev["dur"]) - ov
             info[i]["ov"] = ov
         starts.append(t)
@@ -670,6 +671,35 @@ def beat_times(bpm, b0, n, step=1 / 32):
     return out
 
 
+def song_timeline(pin, song, beats_per_bar=4):
+    """A song's beat clock from chirp plan: {bpm (fn of beat), secs (musical end), times (seconds of each whole beat
+    past the end), end_beat (its last bar line at or before the musical end), dead (seconds after that bar line)}; None
+    when the song does not plan."""
+    r = subprocess.run([pin, "plan", "-f", song, "--json"], capture_output=True, text=True)
+    try:
+        d = json.loads(r.stdout)
+        d = d.get("data") or d
+        tm = (d.get("canonical") or {}).get("tempo")
+        tm = tm if isinstance(tm, list) else [{"at": "0b", "bpm": float(tm or 120)}]
+        secs = float(d["seconds"])
+    except (ValueError, KeyError, TypeError):
+        return None
+    bpm = tempo_fn(tm)
+    times, b = [0.0], 0
+    while times[-1] <= secs:                          # whole beats past the musical end
+        times.append(times[-1] + beat_times(bpm, b, 1)[1])
+        b += 1
+    end = (b - 1) + (secs - times[b - 1]) / (times[b] - times[b - 1])     # the musical end, in (fractional) beats
+    last_bar = int((end + 1e-3) // beats_per_bar) * beats_per_bar        # a song ending ON a bar line keeps it
+    return {"bpm": bpm, "secs": secs, "times": times, "end_beat": last_bar, "dead": max(0.0, secs - times[last_bar])}
+
+
+def seam_start(tl, bars, beats_per_bar=4):
+    """Seconds into the outgoing song where the incoming one starts: its bar line BARS bars before the last bar line
+    at the musical end (the live DJ mix's placement)."""
+    return tl["times"][max(0, tl["end_beat"] - int(round(bars * beats_per_bar)))]
+
+
 def seam_report(album_id, pin, beats_per_bar=4):
     """Per seam: the outgoing track's tempo across its last OVERLAP bars vs the incoming track's across its first, and
     how far their beats drift apart by the end of the crossfade (the live DJ mix starts the incoming track on the
@@ -680,26 +710,9 @@ def seam_report(album_id, pin, beats_per_bar=4):
     songs = {}
     for t in album.get("tracks", []):
         song = os.path.join(ROOT, "songs", f"{t['id']}.yaml")
-        if not os.path.exists(song):
-            continue
-        r = subprocess.run([pin, "plan", "-f", song, "--json"], capture_output=True, text=True)
-        try:
-            d = json.loads(r.stdout)
-            d = d.get("data") or d
-            tm = (d.get("canonical") or {}).get("tempo")
-            tm = tm if isinstance(tm, list) else [{"at": "0b", "bpm": float(tm or 120)}]
-            secs = float(d["seconds"])
-        except (ValueError, KeyError, TypeError):
-            continue
-        bpm = tempo_fn(tm)
-        times, b = [0.0], 0
-        while times[-1] <= secs:                      # whole beats past the musical end
-            times.append(times[-1] + beat_times(bpm, b, 1)[1])
-            b += 1
-        end = (b - 1) + (secs - times[b - 1]) / (times[b] - times[b - 1])     # the musical end, in (fractional) beats
-        last_bar = int((end + 1e-3) // beats_per_bar) * beats_per_bar        # a song ending ON a bar line keeps it
-        songs[t["n"]] = {"id": t["id"], "bpm": bpm, "end_beat": last_bar, "secs": secs,
-                         "dead": max(0.0, secs - times[last_bar])}
+        tl = song_timeline(pin, song, beats_per_bar) if os.path.exists(song) else None
+        if tl:
+            songs[t["n"]] = dict(tl, id=t["id"])
     rows = []
     for n in sorted(songs):
         if n + 1 not in songs:
@@ -741,6 +754,78 @@ def cmd_seams(a, argv=None):
         print(json.dumps({"seams": rows, "dead": {f"t{n}": round(s["dead"], 2) for n, s in songs.items()}}))
 
 
+def cmd_seam(a, argv=None):
+    """One seam as the live mix plays it: per-bar levels across the overlap (linear crossfade and the mixer bass swap)
+    and mp3s of each with 8 bars either side."""
+    sys.path.insert(0, HERE)
+    import likeness as L
+    from scipy import signal
+    pin = a.pin or open(os.path.join(HERE, "groove-pin")).read().strip()
+    album = load_album(a.album_id)
+    by_n = {t["n"]: t for t in album.get("tracks", [])}
+    n = a.n
+    if n not in by_n or n + 1 not in by_n:
+        raise SystemExit(f"seam: {a.album_id} has no t{n} -> t{n + 1}")
+    ids = [by_n[n]["id"], by_n[n + 1]["id"]]
+    songs = [os.path.join(ROOT, "songs", f"{i}.yaml") for i in ids]
+    work = tempfile.mkdtemp(prefix="chirp-seam-")
+    try:
+        wavs = a.wavs or [os.path.join(work, f"{i}.wav") for i in ids]
+        if not a.wavs:
+            procs = [subprocess.Popen(["nice", "-n", "12", pin, "render", "-f", sg, "--seed", str(a.seed), "-o", w],
+                                      stdout=subprocess.DEVNULL, stderr=subprocess.PIPE) for sg, w in zip(songs, wavs)]
+            for pr, sg in zip(procs, songs):
+                if pr.wait():
+                    raise SystemExit(f"seam: render failed: {sg}: {pr.stderr.read().decode()[-300:]}")
+        tl = song_timeline(pin, songs[0])
+        if not tl:
+            raise SystemExit(f"seam: {songs[0]} does not plan")
+        seams, default = seam_overlaps(a.album_id)
+        bars = a.bars or seams.get((n, n + 1), default)
+        sr = L.SR
+        start, end = seam_start(tl, bars), tl["secs"]
+        bpm_end = tl["bpm"](tl["end_beat"] - 0.01)
+        bar = 4 * 60.0 / bpm_end
+        x, y = L.load(wavs[0]), L.load(wavs[1])
+        i0, i1 = int(start * sr), int(end * sr)
+        ov = i1 - i0
+        out, inn = x[i0:i1], y[:ov]
+        sw = a.swap if a.swap is not None else seam_swaps(a.album_id).get((n, n + 1), "mid")
+        at_bars = bars / 2 if sw in (None, "mid", True) else float(sw)
+        t = np.linspace(0.0, 1.0, ov, endpoint=False, dtype=np.float32)[:, None]
+        variants = {"linear": out * (1 - t) + inn * t,
+                    "swap": bass_swap(out, inn, int(at_bars * bar * sr), int(bar / 4 * sr), sr)}
+        sos = signal.butter(4, SWAP_HZ, "low", fs=sr, output="sos")
+        nb = int(round(ov / (bar * sr)))
+        print(f"{ids[0]} -> {ids[1]}: overlap {bars:g} bars from {start:.2f} s to {end:.2f} s of {ids[0]} "
+              f"({bpm_end:g} bpm at the seam); swap at bar {at_bars:g}")
+
+        def per_bar(v, low):
+            m = signal.sosfilt(sos, v.mean(axis=1)) if low else v.mean(axis=1)
+            return np.array([10 * np.log10(np.mean(m[int(k * bar * sr):int((k + 1) * bar * sr)] ** 2) + 1e-12)
+                             for k in range(nb)])
+        print(f"{'':18}" + "".join(f"{k + 1:>6}" for k in range(nb)) + "   range   std")
+        rows = {}
+        for name, v in [("tail alone", out * 1.0), ("head alone", inn * 1.0)] + list(variants.items()):
+            for low in (True, False):
+                d = per_bar(v, low)
+                rows[(name, low)] = d
+                lab = f"{name} {'sub' if low else 'all'}"
+                print(f"{lab:18}" + "".join(f"{q:6.1f}" for q in d) + f"  {d.max() - d.min():5.1f} {d.std():5.2f}")
+        os.makedirs(a.out, exist_ok=True)
+        ctx = int(8 * bar * sr)
+        for name, v in variants.items():
+            clip = np.concatenate([x[max(0, i0 - ctx):i0], v, y[ov:ov + ctx]])
+            mp3 = os.path.join(a.out, f"{a.album_id}-t{n}-t{n + 1}-{name}.mp3")
+            ff = subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "f32le", "-ar", str(sr), "-ac", "2", "-i", "-",
+                                 "-c:a", "libmp3lame", "-q:a", "2", mp3], input=clip.astype("<f4").tobytes())
+            print(f"{name}: {mp3}" + ("" if ff.returncode == 0 else "  (encode failed)"))
+        if a.json:
+            print(json.dumps({f"{k[0]}|{'sub' if k[1] else 'all'}": [round(float(q), 2) for q in v] for k, v in rows.items()}))
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+
+
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
@@ -780,6 +865,17 @@ def main(argv=None):
     p.add_argument("--overlap-bars", type=float, default=16.0, help="seam overlap when mixplan.md doesn't give one")
     p.add_argument("--swap", nargs="?", const="mid", default=None, type=lambda v: v if v == "mid" else float(v),
                    help="--mix: a DJ bass swap in every overlap, at its midpoint or BAR bars in (mixplan.md's swap column wins)")
+    p = sub.add_parser("seam", help="one seam as the live mix plays it: per-bar levels (linear and the mixer swap), mp3s")
+    p.add_argument("album_id")
+    p.add_argument("n", type=int, help="the seam tN -> tN+1")
+    p.add_argument("--wavs", nargs=2, metavar=("OUT_WAV", "IN_WAV"), help="use these renders instead of rendering")
+    p.add_argument("--bars", type=float, help="overlap bars (default: mixplan.md's, else 16)")
+    p.add_argument("--swap", type=lambda v: v if v == "mid" else float(v), help="swap bar into the overlap (default: "
+                   "mixplan.md's swap cell, else the midpoint)")
+    p.add_argument("--seed", type=int, default=0)
+    p.add_argument("--pin", help="chirp binary (default: tools/groove-pin)")
+    p.add_argument("--out", default="/tmp/chirp-seams", help="where the mp3s go")
+    p.add_argument("--json", action="store_true")
     p = sub.add_parser("seams", help="audit a mixtape's DJ seams: tempo drift across each overlap, dead air at the ends")
     p.add_argument("album_id")
     p.add_argument("--pin", help="chirp binary (default: tools/groove-pin)")
@@ -798,7 +894,7 @@ def main(argv=None):
             known.append(x)
     a = ap.parse_args(known)
     {"new": cmd_new, "name": cmd_name, "title": cmd_title, "art": cmd_art, "status": cmd_status,
-     "refresh": cmd_refresh, "rebaseline": cmd_rebaseline, "release": cmd_release, "seams": cmd_seams}[a.cmd](a, argv)
+     "refresh": cmd_refresh, "rebaseline": cmd_rebaseline, "release": cmd_release, "seams": cmd_seams, "seam": cmd_seam}[a.cmd](a, argv)
 
 
 if __name__ == "__main__":
