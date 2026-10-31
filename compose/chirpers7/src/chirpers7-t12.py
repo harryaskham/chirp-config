@@ -113,7 +113,7 @@ def build():
         for j, m in enumerate(mel):
             gm += [[f'{a0 + 2 * j - 0.02:.2f}b', gm[-1][1]], [f'{a0 + 2 * j:.2f}b', round(m / 12, 4)]]
         st = mel[-1]
-        if n % 2 == 1 or e >= secs['outro']:
+        if (e > secs['A'] and (e - secs['A']) % 64 == 0) or e >= secs['outro']:   # (v16) the silences back on the sixteen-bar phrase ends
             gaps.append(e - 1.0)          # the silent beat only at the sixteen-bar phrase ends; the washes between flow on
         # (v10) the stabs give way under the wash: the hiss takes their place, so nothing centred masks the ghost's band
         T['stab'] = [ev for ev in T['stab'] if not (a0 - 0.5 <= ev[0] < e)]
