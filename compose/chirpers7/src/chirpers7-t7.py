@@ -26,7 +26,9 @@ def nm(m): return f"{NN[m % 12]}{m // 12 - 1}"
 # (v9) a micro-house form, not the tape's template: a long second groove (40) where the
 # clicks and stutters do the work, a shorter last groove (24)
 FORM = [('intro', 16), ('A', 32), ('B', 40), ('break', 16), ('C', 24), ('outro', 16)]
-CH = [(37, [61, 64, 68, 71, 75]), (33, [61, 64, 68, 69]), (40, [61, 64, 68, 71]), (44, [63, 66, 68, 71])]
+# (v10) darker and wonkier (Harry, 31 Oct), and the same colours chirper-two's t8 organ takes over the seam:
+# C#m11 - Amaj7#11 - F#m9 - G#7b9
+CH = [(37, [64, 66, 68, 71, 75]), (33, [61, 63, 64, 68]), (42, [64, 66, 68, 69, 73]), (44, [60, 63, 66, 69])]
 STAIR = [61, 63, 64, 68]                    # C#4 D#4 E4 G#4 (the low tone; the high is an octave up)
 
 def line(events, total):
@@ -96,11 +98,24 @@ def build():
             v = {'intro': min(62, 46 + i), 'A': 64, 'B': 78, 'break': 84, 'C': 80, 'outro': 66 - 2 * max(0, i - 4)}[s]
             # (v3) in the break's second half the hopping doubles to sixteenths - the tone seems to dart between the ears
             fast = s == 'break' and i >= 8
-            n_e, st = (16, 0.25) if fast else (8, 0.5)
-            for e in range(n_e):
-                hi_left = e % 2 == 0
-                T['earL'].append((t0 + e * st, nm(low + 12 if hi_left else low), st - 0.08, v))
-                T['earR'].append((t0 + e * st, nm(low if hi_left else low + 12), st - 0.08, v))
+            # (v10) THE HOP CHANGES SPEED - time-play on the illusion itself: eighths in the first groove, eighth-note
+            # TRIPLETS in the second (three hops against every two beats of the kick), sixteenths in the break's dart, and
+            # dotted eighths in the last groove, a 3/16 cycle that crosses the bar line
+            if fast:
+                times = [e * 0.25 for e in range(16)]
+            elif s == 'B':
+                times = [e / 3 for e in range(12)]
+            elif s == 'C':
+                m0 = int(-(-t0 // 0.75))
+                times = [m * 0.75 - t0 for m in range(m0, m0 + 7) if m * 0.75 - t0 < 4.0]
+            else:
+                times = [e * 0.5 for e in range(8)]
+            for e, at in enumerate(times):
+                nxt = times[e + 1] if e + 1 < len(times) else 4.0
+                d = max(0.08, nxt - at - 0.06)
+                hi_left = (round((t0 + at) / 0.75) if s == 'C' else e) % 2 == 0
+                T['earL'].append((t0 + at, nm(low + 12 if hi_left else low), d, v))
+                T['earR'].append((t0 + at, nm(low if hi_left else low + 12), d, v))
     lv = {'intro': -4, 'A': -1, 'B': 0, 'break': -5, 'C': 0, 'outro': -3}
     dyn = []
     for name, _ in FORM:
@@ -136,8 +151,9 @@ def build():
             tr('sub', 'sub', '-4dB', fx=[{'type': 'phantom', 'cutoff': 90, 'harmonics': '-10dB', 'odd': 0.4},
                                          {'type': 'pump', 'on': 'kit.k', 'depth': '-5dB', 'release': '330ms', 'curve': 0.6}]),
             tr('stab', 'epiano-tine', '-12dB', sends={'hall': '-8dB'}, fx=['hp cutoff=200', 'lp cutoff=4200']),
-            tr('earL', tone, '-20dB', pan=-1.0, sends={'hall': '-16dB'}),
-            tr('earR', tone, '-20dB', pan=1.0, sends={'hall': '-16dB'}),
+            # (v10) the tones come forward 6 dB: the illusion was 7 LU under the mix (chirp-eco's meter)
+            tr('earL', tone, '-14dB', pan=-1.0, sends={'hall': '-16dB'}),
+            tr('earR', tone, '-14dB', pan=1.0, sends={'hall': '-16dB'}),
         ]}
 
 if __name__ == '__main__':
