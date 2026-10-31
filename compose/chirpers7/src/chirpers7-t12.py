@@ -88,7 +88,8 @@ def build():
     # (v9) the washes fall on the form's own seams: halfway through A, into B and halfway through it, every eight bars of
     # the break, into C and halfway through it, and into the outro
     tb = secs['break']
-    ends = sorted({secs['A'] + 64, secs['B'], secs['B'] + 64, tb + 32, tb + 64, secs['C'], secs['C'] + 64, secs['outro']})
+    # (v11, Harry: 'no long stretches without the illusion') a wash every eight bars from A's eighth bar to the outro
+    ends = sorted(set(range(int(secs['A'] + 32), int(secs['outro'] + 1), 32)))
     for n, e in enumerate(ends):
         st = STAIR_ST[n % 4]
         a0 = e - 9.0
@@ -100,7 +101,8 @@ def build():
         for j, m in enumerate(mel):
             gm += [[f'{a0 + 2 * j - 0.02:.2f}b', gm[-1][1]], [f'{a0 + 2 * j:.2f}b', round(m / 12, 4)]]
         st = mel[-1]
-        gaps.append(e - 1.0)
+        if n % 2 == 1 or e >= secs['outro']:
+            gaps.append(e - 1.0)          # the silent beat only at the sixteen-bar phrase ends; the washes between flow on
         # (v10) the stabs give way under the wash: the hiss takes their place, so nothing centred masks the ghost's band
         T['stab'] = [ev for ev in T['stab'] if not (a0 - 0.5 <= ev[0] < e)]
         # (v3) THE THROW: under each wash the echo's feedback climbs toward self-oscillation, the dub engineer's hand on the
@@ -108,7 +110,8 @@ def build():
         fbl += [[f'{a0:.2f}b', 0], [f'{e - 1.05:.2f}b', 0.33], [f'{e - 1.0:.2f}b', -0.5], [f'{e + 0.5:.2f}b', -0.5], [f'{e + 0.55:.2f}b', 0]]
         thr += [[f'{a0:.2f}b', 0], [f'{e - 1.05:.2f}b', 10], [f'{e - 1.0:.2f}b', -40], [f'{e + 0.5:.2f}b', -40], [f'{e + 0.55:.2f}b', 0]]
         # in C the Rhodes plays the ghost's note out loud on the downbeat after the silence
-        if secs['C'] <= e < secs['outro']:
+        # (v11) the speakers get the illusion too: from B on, the Rhodes answers every wash with the ghost's melody, played
+        if secs['B'] <= e < secs['outro']:
             # (v8, chirper-zero's note) the room hears what the headphones heard: after the silence the Rhodes answers with the
             # ghost's whole melody, played, an octave below it, two beats a step into the echo - then the ghost's last note on top
             for j, m in enumerate(mel):
