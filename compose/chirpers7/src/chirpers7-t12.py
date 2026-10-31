@@ -29,7 +29,8 @@ def nm(m): return f"{NN[m % 12]}{m // 12 - 1}"
 # (v9) a dub form, not the tape's template: a shorter first groove and a long, deep 24-bar break where the washes sing
 # alone three times - dub lives in its drop-outs
 FORM = [('intro', 16), ('A', 24), ('B', 32), ('break', 24), ('C', 32), ('outro', 16)]
-CH = [(34, [61, 65, 68, 72]), (30, [61, 65, 66, 70]), (39, [61, 63, 66, 70]), (41, [60, 63, 65, 68])]
+# (v12) darker, wonkier (Harry, 31 Oct): Bbm9 - Gbmaj7#11 - Ebm9 - F7b9
+CH = [(34, [61, 65, 68, 72]), (30, [61, 65, 66, 70, 72]), (39, [61, 63, 66, 70]), (41, [57, 60, 63, 66])]
 STAIR_ST = [0, 2, 3, 7]                       # Bb C Db F, semitones above Bb
 GHOST_HZ = 932.33                             # Bb5: the ghost's home (the allpass's centre)
 
