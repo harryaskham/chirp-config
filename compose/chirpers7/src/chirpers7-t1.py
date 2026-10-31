@@ -47,6 +47,12 @@ R4 = os.environ.get("T1_R4", "rim")
 # the break: from half notes it accelerates smoothly to sixteenths over the sixteen bars (each step a little sooner,
 # 2 * 0.125^(p/64) beats) while the pad holds - a Risset-like rush before B. T1_R5=none reproduces v4.
 R5 = os.environ.get("T1_R5", "dark")
+# T1_R6 = spiral (v6, wM's time-play part 1): through the break, as the Shepard stair runs, a plucked
+# arp of the stair (A B C E in two octaves, sixteenths) becomes a SHEPARD-RISSET SPIRAL - `risset: {pitch: true}`: four
+# copies an octave of pitch AND tempo apart, so it climbs and speeds up together for ever - into B1. Harry: "risers
+# and staircases v good here". T1_R6=none reproduces v5.
+R6 = os.environ.get("T1_R6", "spiral")
+SPIRAL = "A3/0.25b@80 B3/0.25b@70 C4/0.25b@72 E4/0.25b@76 A4/0.25b@72 B4/0.25b@66 C5/0.25b@68 E5/0.25b@64"
 DARK5 = {"F": (-4, [53, 57, 59, 64]),       # Fmaj7#11: F3 A3 B3 E4 over F
          "Dm": (-7, [53, 55, 60, 64]),      # Dm11: F3 G3 C4 E4 over D
          "E": (-5, [56, 59, 62, 65]),       # E7b9: G#3 B3 D4 F4 over E
@@ -262,7 +268,11 @@ def main():
          "fx": ["hp cutoff=300", {"type": "delay", "time": "3/8", "feedback": 0.4, "mix": 0.35, "tone": 2500},
                 "reverb kind=hall decay=4s mix=0.5"], "score": T["voice"].score(total)},
         {"name": "rise", "patch": "c2-rise", "gain": "-20dB", "fx": ["width width=1.5"], "score": T["rise"].score(total)},
-    ]
+    ] + ([{"name": "spiral", "patch": "pluck", "gain": "-12dB", "at": f"{st['break']:g}b",
+           "risset": {"cycle": "4bar", "layers": 4, "length": "16bar", "pitch": True},
+           "sends": {"room": "-8dB"}, "fx": ["hp cutoff=180", "width width=1.6",
+                                             "reverb kind=hall decay=2.2s mix=0.25"], "score": SPIRAL}]
+         if R6 == "spiral" else [])
     buses = {"room": {"gain": "-5dB",
                       "fx": ["hp cutoff=250", "lp cutoff=2400",
                              {"type": "tape", "drive": 0.35, "warmth": 0.6, "wow": 3, "flutter": 1, "seed": 7},

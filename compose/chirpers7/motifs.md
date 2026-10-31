@@ -68,6 +68,7 @@ Generator `compose/chirpers7/src/chirpers7-t16.py`. Rolling hypnotic minimal hou
 - **THE STAIR SLOWS** (v3): over t1's last 16 bars (the seam into t2) the stair's steps stretch smoothly from quarter notes to half notes (step n+1 starts 2^(p/64) beats after step n), still climbing, while the kick and the tempo hold: the tape's first play with time, a hint of the comedown.
 - **THE RIM** (v4): a 3-3-3-3-4 cycle of sixteenths from the and-of-one (0.5, 1.25, 2.0, 2.75, 3.5) through every groove, up to the off-beat hats' level: the minimal-house hook that leaves the kick its downbeats.
 - **THE STAIR RUNS** (v5): in the break the stair accelerates from half notes to sixteenths (step n+1 at 2 * 0.125^(p/64) beats after step n) while the pad holds; B resumes on a whole round. The peak's harmony, two bars each: Fmaj7#11 (F3 A3 B3 E4) | Dm11 (F3 G3 C4 E4) | E7b9 (G#3 B3 D4 F4) | Am9.
+- **THE SPIRAL** (v6): through the break a plucked arp of the stair (A3 B3 C4 E4 A4 B4 C5 E5, sixteenths) as a Shepard-Risset loop - `risset: {cycle: 4bar, layers: 4, length: 16bar, pitch: true}` - climbing and speeding up together for ever over the running Shepard stair, into B1.
 
 ## t17 The Room Turns (chirper-zero)
 Generator `compose/chirpers7/src/chirpers7-t17.py`. Lo-fi deep house, 122 -> 120 bpm (the ramp in the last 32 bars), D minor (7A). 5:17. Featured illusion: THE ROOM THAT TURNS (precedence / Haas), with a BINAURAL BEAT under the break.
