@@ -38,6 +38,11 @@ MIDS = os.environ.get("C7T18_MIDS", "1") == "1"  # the seam-in meets t17's tail 
 MIDBARS = int(os.environ.get("C7T18_MIDBARS", "8"))  # how many seam bars carry the rims
 HOMERIM = os.environ.get("C7T18_HOMERIM", "0") == "1"  # home (A minor) keeps the seam's rims: the 16th before each beat's end (3 7 11 15), soft - the comedown's tick
 A2OPEN = os.environ.get("C7T18_A2OPEN", "0") == "1"  # A2 lifts: every off-beat hat open (with the clap's arrival), so A's second half is a section of its own
+SPEC = os.environ.get("C7T18_SPEC", "0") == "1"
+SPEC2 = os.environ.get("C7T18_SPEC2", "0") == "1"
+SPEC3 = os.environ.get("C7T18_SPEC3", "1") == "1"  # only the 3.1 kHz hole filled (+4 dB): the air shelf brightened the closer past the album (cohesion 90)  # only the master's holes filled (3.1 kHz +4, air above 11 kHz +4); the glass pad left whole (it marks the sections)  # the glass pad's two loudest chord tones notched (341 Hz -3, 467 Hz -5 dB) and the master's holes filled (3.1 kHz +4, air above 11 kHz +4)
+HOME2 = os.environ.get("C7T18_HOME2", "0") == "1"  # home's second half settles: the clap and the sixteenth shaker leave, the stair slows to half-bar steps - the comedown begins before the outro
+END2 = os.environ.get("C7T18_END2", "1") == "1"  # chirper-one's note: the stair ends on its 2 (B), held, without the 1 - the loop back into The First Step finishes the phrase
 RIM3 = os.environ.get("C7T18_RIM3", "1") == "1"
 FORM2 = os.environ.get("C7T18_FORM2", "1") == "1"  # B splits (B2: the stair doubled an octave up, the hats open, no clap) and the outro is the falling floor: the kick leaves at its first bar, the falling Shepard chords return in A minor under the decelerando  # a soft rim on every third 16th in the grooves (a dotted-eighth cycle across the bar lines): the stair's echo in the kit
 
@@ -134,7 +139,7 @@ def build():
             if not (sec == "break" and b < 12) and not (last and b >= 24) and not (OUTRO and sec == "outro"):
                 for q in (2, 6, 10, 14):
                     add("hats", at + q, "oh" if ((sec == "home" and q in (6, 14)) or (FORM2 and sec == "B" and b >= 16) or (A2OPEN and sec == "A" and b >= 16)) else "h", 1, 66)
-                if sec in ("A", "B", "home"):
+                if sec in ("A", "B", "home") and not (HOME2 and sec == "home" and b >= 16):
                     for q in (1, 3, 5, 7, 9, 11, 13, 15):
                         add("hats", at + q, "h", 1, 38)
             if RIM3 and sec in ("A", "B", "home"):
@@ -145,7 +150,7 @@ def build():
             if HOMERIM and sec == "home":
                 for q in (3, 7, 11, 15):
                     add("clap", at + q, "rs", 1, 60 if q in (3, 11) else 50)
-            if (sec == "A" and b >= 16) or (sec == "B" and not (FORM2 and b >= 16)) or sec == "home":
+            if (sec == "A" and b >= 16) or (sec == "B" and not (FORM2 and b >= 16)) or (sec == "home" and not (HOME2 and b >= 16)):
                 add("clap", at + 4, "cp", 1, 84)
                 add("clap", at + 12, "cp", 1, 88)
             # sub: the held D under the seam, the roots elsewhere (none in the break), a held A at the very end
@@ -168,7 +173,7 @@ def build():
                 add("pads", at, ",".join(nm(n + 12) for n in CHA[0][1]), 4 * BAR, 72)
             # THE STAIR COMES DOWN: a step a beat in the grooves, a step a half-bar in the break and the outro's end
             if not seam_in and not (sec == "intro" and b < 24):
-                per = 8 if (sec == "break" or last) else 4
+                per = 8 if (sec == "break" or last or (HOME2 and sec == "home" and b >= 16)) else 4
                 for q in range(0, 16, per):
                     n = stair[step_i % 4]
                     vel = 88 if step_i % 4 == 0 else 76
@@ -185,6 +190,10 @@ def build():
                 add("fall", at, ",".join(nm(n) for n in CHA[0][1]), 8 * BAR, 72)
             if sec == "break" and b % 8 == 0:
                 add("fall", at, ",".join(nm(n) for n in v), 8 * BAR, 76)
+    if END2 and ev["stair"] and ev["stair"][-1][1] == STAIR_A[3]:
+        a_at, _, a_ln, _ = ev["stair"].pop()
+        p_at, p_h, p_ln, p_v = ev["stair"].pop()
+        ev["stair"].append((p_at, p_h, p_ln + a_ln, p_v))
     if HEAD:
         ev["kickh"] = [e for e in ev["kick"] if e[0] < 16 * BAR]
         ev["kick"] = [e for e in ev["kick"] if e[0] >= 16 * BAR]
@@ -241,7 +250,7 @@ def song():
         "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=30", f"peak cutoff=50 q=1 gain={-10 if EQ2 else -7}dB", "peak cutoff=110 q=1 gain=3dB", "peak cutoff=320 q=0.8 gain=-3dB",
                                                    *(["peak cutoff=160 q=1.2 gain=-3dB", "peak cutoff=550 q=1 gain=-3dB"] if EQ3 else []),
                                                    "peak cutoff=1000 q=0.7 gain=-3dB", "peak cutoff=1400 q=1.2 gain=-4dB", "highshelf cutoff=4500 gain=9dB",
-                                                   f"highshelf cutoff=9000 gain={8 if EQ2 else (7 if EQ3 else 5)}dB"]},
+                                                   f"highshelf cutoff=9000 gain={8 if EQ2 else (7 if EQ3 else 5)}dB", *(["peak cutoff=3100 q=1.5 gain=4dB", "highshelf cutoff=11000 gain=4dB"] if (SPEC or SPEC2) else []), *(["peak cutoff=3100 q=1.5 gain=4dB"] if (SPEC3 and not (SPEC or SPEC2)) else [])]},
                           {"type": "compressor", "threshold": "-20dB", "ratio": 2.5, "attack": "15ms", "release": "150ms", "makeup": "0dB"},
                           {"type": "gain", "gain": f"+{MGAIN:g}dB"},
                           {"type": "compressor", "threshold": f"{FCOMP.split(',')[0]}dB", "ratio": 8, "attack": FCOMP.split(',')[1], "release": "60ms", "makeup": "0dB"},
@@ -261,7 +270,7 @@ def song():
             {"name": "clap", "patch": "machine-kit", "gain": "-10dB", "sends": {"hall": "-10dB"}, "score": T["clap"]},
             {"name": "sub", "patch": "sub", "gain": "-14dB", "fx": [pump, {"type": "phantom", "cutoff": 100, "harmonics": "-6dB"}], "score": T["sub"]},
             *([{"name": "subh", "patch": "sub", "gain": "-14dB", "score": T["subh"]}] if "s" in HEAD else []),
-            {"name": "pads", "patch": "pad" if PADP else "pad-glass", "gain": ("-17dB" if PADP == "pad" else f"{PADG}dB"), "fx": [pump, *([{"type": "filter", "kind": "lp", "cutoff": 4000, "q": 0.7}] if PADP == "padlp" else [])], "sends": {"hall": "-6dB"}, "score": T["pads"]},
+            {"name": "pads", "patch": "pad" if PADP else "pad-glass", "gain": ("-17dB" if PADP == "pad" else f"{PADG}dB"), "fx": [pump, *([{"type": "filter", "kind": "lp", "cutoff": 4000, "q": 0.7}] if PADP == "padlp" else []), *([{"type": "eq", "bands": ["peak cutoff=341 q=2 gain=-3dB", "peak cutoff=467 q=2 gain=-5dB"]}] if SPEC else [])], "sends": {"hall": "-6dB"}, "score": T["pads"]},
             {"name": "stair", "patch": "stair-down", "gain": "-12dB", "sends": {"echo": "-8dB", "hall": "-8dB"}, "score": T["stair"]},
             *([{"name": "stair2", "patch": "stair-down", "gain": "-16dB", "transpose": 12, "pan": 0.3, "sends": {"echo": "-6dB"}, "score": T["stair2"]}] if FORM2 else []),
             {"name": "fall", "patch": "fall-pad", "gain": "-12dB", "sends": {"hall": "-4dB"}, "score": T["fall"]},

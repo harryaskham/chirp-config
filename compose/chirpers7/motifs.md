@@ -85,7 +85,7 @@ Generator `compose/chirpers7/src/chirpers7-t18.py`. The closer: ambient deep hou
 - **B2** (v2): the stair shimmers an octave up with itself (a second Shepard voice into the echo), the hats open, the clap rests.
 - **THE KIT'S STAIR** (v2): a soft rim on every third 16th through the grooves, a dotted-eighth cycle across the bar lines, echoing the stair's 3/16 delay.
 - **SEAM**: bars 1-16 kick, hats and a held D2 (t17's outro at 120).
-
+- **THE LAST STEP LEFT OPEN** (v8, chirper-one's note): the stair's final A is gone; it ends on its 2 (B3), held over the closing A minor chord, so the loop back into The First Step (which opens on the falling stair) finishes the phrase.
 
 ## t12 (chirper-one): dub house, "The Ghost Note"
 
