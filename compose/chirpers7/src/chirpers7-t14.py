@@ -34,6 +34,7 @@ SCALEG = os.environ.get("C7T14_SCALEG", "-9")
 RISER = os.environ.get("C7T14_RISER", "1") == "1"  # a Shepard STAIR ACCELERANDO into B: the stair (F G Ab C) on Shepard tones, half notes speeding to sixteenths over the break's last eight bars (speaker-safe, where the dichotic scales are not)
 ANTIC = os.environ.get("C7T14_ANTIC", "1") == "1"  # the organ stabs anticipate: on the a-of-1 and the a-of-3 (16ths 3 and 11), jackin' pushes
 
+ERISER = os.environ.get("C7T14_ERISER", "-10")  # wM's endless Shepard riser (fx-riser-endless) over the 8 bars into B: pitch, noise and filter rising for ever, stopping dead on the drop (Harry: 'risers and staircases v good'); level in dB
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 FORM = [("intro", 32), ("A", 32), ("break", 16), ("B", 48), ("outro", 32)]
 CH = [(29, [56, 60, 63, 67]),   # Fm9: Ab3 C4 Eb4 G4 over F
@@ -231,6 +232,7 @@ def song():
             "hall": {"fx": ["reverb kind=hall decay=3s mix=1 predelay=25ms", "lp cutoff=7000"]},
         },
         "tracks": [
+            *([{"name": "eriser", "patch": "fx-riser-endless amp.a=32b", "gain": f"{ERISER}dB", "score": f"R/{sec_start('B') // 4 - 32}b F4/32b@100"}] if ERISER else []),
             {"name": "kick", "patch": "machine-kit", "gain": "-3dB", "score": T["kick"]},
             {"name": "hats", "patch": "machine-kit", "gain": "-3dB", "pan": 0.1, "lfo": {"hh": "sine rate=5/1"},
              "fx": [{"type": "filter", "kind": "hp", "cutoff": {"value": 3500, "mod": [{"src": "lfo.hh", "amount": 0.5}]}, "q": 0.7}],
