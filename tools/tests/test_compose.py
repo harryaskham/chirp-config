@@ -228,6 +228,28 @@ class SeamTempo(unittest.TestCase):
         self.assertGreater(1000 * (a[-1] - b[-1]), 50)               # 16 bars gliding 122 -> 123 under 123: ~60 ms
 
 
+class RingFeedback(unittest.TestCase):
+    IDS = {"alb-t1", "alb-t2", "alb-t3"}
+
+    def status(self, label, pos, cur):
+        return {"label": label, "position": pos,
+                "playlist": {"current": cur, "entries": [{"label": i} for i in ("alb-t1", "alb-t2", "alb-t3")]}}
+
+    def test_feedback_lands_on_the_track_that_was_playing_lag_seconds_ago(self):
+        self.assertEqual(RT.resolve_at(self.status("alb-t2", 200.0, 1), self.IDS, 45), ("alb-t2", 155.0, "playing"))
+
+    def test_a_lag_past_the_tracks_start_goes_to_the_one_before(self):
+        # 20 s into t2 (or 20 s into a DJ seam), 45 s ago t1 was ending or blending out
+        self.assertEqual(RT.resolve_at(self.status("alb-t2", 20.0, 1), self.IDS, 45), ("alb-t1", None, "previous"))
+        self.assertEqual(RT.resolve_at(self.status("alb-t1", 20.0, 0), self.IDS, 45), ("alb-t3", None, "previous"))
+
+    def test_a_queued_song_or_unknown_playlist_falls_back_to_the_current_track(self):
+        st = {"label": "alb-t3", "position": 10.0, "playlist": {"current": None, "entries": []}}
+        self.assertEqual(RT.resolve_at(st, self.IDS, 45), ("alb-t3", 0.0, "playing"))
+        with self.assertRaises(SystemExit):
+            RT.resolve_at({"label": "C4/1", "position": 5.0}, self.IDS, 45)
+
+
 class IllusionPresence(unittest.TestCase):
     def test_a_buried_half_and_a_present_half(self):
         sr, n = 48000, 48000 * 40

@@ -4,6 +4,9 @@
   rate.py ID SCORE [--note TEXT] [--who NAME]     a 0-10 rating (decimals fine) of the song's current version
   rate.py now SCORE [--note TEXT]                 rate whatever the groove is playing right now
   rate.py note ID TEXT                            a note without a rating
+  rate.py feedback [--lag S] [--at ISO] [TEXT]    a note on whatever the groove was playing S seconds ago (default 45;
+                                                  TEXT or stdin): Harry's spoken feedback from the Pebble ring, which
+                                                  reaches here ~30-60 s after he says it
   rate.py list [ID | ALBUM_ID]                    the ratings and notes so far
 
 Ratings go to compose/ALBUM/ratings.jsonl (committed), stamped with the song's current best version. compscore's
@@ -97,6 +100,62 @@ def record(cid, score, note, who, argv):
     return e
 
 
+def resolve_at(status, ids, back):
+    """(climb id, seconds into it or None, how) for the track the groove was playing BACK seconds before STATUS. Still
+    the current track when its position covers BACK; otherwise the playlist entry before it (which was ending, or
+    blending out under a DJ-mix seam, back then); else the current track."""
+    pos = float(status.get("position") or 0.0)
+    try:
+        cur = resolve_now(status, ids)
+    except SystemExit:
+        cur = None
+    if cur and back <= pos:
+        return cur, pos - back, "playing"
+    pl = status.get("playlist") or {}
+    entries, ci = pl.get("entries") or [], pl.get("current")
+    if isinstance(ci, int) and 0 <= ci < len(entries) and len(entries) > 1:
+        prev = entries[(ci - 1) % len(entries)].get("label")
+        if prev in ids and entries[ci].get("label") == cur:
+            return prev, None, "previous"
+    if cur:
+        return cur, max(0.0, pos - back), "playing"
+    raise SystemExit("rate: the groove is not playing a climb; note it by id: rate.py note ID TEXT")
+
+
+def groove_status():
+    groove = os.path.join(os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}"), "chirp-groove")
+    r = subprocess.run([groove, "--json", "live", "status"], capture_output=True, text=True, timeout=10)
+    return json.loads(r.stdout).get("data") or {}
+
+
+def feedback(argv):
+    """rate.py feedback: a note on the track that was playing --lag seconds ago (or at --at)."""
+    import datetime
+    ap = argparse.ArgumentParser(prog="rate.py feedback")
+    ap.add_argument("text", nargs="*")
+    ap.add_argument("--lag", type=float, default=45.0, help="seconds between hearing it and this command (default 45)")
+    ap.add_argument("--at", help="when it was heard (ISO 8601; overrides --lag)")
+    ap.add_argument("--who", default="harry")
+    ap.add_argument("--via", default="", help="where it came from (e.g. pebble), noted with it")
+    ap.add_argument("--dry-run", action="store_true")
+    a = ap.parse_args(argv)
+    text = " ".join(a.text).strip() or (sys.stdin.read().strip() if not sys.stdin.isatty() else "")
+    if not text:
+        raise SystemExit("rate: no feedback text (args or stdin)")
+    back = a.lag
+    if a.at:
+        heard = datetime.datetime.fromisoformat(a.at.replace("Z", "+00:00"))
+        back = max(0.0, (datetime.datetime.now(datetime.timezone.utc) - heard).total_seconds())
+    cid, at, how = resolve_at(groove_status(), {c["id"] for c in C.load()["climbs"]}, back)
+    where = f"~{int(at // 60)}:{int(at % 60):02d} in" if at is not None else "as it ended / blended into the next"
+    note = f"{text} ({'via ' + a.via + ', ' if a.via else ''}{where})"
+    if a.dry_run:
+        print(f"{cid}: would note ({a.who}, {how}): {note}")
+        return
+    e = record(cid, None, note, a.who, [])
+    print(f"{e['id']} ({e.get('version') or '-'}): note recorded ({e['who']}): {note}")
+
+
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
     clean, skip = [], False
@@ -123,6 +182,9 @@ def main(argv=None):
                     if target in (None, aid, r["id"]):
                         print(f"{r['at'][:16]} {r['id']:14s} {r['who']:12s} {r.get('version') or '-':5s} "
                               f"{r.get('score', '  ')!s:>4} {r.get('note', '')}")
+        return
+    if clean and clean[0] == "feedback":
+        feedback(clean[1:])
         return
     if clean and clean[0] == "note":
         if len(clean) < 3:
