@@ -37,6 +37,9 @@ SEC2K = os.environ.get("C7T17_SEC2K", "0") == "1"  # the outro's first half with
 EQ5 = os.environ.get("C7T17_EQ5", "")  # "a": 45 Hz -5 dB (the lowest octave read 6-8 dB over the album); "b": also +3 dB air above 9 kHz
 KEYSF = os.environ.get("C7T17_KEYSF", "2")  # "1": the Rhodes high-passed at 220 Hz (its low chord tones piled 155-300 Hz 8-10 dB over the album); "2": also its low-pass opened 1800 -> 2600 Hz (1.6-2 kHz read 5 dB under)
 MIDS = os.environ.get("C7T17_MIDS", "1") == "1"  # the seam-in meets t16's tail: soft rims on the last 16th of each beat (3 7 11 15) under the first eight bars, the held D2 softer (t17's head read 17-21 dB heavier at 44-71 Hz than t16's last seconds)
+SEAMTICK = os.environ.get("C7T17_SEAMTICK", "1") == "1"
+TICKG = os.environ.get("C7T17_TICKG", "-6")
+TICKOUT = os.environ.get("C7T17_TICKOUT", "1") == "1"  # the tick under the seam out as well (t18's head read 7-10 dB brighter above 9 kHz than t17's tail)  # the seam-in's air: a crisp machine-kit 16th tick under the first 16 bars (t17's head read 6-15 dB darker than Never Arrives' tail above 5 kHz)
 TAILS = os.environ.get("C7T17_TAIL", "0.1s")  # the render tail: 0.3 s leaves no dead air in the last seconds a DJ mixes out of
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
@@ -129,6 +132,9 @@ def build():
                 for q in (4, 12):
                     add("clap", at + q, "cp,sn" if (sec == "B" and b >= 20) else "cp", 1, 92)
             # a crisp 16th tick under the dusty kit in the grooves (the lo-fi hats alone are too soft to articulate the 16ths)
+            if SEAMTICK and (seam_in or (TICKOUT and seam_out)):
+                for q in range(16):
+                    add("tick", at + q, "h", 1, 62 if q % 4 == 2 else (50 if q % 2 else 40))
             if TICK and sec in ("A", "B"):
                 for q in range(16):
                     add("tick", at + q, "h", 1, 62 if q % 4 == 2 else (50 if q % 2 else 40))
@@ -247,8 +253,8 @@ def song():
                     {"type": "filter", "kind": "lp", "cutoff": {"value": 2600 if KEYSF == "2" else 1800, "mod": [{"src": "lfo.k", "amount": 0.8}]}, "q": 0.9}],
              "sends": {"hall": "-10dB"}, "score": "swing16=0.6 " + T["keys"]},
             {"name": "stair", "patch": "rhodes", "gain": "-10dB", "pan": 0.2, "sends": {"hall": "-6dB"}, "score": T["stair"]},
-            *([{"name": "tick", "patch": "machine-kit", "gain": "-14dB", "pan": -0.15, "fx": [{"type": "filter", "kind": "hp", "cutoff": 5000, "q": 0.7}],
-             "score": "swing16=0.6 " + T["tick"]}] if TICK else []),
+            *([{"name": "tick", "patch": "machine-kit", "gain": f"{TICKG}dB", "pan": -0.15, "fx": [{"type": "filter", "kind": "hp", "cutoff": 5000, "q": 0.7}],
+             "score": "swing16=0.6 " + T["tick"]}] if (TICK or SEAMTICK) else []),
             {"name": "dust", "patch": "vinyl", "gain": "-22dB", "score": T["dust"]},
             {"name": "binl", "patch": "bin-l", "gain": "-30dB", "pan": -1, "score": T["binl"]},
             {"name": "binr", "patch": "bin-r", "gain": "-30dB", "pan": 1, "score": T["binr"]},
