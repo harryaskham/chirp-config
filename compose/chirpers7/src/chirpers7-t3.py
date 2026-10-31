@@ -61,7 +61,7 @@ def build():
         for i in range(n):
             bars.append({'sec': name, 'i': i, 't': t}); t += 4.0
     total = t
-    T = {k: [] for k in ('kit', 'kthin', 'sub', 'bass', 'keys', 'pad', 'speech', 'sung', 'stair')}
+    T = {k: [] for k in ('kit', 'kthin', 'sub', 'bass', 'keys', 'pad', 'speech', 'sung', 'stair', 'toms')}
     n_rep = 0
     for k, b in enumerate(bars):
         s, t0, i = b['sec'], b['t'], b['i']
@@ -81,7 +81,8 @@ def build():
                 T['kthin' if (s == 'intro' and i < 8) else 'kit'].append((t0 + q, 'k', 0.25, (118 if q == 0 else 110)))
                 T['kit'].append((t0 + q + 0.5, 'oh' if (full or i >= 8) else 'h', 0.25, 84))
                 for x in (0.25, 0.75):
-                    T['kit'].append((t0 + q + x + 0.02, 'h', 0.25, 64 + (10 if x == 0.75 else 0)))
+                    # (v15) wonkier (Harry): the 'a' sixteenths swing late in the grooves (about 57%)
+                    T['kit'].append((t0 + q + x + (0.05 if (x == 0.75 and full) else 0.02), 'h', 0.25, 64 + (10 if x == 0.75 else 0)))
             if full or (s == 'outro' and i < 8):
                 T['kit'].append((t0 + 1.0, 'cp', 0.25, 96)); T['kit'].append((t0 + 3.0, 'cp', 0.25, 100))
             if s in ('B', 'C') and i % 2 == 1:
@@ -91,6 +92,15 @@ def build():
                 for q in range(4):
                     T['kit'].append((t0 + q + 0.5, 'rd', 0.25, 66))
                 T['kit'].append((t0 + 1.75 + 0.02, 'cb', 0.25, 52))
+        # (v15) TIME-PLAY in the drums: low and mid toms on a SEVEN-sixteenth cycle through the grooves, never reset, so
+        # the figure slides against the bar and comes round to the one only every seven bars
+        if s in ('A', 'B', 'C'):
+            base = 64.0
+            m0 = int(-(-(t0 - base) // 1.75))
+            for m in range(m0, m0 + 4):
+                at = base + m * 1.75
+                if t0 <= at < t0 + 4.0:
+                    T['toms'].append((at, 'lt' if m % 2 == 0 else 'mt', 0.25, 62 + (10 if m % 4 == 0 else 0)))
         # bass: the root on the one, an octave answer on the and-of-2 and the four's offbeat
         if s == 'intro' and i >= 8:
             T['sub'].append((t0, nm(CH[0][0]), 3.6, 92))     # the swap's other half: the E sub with the full kick at bar 9
@@ -181,6 +191,7 @@ def build():
             {'name': 'riser', 'patch': 'fx-riser-endless amp.a=32b', 'gain': '-14dB',
              'score': f'R/{(secs['break'] - 32):.4f}b E4/32b@80'},
             tr('kit', 'machine-kit', '-4dB', sends={'hall': '-18dB'}),
+            tr('toms', 'machine-kit', '-10dB', pan=0.3, sends={'hall': '-12dB'}),
             tr('kthin', 'machine-kit', '-3dB', fx=['hp cutoff=110']),
             tr('sub', 'sub', '-6dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-5dB', 'release': '330ms', 'curve': 0.6}]),
             tr('bass', 'bass', '-10dB', fx=['lp cutoff=1200', {'type': 'pump', 'on': 'kit.k', 'depth': '-5dB', 'release': '330ms', 'curve': 0.6}]),
