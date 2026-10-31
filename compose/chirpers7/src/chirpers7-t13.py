@@ -59,7 +59,12 @@ def build():
                 # (v3) the drums build by section: A closed hats and a clap on four; B opens the hats, claps on two
                 # and four and a ride; C the hard kick on top
                 T['kit'].append((t0 + q + 0.5, 'oh' if s in ('B', 'C') else 'h', 0.25, 82))
-                T['kit'].append((t0 + q + 0.75, 'h', 0.25, 60))
+                if not (s == 'intro' and i < 8):
+                    T['kit'].append((t0 + q + 0.75, 'h', 0.25, 60))
+                # (v5) the peak gets busier: a sixteenth shaker under C, so the plateau's density climbs too
+                if s == 'C':
+                    for x in (0.25, 0.75):
+                        T['kit'].append((t0 + q + x + 0.01, 'h', 0.25, 44))
                 if s in ('B', 'C'):
                     T['kit'].append((t0 + q + 0.25, 'rd', 0.25, 54))
             if s == 'A':
@@ -113,11 +118,11 @@ def build():
         'tracks': [
             tr('kit', 'machine-kit', '-4dB', sends={'hall': '-20dB'}),
             tr('sub', 'sub', '-8dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '320ms', 'curve': 0.6}]),
-            tr('bass', 'bass', '-8dB', fx=[{'type': 'drive', 'drive': 0.35, 'mix': 0.5}, 'lp cutoff=1600',
+            tr('bass', 'bass', '-9dB', fx=[{'type': 'drive', 'drive': 0.35, 'mix': 0.5}, 'lp cutoff=1600', 'peak cutoff=300 q=0.8 gain=-4dB',
                                            {'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '320ms', 'curve': 0.6}]),
-            tr('stab', 'epiano-tine', '-10dB', sends={'hall': '-10dB'}, fx=['lp cutoff=3500']),
+            tr('stab', 'epiano-tine', '-10dB', sends={'hall': '-10dB'}, fx=['hp cutoff=220', 'lp cutoff=4500']),
             tr('pad', 'juno-pad', '-12dB', sends={'hall': '-8dB'},
-               fx=[{'type': 'filter', 'kind': 'lp', 'q': 0.8, 'cutoff': {'value': 600, 'mod': [{'src': 'auto.op', 'amount': 3.0}]}}],
+               fx=['hp cutoff=180', {'type': 'filter', 'kind': 'lp', 'q': 0.8, 'cutoff': {'value': 600, 'mod': [{'src': 'auto.op', 'amount': 3.0}]}}],
                auto={'op': {'points': padop}}),
             risset(start_A + 8, 24), risset(int(secs['B'] // 4), 32), risset(int(secs['break'] // 4), 16), risset(int(secs['C'] // 4), 32),
         ]}
