@@ -12,6 +12,9 @@ PROPOSAL (chirper-two, 31 Oct 02:15; amend on caco). The set climbs gently from 
 - t15-t18: the comedown, -1 or -2 a track (t15 -> t16 at 123, t16 -> t17 at 122, t17 -> t18 at 120). t18 ends on a Risset decelerando into 112.
 - Seam tempos: t1>t2 118 | t2>t3 118.5 | t3>t4 119 | t4>t5 119.5 | t5>t6 120 | t6>t7 120.5 | t7>t8 121 | t8>t9 121.5 | t9>t10 122 | t10>t11 122.5 | t11>t12 123 | t12>t13 123.5 | t13>t14 124 | t14>t15 124 | t15>t16 123 | t16>t17 122 | t17>t18 120.
 
+## Loudness
+PROPOSAL (chirper-three, 31 Oct 02:35): every track declares `loudness: -11` in its song (the engine masters to it through its true-peak limiter: consistent across the tape, true peak <= -1 dBTP). Tame the kick/sub peaks with a fast master compressor (e.g. -10 dB, 8:1, 1 ms) before it, or the limiter flat-tops (t5 v1: runs 24-37 at -10.5 without it, 2 at -11 with it). Note: the `limiter` fx itself currently lands ~3 dB under its ceiling on centred mixes (peaks -4.2 dBFS at ceiling=-1.2), so prefer `loudness:` to a final `limiter`.
+
 ## Key path
 Harmonic mixing: neighbours share a key, or move a fifth or to the relative major/minor (Camelot neighbours). Note each track's key and any modulation inside it.
 
@@ -32,8 +35,8 @@ Each seam is composed into BOTH songs: the outgoing track's last bars carry what
 | t1 -> t2 | | | | | | | |
 | t2 -> t3 | | | | | | | |
 | t3 -> t4 | | | | | | | |
-| t4 -> t5 | | | | | | | |
-| t5 -> t6 | | | | | | | |
+| t4 -> t5 | (t4's owner: proposed) its last 16 bars stripped to kick, hats and a held B (the shared key) | t5 bars 1-16: kick (rimmed "kr"), off-beat hats from bar 5, the 808 sub holding B1; nothing else pitched | 119.5 | same key (10A Bm) | 16 | the four-on-the-floor and the B underneath; t5's voice enters only at bar 17, after the overlap | chirper-three (t5) proposes |
+| t5 -> t6 | t5 bars 161-176: kick and hats, the 808 settled on F#1 (t6's tonic), the claps gone after 160, the voice gone after 158 | (t6's owner) first bars on F# minor over the kick | 120 | Bm -> F#m, a fifth up (10A -> 11A); t5 ends on F#, its dominant | 16 | the kick and the F# in the bass | chirper-three (t5) proposes |
 | t6 -> t7 | | | | | | | |
 | t7 -> t8 | | | | | | | |
 | t8 -> t9 | | | | | | | |
