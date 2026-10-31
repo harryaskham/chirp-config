@@ -16,9 +16,10 @@ climbing them on tools/compscore.py (no record to match) and Harry's ratings (to
                                                      seed-0 score as its best (the old one kept under best.rescored,
                                                      a note in its history) and save its features, so `done` compares
                                                      like with like (Moult v3 was refused against an old-scale v2)
-  chirpers.py release ALBUM_ID [--lufs L] [--out DIR] [--legacy-limiter]
+  chirpers.py release ALBUM_ID [--lufs L] [--out DIR] [--legacy-limiter] [--mix [--overlap-bars N]]
                                                      finish an album: render each composed track (seed 0, groove pin,
-                                                     true-peak limiter), match loudness to the median (or L) without
+                                                     true-peak limiter; --mix: a continuous DJ mixtape too), match
+                                                     loudness to the median (or L) without
                                                      passing -1 dBTP, export tagged MP3s with the cover to
                                                      ~/Music/Chirpers/ALBUM/ and a release.json levels report
 
@@ -36,6 +37,8 @@ import shutil
 import subprocess
 import sys
 import tempfile
+
+import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.environ.get("CLIMB_ROOT") or os.path.dirname(HERE)
@@ -366,6 +369,50 @@ def cmd_rebaseline(a, args):
                     f"{a.seeds}): " + ", ".join(f"{cid.split('-')[-1]} {s[seeds[0]]:.2f}" for cid, s in done), args)
 
 
+def mix_stream(parts, emit):
+    """Assemble a DJ mix: PARTS yields (x, overlap) per track in order, x float stereo samples cut at the track's
+    musical end (the last keeps its tail), overlap = samples it shares with the PREVIOUS track. Each overlap is a linear
+    crossfade (out*(1-t) + in*t), which never exceeds the louder input's sample peak, so the mix cannot clip.
+    EMIT receives finished blocks in order; at most one track is held in memory."""
+    held = None
+    for x, ov in parts:
+        if held is None:
+            held = x
+            continue
+        ov = int(max(0, min(ov, len(held), len(x))))
+        if ov:
+            emit(held[:-ov])
+            t = np.linspace(0.0, 1.0, ov, endpoint=False, dtype=np.float32)[:, None]
+            held = np.concatenate([held[-ov:] * (1 - t) + x[:ov] * t, x[ov:]])
+        else:
+            emit(held)
+            held = x
+    if held is not None:
+        emit(held)
+
+
+def seam_overlaps(album_id, default_bars=16):
+    """{(out_n, in_n): bars} from compose/ALBUM/mixplan.md's seam table ('| tN -> tM | ... | overlap (bars) | ...');
+    unknown seams use DEFAULT_BARS."""
+    import re
+    p = os.path.join(ROOT, "compose", album_id, "mixplan.md")
+    out = {}
+    if os.path.exists(p):
+        head = None
+        for ln in open(p):
+            cells = [c.strip() for c in ln.strip().strip("|").split("|")]
+            if len(cells) > 2 and cells[0].lower() == "seam":
+                head = [c.lower() for c in cells]
+                continue
+            m = re.match(r"t(\d+)\s*->\s*t(\d+)", cells[0]) if cells else None
+            if m and head:
+                col = next((i for i, h in enumerate(head) if h.startswith("overlap")), None)
+                v = re.search(r"\d+(\.\d+)?", cells[col]) if col is not None and col < len(cells) else None
+                if v:
+                    out[(int(m.group(1)), int(m.group(2)))] = float(v.group(0))
+    return out, default_bars
+
+
 def release_plan(rows, target=None, tp_ceiling=-1.0):
     """Per-track gain (dB) to bring each track to the album's TARGET integrated loudness (default: the median), never
     past TP_CEILING dBTP. rows: [{lufs, true_peak_dbtp}]. Returns [{gain_db, lufs_out, tp_out, capped}]."""
@@ -408,7 +455,7 @@ def cmd_release(a, args):
         n, cid, title, song = tr
         snap, wav = os.path.join(work, f"{cid}.yaml"), os.path.join(work, f"{cid}.wav")
         shutil.copy(song, snap)
-        cmd = [pin, "render", "-f", snap, "--seed", str(a.seed), "-o", wav] + ([] if a.legacy_limiter else ["--set", "true_peak=true"])
+        cmd = [pin, "render", "-f", snap, "--seed", str(a.seed), "-o", wav] + (["--set", "true_peak=false"] if a.legacy_limiter else [])
         r = subprocess.run(cmd, capture_output=True, text=True, env=env)
         return tr, wav if r.returncode == 0 else None, r.stderr[-300:]
 
@@ -443,11 +490,73 @@ def cmd_release(a, args):
             print(f"{r['n']:2d} {r['title'][:28]:28s} {r['lufs']:6.1f} LUFS  TP {r['true_peak_dbtp']:6.2f}  gain {p['gain_db']:+5.1f}"
                   f" -> {p['lufs_out']:6.1f} LUFS TP {p['tp_out']:6.2f}{'  (capped by true peak)' if p['capped'] else ''}"
                   f"{'  FLAT ' + str(r['longest_pinned_run']) if r['longest_pinned_run'] >= 4 else ''}{'' if ok else '  ENCODE FAILED'}")
+        if a.mix and len(rows) > 1:
+            report["mix"] = mix_release(a, album, rows, plan, pin, work, out_dir, art, env)
         with open(os.path.join(out_dir, "release.json"), "w") as f:
             json.dump(report, f, indent=1)
         print(f"{name}: {len(rows)} tracks at {target:.1f} LUFS -> {out_dir}")
     finally:
         shutil.rmtree(work, ignore_errors=True)
+
+
+def mix_release(a, album, rows, plan, pin, work, out_dir, art, env):
+    """The continuous mixtape: each track starts OVERLAP bars (mixplan.md, else --overlap-bars) before the previous
+    one's musical end (chirp plan's `seconds`, at the outgoing song's declared tempo), crossfaded linearly; one MP3 and
+    a tracklist/CUE. Returns the tracklist."""
+    sys.path.insert(0, HERE)
+    import likeness as L
+    import compscore as CS
+    seams, default = seam_overlaps(a.album_id, a.overlap_bars)
+    info = []
+    for r in rows:
+        snap = os.path.join(work, f"{r['id']}.yaml")
+        pl = subprocess.run([pin, "plan", "-f", snap, "--json"], capture_output=True, text=True, env=env)
+        try:
+            d = json.loads(pl.stdout)
+            secs = float((d.get("data") or d)["seconds"])
+        except (ValueError, KeyError, TypeError):
+            secs = None
+        info.append({"secs": secs, "bpm": CS.declared_tempo(snap) or 120.0})
+    starts, t = [], 0.0
+    for i, r in enumerate(rows):
+        if i:
+            prev = rows[i - 1]
+            bars = seams.get((prev["n"], r["n"]), default)
+            ov = bars * 4 * 60.0 / info[i - 1]["bpm"]
+            t = starts[-1] + (info[i - 1]["secs"] or prev["dur"]) - ov
+            info[i]["ov"] = ov
+        starts.append(t)
+    mp3 = os.path.join(out_dir, "".join(ch for ch in album["album"] if ch not in '/\\:*?"<>|') + " (continuous mix).mp3")
+    cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "s16le", "-ar", str(L.SR), "-ac", "2", "-i", "-"] + (
+        ["-i", art, "-map", "0:a", "-map", "1:v", "-c:v", "png", "-disposition:v", "attached_pic"] if art else []) + [
+        "-c:a", "libmp3lame", "-q:a", "0", "-id3v2_version", "3", "-metadata", f"title={album['album']} (continuous mix)",
+        "-metadata", f"artist={album['artist']}", "-metadata", f"album={album['album']}", mp3]
+    ff = subprocess.Popen(cmd, stdin=subprocess.PIPE)
+
+    def parts():
+        for i, (r, p) in enumerate(zip(rows, plan)):
+            x = L.load(r["wav"]) * np.float32(10 ** (p["gain_db"] / 20))
+            if i < len(rows) - 1 and info[i]["secs"]:
+                x = x[:int(info[i]["secs"] * L.SR)]
+            yield x, int(info[i].get("ov", 0) * L.SR)
+
+    def emit(block):
+        ff.stdin.write((np.clip(block, -1.0, 1.0) * 32767).astype("<i2").tobytes())
+
+    mix_stream(parts(), emit)
+    ff.stdin.close()
+    ok = ff.wait() == 0
+    tl = [{"n": r["n"], "title": r["title"], "start": round(st, 2), "overlap_in_s": round(info[i].get("ov", 0.0), 2)}
+          for i, (r, st) in enumerate(zip(rows, starts))]
+    with open(os.path.join(out_dir, "mixtape-tracklist.txt"), "w") as f:
+        f.write("".join(f"{int(x['start'] // 60):02d}:{x['start'] % 60:05.2f}  {x['n']:2d}. {x['title']}\n" for x in tl))
+    with open(os.path.join(out_dir, "mixtape.cue"), "w") as f:
+        f.write(f'PERFORMER "{album["artist"]}"\nTITLE "{album["album"]}"\nFILE "{os.path.basename(mp3)}" MP3\n')
+        for i, x in enumerate(tl, 1):
+            mm, ss = divmod(x["start"], 60)
+            f.write(f'  TRACK {i:02d} AUDIO\n    TITLE "{x["title"]}"\n    INDEX 01 {int(mm):02d}:{int(ss):02d}:{int((ss % 1) * 75):02d}\n')
+    print(f"mixtape: {len(tl)} tracks, {starts[-1] / 60:.1f} min to the last start -> {mp3}{'' if ok else '  ENCODE FAILED'}")
+    return {"file": os.path.basename(mp3) if ok else None, "tracklist": tl}
 
 
 def main(argv=None):
@@ -484,7 +593,9 @@ def main(argv=None):
     p.add_argument("--out", default="~/Music/Chirpers")
     p.add_argument("--seed", type=int, default=0)
     p.add_argument("--jobs", type=int, default=3)
-    p.add_argument("--legacy-limiter", action="store_true", help="render without true_peak (the legacy clamp limiter)")
+    p.add_argument("--legacy-limiter", action="store_true", help="legacy clamp limiter (true_peak is the default)")
+    p.add_argument("--mix", action="store_true", help="also a continuous DJ mixtape: seams overlapped per mixplan.md")
+    p.add_argument("--overlap-bars", type=float, default=16.0, help="seam overlap when mixplan.md doesn't give one")
     known, skip = [], False
     for i, x in enumerate(argv):            # climb.py's own flags (--as NAME, --no-git) go to its helpers, not argparse
         if skip:

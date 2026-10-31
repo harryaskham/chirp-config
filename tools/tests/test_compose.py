@@ -156,6 +156,30 @@ class ReleasePlan(unittest.TestCase):
         json.dumps(CH.release_plan([{"lufs": np.float64(-12.0), "true_peak_dbtp": np.float64(-0.5)}] * 3)[1])  # numpy in, JSON out
 
 
+class Mixtape(unittest.TestCase):
+    def test_seams_overlap_with_a_linear_crossfade_that_cannot_clip(self):
+        a = np.full((100, 2), 0.9, dtype=np.float32)
+        b = np.full((80, 2), -0.9, dtype=np.float32)
+        c = np.full((50, 2), 0.5, dtype=np.float32)
+        out = []
+        CH.mix_stream(iter([(a, 0), (b, 20), (c, 10)]), out.append)
+        y = np.concatenate(out)
+        self.assertEqual(len(y), 100 + 80 + 50 - 20 - 10)
+        self.assertLessEqual(float(np.abs(y).max()), 0.9 + 1e-6)          # never past the louder input
+        self.assertAlmostEqual(float(y[80, 0]), 0.9, places=5)            # crossfade starts on the outgoing track
+        self.assertLess(float(y[99, 0]), -0.8)                            # ...and ends on the incoming one
+        self.assertAlmostEqual(float(y[-1, 0]), 0.5, places=5)
+
+    def test_seam_overlaps_read_the_mixplan(self):
+        d = os.path.join(TMP, "compose", "mx")
+        os.makedirs(d, exist_ok=True)
+        with open(os.path.join(d, "mixplan.md"), "w") as f:
+            f.write("| seam | out | in | tempo at seam | key | overlap (bars) | handover |\n|---|---|---|---|---|---|---|\n"
+                    "| t1 -> t2 | x | y | 122 | 8A | 32 bars | hats |\n| t2 -> t3 | | | | | | |\n")
+        seams, default = CH.seam_overlaps("mx", 16)
+        self.assertEqual((seams, default), ({(1, 2): 32.0}, 16))
+
+
 class RebaselineRace(unittest.TestCase):
     def test_a_round_landing_mid_run_changes_the_snapshot(self):
         before = {"rounds": 12, "best": {"version": "v8", "score": 97.735}}
