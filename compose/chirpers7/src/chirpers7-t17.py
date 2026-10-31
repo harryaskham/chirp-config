@@ -47,6 +47,7 @@ KH = os.environ.get("C7T17_KH", "b") != "0"
 KHG = os.environ.get("C7T17_KH", "b")  # the seam-in's kick lighter below 80 Hz (its own track, low shelf -6; the sub pumps from it too): t17's head read 11-15 dB heavier at 44-71 Hz than Never Arrives' carved tail
 SHK = os.environ.get("C7T17_SHK", "84,74")  # a shaker on every off-16th in A and B (velocity "on-the-e,on-the-a"): the dusty groove's sixteenths made audible (compscore's rhythm term reads the 16th lag; t17's read 0)
 LOOPG = os.environ.get("C7T17_LOOPG", "-2")  # the turning loop's level (dB per side): louder, the illusion leads (and its dotted-eighth cycle reads as off-grid pulse)
+WARP = os.environ.get("C7T17_WARP", "1") == "1"  # Harry 14:50 'much harder on time-play': the turning loop also slips in TIME - in A2 it drifts a sixteenth behind the kick and back (track warp, smooth), in B2 (turning twice as fast) a sixteenth ahead and back; re-locked long before the seam
 TAILS = os.environ.get("C7T17_TAIL", "0.1s")  # the render tail: 0.3 s leaves no dead air in the last seconds a DJ mixes out of
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
@@ -220,7 +221,7 @@ def lane(points, step=True):
     return {"points": pts}
 
 
-def turning(score, rate_bars, tag=""):
+def turning(score, rate_bars, tag="", warp=None):
     """THE ROOM THAT TURNS: two Haas pairs (left-leading: the right side 18 ms late; right-leading: the left side late),
     crossfaded by complementary sine LFOs so the loop circles the head at an even level."""
     def side(name, pan, late, phase):
@@ -228,7 +229,7 @@ def turning(score, rate_bars, tag=""):
         fx.append({"type": "gain", "gain": {"value": "-12dB", "mod": [{"src": "lfo.x", "amount": 12}]}})
         return {"name": name, "patch": "dusty-kit", "gain": f"{LOOPG}dB", "pan": pan,
                 "lfo": {"x": {"wave": "sine", "rate": f"{rate_bars}/1", "phase": phase, "unipolar": True}},
-                "fx": fx, "sends": {"room": "-12dB"}, "score": score}
+                "fx": fx, "sends": {"room": "-12dB"}, "score": score, **({"warp": warp} if warp else {})}
     return [side(f"turn{tag}Ll", -1, False, 0.0), side(f"turn{tag}Lr", 1, True, 0.0),
             side(f"turn{tag}Rl", -1, True, 0.5), side(f"turn{tag}Rr", 1, False, 0.5)]
 
@@ -278,8 +279,10 @@ def song():
             {"name": "dust", "patch": "vinyl", "gain": "-22dB", "score": T["dust"]},
             {"name": "binl", "patch": "bin-l", "gain": "-30dB", "pan": -1, "score": T["binl"]},
             {"name": "binr", "patch": "bin-r", "gain": "-30dB", "pan": 1, "score": T["binr"]},
-            *turning("swing16=0.6 " + T["loop"], 6),
-            *(turning("swing16=0.6 " + T["loop2"], 3, "2") if SEC2 else []),
+            *turning("swing16=0.6 " + T["loop"], 6, warp=([{"over": "48bar", "to": 0}, {"over": "8bar", "to": 0.25, "curve": "smooth"},
+                                                           {"over": "8bar", "to": 0, "curve": "smooth"}] if WARP else None)),
+            *(turning("swing16=0.6 " + T["loop2"], 3, "2", warp=([{"over": "112bar", "to": 0}, {"over": "8bar", "to": -0.25, "curve": "smooth"},
+                                                                    {"over": "8bar", "to": 0, "curve": "smooth"}] if WARP else None)) if SEC2 else []),
             *([{"name": "loopc", "patch": "dusty-kit", "gain": "-3dB", "pan": 0, "sends": {"room": "-12dB"}, "score": "swing16=0.6 " + T["loopc"]}] if STILL else []),
         ],
     }
