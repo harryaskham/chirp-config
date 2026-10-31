@@ -119,7 +119,7 @@ def riff():
             for e in range(8):
                 k = k0 + e
                 note = [0, 7, 12][k % 3]
-                part("bass").add(b0(bar) + e * 0.5, 0.4, nm(GS1 + note), 104 if k % 3 == 0 else 74)
+                part("bass").add(b0(bar) + e * 0.5, 0.4, nm(GS1 + note), 88 if k % 3 == 0 else 58)   # v5: hushed
             continue
         up = 12 if sec == "back" else 0                       # the return comes back changed: an octave up, lighter
         for pos, iv in RIFF:
@@ -259,14 +259,17 @@ def main():
                            "makeup": "0dB"}],
                    "auto": {"dyn": {"points": lanes()}}},
         "tracks": [
-            tr("kick", "machine-kit", gain="-13dB"),
-            tr("hats", "machine-kit", gain="0dB", pan=0.1, lfo={"hh": {"wave": "sine", "rate": "20b"}},
+            tr("kick", "machine-kit", gain="-14dB"),
+            tr("hats", "machine-kit", gain="3dB", pan=0.1, lfo={"hh": {"wave": "sine", "rate": "20b"}},
                fx=[{"type": "filter", "kind": "hp", "cutoff": {"value": 3000, "mod": [{"src": "lfo.hh", "amount": 0.6}]}}]),
             tr("clap", "machine-kit", gain="-3dB", sends={"room": "-8dB"}),
             tr("bass", "acid", gain="-6dB", lfo={"bc": {"wave": "sine", "rate": "36b"}},
+               auto={"dk": {"points": [["0b", 0.0], [f"{b0(73)}b", 0.0], [f"{b0(76)}b", -1.5], [f"{b0(87)}b", -1.5],
+                                       [f"{b0(89)}b", 0.0], [f"{TOTAL}b", 0.0]]}},     # v5: the break goes dark
                fx=[{"type": "filter", "kind": "lp", "q": 0.8,
-                    "cutoff": {"value": 700, "mod": [{"src": "lfo.bc", "amount": 0.9}]}}, pump]),
-            tr("sub", "808", gain="-19dB", fx=[{"type": "filter", "kind": "lp", "cutoff": 100}, pump]),
+                    "cutoff": {"value": 700, "mod": [{"src": "lfo.bc", "amount": 0.9},
+                                                     {"src": "auto.dk", "amount": 1.0}]}}, pump]),
+            tr("sub", "808", gain="-21dB", fx=[{"type": "filter", "kind": "lp", "cutoff": 100}, pump]),
             tr("stab", "juno-pad", gain="-4dB", pan=-0.15, sends={"dub": "-6dB"}, lfo={"sl": {"wave": "sine", "rate": "28b"}},
                fx=[{"type": "filter", "kind": "bp", "q": 0.8,
                     "cutoff": {"value": 1400, "mod": [{"src": "lfo.sl", "amount": 0.8}]}}, pump]),
