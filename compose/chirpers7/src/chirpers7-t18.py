@@ -31,6 +31,13 @@ EQ3 = os.environ.get("C7T18_EQ3", "1") == "1"  # the low-mid boxiness out (160 a
 HATSG = os.environ.get("C7T18_HATSG", "-1")  # the hats 3 dB up (was -4): real air above 9 kHz, where the closer read 7-13 dB dark
 DROP = os.environ.get("C7T18_DROP", "1") == "1"  # the kick drops for intro bars 29-32 (the stair and the pads hang alone), so A lands
 PADG = os.environ.get("C7T18_PADG", "-15")  # the glass pad's level (dB): its chord tones stood up as narrow 340-880 Hz peaks
+PADP = os.environ.get("C7T18_PADP", "")  # the chord pad's voice: "" pad-glass (FM bell-glass: its chord tones stand up as narrow peaks), "pad" (wide detuned saws), "padlp" (the same, low-passed at 4 kHz)
+DUSTY = os.environ.get("C7T18_DUSTY", "0") == "1"  # the seam-in's kick on t17's dusty kit, so the overlap carries one kick colour (the full machine kick from bar 17)
+HEAD = os.environ.get("C7T18_HEAD", "")  # the seam-in's colour meets t17's tail (its master carves 150 and 292 Hz): "k" the first 16 bars' kick on its own machine-kit track with 85/130/210 Hz taken down; "ks" also the held D2 without the phantom harmonics (a pure sub)
+MIDS = os.environ.get("C7T18_MIDS", "1") == "1"  # the seam-in meets t17's tail in the mids: soft rims on the 16ths before each beat's off (3 7 11 15) under the first 16 bars, and the held D2 a touch softer (t18's head read 6-18 dB heavier below 220 Hz and 7-11 dB lighter 0.6-4 kHz than t17's last seconds)
+MIDBARS = int(os.environ.get("C7T18_MIDBARS", "8"))  # how many seam bars carry the rims
+HOMERIM = os.environ.get("C7T18_HOMERIM", "0") == "1"  # home (A minor) keeps the seam's rims: the 16th before each beat's end (3 7 11 15), soft - the comedown's tick
+A2OPEN = os.environ.get("C7T18_A2OPEN", "0") == "1"  # A2 lifts: every off-beat hat open (with the clap's arrival), so A's second half is a section of its own
 RIM3 = os.environ.get("C7T18_RIM3", "1") == "1"
 FORM2 = os.environ.get("C7T18_FORM2", "1") == "1"  # B splits (B2: the stair doubled an octave up, the hats open, no clap) and the outro is the falling floor: the kick leaves at its first bar, the falling Shepard chords return in A minor under the decelerando  # a soft rim on every third 16th in the grooves (a dotted-eighth cycle across the bar lines): the stair's echo in the kit
 
@@ -50,7 +57,7 @@ CHA = [(33, [48, 52, 55, 59]),   # Am9: C3 E3 G3 B3 over A
        (40, [50, 55, 57, 62])]   # E7sus: D3 G3 A3 D4 over E (the sus resolving home)
 STAIR_D = ["A4", "F4", "E4", "D4"]   # 5 3 2 1 of D minor, falling (-4 -1 -2, then -5 to the next A)
 STAIR_A = ["E4", "C4", "B3", "A3"]   # 5 3 2 1 of A minor
-TRACKS = ("kick", "hats", "clap", "sub", "pads", "stair", "fall", "stair2", "kickin")
+TRACKS = ("kick", "hats", "clap", "sub", "pads", "stair", "fall", "stair2", "kickin", "kickd", "kickh", "subh")
 
 
 def nm(m):
@@ -126,7 +133,7 @@ def build():
             # hats: off-beats (open in home), a soft shaker on the 16ths in the grooves
             if not (sec == "break" and b < 12) and not (last and b >= 24) and not (OUTRO and sec == "outro"):
                 for q in (2, 6, 10, 14):
-                    add("hats", at + q, "oh" if ((sec == "home" and q in (6, 14)) or (FORM2 and sec == "B" and b >= 16)) else "h", 1, 66)
+                    add("hats", at + q, "oh" if ((sec == "home" and q in (6, 14)) or (FORM2 and sec == "B" and b >= 16) or (A2OPEN and sec == "A" and b >= 16)) else "h", 1, 66)
                 if sec in ("A", "B", "home"):
                     for q in (1, 3, 5, 7, 9, 11, 13, 15):
                         add("hats", at + q, "h", 1, 38)
@@ -135,13 +142,19 @@ def build():
                     k = (at + q) - sec_start("A")
                     if k % 3 == 0:
                         add("clap", at + q, "rs", 1, 70 if (k // 3) % 4 == 0 else 58)
+            if HOMERIM and sec == "home":
+                for q in (3, 7, 11, 15):
+                    add("clap", at + q, "rs", 1, 60 if q in (3, 11) else 50)
             if (sec == "A" and b >= 16) or (sec == "B" and not (FORM2 and b >= 16)) or sec == "home":
                 add("clap", at + 4, "cp", 1, 84)
                 add("clap", at + 12, "cp", 1, 88)
             # sub: the held D under the seam, the roots elsewhere (none in the break), a held A at the very end
             if seam_in:
                 if b % 4 == 0:
-                    add("sub", at, "D2", 4 * BAR, 88)
+                    add("sub", at, "D2", 4 * BAR, 76 if MIDS else 88)
+                if MIDS and b < MIDBARS:
+                    for q in (3, 7, 11, 15):
+                        add("clap", at + q, "rs", 1, 64 if q in (3, 11) else 54)
             elif last:
                 if b == 16:
                     add("sub", at, "A1", 16 * BAR, 80)
@@ -172,6 +185,15 @@ def build():
                 add("fall", at, ",".join(nm(n) for n in CHA[0][1]), 8 * BAR, 72)
             if sec == "break" and b % 8 == 0:
                 add("fall", at, ",".join(nm(n) for n in v), 8 * BAR, 76)
+    if HEAD:
+        ev["kickh"] = [e for e in ev["kick"] if e[0] < 16 * BAR]
+        ev["kick"] = [e for e in ev["kick"] if e[0] >= 16 * BAR]
+        if "s" in HEAD:
+            ev["subh"] = [e for e in ev["sub"] if e[0] < 16 * BAR]
+            ev["sub"] = [e for e in ev["sub"] if e[0] >= 16 * BAR]
+    if DUSTY:
+        ev["kickd"] = [e for e in ev["kick"] if e[0] < 16 * BAR]
+        ev["kick"] = [e for e in ev["kick"] if e[0] >= 16 * BAR]
     if SWAP:
         ev["kickin"] = [e for e in ev["kick"] if e[0] < SWAPBARS * BAR]
         ev["kick"] = [e for e in ev["kick"] if e[0] >= SWAPBARS * BAR]
@@ -231,12 +253,15 @@ def song():
         },
         "tracks": [
             {"name": "kick", "patch": "machine-kit", "gain": "-3dB", "score": T["kick"]},
+            *([{"name": "kickd", "patch": "dusty-kit", "gain": "-2dB", "score": T["kickd"]}] if DUSTY else []),
+            *([{"name": "kickh", "patch": "machine-kit", "gain": "-3dB", "fx": [{"type": "eq", "bands": ["peak cutoff=85 q=1 gain=-4dB", "peak cutoff=130 q=1 gain=-8dB", "peak cutoff=210 q=1 gain=-6dB"]}], "score": T["kickh"]}] if HEAD else []),
             *([{"name": "kickin", "patch": "machine-kit", "gain": "-3dB", "fx": [{"type": "filter", "kind": "hp", "cutoff": 110, "q": 0.7}], "score": T["kickin"]}] if SWAP else []),
             {"name": "hats", "patch": "machine-kit", "gain": f"{HATSG}dB", "pan": 0.1, "lfo": {"hh": "sine rate=7/1"},
              "fx": [{"type": "filter", "kind": "hp", "cutoff": {"value": 3500, "mod": [{"src": "lfo.hh", "amount": 0.5}]}, "q": 0.7}], "score": T["hats"]},
             {"name": "clap", "patch": "machine-kit", "gain": "-10dB", "sends": {"hall": "-10dB"}, "score": T["clap"]},
             {"name": "sub", "patch": "sub", "gain": "-14dB", "fx": [pump, {"type": "phantom", "cutoff": 100, "harmonics": "-6dB"}], "score": T["sub"]},
-            {"name": "pads", "patch": "pad-glass", "gain": f"{PADG}dB", "fx": [pump], "sends": {"hall": "-6dB"}, "score": T["pads"]},
+            *([{"name": "subh", "patch": "sub", "gain": "-14dB", "score": T["subh"]}] if "s" in HEAD else []),
+            {"name": "pads", "patch": "pad" if PADP else "pad-glass", "gain": ("-17dB" if PADP == "pad" else f"{PADG}dB"), "fx": [pump, *([{"type": "filter", "kind": "lp", "cutoff": 4000, "q": 0.7}] if PADP == "padlp" else [])], "sends": {"hall": "-6dB"}, "score": T["pads"]},
             {"name": "stair", "patch": "stair-down", "gain": "-12dB", "sends": {"echo": "-8dB", "hall": "-8dB"}, "score": T["stair"]},
             *([{"name": "stair2", "patch": "stair-down", "gain": "-16dB", "transpose": 12, "pan": 0.3, "sends": {"echo": "-6dB"}, "score": T["stair2"]}] if FORM2 else []),
             {"name": "fall", "patch": "fall-pad", "gain": "-12dB", "sends": {"hall": "-4dB"}, "score": T["fall"]},
