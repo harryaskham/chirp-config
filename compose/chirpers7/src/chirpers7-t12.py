@@ -135,7 +135,7 @@ def build():
                                   {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.thr', 'amount': 1}]}}], 'returns': [],
                            'auto': {'fb': {'points': fbl}, 'thr': {'points': thr}}},
                   'hall': {'fx': ['reverb kind=hall decay=4.5s mix=1', 'hp cutoff=300'], 'returns': []}},
-        'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=32', 'peak cutoff=58 q=0.9 gain=-5dB', 'peak cutoff=350 q=0.7 gain=-3dB', 'peak cutoff=3200 q=0.6 gain=5dB', 'highshelf cutoff=7000 gain=5dB']},
+        'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=32', 'peak cutoff=58 q=0.9 gain=-8dB', 'peak cutoff=350 q=0.7 gain=-4dB', 'peak cutoff=3200 q=0.6 gain=6dB', 'highshelf cutoff=7000 gain=5dB']},
                           {'type': 'compressor', 'threshold': '-20dB', 'ratio': 2.5, 'attack': '15ms', 'release': '150ms', 'makeup': '2dB'},
                           {'type': 'gain', 'gain': '+8dB'},
                           {'type': 'compressor', 'threshold': '-15dB', 'ratio': 8, 'attack': '0.3ms', 'release': '60ms'},
