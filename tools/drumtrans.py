@@ -51,7 +51,7 @@ NEED = {}  # piece -> (hits, dB its p95 hit needs beyond velocity 120), filled b
 # Every piece of every kit belongs to a family (bd-dbdf72: 66 of 105 kit pieces had none, so their selected hits were
 # dropped at export; tools/tests/test_drumtrans.py checks the kits). Same name, different kits: a family is only the
 # output track a piece's hits go to (`cb` is the electro cowbell and the cajon's bass tone: perc).
-FAMILIES = {"kick": ["k", "kd", "kh", "kp", "kl"],
+FAMILIES = {"kick": ["k", "kd", "kh", "kp", "kl", "kr", "kb"],   # machine-kit: kr rumble kick, kb 808 boom
             "snare": ["s", "rc", "sw", "sl", "ss", "sz", "sc", "so", "se", "g", "rs", "s2", "sn", "cs"],
             "hats": ["h", "h1", "h2", "h3", "hs", "oh", "hf", "hp", "hh"],
             "toms": ["t", "t1", "t2", "t3", "ft", "ft2", "lt", "mt", "ht"],
@@ -59,7 +59,8 @@ FAMILIES = {"kick": ["k", "kd", "kh", "kp", "kl"],
             "hand": ["te", "na", "tun", "ge",                       # tabla (and the congas, cajon, bodhran, samba drums)
                      "o", "lo", "mu", "bh", "bl", "lc", "mc", "hc", "tin", "re", "gem", "dha", "dhin", "ke", "pa", "cg",
                      "b", "sd", "sm", "pt", "tm"],
-            "claps": ["cp"],   # the 909/electro kits' clap (bd-dfa7eb: selected cp hits were dropped at export)
+            "claps": ["cp", "cpw"],   # the 909/electro kits' clap (bd-dfa7eb: selected cp hits were dropped at export);
+                                      # cpw: machine-kit's wide clap
             "perc": ["ma", "sh", "shk", "tamb", "gz", "pd", "cow", "cowm", "cb", "cl", "clv", "wb", "wbl", "ah", "al",
                      "cas", "sk", "r", "pc"],                       # shakers, tambourines, bells, blocks, claves
             "fx": ["bell", "coin", "drawer", "jingle", "rattle", "tear", "tearl", "zp", "v"]}

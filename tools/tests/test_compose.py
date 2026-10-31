@@ -156,6 +156,55 @@ class ReleasePlan(unittest.TestCase):
         json.dumps(CH.release_plan([{"lufs": np.float64(-12.0), "true_peak_dbtp": np.float64(-0.5)}] * 3)[1])  # numpy in, JSON out
 
 
+class RhythmTerm(unittest.TestCase):
+    def _song(self, name, text):
+        f = os.path.join(TMP, name)
+        with open(f, "w") as h:
+            h.write(text)
+        return f
+
+    def test_declared_tempo_reads_tempo_maps(self):
+        self.assertEqual(CS.declared_tempo(self._song("a.yaml", "tempo: 122\nvoices: []\n")), 122.0)
+        flow = 'tempo: [{"at": "0b", "bpm": 124}, {"at": "640b", "bpm": 124}, {"at": "768b", "bpm": 123, "ramp": true}]\nx: 1\n'
+        self.assertEqual(CS.declared_tempo(self._song("b.yaml", flow)), 124.0)
+        block = "tempo:\n  - at: 0b\n    bpm: 116\n  - at: 512b\n    bpm: 118\n    ramp: true\n  - at: 600b\n    bpm: 118\nvoices: []\n"
+        self.assertEqual(CS.declared_tempo(self._song("c.yaml", block)), 118.0)
+        js = json.dumps({"tempo": [{"at": "0b", "bpm": 119.5}, {"at": "576b", "bpm": 120, "ramp": True}], "voices": []})
+        self.assertEqual(CS.declared_tempo(self._song("d.json", js)), 119.75)
+        self.assertIsNone(CS.declared_tempo(self._song("e.yaml", "voices: []\n")))
+
+    def _loop(self, swing):
+        """20 s at 120 bpm: a kick on every beat, hats on every 16th, the off-16ths late by SWING (fraction of a 16th)."""
+        sr, n = L.SR, 20 * L.SR
+        x = np.zeros(n, dtype=np.float32)
+        rng = np.random.default_rng(0)
+        s16 = sr * 60 / 120 / 4
+        for i in range(int(n / s16) - 1):
+            at = int(i * s16 + (swing * s16 if i % 2 else 0))
+            amp, ln = (1.0, 2000) if i % 4 == 0 else (0.3, 300)
+            x[at:at + ln] += amp * rng.standard_normal(ln).astype(np.float32) * np.exp(-np.arange(ln) / (ln / 4))
+        return np.stack([x, x], axis=1)
+
+    def _share(self, x, rhythm=None):
+        ctx = {"x": x, "F": L.Feat(x), "bpm": 120.0, "density": 8.0, "album": {"params": {"rhythm": rhythm} if rhythm else {}}}
+        return CS.m_rhythm(ctx)[1]["offgrid_share"]
+
+    def test_a_fine_16th_grid_hears_swing_and_not_straight_16ths(self):
+        fine = {"hop": 256, "grid": 4}
+        straight, swung, hard = (self._share(self._loop(sw), fine) for sw in (0.0, 0.33, 0.5))
+        self.assertLess(straight, 0.02)                      # straight 16ths sit on the 16th grid
+        self.assertGreater(swung, straight + 0.05)           # swing reads off it, more as it deepens
+        self.assertGreaterEqual(hard, swung)
+        self.assertGreater(self._share(self._loop(0.0)), 0.3)   # the default eighth grid counts straight 16ths off-grid
+
+    def test_the_rhythm_band_is_the_albums(self):
+        x = self._loop(0.33)
+        ctx = {"x": x, "F": L.Feat(x), "bpm": 120.0, "density": 8.0, "album": {"params": {}}}
+        base = CS.m_rhythm(ctx)[0]
+        ctx["album"] = {"params": {"rhythm": {"band": [0.02, 0.2]}}}
+        self.assertGreater(CS.m_rhythm(ctx)[0], base)
+
+
 class Mixtape(unittest.TestCase):
     def test_seams_overlap_with_a_linear_crossfade_that_cannot_clip(self):
         a = np.full((100, 2), 0.9, dtype=np.float32)

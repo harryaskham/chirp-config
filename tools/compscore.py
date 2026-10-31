@@ -370,12 +370,34 @@ def m_recurrence(ctx):
                                                     "share": round(frac, 3), "best_matches": [round(b, 2) for b in best]}
 
 
+def fine_onset(x, hop):
+    """Spectral-flux onsets (40 log bands, 30 Hz-16 kHz) at HOP samples: the rhythm term's opt-in finer grid."""
+    from scipy import signal
+    m = x.mean(axis=1) if x.ndim > 1 else x
+    nfft = max(4 * hop, 512)
+    f, _, Z = signal.stft(m, L.SR, nperseg=nfft, noverlap=nfft - hop, boundary=None, padded=False)
+    mag = np.abs(Z)
+    edges = np.geomspace(30, 16000, 41)
+    b = np.stack([(mag[(f >= a) & (f < c)] ** 2).sum(0) for a, c in zip(edges[:-1], edges[1:])]) + 1e-10
+    return np.concatenate([[0], np.maximum(np.diff(10 * np.log10(b), axis=1), 0).sum(0)])
+
+
 def m_rhythm(ctx):
-    F = ctx["F"]
-    o = F.onset - F.onset.mean()
-    ac = autocorr(o, int(4 * L.FPS) + 2)
+    # the album's params.rhythm (the composers' to set, Harry 30 Oct): `hop` (samples; default the 1024 feature hop,
+    # 46.9 frames/s, where a 16th at house tempo is ~6 frames), `grid` (divisions of the beat counted ON the grid:
+    # 2 = eighths, the default; 4 = 16ths) and `band` (the off-grid share's target, default 0.1..0.6). On a clean
+    # 120 bpm kick + 16th-hat loop the default reads straight 16ths as off-grid (0.39) and swing as LESS off-grid
+    # (0.10 at 20%, 0.01 at 50%); {hop: 256, grid: 4} reads 0.00 / 0.00 / 0.09 / 0.13 at 0 / 20 / 33 / 50% swing
+    rp = ((ctx.get("album") or {}).get("params") or {}).get("rhythm") or {}
+    hop, div = int(rp.get("hop") or L.HOP), float(rp.get("grid") or 2)
+    if hop == L.HOP:
+        on, fps = ctx["F"].onset, L.FPS
+    else:
+        on, fps = fine_onset(ctx["x"], hop), L.SR / hop
+    o = on - on.mean()
+    ac = autocorr(o, int(4 * fps) + 2)
     ac = ac / (ac[0] + 1e-12)
-    lags = np.arange(2, min(len(ac) - 1, int(4 * L.FPS)))
+    lags = np.arange(2, min(len(ac) - 1, int(4 * fps)))
     # every positive local maximum, weighted by its squared height: no cutoff. A fixed 0.15 cut made the term depend on
     # global normalisation: chirper-two's silent stop-starts in Splinterwork (sparse loud hits) shrank every peak,
     # the off-grid ones fell under 0.15 and rhythm went 100 -> 45; Pyramid Song (top peak 0.17) scored 17.
@@ -384,15 +406,17 @@ def m_rhythm(ctx):
         return 0.0, {}
     # the pulse: the song's declared tempo when we have it; else the strongest autocorrelation peak between 0.25 and
     # 1.2 s (a tempo estimate's rounding would make every multiple drift off-grid: a looped 120 BPM bar read 122)
-    beat = [k for k in pk if 0.25 * L.FPS <= k <= 1.2 * L.FPS] or list(pk)
-    est = 60 * L.FPS / float(max(beat, key=lambda k: ac[k]))
+    beat = [k for k in pk if 0.25 * fps <= k <= 1.2 * fps] or list(pk)
+    est = 60 * fps / float(max(beat, key=lambda k: ac[k]))
     bpm = float(ctx.get("bpm") or est)
-    P = 60 * L.FPS / bpm
-    grid = P / 2
-    off = [k for k in pk if min(k % grid, grid - k % grid) > max(1.5, 0.04 * k)]
+    P = 60 * fps / bpm
+    grid = P / div
+    tol = 1.5 * fps / L.FPS
+    off = [k for k in pk if min(k % grid, grid - k % grid) > max(tol, 0.04 * k)]
     share = float(sum(ac[k] ** 2 for k in off) / sum(ac[k] ** 2 for k in pk))
     dens = ctx["density"]
-    return 0.7 * band(share, 0.1, 0.6, 0.1) + 0.3 * band(dens, 1.5, 10.0, 2.0), {
+    lo, hi = rp.get("band") or (0.1, 0.6)
+    return 0.7 * band(share, float(lo), float(hi), 0.1) + 0.3 * band(dens, 1.5, 10.0, 2.0), {
         "tempo": round(bpm, 1), "declared": bool(ctx.get("bpm")), "pulse_estimate": round(est, 1),
         "offgrid_share": round(share, 2), "onsets_per_s": round(dens, 2)}
 
@@ -475,6 +499,20 @@ def declared_tempo(song):
         else:
             m = re.search(r"^tempo:\s*([0-9.]+)\s*(?:#.*)?$", text, re.M)
             t = m.group(1) if m else None
+            if t is None:
+                # a tempo MAP: a flow list on the tempo: line, or a block list below it (until the next top-level key)
+                m = re.search(r"^tempo:[ \t]*(\[.*\])[ \t]*$", text, re.M)
+                if m:
+                    t = json.loads(m.group(1))
+                else:
+                    m = re.search(r"^tempo:[ \t]*\n((?:[ \t-].*\n?)+)", text, re.M)
+                    t = [{"bpm": b} for b in re.findall(r"\bbpm:\s*([0-9.]+)", m.group(1))] if m else None
+        if isinstance(t, list):
+            # a map's points (ramps inside a track, as The Endless Stair's mix plan asks): the median BPM. Without
+            # this every mapped song fell back to the autocorrelation estimate, and one landing on half tempo had its
+            # eighth off-beats read as off-grid (chirper-zero, 31 Oct: t15 and t16 read rhythm 100 that way)
+            b = [float(p["bpm"]) for p in t if isinstance(p, dict) and p.get("bpm") is not None]
+            return float(np.median(b)) if b else None
         return float(t) if t else None
     except (OSError, ValueError, TypeError, AttributeError):
         return None
