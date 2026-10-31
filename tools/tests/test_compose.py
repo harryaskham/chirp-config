@@ -275,6 +275,17 @@ class Mixtape(unittest.TestCase):
                     "| t3 -> t4 | 16 | no |\n| t4 -> t5 | 16 | |\n")
         self.assertEqual(CH.seam_swaps("sw"), {(1, 2): 9.0, (2, 3): "mid", (3, 4): None})
 
+    def test_only_a_swap_cells_leading_token_counts(self):
+        # the composers write their measurements after the keyword (31 Oct: 'no (... 3.3 dB ...)' played as 3.3 bars in)
+        d = os.path.join(TMP, "compose", "sw2")
+        os.makedirs(d, exist_ok=True)
+        with open(os.path.join(d, "mixplan.md"), "w") as f:
+            f.write("| seam | overlap (bars) | swap |\n|---|---|---|\n"
+                    "| t2 -> t3 | 16 | mid (measured with chirpers.py seam 2: linear sub range 6.2 dB) |\n"
+                    "| t11 -> t12 | 16 | no (measured: the linear crossfade's sub range 3.3 dB) |\n"
+                    "| t12 -> t13 | 16 | 9 (where t13's kick lands; 4.4 dB) |\n| t13 -> t14 | 16 | maybe later |\n")
+        self.assertEqual(CH.seam_swaps("sw2"), {(2, 3): "mid", (11, 12): None, (12, 13): 9.0})
+
     def test_seam_overlaps_read_the_mixplan(self):
         d = os.path.join(TMP, "compose", "mx")
         os.makedirs(d, exist_ok=True)

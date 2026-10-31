@@ -463,16 +463,23 @@ def seam_overlaps(album_id, default_bars=16, root=None):
 
 
 def seam_swaps(album_id, root=None):
-    """{(out_n, in_n): bar | 'mid' | None} from an optional 'swap' column: a number is the bar into the overlap where
-    the bass swap lands, 'mid'/'yes' the midpoint, 'no'/'off' none; seams without a cell are absent (the default)."""
+    """{(out_n, in_n): bar | 'mid' | None} from an optional 'swap' column. Only the cell's LEADING token counts (the
+    composers write their measurements after it: 'no (measured: linear sub range 3.3 dB ...)'): a number is the bar
+    into the overlap where the bass swap lands, mid/yes/on the midpoint, no/off/none/- none; seams without a cell, or
+    whose cell starts with anything else, are absent (the default)."""
     import re
     out = {}
     for k, row in seam_table(album_id, root).items():
-        c = _col(row, "swap").lower()
-        if not c:
+        m = re.match(r"\s*([0-9]+(?:\.[0-9]+)?|[a-z-]+)", _col(row, "swap").lower())
+        if not m:
             continue
-        v = re.search(r"\d+(\.\d+)?", c)
-        out[k] = float(v.group(0)) if v else (None if c in ("no", "off", "none", "-") else "mid")
+        tok = m.group(1)
+        if re.fullmatch(r"[0-9.]+", tok):
+            out[k] = float(tok)
+        elif tok in ("mid", "yes", "on", "true"):
+            out[k] = "mid"
+        elif tok in ("no", "off", "none", "-", "false"):
+            out[k] = None
     return out
 
 
