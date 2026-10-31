@@ -55,7 +55,7 @@ def build():
     secs = {}
     for b in bars:
         secs.setdefault(b['sec'], b['t'])
-    T = {k: [] for k in ('kit', 'sub', 'stab', 'pad', 'wash', 'ghost')}
+    T = {k: [] for k in ('kit', 'sub', 'stab', 'pad', 'wash', 'ghost', 'cyc')}
     for k, b in enumerate(bars):
         s, t0, i = b['sec'], b['t'], b['i']
         # (v1) the harmony opens up through the track: A holds Bbm9 alone (the dub-techno way), B swings Bbm9 <-> Gbmaj7
@@ -70,13 +70,24 @@ def build():
             for q in range(4):
                 T['kit'].append((t0 + q, 'k', 0.25, 114 if q == 0 else 106))
                 T['kit'].append((t0 + q + 0.5, 'h' if s in ('intro', 'outro') else 'oh', 0.25, 76))
-                T['kit'].append((t0 + q + 0.75, 'h', 0.25, 58))
-                T['kit'].append((t0 + q + 0.25, 'h', 0.25, 46))
+                # (v13) wonkier (Harry): in the grooves the off-sixteenths shuffle late (a 57% swing) and the 'e' ghosts push early
+                sw = 0.035 if s in ('A', 'B', 'C') else 0.0
+                T['kit'].append((t0 + q + 0.75 + sw, 'h', 0.25, 58))
+                T['kit'].append((t0 + q + 0.25 - sw / 2, 'h', 0.25, 46))
             if s in ('A', 'B', 'C'):
                 T['kit'].append((t0 + 3.0, 'rs', 0.25, 84))
                 if k % 2 == 1:
                     T['kit'].append((t0 + 2.75, 'rs', 0.25, 70))
             T['sub'].append((t0, nm(34), 3.7, 98))      # a PEDAL on Bb: the floor stays while the chords turn
+        # (v13) TIME-PLAY: a dub rim on a FIVE-sixteenth cycle, counted from the first groove and never reset, so it crosses
+        # every bar line and only lines up with the kick every five bars - into the echo, panned left
+        if s in ('A', 'B', 'C'):
+            base = secs['A']
+            m0 = int(-(-(t0 - base) // 1.25))
+            for m in range(m0, m0 + 4):
+                at = base + m * 1.25
+                if t0 <= at < t0 + 4.0:
+                    T['cyc'].append((at, 'rs', 0.25, 72 + (8 if m % 4 == 0 else 0)))
         # the dub chord: one stab a bar on the and-of-1 (into the echo), and the 'a' of 3 every other bar
         if s in ('A', 'B', 'C'):
             T['stab'].append((t0 + 0.5, ','.join(nm(m) for m in ch), 0.3, 86))
@@ -155,6 +166,7 @@ def build():
                    'auto': {'dyn': {'points': dyn}}},
         'tracks': [
             tr('kit', 'machine-kit', '-4dB', sends={'hall': '-18dB'}),
+            tr('cyc', 'machine-kit', '-9dB', pan=-0.35, sends={'echo': '-6dB'}, fx=['hp cutoff=300']),
             tr('sub', 'sub', '-10dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '320ms', 'curve': 0.6}]),
             tr('stab', 'epiano-tine', '-9dB', sends={'echo': '-4dB'}, fx=['lp cutoff=2600', {'type': 'pump', 'on': 'kit.k', 'depth': '-4dB', 'release': '320ms', 'curve': 0.6}]),
             tr('pad', 'juno-pad', '-12dB', sends={'hall': '-8dB'}),
