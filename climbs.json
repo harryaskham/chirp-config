@@ -6924,7 +6924,14 @@
         "score": 95.36,
         "version": "v7",
         "commit": "see git log songs/chirpers6-t5.yaml",
-        "judged": true
+        "judged": true,
+        "stale": {
+          "score": 95.36,
+          "since": "2026-10-31T01:59:10Z",
+          "who": "chirper-three",
+          "rating": 8.5,
+          "version": "v7"
+        }
       },
       "passes": 1,
       "enabled": true,
