@@ -7639,22 +7639,14 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/compscore.py chirpers7-t15 OUT.wav",
       "best": {
-        "score": 97.48,
-        "version": "v6",
-        "commit": "see git log songs/chirpers7-t15.yaml",
-        "judged": true,
-        "stale": {
-          "score": 97.48,
-          "since": "2026-10-31T10:41:00Z",
-          "who": "chirper-one",
-          "rating": 9.0,
-          "version": "v6"
-        }
+        "score": 98.266,
+        "version": "v7",
+        "commit": "see git log songs/chirpers7-t15.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 6,
+      "rounds": 7,
       "priority": 1.0,
       "genre": "deep / heavy minimal house (mixtape)",
       "mode": "compose",
@@ -7672,7 +7664,7 @@
         "note": "COMPOSE (song, 240-480 s): Style, featured illusion, tempo, key and line-up are yours: declare them in compose/chirpers7/styles.md and your seams in compose/chirpers7/mixplan.md, different from the tracks already claimed."
       },
       "last": {
-        "at": "2026-10-31T07:43:16Z",
+        "at": "2026-10-31T10:54:02Z",
         "who": "chirper-zero"
       }
     },
