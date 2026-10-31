@@ -147,8 +147,15 @@ def build():
             tr('pad', 'juno-pad', '-12dB', sends={'hall': '-8dB'},
                fx=['hp cutoff=180', {'type': 'filter', 'kind': 'lp', 'q': 0.8, 'cutoff': {'value': 600, 'mod': [{'src': 'auto.op', 'amount': 3.0}]}}],
                auto={'op': {'points': padop}}),
-            risset(8, 8, '-6dB'), risset(start_A, LEN['A']), risset(int(secs['B'] // 4), LEN['B']), risset(int(secs['break'] // 4), LEN['break']), risset(int(secs['C'] // 4), LEN['C']),
+            risset(8, 8, '-6dB'), risset(start_A, LEN['A']), risset(int(secs['B'] // 4), LEN['B']), risset(int(secs['C'] // 4), LEN['C']),
             risset(int(secs['outro'] // 4), 8, '-5dB'),
+            # (v13) THE SPIRAL IN THE LIFT: across the whole eight-bar lift the percussion rush gives way to a plucked arp of the
+            # stair running as a Shepard-Risset
+            # loop (wM's risset pitch: true) - speeding up AND rising together for ever - over the rush, into the long peak
+            {'name': 'spiral', 'patch': 'pluck', 'gain': '-11dB', 'pan': -0.15, 'at': f"{secs['break']:.0f}b", 'sends': {'hall': '-10dB'},
+             'fx': ['hp cutoff=200'],
+             'risset': {'cycle': '4bar', 'layers': 3, 'length': f"{LEN['break']}bar", 'pitch': True},
+             'score': 'F4/8@84 C5/8@72 Ab4/8@76 G4/8@68 F4/8@80 C5/8@70 F5/8@74 C5/8@66'},
             fall(int(secs['B'] // 4), LEN['B']), fall(int(secs['break'] // 4), LEN['break']), fall(int(secs['C'] // 4), LEN['C']),
         ]}
 
