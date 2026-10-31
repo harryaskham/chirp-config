@@ -121,6 +121,16 @@ def zwicker():
                 part("bell").add(b0(nxt) + j, 1.5, nm(m), 96 + 4 * j)
 
 
+RISER = (129, 136)
+
+
+def riser():
+    """v7: THE NOTCH CLIMBS: the eight bars before the last break, a noise wash rises under the groove with its notch
+    gliding from D# up the stair to A# (0.58 octaves) while a high-pass sweeps up; at 137 it becomes Z4's notched noise."""
+    for i, bar in enumerate(range(RISER[0], RISER[1] + 1)):
+        part("riser").add(b0(bar), BAR, "C4", 44 + 8 * i)
+
+
 def is_break(bar):
     return sec_of(bar) in BREAKS
 
@@ -199,6 +209,7 @@ def lanes():
 
 def main():
     zwicker()
+    riser()
     after_tones_together()
     drums()
     harmony()
@@ -259,6 +270,16 @@ def main():
                fx=[{"type": "filter", "kind": "lp", "q": 0.7,
                     "cutoff": {"value": 1000, "mod": [{"src": "auto.po", "amount": 1.0}]}}]),
             tr("bell", "glock", gain="-8dB", pan=0.2, sends={"hall": "-6dB"}),
+            tr("riser", noise, gain="-12dB",
+               auto={"rn": {"points": [["0b", 0.0], [f"{b0(RISER[0])}b", 0.0], [f"{b0(RISER[1] + 1)}b", 0.58],
+                                       [f"{TOTAL}b", 0.58]]},
+                     "rh": {"points": [["0b", 0.0], [f"{b0(RISER[0])}b", 0.0], [f"{b0(RISER[1] + 1)}b", 3.5],
+                                       [f"{TOTAL}b", 3.5]]}},
+               fx=[{"type": "filter", "kind": "notch", "q": 1.5,
+                    "cutoff": {"value": round(440 * 2 ** ((STAIR[0] - 69) / 12) * 1.08 * r, 1),
+                               "mod": [{"src": "auto.rn", "amount": 1.0}]}} for r in (0.9, 1.0, 1.1)]
+                  + [{"type": "filter", "kind": "hp", "cutoff": {"value": 150, "mod": [{"src": "auto.rh", "amount": 1.0}]}},
+                     {"type": "filter", "kind": "lp", "cutoff": 11000}]),
         ] + nz,
     }
     with open(OUT, "w") as f:

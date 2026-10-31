@@ -409,6 +409,128 @@
    }
   },
   {
+   "name": "riser",
+   "patch": {
+    "synth": {
+     "layers": [
+      "noise"
+     ],
+     "amp": {
+      "a": "40ms",
+      "d": 0,
+      "s": 1,
+      "r": "8ms"
+     }
+    }
+   },
+   "score": "R/512b C4/4b@44 C4/4b@52 C4/4b@60 C4/4b@68 C4/4b@76 C4/4b@84 C4/4b@92 C4/4b@100 R/160b",
+   "gain": "-12dB",
+   "auto": {
+    "rn": {
+     "points": [
+      [
+       "0b",
+       0.0
+      ],
+      [
+       "512.0b",
+       0.0
+      ],
+      [
+       "544.0b",
+       0.58
+      ],
+      [
+       "704.0b",
+       0.58
+      ]
+     ]
+    },
+    "rh": {
+     "points": [
+      [
+       "0b",
+       0.0
+      ],
+      [
+       "512.0b",
+       0.0
+      ],
+      [
+       "544.0b",
+       3.5
+      ],
+      [
+       "704.0b",
+       3.5
+      ]
+     ]
+    }
+   },
+   "fx": [
+    {
+     "type": "filter",
+     "kind": "notch",
+     "q": 1.5,
+     "cutoff": {
+      "value": 604.8,
+      "mod": [
+       {
+        "src": "auto.rn",
+        "amount": 1.0
+       }
+      ]
+     }
+    },
+    {
+     "type": "filter",
+     "kind": "notch",
+     "q": 1.5,
+     "cutoff": {
+      "value": 672.0,
+      "mod": [
+       {
+        "src": "auto.rn",
+        "amount": 1.0
+       }
+      ]
+     }
+    },
+    {
+     "type": "filter",
+     "kind": "notch",
+     "q": 1.5,
+     "cutoff": {
+      "value": 739.2,
+      "mod": [
+       {
+        "src": "auto.rn",
+        "amount": 1.0
+       }
+      ]
+     }
+    },
+    {
+     "type": "filter",
+     "kind": "hp",
+     "cutoff": {
+      "value": 150,
+      "mod": [
+       {
+        "src": "auto.rh",
+        "amount": 1.0
+       }
+      ]
+     }
+    },
+    {
+     "type": "filter",
+     "kind": "lp",
+     "cutoff": 11000
+    }
+   ]
+  },
+  {
    "name": "nz0",
    "patch": {
     "synth": {
