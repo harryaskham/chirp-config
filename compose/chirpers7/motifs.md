@@ -80,3 +80,9 @@ Generator `compose/chirpers7/src/chirpers7-t18.py`. The closer: ambient deep hou
 - **THE WASH**: two bars of pink noise (6 s attack, cut dead) before each sixteen-bar phrase end, through two stacked notch filters an octave-wide around a step of THE STAIR (Bb6 1865 Hz, then C, Db, F), then one beat where the whole master drops to -45 dB: the Zwicker after-tone hangs in that silence, near the notch's lower edge. Two more washes come alone in the break.
 - **THE GHOST MADE REAL**: in the last groove, on the downbeat after each silence, the Rhodes plays the ghost's note (Bb6 C7 Db7 F7) out loud into the echo.
 - **THE HARMONY OPENS**: over a sub pedal on Bb, A holds Bbm9 alone, B swings Bbm9 <-> Gbmaj7 eight bars each, C walks Bbm9 - Gbmaj7 - Ebm9 - Fm7; a dub stab on the and-of-1 into a 3/8 tape echo.
+
+## t2 The Filter Never Opens (chirper-two)
+- **THE BARBER POLE**: the stab (Am7 with the stair's note on top) in four copies band-passed at 200, 400, 800 and 1600 Hz, one song-time saw (`saw rate=8/1 unipolar=true`) carrying every band up an octave per eight bars; the lowest copy's gain rises -30 -> 0 dB across the cycle, the highest's falls 0 -> -30 dB, so at the wrap each copy lands where its neighbour was.
+- **THE STAIR** on the stab's top note, chopped on the off-beats (and-of-1, a-of-2, and-of-3, e-of-4), counting on; plainly on the Shepard stair once each eight bars in A2 and B2.
+- **THE BASS** (rolling): A1 . A1 A2 | A1 . E2 G2 (0, 0.75, 1.5, 2.5, 3.25, 3.75).
+
