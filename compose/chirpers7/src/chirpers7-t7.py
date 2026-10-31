@@ -52,13 +52,37 @@ def build():
     secs = {}
     for b in bars:
         secs.setdefault(b['sec'], b['t'])
-    T = {k: [] for k in ('kit', 'click', 'sub', 'stab', 'earL', 'earR')}
+    T = {k: [] for k in ('kit', 'click', 'sub', 'stab', 'earL', 'earR', 'tune')}
+    secs_B = next(b['t'] for b in bars if b['sec'] == 'B')
+    import random
+    rng = random.Random(7)
+    TUNE = [61, 63, 64, 68, 64, 63, 61, None, 61, 63, 64, 68, 71, 68, 64, None]   # THE STAIR as a tune, two bars of eighths
+
     for k, b in enumerate(bars):
         s, t0, i = b['sec'], b['t'], b['i']
         root, ch = CH[(k // 2) % 4]
         # (v7) THE OTHER EAR'S KEY: for the last groove's final sixteen bars the minor turns major - C#m9 becomes C#maj9 (E
         # to E#), G#m7 becomes G#7 (B to B#, the leading note) - and THE STAIR the octave tones step goes major with it
         maj = s == 'C' and i >= 16
+        # (v11) THE SCRAMBLED TUNE - an octave illusion that works on speakers (Deutsch's 'mysterious melodies'): THE STAIR
+        # as a two-bar tune, every note thrown into a random octave, is unrecognisable - just scattered blips. Through the
+        # second groove the octaves narrow, and in the last groove the tune lands in one octave and suddenly 'appears'
+        if s in ('B', 'C'):
+            spread = (3 if i < 16 else 2 if i < 32 else 1) if s == 'B' else (1 if i < 8 else 0)
+            # on a dotted-eighth (3/16) grid counted from B, so the tune also crosses the bar lines
+            base = secs_B
+            m0 = int(-(-(t0 - base) // 0.75))
+            for n in range(m0, m0 + 6):
+                at = base + n * 0.75
+                if not (t0 <= at < t0 + 4.0):
+                    continue
+                m = TUNE[n % len(TUNE)]
+                if m is None:
+                    continue
+                if maj and m % 12 == 4:
+                    m += 1
+                o = rng.randint(-spread, spread) * 12
+                T['tune'].append((at, nm(m + 12 + o), 0.3, 70 + (6 if s == 'C' else 0)))
         if maj:
             if root % 12 == 1:
                 ch = [m + 1 if m % 12 == 4 else m for m in ch]
@@ -151,6 +175,7 @@ def build():
             tr('sub', 'sub', '-4dB', fx=[{'type': 'phantom', 'cutoff': 90, 'harmonics': '-10dB', 'odd': 0.4},
                                          {'type': 'pump', 'on': 'kit.k', 'depth': '-5dB', 'release': '330ms', 'curve': 0.6}]),
             tr('stab', 'epiano-tine', '-12dB', sends={'hall': '-8dB'}, fx=['hp cutoff=200', 'lp cutoff=4200']),
+            tr('tune', 'pluck', '-15dB', pan=0.1, sends={'hall': '-12dB'}, fx=['hp cutoff=180']),
             # (v10) the tones come forward 6 dB: the illusion was 7 LU under the mix (chirp-eco's meter)
             tr('earL', tone, '-14dB', pan=-1.0, sends={'hall': '-16dB'}),
             tr('earR', tone, '-14dB', pan=1.0, sends={'hall': '-16dB'}),
