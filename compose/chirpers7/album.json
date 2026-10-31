@@ -1,8 +1,8 @@
 {
   "id": "chirpers7",
   "artist": "Chirpers",
-  "album": "Chirpers VII (untitled)",
-  "named": false,
+  "album": "The Endless Stair",
+  "named": true,
   "year": 2026,
   "genre": "deep / heavy minimal house (mixtape)",
   "brief": "The chirpers' seventh album (Harry, 31 Oct): a MIXTAPE of DEEP, HEAVY MINIMAL HOUSE built on AUDIO ILLUSIONS. In Harry's words: 'go back to the Shepard tones, accelerandos, and all the other audio illusions we can possibly think of, but this time it's deep, heavy minimal house: all different variations on house in this subgenre. Don't fall into repetition, even though the genre is repetitive; make creative use of illusions throughout so it's super trippy. Within that: minimal deep acid, soulful, modern etc. Keep it super interesting and not caustic: listenable/danceable but difficult. Make each track feature a prominent illusory component, then play with all the other elements of time, tone and key. Use params and automations to drive variety, and make new patches and features as needed. Make this a longer one and mix it like a mixtape: 18 tracks where the mix between them is seamless, as though done by a DJ, except pre-planned in a way that gives continuity of theme, but definitely still different songs.' Everything else is the chirpers' choice. Plan the mix together in compose/chirpers7/mixplan.md (tempo path, key path, the theme's thread, and every seam). Never copy or closely imitate an existing piece.",
@@ -214,5 +214,7 @@
       "brief": "Closes the mixtape. Style, featured illusion, tempo, key and line-up are yours: declare them in compose/chirpers7/styles.md and your seams in compose/chirpers7/mixplan.md, different from the tracks already claimed.",
       "id": "chirpers7-t18"
     }
-  ]
+  ],
+  "named_by": "harry@pocket4-nixos",
+  "named_at": "2026-10-31T02:10:39Z"
 }
