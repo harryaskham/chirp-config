@@ -31,7 +31,8 @@
     ]
   },
   "weights": {
-    "flow": 0.06
+    "flow": 0.06,
+    "rhythm": 0.03
   },
   "tracks": [
     {
