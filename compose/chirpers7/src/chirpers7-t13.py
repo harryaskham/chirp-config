@@ -83,7 +83,13 @@ def build():
             if s == 'A':
                 T['kit'].append((t0 + 3.0, 'cp', 0.25, 100))
             if s in ('B', 'C'):
-                T['kit'].append((t0 + 1.0, 'cp', 0.25, 100)); T['kit'].append((t0 + 3.0, 'cp', 0.25, 104))
+                # (v17) wonkier drums (Harry): the claps a hair late, a ghost clap on the 'a' of two every other bar, and
+                # every fourth bar a kick pickup on the 'a' of four that shoves the next downbeat
+                T['kit'].append((t0 + 1.0 + 0.02, 'cp', 0.25, 100)); T['kit'].append((t0 + 3.0 + 0.02, 'cp', 0.25, 104))
+                if k % 2 == 1:
+                    T['kit'].append((t0 + 1.75 + 0.03, 'cp', 0.25, 54))
+                if k % 4 == 3:
+                    T['kit'].append((t0 + 3.75, 'kd' if s == 'C' else 'k', 0.25, 84))
         # (v3) the incoming DJ move: the sub stays out for the intro's first eight bars, under t12's B-flat
         if s != 'break' and not (s == 'intro' and i < 8):
             T['sub'].append((t0, nm(root), 3.8, 100 if s != 'intro' else 86))
