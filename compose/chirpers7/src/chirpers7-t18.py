@@ -29,6 +29,8 @@ OUTRO = os.environ.get("C7T18_OUTRO", "0") == "1"  # the outro is its own room: 
 EQ2 = os.environ.get("C7T18_EQ2", "0") == "1"  # 50 Hz down 10 dB (was 7), the air shelf at 9 kHz +8 dB (was 5)
 EQ3 = os.environ.get("C7T18_EQ3", "1") == "1"  # the low-mid boxiness out (160 and 550 Hz -3 dB) and the air shelf +7 dB (was 5)
 HATSG = os.environ.get("C7T18_HATSG", "-1")  # the hats 3 dB up (was -4): real air above 9 kHz, where the closer read 7-13 dB dark
+DROP = os.environ.get("C7T18_DROP", "1") == "1"  # the kick drops for intro bars 29-32 (the stair and the pads hang alone), so A lands
+PADG = os.environ.get("C7T18_PADG", "-15")  # the glass pad's level (dB): its chord tones stood up as narrow 340-880 Hz peaks
 RIM3 = os.environ.get("C7T18_RIM3", "1") == "1"
 FORM2 = os.environ.get("C7T18_FORM2", "1") == "1"  # B splits (B2: the stair doubled an octave up, the hats open, no clap) and the outro is the falling floor: the kick leaves at its first bar, the falling Shepard chords return in A minor under the decelerando  # a soft rim on every third 16th in the grooves (a dotted-eighth cycle across the bar lines): the stair's echo in the kit
 
@@ -118,7 +120,7 @@ def build():
             seam_in = sec == "intro" and b < 16
             last = sec == "outro" and b >= 16
             # kick: everywhere but the break and the outro's second half
-            if sec != "break" and not last and not (FORM2 and sec == "outro"):
+            if sec != "break" and not last and not (FORM2 and sec == "outro") and not (DROP and sec == "intro" and 28 <= b < 32):
                 for q in (0, 4, 8, 12):
                     add("kick", at + q, "k", 1, (104 if q == 0 else 96) - (10 if sec == "outro" else 0))
             # hats: off-beats (open in home), a soft shaker on the 16ths in the grooves
@@ -234,7 +236,7 @@ def song():
              "fx": [{"type": "filter", "kind": "hp", "cutoff": {"value": 3500, "mod": [{"src": "lfo.hh", "amount": 0.5}]}, "q": 0.7}], "score": T["hats"]},
             {"name": "clap", "patch": "machine-kit", "gain": "-10dB", "sends": {"hall": "-10dB"}, "score": T["clap"]},
             {"name": "sub", "patch": "sub", "gain": "-14dB", "fx": [pump, {"type": "phantom", "cutoff": 100, "harmonics": "-6dB"}], "score": T["sub"]},
-            {"name": "pads", "patch": "pad-glass", "gain": "-15dB", "fx": [pump], "sends": {"hall": "-6dB"}, "score": T["pads"]},
+            {"name": "pads", "patch": "pad-glass", "gain": f"{PADG}dB", "fx": [pump], "sends": {"hall": "-6dB"}, "score": T["pads"]},
             {"name": "stair", "patch": "stair-down", "gain": "-12dB", "sends": {"echo": "-8dB", "hall": "-8dB"}, "score": T["stair"]},
             *([{"name": "stair2", "patch": "stair-down", "gain": "-16dB", "transpose": 12, "pan": 0.3, "sends": {"echo": "-6dB"}, "score": T["stair2"]}] if FORM2 else []),
             {"name": "fall", "patch": "fall-pad", "gain": "-12dB", "sends": {"hall": "-4dB"}, "score": T["fall"]},
