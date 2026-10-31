@@ -62,12 +62,17 @@ def build():
                 # (v3) the drums build by section: A closed hats and a clap on four; B opens the hats, claps on two
                 # and four and a ride; C the hard kick on top
                 T['kit'].append((t0 + q + 0.5, 'oh' if s in ('B', 'C') else 'h', 0.25, 82))
-                if not (s == 'intro' and i < 8) and not (s == 'outro' and i >= 8):   # (v10) the outro thins as it leaves
+                # (v11) the sixteenth hat belongs to the second groove and the peak: the intro, the first groove and the
+                # outro's last eight bars run on the off-beat alone, so the density really climbs with the form
+                if s in ('B', 'C') or (s == 'outro' and i < 8) or (s == 'A' and i >= 24):
                     T['kit'].append((t0 + q + 0.75, 'h', 0.25, 60))
                 # (v5) the peak gets busier: a sixteenth shaker under C, so the plateau's density climbs too
                 if s == 'C':
                     for x in (0.25, 0.75):
                         T['kit'].append((t0 + q + x + 0.01, 'h', 0.25, 44))
+                    # and in the peak's second half a rim answers on the 'e' of every beat
+                    if i >= 24:
+                        T['kit'].append((t0 + q + 0.25 + 0.01, 'rs', 0.25, 58))
                 if s in ('B', 'C'):
                     T['kit'].append((t0 + q + 0.25, 'rd', 0.25, 54))
             if s == 'A':
