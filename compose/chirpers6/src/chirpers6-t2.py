@@ -104,12 +104,12 @@ def theme(name, start_bar, vel, shift=0, scale=1.0, mapping=None, bars=8, legato
         part(name).add(b0(start_bar) + (b * BAR + beat) * scale, ln * scale * legato, nm(mm), vel)
 
 
-def chords(name, a, z, table, vel, octave=0, every=1):
+def chords(name, a, z, table, vel, octave=0, every=1, art=""):
     for bar in range(a, z + 1):
         if (bar - a) % every:
             continue
         root, v = table[(bar - 1) % 4]
-        part(name).add(b0(bar), BAR * every - 0.1, ",".join(nm(m + octave) for m in v), vel)
+        part(name).add(b0(bar), BAR * every - 0.1, ",".join(nm(m + octave) for m in v) + art, vel)
 
 
 def field():
@@ -175,7 +175,7 @@ def streets():
 
 
 def midnight():
-    chords("cellos", 81, 96, MINOR, 66, octave=-12)
+    chords("cellos", 81, 96, MINOR, 70, octave=-12, art="^mute")   # v5: con sordino, veiled: the town asleep
     theme("piano", 81, 62, mapping=B_MINOR, shift=-12)
     theme("piano", 89, 58, mapping=B_MINOR, shift=-12, bars=4)
     for k in range(12):                                               # a bell strikes twelve
@@ -189,8 +189,9 @@ def all_windows():
         g = bar - 97
         part("bass").add(b0(bar), 3.8, nm(root + (12 if root < 38 else 0)), 92)
         part("cb").add(b0(bar), 3.9, nm(root), 70 + g // 2)            # the contrabass under everything
-        part("strings").add(b0(bar), 3.9, ",".join(nm(m + 12) for m in v), 64 + g)
-        part("cellos").add(b0(bar), 3.9, nm(root + 12) + "," + nm(v[0]), 64 + g)
+        trem = "^trem" if bar >= 113 else ""          # v5: the final climb in BOWED TREMOLO, strings and guitars
+        part("strings").add(b0(bar), 3.9, ",".join(nm(m + 12) for m in v) + trem, 64 + g)   # trembling together
+        part("cellos").add(b0(bar), 3.9, nm(root + 12) + "," + nm(v[0]) + trem, 64 + g)
         for k in range(16):
             m = v[(k // 4) % 4] + 12
             part("trem").add(b0(bar) + k / 4, 0.24, nm(m), 64 + g // 2 + hand.randint(-4, 4))
