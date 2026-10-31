@@ -30,6 +30,8 @@ EQ2 = os.environ.get("C7T18_EQ2", "0") == "1"  # 50 Hz down 10 dB (was 7), the a
 RIM3 = os.environ.get("C7T18_RIM3", "1") == "1"
 FORM2 = os.environ.get("C7T18_FORM2", "1") == "1"  # B splits (B2: the stair doubled an octave up, the hats open, no clap) and the outro is the falling floor: the kick leaves at its first bar, the falling Shepard chords return in A minor under the decelerando  # a soft rim on every third 16th in the grooves (a dotted-eighth cycle across the bar lines): the stair's echo in the kit
 
+SWAP = os.environ.get("C7T18_SWAP", "1") == "1"  # a DJ's bass swap at the seam in: for the 16 overlap bars the kick is high-passed at 110 Hz (its own track) and the held sub is out - the outgoing track carries the low end; the full kick and sub land at bar 17
+
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 FORM = [("intro", 32), ("A", 32), ("break", 16), ("B", 32), ("home", 32), ("outro", 32)]
 CHD = [(38, [53, 57, 60, 64]),   # Dm9: F3 A3 C4 E4 over D
@@ -42,7 +44,7 @@ CHA = [(33, [48, 52, 55, 59]),   # Am9: C3 E3 G3 B3 over A
        (40, [50, 55, 57, 62])]   # E7sus: D3 G3 A3 D4 over E (the sus resolving home)
 STAIR_D = ["A4", "F4", "E4", "D4"]   # 5 3 2 1 of D minor, falling (-4 -1 -2, then -5 to the next A)
 STAIR_A = ["E4", "C4", "B3", "A3"]   # 5 3 2 1 of A minor
-TRACKS = ("kick", "hats", "clap", "sub", "pads", "stair", "fall", "stair2")
+TRACKS = ("kick", "hats", "clap", "sub", "pads", "stair", "fall", "stair2", "kickin")
 
 
 def nm(m):
@@ -164,6 +166,10 @@ def build():
                 add("fall", at, ",".join(nm(n) for n in CHA[0][1]), 8 * BAR, 72)
             if sec == "break" and b % 8 == 0:
                 add("fall", at, ",".join(nm(n) for n in v), 8 * BAR, 76)
+    if SWAP:
+        ev["kickin"] = [e for e in ev["kick"] if e[0] < 16 * BAR]
+        ev["kick"] = [e for e in ev["kick"] if e[0] >= 16 * BAR]
+        ev["sub"] = [e for e in ev["sub"] if e[0] >= 16 * BAR]
     return {k: stream(ev[k], total) for k in TRACKS}
 
 
@@ -217,6 +223,7 @@ def song():
         },
         "tracks": [
             {"name": "kick", "patch": "machine-kit", "gain": "-3dB", "score": T["kick"]},
+            *([{"name": "kickin", "patch": "machine-kit", "gain": "-3dB", "fx": [{"type": "filter", "kind": "hp", "cutoff": 110, "q": 0.7}], "score": T["kickin"]}] if SWAP else []),
             {"name": "hats", "patch": "machine-kit", "gain": "-4dB", "pan": 0.1, "lfo": {"hh": "sine rate=7/1"},
              "fx": [{"type": "filter", "kind": "hp", "cutoff": {"value": 3500, "mod": [{"src": "lfo.hh", "amount": 0.5}]}, "q": 0.7}], "score": T["hats"]},
             {"name": "clap", "patch": "machine-kit", "gain": "-10dB", "sends": {"hall": "-10dB"}, "score": T["clap"]},
