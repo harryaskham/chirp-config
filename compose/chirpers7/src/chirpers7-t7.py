@@ -168,6 +168,9 @@ def build():
                           {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.dyn', 'amount': 1}]}}],
                    'auto': {'dyn': {'points': dyn}}},
         'tracks': [
+            # (riser) Harry: 'riser builds (Shepard risers into drops)' - wM's fx-riser-endless: the endless riser under the break's sixteenth-note dart, into the last groove
+            {'name': 'riser', 'patch': f'fx-riser-endless amp.a={32}b', 'gain': '-15dB', 'sends': {},
+             'score': f'R/{(secs['C'] - 32):.4f}b C#4/{32}b@80'},
             tr('kit', 'machine-kit', '-4dB', sends={'hall': '-20dB'}),
             tr('click', 'machine-kit', '-6dB', pan=0.2, sends={'hall': '-14dB'},
                fx=[{'type': 'stutter', 'slice': '1/16', 'repeats': 4, 'chance': 1, 'swing': 0.56,   # on the clicks' own swing (odd 16ths 0.03 beat late)
