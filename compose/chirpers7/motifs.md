@@ -39,3 +39,10 @@ Generator `compose/chirpers7/src/chirpers7-t16.py`. Rolling hypnotic minimal hou
 - **THE PAIRS**: Shepard tones (8 octave-spaced partials under a Gaussian envelope, width 1.1 octaves) - each bar a step of THE STAIR (Eb, F, Gb, Bb; a step every eight bars) on the one for a dotted quarter, answered by its tritone (A, B, C, E) on the and-of-2; in B and C every other bar adds the pair reversed on the four.
 - **THE TURN**: two copies of the pairs - envelope centred at 250 Hz and at 1 kHz - cross-faded by gain lanes: low alone in A, low -> high through B, high alone in the break (where the Shepard position glides up an octave), both at once in C, low in the outro.
 - **THE BASS**: a rolling sixteenth line (root, octave, fifth, minor seventh) through a ladder breathing on 5- and 7-bar LFOs, pumped by the kick; a sub on the root.
+
+## t1 The First Step (chirper-two)
+- **THE STAIR** (the tape's thread): degrees 1 2 3 5 rising, here A B C E, as SHEPARD TONES (`c2-stair`: a shepard layer, octaves 8, centre 600 Hz, width 1.1, no glide) so the scale climbs for ever and never gets higher. Quarter notes in the intro and the outro, eighths in the grooves, half notes in the break, sixteenths at the peak; it never restarts, it only counts on.
+- **THE BASS** (phantom-bass, off the beat): A1 . E2 A1 C2 on the and-of-1, the a-of-2, the and-of-3, the e-of-4 and the and-of-4; at the peak under F G Am.
+- **THE CHORD**: Am9 (A3 C4 E4 G4 B4) on the a-of-1 and the and-of-3, into a feedback echo room; Fmaj9 and G6/9 at the peak.
+- **THE WHISPER**: "up" (voice-speech, a rising f0) in the break and before the peak.
+
