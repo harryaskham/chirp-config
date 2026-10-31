@@ -7597,7 +7597,7 @@
     {
       "id": "chirpers7-t14",
       "song": "songs/chirpers7-t14.yaml",
-      "reference": "Chirpers — Track 14 (untitled)",
+      "reference": "Chirpers — Top of the Stair",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers7-t14 OUT.wav",
@@ -7613,7 +7613,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "The Endless Stair",
-        "title": "Track 14 (untitled)",
+        "title": "Top of the Stair",
         "track": 14,
         "year": 2026
       },
