@@ -51,7 +51,7 @@ FORM2 = os.environ.get("C7T18_FORM2", "1") == "1"  # B splits (B2: the stair dou
 
 SWAP = os.environ.get("C7T18_SWAP", "0") == "1"
 SWAPBARS = int(os.environ.get("C7T18_SWAPBARS", "16"))
-INLIFT = os.environ.get("C7T18_INLIFT", "-1.5")  # the first 16 bars' level (dB, was -4): the closer comes in under t17's tail at its level, so the live crossfade doesn't sag  # how many overlap bars the incoming lows wait (16: until the overlap ends; 8: the crossfade's midpoint, where the linear fade has both sides at half)  # a DJ's bass swap at the seam in: for the 16 overlap bars the kick is high-passed at 110 Hz (its own track) and the held sub is out - the outgoing track carries the low end; the full kick and sub land at bar 17
+INLIFT = os.environ.get("C7T18_INLIFT", "1.5")  # the first 16 bars' level (dB, was -4): the closer comes in under t17's tail at its level, so the live crossfade doesn't sag  # how many overlap bars the incoming lows wait (16: until the overlap ends; 8: the crossfade's midpoint, where the linear fade has both sides at half)  # a DJ's bass swap at the seam in: for the 16 overlap bars the kick is high-passed at 110 Hz (its own track) and the held sub is out - the outgoing track carries the low end; the full kick and sub land at bar 17
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 FORM = [("intro", 32), ("A", 32), ("break", 16), ("B", 32), ("home", 32), ("outro", 32)]
