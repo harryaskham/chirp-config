@@ -37,6 +37,8 @@ STEP = os.environ.get("C7T15_STEP", "1") == "1"  # section lanes step at their b
 LOWS = os.environ.get("C7T15_LOWS", "-8,-12")
 TAILS = os.environ.get("C7T15_TAIL", "0.3s")  # the render tail: 0.3 s leaves no dead air before t16 picks up the held G  # "shelf,sub": the master's 70 Hz shelf and the sub's gain (dB)  # the fast master compressor's threshold (dB) and attack, 8:1: it catches the kick's peaks before the loudness stage's limiter  # a soft clip ends the master (dB): the kick's peaks rounded before the loudness stage's true-peak limiter, which then has almost nothing to hold
 
+RAMP16 = os.environ.get("C7T15_RAMP16", "1") == "1"  # the tempo ramp finishes 16 bars before the end, so the DJ-mix overlap runs at one steady tempo on both sides (no drift under the crossfade)
+
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 FORM = [("intro", 32), ("A", 32), ("break", 32), ("B", 48), ("r2", 16), ("outro", 32)]
 # (sub root, stab voicing with its top note last): the tops fall G Eb D C
@@ -188,7 +190,7 @@ def song():
     st = {sec: sec_start(sec) for sec, _ in FORM}
     beats = lambda t16: f"{t16 // 4}b"  # noqa: E731
     total_b = total_steps() // 4
-    tempo = [{"at": "0b", "bpm": BPM0}, {"at": beats(st["outro"]), "bpm": BPM0}, {"at": f"{total_b}b", "bpm": BPM1, "ramp": True}]
+    tempo = [{"at": "0b", "bpm": BPM0}, {"at": beats(st["outro"]), "bpm": BPM0}, {"at": f"{total_b - 64 if RAMP16 else total_b}b", "bpm": BPM1, "ramp": True}]
     pump = {"type": "pump", "on": "kick.k", "depth": "-5dB", "attack": "2ms", "release": "200ms", "curve": 0.7}
     pumpr = {"type": "pump", "on": "kick.kr", "depth": "-5dB", "attack": "2ms", "release": "200ms", "curve": 0.7}
     # the dub's feedback: settled in the grooves, climbing through the break, falling into B
