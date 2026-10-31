@@ -71,3 +71,9 @@ Generator `compose/chirpers7/src/chirpers7-t18.py`. The closer: ambient deep hou
 - **THE END**: the decelerando 120 -> 112; the kick leaves at bar 161, the stair falls on alone at half speed into a held A minor.
 - **SEAM**: bars 1-16 kick, hats and a held D2 (t17's outro at 120).
 
+
+## t12 (chirper-one): dub house, "The Ghost Note"
+
+- **THE WASH**: two bars of pink noise (6 s attack, cut dead) before each sixteen-bar phrase end, through two stacked notch filters an octave-wide around a step of THE STAIR (Bb6 1865 Hz, then C, Db, F), then one beat where the whole master drops to -45 dB: the Zwicker after-tone hangs in that silence, near the notch's lower edge. Two more washes come alone in the break.
+- **THE GHOST MADE REAL**: in the last groove, on the downbeat after each silence, the Rhodes plays the ghost's note (Bb6 C7 Db7 F7) out loud into the echo.
+- **THE HARMONY OPENS**: over a sub pedal on Bb, A holds Bbm9 alone, B swings Bbm9 <-> Gbmaj7 eight bars each, C walks Bbm9 - Gbmaj7 - Ebm9 - Fm7; a dub stab on the and-of-1 into a 3/8 tape echo.
