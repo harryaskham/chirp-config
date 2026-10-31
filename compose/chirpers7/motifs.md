@@ -172,3 +172,4 @@ Generator `compose/chirpers7/src/chirpers7-t18.py`. The closer: ambient deep hou
 - **t12 THE REWIND** (v17): a master tapestop with spin 3 on the beat before the break's last silence, then the silent beat, then the last groove.
 - **t13 THE STOP** (v16): a master tapestop over the peak's last two beats - after 48 bars of a rush that never arrives, the whole mix winds down to a halt, the only thing in the track that ever slows - and the outro lands on F.
 - **t7 DISORDER TO ORDER** (v13): the scrambled tune's track also drifts off the grid through the second groove (wM's warp: +1/16, -1/32, +3/32, easing) and locks onto the beat at the last groove, where it also lands in one octave - found in time and pitch at once.
+- **t3 THE WORN RHODES** (v16): the Rhodes alone through a tape fx (wow 9, flutter 3, drive 0.2) - its pitch sags and wavers while the voice, bass and drums hold.

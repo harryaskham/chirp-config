@@ -196,7 +196,10 @@ def build():
             tr('sub', 'sub', '-6dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-5dB', 'release': '330ms', 'curve': 0.6}]),
             tr('bass', 'bass', '-10dB', fx=['lp cutoff=1200', {'type': 'pump', 'on': 'kit.k', 'depth': '-5dB', 'release': '330ms', 'curve': 0.6}]),
             tr('keys', {'extends': 'epiano-tine', 'play': {'release': {'patch': 'epiano-damper', 'decay': '2s'}}}, '-9dB',
-               sends={'echo': '-12dB', 'hall': '-12dB'}, fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-3dB', 'release': '330ms', 'curve': 0.6}]),
+               sends={'echo': '-12dB', 'hall': '-12dB'}, fx=[{'type': 'tape', 'drive': 0.2, 'mix': 1, 'wow': 9, 'flutter': 3, 'seed': 3},
+                                                              {'type': 'pump', 'on': 'kit.k', 'depth': '-3dB', 'release': '330ms', 'curve': 0.6}]),
+            # (v16) 'slight wow on ONE element' (Harry): the Rhodes alone through a worn tape - its pitch sags and wavers
+            # while the voice, the bass and the drums hold, so the soul chords sound subtly off against the stair
             tr('pad', 'juno-pad', '-14dB', sends={'hall': '-10dB'}),
             # (v13) SPEECH FLOATS, SONG LOCKS - time-play on the illusion itself: through the first groove the spoken phrase's
             # own clock wanders off the grid (a sixteenth late, then a thirty-second early, easing), as speech does; through
