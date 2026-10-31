@@ -22,7 +22,9 @@ BPM_IN, BPM_OUT = 118.5, 119.0
 NN = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
 def nm(m): return f"{NN[m % 12]}{m // 12 - 1}"
 
-FORM = [('intro', 16), ('A', 32), ('B', 32), ('break', 16), ('C', 32), ('outro', 16)]
+# (v9) off the tape's template: a shorter first groove (24) and a long 40-bar second groove, so the phrase repeats
+# longer before it sings - the speech-to-song illusion needs repetitions, and now it gets 32 bars of them in B
+FORM = [('intro', 16), ('A', 24), ('B', 40), ('break', 16), ('C', 32), ('outro', 16)]
 CH = [(28, [52, 55, 59, 62, 66]), (24, [52, 55, 59, 62, 64]), (33, [55, 59, 60, 64, 67]), (35, [54, 57, 59, 62, 66])]
 WORDS = ['w-ah1-n', 'm-ao1-r', 's-t-eh1-p', 'ah1-p']
 SPEECH = [(52, 150, -60), (52, 90, -40), (52, 40, -160), (52, -60, -320)]   # pitch, cents at onset, cents at end
@@ -111,14 +113,14 @@ def build():
             if s == 'A':
                 w = 0.0
             elif s == 'B':
-                w = min(1.0, i / 24)
+                w = min(1.0, i / 32)
             elif s == 'C':
                 w = 1.0
             else:
                 w = 0.0                                # the plain speech returns at the end
             T['speech'] += phrase(t0, w, tp=tp)
             n_rep += 1
-            if (s == 'B' and i >= 12) or s == 'C':
+            if (s == 'B' and i >= 20) or s == 'C':
                 T['sung'] += [(a, p.split('^f0')[0], d, 70 + (10 if s == 'C' else 0)) for a, p, d, _ in phrase(t0, 1.0, tp=tp)]
         if s == 'break' and first:
             T['sung'] += [(a, p.split('^f0')[0], d, 86) for a, p, d, _ in phrase(t0, 1.0)]
