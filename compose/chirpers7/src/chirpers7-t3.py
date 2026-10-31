@@ -177,6 +177,9 @@ def build():
                           'limiter ceiling=-1dB'],
                    'auto': {'dyn': {'points': dyn}, 'op': {'points': op}}},
         'tracks': [
+            # (riser) Harry: 'riser builds (Shepard risers into drops)' - wM's fx-riser-endless: the endless riser under the second groove's last eight bars, stopping dead into the break, where the phrase comes back as plain speech alone
+            {'name': 'riser', 'patch': 'fx-riser-endless amp.a=32b', 'gain': '-14dB',
+             'score': f'R/{(secs['break'] - 32):.4f}b E4/32b@80'},
             tr('kit', 'machine-kit', '-4dB', sends={'hall': '-18dB'}),
             tr('kthin', 'machine-kit', '-3dB', fx=['hp cutoff=110']),
             tr('sub', 'sub', '-6dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-5dB', 'release': '330ms', 'curve': 0.6}]),
