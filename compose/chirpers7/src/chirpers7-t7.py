@@ -104,6 +104,8 @@ def build():
             # THE CLICKS: a skippy 16th pattern of rims and tiny hats that changes every two bars
             pat = [(0.25, 'rs'), (0.75, 'rs'), (1.5, 'h'), (1.75, 'rs'), (2.25, 'rs'), (3.25, 'h'), (3.5, 'rs')] if k % 2 == 0 else \
                   [(0.5, 'rs'), (0.75, 'h'), (1.25, 'rs'), (2.0, 'h'), (2.75, 'rs'), (3.0, 'rs'), (3.75, 'h')]
+            if s in ('B', 'C') and i % 8 == 7:
+                T['click'].append((t0 + 3.0, 'rs', 0.25, 92))     # a rim on beat four for the roll to capture
             for q, p in pat:
                 T['click'].append((t0 + q + (0.03 if (q * 4) % 2 else 0.0), p, 0.25, 64 + (k * 7 + int(q * 4)) % 20))
         if s in ('A', 'B', 'C') or (s == 'outro' and i < 8):
@@ -176,7 +178,10 @@ def build():
              'score': f'R/{(secs['C'] - 32):.4f}b C#4/{32}b@80'},
             tr('kit', 'machine-kit', '-4dB', sends={'hall': '-20dB'}),
             tr('click', 'machine-kit', '-6dB', pan=0.2, sends={'hall': '-14dB'},
-               fx=[{'type': 'stutter', 'slice': '1/16', 'repeats': 4, 'chance': 1, 'swing': 0.56,   # on the clicks' own swing (odd 16ths 0.03 beat late)
+               # (v16) the roll gets wonky (Harry: 'stutter rolls with swing', 'subtly off'), now that wM's fix (42c5e571) keeps
+               # the stutter on the beat under a tempo ramp: thirty-second slices, eight repeats, each a little lower - the
+               # clicks fall half an octave as they roll
+               fx=[{'type': 'stutter', 'slice': '1/32', 'repeats': 8, 'chance': 1, 'swing': 0.56, 'pitch': -0.75, 'decay': 0.04,
                     'mix': {'value': 0, 'mod': [{'src': 'auto.gl', 'amount': 1}]}}], auto={'gl': {'points': gl}}),
             tr('sub', 'sub', '-4dB', fx=[{'type': 'phantom', 'cutoff': 90, 'harmonics': '-10dB', 'odd': 0.4},
                                          {'type': 'pump', 'on': 'kit.k', 'depth': '-5dB', 'release': '330ms', 'curve': 0.6}]),
