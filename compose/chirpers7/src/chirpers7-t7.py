@@ -1,0 +1,132 @@
+#!/usr/bin/env python3
+"""chirpers7-t7 (chirper-one): MICRO-HOUSE, "Which Ear", for 'The Endless Stair' (Chirpers VII mixtape).
+
+Clicky, crisp, skippy minimal house - small sounds, a deep sub, glitch edits - the tape's headphone track.
+120.5 -> 121 bpm (ramped inside the track), C# minor (12A): C#m9 - Amaj7 - E6 - G#m7, two bars each.
+THE OCTAVE ILLUSION (Diana Deutsch): two pure tones an octave apart alternate between the ears in antiphase - the left
+ear hears high, low, high, low while the right hears low, high, low, high, every eighth note. Most listeners do not
+hear that: they hear ONE tone hopping from ear to ear and changing octave as it goes (and which ear seems to get the
+high one depends on handedness). The pair steps THE STAIR (C# D# E G#), one step every eight bars.
+Form (bars): intro 16 (the seam from t6: kick and clicks) / A 32 (the sub; the tones enter at bar 8, quietly) /
+B 32 (dub chord stabs, the tones forward, a swung stutter every eight bars) / break 16 (the drums leave: the illusion
+alone in the dark, a long hall) / C 32 (everything) / outro 16 (the seam to t8: kick, clicks, the tones fading).
+Master: chirper-zero's clean -11 LUFS recipe (glue, +8 dB, a fast 8:1 compressor at -15 dB / 0.3 ms, the song's
+`loudness`), ceiling -1 dB.
+Emits songs/chirpers7-t7.yaml (JSON through tools/songfmt.py). Edit the music here, not the YAML.
+"""
+import json, os, subprocess, sys, tempfile
+
+ROOT = "/home/harry/.config/chirp"
+OUT = os.path.join(ROOT, "songs", "chirpers7-t7.yaml")
+BPM_IN, BPM_OUT = 120.5, 121.0
+NN = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
+def nm(m): return f"{NN[m % 12]}{m // 12 - 1}"
+
+FORM = [('intro', 16), ('A', 32), ('B', 32), ('break', 16), ('C', 32), ('outro', 16)]
+CH = [(37, [61, 64, 68, 71, 75]), (33, [61, 64, 68, 69]), (40, [61, 64, 68, 71]), (44, [63, 66, 68, 71])]
+STAIR = [61, 63, 64, 68]                    # C#4 D#4 E4 G#4 (the low tone; the high is an octave up)
+
+def line(events, total):
+    ev = sorted(events)
+    toks, t = [], 0.0
+    for k, (at, p, d, v) in enumerate(ev):
+        if at < t - 1e-6: continue
+        if at > t + 1e-4: toks.append(f"R/{at - t:.4f}b")
+        nxt = ev[k + 1][0] if k + 1 < len(ev) else total
+        d = max(0.02, min(d, nxt - at))
+        toks.append(f"{p}/{d:.4f}b@{v}"); t = at + d
+    if total > t + 1e-4: toks.append(f"R/{total - t:.4f}b")
+    return ' '.join(toks)
+
+def build():
+    bars, t = [], 0.0
+    for name, n in FORM:
+        for i in range(n):
+            bars.append({'sec': name, 'i': i, 't': t}); t += 4.0
+    total = t
+    secs = {}
+    for b in bars:
+        secs.setdefault(b['sec'], b['t'])
+    T = {k: [] for k in ('kit', 'click', 'sub', 'stab', 'earL', 'earR')}
+    for k, b in enumerate(bars):
+        s, t0, i = b['sec'], b['t'], b['i']
+        root, ch = CH[(k // 2) % 4]
+        drums = s != 'break'
+        if drums:
+            for q in range(4):
+                T['kit'].append((t0 + q, 'k', 0.25, 112 if q == 0 else 104))
+            if s in ('A', 'B', 'C') or (s == 'outro' and i < 8):
+                T['kit'].append((t0 + 1.0, 'cp', 0.25, 78)); T['kit'].append((t0 + 3.0, 'cp', 0.25, 82))
+                for q in range(4):
+                    T['kit'].append((t0 + q + 0.5, 'oh' if q % 2 else 'h', 0.25, 86))
+                    for x in (0.25, 0.75):
+                        T['kit'].append((t0 + q + x + 0.03, 'h', 0.25, 58))
+            # THE CLICKS: a skippy 16th pattern of rims and tiny hats that changes every two bars
+            pat = [(0.25, 'rs'), (0.75, 'rs'), (1.5, 'h'), (1.75, 'rs'), (2.25, 'rs'), (3.25, 'h'), (3.5, 'rs')] if k % 2 == 0 else \
+                  [(0.5, 'rs'), (0.75, 'h'), (1.25, 'rs'), (2.0, 'h'), (2.75, 'rs'), (3.0, 'rs'), (3.75, 'h')]
+            for q, p in pat:
+                T['click'].append((t0 + q + (0.03 if (q * 4) % 2 else 0.0), p, 0.25, 64 + (k * 7 + int(q * 4)) % 20))
+        if s in ('A', 'B', 'C') or (s == 'outro' and i < 8):
+            T['sub'].append((t0, nm(root), 1.7, 100))
+            T['sub'].append((t0 + 2.5, nm(root), 1.2, 90))
+        if s in ('B', 'C') and k % 2 == 0:
+            T['stab'].append((t0 + 0.5, ','.join(nm(m) for m in ch), 0.4, 84))
+            T['stab'].append((t0 + 2.75, ','.join(nm(m) for m in ch[1:]), 0.3, 72))
+        # THE OCTAVE ILLUSION: antiphase octave tones, left and right, every eighth note
+        on = (s == 'A' and i >= 8) or s in ('B', 'break', 'C') or (s == 'outro' and i < 12)
+        if on:
+            low = STAIR[(k // 8) % 4]
+            v = {'A': 64, 'B': 78, 'break': 84, 'C': 80, 'outro': 66 - 2 * max(0, i - 4)}[s]
+            for e in range(8):
+                hi_left = e % 2 == 0
+                T['earL'].append((t0 + e * 0.5, nm(low + 12 if hi_left else low), 0.42, v))
+                T['earR'].append((t0 + e * 0.5, nm(low if hi_left else low + 12), 0.42, v))
+    lv = {'intro': -4, 'A': -1, 'B': 0, 'break': -5, 'C': 0, 'outro': -3}
+    dyn = []
+    for name, _ in FORM:
+        t_ = secs[name]
+        dyn += [[f'{max(0.0, t_ - 0.5):.2f}b', dyn[-1][1] if dyn else lv[name]], [f'{t_:.2f}b', lv[name]]]
+    dyn[0][0] = '0b'
+    # a swung stutter on the clicks over the last beat of every eighth bar of B and C
+    gl = [['0b', 0]]
+    for b in bars:
+        if b['sec'] in ('B', 'C') and b['i'] % 8 == 7:
+            a0 = b['t'] + 3.0
+            gl += [[f'{a0 - 0.02:.2f}b', 0], [f'{a0:.2f}b', 1], [f'{a0 + 0.98:.2f}b', 1], [f'{a0 + 1.0:.2f}b', 0]]
+    tone = {'synth': {'layers': [{'type': 'osc', 'wave': 'sine'}], 'amp': {'a': '4ms', 'd': '60ms', 's': 0.85, 'r': '30ms'}}}
+    tr = lambda name, patch, gain, **kw: dict({'name': name, 'patch': patch, 'gain': gain, 'score': line(T[name], total)}, **kw)
+    return {
+        'about': "Chirpers - The Endless Stair (Chirpers VII), track 7 by chirper-one: MICRO-HOUSE, Which Ear. "
+                 "Generated by compose/chirpers7/src/chirpers7-t7.py; see its docstring and compose/chirpers7/styles.md.",
+        'tempo': [{'at': '0b', 'bpm': BPM_IN}, {'at': f'{total:.0f}b', 'bpm': BPM_OUT, 'ramp': True}],
+        'length': f'{total * 60 / ((BPM_IN + BPM_OUT) / 2) + 1.2:.2f}s', 'ceiling': '-1dB', 'volume': '0dB', 'loudness': -11.0,
+        'buses': {'hall': {'fx': ['reverb kind=hall decay=4s mix=1', 'hp cutoff=300'], 'returns': []}},
+        'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=30', 'peak cutoff=60 q=1 gain=-3dB', 'peak cutoff=450 q=0.7 gain=-5dB', 'highshelf cutoff=3200 gain=6dB']},
+                          {'type': 'compressor', 'threshold': '-20dB', 'ratio': 2.5, 'attack': '15ms', 'release': '150ms', 'makeup': '2dB'},
+                          {'type': 'gain', 'gain': '+8dB'},
+                          {'type': 'compressor', 'threshold': '-15dB', 'ratio': 8, 'attack': '0.3ms', 'release': '60ms'},
+                          {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.dyn', 'amount': 1}]}}],
+                   'auto': {'dyn': {'points': dyn}}},
+        'tracks': [
+            tr('kit', 'machine-kit', '-4dB', sends={'hall': '-20dB'}),
+            tr('click', 'machine-kit', '-9dB', pan=0.2, sends={'hall': '-14dB'},
+               fx=[{'type': 'stutter', 'slice': '1/16', 'repeats': 4, 'chance': 1, 'swing': 0.56,   # on the clicks' own swing (odd 16ths 0.03 beat late)
+                    'mix': {'value': 0, 'mod': [{'src': 'auto.gl', 'amount': 1}]}}], auto={'gl': {'points': gl}}),
+            tr('sub', 'sub', '-4dB', fx=[{'type': 'phantom', 'cutoff': 90, 'harmonics': '-10dB', 'odd': 0.4},
+                                         {'type': 'pump', 'on': 'kit.k', 'depth': '-5dB', 'release': '330ms', 'curve': 0.6}]),
+            tr('stab', 'epiano-tine', '-12dB', sends={'hall': '-8dB'}, fx=['lp cutoff=2500']),
+            tr('earL', tone, '-20dB', pan=-1.0, sends={'hall': '-16dB'}),
+            tr('earR', tone, '-20dB', pan=1.0, sends={'hall': '-16dB'}),
+        ]}
+
+if __name__ == '__main__':
+    out = sys.argv[1] if len(sys.argv) > 1 else OUT
+    song = build()
+    if out.endswith('.json'):
+        json.dump(song, open(out, 'w'), indent=1)
+    else:
+        with tempfile.NamedTemporaryFile('w', suffix='.json', delete=False) as f:
+            json.dump(song, f)
+        subprocess.run(['python3', os.path.join(ROOT, 'tools', 'songfmt.py'), 'yaml', f.name, '-o', out], check=True)
+        os.unlink(f.name)
+    print('wrote', out, song['length'])

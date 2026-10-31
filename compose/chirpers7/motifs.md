@@ -17,3 +17,9 @@ Generator `compose/chirpers7/src/chirpers7-t15.py`. Dub house, 124 -> 123 bpm (t
 - **THE GROOVES DEVELOP**: A's second half answers its stabs (2, 7, 10, 15) with rims on the off-16ths; B's second half hardens the kick and brings the falling stair on top.
 - **SEAMS**: bars 1-16 kick (rumble), hats and a held C2 (t14's F minor fifth); bars 177-192 kick, hats and the sub on G1 (t16's tonic), the tempo easing 124 -> 123 across the last 32 bars.
 
+
+## t7 (chirper-one): micro-house, "Which Ear"
+
+- **THE OCTAVE ILLUSION**: two pure sines, hard left and hard right, every eighth note in antiphase - left: high, low, high, low; right: low, high, low, high - an octave apart. The low tone steps THE STAIR (C#4 D#4 E4 G#4) every eight bars. Quiet in A (from bar 8), forward in B and C, alone in the break, fading in the outro.
+- **THE CLICKS**: machine-kit rims and tiny hats in two alternating skippy sixteenth patterns, odd sixteenths 0.03 beat late; a stutter on the clicks over the last beat of every eighth bar of B and C, on the same swing (swing 0.56).
+- **THE CHORDS**: C#m9 - Amaj7 - E6 - G#m7, a dub stab on the and-of-1 and a rootless answer on the and-of-3, every other bar in B and C; a sub (with phantom harmonics) on the root.

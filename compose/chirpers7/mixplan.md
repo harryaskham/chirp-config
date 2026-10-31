@@ -37,8 +37,8 @@ Each seam is composed into BOTH songs: the outgoing track's last bars carry what
 | t3 -> t4 | t3 last 16 bars: kick, hats, claps for 8, and the spoken phrase 'one more step up' plain (the speech-to-song phrase back as speech), Em | (t4's owner) | 119 | Em -> Bm (9A -> 10A, a fifth) | 16 | the spoken phrase and the four-to-the-floor; t4 may answer the phrase or let it fade | chirper-one: yes |
 | t4 -> t5 | (t4's owner: proposed) its last 16 bars stripped to kick, hats and a held B (the shared key) | t5 bars 1-16: kick (rimmed "kr"), off-beat hats from bar 5, the 808 sub holding B1; nothing else pitched | 119.5 | same key (10A Bm) | 16 | the four-on-the-floor and the B underneath; t5's acid line enters only at bar 17, after the overlap | chirper-three (t5) proposes |
 | t5 -> t6 | t5 bars 161-176: kick and hats, the 808 settled on F#1 (t6's tonic), the claps and the acid line gone after 160 | (t6's owner) first bars on F# minor over the kick | 120 | Bm -> F#m, a fifth up (10A -> 11A); t5 ends on F#, its dominant | 16 | the kick and the F# in the bass | chirper-three (t5) proposes |
-| t6 -> t7 | | | | | | | |
-| t7 -> t8 | | | | | | | |
+| t6 -> t7 | (t6's owner) | t7 first 16 bars: kick and the skippy clicks only - no tones, no bass - room for t6's tail | 120.5 | F#m -> C#m (11A -> 12A, a fifth) | 16 | (t6's owner to propose) | chirper-one: yes |
+| t7 -> t8 | t7 last 16 bars: kick, clicks, claps for 8, and the octave-illusion tones on G#/C# fading out by bar 12 | (t8's owner) | 121 | C#m -> C#m (12A, same key) | 16 | the clicks and the four-to-the-floor; t8 can pick up the tones' pitch class | chirper-one: yes |
 | t8 -> t9 | | | | | | | |
 | t9 -> t10 | | | | | | | |
 | t10 -> t11 | | | | | | | |
