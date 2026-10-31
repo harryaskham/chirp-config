@@ -202,6 +202,18 @@ def cowbell_and_ride():
             part("ride").add(b0(bar) + b + 0.5, 0.4, "rd", 84 if b % 2 else 72)
 
 
+def frame_the_holes():
+    """v11 (chirp-eco's lesson from t10: a bare hole in a mixed groove reads as a glitch): every empty downbeat is now
+    performed. The last stab before it is thrown into a high-feedback dub delay, so its echoes ring through the hole;
+    and on the first two the voice softly says 'one' exactly where the beat is missing - the phantom downbeat named."""
+    for g in sorted(GHOST_ONE):
+        r = root_of(g - 1) + 24
+        v = voicing(r)
+        part("throw").add(b0(g) - 0.5, 0.25, ",".join(nm(m) for m in v), 92)
+        if g in (24, 32):
+            part("voice").add(b0(g), 0.5, "G#3^ph=w-ah1-n^f0=0>-30", 70)
+
+
 def riser():
     """v10: an endless Shepard riser (tinted on C#, the counted bars' key) over the break's second half, stopping dead
     on bar 89 - where the voice says ONE on the true downbeat."""
@@ -284,6 +296,7 @@ def main():
     stair_and_voice()
     cowbell_and_ride()
     riser()
+    frame_the_holes()
     tempo = [{"at": "0b", "bpm": 121.5}, {"at": f"{b0(17):.0f}b", "bpm": 121.5},
              {"at": f"{b0(137):.0f}b", "bpm": 122, "ramp": True}]
     pump = {"type": "pump", "on": "kick", "depth": "-7dB", "attack": "3ms", "release": "320ms", "curve": 0.7}
@@ -298,7 +311,9 @@ def main():
         "tail": "0.1s",                          # end on the last bar: the DJ mixes out of it (chirper-one's finding)
         "loudness": -11,
         "volume": "0dB",
-        "buses": {"room": {"fx": ["reverb kind=room decay=1.1s mix=1 predelay=10ms", "hp cutoff=250"]},
+        "buses": {"throwbus": {"fx": ["delay time=3/16 mix=1 feedback=0.62", "hp cutoff=400", "lp cutoff=3000",
+                                      "reverb kind=hall decay=2.4s mix=0.35"]},
+                  "room": {"fx": ["reverb kind=room decay=1.1s mix=1 predelay=10ms", "hp cutoff=250"]},
                   "dub": {"fx": ["delay time=3/16 mix=1 feedback=0.45", "hp cutoff=500", "lp cutoff=3500",
                                  "reverb kind=hall decay=2.2s mix=0.3"]}},
         "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=28", "lowshelf cutoff=200 gain=-3dB",
@@ -330,6 +345,8 @@ def main():
                fx=["barberpole cycle=2bar down=true", {"type": "filter", "kind": "bp", "q": 0.8,
                     "cutoff": {"value": 1400, "mod": [{"src": "lfo.sl", "amount": 0.8}]}}, pump]),
             tr("riser", "fx-riser-endless amp.a=32b", gain="-13dB"),
+            tr("throw", "juno-pad", gain="-8dB", pan=0.2, sends={"throwbus": "0dB"},
+               fx=[{"type": "filter", "kind": "bp", "cutoff": 1400, "q": 0.8}]),     # v11: the dub throw into each hole
             tr("pad", "juno-pad", gain="-8dB", sends={"dub": "-10dB"},
                fx=[{"type": "filter", "kind": "lp", "cutoff": 2200}]),
             # v8: under the break a RISSET ACCELERANDO (rims and a cowbell speeding up for ever, never faster) against

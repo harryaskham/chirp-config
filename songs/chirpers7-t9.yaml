@@ -19,6 +19,14 @@
  "loudness": -11,
  "volume": "0dB",
  "buses": {
+  "throwbus": {
+   "fx": [
+    "delay time=3/16 mix=1 feedback=0.62",
+    "hp cutoff=400",
+    "lp cutoff=3000",
+    "reverb kind=hall decay=2.4s mix=0.35"
+   ]
+  },
   "room": {
    "fx": [
     "reverb kind=room decay=1.1s mix=1 predelay=10ms",
@@ -407,6 +415,24 @@
    "gain": "-13dB"
   },
   {
+   "name": "throw",
+   "patch": "juno-pad",
+   "score": "R/91.5b G#3,B3,D#4,A#4/0.25b@92 R/31.75b G#3,B3,D#4,A#4/0.25b@92 R/31.75b G#3,B3,D#4,A#4/0.25b@92 R/223.75b E4,G#4,B4,D#5/0.25b@92 R/31.75b E4,G#4,B4,D#5/0.25b@92 R/63.75b E4,G#4,B4,D#5/0.25b@92 R/31.75b E4,G#4,B4,D#5/0.25b@92 R/31.75b E4,G#4,B4,D#5/0.25b@92 R/164.25b",
+   "gain": "-8dB",
+   "pan": 0.2,
+   "sends": {
+    "throwbus": "0dB"
+   },
+   "fx": [
+    {
+     "type": "filter",
+     "kind": "bp",
+     "cutoff": 1400,
+     "q": 0.8
+    }
+   ]
+  },
+  {
    "name": "pad",
    "patch": "juno-pad",
    "score": "R/288b G#3,B3,D#4,F#4,A#4/31.9b@70 R/0.1b C#4,E4,G#4,B4,D#5/31.9b@72 R/352.1b",
@@ -470,7 +496,7 @@
   {
    "name": "voice",
    "patch": "voice-speech",
-   "score": "R/305.5b G#3/0.45b@78^ph=w-ah1-n^f0=0>-20 R/7.55b G#3/0.45b@78^ph=w-ah1-n^f0=0>-20 R/6.05b C#4/0.5b@82^ph=w-ah1-n^f0=0>-20 R/1b C#4/0.5b@80^ph=t-uw1^f0=0>-10 R/1b C#4/0.5b@78^ph=th-r-iy1^f0=0>-30 R/1b C#4/0.5b@82^ph=w-ah1-n^f0=0>-20 R/1b C#4/0.5b@80^ph=t-uw1^f0=0>-10 R/1b C#4/0.5b@78^ph=th-r-iy1^f0=0>-30 R/1b C#4/0.5b@82^ph=w-ah1-n^f0=0>-20 R/1b C#4/0.5b@80^ph=t-uw1^f0=0>-10 R/1b C#4/0.5b@78^ph=th-r-iy1^f0=0>-30 R/1b C#4/0.5b@82^ph=w-ah1-n^f0=0>-20 R/1b C#4/0.5b@80^ph=t-uw1^f0=0>-10 R/1b C#4/0.5b@78^ph=th-r-iy1^f0=0>-30 R/1b C#4/0.5b@82^ph=w-ah1-n^f0=0>-20 R/1b C#4/0.5b@80^ph=t-uw1^f0=0>-10 R/1b C#4/0.5b@78^ph=th-r-iy1^f0=0>-30 R/1b C#4/0.5b@82^ph=w-ah1-n^f0=0>-20 R/1b C#4/0.5b@80^ph=t-uw1^f0=0>-10 R/1b C#4/0.5b@78^ph=th-r-iy1^f0=0>-30 R/1b C#4/0.5b@82^ph=w-ah1-n^f0=0>-20 R/1b C#4/0.5b@80^ph=t-uw1^f0=0>-10 R/1b C#4/0.5b@78^ph=th-r-iy1^f0=0>-30 R/1.5b B3/0.6b@100^ph=w-ah1-n^f0=0>-60 R/351.4b",
+   "score": "R/92b G#3/0.5b@70^ph=w-ah1-n^f0=0>-30 R/31.5b G#3/0.5b@70^ph=w-ah1-n^f0=0>-30 R/181b G#3/0.45b@78^ph=w-ah1-n^f0=0>-20 R/7.55b G#3/0.45b@78^ph=w-ah1-n^f0=0>-20 R/6.05b C#4/0.5b@82^ph=w-ah1-n^f0=0>-20 R/1b C#4/0.5b@80^ph=t-uw1^f0=0>-10 R/1b C#4/0.5b@78^ph=th-r-iy1^f0=0>-30 R/1b C#4/0.5b@82^ph=w-ah1-n^f0=0>-20 R/1b C#4/0.5b@80^ph=t-uw1^f0=0>-10 R/1b C#4/0.5b@78^ph=th-r-iy1^f0=0>-30 R/1b C#4/0.5b@82^ph=w-ah1-n^f0=0>-20 R/1b C#4/0.5b@80^ph=t-uw1^f0=0>-10 R/1b C#4/0.5b@78^ph=th-r-iy1^f0=0>-30 R/1b C#4/0.5b@82^ph=w-ah1-n^f0=0>-20 R/1b C#4/0.5b@80^ph=t-uw1^f0=0>-10 R/1b C#4/0.5b@78^ph=th-r-iy1^f0=0>-30 R/1b C#4/0.5b@82^ph=w-ah1-n^f0=0>-20 R/1b C#4/0.5b@80^ph=t-uw1^f0=0>-10 R/1b C#4/0.5b@78^ph=th-r-iy1^f0=0>-30 R/1b C#4/0.5b@82^ph=w-ah1-n^f0=0>-20 R/1b C#4/0.5b@80^ph=t-uw1^f0=0>-10 R/1b C#4/0.5b@78^ph=th-r-iy1^f0=0>-30 R/1b C#4/0.5b@82^ph=w-ah1-n^f0=0>-20 R/1b C#4/0.5b@80^ph=t-uw1^f0=0>-10 R/1b C#4/0.5b@78^ph=th-r-iy1^f0=0>-30 R/1.5b B3/0.6b@100^ph=w-ah1-n^f0=0>-60 R/351.4b",
    "gain": "-6dB",
    "pan": -0.2,
    "sends": {
