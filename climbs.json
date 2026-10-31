@@ -7058,7 +7058,14 @@
         "score": 95.318,
         "version": "v2",
         "commit": "see git log songs/chirpers6-t8.yaml",
-        "engine": "fcff9b53"
+        "engine": "fcff9b53",
+        "stale": {
+          "score": 95.318,
+          "since": "2026-10-31T02:17:18Z",
+          "who": "chirper-one",
+          "rating": 8.5,
+          "version": "v2"
+        }
       },
       "passes": 1,
       "enabled": true,
