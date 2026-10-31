@@ -3,7 +3,7 @@
 
 The tape reaching its plateau - a heavy kick, a driven bass, big minor-ninth stabs, the room full - and the mirror of
 chirper-zero's 'Slower Forever'. 123.5 -> 124 bpm (ramped inside), F minor (4A): Fm9 - Dbmaj7 - Bbm9 - C7sus, four bars
-each.
+each, over a driven bass that holds F as a pedal (v2).
 THE RISSET ACCELERANDO (Jean-Claude Risset): a percussion bed - rims, a shaker, a clave and a hat figure - speeds up
 forever: three tempo octaves of the same bar, each doubling its speed over eight bars while the fastest fades out and
 the slowest fades in, so the bed is always accelerating and never arrives, over a kick that never changes. The build
@@ -65,7 +65,8 @@ def build():
         if s in ('A', 'B', 'C') or (s == 'outro' and i < 8):
             for q, o in enumerate(BASS):
                 if o is not None:
-                    T['bass'].append((t0 + q * 0.25, nm(root + 12 + o), 0.2, 100 if q % 4 == 2 else 84))
+                    # (v2) a PEDAL: the driven bass holds F under every chord - the plateau's floor doesn't move
+                    T['bass'].append((t0 + q * 0.25, nm(41 + 12 + o), 0.2, 100 if q % 4 == 2 else 84))
         if s in ('A', 'B', 'C') and k % 4 in (0, 2):
             T['stab'].append((t0 + 0.5, ','.join(nm(m) for m in ch), 0.4, 92))
         # THE STAIR on the stab: in B and C, every other bar, F G Ab C on the off-beats

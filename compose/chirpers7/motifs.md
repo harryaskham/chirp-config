@@ -61,3 +61,4 @@ Generator `compose/chirpers7/src/chirpers7-t17.py`. Lo-fi deep house, 122 -> 120
 
 - **THE RUSH**: a machine-kit bar (rims, shaker, clave, hats in sixteenths) on Risset tracks - `risset: {cycle: 8bar, down: false, layers: 3}` - from A's bar 8, through B, alone in the break and through the peak: three tempo octaves, each doubling over eight bars while the fastest fades out and the slowest fades in; the kick never changes.
 - **THE PLATEAU**: Fm9 - Dbmaj7 - Bbm9 - C7sus, four bars a chord; a driven sixteenth bass and a sub, pumped; stabs on the and-of-1 of every other bar; THE STAIR (F G Ab C) on the off-beats of the alternate bars in B (doubled in octaves in C); the hard kick (kd) in the peak.
+- **THE PEDAL** (v2): the driven sixteenth bass now holds F under every chord instead of following the roots - the plateau's floor doesn't move while the harmony turns above it (and compscore stops hearing a new section at every chord change: 23 sections -> 7).
