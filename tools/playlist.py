@@ -23,12 +23,13 @@ committed by then; see the registry's _protocol). Players (`chirp player`, the w
 - Underrun increases are logged with the host load (they track CPU storms on the host).
 
 Started by tools/restart-groove.sh playlist. Log: /tmp/chirp-playlist.log."""
-import getpass, json, os, socket, subprocess, sys, time
+import getpass, json, os, re, socket, subprocess, sys, time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 C = os.environ.get("CHIRP_BIN", os.path.join(os.environ.get("XDG_RUNTIME_DIR", "/tmp"), "chirp-groove"))
 ID = os.environ.get("PLAYLIST_GROOVE", "groove")
+MIX = os.environ.get("PLAYLIST_MIX", "1") != "0"   # DJ-mix seams from mix plans (needs a pin with entry overlaps)
 
 
 def sock_path():
@@ -150,8 +151,43 @@ def entry(c):
     return e
 
 
-def key(label, source, passes):
-    return (label, source, passes or 1)
+def key(label, source, passes, overlap=None):
+    return (label, source, passes or 1, float(overlap) if overlap else None)
+
+
+TRACK = re.compile(r"^(.+)-t(\d+)$")
+
+
+def with_seams(cs, want):
+    """DJ-mix seams (chirp live's per-entry `overlap`, pins from a18a1858): an entry overlaps the next by the bars its
+    album's compose/ALBUM/mixplan.md gives that seam, but only when the next entry IS its album neighbour (tN then
+    tN+1). Other joins (a gap in the album, the loop back to the opener) play back to back: their tempos and keys were
+    never matched, and a beat-aligned blend of two tempos is a train wreck."""
+    plans = {}
+    for i, (c, e) in enumerate(zip(cs, want)):
+        nxt = cs[(i + 1) % len(cs)] if len(cs) > 1 else None
+        a, b = TRACK.match(c["id"]), TRACK.match(nxt["id"]) if nxt else None
+        if not (a and b and a.group(1) == b.group(1) and int(b.group(2)) == int(a.group(2)) + 1):
+            continue
+        if a.group(1) not in plans:
+            plans[a.group(1)] = mixplan_seams(a.group(1))
+        bars = plans[a.group(1)].get((int(a.group(2)), int(b.group(2))))
+        if bars:
+            e["overlap"] = bars
+    return want
+
+
+def mixplan_seams(album_id):
+    """{(out_n, in_n): bars} from the album's mix plan ({} without one)."""
+    if not os.path.exists(os.path.join(ROOT, "compose", album_id, "mixplan.md")):
+        return {}
+    try:
+        sys.path.insert(0, HERE)
+        import chirpers
+        return chirpers.seam_overlaps(album_id, root=ROOT)[0]
+    except Exception as e:  # noqa: BLE001 - a broken mix plan must never stop the groove's driver
+        log("playlist: mix plan unreadable:", album_id, e)
+        return {}
 
 
 YIELDED = {"on": False}
@@ -161,17 +197,27 @@ def sync(st):
     """Make the session's playlist the enabled climbs (set it, or apply only what changed). Someone
     else's playlist (an album played from a player: mostly entries the rotation does not have) is left
     alone until it finishes or is cleared."""
-    want = [entry(c) for c in climbs()]
+    cs = climbs()
+    want = with_seams(cs, [entry(c) for c in cs]) if MIX else [entry(c) for c in cs]
     if not want:
         return
     pl = st.get("playlist")
-    wanted = [key(e["label"], e["song"], e.get("passes")) for e in want]
-    have = [key(x["label"], x["source"], x.get("passes")) for x in (pl or {}).get("entries", [])]
+    wanted = [key(e["label"], e["song"], e.get("passes"), e.get("overlap")) for e in want]
+    have = [key(x["label"], x["source"], x.get("passes"), x.get("overlap")) for x in (pl or {}).get("entries", [])]
+    cur = (pl or {}).get("current")
+    if MIX and cur is not None and 0 <= cur < len(have) and have[cur] not in wanted:
+        # the PLAYING entry's seam changed (a mix-plan edit): never remove what is playing; it takes the new overlap
+        # once the groove has moved on and it is just another entry
+        same = [w for w in wanted if w[:3] == have[cur][:3]]
+        if same:
+            have[cur] = same[0]
     # The rotation's own playlist (repeating, every entry an enabled climb) is never "another playlist", even when
     # the album/solo filter now wants far fewer entries: apply the change (a repeating rotation never finishes).
+    # (compared without seam overlaps: an entry is ours whatever its seam)
     mine = {key(e["label"], e["song"], e.get("passes")) for e in (entry(c) for c in enabled())}
-    ours = bool(have) and bool(pl.get("repeat")) and all(h in mine for h in have)
-    if have and not pl.get("finished") and not ours and sum(h in wanted for h in have) * 2 < len(have):
+    base = {w[:3] for w in wanted}
+    ours = bool(have) and bool(pl.get("repeat")) and all(h[:3] in mine for h in have)
+    if have and not pl.get("finished") and not ours and sum(h[:3] in base for h in have) * 2 < len(have):
         # A once-through album on its last track: the rotation follows it (no replay, no gap);
         # the next sync then sees the rotation and drops the album's entries.
         cur = pl.get("current")

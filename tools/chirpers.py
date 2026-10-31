@@ -391,11 +391,11 @@ def mix_stream(parts, emit):
         emit(held)
 
 
-def seam_overlaps(album_id, default_bars=16):
+def seam_overlaps(album_id, default_bars=16, root=None):
     """{(out_n, in_n): bars} from compose/ALBUM/mixplan.md's seam table ('| tN -> tM | ... | overlap (bars) | ...');
     unknown seams use DEFAULT_BARS."""
     import re
-    p = os.path.join(ROOT, "compose", album_id, "mixplan.md")
+    p = os.path.join(root or ROOT, "compose", album_id, "mixplan.md")
     out = {}
     if os.path.exists(p):
         head = None
