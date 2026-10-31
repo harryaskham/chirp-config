@@ -42,7 +42,9 @@ TOP = os.environ.get("C6T4_TOP", "3")
 WPUMP = os.environ.get("C6T4_WPUMP", "1") == "1"  # the wall breathes with the kick: the wall bus pumps (sidechain) from the rock kit's kick, -4 dB
 GLIDE = os.environ.get("C6T4_GLIDE", "1") == "1"
 COUNT = os.environ.get("C6T4_COUNT", "1") == "1"  # someone counts the lamps out: a close, dry voice says the number of each lamp as it goes off in LIGHTS OUT, eight down to one
-BUZZIN = os.environ.get("C6T4_BUZZIN", "1") == "1"  # the ballast buzz enters a bar in, after the first relay clicks  # glide guitar: half the wall through a pitch shifter wobbling +-0.35 semitone on a 1.5-bar LFO (the tremolo arm held while strumming)  # the master's 8 kHz shelf (dB) with the EQ on  # the last lamp goes off in the last bar but one (not three bars early), and the render tail is 1 s: the hand-over into Leave the Lights On has no dead air  # the crunch guitars' 2.4 kHz down 4 dB on the wall bus, the master's top up 3 dB from 8 kHz
+BUZZIN = os.environ.get("C6T4_BUZZIN", "1") == "1"
+DLY = os.environ.get("C6T4_DLY", "-8")  # a dotted-eighth echo bus (3/16): the clean waltz, the glide guitar, the ebow and the piano send to it at this level (dB) - the repeats fall between the waltz's eighths
+HANDOVER = os.environ.get("C6T4_HANDOVER", "0") == "1"  # the night air comes up as the last lamps go (a faint wind over the last six bars, into Leave the Lights On's wind), and the last lamp's thunk is softer  # the ballast buzz enters a bar in, after the first relay clicks  # glide guitar: half the wall through a pitch shifter wobbling +-0.35 semitone on a 1.5-bar LFO (the tremolo arm held while strumming)  # the master's 8 kHz shelf (dB) with the EQ on  # the last lamp goes off in the last bar but one (not three bars early), and the render tail is 1 s: the hand-over into Leave the Lights On has no dead air  # the crunch guitars' 2.4 kHz down 4 dB on the wall bus, the master's top up 3 dB from 8 kHz
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 NOTE = {"C": 0, "C#": 1, "Db": 1, "D": 2, "D#": 3, "Eb": 3, "E": 4, "F": 5, "F#": 6, "G": 7, "G#": 8, "Ab": 8, "A": 9,
@@ -62,7 +64,7 @@ WALTZ = [[("B4", 12)], [("A4", 4), ("G4", 4), ("F#4", 4)], [("G4", 8), ("E4", 4)
 WALTZG = [[("D5", 12)], [("C5", 4), ("B4", 4), ("A4", 4)], [("B4", 8), ("G4", 4)], [("F#4", 12)],
           [("G4", 4), ("A4", 4), ("B4", 4)], [("C5", 8), ("D5", 4)], [("A4", 12)], [("B4", 8), ("R", 4)]]
 TRACKS = ("hum", "buzz", "click", "thunk", "clean", "glide", "fretless", "kit", "brush", "ebow", "swell", "strumL", "strumR",
-          "fuzz", "pad", "choir", "sub", "piano", "count")
+          "fuzz", "pad", "choir", "sub", "piano", "count", "air")
 
 
 def nm(m):
@@ -115,13 +117,15 @@ def build():
     offs = [0, 6, 11, 15, 19, 22, 25, 28, 31] if LATEOFF else [0, 6, 11, 15, 19, 22, 25, 27, 29]  # the lamps going off, bar by bar
     for k in range(len(offs) - 1):
         add("hum", lo + offs[k] * BAR, "C4", (offs[k + 1] - offs[k]) * BAR, 96 - 10 * k)
-        add("thunk", lo + offs[k + 1] * BAR, "C2", 2, 100 - 4 * k)
+        add("thunk", lo + offs[k + 1] * BAR, "C2", 2, (60 if (HANDOVER and k == len(offs) - 2) else 100 - 4 * k))
         add("click", lo + offs[k + 1] * BAR + 1, "C5", 1, 90)
         if COUNT:  # the count, a beat after each lamp goes: eight ... one
             words = [["ey1-t"], ["s-eh1", "v-ah0-n"], ["s-ih1-k-s"], ["f-ay1-v"], ["f-ao1-r"], ["th-r-iy1"], ["t-uw1"], ["w-ah1-n"]][k]
             for j, syl in enumerate(words):
                 last = j == len(words) - 1
                 add("count", lo + offs[k + 1] * BAR + 4 + 2 * j, "G2^ph=" + syl + ("^f0=0>-50" if last else ""), 3 if last else 2, 70 - 2 * k)
+    if HANDOVER:  # the night air after the lamps
+        add("air", lo + 26 * BAR, "C4", 6 * BAR, 64)
     # the failing lamp's relay: irregular clicks in the hum and the flicker
     for sec, dens in (("hum", 0.18), ("flicker", 0.35)):
         a = sec_start(sec)
@@ -355,18 +359,19 @@ def song():
                      "auto": {"fl": flicker_gate(), "stu": lane([(0, 0), (fl, 1), (fl + 16 * BAR, 0)]),
                               "ts": lane([(0, 0), (fl + 15 * BAR, 1), (fl + 16 * BAR, 0)])}},
             "hall": {"fx": ["reverb kind=hall decay=4.5s size=1 mix=1 predelay=40ms", "lp cutoff=9000"]},
+            **({"dly": {"fx": ["delay time=3/16 feedback=0.35 mix=1 tone=2600", "hp cutoff=250"], "sends": {"hall": "-6dB"}}} if DLY else {}),
         },
         "tracks": [
             {"name": "hum", "patch": "mains-hum", "gain": "-24dB", "score": sc("hum")},
             {"name": "buzz", "patch": "ballast-buzz", "gain": "-36dB", "pan": 0.2, "score": sc("buzz")},
             {"name": "click", "patch": "relay-click", "gain": "-26dB", "pan": 0.25, "score": sc("click")},
             {"name": "thunk", "patch": "switch-thunk", "gain": "-14dB", "sends": {"hall": "-10dB"}, "score": sc("thunk")},
-            {"name": "clean", "patch": "starcaster-clean", "gain": "-9dB", "pan": -0.2, "sends": {"hall": "-10dB"}, "score": sc("clean")},
-            {"name": "glide", "patch": "starcaster-clean", "gain": "-12dB", "pan": 0.35, "sends": {"hall": "-6dB"}, "score": sc("glide")},
+            {"name": "clean", "patch": "starcaster-clean", "gain": "-9dB", "pan": -0.2, "sends": {"hall": "-10dB", **({"dly": f"{DLY}dB"} if DLY else {})}, "score": sc("clean")},
+            {"name": "glide", "patch": "starcaster-clean", "gain": "-12dB", "pan": 0.35, "sends": {"hall": "-6dB", **({"dly": f"{DLY}dB"} if DLY else {})}, "score": sc("glide")},
             {"name": "fretless", "patch": "fretless-bass", "gain": "-7dB", "score": sc("fretless")},
             {"name": "brush", "patch": "brush-kit", "gain": "-4dB", "out": "drums", "score": sc("brush")},
             {"name": "kit", "patch": "rock-kit-dark", "gain": "-4dB", "out": "drums", "score": sc("kit")},
-            {"name": "ebow", "patch": "ebow", "gain": "-12dB", "pan": 0.15, "sends": {"hall": "-6dB"}, "score": sc("ebow")},
+            {"name": "ebow", "patch": "ebow", "gain": "-12dB", "pan": 0.15, "sends": {"hall": "-6dB", **({"dly": f"{DLY}dB"} if DLY else {})}, "score": sc("ebow")},
             {"name": "swell", "patch": "rev-swell", "gain": "-12dB", "sends": {"hall": "-8dB"}, "score": sc("swell")},
             {"name": "strumL", "patch": "strat-crunch", "gain": "-14dB", "pan": -0.75, "out": "wall", "score": sc("strumL")},
             {"name": "strumR", "patch": "strat-crunch", "gain": "-14dB", "pan": 0.75, "out": "wall", "score": sc("strumR")},
@@ -376,7 +381,8 @@ def song():
             {"name": "sub", "patch": "sub-sine", "gain": "-16dB", "score": sc("sub")},
             *([{"name": "count", "patch": "voice-speech", "gain": "-10dB", "pan": 0.1,
                 "fx": [{"type": "filter", "kind": "hp", "cutoff": 120, "q": 0.7}, "reverb kind=room decay=0.6s mix=0.15"], "score": sc("count")}] if COUNT else []),
-            {"name": "piano", "patch": "piano-wash", "gain": "-6dB", "pan": -0.1, "score": sc("piano")},
+            {"name": "piano", "patch": "piano-wash", "gain": "-6dB", "pan": -0.1, **({"sends": {"dly": f"{DLY}dB"}} if DLY else {}), "score": sc("piano")},
+            *([{"name": "air", "patch": "fx-wind", "gain": "-24dB", "score": sc("air")}] if HANDOVER else []),
         ],
     }
     return doc
