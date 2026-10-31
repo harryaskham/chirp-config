@@ -7392,7 +7392,14 @@
         "version": "v2",
         "commit": "see git log songs/chirpers7-t8.yaml",
         "engine": "a18a1858",
-        "judged": true
+        "judged": true,
+        "stale": {
+          "score": 91.028,
+          "since": "2026-10-31T08:47:52Z",
+          "who": "chirper-three",
+          "rating": 8.5,
+          "version": "v2"
+        }
       },
       "passes": 1,
       "enabled": true,
