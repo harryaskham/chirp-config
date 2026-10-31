@@ -100,8 +100,8 @@ CHORDS = [(DS1 + 24, [54, 58, 61, 65]), (DS1 + 25, [56, 59, 63, 70]), (DS1 + 20,
           (DS1 + 19, [50, 53, 56, 59])]
 # v8: THE SILENCES COME INTO THE GROOVE: every eight bars a two-beat burst of noise notched at the NEXT break's note,
 # then beat one of the next bar is a hole (everything out) - a one-beat after-tone, foreshadowing the stair
-HINTS = {8: 0, 16: 0, 24: 0, 32: 0, 52: 1, 60: 1, 68: 1, 84: 2, 92: 2, 100: 2, 116: 3, 124: 3,
-         156: 0, 164: 0}       # v11: the seams' windows hint too; the groove's first downbeat (bar 17) is a hole
+HINTS = {}       # v12: the hint bursts and their one-beat holes are gone - in a mixed groove a dropped beat read as
+                 # a glitch ('something out of track', Harry), not as the illusion
 
 
 def in_hole(at):
@@ -113,8 +113,16 @@ BASS_C = [(0, 0.7, 0), (1.25, 0.2, 12), (1.75, 0.45, 7), (3.0, 0.45, 3), (3.75, 
 def zwicker():
     """The breaks: notched noise swelling for three bars, then a bar of silence (nothing at all plays), then the bell."""
     for k, z in ZSTART.items():
-        for i in range(3):
-            part(f"nz{k}").add(b0(z + i), BAR, "C4", [72, 92, 112][i])
+        if k == 0:
+            # v12: THE FIRST BREAK TEACHES THE EAR (Harry: 'not sure what the illusion is'): two bars of LOUD notched
+            # noise, then TWO bars of silence - the first pure (the after-tone alone), the second with the note the ear
+            # just made up fading in for real as a quiet sine on D#5 - then the bell answers on it
+            for i, v in ((0, 104), (1, 122)):
+                part(f"nz{k}").add(b0(z + i), BAR, "C4", v)
+            part("tone").add(b0(z + 3), BAR - 0.05, nm(STAIR[0]), 84)
+        else:
+            for i in range(3):
+                part(f"nz{k}").add(b0(z + i), BAR, "C4", [72, 92, 112][i])
         # each break its own colour under the noise, clear of the notch: a reese drone, the Rhodes held, the bell's steps
         if k == 1:
             part("bass").add(b0(z), 3 * BAR - 0.1, nm(DS1 + 12), 90)
@@ -278,7 +286,7 @@ def main():
         nz.append(tr(f"hint{k}", noise, gain="-12dB",
                      fx=[{"type": "filter", "kind": "notch", "cutoff": round(f * r, 1), "q": 1.5} for r in (0.9, 1.0, 1.1)]
                         + [{"type": "filter", "kind": "lp", "cutoff": 9000}, {"type": "filter", "kind": "hp", "cutoff": 150}]))
-        nz.append(tr(f"nz{k}", noise, gain="-8dB",
+        nz.append(tr(f"nz{k}", noise, gain="-5dB",              # v12: louder noise, a stronger after-tone
                      fx=[{"type": "filter", "kind": "notch", "cutoff": round(f * r, 1), "q": 1.5} for r in (0.9, 1.0, 1.1)]
                         + [{"type": "filter", "kind": "lp", "cutoff": [9000, 6000, 12000, 4000][k]},
                            {"type": "filter", "kind": "hp", "cutoff": 120}]))
@@ -330,6 +338,7 @@ def main():
                    {"type": "filter", "kind": "lp", "q": 0.7,
                     "cutoff": {"value": 1000, "mod": [{"src": "auto.po", "amount": 1.0}]}}]),
             tr("srise", "fx-riser-endless amp.a=32b", gain="-13dB"),   # v10: an endless riser into the outro
+            tr("tone", "partial amp.a=1600ms", gain="-16dB", sends={"hall": "-12dB"}),   # v12: the after-tone made real
             tr("bell", "glock", gain="-8dB", pan=0.2, sends={"hall": "-6dB"}),
             tr("riser", noise, gain="-12dB",
                auto={"rn": {"points": [["0b", 0.0], [f"{b0(RISER[0])}b", 0.0], [f"{b0(RISER[1] + 1)}b", 0.58],
