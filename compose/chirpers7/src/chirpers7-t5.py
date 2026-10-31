@@ -113,6 +113,12 @@ def third(lo, g):
     return g
 
 
+def riser():
+    """v13: wM's endless Shepard riser: one 8-bar note over the break's second half, rising for ever and never
+    arriving, stopping dead on the drop (bar 97) with the acid line's roll."""
+    part("riser").add(b0(89), 32.0, "B3", 92)
+
+
 def acid():
     """The one line: A B A - in sixteenths; A and B on separate tracks only so the break can pull them apart in
     space (same patch, same level, same place everywhere else: one player)."""
@@ -181,7 +187,8 @@ def harmony():
             v = {0: [r, r + 3, r + 7, r + 10, r + 14], 1: [r, r + 4, r + 7, r + 11, r + 18],
                  8: [r, r + 4, r + 7, r + 11, r + 14]}.get(pc, [r, r + 4, r + 7, r + 10, r + 13])
             for b in ((0.75, 2.75) if bar >= 129 and sec == "drop" else (1.5, 3.5)):   # v10: the 'a's
-                part("stab").add(b0(bar) + b, 0.22, ",".join(nm(m) for m in v), 82)
+                trk = "stabup" if 97 <= bar <= 128 else ("stabdn" if 129 <= bar <= 144 else "stab")   # v13
+                part(trk).add(b0(bar) + b, 0.22, ",".join(nm(m) for m in v), 82)
 
 
 # v7: THE ROLLS: the acid line glitches into a rising buffer roll (1/8 -> 1/64, a semitone up each repeat) in the
@@ -215,6 +222,7 @@ def lanes():
 
 def main():
     acid()
+    riser()
     drums()
     harmony()
     dyn, op, pan = lanes()
@@ -274,10 +282,18 @@ def main():
             {"name": "rushdn", "patch": "machine-kit", "gain": "-7dB", "pan": -0.3, "at": f"{b0(129):.0f}b",
              "risset": {"cycle": "4bar", "down": True, "layers": 3, "length": "16bar"}, "sends": {"room": "-12dB"},
              "score": RUSH},
+            tr("riser", "fx-riser-endless amp.a=32b", gain="-13dB"),
             acid_tr("acidA", -1.0),
             acid_tr("acidB", 1.0),
             tr("stab", "juno-pad", gain="-13dB", sends={"dub": "-4dB"}, lfo={"sl": {"wave": "sine", "rate": "36b"}},
                fx=[{"type": "filter", "kind": "bp", "q": 0.7,
+                    "cutoff": {"value": 900, "mod": [{"src": "lfo.sl", "amount": 0.8}]}}, pump]),
+            # v13: the stabs through BARBER POLES that mirror the stair: rising in the drop's first pass, falling in its second
+            tr("stabup", "juno-pad", gain="-13dB", sends={"dub": "-4dB"}, lfo={"sl": {"wave": "sine", "rate": "36b"}},
+               fx=["barberpole cycle=2bar", {"type": "filter", "kind": "bp", "q": 0.7,
+                    "cutoff": {"value": 900, "mod": [{"src": "lfo.sl", "amount": 0.8}]}}, pump]),
+            tr("stabdn", "juno-pad", gain="-13dB", sends={"dub": "-4dB"}, lfo={"sl": {"wave": "sine", "rate": "36b"}},
+               fx=["barberpole cycle=2bar down=true", {"type": "filter", "kind": "bp", "q": 0.7,
                     "cutoff": {"value": 900, "mod": [{"src": "lfo.sl", "amount": 0.8}]}}, pump]),
         ],
     }
