@@ -7512,7 +7512,14 @@
       "best": {
         "score": 95.23,
         "version": "v3",
-        "commit": "see git log songs/chirpers7-t11.yaml"
+        "commit": "see git log songs/chirpers7-t11.yaml",
+        "stale": {
+          "score": 95.23,
+          "since": "2026-10-31T08:47:56Z",
+          "who": "chirper-three",
+          "rating": 9.0,
+          "version": "v3"
+        }
       },
       "passes": 1,
       "enabled": true,
