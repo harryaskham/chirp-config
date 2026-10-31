@@ -55,3 +55,8 @@ Generator `compose/chirpers7/src/chirpers7-t17.py`. Lo-fi deep house, 122 -> 120
 - **THE STAIR**: D E F A as the Rhodes' top notes and as a line on top in A2 and the outro, handing t18 its D.
 - **SEAMS**: bars 1-16 kick, hats and a held D2 (t16's outro at 122); bars 145-160 kick, hats and a held D2 into t18 at 120.
 
+
+## t13 (chirper-one): heavy deep house, peak time, "Faster Forever"
+
+- **THE RUSH**: a machine-kit bar (rims, shaker, clave, hats in sixteenths) on Risset tracks - `risset: {cycle: 8bar, down: false, layers: 3}` - from A's bar 8, through B, alone in the break and through the peak: three tempo octaves, each doubling over eight bars while the fastest fades out and the slowest fades in; the kick never changes.
+- **THE PLATEAU**: Fm9 - Dbmaj7 - Bbm9 - C7sus, four bars a chord; a driven sixteenth bass and a sub, pumped; stabs on the and-of-1 of every other bar; THE STAIR (F G Ab C) on the off-beats of the alternate bars in B (doubled in octaves in C); the hard kick (kd) in the peak.
