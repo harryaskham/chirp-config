@@ -7678,7 +7678,7 @@
     {
       "id": "chirpers7-t18",
       "song": "songs/chirpers7-t18.yaml",
-      "reference": "Chirpers — Track 18 (untitled)",
+      "reference": "Chirpers — The Stair Comes Down",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers7-t18 OUT.wav",
@@ -7694,7 +7694,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "The Endless Stair",
-        "title": "Track 18 (untitled)",
+        "title": "The Stair Comes Down",
         "track": 18,
         "year": 2026
       },
