@@ -131,12 +131,18 @@ def build():
         'length': f'{64 * 60 / BPM_IN + (total - 128) * 60 / ((BPM_IN + BPM_OUT) / 2) + 64 * 60 / BPM_OUT + 0.15:.2f}s', 'ceiling': '-1dB', 'volume': '0dB', 'loudness': -11.0, 'tail': '0.1s',
         'buses': {'hall': {'fx': ['reverb kind=hall decay=4s mix=1', 'hp cutoff=300'], 'returns': []},
                   'echo': {'fx': [{'type': 'delay', 'time': '3/16', 'feedback': 0.4, 'mix': 1}, 'lp cutoff=3000', 'hp cutoff=300'], 'returns': []}},
-        'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=32', 'peak cutoff=55 q=0.9 gain=-5dB', 'peak cutoff=110 q=0.9 gain=-3dB', 'peak cutoff=380 q=0.8 gain=-4dB', 'peak cutoff=3200 q=0.6 gain=7dB', 'highshelf cutoff=6000 gain=3dB']},
+        # (v11) TIME GOES BOTH WAYS: in the last beat before the harmony moves a tritone, the whole mix is pulled BACKWARDS -
+        # a vinyl spin-back (tapestop spin) - and snaps into the new key; and again in the beat before it comes home
+        'master': {'fx': [{'type': 'tapestop', 'time': '1b', 'spin': 3, 'curve': 1.6, 'mix': 1,
+                           'stop': {'value': 0, 'mod': [{'src': 'auto.sb', 'amount': 1}]}},
+                          {'type': 'eq', 'bands': ['highpass cutoff=32', 'peak cutoff=55 q=0.9 gain=-5dB', 'peak cutoff=110 q=0.9 gain=-3dB', 'peak cutoff=380 q=0.8 gain=-4dB', 'peak cutoff=3200 q=0.6 gain=7dB', 'highshelf cutoff=6000 gain=3dB']},
                           {'type': 'compressor', 'threshold': '-20dB', 'ratio': 2.5, 'attack': '15ms', 'release': '150ms', 'makeup': '2dB'},
                           {'type': 'gain', 'gain': '+8dB'},
                           {'type': 'compressor', 'threshold': '-15dB', 'ratio': 8, 'attack': '0.3ms', 'release': '60ms'},
                           {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.dyn', 'amount': 1}]}}],
-                   'auto': {'dyn': {'points': dyn}}},
+                   'auto': {'dyn': {'points': dyn},
+                            'sb': {'points': [['0b', 0], [f"{tC + 63:.2f}b", 0], [f"{tC + 63.01:.2f}b", 1], [f"{tC + 63.99:.2f}b", 1], [f"{tC + 64:.2f}b", 0],
+                                              [f"{tC + 95:.2f}b", 0], [f"{tC + 95.01:.2f}b", 1], [f"{tC + 95.99:.2f}b", 1], [f"{tC + 96:.2f}b", 0]]}}},
         'tracks': [
             # (riser) Harry: 'riser builds (Shepard risers into drops)' - wM's fx-riser-endless: the endless riser under the break's last eight bars - the high pairs and their glide alone - stopping dead on the last groove's downbeat, where the low and high envelopes sound together
             {'name': 'riser', 'patch': 'fx-riser-endless amp.a=32b', 'gain': '-13dB',

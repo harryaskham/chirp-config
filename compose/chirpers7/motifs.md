@@ -168,3 +168,4 @@ Generator `compose/chirpers7/src/chirpers7-t18.py`. The closer: ambient deep hou
 - **t11 THE SEVEN CYCLE** (v10): a rim on a seven-sixteenth cycle from the first groove, never reset (into the echo, right), and the hats' 'a' sixteenths 0.035 late, 'e' ghosts a hair early.
 - **t3 THE SEVEN-STEP TOMS** (v15): low/mid toms on a seven-sixteenth cycle through the grooves (never reset, right of centre) and the grooves' 'a' hats swung later (about 57%).
 - **t13 THE PEAK CHANGES GEAR** (v15): for C's bars 17-24 the rush's Risset copies sit a 3:2 metric modulation apart (wM's risset ratio) instead of an octave of tempo - the accelerando becomes a hemiola for eight bars, then returns - so the 48-bar plateau is not one unchanged loop.
+- **t11 TIME GOES BOTH WAYS** (v11): a master tapestop with spin 3 (a vinyl spin-back) on the beat before the tritone key move and on the beat before the return home.
