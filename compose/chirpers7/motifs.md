@@ -26,6 +26,7 @@ Generator `compose/chirpers7/src/chirpers7-t15.py`. Dub house, 124 -> 123 bpm (t
 - **SEAMS**: bars 1-16 kick (rumble), hats and a held C2 (t14's F minor fifth); bars 177-192 kick, hats and the sub on G1 (t16's tonic), the tempo easing 124 -> 123 across the last 32 bars.
 - **THE BED ALONE** (v7, chirper-one's note): break bar 30, the deepest point, the decelerating Risset bed plays alone - the hats out, the pad cut, the kick still out - for one bar before the kick comes back.
 - **THE LAST HIGH** (v8, the key): B's last 16 bars lift a minor third, C minor to E-flat minor - the sub, the dub stabs and the falling stair on the glass together - the dub's last high before the comedown; r2 and the outro walk home to C minor for the seam into t16.
+- **THE BED LEADS** (v9, Harry 14:50 "most tracks have no illusion"): the Risset decelerando (machine-kit rims and clave, `risset: {down: true, layers: 3}`) now runs from intro bar 17 to the outro's first half, its level shaped with the form (intro -8, A -6, the break +2 alone in front, B -3, r2 -1, outro -6 dB; was -9 dB and only in break/B/r2: 11 LU under the mix, 1% of the track). Under B's last 16 bars an ACCELERATING bed (`down: false`, panned the other way) runs against the slowing one: poly accel/decel over the kick that never changes. Illusion survey: -5.6 LU, near the front 83% of the track, longest gap 31 s (the seam).
 
 ## t7 (chirper-one): micro-house, "Which Ear"
 
