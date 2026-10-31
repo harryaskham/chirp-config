@@ -39,6 +39,7 @@ S = 0.25
 BAR = 16
 MGAIN = float(os.environ.get("C7T18_MGAIN", "8"))
 FCOMP = os.environ.get("C7T18_FCOMP", "-16,0.3ms")
+REF = os.environ.get("C7T18_REF", "sfphv")  # the owners' notes on their panels (chirper-three, chirper-one): "s" streaming steps 2/7/12 then the rate cue (eighths fuse it back); "f" beat flip with the ghost one, a counting voice (a hemiola) and 'ONE' on the true downbeat; "p" the bass taken apart (partials 2-6 staggered and panned, then together) before the reveal; "h" the Huggins wash with the pads out of the ghost's way; "v" speech blending into song syllable by syllable
 ILV = float(os.environ.get("C7T18_ILV", "0"))  # every illusion track's level offset (dB)
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
@@ -132,7 +133,8 @@ def stream(events, total):
 
 
 TRACKS = ("kick", "hats", "clap", "sub", "pads", "stab", "rims", "stair", "fall", "up", "pole", "speech", "tri",
-          "acidA", "acidB", "phantom", "octL", "octR", "cont", "burst", "zw", "bell", "wash", "earL", "earR", "loop")
+          "acidA", "acidB", "phantom", "octL", "octR", "cont", "burst", "zw", "bell", "wash", "earL", "earR", "loop",
+          "hs2", "hs3", "hs4", "hs5", "hs6", "hc2", "hc3", "hc4", "hc5", "hc6")
 
 
 def build():
@@ -172,9 +174,22 @@ def build():
             if "flip" in act:
                 ph = b % 16
                 kick_qs = () if ph < 4 or 8 <= ph < 10 else ((2, 6, 10, 14) if ph < 8 else (0, 4, 8, 12))
+            ghost = "f" in REF and "flip" in act and b % 16 >= 10 and b % 4 == 3   # the ghost one: beat one emptied
+            if ghost:
+                kick_qs = tuple(q for q in kick_qs if q != 0)
             if sec != "coda":
                 for q in kick_qs:
                     add("kick", at + q, "k", 1, 104 if q in (0, 2) else 96)
+            if "f" in REF and "flip" in act:
+                ph = b % 16
+                if ph < 4 or 8 <= ph < 10:   # the counting voice over the kickless bars: one two three every three eighths
+                    for q in range(16):
+                        k = at + q - a0
+                        if k % 6 == 0:
+                            ph_, glide = (("w-ah1-n", "+40>-20"), ("t-uw1", "+30>-30"), ("th-r-iy1", "+20>-40"))[(k // 6) % 3]
+                            add("speech", at + q, f"D3^ph={ph_}^f0={glide}", 3, 84)
+                if ph == 10:
+                    add("speech", at, "D3^ph=w-ah1-n^f0=0>-60", 4, 112)   # ONE, as the true downbeat comes home
             # --- hats: off-beats (open in the interlock and all), 16ths speaking in the grooves
             if sec != "coda" or b < 16:
                 for q in (2, 6, 10, 14):
@@ -196,10 +211,12 @@ def build():
                 if b % 4 == 0:
                     add("sub", at, "D2", 4 * BAR, 76)
             elif sec != "coda" and not ("phantom" in act and b < nb - 4 and sec.startswith("g")):
-                add("sub", at, nm(r), 7, 94)
+                if not ghost:
+                    add("sub", at, nm(r), 7, 94)
                 add("sub", at + 10, nm(r), 5, 84)
             # --- pads (two-bar chords) and the off-beat stabs (the beat flip's anchor)
-            if not seam_in and b % 2 == 0 and sec != "coda":
+            hug_clear = "h" in REF and "huggins" in act and sec.startswith("g") and b % 4 == 2
+            if not seam_in and b % 2 == 0 and sec != "coda" and not hug_clear:
                 add("pads", at, ",".join(nm(n + 12) for n in v), 2 * BAR, 66)
             if "flip" in act:
                 for q in (2, 6, 10, 14):
@@ -227,8 +244,15 @@ def build():
                 sung = (b >= nb // 2) or not sec.startswith("g")
                 syl = [("dh-ah0", 0, 2, 69, "+60>-40"), ("s-t-eh1-r", 2, 2, 65, "+120>-60"),
                        ("k-ah1-m-z", 4, 3, 64, "+40>-120"), ("d-aw1-n", 7, 5, 62, "-40>-300")]
+                w = min(1.0, b / max(1, nb - 4)) if (sec.startswith("g") and "v" in REF) else None
                 for ph, q, ln, pitch, glide in syl:
-                    head = f"{nm(pitch - 12)}^ph={ph}" if sung else f"D3^ph={ph}^f0={glide}"
+                    if w is not None:   # the contour slides onto the stair note and the glides flatten, syllable by syllable
+                        pc = round(50 + w * (pitch - 12 - 50))
+                        a, z = (int(x) for x in glide.split(">"))
+                        gl = f"{round(a * (1 - w)):+d}>{round(z * (1 - w)):+d}"
+                        head = f"{nm(pc)}^ph={ph}" + (f"^f0={gl}" if w < 0.95 else "")
+                    else:
+                        head = f"{nm(pitch - 12)}^ph={ph}" if sung else f"D3^ph={ph}^f0={glide}"
                     add("speech", at + q, head, ln, 92 * lv)
             if "tritone" in act:   # t4/t11: pairs a tritone apart, no up or down
                 for k, q in enumerate((0, 4, 8, 12)):
@@ -237,17 +261,34 @@ def build():
                     add("tri", at + q, nm(first), 2, 84 * lv)
                     add("tri", at + q + 2, nm(second), 2, 84 * lv)
             if "stream" in act:    # t5: one acid line that splits in two
-                if sec.startswith("g"):
+                rate_cue = False
+                if sec.startswith("g") and "s" in REF:
+                    interval = (2, 7, 12, 12)[min(3, b // 4)]   # one line, wavering, two players ...
+                    rate_cue = b >= 12                           # ... then the same gallop in eighths fuses back
+                elif sec.startswith("g"):
                     interval = 2 + round(10 * b / max(1, nb - 1))
                 else:
                     interval = 12
-                for q in range(0, 16, 4):
-                    add("acidA", at + q, nm(r + 12), 1, 92 * lv)
-                    add("acidB", at + q + 1, nm(r + 12 + interval), 1, 88 * lv)
-                    add("acidA", at + q + 2, nm(r + 12), 1, 84 * lv)
+                if rate_cue:
+                    for q in (0, 8):
+                        add("acidA", at + q, nm(r + 12), 2, 92 * lv)
+                        add("acidB", at + q + 2, nm(r + 12 + interval), 2, 88 * lv)
+                        add("acidA", at + q + 4, nm(r + 12), 2, 84 * lv)
+                else:
+                    for q in range(0, 16, 4):
+                        add("acidA", at + q, nm(r + 12), 1, 92 * lv)
+                        add("acidB", at + q + 1, nm(r + 12 + interval), 1, 88 * lv)
+                        add("acidA", at + q + 2, nm(r + 12), 1, 84 * lv)
             if "phantom" in act:   # t6: the bass nobody plays (harmonics 2-6), the real sub arrives at the end (the reveal)
                 for q in (0, 3, 6, 10, 12):
                     add("phantom", at + q, nm(r + 12), 2, 96 * lv)
+                if "p" in REF and sec.startswith("g") and b == 8:   # the bass taken apart: partials 2-6 of D2, staggered and panned
+                    for h in range(2, 7):
+                        add(f"hs{h}", at + (h - 2) * 4, "D2", 2 * BAR - (h - 2) * 4, 84)
+                if "p" in REF and sec.startswith("g") and b in (10, 11):   # ... then centred, pulsing together: they fuse into the low D
+                    for h in range(2, 7):
+                        for q in range(0, 16, 2):
+                            add(f"hc{h}", at + q, "D2", 1, 90 if q % 4 == 0 else 78)
             if "octave" in act:    # t7: one tone hopping ear and octave (two tones swapping ears every eighth)
                 n = UP[(b // 4) % 4] + 12
                 for k, q in enumerate(range(0, 16, 2)):
@@ -426,6 +467,10 @@ def song():
             {"name": "wash", "patch": "hiss", "gain": ilv(-12), "fx": ["hp cutoff=200", "lp cutoff=9000"], "out": "hugL", "sends": {"hugR": "0dB"}, "score": T["wash"]},
             {"name": "earL", "patch": "blip", "gain": ilv(-12), "pan": -1, "sends": {"hall": "-14dB"}, "score": T["earL"]},
             {"name": "earR", "patch": "blip", "gain": ilv(-12), "pan": 1, "sends": {"hall": "-14dB"}, "score": T["earR"]},
+            *[{"name": f"hs{h}", "patch": {"extends": "partial", "synth": {"layers": [f"sine ratio={h}"]}}, "gain": ilv(-12),
+               "pan": (-0.8, -0.4, 0.0, 0.4, 0.8)[h - 2], "score": T[f"hs{h}"]} for h in range(2, 7) if "p" in REF],
+            *[{"name": f"hc{h}", "patch": {"extends": "partial", "synth": {"layers": [f"sine ratio={h}"]}}, "gain": ilv(-12),
+               "fx": [pump], "score": T[f"hc{h}"]} for h in range(2, 7) if "p" in REF],
             *turning("swing16=0.56 " + T["loop"]),
             *[risset("accel", a, nb) for a, nb in rspans["accel"]],
             *[risset("decel", a, nb) for a, nb in rspans["decel"]],
