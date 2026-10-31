@@ -15,7 +15,8 @@ at the peak the static clears and the voice really does sing on, whole.
   organ holding C# and G#; out, t8's last 16 bars at
   121.5: the rumble kick, hats and a held C# minor organ chord (C# E G#), G# on top for t9's G#.
 Tempo 121 -> 121.5 (a ramp inside the track). C# minor (12A).
-Form (bars of 4/4): in 16 / A1 16 / A2 20 (A1 grows into it) / break 16 / B1 8 / drop 4 / B2 26 / out 16 = 122 bars.
+Form (bars of 4/4), v3: in 16 / A1 16 / A2 28 (A1 grows into it) / break 16 / drop 4 / B2 30 / out 16 = 126 bars
+(v2: A2 20, a B1 of 8 after the break, B2 26).
 
 Emits songs/chirpers7-t8.yaml. Edit the music here.
 """
@@ -27,6 +28,10 @@ import random
 # overlap midpoint, mixplan swap column 'mid': a composed swap under a linear crossfade sags the low end into a hole).
 # T8_R2=none reproduces v1.
 R2 = os.environ.get("T8_R2", "unswap")
+# T8_R3 = longer (v3: A2, the voice through the thinning static, runs eight bars longer - 20 -> 28 - before the break,
+# so the illusion has longer to work before the static clears (chirper-three's note); B1 goes, the break runs straight
+# into the drop and the cleared peak (B2 26 -> 30); 250 s). T8_R3=none reproduces v2.
+R3 = os.environ.get("T8_R3", "longer")
 
 OUT = os.environ.get("T8_OUT") or os.path.expanduser("~/.config/chirp/songs/chirpers7-t8.yaml")
 NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"]
@@ -65,8 +70,8 @@ class Track:
         return " ".join(toks)
 
 
-FORM = [("in", 16), ("A1", 16), ("A2", 20), ("break", 16), ("B1", 8), ("drop2", 4), ("B2", 26),
-        ("out", 16)]
+FORM = ([("in", 16), ("A1", 16), ("A2", 28), ("break", 16), ("drop2", 4), ("B2", 30), ("out", 16)] if R3 == "longer"
+        else [("in", 16), ("A1", 16), ("A2", 20), ("break", 16), ("B1", 8), ("drop2", 4), ("B2", 26), ("out", 16)])
 PROG = [(37, [56, 61, 64, 68, 75]),   # C#m9: G#3 C#4 E4 G#4 D#5
         (33, [56, 61, 64, 68]),       # Amaj7: G#3 C#4 E4 G#4 (over A)
         (40, [56, 61, 64, 68]),       # E6: G#3 C#4 E4 G#4 (over E)
@@ -181,8 +186,12 @@ def main():
     for g0, gl in gaps:  # the voice drops out exactly under each burst (6 ms edges)
         gate += [[f"{g0 - 0.012:.4f}b", 0.0], [f"{g0:.4f}b", 1.0], [f"{g0 + gl - 0.012:.4f}b", 1.0], [f"{g0 + gl:.4f}b", 0.0]]
     gate.append([f"{total}b", 0.0])
-    dyn = [["0b", 0.0], [f"{st['break']}b", -5.0], [f"{st['B1'] - 0.01}b", -5.0], [f"{st['B1']}b", 0.0], [f"{st['drop2']}b", -3.0],
-           [f"{st['B2'] - 0.01}b", -3.0], [f"{st['B2']}b", 0.0], [f"{total}b", 0.0]]
+    if "B1" in st:
+        dyn = [["0b", 0.0], [f"{st['break']}b", -5.0], [f"{st['B1'] - 0.01}b", -5.0], [f"{st['B1']}b", 0.0],
+               [f"{st['drop2']}b", -3.0], [f"{st['B2'] - 0.01}b", -3.0], [f"{st['B2']}b", 0.0], [f"{total}b", 0.0]]
+    else:  # v3: the break runs straight into the drop
+        dyn = [["0b", 0.0], [f"{st['break']}b", -5.0], [f"{st['drop2'] - 0.01}b", -5.0], [f"{st['drop2']}b", -3.0],
+               [f"{st['B2'] - 0.01}b", -3.0], [f"{st['B2']}b", 0.0], [f"{total}b", 0.0]]
     pump = {"type": "pump", "on": "kick.kr", "depth": "-6dB", "attack": "3ms", "release": "330ms", "curve": 0.8}
     tracks = [
         {"name": "kick", "patch": "machine-kit", "gain": "0dB", "score": T["kick"].score(total)},
