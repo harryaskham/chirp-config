@@ -7571,7 +7571,7 @@
     {
       "id": "chirpers7-t16",
       "song": "songs/chirpers7-t16.yaml",
-      "reference": "Chirpers — Track 16 (untitled)",
+      "reference": "Chirpers — Never Arrives",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers7-t16 OUT.wav",
@@ -7587,7 +7587,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "The Endless Stair",
-        "title": "Track 16 (untitled)",
+        "title": "Never Arrives",
         "track": 16,
         "year": 2026
       },
