@@ -41,7 +41,9 @@ MGAIN = float(os.environ.get("C7T18_MGAIN", "8"))
 FCOMP = os.environ.get("C7T18_FCOMP", "-16,0.3ms")
 REF = os.environ.get("C7T18_REF", "sfphv")  # the owners' notes on their panels (chirper-three, chirper-one): "s" streaming steps 2/7/12 then the rate cue (eighths fuse it back); "f" beat flip with the ghost one, a counting voice (a hemiola) and 'ONE' on the true downbeat; "p" the bass taken apart (partials 2-6 staggered and panned, then together) before the reveal; "h" the Huggins wash with the pads out of the ghost's way; "v" speech blending into song syllable by syllable
 REF2 = os.environ.get("C7T18_REF2", "tr")  # "t" chirper-one's tritone timing (the answer a dotted quarter after its stair note); "r" chirper-two's 'radio dies': the whole mix tape-stops over the two beats before the last silence, the coda starts from nothing
-REF3 = os.environ.get("C7T18_REF3", "oc")  # chirper-one's octave notes and wM's new engine: "o" the octave illusion at D4/D5 on dry sines (4 ms / 60 ms / 0.85 / 30 ms, -14 dB), its rhythm moving in 4-bar blocks (eighths, sixteenths, dotted eighths across the bar line, eighths); "x" a Shepard-Risset arp (risset pitch: true - pitch and tempo rising together for ever) under the Shepard panel, the high interlock and ALL; "c" the pads clear the Huggins ghost's band in the interlock and ALL too
+REF3 = os.environ.get("C7T18_REF3", "ocx")  # chirper-one's octave notes and wM's new engine: "o" the octave illusion at D4/D5 on dry sines (4 ms / 60 ms / 0.85 / 30 ms, -14 dB), its rhythm moving in 4-bar blocks (eighths, sixteenths, dotted eighths across the bar line, eighths); "x" a Shepard-Risset arp (risset pitch: true - pitch and tempo rising together for ever) under the Shepard panel, the high interlock and ALL; "c" the pads clear the Huggins ghost's band in the interlock and ALL too
+SRV = os.environ.get("C7T18_SRV", "stair-up")  # the Shepard-Risset arp's voice ("stair-up": the stair's own Shepard tone)
+SRG = os.environ.get("C7T18_SRG", "-14")
 ILV = float(os.environ.get("C7T18_ILV", "0"))  # every illusion track's level offset (dB)
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
@@ -485,7 +487,7 @@ def song():
             {"name": "phantom", "patch": "phantom-bass", "gain": ilv(-8), "fx": [pump], "score": T["phantom"]},
             {"name": "octL", "patch": "dry-sine" if "o" in REF3 else "pure", "gain": ilv(-14 if "o" in REF3 else -18), "pan": -1, "score": T["octL"]},
             {"name": "octR", "patch": "dry-sine" if "o" in REF3 else "pure", "gain": ilv(-14 if "o" in REF3 else -18), "pan": 1, "score": T["octR"]},
-            *[{"name": f"srisset{a}", "patch": "pluck", "gain": ilv(-12), "pan": 0.2, "at": f"{a // 4}b",
+            *[{"name": f"srisset{a}", "patch": SRV, "gain": ilv(float(SRG)), "pan": 0.2, "at": f"{a // 4}b",
                "risset": {"cycle": "4bar", "layers": 4, "length": f"{nb}bar", "pitch": True},
                "sends": {"echo": "-10dB", "hall": "-12dB"},
                "score": "D4/0.25b F4/0.25b A4/0.25b D5/0.25b A4/0.25b F4/0.25b E4/0.25b A4/0.25b D4/0.25b F4/0.25b A4/0.25b C5/0.25b A4/0.25b F4/0.25b E4/0.25b A4/0.25b"}
