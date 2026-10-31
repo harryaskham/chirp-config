@@ -52,6 +52,11 @@ R5 = os.environ.get("T8_R5", "tamb")
 # - THE RADIO DIES: a tape-stop on the whole mix over the last two beats of the break; the drop starts from silence
 #   and the static has cleared. T8_R6=none reproduces v5.
 R6 = os.environ.get("T8_R6", "dark")
+# T8_R7 = seasick (v7, wM's time-play part 1; Harry's "slight wow on ONE element"): once the static has cleared, the
+# organ comes loose from the beat - through B2 it slides a sixteenth behind the kick and back, then a sixteenth ahead
+# and back (warp, smooth re-locks), its pulses ducking against a pump that stays on the kick: gospel that sways.
+# Locked again before the out seam; the seam organ and the voice keep the song's clock. T8_R7=none reproduces v6.
+R7 = os.environ.get("T8_R7", "seasick")
 
 OUT = os.environ.get("T8_OUT") or os.path.expanduser("~/.config/chirp/songs/chirpers7-t8.yaml")
 NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"]
@@ -254,6 +259,10 @@ def main():
         {"name": "rim", "patch": "machine-kit", "gain": "-9dB", "pan": -0.25, "score": T["rim"].score(total)},
         {"name": "bass", "patch": "c2-rollbass", "gain": "-2dB", "fx": [pump], "score": T["bass"].score(total)},
         {"name": "organ", "patch": "organ", "gain": "-12dB", "pan": -0.1,
+         **({"warp": [{"over": f"{st['B2'] / 4:g}bar", "to": 0}, {"over": "8bar", "to": 0.25, "curve": "in"},
+                      {"over": "8bar", "to": 0, "curve": "smooth"}, {"over": f"{(st['out'] - st['B2']) / 4 - 24:g}bar", "to": 0},
+                      {"over": "4bar", "to": -0.25, "curve": "in"}, {"over": "4bar", "to": 0, "curve": "smooth"}]}
+            if R7 == "seasick" else {}),
          "fx": [pump, "hp cutoff=300", "reverb kind=hall decay=2.2s mix=0.25"], "score": T["organ"].score(total)},
         *([{"name": "organ-seam", "patch": "organ", "gain": "-12dB", "pan": -0.1,
             "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.sgap", "amount": -60}]}},
