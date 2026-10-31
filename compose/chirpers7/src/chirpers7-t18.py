@@ -41,6 +41,7 @@ MGAIN = float(os.environ.get("C7T18_MGAIN", "8"))
 FCOMP = os.environ.get("C7T18_FCOMP", "-16,0.3ms")
 REF = os.environ.get("C7T18_REF", "sfphv")  # the owners' notes on their panels (chirper-three, chirper-one): "s" streaming steps 2/7/12 then the rate cue (eighths fuse it back); "f" beat flip with the ghost one, a counting voice (a hemiola) and 'ONE' on the true downbeat; "p" the bass taken apart (partials 2-6 staggered and panned, then together) before the reveal; "h" the Huggins wash with the pads out of the ghost's way; "v" speech blending into song syllable by syllable
 REF2 = os.environ.get("C7T18_REF2", "tr")  # "t" chirper-one's tritone timing (the answer a dotted quarter after its stair note); "r" chirper-two's 'radio dies': the whole mix tape-stops over the two beats before the last silence, the coda starts from nothing
+REF3 = os.environ.get("C7T18_REF3", "oc")  # chirper-one's octave notes and wM's new engine: "o" the octave illusion at D4/D5 on dry sines (4 ms / 60 ms / 0.85 / 30 ms, -14 dB), its rhythm moving in 4-bar blocks (eighths, sixteenths, dotted eighths across the bar line, eighths); "x" a Shepard-Risset arp (risset pitch: true - pitch and tempo rising together for ever) under the Shepard panel, the high interlock and ALL; "c" the pads clear the Huggins ghost's band in the interlock and ALL too
 ILV = float(os.environ.get("C7T18_ILV", "0"))  # every illusion track's level offset (dB)
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
@@ -216,7 +217,7 @@ def build():
                     add("sub", at, nm(r), 7, 94)
                 add("sub", at + 10, nm(r), 5, 84)
             # --- pads (two-bar chords) and the off-beat stabs (the beat flip's anchor)
-            hug_clear = "h" in REF and "huggins" in act and sec.startswith("g") and b % 4 == 2
+            hug_clear = "h" in REF and "huggins" in act and (sec.startswith("g") or "c" in REF3) and b % 4 == 2
             if not seam_in and b % 2 == 0 and sec != "coda" and not hug_clear:
                 add("pads", at, ",".join(nm(n + 12) for n in v), 2 * BAR, 66)
             if "flip" in act:
@@ -298,11 +299,22 @@ def build():
                         for q in range(0, 16, 2):
                             add(f"hc{h}", at + q, "D2", 1, 90 if q % 4 == 0 else 78)
             if "octave" in act:    # t7: one tone hopping ear and octave (two tones swapping ears every eighth)
-                n = UP[(b // 4) % 4] + 12
-                for k, q in enumerate(range(0, 16, 2)):
-                    hi_left = k % 2 == 0
-                    add("octL", at + q, nm(n + (12 if hi_left else 0)), 2, 80 * lv)
-                    add("octR", at + q, nm(n + (0 if hi_left else 12)), 2, 80 * lv)
+                if "o" in REF3:
+                    n = UP[(b // 4) % 4]
+                    grid = (2, 1, 3, 2)[(b // 4) % 4] if sec.startswith("g") else 2
+                    k0 = (at - a0) // grid
+                    for q in range(16):
+                        if (at + q - a0) % grid == 0:
+                            k = (at + q - a0) // grid
+                            hi_left = k % 2 == 0
+                            add("octL", at + q, nm(n + (12 if hi_left else 0)), grid, 84 * lv)
+                            add("octR", at + q, nm(n + (0 if hi_left else 12)), grid, 84 * lv)
+                else:
+                    n = UP[(b // 4) % 4] + 12
+                    for k, q in enumerate(range(0, 16, 2)):
+                        hi_left = k % 2 == 0
+                        add("octL", at + q, nm(n + (12 if hi_left else 0)), 2, 80 * lv)
+                        add("octR", at + q, nm(n + (0 if hi_left else 12)), 2, 80 * lv)
             if "continuity" in act:   # t8: a line sung on through bursts of static
                 n = STAIR_D[(b // 2) % 4] + 12
                 for q0, q1 in ((0, 6), (8, 14)):
@@ -332,7 +344,8 @@ def build():
         a_at, _, a_ln, _ = ev["stair"].pop()
         p_at, p_h, p_ln, p_v = ev["stair"].pop()
         ev["stair"].append((p_at, p_h, p_ln + a_ln, p_v))
-    return {k: stream(ev[k], total) for k in TRACKS}, risset_spans, silent
+    srisset = [(sec_start(sec), nb) for sec, nb in FORM if "shepard" in active(sec)] if "x" in REF3 else []
+    return {k: stream(ev[k], total) for k in TRACKS}, risset_spans, silent, srisset
 
 
 def lane(points, step=True):
@@ -351,7 +364,7 @@ def lane(points, step=True):
 
 
 def song():
-    T, rspans, silent = build()
+    T, rspans, silent, srisset = build()
     st = {sec: sec_start(sec) for sec, _ in FORM}
     total_b = total_steps() // 4
     coda_b = st["coda"] // 4
@@ -426,6 +439,8 @@ def song():
                         "synth": {"layers": [{"type": "shepard", "shepard": {"octaves": 9, "center": "500hz", "width": 1.4}}],
                                   "amp": {"a": "4ms", "d": "400ms", "s": 0.2, "r": "200ms"}}},
             "pure": {"about": "a pure tone for the octave illusion", "synth": {"layers": ["sine"], "amp": {"a": "4ms", "s": 1, "r": "20ms"}}},
+            **({"dry-sine": {"about": "chirper-one's octave-illusion tone: a dry sine, no harmonics to give the trick away",
+                             "synth": {"layers": [{"type": "osc", "wave": "sine"}], "amp": {"a": "4ms", "d": "60ms", "s": 0.85, "r": "30ms"}}}} if "o" in REF3 else {}),
             "static": {"about": "chirper-two's static burst: broadband noise 300 Hz-7 kHz, flat while held",
                        "synth": {"layers": [{"type": "noise"}], "filters": ["hp cutoff=300", "lp cutoff=7000"], "amp": {"a": "6ms", "s": 1, "r": "10ms"}}},
             "zwick": {"about": "chirper-three's Zwicker noise: broadband with a notch around the after-tone",
@@ -468,8 +483,13 @@ def song():
             {"name": "acidA", "patch": "acid", "gain": ilv(-12), "pan": -0.1, "score": T["acidA"]},
             {"name": "acidB", "patch": "acid", "gain": ilv(-12), "pan": -0.1, "score": T["acidB"]},
             {"name": "phantom", "patch": "phantom-bass", "gain": ilv(-8), "fx": [pump], "score": T["phantom"]},
-            {"name": "octL", "patch": "pure", "gain": ilv(-18), "pan": -1, "score": T["octL"]},
-            {"name": "octR", "patch": "pure", "gain": ilv(-18), "pan": 1, "score": T["octR"]},
+            {"name": "octL", "patch": "dry-sine" if "o" in REF3 else "pure", "gain": ilv(-14 if "o" in REF3 else -18), "pan": -1, "score": T["octL"]},
+            {"name": "octR", "patch": "dry-sine" if "o" in REF3 else "pure", "gain": ilv(-14 if "o" in REF3 else -18), "pan": 1, "score": T["octR"]},
+            *[{"name": f"srisset{a}", "patch": "pluck", "gain": ilv(-12), "pan": 0.2, "at": f"{a // 4}b",
+               "risset": {"cycle": "4bar", "layers": 4, "length": f"{nb}bar", "pitch": True},
+               "sends": {"echo": "-10dB", "hall": "-12dB"},
+               "score": "D4/0.25b F4/0.25b A4/0.25b D5/0.25b A4/0.25b F4/0.25b E4/0.25b A4/0.25b D4/0.25b F4/0.25b A4/0.25b C5/0.25b A4/0.25b F4/0.25b E4/0.25b A4/0.25b"}
+              for a, nb in srisset],
             {"name": "cont", "patch": "pad-glass", "gain": ilv(-6), "pan": 0.15, "sends": {"hall": "-10dB"}, "score": T["cont"]},
             {"name": "burst", "patch": "static", "gain": ilv(-14), "score": T["burst"]},
             {"name": "zw", "patch": "zwick", "gain": ilv(-12), "fx": [
