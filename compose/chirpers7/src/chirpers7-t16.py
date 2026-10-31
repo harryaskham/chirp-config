@@ -46,6 +46,7 @@ SEAMV = int(os.environ.get("C7T16_SEAMV", "70"))  # the held G1's velocity under
 EQ4 = os.environ.get("C7T16_EQ4", "a")  # "a": 45 Hz -6 dB and the low shelf -9 (37-60 Hz read 8-12 dB over the album); "b": also the hats 3 dB up, 3.5 kHz +3 and the shelves +6 at 4 kHz, +3 at 9 kHz (3-15 kHz read 2-5 dB dark)
 DENS = os.environ.get("C7T16_DENS", "")  # density contrast between sections: "q" the break's pulse on the quarters only (the filter breathes); "s" a sixteenth shaker under B's last 16 bars (the peak runs); "h" the build and A1 hats in eighths
 
+ERISER = os.environ.get("C7T16_ERISER", "-10")  # wM's endless Shepard riser (fx-riser-endless), 8 bars ending on B: the filter, the roll and now the riser - three builds that never arrive; level in dB
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 FORM = [("intro", 32), ("build", 16), ("A", 32), ("break", 16), ("B", 48), ("outro", 32)]
 # (sub root, stair degrees above it, chord voicing)
@@ -253,6 +254,7 @@ def song():
             "room": {"fx": ["reverb kind=room decay=1.0s mix=1 predelay=8ms", "hp cutoff=250"]},
         },
         "tracks": [
+            *([{"name": "eriser", "patch": "fx-riser-endless amp.a=32b", "gain": f"{ERISER}dB", "score": f"R/{sec_start('B') // 4 - 32}b G3/32b@100"}] if ERISER else []),
             {"name": "kick", "patch": "machine-kit", "gain": "-3dB", "score": T["kick"]},
             *([{"name": "kickin", "patch": "machine-kit", "gain": "-3dB", "fx": [{"type": "filter", "kind": "hp", "cutoff": 110, "q": 0.7}], "score": T["kickin"]}] if SWAP else []),
             {"name": "hats", "patch": "machine-kit", "gain": "-4dB" if EQ4 == "b" else "-7dB", "pan": 0.1, "lfo": {"hh": "sine rate=5/1"},
