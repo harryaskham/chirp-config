@@ -159,7 +159,8 @@ def bass_line():
         for beat, ln, iv, v in roll:
             iv = 4 if (iv == 3 and maj) else iv
             # v10: the line below what speakers play gets its own track, 6 dB hotter, so it stays in front
-            part("phantomlow" if low else "phantom").add(b0(bar) + beat, ln, nm(root + low + iv), v)
+            trk = "phantomlow" if low else ("phantompole" if sec == "drop" else "phantom")   # v12: the drop's pole
+            part(trk).add(b0(bar) + beat, ln, nm(root + low + iv), v)
             # v3: THE GHOST of the bass: in the drops its accented notes, three octaves up, a sixteenth late, into the dub
             if sec in DROPS and v >= 96:
                 part("ghost").add(b0(bar) + beat + 0.25, 0.3, nm(root + iv + 36), v - 30)
@@ -167,6 +168,11 @@ def bass_line():
         if sec in DROPS and not 127 <= bar <= 128 and bar < 141:
             part("sub").add(b0(bar), 1.6, nm(root), 104)
             part("sub").add(b0(bar) + 2.0, 1.4, nm(root), 96)
+
+
+def riser():
+    """v12: an endless Shepard riser over the break's fusion (89-96), stopping dead as the real sub arrives at 97."""
+    part("riser").add(b0(89), 32.0, "F#3", 90)
 
 
 def taken_apart():
@@ -292,6 +298,7 @@ def lanes():
 def main():
     bass_line()
     taken_apart()
+    riser()
     stair_nobody_plays()
     drums()
     stabs()
@@ -343,6 +350,11 @@ def main():
                fx=[{"type": "filter", "kind": "hp", "cutoff": {"value": 2500, "mod": [{"src": "lfo.hh", "amount": 0.7}]}}]),
             tr("clap", "machine-kit", gain="-2dB", sends={"room": "-8dB"}),
             tr("rim", "machine-kit", gain="-8dB", pan=-0.3, sends={"dub": "-12dB"}),
+            # v12: THE COLOUR CLIMBS FOR EVER, THE PITCH STANDS STILL: in the first drop the phantom line runs through a
+            # barber pole (bands an octave apart climbing on the song's clock) - the emphasis glides up through its
+            # harmonics endlessly while the pitch the ear rebuilds never moves
+            tr("phantompole", "phantom-bass", gain="-5dB", fx=["barberpole cycle=4bar low=60", pump]),
+            tr("riser", "fx-riser-endless amp.a=32b", gain="-13dB"),
             tr("phantom", "phantom-bass", gain="-7dB", lfo={"tb": {"wave": "sine", "rate": "44b"}},
                auto={"nz": {"points": [["0b", 0.0], [f"{b0(DEEP_END[0]) - 0.5}b", 0.0], [f"{b0(DEEP_END[0])}b", 1.0],
                                        [f"{b0(DEEP_END[1] + 1) - 0.5}b", 1.0], [f"{b0(DEEP_END[1] + 1)}b", 0.0],
