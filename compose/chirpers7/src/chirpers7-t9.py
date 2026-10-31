@@ -33,7 +33,9 @@ SECTIONS = [("intro", 1, 16), ("A", 17, 40), ("turn", 41, 56), ("back", 57, 72),
 BARS = SECTIONS[-1][2]
 TOTAL = BARS * BAR
 GS1 = 32                                     # G#1
-FLIP_DISPLACED = [(45, 56), (107, 112)]     # the kick (and claps) an eighth late
+FLIP_DISPLACED = [(45, 56), (107, 112), (131, 131)]   # the kick (and claps) an eighth late; v6: bar 131, once, no
+# warning - the doubt comes back late and short, and the listener who has learned the trick is caught again (chirper-zero)
+KEY_UP = (81, 88)                            # v6: the counted hemiola a fourth up, C# minor: time and key move together
 KICKLESS = [(41, 44), (57, 58), (73, 88), (105, 106)]
 # v4: THE PHANTOM DOWNBEAT itself: every eighth bar of the groove and the drop, beat one is a hole - no kick, bass, sub,
 # stab or hat on the one - and the ear supplies the downbeat that isn't played
@@ -118,7 +120,7 @@ def riff():
             k0 = (bar - 73) * 8
             for e in range(8):
                 k = k0 + e
-                note = [0, 7, 12][k % 3]
+                note = [0, 7, 12][k % 3] + (5 if KEY_UP[0] <= bar <= KEY_UP[1] else 0)
                 part("bass").add(b0(bar) + e * 0.5, 0.4, nm(GS1 + note), 88 if k % 3 == 0 else 58)   # v5: hushed
             continue
         up = 12 if sec == "back" else 0                       # the return comes back changed: an octave up, lighter
@@ -184,8 +186,10 @@ def sub_and_pad():
         elif sec == "outro":
             part("sub").add(b0(bar), BAR - 0.1, nm(GS1 - 5), 120)           # D#1: the fifth, t10's D# minor (full: the seam)
         elif sec == "break":
-            if bar in (73, 81):
+            if bar == 73:
                 part("pad").add(b0(bar), 8 * BAR - 0.1, ",".join(nm(m) for m in (56, 59, 63, 66, 70)), 70)
+            elif bar == 81:                                  # v6: C#m9 for the counted bars (chirper-one's fourth)
+                part("pad").add(b0(bar), 8 * BAR - 0.1, ",".join(nm(m) for m in (61, 64, 68, 71, 75)), 72)
         elif not within(bar, [(41, 44), (57, 58)]):
             if bar in GHOST_ONE:
                 part("sub").add(b0(bar) + 1.0, 0.6, nm(root), 100)        # the one left empty
@@ -208,7 +212,7 @@ def stair_and_voice():
         if at >= b0(89) - 0.5:
             break
         ph, f0, dv = words[k % 3]
-        part("voice").add(at, 0.5, f"G#3^ph={ph}^f0={f0}", 82 + dv)
+        part("voice").add(at, 0.5, f"C#4^ph={ph}^f0={f0}", 82 + dv)          # v6: counting in C#
     for bar in range(77, 81, 2):                                  # before the count: a lone "one" in the wrong place
         part("voice").add(b0(bar) + 1.5, 0.45, "G#3^ph=w-ah1-n^f0=0>-20", 78)
     part("voice").add(b0(89), 0.6, "B3^ph=w-ah1-n^f0=0>-60", 100)    # home
