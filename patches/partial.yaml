@@ -1,0 +1,6 @@
+about: "One pure sine partial with a soft attack and release: for building a sound out of its harmonics one at a time (a phantom fundamental taken apart and put back together, additive chords, test tones). No filter, no drive. chirper-three, 31 Oct 2026, for The Endless Stair t6."
+synth:
+  layers: [sine]
+  amp: {a: 12ms, d: 0, s: 1, r: 90ms}
+play: {gate: 0.95}
+gain: -12dB
