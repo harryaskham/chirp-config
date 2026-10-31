@@ -47,6 +47,7 @@ SRG = os.environ.get("C7T18_SRG", "-14")
 HATWARP = os.environ.get("C7T18_HATWARP", "1") == "1"  # wM's track warp in ALL: the hats drift a sixteenth behind the kick and back, then a sixteenth ahead and back (poly accel/decel against the steady kick), locked again for the coda
 ILV = float(os.environ.get("C7T18_ILV", "0"))  # every illusion track's level offset (dB)
 
+ERISER = os.environ.get("C7T18_ERISER", "-10")  # wM's endless Shepard riser (fx-riser-endless) over the 8 bars into all: pitch, noise and filter rising for ever, stopping dead on the drop (Harry: 'risers and staircases v good'); level in dB
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 GALLERY = ["shepard", "pole", "speech", "tritone", "stream", "phantom", "octave", "continuity", "flip", "zwicker",
            "huggins", "accel", "scale", "turn", "decel"]
@@ -470,6 +471,7 @@ def song():
                             {"type": "pan", "pan": 1}], "returns": [], "auto": {"gm": {"points": gm}}},
         },
         "tracks": [
+            *([{"name": "eriser", "patch": "fx-riser-endless amp.a=32b", "gain": f"{ERISER}dB", "score": f"R/{sec_start('all') // 4 - 32}b D4/32b@100"}] if ERISER else []),
             {"name": "kick", "patch": "machine-kit", "gain": "-3dB", "score": T["kick"]},
             {"name": "hats", "patch": "machine-kit", "gain": "-1dB", "pan": 0.1, "score": "swing16=0.56 " + T["hats"],
              **({"warp": [{"over": f"{st['all'] // BAR}bar", "to": 0}, {"over": "8bar", "to": 0.25, "curve": "smooth"},
