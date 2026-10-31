@@ -48,6 +48,8 @@ HATWARP = os.environ.get("C7T18_HATWARP", "1") == "1"  # wM's track warp in ALL:
 ROOMS = os.environ.get("C7T18_ROOMS", "2") != "0"
 ROOMSD = os.environ.get("C7T18_ROOMS", "2") == "2"  # deeper rooms: continuity -3, octave/scale -5, Huggins -6; interlock +1.5, ALL +3  # the listening illusions get quieter rooms (continuity -2, octave and scale -3, Huggins -4 dB) and the stacks rise (interlock +1, ALL +2): the odyssey's level breathes (its sections spanned only 4.6 dB)
 PADEQ = os.environ.get("C7T18_PADEQ", "1") == "1"  # the glass pads' chord tones carved where they stand proud (341 -3, 467 -5, 640 -3 dB, narrow)
+DROPOUT = os.environ.get("C7T18_DROPOUT", "1") == "1"  # chirper-one's note: near the end of ALL AT ONCE the illusions leave one a bar, in the reverse of the order they came in, until the falling stair stands alone (then the tape stops and the silence)
+REV = ["decel", "turn", "scale", "accel", "huggins", "continuity", "octave", "phantom", "stream", "tritone", "speech", "pole", "shepard"]
 ILV = float(os.environ.get("C7T18_ILV", "0"))  # every illusion track's level offset (dB)
 
 ERISER = os.environ.get("C7T18_ERISER", "-10")  # wM's endless Shepard riser (fx-riser-endless) over the 8 bars into all: pitch, noise and filter rising for ever, stopping dead on the drop (Harry: 'risers and staircases v good'); level in dB
@@ -159,16 +161,19 @@ def build():
     step_up = 0
     for sec, nb in FORM:
         a0 = sec_start(sec)
-        act = active(sec)
+        act0 = act = active(sec)
         gi = int(sec[1:]) if sec[0] in "gi" and sec[1:].isdigit() else 0
         prog = PROG_HOME if sec == "coda" else (PROG_P if (sec.startswith("g") and gi % 2 == 1) else PROG_A)
         lv = 0.8 if sec == "all" else (0.9 if sec.startswith("i") else 1.0)
+        dl = (lambda k: min(nb, 17 + REV.index(k))) if (DROPOUT and sec == "all") else (lambda k: nb)
         if "accel" in act:
-            risset_spans["accel"].append((a0, nb))
+            risset_spans["accel"].append((a0, dl("accel")))
         if "decel" in act:
-            risset_spans["decel"].append((a0, nb))
+            risset_spans["decel"].append((a0, dl("decel")))
         for b in range(nb):
             at = a0 + b * BAR
+            if DROPOUT and sec == "all":
+                act = act0 - set(REV[:max(0, b - 16)])
             r, v = prog[b % 4]
             seam_in = sec == "descent" and b < 16
             zw = "zwicker" in act and sec.startswith("g")
@@ -186,7 +191,8 @@ def build():
             ghost = "f" in REF and "flip" in act and b % 16 >= 10 and b % 4 == 3   # the ghost one: beat one emptied
             if ghost:
                 kick_qs = tuple(q for q in kick_qs if q != 0)
-            if sec != "coda":
+            alone = DROPOUT and sec == "all" and b == nb - 2   # the falling stair stands alone
+            if sec != "coda" and not alone:
                 for q in kick_qs:
                     add("kick", at + q, "k", 1, 104 if q in (0, 2) else 96)
             if "f" in REF and "flip" in act:
@@ -200,7 +206,7 @@ def build():
                 if ph == 10:
                     add("speech", at, "D3^ph=w-ah1-n^f0=0>-60", 4, 112)   # ONE, as the true downbeat comes home
             # --- hats: off-beats (open in the interlock and all), 16ths speaking in the grooves
-            if sec != "coda" or b < 16:
+            if (sec != "coda" or b < 16) and not alone:
                 for q in (2, 6, 10, 14):
                     if "flip" in act and 4 <= b % 16 < 8:
                         continue
@@ -219,13 +225,13 @@ def build():
             if seam_in:
                 if b % 4 == 0:
                     add("sub", at, "D2", 4 * BAR, 76)
-            elif sec != "coda" and not ("phantom" in act and b < nb - 4 and sec.startswith("g")):
+            elif sec != "coda" and not alone and not ("phantom" in act and b < nb - 4 and sec.startswith("g")):
                 if not ghost:
                     add("sub", at, nm(r), 7, 94)
                 add("sub", at + 10, nm(r), 5, 84)
             # --- pads (two-bar chords) and the off-beat stabs (the beat flip's anchor)
             hug_clear = "h" in REF and "huggins" in act and (sec.startswith("g") or "c" in REF3) and b % 4 == 2
-            if not seam_in and b % 2 == 0 and sec != "coda" and not hug_clear:
+            if not seam_in and b % 2 == 0 and sec != "coda" and not hug_clear and not (DROPOUT and sec == "all" and b >= nb - 4):
                 add("pads", at, ",".join(nm(n + 12) for n in v), 2 * BAR, 66)
             if "flip" in act:
                 for q in (2, 6, 10, 14):
@@ -351,7 +357,7 @@ def build():
         a_at, _, a_ln, _ = ev["stair"].pop()
         p_at, p_h, p_ln, p_v = ev["stair"].pop()
         ev["stair"].append((p_at, p_h, p_ln + a_ln, p_v))
-    srisset = [(sec_start(sec), nb) for sec, nb in FORM if "shepard" in active(sec)] if "x" in REF3 else []
+    srisset = [(sec_start(sec), (min(nb, 17 + REV.index("shepard")) if (DROPOUT and sec == "all") else nb)) for sec, nb in FORM if "shepard" in active(sec)] if "x" in REF3 else []
     return {k: stream(ev[k], total) for k in TRACKS}, risset_spans, silent, srisset
 
 
