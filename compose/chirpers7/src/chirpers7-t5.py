@@ -89,8 +89,8 @@ def gap_at(bar):
         return 2 if bar < 33 else 3
     if sec == "split":
         return {0: 7, 1: 12, 2: 15, 3: 19}[(bar - 49) // 8]
-    if sec == "break":                      # 81-88 held wide (19) while the streams pan apart; 89-96 closing
-        return 19 if bar < 89 else [15, 12, 9, 7, 5, 3, 2, 2][bar - 89]
+    if sec == "break":                      # 81-88 wide (19), panned apart; 89-92 the octave at HALF RATE (fused);
+        return 19 if bar < 89 else [12, 12, 12, 12, 7, 5, 3, 2][bar - 89]          # 93-96 closing, still slow
     if sec == "drop":
         return STAIR[((bar - 97) % 8) // 2]
     if sec == "outro":
@@ -114,6 +114,14 @@ def acid():
         if g is None:
             continue
         lo = root_at(bar)
+        if 89 <= bar <= 96:
+            # v4: THE RATE: the same gallop in EIGHTHS (A B A -, two cells a bar): slower, the wide gap fuses again
+            for cell in range(2):
+                t = b0(bar) + cell * 2
+                part("acidA").add(t, 0.4, nm(lo), 104 if cell == 0 else 90)
+                part("acidB").add(t + 0.5, 0.4, nm(lo + g), 96)
+                part("acidA").add(t + 1.0, 0.4, nm(lo), 82)
+            continue
         for beat in range(4):
             t = b0(bar) + beat
             part("acidA").add(t, 0.2, nm(lo), 104 if beat == 0 else 84)
@@ -182,7 +190,7 @@ def lanes():
     op = [["0b", 0.0], [f"{b0(17)}b", 0.0], [f"{b0(49)}b", 1.2], [f"{b0(81)}b", 1.4], [f"{b0(89)}b", 0.6],
           [f"{b0(97)}b", 1.0], [f"{b0(145)}b", 1.4], [f"{b0(161)}b", 0.0], [f"{TOTAL}b", 0.0]]
     # the break's spatial split: A to the left, B to the right, and back together as the gap closes
-    pan = [["0b", 0.0], [f"{b0(81)}b", 0.0], [f"{b0(88)}b", 0.7], [f"{b0(92)}b", 0.7], [f"{b0(97)}b", 0.0],
+    pan = [["0b", 0.0], [f"{b0(81)}b", 0.0], [f"{b0(86)}b", 0.7], [f"{b0(88)}b", 0.7], [f"{b0(91)}b", 0.0],
            [f"{TOTAL}b", 0.0]]
     return dyn, op, pan
 
@@ -214,7 +222,7 @@ def main():
                   "dub": {"fx": ["delay time=3/16 mix=1 feedback=0.55", "hp cutoff=400", "lp cutoff=3000",
                                  "reverb kind=hall decay=2.5s mix=0.3"]}},
         "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=30", "peak cutoff=350 q=0.8 gain=-2dB",
-                                                    "highshelf cutoff=7000 gain=2dB"]},
+                                                    "highshelf cutoff=7000 gain=4dB"]},
                           {"type": "compressor", "threshold": "-20dB", "ratio": 2.5, "attack": "15ms", "release": "150ms",
                            "makeup": "0dB"},
                           {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}},
@@ -223,7 +231,7 @@ def main():
                            "makeup": "0dB"}],    # catch the kick's peaks; the song's loudness masters (true-peak limited)
                    "auto": {"dyn": {"points": dyn}}},
         "tracks": [
-            tr("kick", "machine-kit", gain="-10dB"),
+            tr("kick", "machine-kit", gain="-12dB"),
             tr("hats", "machine-kit", gain="-5dB", pan=0.1, lfo={"hh": {"wave": "sine", "rate": "20b"}},
                fx=[{"type": "filter", "kind": "hp", "cutoff": {"value": 2500, "mod": [{"src": "lfo.hh", "amount": 0.7}]}}]),
             tr("clap", "machine-kit", gain="-7dB", sends={"room": "-8dB"}),
