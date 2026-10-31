@@ -41,6 +41,8 @@ BRK = os.environ.get("C7T16_BRK", "hl")  # the break deeper: "h" no hats at all 
 POLEALL = os.environ.get("C7T16_POLEALL", "1") == "1"  # Harry 14:50 'the illusion leads': the endless filter from intro bar 17 (was 25) and through the outro's first 16 bars, receding, so only the seams go without it
 ROLL = os.environ.get("C7T16_ROLL", "-8")
 ROLLSEC = os.environ.get("C7T16_ROLLSEC", "build")  # where the endless roll runs (16 bars)  # Harry 14:50 time-play: under the break an ENDLESS SNARE ROLL - a Risset accelerando on a snare figure (risset, down: false), the build that speeds up for ever and never arrives (level in dB)
+DARK = os.environ.get("C7T16_DARK", "1") == "1"  # Harry 15:00 'darker': Gm11, Ebmaj7#11, Cm9, D7b9
+WOW = os.environ.get("C7T16_WOW", "1") == "1"  # Harry 15:00 'slight wow on ONE element': the falling stair stabs alone through a worn tape
 KEYUP = int(os.environ.get("C7T16_KEYUP", "3"))  # B's last 16 bars lift KEYUP semitones (the filter climbs for ever and, once, so does the key); the outro walks home to G minor for the seam
 SEAMV = int(os.environ.get("C7T16_SEAMV", "70"))  # the held G1's velocity under the seam in (meets t15's tail sub in the live crossfade)
 EQ4 = os.environ.get("C7T16_EQ4", "a")  # "a": 45 Hz -6 dB and the low shelf -9 (37-60 Hz read 8-12 dB over the album); "b": also the hats 3 dB up, 3.5 kHz +3 and the shelves +6 at 4 kHz, +3 at 9 kHz (3-15 kHz read 2-5 dB dark)
@@ -54,6 +56,10 @@ CH = [(31, (0, 2, 3, 7), [58, 62, 65, 69]),   # Gm9: Bb3 D4 F4 A4 over G
       (27, (0, 2, 4, 7), [55, 58, 62, 63]),   # Ebmaj7: G3 Bb3 D4 Eb4 over Eb
       (36, (0, 2, 3, 7), [51, 55, 58, 62]),   # Cm9: Eb3 G3 Bb3 D4 over C
       (26, (0, 2, 5, 7), [54, 57, 60, 63])]   # D7sus(b9): F#3 A3 C4 Eb4 over D
+CHD = [(31, (0, 2, 3, 7), [58, 60, 62, 65]),   # Gm11: Bb3 C4 D4 F4
+       (27, (0, 2, 4, 7), [55, 57, 58, 62]),   # Ebmaj7#11: G3 A3 Bb3 D4
+       (36, (0, 2, 3, 7), [51, 55, 58, 62]),   # Cm9
+       (26, (0, 2, 5, 7), [54, 60, 63, 69])]   # D7b9: F#3 C4 Eb4 A4
 TRACKS = ("kick", "hats", "clap", "perc", "sub", "pulse_slow", "pulse_mid", "pulse_fast", "stair", "kickin")
 
 
@@ -116,7 +122,7 @@ def build():
         a0 = sec_start(sec)
         for b in range(nb):
             at = a0 + b * BAR
-            r, deg, v = CH[b % 4]
+            r, deg, v = (CHD if DARK else CH)[b % 4]
             ku = KEYUP if (sec == "B" and b >= 32) else 0
             r, v = r + ku, [n + ku for n in v]
             seam_in = sec == "intro" and b < 16
@@ -269,7 +275,8 @@ def song():
             *endless("slow", T["pulse_slow"], 16),
             *endless("mid", T["pulse_mid"], 8),
             *endless("fast", T["pulse_fast"], 4),
-            {"name": "stair", "patch": "house-chord", "gain": "-10dB", "sends": {"dub": "-6dB"}, "score": T["stair"]},
+            {"name": "stair", "patch": "house-chord", "gain": "-10dB", "sends": {"dub": "-6dB"}, "score": T["stair"],
+             **({"fx": [{"type": "tape", "drive": 0.05, "mix": 0.6, "wow": 10, "flutter": 1.5, "drift": 1, "tone": 8000, "seed": 16}]} if WOW else {})},
         ],
     }
     return doc
