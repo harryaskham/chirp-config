@@ -44,6 +44,7 @@ REF2 = os.environ.get("C7T18_REF2", "tr")  # "t" chirper-one's tritone timing (t
 REF3 = os.environ.get("C7T18_REF3", "ocx")  # chirper-one's octave notes and wM's new engine: "o" the octave illusion at D4/D5 on dry sines (4 ms / 60 ms / 0.85 / 30 ms, -14 dB), its rhythm moving in 4-bar blocks (eighths, sixteenths, dotted eighths across the bar line, eighths); "x" a Shepard-Risset arp (risset pitch: true - pitch and tempo rising together for ever) under the Shepard panel, the high interlock and ALL; "c" the pads clear the Huggins ghost's band in the interlock and ALL too
 SRV = os.environ.get("C7T18_SRV", "stair-up")  # the Shepard-Risset arp's voice ("stair-up": the stair's own Shepard tone)
 SRG = os.environ.get("C7T18_SRG", "-14")
+HATWARP = os.environ.get("C7T18_HATWARP", "1") == "1"  # wM's track warp in ALL: the hats drift a sixteenth behind the kick and back, then a sixteenth ahead and back (poly accel/decel against the steady kick), locked again for the coda
 ILV = float(os.environ.get("C7T18_ILV", "0"))  # every illusion track's level offset (dB)
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
@@ -470,7 +471,10 @@ def song():
         },
         "tracks": [
             {"name": "kick", "patch": "machine-kit", "gain": "-3dB", "score": T["kick"]},
-            {"name": "hats", "patch": "machine-kit", "gain": "-1dB", "pan": 0.1, "score": "swing16=0.56 " + T["hats"]},
+            {"name": "hats", "patch": "machine-kit", "gain": "-1dB", "pan": 0.1, "score": "swing16=0.56 " + T["hats"],
+             **({"warp": [{"over": f"{st['all'] // BAR}bar", "to": 0}, {"over": "8bar", "to": 0.25, "curve": "smooth"},
+                          {"over": "8bar", "to": 0, "curve": "smooth"}, {"over": "8bar", "to": -0.25, "curve": "smooth"},
+                          {"over": "7bar", "to": 0, "curve": "smooth"}]} if HATWARP else {})},
             {"name": "clap", "patch": "machine-kit", "gain": "-10dB", "sends": {"hall": "-10dB"}, "score": "swing16=0.56 " + T["clap"]},
             {"name": "rims", "patch": "machine-kit", "gain": "-10dB", "sends": {"hall": "-10dB"}, "score": T["rims"]},
             {"name": "sub", "patch": "sub", "gain": "-14dB", "fx": [pump, {"type": "phantom", "cutoff": 100, "harmonics": "-6dB"}], "score": T["sub"]},
