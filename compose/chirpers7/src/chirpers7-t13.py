@@ -26,10 +26,15 @@ def nm(m): return f"{NN[m % 12]}{m // 12 - 1}"
 # forty-eight-bar peak - a plateau should stay up
 FORM = [('intro', 16), ('A', 32), ('B', 24), ('break', 8), ('C', 48), ('outro', 16)]
 LEN = dict(FORM)
-CH = [(41, [60, 63, 67, 68, 72]), (37, [60, 65, 68, 72]), (34, [61, 65, 68, 72]), (36, [60, 65, 67, 70])]
+# (v12) darker and wonkier (Harry, 31 Oct): Fm9 - Dbmaj7#11 - Bbm11 - C7b9; the major seventh gets its sharp eleventh,
+# the dominant its flat ninth
+CH = [(41, [60, 63, 67, 68, 72]), (37, [60, 65, 67, 68, 72]), (34, [61, 63, 65, 68, 72]), (36, [64, 67, 70, 73])]
 STAIR = [65, 67, 68, 72]                      # F G Ab C
 BASS = [0, None, 12, 0, None, 7, 12, None, 0, None, 12, 10, None, 7, 12, None]
 RISSET_PAT = "rs/16 R/16 shk/16 rs/16 R/16 clv/16 shk/16 R/16 rs/16 shk/16 R/16 h/16 clv/16 R/16 shk/16 h/16"
+# (v12) the counter-bed: low toms and a cowbell on Risset tracks running DOWN - slowing forever against the rush's
+# speeding up, both over a kick that never changes (poly accel/decel)
+FALL_PAT = "lt/16 R/16 R/16 mt/16 R/16 R/16 cb/16 R/16 lt/16 R/16 mt/16 R/16 R/16 cb/16 R/16 R/16"
 
 def line(events, total):
     ev = sorted(events)
@@ -108,10 +113,16 @@ def build():
     # the break's pad through a closed low-pass that opens into C
     tb, tc = secs['break'], secs['C']
     padop = [['0b', 0], [f'{tb:.1f}b', 0], [f'{tc - 1:.1f}b', 1], [f'{tc:.1f}b', 0]]
-    risset = lambda at_bar, nbars: {
-        'name': f'rush{at_bar}', 'patch': 'machine-kit', 'gain': '-11dB', 'pan': 0.2, 'at': f'{at_bar * 4}b',
+    # (v12) THE RUSH LEADS: the accelerando was 17 LU under the mix (Harry: 'most tracks have no illusion'); now it is the
+    # hook - up front and bright, from the intro's last eight bars to the outro, with a decelerating counter-bed against it
+    risset = lambda at_bar, nbars, gain='-1dB': {
+        'name': f'rush{at_bar}', 'patch': 'machine-kit', 'gain': gain, 'pan': 0.15, 'at': f'{at_bar * 4}b',
         'risset': {'cycle': '8bar', 'down': False, 'layers': 3, 'length': f'{nbars}bar'},
-        'sends': {'hall': '-14dB'}, 'score': RISSET_PAT}
+        'sends': {'hall': '-14dB'}, 'score': RISSET_PAT, 'fx': ['hp cutoff=250']}
+    fall = lambda at_bar, nbars: {
+        'name': f'fall{at_bar}', 'patch': 'machine-kit', 'gain': '-5dB', 'pan': -0.3, 'at': f'{at_bar * 4}b',
+        'risset': {'cycle': '8bar', 'down': True, 'layers': 3, 'length': f'{nbars}bar'},
+        'sends': {'hall': '-12dB'}, 'score': FALL_PAT, 'fx': ['hp cutoff=90']}
     start_A = int(secs['A'] // 4)
     tr = lambda name, patch, gain, **kw: dict({'name': name, 'patch': patch, 'gain': gain, 'score': line(T[name], total)}, **kw)
     return {
@@ -136,7 +147,9 @@ def build():
             tr('pad', 'juno-pad', '-12dB', sends={'hall': '-8dB'},
                fx=['hp cutoff=180', {'type': 'filter', 'kind': 'lp', 'q': 0.8, 'cutoff': {'value': 600, 'mod': [{'src': 'auto.op', 'amount': 3.0}]}}],
                auto={'op': {'points': padop}}),
-            risset(start_A + 8, LEN['A'] - 8), risset(int(secs['B'] // 4), LEN['B']), risset(int(secs['break'] // 4), LEN['break']), risset(int(secs['C'] // 4), LEN['C']),
+            risset(8, 8, '-6dB'), risset(start_A, LEN['A']), risset(int(secs['B'] // 4), LEN['B']), risset(int(secs['break'] // 4), LEN['break']), risset(int(secs['C'] // 4), LEN['C']),
+            risset(int(secs['outro'] // 4), 8, '-5dB'),
+            fall(int(secs['B'] // 4), LEN['B']), fall(int(secs['break'] // 4), LEN['break']), fall(int(secs['C'] // 4), LEN['C']),
         ]}
 
 if __name__ == '__main__':
