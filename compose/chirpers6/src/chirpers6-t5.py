@@ -230,7 +230,7 @@ def build():
                           {'type': 'compressor', 'threshold': '-20dB', 'ratio': 2, 'attack': '20ms', 'release': '200ms', 'makeup': '2dB'},
                           {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.dyn', 'amount': 1}]}},
                           {'type': 'tapestop', 'time': '2b', 'mix': 1, 'stop': {'value': 0, 'mod': [{'src': 'auto.ts', 'amount': 1}]}},
-                          {'type': 'gain', 'gain': '+6dB'},
+                          {'type': 'gain', 'gain': '+4.5dB'},   # (v8) 1.5 dB under: the album's loudest track sits at its median
                           {'type': 'filter', 'kind': 'lp', 'q': 0.7, 'cutoff': {'value': 16000, 'mod': [{'src': 'auto.door', 'amount': -2.0}]}},
                           'lp cutoff=13000',
                           {'type': 'clip', 'drive': '0dB', 'ceiling': '-2dB', 'knee': 0.55, 'link': True}],
