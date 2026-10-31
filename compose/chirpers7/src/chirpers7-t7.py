@@ -10,7 +10,7 @@ high one depends on handedness). The pair steps THE STAIR (C# D# E G#), one step
 Form (bars): intro 16 (the seam from t6: kick, clicks, and - v2 - the octave tones on C#, quietly, shaking hands with
 t6's phantom C#) / A 32 (the sub; the tones enter at bar 8, quietly) /
 B 32 (dub chord stabs, the tones forward, a swung stutter every eight bars) / break 16 (the drums leave: the illusion
-alone in the dark, a long hall) / C 32 (everything) / outro 16 (the seam to t8: kick, clicks, the tones fading).
+alone in the dark, a long hall; in its second half the hopping doubles to sixteenths) / C 32 (everything) / outro 16 (the seam to t8: kick, clicks, the tones fading).
 Master: chirper-zero's clean -11 LUFS recipe (glue, +8 dB, a fast 8:1 compressor at -15 dB / 0.3 ms, the song's
 `loudness`), ceiling -1 dB.
 Emits songs/chirpers7-t7.yaml (JSON through tools/songfmt.py). Edit the music here, not the YAML.
@@ -82,10 +82,13 @@ def build():
             if s == 'intro':
                 low = STAIR[0]
             v = {'intro': 46 + i, 'A': 64, 'B': 78, 'break': 84, 'C': 80, 'outro': 66 - 2 * max(0, i - 4)}[s]
-            for e in range(8):
+            # (v3) in the break's second half the hopping doubles to sixteenths - the tone seems to dart between the ears
+            fast = s == 'break' and i >= 8
+            n_e, st = (16, 0.25) if fast else (8, 0.5)
+            for e in range(n_e):
                 hi_left = e % 2 == 0
-                T['earL'].append((t0 + e * 0.5, nm(low + 12 if hi_left else low), 0.42, v))
-                T['earR'].append((t0 + e * 0.5, nm(low if hi_left else low + 12), 0.42, v))
+                T['earL'].append((t0 + e * st, nm(low + 12 if hi_left else low), st - 0.08, v))
+                T['earR'].append((t0 + e * st, nm(low if hi_left else low + 12), st - 0.08, v))
     lv = {'intro': -4, 'A': -1, 'B': 0, 'break': -5, 'C': 0, 'outro': -3}
     dyn = []
     for name, _ in FORM:
@@ -106,7 +109,7 @@ def build():
         'tempo': [{'at': '0b', 'bpm': BPM_IN}, {'at': f'{total:.0f}b', 'bpm': BPM_OUT, 'ramp': True}],
         'length': f'{total * 60 / ((BPM_IN + BPM_OUT) / 2) + 1.2:.2f}s', 'ceiling': '-1dB', 'volume': '0dB', 'loudness': -11.0,
         'buses': {'hall': {'fx': ['reverb kind=hall decay=4s mix=1', 'hp cutoff=300'], 'returns': []}},
-        'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=30', 'peak cutoff=60 q=1 gain=-3dB', 'peak cutoff=450 q=0.7 gain=-5dB', 'highshelf cutoff=3200 gain=6dB']},
+        'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=30', 'peak cutoff=60 q=1 gain=-3dB', 'peak cutoff=450 q=0.7 gain=-5dB', 'peak cutoff=3000 q=0.6 gain=4dB', 'highshelf cutoff=5000 gain=4dB']},
                           {'type': 'compressor', 'threshold': '-20dB', 'ratio': 2.5, 'attack': '15ms', 'release': '150ms', 'makeup': '2dB'},
                           {'type': 'gain', 'gain': '+8dB'},
                           {'type': 'compressor', 'threshold': '-15dB', 'ratio': 8, 'attack': '0.3ms', 'release': '60ms'},
@@ -114,7 +117,7 @@ def build():
                    'auto': {'dyn': {'points': dyn}}},
         'tracks': [
             tr('kit', 'machine-kit', '-4dB', sends={'hall': '-20dB'}),
-            tr('click', 'machine-kit', '-9dB', pan=0.2, sends={'hall': '-14dB'},
+            tr('click', 'machine-kit', '-6dB', pan=0.2, sends={'hall': '-14dB'},
                fx=[{'type': 'stutter', 'slice': '1/16', 'repeats': 4, 'chance': 1, 'swing': 0.56,   # on the clicks' own swing (odd 16ths 0.03 beat late)
                     'mix': {'value': 0, 'mod': [{'src': 'auto.gl', 'amount': 1}]}}], auto={'gl': {'points': gl}}),
             tr('sub', 'sub', '-4dB', fx=[{'type': 'phantom', 'cutoff': 90, 'harmonics': '-10dB', 'odd': 0.4},
