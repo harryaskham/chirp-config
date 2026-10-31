@@ -139,6 +139,9 @@ def build():
                           {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.dyn', 'amount': 1}]}}],
                    'auto': {'dyn': {'points': dyn}}},
         'tracks': [
+            # (riser) Harry: 'riser builds (Shepard risers into drops)' - wM's fx-riser-endless: the endless riser across the whole eight-bar lift, under the spiral, into the long peak
+            {'name': 'riser', 'patch': f'fx-riser-endless amp.a={LEN['break'] * 4}b', 'gain': '-13dB', 'sends': {},
+             'score': f'R/{secs['break']:.4f}b F4/{LEN['break'] * 4}b@88'},
             tr('kit', 'machine-kit', '-4dB', sends={'hall': '-20dB'}),
             tr('sub', 'sub', '-8dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '320ms', 'curve': 0.6}]),
             tr('bass', 'bass', '-9dB', fx=[{'type': 'drive', 'drive': 0.35, 'mix': 0.5}, 'lp cutoff=1600', 'peak cutoff=300 q=0.8 gain=-4dB',
