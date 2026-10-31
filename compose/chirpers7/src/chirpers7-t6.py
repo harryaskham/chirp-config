@@ -101,14 +101,26 @@ def roll_for(bar, sec):
     if sec == "drop2":
         return HALF if bar < 129 else LEAP
     return [ROLL, PUSHED, ROLL, LEAP][((bar - 17) // 8) % 4]
-ROOTS = [FS1, FS1 - 4, FS1 - 7, FS1 - 5]    # F#m | D | Bm | C# (one bar each)
+ROOTS = [FS1, FS1 + 1, FS1 - 2, FS1 - 5]    # v10, darker (F# Phrygian): F#m9 | Gmaj7#11 (bII) | Em9 | C#7b9
 STAIR = [0, 2, 3, 7]                        # F# G# A C#
-ROOTS2 = [FS1 - 4, FS1 - 7, FS1 + 3, FS1 - 5]  # v5: the second drop's own walk: D | Bm | A | C#
+ROOTS2 = [FS1 - 4, FS1 - 7, FS1 + 1, FS1 - 5]  # v10: the second drop's walk: Dmaj7#11 | Bm11 | Gmaj7 | C#7b9
 DEEP_END = (69, 80)                          # v5: after the hole: no stabs, no congas, the line at its most nasal
 
 
 def root_of(bar):
     return (ROOTS2 if sec_of(bar) == "drop2" else ROOTS)[(bar - 1) % 4]
+
+
+def voicing(r):
+    """v10: the chord on root r (MIDI, two octaves up): minor 9ths on F#/E, m11 on B, maj7#11 on G/D, 7b9 on C#."""
+    pc = (r - FS1) % 12
+    if pc in (0, 10):                          # F#, E: m9
+        return [r, r + 3, r + 7, r + 10, r + 14]
+    if pc == 5:                                # B: m11
+        return [r, r + 3, r + 7, r + 10, r + 17]
+    if pc in (1, 8):                           # G, D: maj7#11
+        return [r, r + 4, r + 7, r + 11, r + 18]
+    return [r, r + 4, r + 7, r + 10, r + 13]   # C#: 7b9
 
 
 def major_of(bar):
@@ -143,8 +155,11 @@ def bass_line():
                 for h in range(2, 7):
                     part(f"h{h}").add(b0(bar) + beat, ln, nm(root + iv), v - 10 - 3 * (h - 2))
             continue
+        maj = (root - FS1) % 12 in (1, 8, 7)       # G, D, C#: the line's third is major over them
         for beat, ln, iv, v in roll:
-            part("phantom").add(b0(bar) + beat, ln, nm(root + low + iv), v)
+            iv = 4 if (iv == 3 and maj) else iv
+            # v10: the line below what speakers play gets its own track, 6 dB hotter, so it stays in front
+            part("phantomlow" if low else "phantom").add(b0(bar) + beat, ln, nm(root + low + iv), v)
             # v3: THE GHOST of the bass: in the drops its accented notes, three octaves up, a sixteenth late, into the dub
             if sec in DROPS and v >= 96:
                 part("ghost").add(b0(bar) + beat + 0.25, 0.3, nm(root + iv + 36), v - 30)
@@ -222,8 +237,7 @@ def stabs():
         if DEEP_END[0] <= bar <= DEEP_END[1]:
             continue
         r = root_of(bar) + 24
-        major = major_of(bar)
-        v = [r, r + (4 if major else 3), r + 7, r + (11 if major else 10), r + 14]
+        v = voicing(r)
         for b in ((0.5, 1.5, 2.5, 3.5) if sec == "drop2" else (0.75, 2.75)):     # v4: on the 'a's; drop2 every off-beat
             part("stab").add(b0(bar) + b, 0.3 if sec == "drop2" else 0.45, ",".join(nm(m) for m in v), 74 if sec == "drop2" else 80)
         # the dark pad: the chord held through the bar (v2: an octave up, out of the bass's harmonics), deeper + drop
@@ -330,6 +344,13 @@ def main():
             tr("clap", "machine-kit", gain="-2dB", sends={"room": "-8dB"}),
             tr("rim", "machine-kit", gain="-8dB", pan=-0.3, sends={"dub": "-12dB"}),
             tr("phantom", "phantom-bass", gain="-7dB", lfo={"tb": {"wave": "sine", "rate": "44b"}},
+               auto={"nz": {"points": [["0b", 0.0], [f"{b0(DEEP_END[0]) - 0.5}b", 0.0], [f"{b0(DEEP_END[0])}b", 1.0],
+                                       [f"{b0(DEEP_END[1] + 1) - 0.5}b", 1.0], [f"{b0(DEEP_END[1] + 1)}b", 0.0],
+                                       [f"{TOTAL}b", 0.0]]}},
+               fx=[{"type": "filter", "kind": "bp", "q": 0.7,          # v2: the colour moves, the pitch doesn't: a
+                    "cutoff": {"value": 170, "mod": [{"src": "lfo.tb", "amount": 0.8},     # band-pass over h2..h6;
+                                                     {"src": "auto.nz", "amount": 1.0}]}}, pump]),
+            tr("phantomlow", "phantom-bass", gain="-1dB", lfo={"tb": {"wave": "sine", "rate": "44b"}},
                auto={"nz": {"points": [["0b", 0.0], [f"{b0(DEEP_END[0]) - 0.5}b", 0.0], [f"{b0(DEEP_END[0])}b", 1.0],
                                        [f"{b0(DEEP_END[1] + 1) - 0.5}b", 1.0], [f"{b0(DEEP_END[1] + 1)}b", 0.0],
                                        [f"{TOTAL}b", 0.0]]}},
