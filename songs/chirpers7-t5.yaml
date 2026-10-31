@@ -11,7 +11,7 @@
    "ramp": true
   }
  ],
- "tail": "1.2s",
+ "tail": "0.1s",
  "loudness": -11,
  "buses": {
   "room": {
