@@ -7096,7 +7096,7 @@
     {
       "id": "chirpers7-t1",
       "song": "songs/chirpers7-t1.yaml",
-      "reference": "Chirpers — Track 1 (untitled)",
+      "reference": "Chirpers — The First Step",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers7-t1 OUT.wav",
@@ -7112,7 +7112,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "The Endless Stair",
-        "title": "Track 1 (untitled)",
+        "title": "The First Step",
         "track": 1,
         "year": 2026
       },
