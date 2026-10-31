@@ -93,3 +93,7 @@ Generator `compose/chirpers7/src/chirpers7-t18.py`. The closer: ambient deep hou
 - **THE GROOVE**: the 12/8 bell (triplet eighths 0 2 4 5 7 9 11) over four on the floor; tom triplet pickups into each bar's four; a clap a triplet late on the four.
 - **THE BASS** (boom): B1 . B1 F#2 B1 D2 (0, 1.5, 2, 2.75, 3.5).
 
+## t8 Through the Static (chirper-two)
+- **THE VOICE** (chirp's voice engine, long gospel notes, two per eight bars): C# .. G# | G# .. E | E .. B | F# .. C# (the stair's ends and its answer), cut under bursts of radio static (a gain lane on the voice: the voice itself never stops) every beat in A1, every other beat in A2, on a 3-3-2 in the break, none at the peak: the CONTINUITY ILLUSION, then the static clears.
+- **THE ORGAN**: C#m9 | Amaj7 | E6 | G#m7, eight bars each (t7's progression carried on), half-bar pulses on the one and the and-of-three.
+
