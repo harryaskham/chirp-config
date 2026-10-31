@@ -101,7 +101,7 @@ def build():
     # the break, into C and halfway through it, and into the outro
     tb = secs['break']
     # (v11, Harry: 'no long stretches without the illusion') a wash every eight bars from A's eighth bar to the outro
-    ends = sorted(set(range(int(secs['A'] + 32), int(secs['outro'] + 1), 32)))
+    ends = sorted(set(range(int(secs['A'] + 32), int(secs['outro'] + 1), 32)) | {int(secs['A'])})   # (v15) and one into A's downbeat
     for n, e in enumerate(ends):
         st = STAIR_ST[n % 4]
         a0 = e - 9.0
@@ -123,7 +123,7 @@ def build():
         thr += [[f'{a0:.2f}b', 0], [f'{e - 1.05:.2f}b', 10], [f'{e - 1.0:.2f}b', -40], [f'{e + 0.5:.2f}b', -40], [f'{e + 0.55:.2f}b', 0]]
         # in C the Rhodes plays the ghost's note out loud on the downbeat after the silence
         # (v11) the speakers get the illusion too: from B on, the Rhodes answers every wash with the ghost's melody, played
-        if secs['B'] <= e < secs['outro']:
+        if secs['A'] < e < secs['outro']:     # (v15) the answers from the first groove on
             # (v8, chirper-zero's note) the room hears what the headphones heard: after the silence the Rhodes answers with the
             # ghost's whole melody, played, an octave below it, two beats a step into the echo - then the ghost's last note on top
             for j, m in enumerate(mel):

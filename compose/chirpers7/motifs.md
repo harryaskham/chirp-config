@@ -158,3 +158,4 @@ Generator `compose/chirpers7/src/chirpers7-t18.py`. The closer: ambient deep hou
 - **t13 THE SPIRAL IN THE LIFT** (v13): across the eight-bar lift the percussion rush gives way to a plucked arp of the stair (F C Ab G F C F C in eighths) on a Shepard-Risset loop - wM's risset pitch: true, 3 layers, a 4-bar cycle - speeding up and rising together for ever, into the long peak where the rush returns.
 - **t13 THE LIFT RISES FOREVER** (v14): wM's fx-riser-endless across the whole eight-bar lift (one F note, amp.a = the lift's length, -13 dB), under the spiral, stopping dead on the peak's downbeat.
 - **t7 THE DART RISES** (v12): wM's fx-riser-endless under the break's last eight bars (C#, -15 dB), stopping dead on the last groove's downbeat.
+- **t12 THE GHOST FROM THE FIRST GROOVE** (v15): one more wash into A's downbeat, and the Rhodes answers from the first groove on (were from B): chirpers.py illusion near the front 53% -> 60%, longest gap 41 -> 29 s.
