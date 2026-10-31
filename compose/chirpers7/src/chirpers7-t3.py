@@ -184,7 +184,12 @@ def build():
             tr('keys', {'extends': 'epiano-tine', 'play': {'release': {'patch': 'epiano-damper', 'decay': '2s'}}}, '-9dB',
                sends={'echo': '-12dB', 'hall': '-12dB'}, fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-3dB', 'release': '330ms', 'curve': 0.6}]),
             tr('pad', 'juno-pad', '-14dB', sends={'hall': '-10dB'}),
-            tr('speech', 'voice-speech', '-5dB', sends={'hall': '-14dB', 'echo': '-14dB'}),
+            # (v13) SPEECH FLOATS, SONG LOCKS - time-play on the illusion itself: through the first groove the spoken phrase's
+            # own clock wanders off the grid (a sixteenth late, then a thirty-second early, easing), as speech does; through
+            # the second groove, as the contour turns into the tune, it settles onto the grid and stays there
+            dict(tr('speech', 'voice-speech', '-5dB', sends={'hall': '-14dB', 'echo': '-14dB'}),
+                 warp=[{'over': '16bar', 'to': 0}, {'over': '8bar', 'to': 0.25, 'curve': 'smooth'}, {'over': '8bar', 'to': -0.125, 'curve': 'smooth'},
+                       {'over': '8bar', 'to': 0.1875, 'curve': 'smooth'}, {'over': '16bar', 'to': 0, 'curve': 'in'}]),
             tr('sung', 'voice', '-10dB', fx=[{'type': 'pitch', 'semitones': 12, 'formant': 0}], sends={'hall': '-6dB', 'echo': '-10dB'}),
             tr('stair', {'extends': 'epiano-tine', 'play': {'release': {'patch': 'epiano-damper', 'decay': '2s'}}}, '-10dB', pan=0.3, sends={'echo': '-8dB'}),
         ]}
