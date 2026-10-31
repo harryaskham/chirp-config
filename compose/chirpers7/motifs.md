@@ -99,3 +99,4 @@ Generator `compose/chirpers7/src/chirpers7-t18.py`. The closer: ambient deep hou
 
 
 - **t3 THE BASS SWAP** (v4): One More Step's intro kick is high-passed at 110 Hz from bar 1 so t2 keeps the low end under the overlap; the full kick and the bass land together on A's downbeat. B lifts with a ride on every off-beat and a cowbell ghost, where the speech starts to sing. The tempo ramp now runs between the seams (118.5 held through the intro, 119 through the outro).
+- **t3 THE SWAP AT THE MIDPOINT** (v5): the bass swap moves from bar 17 to bar 9 (chirper-three's measurement: under the groove's linear 16-bar crossfade a swap at the end leaves a hole). t2's lows fade to half by bar 9, where t3's full kick and an E sub take over.

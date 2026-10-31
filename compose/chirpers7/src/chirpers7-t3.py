@@ -67,9 +67,10 @@ def build():
         if drums:
             full = s in ('A', 'B', 'C')
             for q in range(4):
-                # (v4) THE BASS SWAP: through the intro the kick is high-passed (t2 keeps the low end under the overlap); the
-                # full kick lands with the bass on A's downbeat, as a DJ would swap the lows
-                T['kthin' if s == 'intro' else 'kit'].append((t0 + q, 'k', 0.25, (118 if q == 0 else 110)))
+                # (v4/v5) THE BASS SWAP: for the intro's first eight bars the kick is high-passed (t2 keeps the low end); at bar 9,
+                # the overlap's midpoint, the full kick and an E sub take over - under the groove's linear crossfade the lows
+                # change hands where both sides are at half level, so there's no hole and no doubling
+                T['kthin' if (s == 'intro' and i < 8) else 'kit'].append((t0 + q, 'k', 0.25, (118 if q == 0 else 110)))
                 T['kit'].append((t0 + q + 0.5, 'oh' if (full or i >= 8) else 'h', 0.25, 84))
                 for x in (0.25, 0.75):
                     T['kit'].append((t0 + q + x + 0.02, 'h', 0.25, 64 + (10 if x == 0.75 else 0)))
@@ -83,6 +84,8 @@ def build():
                     T['kit'].append((t0 + q + 0.5, 'rd', 0.25, 66))
                 T['kit'].append((t0 + 1.75 + 0.02, 'cb', 0.25, 52))
         # bass: the root on the one, an octave answer on the and-of-2 and the four's offbeat
+        if s == 'intro' and i >= 8:
+            T['sub'].append((t0, nm(CH[0][0]), 3.6, 92))     # the swap's other half: the E sub with the full kick at bar 9
         if s in ('A', 'B', 'C') or (s == 'outro' and i < 8):
             T['sub'].append((t0, nm(root), 1.6, 100))
             T['sub'].append((t0 + 2.0, nm(root), 1.0, 92))
