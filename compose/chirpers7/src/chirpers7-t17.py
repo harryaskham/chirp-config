@@ -43,8 +43,8 @@ TICKOUT = os.environ.get("C7T17_TICKOUT", "0") == "1"  # the tick under the seam
 STILL = os.environ.get("C7T17_STILL", "1") == "1"  # chirper-one's note: B bars 23-24 the room stops turning - the loop dead centre, no delays, no crossfade - so it locks in place before B2 turns it twice as fast
 PHH = os.environ.get("C7T17_PHH", "10f")  # the sub's phantom harmonics: "" -6 dB; "10" -10 dB (its 2nd harmonic stood 9 dB proud at 155 Hz); "10f" also 113 Hz +3 (the hole under it)
 ROUT = os.environ.get("C7T17_ROUT", "0") == "1"  # the rims hand over: the closer's seam-in figure (soft rims on the last 16th of each beat) starts under t17's last eight bars, so the overlap shares it
-KH = os.environ.get("C7T17_KH", "0") != "0"
-KHG = os.environ.get("C7T17_KH", "0")  # the seam-in's kick lighter below 80 Hz (its own track, low shelf -6; the sub pumps from it too): t17's head read 11-15 dB heavier at 44-71 Hz than Never Arrives' carved tail
+KH = os.environ.get("C7T17_KH", "b") != "0"
+KHG = os.environ.get("C7T17_KH", "b")  # the seam-in's kick lighter below 80 Hz (its own track, low shelf -6; the sub pumps from it too): t17's head read 11-15 dB heavier at 44-71 Hz than Never Arrives' carved tail
 SHK = os.environ.get("C7T17_SHK", "84,74")  # a shaker on every off-16th in A and B (velocity "on-the-e,on-the-a"): the dusty groove's sixteenths made audible (compscore's rhythm term reads the 16th lag; t17's read 0)
 LOOPG = os.environ.get("C7T17_LOOPG", "-2")  # the turning loop's level (dB per side): louder, the illusion leads (and its dotted-eighth cycle reads as off-grid pulse)
 TAILS = os.environ.get("C7T17_TAIL", "0.1s")  # the render tail: 0.3 s leaves no dead air in the last seconds a DJ mixes out of
@@ -199,9 +199,10 @@ def build():
             if sec == "break" and b % 8 == 0:
                 add("binl", at, "C4", 8 * BAR, 80)
                 add("binr", at, "C4", 8 * BAR, 80)
-    if KH:
-        ev["kickh"] = [e for e in ev["kick"] if e[0] < 16 * BAR]
-        ev["kick"] = [e for e in ev["kick"] if e[0] >= 16 * BAR]
+    if KH:  # KH "b": both 16-bar seams, the dusty kick's boxy body carved (175 Hz -6, 300 Hz -3), below 120 Hz untouched (the live swap unchanged)
+        hi = total - 16 * BAR if KHG in ("b", "c") else total + 1
+        ev["kickh"] = [e for e in ev["kick"] if e[0] < 16 * BAR or e[0] >= hi]
+        ev["kick"] = [e for e in ev["kick"] if 16 * BAR <= e[0] < hi]
     return {k: stream(ev[k], total) for k in TRACKS}
 
 
@@ -263,7 +264,7 @@ def song():
         },
         "tracks": [
             {"name": "kick", "patch": "dusty-kit", "gain": "-2dB", "score": T["kick"]},
-            *([{"name": "kickh", "patch": "dusty-kit", "gain": "-2dB", "fx": [{"type": "eq", "bands": [f"lowshelf cutoff=80 gain={-3 if KHG == '3' else -6}dB"]}], "score": T["kickh"]}] if KH else []),
+            *([{"name": "kickh", "patch": "dusty-kit", "gain": "-2dB", "fx": [{"type": "eq", "bands": (["peak cutoff=175 q=1.2 gain=-6dB", "peak cutoff=300 q=1 gain=-3dB"] if KHG == "b" else ["peak cutoff=200 q=1.6 gain=-6dB", "peak cutoff=320 q=1.2 gain=-3dB"] if KHG == "c" else [f"lowshelf cutoff=80 gain={-3 if KHG == '3' else -6}dB"])}], "score": T["kickh"]}] if KH else []),
             {"name": "hats", "patch": "dusty-kit", "gain": "-5dB", "pan": 0.1, "score": "swing16=0.6 " + T["hats"]},
             {"name": "clap", "patch": "dusty-kit", "gain": "-8dB", "sends": {"room": "-6dB"}, "score": "swing16=0.6 " + T["clap"]},
             {"name": "sub", "patch": "sub", "gain": "-14dB", "fx": [pump, *([dict(pump, on="kickh.k")] if KH else []), {"type": "phantom", "cutoff": 100, "harmonics": "-10dB" if PHH else "-6dB"}], "score": T["sub"]},
