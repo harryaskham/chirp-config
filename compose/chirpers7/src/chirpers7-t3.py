@@ -148,7 +148,7 @@ def build():
         'length': f'{64 * 60 / BPM_IN + (beats_total - 128) * 60 / ((BPM_IN + BPM_OUT) / 2) + 64 * 60 / BPM_OUT + 0.15:.2f}s', 'ceiling': '-1dB', 'volume': '0dB', 'loudness': -11.0, 'tail': '0.1s',
         'buses': {'hall': {'fx': ['reverb kind=hall decay=3.2s mix=1', 'hp cutoff=250'], 'returns': []},
                   'echo': {'fx': [{'type': 'delay', 'time': '3/16', 'feedback': 0.35, 'mix': 1}, 'lp cutoff=3500', 'hp cutoff=300'], 'returns': []}},
-        'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=30', 'peak cutoff=55 q=1 gain=-4dB', 'peak cutoff=300 q=0.8 gain=-2dB', 'highshelf cutoff=5000 gain=4dB']},
+        'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=30', 'peak cutoff=55 q=1 gain=-4dB', 'peak cutoff=300 q=0.8 gain=-3dB', 'peak cutoff=3300 q=0.6 gain=5dB', 'highshelf cutoff=5000 gain=4dB']},
                           {'type': 'filter', 'kind': 'lp', 'q': 0.8, 'cutoff': {'value': 18000, 'mod': [{'src': 'auto.op', 'amount': -3.2}]}},
                           {'type': 'compressor', 'threshold': '-20dB', 'ratio': 2.5, 'attack': '15ms', 'release': '150ms', 'makeup': '2dB'},
                           {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.dyn', 'amount': 1}]}},
