@@ -36,6 +36,7 @@ SEC2H = os.environ.get("C7T17_SEC2H", "1") == "1"  # B2's off-beat hats all open
 SEC2K = os.environ.get("C7T17_SEC2K", "0") == "1"  # the outro's first half without the Rhodes
 EQ5 = os.environ.get("C7T17_EQ5", "")  # "a": 45 Hz -5 dB (the lowest octave read 6-8 dB over the album); "b": also +3 dB air above 9 kHz
 KEYSF = os.environ.get("C7T17_KEYSF", "2")  # "1": the Rhodes high-passed at 220 Hz (its low chord tones piled 155-300 Hz 8-10 dB over the album); "2": also its low-pass opened 1800 -> 2600 Hz (1.6-2 kHz read 5 dB under)
+MIDS = os.environ.get("C7T17_MIDS", "1") == "1"  # the seam-in meets t16's tail: soft rims on the last 16th of each beat (3 7 11 15) under the first eight bars, the held D2 softer (t17's head read 17-21 dB heavier at 44-71 Hz than t16's last seconds)
 TAILS = os.environ.get("C7T17_TAIL", "0.1s")  # the render tail: 0.3 s leaves no dead air in the last seconds a DJ mixes out of
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
@@ -134,7 +135,10 @@ def build():
             # the sub
             if seam_in or seam_out:
                 if b % 4 == 0:
-                    add("sub", at, "D2", 4 * BAR, 90)
+                    add("sub", at, "D2", 4 * BAR, 76 if (MIDS and seam_in) else 90)
+                if MIDS and seam_in and b < 8:
+                    for q in (3, 7, 11, 15):
+                        add("clap", at + q, "rs", 1, 64 if q in (3, 11) else 54)
             elif sec in ("A", "B") or (sec == "intro" and b >= 16) or (sec == "outro"):
                 add("sub", at, nm(r), 6, 98)
                 add("sub", at + 7, nm(r), 2, 80)
