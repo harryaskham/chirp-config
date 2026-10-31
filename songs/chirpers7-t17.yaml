@@ -9,9 +9,9 @@ buses:
   room: {"fx": ["reverb kind=room decay=1.4s mix=1 predelay=12ms", "hp cutoff=250"]}
   hall: {"fx": ["reverb kind=hall decay=3s mix=1 predelay=30ms", "lp cutoff=6000"]}
   tcAn: {"fx": [{"type": "pan", "pan": -1, "width": 0}], "returns": []}
-  tcAf: {"fx": [{"type": "delay", "time": "18ms", "feedback": 0, "mix": 1}, {"type": "pan", "pan": 1, "width": 0}], "returns": []}
+  tcAf: {"fx": [{"type": "delay", "time": "18ms", "feedback": 0, "mix": 1}, {"type": "pan", "pan": 1, "width": 0}, {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.teach", "amount": 1}]}}], "auto": {"teach": {"points": [["0s", -30.0], ["62.941s", -30.0], ["62.951s", -30.0], ["94.416s", -30.0], ["94.426s", 0], ["324.75s", 0]]}}, "returns": []}
   tcBn: {"fx": [{"type": "pan", "pan": 1, "width": 0}], "returns": []}
-  tcBf: {"fx": [{"type": "delay", "time": "18ms", "feedback": 0, "mix": 1}, {"type": "pan", "pan": -1, "width": 0}], "returns": []}
+  tcBf: {"fx": [{"type": "delay", "time": "18ms", "feedback": 0, "mix": 1}, {"type": "pan", "pan": -1, "width": 0}, {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.teach", "amount": 1}]}}], "auto": {"teach": {"points": [["0s", -30.0], ["62.941s", -30.0], ["62.951s", -30.0], ["94.416s", -30.0], ["94.426s", 0], ["324.75s", 0]]}}, "returns": []}
   tc3An: {"fx": [{"type": "pan", "pan": -1, "width": 0}], "returns": []}
   tc3Af: {"fx": [{"type": "delay", "time": "18ms", "feedback": 0, "mix": 1}, {"type": "pan", "pan": 1, "width": 0}], "returns": []}
   tc3Bn: {"fx": [{"type": "pan", "pan": 1, "width": 0}], "returns": []}
