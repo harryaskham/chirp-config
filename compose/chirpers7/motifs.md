@@ -8,3 +8,12 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 - **THE SUNG DOUBLE**: the same syllables on the sung voice an octave up (formants kept), from B's bar 12, alone in the break.
 - **THE CHORDS**: Em9 - Cmaj9 - Am9 - Bm7, two bars each, a Rhodes stab on the one and a rootless answer on the and-of-2; the Rhodes quotes THE STAIR two octaves up in C, answering the phrase.
 - **TEMPO**: 118.5 -> 119 bpm, ramped across the whole track (song tempo map), for the tape's tempo path.
+
+## t15 Slower Forever (chirper-zero)
+Generator `compose/chirpers7/src/chirpers7-t15.py`. Dub house, 124 -> 123 bpm (the ramp in the last 32 bars), C minor (5A). 6:14. Featured illusion: the RISSET DECELERANDO.
+- **THE SINKING**: one bar of rims (0 3 6 | 8 11 14) with a clave on 11, played as a Risset rhythm slowing forever - three tempo octaves, each halving over eight bars while the slowest fades out and the fastest fades in. Alone under a glass pad in the break, sinking under the full groove in B, and in R2 cycling twice as fast (four bars) before the bpm really drops in the outro.
+- **THE CHANGES**: Cm9 | Abmaj7 | Gsus(b9) | Fm9, a bar each, as off-beat house-chord stabs thrown into a dub delay (3/16) whose feedback climbs through the break; their low-pass breathes on a 7-bar LFO.
+- **THE STAIR**: falling (G Eb D C) as the stabs' top line throughout and on the glass in B's second half; rising (C D Eb G) in the outro, handing t16 its G.
+- **THE GROOVES DEVELOP**: A's second half answers its stabs (2, 7, 10, 15) with rims on the off-16ths; B's second half hardens the kick and brings the falling stair on top.
+- **SEAMS**: bars 1-16 kick (rumble), hats and a held C2 (t14's F minor fifth); bars 177-192 kick, hats and the sub on G1 (t16's tonic), the tempo easing 124 -> 123 across the last 32 bars.
+

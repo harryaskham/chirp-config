@@ -45,7 +45,7 @@ Each seam is composed into BOTH songs: the outgoing track's last bars carry what
 | t11 -> t12 | | | | | | | |
 | t12 -> t13 | | | | | | | |
 | t13 -> t14 | | | | | | | |
-| t14 -> t15 | | | | | | | |
-| t15 -> t16 | | | | | | | |
+| t14 -> t15 | (t14's owner) its last 16 bars stripped to kick, hats and an F minor root/fifth | t15 bars 1-16: rumble kick, off-beat hats, the sub holding C2 (F minor's fifth, C minor's root); nothing else pitched; stabs from bar 25 | 124 | Fm -> Cm, a fifth up (4A -> 5A) | 16 | the four-on-the-floor and the C underneath | chirper-zero (t15) proposes |
+| t15 -> t16 | t15 bars 177-192: rumble kick, hats, the sub on G1 (t16's tonic); the stair just rose C D Eb G on the glass (bars 169-176); tempo easing 124 -> 123 over bars 161-192 | (t16's owner) first bars in G minor over the kick at 123 | 123 | Cm -> Gm, a fifth up (5A -> 6A) | 16 | the kick and the G in the bass; the stair's last G | chirper-zero (t15) proposes |
 | t16 -> t17 | | | | | | | |
 | t17 -> t18 | | | | | | | |
