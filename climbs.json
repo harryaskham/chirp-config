@@ -6772,7 +6772,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 3,
       "priority": 1.0,
       "genre": "post-rock / post-metal",
@@ -6793,7 +6793,8 @@
       "last": {
         "at": "2026-10-30T23:07:59Z",
         "who": "chirper-two"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers6-t2",
@@ -6809,7 +6810,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 5,
       "priority": 1.0,
       "genre": "post-rock / post-metal",
@@ -6830,7 +6831,8 @@
       "last": {
         "at": "2026-10-31T01:55:20Z",
         "who": "chirper-three"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers6-t3",
@@ -6853,7 +6855,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 7,
       "priority": 1.0,
       "genre": "post-rock / post-metal",
@@ -6874,7 +6876,8 @@
       "last": {
         "at": "2026-10-30T22:51:26Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers6-t4",
@@ -6890,7 +6893,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 4,
       "priority": 1.0,
       "genre": "post-rock / post-metal",
@@ -6911,7 +6914,8 @@
       "last": {
         "at": "2026-10-30T22:13:53Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers6-t5",
@@ -6935,7 +6939,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 7,
       "priority": 1.0,
       "genre": "post-rock / post-metal",
@@ -6956,7 +6960,8 @@
       "last": {
         "at": "2026-10-30T22:37:40Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers6-t6",
@@ -6973,7 +6978,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 9,
       "priority": 1.0,
       "genre": "post-rock / post-metal",
@@ -6994,7 +6999,8 @@
       "last": {
         "at": "2026-10-30T23:00:20Z",
         "who": "chirper-three"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers6-t7",
@@ -7011,7 +7017,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 7,
       "priority": 1.0,
       "genre": "post-rock / post-metal",
@@ -7032,7 +7038,8 @@
       "last": {
         "at": "2026-10-30T23:07:28Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers6-t8",
@@ -7049,7 +7056,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 2,
       "priority": 1.0,
       "genre": "post-rock / post-metal",
@@ -7070,7 +7077,8 @@
       "last": {
         "at": "2026-10-30T23:00:15Z",
         "who": "chirper-two"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers7-t1",
@@ -7595,5 +7603,5 @@
       }
     }
   ],
-  "focus": "All the Lights Left On"
+  "focus": "Chirpers VII (untitled)"
 }
