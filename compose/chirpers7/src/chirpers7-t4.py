@@ -12,7 +12,8 @@ same listener can flip. The track keeps asking which.
 - THE BASS: chirper-two's machine boom played as a bass line on B (tuned per note), pumped.
 - THE CHORD: a sparse Bm9 dub stab into a feedback echo room.
 - THE SEAMS: in, t3's last 16 bars (kick, hats, claps, the phrase "one more step up" spoken, E minor) play over t4's
-  first 16 bars of a thin kick (high-passed: a DJ's bass swap, t3 keeps the low end), triplet shakers and open hats; out, t4's last 16 bars at 119.5 are kick, hats and a held B (the boom)
+  first 16 bars of the plain kick, triplet shakers and open hats (v2: the mixer hands the lows over at the overlap's
+  midpoint, mixplan swap 'mid'; v1's composed swap, a high-passed kick, sagged the low end under the linear crossfade); out, t4's last 16 bars at 119.5 are kick, hats and a held B (the boom)
   for t5's 808 on B1.
 Tempo 119 -> 119.5 (a ramp inside the track). B minor (10A).
 Form (bars of 4/4): in 16 / A1 24 (sparse: kick, shakers, toms, the boom, the question) / drop 4 / A2 16 (+ the bell,
@@ -24,6 +25,11 @@ Emits songs/chirpers7-t4.yaml. Edit the music here.
 import json
 import os
 import random
+
+# rounds: T4_R2 = unswap (v2: no composed bass swap; the kick-in plays full and the mixer hands the lows over at the
+# overlap midpoint, mixplan swap column 'mid': a composed swap under a linear crossfade sags the low end into a hole).
+# T4_R2=none reproduces v1.
+R2 = os.environ.get("T4_R2", "unswap")
 
 OUT = os.environ.get("T4_OUT") or os.path.expanduser("~/.config/chirp/songs/chirpers7-t4.yaml")
 NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"]
@@ -195,7 +201,7 @@ def main():
     pump = {"type": "pump", "on": "kick.kr", "depth": "-7dB", "attack": "3ms", "release": "340ms", "curve": 0.8}
     tracks = [
         {"name": "kick", "patch": "machine-kit", "gain": "0dB", "score": T["kick"].score(total)},
-        {"name": "kick-in", "patch": "machine-kit", "gain": "-2dB", "fx": ["hp cutoff=110"],  # the bass swap: t3 keeps
+        {"name": "kick-in", "patch": "machine-kit", "gain": "-2dB", "fx": ([] if R2 == "unswap" else ["hp cutoff=110"]),  # the bass swap: t3 keeps
          "score": T["kickin"].score(total)},                                                  # the low end in the seam
         {"name": "hats", "patch": "machine-kit", "gain": "-3dB", "pan": 0.12,
          "fx": ["hp cutoff=600", "reverb kind=room decay=0.5s mix=0.12"], "score": T["hats"].score(total)},
