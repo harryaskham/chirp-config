@@ -46,3 +46,11 @@ Generator `compose/chirpers7/src/chirpers7-t16.py`. Rolling hypnotic minimal hou
 - **THE CHORD**: Am9 (A3 C4 E4 G4 B4) on the a-of-1 and the and-of-3, into a feedback echo room; Fmaj9 and G6/9 at the peak.
 - **THE WHISPER**: "up" (voice-speech, a rising f0) in the break and before the peak.
 
+## t17 The Room Turns (chirper-zero)
+Generator `compose/chirpers7/src/chirpers7-t17.py`. Lo-fi deep house, 122 -> 120 bpm (the ramp in the last 32 bars), D minor (7A). 5:17. Featured illusion: THE ROOM THAT TURNS (precedence / Haas), with a BINAURAL BEAT under the break.
+- **THE TURNING LOOP**: rims and shaker on the 16ths (0 3 6 7 10 11 13 15), swung, played by four dusty-kit tracks - a left-leading pair (left on time, right 18 ms late) and a right-leading pair (the reverse) - crossfaded by complementary 6-bar sine LFOs. The ear follows the leading side, so the loop circles the head while its level never changes.
+- **THE BINAURAL BEAT**: under the break, D3 (146.83 Hz) in the left ear and 151.83 Hz in the right (with their octaves): a 5 Hz beat that exists only inside the head.
+- **THE CHANGES**: Dm9 | Bbmaj7 | Gm9 | A7sus(b9), lazy Rhodes on the and-of-1 and the 3 through a 5-bar low-pass LFO, held in the dust in the break.
+- **THE STAIR**: D E F A as the Rhodes' top notes and as a line on top in A2 and the outro, handing t18 its D.
+- **SEAMS**: bars 1-16 kick, hats and a held D2 (t16's outro at 122); bars 145-160 kick, hats and a held D2 into t18 at 120.
+
