@@ -39,6 +39,7 @@ MIDBARS = int(os.environ.get("C7T18_MIDBARS", "8"))  # how many seam bars carry 
 HOMERIM = os.environ.get("C7T18_HOMERIM", "0") == "1"  # home (A minor) keeps the seam's rims: the 16th before each beat's end (3 7 11 15), soft - the comedown's tick
 BRK = os.environ.get("C7T18_BRK", "lh")  # the break deeper: "l" its level -8.5 dB (was -7); "lh" also no hats at all (the falling chords and the stair alone)
 MIDVEL = os.environ.get("C7T18_MIDVEL", "64,54")  # the seam rims' velocities (on the 3 and 11, on the 7 and 15)
+SHKV = int(os.environ.get("C7T18_SHKV", "70"))  # the off-16th shaker's velocity in the grooves (38: a whisper; up, it carries the air above 9 kHz the closer lacked)
 A2OPEN = os.environ.get("C7T18_A2OPEN", "0") == "1"  # A2 lifts: every off-beat hat open (with the clap's arrival), so A's second half is a section of its own
 SPEC = os.environ.get("C7T18_SPEC", "0") == "1"
 SPEC2 = os.environ.get("C7T18_SPEC2", "0") == "1"
@@ -143,7 +144,7 @@ def build():
                     add("hats", at + q, "oh" if ((sec == "home" and q in (6, 14)) or (FORM2 and sec == "B" and b >= 16) or (A2OPEN and sec == "A" and b >= 16)) else "h", 1, 66)
                 if sec in ("A", "B", "home") and not (HOME2 and sec == "home" and b >= 16):
                     for q in (1, 3, 5, 7, 9, 11, 13, 15):
-                        add("hats", at + q, "h", 1, 38)
+                        add("hats", at + q, "h", 1, SHKV)
             if RIM3 and sec in ("A", "B", "home"):
                 for q in range(16):
                     k = (at + q) - sec_start("A")
