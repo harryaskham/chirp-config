@@ -7626,7 +7626,7 @@
     {
       "id": "chirpers7-t17",
       "song": "songs/chirpers7-t17.yaml",
-      "reference": "Chirpers — Track 17 (untitled)",
+      "reference": "Chirpers — The Room Turns",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers7-t17 OUT.wav",
@@ -7642,7 +7642,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "The Endless Stair",
-        "title": "Track 17 (untitled)",
+        "title": "The Room Turns",
         "track": 17,
         "year": 2026
       },
