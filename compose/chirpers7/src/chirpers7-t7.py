@@ -178,7 +178,12 @@ def build():
             tr('sub', 'sub', '-4dB', fx=[{'type': 'phantom', 'cutoff': 90, 'harmonics': '-10dB', 'odd': 0.4},
                                          {'type': 'pump', 'on': 'kit.k', 'depth': '-5dB', 'release': '330ms', 'curve': 0.6}]),
             tr('stab', 'epiano-tine', '-12dB', sends={'hall': '-8dB'}, fx=['hp cutoff=200', 'lp cutoff=4200']),
-            tr('tune', 'pluck', '-15dB', pan=0.1, sends={'hall': '-12dB'}, fx=['hp cutoff=180']),
+            # (v13) DISORDER TO ORDER: while the tune is scrambled across octaves it also drifts off the grid (wM's warp - a
+            # sixteenth late, a thirty-second early, late again, through the second groove), and at the last groove, as it lands
+            # in one octave, it locks onto the beat as well - the tune is found in time and in pitch at the same moment
+            dict(tr('tune', 'pluck', '-15dB', pan=0.1, sends={'hall': '-12dB'}, fx=['hp cutoff=180']),
+                 warp=[{'over': '48bar', 'to': 0}, {'over': '10bar', 'to': 0.25, 'curve': 'smooth'}, {'over': '10bar', 'to': -0.125, 'curve': 'smooth'},
+                       {'over': '10bar', 'to': 0.1875, 'curve': 'smooth'}, {'over': '10bar', 'to': 0, 'curve': 'in'}]),
             # (v10) the tones come forward 6 dB: the illusion was 7 LU under the mix (chirp-eco's meter)
             tr('earL', tone, '-14dB', pan=-1.0, sends={'hall': '-16dB'}),
             tr('earR', tone, '-14dB', pan=1.0, sends={'hall': '-16dB'}),
