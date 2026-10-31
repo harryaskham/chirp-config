@@ -59,7 +59,7 @@ def build():
     secs = {}
     for b in bars:
         secs.setdefault(b['sec'], b['t'])
-    T = {k: [] for k in ('kit', 'sub', 'bass', 'stab', 'pairlo', 'pairhi')}
+    T = {k: [] for k in ('kit', 'sub', 'bass', 'stab', 'pairlo', 'pairhi', 'cyc')}
     for k, b in enumerate(bars):
         s, t0, i = b['sec'], b['t'], b['i']
         root, ch = CH[(k // 2) % 4]
@@ -72,12 +72,23 @@ def build():
             for q in range(4):
                 T['kit'].append((t0 + q, 'k', 0.25, 114 if q == 0 else 106))
                 T['kit'].append((t0 + q + 0.5, 'oh' if s in ('B', 'C') else 'h', 0.25, 80))
-                T['kit'].append((t0 + q + 0.75, 'h', 0.25, 66))
-                T['kit'].append((t0 + q + 0.25, 'h', 0.25, 50))
+                # (v10) wonkier (Harry): the 'a' sixteenths sit late in the grooves, the 'e' ghosts a hair early
+                sw = 0.035 if s in ('A', 'B', 'C') else 0.0
+                T['kit'].append((t0 + q + 0.75 + sw, 'h', 0.25, 66))
+                T['kit'].append((t0 + q + 0.25 - sw / 2, 'h', 0.25, 50))
             if s in ('A', 'B', 'C'):
                 T['kit'].append((t0 + 1.0, 'cp', 0.25, 92)); T['kit'].append((t0 + 3.0, 'cp', 0.25, 96))
             if s in ('B', 'C') and k % 4 == 3:
                 T['kit'].append((t0 + 3.5, 'rs', 0.25, 84)); T['kit'].append((t0 + 3.75, 'rs', 0.25, 76))
+        # (v10) TIME-PLAY in the drums: a rim on a SEVEN-sixteenth cycle through the grooves, never reset - it crosses every
+        # bar line and only meets the one again every seven bars; into the dub echo, right of centre
+        if s in ('A', 'B', 'C'):
+            base = 64.0
+            m0 = int(-(-(t0 - base) // 1.75))
+            for m in range(m0, m0 + 4):
+                at = base + m * 1.75
+                if t0 <= at < t0 + 4.0:
+                    T['cyc'].append((at, 'rs', 0.25, 66 + (10 if m % 4 == 0 else 0)))
         # the sub and the rolling sixteenth bass
         if s != 'break':
             T['sub'].append((t0, nm(root), 3.8, 96 if s != 'intro' else 84))
@@ -131,6 +142,7 @@ def build():
             {'name': 'riser', 'patch': 'fx-riser-endless amp.a=32b', 'gain': '-13dB',
              'score': f'R/{(secs['C'] - 32):.4f}b Eb4/32b@84'},
             tr('kit', 'machine-kit', '-4dB', sends={'hall': '-20dB'}),
+            tr('cyc', 'machine-kit', '-10dB', pan=0.35, sends={'echo': '-8dB'}, fx=['hp cutoff=300']),
             tr('sub', 'sub', '-9dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '320ms', 'curve': 0.6}]),
             tr('bass', 'bass', '-9dB', lfo={'a': 'sine rate=5/1 phase=0', 'b': 'sine rate=7/1 phase=0.25'},
                fx=[{'type': 'filter', 'kind': 'ladder', 'q': 0.55, 'cutoff': {'value': 900, 'mod': [{'src': 'lfo.a', 'amount': 0.9}, {'src': 'lfo.b', 'amount': 0.6}]}},

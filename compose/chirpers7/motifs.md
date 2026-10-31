@@ -165,3 +165,4 @@ Generator `compose/chirpers7/src/chirpers7-t18.py`. The closer: ambient deep hou
 - **t12 THE GHOST FROM THE FIRST GROOVE** (v15): one more wash into A's downbeat, and the Rhodes answers from the first groove on (were from B): chirpers.py illusion near the front 53% -> 60%, longest gap 41 -> 29 s.
 - **t11 THE BREAK RISES** (v9): wM's fx-riser-endless under the break's last eight bars (Eb, -13 dB), stopping dead on the last groove's downbeat.
 - **t3 THE RISE INTO THE QUIET** (v14): wM's fx-riser-endless under B's last eight bars (E, -14 dB), stopping dead on the break's downbeat, where the plain speech stands alone.
+- **t11 THE SEVEN CYCLE** (v10): a rim on a seven-sixteenth cycle from the first groove, never reset (into the echo, right), and the hats' 'a' sixteenths 0.035 late, 'e' ghosts a hair early.
