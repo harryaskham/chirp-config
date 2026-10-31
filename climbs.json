@@ -7424,7 +7424,7 @@
     {
       "id": "chirpers7-t9",
       "song": "songs/chirpers7-t9.yaml",
-      "reference": "Chirpers — Track 9 (untitled)",
+      "reference": "Chirpers — Where's the One",
       "source": null,
       "owner": "chirper-three",
       "metric": "python3 tools/compscore.py chirpers7-t9 OUT.wav",
@@ -7444,7 +7444,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "The Endless Stair",
-        "title": "Track 9 (untitled)",
+        "title": "Where's the One",
         "track": 9,
         "year": 2026
       },
