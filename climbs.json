@@ -7101,18 +7101,18 @@
       "owner": "chirper-two",
       "metric": "python3 tools/compscore.py chirpers7-t1 OUT.wav",
       "best": {
-        "score": 93.928,
+        "score": 96.443,
         "version": "v1",
         "commit": "see git log songs/chirpers7-t1.yaml",
         "engine": "ac25ab18",
         "rescored": {
           "compscore": "898ec630",
           "seeds": {
-            "0": 93.928,
-            "11": 94.024
+            "0": 96.443,
+            "11": 96.483
           },
-          "at": "2026-10-31T05:49:27Z",
-          "was": 93.745
+          "at": "2026-10-31T06:28:51Z",
+          "was": 93.928
         }
       },
       "passes": 1,
@@ -7177,17 +7177,17 @@
       "owner": "chirper-one",
       "metric": "python3 tools/compscore.py chirpers7-t3 OUT.wav",
       "best": {
-        "score": 94.966,
+        "score": 97.447,
         "version": "v2",
         "commit": "see git log songs/chirpers7-t3.yaml",
         "rescored": {
           "compscore": "898ec630",
           "seeds": {
-            "0": 94.966,
-            "11": 94.925
+            "0": 97.447,
+            "11": 97.417
           },
-          "at": "2026-10-31T05:49:27Z",
-          "was": 93.74
+          "at": "2026-10-31T06:28:51Z",
+          "was": 94.966
         }
       },
       "passes": 1,
@@ -7252,17 +7252,17 @@
       "owner": "chirper-three",
       "metric": "python3 tools/compscore.py chirpers7-t5 OUT.wav",
       "best": {
-        "score": 87.208,
+        "score": 89.608,
         "version": "v4",
         "commit": "see git log songs/chirpers7-t5.yaml",
         "rescored": {
           "compscore": "898ec630",
           "seeds": {
-            "0": 87.208,
-            "11": 87.192
+            "0": 89.608,
+            "11": 89.591
           },
-          "at": "2026-10-31T05:49:27Z",
-          "was": 91.99
+          "at": "2026-10-31T06:28:51Z",
+          "was": 87.208
         }
       },
       "passes": 1,
@@ -7298,10 +7298,19 @@
       "owner": "chirper-three",
       "metric": "python3 tools/compscore.py chirpers7-t6 OUT.wav",
       "best": {
-        "score": 81.32,
+        "score": 83.392,
         "version": "v4",
         "commit": "see git log songs/chirpers7-t6.yaml",
-        "judged": true
+        "judged": true,
+        "rescored": {
+          "compscore": "898ec630",
+          "seeds": {
+            "0": 83.392,
+            "11": 88.552
+          },
+          "at": "2026-10-31T06:28:51Z",
+          "was": 81.32
+        }
       },
       "passes": 1,
       "enabled": true,
@@ -7336,17 +7345,17 @@
       "owner": "chirper-one",
       "metric": "python3 tools/compscore.py chirpers7-t7 OUT.wav",
       "best": {
-        "score": 94.148,
+        "score": 93.698,
         "version": "v3",
         "commit": "see git log songs/chirpers7-t7.yaml",
         "rescored": {
           "compscore": "898ec630",
           "seeds": {
-            "0": 94.148,
-            "11": 94.15
+            "0": 93.698,
+            "11": 93.7
           },
-          "at": "2026-10-31T05:49:27Z",
-          "was": 93.75
+          "at": "2026-10-31T06:28:51Z",
+          "was": 94.148
         }
       },
       "passes": 1,
@@ -7448,9 +7457,18 @@
       "owner": "chirper-three",
       "metric": "python3 tools/compscore.py chirpers7-t10 OUT.wav",
       "best": {
-        "score": 89.84,
+        "score": 92.891,
         "version": "v1",
-        "commit": "see git log songs/chirpers7-t10.yaml"
+        "commit": "see git log songs/chirpers7-t10.yaml",
+        "rescored": {
+          "compscore": "898ec630",
+          "seeds": {
+            "0": 92.891,
+            "11": 91.9
+          },
+          "at": "2026-10-31T06:28:51Z",
+          "was": 89.84
+        }
       },
       "passes": 1,
       "enabled": true,
@@ -7700,17 +7718,17 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/compscore.py chirpers7-t17 OUT.wav",
       "best": {
-        "score": 88.081,
+        "score": 91.148,
         "version": "v2",
         "commit": "see git log songs/chirpers7-t17.yaml",
         "rescored": {
           "compscore": "898ec630",
           "seeds": {
-            "0": 88.081,
-            "11": 84.667
+            "0": 91.148,
+            "11": 87.456
           },
-          "at": "2026-10-31T05:49:27Z",
-          "was": 92.792
+          "at": "2026-10-31T06:28:51Z",
+          "was": 88.081
         }
       },
       "passes": 1,
@@ -7746,9 +7764,18 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/compscore.py chirpers7-t18 OUT.wav",
       "best": {
-        "score": 87.733,
+        "score": 90.009,
         "version": "v2",
-        "commit": "see git log songs/chirpers7-t18.yaml"
+        "commit": "see git log songs/chirpers7-t18.yaml",
+        "rescored": {
+          "compscore": "898ec630",
+          "seeds": {
+            "0": 90.009,
+            "11": 89.953
+          },
+          "at": "2026-10-31T06:28:51Z",
+          "was": 87.733
+        }
       },
       "passes": 1,
       "enabled": true,
