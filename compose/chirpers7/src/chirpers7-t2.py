@@ -27,6 +27,14 @@ import random
 # drop - running DOWN an octave every four bars, so the endless opening is felt by contrast when B2 turns it back up;
 # chirper-one's note). T2_R2=none reproduces v1.
 R2 = os.environ.get("T2_R2", "reverse")
+# T2_R3 = dark (v3, Harry's 31 Oct steers: darker, wonkier, more time-play). The stab darkens from Am7 to an Am11
+# cluster (A C D E G: C-D-E stacked a tone apart inside it); the stair goes subtly off - every other time round its B
+# sinks to Bb (a Phrygian second), so the climb is never quite the same twice; and the last two beats of each drop are
+# an ACCELERATING ROLL of the stab (each chop 0.78 of the last, the stair counting on through it), so the thread itself
+# runs faster into the groove's return. (Rolls at every phrase end blurred the sections: 9 -> 7.) T2_R3=none
+# reproduces v2.
+R3 = os.environ.get("T2_R3", "dark")
+DARK = [57, 60, 62, 64, 67]                 # Am11 cluster: A3 C4 D4 E4 G4
 
 OUT = os.environ.get("T2_OUT") or os.path.expanduser("~/.config/chirp/songs/chirpers7-t2.yaml")
 NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"]
@@ -76,6 +84,14 @@ FIFTH = [57, 64, 69]                        # A3 E4 A4: the open fifth for the o
 BASS = [(0.0, 33, 0.4), (0.75, 33, 0.2), (1.5, 45, 0.25), (2.5, 33, 0.4), (3.25, 40, 0.25), (3.75, 43, 0.2)]
 
 
+def wonky(step):
+    """The stair's note for this step; from v3, every other time round its B sinks to Bb."""
+    m = STAIR[step % 4]
+    if R3 == "dark" and m == 71 and (step // 4) % 2 == 1:
+        return 70
+    return m
+
+
 def build():
     rng = random.Random(2)
     T = {k: Track(k) for k in ("kick", "hats", "clap", "rim", "bass", "stab", "stabdn", "stair", "rise")}
@@ -104,7 +120,7 @@ def build():
         if core:
             for o in (0.0, 0.75, 1.5):
                 T["rim"].add(start + 2.0 + o + 0.02, 0.2, "rs", 64 if o == 0 else 52)
-        root, chord = 33, CHORD  # (a moving progression under the pole was tried: it split the grooves into shards)
+        root, chord = 33, (DARK if R3 == "dark" else CHORD)  # (a moving progression under the pole split the grooves)
         if core or sec in ("drop1", "drop2"):
             for b, m, ln in BASS:
                 T["bass"].add(start + b, ln, nm(m - 33 + root), 100 if b == 0 else 86)
@@ -114,10 +130,25 @@ def build():
                 T["stab"].add(start, 7.8, ",".join(nm(x) for x in FIFTH), 70)
         elif sec in ("break",):
             if i % 2 == 0:
-                T["stab"].add(start, 7.8, ",".join(nm(x) for x in CHORD + [STAIR[(i // 2) % 4]]), 70)
+                T["stab"].add(start, 7.8, ",".join(nm(x) for x in chord + [STAIR[(i // 2) % 4]]), 70)
+        elif R3 == "dark" and sec in ("drop1", "drop2") and i == n - 1:
+            # the accelerating roll: each chop 0.78 of the last, louder as it goes, the stair counting on
+            down = R2 == "reverse" and sec == "drop2"
+            top = wonky(step)  # the bar's first chop as usual
+            step += 1
+            T["stabdn" if down else "stab"].add(start + 0.5, 0.3, ",".join(nm(x) for x in chord + [top]), 84)
+            p, ioi, k = 2.0, 0.4, 0  # then the last two beats roll
+            while p < 4.0 - 0.04:
+                top = wonky(step)
+                step += 1
+                T["stabdn" if down else "stab"].add(start + p, max(0.05, ioi * 0.8), ",".join(nm(x) for x in chord + [top]),
+                                                    60 + min(40, 3 * k))
+                p += ioi
+                ioi = max(0.05, ioi * 0.78)
+                k += 1
         elif not (sec == "in" and i < 8):
             for o in ((0.5, 1.75, 2.5, 3.25) if core else (0.5, 2.5)):
-                top = STAIR[step % 4]
+                top = wonky(step)
                 step += 1
                 down = R2 == "reverse" and (sec == "drop2" or (sec == "B1" and i >= 12))
                 T["stabdn" if down else "stab"].add(start + o, 0.3, ",".join(nm(x) for x in chord + [top]),
@@ -125,6 +156,7 @@ def build():
         # ---- the stair itself, quoted plainly once a phrase (as t1 handed it over) ----
         if sec in ("A2", "B2") and i % 8 == 7:
             for k, m in enumerate(STAIR):
+                m = 70 if (R3 == "dark" and sec == "B2" and m == 71) else m  # the peak's quote sinks to Bb
                 T["stair"].add(start + k, 0.9, nm(m), 70)
         if sec in ("drop1", "drop2") and i == 0:
             T["rise"].add(start, 16.0, "C4", 92)

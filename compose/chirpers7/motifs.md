@@ -112,6 +112,7 @@ Generator `compose/chirpers7/src/chirpers7-t18.py`. The closer: ambient deep hou
 - **THE BARBER POLE**: the stab (Am7 with the stair's note on top) in four copies band-passed at 200, 400, 800 and 1600 Hz, one song-time saw (`saw rate=8/1 unipolar=true`) carrying every band up an octave per eight bars; the lowest copy's gain rises -30 -> 0 dB across the cycle, the highest's falls 0 -> -30 dB, so at the wrap each copy lands where its neighbour was.
 - **THE STAIR** on the stab's top note, chopped on the off-beats (and-of-1, a-of-2, and-of-3, e-of-4), counting on; plainly on the Shepard stair once each eight bars in A2 and B2.
 - **THE POLE TURNED ROUND** (v2): for the eight bars before B2 (B1's last four and the drop) the stab moves to four copies at 400-3200 Hz carried DOWN an octave every four bars (`saw rate=4/1`, cutoff mod -1; the highest copy fades in, the lowest fades out); B2 turns it back up.
+- **DARKER, SUBTLY OFF** (v3): the stab an Am11 cluster (A3 C4 D4 E4 G4); every other time round the stair's B sinks to Bb (A Bb C E), and the peak's plain quote takes the Bb; the last two beats of each drop roll the stab faster and faster (each chop 0.78 of the last) with the stair counting on through it, into the groove's return.
 - **THE BASS** (rolling): A1 . A1 A2 | A1 . E2 G2 (0, 0.75, 1.5, 2.5, 3.25, 3.75).
 
 ## t4 The Tritone Question (chirper-two)
