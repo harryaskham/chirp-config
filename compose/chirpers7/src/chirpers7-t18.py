@@ -50,6 +50,7 @@ ROOMSD = os.environ.get("C7T18_ROOMS", "2") == "2"  # deeper rooms: continuity -
 PADEQ = os.environ.get("C7T18_PADEQ", "1") == "1"  # the glass pads' chord tones carved where they stand proud (341 -3, 467 -5, 640 -3 dB, narrow)
 DROPOUT = os.environ.get("C7T18_DROPOUT", "1") == "1"  # chirper-one's note: near the end of ALL AT ONCE the illusions leave one a bar, in the reverse of the order they came in, until the falling stair stands alone (then the tape stops and the silence)
 REV = ["decel", "turn", "scale", "accel", "huggins", "continuity", "octave", "phantom", "stream", "tritone", "speech", "pole", "shepard"]
+HEADLV = [float(x) if "." in x else int(x) for x in os.environ.get("C7T18_HEADLV", "3,0.5").split(",")]  # the seam head's level lane (dB at bar 1, at bar 16): meets The Room Turns' tail in the live crossfade
 ILV = float(os.environ.get("C7T18_ILV", "0"))  # every illusion track's level offset (dB)
 
 ERISER = os.environ.get("C7T18_ERISER", "-10")  # wM's endless Shepard riser (fx-riser-endless) over the 8 bars into all: pitch, noise and filter rising for ever, stopping dead on the drop (Harry: 'risers and staircases v good'); level in dB
@@ -385,7 +386,7 @@ def song():
     pump = {"type": "pump", "on": "kick.k", "depth": "-5dB", "attack": "2ms", "release": "220ms", "curve": 0.7}
     # the section lane: the seam at its neighbour's level, panels level, the interlock and all up, the coda down; the
     # Zwicker bars drop to digital silence
-    pts = [(0, 1.5), (16 * BAR, -1), (st["g0"], 0)]
+    pts = [(0, HEADLV[0]), (16 * BAR, HEADLV[1]), (st["g0"], 0)]
     quiet = {"continuity": -3, "octave": -5, "scale": -5, "huggins": -6} if ROOMSD else {"continuity": -2, "octave": -3, "scale": -3, "huggins": -4}
     for sec, nb in FORM:
         if ROOMS and sec.startswith("g"):
