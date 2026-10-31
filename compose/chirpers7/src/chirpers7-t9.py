@@ -202,6 +202,21 @@ def cowbell_and_ride():
             part("ride").add(b0(bar) + b + 0.5, 0.4, "rd", 84 if b % 2 else 72)
 
 
+def fills():
+    """v12 (Harry's time-play: accelerating/decelerating fills): bar 88, a snare roll ACCELERATING from eighths to a
+    buzz, landing on 'ONE' at 89; bars 44 and 130, fills DECELERATING - the hits spread apart like drums winding
+    down - straight into the flips at 45 and 131, so the ear loses the grid just before it is turned over."""
+    n = 22
+    for i in range(n):                                      # accelerating: quadratic time, intervals shrink to ~0.02 beat
+        x = 4.0 * (1 - (1 - i / n) ** 2)
+        part("fill").add(b0(88) + x, 0.1, "s", int(48 + 66 * i / n))
+    for bar in (44, 130):
+        m = 12
+        for i in range(m):                                  # decelerating: the mirror image, intervals grow
+            x = 3.6 * (i / m) ** 1.8
+            part("fill").add(b0(bar) + x, 0.1, "s", int(100 - 40 * i / m))
+
+
 def frame_the_holes():
     """v11 (chirp-eco's lesson from t10: a bare hole in a mixed groove reads as a glitch): every empty downbeat is now
     performed. The last stab before it is thrown into a high-feedback dub delay, so its echoes ring through the hole;
@@ -297,6 +312,7 @@ def main():
     cowbell_and_ride()
     riser()
     frame_the_holes()
+    fills()
     tempo = [{"at": "0b", "bpm": 121.5}, {"at": f"{b0(17):.0f}b", "bpm": 121.5},
              {"at": f"{b0(137):.0f}b", "bpm": 122, "ramp": True}]
     pump = {"type": "pump", "on": "kick", "depth": "-7dB", "attack": "3ms", "release": "320ms", "curve": 0.7}
@@ -330,6 +346,7 @@ def main():
             tr("hats", "machine-kit", gain="3dB", pan=0.1, warp=SLIDE, lfo={"hh": {"wave": "sine", "rate": "20b"}},
                fx=[{"type": "filter", "kind": "hp", "cutoff": {"value": 3000, "mod": [{"src": "lfo.hh", "amount": 0.6}]}}]),
             tr("clap", "machine-kit", gain="-3dB", warp=SLIDE, sends={"room": "-8dB"}),
+            tr("fill", "machine-kit", gain="-8dB", pan=-0.1, sends={"room": "-8dB", "dub": "-14dB"}),   # v12: the fills
             tr("bass", "acid", gain="-6dB", lfo={"bc": {"wave": "sine", "rate": "36b"}},
                auto={"dk": {"points": [["0b", 0.0], [f"{b0(73)}b", 0.0], [f"{b0(76)}b", -1.5], [f"{b0(87)}b", -1.5],
                                        [f"{b0(89)}b", 0.0], [f"{TOTAL}b", 0.0]]}},     # v5: the break goes dark
