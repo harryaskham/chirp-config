@@ -38,6 +38,10 @@ R2 = os.environ.get("T1_R2", "turn")
 # climbing. A first hint of the comedown, the tape's first play with time as well as tone; chirper-one's note.)
 # T1_R3=none reproduces v2.
 R3 = os.environ.get("T1_R3", "slow")
+# T1_R4 = rim (v4: the rim becomes the groove's hook - a 3-3-3-3-4 cycle of sixteenths starting on the and-of-one
+# (0.5, 1.25, 2.0, 2.75, 3.5), up 3 dB, level with the off-beat hats: a minimal-house syncopation that leaves the kick
+# its downbeats, where the 3-3-2 sat quietly in the second half of the bar). T1_R4=none reproduces v3.
+R4 = os.environ.get("T1_R4", "rim")
 
 
 def nm(m):
@@ -113,7 +117,10 @@ def build():
         if full:
             T["clap"].add(start + 1.0, 0.5, "cp", 92)
             T["clap"].add(start + 3.0, 0.5, "cp" if i % 4 != 3 else "cpw", 96)
-        if core:  # the rim on a 3-3-2 across the second half of each bar (louder at the peak)
+        if core and R4 == "rim":  # the rim: 3-3-3-3-4 sixteenths from the and-of-one (louder at the peak)
+            for k, o in enumerate((0.5, 1.25, 2.0, 2.75, 3.5)):
+                T["rim"].add(start + o + 0.02, 0.2, "rs", (74 if k == 0 else 64) - (0 if sec == "B2" else 6))
+        elif core:  # the rim on a 3-3-2 across the second half of each bar (louder at the peak)
             for o in (0.0, 0.75, 1.5):
                 T["rim"].add(start + 2.0 + o + 0.02, 0.2, "rs", (70 if o == 0 else 58) - (0 if sec == "B2" else 8))
         # ---- the phantom bass ----
@@ -221,7 +228,8 @@ def main():
          "lfo": {"h": "sine rate=5/1"}, "auto": {"hopen": {"points": hats_open}}, "score": T["hats"].score(total)},
         {"name": "clap", "patch": "machine-kit", "gain": "-4dB", "fx": ["reverb kind=plate decay=1.2s mix=0.2"],
          "score": T["clap"].score(total)},
-        {"name": "rim", "patch": "machine-kit", "gain": "-6dB", "pan": -0.25, "score": T["rim"].score(total)},
+        {"name": "rim", "patch": "machine-kit", "gain": "-3dB" if R4 == "rim" else "-6dB", "pan": -0.25,
+         "score": T["rim"].score(total)},
         {"name": "bass", "patch": "phantom-bass", "gain": "-3dB", "fx": [pump], "score": T["bass"].score(total)},
         {"name": "stair", "patch": "c2-stair", "gain": "-8dB", "pan": 0.15,
          "fx": [{"type": "delay", "time": "3/16", "feedback": 0.35, "mix": 0.22, "ping_pong": True, "tone": 3000},
