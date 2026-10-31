@@ -470,6 +470,15 @@
    }
   },
   {
+   "name": "h1",
+   "patch": "partial",
+   "score": "R/560b Gb3/0.9b@92 R/0.1b Ab3/0.9b@92 R/0.1b A3/0.9b@92 R/0.1b Db4/0.9b@92 R/140.1b",
+   "gain": "-8dB",
+   "sends": {
+    "hall": "-10dB"
+   }
+  },
+  {
    "name": "h2",
    "patch": {
     "extends": "partial",

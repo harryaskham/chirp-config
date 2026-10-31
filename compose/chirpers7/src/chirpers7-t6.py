@@ -168,6 +168,10 @@ def stair_nobody_plays():
     """v7: THE STAIR NOBODY PLAYS: in the second drop the pure partials 3..6 play the stair (F#3 G#3 A3 C#4) as half-note
     pulses - for F#3 that is 555, 740, 925, 1110 Hz, nothing at 185 - and the ear hears the melody where nothing sounds;
     no single partial even moves by step, only the note they imply does."""
+    # v8: THE REVEAL (chirper-one's suggestion): at bar 141, once, the fundamentals themselves - F#3 G#3 A3 C#4, pure
+    # sines, one a beat - the melody the room has been imagining, actually played for one bar, then gone
+    for b, st in enumerate(STAIR):
+        part("h1").add(b0(141) + b, 0.9, nm(54 + st), 92)
     for bar in range(121, 141):
         m = 54 + STAIR[(bar - 121) % 4]                  # F#3 G#3 A3 C#4 (MIDI 54 = F#3)
         for b in (0, 2):
@@ -337,6 +341,7 @@ def main():
             tr("shaker", "djembe", gain="-10dB", pan=0.35, sends={"room": "-12dB"}, fx=["lp cutoff=7000"]),
             tr("ghost", "celesta", gain="-9dB", pan=0.3, sends={"dub": "-3dB"}),
             tr("stair", "c2-stair", gain="-10dB", pan=-0.2, sends={"hall": "-6dB"}),
+            tr("h1", "partial", gain="-8dB", sends={"hall": "-10dB"}),    # v8: the reveal's fundamentals
         ] + partials,
     }
     with open(OUT, "w") as f:
