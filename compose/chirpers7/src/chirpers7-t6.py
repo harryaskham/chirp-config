@@ -184,6 +184,11 @@ def taken_apart():
         for bar in range(91, 97):                                                # one rhythm: common onset fuses
             for b in range(4):
                 part(f"h{h}").add(b0(bar) + b, 0.7 if b % 2 == 0 else 0.4, nm(FS1), 92 if b == 0 else 80)
+    # v14: THE PROOF (teach the ear, chirp-eco's lesson): in bars 92 and 94 the REAL fundamental joins the fused
+    # partials, in their rhythm; in 91, 93, 95, 96 it is gone. The floor comes and goes; the pitch never moves.
+    for bar in (92, 94):
+        for b in range(4):
+            part("h1").add(b0(bar) + b, 0.7 if b % 2 == 0 else 0.4, nm(FS1), 100 if b == 0 else 88)
 
 
 def stair_nobody_plays():

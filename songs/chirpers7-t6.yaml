@@ -598,7 +598,7 @@
   {
    "name": "h1",
    "patch": "partial",
-   "score": "R/560b Gb3/0.9b@92 R/0.1b Ab3/0.9b@92 R/0.1b A3/0.9b@92 R/0.1b Db4/0.9b@92 R/140.1b",
+   "score": "R/364b Gb1/0.7b@100 R/0.3b Gb1/0.4b@88 R/0.6b Gb1/0.7b@88 R/0.3b Gb1/0.4b@88 R/4.6b Gb1/0.7b@100 R/0.3b Gb1/0.4b@88 R/0.6b Gb1/0.7b@88 R/0.3b Gb1/0.4b@88 R/184.6b Gb3/0.9b@92 R/0.1b Ab3/0.9b@92 R/0.1b A3/0.9b@92 R/0.1b Db4/0.9b@92 R/140.1b",
    "gain": "-8dB",
    "sends": {
     "hall": "-10dB"
