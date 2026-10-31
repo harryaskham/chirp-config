@@ -28,7 +28,8 @@ def nm(m): return f"{NN[m % 12]}{m // 12 - 1}"
 # (v6) off the tape's template: a long 40-bar first groove (the low pairs alone, the rolling bass locking in - minimal
 # takes its time) and a shorter 24-bar second groove where the envelopes cross-fade low -> high faster, so the turn lands
 FORM = [('intro', 16), ('A', 40), ('B', 24), ('break', 16), ('C', 32), ('outro', 16)]
-CH = [(39, [58, 61, 65, 66, 70]), (35, [58, 63, 66, 70]), (32, [59, 63, 66, 70]), (34, [58, 61, 65, 68])]
+# (v7) darker, wonkier (Harry, 31 Oct): Ebm9 - Cbmaj7#11 - Abm9 - Bb7b9
+CH = [(39, [58, 61, 65, 66, 70]), (35, [58, 63, 65, 66, 70]), (32, [59, 63, 66, 70]), (34, [59, 62, 65, 68])]
 STAIR = [63, 65, 66, 70]                     # Eb F Gb Bb (pitch class matters, not octave: Shepard tones)
 BASS = [0, 0, 12, 0, 7, 0, 12, 0, 0, 0, 12, 10, 0, 7, 12, 0]
 
