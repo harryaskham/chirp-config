@@ -346,9 +346,9 @@ def main():
                    "auto": {"dyn": {"points": lanes()}}},
         "tracks": [
             tr("kick", "machine-kit", gain="-11dB"),
-            tr("hats", "machine-kit", gain="+3dB", pan=0.1, lfo={"hh": {"wave": "sine", "rate": "20b"}},
+            tr("hats", "machine-kit play.humanize.drunk=5ms play.humanize.swing_drift=0.04 play.humanize.accent=0.4", gain="+3dB", pan=0.1, lfo={"hh": {"wave": "sine", "rate": "20b"}},
                fx=[{"type": "filter", "kind": "hp", "cutoff": {"value": 2500, "mod": [{"src": "lfo.hh", "amount": 0.7}]}}]),
-            tr("clap", "machine-kit", gain="-2dB", sends={"room": "-8dB"}),
+            tr("clap", "machine-kit play.humanize.nudge.cp=10ms", gain="-2dB", sends={"room": "-8dB"}),
             tr("rim", "machine-kit", gain="-8dB", pan=-0.3, sends={"dub": "-12dB"}),
             # v12: THE COLOUR CLIMBS FOR EVER, THE PITCH STANDS STILL: in the first drop the phantom line runs through a
             # barber pole (bands an octave apart climbing on the song's clock) - the emphasis glides up through its
@@ -377,9 +377,10 @@ def main():
                fx=[{"type": "filter", "kind": "lp", "q": 1.2,
                     "cutoff": {"value": 1800, "mod": [{"src": "lfo.sl", "amount": 0.9}]}}, pump]),
             tr("pad", "juno-pad", gain="-9dB", pan=-0.15, sends={"hall": "-8dB"}, lfo={"pd": {"wave": "sine", "rate": "28b"}},
-               fx=[{"type": "filter", "kind": "lp", "q": 0.8,
+               fx=["tape wow=12 wow_rate=0.3 drift=1 tone=7kHz",   # v13: a slow warble on ONE element, the pad
+                   {"type": "filter", "kind": "lp", "q": 0.8,
                     "cutoff": {"value": 1600, "mod": [{"src": "lfo.pd", "amount": 0.8}]}}, pump]),
-            tr("conga", "congas", gain="-6dB", pan=-0.35, sends={"room": "-10dB"}),
+            tr("conga", "congas play.humanize.time=8ms play.humanize.vel=0.15", gain="-6dB", pan=-0.35, sends={"room": "-10dB"}),
             # v11: under the half-time drop a Risset bed speeding up AND slowing down at once (both: true)
             {"name": "both", "patch": "machine-kit", "gain": "-8dB", "pan": 0.3, "at": f"{b0(HALFTIME[0]):.0f}b",
              "risset": {"cycle": "4bar", "both": True, "layers": 3, "length": f"{HALFTIME[1] - HALFTIME[0] + 1}bar"},
