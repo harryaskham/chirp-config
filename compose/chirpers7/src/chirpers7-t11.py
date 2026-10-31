@@ -127,6 +127,9 @@ def build():
                           {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.dyn', 'amount': 1}]}}],
                    'auto': {'dyn': {'points': dyn}}},
         'tracks': [
+            # (riser) Harry: 'riser builds (Shepard risers into drops)' - wM's fx-riser-endless: the endless riser under the break's last eight bars - the high pairs and their glide alone - stopping dead on the last groove's downbeat, where the low and high envelopes sound together
+            {'name': 'riser', 'patch': 'fx-riser-endless amp.a=32b', 'gain': '-13dB',
+             'score': f'R/{(secs['C'] - 32):.4f}b Eb4/32b@84'},
             tr('kit', 'machine-kit', '-4dB', sends={'hall': '-20dB'}),
             tr('sub', 'sub', '-9dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '320ms', 'curve': 0.6}]),
             tr('bass', 'bass', '-9dB', lfo={'a': 'sine rate=5/1 phase=0', 'b': 'sine rate=7/1 phase=0.25'},
