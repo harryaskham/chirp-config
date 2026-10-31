@@ -161,8 +161,10 @@ def harmony():
         part("sub").add(b0(bar) + 2, 1.8, nm(sr), 90)
         # the Rhodes on the sixteenth 'a's (3 and 11), and from C a third hit on 14
         hits = (0.75, 2.75) + ((3.5,) if sec in ("C", "D", "E") else ())
+        up = 12 if (sec == "B" and bar >= 61) else 0               # v3: B's second half lifts an octave
+        rh = "rhodesdub" if sec in ("D", "E") else "rhodes"           # v3: the dub chords arrive with the full drop
         for h in hits:
-            part("rhodes").add(b0(bar) + h, 0.6, ",".join(nm(m) for m in v), 90)
+            part(rh).add(b0(bar) + h, 0.6, ",".join(nm(m + up) for m in v), 90)
         # the bell keeps the steps it has been given, on the off-beat of one
         k = {"B": 1, "C": 2, "D": 3, "E": 4}.get(sec, 0)
         if k and bar % 2 == 1 and not bar == ZSTART.get(k - 1, 0) + 4:
@@ -208,7 +210,9 @@ def main():
         "loudness": -11,
         "volume": "0dB",
         "buses": {"room": {"fx": ["reverb kind=room decay=1.0s mix=1 predelay=10ms", "hp cutoff=250"]},
-                  "hall": {"fx": ["reverb kind=hall decay=2.6s mix=1 predelay=25ms", "hp cutoff=300"]}},
+                  "hall": {"fx": ["reverb kind=hall decay=2.6s mix=1 predelay=25ms", "hp cutoff=300"]},
+                  "dub": {"fx": ["delay time=3/16 mix=1 feedback=0.5", "hp cutoff=450", "lp cutoff=3200",
+                                 "reverb kind=hall decay=2.2s mix=0.25"]}},
         "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=28", "lowshelf cutoff=200 gain=-3dB",
                                                     "highshelf cutoff=5000 gain=3dB"]},
                           {"type": "compressor", "threshold": "-20dB", "ratio": 2.5, "attack": "15ms", "release": "150ms",
@@ -232,6 +236,9 @@ def main():
                lfo={"rl": {"wave": "sine", "rate": "36b"}},
                fx=[{"type": "filter", "kind": "lp", "cutoff": {"value": 4000, "mod": [{"src": "lfo.rl", "amount": 0.7}]}},
                    pump]),
+            tr("rhodesdub", "epiano-tine synth.tine.sense=0.3", gain="-5dB", pan=-0.15,
+               sends={"hall": "-10dB", "dub": "-5dB"},   # v3: DUB CHORDS in D and E: each stab trails dotted-eighth echoes
+               fx=[{"type": "filter", "kind": "lp", "cutoff": 4000}, pump]),
             tr("bell", "glock", gain="-8dB", pan=0.2, sends={"hall": "-6dB"}),
         ] + nz,
     }
