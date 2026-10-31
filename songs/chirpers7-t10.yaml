@@ -442,6 +442,7 @@
     }
    },
    "fx": [
+    "barberpole cycle=2bar",
     {
      "type": "filter",
      "kind": "lp",
@@ -457,6 +458,12 @@
      }
     }
    ]
+  },
+  {
+   "name": "srise",
+   "patch": "fx-riser-endless amp.a=32b",
+   "score": "R/576b D#3/32b@90 R/96b",
+   "gain": "-13dB"
   },
   {
    "name": "bell",

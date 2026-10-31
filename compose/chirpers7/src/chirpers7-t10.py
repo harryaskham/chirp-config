@@ -169,6 +169,10 @@ def drums():
                     part("clap").add(b0(bar) + b + 0.012, 0.5, "cp", 92 + hand.randint(-4, 4))
 
 
+def srise():
+    part("srise").add(b0(145), 32.0, "D#3", 90)          # rises for ever over the peak's end, stops dead at the outro
+
+
 def after_tones_together():
     """v6: THE AFTER-TONES TOGETHER: the four notes the silences gave one at a time (D# F F# A#) sound at last as one
     chord under the peak, held in two long swells while their low-pass opens."""
@@ -253,6 +257,7 @@ def main():
     zwicker()
     riser()
     after_tones_together()
+    srise()
     drums()
     harmony()
     hints()
@@ -320,8 +325,10 @@ def main():
                fx=[{"type": "filter", "kind": "lp", "cutoff": 4000}, pump]),
             tr("stairpad", "juno-pad", gain="-3dB", sends={"hall": "-6dB"},
                auto={"po": {"points": [["0b", 0.0], [f"{b0(142)}b", 0.0], [f"{b0(150)}b", 1.6], [f"{TOTAL}b", 1.6]]}},
-               fx=[{"type": "filter", "kind": "lp", "q": 0.7,
+               fx=["barberpole cycle=2bar",       # v10: the after-tones' chord climbs for ever, never brighter
+                   {"type": "filter", "kind": "lp", "q": 0.7,
                     "cutoff": {"value": 1000, "mod": [{"src": "auto.po", "amount": 1.0}]}}]),
+            tr("srise", "fx-riser-endless amp.a=32b", gain="-13dB"),   # v10: an endless riser into the outro
             tr("bell", "glock", gain="-8dB", pan=0.2, sends={"hall": "-6dB"}),
             tr("riser", noise, gain="-12dB",
                auto={"rn": {"points": [["0b", 0.0], [f"{b0(RISER[0])}b", 0.0], [f"{b0(RISER[1] + 1)}b", 0.58],
