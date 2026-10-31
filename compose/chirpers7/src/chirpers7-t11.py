@@ -135,6 +135,17 @@ def build():
             tr('stab', 'epiano-tine', '-11dB', sends={'echo': '-8dB', 'hall': '-10dB'}, fx=['hp cutoff=220', 'lp cutoff=4200']),
             tr('pairlo', shep('250hz'), '-9dB', fx=pair_fx('lo'), auto={'lo': {'points': lo}, 'glide': {'points': glide}}, sends={'hall': '-10dB'}),
             tr('pairhi', shep('1000hz'), '-12dB', fx=pair_fx('hi'), auto={'hi': {'points': hi}, 'glide': {'points': glide}}, sends={'hall': '-10dB'}),
+            # (v8) BOTH WAYS IN TIME: the home pair (Eb, A) on two Risset tracks, one running up and one down at once - the
+            # pair that has no up or down in pitch now speeds up and slows down at the same time; through the break and the
+            # first half of the last groove
+            {'name': 'pairup', 'patch': shep('500hz'), 'gain': '-13dB', 'pan': 0.35, 'at': f'{tbr:.0f}b', 'sends': {'hall': '-10dB'},
+             'risset': {'cycle': '8bar', 'layers': 3, 'length': '32bar', 'down': False},
+             'auto': {'glide': {'points': [['0b', 0]]}},
+             'score': 'Eb4/8@88 R/8 A4/8@80 R/8 Eb4/16@76 R/16 A4/8@84 R/4'},
+            {'name': 'pairdown', 'patch': shep('500hz'), 'gain': '-13dB', 'pan': -0.35, 'at': f'{tbr:.0f}b', 'sends': {'hall': '-10dB'},
+             'risset': {'cycle': '8bar', 'layers': 3, 'length': '32bar', 'down': True},
+             'auto': {'glide': {'points': [['0b', 0]]}},
+             'score': 'A4/8@88 R/8 Eb4/8@80 R/8 A4/16@76 R/16 Eb4/8@84 R/4'},
         ]}
 
 if __name__ == '__main__':
