@@ -161,6 +161,22 @@ def drums():
             part("clap").add(b0(bar) + 3.75, 0.25, "rs", 82)
 
 
+def cowbell_and_ride():
+    """v7: in the drop's second half a COWBELL runs a dotted-eighth cycle (every three sixteenths, across the bar lines);
+    the cycle's first hit is accented, so its accent meets beat one only every third bar - one more wandering 'one'.
+    The outro gets a ride on the off-beats instead of the groove's hats alone: a colour the opening never had."""
+    k = 0
+    for bar in range(113, 137):
+        for s in range(16):
+            if (k + s) % 3 == 0:
+                first = ((bar - 113) * 16 + s) % 48 == 0
+                part("cowbell").add(b0(bar) + s / 4, 0.2, "cb", 100 if first else 66)
+        k = (k + 16) % 3
+    for bar in range(137, 157):
+        for b in range(4):
+            part("ride").add(b0(bar) + b + 0.5, 0.4, "rd", 84 if b % 2 else 72)
+
+
 def stabs():
     """G#m9 on the off-beats: the anchor the ear moves to when the kick goes."""
     for bar in range(17, 145):
@@ -236,6 +252,7 @@ def main():
     stabs()
     sub_and_pad()
     stair_and_voice()
+    cowbell_and_ride()
     tempo = [{"at": "0b", "bpm": 121.5}, {"at": f"{b0(17):.0f}b", "bpm": 121.5},
              {"at": f"{b0(137):.0f}b", "bpm": 122, "ramp": True}]
     pump = {"type": "pump", "on": "kick", "depth": "-7dB", "attack": "3ms", "release": "320ms", "curve": 0.7}
@@ -273,12 +290,14 @@ def main():
                fx=[{"type": "filter", "kind": "lp", "q": 0.8,
                     "cutoff": {"value": 700, "mod": [{"src": "lfo.bc", "amount": 0.9},
                                                      {"src": "auto.dk", "amount": 1.0}]}}, pump]),
-            tr("sub", "808", gain="-21dB", fx=[{"type": "filter", "kind": "lp", "cutoff": 100}, pump]),
+            tr("sub", "808", gain="-23dB", fx=[{"type": "filter", "kind": "lp", "cutoff": 100}, pump]),
             tr("stab", "juno-pad", gain="-4dB", pan=-0.15, sends={"dub": "-6dB"}, lfo={"sl": {"wave": "sine", "rate": "28b"}},
                fx=[{"type": "filter", "kind": "bp", "q": 0.8,
                     "cutoff": {"value": 1400, "mod": [{"src": "lfo.sl", "amount": 0.8}]}}, pump]),
             tr("pad", "juno-pad", gain="-8dB", sends={"dub": "-10dB"},
                fx=[{"type": "filter", "kind": "lp", "cutoff": 2200}]),
+            tr("cowbell", "machine-kit", gain="-10dB", pan=-0.25, sends={"dub": "-12dB"}),
+            tr("ride", "machine-kit", gain="-6dB", pan=0.2),
             tr("stair", "celesta", gain="-8dB", pan=0.3, sends={"dub": "-4dB"}),
             tr("voice", "voice-speech", gain="-6dB", pan=-0.2, sends={"dub": "-8dB"},
                fx=[{"type": "filter", "kind": "hp", "cutoff": 150}]),
