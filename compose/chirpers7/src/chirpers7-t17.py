@@ -39,7 +39,7 @@ KEYSF = os.environ.get("C7T17_KEYSF", "2")  # "1": the Rhodes high-passed at 220
 MIDS = os.environ.get("C7T17_MIDS", "1") == "1"  # the seam-in meets t16's tail: soft rims on the last 16th of each beat (3 7 11 15) under the first eight bars, the held D2 softer (t17's head read 17-21 dB heavier at 44-71 Hz than t16's last seconds)
 SEAMTICK = os.environ.get("C7T17_SEAMTICK", "1") == "1"
 TICKG = os.environ.get("C7T17_TICKG", "-6")
-TICKOUT = os.environ.get("C7T17_TICKOUT", "1") == "1"  # the tick under the seam out as well (t18's head read 7-10 dB brighter above 9 kHz than t17's tail)  # the seam-in's air: a crisp machine-kit 16th tick under the first 16 bars (t17's head read 6-15 dB darker than Never Arrives' tail above 5 kHz)
+TICKOUT = os.environ.get("C7T17_TICKOUT", "0") == "1"  # the tick under the seam out as well (t18's head read 7-10 dB brighter above 9 kHz than t17's tail)  # the seam-in's air: a crisp machine-kit 16th tick under the first 16 bars (t17's head read 6-15 dB darker than Never Arrives' tail above 5 kHz)
 TAILS = os.environ.get("C7T17_TAIL", "0.1s")  # the render tail: 0.3 s leaves no dead air in the last seconds a DJ mixes out of
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
