@@ -32,6 +32,8 @@ FCOMP = os.environ.get("C7T16_FCOMP", "-16,0.3ms")
 SEAM = os.environ.get("C7T16_SEAM", "1") == "1"  # the seams meet: the held G under the seam in is softer (t15's lighter v2 tail), and the render tail is 0.3 s (no dead air into t17's held D)
 VAR = os.environ.get("C7T16_VAR", "1") == "1"  # density moves: the break's pulse thins to 8ths, B2 adds a 16th rim figure
 
+RAMP16 = os.environ.get("C7T16_RAMP16", "1") == "1"  # the tempo ramp finishes 16 bars before the end, so the DJ-mix overlap runs at one steady tempo on both sides (no drift under the crossfade)
+
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 FORM = [("intro", 32), ("build", 16), ("A", 32), ("break", 16), ("B", 48), ("outro", 32)]
 # (sub root, stair degrees above it, chord voicing)
@@ -201,7 +203,7 @@ def song():
     st = {sec: sec_start(sec) for sec, _ in FORM}
     beats = lambda t16: f"{t16 // 4}b"  # noqa: E731
     total_b = total_steps() // 4
-    tempo = [{"at": "0b", "bpm": BPM0}, {"at": beats(st["outro"]), "bpm": BPM0}, {"at": f"{total_b}b", "bpm": BPM1, "ramp": True}]
+    tempo = [{"at": "0b", "bpm": BPM0}, {"at": beats(st["outro"]), "bpm": BPM0}, {"at": f"{total_b - 64 if RAMP16 else total_b}b", "bpm": BPM1, "ramp": True}]
     pump = {"type": "pump", "on": "kick.k", "depth": "-6dB", "attack": "2ms", "release": "180ms", "curve": 0.7}
     pumpr = {"type": "pump", "on": "kick.kr", "depth": "-6dB", "attack": "2ms", "release": "180ms", "curve": 0.7}
     dyn = lane([(0, -4), (st["intro"] + 16 * BAR, -2), (st["build"], -1), (st["A"], 0), (st["break"], -7), (st["break"] + 14 * BAR, -3),
