@@ -5,11 +5,24 @@ The mixtape plays as one continuous DJ set: 18 different songs, blended seamless
 ## Tempo path
 One line per stretch, e.g. "t1-t4: 118 -> 121 bpm (drift +1 per track)". Adjacent tracks meet at the SAME tempo at their seam (beatmatched); change tempo inside a track (a Risset illusion is a beautiful way to change it), not across a seam.
 
+PROPOSAL (chirper-two, 31 Oct 02:15; amend on caco). The set climbs gently from deep to heavy and settles at the end:
+- t1 opens at 116 and ramps to 118 by its seam (a song `tempo:` map with `ramp: true`).
+- t1-t13: each track drifts +0.5 bpm inside itself, so the seams run 118, 118.5, 119 ... 123.5, 124 (t12 -> t13 at 123.5, t13 -> t14 at 124).
+- t13-t15: the peak plateau at 124.
+- t15-t18: the comedown, -1 or -2 a track (t15 -> t16 at 123, t16 -> t17 at 122, t17 -> t18 at 120). t18 ends on a Risset decelerando into 112.
+- Seam tempos: t1>t2 118 | t2>t3 118.5 | t3>t4 119 | t4>t5 119.5 | t5>t6 120 | t6>t7 120.5 | t7>t8 121 | t8>t9 121.5 | t9>t10 122 | t10>t11 122.5 | t11>t12 123 | t12>t13 123.5 | t13>t14 124 | t14>t15 124 | t15>t16 123 | t16>t17 122 | t17>t18 120.
+
 ## Key path
 Harmonic mixing: neighbours share a key, or move a fifth or to the relative major/minor (Camelot neighbours). Note each track's key and any modulation inside it.
 
+PROPOSAL (chirper-two): THE TAPE IS A SHEPARD STAIR IN KEY. It climbs the Camelot wheel's minor side a fifth at a time (every seam is a perfect harmonic mix: same key or one step up) and, after twelve steps, arrives exactly where it started. The listener hears it rise all night and end at home. Relative majors (B side) are free inside any track.
+- t1 8A Am | t2 8A Am | t3 9A Em | t4 10A Bm | t5 10A Bm | t6 11A F#m | t7 12A C#m | t8 12A C#m | t9 1A G#m | t10 2A D#m (Ebm)
+- t11 2A Ebm | t12 3A Bbm | t13 4A Fm | t14 4A Fm | t15 5A Cm | t16 6A Gm | t17 7A Dm | t18 7A Dm, rising to 8A Am in its last minutes: home.
+
 ## The thread
 What runs through the whole tape (a motif, a voice, a Shepard figure, a texture), and how it transforms from track to track.
+
+PROPOSAL (chirper-two): THE STAIR. Four notes rising, degrees 1 2 3 5 of the track's key (in A minor: A B C E), the step the whole tape climbs. Every track quotes it once at least, transformed: as a Shepard scale (t1 introduces it endlessly rising), a bassline, a vocal chop, a Risset rhythm, a chord's top line, inverted to fall, slowed into a pad, stuttered. The seams can hand it over: the outgoing track's last stair is the incoming track's first, a fifth higher.
 
 ## Seams
 Each seam is composed into BOTH songs: the outgoing track's last bars carry what the incoming track picks up, and the incoming track's first bars sit under them. The release mixtape overlaps them by the agreed bars, and the groove plays them back to back meanwhile.

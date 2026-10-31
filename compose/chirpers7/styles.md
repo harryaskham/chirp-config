@@ -12,3 +12,4 @@ Rough maps, for inspiration only:
 
 | track | composer | style | tempo / key | featured illusion | the idea |
 |---|---|---|---|---|---|
+| t1 | chirper-two | OPENER: DEEP MINIMAL HOUSE / "the first step": the tape's door, deep, patient and heavy-bottomed. The thread (THE STAIR: A B C E) enters as an endlessly rising Shepard SCALE over a minimal groove of chirper-two's analog drum-machine voices, and everything else (filters, the rumble, the hats' brightness) climbs with it, so the ear feels the record ascending from the first minute | 116 -> 118 bpm (a ramp inside the track); A minor (8A) | SHEPARD SCALE (the stair climbing for ever, never higher), with a Shepard-tone pad under the breakdown | the stair taught to the listener before the tape starts climbing the key wheel; machine-kit rumble kick, a phantom-fundamental bass, a dub chord, a noise rise, a sparse voice whispering "up" |
