@@ -30,7 +30,11 @@ SEC = os.environ.get("C7T17_SEC", "1") == "1"
 LOOP3 = os.environ.get("C7T17_LOOP3", "1") == "1"  # the turning loop on a dotted-eighth cycle (every third 16th, across the bar lines): it turns in space and against the bar at once  # the halves made distinct: A2 a third Rhodes stab; B2 opens with four bars of no kick (a breath: the loop, the keys and the dust), then the doubled clap  # a crisp machine-kit 16th tick under the dusty kit (parked: the rhythm term didn't move)
 
 RAMP16 = os.environ.get("C7T17_RAMP16", "1") == "1"  # the tempo ramp finishes 16 bars before the end, so the DJ-mix overlap runs at one steady tempo on both sides (no drift under the crossfade)
-TAILS = os.environ.get("C7T17_TAIL", "1.2s")  # the render tail: 0.3 s leaves no dead air in the last seconds a DJ mixes out of
+SEC2 = os.environ.get("C7T17_SEC2", "1") == "1"  # the late sections each say something new, not one long B: the kick drops for intro bars 29-32 (A lands); B2 the room turns twice as fast (the loop on a second Haas set circling every 3 bars, not 6), the chords re-ordered iv VI i V, every off-beat hat open; the outro's first half without the Rhodes
+SEC2OCT = os.environ.get("C7T17_SEC2OCT", "0") == "1"
+SEC2H = os.environ.get("C7T17_SEC2H", "1") == "1"  # B2's off-beat hats all open
+SEC2K = os.environ.get("C7T17_SEC2K", "0") == "1"  # the outro's first half without the Rhodes
+TAILS = os.environ.get("C7T17_TAIL", "0.1s")  # the render tail: 0.3 s leaves no dead air in the last seconds a DJ mixes out of
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 FORM = [("intro", 32), ("A", 32), ("break", 24), ("B", 40), ("outro", 32)]
@@ -39,7 +43,8 @@ CH = [(38, [53, 57, 60, 62]),   # Dm9 (F3 A3 C4, top D4)
       (34, [53, 57, 62, 64]),   # Bbmaj7(9) (F3 A3 D4, top E4)
       (31, [50, 53, 58, 65]),   # Gm9 (D3 F3 Bb3, top F4)
       (33, [50, 55, 61, 69])]   # A7sus(b9) (D3 G3 C#4... top A4)
-TRACKS = ("kick", "hats", "clap", "sub", "keys", "loop", "dust", "stair", "binl", "binr", "tick")
+TRACKS = ("kick", "hats", "clap", "sub", "keys", "loop", "dust", "stair", "binl", "binr", "tick", "loop2")
+CHB2 = [CH[2], CH[1], CH[0], CH[3]]  # B2: Gm9 Bbmaj7 Dm9 A7sus(b9)
 
 
 def nm(m):
@@ -103,15 +108,16 @@ def build():
         a0 = sec_start(sec)
         for b in range(nb):
             at = a0 + b * BAR
-            r, v = CH[b % 4]
+            b2 = SEC2 and sec == "B" and b >= 24
+            r, v = (CHB2 if b2 else CH)[b % 4]
             seam_in = sec == "intro" and b < 16
             seam_out = sec == "outro" and b >= 16
-            if sec != "break" and not (SEC and sec == "B" and 20 <= b < 24):
+            if sec != "break" and not (SEC and sec == "B" and 20 <= b < 24) and not (SEC2 and sec == "intro" and 28 <= b < 32):
                 for q in (0, 4, 8, 12):
                     add("kick", at + q, "k", 1, 116 if q == 0 else 108)
             if not (sec == "break" and b < 20):
                 for q in (2, 6, 10, 14):
-                    opn = (sec in ("A", "B") and q == 14 and b % 4 == 3) or (SEC and sec == "A" and b >= 16)
+                    opn = (sec in ("A", "B") and q == 14 and b % 4 == 3) or (SEC and sec == "A" and b >= 16) or (SEC2 and SEC2H and sec == "B" and b >= 24)
                     add("hats", at + q, "oh" if opn else "h", 1, 72)
                 if not seam_in and not seam_out:
                     for q in (1, 5, 9, 13):
@@ -136,8 +142,8 @@ def build():
                 else:
                     add("sub", at + 10, nm(r + 7), 4, 88)
             # the Rhodes: lazy chords on the and-of-1 and the 3; in the break, held in the dust
-            if sec in ("A", "B") or (sec == "intro" and b >= 20) or (sec == "outro" and b < 16):
-                ch = ",".join(nm(n) for n in v)
+            if sec in ("A", "B") or (sec == "intro" and b >= 20) or (sec == "outro" and b < 16 and not (SEC2 and SEC2K)):
+                ch = ",".join(nm(n + (12 if (SEC2OCT and b2) else 0)) for n in v)
                 if SYNC:
                     add("keys", at + 3, ch, 5, 82)
                     add("keys", at + 11, ch, 4, 76)
@@ -158,7 +164,7 @@ def build():
                     for q in range(16):
                         k = (at + q) - sec_start("intro")
                         if k % 3 == 0:
-                            add("loop", at + q, "rs" if (k // 3) % 2 == 0 else "sh", 1, 86 if (k // 3) % 4 == 0 else 74)
+                            add("loop2" if b2 else "loop", at + q, "rs" if (k // 3) % 2 == 0 else "sh", 1, 86 if (k // 3) % 4 == 0 else 74)
                 else:
                     for q, piece, vel in ((0, "rs", 84), (3, "sh", 70), (6, "rs", 80), (7, "sh", 60), (10, "rs", 86), (11, "sh", 64), (13, "rs", 72), (15, "sh", 58)):
                         add("loop", at + q, piece, 1, vel)
@@ -183,7 +189,7 @@ def lane(points, step=True):
     return {"points": pts}
 
 
-def turning(score, rate_bars):
+def turning(score, rate_bars, tag=""):
     """THE ROOM THAT TURNS: two Haas pairs (left-leading: the right side 18 ms late; right-leading: the left side late),
     crossfaded by complementary sine LFOs so the loop circles the head at an even level."""
     def side(name, pan, late, phase):
@@ -192,8 +198,8 @@ def turning(score, rate_bars):
         return {"name": name, "patch": "dusty-kit", "gain": "-6dB", "pan": pan,
                 "lfo": {"x": {"wave": "sine", "rate": f"{rate_bars}/1", "phase": phase, "unipolar": True}},
                 "fx": fx, "sends": {"room": "-12dB"}, "score": score}
-    return [side("turnLl", -1, False, 0.0), side("turnLr", 1, True, 0.0),
-            side("turnRl", -1, True, 0.5), side("turnRr", 1, False, 0.5)]
+    return [side(f"turn{tag}Ll", -1, False, 0.0), side(f"turn{tag}Lr", 1, True, 0.0),
+            side(f"turn{tag}Rl", -1, True, 0.5), side(f"turn{tag}Rr", 1, False, 0.5)]
 
 
 def song():
@@ -240,6 +246,7 @@ def song():
             {"name": "binl", "patch": "bin-l", "gain": "-30dB", "pan": -1, "score": T["binl"]},
             {"name": "binr", "patch": "bin-r", "gain": "-30dB", "pan": 1, "score": T["binr"]},
             *turning("swing16=0.6 " + T["loop"], 6),
+            *(turning("swing16=0.6 " + T["loop2"], 3, "2") if SEC2 else []),
         ],
     }
     return doc

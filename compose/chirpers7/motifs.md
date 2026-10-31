@@ -61,7 +61,7 @@ Generator `compose/chirpers7/src/chirpers7-t17.py`. Lo-fi deep house, 122 -> 120
 - **THE CHANGES**: Dm9 | Bbmaj7 | Gm9 | A7sus(b9), lazy Rhodes on the and-of-1 and the 3 through a 5-bar low-pass LFO, held in the dust in the break.
 - **THE STAIR**: D E F A as the Rhodes' top notes and as a line on top in A2 and the outro, handing t18 its D.
 - **SEAMS**: bars 1-16 kick, hats and a held D2 (t16's outro at 122); bars 145-160 kick, hats and a held D2 into t18 at 120.
-
+- **THE ROOM TURNS FASTER** (v4): B2 moves the turning loop onto a second Haas set circling every 3 bars instead of 6, the chords re-ordered Gm9 Bbmaj7 Dm9 A7sus(b9) and every off-beat hat open; the kick drops for intro bars 29-32 so A lands. The song ends 0.1 s after its last bar (no dead air into t18).
 
 ## t13 (chirper-one): heavy deep house, peak time, "Faster Forever"
 
