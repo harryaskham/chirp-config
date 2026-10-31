@@ -33,6 +33,7 @@ SECTIONS = [("intro", 1, 16), ("groove", 17, 48), ("deeper", 49, 80), ("break", 
             ("drop2", 121, 144), ("outro", 145, 176)]
 DROPS = ("drop", "drop2")
 HOLE = (65, 68)
+HALFTIME = (121, 136)                        # v9: the second drop's drums in half-time; the four returns for the stair
 BARS = SECTIONS[-1][2]
 TOTAL = BARS * BAR
 FS1 = 30                                    # F#1, 46.25 Hz
@@ -190,8 +191,13 @@ def drums():
                 for k in range(8):
                     part("hats").add(b0(bar) + 2 + k * 0.25, 0.1, "h", 50 + 7 * k)
             continue
+        half = HALFTIME[0] <= bar <= HALFTIME[1]
+        if half:                                       # v9: THE SECOND DROP IN HALF-TIME: one, the 'a' of two, the 'and' of three
+            for at, v in ((0.0, 116), (1.75, 92), (2.5, 106)):
+                part("kick").add(b0(bar) + at, 0.5, "k", v)
         for b in range(4):
-            part("kick").add(b0(bar) + b, 0.5, "k", 114 if b == 0 else 106)
+            if not half:
+                part("kick").add(b0(bar) + b, 0.5, "k", 114 if b == 0 else 106)
             part("hats").add(b0(bar) + b + 0.5, 0.25, "oh", 70 + hand.randint(-6, 6))     # v3: from bar 1 (t5's tail)
             if sec == "intro":
                 part("hats").add(b0(bar) + b + 0.75, 0.1, "h", 44 + hand.randint(-6, 6))
@@ -200,7 +206,7 @@ def drums():
                     if hand.random() < 0.8:
                         part("hats").add(b0(bar) + b + s / 4, 0.1, "h", 56 + hand.randint(-8, 8))
         if (sec in ("groove", "deeper") + DROPS and bar >= 25) or (sec == "outro" and bar < 161):
-            for b in (1, 3):
+            for b in ((2,) if half else (1, 3)):               # half-time: one clap, on three
                 part("clap").add(b0(bar) + b + 0.012, 0.5, "cp", 94 + hand.randint(-4, 4))
         if sec in ("deeper",) + DROPS:
             for s in (3, 6, 11, 14):                                             # a rim figure, 3-3-2 against the four
