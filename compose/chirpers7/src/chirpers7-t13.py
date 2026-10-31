@@ -9,8 +9,8 @@ forever: three tempo octaves of the same bar, each doubling its speed over eight
 the slowest fades in, so the bed is always accelerating and never arrives, over a kick that never changes. The build
 that never lands, used as the peak's engine. THE STAIR (F G Ab C) rides it on a stab.
 Form (bars): intro 16 (the seam from t12: kick, hats, sub) / A 32 (the driven bass, the stabs; the accelerando enters
-at bar 8) / B 32 (full: the stair on the stab) / break 16 (no kick: the accelerando alone under a filtered pad - the
-rush with nothing to rush to) / C 32 (the peak) / outro 16 (the seam to t14: kick, hats, sub).
+at bar 8) / B 24 (full: the stair on the stab) / break 8 (v9: a short lift, not the tape's sixteen-bar breakdown) (no kick: the accelerando alone under a filtered pad - the
+rush with nothing to rush to) / C 48 (the long peak) / outro 16 (the seam to t14: kick, hats, sub).
 Master: chirper-zero's clean recipe and the song's loudness at -11 LUFS, ceiling -1 dB.
 Emits songs/chirpers7-t13.yaml (JSON through tools/songfmt.py). Edit the music here, not the YAML.
 """
@@ -22,7 +22,10 @@ BPM_IN, BPM_OUT = 123.5, 124.0
 NN = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
 def nm(m): return f"{NN[m % 12]}{m // 12 - 1}"
 
-FORM = [('intro', 16), ('A', 32), ('B', 32), ('break', 16), ('C', 32), ('outro', 16)]
+# (v9) a peak-time form, not the tape's template: a short eight-bar lift instead of a sixteen-bar break, and a long
+# forty-eight-bar peak - a plateau should stay up
+FORM = [('intro', 16), ('A', 32), ('B', 24), ('break', 8), ('C', 48), ('outro', 16)]
+LEN = dict(FORM)
 CH = [(41, [60, 63, 67, 68, 72]), (37, [60, 65, 68, 72]), (34, [61, 65, 68, 72]), (36, [60, 65, 67, 70])]
 STAIR = [65, 67, 68, 72]                      # F G Ab C
 BASS = [0, None, 12, 0, None, 7, 12, None, 0, None, 12, 10, None, 7, 12, None]
@@ -82,7 +85,7 @@ def build():
                     # (v2) a PEDAL: the driven bass holds F under every chord - the plateau's floor doesn't move
                     # (v7) except at the very top: the peak's last eight bars hang on a C pedal, the dominant, so the rush
                     # strains against a floor that wants to fall home - and the outro's F lands it
-                    T['bass'].append((t0 + q * 0.25, nm((36 if (s == 'C' and i >= 24) else 41) + 12 + o), 0.2, 100 if q % 4 == 2 else 84))
+                    T['bass'].append((t0 + q * 0.25, nm((36 if (s == 'C' and i >= LEN['C'] - 8) else 41) + 12 + o), 0.2, 100 if q % 4 == 2 else 84))
         if s in ('A', 'B', 'C') and k % 4 in (0, 2):
             T['stab'].append((t0 + 0.5, ','.join(nm(m) for m in ch), 0.4, 92))
         # THE STAIR on the stab: in B and C, every other bar, F G Ab C on the off-beats
@@ -128,7 +131,7 @@ def build():
             tr('pad', 'juno-pad', '-12dB', sends={'hall': '-8dB'},
                fx=['hp cutoff=180', {'type': 'filter', 'kind': 'lp', 'q': 0.8, 'cutoff': {'value': 600, 'mod': [{'src': 'auto.op', 'amount': 3.0}]}}],
                auto={'op': {'points': padop}}),
-            risset(start_A + 8, 24), risset(int(secs['B'] // 4), 32), risset(int(secs['break'] // 4), 16), risset(int(secs['C'] // 4), 32),
+            risset(start_A + 8, LEN['A'] - 8), risset(int(secs['B'] // 4), LEN['B']), risset(int(secs['break'] // 4), LEN['break']), risset(int(secs['C'] // 4), LEN['C']),
         ]}
 
 if __name__ == '__main__':
