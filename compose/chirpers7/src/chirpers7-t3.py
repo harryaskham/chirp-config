@@ -25,7 +25,9 @@ def nm(m): return f"{NN[m % 12]}{m // 12 - 1}"
 # (v9) off the tape's template: a shorter first groove (24) and a long 40-bar second groove, so the phrase repeats
 # longer before it sings - the speech-to-song illusion needs repetitions, and now it gets 32 bars of them in B
 FORM = [('intro', 16), ('A', 24), ('B', 40), ('break', 16), ('C', 32), ('outro', 16)]
-CH = [(28, [52, 55, 59, 62, 66]), (24, [52, 55, 59, 62, 64]), (33, [55, 59, 60, 64, 67]), (35, [54, 57, 59, 62, 66])]
+# (v11) darker, wonkier (Harry, 31 Oct): Em11 - Cmaj7#11 - Am9 - B7b9 (the major ninth gets its sharp eleventh, the
+# dominant its flat ninth, a minor second hidden in each)
+CH = [(28, [55, 57, 59, 62, 66]), (24, [54, 55, 59, 62, 64]), (33, [55, 59, 60, 64, 67]), (35, [51, 54, 57, 60, 63])]
 WORDS = ['w-ah1-n', 'm-ao1-r', 's-t-eh1-p', 'ah1-p']
 SPEECH = [(52, 150, -60), (52, 90, -40), (52, 40, -160), (52, -60, -320)]   # pitch, cents at onset, cents at end
 STAIR = [52, 54, 55, 59]                                                    # E3 F#3 G3 B3
@@ -108,7 +110,8 @@ def build():
             # gives t2's open A-E fifth an E-minor floor to land on
             T['pad'].append((t0, ','.join(nm(m - 12) for m in ch[:3]), 15.8, 70))
         # THE PHRASE: every two bars from A's bar 8; the blend toward song grows through B
-        on = (s == 'A' and i >= 8) or s in ('B', 'C') or (s == 'outro' and i < 12)
+        # (v11) the phrase from A's first bar (Harry: no long stretches without the illusion)
+        on = s in ('A', 'B', 'C') or (s == 'outro' and i < 12)
         if on and first:
             if s == 'A':
                 w = 0.0
