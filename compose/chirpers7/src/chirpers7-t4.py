@@ -49,6 +49,10 @@ R4 = os.environ.get("T4_R4", "both")
 # octave of tempo - each step of the endless acceleration or slowing is the 12/8-against-4 hemiola the bell and the
 # dotted-quarter toms already play, so the question in time speaks t4's own cross-rhythm. T4_R5=none reproduces v4.
 R5 = os.environ.get("T4_R5", "ratio")
+# T4_R6 = riser (v6, wM's time-play part 2): each 4-bar drop's noise rise becomes the endless Shepard riser
+# (fx-riser-endless, swell over the drop, tinted B), climbing for ever over the accelerating Risset toms and stopping
+# dead on the groove's return. T4_R6=none reproduces v5.
+R6 = os.environ.get("T4_R6", "riser")
 
 OUT = os.environ.get("T4_OUT") or os.path.expanduser("~/.config/chirp/songs/chirpers7-t4.yaml")
 NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"]
@@ -185,7 +189,7 @@ def build():
                 T["voice"].add(t, 0.9, "A2", 82, f"^ph={syl}^f0={f0}")
                 t += 1.5 if k == 0 else 1.0
         if sec in ("drop1", "drop2") and i == 0:
-            T["rise"].add(start, 16.0, "C4", 92)
+            T["rise"].add(start, 16.0, "B3" if R6 == "riser" else "C4", 80 if R6 == "riser" else 92)
     sec = []
     for name, n in FORM:
         first = next(bb for bb in bars if bb[1] == name)
@@ -288,7 +292,9 @@ def main():
         {"name": "voice", "patch": "voice-speech", "gain": "-8dB", "pan": -0.15,
          "fx": ["hp cutoff=250", {"type": "delay", "time": "3/8", "feedback": 0.35, "mix": 0.3, "tone": 2500},
                 "reverb kind=hall decay=3s mix=0.35"], "score": T["voice"].score(total)},
-        {"name": "rise", "patch": "c2-rise", "gain": "-20dB", "fx": ["width width=1.5"], "score": T["rise"].score(total)},
+        ({"name": "rise", "patch": "fx-riser-endless amp.a=16b", "gain": "-12dB", "score": T["rise"].score(total)}
+         if R6 == "riser" else
+         {"name": "rise", "patch": "c2-rise", "gain": "-20dB", "fx": ["width width=1.5"], "score": T["rise"].score(total)}),
     ] + (risset_tracks(st, total) if R4 == "both" else [])
     buses = {"room": {"gain": "-5dB",
                       "fx": ["hp cutoff=250", "lp cutoff=2400",

@@ -137,6 +137,7 @@ Generator `compose/chirpers7/src/chirpers7-t18.py`. The closer: ambient deep hou
 - **THE QUESTION IN TIME** (v4): two Risset rhythms against the steady kick. UP: `cb/0.75b ht/0.75b R/0.5b ht/0.75b cb/0.75b mt/0.5b`, bright, hp 400 Hz, left, accelerating for ever. DOWN: `lt/1.5b rs/1.5b mt/1b`, dark, 90 Hz-3.5 kHz, right, decelerating for ever. Cycle 4 bars, 3 layers. Each section has its own time: A1 slowing, A2 speeding, the break slowing alone (2 layers), the drops speeding, B2 both at once. Hints of the slowing one in both seams.
 - **THE PLANE** (v4): every fourth bar the Bm9 stab shape planes up a semitone (a Cm9 shape) over the boom's B: a Phrygian b2 rub.
 - **3:2** (v5): the Risset copies a metric modulation apart (`ratio: "3:2"`) rather than an octave of tempo: each step of the endless speeding or slowing is the hemiola the bell and the dotted-quarter toms play.
+- **THE RISER** (v6): each drop an endless Shepard riser (`fx-riser-endless amp.a=16b`, B3) over the accelerating 3:2 toms, stopping dead on the groove's return.
 
 ## t8 Through the Static (chirper-two)
 - **THE VOICE** (chirp's voice engine, long gospel notes, two per eight bars): C# .. G# | G# .. E | E .. B | F# .. C# (the stair's ends and its answer), cut under bursts of radio static (a gain lane on the voice: the voice itself never stops) every beat in A1, every other beat in A2, on a 3-3-2 in the break, none at the peak: the CONTINUITY ILLUSION, then the static clears.
