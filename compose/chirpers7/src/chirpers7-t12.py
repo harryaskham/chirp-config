@@ -104,23 +104,28 @@ def build():
     ends = sorted(set(range(int(secs['A'] + 32), int(secs['outro'] + 1), 32)) | {int(secs['A'])})   # (v15) and one into A's downbeat
     for n, e in enumerate(ends):
         st = STAIR_ST[n % 4]
-        a0 = e - 9.0
-        T['wash'].append((a0, 'C4', 8.0, 92))
+        # (v18) the washes grow to four bars (Harry: the illusion in front, not glimpsed): the ghost sings eight steps, the
+        # stair there and back; the first wash, under the seam intro, stays two bars
+        L = 8.0 if e == int(secs['A']) else 16.0
+        a0 = e - 1.0 - L
+        T['wash'].append((a0, 'C4', L, 92))
         # the ghost stair: four steps, two beats each, rotating each phrase (and falling in the break)
         mel = [STAIR_ST[(n + j) % 4] for j in range(4)]
         if secs['break'] <= a0 < secs['C']:
             mel = mel[::-1]
+        if L > 8:
+            mel = mel + mel[::-1]
         for j, m in enumerate(mel):
             gm += [[f'{a0 + 2 * j - 0.02:.2f}b', gm[-1][1]], [f'{a0 + 2 * j:.2f}b', round(m / 12, 4)]]
         st = mel[-1]
         if (e > secs['A'] and (e - secs['A']) % 64 == 0) or e >= secs['outro']:   # (v16) the silences back on the sixteen-bar phrase ends
             gaps.append(e - 1.0)          # the silent beat only at the sixteen-bar phrase ends; the washes between flow on
         # (v10) the stabs give way under the wash: the hiss takes their place, so nothing centred masks the ghost's band
-        T['stab'] = [ev for ev in T['stab'] if not (a0 - 0.5 <= ev[0] < e)]
+        T['stab'] = [ev for ev in T['stab'] if not (e - 9.5 <= ev[0] < e)]
         # (v3) THE THROW: under each wash the echo's feedback climbs toward self-oscillation, the dub engineer's hand on the
         # knob, and is cut dead with everything else at the silence
-        fbl += [[f'{a0:.2f}b', 0], [f'{e - 1.05:.2f}b', 0.33], [f'{e - 1.0:.2f}b', -0.5], [f'{e + 0.5:.2f}b', -0.5], [f'{e + 0.55:.2f}b', 0]]
-        thr += [[f'{a0:.2f}b', 0], [f'{e - 1.05:.2f}b', 10], [f'{e - 1.0:.2f}b', -40], [f'{e + 0.5:.2f}b', -40], [f'{e + 0.55:.2f}b', 0]]
+        fbl += [[f'{e - 9.0:.2f}b', 0], [f'{e - 1.05:.2f}b', 0.33], [f'{e - 1.0:.2f}b', -0.5], [f'{e + 0.5:.2f}b', -0.5], [f'{e + 0.55:.2f}b', 0]]
+        thr += [[f'{e - 9.0:.2f}b', 0], [f'{e - 1.05:.2f}b', 10], [f'{e - 1.0:.2f}b', -40], [f'{e + 0.5:.2f}b', -40], [f'{e + 0.55:.2f}b', 0]]
         # in C the Rhodes plays the ghost's note out loud on the downbeat after the silence
         # (v11) the speakers get the illusion too: from B on, the Rhodes answers every wash with the ghost's melody, played
         if secs['A'] < e < secs['outro']:     # (v15) the answers from the first groove on
