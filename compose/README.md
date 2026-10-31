@@ -89,6 +89,21 @@ before/after pair for a big change, and at most one pair of yours at a time. It 
 queue that grows faster than it plays (29 Oct: 10 versions, about 45 minutes) starves the album. Better: render
 short excerpts as mp3 and `audio_share` them, so Harry can play them whenever he likes.
 
+## Mixtapes (a DJ-mixed album)
+
+An album with `compose/ALBUM/mixplan.md` plays as a DJ mix. The seam table (`| seam | ... | overlap (bars) | ... |`, one
+`| tN -> tM |` row per seam) drives three things:
+- **The groove**: when the next playlist entry is the album neighbour (tN, then tN+1), it starts on the outgoing
+  track's bar line OVERLAP bars before that track's musical end, beat-aligned, crossfaded linearly; there is no
+  tempo sync. Gaps in the album, and the loop back to the opener, play back to back.
+- **`chirpers.py seams ALBUM`**: an audit of every seam: how far the two tracks' beats drift apart across the overlap
+  (a tempo ramp inside the last OVERLAP bars flams the kicks; hold the seam tempo flat there), plus dead air after a
+  track's last bar line (end `length` on the last bar and set a short `tail`). Run it after any tempo or length change.
+- **`chirpers.py release ALBUM --mix [--swap [BAR]]`**: the continuous mixtape file, with a tracklist and CUE.
+  `--swap` adds a DJ bass swap at 120 Hz in every overlap: the highs crossfade, and the lows stay the outgoing track's
+  until the midpoint (or BAR bars in), then hand over within a beat. An optional `swap` column in the seam table
+  (a bar, `mid` or `no`) sets it per seam. The groove gets the same swap once the engine has it.
+
 ## Ratings and notes
 
 Harry: `tools/rate.py ID 7.5 --note "the bridge drags"`, or `tools/rate.py now 8` for whatever the groove plays, or

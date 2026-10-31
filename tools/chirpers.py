@@ -371,21 +371,53 @@ def cmd_rebaseline(a, args):
                     f"{a.seeds}): " + ", ".join(f"{cid.split('-')[-1]} {s[seeds[0]]:.2f}" for cid, s in done), args)
 
 
-def mix_stream(parts, emit):
-    """Assemble a DJ mix: PARTS yields (x, overlap) per track in order, x float stereo samples cut at the track's
-    musical end (the last keeps its tail), overlap = samples it shares with the PREVIOUS track. Each overlap is a linear
-    crossfade (out*(1-t) + in*t), which never exceeds the louder input's sample peak, so the mix cannot clip.
+SWAP_HZ = 120.0     # the bass swap's crossover (a DJ mixer's low EQ)
+
+
+def bass_swap(out, inn, at, ln, sr=48000):
+    """One overlap with a DJ's BASS SWAP (chirper-three, 31 Oct: a linear fade under a composed swap leaves a hole in
+    the low end): both sides split at SWAP_HZ (Butterworth run forwards and backwards: an LR4 magnitude, zero phase,
+    and high = x - low, so the bands sum back exactly); the highs crossfade linearly across the whole overlap, the lows
+    stay the outgoing track's until sample AT and hand over to the incoming one across LN samples. Peaks are held at
+    the louder input's peak by a smooth lookahead gain, so the mix still cannot pass it."""
+    from scipy import ndimage, signal
+    sos = signal.butter(2, SWAP_HZ, "low", fs=sr, output="sos")
+    lo_o, lo_i = signal.sosfiltfilt(sos, out, axis=0), signal.sosfiltfilt(sos, inn, axis=0)
+    n = len(out)
+    t = np.linspace(0.0, 1.0, n, endpoint=False)[:, None]
+    g = np.clip(1.0 - (np.arange(n) - at) / max(ln, 1), 0.0, 1.0)[:, None]      # the outgoing lows' gain
+    y = lo_o * g + (out - lo_o) * (1 - t) + lo_i * (1 - g) + (inn - lo_i) * t
+    ceil = max(float(np.abs(out).max(initial=0)), float(np.abs(inn).max(initial=0)))
+    env = np.abs(y).max(axis=1)
+    if ceil > 0 and env.max() > ceil:
+        w = max(1, int(0.005 * sr))
+        gain = np.minimum(1.0, ceil / np.maximum(env, 1e-12))
+        gain = ndimage.uniform_filter1d(ndimage.minimum_filter1d(gain, 2 * w + 1), 2 * w + 1)
+        y = y * np.minimum(gain, ceil / np.maximum(env, 1e-12))[:, None]
+    return y.astype(np.float32)
+
+
+def mix_stream(parts, emit, sr=48000):
+    """Assemble a DJ mix: PARTS yields (x, overlap) or (x, overlap, swap) per track in order, x float stereo samples
+    cut at the track's musical end (the last keeps its tail), overlap = samples it shares with the PREVIOUS track, swap
+    = None or (at, length) samples for a bass swap inside that overlap (bass_swap). Without a swap each overlap is a
+    linear crossfade (out*(1-t) + in*t), which never exceeds the louder input's sample peak, so the mix cannot clip.
     EMIT receives finished blocks in order; at most one track is held in memory."""
     held = None
-    for x, ov in parts:
+    for part in parts:
+        x, ov, sw = (tuple(part) + (None,))[:3]
         if held is None:
             held = x
             continue
         ov = int(max(0, min(ov, len(held), len(x))))
         if ov:
             emit(held[:-ov])
-            t = np.linspace(0.0, 1.0, ov, endpoint=False, dtype=np.float32)[:, None]
-            held = np.concatenate([held[-ov:] * (1 - t) + x[:ov] * t, x[ov:]])
+            if sw:
+                mixed = bass_swap(held[-ov:], x[:ov], int(sw[0]), int(sw[1]), sr)
+            else:
+                t = np.linspace(0.0, 1.0, ov, endpoint=False, dtype=np.float32)[:, None]
+                mixed = held[-ov:] * (1 - t) + x[:ov] * t
+            held = np.concatenate([mixed, x[ov:]])
         else:
             emit(held)
             held = x
@@ -393,9 +425,9 @@ def mix_stream(parts, emit):
         emit(held)
 
 
-def seam_overlaps(album_id, default_bars=16, root=None):
-    """{(out_n, in_n): bars} from compose/ALBUM/mixplan.md's seam table ('| tN -> tM | ... | overlap (bars) | ...');
-    unknown seams use DEFAULT_BARS."""
+def seam_table(album_id, root=None):
+    """{(out_n, in_n): {column: cell}} from compose/ALBUM/mixplan.md's seam table ('| seam | ... |' then '| tN -> tM |
+    ... |' rows); column names lower-cased."""
     import re
     p = os.path.join(root or ROOT, "compose", album_id, "mixplan.md")
     out = {}
@@ -408,11 +440,38 @@ def seam_overlaps(album_id, default_bars=16, root=None):
                 continue
             m = re.match(r"t(\d+)\s*->\s*t(\d+)", cells[0]) if cells else None
             if m and head:
-                col = next((i for i, h in enumerate(head) if h.startswith("overlap")), None)
-                v = re.search(r"\d+(\.\d+)?", cells[col]) if col is not None and col < len(cells) else None
-                if v:
-                    out[(int(m.group(1)), int(m.group(2)))] = float(v.group(0))
+                out[(int(m.group(1)), int(m.group(2)))] = dict(zip(head, cells))
+    return out
+
+
+def _col(row, prefix):
+    return next((v for k, v in row.items() if k.startswith(prefix)), "")
+
+
+def seam_overlaps(album_id, default_bars=16, root=None):
+    """{(out_n, in_n): bars} from compose/ALBUM/mixplan.md's seam table ('| tN -> tM | ... | overlap (bars) | ...');
+    unknown seams use DEFAULT_BARS."""
+    import re
+    out = {}
+    for k, row in seam_table(album_id, root).items():
+        v = re.search(r"\d+(\.\d+)?", _col(row, "overlap"))
+        if v:
+            out[k] = float(v.group(0))
     return out, default_bars
+
+
+def seam_swaps(album_id, root=None):
+    """{(out_n, in_n): bar | 'mid' | None} from an optional 'swap' column: a number is the bar into the overlap where
+    the bass swap lands, 'mid'/'yes' the midpoint, 'no'/'off' none; seams without a cell are absent (the default)."""
+    import re
+    out = {}
+    for k, row in seam_table(album_id, root).items():
+        c = _col(row, "swap").lower()
+        if not c:
+            continue
+        v = re.search(r"\d+(\.\d+)?", c)
+        out[k] = float(v.group(0)) if v else (None if c in ("no", "off", "none", "-") else "mid")
+    return out
 
 
 def release_plan(rows, target=None, tp_ceiling=-1.0):
@@ -535,17 +594,32 @@ def mix_release(a, album, rows, plan, pin, work, out_dir, art, env):
         "-metadata", f"artist={album['artist']}", "-metadata", f"album={album['album']}", mp3]
     ff = subprocess.Popen(cmd, stdin=subprocess.PIPE)
 
+    swaps = seam_swaps(a.album_id)
+
+    def swap_of(i):
+        """(at, length) samples for the bass swap into track I (the per-seam mixplan cell beats --swap), or None."""
+        if not i:
+            return None
+        k = (rows[i - 1]["n"], rows[i]["n"])
+        want = swaps.get(k, a.swap) if k in swaps else a.swap
+        if want is None or want is False:
+            return None
+        bars = seams.get(k, default)
+        bpm = info[i - 1]["bpm"]
+        at_bars = bars / 2 if want in ("mid", True) else float(want)
+        return int(at_bars * 4 * 60.0 / bpm * L.SR), int(60.0 / bpm * L.SR)
+
     def parts():
         for i, (r, p) in enumerate(zip(rows, plan)):
             x = L.load(r["wav"]) * np.float32(10 ** (p["gain_db"] / 20))
             if i < len(rows) - 1 and info[i]["secs"]:
                 x = x[:int(info[i]["secs"] * L.SR)]
-            yield x, int(info[i].get("ov", 0) * L.SR)
+            yield x, int(info[i].get("ov", 0) * L.SR), swap_of(i)
 
     def emit(block):
         ff.stdin.write((np.clip(block, -1.0, 1.0) * 32767).astype("<i2").tobytes())
 
-    mix_stream(parts(), emit)
+    mix_stream(parts(), emit, L.SR)
     ff.stdin.close()
     ok = ff.wait() == 0
     tl = [{"n": r["n"], "title": r["title"], "start": round(st, 2), "overlap_in_s": round(info[i].get("ov", 0.0), 2)}
@@ -704,6 +778,8 @@ def main(argv=None):
     p.add_argument("--legacy-limiter", action="store_true", help="legacy clamp limiter (true_peak is the default)")
     p.add_argument("--mix", action="store_true", help="also a continuous DJ mixtape: seams overlapped per mixplan.md")
     p.add_argument("--overlap-bars", type=float, default=16.0, help="seam overlap when mixplan.md doesn't give one")
+    p.add_argument("--swap", nargs="?", const="mid", default=None, type=lambda v: v if v == "mid" else float(v),
+                   help="--mix: a DJ bass swap in every overlap, at its midpoint or BAR bars in (mixplan.md's swap column wins)")
     p = sub.add_parser("seams", help="audit a mixtape's DJ seams: tempo drift across each overlap, dead air at the ends")
     p.add_argument("album_id")
     p.add_argument("--pin", help="chirp binary (default: tools/groove-pin)")

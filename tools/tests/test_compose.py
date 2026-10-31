@@ -236,6 +236,39 @@ class Mixtape(unittest.TestCase):
         self.assertLess(float(y[99, 0]), -0.8)                            # ...and ends on the incoming one
         self.assertAlmostEqual(float(y[-1, 0]), 0.5, places=5)
 
+    def test_a_bass_swap_hands_the_lows_over_at_its_bar_and_fades_the_highs(self):
+        sr, n = 48000, 48000 * 4
+        tt = np.arange(n) / sr
+        tone = lambda f, a: np.stack([a * np.sin(2 * np.pi * f * tt)] * 2, axis=1).astype(np.float32)  # noqa: E731
+        out, inn = tone(50, 0.5) + tone(2000, 0.3), tone(70, 0.5) + tone(3000, 0.3)
+        y = CH.bass_swap(out, inn, n // 2, sr // 4, sr)
+
+        def amp(sig, f, a, b):                       # the amplitude of F in sig[a:b] (projection onto the tone)
+            seg, ts = sig[a:b, 0], tt[a:b]
+            return 2 * abs(np.mean(seg * np.exp(-2j * np.pi * f * ts)))
+        q = n // 8
+        self.assertGreater(amp(y, 50, q, 3 * q), 0.4)            # first half: the outgoing bass, full
+        self.assertLess(amp(y, 70, q, 3 * q), 0.05)              # ...and none of the incoming's
+        self.assertLess(amp(y, 50, 5 * q, 7 * q), 0.05)          # second half: the incoming bass only
+        self.assertGreater(amp(y, 70, 5 * q, 7 * q), 0.4)
+        self.assertAlmostEqual(amp(y, 2000, 0, q // 2), 0.3 * (1 - 1 / 32), delta=0.02)   # highs: a linear fade
+        self.assertAlmostEqual(amp(y, 3000, n - q // 2, n), 0.3 * (1 - 1 / 32), delta=0.02)
+        self.assertLessEqual(float(np.abs(y).max()), float(max(np.abs(out).max(), np.abs(inn).max())) + 1e-6)
+
+    def test_mix_stream_passes_a_swap_through(self):
+        a = np.zeros((1000, 2), dtype=np.float32)
+        out = []
+        CH.mix_stream(iter([(a, 0, None), (a, 200, (100, 10))]), out.append)
+        self.assertEqual(len(np.concatenate(out)), 1800)
+
+    def test_seam_swaps_read_the_mixplan(self):
+        d = os.path.join(TMP, "compose", "sw")
+        os.makedirs(d, exist_ok=True)
+        with open(os.path.join(d, "mixplan.md"), "w") as f:
+            f.write("| seam | overlap (bars) | swap |\n|---|---|---|\n| t1 -> t2 | 16 | 9 |\n| t2 -> t3 | 16 | mid |\n"
+                    "| t3 -> t4 | 16 | no |\n| t4 -> t5 | 16 | |\n")
+        self.assertEqual(CH.seam_swaps("sw"), {(1, 2): 9.0, (2, 3): "mid", (3, 4): None})
+
     def test_seam_overlaps_read_the_mixplan(self):
         d = os.path.join(TMP, "compose", "mx")
         os.makedirs(d, exist_ok=True)
