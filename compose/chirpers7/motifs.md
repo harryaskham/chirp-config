@@ -23,3 +23,12 @@ Generator `compose/chirpers7/src/chirpers7-t15.py`. Dub house, 124 -> 123 bpm (t
 - **THE OCTAVE ILLUSION**: two pure sines, hard left and hard right, every eighth note in antiphase - left: high, low, high, low; right: low, high, low, high - an octave apart. The low tone steps THE STAIR (C#4 D#4 E4 G#4) every eight bars. Quiet in A (from bar 8), forward in B and C, alone in the break, fading in the outro.
 - **THE CLICKS**: machine-kit rims and tiny hats in two alternating skippy sixteenth patterns, odd sixteenths 0.03 beat late; a stutter on the clicks over the last beat of every eighth bar of B and C, on the same swing (swing 0.56).
 - **THE CHORDS**: C#m9 - Amaj7 - E6 - G#m7, a dub stab on the and-of-1 and a rootless answer on the and-of-3, every other bar in B and C; a sub (with phantom harmonics) on the root.
+
+## t16 Never Arrives (chirper-zero)
+Generator `compose/chirpers7/src/chirpers7-t16.py`. Rolling hypnotic minimal house, 123 -> 122 bpm (the ramp in the last 32 bars), G minor (6A). 5:46. Featured illusion: THE ENDLESS FILTER (barber-pole).
+- **THE ENDLESS FILTER**: a 16th chord pulse (house-chord) through three parallel band-passes; each cutoff climbs five octaves on a saw (160 Hz -> 5 kHz) a third of a cycle apart, while each copy's level swells in at the bottom and fades at the top on a sine - a Shepard tone made of a filter sweep, a house build that rises for ever and never arrives. Its cycle is 16 bars in the build and the break (where it plays alone), 8 in A, 4 in A2 and B; in B2 it stops for eight bars and resumes.
+- **THE ROLL**: the sub on the 16ths around the beat (2 3 6 10 11 14), its notes the chord's stair (1 2 3 5); in B the octave jumps; in B2 it drops out for four bars and comes back climbing.
+- **THE CHANGES**: Gm9 | Ebmaj7 | Cm9 | D7sus(b9), a bar each.
+- **THE STAIR**: falling (D Bb A G) as stabs over B2; rising (G A Bb D) in the outro, handing t17 its D.
+- **SEAMS**: bars 1-16 rumble kick, hats and the sub holding G1 (t15's outro, at 123); bars 161-176 rumble kick, hats and a held D2 (t17's tonic), 123 -> 122.
+
