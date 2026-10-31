@@ -45,6 +45,8 @@ PHH = os.environ.get("C7T17_PHH", "10f")  # the sub's phantom harmonics: "" -6 d
 ROUT = os.environ.get("C7T17_ROUT", "0") == "1"  # the rims hand over: the closer's seam-in figure (soft rims on the last 16th of each beat) starts under t17's last eight bars, so the overlap shares it
 KH = os.environ.get("C7T17_KH", "0") != "0"
 KHG = os.environ.get("C7T17_KH", "0")  # the seam-in's kick lighter below 80 Hz (its own track, low shelf -6; the sub pumps from it too): t17's head read 11-15 dB heavier at 44-71 Hz than Never Arrives' carved tail
+SHK = os.environ.get("C7T17_SHK", "84,74")  # a shaker on every off-16th in A and B (velocity "on-the-e,on-the-a"): the dusty groove's sixteenths made audible (compscore's rhythm term reads the 16th lag; t17's read 0)
+LOOPG = os.environ.get("C7T17_LOOPG", "-2")  # the turning loop's level (dB per side): louder, the illusion leads (and its dotted-eighth cycle reads as off-grid pulse)
 TAILS = os.environ.get("C7T17_TAIL", "0.1s")  # the render tail: 0.3 s leaves no dead air in the last seconds a DJ mixes out of
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
@@ -136,6 +138,10 @@ def build():
             if sec in ("A", "B") or (not SEC and ((sec == "intro" and b >= 24) or (sec == "outro" and b < 16))):
                 for q in (4, 12):
                     add("clap", at + q, "cp,sn" if (sec == "B" and b >= 20) else "cp", 1, 92)
+            if SHK and sec in ("A", "B"):
+                sv = [int(x) for x in SHK.split(",")]
+                for q in range(1, 16, 2):
+                    add("hats", at + q, "sh", 1, sv[0] if q % 4 == 1 else sv[1])
             # a crisp 16th tick under the dusty kit in the grooves (the lo-fi hats alone are too soft to articulate the 16ths)
             if SEAMTICK and (seam_in or (TICKOUT and seam_out)):
                 for q in range(16):
@@ -219,7 +225,7 @@ def turning(score, rate_bars, tag=""):
     def side(name, pan, late, phase):
         fx = [{"type": "delay", "time": "18ms", "feedback": 0, "mix": 1}] if late else []
         fx.append({"type": "gain", "gain": {"value": "-12dB", "mod": [{"src": "lfo.x", "amount": 12}]}})
-        return {"name": name, "patch": "dusty-kit", "gain": "-6dB", "pan": pan,
+        return {"name": name, "patch": "dusty-kit", "gain": f"{LOOPG}dB", "pan": pan,
                 "lfo": {"x": {"wave": "sine", "rate": f"{rate_bars}/1", "phase": phase, "unipolar": True}},
                 "fx": fx, "sends": {"room": "-12dB"}, "score": score}
     return [side(f"turn{tag}Ll", -1, False, 0.0), side(f"turn{tag}Lr", 1, True, 0.0),
