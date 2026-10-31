@@ -57,7 +57,7 @@ def build():
     secs = {}
     for b in bars:
         secs.setdefault(b['sec'], b['t'])
-    T = {k: [] for k in ('kit', 'sub', 'bass', 'stab', 'pad')}
+    T = {k: [] for k in ('kit', 'sub', 'bass', 'stab', 'pad', 'fill')}
     for k, b in enumerate(bars):
         s, t0, i = b['sec'], b['t'], b['i']
         root, ch = CH[(k // 4) % 4]          # four bars a chord: the plateau moves slowly
@@ -90,6 +90,16 @@ def build():
                     T['kit'].append((t0 + 1.75 + 0.03, 'cp', 0.25, 54))
                 if k % 4 == 3:
                     T['kit'].append((t0 + 3.75, 'kd' if s == 'C' else 'k', 0.25, 84))
+        # (v18) TEACH THE TRICK FIRST (the obvious version, then the subtle one): over the intro's last four bars a plain
+        # rim fill accelerates for real - each gap 0.85 of the last - and ARRIVES, landing on the first groove's downbeat;
+        # from then on the Risset rush keeps accelerating and never arrives
+        if s == 'intro' and i == 12:
+            gaps_ = [1.0 * 0.85 ** n for n in range(40)]
+            sc_ = 16.0 / sum(gaps_)
+            at = 0.0
+            for n, g in enumerate(gaps_):
+                T['fill'].append((t0 + at, 'rs', 0.1, min(110, 64 + 2 * n)))
+                at += g * sc_
         # (v3) the incoming DJ move: the sub stays out for the intro's first eight bars, under t12's B-flat
         if s != 'break' and not (s == 'intro' and i < 8):
             T['sub'].append((t0, nm(root), 3.8, 100 if s != 'intro' else 86))
@@ -154,6 +164,7 @@ def build():
             {'name': 'riser', 'patch': f'fx-riser-endless amp.a={LEN['break'] * 4}b', 'gain': '-13dB', 'sends': {},
              'score': f'R/{secs['break']:.4f}b F4/{LEN['break'] * 4}b@88'},
             tr('kit', 'machine-kit', '-4dB', sends={'hall': '-20dB'}),
+            tr('fill', 'machine-kit', '-7dB', pan=0.2, sends={'hall': '-14dB'}),
             tr('sub', 'sub', '-8dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '320ms', 'curve': 0.6}]),
             tr('bass', 'bass', '-9dB', fx=[{'type': 'drive', 'drive': 0.35, 'mix': 0.5}, 'lp cutoff=1600', 'peak cutoff=300 q=0.8 gain=-4dB',
                                            {'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '320ms', 'curve': 0.6}]),
