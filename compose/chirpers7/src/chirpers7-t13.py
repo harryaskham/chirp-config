@@ -80,7 +80,9 @@ def build():
             for q, o in enumerate(BASS):
                 if o is not None:
                     # (v2) a PEDAL: the driven bass holds F under every chord - the plateau's floor doesn't move
-                    T['bass'].append((t0 + q * 0.25, nm(41 + 12 + o), 0.2, 100 if q % 4 == 2 else 84))
+                    # (v7) except at the very top: the peak's last eight bars hang on a C pedal, the dominant, so the rush
+                    # strains against a floor that wants to fall home - and the outro's F lands it
+                    T['bass'].append((t0 + q * 0.25, nm((36 if (s == 'C' and i >= 24) else 41) + 12 + o), 0.2, 100 if q % 4 == 2 else 84))
         if s in ('A', 'B', 'C') and k % 4 in (0, 2):
             T['stab'].append((t0 + 0.5, ','.join(nm(m) for m in ch), 0.4, 92))
         # THE STAIR on the stab: in B and C, every other bar, F G Ab C on the off-beats
