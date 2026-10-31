@@ -67,8 +67,11 @@ def build():
         # (v11) THE SCRAMBLED TUNE - an octave illusion that works on speakers (Deutsch's 'mysterious melodies'): THE STAIR
         # as a two-bar tune, every note thrown into a random octave, is unrecognisable - just scattered blips. Through the
         # second groove the octaves narrow, and in the last groove the tune lands in one octave and suddenly 'appears'
-        if s in ('B', 'C'):
-            spread = (3 if i < 16 else 2 if i < 32 else 1) if s == 'B' else (1 if i < 8 else 0)
+        # (v14) TEACH THE TUNE FIRST (chirp-eco relaying Harry's ears: 'the obvious version, then the subtle one'): the
+        # first groove's last eight bars play the stair tune plainly, in one octave, so the ear knows it before it is
+        # scattered across octaves - then the scramble can be heard as the same tune lost, and its return as found
+        if s in ('B', 'C') or (s == 'A' and i >= 24):
+            spread = 0 if s == 'A' else ((3 if i < 16 else 2 if i < 32 else 1) if s == 'B' else (1 if i < 8 else 0))
             # on a dotted-eighth (3/16) grid counted from B, so the tune also crosses the bar lines
             base = secs_B
             m0 = int(-(-(t0 - base) // 0.75))
