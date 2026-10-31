@@ -52,6 +52,7 @@ DROPOUT = os.environ.get("C7T18_DROPOUT", "1") == "1"  # chirper-one's note: nea
 REV = ["decel", "turn", "scale", "accel", "huggins", "continuity", "octave", "phantom", "stream", "tritone", "speech", "pole", "shepard"]
 HEADLV = [float(x) if "." in x else int(x) for x in os.environ.get("C7T18_HEADLV", "3,0.5").split(",")]  # the seam head's level lane (dB at bar 1, at bar 16): meets The Room Turns' tail in the live crossfade
 MONOH = os.environ.get("C7T18_MONOH", "90")  # chirp-eco's README ('dichotic tricks need a mono version'; 'teach the obvious first'): in the Huggins panel's first three wash phrases the ghost's own notes (A5 F5 E5 D5 as it walks) sound for real on a quiet dry sine, fading - so any speaker plays the melody, then the hiss alone carries it between the ears; value = velocity of the first
+EARHALL = os.environ.get("C7T18_EARHALL", "off")  # the scale panel's hall send (dB; "off" = dry): on t14 the hall tail put every note in the far ear only 5.3 dB down, half-mixing the two crossing scales
 COH = os.environ.get("C7T18_COH", "1") == "1"  # t17 v18's fix (measured 22:15): coherent Haas pairs - one source per pair, near ear direct and far ear through 18 ms, dry - so the turning panel's precedence cue exists (separate noise-kit tracks gave the ears different hits)
 COHB = {}
 ILV = float(os.environ.get("C7T18_ILV", "0"))  # every illusion track's level offset (dB)
@@ -536,8 +537,8 @@ def song():
             {"name": "bell", "patch": "bell", "gain": ilv(-10), "sends": {"hall": "-8dB"}, "score": T["bell"]},
             *([{"name": "ghostT", "patch": "dry-sine", "gain": ilv(-14), "sends": {"hall": "-14dB"}, "score": T["ghostT"]}] if MONOH else []),
             {"name": "wash", "patch": "hiss", "gain": ilv(-12), "fx": ["hp cutoff=200", "lp cutoff=9000"], "out": "hugL", "sends": {"hugR": "0dB"}, "score": T["wash"]},
-            {"name": "earL", "patch": "blip", "gain": ilv(-12), "pan": -1, "sends": {"hall": "-14dB"}, "score": T["earL"]},
-            {"name": "earR", "patch": "blip", "gain": ilv(-12), "pan": 1, "sends": {"hall": "-14dB"}, "score": T["earR"]},
+            {"name": "earL", "patch": "blip", "gain": ilv(-12), "pan": -1, **({"sends": {"hall": f"{EARHALL}dB"}} if EARHALL != "off" else {}), "score": T["earL"]},
+            {"name": "earR", "patch": "blip", "gain": ilv(-12), "pan": 1, **({"sends": {"hall": f"{EARHALL}dB"}} if EARHALL != "off" else {}), "score": T["earR"]},
             *[{"name": f"hs{h}", "patch": {"extends": "partial", "synth": {"layers": [f"sine ratio={h}"]}}, "gain": ilv(-12),
                "pan": (-0.8, -0.4, 0.0, 0.4, 0.8)[h - 2], "score": T[f"hs{h}"]} for h in range(2, 7) if "p" in REF],
             *[{"name": f"hc{h}", "patch": {"extends": "partial", "synth": {"layers": [f"sine ratio={h}"]}}, "gain": ilv(-12),
