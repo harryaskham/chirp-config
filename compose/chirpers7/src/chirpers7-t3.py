@@ -97,7 +97,9 @@ def build():
                 T['keys'].append((t0, ','.join(nm(m) for m in ch), 1.8, 84))
             else:
                 T['keys'].append((t0 + 1.5, ','.join(nm(m) for m in ch[1:]), 1.2, 76))
-        if (s in ('intro', 'break', 'outro') or s == 'A') and k % 4 == 0 and not (s == 'intro' and i < 8):
+        if (s in ('intro', 'break', 'outro') or s == 'A') and k % 4 == 0:
+            # (v6) the low Em pad from bar 1 again: the mixer now swaps the lows at the overlap's midpoint, and the pad
+            # gives t2's open A-E fifth an E-minor floor to land on
             T['pad'].append((t0, ','.join(nm(m - 12) for m in ch[:3]), 15.8, 70))
         # THE PHRASE: every two bars from A's bar 8; the blend toward song grows through B
         on = (s == 'A' and i >= 8) or s in ('B', 'C') or (s == 'outro' and i < 12)
