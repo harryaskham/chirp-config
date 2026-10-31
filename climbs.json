@@ -7419,7 +7419,7 @@
     {
       "id": "chirpers7-t11",
       "song": "songs/chirpers7-t11.yaml",
-      "reference": "Chirpers — Track 11 (untitled)",
+      "reference": "Chirpers — Both Ways",
       "source": null,
       "owner": "chirper-one",
       "metric": "python3 tools/compscore.py chirpers7-t11 OUT.wav",
@@ -7439,7 +7439,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "The Endless Stair",
-        "title": "Track 11 (untitled)",
+        "title": "Both Ways",
         "track": 11,
         "year": 2026
       },
