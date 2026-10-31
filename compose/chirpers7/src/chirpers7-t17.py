@@ -50,6 +50,7 @@ LOOPG = os.environ.get("C7T17_LOOPG", "-2")  # the turning loop's level (dB per 
 WARP = os.environ.get("C7T17_WARP", "1") == "1"  # Harry 14:50 'much harder on time-play': the turning loop also slips in TIME - in A2 it drifts a sixteenth behind the kick and back (track warp, smooth), in B2 (turning twice as fast) a sixteenth ahead and back; re-locked long before the seam
 TAILS = os.environ.get("C7T17_TAIL", "0.1s")  # the render tail: 0.3 s leaves no dead air in the last seconds a DJ mixes out of
 
+ERISER = os.environ.get("C7T17_ERISER", "-10")  # wM's endless Shepard riser (fx-riser-endless) over the 8 bars into B: pitch, noise and filter rising for ever, stopping dead on the drop (Harry: 'risers and staircases v good'); level in dB
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 FORM = [("intro", 32), ("A", 32), ("break", 24), ("B", 40), ("outro", 32)]
 # (sub root, Rhodes voicing with THE STAIR's note on top: D E F A over the four chords)
@@ -264,6 +265,7 @@ def song():
             "hall": {"fx": ["reverb kind=hall decay=3s mix=1 predelay=30ms", "lp cutoff=6000"]},
         },
         "tracks": [
+            *([{"name": "eriser", "patch": "fx-riser-endless amp.a=32b", "gain": f"{ERISER}dB", "score": f"R/{sec_start('B') // 4 - 32}b D4/32b@100"}] if ERISER else []),
             {"name": "kick", "patch": "dusty-kit", "gain": "-2dB", "score": T["kick"]},
             *([{"name": "kickh", "patch": "dusty-kit", "gain": "-2dB", "fx": [{"type": "eq", "bands": (["peak cutoff=175 q=1.2 gain=-6dB", "peak cutoff=300 q=1 gain=-3dB"] if KHG == "b" else ["peak cutoff=200 q=1.6 gain=-6dB", "peak cutoff=320 q=1.2 gain=-3dB"] if KHG == "c" else [f"lowshelf cutoff=80 gain={-3 if KHG == '3' else -6}dB"])}], "score": T["kickh"]}] if KH else []),
             {"name": "hats", "patch": "dusty-kit", "gain": "-5dB", "pan": 0.1, "score": "swing16=0.6 " + T["hats"]},
