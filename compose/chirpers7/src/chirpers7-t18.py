@@ -1,21 +1,35 @@
 #!/usr/bin/env python3
-"""chirpers7-t18 (The Endless Stair, track 18: the closer) - generator for songs/chirpers7-t18.yaml (chirper-zero).
+"""chirpers7-t18 (The Endless Stair, track 18, the closer) - generator for songs/chirpers7-t18.yaml (chirper-zero).
 
-THE CLOSER: AMBIENT DEEP HOUSE / "the stair comes down". 120 bpm, then a decelerando to 112 over the last 32 bars (the
-tape's end). D minor (7A) for the first half, rising a fifth to A minor (8A) - home, where t1 began - for the last third.
-Featured illusion: THE STAIR COMES DOWN - the tape's thread, which t1 taught as an endlessly rising Shepard scale, falls
-for ever: its four notes (5 3 2 1) on Shepard tones, each step smaller than a tritone (A F E D A ... : -4 -1 -2 -5), so
-every step is heard going down, the stair descends through the whole track and never gets lower. Under the break,
-falling Shepard chords: a pad gliding down an octave every eight seconds, for ever. Original; a style, not a version of
-any track.
+THE STAIR COMES DOWN - THE ODYSSEY (v12, Harry 31 Oct 14:50: 'the final track should bring in every element and work out
+simultaneously running like all illusions at once in interplay, and make it all actually work; a long trippy odyssey to
+close the album out'). Deep minimal house, 120 bpm with a decelerando to 112 at the very end, D minor walking home to A
+minor (t1's key). Every illusion on the tape returns, one by one, then stacked and interlocking, then all at once, and the
+stair comes down for ever to close.
 
-Form (4/4 bars): INTRO 32 (bars 1-16 the seam from t17: kick, hats, a held D; then the pads and the first steps) / A 32
-(the groove; the stair a beat a step; A2 the clap and the stair doubled) / BREAK 16 (no kick: the falling chords, the stair
-at half speed) / B 32 / HOME 32 (A minor: the stair in A, the brightest pads, the open hats) / OUTRO 32 (the decelerando
-120 -> 112; the kick leaves at bar 17; the stair falls alone into a held A minor).
+Form (4/4 bars, ~13.5 min):
+  DESCENT 32   bars 1-16 the seam from The Room Turns (kick, hats, a held D2, soft rims); then the falling stair.
+  GALLERY 240  fifteen 16-bar panels, each one illusion in front over a groove that keeps changing (two chord worlds
+               alternate: Dm9 Bbmaj9#11 Gm9 A7b9, and a Phrygian D pedal with Ebmaj7 planing over it):
+               t1 Shepard stair UP / t2+t16 barber-pole filter / t3 speech-to-song ('the stair comes down') / t4+t11 tritone
+               pairs / t5 streaming (one acid line splitting in two) / t6 missing fundamental (the bass nobody plays, then
+               the reveal) / t7 octave illusion / t8 continuity (a line singing on through static) / t9 beat flip /
+               t10 Zwicker (notched noise, a bar of silence, the note that wasn't there) / t12 Huggins (a note between
+               the ears in hiss) / t13 Risset accelerando / t14 scale illusion / t17 the turning room / t15 Risset
+               decelerando.
+  INTERLOCK 64 four 16-bar groups that share a register: LOW (missing fundamental, streaming, decelerando), MID (barber
+               pole, tritone pairs, the sung phrase), HIGH (Shepard up, octave, scale), TIME (Risset up AND down, beat
+               flip, the turning room).
+  ALL 32       everything at once, each in its own band and place, the falling stair on top; ends in a Zwicker silence.
+  CODA 32      the kick gone, the falling Shepard chords in A minor, the stair coming down, 120 -> 112; it ends on the
+               stair's 2, unresolved, so the loop into The First Step finishes the phrase.
+Recipes: chirper-two (c2-stair, c2-tritone, static burst, Risset both ways), chirper-three (streaming, missing
+fundamental, beat flip, Zwicker), chirper-one (Huggins), chirper-zero (endless filter, Haas turning room, scale illusion,
+Risset beds, falling stair). See compose/chirpers7/sounds.md.
 Run: python3 compose/chirpers7/src/chirpers7-t18.py  (writes songs/chirpers7-t18.yaml)
 """
 import json
+import math
 import os
 
 ROOT = os.path.expanduser("~/.config/chirp")
@@ -25,47 +39,37 @@ S = 0.25
 BAR = 16
 MGAIN = float(os.environ.get("C7T18_MGAIN", "8"))
 FCOMP = os.environ.get("C7T18_FCOMP", "-16,0.3ms")
-OUTRO = os.environ.get("C7T18_OUTRO", "0") == "1"  # the outro is its own room: the hats and the clap stop as it starts, only the kick, the sub and the falling stair walk on
-EQ2 = os.environ.get("C7T18_EQ2", "0") == "1"  # 50 Hz down 10 dB (was 7), the air shelf at 9 kHz +8 dB (was 5)
-EQ3 = os.environ.get("C7T18_EQ3", "1") == "1"  # the low-mid boxiness out (160 and 550 Hz -3 dB) and the air shelf +7 dB (was 5)
-HATSG = os.environ.get("C7T18_HATSG", "-1")  # the hats 3 dB up (was -4): real air above 9 kHz, where the closer read 7-13 dB dark
-DROP = os.environ.get("C7T18_DROP", "1") == "1"  # the kick drops for intro bars 29-32 (the stair and the pads hang alone), so A lands
-PADG = os.environ.get("C7T18_PADG", "-15")  # the glass pad's level (dB): its chord tones stood up as narrow 340-880 Hz peaks
-PADP = os.environ.get("C7T18_PADP", "")  # the chord pad's voice: "" pad-glass (FM bell-glass: its chord tones stand up as narrow peaks), "pad" (wide detuned saws), "padlp" (the same, low-passed at 4 kHz)
-DUSTY = os.environ.get("C7T18_DUSTY", "0") == "1"  # the seam-in's kick on t17's dusty kit, so the overlap carries one kick colour (the full machine kick from bar 17)
-HEAD = os.environ.get("C7T18_HEAD", "")  # the seam-in's colour meets t17's tail (its master carves 150 and 292 Hz): "k" the first 16 bars' kick on its own machine-kit track with 85/130/210 Hz taken down; "ks" also the held D2 without the phantom harmonics (a pure sub)
-MIDS = os.environ.get("C7T18_MIDS", "1") == "1"  # the seam-in meets t17's tail in the mids: soft rims on the 16ths before each beat's off (3 7 11 15) under the first 16 bars, and the held D2 a touch softer (t18's head read 6-18 dB heavier below 220 Hz and 7-11 dB lighter 0.6-4 kHz than t17's last seconds)
-MIDBARS = int(os.environ.get("C7T18_MIDBARS", "8"))  # how many seam bars carry the rims
-HOMERIM = os.environ.get("C7T18_HOMERIM", "0") == "1"  # home (A minor) keeps the seam's rims: the 16th before each beat's end (3 7 11 15), soft - the comedown's tick
-BRK = os.environ.get("C7T18_BRK", "lh")  # the break deeper: "l" its level -8.5 dB (was -7); "lh" also no hats at all (the falling chords and the stair alone)
-MIDVEL = os.environ.get("C7T18_MIDVEL", "64,54")  # the seam rims' velocities (on the 3 and 11, on the 7 and 15)
-SHKV = int(os.environ.get("C7T18_SHKV", "70"))  # the off-16th shaker's velocity in the grooves (38: a whisper; up, it carries the air above 9 kHz the closer lacked)
-A2OPEN = os.environ.get("C7T18_A2OPEN", "0") == "1"  # A2 lifts: every off-beat hat open (with the clap's arrival), so A's second half is a section of its own
-SPEC = os.environ.get("C7T18_SPEC", "0") == "1"
-SPEC2 = os.environ.get("C7T18_SPEC2", "0") == "1"
-SPEC3 = os.environ.get("C7T18_SPEC3", "1") == "1"  # only the 3.1 kHz hole filled (+4 dB): the air shelf brightened the closer past the album (cohesion 90)  # only the master's holes filled (3.1 kHz +4, air above 11 kHz +4); the glass pad left whole (it marks the sections)  # the glass pad's two loudest chord tones notched (341 Hz -3, 467 Hz -5 dB) and the master's holes filled (3.1 kHz +4, air above 11 kHz +4)
-HOME2 = os.environ.get("C7T18_HOME2", "0") == "1"  # home's second half settles: the clap and the sixteenth shaker leave, the stair slows to half-bar steps - the comedown begins before the outro
-END2 = os.environ.get("C7T18_END2", "1") == "1"  # chirper-one's note: the stair ends on its 2 (B), held, without the 1 - the loop back into The First Step finishes the phrase
-RIM3 = os.environ.get("C7T18_RIM3", "1") == "1"
-FORM2 = os.environ.get("C7T18_FORM2", "1") == "1"  # B splits (B2: the stair doubled an octave up, the hats open, no clap) and the outro is the falling floor: the kick leaves at its first bar, the falling Shepard chords return in A minor under the decelerando  # a soft rim on every third 16th in the grooves (a dotted-eighth cycle across the bar lines): the stair's echo in the kit
-
-SWAP = os.environ.get("C7T18_SWAP", "0") == "1"
-SWAPBARS = int(os.environ.get("C7T18_SWAPBARS", "16"))
-INLIFT = os.environ.get("C7T18_INLIFT", "1.5")  # the first 16 bars' level (dB, was -4): the closer comes in under t17's tail at its level, so the live crossfade doesn't sag  # how many overlap bars the incoming lows wait (16: until the overlap ends; 8: the crossfade's midpoint, where the linear fade has both sides at half)  # a DJ's bass swap at the seam in: for the 16 overlap bars the kick is high-passed at 110 Hz (its own track) and the held sub is out - the outgoing track carries the low end; the full kick and sub land at bar 17
+ILV = float(os.environ.get("C7T18_ILV", "0"))  # every illusion track's level offset (dB)
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
-FORM = [("intro", 32), ("A", 32), ("break", 16), ("B", 32), ("home", 32), ("outro", 32)]
-CHD = [(38, [53, 57, 60, 64]),   # Dm9: F3 A3 C4 E4 over D
-       (34, [53, 57, 62, 65]),   # Bbmaj7(9): F3 A3 D4 F4 over Bb
-       (31, [50, 53, 57, 58]),   # Gm9: D3 F3 A3 Bb3 over G
-       (33, [52, 55, 59, 62])]   # A7sus: E3 G3 B3 D4 over A
-CHA = [(33, [48, 52, 55, 59]),   # Am9: C3 E3 G3 B3 over A
-       (29, [52, 55, 57, 60]),   # Fmaj7(9): E3 G3 A3 C4 over F
-       (38, [53, 57, 60, 64]),   # Dm9 over D
-       (40, [50, 55, 57, 62])]   # E7sus: D3 G3 A3 D4 over E (the sus resolving home)
-STAIR_D = ["A4", "F4", "E4", "D4"]   # 5 3 2 1 of D minor, falling (-4 -1 -2, then -5 to the next A)
-STAIR_A = ["E4", "C4", "B3", "A3"]   # 5 3 2 1 of A minor
-TRACKS = ("kick", "hats", "clap", "sub", "pads", "stair", "fall", "stair2", "kickin", "kickd", "kickh", "subh")
+GALLERY = ["shepard", "pole", "speech", "tritone", "stream", "phantom", "octave", "continuity", "flip", "zwicker",
+           "huggins", "accel", "scale", "turn", "decel"]
+INTER = [("phantom", "stream", "decel"), ("pole", "tritone", "speech"), ("shepard", "octave", "scale"),
+         ("accel", "decel", "flip", "turn")]
+ALL = ("shepard", "pole", "speech", "tritone", "stream", "phantom", "octave", "continuity", "huggins", "accel", "scale",
+       "turn", "decel")
+FORM = [("descent", 32)] + [(f"g{i}", 16) for i in range(len(GALLERY))] + [(f"i{i}", 16) for i in range(len(INTER))] + \
+       [("all", 32), ("coda", 32)]
+
+# chord worlds (sub root, voicing): darker than a loop of plain minor triads
+PROG_A = [(38, [53, 57, 60, 64]),   # Dm9: F3 A3 C4 E4
+          (34, [50, 57, 60, 64]),   # Bbmaj9#11: D3 A3 C4 E4 over Bb
+          (31, [53, 57, 58, 62]),   # Gm9: F3 A3 Bb3 D4
+          (33, [49, 55, 58, 64])]   # A7b9: C#3 G3 Bb3 E4
+PROG_P = [(38, [53, 57, 60, 64]),   # Dm9
+          (38, [51, 55, 58, 62]),   # Ebmaj7 over the D pedal (Phrygian b2)
+          (38, [53, 57, 60, 64]),   # Dm9
+          (38, [52, 55, 60, 62])]   # C/D (a sus colour on the pedal)
+PROG_HOME = [(33, [48, 52, 55, 59]),   # Am9 (coda)
+             (29, [48, 52, 57, 60]),   # Fmaj7/C
+             (26, [48, 53, 57, 60]),   # Dm9/C
+             (28, [47, 52, 55, 59])]   # Em7/B
+STAIR_D = [69, 65, 64, 62]   # A F E D: 5 3 2 1 of D minor, falling
+STAIR_A = [64, 60, 59, 57]   # E C B A
+UP = [62, 64, 65, 69]        # D E F A rising
+SCALE = [62, 64, 65, 67, 69, 70, 72, 74]   # D natural minor, D4-D5
+RISSET_DOWN = "rs/0.75b@96 rs/0.75b@84 rs/0.5b@90 rs/0.75b@96 cb/0.75b@80 rs/0.5b@88"
+RISSET_UP = "cb/0.75b@86 ht/0.75b@74 R/0.5b ht/0.75b@80 cb/0.75b@68 mt/0.5b@70"
 
 
 def nm(m):
@@ -93,6 +97,16 @@ def total_steps():
     return sum(nb for _, nb in FORM) * BAR
 
 
+def active(sec):
+    if sec.startswith("g"):
+        return {GALLERY[int(sec[1:])]}
+    if sec.startswith("i"):
+        return set(INTER[int(sec[1:])])
+    if sec == "all":
+        return set(ALL)
+    return set()
+
+
 def stream(events, total):
     by = {}
     for st, head, ln, vel in events:
@@ -111,111 +125,169 @@ def stream(events, total):
         hold = max(1, min(ln, max(nxt, st + 1) - st, total - st))
         out.append(R((st - pos) * S))
         note, _, art = head.partition("^")
-        out.append(f"{note}/{hold * S:g}b@{int(vel)}" + (f"^{art}" if art else ""))
+        out.append(f"{note}/{hold * S:g}b@{max(1, min(127, int(vel)))}" + (f"^{art}" if art else ""))
         pos = st + hold
     out.append(R((total - pos) * S))
     return J(*out)
 
 
+TRACKS = ("kick", "hats", "clap", "sub", "pads", "stab", "rims", "stair", "fall", "up", "pole", "speech", "tri",
+          "acidA", "acidB", "phantom", "octL", "octR", "cont", "burst", "zw", "bell", "wash", "earL", "earR", "loop")
+
+
 def build():
     ev = {k: [] for k in TRACKS}
+    risset_spans = {"accel": [], "decel": []}
+    silent = set()   # Zwicker bars: every part out (the master lane drops to -60 too)
 
     def add(tr, at, head, ln, vel):
         ev[tr].append((at, head, ln, vel))
 
     total = total_steps()
-    step_i = 0  # the stair counts on, never restarting
+    step_dn = 0   # the falling stair counts on, never restarting
+    step_up = 0
     for sec, nb in FORM:
         a0 = sec_start(sec)
+        act = active(sec)
+        gi = int(sec[1:]) if sec[0] in "gi" and sec[1:].isdigit() else 0
+        prog = PROG_HOME if sec == "coda" else (PROG_P if (sec.startswith("g") and gi % 2 == 1) else PROG_A)
+        lv = 0.8 if sec == "all" else (0.9 if sec.startswith("i") else 1.0)
+        if "accel" in act:
+            risset_spans["accel"].append((a0, nb))
+        if "decel" in act:
+            risset_spans["decel"].append((a0, nb))
         for b in range(nb):
             at = a0 + b * BAR
-            home = sec in ("home", "outro")
-            r, v = (CHA if home else CHD)[b % 4]
-            stair = STAIR_A if home else STAIR_D
-            seam_in = sec == "intro" and b < 16
-            last = sec == "outro" and b >= 16
-            # kick: everywhere but the break and the outro's second half
-            if sec != "break" and not last and not (FORM2 and sec == "outro") and not (DROP and sec == "intro" and 28 <= b < 32):
-                for q in (0, 4, 8, 12):
-                    add("kick", at + q, "k", 1, (104 if q == 0 else 96) - (10 if sec == "outro" else 0))
-            # hats: off-beats (open in home), a soft shaker on the 16ths in the grooves
-            if not (sec == "break" and (b < 12 or "h" in BRK)) and not (last and b >= 24) and not (OUTRO and sec == "outro"):
+            r, v = prog[b % 4]
+            seam_in = sec == "descent" and b < 16
+            zw = "zwicker" in act and sec.startswith("g")
+            if zw and b % 4 == 3:
+                silent.add(b + a0 // BAR)
+                continue
+            if sec == "all" and b == nb - 1:
+                silent.add(b + a0 // BAR)   # the odyssey's last breath before the coda: a Zwicker silence
+                continue
+            # --- kick (the beat flip moves it; the coda has none)
+            kick_qs = (0, 4, 8, 12)
+            if "flip" in act:
+                ph = b % 16
+                kick_qs = () if ph < 4 or 8 <= ph < 10 else ((2, 6, 10, 14) if ph < 8 else (0, 4, 8, 12))
+            if sec != "coda":
+                for q in kick_qs:
+                    add("kick", at + q, "k", 1, 104 if q in (0, 2) else 96)
+            # --- hats: off-beats (open in the interlock and all), 16ths speaking in the grooves
+            if sec != "coda" or b < 16:
                 for q in (2, 6, 10, 14):
-                    add("hats", at + q, "oh" if ((sec == "home" and q in (6, 14)) or (FORM2 and sec == "B" and b >= 16) or (A2OPEN and sec == "A" and b >= 16)) else "h", 1, 66)
-                if sec in ("A", "B", "home") and not (HOME2 and sec == "home" and b >= 16):
+                    if "flip" in act and 4 <= b % 16 < 8:
+                        continue
+                    add("hats", at + q, "oh" if sec in ("all",) or sec.startswith("i") and q in (6, 14) else "h", 1, 66)
+                if not seam_in and sec not in ("coda",):
                     for q in (1, 3, 5, 7, 9, 11, 13, 15):
-                        add("hats", at + q, "h", 1, SHKV)
-            if RIM3 and sec in ("A", "B", "home"):
-                for q in range(16):
-                    k = (at + q) - sec_start("A")
-                    if k % 3 == 0:
-                        add("clap", at + q, "rs", 1, 70 if (k // 3) % 4 == 0 else 58)
-            if HOMERIM and sec == "home":
+                        add("hats", at + q, "h", 1, 70 if (sec.startswith("i") or sec == "all") else 52)
+            if seam_in and b < 8:
                 for q in (3, 7, 11, 15):
-                    add("clap", at + q, "rs", 1, 60 if q in (3, 11) else 50)
-            if (sec == "A" and b >= 16) or (sec == "B" and not (FORM2 and b >= 16)) or (sec == "home" and not (HOME2 and b >= 16)):
+                    add("rims", at + q, "rs", 1, 64 if q in (3, 11) else 54)
+            # --- clap: interlock and all, and the second half of every other panel
+            if (sec.startswith("i") or sec == "all" or (sec.startswith("g") and gi % 2 == 0 and b >= 8)) and "flip" not in act:
                 add("clap", at + 4, "cp", 1, 84)
                 add("clap", at + 12, "cp", 1, 88)
-            # sub: the held D under the seam, the roots elsewhere (none in the break), a held A at the very end
+            # --- sub: the held D under the seam, roots elsewhere; the missing fundamental takes it away until the reveal
             if seam_in:
                 if b % 4 == 0:
-                    add("sub", at, "D2", 4 * BAR, 76 if MIDS else 88)
-                if MIDS and b < MIDBARS:
-                    mv = [int(x) for x in MIDVEL.split(",")]
-                    for q in (3, 7, 11, 15):
-                        add("clap", at + q, "rs", 1, mv[0] if q in (3, 11) else mv[1])
-            elif last:
-                if b == 16:
-                    add("sub", at, "A1", 16 * BAR, 80)
-            elif sec != "break":
+                    add("sub", at, "D2", 4 * BAR, 76)
+            elif sec != "coda" and not ("phantom" in act and b < nb - 4 and sec.startswith("g")):
                 add("sub", at, nm(r), 7, 94)
                 add("sub", at + 10, nm(r), 5, 84)
-            # pads: glassy chords from bar 17 on, held two bars
-            if not seam_in and b % 2 == 0 and sec != "break":
-                add("pads", at, ",".join(nm(n + 12) for n in v), 2 * BAR, 70 if sec != "home" else 80)
-            if last and b == 28:
-                add("pads", at, ",".join(nm(n + 12) for n in CHA[0][1]), 4 * BAR, 72)
-            # THE STAIR COMES DOWN: a step a beat in the grooves, a step a half-bar in the break and the outro's end
-            if not seam_in and not (sec == "intro" and b < 24):
-                per = 8 if (sec == "break" or last or (HOME2 and sec == "home" and b >= 16)) else 4
+            # --- pads (two-bar chords) and the off-beat stabs (the beat flip's anchor)
+            if not seam_in and b % 2 == 0 and sec != "coda":
+                add("pads", at, ",".join(nm(n + 12) for n in v), 2 * BAR, 66)
+            if "flip" in act:
+                for q in (2, 6, 10, 14):
+                    add("stab", at + q, ",".join(nm(n + 12) for n in v), 1, 86)
+            # --- the falling stair: the descent, all, the coda
+            if (sec == "descent" and b >= 16) or sec == "all" or sec == "coda":
+                stair = STAIR_A if sec == "coda" else STAIR_D
+                per = 8 if sec == "coda" else 4
                 for q in range(0, 16, per):
-                    n = stair[step_i % 4]
-                    vel = 88 if step_i % 4 == 0 else 76
-                    if sec == "A" and b >= 16:
-                        add("stair", at + q, n, per, vel + 4)
-                    else:
-                        add("stair", at + q, n, per, vel)
-                    step_i += 1
-            if FORM2 and sec == "B" and b >= 16:  # B2: the stair shimmers an octave up with it
+                    add("stair", at + q, nm(stair[step_dn % 4]), per, (84 if step_dn % 4 == 0 else 74) * lv)
+                    step_dn += 1
+            if sec == "coda" and b % 8 == 0:
+                add("fall", at, ",".join(nm(n) for n in v), 8 * BAR, 72)
+            # ===== the illusions =====
+            if "shepard" in act:   # t1: the stair climbing for ever
                 for q in range(0, 16, 4):
-                    add("stair2", at + q, stair[(step_i - 4 + q // 4) % 4], 4, 70)
-            # the falling chords under the break (Shepard pad gliding down), and (FORM2) under the outro's decelerando
-            if FORM2 and sec == "outro" and b % 8 == 0:
-                add("fall", at, ",".join(nm(n) for n in CHA[0][1]), 8 * BAR, 72)
-            if sec == "break" and b % 8 == 0:
-                add("fall", at, ",".join(nm(n) for n in v), 8 * BAR, 76)
-    if END2 and ev["stair"] and ev["stair"][-1][1] == STAIR_A[3]:
+                    add("up", at + q, nm(UP[step_up % 4]), 4, (86 if step_up % 4 == 0 else 76) * lv)
+                    step_up += 1
+            if "pole" in act:      # t2/t16: the filter that rises for ever
+                ch = ",".join(nm(n + 12) for n in v)
+                for q in range(16):
+                    if q % 4 == 0 or q in (6, 10, 14):
+                        add("pole", at + q, ch, 1, (96 if q % 4 == 2 else 80) * lv)
+            if "speech" in act and b % 2 == 0:   # t3: speech that turns into song
+                sung = (b >= nb // 2) or not sec.startswith("g")
+                syl = [("dh-ah0", 0, 2, 69, "+60>-40"), ("s-t-eh1-r", 2, 2, 65, "+120>-60"),
+                       ("k-ah1-m-z", 4, 3, 64, "+40>-120"), ("d-aw1-n", 7, 5, 62, "-40>-300")]
+                for ph, q, ln, pitch, glide in syl:
+                    head = f"{nm(pitch - 12)}^ph={ph}" if sung else f"D3^ph={ph}^f0={glide}"
+                    add("speech", at + q, head, ln, 92 * lv)
+            if "tritone" in act:   # t4/t11: pairs a tritone apart, no up or down
+                for k, q in enumerate((0, 4, 8, 12)):
+                    n = UP[(b * 4 + k) % 4]
+                    first, second = (n, n + 6) if (b + k) % 2 == 0 else (n + 6, n)
+                    add("tri", at + q, nm(first), 2, 84 * lv)
+                    add("tri", at + q + 2, nm(second), 2, 84 * lv)
+            if "stream" in act:    # t5: one acid line that splits in two
+                if sec.startswith("g"):
+                    interval = 2 + round(10 * b / max(1, nb - 1))
+                else:
+                    interval = 12
+                for q in range(0, 16, 4):
+                    add("acidA", at + q, nm(r + 12), 1, 92 * lv)
+                    add("acidB", at + q + 1, nm(r + 12 + interval), 1, 88 * lv)
+                    add("acidA", at + q + 2, nm(r + 12), 1, 84 * lv)
+            if "phantom" in act:   # t6: the bass nobody plays (harmonics 2-6), the real sub arrives at the end (the reveal)
+                for q in (0, 3, 6, 10, 12):
+                    add("phantom", at + q, nm(r + 12), 2, 96 * lv)
+            if "octave" in act:    # t7: one tone hopping ear and octave (two tones swapping ears every eighth)
+                n = UP[(b // 4) % 4] + 12
+                for k, q in enumerate(range(0, 16, 2)):
+                    hi_left = k % 2 == 0
+                    add("octL", at + q, nm(n + (12 if hi_left else 0)), 2, 80 * lv)
+                    add("octR", at + q, nm(n + (0 if hi_left else 12)), 2, 80 * lv)
+            if "continuity" in act:   # t8: a line sung on through bursts of static
+                n = STAIR_D[(b // 2) % 4] + 12
+                for q0, q1 in ((0, 6), (8, 14)):
+                    add("cont", at + q0, nm(n), q1 - q0, 82 * lv)
+                    add("burst", at + q1, "C4", 2, 104 * lv)
+            if "huggins" in act and b % 4 == 2:   # t12: a note heard between the ears in identical hiss
+                add("wash", at, "C4", 2 * BAR, 96 * lv)
+            if "zwicker" in act and sec.startswith("g"):   # t10: notched noise swelling, then a silent bar; the bell plays the note
+                ph = b % 4
+                add("zw", at, "C4", BAR, (72, 92, 112)[ph] * lv)
+                if ph == 0 and b > 0:
+                    add("bell", at, "A5", 4, 88)
+            if "scale" in act:     # t14: a rising and a falling scale swapping ears every eighth
+                for k, q in enumerate(range(0, 16, 2)):
+                    i = k % 8
+                    lo, hi = SCALE[i], SCALE[7 - i]
+                    left, right = (lo, hi) if i % 2 == 0 else (hi, lo)
+                    add("earL", at + q, nm(left), 2, 78 * lv)
+                    add("earR", at + q, nm(right), 2, 78 * lv)
+            if "turn" in act:      # t17: the room turning (a dotted-eighth loop on Haas pairs)
+                for q in range(16):
+                    k = (at + q) - a0
+                    if k % 3 == 0:
+                        add("loop", at + q, "rs" if (k // 3) % 2 == 0 else "sh", 1, (86 if (k // 3) % 4 == 0 else 74) * lv)
+    # the stair ends on its 2 (B3), held: the loop into The First Step finishes the phrase
+    if ev["stair"] and ev["stair"][-1][1] == nm(STAIR_A[3]):
         a_at, _, a_ln, _ = ev["stair"].pop()
         p_at, p_h, p_ln, p_v = ev["stair"].pop()
         ev["stair"].append((p_at, p_h, p_ln + a_ln, p_v))
-    if HEAD:
-        ev["kickh"] = [e for e in ev["kick"] if e[0] < 16 * BAR]
-        ev["kick"] = [e for e in ev["kick"] if e[0] >= 16 * BAR]
-        if "s" in HEAD:
-            ev["subh"] = [e for e in ev["sub"] if e[0] < 16 * BAR]
-            ev["sub"] = [e for e in ev["sub"] if e[0] >= 16 * BAR]
-    if DUSTY:
-        ev["kickd"] = [e for e in ev["kick"] if e[0] < 16 * BAR]
-        ev["kick"] = [e for e in ev["kick"] if e[0] >= 16 * BAR]
-    if SWAP:
-        ev["kickin"] = [e for e in ev["kick"] if e[0] < SWAPBARS * BAR]
-        ev["kick"] = [e for e in ev["kick"] if e[0] >= SWAPBARS * BAR]
-        held = [e for e in ev["sub"] if e[0] < SWAPBARS * BAR < e[0] + e[2]]  # a held note crossing the swap re-enters at the swap point
-        ev["sub"] = [e for e in ev["sub"] if e[0] >= SWAPBARS * BAR] + [(SWAPBARS * BAR, h, e0 + ln - SWAPBARS * BAR, v) for (e0, h, ln, v) in held]
-    return {k: stream(ev[k], total) for k in TRACKS}
+    return {k: stream(ev[k], total) for k in TRACKS}, risset_spans, silent
 
 
 def lane(points, step=True):
+    """Section lane in seconds along the tempo map (constant BPM0 until the coda)."""
     spb = 60 / BPM0
     pts = [["0s", points[0][1]]]
     prev = points[0][1]
@@ -225,36 +297,94 @@ def lane(points, step=True):
             pts.append([f"{max(0.0, t - 0.01):.3f}s", prev])
         pts.append([f"{t:.3f}s", val])
         prev = val
-    pts.append([f"{total_steps() * S * spb + 20:.2f}s", pts[-1][1]])
+    pts.append([f"{total_steps() * S * spb + 30:.2f}s", pts[-1][1]])
     return {"points": pts}
 
 
 def song():
-    T = build()
+    T, rspans, silent = build()
     st = {sec: sec_start(sec) for sec, _ in FORM}
-    beats = lambda t16: f"{t16 // 4}b"  # noqa: E731
     total_b = total_steps() // 4
-    tempo = [{"at": "0b", "bpm": BPM0}, {"at": beats(st["outro"]), "bpm": BPM0}, {"at": f"{total_b}b", "bpm": BPM1, "ramp": True}]
+    coda_b = st["coda"] // 4
+    tempo = [{"at": "0b", "bpm": BPM0}, {"at": f"{coda_b}b", "bpm": BPM0}, {"at": f"{total_b}b", "bpm": BPM1, "ramp": True}]
     pump = {"type": "pump", "on": "kick.k", "depth": "-5dB", "attack": "2ms", "release": "220ms", "curve": 0.7}
-    dyn = lane([(0, float(INLIFT) if INLIFT else -4), (st["intro"] + 16 * BAR, -3), (st["A"], -1), (st["A"] + 16 * BAR, 0), (st["break"], -8.5 if BRK else -7), (st["B"], 0),
-                (st["home"], 1), (st["outro"], -2), (st["outro"] + 16 * BAR, -5)])
+    # the section lane: the seam at its neighbour's level, panels level, the interlock and all up, the coda down; the
+    # Zwicker bars drop to digital silence
+    pts = [(0, 1.5), (16 * BAR, -1), (st["g0"], 0)]
+    for sec, nb in FORM:
+        if sec.startswith("i") or sec == "all":
+            pts.append((st[sec], 0.5 if sec.startswith("i") else 1))
+        if sec == "coda":
+            pts += [(st["coda"], -2), (st["coda"] + 16 * BAR, -4)]
+    for bar in sorted(silent):
+        a = bar * BAR
+        nxt = next((v for t, v in reversed(sorted(pts)) if t <= a), 0)
+        pts += [(a, -60), (a + BAR, nxt)]
+    pts = sorted(dict(pts).items())
+    dyn = lane(pts)
+    ilv = lambda g: f"{g + ILV:g}dB"  # noqa: E731
+
+    def risset(kind, at, nbars):
+        up = kind == "accel"
+        return {"name": f"{kind}{at}", "patch": "machine-kit", "gain": ilv(0 if up else -3), "pan": -0.35 if up else 0.35,
+                "at": f"{at // 4}b", "risset": {"cycle": "4bar", "down": not up, "layers": 3, "length": f"{nbars}bar"},
+                "fx": [{"type": "filter", "kind": "hp", "cutoff": 400 if up else 90, "q": 0.7}] + ([] if up else [{"type": "filter", "kind": "lp", "cutoff": 3500, "q": 0.7}]),
+                "sends": {"room": "-10dB"}, "score": RISSET_UP if up else RISSET_DOWN}
+
+    def endless(name, score, cycle_bars, gain):
+        out = []
+        for i, p in enumerate((0.0, 1 / 3, 2 / 3)):
+            out.append({"name": f"{name}{i}", "patch": "house-chord", "gain": gain, "pan": (-0.3, 0.0, 0.3)[i],
+                        "lfo": {"c": {"wave": "saw", "rate": f"{cycle_bars}/1", "phase": p, "unipolar": True},
+                                "l": {"wave": "sine", "rate": f"{cycle_bars}/1", "phase": (p + 0.75) % 1, "unipolar": True}},
+                        "fx": [{"type": "filter", "kind": "bp", "cutoff": {"value": 160, "mod": [{"src": "lfo.c", "amount": 5}]}, "q": 1.4},
+                               {"type": "gain", "gain": {"value": "-24dB", "mod": [{"src": "lfo.l", "amount": 24}]}}],
+                        "sends": {"echo": "-12dB"}, "score": score})
+        return out
+
+    def turning(score):
+        def side(name, pan, late, phase):
+            fx = [{"type": "delay", "time": "18ms", "feedback": 0, "mix": 1}] if late else []
+            fx.append({"type": "gain", "gain": {"value": "-12dB", "mod": [{"src": "lfo.x", "amount": 12}]}})
+            return {"name": name, "patch": "dusty-kit", "gain": ilv(-4), "pan": pan,
+                    "lfo": {"x": {"wave": "sine", "rate": "6/1", "phase": phase, "unipolar": True}},
+                    "fx": fx, "sends": {"room": "-12dB"}, "score": score}
+        return [side("turnLl", -1, False, 0.0), side("turnLr", 1, True, 0.0), side("turnRl", -1, True, 0.5), side("turnRr", 1, False, 0.5)]
+
+    # the Huggins ghost walks the stair (A F E D around A5) along the wash phrases
+    gm, hug_hz = [], 880.0
+    for k in range(0, total_steps() // BAR, 4):
+        gm.append([f"{k * BAR * S * 60 / BPM0:.3f}s", round(math.log2([880, 698.46, 659.26, 587.33][(k // 4) % 4] / hug_hz), 4)])
+    zw_f = 880 * 1.08
     doc = {
-        "about": "Chirpers - The Endless Stair (Chirpers VII), track 18 by chirper-zero: THE CLOSER, ambient deep house, the stair "
-                 "comes down. THE STAIR falling for ever on Shepard tones while the key steps up home. Generated by "
-                 "compose/chirpers7/src/chirpers7-t18.py; see its docstring and compose/chirpers7/styles.md.",
-        "tempo": tempo, "ceiling": "-1dB", "loudness": -11, "tail": "3s",
+        "about": "Chirpers - The Endless Stair (Chirpers VII), track 18 by chirper-zero: THE STAIR COMES DOWN, the closing odyssey. "
+                 "Every illusion on the tape returns one by one, interlocks, runs all at once, and the stair comes down for ever. "
+                 "Generated by compose/chirpers7/src/chirpers7-t18.py; recipes from all four chirpers (compose/chirpers7/sounds.md).",
+        "tempo": tempo, "ceiling": "-1dB", "loudness": -11, "tail": "1.5s",
         "patches": {
             "stair-down": {"about": "the stair comes down: Shepard tones (chirper-two's c2-stair recipe), a softer decay",
                            "synth": {"layers": [{"type": "shepard", "shepard": {"octaves": 8, "center": "1200hz", "width": 1.2}}],
                                      "amp": {"a": "6ms", "d": "900ms", "s": 0.3, "r": "600ms"}}},
-            "fall-pad": {"about": "the stair comes down: falling Shepard chords - each note glides down an octave every 8 s, for ever",
+            "fall-pad": {"about": "falling Shepard chords - each note glides down an octave every 8 s, for ever",
                          "synth": {"layers": [{"type": "shepard", "shepard": {"octaves": 8, "center": "300hz", "width": 1.2, "cycle": "8s", "down": True}}],
                                    "amp": {"a": "2s", "s": 1, "r": "4s"}}},
+            "stair-up": {"about": "chirper-two's c2-stair: the Shepard tone that climbs for ever",
+                         "synth": {"layers": [{"type": "shepard", "shepard": {"octaves": 8, "center": "600hz", "width": 1.1}}],
+                                   "amp": {"a": "4ms", "d": "700ms", "s": 0.25, "r": "400ms", "curve": 2}}},
+            "tritone": {"about": "chirper-two's c2-tritone: a wide Shepard tone; a pair a tritone apart has no up or down",
+                        "synth": {"layers": [{"type": "shepard", "shepard": {"octaves": 9, "center": "500hz", "width": 1.4}}],
+                                  "amp": {"a": "4ms", "d": "400ms", "s": 0.2, "r": "200ms"}}},
+            "pure": {"about": "a pure tone for the octave illusion", "synth": {"layers": ["sine"], "amp": {"a": "4ms", "s": 1, "r": "20ms"}}},
+            "static": {"about": "chirper-two's static burst: broadband noise 300 Hz-7 kHz, flat while held",
+                       "synth": {"layers": [{"type": "noise"}], "filters": ["hp cutoff=300", "lp cutoff=7000"], "amp": {"a": "6ms", "s": 1, "r": "10ms"}}},
+            "zwick": {"about": "chirper-three's Zwicker noise: broadband with a notch around the after-tone",
+                      "synth": {"layers": [{"type": "noise"}], "amp": {"a": "1.5s", "s": 1, "r": "4ms"}}},
+            "hiss": {"about": "chirper-one's Huggins wash: pink hiss, identical to both ears but for an allpass band",
+                     "synth": {"layers": [{"type": "noise", "color": "pink"}], "amp": {"a": "2.5s", "d": "1s", "s": 1, "r": "4ms"}}},
         },
-        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=30", f"peak cutoff=50 q=1 gain={-10 if EQ2 else -7}dB", "peak cutoff=110 q=1 gain=3dB", "peak cutoff=320 q=0.8 gain=-3dB",
-                                                   *(["peak cutoff=160 q=1.2 gain=-3dB", "peak cutoff=550 q=1 gain=-3dB"] if EQ3 else []),
-                                                   "peak cutoff=1000 q=0.7 gain=-3dB", "peak cutoff=1400 q=1.2 gain=-4dB", "highshelf cutoff=4500 gain=9dB",
-                                                   f"highshelf cutoff=9000 gain={8 if EQ2 else (7 if EQ3 else 5)}dB", *(["peak cutoff=3100 q=1.5 gain=4dB", "highshelf cutoff=11000 gain=4dB"] if (SPEC or SPEC2) else []), *(["peak cutoff=3100 q=1.5 gain=4dB"] if (SPEC3 and not (SPEC or SPEC2)) else [])]},
+        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=30", "peak cutoff=50 q=1 gain=-7dB", "peak cutoff=110 q=1 gain=3dB",
+                                                   "peak cutoff=320 q=0.8 gain=-3dB", "peak cutoff=1000 q=0.7 gain=-3dB",
+                                                   "peak cutoff=3100 q=1.5 gain=4dB", "highshelf cutoff=4500 gain=7dB", "highshelf cutoff=9000 gain=5dB"]},
                           {"type": "compressor", "threshold": "-20dB", "ratio": 2.5, "attack": "15ms", "release": "150ms", "makeup": "0dB"},
                           {"type": "gain", "gain": f"+{MGAIN:g}dB"},
                           {"type": "compressor", "threshold": f"{FCOMP.split(',')[0]}dB", "ratio": 8, "attack": FCOMP.split(',')[1], "release": "60ms", "makeup": "0dB"},
@@ -263,21 +393,42 @@ def song():
         "buses": {
             "hall": {"fx": ["reverb kind=hall decay=4s mix=1 predelay=30ms", "lp cutoff=7000"]},
             "echo": {"fx": ["delay time=3/16 feedback=0.4 mix=1 tone=2600", "hp cutoff=300", "reverb kind=hall decay=2.5s mix=0.3"]},
+            "room": {"fx": ["reverb kind=room decay=1.0s mix=1 predelay=8ms", "hp cutoff=250"]},
+            "hugL": {"fx": [{"type": "pan", "pan": -1}], "returns": []},
+            "hugR": {"fx": [{"type": "filter", "kind": "allpass", "q": 6, "cutoff": {"value": hug_hz, "mod": [{"src": "auto.gm", "amount": 1}]}},
+                            {"type": "pan", "pan": 1}], "returns": [], "auto": {"gm": {"points": gm}}},
         },
         "tracks": [
             {"name": "kick", "patch": "machine-kit", "gain": "-3dB", "score": T["kick"]},
-            *([{"name": "kickd", "patch": "dusty-kit", "gain": "-2dB", "score": T["kickd"]}] if DUSTY else []),
-            *([{"name": "kickh", "patch": "machine-kit", "gain": "-3dB", "fx": [{"type": "eq", "bands": ["peak cutoff=85 q=1 gain=-4dB", "peak cutoff=130 q=1 gain=-8dB", "peak cutoff=210 q=1 gain=-6dB"]}], "score": T["kickh"]}] if HEAD else []),
-            *([{"name": "kickin", "patch": "machine-kit", "gain": "-3dB", "fx": [{"type": "filter", "kind": "hp", "cutoff": 110, "q": 0.7}], "score": T["kickin"]}] if SWAP else []),
-            {"name": "hats", "patch": "machine-kit", "gain": f"{HATSG}dB", "pan": 0.1, "lfo": {"hh": "sine rate=7/1"},
-             "fx": [{"type": "filter", "kind": "hp", "cutoff": {"value": 3500, "mod": [{"src": "lfo.hh", "amount": 0.5}]}, "q": 0.7}], "score": T["hats"]},
-            {"name": "clap", "patch": "machine-kit", "gain": "-10dB", "sends": {"hall": "-10dB"}, "score": T["clap"]},
+            {"name": "hats", "patch": "machine-kit", "gain": "-1dB", "pan": 0.1, "score": "swing16=0.56 " + T["hats"]},
+            {"name": "clap", "patch": "machine-kit", "gain": "-10dB", "sends": {"hall": "-10dB"}, "score": "swing16=0.56 " + T["clap"]},
+            {"name": "rims", "patch": "machine-kit", "gain": "-10dB", "sends": {"hall": "-10dB"}, "score": T["rims"]},
             {"name": "sub", "patch": "sub", "gain": "-14dB", "fx": [pump, {"type": "phantom", "cutoff": 100, "harmonics": "-6dB"}], "score": T["sub"]},
-            *([{"name": "subh", "patch": "sub", "gain": "-14dB", "score": T["subh"]}] if "s" in HEAD else []),
-            {"name": "pads", "patch": "pad" if PADP else "pad-glass", "gain": ("-17dB" if PADP == "pad" else f"{PADG}dB"), "fx": [pump, *([{"type": "filter", "kind": "lp", "cutoff": 4000, "q": 0.7}] if PADP == "padlp" else []), *([{"type": "eq", "bands": ["peak cutoff=341 q=2 gain=-3dB", "peak cutoff=467 q=2 gain=-5dB"]}] if SPEC else [])], "sends": {"hall": "-6dB"}, "score": T["pads"]},
+            {"name": "pads", "patch": "pad-glass", "gain": "-16dB", "fx": [pump], "sends": {"hall": "-6dB"}, "score": T["pads"]},
+            {"name": "stab", "patch": "house-chord", "gain": "-12dB", "fx": [pump], "sends": {"echo": "-8dB"}, "score": T["stab"]},
             {"name": "stair", "patch": "stair-down", "gain": "-12dB", "sends": {"echo": "-8dB", "hall": "-8dB"}, "score": T["stair"]},
-            *([{"name": "stair2", "patch": "stair-down", "gain": "-16dB", "transpose": 12, "pan": 0.3, "sends": {"echo": "-6dB"}, "score": T["stair2"]}] if FORM2 else []),
             {"name": "fall", "patch": "fall-pad", "gain": "-12dB", "sends": {"hall": "-4dB"}, "score": T["fall"]},
+            {"name": "up", "patch": "stair-up", "gain": ilv(-10), "pan": -0.2, "sends": {"echo": "-8dB", "hall": "-10dB"}, "score": T["up"]},
+            *endless("pole", T["pole"], 4, ilv(-9)),
+            {"name": "speech", "patch": "voice-speech", "gain": ilv(-6), "sends": {"echo": "-10dB", "hall": "-12dB"}, "score": T["speech"]},
+            {"name": "tri", "patch": "tritone", "gain": ilv(-10), "pan": 0.2, "sends": {"hall": "-10dB"}, "score": T["tri"]},
+            {"name": "acidA", "patch": "acid", "gain": ilv(-12), "pan": -0.1, "score": T["acidA"]},
+            {"name": "acidB", "patch": "acid", "gain": ilv(-12), "pan": -0.1, "score": T["acidB"]},
+            {"name": "phantom", "patch": "phantom-bass", "gain": ilv(-8), "fx": [pump], "score": T["phantom"]},
+            {"name": "octL", "patch": "pure", "gain": ilv(-18), "pan": -1, "score": T["octL"]},
+            {"name": "octR", "patch": "pure", "gain": ilv(-18), "pan": 1, "score": T["octR"]},
+            {"name": "cont", "patch": "pad-glass", "gain": ilv(-6), "pan": 0.15, "sends": {"hall": "-10dB"}, "score": T["cont"]},
+            {"name": "burst", "patch": "static", "gain": ilv(-14), "score": T["burst"]},
+            {"name": "zw", "patch": "zwick", "gain": ilv(-12), "fx": [
+                {"type": "filter", "kind": "notch", "cutoff": round(zw_f * 0.9, 1), "q": 1.5}, {"type": "filter", "kind": "notch", "cutoff": round(zw_f, 1), "q": 1.5},
+                {"type": "filter", "kind": "notch", "cutoff": round(zw_f * 1.1, 1), "q": 1.5}, "hp cutoff=120", "lp cutoff=9000"], "score": T["zw"]},
+            {"name": "bell", "patch": "bell", "gain": ilv(-10), "sends": {"hall": "-8dB"}, "score": T["bell"]},
+            {"name": "wash", "patch": "hiss", "gain": ilv(-12), "fx": ["hp cutoff=200", "lp cutoff=9000"], "out": "hugL", "sends": {"hugR": "0dB"}, "score": T["wash"]},
+            {"name": "earL", "patch": "blip", "gain": ilv(-12), "pan": -1, "sends": {"hall": "-14dB"}, "score": T["earL"]},
+            {"name": "earR", "patch": "blip", "gain": ilv(-12), "pan": 1, "sends": {"hall": "-14dB"}, "score": T["earR"]},
+            *turning("swing16=0.56 " + T["loop"]),
+            *[risset("accel", a, nb) for a, nb in rspans["accel"]],
+            *[risset("decel", a, nb) for a, nb in rspans["decel"]],
         ],
     }
     return doc
