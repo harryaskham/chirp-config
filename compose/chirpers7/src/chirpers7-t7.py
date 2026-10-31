@@ -7,7 +7,7 @@ THE OCTAVE ILLUSION (Diana Deutsch): two pure tones an octave apart alternate be
 ear hears high, low, high, low while the right hears low, high, low, high, every eighth note. Most listeners do not
 hear that: they hear ONE tone hopping from ear to ear and changing octave as it goes (and which ear seems to get the
 high one depends on handedness). The pair steps THE STAIR (C# D# E G#), one step every eight bars.
-Form (bars): intro 16 (the seam from t6: kick, clicks, and - v2 - the octave tones on C#, quietly, shaking hands with
+Form (bars; v9: intro 16 / A 32 / B 40 / break 16 / C 24 / outro 16, off the tape's template): intro (the seam from t6: kick, clicks, and - v2 - the octave tones on C#, quietly, shaking hands with
 t6's phantom C#) / A 32 (the sub; the tones enter at bar 8, quietly) /
 B 32 (dub chord stabs, the tones forward, a swung stutter every eight bars) / break 16 (the drums leave: the illusion
 alone in the dark, a long hall; in its second half the hopping doubles to sixteenths) / C 32 (everything) / outro 16 (the seam to t8: kick, clicks, the tones fading).
@@ -23,7 +23,9 @@ BPM_IN, BPM_OUT = 120.5, 121.0
 NN = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
 def nm(m): return f"{NN[m % 12]}{m // 12 - 1}"
 
-FORM = [('intro', 16), ('A', 32), ('B', 32), ('break', 16), ('C', 32), ('outro', 16)]
+# (v9) a micro-house form, not the tape's template: a long second groove (40) where the
+# clicks and stutters do the work, a shorter last groove (24)
+FORM = [('intro', 16), ('A', 32), ('B', 40), ('break', 16), ('C', 24), ('outro', 16)]
 CH = [(37, [61, 64, 68, 71, 75]), (33, [61, 64, 68, 69]), (40, [61, 64, 68, 71]), (44, [63, 66, 68, 71])]
 STAIR = [61, 63, 64, 68]                    # C#4 D#4 E4 G#4 (the low tone; the high is an octave up)
 
@@ -91,7 +93,7 @@ def build():
                 low += 1
             if s == 'intro':
                 low = STAIR[0]
-            v = {'intro': 46 + i, 'A': 64, 'B': 78, 'break': 84, 'C': 80, 'outro': 66 - 2 * max(0, i - 4)}[s]
+            v = {'intro': min(62, 46 + i), 'A': 64, 'B': 78, 'break': 84, 'C': 80, 'outro': 66 - 2 * max(0, i - 4)}[s]
             # (v3) in the break's second half the hopping doubles to sixteenths - the tone seems to dart between the ears
             fast = s == 'break' and i >= 8
             n_e, st = (16, 0.25) if fast else (8, 0.5)
