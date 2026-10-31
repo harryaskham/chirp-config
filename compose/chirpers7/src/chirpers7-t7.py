@@ -188,8 +188,10 @@ def build():
                  warp=[{'over': '48bar', 'to': 0}, {'over': '10bar', 'to': 0.25, 'curve': 'smooth'}, {'over': '10bar', 'to': -0.125, 'curve': 'smooth'},
                        {'over': '10bar', 'to': 0.1875, 'curve': 'smooth'}, {'over': '10bar', 'to': 0, 'curve': 'in'}]),
             # (v10) the tones come forward 6 dB: the illusion was 7 LU under the mix (chirp-eco's meter)
-            tr('earL', tone, '-14dB', pan=-1.0, sends={'hall': '-16dB'}),
-            tr('earR', tone, '-14dB', pan=1.0, sends={'hall': '-16dB'}),
+            # (v15) DRY EARS (chirper-zero's ear-illusion rule): the octave tones lose their hall send - the stereo reverb
+            # was feeding each ear's tone into the other ear and blurring which ear has the high note
+            tr('earL', tone, '-14dB', pan=-1.0),
+            tr('earR', tone, '-14dB', pan=1.0),
         ]}
 
 if __name__ == '__main__':

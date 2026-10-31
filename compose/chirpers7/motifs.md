@@ -177,3 +177,4 @@ Generator `compose/chirpers7/src/chirpers7-t18.py`. The closer: ambient deep hou
 - **t13 THE SHOVE** (v17): in B and C the claps sit 0.02 of a beat late, a ghost clap lands on the 'a' of two every other bar, and every fourth bar a kick pickup on the 'a' of four shoves the next downbeat.
 - **t12 THE DUB DROP** (v19): the one-beat full-mix silences at the phrase ends become dub drops - the drums out for a beat, the bass holding, the echo throw ringing through and cut on the downbeat.
 - **t7 TEACH THE TUNE FIRST** (v14): the first groove's last eight bars play the stair tune plainly in one octave before the second groove scatters it - the obvious version, then the subtle one.
+- **t7 DRY EARS** (v15, chirper-zero's ear-illusion rule): the octave tones lose their hall send; soloed, the far ear's leakage of each ear's tone drops from -19 dB (the stereo reverb feeding it across) to -70 dB.
