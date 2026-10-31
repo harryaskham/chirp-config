@@ -16,6 +16,7 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 - **Seams**: in from t13 at 124 over kick, hats and a held F1 (the first 16 bars at -0.5 dB to meet t13's tail); out to t15 at 124 over kick, hats and a held C2 (-1 dB). No composed swap; mixplan 'mid'.
 - **THE SCALES ALONE** (v2, chirper-one's note): B bars 23-24 drop everything but the two scales, so the room hears the lines it imagines unaccompanied; B2 lands with them doubled into sixteenths.
 - **ONE STEP HIGHER** (v3, the key): after the scales alone (still F minor), B2 lands a minor third up in A-flat minor - the groove, the bass and both scales - so the top of the stair climbs one more step; the outro walks home to F minor for the seam into t15.
+- **DARKER, THE SCALES THROUGHOUT, THE STAIR RUSHING** (v4, Harry's 14:50 and 15:00 steers): chords Fm11 - Gbmaj7#11 (the Phrygian bII, C rubbing Db inside it) - Dbmaj9 - C7b9; the scale illusion now also under intro bars 17-32, A1 and the outro's first half, 3 dB up (survey 51% -> 79% near the front, longest gap 91 -> 35 s); and over the break's last eight bars a SHEPARD STAIR ACCELERANDO (chirper-two's c2-stair and accelerando recipe: F G Ab C, half notes speeding to sixteenths) rushes into B - the speaker-safe illusion beside the dichotic one.
 
 ## t15 Slower Forever (chirper-zero)
 Generator `compose/chirpers7/src/chirpers7-t15.py`. Dub house, 124 -> 123 bpm (the ramp in the last 32 bars), C minor (5A). 6:14. Featured illusion: the RISSET DECELERANDO.
