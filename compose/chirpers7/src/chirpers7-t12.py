@@ -4,12 +4,14 @@
 Deep, wet, spacious dub house - chords thrown into a dark echo, a sub you feel, room in every bar - between Both Ways
 (t11) and Faster Forever (t13). 123 -> 123.5 bpm (ramped inside), Bb minor (3A): Bbm9 - Gbmaj7 - Ebm9 - Fm7; the harmony
 opens through the track (A on Bbm9 alone, B swinging to Gbmaj7, C the whole cycle), over a sub that holds Bb as a pedal.
-THE ZWICKER TONE (Eberhard Zwicker, 1964): broadband noise with a NOTCH cut out of it, heard for a few seconds and
-then stopped, leaves a faint after-tone - a ghost - pitched near the hole's lower edge, for a few seconds of silence.
-At the end of each sixteen-bar phrase a wide wash of pink noise swells for two bars with an octave-wide notch at a
-step of THE STAIR (Bb C Db F, around 2 kHz), then the whole track stops for one beat, and in that silence the ghost
-note hangs where the hole was. In the break the washes come alone; in the last groove the Rhodes plays the ghost's
-note out loud, as if the after-image had become real.
+THE HUGGINS PITCH (dichotic pitch; Cramer and Huggins, 1958): the same hiss in both ears, except that in one ear a
+narrow band of it is turned through 180 degrees of phase; neither ear alone hears anything but noise, yet between the
+ears a faint, reedy note appears inside the hiss, at the band's frequency - a note that is in neither channel (and in
+mono it vanishes into a thin notch). At the end of each sixteen-bar phrase a wash of hiss swells for two bars and THE
+STAIR sings inside it as a ghost (Bb C Db F around 1 kHz, a step every two beats, the order turning each phrase), then
+the whole track stops for one beat. In the break the ghost sings alone; in the last groove the Rhodes plays the ghost's
+last note out loud after each silence, as if it had become real. (v5: the illusion moved from the Zwicker tone, which
+chirper-three's t10 carries, to the Huggins pitch.)
 Under each wash the echo's feedback climbs toward self-oscillation (a dub throw) and is cut with the silence.
 Form (bars): intro 16 (the seam from t11) / A 32 / B 32 / break 16 / C 32 / outro 16 (the seam to t13).
 Master: chirper-zero's recipe and the song's loudness at -11 LUFS, ceiling -1 dB.
@@ -26,7 +28,7 @@ def nm(m): return f"{NN[m % 12]}{m // 12 - 1}"
 FORM = [('intro', 16), ('A', 32), ('B', 32), ('break', 16), ('C', 32), ('outro', 16)]
 CH = [(34, [61, 65, 68, 72]), (30, [61, 65, 66, 70]), (39, [61, 63, 66, 70]), (41, [60, 63, 65, 68])]
 STAIR_ST = [0, 2, 3, 7]                       # Bb C Db F, semitones above Bb
-NOTCH_HZ = 1865.0                             # Bb6
+GHOST_HZ = 932.33                             # Bb5: the ghost's home (the allpass's centre)
 
 def line(events, total):
     ev = sorted(events)
@@ -78,8 +80,8 @@ def build():
                 T['stab'].append((t0 + 2.75, ','.join(nm(m) for m in ch[1:]), 0.25, 72))
         if s in ('intro', 'break', 'outro') and k % 4 == 0:
             T['pad'].append((t0, ','.join(nm(m - 12) for m in ch), 15.8, 74))
-    # THE WASHES: two bars of notched noise before each phrase end (every 16 bars from bar 16), then a beat of silence
-    notch, gaps, fbl, thr = [['0b', 0]], [], [['0b', 0]], [['0b', 0]]
+    # THE WASHES: two bars of hiss before each phrase end (every 16 bars from bar 16), the ghost stair inside, then a beat of silence
+    gm, gaps, fbl, thr = [['0b', 0]], [], [['0b', 0]], [['0b', 0]]
     ends = [16 * n for n in range(2, int(total // 64) + 1)]
     ends = [e * 4 for e in ends if e * 4 < total - 8]
     # also inside the break: two washes, eight bars apart
@@ -89,7 +91,13 @@ def build():
         st = STAIR_ST[n % 4]
         a0 = e - 9.0
         T['wash'].append((a0, 'C4', 8.0, 92))
-        notch += [[f'{a0 - 0.1:.2f}b', notch[-1][1]], [f'{a0:.2f}b', round(st / 12, 4)]]
+        # the ghost stair: four steps, two beats each, rotating each phrase (and falling in the break)
+        mel = [STAIR_ST[(n + j) % 4] for j in range(4)]
+        if secs['break'] <= a0 < secs['C']:
+            mel = mel[::-1]
+        for j, m in enumerate(mel):
+            gm += [[f'{a0 + 2 * j - 0.02:.2f}b', gm[-1][1]], [f'{a0 + 2 * j:.2f}b', round(m / 12, 4)]]
+        st = mel[-1]
         gaps.append(e - 1.0)
         # (v3) THE THROW: under each wash the echo's feedback climbs toward self-oscillation, the dub engineer's hand on the
         # knob, and is cut dead with everything else at the silence
@@ -111,7 +119,7 @@ def build():
         pts = before + [(g - 0.02, lvl), (g, -45), (g + 0.98, -45), (g + 1.0, lvl)] + after
     dyn = [[f'{p[0]:.2f}b', p[1]] for p in pts]
     dyn[0][0] = '0b'
-    wash = {'synth': {'layers': [{'type': 'noise', 'color': 'pink'}], 'amp': {'a': '6s', 'd': '1s', 's': 1, 'r': '4ms'}}}
+    wash = {'synth': {'layers': [{'type': 'noise', 'color': 'pink'}], 'amp': {'a': '2.5s', 'd': '1s', 's': 1, 'r': '4ms'}}}
     tr = lambda name, patch, gain, **kw: dict({'name': name, 'patch': patch, 'gain': gain, 'score': line(T[name], total)}, **kw)
     return {
         'about': "Chirpers - The Endless Stair (Chirpers VII), track 12 by chirper-one: DUB HOUSE, The Ghost Note. "
@@ -119,7 +127,10 @@ def build():
         # the ramp runs between the seams: the 16-bar overlaps hold their seam tempo, so a DJ's kicks never flam
         'tempo': [{'at': '0b', 'bpm': BPM_IN}, {'at': '64b', 'bpm': BPM_IN}, {'at': f'{total - 64:.0f}b', 'bpm': BPM_OUT, 'ramp': True}],
         'length': f'{64 * 60 / BPM_IN + (total - 128) * 60 / ((BPM_IN + BPM_OUT) / 2) + 64 * 60 / BPM_OUT + 0.15:.2f}s', 'ceiling': '-1dB', 'volume': '0dB', 'loudness': -11.0, 'tail': '0.1s',
-        'buses': {'echo': {'fx': [{'type': 'delay', 'time': '3/8', 'feedback': {'value': 0.55, 'mod': [{'src': 'auto.fb', 'amount': 1}]}, 'mix': 1}, 'lp cutoff=2200', 'hp cutoff=250',
+        'buses': {'hugL': {'fx': [{'type': 'pan', 'pan': -1}], 'returns': []},
+                  'hugR': {'fx': [{'type': 'filter', 'kind': 'allpass', 'q': 6, 'cutoff': {'value': GHOST_HZ, 'mod': [{'src': 'auto.gm', 'amount': 1}]}},
+                                  {'type': 'pan', 'pan': 1}], 'returns': [], 'auto': {'gm': {'points': gm}}},
+                  'echo': {'fx': [{'type': 'delay', 'time': '3/8', 'feedback': {'value': 0.55, 'mod': [{'src': 'auto.fb', 'amount': 1}]}, 'mix': 1}, 'lp cutoff=2200', 'hp cutoff=250',
                                   {'type': 'tape', 'drive': 0.25, 'mix': 0.5, 'wow': 6, 'flutter': 2, 'seed': 12},
                                   {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.thr', 'amount': 1}]}}], 'returns': [],
                            'auto': {'fb': {'points': fbl}, 'thr': {'points': thr}}},
@@ -135,11 +146,8 @@ def build():
             tr('sub', 'sub', '-8dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '320ms', 'curve': 0.6}]),
             tr('stab', 'epiano-tine', '-9dB', sends={'echo': '-4dB'}, fx=['lp cutoff=2600', {'type': 'pump', 'on': 'kit.k', 'depth': '-4dB', 'release': '320ms', 'curve': 0.6}]),
             tr('pad', 'juno-pad', '-12dB', sends={'hall': '-8dB'}),
-            tr('wash', wash, '-14dB',
-               fx=['hp cutoff=200', 'lp cutoff=9000',
-                   {'type': 'filter', 'kind': 'notch', 'q': 0.6, 'cutoff': {'value': NOTCH_HZ, 'mod': [{'src': 'auto.nt', 'amount': 1}]}},
-                   {'type': 'filter', 'kind': 'notch', 'q': 0.9, 'cutoff': {'value': NOTCH_HZ * 0.92, 'mod': [{'src': 'auto.nt', 'amount': 1}]}}],
-               auto={'nt': {'points': notch}}),
+            # the hiss goes dry and identical to both ears: straight to the left, and through a high-Q allpass to the right
+            tr('wash', wash, '-14dB', fx=['hp cutoff=200', 'lp cutoff=9000'], out='hugL', sends={'hugR': '0dB'}),
             tr('ghost', 'epiano-tine', '-10dB', sends={'echo': '-6dB', 'hall': '-10dB'}),
         ]}
 
