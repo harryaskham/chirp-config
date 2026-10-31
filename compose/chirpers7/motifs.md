@@ -56,6 +56,7 @@ Generator `compose/chirpers7/src/chirpers7-t16.py`. Rolling hypnotic minimal hou
 - **THE CHORD**: Am9 (A3 C4 E4 G4 B4) on the a-of-1 and the and-of-3, into a feedback echo room; Fmaj9 and G6/9 at the peak.
 - **THE WHISPER**: "up" (voice-speech, a rising f0) in the break and before the peak.
 - **THE TURN** (v2): the tape's loop join. t1 now opens with the stair still FALLING, as t18 leaves it (E C B A, two bars of Shepard tones), then a whispered "up" on bar 2's four, and the stair turns and climbs. One illusion turned round, not a restart.
+- **THE STAIR SLOWS** (v3): over t1's last 16 bars (the seam into t2) the stair's steps stretch smoothly from quarter notes to half notes (step n+1 starts 2^(p/64) beats after step n), still climbing, while the kick and the tempo hold: the tape's first play with time, a hint of the comedown.
 
 ## t17 The Room Turns (chirper-zero)
 Generator `compose/chirpers7/src/chirpers7-t17.py`. Lo-fi deep house, 122 -> 120 bpm (the ramp in the last 32 bars), D minor (7A). 5:17. Featured illusion: THE ROOM THAT TURNS (precedence / Haas), with a BINAURAL BEAT under the break.

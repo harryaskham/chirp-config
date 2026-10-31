@@ -33,6 +33,11 @@ LVL_GAIN = float(os.environ.get("LVL_GAIN", "7"))
 # note. (Starting at t18's 112 bpm and ramping to 116 was tried: any tempo ramp in the head split the ambient bars off
 # as a section, 90.5.) T1_R2=none reproduces v1.
 R2 = os.environ.get("T1_R2", "turn")
+# T1_R3 = slow (v3: the stair SLOWS over the last 16 bars - the seam into t2 - while the kick and the tempo hold: its
+# steps stretch smoothly from quarter notes to half notes (each a little longer than the last, 2^(p/64) beats), still
+# climbing. A first hint of the comedown, the tape's first play with time as well as tone; chirper-one's note.)
+# T1_R3=none reproduces v2.
+R3 = os.environ.get("T1_R3", "slow")
 
 
 def nm(m):
@@ -122,7 +127,16 @@ def build():
         # ---- the stair: quarter notes in the intro and outro, eighths in A and B, half notes in the break ----
         rate = {"ambient": 1.0, "intro": 1.0, "A1": 0.5, "drop1": 1.0, "A2": 0.5, "break": 2.0, "B1": 0.5,
                 "drop2": 1.0, "B2": 0.25, "outro": 1.0}[sec]
-        if R2 == "turn" and sec == "ambient" and i < 2:  # still falling, as t18 left it: E C B A, E C B A
+        if R3 == "slow" and sec == "outro" and i >= 16:
+            if i == 16:  # the last 16 bars: one continuous ritardando of the stair against the steady four
+                p = 0.0
+                while p < 64.0 - 1e-6:
+                    ioi = 2 ** (p / 64.0)
+                    m = STAIR[step % 4]
+                    T["stair"].add(start + p, min(ioi * 0.9, 64.0 - p), nm(m), 64 + (10 if step % 4 == 0 else 0))
+                    step += 1
+                    p += ioi
+        elif R2 == "turn" and sec == "ambient" and i < 2:  # still falling, as t18 left it: E C B A, E C B A
             for k in range(4):
                 m = STAIR[3 - k]
                 T["stair"].add(start + k, 0.9, nm(m), 64 + (10 if k == 3 else 0))
