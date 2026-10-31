@@ -7071,6 +7071,528 @@
         "at": "2026-10-30T23:00:15Z",
         "who": "chirper-two"
       }
+    },
+    {
+      "id": "chirpers7-t1",
+      "song": "songs/chirpers7-t1.yaml",
+      "reference": "Chirpers — Track 1 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers7-t1 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "deep / heavy minimal house (mixtape)",
+      "mode": "compose",
+      "album": "chirpers7",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers VII (untitled)",
+        "title": "Track 1 (untitled)",
+        "track": 1,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-31T02:08:20Z",
+        "note": "COMPOSE (opener, 180-480 s): Opens the mixtape. Style, featured illusion, tempo, key and line-up are yours: declare them in compose/chirpers7/styles.md and your seams in compose/chirpers7/mixplan.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers7-t2",
+      "song": "songs/chirpers7-t2.yaml",
+      "reference": "Chirpers — Track 2 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers7-t2 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "deep / heavy minimal house (mixtape)",
+      "mode": "compose",
+      "album": "chirpers7",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers VII (untitled)",
+        "title": "Track 2 (untitled)",
+        "track": 2,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-31T02:08:20Z",
+        "note": "COMPOSE (song, 240-480 s): Style, featured illusion, tempo, key and line-up are yours: declare them in compose/chirpers7/styles.md and your seams in compose/chirpers7/mixplan.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers7-t3",
+      "song": "songs/chirpers7-t3.yaml",
+      "reference": "Chirpers — Track 3 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers7-t3 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "deep / heavy minimal house (mixtape)",
+      "mode": "compose",
+      "album": "chirpers7",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers VII (untitled)",
+        "title": "Track 3 (untitled)",
+        "track": 3,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-31T02:08:20Z",
+        "note": "COMPOSE (song, 240-480 s): Style, featured illusion, tempo, key and line-up are yours: declare them in compose/chirpers7/styles.md and your seams in compose/chirpers7/mixplan.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers7-t4",
+      "song": "songs/chirpers7-t4.yaml",
+      "reference": "Chirpers — Track 4 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers7-t4 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "deep / heavy minimal house (mixtape)",
+      "mode": "compose",
+      "album": "chirpers7",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers VII (untitled)",
+        "title": "Track 4 (untitled)",
+        "track": 4,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-31T02:08:20Z",
+        "note": "COMPOSE (song, 240-480 s): Style, featured illusion, tempo, key and line-up are yours: declare them in compose/chirpers7/styles.md and your seams in compose/chirpers7/mixplan.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers7-t5",
+      "song": "songs/chirpers7-t5.yaml",
+      "reference": "Chirpers — Track 5 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers7-t5 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "deep / heavy minimal house (mixtape)",
+      "mode": "compose",
+      "album": "chirpers7",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers VII (untitled)",
+        "title": "Track 5 (untitled)",
+        "track": 5,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-31T02:08:20Z",
+        "note": "COMPOSE (song, 240-480 s): Style, featured illusion, tempo, key and line-up are yours: declare them in compose/chirpers7/styles.md and your seams in compose/chirpers7/mixplan.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers7-t6",
+      "song": "songs/chirpers7-t6.yaml",
+      "reference": "Chirpers — Track 6 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers7-t6 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "deep / heavy minimal house (mixtape)",
+      "mode": "compose",
+      "album": "chirpers7",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers VII (untitled)",
+        "title": "Track 6 (untitled)",
+        "track": 6,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-31T02:08:20Z",
+        "note": "COMPOSE (song, 240-480 s): Style, featured illusion, tempo, key and line-up are yours: declare them in compose/chirpers7/styles.md and your seams in compose/chirpers7/mixplan.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers7-t7",
+      "song": "songs/chirpers7-t7.yaml",
+      "reference": "Chirpers — Track 7 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers7-t7 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "deep / heavy minimal house (mixtape)",
+      "mode": "compose",
+      "album": "chirpers7",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers VII (untitled)",
+        "title": "Track 7 (untitled)",
+        "track": 7,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-31T02:08:20Z",
+        "note": "COMPOSE (song, 240-480 s): Style, featured illusion, tempo, key and line-up are yours: declare them in compose/chirpers7/styles.md and your seams in compose/chirpers7/mixplan.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers7-t8",
+      "song": "songs/chirpers7-t8.yaml",
+      "reference": "Chirpers — Track 8 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers7-t8 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "deep / heavy minimal house (mixtape)",
+      "mode": "compose",
+      "album": "chirpers7",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers VII (untitled)",
+        "title": "Track 8 (untitled)",
+        "track": 8,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-31T02:08:20Z",
+        "note": "COMPOSE (song, 240-480 s): Style, featured illusion, tempo, key and line-up are yours: declare them in compose/chirpers7/styles.md and your seams in compose/chirpers7/mixplan.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers7-t9",
+      "song": "songs/chirpers7-t9.yaml",
+      "reference": "Chirpers — Track 9 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers7-t9 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "deep / heavy minimal house (mixtape)",
+      "mode": "compose",
+      "album": "chirpers7",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers VII (untitled)",
+        "title": "Track 9 (untitled)",
+        "track": 9,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-31T02:08:20Z",
+        "note": "COMPOSE (song, 240-480 s): Style, featured illusion, tempo, key and line-up are yours: declare them in compose/chirpers7/styles.md and your seams in compose/chirpers7/mixplan.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers7-t10",
+      "song": "songs/chirpers7-t10.yaml",
+      "reference": "Chirpers — Track 10 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers7-t10 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "deep / heavy minimal house (mixtape)",
+      "mode": "compose",
+      "album": "chirpers7",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers VII (untitled)",
+        "title": "Track 10 (untitled)",
+        "track": 10,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-31T02:08:20Z",
+        "note": "COMPOSE (song, 240-480 s): Style, featured illusion, tempo, key and line-up are yours: declare them in compose/chirpers7/styles.md and your seams in compose/chirpers7/mixplan.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers7-t11",
+      "song": "songs/chirpers7-t11.yaml",
+      "reference": "Chirpers — Track 11 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers7-t11 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "deep / heavy minimal house (mixtape)",
+      "mode": "compose",
+      "album": "chirpers7",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers VII (untitled)",
+        "title": "Track 11 (untitled)",
+        "track": 11,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-31T02:08:20Z",
+        "note": "COMPOSE (song, 240-480 s): Style, featured illusion, tempo, key and line-up are yours: declare them in compose/chirpers7/styles.md and your seams in compose/chirpers7/mixplan.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers7-t12",
+      "song": "songs/chirpers7-t12.yaml",
+      "reference": "Chirpers — Track 12 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers7-t12 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "deep / heavy minimal house (mixtape)",
+      "mode": "compose",
+      "album": "chirpers7",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers VII (untitled)",
+        "title": "Track 12 (untitled)",
+        "track": 12,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-31T02:08:20Z",
+        "note": "COMPOSE (song, 240-480 s): Style, featured illusion, tempo, key and line-up are yours: declare them in compose/chirpers7/styles.md and your seams in compose/chirpers7/mixplan.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers7-t13",
+      "song": "songs/chirpers7-t13.yaml",
+      "reference": "Chirpers — Track 13 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers7-t13 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "deep / heavy minimal house (mixtape)",
+      "mode": "compose",
+      "album": "chirpers7",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers VII (untitled)",
+        "title": "Track 13 (untitled)",
+        "track": 13,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-31T02:08:20Z",
+        "note": "COMPOSE (song, 240-480 s): Style, featured illusion, tempo, key and line-up are yours: declare them in compose/chirpers7/styles.md and your seams in compose/chirpers7/mixplan.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers7-t14",
+      "song": "songs/chirpers7-t14.yaml",
+      "reference": "Chirpers — Track 14 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers7-t14 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "deep / heavy minimal house (mixtape)",
+      "mode": "compose",
+      "album": "chirpers7",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers VII (untitled)",
+        "title": "Track 14 (untitled)",
+        "track": 14,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-31T02:08:20Z",
+        "note": "COMPOSE (song, 240-480 s): Style, featured illusion, tempo, key and line-up are yours: declare them in compose/chirpers7/styles.md and your seams in compose/chirpers7/mixplan.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers7-t15",
+      "song": "songs/chirpers7-t15.yaml",
+      "reference": "Chirpers — Track 15 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers7-t15 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "deep / heavy minimal house (mixtape)",
+      "mode": "compose",
+      "album": "chirpers7",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers VII (untitled)",
+        "title": "Track 15 (untitled)",
+        "track": 15,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-31T02:08:20Z",
+        "note": "COMPOSE (song, 240-480 s): Style, featured illusion, tempo, key and line-up are yours: declare them in compose/chirpers7/styles.md and your seams in compose/chirpers7/mixplan.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers7-t16",
+      "song": "songs/chirpers7-t16.yaml",
+      "reference": "Chirpers — Track 16 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers7-t16 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "deep / heavy minimal house (mixtape)",
+      "mode": "compose",
+      "album": "chirpers7",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers VII (untitled)",
+        "title": "Track 16 (untitled)",
+        "track": 16,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-31T02:08:20Z",
+        "note": "COMPOSE (song, 240-480 s): Style, featured illusion, tempo, key and line-up are yours: declare them in compose/chirpers7/styles.md and your seams in compose/chirpers7/mixplan.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers7-t17",
+      "song": "songs/chirpers7-t17.yaml",
+      "reference": "Chirpers — Track 17 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers7-t17 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "deep / heavy minimal house (mixtape)",
+      "mode": "compose",
+      "album": "chirpers7",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers VII (untitled)",
+        "title": "Track 17 (untitled)",
+        "track": 17,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-31T02:08:20Z",
+        "note": "COMPOSE (song, 240-480 s): Style, featured illusion, tempo, key and line-up are yours: declare them in compose/chirpers7/styles.md and your seams in compose/chirpers7/mixplan.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers7-t18",
+      "song": "songs/chirpers7-t18.yaml",
+      "reference": "Chirpers — Track 18 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers7-t18 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "deep / heavy minimal house (mixtape)",
+      "mode": "compose",
+      "album": "chirpers7",
+      "meta": {
+        "artist": "Chirpers",
+        "album": "Chirpers VII (untitled)",
+        "title": "Track 18 (untitled)",
+        "track": 18,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-10-31T02:08:20Z",
+        "note": "COMPOSE (closer, 240-600 s): Closes the mixtape. Style, featured illusion, tempo, key and line-up are yours: declare them in compose/chirpers7/styles.md and your seams in compose/chirpers7/mixplan.md, different from the tracks already claimed."
+      }
     }
   ],
   "focus": "All the Lights Left On"
