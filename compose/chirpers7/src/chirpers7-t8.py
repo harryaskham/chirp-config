@@ -57,6 +57,11 @@ R6 = os.environ.get("T8_R6", "dark")
 # and back (warp, smooth re-locks), its pulses ducking against a pump that stays on the kick: gospel that sways.
 # Locked again before the out seam; the seam organ and the voice keep the song's clock. T8_R7=none reproduces v6.
 R7 = os.environ.get("T8_R7", "seasick")
+# T8_R8 = riser (v8, wM's time-play part 2): the shepard-pad riser and the drop's noise rise become endless Shepard
+# risers (fx-riser-endless, tinted C#): one climbing from the break's ninth bar and stopping dead exactly where the
+# radio dies (the tape-stop's first beat), then a second over the drop, stopping dead on the cleared peak.
+# T8_R8=none reproduces v7.
+R8 = os.environ.get("T8_R8", "riser")
 
 OUT = os.environ.get("T8_OUT") or os.path.expanduser("~/.config/chirp/songs/chirpers7-t8.yaml")
 NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"]
@@ -167,7 +172,9 @@ def build():
         if R6 == "dark" and ((sec == "in" and i >= 8) or (sec == "out" and i < 12)):
             seamgaps.append((start + 1.5, 0.25))
             T["static"].add(start + 1.46, 0.33, "C5", 90 + rng.randint(-6, 6))
-        if R6 == "dark" and ((sec == "break" and i == 8) or (sec == "drop2" and i == 0)):
+        if R6 == "dark" and R8 == "riser" and sec == "break" and i == 8:
+            T["riser"].add(start, 30.0, "C#4", 80)  # stops dead as the radio dies
+        elif R6 == "dark" and R8 != "riser" and ((sec == "break" and i == 8) or (sec == "drop2" and i == 0)):
             T["riser"].add(start, 31.8 if sec == "break" else 15.8, "C#4,G#4", 84)
         # ---- the voice: a phrase per four bars; the gaps by section ----
         if (core or sec == "break") and i % 8 == 0:
@@ -193,7 +200,7 @@ def build():
                 gaps.append((g0, 0.25))
                 T["static"].add(g0, 0.25, "C5", 96 + rng.randint(-6, 6))
         if sec in ("drop1", "drop2") and i == 0:
-            T["rise"].add(start, 16.0, "C4", 92)
+            T["rise"].add(start, 16.0, "C#4" if R8 == "riser" else "C4", 80 if R8 == "riser" else 92)
     sec = []
     for name, n in FORM:
         first = next(bb for bb in bars if bb[1] == name)
@@ -268,7 +275,9 @@ def main():
             "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.sgap", "amount": -60}]}},
                    "hp cutoff=300", "reverb kind=hall decay=2.2s mix=0.25"],
             "auto": {"sgap": {"points": sgate}}, "score": T["organseam"].score(total)},
-           {"name": "riser", "patch": "shepard-pad", "gain": "-13dB", "fx": ["hp cutoff=250", "width width=1.4"],
+           {"name": "riser", "patch": "fx-riser-endless amp.a=30b" if R8 == "riser" else "shepard-pad",
+            "gain": "-12dB" if R8 == "riser" else "-13dB",
+            "fx": [] if R8 == "riser" else ["hp cutoff=250", "width width=1.4"],
             "score": T["riser"].score(total)}] if R6 == "dark" else []),
         {"name": "voice", "patch": "voice", "gain": "-6dB", "pan": 0.05,
          "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.gap", "amount": -60}]}},
@@ -276,7 +285,9 @@ def main():
          "auto": {"gap": {"points": gate}}, "score": T["voice"].score(total)},
         {"name": "static", "patch": "c2-static-burst", "gain": "-8dB", "pan": 0.05,
          "fx": [{"type": "crush", "bits": 9, "rate": 14000, "mix": 0.4}], "score": T["static"].score(total)},
-        {"name": "rise", "patch": "c2-rise", "gain": "-20dB", "fx": ["width width=1.5"], "score": T["rise"].score(total)},
+        ({"name": "rise", "patch": "fx-riser-endless amp.a=16b", "gain": "-12dB", "score": T["rise"].score(total)}
+         if R8 == "riser" else
+         {"name": "rise", "patch": "c2-rise", "gain": "-20dB", "fx": ["width width=1.5"], "score": T["rise"].score(total)}),
     ] + ([{"name": "tamb", "patch": "samba-kit", "gain": "-3dB", "pan": 0.3,
            "fx": ["hp cutoff=1800", "reverb kind=room decay=0.6s mix=0.18"], "score": T["tamb"].score(total)}]
          if R5 == "tamb" else [])
