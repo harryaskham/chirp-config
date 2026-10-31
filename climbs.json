@@ -7113,6 +7113,13 @@
           },
           "at": "2026-10-31T06:28:51Z",
           "was": 93.928
+        },
+        "stale": {
+          "score": 96.443,
+          "since": "2026-10-31T09:14:38Z",
+          "who": "chirper-zero",
+          "rating": 9.0,
+          "version": "v1"
         }
       },
       "passes": 1,
