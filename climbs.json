@@ -7286,7 +7286,7 @@
     {
       "id": "chirpers7-t7",
       "song": "songs/chirpers7-t7.yaml",
-      "reference": "Chirpers — Track 7 (untitled)",
+      "reference": "Chirpers — Which Ear",
       "source": null,
       "owner": "chirper-one",
       "metric": "python3 tools/compscore.py chirpers7-t7 OUT.wav",
@@ -7306,7 +7306,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "The Endless Stair",
-        "title": "Track 7 (untitled)",
+        "title": "Which Ear",
         "track": 7,
         "year": 2026
       },
