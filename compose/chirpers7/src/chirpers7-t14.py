@@ -23,7 +23,10 @@ S = 0.25
 BAR = 16
 MGAIN = float(os.environ.get("C7T14_MGAIN", "8"))
 FCOMP = os.environ.get("C7T14_FCOMP", "-16,0.3ms")
-SEAMLV = os.environ.get("C7T14_SEAMLV", "-0.5,-1")  # the seam bars' levels (first 16, last 16, dB): set to meet t13's tail and t15's head as the live crossfade plays them
+SEAMLV = os.environ.get("C7T14_SEAMLV", "-0.5,1")  # the seam bars' levels (first 16, last 16, dB): set to meet t13's tail and t15's head as the live crossfade plays them
+SOLO = os.environ.get("C7T14_SOLO", "1") == "1"  # chirper-one's note: B bars 23-24 the scales alone, unaccompanied, so the room hears the two lines it imagines before the groove folds them back in (and B2 lands with them in 16ths)
+PRES = os.environ.get("C7T14_PRES", "1") == "1"  # presence: the clap 3 dB up and 3.5 kHz +3 dB (2.6-4.2 kHz read 7-9 dB under the album)
+DOT = os.environ.get("C7T14_DOT", "")  # a dotted-eighth rim and shaker cycle (every third 16th across the bar lines) in the named sections: "B" or "A,B"
 ANTIC = os.environ.get("C7T14_ANTIC", "1") == "1"  # the organ stabs anticipate: on the a-of-1 and the a-of-3 (16ths 3 and 11), jackin' pushes
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
@@ -34,7 +37,7 @@ CH = [(29, [56, 60, 63, 67]),   # Fm9: Ab3 C4 Eb4 G4 over F
       (25, [53, 56, 60, 63])]   # Dbmaj7(9): F3 Ab3 C4 Eb4 over Db
 ASC = [65, 67, 68, 70, 72, 73, 75, 77]          # F4 G4 Ab4 Bb4 C5 Db5 Eb5 F5 (F natural minor, THE STAIR F G Ab C inside)
 DESC = list(reversed(ASC))
-TRACKS = ("kick", "hats", "clap", "sub", "bass", "organ", "earL", "earR", "pad")
+TRACKS = ("kick", "hats", "clap", "sub", "bass", "organ", "earL", "earR", "pad", "dot")
 
 
 def nm(m):
@@ -99,6 +102,15 @@ def build():
             r, v = CH[b % 4]
             seam_in = sec == "intro" and b < 16
             seam_out = sec == "outro" and b >= 16
+            solo = SOLO and sec == "B" and b in (22, 23)
+            if solo:
+                for k, q in enumerate(range(0, 16, 2)):
+                    i = k % 8
+                    lo, hi = ASC[i], DESC[i]
+                    left, right = (lo, hi) if i % 2 == 0 else (hi, lo)
+                    add("earL", at + q, nm(left), 2, 90)
+                    add("earR", at + q, nm(right), 2, 90)
+                continue
             if sec != "break":
                 for q in (0, 4, 8, 12):
                     add("kick", at + q, "k", 1, 118 if q == 0 else 110)
@@ -118,6 +130,11 @@ def build():
                 if b % 8 == 7:
                     for q in (13, 14, 15):
                         add("clap", at + q, "rs", 1, 70 + 8 * (q - 13))
+            if DOT and sec in DOT.split(","):
+                for q in range(16):
+                    k = at + q - a0
+                    if k % 3 == 0:
+                        add("dot", at + q, "rs" if (k // 3) % 2 == 0 else "sh", 1, 80 if (k // 3) % 4 == 0 else 66)
             # the sub: a held F under the seam in, the roots in the grooves, a held C2 under the seam out
             if seam_in:
                 if b % 4 == 0:
@@ -181,7 +198,7 @@ def song():
                  "compose/chirpers7/src/chirpers7-t14.py; see its docstring and compose/chirpers7/styles.md.",
         "tempo": BPM, "ceiling": "-1dB", "loudness": -11, "tail": "0.3s",
         "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=30", "peak cutoff=50 q=1 gain=-5dB", "lowshelf cutoff=70 gain=-9dB", "peak cutoff=320 q=0.8 gain=-3dB",
-                                                   "peak cutoff=3000 q=0.8 gain=4dB", "highshelf cutoff=4000 gain=7dB", "highshelf cutoff=9000 gain=4dB"]},
+                                                   "peak cutoff=3000 q=0.8 gain=4dB", *(["peak cutoff=3500 q=1 gain=3dB"] if PRES else []), "highshelf cutoff=4000 gain=7dB", "highshelf cutoff=9000 gain=4dB"]},
                           {"type": "compressor", "threshold": "-20dB", "ratio": 2.5, "attack": "15ms", "release": "150ms", "makeup": "0dB"},
                           {"type": "gain", "gain": f"+{MGAIN:g}dB"},
                           {"type": "compressor", "threshold": f"{FCOMP.split(',')[0]}dB", "ratio": 8, "attack": FCOMP.split(',')[1], "release": "60ms", "makeup": "0dB"},
@@ -196,7 +213,8 @@ def song():
             {"name": "hats", "patch": "machine-kit", "gain": "-3dB", "pan": 0.1, "lfo": {"hh": "sine rate=5/1"},
              "fx": [{"type": "filter", "kind": "hp", "cutoff": {"value": 3500, "mod": [{"src": "lfo.hh", "amount": 0.5}]}, "q": 0.7}],
              "score": "swing16=0.6 " + T["hats"]},
-            {"name": "clap", "patch": "machine-kit", "gain": "-8dB", "sends": {"room": "-6dB"}, "score": "swing16=0.6 " + T["clap"]},
+            {"name": "clap", "patch": "machine-kit", "gain": "-5dB" if PRES else "-8dB", "sends": {"room": "-6dB"}, "score": "swing16=0.6 " + T["clap"]},
+            *([{"name": "dot", "patch": "machine-kit", "gain": "-10dB", "pan": -0.3, "sends": {"room": "-10dB"}, "score": T["dot"]}] if DOT else []),
             {"name": "sub", "patch": "sub", "gain": "-16dB", "fx": [pump, {"type": "phantom", "cutoff": 100, "harmonics": "-6dB"}], "score": T["sub"]},
             {"name": "bass", "patch": "bass", "gain": "-14dB", "fx": [pump, {"type": "filter", "kind": "lp", "cutoff": 900, "q": 1.2}], "score": T["bass"]},
             {"name": "organ", "patch": "organ", "gain": "-12dB", "pan": -0.15, "fx": [pump], "sends": {"room": "-8dB"}, "score": "swing16=0.6 " + T["organ"]},
