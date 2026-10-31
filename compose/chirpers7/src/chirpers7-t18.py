@@ -30,7 +30,9 @@ EQ2 = os.environ.get("C7T18_EQ2", "0") == "1"  # 50 Hz down 10 dB (was 7), the a
 RIM3 = os.environ.get("C7T18_RIM3", "1") == "1"
 FORM2 = os.environ.get("C7T18_FORM2", "1") == "1"  # B splits (B2: the stair doubled an octave up, the hats open, no clap) and the outro is the falling floor: the kick leaves at its first bar, the falling Shepard chords return in A minor under the decelerando  # a soft rim on every third 16th in the grooves (a dotted-eighth cycle across the bar lines): the stair's echo in the kit
 
-SWAP = os.environ.get("C7T18_SWAP", "1") == "1"  # a DJ's bass swap at the seam in: for the 16 overlap bars the kick is high-passed at 110 Hz (its own track) and the held sub is out - the outgoing track carries the low end; the full kick and sub land at bar 17
+SWAP = os.environ.get("C7T18_SWAP", "0") == "1"
+SWAPBARS = int(os.environ.get("C7T18_SWAPBARS", "16"))
+INLIFT = os.environ.get("C7T18_INLIFT", "-1.5")  # the first 16 bars' level (dB, was -4): the closer comes in under t17's tail at its level, so the live crossfade doesn't sag  # how many overlap bars the incoming lows wait (16: until the overlap ends; 8: the crossfade's midpoint, where the linear fade has both sides at half)  # a DJ's bass swap at the seam in: for the 16 overlap bars the kick is high-passed at 110 Hz (its own track) and the held sub is out - the outgoing track carries the low end; the full kick and sub land at bar 17
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 FORM = [("intro", 32), ("A", 32), ("break", 16), ("B", 32), ("home", 32), ("outro", 32)]
@@ -167,9 +169,10 @@ def build():
             if sec == "break" and b % 8 == 0:
                 add("fall", at, ",".join(nm(n) for n in v), 8 * BAR, 76)
     if SWAP:
-        ev["kickin"] = [e for e in ev["kick"] if e[0] < 16 * BAR]
-        ev["kick"] = [e for e in ev["kick"] if e[0] >= 16 * BAR]
-        ev["sub"] = [e for e in ev["sub"] if e[0] >= 16 * BAR]
+        ev["kickin"] = [e for e in ev["kick"] if e[0] < SWAPBARS * BAR]
+        ev["kick"] = [e for e in ev["kick"] if e[0] >= SWAPBARS * BAR]
+        held = [e for e in ev["sub"] if e[0] < SWAPBARS * BAR < e[0] + e[2]]  # a held note crossing the swap re-enters at the swap point
+        ev["sub"] = [e for e in ev["sub"] if e[0] >= SWAPBARS * BAR] + [(SWAPBARS * BAR, h, e0 + ln - SWAPBARS * BAR, v) for (e0, h, ln, v) in held]
     return {k: stream(ev[k], total) for k in TRACKS}
 
 
@@ -194,7 +197,7 @@ def song():
     total_b = total_steps() // 4
     tempo = [{"at": "0b", "bpm": BPM0}, {"at": beats(st["outro"]), "bpm": BPM0}, {"at": f"{total_b}b", "bpm": BPM1, "ramp": True}]
     pump = {"type": "pump", "on": "kick.k", "depth": "-5dB", "attack": "2ms", "release": "220ms", "curve": 0.7}
-    dyn = lane([(0, -4), (st["intro"] + 16 * BAR, -3), (st["A"], -1), (st["A"] + 16 * BAR, 0), (st["break"], -7), (st["B"], 0),
+    dyn = lane([(0, float(INLIFT) if INLIFT else -4), (st["intro"] + 16 * BAR, -3), (st["A"], -1), (st["A"] + 16 * BAR, 0), (st["break"], -7), (st["B"], 0),
                 (st["home"], 1), (st["outro"], -2), (st["outro"] + 16 * BAR, -5)])
     doc = {
         "about": "Chirpers - The Endless Stair (Chirpers VII), track 18 by chirper-zero: THE CLOSER, ambient deep house, the stair "
