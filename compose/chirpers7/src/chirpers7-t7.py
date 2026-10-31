@@ -52,6 +52,14 @@ def build():
     for k, b in enumerate(bars):
         s, t0, i = b['sec'], b['t'], b['i']
         root, ch = CH[(k // 2) % 4]
+        # (v7) THE OTHER EAR'S KEY: for the last groove's final sixteen bars the minor turns major - C#m9 becomes C#maj9 (E
+        # to E#), G#m7 becomes G#7 (B to B#, the leading note) - and THE STAIR the octave tones step goes major with it
+        maj = s == 'C' and i >= 16
+        if maj:
+            if root % 12 == 1:
+                ch = [m + 1 if m % 12 == 4 else m for m in ch]
+            elif root % 12 == 8:
+                ch = [m + 1 if m % 12 == 11 else m for m in ch]
         drums = s != 'break'
         if drums:
             for q in range(4):
@@ -79,6 +87,8 @@ def build():
         on = s == 'intro' or (s == 'A' and i >= 8) or s in ('B', 'break', 'C') or (s == 'outro' and i < 12)
         if on:
             low = STAIR[(k // 8) % 4]
+            if maj and low % 12 == 4:
+                low += 1
             if s == 'intro':
                 low = STAIR[0]
             v = {'intro': 46 + i, 'A': 64, 'B': 78, 'break': 84, 'C': 80, 'outro': 66 - 2 * max(0, i - 4)}[s]
