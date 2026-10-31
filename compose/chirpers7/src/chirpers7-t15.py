@@ -43,6 +43,7 @@ SWAP = os.environ.get("C7T15_SWAP", "0") == "1"
 SWAPBARS = int(os.environ.get("C7T15_SWAPBARS", "16"))  # how many overlap bars the incoming lows wait (16: until the overlap ends; 8: the crossfade's midpoint, where the linear fade has both sides at half)  # a DJ's bass swap at the seam in: for the 16 overlap bars the kick is high-passed at 110 Hz (its own track) and the held sub is out - the outgoing track carries the low end; the full kick and sub land at bar 17
 
 EQ6 = os.environ.get("C7T15_EQ6", "b")  # "a": 45 Hz -5 dB (37-60 Hz read 6-9 dB over the album); "b": also 3.8 kHz +4 dB (3-5 kHz read 6-8 dB under)
+KEYUP = int(os.environ.get("C7T15_KEYUP", "3"))  # B's last 16 bars lift KEYUP semitones (the dub's last high before the comedown); r2 and the outro walk home to C minor
 ALONE = os.environ.get("C7T15_ALONE", "1") == "1"  # chirper-one's note: break bar 30, the deepest point, the decelerating bed alone (no hats, the pad cut, the kick still out) - then the kick comes back
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
@@ -115,6 +116,8 @@ def build():
         for b in range(nb):
             at = a0 + b * BAR
             r, v = CH[b % 4]
+            ku = KEYUP if (sec == "B" and b >= 32) else 0
+            r, v = r + ku, [n + ku for n in v]
             seam_in = sec == "intro" and b < 16
             seam_out = sec == "outro" and b >= 16
             # --- kick: four on the floor, everywhere but the break
@@ -162,7 +165,7 @@ def build():
                     add("hats", at + q, "rs", 1, 74)
             if sec == "B" and b >= 24 and b % 2 == 0:
                 for k, n in enumerate((67, 63, 62, 60)):
-                    add("stair", at + 4 * k, nm(n + 12), 3, 84 - 2 * k)
+                    add("stair", at + 4 * k, nm(n + 12 + ku), 3, 84 - 2 * k)
             # --- THE STAIR rising in the outro (C D Eb G), handing t16 its G
             if sec == "outro" and 8 <= b < 16 and b % 2 == 0:
                 for k, n in enumerate((60, 62, 63, 67)):

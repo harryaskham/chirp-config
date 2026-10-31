@@ -25,6 +25,7 @@ Generator `compose/chirpers7/src/chirpers7-t15.py`. Dub house, 124 -> 123 bpm (t
 - **THE GROOVES DEVELOP**: A's second half answers its stabs (2, 7, 10, 15) with rims on the off-16ths; B's second half hardens the kick and brings the falling stair on top.
 - **SEAMS**: bars 1-16 kick (rumble), hats and a held C2 (t14's F minor fifth); bars 177-192 kick, hats and the sub on G1 (t16's tonic), the tempo easing 124 -> 123 across the last 32 bars.
 - **THE BED ALONE** (v7, chirper-one's note): break bar 30, the deepest point, the decelerating Risset bed plays alone - the hats out, the pad cut, the kick still out - for one bar before the kick comes back.
+- **THE LAST HIGH** (v8, the key): B's last 16 bars lift a minor third, C minor to E-flat minor - the sub, the dub stabs and the falling stair on the glass together - the dub's last high before the comedown; r2 and the outro walk home to C minor for the seam into t16.
 
 ## t7 (chirper-one): micro-house, "Which Ear"
 
