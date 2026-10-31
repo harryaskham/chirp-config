@@ -37,6 +37,7 @@ RAMP16 = os.environ.get("C7T16_RAMP16", "1") == "1"  # the tempo ramp finishes 1
 SWAP = os.environ.get("C7T16_SWAP", "0") == "1"
 SWAPBARS = int(os.environ.get("C7T16_SWAPBARS", "16"))  # how many overlap bars the incoming lows wait (16: until the overlap ends; 8: the crossfade's midpoint, where the linear fade has both sides at half)  # a DJ's bass swap at the seam in: for the 16 overlap bars the kick is high-passed at 110 Hz (its own track) and the held sub is out - the outgoing track carries the low end; the full kick and sub land at bar 17
 
+BRK = os.environ.get("C7T16_BRK", "hl")  # the break deeper: "h" no hats at all (the pulse and the endless filter alone); "hl" also its level 1.5 dB down
 SEAMV = int(os.environ.get("C7T16_SEAMV", "70"))  # the held G1's velocity under the seam in (meets t15's tail sub in the live crossfade)
 EQ4 = os.environ.get("C7T16_EQ4", "a")  # "a": 45 Hz -6 dB and the low shelf -9 (37-60 Hz read 8-12 dB over the album); "b": also the hats 3 dB up, 3.5 kHz +3 and the shelves +6 at 4 kHz, +3 at 9 kHz (3-15 kHz read 2-5 dB dark)
 DENS = os.environ.get("C7T16_DENS", "")  # density contrast between sections: "q" the break's pulse on the quarters only (the filter breathes); "s" a sixteenth shaker under B's last 16 bars (the peak runs); "h" the build and A1 hats in eighths
@@ -118,7 +119,7 @@ def build():
                 for q in (0, 4, 8, 12):
                     add("kick", at + q, "kr" if (seam_in or seam_out) else ("kd" if (sec == "A" and b >= 16) else "k"), 1, 118 if q == 0 else 112)
             # --- hats: ticking 16ths with accents, open hats on the off-beats in the drops
-            if not (sec == "break" and b < 12):
+            if not (sec == "break" and (b < 12 or "h" in BRK)):
                 for q in range(16):
                     if q % 4 == 2:
                         add("hats", at + q, "oh" if (sec in ("A", "B") and (b % 2 == 1 or (sec == "A" and b >= 16))) else "h", 1, 76)
@@ -225,7 +226,7 @@ def song():
     tempo = [{"at": "0b", "bpm": BPM0}, {"at": beats(st["outro"]), "bpm": BPM0}, {"at": f"{total_b - 64 if RAMP16 else total_b}b", "bpm": BPM1, "ramp": True}]
     pump = {"type": "pump", "on": "kick.k", "depth": "-6dB", "attack": "2ms", "release": "180ms", "curve": 0.7}
     pumpr = {"type": "pump", "on": "kick.kr", "depth": "-6dB", "attack": "2ms", "release": "180ms", "curve": 0.7}
-    dyn = lane([(0, -4), (st["intro"] + 16 * BAR, -2), (st["build"], -1), (st["A"], 0), (st["break"], -7), (st["break"] + 14 * BAR, -3),
+    dyn = lane([(0, -4), (st["intro"] + 16 * BAR, -2), (st["build"], -1), (st["A"], 0), (st["break"], (-10 if "L" in BRK else -8.5) if ("l" in BRK or "L" in BRK) else -7), (st["break"] + 14 * BAR, -3),
                 (st["B"], 1), (st["outro"], -2), (st["outro"] + 16 * BAR, -3)])
     doc = {
         "about": "Chirpers - The Endless Stair (Chirpers VII), track 16 by chirper-zero: ROLLING HYPNOTIC MINIMAL HOUSE, the climb "
