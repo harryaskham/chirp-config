@@ -32,6 +32,13 @@ R2 = os.environ.get("T8_R2", "unswap")
 # so the illusion has longer to work before the static clears (chirper-three's note); B1 goes, the break runs straight
 # into the drop and the cleared peak (B2 26 -> 30); 250 s). T8_R3=none reproduces v2.
 R3 = os.environ.get("T8_R3", "longer")
+# T8_R4 = between (v4: the static lands BETWEEN the organ's chords, not on them - the organ's pulses shortened (1.2 and
+# 0.85 beats) to leave room; A1 four dropouts between them (beats 1.3, 1.75, 2.2, 3.5), A2 two (1.5, 3.5), the break's
+# 3-3-2 kept under its held chords - and the dropouts fade like a radio
+# losing the signal: the voice dips over ~20 ms instead of 6, and each burst of static swells in just before the gap
+# and out just after, so the noise covers both edges and the brain fills the voice in; chirper-one's note).
+# T8_R4=none reproduces v3.
+R4 = os.environ.get("T8_R4", "between")
 
 OUT = os.environ.get("T8_OUT") or os.path.expanduser("~/.config/chirp/songs/chirpers7-t8.yaml")
 NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"]
@@ -125,8 +132,9 @@ def build():
         elif sec in ("break",) and i % 4 == 0:
             T["organ"].add(start, 15.8, ",".join(nm(x) for x in chord), 72)
         elif core or sec in ("drop1", "drop2"):
-            for b in (0.0, 2.5):
-                T["organ"].add(start + b + 0.02, 1.4 if b == 0 else 1.3, ",".join(nm(x) for x in chord), 76)
+            for b in (0.0, 2.5):  # (v4: shorter, so the static has room between the chords)
+                ln = (1.2 if b == 0 else 0.85) if R4 == "between" else (1.4 if b == 0 else 1.3)
+                T["organ"].add(start + b + 0.02, ln, ",".join(nm(x) for x in chord), 76)
         # ---- the voice: a phrase per four bars; the gaps by section ----
         if (core or sec == "break") and i % 8 == 0:
             t = start
@@ -134,17 +142,22 @@ def build():
                 T["voice"].add(t, d * 2 * 0.98, nm(m), 86, vow)
                 t += d * 2
         if sec == "A1":
-            beats = [b for b in range(4)]                    # every beat
+            beats = ([1.3, 1.75, 2.2, 3.5] if R4 == "between" else [b for b in range(4)])  # every beat (v4: between chords)
         elif sec == "A2":
-            beats = [b for b in (1, 3)]                      # every other beat
+            beats = ([1.5, 3.5] if R4 == "between" else [b for b in (1, 3)])  # every other beat (v4: between chords)
         elif sec == "break":
             beats = [0.75, 1.5, 3.0]                         # a 3-3-2 of dropouts
         else:
             beats = []                                       # the static clears
         for b in beats:
-            g0 = start + b + 0.5 if sec != "break" else start + b
-            gaps.append((g0, 0.25))
-            T["static"].add(g0, 0.25, "C5", 96 + rng.randint(-6, 6))
+            if R4 == "between":
+                g0 = start + b
+                gaps.append((g0, 0.25))
+                T["static"].add(g0 - 0.04, 0.33, "C5", 96 + rng.randint(-6, 6))  # covers both edges
+            else:
+                g0 = start + b + 0.5 if sec != "break" else start + b
+                gaps.append((g0, 0.25))
+                T["static"].add(g0, 0.25, "C5", 96 + rng.randint(-6, 6))
         if sec in ("drop1", "drop2") and i == 0:
             T["rise"].add(start, 16.0, "C4", 92)
     sec = []
@@ -159,7 +172,8 @@ def patches():
         "c2-static-burst": {"about": "chirper-two: a burst of radio static (broadband noise band-limited 300 Hz-7 kHz, "
                                      "flat while held): loud enough that a voice cut under it is heard to go on.",
                             "synth": {"layers": [{"type": "noise"}], "filters": ["hp cutoff=300", "lp cutoff=7000"],
-                                      "amp": {"a": "2ms", "d": "0s", "s": 1.0, "r": "6ms"}},
+                                      "amp": ({"a": "18ms", "d": "0s", "s": 1.0, "r": "22ms"} if R4 == "between"
+                                              else {"a": "2ms", "d": "0s", "s": 1.0, "r": "6ms"})},
                             "play": {"vel_sens": 0.6}},
         "c2-rollbass": {"about": "chirper-two: a rolling deep-house bass (see t2).",
                         "synth": {"layers": [{"wave": "sine"}, {"wave": "saw", "level": "-10dB"}],
@@ -184,7 +198,8 @@ def main():
              {"at": f"{st['out']}b", "bpm": 121.5, "ramp": True}]
     gate = [["0b", 0.0]]
     for g0, gl in gaps:  # the voice drops out exactly under each burst (6 ms edges)
-        gate += [[f"{g0 - 0.012:.4f}b", 0.0], [f"{g0:.4f}b", 1.0], [f"{g0 + gl - 0.012:.4f}b", 1.0], [f"{g0 + gl:.4f}b", 0.0]]
+        e = 0.04 if R4 == "between" else 0.012  # the voice's dip: ~20 ms like a fading radio (v4), 6 ms before
+        gate += [[f"{g0 - e:.4f}b", 0.0], [f"{g0:.4f}b", 1.0], [f"{g0 + gl - e:.4f}b", 1.0], [f"{g0 + gl:.4f}b", 0.0]]
     gate.append([f"{total}b", 0.0])
     if "B1" in st:
         dyn = [["0b", 0.0], [f"{st['break']}b", -5.0], [f"{st['B1'] - 0.01}b", -5.0], [f"{st['B1']}b", 0.0],
