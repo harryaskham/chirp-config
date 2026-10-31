@@ -59,6 +59,7 @@ TEACH = os.environ.get("C7T17_TEACH", "30")  # chirp-eco 21:5x 'teach the ear th
 TROOM = os.environ.get("C7T17_TROOM", "off")  # the turning loop's room send (dB; "off" = dry): measured 22:15, the dense loop's reverb tails at -12 filled the far ear to 3.6 dB under the near one, smearing the 18 ms precedence cue the illusion lives on
 COH = os.environ.get("C7T17_COH", "1") == "1"  # measured 22:15: each Haas side was its own dusty-kit track, and the kit's rims and shakers are noise - so the near and the far ear got DIFFERENT hits (interaural coherence 0.15) and there was no precedence cue to turn on. Coherent pairs: one source per pair, its output hard to the near ear and a send through an 18 ms delay hard to the far ear (the same sound in both)
 COHB = {}
+EQT = os.environ.get("C7T17_EQT", "b")  # narrow master moves after the dry loop (v18): "a" 60 -3, 113 +3, 155 -3, 1.6k +2.5, 5.5k -2.5; "b" the same at 1.5x (default; "c" 2x read 95.89)
 TAILS = os.environ.get("C7T17_TAIL", "0.1s")  # the render tail: 0.3 s leaves no dead air in the last seconds a DJ mixes out of
 
 ERISER = os.environ.get("C7T17_ERISER", "-10")  # wM's endless Shepard riser (fx-riser-endless) over the 8 bars into B: pitch, noise and filter rising for ever, stopping dead on the drop (Harry: 'risers and staircases v good'); level in dB
@@ -289,7 +290,7 @@ def song():
             "bin-r": {"about": "the room turns: the binaural beat's right ear - 5 Hz above", "synth": {"layers": ["sine fixed=151.83", "sine fixed=298.66 level=-10dB"], "amp": {"a": "3s", "s": 1, "r": "3s"}}},
         },
         "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=30", *(["peak cutoff=113 q=1.5 gain=3dB"] if PHH == "10f" else []), *(["peak cutoff=45 q=1 gain=-5dB"] if EQ5 else []), *(["highshelf cutoff=9000 gain=3dB"] if EQ5 == "b" else []), "lowshelf cutoff=70 gain=-8dB", "peak cutoff=150 q=1.4 gain=-7dB", "peak cutoff=292 q=1.4 gain=-6dB",
-                                                   "peak cutoff=520 q=0.9 gain=-3dB", "peak cutoff=2500 q=0.8 gain=4dB", "highshelf cutoff=4000 gain=5dB"]},
+                                                   "peak cutoff=520 q=0.9 gain=-3dB", "peak cutoff=2500 q=0.8 gain=4dB", "highshelf cutoff=4000 gain=5dB", *([f"peak cutoff=60 q=1.4 gain={-3*k:g}dB", f"peak cutoff=113 q=2 gain={3*k:g}dB", f"peak cutoff=155 q=2 gain={-3*k:g}dB", f"peak cutoff=1600 q=0.8 gain={2.5*k:g}dB", f"peak cutoff=5500 q=1 gain={-2.5*k:g}dB"] if (k := {"a": 1, "b": 1.5, "c": 2}.get(EQT, 0)) else [])]},
                           {"type": "compressor", "threshold": "-20dB", "ratio": 2.5, "attack": "15ms", "release": "150ms", "makeup": "0dB"},
                           {"type": "gain", "gain": f"+{MGAIN:g}dB"},
                           {"type": "compressor", "threshold": f"{FCOMP.split(',')[0]}dB", "ratio": 8, "attack": FCOMP.split(',')[1], "release": "60ms", "makeup": "0dB"},
