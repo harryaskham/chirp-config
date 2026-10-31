@@ -11,7 +11,8 @@ at the peak the static clears and the voice really does sing on, whole.
   3-3-2 in the break, none at the peak.
 - THE GROOVE: the rumble kick, claps on two and four, open hats, sixteenth shakers, a rim; a rolling bass, pumped.
 - THE SEAMS: in, t7's last 16 bars (kick, clicks, claps, the octave-illusion tones on G#/C# fading) play over t8's first
-  16 bars of a thin, high-passed kick (a bass swap), hats and the organ holding C# and G#; out, t8's last 16 bars at
+  16 bars of the plain kick (v2: the mixer swaps the lows at the overlap's midpoint, mixplan swap 'mid'), hats and the
+  organ holding C# and G#; out, t8's last 16 bars at
   121.5: the rumble kick, hats and a held C# minor organ chord (C# E G#), G# on top for t9's G#.
 Tempo 121 -> 121.5 (a ramp inside the track). C# minor (12A).
 Form (bars of 4/4): in 16 / A1 16 / A2 20 (A1 grows into it) / break 16 / B1 8 / drop 4 / B2 26 / out 16 = 122 bars.
@@ -21,6 +22,11 @@ Emits songs/chirpers7-t8.yaml. Edit the music here.
 import json
 import os
 import random
+
+# rounds: T8_R2 = unswap (v2: no composed bass swap; the kick-in plays full and the mixer hands the lows over at the
+# overlap midpoint, mixplan swap column 'mid': a composed swap under a linear crossfade sags the low end into a hole).
+# T8_R2=none reproduces v1.
+R2 = os.environ.get("T8_R2", "unswap")
 
 OUT = os.environ.get("T8_OUT") or os.path.expanduser("~/.config/chirp/songs/chirpers7-t8.yaml")
 NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"]
@@ -180,7 +186,7 @@ def main():
     pump = {"type": "pump", "on": "kick.kr", "depth": "-6dB", "attack": "3ms", "release": "330ms", "curve": 0.8}
     tracks = [
         {"name": "kick", "patch": "machine-kit", "gain": "0dB", "score": T["kick"].score(total)},
-        {"name": "kick-in", "patch": "machine-kit", "gain": "-2dB", "fx": ["hp cutoff=110"], "score": T["kickin"].score(total)},
+        {"name": "kick-in", "patch": "machine-kit", "gain": "-2dB", "fx": ([] if R2 == "unswap" else ["hp cutoff=110"]), "score": T["kickin"].score(total)},
         {"name": "hats", "patch": "machine-kit", "gain": "-3dB", "pan": 0.1,
          "fx": ["hp cutoff=500", "reverb kind=room decay=0.5s mix=0.1"], "score": T["hats"].score(total)},
         {"name": "clap", "patch": "machine-kit", "gain": "-4dB", "fx": ["reverb kind=plate decay=1.3s mix=0.25"],
