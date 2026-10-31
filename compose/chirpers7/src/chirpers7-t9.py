@@ -35,6 +35,13 @@ TOTAL = BARS * BAR
 GS1 = 32                                     # G#1
 FLIP_DISPLACED = [(45, 56), (107, 112)]     # the kick (and claps) an eighth late
 KICKLESS = [(41, 44), (57, 58), (73, 88), (105, 106)]
+# v4: THE PHANTOM DOWNBEAT itself: every eighth bar of the groove and the drop, beat one is a hole - no kick, bass, sub,
+# stab or hat on the one - and the ear supplies the downbeat that isn't played
+GHOST_ONE = {24, 32, 40, 96, 104, 120, 128, 136}
+
+
+def hole(bar, at):
+    return bar in GHOST_ONE and at - b0(bar) < 1.0
 
 
 def nm(m):
@@ -119,6 +126,8 @@ def riff():
             acc = pos in (2, 6, 10, 14)
             if sec == "outro" and not acc:                       # the outro thins to the accents
                 continue
+            if hole(bar, b0(bar) + pos / 4):
+                continue
             part("bass").add(b0(bar) + pos / 4, 0.22, nm(root + iv + up), 104 if acc else 80)
 
 
@@ -130,16 +139,19 @@ def drums():
         off = 0.5 if disp else 0.0
         if not within(bar, KICKLESS):                            # v2: to the last bar (the seam into t10)
             for b in range(4):
+                if hole(bar, b0(bar) + b + off):
+                    continue
                 part("kick").add(b0(bar) + b + off, 0.5, "k", 114 if b == 0 else 106)
         if sec == "break" or within(bar, [(41, 44), (57, 60), (105, 106)]):
             continue
         for b in range(4):
-            if bar >= 5:
+            if bar >= 5 and not hole(bar, b0(bar) + b + 0.5 - off):
                 part("hats").add(b0(bar) + b + 0.5 - off, 0.25, "oh", 68 + hand.randint(-6, 6))   # always opposite the kick
             if sec in ("A", "drop") or (sec == "back" and bar >= 65):
                 for s in (1, 3):
                     if hand.random() < 0.7:
-                        part("hats").add(b0(bar) + b + s / 4, 0.1, "h", 52 + hand.randint(-8, 8))
+                        if not hole(bar, b0(bar) + b + s / 4):
+                            part("hats").add(b0(bar) + b + s / 4, 0.1, "h", 52 + hand.randint(-8, 8))
         if (sec in ("A", "turn", "drop") and bar >= 25) or (sec == "back" and bar >= 61) or (sec == "outro" and bar < 161):
             for b in (1, 3):
                 part("clap").add(b0(bar) + b + off + 0.012, 0.5, "cp", 94 + hand.randint(-4, 4))
@@ -158,6 +170,8 @@ def stabs():
         v = [r + (3 if minor else 4), r + 7, r + (10 if minor else 11), r + 14]
         hits = (0.75, 1.5, 2.75, 3.5) if (sec == "drop" and bar >= 121) else (0.5, 1.5, 2.5, 3.5)   # the anchor shifts
         for b in hits:
+            if hole(bar, b0(bar) + b):
+                continue
             part("stab").add(b0(bar) + b, 0.18, ",".join(nm(m) for m in v), 84 if b in (0.5, 0.75, 2.5, 2.75) else 72)
 
 
@@ -173,7 +187,10 @@ def sub_and_pad():
             if bar in (73, 81):
                 part("pad").add(b0(bar), 8 * BAR - 0.1, ",".join(nm(m) for m in (56, 59, 63, 66, 70)), 70)
         elif not within(bar, [(41, 44), (57, 58)]):
-            part("sub").add(b0(bar), 1.6, nm(root), 100)
+            if bar in GHOST_ONE:
+                part("sub").add(b0(bar) + 1.0, 0.6, nm(root), 100)        # the one left empty
+            else:
+                part("sub").add(b0(bar), 1.6, nm(root), 100)
             part("sub").add(b0(bar) + 2, 1.6, nm(root), 92)
 
 
