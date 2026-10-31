@@ -102,7 +102,11 @@ def build():
         # THE PAIRS: a stair step on the one (dotted quarter), its tritone on the and-of-2
         if s != 'intro' and not (s == 'outro' and i >= 12):
             step = STAIR[(k // 8) % 4] + tp
-            for at, m in ((0.0, step), (1.5, step + 6)):
+            # (v12) TEACH THE QUESTION FIRST (the obvious version, then the subtle one): through the first groove's first
+            # eight bars each step is answered a semitone UP (a Shepard pair with an unmistakable direction), then a whole tone
+            # DOWN for the next eight; only then does the answer become the tritone, with no direction at all
+            iv = 1 if (s == 'A' and i < 8) else (-2 if (s == 'A' and i < 16) else 6)
+            for at, m in ((0.0, step), (1.5, step + iv)):
                 T['pairlo'].append((t0 + at, nm(m), 1.3, 92))
                 T['pairhi'].append((t0 + at, nm(m), 1.3, 92))
             if s in ('B', 'C') and k % 2 == 1:      # and an answer on the four, the pair reversed

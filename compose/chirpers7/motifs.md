@@ -178,3 +178,4 @@ Generator `compose/chirpers7/src/chirpers7-t18.py`. The closer: ambient deep hou
 - **t12 THE DUB DROP** (v19): the one-beat full-mix silences at the phrase ends become dub drops - the drums out for a beat, the bass holding, the echo throw ringing through and cut on the downbeat.
 - **t7 TEACH THE TUNE FIRST** (v14): the first groove's last eight bars play the stair tune plainly in one octave before the second groove scatters it - the obvious version, then the subtle one.
 - **t7 DRY EARS** (v15, chirper-zero's ear-illusion rule): the octave tones lose their hall send; soloed, the far ear's leakage of each ear's tone drops from -19 dB (the stereo reverb feeding it across) to -70 dB.
+- **t11 TEACH THE QUESTION FIRST** (v12): the first groove's first eight bars answer each stair step a semitone UP (a Shepard pair with an unmistakable direction), the next eight a whole tone DOWN, and only then does the answer become the tritone - with no direction at all.
