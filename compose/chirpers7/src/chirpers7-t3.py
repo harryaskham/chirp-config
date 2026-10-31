@@ -122,8 +122,14 @@ def build():
             n_rep += 1
             if (s == 'B' and i >= 20) or s == 'C':
                 T['sung'] += [(a, p.split('^f0')[0], d, 70 + (10 if s == 'C' else 0)) for a, p, d, _ in phrase(t0, 1.0, tp=tp)]
+        # (v10, after chirper-zero's note) THE PROOF, in the break: its first eight bars give the phrase back as plain speech,
+        # alone over the pad - after 32 bars of repetitions, the listener's own ear supplies the tune; then the sung double
+        # answers for the last eight
         if s == 'break' and first:
-            T['sung'] += [(a, p.split('^f0')[0], d, 86) for a, p, d, _ in phrase(t0, 1.0)]
+            if i < 8:
+                T['speech'] += phrase(t0, 0.0, vel=94)
+            else:
+                T['sung'] += [(a, p.split('^f0')[0], d, 86) for a, p, d, _ in phrase(t0, 1.0)]
         # the Rhodes quotes THE STAIR in C, an octave up, answering the phrase
         if s == 'C' and not first:
             for off, m in zip(STEP_AT, STAIR):
