@@ -74,7 +74,9 @@ def build():
         # (v3) the incoming DJ move: the sub stays out for the intro's first eight bars, under t12's B-flat
         if s != 'break' and not (s == 'intro' and i < 8):
             T['sub'].append((t0, nm(root), 3.8, 100 if s != 'intro' else 86))
-        if s in ('A', 'B', 'C') or (s == 'outro' and i < 8) or (s == 'intro' and i >= 12):
+        # (v6) the driven bass holds to the outro's bar 12 (chirper-zero): across the overlap into t14 the full band walks
+        # level instead of fading down at bar 9; the mixer's swap at mid hands the lows over
+        if s in ('A', 'B', 'C') or (s == 'outro' and i < 12) or (s == 'intro' and i >= 12):
             for q, o in enumerate(BASS):
                 if o is not None:
                     # (v2) a PEDAL: the driven bass holds F under every chord - the plateau's floor doesn't move
