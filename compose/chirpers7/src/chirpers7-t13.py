@@ -56,13 +56,20 @@ def build():
         if s != 'break':
             for q in range(4):
                 T['kit'].append((t0 + q, 'kd' if s == 'C' else 'k', 0.25, 118 if q == 0 else 110))
-                T['kit'].append((t0 + q + 0.5, 'oh', 0.25, 82))
+                # (v3) the drums build by section: A closed hats and a clap on four; B opens the hats, claps on two
+                # and four and a ride; C the hard kick on top
+                T['kit'].append((t0 + q + 0.5, 'oh' if s in ('B', 'C') else 'h', 0.25, 82))
                 T['kit'].append((t0 + q + 0.75, 'h', 0.25, 60))
-            if s in ('A', 'B', 'C'):
+                if s in ('B', 'C'):
+                    T['kit'].append((t0 + q + 0.25, 'rd', 0.25, 54))
+            if s == 'A':
+                T['kit'].append((t0 + 3.0, 'cp', 0.25, 100))
+            if s in ('B', 'C'):
                 T['kit'].append((t0 + 1.0, 'cp', 0.25, 100)); T['kit'].append((t0 + 3.0, 'cp', 0.25, 104))
-        if s != 'break':
+        # (v3) the incoming DJ move: the sub stays out for the intro's first eight bars, under t12's B-flat
+        if s != 'break' and not (s == 'intro' and i < 8):
             T['sub'].append((t0, nm(root), 3.8, 100 if s != 'intro' else 86))
-        if s in ('A', 'B', 'C') or (s == 'outro' and i < 8):
+        if s in ('A', 'B', 'C') or (s == 'outro' and i < 8) or (s == 'intro' and i >= 12):
             for q, o in enumerate(BASS):
                 if o is not None:
                     # (v2) a PEDAL: the driven bass holds F under every chord - the plateau's floor doesn't move
