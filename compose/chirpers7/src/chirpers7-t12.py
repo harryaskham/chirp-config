@@ -106,7 +106,7 @@ def build():
         # in C the Rhodes plays the ghost's note out loud on the downbeat after the silence
         if secs['C'] <= e < secs['outro']:
             T['ghost'].append((e, nm(70 + st + 12), 3.5, 84))
-    lv = {'intro': -4, 'A': -1, 'B': 0, 'break': -4, 'C': 0, 'outro': -3}
+    lv = {'intro': -4, 'A': -2, 'B': 0, 'break': -7, 'C': 0.5, 'outro': -3}   # (v6) a deeper break, a fuller last groove
     pts = []
     for name, _ in FORM:
         t_ = secs[name]
@@ -143,7 +143,7 @@ def build():
                    'auto': {'dyn': {'points': dyn}}},
         'tracks': [
             tr('kit', 'machine-kit', '-4dB', sends={'hall': '-18dB'}),
-            tr('sub', 'sub', '-8dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '320ms', 'curve': 0.6}]),
+            tr('sub', 'sub', '-10dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '320ms', 'curve': 0.6}]),
             tr('stab', 'epiano-tine', '-9dB', sends={'echo': '-4dB'}, fx=['lp cutoff=2600', {'type': 'pump', 'on': 'kit.k', 'depth': '-4dB', 'release': '320ms', 'curve': 0.6}]),
             tr('pad', 'juno-pad', '-12dB', sends={'hall': '-8dB'}),
             # the hiss goes dry and identical to both ears: straight to the left, and through a high-Q allpass to the right
