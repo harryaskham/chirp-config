@@ -97,3 +97,5 @@ Generator `compose/chirpers7/src/chirpers7-t18.py`. The closer: ambient deep hou
 - **THE VOICE** (chirp's voice engine, long gospel notes, two per eight bars): C# .. G# | G# .. E | E .. B | F# .. C# (the stair's ends and its answer), cut under bursts of radio static (a gain lane on the voice: the voice itself never stops) every beat in A1, every other beat in A2, on a 3-3-2 in the break, none at the peak: the CONTINUITY ILLUSION, then the static clears.
 - **THE ORGAN**: C#m9 | Amaj7 | E6 | G#m7, eight bars each (t7's progression carried on), half-bar pulses on the one and the and-of-three.
 
+
+- **t3 THE BASS SWAP** (v4): One More Step's intro kick is high-passed at 110 Hz from bar 1 so t2 keeps the low end under the overlap; the full kick and the bass land together on A's downbeat. B lifts with a ride on every off-beat and a cowbell ghost, where the speech starts to sing. The tempo ramp now runs between the seams (118.5 held through the intro, 119 through the outro).
