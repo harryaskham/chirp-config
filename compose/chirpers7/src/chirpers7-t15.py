@@ -43,6 +43,8 @@ SWAP = os.environ.get("C7T15_SWAP", "0") == "1"
 SWAPBARS = int(os.environ.get("C7T15_SWAPBARS", "16"))  # how many overlap bars the incoming lows wait (16: until the overlap ends; 8: the crossfade's midpoint, where the linear fade has both sides at half)  # a DJ's bass swap at the seam in: for the 16 overlap bars the kick is high-passed at 110 Hz (its own track) and the held sub is out - the outgoing track carries the low end; the full kick and sub land at bar 17
 
 EQ6 = os.environ.get("C7T15_EQ6", "b")  # "a": 45 Hz -5 dB (37-60 Hz read 6-9 dB over the album); "b": also 3.8 kHz +4 dB (3-5 kHz read 6-8 dB under)
+DARK = os.environ.get("C7T15_DARK", "1") == "1"  # Harry 15:00 'darker': Cm11, Abmaj7#11, G7b9 (the dominant with its flat ninth), Fm9
+WOW = os.environ.get("C7T15_WOW", "1") == "1"  # Harry 15:00 'slight wow on ONE element': the dub stabs alone through a worn tape (wow 10 cents, flutter 1.5)
 BED = os.environ.get("C7T15_BED", "2")  # Harry 14:50, 'most tracks have no illusion': the Risset decelerando leads. "1": the bed also under intro bars 17-32, all of A and the outro's first 16 (never more than one break without it); "2": as 1, and under B's last 16 bars an ACCELERATING bed (panned the other way) runs against the slowing one - poly accel/decel over a kick that never changes
 BEDG = os.environ.get("C7T15_BEDG", "-9")  # the beds' level (was -9 dB: compscore's illusion survey read them 11 LU under the mix)
 BEDLV = os.environ.get("C7T15_BEDLV", "-8,-6,2,-3,-3,-1,-6")  # per-bed levels (dB): intro,A,break,B,rise,r2,outro - the bed swells and recedes with the form
@@ -57,6 +59,10 @@ CH = [(36, [58, 62, 63, 67]),   # Cm9: Bb3 D4 Eb4 G4
       (32, [55, 56, 60, 63]),   # Abmaj7: G3 Ab3 C4 Eb4
       (31, [53, 56, 60, 62]),   # Gsus(b9): F3 Ab3 C4 D4
       (29, [51, 55, 56, 60])]   # Fm9: Eb3 G3 Ab3 C4
+CHD = [(36, [58, 62, 63, 65]),   # Cm11: Bb3 D4 Eb4 F4
+       (32, [55, 60, 62, 63]),   # Abmaj7#11: G3 C4 D4 Eb4
+       (31, [53, 56, 59, 62]),   # G7b9: F3 Ab3 B3 D4
+       (29, [51, 55, 56, 60])]   # Fm9: Eb3 G3 Ab3 C4
 TRACKS = ("kick", "hats", "clap", "sub", "stab", "pad", "rims", "stair", "kickin")
 
 
@@ -119,7 +125,7 @@ def build():
         a0 = sec_start(sec)
         for b in range(nb):
             at = a0 + b * BAR
-            r, v = CH[b % 4]
+            r, v = (CHD if DARK else CH)[b % 4]
             ku = KEYUP if (sec == "B" and b >= 32) else 0
             r, v = r + ku, [n + ku for n in v]
             seam_in = sec == "intro" and b < 16
@@ -263,7 +269,8 @@ def song():
             {"name": "clap", "patch": "machine-kit", "gain": "-9dB", "sends": {"room": "-6dB"}, "score": T["clap"]},
             {"name": "sub", "patch": "sub", "gain": f"{LOWS.split(',')[1] if LOWS else -10}dB", "fx": [pump, pumpr, {"type": "phantom", "cutoff": 100, "harmonics": "-6dB"}], "score": T["sub"]},
             {"name": "stab", "patch": "house-chord", "gain": "-11dB", "lfo": {"st": "sine rate=7/1"},
-             "fx": [pump, {"type": "filter", "kind": "lp", "cutoff": {"value": 2400, "mod": [{"src": "lfo.st", "amount": 1.0}]}, "q": 1.2}],
+             "fx": [pump, {"type": "filter", "kind": "lp", "cutoff": {"value": 2400, "mod": [{"src": "lfo.st", "amount": 1.0}]}, "q": 1.2},
+                    *([{"type": "tape", "drive": 0.05, "mix": 0.6, "wow": 10, "flutter": 1.5, "drift": 1, "tone": 8000, "seed": 15}] if WOW else [])],
              "sends": {"dub": "-4dB"}, "score": T["stab"]},
             {"name": "stair", "patch": "pad-glass", "gain": "-12dB", "sends": {"dub": "-6dB", "hall": "-8dB"}, "score": T["stair"]},
             {"name": "pad", "patch": "pad-glass", "gain": "-14dB", "sends": {"hall": "-4dB"}, "score": T["pad"]},
