@@ -49,6 +49,7 @@ BEDLV = os.environ.get("C7T15_BEDLV", "-8,-6,2,-3,-3,-1,-6")  # per-bed levels (
 KEYUP = int(os.environ.get("C7T15_KEYUP", "3"))  # B's last 16 bars lift KEYUP semitones (the dub's last high before the comedown); r2 and the outro walk home to C minor
 ALONE = os.environ.get("C7T15_ALONE", "1") == "1"  # chirper-one's note: break bar 30, the deepest point, the decelerating bed alone (no hats, the pad cut, the kick still out) - then the kick comes back
 
+ERISER = os.environ.get("C7T15_ERISER", "-10")  # wM's endless Shepard riser (fx-riser-endless), 8 bars ending on the bed-alone bar (break bar 30): it stops dead and the slowing bed is left alone; level in dB
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 FORM = [("intro", 32), ("A", 32), ("break", 32), ("B", 48), ("r2", 16), ("outro", 32)]
 # (sub root, stab voicing with its top note last): the tops fall G Eb D C
@@ -253,6 +254,7 @@ def song():
             "hall": {"fx": ["reverb kind=hall decay=5s size=1 mix=1 predelay=40ms", "lp cutoff=7000"]},
         },
         "tracks": [
+            *([{"name": "eriser", "patch": "fx-riser-endless amp.a=32b", "gain": f"{ERISER}dB", "score": f"R/{sec_start('break') // 4 + 29 * 4 - 32}b C4/32b@100"}] if ERISER else []),
             {"name": "kick", "patch": "machine-kit", "gain": f"{KGAIN}dB", **({"fx": [{"type": "clip", "ceiling": f"{KCLIP}dB", "knee": 0.7, "link": True}]} if KCLIP else {}),
              "score": T["kick"]},
             *([{"name": "kickin", "patch": "machine-kit", "gain": "-3dB", "fx": [{"type": "filter", "kind": "hp", "cutoff": 110, "q": 0.7}], "score": T["kickin"]}] if SWAP else []),
