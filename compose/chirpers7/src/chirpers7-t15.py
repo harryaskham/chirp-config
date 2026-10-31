@@ -39,6 +39,8 @@ TAILS = os.environ.get("C7T15_TAIL", "0.3s")  # the render tail: 0.3 s leaves no
 
 RAMP16 = os.environ.get("C7T15_RAMP16", "1") == "1"  # the tempo ramp finishes 16 bars before the end, so the DJ-mix overlap runs at one steady tempo on both sides (no drift under the crossfade)
 
+SWAP = os.environ.get("C7T15_SWAP", "1") == "1"  # a DJ's bass swap at the seam in: for the 16 overlap bars the kick is high-passed at 110 Hz (its own track) and the held sub is out - the outgoing track carries the low end; the full kick and sub land at bar 17
+
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 FORM = [("intro", 32), ("A", 32), ("break", 32), ("B", 48), ("r2", 16), ("outro", 32)]
 # (sub root, stab voicing with its top note last): the tops fall G Eb D C
@@ -46,7 +48,7 @@ CH = [(36, [58, 62, 63, 67]),   # Cm9: Bb3 D4 Eb4 G4
       (32, [55, 56, 60, 63]),   # Abmaj7: G3 Ab3 C4 Eb4
       (31, [53, 56, 60, 62]),   # Gsus(b9): F3 Ab3 C4 D4
       (29, [51, 55, 56, 60])]   # Fm9: Eb3 G3 Ab3 C4
-TRACKS = ("kick", "hats", "clap", "sub", "stab", "pad", "rims", "stair")
+TRACKS = ("kick", "hats", "clap", "sub", "stab", "pad", "rims", "stair", "kickin")
 
 
 def nm(m):
@@ -164,6 +166,10 @@ def build():
             # --- the glass pad under the break
             if sec == "break" and b % 4 == 0:
                 add("pad", at, ",".join(nm(n) for n in v), 4 * BAR, 80)
+    if SWAP:
+        ev["kickin"] = [e for e in ev["kick"] if e[0] < 16 * BAR]
+        ev["kick"] = [e for e in ev["kick"] if e[0] >= 16 * BAR]
+        ev["sub"] = [e for e in ev["sub"] if e[0] >= 16 * BAR]
     return {k: stream(ev[k], total_steps()) for k in TRACKS}
 
 
@@ -223,6 +229,7 @@ def song():
         "tracks": [
             {"name": "kick", "patch": "machine-kit", "gain": f"{KGAIN}dB", **({"fx": [{"type": "clip", "ceiling": f"{KCLIP}dB", "knee": 0.7, "link": True}]} if KCLIP else {}),
              "score": T["kick"]},
+            *([{"name": "kickin", "patch": "machine-kit", "gain": "-3dB", "fx": [{"type": "filter", "kind": "hp", "cutoff": 110, "q": 0.7}], "score": T["kickin"]}] if SWAP else []),
             {"name": "hats", "patch": "machine-kit", "gain": "-6dB", "pan": -0.1, "lfo": {"hh": "sine rate=7/1"},
              "fx": [{"type": "filter", "kind": "hp", "cutoff": {"value": 3000, "mod": [{"src": "lfo.hh", "amount": 0.6}]}, "q": 0.7}], "score": T["hats"]},
             {"name": "clap", "patch": "machine-kit", "gain": "-9dB", "sends": {"room": "-6dB"}, "score": T["clap"]},
