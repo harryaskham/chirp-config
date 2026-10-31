@@ -32,6 +32,8 @@ DARK = os.environ.get("C7T14_DARK", "1") == "1"  # Harry 15:00 'darker / wonkier
 SCALEALL = os.environ.get("C7T14_SCALEALL", "1") == "1"  # Harry 14:50 'the illusion leads': the scales also under intro bars 17-32, A1 and the outro's first half (never more than the seam without them)
 SCALEG = os.environ.get("C7T14_SCALEG", "-9")
 RISER = os.environ.get("C7T14_RISER", "1") == "1"  # a Shepard STAIR ACCELERANDO into B: the stair (F G Ab C) on Shepard tones, half notes speeding to sixteenths over the break's last eight bars (speaker-safe, where the dichotic scales are not)
+WOW = os.environ.get("C7T14_WOW", "0") == "1"  # Harry 15:00 'slight wow on ONE element': the organ stabs alone through a worn tape (wow 9 cents, flutter 1.5)
+HWARP = os.environ.get("C7T14_HWARP", "1") == "1"  # Harry 14:50 poly accel/decel: through B the hats drift a sixteenth behind the kick and back, then ahead and back (track warp), locked again for the outro
 ANTIC = os.environ.get("C7T14_ANTIC", "1") == "1"  # the organ stabs anticipate: on the a-of-1 and the a-of-3 (16ths 3 and 11), jackin' pushes
 
 ERISER = os.environ.get("C7T14_ERISER", "-10")  # wM's endless Shepard riser (fx-riser-endless) over the 8 bars into B: pitch, noise and filter rising for ever, stopping dead on the drop (Harry: 'risers and staircases v good'); level in dB
@@ -235,13 +237,15 @@ def song():
             *([{"name": "eriser", "patch": "fx-riser-endless amp.a=32b", "gain": f"{ERISER}dB", "score": f"R/{sec_start('B') // 4 - 32}b F4/32b@100"}] if ERISER else []),
             {"name": "kick", "patch": "machine-kit", "gain": "-3dB", "score": T["kick"]},
             {"name": "hats", "patch": "machine-kit", "gain": "-3dB", "pan": 0.1, "lfo": {"hh": "sine rate=5/1"},
+             **({"warp": [{"over": f"{sec_start('B') // BAR}bar", "to": 0}, {"over": "8bar", "to": 0.25, "curve": "smooth"}, {"over": "8bar", "to": 0, "curve": "smooth"},
+                          {"over": "8bar", "to": -0.25, "curve": "smooth"}, {"over": "8bar", "to": 0, "curve": "smooth"}]} if HWARP else {}),
              "fx": [{"type": "filter", "kind": "hp", "cutoff": {"value": 3500, "mod": [{"src": "lfo.hh", "amount": 0.5}]}, "q": 0.7}],
              "score": "swing16=0.6 " + T["hats"]},
             {"name": "clap", "patch": "machine-kit", "gain": "-5dB" if PRES else "-8dB", "sends": {"room": "-6dB"}, "score": "swing16=0.6 " + T["clap"]},
             *([{"name": "dot", "patch": "machine-kit", "gain": "-10dB", "pan": -0.3, "sends": {"room": "-10dB"}, "score": T["dot"]}] if DOT else []),
             {"name": "sub", "patch": "sub", "gain": "-16dB", "fx": [pump, {"type": "phantom", "cutoff": 100, "harmonics": "-6dB"}], "score": T["sub"]},
             {"name": "bass", "patch": "bass", "gain": "-14dB", "fx": [pump, {"type": "filter", "kind": "lp", "cutoff": 900, "q": 1.2}], "score": T["bass"]},
-            {"name": "organ", "patch": "organ", "gain": "-12dB", "pan": -0.15, "fx": [pump], "sends": {"room": "-8dB"}, "score": "swing16=0.6 " + T["organ"]},
+            {"name": "organ", "patch": "organ", "gain": "-12dB", "pan": -0.15, "fx": [pump, *([{"type": "tape", "drive": 0.0, "mix": 0.4, "wow": 9, "flutter": 1.5, "drift": 1, "tone": 12000, "seed": 14}] if WOW else [])], "sends": {"room": "-8dB"}, "score": "swing16=0.6 " + T["organ"]},
             *([{"name": "riser", "patch": "stair-up", "gain": "-9dB", "sends": {"hall": "-8dB"}, "score": T["riser"]}] if RISER else []),
             {"name": "earL", "patch": "blip", "gain": f"{SCALEG}dB", "pan": -1, "sends": {"hall": "-14dB"}, "score": T["earL"]},
             {"name": "earR", "patch": "blip", "gain": f"{SCALEG}dB", "pan": 1, "sends": {"hall": "-14dB"}, "score": T["earR"]},
