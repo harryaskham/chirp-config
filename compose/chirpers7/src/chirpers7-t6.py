@@ -29,8 +29,10 @@ import random
 OUT = os.environ.get("C7T6_OUT") or os.path.expanduser("~/.config/chirp/songs/chirpers7-t6.yaml")
 BAR = 4.0
 NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"]
-SECTIONS = [("intro", 1, 16), ("groove", 17, 48), ("deeper", 49, 80), ("break", 81, 96), ("drop", 97, 144),
-            ("outro", 145, 176)]
+SECTIONS = [("intro", 1, 16), ("groove", 17, 48), ("deeper", 49, 80), ("break", 81, 96), ("drop", 97, 120),
+            ("drop2", 121, 144), ("outro", 145, 176)]
+DROPS = ("drop", "drop2")
+HOLE = (65, 68)
 BARS = SECTIONS[-1][2]
 TOTAL = BARS * BAR
 FS1 = 30                                    # F#1, 46.25 Hz
@@ -86,6 +88,18 @@ def part(n):
 # the rolling line, per bar: (beat, length, semitones over the bar's root, velocity)
 ROLL = [(0.0, 0.7, 0, 112), (1.0, 0.25, 0, 84), (1.5, 0.45, 3, 96), (2.5, 0.25, 0, 82), (3.0, 0.45, -2, 98),
         (3.5, 0.25, 7, 88)]
+# v2: the line keeps changing: the roll, pushed sixteenths, an octave leap, a half-time figure
+PUSHED = [(0.0, 0.45, 0, 112), (0.75, 0.25, 0, 86), (1.5, 0.45, 3, 96), (2.25, 0.25, 7, 84), (2.75, 0.45, 0, 98),
+          (3.5, 0.25, -2, 90)]
+LEAP = [(0.0, 0.7, 0, 112), (1.0, 0.25, 12, 90), (1.5, 0.45, 0, 96), (2.5, 0.25, 12, 86), (3.0, 0.45, 3, 98),
+        (3.5, 0.25, -2, 88)]
+HALF = [(0.0, 1.4, 0, 112), (2.0, 0.7, -2, 100), (3.0, 0.45, 3, 92)]
+
+
+def roll_for(bar, sec):
+    if sec == "drop2":
+        return HALF if bar < 129 else LEAP
+    return [ROLL, PUSHED, ROLL, LEAP][((bar - 17) // 8) % 4]
 ROOTS = [FS1, FS1 - 4, FS1 - 7, FS1 - 5]    # F#m | D | Bm | C# (one bar each)
 STAIR = [0, 2, 3, 7]                        # F# G# A C#
 
@@ -102,17 +116,17 @@ def bass_line():
         if sec == "outro" and bar >= 161:
             part("phantom").add(b0(bar), BAR - 0.1, nm(FS1 - 5), 98)             # C#1: t7's tonic
             continue
-        if (sec == "groove" and bar >= 45) or (sec == "drop" and bar >= 141):     # THE STAIR, climbed by nobody
+        if (sec == "groove" and bar >= 45) or (sec == "drop2" and bar >= 141):     # THE STAIR, climbed by nobody
             st = STAIR[(bar - 1) % 4]
             for b in range(4):
                 part("phantom").add(b0(bar) + b, 0.7 if b % 2 == 0 else 0.45, nm(FS1 + st), 108 if b == 0 else 92)
             continue
         low = -12 if (sec == "deeper" and bar >= 57) else 0                     # lower than the speakers play
-        roll = ROLL if not (sec == "outro" and bar % 2 == 0) else ROLL[:2]
+        roll = roll_for(bar, sec) if sec != "outro" else (ROLL if bar % 2 else ROLL[:2])
         for beat, ln, iv, v in roll:
             part("phantom").add(b0(bar) + beat, ln, nm(root + low + iv), v)
         # THE REAL SUB: the floor arrives with the drop (and goes missing for two bars)
-        if sec == "drop" and not 127 <= bar <= 128 and bar < 141:
+        if sec in DROPS and not 127 <= bar <= 128 and bar < 141:
             part("sub").add(b0(bar), 1.6, nm(root), 104)
             part("sub").add(b0(bar) + 2.0, 1.4, nm(root), 96)
 
@@ -134,18 +148,23 @@ def drums():
         sec = sec_of(bar)
         if sec == "break" or bar > 174:
             continue
+        if HOLE[0] <= bar <= HOLE[1]:                  # v2: THE HOLE: the drums gone, the bass nobody plays alone
+            if bar == HOLE[1]:
+                for k in range(8):
+                    part("hats").add(b0(bar) + 2 + k * 0.25, 0.1, "h", 50 + 7 * k)
+            continue
         for b in range(4):
             part("kick").add(b0(bar) + b, 0.5, "k", 114 if b == 0 else 106)
             if bar >= 5:
                 part("hats").add(b0(bar) + b + 0.5, 0.25, "oh", 70 + hand.randint(-6, 6))
-            if sec in ("deeper", "drop") or (sec == "groove" and bar >= 33):
+            if sec in ("deeper",) + DROPS or (sec == "groove" and bar >= 33):
                 for s in (1, 3):
                     if hand.random() < 0.8:
                         part("hats").add(b0(bar) + b + s / 4, 0.1, "h", 56 + hand.randint(-8, 8))
-        if (sec in ("groove", "deeper", "drop") and bar >= 25) or (sec == "outro" and bar < 161):
+        if (sec in ("groove", "deeper") + DROPS and bar >= 25) or (sec == "outro" and bar < 161):
             for b in (1, 3):
                 part("clap").add(b0(bar) + b + 0.012, 0.5, "cp", 94 + hand.randint(-4, 4))
-        if sec in ("deeper", "drop"):
+        if sec in ("deeper",) + DROPS:
             for s in (3, 6, 11, 14):                                             # a rim figure, 3-3-2 against the four
                 part("rim").add(b0(bar) + s / 4, 0.2, "rs", 70 + hand.randint(-8, 8))
 
@@ -159,11 +178,11 @@ def stabs():
         r = ROOTS[(bar - 1) % 4] + 24
         major = (bar - 1) % 4 in (1, 3)
         v = [r, r + (4 if major else 3), r + 7, r + (11 if major else 10), r + 14]
-        for b in (0.25, 2.75):
-            part("stab").add(b0(bar) + b, 0.45, ",".join(nm(m) for m in v), 80)
-        # the dark pad: the same chord held through the bar, in the deeper section and the drop
+        for b in ((0.5, 1.5, 2.5, 3.5) if sec == "drop2" else (0.25, 2.75)):     # drop2: every off-beat, shorter
+            part("stab").add(b0(bar) + b, 0.3 if sec == "drop2" else 0.45, ",".join(nm(m) for m in v), 74 if sec == "drop2" else 80)
+        # the dark pad: the chord held through the bar (v2: an octave up, out of the bass's harmonics), deeper + drop
         if sec in ("deeper", "drop"):
-            part("pad").add(b0(bar), BAR - 0.1, ",".join(nm(m - 12) for m in v[1:]), 64 if sec == "deeper" else 72)
+            part("pad").add(b0(bar), BAR - 0.1, ",".join(nm(m) for m in v[1:]), 64 if sec == "deeper" else 72)
 
 
 def congas():
@@ -172,14 +191,15 @@ def congas():
     fig = [(0.5, "o", 90), (1.25, "mu", 60), (1.75, "o", 84), (2.5, "sl", 96), (3.25, "lo", 88),
            (4.5, "o", 90), (5.0, "mu", 58), (5.75, "lo", 86), (6.5, "sl", 100), (7.25, "o", 82), (7.75, "mu", 56)]
     for bar in range(33, 161, 2):
-        if sec_of(bar) == "break":
+        if sec_of(bar) in ("break", "drop2") or HOLE[0] <= bar <= HOLE[1]:
             continue
         for at, pc, v in fig:
             if hand.random() < 0.9:
                 part("conga").add(b0(bar) + at, 0.25, pc, v + hand.randint(-8, 8))
 
 
-LEVEL = {"intro": -8, "groove": -5, "deeper": -3, "break": -9, "drop": 0, "outro": -6}
+LEVEL = {"intro": -8, "groove": -6, "deeper": -3, "break": -9, "drop": 0, "drop2": -1, "outro": -5}
+STEPS = {"groove": [(33, -4)], "deeper": [(65, -6), (69, -2)], "outro": [(161, -7)]}
 
 
 def lanes():
@@ -188,6 +208,9 @@ def lanes():
         if dyn:
             dyn.append([f"{b0(a) - 0.25:.2f}b", dyn[-1][1]])
         dyn.append([f"{b0(a):.2f}b", float(LEVEL[name])])
+        for at, lv in STEPS.get(name, []):                                       # v2: steps inside long sections
+            dyn.append([f"{b0(at) - 0.25:.2f}b", dyn[-1][1]])
+            dyn.append([f"{b0(at):.2f}b", float(lv)])
     return dyn
 
 
@@ -237,11 +260,13 @@ def main():
                fx=[{"type": "filter", "kind": "hp", "cutoff": {"value": 2500, "mod": [{"src": "lfo.hh", "amount": 0.7}]}}]),
             tr("clap", "machine-kit", gain="-2dB", sends={"room": "-8dB"}),
             tr("rim", "machine-kit", gain="-8dB", pan=-0.3, sends={"dub": "-12dB"}),
-            tr("phantom", "phantom-bass", gain="-9dB", fx=[pump]),
+            tr("phantom", "phantom-bass", gain="-7dB", lfo={"tb": {"wave": "sine", "rate": "44b"}},
+               fx=[{"type": "filter", "kind": "bp", "q": 0.7,          # v2: the colour moves, the pitch doesn't: a
+                    "cutoff": {"value": 170, "mod": [{"src": "lfo.tb", "amount": 0.8}]}}, pump]),   # band-pass over h2..h6
             tr("sub", "808", gain="-16dB", fx=[{"type": "filter", "kind": "lp", "cutoff": 90}, pump]),
             tr("stab", "juno-pad", gain="-5dB", pan=0.2, sends={"dub": "-5dB"}, lfo={"sl": {"wave": "sine", "rate": "28b"}},
                fx=[{"type": "filter", "kind": "lp", "q": 1.2,
-                    "cutoff": {"value": 1100, "mod": [{"src": "lfo.sl", "amount": 0.9}]}}, pump]),
+                    "cutoff": {"value": 1800, "mod": [{"src": "lfo.sl", "amount": 0.9}]}}, pump]),
             tr("pad", "juno-pad", gain="-9dB", pan=-0.15, sends={"hall": "-8dB"}, lfo={"pd": {"wave": "sine", "rate": "28b"}},
                fx=[{"type": "filter", "kind": "lp", "q": 0.8,
                     "cutoff": {"value": 1600, "mod": [{"src": "lfo.pd", "amount": 0.8}]}}, pump]),
