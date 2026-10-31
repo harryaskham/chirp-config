@@ -7461,7 +7461,7 @@
     {
       "id": "chirpers7-t10",
       "song": "songs/chirpers7-t10.yaml",
-      "reference": "Chirpers — Track 10 (untitled)",
+      "reference": "Chirpers — The Note in the Silence",
       "source": null,
       "owner": "chirper-three",
       "metric": "python3 tools/compscore.py chirpers7-t10 OUT.wav",
@@ -7490,7 +7490,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "The Endless Stair",
-        "title": "Track 10 (untitled)",
+        "title": "The Note in the Silence",
         "track": 10,
         "year": 2026
       },
