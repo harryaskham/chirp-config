@@ -102,8 +102,15 @@ def gap_at(bar):
 def root_at(bar):
     """The low note: B through the first half; in the drop it walks B G E F# (eight bars each)."""
     if sec_of(bar) == "drop":
-        return [B2, B2 - 4, B2 - 7, B2 - 5][((bar - 97) // 8) % 4]
+        return [B2, B2 + 1, B2 - 4, B2 - 5][((bar - 97) // 8) % 4]   # v12, darker: Bm9 | Cmaj7#11 (bII) | Gmaj7 | F#7b9
     return B2
+
+
+def third(lo, g):
+    """v12: over the major roots (C, G, F#) the stair's minor third sings major, in the chord's own colour."""
+    if (lo - B2) % 12 != 0 and abs(g) == 3:
+        return 4 if g > 0 else -4
+    return g
 
 
 def acid():
@@ -120,7 +127,7 @@ def acid():
             for cell in range(2):
                 t = b0(bar) + cell * 2
                 part("acidA").add(t, 0.4, nm(lo), 104 if cell == 0 else 90)
-                part("acidB").add(t + 0.5, 0.4, nm(lo + g), 96)
+                part("acidB").add(t + 0.5, 0.4, nm(lo + third(lo, g)), 96)
                 part("acidA").add(t + 1.0, 0.4, nm(lo), 82)
             continue
         for beat in range(4):
@@ -128,7 +135,7 @@ def acid():
             part("acidA").add(t, 0.2, nm(lo), 104 if beat == 0 else 84)
             part("acidA").add(t + 0.5, 0.2, nm(lo), 80)
             acc += 1
-            part("acidB").add(t + 0.25, 0.2, nm(lo + g), 112 if acc % 3 == 0 else 86)   # a three-step accent
+            part("acidB").add(t + 0.25, 0.2, nm(lo + third(lo, g)), 112 if acc % 3 == 0 else 86)   # a three-step accent
 
 
 def drums():
@@ -170,10 +177,9 @@ def harmony():
         # THE DUB STABS: a minor-ninth chord on the root, on the 'and' of two and four, into a delay
         if (sec == "split" and bar >= 57) or sec == "drop":
             r = root_at(bar) + 12
-            minor = r in (B2 + 12, B2 + 5)                               # Bm, Em minor; G major; F# a sus
-            v = [r, r + (3 if minor else 4), r + 7, r + 10 if minor else r + 11, r + 14]
-            if r == B2 + 7:                                              # F#: a sus4 with the seventh
-                v = [r, r + 5, r + 7, r + 10]
+            pc = (r - B2) % 12                                            # v12: voiced per root
+            v = {0: [r, r + 3, r + 7, r + 10, r + 14], 1: [r, r + 4, r + 7, r + 11, r + 18],
+                 8: [r, r + 4, r + 7, r + 11, r + 14]}.get(pc, [r, r + 4, r + 7, r + 10, r + 13])
             for b in ((0.75, 2.75) if bar >= 129 and sec == "drop" else (1.5, 3.5)):   # v10: the 'a's
                 part("stab").add(b0(bar) + b, 0.22, ",".join(nm(m) for m in v), 82)
 
@@ -183,6 +189,10 @@ def harmony():
 ROLLS = [["0b", 0.0], [f"{b0(96) - 0.01:.2f}b", 0.0], [f"{b0(96):.2f}b", 1.0], [f"{b0(97) - 0.01:.2f}b", 1.0],
          [f"{b0(97):.2f}b", 0.0], [f"{b0(144) - 0.01:.2f}b", 0.0], [f"{b0(144):.2f}b", 1.0],
          [f"{b0(145) - 0.01:.2f}b", 1.0], [f"{b0(145):.2f}b", 0.0], [f"{TOTAL:.2f}b", 0.0]]
+
+
+RUSH = ("h/0.25b@70 h/0.25b@48 oh/0.5b@64 rs/0.25b@72 h/0.25b@50 h/0.5b@58 h/0.25b@66 h/0.25b@46 oh/0.5b@60 "
+        "rs/0.25b@70 h/0.25b@52 h/0.5b@56")      # one bar for the Risset beds
 
 
 LEVEL = {"intro": -4, "one": -5, "split": -2, "break": -9, "drop": 0, "outro": -6}
@@ -256,6 +266,14 @@ def main():
             tr("clap", "machine-kit", gain="-7dB", sends={"room": "-8dB"}),
             tr("subin", "808", gain="-3dB"),        # v11: plain B1 under the overlap, like t4's held note (no phantom harmonics)
             tr("sub", "808", gain="-12dB", fx=[{"type": "phantom", "harmonics": "-6dB", "odd": 0.4, "remove": 0.0}, pump]),
+            # v12: POLYTEMPO MIRRORING THE STAIR: an endless accelerando of hats and rims under the drop's first pass
+            # (the stair climbing), an endless decelerando under its second (the stair coming down)
+            {"name": "rushup", "patch": "machine-kit", "gain": "-7dB", "pan": 0.3, "at": f"{b0(97):.0f}b",
+             "risset": {"cycle": "4bar", "down": False, "layers": 3, "length": "32bar"}, "sends": {"room": "-12dB"},
+             "score": RUSH},
+            {"name": "rushdn", "patch": "machine-kit", "gain": "-7dB", "pan": -0.3, "at": f"{b0(129):.0f}b",
+             "risset": {"cycle": "4bar", "down": True, "layers": 3, "length": "16bar"}, "sends": {"room": "-12dB"},
+             "score": RUSH},
             acid_tr("acidA", -1.0),
             acid_tr("acidB", 1.0),
             tr("stab", "juno-pad", gain="-13dB", sends={"dub": "-4dB"}, lfo={"sl": {"wave": "sine", "rate": "36b"}},
