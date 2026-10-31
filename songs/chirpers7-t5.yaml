@@ -175,15 +175,7 @@
    "name": "subin",
    "patch": "808",
    "score": "B1/3.9b@92 R/0.1b B1/3.9b@92 R/0.1b B1/3.9b@92 R/0.1b B1/3.9b@92 R/0.1b B1/3.9b@92 R/0.1b B1/3.9b@92 R/0.1b B1/3.9b@92 R/0.1b B1/3.9b@92 R/0.1b B1/3.9b@92 R/0.1b B1/3.9b@92 R/0.1b B1/3.9b@92 R/0.1b B1/3.9b@92 R/0.1b B1/3.9b@92 R/0.1b B1/3.9b@92 R/0.1b B1/3.9b@92 R/0.1b B1/3.9b@92 R/640.1b",
-   "gain": "-3dB",
-   "fx": [
-    {
-     "type": "phantom",
-     "harmonics": "-6dB",
-     "odd": 0.4,
-     "remove": 0.0
-    }
-   ]
+   "gain": "-3dB"
   },
   {
    "name": "sub",

@@ -254,7 +254,7 @@ def main():
             tr("hats", "machine-kit", gain="-3dB", pan=0.1, lfo={"hh": {"wave": "sine", "rate": "20b"}},
                fx=[{"type": "filter", "kind": "hp", "cutoff": {"value": 2500, "mod": [{"src": "lfo.hh", "amount": 0.7}]}}]),
             tr("clap", "machine-kit", gain="-7dB", sends={"room": "-8dB"}),
-            tr("subin", "808", gain="-3dB", fx=[{"type": "phantom", "harmonics": "-6dB", "odd": 0.4, "remove": 0.0}]),
+            tr("subin", "808", gain="-3dB"),        # v11: plain B1 under the overlap, like t4's held note (no phantom harmonics)
             tr("sub", "808", gain="-12dB", fx=[{"type": "phantom", "harmonics": "-6dB", "odd": 0.4, "remove": 0.0}, pump]),
             acid_tr("acidA", -1.0),
             acid_tr("acidB", 1.0),
