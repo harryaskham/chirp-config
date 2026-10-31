@@ -39,6 +39,8 @@ SWAPBARS = int(os.environ.get("C7T16_SWAPBARS", "16"))  # how many overlap bars 
 
 BRK = os.environ.get("C7T16_BRK", "hl")  # the break deeper: "h" no hats at all (the pulse and the endless filter alone); "hl" also its level 1.5 dB down
 POLEALL = os.environ.get("C7T16_POLEALL", "1") == "1"  # Harry 14:50 'the illusion leads': the endless filter from intro bar 17 (was 25) and through the outro's first 16 bars, receding, so only the seams go without it
+ROLL = os.environ.get("C7T16_ROLL", "-8")
+ROLLSEC = os.environ.get("C7T16_ROLLSEC", "build")  # where the endless roll runs (16 bars)  # Harry 14:50 time-play: under the break an ENDLESS SNARE ROLL - a Risset accelerando on a snare figure (risset, down: false), the build that speeds up for ever and never arrives (level in dB)
 KEYUP = int(os.environ.get("C7T16_KEYUP", "3"))  # B's last 16 bars lift KEYUP semitones (the filter climbs for ever and, once, so does the key); the outro walks home to G minor for the seam
 SEAMV = int(os.environ.get("C7T16_SEAMV", "70"))  # the held G1's velocity under the seam in (meets t15's tail sub in the live crossfade)
 EQ4 = os.environ.get("C7T16_EQ4", "a")  # "a": 45 Hz -6 dB and the low shelf -9 (37-60 Hz read 8-12 dB over the album); "b": also the hats 3 dB up, 3.5 kHz +3 and the shelves +6 at 4 kHz, +3 at 9 kHz (3-15 kHz read 2-5 dB dark)
@@ -258,6 +260,10 @@ def song():
             {"name": "clap", "patch": "machine-kit", "gain": "-9dB", "sends": {"room": "-6dB"}, "score": T["clap"]},
             {"name": "perc", "patch": "machine-kit", "gain": "-11dB", "pan": -0.3, "sends": {"dub": "-10dB"}, "score": T["perc"]},
             {"name": "sub", "patch": "sub", "gain": "-14dB", "fx": [pump, pumpr, {"type": "phantom", "cutoff": 100, "harmonics": "-6dB"}], "score": T["sub"]},
+            *([{"name": "roll", "patch": "machine-kit", "gain": f"{ROLL}dB", "pan": 0.1, "at": f"{sec_start(ROLLSEC) // 4}b",
+               "risset": {"cycle": "4bar", "down": False, "layers": 3, "length": "16bar"},
+               "fx": [{"type": "filter", "kind": "hp", "cutoff": 180, "q": 0.7}], "sends": {"dub": "-14dB"},
+               "score": "sn/0.5b@72 sn/0.5b@58 sn/0.5b@64 sn/0.5b@58 sn/0.5b@76 sn/0.5b@58 sn/0.5b@66 sn/0.5b@62"}] if ROLL else []),
             *endless("slow", T["pulse_slow"], 16),
             *endless("mid", T["pulse_mid"], 8),
             *endless("fast", T["pulse_fast"], 4),

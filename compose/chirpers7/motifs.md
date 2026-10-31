@@ -49,6 +49,7 @@ Generator `compose/chirpers7/src/chirpers7-t16.py`. Rolling hypnotic minimal hou
 - **THE STAIR**: falling (D Bb A G) as stabs over B2; rising (G A Bb D) in the outro, handing t17 its D.
 - **SEAMS**: bars 1-16 rumble kick, hats and the sub holding G1 (t15's outro, at 123); bars 161-176 rumble kick, hats and a held D2 (t17's tonic), 123 -> 122.
 - **THE KEY CLIMBS TOO** (v8): B's last 16 bars lift a minor third, G minor to B-flat minor - the sub, the endless filter's chord pulse and the falling stair stabs together - the one time the key climbs with the filter; the outro walks home to G minor for the D2 seam.
+- **THE ROLL THAT NEVER ARRIVES** (v10, wM's risset on any track): through the 16-bar build a snare figure runs as a Risset ACCELERANDO (`risset: {cycle: 4bar, down: false, layers: 3, length: 16bar}`, hp 180, -8 dB) - the build speeding up for ever while the endless filter climbs, and the track never arrives.
 
 ## t11 (chirper-one): modern minimal, "Both Ways"
 
