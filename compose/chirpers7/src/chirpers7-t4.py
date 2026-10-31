@@ -30,6 +30,11 @@ import random
 # overlap midpoint, mixplan swap column 'mid': a composed swap under a linear crossfade sags the low end into a hole).
 # T4_R2=none reproduces v1.
 R2 = os.environ.get("T4_R2", "unswap")
+# T4_R3 = cross (v3: lean on what only t4 has - t11 also features the tritone paradox, chirper-one's and chirper-three's
+# notes: the Shepard pairs drop back to colour (every other bar, 4 dB down); the voice's "up... or down?" returns every
+# eight bars in A2 and B2 and the toms ANSWER it in the next bar, a rising triplet then a falling one (both answers);
+# a low tom on the dotted quarters puts three against the four, and the 12/8 bell comes up). T4_R3=none reproduces v2.
+R3 = os.environ.get("T4_R3", "cross")
 
 OUT = os.environ.get("T4_OUT") or os.path.expanduser("~/.config/chirp/songs/chirpers7-t4.yaml")
 NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"]
@@ -131,7 +136,7 @@ def build():
         if sec == "out" and i % 4 == 0:
             T["bass"].add(start, 15.8, nm(35), 96)  # the held B for t5
         # ---- THE QUESTION: Shepard pairs a tritone apart on the off-beats ----
-        if sec not in ("in", "out"):  # nothing pitched under t3's phrase in the seam
+        if sec not in ("in", "out") and not (R3 == "cross" and sec != "break" and i % 2 == 0):  # (nothing under t3's phrase)
             pairs = 1 if sec in ("in", "A1") else (2 if sec != "break" else 1)
             for p in range(pairs):
                 root = STAIR[step % 4] if sec not in ("in", "A1") else 71
@@ -146,7 +151,19 @@ def build():
         if sec == "break" and i % 4 == 0:
             T["stab"].add(start, 0.4, ",".join(nm(x) for x in CHORD), 76)
         # ---- the voice: once the seam has passed, and again in the break ----
-        if (sec == "A1" and i == 0) or (sec == "break" and i == 8):
+        if R3 == "cross" and full and i % 8 == 1:  # the toms answer the question: up, and down
+            for k, piece in enumerate(("lt", "mt", "ht")):
+                T["toms"].add(start + k / 3, 0.3, piece, 70 + 4 * k)
+            for k, piece in enumerate(("ht", "mt", "lt")):
+                T["toms"].add(start + 2.0 + k / 3, 0.3, piece, 78 - 4 * k)
+        if R3 == "cross" and full:  # three against the four: a low tom on the dotted quarters, a three-bar cycle
+            off = (bi * 4) % 6  # beats into the dotted-quarter grid (period 1.5 beats; 6 = lcm with the bar's 4)
+            q = (-off) % 1.5
+            while q < 4.0 - 1e-6:
+                T["toms"].add(start + q + 0.01, 0.3, "lt", 54)
+                q += 1.5
+        ask = (sec == "A1" and i == 0) or (sec == "break" and i == 8) or (R3 == "cross" and sec in ("A2", "B2") and i % 8 == 0)
+        if ask:
             t = start + 1.0
             for k, syl in enumerate(SPEECH[0]):
                 f0 = "0>40>90" if k == 0 else ("0>-20" if k == 1 else "40>-30>-120")
@@ -205,7 +222,7 @@ def main():
          "score": T["kickin"].score(total)},                                                  # the low end in the seam
         {"name": "hats", "patch": "machine-kit", "gain": "-3dB", "pan": 0.12,
          "fx": ["hp cutoff=600", "reverb kind=room decay=0.5s mix=0.12"], "score": T["hats"].score(total)},
-        {"name": "bell", "patch": "machine-kit", "gain": "-10dB", "pan": -0.2,
+        {"name": "bell", "patch": "machine-kit", "gain": "-7dB" if R3 == "cross" else "-10dB", "pan": -0.2,
          "fx": ["reverb kind=room decay=0.8s mix=0.2"], "score": T["bell"].score(total)},
         {"name": "toms", "patch": "machine-kit", "gain": "-5dB", "pan": 0.1,
          "fx": ["reverb kind=room decay=0.9s mix=0.18"], "score": T["toms"].score(total)},
@@ -213,7 +230,7 @@ def main():
          "score": T["clap"].score(total)},
         {"name": "bass", "patch": "c2-boom-bass", "gain": "-7dB", "fx": [pump, "hp cutoff=45"],
          "score": T["bass"].score(total)},
-        {"name": "pair", "patch": "c2-tritone", "gain": "-8dB",
+        {"name": "pair", "patch": "c2-tritone", "gain": "-12dB" if R3 == "cross" else "-8dB",
          "fx": [{"type": "delay", "time": "3/8", "feedback": 0.3, "mix": 0.22, "ping_pong": True, "tone": 3000},
                 "reverb kind=hall decay=2.5s mix=0.3"], "score": T["pair"].score(total)},
         {"name": "stab", "patch": "c2-dub-stab", "gain": "-12dB", "sends": {"room": "-3dB"}, "fx": [pump, "hp cutoff=200"],
