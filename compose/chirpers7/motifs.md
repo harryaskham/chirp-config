@@ -46,6 +46,7 @@ Generator `compose/chirpers7/src/chirpers7-t16.py`. Rolling hypnotic minimal hou
 
 - **THE PAIRS**: Shepard tones (8 octave-spaced partials under a Gaussian envelope, width 1.1 octaves) - each bar a step of THE STAIR (Eb, F, Gb, Bb; a step every eight bars) on the one for a dotted quarter, answered by its tritone (A, B, C, E) on the and-of-2; in B and C every other bar adds the pair reversed on the four.
 - **THE TURN**: two copies of the pairs - envelope centred at 250 Hz and at 1 kHz - cross-faded by gain lanes: low alone in A, low -> high through B, high alone in the break (where the Shepard position glides up an octave), both at once in C, low in the outro.
+- **THE KEY GOES BOTH WAYS** (v5): for C's bars 17-24 the whole harmony (sub, rolling bass, stabs) moves a tritone, Ebm9 - Cbmaj7 - Abm9 - Bbm7 to Am9 - Fmaj7 - Dm9 - Em7, and the pairs move with it - which, a tritone moved a tritone, leaves the same two pitch classes the other way round (Eb/A becomes A/Eb). The question stays; the ground under it turns. Home for the last eight bars and the outro.
 - **THE BASS**: a rolling sixteenth line (root, octave, fifth, minor seventh) through a ladder breathing on 5- and 7-bar LFOs, pumped by the kick; a sub on the root.
 
 ## t1 The First Step (chirper-two)

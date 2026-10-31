@@ -9,7 +9,8 @@ partials under a fixed bell envelope, so the second tone is exactly as far above
 listeners hear the pair rise, some hear it fall, and the answer depends on where the tones' spectral envelope sits.
 Each bar the hook plays a step of THE STAIR (Eb F Gb Bb) and answers it with its tritone (A B C E). Through the track
 the pairs cross-fade from a LOW-centred envelope (250 Hz) to a HIGH-centred one (1 kHz), so for many ears the stair
-turns round; in the last groove both envelopes sound at once, and it goes both ways.
+turns round; in the last groove both envelopes sound at once, and it goes both ways - and for eight bars the key does too:
+the harmony moves a tritone, E-flat minor to A minor, under the same pairs turned round.
 Form (bars): intro 16 (the seam from t10: kick, hats, the sub) / A 32 (the rolling bass, the pairs low) / B 32
 (dub stabs; the pairs cross-fade low -> high) / break 16 (no drums: the pairs alone, high, a slow glide) / C 32
 (everything; both envelopes at once) / outro 16 (the seam to t12: kick, hats, bass, the low pair fading).
@@ -59,6 +60,11 @@ def build():
     for k, b in enumerate(bars):
         s, t0, i = b['sec'], b['t'], b['i']
         root, ch = CH[(k // 2) % 4]
+        # (v5) THE KEY GOES BOTH WAYS: for eight bars in the middle of the last groove the whole harmony moves a tritone,
+        # E-flat minor to A minor - as far from home as a key can go, and just as far up as down. The tritone pairs,
+        # moved a tritone, are the same two pitch classes the other way round: the question stays, the ground under it turns
+        tp = 6 if (s == 'C' and 16 <= i < 24) else 0
+        root, ch = root + tp, [m + tp for m in ch]
         if s != 'break':
             for q in range(4):
                 T['kit'].append((t0 + q, 'k', 0.25, 114 if q == 0 else 106))
@@ -81,7 +87,7 @@ def build():
             T['stab'].append((t0 + 2.5, ','.join(nm(m) for m in ch[1:]), 0.3, 74))
         # THE PAIRS: a stair step on the one (dotted quarter), its tritone on the and-of-2
         if s != 'intro' and not (s == 'outro' and i >= 12):
-            step = STAIR[(k // 8) % 4]
+            step = STAIR[(k // 8) % 4] + tp
             for at, m in ((0.0, step), (1.5, step + 6)):
                 T['pairlo'].append((t0 + at, nm(m), 1.3, 92))
                 T['pairhi'].append((t0 + at, nm(m), 1.3, 92))
