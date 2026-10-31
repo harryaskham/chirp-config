@@ -151,7 +151,7 @@ def harmony():
             continue
         root, v = CHORDS[((bar - 1) // 2) % 4]
         if sec in ("intro", "outro"):
-            part("sub").add(b0(bar), BAR - 0.1, nm(DS1), 72 if sec == "intro" else 92)   # the head meets t9's tail
+            part("subin" if sec == "intro" else "sub").add(b0(bar), BAR - 0.1, nm(DS1), 96)   # the intro level with t9's tail
             continue
         fig = BASS_C if sec in ("C", "D", "E") else BASS_A
         for at, ln, iv in fig:
@@ -232,6 +232,7 @@ def main():
                fx=[{"type": "filter", "kind": "lp", "q": 0.9,
                     "cutoff": {"value": 600, "mod": [{"src": "lfo.rb", "amount": 0.8}]}}, pump]),
             tr("sub", "sub-sine", gain="-13dB", fx=[pump]),
+            tr("subin", "sub-sine", gain="-7dB"),       # v4: the intro's sub, 6 dB hotter: the mid swap hands over level
             tr("rhodes", "epiano-tine synth.tine.sense=0.3", gain="-5dB", pan=-0.15, sends={"hall": "-10dB"},
                lfo={"rl": {"wave": "sine", "rate": "36b"}},
                fx=[{"type": "filter", "kind": "lp", "cutoff": {"value": 4000, "mod": [{"src": "lfo.rl", "amount": 0.7}]}},
