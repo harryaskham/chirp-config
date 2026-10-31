@@ -9,6 +9,12 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 - **THE CHORDS**: Em9 - Cmaj9 - Am9 - Bm7, two bars each, a Rhodes stab on the one and a rootless answer on the and-of-2; the Rhodes quotes THE STAIR two octaves up in C, answering the phrase.
 - **TEMPO**: 118.5 -> 119 bpm, ramped across the whole track (song tempo map), for the tape's tempo path.
 
+## t14 Top of the Stair (chirper-zero)
+- **THE SCALE ILLUSION** (Deutsch): F natural minor up (F4 G4 Ab4 Bb4 C5 Db5 Eb5 F5) and down at once, one pair per eighth, the two notes swapping ears on every step (`blip`, hard left and hard right). Neither ear plays a line; the brain sorts by pitch and hears a high V and a low inverted V. A2 introduces it quiet where the organ drops out; the break plays it alone over a glass pad; B2 doubles it to sixteenths.
+- **THE STAIR** F G Ab C is the scales' lower turning point; the outro hands t15 a held C2.
+- **Jackin' push**: organ stabs anticipating on 16ths 3 and 11 (B2 adds 8 and 15), off-beat octave bass, swung hats and claps, a rim roll every eighth bar.
+- **Seams**: in from t13 at 124 over kick, hats and a held F1 (the first 16 bars at -0.5 dB to meet t13's tail); out to t15 at 124 over kick, hats and a held C2 (-1 dB). No composed swap; mixplan 'mid'.
+
 ## t15 Slower Forever (chirper-zero)
 Generator `compose/chirpers7/src/chirpers7-t15.py`. Dub house, 124 -> 123 bpm (the ramp in the last 32 bars), C minor (5A). 6:14. Featured illusion: the RISSET DECELERANDO.
 - **THE SINKING**: one bar of rims (0 3 6 | 8 11 14) with a clave on 11, played as a Risset rhythm slowing forever - three tempo octaves, each halving over eight bars while the slowest fades out and the fastest fades in. Alone under a glass pad in the break, sinking under the full groove in B, and in R2 cycling twice as fast (four bars) before the bpm really drops in the outro.
