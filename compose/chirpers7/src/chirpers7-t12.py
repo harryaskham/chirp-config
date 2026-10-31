@@ -12,7 +12,8 @@ STAIR sings inside it as a ghost (Bb C Db F around 1 kHz, a step every two beats
 the whole track stops for one beat. In the break the ghost sings alone; in the last groove the Rhodes answers each silence
 with the ghost's whole melody, played an octave below, so the room hears what the headphones heard. (v5: the illusion moved from the Zwicker tone, which
 chirper-three's t10 carries, to the Huggins pitch.)
-Under each wash the echo's feedback climbs toward self-oscillation (a dub throw) and is cut with the silence.
+Under each wash the echo's feedback climbs toward self-oscillation (a dub throw) and is cut with the silence; (v10) the
+echo is dark, low-passed at 850 Hz, so its repeats stay under the ghost's band (930-1400 Hz) instead of masking it.
 Form (bars): intro 16 (the seam from t11) / A 32 / B 32 / break 16 / C 32 / outro 16 (the seam to t13).
 Master: chirper-zero's recipe and the song's loudness at -11 LUFS, ceiling -1 dB.
 Emits songs/chirpers7-t12.yaml (JSON through tools/songfmt.py). Edit the music here, not the YAML.
@@ -100,6 +101,8 @@ def build():
             gm += [[f'{a0 + 2 * j - 0.02:.2f}b', gm[-1][1]], [f'{a0 + 2 * j:.2f}b', round(m / 12, 4)]]
         st = mel[-1]
         gaps.append(e - 1.0)
+        # (v10) the stabs give way under the wash: the hiss takes their place, so nothing centred masks the ghost's band
+        T['stab'] = [ev for ev in T['stab'] if not (a0 - 0.5 <= ev[0] < e)]
         # (v3) THE THROW: under each wash the echo's feedback climbs toward self-oscillation, the dub engineer's hand on the
         # knob, and is cut dead with everything else at the silence
         fbl += [[f'{a0:.2f}b', 0], [f'{e - 1.05:.2f}b', 0.33], [f'{e - 1.0:.2f}b', -0.5], [f'{e + 0.5:.2f}b', -0.5], [f'{e + 0.55:.2f}b', 0]]
@@ -135,7 +138,7 @@ def build():
         'buses': {'hugL': {'fx': [{'type': 'pan', 'pan': -1}], 'returns': []},
                   'hugR': {'fx': [{'type': 'filter', 'kind': 'allpass', 'q': 6, 'cutoff': {'value': GHOST_HZ, 'mod': [{'src': 'auto.gm', 'amount': 1}]}},
                                   {'type': 'pan', 'pan': 1}], 'returns': [], 'auto': {'gm': {'points': gm}}},
-                  'echo': {'fx': [{'type': 'delay', 'time': '3/8', 'feedback': {'value': 0.55, 'mod': [{'src': 'auto.fb', 'amount': 1}]}, 'mix': 1}, 'lp cutoff=2200', 'hp cutoff=250',
+                  'echo': {'fx': [{'type': 'delay', 'time': '3/8', 'feedback': {'value': 0.55, 'mod': [{'src': 'auto.fb', 'amount': 1}]}, 'mix': 1}, 'lp cutoff=850', 'hp cutoff=200',
                                   {'type': 'tape', 'drive': 0.25, 'mix': 0.5, 'wow': 6, 'flutter': 2, 'seed': 12},
                                   {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.thr', 'amount': 1}]}}], 'returns': [],
                            'auto': {'fb': {'points': fbl}, 'thr': {'points': thr}}},
