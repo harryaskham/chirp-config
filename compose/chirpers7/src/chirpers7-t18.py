@@ -47,6 +47,7 @@ SRG = os.environ.get("C7T18_SRG", "-14")
 HATWARP = os.environ.get("C7T18_HATWARP", "1") == "1"  # wM's track warp in ALL: the hats drift a sixteenth behind the kick and back, then a sixteenth ahead and back (poly accel/decel against the steady kick), locked again for the coda
 ROOMS = os.environ.get("C7T18_ROOMS", "2") != "0"
 ROOMSD = os.environ.get("C7T18_ROOMS", "2") == "2"  # deeper rooms: continuity -3, octave/scale -5, Huggins -6; interlock +1.5, ALL +3  # the listening illusions get quieter rooms (continuity -2, octave and scale -3, Huggins -4 dB) and the stacks rise (interlock +1, ALL +2): the odyssey's level breathes (its sections spanned only 4.6 dB)
+PADEQ = os.environ.get("C7T18_PADEQ", "1") == "1"  # the glass pads' chord tones carved where they stand proud (341 -3, 467 -5, 640 -3 dB, narrow)
 ILV = float(os.environ.get("C7T18_ILV", "0"))  # every illusion track's level offset (dB)
 
 ERISER = os.environ.get("C7T18_ERISER", "-10")  # wM's endless Shepard riser (fx-riser-endless) over the 8 bars into all: pitch, noise and filter rising for ever, stopping dead on the drop (Harry: 'risers and staircases v good'); level in dB
@@ -486,7 +487,7 @@ def song():
             {"name": "clap", "patch": "machine-kit", "gain": "-10dB", "sends": {"hall": "-10dB"}, "score": "swing16=0.56 " + T["clap"]},
             {"name": "rims", "patch": "machine-kit", "gain": "-10dB", "sends": {"hall": "-10dB"}, "score": T["rims"]},
             {"name": "sub", "patch": "sub", "gain": "-14dB", "fx": [pump, {"type": "phantom", "cutoff": 100, "harmonics": "-6dB"}], "score": T["sub"]},
-            {"name": "pads", "patch": "pad-glass", "gain": "-16dB", "fx": [pump], "sends": {"hall": "-6dB"}, "score": T["pads"]},
+            {"name": "pads", "patch": "pad-glass", "gain": "-16dB", "fx": [pump, *([{"type": "eq", "bands": ["peak cutoff=341 q=2 gain=-3dB", "peak cutoff=467 q=2 gain=-5dB", "peak cutoff=640 q=2 gain=-3dB"]}] if PADEQ else [])], "sends": {"hall": "-6dB"}, "score": T["pads"]},
             {"name": "stab", "patch": "house-chord", "gain": "-12dB", "fx": [pump], "sends": {"echo": "-8dB"}, "score": T["stab"]},
             {"name": "stair", "patch": "stair-down", "gain": "-12dB", "sends": {"echo": "-8dB", "hall": "-8dB"}, "score": T["stair"]},
             {"name": "fall", "patch": "fall-pad", "gain": "-12dB", "sends": {"hall": "-4dB"}, "score": T["fall"]},
