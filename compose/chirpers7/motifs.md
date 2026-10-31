@@ -86,3 +86,9 @@ Generator `compose/chirpers7/src/chirpers7-t18.py`. The closer: ambient deep hou
 - **THE STAIR** on the stab's top note, chopped on the off-beats (and-of-1, a-of-2, and-of-3, e-of-4), counting on; plainly on the Shepard stair once each eight bars in A2 and B2.
 - **THE BASS** (rolling): A1 . A1 A2 | A1 . E2 G2 (0, 0.75, 1.5, 2.5, 3.25, 3.75).
 
+## t4 The Tritone Question (chirper-two)
+- **THE QUESTION**: Shepard-tone pairs a tritone apart (`c2-tritone`: octaves 9, centre 500 Hz, width 1.4) on the off-beats: B-F first, then each stair step with its tritone (B-F, C#-G, D-G#, F#-C): the stair climbs, every step has no up or down.
+- **THE VOICE**: "up... or down?" (voice-speech; up rises, down falls) once the seam has passed, and in the break.
+- **THE GROOVE**: the 12/8 bell (triplet eighths 0 2 4 5 7 9 11) over four on the floor; tom triplet pickups into each bar's four; a clap a triplet late on the four.
+- **THE BASS** (boom): B1 . B1 F#2 B1 D2 (0, 1.5, 2, 2.75, 3.5).
+
