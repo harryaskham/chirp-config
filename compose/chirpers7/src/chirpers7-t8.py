@@ -43,6 +43,15 @@ R4 = os.environ.get("T8_R4", "between")
 # grooves (A2, B2), level with the off-beat hats: the shuffle of a church band's tambourine against the four, and air
 # above 9 kHz). T8_R5=none reproduces v4.
 R5 = os.environ.get("T8_R5", "tamb")
+# T8_R6 = dark (v6, Harry's 31 Oct steers: darker and wonkier, illusions in front all the way, more time-play).
+# - Darker chords, eight bars each: C#m11 | Amaj7#11 (a D#-E rub inside) | F#m9 | G#7b9 (an altered dominant
+#   leaning back into C# minor, never quite resolving), in place of C#m9 | Amaj7 | E6 | G#m7.
+# - The continuity illusion in the seams too: the seam organ (C#/G# in, the C#m chord out) drops out under static once
+#   a bar (in: from bar 9, as t7's tones fade; out: bars 1-12, the last four clean for t9).
+# - A Shepard riser (shepard-pad) through the end of the break and the drop.
+# - THE RADIO DIES: a tape-stop on the whole mix over the last two beats of the break; the drop starts from silence
+#   and the static has cleared. T8_R6=none reproduces v5.
+R6 = os.environ.get("T8_R6", "dark")
 
 OUT = os.environ.get("T8_OUT") or os.path.expanduser("~/.config/chirp/songs/chirpers7-t8.yaml")
 NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"]
@@ -87,6 +96,11 @@ PROG = [(37, [56, 61, 64, 68, 75]),   # C#m9: G#3 C#4 E4 G#4 D#5
         (33, [56, 61, 64, 68]),       # Amaj7: G#3 C#4 E4 G#4 (over A)
         (40, [56, 61, 64, 68]),       # E6: G#3 C#4 E4 G#4 (over E)
         (32, [54, 59, 63, 66])]       # G#m7: F#3 B3 D#4 F#4
+if R6 == "dark":
+    PROG = [(37, [56, 59, 64, 66, 75]),   # C#m11: G#3 B3 E4 F#4 D#5
+            (33, [56, 61, 63, 64]),       # Amaj7#11: G#3 C#4 D#4 E4 (over A: the D#-E rub)
+            (42, [57, 61, 64, 68]),       # F#m9: A3 C#4 E4 G#4 (over F#)
+            (32, [54, 60, 63, 69])]       # G#7b9: F#3 B#3 D#4 A4 (over G#)
 # the sung line, four bars per chord: the stair (C# D# E G#) and its answer, long notes
 VOICE = [[(73, 8.0, "^o"), (80, 8.0, "")],     # C# ... G#: the stair's first and last steps, held long
          [(80, 8.0, ""), (76, 8.0, "^o")],     # G# ... E
@@ -97,7 +111,9 @@ BASS = [(0.0, 0.4), (0.75, 0.2), (1.5, 0.25), (2.5, 0.4), (3.25, 0.25)]
 
 def build():
     rng = random.Random(8)
-    T = {k: Track(k) for k in ("kickin", "kick", "hats", "clap", "rim", "bass", "organ", "voice", "static", "rise", "tamb")}
+    T = {k: Track(k) for k in ("kickin", "kick", "hats", "clap", "rim", "bass", "organ", "voice", "static", "rise", "tamb",
+                               "organseam", "riser")}
+    seamgaps = []  # v6: where the seam organ drops out under static
     gaps = []  # (start beat, length beats): where the voice is cut and the static bursts
     bars, pos = [], 0.0
     for name, n in FORM:
@@ -132,16 +148,22 @@ def build():
             for b, ln in BASS:
                 T["bass"].add(start + b, ln, nm(root - 12 if root >= 36 else root), 100 if b == 0 else 86)
         # ---- the organ: chords (half-bar pulses in the grooves, held in the break), C#/G# in the seams ----
+        so = T["organseam"] if R6 == "dark" else T["organ"]
         if sec == "in" and i % 4 == 0:
-            T["organ"].add(start, 15.8, "C#3,G#3,C#4", 60 + 2 * i)
+            so.add(start, 15.8, "C#3,G#3,C#4", 60 + 2 * i)
         elif sec == "out" and i % 4 == 0:
-            T["organ"].add(start, 15.8, "C#3,E3,G#3,C#4,G#4", 70)
+            so.add(start, 15.8, "C#3,E3,G#3,C#4,G#4", 70)
         elif sec in ("break",) and i % 4 == 0:
             T["organ"].add(start, 15.8, ",".join(nm(x) for x in chord), 72)
         elif core or sec in ("drop1", "drop2"):
             for b in (0.0, 2.5):  # (v4: shorter, so the static has room between the chords)
                 ln = (1.2 if b == 0 else 0.85) if R4 == "between" else (1.4 if b == 0 else 1.3)
                 T["organ"].add(start + b + 0.02, ln, ",".join(nm(x) for x in chord), 76)
+        if R6 == "dark" and ((sec == "in" and i >= 8) or (sec == "out" and i < 12)):
+            seamgaps.append((start + 1.5, 0.25))
+            T["static"].add(start + 1.46, 0.33, "C5", 90 + rng.randint(-6, 6))
+        if R6 == "dark" and ((sec == "break" and i == 8) or (sec == "drop2" and i == 0)):
+            T["riser"].add(start, 31.8 if sec == "break" else 15.8, "C#4,G#4", 84)
         # ---- the voice: a phrase per four bars; the gaps by section ----
         if (core or sec == "break") and i % 8 == 0:
             t = start
@@ -171,7 +193,7 @@ def build():
     for name, n in FORM:
         first = next(bb for bb in bars if bb[1] == name)
         sec.append((name, first[0], n))
-    return total, bars, sec, T, gaps
+    return total, bars, sec, T, gaps, seamgaps
 
 
 def patches():
@@ -199,7 +221,7 @@ def patches():
 
 
 def main():
-    total, bars, sec, T, gaps = build()
+    total, bars, sec, T, gaps, seamgaps = build()
     st = {n: s for n, s, k in sec}
     tempo = [{"at": "0b", "bpm": 121}, {"at": f"{st['A1']}b", "bpm": 121},
              {"at": f"{st['out']}b", "bpm": 121.5, "ramp": True}]
@@ -208,6 +230,13 @@ def main():
         e = 0.04 if R4 == "between" else 0.012  # the voice's dip: ~20 ms like a fading radio (v4), 6 ms before
         gate += [[f"{g0 - e:.4f}b", 0.0], [f"{g0:.4f}b", 1.0], [f"{g0 + gl - e:.4f}b", 1.0], [f"{g0 + gl:.4f}b", 0.0]]
     gate.append([f"{total}b", 0.0])
+    sgate = [["0b", 0.0]]
+    for g0, gl in seamgaps:
+        sgate += [[f"{g0 - 0.04:.4f}b", 0.0], [f"{g0:.4f}b", 1.0], [f"{g0 + gl - 0.04:.4f}b", 1.0], [f"{g0 + gl:.4f}b", 0.0]]
+    sgate.append([f"{total}b", 0.0])
+    ts0 = st["drop2"] - 2.0  # the radio dies over the break's last two beats
+    tstop = [["0b", 0.0], [f"{ts0 - 0.01}b", 0.0], [f"{ts0}b", 1.0], [f"{st['drop2'] - 0.01}b", 1.0],
+             [f"{st['drop2']}b", 0.0], [f"{total}b", 0.0]]
     if "B1" in st:
         dyn = [["0b", 0.0], [f"{st['break']}b", -5.0], [f"{st['B1'] - 0.01}b", -5.0], [f"{st['B1']}b", 0.0],
                [f"{st['drop2']}b", -3.0], [f"{st['B2'] - 0.01}b", -3.0], [f"{st['B2']}b", 0.0], [f"{total}b", 0.0]]
@@ -226,6 +255,12 @@ def main():
         {"name": "bass", "patch": "c2-rollbass", "gain": "-2dB", "fx": [pump], "score": T["bass"].score(total)},
         {"name": "organ", "patch": "organ", "gain": "-12dB", "pan": -0.1,
          "fx": [pump, "hp cutoff=300", "reverb kind=hall decay=2.2s mix=0.25"], "score": T["organ"].score(total)},
+        *([{"name": "organ-seam", "patch": "organ", "gain": "-12dB", "pan": -0.1,
+            "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.sgap", "amount": -60}]}},
+                   "hp cutoff=300", "reverb kind=hall decay=2.2s mix=0.25"],
+            "auto": {"sgap": {"points": sgate}}, "score": T["organseam"].score(total)},
+           {"name": "riser", "patch": "shepard-pad", "gain": "-13dB", "fx": ["hp cutoff=250", "width width=1.4"],
+            "score": T["riser"].score(total)}] if R6 == "dark" else []),
         {"name": "voice", "patch": "voice", "gain": "-6dB", "pan": 0.05,
          "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.gap", "amount": -60}]}},
                 "hp cutoff=200", "reverb kind=hall decay=2.4s mix=0.25"],
@@ -253,13 +288,16 @@ def main():
         "loudness: -11",
         "true_peak: true",
         "patches: " + json.dumps(patches()),
-        "master: " + json.dumps({"fx": [{"type": "eq", "bands": ["hp cutoff=28", "peak cutoff=320 gain=-6dB q=0.8",
+        "master: " + json.dumps({"fx": ([{"type": "tapestop", "time": "2b", "up": "0.25b", "curve": 2.0, "mix": 1,
+                                          "stop": {"value": 0, "mod": [{"src": "auto.ts", "amount": 1}]}}]
+                                        if R6 == "dark" else []) + [
+                                        {"type": "eq", "bands": ["hp cutoff=28", "peak cutoff=320 gain=-6dB q=0.8",
                                                                "peak cutoff=3500 gain=2dB q=0.7",
                                                                "highshelf cutoff=6000 gain=2dB"]},
                                         "glue threshold=-20dB ratio=2 attack=10ms release=150ms makeup=1dB",
                                         {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}},
                                         {"type": "limiter", "ceiling": "-1.2dB", "release": "80ms"}],
-                                 "auto": {"dyn": {"points": dyn}}}),
+                                 "auto": {"dyn": {"points": dyn}, **({"ts": {"points": tstop}} if R6 == "dark" else {})}}),
         "tracks:",
     ]
     lines += ["  - " + json.dumps(t) for t in tracks]
