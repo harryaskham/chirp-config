@@ -42,11 +42,11 @@ def line(events, total):
     if total > t + 1e-4: toks.append(f"R/{total - t:.4f}b")
     return ' '.join(toks)
 
-def phrase(at, w, vel=90):
+def phrase(at, w, vel=90, tp=0):
     """the spoken phrase at blend w (0 = speech, 1 = song): pitches move to THE STAIR, the glides flatten"""
     out = []
     for k, (ph, (p, c0, c1), tgt, off) in enumerate(zip(WORDS, SPEECH, STAIR, STEP_AT)):
-        m = round(p + (tgt - p) * w)
+        m = round(p + (tgt - p) * w) + tp
         a, b = round(c0 * (1 - w)), round(c1 * (1 - w))
         out.append((at + off, f"{nm(m)}^ph={ph}^f0={a}>{b}", 0.45 if k < 3 else 0.9, vel))
     return out
@@ -62,6 +62,10 @@ def build():
     for k, b in enumerate(bars):
         s, t0, i = b['sec'], b['t'], b['i']
         root, ch = CH[(k // 2) % 4]
+        # (v7) ONE MORE STEP UP: the last groove takes the phrase at its word - the whole song steps up a tone, E minor to
+        # F# minor, on C's downbeat, and stays there (F#m -> t4's Bm is a neighbour on the wheel, 11A -> 10A)
+        tp = 2 if s in ('C', 'outro') else 0
+        root, ch = root + tp, [m + tp for m in ch]
         first = k % 2 == 0
         drums = s not in ('break',)
         if drums:
@@ -112,16 +116,16 @@ def build():
                 w = 1.0
             else:
                 w = 0.0                                # the plain speech returns at the end
-            T['speech'] += phrase(t0, w)
+            T['speech'] += phrase(t0, w, tp=tp)
             n_rep += 1
             if (s == 'B' and i >= 12) or s == 'C':
-                T['sung'] += [(a, p.split('^f0')[0], d, 70 + (10 if s == 'C' else 0)) for a, p, d, _ in phrase(t0, 1.0)]
+                T['sung'] += [(a, p.split('^f0')[0], d, 70 + (10 if s == 'C' else 0)) for a, p, d, _ in phrase(t0, 1.0, tp=tp)]
         if s == 'break' and first:
             T['sung'] += [(a, p.split('^f0')[0], d, 86) for a, p, d, _ in phrase(t0, 1.0)]
         # the Rhodes quotes THE STAIR in C, an octave up, answering the phrase
         if s == 'C' and not first:
             for off, m in zip(STEP_AT, STAIR):
-                T['stair'].append((t0 + 2.0 + off, nm(m + 24), 0.45, 76))
+                T['stair'].append((t0 + 2.0 + off, nm(m + 24 + tp), 0.45, 76))
     beats_total = total
     lv = {'intro': -4, 'A': -1, 'B': 0, 'break': -5, 'C': 0, 'outro': -3}
     secs = {}
