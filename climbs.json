@@ -7154,7 +7154,7 @@
     {
       "id": "chirpers7-t3",
       "song": "songs/chirpers7-t3.yaml",
-      "reference": "Chirpers — Track 3 (untitled)",
+      "reference": "Chirpers — One More Step",
       "source": null,
       "owner": "chirper-one",
       "metric": "python3 tools/compscore.py chirpers7-t3 OUT.wav",
@@ -7174,7 +7174,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "The Endless Stair",
-        "title": "Track 3 (untitled)",
+        "title": "One More Step",
         "track": 3,
         "year": 2026
       },
