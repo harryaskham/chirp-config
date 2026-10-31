@@ -100,7 +100,8 @@ CHORDS = [(DS1 + 24, [54, 58, 61, 65]), (DS1 + 25, [56, 59, 63, 70]), (DS1 + 20,
           (DS1 + 19, [50, 53, 56, 59])]
 # v8: THE SILENCES COME INTO THE GROOVE: every eight bars a two-beat burst of noise notched at the NEXT break's note,
 # then beat one of the next bar is a hole (everything out) - a one-beat after-tone, foreshadowing the stair
-HINTS = {24: 0, 32: 0, 52: 1, 60: 1, 68: 1, 84: 2, 92: 2, 100: 2, 116: 3, 124: 3}
+HINTS = {8: 0, 16: 0, 24: 0, 32: 0, 52: 1, 60: 1, 68: 1, 84: 2, 92: 2, 100: 2, 116: 3, 124: 3,
+         156: 0, 164: 0}       # v11: the seams' windows hint too; the groove's first downbeat (bar 17) is a hole
 
 
 def in_hole(at):
