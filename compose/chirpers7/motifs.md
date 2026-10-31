@@ -79,6 +79,7 @@ Generator `compose/chirpers7/src/chirpers7-t18.py`. The closer: ambient deep hou
 
 - **THE WASH**: two bars of pink noise (6 s attack, cut dead) before each sixteen-bar phrase end, through two stacked notch filters an octave-wide around a step of THE STAIR (Bb6 1865 Hz, then C, Db, F), then one beat where the whole master drops to -45 dB: the Zwicker after-tone hangs in that silence, near the notch's lower edge. Two more washes come alone in the break.
 - **THE GHOST MADE REAL**: in the last groove, on the downbeat after each silence, the Rhodes plays the ghost's note (Bb6 C7 Db7 F7) out loud into the echo.
+- **THE THROW** (v3): under each wash the echo bus's feedback climbs from 0.55 toward 0.88 and its return rises 10 dB - the dub engineer's hand on the knob, the stab's repeats piling up into the hiss - and both are cut dead with the silence (feedback to 0.05, return -40 dB) so the beat where the ghost hangs is clean.
 - **THE HARMONY OPENS**: over a sub pedal on Bb, A holds Bbm9 alone, B swings Bbm9 <-> Gbmaj7 eight bars each, C walks Bbm9 - Gbmaj7 - Ebm9 - Fm7; a dub stab on the and-of-1 into a 3/8 tape echo.
 
 ## t2 The Filter Never Opens (chirper-two)
