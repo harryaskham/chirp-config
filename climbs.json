@@ -7502,7 +7502,14 @@
         "score": 95.63,
         "version": "v6",
         "commit": "see git log songs/chirpers7-t11.yaml",
-        "judged": true
+        "judged": true,
+        "stale": {
+          "score": 95.63,
+          "since": "2026-10-31T14:41:56Z",
+          "who": "chirper-zero",
+          "rating": 9.0,
+          "version": "v6"
+        }
       },
       "passes": 1,
       "enabled": true,
