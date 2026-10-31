@@ -15,8 +15,9 @@ TOOLS = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, TOOLS)
 import playlist as P  # noqa: E402
 
-PLAN = ("| seam | out | in | tempo at seam | key | overlap (bars) | handover | agree |\n|---|---|---|---|---|---|---|---|\n"
-        "| t1 -> t2 | a | b | 118 | 8A | 16 | hats | |\n| t2 -> t3 | | | | | 8 bars | | |\n| t3 -> t4 | | | | | 16 | | |\n")
+PLAN = ("| seam | out | in | tempo at seam | key | overlap (bars) | handover | agree | swap |\n"
+        "|---|---|---|---|---|---|---|---|---|\n"
+        "| t1 -> t2 | a | b | 118 | 8A | 16 | hats | | mid |\n| t2 -> t3 | | | | | 8 bars | | | 4 |\n| t3 -> t4 | | | | | 16 | | | |\n")
 
 
 class Mix(unittest.TestCase):
@@ -40,12 +41,13 @@ class Mix(unittest.TestCase):
                                  setattr(P, "log", self.old[2]), setattr(P, "request", self.old[3])))
         P.IDS_MODE[0] = P.ALBUM_MODE[0] = None
 
-    def want(self):
+    def want(self, field="overlap"):
         cs = P.climbs()
-        return {e["label"]: e.get("overlap") for e in P.with_seams(cs, [P.entry(c) for c in cs])}
+        return {e["label"]: e.get(field) for e in P.with_seams(cs, [P.entry(c) for c in cs])}
 
     def status(self, overlaps, current):
-        es = [{"label": i, "source": P.path({"id": i, "song": f"songs/{i}.yaml"}), "overlap": o} for i, o in overlaps]
+        es = [{"label": i, "source": P.path({"id": i, "song": f"songs/{i}.yaml"}), "overlap": o[0] if isinstance(o, tuple) else o,
+               "swap": o[1] if isinstance(o, tuple) else None} for i, o in overlaps]
         return {"playlist": {"entries": es, "current": current, "repeat": True}}
 
     def test_only_album_neighbours_overlap(self):
@@ -65,8 +67,17 @@ class Mix(unittest.TestCase):
         self.assertEqual(self.calls[1]["entries"][0]["overlap"], 16.0)
 
     def test_a_matching_playlist_is_left_alone(self):
-        P.sync(self.status([("alb9-t1", 16.0), ("alb9-t2", None), ("alb9-t4", None)], current=2))
+        P.sync(self.status([("alb9-t1", (16.0, True)), ("alb9-t2", None), ("alb9-t4", None)], current=2))
         self.assertEqual(self.calls, [])
+
+    def test_the_mix_plans_swap_cells_ride_on_the_seams(self):
+        # t1 -> t2 'mid' -> true; t2 -> t3 is not a playlist seam here (t3 is missing), so its '4' is unused
+        self.assertEqual(self.want("swap"), {"alb9-t1": True, "alb9-t2": None, "alb9-t4": None})
+
+    def test_a_swap_change_reaches_a_waiting_entry(self):
+        P.sync(self.status([("alb9-t1", (16.0, None)), ("alb9-t2", None), ("alb9-t4", None)], current=1))
+        self.assertEqual([c["op"] for c in self.calls], ["playlist-remove", "playlist-add"])
+        self.assertIs(self.calls[1]["entries"][0]["swap"], True)
 
 
 if __name__ == "__main__":

@@ -151,15 +151,17 @@ def entry(c):
     return e
 
 
-def key(label, source, passes, overlap=None):
-    return (label, source, passes or 1, float(overlap) if overlap else None)
+def key(label, source, passes, overlap=None, swap=None):
+    sw = swap if isinstance(swap, bool) or swap is None else float(swap)
+    return (label, source, passes or 1, float(overlap) if overlap else None, sw)
 
 
 TRACK = re.compile(r"^(.+)-t(\d+)$")
 
 
 def with_seams(cs, want):
-    """DJ-mix seams (chirp live's per-entry `overlap`, pins from a18a1858): an entry overlaps the next by the bars its
+    """DJ-mix seams (chirp live's per-entry `overlap`, pins from a18a1858, and `swap`, from ac5f88f6): an entry overlaps
+    the next by the bars its
     album's compose/ALBUM/mixplan.md gives that seam, but only when the next entry IS its album neighbour (tN then
     tN+1). Other joins (a gap in the album, the loop back to the opener) play back to back: their tempos and keys were
     never matched, and a beat-aligned blend of two tempos is a train wreck."""
@@ -171,23 +173,28 @@ def with_seams(cs, want):
             continue
         if a.group(1) not in plans:
             plans[a.group(1)] = mixplan_seams(a.group(1))
-        bars = plans[a.group(1)].get((int(a.group(2)), int(b.group(2))))
+        seam = (int(a.group(2)), int(b.group(2)))
+        overlaps, swaps = plans[a.group(1)]
+        bars = overlaps.get(seam)
         if bars:
             e["overlap"] = bars
+            if seam in swaps:       # the mix plan's swap cell: 'mid' -> true, a bar -> that bar, 'no' -> false
+                sw = swaps[seam]
+                e["swap"] = True if sw == "mid" else (False if sw is None else float(sw))
     return want
 
 
 def mixplan_seams(album_id):
-    """{(out_n, in_n): bars} from the album's mix plan ({} without one)."""
+    """({(out_n, in_n): bars}, {(out_n, in_n): swap}) from the album's mix plan (empty without one)."""
     if not os.path.exists(os.path.join(ROOT, "compose", album_id, "mixplan.md")):
-        return {}
+        return {}, {}
     try:
         sys.path.insert(0, HERE)
         import chirpers
-        return chirpers.seam_overlaps(album_id, root=ROOT)[0]
+        return chirpers.seam_overlaps(album_id, root=ROOT)[0], chirpers.seam_swaps(album_id, root=ROOT)
     except Exception as e:  # noqa: BLE001 - a broken mix plan must never stop the groove's driver
         log("playlist: mix plan unreadable:", album_id, e)
-        return {}
+        return {}, {}
 
 
 YIELDED = {"on": False}
@@ -202,8 +209,9 @@ def sync(st):
     if not want:
         return
     pl = st.get("playlist")
-    wanted = [key(e["label"], e["song"], e.get("passes"), e.get("overlap")) for e in want]
-    have = [key(x["label"], x["source"], x.get("passes"), x.get("overlap")) for x in (pl or {}).get("entries", [])]
+    wanted = [key(e["label"], e["song"], e.get("passes"), e.get("overlap"), e.get("swap")) for e in want]
+    have = [key(x["label"], x["source"], x.get("passes"), x.get("overlap"), x.get("swap"))
+            for x in (pl or {}).get("entries", [])]
     cur = (pl or {}).get("current")
     if MIX and cur is not None and 0 <= cur < len(have) and have[cur] not in wanted:
         # the PLAYING entry's seam changed (a mix-plan edit): never remove what is playing; it takes the new overlap
