@@ -46,8 +46,9 @@ ROUT = os.environ.get("C7T17_ROUT", "0") == "1"  # the rims hand over: the close
 KH = os.environ.get("C7T17_KH", "b") != "0"
 KHG = os.environ.get("C7T17_KH", "b")  # the seam-in's kick lighter below 80 Hz (its own track, low shelf -6; the sub pumps from it too): t17's head read 11-15 dB heavier at 44-71 Hz than Never Arrives' carved tail
 SHK = os.environ.get("C7T17_SHK", "84,74")  # a shaker on every off-16th in A and B (velocity "on-the-e,on-the-a"): the dusty groove's sixteenths made audible (compscore's rhythm term reads the 16th lag; t17's read 0)
-LOOPG = os.environ.get("C7T17_LOOPG", "-2")  # the turning loop's level (dB per side): louder, the illusion leads (and its dotted-eighth cycle reads as off-grid pulse)
+LOOPG = os.environ.get("C7T17_LOOPG", "1")  # the turning loop's level (dB per side): louder, the illusion leads (and its dotted-eighth cycle reads as off-grid pulse)
 WARP = os.environ.get("C7T17_WARP", "1") == "1"  # Harry 14:50 'much harder on time-play': the turning loop also slips in TIME - in A2 it drifts a sixteenth behind the kick and back (track warp, smooth), in B2 (turning twice as fast) a sixteenth ahead and back; re-locked long before the seam
+SEAMIN = os.environ.get("C7T17_SEAMIN", "-6.5")  # the seam-in bars' level (dB): meets Never Arrives' tail in the live crossfade
 TAILS = os.environ.get("C7T17_TAIL", "0.1s")  # the render tail: 0.3 s leaves no dead air in the last seconds a DJ mixes out of
 
 ERISER = os.environ.get("C7T17_ERISER", "-10")  # wM's endless Shepard riser (fx-riser-endless) over the 8 bars into B: pitch, noise and filter rising for ever, stopping dead on the drop (Harry: 'risers and staircases v good'); level in dB
@@ -242,7 +243,7 @@ def song():
     total_b = total_steps() // 4
     tempo = [{"at": "0b", "bpm": BPM0}, {"at": beats(st["outro"]), "bpm": BPM0}, {"at": f"{total_b - 64 if RAMP16 else total_b}b", "bpm": BPM1, "ramp": True}]
     pump = {"type": "pump", "on": "kick.k", "depth": "-6dB", "attack": "2ms", "release": "200ms", "curve": 0.7}
-    dyn = lane([(0, -4), (st["intro"] + 16 * BAR, -2), (st["A"], 0), (st["A"] + 16 * BAR, 0.5), (st["break"], -7), (st["break"] + 20 * BAR, -4),
+    dyn = lane([(0, float(SEAMIN) if "." in SEAMIN else int(SEAMIN)), (st["intro"] + 16 * BAR, -2), (st["A"], 0), (st["A"] + 16 * BAR, 0.5), (st["break"], -7), (st["break"] + 20 * BAR, -4),
                 (st["B"], 0.5), (st["B"] + 20 * BAR, 1), (st["outro"], -1.5), (st["outro"] + 16 * BAR, -3)])
     doc = {
         "about": "Chirpers - The Endless Stair (Chirpers VII), track 17 by chirper-zero: LO-FI DEEP HOUSE, the room turns. Precedence "
