@@ -170,3 +170,4 @@ Generator `compose/chirpers7/src/chirpers7-t18.py`. The closer: ambient deep hou
 - **t13 THE PEAK CHANGES GEAR** (v15): for C's bars 17-24 the rush's Risset copies sit a 3:2 metric modulation apart (wM's risset ratio) instead of an octave of tempo - the accelerando becomes a hemiola for eight bars, then returns - so the 48-bar plateau is not one unchanged loop.
 - **t11 TIME GOES BOTH WAYS** (v11): a master tapestop with spin 3 (a vinyl spin-back) on the beat before the tritone key move and on the beat before the return home.
 - **t12 THE REWIND** (v17): a master tapestop with spin 3 on the beat before the break's last silence, then the silent beat, then the last groove.
+- **t13 THE STOP** (v16): a master tapestop over the peak's last two beats - after 48 bars of a rush that never arrives, the whole mix winds down to a halt, the only thing in the track that ever slows - and the outro lands on F.

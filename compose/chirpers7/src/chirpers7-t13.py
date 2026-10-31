@@ -132,12 +132,17 @@ def build():
         'tempo': [{'at': '0b', 'bpm': BPM_IN}, {'at': '64b', 'bpm': BPM_IN}, {'at': f'{total - 64:.0f}b', 'bpm': BPM_OUT, 'ramp': True}],
         'length': f'{64 * 60 / BPM_IN + (total - 128) * 60 / ((BPM_IN + BPM_OUT) / 2) + 64 * 60 / BPM_OUT + 0.15:.2f}s', 'ceiling': '-1dB', 'volume': '0dB', 'loudness': -11.0, 'tail': '0.1s',
         'buses': {'hall': {'fx': ['reverb kind=hall decay=3.5s mix=1', 'hp cutoff=300'], 'returns': []}},
-        'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=32', 'peak cutoff=55 q=0.9 gain=-4dB', 'peak cutoff=170 q=0.9 gain=-2dB', 'peak cutoff=380 q=0.7 gain=-4dB', 'peak cutoff=3500 q=0.6 gain=5dB', 'highshelf cutoff=6000 gain=4dB']},
+        # (v16) THE STOP: after 48 bars of a rush that never arrives, the peak's last two beats wind down to a halt (a tape
+        # stop on the master) - the only thing in the track that ever slows - and the outro lands on F
+        'master': {'fx': [{'type': 'tapestop', 'time': '2b', 'curve': 1.6, 'mix': 1,
+                           'stop': {'value': 0, 'mod': [{'src': 'auto.ts', 'amount': 1}]}},
+                          {'type': 'eq', 'bands': ['highpass cutoff=32', 'peak cutoff=55 q=0.9 gain=-4dB', 'peak cutoff=170 q=0.9 gain=-2dB', 'peak cutoff=380 q=0.7 gain=-4dB', 'peak cutoff=3500 q=0.6 gain=5dB', 'highshelf cutoff=6000 gain=4dB']},
                           {'type': 'compressor', 'threshold': '-20dB', 'ratio': 2.5, 'attack': '15ms', 'release': '150ms', 'makeup': '2dB'},
                           {'type': 'gain', 'gain': '+8dB'},
                           {'type': 'compressor', 'threshold': '-15dB', 'ratio': 8, 'attack': '0.3ms', 'release': '60ms'},
                           {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.dyn', 'amount': 1}]}}],
-                   'auto': {'dyn': {'points': dyn}}},
+                   'auto': {'dyn': {'points': dyn},
+                            'ts': {'points': [['0b', 0], [f"{secs['outro'] - 2:.2f}b", 0], [f"{secs['outro'] - 1.99:.2f}b", 1], [f"{secs['outro'] - 0.01:.2f}b", 1], [f"{secs['outro']:.2f}b", 0]]}}},
         'tracks': [
             # (riser) Harry: 'riser builds (Shepard risers into drops)' - wM's fx-riser-endless: the endless riser across the whole eight-bar lift, under the spiral, into the long peak
             {'name': 'riser', 'patch': f'fx-riser-endless amp.a={LEN['break'] * 4}b', 'gain': '-13dB', 'sends': {},
