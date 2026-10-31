@@ -111,7 +111,7 @@ def build():
         'length': f'{64 * 60 / BPM_IN + (total - 128) * 60 / ((BPM_IN + BPM_OUT) / 2) + 64 * 60 / BPM_OUT + 0.15:.2f}s', 'ceiling': '-1dB', 'volume': '0dB', 'loudness': -11.0, 'tail': '0.1s',
         'buses': {'hall': {'fx': ['reverb kind=hall decay=4s mix=1', 'hp cutoff=300'], 'returns': []},
                   'echo': {'fx': [{'type': 'delay', 'time': '3/16', 'feedback': 0.4, 'mix': 1}, 'lp cutoff=3000', 'hp cutoff=300'], 'returns': []}},
-        'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=32', 'peak cutoff=55 q=0.9 gain=-5dB', 'peak cutoff=110 q=0.9 gain=-3dB', 'peak cutoff=400 q=0.7 gain=-2dB', 'peak cutoff=3200 q=0.6 gain=5dB', 'highshelf cutoff=6000 gain=3dB']},
+        'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=32', 'peak cutoff=55 q=0.9 gain=-5dB', 'peak cutoff=110 q=0.9 gain=-3dB', 'peak cutoff=380 q=0.8 gain=-4dB', 'peak cutoff=3200 q=0.6 gain=7dB', 'highshelf cutoff=6000 gain=3dB']},
                           {'type': 'compressor', 'threshold': '-20dB', 'ratio': 2.5, 'attack': '15ms', 'release': '150ms', 'makeup': '2dB'},
                           {'type': 'gain', 'gain': '+8dB'},
                           {'type': 'compressor', 'threshold': '-15dB', 'ratio': 8, 'attack': '0.3ms', 'release': '60ms'},
@@ -123,7 +123,7 @@ def build():
             tr('bass', 'bass', '-9dB', lfo={'a': 'sine rate=5/1 phase=0', 'b': 'sine rate=7/1 phase=0.25'},
                fx=[{'type': 'filter', 'kind': 'ladder', 'q': 0.55, 'cutoff': {'value': 900, 'mod': [{'src': 'lfo.a', 'amount': 0.9}, {'src': 'lfo.b', 'amount': 0.6}]}},
                    {'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '320ms', 'curve': 0.6}]),
-            tr('stab', 'epiano-tine', '-11dB', sends={'echo': '-8dB', 'hall': '-10dB'}, fx=['lp cutoff=2800']),
+            tr('stab', 'epiano-tine', '-11dB', sends={'echo': '-8dB', 'hall': '-10dB'}, fx=['hp cutoff=220', 'lp cutoff=4200']),
             tr('pairlo', shep('250hz'), '-9dB', fx=pair_fx('lo'), auto={'lo': {'points': lo}, 'glide': {'points': glide}}, sends={'hall': '-10dB'}),
             tr('pairhi', shep('1000hz'), '-12dB', fx=pair_fx('hi'), auto={'hi': {'points': hi}, 'glide': {'points': glide}}, sends={'hall': '-10dB'}),
         ]}
