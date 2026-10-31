@@ -7644,7 +7644,14 @@
       "best": {
         "score": 96.015,
         "version": "v1",
-        "commit": "see git log songs/chirpers7-t14.yaml"
+        "commit": "see git log songs/chirpers7-t14.yaml",
+        "stale": {
+          "score": 96.015,
+          "since": "2026-10-31T09:03:39Z",
+          "who": "chirper-one",
+          "rating": 8.5,
+          "version": "v1"
+        }
       },
       "passes": 1,
       "enabled": true,
