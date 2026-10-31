@@ -119,6 +119,8 @@ Generator `compose/chirpers7/src/chirpers7-t18.py`. The closer: ambient deep hou
 - **THE GROOVE**: the 12/8 bell (triplet eighths 0 2 4 5 7 9 11) over four on the floor; tom triplet pickups into each bar's four; a clap a triplet late on the four.
 - **THE BASS** (boom): B1 . B1 F#2 B1 D2 (0, 1.5, 2, 2.75, 3.5).
 - **THE ANSWER** (v3): in A2 and B2 the voice asks every eight bars and the toms answer in the next bar - a rising triplet (lt mt ht) on the one, a falling one (ht mt lt) on the three: both answers. A low tom on the dotted quarters (three against the four, a three-bar cycle); the 12/8 bell up; the Shepard pairs back to colour (every other bar). (t11 also features the tritone paradox; t4 leads with the cross-rhythm and the call and answer.)
+- **THE QUESTION IN TIME** (v4): two Risset rhythms against the steady kick. UP: `cb/0.75b ht/0.75b R/0.5b ht/0.75b cb/0.75b mt/0.5b`, bright, hp 400 Hz, left, accelerating for ever. DOWN: `lt/1.5b rs/1.5b mt/1b`, dark, 90 Hz-3.5 kHz, right, decelerating for ever. Cycle 4 bars, 3 layers. Each section has its own time: A1 slowing, A2 speeding, the break slowing alone (2 layers), the drops speeding, B2 both at once. Hints of the slowing one in both seams.
+- **THE PLANE** (v4): every fourth bar the Bm9 stab shape planes up a semitone (a Cm9 shape) over the boom's B: a Phrygian b2 rub.
 
 ## t8 Through the Static (chirper-two)
 - **THE VOICE** (chirp's voice engine, long gospel notes, two per eight bars): C# .. G# | G# .. E | E .. B | F# .. C# (the stair's ends and its answer), cut under bursts of radio static (a gain lane on the voice: the voice itself never stops) every beat in A1, every other beat in A2, on a 3-3-2 in the break, none at the peak: the CONTINUITY ILLUSION, then the static clears.

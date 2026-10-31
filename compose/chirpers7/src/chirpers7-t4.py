@@ -35,6 +35,16 @@ R2 = os.environ.get("T4_R2", "unswap")
 # eight bars in A2 and B2 and the toms ANSWER it in the next bar, a rising triplet then a falling one (both answers);
 # a low tom on the dotted quarters puts three against the four, and the 12/8 bell comes up). T4_R3=none reproduces v2.
 R3 = os.environ.get("T4_R3", "cross")
+# T4_R4 = both (v4, Harry's 31 Oct steers: illusions in front all the way through, much more time-play, darker and
+# wonkier). THE QUESTION IN TIME: two Risset rhythms at once against the steady kick - bright toms and bell
+# ACCELERATING for ever on the left, dark toms and rim DECELERATING for ever on the right, different registers so they
+# stay two streams on speakers too - so the groove itself asks "up or down?". The decelerating one hints from bar 5 of
+# the seam (rhythm only, nothing pitched under t3's phrase) and thins out through the out seam; they take the
+# sections in turn (A1 slowing, A2 speeding, the break slowing alone and sparse, the drop speeding into the peak) and
+# together at the peak, B2, where the answer is both. The tritone pairs come
+# back to every bar at -8 dB (in front again), and the stab goes darker: the Bm9 shape PLANES up a semitone to a Cm9
+# shape over the B pedal every fourth bar (a Phrygian b2 rub). T4_R4=none reproduces v3.
+R4 = os.environ.get("T4_R4", "both")
 
 OUT = os.environ.get("T4_OUT") or os.path.expanduser("~/.config/chirp/songs/chirpers7-t4.yaml")
 NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"]
@@ -136,7 +146,7 @@ def build():
         if sec == "out" and i % 4 == 0:
             T["bass"].add(start, 15.8, nm(35), 96)  # the held B for t5
         # ---- THE QUESTION: Shepard pairs a tritone apart on the off-beats ----
-        if sec not in ("in", "out") and not (R3 == "cross" and sec != "break" and i % 2 == 0):  # (nothing under t3's phrase)
+        if sec not in ("in", "out") and not (R3 == "cross" and R4 != "both" and sec != "break" and i % 2 == 0):  # (none in the seam)
             pairs = 1 if sec in ("in", "A1") else (2 if sec != "break" else 1)
             for p in range(pairs):
                 root = STAIR[step % 4] if sec not in ("in", "A1") else 71
@@ -146,8 +156,9 @@ def build():
                 T["pair"].add(t0, ln, nm(root), 80)
                 T["pair"].add(t0 + (0.5 if sec != "break" else 1.5), ln, nm(root + 6), 80)
         # ---- the chord, sparse ----
-        if full and i % 2 == 0:
-            T["stab"].add(start + 1.75, 0.3, ",".join(nm(x) for x in CHORD), 80)
+        plane = 1 if (R4 == "both" and i % 4 == 2) else 0  # v4: the shape planes up a semitone over the B pedal
+        if full and (i % 2 == 0 or R4 == "both"):
+            T["stab"].add(start + 1.75, 0.3, ",".join(nm(x + plane) for x in CHORD), 80)
         if sec == "break" and i % 4 == 0:
             T["stab"].add(start, 0.4, ",".join(nm(x) for x in CHORD), 76)
         # ---- the voice: once the seam has passed, and again in the break ----
@@ -207,6 +218,40 @@ def patches():
     }
 
 
+# THE QUESTION IN TIME (v4): one-bar loops the risset layer plays in tempo-octave copies, crossfaded for ever
+UP_LOOP = "cb/0.75b@86 ht/0.75b@74 R/0.5b ht/0.75b@80 cb/0.75b@68 mt/0.5b@70"     # sparse: the copies fill it in
+DOWN_LOOP = "lt/1.5b@94 rs/1.5b@72 mt/1b@80"
+
+
+RISSET_TRIM = float(os.environ.get("T4_RTRIM", "4"))  # dB under the plan's levels
+
+
+def risset_tracks(st, total):
+    """Where the two Rissets play: (name, loop, down, start bar, bars, gain, pan). Cycles of four bars (one tempo
+    octave every ~8 s)."""
+    b = {k: v / 4 for k, v in st.items()}
+    plan = [  # each section its own time: slowing, speeding, slowing alone, speeding into the peak, both at once
+        ("dn-in", DOWN_LOOP, True, 4, 12, "-9dB", 0.35, 2),                      # the hint under t3's tail
+        ("dn-a1", DOWN_LOOP, True, b["A1"] + 8, 16, "-9dB", 0.35),               # A1: slowing for ever
+        ("up-drop1", UP_LOOP, False, b["drop1"], 4, "-7dB", -0.35),              # the drop accelerates alone
+        ("up-a2", UP_LOOP, False, b["A2"], 16, "-9dB", -0.35),                   # A2: speeding for ever
+        ("dn-br", DOWN_LOOP, True, b["break"], 12, "-9dB", 0.0, 2),              # the break: slowing, alone, sparse
+        ("up-b1", UP_LOOP, False, b["drop2"], 4, "-7dB", -0.35),                 # the drop: speeding into the peak
+        ("dn-b2", DOWN_LOOP, True, b["B2"], 24, "-8dB", 0.35),                   # the peak: both at once
+        ("up-b2", UP_LOOP, False, b["B2"], 24, "-10dB", -0.35),
+        ("dn-out", DOWN_LOOP, True, b["out"], 12, "-8dB", 0.35, 2),              # slowing out of the track
+    ]
+    out = []
+    for name, loop, down, at, bars, gain, pan, *lay in plan:
+        g = f"{float(gain[:-2]) - RISSET_TRIM:g}dB"
+        out.append({"name": f"risset-{name}", "patch": "machine-kit", "gain": g, "pan": pan, "at": f"{at * 4:g}b",
+                    "risset": {"cycle": "4bar", "down": down, "layers": lay[0] if lay else 3, "length": f"{bars:g}bar"},
+                    "fx": (["hp cutoff=90", "lp cutoff=3500"] if down else ["hp cutoff=400"]) + [
+                        "reverb kind=room decay=0.7s mix=0.15"],
+                    "sends": {"room": "-12dB"}, "score": loop})
+    return out
+
+
 def main():
     total, bars, sec, T = build()
     st = {n: s for n, s, k in sec}
@@ -230,7 +275,7 @@ def main():
          "score": T["clap"].score(total)},
         {"name": "bass", "patch": "c2-boom-bass", "gain": "-7dB", "fx": [pump, "hp cutoff=45"],
          "score": T["bass"].score(total)},
-        {"name": "pair", "patch": "c2-tritone", "gain": "-12dB" if R3 == "cross" else "-8dB",
+        {"name": "pair", "patch": "c2-tritone", "gain": "-12dB" if (R3 == "cross" and R4 != "both") else "-8dB",
          "fx": [{"type": "delay", "time": "3/8", "feedback": 0.3, "mix": 0.22, "ping_pong": True, "tone": 3000},
                 "reverb kind=hall decay=2.5s mix=0.3"], "score": T["pair"].score(total)},
         {"name": "stab", "patch": "c2-dub-stab", "gain": "-12dB", "sends": {"room": "-3dB"}, "fx": [pump, "hp cutoff=200"],
@@ -239,7 +284,7 @@ def main():
          "fx": ["hp cutoff=250", {"type": "delay", "time": "3/8", "feedback": 0.35, "mix": 0.3, "tone": 2500},
                 "reverb kind=hall decay=3s mix=0.35"], "score": T["voice"].score(total)},
         {"name": "rise", "patch": "c2-rise", "gain": "-20dB", "fx": ["width width=1.5"], "score": T["rise"].score(total)},
-    ]
+    ] + (risset_tracks(st, total) if R4 == "both" else [])
     buses = {"room": {"gain": "-5dB",
                       "fx": ["hp cutoff=250", "lp cutoff=2400",
                              {"type": "tape", "drive": 0.35, "warmth": 0.6, "wow": 3, "flutter": 1, "seed": 4},
