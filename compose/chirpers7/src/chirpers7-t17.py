@@ -34,6 +34,8 @@ SEC2 = os.environ.get("C7T17_SEC2", "1") == "1"  # the late sections each say so
 SEC2OCT = os.environ.get("C7T17_SEC2OCT", "0") == "1"
 SEC2H = os.environ.get("C7T17_SEC2H", "1") == "1"  # B2's off-beat hats all open
 SEC2K = os.environ.get("C7T17_SEC2K", "0") == "1"  # the outro's first half without the Rhodes
+EQ5 = os.environ.get("C7T17_EQ5", "")  # "a": 45 Hz -5 dB (the lowest octave read 6-8 dB over the album); "b": also +3 dB air above 9 kHz
+KEYSF = os.environ.get("C7T17_KEYSF", "2")  # "1": the Rhodes high-passed at 220 Hz (its low chord tones piled 155-300 Hz 8-10 dB over the album); "2": also its low-pass opened 1800 -> 2600 Hz (1.6-2 kHz read 5 dB under)
 TAILS = os.environ.get("C7T17_TAIL", "0.1s")  # the render tail: 0.3 s leaves no dead air in the last seconds a DJ mixes out of
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
@@ -220,7 +222,7 @@ def song():
             "bin-l": {"about": "the room turns: the binaural beat's left ear - D3 and its octave", "synth": {"layers": ["sine fixed=146.83", "sine fixed=293.66 level=-10dB"], "amp": {"a": "3s", "s": 1, "r": "3s"}}},
             "bin-r": {"about": "the room turns: the binaural beat's right ear - 5 Hz above", "synth": {"layers": ["sine fixed=151.83", "sine fixed=298.66 level=-10dB"], "amp": {"a": "3s", "s": 1, "r": "3s"}}},
         },
-        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=30", "lowshelf cutoff=70 gain=-8dB", "peak cutoff=150 q=1.4 gain=-7dB", "peak cutoff=292 q=1.4 gain=-6dB",
+        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=30", *(["peak cutoff=45 q=1 gain=-5dB"] if EQ5 else []), *(["highshelf cutoff=9000 gain=3dB"] if EQ5 == "b" else []), "lowshelf cutoff=70 gain=-8dB", "peak cutoff=150 q=1.4 gain=-7dB", "peak cutoff=292 q=1.4 gain=-6dB",
                                                    "peak cutoff=520 q=0.9 gain=-3dB", "peak cutoff=2500 q=0.8 gain=4dB", "highshelf cutoff=4000 gain=5dB"]},
                           {"type": "compressor", "threshold": "-20dB", "ratio": 2.5, "attack": "15ms", "release": "150ms", "makeup": "0dB"},
                           {"type": "gain", "gain": f"+{MGAIN:g}dB"},
@@ -237,7 +239,8 @@ def song():
             {"name": "clap", "patch": "dusty-kit", "gain": "-8dB", "sends": {"room": "-6dB"}, "score": "swing16=0.6 " + T["clap"]},
             {"name": "sub", "patch": "sub", "gain": "-14dB", "fx": [pump, {"type": "phantom", "cutoff": 100, "harmonics": "-6dB"}], "score": T["sub"]},
             {"name": "keys", "patch": "rhodes", "gain": "-11dB", "pan": -0.1, "lfo": {"k": "sine rate=5/1"},
-             "fx": [pump, {"type": "filter", "kind": "lp", "cutoff": {"value": 1800, "mod": [{"src": "lfo.k", "amount": 0.8}]}, "q": 0.9}],
+             "fx": [pump, *([{"type": "filter", "kind": "hp", "cutoff": 220, "q": 0.7}] if KEYSF else []),
+                    {"type": "filter", "kind": "lp", "cutoff": {"value": 2600 if KEYSF == "2" else 1800, "mod": [{"src": "lfo.k", "amount": 0.8}]}, "q": 0.9}],
              "sends": {"hall": "-10dB"}, "score": "swing16=0.6 " + T["keys"]},
             {"name": "stair", "patch": "rhodes", "gain": "-10dB", "pan": 0.2, "sends": {"hall": "-6dB"}, "score": T["stair"]},
             *([{"name": "tick", "patch": "machine-kit", "gain": "-14dB", "pan": -0.15, "fx": [{"type": "filter", "kind": "hp", "cutoff": 5000, "q": 0.7}],
