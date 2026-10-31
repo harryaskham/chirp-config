@@ -177,6 +177,13 @@ def harmony():
                 part("stab").add(b0(bar) + b, 0.22, ",".join(nm(m) for m in v), 82)
 
 
+# v7: THE ROLLS: the acid line glitches into a rising buffer roll (1/8 -> 1/64, a semitone up each repeat) in the
+# last bar of the break (into the drop) and the last bar of the drop (into the outro): resampling at the two turns
+ROLLS = [["0b", 0.0], [f"{b0(96) - 0.01:.2f}b", 0.0], [f"{b0(96):.2f}b", 1.0], [f"{b0(97) - 0.01:.2f}b", 1.0],
+         [f"{b0(97):.2f}b", 0.0], [f"{b0(144) - 0.01:.2f}b", 0.0], [f"{b0(144):.2f}b", 1.0],
+         [f"{b0(145) - 0.01:.2f}b", 1.0], [f"{b0(145):.2f}b", 0.0], [f"{TOTAL:.2f}b", 0.0]]
+
+
 LEVEL = {"intro": -8, "one": -5, "split": -2, "break": -9, "drop": 0, "outro": -6}
 
 
@@ -209,8 +216,10 @@ def main():
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
     acid_tr = lambda n, side: tr(n, "acid", gain="-2dB", sends={"room": "-14dB"},
                                  lfo={"res": {"wave": "sine", "rate": "28b"}},          # seven bars: never on the four
-                                 auto={"op": {"points": op}, "pan": {"points": pan}},
-                                 pan={"value": 0, "mod": [{"src": "auto.pan", "amount": side}]}, fx=acid_fx())
+                                 auto={"op": {"points": op}, "pan": {"points": pan}, "roll": {"points": ROLLS}},
+                                 pan={"value": 0, "mod": [{"src": "auto.pan", "amount": side}]},
+                                 fx=acid_fx() + [{"type": "stutter", "slice": "1/8", "repeats": 8, "roll": 0.5, "pitch": 0.5, "floor": "1/32",
+                                                  "chance": {"value": 0, "mod": [{"src": "auto.roll", "amount": 1}]}}])
     song = {
         "about": "Chirpers - The Endless Stair (Chirpers VII), track 5 by chirper-three: ONE LINE, TWO. Minimal deep acid "
                  "in B minor; the auditory-streaming illusion: one acid line galloping between two notes splits into two "
