@@ -144,6 +144,22 @@ def acid():
             part("acidB").add(t + 0.25, 0.2, nm(lo + third(lo, g)), 112 if acc % 3 == 0 else 86)   # a three-step accent
 
 
+def odd_cycles():
+    """v15: ODD-LENGTH CYCLES in the long first half: bongos on a 5-sixteenth cycle through 'one' (25-48) and a
+    7-sixteenth cycle through 'split' (57-80), each realigning with the bar only every 5 / 7 bars - high, away from
+    the acid's streams - so the long sections keep shifting against themselves."""
+    hand = random.Random(57)
+    for (a, z, n) in ((25, 48, 5), (57, 80, 7)):
+        k = 0
+        for bar in range(a, z + 1):
+            for s in range(16):
+                if (k + s) % n == 0:
+                    first = ((bar - a) * 16 + s) % (n * 4) == 0
+                    part("bongo").add(b0(bar) + s / 4, 0.2, "bh" if (k + s) // n % 2 == 0 else "bl",
+                                      (98 if first else 74) + hand.randint(-6, 6))
+            k = (k + 16) % n
+
+
 def ghosts():
     """v14: ghost snares in the drop - soft hits on some sixteenth 'e's and 'a's, under the groove."""
     hand = random.Random(55)
@@ -234,6 +250,7 @@ def main():
     riser()
     drums()
     ghosts()
+    odd_cycles()
     harmony()
     dyn, op, pan = lanes()
     tempo = [{"at": "0b", "bpm": 119.5}, {"at": f"{b0(17):.0f}b", "bpm": 119.5},     # v6: hold through the overlap
@@ -282,6 +299,7 @@ def main():
             tr("hats", "machine-kit play.humanize.drunk=6ms play.humanize.swing_drift=0.05 play.humanize.accent=0.4",
                gain="-3dB", pan=0.1, lfo={"hh": {"wave": "sine", "rate": "20b"}},   # v14: the hats lean; off-beats wander
                fx=[{"type": "filter", "kind": "hp", "cutoff": {"value": 2500, "mod": [{"src": "lfo.hh", "amount": 0.7}]}}]),
+            tr("bongo", "congas play.humanize.time=6ms", gain="-9dB", pan=0.35, sends={"room": "-10dB"}),   # v15
             tr("ghost", "machine-kit", gain="-14dB", pan=-0.1, sends={"room": "-12dB"}),   # v14: ghost snares
             tr("clap", "machine-kit play.humanize.nudge.cp=12ms",   # v14: the claps a hair late (the Dilla lean)
                gain="-7dB", sends={"room": "-8dB"}),
