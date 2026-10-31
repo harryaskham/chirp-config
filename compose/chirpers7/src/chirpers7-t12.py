@@ -129,7 +129,9 @@ def build():
         thr += [[f'{e - 9.0:.2f}b', 0], [f'{e - 0.05:.2f}b', 10], [f'{e:.2f}b', -40], [f'{e + 0.5:.2f}b', -40], [f'{e + 0.55:.2f}b', 0]]
         # in C the Rhodes plays the ghost's note out loud on the downbeat after the silence
         # (v11) the speakers get the illusion too: from B on, the Rhodes answers every wash with the ghost's melody, played
-        if secs['A'] < e < secs['outro']:     # (v15) the answers from the first groove on
+        # (v20) the answers start with the very first ghost, on the first groove's downbeat, so the ear is given the tune at
+        # once and can hear what the next washes are singing (the obvious version, then the subtle one)
+        if secs['A'] <= e < secs['outro']:     # (v15) the answers from the first groove on
             # (v8, chirper-zero's note) the room hears what the headphones heard: after the silence the Rhodes answers with the
             # ghost's whole melody, played, an octave below it, two beats a step into the echo - then the ghost's last note on top
             for j, m in enumerate(mel):
