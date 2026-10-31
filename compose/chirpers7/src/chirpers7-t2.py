@@ -34,6 +34,12 @@ R2 = os.environ.get("T2_R2", "reverse")
 # runs faster into the groove's return. (Rolls at every phrase end blurred the sections: 9 -> 7.) T2_R3=none
 # reproduces v2.
 R3 = os.environ.get("T2_R3", "dark")
+# T2_R4 = drift (v4, wM's time-play part 1): the stab inside the pole gets its own clock. In A2 it slides a sixteenth
+# BEHIND the kick over eight bars, then eases back onto the grid over eight (smooth: no jump); in B2 it pulls a
+# sixteenth AHEAD and comes back the same way - the pole's chops phasing against the four, a groove that keeps
+# slipping and re-locking. All four pole copies share the warp; it is locked again before the out seam.
+# T2_R4=none reproduces v3.
+R4 = os.environ.get("T2_R4", "drift")
 DARK = [57, 60, 62, 64, 67]                 # Am11 cluster: A3 C4 D4 E4 G4
 
 OUT = os.environ.get("T2_OUT") or os.path.expanduser("~/.config/chirp/songs/chirpers7-t2.yaml")
@@ -194,6 +200,14 @@ def patches():
     }
 
 
+def drift(st):
+    """The pole's warp (v4): hold, slip a sixteenth late through A2 and back; hold, a sixteenth early through B2."""
+    a2, b2 = st["A2"] / 4, st["B2"] / 4
+    return [{"over": f"{a2:g}bar", "to": 0}, {"over": "8bar", "to": 0.25, "curve": "in"},
+            {"over": "8bar", "to": 0, "curve": "smooth"}, {"over": f"{b2 - a2 - 16:g}bar", "to": 0},
+            {"over": "8bar", "to": -0.25, "curve": "in"}, {"over": "8bar", "to": 0, "curve": "smooth"}]
+
+
 def pole_tracks(score, total, st):
     """The barber pole: four copies of the stab, band-passed an octave apart, all carried up an octave per cycle by one
     song-time sawtooth (lfo.s, 0..1, eight bars a cycle); the lowest fades in and the highest fades out across it."""
@@ -207,6 +221,7 @@ def pole_tracks(score, total, st):
         else:
             g = "0dB"
         out.append({"name": f"pole{k}", "patch": "c2-stab", "gain": "-14dB", "pan": [-0.3, -0.1, 0.1, 0.3][k],
+                    **({"warp": drift(st)} if R4 == "drift" else {}),
                     "lfo": {"s": "saw rate=8/1 unipolar=true"},
                     "sends": {"room": "-6dB"},
                     "fx": [{"type": "filter", "kind": "bp", "q": 2.2,
