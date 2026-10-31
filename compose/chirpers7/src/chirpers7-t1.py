@@ -42,6 +42,15 @@ R3 = os.environ.get("T1_R3", "slow")
 # (0.5, 1.25, 2.0, 2.75, 3.5), up 3 dB, level with the off-beat hats: a minimal-house syncopation that leaves the kick
 # its downbeats, where the 3-3-2 sat quietly in the second half of the bar). T1_R4=none reproduces v3.
 R4 = os.environ.get("T1_R4", "rim")
+# T1_R5 = dark (v5, Harry's 31 Oct steers: darker, more time-play). The peak's harmony under the stair, two bars each,
+# goes from F G Am to Fmaj7#11 | Dm11 | E7b9 | Am9 (a minor cadence through an altered dominant), and THE STAIR RUNS in
+# the break: from half notes it accelerates smoothly to sixteenths over the sixteen bars (each step a little sooner,
+# 2 * 0.125^(p/64) beats) while the pad holds - a Risset-like rush before B. T1_R5=none reproduces v4.
+R5 = os.environ.get("T1_R5", "dark")
+DARK5 = {"F": (-4, [53, 57, 59, 64]),       # Fmaj7#11: F3 A3 B3 E4 over F
+         "Dm": (-7, [53, 55, 60, 64]),      # Dm11: F3 G3 C4 E4 over D
+         "E": (-5, [56, 59, 62, 65]),       # E7b9: G#3 B3 D4 F4 over E
+         "Am": (0, [57, 60, 64, 67, 71])}   # Am9
 
 
 def nm(m):
@@ -128,13 +137,25 @@ def build():
         if sec == "B2":
             shift = (-4, -2, 0, 0)[(i // 2) % 4]
         sh, chord_notes = SHIFT[shift]
+        if R5 == "dark" and sec == "B2":
+            sh, chord_notes = DARK5[("F", "Dm", "E", "Am")[(i // 2) % 4]]
         if core or (sec == "intro" and i >= 4) or sec == "outro":
             for b, m in BASS:
                 T["bass"].add(start + b, 0.45, nm(m + sh), 96)
         # ---- the stair: quarter notes in the intro and outro, eighths in A and B, half notes in the break ----
         rate = {"ambient": 1.0, "intro": 1.0, "A1": 0.5, "drop1": 1.0, "A2": 0.5, "break": 2.0, "B1": 0.5,
                 "drop2": 1.0, "B2": 0.25, "outro": 1.0}[sec]
-        if R3 == "slow" and sec == "outro" and i >= 16:
+        if R5 == "dark" and sec == "break":
+            if i == 0:  # the stair runs: half notes accelerating to sixteenths across the break
+                p, s0 = 0.0, step
+                while p < 64.0 - 1e-6:
+                    ioi = 2.0 * 0.125 ** (p / 64.0)
+                    m = STAIR[step % 4]
+                    T["stair"].add(start + p, min(ioi * 0.9, 64.0 - p), nm(m), 70 + (10 if step % 4 == 0 else 0))
+                    step += 1
+                    p += ioi
+                step = s0 + -(-(step - s0) // 4) * 4  # resume B on a whole round of the stair, as before
+        elif R3 == "slow" and sec == "outro" and i >= 16:
             if i == 16:  # the last 16 bars: one continuous ritardando of the stair against the steady four
                 p = 0.0
                 while p < 64.0 - 1e-6:
