@@ -9,8 +9,8 @@ narrow band of it is turned through 180 degrees of phase; neither ear alone hear
 ears a faint, reedy note appears inside the hiss, at the band's frequency - a note that is in neither channel (and in
 mono it vanishes into a thin notch). At the end of each sixteen-bar phrase a wash of hiss swells for two bars and THE
 STAIR sings inside it as a ghost (Bb C Db F around 1 kHz, a step every two beats, the order turning each phrase), then
-the whole track stops for one beat. In the break the ghost sings alone; in the last groove the Rhodes plays the ghost's
-last note out loud after each silence, as if it had become real. (v5: the illusion moved from the Zwicker tone, which
+the whole track stops for one beat. In the break the ghost sings alone; in the last groove the Rhodes answers each silence
+with the ghost's whole melody, played an octave below, so the room hears what the headphones heard. (v5: the illusion moved from the Zwicker tone, which
 chirper-three's t10 carries, to the Huggins pitch.)
 Under each wash the echo's feedback climbs toward self-oscillation (a dub throw) and is cut with the silence.
 Form (bars): intro 16 (the seam from t11) / A 32 / B 32 / break 16 / C 32 / outro 16 (the seam to t13).
@@ -105,7 +105,11 @@ def build():
         thr += [[f'{a0:.2f}b', 0], [f'{e - 1.05:.2f}b', 10], [f'{e - 1.0:.2f}b', -40], [f'{e + 0.5:.2f}b', -40], [f'{e + 0.55:.2f}b', 0]]
         # in C the Rhodes plays the ghost's note out loud on the downbeat after the silence
         if secs['C'] <= e < secs['outro']:
-            T['ghost'].append((e, nm(70 + st + 12), 3.5, 84))
+            # (v8, chirper-zero's note) the room hears what the headphones heard: after the silence the Rhodes answers with the
+            # ghost's whole melody, played, an octave below it, two beats a step into the echo - then the ghost's last note on top
+            for j, m in enumerate(mel):
+                T['ghost'].append((e + 2 * j, f'{nm(70 + m)},{nm(70 + m - 5)}', 1.8, 74 + 3 * j))
+            T['ghost'].append((e + 8, nm(70 + st + 12), 3.5, 80))
     lv = {'intro': -4, 'A': -2, 'B': 0, 'break': -7, 'C': 0.5, 'outro': -3}   # (v6) a deeper break, a fuller last groove
     pts = []
     for name, _ in FORM:
