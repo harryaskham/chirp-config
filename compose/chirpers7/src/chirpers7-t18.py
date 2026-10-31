@@ -27,6 +27,8 @@ MGAIN = float(os.environ.get("C7T18_MGAIN", "8"))
 FCOMP = os.environ.get("C7T18_FCOMP", "-16,0.3ms")
 OUTRO = os.environ.get("C7T18_OUTRO", "0") == "1"  # the outro is its own room: the hats and the clap stop as it starts, only the kick, the sub and the falling stair walk on
 EQ2 = os.environ.get("C7T18_EQ2", "0") == "1"  # 50 Hz down 10 dB (was 7), the air shelf at 9 kHz +8 dB (was 5)
+EQ3 = os.environ.get("C7T18_EQ3", "1") == "1"  # the low-mid boxiness out (160 and 550 Hz -3 dB) and the air shelf +7 dB (was 5)
+HATSG = os.environ.get("C7T18_HATSG", "-1")  # the hats 3 dB up (was -4): real air above 9 kHz, where the closer read 7-13 dB dark
 RIM3 = os.environ.get("C7T18_RIM3", "1") == "1"
 FORM2 = os.environ.get("C7T18_FORM2", "1") == "1"  # B splits (B2: the stair doubled an octave up, the hats open, no clap) and the outro is the falling floor: the kick leaves at its first bar, the falling Shepard chords return in A minor under the decelerando  # a soft rim on every third 16th in the grooves (a dotted-eighth cycle across the bar lines): the stair's echo in the kit
 
@@ -213,8 +215,9 @@ def song():
                                    "amp": {"a": "2s", "s": 1, "r": "4s"}}},
         },
         "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=30", f"peak cutoff=50 q=1 gain={-10 if EQ2 else -7}dB", "peak cutoff=110 q=1 gain=3dB", "peak cutoff=320 q=0.8 gain=-3dB",
+                                                   *(["peak cutoff=160 q=1.2 gain=-3dB", "peak cutoff=550 q=1 gain=-3dB"] if EQ3 else []),
                                                    "peak cutoff=1000 q=0.7 gain=-3dB", "peak cutoff=1400 q=1.2 gain=-4dB", "highshelf cutoff=4500 gain=9dB",
-                                                   f"highshelf cutoff=9000 gain={8 if EQ2 else 5}dB"]},
+                                                   f"highshelf cutoff=9000 gain={8 if EQ2 else (7 if EQ3 else 5)}dB"]},
                           {"type": "compressor", "threshold": "-20dB", "ratio": 2.5, "attack": "15ms", "release": "150ms", "makeup": "0dB"},
                           {"type": "gain", "gain": f"+{MGAIN:g}dB"},
                           {"type": "compressor", "threshold": f"{FCOMP.split(',')[0]}dB", "ratio": 8, "attack": FCOMP.split(',')[1], "release": "60ms", "makeup": "0dB"},
@@ -227,7 +230,7 @@ def song():
         "tracks": [
             {"name": "kick", "patch": "machine-kit", "gain": "-3dB", "score": T["kick"]},
             *([{"name": "kickin", "patch": "machine-kit", "gain": "-3dB", "fx": [{"type": "filter", "kind": "hp", "cutoff": 110, "q": 0.7}], "score": T["kickin"]}] if SWAP else []),
-            {"name": "hats", "patch": "machine-kit", "gain": "-4dB", "pan": 0.1, "lfo": {"hh": "sine rate=7/1"},
+            {"name": "hats", "patch": "machine-kit", "gain": f"{HATSG}dB", "pan": 0.1, "lfo": {"hh": "sine rate=7/1"},
              "fx": [{"type": "filter", "kind": "hp", "cutoff": {"value": 3500, "mod": [{"src": "lfo.hh", "amount": 0.5}]}, "q": 0.7}], "score": T["hats"]},
             {"name": "clap", "patch": "machine-kit", "gain": "-10dB", "sends": {"hall": "-10dB"}, "score": T["clap"]},
             {"name": "sub", "patch": "sub", "gain": "-14dB", "fx": [pump, {"type": "phantom", "cutoff": 100, "harmonics": "-6dB"}], "score": T["sub"]},
