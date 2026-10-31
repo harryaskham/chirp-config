@@ -38,6 +38,7 @@ SWAP = os.environ.get("C7T16_SWAP", "0") == "1"
 SWAPBARS = int(os.environ.get("C7T16_SWAPBARS", "16"))  # how many overlap bars the incoming lows wait (16: until the overlap ends; 8: the crossfade's midpoint, where the linear fade has both sides at half)  # a DJ's bass swap at the seam in: for the 16 overlap bars the kick is high-passed at 110 Hz (its own track) and the held sub is out - the outgoing track carries the low end; the full kick and sub land at bar 17
 
 BRK = os.environ.get("C7T16_BRK", "hl")  # the break deeper: "h" no hats at all (the pulse and the endless filter alone); "hl" also its level 1.5 dB down
+POLEALL = os.environ.get("C7T16_POLEALL", "1") == "1"  # Harry 14:50 'the illusion leads': the endless filter from intro bar 17 (was 25) and through the outro's first 16 bars, receding, so only the seams go without it
 KEYUP = int(os.environ.get("C7T16_KEYUP", "3"))  # B's last 16 bars lift KEYUP semitones (the filter climbs for ever and, once, so does the key); the outro walks home to G minor for the seam
 SEAMV = int(os.environ.get("C7T16_SEAMV", "70"))  # the held G1's velocity under the seam in (meets t15's tail sub in the live crossfade)
 EQ4 = os.environ.get("C7T16_EQ4", "a")  # "a": 45 Hz -6 dB and the low shelf -9 (37-60 Hz read 8-12 dB over the album); "b": also the hats 3 dB up, 3.5 kHz +3 and the shelves +6 at 4 kHz, +3 at 9 kHz (3-15 kHz read 2-5 dB dark)
@@ -161,7 +162,9 @@ def build():
                 pset = "pulse_fast"  # A2: the climb quickens
             if sec == "B" and 24 <= b < 32:
                 pset = None  # B2: the endless filter stops for eight bars - the groove and the falling stair alone - then resumes
-            if sec == "intro" and b >= 24:
+            if sec == "intro" and b >= (16 if POLEALL else 24):
+                pset = "pulse_slow"
+            if POLEALL and sec == "outro" and b < 16:
                 pset = "pulse_slow"
             if pset:
                 ch = ",".join(nm(n) for n in v)
@@ -171,7 +174,7 @@ def build():
                     if "q" in DENS and sec == "break" and q % 4 != 0:
                         continue
                     if q % 4 == 0 or q in (6, 10, 14) or (sec == "B" and q % 2 == 1) or (VAR and sec == "break" and q % 2 == 0):
-                        add(pset, at + q, ch, 1, 96 if q % 4 == 2 else 80)
+                        add(pset, at + q, ch, 1, (96 if q % 4 == 2 else 80) - (2 * b if (POLEALL and sec == "outro") else 0))
             if "s" in DENS and sec == "B" and b >= 32:
                 for q in range(16):
                     add("perc", at + q, "sh", 1, 70 if q % 4 == 2 else (58 if q % 2 else 48))
