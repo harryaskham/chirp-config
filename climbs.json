@@ -7481,7 +7481,7 @@
     {
       "id": "chirpers7-t12",
       "song": "songs/chirpers7-t12.yaml",
-      "reference": "Chirpers — Track 12 (untitled)",
+      "reference": "Chirpers — The Ghost Note",
       "source": null,
       "owner": "chirper-one",
       "metric": "python3 tools/compscore.py chirpers7-t12 OUT.wav",
@@ -7501,7 +7501,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "The Endless Stair",
-        "title": "Track 12 (untitled)",
+        "title": "The Ghost Note",
         "track": 12,
         "year": 2026
       },
