@@ -40,6 +40,11 @@ MIDS = os.environ.get("C7T17_MIDS", "1") == "1"  # the seam-in meets t16's tail:
 SEAMTICK = os.environ.get("C7T17_SEAMTICK", "1") == "1"
 TICKG = os.environ.get("C7T17_TICKG", "-6")
 TICKOUT = os.environ.get("C7T17_TICKOUT", "0") == "1"  # the tick under the seam out as well (t18's head read 7-10 dB brighter above 9 kHz than t17's tail)  # the seam-in's air: a crisp machine-kit 16th tick under the first 16 bars (t17's head read 6-15 dB darker than Never Arrives' tail above 5 kHz)
+STILL = os.environ.get("C7T17_STILL", "1") == "1"  # chirper-one's note: B bars 23-24 the room stops turning - the loop dead centre, no delays, no crossfade - so it locks in place before B2 turns it twice as fast
+PHH = os.environ.get("C7T17_PHH", "10f")  # the sub's phantom harmonics: "" -6 dB; "10" -10 dB (its 2nd harmonic stood 9 dB proud at 155 Hz); "10f" also 113 Hz +3 (the hole under it)
+ROUT = os.environ.get("C7T17_ROUT", "0") == "1"  # the rims hand over: the closer's seam-in figure (soft rims on the last 16th of each beat) starts under t17's last eight bars, so the overlap shares it
+KH = os.environ.get("C7T17_KH", "0") != "0"
+KHG = os.environ.get("C7T17_KH", "0")  # the seam-in's kick lighter below 80 Hz (its own track, low shelf -6; the sub pumps from it too): t17's head read 11-15 dB heavier at 44-71 Hz than Never Arrives' carved tail
 TAILS = os.environ.get("C7T17_TAIL", "0.1s")  # the render tail: 0.3 s leaves no dead air in the last seconds a DJ mixes out of
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
@@ -49,7 +54,7 @@ CH = [(38, [53, 57, 60, 62]),   # Dm9 (F3 A3 C4, top D4)
       (34, [53, 57, 62, 64]),   # Bbmaj7(9) (F3 A3 D4, top E4)
       (31, [50, 53, 58, 65]),   # Gm9 (D3 F3 Bb3, top F4)
       (33, [50, 55, 61, 69])]   # A7sus(b9) (D3 G3 C#4... top A4)
-TRACKS = ("kick", "hats", "clap", "sub", "keys", "loop", "dust", "stair", "binl", "binr", "tick", "loop2")
+TRACKS = ("kick", "hats", "clap", "sub", "keys", "loop", "dust", "stair", "binl", "binr", "tick", "loop2", "loopc", "kickh")
 CHB2 = [CH[2], CH[1], CH[0], CH[3]]  # B2: Gm9 Bbmaj7 Dm9 A7sus(b9)
 
 
@@ -142,6 +147,9 @@ def build():
             if seam_in or seam_out:
                 if b % 4 == 0:
                     add("sub", at, "D2", 4 * BAR, 76 if (MIDS and seam_in) else 90)
+                if ROUT and seam_out and b >= 24:
+                    for q in (3, 7, 11, 15):
+                        add("clap", at + q, "rs", 1, 64 if q in (3, 11) else 54)
                 if MIDS and seam_in and b < 8:
                     for q in (3, 7, 11, 15):
                         add("clap", at + q, "rs", 1, 64 if q in (3, 11) else 54)
@@ -176,7 +184,8 @@ def build():
                     for q in range(16):
                         k = (at + q) - sec_start("intro")
                         if k % 3 == 0:
-                            add("loop2" if b2 else "loop", at + q, "rs" if (k // 3) % 2 == 0 else "sh", 1, 86 if (k // 3) % 4 == 0 else 74)
+                            still = STILL and sec == "B" and b in (22, 23)
+                            add("loopc" if still else ("loop2" if b2 else "loop"), at + q, "rs" if (k // 3) % 2 == 0 else "sh", 1, 86 if (k // 3) % 4 == 0 else 74)
                 else:
                     for q, piece, vel in ((0, "rs", 84), (3, "sh", 70), (6, "rs", 80), (7, "sh", 60), (10, "rs", 86), (11, "sh", 64), (13, "rs", 72), (15, "sh", 58)):
                         add("loop", at + q, piece, 1, vel)
@@ -184,6 +193,9 @@ def build():
             if sec == "break" and b % 8 == 0:
                 add("binl", at, "C4", 8 * BAR, 80)
                 add("binr", at, "C4", 8 * BAR, 80)
+    if KH:
+        ev["kickh"] = [e for e in ev["kick"] if e[0] < 16 * BAR]
+        ev["kick"] = [e for e in ev["kick"] if e[0] >= 16 * BAR]
     return {k: stream(ev[k], total) for k in TRACKS}
 
 
@@ -232,7 +244,7 @@ def song():
             "bin-l": {"about": "the room turns: the binaural beat's left ear - D3 and its octave", "synth": {"layers": ["sine fixed=146.83", "sine fixed=293.66 level=-10dB"], "amp": {"a": "3s", "s": 1, "r": "3s"}}},
             "bin-r": {"about": "the room turns: the binaural beat's right ear - 5 Hz above", "synth": {"layers": ["sine fixed=151.83", "sine fixed=298.66 level=-10dB"], "amp": {"a": "3s", "s": 1, "r": "3s"}}},
         },
-        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=30", *(["peak cutoff=45 q=1 gain=-5dB"] if EQ5 else []), *(["highshelf cutoff=9000 gain=3dB"] if EQ5 == "b" else []), "lowshelf cutoff=70 gain=-8dB", "peak cutoff=150 q=1.4 gain=-7dB", "peak cutoff=292 q=1.4 gain=-6dB",
+        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=30", *(["peak cutoff=113 q=1.5 gain=3dB"] if PHH == "10f" else []), *(["peak cutoff=45 q=1 gain=-5dB"] if EQ5 else []), *(["highshelf cutoff=9000 gain=3dB"] if EQ5 == "b" else []), "lowshelf cutoff=70 gain=-8dB", "peak cutoff=150 q=1.4 gain=-7dB", "peak cutoff=292 q=1.4 gain=-6dB",
                                                    "peak cutoff=520 q=0.9 gain=-3dB", "peak cutoff=2500 q=0.8 gain=4dB", "highshelf cutoff=4000 gain=5dB"]},
                           {"type": "compressor", "threshold": "-20dB", "ratio": 2.5, "attack": "15ms", "release": "150ms", "makeup": "0dB"},
                           {"type": "gain", "gain": f"+{MGAIN:g}dB"},
@@ -245,9 +257,10 @@ def song():
         },
         "tracks": [
             {"name": "kick", "patch": "dusty-kit", "gain": "-2dB", "score": T["kick"]},
+            *([{"name": "kickh", "patch": "dusty-kit", "gain": "-2dB", "fx": [{"type": "eq", "bands": [f"lowshelf cutoff=80 gain={-3 if KHG == '3' else -6}dB"]}], "score": T["kickh"]}] if KH else []),
             {"name": "hats", "patch": "dusty-kit", "gain": "-5dB", "pan": 0.1, "score": "swing16=0.6 " + T["hats"]},
             {"name": "clap", "patch": "dusty-kit", "gain": "-8dB", "sends": {"room": "-6dB"}, "score": "swing16=0.6 " + T["clap"]},
-            {"name": "sub", "patch": "sub", "gain": "-14dB", "fx": [pump, {"type": "phantom", "cutoff": 100, "harmonics": "-6dB"}], "score": T["sub"]},
+            {"name": "sub", "patch": "sub", "gain": "-14dB", "fx": [pump, *([dict(pump, on="kickh.k")] if KH else []), {"type": "phantom", "cutoff": 100, "harmonics": "-10dB" if PHH else "-6dB"}], "score": T["sub"]},
             {"name": "keys", "patch": "rhodes", "gain": "-11dB", "pan": -0.1, "lfo": {"k": "sine rate=5/1"},
              "fx": [pump, *([{"type": "filter", "kind": "hp", "cutoff": 220, "q": 0.7}] if KEYSF else []),
                     {"type": "filter", "kind": "lp", "cutoff": {"value": 2600 if KEYSF == "2" else 1800, "mod": [{"src": "lfo.k", "amount": 0.8}]}, "q": 0.9}],
@@ -260,6 +273,7 @@ def song():
             {"name": "binr", "patch": "bin-r", "gain": "-30dB", "pan": 1, "score": T["binr"]},
             *turning("swing16=0.6 " + T["loop"], 6),
             *(turning("swing16=0.6 " + T["loop2"], 3, "2") if SEC2 else []),
+            *([{"name": "loopc", "patch": "dusty-kit", "gain": "-3dB", "pan": 0, "sends": {"room": "-12dB"}, "score": "swing16=0.6 " + T["loopc"]}] if STILL else []),
         ],
     }
     return doc
