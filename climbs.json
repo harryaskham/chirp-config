@@ -7195,7 +7195,14 @@
         "score": 95.67,
         "version": "v10",
         "commit": "see git log songs/chirpers7-t3.yaml",
-        "judged": true
+        "judged": true,
+        "stale": {
+          "score": 95.67,
+          "since": "2026-10-31T14:43:35Z",
+          "who": "chirper-three",
+          "rating": 9.0,
+          "version": "v10"
+        }
       },
       "passes": 1,
       "enabled": true,
