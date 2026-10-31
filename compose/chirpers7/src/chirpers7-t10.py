@@ -31,13 +31,19 @@ OUT = os.environ.get("C7T10_OUT") or os.path.expanduser("~/.config/chirp/songs/c
 BAR = 4.0
 NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 SECTIONS = [("intro", 1, 16), ("A", 17, 40), ("Z1", 41, 44), ("B", 45, 72), ("Z2", 73, 76), ("C", 77, 104),
-            ("Z3", 105, 108), ("D", 109, 136), ("Z4", 137, 140), ("E", 141, 152), ("outro", 153, 176)]
+            ("Z3", 105, 108), ("D", 109, 136), ("Z4", 137, 141), ("E", 142, 152), ("outro", 153, 176)]
 BARS = SECTIONS[-1][2]
 TOTAL = BARS * BAR
 DS1 = 27                                     # D#1
 STAIR = [75, 77, 78, 82]                     # D#5 F5 F#5 A#5: the notches and the bell's answers
 BREAKS = {"Z1": 0, "Z2": 1, "Z3": 2, "Z4": 3}
 ZSTART = {0: 41, 1: 73, 2: 105, 3: 137}
+
+
+def answer_bar(k):
+    """Where the bell answers: after one bar of silence - and after TWO for the last (chirper-one's suggestion), so the
+    last after-tone is heard alone before the bell plays the whole stair."""
+    return ZSTART[k] + (5 if k == 3 else 4)
 
 
 def nm(m):
@@ -107,7 +113,7 @@ def zwicker():
         elif k == 3:
             for j, m in enumerate(STAIR[:3]):
                 part("bell").add(b0(z) + 2 * j * BAR / 2, 2.5, nm(m), 60)
-        nxt = z + 4
+        nxt = answer_bar(k)
         if k < 3:
             part("bell").add(b0(nxt), 3.0, nm(STAIR[k]), 100)
         else:
@@ -167,7 +173,7 @@ def harmony():
             part(rh).add(b0(bar) + h, 0.6, ",".join(nm(m + up) for m in v), 90)
         # the bell keeps the steps it has been given, on the off-beat of one
         k = {"B": 1, "C": 2, "D": 3, "E": 4}.get(sec, 0)
-        if k and bar % 2 == 1 and not bar == ZSTART.get(k - 1, 0) + 4:
+        if k and bar % 2 == 1 and not bar == (answer_bar(k - 1) if k >= 1 else 0):
             for j in range(k):
                 part("bell").add(b0(bar) + 0.5 + j * 0.75, 0.6, nm(STAIR[j]), 72 + 4 * j)
 
