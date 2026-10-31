@@ -212,11 +212,19 @@ def main():
     pump = {"type": "pump", "on": "kick", "depth": "-7dB", "attack": "3ms", "release": "330ms", "curve": 0.7}
     acid_fx = lambda: [{"type": "filter", "kind": "lp", "q": 0.9,
                         "cutoff": {"value": 900, "mod": [{"src": "auto.op", "amount": 1.0},
-                                                         {"src": "lfo.res", "amount": 0.5}]}}]
+                                                         {"src": "lfo.res", "amount": 0.5},
+                                                         {"src": "auto.tb", "amount": 1.0}]}}]
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
+    # v9: THE COLOUR: streaming by timbre - in the outro (one line again, B and C#) only the high notes' filter opens
+    # 1.8 octaves over eight bars and closes again: same pitches, same rhythm, and the bright notes peel away into a
+    # second voice, then fuse back as their colour returns. Pitch (the stair), rate (the break), colour (the outro).
+    tb_b = [["0b", 0.0], [f"{b0(145)}b", 0.0], [f"{b0(153)}b", 1.8], [f"{b0(157)}b", 1.8], [f"{b0(161)}b", 0.0],
+            [f"{TOTAL}b", 0.0]]
+    tb_a = [["0b", 0.0], [f"{TOTAL}b", 0.0]]
     acid_tr = lambda n, side: tr(n, "acid", gain="-2dB", sends={"room": "-14dB"},
                                  lfo={"res": {"wave": "sine", "rate": "28b"}},          # seven bars: never on the four
-                                 auto={"op": {"points": op}, "pan": {"points": pan}, "roll": {"points": ROLLS}},
+                                 auto={"op": {"points": op}, "pan": {"points": pan}, "roll": {"points": ROLLS},
+                                       "tb": {"points": tb_b if side > 0 else tb_a}},
                                  pan={"value": 0, "mod": [{"src": "auto.pan", "amount": side}]},
                                  fx=acid_fx() + [{"type": "stutter", "slice": "1/8", "repeats": 8, "roll": 0.5, "pitch": 0.5, "floor": "1/32",
                                                   "chance": {"value": 0, "mod": [{"src": "auto.roll", "amount": 1}]}}])
