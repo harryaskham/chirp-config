@@ -89,6 +89,13 @@ before/after pair for a big change, and at most one pair of yours at a time. It 
 queue that grows faster than it plays (29 Oct: 10 versions, about 45 minutes) starves the album. Better: render
 short excerpts as mp3 and `audio_share` them, so Harry can play them whenever he likes.
 
+## Illusions that have to work on Harry's speakers
+
+Lessons from The Endless Stair (31 Oct), from Harry's ears and the chirpers' measurements:
+- **The same signal in both ears means ONE source.** Precedence/Haas, Huggins pitch, binaural beats on noise and other phase tricks need identical signals in the two ears: one track routed to two buses (with the delay, filter or pan on a bus). Two tracks playing the same score with a noise or randomised patch produce two *different* noises, and the illusion silently disappears (chirper-zero, t17).
+- **Dichotic tricks vanish on speakers.** Octave, scale and Huggins illusions, and anything that needs one ear each, should come with a version that also works in mono.
+- **The presence meter (`chirpers.py illusion`) is a flashlight, not a target.** Holes or parts added only to raise its percentage read as glitches ("something out of track", Harry on t10). Close gaps with things that are musical and unmistakable: a riser or barber pole into the moment, the illusion's own figure brought forward, or teach the ear the obvious version before the subtle one.
+
 ## Mixtapes (a DJ-mixed album)
 
 An album with `compose/ALBUM/mixplan.md` plays as a DJ mix. The seam table (`| seam | ... | overlap (bars) | ... |`, one
