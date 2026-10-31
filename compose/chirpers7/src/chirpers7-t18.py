@@ -40,6 +40,7 @@ BAR = 16
 MGAIN = float(os.environ.get("C7T18_MGAIN", "8"))
 FCOMP = os.environ.get("C7T18_FCOMP", "-16,0.3ms")
 REF = os.environ.get("C7T18_REF", "sfphv")  # the owners' notes on their panels (chirper-three, chirper-one): "s" streaming steps 2/7/12 then the rate cue (eighths fuse it back); "f" beat flip with the ghost one, a counting voice (a hemiola) and 'ONE' on the true downbeat; "p" the bass taken apart (partials 2-6 staggered and panned, then together) before the reveal; "h" the Huggins wash with the pads out of the ghost's way; "v" speech blending into song syllable by syllable
+REF2 = os.environ.get("C7T18_REF2", "tr")  # "t" chirper-one's tritone timing (the answer a dotted quarter after its stair note); "r" chirper-two's 'radio dies': the whole mix tape-stops over the two beats before the last silence, the coda starts from nothing
 ILV = float(os.environ.get("C7T18_ILV", "0"))  # every illusion track's level offset (dB)
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
@@ -255,11 +256,18 @@ def build():
                         head = f"{nm(pitch - 12)}^ph={ph}" if sung else f"D3^ph={ph}^f0={glide}"
                     add("speech", at + q, head, ln, 92 * lv)
             if "tritone" in act:   # t4/t11: pairs a tritone apart, no up or down
-                for k, q in enumerate((0, 4, 8, 12)):
-                    n = UP[(b * 4 + k) % 4]
-                    first, second = (n, n + 6) if (b + k) % 2 == 0 else (n + 6, n)
-                    add("tri", at + q, nm(first), 2, 84 * lv)
-                    add("tri", at + q + 2, nm(second), 2, 84 * lv)
+                if "t" in REF2:
+                    for k, q in enumerate((0, 8)):
+                        n = UP[(b * 2 + k) % 4]
+                        first, second = (n, n + 6) if (b + k) % 2 == 0 else (n + 6, n)
+                        add("tri", at + q, nm(first), 5, 86 * lv)
+                        add("tri", at + q + 6, nm(second), 2, 86 * lv)
+                else:
+                    for k, q in enumerate((0, 4, 8, 12)):
+                        n = UP[(b * 4 + k) % 4]
+                        first, second = (n, n + 6) if (b + k) % 2 == 0 else (n + 6, n)
+                        add("tri", at + q, nm(first), 2, 84 * lv)
+                        add("tri", at + q + 2, nm(second), 2, 84 * lv)
             if "stream" in act:    # t5: one acid line that splits in two
                 rate_cue = False
                 if sec.startswith("g") and "s" in REF:
@@ -363,6 +371,8 @@ def song():
         pts += [(a, -60), (a + BAR, nxt)]
     pts = sorted(dict(pts).items())
     dyn = lane(pts)
+    last_silent = max(silent) * BAR
+    ts_lane = lane([(0, 0), (last_silent - 8, 1), (st["coda"], 0)])   # the tape winds down over the two beats before the last silence
     ilv = lambda g: f"{g + ILV:g}dB"  # noqa: E731
 
     def risset(kind, at, nbars):
@@ -423,14 +433,16 @@ def song():
             "hiss": {"about": "chirper-one's Huggins wash: pink hiss, identical to both ears but for an allpass band",
                      "synth": {"layers": [{"type": "noise", "color": "pink"}], "amp": {"a": "2.5s", "d": "1s", "s": 1, "r": "4ms"}}},
         },
-        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=30", "peak cutoff=50 q=1 gain=-7dB", "peak cutoff=110 q=1 gain=3dB",
+        "master": {"fx": [*([{"type": "tapestop", "time": "2b", "up": "0.25b", "curve": 2.0, "mix": 1,
+                               "stop": {"value": 0, "mod": [{"src": "auto.ts", "amount": 1}]}}] if "r" in REF2 else []),
+                          {"type": "eq", "bands": ["highpass cutoff=30", "peak cutoff=50 q=1 gain=-7dB", "peak cutoff=110 q=1 gain=3dB",
                                                    "peak cutoff=320 q=0.8 gain=-3dB", "peak cutoff=1000 q=0.7 gain=-3dB",
                                                    "peak cutoff=3100 q=1.5 gain=4dB", "highshelf cutoff=4500 gain=7dB", "highshelf cutoff=9000 gain=5dB"]},
                           {"type": "compressor", "threshold": "-20dB", "ratio": 2.5, "attack": "15ms", "release": "150ms", "makeup": "0dB"},
                           {"type": "gain", "gain": f"+{MGAIN:g}dB"},
                           {"type": "compressor", "threshold": f"{FCOMP.split(',')[0]}dB", "ratio": 8, "attack": FCOMP.split(',')[1], "release": "60ms", "makeup": "0dB"},
                           {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}}],
-                   "auto": {"dyn": dyn}},
+                   "auto": {"dyn": dyn, **({"ts": ts_lane} if "r" in REF2 else {})}},
         "buses": {
             "hall": {"fx": ["reverb kind=hall decay=4s mix=1 predelay=30ms", "lp cutoff=7000"]},
             "echo": {"fx": ["delay time=3/16 feedback=0.4 mix=1 tone=2600", "hp cutoff=300", "reverb kind=hall decay=2.5s mix=0.3"]},
