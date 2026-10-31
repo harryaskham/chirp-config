@@ -7686,7 +7686,14 @@
       "best": {
         "score": 95.51,
         "version": "v6",
-        "commit": "see git log songs/chirpers7-t16.yaml"
+        "commit": "see git log songs/chirpers7-t16.yaml",
+        "stale": {
+          "score": 95.51,
+          "since": "2026-10-31T11:37:25Z",
+          "who": "chirper-one",
+          "rating": 9.0,
+          "version": "v6"
+        }
       },
       "passes": 1,
       "enabled": true,
