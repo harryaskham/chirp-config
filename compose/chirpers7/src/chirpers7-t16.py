@@ -34,7 +34,8 @@ VAR = os.environ.get("C7T16_VAR", "1") == "1"  # density moves: the break's puls
 
 RAMP16 = os.environ.get("C7T16_RAMP16", "1") == "1"  # the tempo ramp finishes 16 bars before the end, so the DJ-mix overlap runs at one steady tempo on both sides (no drift under the crossfade)
 
-SWAP = os.environ.get("C7T16_SWAP", "1") == "1"  # a DJ's bass swap at the seam in: for the 16 overlap bars the kick is high-passed at 110 Hz (its own track) and the held sub is out - the outgoing track carries the low end; the full kick and sub land at bar 17
+SWAP = os.environ.get("C7T16_SWAP", "0") == "1"
+SWAPBARS = int(os.environ.get("C7T16_SWAPBARS", "16"))  # how many overlap bars the incoming lows wait (16: until the overlap ends; 8: the crossfade's midpoint, where the linear fade has both sides at half)  # a DJ's bass swap at the seam in: for the 16 overlap bars the kick is high-passed at 110 Hz (its own track) and the held sub is out - the outgoing track carries the low end; the full kick and sub land at bar 17
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 FORM = [("intro", 32), ("build", 16), ("A", 32), ("break", 16), ("B", 48), ("outro", 32)]
@@ -168,9 +169,10 @@ def build():
                 for k, n in enumerate((67, 69, 70, 74)):
                     add("stair", at + 4 * k, nm(n), 2, 90 - 2 * k)
     if SWAP:
-        ev["kickin"] = [e for e in ev["kick"] if e[0] < 16 * BAR]
-        ev["kick"] = [e for e in ev["kick"] if e[0] >= 16 * BAR]
-        ev["sub"] = [e for e in ev["sub"] if e[0] >= 16 * BAR]
+        ev["kickin"] = [e for e in ev["kick"] if e[0] < SWAPBARS * BAR]
+        ev["kick"] = [e for e in ev["kick"] if e[0] >= SWAPBARS * BAR]
+        held = [e for e in ev["sub"] if e[0] < SWAPBARS * BAR < e[0] + e[2]]  # a held note crossing the swap re-enters at the swap point
+        ev["sub"] = [e for e in ev["sub"] if e[0] >= SWAPBARS * BAR] + [(SWAPBARS * BAR, h, e0 + ln - SWAPBARS * BAR, v) for (e0, h, ln, v) in held]
     return {k: stream(ev[k], total_steps()) for k in TRACKS}
 
 
