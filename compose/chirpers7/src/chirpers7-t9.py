@@ -99,12 +99,32 @@ def part(n):
 
 # the riff on the sixteenth grid: (position, semitones over the root); its accents fall on the off-beats (2 6 10 14)
 RIFF = [(0, 0), (2, 0), (3, 7), (6, 0), (8, -2), (10, 0), (11, 3), (14, 5)]
-ROOTS = [GS1, GS1, GS1 - 4, GS1 - 2]          # G#m | G#m | E | F# (a bar each)
-ROOTS_DROP = [GS1, GS1 - 4, GS1 + 3, GS1 - 2]  # the drop walks somewhere new: G#m | E | B | F#
+ROOTS = [GS1, GS1 + 1, GS1 - 4, GS1 - 5]      # v8, darker: G#m9 | Amaj7#11 (Phrygian bII) | Emaj7 | D#7b9
+ROOTS_DROP = [GS1, GS1 - 4, GS1 + 5, GS1 - 5]  # v8: the drop: G#m11 | Emaj7#11 | C#m9 | D#7b9
 
 
 def root_of(bar):
     return (ROOTS_DROP if sec_of(bar) == "drop" else ROOTS)[(bar - 1) % 4]
+
+
+def voicing(r):
+    """v8: per root, over G#: m9 on G# and C#, maj7#11 on A and E, 7b9 on D# (an unresolved dominant)."""
+    pc = (r - GS1) % 12
+    if pc in (0, 5):
+        return [r + 3, r + 7, r + 10, r + 14]
+    if pc in (1, 8):
+        return [r + 4, r + 7, r + 11, r + 18]
+    return [r + 4, r + 7, r + 10, r + 13]
+
+
+def riff_iv(root, iv):
+    """v8: the riff's minor third turns major (and its flat seventh a major seventh) over A and E; over D# its b7 stays."""
+    pc = (root - GS1) % 12
+    if pc in (1, 8):
+        return {3: 4, -2: -1}.get(iv, iv)
+    if pc == 7:
+        return {3: 4}.get(iv, iv)
+    return iv
 
 
 def minor_at(bar):
@@ -130,7 +150,7 @@ def riff():
                 continue
             if hole(bar, b0(bar) + pos / 4):
                 continue
-            part("bass").add(b0(bar) + pos / 4, 0.22, nm(root + iv + up), 104 if acc else 80)
+            part("bass").add(b0(bar) + pos / 4, 0.22, nm(root + riff_iv(root, iv) + up), 104 if acc else 80)
 
 
 def drums():
@@ -184,8 +204,7 @@ def stabs():
         if sec == "break":
             continue
         r = root_of(bar) + 24
-        minor = minor_at(bar)
-        v = [r + (3 if minor else 4), r + 7, r + (10 if minor else 11), r + 14]
+        v = voicing(r)
         hits = (0.75, 1.5, 2.75, 3.5) if (sec == "drop" and bar >= 121) else (0.5, 1.5, 2.5, 3.5)   # the anchor shifts
         for b in hits:
             if hole(bar, b0(bar) + b):
@@ -296,6 +315,12 @@ def main():
                     "cutoff": {"value": 1400, "mod": [{"src": "lfo.sl", "amount": 0.8}]}}, pump]),
             tr("pad", "juno-pad", gain="-8dB", sends={"dub": "-10dB"},
                fx=[{"type": "filter", "kind": "lp", "cutoff": 2200}]),
+            # v8: under the break a RISSET ACCELERANDO (rims and a cowbell speeding up for ever, never faster) against
+            # the counted hemiola and the bar: three clocks at once
+            {"name": "rush", "patch": "machine-kit", "gain": "-5dB", "pan": -0.2, "at": f"{b0(73):.0f}b",
+             "risset": {"cycle": "4bar", "down": False, "layers": 3, "length": "16bar"},
+             "sends": {"dub": "-14dB", "room": "-10dB"},
+             "score": "rs/0.75b@96 rs/0.75b@84 rs/0.5b@90 rs/0.75b@96 cb/0.75b@80 rs/0.5b@88"},
             tr("cowbell", "machine-kit", gain="-10dB", pan=-0.25, sends={"dub": "-12dB"}),
             tr("ride", "machine-kit", gain="-6dB", pan=0.2),
             tr("stair", "celesta", gain="-8dB", pan=0.3, sends={"dub": "-4dB"}),
