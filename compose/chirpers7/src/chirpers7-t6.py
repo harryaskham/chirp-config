@@ -183,11 +183,26 @@ def stabs():
         r = ROOTS[(bar - 1) % 4] + 24
         major = (bar - 1) % 4 in (1, 3)
         v = [r, r + (4 if major else 3), r + 7, r + (11 if major else 10), r + 14]
-        for b in ((0.5, 1.5, 2.5, 3.5) if sec == "drop2" else (0.25, 2.75)):     # drop2: every off-beat, shorter
+        for b in ((0.5, 1.5, 2.5, 3.5) if sec == "drop2" else (0.75, 2.75)):     # v4: on the 'a's; drop2 every off-beat
             part("stab").add(b0(bar) + b, 0.3 if sec == "drop2" else 0.45, ",".join(nm(m) for m in v), 74 if sec == "drop2" else 80)
         # the dark pad: the chord held through the bar (v2: an octave up, out of the bass's harmonics), deeper + drop
         if sec in ("deeper", "drop"):
             part("pad").add(b0(bar), BAR - 0.1, ",".join(nm(m) for m in v[1:]), 64 if sec == "deeper" else 72)
+
+
+def shaker():
+    """v4: a shaker on a DOTTED-EIGHTH cycle (every three sixteenths, running across the bar lines) against the four."""
+    hand = random.Random(26)
+    cyc = 0
+    for bar in range(49, 145):
+        sec = sec_of(bar)
+        if sec == "break" or HOLE[0] <= bar <= HOLE[1]:
+            cyc = (cyc + 16) % 3
+            continue
+        for s in range(16):
+            if (cyc + s) % 3 == 0:
+                part("shaker").add(b0(bar) + s / 4, 0.15, "sh", 78 + hand.randint(-8, 8))
+        cyc = (cyc + 16) % 3
 
 
 def congas():
@@ -225,6 +240,7 @@ def main():
     drums()
     stabs()
     congas()
+    shaker()
     tempo = [{"at": "0b", "bpm": 120}, {"at": f"{b0(17):.0f}b", "bpm": 120},
              {"at": f"{b0(145):.0f}b", "bpm": 120.5, "ramp": True}]
     pump = {"type": "pump", "on": "kick", "depth": "-7dB", "attack": "3ms", "release": "330ms", "curve": 0.7}
@@ -282,6 +298,7 @@ def main():
                fx=[{"type": "filter", "kind": "lp", "q": 0.8,
                     "cutoff": {"value": 1600, "mod": [{"src": "lfo.pd", "amount": 0.8}]}}, pump]),
             tr("conga", "congas", gain="-6dB", pan=-0.35, sends={"room": "-10dB"}),
+            tr("shaker", "djembe", gain="-10dB", pan=0.35, sends={"room": "-12dB"}, fx=["lp cutoff=7000"]),
             tr("ghost", "celesta", gain="-9dB", pan=0.3, sends={"dub": "-3dB"}),
             tr("stair", "c2-stair", gain="-10dB", pan=-0.2, sends={"hall": "-6dB"}),
         ] + partials,
