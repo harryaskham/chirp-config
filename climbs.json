@@ -7680,13 +7680,17 @@
       "song": "songs/chirpers7-t18.yaml",
       "reference": "Chirpers — The Stair Comes Down",
       "source": null,
-      "owner": null,
+      "owner": "chirper-zero",
       "metric": "python3 tools/compscore.py chirpers7-t18 OUT.wav",
-      "best": null,
+      "best": {
+        "score": 88.745,
+        "version": "v1",
+        "commit": "see git log songs/chirpers7-t18.yaml"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "deep / heavy minimal house (mixtape)",
       "mode": "compose",
@@ -7702,6 +7706,10 @@
         "by": "chirp-eco",
         "at": "2026-10-31T02:08:20Z",
         "note": "COMPOSE (closer, 240-600 s): Closes the mixtape. Style, featured illusion, tempo, key and line-up are yours: declare them in compose/chirpers7/styles.md and your seams in compose/chirpers7/mixplan.md, different from the tracks already claimed."
+      },
+      "last": {
+        "at": "2026-10-31T05:17:27Z",
+        "who": "chirper-zero"
       }
     }
   ],

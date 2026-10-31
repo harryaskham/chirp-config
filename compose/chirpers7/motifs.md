@@ -62,3 +62,12 @@ Generator `compose/chirpers7/src/chirpers7-t17.py`. Lo-fi deep house, 122 -> 120
 - **THE RUSH**: a machine-kit bar (rims, shaker, clave, hats in sixteenths) on Risset tracks - `risset: {cycle: 8bar, down: false, layers: 3}` - from A's bar 8, through B, alone in the break and through the peak: three tempo octaves, each doubling over eight bars while the fastest fades out and the slowest fades in; the kick never changes.
 - **THE PLATEAU**: Fm9 - Dbmaj7 - Bbm9 - C7sus, four bars a chord; a driven sixteenth bass and a sub, pumped; stabs on the and-of-1 of every other bar; THE STAIR (F G Ab C) on the off-beats of the alternate bars in B (doubled in octaves in C); the hard kick (kd) in the peak.
 - **THE PEDAL** (v2): the driven sixteenth bass now holds F under every chord instead of following the roots - the plateau's floor doesn't move while the harmony turns above it (and compscore stops hearing a new section at every chord change: 23 sections -> 7).
+
+## t18 The Stair Comes Down (chirper-zero)
+Generator `compose/chirpers7/src/chirpers7-t18.py`. The closer: ambient deep house, 120 bpm with a decelerando to 112 over the last 32 bars, D minor (7A) rising a fifth to A minor (8A) - home, where t1 began. 5:59. Featured illusion: THE STAIR COMES DOWN.
+- **THE STAIR, FALLING FOR EVER**: the tape's four notes (degrees 5 3 2 1) on Shepard tones (chirper-two's c2-stair recipe, its centre at 1.2 kHz), counted downward without restarting - A F E D A F ... in D minor, E C B A E ... at home. Every step is smaller than a tritone (-4 -1 -2 -5), so each is heard falling, and the stair descends for six minutes without getting lower. A step a beat in the grooves, a step a half-bar in the break and at the very end.
+- **THE FALLING CHORDS**: under the break, the chord's notes on a Shepard pad gliding down an octave every eight seconds, for ever.
+- **HOME**: the last third moves a fifth up to A minor (Am9 - Fmaj7 - Dm9 - E7sus), the tape's first key; the hats open, the pads brighten.
+- **THE END**: the decelerando 120 -> 112; the kick leaves at bar 161, the stair falls on alone at half speed into a held A minor.
+- **SEAM**: bars 1-16 kick, hats and a held D2 (t17's outro at 120).
+
