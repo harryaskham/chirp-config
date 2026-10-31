@@ -7,7 +7,8 @@ THE OCTAVE ILLUSION (Diana Deutsch): two pure tones an octave apart alternate be
 ear hears high, low, high, low while the right hears low, high, low, high, every eighth note. Most listeners do not
 hear that: they hear ONE tone hopping from ear to ear and changing octave as it goes (and which ear seems to get the
 high one depends on handedness). The pair steps THE STAIR (C# D# E G#), one step every eight bars.
-Form (bars): intro 16 (the seam from t6: kick and clicks) / A 32 (the sub; the tones enter at bar 8, quietly) /
+Form (bars): intro 16 (the seam from t6: kick, clicks, and - v2 - the octave tones on C#, quietly, shaking hands with
+t6's phantom C#) / A 32 (the sub; the tones enter at bar 8, quietly) /
 B 32 (dub chord stabs, the tones forward, a swung stutter every eight bars) / break 16 (the drums leave: the illusion
 alone in the dark, a long hall) / C 32 (everything) / outro 16 (the seam to t8: kick, clicks, the tones fading).
 Master: chirper-zero's clean -11 LUFS recipe (glue, +8 dB, a fast 8:1 compressor at -15 dB / 0.3 ms, the song's
@@ -73,10 +74,14 @@ def build():
             T['stab'].append((t0 + 0.5, ','.join(nm(m) for m in ch), 0.4, 84))
             T['stab'].append((t0 + 2.75, ','.join(nm(m) for m in ch[1:]), 0.3, 72))
         # THE OCTAVE ILLUSION: antiphase octave tones, left and right, every eighth note
-        on = (s == 'A' and i >= 8) or s in ('B', 'break', 'C') or (s == 'outro' and i < 12)
+        # (v2) THE HANDSHAKE: the tones open the track on C#, quietly, under t6's phantom C# (chirper-three's 'Nobody Plays
+        # the Bass') - a C# that isn't there handing over to a C# that is in the wrong ear - and rest for A's first 8 bars
+        on = s == 'intro' or (s == 'A' and i >= 8) or s in ('B', 'break', 'C') or (s == 'outro' and i < 12)
         if on:
             low = STAIR[(k // 8) % 4]
-            v = {'A': 64, 'B': 78, 'break': 84, 'C': 80, 'outro': 66 - 2 * max(0, i - 4)}[s]
+            if s == 'intro':
+                low = STAIR[0]
+            v = {'intro': 46 + i, 'A': 64, 'B': 78, 'break': 84, 'C': 80, 'outro': 66 - 2 * max(0, i - 4)}[s]
             for e in range(8):
                 hi_left = e % 2 == 0
                 T['earL'].append((t0 + e * 0.5, nm(low + 12 if hi_left else low), 0.42, v))
