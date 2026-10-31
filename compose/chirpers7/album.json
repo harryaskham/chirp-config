@@ -216,5 +216,10 @@
     }
   ],
   "named_by": "harry@pocket4-nixos",
-  "named_at": "2026-10-31T02:10:39Z"
+  "named_at": "2026-10-31T02:10:39Z",
+  "art": {
+    "file": "ref/albums/the-endless-stair/cover-tti.png",
+    "prompt": "Album cover art for 'The Endless Stair' by Chirpers, an original deep / heavy minimal house (mixtape) album. Deep house mixtape sleeve: an impossible staircase or Penrose shape glowing softly in a dark club, warm violet and amber haze, hypnotic and trippy, minimal and elegant. Mixtape cover for 'The Endless Stair' by Chirpers, deep minimal house built on audio illusions: an impossible Penrose staircase looping endlessly in a dark club, lit by a single warm amber strip light and faint violet haze, minimal, geometric, hypnotic, deep shadows, subtle optical illusion, no text Striking, abstract, no text, no letters, no band logo, square composition.",
+    "at": "2026-10-31T02:12:36Z"
+  }
 }
