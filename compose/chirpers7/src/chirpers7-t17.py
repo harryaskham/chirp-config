@@ -55,6 +55,10 @@ WOW = os.environ.get("C7T17_WOW", "1") == "1"  # Harry 15:00 'subtly off ... sli
 SEAMHINT = os.environ.get("C7T17_SEAMHINT", "2") != "0"
 SEAMHINT2 = os.environ.get("C7T17_SEAMHINT", "2") == "2"  # also the seam IN: the loop fades in through its last 8 bars and turns on from bar 17 (was 21)  # Harry's 'no stretch over ~30 s without the illusion': the unwinding loop carries on through the first 8 bars of the seam out, fading (the live mix crossfades it under t18's head)
 SEAMOUT = os.environ.get("C7T17_SEAMOUT", "-5.5")  # the seam-out bars' level (dB): meets the closer's head in the live crossfade
+TEACH = os.environ.get("C7T17_TEACH", "")  # chirp-eco 21:5x 'teach the ear the trick first (the obvious version, then the subtle one)': the loop's late sides start this many dB down - so it first swings plainly left and right on LEVEL - and come up to even over A's first 16 bars, leaving only the 18 ms timing to keep it turning
+TROOM = os.environ.get("C7T17_TROOM", "off")  # the turning loop's room send (dB; "off" = dry): measured 22:15, the dense loop's reverb tails at -12 filled the far ear to 3.6 dB under the near one, smearing the 18 ms precedence cue the illusion lives on
+COH = os.environ.get("C7T17_COH", "1") == "1"  # measured 22:15: each Haas side was its own dusty-kit track, and the kit's rims and shakers are noise - so the near and the far ear got DIFFERENT hits (interaural coherence 0.15) and there was no precedence cue to turn on. Coherent pairs: one source per pair, its output hard to the near ear and a send through an 18 ms delay hard to the far ear (the same sound in both)
+COHB = {}
 TAILS = os.environ.get("C7T17_TAIL", "0.1s")  # the render tail: 0.3 s leaves no dead air in the last seconds a DJ mixes out of
 
 ERISER = os.environ.get("C7T17_ERISER", "-10")  # wM's endless Shepard riser (fx-riser-endless) over the 8 bars into B: pitch, noise and filter rising for ever, stopping dead on the drop (Harry: 'risers and staircases v good'); level in dB
@@ -236,16 +240,30 @@ def lane(points, step=True):
     return {"points": pts}
 
 
-def turning(score, rate_bars, tag="", warp=None, flip=False):
+def turning(score, rate_bars, tag="", warp=None, flip=False, teach=None):
     """THE ROOM THAT TURNS: two Haas pairs (left-leading: the right side 18 ms late; right-leading: the left side late),
     crossfaded by complementary sine LFOs so the loop circles the head at an even level."""
     def side(name, pan, late, phase):
         fx = [{"type": "delay", "time": "18ms", "feedback": 0, "mix": 1}] if late else []
         fx.append({"type": "gain", "gain": {"value": "-12dB", "mod": [{"src": "lfo.x", "amount": 12}]}})
-        return {"name": name, "patch": "dusty-kit", "gain": f"{LOOPG}dB", "pan": pan,
+        if late and teach:
+            fx.append({"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.teach", "amount": 1}]}})
+        return {"name": name, "patch": "dusty-kit", "gain": f"{LOOPG}dB", "pan": pan, **({"auto": {"teach": teach}} if (late and teach) else {}),
                 "lfo": {"x": {"wave": "sine", "rate": f"{rate_bars}/1", "phase": phase, "unipolar": True}},
-                "fx": fx, "sends": {"room": "-12dB"}, "score": score, **({"warp": warp} if warp else {})}
+                "fx": fx, **({"sends": {"room": f"{TROOM}dB"}} if TROOM != "off" else {}), "score": score, **({"warp": warp} if warp else {})}
     a, b = (0.5, 0.0) if flip else (0.0, 0.5)
+    if COH:
+        def pair(name, near, phase):
+            far = -near
+            nb, fb = f"tc{tag}{name}n", f"tc{tag}{name}f"
+            COHB[nb] = {"fx": [{"type": "pan", "pan": near, "width": 0}], "returns": []}
+            COHB[fb] = {"fx": [{"type": "delay", "time": "18ms", "feedback": 0, "mix": 1}, {"type": "pan", "pan": far, "width": 0}], "returns": []}
+            return {"name": f"turn{tag}{name}", "patch": "dusty-kit", "gain": f"{LOOPG}dB",
+                    "lfo": {"x": {"wave": "sine", "rate": f"{rate_bars}/1", "phase": phase, "unipolar": True}},
+                    "fx": [{"type": "gain", "gain": {"value": "-12dB", "mod": [{"src": "lfo.x", "amount": 12}]}}],
+                    "out": nb, "sends": {fb: "0dB", **({"room": f"{TROOM}dB"} if TROOM != "off" else {})},
+                    "score": score, **({"warp": warp} if warp else {})}
+        return [pair("A", -1, a), pair("B", 1, b)]
     return [side(f"turn{tag}Ll", -1, False, a), side(f"turn{tag}Lr", 1, True, a),
             side(f"turn{tag}Rl", -1, True, b), side(f"turn{tag}Rr", 1, False, b)]
 
@@ -300,7 +318,8 @@ def song():
             {"name": "binl", "patch": "bin-l", "gain": "-30dB", "pan": -1, "score": T["binl"]},
             {"name": "binr", "patch": "bin-r", "gain": "-30dB", "pan": 1, "score": T["binr"]},
             *turning("swing16=0.6 " + T["loop"], 6, warp=([{"over": "48bar", "to": 0}, {"over": "8bar", "to": 0.25, "curve": "smooth"},
-                                                           {"over": "8bar", "to": 0, "curve": "smooth"}] if WARP else None)),
+                                                           {"over": "8bar", "to": 0, "curve": "smooth"}] if WARP else None),
+                    teach=(lane([(0, -float(TEACH)), (st["A"], -float(TEACH)), (st["A"] + 16 * BAR, 0)]) if TEACH else None)),
             *(turning("swing16=0.6 " + T["loop3"], 8, "3", flip=True) if UNWIND else []),
             *(turning("swing16=0.6 " + T["loop2"], 3, "2", warp=([{"over": "112bar", "to": 0}, {"over": "8bar", "to": -0.25, "curve": "smooth"},
                                                                     {"over": "8bar", "to": 0, "curve": "smooth"}] if WARP else None)) if SEC2 else []),
@@ -313,6 +332,7 @@ def song():
 def dump(doc):
     lines = [f"{k}: {json.dumps(doc[k])}" for k in ("about", "tempo", "ceiling", "loudness", "tail", "patches", "master") if k in doc]
     lines.append("buses:")
+    doc["buses"].update(COHB)
     lines += [f"  {b}: {json.dumps(v)}" for b, v in doc["buses"].items()]
     lines.append("tracks:")
     lines += ["  - " + json.dumps(t) for t in doc["tracks"]]
