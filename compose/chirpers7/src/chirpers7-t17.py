@@ -50,6 +50,8 @@ LOOPG = os.environ.get("C7T17_LOOPG", "1")  # the turning loop's level (dB per s
 WARP = os.environ.get("C7T17_WARP", "1") == "1"  # Harry 14:50 'much harder on time-play': the turning loop also slips in TIME - in A2 it drifts a sixteenth behind the kick and back (track warp, smooth), in B2 (turning twice as fast) a sixteenth ahead and back; re-locked long before the seam
 SEAMIN = os.environ.get("C7T17_SEAMIN", "-6.5")  # the seam-in bars' level (dB): meets Never Arrives' tail in the live crossfade
 UNWIND = os.environ.get("C7T17_UNWIND", "1") == "1"  # chirper-one's note: in the outro the room turns the OTHER way (the Haas pairs' crossfade reversed, slower, every 8 bars) - it unwinds before the closer
+DARK = os.environ.get("C7T17_DARK", "1") == "1"  # Harry 15:00 'darker': the stair's notes stay on top, the inner voices darken - Dm11, Bbmaj7#11, Gm9, A7b9
+WOW = os.environ.get("C7T17_WOW", "1") == "1"  # Harry 15:00 'subtly off ... slight wow on ONE element': the Rhodes alone through a worn tape (wow 9 cents, flutter 1.5), wearing harder in B2 as the room turns faster
 TAILS = os.environ.get("C7T17_TAIL", "0.1s")  # the render tail: 0.3 s leaves no dead air in the last seconds a DJ mixes out of
 
 ERISER = os.environ.get("C7T17_ERISER", "-10")  # wM's endless Shepard riser (fx-riser-endless) over the 8 bars into B: pitch, noise and filter rising for ever, stopping dead on the drop (Harry: 'risers and staircases v good'); level in dB
@@ -60,6 +62,10 @@ CH = [(38, [53, 57, 60, 62]),   # Dm9 (F3 A3 C4, top D4)
       (34, [53, 57, 62, 64]),   # Bbmaj7(9) (F3 A3 D4, top E4)
       (31, [50, 53, 58, 65]),   # Gm9 (D3 F3 Bb3, top F4)
       (33, [50, 55, 61, 69])]   # A7sus(b9) (D3 G3 C#4... top A4)
+CHD = [(38, [53, 55, 60, 62]),   # Dm11: F3 G3 C4, top D4
+       (34, [50, 57, 60, 64]),   # Bbmaj7#11: D3 A3 C4, top E4 (the #11)
+       (31, [50, 53, 58, 65]),   # Gm9: D3 F3 Bb3, top F4
+       (33, [49, 55, 58, 69])]   # A7b9: C#3 G3 Bb3, top A4
 TRACKS = ("kick", "hats", "clap", "sub", "keys", "loop", "dust", "stair", "binl", "binr", "tick", "loop2", "loopc", "kickh", "loop3")
 CHB2 = [CH[2], CH[1], CH[0], CH[3]]  # B2: Gm9 Bbmaj7 Dm9 A7sus(b9)
 
@@ -126,7 +132,7 @@ def build():
         for b in range(nb):
             at = a0 + b * BAR
             b2 = SEC2 and sec == "B" and b >= 24
-            r, v = (CHB2 if b2 else CH)[b % 4]
+            r, v = (([CHD[2], CHD[1], CHD[0], CHD[3]] if DARK else CHB2) if b2 else (CHD if DARK else CH))[b % 4]
             seam_in = sec == "intro" and b < 16
             seam_out = sec == "outro" and b >= 16
             if sec != "break" and not (SEC and sec == "B" and 20 <= b < 24) and not (SEC2 and sec == "intro" and 28 <= b < 32):
@@ -276,8 +282,11 @@ def song():
             {"name": "clap", "patch": "dusty-kit", "gain": "-8dB", "sends": {"room": "-6dB"}, "score": "swing16=0.6 " + T["clap"]},
             {"name": "sub", "patch": "sub", "gain": "-14dB", "fx": [pump, *([dict(pump, on="kickh.k")] if KH else []), {"type": "phantom", "cutoff": 100, "harmonics": "-10dB" if PHH else "-6dB"}], "score": T["sub"]},
             {"name": "keys", "patch": "rhodes", "gain": "-11dB", "pan": -0.1, "lfo": {"k": "sine rate=5/1"},
+             **({"auto": {"wear": lane([(0, 0), (st["B"] + 24 * BAR, 0.8), (st["outro"], 0)])}} if WOW else {}),
              "fx": [pump, *([{"type": "filter", "kind": "hp", "cutoff": 220, "q": 0.7}] if KEYSF else []),
-                    {"type": "filter", "kind": "lp", "cutoff": {"value": 2600 if KEYSF == "2" else 1800, "mod": [{"src": "lfo.k", "amount": 0.8}]}, "q": 0.9}],
+                    {"type": "filter", "kind": "lp", "cutoff": {"value": 2600 if KEYSF == "2" else 1800, "mod": [{"src": "lfo.k", "amount": 0.8}]}, "q": 0.9},
+                    *([{"type": "tape", "drive": 0.05, "mix": 0.6, "wow": 9, "flutter": 1.5, "drift": 1, "tone": 8000, "seed": 17,
+                        "warp": {"value": 1, "mod": [{"src": "auto.wear", "amount": 1}]}}] if WOW else [])],
              "sends": {"hall": "-10dB"}, "score": "swing16=0.6 " + T["keys"]},
             {"name": "stair", "patch": "rhodes", "gain": "-10dB", "pan": 0.2, "sends": {"hall": "-6dB"}, "score": T["stair"]},
             *([{"name": "tick", "patch": "machine-kit", "gain": f"{TICKG}dB", "pan": -0.15, "fx": [{"type": "filter", "kind": "hp", "cutoff": 5000, "q": 0.7}],
