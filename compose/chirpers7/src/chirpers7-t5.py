@@ -200,7 +200,8 @@ def main():
     drums()
     harmony()
     dyn, op, pan = lanes()
-    tempo = [{"at": "0b", "bpm": 119.5}, {"at": f"{b0(145):.0f}b", "bpm": 120, "ramp": True}]
+    tempo = [{"at": "0b", "bpm": 119.5}, {"at": f"{b0(17):.0f}b", "bpm": 119.5},     # v6: hold through the overlap
+             {"at": f"{b0(145):.0f}b", "bpm": 120, "ramp": True}]
     pump = {"type": "pump", "on": "kick", "depth": "-7dB", "attack": "3ms", "release": "330ms", "curve": 0.7}
     acid_fx = lambda: [{"type": "filter", "kind": "lp", "q": 0.9,
                         "cutoff": {"value": 900, "mod": [{"src": "auto.op", "amount": 1.0},
