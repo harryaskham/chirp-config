@@ -205,6 +205,23 @@ class RhythmTerm(unittest.TestCase):
         self.assertGreater(CS.m_rhythm(ctx)[0], base)
 
 
+class SeamTempo(unittest.TestCase):
+    def test_tempo_maps_step_and_ramp(self):
+        f = CH.tempo_fn([{"at": "0b", "bpm": 120}, {"at": "64b", "bpm": 120}, {"at": "128b", "bpm": 124, "ramp": True},
+                         {"at": "200b", "bpm": 110}])
+        self.assertEqual((f(0), f(63.9), f(96), f(150), f(250)), (120, 120, 122, 124, 110))
+
+    def test_beats_at_a_steady_tempo_take_their_time(self):
+        t = CH.beat_times(CH.tempo_fn([{"at": "0b", "bpm": 120}]), 0, 64)
+        self.assertAlmostEqual(t[-1], 32.0, places=6)              # 64 beats at 120 bpm = 32 s
+
+    def test_a_ramp_under_a_fixed_tempo_drifts(self):
+        out = CH.tempo_fn([{"at": "0b", "bpm": 122}, {"at": "64b", "bpm": 123, "ramp": True}])
+        fixed = CH.tempo_fn([{"at": "0b", "bpm": 123}])
+        a, b = CH.beat_times(out, 0, 64), CH.beat_times(fixed, 0, 64)
+        self.assertGreater(1000 * (a[-1] - b[-1]), 50)               # 16 bars gliding 122 -> 123 under 123: ~60 ms
+
+
 class Mixtape(unittest.TestCase):
     def test_seams_overlap_with_a_linear_crossfade_that_cannot_clip(self):
         a = np.full((100, 2), 0.9, dtype=np.float32)

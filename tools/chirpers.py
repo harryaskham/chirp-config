@@ -16,6 +16,8 @@ climbing them on tools/compscore.py (no record to match) and Harry's ratings (to
                                                      seed-0 score as its best (the old one kept under best.rescored,
                                                      a note in its history) and save its features, so `done` compares
                                                      like with like (Moult v3 was refused against an old-scale v2)
+  chirpers.py seams ALBUM_ID [--flam-ms MS] [--dead-s S]   audit a mixtape's DJ seams: beat drift across each
+                                                     overlap (tempo ramps, mismatches), dead air after the last bar
   chirpers.py release ALBUM_ID [--lufs L] [--out DIR] [--legacy-limiter] [--mix [--overlap-bars N]]
                                                      finish an album: render each composed track (seed 0, groove pin,
                                                      true-peak limiter; --mix: a continuous DJ mixtape too), match
@@ -559,6 +561,112 @@ def mix_release(a, album, rows, plan, pin, work, out_dir, art, env):
     return {"file": os.path.basename(mp3) if ok else None, "tracklist": tl}
 
 
+def _beats(at):
+    """A tempo point's `at` in beats ('640b'; a bare number is beats)."""
+    t = str(at).strip()
+    return float(t[:-1]) if t.endswith("b") else float(t)
+
+
+def tempo_fn(points):
+    """bpm(beat) from a canonical tempo map: a `ramp` point glides linearly (in beats) from the previous point's BPM;
+    otherwise the tempo steps at the point."""
+    pts = sorted(((_beats(p["at"]), float(p["bpm"]), bool(p.get("ramp"))) for p in points), key=lambda q: q[0])
+
+    def bpm(b):
+        cur = pts[0][1]
+        for i, (at, v, ramp) in enumerate(pts):
+            if b < at:
+                if ramp and i:
+                    a0, v0 = pts[i - 1][0], pts[i - 1][1]
+                    return v0 + (v - v0) * (b - a0) / max(at - a0, 1e-9)
+                return cur
+            cur = v
+        return cur
+    return bpm
+
+
+def beat_times(bpm, b0, n, step=1 / 32):
+    """Seconds from beat B0 to each whole beat B0+k, k = 0..N (integrating 60/bpm in 1/32-beat steps)."""
+    out, t, b = [0.0], 0.0, b0
+    for _ in range(n):
+        for _ in range(int(round(1 / step))):
+            t += 60.0 / bpm(b + step / 2) * step
+            b += step
+        out.append(t)
+    return out
+
+
+def seam_report(album_id, pin, beats_per_bar=4):
+    """Per seam: the outgoing track's tempo across its last OVERLAP bars vs the incoming track's across its first, and
+    how far their beats drift apart by the end of the crossfade (the live DJ mix starts the incoming track on the
+    outgoing bar line OVERLAP bars before the musical end and never tempo-syncs). Per track: dead air after the last
+    bar line (the render tail past the music, which the flow term hears)."""
+    album = load_album(album_id)
+    seams, default = seam_overlaps(album_id)
+    songs = {}
+    for t in album.get("tracks", []):
+        song = os.path.join(ROOT, "songs", f"{t['id']}.yaml")
+        if not os.path.exists(song):
+            continue
+        r = subprocess.run([pin, "plan", "-f", song, "--json"], capture_output=True, text=True)
+        try:
+            d = json.loads(r.stdout)
+            d = d.get("data") or d
+            tm = (d.get("canonical") or {}).get("tempo")
+            tm = tm if isinstance(tm, list) else [{"at": "0b", "bpm": float(tm or 120)}]
+            secs = float(d["seconds"])
+        except (ValueError, KeyError, TypeError):
+            continue
+        bpm = tempo_fn(tm)
+        times, b = [0.0], 0
+        while times[-1] <= secs:                      # whole beats past the musical end
+            times.append(times[-1] + beat_times(bpm, b, 1)[1])
+            b += 1
+        end = (b - 1) + (secs - times[b - 1]) / (times[b] - times[b - 1])     # the musical end, in (fractional) beats
+        last_bar = int((end + 1e-3) // beats_per_bar) * beats_per_bar        # a song ending ON a bar line keeps it
+        songs[t["n"]] = {"id": t["id"], "bpm": bpm, "end_beat": last_bar, "secs": secs,
+                         "dead": max(0.0, secs - times[last_bar])}
+    rows = []
+    for n in sorted(songs):
+        if n + 1 not in songs:
+            continue
+        a, c = songs[n], songs[n + 1]
+        ov = seams.get((n, n + 1), default)
+        k = int(round(ov * beats_per_bar))
+        start = a["end_beat"] - k
+        to, ti = beat_times(a["bpm"], start, k), beat_times(c["bpm"], 0, k)
+        drift = [1000 * (x - y) for x, y in zip(to, ti)]
+        rows.append({"seam": f"t{n} -> t{n + 1}", "overlap_bars": ov,
+                     "out_bpm": (round(a["bpm"](start), 2), round(a["bpm"](a["end_beat"] - 0.01), 2)),
+                     "in_bpm": (round(c["bpm"](0), 2), round(c["bpm"](k - 0.01), 2)),
+                     "drift_ms": round(drift[-1], 1), "max_drift_ms": round(max(drift, key=abs), 1)})
+    return songs, rows
+
+
+def cmd_seams(a, argv=None):
+    pin = a.pin or open(os.path.join(HERE, "groove-pin")).read().strip()
+    songs, rows = seam_report(a.album_id, pin)
+    print(f"{'seam':12} {'bars':>4}  {'out bpm (over the overlap)':>26}  {'in bpm':>16}  {'drift ms':>8}  flags")
+    for r in rows:
+        o, i = r["out_bpm"], r["in_bpm"]
+        flags = []
+        if o[0] != o[1]:
+            flags.append("RAMP-OUT")
+        if i[0] != i[1]:
+            flags.append("RAMP-IN")
+        if abs(r["max_drift_ms"]) >= a.flam_ms:
+            flags.append(f"FLAM (>= {a.flam_ms:g} ms)")
+        print(f"{r['seam']:12} {r['overlap_bars']:>4g}  {o[0]:>12g} -> {o[1]:<11g}  {i[0]:>7g} -> {i[1]:<6g}  "
+              f"{r['max_drift_ms']:>8.1f}  {' '.join(flags)}")
+    dead = [(n, s) for n, s in sorted(songs.items()) if s["dead"] > a.dead_s]
+    if dead:
+        print("dead air after the last bar line (the flow term hears it; the live mix and release --mix cut it):")
+        for n, s in dead:
+            print(f"  t{n:<3} {s['dead']:.2f} s")
+    if a.json:
+        print(json.dumps({"seams": rows, "dead": {f"t{n}": round(s["dead"], 2) for n, s in songs.items()}}))
+
+
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
@@ -596,6 +704,12 @@ def main(argv=None):
     p.add_argument("--legacy-limiter", action="store_true", help="legacy clamp limiter (true_peak is the default)")
     p.add_argument("--mix", action="store_true", help="also a continuous DJ mixtape: seams overlapped per mixplan.md")
     p.add_argument("--overlap-bars", type=float, default=16.0, help="seam overlap when mixplan.md doesn't give one")
+    p = sub.add_parser("seams", help="audit a mixtape's DJ seams: tempo drift across each overlap, dead air at the ends")
+    p.add_argument("album_id")
+    p.add_argument("--pin", help="chirp binary (default: tools/groove-pin)")
+    p.add_argument("--flam-ms", type=float, default=10.0, help="flag a seam whose beats drift this far apart")
+    p.add_argument("--dead-s", type=float, default=0.5, help="flag a track with more dead air than this after its last bar")
+    p.add_argument("--json", action="store_true")
     known, skip = [], False
     for i, x in enumerate(argv):            # climb.py's own flags (--as NAME, --no-git) go to its helpers, not argparse
         if skip:
@@ -608,7 +722,7 @@ def main(argv=None):
             known.append(x)
     a = ap.parse_args(known)
     {"new": cmd_new, "name": cmd_name, "title": cmd_title, "art": cmd_art, "status": cmd_status,
-     "refresh": cmd_refresh, "rebaseline": cmd_rebaseline, "release": cmd_release}[a.cmd](a, argv)
+     "refresh": cmd_refresh, "rebaseline": cmd_rebaseline, "release": cmd_release, "seams": cmd_seams}[a.cmd](a, argv)
 
 
 if __name__ == "__main__":
