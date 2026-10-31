@@ -128,7 +128,7 @@ def drums():
         sec = sec_of(bar)
         disp = within(bar, FLIP_DISPLACED)
         off = 0.5 if disp else 0.0
-        if not within(bar, KICKLESS) and bar <= 174:
+        if not within(bar, KICKLESS):                            # v2: to the last bar (the seam into t10)
             for b in range(4):
                 part("kick").add(b0(bar) + b + off, 0.5, "k", 114 if b == 0 else 106)
         if sec == "break" or within(bar, [(41, 44), (57, 60), (105, 106)]):
@@ -183,12 +183,18 @@ def stair_and_voice():
         for k, iv in enumerate((0, 2, 3, 7)):
             part("stair").add(b0(bar) + 0.5 + k * 0.75, 0.6, nm(GS1 + 36 + iv), 78 + 5 * k)
     # the voice counting "one" where the hemiola puts its accent (every three eighths): never on the true one
-    for bar in range(77, 89, 2):
-        k0 = (bar - 73) * 8
-        for e in range(8):
-            if (k0 + e) % 3 == 0 and (k0 + e) % 8 != 0:
-                part("voice").add(b0(bar) + e * 0.5, 0.45, f"G#3^ph=w-ah1-n^f0=0>-20", 80)
-                break
+    # v2: from bar 81 the voice COUNTS the hemiola aloud - one, two, three on its dotted-quarter pulse, against the
+    # bar's four - talking the ear into the wrong meter; then "one" on the TRUE downbeat as the drop lands (bar 89)
+    words = [("w-ah1-n", "0>-20", 0), ("t-uw1", "0>-10", -2), ("th-r-iy1", "0>-30", -4)]
+    for k in range(int((b0(89) - b0(81)) * 2 // 3)):             # every three eighths from bar 81
+        at = b0(81) + k * 1.5
+        if at >= b0(89) - 0.5:
+            break
+        ph, f0, dv = words[k % 3]
+        part("voice").add(at, 0.5, f"G#3^ph={ph}^f0={f0}", 82 + dv)
+    for bar in range(77, 81, 2):                                  # before the count: a lone "one" in the wrong place
+        part("voice").add(b0(bar) + 1.5, 0.45, "G#3^ph=w-ah1-n^f0=0>-20", 78)
+    part("voice").add(b0(89), 0.6, "B3^ph=w-ah1-n^f0=0>-60", 100)    # home
 
 
 LEVEL = {"intro": -8, "A": -4, "turn": -3, "back": -3, "break": -8, "drop": 0, "outro": -5}
@@ -236,7 +242,7 @@ def main():
                            "makeup": "0dB"}],
                    "auto": {"dyn": {"points": lanes()}}},
         "tracks": [
-            tr("kick", "machine-kit", gain="-12dB"),
+            tr("kick", "machine-kit", gain="-13dB"),
             tr("hats", "machine-kit", gain="0dB", pan=0.1, lfo={"hh": {"wave": "sine", "rate": "20b"}},
                fx=[{"type": "filter", "kind": "hp", "cutoff": {"value": 3000, "mod": [{"src": "lfo.hh", "amount": 0.6}]}}]),
             tr("clap", "machine-kit", gain="-3dB", sends={"room": "-8dB"}),
