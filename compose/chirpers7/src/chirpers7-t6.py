@@ -102,12 +102,23 @@ def roll_for(bar, sec):
     return [ROLL, PUSHED, ROLL, LEAP][((bar - 17) // 8) % 4]
 ROOTS = [FS1, FS1 - 4, FS1 - 7, FS1 - 5]    # F#m | D | Bm | C# (one bar each)
 STAIR = [0, 2, 3, 7]                        # F# G# A C#
+ROOTS2 = [FS1 - 4, FS1 - 7, FS1 + 3, FS1 - 5]  # v5: the second drop's own walk: D | Bm | A | C#
+DEEP_END = (69, 80)                          # v5: after the hole: no stabs, no congas, the line at its most nasal
+
+
+def root_of(bar):
+    return (ROOTS2 if sec_of(bar) == "drop2" else ROOTS)[(bar - 1) % 4]
+
+
+def major_of(bar):
+    r = root_of(bar)
+    return r != FS1 and r != FS1 - 7
 
 
 def bass_line():
     for bar in range(1, BARS + 1):
         sec = sec_of(bar)
-        root = ROOTS[(bar - 1) % 4]
+        root = root_of(bar)
         if sec == "intro":
             part("phantom").add(b0(bar), BAR - 0.1, nm(FS1), 100)
             continue
@@ -124,6 +135,13 @@ def bass_line():
             continue
         low = -12 if (sec == "deeper" and bar >= 57) else 0                     # lower than the speakers play
         roll = roll_for(bar, sec) if sec != "outro" else (ROLL if bar % 2 else ROLL[:2])
+        if sec == "outro" and bar <= 152:
+            # v5: THE LINE REBUILT FROM ITS PARTIALS: the five pure sines of the break (2..6 x each note), centred now,
+            # play the roll - each sounds its harmonic of every note, and together they make the moving bass nobody plays
+            for beat, ln, iv, v in ROLL:
+                for h in range(2, 7):
+                    part(f"h{h}").add(b0(bar) + beat, ln, nm(root + iv), v - 10 - 3 * (h - 2))
+            continue
         for beat, ln, iv, v in roll:
             part("phantom").add(b0(bar) + beat, ln, nm(root + low + iv), v)
             # v3: THE GHOST of the bass: in the drops its accented notes, three octaves up, a sixteenth late, into the dub
@@ -180,8 +198,10 @@ def stabs():
         sec = sec_of(bar)
         if sec == "break":
             continue
-        r = ROOTS[(bar - 1) % 4] + 24
-        major = (bar - 1) % 4 in (1, 3)
+        if DEEP_END[0] <= bar <= DEEP_END[1]:
+            continue
+        r = root_of(bar) + 24
+        major = major_of(bar)
         v = [r, r + (4 if major else 3), r + 7, r + (11 if major else 10), r + 14]
         for b in ((0.5, 1.5, 2.5, 3.5) if sec == "drop2" else (0.75, 2.75)):     # v4: on the 'a's; drop2 every off-beat
             part("stab").add(b0(bar) + b, 0.3 if sec == "drop2" else 0.45, ",".join(nm(m) for m in v), 74 if sec == "drop2" else 80)
@@ -211,7 +231,7 @@ def congas():
     fig = [(0.5, "o", 90), (1.25, "mu", 60), (1.75, "o", 84), (2.5, "sl", 96), (3.25, "lo", 88),
            (4.5, "o", 90), (5.0, "mu", 58), (5.75, "lo", 86), (6.5, "sl", 100), (7.25, "o", 82), (7.75, "mu", 56)]
     for bar in range(33, 161, 2):
-        if sec_of(bar) in ("break", "drop2") or HOLE[0] <= bar <= HOLE[1]:
+        if sec_of(bar) in ("break", "drop2") or HOLE[0] <= bar <= DEEP_END[1]:
             continue
         for at, pc, v in fig:
             if hand.random() < 0.9:
@@ -266,7 +286,7 @@ def main():
                                                                                       "width": 1.1}}],
                                            "amp": {"a": "4ms", "d": "700ms", "s": 0.25, "r": "400ms", "curve": 2}},
                                  "play": {"vel_sens": 0.6}}},
-        "tail": "1.2s",
+        "tail": "0.1s",                          # end on the last bar: the DJ mixes out of it (chirper-one's finding)
         "loudness": -11,
         "buses": {"room": {"fx": ["reverb kind=room decay=1.2s mix=1 predelay=12ms", "hp cutoff=250"]},
                   "hall": {"fx": ["reverb kind=hall decay=3s mix=1 predelay=25ms", "hp cutoff=200"]},
@@ -288,8 +308,12 @@ def main():
             tr("clap", "machine-kit", gain="-2dB", sends={"room": "-8dB"}),
             tr("rim", "machine-kit", gain="-8dB", pan=-0.3, sends={"dub": "-12dB"}),
             tr("phantom", "phantom-bass", gain="-7dB", lfo={"tb": {"wave": "sine", "rate": "44b"}},
+               auto={"nz": {"points": [["0b", 0.0], [f"{b0(DEEP_END[0]) - 0.5}b", 0.0], [f"{b0(DEEP_END[0])}b", 1.0],
+                                       [f"{b0(DEEP_END[1] + 1) - 0.5}b", 1.0], [f"{b0(DEEP_END[1] + 1)}b", 0.0],
+                                       [f"{TOTAL}b", 0.0]]}},
                fx=[{"type": "filter", "kind": "bp", "q": 0.7,          # v2: the colour moves, the pitch doesn't: a
-                    "cutoff": {"value": 170, "mod": [{"src": "lfo.tb", "amount": 0.8}]}}, pump]),   # band-pass over h2..h6
+                    "cutoff": {"value": 170, "mod": [{"src": "lfo.tb", "amount": 0.8},     # band-pass over h2..h6;
+                                                     {"src": "auto.nz", "amount": 1.0}]}}, pump]),   # v5: the deep end nasal
             tr("sub", "808", gain="-16dB", fx=[{"type": "filter", "kind": "lp", "cutoff": 90}, pump]),
             tr("stab", "juno-pad", gain="-5dB", pan=0.2, sends={"dub": "-5dB"}, lfo={"sl": {"wave": "sine", "rate": "28b"}},
                fx=[{"type": "filter", "kind": "lp", "q": 1.2,
