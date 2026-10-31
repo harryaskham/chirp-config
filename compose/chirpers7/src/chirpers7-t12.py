@@ -158,12 +158,17 @@ def build():
                                   {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.thr', 'amount': 1}]}}], 'returns': [],
                            'auto': {'fb': {'points': fbl}, 'thr': {'points': thr}}},
                   'hall': {'fx': ['reverb kind=hall decay=4.5s mix=1', 'hp cutoff=300'], 'returns': []}},
-        'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=32', 'peak cutoff=58 q=0.9 gain=-8dB', 'peak cutoff=350 q=0.7 gain=-4dB', 'peak cutoff=3200 q=0.6 gain=6dB', 'highshelf cutoff=7000 gain=5dB']},
+        # (v17) THE REWIND (dub's pull-up): on the beat before the break's last silence, the whole mix is pulled backwards
+        # (a vinyl spin-back) - then the silent beat - then the last groove drops
+        'master': {'fx': [{'type': 'tapestop', 'time': '1b', 'spin': 3, 'curve': 1.6, 'mix': 1,
+                           'stop': {'value': 0, 'mod': [{'src': 'auto.sb', 'amount': 1}]}},
+                          {'type': 'eq', 'bands': ['highpass cutoff=32', 'peak cutoff=58 q=0.9 gain=-8dB', 'peak cutoff=350 q=0.7 gain=-4dB', 'peak cutoff=3200 q=0.6 gain=6dB', 'highshelf cutoff=7000 gain=5dB']},
                           {'type': 'compressor', 'threshold': '-20dB', 'ratio': 2.5, 'attack': '15ms', 'release': '150ms', 'makeup': '2dB'},
                           {'type': 'gain', 'gain': '+8dB'},
                           {'type': 'compressor', 'threshold': '-15dB', 'ratio': 8, 'attack': '0.3ms', 'release': '60ms'},
                           {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.dyn', 'amount': 1}]}}],
-                   'auto': {'dyn': {'points': dyn}}},
+                   'auto': {'dyn': {'points': dyn},
+                            'sb': {'points': [['0b', 0], [f"{secs['C'] - 2:.2f}b", 0], [f"{secs['C'] - 1.99:.2f}b", 1], [f"{secs['C'] - 1.01:.2f}b", 1], [f"{secs['C'] - 1:.2f}b", 0]]}}},
         'tracks': [
             tr('kit', 'machine-kit', '-4dB', sends={'hall': '-18dB'}),
             tr('cyc', 'machine-kit', '-9dB', pan=-0.35, sends={'echo': '-6dB'}, fx=['hp cutoff=300']),
