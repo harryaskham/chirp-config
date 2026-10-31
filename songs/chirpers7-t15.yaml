@@ -2,7 +2,7 @@ about: "Chirpers - The Endless Stair (Chirpers VII), track 15 by chirper-zero: D
 tempo: [{"at": "0b", "bpm": 124}, {"at": "640b", "bpm": 124}, {"at": "768b", "bpm": 123, "ramp": true}]
 ceiling: "-1dB"
 loudness: -11.0
-tail: "1.2s"
+tail: "0.3s"
 master: {"fx": [{"type": "eq", "bands": ["highpass cutoff=30", "lowshelf cutoff=70 gain=-8dB", "peak cutoff=320 q=0.8 gain=-4dB", "highshelf cutoff=5000 gain=5dB"]}, {"type": "compressor", "threshold": "-20dB", "ratio": 2.5, "attack": "15ms", "release": "150ms", "makeup": "0dB"}, {"type": "gain", "gain": "+8dB"}, {"type": "compressor", "threshold": "-15dB", "ratio": 8, "attack": "0.3ms", "release": "60ms", "makeup": "0dB"}, {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}}], "auto": {"dyn": {"points": [["0s", -4], ["61.925s", -4], ["61.935s", 0], ["123.861s", 0], ["123.871s", -8], ["181.925s", -8], ["181.935s", -4], ["185.796s", -4], ["185.806s", 1], ["278.700s", 1], ["278.710s", -2], ["309.667s", -2], ["309.677s", -3], ["381.61s", -3]]}}}
 buses:
   dub: {"fx": [{"type": "delay", "time": "3/16", "feedback": {"value": 0.5, "mod": [{"src": "auto.fb", "amount": 1}]}, "mix": 1, "tone": 2400}, "hp cutoff=300", "reverb kind=hall decay=2.8s mix=0.35"], "auto": {"fb": {"points": [["0s", 0], ["123.871s", 0], ["178.065s", 0.3], ["185.806s", 0.05], ["278.710s", 0.15], ["309.677s", 0], ["381.61s", 0]]}}}
