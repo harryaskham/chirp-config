@@ -92,7 +92,8 @@ def gap_at(bar):
     if sec == "break":                      # 81-88 wide (19), panned apart; 89-92 the octave at HALF RATE (fused);
         return 19 if bar < 89 else [12, 12, 12, 12, 7, 5, 3, 2][bar - 89]          # 93-96 closing, still slow
     if sec == "drop":
-        return STAIR[((bar - 97) % 8) // 2]
+        g = STAIR[((bar - 97) % 8) // 2]
+        return -g if bar >= 129 else g           # v10: the second pass climbs the stair DOWN (the streams cross below)
     if sec == "outro":
         return 2
     return None
@@ -173,7 +174,7 @@ def harmony():
             v = [r, r + (3 if minor else 4), r + 7, r + 10 if minor else r + 11, r + 14]
             if r == B2 + 7:                                              # F#: a sus4 with the seventh
                 v = [r, r + 5, r + 7, r + 10]
-            for b in (1.5, 3.5):
+            for b in ((0.75, 2.75) if bar >= 129 and sec == "drop" else (1.5, 3.5)):   # v10: the 'a's
                 part("stab").add(b0(bar) + b, 0.22, ",".join(nm(m) for m in v), 82)
 
 
@@ -250,7 +251,7 @@ def main():
                    "auto": {"dyn": {"points": dyn}}},
         "tracks": [
             tr("kick", "machine-kit", gain="-12dB"),
-            tr("hats", "machine-kit", gain="-5dB", pan=0.1, lfo={"hh": {"wave": "sine", "rate": "20b"}},
+            tr("hats", "machine-kit", gain="-3dB", pan=0.1, lfo={"hh": {"wave": "sine", "rate": "20b"}},
                fx=[{"type": "filter", "kind": "hp", "cutoff": {"value": 2500, "mod": [{"src": "lfo.hh", "amount": 0.7}]}}]),
             tr("clap", "machine-kit", gain="-7dB", sends={"room": "-8dB"}),
             tr("subin", "808", gain="-3dB", fx=[{"type": "phantom", "harmonics": "-6dB", "odd": 0.4, "remove": 0.0}]),
