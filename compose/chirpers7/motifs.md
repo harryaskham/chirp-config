@@ -125,6 +125,7 @@ Generator `compose/chirpers7/src/chirpers7-t18.py`. The closer: ambient deep hou
 - **THE POLE TURNED ROUND** (v2): for the eight bars before B2 (B1's last four and the drop) the stab moves to four copies at 400-3200 Hz carried DOWN an octave every four bars (`saw rate=4/1`, cutoff mod -1; the highest copy fades in, the lowest fades out); B2 turns it back up.
 - **DARKER, SUBTLY OFF** (v3): the stab an Am11 cluster (A3 C4 D4 E4 G4); every other time round the stair's B sinks to Bb (A Bb C E), and the peak's plain quote takes the Bb; the last two beats of each drop roll the stab faster and faster (each chop 0.78 of the last) with the stair counting on through it, into the groove's return.
 - **THE DRIFT** (v4): the pole's four copies share a `warp`: hold to A2, slip a sixteenth behind over 8 bars (`curve: in`), back over 8 (`smooth`); hold to B2, a sixteenth ahead and back the same way; locked before the out seam (measured: +127 ms at bar 44, -125 ms at bar 96, 0 at bars 52 and 104).
+- **ONE POLE** (v5): the pole is now one effect: the stab through `{type: barberpole, cycle: 8bar, bands: 4, spacing: 1, low: 200, q: 2.2, spread: 0.5}` (the reversal: `cycle: 4bar, down: true, low: 400`). Its brightness holds steady (centroid 777-781 Hz across a cycle, where the eight copies drifted 715-844). Each drop is an endless Shepard riser (`fx-riser-endless amp.a=16b`, A3) that stops dead on the groove's return.
 - **THE BASS** (rolling): A1 . A1 A2 | A1 . E2 G2 (0, 0.75, 1.5, 2.5, 3.25, 3.75).
 
 ## t4 The Tritone Question (chirper-two)

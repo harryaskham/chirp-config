@@ -40,6 +40,14 @@ R3 = os.environ.get("T2_R3", "dark")
 # slipping and re-locking. All four pole copies share the warp; it is locked again before the out seam.
 # T2_R4=none reproduces v3.
 R4 = os.environ.get("T2_R4", "drift")
+# T2_R5 = onefx (v5, wM's time-play part 2): the pole becomes ONE effect - the stab on one track through
+# `barberpole` (4 bands an octave apart from 200 Hz, an octave per 8 bars, q 2.2, spread 0.5 for width), the reversal
+# on a second through `barberpole down: true` (from 400 Hz, an octave per 4 bars) - in place of eight band-passed
+# copies; lighter on the live groove. T2_R6 = riser: each drop's noise rise becomes the endless Shepard riser
+# (fx-riser-endless, swell over the drop, stopping dead on the groove's return). =none reproduces v4.
+R5 = os.environ.get("T2_R5", "onefx")
+R6 = os.environ.get("T2_R6", "riser")
+POLE_GAIN = os.environ.get("T2_POLE_GAIN", "-14dB")
 DARK = [57, 60, 62, 64, 67]                 # Am11 cluster: A3 C4 D4 E4 G4
 
 OUT = os.environ.get("T2_OUT") or os.path.expanduser("~/.config/chirp/songs/chirpers7-t2.yaml")
@@ -165,7 +173,7 @@ def build():
                 m = 70 if (R3 == "dark" and sec == "B2" and m == 71) else m  # the peak's quote sinks to Bb
                 T["stair"].add(start + k, 0.9, nm(m), 70)
         if sec in ("drop1", "drop2") and i == 0:
-            T["rise"].add(start, 16.0, "C4", 92)
+            T["rise"].add(start, 16.0, "A3" if R6 == "riser" else "C4", 80 if R6 == "riser" else 92)
     sec = []
     for name, n in FORM:
         first = next(bb for bb in bars if bb[1] == name)
@@ -272,12 +280,21 @@ def main():
          "score": T["clap"].score(total)},
         {"name": "rim", "patch": "machine-kit", "gain": "-8dB", "pan": -0.25, "score": T["rim"].score(total)},
         {"name": "bass", "patch": "c2-rollbass", "gain": "-4dB", "fx": [pump], "score": T["bass"].score(total)},
-        *pole_tracks(T["stab"].score(total), total, st),
-        *(down_pole_tracks(T["stabdn"].score(total)) if R2 == "reverse" else []),
+        *(pole_tracks(T["stab"].score(total), total, st) if R5 != "onefx" else [
+            {"name": "pole", "patch": "c2-stab", "gain": POLE_GAIN, **({"warp": drift(st)} if R4 == "drift" else {}),
+             "sends": {"room": "-6dB"},
+             "fx": [{"type": "barberpole", "cycle": "8bar", "bands": 4, "spacing": 1, "low": 200, "q": 2.2,
+                     "spread": 0.5}], "score": T["stab"].score(total)}]),
+        *((down_pole_tracks(T["stabdn"].score(total)) if R5 != "onefx" else [
+            {"name": "poledn", "patch": "c2-stab", "gain": POLE_GAIN, "sends": {"room": "-6dB"},
+             "fx": [{"type": "barberpole", "cycle": "4bar", "down": True, "bands": 4, "spacing": 1, "low": 400,
+                     "q": 2.2, "spread": 0.5}], "score": T["stabdn"].score(total)}]) if R2 == "reverse" else []),
         {"name": "stair", "patch": "c2-stair", "gain": "-10dB", "pan": 0.2,
          "fx": [{"type": "delay", "time": "3/16", "feedback": 0.35, "mix": 0.25, "ping_pong": True, "tone": 3000},
                 "reverb kind=hall decay=2.5s mix=0.25"], "score": T["stair"].score(total)},
-        {"name": "rise", "patch": "c2-rise", "gain": "-20dB", "fx": ["width width=1.5"], "score": T["rise"].score(total)},
+        ({"name": "rise", "patch": "fx-riser-endless amp.a=16b", "gain": os.environ.get("T2_RISE_GAIN", "-12dB"),
+          "score": T["rise"].score(total)} if R6 == "riser" else
+         {"name": "rise", "patch": "c2-rise", "gain": "-20dB", "fx": ["width width=1.5"], "score": T["rise"].score(total)}),
     ]
     for tr in tracks:
         if tr["name"].startswith("pole"):
