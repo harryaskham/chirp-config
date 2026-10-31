@@ -228,6 +228,18 @@ def harmony():
 LEVEL = {"intro": -8, "A": -4, "B": -3, "C": -2, "D": 0, "E": 0, "outro": -5, "Z1": -2, "Z2": -2, "Z3": -2, "Z4": -1}
 
 
+TAPESTOPS = (40, 104)                        # v9: the bars whose last two beats wind down into Z1 and Z3
+
+
+def ts_lane():
+    pts = [["0b", 0.0]]
+    for bar in TAPESTOPS:
+        a, z = b0(bar) + 2, b0(bar + 1)
+        pts += [[f"{a - 0.01:.2f}b", 0.0], [f"{a:.2f}b", 1.0], [f"{z - 0.01:.2f}b", 1.0], [f"{z:.2f}b", 0.0]]
+    pts.append([f"{TOTAL:.2f}b", 0.0])
+    return pts
+
+
 def lanes():
     dyn = []
     for name, a, z in SECTIONS:
@@ -279,13 +291,15 @@ def main():
                                  "reverb kind=hall decay=2.2s mix=0.25"]}},
         "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=28", "lowshelf cutoff=200 gain=-3dB",
                                                     "highshelf cutoff=5000 gain=3dB"]},
+                          {"type": "tapestop", "stop": {"value": 0, "mod": [{"src": "auto.ts", "amount": 1}]},
+                           "time": "2b", "up": "0.05b", "curve": 0.6, "mix": 1},   # v9: the groove winds down into Z1 and Z3
                           {"type": "compressor", "threshold": "-20dB", "ratio": 2.5, "attack": "15ms", "release": "150ms",
                            "makeup": "0dB"},
                           {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}},
                           {"type": "gain", "gain": "+8dB"},
                           {"type": "compressor", "threshold": "-12dB", "ratio": 8, "attack": "0.3ms", "release": "60ms",
                            "makeup": "0dB"}],
-                   "auto": {"dyn": {"points": lanes()}}},
+                   "auto": {"dyn": {"points": lanes()}, "ts": {"points": ts_lane()}}},
         "tracks": [
             tr("kick", "machine-kit", gain="-11dB"),
             tr("hats", "machine-kit", gain="0dB", pan=0.1, lfo={"hh": {"wave": "sine", "rate": "20b"}},
