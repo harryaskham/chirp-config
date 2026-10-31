@@ -202,6 +202,12 @@ def cowbell_and_ride():
             part("ride").add(b0(bar) + b + 0.5, 0.4, "rd", 84 if b % 2 else 72)
 
 
+def riser():
+    """v10: an endless Shepard riser (tinted on C#, the counted bars' key) over the break's second half, stopping dead
+    on bar 89 - where the voice says ONE on the true downbeat."""
+    part("riser").add(b0(81), 32.0, "C#3", 90)
+
+
 def stabs():
     """G#m9 on the off-beats: the anchor the ear moves to when the kick goes."""
     for bar in range(17, 145):
@@ -214,7 +220,7 @@ def stabs():
         for b in hits:
             if hole(bar, b0(bar) + b):
                 continue
-            part("stab").add(b0(bar) + b, 0.18, ",".join(nm(m) for m in v), 84 if b in (0.5, 0.75, 2.5, 2.75) else 72)
+            part("stabturn" if 41 <= bar <= 56 else "stab").add(b0(bar) + b, 0.18, ",".join(nm(m) for m in v), 84 if b in (0.5, 0.75, 2.5, 2.75) else 72)
 
 
 def sub_and_pad():
@@ -277,6 +283,7 @@ def main():
     sub_and_pad()
     stair_and_voice()
     cowbell_and_ride()
+    riser()
     tempo = [{"at": "0b", "bpm": 121.5}, {"at": f"{b0(17):.0f}b", "bpm": 121.5},
              {"at": f"{b0(137):.0f}b", "bpm": 122, "ramp": True}]
     pump = {"type": "pump", "on": "kick", "depth": "-7dB", "attack": "3ms", "release": "320ms", "curve": 0.7}
@@ -318,6 +325,11 @@ def main():
             tr("stab", "juno-pad", gain="-4dB", pan=-0.15, sends={"dub": "-6dB"}, lfo={"sl": {"wave": "sine", "rate": "28b"}},
                fx=[{"type": "filter", "kind": "bp", "q": 0.8,
                     "cutoff": {"value": 1400, "mod": [{"src": "lfo.sl", "amount": 0.8}]}}, pump]),
+            # v10: in the turn, where the floor flips, the off-beat anchor's colour sinks for ever (a falling barber pole)
+            tr("stabturn", "juno-pad", gain="-4dB", pan=-0.15, sends={"dub": "-6dB"}, lfo={"sl": {"wave": "sine", "rate": "28b"}},
+               fx=["barberpole cycle=2bar down=true", {"type": "filter", "kind": "bp", "q": 0.8,
+                    "cutoff": {"value": 1400, "mod": [{"src": "lfo.sl", "amount": 0.8}]}}, pump]),
+            tr("riser", "fx-riser-endless amp.a=32b", gain="-13dB"),
             tr("pad", "juno-pad", gain="-8dB", sends={"dub": "-10dB"},
                fx=[{"type": "filter", "kind": "lp", "cutoff": 2200}]),
             # v8: under the break a RISSET ACCELERANDO (rims and a cowbell speeding up for ever, never faster) against
