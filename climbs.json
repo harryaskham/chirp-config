@@ -7143,7 +7143,7 @@
     {
       "id": "chirpers7-t2",
       "song": "songs/chirpers7-t2.yaml",
-      "reference": "Chirpers — Track 2 (untitled)",
+      "reference": "Chirpers — The Filter Never Opens",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers7-t2 OUT.wav",
@@ -7159,7 +7159,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "The Endless Stair",
-        "title": "Track 2 (untitled)",
+        "title": "The Filter Never Opens",
         "track": 2,
         "year": 2026
       },
