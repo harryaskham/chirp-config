@@ -350,7 +350,10 @@ def main():
                fx=[{"type": "filter", "kind": "bp", "q": 0.7,          # v2: the colour moves, the pitch doesn't: a
                     "cutoff": {"value": 170, "mod": [{"src": "lfo.tb", "amount": 0.8},     # band-pass over h2..h6;
                                                      {"src": "auto.nz", "amount": 1.0}]}}, pump]),
-            tr("phantomlow", "phantom-bass", gain="-1dB", lfo={"tb": {"wave": "sine", "rate": "44b"}},
+            tr("phantomlow", "phantom-bass", gain="-1dB",
+               # v11: THE BASS NOBODY PLAYS DRIFTS: through the deep end its own clock slides a sixteenth behind the kick
+               # over six bars, then eases back onto the grid by bar 80 (re-locked long before any seam)
+               warp=[{"over": "68bar", "to": 0}, {"over": "6bar", "to": 0.25}, {"over": "6bar", "to": 0, "curve": "smooth"}], lfo={"tb": {"wave": "sine", "rate": "44b"}},
                auto={"nz": {"points": [["0b", 0.0], [f"{b0(DEEP_END[0]) - 0.5}b", 0.0], [f"{b0(DEEP_END[0])}b", 1.0],
                                        [f"{b0(DEEP_END[1] + 1) - 0.5}b", 1.0], [f"{b0(DEEP_END[1] + 1)}b", 0.0],
                                        [f"{TOTAL}b", 0.0]]}},
@@ -365,6 +368,11 @@ def main():
                fx=[{"type": "filter", "kind": "lp", "q": 0.8,
                     "cutoff": {"value": 1600, "mod": [{"src": "lfo.pd", "amount": 0.8}]}}, pump]),
             tr("conga", "congas", gain="-6dB", pan=-0.35, sends={"room": "-10dB"}),
+            # v11: under the half-time drop a Risset bed speeding up AND slowing down at once (both: true)
+            {"name": "both", "patch": "machine-kit", "gain": "-8dB", "pan": 0.3, "at": f"{b0(HALFTIME[0]):.0f}b",
+             "risset": {"cycle": "4bar", "both": True, "layers": 3, "length": f"{HALFTIME[1] - HALFTIME[0] + 1}bar"},
+             "sends": {"dub": "-14dB"},
+             "score": "rs/0.75b@92 h/0.25b@60 rs/0.5b@84 h/0.5b@58 rs/0.75b@90 h/0.25b@56 cb/0.5b@78 h/0.5b@54"},
             tr("shaker", "djembe", gain="-10dB", pan=0.35, sends={"room": "-12dB"}, fx=["lp cutoff=7000"]),
             tr("ghost", "celesta", gain="-9dB", pan=0.3, sends={"dub": "-3dB"}),
             tr("stair", "c2-stair", gain="-10dB", pan=-0.2, sends={"hall": "-6dB"}),
