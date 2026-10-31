@@ -168,7 +168,7 @@ def drums():
     hand = random.Random(6)
     for bar in range(1, BARS + 1):
         sec = sec_of(bar)
-        if sec == "break" or bar > 174:
+        if sec == "break":                             # v6: to the last bar (the seam into t7)
             continue
         if HOLE[0] <= bar <= HOLE[1]:                  # v2: THE HOLE: the drums gone, the bass nobody plays alone
             if bar == HOLE[1]:
