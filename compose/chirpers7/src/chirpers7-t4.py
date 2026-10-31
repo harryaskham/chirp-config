@@ -45,6 +45,10 @@ R3 = os.environ.get("T4_R3", "cross")
 # back to every bar at -8 dB (in front again), and the stab goes darker: the Bm9 shape PLANES up a semitone to a Cm9
 # shape over the B pedal every fourth bar (a Phrygian b2 rub). T4_R4=none reproduces v3.
 R4 = os.environ.get("T4_R4", "both")
+# T4_R5 = ratio (v5, wM's time-play part 1): the Risset copies sit a METRIC MODULATION apart (3:2) instead of an
+# octave of tempo - each step of the endless acceleration or slowing is the 12/8-against-4 hemiola the bell and the
+# dotted-quarter toms already play, so the question in time speaks t4's own cross-rhythm. T4_R5=none reproduces v4.
+R5 = os.environ.get("T4_R5", "ratio")
 
 OUT = os.environ.get("T4_OUT") or os.path.expanduser("~/.config/chirp/songs/chirpers7-t4.yaml")
 NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"]
@@ -245,7 +249,8 @@ def risset_tracks(st, total):
     for name, loop, down, at, bars, gain, pan, *lay in plan:
         g = f"{float(gain[:-2]) - RISSET_TRIM:g}dB"
         out.append({"name": f"risset-{name}", "patch": "machine-kit", "gain": g, "pan": pan, "at": f"{at * 4:g}b",
-                    "risset": {"cycle": "4bar", "down": down, "layers": lay[0] if lay else 3, "length": f"{bars:g}bar"},
+                    "risset": {"cycle": "4bar", "down": down, "layers": lay[0] if lay else 3, "length": f"{bars:g}bar",
+                               **({"ratio": "3:2"} if R5 == "ratio" else {})},
                     "fx": (["hp cutoff=90", "lp cutoff=3500"] if down else ["hp cutoff=400"]) + [
                         "reverb kind=room decay=0.7s mix=0.15"],
                     "sends": {"room": "-12dB"}, "score": loop})
