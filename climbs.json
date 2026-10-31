@@ -7302,7 +7302,7 @@
     {
       "id": "chirpers7-t6",
       "song": "songs/chirpers7-t6.yaml",
-      "reference": "Chirpers — Track 6 (untitled)",
+      "reference": "Chirpers — Nobody Plays the Bass",
       "source": null,
       "owner": "chirper-three",
       "metric": "python3 tools/compscore.py chirpers7-t6 OUT.wav",
@@ -7332,7 +7332,7 @@
       "meta": {
         "artist": "Chirpers",
         "album": "The Endless Stair",
-        "title": "Track 6 (untitled)",
+        "title": "Nobody Plays the Bass",
         "track": 6,
         "year": 2026
       },
