@@ -23,6 +23,11 @@ import json
 import os
 import random
 
+# rounds: T2_R2 = reverse (v2: the pole turns round for the eight bars before the last groove - B1's last four and the
+# drop - running DOWN an octave every four bars, so the endless opening is felt by contrast when B2 turns it back up;
+# chirper-one's note). T2_R2=none reproduces v1.
+R2 = os.environ.get("T2_R2", "reverse")
+
 OUT = os.environ.get("T2_OUT") or os.path.expanduser("~/.config/chirp/songs/chirpers7-t2.yaml")
 NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"]
 POLE = [200, 400, 800, 1600]  # the four bands, an octave apart
@@ -73,7 +78,7 @@ BASS = [(0.0, 33, 0.4), (0.75, 33, 0.2), (1.5, 45, 0.25), (2.5, 33, 0.4), (3.25,
 
 def build():
     rng = random.Random(2)
-    T = {k: Track(k) for k in ("kick", "hats", "clap", "rim", "bass", "stab", "stair", "rise")}
+    T = {k: Track(k) for k in ("kick", "hats", "clap", "rim", "bass", "stab", "stabdn", "stair", "rise")}
     bars, pos = [], 0.0
     for name, n in FORM:
         for i in range(n):
@@ -114,7 +119,9 @@ def build():
             for o in ((0.5, 1.75, 2.5, 3.25) if core else (0.5, 2.5)):
                 top = STAIR[step % 4]
                 step += 1
-                T["stab"].add(start + o, 0.3, ",".join(nm(x) for x in chord + [top]), 84 if o == 0.5 else 74)
+                down = R2 == "reverse" and (sec == "drop2" or (sec == "B1" and i >= 12))
+                T["stabdn" if down else "stab"].add(start + o, 0.3, ",".join(nm(x) for x in chord + [top]),
+                                                    84 if o == 0.5 else 74)
         # ---- the stair itself, quoted plainly once a phrase (as t1 handed it over) ----
         if sec in ("A2", "B2") and i % 8 == 7:
             for k, m in enumerate(STAIR):
@@ -177,6 +184,30 @@ def pole_tracks(score, total, st):
     return out
 
 
+def down_pole_tracks(score):
+    """The pole turned round (v2): four copies band-passed at 400-3200 Hz, carried DOWN an octave per cycle by a saw of
+    four bars; the highest copy fades in as it sinks from the top, the lowest fades out into the floor."""
+    out = []
+    n = len(POLE)
+    for k, base in enumerate(POLE):
+        if k == 0:
+            g = {"value": "0dB", "mod": [{"src": "lfo.s", "amount": -30}]}
+        elif k == n - 1:
+            g = {"value": "-30dB", "mod": [{"src": "lfo.s", "amount": 30}]}
+        else:
+            g = "0dB"
+        out.append({"name": f"poledn{k}", "patch": "c2-stab", "gain": "-14dB", "pan": [0.3, 0.1, -0.1, -0.3][k],
+                    "lfo": {"s": "saw rate=4/1 unipolar=true"},
+                    "sends": {"room": "-6dB"},
+                    "fx": [{"type": "pump", "on": "kick.kr", "depth": "-7dB", "attack": "3ms", "release": "340ms",
+                            "curve": 0.8},
+                           {"type": "filter", "kind": "bp", "q": 2.2,
+                            "cutoff": {"value": base * 2, "mod": [{"src": "lfo.s", "amount": -1.0}]}},
+                           {"type": "gain", "gain": g}],
+                    "score": score})
+    return out
+
+
 def main():
     total, bars, sec, T = build()
     st = {n: s for n, s, k in sec}
@@ -195,6 +226,7 @@ def main():
         {"name": "rim", "patch": "machine-kit", "gain": "-8dB", "pan": -0.25, "score": T["rim"].score(total)},
         {"name": "bass", "patch": "c2-rollbass", "gain": "-4dB", "fx": [pump], "score": T["bass"].score(total)},
         *pole_tracks(T["stab"].score(total), total, st),
+        *(down_pole_tracks(T["stabdn"].score(total)) if R2 == "reverse" else []),
         {"name": "stair", "patch": "c2-stair", "gain": "-10dB", "pan": 0.2,
          "fx": [{"type": "delay", "time": "3/16", "feedback": 0.35, "mix": 0.25, "ping_pong": True, "tone": 3000},
                 "reverb kind=hall decay=2.5s mix=0.25"], "score": T["stair"].score(total)},
