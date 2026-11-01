@@ -7798,7 +7798,7 @@
     {
       "id": "chirpers8-t1",
       "song": "songs/chirpers8-t1.yaml",
-      "reference": "chirpers — Track 1 (untitled)",
+      "reference": "chirpers — Echolalia",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers8-t1 OUT.wav",
@@ -7814,7 +7814,7 @@
       "meta": {
         "artist": "chirpers",
         "album": "A Light Left On",
-        "title": "Track 1 (untitled)",
+        "title": "Echolalia",
         "track": 1,
         "year": 2026
       },
