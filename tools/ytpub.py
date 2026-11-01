@@ -11,6 +11,7 @@ DJ mix when the release has one), with YouTube chapters for the tracks, an hones
     ytpub.py kit ALBUM [--tracks]    build ~/Music/Chirpers/<album>/youtube/ (video.mp4, description.txt, thumb.jpg)
     ytpub.py upload ALBUM [--privacy private|unlisted|public] [--dry-run]
     ytpub.py publish ALBUM [--privacy public]
+    ytpub.py channel [--description-file F] [--keywords K] [--banner IMG]   the channel's About text, keywords, banner
 
 ALBUM is an album id (chirpers5) or its name. Uploads default to PRIVATE so Harry reviews before anything is public.
 Credentials live outside the config repo in ~/.config/chirp-youtube/ (client_secret.json from gws's OAuth client,
@@ -474,6 +475,52 @@ def cmd_publish(a):
     print(f"https://youtu.be/{state['video_id']} is now {a.privacy}")
 
 
+def banner_jpeg(path, out):
+    """A 2560x1440 JPEG under YouTube's 6 MB banner limit (16:9, centre crop)."""
+    from PIL import Image
+    im = Image.open(path).convert("RGB")
+    w, h = im.size
+    if w / h > 16 / 9:
+        nw = int(h * 16 / 9)
+        im = im.crop(((w - nw) // 2, 0, (w - nw) // 2 + nw, h))
+    else:
+        nh = int(w * 9 / 16)
+        im = im.crop((0, (h - nh) // 2, w, (h - nh) // 2 + nh))
+    im.resize((2560, 1440), Image.LANCZOS).save(out, quality=90)
+    return out
+
+
+def cmd_channel(a):
+    token = access_token()
+    ch = channel(token)
+    if ch["title"] != CHANNEL_TITLE:
+        sys.exit(f"ytpub: authorised channel is {ch['title']!r}, not {CHANNEL_TITLE!r}; refusing")
+    st, _, d = call("GET", f"{API}/channels?part=brandingSettings&id={ch['id']}", token)
+    if st != 200:
+        sys.exit(f"ytpub: channels.list {st}: {json.dumps(d)[:300]}")
+    branding = d["items"][0].get("brandingSettings") or {}
+    c = branding.setdefault("channel", {})
+    if a.description_file:
+        c["description"] = open(a.description_file).read().strip()[:1000]
+    if a.keywords:
+        c["keywords"] = a.keywords
+    if a.country:
+        c["country"] = a.country
+    c.setdefault("defaultLanguage", "en")
+    if a.banner:
+        import tempfile
+        jpg = banner_jpeg(a.banner, os.path.join(tempfile.mkdtemp(), "banner.jpg"))
+        st, _, b = call("POST", f"{UPLOAD}/channelBanners/insert", token, open(jpg, "rb").read(), ctype="image/jpeg")
+        if st != 200:
+            sys.exit(f"ytpub: channelBanners.insert {st}: {json.dumps(b)[:300]}")
+        branding.setdefault("image", {})["bannerExternalUrl"] = b["url"]
+    st, _, d = call("PUT", f"{API}/channels?part=brandingSettings", token, {"id": ch["id"], "brandingSettings": branding})
+    if st != 200:
+        sys.exit(f"ytpub: channels.update {st}: {json.dumps(d)[:400]}")
+    print(f"{ch['title']} {ch['handle']}: " + ", ".join(k for k in ("description", "keywords", "country") if c.get(k))
+          + (", banner" if a.banner else ""))
+
+
 def cmd_list(a):
     for aid in album_ids():
         meta = json.load(open(os.path.join(ROOT, "compose", aid, "album.json")))
@@ -515,6 +562,12 @@ def main(argv=None):
     s.add_argument("album")
     s.add_argument("--privacy", choices=["private", "unlisted", "public"], default="public")
     s.set_defaults(fn=cmd_publish)
+    s = sub.add_parser("channel")
+    s.add_argument("--description-file")
+    s.add_argument("--keywords", help="space-separated; quote multi-word ones")
+    s.add_argument("--country", default="GB")
+    s.add_argument("--banner", help="an image; cropped to 16:9 and sent as a 2560x1440 JPEG")
+    s.set_defaults(fn=cmd_channel)
     a = p.parse_args(argv)
     a.fn(a)
 

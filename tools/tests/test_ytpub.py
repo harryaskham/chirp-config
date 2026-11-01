@@ -79,3 +79,12 @@ def test_peak_guard():
     assert Y.peak_ok(-0.36, -0.36) and Y.peak_ok(-0.9, -0.93) and Y.peak_ok(-1.5, -1.62)
     assert not Y.peak_ok(2.47, -1.62)        # the AAC overshoot this guard exists for
     assert not Y.peak_ok(-0.1, -0.6) and not Y.peak_ok(0.0, 0.2)
+
+
+def test_banner_jpeg_is_16_9_and_small(tmp_path):
+    from PIL import Image
+    src = tmp_path / "b.png"
+    Image.new("RGB", (3840, 2400), (10, 20, 40)).save(src)
+    out = Y.banner_jpeg(str(src), str(tmp_path / "b.jpg"))
+    im = Image.open(out)
+    assert im.size == (2560, 1440) and os.path.getsize(out) < 6 * 1024 * 1024
