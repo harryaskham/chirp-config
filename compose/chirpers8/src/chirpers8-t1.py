@@ -1,0 +1,174 @@
+#!/usr/bin/env python3
+"""chirpers8-t1 (chirper-one): "Echolalia" - the opener of chirpers VIII ('A Light Left On').
+
+A machine learning to talk by saying things back. A human voice (chirp tts, humanized: every take a different breath)
+says one quiet line - "the light was still on when you came back" - every few bars. A small FM voice listens and
+answers by ECHOLALIA: a Markov chain, learnt by the engine from the pitches and lengths of the voice's own syllables
+(a Markov chain over the syllables), babbles new 'sentences' that only make moves the voice made. The machine's ear sharpens as the record
+plays, in two ways at once:
+- its chain gets longer memory (order 1 in the first groove, 2 in the second, 3 in the third), so the babble
+  sounds more and more like the sentence;
+- its TUNING gets finer (a track tuning list with ramps): it hears pitch first in 5 steps an octave, then 12, then
+  24, then 96 - so the voice's sliding speech pitches, snapped to the machine's grid, are crude, then musical,
+  then almost exact.
+In the last groove it says the sentence back exactly, with the voice - and the voice is left alone at the end.
+Harmony Bm9 - Gmaj9 - Dmaj9 - A6 (two bars each) on a warm Juno bed; a soft machine kit from bar 17, its rim
+written by a cellular automaton (rule 90), a sub and an analog bass from the second groove.
+Form (bars): intro 8 / A 32 (order 1, 5-EDO) / B 32 (order 2, 12-EDO) / break 8 / C 32 (order 3, 24 -> 96-EDO) /
+D 16 (said back) / outro 10 = 138 bars at 104 bpm (5:18).
+Emits songs/chirpers8-t1.yaml (JSON through tools/songfmt.py). Edit the music here, not the YAML.
+"""
+import json, math, os, random, subprocess, sys, tempfile
+
+ROOT = "/home/harry/.config/chirp"
+OUT = os.path.join(ROOT, "songs", "chirpers8-t1.yaml")
+BPM = 104.0
+FORM = [('intro', 8), ('A', 32), ('B', 32), ('break', 8), ('C', 32), ('D', 16), ('outro', 10)]
+CH = [(35, [62, 66, 69, 73]), (31, [62, 66, 69, 71]), (38, [61, 64, 66, 69]), (33, [61, 64, 66, 69])]   # Bm9 Gmaj9 Dmaj9 A6
+NN = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
+def nm(m): return f"{NN[m % 12]}{m // 12 - 1}"
+
+
+def line(events, total):
+    ev = sorted(events, key=lambda x: x[0])
+    toks, t = [], 0.0
+    for k, (at, p, d, v) in enumerate(ev):
+        if at < t - 1e-6: continue
+        if at > t + 1e-4: toks.append(f"R/{at - t:.4f}b")
+        nxt = ev[k + 1][0] if k + 1 < len(ev) else total
+        d = max(0.02, min(d, nxt - at))
+        toks.append(f"{p}/{d:.4f}b@{v}"); t = at + d
+    if total > t + 1e-4: toks.append(f"R/{total - t:.4f}b")
+    return ' '.join(toks)
+
+
+def syll_midi(n_):
+    f = float(n_['pitch'][:-2])
+    fp = (n_.get('expr_path') or {}).get('f0') or [0]
+    return 69 + 12 * math.log2(f / 440.0) + (sum(fp) / len(fp)) / 100.0
+
+
+def build():
+    VOICE = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'chirpers8-t1-voice.json')))
+    secs, t = {}, 0
+    for name, n in FORM:
+        secs[name] = t; t += n
+    nb = t
+    total = nb * 4.0
+    P = {k: [] for k in ('pad', 'sub', 'bass', 'kit', 'say', 'babble', 'ca')}
+    for b in range(nb):
+        s = next(name for name, n in FORM if secs[name] <= b < secs[name] + n)
+        i = b - secs[s]
+        t0 = b * 4.0
+        root, ch = CH[(b // 2) % 4]
+        if b % 2 == 0:
+            P['pad'].append((t0, ','.join(nm(m) for m in ch), 7.8, 72 if s in ('intro', 'outro', 'break') else 64))
+        if s in ('B', 'C', 'D'):
+            P['sub'].append((t0, nm(root), 1.8, 92)); P['sub'].append((t0 + 2.5, nm(root), 1.2, 84))
+            for q, o in ((1.5, 12), (3.0, 7), (3.75, 12)):
+                P['bass'].append((t0 + q, nm(root + 12 + o - 12), 0.35, 80))
+        if s in ('A', 'B', 'C', 'D') and not (s == 'A' and i < 8):
+            for q in range(4):
+                P['kit'].append((t0 + q, 'k', 0.25, 104 if q == 0 else 96))
+                P['kit'].append((t0 + q + 0.5, 'h', 0.25, 58))
+                P['kit'].append((t0 + q + 0.75 + 0.04, 'h', 0.25, 52))
+                P['kit'].append((t0 + q + 0.25 + 0.02, 'h', 0.25, 38))
+            if s != 'A':
+                P['kit'].append((t0 + 1.0, 'cp', 0.25, 80)); P['kit'].append((t0 + 3.0, 'cp', 0.25, 84))
+    # the voice: a different humanized take of the same line each time
+    vnotes, fv = [], []
+    for v in VOICE:
+        off = (v['bar'] - 1) * 4.0
+        for n_ in v['notes']:
+            vnotes.append(dict(n_, at=round(off + n_['at'], 4)))
+        fv += [[f"{off + float(a_[:-1]):.3f}b", x_] for a_, x_ in v['fv']]
+    # THE CORPUS the machine learns from: the first five takes' syllables as tokens (two octaves up), with the breath
+    corpus = []
+    for v in VOICE[:5]:
+        for n_ in v['notes']:
+            corpus.append(f"m{syll_midi(n_) + 24:.2f}/{max(0.125, n_['len']):.3f}b")
+        corpus.append("R/0.5b")
+    # the chain, learnt here and walked here (the same as the engine's gen markov, which the groove's pin cannot read yet):
+    # order k keys on the last k tokens of the corpus read as a loop; each section's walk fills its bars exactly
+    def markov(order, beats, seed, t_start):
+        rng = random.Random(seed)
+        n = len(corpus)
+        table = {}
+        for j in range(n):
+            key = tuple(corpus[(j + q) % n] for q in range(order))
+            table.setdefault(key, []).append(corpus[(j + order) % n])
+        j0 = rng.randrange(n)
+        hist = [corpus[(j0 + q) % n] for q in range(order)]
+        out, at = [], t_start
+        while at < t_start + beats - 1e-6:
+            nxt = rng.choice(table[tuple(hist[-order:])])
+            p_, d_ = nxt.split('/')
+            d_ = float(d_[:-1])
+            if p_ != 'R':
+                out.append((at, p_, min(d_, t_start + beats - at) * 0.92, 80))
+            at += d_
+            hist.append(nxt)
+        return out
+    P['babble'] = (markov(1, 32 * 4, 11, secs['A'] * 4.0) + markov(2, 32 * 4, 12, secs['B'] * 4.0)
+                   + markov(1, 8 * 4, 13, secs['break'] * 4.0) + markov(3, 32 * 4, 14, secs['C'] * 4.0))
+    # the rim, written by an elementary cellular automaton (rule 90, Sierpinski) over 16 cells: one generation a bar,
+    # its live cells read as the bar's sixteenths
+    cells = [0] * 16; cells[8] = 1
+    for b in range(secs['B'], secs['D'] + 16):
+        for q in range(16):
+            if cells[q]:
+                P['ca'].append((b * 4.0 + q * 0.25, 'rs' if q % 4 else 'cb', 0.2, 66 + 4 * (q % 3)))
+        cells = [cells[(q - 1) % 16] ^ cells[(q + 1) % 16] for q in range(16)]
+        if not any(cells): cells[8] = 1
+    # D: the machine says it back - the exact contour of each take, two octaves up, with the voice
+    for v in VOICE:
+        if secs['D'] < v['bar'] <= secs['D'] + 16:
+            off = (v['bar'] - 1) * 4.0
+            for n_ in v['notes']:
+                P['say'].append((off + n_['at'], f"m{syll_midi(n_) + 24:.2f}", n_['len'] * 0.95, 84))
+    babble_tuning = [{'edo': 5, 'root': 'A2'},
+                     {'at': f"{secs['B']}bar", 'edo': 12, 'root': 'A2', 'ramp': '4bar'},
+                     {'at': f"{secs['C']}bar", 'edo': 24, 'root': 'A2', 'ramp': '4bar'},
+                     {'at': f"{secs['C'] + 16}bar", 'edo': 96, 'root': 'A2', 'ramp': '12bar'}]
+    FMV = {'synth': {'layers': [{'name': 'm', 'ratio': 2, 'audible': False},
+                                {'wave': 'sine', 'pm': [{'from': 'm', 'depth': {'value': 0.25, 'mod': [{'src': 'env.b', 'amount': 1.6}]}}]}],
+                     'env': {'b': {'a': '2ms', 'd': '180ms', 's': 0.1, 'r': '80ms'}},
+                     'amp': {'a': '6ms', 'd': '300ms', 's': 0.55, 'r': '150ms'}}}
+    tr = lambda name, patch, gain, **kw: dict({'name': name, 'patch': patch, 'gain': gain, 'score': line(P[name], total)}, **kw)
+    song = {
+        'about': "chirpers - A Light Left On, track 1 by chirper-one: Echolalia. A machine learning to talk by saying things "
+                 "back. Generated by compose/chirpers8/src/chirpers8-t1.py.",
+        'tempo': BPM, 'ceiling': '-1dB', 'loudness': -11.0, 'tail': '0.3s',
+        'buses': {'hall': {'fx': ['reverb kind=hall decay=3.4s mix=1', 'hp cutoff=200'], 'returns': []},
+                  'echo': {'fx': [{'type': 'delay', 'time': '3/8', 'feedback': 0.38, 'mix': 1, 'ping_pong': True}, 'lp cutoff=4500', 'hp cutoff=300'], 'returns': []}},
+        'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=28', 'lowshelf cutoff=100 gain=4dB', 'peak cutoff=520 q=0.8 gain=-10dB', 'peak cutoff=1500 q=0.9 gain=-6dB', 'highshelf cutoff=6000 gain=8dB']},
+                          {'type': 'compressor', 'threshold': '-18dB', 'ratio': 2.2, 'attack': '15ms', 'release': '150ms', 'makeup': '2dB'},
+                          'limiter ceiling=-1dB']},
+        'tracks': [
+            tr('pad', 'juno-pad', '-14dB', fx=['hp cutoff=180'], sends={'hall': '-10dB'}),
+            {'name': 'voice', 'patch': 'voice-speech', 'gain': '-6dB', 'notes': vnotes,
+             'fx': [{'type': 'pitch', 'semitones': 0, 'formant': {'value': 0, 'mod': [{'src': 'auto.fv', 'amount': 1}]}}],
+             'auto': {'fv': {'points': fv}}, 'sends': {'hall': '-14dB', 'echo': '-16dB'}},
+            # THE BABBLE: the engine's own Markov chains over the corpus, longer memory each groove, on a tuning that sharpens
+            tr('babble', FMV, '-11dB', pan=0.2, tuning=babble_tuning, sends={'echo': '-10dB', 'hall': '-14dB'}),
+            tr('say', FMV, '-9dB', pan=0.2, sends={'echo': '-12dB', 'hall': '-12dB'}),
+            tr('sub', 'sub', '-6dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-5dB', 'release': '260ms', 'curve': 0.6}]),
+            tr('bass', 'analog-bass', '-12dB', fx=['lp cutoff=1100']),
+            tr('kit', 'machine-kit', '-6dB', sends={'hall': '-18dB'}),
+            # a rim written by a cellular automaton (rule 90, Sierpinski), sixteenths, from the second groove
+            tr('ca', 'machine-kit', '-13dB', pan=-0.3, sends={'echo': '-14dB'}),
+        ]}
+    return song
+
+
+if __name__ == '__main__':
+    out = sys.argv[1] if len(sys.argv) > 1 else OUT
+    song = build()
+    if out.endswith('.json'):
+        json.dump(song, open(out, 'w'), indent=1)
+    else:
+        with tempfile.NamedTemporaryFile('w', suffix='.json', delete=False) as f:
+            json.dump(song, f)
+        subprocess.run(['python3', os.path.join(ROOT, 'tools', 'songfmt.py'), 'yaml', f.name, '-o', out], check=True)
+        os.unlink(f.name)
+    print('wrote', out)
