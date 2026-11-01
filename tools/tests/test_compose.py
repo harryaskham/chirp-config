@@ -249,6 +249,16 @@ class RingFeedback(unittest.TestCase):
         with self.assertRaises(SystemExit):
             RT.resolve_at({"label": "C4/1", "position": 5.0}, self.IDS, 45)
 
+    def test_a_spoken_rating_becomes_the_score_and_bare_numbers_do_not(self):
+        # Harry, 1 Nov 10:04: "Chirp feedback, the accelerando-decelerando on the current track is really good. Rate it a 9."
+        self.assertEqual(RT.spoken_score("the accelerando-decelerando on the current track is really good. Rate it a 9."), 9.0)
+        for text, want in (("give it an 8.5", 8.5), ("score it 7", 7.0), ("honestly 9/10", 9.0),
+                           ("nine out of ten", 9.0), ("rate this one a six", 6.0), ("rate it 10", 10.0)):
+            self.assertEqual(RT.spoken_score(text), want, text)
+        for text in ("the 9th bar is muddy", "four bars in the hats go wrong", "rate it 11", "too loud at 3:20",
+                     "the riser at 2 minutes"):
+            self.assertIsNone(RT.spoken_score(text), text)
+
 
 class IllusionPresence(unittest.TestCase):
     def test_a_buried_half_and_a_present_half(self):

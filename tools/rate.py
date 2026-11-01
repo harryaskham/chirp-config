@@ -6,7 +6,8 @@
   rate.py note ID TEXT                            a note without a rating
   rate.py feedback [--lag S] [--at ISO] [TEXT]    a note on whatever the groove was playing S seconds ago (default 45;
                                                   TEXT or stdin): Harry's spoken feedback from the Pebble ring, which
-                                                  reaches here ~30-60 s after he says it
+                                                  reaches here ~30-60 s after he says it. A spoken rating in it
+                                                  ("rate it a 9", "9/10", "nine out of ten") is recorded as the score
   rate.py list [ID | ALBUM_ID]                    the ratings and notes so far
 
 Ratings go to compose/ALBUM/ratings.jsonl (committed), stamped with the song's current best version. compscore's
@@ -128,6 +129,29 @@ def groove_status():
     return json.loads(r.stdout).get("data") or {}
 
 
+_WORDS = {"zero": 0, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8,
+          "nine": 9, "ten": 10}
+_NUM = r"(\d+(?:\.\d+)?|zero|one|two|three|four|five|six|seven|eight|nine|ten)"
+
+
+def spoken_score(text):
+    """The 0-10 rating in spoken feedback, or None: only explicit rating phrases count ("rate it a 9", "give it an
+    8.5", "score it 7", "9/10", "nine out of ten"), never a bare number ("the 9th bar", "four bars in")."""
+    import re
+    t = text.lower()
+    pats = [r"\brate (?:this one|that one|the track|it as|it|this|that)?\s*(?:a|an|at)?\s*" + _NUM + r"\b",
+            r"\b(?:give it|score it|score|rating of|rating)\s*(?:a|an|of)?\s*" + _NUM + r"\b",
+            r"\b" + _NUM + r"\s*(?:/|out of)\s*(?:10|ten)\b"]
+    for pat in pats:
+        m = re.search(pat, t)
+        if m:
+            g = m.group(1)
+            v = float(_WORDS[g]) if g in _WORDS else float(g)
+            if 0 <= v <= 10:
+                return v
+    return None
+
+
 def feedback(argv):
     """rate.py feedback: a note on the track that was playing --lag seconds ago (or at --at)."""
     import datetime
@@ -137,6 +161,7 @@ def feedback(argv):
     ap.add_argument("--at", help="when it was heard (ISO 8601; overrides --lag)")
     ap.add_argument("--who", default="harry")
     ap.add_argument("--via", default="", help="where it came from (e.g. pebble), noted with it")
+    ap.add_argument("--no-score", action="store_true", help="never read a spoken rating as the score")
     ap.add_argument("--dry-run", action="store_true")
     a = ap.parse_args(argv)
     text = " ".join(a.text).strip() or (sys.stdin.read().strip() if not sys.stdin.isatty() else "")
@@ -149,11 +174,13 @@ def feedback(argv):
     cid, at, how = resolve_at(groove_status(), {c["id"] for c in C.load()["climbs"]}, back)
     where = f"~{int(at // 60)}:{int(at % 60):02d} in" if at is not None else "as it ended / blended into the next"
     note = f"{text} ({'via ' + a.via + ', ' if a.via else ''}{where})"
+    score = None if a.no_score else spoken_score(text)
     if a.dry_run:
-        print(f"{cid}: would note ({a.who}, {how}): {note}")
+        print(f"{cid}: would {'rate ' + format(score, 'g') + ' and ' if score is not None else ''}note ({a.who}, {how}): {note}")
         return
-    e = record(cid, None, note, a.who, [])
-    print(f"{e['id']} ({e.get('version') or '-'}): note recorded ({e['who']}): {note}")
+    e = record(cid, score, note, a.who, [])
+    print(f"{e['id']} ({e.get('version') or '-'}): {'rated ' + format(score, 'g') + ', ' if score is not None else ''}"
+          f"note recorded ({e['who']}): {note}")
 
 
 def main(argv=None):
