@@ -39,6 +39,8 @@ MERGE = os.environ.get("C8T5_MERGE", "0.5")   # agreed, they become alike: in C 
 TRADEBACK = os.environ.get("C8T5_TRADEBACK", "8")   # at the lift (C bars 25-28) the one-bar trades of B come back for four bars - a brief renegotiation in the new key - before they play together again (splits C's one long section with material that returns)
 CONGA16 = os.environ.get("C8T5_CONGA16", "50")   # two more muted conga ghosts on off-sixteenths (steps 9 and 15) wherever the congas play - the hand drums' own sixteenth grain under the negotiation; value = velocity
 CONGAEDGE = os.environ.get("C8T5_CONGAEDGE", "1")   # keep the conga ghosts off the edges: not in the intro's first 4 bars nor the outro's last 4 (the seams stay as before)
+RADIOSTART = os.environ.get("C8T5_RADIOSTART", "0.3")   # where the radio's dial starts (0.9 = far off the station: hiss and whistle at the seam)
+CONGASOFT = os.environ.get("C8T5_CONGASOFT", "")     # the intro's first two bars keep only the low and open congas (no slap, no high bongo)
 HOOKF = [(0, "E4", 3), (3, "G4", 3), (6, "A4", 4), (10, "B4", 6), (16, "D5", 3), (19, "B4", 3), (22, "D5", 4), (26, "E5", 6)]
 CLEN = int(os.environ.get("C8T5_CLEN", "44"))   # C's length: 40 tightens the agreement (the lift at bar 25, the second 'keep it there' at 33)
 FORM = [("intro", 12), ("A", 34), ("B", 26), ("retrain", 12), ("C", CLEN), ("outro", 16)]
@@ -112,7 +114,8 @@ def build():
                     add("conga", at + 9, "mu", 1, int(CONGA16))
                     add("conga", at + 15, "mu", 1, int(CONGA16) - 4)
                 for q, piece, v in ((0, "lo", 84), (3, "mu", 60), (6, "o", 78), (8, "sl", 70), (11, "o", 74), (14, "bh", 64)):
-                    if rng.random() < 0.9:
+                    soft_skip = CONGASOFT and sec == "intro" and b < 2 and piece in ("sl", "bh", "mu")
+                    if rng.random() < 0.9 and not soft_skip:
                         add("conga", at + q, piece, 1, v)
             groove = sec in ("A", "B", "C") or (sec == "outro" and b < 8)
             # --- the two players: in A two-bar calls, in B one-bar trades, in C together
@@ -260,7 +263,7 @@ def song():
     def lane(points):
         return {"points": [[f"{t / 4 * spb:.3f}s", v] for t, v in points]}
 
-    dial = lane([(0, 0.9), (st["intro"] + 8 * BAR, 0.05), (st["A"], 0.05), (st["retrain"], 0.6), (st["retrain"] + 6 * BAR, 0.05),
+    dial = lane([(0, float(RADIOSTART) if RADIOSTART else 0.9), (st["intro"] + 8 * BAR, 0.05), (st["A"], 0.05), (st["retrain"], 0.6), (st["retrain"] + 6 * BAR, 0.05),
                  (st["C"], 0.05), (st["outro"] + 8 * BAR, 0.05), (end, 1)])
     return {
         "about": "chirpers VIII, track 5 by chirper-zero: machine funk - two machines agreeing on a speed. "
