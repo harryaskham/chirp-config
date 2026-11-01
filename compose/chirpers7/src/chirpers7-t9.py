@@ -130,6 +130,18 @@ PENROSE = range(106, 113)
 # bVI shadow - then G#m9); the LOOP SUBSTITUTED (24-32: the cycle again, but its second pass trades Emaj7 for Cmaj7#11,
 # a chromatic mediant a major third from G#, then D#7#9 > D#7b9); SLOWER with the stair pluck (33-40: G#m9, Emaj9#11,
 # C#m11, D#7b9, two bars each)
+# v18: THE TURN AND THE RETURN THROUGH-COMPOSED. turn (41-56), 6 + 10: G#m9, G#m(maj9) - its G natural a noir rub -
+# Amaj7#11 (the bII) as the beat turns over; then under the displaced kick a wider walk, two bars each: Emaj7#11,
+# Cmaj7#11, D#7b9, G#m11, D#7#9. back (57-72), 7 + 9: a Dorian shimmer - G#m6/9, its E# the Dorian sixth, new to the
+# track - Emaj9#11, C#m9; then the harmony ACCELERATES into the break, 3 2 2 1 1: G#m11, Amaj7#11, Cmaj7#11, D#7#9, D#7b9
+M69 = (3, 7, 9, 14)
+_A, _E, _C, _D, _CS = GS1 + 1, GS1 - 4, GS1 + 4, GS1 - 5, GS1 + 5
+for _b, (_r, _iv) in zip(range(41, 73),
+                         [(GS1, M9)] * 2 + [(GS1, MM9)] * 2 + [(_A, MAJ7S11)] * 2
+                         + [(_E, MAJ7S11)] * 2 + [(_C, MAJ7S11)] * 2 + [(_D, D7B9)] * 2 + [(GS1, M11)] * 2 + [(_D, D7S9)] * 2
+                         + [(GS1, M69)] * 3 + [(_E, MAJ9S11)] * 2 + [(_CS, M9)] * 2
+                         + [(GS1, M11)] * 3 + [(_A, MAJ7S11)] * 2 + [(_C, MAJ7S11)] * 2 + [(_D, D7S9), (_D, D7B9)]):
+    DROP_PLAN[_b] = (_r, _r, _iv)
 Q4 = (0, 5, 10, 15)
 for _b, _c in zip(range(17, 24), [(GS1, GS1, M11)] * 3 + [(GS1, GS1 + 5, Q4)] * 2 + [(GS1, GS1, M9)] * 2):
     DROP_PLAN[_b] = _c
