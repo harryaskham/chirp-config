@@ -68,6 +68,7 @@ PEDSUB = os.environ.get("C7T17_PEDSUB", "0") == "1"  # with EVO, the break's dom
 MOD = int(os.environ.get("C7T17_MOD", "3"))  # Harry's third steer ('modulations ... more often'): B2, where the room turns twice as fast, lifts MOD semitones (3: F minor) and the outro comes home to D minor for the seam - the room turning, and once the key with it
 SPIRAL = os.environ.get("C7T17_SPIRAL", "-14")  # a Shepard-Risset spiral (risset pitch: true, the stair-up voice) over B bars 17-24 into B2's lift; value = gain dB
 STAIR_UP = {"about": "chirper-two's c2-stair: the Shepard tone that climbs for ever", "synth": {"layers": [{"type": "shepard", "shepard": {"octaves": 8, "center": "600hz", "width": 1.1}}], "amp": {"a": "4ms", "d": "700ms", "s": 0.25, "r": "400ms", "curve": 2}}}
+RRISE = os.environ.get("C7T17_RRISE", "-10")  # Harry's third steer ('accelerando ... a Risset passage that changes the groove's tempo feel'): over the break's last 16 bars (the A pedal) a Risset accelerando on a hats-and-rims figure (risset down: false, 4-bar cycle, 3 layers) - the room seems to speed up for ever into B while the tempo stands still; value = gain dB
 TAILS = os.environ.get("C7T17_TAIL", "0.1s")  # the render tail: 0.3 s leaves no dead air in the last seconds a DJ mixes out of
 
 ERISER = os.environ.get("C7T17_ERISER", "-10")  # wM's endless Shepard riser (fx-riser-endless) over the 8 bars into B: pitch, noise and filter rising for ever, stopping dead on the drop (Harry: 'risers and staircases v good'); level in dB
@@ -369,6 +370,11 @@ def song():
 
 
 def dump(doc):
+    if RRISE:
+        doc["tracks"].append({"name": "rrise", "patch": "machine-kit", "gain": f"{RRISE}dB", "pan": 0.1, "at": f"{(sec_start('break') + 8 * BAR) // 4}b",
+                              "risset": {"cycle": "4bar", "down": False, "layers": 3, "length": "16bar"},
+                              "fx": [{"type": "filter", "kind": "hp", "cutoff": 250, "q": 0.7}],
+                              "score": "h/0.25b@62 h/0.25b@40 rs/0.25b@70 h/0.25b@44 h/0.25b@60 h/0.25b@40 h/0.25b@48 rs/0.25b@64 h/0.25b@62 h/0.25b@40 rs/0.25b@70 h/0.25b@44 h/0.25b@60 rs/0.25b@58 h/0.25b@48 h/0.25b@44"})
     if SPIRAL:
         doc["patches"]["stair-up"] = STAIR_UP
         doc["tracks"].append({"name": "spiral", "patch": "stair-up", "gain": f"{SPIRAL}dB", "pan": -0.2, "at": f"{(sec_start('B') + 16 * BAR) // 4}b",
