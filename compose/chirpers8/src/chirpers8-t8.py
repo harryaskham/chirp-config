@@ -45,9 +45,11 @@ CHOP = os.environ.get("C8T8_CHOP", "1")   # recall, corrupted: through D the wor
 VINYL = os.environ.get("C8T8_VINYL", "") # the medium wears: vinyl on the line - crackle 0.05 rising to 0.35 into D, 0.15 for the repair, 0.5 in the outro where the line is alone; dust 0.3, wear 0.3
 EQFIX = os.environ.get("C8T8_EQFIX", "2")   # (a measurement) the master toward the album's colour: -3 dB at 150 Hz, +4 dB at 1 kHz and 3 kHz, no +2 dB air shelf
 ORGAN = os.environ.get("C8T8_ORGAN", "")   # the operator's console: a reedy combo organ pulsing eighths on the chord's two upper tones an octave up (stretched, two voices) through A, C and E - minimalist machine-pulse in the 1-3 kHz the track lacked; value = velocity
+OUTUP = os.environ.get("C8T8_OUTUP", "1")   # the memory floats up as it fades: the outro's last eight bars voice the pads an octave higher (the 290-470 Hz t9's glass pads open in)
+HUMOCT = os.environ.get("C8T8_HUMOCT", "90")   # the A hum doubled an octave up (A2, ~110 Hz: where t7's drone is strongest) for its four bars - velocity
 DARK = os.environ.get("C8T8_DARK", "8")  # the tape running out: a master low-pass closing over the outro's last bars (the hiss and the line's top go first); value = bars
 FORM = [("intro", 16), ("A", 36), ("refresh", 8), ("C", 32), ("D", 16), ("E", 28), ("outro", 16)]
-TRACKS = ("word", "pad0", "pad1", "pad2", "pad3", "org0", "org1", "hum", "bass", "kick", "shk", "hats", "clap", "rim")
+TRACKS = ("word", "pad0", "pad1", "pad2", "pad3", "org0", "org1", "hum", "hum2", "bass", "kick", "shk", "hats", "clap", "rim")
 
 # the word's 16 bits -> pitches (D minor, spread so neighbours leap): D4 F4 G4 A4 C5 D5 F5 A5
 SC = [62, 65, 67, 69, 72, 74, 77, 81]
@@ -107,10 +109,12 @@ def build():
             # pads: long chords, every 4 bars
             if b % 4 == 0 and sec != "D":
                 for j, n in enumerate(v):   # one voice per track: frequencies cannot stack in a chord token
-                    add(f"pad{j}", at, hz(n), 4 * BAR, int(OUTPAD) if OUTPAD and sec == "outro" and b >= nb - 8 else (64 if sec in ("intro", "outro") else 72))
+                    add(f"pad{j}", at, hz(n + (12 if OUTUP and sec == "outro" and b >= nb - 8 else 0)), 4 * BAR, int(OUTPAD) if OUTPAD and sec == "outro" and b >= nb - 8 else (64 if sec in ("intro", "outro") else 72))
             if HUM and sec == "intro" and b < int(HUM) and HUMA and b < int(HUMA):
                 if b == 0:
                     add("hum", at, hz(33), int(HUMA) * BAR, 110)
+                    if HUMOCT:
+                        add("hum2", at, hz(45), int(HUMA) * BAR, int(HUMOCT))
             elif HUM and sec == "intro" and b < int(HUM) and (b % 4 == 0 or (HUMA and b == int(HUMA))):
                 add("hum", at, hz(26), (4 - b % 4) * BAR, 110 - 6 * (b // 4))
             if ORGAN and sec in ("A", "C", "E"):
@@ -225,6 +229,7 @@ def song():
              "auto": {"sc": stut, **({"ch": chl} if CHOP else {})}, "sends": {"line": "-4dB", "room": "-12dB"}, "score": T["word"]},
             *([{"name": f"org{j}", "patch": "farfisa", "gain": "-17dB", "pan": (-0.35, 0.35)[j], "sends": {"room": "-14dB"}, "score": T[f"org{j}"]} for j in range(2)] if ORGAN else []),
             *[{"name": f"pad{j}", "patch": "juno-pad", "gain": "-20dB", "pan": (-0.4, -0.15, 0.15, 0.4)[j], "out": "pads", "score": T[f"pad{j}"]} for j in range(4)],
+            *([{"name": "hum2", "patch": "sub-sine", "gain": "-14dB", "score": T["hum2"]}] if HUMOCT else []),
             *([{"name": "hum", "patch": "808", "gain": "-12dB", "fx": [{"type": "filter", "kind": "lp", "cutoff": 120, "q": 0.7}], "score": T["hum"]}] if HUM else []),
             {"name": "bass", "patch": "808", "gain": "-9dB", "fx": [pump], "score": T["bass"]},
             {"name": "kick", "patch": "909", "gain": "-3dB", "score": T["kick"]},
