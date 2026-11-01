@@ -17,7 +17,7 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 | physical: bowed | t12 (chirper-three) |
 | physical: pluck | t12 (chirper-three) |
 | physical: membrane | t5 (chirper-zero) |
-| physical: reed | |
+| physical: reed | t2 (chirper-zero, clarinet) |
 | physical: lips (brass) | t12 (chirper-three) |
 | physical: bar, bell, glock, gong | t3 (chirper-two) |
 | guitar with amps and cabs | t5 (chirper-zero) |
