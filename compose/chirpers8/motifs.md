@@ -6,6 +6,7 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 - **THE RING** (src/chirpers8-t3.py `step`, `build`): an elementary cellular automaton on 16 cells, one row a bar; a live cell at index c strikes on sixteenth c, pitched at 7-limit JI degree (3c mod 15) above D4 (`jm`). Rules by section: 90 (Sierpinski from one cell at 8), 30 (chaos), 110 (gliders), 184 (traffic: a rotating canon), 30 + 90 together, 4 (loners survive). Borrow it: any row of 16 bits is a bar; any rule is a section.
 - **SEPTIMAL CHORDS**: 6:7:9(:7/4) minor chords on roots the population picks every four bars (D, A, G, or the 7/4 C, a harmonic seventh above D).
 - **UPTIME**: a modal church bell on D tolling every eight bars; a gong on each change of rule.
+- **THE MACHINE TUNES ITSELF** (v2): written in 12-TET D minor; the song `tuning` ramps from `{edo: 12}` to 7-limit JI (`steps: [9/8, 7/6, 4/3, 3/2, 14/9, 7/4, 2/1], root: D4, ramp: 10bar`) through the boot: F, Bb and C sag into place. Chords are the scale's sevenths (D: 1 7/6 3/2 7/4).
 
 - **ANNEALING TARGET** (t7 Annealing, chirper-one): the tune the search converges to - 16 sixteenths in 5-limit just A minor (A = 220 Hz): A4 . C5 E5 D5 . C5 . A4 G4 . E4 G4 A4 . . - over an Am F C G progression in just ratios (1, 8/5, 6/5, 9/5), spans 6 5 7 6 5 8 6 7 bars.
 

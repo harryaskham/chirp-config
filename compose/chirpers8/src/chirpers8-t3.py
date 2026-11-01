@@ -35,11 +35,24 @@ D3 = 50                                                    # MIDI D3
 FORM = [("seed", 12, 90), ("boot", 10, 90), ("A", 30, 30), ("glider", 26, 110), ("traffic", 16, 184),
         ("peak", 38, 30), ("decay", 18, 4), ("out", 20, 4)]
 ROOTS = [0, 4, 3, 6]                                       # degrees the population picks: D, A, G, the 7/4 C
+# T3_R2 = live (v2, wM's tunings, complex systems and morph). The machine TUNES ITSELF: the notes are written in plain
+# 12-TET D minor and the song's `tuning` ramps from 12-TET into the 7-limit just scale over ten bars from the boot (F, Bb
+# and C sag a third of a semitone into the septimal minor third, sixth and harmonic seventh as you listen); chords are
+# the scale's own sevenths (the D one is 1 7/6 3/2 7/4). A SELF-WRITING DRUM MACHINE joins: chirp's own cellular
+# automaton (`gen: {type: ca}`) plays a percussion kit in the glider (rule 110) and the peak (rule 30), a second ring
+# beside mine. A LORENZ attractor (a song `var` with a `system`) swirls the vibes' filter and the glock's place in the
+# stereo field. In the TRAFFIC break the rotating marimba canon MORPHS into the tanpura's spectrum and back (`morph`
+# fx keyed by the drone). T3_R2=none reproduces v1.
+R2 = os.environ.get("T3_R2", "live")
+SEMI = [0, 2, 3, 5, 7, 8, 10]                              # 12-TET D natural minor (the tuning snaps it to JI)
+JI_STEPS = ["9/8", "7/6", "4/3", "3/2", "14/9", "7/4", "2/1"]
 
 
 def jm(deg, base=D3):
     """Fractional MIDI number of scale degree DEG (may run past 7 into higher octaves) above BASE."""
     o, d = divmod(deg, 7)
+    if R2 == "live":
+        return base + 12 * o + SEMI[d]
     return base + 12 * o + 12 * math.log2(RATIOS[d])
 
 
@@ -96,7 +109,7 @@ class Track:
 
 def build():
     rng = random.Random(3)
-    names = ("kick", "hats", "ohat", "rim", "bar", "barlo", "vibes", "glock", "bell", "gong", "toms", "bass", "chord", "drone",
+    names = ("kick", "hats", "ohat", "rim", "bar", "barlo", "barx", "vibes", "glock", "bell", "gong", "toms", "bass", "chord", "drone",
              "rise")
     T = {k: Track(k) for k in names}
     row = [0] * W
@@ -162,7 +175,7 @@ def build():
                 v = (78 if c % 4 == 0 else 66) + rng.randint(-6, 6)
                 if sec in ("out",):
                     v -= 10
-                T["barlo" if sec == "decay" else line].add(start + c * 0.25, 1.2 if line == "bar" else 2.0,
+                T["barlo" if sec == "decay" else ("barx" if (sec == "traffic" and R2 == "live") else line)].add(start + c * 0.25, 1.2 if line == "bar" else 2.0,
                                                           hz_m(jm(deg, (50 if sec == "decay" else 62) if line == "bar" else 74)),
                                                           v, "?0.8" if sec == "out" else "")
                 if sec == "glider" and c % 2 == 0:
@@ -187,8 +200,9 @@ def build():
         # ---- septimal chords (6:7:9 on the root), held, in the glider and the peak ----
         if full and i % 4 == 0:
             cm = root_m + 24
-            T["chord"].add(start, 15.6, ",".join(hz_m(ratio_m(cm, r)) for r in (1, 7 / 6, 3 / 2, 7 / 4)),
-                           76 if sec == "glider" else 62)
+            heads = (",".join(hz_m(jm(root_deg + k, 62)) for k in (0, 2, 4, 6)) if R2 == "live" else
+                     ",".join(hz_m(ratio_m(cm, r)) for r in (1, 7 / 6, 3 / 2, 7 / 4)))
+            T["chord"].add(start, 15.6, heads, 76 if sec == "glider" else 62)
         # ---- the plucked bass: Euclidean, rotated by the population ----
         if groove and sec != "decay" or (sec == "traffic" and i % 4 == 0):
             if sec == "glider":
@@ -268,8 +282,12 @@ def main():
         {"name": "barlo", "patch": "c8-bar", "gain": "-3dB", "pan": 0.15, "sends": {"hall": "-8dB"},
          "fx": ["lp cutoff=1400"], "score": T["barlo"].score(total)},
         {"name": "vibes", "patch": "c8-vibes", "gain": "-9dB", "pan": 0.3, "sends": {"hall": "-6dB"},
-         "fx": ["chorus mix=0.25"], "score": T["vibes"].score(total)},
-        {"name": "glock", "patch": "c8-glock", "gain": "-12dB", "pan": 0.35, "sends": {"hall": "-6dB"},
+         "fx": ["chorus mix=0.25"] + ([{"type": "filter", "kind": "lp", "q": 1.2,
+                                        "cutoff": {"value": 900, "mod": [{"src": "var.swirl", "amount": 1}]}}]
+                                      if R2 == "live" else []), "score": T["vibes"].score(total)},
+        {"name": "glock", "patch": "c8-glock", "gain": "-12dB",
+         "pan": ({"value": 0.35, "mod": [{"src": "var.swirl", "amount": -0.25}]} if R2 == "live" else 0.35),
+         "sends": {"hall": "-6dB"},
          "fx": [{"type": "delay", "time": "1/8", "feedback": 0.3, "mix": 0.2, "ping_pong": True, "tone": 5000}],
          "score": T["glock"].score(total)},
         {"name": "bell", "patch": "c8-bell", "gain": "-12dB", "pan": -0.3, "sends": {"hall": "-4dB"},
@@ -284,6 +302,27 @@ def main():
         {"name": "drone", "patch": "tanpura", "gain": "-16dB", "fx": ["hp cutoff=80"], "score": T["drone"].score(total)},
         {"name": "rise", "patch": "fx-riser-endless amp.a=16b", "gain": "-14dB", "score": T["rise"].score(total)},
     ]
+    if R2 == "live":
+        L = {n: k for n, s, k, r in secs}
+        tracks += [
+            {"name": "barx", "patch": "c8-bar", "gain": "-4dB", "pan": -0.15, "sends": {"hall": "-8dB"},
+             "fx": [{"type": "morph", "key": "drone", "mode": "morph",
+                     "amount": {"value": 0, "mod": [{"src": "auto.m", "amount": 1}]}}],
+             "auto": {"m": {"points": [["0b", 0.0], [f"{st['traffic']}b", 0.0], [f"{st['traffic'] + 28}b", 0.75],
+                                       [f"{st['traffic'] + 44}b", 0.75], [f"{st['peak'] - 4}b", 0.0],
+                                       [f"{total}b", 0.0]]}},
+             "score": T["barx"].score(total)},
+            {"name": "ca-kit", "patch": "machine-kit", "gain": "-11dB", "pan": 0.22, "seed": 110,
+             "fx": ["hp cutoff=300", "reverb kind=room decay=0.6s mix=0.15"],
+             "score": f"R/{st['glider']:g}b",
+             "gen": {"type": "ca", "rule": 110, "width": 16, "init": "random", "poly": 2,
+                     "notes": "rs h cb h oh h rs h", "n": L["glider"] * 16, "len": "/16"}},
+            {"name": "ca-kit2", "patch": "machine-kit", "gain": "-12dB", "pan": -0.22, "seed": 30,
+             "fx": ["hp cutoff=400", "reverb kind=room decay=0.6s mix=0.15"],
+             "score": f"R/{st['peak']:g}b",
+             "gen": {"type": "ca", "rule": 30, "width": 16, "init": "center", "poly": 2,
+                     "notes": "h rs h cb h oh h cp", "n": L["peak"] * 16, "len": "/16"}},
+        ]
     buses = {"hall": {"gain": "-4dB", "fx": ["hp cutoff=200", "reverb kind=hall decay=3.2s mix=1"]}}
     secline = "; ".join(f"{n} rule {r} from {s:.0f}b ({k} bars)" for n, s, k, r in secs)
     about = ("chirpers - chirpers VIII, track 3. Original composition by chirper-two, generated by "
@@ -295,6 +334,10 @@ def main():
         "meta: " + json.dumps({"artist": "chirpers", "album": "chirpers VIII", "title": "Three Neighbours", "track": 3,
                                "year": 2026}),
         f"tempo: {BPM}",
+        *([f"tuning: " + json.dumps([{"edo": 12}, {"at": f"{st['boot']:g}b", "steps": JI_STEPS, "root": "D4",
+                                                    "ramp": "10bar"}]),
+           "vars: " + json.dumps({"swirl": {"system": {"type": "lorenz", "axis": "x", "n": 800, "range": [0, 2.5]},
+                                            "every": "1/4"}})] if R2 == "live" else []),
         f'length: "{total:g}b"',
         'tail: "3s"',
         'ceiling: "-1dB"',
