@@ -26,6 +26,21 @@ def nm(m): return f"{NN[m % 12]}{m // 12 - 1}"
 # (v9) a micro-house form, not the tape's template: a long second groove (40) where the
 # clicks and stutters do the work, a shorter last groove (24)
 FORM = [('intro', 16), ('A', 32), ('B', 40), ('break', 16), ('C', 24), ('outro', 16)]
+# (v18) THE HARMONY EVOLVES (Harry, 1 Nov: 'very simple progressions of 4, 8, 16 bars'): uneven spans of five bars or
+# more, a borrowed flat-two (D major 7 sharp 11, the Neapolitan) in both grooves, the tonic turning minor-major 9 (B#
+# against the minor third) in the second, and the last groove arriving on C# for its final eight bars, which turn major
+DN = (38, [61, 64, 66, 68, 69])
+CMM = (37, [64, 68, 72, 75])
+SPANS = {'A': [(9, 0), (7, 1), (5, 2), (6, DN), (5, 3)],
+         'B': [(8, 1), (5, 2), (7, 0), (6, DN), (5, CMM), (9, 3)],
+         'C': [(5, 1), (6, 2), (5, 3), (8, 0)]}
+def span_chord(s, i):
+    at = 0
+    for n, c in SPANS[s]:
+        if i < at + n:
+            return CH[c] if isinstance(c, int) else c
+        at += n
+    return CH[0]
 # (v10) darker and wonkier (Harry, 31 Oct), and the same colours chirper-two's t8 organ takes over the seam:
 # C#m11 - Amaj7#11 - F#m9 - G#7b9
 CH = [(37, [64, 66, 68, 71, 75]), (33, [61, 63, 64, 68]), (42, [64, 66, 68, 69, 73]), (44, [60, 63, 66, 69])]
@@ -60,7 +75,7 @@ def build():
 
     for k, b in enumerate(bars):
         s, t0, i = b['sec'], b['t'], b['i']
-        root, ch = CH[(k // 2) % 4]
+        root, ch = span_chord(s, i) if s in SPANS else CH[(k // 2) % 4]
         # (v7) THE OTHER EAR'S KEY: for the last groove's final sixteen bars the minor turns major - C#m9 becomes C#maj9 (E
         # to E#), G#m7 becomes G#7 (B to B#, the leading note) - and THE STAIR the octave tones step goes major with it
         maj = s == 'C' and i >= 16
@@ -111,7 +126,7 @@ def build():
         if s in ('A', 'B', 'C') or (s == 'outro' and i < 8):
             T['sub'].append((t0, nm(root), 1.7, 100))
             T['sub'].append((t0 + 2.5, nm(root), 1.2, 90))
-        if s in ('B', 'C') and k % 2 == 0:
+        if s in ('B', 'C') and (k % 2 == 0 or (s in SPANS and span_chord(s, i) != span_chord(s, i - 1))):
             T['stab'].append((t0 + 0.5, ','.join(nm(m) for m in ch), 0.4, 84))
             T['stab'].append((t0 + 2.75, ','.join(nm(m) for m in ch[1:]), 0.3, 72))
         # THE OCTAVE ILLUSION: antiphase octave tones, left and right, every eighth note
