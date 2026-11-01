@@ -73,6 +73,20 @@ def build():
     rng = random.Random(7)
     TUNE = [61, 63, 64, 68, 64, 63, 61, None, 61, 63, 64, 68, 71, 68, 64, None]   # THE STAIR as a tune, two bars of eighths
 
+    # the break's accelerating hop: 64 beats, gaps from one beat down to a sixteenth, geometric
+    tb_ = secs['break']
+    n_ = 1
+    while True:
+        r_ = (0.25 / 1.0) ** (1.0 / n_)
+        if sum(1.0 * r_ ** j for j in range(n_ + 1)) >= 64.0 or n_ > 400:
+            break
+        n_ += 1
+    gaps_ = [1.0 * r_ ** j for j in range(n_ + 1)]
+    sc_ = 64.0 / sum(gaps_)
+    BRK, a_ = [], 0.0
+    for g_ in gaps_:
+        BRK.append(round(tb_ + a_, 6))
+        a_ += g_ * sc_
     for k, b in enumerate(bars):
         s, t0, i = b['sec'], b['t'], b['i']
         root, ch = span_chord(s, i) if s in SPANS else CH[(k // 2) % 4]
@@ -145,7 +159,13 @@ def build():
             # (v10) THE HOP CHANGES SPEED - time-play on the illusion itself: eighths in the first groove, eighth-note
             # TRIPLETS in the second (three hops against every two beats of the kick), sixteenths in the break's dart, and
             # dotted eighths in the last groove, a 3/16 cycle that crosses the bar line
-            if fast:
+            # (v20) THE ILLUSION FORMS (time-play on the illusion itself): through the whole break the hop ACCELERATES
+            # - from one tone a beat, slow enough to hear the truth (two tones, one in each ear, swapping octaves), to
+            # sixteenths - each gap a fixed fraction of the last, so somewhere in the middle the two tones fuse into
+            # Deutsch's single tone hopping from ear to ear; then the last groove's dotted eighths
+            if s == 'break':
+                times = [a_ - t0 for a_ in BRK if t0 <= a_ < t0 + 4.0]
+            elif fast:
                 times = [e * 0.25 for e in range(16)]
             elif s == 'B':
                 times = [e / 3 for e in range(12)]
@@ -157,7 +177,7 @@ def build():
             for e, at in enumerate(times):
                 nxt = times[e + 1] if e + 1 < len(times) else 4.0
                 d = max(0.08, nxt - at - 0.06)
-                hi_left = (round((t0 + at) / 0.75) if s == 'C' else e) % 2 == 0
+                hi_left = (round((t0 + at) / 0.75) if s == 'C' else BRK.index(t0 + at) if s == 'break' else e) % 2 == 0
                 T['earL'].append((t0 + at, nm(low + 12 if hi_left else low), d, v))
                 T['earR'].append((t0 + at, nm(low if hi_left else low + 12), d, v))
     lv = {'intro': -4, 'A': -1, 'B': 0, 'break': -5, 'C': 0, 'outro': -3}
