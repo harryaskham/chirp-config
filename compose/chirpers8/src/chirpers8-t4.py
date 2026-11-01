@@ -169,6 +169,21 @@ def merge(a):
         yield a[:], [], [], []
 
 
+def resorting(make, arr, seed):
+    """v2: when a sort finishes, the sorted scale sounds for one bar (a crash), then the array is reshuffled and the
+    same algorithm starts again - the work never stops."""
+    rng = random.Random(seed)
+    while True:
+        g = make(arr)
+        while True:
+            before, cmp, sw, acc = next(g)
+            yield before, cmp, sw, acc
+            if before == sorted(before):
+                break
+        arr = list(range(N))
+        rng.shuffle(arr)
+
+
 # ---------------------------------------------------------------- writing
 def write():
     rng = random.Random(4)
@@ -176,9 +191,10 @@ def write():
     for name, a, z in SECTIONS:
         arr = list(range(N))
         rng.shuffle(arr)
-        gens[name] = {"intro": lambda arr=arr: bubble_hold(arr), "bubble": lambda arr=arr: bubble(arr),
-                      "insertion": lambda arr=arr: insertion(arr), "quick": lambda arr=arr: quick(arr),
-                      "bogo": lambda arr=arr: bogo(arr, random.Random(9)), "merge": lambda arr=arr: merge(arr),
+        gens[name] = {"intro": lambda arr=arr: bubble_hold(arr), "bubble": lambda arr=arr: resorting(bubble, arr, 21),
+                      "insertion": lambda arr=arr: resorting(insertion, arr, 22),
+                      "quick": lambda arr=arr: resorting(quick, arr, 23),
+                      "bogo": lambda arr=arr: bogo(arr, random.Random(9)), "merge": lambda arr=arr: resorting(merge, arr, 25),
                       "sorted": lambda: sorted_show(), "outro": lambda arr=arr: unsort(arr)}[name]()
     hand = random.Random(44)
     for bar in range(1, BARS + 1):
@@ -197,13 +213,21 @@ def write():
             part("swap").add(b0(bar) + j / 4 + 0.125, 0.15, "rs", 84 + hand.randint(-6, 6))
         if (sw == [] and sec not in ("intro", "sorted", "outro")) or done:
             part("crash").add(b0(bar), 2.0, "cy", 80)
+        # v2: THE HARMONY RESPONDS TO ORDER - a triad on the array's first value: a dark 312-cent third while it is
+        # unsorted, the 390-cent major third the moment it is sorted
+        third = 5 if arr == sorted(arr) else 4
+        part("pad").add(b0(bar), BAR - 0.05, ",".join(pitch(arr[0] + s, BASE - 12) for s in (0, third, 9)),
+                        78 if arr == sorted(arr) else 64)
+        # v2: the outro holds a low E (E2) for its last eight bars - the note t5 begins on
+        if bar == BARS - 7:
+            part("hum").add(b0(bar), b0(BARS + 1) - b0(bar) - 0.05, "m40.000", 96)
         # THE BASS: the array's first value, two octaves down, an acid line on eighths
         if sec not in ("intro",) or bar > 8:
             for e in range(8):
                 v = arr[(e * 2) % N] if e % 2 else arr[0]
                 part("bass").add(b0(bar) + e * 0.5, 0.42, pitch(v, BASE - 24), 104 if e % 2 == 0 else 86)
         # DRUMS: the 909's circuits; the bogosort storm has no kick
-        if sec != "bogo":
+        if sec != "bogo" and bar > 8:                       # v2: the kick waits for bar 9, easing in from t3
             for b in range(4):
                 part("kick").add(b0(bar) + b, 0.5, "k", 116 if b == 0 else 108)
             if sec not in ("intro",) or bar > 8:
@@ -256,7 +280,7 @@ def main():
     write()
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
     lead_patch = {"extends": "arp-pluck", "synth": {"fx": [{"type": "pan", "pan": {"value": 0, "mod": [
-        {"src": "expr.ix", "amount": 1}]}}]}}
+        {"src": "expr.ix", "amount": 1}]}}, {"type": "filter", "kind": "lp", "cutoff": 4500}]}}
     song = {
         "about": "chirpers - A Light Left On (chirpers VIII), track 4 by chirper-three: sorting house. Sixteen notes "
                  "sorted live by bubble, insertion, quick, bogo and merge sort - comparisons ticking, swaps hitting, "
@@ -271,8 +295,10 @@ def main():
                auto={"roll": {"points": roll_lane()}},
                fx=[{"type": "stutter", "slice": "1/16", "repeats": 6, "roll": 0.6, "pitch": 0.5,
                     "chance": {"value": 0, "mod": [{"src": "auto.roll", "amount": 1}]}}]),
-            tr("bass", "acid", gain="-9dB"),
-            tr("tick", "909", gain="-8dB", pan=0.2),
+            tr("bass", "acid", gain="-7dB"),
+            tr("pad", "juno-pad", gain="-9dB", sends={"dly": "-14dB"}),                    # v2
+            tr("hum", "808", gain="-10dB"),                                                # v2: into t5's E2
+            tr("tick", "909", gain="-11dB", pan=0.2),
             tr("swap", "909", gain="-6dB", pan=-0.2, sends={"room": "-10dB"}),
             tr("crash", "909", gain="-12dB", sends={"room": "-8dB"}),
             tr("kick", "909", gain="-10dB"),
@@ -281,8 +307,7 @@ def main():
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=0.9s mix=1 predelay=8ms", "hp cutoff=250"]},
                   "dly": {"fx": ["delay time=3/16 mix=1 feedback=0.35", "hp cutoff=400", "lp cutoff=5000"]}},
-        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=28", "peak cutoff=300 q=0.9 gain=-3dB",
-                                                    "highshelf cutoff=6000 gain=3dB"]},
+        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=28", "highshelf cutoff=5000 gain=-3dB"]},
                           {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}},
                           {"type": "compressor", "threshold": "-12dB", "ratio": 8, "attack": "0.3ms",
                            "release": "60ms", "makeup": "0dB"}],
