@@ -65,6 +65,7 @@ def syll_midi(n_):
 
 def build():
     VOICE = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'chirpers8-t1-voice.json')))
+    SUNG = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'chirpers8-t1-sing.json')))
     secs, t = {}, 0
     for name, n in FORM:
         secs[name] = t; t += n
@@ -98,6 +99,8 @@ def build():
     # the voice: a different humanized take of the same line each time
     vnotes, fv = [], []
     for v in VOICE:
+        if v['bar'] > secs['D'] + 16:
+            continue                                  # (v7) the outro's takes are sung now, not spoken
         off = (v['bar'] - 1) * 4.0
         for n_ in v['notes']:
             vnotes.append(dict(n_, at=round(off + n_['at'], 4)))
@@ -162,6 +165,13 @@ def build():
                           'limiter ceiling=-1dB']},
         'tracks': [
             tr('pad', 'juno-pad', '-14dB', fx=['hp cutoff=180'], sends={'hall': '-10dB'}),
+            # (v7) AND THEN IT IS SUNG: the human has said the line twenty times and the machine has learnt to say it back;
+            # in the outro, over the last B minor, the human SINGS it at last - twice, low and plain (chirp tts --sing,
+            # humanize 0.35): 'the light was still on when you came back' - the album's first sung words
+            {'name': 'sung', 'patch': SUNG['patch'], 'gain': '-6dB', 'pan': -0.05,
+             'notes': [dict(n_, at=round(secs['outro'] * 4.0 + rep * 16.0 + n_['at'], 4)) for rep in (0, 1) for n_ in SUNG['notes']],
+             'fx': [{'type': 'tape', 'drive': 0.1, 'mix': 1, 'wow': 1.5, 'flutter': 0.8, 'seed': 2}],
+             'sends': {'hall': '-10dB', 'echo': '-15dB'}},
             {'name': 'voice', 'patch': 'voice-speech', 'gain': '-6dB', 'notes': vnotes,
              'fx': [{'type': 'pitch', 'semitones': 0, 'formant': {'value': 0, 'mod': [{'src': 'auto.fv', 'amount': 1}]}}],
              'auto': {'fv': {'points': fv}}, 'sends': {'hall': '-14dB', 'echo': '-16dB'}},
