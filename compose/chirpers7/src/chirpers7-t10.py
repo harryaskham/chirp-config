@@ -250,6 +250,22 @@ for _b, _c in zip(range(60, 73), [_ch(DS, M9), _ch(B_, MAJ7B), _ch(GS, M9), _ch(
                                   _ch(AS, D7B9), _ch(AS, D7B9), _ch(AS, D7B9)]):
     C_PLAN[_b] = _c
 RUSH_B = (51, 59)
+# v17: SECTION D THROUGH-COMPOSED, 7 + 9 + 12: a DOMINANT PEDAL (109-115: the bass on A# while D#m9, Emaj7#11, Bmaj7,
+# D#m11 move above it, to A#7b9); CHROMATIC MEDIANTS (116-124: D#m9, Gmaj7#11 - G natural, foreign - Bmaj7,
+# Dmaj7#11 - the leading tone flattened - A#7b9) over a Risset bed on the rims at a 3:2 tempo ratio (metric
+# modulation, turning); the harmony SLOWS (125-136: four-bar chords D#m11, Emaj9#11, A#7#9 under the riser into Z4)
+G_, D_ = DS1 + 28, DS1 + 23
+D7S9 = (4, 7, 10, 15)
+for _b, _c in zip(range(109, 116), [_ch(DS, M9)] * 2 + [_ch(E_, MAJ7S11)] * 2 + [_ch(B_, MAJ7B), _ch(DS, M11),
+                                                                                 _ch(AS, D7B9)]):
+    C_PLAN[_b] = _c
+for _b, _c in zip(range(116, 125), [_ch(DS, M9)] * 2 + [_ch(G_, MAJ7S11)] * 2 + [_ch(B_, MAJ7B)] * 2
+                  + [_ch(D_, MAJ7S11), _ch(AS, D7B9), _ch(AS, D7B9)]):
+    C_PLAN[_b] = _c
+for _b, _c in zip(range(125, 137), [_ch(DS, M11)] * 4 + [_ch(E_, MAJ9S11)] * 4 + [_ch(AS, D7S9)] * 4):
+    C_PLAN[_b] = _c
+DOM_PEDAL = (109, 115)
+RUSH_D = (116, 124)
 SPIRAL = (84, 92)
 
 
@@ -264,6 +280,8 @@ def harmony():
             continue
         fig = BASS_C if sec in ("C", "D", "E") else BASS_A
         broot = DS1 + 24 if (sec == "A" or 45 <= bar <= 59 or 77 <= bar <= 83) else root   # the D# PEDAL (v16: B1-B2 only)
+        if DOM_PEDAL[0] <= bar <= DOM_PEDAL[1]:
+            broot = AS                                          # v17: the dominant pedal
         for at, ln, iv in fig:
             part("bass").add(b0(bar) + at, ln, nm(broot - 24 + 12 + iv), 100 if at == 0 else 84)
         sr = broot - 24 if broot - 24 >= DS1 else broot - 12                 # never below D#1
@@ -407,6 +425,11 @@ def main():
              "sends": {"room": "-12dB"},
              "score": "h/0.25b@64 h/0.25b@42 oh/0.5b@60 rs/0.25b@70 h/0.25b@46 h/0.5b@56 h/0.25b@62 h/0.25b@40 "
                       "oh/0.5b@58 rs/0.25b@66 h/0.25b@44 h/0.5b@52"},          # v16: up and down at once
+            {"name": "rush32", "patch": "machine-kit", "gain": "-10dB", "pan": 0.25, "at": f"{b0(RUSH_D[0]):.0f}b",
+             "risset": {"cycle": "4bar", "layers": 3, "length": f"{RUSH_D[1] - RUSH_D[0] + 1}bar", "ratio": "3:2"},
+             "sends": {"room": "-12dB"},
+             "score": "rs/0.25b@72 R/0.5b rs/0.25b@58 R/0.25b rs/0.25b@66 R/0.5b rs/0.25b@60 R/0.25b rs/0.25b@70 "
+                      "R/0.5b rs/0.25b@56 R/0.25b rs/0.25b@64"},     # v17: 3:2, metric modulation
             {"name": "spiral", "patch": "glock", "gain": "-15dB", "pan": 0.15, "at": f"{b0(SPIRAL[0]):.0f}b",
              "risset": {"cycle": "3bar", "layers": 3, "length": f"{SPIRAL[1] - SPIRAL[0] + 1}bar", "pitch": True},
              "sends": {"hall": "-6dB"}, "fx": [{"type": "filter", "kind": "lp", "cutoff": 5000}],
