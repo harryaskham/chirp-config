@@ -50,6 +50,8 @@ HUMOCT = os.environ.get("C8T8_HUMOCT", "90")   # the A hum doubled an octave up 
 EQ3 = os.environ.get("C8T8_EQ3", "1")   # the last narrow holes against the album envelope: +5 dB at 1.03 and 3.08 kHz (q 3), +3 dB around 100 Hz, -2.5 dB at 1.65 kHz
 WORDEND = os.environ.get("C8T8_WORDEND", "64")   # one last read: the word itself returns, faint, in the outro's last four bars (the line had been alone) - its 300-900 Hz chime meeting t9's head; value = velocity
 SUNG = os.environ.get("C8T8_SUNG", "-16")   # the words become a song: 'say it back to me' SUNG once (tts --sing, A4 F4 D4 E4 D4 on the stretched octave) at the outro's ninth bar, into the line - the memory's last voice is a tune; value = dry gain dB
+HEADDARK = os.environ.get("C8T8_HEADDARK", "8")   # the mercury warms up: the master low-pass (the tape-running-out one) also starts closed (~5 kHz) and opens over the first HEADDARK bars - a delay line had to reach its working temperature before it held a word; t7 v7's tail reads my 12-15 kHz air +14-17 dB over it
+HEADDARKV = float(os.environ.get("C8T8_HEADDARKV", "0.6"))   # how closed it starts (0.6 ~ 5 kHz, 0.8 ~ 3.3 kHz)
 DARK = os.environ.get("C8T8_DARK", "8")  # the tape running out: a master low-pass closing over the outro's last bars (the hiss and the line's top go first); value = bars
 FORM = [("intro", 16), ("A", 36), ("refresh", 8), ("C", 32), ("D", 16), ("E", 28), ("outro", 16)]
 TRACKS = ("word", "pad0", "pad1", "pad2", "pad3", "org0", "org1", "hum", "hum2", "bass", "kick", "shk", "hats", "clap", "rim")
@@ -220,7 +222,7 @@ def song():
                           {"type": "tape", "drive": 0.1, "mix": 0.5, "wow": 5, "flutter": 1.5, "drift": 1, "hiss": "-62dB", "seed": 8},
                           {"type": "compressor", "threshold": "-18dB", "ratio": 2.5, "attack": "15ms", "release": "150ms", "makeup": "0dB"},
                           *([darkf] if DARK and DARKPOS == "end" else [])],
-                   "auto": {"ts": ts, **({"lp": lane([(0, 0), (end - int(DARK) * BAR, 0), (end - 2 * BAR, 0.86), (end, 1)])} if DARK else {})}},
+                   "auto": {"ts": ts, **({"lp": lane([*([(0, HEADDARKV), (int(HEADDARK) * BAR, 0)] if HEADDARK else [(0, 0)]), (end - int(DARK) * BAR, 0), (end - 2 * BAR, 0.86), (end, 1)])} if DARK else {})}},
         "buses": {
             "line": {"fx": [{"type": "delay", "time": "1bar", "feedback": 0.78, "mix": 1, "tone": 3200, "ping_pong": True},
                             {"type": "tape", "drive": 0.15, "mix": 0.7, "wow": 9, "flutter": 2.5, "drift": 1.5, "hiss": "-58dB", "seed": 3,
