@@ -61,7 +61,7 @@ def build():
         for i in range(n):
             bars.append({'sec': name, 'i': i, 't': t}); t += 4.0
     total = t
-    T = {k: [] for k in ('kit', 'kthin', 'sub', 'bass', 'keys', 'pad', 'speech', 'sung', 'stair', 'toms')}
+    T = {k: [] for k in ('kit', 'kthin', 'sub', 'bass', 'keys', 'pad', 'speech', 'sung', 'stair', 'toms', 'phase')}
     n_rep = 0
     for k, b in enumerate(bars):
         s, t0, i = b['sec'], b['t'], b['i']
@@ -157,6 +157,12 @@ def build():
             for off, m in zip(STEP_AT, STAIR):
                 T['stair'].append((t0 + 2.0 + off, nm(m + 24 + tp), 0.45, 76))
     beats_total = total
+    # (v17) IT'S GONNA STEP (after Steve Reich's 'It's Gonna Rain'): in the last groove's final sixteen bars a second sung
+    # copy of the phrase (right of centre) slides out of phase with the first - its own clock drifting an eighth note ahead
+    # over twelve bars, so the words smear into canon and then into new rhythms - and slides back into unison before the
+    # outro. Time-play on the phrase itself, the song folding over on itself as speech-to-song does in the ear
+    cs = next(b['t'] for b in bars if b['sec'] == 'C')
+    T['phase'] = [ev for ev in T['sung'] if cs + 64 <= ev[0] < cs + 128]
     lv = {'intro': -4, 'A': -1, 'B': 0, 'break': -5, 'C': 0, 'outro': -3}
     secs = {}
     for b in bars:
@@ -208,6 +214,8 @@ def build():
                  warp=[{'over': '16bar', 'to': 0}, {'over': '8bar', 'to': 0.25, 'curve': 'smooth'}, {'over': '8bar', 'to': -0.125, 'curve': 'smooth'},
                        {'over': '8bar', 'to': 0.1875, 'curve': 'smooth'}, {'over': '16bar', 'to': 0, 'curve': 'in'}]),
             tr('sung', 'voice', '-10dB', fx=[{'type': 'pitch', 'semitones': 12, 'formant': 0}], sends={'hall': '-6dB', 'echo': '-10dB'}),
+            dict(tr('phase', 'voice', '-12dB', pan=0.45, fx=[{'type': 'pitch', 'semitones': 12, 'formant': 0}], sends={'hall': '-8dB'}),
+                 warp=[{'over': f"{int((cs + 64) // 4)}bar", 'to': 0}, {'over': '12bar', 'to': -0.5, 'curve': 'linear'}, {'over': '4bar', 'to': 0, 'curve': 'smooth'}]),
             tr('stair', {'extends': 'epiano-tine', 'play': {'release': {'patch': 'epiano-damper', 'decay': '2s'}}}, '-10dB', pan=0.3, sends={'echo': '-8dB'}),
         ]}
 
