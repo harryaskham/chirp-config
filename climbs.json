@@ -7952,7 +7952,7 @@
     {
       "id": "chirpers8-t6",
       "song": "songs/chirpers8-t6.yaml",
-      "reference": "chirpers — Track 6 (untitled)",
+      "reference": "chirpers — No Errors Since",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers8-t6 OUT.wav",
@@ -7968,7 +7968,7 @@
       "meta": {
         "artist": "chirpers",
         "album": "A Light Left On",
-        "title": "Track 6 (untitled)",
+        "title": "No Errors Since",
         "track": 6,
         "year": 2026
       },
