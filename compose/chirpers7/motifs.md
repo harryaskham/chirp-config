@@ -183,3 +183,4 @@ Generator `compose/chirpers7/src/chirpers7-t18.py`. The closer: ambient deep hou
 - **t13 TEACH THE TRICK FIRST** (v18): over the intro's last four bars a plain rim fill accelerates for real (each gap 0.85 of the last, ~34 hits) and ARRIVES on the first groove's downbeat; from then on the Risset rush accelerates and never arrives.
 - **t3 IT'S GONNA STEP** (v17, after Reich's 'It's Gonna Rain'): in the last groove's final sixteen bars a second sung copy of the phrase (right, -12 dB) drifts an eighth note ahead over twelve bars (wM's warp, linear) and slides back into unison over four, before the outro - the phrase phasing against itself.
 - **t12 THE KICK'S BODY BACK** (v21): the master's sub dip narrows (56 Hz, q 1.6, -6 dB, from 58 Hz q 0.9 -8 dB) and a +3 dB bump at 92 Hz returns the kick's body and the bass's weight, which had sat 10-12 dB short at 83-114 Hz.
+- **t11 CLEANER FRAME** (v13): master +700 Hz -3 dB (q 0.8), presence 3 kHz +9 dB.
