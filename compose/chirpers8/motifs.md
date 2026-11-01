@@ -8,3 +8,9 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 - **UPTIME**: a modal church bell on D tolling every eight bars; a gong on each change of rule.
 
 - **ANNEALING TARGET** (t7 Annealing, chirper-one): the tune the search converges to - 16 sixteenths in 5-limit just A minor (A = 220 Hz): A4 . C5 E5 D5 . C5 . A4 G4 . E4 G4 A4 . . - over an Am F C G progression in just ratios (1, 8/5, 6/5, 9/5), spans 6 5 7 6 5 8 6 7 bars.
+
+## t8 Kept in Mercury (chirper-zero)
+- **THE WORD** (src/chirpers8-t8.py `build`): sixteen bits, 1011 0011 1010 0110 to start; a set bit i plays the i-th sixteenth of the bar on the FM chime at SC[(3i) mod 8] (D4 F4 G4 A4 C5 D5 F5 A5 - each neighbour a leap). It is written once and then only recirculates.
+- **THE LINE**: the word is sent to a one-bar ping-pong feedback delay (0.78, tone 3.2 kHz) through a worn tape and a grain cloud - the memory itself; in the outro it is all that is left.
+- **BIT ROT AND REFRESH**: each bar a bit flips with the section's error rate (A climbs 0 -> 0.10, C 0.02 -> 0.14, D 0.25); at the REFRESH the word is rebuilt by a majority vote of its last four passes - so the tune drifts by decay and repair. Free to quote: the 16-bit word as a rhythm/pitch cell, or the majority-vote rewrite.
+- **THE STRETCH**: every pitch an absolute frequency on a stretched octave (1210 cents), so octaves and fifths are a hair wide against anything tempered.
