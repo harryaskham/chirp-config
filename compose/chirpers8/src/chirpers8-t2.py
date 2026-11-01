@@ -42,6 +42,8 @@ SUNGM = os.environ.get("C8T2_SUNGM", "1")   # the sung line's pitches as MIDI no
 OUTPAD = os.environ.get("C8T2_OUTPAD", "84")   # the choir stays for the outro (low voicing), under the last 4-2-1 loops - a fuller tail into t3's mallets (the tail read 11 dB under t3's head); value = velocity
 HEADDARK = os.environ.get("C8T2_HEADDARK", "4")   # the record wakes up: a master low-pass opens from ~5 kHz to full over the first HEADDARK bars, so t1's tail meets a darker head (t1 -> t2 read my 14.8 kHz air +15 dB over it) before the sieve's air arrives
 ENDI = os.environ.get("C8T2_ENDI", "2")   # everything falls to ONE, harmonically too: the outro's last ENDI bars hold the tonic G (I) instead of cycling on to D (V), so the clarinet's final G lands on its own chord - a cadence to one
+ENDPAD = os.environ.get("C8T2_ENDPAD", "1")   # the pad follows the cadence: with ENDI the outro's last pad (struck four bars from the end on C) is cut to two bars and the tonic G is struck for the last two - before, the choir held C under the final G
+DPEDAL = os.environ.get("C8T2_DPEDAL", "90")   # a soft D2 sine (the G chord's fifth, t3's root: its tanpura and gong are on D) under the outro's last four bars; my tail sits 6.7 dB under t3's head and 22-24 dB thin at 71-83 Hz; value = velocity
 ARP32 = os.environ.get("C8T2_ARP32", "")    # the drop's arps on 1/32 (as the plan always said): double-time chip arps through C
 BAR = 16
 SEED = 2
@@ -149,11 +151,14 @@ def build():
                         add("hats", at + q, "h", 1, 70)
                 for q, ln, v in ((0, 2, 100), (3, 1, 76), (6, 2, 92), (10, 2, 96), (14, 1, 80)):   # the body: an analog bass on the root, octave 2
                     add("bass", at + q, f"{root}2", ln, v)
+                if DPEDAL and sec == "outro" and b == nb - 4:
+                    add("sub", at, "D2", 4 * BAR, int(DPEDAL))
                 for q, ln in (((0, 3), (6, 2), (10, 3)) if not (SUBOUT and sec == "outro" and b >= nb - int(SUBOUT)) else ()):
                     add("sub", at + q, f"{root}1" if root in ("A", "B", "C", "D", "E") else f"{root}1", ln, 100)
-            if (sec in ("A", "break", "C") or (PADLOW and sec == "intro") or (OUTPAD and sec == "outro")) and b % 4 == 0:
+            endpad = ENDPAD and ENDI and sec == "outro" and b == nb - int(ENDI)
+            if (sec in ("A", "break", "C") or (PADLOW and sec == "intro") or (OUTPAD and sec == "outro")) and (b % 4 == 0 or endpad):
                 add("pad", at, ",".join(deg_note(d - 7 if PADLOW else d, 2 if False else 3) for d in degs) if not PADLOW else ",".join(deg_note(d, 2) for d in degs),
-                    4 * BAR, (54 + 4 * (b // 4) if sec == "intro" else int(OUTPAD) if sec == "outro" else 70))
+                    (min(4, (nb - int(ENDI)) - b) if (ENDPAD and ENDI and sec == "outro" and b < nb - int(ENDI)) else 4) * BAR if not endpad else int(ENDI) * BAR, (54 + 4 * (b // 4) if sec == "intro" else int(OUTPAD) if sec == "outro" else 70))
             if AIR and sec in ("B", "C"):
                 for q in range(16):
                     add("shk", at + q, "sh", 1, int(AIR) + (14 if q % 2 else 0) - (8 if q % 4 == 0 else 0))
