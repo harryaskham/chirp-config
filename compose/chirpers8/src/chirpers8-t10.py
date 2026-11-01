@@ -244,9 +244,11 @@ def build():
                                  {'wave': 'sine', 'pm': [{'from': 'm', 'depth': {'value': 0.3, 'mod': [{'src': 'env.bright', 'amount': 2.6}]}}]}],
                       'env': {'bright': {'a': '1ms', 'd': '450ms', 's': 0, 'r': '200ms'}},
                       'amp': {'a': '2ms', 'd': '1.1s', 's': 0.25, 'r': '300ms'}}}
-    SYNC = {'synth': {'env': {'sweep': '1ms 350ms 0 100ms'},
+    # (v9) less squelch (Harry, of another track, 18:19: 'too squelchy'): the sync lead's tearing sweep is shallower and
+    # slower - a glassy sync shimmer on each note instead of a squelch
+    SYNC = {'synth': {'env': {'sweep': '2ms 600ms 0 150ms'},
                       'layers': [{'name': 'master', 'wave': 'sine', 'audible': False},
-                                 {'wave': 'saw', 'sync': 'master', 'semi': {'value': 7, 'mod': [{'src': 'env.sweep', 'amount': 14}]}}],
+                                 {'wave': 'saw', 'sync': 'master', 'semi': {'value': 7, 'mod': [{'src': 'env.sweep', 'amount': 6}]}}],
                       'amp': {'a': '3ms', 'd': '300ms', 's': 0.6, 'r': '120ms'}}}
     PWM = {'synth': {'layers': [{'type': 'wavetable', 'table': 'pwm', 'position': {'value': 0.15, 'mod': [{'src': 'auto.pw', 'amount': 0.75}]}}],
                      'amp': {'a': '8ms', 'd': '400ms', 's': 0.5, 'r': '200ms'}}}
