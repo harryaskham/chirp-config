@@ -136,6 +136,16 @@ def acid():
                 part("acidB").add(t + 0.5, 0.4, nm(lo + third(lo, g)), 96)
                 part("acidA").add(t + 1.0, 0.4, nm(lo), 82)
             continue
+        if 97 <= bar <= 104:
+            # v16: THE DROP ENTERS IN TRIPLETS - metric modulation: the same A B A - cell on the triplet-sixteenth grid,
+            # two-thirds of a beat long, six cells a bar (three against every two beats: a hemiola against the hats),
+            # and faster, so the two lines split HARDER; at 105 it snaps back to straight sixteenths
+            for c in range(6):
+                t = b0(bar) + c * 2 / 3
+                part("acidA").add(t, 0.14, nm(lo), 108 if c % 3 == 0 else 84)
+                part("acidB").add(t + 1 / 6, 0.14, nm(lo + third(lo, g)), 100 if c % 3 == 1 else 86)
+                part("acidA").add(t + 2 / 6, 0.14, nm(lo), 78)
+            continue
         for beat in range(4):
             t = b0(bar) + beat
             part("acidA").add(t, 0.2, nm(lo), 104 if beat == 0 else 84)
