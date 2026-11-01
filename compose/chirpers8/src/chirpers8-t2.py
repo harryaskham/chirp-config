@@ -44,6 +44,7 @@ HEADDARK = os.environ.get("C8T2_HEADDARK", "4")   # the record wakes up: a maste
 ENDI = os.environ.get("C8T2_ENDI", "2")   # everything falls to ONE, harmonically too: the outro's last ENDI bars hold the tonic G (I) instead of cycling on to D (V), so the clarinet's final G lands on its own chord - a cadence to one
 ENDPAD = os.environ.get("C8T2_ENDPAD", "1")   # the pad follows the cadence: with ENDI the outro's last pad (struck four bars from the end on C) is cut to two bars and the tonic G is struck for the last two - before, the choir held C under the final G
 DPEDAL = os.environ.get("C8T2_DPEDAL", "90")   # a soft D2 sine (the G chord's fifth, t3's root: its tanpura and gong are on D) under the outro's last four bars; my tail sits 6.7 dB under t3's head and 22-24 dB thin at 71-83 Hz; value = velocity
+HATAIR = os.environ.get("C8T2_HATAIR", "10")   # the sieve's air: the prime-sieve hats get a +HATAIR dB peak at 9 kHz (the record is 6-10 dB under the album envelope at 7-11 kHz; a master boost there moved seed 0's sections, the hats are steady and everywhere)
 ARP32 = os.environ.get("C8T2_ARP32", "")    # the drop's arps on 1/32 (as the plan always said): double-time chip arps through C
 BAR = 16
 SEED = 2
@@ -232,7 +233,7 @@ def song():
             {"name": "sub", "patch": "sub-sine", "gain": "-10dB", "score": T["sub"]},
             {"name": "kick", "patch": "machine-kit", "gain": "-4dB", "score": T["kick"]},
             *([{"name": "shk", "patch": "dusty-kit", "gain": "-13dB", "pan": 0.3, "fx": [{"type": "filter", "kind": "hp", "cutoff": 4000, "q": 0.7}], "score": T["shk"]}] if AIR else []),
-            {"name": "hats", "patch": "machine-kit", "gain": "-7dB", "pan": 0.15, "score": T["hats"]},
+            {"name": "hats", "patch": "machine-kit", "gain": "-7dB", "pan": 0.15, **({"fx": [{"type": "eq", "bands": [f"peak cutoff=9000 q=0.7 gain={HATAIR}dB"]}]} if HATAIR else {}), "score": T["hats"]},
             {"name": "clap", "patch": "machine-kit", "gain": "-9dB", "sends": {"plate": "-10dB"}, "score": T["clap"]},
             {"name": "pad", "patch": "dream-vox", "gain": "-13dB", "sends": {"plate": "-8dB"}, "score": T["pad"]},
             voice("chirpers8-t2-count.json", "count", st["A"] + 4 * BAR, "-12dB", [radio, "hp cutoff=250"], {"plate": "-14dB"}),
