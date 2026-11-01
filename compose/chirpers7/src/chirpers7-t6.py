@@ -139,6 +139,21 @@ for _b, _c in zip(range(113, 121), [(0, M11)] * 2 + [(1, MAJ7S11), (1, SIX9S11),
     GROOVE_CHORD[_b] = _c
 
 
+# v17: THE DEEPER SECTION'S HARMONY, 9 + 7 + 4 + 12 instead of the one-bar loop: DORIAN (49-57: F#m9 and B9, the
+# Dorian IV with its D# natural, F#m11, B7, Dmaj7#11); CHROMATIC MEDIANTS as the line drops an octave (58-64: F#m9,
+# Am9 - C natural - Cmaj7#11, a tritone from F#, C#7b9); the HOLE on F#m11; THE DEEP END slow (69-80: F#m11,
+# Gmaj7#11, C#7#9, four bars each)
+DOM9, DOM7 = (0, 4, 7, 10, 14), (0, 4, 7, 10)
+for _b, _c in zip(range(49, 58), [(0, M9)] * 2 + [(5, DOM9)] * 2 + [(0, M11)] * 2 + [(5, DOM7), (8, MAJ7S11), (8, MAJ7S11)]):
+    GROOVE_CHORD[_b] = _c
+for _b, _c in zip(range(58, 65), [(0, M9)] * 2 + [(3, M9)] * 2 + [(6, MAJ7S11), (7, D7B9), (7, D7B9)]):
+    GROOVE_CHORD[_b] = _c
+for _b in range(65, 69):
+    GROOVE_CHORD[_b] = (0, M11)
+for _b, _c in zip(range(69, 81), [(0, M11)] * 4 + [(1, MAJ7S11)] * 4 + [(7, D7S9)] * 4):
+    GROOVE_CHORD[_b] = _c
+
+
 def in_pedal(bar):
     return any(a <= bar <= z for a, z in PEDALS)
 
@@ -146,7 +161,7 @@ def in_pedal(bar):
 def root_of(bar):
     if bar in GROOVE_CHORD and not in_pedal(bar):
         pc = GROOVE_CHORD[bar][0]
-        return FS1 + (pc if pc <= 4 else pc - 12)         # F#1 .. A#1 up, the rest below: within the line's range
+        return FS1 + (pc if pc <= 6 else pc - 12)         # F#1 .. C2 up (v17: B, C), the rest below
     if in_pedal(bar):
         return FS1
     return (ROOTS2 if sec_of(bar) == "drop2" else ROOTS)[(bar - 1) % 4]
@@ -156,7 +171,7 @@ def chord_of(bar):
     """v15: the chord above the bass (MIDI notes, two octaves up): the groove's plan, else the old voicing."""
     if bar in GROOVE_CHORD:
         pc, ivs = GROOVE_CHORD[bar]
-        r = FS1 + 24 + (pc if pc <= 4 else pc - 12)
+        r = FS1 + 24 + (pc if pc <= 6 else pc - 12)
         return [r + i for i in ivs]
     return voicing(root_of(bar) + 24)
 
@@ -207,7 +222,7 @@ def bass_line():
                 for h in range(2, 7):
                     part(f"h{h}").add(b0(bar) + beat, ln, nm(root + iv), v - 10 - 3 * (h - 2))
             continue
-        maj = (root - FS1) % 12 in (1, 8, 7)       # G, D, C#: the line's third is major over them
+        maj = (root - FS1) % 12 in (1, 8, 7, 4, 5, 6)   # v17: + Bb (a clash in v15: Db over Bbmaj7), B, C       # G, D, C#: the line's third is major over them
         for beat, ln, iv, v in roll:
             iv = 4 if (iv == 3 and maj) else iv
             # v10: the line below what speakers play gets its own track, 6 dB hotter, so it stays in front
