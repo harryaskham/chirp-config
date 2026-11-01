@@ -64,6 +64,8 @@ ZWX = os.environ.get("C7T18_ZWX", "r")  # Harry's third steer ('white-noise burs
 HSPEECH = os.environ.get("C7T18_HSPEECH", "1") == "1"  # Harry's third steer ('robotic vox not subtle enough or illusory enough') with wM's voice engine (5d1e89c1): the speech panel's line is now a HUMAN voice turning into song for real - `chirp tts "the stair comes down" --humanize 0.6 --repeat 7 --melodize 0,0,0.2,0.45,0.7,0.9,1 --melody "A3 F3 E3 D3" --key D3 --bpm 120 --seed 7` (pitch moving inside syllables, drift, loosened onsets, wandering formants; the repetitions quantising onto the stair until it is sung), lifted from chirpers7-t18-speech.json, through the radio band
 FNOISE = os.environ.get("C7T18_FNOISE", "1") == "1"  # wM's follow-noise (ce4d6815) in place of the shortwave track: the continuity line's own gaps filled with noise in its own colours (follow 1.5 s, hold 0.5 s, tone 0.6, on a gap lane) - chirper-two's dial recipe
 DIAL = os.environ.get("C7T18_DIAL", "1") == "1"  # wM's radio fx on the human speech panel: the dial starts off the station (static), glides in over the first bar (the heterodyne whistle falling), sits within 0.03 of the station while the voice speaks and sings, and drifts off over the last bar; the radio's mix only on in the panel
+HCOUNT = os.environ.get("C7T18_HCOUNT", "1") == "1"  # the beat flip's counting voice made human (Harry's third steer #5): the 'one two three' count over the kickless bars and the ONE as the downbeat comes home keep their grid (every three eighths), but each word is lifted from wM's humanised tts ('one two three' --humanize 0.7 --repeat 12 --seed 8, chirpers7-t18-count.json): its own pitch, inner contour and effort, through the radio band, 4 dB under the old line
+COUNT = []
 COH = os.environ.get("C7T18_COH", "1") == "1"  # t17 v18's fix (measured 22:15): coherent Haas pairs - one source per pair, near ear direct and far ear through 18 ms, dry - so the turning panel's precedence cue exists (separate noise-kit tracks gave the ears different hits)
 COHB = {}
 ILV = float(os.environ.get("C7T18_ILV", "0"))  # every illusion track's level offset (dB)
@@ -218,9 +220,15 @@ def build():
                         k = at + q - a0
                         if k % 6 == 0:
                             ph_, glide = (("w-ah1-n", "+40>-20"), ("t-uw1", "+30>-30"), ("th-r-iy1", "+20>-40"))[(k // 6) % 3]
-                            add("speech", at + q, f"D3^ph={ph_}^f0={glide}", 3, 84)
+                            if HCOUNT:
+                                COUNT.append((at + q, (k // 6) % 3, 3, False))
+                            else:
+                                add("speech", at + q, f"D3^ph={ph_}^f0={glide}", 3, 84)
                 if ph == 10:
-                    add("speech", at, "D3^ph=w-ah1-n^f0=0>-60", 4, 112)   # ONE, as the true downbeat comes home
+                    if HCOUNT:
+                        COUNT.append((at, 0, 4, True))
+                    else:
+                        add("speech", at, "D3^ph=w-ah1-n^f0=0>-60", 4, 112)   # ONE, as the true downbeat comes home
             # --- hats: off-beats (open in the interlock and all), 16ths speaking in the grooves
             if (sec != "coda" or b < 16) and not alone:
                 for q in (2, 6, 10, 14):
@@ -423,6 +431,19 @@ def hspeech_track(gain):
             "auto": auto, "sends": {"echo": "-6dB" if RADIO else "-10dB", "hall": "-12dB"}, "notes": notes}
 
 
+def count_track(gain):
+    """The beat flip's count, each word lifted from a humanised tts repetition onto the three-eighth grid."""
+    src = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "chirpers7-t18-count.json")))["tracks"][0]["notes"]
+    words = [[n for i, n in enumerate(src) if i % 3 == w] for w in range(3)]
+    used, notes = [0, 0, 0], []
+    for at16, w, ln16, home in sorted(COUNT):
+        n = words[w][(len(words[w]) - 1) if home else (used[w] % len(words[w]))]
+        used[w] += 0 if home else 1
+        notes.append(dict(n, at=round(at16 / 4, 4), len=round(ln16 / 4, 4), vel=round(min(1.0, n["vel"] * (1.25 if home else 1.0)), 3)))
+    return {"name": "count", "patch": "voice-speech", "gain": gain, "fx": ["hp cutoff=450", "lp cutoff=2600"],
+            "sends": {"echo": "-6dB", "hall": "-12dB"}, "notes": notes}
+
+
 def song():
     T, rspans, silent, srisset = build()
     st = {sec: sec_start(sec) for sec, _ in FORM}
@@ -567,6 +588,7 @@ def song():
             {"name": "up", "patch": "stair-up", "gain": ilv(-10), "pan": -0.2, "sends": {"echo": "-8dB", "hall": "-10dB"}, "score": T["up"]},
             *endless("pole", T["pole"], 4, ilv(-9)),
             *([hspeech_track(ilv(-9 if RADIO else -6))] if HSPEECH else []),
+            *([count_track(ilv(-13))] if HCOUNT else []),
             {"name": "speech", "patch": "voice-speech", "gain": ilv(-9 if RADIO else -6), **({"fx": ["hp cutoff=450", "lp cutoff=2600"]} if RADIO else {}),
              "sends": {"echo": "-6dB" if RADIO else "-10dB", "hall": "-12dB"}, "score": T["speech"]},
             {"name": "tri", "patch": "tritone", "gain": ilv(-10), "pan": 0.2, "sends": {"hall": "-10dB"}, "score": T["tri"]},
