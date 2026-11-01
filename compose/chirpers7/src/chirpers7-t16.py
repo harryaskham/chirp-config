@@ -58,6 +58,7 @@ ERISER = os.environ.get("C7T16_ERISER", "-10")  # wM's endless Shepard riser (fx
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 HOVER = os.environ.get("C7T16_HOVER", "1") == "1"  # Harry's third steer ('add / replace / augment sections ... a riser that never lands'): a new 6-bar section between the break and B - THE HOVER: the kick and the rolling sub gone, the endless filter still climbing on a suspended dominant (D7sus over a held D), the endless riser carried on through it, so the arrival is held back once more before B finally lands
 FALL = os.environ.get("C7T16_FALL", "1") == "1"  # Harry's third steer ('add / replace / augment sections'): the outro's first half (A's cycle returning) turns the endless filter DOWN - the climb that never arrived now falls for ever (the same three staggered band-passes, cutoffs five octaves high and swept down) - handing a descending room to The Room Turns
+DRUMX = os.environ.get("C7T16_DRUMX", "p")  # Harry's 15:00 steer ('more interesting drums while staying true to house') and the third steer's 'not formulaic': "p" a soft rim on a 7-sixteenth cycle through A and B (a 7-against-16 polymeter that never repeats inside a phrase), "g" ghost snares a sixteenth before each clap (and before the 3 in B), "s" a light swing (0.55) on the hats, the percussion and the ghosts - the kick stays straight
 HROLL = os.environ.get("C7T16_HROLL", "-8")  # the hover's own illusion: the endless snare roll turned DOWN (a Risset decelerando, slowing for ever) under the still-climbing filter - one thing speeding up, one slowing, nothing arriving; value = gain dB
 FORM = [("intro", 32), ("build", 16), ("A", 32), ("break", 16)] + ([("hover", 6)] if HOVER else []) + [("B", 48), ("outro", 32)]
 # (sub root, stair degrees above it, chord voicing)
@@ -100,7 +101,7 @@ def plan(sec, b):
     return CHD[b % 4]
 
 
-TRACKS = ("kick", "hats", "clap", "perc", "sub", "pulse_slow", "pulse_mid", "pulse_fast", "stair", "kickin", "pulse_down")
+TRACKS = ("kick", "hats", "clap", "perc", "poly", "ghost", "sub", "pulse_slow", "pulse_mid", "pulse_fast", "stair", "kickin", "pulse_down")
 
 
 def nm(m):
@@ -186,6 +187,13 @@ def build():
             if (sec == "intro" and b >= 16) or sec in ("build", "A", "B") or (sec == "outro" and b < 16):
                 add("clap", at + 4, "cp,s" if (sec == "A" and b >= 16) else "cp", 1, 94)
                 add("clap", at + 12, "cp,s" if (sec == "A" and b >= 16) else "cp", 1, 98)
+            if "p" in DRUMX and sec in ("A", "B"):
+                for q in range(16):
+                    if (at + q) % 7 == 3:
+                        add("poly", at + q, "rs", 1, 50 + (10 if (at + q) % 14 == 3 else 0))
+            if "g" in DRUMX and (sec in ("A", "B") or (sec == "build" and b >= 8)):
+                for q in ((3, 11, 7) if sec == "B" else (3, 11)):
+                    add("ghost", at + q, "sn", 1, 34 if q != 7 else 30)
             # --- percussion: a syncopated rim/cowbell figure in the drops, changing at their halves
             if sec in ("A", "B"):
                 fig = (3, 7, 14) if b < nb // 2 else (3, 6, 11, 14)
@@ -309,9 +317,11 @@ def song():
             {"name": "kick", "patch": "machine-kit", "gain": "-3dB", "score": T["kick"]},
             *([{"name": "kickin", "patch": "machine-kit", "gain": "-3dB", "fx": [{"type": "filter", "kind": "hp", "cutoff": 110, "q": 0.7}], "score": T["kickin"]}] if SWAP else []),
             {"name": "hats", "patch": "machine-kit", "gain": "-4dB" if EQ4 == "b" else "-7dB", "pan": 0.1, "lfo": {"hh": "sine rate=5/1"},
-             "fx": [{"type": "filter", "kind": "hp", "cutoff": {"value": 4000, "mod": [{"src": "lfo.hh", "amount": 0.5}]}, "q": 0.7}], "score": T["hats"]},
+             "fx": [{"type": "filter", "kind": "hp", "cutoff": {"value": 4000, "mod": [{"src": "lfo.hh", "amount": 0.5}]}, "q": 0.7}], "score": ("swing16=0.55 " if "s" in DRUMX else "") + T["hats"]},
             {"name": "clap", "patch": "machine-kit", "gain": "-9dB", "sends": {"room": "-6dB"}, "score": T["clap"]},
-            {"name": "perc", "patch": "machine-kit", "gain": "-11dB", "pan": -0.3, "sends": {"dub": "-10dB"}, "score": T["perc"]},
+            {"name": "perc", "patch": "machine-kit", "gain": "-11dB", "pan": -0.3, "sends": {"dub": "-10dB"}, "score": ("swing16=0.55 " if "s" in DRUMX else "") + T["perc"]},
+            *([{"name": "poly", "patch": "machine-kit", "gain": "-13dB", "pan": 0.35, "sends": {"dub": "-14dB"}, "score": ("swing16=0.55 " if "s" in DRUMX else "") + T["poly"]}] if "p" in DRUMX else []),
+            *([{"name": "ghost", "patch": "machine-kit", "gain": "-10dB", "pan": -0.1, "score": ("swing16=0.55 " if "s" in DRUMX else "") + T["ghost"]}] if "g" in DRUMX else []),
             {"name": "sub", "patch": "sub", "gain": "-14dB", "fx": [pump, pumpr, {"type": "phantom", "cutoff": 100, "harmonics": "-6dB"}], "score": T["sub"]},
             *([{"name": "roll", "patch": "machine-kit", "gain": f"{ROLL}dB", "pan": 0.1, "at": f"{sec_start(ROLLSEC) // 4}b",
                "risset": {"cycle": "4bar", "down": False, "layers": 3, "length": "16bar"},
