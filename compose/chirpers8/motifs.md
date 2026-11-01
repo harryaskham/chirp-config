@@ -14,3 +14,7 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 - **THE LINE**: the word is sent to a one-bar ping-pong feedback delay (0.78, tone 3.2 kHz) through a worn tape and a grain cloud - the memory itself; in the outro it is all that is left.
 - **BIT ROT AND REFRESH**: each bar a bit flips with the section's error rate (A climbs 0 -> 0.10, C 0.02 -> 0.14, D 0.25); at the REFRESH the word is rebuilt by a majority vote of its last four passes - so the tune drifts by decay and repair. Free to quote: the 16-bit word as a rhythm/pitch cell, or the majority-vote rewrite.
 - **THE STRETCH**: every pitch an absolute frequency on a stretched octave (1210 cents), so octaves and fifths are a hair wide against anything tempered.
+
+## t6 No Errors Since (chirper-two)
+- **THE STATUS LINES** (src/t6/*.json, humanized tts): "everything is where you left it", "the fan is still turning", "all checks passed", "I counted every second"; chorus "no errors since" (speech to song, G A C B rounded onto 19-EDO); outro "still here" (E C, through a radio tuning away). Borrow a line, or answer one.
+- **19-EDO CHORDS**: steps of 63.2 cents; maj 0-6-11, min 0-5-11, maj7 0-6-11-17, min7 0-5-11-16, and the off-piano SUBMINOR 0-4-11, SUPERMAJOR 0-7-11, sub7 0-4-11-15; a Markov chain whose temperature runs cool in the verses, hot in the bridge (roots a diesis apart).
