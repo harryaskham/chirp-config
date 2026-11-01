@@ -139,6 +139,12 @@ def sample_peak_db(path):
     return 20 * np.log10(max(peak, 1e-9))
 
 
+def peak_ok(peak, source_peak):
+    """The video may not clip, nor add more than 0.3 dB of overshoot to the release files it carries (MP3 decoding
+    already overshoots a little: Phantom Downbeat's track 3 peaks at -0.36 dBFS; ffmpeg's AAC added ~4 dB)."""
+    return peak < 0.0 and peak <= source_peak + 0.3
+
+
 def video_type(path):
     return "video/quicktime" if path.endswith(".mov") else "video/mp4"
 
@@ -205,9 +211,9 @@ def build_kit(aid, meta, rdir, force_tracks=False):
     os.remove(listfile)
     if r.returncode:
         sys.exit(f"ytpub: video encode failed: {r.stderr[-400:]}")
-    peak = sample_peak_db(video)
-    if peak > -0.5:
-        sys.exit(f"ytpub: the video's audio peaks at {peak:+.2f} dBFS (the release is mastered to -1 dBTP); not using it")
+    peak, src = sample_peak_db(video), max(sample_peak_db(p) for p in audio)
+    if not peak_ok(peak, src):
+        sys.exit(f"ytpub: the video's audio peaks at {peak:+.2f} dBFS against the release files' {src:+.2f}; not using it")
     for old in ("video.mp4",):
         if os.path.exists(os.path.join(out, old)):
             os.remove(os.path.join(out, old))
@@ -218,7 +224,7 @@ def build_kit(aid, meta, rdir, force_tracks=False):
     state = json.load(open(state_p)) if os.path.exists(state_p) else {}
     state.update({"album_id": aid, "album": meta["album"], "title": video_title(meta, is_mix), "mix": is_mix,
                   "tags": tags(meta), "video": "video.mov", "thumbnail": "thumb.jpg", "duration": round(ffprobe_dur(video), 2),
-                  "audio_peak_dbfs": round(peak, 2),
+                  "audio_peak_dbfs": round(peak, 2), "release_peak_dbfs": round(src, 2),
                   "built_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())})
     json.dump(state, open(state_p, "w"), indent=1)
     os.remove(frame)

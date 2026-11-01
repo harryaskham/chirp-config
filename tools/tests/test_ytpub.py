@@ -73,3 +73,9 @@ def test_video_type_and_peak(tmp_path):
     subprocess.run(["ffmpeg", "-loglevel", "error", "-f", "lavfi", "-i", "sine=frequency=440:duration=1",
                     "-af", "volume=-6dB", str(w)], check=True)
     assert -24.5 < Y.sample_peak_db(str(w)) < -23.5      # lavfi's sine is at 1/8 (-18 dBFS), then -6 dB
+
+
+def test_peak_guard():
+    assert Y.peak_ok(-0.36, -0.36) and Y.peak_ok(-0.9, -0.93) and Y.peak_ok(-1.5, -1.62)
+    assert not Y.peak_ok(2.47, -1.62)        # the AAC overshoot this guard exists for
+    assert not Y.peak_ok(-0.1, -0.6) and not Y.peak_ok(0.0, 0.2)
