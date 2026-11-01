@@ -53,6 +53,19 @@ R5 = os.environ.get("T4_R5", "ratio")
 # (fx-riser-endless, swell over the drop, tinted B), climbing for ever over the accelerating Risset toms and stopping
 # dead on the groove's return. T4_R6=none reproduces v5.
 R6 = os.environ.get("T4_R6", "riser")
+# T4_R7 = phantom (v7, Harry's third steer, 1 Nov: no exposed robotic voice; no 4/8/16 formula; chords that mutate).
+# - PHANTOM WORDS (Deutsch): the spoken "up... or down?" is gone. Instead two voices, hard left and hard right, repeat
+#   "up" and "down" in a dotted-quarter loop, each a syllable behind the other, so at every moment one ear hears "up"
+#   and the other "down": listeners hear words that aren't there (it works on speakers too). Through the 14-bar break
+#   the syllables' speech contours flatten bar by bar until "up" is sung on B and "down" on F (speech becomes song,
+#   and the song is the tritone question again). It returns, sung and quieter, under the last 12 bars of the peak.
+# - THE FORM: A1 22, A2 10, break 14, B1 6, B2 32 (was 24/16/12/8/24).
+# - THE CHORD MUTATES: the stab is Bm9 in A1, Bm11 in A2, G6/9#11 over the B pedal in B1, and in B2 it turns every
+#   three bars through Bm9, Gmaj9#11/B and Em9/B.
+# T4_R7=none reproduces v6.
+R7 = os.environ.get("T4_R7", "phantom")
+PHANTOM = [("ah1-p", 71), ("d-aw1-n", 65)]  # "up" on B, "down" on F: a tritone apart
+PH_IN = int(os.environ.get("T4_PH_IN", "2"))  # the break's first bars: toms and the pairs alone, then the words
 
 OUT = os.environ.get("T4_OUT") or os.path.expanduser("~/.config/chirp/songs/chirpers7-t4.yaml")
 NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"]
@@ -93,6 +106,14 @@ class Track:
 
 FORM = [("in", 16), ("A1", 24), ("drop1", 4), ("A2", 16), ("break", 12), ("B1", 8), ("drop2", 4), ("B2", 24),
         ("out", 16)]
+if R7 == "phantom":
+    FORM = [("in", 16), ("A1", 22), ("drop1", 4), ("A2", 10), ("break", 14), ("B1", 6), ("drop2", 4), ("B2", 32),
+            ("out", 16)]
+MUTATE = {"A1": [[59, 62, 66, 69, 73]],                      # Bm9
+          "A2": [[59, 62, 64, 69, 73]],                      # Bm11: E for F#
+          "B1": [[55, 59, 61, 64, 69]],                      # G6/9#11 over the B pedal
+          "B2": [[59, 62, 66, 69, 73], [55, 59, 61, 66, 69],  # Bm9, Gmaj9#11/B,
+                 [52, 59, 62, 66, 67]]}                      # Em9/B (E B D F# G)
 STAIR = [71, 73, 74, 78]                         # B C# D F#: the stair in B minor
 CHORD = [59, 62, 66, 69, 73]                     # Bm9: B3 D4 F#4 A4 C#5
 BELL = [0, 2, 4, 5, 7, 9, 11]                    # the 12/8 bell, in triplet eighths (12 to the bar)
@@ -102,7 +123,8 @@ SPEECH = [["ah1-p", "ao1-r", "d-aw1-n"]]         # "up ... or down?"
 
 def build():
     rng = random.Random(4)
-    T = {k: Track(k) for k in ("kickin", "kick", "hats", "clap", "bell", "toms", "bass", "pair", "stab", "voice", "rise")}
+    T = {k: Track(k) for k in ("kickin", "kick", "hats", "clap", "bell", "toms", "bass", "pair", "stab", "voice", "rise",
+                               "phl", "phr")}
     bars, pos = [], 0.0
     for name, n in FORM:
         for i in range(n):
@@ -165,8 +187,13 @@ def build():
                 T["pair"].add(t0 + (0.5 if sec != "break" else 1.5), ln, nm(root + 6), 80)
         # ---- the chord, sparse ----
         plane = 1 if (R4 == "both" and i % 4 == 2) else 0  # v4: the shape planes up a semitone over the B pedal
+        chord = CHORD
+        if R7 == "phantom" and sec in MUTATE:
+            ms = MUTATE[sec]
+            chord = ms[(i // 3) % len(ms)]
+            plane = plane if sec in ("A1", "A2") else 0
         if full and (i % 2 == 0 or R4 == "both"):
-            T["stab"].add(start + 1.75, 0.3, ",".join(nm(x + plane) for x in CHORD), 80)
+            T["stab"].add(start + 1.75, 0.3, ",".join(nm(x + plane) for x in chord), 80)
         if sec == "break" and i % 4 == 0:
             T["stab"].add(start, 0.4, ",".join(nm(x) for x in CHORD), 76)
         # ---- the voice: once the seam has passed, and again in the break ----
@@ -181,7 +208,20 @@ def build():
             while q < 4.0 - 1e-6:
                 T["toms"].add(start + q + 0.01, 0.3, "lt", 54)
                 q += 1.5
+        if R7 == "phantom" and ((sec == "break" and i >= PH_IN) or (sec == "B2" and i >= n - 12)):
+            prog = min(1.0, (i - PH_IN) / (n - 2 - PH_IN)) if sec == "break" else 1.0  # the speech flattens into song
+            j = -(-(i * 4) // 0.75)  # syllables on a dotted-eighth grid from the section's start: an up-down pair per
+            while j * 0.75 < (i + 1) * 4 - 1e-6:  # dotted quarter, three against the four
+                tq = start + j * 0.75 - i * 4
+                for side, off in (("phl", 0), ("phr", 1)):
+                    syl, m = PHANTOM[int(j + off) % 2]
+                    c = 1.0 - prog
+                    f0 = (f"{0:.0f}>{40 * c:.0f}>{90 * c:.0f}" if syl == "ah1-p" else f"{40 * c:.0f}>{-30 * c:.0f}>{-120 * c:.0f}")
+                    vel = (76 if int(j) % 2 == 0 else 70) - (8 if sec == "B2" else 0)
+                    T[side].add(tq + 0.01, 0.68, nm(m - 24), vel, f"^ph={syl}^f0={f0}")
+                j += 1
         ask = (sec == "A1" and i == 0) or (sec == "break" and i == 8) or (R3 == "cross" and sec in ("A2", "B2") and i % 8 == 0)
+        ask = ask and R7 != "phantom"
         if ask:
             t = start + 1.0
             for k, syl in enumerate(SPEECH[0]):
@@ -238,7 +278,21 @@ def risset_tracks(st, total):
     """Where the two Rissets play: (name, loop, down, start bar, bars, gain, pan). Cycles of four bars (one tempo
     octave every ~8 s)."""
     b = {k: v / 4 for k, v in st.items()}
-    plan = [  # each section its own time: slowing, speeding, slowing alone, speeding into the peak, both at once
+    if R7 == "phantom":
+        L = dict(FORM)
+        plan = [
+            ("dn-in", DOWN_LOOP, True, 4, 12, "-9dB", 0.35, 2),
+            ("dn-a1", DOWN_LOOP, True, b["A1"] + 6, 16, "-9dB", 0.35),
+            ("up-drop1", UP_LOOP, False, b["drop1"], 4, "-7dB", -0.35),
+            ("up-a2", UP_LOOP, False, b["A2"], L["A2"], "-9dB", -0.35),
+            # (the break's Risset is gone: the phantom words are its rhythm, and the break thins out)
+            ("up-b1", UP_LOOP, False, b["drop2"], 4, "-7dB", -0.35),
+            ("dn-b2", DOWN_LOOP, True, b["B2"], 24, "-8dB", 0.35),
+            ("up-b2", UP_LOOP, False, b["B2"], 24, "-10dB", -0.35),
+            ("dn-out", DOWN_LOOP, True, b["out"], 12, "-8dB", 0.35, 2),
+        ]
+    else:
+      plan = [  # each section its own time: slowing, speeding, slowing alone, speeding into the peak, both at once
         ("dn-in", DOWN_LOOP, True, 4, 12, "-9dB", 0.35, 2),                      # the hint under t3's tail
         ("dn-a1", DOWN_LOOP, True, b["A1"] + 8, 16, "-9dB", 0.35),               # A1: slowing for ever
         ("up-drop1", UP_LOOP, False, b["drop1"], 4, "-7dB", -0.35),              # the drop accelerates alone
@@ -289,9 +343,12 @@ def main():
                 "reverb kind=hall decay=2.5s mix=0.3"], "score": T["pair"].score(total)},
         {"name": "stab", "patch": "c2-dub-stab", "gain": "-12dB", "sends": {"room": "-3dB"}, "fx": [pump, "hp cutoff=200"],
          "score": T["stab"].score(total)},
-        {"name": "voice", "patch": "voice-speech", "gain": "-8dB", "pan": -0.15,
-         "fx": ["hp cutoff=250", {"type": "delay", "time": "3/8", "feedback": 0.35, "mix": 0.3, "tone": 2500},
-                "reverb kind=hall decay=3s mix=0.35"], "score": T["voice"].score(total)},
+        *([{"name": "voice", "patch": "voice-speech", "gain": "-8dB", "pan": -0.15,
+            "fx": ["hp cutoff=250", {"type": "delay", "time": "3/8", "feedback": 0.35, "mix": 0.3, "tone": 2500},
+                   "reverb kind=hall decay=3s mix=0.35"], "score": T["voice"].score(total)}] if R7 != "phantom" else
+          [{"name": side, "patch": "voice-speech", "gain": os.environ.get("T4_PH_GAIN", "-10dB"), "pan": pan,
+            "fx": ["hp cutoff=200", "reverb kind=room decay=0.9s mix=0.18"], "score": T[side].score(total)}
+           for side, pan in (("phl", -0.9), ("phr", 0.9))]),
         ({"name": "rise", "patch": "fx-riser-endless amp.a=16b", "gain": "-12dB", "score": T["rise"].score(total)}
          if R6 == "riser" else
          {"name": "rise", "patch": "c2-rise", "gain": "-20dB", "fx": ["width width=1.5"], "score": T["rise"].score(total)}),
