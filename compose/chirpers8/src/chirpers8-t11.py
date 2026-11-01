@@ -136,7 +136,7 @@ def write_music():
         # forms (original, retrograde, inversion round the 12th partial, a partial up), chosen by y at its start
         if sec in ("A", "B", "C") and (bar - 17) % 2 == 0:
             x, y, z = state(bar)
-            form = 0 if bar in (17, 19, 49, 97) else int(max(0, min(3, (y + 25) / 50 * 4)))   # each section states it plain
+            form = 0 if bar in (17, 19, 49, 97) + SUNG_AT else int(max(0, min(3, (y + 25) / 50 * 4)))   # each section states it plain
             for at, n, ln, v in hook_form(form):
                 part("lead").add(b0(bar) + at, ln * 0.92, mm(partial(n, lb, 0)), v)
             continue_lead = False
@@ -255,6 +255,32 @@ def hook_form(form):
     return [(at, PARTIALS[min(len(PARTIALS) - 1, PARTIALS.index(n) + 1)], ln, v) for at, n, ln, v in HOOK]
 
 
+SUNG = [   # v6: chirp tts --sing "it rained in the second room a-gain" --humanize 0.4: (ph, vel, f0), one per hook note
+    ('IH1 T', 0.85, [-55.0, -28.0, -9.0, 2.0, 5.0, 5.0, 2.0, 2.0, 6.0, 13.0, 17.0, 13.0, -0.0, -14.0, -18.0, -7.0, 14.0, 30.0, 30.0, 15.0, -7.0, -22.0]),
+    ('R EY1 N D', 0.841, [-3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -3.0]),
+    ('IH0 N', 0.791, [-3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -3.0]),
+    ('DH AH0', 0.795, [4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 1.0, 1.0, 6.0, 14.0, 18.0, 12.0, -2.0, -17.0, -20.0, -7.0, 17.0, 33.0, 31.0, 13.0, -11.0, -26.0]),
+    ('S EH1', 0.853, [4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0]),
+    ('K AH0 N D', 0.773, [-3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -3.0]),
+    ('R UW1 M', 0.849, [-3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -5.0, -5.0, 0.0, 7.0, 9.0, 2.0, -12.0, -23.0, -21.0, -6.0, 15.0, 25.0, 17.0, -4.0, -23.0, -29.0]),
+    ('AH0', 0.801, [-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0]),
+    ('G EY1 N', 0.839, [-3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -5.0, -7.0, -4.0, 3.0, 9.0, 9.0, 0.0, -14.0, -24.0, -24.0, -10.0, 10.0, 22.0, 21.0, 6.0, -14.0, -28.0, -28.0, -13.0, 7.0, 21.0, 22.0, 9.0, -11.0, -27.0, -29.0, -17.0, 3.0, 19.0, 23.0, 12.0, -8.0, -27.0, -36.0, -32.0, -22.0, -15.0, -22.0]),
+]
+SUNG_PATCH = {"extends": "voice-speech", "synth": {"pitch": {"mod": [{"amount": 0.01, "src": "expr.f0"}], "value": 0}}}
+SUNG_AT = (105, 121)
+
+
+def sung_notes():
+    """v6: in the peak the hook is SUNG - each syllable on the hook's own partial, in whichever lobe the weather is in."""
+    out = []
+    for bar in SUNG_AT:
+        lb = lobe_at(bar)
+        for (at, n, ln, v), (ph, vel, f0) in zip(HOOK, SUNG):
+            out.append({"at": round(b0(bar) + at, 4), "len": round(ln * 0.95, 3), "ph": ph,
+                        "pitch": mm(partial(n, lb, 0)), "vel": vel, "expr_path": {"f0": f0}})
+    return out
+
+
 def wt_lane():
     """The wavetable position from x, once a bar: 0 (lobe F#, x -20) to 1 (lobe C#, x +20)."""
     return [[f"{b0(bar):.2f}b", round(max(0.0, min(1.0, (state(bar)[0] + 20) / 40)), 3)] for bar in range(1, BARS + 1)]
@@ -285,8 +311,9 @@ def lanes():
 def main():
     write_music()
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
+    # v6: the wavetable scans VOWELS (u o a e i), not a resonant sweep: the weather speaks, no squelch
     lead_patch = {"extends": "juno-pad", "synth": {"layers": [
-        {"type": "wavetable", "table": "resonant", "position": {"value": 0, "mod": [{"src": "auto.wt", "amount": 1}]}}],
+        {"type": "wavetable", "table": "vowel", "position": {"value": 0, "mod": [{"src": "auto.wt", "amount": 1}]}}],
         "amp": {"a": "4ms", "d": "180ms", "s": 0.55, "r": "120ms"}}}
     flips = sum(1 for i in range(1, len(ORBIT)) if (ORBIT[i][0] > 0) != (ORBIT[i - 1][0] > 0))
     song = {
@@ -305,6 +332,8 @@ def main():
                auto={"wt": {"points": wt_lane()}},
                fx=[{"type": "pitch", "semitones": 7.02, "mix": 0.3}, {"type": "filter", "kind": "lp", "cutoff": 6000},
                    {"type": "pan", "pan": {"value": 0, "mod": [{"src": "var.gust", "amount": -0.6}]}}]),
+            {"name": "singer", "patch": SUNG_PATCH, "gain": "-10dB", "pan": 0.05, "sends": {"hall": "-6dB", "dly": "-12dB"},
+             "fx": [{"type": "filter", "kind": "hp", "cutoff": 160}], "notes": sung_notes()},   # v6: the sung hook
             tr("pad", "juno-pad", gain="-11dB", pan=-0.15, sends={"hall": "-8dB"},
                fx=["gate key=gtrig threshold=-40dB attack=1ms release=40ms", "ott depth=0.3"]),
             tr("gtrig", "machine-kit", gain="-80dB"),
