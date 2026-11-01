@@ -198,6 +198,7 @@ def build():
     SING = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'chirpers8-t10-voice.json')))
     W3T = {'steps': [90.225, 192.18, 294.135, 390.225, 498.045, 588.27, 696.09, 792.18, 888.27, 996.09, 1092.18, 1200], 'root': 'C4'}
     secs_t, t_acc = {}, 0.0
+    FORMN = {nm_: n_ for nm_, n_, _ in FORM}
     for nm_, n_, _ in FORM:
         secs_t[nm_] = t_acc; t_acc += n_ * 4.0
     # section dynamics on the master (the return and the edges drop back; the final calls push)
@@ -272,6 +273,13 @@ def build():
             tr('d2', BELL, '-16dB', pan=-0.4, sends={'echo': '-16dB'}),
             tr('d3', 'glass', '-22dB', pan=0.5, fx=['hp cutoff=800'], sends={'hall': '-12dB'}),
             tr('kit', 'machine-kit', '-2dB', sends={'hall': '-20dB'}),
+            # (v8) THE MACHINE'S OWN PATTERNS: a percussion line written in the engine's Euclidean and chance tokens, a
+            # different cycle for each key of the canon - in D minor seven triplet-eighth rims spread over the bar (7 in 12,
+            # rotated, each with an 85% chance: a 7-against-4 the kick never agrees with), in G minor a cowbell five-in-
+            # sixteen, in A minor a clap three-in-eight, 70% of the time
+            {'name': 'eu', 'patch': 'machine-kit', 'gain': '-10dB', 'pan': 0.35, 'sends': {'echo': '-14dB'},
+             'score': (f"R/{secs_t['calls1']:.0f}b [ rs(7,12,2)/12@70?0.85 ]x{FORMN['calls1']} "
+                       f"[ cb(5,16,3)/16@60 ]x{FORMN['calls2']} [ cp(3,8,1)/8@64?0.7 ]x{FORMN['calls3']}")},
             # (v5) THE SUBJECT, SUNG: where the canon turns to G minor and the sync lead rests, a human voice takes the
             # subject's first half twice, two octaves under the bell, one syllable a note (wM's chirp tts --sing, humanize 0.35):
             # 'every time you call, I go down a little, further than before, and I always come back' - a subroutine's
