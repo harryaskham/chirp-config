@@ -32,6 +32,17 @@ WORDS = ['w-ah1-n', 'm-ao1-r', 's-t-eh1-p', 'ah1-p']
 SPEECH = [(52, 150, -60), (52, 90, -40), (52, 40, -160), (52, -60, -320)]   # pitch, cents at onset, cents at end
 STAIR = [52, 54, 55, 59]                                                    # E3 F#3 G3 B3
 STEP_AT = [0.0, 0.5, 1.0, 1.75]                                             # beat offsets of the four syllables
+# (v19) THE HARMONY EVOLVES (Harry, 1 Nov: 'very simple progressions of 4, 8, 16 bars... not enough evolution'):
+# the first groove's last sixteen bars hold an E pedal under the shifting chords; the second groove's last eight bars double the harmonic
+# rhythm (a chord a bar, a harmonic accelerando into the break); and after the step-up every other pass borrows the
+# flat-two - F major 9 sharp 11 (G in F# minor) - in place of the iv, the Neapolitan darkening the turn
+NEAP = (29, [57, 59, 60, 64, 67])
+def harm(s, i, k):
+    if s == 'B' and i >= 32:
+        return CH[(i - 32) % 4]
+    if s == 'C' and (i // 8) % 2 == 1 and (k // 2) % 4 == 2:
+        return NEAP
+    return CH[(k // 2) % 4]
 
 def line(events, total):
     ev = sorted(events)
@@ -65,7 +76,7 @@ def build():
     n_rep = 0
     for k, b in enumerate(bars):
         s, t0, i = b['sec'], b['t'], b['i']
-        root, ch = CH[(k // 2) % 4]
+        root, ch = harm(s, i, k)
         # (v7) ONE MORE STEP UP: the last groove takes the phrase at its word - the whole song steps up a tone, E minor to
         # F# minor, on C's downbeat, and stays there (F#m -> t4's Bm is a neighbour on the wheel, 11A -> 10A)
         tp = 2 if s in ('C', 'outro') else 0
@@ -107,10 +118,11 @@ def build():
         if s == 'outro' and i >= 8:
             T['sub'].append((t0, nm(root), 3.6, 88))   # (v18) the floor holds to the end, under the overlap until the mixer's swap
         if s in ('A', 'B', 'C') or (s == 'outro' and i < 8):
-            T['sub'].append((t0, nm(root), 1.6, 100))
-            T['sub'].append((t0 + 2.0, nm(root), 1.0, 92))
+            br = 28 if (s == 'A' and i >= 8) else root     # (v19) an E pedal under the first groove's last sixteen bars
+            T['sub'].append((t0, nm(br), 1.6, 100))
+            T['sub'].append((t0 + 2.0, nm(br), 1.0, 92))
             for q, o in ((1.5, 12), (3.5, 7)):
-                T['bass'].append((t0 + q + 0.02, nm(root + o), 0.4, 84))
+                T['bass'].append((t0 + q + 0.02, nm(br + o), 0.4, 84))
         # Rhodes: soulful stabs (the one held, the and-of-2 answered without the root)
         if (s in ('B', 'C', 'break') or (s == 'A' and i >= 8)):
             if first:
@@ -176,6 +188,15 @@ def build():
     dyn[0][0] = '0b'
     # the break's filter: the Rhodes and the song through a low-pass that opens back up into C
     tb, tc = secs['break'], secs['C']
+    # (v19) THE VOICE ARRIVES (Harry: 'robotic vox not subtle enough'): the spoken phrase starts as a distant radio - band-
+    # limited (about 500 Hz to 2.5 kHz) and driven, under the groove - and comes closer through the second groove as its
+    # contour turns into the tune, arriving full-range only when it sings; in the break the plain speech is the far radio
+    # again (the proof: the ear still hears the tune in it), opening as the 'step' stutter climbs into the last groove;
+    # the outro hands the plain words back to the radio
+    ta, to_ = secs['A'], secs['outro']
+    # (the radio tunes in a step on the second groove's downbeat, then keeps coming closer)
+    rad = [['0b', 0.8], [f'{secs["B"] - 0.25:.2f}b', 0.8], [f'{secs["B"]:.2f}b', 0.45], [f'{secs["B"] + 128:.2f}b', 0], [f'{tb - 0.5:.2f}b', 0], [f'{tb:.2f}b', 1],
+           [f'{tc - 4:.2f}b', 1], [f'{tc:.2f}b', 0], [f'{to_ + 16:.2f}b', 0], [f'{to_ + 32:.2f}b', 1]]
     op = [['0b', 0], [f'{tb:.2f}b', 0], [f'{tb + 0.1:.2f}b', 1], [f'{tc - 8:.2f}b', 1], [f'{tc:.2f}b', 0]]
     tr = lambda name, patch, gain, **kw: dict({'name': name, 'patch': patch, 'gain': gain, 'score': line(T[name], total)}, **kw)
     return {
@@ -212,7 +233,10 @@ def build():
             # (v13) SPEECH FLOATS, SONG LOCKS - time-play on the illusion itself: through the first groove the spoken phrase's
             # own clock wanders off the grid (a sixteenth late, then a thirty-second early, easing), as speech does; through
             # the second groove, as the contour turns into the tune, it settles onto the grid and stays there
-            dict(tr('speech', 'voice-speech', '-5dB', sends={'hall': '-14dB', 'echo': '-14dB'}),
+            dict(tr('speech', 'voice-speech', '-5dB', sends={'hall': '-14dB', 'echo': '-14dB'},
+                    fx=[{'type': 'filter', 'kind': 'hp', 'q': 0.9, 'cutoff': {'value': 90, 'mod': [{'src': 'auto.rad', 'amount': 2.5}]}},
+                        {'type': 'filter', 'kind': 'lp', 'q': 1.3, 'cutoff': {'value': 14000, 'mod': [{'src': 'auto.rad', 'amount': -2.5}]}},
+                        {'type': 'drive', 'drive': 0.35, 'mix': 0.45}], auto={'rad': {'points': rad}}),
                  warp=[{'over': '16bar', 'to': 0}, {'over': '8bar', 'to': 0.25, 'curve': 'smooth'}, {'over': '8bar', 'to': -0.125, 'curve': 'smooth'},
                        {'over': '8bar', 'to': 0.1875, 'curve': 'smooth'}, {'over': '16bar', 'to': 0, 'curve': 'in'}]),
             tr('sung', 'voice', '-10dB', fx=[{'type': 'pitch', 'semitones': 12, 'formant': 0}], sends={'hall': '-6dB', 'echo': '-10dB'}),
