@@ -1,0 +1,201 @@
+#!/usr/bin/env python3
+"""chirpers VIII, track 2 (chirper-zero): EVERYTHING FALLS TO ONE - chip-pop with a woodwind heart.
+
+The Collatz rule - halve an even number, triple an odd one and add one - is the loop every programmer has run and
+nobody has proven always ends. Every path anyone has tried climbs like hail in a cloud and falls home to 1, then
+loops 4, 2, 1 forever. Here each phrase starts from a seed and a clarinet plays its path, the number's HEIGHT as
+the scale degree (round(log2 n) on G major from G3), one number an eighth; so every phrase, however wild its
+climb, ends on the same three notes - B A G, the hook. The seed 27 makes the long climb (111 steps, up to 9232)
+the drop. Tracker arpeggios on a 5-bit chip, hats on the prime steps of every 32 (a sieve), and a human voice
+reading the numbers that turns, on the refrain, from speech into song on the hook's own notes.
+
+  INTRO 16     the clarinet alone with the arps: 6's short path, twice
+  A 36         the floor; seeds 7, 12, 3, 7; a voice on a radio reads 7's path aloud
+  B 24         the sieve: hats on the primes; seeds 9, 18, 11 - longer climbs
+  BREAK 16     'four, two, one', said four times until it is sung (B3 A3 G3); the pads
+  C 56         the drop: 27's long climb, 31, 27 again an octave up, 41; arps on 1/32
+  OUTRO 16     1 -> 4 -> 2 -> 1: the loop itself, thinning out
+
+Generated; edit and re-run:  python3 compose/chirpers8/src/chirpers8-t2.py
+"""
+
+import json
+import os
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(HERE)))
+OUT = os.environ.get("C8T2_OUT") or os.path.join(ROOT, "songs", "chirpers8-t2.yaml")
+
+BPM = 128
+BAR = 16
+SEED = 2
+FORM = [("intro", 16), ("A", 36), ("B", 24), ("break", 16), ("C", 56), ("outro", 16)]
+SEEDS = {"intro": [6, 6], "A": [7, 12, 3, 7], "B": [9, 18, 11], "C": [27, 31, 27, 41], "outro": [1]}
+TRACKS = ("clar", "arp", "bass", "sub", "kick", "hats", "clap", "pad")
+GMAJ = ["G", "A", "B", "C", "D", "E", "F#"]
+CHORDS = [("G", [0, 2, 4]), ("E", [5, 7, 9]), ("C", [3, 5, 7]), ("D", [4, 6, 8])]   # I vi IV V as degrees from G
+PRIMES = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31)
+
+
+def deg_note(d, base_oct=3):
+    """Scale degree d (0 = G3) -> a note name."""
+    o, k = divmod(d, 7)
+    name = GMAJ[k]
+    octv = base_oct + o + (1 if k >= 3 else 0)   # C..F# sit in the next octave up from G
+    return f"{name}{octv}"
+
+
+def collatz(n):
+    path = [n]
+    while n != 1:
+        n = n // 2 if n % 2 == 0 else 3 * n + 1
+        path.append(n)
+    return path
+
+
+def height(n):
+    d = 0
+    while (1 << (d + 1)) <= n * 1.414:
+        d += 1
+    return min(d, 14)
+
+
+def sec_start(name):
+    t = 0
+    for sec, nb in FORM:
+        if sec == name:
+            return t
+        t += nb * BAR
+    raise KeyError(name)
+
+
+def total():
+    return sum(nb for _, nb in FORM) * BAR
+
+
+def build():
+    ev = {k: [] for k in TRACKS}
+
+    def add(tr, at, head, ln, vel):
+        ev[tr].append((at, head, ln, vel))
+
+    # --- the clarinet: phrases from each seed, one number an eighth, each phrase from a bar line
+    for sec, nb in FORM:
+        a0, end = sec_start(sec), sec_start(sec) + nb * BAR
+        if sec == "break":
+            continue
+        t, k = a0 + (4 * BAR if sec == "A" else 0), 0
+        while t < end:
+            n0 = SEEDS[sec][k % len(SEEDS[sec])]
+            path = collatz(n0) if n0 != 1 else [1, 4, 2, 1]
+            up = 12 if sec == "C" and k % 4 == 2 else 0
+            for i, n in enumerate(path):
+                at = t + 2 * i
+                if at >= end:
+                    break
+                last = i == len(path) - 1
+                d = height(n) + (7 if up else 0)
+                add("clar", at, deg_note(d), 4 if last else 2, 100 if n % 2 else 82)
+            ln = 2 * len(path) + 4
+            t += -(-ln // BAR) * BAR + (BAR if sec in ("intro", "outro") else 0)
+            k += 1
+    for sec, nb in FORM:
+        a0 = sec_start(sec)
+        for b in range(nb):
+            at = a0 + b * BAR
+            root, degs = CHORDS[(b // 2) % 4]
+            # --- chip arps: chord tones up two octaves, 1/16 (1/32 in the drop)
+            fade = 1.0   # the outro keeps the band to the last beat and bleeds into t3 (a fade read as a 40 dB drop against t3's head)
+            if (sec != "break" or b >= 8) and fade > 0.05:
+                step = 1
+                notes = [deg_note(d) for d in degs] + [deg_note(d + 7) for d in degs]
+                for q in range(0, 16, step):
+                    add("arp", at + q, notes[q % len(notes)], step, int((70 if q % 4 else 84) * fade))
+            groove = sec in ("A", "B", "C", "outro")
+            if groove:
+                for q in (0, 4, 8, 12):
+                    add("kick", at + q, "k", 1, 116 if q == 0 else 106)
+                if sec in ("B", "C"):
+                    for q in range(16):   # the sieve: the prime steps of each 32
+                        if (q + 16 * (b % 2)) in PRIMES:
+                            add("hats", at + q, "h", 1, 76 if q % 2 else 62)
+                    add("hats", at + 14, "oh", 1, 64) if (14 + 16 * (b % 2)) not in PRIMES else None
+                    add("clap", at + 4, "cp", 1, 94)
+                    add("clap", at + 12, "cp", 1, 98)
+                else:
+                    for q in (2, 6, 10, 14):
+                        add("hats", at + q, "h", 1, 70)
+                for q, ln, v in ((0, 2, 100), (3, 1, 76), (6, 2, 92), (10, 2, 96), (14, 1, 80)):   # the body: an analog bass on the root, octave 2
+                    add("bass", at + q, f"{root}2", ln, v)
+                for q, ln in ((0, 3), (6, 2), (10, 3)):
+                    add("sub", at + q, f"{root}1" if root in ("A", "B", "C", "D", "E") else f"{root}1", ln, 100)
+            if sec in ("A", "break", "C") and b % 4 == 0:
+                add("pad", at, ",".join(deg_note(d) for d in degs), 4 * BAR, 70)
+    return {k: stream(ev[k], total()) for k in TRACKS}
+
+
+def stream(events, tot):
+    events.sort()
+    out, t = [], 0
+    for at, head, ln, vel in events:
+        if at < t:
+            continue
+        if at > t:
+            out.append(f"R/{(at - t) / 4:g}b")
+        out.append(f"{head}/{ln / 4:g}b@{int(vel)}")
+        t = at + ln
+    if t < tot:
+        out.append(f"R/{(tot - t) / 4:g}b")
+    return " ".join(out)
+
+
+def voice(file, name, off16, gain, fx, sends):
+    src = json.load(open(os.path.join(HERE, file)))["tracks"][0]
+    off = off16 / 4
+    notes = [dict(n, at=round(n["at"] + off, 4)) for n in src["notes"]]
+    fv = [[f"{float(t[:-1]) + off:.3f}b", v] for t, v in src["auto"]["fv"]["points"]]
+    return {"name": name, "patch": src.get("patch", "voice-speech"), "gain": gain, "pan": 0.1,
+            "fx": [*src["fx"], *fx], "auto": {"fv": {"points": fv}}, "sends": sends, "notes": notes}
+
+
+def song():
+    T = build()
+    st = {sec: sec_start(sec) for sec, _ in FORM}
+    radio = {"type": "radio", "tune": 0.03, "hiss": "-42dB", "whistle": "-34dB", "fade": 0.3, "drift": 0.03, "mix": 0.8}
+    return {
+        "about": "chirpers VIII, track 2 by chirper-zero: everything falls to one - the Collatz rule as melody and form, "
+                 "a clarinet, a chip and a voice. Generated by compose/chirpers8/src/chirpers8-t2.py.",
+        "tempo": BPM, "ceiling": "-1dB", "loudness": -11, "seed": SEED, "tail": "2s",
+        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=30", "peak cutoff=250 q=0.8 gain=-1.5dB", "peak cutoff=1500 q=0.7 gain=-3dB", "highshelf cutoff=7000 gain=1.5dB"]},
+                          {"type": "compressor", "threshold": "-18dB", "ratio": 2.5, "attack": "12ms", "release": "140ms", "makeup": "0dB"}]},
+        "buses": {
+            "plate": {"fx": ["reverb kind=plate decay=2.2s mix=1 predelay=25ms", "hp cutoff=300"]},
+            "echo": {"fx": [{"type": "delay", "time": "3/16", "feedback": 0.35, "mix": 1, "tone": 4000, "ping_pong": True}, "hp cutoff=400"]},
+        },
+        "tracks": [
+            {"name": "clar", "patch": "clarinet", "gain": "-6dB", "pan": -0.05, "sends": {"plate": "-10dB", "echo": "-16dB"}, "score": T["clar"]},
+            {"name": "arp", "patch": "chip-lead", "gain": "-21dB", "pan": 0.25, "sends": {"echo": "-12dB"}, "score": T["arp"]},
+            {"name": "bass", "patch": "analog-bass", "gain": "-8dB", "pan": -0.05, "score": T["bass"]},
+            {"name": "sub", "patch": "sub-sine", "gain": "-10dB", "score": T["sub"]},
+            {"name": "kick", "patch": "machine-kit", "gain": "-4dB", "score": T["kick"]},
+            {"name": "hats", "patch": "machine-kit", "gain": "-7dB", "pan": 0.15, "score": T["hats"]},
+            {"name": "clap", "patch": "machine-kit", "gain": "-9dB", "sends": {"plate": "-10dB"}, "score": T["clap"]},
+            {"name": "pad", "patch": "dream-vox", "gain": "-13dB", "sends": {"plate": "-8dB"}, "score": T["pad"]},
+            voice("chirpers8-t2-count.json", "count", st["A"] + 4 * BAR, "-12dB", [radio, "hp cutoff=250"], {"plate": "-14dB"}),
+            voice("chirpers8-t2-refrain.json", "refrain", st["break"] + 4 * BAR, "-9dB", [], {"plate": "-8dB", "echo": "-14dB"}),
+        ],
+    }
+
+
+def dump(doc):
+    lines = [f"{k}: {json.dumps(doc[k])}" for k in ("about", "tempo", "ceiling", "loudness", "seed", "tail", "master") if k in doc]
+    lines.append("buses:")
+    lines += [f"  {b}: {json.dumps(v)}" for b, v in doc["buses"].items()]
+    lines.append("tracks:")
+    lines += ["  - " + json.dumps(t) for t in doc["tracks"]]
+    return "\n".join(lines) + "\n"
+
+
+if __name__ == "__main__":
+    open(OUT, "w").write(dump(song()))
+    print("wrote", OUT)
