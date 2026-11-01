@@ -65,6 +65,9 @@ HINTALL = os.environ.get("C7T17_HINTALL", "")  # the out-join's mids (547 Hz, 1.
 HEADLOW = os.environ.get("C7T17_HEADLOW", "8")  # the in-join (t17's head 9-13 dB over Never Arrives' tail at 44-71 Hz): a master low shelf (90 Hz) this many dB down for the first 4 bars, back to flat by bar 8
 EVO = os.environ.get("C7T17_EVO", "1") == "1"  # Harry's third steer (1 Nov 01:15: 'very simple progressions of 4, 8, 16 bars ... formulaic'): the harmony evolves in an A-B-A' shape - the intro previews A's 5-bar cycle (Dm11 Dm9 Bbmaj7#11 Gm9/Ebmaj7#11 A7b9, its fourth chord Gm9 and the Neapolitan by turns); the break holds an A (dominant) pedal - a held A1, new - under Dm11, Bbmaj7#11, Gm9 and A7b9 in 7+6+6+5 bars; B1 a 6-bar cycle with Fmaj9 and the Neapolitan; B2 (the room turning twice as fast) a 7-bar cycle; the outro's first half returns to A's cycle; the seams keep the old loop
 PEDSUB = os.environ.get("C7T17_PEDSUB", "0") == "1"  # with EVO, the break's dominant pedal also on the sub (a held A1): measured 02:19 it piled 44-71 Hz 6-10 dB over the album
+MOD = int(os.environ.get("C7T17_MOD", "3"))  # Harry's third steer ('modulations ... more often'): B2, where the room turns twice as fast, lifts MOD semitones (3: F minor) and the outro comes home to D minor for the seam - the room turning, and once the key with it
+SPIRAL = os.environ.get("C7T17_SPIRAL", "-14")  # a Shepard-Risset spiral (risset pitch: true, the stair-up voice) over B bars 17-24 into B2's lift; value = gain dB
+STAIR_UP = {"about": "chirper-two's c2-stair: the Shepard tone that climbs for ever", "synth": {"layers": [{"type": "shepard", "shepard": {"octaves": 8, "center": "600hz", "width": 1.1}}], "amp": {"a": "4ms", "d": "700ms", "s": 0.25, "r": "400ms", "curve": 2}}}
 TAILS = os.environ.get("C7T17_TAIL", "0.1s")  # the render tail: 0.3 s leaves no dead air in the last seconds a DJ mixes out of
 
 ERISER = os.environ.get("C7T17_ERISER", "-10")  # wM's endless Shepard riser (fx-riser-endless) over the 8 bars into B: pitch, noise and filter rising for ever, stopping dead on the drop (Harry: 'risers and staircases v good'); level in dB
@@ -168,6 +171,8 @@ def build():
             at = a0 + b * BAR
             b2 = SEC2 and sec == "B" and b >= 24
             r, v = plan(sec, b) if EVO else (([CHD[2], CHD[1], CHD[0], CHD[3]] if DARK else CHB2) if b2 else (CHD if DARK else CH))[b % 4]
+            if MOD and b2:
+                r, v = r + MOD, [n + MOD for n in v]
             seam_in = sec == "intro" and b < 16
             seam_out = sec == "outro" and b >= 16
             if sec != "break" and not (SEC and sec == "B" and 20 <= b < 24) and not (SEC2 and sec == "intro" and 28 <= b < 32):
@@ -364,6 +369,11 @@ def song():
 
 
 def dump(doc):
+    if SPIRAL:
+        doc["patches"]["stair-up"] = STAIR_UP
+        doc["tracks"].append({"name": "spiral", "patch": "stair-up", "gain": f"{SPIRAL}dB", "pan": -0.2, "at": f"{(sec_start('B') + 16 * BAR) // 4}b",
+                              "risset": {"cycle": "4bar", "layers": 4, "length": "8bar", "pitch": True}, "sends": {"hall": "-10dB"},
+                              "score": " ".join(f"{n}/0.25b" for n in "D4 F4 A4 C5 A4 F4 E4 A4 D4 F4 A4 Bb4 A4 F4 E4 A4".split())})
     if HEADLOW:
         i_eq = next(i for i, fx in enumerate(doc["master"]["fx"]) if isinstance(fx, dict) and fx.get("type") == "eq")
         doc["master"]["fx"].insert(i_eq + 1, {"type": "filter", "kind": "lowshelf", "cutoff": 90, "gain": {"value": "0dB", "mod": [{"src": "auto.hl", "amount": 1}]}})
