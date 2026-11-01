@@ -42,7 +42,7 @@ CONGAEDGE = os.environ.get("C8T5_CONGAEDGE", "1")   # keep the conga ghosts off 
 RADIOSTART = os.environ.get("C8T5_RADIOSTART", "0.3")   # where the radio's dial starts (0.9 = far off the station: hiss and whistle at the seam)
 CONGASOFT = os.environ.get("C8T5_CONGASOFT", "")     # the intro's first two bars keep only the low and open congas (no slap, no high bongo)
 HOOKF = [(0, "E4", 3), (3, "G4", 3), (6, "A4", 4), (10, "B4", 6), (16, "D5", 3), (19, "B4", 3), (22, "D5", 4), (26, "E5", 6)]
-CLEN = int(os.environ.get("C8T5_CLEN", "44"))   # C's length: 40 tightens the agreement (the lift at bar 25, the second 'keep it there' at 33)
+CLEN = int(os.environ.get("C8T5_CLEN", "42"))   # C's length: 40 tightens the agreement (the lift at bar 25, the second 'keep it there' at 33)
 FORM = [("intro", 12), ("A", 34), ("B", 26), ("retrain", 12), ("C", CLEN), ("outro", 16)]
 TRACKS = ("carrier", "conga", "gtr", "acid", "sub", "kick", "hats", "clap", "fretless", "horns", "lead")
 SWING = {"gtr": {"A": 0.66, "B": 0.62, "retrain": 0.6, "C": 0.58, "outro": 0.58},
