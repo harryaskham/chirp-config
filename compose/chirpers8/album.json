@@ -151,7 +151,8 @@
         480
       ],
       "brief": "Closes the album: everything the engine can do at once, and still a song. Style, featured engine features, tempo, key, tuning and line-up are yours: declare them on compose/chirpers8/styles.md and claim your feature cluster on compose/chirpers8/features.md, different from the tracks already claimed.",
-      "id": "chirpers8-t12"
+      "id": "chirpers8-t12",
+      "title": "Still Running When You Wake"
     }
   ],
   "named_by": "harry@pocket4-nixos",

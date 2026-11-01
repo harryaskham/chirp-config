@@ -8151,7 +8151,7 @@
     {
       "id": "chirpers8-t12",
       "song": "songs/chirpers8-t12.yaml",
-      "reference": "chirpers — Track 12 (untitled)",
+      "reference": "chirpers — Still Running When You Wake",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers8-t12 OUT.wav",
@@ -8167,7 +8167,7 @@
       "meta": {
         "artist": "chirpers",
         "album": "A Light Left On",
-        "title": "Track 12 (untitled)",
+        "title": "Still Running When You Wake",
         "track": 12,
         "year": 2026
       },
