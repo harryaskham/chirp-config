@@ -47,6 +47,7 @@ DARK = os.environ.get("C7T15_DARK", "1") == "1"  # Harry 15:00 'darker': Cm11, A
 WOW = os.environ.get("C7T15_WOW", "1") == "1"  # Harry 15:00 'slight wow on ONE element': the dub stabs alone through a worn tape (wow 10 cents, flutter 1.5)
 EVO = os.environ.get("C7T15_EVO", "1") == "1"  # Harry's third steer (1 Nov 01:15: 'very simple progressions of 4, 8, 16 bars ... formulaic'): the harmony evolves - intro 2-bar chords; A a 6-bar cycle with the Neapolitan Dbmaj7#11; the break a G pedal (a held G1, new) under Ab, Fm9, Eb and Db in 9+7+9+7 bars; B1 a 5-bar cycle with a borrowed Bbm9; B2 (E-flat minor) a 7-bar cycle; r2 a 3-bar cycle; the outro home to the 4-bar loop
 SPIRAL = os.environ.get("C7T15_SPIRAL", "-14")  # a Shepard-Risset spiral (risset pitch: true) over B bars 25-32 into the lift to E-flat minor; value = gain dB
+VOX = os.environ.get("C7T15_VOX", "-14")  # Harry's third steer ('voice under or through things ... speech-to-song where the repetition really becomes melody', sparingly): over the break's bars 9-20 a distant human voice (wM's chirp tts: 'ever slower' --humanize 0.7 --repeat 6 --melodize 0..1 --melody 'G3 Eb3 D3 C3') says the words and, repetition by repetition, sings them onto the falling stair - through a radio band into the dub's echo; value = gain dB
 BED = os.environ.get("C7T15_BED", "2")  # Harry 14:50, 'most tracks have no illusion': the Risset decelerando leads. "1": the bed also under intro bars 17-32, all of A and the outro's first 16 (never more than one break without it); "2": as 1, and under B's last 16 bars an ACCELERATING bed (panned the other way) runs against the slowing one - poly accel/decel over a kick that never changes
 BEDG = os.environ.get("C7T15_BEDG", "-9")  # the beds' level (was -9 dB: compscore's illusion survey read them 11 LU under the mix)
 BEDLV = os.environ.get("C7T15_BEDLV", "-8,-6,2,-3,-3,-1,-6")  # per-bed levels (dB): intro,A,break,B,rise,r2,outro - the bed swells and recedes with the form
@@ -242,6 +243,17 @@ def lane(points, step=None):
     return {"points": pts}
 
 
+def vox_track(gain):
+    """wM's humanised speech-to-song (chirpers7-t15-voice.json), shifted to the break's ninth bar."""
+    src = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "chirpers7-t15-voice.json")))["tracks"][0]
+    off = (sec_start("break") + 8 * BAR) / 4
+    notes = [dict(n, at=round(n["at"] + off, 4)) for n in src["notes"]]
+    fv = [[f"{float(t[:-1]) + off:.3f}b", v] for t, v in src["auto"]["fv"]["points"]]
+    return {"name": "vox", "patch": src.get("patch", "voice-speech"), "gain": gain, "pan": 0.2,
+            "fx": [*src["fx"], "hp cutoff=400", "lp cutoff=2800"], "auto": {"fv": {"points": fv}},
+            "sends": {"dub": "-4dB"}, "notes": notes}
+
+
 def song():
     T = build()
     st = {sec: sec_start(sec) for sec, _ in FORM}
@@ -293,6 +305,7 @@ def song():
             "hall": {"fx": ["reverb kind=hall decay=5s size=1 mix=1 predelay=40ms", "lp cutoff=7000"]},
         },
         "tracks": [
+            *([vox_track(f"{VOX}dB")] if VOX else []),
             *([{"name": "spiral", "patch": "stair-up", "gain": f"{SPIRAL}dB", "pan": 0.15, "at": f"{(sec_start('B') + 24 * BAR) // 4}b",
                 "risset": {"cycle": "4bar", "layers": 4, "length": "8bar", "pitch": True}, "sends": {"dub": "-12dB"},
                 "score": " ".join(f"{n}/0.25b" for n in "C4 Eb4 G4 Bb4 G4 Eb4 D4 G4 C4 Eb4 G4 Ab4 G4 Eb4 D4 G4".split())}] if SPIRAL else []),
