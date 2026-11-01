@@ -79,8 +79,14 @@ def build():
         new_ch = False
         if s in SPANS:
             (root, ch), new_ch = span_chord(s, i)
+        # (v21) THE FLOOR HALVES (Harry: a Risset passage that changes the groove's tempo feel): for six bars early in the
+        # peak the drums drop to half time - the kick on one and three, one clap on three - while the Risset rush above
+        # keeps accelerating, so the room feels the floor slow down as the bed speeds up; then the full kick returns
+        ht = s == 'C' and 6 <= i < 12
         if s != 'break':
             for q in range(4):
+                if ht and q in (1, 3):
+                    continue
                 T['kit'].append((t0 + q, 'kd' if s == 'C' else 'k', 0.25, 118 if q == 0 else 110))
                 # (v3) the drums build by section: A closed hats and a clap on four; B opens the hats, claps on two
                 # and four and a ride; C the hard kick on top
@@ -100,7 +106,9 @@ def build():
                     T['kit'].append((t0 + q + 0.25, 'rd', 0.25, 54))
             if s == 'A':
                 T['kit'].append((t0 + 3.0, 'cp', 0.25, 100))
-            if s in ('B', 'C'):
+            if ht:
+                T['kit'].append((t0 + 2.0 + 0.02, 'cp', 0.25, 108))
+            elif s in ('B', 'C'):
                 # (v17) wonkier drums (Harry): the claps a hair late, a ghost clap on the 'a' of two every other bar, and
                 # every fourth bar a kick pickup on the 'a' of four that shoves the next downbeat
                 T['kit'].append((t0 + 1.0 + 0.02, 'cp', 0.25, 100)); T['kit'].append((t0 + 3.0 + 0.02, 'cp', 0.25, 104))
