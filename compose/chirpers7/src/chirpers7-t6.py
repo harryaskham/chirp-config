@@ -126,13 +126,28 @@ for _b, _c in zip(range(39, 45), [(0, M9), (0, M9), (8, MAJ7S11), (4, MAJ7S11), 
     GROOVE_CHORD[_b] = _c
 PEDAL = (17, 22)
 SPIRAL = (32, 38)
+# v16: THE FIRST DROP THROUGH-COMPOSED, 9 + 7 + 8, in place of the one-bar loop: the floor arrives on a PEDAL (97-105:
+# the bass holds F# under the real sub while F#m9, F#m11, Gmaj7#11 move above); THE STAIR COMES DOWN (106-112: a chord
+# a bar down the dark descent F#m9 Em9 Dmaj7#11 C#7b9, again with m11/m11); the harmony SLOWS (113-120: two-bar chords
+# mutating as they hold - F#m11, Gmaj7#11 > G6/9#11, Em11, C#7#9 - into the half-time)
+PEDALS = [PEDAL, (97, 105)]
+for _b, _c in zip(range(97, 106), [(0, M9)] * 3 + [(0, M11)] * 3 + [(1, MAJ7S11)] * 3):
+    GROOVE_CHORD[_b] = _c
+for _b, _c in zip(range(106, 113), [(0, M9), (10, M9), (8, MAJ7S11), (7, D7B9), (0, M11), (10, M11), (8, MAJ7S11)]):
+    GROOVE_CHORD[_b] = _c
+for _b, _c in zip(range(113, 121), [(0, M11)] * 2 + [(1, MAJ7S11), (1, SIX9S11), (10, M11), (10, M11), (7, D7S9), (7, D7S9)]):
+    GROOVE_CHORD[_b] = _c
+
+
+def in_pedal(bar):
+    return any(a <= bar <= z for a, z in PEDALS)
 
 
 def root_of(bar):
-    if bar in GROOVE_CHORD and not PEDAL[0] <= bar <= PEDAL[1]:
+    if bar in GROOVE_CHORD and not in_pedal(bar):
         pc = GROOVE_CHORD[bar][0]
         return FS1 + (pc if pc <= 4 else pc - 12)         # F#1 .. A#1 up, the rest below: within the line's range
-    if PEDAL[0] <= bar <= PEDAL[1]:
+    if in_pedal(bar):
         return FS1
     return (ROOTS2 if sec_of(bar) == "drop2" else ROOTS)[(bar - 1) % 4]
 
