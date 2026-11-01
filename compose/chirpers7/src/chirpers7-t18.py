@@ -87,11 +87,12 @@ INTER = [("phantom", "stream", "decel"), ("pole", "tritone", "speech"), ("shepar
 ALL = ("shepard", "pole", "speech", "tritone", "stream", "phantom", "octave", "continuity", "huggins", "accel", "scale",
        "turn", "decel")
 GLEN = os.environ.get("C7T18_GLEN", "1") == "1"  # Harry's third steer ('4, 8, 16 bars all over the place ... formulaic'): the gallery's fifteen panels no longer all 16 bars - each its own length (10-20) by what its illusion needs: the speech, the beat flip and Huggins keep 16 (their teaching spans), the streaming and the turning room get room to develop, the quick tricks are short
+CLEN = os.environ.get("C7T18_CLEN", "1") == "1"  # the coda off the 32: 26 bars (its falling chords still enter every 8, the last voice and its radio fade inside bar 21, the tape stops on the last)
 ILEN = os.environ.get("C7T18_ILEN", "1") == "1"  # the interlock's four groups off the 16 grid too: 14, 12, 18 and 16 (the last keeps the beat flip's 16-bar phases)
 GLENS = {"shepard": 18, "pole": 12, "speech": 16, "tritone": 10, "stream": 20, "phantom": 12, "octave": 14, "continuity": 12, "flip": 16,
          "zwicker": 12, "huggins": 16, "accel": 10, "scale": 14, "turn": 18, "decel": 12}
 FORM = [("descent", 32)] + [(f"g{i}", GLENS.get(GALLERY[i], 16) if GLEN else 16) for i in range(len(GALLERY))] + [(f"i{i}", (14, 12, 18, 16)[i] if ILEN else 16) for i in range(len(INTER))] + \
-       [("all", 32), ("coda", 32)]
+       [("all", 32), ("coda", 26 if CLEN else 32)]
 
 # chord worlds (sub root, voicing): darker than a loop of plain minor triads
 PROG_A = [(38, [53, 57, 60, 64]),   # Dm9: F3 A3 C4 E4
