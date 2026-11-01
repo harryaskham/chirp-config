@@ -224,6 +224,11 @@ def build():
             # (v24) THE GHOST FALLS FOR EVER (Harry: spirals, as structure): over the break's first twelve bars a music box plays
             # the stair falling, as a Shepard-Risset spiral running DOWN - falling and slowing for ever (wM's risset down + pitch)
             # - into the dub echo, ducking under each whispered wash so the ghost keeps its band
+            # (v25) UP FOR EVER, THEN DOWN FOR EVER: under the second groove's last eight bars wM's endless riser climbs on B-flat
+            # and never lands - the break that follows has no drop, only the dub's open space and the music box falling for ever;
+            # it ducks under the whispered wash like the spiral, so the ghost keeps its band
+            {'name': 'riser', 'patch': 'fx-riser-endless amp.a=32b', 'gain': '-15dB', 'fx': [{'type': 'pump', 'on': 'wash', 'depth': '-10dB', 'release': '900ms', 'curve': 0.5}],
+             'score': f"R/{(secs['break'] - 32):.4f}b Bb3/32b@80"},
             {'name': 'fall', 'patch': 'music-box', 'gain': '-13dB', 'pan': 0.25, 'at': f"{secs['break']:.0f}b", 'sends': {'echo': '-6dB', 'hall': '-12dB'},
              'fx': ['hp cutoff=250', {'type': 'pump', 'on': 'wash', 'depth': '-14dB', 'release': '900ms', 'curve': 0.5}],
              'risset': {'cycle': '6bar', 'layers': 3, 'length': '12bar', 'pitch': True, 'down': True},
