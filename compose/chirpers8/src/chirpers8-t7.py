@@ -54,7 +54,8 @@ def line(events, total):
         if at > t + 1e-4: toks.append(f"R/{at - t:.4f}b")
         nxt = ev[k + 1][0] if k + 1 < len(ev) else total
         d = max(0.02, min(d, nxt - at))
-        toks.append(f"{p}/{d:.4f}b@{v}"); t = at + d
+        base, _, attr = p.partition('^')
+        toks.append(f"{base}/{d:.4f}b@{v}" + (f"^{attr}" if attr else "")); t = at + d
     if total > t + 1e-4: toks.append(f"R/{total - t:.4f}b")
     return ' '.join(toks)
 
@@ -149,7 +150,13 @@ def build():
             for q, (d, cents) in enumerate(seq_states[b]):
                 if d is None: continue
                 acc = 92 if q % 4 == 0 else 78
-                P['seq'].append((t0 + q * 0.25, tok(hz(d, cents)), 0.22, acc))
+                # (v4) THE SEARCH GLIDES: while the machine is hot each blip slides into its pitch from somewhere else - up
+                # to several semitones away, chosen at random and scaled by the temperature (an expression path in cents
+                # on the sequencer's pitch) - so the hot search sounds like it is feeling for the notes; cold, the
+                # notes land dead on
+                sl = max(-700, min(700, rng.gauss(0, 380 * temp)))
+                art = f"^sl={sl:.0f}>0" if abs(sl) >= 8 else ""
+                P['seq'].append((t0 + q * 0.25, tok(hz(d, cents)) + art, 0.22, acc))
         # chords: spans cycle; the pad's voices re-detune at each span by the temperature
         if span_left == 0:
             span_i += 1; span_left = SPANS[span_i % len(SPANS)]; chord_i = (chord_i + 1) % 4
@@ -184,7 +191,7 @@ def build():
                           {'type': 'compressor', 'threshold': '-18dB', 'ratio': 2.5, 'attack': '10ms', 'release': '120ms', 'makeup': '2dB'},
                           'limiter ceiling=-1dB']},
         'tracks': [
-            tr('seq', 'moog-seq', '-7dB', sends={'echo': '-12dB', 'hall': '-16dB'},
+            tr('seq', {'extends': 'moog-seq', 'synth': {'pitch': {'value': 0, 'mod': [{'src': 'expr.sl', 'amount': 0.01}]}}}, '-7dB', sends={'echo': '-12dB', 'hall': '-16dB'},
                fx=[{'type': 'filter', 'kind': 'lp', 'q': 1.2, 'cutoff': {'value': 3200, 'mod': [{'src': 'auto.T', 'amount': 1.8}]}},
                    {'type': 'crush', 'bits': 5, 'rate': {'value': 6000}, 'mix': {'value': 0, 'mod': [{'src': 'auto.T', 'amount': 0.7}]}}],
                auto={'T': {'points': Tpts}}),
