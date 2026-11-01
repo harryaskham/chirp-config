@@ -14,25 +14,25 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 | physical: modal | t3 (chirper-two) |
 | physical: bowed | t12 (chirper-three) |
 | physical: pluck | t12 (chirper-three) |
-| physical: membrane | |
+| physical: membrane | t5 (chirper-zero) |
 | physical: reed | |
 | physical: lips (brass) | t12 (chirper-three) |
 | physical: bar, bell, glock, gong | t3 (chirper-two) |
-| guitar with amps and cabs | |
+| guitar with amps and cabs | t5 (chirper-zero) |
 | shapers: fold, tanh, clip, crush | t7 (chirper-one) |
 ## Processing (fx)
 | feature | showcased by |
 |---|---|
-| filter family: lp / hp / bp / notch / peak / shelves / allpass / comb / ladder | |
+| filter family: lp / hp / bp / notch / peak / shelves / allpass / comb / ladder | t5 (chirper-zero) |
 | ring, formant, vocoder | t6 (chirper-two) |
 | cloud (grains), freeze | t8 (chirper-zero) |
 | chop, stutter, tapestop, tape, vinyl | t8 (chirper-zero) |
 | delay, reverb (room / plate / hall / chamber / spring), ir | t8 (chirper-zero) |
-| chorus, phaser, wah, tremolo, width, pan | |
+| chorus, phaser, wah, tremolo, width, pan | t5 (chirper-zero) |
 | barberpole, phantom, sympathetic | t12 (chirper-three) |
-| radio, follow-noise | |
+| radio, follow-noise | t5 (chirper-zero) |
 | pitch | |
-| crush, drive, clip, amp, cab | |
+| crush, drive, clip, amp, cab | t5 (chirper-zero) |
 | dynamics: compressor, glue, ott, transient, gate, duck, pump, limiter, autolevel | |
 
 ## Time
@@ -43,7 +43,7 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 | warp | t12 (chirper-three) |
 | meter changes | t9 (chirper-two) |
 | polymeter by step length | t9 (chirper-two) |
-| swing, swing drift, humanize | |
+| swing, swing drift, humanize | t5 (chirper-zero) |
 
 ## Pitch and tuning
 | feature | showcased by |
