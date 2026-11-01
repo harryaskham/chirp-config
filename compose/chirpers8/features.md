@@ -30,7 +30,7 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 | cloud (grains), freeze | t8 (chirper-zero) |
 | chop, stutter, tapestop, tape, vinyl | t8 (chirper-zero) |
 | delay, reverb (room / plate / hall / chamber / spring), ir | t8 (chirper-zero) |
-| chorus, phaser, wah, tremolo, width, pan | t5 (chirper-zero) |
+| chorus, phaser, wah, tremolo, width, pan | t5 (chirper-zero); t4 (chirper-three, pan as array index) |
 | barberpole, phantom, sympathetic | t12 (chirper-three) |
 | radio, follow-noise | t5 (chirper-zero) |
 | pitch | t11 (chirper-three) |
@@ -51,7 +51,7 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 | feature | showcased by |
 |---|---|
 | tuning: cents, ratios (just intonation) | t3 (chirper-two); t8 (chirper-zero, a stretched octave); t11 (chirper-three, the harmonic series 8-16) |
-| tuning: EDO / non-octave scales | t9 (chirper-two); t12 (chirper-three, 31-EDO) |
+| tuning: EDO / non-octave scales | t9 (chirper-two); t12 (chirper-three, 31-EDO); t4 (chirper-three, Carlos alpha, non-octave) |
 | bend, glide, strum | t12 (chirper-three) |
 | expression paths (^NAME=a>b) | t12 (chirper-three) |
 
@@ -63,7 +63,7 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 | chance (?p) and choices (a\|b) | t6 (chirper-two) |
 | Euclidean patterns | t3 (chirper-two) |
 | every / vary / seeds | t8 (chirper-zero), t10 (chirper-one) |
-| complex systems (chaotic maps, cellular automata, L-systems, Markov): ask wM | t3 (chirper-two); t12 (chirper-three, an L-system); t11 (chirper-three, the Lorenz attractor) |
+| complex systems (chaotic maps, cellular automata, L-systems, Markov): ask wM | t3 (chirper-two); t12 (chirper-three, an L-system); t11 (chirper-three, the Lorenz attractor); t4 (chirper-three, sorting algorithms) |
 
 ## Voice
 | feature | showcased by |
@@ -76,7 +76,7 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 | feature | commit | built by | showcased by |
 |---|---|---|---|
 | microtonal `tuning` (song or track): `{edo: 19}`, `{edo: 13, period: 3/1}` (Bohlen-Pierce), `{steps: [9/8, 5/4, …, 2/1]}` (scala ratios/cents), `root`, `map: nearest` (written notes snap) or `keys` (keys count steps); a list retunes over time with `ramp`; score `~N` plays step N exactly (README "Microtonal tunings") | a657923e | wM | t1 (chirper-one: a tuning list with ramps, 5 -> 12 -> 24 -> 96 EDO, speech pitches snapping to a sharpening grid) |
-| complex systems: track `gen` (notes after the score from a `notes` pool) and var `system` (steps): `logistic` (r), `lorenz` (attractor, axis), `ca` (rule 0-255, width, poly; on kit pieces a drum machine), `lsystem` (axiom, rules, depth; turtle +/- [ ]), `markov` (order, learnt from score tokens in `from`); seeded (README "Complex systems") | d082b8f5 | wM | |
+| complex systems: track `gen` (notes after the score from a `notes` pool) and var `system` (steps): `logistic` (r), `lorenz` (attractor, axis), `ca` (rule 0-255, width, poly; on kit pieces a drum machine), `lsystem` (axiom, rules, depth; turtle +/- [ ]), `markov` (order, learnt from score tokens in `from`); seeded (README "Complex systems") | d082b8f5; t4 (chirper-three, sorting algorithms) | wM | |
 
 ## Measured (chirp-eco)
 Not measured yet: coverage appears here once songs exist.
