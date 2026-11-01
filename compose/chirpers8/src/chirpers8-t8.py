@@ -41,6 +41,8 @@ DARKPOS = os.environ.get("C8T8_DARKPOS", "end")  # 'end': the tape-running-out l
 LZ = os.environ.get("C8T8_LZ", "1.5")   # the line's wear wanders: a Lorenz attractor (a var, stepped every beat) drives the line tape's `warp` (its wow and flutter depth), 0 up to LZ - the memory degrades unevenly, never the same way twice
 VOX = os.environ.get("C8T8_VOX", "-18")   # a spoken word into the store: a humanized voice says 'say it back to me' (intro bar 9, the refresh's second bar, the outro's first) and is sent hard into the line, so the words go round and wear away with the tune; value = dry gain dB
 OUTPAD = os.environ.get("C8T8_OUTPAD", "88")   # the pads stay up through the outro's last eight bars (velocity OUTPAD, low voicing kept), so the dark tail still holds 300-470 Hz for t9's glass pads to land on
+CHOP = os.environ.get("C8T8_CHOP", "1")   # recall, corrupted: through D the word's previous bar comes back CHOPPED (8 slices, '0 r1 2 2 . r5 6 _': repeats, reversals, a hole, a glimpse of the live bar) - memory read back wrong
+VINYL = os.environ.get("C8T8_VINYL", "") # the medium wears: vinyl on the line - crackle 0.05 rising to 0.35 into D, 0.15 for the repair, 0.5 in the outro where the line is alone; dust 0.3, wear 0.3
 DARK = os.environ.get("C8T8_DARK", "8")  # the tape running out: a master low-pass closing over the outro's last bars (the hiss and the line's top go first); value = bars
 FORM = [("intro", 16), ("A", 36), ("refresh", 8), ("C", 32), ("D", 16), ("E", 28), ("outro", 16)]
 TRACKS = ("word", "pad0", "pad1", "pad2", "pad3", "hum", "bass", "kick", "shk", "hats", "clap", "rim")
@@ -174,6 +176,7 @@ def song():
     ts = lane([(0, 0), (st["refresh"] - 8, 0), (st["refresh"] - 1, 1), (st["refresh"], 0), (end, 0)])
     cloudmix = lane([(0, 0), (st["C"], 0), (st["C"] + 8 * BAR, 0.5), (st["D"], 0.8), (st["E"], 0.25), (st["outro"], 0.6), (end, 0.8)])
     frz = lane([(0, 0), (st["refresh"], 0), (st["refresh"] + 1, 1), (st["refresh"] + 6 * BAR, 1), (st["refresh"] + 8 * BAR, 0), (end, 0)])
+    chl = lane([(0, 0), (st["D"], 0), (st["D"] + 1, 1), (st["E"] - 1, 1), (st["E"], 0), (end, 0)])
     stut = lane([(0, 0), (st["D"], 0), (st["D"] + 1, 0.8), (st["E"], 0), (end, 0)])
     darkf = {"type": "filter", "kind": "lp", "q": 0.7, "cutoff": {"value": 20000, "mod": [{"src": "auto.lp", "amount": -3.4}]}}
     return {
@@ -194,10 +197,12 @@ def song():
             "line": {"fx": [{"type": "delay", "time": "1bar", "feedback": 0.78, "mix": 1, "tone": 3200, "ping_pong": True},
                             {"type": "tape", "drive": 0.15, "mix": 0.7, "wow": 9, "flutter": 2.5, "drift": 1.5, "hiss": "-58dB", "seed": 3,
                              **({"warp": {"value": 0, "mod": [{"src": "var.wear", "amount": 1}]}} if LZ else {})},
+                            *([{"type": "vinyl", "crackle": {"value": 0, "mod": [{"src": "auto.vc", "amount": 1}]}, "dust": 0.3, "wear": 0.3,
+                                "noise": "-66dB", "rumble": 0.1, "seed": 8}] if VINYL else []),
                             {"type": "cloud", "mix": {"value": 0, "mod": [{"src": "auto.cm", "amount": 1}]}, "density": 18, "size": "90ms",
                              "spray": 0.4, "pitch": 0, "spread": 0.8, "seed": 5},
                             "hp cutoff=200"],
-                     "auto": {"cm": cloudmix}},
+                     "auto": {"cm": cloudmix, **({"vc": lane([(0, 0.05), (st["D"], 0.35), (st["E"], 0.15), (st["outro"], 0.5), (end, 0.5)])} if VINYL else {})}},
             "room": {"fx": ["reverb kind=plate decay=2.4s mix=1 predelay=20ms", "hp cutoff=250"]},
             "pads": {"fx": [pump, {"type": "freeze", "mix": {"value": 0, "mod": [{"src": "auto.fz", "amount": 1}]}, "size": "400ms", "hold": 1}],
                      "auto": {"fz": frz}, "sends": {"room": "-10dB"}},
@@ -205,8 +210,9 @@ def song():
         "tracks": [
             {"name": "word", "patch": "dx-epiano", "gain": "-9dB", "pan": -0.1,
              "fx": [{"type": "stutter", "chance": {"value": 0, "mod": [{"src": "auto.sc", "amount": 1}]}, "slice": "1/16", "repeats": 3,
-                     "decay": 0.3, "mix": 1, "seed": 8}],
-             "auto": {"sc": stut}, "sends": {"line": "-4dB", "room": "-12dB"}, "score": T["word"]},
+                     "decay": 0.3, "mix": 1, "seed": 8},
+                    *([{"type": "chop", "slices": 8, "pattern": "0 r1 2 2 . r5 6 _", "mix": {"value": 0, "mod": [{"src": "auto.ch", "amount": 1}]}}] if CHOP else [])],
+             "auto": {"sc": stut, **({"ch": chl} if CHOP else {})}, "sends": {"line": "-4dB", "room": "-12dB"}, "score": T["word"]},
             *[{"name": f"pad{j}", "patch": "juno-pad", "gain": "-20dB", "pan": (-0.4, -0.15, 0.15, 0.4)[j], "out": "pads", "score": T[f"pad{j}"]} for j in range(4)],
             *([{"name": "hum", "patch": "808", "gain": "-12dB", "fx": [{"type": "filter", "kind": "lp", "cutoff": 120, "q": 0.7}], "score": T["hum"]}] if HUM else []),
             {"name": "bass", "patch": "808", "gain": "-9dB", "fx": [pump], "score": T["bass"]},
