@@ -41,6 +41,7 @@ CONGA16 = os.environ.get("C8T5_CONGA16", "50")   # two more muted conga ghosts o
 CONGAEDGE = os.environ.get("C8T5_CONGAEDGE", "1")   # keep the conga ghosts off the edges: not in the intro's first 4 bars nor the outro's last 4 (the seams stay as before)
 RADIOSTART = os.environ.get("C8T5_RADIOSTART", "0.3")   # where the radio's dial starts (0.9 = far off the station: hiss and whistle at the seam)
 CONGASOFT = os.environ.get("C8T5_CONGASOFT", "")     # the intro's first two bars keep only the low and open congas (no slap, no high bongo)
+SUNGKEEP = os.environ.get("C8T5_SUNGKEEP", "1")   # agreed, they sing it together: the second (lifted) 'keep it there' becomes a sung three-voice choir (tts --sing: B3 D4 E4 x3, the last up to B4), harmonised in the mode by hand - a diatonic third above and below (tts --mode choir harmonises in parallel major thirds: D#/G# against E dorian) - speech, then song, then agreement
 HOOKF = [(0, "E4", 3), (3, "G4", 3), (6, "A4", 4), (10, "B4", 6), (16, "D5", 3), (19, "B4", 3), (22, "D5", 4), (26, "E5", 6)]
 CLEN = int(os.environ.get("C8T5_CLEN", "42"))   # C's length: 40 tightens the agreement (the lift at bar 25, the second 'keep it there' at 33)
 FORM = [("intro", 12), ("A", 34), ("B", 26), ("retrain", 12), ("C", CLEN), ("outro", 16)]
@@ -228,6 +229,32 @@ def rmix_lane(offs16):
     return {"points": pts}
 
 
+DORIAN = (4, 6, 7, 9, 11, 1, 2)   # E dorian pitch classes
+
+
+DORIAN_NOTES = [m for m in range(24, 109) if m % 12 in DORIAN]
+
+
+def dia(m, steps):
+    """MIDI note m moved `steps` scale degrees in E dorian (m must be in the mode)."""
+    return DORIAN_NOTES[DORIAN_NOTES.index(m) + steps]
+
+
+def sung_choir(off16, lift):
+    """The sung 'keep it there' (m-notes) as three voices: the lead, a diatonic third above, a third below."""
+    src = json.load(open(os.path.join(HERE, "chirpers8-t5-sung.json")))["tracks"][0]
+    out = []
+    for name, steps, gain, pan, lag in (("choir", 0, float(VOX) + 1, 0.0, 0.0), ("choirhi", 2, float(VOX) - 3, 0.35, 0.012), ("choirlo", -2, float(VOX) - 3, -0.35, 0.02)):
+        notes = []
+        for n in src["notes"]:
+            m = int(n["pitch"][1:])
+            notes.append(dict(n, at=round(n["at"] + off16 / 4 + lag, 4), pitch=f"m{dia(m, steps) + (2 if lift else 0)}"))
+        out.append({"name": name, "patch": src.get("patch", "voice-speech"), "gain": f"{gain:g}dB", "pan": pan,
+                    "fx": [{"type": "chorus", "rate": 0.3, "depth": 0.2, "mix": 0.2}, "hp cutoff=150"],
+                    "sends": {"room": "-10dB", "spring": "-16dB"}, "notes": notes})
+    return out
+
+
 def voice(file, name, offs16, gain, fx, sends):
     """A humanized tts line (tts --print), placed at each offset (sixteenths), on one track."""
     src = json.load(open(os.path.join(HERE, file)))["tracks"][0]
@@ -304,7 +331,8 @@ def song():
             *([voice("chirpers8-t5-keep.json", "keep", [st["C"] + 16 * BAR] + ([] if MOD else [st["C"] + (CLEN - 8) * BAR]), f"{float(VOX) + 2:g}dB",
                      [{"type": "chorus", "rate": 0.3, "depth": 0.2, "mix": 0.2}, "hp cutoff=150"], {"room": "-10dB", "spring": "-16dB"})] if VOX else []),
             *([lifted(voice("chirpers8-t5-keep.json", "keep2", [st["C"] + (CLEN - 8) * BAR], f"{float(VOX) + 2:g}dB",
-                            [{"type": "chorus", "rate": 0.3, "depth": 0.2, "mix": 0.2}, "hp cutoff=150"], {"room": "-10dB", "spring": "-16dB"}))] if VOX and MOD else []),
+                            [{"type": "chorus", "rate": 0.3, "depth": 0.2, "mix": 0.2}, "hp cutoff=150"], {"room": "-10dB", "spring": "-16dB"}))] if VOX and MOD and not SUNGKEEP else []),
+            *(sung_choir(st["C"] + (CLEN - 8) * BAR, bool(MOD)) if VOX and SUNGKEEP else []),
             *([markov_lead("lead-m1", st["C"] + 16 * BAR, 0, 30), markov_lead("lead-m2", st["C"] + 24 * BAR, 2, 56 - 4 * (48 - CLEN))] if MARK else []),
             {"name": "lead", "patch": "lead-wah", "gain": "-12dB", "pan": 0.1, "fx": [{"type": "chorus", "rate": 0.5, "depth": 0.4, "mix": 0.3}],
              "score": "swing16=0.58 " + T["lead"]},
