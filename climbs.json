@@ -7981,7 +7981,7 @@
     {
       "id": "chirpers8-t7",
       "song": "songs/chirpers8-t7.yaml",
-      "reference": "chirpers — Track 7 (untitled)",
+      "reference": "chirpers — Annealing",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers8-t7 OUT.wav",
@@ -7997,7 +7997,7 @@
       "meta": {
         "artist": "chirpers",
         "album": "A Light Left On",
-        "title": "Track 7 (untitled)",
+        "title": "Annealing",
         "track": 7,
         "year": 2026
       },
