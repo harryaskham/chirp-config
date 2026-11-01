@@ -141,6 +141,16 @@ def write_music():
                     k = int(round((y + 25) / 50 * (len(PARTIALS) - 1)))
                     n = PARTIALS[max(0, min(len(PARTIALS) - 1, k))]
                     part("lead").add(b0(bar) + e * 0.5, 0.42, mm(partial(n, lb, 0)), 76 + int(min(30, abs(y2 - y) * 4)))
+        # v2: THE HANDOVER - the 16th partial of F# (F#5), the closer's first note, on a music box: the light already on
+        if bar >= BARS - 11 and bar % 2 == 1:
+            part("light").add(b0(bar), 1.5, mm(partial(16, -1, 0)), 66 + (bar - (BARS - 11)) * 2)
+        # v2: THE FAN'S HUM begins here and carries across the gap into the closer (its F#2, the same sine)
+        if bar == BARS - 11:
+            part("hum").add(b0(bar), b0(BARS + 1) - b0(bar) - 0.05, mm(42), 60)
+        # v2: a ride in the peak, for the top end
+        if sec == "C":
+            for e in range(8):
+                part("ride").add(b0(bar) + e * 0.5, 0.4, "rd", 66 if e % 2 == 0 else 50)
         # CHOPS: the sampled voice, sliced, fires near the top of the attractor (z high)
         if sec in ("B", "C"):
             for s in range(0, 16, 2):
@@ -150,7 +160,7 @@ def write_music():
         # DRUMS
         if sec != "break":
             for b in range(4):
-                if not (sec == "outro" and bar > 164):
+                if not (sec == "outro" and bar > 156):           # v2: the kick leaves before the handover
                     part("kick").add(b0(bar) + b, 0.5, "k", 114 if b == 0 else 106)
                 if sec != "intro" or bar > 8:
                     part("hats").add(b0(bar) + b + 0.5, 0.25, "oh", 66 + hand.randint(-6, 6))
@@ -160,6 +170,60 @@ def write_music():
             if sec in ("A", "B", "C"):
                 for b in (1, 3):
                     part("clap").add(b0(bar) + b + 0.02, 0.5, "cp", 90 + hand.randint(-4, 4))
+
+
+FORECAST = {   # v2: chirp tts --humanize 0.7, three lines of a forecast read by the machine to itself: (at, len, ph, pitch, vel, f0)
+    1: [
+        (0.0, 0.78, 'K L IH1', '142.85hz', 0.865, [0.0, 8.0, 16.0, 23.0, 29.0, 33.0, 35.0, 37.0, 41.0, 43.0, 39.0, 28.0, 14.0, 2.0, -5.0, -10.0, -14.0]),
+        (0.783, 0.48, 'R IH0 NG', '119.54hz', 0.799, [0.0, -3.0, -6.0, -9.0, -12.0, -16.0, -19.0, -22.0, -25.0, -28.0]),
+        (1.251, 0.601, 'L EY1', '137.34hz', 0.743, [0.0, 11.0, 21.0, 29.0, 35.0, 35.0, 33.0, 33.0, 33.0, 27.0, 13.0, -7.0, -28.0]),
+        (1.85, 0.37, 'T ER0', '114.00hz', 0.859, [0.0, -4.0, -8.0, -12.0, -16.0, -20.0, -24.0, -28.0]),
+        (2.199, 0.37, 'IH0 N', '113.50hz', 0.88, [0.0, -4.0, -8.0, -12.0, -16.0, -20.0, -24.0, -28.0]),
+        (2.553, 0.37, 'DH AH0', '110.92hz', 0.776, [0.0, -4.0, -8.0, -12.0, -16.0, -20.0, -24.0, -28.0]),
+        (2.937, 0.601, 'S EH1', '124.45hz', 0.841, [0.0, 11.0, 21.0, 29.0, 35.0, 35.0, 33.0, 33.0, 33.0, 27.0, 13.0, -7.0, -28.0]),
+        (3.537, 0.59, 'K AH0 N D', '106.17hz', 0.742, [0.0, -3.0, -5.0, -7.0, -12.0, -18.0, -20.0, -16.0, -13.0, -15.0, -24.0, -34.0]),
+        (4.106, 1.131, 'R UW1 M', '104.90hz', 0.762, [0.0, 3.0, 6.0, 9.0, 11.0, 13.0, 14.0, 14.0, 15.0, 17.0, 15.0, 9.0, 1.0, -7.0, -10.0, -10.0, -11.0, -18.0, -31.0, -47.0, -62.0, -71.0, -75.0, -79.0]),
+    ],
+    2: [
+        (0.0, 0.78, 'L AY1 T', '142.85hz', 0.865, [0.0, 8.0, 16.0, 23.0, 29.0, 33.0, 35.0, 37.0, 41.0, 43.0, 39.0, 28.0, 14.0, 2.0, -5.0, -10.0, -14.0]),
+        (0.783, 1.649, 'W IH1 N D Z', '122.16hz', 0.799, [0.0, 4.0, 8.0, 11.0, 15.0, 18.0, 22.0, 25.0, 27.0, 30.0, 33.0, 35.0, 35.0, 35.0, 35.0, 37.0, 41.0, 44.0, 44.0, 39.0, 32.0, 26.0, 25.0, 28.0, 32.0, 32.0, 26.0, 16.0, 6.0, -1.0, -2.0, -0.0, 1.0, -3.0, -11.0, -23.0]),
+        (2.78, 0.601, 'T ER1', '143.42hz', 0.743, [0.0, 11.0, 21.0, 29.0, 35.0, 35.0, 33.0, 33.0, 33.0, 27.0, 13.0, -7.0, -28.0]),
+        (3.379, 0.696, 'N IH0 NG', '91.14hz', 0.859, [0.0, -6.0, -13.0, -19.0, -26.0, -35.0, -43.0, -47.0, -48.0, -50.0, -59.0, -72.0, -84.0, -93.0, -95.0]),
+    ],
+    3: [
+        (0.0, 0.78, 'G UH1 D', '142.85hz', 0.865, [0.0, 8.0, 16.0, 23.0, 29.0, 33.0, 35.0, 37.0, 41.0, 43.0, 39.0, 28.0, 14.0, 2.0, -5.0, -10.0, -14.0]),
+        (0.783, 0.509, 'V IH2', '125.01hz', 0.799, [0.0, 8.0, 14.0, 20.0, 23.0, 25.0, 23.0, 20.0, 14.0, 8.0, 0.0]),
+        (1.279, 0.37, 'Z AH0', '115.82hz', 0.743, [0.0, -4.0, -8.0, -12.0, -16.0, -20.0, -24.0, -28.0]),
+        (1.648, 0.601, 'B IH1', '126.67hz', 0.859, [0.0, 11.0, 21.0, 29.0, 35.0, 35.0, 33.0, 33.0, 33.0, 27.0, 13.0, -7.0, -28.0]),
+        (2.228, 0.37, 'L IH0', '107.75hz', 0.88, [0.0, -4.0, -8.0, -12.0, -16.0, -20.0, -24.0, -28.0]),
+        (2.582, 0.537, 'T IY0', '106.99hz', 0.776, [0.0, -3.0, -6.0, -8.0, -11.0, -14.0, -17.0, -20.0, -22.0, -25.0, -28.0]),
+        (3.492, 0.601, 'F AA1', '141.72hz', 0.841, [0.0, 11.0, 21.0, 29.0, 35.0, 35.0, 33.0, 33.0, 33.0, 27.0, 13.0, -7.0, -28.0]),
+        (4.092, 0.48, 'L IH0 NG', '116.62hz', 0.742, [0.0, -3.0, -6.0, -9.0, -12.0, -16.0, -19.0, -22.0, -25.0, -28.0]),
+        (4.551, 0.78, 'S L OW1', '124.75hz', 0.762, [0.0, 8.0, 16.0, 23.0, 29.0, 33.0, 35.0, 37.0, 41.0, 43.0, 39.0, 28.0, 14.0, 2.0, -5.0, -10.0, -14.0]),
+        (5.329, 0.537, 'L IY0', '92.71hz', 0.809, [0.0, -9.0, -18.0, -27.0, -36.0, -46.0, -55.0, -64.0, -73.0, -82.0, -91.0]),
+    ],
+}
+VOICE_AT = [(81, 1), (85, 2), (89, 3), (101, 1), (113, 3), (125, 2)]   # (bar, line)
+
+
+def voice_notes():
+    out = []
+    for bar, k in VOICE_AT:
+        for a, ln, ph, pitch, v, f0 in FORECAST[k]:
+            out.append({"at": round(b0(bar) + 0.5 + a, 4), "len": ln, "ph": ph, "pitch": pitch, "vel": v,
+                        "expr_path": {"f0": f0}})
+    return out
+
+
+def radio_lanes():
+    """v2: the radio's dial turned by the attractor's z (near the station mid-orbit, drifting off at the extremes,
+    within +-0.25 so the words stay intelligible); a gate lane keeps the static to where the voice speaks."""
+    dial = [[f"{b0(bar):.2f}b", round(max(-0.25, min(0.25, (state(bar)[2] - 24) / 80)), 3)] for bar in range(1, BARS + 1)]
+    rg = [["0b", -80.0]]
+    for bar, k in VOICE_AT:
+        a, z = b0(bar), b0(bar + 2) + 1
+        rg += [[f"{a - 0.05:.2f}b", -80.0], [f"{a:.2f}b", 0.0], [f"{z:.2f}b", 0.0], [f"{z + 0.5:.2f}b", -80.0]]
+    return {"dial": {"points": dial}, "rg": {"points": rg}}
 
 
 def wt_lane():
@@ -205,17 +269,26 @@ def main():
             tr("pad", "juno-pad", gain="-11dB", pan=-0.15, sends={"hall": "-8dB"},
                fx=["gate key=gtrig threshold=-40dB attack=1ms release=40ms", "ott depth=0.3"]),
             tr("gtrig", "machine-kit", gain="-80dB"),
-            tr("bass", "808", gain="-8dB", fx=[{"type": "pump", "on": "kick", "depth": "-9dB", "release": "1/6",
+            tr("bass", "808", gain="-11dB", fx=[{"type": "pump", "on": "kick", "depth": "-9dB", "release": "1/6",
                                                 "curve": 0.6}]),
             tr("chops", "chopper", gain="-12dB", pan=-0.3, sends={"dly": "-8dB"}),
             tr("kick", "machine-kit", gain="-11dB", fx=["transient attack=6 sustain=-4"]),
-            tr("hats", "machine-kit play.humanize.drunk=4ms", gain="-3dB", pan=0.2, fx=["ott depth=0.35"]),
+            tr("light", "music-box", gain="-8dB", sends={"hall": "-6dB"}),            # v2: the handover
+            tr("hum", "partial", gain="-22dB"),                                        # v2: t12's hum, begun early
+            tr("ride", "machine-kit", gain="-10dB", pan=-0.3, sends={"room": "-12dB"}),
+            {"name": "voice", "patch": "voice-speech", "gain": "-10dB", "pan": 0.1, "sends": {"dly": "-10dB"},
+             "auto": radio_lanes(), "notes": voice_notes(),
+             "fx": [{"type": "radio", "tune": {"value": 0, "mod": [{"src": "auto.dial", "amount": 1}]}, "fade": 0.3,
+                     "drift": 0.04, "hiss": "-32dB", "whistle": "-34dB", "seed": 5},
+                    {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.rg", "amount": 1}]}}]},
+            tr("hats", "machine-kit play.humanize.drunk=4ms", gain="0dB", pan=0.2, fx=["ott depth=0.35"]),
             tr("clap", "machine-kit play.humanize.nudge.cp=8ms", gain="-5dB", sends={"room": "-8dB"}),
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=1.0s mix=1 predelay=10ms", "hp cutoff=250"]},
                   "hall": {"fx": ["reverb kind=hall decay=2.8s mix=1 predelay=25ms", "hp cutoff=250"]},
                   "dly": {"fx": ["delay time=3/16 mix=1 feedback=0.4", "hp cutoff=400", "lp cutoff=4000"]}},
-        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=28", "highshelf cutoff=6000 gain=3dB"]},
+        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=28", "peak cutoff=280 q=0.9 gain=-4dB",
+                                                    "highshelf cutoff=5000 gain=5dB"]},     # v2: the album's envelope
                           {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}},
                           "glue makeup=2dB",
                           {"type": "compressor", "threshold": "-12dB", "ratio": 8, "attack": "0.3ms",
