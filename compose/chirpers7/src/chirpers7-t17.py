@@ -70,6 +70,7 @@ SPIRAL = os.environ.get("C7T17_SPIRAL", "-14")  # a Shepard-Risset spiral (risse
 STAIR_UP = {"about": "chirper-two's c2-stair: the Shepard tone that climbs for ever", "synth": {"layers": [{"type": "shepard", "shepard": {"octaves": 8, "center": "600hz", "width": 1.1}}], "amp": {"a": "4ms", "d": "700ms", "s": 0.25, "r": "400ms", "curve": 2}}}
 RRISE = os.environ.get("C7T17_RRISE", "-10")  # Harry's third steer ('accelerando ... a Risset passage that changes the groove's tempo feel'): over the break's last 16 bars (the A pedal) a Risset accelerando on a hats-and-rims figure (risset down: false, 4-bar cycle, 3 layers) - the room seems to speed up for ever into B while the tempo stands still; value = gain dB
 TUNE = os.environ.get("C7T17_TUNE", "1") == "1"  # wM's radio fx (ce4d6815) as a transition other than build/drop (Harry's third steer #2): over B bars 21-24 the Rhodes goes into a radio off the station and is tuned in (the dial sweeping 0.9 -> 0.05, the heterodyne whistle falling) under the spiral and the still bars - then on B2's downbeat the radio drops away and the new key (F minor) lands full-range, as if the room had tuned to another station
+MODLAD = os.environ.get("C7T17_MODLAD", "1") == "1"  # Harry's third steer ('modulations ... more often'), chirper-two's key ladder: B2's room turns through the keys too - F minor, A-flat minor, B minor, then home to D minor, four bars each (minor thirds round the circle: the harmony makes one full turn while the loop circles twice as fast)
 TAILS = os.environ.get("C7T17_TAIL", "0.1s")  # the render tail: 0.3 s leaves no dead air in the last seconds a DJ mixes out of
 
 ERISER = os.environ.get("C7T17_ERISER", "-10")  # wM's endless Shepard riser (fx-riser-endless) over the 8 bars into B: pitch, noise and filter rising for ever, stopping dead on the drop (Harry: 'risers and staircases v good'); level in dB
@@ -174,7 +175,9 @@ def build():
             b2 = SEC2 and sec == "B" and b >= 24
             r, v = plan(sec, b) if EVO else (([CHD[2], CHD[1], CHD[0], CHD[3]] if DARK else CHB2) if b2 else (CHD if DARK else CH))[b % 4]
             if MOD and b2:
-                r, v = r + MOD, [n + MOD for n in v]
+                m_ = [3, 6, 9, 0][min(3, (b - 24) // 4)] if MODLAD else MOD
+                m_ = m_ - 12 if m_ > 6 else m_   # keep the bass in range (B minor a minor third under D, not a sixth over)
+                r, v = r + m_, [n + m_ for n in v]
             seam_in = sec == "intro" and b < 16
             seam_out = sec == "outro" and b >= 16
             if sec != "break" and not (SEC and sec == "B" and 20 <= b < 24) and not (SEC2 and sec == "intro" and 28 <= b < 32):
