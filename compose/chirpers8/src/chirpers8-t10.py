@@ -290,6 +290,12 @@ def build():
             # subject's first half twice, two octaves under the bell, one syllable a note (wM's chirp tts --sing, humanize 0.35):
             # 'every time you call, I go down a little, further than before, and I always come back' - a subroutine's
             # love letter, sideways; tuned in Werckmeister III with the rest
+            # (v11) AND IT COMES BACK: the sung subject returns, home in D minor, as the final calls unwind (their last eight
+            # bars, after the overflow stumbles), the voice an octave lower, singing the subroutine home
+            {'name': 'sing2', 'patch': SING['patch'], 'gain': '-8dB', 'pan': 0.05, 'tuning': W3T,
+             'notes': [dict(n_, at=round(shift(secs_t['final'] + 96 + n_['at']), 4)) for n_ in SING['final']['notes']],
+             'fx': [{'type': 'tape', 'drive': 0.12, 'mix': 1, 'wow': 2, 'flutter': 1, 'seed': 4}],
+             'sends': {'hall': '-9dB', 'echo': '-14dB'}},
             {'name': 'sing', 'patch': SING['patch'], 'gain': '-8dB', 'pan': -0.05, 'tuning': W3T,
              # (v6) the sung pitches come from tts as Hz, which a tuning never retunes (chirper-two's catch): rewritten as
              # MIDI note numbers so the track's Werckmeister III really snaps them
