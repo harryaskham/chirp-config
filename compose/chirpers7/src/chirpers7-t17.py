@@ -69,6 +69,7 @@ MOD = int(os.environ.get("C7T17_MOD", "3"))  # Harry's third steer ('modulations
 SPIRAL = os.environ.get("C7T17_SPIRAL", "-14")  # a Shepard-Risset spiral (risset pitch: true, the stair-up voice) over B bars 17-24 into B2's lift; value = gain dB
 STAIR_UP = {"about": "chirper-two's c2-stair: the Shepard tone that climbs for ever", "synth": {"layers": [{"type": "shepard", "shepard": {"octaves": 8, "center": "600hz", "width": 1.1}}], "amp": {"a": "4ms", "d": "700ms", "s": 0.25, "r": "400ms", "curve": 2}}}
 RRISE = os.environ.get("C7T17_RRISE", "-10")  # Harry's third steer ('accelerando ... a Risset passage that changes the groove's tempo feel'): over the break's last 16 bars (the A pedal) a Risset accelerando on a hats-and-rims figure (risset down: false, 4-bar cycle, 3 layers) - the room seems to speed up for ever into B while the tempo stands still; value = gain dB
+TUNE = os.environ.get("C7T17_TUNE", "1") == "1"  # wM's radio fx (ce4d6815) as a transition other than build/drop (Harry's third steer #2): over B bars 21-24 the Rhodes goes into a radio off the station and is tuned in (the dial sweeping 0.9 -> 0.05, the heterodyne whistle falling) under the spiral and the still bars - then on B2's downbeat the radio drops away and the new key (F minor) lands full-range, as if the room had tuned to another station
 TAILS = os.environ.get("C7T17_TAIL", "0.1s")  # the render tail: 0.3 s leaves no dead air in the last seconds a DJ mixes out of
 
 ERISER = os.environ.get("C7T17_ERISER", "-10")  # wM's endless Shepard riser (fx-riser-endless) over the 8 bars into B: pitch, noise and filter rising for ever, stopping dead on the drop (Harry: 'risers and staircases v good'); level in dB
@@ -370,6 +371,13 @@ def song():
 
 
 def dump(doc):
+    if TUNE:
+        kt = next(t for t in doc["tracks"] if t["name"] == "keys")
+        b20, b24, end = sec_start("B") + 20 * BAR, sec_start("B") + 24 * BAR, total_steps()
+        kt.setdefault("auto", {})["dial"] = lane([(0, 0.9), (b20, 0.9), (b24 - 4, 0.05), (b24, 0.05), (end, 0.05)], step=False)
+        kt["auto"]["rmix"] = lane([(0, 0), (b20 - 1, 0), (b20, 1), (b24 - 1, 1), (b24, 0), (end, 0)], step=False)
+        kt["fx"] = [*kt.get("fx", []), {"type": "radio", "tune": {"value": 0, "mod": [{"src": "auto.dial", "amount": 1}]}, "hiss": "-34dB", "whistle": "-26dB",
+                                         "fade": 0.3, "drift": 0.03, "mix": {"value": 0, "mod": [{"src": "auto.rmix", "amount": 1}]}}]
     if RRISE:
         doc["tracks"].append({"name": "rrise", "patch": "machine-kit", "gain": f"{RRISE}dB", "pan": 0.1, "at": f"{(sec_start('break') + 8 * BAR) // 4}b",
                               "risset": {"cycle": "4bar", "down": False, "layers": 3, "length": "16bar"},
