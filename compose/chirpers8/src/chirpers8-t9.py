@@ -43,6 +43,25 @@ BPM = {"one": 140, "two": 140, "four": 140, "eight": 140, "chaos": 140, "window"
 # chaotic rhythm. A second logistic map, at r 3.95 as a song `var`, throws the reed around the stereo field.
 # T9_R2=none reproduces v1.
 R2 = os.environ.get("T9_R2", "drift")
+# T9_R3 = sing (v3, wM's singing voice): in the period-three window a human voice SINGS "it comes back in threes"
+# (`chirp tts --sing "A3/8 C4 E4" --repeat 3`, src/t9/sing.json): five syllables on a three-note tune, so the words
+# land on different notes each time round while the map cycles in threes under them; its notes snap to the song's
+# Bohlen-Pierce. Once more as the map settles, by then back in 12-TET: the same words, a different tuning.
+# T9_R3=none reproduces v2.
+R3 = os.environ.get("T9_R3", "sing")
+SING = []
+
+
+def sing(at, scale=1.0):
+    src = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "t9", "sing.json")))["tracks"][0]
+    for nt in src["notes"]:
+        m = round(69 + 12 * math.log2(float(nt["pitch"].rstrip("hz")) / 440))
+        d = {"at": round(at + nt["at"], 4), "len": nt["len"], "ph": nt["ph"], "pitch": f"m{m}",
+             "vel": round(nt["vel"] * scale, 3)}
+        if nt.get("expr_path"):
+            d["expr_path"] = nt["expr_path"]
+        SING.append(d)
+    return src["patch"]
 GROUPS = {(4, 4): [4, 4, 4, 4], (7, 8): [4, 4, 6], (5, 4): [6, 4, 6, 4], (6, 8): [6, 6], (11, 8): [6, 6, 6, 4]}  # 16ths
 
 
@@ -157,6 +176,8 @@ def build():
                 root = int(xs[0] * 5)
                 base = bp(root, 57)
                 T["pad"].add(start, steps / 4 * 2 - 0.1, ",".join(mm(base + st * BP) for st in (0, 6, 10)), 64)
+            if R3 == "sing" and ((name == "window" and i in (2, 10)) or (name == "settle" and i == 22)):
+                sing(start, 0.85 if name == "settle" else 1.0)
             if R2 == "drift" and i % 2 == 0 and name in ("chaos", "storm"):
                 root = int(xs[0] * 5)
                 base = bp(root, 57)
@@ -217,6 +238,12 @@ def main():
          "fx": [{"type": "drive", "drive": 0.55, "shape": "fold", "mix": 0.5}, "lp cutoff=600", "hp cutoff=38", pump],
          "score": T["bass"].score(total)},
         {"name": "pad", "patch": "pad-glass", "gain": "-19dB", "fx": [pump], "score": T["pad"].score(total)},
+        *([{"name": "sing",
+            "patch": json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "t9", "sing.json")))["tracks"][0]["patch"],
+            "gain": os.environ.get("T9_SING_GAIN", "-10dB"), "pan": 0.0,
+            "fx": ["hp cutoff=140", "compressor threshold=-20dB ratio=3 attack=5ms release=120ms",
+                   {"type": "delay", "time": "3/16", "feedback": 0.35, "mix": 0.22, "ping_pong": True, "tone": 3500},
+                   "reverb kind=room decay=1.2s mix=0.2"], "notes": SING}] if R3 == "sing" else []),
         *([{"name": "padx", "patch": "pad-glass", "gain": os.environ.get("T9_PADX_GAIN", "-14dB"),
             "fx": [{"type": "morph", "key": "drums", "mode": "cross", "amount": 0.8}, "hp cutoff=200"],
             "score": T["padx"].score(total)}] if R2 == "drift" else []),

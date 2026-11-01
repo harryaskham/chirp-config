@@ -27,6 +27,7 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 - **THE MAP** (src/chirpers8-t9.py `build`): x <- r x (1-x) once a sixteenth; a note when x > 0.42, Bohlen-Pierce Lambda degree int((x-0.3)*16) above A3, velocity 58 + 50x. r by section: 2.9 (one note: a sequencer pulse), 3.2 (two), 3.5 (four, with a rest), 3.56 (eight), 3.7-3.82 (chaos), 3.835 (the PERIOD-THREE window: 0.152 0.495 0.959, three sixteenths across the 4/4), 3.95-4.0 (storm), 3.4-2.9 (back to one). Any part can be driven by it; r is a dial from order to chaos.
 - **BP CHORD**: 3:5:7 = BP steps 0 6 10 (on the glass pad).
 - **THE CLOCK DRIFTS OUT OF TUNE AND BACK** (v2): `tuning: [{edo: 12}, {at: four, edo: 13, period: 3/1, root: A3, ramp: 20bar}, {at: settle+8bar, edo: 12, ramp: 16bar}]`: a plain 12-TET sequencer while the map holds one and two notes, exact Bohlen-Pierce once it doubles past four, 12-TET again as it settles.
+- **IT COMES BACK IN THREES** (v3): sung (`chirp tts --sing "A3/8 C4 E4" --repeat 3`): five syllables on a three-note cycle, so the words move across the tune each time round, over the period-three window; in Bohlen-Pierce there, in 12-TET when it returns in the settle.
 - **t7 THE POWER LIGHT** (v3): a warm drone on A1 (patch drone) from the first beat, swelling through power-on and sinking under the first epoch, returning under the coda and holding to the last beat - the machine is on before the search starts; tail 0.3 s.
 
 ## t5 Agreeing on a Speed (chirper-zero)
