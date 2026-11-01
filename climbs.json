@@ -7676,7 +7676,14 @@
       "best": {
         "score": 98.691,
         "version": "v19",
-        "commit": "see git log songs/chirpers7-t16.yaml"
+        "commit": "see git log songs/chirpers7-t16.yaml",
+        "stale": {
+          "score": 98.691,
+          "since": "2026-11-01T10:10:32Z",
+          "who": "harry",
+          "rating": 9.0,
+          "version": "v19"
+        }
       },
       "passes": 1,
       "enabled": true,
