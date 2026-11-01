@@ -104,6 +104,8 @@ def build():
         # bass: the root on the one, an octave answer on the and-of-2 and the four's offbeat
         if s == 'intro' and i >= 8:
             T['sub'].append((t0, nm(CH[0][0]), 3.6, 92))     # the swap's other half: the E sub with the full kick at bar 9
+        if s == 'outro' and i >= 8:
+            T['sub'].append((t0, nm(root), 3.6, 88))   # (v18) the floor holds to the end, under the overlap until the mixer's swap
         if s in ('A', 'B', 'C') or (s == 'outro' and i < 8):
             T['sub'].append((t0, nm(root), 1.6, 100))
             T['sub'].append((t0 + 2.0, nm(root), 1.0, 92))

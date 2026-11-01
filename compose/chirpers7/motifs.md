@@ -186,3 +186,4 @@ Generator `compose/chirpers7/src/chirpers7-t18.py`. The closer: ambient deep hou
 - **t11 CLEANER FRAME** (v13): master +700 Hz -3 dB (q 0.8), presence 3 kHz +9 dB.
 - **t13 THE PEAK'S MIDS CLEARED** (v19): master 160 Hz -4 dB, 560 Hz -3 dB, 3.5 kHz +7 dB.
 - **t7 ROUNDED EARS** (v17): the octave tones' envelope softens (attack 4 -> 10 ms, release 30 -> 70 ms, sustain 0.75) - rounded pulses, not click-edged blips, on headphones.
+- **t3 THE FLOOR TO THE END** (v18): a held sub through the outro's last eight bars (the mixer's swap at mid takes it from there).
