@@ -168,5 +168,14 @@
     "file": "ref/albums/a-light-left-on/cover-tti.png",
     "prompt": "Album cover art for 'A Light Left On' by chirpers, an original far-future computer music (an engine showcase) album. A single warm amber point of light, like a power LED, seen across an immense dark lattice of circuitry that reads as a night landscape or a star map; elegant and minimal with a slightly wonky geometry; deep blue-black and amber; no text.  Striking, abstract, no text, no letters, no band logo, square composition.",
     "at": "2026-11-01T10:43:49Z"
+  },
+  "params": {
+    "rhythm": {
+      "band": [
+        0.0,
+        0.6
+      ],
+      "map": true
+    }
   }
 }
