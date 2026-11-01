@@ -185,3 +185,4 @@ Generator `compose/chirpers7/src/chirpers7-t18.py`. The closer: ambient deep hou
 - **t12 THE KICK'S BODY BACK** (v21): the master's sub dip narrows (56 Hz, q 1.6, -6 dB, from 58 Hz q 0.9 -8 dB) and a +3 dB bump at 92 Hz returns the kick's body and the bass's weight, which had sat 10-12 dB short at 83-114 Hz.
 - **t11 CLEANER FRAME** (v13): master +700 Hz -3 dB (q 0.8), presence 3 kHz +9 dB.
 - **t13 THE PEAK'S MIDS CLEARED** (v19): master 160 Hz -4 dB, 560 Hz -3 dB, 3.5 kHz +7 dB.
+- **t7 ROUNDED EARS** (v17): the octave tones' envelope softens (attack 4 -> 10 ms, release 30 -> 70 ms, sustain 0.75) - rounded pulses, not click-edged blips, on headphones.

@@ -157,7 +157,9 @@ def build():
         if b['sec'] in ('B', 'C') and b['i'] % 8 == 7:
             a0 = b['t'] + 3.0
             gl += [[f'{a0 - 0.02:.2f}b', 0], [f'{a0:.2f}b', 1], [f'{a0 + 0.98:.2f}b', 1], [f'{a0 + 1.0:.2f}b', 0]]
-    tone = {'synth': {'layers': [{'type': 'osc', 'wave': 'sine'}], 'amp': {'a': '4ms', 'd': '60ms', 's': 0.85, 'r': '30ms'}}}
+    # (v17) the tones lose their edge without losing their place: a softer 10 ms attack and a 70 ms release, so the
+    # hard-panned hops land as rounded pulses rather than clicks - trippy, not caustic (Harry listens on headphones too)
+    tone = {'synth': {'layers': [{'type': 'osc', 'wave': 'sine'}], 'amp': {'a': '10ms', 'd': '90ms', 's': 0.75, 'r': '70ms'}}}
     tr = lambda name, patch, gain, **kw: dict({'name': name, 'patch': patch, 'gain': gain, 'score': line(T[name], total)}, **kw)
     return {
         'about': "Chirpers - The Endless Stair (Chirpers VII), track 7 by chirper-one: MICRO-HOUSE, Which Ear. "
