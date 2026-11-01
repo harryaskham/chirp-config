@@ -8018,7 +8018,7 @@
     {
       "id": "chirpers8-t8",
       "song": "songs/chirpers8-t8.yaml",
-      "reference": "chirpers — Track 8 (untitled)",
+      "reference": "chirpers — Kept in Mercury",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers8-t8 OUT.wav",
@@ -8034,7 +8034,7 @@
       "meta": {
         "artist": "chirpers",
         "album": "A Light Left On",
-        "title": "Track 8 (untitled)",
+        "title": "Kept in Mercury",
         "track": 8,
         "year": 2026
       },
