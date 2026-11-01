@@ -8067,13 +8067,18 @@
       "song": "songs/chirpers8-t9.yaml",
       "reference": "chirpers — Period Doubling",
       "source": null,
-      "owner": null,
+      "owner": "chirper-two",
       "metric": "python3 tools/compscore.py chirpers8-t9 OUT.wav",
-      "best": null,
+      "best": {
+        "score": 96.751,
+        "version": "v1",
+        "commit": "see git log songs/chirpers8-t9.yaml",
+        "engine": "ce4d6815"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "far-future computer music (an engine showcase)",
       "mode": "compose",
@@ -8089,6 +8094,10 @@
         "by": "harry@pocket4-nixos",
         "at": "2026-11-01T10:26:03Z",
         "note": "COMPOSE (song, 300-480 s): Style, featured engine features, tempo, key, tuning and line-up are yours: declare them on compose/chirpers8/styles.md and claim your feature cluster on compose/chirpers8/features.md, different from the tracks already claimed."
+      },
+      "last": {
+        "at": "2026-11-01T11:12:53Z",
+        "who": "chirper-two"
       }
     },
     {
