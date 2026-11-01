@@ -27,7 +27,9 @@ def nm(m): return f"{NN[m % 12]}{m // 12 - 1}"
 
 # (v6) off the tape's template: a long 40-bar first groove (the low pairs alone, the rolling bass locking in - minimal
 # takes its time) and a shorter 24-bar second groove where the envelopes cross-fade low -> high faster, so the turn lands
-FORM = [('intro', 16), ('A', 40), ('B', 24), ('break', 16), ('C', 32), ('outro', 16)]
+# (v16) OFF THE EIGHT-BAR GRID (Harry, 1 Nov: 'break the 4/8/16 formula'): the second groove runs two bars long and
+# the break comes two bars late and short (26 + 14), so the drums vanish where a DJ's count does not expect it
+FORM = [('intro', 16), ('A', 40), ('B', 26), ('break', 14), ('C', 32), ('outro', 16)]
 # (v14) THE HARMONY EVOLVES (Harry, 1 Nov: 'very simple progressions of 4, 8, 16 bars'): uneven spans of five bars or
 # more, chords that grow and change - E-flat minor growing its eleventh, a borrowed half-diminished ii, and in the
 # second groove the tritone substitute: F-flat major 7 sharp 11 in place of the dominant's home, B-flat's tritone twin
@@ -36,7 +38,7 @@ ABM11 = (32, [59, 61, 63, 66, 70])
 FHD = (41, [59, 63, 65, 68])
 FBN = (40, [58, 59, 63, 64, 68])
 SPANS = {'A': [(8, 0), (5, 1), (7, 2), (6, EBM11), (5, FHD), (9, 3)],
-         'B': [(6, 1), (5, ABM11), (7, FBN), (6, 3)],
+         'B': [(6, 1), (5, ABM11), (7, FBN), (8, 3)],
          'C': [(6, 0), (5, 1), (5, 2), (8, 0), (8, 3)]}
 def span_chord(s, i):
     at = 0
