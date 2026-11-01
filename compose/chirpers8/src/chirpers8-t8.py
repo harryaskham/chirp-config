@@ -25,6 +25,8 @@ import json
 import os
 import random
 
+HERE = os.path.dirname(os.path.abspath(__file__))
+
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 OUT = os.environ.get("C8T8_OUT") or os.path.join(ROOT, "songs", "chirpers8-t8.yaml")
 
@@ -37,6 +39,8 @@ HUMA = os.environ.get("C8T8_HUMA", "4")   # the hum starts on A1 (t7's drone, th
 SHAKE = os.environ.get("C8T8_SHAKE", "40")  # the line's own clock: a dusty shaker on every sixteenth through the grooves (A, C, E), accents on the off-sixteenths - the high, fine grain of the floor; value = velocity
 DARKPOS = os.environ.get("C8T8_DARKPOS", "end")  # 'end': the tape-running-out low-pass goes LAST on the master (it sat first, so the master tape's hiss was added after it and the tail stayed bright: +36 dB at 10-15 kHz over t9's head)
 LZ = os.environ.get("C8T8_LZ", "1.5")   # the line's wear wanders: a Lorenz attractor (a var, stepped every beat) drives the line tape's `warp` (its wow and flutter depth), 0 up to LZ - the memory degrades unevenly, never the same way twice
+VOX = os.environ.get("C8T8_VOX", "-18")   # a spoken word into the store: a humanized voice says 'say it back to me' (intro bar 9, the refresh's second bar, the outro's first) and is sent hard into the line, so the words go round and wear away with the tune; value = dry gain dB
+OUTPAD = os.environ.get("C8T8_OUTPAD", "88")   # the pads stay up through the outro's last eight bars (velocity OUTPAD, low voicing kept), so the dark tail still holds 300-470 Hz for t9's glass pads to land on
 DARK = os.environ.get("C8T8_DARK", "8")  # the tape running out: a master low-pass closing over the outro's last bars (the hiss and the line's top go first); value = bars
 FORM = [("intro", 16), ("A", 36), ("refresh", 8), ("C", 32), ("D", 16), ("E", 28), ("outro", 16)]
 TRACKS = ("word", "pad0", "pad1", "pad2", "pad3", "hum", "bass", "kick", "shk", "hats", "clap", "rim")
@@ -99,7 +103,7 @@ def build():
             # pads: long chords, every 4 bars
             if b % 4 == 0 and sec != "D":
                 for j, n in enumerate(v):   # one voice per track: frequencies cannot stack in a chord token
-                    add(f"pad{j}", at, hz(n), 4 * BAR, 64 if sec in ("intro", "outro") else 72)
+                    add(f"pad{j}", at, hz(n), 4 * BAR, int(OUTPAD) if OUTPAD and sec == "outro" and b >= nb - 8 else (64 if sec in ("intro", "outro") else 72))
             if HUM and sec == "intro" and b < int(HUM) and HUMA and b < int(HUMA):
                 if b == 0:
                     add("hum", at, hz(33), int(HUMA) * BAR, 110)
@@ -150,6 +154,18 @@ def lane(points):
     return {"points": [[f"{t16 / 4 * spb:.3f}s", v] for t16, v in points]}
 
 
+def voice(file, name, offs16, gain, fx, sends):
+    """A humanized tts line (tts --print) at each offset (sixteenths)."""
+    src = json.load(open(os.path.join(HERE, file)))["tracks"][0]
+    notes, fv = [], []
+    for o16 in offs16:
+        off = o16 / 4
+        notes += [dict(n, at=round(n["at"] + off, 4)) for n in src["notes"]]
+        fv += [[f"{float(t[:-1]) + off:.3f}b", v] for t, v in src["auto"]["fv"]["points"]]
+    return {"name": name, "patch": src.get("patch", "voice-speech"), "gain": gain, "pan": 0.15,
+            "fx": [*src["fx"], *fx], "auto": {"fv": {"points": fv}}, "sends": sends, "notes": notes}
+
+
 def song():
     T = build()
     st = {sec: sec_start(sec) for sec, _ in FORM}
@@ -198,6 +214,8 @@ def song():
             *([{"name": "shk", "patch": "dusty-kit", "gain": "-12dB", "pan": 0.3, "fx": [{"type": "filter", "kind": "hp", "cutoff": 3500, "q": 0.7}], "score": T["shk"]}] if SHAKE else []),
             {"name": "hats", "patch": "909", "gain": "-9dB", "pan": 0.15, "score": "swing16=0.56 " + T["hats"]},
             {"name": "clap", "patch": "909", "gain": "-9dB", "sends": {"room": "-8dB"}, "score": T["clap"]},
+            *([voice("chirpers8-t8-say.json", "say", [sec_start("intro") + 8 * BAR, sec_start("refresh") + BAR, sec_start("outro")], f"{VOX}dB",
+                     ["hp cutoff=180"], {"line": "-2dB", "room": "-12dB"})] if VOX else []),
             {"name": "rim", "patch": "909", "gain": "-12dB", "pan": -0.3, "sends": {"line": "-14dB"}, "score": T["rim"]},
         ],
     }
