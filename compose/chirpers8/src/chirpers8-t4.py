@@ -185,6 +185,10 @@ def resorting(make, arr, seed):
 
 
 PROGRESS = []
+# v7 (Harry: 'more interesting and good'): EVERYTHING IN ITS PLACE SPELLS A TUNE. Each element's value is its position
+# in this written 16-note riff (a sequencer hook on a pulsing fifth, in alpha steps); the algorithms sort by position as
+# before, but what you hear is the riff scrambled, assembling itself as the sort proceeds, and whole when it is sorted
+RIFF = [0, 9, 15, 9, 13, 9, 5, 9, 0, 9, 18, 13, 9, 5, 4, 9]
 PROG = [0, 9, 4, 13]                  # v6: alpha steps - i, v (~702c), a minor third (~312c), a 'seventh' (~1014c)
 # v6: each algorithm its own progression and harmonic rhythm (bars per chord)
 PA, PB, PC = [0, 9, 4, 13], [4, 13, 0, 9], [13, 5, 9, 0]   # three progressions: A B C, then B and A return
@@ -229,7 +233,8 @@ def write():
         for k, v in enumerate(arr):
             ix = round(-0.9 + 1.8 * k / (N - 1), 3)
             vel = 96 if k in acc else (82 if k % 4 == 0 else 70)
-            part("lead").add(b0(bar) + k / 4, 0.22, pitch(v) + f"^ix={ix}", vel)
+            part("lead").add(b0(bar) + k / 4, 0.22, pitch(RIFF[v] + root_at(bar)) + f"^ix={ix}", vel)   # v7: the riff,
+            # transposed with the progression like a sequencer under a keyboard
         # THE WORK, AUDIBLE: a tick per comparison, a hit per swap; a crash when a pass changes nothing / it is done
         for j in cmp:
             part("tick").add(b0(bar) + j / 4, 0.1, "h", 52 + hand.randint(-6, 6))
@@ -261,7 +266,7 @@ def write():
         if sec not in ("intro", "bogo") or bar > 8:
             for q in range(4):
                 voice = {"insertion": "tune_mar", "quick": "tune_flu", "merge": "tune_kal"}.get(sec, "tune")
-                part(voice).add(b0(bar) + q, 0.95, pitch(arr[q * 4] // 2 + root, BASE + 12 - 9), 84 if q == 0 else 74)
+                part(voice).add(b0(bar) + q, 0.95, pitch(RIFF[arr[q * 4]] + root, BASE + 12 - 9), 84 if q == 0 else 74)
         # DRUMS: the 909's circuits; the bogosort storm has no kick
         if sec in ("quick", "merge"):                            # v6: the ride only where the work runs hottest
             for e in range(8):
