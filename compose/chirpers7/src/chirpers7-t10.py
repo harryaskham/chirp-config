@@ -236,6 +236,20 @@ for _b, _c in zip(range(93, 105), [_ch(DS, M11), _ch(E_, MAJ7S11), _ch(CS, M9), 
                                    _ch(AS, D7B9), _ch(DS, M9), _ch(E_, MAJ9S11), _ch(FS, MAJ7S11), _ch(B_, MAJ7B),
                                    _ch(GS, M11), _ch(AS, D7B9)]):
     C_PLAN[_b] = _c
+# v16: SECTION B THROUGH-COMPOSED too, 6 + 9 + 13: QUARTAL stacks over the D# pedal (D# G# C# F#; C# F# B E, the E a
+# hidden bII; G# C# F# B); then slower harmony (D#m9, Emaj7#11, three bars each, then A#7b9) under a Risset bed that
+# ACCELERATES AND DECELERATES AT ONCE on the hats; then the pedal lets go and the chords speed up, a chord a bar, to an
+# A#7b9 held three bars into Z2
+Q4 = (0, 5, 10, 15)
+for _b, _c in zip(range(45, 51), [_ch(DS, Q4)] * 2 + [_ch(CS, Q4)] * 2 + [_ch(GS, Q4)] * 2):
+    C_PLAN[_b] = _c
+for _b, _c in zip(range(51, 60), [_ch(DS, M9)] * 3 + [_ch(E_, MAJ7S11)] * 3 + [_ch(DS, M11)] * 2 + [_ch(AS, D7B9)]):
+    C_PLAN[_b] = _c
+for _b, _c in zip(range(60, 73), [_ch(DS, M9), _ch(B_, MAJ7B), _ch(GS, M9), _ch(E_, MAJ7S11), _ch(CS, M9),
+                                  _ch(FS, MAJ7S11), _ch(DS, M11), _ch(E_, MAJ9S11), _ch(GS, M11), _ch(B_, MAJ7B),
+                                  _ch(AS, D7B9), _ch(AS, D7B9), _ch(AS, D7B9)]):
+    C_PLAN[_b] = _c
+RUSH_B = (51, 59)
 SPIRAL = (84, 92)
 
 
@@ -249,7 +263,7 @@ def harmony():
             part("subin" if sec == "intro" else "sub").add(b0(bar), BAR - 0.1, nm(DS1), 96)   # the intro level with t9's tail
             continue
         fig = BASS_C if sec in ("C", "D", "E") else BASS_A
-        broot = DS1 + 24 if (sec in ("A", "B") or 77 <= bar <= 83) else root   # v8: a D# PEDAL through A and B (v15: and C1)
+        broot = DS1 + 24 if (sec == "A" or 45 <= bar <= 59 or 77 <= bar <= 83) else root   # the D# PEDAL (v16: B1-B2 only)
         for at, ln, iv in fig:
             part("bass").add(b0(bar) + at, ln, nm(broot - 24 + 12 + iv), 100 if at == 0 else 84)
         sr = broot - 24 if broot - 24 >= DS1 else broot - 12                 # never below D#1
@@ -388,6 +402,11 @@ def main():
                    {"type": "filter", "kind": "lp", "q": 0.7,
                     "cutoff": {"value": 1000, "mod": [{"src": "auto.po", "amount": 1.0}]}}]),
             tr("srise", "fx-riser-endless amp.a=32b", gain="-13dB"),   # v10: an endless riser into the outro
+            {"name": "rushB", "patch": "machine-kit", "gain": "-9dB", "pan": -0.2, "at": f"{b0(RUSH_B[0]):.0f}b",
+             "risset": {"cycle": "4bar", "both": True, "layers": 3, "length": f"{RUSH_B[1] - RUSH_B[0] + 1}bar"},
+             "sends": {"room": "-12dB"},
+             "score": "h/0.25b@64 h/0.25b@42 oh/0.5b@60 rs/0.25b@70 h/0.25b@46 h/0.5b@56 h/0.25b@62 h/0.25b@40 "
+                      "oh/0.5b@58 rs/0.25b@66 h/0.25b@44 h/0.5b@52"},          # v16: up and down at once
             {"name": "spiral", "patch": "glock", "gain": "-15dB", "pan": 0.15, "at": f"{b0(SPIRAL[0]):.0f}b",
              "risset": {"cycle": "3bar", "layers": 3, "length": f"{SPIRAL[1] - SPIRAL[0] + 1}bar", "pitch": True},
              "sends": {"hall": "-6dB"}, "fx": [{"type": "filter", "kind": "lp", "cutoff": 5000}],
