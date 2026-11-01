@@ -66,6 +66,22 @@ R7 = os.environ.get("T1_R7", "riser")
 #   each) while the stair runs on in sixteenths and a second Shepard-Risset spiral of the stair turns DOWN (down: true)
 #   under the one still climbing: up and down at once, faster and faster, into the outro's ritardando.
 R8 = os.environ.get("T1_R8", "evolve")
+# T1_R9 = human (v9, wM's voice tools): the "up"s are a human voice and the speech to song is real: `chirp tts "up"
+# --humanize 0.6 --repeat 7 --melodize 1 --melody "A2" --key A2 --bpm 116 --seed 1 --print` (committed next to this
+# file as chirpers7-t1-tts.json) says it seven times, from spoken to sung on A; the head's seven "up"s take one each,
+# the break's and the drop's take the last, sung one. T1_R9=none reproduces v8.
+R9 = os.environ.get("T1_R9", "human")
+_TTS = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "chirpers7-t1-tts.json")))["tracks"][0]["notes"]
+VOICE_NOTES = []
+
+
+def human_up(at, k, scale):
+    src = _TTS[min(k, len(_TTS) - 1)]
+    VOICE_NOTES.append({"at": round(at, 4), "len": src["len"], "ph": src["ph"], "pitch": src["pitch"],
+                        "vel": round(src["vel"] * scale, 3),
+                        **({"expr_path": src["expr_path"]} if src.get("expr_path") else {})})
+
+
 B3_SPANS = [(4, "F"), (3, "Dm"), (2, "E"), (2, "Am"), (1, "F"), (1, "E"), (1, "Am")]
 B1_SPANS = [(4, "Am"), (3, "Dm"), (3, "F")]
 
@@ -229,13 +245,18 @@ def build():
         # ---- the break: the endless pad, the whisper; a noise rise into B ----
         if (sec in ("break", "drop1") and i % 8 == 0) or (sec in ("B2", "B3") and i % 8 == 0):
             T["pad"].add(start, 31.8, "A3,C4,E4", 80 if sec == "break" else 70)  # the stair takes off in B2
-        if R2 == "turn" and sec == "ambient" and i == 1:  # the turn, whispered
+        if R9 == "human" and R2 == "turn" and sec == "ambient" and i >= 1:  # seven times, spoken to sung
+            human_up(start + 3.0, i - 1, 0.8)
+        elif R2 == "turn" and sec == "ambient" and i == 1:  # the turn, whispered
             T["voice"].add(start + 3.0, 1.0, "A2", 66, "^ph=ah1-p^f0=0>40>80")
         elif R8 == "evolve" and R2 == "turn" and sec == "ambient" and i > 1:  # again and again: speech becomes song
             c = 1.0 - (i - 1) / 6.0
             T["voice"].add(start + 3.0, 1.0, "A2", 64 + i, f"^ph=ah1-p^f0=0>{40 * c:.0f}>{80 * c:.0f}")
         if (sec == "break" and i in (4, 12)) or (sec == "drop2" and i == 0):
-            T["voice"].add(start + 2.0, 1.0, "A2", 70, "^ph=ah1-p^f0=0" if R8 == "evolve" else "^ph=ah1-p^f0=0>40>80")
+            if R9 == "human":
+                human_up(start + 2.0, 6, 0.8)
+            else:
+                T["voice"].add(start + 2.0, 1.0, "A2", 70, "^ph=ah1-p^f0=0" if R8 == "evolve" else "^ph=ah1-p^f0=0>40>80")
         if sec == "break" and i == n - 8:
             T["rise"].add(start, 32.0, "A3" if R7 == "riser" else "C4", 80 if R7 == "riser" else 90)
         if sec == "drop2" and i == 0:
@@ -305,9 +326,11 @@ def main():
         {"name": "chord", "patch": "c2-dub-stab", "gain": "-12dB", "sends": {"room": "-3dB"}, "fx": [pump, "hp cutoff=200"],
          "auto": {"copen": {"points": copen}}, "score": T["chord"].score(total)},
         {"name": "pad", "patch": "shepard-pad", "gain": "-10dB", "score": T["pad"].score(total)},
-        {"name": "voice", "patch": "voice-speech", "gain": "-14dB", "pan": -0.2,
+        {"name": "voice", "patch": "voice-speech", "gain": os.environ.get("T1_VOICE_GAIN", "-17dB" if R9 == "human" else "-14dB"),
+         "pan": -0.2,
          "fx": ["hp cutoff=300", {"type": "delay", "time": "3/8", "feedback": 0.4, "mix": 0.35, "tone": 2500},
-                "reverb kind=hall decay=4s mix=0.5"], "score": T["voice"].score(total)},
+                "reverb kind=hall decay=4s mix=0.5"],
+         **({"notes": VOICE_NOTES} if R9 == "human" else {"score": T["voice"].score(total)})},
         *([{"name": "rise", "patch": "fx-riser-endless amp.a=32b", "gain": "-13dB", "score": T["rise"].score(total)},
            {"name": "rise16", "patch": "fx-riser-endless amp.a=16b", "gain": "-13dB", "score": T["rise16"].score(total)}]
           if R7 == "riser" else
