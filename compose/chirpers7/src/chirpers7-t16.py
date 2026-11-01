@@ -57,6 +57,7 @@ DENS = os.environ.get("C7T16_DENS", "")  # density contrast between sections: "q
 ERISER = os.environ.get("C7T16_ERISER", "-10")  # wM's endless Shepard riser (fx-riser-endless), 8 bars ending on B: the filter, the roll and now the riser - three builds that never arrive; level in dB
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 HOVER = os.environ.get("C7T16_HOVER", "1") == "1"  # Harry's third steer ('add / replace / augment sections ... a riser that never lands'): a new 6-bar section between the break and B - THE HOVER: the kick and the rolling sub gone, the endless filter still climbing on a suspended dominant (D7sus over a held D), the endless riser carried on through it, so the arrival is held back once more before B finally lands
+HROLL = os.environ.get("C7T16_HROLL", "-8")  # the hover's own illusion: the endless snare roll turned DOWN (a Risset decelerando, slowing for ever) under the still-climbing filter - one thing speeding up, one slowing, nothing arriving; value = gain dB
 FORM = [("intro", 32), ("build", 16), ("A", 32), ("break", 16)] + ([("hover", 6)] if HOVER else []) + [("B", 48), ("outro", 32)]
 # (sub root, stair degrees above it, chord voicing)
 CH = [(31, (0, 2, 3, 7), [58, 62, 65, 69]),   # Gm9: Bb3 D4 F4 A4 over G
@@ -315,6 +316,10 @@ def song():
                "risset": {"cycle": "4bar", "down": False, "layers": 3, "length": "16bar"},
                "fx": [{"type": "filter", "kind": "hp", "cutoff": 180, "q": 0.7}], "sends": {"dub": "-14dB"},
                "score": "sn/0.5b@72 sn/0.5b@58 sn/0.5b@64 sn/0.5b@58 sn/0.5b@76 sn/0.5b@58 sn/0.5b@66 sn/0.5b@62"}] if ROLL else []),
+            *([{"name": "hroll", "patch": "machine-kit", "gain": f"{HROLL}dB", "pan": -0.1, "at": f"{sec_start('hover') // 4}b",
+               "risset": {"cycle": "3bar", "down": True, "layers": 3, "length": "6bar"},
+               "fx": [{"type": "filter", "kind": "hp", "cutoff": 180, "q": 0.7}], "sends": {"dub": "-12dB"},
+               "score": "sn/0.5b@72 sn/0.5b@58 sn/0.5b@64 sn/0.5b@58 sn/0.5b@76 sn/0.5b@58 sn/0.5b@66 sn/0.5b@62"}] if (HROLL and HOVER) else []),
             *endless("slow", T["pulse_slow"], 16),
             *endless("mid", T["pulse_mid"], 8),
             *endless("fast", T["pulse_fast"], 4),
