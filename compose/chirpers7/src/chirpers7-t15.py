@@ -49,6 +49,7 @@ EVO = os.environ.get("C7T15_EVO", "1") == "1"  # Harry's third steer (1 Nov 01:1
 SPIRAL = os.environ.get("C7T15_SPIRAL", "-14")  # a Shepard-Risset spiral (risset pitch: true) over B bars 25-32 into the lift to E-flat minor; value = gain dB
 DRAG = os.environ.get("C7T15_DRAG", "104")  # Harry's third steer ('accelerando / decelerando ... as structure'): the title enacted at the scale of the track - through r2 the real tempo drags from 124 down to DRAG bpm, and on the outro's downbeat it is 124 again: it got slower and slower and is exactly where it began (a Risset decelerando the size of a section); the outro's own ramp to 123 for the seam is untouched
 VDIAL = os.environ.get("C7T15_VDIAL", "1") == "1"  # wM's radio fx (ce4d6815) on the distant voice: the dial off the station a bar before (static), gliding in as the first 'ever slower' comes (the whistle falling), within 0.03 of the station while it speaks and sings, drifting off after the sixth; the radio's mix only around the phrase
+TILT = os.environ.get("C7T15_TILT", "1") == "1"  # Harry's third steer #3 (time-play), chirper-two's floor tilt (t4): A bars 19-30 (12 bars = 32 dotted quarters) put the kick, the pump and the sub on the DOTTED QUARTER while the hats and the dub stabs keep the grid and the clap stands out - the floor seems to slow to two-thirds without the tempo moving (slower, and not); it re-locks for A's last two bars
 VOX = os.environ.get("C7T15_VOX", "-14")  # Harry's third steer ('voice under or through things ... speech-to-song where the repetition really becomes melody', sparingly): over the break's bars 9-20 a distant human voice (wM's chirp tts: 'ever slower' --humanize 0.7 --repeat 6 --melodize 0..1 --melody 'G3 Eb3 D3 C3') says the words and, repetition by repetition, sings them onto the falling stair - through a radio band into the dub's echo; value = gain dB
 BED = os.environ.get("C7T15_BED", "2")  # Harry 14:50, 'most tracks have no illusion': the Risset decelerando leads. "1": the bed also under intro bars 17-32, all of A and the outro's first 16 (never more than one break without it); "2": as 1, and under B's last 16 bars an ACCELERATING bed (panned the other way) runs against the slowing one - poly accel/decel over a kick that never changes
 BEDG = os.environ.get("C7T15_BEDG", "-9")  # the beds' level (was -9 dB: compscore's illusion survey read them 11 LU under the mix)
@@ -159,8 +160,13 @@ def build():
             r, v = r + ku, [n + ku for n in v]
             seam_in = sec == "intro" and b < 16
             seam_out = sec == "outro" and b >= 16
+            tilt = TILT and sec == "A" and 18 <= b < 30
             # --- kick: four on the floor, everywhere but the break
-            if sec != "break" or b >= nb - 2:
+            if tilt:
+                for q in range(16):
+                    if ((b - 18) * 16 + q) % 6 == 0:
+                        add("kick", at + q, "k", 1, 118 if ((b - 18) * 16 + q) % 12 == 0 else 110)
+            elif sec != "break" or b >= nb - 2:
                 for q in (0, 4, 8, 12):
                     add("kick", at + q, "kr" if sec in ("intro", "outro") else ("kd" if (sec == "B" and b >= 24) else "k"), 1, 118 if q == 0 else 112)
             # --- hats: off-beats; open hats in the grooves
@@ -171,7 +177,7 @@ def build():
                 for q in (1, 3, 5, 7, 9, 11, 13, 15):
                     add("hats", at + q, "h", 1, 44 + (8 if q in (3, 11) else 0))
             # --- clap on 2 and 4 in the grooves
-            if sec in ("A", "B") or (sec == "r2" and b % 2 == 1):
+            if (sec in ("A", "B") or (sec == "r2" and b % 2 == 1)) and not tilt:
                 add("clap", at + 4, "cp", 1, 96)
                 add("clap", at + 12, "cp", 1, 100)
             # --- sub: a held C under the seam in, the bassline in the grooves, G under the seam out
@@ -181,6 +187,11 @@ def build():
             elif seam_out:
                 if b % 4 == 0:
                     add("sub", at, "G1", 4 * BAR, 92)
+            elif tilt:
+                for q in range(16):
+                    k = (b - 18) * 16 + q
+                    if k % 6 == 0:
+                        add("sub", at + q, nm(r + (12 if (k // 6) % 4 == 3 else 0)), 5, 100 if k % 12 == 0 else 88)
             elif sec in ("A", "B", "r2") or (sec == "intro" and b >= 16) or (sec == "outro" and b < 16):
                 add("sub", at, nm(r), 6, 100)
                 add("sub", at + 7, nm(r), 3, 84)
