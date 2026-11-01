@@ -119,7 +119,7 @@ def degree_pitch(d, base=FS4):
     return base + 12 * o + SCALE[k] * 12 / EDO
 
 
-def melody(sec, a, z, trk, base=FS4, vel=84, every=1, octave=0, legato=False):
+def melody(sec, a, z, trk, base=FS4, vel=84, every=1, octave=0, legato=False, mods=""):
     """Play the section's generation string from bar a to z, again and again, on trk."""
     s = lsys(GEN[sec])
     t, end, d, i = b0(a), b0(z + 1), 0, 0
@@ -129,7 +129,7 @@ def melody(sec, a, z, trk, base=FS4, vel=84, every=1, octave=0, legato=False):
             d = 0                                   # each pass starts on the light's note
         if i % every == 0:
             p = degree_pitch(d, base) + 12 * octave
-            part(trk).add(t, DUR[c] * (1.0 if legato else 0.9), f"m{p:.3f}",
+            part(trk).add(t, DUR[c] * (1.0 if legato else 0.9), f"m{p:.3f}" + mods,
                           vel + (10 if c == "C" else 0) - (8 if c == "B" else 0))
         d += STEP[c]
         if d > 9 or d < -4:                         # fold back into range
@@ -208,7 +208,14 @@ def write_melody():
     melody("g5", 56, 89, "celesta", base=78, vel=70, every=3)
     melody("prune", 90, 102, "kalimba", base=66, vel=84)
     melody("g6", 103, 157, "harp", base=66, vel=94)
-    melody("g6", 103, 157, "violins_lead", base=78, vel=72, every=2)
+    melody("g6", 103, 157, "violins_lead", base=78, vel=72, every=2, mods="^f0=-39>0>0")   # v7: each note scooped
+    # v7: THE HARP STRUMS each new chord of the grown sections - a spread 31-EDO chord at every change
+    prev = None
+    for bar in range(35, 158):
+        if sec_of(bar) in ("g4", "g5", "g6") and PLAN[bar] != prev:
+            root, q = PLAN[bar]
+            part("strum").add(b0(bar), 3.5, chord(54 + root * 12 / EDO, q) + "," + m(q[1] + 31, 54 + root * 12 / EDO), 86)
+        prev = PLAN[bar]
     melody("g6", 103, 157, "celesta", base=78, vel=68, every=5)
     melody("coda", 158, 178, "celesta", base=78, vel=74, every=2)
     # v3: THE ONDES MARTENOT (one of the first electronic instruments) doubles the grown melody an octave up, legato,
@@ -386,7 +393,10 @@ def main():
             tr("cellos", "cellos", gain="-14dB", pan=-0.25, sends={"hall": "-8dB"},
                fx=[{"type": "filter", "kind": "hp", "cutoff": 120}]),
             tr("violins", "violins", gain="-14dB", pan=0.3, sends={"hall": "-6dB"}),
-            tr("violins_lead", "violins", gain="-12dB", pan=0.35, sends={"hall": "-6dB"}),
+            tr("violins_lead", {"extends": "violins", "synth": {"pitch": {"value": 0, "mod": [
+                {"src": "expr.f0", "amount": 0.01}]}}}, gain="-12dB", pan=0.35, sends={"hall": "-6dB"}),
+                # v7: BENDS - each note scoops up from one 31-EDO step below (an expr_path on the pitch, in cents)
+            tr("strum", "harp play.strum=55ms", gain="-9dB", pan=-0.3, sends={"hall": "-6dB"}),     # v7: strummed chords
             tr("pole", "strings", gain="-10dB", sends={"hall": "-4dB"}, fx=["barberpole cycle=2bar down=true"]),
             tr("horns", "horn-section", gain="-10dB", pan=0.1, sends={"hall": "-8dB"}),
             tr("phantom", "phantom-bass", gain="-8dB"),
