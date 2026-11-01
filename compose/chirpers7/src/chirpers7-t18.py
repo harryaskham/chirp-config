@@ -60,6 +60,7 @@ MONOO = os.environ.get("C7T18_MONOO", "90")  # Harry listens on headphones AND s
 HEADEQ = os.environ.get("C7T18_HEADEQ", "6")  # the in-join (compscore: the head 12-15 dB over The Room Turns' tail at 133, 547 Hz and 1.6 kHz): those bands this many dB down for the first 4 bars, flat by bar 8 - the new record brought in thin, as a DJ would
 RADIO = os.environ.get("C7T18_RADIO", "1") == "1"  # Harry's third steer (1 Nov 01:15: 'white-noise bursts ... less well evolved'; 'robotic vox not subtle enough'): chirper-two's radio band (t8) - the continuity line now sings through a living shortwave band that runs under the whole stretch 18 dB down and swells over each gap to the old bursts' level (no bare bursts); and the speech heard through the radio (hp 450 / lp 2.6 kHz, 3 dB further back, more echo)
 GAPS = []
+ZWX = os.environ.get("C7T18_ZWX", "r")  # Harry's third steer ('white-noise bursts ... less well evolved'): the Zwicker swell evolved - "r" the radio band itself (shortwave: static and whistles, the continuity panel's radio) through the same notches; "b" the broadband noise breathing (a low-pass swaying 3-9 kHz once a bar) - either way the silence after it still sings the notch's note
 COH = os.environ.get("C7T18_COH", "1") == "1"  # t17 v18's fix (measured 22:15): coherent Haas pairs - one source per pair, near ear direct and far ear through 18 ms, dry - so the turning panel's precedence cue exists (separate noise-kit tracks gave the ears different hits)
 COHB = {}
 ILV = float(os.environ.get("C7T18_ILV", "0"))  # every illusion track's level offset (dB)
@@ -560,7 +561,9 @@ def song():
             *([{"name": "radio", "patch": "shortwave", "gain": ilv(-14), "pan": -0.1,
                 "fx": [{"type": "gain", "gain": {"value": "-18dB", "mod": [{"src": "auto.rgap", "amount": 18}]}}],
                 "auto": {"rgap": rgap_lane}, "score": T["radio"]}] if RADIO else []),
-            {"name": "zw", "patch": "zwick", "gain": ilv(-12), "fx": [
+            {"name": "zw", "patch": "shortwave" if ZWX == "r" else "zwick", "gain": ilv(-12 + (4 if ZWX == "r" else 0)),
+             **({"lfo": {"br": "sine rate=1/1"}} if ZWX == "b" else {}), "fx": [
+                *([{"type": "filter", "kind": "lp", "cutoff": {"value": 5200, "mod": [{"src": "lfo.br", "amount": 0.8}]}, "q": 0.9}] if ZWX == "b" else []),
                 {"type": "filter", "kind": "notch", "cutoff": round(zw_f * 0.9, 1), "q": 1.5}, {"type": "filter", "kind": "notch", "cutoff": round(zw_f, 1), "q": 1.5},
                 {"type": "filter", "kind": "notch", "cutoff": round(zw_f * 1.1, 1), "q": 1.5}, "hp cutoff=120", "lp cutoff=9000"], "score": T["zw"]},
             {"name": "bell", "patch": "bell", "gain": ilv(-10), "sends": {"hall": "-8dB"}, "score": T["bell"]},
