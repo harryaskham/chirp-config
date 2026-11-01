@@ -97,6 +97,7 @@ def build():
             T['pad'].append((t0, ','.join(nm(m - 12) for m in ch), 15.8, 74))
     # THE WASHES: two bars of hiss before each phrase end (every 16 bars from bar 16), the ghost stair inside, then a beat of silence
     gm, gaps, fbl, thr = [['0b', 0]], [], [['0b', 0]], [['0b', 0]]
+    vw = [['0b', 0]]
     # (v9) the washes fall on the form's own seams: halfway through A, into B and halfway through it, every eight bars of
     # the break, into C and halfway through it, and into the outro
     tb = secs['break']
@@ -109,6 +110,7 @@ def build():
         L = 8.0 if e == int(secs['A']) else 16.0
         a0 = e - 1.0 - L
         T['wash'].append((a0, 'C4', L, 92))
+        vw += [[f'{a0:.2f}b', 0], [f'{a0 + L * 0.55:.2f}b', 4], [f'{a0 + L:.2f}b', 1.5]]   # (v22) u-o-a-e-i and half back
         # the ghost stair: four steps, two beats each, rotating each phrase (and falling in the break)
         mel = [STAIR_ST[(n + j) % 4] for j in range(4)]
         if secs['break'] <= a0 < secs['C']:
@@ -189,7 +191,17 @@ def build():
                        {'over': '24bar', 'to': 0}, {'over': '8bar', 'to': 0.375, 'curve': 'smooth'}, {'over': '8bar', 'to': 0, 'curve': 'smooth'}]),
             tr('pad', 'juno-pad', '-12dB', sends={'hall': '-8dB'}),
             # the hiss goes dry and identical to both ears: straight to the left, and through a high-Q allpass to the right
-            tr('wash', wash, '-14dB', fx=['hp cutoff=200', 'lp cutoff=9000'], out='hugL', sends={'hugR': '0dB'}),
+            # (v22) THE HISS WHISPERS (Harry, 1 Nov: 'white-noise bursts sound less well evolved'): the wash is no longer bare
+            # noise. It breathes through a vocal tract (a formant filter gliding u-o-a-e-i and half back across each wash, so
+            # the hiss is a long whispered vowel), it sets a bank of B-flat-minor strings ringing (sympathetic resonance: the
+            # hiss hums the key on speakers too), and it ducks with every kick (tape hiss shaped by the groove). All of it
+            # happens BEFORE the split, so both ears still get one identical source and the ghost still sings between them
+            tr('wash', wash, '-14dB', fx=['hp cutoff=200',
+                                         {'type': 'formant', 'vowel': {'value': 0, 'mod': [{'src': 'auto.vw', 'amount': 1}]}, 'q': 6, 'mix': 0.6},
+                                         {'type': 'sympathetic', 'notes': 'Bb2 F3 Bb3 Db4 F4 C5', 'decay': '3s', 'mix': 0.18},
+                                         {'type': 'pump', 'on': 'kit.k', 'depth': '-7dB', 'release': '300ms', 'curve': 0.6},
+                                         'lp cutoff=8000'],
+               out='hugL', sends={'hugR': '0dB'}, auto={'vw': {'points': vw}}),
             tr('ghost', 'epiano-tine', '-10dB', sends={'echo': '-6dB', 'hall': '-10dB'}),
         ]}
 
