@@ -28,6 +28,23 @@ def nm(m): return f"{NN[m % 12]}{m // 12 - 1}"
 # (v6) off the tape's template: a long 40-bar first groove (the low pairs alone, the rolling bass locking in - minimal
 # takes its time) and a shorter 24-bar second groove where the envelopes cross-fade low -> high faster, so the turn lands
 FORM = [('intro', 16), ('A', 40), ('B', 24), ('break', 16), ('C', 32), ('outro', 16)]
+# (v14) THE HARMONY EVOLVES (Harry, 1 Nov: 'very simple progressions of 4, 8, 16 bars'): uneven spans of five bars or
+# more, chords that grow and change - E-flat minor growing its eleventh, a borrowed half-diminished ii, and in the
+# second groove the tritone substitute: F-flat major 7 sharp 11 in place of the dominant's home, B-flat's tritone twin
+EBM11 = (39, [58, 61, 63, 65, 68])
+ABM11 = (32, [59, 61, 63, 66, 70])
+FHD = (41, [59, 63, 65, 68])
+FBN = (40, [58, 59, 63, 64, 68])
+SPANS = {'A': [(8, 0), (5, 1), (7, 2), (6, EBM11), (5, FHD), (9, 3)],
+         'B': [(6, 1), (5, ABM11), (7, FBN), (6, 3)],
+         'C': [(6, 0), (5, 1), (5, 2), (8, 0), (8, 3)]}
+def span_chord(s, i):
+    at = 0
+    for n, c in SPANS[s]:
+        if i < at + n:
+            return CH[c] if isinstance(c, int) else c
+        at += n
+    return CH[0]
 # (v7) darker, wonkier (Harry, 31 Oct): Ebm9 - Cbmaj7#11 - Abm9 - Bb7b9
 CH = [(39, [58, 61, 65, 66, 70]), (35, [58, 63, 65, 66, 70]), (32, [59, 63, 66, 70]), (34, [59, 62, 65, 68])]
 STAIR = [63, 65, 66, 70]                     # Eb F Gb Bb (pitch class matters, not octave: Shepard tones)
@@ -62,7 +79,7 @@ def build():
     T = {k: [] for k in ('kit', 'sub', 'bass', 'stab', 'pairlo', 'pairhi', 'cyc')}
     for k, b in enumerate(bars):
         s, t0, i = b['sec'], b['t'], b['i']
-        root, ch = CH[(k // 2) % 4]
+        root, ch = span_chord(s, i) if s in SPANS else CH[(k // 2) % 4]
         # (v5) THE KEY GOES BOTH WAYS: for eight bars in the middle of the last groove the whole harmony moves a tritone,
         # E-flat minor to A minor - as far from home as a key can go, and just as far up as down. The tritone pairs,
         # moved a tritone, are the same two pitch classes the other way round: the question stays, the ground under it turns
