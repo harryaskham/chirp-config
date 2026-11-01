@@ -7976,7 +7976,14 @@
       "best": {
         "score": 96.531,
         "version": "v12",
-        "commit": "see git log songs/chirpers8-t5.yaml"
+        "commit": "see git log songs/chirpers8-t5.yaml",
+        "stale": {
+          "score": 96.531,
+          "since": "2026-11-01T20:53:47Z",
+          "who": "chirper-three",
+          "rating": 9.0,
+          "version": "v12"
+        }
       },
       "passes": 1,
       "enabled": true,
