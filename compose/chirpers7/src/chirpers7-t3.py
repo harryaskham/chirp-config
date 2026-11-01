@@ -224,6 +224,8 @@ def build():
     # the outro hands the plain words back to the radio
     ta, to_ = secs['A'], secs['outro']
     # (the radio tunes in a step on the second groove's downbeat, then keeps coming closer)
+    dial = [['0b', 0.75], [f'{ta:.2f}b', 0.75], [f'{ta + 16:.2f}b', 0], [f'{tb:.2f}b', 0], [f'{tb + 0.25:.2f}b', -0.55], [f'{tb + 12:.2f}b', 0],
+            [f'{to_ + 28:.2f}b', 0], [f'{to_ + 48:.2f}b', 0.85]]
     rad = [['0b', 0.8], [f'{secs["B"] - 0.25:.2f}b', 0.8], [f'{secs["B"]:.2f}b', 0.45], [f'{secs["B"] + 128:.2f}b', 0], [f'{tb - 0.5:.2f}b', 0], [f'{tb:.2f}b', 1],
            [f'{tc - 4:.2f}b', 1], [f'{tc:.2f}b', 0], [f'{to_ + 16:.2f}b', 0], [f'{to_ + 32:.2f}b', 1]]
     op = [['0b', 0], [f'{tb:.2f}b', 0], [f'{tb + 0.1:.2f}b', 1], [f'{tc - 8:.2f}b', 1], [f'{tc:.2f}b', 0]]
@@ -268,9 +270,14 @@ def build():
             # the second groove, as the contour turns into the tune, it settles onto the grid and stays there
             dict(dict({'name': 'speech', 'patch': 'voice-speech', 'gain': '-5dB', 'notes': T['speech']}, sends={'hall': '-14dB', 'echo': '-14dB'},
                     fx=[{'type': 'pitch', 'semitones': 0, 'formant': {'value': 0, 'mod': [{'src': 'auto.fv', 'amount': 1}]}},
-                        {'type': 'filter', 'kind': 'hp', 'q': 0.9, 'cutoff': {'value': 90, 'mod': [{'src': 'auto.rad', 'amount': 2.5}]}},
-                        {'type': 'filter', 'kind': 'lp', 'q': 1.3, 'cutoff': {'value': 14000, 'mod': [{'src': 'auto.rad', 'amount': -2.5}]}},
-                        {'type': 'drive', 'drive': 0.35, 'mix': 0.45}], auto={'rad': {'points': rad}, 'fv': {'points': fv}}),
+                        # (v22) a REAL RADIO (wM's radio fx, ce4d6815): band-limited, saturated, with a dial - the first groove's
+                        # voice is found by tuning in (a heterodyne whistle sweeping down to the station over four bars, static
+                        # under it), the break's proof retunes from off the station, and the outro's voice is tuned away; the
+                        # rad lane still crossfades the radio out as the voice comes close and sings
+                        {'type': 'radio', 'tune': {'value': 0, 'mod': [{'src': 'auto.dial', 'amount': 1}]}, 'low': 420, 'high': 2700,
+                         'drive': 0.35, 'hiss': '-30dB', 'whistle': '-27dB', 'fade': 0.25, 'rate': 0.12, 'drift': 0.12, 'seed': 3,
+                         'mix': {'value': 0, 'mod': [{'src': 'auto.rad', 'amount': 1}]}}],
+                    auto={'rad': {'points': rad}, 'fv': {'points': fv}, 'dial': {'points': dial}}),
                  warp=[{'over': '16bar', 'to': 0}, {'over': '8bar', 'to': 0.25, 'curve': 'smooth'}, {'over': '8bar', 'to': -0.125, 'curve': 'smooth'},
                        {'over': '8bar', 'to': 0.1875, 'curve': 'smooth'}, {'over': '16bar', 'to': 0, 'curve': 'in'}]),
             tr('sung', 'voice', '-10dB', fx=[{'type': 'pitch', 'semitones': 12, 'formant': 0}], sends={'hall': '-6dB', 'echo': '-10dB'}),
