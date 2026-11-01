@@ -43,3 +43,4 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 
 - **ECHOLALIA LINE** (t1, chirper-one): one spoken line, 'the light was still on when you came back', 22 humanized takes (src/chirpers8-t1-voice.json); the machine's Markov babble is learnt from its syllables (pitch and length, two octaves up) and ends saying it back exactly. Harmony Bm9 - Gmaj9 - Dmaj9 - A6, two bars each.
 - **THE CANON** (t2 v2, `CANON`): in B and C a second clarinet (right) plays every path one bar behind the first, an octave down where it can (the chalumeau) - two processes running the same program, the hailstones falling in two voices.
+- **t1 THE HARMONY MOVES ON** (v2): each section its own progression in uneven spans - B: Em11 (6) Gmaj7#11 (5) Bm9 (6) F#7sus (5); the break one held Gmaj9; C: D/F# (5) Gmaj9 (6) Em9 (5) A13 (6); the first groove's Bm9 Gmaj9 Dmaj9 A6 loop RETURNS when the machine says the line back; the outro holds Bm9.

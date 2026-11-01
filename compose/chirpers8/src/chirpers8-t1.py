@@ -25,6 +25,19 @@ OUT = os.path.join(ROOT, "songs", "chirpers8-t1.yaml")
 BPM = 104.0
 FORM = [('intro', 8), ('A', 32), ('B', 32), ('break', 8), ('C', 32), ('D', 16), ('outro', 10)]
 CH = [(35, [62, 66, 69, 73]), (31, [62, 66, 69, 71]), (38, [61, 64, 66, 69]), (33, [61, 64, 66, 69])]   # Bm9 Gmaj9 Dmaj9 A6
+# (v2) THE HARMONY MOVES ON BY SECTION (it repeated one loop for five minutes): each groove its own progression in
+# uneven spans, the break on one held chord, and the first groove's loop RETURNING when the machine says the line back
+EM11 = (28, [62, 66, 67, 71]); GM7S11 = (31, [61, 62, 66, 71]); FS7SUS = (30, [61, 64, 66, 71]); DF = (30, [62, 66, 69, 73])
+EM9 = (28, [62, 66, 67, 71]); A13 = (33, [61, 66, 67, 71])
+PROG = {'B': [(6, EM11), (5, GM7S11), (6, CH[0]), (5, FS7SUS)], 'break': [(8, CH[1])],
+        'C': [(5, DF), (6, CH[1]), (5, EM9), (6, A13)], 'outro': [(10, CH[0])]}
+def chord_at(s, i, b):
+    if s in PROG:
+        spans = PROG[s]; tot = sum(n for n, _ in spans); j = i % tot; at = 0
+        for n, c in spans:
+            if j < at + n: return c
+            at += n
+    return CH[(b // 2) % 4]
 NN = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
 def nm(m): return f"{NN[m % 12]}{m // 12 - 1}"
 
@@ -60,9 +73,10 @@ def build():
         s = next(name for name, n in FORM if secs[name] <= b < secs[name] + n)
         i = b - secs[s]
         t0 = b * 4.0
-        root, ch = CH[(b // 2) % 4]
-        if b % 2 == 0:
-            P['pad'].append((t0, ','.join(nm(m) for m in ch), 7.8, 72 if s in ('intro', 'outro', 'break') else 64))
+        root, ch = chord_at(s, i, b)
+        prev = chord_at(s, i - 1, b - 1) if i > 0 else None
+        if (s not in PROG and b % 2 == 0) or (s in PROG and (prev != (root, ch) or i == 0)):
+            P['pad'].append((t0, ','.join(nm(m) for m in ch), 40.0, 72 if s in ('intro', 'outro', 'break') else 64))
         if s in ('B', 'C', 'D'):
             P['sub'].append((t0, nm(root), 1.8, 92)); P['sub'].append((t0 + 2.5, nm(root), 1.2, 84))
             for q, o in ((1.5, 12), (3.0, 7), (3.75, 12)):
