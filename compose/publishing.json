@@ -1,0 +1,17 @@
+{
+ "_note": "Store distribution settings (Harry, 1 Nov). Public text rules: compose/README 'Publishing'. Read by chirpers.py master.",
+ "distributor": "DistroKid (Musician plan, $24.99/year)",
+ "artist": "chirpers",
+ "songwriter": "Harry Askham",
+ "songwriter_note": "Legal name for the songwriter/composer credit only (required by distributors; shown in store Credits). The artist is chirpers everywhere else.",
+ "ai_disclosure": "AI-assisted composition: declare it with DistroKid's AI Credits (instrumental; lyrics too where a track has words). No generative audio model is used: every sound is synthesized by chirp, a Rust engine, from scores the agents write.",
+ "explicit": false,
+ "language": "instrumental (no lyrics), unless a track has words",
+ "genres": {
+  "chirpers4": ["Electronic", "Techno"],
+  "chirpers5": ["Electronic", "Drum & Bass"],
+  "chirpers6": ["Rock", "Alternative"],
+  "chirpers7": ["Electronic", "House"],
+  "chirpers8": ["Electronic", "Experimental"]
+ }
+}

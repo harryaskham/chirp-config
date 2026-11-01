@@ -260,6 +260,22 @@ class RingFeedback(unittest.TestCase):
             self.assertIsNone(RT.spoken_score(text), text)
 
 
+class DistributionKit(unittest.TestCase):
+    def test_upload_sheet_lists_every_field_and_track(self):
+        meta = {"album": "Soft Concrete", "artist": "chirpers", "year": 2026, "genres": ["Electronic", "Drum & Bass"],
+                "cover": "cover-3000.jpg", "songwriter": "A Person", "ai_disclosure": "AI-assisted composition",
+                "explicit": False, "tracks": [{"n": 1, "title": "First Light", "file": "01 - First Light.wav",
+                                               "seconds": 179.6, "sha256": "ab" * 32, "verified": True},
+                                              {"n": 2, "title": "Last Night Bus", "file": None, "seconds": 157.3,
+                                               "sha256": None, "verified": False}]}
+        sheet = CH.upload_sheet(meta, {"distributor": "DistroKid", "language": "instrumental"})
+        for want in ("Artist name: **chirpers**", "Primary genre: Electronic; secondary: Drum & Bass", "cover-3000.jpg",
+                     "Songwriter / composer (every track): **A Person**", "AI disclosure: AI-assisted composition",
+                     "| 1 | First Light | `01 - First Light.wav` | 3:00 | abababababab | yes |", "| 2 | Last Night Bus |"):
+            self.assertIn(want, sheet)
+        self.assertIn("| NO |", sheet)
+
+
 class IllusionPresence(unittest.TestCase):
     def test_a_buried_half_and_a_present_half(self):
         sr, n = 48000, 48000 * 40

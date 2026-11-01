@@ -22,6 +22,8 @@ climbing them on tools/compscore.py (no record to match) and Harry's ratings (to
                                                      full-band level per bar (linear and the mixer swap), mp3s
   chirpers.py seams ALBUM_ID [--flam-ms MS] [--dead-s S]   audit a mixtape's DJ seams: beat drift across each
                                                      overlap (tempo ramps, mismatches), dead air after the last bar
+  chirpers.py master ALBUM_ID [--jobs N]              lossless 24-bit WAV masters of a released album (verified
+                                                     against its MP3s), a 3000x3000 cover, metadata.json: Spotify kit
   chirpers.py release ALBUM_ID [--lufs L] [--out DIR] [--legacy-limiter] [--mix [--overlap-bars N]]
                                                      finish an album: render each composed track (seed 0, groove pin,
                                                      true-peak limiter; --mix: a continuous DJ mixtape too), match
@@ -572,6 +574,113 @@ def cmd_release(a, args):
         shutil.rmtree(work, ignore_errors=True)
 
 
+def upload_sheet(meta, pub):
+    """The distributor form, field by field, for a mastered album (UPLOAD.md beside the WAVs)."""
+    g = meta.get("genres") or ["Electronic"]
+    lines = [f"# {meta['album']}: upload sheet ({pub.get('distributor', 'distributor')})", "",
+             "Fill the form in this order; every file named here is in this folder.", "",
+             f"- Artist name: **{meta['artist']}** (lowercase; create a NEW artist profile if the store offers an existing "
+             "'Chirpers', which is someone else)",
+             f"- Album title: **{meta['album']}**", f"- Release year: {meta.get('year')}",
+             f"- Primary genre: {g[0]}" + (f"; secondary: {g[1]}" if len(g) > 1 else ""),
+             f"- Cover: `{meta.get('cover')}` (3000x3000 JPEG, no text)",
+             f"- Songwriter / composer (every track): **{meta.get('songwriter') or 'TBD'}**"
+             + (f" ({pub.get('songwriter_note')})" if pub.get("songwriter_note") else ""),
+             f"- AI disclosure: {meta.get('ai_disclosure') or 'TBD'}",
+             f"- Explicit: {'yes' if meta.get('explicit') else 'no'}; language: {pub.get('language', 'instrumental')}",
+             "- ISRC / UPC: leave blank (the distributor assigns them); record them in metadata.json afterwards",
+             "- Release date: the earliest the distributor allows unless Harry picks one; no pre-save needed", "",
+             "| # | title | file | length | sha256 (first 12) | verified |", "|---|---|---|---|---|---|"]
+    for t in meta["tracks"]:
+        secs = int(round(t.get("seconds") or 0))
+        lines.append(f"| {t['n']} | {t['title']} | `{t.get('file')}` | {secs // 60}:{secs % 60:02d} | "
+                     f"{(t.get('sha256') or '')[:12]} | {'yes' if t.get('verified') else 'NO'} |")
+    return "\n".join(lines) + "\n"
+
+
+def cmd_master(a, args):
+    """Lossless distribution masters of a RELEASED album, for Spotify and other stores via a distributor (Harry, 1 Nov).
+    Each track is re-rendered with the release's own pin and seed and its release gain, written as 24-bit WAV, and
+    VERIFIED: the same MP3 encode of it must reproduce the released MP3's audio stream bit for bit, so the master is
+    provably the performance that was released. Also a 3000x3000 cover and metadata.json for the upload form."""
+    import concurrent.futures as cf
+    import hashlib
+    album = load_album(a.album_id)
+    name = album["album"]
+    rdir = os.path.expanduser(os.path.join(a.out, "".join(ch for ch in name if ch not in '/\\:*?"<>|')))
+    relp = os.path.join(rdir, "release.json")
+    if not os.path.exists(relp):
+        sys.exit(f"master: {name} has no release in {rdir}; run chirpers.py release {a.album_id} first")
+    rel = json.load(open(relp))
+    pins = os.path.dirname(open(os.path.join(ROOT, "tools", "groove-pin")).read().strip())
+    pin = rel["pin"] if os.path.isabs(rel["pin"]) else os.path.join(pins, rel["pin"])
+    if not os.path.exists(pin):
+        sys.exit(f"master: the release pin {pin} is gone; rebuild it from its commit first")
+    reg = C.load()
+    out = os.path.join(rdir, "master")
+    os.makedirs(out, exist_ok=True)
+    work = tempfile.mkdtemp(prefix="master-", dir="/tmp/lt" if os.path.isdir("/tmp/lt") else None)
+    env = dict(os.environ, RAYON_NUM_THREADS="3")
+    env.pop("LD_LIBRARY_PATH", None)
+
+    def audio_md5(path):
+        r = subprocess.run(["ffmpeg", "-nostats", "-loglevel", "error", "-i", path, "-map", "0:a", "-c", "copy", "-f", "md5", "-"],
+                           capture_output=True, text=True)
+        return r.stdout.strip()
+
+    def one(tr):
+        c = next((c for c in reg["climbs"] if c["id"] == tr["id"]), None)
+        if not c or not tr.get("file"):
+            return tr, None, "no climb or no released file"
+        raw = os.path.join(work, f"{tr['id']}.wav")
+        err = render(pin, os.path.join(ROOT, c["song"]), rel.get("seed", 0), raw, env)
+        if err:
+            return tr, None, f"render failed: {err}"
+        g = f"volume={tr['gain_db']}dB"
+        mp3 = os.path.join(work, f"{tr['id']}.mp3")
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", raw, "-af", g, "-c:a", "libmp3lame", "-q:a", "0", mp3], check=True)
+        same = audio_md5(mp3) == audio_md5(os.path.join(rdir, tr["file"]))
+        wav = os.path.join(out, os.path.splitext(tr["file"])[0] + ".wav")
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", raw, "-af", g, "-c:a", "pcm_s24le", wav], check=True)
+        how = "verified: identical to the released MP3" if same else "DIFFERS from the released MP3 (song changed since?)"
+        return tr, wav, how
+
+    rows = []
+    try:
+        with cf.ThreadPoolExecutor(max_workers=a.jobs) as ex:
+            for tr, wav, how in ex.map(one, sorted(rel["tracks"], key=lambda t: t["n"])):
+                print(f"{tr['n']:2d} {tr['title'][:30]:30s} {how}")
+                rows.append((tr, wav, how))
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+    pp = os.path.join(ROOT, "compose", "publishing.json")
+    pub = json.load(open(pp)) if os.path.exists(pp) else {}
+    art = os.path.join(ROOT, (album.get("art") or {}).get("file", ""))
+    cover = None
+    if os.path.isfile(art):
+        from PIL import Image, ImageFilter
+        im = Image.open(art).convert("RGB")
+        if im.width < 3000:
+            im = im.resize((3000, 3000), Image.LANCZOS).filter(ImageFilter.UnsharpMask(radius=2, percent=40, threshold=2))
+        cover = os.path.join(out, "cover-3000.jpg")
+        im.save(cover, quality=95)
+    meta = {"artist": album.get("artist", "chirpers").lower(), "album": name, "year": album.get("year"),
+            "genre": album.get("genre"), "release": os.path.basename(rdir), "pin": rel["pin"], "seed": rel.get("seed", 0),
+            "target_lufs": rel.get("target_lufs"), "cover": os.path.basename(cover) if cover else None,
+            "songwriter": pub.get("songwriter"), "ai_disclosure": pub.get("ai_disclosure"),
+            "genres": (pub.get("genres") or {}).get(a.album_id), "explicit": pub.get("explicit", False),
+            "tracks": [{"n": tr["n"], "title": tr["title"], "file": os.path.basename(wav) if wav else None,
+                        "seconds": round(float(tr.get("dur", 0)), 1), "explicit": False, "isrc": None,
+                        "sha256": hashlib.sha256(open(wav, "rb").read()).hexdigest() if wav else None,
+                        "verified": how.startswith("verified")} for tr, wav, how in rows]}
+    with open(os.path.join(out, "metadata.json"), "w") as f:
+        json.dump(meta, f, indent=1)
+    with open(os.path.join(out, "UPLOAD.md"), "w") as f:
+        f.write(upload_sheet(meta, pub))
+    ok = sum(1 for _, w, h in rows if w and h.startswith("verified"))
+    print(f"{name}: {ok}/{len(rows)} masters verified against the release -> {out}")
+
+
 def mix_release(a, album, rows, plan, pin, work, out_dir, art, env):
     """The continuous mixtape: each track starts OVERLAP bars (mixplan.md, else --overlap-bars) before the previous
     one's musical end (chirp plan's `seconds`, at the outgoing song's declared tempo), crossfaded linearly; one MP3 and
@@ -928,6 +1037,10 @@ def main(argv=None):
     p = sub.add_parser("refresh")
     p.add_argument("album_id")
     p.add_argument("--ids")
+    p = sub.add_parser("master", help="lossless 24-bit WAV masters of a released album, verified against it")
+    p.add_argument("album_id")
+    p.add_argument("--out", default="~/Music/Chirpers")
+    p.add_argument("--jobs", type=int, default=2)
     p = sub.add_parser("rebaseline")
     p.add_argument("album_id")
     p.add_argument("--ids")
@@ -982,7 +1095,7 @@ def main(argv=None):
     a = ap.parse_args(known)
     {"new": cmd_new, "name": cmd_name, "title": cmd_title, "art": cmd_art, "status": cmd_status,
      "refresh": cmd_refresh, "rebaseline": cmd_rebaseline, "release": cmd_release, "seams": cmd_seams, "seam": cmd_seam,
-     "illusion": cmd_illusion}[a.cmd](a, argv)
+     "illusion": cmd_illusion, "master": cmd_master}[a.cmd](a, argv)
 
 
 if __name__ == "__main__":
