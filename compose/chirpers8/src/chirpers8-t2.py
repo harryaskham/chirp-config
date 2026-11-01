@@ -38,6 +38,7 @@ EQ8 = os.environ.get("C8T2_EQ8", "1")   # the master toward the album's envelope
 HEADG = os.environ.get("C8T2_HEADG", "4")   # the record handed over in G: t1 ends on Gmaj9 over a G1 sub, so this one starts on the same low G (the sine sub, held, fading by steps) under the first HEADG bars - one G across the seam
 HEADGV = int(os.environ.get("C8T2_HEADGV", "76"))   # the held G's first velocity
 KICKOUT = os.environ.get("C8T2_KICKOUT", "2")  # the kick leaves for the outro's last KICKOUT bars (the band plays on into t3's mallets, whose head has no 38-44 Hz)
+SUNGM = os.environ.get("C8T2_SUNGM", "1")   # the sung line's pitches as MIDI note numbers (wM 46a24ab5: tunings snap m-notes, never Hz), so after the break it sings in the band's just G - the hook's B a pure 5/4 with the chords
 ARP32 = os.environ.get("C8T2_ARP32", "")    # the drop's arps on 1/32 (as the plan always said): double-time chip arps through C
 BAR = 16
 SEED = 2
@@ -171,13 +172,21 @@ def stream(events, tot):
     return " ".join(out)
 
 
+def to_m(pitch):
+    """'392.00hz' -> 'm67' (the nearest MIDI note, for a sung line a tuning should snap)."""
+    import math
+    if isinstance(pitch, str) and pitch.endswith("hz"):
+        return f"m{round(69 + 12 * math.log2(float(pitch[:-2]) / 440))}"
+    return pitch
+
+
 def voice(file, name, off16, gain, fx, sends):
     """A tts line (tts --print) at one or more offsets (sixteenths); sung lines (--sing) have no formant lane."""
     src = json.load(open(os.path.join(HERE, file)))["tracks"][0]
     notes, fv = [], []
     for o16 in (off16 if isinstance(off16, list) else [off16]):
         off = o16 / 4
-        notes += [dict(n, at=round(n["at"] + off, 4)) for n in src["notes"]]
+        notes += [dict(n, at=round(n["at"] + off, 4), **({"pitch": to_m(n["pitch"])} if SUNGM and name == "sung" else {})) for n in src["notes"]]
         if "auto" in src:
             fv += [[f"{float(t[:-1]) + off:.3f}b", v] for t, v in src["auto"]["fv"]["points"]]
     tr = {"name": name, "patch": src.get("patch", "voice-speech"), "gain": gain, "pan": 0.1, "fx": [*src.get("fx", []), *fx]}
