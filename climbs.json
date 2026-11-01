@@ -7887,7 +7887,14 @@
         "score": 96.419,
         "version": "v3",
         "commit": "see git log songs/chirpers8-t3.yaml",
-        "engine": "b4151423"
+        "engine": "b4151423",
+        "stale": {
+          "score": 96.419,
+          "since": "2026-11-01T17:33:30Z",
+          "who": "chirper-one",
+          "rating": 9.0,
+          "version": "v3"
+        }
       },
       "passes": 1,
       "enabled": true,
