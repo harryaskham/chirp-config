@@ -59,6 +59,23 @@ POLE_GAIN = os.environ.get("T2_POLE_GAIN", "-14dB")
 #   stair climbed a step), for 18 bars; then the pole turns down for four bars and the last eight are back in A minor,
 #   as if the climb had gone on and come round to where it started. The seam to t3 is untouched.
 R7 = os.environ.get("T2_R7", "evolve")
+# T2_R8 = voice (v7, Harry's third steer: a voice under or through things, speech to song). The title is sung inside
+# its own filter: `chirp tts "it never opens" --humanize 0.6 --repeat 5 --melodize 1 --melody "E3 A3 C4 Bb3 A3" --key A3
+# --bpm 118 --seed 2 --print` (committed as chirpers7-t2-tts.json), one repetition every two bars of the break, from
+# spoken to sung (the Bb is the stair's wonky step), heard THROUGH a barber pole like the stab's - the voice inside
+# the filter that never opens. The sung line comes back twice as B2 comes home to A. T2_R8=none reproduces v6.
+R8 = os.environ.get("T2_R8", "voice")
+_TTS = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "chirpers7-t2-tts.json")))["tracks"][0]["notes"]
+VOICE_NOTES = []
+
+
+def say(at, k):
+    """Repetition K (0 spoken .. 4 sung) of the line, from beat AT."""
+    for n in _TTS:
+        if 4 * k <= n["at"] < 4 * k + 4:
+            VOICE_NOTES.append({"at": round(at + n["at"] - 4 * k, 4), "len": n["len"], "ph": n["ph"],
+                                "pitch": n["pitch"], "vel": n["vel"],
+                                **({"expr_path": n["expr_path"]} if n.get("expr_path") else {})})
 AM11 = [57, 60, 62, 64, 67]   # A C D E G
 FM7S11 = [57, 60, 64, 65, 71]  # A C E F B: Fmaj7#11 over the A pedal
 DM9 = [57, 60, 62, 64, 65]    # A C D E F: Dm9/A
@@ -215,6 +232,10 @@ def build():
             for k, m in enumerate(STAIR):
                 m = 70 if (R3 == "dark" and sec == "B2" and m == 71) else m  # the peak's quote sinks to Bb
                 T["stair"].add(start + k, 0.9, nm(m + ko), 70)
+        if R8 == "voice" and sec == "break" and i % 2 == 0 and i < 10:
+            say(start, i // 2)
+        if R8 == "voice" and sec == "B2" and i in (18, 22):
+            say(start, 4)
         if sec in ("drop1", "drop2") and i == 0:
             T["rise"].add(start, 16.0, "A3" if R6 == "riser" else "C4", 80 if R6 == "riser" else 92)
     sec = []
@@ -315,8 +336,9 @@ def main():
     st = {n: s for n, s, k in sec}
     tempo = [{"at": "0b", "bpm": 118}, {"at": f"{st['A1']}b", "bpm": 118},
              {"at": f"{st['out']}b", "bpm": 118.5, "ramp": True}]
+    BRK = float(os.environ.get("T2_BRK_DYN", "-7.0" if R8 == "voice" else "-5.0"))  # v7: the break sits lower under the voice
     dyn = [["0b", 0.0], [f"{st['drop1']}b", -3.0], [f"{st['A2'] - 0.01}b", -3.0], [f"{st['A2']}b", 0.0],
-           [f"{st['break']}b", -5.0], [f"{st['B1'] - 0.01}b", -5.0], [f"{st['B1']}b", 0.0], [f"{st['drop2']}b", -3.0],
+           [f"{st['break']}b", BRK], [f"{st['B1'] - 0.01}b", BRK], [f"{st['B1']}b", 0.0], [f"{st['drop2']}b", -3.0],
            [f"{st['B2'] - 0.01}b", -3.0], [f"{st['B2']}b", 0.0], [f"{total}b", 0.0]]
     pump = {"type": "pump", "on": "kick.kr", "depth": "-7dB", "attack": "3ms", "release": "340ms", "curve": 0.8}
     tracks = [
@@ -339,6 +361,11 @@ def main():
         {"name": "stair", "patch": "c2-stair", "gain": "-10dB", "pan": 0.2,
          "fx": [{"type": "delay", "time": "3/16", "feedback": 0.35, "mix": 0.25, "ping_pong": True, "tone": 3000},
                 "reverb kind=hall decay=2.5s mix=0.25"], "score": T["stair"].score(total)},
+        *([{"name": "voice", "patch": "voice-speech", "gain": os.environ.get("T2_VOICE_GAIN", "-16dB"), "pan": -0.1,
+            "sends": {"room": "-10dB"},
+            "fx": ["hp cutoff=150", {"type": "barberpole", "cycle": "8bar", "bands": 4, "spacing": 1, "low": 200, "q": 2.2,
+                                     "spread": 0.5, "mix": 0.75}, "reverb kind=hall decay=2.5s mix=0.25"],
+            "notes": VOICE_NOTES}] if R8 == "voice" else []),
         *([{"name": "spiral", "patch": "c2-stair", "gain": "-13dB", "pan": -0.2, "at": f"{st['spiral']:g}b",
             "risset": {"cycle": "3bar", "layers": 3, "length": "6bar", "pitch": True},
             "fx": [{"type": "delay", "time": "3/16", "feedback": 0.3, "mix": 0.2, "ping_pong": True, "tone": 3000},
