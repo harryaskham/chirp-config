@@ -599,6 +599,12 @@ def mp3_equivalent(mp3, wav, gain_db, seconds=60):
     return {"ok": corr >= 0.9999 and rel_db <= -35.0, "lag": lag, "corr": corr, "residual_db": float(rel_db)}
 
 
+def master_verified(how):
+    """A master is verified when it is identical or equivalent to the release (directly or cut from the verified mix)."""
+    h = how or ""
+    return h.startswith("verified") or (h.startswith("cut from the continuous mix") and ("verified" in h or "equivalent" in h))
+
+
 def upload_sheet(meta, pub):
     """The distributor form, field by field, for a mastered album (UPLOAD.md beside the WAVs)."""
     g = meta.get("genres") or ["Electronic"]
@@ -615,11 +621,11 @@ def upload_sheet(meta, pub):
              f"- Explicit: {'yes' if meta.get('explicit') else 'no'}; language: {pub.get('language', 'instrumental')}",
              "- ISRC / UPC: leave blank (the distributor assigns them); record them in metadata.json afterwards",
              "- Release date: the earliest the distributor allows unless Harry picks one; no pre-save needed", "",
-             "| # | title | file | length | sha256 (first 12) | verified |", "|---|---|---|---|---|---|"]
+             "| # | title | file | length | sha256 (first 12) | verified | source |", "|---|---|---|---|---|---|---|"]
     for t in meta["tracks"]:
         secs = int(round(t.get("seconds") or 0))
         lines.append(f"| {t['n']} | {t['title']} | `{t.get('file')}` | {secs // 60}:{secs % 60:02d} | "
-                     f"{(t.get('sha256') or '')[:12]} | {'yes' if t.get('verified') else 'NO'} |")
+                     f"{(t.get('sha256') or '')[:12]} | {'yes' if t.get('verified') else 'NO'} | {(t.get('source') or '')[:90]} |")
     return "\n".join(lines) + "\n"
 
 
@@ -711,6 +717,7 @@ def cmd_master(a, args):
         released = os.path.join(rdir, tr["file"])
         g = f"volume={tr['gain_db']}dB"
         tries = [(None, song)] + [(h, None) for h in revisions(song)[1:]]
+        near = None                  # the closest non-equivalent render: (eq, raw, path, rev)
         for k, (rev, path) in enumerate(tries):
             if rev:      # an older version of the song, for a release that caught a round mid-flight
                 path = os.path.join(work, f"{tr['id']}@{rev[:8]}.yaml")
@@ -728,6 +735,9 @@ def cmd_master(a, args):
                 eq = mp3_equivalent(released, raw, tr["gain_db"])
                 how = (f"verified: equivalent to the released MP3 (aligned {eq['lag']} samples, corr {eq['corr']:.5f}, "
                        f"residual {eq['residual_db']:.1f} dB)") if eq["ok"] else None
+                if not how and eq["corr"] >= 0.999 and eq["residual_db"] <= -25.0 and (
+                        near is None or eq["residual_db"] < near[0]["residual_db"]):
+                    near = (eq, raw, path, rev)
             if how:
                 shutil.copy(path, os.path.join(work, f"{tr['id']}.yaml"))     # the version mix_release's timeline reads
                 raws[tr["id"]] = raw
@@ -735,6 +745,16 @@ def cmd_master(a, args):
                 if not mixed:
                     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", raw, "-af", g, "-c:a", "pcm_s24le", wav], check=True)
                 return tr, wav, how + (f"; song as of {rev[:8]} (the release caught an earlier version)" if rev else "")
+        wav = os.path.join(out, os.path.splitext(tr["file"])[0] + ".wav")
+        if near and not mixed:       # lossless, a whisker off the release (shared patch library edited since)
+            eq, raw, path, rev = near
+            subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", raw, "-af", g, "-c:a", "pcm_s24le", wav], check=True)
+            return tr, wav, (f"near: lossless render, corr {eq['corr']:.5f}, residual {eq['residual_db']:.1f} dB from the release "
+                             f"(the shared library changed since){'; song as of ' + rev[:8] if rev else ''}")
+        if not mixed:                # the released music itself, from its MP3 (V0): lossy source, exact performance
+            subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", released, "-map", "0:a", "-ar", "48000",
+                            "-c:a", "pcm_s24le", wav], check=True)
+            return tr, wav, "from the released MP3 (lossy source): no render reproduces the release"
         return tr, None, f"DIFFERS from the released MP3 at the working copy and {len(tries) - 1} earlier revisions: no master"
 
     mixed = bool((rel.get("mix") or {}).get("file"))
@@ -767,12 +787,12 @@ def cmd_master(a, args):
             "tracks": [{"n": tr["n"], "title": tr["title"], "file": os.path.basename(wav) if wav else None,
                         "seconds": round(float(tr.get("dur", 0)), 1), "explicit": False, "isrc": None,
                         "sha256": hashlib.sha256(open(wav, "rb").read()).hexdigest() if wav else None,
-                        "verified": how.startswith("verified")} for tr, wav, how in rows]}
+                        "verified": master_verified(how), "source": how} for tr, wav, how in rows]}
     with open(os.path.join(out, "metadata.json"), "w") as f:
         json.dump(meta, f, indent=1)
     with open(os.path.join(out, "UPLOAD.md"), "w") as f:
         f.write(upload_sheet(meta, pub))
-    ok = sum(1 for _, w, h in rows if w and h.startswith("verified"))
+    ok = sum(1 for _, w, h in rows if w and master_verified(h))
     print(f"{name}: {ok}/{len(rows)} masters verified against the release -> {out}")
 
 

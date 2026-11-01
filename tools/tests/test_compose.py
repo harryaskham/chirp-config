@@ -274,6 +274,9 @@ class DistributionKit(unittest.TestCase):
                      "| 1 | First Light | `01 - First Light.wav` | 3:00 | abababababab | yes |", "| 2 | Last Night Bus |"):
             self.assertIn(want, sheet)
         self.assertIn("| NO |", sheet)
+        self.assertTrue(CH.master_verified("cut from the continuous mix, verified identical to the released mix"))
+        self.assertFalse(CH.master_verified("from the released MP3 (lossy source): no render reproduces the release"))
+        self.assertFalse(CH.master_verified("near: lossless render, corr 0.99981"))
 
     def test_mp3_equivalence_accepts_an_offset_encode_and_rejects_different_music(self):
         import subprocess
