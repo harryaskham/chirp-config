@@ -8118,7 +8118,7 @@
     {
       "id": "chirpers8-t10",
       "song": "songs/chirpers8-t10.yaml",
-      "reference": "chirpers — Track 10 (untitled)",
+      "reference": "chirpers — Call and Return",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers8-t10 OUT.wav",
@@ -8134,7 +8134,7 @@
       "meta": {
         "artist": "chirpers",
         "album": "A Light Left On",
-        "title": "Track 10 (untitled)",
+        "title": "Call and Return",
         "track": 10,
         "year": 2026
       },
