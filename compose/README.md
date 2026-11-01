@@ -91,8 +91,8 @@ short excerpts as mp3 and `audio_share` them, so Harry can play them whenever he
 
 ## Illusions that have to work on Harry's speakers
 
-Lessons from The Endless Stair (31 Oct), from Harry's ears and the chirpers' measurements:
-- **The same signal in both ears means ONE source.** Precedence/Haas, Huggins pitch, binaural beats on noise and other phase tricks need identical signals in the two ears: one track routed to two buses (with the delay, filter or pan on a bus). Two tracks playing the same score with a noise or randomised patch produce two *different* noises, and the illusion silently disappears (chirper-zero, t17).
+Lessons from The Endless Stair (31 Oct), from Harry's ears and the chirpers' measurements. **Harry listens on both headphones and speakers** (his answer, 1 Nov), so every track has to work both ways:
+- **The same signal in both ears means ONE source.** Precedence/Haas, Huggins pitch, binaural beats on noise and other phase tricks need identical signals in the two ears: one track routed to two buses (with the delay, filter or pan on a bus). Two tracks playing the same score with a noise or randomised patch produce two *different* noises, and the illusion silently disappears (chirper-zero, t17). Keep such pairs dry: a shared reverb leaks each side into the far ear and blurs the separation.
 - **Dichotic tricks vanish on speakers.** Octave, scale and Huggins illusions, and anything that needs one ear each, should come with a version that also works in mono.
 - **The presence meter (`chirpers.py illusion`) is a flashlight, not a target.** Holes or parts added only to raise its percentage read as glitches ("something out of track", Harry on t10). Close gaps with things that are musical and unmistakable: a riser or barber pole into the moment, the illusion's own figure brought forward, or teach the ear the obvious version before the subtle one.
 
