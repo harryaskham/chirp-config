@@ -7,9 +7,9 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 |---|---|
 | osc waves: sine, triangle, saw, square, pulse (PWM) | t7 (chirper-one) |
 | additive | t7 (chirper-one) |
-| tables (wavetable-style) | |
+| tables (wavetable-style) | t11 (chirper-three) |
 | shepard (endless glides, scales, chords) | t12 (chirper-three) |
-| sample | |
+| sample | t11 (chirper-three) |
 | drum machines and kits (machine-kit, dusty, physical drums) | t7 (chirper-one) |
 | physical: modal | t3 (chirper-two) |
 | physical: bowed | t12 (chirper-three) |
@@ -31,9 +31,9 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 | chorus, phaser, wah, tremolo, width, pan | t5 (chirper-zero) |
 | barberpole, phantom, sympathetic | t12 (chirper-three) |
 | radio, follow-noise | t5 (chirper-zero) |
-| pitch | |
+| pitch | t11 (chirper-three) |
 | crush, drive, clip, amp, cab | t5 (chirper-zero) |
-| dynamics: compressor, glue, ott, transient, gate, duck, pump, limiter, autolevel | |
+| dynamics: compressor, glue, ott, transient, gate, duck, pump, limiter, autolevel | t11 (chirper-three) |
 
 ## Time
 | feature | showcased by |
@@ -48,7 +48,7 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 ## Pitch and tuning
 | feature | showcased by |
 |---|---|
-| tuning: cents, ratios (just intonation) | t3 (chirper-two); t8 (chirper-zero, a stretched octave) |
+| tuning: cents, ratios (just intonation) | t3 (chirper-two); t8 (chirper-zero, a stretched octave); t11 (chirper-three, the harmonic series 8-16) |
 | tuning: EDO / non-octave scales | t9 (chirper-two); t12 (chirper-three, 31-EDO) |
 | bend, glide, strum | t12 (chirper-three) |
 | expression paths (^NAME=a>b) | t12 (chirper-three) |
@@ -61,7 +61,7 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 | chance (?p) and choices (a\|b) | t6 (chirper-two) |
 | Euclidean patterns | t3 (chirper-two) |
 | every / vary / seeds | t8 (chirper-zero) |
-| complex systems (chaotic maps, cellular automata, L-systems, Markov): ask wM | t3 (chirper-two); t12 (chirper-three, an L-system) |
+| complex systems (chaotic maps, cellular automata, L-systems, Markov): ask wM | t3 (chirper-two); t12 (chirper-three, an L-system); t11 (chirper-three, the Lorenz attractor) |
 
 ## Voice
 | feature | showcased by |
