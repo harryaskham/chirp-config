@@ -121,8 +121,14 @@ def build():
             br = 28 if (s == 'A' and i >= 8) else root     # (v19) an E pedal under the first groove's last sixteen bars
             T['sub'].append((t0, nm(br), 1.6, 100))
             T['sub'].append((t0 + 2.0, nm(br), 1.0, 92))
-            for q, o in ((1.5, 12), (3.5, 7)):
-                T['bass'].append((t0 + q + 0.02, nm(br + o), 0.4, 84))
+            # (v20) the second groove's bass ROLLS: syncopated sixteenths answering the root (the lift where the voice starts
+            # to sing), against the first and last grooves' plain octave answers; the outro keeps only the sub
+            if s == 'B':
+                for q, o, v_ in ((0.75, 12, 78), (1.5, 7, 84), (2.25, 10, 74), (2.75, 12, 80), (3.5, 7, 86)):
+                    T['bass'].append((t0 + q + 0.02, nm(br + o), 0.22, v_))
+            elif s != 'outro':
+                for q, o in ((1.5, 12), (3.5, 7)):
+                    T['bass'].append((t0 + q + 0.02, nm(br + o), 0.4, 84))
         # Rhodes: soulful stabs (the one held, the and-of-2 answered without the root)
         if (s in ('B', 'C', 'break') or (s == 'A' and i >= 8)):
             if first:
@@ -145,7 +151,6 @@ def build():
                 w = 1.0
             else:
                 w = 0.0                                # the plain speech returns at the end
-            T['speech'] += phrase(t0, w, tp=tp)
             n_rep += 1
             if (s == 'B' and i >= 20) or s == 'C':
                 T['sung'] += [(a, p.split('^f0')[0], d, 70 + (10 if s == 'C' else 0)) for a, p, d, _ in phrase(t0, 1.0, tp=tp)]
@@ -159,18 +164,34 @@ def build():
             sc = 4.0 / sum(gaps_)
             at, notes = 0.0, [52, 54, 55, 57, 59, 61, 62, 64, 66, 67, 69, 71, 73, 74]
             for n, g in enumerate(gaps_):
-                T['speech'].append((t0 + at, f'{nm(notes[n])}^ph=s-t-eh1-p^f0=0>0', max(0.06, g * sc * 0.8), 80 + n))
+                T['speech'].append({'at': round(t0 + at, 4), 'len': round(max(0.06, g * sc * 0.8), 4), 'pitch': nm(notes[n]), 'ph': 'S T EH1 P', 'vel': round((80 + n) / 127, 3)})
                 at += g * sc
         if s == 'break' and first:
-            if i < 8:
-                T['speech'] += phrase(t0, 0.0, vel=94)
-            else:
+            if i >= 8:
                 T['sung'] += [(a, p.split('^f0')[0], d, 86) for a, p, d, _ in phrase(t0, 1.0)]
         # the Rhodes quotes THE STAIR in C, an octave up, answering the phrase
         if s == 'C' and not first:
             for off, m in zip(STEP_AT, STAIR):
                 T['stair'].append((t0 + 2.0 + off, nm(m + 24 + tp), 0.45, 76))
     beats_total = total
+    # (v20) A HUMAN VOICE (Harry, 1 Nov: 'robotic vox is not subtle enough'; wM's chirp tts --humanize and --melodize,
+    # 5d1e89c1): the phrase is no longer hand-drawn robot glides. Each section's repetitions come from chirp tts with
+    # humanize 0.8 - pitch moving inside each syllable, a slow drift, loose onsets, breath and effort varying, formants
+    # wandering per phrase - and real speech-to-song: spoken through the first groove, melodized step by step through
+    # the second (0 to 1 over its first sixteen repetitions, onto the stair), sung in the last (onto the stair a tone up),
+    # spoken again in the break's proof and the outro. Rendered once and stored (chirpers7-t3-voice.json) so the song is
+    # reproducible on the groove's pin
+    VOICE = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'chirpers7-t3-voice.json')))
+    secs0 = {}
+    for b in bars:
+        secs0.setdefault(b['sec'], b['t'])
+    fv = []
+    for sec_ in ('A', 'B', 'break', 'C', 'outro'):
+        off = secs0[sec_]
+        for n_ in VOICE[sec_]['notes']:
+            T['speech'].append(dict(n_, at=round(off + n_['at'], 4)))
+        fv += [[f"{off + float(a_[:-1]):.3f}b", v_] for a_, v_ in VOICE[sec_]['fv']]
+    T['speech'].sort(key=lambda n_: n_['at'])
     # (v17) IT'S GONNA STEP (after Steve Reich's 'It's Gonna Rain'): in the last groove's final sixteen bars a second sung
     # copy of the phrase (right of centre) slides out of phase with the first - its own clock drifting an eighth note ahead
     # over twelve bars, so the words smear into canon and then into new rhythms - and slides back into unison before the
@@ -233,10 +254,11 @@ def build():
             # (v13) SPEECH FLOATS, SONG LOCKS - time-play on the illusion itself: through the first groove the spoken phrase's
             # own clock wanders off the grid (a sixteenth late, then a thirty-second early, easing), as speech does; through
             # the second groove, as the contour turns into the tune, it settles onto the grid and stays there
-            dict(tr('speech', 'voice-speech', '-5dB', sends={'hall': '-14dB', 'echo': '-14dB'},
-                    fx=[{'type': 'filter', 'kind': 'hp', 'q': 0.9, 'cutoff': {'value': 90, 'mod': [{'src': 'auto.rad', 'amount': 2.5}]}},
+            dict(dict({'name': 'speech', 'patch': 'voice-speech', 'gain': '-5dB', 'notes': T['speech']}, sends={'hall': '-14dB', 'echo': '-14dB'},
+                    fx=[{'type': 'pitch', 'semitones': 0, 'formant': {'value': 0, 'mod': [{'src': 'auto.fv', 'amount': 1}]}},
+                        {'type': 'filter', 'kind': 'hp', 'q': 0.9, 'cutoff': {'value': 90, 'mod': [{'src': 'auto.rad', 'amount': 2.5}]}},
                         {'type': 'filter', 'kind': 'lp', 'q': 1.3, 'cutoff': {'value': 14000, 'mod': [{'src': 'auto.rad', 'amount': -2.5}]}},
-                        {'type': 'drive', 'drive': 0.35, 'mix': 0.45}], auto={'rad': {'points': rad}}),
+                        {'type': 'drive', 'drive': 0.35, 'mix': 0.45}], auto={'rad': {'points': rad}, 'fv': {'points': fv}}),
                  warp=[{'over': '16bar', 'to': 0}, {'over': '8bar', 'to': 0.25, 'curve': 'smooth'}, {'over': '8bar', 'to': -0.125, 'curve': 'smooth'},
                        {'over': '8bar', 'to': 0.1875, 'curve': 'smooth'}, {'over': '16bar', 'to': 0, 'curve': 'in'}]),
             tr('sung', 'voice', '-10dB', fx=[{'type': 'pitch', 'semitones': 12, 'formant': 0}], sends={'hall': '-6dB', 'echo': '-10dB'}),
