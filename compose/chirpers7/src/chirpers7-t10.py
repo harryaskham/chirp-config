@@ -214,17 +214,42 @@ def carve_holes():
             P[n].ev = [e for e in P[n].ev if not in_hole(e[0])]
 
 
+def _ch(root, ivs):
+    return (root, [root + i for i in ivs])
+
+
+M9, M11, MM9 = (3, 7, 10, 14), (3, 10, 14, 17), (3, 7, 11, 14)          # m9, m11, m(maj9): the noir one
+MAJ7S11, MAJ9S11, MAJ7B, D7B9 = (4, 7, 11, 18), (4, 11, 14, 18), (4, 7, 11, 12), (4, 7, 10, 13)
+DS, E_, B_, GS, CS, AS, FS = DS1 + 24, DS1 + 25, DS1 + 20, DS1 + 29, DS1 + 22, DS1 + 19, DS1 + 27
+# v15 (Harry's third steer: 'very simple progressions of 4, 8, 16 bars... formulaic'): SECTION C THROUGH-COMPOSED, in
+# three irregular phrases instead of the two-bar loop - 7 bars where the harmony SLOWS and mutates over the D# pedal
+# (D#m9 -> m11 -> m(maj9), then Emaj7#11 <-> maj9#11); 9 bars where an endless Shepard-Risset spiral of the stair
+# rises while the chords SINK by thirds (D#m9, Bmaj7, G#m9, Emaj7#11); 12 bars where the harmony SPEEDS UP, a chord a
+# bar, to the unresolved A#7b9 that winds down into Z3
+C_PLAN = {}
+for _b, _c in zip(range(77, 84), [_ch(DS, M9), _ch(DS, M11), _ch(DS, MM9), _ch(E_, MAJ7S11), _ch(E_, MAJ9S11),
+                                  _ch(E_, MAJ9S11), _ch(E_, MAJ7S11)]):
+    C_PLAN[_b] = _c
+for _b, _c in zip(range(84, 93), [_ch(DS, M9)] * 2 + [_ch(B_, MAJ7B)] * 2 + [_ch(GS, M9)] * 2 + [_ch(E_, MAJ7S11)] * 3):
+    C_PLAN[_b] = _c
+for _b, _c in zip(range(93, 105), [_ch(DS, M11), _ch(E_, MAJ7S11), _ch(CS, M9), _ch(B_, MAJ7B), _ch(GS, M9),
+                                   _ch(AS, D7B9), _ch(DS, M9), _ch(E_, MAJ9S11), _ch(FS, MAJ7S11), _ch(B_, MAJ7B),
+                                   _ch(GS, M11), _ch(AS, D7B9)]):
+    C_PLAN[_b] = _c
+SPIRAL = (84, 92)
+
+
 def harmony():
     for bar in range(1, BARS + 1):
         sec = sec_of(bar)
         if is_break(bar):
             continue
-        root, v = CHORDS[((bar - 1) // 2) % 4]
+        root, v = C_PLAN[bar] if bar in C_PLAN else CHORDS[((bar - 1) // 2) % 4]
         if sec in ("intro", "outro"):
             part("subin" if sec == "intro" else "sub").add(b0(bar), BAR - 0.1, nm(DS1), 96)   # the intro level with t9's tail
             continue
         fig = BASS_C if sec in ("C", "D", "E") else BASS_A
-        broot = DS1 + 24 if sec in ("A", "B") else root      # v8: a D# PEDAL under the moving chords through A and B
+        broot = DS1 + 24 if (sec in ("A", "B") or 77 <= bar <= 83) else root   # v8: a D# PEDAL through A and B (v15: and C1)
         for at, ln, iv in fig:
             part("bass").add(b0(bar) + at, ln, nm(broot - 24 + 12 + iv), 100 if at == 0 else 84)
         sr = broot - 24 if broot - 24 >= DS1 else broot - 12                 # never below D#1
@@ -363,6 +388,10 @@ def main():
                    {"type": "filter", "kind": "lp", "q": 0.7,
                     "cutoff": {"value": 1000, "mod": [{"src": "auto.po", "amount": 1.0}]}}]),
             tr("srise", "fx-riser-endless amp.a=32b", gain="-13dB"),   # v10: an endless riser into the outro
+            {"name": "spiral", "patch": "glock", "gain": "-15dB", "pan": 0.15, "at": f"{b0(SPIRAL[0]):.0f}b",
+             "risset": {"cycle": "3bar", "layers": 3, "length": f"{SPIRAL[1] - SPIRAL[0] + 1}bar", "pitch": True},
+             "sends": {"hall": "-6dB"}, "fx": [{"type": "filter", "kind": "lp", "cutoff": 5000}],
+             "score": " ".join(f"{nm(m)}/0.25b@{58 + 6 * (i % 4)}" for i, m in enumerate(STAIR * 4))},   # v15: the spiral
             tr("tone", "partial amp.a=1600ms", gain="-16dB", sends={"hall": "-12dB"}),   # v12: the after-tone made real
             tr("bell", "glock", gain="-8dB", pan=0.2, sends={"hall": "-6dB"}),
             tr("riser", noise, gain="-12dB",
