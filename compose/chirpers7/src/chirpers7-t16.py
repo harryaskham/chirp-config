@@ -56,7 +56,8 @@ DENS = os.environ.get("C7T16_DENS", "")  # density contrast between sections: "q
 
 ERISER = os.environ.get("C7T16_ERISER", "-10")  # wM's endless Shepard riser (fx-riser-endless), 8 bars ending on B: the filter, the roll and now the riser - three builds that never arrive; level in dB
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
-FORM = [("intro", 32), ("build", 16), ("A", 32), ("break", 16), ("B", 48), ("outro", 32)]
+HOVER = os.environ.get("C7T16_HOVER", "1") == "1"  # Harry's third steer ('add / replace / augment sections ... a riser that never lands'): a new 6-bar section between the break and B - THE HOVER: the kick and the rolling sub gone, the endless filter still climbing on a suspended dominant (D7sus over a held D), the endless riser carried on through it, so the arrival is held back once more before B finally lands
+FORM = [("intro", 32), ("build", 16), ("A", 32), ("break", 16)] + ([("hover", 6)] if HOVER else []) + [("B", 48), ("outro", 32)]
 # (sub root, stair degrees above it, chord voicing)
 CH = [(31, (0, 2, 3, 7), [58, 62, 65, 69]),   # Gm9: Bb3 D4 F4 A4 over G
       (27, (0, 2, 4, 7), [55, 58, 62, 63]),   # Ebmaj7: G3 Bb3 D4 Eb4 over Eb
@@ -69,7 +70,7 @@ CHD = [(31, (0, 2, 3, 7), [58, 60, 62, 65]),   # Gm11: Bb3 C4 D4 F4
 LIB = {"Gm11": (31, (0, 2, 3, 7), [58, 60, 62, 65]), "Gm9": (31, (0, 2, 3, 7), [58, 62, 65, 69]),
        "Ebmaj7#11": (27, (0, 2, 4, 7), [55, 57, 58, 62]), "Cm9": (36, (0, 2, 3, 7), [51, 55, 58, 62]),
        "D7b9": (26, (0, 2, 5, 7), [54, 60, 63, 69]), "Abmaj7#11": (32, (0, 2, 4, 7), [55, 60, 62, 63]),
-       "Bbmaj9": (34, (0, 2, 4, 7), [57, 60, 62, 65]),
+       "Bbmaj9": (34, (0, 2, 4, 7), [57, 60, 62, 65]), "D7sus": (26, (0, 5, 7, 10), [55, 60, 62, 69]),
        "Gm11/D": (26, (0, 7, 0, 7), [58, 60, 62, 65]), "Ebmaj7#11/D": (26, (0, 7, 0, 7), [55, 57, 58, 62]), "Cm9/D": (26, (0, 7, 0, 7), [51, 55, 58, 62])}
 STAIR_UP = {"about": "chirper-two's c2-stair: the Shepard tone that climbs for ever", "synth": {"layers": [{"type": "shepard", "shepard": {"octaves": 8, "center": "600hz", "width": 1.1}}], "amp": {"a": "4ms", "d": "700ms", "s": 0.25, "r": "400ms", "curve": 2}}}  # t14's Shepard stair voice
 
@@ -88,6 +89,8 @@ def plan(sec, b):
         return LIB[["Gm11", "Gm9", "Ebmaj7#11", "Cm9" if (b // 5) % 2 == 0 else "Abmaj7#11", "D7b9"][b % 5]]
     if sec == "break":
         return LIB[(["Bbmaj9"] * 6 + ["Ebmaj7#11"] * 5 + ["D7b9"] * 5)[b]]
+    if sec == "hover":
+        return LIB["D7sus"]
     if sec == "B" and b < 32:
         return LIB[["Gm11", "Bbmaj9", "Ebmaj7#11", "Cm9", "Abmaj7#11", "D7b9"][b % 6]]
     if sec == "B":
@@ -163,7 +166,9 @@ def build():
             seam_in = sec == "intro" and b < 16
             seam_out = sec == "outro" and b >= 16
             # --- kick
-            if sec != "break" or b >= nb - 1:
+            if sec == "hover":
+                add("sub", at, "D2", BAR, 78)   # the held dominant under the hover
+            if (sec != "break" or b >= nb - 1) and sec != "hover":
                 for q in (0, 4, 8, 12):
                     add("kick", at + q, "kr" if (seam_in or seam_out) else ("kd" if (sec == "A" and b >= 16) else "k"), 1, 118 if q == 0 else 112)
             # --- hats: ticking 16ths with accents, open hats on the off-beats in the drops
@@ -195,13 +200,13 @@ def build():
                     add("sub", at, "D2", 4 * BAR, 92)
             elif sec == "B" and 24 <= b < 28:
                 pass  # B2: the sub drops out for four bars, then the roll comes back with its octaves
-            elif sec != "break":
+            elif sec not in ("break", "hover"):
                 roll = [(2, 0), (3, 0), (6, 1), (10, 2), (11, 2), (14, 3)]
                 for q, i in roll:
                     octv = 12 if (sec == "B" and ((b % 2 == 1 and i == 3) or (b >= 28 and i in (1, 3)))) else 0
                     add("sub", at + q, nm(r + deg[i] + octv), 1, 100 if q in (2, 10) else 88)
             # --- the chord pulse (the endless filter's material): 16ths with accents, on its section's set
-            pset = {"break": "pulse_slow", "build": "pulse_slow", "A": "pulse_mid", "B": "pulse_fast"}.get(sec)
+            pset = {"break": "pulse_slow", "build": "pulse_slow", "A": "pulse_mid", "B": "pulse_fast", "hover": "pulse_fast"}.get(sec)
             if sec == "A" and b >= 16:
                 pset = "pulse_fast"  # A2: the climb quickens
             if sec == "B" and 24 <= b < 32:
