@@ -247,6 +247,36 @@ def fills():
             part("fill").add(b0(bar) + x, 0.1, "s", int(100 - 40 * i / m))
 
 
+TTS_ONE_WHERE = [   # v16: chirp tts "one where" --humanize 0.7 --repeat 8 (ce4d6815): (ph, Hz, vel, f0 path in cents)
+    ('W AH1 N', 142.85, 0.865, [0.0, 8.0, 16.0, 23.0, 29.0, 33.0, 35.0, 37.0, 41.0, 43.0, 39.0, 28.0, 14.0, 2.0, -5.0, -10.0, -14.0]),
+    ('W EH1 R', 105.73, 0.799, [0.0, 3.0, 6.0, 9.0, 11.0, 13.0, 14.0, 14.0, 15.0, 17.0, 15.0, 9.0, 1.0, -7.0, -10.0, -10.0, -11.0, -18.0, -31.0, -47.0, -62.0, -71.0, -75.0, -79.0]),
+    ('W AH1 N', 139.05, 0.85, [0.0, 8.0, 16.0, 23.0, 29.0, 33.0, 35.0, 37.0, 41.0, 43.0, 39.0, 28.0, 14.0, 2.0, -5.0, -10.0, -14.0]),
+    ('W EH1 R', 106.35, 0.799, [0.0, 3.0, 6.0, 9.0, 11.0, 13.0, 14.0, 14.0, 15.0, 17.0, 15.0, 9.0, 1.0, -7.0, -10.0, -10.0, -11.0, -18.0, -31.0, -47.0, -62.0, -71.0, -75.0, -79.0]),
+    ('W AH1 N', 140.46, 0.797, [0.0, 8.0, 16.0, 23.0, 29.0, 33.0, 35.0, 37.0, 41.0, 43.0, 39.0, 28.0, 14.0, 2.0, -5.0, -10.0, -14.0]),
+    ('W EH1 R', 105.31, 0.774, [0.0, 3.0, 6.0, 9.0, 11.0, 13.0, 14.0, 14.0, 15.0, 17.0, 15.0, 9.0, 1.0, -7.0, -10.0, -10.0, -11.0, -18.0, -31.0, -47.0, -62.0, -71.0, -75.0, -79.0]),
+    ('W AH1 N', 141.76, 0.742, [0.0, 8.0, 16.0, 23.0, 29.0, 33.0, 35.0, 37.0, 41.0, 43.0, 39.0, 28.0, 14.0, 2.0, -5.0, -10.0, -14.0]),
+    ('W EH1 R', 104.28, 0.762, [0.0, 3.0, 6.0, 9.0, 11.0, 13.0, 14.0, 14.0, 15.0, 17.0, 15.0, 9.0, 1.0, -7.0, -10.0, -10.0, -11.0, -18.0, -31.0, -47.0, -62.0, -71.0, -75.0, -79.0]),
+    ('W AH1 N', 140.1, 0.875, [0.0, 8.0, 16.0, 23.0, 29.0, 33.0, 35.0, 37.0, 41.0, 43.0, 39.0, 28.0, 14.0, 2.0, -5.0, -10.0, -14.0]),
+    ('W EH1 R', 106.49, 0.763, [0.0, 3.0, 6.0, 9.0, 11.0, 13.0, 14.0, 14.0, 15.0, 17.0, 15.0, 9.0, 1.0, -7.0, -10.0, -10.0, -11.0, -18.0, -31.0, -47.0, -62.0, -71.0, -75.0, -79.0]),
+    ('W AH1 N', 142.61, 0.849, [0.0, 8.0, 16.0, 23.0, 29.0, 33.0, 35.0, 37.0, 41.0, 43.0, 39.0, 28.0, 14.0, 2.0, -5.0, -10.0, -14.0]),
+    ('W EH1 R', 104.68, 0.732, [0.0, 3.0, 6.0, 9.0, 11.0, 13.0, 14.0, 14.0, 15.0, 17.0, 15.0, 9.0, 1.0, -7.0, -10.0, -10.0, -11.0, -18.0, -31.0, -47.0, -62.0, -71.0, -75.0, -79.0]),
+    ('W AH1 N', 140.66, 0.789, [0.0, 8.0, 16.0, 23.0, 29.0, 33.0, 35.0, 37.0, 41.0, 43.0, 39.0, 28.0, 14.0, 2.0, -5.0, -10.0, -14.0]),
+    ('W EH1 R', 107.92, 0.862, [0.0, 3.0, 6.0, 9.0, 11.0, 13.0, 14.0, 14.0, 15.0, 17.0, 15.0, 9.0, 1.0, -7.0, -10.0, -10.0, -11.0, -18.0, -31.0, -47.0, -62.0, -71.0, -75.0, -79.0]),
+    ('W AH1 N', 140.97, 0.752, [0.0, 8.0, 16.0, 23.0, 29.0, 33.0, 35.0, 37.0, 41.0, 43.0, 39.0, 28.0, 14.0, 2.0, -5.0, -10.0, -14.0]),
+    ('W EH1 R', 104.72, 0.76, [0.0, 3.0, 6.0, 9.0, 11.0, 13.0, 14.0, 14.0, 15.0, 17.0, 15.0, 9.0, 1.0, -7.0, -10.0, -10.0, -11.0, -18.0, -31.0, -47.0, -62.0, -71.0, -75.0, -79.0]),
+]
+
+
+PHN = {"phL": [], "phR": []}
+
+
+def ph_note(side, at, ln, rep, syl, gain):
+    """v16: a native voice note from the humanized tts data: repetition rep (mod 8), syllable syl (0 'one', 1 'where')."""
+    ph, hz, vel, f0 = TTS_ONE_WHERE[(rep % 8) * 2 + syl]
+    PHN[side].append({"at": round(at, 4), "len": ln, "ph": ph, "pitch": f"{hz}hz", "vel": round(vel * gain, 3),
+                      "expr_path": {"f0": f0}})
+
+
 def radio_fx(seed):
     return [{"type": "radio", "tune": {"value": 0, "mod": [{"src": "auto.dial", "amount": 1}]}, "fade": 0.4,
              "drift": 0.05, "hiss": "-30dB", "whistle": "-30dB", "seed": seed},
@@ -273,7 +303,7 @@ def frame_the_holes():
         part("throw").add(b0(g) - 0.5, 0.25, ",".join(nm(m) for m in v), 92)
         if g in (24, 32):
             for side in ("phL", "phR"):                       # v13: the whisper through the radio band, both sides
-                part(side).add(b0(g), 0.5, "G#3^ph=w-ah1-n^f0=0>-30", 66)
+                ph_note(side, b0(g), 0.5, 2 + (side == "phR"), 0, 0.55)
 
 
 def riser():
@@ -337,10 +367,11 @@ def stair_and_voice():
             if at >= b0(89) - 0.75:
                 break
             ph, f0 = syl[(k + shift) % 2]
-            part(side).add(at, 0.7, f"G#3^ph={ph}^f0={f0}", 74 + (6 if (k + shift) % 2 == 0 else 0))
+            # v16: each syllable lifted from one repetition of a HUMANIZED 'one where' (pitch, contour, effort)
+            ph_note(side, at, 0.7, k // 2 + (3 if side == "phR" else 0), (k + shift) % 2, 0.95)
             k += 1
     for side in ("phL", "phR"):
-        part(side).add(b0(89), 0.8, "G#3^ph=w-ah1-n^f0=0>-12", 86)
+        ph_note(side, b0(89), 0.8, 0, 0, 1.0)
 
 
 LEVEL = {"intro": -8, "A": -4, "turn": -3, "back": -3, "break": -8, "drop": 0, "outro": -5}
@@ -432,10 +463,10 @@ def main():
             # v15: each copy through its own RADIO (wM's fx, mono, so one per side keeps the pair): the dial tunes in
             # across the break (off the station at 81 - static, a heterodyne whistle - on it by 84), wanders off before
             # the drop and lands dead on the station for the 'one' at 89; a gate lane keeps the static to where it speaks
-            tr("phL", "voice-speech", gain="-9dB", pan=-1.0, sends={"dub": "-14dB"}, auto=radio_lanes(0),
-               fx=radio_fx(3)),
-            tr("phR", "voice-speech", gain="-9dB", pan=1.0, sends={"dub": "-14dB"}, auto=radio_lanes(1),
-               fx=radio_fx(7)),
+            {"name": "phL", "patch": "voice-speech", "gain": "-10dB", "pan": -1.0, "sends": {"dub": "-14dB"},
+             "auto": radio_lanes(0), "fx": radio_fx(3), "notes": PHN["phL"]},      # v16: humanized, native notes
+            {"name": "phR", "patch": "voice-speech", "gain": "-10dB", "pan": 1.0, "sends": {"dub": "-14dB"},
+             "auto": radio_lanes(1), "fx": radio_fx(7), "notes": PHN["phR"]},
         ],
     }
     with open(OUT, "w") as f:
