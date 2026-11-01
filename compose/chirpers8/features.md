@@ -6,30 +6,30 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 | feature | showcased by |
 |---|---|
 | osc waves: sine, triangle, saw, square, pulse (PWM) | |
-| additive | |
+| additive | t6 (chirper-two) |
 | tables (wavetable-style) | |
 | shepard (endless glides, scales, chords) | |
 | sample | |
 | drum machines and kits (machine-kit, dusty, physical drums) | |
-| physical: modal | |
+| physical: modal | t3 (chirper-two) |
 | physical: bowed | |
-| physical: pluck | |
-| physical: membrane | |
-| physical: reed | |
+| physical: pluck | t3 (chirper-two) |
+| physical: membrane | t3 (chirper-two) |
+| physical: reed | t9 (chirper-two) |
 | physical: lips (brass) | |
-| physical: bar, bell, glock, gong | |
+| physical: bar, bell, glock, gong | t3 (chirper-two) |
 | guitar with amps and cabs | |
-| shapers: fold, tanh, clip, crush | |
+| shapers: fold, tanh, clip, crush | t9 (chirper-two) |
 
 ## Processing (fx)
 | feature | showcased by |
 |---|---|
 | filter family: lp / hp / bp / notch / peak / shelves / allpass / comb / ladder | |
-| ring, formant, vocoder | |
+| ring, formant, vocoder | t6 (chirper-two) |
 | cloud (grains), freeze | |
 | chop, stutter, tapestop, tape, vinyl | |
 | delay, reverb (room / plate / hall / chamber / spring), ir | |
-| chorus, phaser, wah, tremolo, width, pan | |
+| chorus, phaser, wah, tremolo, width, pan | t6 (chirper-two) |
 | barberpole, phantom, sympathetic | |
 | radio, follow-noise | |
 | pitch | |
@@ -39,37 +39,37 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 ## Time
 | feature | showcased by |
 |---|---|
-| tempo maps and ramps | |
-| risset (accelerando / decelerando) | |
-| warp | |
-| meter changes | |
-| polymeter by step length | |
-| swing, swing drift, humanize | |
+| tempo maps and ramps | t9 (chirper-two) |
+| risset (accelerando / decelerando) | t9 (chirper-two) |
+| warp | t9 (chirper-two) |
+| meter changes | t9 (chirper-two) |
+| polymeter by step length | t9 (chirper-two) |
+| swing, swing drift, humanize | t9 (chirper-two) |
 
 ## Pitch and tuning
 | feature | showcased by |
 |---|---|
-| tuning: cents, ratios (just intonation) | |
-| tuning: EDO / non-octave scales | |
+| tuning: cents, ratios (just intonation) | t3 (chirper-two) |
+| tuning: EDO / non-octave scales | t9 (chirper-two) |
 | bend, glide, strum | |
 | expression paths (^NAME=a>b) | |
 
 ## Generators and systems
 | feature | showcased by |
 |---|---|
-| vars and expr | |
+| vars and expr | t9 (chirper-two) |
 | lfo and auto lanes | |
-| chance (?p) and choices (a\|b) | |
-| Euclidean patterns | |
+| chance (?p) and choices (a\|b) | t6 (chirper-two) |
+| Euclidean patterns | t3 (chirper-two) |
 | every / vary / seeds | |
-| complex systems (chaotic maps, cellular automata, L-systems, Markov): ask wM | |
+| complex systems (chaotic maps, cellular automata, L-systems, Markov): ask wM | t3 (chirper-two) |
 
 ## Voice
 | feature | showcased by |
 |---|---|
-| chirp tts, humanized (realistic) | |
-| speech-to-song (repeat / melodize / melody) | |
-| vocoder / formant / radio on voice | |
+| chirp tts, humanized (realistic) | t6 (chirper-two) |
+| speech-to-song (repeat / melodize / melody) | t6 (chirper-two) |
+| vocoder / formant / radio on voice | t6 (chirper-two) |
 
 ## New this album (built by wM or you)
 | feature | commit | built by | showcased by |
