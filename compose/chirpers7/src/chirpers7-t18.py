@@ -68,6 +68,8 @@ HCOUNT = os.environ.get("C7T18_HCOUNT", "1") == "1"  # the beat flip's counting 
 COUNT = []
 HSUNG = os.environ.get("C7T18_HSUNG", "1") == "1"  # the interlock's and ALL AT ONCE's sung stair (the speech panel's line returning as song) made human too: each syllable lifted from the two most-sung repetitions of wM's humanised tts (chirpers7-t18-speech.json, melodize 0.9 and 1) onto the old grid, through the radio band
 SUNG = []
+ZWF = os.environ.get("C7T18_ZWF", "1") == "1"  # Harry's third steer #4 ('same illusions, richer sources'), wM's follow-noise: the Zwicker swell is noise in the panel's own colours - the glass pads feed a bus that turns them into follow-noise (pads only: with the hats the noise sat at 2-6 kHz, the notch shallow), through the same three notches, swelling over three bars and cut for the fourth, where the after-tone sings
+ZWB = []
 COH = os.environ.get("C7T18_COH", "1") == "1"  # t17 v18's fix (measured 22:15): coherent Haas pairs - one source per pair, near ear direct and far ear through 18 ms, dry - so the turning panel's precedence cue exists (separate noise-kit tracks gave the ears different hits)
 COHB = {}
 ILV = float(os.environ.get("C7T18_ILV", "0"))  # every illusion track's level offset (dB)
@@ -376,7 +378,10 @@ def build():
                     add("ghostT", at, ["A5", "F5", "E5", "D5"][(kb // 4) % 4], 2 * BAR, int(int(MONOH) * (1 - b / 14)))
             if "zwicker" in act and sec.startswith("g"):   # t10: notched noise swelling, then a silent bar; the bell plays the note
                 ph = b % 4
-                add("zw", at, "C4", BAR, (72, 92, 112)[ph] * lv)
+                if ZWF:
+                    ZWB.append((at, ph))
+                else:
+                    add("zw", at, "C4", BAR, (72, 92, 112)[ph] * lv)
                 if ph == 0 and b > 0:
                     add("bell", at, "A5", 4, 88)
             if "scale" in act:     # t14: a rising and a falling scale swapping ears every eighth
@@ -664,6 +669,20 @@ def dump(doc):
     lines = [f"{k}: {json.dumps(doc[k])}" for k in ("about", "tempo", "ceiling", "loudness", "tail", "patches", "master") if k in doc]
     lines.append("buses:")
     doc["buses"].update(COHB)
+    if ZWF:
+        zw_f = 880 * 1.08
+        pts = [(0, -60)]
+        for at, ph in sorted(ZWB):
+            pts.append((at, (-12, -6, 0, -60)[ph]))
+        pts.append((max(a for a, _ in ZWB) + BAR, -60))
+        doc["buses"]["zwf"] = {"fx": [{"type": "follow-noise", "follow": "1s", "hold": "4s", "tone": 0.0, "level": "10dB", "mix": 1},
+                                      {"type": "filter", "kind": "notch", "cutoff": round(zw_f * 0.9, 1), "q": 1.5}, {"type": "filter", "kind": "notch", "cutoff": round(zw_f, 1), "q": 1.5},
+                                      {"type": "filter", "kind": "notch", "cutoff": round(zw_f * 1.1, 1), "q": 1.5}, "hp cutoff=120", "lp cutoff=9000",
+                                      {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.zg", "amount": 1}]}}],
+                               "auto": {"zg": lane(pts)}, "returns": []}
+        for t in doc["tracks"]:
+            if t["name"] in ("pads",):
+                t.setdefault("sends", {})["zwf"] = "0dB"
     lines += [f"  {b}: {json.dumps(v)}" for b, v in doc["buses"].items()]
     lines.append("tracks:")
     lines += ["  - " + json.dumps(t) for t in doc["tracks"]]
