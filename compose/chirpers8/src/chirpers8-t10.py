@@ -65,7 +65,7 @@ def build():
         for i in range(n):
             bars.append((name, i, tp))
     total = len(bars) * 4.0
-    P = {k: [] for k in ('bell', 'sync', 'pwm', 'bass', 'sub', 'd1', 'd2', 'd3', 'kit', 'pulse')}
+    P = {k: [] for k in ('bell', 'sync', 'pwm', 'bass', 'sub', 'd1', 'd2', 'd3', 'kit', 'pulse', 'glass')}
     # the call stack: a seeded walk, one move every four bars in the calls sections
     depth, depths = 0, []
     for b, (s, i, tp) in enumerate(bars):
@@ -193,6 +193,10 @@ def build():
         # repeating one note, a G, in sixteenths. Call and Return picks that pulse up where it was left: the same
         # clarinet on G for two bars under the first bell, stepping up to A (the dominant, the call) for the third,
         # and stopping as the kick comes in - the previous machine's last thought becomes this one's first call
+        # (v14) and t9's glass pad, too: under the pulse a glass chord holds the call's harmony - A major, the dominant
+        # (A, C#, E) - for the first four bars, so the canon's first D minor arrives as an answer
+        if s == 'intro' and i == 0:
+            P['glass'].append((t0, ','.join(tok(m_) for m_ in (57, 64, 69, 73)), 15.0, 70))
         if s == 'intro' and i < 3:
             for q_ in range(16):
                 P['pulse'].append((t0 + q_ * 0.25, tok(67 if i < 2 else 69), 0.22, int(70 - 10 * i + (8 if q_ % 4 == 0 else 0))))
@@ -291,6 +295,7 @@ def build():
             tr('d2', BELL, '-19dB', pan=-0.4, sends={'echo': '-16dB'}),
             tr('d3', 'glass', '-26dB', pan=0.5, fx=['hp cutoff=800'], sends={'hall': '-12dB'}),
             tr('kit', 'machine-kit', '-2dB', sends={'hall': '-20dB'}),
+            tr('glass', 'glass', '-15dB', pan=0.1, sends={'hall': '-8dB'}),
             tr('pulse', 'clarinet', '-10dB', pan=-0.15, sends={'hall': '-14dB', 'echo': '-16dB'}),
             # (v8) THE MACHINE'S OWN PATTERNS: a percussion line written in the engine's Euclidean and chance tokens, a
             # different cycle for each key of the canon - in D minor seven triplet-eighth rims spread over the bar (7 in 12,
