@@ -38,7 +38,8 @@ HEAD = os.environ.get("C8T5_HEAD", "2")   # the line is already open when the tr
 MERGE = os.environ.get("C8T5_MERGE", "0.5")   # agreed, they become alike: in C the guitar MORPHS toward the acid's spectrum (wM's morph fx, mode morph; one way - a mutual key is a routing cycle), up to MERGE over C's first eight bars, held through the lift, apart again for the outro
 TRADEBACK = os.environ.get("C8T5_TRADEBACK", "8")   # at the lift (C bars 25-28) the one-bar trades of B come back for four bars - a brief renegotiation in the new key - before they play together again (splits C's one long section with material that returns)
 HOOKF = [(0, "E4", 3), (3, "G4", 3), (6, "A4", 4), (10, "B4", 6), (16, "D5", 3), (19, "B4", 3), (22, "D5", 4), (26, "E5", 6)]
-FORM = [("intro", 12), ("A", 34), ("B", 26), ("retrain", 12), ("C", 48), ("outro", 16)]
+CLEN = int(os.environ.get("C8T5_CLEN", "44"))   # C's length: 40 tightens the agreement (the lift at bar 25, the second 'keep it there' at 33)
+FORM = [("intro", 12), ("A", 34), ("B", 26), ("retrain", 12), ("C", CLEN), ("outro", 16)]
 TRACKS = ("carrier", "conga", "gtr", "acid", "sub", "kick", "hats", "clap", "fretless", "horns", "lead")
 SWING = {"gtr": {"A": 0.66, "B": 0.62, "retrain": 0.6, "C": 0.58, "outro": 0.58},
          "acid": {"A": 0.50, "B": 0.54, "C": 0.58, "outro": 0.58}}
@@ -292,11 +293,11 @@ def song():
                           [{"type": "radio", "tune": 0.04, "hiss": "-40dB", "whistle": "-32dB", "fade": 0.3, "drift": 0.03,
                             "mix": {"value": 0, "mod": [{"src": "auto.rmix", "amount": 0.85}]}}, "hp cutoff=250"],
                           {"spring": "-12dB"})] if VOX else []),
-            *([voice("chirpers8-t5-keep.json", "keep", [st["C"] + 16 * BAR] + ([] if MOD else [st["C"] + 40 * BAR]), f"{float(VOX) + 2:g}dB",
+            *([voice("chirpers8-t5-keep.json", "keep", [st["C"] + 16 * BAR] + ([] if MOD else [st["C"] + (CLEN - 8) * BAR]), f"{float(VOX) + 2:g}dB",
                      [{"type": "chorus", "rate": 0.3, "depth": 0.2, "mix": 0.2}, "hp cutoff=150"], {"room": "-10dB", "spring": "-16dB"})] if VOX else []),
-            *([lifted(voice("chirpers8-t5-keep.json", "keep2", [st["C"] + 40 * BAR], f"{float(VOX) + 2:g}dB",
+            *([lifted(voice("chirpers8-t5-keep.json", "keep2", [st["C"] + (CLEN - 8) * BAR], f"{float(VOX) + 2:g}dB",
                             [{"type": "chorus", "rate": 0.3, "depth": 0.2, "mix": 0.2}, "hp cutoff=150"], {"room": "-10dB", "spring": "-16dB"}))] if VOX and MOD else []),
-            *([markov_lead("lead-m1", st["C"] + 16 * BAR, 0, 30), markov_lead("lead-m2", st["C"] + 24 * BAR, 2, 56)] if MARK else []),
+            *([markov_lead("lead-m1", st["C"] + 16 * BAR, 0, 30), markov_lead("lead-m2", st["C"] + 24 * BAR, 2, 56 - 4 * (48 - CLEN))] if MARK else []),
             {"name": "lead", "patch": "lead-wah", "gain": "-12dB", "pan": 0.1, "fx": [{"type": "chorus", "rate": 0.5, "depth": 0.4, "mix": 0.3}],
              "score": "swing16=0.58 " + T["lead"]},
         ],

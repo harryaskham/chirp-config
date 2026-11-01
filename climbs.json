@@ -7981,21 +7981,14 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/compscore.py chirpers8-t5 OUT.wav",
       "best": {
-        "score": 95.468,
-        "version": "v7",
-        "commit": "see git log songs/chirpers8-t5.yaml",
-        "stale": {
-          "score": 95.468,
-          "since": "2026-11-01T17:33:33Z",
-          "who": "chirper-one",
-          "rating": 9.0,
-          "version": "v7"
-        }
+        "score": 95.554,
+        "version": "v8",
+        "commit": "see git log songs/chirpers8-t5.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 10,
+      "rounds": 11,
       "priority": 1.0,
       "genre": "far-future computer music (an engine showcase)",
       "mode": "compose",
@@ -8013,7 +8006,7 @@
         "note": "COMPOSE (song, 300-480 s): Style, featured engine features, tempo, key, tuning and line-up are yours: declare them on compose/chirpers8/styles.md and claim your feature cluster on compose/chirpers8/features.md, different from the tracks already claimed."
       },
       "last": {
-        "at": "2026-11-01T17:19:58Z",
+        "at": "2026-11-01T17:43:50Z",
         "who": "chirper-zero"
       }
     },
