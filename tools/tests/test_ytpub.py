@@ -29,14 +29,14 @@ def test_only_originals_resolve():
 
 def test_title_description_and_tags():
     meta = {"album": "The Endless Stair", "genre": "deep / heavy minimal house (mixtape)", "year": 2026}
-    assert Y.video_title(meta, True) == "Chirpers - The Endless Stair (continuous DJ mix)"
+    assert Y.video_title(meta, True) == "chirpers - The Endless Stair (continuous DJ mix)"   # lowercase in public
     assert len(Y.video_title({"album": "x" * 200}, False)) == 100
     d = Y.description(meta, {"target_lufs": -13.8}, ["00:00 1. A", "04:00 2. B", "08:00 3. C"], True)
-    assert d.startswith("The Endless Stair by Chirpers: an original deep / heavy minimal house (mixtape) album as one")
-    assert "composed and synthesized by AI agents" in d and "no samples" in d
+    assert d.startswith("The Endless Stair by chirpers: an original deep / heavy minimal house (mixtape) album as one")
+    assert "Written in Rust, note by note" in d and "no samples" in d and "AI" not in d and "Harry" not in d
     assert "\n00:00 1. A\n04:00 2. B\n08:00 3. C\n" in d and "-13.8 LUFS" in d and "\n\n\n" not in d
     t = Y.tags(meta)
-    assert t[:2] == ["Chirpers", "The Endless Stair"] and "deep" in t and sum(len(x) + 2 for x in t) <= 480
+    assert t[:2] == ["chirpers", "The Endless Stair"] and "deep" in t and "AI music" not in t and sum(len(x) + 2 for x in t) <= 480
 
 
 def test_parse_code_url_and_next_offset():
@@ -88,3 +88,8 @@ def test_banner_jpeg_is_16_9_and_small(tmp_path):
     out = Y.banner_jpeg(str(src), str(tmp_path / "b.jpg"))
     im = Image.open(out)
     assert im.size == (2560, 1440) and os.path.getsize(out) < 6 * 1024 * 1024
+
+
+def test_artist_is_lowercase_and_channel_match_ignores_case():
+    assert Y.artist({"artist": "Chirpers"}) == "chirpers" and Y.artist({}) == "chirpers"
+    assert Y.same_channel("Chirpers") and Y.same_channel(" chirpers ") and not Y.same_channel("Harry Askham")

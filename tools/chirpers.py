@@ -101,7 +101,7 @@ def new_track_climb(album, t, by):
 def cmd_new(a, args):
     with open(a.spec) as f:
         spec = json.load(f)
-    album = {"id": a.album_id, "artist": spec.get("artist", "Chirpers"), "album": spec["album"], "named": False,
+    album = {"id": a.album_id, "artist": spec.get("artist", "chirpers"), "album": spec["album"], "named": False,
              **{k: v for k, v in spec.items() if k not in ("artist", "album", "tracks")}}
     album["tracks"] = [{**t, "id": track_id(a.album_id, t["n"])} for t in spec["tracks"]]
     if os.path.exists(album_path(a.album_id)):
@@ -163,7 +163,7 @@ def cmd_title(a, args):
         if m.get("title") and "(untitled)" not in m["title"] and not a.force:
             raise SystemExit(f"chirpers: {a.id} is already titled '{m['title']}' (--force to rename)")
         m["title"] = a.title
-        c["reference"] = f"{m.get('artist', 'Chirpers')} — {a.title}"
+        c["reference"] = f"{m.get('artist', 'chirpers')} — {a.title}"
         album = load_album(c["album"])
     for t in album["tracks"]:
         if t["id"] == a.id:
@@ -554,7 +554,8 @@ def cmd_release(a, args):
             cmd = ["ffmpeg", "-y", "-loglevel", "error", "-i", r["wav"]] + (["-i", art] if art else []) + [
                 "-map", "0:a"] + (["-map", "1:v", "-c:v", "png", "-disposition:v", "attached_pic"] if art else []) + [
                 "-af", f"volume={p['gain_db']}dB", "-c:a", "libmp3lame", "-q:a", "0", "-id3v2_version", "3",
-                "-metadata", f"title={r['title']}", "-metadata", f"artist={album['artist']}", "-metadata", f"album={name}",
+                "-metadata", f"title={r['title']}", "-metadata", f"artist={album['artist']}",
+                "-metadata", f"album_artist={album['artist']}", "-metadata", f"album={name}",
                 "-metadata", f"track={r['n']}/{len(album['tracks'])}", "-metadata", f"date={album.get('year', '')}", mp3]
             ok = subprocess.run(cmd, capture_output=True, text=True).returncode == 0
             report["tracks"].append({**{k: r[k] for k in ("n", "id", "title", "dur", "lufs", "true_peak_dbtp",
@@ -601,7 +602,8 @@ def mix_release(a, album, rows, plan, pin, work, out_dir, art, env):
     cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "s16le", "-ar", str(L.SR), "-ac", "2", "-i", "-"] + (
         ["-i", art, "-map", "0:a", "-map", "1:v", "-c:v", "png", "-disposition:v", "attached_pic"] if art else []) + [
         "-c:a", "libmp3lame", "-q:a", "0", "-id3v2_version", "3", "-metadata", f"title={album['album']} (continuous mix)",
-        "-metadata", f"artist={album['artist']}", "-metadata", f"album={album['album']}", mp3]
+        "-metadata", f"artist={album['artist']}",
+        "-metadata", f"album_artist={album['artist']}", "-metadata", f"album={album['album']}", mp3]
     ff = subprocess.Popen(cmd, stdin=subprocess.PIPE)
 
     swaps = seam_swaps(a.album_id)

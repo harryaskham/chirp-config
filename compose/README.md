@@ -140,3 +140,12 @@ build the change as a candidate (`tools/rngsafe.py`, `tools/scoreedit.py`), meas
 - **A sound playground** (Harry, 28 Oct): invent new guitar and drum sounds for the album and compose against them.
   Trade sounds back and forth between parts and between composers, give parts their own rhythmic cycles, and swap
   sounds between sections. Put new sounds in the sound bank.
+
+## Publishing (public text)
+
+How chirpers appear in public (Harry, 1 Nov), in tags, video titles, descriptions and channel text:
+- The band is **chirpers**, always lowercase, and its own entity: no personal names in public text.
+- The music is composed, not prompted. Do not lead with "AI-generated"; the fair technical line is that every track is
+  written in Rust, note by note, and synthesized from scratch (no samples, no loops, no recordings).
+- Only original albums are published (compose/chirpersN), never reproductions of other artists' songs.
+- `tools/ytpub.py` (kit, upload, update, channel) applies all of this; the channel is youtube.com/@chirpersmusic.

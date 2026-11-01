@@ -11,6 +11,7 @@ DJ mix when the release has one), with YouTube chapters for the tracks, an hones
     ytpub.py kit ALBUM [--tracks]    build ~/Music/Chirpers/<album>/youtube/ (video.mp4, description.txt, thumb.jpg)
     ytpub.py upload ALBUM [--privacy private|unlisted|public] [--dry-run]
     ytpub.py publish ALBUM [--privacy public]
+    ytpub.py update ALBUM [--dry-run]  re-push an uploaded video's title, description and tags
     ytpub.py channel [--description-file F] [--keywords K] [--banner IMG]   the channel's About text, keywords, banner
 
 ALBUM is an album id (chirpers5) or its name. Uploads default to PRIVATE so Harry reviews before anything is public.
@@ -37,7 +38,7 @@ ROOT = os.path.dirname(HERE)
 CRED_DIR = os.path.expanduser(os.environ.get("CHIRP_YOUTUBE_DIR", "~/.config/chirp-youtube"))
 MUSIC = os.path.expanduser(os.environ.get("CHIRP_RELEASE_DIR", "~/Music/Chirpers"))
 SCOPES = ["https://www.googleapis.com/auth/youtube"]       # upload, thumbnails and the later privacy change
-CHANNEL_TITLE = os.environ.get("CHIRP_YOUTUBE_CHANNEL", "Chirpers")
+CHANNEL_TITLE = os.environ.get("CHIRP_YOUTUBE_CHANNEL", "chirpers")   # styled lowercase in public (Harry, 1 Nov)
 API = "https://www.googleapis.com/youtube/v3"
 UPLOAD = "https://www.googleapis.com/upload/youtube/v3"
 CHUNK = 32 * 1024 * 1024                                   # a multiple of 256 KiB, as resumable uploads require
@@ -87,17 +88,27 @@ def chapters(starts):
     return [f"{stamp(t)} {label}" for t, label in out] if len(out) >= 3 else []
 
 
+def artist(meta):
+    """The band name as styled in public: lowercase chirpers (Harry, 1 Nov), whatever album.json says."""
+    return str(meta.get("artist") or "chirpers").lower()
+
+
+def same_channel(title):
+    return str(title or "").strip().lower() == CHANNEL_TITLE.strip().lower()
+
+
 def video_title(meta, mix):
-    t = f"Chirpers - {meta['album']} ({'continuous DJ mix' if mix else 'full album'})"
+    t = f"{artist(meta)} - {meta['album']} ({'continuous DJ mix' if mix else 'full album'})"
     return t[:100]
 
 
 def description(meta, rel, chaps, mix):
     genre = meta.get("genre", "electronic")
-    lines = [f"{meta['album']} by Chirpers: an original {genre} album{' as one continuous DJ mix' if mix else ''}"
+    lines = [f"{meta['album']} by {artist(meta)}: an original {genre} album{' as one continuous DJ mix' if mix else ''}"
              f" ({meta.get('year', '')}).".replace(" ()", ""), "",
-             "Every sound here was composed and synthesized by AI agents, the Chirpers, using chirp, a CPU synthesizer "
-             "and sequencer: no samples, no recordings, no human performance. Harry Askham listens, steers and curates.",
+             # Harry, 1 Nov: the tracks are composed, not prompted; no need to lead with "AI" everywhere, and it is
+             # fairer (technically) to say they are written in Rust. No personal names in public text.
+             "Written in Rust, note by note, and synthesized from scratch: no samples, no loops, no recordings.",
              ""]
     lines += chaps
     lines += ["", f"Mastered to {rel.get('target_lufs')} LUFS." if rel.get("target_lufs") is not None else "",
@@ -106,7 +117,7 @@ def description(meta, rel, chaps, mix):
 
 
 def tags(meta):
-    words = ["Chirpers", meta["album"], "AI music", "synthesized", "electronic music"]
+    words = [artist(meta), meta["album"], "electronic music", "synthesized", "written in Rust"]
     words += [g.strip() for g in re.split(r"[/,]", meta.get("genre", "")) if g.strip()]
     out, n = [], 0
     for w in words:
@@ -171,6 +182,24 @@ def frame_and_thumb(cover, out_dir):
     return paths
 
 
+def program(rel, rdir, force_tracks=False):
+    """(audio files, chapter lines, is_mix) for a release: its continuous mix when it has one, else the tracks back to
+    back. Shared by kit (the video) and update (the text of an uploaded video), so the chapters always agree."""
+    mix = (rel.get("mix") or {}) if not force_tracks else {}
+    if mix.get("file") and os.path.exists(os.path.join(rdir, mix["file"])):
+        return ([os.path.join(rdir, mix["file"])], chapters([(x["start"], f"{x['n']}. {x['title']}") for x in mix["tracklist"]]),
+                True)
+    audio, starts, t = [], [], 0.0
+    for tr in sorted(rel["tracks"], key=lambda x: x["n"]):
+        if not tr.get("file"):
+            continue
+        p = os.path.join(rdir, tr["file"])
+        audio.append(p)
+        starts.append((t, f"{tr['n']}. {tr['title']}"))
+        t += ffprobe_dur(p)
+    return audio, chapters(starts), False
+
+
 def build_kit(aid, meta, rdir, force_tracks=False):
     rel = release_of(rdir)
     if not rel:
@@ -181,22 +210,7 @@ def build_kit(aid, meta, rdir, force_tracks=False):
     if not os.path.isfile(cover):
         sys.exit(f"ytpub: {aid} has no cover art (album.json art.file)")
     frame, thumb = frame_and_thumb(cover, out)
-    mix = (rel.get("mix") or {}) if not force_tracks else {}
-    if mix.get("file") and os.path.exists(os.path.join(rdir, mix["file"])):
-        audio = [os.path.join(rdir, mix["file"])]
-        starts = [(x["start"], f"{x['n']}. {x['title']}") for x in mix["tracklist"]]
-        is_mix = True
-    else:
-        audio, starts, t = [], [], 0.0
-        for tr in sorted(rel["tracks"], key=lambda x: x["n"]):
-            if not tr.get("file"):
-                continue
-            p = os.path.join(rdir, tr["file"])
-            audio.append(p)
-            starts.append((t, f"{tr['n']}. {tr['title']}"))
-            t += ffprobe_dur(p)
-        is_mix = False
-    chaps = chapters(starts)
+    audio, chaps, is_mix = program(rel, rdir, force_tracks)
     video = os.path.join(out, "video.mov")
     listfile = os.path.join(out, "audio.txt")
     with open(listfile, "w") as f:
@@ -377,7 +391,7 @@ def channel(token):
 def cmd_whoami(a):
     ch = channel(access_token())
     print(f"channel: {ch['title']} {ch['handle'] or ''} ({ch['id']})")
-    if ch["title"] != CHANNEL_TITLE:
+    if not same_channel(ch["title"]):
         print(f"WARNING: not the {CHANNEL_TITLE} channel; uploads will refuse. Run auth again and pick {CHANNEL_TITLE}.")
     return ch
 
@@ -440,7 +454,7 @@ def cmd_upload(a):
         return
     token = access_token()
     ch = channel(token)
-    if ch["title"] != CHANNEL_TITLE:
+    if not same_channel(ch["title"]):
         sys.exit(f"ytpub: authorised channel is {ch['title']!r}, not {CHANNEL_TITLE!r}; refusing to upload")
     print(f"uploading {state['title']} to {ch['title']} {ch['handle'] or ''} as {a.privacy}")
     v = resumable_upload(token, os.path.join(out, state["video"]), body)
@@ -493,7 +507,7 @@ def banner_jpeg(path, out):
 def cmd_channel(a):
     token = access_token()
     ch = channel(token)
-    if ch["title"] != CHANNEL_TITLE:
+    if not same_channel(ch["title"]):
         sys.exit(f"ytpub: authorised channel is {ch['title']!r}, not {CHANNEL_TITLE!r}; refusing")
     st, _, d = call("GET", f"{API}/channels?part=brandingSettings&id={ch['id']}", token)
     if st != 200:
@@ -519,6 +533,39 @@ def cmd_channel(a):
         sys.exit(f"ytpub: channels.update {st}: {json.dumps(d)[:400]}")
     print(f"{ch['title']} {ch['handle']}: " + ", ".join(k for k in ("description", "keywords", "country") if c.get(k))
           + (", banner" if a.banner else ""))
+
+
+def cmd_update(a):
+    """Re-push an uploaded video's title, description (with chapters) and tags from the album's current metadata,
+    without re-encoding or re-uploading (videos.update, 50 quota units)."""
+    aid, meta, rdir = resolve(a.album)
+    rel = release_of(rdir)
+    state_p = os.path.join(rdir, "youtube", "meta.json")
+    state = json.load(open(state_p)) if os.path.exists(state_p) else {}
+    if not (rel and state.get("video_id")):
+        sys.exit(f"ytpub: {meta['album']} is not uploaded yet")
+    _, chaps, is_mix = program(rel, rdir, force_tracks=not state.get("mix"))
+    title, desc, tg = video_title(meta, is_mix), description(meta, rel, chaps, is_mix), tags(meta)
+    if a.dry_run:
+        print(f"{state['video_id']}: {title}\ntags: {tg}\n{desc}")
+        return
+    token = access_token()
+    st, _, d = call("GET", f"{API}/videos?part=snippet&id={state['video_id']}", token)
+    items = (d or {}).get("items") if isinstance(d, dict) else None
+    if st != 200 or not items:
+        sys.exit(f"ytpub: videos.list {st}: {json.dumps(d)[:300]}")
+    sn = items[0]["snippet"]
+    body = {"id": state["video_id"], "snippet": {"title": title, "description": desc, "tags": tg,
+                                                 "categoryId": sn.get("categoryId", "10"),
+                                                 "defaultLanguage": sn.get("defaultLanguage", "en")}}
+    st, _, d = call("PUT", f"{API}/videos?part=snippet", token, body)
+    if st != 200:
+        sys.exit(f"ytpub: videos.update {st}: {json.dumps(d)[:300]}")
+    with open(os.path.join(rdir, "youtube", "description.txt"), "w") as f:
+        f.write(desc + "\n")
+    state.update({"title": title, "tags": tg, "updated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())})
+    json.dump(state, open(state_p, "w"), indent=1)
+    print(f"https://youtu.be/{state['video_id']}: {title}")
 
 
 def cmd_list(a):
@@ -562,6 +609,10 @@ def main(argv=None):
     s.add_argument("album")
     s.add_argument("--privacy", choices=["private", "unlisted", "public"], default="public")
     s.set_defaults(fn=cmd_publish)
+    s = sub.add_parser("update")
+    s.add_argument("album")
+    s.add_argument("--dry-run", action="store_true")
+    s.set_defaults(fn=cmd_update)
     s = sub.add_parser("channel")
     s.add_argument("--description-file")
     s.add_argument("--keywords", help="space-separated; quote multi-word ones")
