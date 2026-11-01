@@ -226,6 +226,16 @@ def write():
         sec = sec_of(bar)
         arr, cmp, sw, acc = next(gens[sec])
         done = arr == sorted(arr) and sec not in ("intro", "sorted", "outro")
+        if bar > BARS - 6:                  # v8: the last six bars clear to the low E alone - what t5 begins with
+            PROGRESS.append(0)
+            if (bar - (BARS - 7)) % 2 == 0:
+                part("hum").add(b0(bar), (b0(bar + 2) if bar + 2 <= BARS else b0(BARS + 1)) - b0(bar) - 0.05,
+                                "m40.000", 104)
+            # v8: a HANDSHAKE - t5's two radio carrier tones (1650 and 1850 Hz) call and answer faintly, as if its radio
+            # were already on in the next room
+            for k, hz in enumerate(("1650hz", "1850hz")):
+                part("carrier").add(b0(bar) + k * 2, 1.6, hz, 70 + (bar - (BARS - 5)) * 4)
+            continue
         # v5: THE PROGRESS BAR - how many elements are already in their final place, as a Euclidean rhythm E(k, 16)
         heard = sorted(arr) if (sec == "sorted" and chopped(bar)) else arr
         PROGRESS.append(sum(1 for i, v in enumerate(heard) if v == i))
@@ -252,8 +262,8 @@ def write():
         part("pad").add(b0(bar), BAR - 0.05, ",".join(pitch(root + s, BASE - 12) for s in (0, third, 9, 13)),
                         74 if third == 5 else 62)
         # v2: the outro holds a low E (E2) for its last eight bars - the note t5 begins on
-        if bar == BARS - 7:
-            part("hum").add(b0(bar), b0(BARS + 1) - b0(bar) - 0.05, "m40.000", 96)
+        if bar >= BARS - 7 and (bar - (BARS - 7)) % 2 == 0:      # v8: re-struck every two bars, the last held to the end
+            part("hum").add(b0(bar), (b0(bar + 2) if bar + 2 <= BARS else b0(BARS + 1)) - b0(bar) - 0.05, "m40.000", 104)
         # v6: THE BASS - no more squelch: a round sub on the progression's root, a syncopated two-note figure
         if sec not in ("intro",) or bar > 8:
             fig = {"insertion": ((0.0, 1.9, 100), (2.0, 1.9, 92)),
@@ -379,7 +389,8 @@ def main():
              "score": progress_score()},                     # v5: the work's progress as a Euclidean rhythm
             tr("pad", "juno-pad", gain="-11dB", sends={"dly": "-14dB"},
                fx=["duck by=kick depth=-6dB", {"type": "filter", "kind": "hp", "cutoff": 200}]),                                           # v2; v4: ducked by the kick
-            tr("hum", "808", gain="-10dB"),                                                # v2: into t5's E2
+            tr("carrier", "partial", gain="-24dB", sends={"room": "-10dB"}),                # v8: the handshake
+            tr("hum", "808", gain="-4dB"),                     # v2: into t5's E2 (v8: 6 dB up - it sat at -36 dB alone)
             tr("tick", "909", gain="-17dB", pan=0.2, fx=[{"type": "filter", "kind": "hp", "cutoff": 3000}]),
             tr("swap", "909", gain="-11dB", pan=-0.2, sends={"room": "-10dB"}),
             tr("crash", "909", gain="-12dB", sends={"room": "-8dB"}),
