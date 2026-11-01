@@ -63,6 +63,8 @@ EQT = os.environ.get("C7T17_EQT", "b")  # narrow master moves after the dry loop
 SEAMKEYS = os.environ.get("C7T17_SEAMKEYS", "")  # the out-join (compscore 00:38: t17's last bars 12-15 dB under the closer's head at 547 Hz, 1.6 kHz, 133 Hz): the Rhodes holds a D minor 9 through the seam-out's last 8 bars, rising, the closer's D minor arriving under it; value = top velocity
 HINTALL = os.environ.get("C7T17_HINTALL", "")  # the out-join's mids (547 Hz, 1.6 kHz, where the closer's head has its rims): the unwinding loop's seam hint carries on through the seam-out's last 8 bars too, held at this velocity offset (e.g. "-40") instead of fading out
 HEADLOW = os.environ.get("C7T17_HEADLOW", "8")  # the in-join (t17's head 9-13 dB over Never Arrives' tail at 44-71 Hz): a master low shelf (90 Hz) this many dB down for the first 4 bars, back to flat by bar 8
+EVO = os.environ.get("C7T17_EVO", "1") == "1"  # Harry's third steer (1 Nov 01:15: 'very simple progressions of 4, 8, 16 bars ... formulaic'): the harmony evolves in an A-B-A' shape - the intro previews A's 5-bar cycle (Dm11 Dm9 Bbmaj7#11 Gm9/Ebmaj7#11 A7b9, its fourth chord Gm9 and the Neapolitan by turns); the break holds an A (dominant) pedal - a held A1, new - under Dm11, Bbmaj7#11, Gm9 and A7b9 in 7+6+6+5 bars; B1 a 6-bar cycle with Fmaj9 and the Neapolitan; B2 (the room turning twice as fast) a 7-bar cycle; the outro's first half returns to A's cycle; the seams keep the old loop
+PEDSUB = os.environ.get("C7T17_PEDSUB", "0") == "1"  # with EVO, the break's dominant pedal also on the sub (a held A1): measured 02:19 it piled 44-71 Hz 6-10 dB over the album
 TAILS = os.environ.get("C7T17_TAIL", "0.1s")  # the render tail: 0.3 s leaves no dead air in the last seconds a DJ mixes out of
 
 ERISER = os.environ.get("C7T17_ERISER", "-10")  # wM's endless Shepard riser (fx-riser-endless) over the 8 bars into B: pitch, noise and filter rising for ever, stopping dead on the drop (Harry: 'risers and staircases v good'); level in dB
@@ -77,6 +79,28 @@ CHD = [(38, [53, 55, 60, 62]),   # Dm11: F3 G3 C4, top D4
        (34, [50, 57, 60, 64]),   # Bbmaj7#11: D3 A3 C4, top E4 (the #11)
        (31, [50, 53, 58, 65]),   # Gm9: D3 F3 Bb3, top F4
        (33, [49, 55, 58, 69])]   # A7b9: C#3 G3 Bb3, top A4
+LIB = {"Dm11": (38, [53, 55, 60, 62]), "Dm9": (38, [53, 57, 60, 64]), "Bbmaj7#11": (34, [50, 57, 60, 64]), "Gm9": (31, [50, 53, 58, 65]),
+       "A7b9": (33, [49, 55, 58, 69]), "Ebmaj7#11": (39, [55, 57, 62, 65]), "Fmaj9": (41, [52, 57, 60, 67]),
+       "Dm11/A": (33, [53, 55, 60, 62]), "Bbmaj7#11/A": (33, [50, 57, 60, 64]), "Gm9/A": (33, [50, 53, 58, 65])}
+
+
+def plan(sec, b):
+    """EVO: the chord for bar b - irregular cycles, a pedal, A-B-A'."""
+    if sec == "A":
+        return LIB[["Dm11", "Dm9", "Bbmaj7#11", "Gm9" if (b // 5) % 2 == 0 else "Ebmaj7#11", "A7b9"][b % 5]]
+    if sec == "intro":
+        return plan("A", b - 16)
+    if sec == "break":
+        return LIB[(["Dm11/A"] * 7 + ["Bbmaj7#11/A"] * 6 + ["Gm9/A"] * 6 + ["A7b9"] * 5)[b]]
+    if sec == "B" and b < 24:
+        return LIB[["Dm11", "Fmaj9", "Bbmaj7#11", "Gm9", "Ebmaj7#11", "A7b9"][b % 6]]
+    if sec == "B":
+        return LIB[["Gm9", "Bbmaj7#11", "Dm11", "Ebmaj7#11", "Fmaj9", "A7b9", "A7b9"][(b - 24) % 7]]
+    if sec == "outro" and b < 16:
+        return plan("A", b)
+    return CHD[b % 4]
+
+
 TRACKS = ("kick", "hats", "clap", "sub", "keys", "loop", "dust", "stair", "binl", "binr", "tick", "loop2", "loopc", "kickh", "loop3")
 CHB2 = [CH[2], CH[1], CH[0], CH[3]]  # B2: Gm9 Bbmaj7 Dm9 A7sus(b9)
 
@@ -143,7 +167,7 @@ def build():
         for b in range(nb):
             at = a0 + b * BAR
             b2 = SEC2 and sec == "B" and b >= 24
-            r, v = (([CHD[2], CHD[1], CHD[0], CHD[3]] if DARK else CHB2) if b2 else (CHD if DARK else CH))[b % 4]
+            r, v = plan(sec, b) if EVO else (([CHD[2], CHD[1], CHD[0], CHD[3]] if DARK else CHB2) if b2 else (CHD if DARK else CH))[b % 4]
             seam_in = sec == "intro" and b < 16
             seam_out = sec == "outro" and b >= 16
             if sec != "break" and not (SEC and sec == "B" and 20 <= b < 24) and not (SEC2 and sec == "intro" and 28 <= b < 32):
@@ -201,6 +225,8 @@ def build():
                     add("keys", at + 9, ch, 6, 70)
             if sec == "break" and b % 2 == 0:
                 add("keys", at, ",".join(nm(n) for n in v), 2 * BAR, 64)
+                if EVO and PEDSUB:
+                    add("sub", at, "A1", 2 * BAR, 72)   # the dominant pedal
             if SEAMKEYS and seam_out and b >= 24 and b % 2 == 0:
                 add("keys", at, "D3,F3,A3,C4,E4", 2 * BAR, int(int(SEAMKEYS) - 4 * (30 - b) / 2))
             # THE STAIR on top in A2 and the outro (D E F A, a beat each)
