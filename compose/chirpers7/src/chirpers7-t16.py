@@ -60,7 +60,8 @@ HOVER = os.environ.get("C7T16_HOVER", "1") == "1"  # Harry's third steer ('add /
 FALL = os.environ.get("C7T16_FALL", "1") == "1"  # Harry's third steer ('add / replace / augment sections'): the outro's first half (A's cycle returning) turns the endless filter DOWN - the climb that never arrived now falls for ever (the same three staggered band-passes, cutoffs five octaves high and swept down) - handing a descending room to The Room Turns
 DRUMX = os.environ.get("C7T16_DRUMX", "p")  # Harry's 15:00 steer ('more interesting drums while staying true to house') and the third steer's 'not formulaic': "p" a soft rim on a 7-sixteenth cycle through A and B (a 7-against-16 polymeter that never repeats inside a phrase), "g" ghost snares a sixteenth before each clap (and before the 3 in B), "s" a light swing (0.55) on the hats, the percussion and the ghosts - the kick stays straight
 HROLL = os.environ.get("C7T16_HROLL", "-8")  # the hover's own illusion: the endless snare roll turned DOWN (a Risset decelerando, slowing for ever) under the still-climbing filter - one thing speeding up, one slowing, nothing arriving; value = gain dB
-FORM = [("intro", 32), ("build", 16), ("A", 32), ("break", 16)] + ([("hover", 6)] if HOVER else []) + [("B", 48), ("outro", 32)]
+FORMX = os.environ.get("C7T16_FORMX", "1") == "1"  # Harry's third steer ('4, 8, 16 bars all over the place'): A 30 (six of its 5-bar cycles exactly), B 46 (a 14-bar B2 in B-flat minor); the seams, the build, the break and the hover keep theirs
+FORM = [("intro", 32), ("build", 16), ("A", 30 if FORMX else 32), ("break", 16)] + ([("hover", 6)] if HOVER else []) + [("B", 46 if FORMX else 48), ("outro", 32)]
 # (sub root, stair degrees above it, chord voicing)
 CH = [(31, (0, 2, 3, 7), [58, 62, 65, 69]),   # Gm9: Bb3 D4 F4 A4 over G
       (27, (0, 2, 4, 7), [55, 58, 62, 63]),   # Ebmaj7: G3 Bb3 D4 Eb4 over Eb
