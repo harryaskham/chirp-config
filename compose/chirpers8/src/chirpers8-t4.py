@@ -184,6 +184,14 @@ def resorting(make, arr, seed):
         rng.shuffle(arr)
 
 
+PROGRESS = []
+
+
+def progress_score():
+    """v5: one Euclidean token a bar - k hits of 16, k = elements in their final place; silence when none are."""
+    return " ".join(f"cb({k},16)/16@{50 + 2 * k}" if k > 0 else "R/4b" for k in PROGRESS)
+
+
 # ---------------------------------------------------------------- writing
 def write():
     rng = random.Random(4)
@@ -201,6 +209,9 @@ def write():
         sec = sec_of(bar)
         arr, cmp, sw, acc = next(gens[sec])
         done = arr == sorted(arr) and sec not in ("intro", "sorted", "outro")
+        # v5: THE PROGRESS BAR - how many elements are already in their final place, as a Euclidean rhythm E(k, 16)
+        heard = sorted(arr) if (sec == "sorted" and chopped(bar)) else arr
+        PROGRESS.append(sum(1 for i, v in enumerate(heard) if v == i))
         # THE ARRAY AS A MELODY: sixteen notes, each panned by its index (left to right)
         for k, v in enumerate(arr):
             ix = round(-0.9 + 1.8 * k / (N - 1), 3)
@@ -327,6 +338,8 @@ def main():
                    {"type": "stutter", "slice": "1/16", "repeats": 6, "roll": 0.6, "pitch": 0.5,
                     "chance": {"value": 0, "mod": [{"src": "auto.roll", "amount": 1}]}}]),
             tr("bass", "acid", gain="-7dB"),
+            {"name": "progress", "patch": "machine-kit", "gain": "-13dB", "pan": 0.3, "sends": {"room": "-12dB"},
+             "score": progress_score()},                     # v5: the work's progress as a Euclidean rhythm
             tr("pad", "juno-pad", gain="-9dB", sends={"dly": "-14dB"},
                fx=["duck by=kick depth=-6dB"]),                                           # v2; v4: ducked by the kick
             tr("hum", "808", gain="-10dB"),                                                # v2: into t5's E2
