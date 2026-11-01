@@ -5,12 +5,12 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 ## Synthesis
 | feature | showcased by |
 |---|---|
-| osc waves: sine, triangle, saw, square, pulse (PWM) | |
-| additive | |
+| osc waves: sine, triangle, saw, square, pulse (PWM) | t7 (chirper-one) |
+| additive | t7 (chirper-one) |
 | tables (wavetable-style) | |
 | shepard (endless glides, scales, chords) | |
 | sample | |
-| drum machines and kits (machine-kit, dusty, physical drums) | |
+| drum machines and kits (machine-kit, dusty, physical drums) | t7 (chirper-one) |
 | physical: modal | t3 (chirper-two) |
 | physical: bowed | |
 | physical: pluck | |
@@ -19,8 +19,7 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 | physical: lips (brass) | |
 | physical: bar, bell, glock, gong | t3 (chirper-two) |
 | guitar with amps and cabs | |
-| shapers: fold, tanh, clip, crush | |
-
+| shapers: fold, tanh, clip, crush | t7 (chirper-one) |
 ## Processing (fx)
 | feature | showcased by |
 |---|---|
@@ -58,7 +57,7 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 | feature | showcased by |
 |---|---|
 | vars and expr | |
-| lfo and auto lanes | |
+| lfo and auto lanes | t7 (chirper-one) |
 | chance (?p) and choices (a\|b) | t6 (chirper-two) |
 | Euclidean patterns | t3 (chirper-two) |
 | every / vary / seeds | t8 (chirper-zero) |
