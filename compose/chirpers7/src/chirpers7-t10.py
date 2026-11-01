@@ -203,9 +203,15 @@ def hints():
         part(f"hint{k}").add(b0(h) + 2, 2.0, "C4", 96)
     # v8: THE BED: under each groove section a quiet hiss carrying the coming break's notch, breathing on a slow LFO -
     # the illusion's raw material always present (and a texture that doesn't quite sit); it swells into the break
+    # v19 (Harry: no bare white noise): the beds now PLAY THE CHORDS, bar by bar, on a quiet pad whose sound is replaced
+    # by follow-noise in its own colours (mix 1) - the hiss is made of the harmony, with the coming break's note cut out
+    def chord_at(bar):
+        return C_PLAN[bar][1] if bar in C_PLAN else CHORDS[((bar - 1) // 2) % 4][1]
     for k, (a, z) in BEDS.items():
-        part(f"bed{k}").add(b0(a), b0(z + 1) - b0(a) - 0.05, "C4", 80)
-    part("bed0").add(b0(OUTBED[0]), b0(OUTBED[1] + 1) - b0(OUTBED[0]) - 0.05, "C4", 72)
+        for bar in range(a, z + 1):
+            part(f"bed{k}").add(b0(bar), BAR - 0.05, ",".join(nm(m) for m in chord_at(bar)), 80)
+    for bar in range(OUTBED[0], OUTBED[1] + 1):
+        part("bed0").add(b0(bar), BAR - 0.05, ",".join(nm(m) for m in chord_at(bar)), 72)
 
 
 def carve_holes():
@@ -361,8 +367,9 @@ def main():
     nz = []
     for k, m in enumerate(STAIR):
         f = 440 * 2 ** ((m - 69) / 12) * 1.08              # centred a little above the note: the after-tone sits low
-        nz.append(tr(f"bed{k}", noise, gain="-24dB", lfo={"br": {"wave": "sine", "rate": "28b"}},
-                     fx=[{"type": "filter", "kind": "notch", "cutoff": round(f * r, 1), "q": 1.5} for r in (0.9, 1.0, 1.1)]
+        nz.append(tr(f"bed{k}", "juno-pad", gain="-16dB", lfo={"br": {"wave": "sine", "rate": "28b"}},
+                     fx=[{"type": "follow-noise", "follow": "2s", "tone": 0.35, "mix": 1}]      # v19: the chords' hiss
+                        + [{"type": "filter", "kind": "notch", "cutoff": round(f * r, 1), "q": 1.5} for r in (0.9, 1.0, 1.1)]
                         + [{"type": "filter", "kind": "lp", "cutoff": {"value": 6000, "mod": [{"src": "lfo.br", "amount": 0.7}]}},
                            {"type": "filter", "kind": "hp", "cutoff": 200}]))
         nz.append(tr(f"hint{k}", noise, gain="-12dB",
