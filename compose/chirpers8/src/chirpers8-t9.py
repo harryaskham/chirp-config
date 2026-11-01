@@ -35,6 +35,14 @@ SECS = [("one", 20, (4, 4), 2.9, 2.9), ("two", 16, (7, 8), 3.2, 3.2), ("four", 2
         ("eight", 20, (5, 4), 3.56, 3.56), ("chaos", 32, (4, 4), 3.7, 3.82), ("window", 18, (4, 4), 3.835, 3.835),
         ("storm", 24, (11, 8), 3.95, 4.0), ("settle", 28, (4, 4), 3.4, 2.9)]
 BPM = {"one": 140, "two": 140, "four": 140, "eight": 140, "chaos": 140, "window": 150, "storm": 154, "settle": 154}
+# T9_R2 = drift (v2, wM's tunings, systems and morph). THE CLOCK DRIFTS OUT OF TUNE AND BACK: the song's `tuning` is
+# 12-TET while the map holds one and two notes (the Bohlen-Pierce lines snap to their nearest semitones: a plain
+# sequencer), ramps into exact Bohlen-Pierce across the period-four section, stays alien through eight, chaos, the
+# window and the storm, and ramps back to 12-TET as it settles. In the chaos and the storm a second glass pad plays the
+# 3:5:7 chords CROSS-SYNTHESISED with the drum bus (`morph` mode cross keyed by `drums`), so the chords breathe in the
+# chaotic rhythm. A second logistic map, at r 3.95 as a song `var`, throws the reed around the stereo field.
+# T9_R2=none reproduces v1.
+R2 = os.environ.get("T9_R2", "drift")
 GROUPS = {(4, 4): [4, 4, 4, 4], (7, 8): [4, 4, 6], (5, 4): [6, 4, 6, 4], (6, 8): [6, 6], (11, 8): [6, 6, 6, 4]}  # 16ths
 
 
@@ -83,7 +91,7 @@ class Track:
 
 def build():
     rng = random.Random(9)
-    names = ("kick", "snare", "hats", "ride", "lead", "blip", "bass", "pad", "bell")
+    names = ("kick", "snare", "hats", "ride", "lead", "blip", "bass", "pad", "padx", "bell")
     T = {k: Track(k) for k in names}
     x, y = 0.2, 0.71
     pos = 0.0
@@ -149,6 +157,10 @@ def build():
                 root = int(xs[0] * 5)
                 base = bp(root, 57)
                 T["pad"].add(start, steps / 4 * 2 - 0.1, ",".join(mm(base + st * BP) for st in (0, 6, 10)), 64)
+            if R2 == "drift" and i % 2 == 0 and name in ("chaos", "storm"):
+                root = int(xs[0] * 5)
+                base = bp(root, 57)
+                T["padx"].add(start, steps / 4 * 2 - 0.1, ",".join(mm(base + st * BP) for st in (0, 6, 10, 13)), 80)
             if i == 0:
                 T["bell"].add(start, 6.0, mm(bp(0, 69)), 70)
             pos += steps / 4
@@ -194,7 +206,8 @@ def main():
          "score": T["hats"].score(total)},
         {"name": "ride", "patch": "machine-kit", "gain": "-5dB", "pan": -0.25, "out": "drums", "fx": ["hp cutoff=3000"],
          "score": T["ride"].score(total)},
-        {"name": "lead", "patch": "clarinet", "gain": "-8dB", "pan": -0.1,
+        {"name": "lead", "patch": "clarinet", "gain": "-8dB",
+         "pan": ({"value": 0.0, "mod": [{"src": "var.wander", "amount": 1}]} if R2 == "drift" else -0.1),
          "fx": ["hp cutoff=220", "peak cutoff=1200 gain=4dB q=0.8", {"type": "delay", "time": "3/16", "feedback": 0.3, "mix": 0.2, "ping_pong": True, "tone": 4000},
                 "reverb kind=room decay=0.9s mix=0.15"], "score": T["lead"].score(total)},
         {"name": "blip", "patch": "blip", "gain": "-7dB", "pan": 0.35,
@@ -204,6 +217,9 @@ def main():
          "fx": [{"type": "drive", "drive": 0.55, "shape": "fold", "mix": 0.5}, "lp cutoff=600", "hp cutoff=38", pump],
          "score": T["bass"].score(total)},
         {"name": "pad", "patch": "pad-glass", "gain": "-19dB", "fx": [pump], "score": T["pad"].score(total)},
+        *([{"name": "padx", "patch": "pad-glass", "gain": os.environ.get("T9_PADX_GAIN", "-14dB"),
+            "fx": [{"type": "morph", "key": "drums", "mode": "cross", "amount": 0.8}, "hp cutoff=200"],
+            "score": T["padx"].score(total)}] if R2 == "drift" else []),
         {"name": "bell", "patch": "bell", "gain": "-14dB", "fx": ["reverb kind=hall decay=3s mix=0.35"],
          "score": T["bell"].score(total)},
     ]
@@ -223,6 +239,11 @@ def main():
         "meta: " + json.dumps({"artist": "chirpers", "album": "A Light Left On", "title": "Period Doubling", "track": 9,
                                "year": 2026}),
         "tempo: " + json.dumps(tm),
+        *(["tuning: " + json.dumps([{"edo": 12},
+                                    {"at": f"{st['four']:g}b", "edo": 13, "period": "3/1", "root": "A3", "ramp": "20bar"},
+                                    {"at": f"{st['settle'] + 32:g}b", "edo": 12, "ramp": "16bar"}]),
+           "vars: " + json.dumps({"wander": {"system": {"type": "logistic", "r": 3.95, "n": 1600, "range": [-0.6, 0.6]},
+                                             "every": "1/8"}})] if R2 == "drift" else []),
         f'length: "{total:g}b"',
         'tail: "2s"',
         'ceiling: "-1dB"',
