@@ -185,6 +185,9 @@ def resorting(make, arr, seed):
 
 
 PROGRESS = []
+# v9: THE SEAM FROM T3 - t3 ends ringing a struck metal bar at ~912 Hz (its fourth partial 3648 Hz) with shimmer above
+# 10 kHz, fading over three seconds; t4 opens by catching that ring - the same pitch struck once on vibes, its partial
+# quietly, a soft cymbal for the air - while the sorting fades up underneath
 # v7 (Harry: 'more interesting and good'): EVERYTHING IN ITS PLACE SPELLS A TUNE. Each element's value is its position
 # in this written 16-note riff (a sequencer hook on a pulsing fifth, in alpha steps); the algorithms sort by position as
 # before, but what you hear is the riff scrambled, assembling itself as the sort proceeds, and whole when it is sorted
@@ -226,6 +229,10 @@ def write():
         sec = sec_of(bar)
         arr, cmp, sw, acc = next(gens[sec])
         done = arr == sorted(arr) and sec not in ("intro", "sorted", "outro")
+        if bar == 1:
+            part("ring").add(0.0, 8.0, "912hz", 112)
+            part("ring").add(0.0, 6.0, "3648hz", 58)
+            part("ride").add(0.0, 4.0, "cy", 64)
         if bar > BARS - 6:                  # v8: the last six bars clear to the low E alone - what t5 begins with
             PROGRESS.append(0)
             if (bar - (BARS - 7)) % 2 == 0:
@@ -326,11 +333,11 @@ def unsort(arr):
 
 def lanes():
     level = {"intro": -6, "bubble": -2, "insertion": -2, "quick": 0, "bogo": -4, "merge": 0, "sorted": 0, "outro": -6}
-    pts = []
+    pts = [["0b", -20.0]]                   # v9: the machinery FADES UP out of t3's last ring instead of switching on
     for name, a, z in SECTIONS:
-        if pts:
+        if len(pts) > 1:
             pts.append([f"{b0(a) - 0.25:.2f}b", pts[-1][1]])
-        pts.append([f"{b0(a):.2f}b", float(level[name])])
+        pts.append([f"{b0(a + 2 if name == 'intro' else a):.2f}b", float(level[name])])
     return pts
 
 
@@ -381,6 +388,7 @@ def main():
             tr("bass", "808", gain="-9dB", fx=["duck by=kick depth=-4dB"]),                  # v6: round, no squelch
             tr("tune", "rhodes", gain="-10dB", pan=-0.1, sends={"dly": "-10dB"},
                fx=[{"type": "filter", "kind": "hp", "cutoff": 250}]),                      # v6: the tune that emerges
+            tr("ring", "vibes", gain="-2dB", pan=0.1, sends={"room": "-8dB", "dly": "-14dB"}),   # v9: t3's ring caught
             tr("ride", "machine-kit", gain="-9dB", pan=-0.3, sends={"room": "-12dB"}),      # v6: the top end
             tr("tune_mar", "marimba", gain="-8dB", pan=-0.1, sends={"dly": "-10dB"}),      # v6: each algorithm its voice
             tr("tune_flu", "flute", gain="-11dB", pan=-0.1, sends={"dly": "-10dB"}),
