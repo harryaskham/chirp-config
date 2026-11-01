@@ -25,6 +25,21 @@ def nm(m): return f"{NN[m % 12]}{m // 12 - 1}"
 # (v9) a peak-time form, not the tape's template: a short eight-bar lift instead of a sixteen-bar break, and a long
 # forty-eight-bar peak - a plateau should stay up
 FORM = [('intro', 16), ('A', 32), ('B', 24), ('break', 8), ('C', 48), ('outro', 16)]
+# (v20) THE HARMONY EVOLVES (Harry, 1 Nov: 'very simple progressions of 4, 8, 16 bars'): over the F pedal the upper
+# harmony moves in uneven spans (five bars or more), the tonic grows its eleventh, and a borrowed flat-two (G-flat
+# major 7 sharp 11, the Neapolitan) darkens the second groove and the peak
+FM11 = (41, [60, 63, 65, 67, 70])
+GBN = (42, [61, 65, 66, 70, 72])
+SPANS = {'A': [(7, 0), (5, 1), (9, 2), (6, FM11), (5, 3)],
+         'B': [(6, 1), (5, 2), (7, GBN), (6, 3)],
+         'C': [(6, 0), (6, 1), (7, 2), (5, GBN), (8, FM11), (5, 1), (11, 3)]}
+def span_chord(s, i):
+    at = 0
+    for n, c in SPANS[s]:
+        if i < at + n:
+            return (CH[c] if isinstance(c, int) else c), i == at
+        at += n
+    return CH[0], False
 LEN = dict(FORM)
 # (v12) darker and wonkier (Harry, 31 Oct): Fm9 - Dbmaj7#11 - Bbm11 - C7b9; the major seventh gets its sharp eleventh,
 # the dominant its flat ninth
@@ -61,6 +76,9 @@ def build():
     for k, b in enumerate(bars):
         s, t0, i = b['sec'], b['t'], b['i']
         root, ch = CH[(k // 4) % 4]          # four bars a chord: the plateau moves slowly
+        new_ch = False
+        if s in SPANS:
+            (root, ch), new_ch = span_chord(s, i)
         if s != 'break':
             for q in range(4):
                 T['kit'].append((t0 + q, 'kd' if s == 'C' else 'k', 0.25, 118 if q == 0 else 110))
@@ -112,7 +130,7 @@ def build():
                     # (v7) except at the very top: the peak's last eight bars hang on a C pedal, the dominant, so the rush
                     # strains against a floor that wants to fall home - and the outro's F lands it
                     T['bass'].append((t0 + q * 0.25, nm((36 if (s == 'C' and i >= LEN['C'] - 8) else 41) + 12 + o), 0.2, 100 if q % 4 == 2 else 84))
-        if s in ('A', 'B', 'C') and k % 4 in (0, 2):
+        if s in ('A', 'B', 'C') and (k % 4 in (0, 2) or new_ch):
             T['stab'].append((t0 + 0.5, ','.join(nm(m) for m in ch), 0.4, 92))
         # THE STAIR on the stab: in B and C, every other bar, F G Ab C on the off-beats
         if s in ('B', 'C') and k % 2 == 1:
