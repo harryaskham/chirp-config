@@ -76,7 +76,8 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 | feature | commit | built by | showcased by |
 |---|---|---|---|
 | microtonal `tuning` (song or track): `{edo: 19}`, `{edo: 13, period: 3/1}` (Bohlen-Pierce), `{steps: [9/8, 5/4, …, 2/1]}` (scala ratios/cents), `root`, `map: nearest` (written notes snap) or `keys` (keys count steps); a list retunes over time with `ramp`; score `~N` plays step N exactly (README "Microtonal tunings") | a657923e | wM | t1 (chirper-one: a tuning list with ramps, 5 -> 12 -> 24 -> 96 EDO, speech pitches snapping to a sharpening grid) |
-| complex systems: track `gen` (notes after the score from a `notes` pool) and var `system` (steps): `logistic` (r), `lorenz` (attractor, axis), `ca` (rule 0-255, width, poly; on kit pieces a drum machine), `lsystem` (axiom, rules, depth; turtle +/- [ ]), `markov` (order, learnt from score tokens in `from`); seeded (README "Complex systems") | d082b8f5; t4 (chirper-three, sorting algorithms) | wM | |
+| complex systems: track `gen` (notes after the score from a `notes` pool) and var `system` (steps): `logistic` (r), `lorenz` (attractor, axis), `ca` (rule 0-255, width, poly; on kit pieces a drum machine), `lsystem` (axiom, rules, depth; turtle +/- [ ]), `markov` (order, learnt from score tokens in `from`); seeded (README "Complex systems") | d082b8f5; t4 (chirper-three, sorting algorithms) | wM | t1 (chirper-one: gen markov orders 1/2/3 learnt from a voice, gen ca rule 90 rim) |
+| `morph` fx with `key: TRACK` (pre-fader; mute the key): `mode: morph` blends two spectra (`amount` 0 = this track, 1 = the key; automate it to turn a pad into a drum loop), `mode: cross` gives this track the key's spectral envelope (strings that speak a tts line) (README "morph") | 8ef47431 | wM | |
 
 ## Measured (chirp-eco)
 Not measured yet: coverage appears here once songs exist.

@@ -123,17 +123,10 @@ def build():
             at += d_
             hist.append(nxt)
         return out
-    P['babble'] = (markov(1, 32 * 4, 11, secs['A'] * 4.0) + markov(2, 32 * 4, 12, secs['B'] * 4.0)
+    mean_len = sum(float(c.split('/')[1][:-1]) for c in corpus) / len(corpus)
+    def steps(nbars): return max(8, int(round(nbars * 4 / mean_len)))
+    _unused = (markov(1, 32 * 4, 11, secs['A'] * 4.0) + markov(2, 32 * 4, 12, secs['B'] * 4.0)
                    + markov(1, 8 * 4, 13, secs['break'] * 4.0) + markov(3, 32 * 4, 14, secs['C'] * 4.0))
-    # the rim, written by an elementary cellular automaton (rule 90, Sierpinski) over 16 cells: one generation a bar,
-    # its live cells read as the bar's sixteenths
-    cells = [0] * 16; cells[8] = 1
-    for b in range(secs['B'], secs['D'] + 16):
-        for q in range(16):
-            if cells[q]:
-                P['ca'].append((b * 4.0 + q * 0.25, 'rs' if q % 4 else 'cb', 0.2, 66 + 4 * (q % 3)))
-        cells = [cells[(q - 1) % 16] ^ cells[(q + 1) % 16] for q in range(16)]
-        if not any(cells): cells[8] = 1
     # D: the machine says it back - the exact contour of each take, two octaves up, with the voice
     for v in VOICE:
         if secs['D'] < v['bar'] <= secs['D'] + 16:
@@ -164,13 +157,25 @@ def build():
              'fx': [{'type': 'pitch', 'semitones': 0, 'formant': {'value': 0, 'mod': [{'src': 'auto.fv', 'amount': 1}]}}],
              'auto': {'fv': {'points': fv}}, 'sends': {'hall': '-14dB', 'echo': '-16dB'}},
             # THE BABBLE: the engine's own Markov chains over the corpus, longer memory each groove, on a tuning that sharpens
-            tr('babble', FMV, '-11dB', pan=0.2, tuning=babble_tuning, sends={'echo': '-10dB', 'hall': '-14dB'}),
+            # (v3) THE ENGINE LEARNS IT ITSELF: the babble is now the engine's own gen markov over the corpus (wM's complex
+            # systems, d082b8f5) - four chains played in turn (memory 1, 2, then 1 again for the break, then 3), each long
+            # enough to fill its section - on the sharpening tuning
+            {'name': 'babble', 'patch': FMV, 'gain': '-11dB', 'pan': 0.2, 'tuning': babble_tuning,
+             'score': f"R/{secs['A'] * 4}b",
+             'gen': [{'type': 'markov', 'order': o_, 'from': ' '.join(corpus), 'n': steps(nb_), 'seed': sd_}
+                     for o_, nb_, sd_ in ((1, 32, 11), (2, 32, 12), (1, 8, 13), (3, 32, 14))],
+             'sends': {'echo': '-10dB', 'hall': '-14dB'}},
             tr('say', FMV, '-9dB', pan=0.2, sends={'echo': '-12dB', 'hall': '-12dB'}),
             tr('sub', 'sub', '-6dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-5dB', 'release': '260ms', 'curve': 0.6}]),
             tr('bass', 'analog-bass', '-12dB', fx=['lp cutoff=1100']),
             tr('kit', 'machine-kit', '-6dB', sends={'hall': '-18dB'}),
             # a rim written by a cellular automaton (rule 90, Sierpinski), sixteenths, from the second groove
-            tr('ca', 'machine-kit', '-13dB', pan=-0.3, sends={'echo': '-14dB'}),
+            # the rim: the engine's own elementary cellular automaton (gen ca, rule 90, Sierpinski) over 16 cells, a
+            # generation every sixteenth, from the second groove to the end of the said-back groove
+            {'name': 'ca', 'patch': 'machine-kit', 'gain': '-13dB', 'pan': -0.3, 'score': f"R/{secs['B'] * 4}b",
+             'gen': {'type': 'ca', 'rule': 90, 'width': 16, 'init': 'center', 'poly': 1, 'notes': 'rs rs cb rs',
+                     'n': (secs['D'] + 16 - secs['B']) * 16, 'len': '/16'},
+             'sends': {'echo': '-14dB'}},
         ]}
     return song
 
