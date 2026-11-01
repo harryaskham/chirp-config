@@ -45,6 +45,8 @@ SWAPBARS = int(os.environ.get("C7T15_SWAPBARS", "16"))  # how many overlap bars 
 EQ6 = os.environ.get("C7T15_EQ6", "b")  # "a": 45 Hz -5 dB (37-60 Hz read 6-9 dB over the album); "b": also 3.8 kHz +4 dB (3-5 kHz read 6-8 dB under)
 DARK = os.environ.get("C7T15_DARK", "1") == "1"  # Harry 15:00 'darker': Cm11, Abmaj7#11, G7b9 (the dominant with its flat ninth), Fm9
 WOW = os.environ.get("C7T15_WOW", "1") == "1"  # Harry 15:00 'slight wow on ONE element': the dub stabs alone through a worn tape (wow 10 cents, flutter 1.5)
+EVO = os.environ.get("C7T15_EVO", "1") == "1"  # Harry's third steer (1 Nov 01:15: 'very simple progressions of 4, 8, 16 bars ... formulaic'): the harmony evolves - intro 2-bar chords; A a 6-bar cycle with the Neapolitan Dbmaj7#11; the break a G pedal (a held G1, new) under Ab, Fm9, Eb and Db in 9+7+9+7 bars; B1 a 5-bar cycle with a borrowed Bbm9; B2 (E-flat minor) a 7-bar cycle; r2 a 3-bar cycle; the outro home to the 4-bar loop
+SPIRAL = os.environ.get("C7T15_SPIRAL", "-14")  # a Shepard-Risset spiral (risset pitch: true) over B bars 25-32 into the lift to E-flat minor; value = gain dB
 BED = os.environ.get("C7T15_BED", "2")  # Harry 14:50, 'most tracks have no illusion': the Risset decelerando leads. "1": the bed also under intro bars 17-32, all of A and the outro's first 16 (never more than one break without it); "2": as 1, and under B's last 16 bars an ACCELERATING bed (panned the other way) runs against the slowing one - poly accel/decel over a kick that never changes
 BEDG = os.environ.get("C7T15_BEDG", "-9")  # the beds' level (was -9 dB: compscore's illusion survey read them 11 LU under the mix)
 BEDLV = os.environ.get("C7T15_BEDLV", "-8,-6,2,-3,-3,-1,-6")  # per-bed levels (dB): intro,A,break,B,rise,r2,outro - the bed swells and recedes with the form
@@ -63,6 +65,30 @@ CHD = [(36, [58, 62, 63, 65]),   # Cm11: Bb3 D4 Eb4 F4
        (32, [55, 60, 62, 63]),   # Abmaj7#11: G3 C4 D4 Eb4
        (31, [53, 56, 59, 62]),   # G7b9: F3 Ab3 B3 D4
        (29, [51, 55, 56, 60])]   # Fm9: Eb3 G3 Ab3 C4
+LIB = {"Cm11": (36, [58, 62, 63, 65]), "Cm9": (36, [58, 62, 63, 67]), "Abmaj7#11": (32, [55, 60, 62, 63]), "G7b9": (31, [53, 56, 59, 62]),
+       "Fm9": (29, [51, 55, 56, 60]), "Dbmaj7#11": (25, [53, 55, 60, 63]), "Bbm9": (34, [53, 56, 60, 61]), "Ebmaj9": (27, [55, 58, 62, 65]),
+       "Ab/G": (31, [55, 60, 62, 63]), "Fm9/G": (31, [51, 55, 56, 60]), "Eb/G": (31, [55, 58, 62, 65]), "Db/G": (31, [53, 55, 60, 63])}
+STAIR_UP = {"about": "chirper-two's c2-stair: the Shepard tone that climbs for ever", "synth": {"layers": [{"type": "shepard", "shepard": {"octaves": 8, "center": "600hz", "width": 1.1}}], "amp": {"a": "4ms", "d": "700ms", "s": 0.25, "r": "400ms", "curve": 2}}}  # t14's Shepard stair voice
+BRK_PLAN = ["Ab/G"] * 9 + ["Fm9/G"] * 7 + ["Eb/G"] * 9 + ["Db/G"] * 7
+
+
+def plan(sec, b):
+    """EVO: the chord for bar b of a section - irregular cycles that move."""
+    if sec == "intro":
+        return LIB[["Cm11", "Cm11", "Abmaj7#11", "Abmaj7#11", "Fm9", "Fm9", "G7b9", "G7b9"][b % 8]]
+    if sec == "A":
+        return LIB[["Cm11", "Cm9", "Abmaj7#11", "Fm9", "Dbmaj7#11", "G7b9"][b % 6]]
+    if sec == "break":
+        return LIB[BRK_PLAN[b]]
+    if sec == "B" and b < 32:
+        return LIB[["Cm11", "Fm9", "Bbm9", "Abmaj7#11", "G7b9"][b % 5]]
+    if sec == "B":
+        return LIB[["Cm11", "Abmaj7#11", "Fm9", "Dbmaj7#11", "Bbm9", "G7b9", "G7b9"][(b - 32) % 7]]
+    if sec == "r2":
+        return LIB[["Cm11", "Abmaj7#11", "G7b9"][b % 3]]
+    return CHD[b % 4]
+
+
 TRACKS = ("kick", "hats", "clap", "sub", "stab", "pad", "rims", "stair", "kickin")
 
 
@@ -125,7 +151,7 @@ def build():
         a0 = sec_start(sec)
         for b in range(nb):
             at = a0 + b * BAR
-            r, v = (CHD if DARK else CH)[b % 4]
+            r, v = plan(sec, b) if EVO else (CHD if DARK else CH)[b % 4]
             ku = KEYUP if (sec == "B" and b >= 32) else 0
             r, v = r + ku, [n + ku for n in v]
             seam_in = sec == "intro" and b < 16
@@ -181,7 +207,14 @@ def build():
                 for k, n in enumerate((60, 62, 63, 67)):
                     add("stair", at + 4 * k, nm(n + 12), 3, 86 - 2 * k)
             # --- the glass pad under the break
-            if sec == "break" and b % 4 == 0:
+            if sec == "break" and EVO:
+                if b == 0 or BRK_PLAN[b] != BRK_PLAN[b - 1]:
+                    ln = next((j for j in range(b + 1, nb) if BRK_PLAN[j] != BRK_PLAN[b]), nb) - b
+                    if ALONE and b < 29:
+                        ln = min(ln, 29 - b)   # the bed still alone from bar 30
+                    add("pad", at, ",".join(nm(n) for n in v), ln * BAR, 80)
+                    add("sub", at, "G1", ln * BAR, 70)   # the pedal
+            elif sec == "break" and b % 4 == 0:
                 add("pad", at, ",".join(nm(n) for n in v), (BAR if (ALONE and b == 28) else 4 * BAR), 80)
     if SWAP:
         ev["kickin"] = [e for e in ev["kick"] if e[0] < SWAPBARS * BAR]
@@ -260,6 +293,9 @@ def song():
             "hall": {"fx": ["reverb kind=hall decay=5s size=1 mix=1 predelay=40ms", "lp cutoff=7000"]},
         },
         "tracks": [
+            *([{"name": "spiral", "patch": "stair-up", "gain": f"{SPIRAL}dB", "pan": 0.15, "at": f"{(sec_start('B') + 24 * BAR) // 4}b",
+                "risset": {"cycle": "4bar", "layers": 4, "length": "8bar", "pitch": True}, "sends": {"dub": "-12dB"},
+                "score": " ".join(f"{n}/0.25b" for n in "C4 Eb4 G4 Bb4 G4 Eb4 D4 G4 C4 Eb4 G4 Ab4 G4 Eb4 D4 G4".split())}] if SPIRAL else []),
             *([{"name": "eriser", "patch": "fx-riser-endless amp.a=32b", "gain": f"{ERISER}dB", "score": f"R/{sec_start('break') // 4 + 29 * 4 - 32}b C4/32b@100"}] if ERISER else []),
             {"name": "kick", "patch": "machine-kit", "gain": f"{KGAIN}dB", **({"fx": [{"type": "clip", "ceiling": f"{KCLIP}dB", "knee": 0.7, "link": True}]} if KCLIP else {}),
              "score": T["kick"]},
@@ -284,7 +320,9 @@ def song():
 
 
 def dump(doc):
-    lines = [f"{k}: {json.dumps(doc[k])}" for k in ("about", "tempo", "ceiling", "loudness", "tail", "master") if k in doc]
+    if SPIRAL:
+        doc.setdefault("patches", {})["stair-up"] = STAIR_UP
+    lines = [f"{k}: {json.dumps(doc[k])}" for k in ("about", "tempo", "ceiling", "loudness", "tail", "patches", "master") if k in doc]
     lines.append("buses:")
     lines += [f"  {b}: {json.dumps(v)}" for b, v in doc["buses"].items()]
     lines.append("tracks:")
