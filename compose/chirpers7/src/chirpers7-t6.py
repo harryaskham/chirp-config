@@ -154,6 +154,17 @@ for _b, _c in zip(range(69, 81), [(0, M11)] * 4 + [(1, MAJ7S11)] * 4 + [(7, D7S9
     GROOVE_CHORD[_b] = _c
 
 
+# v18: THE SECOND DROP'S HARMONY, 9 + 7 + 4 + 4 instead of the one-bar loop: FALLING THIRDS under the climbing stair
+# (121-129: Dmaj7#11, Bm11, Gmaj7#11, three bars each - the chords sink while the stair nobody plays rises); a darker
+# turn (130-136: Em9, C#7b9, Dmaj9, C#7#9); HOME IN NOIR under the stair's last climb (137-140: F#m(maj9), its E#
+# rubbing on the F#); the REVEAL plain home (141-144: F#m11). B now sits at B1, not B0 (31 Hz).
+MAJ9 = (0, 4, 7, 11, 14)
+for _b, _c in zip(range(121, 145), [(8, MAJ7S11)] * 3 + [(5, M11)] * 3 + [(1, MAJ7S11)] * 3
+                  + [(10, M9)] * 2 + [(7, D7B9)] * 2 + [(8, MAJ9)] + [(7, D7S9)] * 2
+                  + [(0, MM9)] * 4 + [(0, M11)] * 4):
+    GROOVE_CHORD[_b] = _c
+
+
 def in_pedal(bar):
     return any(a <= bar <= z for a, z in PEDALS)
 
