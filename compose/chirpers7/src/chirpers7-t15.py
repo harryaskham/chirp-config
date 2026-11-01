@@ -47,6 +47,7 @@ DARK = os.environ.get("C7T15_DARK", "1") == "1"  # Harry 15:00 'darker': Cm11, A
 WOW = os.environ.get("C7T15_WOW", "1") == "1"  # Harry 15:00 'slight wow on ONE element': the dub stabs alone through a worn tape (wow 10 cents, flutter 1.5)
 EVO = os.environ.get("C7T15_EVO", "1") == "1"  # Harry's third steer (1 Nov 01:15: 'very simple progressions of 4, 8, 16 bars ... formulaic'): the harmony evolves - intro 2-bar chords; A a 6-bar cycle with the Neapolitan Dbmaj7#11; the break a G pedal (a held G1, new) under Ab, Fm9, Eb and Db in 9+7+9+7 bars; B1 a 5-bar cycle with a borrowed Bbm9; B2 (E-flat minor) a 7-bar cycle; r2 a 3-bar cycle; the outro home to the 4-bar loop
 SPIRAL = os.environ.get("C7T15_SPIRAL", "-14")  # a Shepard-Risset spiral (risset pitch: true) over B bars 25-32 into the lift to E-flat minor; value = gain dB
+DRAG = os.environ.get("C7T15_DRAG", "104")  # Harry's third steer ('accelerando / decelerando ... as structure'): the title enacted at the scale of the track - through r2 the real tempo drags from 124 down to DRAG bpm, and on the outro's downbeat it is 124 again: it got slower and slower and is exactly where it began (a Risset decelerando the size of a section); the outro's own ramp to 123 for the seam is untouched
 VOX = os.environ.get("C7T15_VOX", "-14")  # Harry's third steer ('voice under or through things ... speech-to-song where the repetition really becomes melody', sparingly): over the break's bars 9-20 a distant human voice (wM's chirp tts: 'ever slower' --humanize 0.7 --repeat 6 --melodize 0..1 --melody 'G3 Eb3 D3 C3') says the words and, repetition by repetition, sings them onto the falling stair - through a radio band into the dub's echo; value = gain dB
 BED = os.environ.get("C7T15_BED", "2")  # Harry 14:50, 'most tracks have no illusion': the Risset decelerando leads. "1": the bed also under intro bars 17-32, all of A and the outro's first 16 (never more than one break without it); "2": as 1, and under B's last 16 bars an ACCELERATING bed (panned the other way) runs against the slowing one - poly accel/decel over a kick that never changes
 BEDG = os.environ.get("C7T15_BEDG", "-9")  # the beds' level (was -9 dB: compscore's illusion survey read them 11 LU under the mix)
@@ -259,7 +260,8 @@ def song():
     st = {sec: sec_start(sec) for sec, _ in FORM}
     beats = lambda t16: f"{t16 // 4}b"  # noqa: E731
     total_b = total_steps() // 4
-    tempo = [{"at": "0b", "bpm": BPM0}, {"at": beats(st["outro"]), "bpm": BPM0}, {"at": f"{total_b - 64 if RAMP16 else total_b}b", "bpm": BPM1, "ramp": True}]
+    tempo = [{"at": "0b", "bpm": BPM0}, *([{"at": beats(st["r2"]), "bpm": BPM0}, {"at": f"{st['outro'] // 4 - 1}b", "bpm": float(DRAG), "ramp": True}] if DRAG else []),
+             {"at": beats(st["outro"]), "bpm": BPM0}, {"at": f"{total_b - 64 if RAMP16 else total_b}b", "bpm": BPM1, "ramp": True}]
     pump = {"type": "pump", "on": "kick.k", "depth": "-5dB", "attack": "2ms", "release": "200ms", "curve": 0.7}
     pumpr = {"type": "pump", "on": "kick.kr", "depth": "-5dB", "attack": "2ms", "release": "200ms", "curve": 0.7}
     # the dub's feedback: settled in the grooves, climbing through the break, falling into B
