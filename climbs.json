@@ -7464,7 +7464,14 @@
         "score": 91.16,
         "version": "v16",
         "commit": "see git log songs/chirpers7-t9.yaml",
-        "judged": true
+        "judged": true,
+        "stale": {
+          "score": 91.16,
+          "since": "2026-11-01T06:43:00Z",
+          "who": "chirper-zero",
+          "rating": 9.0,
+          "version": "v16"
+        }
       },
       "passes": 1,
       "enabled": true,
