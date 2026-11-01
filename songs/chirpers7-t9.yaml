@@ -505,19 +505,46 @@
    }
   },
   {
-   "name": "voice",
+   "name": "phL",
    "patch": "voice-speech",
-   "score": "R/92b G#3/0.5b@70^ph=w-ah1-n^f0=0>-30 R/31.5b G#3/0.5b@70^ph=w-ah1-n^f0=0>-30 R/181b G#3/0.45b@78^ph=w-ah1-n^f0=0>-20 R/7.55b G#3/0.45b@78^ph=w-ah1-n^f0=0>-20 R/6.05b C#4/0.5b@82^ph=w-ah1-n^f0=0>-20 R/1b C#4/0.5b@80^ph=t-uw1^f0=0>-10 R/1b C#4/0.5b@78^ph=th-r-iy1^f0=0>-30 R/1b C#4/0.5b@82^ph=w-ah1-n^f0=0>-20 R/1b C#4/0.5b@80^ph=t-uw1^f0=0>-10 R/1b C#4/0.5b@78^ph=th-r-iy1^f0=0>-30 R/1b C#4/0.5b@82^ph=w-ah1-n^f0=0>-20 R/1b C#4/0.5b@80^ph=t-uw1^f0=0>-10 R/1b C#4/0.5b@78^ph=th-r-iy1^f0=0>-30 R/1b C#4/0.5b@82^ph=w-ah1-n^f0=0>-20 R/1b C#4/0.5b@80^ph=t-uw1^f0=0>-10 R/1b C#4/0.5b@78^ph=th-r-iy1^f0=0>-30 R/1b C#4/0.5b@82^ph=w-ah1-n^f0=0>-20 R/1b C#4/0.5b@80^ph=t-uw1^f0=0>-10 R/1b C#4/0.5b@78^ph=th-r-iy1^f0=0>-30 R/1b C#4/0.5b@82^ph=w-ah1-n^f0=0>-20 R/1b C#4/0.5b@80^ph=t-uw1^f0=0>-10 R/1b C#4/0.5b@78^ph=th-r-iy1^f0=0>-30 R/1b C#4/0.5b@82^ph=w-ah1-n^f0=0>-20 R/1b C#4/0.5b@80^ph=t-uw1^f0=0>-10 R/1b C#4/0.5b@78^ph=th-r-iy1^f0=0>-30 R/1.5b B3/0.6b@100^ph=w-ah1-n^f0=0>-60 R/351.4b",
-   "gain": "-6dB",
-   "pan": -0.2,
+   "score": "R/92b G#3/0.5b@66^ph=w-ah1-n^f0=0>-30 R/31.5b G#3/0.5b@66^ph=w-ah1-n^f0=0>-30 R/195.5b G#3/0.7b@80^ph=w-ah1-n^f0=0>-6 R/0.8b G#3/0.7b@74^ph=w-eh1-r^f0=0>-4 R/0.8b G#3/0.7b@80^ph=w-ah1-n^f0=0>-6 R/0.8b G#3/0.7b@74^ph=w-eh1-r^f0=0>-4 R/0.8b G#3/0.7b@80^ph=w-ah1-n^f0=0>-6 R/0.8b G#3/0.7b@74^ph=w-eh1-r^f0=0>-4 R/0.8b G#3/0.7b@80^ph=w-ah1-n^f0=0>-6 R/0.8b G#3/0.7b@74^ph=w-eh1-r^f0=0>-4 R/0.8b G#3/0.7b@80^ph=w-ah1-n^f0=0>-6 R/0.8b G#3/0.7b@74^ph=w-eh1-r^f0=0>-4 R/0.8b G#3/0.7b@80^ph=w-ah1-n^f0=0>-6 R/0.8b G#3/0.7b@74^ph=w-eh1-r^f0=0>-4 R/0.8b G#3/0.7b@80^ph=w-ah1-n^f0=0>-6 R/0.8b G#3/0.7b@74^ph=w-eh1-r^f0=0>-4 R/0.8b G#3/0.7b@80^ph=w-ah1-n^f0=0>-6 R/0.8b G#3/0.7b@74^ph=w-eh1-r^f0=0>-4 R/0.8b G#3/0.7b@80^ph=w-ah1-n^f0=0>-6 R/0.8b G#3/0.7b@74^ph=w-eh1-r^f0=0>-4 R/0.8b G#3/0.7b@80^ph=w-ah1-n^f0=0>-6 R/0.8b G#3/0.7b@74^ph=w-eh1-r^f0=0>-4 R/0.8b G#3/0.7b@80^ph=w-ah1-n^f0=0>-6 R/1.3b G#3/0.8b@86^ph=w-ah1-n^f0=0>-12 R/351.2b",
+   "gain": "-10dB",
+   "pan": -1.0,
    "sends": {
-    "dub": "-8dB"
+    "dub": "-14dB"
    },
    "fx": [
     {
      "type": "filter",
      "kind": "hp",
-     "cutoff": 150
+     "cutoff": 450
+    },
+    {
+     "type": "filter",
+     "kind": "lp",
+     "cutoff": 2600
+    }
+   ]
+  },
+  {
+   "name": "phR",
+   "patch": "voice-speech",
+   "score": "R/92b G#3/0.5b@66^ph=w-ah1-n^f0=0>-30 R/31.5b G#3/0.5b@66^ph=w-ah1-n^f0=0>-30 R/203.5b G#3/0.7b@74^ph=w-eh1-r^f0=0>-4 R/0.8b G#3/0.7b@80^ph=w-ah1-n^f0=0>-6 R/0.8b G#3/0.7b@74^ph=w-eh1-r^f0=0>-4 R/0.8b G#3/0.7b@80^ph=w-ah1-n^f0=0>-6 R/0.8b G#3/0.7b@74^ph=w-eh1-r^f0=0>-4 R/0.8b G#3/0.7b@80^ph=w-ah1-n^f0=0>-6 R/0.8b G#3/0.7b@74^ph=w-eh1-r^f0=0>-4 R/0.8b G#3/0.7b@80^ph=w-ah1-n^f0=0>-6 R/0.8b G#3/0.7b@74^ph=w-eh1-r^f0=0>-4 R/0.8b G#3/0.7b@80^ph=w-ah1-n^f0=0>-6 R/0.8b G#3/0.7b@74^ph=w-eh1-r^f0=0>-4 R/0.8b G#3/0.7b@80^ph=w-ah1-n^f0=0>-6 R/0.8b G#3/0.7b@74^ph=w-eh1-r^f0=0>-4 R/0.8b G#3/0.7b@80^ph=w-ah1-n^f0=0>-6 R/0.8b G#3/0.7b@74^ph=w-eh1-r^f0=0>-4 R/0.8b G#3/0.7b@80^ph=w-ah1-n^f0=0>-6 R/0.8b G#3/0.8b@86^ph=w-ah1-n^f0=0>-12 R/351.2b",
+   "gain": "-10dB",
+   "pan": 1.0,
+   "sends": {
+    "dub": "-14dB"
+   },
+   "fx": [
+    {
+     "type": "filter",
+     "kind": "hp",
+     "cutoff": 450
+    },
+    {
+     "type": "filter",
+     "kind": "lp",
+     "cutoff": 2600
     }
    ]
   }

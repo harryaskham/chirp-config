@@ -226,7 +226,8 @@ def frame_the_holes():
         v = voicing(r)
         part("throw").add(b0(g) - 0.5, 0.25, ",".join(nm(m) for m in v), 92)
         if g in (24, 32):
-            part("voice").add(b0(g), 0.5, "G#3^ph=w-ah1-n^f0=0>-30", 70)
+            for side in ("phL", "phR"):                       # v13: the whisper through the radio band, both sides
+                part(side).add(b0(g), 0.5, "G#3^ph=w-ah1-n^f0=0>-30", 66)
 
 
 def riser():
@@ -276,19 +277,25 @@ def stair_and_voice():
     for bar in list(range(33, 41, 2)) + list(range(121, 137, 4)):
         for k, iv in enumerate((0, 2, 3, 7)):
             part("stair").add(b0(bar) + 0.5 + k * 0.75, 0.6, nm(GS1 + 36 + iv), 78 + 5 * k)
-    # the voice counting "one" where the hemiola puts its accent (every three eighths): never on the true one
-    # v2: from bar 81 the voice COUNTS the hemiola aloud - one, two, three on its dotted-quarter pulse, against the
-    # bar's four - talking the ear into the wrong meter; then "one" on the TRUE downbeat as the drop lands (bar 89)
-    words = [("w-ah1-n", "0>-20", 0), ("t-uw1", "0>-10", -2), ("th-r-iy1", "0>-30", -4)]
-    for k in range(int((b0(89) - b0(81)) * 2 // 3)):             # every three eighths from bar 81
-        at = b0(81) + k * 1.5
-        if at >= b0(89) - 0.5:
-            break
-        ph, f0, dv = words[k % 3]
-        part("voice").add(at, 0.5, f"C#4^ph={ph}^f0={f0}", 82 + dv)          # v6: counting in C#
-    for bar in range(77, 81, 2):                                  # before the count: a lone "one" in the wrong place
-        part("voice").add(b0(bar) + 1.5, 0.45, "G#3^ph=w-ah1-n^f0=0>-20", 78)
-    part("voice").add(b0(89), 0.6, "B3^ph=w-ah1-n^f0=0>-60", 100)    # home
+    # v13 (Harry's third steer: 'our robotic vox is not subtle enough or illusory enough'): the counting voice, the lone
+    # 'one's and the shouted ONE are gone. PHANTOM WORDS (Deutsch) through the dark break instead: a two-syllable loop,
+    # 'one . where', each syllable a dotted quarter (the loop three beats long: the hemiola, unexplained), on two
+    # copies hard left and right through a distant radio band, the right a syllable behind the left - one side says
+    # 'one where one where' while the other says 'where one where one', and the ear assembles words that are not
+    # there ('wonder', 'nowhere', 'where-one'). The left starts alone at 81; the right joins at 83. At 89 the phantom
+    # RESOLVES: both say 'one' together, on the true downbeat, quietly into the dub.
+    syl = [("w-ah1-n", "0>-6"), ("w-eh1-r", "0>-4")]
+    for side, start, shift in (("phL", 81, 0), ("phR", 83, 1)):
+        k = 0
+        while True:
+            at = b0(start) + k * 1.5
+            if at >= b0(89) - 0.75:
+                break
+            ph, f0 = syl[(k + shift) % 2]
+            part(side).add(at, 0.7, f"G#3^ph={ph}^f0={f0}", 74 + (6 if (k + shift) % 2 == 0 else 0))
+            k += 1
+    for side in ("phL", "phR"):
+        part(side).add(b0(89), 0.8, "G#3^ph=w-ah1-n^f0=0>-12", 86)
 
 
 LEVEL = {"intro": -8, "A": -4, "turn": -3, "back": -3, "break": -8, "drop": 0, "outro": -5}
@@ -375,8 +382,12 @@ def main():
             tr("cowbell", "machine-kit", gain="-10dB", pan=-0.25, sends={"dub": "-12dB"}),
             tr("ride", "machine-kit", gain="-6dB", pan=0.2),
             tr("stair", "celesta", gain="-8dB", pan=0.3, sends={"dub": "-4dB"}),
-            tr("voice", "voice-speech", gain="-6dB", pan=-0.2, sends={"dub": "-8dB"},
-               fx=[{"type": "filter", "kind": "hp", "cutoff": 150}]),
+            # v13: the phantom words - two copies, hard left and right, through a distant radio band (Deutsch played his
+            # on two loudspeakers: it reads on speakers and on headphones)
+            tr("phL", "voice-speech", gain="-10dB", pan=-1.0, sends={"dub": "-14dB"},
+               fx=[{"type": "filter", "kind": "hp", "cutoff": 450}, {"type": "filter", "kind": "lp", "cutoff": 2600}]),
+            tr("phR", "voice-speech", gain="-10dB", pan=1.0, sends={"dub": "-14dB"},
+               fx=[{"type": "filter", "kind": "hp", "cutoff": 450}, {"type": "filter", "kind": "lp", "cutoff": 2600}]),
         ],
     }
     with open(OUT, "w") as f:
