@@ -83,18 +83,23 @@ def build():
         root, ch = root + tp, [m + tp for m in ch]
         first = k % 2 == 0
         drums = s not in ('break',)
+        # (v21) THE STAIR SPIRALS (a transition that is not a build and drop): over the first groove's last six bars the
+        # groove thins to kick, hats and the seven-cycle toms - no claps, no bass answers, no Rhodes - while a plucked
+        # stair turns as a Shepard-Risset spiral (rising and speeding up for ever), and the second groove lands out of it
+        spi = s == 'A' and i >= 18
         if drums:
             full = s in ('A', 'B', 'C')
             for q in range(4):
                 # (v4/v5) THE BASS SWAP: for the intro's first eight bars the kick is high-passed (t2 keeps the low end); at bar 9,
                 # the overlap's midpoint, the full kick and an E sub take over - under the groove's linear crossfade the lows
                 # change hands where both sides are at half level, so there's no hole and no doubling
-                T['kthin' if (s == 'intro' and i < 8) else 'kit'].append((t0 + q, 'k', 0.25, (118 if q == 0 else 110)))
+                if not spi or q == 0:      # (v21) under the spiral the kick only marks each downbeat
+                    T['kthin' if (s == 'intro' and i < 8) else 'kit'].append((t0 + q, 'k', 0.25, (118 if q == 0 else 110)))
                 T['kit'].append((t0 + q + 0.5, 'oh' if (full or i >= 8) else 'h', 0.25, 84))
                 for x in (0.25, 0.75):
                     # (v15) wonkier (Harry): the 'a' sixteenths swing late in the grooves (about 57%)
                     T['kit'].append((t0 + q + x + (0.05 if (x == 0.75 and full) else 0.02), 'h', 0.25, 64 + (10 if x == 0.75 else 0)))
-            if full or (s == 'outro' and i < 8):
+            if (full and not spi) or (s == 'outro' and i < 8):
                 T['kit'].append((t0 + 1.0, 'cp', 0.25, 96)); T['kit'].append((t0 + 3.0, 'cp', 0.25, 100))
             if s in ('B', 'C') and i % 2 == 1:
                 T['kit'].append((t0 + 3.75 + 0.02, 'rs', 0.25, 70))
@@ -119,6 +124,9 @@ def build():
             T['sub'].append((t0, nm(root), 3.6, 88))   # (v18) the floor holds to the end, under the overlap until the mixer's swap
         if s in ('A', 'B', 'C') or (s == 'outro' and i < 8):
             br = 28 if (s == 'A' and i >= 8) else root     # (v19) an E pedal under the first groove's last sixteen bars
+        if spi:
+            T['sub'].append((t0, nm(28), 3.6, 84))      # (v21) the pedal held long under the spiral
+        if (s in ('A', 'B', 'C') or (s == 'outro' and i < 8)) and not spi:
             T['sub'].append((t0, nm(br), 1.6, 100))
             T['sub'].append((t0 + 2.0, nm(br), 1.0, 92))
             # (v20) the second groove's bass ROLLS: syncopated sixteenths answering the root (the lift where the voice starts
@@ -126,16 +134,16 @@ def build():
             if s == 'B':
                 for q, o, v_ in ((0.75, 12, 78), (1.5, 7, 84), (2.25, 10, 74), (2.75, 12, 80), (3.5, 7, 86)):
                     T['bass'].append((t0 + q + 0.02, nm(br + o), 0.22, v_))
-            elif s != 'outro':
+            elif s != 'outro' and not spi:
                 for q, o in ((1.5, 12), (3.5, 7)):
                     T['bass'].append((t0 + q + 0.02, nm(br + o), 0.4, 84))
         # Rhodes: soulful stabs (the one held, the and-of-2 answered without the root)
-        if (s in ('B', 'C', 'break') or (s == 'A' and i >= 8)):
+        if (s in ('B', 'C', 'break') or (s == 'A' and 8 <= i < 18)):
             if first:
                 T['keys'].append((t0, ','.join(nm(m) for m in ch), 1.8, 84))
             else:
                 T['keys'].append((t0 + 1.5, ','.join(nm(m) for m in ch[1:]), 1.2, 76))
-        if (s in ('intro', 'break', 'outro') or s == 'A') and k % 4 == 0:
+        if ((s in ('intro', 'break', 'outro') or s == 'A') and k % 4 == 0) or (spi and i == 18):
             # (v6) the low Em pad from bar 1 again: the mixer now swaps the lows at the overlap's midpoint, and the pad
             # gives t2's open A-E fifth an E-minor floor to land on
             T['pad'].append((t0, ','.join(nm(m - 12) for m in ch[:3]), 15.8, 70))
@@ -240,6 +248,10 @@ def build():
             # (riser) Harry: 'riser builds (Shepard risers into drops)' - wM's fx-riser-endless: the endless riser under the second groove's last eight bars, stopping dead into the break, where the phrase comes back as plain speech alone
             {'name': 'riser', 'patch': 'fx-riser-endless amp.a=32b', 'gain': '-14dB',
              'score': f'R/{(secs['break'] - 32):.4f}b E4/32b@80'},
+            {'name': 'spiral', 'patch': 'pluck', 'gain': '-11dB', 'pan': 0.2, 'at': f"{secs['A'] + 72:.0f}b", 'sends': {'hall': '-10dB', 'echo': '-14dB'},
+             'fx': ['hp cutoff=200'],
+             'risset': {'cycle': '3bar', 'layers': 3, 'length': '6bar', 'pitch': True},
+             'score': 'E4/8@84 F#4/8@70 G4/8@76 B4/8@72 E5/8@80 B4/8@68 G4/8@74 F#4/8@66'},
             tr('kit', 'machine-kit', '-4dB', sends={'hall': '-18dB'}),
             tr('toms', 'machine-kit', '-10dB', pan=0.3, sends={'hall': '-12dB'}),
             tr('kthin', 'machine-kit', '-3dB', fx=['hp cutoff=110']),
