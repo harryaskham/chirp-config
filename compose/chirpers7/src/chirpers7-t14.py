@@ -38,15 +38,39 @@ STAIRB = os.environ.get("C7T14_STAIRB", "80")  # Harry 21:32 on t10 ('illusions 
 EARHALL = os.environ.get("C7T14_EARHALL", "off")  # the scale illusion's hall send (dB; "off" = dry): each ear must hear only its own notes (chirper-one measured the reverb leak on t7's octave illusion at 19 dB); the hall tail carries every note into the far ear
 HEADLOW = os.environ.get("C7T14_HEADLOW", "10")  # the in-join (compscore: the head 12-16 dB over Track 13's tail at 38-44 Hz and 182 Hz - the held F1 and the kick at full weight): a master low shelf (60 Hz) this many dB down plus 182 Hz at 2/3 of it for the first 4 bars, flat by bar 8
 TAILLOW = os.environ.get("C7T14_TAILLOW", "6")  # the out-join (the tail 9 dB over Slower Forever's head at 38-44 Hz): the same shelf this many dB down over the last 8 bars
+EVO = os.environ.get("C7T14_EVO", "1") == "1"  # Harry's third steer (1 Nov 01:15: 'very simple progressions of 4, 8, 16 bars ... formulaic'): the harmony evolves section by section - intro in 2-bar chords; A a 5-bar cycle against the 4-bar groove (Fm11 Fm9 Gbmaj7#11 Db/Bbm9 C7b9, the fourth chord mutating each pass); the break a C pedal under shifting chords in 5+4+4+3 bars; B1 a 6-bar cycle with a borrowed Ebm9 and a wonky Emaj7#11; B2 (a minor third up) a 7-bar cycle; the outro home to the 4-bar loop
+SPIRAL = os.environ.get("C7T14_SPIRAL", "-14")  # Harry's third steer ('spirals ... into a key change'): a Shepard-Risset spiral (risset pitch: true) climbing over B bars 17-22 into the scales-alone bars and B2's lift; value = gain dB
+FORMX = os.environ.get("C7T14_FORMX", "1") == "1"  # Harry's third steer: irregular section lengths - A 30 bars (six 5-bar cycles), the break 14 (5+4+3+2), B 45 (B1 24 + B2 three 7-bar cycles); intro and outro (the seams) unchanged
 ANTIC = os.environ.get("C7T14_ANTIC", "1") == "1"  # the organ stabs anticipate: on the a-of-1 and the a-of-3 (16ths 3 and 11), jackin' pushes
 
 ERISER = os.environ.get("C7T14_ERISER", "-10")  # wM's endless Shepard riser (fx-riser-endless) over the 8 bars into B: pitch, noise and filter rising for ever, stopping dead on the drop (Harry: 'risers and staircases v good'); level in dB
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
-FORM = [("intro", 32), ("A", 32), ("break", 16), ("B", 48), ("outro", 32)]
+FORM = [("intro", 32), ("A", 30), ("break", 14), ("B", 45), ("outro", 32)] if FORMX else [("intro", 32), ("A", 32), ("break", 16), ("B", 48), ("outro", 32)]
 CH = [(29, [56, 60, 63, 67]),   # Fm9: Ab3 C4 Eb4 G4 over F
       (32, [55, 60, 63, 67]),   # Abmaj7: G3 C4 Eb4 G4 over Ab
       (27, [55, 58, 60, 63]),   # Eb6: G3 Bb3 C4 Eb4 over Eb
       (25, [53, 56, 60, 63])]   # Dbmaj7(9): F3 Ab3 C4 Eb4 over Db
+LIB = {"Fm11": (29, [56, 60, 63, 70]), "Fm9": (29, [56, 60, 63, 67]), "Gbmaj7#11": (30, [53, 58, 60, 61]),
+       "Dbmaj9": (25, [53, 56, 60, 63]), "C7b9": (24, [52, 58, 61, 67]), "Bbm9": (34, [53, 56, 60, 61]),
+       "Ebm9": (27, [54, 58, 61, 65]), "Emaj7#11": (28, [56, 59, 63, 70]),
+       "Db/C": (24, [53, 56, 60, 63]), "Bbm9/C": (24, [53, 56, 60, 61]), "Gb/C": (24, [53, 58, 60, 61])}
+
+
+def plan(sec, b):
+    """EVO: the chord for bar b of a section (root, voicing) - irregular cycles that mutate."""
+    if sec == "intro":
+        return LIB[["Fm11", "Fm11", "Gbmaj7#11", "Gbmaj7#11", "Dbmaj9", "Dbmaj9", "C7b9", "C7b9"][b % 8]]
+    if sec == "A":
+        return LIB[["Fm11", "Fm9", "Gbmaj7#11", "Dbmaj9" if (b // 5) % 2 == 0 else "Bbm9", "C7b9"][b % 5]]
+    if sec == "break":
+        return LIB[((["Db/C"] * 5 + ["Bbm9/C"] * 4 + ["Gb/C"] * 3 + ["C7b9"] * 2) if FORMX else (["Db/C"] * 5 + ["Bbm9/C"] * 4 + ["Gb/C"] * 4 + ["C7b9"] * 3))[b]]
+    if sec == "B" and b < 24:
+        return LIB[["Fm11", "Ebm9", "Dbmaj9", "Emaj7#11", "Fm9", "C7b9"][b % 6]]
+    if sec == "B":
+        return LIB[["Fm11", "Gbmaj7#11", "Dbmaj9", "Bbm9", "Emaj7#11", "C7b9", "C7b9"][(b - 24) % 7]]
+    return CHD[b % 4]
+
+
 ASC = [65, 67, 68, 70, 72, 73, 75, 77]          # F4 G4 Ab4 Bb4 C5 Db5 Eb5 F5 (F natural minor, THE STAIR F G Ab C inside)
 DESC = list(reversed(ASC))
 TRACKS = ("kick", "hats", "clap", "sub", "bass", "organ", "earL", "earR", "pad", "dot", "riser")
@@ -115,7 +139,7 @@ def build():
         a0 = sec_start(sec)
         for b in range(nb):
             at = a0 + b * BAR
-            r, v = (CHD if DARK else CH)[b % 4]
+            r, v = plan(sec, b) if EVO else (CHD if DARK else CH)[b % 4]
             ku = KEYUP if (sec == "B" and b >= 24) else 0
             r, v = r + ku, [n + ku for n in v]
             seam_in = sec == "intro" and b < 16
@@ -184,14 +208,19 @@ def build():
                     left, right = (lo, hi) if i % 2 == 0 else (hi, lo)
                     add("earL", at + q, nm(left), step16, vel)
                     add("earR", at + q, nm(right), step16, vel)
-            if sec == "break" and b % 4 == 0:
+            if sec == "break" and EVO:
+                if b == 0 or plan(sec, b) != plan(sec, b - 1):
+                    ln = next((j for j in range(b + 1, nb) if plan(sec, j) != plan(sec, b)), nb) - b
+                    add("pad", at, ",".join(nm(n) for n in v), ln * BAR, 70)
+                    add("sub", at, "C2", ln * BAR, 72)   # the pedal under the shifting chords
+            elif sec == "break" and b % 4 == 0:
                 add("pad", at, ",".join(nm(n) for n in v), 4 * BAR, 70)
-            if STAIRB and sec == "B" and 24 <= b < 46:
+            if STAIRB and sec == "B" and 24 <= b < nb - 2:
                 for j, q in enumerate((0, 4, 8, 12)):
                     k = (b - 24) * 4 + j
                     add("riser", at + q, nm([65, 67, 68, 72][k % 4] + ku + 12 * (k // 4 % 2)), 4, int(STAIRB))
     if RISER:   # the stair accelerando: step n+1 lands 8 * (1/8)^(t/len) sixteenths after step n across the break's last 8 bars
-        a0, ln = sec_start("break") + 8 * BAR, 8 * BAR
+        a0, ln = sec_start("B") - 8 * BAR, 8 * BAR
         t, k, up = 0.0, 0, [65, 67, 68, 72]
         while t < ln:
             ioi = max(1, round(8 * (0.125 ** (t / ln))))
@@ -255,6 +284,9 @@ def song():
             {"name": "bass", "patch": "bass", "gain": "-14dB", "fx": [pump, {"type": "filter", "kind": "lp", "cutoff": 900, "q": 1.2}], "score": T["bass"]},
             {"name": "organ", "patch": "organ", "gain": "-12dB", "pan": -0.15, "fx": [pump, *([{"type": "tape", "drive": 0.0, "mix": 0.4, "wow": 9, "flutter": 1.5, "drift": 1, "tone": 12000, "seed": 14}] if WOW else [])], "sends": {"room": "-8dB"}, "score": "swing16=0.6 " + T["organ"]},
             *([{"name": "riser", "patch": "stair-up", "gain": "-9dB", "sends": {"hall": "-8dB"}, "score": T["riser"]}] if (RISER or STAIRB) else []),
+            *([{"name": "spiral", "patch": "stair-up", "gain": f"{SPIRAL}dB", "pan": -0.15, "at": f"{(sec_start('B') + 16 * BAR) // 4}b",
+                "risset": {"cycle": "3bar", "layers": 4, "length": "6bar", "pitch": True}, "sends": {"hall": "-10dB"},
+                "score": " ".join(f"{n}/0.25b" for n in "F4 Ab4 C5 Eb5 C5 Ab4 G4 C5 F4 Ab4 C5 Db5 C5 Ab4 G4 C5".split())}] if SPIRAL else []),
             {"name": "earL", "patch": "blip", "gain": f"{SCALEG}dB", "pan": -1, **({"sends": {"hall": f"{EARHALL}dB"}} if EARHALL != "off" else {}), "score": T["earL"]},
             {"name": "earR", "patch": "blip", "gain": f"{SCALEG}dB", "pan": 1, **({"sends": {"hall": f"{EARHALL}dB"}} if EARHALL != "off" else {}), "score": T["earR"]},
             {"name": "pad", "patch": "pad-glass", "gain": "-14dB", "sends": {"hall": "-6dB"}, "score": T["pad"]},
