@@ -66,6 +66,16 @@ R6 = os.environ.get("T4_R6", "riser")
 R7 = os.environ.get("T4_R7", "phantom")
 PHANTOM = [("ah1-p", 71), ("d-aw1-n", 65)]  # "up" on B, "down" on F: a tritone apart
 PH_IN = int(os.environ.get("T4_PH_IN", "2"))  # the break's first bars: toms and the pairs alone, then the words
+# T4_R8 = human (v8, wM's voice tools): the phantom syllables are a human voice now. `chirp tts "up down" --humanize 0.6
+# --repeat 12 --melodize 1 --melody "B2 F2" --key B2 --bpm 119 --seed 4 --print` (committed next to this file as
+# chirpers7-t4-tts.json) says the pair twelve times, from spoken to sung; the break's twelve phantom bars take one
+# repetition each (pitch, the syllable's own f0 path, effort), so the words drift, stress and wobble like speech
+# and then settle onto B and F as song. The peak's return takes the last, sung one. Same phantom grid as v7 (left and
+# right a syllable apart on dotted eighths). T4_R8=none reproduces v7.
+R8 = os.environ.get("T4_R8", "human")
+_TTS = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "chirpers7-t4-tts.json")))["tracks"][0]["notes"]
+TTS_REPS = [(_TTS[k], _TTS[k + 1]) for k in range(0, len(_TTS) - 1, 2)]
+PH_NOTES = {"phl": [], "phr": []}
 
 OUT = os.environ.get("T4_OUT") or os.path.expanduser("~/.config/chirp/songs/chirpers7-t4.yaml")
 NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"]
@@ -218,7 +228,15 @@ def build():
                     c = 1.0 - prog
                     f0 = (f"{0:.0f}>{40 * c:.0f}>{90 * c:.0f}" if syl == "ah1-p" else f"{40 * c:.0f}>{-30 * c:.0f}>{-120 * c:.0f}")
                     vel = (76 if int(j) % 2 == 0 else 70) - (8 if sec == "B2" else 0)
-                    T[side].add(tq + 0.01, 0.68, nm(m - 24), vel, f"^ph={syl}^f0={f0}")
+                    if R8 == "human":
+                        rp = TTS_REPS[min(len(TTS_REPS) - 1, i - PH_IN)] if sec == "break" else TTS_REPS[-1]
+                        src = rp[0] if syl == "ah1-p" else rp[1]
+                        PH_NOTES[side].append({"at": round(tq + 0.01, 4), "len": 0.68, "ph": src["ph"],
+                                               "pitch": src["pitch"],
+                                               "vel": round(src["vel"] * (0.75 if sec == "break" else 0.62), 3),
+                                               **({"expr_path": src["expr_path"]} if src.get("expr_path") else {})})
+                    else:
+                        T[side].add(tq + 0.01, 0.68, nm(m - 24), vel, f"^ph={syl}^f0={f0}")
                 j += 1
         ask = (sec == "A1" and i == 0) or (sec == "break" and i == 8) or (R3 == "cross" and sec in ("A2", "B2") and i % 8 == 0)
         ask = ask and R7 != "phantom"
@@ -346,8 +364,9 @@ def main():
         *([{"name": "voice", "patch": "voice-speech", "gain": "-8dB", "pan": -0.15,
             "fx": ["hp cutoff=250", {"type": "delay", "time": "3/8", "feedback": 0.35, "mix": 0.3, "tone": 2500},
                    "reverb kind=hall decay=3s mix=0.35"], "score": T["voice"].score(total)}] if R7 != "phantom" else
-          [{"name": side, "patch": "voice-speech", "gain": os.environ.get("T4_PH_GAIN", "-10dB"), "pan": pan,
-            "fx": ["hp cutoff=200", "reverb kind=room decay=0.9s mix=0.18"], "score": T[side].score(total)}
+          [{"name": side, "patch": "voice-speech", "gain": os.environ.get("T4_PH_GAIN", "-16dB" if R8 == "human" else "-10dB"), "pan": pan,
+            "fx": ["hp cutoff=200", "reverb kind=room decay=0.9s mix=0.18"],
+            **({"notes": PH_NOTES[side]} if R8 == "human" else {"score": T[side].score(total)})}
            for side, pan in (("phl", -0.9), ("phr", 0.9))]),
         ({"name": "rise", "patch": "fx-riser-endless amp.a=16b", "gain": "-12dB", "score": T["rise"].score(total)}
          if R6 == "riser" else
