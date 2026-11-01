@@ -185,6 +185,19 @@ def resorting(make, arr, seed):
 
 
 PROGRESS = []
+PROG = [0, 9, 4, 13]                  # v6: alpha steps - i, v (~702c), a minor third (~312c), a 'seventh' (~1014c)
+# v6: each algorithm its own progression and harmonic rhythm (bars per chord)
+PA, PB, PC = [0, 9, 4, 13], [4, 13, 0, 9], [13, 5, 9, 0]   # three progressions: A B C, then B and A return
+PROGS = {"intro": ([0, 9], 4), "bubble": (PA, 2), "insertion": (PB, 2), "quick": (PC, 4),
+         "bogo": ([0], 12), "merge": (PB, 2), "sorted": (PA, 2), "outro": ([0, 9], 4)}
+
+
+def root_at(bar):
+    for name, a, z in SECTIONS:
+        if a <= bar <= z:
+            prog, span = PROGS[name]
+            return prog[((bar - a) // span) % len(prog)]
+    return 0
 
 
 def progress_score():
@@ -226,20 +239,33 @@ def write():
             part("crash").add(b0(bar), 2.0, "cy", 84)                # v4: a crash where the sound gets sorted
         if (sw == [] and sec not in ("intro", "sorted", "outro")) or done:
             part("crash").add(b0(bar), 2.0, "cy", 80)
-        # v2: THE HARMONY RESPONDS TO ORDER - a triad on the array's first value: a dark 312-cent third while it is
-        # unsorted, the 390-cent major third the moment it is sorted
-        third = 5 if (arr == sorted(arr) or chopped(bar)) else 4       # v4: bright when the sound is sorted
-        part("pad").add(b0(bar), BAR - 0.05, ",".join(pitch(arr[0] + s, BASE - 12) for s in (0, third, 9)),
-                        78 if arr == sorted(arr) else 64)
+        # v6 (Harry: 'too squelchy... should be more interesting and good'): THE HARMONY NO LONGER CHASES THE ARRAY. A slow
+        # progression in the alpha scale - i, v, a minor third up, a 'seventh' - two bars each, an 8-bar loop; the pad's
+        # third is dark while the array is unsorted and brightens the bar it (or the sound) is sorted
+        root = root_at(bar)
+        third = 5 if (arr == sorted(arr) or chopped(bar)) else 4
+        part("pad").add(b0(bar), BAR - 0.05, ",".join(pitch(root + s, BASE - 12) for s in (0, third, 9, 13)),
+                        74 if third == 5 else 62)
         # v2: the outro holds a low E (E2) for its last eight bars - the note t5 begins on
         if bar == BARS - 7:
             part("hum").add(b0(bar), b0(BARS + 1) - b0(bar) - 0.05, "m40.000", 96)
-        # THE BASS: the array's first value, two octaves down, an acid line on eighths
+        # v6: THE BASS - no more squelch: a round sub on the progression's root, a syncopated two-note figure
         if sec not in ("intro",) or bar > 8:
-            for e in range(8):
-                v = arr[(e * 2) % N] if e % 2 else arr[0]
-                part("bass").add(b0(bar) + e * 0.5, 0.42, pitch(v, BASE - 24), 104 if e % 2 == 0 else 86)
+            fig = {"insertion": ((0.0, 1.9, 100), (2.0, 1.9, 92)),
+                   "quick": tuple((e * 0.5, 0.42, 100 if e % 2 == 0 else 84) for e in range(8))}.get(
+                sec, ((0.0, 1.4, 104), (1.5, 0.4, 84), (2.5, 1.2, 96)))          # v6: each algorithm its own figure
+            for at, ln, v in fig:
+                part("bass").add(b0(bar) + at, ln, pitch(root, BASE - 24), v)
+        # v6: A TUNE THAT EMERGES - four notes a bar, the array's values at 0, 4, 8 and 12 on a Rhodes, legato quarter
+        # notes a period up: shuffled it wanders; as the sort proceeds it converges onto a rising phrase you can sing
+        if sec not in ("intro", "bogo") or bar > 8:
+            for q in range(4):
+                voice = {"insertion": "tune_mar", "quick": "tune_flu", "merge": "tune_kal"}.get(sec, "tune")
+                part(voice).add(b0(bar) + q, 0.95, pitch(arr[q * 4] // 2 + root, BASE + 12 - 9), 84 if q == 0 else 74)
         # DRUMS: the 909's circuits; the bogosort storm has no kick
+        if sec in ("quick", "merge"):                            # v6: the ride only where the work runs hottest
+            for e in range(8):
+                part("ride").add(b0(bar) + e * 0.5, 0.4, "rd", 68 if e % 2 == 0 else 50)
         if sec != "bogo" and 8 < bar <= BARS - 2:           # the kick waits for bar 9 (t3 ends quiet); v3: out for the last 2
             for b in range(4):
                 part("kick").add(b0(bar) + b, 0.5, "k", 116 if b == 0 else 108)
@@ -316,7 +342,7 @@ def roll_lane():
 def main():
     write()
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
-    lead_patch = {"extends": "arp-pluck", "synth": {"fx": [{"type": "pan", "pan": {"value": 0, "mod": [
+    lead_patch = {"extends": "vibes", "synth": {"fx": [{"type": "pan", "pan": {"value": 0, "mod": [
         {"src": "expr.ix", "amount": 1}]}}, {"type": "filter", "kind": "lp", "cutoff": 4500}]}}
     song = {
         "about": "chirpers - A Light Left On (chirpers VIII), track 4 by chirper-three: sorting house. Sixteen notes "
@@ -337,14 +363,20 @@ def main():
                     "amount": {"value": 0, "mod": [{"src": "auto.m", "amount": 1}]}},
                    {"type": "stutter", "slice": "1/16", "repeats": 6, "roll": 0.6, "pitch": 0.5,
                     "chance": {"value": 0, "mod": [{"src": "auto.roll", "amount": 1}]}}]),
-            tr("bass", "acid", gain="-7dB"),
+            tr("bass", "808", gain="-9dB", fx=["duck by=kick depth=-4dB"]),                  # v6: round, no squelch
+            tr("tune", "rhodes", gain="-10dB", pan=-0.1, sends={"dly": "-10dB"},
+               fx=[{"type": "filter", "kind": "hp", "cutoff": 250}]),                      # v6: the tune that emerges
+            tr("ride", "machine-kit", gain="-9dB", pan=-0.3, sends={"room": "-12dB"}),      # v6: the top end
+            tr("tune_mar", "marimba", gain="-8dB", pan=-0.1, sends={"dly": "-10dB"}),      # v6: each algorithm its voice
+            tr("tune_flu", "flute", gain="-11dB", pan=-0.1, sends={"dly": "-10dB"}),
+            tr("tune_kal", "kalimba", gain="-8dB", pan=-0.1, sends={"dly": "-10dB"}),
             {"name": "progress", "patch": "machine-kit", "gain": "-13dB", "pan": 0.3, "sends": {"room": "-12dB"},
              "score": progress_score()},                     # v5: the work's progress as a Euclidean rhythm
-            tr("pad", "juno-pad", gain="-9dB", sends={"dly": "-14dB"},
-               fx=["duck by=kick depth=-6dB"]),                                           # v2; v4: ducked by the kick
+            tr("pad", "juno-pad", gain="-11dB", sends={"dly": "-14dB"},
+               fx=["duck by=kick depth=-6dB", {"type": "filter", "kind": "hp", "cutoff": 200}]),                                           # v2; v4: ducked by the kick
             tr("hum", "808", gain="-10dB"),                                                # v2: into t5's E2
-            tr("tick", "909", gain="-11dB", pan=0.2),
-            tr("swap", "909", gain="-6dB", pan=-0.2, sends={"room": "-10dB"}),
+            tr("tick", "909", gain="-17dB", pan=0.2, fx=[{"type": "filter", "kind": "hp", "cutoff": 3000}]),
+            tr("swap", "909", gain="-11dB", pan=-0.2, sends={"room": "-10dB"}),
             tr("crash", "909", gain="-12dB", sends={"room": "-8dB"}),
             tr("kick", "909", gain="-10dB"),
             tr("clap", "909", gain="-6dB", sends={"room": "-8dB"}),
@@ -352,7 +384,8 @@ def main():
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=0.9s mix=1 predelay=8ms", "hp cutoff=250"]},
                   "dly": {"fx": ["delay time=3/16 mix=1 feedback=0.35", "hp cutoff=400", "lp cutoff=5000"]}},
-        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=28", "highshelf cutoff=5000 gain=-3dB"]},
+        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=28", "peak cutoff=300 q=0.8 gain=-5dB",
+                                                    "highshelf cutoff=5000 gain=4dB"]},     # v6: the envelope again
                           {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}},
                           {"type": "compressor", "threshold": "-12dB", "ratio": 8, "attack": "0.3ms",
                            "release": "60ms", "makeup": "0dB"}],
