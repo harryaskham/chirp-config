@@ -4,7 +4,6 @@ tempo: [104, 126]
 offset: 1
 riff_offset: 0
 roles:
-  bass: [harm-bass]
   riff: [riff-thump, riff-taps]
   low: [beat-sparse]
   mid: [beat-ghost, beat-ride, beat-euclid]
@@ -16,6 +15,7 @@ roles:
   soft: [pad-swell, harm-swell]
   arp: [arp-16th, harm-arp]
   hold: [riff-hold, harm-strum]
+  bass: [harm-bass]
 progressions:
   - "i VI III VII"
   - "i9 VImaj7 IIImaj7 VII"
@@ -23,6 +23,7 @@ progressions:
   - "i iv VII III"
   - "VI VII i i"
   - "i9 iv7 VImaj7 V7sus4"
+modulations: ["x3/4", "x3/2"]
 odd:
   - {meter: 7/8, bars: 4, drums: [beat-78], riff: [riff-78-clean], chance: 0.4}
   - {meter: 5/4, bars: 4, drums: [beat-54-ghost, beat-54], riff: [riff-54-clean], chance: 0.4}
