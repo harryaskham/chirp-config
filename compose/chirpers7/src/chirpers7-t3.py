@@ -160,8 +160,6 @@ def build():
             else:
                 w = 0.0                                # the plain speech returns at the end
             n_rep += 1
-            if (s == 'B' and i >= 20) or s == 'C':
-                T['sung'] += [(a, p.split('^f0')[0], d, 70 + (10 if s == 'C' else 0)) for a, p, d, _ in phrase(t0, 1.0, tp=tp)]
         # (v10, after chirper-zero's note) THE PROOF, in the break: its first eight bars give the phrase back as plain speech,
         # alone over the pad - after 32 bars of repetitions, the listener's own ear supplies the tune; then the sung double
         # answers for the last eight
@@ -174,9 +172,6 @@ def build():
             for n, g in enumerate(gaps_):
                 T['speech'].append({'at': round(t0 + at, 4), 'len': round(max(0.06, g * sc * 0.8), 4), 'pitch': nm(notes[n]), 'ph': 'S T EH1 P', 'vel': round((80 + n) / 127, 3)})
                 at += g * sc
-        if s == 'break' and first:
-            if i >= 8:
-                T['sung'] += [(a, p.split('^f0')[0], d, 86) for a, p, d, _ in phrase(t0, 1.0)]
         # the Rhodes quotes THE STAIR in C, an octave up, answering the phrase
         if s == 'C' and not first:
             for off, m in zip(STEP_AT, STAIR):
@@ -200,12 +195,20 @@ def build():
             T['speech'].append(dict(n_, at=round(off + n_['at'], 4)))
         fv += [[f"{off + float(a_[:-1]):.3f}b", v_] for a_, v_ in VOICE[sec_]['fv']]
     T['speech'].sort(key=lambda n_: n_['at'])
+    # (v24) THE DOUBLE IS HUMAN TOO: the sung double an octave up (from the second groove's bar 21, in the break's second
+    # half, through the last groove) is no longer the hand-drawn robot singer - it is another humanized take of the
+    # phrase from chirp tts, fully melodized onto the stair (its own seed: its own breath, drift and vibrato), so the
+    # two voices are two singers, not a voice and its machine shadow
+    T['sung'] = []
+    for key_, off in (('dblB', secs0['B'] + 80), ('dblbreak', secs0['break'] + 32), ('dblC', secs0['C'])):
+        for n_ in VOICE[key_]['notes']:
+            T['sung'].append(dict(n_, at=round(off + n_['at'], 4)))
     # (v17) IT'S GONNA STEP (after Steve Reich's 'It's Gonna Rain'): in the last groove's final sixteen bars a second sung
     # copy of the phrase (right of centre) slides out of phase with the first - its own clock drifting an eighth note ahead
     # over twelve bars, so the words smear into canon and then into new rhythms - and slides back into unison before the
     # outro. Time-play on the phrase itself, the song folding over on itself as speech-to-song does in the ear
     cs = next(b['t'] for b in bars if b['sec'] == 'C')
-    T['phase'] = [ev for ev in T['sung'] if cs + 64 <= ev[0] < cs + 128]
+    T['phase'] = [n_ for n_ in T['sung'] if cs + 64 <= n_['at'] < cs + 128]
     lv = {'intro': -4, 'A': -1, 'B': 0, 'break': -5, 'C': 0, 'outro': -3}
     secs = {}
     for b in bars:
@@ -282,8 +285,8 @@ def build():
                     auto={'rad': {'points': rad}, 'fv': {'points': fv}, 'dial': {'points': dial}}),
                  warp=[{'over': '16bar', 'to': 0}, {'over': '8bar', 'to': 0.25, 'curve': 'smooth'}, {'over': '8bar', 'to': -0.125, 'curve': 'smooth'},
                        {'over': '8bar', 'to': 0.1875, 'curve': 'smooth'}, {'over': '16bar', 'to': 0, 'curve': 'in'}]),
-            tr('sung', 'voice', '-10dB', fx=[{'type': 'pitch', 'semitones': 12, 'formant': 0}], sends={'hall': '-6dB', 'echo': '-10dB'}),
-            dict(tr('phase', 'voice', '-12dB', pan=0.45, fx=[{'type': 'pitch', 'semitones': 12, 'formant': 0}], sends={'hall': '-8dB'}),
+            {'name': 'sung', 'patch': 'voice-speech', 'gain': '-16dB', 'notes': T['sung'], 'fx': [{'type': 'pitch', 'semitones': 12, 'formant': 0}], 'sends': {'hall': '-6dB', 'echo': '-10dB'}},
+            dict(dict({'name': 'phase', 'patch': 'voice-speech', 'gain': '-18dB', 'notes': T['phase'], 'pan': 0.45}, fx=[{'type': 'pitch', 'semitones': 12, 'formant': 0}], sends={'hall': '-8dB'}),
                  warp=[{'over': f"{int((cs + 64) // 4)}bar", 'to': 0}, {'over': '12bar', 'to': -0.5, 'curve': 'linear'}, {'over': '4bar', 'to': 0, 'curve': 'smooth'}]),
             tr('stair', {'extends': 'epiano-tine', 'play': {'release': {'patch': 'epiano-damper', 'decay': '2s'}}}, '-10dB', pan=0.3, sends={'echo': '-8dB'}),
         ]}
