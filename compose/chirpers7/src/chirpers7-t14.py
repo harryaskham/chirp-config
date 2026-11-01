@@ -23,7 +23,7 @@ S = 0.25
 BAR = 16
 MGAIN = float(os.environ.get("C7T14_MGAIN", "8"))
 FCOMP = os.environ.get("C7T14_FCOMP", "-16,0.3ms")
-SEAMLV = os.environ.get("C7T14_SEAMLV", "-0.5,1")  # the seam bars' levels (first 16, last 16, dB): set to meet t13's tail and t15's head as the live crossfade plays them
+SEAMLV = os.environ.get("C7T14_SEAMLV", "2.5,1")  # the seam bars' levels (first 16, last 16, dB): set to meet t13's tail and t15's head as the live crossfade plays them
 SOLO = os.environ.get("C7T14_SOLO", "1") == "1"  # chirper-one's note: B bars 23-24 the scales alone, unaccompanied, so the room hears the two lines it imagines before the groove folds them back in (and B2 lands with them in 16ths)
 PRES = os.environ.get("C7T14_PRES", "1") == "1"  # presence: the clap 3 dB up and 3.5 kHz +3 dB (2.6-4.2 kHz read 7-9 dB under the album)
 DOT = os.environ.get("C7T14_DOT", "")  # a dotted-eighth rim and shaker cycle (every third 16th across the bar lines) in the named sections: "B" or "A,B"
