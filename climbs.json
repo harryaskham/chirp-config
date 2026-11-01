@@ -7856,7 +7856,7 @@
     {
       "id": "chirpers8-t3",
       "song": "songs/chirpers8-t3.yaml",
-      "reference": "chirpers — Track 3 (untitled)",
+      "reference": "chirpers — Three Neighbours",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers8-t3 OUT.wav",
@@ -7872,7 +7872,7 @@
       "meta": {
         "artist": "chirpers",
         "album": "chirpers VIII (untitled)",
-        "title": "Track 3 (untitled)",
+        "title": "Three Neighbours",
         "track": 3,
         "year": 2026
       },
