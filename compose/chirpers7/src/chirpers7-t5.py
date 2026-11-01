@@ -88,7 +88,16 @@ def gap_at(bar):
     if sec == "one":
         return 2 if bar < 33 else 3
     if sec == "split":
-        return {0: 7, 1: 12, 2: 15, 3: 19}[(bar - 49) // 8]
+        # v17 (Harry's third steer: 'formulaic'): THE SPLIT THROUGH-COMPOSED, 7 + 10 + 9 + 6 bars instead of four
+        # 8-bar steps - the gap widening every bar to the fission point; an octave while the floor moves (G, then C);
+        # the streams fusing and splitting again (15 -> 3 -> 19); then wide, while the upper stream slides in time
+        if bar <= 55:
+            return [4, 5, 6, 7, 8, 10, 12][bar - 49]
+        if bar <= 65:
+            return 12
+        if bar <= 74:
+            return [15, 12, 7, 4, 3, 4, 7, 12, 19][bar - 66]
+        return 19
     if sec == "break":                      # 81-88 wide (19), panned apart; 89-92 the octave at HALF RATE (fused);
         return 19 if bar < 89 else [12, 12, 12, 12, 7, 5, 3, 2][bar - 89]          # 93-96 closing, still slow
     if sec == "drop":
@@ -103,6 +112,10 @@ def root_at(bar):
     """The low note: B through the first half; in the drop it walks B G E F# (eight bars each)."""
     if sec_of(bar) == "drop":
         return [B2, B2 + 1, B2 - 4, B2 - 5][((bar - 97) // 8) % 4]   # v12, darker: Bm9 | Cmaj7#11 (bII) | Gmaj7 | F#7b9
+    if 56 <= bar <= 60:
+        return B2 - 4                     # v17: the floor moves - G (bVI), then C (the Phrygian bII), then home
+    if 61 <= bar <= 65:
+        return B2 + 1
     return B2
 
 
@@ -151,7 +164,10 @@ def acid():
             part("acidA").add(t, 0.2, nm(lo), 104 if beat == 0 else 84)
             part("acidA").add(t + 0.5, 0.2, nm(lo), 80)
             acc += 1
-            part("acidB").add(t + 0.25, 0.2, nm(lo + third(lo, g)), 112 if acc % 3 == 0 else 86)   # a three-step accent
+            # v17: 75-80, the upper stream slides off its place in the gallop (0.25 -> 0.75 beat): once the streams
+            # have split, the ear can no longer judge their relative timing, so each still sounds steady
+            off = 0.25 + 0.1 * (bar - 75) if 75 <= bar <= 80 else 0.25
+            part("acidB").add(t + off, 0.2, nm(lo + third(lo, g)), 112 if acc % 3 == 0 else 86)   # a three-step accent
 
 
 def odd_cycles():
