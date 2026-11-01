@@ -82,6 +82,13 @@ R9 = os.environ.get("T8_R9", "radio")
 # patch; the seam organ's gaps the same. The radio's static runs on through silence, so the separate shortwave track
 # is gone. T8_R10=none reproduces v9.
 R10 = os.environ.get("T8_R10", "dial")
+# T8_R11 = lost (v11, Harry's third steer: sections that evolve, risers that never land). The cleared peak no longer
+# stays clear: B2's first 16 bars are full-range, then over its last 12 the signal is LOST again - the choir slips back
+# into the radio (its mix rising), the dial drifts off the station (fade, wander, the whistle creeping in) and an
+# endless Shepard riser climbs the whole way, never landing: it stops dead as the dial swings off (the last two
+# beats, the whistle gliding up) and the out seam is static and the organ, handing t9 a dead radio.
+# T8_R11=none reproduces v10.
+R11 = os.environ.get("T8_R11", "lost")
 SPANS = [int(x) for x in os.environ.get("T8_SPANS", "10,6,7,5").split(",")]  # v9: bars per chord, from each section's start
 SPIRAL = "C#5/0.5b@80 D#5/0.5b@70 E5/0.5b@74 G#5/0.5b@72"
 
@@ -316,6 +323,12 @@ def main():
                 [f"{tu + 11}b", -0.9], [f"{tu + 15}b", 0.6], [f"{tu + 19}b", -0.3], [f"{tu + 22}b", 0.0],
                 [f"{total}b", 0.0]]
         rmix = [["0b", 1.0], [f"{st['drop2']}b", 1.0], [f"{st['B2']}b", 0.0], [f"{total}b", 0.0]]
+        if R11 == "lost":
+            lost = st["B2"] + 64
+            dial = dial[:-1] + [[f"{lost}b", 0.0], [f"{st['out'] - 8}b", 0.3], [f"{st['out'] - 2}b", 0.35],
+                                [f"{st['out']}b", 1.0], [f"{total}b", 1.0]]
+            rmix = [["0b", 1.0], [f"{st['drop2']}b", 1.0], [f"{st['B2']}b", 0.0], [f"{lost}b", 0.0],
+                    [f"{st['out']}b", 1.0], [f"{total}b", 1.0]]
     sgate = [["0b", 0.0]]
     for g0, gl in seamgaps:
         sgate += [[f"{g0 - 0.04:.4f}b", 0.0], [f"{g0:.4f}b", 1.0], [f"{g0 + gl - 0.04:.4f}b", 1.0], [f"{g0 + gl:.4f}b", 0.0]]
@@ -351,6 +364,8 @@ def main():
                      "mix": {"value": 0, "mod": [{"src": "auto.sgap", "amount": 1}]}}] if R10 == "dial" else []) + [
                    "hp cutoff=300", "reverb kind=hall decay=2.2s mix=0.25"],
             "auto": {"sgap": {"points": sgate}}, "score": T["organseam"].score(total)},
+           *([{"name": "lost", "patch": "fx-riser-endless amp.a=48b", "gain": "-13dB",
+               "score": f"R/{st['B2'] + 64:g}b C#4/48b@76 R/{total - st['out']:g}b"}] if R11 == "lost" else []),
            {"name": "riser", "patch": "fx-riser-endless amp.a=30b" if R8 == "riser" else "shepard-pad",
             "gain": "-12dB" if R8 == "riser" else "-13dB",
             "fx": [] if R8 == "riser" else ["hp cutoff=250", "width width=1.4"],
