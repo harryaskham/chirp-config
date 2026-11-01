@@ -71,6 +71,12 @@ R8 = os.environ.get("T1_R8", "evolve")
 # file as chirpers7-t1-tts.json) says it seven times, from spoken to sung on A; the head's seven "up"s take one each,
 # the break's and the drop's take the last, sung one. T1_R9=none reproduces v8.
 R9 = os.environ.get("T1_R9", "human")
+# T1_R10 = ladder (v10, Harry's third steer: modulations as structure). A2 was 18 bars of one key; now 6, then a NEW
+# 12-bar section, THE KEY LADDER: every two bars the whole groove steps UP a whole tone - A minor, B, C#, D#, F, G
+# minor - the Shepard stair, the dub chord and the phantom bass all climbing, and an endless riser over the last 8
+# bars stops dead at the break, which is A minor again: one more step up that lands where it started (the stair's
+# Shepard tones and the phantom bass hide the octave). T1_R10=none reproduces v9.
+R10 = os.environ.get("T1_R10", "ladder")
 _TTS = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "chirpers7-t1-tts.json")))["tracks"][0]["notes"]
 VOICE_NOTES = []
 
@@ -137,7 +143,10 @@ class Track:
 
 FORM = [("ambient", 8), ("intro", 8), ("A1", 16), ("drop1", 4), ("A2", 16), ("break", 16), ("B1", 16), ("drop2", 4),
         ("B2", 16), ("outro", 32)]
-if R8 == "evolve":
+if R8 == "evolve" and R10 == "ladder":
+    FORM = [("ambient", 8), ("intro", 8), ("A1", 12), ("drop1", 4), ("A2", 6), ("ladder", 12), ("break", 14), ("B1", 10),
+            ("drop2", 4), ("B2", 12), ("B3", 14), ("outro", 32)]
+elif R8 == "evolve":
     FORM = [("ambient", 8), ("intro", 8), ("A1", 12), ("drop1", 4), ("A2", 18), ("break", 14), ("B1", 10), ("drop2", 4),
             ("B2", 12), ("B3", 14), ("outro", 32)]
 STAIR = [69, 71, 72, 76]           # A B C E: the thread (Shepard tones: the octave is only the note's name)
@@ -158,8 +167,9 @@ def build():
     total = pos
     step = 0  # the stair keeps counting across the whole track: it never restarts, it only climbs
     for bi, (start, sec, i, n) in enumerate(bars):
-        full = sec in ("A2", "B1", "B2", "B3")      # the clap and the chord
-        core = sec in ("A1", "A2", "B1", "B2", "B3")
+        full = sec in ("A2", "B1", "B2", "B3", "ladder")      # the clap and the chord
+        core = sec in ("A1", "A2", "B1", "B2", "B3", "ladder")
+        ko = 2 * (i // 2) if sec == "ladder" else 0  # v10: the key ladder, a whole tone every two bars
         groove = core or sec in ("intro", "outro")
         # ---- the kick (the rumble kick), four on the floor; none in the break ----
         if groove:
@@ -197,9 +207,9 @@ def build():
             sh, chord_notes = DARK5[span_chord(B3_SPANS, i)]
         if core or (sec == "intro" and i >= 4) or sec == "outro":
             for b, m in BASS:
-                T["bass"].add(start + b, 0.45, nm(m + sh), 96)
+                T["bass"].add(start + b, 0.45, nm(m + sh + ko), 96)
         # ---- the stair: quarter notes in the intro and outro, eighths in A and B, half notes in the break ----
-        rate = {"ambient": 1.0, "intro": 1.0, "A1": 0.5, "drop1": 1.0, "A2": 0.5, "break": 2.0, "B1": 0.5,
+        rate = {"ambient": 1.0, "intro": 1.0, "A1": 0.5, "drop1": 1.0, "A2": 0.5, "ladder": 0.5, "break": 2.0, "B1": 0.5,
                 "drop2": 1.0, "B2": 0.25, "B3": 0.25, "outro": 1.0}[sec]
         if R5 == "dark" and sec == "break":
             if i == 0:  # the stair runs: half notes accelerating to sixteenths across the break
@@ -230,12 +240,12 @@ def build():
             while t < 4.0 - 1e-6:
                 m = STAIR[step % 4]
                 v = (64 if sec in ("ambient", "intro", "outro") else 74) + (10 if step % 4 == 0 else 0) - (8 if sec in ("B2", "B3") and step % 2 else 0)
-                T["stair"].add(start + t, rate * 0.9, nm(m), v)
+                T["stair"].add(start + t, rate * 0.9, nm(m + ko), v)
                 step += 1
                 t += rate
         # ---- the dub chord: on the a-of-1 and the and-of-3 (every other bar), into the echo room ----
         if full or (sec in ("break", "drop1", "drop2") and i % 4 == 0):
-            chord = ",".join(nm(x) for x in chord_notes)
+            chord = ",".join(nm(x + (ko if ko <= 6 else ko - 12)) for x in chord_notes)
             if sec in ("break", "drop1", "drop2"):
                 T["chord"].add(start + 0.75, 0.3, chord, 80)
             else:
@@ -257,6 +267,8 @@ def build():
                 human_up(start + 2.0, 6, 0.8)
             else:
                 T["voice"].add(start + 2.0, 1.0, "A2", 70, "^ph=ah1-p^f0=0" if R8 == "evolve" else "^ph=ah1-p^f0=0>40>80")
+        if R10 == "ladder" and sec == "ladder" and i == n - 8:  # a riser that never lands: stops dead at the break
+            T["rise"].add(start, 32.0, "A3", 76)
         if sec == "break" and i == n - 8:
             T["rise"].add(start, 32.0, "A3" if R7 == "riser" else "C4", 80 if R7 == "riser" else 90)
         if sec == "drop2" and i == 0:
