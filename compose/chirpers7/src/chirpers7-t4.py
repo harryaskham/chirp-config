@@ -76,6 +76,23 @@ R8 = os.environ.get("T4_R8", "human")
 _TTS = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "chirpers7-t4-tts.json")))["tracks"][0]["notes"]
 TTS_REPS = [(_TTS[k], _TTS[k + 1]) for k in range(0, len(_TTS) - 1, 2)]
 PH_NOTES = {"phl": [], "phr": []}
+# T4_R9 = flip (v9, Harry's third steer: modulations and spirals as structure). The peak asks the question in KEYS:
+# B2 (32 bars) is 12 bars in B minor, then 4 bars of TURN - bass and stab gone, a Shepard-Risset spiral of the stair
+# (risset pitch: true) climbing over the drums and the tritone pairs - then 12 bars a TRITONE away, in F minor (bass,
+# stab and pairs all moved by six semitones; the phantom words return here, sung, so their "down" on F is now home
+# and "up" on B the stranger), then another 4-bar spiral and the out seam in B minor again. A tritone is the same
+# distance up as down: did the key climb or fall? It climbed (or fell) twice and is home. T4_R9=none reproduces v8.
+R9 = os.environ.get("T4_R9", "flip")
+SPIRAL_B = "B3/0.25b@80 C#4/0.25b@70 D4/0.25b@74 F#4/0.25b@72 B4/0.25b@78 C#5/0.25b@68 D5/0.25b@72 F#5/0.25b@70"
+SPIRAL_F = "F3/0.25b@80 G3/0.25b@70 Ab3/0.25b@74 C4/0.25b@72 F4/0.25b@78 G4/0.25b@68 Ab4/0.25b@72 C5/0.25b@70"
+
+
+def kofs(sec, i):
+    return 6 if (R9 == "flip" and sec == "B2" and 16 <= i < 28) else 0
+
+
+def turning(sec, i):
+    return R9 == "flip" and sec == "B2" and (12 <= i < 16 or 28 <= i < 32)
 
 OUT = os.environ.get("T4_OUT") or os.path.expanduser("~/.config/chirp/songs/chirpers7-t4.yaml")
 NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"]
@@ -180,9 +197,10 @@ def build():
         if sec == "break":  # toms alone, slow, under the question
             for k, piece in enumerate(("lt", "mt", "lt")):
                 T["toms"].add(start + k * 4 / 3, 0.5, piece, 60)
-        if core or sec in ("drop1", "drop2"):
+        ko = kofs(sec, i)
+        if (core or sec in ("drop1", "drop2")) and not turning(sec, i):
             for b, m, ln in BASS:
-                T["bass"].add(start + b, ln, nm(m), 104 if b == 0 else 90)
+                T["bass"].add(start + b, ln, nm(m + ko), 104 if b == 0 else 90)
         if sec == "out" and i % 4 == 0:
             T["bass"].add(start, 15.8, nm(35), 96)  # the held B for t5
         # ---- THE QUESTION: Shepard pairs a tritone apart on the off-beats ----
@@ -193,8 +211,8 @@ def build():
                 step += 1 if sec not in ("in", "A1") else 0
                 t0 = start + (0.5 if p == 0 else 2.5)
                 ln = 0.45 if sec != "break" else 1.4
-                T["pair"].add(t0, ln, nm(root), 80)
-                T["pair"].add(t0 + (0.5 if sec != "break" else 1.5), ln, nm(root + 6), 80)
+                T["pair"].add(t0, ln, nm(root + ko), 80)
+                T["pair"].add(t0 + (0.5 if sec != "break" else 1.5), ln, nm(root + 6 + ko), 80)
         # ---- the chord, sparse ----
         plane = 1 if (R4 == "both" and i % 4 == 2) else 0  # v4: the shape planes up a semitone over the B pedal
         chord = CHORD
@@ -202,8 +220,8 @@ def build():
             ms = MUTATE[sec]
             chord = ms[(i // 3) % len(ms)]
             plane = plane if sec in ("A1", "A2") else 0
-        if full and (i % 2 == 0 or R4 == "both"):
-            T["stab"].add(start + 1.75, 0.3, ",".join(nm(x + plane) for x in chord), 80)
+        if full and (i % 2 == 0 or R4 == "both") and not turning(sec, i):
+            T["stab"].add(start + 1.75, 0.3, ",".join(nm(x + plane + ko) for x in chord), 80)
         if sec == "break" and i % 4 == 0:
             T["stab"].add(start, 0.4, ",".join(nm(x) for x in CHORD), 76)
         # ---- the voice: once the seam has passed, and again in the break ----
@@ -218,7 +236,8 @@ def build():
             while q < 4.0 - 1e-6:
                 T["toms"].add(start + q + 0.01, 0.3, "lt", 54)
                 q += 1.5
-        if R7 == "phantom" and ((sec == "break" and i >= PH_IN) or (sec == "B2" and i >= n - 12)):
+        b2ph = (16 <= i < 28) if R9 == "flip" else (i >= n - 12)
+        if R7 == "phantom" and ((sec == "break" and i >= PH_IN) or (sec == "B2" and b2ph)):
             prog = min(1.0, (i - PH_IN) / (n - 2 - PH_IN)) if sec == "break" else 1.0  # the speech flattens into song
             j = -(-(i * 4) // 0.75)  # syllables on a dotted-eighth grid from the section's start: an up-down pair per
             while j * 0.75 < (i + 1) * 4 - 1e-6:  # dotted quarter, three against the four
@@ -371,7 +390,11 @@ def main():
         ({"name": "rise", "patch": "fx-riser-endless amp.a=16b", "gain": "-12dB", "score": T["rise"].score(total)}
          if R6 == "riser" else
          {"name": "rise", "patch": "c2-rise", "gain": "-20dB", "fx": ["width width=1.5"], "score": T["rise"].score(total)}),
-    ] + (risset_tracks(st, total) if R4 == "both" else [])
+    ] + (risset_tracks(st, total) if R4 == "both" else []) + ([
+        {"name": f"spiral-{k}", "patch": "pluck", "gain": "-12dB", "pan": pan, "at": f"{st['B2'] + at * 4:g}b",
+         "risset": {"cycle": "2bar", "layers": 3, "length": "4bar", "pitch": True},
+         "sends": {"room": "-8dB"}, "fx": ["hp cutoff=180", "width width=1.6", "reverb kind=hall decay=2.2s mix=0.25"],
+         "score": sc} for k, at, sc, pan in (("b", 12, SPIRAL_B, -0.2), ("f", 28, SPIRAL_F, 0.2))] if R9 == "flip" else [])
     buses = {"room": {"gain": "-5dB",
                       "fx": ["hp cutoff=250", "lp cutoff=2400",
                              {"type": "tape", "drive": 0.35, "warmth": 0.6, "wow": 3, "flutter": 1, "seed": 4},
