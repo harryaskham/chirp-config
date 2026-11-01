@@ -72,6 +72,7 @@ ZWF = os.environ.get("C7T18_ZWF", "1") == "1"  # Harry's third steer #4 ('same i
 ZWB = []
 HUGF = os.environ.get("C7T18_HUGF", "1") == "1"  # Harry's third steer #4, the last bare noise: the Huggins wash becomes follow-noise in the glass pads' own colours - ONE source (a bus fed by the pads, mix 1) whose output goes to hugL and a send to hugR, so both ears still get the identical noise the ghost needs; it opens on the old wash phrases
 HUGW = []
+VMERGE = os.environ.get("C7T18_VMERGE", "1") == "1"  # live load: the speech panel's voice and the coda's voice on ONE track - one formant-pitch fx and one radio instead of two of each running the whole 13 minutes (the profile: 12.6 s + 3.3 s of render time spent on the coda voice's idle effects); the coda's notes 3 dB under, its lanes spliced in at the coda
 CODAV = os.environ.get("C7T18_CODAV", "1") == "1"  # the odyssey's last voice: in the coda (the kick gone, the falling chords in A minor, the tempo easing to 112) the speech panel's line comes back once more, sung - wM's tts 'the stair comes down' --humanize 0.5 --repeat 4 --melodize 1 --melody 'E3 C3 B2 A2' (chirpers7-t18-coda.json) on the coda's own falling stair, the last 'down' left on B, the open 2 - through the radio, tuned for three repetitions and drifting off the station during the fourth, so the tape's last voice is tuned away mid-word, and the static itself fades by coda bar 21 (the falling stair ends alone)
 COH = os.environ.get("C7T18_COH", "1") == "1"  # t17 v18's fix (measured 22:15): coherent Haas pairs - one source per pair, near ear direct and far ear through 18 ms, dry - so the turning panel's precedence cue exists (separate noise-kit tracks gave the ears different hits)
 COHB = {}
@@ -682,6 +683,23 @@ def song():
 
 
 def dump(doc):
+    if VMERGE:
+        names = [t["name"] for t in doc["tracks"]]
+        if "speechh" in names and "codav" in names:
+            a = doc["tracks"][names.index("speechh")]
+            b = doc["tracks"][names.index("codav")]
+            cut = sec_start("coda") * 60 / BPM0 / 4 - 4.0   # seconds, 2 bars before the coda
+            sec_of = lambda t: float(str(t).rstrip("s")) if str(t).endswith("s") and not str(t).endswith("b") else None  # noqa: E731
+            def splice(la, lb):
+                pa = [p for p in la["points"] if sec_of(p[0]) is not None and sec_of(p[0]) < cut]
+                pb = [p for p in lb["points"] if sec_of(p[0]) is not None and sec_of(p[0]) >= cut]
+                return {"points": pa + pb}
+            g = 10 ** (-3 / 20)
+            a["notes"] = a["notes"] + [dict(n, vel=round(n["vel"] * g, 3)) for n in b["notes"]]
+            a["auto"]["fv"] = {"points": a["auto"]["fv"]["points"] + b["auto"]["fv"]["points"]}
+            for k in ("dial", "rmix"):
+                a["auto"][k] = splice(a["auto"][k], b["auto"][k])
+            doc["tracks"].remove(b)
     if HEADEQ:
         hq = float(HEADEQ)
         i_eq0 = next(i for i, fx in enumerate(doc["master"]["fx"]) if isinstance(fx, dict) and fx.get("type") == "eq")
