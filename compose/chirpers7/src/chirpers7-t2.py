@@ -48,6 +48,41 @@ R4 = os.environ.get("T2_R4", "drift")
 R5 = os.environ.get("T2_R5", "onefx")
 R6 = os.environ.get("T2_R6", "riser")
 POLE_GAIN = os.environ.get("T2_POLE_GAIN", "-14dB")
+# T2_R7 = evolve (v6, Harry's third steer, 1 Nov: no 4/8/16 formula, chords that mutate, sections that evolve, the
+# best illusions as structure). =none reproduces v5.
+# - THE FORM: in 16 / A1 13 / drop 4 / A2 15 / break 10 / B1 10 / SPIRAL 6 / drop 4 / B2 26 / out 16 (was all 16s).
+# - THE CHORD MUTATES over the A pedal on uneven spans: Am11, Fmaj7#11/A, Dm9/A, E7b9/A (A2 5-3-4-3, B1 4-3-3, the
+#   break's long chords two bars each through all four).
+# - A NEW SECTION, THE SPIRAL (6 bars): the stair as a Shepard-Risset spiral (risset pitch: true) climbing and
+#   speeding for ever while the barber pole turns DOWN under it - up and down at once - on E7b9/A.
+# - THE KEY THAT CLIMBS AND COMES HOME: B2 arrives a semitone UP, in Bb minor (bass, chord and stair all risen: the
+#   stair climbed a step), for 18 bars; then the pole turns down for four bars and the last eight are back in A minor,
+#   as if the climb had gone on and come round to where it started. The seam to t3 is untouched.
+R7 = os.environ.get("T2_R7", "evolve")
+AM11 = [57, 60, 62, 64, 67]   # A C D E G
+FM7S11 = [57, 60, 64, 65, 71]  # A C E F B: Fmaj7#11 over the A pedal
+DM9 = [57, 60, 62, 64, 65]    # A C D E F: Dm9/A
+E7B9 = [56, 59, 62, 65]       # G# B D F: E7b9 over the A pedal
+MUT = {"A2": [(5, AM11), (3, FM7S11), (4, AM11), (3, DM9)], "B1": [(4, AM11), (3, DM9), (3, E7B9)],
+       "break": [(2, AM11), (2, FM7S11), (2, DM9), (2, E7B9), (2, AM11)], "spiral": [(6, E7B9)],
+       "B2": [(6, AM11), (4, FM7S11), (5, AM11), (3, DM9), (8, AM11)]}
+SPIRAL = "A3/0.25b@80 B3/0.25b@70 C4/0.25b@74 E4/0.25b@72 A4/0.25b@78 B4/0.25b@68 C5/0.25b@72 E5/0.25b@70"
+
+
+def mut(sec, i, default):
+    if R7 != "evolve" or sec not in MUT:
+        return default
+    j = 0
+    for n, ch in MUT[sec]:
+        if i < j + n:
+            return ch
+        j += n
+    return MUT[sec][-1][1]
+
+
+def kofs(sec, i):
+    """v6: B2's first 18 bars a semitone up (Bb minor)."""
+    return 1 if (R7 == "evolve" and sec == "B2" and i < 18) else 0
 DARK = [57, 60, 62, 64, 67]                 # Am11 cluster: A3 C4 D4 E4 G4
 
 OUT = os.environ.get("T2_OUT") or os.path.expanduser("~/.config/chirp/songs/chirpers7-t2.yaml")
@@ -90,6 +125,9 @@ class Track:
 
 FORM = [("in", 16), ("A1", 16), ("drop1", 4), ("A2", 16), ("break", 16), ("B1", 16), ("drop2", 4), ("B2", 16),
         ("out", 16)]
+if os.environ.get("T2_R7", "evolve") == "evolve":
+    FORM = [("in", 16), ("A1", 13), ("drop1", 4), ("A2", 15), ("break", 10), ("B1", 10), ("spiral", 6), ("drop2", 4),
+            ("B2", 26), ("out", 16)]
 STAIR = [69, 71, 72, 76]                    # A B C E
 CHORD = [57, 60, 64, 67]                    # Am7 under the stair's note
 # the grooves move under the pole, four bars a chord: Am9 | Fmaj9 | G6 | Em7 (bass root, chord)
@@ -119,7 +157,8 @@ def build():
     for bi, (start, sec, i, n) in enumerate(bars):
         core = sec in ("A1", "A2", "B1", "B2")
         full = sec in ("A2", "B1", "B2")
-        if core or sec in ("in", "out"):
+        ko = kofs(sec, i)
+        if core or sec in ("in", "out", "spiral"):
             for b in range(4):
                 T["kick"].add(start + b, 1.0, "kr", 112 if b == 0 else 104)
             for b in (0.5, 1.5, 2.5, 3.5):
@@ -131,11 +170,13 @@ def build():
         if full:
             T["clap"].add(start + 1.0, 0.5, "cp", 96)
             T["clap"].add(start + 3.0, 0.5, "cp", 96)
-        if core:
+        if core or sec == "spiral":
             for o in (0.0, 0.75, 1.5):
                 T["rim"].add(start + 2.0 + o + 0.02, 0.2, "rs", 64 if o == 0 else 52)
         root, chord = 33, (DARK if R3 == "dark" else CHORD)  # (a moving progression under the pole split the grooves)
-        if core or sec in ("drop1", "drop2"):
+        chord = [x + ko for x in mut(sec, i, chord)]
+        root += ko
+        if core or sec in ("drop1", "drop2", "spiral"):
             for b, m, ln in BASS:
                 T["bass"].add(start + b, ln, nm(m - 33 + root), 100 if b == 0 else 86)
         # ---- the stab inside the barber pole: the chord with the stair's note on top, chopped off the beat ----
@@ -147,7 +188,7 @@ def build():
                 T["stab"].add(start, 7.8, ",".join(nm(x) for x in chord + [STAIR[(i // 2) % 4]]), 70)
         elif R3 == "dark" and sec in ("drop1", "drop2") and i == n - 1:
             # the accelerating roll: each chop 0.78 of the last, louder as it goes, the stair counting on
-            down = R2 == "reverse" and sec == "drop2"
+            down = R2 == "reverse" and sec == "drop2" and R7 != "evolve"
             top = wonky(step)  # the bar's first chop as usual
             step += 1
             T["stabdn" if down else "stab"].add(start + 0.5, 0.3, ",".join(nm(x) for x in chord + [top]), 84)
@@ -161,17 +202,19 @@ def build():
                 ioi = max(0.05, ioi * 0.78)
                 k += 1
         elif not (sec == "in" and i < 8):
-            for o in ((0.5, 1.75, 2.5, 3.25) if core else (0.5, 2.5)):
-                top = wonky(step)
+            for o in ((0.5, 1.75, 2.5, 3.25) if (core or sec == "spiral") else (0.5, 2.5)):
+                top = wonky(step) + ko
                 step += 1
                 down = R2 == "reverse" and (sec == "drop2" or (sec == "B1" and i >= 12))
+                if R7 == "evolve":  # the pole falls under the spiral, and as the key comes home
+                    down = sec == "spiral" or (sec == "B2" and 14 <= i < 18)
                 T["stabdn" if down else "stab"].add(start + o, 0.3, ",".join(nm(x) for x in chord + [top]),
                                                     84 if o == 0.5 else 74)
         # ---- the stair itself, quoted plainly once a phrase (as t1 handed it over) ----
         if sec in ("A2", "B2") and i % 8 == 7:
             for k, m in enumerate(STAIR):
                 m = 70 if (R3 == "dark" and sec == "B2" and m == 71) else m  # the peak's quote sinks to Bb
-                T["stair"].add(start + k, 0.9, nm(m), 70)
+                T["stair"].add(start + k, 0.9, nm(m + ko), 70)
         if sec in ("drop1", "drop2") and i == 0:
             T["rise"].add(start, 16.0, "A3" if R6 == "riser" else "C4", 80 if R6 == "riser" else 92)
     sec = []
@@ -211,6 +254,10 @@ def patches():
 def drift(st):
     """The pole's warp (v4): hold, slip a sixteenth late through A2 and back; hold, a sixteenth early through B2."""
     a2, b2 = st["A2"] / 4, st["B2"] / 4
+    if R7 == "evolve":  # A2 is 15 bars: seven late and seven back; the early slip inside B2's Bb bars
+        return [{"over": f"{a2:g}bar", "to": 0}, {"over": "7bar", "to": 0.25, "curve": "in"},
+                {"over": "7bar", "to": 0, "curve": "smooth"}, {"over": f"{b2 - a2 - 14:g}bar", "to": 0},
+                {"over": "8bar", "to": -0.25, "curve": "in"}, {"over": "8bar", "to": 0, "curve": "smooth"}]
     return [{"over": f"{a2:g}bar", "to": 0}, {"over": "8bar", "to": 0.25, "curve": "in"},
             {"over": "8bar", "to": 0, "curve": "smooth"}, {"over": f"{b2 - a2 - 16:g}bar", "to": 0},
             {"over": "8bar", "to": -0.25, "curve": "in"}, {"over": "8bar", "to": 0, "curve": "smooth"}]
@@ -292,6 +339,10 @@ def main():
         {"name": "stair", "patch": "c2-stair", "gain": "-10dB", "pan": 0.2,
          "fx": [{"type": "delay", "time": "3/16", "feedback": 0.35, "mix": 0.25, "ping_pong": True, "tone": 3000},
                 "reverb kind=hall decay=2.5s mix=0.25"], "score": T["stair"].score(total)},
+        *([{"name": "spiral", "patch": "c2-stair", "gain": "-13dB", "pan": -0.2, "at": f"{st['spiral']:g}b",
+            "risset": {"cycle": "3bar", "layers": 3, "length": "6bar", "pitch": True},
+            "fx": [{"type": "delay", "time": "3/16", "feedback": 0.3, "mix": 0.2, "ping_pong": True, "tone": 3000},
+                   "reverb kind=hall decay=2.5s mix=0.25"], "score": SPIRAL}] if R7 == "evolve" else []),
         ({"name": "rise", "patch": "fx-riser-endless amp.a=16b", "gain": os.environ.get("T2_RISE_GAIN", "-12dB"),
           "score": T["rise"].score(total)} if R6 == "riser" else
          {"name": "rise", "patch": "c2-rise", "gain": "-20dB", "fx": ["width width=1.5"], "score": T["rise"].score(total)}),
