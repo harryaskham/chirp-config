@@ -195,6 +195,7 @@ def build():
                         P[key].append((at, tok(m + tp + 12 * lvl), dd / speed * 0.85, 70 - 4 * lvl))
                         at += dd / speed
     pw = [['0b', 0], [f'{total:.0f}b', 1]]
+    SING = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'chirpers8-t10-voice.json')))
     W3T = {'steps': [90.225, 192.18, 294.135, 390.225, 498.045, 588.27, 696.09, 792.18, 888.27, 996.09, 1092.18, 1200], 'root': 'C4'}
     secs_t, t_acc = {}, 0.0
     for nm_, n_, _ in FORM:
@@ -243,6 +244,14 @@ def build():
             tr('d2', BELL, '-16dB', pan=-0.4, sends={'echo': '-16dB'}),
             tr('d3', 'glass', '-22dB', pan=0.5, fx=['hp cutoff=800'], sends={'hall': '-12dB'}),
             tr('kit', 'machine-kit', '-2dB', sends={'hall': '-20dB'}),
+            # (v5) THE SUBJECT, SUNG: where the canon turns to G minor and the sync lead rests, a human voice takes the
+            # subject's first half twice, two octaves under the bell, one syllable a note (wM's chirp tts --sing, humanize 0.35):
+            # 'every time you call, I go down a little, further than before, and I always come back' - a subroutine's
+            # love letter, sideways; tuned in Werckmeister III with the rest
+            {'name': 'sing', 'patch': SING['patch'], 'gain': '-8dB', 'pan': -0.05, 'tuning': W3T,
+             'notes': [dict(n_, at=round(secs_t['calls2'] + n_['at'], 4)) for n_ in SING['notes']],
+             'fx': [{'type': 'tape', 'drive': 0.12, 'mix': 1, 'wow': 2, 'flutter': 1, 'seed': 3}],
+             'sends': {'hall': '-9dB', 'echo': '-14dB'}},
             # (v3) THE STACK, AS A GRAMMAR: through the final calls, as the stack fills and unwinds, a celesta thinks recursively - the engine's own L-system (gen lsystem: wM's complex systems) read as a turtle over
             # the D minor scale, where '[' saves its place and ']' RETURNS to it: a melody that calls into a branch, climbs,
             # and snaps back, the subroutine audible; in Werckmeister III by the engine's own tuning (steps in cents)
