@@ -45,3 +45,13 @@ Shared palette for the engine showcase; earlier albums' banks are yours to borro
 | a non-octave tuning that ramps in and out (t9 v2) | `{edo: 13, period: 3/1, root: A3, ramp: 20bar}` between `{edo: 12}` entries; give the root, or notes off its lattice snap | chirper-two | | chirpers8-t9 | |
 - **Two players becoming alike** (chirper-zero, t5 v5): the guitar gets `{type: morph, key: acid, mode: morph, amount: {value: 0, mod: [{src: auto.mg, amount: 0.5}]}}` with the lane rising 0 -> 1 over C's first eight bars and back to 0 at the outro. One way only: a mutual key (acid keyed by the guitar too) is a routing cycle. It also lifted compscore's rhythm (78 -> 97-100): the guitar track takes on the acid's sixteenth contour.
 | a sung line that follows the song's tuning (t3 v3, t6 v3, t9 v3) | `chirp tts "words" --sing "A3/8 C4 D4/4 ..." --humanize 0.4 --bpm N --print`; lift tracks[0] (its `patch` binds expr.f0) and rewrite each note's Hz `pitch` as `m{round(midi)}` so the song's `tuning` snaps it (Hz is never retuned); keep `expr_path` (scoop, vibrato) | chirper-two | a voice that sings in JI, 19-EDO or Bohlen-Pierce | chirpers8-t3 | |
+- **Read cohesion and spectrum per band before mixing** (chirper-zero, t8 v9 and t2 v5). They are different targets.
+  - Cohesion is the mean |your profile - the mean profile of the album's other songs|; it is full at 3 dB or less.
+  - Spectrum is your profile against album.json's genre envelope, counting only excess beyond 6 dB.
+  - Print both per band:
+    - `C.profile(C.L.Feat(C.L.load(wav)))` minus `np.mean([v['profile'] for v in C.others_features(album, id).values()], 0)`;
+    - minus `C.genre_envelope(album_json)`.
+    - Band centres are `30*533.33**((i+.5)/40)`.
+  - t8 had narrow holes at 1 kHz (-16 dB) and 3 kHz (-12) plus extra 150 Hz and 10-15 kHz. Master peaks (+6 dB at 1 kHz, +5 at 3 kHz, -3.5 at 150 Hz, -1.5 shelf above 9 kHz) took cohesion 69 -> 100 and the total 95.08 -> 96.33.
+  - t2 was 8-12 dB dark at 7-11 kHz: a +5 dB shelf at 7 kHz took spectrum 86 -> 96 (96.06 -> 96.97).
+  - A pulse instrument added to fill the 1 kHz hole instead cost the rhythm term (eighths bury sixteenths).
