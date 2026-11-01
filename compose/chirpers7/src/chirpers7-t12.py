@@ -29,6 +29,20 @@ def nm(m): return f"{NN[m % 12]}{m // 12 - 1}"
 # (v9) a dub form, not the tape's template: a shorter first groove and a long, deep 24-bar break where the washes sing
 # alone three times - dub lives in its drop-outs
 FORM = [('intro', 16), ('A', 24), ('B', 32), ('break', 24), ('C', 32), ('outro', 16)]
+BBM11 = (34, [61, 63, 65, 68, 72])        # Bbm11: the ninth chord grows its eleventh
+EBM11 = (39, [61, 63, 66, 68, 70])        # Ebm11
+NEAP = (35, [58, 63, 65, 66, 70])         # Cbmaj7#11 over the Bb pedal: the borrowed flat-two
+SPANS = {'A': [(10, 0), (6, BBM11), (8, 1)],
+         'B': [(7, 1), (5, 0), (9, EBM11), (11, BBM11)],
+         'break': [(12, 0), (6, NEAP), (6, 3)],
+         'C': [(6, 0), (6, 1), (7, 2), (5, NEAP), (8, 3)]}
+def span_chord(s, i):
+    at = 0
+    for n, c in SPANS[s]:
+        if i < at + n:
+            return CH[c] if isinstance(c, int) else c
+        at += n
+    return CH[0]
 # (v12) darker, wonkier (Harry, 31 Oct): Bbm9 - Gbmaj7#11 - Ebm9 - F7b9
 CH = [(34, [61, 65, 68, 72]), (30, [61, 65, 66, 70, 72]), (39, [61, 63, 66, 70]), (41, [57, 60, 63, 66])]
 STAIR_ST = [0, 2, 3, 7]                       # Bb C Db F, semitones above Bb
@@ -60,10 +74,13 @@ def build():
         s, t0, i = b['sec'], b['t'], b['i']
         # (v1) the harmony opens up through the track: A holds Bbm9 alone (the dub-techno way), B swings Bbm9 <-> Gbmaj7
         # eight bars each, C walks the whole cycle eight bars a chord
-        if s in ('A', 'intro'):
+        # (v23) THE HARMONY EVOLVES (Harry, 1 Nov: 'very simple progressions of 4, 8, 16 bars'): uneven spans over the
+        # B-flat pedal, chords that grow extensions and lose them, and a borrowed flat-two (C-flat major 7 sharp 11, a
+        # semitone above the pedal) darkening the break and the last groove
+        if s in SPANS:
+            root, ch = span_chord(s, i)
+        elif s == 'intro':
             root, ch = CH[0]
-        elif s in ('B', 'break'):
-            root, ch = CH[(i // 8) % 2]
         else:
             root, ch = CH[(i // 8) % 4]
         if s != 'break':
@@ -93,8 +110,10 @@ def build():
             T['stab'].append((t0 + 0.5, ','.join(nm(m) for m in ch), 0.3, 86))
             if k % 2 == 0:
                 T['stab'].append((t0 + 2.75, ','.join(nm(m) for m in ch[1:]), 0.25, 72))
-        if s in ('intro', 'break', 'outro') and k % 4 == 0:
+        if s in ('intro', 'break', 'outro') and (k % 4 == 0 or (s == 'break' and i in (12, 18))):
             T['pad'].append((t0, ','.join(nm(m - 12) for m in ch), 15.8, 74))
+    T['pad'].sort()
+    T['pad'] = [(a_, p_, min(d_, (T['pad'][n_ + 1][0] - a_ - 0.2) if n_ + 1 < len(T['pad']) else d_), v_) for n_, (a_, p_, d_, v_) in enumerate(T['pad'])]
     # THE WASHES: two bars of hiss before each phrase end (every 16 bars from bar 16), the ghost stair inside, then a beat of silence
     gm, gaps, fbl, thr = [['0b', 0]], [], [['0b', 0]], [['0b', 0]]
     vw = [['0b', 0]]
