@@ -49,6 +49,7 @@ OUTUP = os.environ.get("C8T8_OUTUP", "1")   # the memory floats up as it fades: 
 HUMOCT = os.environ.get("C8T8_HUMOCT", "90")   # the A hum doubled an octave up (A2, ~110 Hz: where t7's drone is strongest) for its four bars - velocity
 EQ3 = os.environ.get("C8T8_EQ3", "1")   # the last narrow holes against the album envelope: +5 dB at 1.03 and 3.08 kHz (q 3), +3 dB around 100 Hz, -2.5 dB at 1.65 kHz
 WORDEND = os.environ.get("C8T8_WORDEND", "64")   # one last read: the word itself returns, faint, in the outro's last four bars (the line had been alone) - its 300-900 Hz chime meeting t9's head; value = velocity
+SUNG = os.environ.get("C8T8_SUNG", "-16")   # the words become a song: 'say it back to me' SUNG once (tts --sing, A4 F4 D4 E4 D4 on the stretched octave) at the outro's ninth bar, into the line - the memory's last voice is a tune; value = dry gain dB
 DARK = os.environ.get("C8T8_DARK", "8")  # the tape running out: a master low-pass closing over the outro's last bars (the hiss and the line's top go first); value = bars
 FORM = [("intro", 16), ("A", 36), ("refresh", 8), ("C", 32), ("D", 16), ("E", 28), ("outro", 16)]
 TRACKS = ("word", "pad0", "pad1", "pad2", "pad3", "org0", "org1", "hum", "hum2", "bass", "kick", "shk", "hats", "clap", "rim")
@@ -169,6 +170,15 @@ def lane(points):
     return {"points": [[f"{t16 / 4 * spb:.3f}s", v] for t16, v in points]}
 
 
+def sung_track(gain):
+    """The sung line (tts --sing --print writes m-notes), its pitches moved onto the stretched octave in Hz."""
+    src = json.load(open(os.path.join(HERE, "chirpers8-t8-sung.json")))["tracks"][0]
+    off = (sec_start("outro") + 8 * BAR) / 4
+    notes = [dict(n, at=round(n["at"] + off, 4), pitch=hz(float(n["pitch"][1:]))) for n in src["notes"]]
+    return {"name": "sungv", "patch": src.get("patch", "voice-speech"), "gain": gain, "pan": -0.1,
+            "fx": ["hp cutoff=180"], "sends": {"line": "-4dB", "room": "-10dB"}, "notes": notes}
+
+
 def voice(file, name, offs16, gain, fx, sends):
     """A humanized tts line (tts --print) at each offset (sixteenths)."""
     src = json.load(open(os.path.join(HERE, file)))["tracks"][0]
@@ -240,6 +250,7 @@ def song():
             *([{"name": "shk", "patch": "dusty-kit", "gain": "-12dB", "pan": 0.3, "fx": [{"type": "filter", "kind": "hp", "cutoff": 3500, "q": 0.7}], "score": T["shk"]}] if SHAKE else []),
             {"name": "hats", "patch": "909", "gain": "-9dB", "pan": 0.15, "score": "swing16=0.56 " + T["hats"]},
             {"name": "clap", "patch": "909", "gain": "-9dB", "sends": {"room": "-8dB"}, "score": T["clap"]},
+            *([sung_track(f"{SUNG}dB")] if SUNG else []),
             *([voice("chirpers8-t8-say.json", "say", [sec_start("intro") + 8 * BAR, sec_start("refresh") + BAR, sec_start("outro")], f"{VOX}dB",
                      ["hp cutoff=180"], {"line": "-2dB", "room": "-12dB"})] if VOX else []),
             {"name": "rim", "patch": "909", "gain": "-12dB", "pan": -0.3, "sends": {"line": "-14dB"}, "score": T["rim"]},
