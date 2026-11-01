@@ -48,6 +48,7 @@ WOW = os.environ.get("C7T15_WOW", "1") == "1"  # Harry 15:00 'slight wow on ONE 
 EVO = os.environ.get("C7T15_EVO", "1") == "1"  # Harry's third steer (1 Nov 01:15: 'very simple progressions of 4, 8, 16 bars ... formulaic'): the harmony evolves - intro 2-bar chords; A a 6-bar cycle with the Neapolitan Dbmaj7#11; the break a G pedal (a held G1, new) under Ab, Fm9, Eb and Db in 9+7+9+7 bars; B1 a 5-bar cycle with a borrowed Bbm9; B2 (E-flat minor) a 7-bar cycle; r2 a 3-bar cycle; the outro home to the 4-bar loop
 SPIRAL = os.environ.get("C7T15_SPIRAL", "-14")  # a Shepard-Risset spiral (risset pitch: true) over B bars 25-32 into the lift to E-flat minor; value = gain dB
 DRAG = os.environ.get("C7T15_DRAG", "104")  # Harry's third steer ('accelerando / decelerando ... as structure'): the title enacted at the scale of the track - through r2 the real tempo drags from 124 down to DRAG bpm, and on the outro's downbeat it is 124 again: it got slower and slower and is exactly where it began (a Risset decelerando the size of a section); the outro's own ramp to 123 for the seam is untouched
+VDIAL = os.environ.get("C7T15_VDIAL", "1") == "1"  # wM's radio fx (ce4d6815) on the distant voice: the dial off the station a bar before (static), gliding in as the first 'ever slower' comes (the whistle falling), within 0.03 of the station while it speaks and sings, drifting off after the sixth; the radio's mix only around the phrase
 VOX = os.environ.get("C7T15_VOX", "-14")  # Harry's third steer ('voice under or through things ... speech-to-song where the repetition really becomes melody', sparingly): over the break's bars 9-20 a distant human voice (wM's chirp tts: 'ever slower' --humanize 0.7 --repeat 6 --melodize 0..1 --melody 'G3 Eb3 D3 C3') says the words and, repetition by repetition, sings them onto the falling stair - through a radio band into the dub's echo; value = gain dB
 BED = os.environ.get("C7T15_BED", "2")  # Harry 14:50, 'most tracks have no illusion': the Risset decelerando leads. "1": the bed also under intro bars 17-32, all of A and the outro's first 16 (never more than one break without it); "2": as 1, and under B's last 16 bars an ACCELERATING bed (panned the other way) runs against the slowing one - poly accel/decel over a kick that never changes
 BEDG = os.environ.get("C7T15_BEDG", "-9")  # the beds' level (was -9 dB: compscore's illusion survey read them 11 LU under the mix)
@@ -250,8 +251,16 @@ def vox_track(gain):
     off = (sec_start("break") + 8 * BAR) / 4
     notes = [dict(n, at=round(n["at"] + off, 4)) for n in src["notes"]]
     fv = [[f"{float(t[:-1]) + off:.3f}b", v] for t, v in src["auto"]["fv"]["points"]]
+    auto = {"fv": {"points": fv}}
+    radio = ["hp cutoff=400", "lp cutoff=2800"]
+    if VDIAL:
+        p0, end = sec_start("break") + 8 * BAR, total_steps()
+        auto["dial"] = lane([(0, 1), (p0 - BAR, 1), (p0, 0.1), (p0 + BAR, 0.03), (p0 + 6 * BAR, 0.03), (p0 + 7 * BAR, 0.8), (end, 1)], step=False)
+        auto["rmix"] = lane([(0, 0), (p0 - BAR - 1, 0), (p0 - BAR, 1), (p0 + 7 * BAR, 1), (p0 + 7 * BAR + 2, 0), (end, 0)], step=False)
+        radio = [{"type": "radio", "tune": {"value": 0, "mod": [{"src": "auto.dial", "amount": 1}]}, "hiss": "-40dB", "whistle": "-30dB",
+                  "fade": 0.35, "drift": 0.04, "mix": {"value": 0, "mod": [{"src": "auto.rmix", "amount": 1}]}}]
     return {"name": "vox", "patch": src.get("patch", "voice-speech"), "gain": gain, "pan": 0.2,
-            "fx": [*src["fx"], "hp cutoff=400", "lp cutoff=2800"], "auto": {"fv": {"points": fv}},
+            "fx": [*src["fx"], *radio], "auto": auto,
             "sends": {"dub": "-4dB"}, "notes": notes}
 
 
