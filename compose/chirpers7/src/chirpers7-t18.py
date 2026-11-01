@@ -54,6 +54,8 @@ HEADLV = [float(x) if "." in x else int(x) for x in os.environ.get("C7T18_HEADLV
 MONOH = os.environ.get("C7T18_MONOH", "90")  # chirp-eco's README ('dichotic tricks need a mono version'; 'teach the obvious first'): in the Huggins panel's first three wash phrases the ghost's own notes (A5 F5 E5 D5 as it walks) sound for real on a quiet dry sine, fading - so any speaker plays the melody, then the hiss alone carries it between the ears; value = velocity of the first
 EARHALL = os.environ.get("C7T18_EARHALL", "off")  # the scale panel's hall send (dB; "off" = dry): on t14 the hall tail put every note in the far ear only 5.3 dB down, half-mixing the two crossing scales
 EQT = os.environ.get("C7T18_EQT", "")  # narrow master moves at the album envelope (v25 read 97-113 -6, 182 -6, 249 -6, 467/640/876 +6.5, 3.6k -3.6): "a" 1x (v26: level here, but it moved the seam head 0.3 dB further from The Room Turns' tail and cost t17 0.12 - off since v27), "b" 1.5x (overshoots: 96.71)
+EQB = os.environ.get("C7T18_EQB", "1")  # v26's narrow moves in the BODY only: master peaks whose gain rides an auto lane, 0 under the 16-bar seam head (which The Room Turns' flow reads) and in over 4 bars; value = scale
+EQB_BANDS = [(105, 1.5, 3), (182, 2, 3), (249, 2, 3), (467, 2, -2.5), (640, 2, -2.5), (876, 1.5, -3), (3600, 1, 2.5)]
 COH = os.environ.get("C7T18_COH", "1") == "1"  # t17 v18's fix (measured 22:15): coherent Haas pairs - one source per pair, near ear direct and far ear through 18 ms, dry - so the turning panel's precedence cue exists (separate noise-kit tracks gave the ears different hits)
 COHB = {}
 ILV = float(os.environ.get("C7T18_ILV", "0"))  # every illusion track's level offset (dB)
@@ -556,6 +558,11 @@ def song():
 
 
 def dump(doc):
+    if EQB:
+        kq = float(EQB)
+        i_eq = next(i for i, fx in enumerate(doc["master"]["fx"]) if isinstance(fx, dict) and fx.get("type") == "eq")
+        doc["master"]["fx"][i_eq + 1:i_eq + 1] = [{"type": "filter", "kind": "peak", "cutoff": f, "q": q, "gain": {"value": "0dB", "mod": [{"src": "auto.eqw", "amount": g * kq}]}} for f, q, g in EQB_BANDS]
+        doc["master"].setdefault("auto", {})["eqw"] = lane([(0, 0), (16 * BAR, 0), (20 * BAR, 1), (total_steps(), 1)], step=False)
     lines = [f"{k}: {json.dumps(doc[k])}" for k in ("about", "tempo", "ceiling", "loudness", "tail", "patches", "master") if k in doc]
     lines.append("buses:")
     doc["buses"].update(COHB)
