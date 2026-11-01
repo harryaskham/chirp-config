@@ -73,6 +73,7 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 ## New this album (built by wM or you)
 | feature | commit | built by | showcased by |
 |---|---|---|---|
+| microtonal `tuning` (song or track): `{edo: 19}`, `{edo: 13, period: 3/1}` (Bohlen-Pierce), `{steps: [9/8, 5/4, …, 2/1]}` (scala ratios/cents), `root`, `map: nearest` (written notes snap) or `keys` (keys count steps); a list retunes over time with `ramp`; score `~N` plays step N exactly (README "Microtonal tunings") | a657923e | wM | |
 
 ## Measured (chirp-eco)
 Not measured yet: coverage appears here once songs exist.
