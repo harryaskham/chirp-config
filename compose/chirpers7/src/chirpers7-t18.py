@@ -57,6 +57,7 @@ EQT = os.environ.get("C7T18_EQT", "")  # narrow master moves at the album envelo
 EQB = os.environ.get("C7T18_EQB", "1")  # v26's narrow moves in the BODY only: master peaks whose gain rides an auto lane, 0 under the 16-bar seam head (which The Room Turns' flow reads) and in over 4 bars; value = scale
 EQB_BANDS = [(105, 1.5, 3), (182, 2, 3), (249, 2, 3), (467, 2, -2.5), (640, 2, -2.5), (876, 1.5, -3), (3600, 1, 2.5)]
 MONOO = os.environ.get("C7T18_MONOO", "90")  # Harry listens on headphones AND speakers (1 Nov): the octave illusion's two ears sum on speakers to a steady octave dyad, so for the gallery panel's first 12 bars a quiet centred dry sine plays what the headphones make you hear - one tone hopping high-low on the panel's grid - fading out, after which the ears carry it alone; value = first velocity
+HEADEQ = os.environ.get("C7T18_HEADEQ", "6")  # the in-join (compscore: the head 12-15 dB over The Room Turns' tail at 133, 547 Hz and 1.6 kHz): those bands this many dB down for the first 4 bars, flat by bar 8 - the new record brought in thin, as a DJ would
 COH = os.environ.get("C7T18_COH", "1") == "1"  # t17 v18's fix (measured 22:15): coherent Haas pairs - one source per pair, near ear direct and far ear through 18 ms, dry - so the turning panel's precedence cue exists (separate noise-kit tracks gave the ears different hits)
 COHB = {}
 ILV = float(os.environ.get("C7T18_ILV", "0"))  # every illusion track's level offset (dB)
@@ -562,6 +563,11 @@ def song():
 
 
 def dump(doc):
+    if HEADEQ:
+        hq = float(HEADEQ)
+        i_eq0 = next(i for i, fx in enumerate(doc["master"]["fx"]) if isinstance(fx, dict) and fx.get("type") == "eq")
+        doc["master"]["fx"][i_eq0 + 1:i_eq0 + 1] = [{"type": "filter", "kind": "peak", "cutoff": f, "q": 1.4, "gain": {"value": "0dB", "mod": [{"src": "auto.he", "amount": 1}]}} for f in (133, 547, 1643)]
+        doc["master"].setdefault("auto", {})["he"] = lane([(0, -hq), (4 * BAR, -hq), (8 * BAR, 0), (total_steps(), 0)], step=False)
     if EQB:
         kq = float(EQB)
         i_eq = next(i for i, fx in enumerate(doc["master"]["fx"]) if isinstance(fx, dict) and fx.get("type") == "eq")
