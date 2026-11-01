@@ -48,6 +48,7 @@ ORGAN = os.environ.get("C8T8_ORGAN", "")   # the operator's console: a reedy com
 OUTUP = os.environ.get("C8T8_OUTUP", "1")   # the memory floats up as it fades: the outro's last eight bars voice the pads an octave higher (the 290-470 Hz t9's glass pads open in)
 HUMOCT = os.environ.get("C8T8_HUMOCT", "90")   # the A hum doubled an octave up (A2, ~110 Hz: where t7's drone is strongest) for its four bars - velocity
 EQ3 = os.environ.get("C8T8_EQ3", "1")   # the last narrow holes against the album envelope: +5 dB at 1.03 and 3.08 kHz (q 3), +3 dB around 100 Hz, -2.5 dB at 1.65 kHz
+WORDEND = os.environ.get("C8T8_WORDEND", "64")   # one last read: the word itself returns, faint, in the outro's last four bars (the line had been alone) - its 300-900 Hz chime meeting t9's head; value = velocity
 DARK = os.environ.get("C8T8_DARK", "8")  # the tape running out: a master low-pass closing over the outro's last bars (the hiss and the line's top go first); value = bars
 FORM = [("intro", 16), ("A", 36), ("refresh", 8), ("C", 32), ("D", 16), ("E", 28), ("outro", 16)]
 TRACKS = ("word", "pad0", "pad1", "pad2", "pad3", "org0", "org1", "hum", "hum2", "bass", "kick", "shk", "hats", "clap", "rim")
@@ -101,11 +102,12 @@ def build():
             e = err_rate(sec, b, nb)
             word = [bit ^ (1 if rng.random() < e else 0) for bit in word]
             history.append(list(word))
-            if sec not in ("outro", "refresh") or (sec == "refresh" and b >= 4):
+            last_read = WORDEND and sec == "outro" and b >= nb - 4
+            if sec not in ("outro", "refresh") or (sec == "refresh" and b >= 4) or last_read:
                 for i, bit in enumerate(word):
                     if bit:
                         p = SC[(i * 3) % 8] + (0 if i < 8 else 12 if sec in ("C", "E") and i % 4 == 0 else 0)
-                        add("word", at + i, hz(p), 1, 86 if i % 4 == 0 else 70)
+                        add("word", at + i, hz(p), 1, int(WORDEND) if last_read else (86 if i % 4 == 0 else 70))
             r, v = CHORDS[(b // 4) % 4] if sec != "refresh" else CHORDS[0]
             # pads: long chords, every 4 bars
             if b % 4 == 0 and sec != "D":
