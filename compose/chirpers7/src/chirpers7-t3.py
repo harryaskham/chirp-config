@@ -224,10 +224,12 @@ def build():
     # the outro hands the plain words back to the radio
     ta, to_ = secs['A'], secs['outro']
     # (the radio tunes in a step on the second groove's downbeat, then keeps coming closer)
+    # (v23) after the outro's last words are tuned away the radio itself sinks to under half its level (its static was filling the seam to t4
+    # with 2 kHz hiss)
     dial = [['0b', 0.75], [f'{ta:.2f}b', 0.75], [f'{ta + 16:.2f}b', 0], [f'{tb:.2f}b', 0], [f'{tb + 0.25:.2f}b', -0.55], [f'{tb + 12:.2f}b', 0],
             [f'{to_ + 28:.2f}b', 0], [f'{to_ + 48:.2f}b', 0.85]]
     rad = [['0b', 0.8], [f'{secs["B"] - 0.25:.2f}b', 0.8], [f'{secs["B"]:.2f}b', 0.45], [f'{secs["B"] + 128:.2f}b', 0], [f'{tb - 0.5:.2f}b', 0], [f'{tb:.2f}b', 1],
-           [f'{tc - 4:.2f}b', 1], [f'{tc:.2f}b', 0], [f'{to_ + 16:.2f}b', 0], [f'{to_ + 32:.2f}b', 1]]
+           [f'{tc - 4:.2f}b', 1], [f'{tc:.2f}b', 0], [f'{to_ + 16:.2f}b', 0], [f'{to_ + 32:.2f}b', 1], [f'{to_ + 48:.2f}b', 1], [f'{to_ + 60:.2f}b', 0.4]]
     op = [['0b', 0], [f'{tb:.2f}b', 0], [f'{tb + 0.1:.2f}b', 1], [f'{tc - 8:.2f}b', 1], [f'{tc:.2f}b', 0]]
     tr = lambda name, patch, gain, **kw: dict({'name': name, 'patch': patch, 'gain': gain, 'score': line(T[name], total)}, **kw)
     return {
