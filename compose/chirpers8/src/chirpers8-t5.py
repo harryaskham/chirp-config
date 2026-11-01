@@ -35,6 +35,7 @@ LISTEN = os.environ.get("C8T5_LISTEN", "")   # while one machine proposes the ot
 MARK = os.environ.get("C8T5_MARK", "1")   # the lead LEARNS the agreement: a Markov chain (the engine's `gen`, order 1) over the hook's own tokens improvises C's lead - new phrases that only make the hook's moves (a step up for the lift); replaces the dice lead
 STORM = os.environ.get("C8T5_STORM", "") # the acid's ladder filter rides a Lorenz attractor (a var stepped every eighth): a swirl that never repeats, 600 Hz up to STORM octaves
 HEAD = os.environ.get("C8T5_HEAD", "2")   # the line is already open when the track starts: congas from the first bar and a low E hum (the 808 on E1) under the intro's first eight bars, so the handshake starts over a held line (t4 -> t5 read a 24 dB jump and a 61 Hz hole)
+MERGE = os.environ.get("C8T5_MERGE", "0.5")   # agreed, they become alike: in C the guitar MORPHS toward the acid's spectrum (wM's morph fx, mode morph; one way - a mutual key is a routing cycle), up to MERGE over C's first eight bars, held through the lift, apart again for the outro
 HOOKF = [(0, "E4", 3), (3, "G4", 3), (6, "A4", 4), (10, "B4", 6), (16, "D5", 3), (19, "B4", 3), (22, "D5", 4), (26, "E5", 6)]
 FORM = [("intro", 12), ("A", 34), ("B", 26), ("retrain", 12), ("C", 48), ("outro", 16)]
 TRACKS = ("carrier", "conga", "gtr", "acid", "sub", "kick", "hats", "clap", "fretless", "horns", "lead")
@@ -239,6 +240,8 @@ def song():
     T = build()
     st = {sec: sec_start(sec) for sec, _ in FORM}
     BARG = [st["B"] + 12 * BAR, st["retrain"] + 3 * BAR, st["retrain"] + 8 * BAR]
+    merge_lane = {"points": [["0b", 0], [f"{st['C'] / 4:g}b", 0], [f"{(st['C'] + 8 * BAR) / 4:g}b", 1], [f"{(st['outro'] - BAR) / 4:g}b", 1],
+                             [f"{st['outro'] / 4:g}b", 0], [f"{total() / 4:g}b", 0]]}
     end = total()
     tempo = [{"at": "0b", "bpm": 106}, {"at": beats(st["A"]), "bpm": 108}, {"at": beats(st["B"]), "bpm": 108},
              {"at": beats(st["retrain"]), "bpm": 114, "ramp": True}, {"at": beats(st["retrain"]), "bpm": 110},
@@ -269,8 +272,9 @@ def song():
              "fx": [{"type": "radio", "tune": {"value": 0, "mod": [{"src": "auto.dial", "amount": 1}]}, "hiss": "-36dB", "whistle": "-28dB",
                      "fade": 0.3, "drift": 0.05, "mix": 1}], "auto": {"dial": dial}, "score": T["carrier"]},
             {"name": "conga", "patch": "congas", "gain": "-8dB", "pan": -0.25, "sends": {"room": "-12dB"}, "score": T["conga"]},
-            {"name": "gtr", "patch": "cutting-guitar", "gain": "-9dB", "pan": 0.3,
-             "fx": [{"type": "phaser", "rate": 0.4, "depth": 0.6, "feedback": 0.4, "stages": 6, "mix": 0.35},
+            {"name": "gtr", "patch": "cutting-guitar", "gain": "-9dB", "pan": 0.3, **({"auto": {"mg": merge_lane}} if MERGE else {}),
+             "fx": [*([{"type": "morph", "key": "acid", "mode": "morph", "amount": {"value": 0, "mod": [{"src": "auto.mg", "amount": float(MERGE)}]}}] if MERGE else []),
+                    {"type": "phaser", "rate": 0.4, "depth": 0.6, "feedback": 0.4, "stages": 6, "mix": 0.35},
                     {"type": "amp", "gain": 0.25, "mix": 0.5}, {"type": "cab", "mix": 0.6}],
              "sends": {"spring": "-14dB"}, "score": T["gtr"]},
             {"name": "sub", "patch": "808", "gain": "-10dB", "fx": [pump, {"type": "filter", "kind": "lp", "cutoff": 160, "q": 0.7}], "score": T["sub"]},
