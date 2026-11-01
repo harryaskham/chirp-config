@@ -152,7 +152,7 @@ def build():
         # stop on the master) - the only thing in the track that ever slows - and the outro lands on F
         'master': {'fx': [{'type': 'tapestop', 'time': '2b', 'curve': 1.6, 'mix': 1,
                            'stop': {'value': 0, 'mod': [{'src': 'auto.ts', 'amount': 1}]}},
-                          {'type': 'eq', 'bands': ['highpass cutoff=32', 'peak cutoff=55 q=0.9 gain=-4dB', 'peak cutoff=170 q=0.9 gain=-2dB', 'peak cutoff=380 q=0.7 gain=-4dB', 'peak cutoff=3500 q=0.6 gain=5dB', 'highshelf cutoff=6000 gain=4dB']},
+                          {'type': 'eq', 'bands': ['highpass cutoff=32', 'peak cutoff=55 q=0.9 gain=-4dB', 'peak cutoff=160 q=1.0 gain=-4dB', 'peak cutoff=380 q=0.7 gain=-4dB', 'peak cutoff=560 q=1.0 gain=-3dB', 'peak cutoff=3500 q=0.6 gain=7dB', 'highshelf cutoff=6000 gain=4dB']},
                           {'type': 'compressor', 'threshold': '-20dB', 'ratio': 2.5, 'attack': '15ms', 'release': '150ms', 'makeup': '2dB'},
                           {'type': 'gain', 'gain': '+8dB'},
                           {'type': 'compressor', 'threshold': '-15dB', 'ratio': 8, 'attack': '0.3ms', 'release': '60ms'},
