@@ -45,7 +45,10 @@ ANTIC = os.environ.get("C7T14_ANTIC", "1") == "1"  # the organ stabs anticipate:
 
 ERISER = os.environ.get("C7T14_ERISER", "-10")  # wM's endless Shepard riser (fx-riser-endless) over the 8 bars into B: pitch, noise and filter rising for ever, stopping dead on the drop (Harry: 'risers and staircases v good'); level in dB
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
+RUSH = os.environ.get("C7T14_RUSH", "1") == "1"  # Harry's third steer ('add / replace / augment sections'; 'accelerando ... as structure'): a new 10-bar section between B and the outro - THE RUSH HOME: the harmony accelerates (3-2-2-1-1-1 bars: Fm11, Dbmaj9, Gbmaj7#11, Emaj7#11, Dbmaj9, C7b9) and carries the key back down from A-flat minor to F minor, the scales run in sixteenths, the organ on its busy figure, and a second Shepard stair accelerando (half notes to sixteenths over the 10 bars) lands on the outro
 FORM = [("intro", 32), ("A", 30), ("break", 14), ("B", 45), ("outro", 32)] if FORMX else [("intro", 32), ("A", 32), ("break", 16), ("B", 48), ("outro", 32)]
+if RUSH:
+    FORM = FORM[:-1] + [("rush", 10)] + FORM[-1:]
 CH = [(29, [56, 60, 63, 67]),   # Fm9: Ab3 C4 Eb4 G4 over F
       (32, [55, 60, 63, 67]),   # Abmaj7: G3 C4 Eb4 G4 over Ab
       (27, [55, 58, 60, 63]),   # Eb6: G3 Bb3 C4 Eb4 over Eb
@@ -68,6 +71,8 @@ def plan(sec, b):
         return LIB[["Fm11", "Ebm9", "Dbmaj9", "Emaj7#11", "Fm9", "C7b9"][b % 6]]
     if sec == "B":
         return LIB[["Fm11", "Gbmaj7#11", "Dbmaj9", "Bbm9", "Emaj7#11", "C7b9", "C7b9"][(b - 24) % 7]]
+    if sec == "rush":
+        return LIB[(["Fm11"] * 3 + ["Dbmaj9"] * 2 + ["Gbmaj7#11"] * 2 + ["Emaj7#11", "Dbmaj9", "C7b9"])[b]]
     return CHD[b % 4]
 
 
@@ -166,7 +171,7 @@ def build():
                     elif q % 2 == 0:
                         add("hats", at + q, "h", 1, 48)
             # claps on 2 and 4; a rim roll at every eighth bar's end
-            if sec in ("A", "B") or (sec == "outro" and b < 16):
+            if sec in ("A", "B", "rush") or (sec == "outro" and b < 16):
                 add("clap", at + 4, "cp", 1, 96)
                 add("clap", at + 12, "cp", 1, 100)
                 if b % 8 == 7:
@@ -188,20 +193,20 @@ def build():
                 add("sub", at, nm(r), 7, 92)
                 add("sub", at + 10, nm(r), 5, 84)
             # the pumping bassline: off-beat octaves (jackin')
-            if sec in ("A", "B") or (sec == "outro" and b < 16):
+            if sec in ("A", "B", "rush") or (sec == "outro" and b < 16):
                 for q in (2, 6, 10, 14):
                     add("bass", at + q, nm(r + 24 if q in (6, 14) else r + 12), 2, 96 if q in (2, 10) else 86)
             # the organ: short stabs on the and-of-1 and the a-of-2 (B2 answers on the 3 and the a-of-4)
-            if (sec == "A" and b < 16) or sec == "B" or (sec == "intro" and b >= 16):
+            if (sec == "A" and b < 16) or sec in ("B", "rush") or (sec == "intro" and b >= 16):
                 ch = ",".join(nm(n + 12) for n in v)
-                hits = ((3, 11) if ANTIC else (2, 7)) if not (sec == "B" and b >= 24) else ((3, 8, 11, 15) if ANTIC else (2, 7, 8, 15))
+                hits = ((3, 11) if ANTIC else (2, 7)) if not ((sec == "B" and b >= 24) or sec == "rush") else ((3, 8, 11, 15) if ANTIC else (2, 7, 8, 15))
                 for q in hits:
                     add("organ", at + q, ch, 1, 86 if q in (2, 3) else 74)
             # THE SCALE ILLUSION: the rising and the falling scale at once, swapping ears on every step
-            on = (sec == "A" and b >= 16) or sec in ("break", "B") or (SCALEALL and ((sec == "intro" and b >= 16) or sec == "A" or (sec == "outro" and b < 16)))
+            on = (sec == "A" and b >= 16) or sec in ("break", "B", "rush") or (SCALEALL and ((sec == "intro" and b >= 16) or sec == "A" or (sec == "outro" and b < 16)))
             if on:
-                step16 = 1 if (sec == "B" and b >= 24) else 2
-                vel = (62 if b < 16 else 70) if (sec == "A") else (84 if sec in ("break", "B") else (56 if sec == "intro" else 64 - 2 * b))
+                step16 = 1 if ((sec == "B" and b >= 24) or sec == "rush") else 2
+                vel = (62 if b < 16 else 70) if (sec == "A") else (84 if sec in ("break", "B", "rush") else (56 if sec == "intro" else 64 - 2 * b))
                 for k, q in enumerate(range(0, 16, step16)):
                     i = k % 8
                     lo, hi = ASC[i] + ku, DESC[i] + ku
@@ -225,6 +230,14 @@ def build():
         while t < ln:
             ioi = max(1, round(8 * (0.125 ** (t / ln))))
             add("riser", a0 + int(t), nm(up[k % 4] + 12 * (k // 8 % 2)), ioi, 70 + int(26 * t / ln))
+            t += ioi
+            k += 1
+    if RUSH and (RISER or STAIRB):   # the second stair accelerando, across the rush home
+        a0, ln = sec_start("rush"), 10 * BAR
+        t, k, up = 0.0, 0, [65, 67, 68, 72]
+        while t < ln:
+            ioi = max(1, round(8 * (0.125 ** (t / ln))))
+            add("riser", a0 + int(t), nm(up[k % 4] + 12 * (k // 8 % 2)), ioi, 72 + int(24 * t / ln))
             t += ioi
             k += 1
     return {k: stream(ev[k], total_steps()) for k in TRACKS}
