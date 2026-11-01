@@ -82,9 +82,9 @@ def build():
             depth = 0
         depths.append(depth)
 
-    def subj_bar(k, base_t, tp, octv, vel, key):
+    def subj_bar(k, base_t, tp, octv, vel, key, rev=False):
         at = base_t
-        for m, d in SUBJ[k % 8]:
+        for m, d in (SUBJ[k % 8][::-1] if rev else SUBJ[k % 8]):
             P[key].append((at, tok(m + tp + 12 * octv), d * 0.92, vel))
             at += d
 
@@ -156,9 +156,13 @@ def build():
             # each key gets its own arrangement: in G minor the sync lead drops out and the pulse arpeggiates the chord
             # in sixteenths; in A minor the voices cross - the bell an octave down, the sync lead an octave up
             ob, os_ = (-1, 0) if s == 'calls3' else (0, -1)
-            subj_bar(i, t0, tp, ob, 92, 'bell')
+            # (v10) THE PROGRAM READ BACKWARDS: in A minor every bar of the subject plays in retrograde - the same notes, so
+            # the same harmony, but each bar's line and rhythm reversed - and in the final calls, as the stack unwinds (its
+            # second half), the bell reads backwards again while the sync lead reads forwards: the canon against its mirror
+            rv = s == 'calls3' or (s == 'final' and i >= 16)
+            subj_bar(i, t0, tp, ob, 92, 'bell', rev=rv)
             if s != 'calls2':
-                subj_bar(i + 4, t0, tp, os_, 88, 'sync')
+                subj_bar(i + 4, t0, tp, os_, 88, 'sync', rev=(s == 'calls3'))
             if s == 'calls2':
                 arp = ch + [ch[0] + 12]
                 for qq in range(16):
