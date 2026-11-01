@@ -47,6 +47,7 @@ EQFIX = os.environ.get("C8T8_EQFIX", "2")   # (a measurement) the master toward 
 ORGAN = os.environ.get("C8T8_ORGAN", "")   # the operator's console: a reedy combo organ pulsing eighths on the chord's two upper tones an octave up (stretched, two voices) through A, C and E - minimalist machine-pulse in the 1-3 kHz the track lacked; value = velocity
 OUTUP = os.environ.get("C8T8_OUTUP", "1")   # the memory floats up as it fades: the outro's last eight bars voice the pads an octave higher (the 290-470 Hz t9's glass pads open in)
 HUMOCT = os.environ.get("C8T8_HUMOCT", "90")   # the A hum doubled an octave up (A2, ~110 Hz: where t7's drone is strongest) for its four bars - velocity
+EQ3 = os.environ.get("C8T8_EQ3", "1")   # the last narrow holes against the album envelope: +5 dB at 1.03 and 3.08 kHz (q 3), +3 dB around 100 Hz, -2.5 dB at 1.65 kHz
 DARK = os.environ.get("C8T8_DARK", "8")  # the tape running out: a master low-pass closing over the outro's last bars (the hiss and the line's top go first); value = bars
 FORM = [("intro", 16), ("A", 36), ("refresh", 8), ("C", 32), ("D", 16), ("E", 28), ("outro", 16)]
 TRACKS = ("word", "pad0", "pad1", "pad2", "pad3", "org0", "org1", "hum", "hum2", "bass", "kick", "shk", "hats", "clap", "rim")
@@ -202,7 +203,8 @@ def song():
                            (["highpass cutoff=30", "peak cutoff=150 q=0.9 gain=-3dB", "peak cutoff=300 q=0.8 gain=-2dB", "peak cutoff=1000 q=1.2 gain=4dB", "peak cutoff=3000 q=1.4 gain=4dB"]
                             if EQFIX != "2" else
                             ["highpass cutoff=30", "peak cutoff=150 q=0.9 gain=-3.5dB", "peak cutoff=300 q=0.8 gain=-2dB", "peak cutoff=1000 q=1.4 gain=6dB",
-                             "peak cutoff=3000 q=1.4 gain=5dB", "highshelf cutoff=9000 gain=-1.5dB"])},
+                             "peak cutoff=3000 q=1.4 gain=5dB", "highshelf cutoff=9000 gain=-1.5dB",
+                             *(["peak cutoff=1030 q=3 gain=5dB", "peak cutoff=3080 q=3 gain=5dB", "peak cutoff=100 q=1 gain=3dB", "peak cutoff=1650 q=2 gain=-2.5dB"] if EQ3 else [])])},
                           {"type": "tape", "drive": 0.1, "mix": 0.5, "wow": 5, "flutter": 1.5, "drift": 1, "hiss": "-62dB", "seed": 8},
                           {"type": "compressor", "threshold": "-18dB", "ratio": 2.5, "attack": "15ms", "release": "150ms", "makeup": "0dB"},
                           *([darkf] if DARK and DARKPOS == "end" else [])],
