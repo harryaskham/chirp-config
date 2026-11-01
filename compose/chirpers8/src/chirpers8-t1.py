@@ -30,7 +30,9 @@ CH = [(35, [62, 66, 69, 73]), (31, [62, 66, 69, 71]), (38, [61, 64, 66, 69]), (3
 EM11 = (28, [62, 66, 67, 71]); GM7S11 = (31, [61, 62, 66, 71]); FS7SUS = (30, [61, 64, 66, 71]); DF = (30, [62, 66, 69, 73])
 EM9 = (28, [62, 66, 67, 71]); A13 = (33, [61, 66, 67, 71])
 PROG = {'B': [(6, EM11), (5, GM7S11), (6, CH[0]), (5, FS7SUS)], 'break': [(8, CH[1])],
-        'C': [(5, DF), (6, CH[1]), (5, EM9), (6, A13)], 'outro': [(10, CH[0])]}
+        'C': [(5, DF), (6, CH[1]), (5, EM9), (6, A13)], 'outro': [(6, CH[0]), (4, CH[1])]}
+# (v5) THE HANDSHAKE: the outro's last four bars turn from B minor 9 to G major 9 over a low G, so the opener hands the
+# record to t2 in t2's own key (G major) - the first track says 'go on' to the second
 def chord_at(s, i, b):
     if s in PROG:
         spans = PROG[s]; tot = sum(n for n, _ in spans); j = i % tot; at = 0
@@ -79,6 +81,8 @@ def build():
             if s in ('C', 'D'):
                 P['speak'].append((t0, ','.join(nm(m) for m in ch), 40.0, 84))
             P['pad'].append((t0, ','.join(nm(m) for m in ch), 40.0, 72 if s in ('intro', 'outro', 'break') else 64))
+        if s == 'outro' and i >= 6:
+            P['sub'].append((t0, nm(31), 3.8, 80))           # G1 under the handshake
         if s in ('B', 'C', 'D'):
             P['sub'].append((t0, nm(root), 1.8, 92)); P['sub'].append((t0 + 2.5, nm(root), 1.2, 84))
             for q, o in ((1.5, 12), (3.0, 7), (3.75, 12)):
