@@ -130,6 +130,15 @@ def build():
     VOICE = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'chirpers8-t7-voice.json')))
     JI = sorted(55.0 * 2 ** o * r for o in range(5) for r in RATIOS)
     vnotes, fv = [], []
+    SING = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'chirpers8-t7-sing.json')))
+    JIR = {0: 1, 2: 9 / 8, 3: 6 / 5, 5: 4 / 3, 7: 3 / 2, 8: 8 / 5, 10: 9 / 5}
+    def ji(m):
+        dd = int(round(float(m[1:]))) - 57
+        o_, pc = divmod(dd, 12)
+        return f"{220.0 * 2 ** o_ * JIR.get(pc, 2 ** (pc / 12)):.3f}hz"
+    conv = sum(n for nm_, n in FORM[:FORM.index(('converged', 16))])
+    sung = [dict(n_, at=round((conv + 2 + rep * 6) * 4.0 + n_['at'], 4), pitch=ji(n_['pitch']))
+            for rep in (0, 1) for n_ in SING['notes']]
     for sec, v in sorted(VOICE.items(), key=lambda kv: kv[1]['bar']):
         off = v['bar'] * 4.0
         for n_ in v['notes']:
@@ -201,6 +210,12 @@ def build():
             tr('bass', 'moog-seq', '-8dB', fx=['lp cutoff=900']),
             tr('kit', 'electro-kit', '-5dB', sends={'hall': '-20dB'}),
             tr('hum', 'drone', '-9dB', sends={'hall': '-14dB'}),
+            # (v6) THERE YOU ARE: when the search converges, the voice that read the error aloud SINGS - the riff it was looking
+            # for, slowed to a sung phrase, twice: 'there you are, you were always here' (chirp tts --sing, humanize 0.35),
+            # every note retuned to the same 5-limit just pitches as the band
+            {'name': 'sing', 'patch': SING['patch'], 'gain': '-8dB', 'pan': 0.1, 'notes': sung,
+             'fx': [{'type': 'tape', 'drive': 0.12, 'mix': 1, 'wow': 2, 'flutter': 1, 'seed': 5}],
+             'sends': {'echo': '-11dB', 'hall': '-10dB'}},
             {'name': 'voice', 'patch': 'voice-speech', 'gain': '-8dB', 'notes': vnotes, 'pan': -0.1,
              'fx': [{'type': 'pitch', 'semitones': 0, 'formant': {'value': 0, 'mod': [{'src': 'auto.fv', 'amount': 1}]}},
                     {'type': 'tape', 'drive': 0.15, 'mix': 1, 'wow': 3, 'flutter': 2, 'seed': 7}],
