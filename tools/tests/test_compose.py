@@ -301,6 +301,24 @@ class DistributionKit(unittest.TestCase):
             shutil.rmtree(d, ignore_errors=True)
 
 
+class Coverage(unittest.TestCase):
+    def test_song_features_reads_the_plan_and_the_score(self):
+        canon = {"tempo": [{"at": "0b", "bpm": 120}, {"at": "64b", "bpm": 124, "ramp": True}],
+                 "tuning": {"edo": 19, "ramp": "8bar"}, "vars": {"storm": {"system": {"type": "lorenz"}}},
+                 "patches": {"g": {"synth": {"layers": [{"type": "pluck"}, {"type": "osc", "wave": "saw"}]},
+                                   "fx": [{"type": "amp"}, {"type": "cab"}]}},
+                 "tracks": [{"name": "a", "auto": [{"x": 1}], "fx": [{"type": "filter", "cutoff": 900}, {"type": "morph"},
+                                                                    {"type": "filter", "kind": "ladder"}],
+                             "notes": [{"at": 0, "pitch": "C4", "ph": "k", "glide": 0.1}]}]}
+        raw = 'score: "k(3,8)/16 (C|E)/8 F1/16?0.6"\ngen: [{"type": "ca", "rule": 30}]'
+        got = CH.song_features(canon, raw)
+        for want in ("tempo map", "tuning", "tuning:edo", "tuning:ramp", "vars", "var system", "pluck", "wave:saw", "amp", "cab",
+                     "guitar", "auto", "kind:lp", "morph", "ladder", "voice (tts)", "glide", "euclid", "choices", "chance", "gen:ca"):
+            self.assertIn(want, got)
+        self.assertNotIn("wave:sine", got)
+        self.assertNotIn("gen:lorenz", got)       # a var system, not a track gen (that's 'var system')
+
+
 class IllusionPresence(unittest.TestCase):
     def test_a_buried_half_and_a_present_half(self):
         sr, n = 48000, 48000 * 40

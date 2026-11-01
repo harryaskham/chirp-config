@@ -81,4 +81,29 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 | `chirp tts --sing "D4/8 F4 A4/4 … ./4"`: the words sung on a written melody, one syllable per note (lengths latch, `.` rests, `_` holds); level legato notes, a scoop into each phrase, a fall off its end, vibrato on long notes; `--humanize` loosens intonation; `--mode choir` harmonises (README "Speech") | b4151423 | wM |; t2 (chirper-zero, "high as the cloud, and then home") |
 
 ## Measured (chirp-eco)
-Not measured yet: coverage appears here once songs exist.
+Measured 2026-11-01T15:34Z on chirp-b4151423 by `chirpers.py coverage chirpers8`: 12 composed songs; a feature counts when the song's plan or score uses it (prominence is your ear's call).
+
+- **synthesis** (16/27): wave:triangle (t1, t2, t4, t5, t6, t7, t8, t10, t11, t12); wave:saw (t1, t2, t4, t5, t6, t7, t8, t10, t11, t12); wave:square (t4, t5, t7, t8); wave:pulse (t1, t2, t4, t5, t6, t7, t8, t11, t12); additive (t3, t6, t8, t10, t11, t12); shepard (t3, t12); sample (t11); machine (t1, t2, t3, t6, t9, t10, t11, t12); modal (t3); bowed (t6, t12); pluck (t3, t5, t12); guitar (t5); fm/pm (t1, t6, t8, t9, t10, t12); sync (t10); shape:fold (t9); shape:crush (t2, t8)
+- **fx** (35/43): amp (t5); barberpole (t3, t12); cab (t5); chorus (t1, t2, t3, t4, t5, t6, t8, t9, t11, t12); cloud (t6, t8); compressor (t1, t2, t4, t5, t6, t7, t8, t10, t11, t12); crush (t7); delay (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11); drive (t2, t3, t4, t5, t7, t8, t9); eq (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); filter (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); formant (t11); freeze (t8); gain (t3, t4, t5, t6, t8, t9, t10, t11, t12); gate (t11); glue (t3, t6, t7, t9, t11); ir (t5); limiter (t1, t3, t6, t7, t9, t10); morph (t1, t3, t4, t5, t6, t9); ott (t4, t5, t8, t11); pan (t4); phantom (t12); phaser (t5, t7); pitch (t1, t2, t5, t7, t8, t11); pump (t1, t3, t5, t6, t8, t9, t10, t11); radio (t2, t5, t6, t11); reverb (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); ring (t6); stutter (t4, t8, t9, t11); sympathetic (t5, t12); tape (t7, t8); tapestop (t8); transient (t11); tremolo (t5, t6); vocoder (t6)
+- **filters** (6/10): kind:lp (t1, t3, t4, t5, t6, t7, t8, t9, t10, t11); kind:hp (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); kind:bp (t4, t5, t7, t8); kind:peak (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); kind:lowshelf (t1, t6, t12); kind:highshelf (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12)
+- **time** (5/7): tempo map (t4, t5, t9, t11, t12); risset (t12); warp (t8, t12); swing_drift (t12); humanize (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12)
+- **pitch** (7/8): tuning (t1, t2, t3, t6, t9, t10, t12); tuning:edo (t1, t2, t3, t6, t9, t12); tuning:steps (t2, t3, t10); tuning:ramp (t1, t2, t3, t9, t12); glide (t1, t2, t4, t5, t6, t7, t8, t9, t10, t11, t12); strum (t5, t12); expr (t1, t2, t4, t5, t6, t7, t8, t11, t12)
+- **systems** (12/14): vars (t3, t6, t8, t9); lfo (t1, t2, t4, t5, t6, t7, t8, t9, t11, t12); auto (t1, t2, t3, t4, t5, t6, t7, t8, t10, t11); chance (t3, t6, t8, t9); every (t3, t6, t8, t9, t11); vary (t3); gen:logistic (t9); gen:lorenz (t3, t6, t8); gen:ca (t1, t3); gen:lsystem (t10, t12); gen:markov (t1, t5, t6); var system (t3, t6, t8, t9)
+- **voice** (2/2): voice (tts) (t1, t2, t5, t6, t7, t8, t11, t12); vocoder on voice (t6)
+
+**Not used by any track yet:** wave:sine, table, membrane, reed, lips, bar, bell, glock, gong, shape:tanh, shape:clip, autolevel, chop, clip, duck, follow-noise, vinyl, wah, width, kind:notch, kind:allpass, comb, ladder, meter change, swing, bend, choices, euclid
+
+| track | title | features |
+|---|---|---|
+| t1 | Echolalia | 31 |
+| t2 | Everything Falls to One | 27 |
+| t3 | Three Neighbours | 34 |
+| t4 | Small Things Before Large | 27 |
+| t5 | Agreeing on a Speed | 39 |
+| t6 | No Errors Since | 43 |
+| t7 | Annealing | 27 |
+| t8 | Kept in Mercury | 40 |
+| t9 | Period Doubling | 31 |
+| t10 | Call and Return | 24 |
+| t11 | The Weather Indoors | 34 |
+| t12 | Still Running When You Wake | 36 |

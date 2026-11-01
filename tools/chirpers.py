@@ -22,6 +22,7 @@ climbing them on tools/compscore.py (no record to match) and Harry's ratings (to
                                                      full-band level per bar (linear and the mixer swap), mp3s
   chirpers.py seams ALBUM_ID [--flam-ms MS] [--dead-s S]   audit a mixtape's DJ seams: beat drift across each
                                                      overlap (tempo ramps, mismatches), dead air after the last bar
+  chirpers.py coverage ALBUM_ID [--write]            engine features each song uses; what the album has not used yet
   chirpers.py master ALBUM_ID [--jobs N]              lossless 24-bit WAV masters of a released album (verified
                                                      against its MP3s), a 3000x3000 cover, metadata.json: Spotify kit
   chirpers.py release ALBUM_ID [--lufs L] [--out DIR] [--legacy-limiter] [--mix [--overlap-bars N]]
@@ -673,6 +674,166 @@ def master_mix(a, album, rel, rdir, out, rows, raws, pin, work, env, audio_md5):
     return res
 
 
+# The engine catalogue the coverage board measures against (compose/chirpers8/features.md), as (group, feature) pairs.
+COVERAGE_CATALOGUE = {
+    "synthesis": ["wave:sine", "wave:triangle", "wave:saw", "wave:square", "wave:pulse", "additive", "table", "shepard",
+                  "sample", "machine", "modal", "bowed", "pluck", "membrane", "reed", "lips", "bar", "bell", "glock", "gong",
+                  "guitar", "fm/pm", "sync", "shape:fold", "shape:tanh", "shape:clip", "shape:crush"],
+    "fx": ["amp", "autolevel", "barberpole", "cab", "chop", "chorus", "clip", "cloud", "compressor", "crush", "delay", "drive",
+           "duck", "eq", "filter", "follow-noise", "formant", "freeze", "gain", "gate", "glue", "ir", "limiter", "morph", "ott",
+           "pan", "phantom", "phaser", "pitch", "pump", "radio", "reverb", "ring", "stutter", "sympathetic", "tape", "tapestop",
+           "transient", "tremolo", "vinyl", "vocoder", "wah", "width"],
+    "filters": ["kind:lp", "kind:hp", "kind:bp", "kind:notch", "kind:peak", "kind:lowshelf", "kind:highshelf", "kind:allpass",
+                "comb", "ladder"],
+    "time": ["tempo map", "risset", "warp", "meter change", "swing", "swing_drift", "humanize"],
+    "pitch": ["tuning", "tuning:edo", "tuning:steps", "tuning:ramp", "bend", "glide", "strum", "expr"],
+    "systems": ["vars", "lfo", "auto", "chance", "choices", "euclid", "every", "vary", "gen:logistic", "gen:lorenz", "gen:ca",
+                "gen:lsystem", "gen:markov", "var system"],
+    "voice": ["voice (tts)", "vocoder on voice"],
+}
+
+
+def song_features(canon, raw):
+    """The engine features one song uses: from its canonical plan (patch types, fx chains, filters, tuning, vars, tempo,
+    note expression) and its source text (score syntax the plan has already expanded: chance, choices, Euclid, gen)."""
+    import re
+    fx_types = set(COVERAGE_CATALOGUE["fx"])
+    synth = {"additive", "table", "shepard", "sample", "machine", "modal", "bowed", "pluck", "membrane", "reed", "lips", "bar",
+             "bell", "glock", "gong", "guitar", "comb", "ladder"}
+    got = set()
+
+    def walk(o, path):
+        if isinstance(o, dict):
+            t = o.get("type")
+            infx = any(k in ("fx", "chain", "insert", "inserts") for k in path)
+            if t == "filter" and "kind" not in o:
+                got.add("kind:lp")          # the schema's default kind
+            if isinstance(t, str):
+                if infx and t in fx_types:
+                    got.add(t)
+                elif t in synth:
+                    got.add(t)
+                elif t in fx_types and t not in ("gain", "pan"):
+                    got.add(t)
+            for k, v in o.items():
+                if k == "kind" and isinstance(v, str) and v in ("lp", "hp", "bp", "notch", "peak", "lowshelf", "highshelf", "allpass"):
+                    got.add("kind:" + v)
+                elif k == "kind" and v in ("ladder", "comb"):
+                    got.add(v)
+                elif k == "wave" and isinstance(v, str):
+                    got.add("wave:" + v)
+                elif k in ("shape", "shaper") and isinstance(v, str) and v in ("fold", "tanh", "clip", "crush"):
+                    got.add("shape:" + v)
+                elif k in ("fm", "pm") and v:
+                    got.add("fm/pm")
+                elif k == "sync" and v:
+                    got.add("sync")
+                elif k in ("risset", "warp", "humanize", "swing_drift", "strum") and v:
+                    got.add(k)
+                elif k == "swing" and v:
+                    got.add("swing")
+                elif k == "lfo" and v:
+                    got.add("lfo")
+                elif k == "bend" and v:
+                    got.add("bend")
+                elif k == "glide" and v:
+                    got.add("glide")
+                elif (k == "expr" or k.startswith("expr_")) and v:
+                    got.add("expr")
+                elif k == "ph" and v:
+                    got.add("voice (tts)")
+                elif k == "system" and isinstance(v, dict):
+                    got.add("var system")
+                elif k == "meter" and isinstance(v, list) and len(v) > 1:
+                    got.add("meter change")
+                walk(v, path + [k])
+        elif isinstance(o, list):
+            for v in o:
+                walk(v, path)
+
+    walk(canon, [])
+    if canon.get("vars"):
+        got.add("vars")
+    if any(t.get("auto") for t in canon.get("tracks") or []) or canon.get("auto"):
+        got.add("auto")
+    tempo = canon.get("tempo")
+    if isinstance(tempo, list) and len(tempo) > 1:
+        got.add("tempo map")
+    tun = [canon.get("tuning")] + [t.get("tuning") for t in canon.get("tracks") or []]
+    for t in tun:
+        for x in (t if isinstance(t, list) else [t]):
+            if isinstance(x, dict) and x:
+                got.add("tuning")
+                got.update({"tuning:edo"} if "edo" in x else set())
+                got.update({"tuning:steps"} if "steps" in x else set())
+                got.update({"tuning:ramp"} if "ramp" in x else set())
+    if "voice (tts)" in got and "vocoder" in got:
+        got.add("vocoder on voice")
+    if {"pluck", "amp", "cab"} <= got:
+        got.add("guitar")               # the guitar patches are a pluck through an amp and a cab
+    for name, pat in (("chance", r"[A-Za-z0-9#.\])]/?\d*\?(0?\.\d+|1)"), ("choices", r"\([^()\n|]+\|[^()\n]+\)"),
+                      ("euclid", r"\(\d+,\d+(,\d+)?\)"), ("every", r"\bevery\b"), ("vary", r"\bvary\b")):
+        if re.search(pat, raw):
+            got.add(name)
+    for g in ("logistic", "lorenz", "ca", "lsystem", "markov"):
+        if re.search(r"['\"]?type['\"]?\s*:\s*['\"]?" + g + r"\b", raw):
+            got.add("gen:" + g)
+    return got
+
+
+def cmd_coverage(a, args):
+    """Which engine features each composed song of an album actually uses, and which the album has not used yet
+    (Harry, 1 Nov: chirpers8 shows off ALL the combinations of chirp's features). --write puts the table into
+    compose/ALBUM/features.md under '## Measured (chirp-eco)'."""
+    import concurrent.futures as cf
+    album = load_album(a.album_id)
+    reg = C.load()
+    pin = open(os.path.join(ROOT, "tools", "groove-pin")).read().strip()
+    env = dict(os.environ)
+    env.pop("LD_LIBRARY_PATH", None)
+    songs = []
+    for t in album["tracks"]:
+        c = next((c for c in reg["climbs"] if c["id"] == t["id"]), None)
+        if c and (c.get("best") or {}).get("version") and os.path.exists(os.path.join(ROOT, c["song"])):
+            songs.append((t["n"], t["id"], (c.get("meta") or {}).get("title") or t["id"], os.path.join(ROOT, c["song"])))
+
+    def one(x):
+        n, cid, title, song = x
+        r = subprocess.run([pin, "--json", "plan", "-f", os.path.basename(song)], cwd=os.path.dirname(song), env=env,
+                           capture_output=True, text=True)
+        try:
+            canon = json.loads(r.stdout)["data"]["canonical"]
+        except (ValueError, KeyError, TypeError):
+            return x, None
+        return x, song_features(canon, open(song).read())
+
+    with cf.ThreadPoolExecutor(max_workers=4) as ex:
+        res = [(x, f) for x, f in ex.map(one, songs)]
+    used = {}
+    for (n, cid, title, _), f in res:
+        for feat in f or ():
+            used.setdefault(feat, []).append(f"t{n}")
+    lines = [f"Measured {C.now_iso()[:16]}Z on {os.path.basename(pin)} by `chirpers.py coverage {a.album_id}`: "
+             f"{len(res)} composed songs; a feature counts when the song's plan or score uses it (prominence is your ear's call).", ""]
+    missing = []
+    for group, feats in COVERAGE_CATALOGUE.items():
+        have = [f for f in feats if f in used]
+        lines.append(f"- **{group}** ({len(have)}/{len(feats)}): " + "; ".join(f"{f} ({', '.join(used[f])})" for f in have))
+        missing += [f for f in feats if f not in used]
+    lines += ["", "**Not used by any track yet:** " + (", ".join(missing) if missing else "none: every catalogued feature is in use"), ""]
+    lines += ["| track | title | features |", "|---|---|---|"]
+    for (n, cid, title, _), f in sorted(res):
+        lines.append(f"| t{n} | {title} | {len(f) if f is not None else 'plan failed'} |")
+    text = "\n".join(lines) + "\n"
+    print(text)
+    if a.write:
+        path = os.path.join(ROOT, "compose", a.album_id, "features.md")
+        body = open(path).read()
+        head = body.split("## Measured (chirp-eco)")[0].rstrip("\n")
+        with open(path, "w") as f:
+            f.write(head + "\n\n## Measured (chirp-eco)\n" + text)
+
+
 def cmd_master(a, args):
     """Lossless distribution masters of a RELEASED album, for Spotify and other stores via a distributor (Harry, 1 Nov).
     Each track is re-rendered with the release's own pin and seed and its release gain, written as 24-bit WAV, and
@@ -1160,6 +1321,9 @@ def main(argv=None):
     p = sub.add_parser("refresh")
     p.add_argument("album_id")
     p.add_argument("--ids")
+    p = sub.add_parser("coverage", help="which engine features each song uses; what the album has not used yet")
+    p.add_argument("album_id")
+    p.add_argument("--write", action="store_true")
     p = sub.add_parser("master", help="lossless 24-bit WAV masters of a released album, verified against it")
     p.add_argument("album_id")
     p.add_argument("--out", default="~/Music/Chirpers")
@@ -1221,7 +1385,7 @@ def main(argv=None):
     a = ap.parse_args(known)
     {"new": cmd_new, "name": cmd_name, "title": cmd_title, "art": cmd_art, "status": cmd_status,
      "refresh": cmd_refresh, "rebaseline": cmd_rebaseline, "release": cmd_release, "seams": cmd_seams, "seam": cmd_seam,
-     "illusion": cmd_illusion, "master": cmd_master}[a.cmd](a, argv)
+     "illusion": cmd_illusion, "master": cmd_master, "coverage": cmd_coverage}[a.cmd](a, argv)
 
 
 if __name__ == "__main__":
