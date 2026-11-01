@@ -72,6 +72,7 @@ def build():
     nb = t
     total = nb * 4.0
     P = {k: [] for k in ('pad', 'sub', 'bass', 'kit', 'say', 'babble', 'ca', 'speak')}
+    KSYL = [(round(n_['at'] * 4) / 4.0, n_['ph']) for n_ in VOICE[0]['notes'] if '1' in n_['ph']]
     for b in range(nb):
         s = next(name for name, n in FORM if secs[name] <= b < secs[name] + n)
         i = b - secs[s]
@@ -88,7 +89,20 @@ def build():
             P['sub'].append((t0, nm(root), 1.8, 92)); P['sub'].append((t0 + 2.5, nm(root), 1.2, 84))
             for q, o in ((1.5, 12), (3.0, 7), (3.75, 12)):
                 P['bass'].append((t0 + q, nm(root + 12 + o - 12), 0.35, 80))
-        if s in ('A', 'B', 'C', 'D') and not (s == 'A' and i < 8):
+        if s == 'C':
+            # (v8) THE DRUMS LEARN THE LINE: through the third groove the four-on-the-floor stops and the kick plays the
+            # line's own rhythm instead - one kick on every stressed syllable of the first take, quantized to sixteenths,
+            # over two bars ('the LIGHT WAS STILL ON WHEN YOU CAME BACK'), heaviest on light, still and back - while the
+            # claps keep the backbeat and the hats keep the eighths; the said-back groove returns to the floor
+            for at_, ph_ in KSYL:
+                if (i % 2) * 4.0 <= at_ < (i % 2) * 4.0 + 4.0:
+                    P['kit'].append((t0 + at_ - (i % 2) * 4.0, 'k', 0.25, 112 if ph_ in ('L AY1 T', 'S T IH1 L', 'B AE1 K') else 92))
+            for q in range(4):
+                P['kit'].append((t0 + q + 0.5, 'h', 0.25, 58))
+                P['kit'].append((t0 + q + 0.75 + 0.04, 'h', 0.25, 52))
+                P['kit'].append((t0 + q + 0.25 + 0.02, 'h', 0.25, 38))
+            P['kit'].append((t0 + 1.0, 'cp', 0.25, 84)); P['kit'].append((t0 + 3.0, 'cp', 0.25, 88))
+        elif s in ('A', 'B', 'D') and not (s == 'A' and i < 8):
             for q in range(4):
                 P['kit'].append((t0 + q, 'k', 0.25, 104 if q == 0 else 96))
                 P['kit'].append((t0 + q + 0.5, 'h', 0.25, 58))
