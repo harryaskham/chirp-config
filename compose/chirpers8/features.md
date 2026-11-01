@@ -7,7 +7,9 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 |---|---|
 | osc waves: sine, triangle, saw, square, pulse (PWM) | t7 (chirper-one) |
 | additive | t7 (chirper-one) |
-| tables (wavetable-style) | t11 (chirper-three) |
+| FM / phase modulation between layers, hard sync | t10 (chirper-one) |
+| motif transforms (@motifs: inversion, retrograde, augmentation, diminution), harmony $N, scale degrees %N | t10 (chirper-one) |
+| tables (wavetable-style) | t11 (chirper-three), t10 (chirper-one) |
 | shepard (endless glides, scales, chords) | t12 (chirper-three) |
 | sample | t11 (chirper-three) |
 | drum machines and kits (machine-kit, dusty, physical drums) | t7 (chirper-one) |
@@ -60,7 +62,7 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 | lfo and auto lanes | t7 (chirper-one) |
 | chance (?p) and choices (a\|b) | t6 (chirper-two) |
 | Euclidean patterns | t3 (chirper-two) |
-| every / vary / seeds | t8 (chirper-zero) |
+| every / vary / seeds | t8 (chirper-zero), t10 (chirper-one) |
 | complex systems (chaotic maps, cellular automata, L-systems, Markov): ask wM | t3 (chirper-two); t12 (chirper-three, an L-system); t11 (chirper-three, the Lorenz attractor) |
 
 ## Voice
