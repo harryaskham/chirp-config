@@ -169,7 +169,7 @@ def build():
         # (a vinyl spin-back) - then the silent beat - then the last groove drops
         'master': {'fx': [{'type': 'tapestop', 'time': '1b', 'spin': 3, 'curve': 1.6, 'mix': 1,
                            'stop': {'value': 0, 'mod': [{'src': 'auto.sb', 'amount': 1}]}},
-                          {'type': 'eq', 'bands': ['highpass cutoff=32', 'peak cutoff=58 q=0.9 gain=-8dB', 'peak cutoff=350 q=0.7 gain=-4dB', 'peak cutoff=3200 q=0.6 gain=6dB', 'highshelf cutoff=7000 gain=5dB']},
+                          {'type': 'eq', 'bands': ['highpass cutoff=32', 'peak cutoff=56 q=1.6 gain=-6dB', 'peak cutoff=92 q=1.0 gain=3dB', 'peak cutoff=350 q=0.7 gain=-4dB', 'peak cutoff=3200 q=0.6 gain=6dB', 'highshelf cutoff=7000 gain=5dB']},
                           {'type': 'compressor', 'threshold': '-20dB', 'ratio': 2.5, 'attack': '15ms', 'release': '150ms', 'makeup': '2dB'},
                           {'type': 'gain', 'gain': '+8dB'},
                           {'type': 'compressor', 'threshold': '-15dB', 'ratio': 8, 'attack': '0.3ms', 'release': '60ms'},
