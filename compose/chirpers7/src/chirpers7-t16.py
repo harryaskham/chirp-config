@@ -57,6 +57,7 @@ DENS = os.environ.get("C7T16_DENS", "")  # density contrast between sections: "q
 ERISER = os.environ.get("C7T16_ERISER", "-10")  # wM's endless Shepard riser (fx-riser-endless), 8 bars ending on B: the filter, the roll and now the riser - three builds that never arrive; level in dB
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 HOVER = os.environ.get("C7T16_HOVER", "1") == "1"  # Harry's third steer ('add / replace / augment sections ... a riser that never lands'): a new 6-bar section between the break and B - THE HOVER: the kick and the rolling sub gone, the endless filter still climbing on a suspended dominant (D7sus over a held D), the endless riser carried on through it, so the arrival is held back once more before B finally lands
+FALL = os.environ.get("C7T16_FALL", "1") == "1"  # Harry's third steer ('add / replace / augment sections'): the outro's first half (A's cycle returning) turns the endless filter DOWN - the climb that never arrived now falls for ever (the same three staggered band-passes, cutoffs five octaves high and swept down) - handing a descending room to The Room Turns
 HROLL = os.environ.get("C7T16_HROLL", "-8")  # the hover's own illusion: the endless snare roll turned DOWN (a Risset decelerando, slowing for ever) under the still-climbing filter - one thing speeding up, one slowing, nothing arriving; value = gain dB
 FORM = [("intro", 32), ("build", 16), ("A", 32), ("break", 16)] + ([("hover", 6)] if HOVER else []) + [("B", 48), ("outro", 32)]
 # (sub root, stair degrees above it, chord voicing)
@@ -99,7 +100,7 @@ def plan(sec, b):
     return CHD[b % 4]
 
 
-TRACKS = ("kick", "hats", "clap", "perc", "sub", "pulse_slow", "pulse_mid", "pulse_fast", "stair", "kickin")
+TRACKS = ("kick", "hats", "clap", "perc", "sub", "pulse_slow", "pulse_mid", "pulse_fast", "stair", "kickin", "pulse_down")
 
 
 def nm(m):
@@ -215,7 +216,7 @@ def build():
             if sec == "intro" and b >= (16 if POLEALL else 24):
                 pset = "pulse_slow"
             if POLEALL and sec == "outro" and b < 16:
-                pset = "pulse_slow"
+                pset = "pulse_down" if FALL else "pulse_slow"
             if pset:
                 ch = ",".join(nm(n) for n in v)
                 for q in range(16):
@@ -259,7 +260,7 @@ def lane(points, step=True):
     return {"points": pts}
 
 
-def endless(name, score, cycle_bars, gain="-10dB"):
+def endless(name, score, cycle_bars, gain="-10dB", down=False):
     """THE ENDLESS FILTER: three copies of the pulse through band-passes whose cutoffs climb five octaves on staggered saws,
     each copy swelling in at the bottom and fading out at the top (a Shepard tone made of a filter sweep)."""
     out = []
@@ -268,7 +269,7 @@ def endless(name, score, cycle_bars, gain="-10dB"):
             "name": f"{name}{i}", "patch": "house-chord", "gain": gain, "pan": (-0.3, 0.0, 0.3)[i],
             "lfo": {"c": {"wave": "saw", "rate": f"{cycle_bars}/1", "phase": p, "unipolar": True},
                     "l": {"wave": "sine", "rate": f"{cycle_bars}/1", "phase": (p + 0.75) % 1, "unipolar": True}},
-            "fx": [{"type": "filter", "kind": "bp", "cutoff": {"value": 160, "mod": [{"src": "lfo.c", "amount": 5}]}, "q": 1.4},
+            "fx": [{"type": "filter", "kind": "bp", "cutoff": {"value": 5120 if down else 160, "mod": [{"src": "lfo.c", "amount": -5 if down else 5}]}, "q": 1.4},
                    {"type": "gain", "gain": {"value": "-24dB", "mod": [{"src": "lfo.l", "amount": 24}]}}],
             "sends": {"dub": "-12dB"}, "score": score})
     return out
@@ -321,6 +322,7 @@ def song():
                "fx": [{"type": "filter", "kind": "hp", "cutoff": 180, "q": 0.7}], "sends": {"dub": "-12dB"},
                "score": "sn/0.5b@72 sn/0.5b@58 sn/0.5b@64 sn/0.5b@58 sn/0.5b@76 sn/0.5b@58 sn/0.5b@66 sn/0.5b@62"}] if (HROLL and HOVER) else []),
             *endless("slow", T["pulse_slow"], 16),
+            *(endless("down", T["pulse_down"], 16, down=True) if FALL else []),
             *endless("mid", T["pulse_mid"], 8),
             *endless("fast", T["pulse_fast"], 4),
             {"name": "stair", "patch": "house-chord", "gain": "-10dB", "sends": {"dub": "-6dB"}, "score": T["stair"],
