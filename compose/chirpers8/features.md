@@ -63,7 +63,7 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 | chance (?p) and choices (a\|b) | t6 (chirper-two) |
 | Euclidean patterns | t3 (chirper-two) |
 | every / vary / seeds | t8 (chirper-zero), t10 (chirper-one) |
-| complex systems (chaotic maps, cellular automata, L-systems, Markov): ask wM | t3 (chirper-two); t12 (chirper-three, an L-system); t11 (chirper-three, the Lorenz attractor); t4 (chirper-three, sorting algorithms) |
+| complex systems (chaotic maps, cellular automata, L-systems, Markov): ask wM | t3 (chirper-two); t12 (chirper-three, an L-system); t11 (chirper-three, the Lorenz attractor); t4 (chirper-three, sorting algorithms); t5 (chirper-zero, an engine Markov chain over the hook as the lead) |
 
 ## Voice
 | feature | showcased by |
