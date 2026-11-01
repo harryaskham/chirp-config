@@ -281,6 +281,22 @@ def sung_notes():
     return out
 
 
+# v8: chirper-one's FM bell from t10 (borrowed, credited): t10 ends tolling D, then a Picardy D-F#-A; t11 begins with the
+# SAME bell tolling only the F# - the common tone - every two bars, fading, while the F# harmonic-seventh pad grows from it
+BELL = {"synth": {"layers": [{"name": "m", "ratio": 3.5, "audible": False},
+                             {"wave": "sine", "pm": [{"from": "m", "depth": {"value": 0.3, "mod": [{"src": "env.bright", "amount": 2.6}]}}]}],
+                  "env": {"bright": {"a": "1ms", "d": "450ms", "s": 0, "r": "200ms"}},
+                  "amp": {"a": "2ms", "d": "1.1s", "s": 0.25, "r": "300ms"}}}
+
+
+def toll_notes():
+    out = []
+    for i, bar in enumerate((1, 3, 5, 7)):
+        for pc in (("m62", "m66") if i == 0 else ("m66",)):      # first toll keeps t10's D with the F#; then the D drops away
+            out.append({"at": b0(bar), "len": 7.5, "pitch": pc, "vel": round((92 - i * 9) / 127, 3)})
+    return out
+
+
 def wt_lane():
     """The wavetable position from x, once a bar: 0 (lobe F#, x -20) to 1 (lobe C#, x +20)."""
     return [[f"{b0(bar):.2f}b", round(max(0.0, min(1.0, (state(bar)[0] + 20) / 40)), 3)] for bar in range(1, BARS + 1)]
@@ -334,6 +350,8 @@ def main():
                    {"type": "pan", "pan": {"value": 0, "mod": [{"src": "var.gust", "amount": -0.6}]}}]),
             {"name": "singer", "patch": SUNG_PATCH, "gain": "-10dB", "pan": 0.05, "sends": {"hall": "-6dB", "dly": "-12dB"},
              "fx": [{"type": "filter", "kind": "hp", "cutoff": 160}], "notes": sung_notes()},   # v6: the sung hook
+            {"name": "toll", "patch": BELL, "gain": "-12dB", "pan": -0.15, "sends": {"hall": "-8dB", "dly": "-12dB"},
+             "notes": toll_notes()},                                                       # v8: the bell carries over
             tr("pad", "juno-pad", gain="-11dB", pan=-0.15, sends={"hall": "-8dB"},
                fx=["gate key=gtrig threshold=-40dB attack=1ms release=40ms", "ott depth=0.3"]),
             tr("gtrig", "machine-kit", gain="-80dB"),
