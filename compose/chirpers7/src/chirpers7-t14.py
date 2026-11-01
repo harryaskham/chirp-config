@@ -42,6 +42,7 @@ EVO = os.environ.get("C7T14_EVO", "1") == "1"  # Harry's third steer (1 Nov 01:1
 SPIRAL = os.environ.get("C7T14_SPIRAL", "-14")  # Harry's third steer ('spirals ... into a key change'): a Shepard-Risset spiral (risset pitch: true) climbing over B bars 17-22 into the scales-alone bars and B2's lift; value = gain dB
 FORMX = os.environ.get("C7T14_FORMX", "1") == "1"  # Harry's third steer: irregular section lengths - A 30 bars (six 5-bar cycles), the break 14 (5+4+3+2), B 45 (B1 24 + B2 three 7-bar cycles); intro and outro (the seams) unchanged
 ORET = os.environ.get("C7T14_ORET", "1") == "1"  # an A-B-A' shape: the outro's first half returns to A's 5-bar cycle (Fm11 Fm9 Gbmaj7#11 Db/Bbm9 C7b9) after the rush home, instead of the old 4-bar loop; the seam keeps the loop
+POLY5 = os.environ.get("C7T14_POLY5", "56")  # Harry's 15:00 steer ('more interesting drums, true to house'): a soft rim every FIVE sixteenths through A and B1 (5 against 16: its place in the bar shifts each bar, round again after five) under the straight jackin' kit; value = velocity
 ANTIC = os.environ.get("C7T14_ANTIC", "1") == "1"  # the organ stabs anticipate: on the a-of-1 and the a-of-3 (16ths 3 and 11), jackin' pushes
 
 ERISER = os.environ.get("C7T14_ERISER", "-10")  # wM's endless Shepard riser (fx-riser-endless) over the 8 bars into B: pitch, noise and filter rising for ever, stopping dead on the drop (Harry: 'risers and staircases v good'); level in dB
@@ -180,6 +181,10 @@ def build():
                 if b % 8 == 7:
                     for q in (13, 14, 15):
                         add("clap", at + q, "rs", 1, 70 + 8 * (q - 13))
+            if POLY5 and (sec == "A" or (sec == "B" and b < 24)):
+                for q in range(16):
+                    if (at + q) % 5 == 2:
+                        add("dot", at + q, "rs", 1, int(POLY5) + (8 if (at + q) % 10 == 2 else 0))
             if DOT and sec in DOT.split(","):
                 for q in range(16):
                     k = at + q - a0
@@ -295,7 +300,7 @@ def song():
              "fx": [{"type": "filter", "kind": "hp", "cutoff": {"value": 3500, "mod": [{"src": "lfo.hh", "amount": 0.5}]}, "q": 0.7}],
              "score": "swing16=0.6 " + T["hats"]},
             {"name": "clap", "patch": "machine-kit", "gain": "-5dB" if PRES else "-8dB", "sends": {"room": "-6dB"}, "score": "swing16=0.6 " + T["clap"]},
-            *([{"name": "dot", "patch": "machine-kit", "gain": "-10dB", "pan": -0.3, "sends": {"room": "-10dB"}, "score": T["dot"]}] if DOT else []),
+            *([{"name": "dot", "patch": "machine-kit", "gain": "-10dB", "pan": -0.3, "sends": {"room": "-10dB"}, "score": T["dot"]}] if (DOT or POLY5) else []),
             {"name": "sub", "patch": "sub", "gain": "-16dB", "fx": [pump, {"type": "phantom", "cutoff": 100, "harmonics": "-6dB"}], "score": T["sub"]},
             {"name": "bass", "patch": "bass", "gain": "-14dB", "fx": [pump, {"type": "filter", "kind": "lp", "cutoff": 900, "q": 1.2}], "score": T["bass"]},
             {"name": "organ", "patch": "organ", "gain": "-12dB", "pan": -0.15, "fx": [pump, *([{"type": "tape", "drive": 0.0, "mix": 0.4, "wow": 9, "flutter": 1.5, "drift": 1, "tone": 12000, "seed": 14}] if WOW else [])], "sends": {"room": "-8dB"}, "score": "swing16=0.6 " + T["organ"]},
