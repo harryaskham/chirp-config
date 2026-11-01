@@ -21,6 +21,18 @@
    "ramp": true
   }
  ],
+ "tuning": [
+  {
+   "edo": 12,
+   "root": "F#4"
+  },
+  {
+   "at": "52b",
+   "edo": 31,
+   "root": "F#4",
+   "ramp": "16bar"
+  }
+ ],
  "tail": "3s",
  "loudness": -11,
  "volume": "0dB",
@@ -39,6 +51,28 @@
    "patch": "partial",
    "score": "m42.000/31.9b@60 R/680.1b m42.000/31.9b@60 R/0.1b",
    "gain": "-28dB"
+  },
+  {
+   "name": "turtle",
+   "patch": "glock",
+   "gain": "-15dB",
+   "pan": 0.35,
+   "sends": {
+    "hall": "-8dB"
+   },
+   "score": "R/408b",
+   "gen": {
+    "type": "lsystem",
+    "axiom": "A",
+    "rules": {
+     "A": "A+B",
+     "B": "-A[B]a"
+    },
+    "depth": 6,
+    "notes": "~0 ~5 ~9 ~13 ~18 ~23 ~26 ~31 ~36 ~40 ~44 ~49",
+    "n": 440,
+    "len": "/8"
+   }
   },
   {
    "name": "ondes",
