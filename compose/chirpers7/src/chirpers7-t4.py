@@ -83,6 +83,12 @@ PH_NOTES = {"phl": [], "phr": []}
 # and "up" on B the stranger), then another 4-bar spiral and the out seam in B minor again. A tritone is the same
 # distance up as down: did the key climb or fall? It climbed (or fell) twice and is home. T4_R9=none reproduces v8.
 R9 = os.environ.get("T4_R9", "flip")
+# T4_R10 = hemi (v10, Harry's third steer: metric tricks; replace the plainest stretch). A1 was 22 bars of one groove;
+# now 12, then a NEW 10-bar section, THE FLOOR TILTS: the kick and the bass move onto the dotted quarter (every 1.5
+# beats, across the bar lines) while the 12/8 bell, all twelve triplet hats and the tritone pairs keep the old grid -
+# a metric modulation: the floor seems to slow to two thirds of the tempo while nothing has slowed (open hats mark
+# the new pulse's off-beats). The four returns with the drop. T4_R10=none reproduces v9.
+R10 = os.environ.get("T4_R10", "hemi")
 SPIRAL_B = "B3/0.25b@80 C#4/0.25b@70 D4/0.25b@74 F#4/0.25b@72 B4/0.25b@78 C#5/0.25b@68 D5/0.25b@72 F#5/0.25b@70"
 SPIRAL_F = "F3/0.25b@80 G3/0.25b@70 Ab3/0.25b@74 C4/0.25b@72 F4/0.25b@78 G4/0.25b@68 Ab4/0.25b@72 C5/0.25b@70"
 
@@ -133,7 +139,10 @@ class Track:
 
 FORM = [("in", 16), ("A1", 24), ("drop1", 4), ("A2", 16), ("break", 12), ("B1", 8), ("drop2", 4), ("B2", 24),
         ("out", 16)]
-if R7 == "phantom":
+if R7 == "phantom" and R10 == "hemi":
+    FORM = [("in", 16), ("A1", 12), ("hemi", 10), ("drop1", 4), ("A2", 10), ("break", 14), ("B1", 6), ("drop2", 4),
+            ("B2", 32), ("out", 16)]
+elif R7 == "phantom":
     FORM = [("in", 16), ("A1", 22), ("drop1", 4), ("A2", 10), ("break", 14), ("B1", 6), ("drop2", 4), ("B2", 32),
             ("out", 16)]
 MUTATE = {"A1": [[59, 62, 66, 69, 73]],                      # Bm9
@@ -166,6 +175,17 @@ def build():
             for b in range(4):  # under t3's tail the plain kick, softer; the rumble kick once the seam has passed
                 (T["kickin"] if sec == "in" else T["kick"]).add(start + b, 1.0, "k" if sec == "in" else "kr",
                                                                (96 if sec == "in" else 112) - (0 if b == 0 else 8))
+        if sec == "hemi":  # THE FLOOR TILTS: kick and bass on the dotted quarter, the triplets on the old grid
+            j = -(-(i * 4) // 1.5)
+            while j * 1.5 < (i + 1) * 4 - 1e-6:
+                q = start + j * 1.5 - i * 4
+                T["kick"].add(q, 1.0, "kr", 112 if int(j) % 2 == 0 else 104)
+                T["bass"].add(q, 0.6, nm((35, 35, 42, 38)[int(j) % 4]), 104 if int(j) % 2 == 0 else 90)
+                if q + 0.75 < start + 4.0:
+                    T["hats"].add(q + 0.75 + 0.01, 0.35, "oh", 60)
+                j += 1
+            for k in range(12):
+                T["hats"].add(start + k / 3 + 0.01, 0.12, "h", (56 if k % 3 == 2 else 40) + rng.randint(-5, 5))
         # ---- triplet shaker hats (12 to the bar), accents on each beat's last triplet ----
         if sec == "B2":  # the peak: sixteenth shakers
             for s in range(16):
@@ -180,7 +200,7 @@ def build():
             for b in (0.5, 1.5, 2.5, 3.5):
                 T["hats"].add(start + b + 0.01, 0.35, "oh", 62)
         # ---- the 12/8 bell over the four ----
-        if full:
+        if full or sec == "hemi":
             for k in BELL:
                 T["bell"].add(start + k / 3, 0.2, "cb", 74 if k in (0, 7) else 60)
         # ---- toms in triplet figures: low on the one, a three-note pickup into each bar's four ----
@@ -319,7 +339,7 @@ def risset_tracks(st, total):
         L = dict(FORM)
         plan = [
             ("dn-in", DOWN_LOOP, True, 4, 12, "-9dB", 0.35, 2),
-            ("dn-a1", DOWN_LOOP, True, b["A1"] + 6, 16, "-9dB", 0.35),
+            ("dn-a1", DOWN_LOOP, True, b["A1"] + (4 if R10 == "hemi" else 6), 8 if R10 == "hemi" else 16, "-9dB", 0.35),
             ("up-drop1", UP_LOOP, False, b["drop1"], 4, "-7dB", -0.35),
             ("up-a2", UP_LOOP, False, b["A2"], L["A2"], "-9dB", -0.35),
             # (the break's Risset is gone: the phantom words are its rhythm, and the break thins out)
