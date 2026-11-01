@@ -194,6 +194,13 @@ def build():
             {'name': 'riser', 'patch': f'fx-riser-endless amp.a={32}b', 'gain': '-15dB', 'sends': {},
              'score': f'R/{(secs['C'] - 32):.4f}b C#4/{32}b@80'},
             tr('kit', 'machine-kit', '-4dB', sends={'hall': '-20dB'}),
+            # (v19) A SPIRAL INTO THE KEY CHANGE (Harry: spirals and modulations, as structure): over the last groove's five
+            # bars of G#7 before it turns major, the stair turns as a Shepard-Risset spiral - plucked, rising and speeding up
+            # for ever - and the major arrival catches it
+            {'name': 'spiral', 'patch': 'pluck', 'gain': '-12dB', 'pan': -0.2, 'at': f"{secs['C'] + 44:.0f}b", 'sends': {'hall': '-10dB'},
+             'fx': ['hp cutoff=200'],
+             'risset': {'cycle': '5bar', 'layers': 3, 'length': '5bar', 'pitch': True},
+             'score': 'C#4/8@82 D#4/8@70 E4/8@76 G#4/8@72 B#4/8@80 G#4/8@68 E4/8@74 D#4/8@66'},
             tr('click', 'machine-kit', '-6dB', pan=0.2, sends={'hall': '-14dB'},
                # (v16) the roll gets wonky (Harry: 'stutter rolls with swing', 'subtly off'), now that wM's fix (42c5e571) keeps
                # the stutter on the beat under a tempo ramp: thirty-second slices, eight repeats, each a little lower - the
