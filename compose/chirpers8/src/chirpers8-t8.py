@@ -34,9 +34,10 @@ STRETCH = float(os.environ.get("C8T8_STRETCH", "1210")) / 1200   # cents per oct
 SEED = 8
 HUM = os.environ.get("C8T8_HUM", "8")    # the store powering up: a low D hum (808, stretched D1) under the first intro bars, fading as the word is written; value = bars
 HUMA = os.environ.get("C8T8_HUMA", "4")   # the hum starts on A1 (t7's drone, the fifth of D) and falls to D1 after this many bars: the seam is one held A that resolves
+SHAKE = os.environ.get("C8T8_SHAKE", "40")  # the line's own clock: a dusty shaker on every sixteenth through the grooves (A, C, E), accents on the off-sixteenths - the high, fine grain of the floor; value = velocity
 DARK = os.environ.get("C8T8_DARK", "8")  # the tape running out: a master low-pass closing over the outro's last bars (the hiss and the line's top go first); value = bars
 FORM = [("intro", 16), ("A", 36), ("refresh", 8), ("C", 32), ("D", 16), ("E", 28), ("outro", 16)]
-TRACKS = ("word", "pad0", "pad1", "pad2", "pad3", "hum", "bass", "kick", "hats", "clap", "rim")
+TRACKS = ("word", "pad0", "pad1", "pad2", "pad3", "hum", "bass", "kick", "shk", "hats", "clap", "rim")
 
 # the word's 16 bits -> pitches (D minor, spread so neighbours leap): D4 F4 G4 A4 C5 D5 F5 A5
 SC = [62, 65, 67, 69, 72, 74, 77, 81]
@@ -111,6 +112,9 @@ def build():
                         add("hats", at + q, "oh", 1, 72)
                     elif q % 2 == 1:
                         add("hats", at + q, "h|?0.85", 1, 52)
+                if SHAKE and sec in ("A", "C", "E"):
+                    for q in range(16):
+                        add("shk", at + q, "sh", 1, int(SHAKE) + (14 if q % 2 else 0) - (8 if q % 4 == 0 else 0))
                 if sec in ("C", "E"):
                     add("clap", at + 4, "cp", 1, 92)
                     add("clap", at + 12, "cp", 1, 96)
@@ -184,6 +188,7 @@ def song():
             *([{"name": "hum", "patch": "808", "gain": "-12dB", "fx": [{"type": "filter", "kind": "lp", "cutoff": 120, "q": 0.7}], "score": T["hum"]}] if HUM else []),
             {"name": "bass", "patch": "808", "gain": "-9dB", "fx": [pump], "score": T["bass"]},
             {"name": "kick", "patch": "909", "gain": "-3dB", "score": T["kick"]},
+            *([{"name": "shk", "patch": "dusty-kit", "gain": "-12dB", "pan": 0.3, "fx": [{"type": "filter", "kind": "hp", "cutoff": 3500, "q": 0.7}], "score": T["shk"]}] if SHAKE else []),
             {"name": "hats", "patch": "909", "gain": "-9dB", "pan": 0.15, "score": "swing16=0.56 " + T["hats"]},
             {"name": "clap", "patch": "909", "gain": "-9dB", "sends": {"room": "-8dB"}, "score": T["clap"]},
             {"name": "rim", "patch": "909", "gain": "-12dB", "pan": -0.3, "sends": {"line": "-14dB"}, "score": T["rim"]},
