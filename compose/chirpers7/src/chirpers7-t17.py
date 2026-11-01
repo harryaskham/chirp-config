@@ -60,6 +60,9 @@ TROOM = os.environ.get("C7T17_TROOM", "off")  # the turning loop's room send (dB
 COH = os.environ.get("C7T17_COH", "1") == "1"  # measured 22:15: each Haas side was its own dusty-kit track, and the kit's rims and shakers are noise - so the near and the far ear got DIFFERENT hits (interaural coherence 0.15) and there was no precedence cue to turn on. Coherent pairs: one source per pair, its output hard to the near ear and a send through an 18 ms delay hard to the far ear (the same sound in both)
 COHB = {}
 EQT = os.environ.get("C7T17_EQT", "b")  # narrow master moves after the dry loop (v18): "a" 60 -3, 113 +3, 155 -3, 1.6k +2.5, 5.5k -2.5; "b" the same at 1.5x (default; "c" 2x read 95.89)
+SEAMKEYS = os.environ.get("C7T17_SEAMKEYS", "")  # the out-join (compscore 00:38: t17's last bars 12-15 dB under the closer's head at 547 Hz, 1.6 kHz, 133 Hz): the Rhodes holds a D minor 9 through the seam-out's last 8 bars, rising, the closer's D minor arriving under it; value = top velocity
+HINTALL = os.environ.get("C7T17_HINTALL", "")  # the out-join's mids (547 Hz, 1.6 kHz, where the closer's head has its rims): the unwinding loop's seam hint carries on through the seam-out's last 8 bars too, held at this velocity offset (e.g. "-40") instead of fading out
+HEADLOW = os.environ.get("C7T17_HEADLOW", "8")  # the in-join (t17's head 9-13 dB over Never Arrives' tail at 44-71 Hz): a master low shelf (90 Hz) this many dB down for the first 4 bars, back to flat by bar 8
 TAILS = os.environ.get("C7T17_TAIL", "0.1s")  # the render tail: 0.3 s leaves no dead air in the last seconds a DJ mixes out of
 
 ERISER = os.environ.get("C7T17_ERISER", "-10")  # wM's endless Shepard riser (fx-riser-endless) over the 8 bars into B: pitch, noise and filter rising for ever, stopping dead on the drop (Harry: 'risers and staircases v good'); level in dB
@@ -198,12 +201,14 @@ def build():
                     add("keys", at + 9, ch, 6, 70)
             if sec == "break" and b % 2 == 0:
                 add("keys", at, ",".join(nm(n) for n in v), 2 * BAR, 64)
+            if SEAMKEYS and seam_out and b >= 24 and b % 2 == 0:
+                add("keys", at, "D3,F3,A3,C4,E4", 2 * BAR, int(int(SEAMKEYS) - 4 * (30 - b) / 2))
             # THE STAIR on top in A2 and the outro (D E F A, a beat each)
             if (sec == "A" and b >= 16 and b % 4 == 0) or (sec == "outro" and 4 <= b < 16 and b % 4 == 0):
                 for k, n in enumerate((74, 76, 77, 81)):
                     add("stair", at + 4 * k, nm(n), 3, 84 - 2 * k)
             # the turning loop: rims and shaker on the 16ths (it plays from bar 17 to the seam out)
-            hint = SEAMHINT and seam_out and b < 24
+            hint = SEAMHINT and seam_out and (b < 24 or bool(HINTALL))
             hint_in = SEAMHINT2 and seam_in and b >= 8
             if (not seam_in and not seam_out and not (sec == "intro" and b < (16 if SEAMHINT2 else 20))) or hint or hint_in:
                 if LOOP3:
@@ -212,7 +217,7 @@ def build():
                         if k % 3 == 0:
                             still = STILL and sec == "B" and b in (22, 23)
                             unw = UNWIND and sec == "outro"
-                            add("loopc" if still else ("loop2" if b2 else ("loop3" if unw else "loop")), at + q, "rs" if (k // 3) % 2 == 0 else "sh", 1, (86 if (k // 3) % 4 == 0 else 74) - (5 * (b - 15) if hint else (5 * (16 - b) if hint_in else 0)))
+                            add("loopc" if still else ("loop2" if b2 else ("loop3" if unw else "loop")), at + q, "rs" if (k // 3) % 2 == 0 else "sh", 1, (86 if (k // 3) % 4 == 0 else 74) - ((5 * (b - 15) if b < 24 else -int(HINTALL)) if hint else (5 * (16 - b) if hint_in else 0)))
                 else:
                     for q, piece, vel in ((0, "rs", 84), (3, "sh", 70), (6, "rs", 80), (7, "sh", 60), (10, "rs", 86), (11, "sh", 64), (13, "rs", 72), (15, "sh", 58)):
                         add("loop", at + q, piece, 1, vel)
@@ -333,6 +338,10 @@ def song():
 
 
 def dump(doc):
+    if HEADLOW:
+        i_eq = next(i for i, fx in enumerate(doc["master"]["fx"]) if isinstance(fx, dict) and fx.get("type") == "eq")
+        doc["master"]["fx"].insert(i_eq + 1, {"type": "filter", "kind": "lowshelf", "cutoff": 90, "gain": {"value": "0dB", "mod": [{"src": "auto.hl", "amount": 1}]}})
+        doc["master"].setdefault("auto", {})["hl"] = lane([(0, -float(HEADLOW)), (4 * BAR, -float(HEADLOW)), (8 * BAR, 0), (total_steps(), 0)], step=False)
     lines = [f"{k}: {json.dumps(doc[k])}" for k in ("about", "tempo", "ceiling", "loudness", "tail", "patches", "master") if k in doc]
     lines.append("buses:")
     doc["buses"].update(COHB)
