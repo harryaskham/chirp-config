@@ -26,9 +26,9 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 |---|---|
 | filter family: lp / hp / bp / notch / peak / shelves / allpass / comb / ladder | |
 | ring, formant, vocoder | t6 (chirper-two) |
-| cloud (grains), freeze | |
-| chop, stutter, tapestop, tape, vinyl | |
-| delay, reverb (room / plate / hall / chamber / spring), ir | |
+| cloud (grains), freeze | t8 (chirper-zero) |
+| chop, stutter, tapestop, tape, vinyl | t8 (chirper-zero) |
+| delay, reverb (room / plate / hall / chamber / spring), ir | t8 (chirper-zero) |
 | chorus, phaser, wah, tremolo, width, pan | |
 | barberpole, phantom, sympathetic | |
 | radio, follow-noise | |
@@ -49,7 +49,7 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 ## Pitch and tuning
 | feature | showcased by |
 |---|---|
-| tuning: cents, ratios (just intonation) | t3 (chirper-two) |
+| tuning: cents, ratios (just intonation) | t3 (chirper-two); t8 (chirper-zero, a stretched octave) |
 | tuning: EDO / non-octave scales | t9 (chirper-two) |
 | bend, glide, strum | |
 | expression paths (^NAME=a>b) | |
@@ -61,7 +61,7 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 | lfo and auto lanes | |
 | chance (?p) and choices (a\|b) | t6 (chirper-two) |
 | Euclidean patterns | t3 (chirper-two) |
-| every / vary / seeds | |
+| every / vary / seeds | t8 (chirper-zero) |
 | complex systems (chaotic maps, cellular automata, L-systems, Markov): ask wM | t3 (chirper-two) |
 
 ## Voice
