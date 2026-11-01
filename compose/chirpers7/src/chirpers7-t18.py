@@ -56,6 +56,7 @@ EARHALL = os.environ.get("C7T18_EARHALL", "off")  # the scale panel's hall send 
 EQT = os.environ.get("C7T18_EQT", "")  # narrow master moves at the album envelope (v25 read 97-113 -6, 182 -6, 249 -6, 467/640/876 +6.5, 3.6k -3.6): "a" 1x (v26: level here, but it moved the seam head 0.3 dB further from The Room Turns' tail and cost t17 0.12 - off since v27), "b" 1.5x (overshoots: 96.71)
 EQB = os.environ.get("C7T18_EQB", "1")  # v26's narrow moves in the BODY only: master peaks whose gain rides an auto lane, 0 under the 16-bar seam head (which The Room Turns' flow reads) and in over 4 bars; value = scale
 EQB_BANDS = [(105, 1.5, 3), (182, 2, 3), (249, 2, 3), (467, 2, -2.5), (640, 2, -2.5), (876, 1.5, -3), (3600, 1, 2.5)]
+MONOO = os.environ.get("C7T18_MONOO", "90")  # Harry listens on headphones AND speakers (1 Nov): the octave illusion's two ears sum on speakers to a steady octave dyad, so for the gallery panel's first 12 bars a quiet centred dry sine plays what the headphones make you hear - one tone hopping high-low on the panel's grid - fading out, after which the ears carry it alone; value = first velocity
 COH = os.environ.get("C7T18_COH", "1") == "1"  # t17 v18's fix (measured 22:15): coherent Haas pairs - one source per pair, near ear direct and far ear through 18 ms, dry - so the turning panel's precedence cue exists (separate noise-kit tracks gave the ears different hits)
 COHB = {}
 ILV = float(os.environ.get("C7T18_ILV", "0"))  # every illusion track's level offset (dB)
@@ -152,7 +153,7 @@ def stream(events, total):
 
 
 TRACKS = ("kick", "hats", "clap", "sub", "pads", "stab", "rims", "stair", "fall", "up", "pole", "speech", "tri",
-          "acidA", "acidB", "phantom", "octL", "octR", "cont", "burst", "zw", "bell", "wash", "ghostT", "earL", "earR", "loop",
+          "acidA", "acidB", "phantom", "octL", "octR", "octT", "cont", "burst", "zw", "bell", "wash", "ghostT", "earL", "earR", "loop",
           "hs2", "hs3", "hs4", "hs5", "hs6", "hc2", "hc3", "hc4", "hc5", "hc6")
 
 
@@ -330,6 +331,8 @@ def build():
                             hi_left = k % 2 == 0
                             add("octL", at + q, nm(n + (12 if hi_left else 0)), grid, 84 * lv)
                             add("octR", at + q, nm(n + (0 if hi_left else 12)), grid, 84 * lv)
+                            if MONOO and sec.startswith("g") and b < 12:
+                                add("octT", at + q, nm(n + (0 if hi_left else 12)), grid, int(int(MONOO) * (1 - b / 13)))
                 else:
                     n = UP[(b // 4) % 4] + 12
                     for k, q in enumerate(range(0, 16, 2)):
@@ -528,6 +531,7 @@ def song():
             {"name": "acidA", "patch": "acid", "gain": ilv(-12), "pan": -0.1, "score": T["acidA"]},
             {"name": "acidB", "patch": "acid", "gain": ilv(-12), "pan": -0.1, "score": T["acidB"]},
             {"name": "phantom", "patch": "phantom-bass", "gain": ilv(-8), "fx": [pump], "score": T["phantom"]},
+            *([{"name": "octT", "patch": "dry-sine", "gain": ilv(-17), "pan": 0, "score": T["octT"]}] if MONOO else []),
             {"name": "octL", "patch": "dry-sine" if "o" in REF3 else "pure", "gain": ilv(-14 if "o" in REF3 else -18), "pan": -1, "score": T["octL"]},
             {"name": "octR", "patch": "dry-sine" if "o" in REF3 else "pure", "gain": ilv(-14 if "o" in REF3 else -18), "pan": 1, "score": T["octR"]},
             *[{"name": f"srisset{a}", "patch": SRV, "gain": ilv(float(SRG)), "pan": 0.2, "at": f"{a // 4}b",
