@@ -58,6 +58,8 @@ EQB = os.environ.get("C7T18_EQB", "1")  # v26's narrow moves in the BODY only: m
 EQB_BANDS = [(105, 1.5, 3), (182, 2, 3), (249, 2, 3), (467, 2, -2.5), (640, 2, -2.5), (876, 1.5, -3), (3600, 1, 2.5)]
 MONOO = os.environ.get("C7T18_MONOO", "90")  # Harry listens on headphones AND speakers (1 Nov): the octave illusion's two ears sum on speakers to a steady octave dyad, so for the gallery panel's first 12 bars a quiet centred dry sine plays what the headphones make you hear - one tone hopping high-low on the panel's grid - fading out, after which the ears carry it alone; value = first velocity
 HEADEQ = os.environ.get("C7T18_HEADEQ", "6")  # the in-join (compscore: the head 12-15 dB over The Room Turns' tail at 133, 547 Hz and 1.6 kHz): those bands this many dB down for the first 4 bars, flat by bar 8 - the new record brought in thin, as a DJ would
+RADIO = os.environ.get("C7T18_RADIO", "1") == "1"  # Harry's third steer (1 Nov 01:15: 'white-noise bursts ... less well evolved'; 'robotic vox not subtle enough'): chirper-two's radio band (t8) - the continuity line now sings through a living shortwave band that runs under the whole stretch 18 dB down and swells over each gap to the old bursts' level (no bare bursts); and the speech heard through the radio (hp 450 / lp 2.6 kHz, 3 dB further back, more echo)
+GAPS = []
 COH = os.environ.get("C7T18_COH", "1") == "1"  # t17 v18's fix (measured 22:15): coherent Haas pairs - one source per pair, near ear direct and far ear through 18 ms, dry - so the turning panel's precedence cue exists (separate noise-kit tracks gave the ears different hits)
 COHB = {}
 ILV = float(os.environ.get("C7T18_ILV", "0"))  # every illusion track's level offset (dB)
@@ -154,7 +156,7 @@ def stream(events, total):
 
 
 TRACKS = ("kick", "hats", "clap", "sub", "pads", "stab", "rims", "stair", "fall", "up", "pole", "speech", "tri",
-          "acidA", "acidB", "phantom", "octL", "octR", "octT", "cont", "burst", "zw", "bell", "wash", "ghostT", "earL", "earR", "loop",
+          "acidA", "acidB", "phantom", "octL", "octR", "octT", "cont", "burst", "radio", "zw", "bell", "wash", "ghostT", "earL", "earR", "loop",
           "hs2", "hs3", "hs4", "hs5", "hs6", "hc2", "hc3", "hc4", "hc5", "hc6")
 
 
@@ -342,9 +344,14 @@ def build():
                         add("octR", at + q, nm(n + (0 if hi_left else 12)), 2, 80 * lv)
             if "continuity" in act:   # t8: a line sung on through bursts of static
                 n = STAIR_D[(b // 2) % 4] + 12
+                if RADIO and b == 0:
+                    add("radio", at, "C4", nb * BAR, 100)
                 for q0, q1 in ((0, 6), (8, 14)):
                     add("cont", at + q0, nm(n), q1 - q0, 82 * lv)
-                    add("burst", at + q1, "C4", 2, 104 * lv)
+                    if RADIO:
+                        GAPS.append((at + q1, at + q1 + 2, lv))
+                    else:
+                        add("burst", at + q1, "C4", 2, 104 * lv)
             if "huggins" in act and b % 4 == 2:   # t12: a note heard between the ears in identical hiss
                 add("wash", at, "C4", 2 * BAR, 96 * lv)
                 if MONOH and sec.startswith("g") and b < 12:
@@ -461,6 +468,13 @@ def song():
     gm, hug_hz = [], 880.0
     for k in range(0, total_steps() // BAR, 4):
         gm.append([f"{k * BAR * S * 60 / BPM0:.3f}s", round(math.log2([880, 698.46, 659.26, 587.33][(k // 4) % 4] / hug_hz), 4)])
+    rgap_lane = None
+    if RADIO:
+        pts = [(0, 0)]
+        for a, z, glv in sorted(GAPS):
+            pts += [(a - 0.15, 0), (a, 1), (z, 1), (z + 0.25, 0)]
+        pts.append((total_steps(), 0))
+        rgap_lane = lane(pts, step=False)
     zw_f = 880 * 1.08
     doc = {
         "about": "Chirpers - The Endless Stair (Chirpers VII), track 18 by chirper-zero: THE STAIR COMES DOWN, the closing odyssey. "
@@ -527,7 +541,8 @@ def song():
             {"name": "fall", "patch": "fall-pad", "gain": "-12dB", "sends": {"hall": "-4dB"}, "score": T["fall"]},
             {"name": "up", "patch": "stair-up", "gain": ilv(-10), "pan": -0.2, "sends": {"echo": "-8dB", "hall": "-10dB"}, "score": T["up"]},
             *endless("pole", T["pole"], 4, ilv(-9)),
-            {"name": "speech", "patch": "voice-speech", "gain": ilv(-6), "sends": {"echo": "-10dB", "hall": "-12dB"}, "score": T["speech"]},
+            {"name": "speech", "patch": "voice-speech", "gain": ilv(-9 if RADIO else -6), **({"fx": ["hp cutoff=450", "lp cutoff=2600"]} if RADIO else {}),
+             "sends": {"echo": "-6dB" if RADIO else "-10dB", "hall": "-12dB"}, "score": T["speech"]},
             {"name": "tri", "patch": "tritone", "gain": ilv(-10), "pan": 0.2, "sends": {"hall": "-10dB"}, "score": T["tri"]},
             {"name": "acidA", "patch": "acid", "gain": ilv(-12), "pan": -0.1, "score": T["acidA"]},
             {"name": "acidB", "patch": "acid", "gain": ilv(-12), "pan": -0.1, "score": T["acidB"]},
@@ -542,6 +557,9 @@ def song():
               for a, nb in srisset],
             {"name": "cont", "patch": "pad-glass", "gain": ilv(-6), "pan": 0.15, "sends": {"hall": "-10dB"}, "score": T["cont"]},
             {"name": "burst", "patch": "static", "gain": ilv(-14), "score": T["burst"]},
+            *([{"name": "radio", "patch": "shortwave", "gain": ilv(-14), "pan": -0.1,
+                "fx": [{"type": "gain", "gain": {"value": "-18dB", "mod": [{"src": "auto.rgap", "amount": 18}]}}],
+                "auto": {"rgap": rgap_lane}, "score": T["radio"]}] if RADIO else []),
             {"name": "zw", "patch": "zwick", "gain": ilv(-12), "fx": [
                 {"type": "filter", "kind": "notch", "cutoff": round(zw_f * 0.9, 1), "q": 1.5}, {"type": "filter", "kind": "notch", "cutoff": round(zw_f, 1), "q": 1.5},
                 {"type": "filter", "kind": "notch", "cutoff": round(zw_f * 1.1, 1), "q": 1.5}, "hp cutoff=120", "lp cutoff=9000"], "score": T["zw"]},
