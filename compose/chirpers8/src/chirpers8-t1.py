@@ -68,7 +68,7 @@ def build():
         secs[name] = t; t += n
     nb = t
     total = nb * 4.0
-    P = {k: [] for k in ('pad', 'sub', 'bass', 'kit', 'say', 'babble', 'ca')}
+    P = {k: [] for k in ('pad', 'sub', 'bass', 'kit', 'say', 'babble', 'ca', 'speak')}
     for b in range(nb):
         s = next(name for name, n in FORM if secs[name] <= b < secs[name] + n)
         i = b - secs[s]
@@ -76,6 +76,8 @@ def build():
         root, ch = chord_at(s, i, b)
         prev = chord_at(s, i - 1, b - 1) if i > 0 else None
         if (s not in PROG and b % 2 == 0) or (s in PROG and (prev != (root, ch) or i == 0)):
+            if s in ('C', 'D'):
+                P['speak'].append((t0, ','.join(nm(m) for m in ch), 40.0, 84))
             P['pad'].append((t0, ','.join(nm(m) for m in ch), 40.0, 72 if s in ('intro', 'outro', 'break') else 64))
         if s in ('B', 'C', 'D'):
             P['sub'].append((t0, nm(root), 1.8, 92)); P['sub'].append((t0 + 2.5, nm(root), 1.2, 84))
@@ -166,6 +168,11 @@ def build():
                      for o_, nb_, sd_ in ((1, 32, 11), (2, 32, 12), (1, 8, 13), (3, 32, 14))],
              'sends': {'echo': '-10dB', 'hall': '-14dB'}},
             tr('say', FMV, '-9dB', pan=0.2, sends={'echo': '-12dB', 'hall': '-12dB'}),
+            # (v4) THE CHORDS LEARN TO TALK: through the third groove and the said-back groove a string section holds the
+            # harmony and takes the voice's spectral envelope (wM's morph, mode cross, keyed by the voice): whenever the
+            # voice speaks, the chords pronounce the line with it, a choir of the machine's harmony saying the words
+            tr('speak', 'strings-saw', '-7dB', pan=-0.15, fx=[{'type': 'morph', 'mode': 'cross', 'key': 'voice', 'amount': 0.95}],
+               sends={'hall': '-10dB'}),
             tr('sub', 'sub', '-6dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-5dB', 'release': '260ms', 'curve': 0.6}]),
             tr('bass', 'analog-bass', '-12dB', fx=['lp cutoff=1100']),
             tr('kit', 'machine-kit', '-6dB', sends={'hall': '-18dB'}),
