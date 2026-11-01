@@ -192,8 +192,10 @@ def build():
                           'limiter ceiling=-1dB']},
         'tracks': [
             tr('seq', {'extends': 'moog-seq', 'synth': {'pitch': {'value': 0, 'mod': [{'src': 'expr.sl', 'amount': 0.01}]}}}, '-7dB', sends={'echo': '-12dB', 'hall': '-16dB'},
-               fx=[{'type': 'filter', 'kind': 'lp', 'q': 1.2, 'cutoff': {'value': 3200, 'mod': [{'src': 'auto.T', 'amount': 1.8}]}},
-                   {'type': 'crush', 'bits': 5, 'rate': {'value': 6000}, 'mix': {'value': 0, 'mod': [{'src': 'auto.T', 'amount': 0.7}]}}],
+               # (v5) less squelch (Harry, 1 Nov 18:19, of another track: 'too squelchy'): a gentler filter resonance and a
+               # softer, less-bitten crusher when hot - the search noisy and glittering rather than resonant and chewed
+               fx=[{'type': 'filter', 'kind': 'lp', 'q': 0.75, 'cutoff': {'value': 3200, 'mod': [{'src': 'auto.T', 'amount': 1.8}]}},
+                   {'type': 'crush', 'bits': 8, 'rate': {'value': 11000}, 'mix': {'value': 0, 'mod': [{'src': 'auto.T', 'amount': 0.45}]}}],
                auto={'T': {'points': Tpts}}),
             tr('pad', 'partial', '-12dB', sends={'hall': '-8dB'}),
             tr('bass', 'moog-seq', '-8dB', fx=['lp cutoff=900']),
