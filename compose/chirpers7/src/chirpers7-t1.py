@@ -56,6 +56,29 @@ R6 = os.environ.get("T1_R6", "spiral")
 # A) - eight bars through the break's second half into B1, and four over each drop (drop1 gains one) into A2 and B2,
 # each stopping dead on the downbeat it was climbing to. T1_R7=none reproduces v6.
 R7 = os.environ.get("T1_R7", "riser")
+# T1_R8 = evolve (v8, Harry's third steer, 1 Nov: no 4/8/16 formula, no exposed robotic voice, chords that mutate,
+# more spirals as structure; his favourite moments here - the spiral and the risers - multiplied). =none reproduces v7.
+# - THE FORM: ambient 8 / intro 8 / A1 12 / drop 4 / A2 18 / break 14 / B1 10 / drop 4 / B2 12 / B3 14 / outro 32.
+# - SPEECH TO SONG at the tape's first breath: after the stair's turn the whispered "up" comes every bar of the head,
+#   its speech contour flattening each time until it is simply sung on A; later "up"s in the break are sung.
+# - THE CHORD MUTATES: B1 moves Am9 (4) | Dm9 (3) | Fmaj7#11 (3) under the stair.
+# - A NEW SECTION, B3 (14 bars), THE DOUBLE SPIRAL: the harmony ACCELERATES (F 4, Dm 3, E 2, Am 2, then F, E, Am a bar
+#   each) while the stair runs on in sixteenths and a second Shepard-Risset spiral of the stair turns DOWN (down: true)
+#   under the one still climbing: up and down at once, faster and faster, into the outro's ritardando.
+R8 = os.environ.get("T1_R8", "evolve")
+B3_SPANS = [(4, "F"), (3, "Dm"), (2, "E"), (2, "Am"), (1, "F"), (1, "E"), (1, "Am")]
+B1_SPANS = [(4, "Am"), (3, "Dm"), (3, "F")]
+
+
+def span_chord(spans, i):
+    j = 0
+    for n, c in spans:
+        if i < j + n:
+            return c
+        j += n
+    return spans[-1][1]
+
+
 SPIRAL = "A3/0.25b@80 B3/0.25b@70 C4/0.25b@72 E4/0.25b@76 A4/0.25b@72 B4/0.25b@66 C5/0.25b@68 E5/0.25b@64"
 DARK5 = {"F": (-4, [53, 57, 59, 64]),       # Fmaj7#11: F3 A3 B3 E4 over F
          "Dm": (-7, [53, 55, 60, 64]),      # Dm11: F3 G3 C4 E4 over D
@@ -98,6 +121,9 @@ class Track:
 
 FORM = [("ambient", 8), ("intro", 8), ("A1", 16), ("drop1", 4), ("A2", 16), ("break", 16), ("B1", 16), ("drop2", 4),
         ("B2", 16), ("outro", 32)]
+if R8 == "evolve":
+    FORM = [("ambient", 8), ("intro", 8), ("A1", 12), ("drop1", 4), ("A2", 18), ("break", 14), ("B1", 10), ("drop2", 4),
+            ("B2", 12), ("B3", 14), ("outro", 32)]
 STAIR = [69, 71, 72, 76]           # A B C E: the thread (Shepard tones: the octave is only the note's name)
 CHORD = [57, 60, 64, 67, 71]       # Am9: A3 C4 E4 G4 B4
 # the harmony under the stair moves: A2's second half sits on F (VI), the peak climbs F G Am under it
@@ -116,8 +142,8 @@ def build():
     total = pos
     step = 0  # the stair keeps counting across the whole track: it never restarts, it only climbs
     for bi, (start, sec, i, n) in enumerate(bars):
-        full = sec in ("A2", "B1", "B2")      # the clap and the chord
-        core = sec in ("A1", "A2", "B1", "B2")
+        full = sec in ("A2", "B1", "B2", "B3")      # the clap and the chord
+        core = sec in ("A1", "A2", "B1", "B2", "B3")
         groove = core or sec in ("intro", "outro")
         # ---- the kick (the rumble kick), four on the floor; none in the break ----
         if groove:
@@ -149,19 +175,24 @@ def build():
         sh, chord_notes = SHIFT[shift]
         if R5 == "dark" and sec == "B2":
             sh, chord_notes = DARK5[("F", "Dm", "E", "Am")[(i // 2) % 4]]
+        if R8 == "evolve" and sec == "B1":
+            sh, chord_notes = DARK5[span_chord(B1_SPANS, i)]
+        if R8 == "evolve" and sec == "B3":
+            sh, chord_notes = DARK5[span_chord(B3_SPANS, i)]
         if core or (sec == "intro" and i >= 4) or sec == "outro":
             for b, m in BASS:
                 T["bass"].add(start + b, 0.45, nm(m + sh), 96)
         # ---- the stair: quarter notes in the intro and outro, eighths in A and B, half notes in the break ----
         rate = {"ambient": 1.0, "intro": 1.0, "A1": 0.5, "drop1": 1.0, "A2": 0.5, "break": 2.0, "B1": 0.5,
-                "drop2": 1.0, "B2": 0.25, "outro": 1.0}[sec]
+                "drop2": 1.0, "B2": 0.25, "B3": 0.25, "outro": 1.0}[sec]
         if R5 == "dark" and sec == "break":
             if i == 0:  # the stair runs: half notes accelerating to sixteenths across the break
                 p, s0 = 0.0, step
-                while p < 64.0 - 1e-6:
-                    ioi = 2.0 * 0.125 ** (p / 64.0)
+                bl = n * 4.0
+                while p < bl - 1e-6:
+                    ioi = 2.0 * 0.125 ** (p / bl)
                     m = STAIR[step % 4]
-                    T["stair"].add(start + p, min(ioi * 0.9, 64.0 - p), nm(m), 70 + (10 if step % 4 == 0 else 0))
+                    T["stair"].add(start + p, min(ioi * 0.9, bl - p), nm(m), 70 + (10 if step % 4 == 0 else 0))
                     step += 1
                     p += ioi
                 step = s0 + -(-(step - s0) // 4) * 4  # resume B on a whole round of the stair, as before
@@ -182,7 +213,7 @@ def build():
             t = 0.0
             while t < 4.0 - 1e-6:
                 m = STAIR[step % 4]
-                v = (64 if sec in ("ambient", "intro", "outro") else 74) + (10 if step % 4 == 0 else 0) - (8 if sec == "B2" and step % 2 else 0)
+                v = (64 if sec in ("ambient", "intro", "outro") else 74) + (10 if step % 4 == 0 else 0) - (8 if sec in ("B2", "B3") and step % 2 else 0)
                 T["stair"].add(start + t, rate * 0.9, nm(m), v)
                 step += 1
                 t += rate
@@ -193,16 +224,19 @@ def build():
                 T["chord"].add(start + 0.75, 0.3, chord, 80)
             else:
                 T["chord"].add(start + 0.75, 0.25, chord, 84)
-                if i % 2 == 1 or sec == "B2":
+                if i % 2 == 1 or sec in ("B2", "B3"):
                     T["chord"].add(start + 2.5, 0.25, chord, 74)
         # ---- the break: the endless pad, the whisper; a noise rise into B ----
-        if (sec in ("break", "drop1") and i % 8 == 0) or (sec == "B2" and i % 8 == 0):
+        if (sec in ("break", "drop1") and i % 8 == 0) or (sec in ("B2", "B3") and i % 8 == 0):
             T["pad"].add(start, 31.8, "A3,C4,E4", 80 if sec == "break" else 70)  # the stair takes off in B2
         if R2 == "turn" and sec == "ambient" and i == 1:  # the turn, whispered
             T["voice"].add(start + 3.0, 1.0, "A2", 66, "^ph=ah1-p^f0=0>40>80")
+        elif R8 == "evolve" and R2 == "turn" and sec == "ambient" and i > 1:  # again and again: speech becomes song
+            c = 1.0 - (i - 1) / 6.0
+            T["voice"].add(start + 3.0, 1.0, "A2", 64 + i, f"^ph=ah1-p^f0=0>{40 * c:.0f}>{80 * c:.0f}")
         if (sec == "break" and i in (4, 12)) or (sec == "drop2" and i == 0):
-            T["voice"].add(start + 2.0, 1.0, "A2", 70, "^ph=ah1-p^f0=0>40>80")
-        if sec == "break" and i == 8:
+            T["voice"].add(start + 2.0, 1.0, "A2", 70, "^ph=ah1-p^f0=0" if R8 == "evolve" else "^ph=ah1-p^f0=0>40>80")
+        if sec == "break" and i == n - 8:
             T["rise"].add(start, 32.0, "A3" if R7 == "riser" else "C4", 80 if R7 == "riser" else 90)
         if sec == "drop2" and i == 0:
             (T["rise16"] if R7 == "riser" else T["rise"]).add(start, 16.0, "A3" if R7 == "riser" else "C4",
@@ -279,10 +313,16 @@ def main():
           if R7 == "riser" else
           [{"name": "rise", "patch": "c2-rise", "gain": "-20dB", "fx": ["width width=1.5"], "score": T["rise"].score(total)}]),
     ] + ([{"name": "spiral", "patch": "pluck", "gain": "-12dB", "at": f"{st['break']:g}b",
-           "risset": {"cycle": "4bar", "layers": 4, "length": "16bar", "pitch": True},
+           "risset": {"cycle": "4bar", "layers": 4, "length": f"{dict(FORM)['break']}bar", "pitch": True},
            "sends": {"room": "-8dB"}, "fx": ["hp cutoff=180", "width width=1.6",
                                              "reverb kind=hall decay=2.2s mix=0.25"], "score": SPIRAL}]
-         if R6 == "spiral" else [])
+         if R6 == "spiral" else []) + ([{"name": "spiral-dn", "patch": "pluck", "gain": "-14dB", "pan": 0.25,
+                                         "at": f"{st['B3']:g}b",
+                                         "risset": {"cycle": "4bar", "layers": 4, "length": f"{dict(FORM)['B3']}bar",
+                                                    "pitch": True, "down": True},
+                                         "sends": {"room": "-8dB"}, "fx": ["hp cutoff=180", "width width=1.6",
+                                                                          "reverb kind=hall decay=2.2s mix=0.25"],
+                                         "score": SPIRAL}] if R8 == "evolve" else [])
     buses = {"room": {"gain": "-5dB",
                       "fx": ["hp cutoff=250", "lp cutoff=2400",
                              {"type": "tape", "drive": 0.35, "warmth": 0.6, "wow": 3, "flutter": 1, "seed": 7},
