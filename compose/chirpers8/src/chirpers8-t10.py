@@ -108,7 +108,8 @@ def build():
                 P['kit'].append((t0 + kq, 'kd' if s == 'final' else 'k', 0.25, 118 if kq == 0 else 108))
             for qq in range(4):
                 if s != 'intro' or i >= 4:
-                    P['kit'].append((t0 + qq + 0.5, 'oh' if s.startswith('calls') or s == 'final' else 'h', 0.25, 62))
+                    if not (s.startswith('calls') or s == 'final'):
+                        P['kit'].append((t0 + qq + 0.5, 'h', 0.25, 62))
                     # (wonky, the chirpers' way: the 'e' a little late, the 'a' later - a swung, slightly drunk machine)
                     P['kit'].append((t0 + qq + 0.25 + 0.04, 'h', 0.25, 48))
                     P['kit'].append((t0 + qq + 0.75 + 0.07, 'h', 0.25, 58))
@@ -116,6 +117,10 @@ def build():
                 P['kit'].append((t0 + 2.0, 'cp', 0.25, 100))
             elif s not in ('intro', 'outro'):
                 P['kit'].append((t0 + 1.0, 'cp', 0.25, 78)); P['kit'].append((t0 + 3.0, 'cp', 0.25, 82))
+        # (v2) in the calls the open hat follows the bass's clave (3+3+2 sixteenths), not the off-beat
+        if (s.startswith('calls') or s == 'final') and not ret:
+            for at_ in (0.75, 1.5, 2.75, 3.5):
+                P['kit'].append((t0 + at_, 'oh', 0.25, 70))
         # a rim on a THREE-sixteenth cycle (dotted eighths) through the calls, never reset - the machine's own
         # polyrhythm against the four, lining up with the bar only every three bars
         if (s.startswith('calls') or s == 'final') and not ret:
@@ -127,8 +132,14 @@ def build():
         # bass: roots in driving eighths with an octave hop (FM bass)
         if s not in ('return',):
             P['sub'].append((t0, tok(root - 12), 3.8, 96))
-            for qq in range(8):
-                P['bass'].append((t0 + qq * 0.5 + (0.05 if qq % 2 else 0.0), tok(root + (12 if qq % 4 == 3 else 0)), 0.4, 100 if qq % 2 == 0 else 84))
+            if (s.startswith('calls') or s == 'final') and not ret:
+                # (v2) the bass plays the machine's own clave: three-three-two sixteenths twice a bar (a tresillo), so
+                # the groove leans across the beat while the canon runs straight above it
+                for kq, (at_, o_) in enumerate(((0.0, 0), (0.75, 0), (1.5, 12), (2.0, 0), (2.75, 7), (3.5, 12))):
+                    P['bass'].append((t0 + at_, tok(root + o_), 0.6 if at_ in (0.0, 2.0) else 0.45, 104 if kq % 3 == 0 else 88))
+            else:
+                for qq in range(8):
+                    P['bass'].append((t0 + qq * 0.5 + (0.05 if qq % 2 else 0.0), tok(root + (12 if qq % 4 == 3 else 0)), 0.4, 100 if qq % 2 == 0 else 84))
         # THE CANON
         if s == 'expo':
             subj_bar(i, t0, tp, 0, 92, 'bell')                         # the bell from bar 1
