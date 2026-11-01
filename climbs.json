@@ -7783,6 +7783,354 @@
         "at": "2026-11-01T10:14:50Z",
         "who": "chirper-zero"
       }
+    },
+    {
+      "id": "chirpers8-t1",
+      "song": "songs/chirpers8-t1.yaml",
+      "reference": "chirpers — Track 1 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers8-t1 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "far-future computer music (an engine showcase)",
+      "mode": "compose",
+      "album": "chirpers8",
+      "meta": {
+        "artist": "chirpers",
+        "album": "chirpers VIII (untitled)",
+        "title": "Track 1 (untitled)",
+        "track": 1,
+        "year": 2026
+      },
+      "requested": {
+        "by": "harry@pocket4-nixos",
+        "at": "2026-11-01T10:26:03Z",
+        "note": "COMPOSE (opener, 300-480 s): Opens the album. Style, featured engine features, tempo, key, tuning and line-up are yours: declare them on compose/chirpers8/styles.md and claim your feature cluster on compose/chirpers8/features.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers8-t2",
+      "song": "songs/chirpers8-t2.yaml",
+      "reference": "chirpers — Track 2 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers8-t2 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "far-future computer music (an engine showcase)",
+      "mode": "compose",
+      "album": "chirpers8",
+      "meta": {
+        "artist": "chirpers",
+        "album": "chirpers VIII (untitled)",
+        "title": "Track 2 (untitled)",
+        "track": 2,
+        "year": 2026
+      },
+      "requested": {
+        "by": "harry@pocket4-nixos",
+        "at": "2026-11-01T10:26:03Z",
+        "note": "COMPOSE (song, 300-480 s): Style, featured engine features, tempo, key, tuning and line-up are yours: declare them on compose/chirpers8/styles.md and claim your feature cluster on compose/chirpers8/features.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers8-t3",
+      "song": "songs/chirpers8-t3.yaml",
+      "reference": "chirpers — Track 3 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers8-t3 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "far-future computer music (an engine showcase)",
+      "mode": "compose",
+      "album": "chirpers8",
+      "meta": {
+        "artist": "chirpers",
+        "album": "chirpers VIII (untitled)",
+        "title": "Track 3 (untitled)",
+        "track": 3,
+        "year": 2026
+      },
+      "requested": {
+        "by": "harry@pocket4-nixos",
+        "at": "2026-11-01T10:26:03Z",
+        "note": "COMPOSE (song, 300-480 s): Style, featured engine features, tempo, key, tuning and line-up are yours: declare them on compose/chirpers8/styles.md and claim your feature cluster on compose/chirpers8/features.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers8-t4",
+      "song": "songs/chirpers8-t4.yaml",
+      "reference": "chirpers — Track 4 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers8-t4 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "far-future computer music (an engine showcase)",
+      "mode": "compose",
+      "album": "chirpers8",
+      "meta": {
+        "artist": "chirpers",
+        "album": "chirpers VIII (untitled)",
+        "title": "Track 4 (untitled)",
+        "track": 4,
+        "year": 2026
+      },
+      "requested": {
+        "by": "harry@pocket4-nixos",
+        "at": "2026-11-01T10:26:03Z",
+        "note": "COMPOSE (song, 300-480 s): Style, featured engine features, tempo, key, tuning and line-up are yours: declare them on compose/chirpers8/styles.md and claim your feature cluster on compose/chirpers8/features.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers8-t5",
+      "song": "songs/chirpers8-t5.yaml",
+      "reference": "chirpers — Track 5 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers8-t5 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "far-future computer music (an engine showcase)",
+      "mode": "compose",
+      "album": "chirpers8",
+      "meta": {
+        "artist": "chirpers",
+        "album": "chirpers VIII (untitled)",
+        "title": "Track 5 (untitled)",
+        "track": 5,
+        "year": 2026
+      },
+      "requested": {
+        "by": "harry@pocket4-nixos",
+        "at": "2026-11-01T10:26:03Z",
+        "note": "COMPOSE (song, 300-480 s): Style, featured engine features, tempo, key, tuning and line-up are yours: declare them on compose/chirpers8/styles.md and claim your feature cluster on compose/chirpers8/features.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers8-t6",
+      "song": "songs/chirpers8-t6.yaml",
+      "reference": "chirpers — Track 6 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers8-t6 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "far-future computer music (an engine showcase)",
+      "mode": "compose",
+      "album": "chirpers8",
+      "meta": {
+        "artist": "chirpers",
+        "album": "chirpers VIII (untitled)",
+        "title": "Track 6 (untitled)",
+        "track": 6,
+        "year": 2026
+      },
+      "requested": {
+        "by": "harry@pocket4-nixos",
+        "at": "2026-11-01T10:26:03Z",
+        "note": "COMPOSE (song, 300-480 s): Style, featured engine features, tempo, key, tuning and line-up are yours: declare them on compose/chirpers8/styles.md and claim your feature cluster on compose/chirpers8/features.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers8-t7",
+      "song": "songs/chirpers8-t7.yaml",
+      "reference": "chirpers — Track 7 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers8-t7 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "far-future computer music (an engine showcase)",
+      "mode": "compose",
+      "album": "chirpers8",
+      "meta": {
+        "artist": "chirpers",
+        "album": "chirpers VIII (untitled)",
+        "title": "Track 7 (untitled)",
+        "track": 7,
+        "year": 2026
+      },
+      "requested": {
+        "by": "harry@pocket4-nixos",
+        "at": "2026-11-01T10:26:03Z",
+        "note": "COMPOSE (song, 300-480 s): Style, featured engine features, tempo, key, tuning and line-up are yours: declare them on compose/chirpers8/styles.md and claim your feature cluster on compose/chirpers8/features.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers8-t8",
+      "song": "songs/chirpers8-t8.yaml",
+      "reference": "chirpers — Track 8 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers8-t8 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "far-future computer music (an engine showcase)",
+      "mode": "compose",
+      "album": "chirpers8",
+      "meta": {
+        "artist": "chirpers",
+        "album": "chirpers VIII (untitled)",
+        "title": "Track 8 (untitled)",
+        "track": 8,
+        "year": 2026
+      },
+      "requested": {
+        "by": "harry@pocket4-nixos",
+        "at": "2026-11-01T10:26:03Z",
+        "note": "COMPOSE (song, 300-480 s): Style, featured engine features, tempo, key, tuning and line-up are yours: declare them on compose/chirpers8/styles.md and claim your feature cluster on compose/chirpers8/features.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers8-t9",
+      "song": "songs/chirpers8-t9.yaml",
+      "reference": "chirpers — Track 9 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers8-t9 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "far-future computer music (an engine showcase)",
+      "mode": "compose",
+      "album": "chirpers8",
+      "meta": {
+        "artist": "chirpers",
+        "album": "chirpers VIII (untitled)",
+        "title": "Track 9 (untitled)",
+        "track": 9,
+        "year": 2026
+      },
+      "requested": {
+        "by": "harry@pocket4-nixos",
+        "at": "2026-11-01T10:26:03Z",
+        "note": "COMPOSE (song, 300-480 s): Style, featured engine features, tempo, key, tuning and line-up are yours: declare them on compose/chirpers8/styles.md and claim your feature cluster on compose/chirpers8/features.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers8-t10",
+      "song": "songs/chirpers8-t10.yaml",
+      "reference": "chirpers — Track 10 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers8-t10 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "far-future computer music (an engine showcase)",
+      "mode": "compose",
+      "album": "chirpers8",
+      "meta": {
+        "artist": "chirpers",
+        "album": "chirpers VIII (untitled)",
+        "title": "Track 10 (untitled)",
+        "track": 10,
+        "year": 2026
+      },
+      "requested": {
+        "by": "harry@pocket4-nixos",
+        "at": "2026-11-01T10:26:03Z",
+        "note": "COMPOSE (song, 300-480 s): Style, featured engine features, tempo, key, tuning and line-up are yours: declare them on compose/chirpers8/styles.md and claim your feature cluster on compose/chirpers8/features.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers8-t11",
+      "song": "songs/chirpers8-t11.yaml",
+      "reference": "chirpers — Track 11 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers8-t11 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "far-future computer music (an engine showcase)",
+      "mode": "compose",
+      "album": "chirpers8",
+      "meta": {
+        "artist": "chirpers",
+        "album": "chirpers VIII (untitled)",
+        "title": "Track 11 (untitled)",
+        "track": 11,
+        "year": 2026
+      },
+      "requested": {
+        "by": "harry@pocket4-nixos",
+        "at": "2026-11-01T10:26:03Z",
+        "note": "COMPOSE (song, 300-480 s): Style, featured engine features, tempo, key, tuning and line-up are yours: declare them on compose/chirpers8/styles.md and claim your feature cluster on compose/chirpers8/features.md, different from the tracks already claimed."
+      }
+    },
+    {
+      "id": "chirpers8-t12",
+      "song": "songs/chirpers8-t12.yaml",
+      "reference": "chirpers — Track 12 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers8-t12 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "far-future computer music (an engine showcase)",
+      "mode": "compose",
+      "album": "chirpers8",
+      "meta": {
+        "artist": "chirpers",
+        "album": "chirpers VIII (untitled)",
+        "title": "Track 12 (untitled)",
+        "track": 12,
+        "year": 2026
+      },
+      "requested": {
+        "by": "harry@pocket4-nixos",
+        "at": "2026-11-01T10:26:03Z",
+        "note": "COMPOSE (closer, 300-480 s): Closes the album: everything the engine can do at once, and still a song. Style, featured engine features, tempo, key, tuning and line-up are yours: declare them on compose/chirpers8/styles.md and claim your feature cluster on compose/chirpers8/features.md, different from the tracks already claimed."
+      }
     }
   ],
   "focus": "The Endless Stair"
