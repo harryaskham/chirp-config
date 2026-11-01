@@ -7109,7 +7109,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 10,
       "priority": 1.0,
       "genre": "deep / heavy minimal house (mixtape)",
@@ -7130,7 +7130,8 @@
       "last": {
         "at": "2026-11-01T07:42:57Z",
         "who": "chirper-two"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers7-t2",
@@ -7148,7 +7149,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 7,
       "priority": 1.0,
       "genre": "deep / heavy minimal house (mixtape)",
@@ -7169,7 +7170,8 @@
       "last": {
         "at": "2026-11-01T07:48:07Z",
         "who": "chirper-two"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers7-t3",
@@ -7186,7 +7188,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 24,
       "priority": 1.0,
       "genre": "deep / heavy minimal house (mixtape)",
@@ -7207,7 +7209,8 @@
       "last": {
         "at": "2026-11-01T07:40:20Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers7-t4",
@@ -7224,7 +7227,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 10,
       "priority": 1.0,
       "genre": "deep / heavy minimal house (mixtape)",
@@ -7245,7 +7248,8 @@
       "last": {
         "at": "2026-11-01T07:34:57Z",
         "who": "chirper-two"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers7-t5",
@@ -7261,7 +7265,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 19,
       "priority": 1.0,
       "genre": "deep / heavy minimal house (mixtape)",
@@ -7282,7 +7286,8 @@
       "last": {
         "at": "2026-11-01T08:23:52Z",
         "who": "chirper-three"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers7-t6",
@@ -7298,7 +7303,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 18,
       "priority": 1.0,
       "genre": "deep / heavy minimal house (mixtape)",
@@ -7319,7 +7324,8 @@
       "last": {
         "at": "2026-11-01T09:23:52Z",
         "who": "chirper-three"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers7-t7",
@@ -7335,7 +7341,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 20,
       "priority": 1.0,
       "genre": "deep / heavy minimal house (mixtape)",
@@ -7356,7 +7362,8 @@
       "last": {
         "at": "2026-11-01T08:07:21Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers7-t8",
@@ -7374,7 +7381,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 11,
       "priority": 1.0,
       "genre": "deep / heavy minimal house (mixtape)",
@@ -7395,7 +7402,8 @@
       "last": {
         "at": "2026-11-01T07:38:31Z",
         "who": "chirper-two"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers7-t9",
@@ -7412,7 +7420,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 18,
       "priority": 1.0,
       "genre": "deep / heavy minimal house (mixtape)",
@@ -7433,7 +7441,8 @@
       "last": {
         "at": "2026-11-01T09:54:05Z",
         "who": "chirper-three"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers7-t10",
@@ -7449,7 +7458,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 19,
       "priority": 1.0,
       "genre": "deep / heavy minimal house (mixtape)",
@@ -7470,7 +7479,8 @@
       "last": {
         "at": "2026-11-01T10:26:12Z",
         "who": "chirper-three"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers7-t11",
@@ -7486,7 +7496,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 16,
       "priority": 1.0,
       "genre": "deep / heavy minimal house (mixtape)",
@@ -7507,7 +7517,8 @@
       "last": {
         "at": "2026-11-01T10:09:38Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers7-t12",
@@ -7523,7 +7534,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 26,
       "priority": 1.0,
       "genre": "deep / heavy minimal house (mixtape)",
@@ -7544,7 +7555,8 @@
       "last": {
         "at": "2026-11-01T09:07:05Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers7-t13",
@@ -7561,7 +7573,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 22,
       "priority": 1.0,
       "genre": "deep / heavy minimal house (mixtape)",
@@ -7582,7 +7594,8 @@
       "last": {
         "at": "2026-11-01T09:36:41Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers7-t14",
@@ -7598,7 +7611,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 14,
       "priority": 1.0,
       "genre": "deep / heavy minimal house (mixtape)",
@@ -7619,7 +7632,8 @@
       "last": {
         "at": "2026-11-01T08:44:23Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers7-t15",
@@ -7636,7 +7650,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 17,
       "priority": 1.0,
       "genre": "deep / heavy minimal house (mixtape)",
@@ -7657,7 +7671,8 @@
       "last": {
         "at": "2026-11-01T09:43:26Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers7-t16",
@@ -7680,7 +7695,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 19,
       "priority": 1.0,
       "genre": "deep / heavy minimal house (mixtape)",
@@ -7701,7 +7716,8 @@
       "last": {
         "at": "2026-11-01T09:45:48Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers7-t17",
@@ -7717,7 +7733,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 27,
       "priority": 1.0,
       "genre": "deep / heavy minimal house (mixtape)",
@@ -7738,7 +7754,8 @@
       "last": {
         "at": "2026-11-01T09:48:13Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers7-t18",
@@ -7754,7 +7771,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 44,
       "priority": 1.0,
       "genre": "deep / heavy minimal house (mixtape)",
@@ -7775,7 +7792,8 @@
       "last": {
         "at": "2026-11-01T10:14:50Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers8-t1",
@@ -8126,5 +8144,5 @@
       }
     }
   ],
-  "focus": "The Endless Stair"
+  "focus": "chirpers VIII (untitled)"
 }
