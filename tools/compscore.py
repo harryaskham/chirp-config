@@ -14,6 +14,9 @@ compose/ALBUM/album.json "weights", defaults below):
   human      Harry's latest rating for this song (rate.py), x10; a rating of an older version counts half.
   peer       other agents' latest ratings (not the song's owner), x10.
   structure  sections by likeness's novelty segmentation: a count suited to the length, unequal lengths.
+             Opt-in album.json params.sections.novelty: one cut (default 0.15) or a list such as
+             [0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18]; with a list, structure, variety and recurrence are each
+             averaged over the cuts, so a boundary near the cut counts fractionally instead of flipping them.
   variety    within-song contrast across sections: loudness range, timbre spread, onset-density change.
   recurrence motifs return: the share of later sections that closely match an earlier, non-adjacent one, in a
              middle band (none = no development of material; all = one idea looped).
@@ -193,13 +196,47 @@ def novelty(X, half=16):
     return nov
 
 
-def section_bounds(F, dur, X=None):
+def section_bounds(F, dur, X=None, thr=None, nov=None):
     from scipy import signal
-    X = frames(F) if X is None else X
-    pk, _ = signal.find_peaks(novelty(X), height=NOVELTY, distance=16)
+    if nov is None:
+        X = frames(F) if X is None else X
+        nov = novelty(X)
+    pk, _ = signal.find_peaks(nov, height=NOVELTY if thr is None else thr, distance=16)
     cuts = [p / 2 for p in pk if 0 < p / 2 < dur]
     edges = [0.0] + cuts + [dur]
     return [(a, b) for a, b in zip(edges[:-1], edges[1:]) if b - a >= 1.0]
+
+
+def novelty_thresholds(album):
+    """The album's opt-in params.sections.novelty: one threshold, or a list scored as an ensemble (see ensemble()).
+    None (the default) keeps the single NOVELTY cut."""
+    v = (((album or {}).get("params") or {}).get("sections") or {}).get("novelty")
+    if v is None:
+        return None
+    if isinstance(v, (int, float)):
+        return [float(v)]
+    ths = sorted(float(t) for t in v)
+    return ths or None
+
+
+SECTION_TERMS = ("structure", "variety", "recurrence")
+
+
+def ensemble(fn, ctx):
+    """A form term averaged over the album's novelty-threshold ensemble, so a boundary whose novelty peak sits near the
+    threshold counts fractionally. With one hard cut, texture-level changes near a boundary flip the section count and
+    every form term with it (chirper-one, t3, 1 Nov: quieting the radio's static, or shortening its retune, moved
+    the total 4-13 points via 7 -> 5 or 6 sections while the music hardly changed). The detail is the middle cut's,
+    plus each cut's section count and score."""
+    sets = ctx["section_sets"]
+    runs = [fn({**ctx, "sections": secs}) for secs in sets]
+    mid = runs[len(runs) // 2]
+    if any(s is None for s, _ in runs):
+        return mid
+    d = dict(mid[1] or {})
+    d["ensemble"] = {"novelty": ctx.get("novelty_thresholds"), "sections": [len(x) for x in sets],
+                     "scores": [round(float(s), 2) for s, _ in runs]}
+    return float(np.mean([s for s, _ in runs])), d
 
 
 def section_feats(F, x, bounds, X=None):
@@ -539,9 +576,16 @@ def build_ctx(cid, wav, climb, album, song=None):
     dur = len(x) / L.SR
     slot = next((t for t in album.get("tracks", []) if t.get("id") == cid), None)
     X = frames(F)
-    secs = section_feats(F, x, section_bounds(F, music_end(x, L.SR), X), X)
+    end, ths, sets = music_end(x, L.SR), novelty_thresholds(album), None
+    if ths is None:
+        secs = section_feats(F, x, section_bounds(F, end, X), X)
+    else:
+        nov = novelty(X)
+        sets = [section_feats(F, x, section_bounds(F, end, X, thr=t, nov=nov), X) for t in ths]
+        secs = sets[len(sets) // 2]
     me = features(x, F, dur)
     return {"id": cid, "wav": wav, "x": x, "F": F, "dur": dur, "album": album, "slot": slot, "sections": secs,
+            "section_sets": sets, "novelty_thresholds": ths,
             "me": me, "density": me["density"], "others": others_features(album["id"], cid),
             "ratings": ratings(album["id"]), "owner": climb.get("owner"),
             "version": (climb.get("best") or {}).get("version"), "envelope": genre_envelope(album),
@@ -552,7 +596,7 @@ def score(ctx, extra=None):
     weights = {**DEFAULT_WEIGHTS, **(ctx["album"].get("weights") or {})}
     terms, detail, used = {}, {}, {}
     for name, fn in {**BUILTIN, **(extra or {})}.items():
-        s, d = fn(ctx)
+        s, d = ensemble(fn, ctx) if name in SECTION_TERMS and len(ctx.get("section_sets") or []) > 1 else fn(ctx)
         detail[name] = d
         if s is None:
             continue
