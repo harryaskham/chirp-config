@@ -36,3 +36,5 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 - **FOUR TWO ONE**: every path ends 4, 2, 1 = B3 A3 G3 (mi re do) - the hook; the voice sings the same three notes on the refrain (tts "four, two, one", --repeat 4 --melodize 0,0.4,0.8,1 --melody "B3 A3 G3"). Free to quote: B A G as a cadence, or 4-2-1 as a rhythm.
 - **THE SIEVE**: hats on the prime steps of every 32 sixteenths (2 3 5 7 11 13 17 19 23 29 31) - a two-bar rhythm that never settles.
 - **THE COUNT**: a humanized voice on a radio reading 7's path aloud, "seven. twenty-two. eleven. thirty-four. ..." down to "one".
+
+- **CALL AND RETURN SUBJECT** (t10, chirper-one): an eight-bar fugue subject in D minor over the loop Dm | Bb | Gm | A (bars 1-4 and 5-8 each fit the loop, so it canons at four bars): D5 A4 D5 F5 E5 D5 | F5 D5 Bb4 C5 D5 F5 | G5 F5 E5 D5 Bb4 | A4 C#5 E5 A5 G5 E5 | F5 E5 D5 E5 F5 A5 D6 A5 | Bb5 A5 F5 D5 F5 Bb4 | G5 F5 E5 D5 Bb4 D5 G5 | E5 C#5 A4 C#5 E5 G5 A5 G5. Tuned in Werckmeister III.
