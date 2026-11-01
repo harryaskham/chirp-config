@@ -141,9 +141,19 @@ def build():
         if s in ('A', 'B', 'C') and (k % 4 in (0, 2) or new_ch):
             T['stab'].append((t0 + 0.5, ','.join(nm(m) for m in ch), 0.4, 92))
         # THE STAIR on the stab: in B and C, every other bar, F G Ab C on the off-beats
-        if s in ('B', 'C') and k % 2 == 1:
-            for q, m in zip((0.5, 1.5, 2.5, 3.5), STAIR):
-                T['stab'].append((t0 + q, f"{nm(m)},{nm(m + 12)}" if s == 'C' else nm(m + 12), 0.3, 88))
+        # (v22) THE STAIR BUILDS ITSELF (Harry: sections that evolve rather than repeat): the stair on the stab now
+        # assembles one step at a time from the first groove's bar 13 - F alone, then F G, then F G Ab, the whole stair by
+        # the second groove - and in the peak's second half it reaches one step further, the D-flat above, on the 'a' of four
+        nst = 0
+        if s == 'A' and i >= 12:
+            nst = min(4, 1 + (i - 12) // 6)
+        elif s in ('B', 'C'):
+            nst = 4
+        if nst and k % 2 == 1:
+            for q, m in list(zip((0.5, 1.5, 2.5, 3.5), STAIR))[:nst]:
+                T['stab'].append((t0 + q, f"{nm(m)},{nm(m + 12)}" if s == 'C' else nm(m + 12), 0.3, 84 if s == 'A' else 88))
+            if s == 'C' and i >= 24:
+                T['stab'].append((t0 + 3.75, f"{nm(STAIR[0] + 8)},{nm(STAIR[0] + 20)}", 0.2, 82))
         if s in ('break', 'intro') and k % 4 == 0:
             T['pad'].append((t0, ','.join(nm(m) for m in ch), 15.8, 80))
     lv = {'intro': -4, 'A': -1, 'B': 0, 'break': -5, 'C': 0, 'outro': -3}
