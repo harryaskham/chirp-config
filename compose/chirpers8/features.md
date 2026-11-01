@@ -6,20 +6,20 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 | feature | showcased by |
 |---|---|
 | osc waves: sine, triangle, saw, square, pulse (PWM) | |
-| additive | t6 (chirper-two) |
+| additive | |
 | tables (wavetable-style) | |
 | shepard (endless glides, scales, chords) | |
 | sample | |
 | drum machines and kits (machine-kit, dusty, physical drums) | |
 | physical: modal | t3 (chirper-two) |
 | physical: bowed | |
-| physical: pluck | t3 (chirper-two) |
-| physical: membrane | t3 (chirper-two) |
-| physical: reed | t9 (chirper-two) |
+| physical: pluck | |
+| physical: membrane | |
+| physical: reed | |
 | physical: lips (brass) | |
 | physical: bar, bell, glock, gong | t3 (chirper-two) |
 | guitar with amps and cabs | |
-| shapers: fold, tanh, clip, crush | t9 (chirper-two) |
+| shapers: fold, tanh, clip, crush | |
 
 ## Processing (fx)
 | feature | showcased by |
@@ -29,7 +29,7 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 | cloud (grains), freeze | |
 | chop, stutter, tapestop, tape, vinyl | |
 | delay, reverb (room / plate / hall / chamber / spring), ir | |
-| chorus, phaser, wah, tremolo, width, pan | t6 (chirper-two) |
+| chorus, phaser, wah, tremolo, width, pan | |
 | barberpole, phantom, sympathetic | |
 | radio, follow-noise | |
 | pitch | |
@@ -40,11 +40,11 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 | feature | showcased by |
 |---|---|
 | tempo maps and ramps | t9 (chirper-two) |
-| risset (accelerando / decelerando) | t9 (chirper-two) |
-| warp | t9 (chirper-two) |
+| risset (accelerando / decelerando) | |
+| warp | |
 | meter changes | t9 (chirper-two) |
 | polymeter by step length | t9 (chirper-two) |
-| swing, swing drift, humanize | t9 (chirper-two) |
+| swing, swing drift, humanize | |
 
 ## Pitch and tuning
 | feature | showcased by |
@@ -57,7 +57,7 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 ## Generators and systems
 | feature | showcased by |
 |---|---|
-| vars and expr | t9 (chirper-two) |
+| vars and expr | |
 | lfo and auto lanes | |
 | chance (?p) and choices (a\|b) | t6 (chirper-two) |
 | Euclidean patterns | t3 (chirper-two) |
