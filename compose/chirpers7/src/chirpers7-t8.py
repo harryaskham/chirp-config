@@ -74,6 +74,14 @@ R8 = os.environ.get("T8_R8", "riser")
 #   Shepard-Risset spiral (risset pitch: true), the dial turning up through the stations, the organ holding.
 # T8_R9=none reproduces v8.
 R9 = os.environ.get("T8_R9", "radio")
+# T8_R10 = dial (v10, wM's noise tools, 1 Nov): the radio becomes real. The choir runs through a `radio` effect whose
+# DIAL moves - off the station under t7's tail (faint static), tuned in over the last four bars of the seam (the
+# whistle gliding down), just off the station through A1 and A2 (a little wow and fade), swept across the stations in TUNING (the whistle gliding as the dial passes), on the station from the break - and
+# the radio falls away over the drop, so B2's choir arrives full-range. The continuity gaps are now filled with
+# `follow-noise`: noise in the choir's own colours, ringing faintly on its notes (tone 0.6), instead of the shortwave
+# patch; the seam organ's gaps the same. The radio's static runs on through silence, so the separate shortwave track
+# is gone. T8_R10=none reproduces v9.
+R10 = os.environ.get("T8_R10", "dial")
 SPANS = [int(x) for x in os.environ.get("T8_SPANS", "10,6,7,5").split(",")]  # v9: bars per chord, from each section's start
 SPIRAL = "C#5/0.5b@80 D#5/0.5b@70 E5/0.5b@74 G#5/0.5b@72"
 
@@ -301,6 +309,13 @@ def main():
         tune = [["0b", 0.0], [f"{st['tuning'] - 0.01}b", 0.0], [f"{st['tuning'] + 8}b", 1.0], [f"{st['break'] - 4}b", 1.0],
                 [f"{st['break']}b", 0.0], [f"{total}b", 0.0]]
         opening = [["0b", 0.0], [f"{st['drop2']}b", 0.0], [f"{st['B2']}b", 1.0], [f"{total}b", 1.0]]
+    if R10 == "dial":  # the dial: off the station, drifting closer, swept in TUNING, on the station from the break
+        tu = st["tuning"]
+        dial = [["0b", 1.0], [f"{st['A1'] - 16}b", 1.0], [f"{st['A1']}b", 0.12], [f"{st['A1'] + 28}b", 0.06],
+                [f"{st['A2']}b", 0.08], [f"{st['A2'] + 40}b", -0.06], [f"{tu}b", 0.05], [f"{tu + 6}b", 1.0],
+                [f"{tu + 11}b", -0.9], [f"{tu + 15}b", 0.6], [f"{tu + 19}b", -0.3], [f"{tu + 22}b", 0.0],
+                [f"{total}b", 0.0]]
+        rmix = [["0b", 1.0], [f"{st['drop2']}b", 1.0], [f"{st['B2']}b", 0.0], [f"{total}b", 0.0]]
     sgate = [["0b", 0.0]]
     for g0, gl in seamgaps:
         sgate += [[f"{g0 - 0.04:.4f}b", 0.0], [f"{g0:.4f}b", 1.0], [f"{g0 + gl - 0.04:.4f}b", 1.0], [f"{g0 + gl:.4f}b", 0.0]]
@@ -331,7 +346,9 @@ def main():
             if R7 == "seasick" else {}),
          "fx": [pump, "hp cutoff=300", "reverb kind=hall decay=2.2s mix=0.25"], "score": T["organ"].score(total)},
         *([{"name": "organ-seam", "patch": "organ", "gain": "-12dB", "pan": -0.1,
-            "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.sgap", "amount": -60}]}},
+            "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.sgap", "amount": -60}]}}] + (
+                   [{"type": "follow-noise", "follow": "1.5s", "hold": "0.5s", "tone": 0.6,
+                     "mix": {"value": 0, "mod": [{"src": "auto.sgap", "amount": 1}]}}] if R10 == "dial" else []) + [
                    "hp cutoff=300", "reverb kind=hall decay=2.2s mix=0.25"],
             "auto": {"sgap": {"points": sgate}}, "score": T["organseam"].score(total)},
            {"name": "riser", "patch": "fx-riser-endless amp.a=30b" if R8 == "riser" else "shepard-pad",
@@ -346,12 +363,25 @@ def main():
           "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.gap", "amount": -60}]}},
                  {"type": "filter", "kind": "hp", "q": 0.8, "cutoff": {"value": 450, "mod": [{"src": "auto.open", "amount": -2.2}]}},
                  {"type": "filter", "kind": "lp", "q": 0.8, "cutoff": {"value": 2600, "mod": [{"src": "auto.open", "amount": 2.2}]}}],
-          "auto": {"gap": {"points": gate}, "open": {"points": opening}}, "score": T["voice"].score(total)}),
-        *([{"name": "radio", "patch": "shortwave", "gain": os.environ.get("T8_RADIO_GAIN", "18dB"), "pan": 0.05,
-            "fx": [{"type": "gain", "gain": {"value": "-18dB", "mod": [{"src": "auto.rgap", "amount": 18},
-                                                                       {"src": "auto.tune", "amount": 14}]}}],
-            "auto": {"rgap": {"points": rgate}, "tune": {"points": tune}}, "score": T["radio"].score(total)},
-           {"name": "spiral", "patch": "theremin", "gain": "-14dB", "pan": -0.2, "at": f"{st['tuning']:g}b",
+          "auto": {"gap": {"points": gate}, "open": {"points": opening}}, "score": T["voice"].score(total)}
+         if R10 != "dial" else
+         {"name": "voice", "patch": "choir", "gain": os.environ.get("T8_CHOIR_GAIN", "7dB"), "pan": 0.05,
+          "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.gap", "amount": -60}]}},
+                 {"type": "follow-noise", "follow": "1.5s", "hold": "0.5s", "tone": 0.6,
+                  "level": os.environ.get("T8_FILL", "4dB"),
+                  "mix": {"value": 0, "mod": [{"src": "auto.gap", "amount": 1}]}},
+                 {"type": "radio", "tune": {"value": 0, "mod": [{"src": "auto.dial", "amount": 1}]},
+                  "hiss": os.environ.get("T8_HISS", "-40dB"), "whistle": os.environ.get("T8_WHISTLE", "-30dB"),
+                  "fade": 0.35, "drift": 0.04, "seed": 8,
+                  "mix": {"value": 0, "mod": [{"src": "auto.rmix", "amount": 1}]}}],
+          "auto": {"gap": {"points": gate}, "dial": {"points": dial}, "rmix": {"points": rmix}},
+          "score": T["voice"].score(total)}),
+        *(([{"name": "radio", "patch": "shortwave", "gain": os.environ.get("T8_RADIO_GAIN", "18dB"), "pan": 0.05,
+             "fx": [{"type": "gain", "gain": {"value": "-18dB", "mod": [{"src": "auto.rgap", "amount": 18},
+                                                                        {"src": "auto.tune", "amount": 14}]}}],
+             "auto": {"rgap": {"points": rgate}, "tune": {"points": tune}}, "score": T["radio"].score(total)}]
+            if R10 != "dial" else []) +
+          [{"name": "spiral", "patch": "theremin", "gain": "-14dB", "pan": -0.2, "at": f"{st['tuning']:g}b",
             "risset": {"cycle": "3bar", "layers": 3, "length": "6bar", "pitch": True},
             "fx": ["hp cutoff=300", {"type": "delay", "time": "3/16", "feedback": 0.35, "mix": 0.25, "tone": 3000},
                    "reverb kind=hall decay=2.5s mix=0.3"], "score": SPIRAL}] if R9 == "radio" else []),
