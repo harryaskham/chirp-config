@@ -108,8 +108,37 @@ ROOTS = [GS1, GS1 + 1, GS1 - 4, GS1 - 5]      # v8, darker: G#m9 | Amaj7#11 (Phr
 ROOTS_DROP = [GS1, GS1 - 4, GS1 + 5, GS1 - 5]  # v8: the drop: G#m11 | Emaj7#11 | C#m9 | D#7b9
 
 
+M9, M11, MM9 = (3, 7, 10, 14), (3, 10, 14, 17), (3, 7, 11, 14)
+MAJ7S11, MAJ9S11, D7B9, D7S9 = (4, 7, 11, 18), (4, 11, 14, 18), (4, 7, 10, 13), (4, 7, 10, 15)
+# v14 (Harry's third steer: 'formulaic'): THE DROP'S FIRST HALF THROUGH-COMPOSED, 10 + 7 + 7 bars instead of the
+# one-bar loop: a PEDAL (89-98: the bass holds G# under 'ONE' while chords move above it - G#m11, Amaj7#11 over G#,
+# the Phrygian bII grinding on the pedal, G#m(maj9)); the loop MUTATING (99-105: new extensions each pass); and THE
+# HARMONIC PENROSE STAIR (106-112: minor chords stepping DOWN by major thirds, G#m9 Em9 Cm9 G#m9 Em9 Cm9 G#m9 - three
+# steps down and home again: a staircase that descends forever and goes nowhere, the album's title in harmony)
+DROP_PLAN = {}
+for _b in range(89, 99):
+    DROP_PLAN[_b] = (GS1, GS1, M11) if _b <= 92 else ((GS1, GS1 + 1, MAJ7S11) if _b <= 95 else (GS1, GS1, MM9))
+_MUT9 = {0: [M11, M9], 8: [MAJ7S11, MAJ9S11], 5: [M9, M11], 7: [D7B9, D7S9]}
+for _b in range(99, 106):
+    _r = ROOTS_DROP[(_b - 1) % 4]
+    DROP_PLAN[_b] = (_r, _r, _MUT9[(_r - GS1) % 12][(_b - 99) // 4])
+for _b, _r in zip(range(106, 113), [GS1, GS1 - 4, GS1 + 4, GS1, GS1 - 4, GS1 + 4, GS1]):
+    DROP_PLAN[_b] = (_r, _r, M9)
+PENROSE = range(106, 113)
+
+
 def root_of(bar):
+    if bar in DROP_PLAN:
+        return DROP_PLAN[bar][0]
     return (ROOTS_DROP if sec_of(bar) == "drop" else ROOTS)[(bar - 1) % 4]
+
+
+def chord_of(bar):
+    """v14: the chord above the bass (MIDI, two octaves up): the drop's plan, else the old voicing."""
+    if bar in DROP_PLAN:
+        _, cr, ivs = DROP_PLAN[bar]
+        return [cr + 24 + i for i in ivs]
+    return voicing(root_of(bar) + 24)
 
 
 def voicing(r):
@@ -155,7 +184,8 @@ def riff():
                 continue
             if hole(bar, b0(bar) + pos / 4):
                 continue
-            part("bass").add(b0(bar) + pos / 4, 0.22, nm(root + riff_iv(root, iv) + up), 104 if acc else 80)
+            iv2 = iv if bar in PENROSE else riff_iv(root, iv)       # v14: the Penrose stair's chords are all minor
+            part("bass").add(b0(bar) + pos / 4, 0.22, nm(root + iv2 + up), 104 if acc else 80)
 
 
 def drums():
@@ -222,8 +252,7 @@ def frame_the_holes():
     performed. The last stab before it is thrown into a high-feedback dub delay, so its echoes ring through the hole;
     and on the first two the voice softly says 'one' exactly where the beat is missing - the phantom downbeat named."""
     for g in sorted(GHOST_ONE):
-        r = root_of(g - 1) + 24
-        v = voicing(r)
+        v = chord_of(g - 1)
         part("throw").add(b0(g) - 0.5, 0.25, ",".join(nm(m) for m in v), 92)
         if g in (24, 32):
             for side in ("phL", "phR"):                       # v13: the whisper through the radio band, both sides
@@ -242,8 +271,7 @@ def stabs():
         sec = sec_of(bar)
         if sec == "break":
             continue
-        r = root_of(bar) + 24
-        v = voicing(r)
+        v = chord_of(bar)
         hits = (0.75, 1.5, 2.75, 3.5) if (sec == "drop" and bar >= 121) else (0.5, 1.5, 2.5, 3.5)   # the anchor shifts
         for b in hits:
             if hole(bar, b0(bar) + b):
