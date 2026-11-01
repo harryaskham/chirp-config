@@ -1,0 +1,319 @@
+#!/usr/bin/env python3
+"""chirpers - A Light Left On (chirpers VIII), track 12, THE CLOSER (chirper-three).
+
+Everything the engine does at once, and still a song: an orchestra of illusions that GROWS LIKE A PLANT.
+
+THE SYSTEM: an L-system (A -> AB, B -> A: the Fibonacci word), one generation per section, with one mutation rule per
+generation (every k-th A becomes C). Each section plays its generation's string: it is the melody (A a step up the
+scale, B two steps down, C a leap), the rhythm (A an eighth, B a dotted eighth, C a sixteenth: a quasi-periodic rhythm,
+a loop that never quite repeats) and the walk of the harmony. The section lengths are Fibonacci numbers, so the form
+itself grows: the piece begins as one note (the light) and ends as one note again.
+
+TUNING: 31-EDO (31 equal steps to the octave, 38.7 cents each), written as fractional MIDI (m66.387). The scale is a
+'neutral Dorian' on F#: F#, G#, a NEUTRAL third (between A and A#), B, C#, D#, E. Chords mix 6/5 minor thirds, 5/4
+major thirds, neutral thirds and the 7/4 harmonic seventh - subtly off, by construction.
+
+FORM (186 bars, ~6:10, 112 -> 126 bpm on a tempo map):
+  seed   1-8     a music box plays one F#, over a fan's hum: the light
+  g1     9-13    'AB' on a celesta
+  g2     14-21   'ABA'; bowed cellos breathe the chord
+  g3     22-34   'ABAAB'; the pulse arrives (kick, hats with drift, a phantom bass nobody plays)
+  g4     35-55   8 symbols on a harp with sympathetic strings; horns (lips) answer on B; claps
+  g5     56-89   13 symbols: everything - a Shepard choir rising forever, violins, warped hats, the real sub
+  prune  90-102  cut back: the strings through a barber pole, a Shepard fall, the lead alone
+  g6     103-157 21 symbols: the whole grown piece
+  coda   158-178 a Risset rush on the hats that keeps accelerating and never gets faster; the lead thins
+  light  179-186 one note again
+"""
+import json
+import os
+import random
+
+OUT = os.environ.get("C8T12_OUT") or os.path.expanduser("~/.config/chirp/songs/chirpers8-t12.yaml")
+BAR = 4.0
+SECTIONS = [("seed", 1, 8), ("g1", 9, 13), ("g2", 14, 21), ("g3", 22, 34), ("g4", 35, 55), ("g5", 56, 89),
+            ("prune", 90, 102), ("g6", 103, 157), ("coda", 158, 178), ("light", 179, 186)]
+GEN = {"seed": 0, "g1": 1, "g2": 2, "g3": 3, "g4": 4, "g5": 5, "prune": 3, "g6": 6, "coda": 4, "light": 0}
+BARS = SECTIONS[-1][2]
+TOTAL = BARS * BAR
+EDO = 31
+FS4 = 66                                  # F#4
+SCALE = [0, 5, 9, 13, 18, 23, 26]         # neutral Dorian on F#, in 31-EDO steps
+
+
+def b0(bar):
+    return (bar - 1) * BAR
+
+
+def sec_of(bar):
+    for name, a, z in SECTIONS:
+        if a <= bar <= z:
+            return name
+    return "light"
+
+
+def m(steps, base=FS4):
+    """A 31-EDO pitch as fractional MIDI: base + steps * 12/31 semitones."""
+    return f"m{base + steps * 12 / EDO:.3f}"
+
+
+def chord(base, steps_list):
+    return ",".join(m(s, base) for s in steps_list)
+
+
+class Part:
+    def __init__(self):
+        self.ev = []
+
+    def add(self, at, ln, head, vel):
+        self.ev.append((at, ln, head, int(max(1, min(127, vel)))))
+
+    def score(self, total=TOTAL):
+        ev = sorted(self.ev, key=lambda e: (e[0], -e[3]))
+        toks, pos = [], 0.0
+        for i, (s, ln, head, vel) in enumerate(ev):
+            nxt = ev[i + 1][0] if i + 1 < len(ev) else total
+            ln = min(ln, nxt - s)
+            if ln <= 1e-6:
+                continue
+            if s - pos > 1e-5:
+                toks.append(f"R/{s - pos:.5g}b")
+            base, _, mods = head.partition("^")
+            toks.append(f"{base}/{ln:.5g}b@{vel}" + (f"^{mods}" if mods else ""))
+            pos = s + ln
+        if total - pos > 1e-5:
+            toks.append(f"R/{total - pos:.5g}b")
+        return " ".join(toks) if toks else f"R/{total:g}b"
+
+
+P = {}
+
+
+def part(n):
+    return P.setdefault(n, Part())
+
+
+# ---------------------------------------------------------------- the L-system
+def lsys(n):
+    s = "A"
+    for g in range(n):
+        s = "".join({"A": "AB", "B": "A", "C": "AB"}[c] for c in s)
+        k = g + 3                                    # THE MUTATION: every k-th A of this generation becomes C
+        out, na = [], 0
+        for c in s:
+            if c == "A":
+                na += 1
+                out.append("C" if na % k == 0 else "A")
+            else:
+                out.append(c)
+        s = "".join(out)
+    return s
+
+
+STEP = {"A": 1, "B": -2, "C": 3}                  # scale degrees moved by each symbol
+DUR = {"A": 0.5, "B": 0.75, "C": 0.25}            # beats: a quasi-periodic Fibonacci rhythm
+
+
+def degree_pitch(d, base=FS4):
+    o, k = divmod(d, 7)
+    return base + 12 * o + SCALE[k] * 12 / EDO
+
+
+def melody(sec, a, z, trk, base=FS4, vel=84, every=1, octave=0):
+    """Play the section's generation string from bar a to z, again and again, on trk."""
+    s = lsys(GEN[sec])
+    t, end, d, i = b0(a), b0(z + 1), 0, 0
+    while t < end - 1e-6:
+        c = s[i % len(s)]
+        if i % len(s) == 0:
+            d = 0                                   # each pass starts on the light's note
+        if i % every == 0:
+            p = degree_pitch(d, base) + 12 * octave
+            part(trk).add(t, DUR[c] * 0.9, f"m{p:.3f}", vel + (10 if c == "C" else 0) - (8 if c == "B" else 0))
+        d += STEP[c]
+        if d > 9 or d < -4:                         # fold back into range
+            d -= 7 * (1 if d > 9 else -1)
+        t += DUR[c]
+        i += 1
+
+
+# ---------------------------------------------------------------- harmony
+MIN7, SEPT, NEUT, MAJ = (0, 8, 18, 26), (0, 10, 18, 25), (0, 9, 18, 26), (0, 10, 18, 28)
+ROOTS = [0, -10, 13, 8, 18, -5]                 # F#, D, B, A, C#, E (31-EDO steps from F#)
+
+
+def harmony_plan():
+    """Chords by bar, walked by the L-system: each symbol of the section's string is a chord (A two bars, B one, C one),
+    its root chosen by how many A's and B's have passed, its quality by the symbol."""
+    plan = {}
+    na = nb = 0
+    for sec, a, z in SECTIONS:
+        if sec in ("seed", "light"):
+            for bar in range(a, z + 1):
+                plan[bar] = (0, MIN7)
+            continue
+        s = lsys(max(GEN[sec] - 1, 1))
+        bar, i = a, 0
+        while bar <= z:
+            c = s[i % len(s)]
+            root = ROOTS[(2 * na + nb) % len(ROOTS)]
+            q = {"A": MIN7, "B": SEPT, "C": NEUT}[c]
+            for k in range(2 if c == "A" else 1):
+                if bar + k <= z:
+                    plan[bar + k] = (root, q)
+            bar += 2 if c == "A" else 1
+            na += c == "A"
+            nb += c != "A"
+            i += 1
+    return plan
+
+
+PLAN = harmony_plan()
+
+
+def write_harmony():
+    for bar in range(1, BARS + 1):
+        sec = sec_of(bar)
+        root, q = PLAN[bar]
+        if sec in ("g2", "g3", "g4", "g5", "prune", "g6", "coda"):
+            part("cellos").add(b0(bar), BAR - 0.05, chord(54 + root * 12 / EDO, q[:3]), 70 if sec != "g2" else 58)
+        if sec in ("g5", "g6"):
+            part("violins").add(b0(bar), BAR - 0.05, chord(66 + root * 12 / EDO, q[1:]), 62)
+        if sec == "prune":
+            part("pole").add(b0(bar), BAR - 0.05, chord(66 + root * 12 / EDO, q[1:]), 66)
+        # THE BASS NOBODY PLAYS: the root, on the off-beat eighths, through the phantom
+        if sec in ("g3", "g4", "g5", "g6", "coda"):
+            for e in range(8):
+                if e % 2 == 1 or e == 0:
+                    part("phantom").add(b0(bar) + e * 0.5, 0.4, f"m{30 + root * 12 / EDO:.3f}", 100 if e == 0 else 84)
+        if sec in ("g5", "g6"):
+            part("sub").add(b0(bar), 1.8, f"m{30 + root * 12 / EDO:.3f}", 96)
+            part("sub").add(b0(bar) + 2, 1.8, f"m{30 + root * 12 / EDO:.3f}", 88)
+        # THE HORNS (lips) answer each bar whose chord is a B (the harmonic seventh) in g4-g6
+        if sec in ("g4", "g5", "g6") and q == SEPT:
+            part("horns").add(b0(bar) + 2.5, 1.2, chord(54 + root * 12 / EDO, q), 86)
+
+
+# ---------------------------------------------------------------- the lead, by generation
+def write_melody():
+    melody("seed", 1, 8, "light", base=78, vel=70, every=99)        # one note, again and again (every 99: only the first)
+    for bar in range(1, 9, 2):
+        part("light").add(b0(bar), 1.5, f"m{78:.3f}", 72)
+    melody("g1", 9, 13, "celesta", base=78, vel=78)
+    melody("g2", 14, 21, "celesta", base=78, vel=78)
+    melody("g3", 22, 34, "kalimba", base=66, vel=88)
+    melody("g4", 35, 55, "harp", base=66, vel=90)
+    melody("g5", 56, 89, "harp", base=66, vel=92)
+    melody("g5", 56, 89, "celesta", base=78, vel=70, every=3)
+    melody("prune", 90, 102, "kalimba", base=66, vel=84)
+    melody("g6", 103, 157, "harp", base=66, vel=94)
+    melody("g6", 103, 157, "violins_lead", base=78, vel=72, every=2)
+    melody("g6", 103, 157, "celesta", base=78, vel=68, every=5)
+    melody("coda", 158, 178, "celesta", base=78, vel=74, every=2)
+    for bar in range(179, 187, 2):
+        part("light").add(b0(bar), 1.5 if bar < 185 else 7.5, f"m{78:.3f}", 70 - (bar - 179) * 2)
+    # the fan's hum under the light (seed and the last bars): a soft sine on F#2
+    for a, z in ((1, 8), (179, 186)):
+        part("hum").add(b0(a), b0(z + 1) - b0(a) - 0.1, f"m{42:.3f}", 60)
+
+
+# ---------------------------------------------------------------- drums
+def drums():
+    hand = random.Random(12)
+    for bar in range(22, 179):
+        sec = sec_of(bar)
+        if sec == "prune":
+            continue
+        for b in range(4):
+            part("kick").add(b0(bar) + b, 0.5, "k", 112 if b == 0 else 104)
+            part("hats").add(b0(bar) + b + 0.5, 0.25, "oh", 64 + hand.randint(-6, 6))
+            for s in (1, 3):
+                if hand.random() < 0.65:
+                    part("hats").add(b0(bar) + b + s / 4 + 0.03, 0.1, "h", 46 + hand.randint(-8, 8))
+        if sec not in ("g3",):
+            for b in (1, 3):
+                part("clap").add(b0(bar) + b + 0.02, 0.5, "cp", 88 + hand.randint(-4, 4))
+
+
+RUSH = ("h/0.25b@62 h/0.25b@42 oh/0.5b@58 rs/0.25b@68 h/0.25b@44 h/0.5b@54 h/0.25b@60 h/0.25b@40 "
+        "oh/0.5b@56 rs/0.25b@64 h/0.25b@42 h/0.5b@50")
+
+
+def illusions():
+    """A Shepard choir rising for ever through g5; a Shepard fall through the prune."""
+    for bar in range(56, 90):
+        part("shepup").add(b0(bar), BAR - 0.05, chord(66, (0, 18)), 60)
+    for bar in range(90, 103):
+        part("shepdown").add(b0(bar), BAR - 0.05, chord(66, (0, 18)), 60)
+
+
+def tempo_map():
+    return [{"at": "0b", "bpm": 112}, {"at": f"{b0(35):.0f}b", "bpm": 118, "ramp": True},
+            {"at": f"{b0(103):.0f}b", "bpm": 124, "ramp": True}, {"at": f"{b0(158):.0f}b", "bpm": 126, "ramp": True}]
+
+
+def lanes():
+    level = {"seed": -10, "g1": -8, "g2": -6, "g3": -4, "g4": -2, "g5": 0, "prune": -6, "g6": 0, "coda": -2, "light": -9}
+    pts = []
+    for name, a, z in SECTIONS:
+        if pts:
+            pts.append([f"{b0(a) - 0.25:.2f}b", pts[-1][1]])
+        pts.append([f"{b0(a):.2f}b", float(level[name])])
+    return pts
+
+
+def main():
+    write_harmony()
+    write_melody()
+    drums()
+    illusions()
+    tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
+    song = {
+        "about": "chirpers - A Light Left On (chirpers VIII), track 12 by chirper-three: the closer. An orchestra of "
+                 "illusions that grows like a plant: an L-system (A -> AB, B -> A, one mutation a generation) grows the "
+                 "melody, rhythm, harmony and form from one note, in 31-EDO; bowed strings, brass lips, harp with "
+                 "sympathetic strings, a Shepard choir, a phantom bass, a barber pole and a Risset rush. Generated by "
+                 "compose/chirpers8/src/chirpers8-t12.py.",
+        "tempo": tempo_map(),
+        "tail": "3s",
+        "loudness": -11,
+        "volume": "0dB",
+        "tracks": [
+            tr("light", "music-box", gain="-6dB", sends={"hall": "-6dB"}),
+            tr("hum", "partial", gain="-22dB"),
+            tr("celesta", "celesta", gain="-9dB", pan=0.2, sends={"hall": "-8dB"}),
+            tr("kalimba", "kalimba", gain="-7dB", pan=-0.15, sends={"hall": "-10dB"}),
+            tr("harp", "harp", gain="-6dB", pan=-0.1, sends={"hall": "-10dB"},
+               fx=[{"type": "sympathetic", "notes": "F#1,C#2,F#2,B2", "decay": "1.4s", "mix": 0.08}]),
+            tr("cellos", "cellos", gain="-11dB", pan=-0.25, sends={"hall": "-8dB"}),
+            tr("violins", "violins", gain="-14dB", pan=0.3, sends={"hall": "-6dB"}),
+            tr("violins_lead", "violins", gain="-12dB", pan=0.35, sends={"hall": "-6dB"}),
+            tr("pole", "strings", gain="-10dB", sends={"hall": "-4dB"}, fx=["barberpole cycle=2bar down=true"]),
+            tr("horns", "horn-section", gain="-10dB", pan=0.1, sends={"hall": "-8dB"}),
+            tr("phantom", "phantom-bass", gain="-8dB"),
+            tr("sub", "808", gain="-14dB", fx=[{"type": "phantom", "harmonics": "-6dB", "odd": 0.4, "remove": 0.0}]),
+            tr("kick", "machine-kit", gain="-12dB"),
+            tr("hats", "machine-kit play.humanize.drunk=5ms play.humanize.swing_drift=0.04", gain="-4dB", pan=0.15,
+               warp=[{"over": f"{b0(60):.0f}b", "to": 0}, {"over": "8bar", "to": 0.25}, {"over": "8bar", "to": 0,
+                                                                                         "curve": "smooth"}]),
+            tr("clap", "machine-kit play.humanize.nudge.cp=10ms", gain="-6dB", sends={"room": "-8dB"}),
+            tr("shepup", "shepard-pad", gain="-16dB", sends={"hall": "-10dB"}),
+            tr("shepdown", "shepard-fall", gain="-16dB", sends={"hall": "-10dB"}),
+            {"name": "rush", "patch": "machine-kit", "gain": "-8dB", "pan": -0.2, "at": f"{b0(158):.0f}b",
+             "risset": {"cycle": "4bar", "layers": 3, "length": "20bar"}, "sends": {"room": "-12dB"}, "score": RUSH},
+        ],
+        "buses": {"room": {"fx": ["reverb kind=room decay=1.0s mix=1 predelay=10ms", "hp cutoff=250"]},
+                  "hall": {"fx": ["reverb kind=hall decay=3.2s mix=1 predelay=30ms", "hp cutoff=250"]}},
+        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=28"]},
+                          {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}},
+                          {"type": "compressor", "threshold": "-12dB", "ratio": 8, "attack": "0.3ms",
+                           "release": "60ms", "makeup": "0dB"}],
+                   "auto": {"dyn": {"points": lanes()}}},
+    }
+    with open(OUT, "w") as f:
+        json.dump(song, f, indent=1)
+    print("wrote", OUT, "bars", BARS, "gens", {g: len(lsys(g)) for g in range(7)})
+
+
+if __name__ == "__main__":
+    main()
