@@ -132,8 +132,18 @@ def write_music():
             for e in range(8):
                 n = 2 if e % 4 != 3 else 3
                 part("bass").add(b0(bar) + e * 0.5, 0.45, mm(partial(n, lb, 0)), 100 if e % 2 == 0 else 84)
-        # THE LEAD: a wavetable, a partial chosen by y each eighth, when the orbit moves fast enough
-        if sec in ("A", "B", "break", "C") or (sec == "outro" and bar < 153):
+        # v4: THE HOOK, rearranged by the weather - in A, B and C every two-bar phrase plays the hook in one of four
+        # forms (original, retrograde, inversion round the 12th partial, a partial up), chosen by y at its start
+        if sec in ("A", "B", "C") and (bar - 17) % 2 == 0:
+            x, y, z = state(bar)
+            form = 0 if bar in (17, 19, 49, 97) else int(max(0, min(3, (y + 25) / 50 * 4)))   # each section states it plain
+            for at, n, ln, v in hook_form(form):
+                part("lead").add(b0(bar) + at, ln * 0.92, mm(partial(n, lb, 0)), v)
+            continue_lead = False
+        else:
+            continue_lead = True
+        # THE LEAD (now the break's and the outro's): a wavetable, a partial chosen by y each eighth
+        if continue_lead and (sec == "break" or (sec == "outro" and bar < 153)):
             for e in range(8):
                 x, y, z = state(bar, e * 2)
                 x2, y2, z2 = state(bar, min(15, e * 2 + 1))
@@ -224,6 +234,25 @@ def radio_lanes():
         a, z = b0(bar), b0(bar + 2) + 1
         rg += [[f"{a - 0.05:.2f}b", -80.0], [f"{a:.2f}b", 0.0], [f"{z:.2f}b", 0.0], [f"{z + 0.5:.2f}b", -80.0]]
     return {"dial": {"points": dial}, "rg": {"points": rg}}
+
+
+# v4: THE HOOK - two bars in harmonic-series partials, rising through the alien 11th and 13th and falling home
+HOOK = [(0.0, 8, 1.0, 96), (1.0, 10, 0.5, 84), (1.5, 12, 0.5, 88), (2.0, 11, 1.0, 94), (3.0, 13, 0.5, 90),
+        (3.5, 12, 0.5, 84), (4.0, 10, 1.5, 92), (5.5, 9, 0.5, 82), (6.0, 8, 2.0, 88)]
+
+
+def hook_form(form):
+    if form == 0:
+        return HOOK
+    if form == 1:                                  # retrograde: the same notes, backwards in time
+        rev, t = [], 0.0
+        for at, n, ln, v in reversed(HOOK):
+            rev.append((t, n, ln, v))
+            t += ln
+        return rev
+    if form == 2:                                  # inversion round the 12th partial
+        return [(at, max(8, min(16, 24 - n)), ln, v) for at, n, ln, v in HOOK]
+    return [(at, PARTIALS[min(len(PARTIALS) - 1, PARTIALS.index(n) + 1)], ln, v) for at, n, ln, v in HOOK]
 
 
 def wt_lane():
