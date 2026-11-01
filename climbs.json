@@ -7910,7 +7910,7 @@
     {
       "id": "chirpers8-t4",
       "song": "songs/chirpers8-t4.yaml",
-      "reference": "chirpers — Track 4 (untitled)",
+      "reference": "chirpers — Small Things Before Large",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers8-t4 OUT.wav",
@@ -7926,7 +7926,7 @@
       "meta": {
         "artist": "chirpers",
         "album": "A Light Left On",
-        "title": "Track 4 (untitled)",
+        "title": "Small Things Before Large",
         "track": 4,
         "year": 2026
       },
