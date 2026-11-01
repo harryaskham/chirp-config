@@ -7923,7 +7923,7 @@
     {
       "id": "chirpers8-t5",
       "song": "songs/chirpers8-t5.yaml",
-      "reference": "chirpers — Track 5 (untitled)",
+      "reference": "chirpers — Agreeing on a Speed",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers8-t5 OUT.wav",
@@ -7939,7 +7939,7 @@
       "meta": {
         "artist": "chirpers",
         "album": "A Light Left On",
-        "title": "Track 5 (untitled)",
+        "title": "Agreeing on a Speed",
         "track": 5,
         "year": 2026
       },
