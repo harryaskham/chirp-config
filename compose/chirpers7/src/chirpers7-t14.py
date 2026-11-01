@@ -36,6 +36,8 @@ WOW = os.environ.get("C7T14_WOW", "0") == "1"  # Harry 15:00 'slight wow on ONE 
 HWARP = os.environ.get("C7T14_HWARP", "1") == "1"  # Harry 14:50 poly accel/decel: through B the hats drift a sixteenth behind the kick and back, then ahead and back (track warp), locked again for the outro
 STAIRB = os.environ.get("C7T14_STAIRB", "80")  # Harry 21:32 on t10 ('illusions not heard'): the TOP OF THE STAIR made audible on any speaker - through B2 (bars 25-46) the stair (Ab Bb Cb Eb, a minor third up with the key) climbs on Shepard tones in quarter notes under the crossing scales and never gets higher; value = velocity
 EARHALL = os.environ.get("C7T14_EARHALL", "off")  # the scale illusion's hall send (dB; "off" = dry): each ear must hear only its own notes (chirper-one measured the reverb leak on t7's octave illusion at 19 dB); the hall tail carries every note into the far ear
+HEADLOW = os.environ.get("C7T14_HEADLOW", "10")  # the in-join (compscore: the head 12-16 dB over Track 13's tail at 38-44 Hz and 182 Hz - the held F1 and the kick at full weight): a master low shelf (60 Hz) this many dB down plus 182 Hz at 2/3 of it for the first 4 bars, flat by bar 8
+TAILLOW = os.environ.get("C7T14_TAILLOW", "6")  # the out-join (the tail 9 dB over Slower Forever's head at 38-44 Hz): the same shelf this many dB down over the last 8 bars
 ANTIC = os.environ.get("C7T14_ANTIC", "1") == "1"  # the organ stabs anticipate: on the a-of-1 and the a-of-3 (16ths 3 and 11), jackin' pushes
 
 ERISER = os.environ.get("C7T14_ERISER", "-10")  # wM's endless Shepard riser (fx-riser-endless) over the 8 bars into B: pitch, noise and filter rising for ever, stopping dead on the drop (Harry: 'risers and staircases v good'); level in dB
@@ -262,6 +264,14 @@ def song():
 
 
 def dump(doc):
+    if HEADLOW or TAILLOW:
+        hl, tl, end = float(HEADLOW or 0), float(TAILLOW or 0), total_steps()
+        i_eq = next(i for i, fx in enumerate(doc["master"]["fx"]) if isinstance(fx, dict) and fx.get("type") == "eq")
+        doc["master"]["fx"][i_eq + 1:i_eq + 1] = [
+            {"type": "filter", "kind": "lowshelf", "cutoff": 60, "gain": {"value": "0dB", "mod": [{"src": "auto.hl", "amount": 1}]}},
+            {"type": "filter", "kind": "peak", "cutoff": 182, "q": 1.5, "gain": {"value": "0dB", "mod": [{"src": "auto.hm", "amount": 1}]}}]
+        doc["master"].setdefault("auto", {})["hl"] = lane([(0, -hl), (4 * BAR, -hl), (8 * BAR, 0), (end - 8 * BAR, 0), (end - 4 * BAR, -tl), (end, -tl)], step=False)
+        doc["master"]["auto"]["hm"] = lane([(0, -hl * 2 / 3), (4 * BAR, -hl * 2 / 3), (8 * BAR, 0), (end, 0)], step=False)
     lines = [f"{k}: {json.dumps(doc[k])}" for k in ("about", "tempo", "ceiling", "loudness", "tail", "patches", "master") if k in doc]
     lines.append("buses:")
     lines += [f"  {b}: {json.dumps(v)}" for b, v in doc["buses"].items()]
