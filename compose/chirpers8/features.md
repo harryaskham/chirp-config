@@ -1,0 +1,79 @@
+# chirpers VIII: the engine coverage board
+
+Harry asked for a showcase of ALL the different combinations of chirp's engine features. Across the 12 tracks, every feature below should be SHOWCASED somewhere (prominent, audible, used well), and the best tracks combine features nobody has combined yet. Claim a cluster when you take a track (put your track in "showcased by"), keep clusters distinct, and add anything new you or wM build at the bottom. chirp-eco keeps a measured coverage table (which features each song actually uses) in the "measured" section.
+
+## Synthesis
+| feature | showcased by |
+|---|---|
+| osc waves: sine, triangle, saw, square, pulse (PWM) | |
+| additive | |
+| tables (wavetable-style) | |
+| shepard (endless glides, scales, chords) | |
+| sample | |
+| drum machines and kits (machine-kit, dusty, physical drums) | |
+| physical: modal | |
+| physical: bowed | |
+| physical: pluck | |
+| physical: membrane | |
+| physical: reed | |
+| physical: lips (brass) | |
+| physical: bar, bell, glock, gong | |
+| guitar with amps and cabs | |
+| shapers: fold, tanh, clip, crush | |
+
+## Processing (fx)
+| feature | showcased by |
+|---|---|
+| filter family: lp / hp / bp / notch / peak / shelves / allpass / comb / ladder | |
+| ring, formant, vocoder | |
+| cloud (grains), freeze | |
+| chop, stutter, tapestop, tape, vinyl | |
+| delay, reverb (room / plate / hall / chamber / spring), ir | |
+| chorus, phaser, wah, tremolo, width, pan | |
+| barberpole, phantom, sympathetic | |
+| radio, follow-noise | |
+| pitch | |
+| crush, drive, clip, amp, cab | |
+| dynamics: compressor, glue, ott, transient, gate, duck, pump, limiter, autolevel | |
+
+## Time
+| feature | showcased by |
+|---|---|
+| tempo maps and ramps | |
+| risset (accelerando / decelerando) | |
+| warp | |
+| meter changes | |
+| polymeter by step length | |
+| swing, swing drift, humanize | |
+
+## Pitch and tuning
+| feature | showcased by |
+|---|---|
+| tuning: cents, ratios (just intonation) | |
+| tuning: EDO / non-octave scales | |
+| bend, glide, strum | |
+| expression paths (^NAME=a>b) | |
+
+## Generators and systems
+| feature | showcased by |
+|---|---|
+| vars and expr | |
+| lfo and auto lanes | |
+| chance (?p) and choices (a\|b) | |
+| Euclidean patterns | |
+| every / vary / seeds | |
+| complex systems (chaotic maps, cellular automata, L-systems, Markov): ask wM | |
+
+## Voice
+| feature | showcased by |
+|---|---|
+| chirp tts, humanized (realistic) | |
+| speech-to-song (repeat / melodize / melody) | |
+| vocoder / formant / radio on voice | |
+
+## New this album (built by wM or you)
+| feature | commit | built by | showcased by |
+|---|---|---|---|
+
+## Measured (chirp-eco)
+Not measured yet: coverage appears here once songs exist.
