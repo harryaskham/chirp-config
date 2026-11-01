@@ -331,6 +331,40 @@ def unsort(arr):
         yield before, [i], [i], []
 
 
+# v10: THE SPEECH-TO-SONG ILLUSION. chirp tts "the small ones first, then the rest of us" --humanize 0.4: the SAME
+# spoken take repeats every eight bars through the sorting (twelve times) until the ear hears it as sung; when the riff
+# is sorted the voice SINGS the words on the riff's own alpha steps (--sing take; pitches replaced by the riff)
+SPOKEN = [(0.269, 0.395, 'DH AH0', 'm47.014', 0.837, [0.0, -2.0, -5.0, -7.0, -9.0, -11.0, -14.0, -16.0]), (0.666, 1.023, 'S M AO1 L', 'm48.394', 0.8, [0.0, 4.0, 7.0, 11.0, 14.0, 17.0, 18.0, 20.0, 23.0, 25.0, 25.0, 22.0, 17.0, 12.0, 10.0, 10.0, 10.0, 7.0, 1.0, -7.0, -16.0]), (1.681, 1.023, 'W AH1 N Z', 'm47.553', 0.767, [0.0, 4.0, 7.0, 11.0, 14.0, 17.0, 18.0, 20.0, 23.0, 25.0, 25.0, 22.0, 17.0, 12.0, 10.0, 10.0, 10.0, 7.0, 1.0, -7.0, -16.0]), (2.703, 1.483, 'F ER1 S T', 'm46.853', 0.833, [0.0, 3.0, 5.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0, 22.0, 22.0, 21.0, 20.0, 20.0, 21.0, 24.0, 25.0, 22.0, 17.0, 11.0, 8.0, 7.0, 8.0, 9.0, 6.0, 0.0, -7.0, -13.0, -16.0]), (4.557, 0.832, 'DH EH1 N', 'm49.524', 0.846, [0.0, 5.0, 9.0, 13.0, 17.0, 19.0, 20.0, 21.0, 24.0, 25.0, 22.0, 16.0, 8.0, 1.0, -3.0, -5.0, -8.0]), (5.379, 0.395, 'DH AH0', 'm46.261', 0.786, [0.0, -2.0, -5.0, -7.0, -9.0, -11.0, -14.0, -16.0]), (5.782, 1.023, 'R EH1 S T', 'm47.935', 0.823, [0.0, 4.0, 7.0, 11.0, 14.0, 17.0, 18.0, 20.0, 23.0, 25.0, 25.0, 22.0, 17.0, 12.0, 10.0, 10.0, 10.0, 7.0, 1.0, -7.0, -16.0]), (6.804, 0.641, 'AH1 V', 'm47.256', 0.767, [0.0, 6.0, 12.0, 17.0, 20.0, 20.0, 19.0, 19.0, 19.0, 16.0, 7.0, -4.0, -16.0]), (7.433, 0.93, 'AH1 S', 'm44.316', 0.778, [0.0, 2.0, 4.0, 6.0, 7.0, 8.0, 7.0, 7.0, 7.0, 7.0, 5.0, -2.0, -11.0, -18.0, -23.0, -26.0, -30.0, -36.0, -45.0])]
+SPOKEN_PATCH = "voice-speech"
+SUNG = [(0.248, 0.495, 'DH AH0', None, 0.78, [-55.0, -26.0, -6.0, 4.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0]), (0.755, 0.495, 'S M AO1 L', None, 0.841, [-3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -3.0]), (1.243, 0.99, 'W AH1 N Z', None, 0.861, [-3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -5.0, -5.0, 1.0, 7.0, 8.0, 0.0, -14.0, -23.0, -19.0, -2.0, 17.0, 22.0, 11.0, -9.0]), (2.24, 0.425, 'F ER1 S T', None, 0.865, [4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 1.0, -41.0]), (2.762, 0.495, 'DH EH1 N', None, 0.853, [4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0]), (3.246, 0.99, 'DH AH0', None, 0.773, [-3.0, -3.0, -3.0, -3.0, -3.0, -4.0, -7.0, -7.0, -1.0, 8.0, 12.0, 5.0, -11.0, -26.0, -29.0, -14.0, 11.0, 26.0, 23.0, 4.0]), (4.25, 0.495, 'R EH1 S T', None, 0.849, [-3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -3.0]), (4.762, 0.99, 'AH1 V', None, 0.871, [-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -4.0, -3.0, 3.0, 9.0, 11.0, 3.0, -12.0, -22.0, -18.0, -1.0, 19.0, 25.0, 15.0, -6.0]), (5.742, 0.425, 'AH1 S', None, 0.839, [-3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -6.0, -48.0])]
+SUNG_PATCH = {"extends": "voice-speech", "synth": {"pitch": {"mod": [{"amount": 0.01, "src": "expr.f0"}], "value": 0}}}
+SPOKEN_AT = [b for b in range(17, 124, 8) if not 89 <= b <= 100]
+SUNG_AT = (125, 133, 141, 149)
+
+
+def voice_tracks():
+    spoken, sung = [], []
+    for bar in SPOKEN_AT:
+        for at, ln, ph, p, v, f0 in SPOKEN:
+            n = {"at": round(b0(bar) + at, 4), "len": ln, "ph": ph, "pitch": p, "vel": v}
+            if f0:
+                n["expr_path"] = {"f0": f0}
+            spoken.append(n)
+    for bar in SUNG_AT:
+        for i, (at, ln, ph, p, v, f0) in enumerate(SUNG):
+            n = {"at": round(b0(bar) + at, 4), "len": ln, "ph": ph, "vel": v,
+                 "pitch": pitch(RIFF[i % 16] + root_at(bar + int(at // 4)))}
+            if f0:
+                n["expr_path"] = {"f0": f0}
+            sung.append(n)
+    return [{"name": "speaker", "patch": SPOKEN_PATCH, "gain": "-9dB", "pan": -0.05,
+             "sends": {"room": "-12dB", "dly": "-16dB"}, "fx": [{"type": "filter", "kind": "hp", "cutoff": 140}],
+             "notes": spoken},
+            {"name": "singer", "patch": SUNG_PATCH, "gain": "-10dB", "pan": 0.05,
+             "sends": {"room": "-10dB", "dly": "-12dB"}, "fx": [{"type": "filter", "kind": "hp", "cutoff": 160}],
+             "notes": sung}]
+
+
 def lanes():
     level = {"intro": -6, "bubble": -2, "insertion": -2, "quick": 0, "bogo": -4, "merge": 0, "sorted": 0, "outro": -6}
     pts = [["0b", -20.0]]                   # v9: the machinery FADES UP out of t3's last ring instead of switching on
@@ -388,6 +422,7 @@ def main():
             tr("bass", "808", gain="-9dB", fx=["duck by=kick depth=-4dB"]),                  # v6: round, no squelch
             tr("tune", "rhodes", gain="-10dB", pan=-0.1, sends={"dly": "-10dB"},
                fx=[{"type": "filter", "kind": "hp", "cutoff": 250}]),                      # v6: the tune that emerges
+            *voice_tracks(),                                                                 # v10: speech to song
             tr("ring", "vibes", gain="-2dB", pan=0.1, sends={"room": "-8dB", "dly": "-14dB"}),   # v9: t3's ring caught
             tr("ride", "machine-kit", gain="-9dB", pan=-0.3, sends={"room": "-12dB"}),      # v6: the top end
             tr("tune_mar", "marimba", gain="-8dB", pan=-0.1, sends={"dly": "-10dB"}),      # v6: each algorithm its voice
