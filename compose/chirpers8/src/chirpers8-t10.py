@@ -183,8 +183,12 @@ def build():
                     P['bell'].append((t0 + st - half * 4, tok(m + tp), (en - st) * 0.92, 90))
                 tot += d
         elif s == 'outro':
-            if i % 2 == 0:
+            # (v12) THE PICARDY THIRD: the fugue machine ends the way fugues have always ended - on the MAJOR chord, the
+            # bell's last two tolls ring D, F#, A - and that F# is the note chirper-three's t11 opens on
+            if i < 4 and i % 2 == 0:
                 P['bell'].append((t0, tok(62 + tp), 7.5, 80))
+            elif i % 2 == 0:
+                P['bell'].append((t0, ','.join(tok(m_ + tp) for m_ in (62, 66, 69)), 7.5, 78))
         if s == 'intro' and i < 4 and i % 2 == 0:
             P['bell'].append((t0, tok(62 + tp), 7.5, 76))      # the bell tolls the machine awake
         # THE STACK: each level spawns a faster copy of this bar's subject, an octave higher each time
@@ -276,8 +280,9 @@ def build():
             tr('pwm', PWM, '-15dB', pan=0.05, auto={'pw': {'points': pw}}, sends={'hall': '-10dB'}),
             tr('bass', FMBASS, '-7dB', fx=['lp cutoff=1600']),
             tr('d1', BELL, '-13dB', pan=0.35, sends={'echo': '-14dB'}),
-            tr('d2', BELL, '-16dB', pan=-0.4, sends={'echo': '-16dB'}),
-            tr('d3', 'glass', '-22dB', pan=0.5, fx=['hp cutoff=800'], sends={'hall': '-12dB'}),
+            # (v12) the deepest copies thinner (chirper-three: the densest stack may crowd the subject)
+            tr('d2', BELL, '-19dB', pan=-0.4, sends={'echo': '-16dB'}),
+            tr('d3', 'glass', '-26dB', pan=0.5, fx=['hp cutoff=800'], sends={'hall': '-12dB'}),
             tr('kit', 'machine-kit', '-2dB', sends={'hall': '-20dB'}),
             # (v8) THE MACHINE'S OWN PATTERNS: a percussion line written in the engine's Euclidean and chance tokens, a
             # different cycle for each key of the canon - in D minor seven triplet-eighth rims spread over the bar (7 in 12,
