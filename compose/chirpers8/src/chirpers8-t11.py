@@ -119,7 +119,7 @@ def write_music():
         sec = sec_of(bar)
         lb = lobe_at(bar)
         # PADS: a harmonic-seventh chord of the lobe (partials 8 10 12 14), held; gated by the ghost track below
-        if sec != "break" or bar >= 89:
+        if (sec != "break" or bar >= 89) and bar <= BARS - 8:    # v3: the last eight bars are the hum and the light
             part("pad").add(b0(bar), BAR - 0.05, ",".join(mm(partial(n, lb, -1)) for n in (8, 10, 12, 14)),
                             62 if sec in ("intro", "outro") else 72)
         # THE TRANCE GATE: a muted ghost track, a sixteenth wherever the attractor's |y| is high enough
@@ -162,7 +162,7 @@ def write_music():
             for b in range(4):
                 if not (sec == "outro" and bar > 156):           # v2: the kick leaves before the handover
                     part("kick").add(b0(bar) + b, 0.5, "k", 114 if b == 0 else 106)
-                if sec != "intro" or bar > 8:
+                if (sec != "intro" or bar > 8) and bar <= BARS - 8:
                     part("hats").add(b0(bar) + b + 0.5, 0.25, "oh", 66 + hand.randint(-6, 6))
                     for s in (1, 3):
                         if hand.random() < 0.7:
@@ -274,7 +274,7 @@ def main():
             tr("chops", "chopper", gain="-12dB", pan=-0.3, sends={"dly": "-8dB"}),
             tr("kick", "machine-kit", gain="-11dB", fx=["transient attack=6 sustain=-4"]),
             tr("light", "music-box", gain="-8dB", sends={"hall": "-6dB"}),            # v2: the handover
-            tr("hum", "partial", gain="-22dB"),                                        # v2: t12's hum, begun early
+            tr("hum", "partial", gain="-16dB"),          # v2: t12's hum, begun early (v3: +6 dB, meeting it)
             tr("ride", "machine-kit", gain="-10dB", pan=-0.3, sends={"room": "-12dB"}),
             {"name": "voice", "patch": "voice-speech", "gain": "-10dB", "pan": 0.1, "sends": {"dly": "-10dB"},
              "auto": radio_lanes(), "notes": voice_notes(),
