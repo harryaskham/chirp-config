@@ -75,7 +75,8 @@ TAILS = os.environ.get("C7T17_TAIL", "0.1s")  # the render tail: 0.3 s leaves no
 
 ERISER = os.environ.get("C7T17_ERISER", "-10")  # wM's endless Shepard riser (fx-riser-endless) over the 8 bars into B: pitch, noise and filter rising for ever, stopping dead on the drop (Harry: 'risers and staircases v good'); level in dB
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
-FORM = [("intro", 32), ("A", 32), ("break", 24), ("B", 40), ("outro", 32)]
+FORMX = os.environ.get("C7T17_FORMX", "1") == "1"  # Harry's third steer ('4, 8, 16 bars all over the place'): A 30 (six of its 5-bar cycles exactly); the break (24), B (40) and the seams keep theirs
+FORM = [("intro", 32), ("A", 30 if FORMX else 32), ("break", 24), ("B", 40), ("outro", 32)]
 # (sub root, Rhodes voicing with THE STAIR's note on top: D E F A over the four chords)
 CH = [(38, [53, 57, 60, 62]),   # Dm9 (F3 A3 C4, top D4)
       (34, [53, 57, 62, 64]),   # Bbmaj7(9) (F3 A3 D4, top E4)
@@ -361,11 +362,11 @@ def song():
             {"name": "dust", "patch": "vinyl", "gain": "-22dB", "score": T["dust"]},
             {"name": "binl", "patch": "bin-l", "gain": "-30dB", "pan": -1, "score": T["binl"]},
             {"name": "binr", "patch": "bin-r", "gain": "-30dB", "pan": 1, "score": T["binr"]},
-            *turning("swing16=0.6 " + T["loop"], 6, warp=([{"over": "48bar", "to": 0}, {"over": "8bar", "to": 0.25, "curve": "smooth"},
+            *turning("swing16=0.6 " + T["loop"], 6, warp=([{"over": f"{sec_start('A') // BAR + 16}bar", "to": 0}, {"over": "8bar", "to": 0.25, "curve": "smooth"},
                                                            {"over": "8bar", "to": 0, "curve": "smooth"}] if WARP else None),
                     teach=(lane([(0, -float(TEACH)), (st["A"], -float(TEACH)), (st["A"] + 16 * BAR, 0)]) if TEACH else None)),
             *(turning("swing16=0.6 " + T["loop3"], 8, "3", flip=True) if UNWIND else []),
-            *(turning("swing16=0.6 " + T["loop2"], 3, "2", warp=([{"over": "112bar", "to": 0}, {"over": "8bar", "to": -0.25, "curve": "smooth"},
+            *(turning("swing16=0.6 " + T["loop2"], 3, "2", warp=([{"over": f"{sec_start('B') // BAR + 24}bar", "to": 0}, {"over": "8bar", "to": -0.25, "curve": "smooth"},
                                                                     {"over": "8bar", "to": 0, "curve": "smooth"}] if WARP else None)) if SEC2 else []),
             *([{"name": "loopc", "patch": "dusty-kit", "gain": "-3dB", "pan": 0, "sends": {"room": "-12dB"}, "score": "swing16=0.6 " + T["loopc"]}] if STILL else []),
         ],
