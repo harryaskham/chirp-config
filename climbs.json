@@ -7568,7 +7568,14 @@
         "score": 96.35,
         "version": "v25",
         "commit": "see git log songs/chirpers7-t12.yaml",
-        "judged": true
+        "judged": true,
+        "stale": {
+          "score": 96.35,
+          "since": "2026-11-01T06:22:29Z",
+          "who": "chirper-three",
+          "rating": 9.5,
+          "version": "v25"
+        }
       },
       "passes": 1,
       "enabled": true,
