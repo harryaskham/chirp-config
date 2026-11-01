@@ -71,7 +71,8 @@ class Part:
             if s - pos > 1e-5:
                 toks.append(f"R/{s - pos:.5g}b")
             base, _, mods = head.partition("^")
-            toks.append(f"{base}/{ln:.5g}b@{vel}" + (f"^{mods}" if mods else ""))
+            base, _, prob = base.partition("?")              # v9: generative tokens - (a|b|c) choices, ?p chance
+            toks.append(f"{base}/{ln:.5g}b@{vel}" + (f"?{prob}" if prob else "") + (f"^{mods}" if mods else ""))
             pos = s + ln
         if total - pos > 1e-5:
             toks.append(f"R/{total - pos:.5g}b")
@@ -113,6 +114,27 @@ def lobe_at(bar, s16=0):
 
 
 # ---------------------------------------------------------------- writing
+RAIN_WEIGHT = {"intro": 0.35, "A": 0.7, "B": 0.9, "break": 0.15, "C": 1.0, "outro": 0.3}
+
+
+def write_rain():
+    """v9: IT RAINS INDOORS. Each sixteenth may hold a drop: a CHOICE among the lobe's high partials, falling with a
+    CHANCE that follows the storm (the attractor's z) - re-rolled by the engine on every play, so no two plays of the
+    album rain alike."""
+    drops = random.Random(77)
+    for bar in range(1, BARS + 1):
+        w = RAIN_WEIGHT[sec_of(bar)]
+        for s in range(16):
+            x, y, z = state(bar, s)
+            storm = min(1.0, max(0.0, (z - 18) / 24))
+            p = round((0.08 + 0.42 * storm) * w, 2)
+            if p < 0.03:
+                continue
+            lb = lobe_at(bar, s)
+            head = "(" + "|".join(mm(partial(n, lb)) for n in (16, 18, 20, 21, 24, 27)) + f")?{p:.2f}"
+            part("rainL" if s % 2 == 0 else "rainR").add(b0(bar) + s / 4, 0.24, head, 56 + drops.randint(0, 34))
+
+
 def write_music():
     hand = random.Random(11)
     for bar in range(1, BARS + 1):
@@ -326,6 +348,7 @@ def lanes():
 
 def main():
     write_music()
+    write_rain()
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
     # v6: the wavetable scans VOWELS (u o a e i), not a resonant sweep: the weather speaks, no squelch
     lead_patch = {"extends": "juno-pad", "synth": {"layers": [
@@ -352,6 +375,8 @@ def main():
              "fx": [{"type": "filter", "kind": "hp", "cutoff": 160}], "notes": sung_notes()},   # v6: the sung hook
             {"name": "toll", "patch": BELL, "gain": "-12dB", "pan": -0.15, "sends": {"hall": "-8dB", "dly": "-12dB"},
              "notes": toll_notes()},                                                       # v8: the bell carries over
+            tr("rainL", "celesta", gain="-8dB", pan=-0.6, sends={"hall": "-8dB"}),       # v9: rain indoors
+            tr("rainR", "celesta", gain="-8dB", pan=0.6, sends={"hall": "-8dB"}),
             tr("pad", "juno-pad", gain="-11dB", pan=-0.15, sends={"hall": "-8dB"},
                fx=["gate key=gtrig threshold=-40dB attack=1ms release=40ms", "ott depth=0.3"]),
             tr("gtrig", "machine-kit", gain="-80dB"),
