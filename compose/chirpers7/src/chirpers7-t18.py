@@ -70,6 +70,8 @@ HSUNG = os.environ.get("C7T18_HSUNG", "1") == "1"  # the interlock's and ALL AT 
 SUNG = []
 ZWF = os.environ.get("C7T18_ZWF", "1") == "1"  # Harry's third steer #4 ('same illusions, richer sources'), wM's follow-noise: the Zwicker swell is noise in the panel's own colours - the glass pads feed a bus that turns them into follow-noise (pads only: with the hats the noise sat at 2-6 kHz, the notch shallow), through the same three notches, swelling over three bars and cut for the fourth, where the after-tone sings
 ZWB = []
+HUGF = os.environ.get("C7T18_HUGF", "1") == "1"  # Harry's third steer #4, the last bare noise: the Huggins wash becomes follow-noise in the glass pads' own colours - ONE source (a bus fed by the pads, mix 1) whose output goes to hugL and a send to hugR, so both ears still get the identical noise the ghost needs; it opens on the old wash phrases
+HUGW = []
 COH = os.environ.get("C7T18_COH", "1") == "1"  # t17 v18's fix (measured 22:15): coherent Haas pairs - one source per pair, near ear direct and far ear through 18 ms, dry - so the turning panel's precedence cue exists (separate noise-kit tracks gave the ears different hits)
 COHB = {}
 ILV = float(os.environ.get("C7T18_ILV", "0"))  # every illusion track's level offset (dB)
@@ -372,7 +374,10 @@ def build():
                     else:
                         add("burst", at + q1, "C4", 2, 104 * lv)
             if "huggins" in act and b % 4 == 2:   # t12: a note heard between the ears in identical hiss
-                add("wash", at, "C4", 2 * BAR, 96 * lv)
+                if HUGF:
+                    HUGW.append((at, 2 * BAR, lv))
+                else:
+                    add("wash", at, "C4", 2 * BAR, 96 * lv)
                 if MONOH and sec.startswith("g") and b < 12:
                     kb = (at // BAR) - (at // BAR) % 4
                     add("ghostT", at, ["A5", "F5", "E5", "D5"][(kb // 4) % 4], 2 * BAR, int(int(MONOH) * (1 - b / 14)))
@@ -669,6 +674,19 @@ def dump(doc):
     lines = [f"{k}: {json.dumps(doc[k])}" for k in ("about", "tempo", "ceiling", "loudness", "tail", "patches", "master") if k in doc]
     lines.append("buses:")
     doc["buses"].update(COHB)
+    if HUGF and HUGW:
+        pts = [(0, -60)]
+        for at, ln, lv in sorted(HUGW):
+            pts += [(at, round(-60 + 0, 1)), (at + 1, round(20 * math.log10(max(lv, 1e-3)), 1)), (at + ln - 1, round(20 * math.log10(max(lv, 1e-3)), 1)), (at + ln, -60)]
+        pts.append((total_steps(), -60))
+        doc["buses"]["hugsrc"] = {"fx": [{"type": "follow-noise", "follow": "1s", "hold": "4s", "tone": 0.0, "level": "8dB", "mix": 1, "width": 0},
+                                         {"type": "pan", "pan": 0, "width": 0},
+                                         "hp cutoff=200", "lp cutoff=9000",
+                                         {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.hw", "amount": 1}]}}],
+                                  "auto": {"hw": lane(pts, step=False)}, "out": "hugL", "sends": {"hugR": "0dB"}, "returns": []}
+        for t in doc["tracks"]:
+            if t["name"] == "pads":
+                t.setdefault("sends", {})["hugsrc"] = "0dB"
     if ZWF:
         zw_f = 880 * 1.08
         pts = [(0, -60)]
