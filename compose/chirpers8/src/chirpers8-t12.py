@@ -32,7 +32,7 @@ import random
 OUT = os.environ.get("C8T12_OUT") or os.path.expanduser("~/.config/chirp/songs/chirpers8-t12.yaml")
 BAR = 4.0
 SECTIONS = [("seed", 1, 8), ("g1", 9, 13), ("g2", 14, 21), ("g3", 22, 34), ("g4", 35, 55), ("g5", 56, 89),
-            ("prune", 90, 102), ("g6", 103, 157), ("coda", 158, 178), ("light", 179, 186)]
+            ("prune", 90, 102), ("g6", 103, 157), ("coda", 158, 178), ("light", 179, 190)]   # v9: four more bars of light
 GEN = {"seed": 0, "g1": 1, "g2": 2, "g3": 3, "g4": 4, "g5": 5, "prune": 3, "g6": 6, "coda": 4, "light": 0}
 BARS = SECTIONS[-1][2]
 CUT = range(90, 103)        # v8: THE PRUNE IS PRUNED - its bars lose an eighth (7/8); generate in 4/4, warp at output
@@ -242,8 +242,11 @@ def write_melody():
     melody("coda", 158, 174, "ondes", base=78, vel=76, legato=True)
     for bar in range(179, 187, 2):
         part("light").add(b0(bar), 1.5 if bar < 185 else 7.5, f"m{78:.3f}", 70 - (bar - 179) * 2)
+    # v9: A LIGHT LEFT ON - the standby light: one soft sine on the music box's F#5, BREATHING (a slow tremolo, about
+    # twelve breaths a minute) from the last section to the very end, on alone for the final bars with the fan's hum
+    part("standby").add(b0(179), b0(191) - b0(179) - 0.05, "m78.000", 74)
     # the fan's hum under the light (seed and the last bars): a soft sine on F#2
-    for a, z in ((1, 8), (179, 186)):
+    for a, z in ((1, 8), (179, 190)):
         part("hum").add(b0(a), b0(z + 1) - b0(a) - 0.1, f"m{42:.3f}", 60)
 
 
@@ -396,6 +399,8 @@ def main():
         "tracks": [
             tr("light", "music-box", gain="-6dB", sends={"hall": "-6dB"}),
             # v6: a follow-noise 'room tone' under the last notes was tried and cut - too faint to earn its place, -0.3
+            tr("standby", "partial", gain="-14dB", sends={"hall": "-10dB"},
+               fx=[{"type": "tremolo", "rate": 0.2, "depth": 0.95}]),                # v9: the breathing light
             tr("hum", "partial", gain="-28dB"),           # v3: 6 dB down, meeting t11's hum across the seam
             # v4: THE ENGINE'S OWN L-SYSTEM (gen lsystem, a turtle over my scale's 31-EDO steps) on a glockenspiel
             # through g6, answering mine in counterpoint: two growth rules in conversation
