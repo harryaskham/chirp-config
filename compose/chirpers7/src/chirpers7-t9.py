@@ -247,6 +247,23 @@ def fills():
             part("fill").add(b0(bar) + x, 0.1, "s", int(100 - 40 * i / m))
 
 
+def radio_fx(seed):
+    return [{"type": "radio", "tune": {"value": 0, "mod": [{"src": "auto.dial", "amount": 1}]}, "fade": 0.4,
+             "drift": 0.05, "hiss": "-30dB", "whistle": "-30dB", "seed": seed},
+            {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.rg", "amount": 1}]}}]
+
+
+def radio_lanes(side):
+    """v15: the dial (0 on the station, 1 off) and the gate (0 dB where the voice speaks, -80 dB elsewhere)."""
+    k = 0.08 if side else 0.0                          # the right-hand radio a touch further off, all the way
+    dial = [["0b", 0.2 + k], [f"{b0(81):.2f}b", 1.0], [f"{b0(84):.2f}b", k], [f"{b0(87):.2f}b", k],
+            [f"{b0(88) + 2:.2f}b", 0.45 + k], [f"{b0(89) - 0.25:.2f}b", 0.0], [f"{b0(90):.2f}b", 0.0]]
+    rg = [["0b", -80.0]]
+    for a, z in ((b0(24) - 0.5, b0(24) + 2), (b0(32) - 0.5, b0(32) + 2), (b0(81) - 0.25, b0(90) + 2)):
+        rg += [[f"{a - 0.05:.2f}b", -80.0], [f"{a:.2f}b", 0.0], [f"{z:.2f}b", 0.0], [f"{z + 0.5:.2f}b", -80.0]]
+    return {"dial": {"points": dial}, "rg": {"points": rg}}
+
+
 def frame_the_holes():
     """v11 (chirp-eco's lesson from t10: a bare hole in a mixed groove reads as a glitch): every empty downbeat is now
     performed. The last stab before it is thrown into a high-feedback dub delay, so its echoes ring through the hole;
@@ -412,10 +429,13 @@ def main():
             tr("stair", "celesta", gain="-8dB", pan=0.3, sends={"dub": "-4dB"}),
             # v13: the phantom words - two copies, hard left and right, through a distant radio band (Deutsch played his
             # on two loudspeakers: it reads on speakers and on headphones)
-            tr("phL", "voice-speech", gain="-10dB", pan=-1.0, sends={"dub": "-14dB"},
-               fx=[{"type": "filter", "kind": "hp", "cutoff": 450}, {"type": "filter", "kind": "lp", "cutoff": 2600}]),
-            tr("phR", "voice-speech", gain="-10dB", pan=1.0, sends={"dub": "-14dB"},
-               fx=[{"type": "filter", "kind": "hp", "cutoff": 450}, {"type": "filter", "kind": "lp", "cutoff": 2600}]),
+            # v15: each copy through its own RADIO (wM's fx, mono, so one per side keeps the pair): the dial tunes in
+            # across the break (off the station at 81 - static, a heterodyne whistle - on it by 84), wanders off before
+            # the drop and lands dead on the station for the 'one' at 89; a gate lane keeps the static to where it speaks
+            tr("phL", "voice-speech", gain="-9dB", pan=-1.0, sends={"dub": "-14dB"}, auto=radio_lanes(0),
+               fx=radio_fx(3)),
+            tr("phR", "voice-speech", gain="-9dB", pan=1.0, sends={"dub": "-14dB"}, auto=radio_lanes(1),
+               fx=radio_fx(7)),
         ],
     }
     with open(OUT, "w") as f:
