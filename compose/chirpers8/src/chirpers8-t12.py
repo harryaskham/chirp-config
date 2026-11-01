@@ -35,7 +35,24 @@ SECTIONS = [("seed", 1, 8), ("g1", 9, 13), ("g2", 14, 21), ("g3", 22, 34), ("g4"
             ("prune", 90, 102), ("g6", 103, 157), ("coda", 158, 178), ("light", 179, 186)]
 GEN = {"seed": 0, "g1": 1, "g2": 2, "g3": 3, "g4": 4, "g5": 5, "prune": 3, "g6": 6, "coda": 4, "light": 0}
 BARS = SECTIONS[-1][2]
-TOTAL = BARS * BAR
+CUT = range(90, 103)        # v8: THE PRUNE IS PRUNED - its bars lose an eighth (7/8); generate in 4/4, warp at output
+
+
+def rb(bar):
+    """v8: the REAL beat at which a bar starts (bars 90-102 last 3.5 beats)."""
+    return (bar - 1) * BAR - 0.5 * max(0, min(bar, CUT.stop) - CUT.start)
+
+
+def warp(v):
+    """v8: virtual 4/4 beats -> real beats; anything in a pruned bar's cut eighth is dropped (None)."""
+    bar = int(v // BAR + 1e-9) + 1
+    off = v - (bar - 1) * BAR
+    if bar in CUT and off >= BAR - 0.5 - 1e-6:
+        return None
+    return rb(bar) + off
+
+
+TOTAL = rb(BARS + 1)
 EDO = 31
 FS4 = 66                                  # F#4
 SCALE = [0, 5, 9, 13, 18, 23, 26]         # neutral Dorian on F#, in 31-EDO steps
@@ -69,7 +86,7 @@ class Part:
         self.ev.append((at, ln, head, int(max(1, min(127, vel)))))
 
     def score(self, total=TOTAL):
-        ev = sorted(self.ev, key=lambda e: (e[0], -e[3]))
+        ev = sorted(((warp(s), ln, h, v) for s, ln, h, v in self.ev if warp(s) is not None), key=lambda e: (e[0], -e[3]))
         toks, pos = [], 0.0
         for i, (s, ln, head, vel) in enumerate(ev):
             nxt = ev[i + 1][0] if i + 1 < len(ev) else total
@@ -236,6 +253,9 @@ def drums():
     for bar in range(22, 179):
         sec = sec_of(bar)
         if sec == "prune":
+            # v8: the prune COUNTS - a rimshot on every eighth, seven to a bar (2+2+3), so the missing eighth is heard
+            for e in range(7):
+                part("hats").add(b0(bar) + e * 0.5, 0.1, "rs", 92 if e == 0 else (74 if e in (2, 4) else 52 + hand.randint(-5, 5)))
             continue
         for b in range(4):
             part("kick").add(b0(bar) + b, 0.5, "k", 112 if b == 0 else 104)
@@ -299,7 +319,7 @@ LEAVES = [   # v6: re-printed (46a24ab5 prints MIDI notes, so the song's 31-EDO 
 
 def voice_notes():
     """v2: SPEECH TO SONG in the prune: 'count the leaves again', once every two bars, from spoken to sung."""
-    return [{"at": round(b0(90) + a, 4), "len": ln, "ph": ph, "pitch": pitch, "vel": round(v * 0.95, 3),
+    return [{"at": round(rb(90) + a, 4), "len": ln, "ph": ph, "pitch": pitch, "vel": round(v * 0.95, 3),
              "expr_path": {"f0": f0}} for a, ln, ph, pitch, v, f0 in LEAVES]
 
 
@@ -329,14 +349,17 @@ def sung_notes():
     out = []
     for bar, g in ((160, 1.0), (168, 0.8)):
         for a, ln, ph, midi, v, f0 in SING:
-            out.append({"at": round(b0(bar) + a, 4), "len": ln, "ph": ph, "pitch": f"m{midi}", "vel": round(v * g, 3),
+            out.append({"at": round(warp(b0(bar) + a), 4), "len": ln, "ph": ph, "pitch": f"m{midi}", "vel": round(v * g, 3),
                         "expr_path": {"f0": f0}})
     return out
 
 
 def tempo_map():
-    return [{"at": "0b", "bpm": 112}, {"at": f"{b0(35):.0f}b", "bpm": 118, "ramp": True},
-            {"at": f"{b0(103):.0f}b", "bpm": 124, "ramp": True}, {"at": f"{b0(158):.0f}b", "bpm": 126, "ramp": True}]
+    # v8: the meter changes on a point that keeps the ramp going (118 -> 121 by the prune, 121 -> 124 through it: the
+    # prune quickens a little as it is cut; a meter-only point would hold 118 until bar 90 and flatten g4-g5's rise)
+    return [{"at": "0b", "bpm": 112}, {"at": f"{rb(35):g}b", "bpm": 118, "ramp": True},
+            {"at": f"{rb(90):g}b", "bpm": 121, "ramp": True, "meter": "7/8"},
+            {"at": f"{rb(103):g}b", "bpm": 124, "ramp": True, "meter": "4/4"}, {"at": f"{rb(158):g}b", "bpm": 126, "ramp": True}]
 
 
 def lanes():
@@ -344,8 +367,8 @@ def lanes():
     pts = []
     for name, a, z in SECTIONS:
         if pts:
-            pts.append([f"{b0(a) - 0.25:.2f}b", pts[-1][1]])
-        pts.append([f"{b0(a):.2f}b", float(level[name])])
+            pts.append([f"{rb(a) - 0.25:.2f}b", pts[-1][1]])
+        pts.append([f"{rb(a):.2f}b", float(level[name])])
     return pts
 
 
@@ -377,7 +400,7 @@ def main():
             # v4: THE ENGINE'S OWN L-SYSTEM (gen lsystem, a turtle over my scale's 31-EDO steps) on a glockenspiel
             # through g6, answering mine in counterpoint: two growth rules in conversation
             {"name": "turtle", "patch": "glock", "gain": "-15dB", "pan": 0.35, "sends": {"hall": "-8dB"},
-             "score": f"R/{b0(103):.0f}b",
+             "score": f"R/{rb(103):g}b",
              "gen": {"type": "lsystem", "axiom": "A", "rules": {"A": "A+B", "B": "-A[B]a"}, "depth": 6,
                      "notes": " ".join(f"~{s}" for s in (0, 5, 9, 13, 18, 23, 26, 31, 36, 40, 44, 49)),
                      "n": 440, "len": "/8"}},
@@ -411,7 +434,7 @@ def main():
             tr("clap", "machine-kit play.humanize.nudge.cp=10ms", gain="-6dB", sends={"room": "-8dB"}),
             tr("shepup", "shepard-pad", gain="-16dB", sends={"hall": "-10dB"}),
             tr("shepdown", "shepard-fall", gain="-16dB", sends={"hall": "-10dB"}),
-            {"name": "rush", "patch": "machine-kit", "gain": "-8dB", "pan": -0.2, "at": f"{b0(158):.0f}b",
+            {"name": "rush", "patch": "machine-kit", "gain": "-8dB", "pan": -0.2, "at": f"{rb(158):g}b",
              "risset": {"cycle": "4bar", "layers": 3, "length": "20bar"}, "sends": {"room": "-12dB"}, "score": RUSH},
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=1.0s mix=1 predelay=10ms", "hp cutoff=250"]},
