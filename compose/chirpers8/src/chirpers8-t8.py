@@ -33,6 +33,7 @@ BAR = 16
 STRETCH = float(os.environ.get("C8T8_STRETCH", "1210")) / 1200   # cents per octave / 1200
 SEED = 8
 HUM = os.environ.get("C8T8_HUM", "8")    # the store powering up: a low D hum (808, stretched D1) under the first intro bars, fading as the word is written; value = bars
+HUMA = os.environ.get("C8T8_HUMA", "4")   # the hum starts on A1 (t7's drone, the fifth of D) and falls to D1 after this many bars: the seam is one held A that resolves
 DARK = os.environ.get("C8T8_DARK", "8")  # the tape running out: a master low-pass closing over the outro's last bars (the hiss and the line's top go first); value = bars
 FORM = [("intro", 16), ("A", 36), ("refresh", 8), ("C", 32), ("D", 16), ("E", 28), ("outro", 16)]
 TRACKS = ("word", "pad0", "pad1", "pad2", "pad3", "hum", "bass", "kick", "hats", "clap", "rim")
@@ -96,8 +97,11 @@ def build():
             if b % 4 == 0 and sec != "D":
                 for j, n in enumerate(v):   # one voice per track: frequencies cannot stack in a chord token
                     add(f"pad{j}", at, hz(n), 4 * BAR, 64 if sec in ("intro", "outro") else 72)
-            if HUM and sec == "intro" and b < int(HUM) and b % 4 == 0:
-                add("hum", at, hz(26), 4 * BAR, 110 - 6 * (b // 4))
+            if HUM and sec == "intro" and b < int(HUM) and HUMA and b < int(HUMA):
+                if b == 0:
+                    add("hum", at, hz(33), int(HUMA) * BAR, 110)
+            elif HUM and sec == "intro" and b < int(HUM) and (b % 4 == 0 or (HUMA and b == int(HUMA))):
+                add("hum", at, hz(26), (4 - b % 4) * BAR, 110 - 6 * (b // 4))
             groove = sec in ("A", "C", "D", "E")
             if groove:
                 for q in (0, 4, 8, 12):
