@@ -61,6 +61,7 @@ HEADEQ = os.environ.get("C7T18_HEADEQ", "6")  # the in-join (compscore: the head
 RADIO = os.environ.get("C7T18_RADIO", "1") == "1"  # Harry's third steer (1 Nov 01:15: 'white-noise bursts ... less well evolved'; 'robotic vox not subtle enough'): chirper-two's radio band (t8) - the continuity line now sings through a living shortwave band that runs under the whole stretch 18 dB down and swells over each gap to the old bursts' level (no bare bursts); and the speech heard through the radio (hp 450 / lp 2.6 kHz, 3 dB further back, more echo)
 GAPS = []
 ZWX = os.environ.get("C7T18_ZWX", "r")  # Harry's third steer ('white-noise bursts ... less well evolved'): the Zwicker swell evolved - "r" the radio band itself (shortwave: static and whistles, the continuity panel's radio) through the same notches; "b" the broadband noise breathing (a low-pass swaying 3-9 kHz once a bar) - either way the silence after it still sings the notch's note
+HSPEECH = os.environ.get("C7T18_HSPEECH", "1") == "1"  # Harry's third steer ('robotic vox not subtle enough or illusory enough') with wM's voice engine (5d1e89c1): the speech panel's line is now a HUMAN voice turning into song for real - `chirp tts "the stair comes down" --humanize 0.6 --repeat 7 --melodize 0,0,0.2,0.45,0.7,0.9,1 --melody "A3 F3 E3 D3" --key D3 --bpm 120 --seed 7` (pitch moving inside syllables, drift, loosened onsets, wandering formants; the repetitions quantising onto the stair until it is sung), lifted from chirpers7-t18-speech.json, through the radio band
 COH = os.environ.get("C7T18_COH", "1") == "1"  # t17 v18's fix (measured 22:15): coherent Haas pairs - one source per pair, near ear direct and far ear through 18 ms, dry - so the turning panel's precedence cue exists (separate noise-kit tracks gave the ears different hits)
 COHB = {}
 ILV = float(os.environ.get("C7T18_ILV", "0"))  # every illusion track's level offset (dB)
@@ -268,7 +269,7 @@ def build():
                 for q in range(16):
                     if q % 4 == 0 or q in (6, 10, 14):
                         add("pole", at + q, ch, 1, (96 if q % 4 == 2 else 80) * lv)
-            if "speech" in act and b % 2 == 0:   # t3: speech that turns into song
+            if "speech" in act and b % 2 == 0 and not (HSPEECH and sec.startswith("g")):   # t3: speech that turns into song
                 sung = (b >= nb // 2) or not sec.startswith("g")
                 syl = [("dh-ah0", 0, 2, 69, "+60>-40"), ("s-t-eh1-r", 2, 2, 65, "+120>-60"),
                        ("k-ah1-m-z", 4, 3, 64, "+40>-120"), ("d-aw1-n", 7, 5, 62, "-40>-300")]
@@ -397,6 +398,18 @@ def lane(points, step=True):
         prev = val
     pts.append([f"{total_steps() * S * spb + 30:.2f}s", pts[-1][1]])
     return {"points": pts}
+
+
+def hspeech_track(gain):
+    """wM's humanised speech-to-song (chirp tts --print), shifted to the speech panel's second bar."""
+    src = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "chirpers7-t18-speech.json")))["tracks"][0]
+    sec = next(sec for sec, _ in FORM if sec.startswith("g") and "speech" in active(sec))
+    off = (sec_start(sec) + BAR) / 4   # beats
+    notes = [dict(n, at=round(n["at"] + off, 4)) for n in src["notes"]]
+    fv = [[f"{float(t[:-1]) + off:.3f}b", v] for t, v in src["auto"]["fv"]["points"]]
+    return {"name": "speechh", "patch": src.get("patch", "voice-speech"), "gain": gain,
+            "fx": [*src["fx"], *(["hp cutoff=450", "lp cutoff=2600"] if RADIO else [])],
+            "auto": {"fv": {"points": fv}}, "sends": {"echo": "-6dB" if RADIO else "-10dB", "hall": "-12dB"}, "notes": notes}
 
 
 def song():
@@ -542,6 +555,7 @@ def song():
             {"name": "fall", "patch": "fall-pad", "gain": "-12dB", "sends": {"hall": "-4dB"}, "score": T["fall"]},
             {"name": "up", "patch": "stair-up", "gain": ilv(-10), "pan": -0.2, "sends": {"echo": "-8dB", "hall": "-10dB"}, "score": T["up"]},
             *endless("pole", T["pole"], 4, ilv(-9)),
+            *([hspeech_track(ilv(-9 if RADIO else -6))] if HSPEECH else []),
             {"name": "speech", "patch": "voice-speech", "gain": ilv(-9 if RADIO else -6), **({"fx": ["hp cutoff=450", "lp cutoff=2600"]} if RADIO else {}),
              "sends": {"echo": "-6dB" if RADIO else "-10dB", "hall": "-12dB"}, "score": T["speech"]},
             {"name": "tri", "patch": "tritone", "gain": ilv(-10), "pan": 0.2, "sends": {"hall": "-10dB"}, "score": T["tri"]},
