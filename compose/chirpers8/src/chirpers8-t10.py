@@ -65,7 +65,7 @@ def build():
         for i in range(n):
             bars.append((name, i, tp))
     total = len(bars) * 4.0
-    P = {k: [] for k in ('bell', 'sync', 'pwm', 'bass', 'sub', 'd1', 'd2', 'd3', 'kit')}
+    P = {k: [] for k in ('bell', 'sync', 'pwm', 'bass', 'sub', 'd1', 'd2', 'd3', 'kit', 'pulse')}
     # the call stack: a seeded walk, one move every four bars in the calls sections
     depth, depths = 0, []
     for b, (s, i, tp) in enumerate(bars):
@@ -189,6 +189,13 @@ def build():
                 P['bell'].append((t0, tok(62 + tp), 7.5, 80))
             elif i % 2 == 0:
                 P['bell'].append((t0, ','.join(tok(m_ + tp) for m_ in (62, 66, 69)), 7.5, 78))
+        # (v13) PERIOD ONE, CONTINUED: t9 (chirper-two) ends with its logistic map settled on one value - a clarinet
+        # repeating one note, a G, in sixteenths. Call and Return picks that pulse up where it was left: the same
+        # clarinet on G for two bars under the first bell, stepping up to A (the dominant, the call) for the third,
+        # and stopping as the kick comes in - the previous machine's last thought becomes this one's first call
+        if s == 'intro' and i < 3:
+            for q_ in range(16):
+                P['pulse'].append((t0 + q_ * 0.25, tok(67 if i < 2 else 69), 0.22, int(70 - 10 * i + (8 if q_ % 4 == 0 else 0))))
         if s == 'intro' and i < 4 and i % 2 == 0:
             P['bell'].append((t0, tok(62 + tp), 7.5, 76))      # the bell tolls the machine awake
         # THE STACK: each level spawns a faster copy of this bar's subject, an octave higher each time
@@ -284,6 +291,7 @@ def build():
             tr('d2', BELL, '-19dB', pan=-0.4, sends={'echo': '-16dB'}),
             tr('d3', 'glass', '-26dB', pan=0.5, fx=['hp cutoff=800'], sends={'hall': '-12dB'}),
             tr('kit', 'machine-kit', '-2dB', sends={'hall': '-20dB'}),
+            tr('pulse', 'clarinet', '-10dB', pan=-0.15, sends={'hall': '-14dB', 'echo': '-16dB'}),
             # (v8) THE MACHINE'S OWN PATTERNS: a percussion line written in the engine's Euclidean and chance tokens, a
             # different cycle for each key of the canon - in D minor seven triplet-eighth rims spread over the bar (7 in 12,
             # rotated, each with an 85% chance: a 7-against-4 the kick never agrees with), in G minor a cowbell five-in-
