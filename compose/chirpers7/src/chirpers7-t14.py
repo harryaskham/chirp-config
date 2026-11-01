@@ -41,6 +41,7 @@ TAILLOW = os.environ.get("C7T14_TAILLOW", "6")  # the out-join (the tail 9 dB ov
 EVO = os.environ.get("C7T14_EVO", "1") == "1"  # Harry's third steer (1 Nov 01:15: 'very simple progressions of 4, 8, 16 bars ... formulaic'): the harmony evolves section by section - intro in 2-bar chords; A a 5-bar cycle against the 4-bar groove (Fm11 Fm9 Gbmaj7#11 Db/Bbm9 C7b9, the fourth chord mutating each pass); the break a C pedal under shifting chords in 5+4+4+3 bars; B1 a 6-bar cycle with a borrowed Ebm9 and a wonky Emaj7#11; B2 (a minor third up) a 7-bar cycle; the outro home to the 4-bar loop
 SPIRAL = os.environ.get("C7T14_SPIRAL", "-14")  # Harry's third steer ('spirals ... into a key change'): a Shepard-Risset spiral (risset pitch: true) climbing over B bars 17-22 into the scales-alone bars and B2's lift; value = gain dB
 FORMX = os.environ.get("C7T14_FORMX", "1") == "1"  # Harry's third steer: irregular section lengths - A 30 bars (six 5-bar cycles), the break 14 (5+4+3+2), B 45 (B1 24 + B2 three 7-bar cycles); intro and outro (the seams) unchanged
+ORET = os.environ.get("C7T14_ORET", "1") == "1"  # an A-B-A' shape: the outro's first half returns to A's 5-bar cycle (Fm11 Fm9 Gbmaj7#11 Db/Bbm9 C7b9) after the rush home, instead of the old 4-bar loop; the seam keeps the loop
 ANTIC = os.environ.get("C7T14_ANTIC", "1") == "1"  # the organ stabs anticipate: on the a-of-1 and the a-of-3 (16ths 3 and 11), jackin' pushes
 
 ERISER = os.environ.get("C7T14_ERISER", "-10")  # wM's endless Shepard riser (fx-riser-endless) over the 8 bars into B: pitch, noise and filter rising for ever, stopping dead on the drop (Harry: 'risers and staircases v good'); level in dB
@@ -71,6 +72,8 @@ def plan(sec, b):
         return LIB[["Fm11", "Ebm9", "Dbmaj9", "Emaj7#11", "Fm9", "C7b9"][b % 6]]
     if sec == "B":
         return LIB[["Fm11", "Gbmaj7#11", "Dbmaj9", "Bbm9", "Emaj7#11", "C7b9", "C7b9"][(b - 24) % 7]]
+    if sec == "outro" and ORET and b < 16:
+        return plan("A", b)
     if sec == "rush":
         return LIB[(["Fm11"] * 3 + ["Dbmaj9"] * 2 + ["Gbmaj7#11"] * 2 + ["Emaj7#11", "Dbmaj9", "C7b9"])[b]]
     return CHD[b % 4]
