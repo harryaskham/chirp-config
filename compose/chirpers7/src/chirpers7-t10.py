@@ -153,6 +153,9 @@ def is_break(bar):
     return sec_of(bar) in BREAKS
 
 
+SWING = 0.04      # v13: the groove shuffles - every off-sixteenth of the hats and rim 0.04 beat late (58% swing)
+
+
 def drums():
     hand = random.Random(10)
     cyc = 0                                                                  # the dotted-eighth rim, across bar lines
@@ -166,16 +169,16 @@ def drums():
             if sec not in ("intro",):
                 for s in (1, 3):
                     if hand.random() < 0.7:
-                        part("hats").add(b0(bar) + b + s / 4, 0.1, "h", 50 + hand.randint(-8, 8))
+                        part("hats").add(b0(bar) + b + s / 4 + SWING, 0.1, "h", 50 + hand.randint(-8, 8))
         if sec not in ("intro",) and not (sec == "outro" and bar >= 161):
             for s in range(16):
                 if (cyc + s) % 3 == 0:
-                    part("rim").add(b0(bar) + s / 4, 0.2, "rs", 64 + hand.randint(-8, 8))
+                    part("rim").add(b0(bar) + s / 4 + (SWING if s % 2 else 0), 0.2, "rs", 64 + hand.randint(-8, 8))
             cyc = (cyc + 16) % 3
         if sec not in ("intro", "A") or (sec == "A" and bar >= 25):
             if not (sec == "outro" and bar >= 161):
                 for b in (1, 3):
-                    part("clap").add(b0(bar) + b + 0.012, 0.5, "cp", 92 + hand.randint(-4, 4))
+                    part("clap").add(b0(bar) + b + 0.025, 0.5, "cp", 92 + hand.randint(-4, 4))   # v13: 12 ms late
 
 
 def srise():
@@ -316,7 +319,8 @@ def main():
                    "auto": {"dyn": {"points": lanes()}, "ts": {"points": ts_lane()}}},
         "tracks": [
             tr("kick", "machine-kit", gain="-11dB"),
-            tr("hats", "machine-kit", gain="0dB", pan=0.1, lfo={"hh": {"wave": "sine", "rate": "20b"}},
+            tr("hats", "machine-kit play.humanize.drunk=5ms play.humanize.swing_drift=0.04 play.humanize.accent=0.4",
+               gain="0dB", pan=0.1, lfo={"hh": {"wave": "sine", "rate": "20b"}},
                fx=[{"type": "filter", "kind": "hp", "cutoff": {"value": 3000, "mod": [{"src": "lfo.hh", "amount": 0.6}]}}]),
             tr("rim", "machine-kit", gain="-3dB", pan=-0.3, sends={"room": "-10dB"}),
             tr("clap", "machine-kit", gain="0dB", sends={"room": "-8dB"}),
