@@ -221,6 +221,13 @@ def build():
                                          {'type': 'pump', 'on': 'kit.k', 'depth': '-7dB', 'release': '300ms', 'curve': 0.6},
                                          'lp cutoff=8000'],
                out='hugL', sends={'hugR': '0dB'}, auto={'vw': {'points': vw}}),
+            # (v24) THE GHOST FALLS FOR EVER (Harry: spirals, as structure): over the break's first twelve bars a music box plays
+            # the stair falling, as a Shepard-Risset spiral running DOWN - falling and slowing for ever (wM's risset down + pitch)
+            # - into the dub echo, ducking under each whispered wash so the ghost keeps its band
+            {'name': 'fall', 'patch': 'music-box', 'gain': '-13dB', 'pan': 0.25, 'at': f"{secs['break']:.0f}b", 'sends': {'echo': '-6dB', 'hall': '-12dB'},
+             'fx': ['hp cutoff=250', {'type': 'pump', 'on': 'wash', 'depth': '-14dB', 'release': '900ms', 'curve': 0.5}],
+             'risset': {'cycle': '6bar', 'layers': 3, 'length': '12bar', 'pitch': True, 'down': True},
+             'score': 'F5/8@80 Db5/8@70 C5/8@74 Bb4/8@68 F4/8@76 Db4/8@66 C4/8@70 Bb3/8@64'},
             tr('ghost', 'epiano-tine', '-10dB', sends={'echo': '-6dB', 'hall': '-10dB'}),
         ]}
 
