@@ -36,6 +36,7 @@ MARK = os.environ.get("C8T5_MARK", "1")   # the lead LEARNS the agreement: a Mar
 STORM = os.environ.get("C8T5_STORM", "") # the acid's ladder filter rides a Lorenz attractor (a var stepped every eighth): a swirl that never repeats, 600 Hz up to STORM octaves
 HEAD = os.environ.get("C8T5_HEAD", "2")   # the line is already open when the track starts: congas from the first bar and a low E hum (the 808 on E1) under the intro's first eight bars, so the handshake starts over a held line (t4 -> t5 read a 24 dB jump and a 61 Hz hole)
 MERGE = os.environ.get("C8T5_MERGE", "0.5")   # agreed, they become alike: in C the guitar MORPHS toward the acid's spectrum (wM's morph fx, mode morph; one way - a mutual key is a routing cycle), up to MERGE over C's first eight bars, held through the lift, apart again for the outro
+TRADEBACK = os.environ.get("C8T5_TRADEBACK", "1")   # at the lift (C bars 25-28) the one-bar trades of B come back for four bars - a brief renegotiation in the new key - before they play together again (splits C's one long section with material that returns)
 HOOKF = [(0, "E4", 3), (3, "G4", 3), (6, "A4", 4), (10, "B4", 6), (16, "D5", 3), (19, "B4", 3), (22, "D5", 4), (26, "E5", 6)]
 FORM = [("intro", 12), ("A", 34), ("B", 26), ("retrain", 12), ("C", 48), ("outro", 16)]
 TRACKS = ("carrier", "conga", "gtr", "acid", "sub", "kick", "hats", "clap", "fretless", "horns", "lead")
@@ -112,8 +113,9 @@ def build():
             gd += (bd - gd) * 0.03 + rng.uniform(-0.02, 0.02)
             bd += (gd - bd) * 0.03 + rng.uniform(-0.02, 0.02)
             if groove:
-                g_turn = sec == "C" or (sec == "A" and (b // 2) % 2 == 0) or (sec == "B" and b % 2 == 0) or sec == "outro"
-                a_turn = sec == "C" or (sec == "A" and (b // 2) % 2 == 1) or (sec == "B" and b % 2 == 1) or (sec == "outro" and b < 4)
+                tb = TRADEBACK and sec == "C" and 24 <= b < 28
+                g_turn = (sec == "C" and not tb) or (sec == "A" and (b // 2) % 2 == 0) or ((sec == "B" or tb) and b % 2 == 0) or sec == "outro"
+                a_turn = (sec == "C" and not tb) or (sec == "A" and (b // 2) % 2 == 1) or ((sec == "B" or tb) and b % 2 == 1) or (sec == "outro" and b < 4)
                 hook_bar = HOOK and b % 8 < 2 and sec in ("A", "B", "C")
                 if hook_bar and sec == "A":    # the guitar proposes: the hook's rhythm as chord stabs
                     for q, n, ln in HOOKF:
