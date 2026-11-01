@@ -46,6 +46,9 @@ ROLL = os.environ.get("C7T16_ROLL", "-8")
 ROLLSEC = os.environ.get("C7T16_ROLLSEC", "build")  # where the endless roll runs (16 bars)  # Harry 14:50 time-play: under the break an ENDLESS SNARE ROLL - a Risset accelerando on a snare figure (risset, down: false), the build that speeds up for ever and never arrives (level in dB)
 DARK = os.environ.get("C7T16_DARK", "1") == "1"  # Harry 15:00 'darker': Gm11, Ebmaj7#11, Cm9, D7b9
 WOW = os.environ.get("C7T16_WOW", "1") == "1"  # Harry 15:00 'slight wow on ONE element': the falling stair stabs alone through a worn tape
+EVO = os.environ.get("C7T16_EVO", "1") == "1"  # Harry's third steer (1 Nov 01:15: 'very simple progressions of 4, 8, 16 bars ... formulaic'): the harmony evolves - intro 2-bar chords; the build a D (dominant) pedal under Gm11, Ebmaj7#11, Cm9 and D7b9 in 5+4+4+3 bars, the climb that never arrives held over its own dominant; A a 5-bar cycle (the fourth chord Cm9 / the Neapolitan Abmaj7#11 by turns); the break Bbmaj9 Ebmaj7#11 D7b9 in 6+5+5; B1 a 6-bar cycle; B2 (B-flat minor) a 7-bar cycle; outro home
+RETURN = os.environ.get("C7T16_RETURN", "1") == "1"  # with EVO: an A-B-A' shape - the intro (after the seam) previews A's 5-bar cycle and the outro's first half brings it back, so the evolving middle has something to return to (compscore 02:12: return share 0.21, under the album's 0.25)
+SPIRAL = os.environ.get("C7T16_SPIRAL", "-14")  # a Shepard-Risset spiral (risset pitch: true) over B bars 25-32 into the lift to B-flat minor; value = gain dB
 KEYUP = int(os.environ.get("C7T16_KEYUP", "3"))  # B's last 16 bars lift KEYUP semitones (the filter climbs for ever and, once, so does the key); the outro walks home to G minor for the seam
 SEAMV = int(os.environ.get("C7T16_SEAMV", "70"))  # the held G1's velocity under the seam in (meets t15's tail sub in the live crossfade)
 EQ4 = os.environ.get("C7T16_EQ4", "a")  # "a": 45 Hz -6 dB and the low shelf -9 (37-60 Hz read 8-12 dB over the album); "b": also the hats 3 dB up, 3.5 kHz +3 and the shelves +6 at 4 kHz, +3 at 9 kHz (3-15 kHz read 2-5 dB dark)
@@ -63,6 +66,35 @@ CHD = [(31, (0, 2, 3, 7), [58, 60, 62, 65]),   # Gm11: Bb3 C4 D4 F4
        (27, (0, 2, 4, 7), [55, 57, 58, 62]),   # Ebmaj7#11: G3 A3 Bb3 D4
        (36, (0, 2, 3, 7), [51, 55, 58, 62]),   # Cm9
        (26, (0, 2, 5, 7), [54, 60, 63, 69])]   # D7b9: F#3 C4 Eb4 A4
+LIB = {"Gm11": (31, (0, 2, 3, 7), [58, 60, 62, 65]), "Gm9": (31, (0, 2, 3, 7), [58, 62, 65, 69]),
+       "Ebmaj7#11": (27, (0, 2, 4, 7), [55, 57, 58, 62]), "Cm9": (36, (0, 2, 3, 7), [51, 55, 58, 62]),
+       "D7b9": (26, (0, 2, 5, 7), [54, 60, 63, 69]), "Abmaj7#11": (32, (0, 2, 4, 7), [55, 60, 62, 63]),
+       "Bbmaj9": (34, (0, 2, 4, 7), [57, 60, 62, 65]),
+       "Gm11/D": (26, (0, 7, 0, 7), [58, 60, 62, 65]), "Ebmaj7#11/D": (26, (0, 7, 0, 7), [55, 57, 58, 62]), "Cm9/D": (26, (0, 7, 0, 7), [51, 55, 58, 62])}
+STAIR_UP = {"about": "chirper-two's c2-stair: the Shepard tone that climbs for ever", "synth": {"layers": [{"type": "shepard", "shepard": {"octaves": 8, "center": "600hz", "width": 1.1}}], "amp": {"a": "4ms", "d": "700ms", "s": 0.25, "r": "400ms", "curve": 2}}}  # t14's Shepard stair voice
+
+
+def plan(sec, b):
+    """EVO: the chord for bar b - irregular cycles, pedals, mutations."""
+    if sec == "intro" and RETURN:
+        return plan("A", b - 16)
+    if sec == "outro" and RETURN and b < 16:
+        return plan("A", b)
+    if sec == "intro":
+        return LIB[["Gm11", "Gm11", "Ebmaj7#11", "Ebmaj7#11", "Cm9", "Cm9", "D7b9", "D7b9"][b % 8]]
+    if sec == "build":
+        return LIB[(["Gm11/D"] * 5 + ["Ebmaj7#11/D"] * 4 + ["Cm9/D"] * 4 + ["D7b9"] * 3)[b]]
+    if sec == "A":
+        return LIB[["Gm11", "Gm9", "Ebmaj7#11", "Cm9" if (b // 5) % 2 == 0 else "Abmaj7#11", "D7b9"][b % 5]]
+    if sec == "break":
+        return LIB[(["Bbmaj9"] * 6 + ["Ebmaj7#11"] * 5 + ["D7b9"] * 5)[b]]
+    if sec == "B" and b < 32:
+        return LIB[["Gm11", "Bbmaj9", "Ebmaj7#11", "Cm9", "Abmaj7#11", "D7b9"][b % 6]]
+    if sec == "B":
+        return LIB[["Gm11", "Ebmaj7#11", "Cm9", "Abmaj7#11", "Bbmaj9", "D7b9", "D7b9"][(b - 32) % 7]]
+    return CHD[b % 4]
+
+
 TRACKS = ("kick", "hats", "clap", "perc", "sub", "pulse_slow", "pulse_mid", "pulse_fast", "stair", "kickin")
 
 
@@ -125,7 +157,7 @@ def build():
         a0 = sec_start(sec)
         for b in range(nb):
             at = a0 + b * BAR
-            r, deg, v = (CHD if DARK else CH)[b % 4]
+            r, deg, v = plan(sec, b) if EVO else (CHD if DARK else CH)[b % 4]
             ku = KEYUP if (sec == "B" and b >= 32) else 0
             r, v = r + ku, [n + ku for n in v]
             seam_in = sec == "intro" and b < 16
@@ -263,6 +295,9 @@ def song():
             "room": {"fx": ["reverb kind=room decay=1.0s mix=1 predelay=8ms", "hp cutoff=250"]},
         },
         "tracks": [
+            *([{"name": "spiral", "patch": "stair-up", "gain": f"{SPIRAL}dB", "pan": 0.15, "at": f"{(sec_start('B') + 24 * BAR) // 4}b",
+                "risset": {"cycle": "4bar", "layers": 4, "length": "8bar", "pitch": True}, "sends": {"dub": "-12dB"},
+                "score": " ".join(f"{n}/0.25b" for n in "G4 Bb4 D5 F5 D5 Bb4 A4 D5 G4 Bb4 D5 Eb5 D5 Bb4 A4 D5".split())}] if SPIRAL else []),
             *([{"name": "eriser", "patch": "fx-riser-endless amp.a=32b", "gain": f"{ERISER}dB", "score": f"R/{sec_start('B') // 4 - 32}b G3/32b@100"}] if ERISER else []),
             {"name": "kick", "patch": "machine-kit", "gain": "-3dB", "score": T["kick"]},
             *([{"name": "kickin", "patch": "machine-kit", "gain": "-3dB", "fx": [{"type": "filter", "kind": "hp", "cutoff": 110, "q": 0.7}], "score": T["kickin"]}] if SWAP else []),
@@ -290,7 +325,9 @@ def dump(doc):
         k, end = float(EQB), total_steps()
         doc["master"]["fx"][1:1] = [{"type": "filter", "kind": "peak", "cutoff": f, "q": q, "gain": {"value": "0dB", "mod": [{"src": "auto.eqw", "amount": g * k}]}} for f, q, g in EQB_BANDS]
         doc["master"].setdefault("auto", {})["eqw"] = lane([(0, 0), (16 * BAR, 0), (20 * BAR, 1), (end - 20 * BAR, 1), (end - 16 * BAR, 0), (end, 0)], step=False)
-    lines = [f"{k}: {json.dumps(doc[k])}" for k in ("about", "tempo", "ceiling", "loudness", "tail", "master") if k in doc]
+    if SPIRAL:
+        doc.setdefault("patches", {})["stair-up"] = STAIR_UP
+    lines = [f"{k}: {json.dumps(doc[k])}" for k in ("about", "tempo", "ceiling", "loudness", "tail", "patches", "master") if k in doc]
     lines.append("buses:")
     lines += [f"  {b}: {json.dumps(v)}" for b, v in doc["buses"].items()]
     lines.append("tracks:")
