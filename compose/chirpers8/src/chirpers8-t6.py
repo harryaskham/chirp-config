@@ -36,6 +36,16 @@ TEMP = {"intro": 0.1, "verse1": 0.15, "chorus1": 0.35, "verse2": 0.3, "bridge": 
 QUAL = {"maj": (0, 6, 11), "min": (0, 5, 11), "maj7": (0, 6, 11, 17), "min7": (0, 5, 11, 16),
         "sub": (0, 4, 11), "sup": (0, 7, 11), "sub7": (0, 4, 11, 15)}
 C4HZ = 261.6256
+# T6_R2 = strings (v2, wM's morph, systems and tunings). The talkbox evolves: the saw-pad vocoder sings with the voice
+# through the first chorus, then STRINGS take over as the voice's chords, CROSS-SYNTHESISED with it (`morph` mode
+# cross keyed by the voice: the strings' notes wearing the voice's spectral envelope, a high-resolution vocoder), so
+# the machine's choir turns from robot to orchestra as the song goes on. From the second chorus a celesta plays a
+# MARKOV CHAIN learnt from the chorus tune (`gen: markov`): new phrases that only make that tune's moves. A LORENZ
+# var swirls the Rhodes and the talking strings around the stereo field (a filter on it dulled the pad: spectrum 88 -> 71). The song now declares its `tuning: {edo: 19}` (the chords were
+# already written in 19-EDO steps; the celesta's chain snaps to them). T6_R2=none reproduces v1.
+R2 = os.environ.get("T6_R2", "strings")
+CORPUS = ("G4/8 A4 C5 B4/4 A4/8 G4 E4/4 G4/8 A4 B4 C5/4 B4/8 A4 G4/2 E4/8 G4 A4 B4/4 C5/8 B4 A4 G4/4 . "
+          "C5/8 B4 G4 A4/4 G4/8 E4 G4/2")
 
 
 def e(step, base=60):
@@ -110,7 +120,7 @@ def markov(rng, state, temp):
 
 def build():
     rng = random.Random(6)
-    names = ("kick", "snare", "hats", "ride", "rim", "bass", "pad", "talk", "keys", "bell")
+    names = ("kick", "snare", "hats", "ride", "rim", "bass", "pad", "talk", "strtalk", "keys", "bell")
     T = {k: Track(k) for k in names}
     VOICE = {"voice": [], "radio": [], "ringv": []}
     lines = [load(f"v{k}.json") for k in (1, 2, 3, 4)]
@@ -185,7 +195,9 @@ def build():
             ln = span * 4 - 0.1
             if sec != "intro" or i >= 2:
                 T["pad"].add(start, ln, ",".join(mm(m) for m in pad), 62)
-            T["talk"].add(start, ln, ",".join(mm(m - 12) for m in pad) + "," + mm(rm + 12), 90)
+            early = sec in ("intro", "verse1", "chorus1")
+            (T["talk"] if (early or R2 != "strings") else T["strtalk"]).add(
+                start, ln, ",".join(mm(m - 12) for m in pad) + "," + mm(rm + 12), 90)
         if groove:
             for b in (0.75, 2.5, 3.5):
                 T["keys"].add(start + b, 0.3, ",".join(mm(m) for m in pad[1:]), 72, "?0.8")
@@ -234,13 +246,24 @@ def main():
          "score": T["rim"].score(total)},
         {"name": "bass", "patch": "analog-bass", "gain": "-4dB", "fx": [pump, "lp cutoff=900"],
          "score": T["bass"].score(total)},
-        {"name": "pad", "patch": "juno-pad", "gain": "-18dB", "fx": [pump, "chorus mix=0.3"],
+        {"name": "pad", "patch": "juno-pad", "gain": "-18dB",
+         "fx": [pump, "chorus mix=0.3"],
          "score": T["pad"].score(total)},
         {"name": "talk", "patch": "saw-pad", "gain": os.environ.get("T6_TALK_GAIN", "-8dB"),
          "fx": [{"type": "vocoder", "key": "voice", "bands": 20, "noise": 0.12, "attack": "4ms", "release": "70ms"},
                 "hp cutoff=150", "reverb kind=hall decay=2.4s mix=0.3"], "score": T["talk"].score(total)},
-        {"name": "keys", "patch": "rhodes", "gain": "-14dB", "pan": 0.2, "fx": [pump],
+        {"name": "keys", "patch": "rhodes", "gain": "-14dB",
+         "pan": ({"value": 0.0, "mod": [{"src": "var.drift", "amount": 0.25}]} if R2 == "strings" else 0.2), "fx": [pump],
          "score": T["keys"].score(total)},
+        *([{"name": "strtalk", "patch": "strings", "gain": os.environ.get("T6_STR_GAIN", "-6dB"),
+            "pan": {"value": 0.0, "mod": [{"src": "var.drift", "amount": -0.3}]},
+            "fx": [{"type": "morph", "key": "voice", "mode": "cross", "amount": 0.85}, "hp cutoff=160",
+                   "reverb kind=hall decay=2.6s mix=0.3"], "score": T["strtalk"].score(total)},
+           {"name": "markov", "patch": "celesta", "gain": "-15dB", "pan": 0.3, "seed": 19,
+            "fx": [{"type": "delay", "time": "3/8", "feedback": 0.3, "mix": 0.22, "ping_pong": True, "tone": 5000},
+                   "reverb kind=hall decay=2.5s mix=0.3"],
+            "score": f"R/{st['chorus2']:g}b",
+            "gen": {"type": "markov", "order": 1, "from": CORPUS, "n": 120}}] if R2 == "strings" else []),
         {"name": "bell", "patch": "glass", "gain": "-16dB", "fx": ["reverb kind=hall decay=4s mix=0.4"],
          "score": T["bell"].score(total)},
         {"name": "voice", "patch": "voice-speech", "gain": os.environ.get("T6_VOICE_GAIN", "-10dB"), "pan": 0.0,
@@ -269,6 +292,9 @@ def main():
         "meta: " + json.dumps({"artist": "chirpers", "album": "A Light Left On", "title": "No Errors Since", "track": 6,
                                "year": 2026}),
         f"tempo: {BPM}",
+        *(["tuning: " + json.dumps({"edo": EDO}),
+           "vars: " + json.dumps({"drift": {"system": {"type": "lorenz", "axis": "y", "n": 700, "range": [-1, 1]},
+                                            "every": "1/4"}})] if R2 == "strings" else []),
         f'length: "{total:g}b"',
         'tail: "3s"',
         'ceiling: "-1dB"',
