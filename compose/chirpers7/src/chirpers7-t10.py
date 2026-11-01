@@ -265,6 +265,17 @@ for _b, _c in zip(range(116, 125), [_ch(DS, M9)] * 2 + [_ch(G_, MAJ7S11)] * 2 + 
 for _b, _c in zip(range(125, 137), [_ch(DS, M11)] * 4 + [_ch(E_, MAJ9S11)] * 4 + [_ch(AS, D7S9)] * 4):
     C_PLAN[_b] = _c
 DOM_PEDAL = (109, 115)
+# v18: SECTION A THROUGH-COMPOSED, 9 + 7 + 8: the PEDAL MUTATING (17-25: D#m9, D#m11, then Emaj7#11 over D# - the bII
+# on the pedal, a hidden minor second); THE FLOOR MOVES (26-32: F#maj7#11 - the relative major, a first light -
+# C#m9, A#7b9); the harmony ACCELERATES into the first break (33-40: 3 2 1 1 1 bars - D#m11, Emaj9#11, Bmaj7, G#m9,
+# A#7b9 - into the tape-stop at 40)
+for _b, _c in zip(range(17, 26), [_ch(DS, M9)] * 3 + [_ch(DS, M11)] * 3 + [_ch(E_, MAJ7S11)] * 3):
+    C_PLAN[_b] = _c
+for _b, _c in zip(range(26, 33), [_ch(FS, MAJ7S11)] * 3 + [_ch(CS, M9)] * 2 + [_ch(AS, D7B9)] * 2):
+    C_PLAN[_b] = _c
+for _b, _c in zip(range(33, 41), [_ch(DS, M11)] * 3 + [_ch(E_, MAJ9S11)] * 2 + [_ch(B_, MAJ7B), _ch(GS, M9),
+                                                                                 _ch(AS, D7B9)]):
+    C_PLAN[_b] = _c
 RUSH_D = (116, 124)
 SPIRAL = (84, 92)
 
@@ -279,7 +290,7 @@ def harmony():
             part("subin" if sec == "intro" else "sub").add(b0(bar), BAR - 0.1, nm(DS1), 96)   # the intro level with t9's tail
             continue
         fig = BASS_C if sec in ("C", "D", "E") else BASS_A
-        broot = DS1 + 24 if (sec == "A" or 45 <= bar <= 59 or 77 <= bar <= 83) else root   # the D# PEDAL (v16: B1-B2 only)
+        broot = DS1 + 24 if (17 <= bar <= 25 or 45 <= bar <= 59 or 77 <= bar <= 83) else root   # the D# PEDAL (v18: A1 only)
         if DOM_PEDAL[0] <= bar <= DOM_PEDAL[1]:
             broot = AS                                          # v17: the dominant pedal
         for at, ln, iv in fig:
