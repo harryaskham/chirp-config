@@ -8155,7 +8155,7 @@
     {
       "id": "chirpers8-t11",
       "song": "songs/chirpers8-t11.yaml",
-      "reference": "chirpers — Track 11 (untitled)",
+      "reference": "chirpers — The Weather Indoors",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers8-t11 OUT.wav",
@@ -8171,7 +8171,7 @@
       "meta": {
         "artist": "chirpers",
         "album": "A Light Left On",
-        "title": "Track 11 (untitled)",
+        "title": "The Weather Indoors",
         "track": 11,
         "year": 2026
       },
