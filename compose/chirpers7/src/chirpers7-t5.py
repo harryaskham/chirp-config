@@ -164,6 +164,19 @@ def acid():
                 part("acidB").add(t + 0.5, 0.4, nm(lo + third(lo, g)), 96)
                 part("acidA").add(t + 1.0, 0.4, nm(lo), 82)
             continue
+        if 33 <= bar <= 42:
+            # v19: THE LINE IN THREES - metric modulation of the illusion's own figure: the gallop's cell shrinks to
+            # three sixteenths (A B A), so it cycles against the 4/4 and realigns only every three bars; the gap is still
+            # small, so it is still ONE line
+            for s in range(16):
+                gi = (bar - 33) * 16 + s
+                c = gi % 3
+                t = b0(bar) + s / 4
+                if c == 1:
+                    part("acidB").add(t, 0.2, nm(lo + third(lo, g)), 100)
+                else:
+                    part("acidA").add(t, 0.2, nm(lo), 106 if c == 0 else 80)
+            continue
         if 97 <= bar <= 104:
             # v16: THE DROP ENTERS IN TRIPLETS - metric modulation: the same A B A - cell on the triplet-sixteenth grid,
             # two-thirds of a beat long, six cells a bar (three against every two beats: a hemiola against the hats),
@@ -185,6 +198,14 @@ def acid():
             part("acidB").add(t + off, 0.2, nm(lo + third(lo, g)), 112 if acc % 3 == 0 else 86)   # a three-step accent
 
 
+def pedal_harmony():
+    """v19: the first chords of the track, over the B pedal (24-32): Bm9, Gmaj7#11, Em11 on a quiet pad, three bars each."""
+    for bar in range(24, 33):
+        r, ivs = [(B2, (3, 7, 10, 14)), (B2 - 4, (4, 7, 11, 18)), (B2 - 7, (3, 10, 14, 17))][(bar - 24) // 3]
+        if (bar - 24) % 3 == 0:
+            part("pad").add(b0(bar), 3 * BAR - 0.1, ",".join(nm(r + 12 + i) for i in ivs), 64)
+
+
 def odd_cycles():
     """v15: ODD-LENGTH CYCLES in the long first half: bongos on a 5-sixteenth cycle through 'one' (25-48) and a
     7-sixteenth cycle through 'split' (57-80), each realigning with the bar only every 5 / 7 bars - high, away from
@@ -193,6 +214,9 @@ def odd_cycles():
     for (a, z, n) in ((25, 48, 5), (57, 80, 7)):
         k = 0
         for bar in range(a, z + 1):
+            if 33 <= bar <= 42:                                  # v19: the bongos rest under the line in threes
+                k = (k + 16) % n
+                continue
             for s in range(16):
                 if (k + s) % n == 0:
                     first = ((bar - a) * 16 + s) % (n * 4) == 0
@@ -293,6 +317,7 @@ def main():
     drums()
     ghosts()
     odd_cycles()
+    pedal_harmony()
     harmony()
     dyn, op, pan = lanes()
     tempo = [{"at": "0b", "bpm": 119.5}, {"at": f"{b0(17):.0f}b", "bpm": 119.5},     # v6: hold through the overlap
@@ -341,6 +366,8 @@ def main():
             tr("hats", "machine-kit play.humanize.drunk=6ms play.humanize.swing_drift=0.05 play.humanize.accent=0.4",
                gain="-3dB", pan=0.1, lfo={"hh": {"wave": "sine", "rate": "20b"}},   # v14: the hats lean; off-beats wander
                fx=[{"type": "filter", "kind": "hp", "cutoff": {"value": 2500, "mod": [{"src": "lfo.hh", "amount": 0.7}]}}]),
+            tr("pad", "juno-pad", gain="-15dB", pan=-0.1, sends={"room": "-10dB"},
+               fx=[{"type": "filter", "kind": "lp", "cutoff": 1800, "q": 0.7}]),        # v19: the pedal's chords
             tr("bongo", "congas play.humanize.time=6ms", gain="-9dB", pan=0.35, sends={"room": "-10dB"}),   # v15
             tr("ghost", "machine-kit", gain="-14dB", pan=-0.1, sends={"room": "-12dB"}),   # v14: ghost snares
             tr("clap", "machine-kit play.humanize.nudge.cp=12ms",   # v14: the claps a hair late (the Dilla lean)
