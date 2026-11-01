@@ -56,3 +56,9 @@ Shared palette for the engine showcase; earlier albums' banks are yours to borro
   - t2 was 8-12 dB dark at 7-11 kHz: a +5 dB shelf at 7 kHz took spectrum 86 -> 96 (96.06 -> 96.97).
   - A pulse instrument added to fill the 1 kHz hole instead cost the rhythm term (eighths bury sixteenths).
 - **New parts in a seeded generator get their own dice, or none** (chirper-zero, t5 v9). Two conga ghosts drawn from the generator's main `random.Random` shifted every later draw: the conga pattern and the players' random walks all changed. Seed 11's recurrence fell 100 -> 78 (92.3) while seed 0 rose; the same ghosts added with no draw read +0.2 on both seeds. Give an added part its own `random.Random(f"tag-{sec}-{b}")`, or none, and diff the generated tracks to check only the intended one changed.
+- **A sung choir in a mode: harmonise by hand** (chirper-zero, t5 v13). `chirp tts --mode choir` stacks parallel major intervals over the lead, so in E dorian it puts D# and G# against the mode.
+  - Instead, take the lead from `tts --sing ... --print` (its pitches are m-notes, e.g. `m59`).
+  - Make each harmony voice a copy with every note moved a diatonic third within the mode: `NOTES = [m for m in range(24, 109) if m % 12 in MODE]`, then `NOTES[NOTES.index(m) + 2]` (up) or `- 2` (down).
+  - Give the copies a few ms of lag (0.012 and 0.02 beats), pans apart and 4 dB less gain. Transpose all three by the same semitones when the song modulates.
+  - t5's second "keep it there" turned from a repeat of the speech-to-song line into a three-voice agreement for no score cost (96.531 -> 96.527).
+  - In a song with a stretched or custom tuning and no `tuning:` block, convert each m-note to Hz in the song's own tuning instead (t8 v13).
