@@ -38,6 +38,8 @@ DS1 = 27                                     # D#1
 STAIR = [75, 77, 78, 82]                     # D#5 F5 F#5 A#5: the notches and the bell's answers
 BREAKS = {"Z1": 0, "Z2": 1, "Z3": 2, "Z4": 3}
 ZSTART = {0: 41, 1: 73, 2: 105, 3: 137}
+COMB = [DS1 + 12, DS1 + 13, DS1 + 8, DS1 + 7]   # v14: the singing noise's drones: D#2, E2 (bII) sliding to D#2, B1
+                                               # wavering, A#1 (the dominant, never resolved)
 
 
 def answer_bar(k):
@@ -256,6 +258,15 @@ def ts_lane():
     return pts
 
 
+def ring_lane():
+    """v14: the comb's feedback across each break: 0 at its start, 1 at the end of its noise."""
+    pts = [["0b", 0.0]]
+    for k, z in ZSTART.items():
+        n = 2 if k == 0 else 3
+        pts += [[f"{b0(z):.2f}b", 0.0], [f"{b0(z + n) - 0.1:.2f}b", 1.0], [f"{b0(z + n):.2f}b", 0.0]]
+    return pts
+
+
 def lanes():
     dyn = []
     for name, a, z in SECTIONS:
@@ -289,8 +300,18 @@ def main():
         nz.append(tr(f"hint{k}", noise, gain="-12dB",
                      fx=[{"type": "filter", "kind": "notch", "cutoff": round(f * r, 1), "q": 1.5} for r in (0.9, 1.0, 1.1)]
                         + [{"type": "filter", "kind": "lp", "cutoff": 9000}, {"type": "filter", "kind": "hp", "cutoff": 150}]))
-        nz.append(tr(f"nz{k}", noise, gain="-5dB",              # v12: louder noise, a stronger after-tone
-                     fx=[{"type": "filter", "kind": "notch", "cutoff": round(f * r, 1), "q": 1.5} for r in (0.9, 1.0, 1.1)]
+        # v14 (Harry: 'white-noise bursts sound less well evolved'): THE NOISE SINGS. Each break's noise rings through
+        # a comb tuned to a drone - D#2 still; E2 (the Phrygian bII: a hidden minor second under the F after-tone) SLIDING down to D#2 like a radio dial
+        # tuning in; B1 WAVERING, its pitch breathing; A#1, the dominant, held and never resolved -
+        # whose feedback rides auto.ring from ~2 to ~16 across the break, so the hiss turns into a chord as it goes.
+        # The notches stay: the drone sings its chord with the after-tone's band cut out, and the silence supplies it.
+        nz.append(tr(f"nz{k}", noise, gain="-5dB", auto={"ring": {"points": ring_lane()}},   # v12: louder noise
+                     lfo={"wb": {"wave": "sine", "rate": "2b"}},
+                     fx=[{"type": "filter", "kind": "comb", "cutoff": {"value": round(440 * 2 ** ((COMB[k] - 69) / 12), 2),
+                                                                     "mod": [{"src": "auto.ring", "amount": -1 / 12}] if k == 1 else
+                                                                            [{"src": "lfo.wb", "amount": 0.06}] if k == 2 else []},
+                          "q": {"value": 2, "mod": [{"src": "auto.ring", "amount": 14}]}}]
+                        + [{"type": "filter", "kind": "notch", "cutoff": round(f * r, 1), "q": 1.5} for r in (0.9, 1.0, 1.1)]
                         + [{"type": "filter", "kind": "lp", "cutoff": [9000, 6000, 12000, 4000][k]},
                            {"type": "filter", "kind": "hp", "cutoff": 120}]))
     song = {
