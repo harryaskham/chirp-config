@@ -211,11 +211,13 @@ def write():
             part("tick").add(b0(bar) + j / 4, 0.1, "h", 52 + hand.randint(-6, 6))
         for j in sw:
             part("swap").add(b0(bar) + j / 4 + 0.125, 0.15, "rs", 84 + hand.randint(-6, 6))
+        if (sec == "sorted" and chopped(bar) and not chopped(bar - 1)):
+            part("crash").add(b0(bar), 2.0, "cy", 84)                # v4: a crash where the sound gets sorted
         if (sw == [] and sec not in ("intro", "sorted", "outro")) or done:
             part("crash").add(b0(bar), 2.0, "cy", 80)
         # v2: THE HARMONY RESPONDS TO ORDER - a triad on the array's first value: a dark 312-cent third while it is
         # unsorted, the 390-cent major third the moment it is sorted
-        third = 5 if arr == sorted(arr) else 4
+        third = 5 if (arr == sorted(arr) or chopped(bar)) else 4       # v4: bright when the sound is sorted
         part("pad").add(b0(bar), BAR - 0.05, ",".join(pitch(arr[0] + s, BASE - 12) for s in (0, third, 9)),
                         78 if arr == sorted(arr) else 64)
         # v2: the outro holds a low E (E2) for its last eight bars - the note t5 begins on
@@ -242,12 +244,22 @@ def bubble_hold(arr):
         yield arr[:], [], [], []
 
 
+# v4: SORTING THE SOUND ITSELF - through bars 125-160 the lead plays one fixed shuffled bar, S; a chop fx replays the
+# previous bar's own slices in S's SORTED ORDER, so the very audio is sorted into a rising scale (each slice keeping the
+# pan it was played with: sorted in pitch, scattered in space). A lane alternates dry (the shuffle) and chopped (sorted).
+S = list(range(N))
+random.Random(125).shuffle(S)
+SORT_PATTERN = " ".join(str(k) for k in sorted(range(N), key=lambda k: S[k]))
+CHOPPED = [(129, 132), (137, 144), (149, 160)]
+
+
+def chopped(bar):
+    return any(a <= bar <= z for a, z in CHOPPED)
+
+
 def sorted_show():
-    up, down = list(range(N)), list(range(N))[::-1]
-    k = 0
     while True:
-        yield (up if (k // 8) % 2 == 0 else down)[:], [], [], [0]
-        k += 1
+        yield S[:], [], [], []
 
 
 def unsort(arr):
@@ -267,6 +279,14 @@ def lanes():
         if pts:
             pts.append([f"{b0(a) - 0.25:.2f}b", pts[-1][1]])
         pts.append([f"{b0(a):.2f}b", float(level[name])])
+    return pts
+
+
+def chop_lane():
+    pts = [["0b", 0.0]]
+    for a, z in CHOPPED:
+        pts += [[f"{b0(a) - 0.01:.2f}b", 0.0], [f"{b0(a):.2f}b", 1.0], [f"{b0(z + 1) - 0.01:.2f}b", 1.0],
+                [f"{b0(z + 1):.2f}b", 0.0]]
     return pts
 
 
@@ -299,13 +319,16 @@ def main():
         "volume": "0dB",
         "tracks": [
             tr("lead", lead_patch, gain="-8dB", sends={"dly": "-12dB"},
-               auto={"roll": {"points": roll_lane()}, "m": {"points": morph_lane()}},
-               fx=[{"type": "morph", "key": "tick", "mode": "morph",            # v3: the tune dissolves into the work
+               auto={"roll": {"points": roll_lane()}, "m": {"points": morph_lane()}, "ch": {"points": chop_lane()}},
+               fx=[{"type": "chop", "slices": N, "pattern": SORT_PATTERN,          # v4: the sound sorted
+                    "mix": {"value": 0, "mod": [{"src": "auto.ch", "amount": 1}]}},
+                   {"type": "morph", "key": "tick", "mode": "morph",            # v3: the tune dissolves into the work
                     "amount": {"value": 0, "mod": [{"src": "auto.m", "amount": 1}]}},
                    {"type": "stutter", "slice": "1/16", "repeats": 6, "roll": 0.6, "pitch": 0.5,
                     "chance": {"value": 0, "mod": [{"src": "auto.roll", "amount": 1}]}}]),
             tr("bass", "acid", gain="-7dB"),
-            tr("pad", "juno-pad", gain="-9dB", sends={"dly": "-14dB"}),                    # v2
+            tr("pad", "juno-pad", gain="-9dB", sends={"dly": "-14dB"},
+               fx=["duck by=kick depth=-6dB"]),                                           # v2; v4: ducked by the kick
             tr("hum", "808", gain="-10dB"),                                                # v2: into t5's E2
             tr("tick", "909", gain="-11dB", pan=0.2),
             tr("swap", "909", gain="-6dB", pan=-0.2, sends={"room": "-10dB"}),
