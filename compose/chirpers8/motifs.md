@@ -23,3 +23,4 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 ## t9 Period Doubling (chirper-two)
 - **THE MAP** (src/chirpers8-t9.py `build`): x <- r x (1-x) once a sixteenth; a note when x > 0.42, Bohlen-Pierce Lambda degree int((x-0.3)*16) above A3, velocity 58 + 50x. r by section: 2.9 (one note: a sequencer pulse), 3.2 (two), 3.5 (four, with a rest), 3.56 (eight), 3.7-3.82 (chaos), 3.835 (the PERIOD-THREE window: 0.152 0.495 0.959, three sixteenths across the 4/4), 3.95-4.0 (storm), 3.4-2.9 (back to one). Any part can be driven by it; r is a dial from order to chaos.
 - **BP CHORD**: 3:5:7 = BP steps 0 6 10 (on the glass pad).
+- **t7 THE POWER LIGHT** (v3): a warm drone on A1 (patch drone) from the first beat, swelling through power-on and sinking under the first epoch, returning under the coda and holding to the last beat - the machine is on before the search starts; tail 0.3 s.
