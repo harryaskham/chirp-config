@@ -72,6 +72,7 @@ ZWF = os.environ.get("C7T18_ZWF", "1") == "1"  # Harry's third steer #4 ('same i
 ZWB = []
 HUGF = os.environ.get("C7T18_HUGF", "1") == "1"  # Harry's third steer #4, the last bare noise: the Huggins wash becomes follow-noise in the glass pads' own colours - ONE source (a bus fed by the pads, mix 1) whose output goes to hugL and a send to hugR, so both ears still get the identical noise the ghost needs; it opens on the old wash phrases
 HUGW = []
+CODAV = os.environ.get("C7T18_CODAV", "1") == "1"  # the odyssey's last voice: in the coda (the kick gone, the falling chords in A minor, the tempo easing to 112) the speech panel's line comes back once more, sung - wM's tts 'the stair comes down' --humanize 0.5 --repeat 4 --melodize 1 --melody 'E3 C3 B2 A2' (chirpers7-t18-coda.json) on the coda's own falling stair, the last 'down' left on B, the open 2 - through the radio, tuned for three repetitions and drifting off the station during the fourth, so the tape's last voice is tuned away mid-word, and the static itself fades by coda bar 21 (the falling stair ends alone)
 COH = os.environ.get("C7T18_COH", "1") == "1"  # t17 v18's fix (measured 22:15): coherent Haas pairs - one source per pair, near ear direct and far ear through 18 ms, dry - so the turning panel's precedence cue exists (separate noise-kit tracks gave the ears different hits)
 COHB = {}
 ILV = float(os.environ.get("C7T18_ILV", "0"))  # every illusion track's level offset (dB)
@@ -471,6 +472,25 @@ def sung_track(gain):
             "sends": {"echo": "-6dB", "hall": "-12dB"}, "notes": notes}
 
 
+def coda_voice_track(gain):
+    """The coda's sung line, lifted from chirpers7-t18-coda.json, from coda bar 9; the last syllable on B (the open 2)."""
+    src = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "chirpers7-t18-coda.json")))["tracks"][0]
+    p0 = sec_start("coda") + 8 * BAR
+    off = p0 / 4
+    notes = [dict(n, at=round(n["at"] + off, 4)) for n in src["notes"]]
+    notes[-1] = dict(notes[-1], pitch="123.47hz", len=round(notes[-1]["len"] * 1.6, 3))
+    fv = [[f"{float(t[:-1]) + off:.3f}b", v] for t, v in src["auto"]["fv"]["points"]]
+    end = total_steps()
+    last_rep = p0 + int(round((src["notes"][-4]["at"]) * 4))
+    auto = {"fv": {"points": fv},
+            "dial": lane([(0, 0.03), (last_rep, 0.03), (last_rep + 2 * BAR, 0.8), (end, 1)], step=False),
+            "rmix": lane([(0, 0), (p0 - BAR - 1, 0), (p0 - BAR, 1), (last_rep + 2 * BAR, 1), (p0 + 12 * BAR, 0), (end, 0)], step=False)}
+    radio = {"type": "radio", "tune": {"value": 0, "mod": [{"src": "auto.dial", "amount": 1}]}, "hiss": "-40dB", "whistle": "-30dB",
+             "fade": 0.35, "drift": 0.04, "mix": {"value": 0, "mod": [{"src": "auto.rmix", "amount": 1}]}}
+    return {"name": "codav", "patch": src.get("patch", "voice-speech"), "gain": gain, "pan": -0.1,
+            "fx": [*src["fx"], radio], "auto": auto, "sends": {"echo": "-8dB", "hall": "-10dB"}, "notes": notes}
+
+
 def song():
     T, rspans, silent, srisset = build()
     st = {sec: sec_start(sec) for sec, _ in FORM}
@@ -617,6 +637,7 @@ def song():
             *([hspeech_track(ilv(-9 if RADIO else -6))] if HSPEECH else []),
             *([count_track(ilv(-13))] if HCOUNT else []),
             *([sung_track(ilv(-13))] if HSUNG else []),
+            *([coda_voice_track(ilv(-12))] if CODAV else []),
             {"name": "speech", "patch": "voice-speech", "gain": ilv(-9 if RADIO else -6), **({"fx": ["hp cutoff=450", "lp cutoff=2600"]} if RADIO else {}),
              "sends": {"echo": "-6dB" if RADIO else "-10dB", "hall": "-12dB"}, "score": T["speech"]},
             {"name": "tri", "patch": "tritone", "gain": ilv(-10), "pan": 0.2, "sends": {"hall": "-10dB"}, "score": T["tri"]},
