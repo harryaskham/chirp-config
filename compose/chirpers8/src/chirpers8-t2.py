@@ -30,12 +30,14 @@ BPM = 128
 CANON = os.environ.get("C8T2_CANON", "80")    # two processes running the same program: a second clarinet plays each path one bar behind, an octave down (chalumeau), in B and C; value = velocity scale %
 SUBOUT = os.environ.get("C8T2_SUBOUT", "4")  # the sine sub leaves for the outro's last bars (the analog bass stays) - the tail stops piling 38-44 Hz on t3's head; value = bars
 SPARSE = os.environ.get("C8T2_SPARSE", "b")  # 'i' / 'b' / 'ib' - space: no arps in the intro's first 8 bars (the clarinet alone, then the chip arrives) and none in the break (the pads and the sung 4-2-1 alone)
+PADLOW = os.environ.get("C8T2_PADLOW", "1")  # the choir an octave down (G2 B2 D3 ... the body 98-160 Hz the mix lacked) and humming from the first bar, softly, so t1's warm tail lands on it
+AIR = os.environ.get("C8T2_AIR", "")        # air over the sieve: a quiet dusty shaker on every sixteenth through B and C (the 7-11 kHz the hats leave); value = velocity
 ARP32 = os.environ.get("C8T2_ARP32", "")    # the drop's arps on 1/32 (as the plan always said): double-time chip arps through C
 BAR = 16
 SEED = 2
 FORM = [("intro", 16), ("A", 36), ("B", 24), ("break", 16), ("C", 56), ("outro", 16)]
 SEEDS = {"intro": [6, 6], "A": [7, 12, 3, 7], "B": [9, 18, 11], "C": [27, 31, 27, 41], "outro": [1]}
-TRACKS = ("clar", "clar2", "arp", "bass", "sub", "kick", "hats", "clap", "pad")
+TRACKS = ("clar", "clar2", "arp", "bass", "sub", "kick", "shk", "hats", "clap", "pad")
 GMAJ = ["G", "A", "B", "C", "D", "E", "F#"]
 CHORDS = [("G", [0, 2, 4]), ("E", [5, 7, 9]), ("C", [3, 5, 7]), ("D", [4, 6, 8])]   # I vi IV V as degrees from G
 PRIMES = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31)
@@ -137,8 +139,12 @@ def build():
                     add("bass", at + q, f"{root}2", ln, v)
                 for q, ln in (((0, 3), (6, 2), (10, 3)) if not (SUBOUT and sec == "outro" and b >= nb - int(SUBOUT)) else ()):
                     add("sub", at + q, f"{root}1" if root in ("A", "B", "C", "D", "E") else f"{root}1", ln, 100)
-            if sec in ("A", "break", "C") and b % 4 == 0:
-                add("pad", at, ",".join(deg_note(d) for d in degs), 4 * BAR, 70)
+            if (sec in ("A", "break", "C") or (PADLOW and sec == "intro")) and b % 4 == 0:
+                add("pad", at, ",".join(deg_note(d - 7 if PADLOW else d, 2 if False else 3) for d in degs) if not PADLOW else ",".join(deg_note(d, 2) for d in degs),
+                    4 * BAR, (54 + 4 * (b // 4) if sec == "intro" else 70))
+            if AIR and sec in ("B", "C"):
+                for q in range(16):
+                    add("shk", at + q, "sh", 1, int(AIR) + (14 if q % 2 else 0) - (8 if q % 4 == 0 else 0))
     return {k: stream(ev[k], total()) for k in TRACKS}
 
 
@@ -187,6 +193,7 @@ def song():
             {"name": "bass", "patch": "analog-bass", "gain": "-8dB", "pan": -0.05, "score": T["bass"]},
             {"name": "sub", "patch": "sub-sine", "gain": "-10dB", "score": T["sub"]},
             {"name": "kick", "patch": "machine-kit", "gain": "-4dB", "score": T["kick"]},
+            *([{"name": "shk", "patch": "dusty-kit", "gain": "-13dB", "pan": 0.3, "fx": [{"type": "filter", "kind": "hp", "cutoff": 4000, "q": 0.7}], "score": T["shk"]}] if AIR else []),
             {"name": "hats", "patch": "machine-kit", "gain": "-7dB", "pan": 0.15, "score": T["hats"]},
             {"name": "clap", "patch": "machine-kit", "gain": "-9dB", "sends": {"plate": "-10dB"}, "score": T["clap"]},
             {"name": "pad", "patch": "dream-vox", "gain": "-13dB", "sends": {"plate": "-8dB"}, "score": T["pad"]},
