@@ -62,6 +62,8 @@ RADIO = os.environ.get("C7T18_RADIO", "1") == "1"  # Harry's third steer (1 Nov 
 GAPS = []
 ZWX = os.environ.get("C7T18_ZWX", "r")  # Harry's third steer ('white-noise bursts ... less well evolved'): the Zwicker swell evolved - "r" the radio band itself (shortwave: static and whistles, the continuity panel's radio) through the same notches; "b" the broadband noise breathing (a low-pass swaying 3-9 kHz once a bar) - either way the silence after it still sings the notch's note
 HSPEECH = os.environ.get("C7T18_HSPEECH", "1") == "1"  # Harry's third steer ('robotic vox not subtle enough or illusory enough') with wM's voice engine (5d1e89c1): the speech panel's line is now a HUMAN voice turning into song for real - `chirp tts "the stair comes down" --humanize 0.6 --repeat 7 --melodize 0,0,0.2,0.45,0.7,0.9,1 --melody "A3 F3 E3 D3" --key D3 --bpm 120 --seed 7` (pitch moving inside syllables, drift, loosened onsets, wandering formants; the repetitions quantising onto the stair until it is sung), lifted from chirpers7-t18-speech.json, through the radio band
+FNOISE = os.environ.get("C7T18_FNOISE", "1") == "1"  # wM's follow-noise (ce4d6815) in place of the shortwave track: the continuity line's own gaps filled with noise in its own colours (follow 1.5 s, hold 0.5 s, tone 0.6, on a gap lane) - chirper-two's dial recipe
+DIAL = os.environ.get("C7T18_DIAL", "1") == "1"  # wM's radio fx on the human speech panel: the dial starts off the station (static), glides in over the first bar (the heterodyne whistle falling), sits within 0.03 of the station while the voice speaks and sings, and drifts off over the last bar; the radio's mix only on in the panel
 COH = os.environ.get("C7T18_COH", "1") == "1"  # t17 v18's fix (measured 22:15): coherent Haas pairs - one source per pair, near ear direct and far ear through 18 ms, dry - so the turning panel's precedence cue exists (separate noise-kit tracks gave the ears different hits)
 COHB = {}
 ILV = float(os.environ.get("C7T18_ILV", "0"))  # every illusion track's level offset (dB)
@@ -346,7 +348,7 @@ def build():
                         add("octR", at + q, nm(n + (0 if hi_left else 12)), 2, 80 * lv)
             if "continuity" in act:   # t8: a line sung on through bursts of static
                 n = STAIR_D[(b // 2) % 4] + 12
-                if RADIO and b == 0:
+                if RADIO and not FNOISE and b == 0:
                     add("radio", at, "C4", nb * BAR, 100)
                 for q0, q1 in ((0, 6), (8, 14)):
                     add("cont", at + q0, nm(n), q1 - q0, 82 * lv)
@@ -407,9 +409,18 @@ def hspeech_track(gain):
     off = (sec_start(sec) + BAR) / 4   # beats
     notes = [dict(n, at=round(n["at"] + off, 4)) for n in src["notes"]]
     fv = [[f"{float(t[:-1]) + off:.3f}b", v] for t, v in src["auto"]["fv"]["points"]]
+    auto = {"fv": {"points": fv}}
+    if DIAL:
+        p0, end = sec_start(sec), total_steps()
+        auto["dial"] = lane([(0, 1), (p0, 1), (p0 + BAR, 0.1), (p0 + 2 * BAR, 0.03), (p0 + 15 * BAR, 0.03), (p0 + 16 * BAR, 0.7), (end, 1)], step=False)
+        auto["rmix"] = lane([(0, 0), (p0 - 1, 0), (p0, 1), (p0 + 16 * BAR, 1), (p0 + 16 * BAR + 2, 0), (end, 0)], step=False)
+        radio = [{"type": "radio", "tune": {"value": 0, "mod": [{"src": "auto.dial", "amount": 1}]}, "hiss": "-40dB", "whistle": "-30dB",
+                  "fade": 0.35, "drift": 0.04, "mix": {"value": 0, "mod": [{"src": "auto.rmix", "amount": 1}]}}]
+    else:
+        radio = ["hp cutoff=450", "lp cutoff=2600"] if RADIO else []
     return {"name": "speechh", "patch": src.get("patch", "voice-speech"), "gain": gain,
-            "fx": [*src["fx"], *(["hp cutoff=450", "lp cutoff=2600"] if RADIO else [])],
-            "auto": {"fv": {"points": fv}}, "sends": {"echo": "-6dB" if RADIO else "-10dB", "hall": "-12dB"}, "notes": notes}
+            "fx": [*src["fx"], *radio],
+            "auto": auto, "sends": {"echo": "-6dB" if RADIO else "-10dB", "hall": "-12dB"}, "notes": notes}
 
 
 def song():
@@ -570,11 +581,13 @@ def song():
                "sends": {"echo": "-10dB", "hall": "-12dB"},
                "score": "D4/0.25b F4/0.25b A4/0.25b D5/0.25b A4/0.25b F4/0.25b E4/0.25b A4/0.25b D4/0.25b F4/0.25b A4/0.25b C5/0.25b A4/0.25b F4/0.25b E4/0.25b A4/0.25b"}
               for a, nb in srisset],
-            {"name": "cont", "patch": "pad-glass", "gain": ilv(-6), "pan": 0.15, "sends": {"hall": "-10dB"}, "score": T["cont"]},
+            {"name": "cont", "patch": "pad-glass", "gain": ilv(-6), "pan": 0.15, "sends": {"hall": "-10dB"}, "score": T["cont"],
+             **({"fx": [{"type": "follow-noise", "follow": "1.5s", "hold": "0.5s", "tone": 0.6, "level": "4dB",
+                         "mix": {"value": 0, "mod": [{"src": "auto.gap", "amount": 1}]}}], "auto": {"gap": rgap_lane}} if (FNOISE and RADIO) else {})},
             {"name": "burst", "patch": "static", "gain": ilv(-14), "score": T["burst"]},
             *([{"name": "radio", "patch": "shortwave", "gain": ilv(-14), "pan": -0.1,
                 "fx": [{"type": "gain", "gain": {"value": "-18dB", "mod": [{"src": "auto.rgap", "amount": 18}]}}],
-                "auto": {"rgap": rgap_lane}, "score": T["radio"]}] if RADIO else []),
+                "auto": {"rgap": rgap_lane}, "score": T["radio"]}] if (RADIO and not FNOISE) else []),
             {"name": "zw", "patch": "shortwave" if ZWX == "r" else "zwick", "gain": ilv(-12 + (4 if ZWX == "r" else 0)),
              **({"lfo": {"br": "sine rate=1/1"}} if ZWX == "b" else {}), "fx": [
                 *([{"type": "filter", "kind": "lp", "cutoff": {"value": 5200, "mod": [{"src": "lfo.br", "amount": 0.8}]}, "q": 0.9}] if ZWX == "b" else []),
