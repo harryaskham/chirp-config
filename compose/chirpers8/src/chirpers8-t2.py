@@ -27,11 +27,15 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(HERE)))
 OUT = os.environ.get("C8T2_OUT") or os.path.join(ROOT, "songs", "chirpers8-t2.yaml")
 
 BPM = 128
+CANON = os.environ.get("C8T2_CANON", "80")    # two processes running the same program: a second clarinet plays each path one bar behind, an octave down (chalumeau), in B and C; value = velocity scale %
+SUBOUT = os.environ.get("C8T2_SUBOUT", "4")  # the sine sub leaves for the outro's last bars (the analog bass stays) - the tail stops piling 38-44 Hz on t3's head; value = bars
+SPARSE = os.environ.get("C8T2_SPARSE", "b")  # 'i' / 'b' / 'ib' - space: no arps in the intro's first 8 bars (the clarinet alone, then the chip arrives) and none in the break (the pads and the sung 4-2-1 alone)
+ARP32 = os.environ.get("C8T2_ARP32", "")    # the drop's arps on 1/32 (as the plan always said): double-time chip arps through C
 BAR = 16
 SEED = 2
 FORM = [("intro", 16), ("A", 36), ("B", 24), ("break", 16), ("C", 56), ("outro", 16)]
 SEEDS = {"intro": [6, 6], "A": [7, 12, 3, 7], "B": [9, 18, 11], "C": [27, 31, 27, 41], "outro": [1]}
-TRACKS = ("clar", "arp", "bass", "sub", "kick", "hats", "clap", "pad")
+TRACKS = ("clar", "clar2", "arp", "bass", "sub", "kick", "hats", "clap", "pad")
 GMAJ = ["G", "A", "B", "C", "D", "E", "F#"]
 CHORDS = [("G", [0, 2, 4]), ("E", [5, 7, 9]), ("C", [3, 5, 7]), ("D", [4, 6, 8])]   # I vi IV V as degrees from G
 PRIMES = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31)
@@ -96,6 +100,9 @@ def build():
                 last = i == len(path) - 1
                 d = height(n) + (7 if up else 0)
                 add("clar", at, deg_note(d), 4 if last else 2, 100 if n % 2 else 82)
+                if CANON and sec in ("B", "C") and at + BAR < end:
+                    add("clar2", at + BAR, deg_note(max(d - 7, 0)) if d >= 7 else deg_note(d), 4 if last else 2,
+                        int((100 if n % 2 else 82) * int(CANON) / 100))
             ln = 2 * len(path) + 4
             t += -(-ln // BAR) * BAR + (BAR if sec in ("intro", "outro") else 0)
             k += 1
@@ -106,11 +113,12 @@ def build():
             root, degs = CHORDS[(b // 2) % 4]
             # --- chip arps: chord tones up two octaves, 1/16 (1/32 in the drop)
             fade = 1.0   # the outro keeps the band to the last beat and bleeds into t3 (a fade read as a 40 dB drop against t3's head)
-            if (sec != "break" or b >= 8) and fade > 0.05:
-                step = 1
+            if (sec != "break" or (b >= 8 and not (SPARSE and "b" in SPARSE))) and not (SPARSE and "i" in SPARSE and sec == "intro" and b < 8) and fade > 0.05:
+                step = 0.5 if ARP32 and sec == "C" else 1
                 notes = [deg_note(d) for d in degs] + [deg_note(d + 7) for d in degs]
-                for q in range(0, 16, step):
-                    add("arp", at + q, notes[q % len(notes)], step, int((70 if q % 4 else 84) * fade))
+                for i in range(int(16 / step)):
+                    q = i * step
+                    add("arp", at + q, notes[i % len(notes)], step, int((70 if q % 4 else 84) * fade * (0.85 if step < 1 else 1)))
             groove = sec in ("A", "B", "C", "outro")
             if groove:
                 for q in (0, 4, 8, 12):
@@ -127,7 +135,7 @@ def build():
                         add("hats", at + q, "h", 1, 70)
                 for q, ln, v in ((0, 2, 100), (3, 1, 76), (6, 2, 92), (10, 2, 96), (14, 1, 80)):   # the body: an analog bass on the root, octave 2
                     add("bass", at + q, f"{root}2", ln, v)
-                for q, ln in ((0, 3), (6, 2), (10, 3)):
+                for q, ln in (((0, 3), (6, 2), (10, 3)) if not (SUBOUT and sec == "outro" and b >= nb - int(SUBOUT)) else ()):
                     add("sub", at + q, f"{root}1" if root in ("A", "B", "C", "D", "E") else f"{root}1", ln, 100)
             if sec in ("A", "break", "C") and b % 4 == 0:
                 add("pad", at, ",".join(deg_note(d) for d in degs), 4 * BAR, 70)
@@ -174,6 +182,7 @@ def song():
         },
         "tracks": [
             {"name": "clar", "patch": "clarinet", "gain": "-6dB", "pan": -0.05, "sends": {"plate": "-10dB", "echo": "-16dB"}, "score": T["clar"]},
+            *([{"name": "clar2", "patch": "clarinet", "gain": "-9dB", "pan": 0.35, "sends": {"plate": "-12dB"}, "score": T["clar2"]}] if CANON else []),
             {"name": "arp", "patch": "chip-lead", "gain": "-21dB", "pan": 0.25, "sends": {"echo": "-12dB"}, "score": T["arp"]},
             {"name": "bass", "patch": "analog-bass", "gain": "-8dB", "pan": -0.05, "score": T["bass"]},
             {"name": "sub", "patch": "sub-sine", "gain": "-10dB", "score": T["sub"]},
