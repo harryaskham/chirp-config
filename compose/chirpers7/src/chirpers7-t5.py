@@ -108,10 +108,25 @@ def gap_at(bar):
     return None
 
 
+# v18 (Harry's third steer: 'formulaic'): THE DROP'S HARMONY SHAPED, not blocked. It was four chords of eight bars each
+# (Bm9 Cmaj7#11 Gmaj7 F#7b9). Now: Bm9 for the triplet entrance (97-104); the harmonic rhythm ACCELERATES - spans of
+# 5 4 4 3 3 2 2 1 bars (C G E F# B C G F#) - into the second pass; then DECELERATES - 1 1 2 2 3 3 4 (B C B G E C F#) -
+# as the stair climbs down, ending on F#7b9 held four bars, resolved only by the outro. E is new: E9, the Dorian IV.
+_C, _G, _E, _F = B2 + 1, B2 - 4, B2 - 7, B2 - 5
+DROP_ROOT = {b: B2 for b in range(97, 105)}
+_bar = 105
+for _r, _n in ((_C, 5), (_G, 4), (_E, 4), (_F, 3), (B2, 3), (_C, 2), (_G, 2), (_F, 1),
+               (B2, 1), (_C, 1), (B2, 2), (_G, 2), (_E, 3), (_C, 3), (_F, 4)):
+    for _k in range(_n):
+        DROP_ROOT[_bar] = _r
+        _bar += 1
+assert _bar == 145
+
+
 def root_at(bar):
     """The low note: B through the first half; in the drop it walks B G E F# (eight bars each)."""
     if sec_of(bar) == "drop":
-        return [B2, B2 + 1, B2 - 4, B2 - 5][((bar - 97) // 8) % 4]   # v12, darker: Bm9 | Cmaj7#11 (bII) | Gmaj7 | F#7b9
+        return DROP_ROOT.get(bar, B2)          # v18: the drop's harmonic rhythm accelerates, then decelerates
     if 56 <= bar <= 60:
         return B2 - 4                     # v17: the floor moves - G (bVI), then C (the Phrygian bII), then home
     if 61 <= bar <= 65:
@@ -236,7 +251,8 @@ def harmony():
             r = root_at(bar) + 12
             pc = (r - B2) % 12                                            # v12: voiced per root
             v = {0: [r, r + 3, r + 7, r + 10, r + 14], 1: [r, r + 4, r + 7, r + 11, r + 18],
-                 8: [r, r + 4, r + 7, r + 11, r + 14]}.get(pc, [r, r + 4, r + 7, r + 10, r + 13])
+                 8: [r, r + 4, r + 7, r + 11, r + 14],
+                 5: [r, r + 4, r + 7, r + 10, r + 14]}.get(pc, [r, r + 4, r + 7, r + 10, r + 13])   # v18: E9, Dorian IV
             for b in ((0.75, 2.75) if bar >= 129 and sec == "drop" else (1.5, 3.5)):   # v10: the 'a's
                 trk = "stabup" if 97 <= bar <= 128 else ("stabdn" if 129 <= bar <= 144 else "stab")   # v13
                 part(trk).add(b0(bar) + b, 0.22, ",".join(nm(m) for m in v), 82)
