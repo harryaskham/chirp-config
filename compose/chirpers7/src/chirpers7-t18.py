@@ -86,7 +86,10 @@ INTER = [("phantom", "stream", "decel"), ("pole", "tritone", "speech"), ("shepar
          ("accel", "decel", "flip", "turn")]
 ALL = ("shepard", "pole", "speech", "tritone", "stream", "phantom", "octave", "continuity", "huggins", "accel", "scale",
        "turn", "decel")
-FORM = [("descent", 32)] + [(f"g{i}", 16) for i in range(len(GALLERY))] + [(f"i{i}", 16) for i in range(len(INTER))] + \
+GLEN = os.environ.get("C7T18_GLEN", "1") == "1"  # Harry's third steer ('4, 8, 16 bars all over the place ... formulaic'): the gallery's fifteen panels no longer all 16 bars - each its own length (10-20) by what its illusion needs: the speech, the beat flip and Huggins keep 16 (their teaching spans), the streaming and the turning room get room to develop, the quick tricks are short
+GLENS = {"shepard": 18, "pole": 12, "speech": 16, "tritone": 10, "stream": 20, "phantom": 12, "octave": 14, "continuity": 12, "flip": 16,
+         "zwicker": 12, "huggins": 16, "accel": 10, "scale": 14, "turn": 18, "decel": 12}
+FORM = [("descent", 32)] + [(f"g{i}", GLENS.get(GALLERY[i], 16) if GLEN else 16) for i in range(len(GALLERY))] + [(f"i{i}", 16) for i in range(len(INTER))] + \
        [("all", 32), ("coda", 32)]
 
 # chord worlds (sub root, voicing): darker than a loop of plain minor triads
