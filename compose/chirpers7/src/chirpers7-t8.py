@@ -62,6 +62,20 @@ R7 = os.environ.get("T8_R7", "seasick")
 # radio dies (the tape-stop's first beat), then a second over the drop, stopping dead on the cleared peak.
 # T8_R8=none reproduces v7.
 R8 = os.environ.get("T8_R8", "riser")
+# T8_R9 = radio (v9, Harry's third steer, 1 Nov: no bare noise bursts, no exposed robotic voice, no 4/8/16 formula).
+# - THE RADIO: the white-noise bursts become a living shortwave band (the `shortwave` patch: band-limited static,
+#   heterodyne whistles sweeping, a little crush) running from the first bar, 18 dB down, and swelling over each gap
+#   to the choir's level, so the continuity illusion now hides the voice inside a radio being tuned.
+# - THE VOICE: the solo voice becomes a choir (four synthesised singers, ooh/aah) heard through the radio's band
+#   (hp 450, lp 2.6 kHz), opening to full range over the drop as the static clears.
+# - THE FORMULA BROKEN: chords last 10, 6, 7 and 5 bars (C#m11 | Amaj7#11 | F#m9 | G#7b9), the choir's two notes per
+#   chord follow them; A1 14 bars, A2 26, B2 28. (6-4-5-3 spans tried first: a boundary at every change, 20 sections.)
+# - A NEW SECTION, TUNING (6 bars) before the break: the radio swells and a theremin plays the stair as a
+#   Shepard-Risset spiral (risset pitch: true), the dial turning up through the stations, the organ holding.
+# T8_R9=none reproduces v8.
+R9 = os.environ.get("T8_R9", "radio")
+SPANS = [int(x) for x in os.environ.get("T8_SPANS", "10,6,7,5").split(",")]  # v9: bars per chord, from each section's start
+SPIRAL = "C#5/0.5b@80 D#5/0.5b@70 E5/0.5b@74 G#5/0.5b@72"
 
 OUT = os.environ.get("T8_OUT") or os.path.expanduser("~/.config/chirp/songs/chirpers7-t8.yaml")
 NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"]
@@ -102,6 +116,19 @@ class Track:
 
 FORM = ([("in", 16), ("A1", 16), ("A2", 28), ("break", 16), ("drop2", 4), ("B2", 30), ("out", 16)] if R3 == "longer"
         else [("in", 16), ("A1", 16), ("A2", 20), ("break", 16), ("B1", 8), ("drop2", 4), ("B2", 26), ("out", 16)])
+if R9 == "radio":
+    FORM = [("in", 16), ("A1", 14), ("A2", 26), ("tuning", 6), ("break", 16), ("drop2", 4), ("B2", 28), ("out", 16)]
+
+
+def span_at(i):
+    """v9: (chord index, span start bar, span length) for bar I of a section: spans of 6, 4, 5, 3 bars, cycling."""
+    j, k = 0, 0
+    while True:
+        s = SPANS[k % 4]
+        if i < j + s:
+            return k % 4, j, s
+        j += s
+        k += 1
 PROG = [(37, [56, 61, 64, 68, 75]),   # C#m9: G#3 C#4 E4 G#4 D#5
         (33, [56, 61, 64, 68]),       # Amaj7: G#3 C#4 E4 G#4 (over A)
         (40, [56, 61, 64, 68]),       # E6: G#3 C#4 E4 G#4 (over E)
@@ -122,7 +149,7 @@ BASS = [(0.0, 0.4), (0.75, 0.2), (1.5, 0.25), (2.5, 0.4), (3.25, 0.25)]
 def build():
     rng = random.Random(8)
     T = {k: Track(k) for k in ("kickin", "kick", "hats", "clap", "rim", "bass", "organ", "voice", "static", "rise", "tamb",
-                               "organseam", "riser")}
+                               "organseam", "riser", "radio", "spiral")}
     seamgaps = []  # v6: where the seam organ drops out under static
     gaps = []  # (start beat, length beats): where the voice is cut and the static bursts
     bars, pos = [], 0.0
@@ -135,12 +162,16 @@ def build():
         core = sec in ("A1", "A2", "B1", "B2")
         full = sec in ("A2", "B1", "B2")
         root, chord = PROG[(i // 8) % 4]  # eight bars a chord: long gospel spans
+        if R9 == "radio":
+            ck, cj, cs = span_at(i)
+            root, chord = PROG[ck]
+        groove = core or sec in ("in", "out") or (R9 == "radio" and sec == "tuning")
         # ---- kicks: thin under t7's tail (a bass swap), then the rumble kick ----
-        if core or sec in ("in", "out"):
+        if groove:
             for b in range(4):
                 (T["kickin"] if sec == "in" else T["kick"]).add(start + b, 1.0, "k" if sec == "in" else "kr",
                                                                (96 if sec == "in" else 112) - (0 if b == 0 else 8))
-        if core or sec in ("in", "out"):
+        if groove:
             for b in (0.5, 1.5, 2.5, 3.5):
                 T["hats"].add(start + b + 0.01, 0.35, "oh", 64)
         if full:
@@ -165,19 +196,35 @@ def build():
             so.add(start, 15.8, "C#3,E3,G#3,C#4,G#4", 70)
         elif sec in ("break",) and i % 4 == 0:
             T["organ"].add(start, 15.8, ",".join(nm(x) for x in chord), 72)
+        elif sec == "tuning" and i == 0:  # v9: the organ holds while the dial turns
+            T["organ"].add(start, n * 4 - 0.2, ",".join(nm(x) for x in chord), 70)
         elif core or sec in ("drop1", "drop2"):
             for b in (0.0, 2.5):  # (v4: shorter, so the static has room between the chords)
                 ln = (1.2 if b == 0 else 0.85) if R4 == "between" else (1.4 if b == 0 else 1.3)
                 T["organ"].add(start + b + 0.02, ln, ",".join(nm(x) for x in chord), 76)
         if R6 == "dark" and ((sec == "in" and i >= 8) or (sec == "out" and i < 12)):
             seamgaps.append((start + 1.5, 0.25))
-            T["static"].add(start + 1.46, 0.33, "C5", 90 + rng.randint(-6, 6))
+            if R9 != "radio":
+                T["static"].add(start + 1.46, 0.33, "C5", 90 + rng.randint(-6, 6))
+            else:
+                rng.randint(-6, 6)
+        if R9 == "radio":  # the radio band: one long note per stretch where the signal is unsteady
+            if sec in ("in", "A1", "A2", "tuning", "break", "out") and i == 0:
+                ln = (n - i) * 4 if sec != "out" else 48
+                T["radio"].add(start, ln - 0.05, "C#4", 80)
         if R6 == "dark" and R8 == "riser" and sec == "break" and i == 8:
             T["riser"].add(start, 30.0, "C#4", 80)  # stops dead as the radio dies
         elif R6 == "dark" and R8 != "riser" and ((sec == "break" and i == 8) or (sec == "drop2" and i == 0)):
             T["riser"].add(start, 31.8 if sec == "break" else 15.8, "C#4,G#4", 84)
         # ---- the voice: a phrase per four bars; the gaps by section ----
-        if (core or sec == "break") and i % 8 == 0:
+        if R9 == "radio":
+            if (core or sec == "break") and i == cj:  # the choir: two notes per chord span, through the radio
+                t = start
+                for m, d, vow in VOICE[ck]:
+                    ln = cs * 2.0
+                    T["voice"].add(t, ln * 0.98, nm(m), 86, {"^o": "^ooh", "^e": ""}.get(vow, vow))
+                    t += ln
+        elif (core or sec == "break") and i % 8 == 0:
             t = start
             for m, d, vow in VOICE[(i // 8) % 4]:  # each phrase at half speed: eight bars, longer notes to sing through
                 T["voice"].add(t, d * 2 * 0.98, nm(m), 86, vow)
@@ -194,7 +241,10 @@ def build():
             if R4 == "between":
                 g0 = start + b
                 gaps.append((g0, 0.25))
-                T["static"].add(g0 - 0.04, 0.33, "C5", 96 + rng.randint(-6, 6))  # covers both edges
+                if R9 != "radio":
+                    T["static"].add(g0 - 0.04, 0.33, "C5", 96 + rng.randint(-6, 6))  # covers both edges
+                else:
+                    rng.randint(-6, 6)
             else:
                 g0 = start + b + 0.5 if sec != "break" else start + b
                 gaps.append((g0, 0.25))
@@ -242,6 +292,15 @@ def main():
         e = 0.04 if R4 == "between" else 0.012  # the voice's dip: ~20 ms like a fading radio (v4), 6 ms before
         gate += [[f"{g0 - e:.4f}b", 0.0], [f"{g0:.4f}b", 1.0], [f"{g0 + gl - e:.4f}b", 1.0], [f"{g0 + gl:.4f}b", 0.0]]
     gate.append([f"{total}b", 0.0])
+    allgaps = sorted(gaps + seamgaps)  # v9: the radio swells over every gap
+    rgate = [["0b", 0.0]]
+    for g0, gl in allgaps:
+        rgate += [[f"{g0 - 0.06:.4f}b", 0.0], [f"{g0 - 0.02:.4f}b", 1.0], [f"{g0 + gl:.4f}b", 1.0], [f"{g0 + gl + 0.04:.4f}b", 0.0]]
+    rgate.append([f"{total}b", 0.0])
+    if R9 == "radio":
+        tune = [["0b", 0.0], [f"{st['tuning'] - 0.01}b", 0.0], [f"{st['tuning'] + 8}b", 1.0], [f"{st['break'] - 4}b", 1.0],
+                [f"{st['break']}b", 0.0], [f"{total}b", 0.0]]
+        opening = [["0b", 0.0], [f"{st['drop2']}b", 0.0], [f"{st['B2']}b", 1.0], [f"{total}b", 1.0]]
     sgate = [["0b", 0.0]]
     for g0, gl in seamgaps:
         sgate += [[f"{g0 - 0.04:.4f}b", 0.0], [f"{g0:.4f}b", 1.0], [f"{g0 + gl - 0.04:.4f}b", 1.0], [f"{g0 + gl:.4f}b", 0.0]]
@@ -279,12 +338,26 @@ def main():
             "gain": "-12dB" if R8 == "riser" else "-13dB",
             "fx": [] if R8 == "riser" else ["hp cutoff=250", "width width=1.4"],
             "score": T["riser"].score(total)}] if R6 == "dark" else []),
-        {"name": "voice", "patch": "voice", "gain": "-6dB", "pan": 0.05,
-         "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.gap", "amount": -60}]}},
-                "hp cutoff=200", "reverb kind=hall decay=2.4s mix=0.25"],
-         "auto": {"gap": {"points": gate}}, "score": T["voice"].score(total)},
-        {"name": "static", "patch": "c2-static-burst", "gain": "-8dB", "pan": 0.05,
-         "fx": [{"type": "crush", "bits": 9, "rate": 14000, "mix": 0.4}], "score": T["static"].score(total)},
+        ({"name": "voice", "patch": "voice", "gain": "-6dB", "pan": 0.05,
+          "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.gap", "amount": -60}]}},
+                 "hp cutoff=200", "reverb kind=hall decay=2.4s mix=0.25"],
+          "auto": {"gap": {"points": gate}}, "score": T["voice"].score(total)} if R9 != "radio" else
+         {"name": "voice", "patch": "choir", "gain": os.environ.get("T8_CHOIR_GAIN", "7dB"), "pan": 0.05,
+          "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.gap", "amount": -60}]}},
+                 {"type": "filter", "kind": "hp", "q": 0.8, "cutoff": {"value": 450, "mod": [{"src": "auto.open", "amount": -2.2}]}},
+                 {"type": "filter", "kind": "lp", "q": 0.8, "cutoff": {"value": 2600, "mod": [{"src": "auto.open", "amount": 2.2}]}}],
+          "auto": {"gap": {"points": gate}, "open": {"points": opening}}, "score": T["voice"].score(total)}),
+        *([{"name": "radio", "patch": "shortwave", "gain": os.environ.get("T8_RADIO_GAIN", "18dB"), "pan": 0.05,
+            "fx": [{"type": "gain", "gain": {"value": "-18dB", "mod": [{"src": "auto.rgap", "amount": 18},
+                                                                       {"src": "auto.tune", "amount": 14}]}}],
+            "auto": {"rgap": {"points": rgate}, "tune": {"points": tune}}, "score": T["radio"].score(total)},
+           {"name": "spiral", "patch": "theremin", "gain": "-14dB", "pan": -0.2, "at": f"{st['tuning']:g}b",
+            "risset": {"cycle": "3bar", "layers": 3, "length": "6bar", "pitch": True},
+            "fx": ["hp cutoff=300", {"type": "delay", "time": "3/16", "feedback": 0.35, "mix": 0.25, "tone": 3000},
+                   "reverb kind=hall decay=2.5s mix=0.3"], "score": SPIRAL}] if R9 == "radio" else []),
+        *([{"name": "static", "patch": "c2-static-burst", "gain": "-8dB", "pan": 0.05,
+            "fx": [{"type": "crush", "bits": 9, "rate": 14000, "mix": 0.4}], "score": T["static"].score(total)}]
+          if R9 != "radio" else []),
         ({"name": "rise", "patch": "fx-riser-endless amp.a=16b", "gain": "-12dB", "score": T["rise"].score(total)}
          if R8 == "riser" else
          {"name": "rise", "patch": "c2-rise", "gain": "-20dB", "fx": ["width width=1.5"], "score": T["rise"].score(total)}),
