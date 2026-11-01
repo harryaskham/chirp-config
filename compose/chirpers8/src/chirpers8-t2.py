@@ -35,6 +35,9 @@ AIR = os.environ.get("C8T2_AIR", "")        # air over the sieve: a quiet dusty 
 SING = os.environ.get("C8T2_SING", "-13")      # a SUNG line (wM's tts --sing, b4151423): 'high as the cloud, and then home' on D4 E4 F#4 G4 | B3 A3 G3 - the climb, then the hook - as the 27 path falls home in the drop (C bars 13 and 41); value = gain dB
 JI = os.environ.get("C8T2_JI", "1")          # everything falls to ONE, the simplest ratio: from the break the song's tuning ramps over eight bars into 5-limit just G major (I, IV and V become 4:5:6, vi 10:12:15) - the numbers settle into small whole ones
 EQ8 = os.environ.get("C8T2_EQ8", "1")   # the master toward the album's envelope: 6.7-10.8 kHz sat 8-12 dB under it and 400 Hz / 1.4 kHz 7 dB over - a +5 dB air shelf at 7 kHz (was +1.5), -2.5 dB at 400 Hz, -2 dB at 1.4 kHz
+HEADG = os.environ.get("C8T2_HEADG", "4")   # the record handed over in G: t1 ends on Gmaj9 over a G1 sub, so this one starts on the same low G (the sine sub, held, fading by steps) under the first HEADG bars - one G across the seam
+HEADGV = int(os.environ.get("C8T2_HEADGV", "76"))   # the held G's first velocity
+KICKOUT = os.environ.get("C8T2_KICKOUT", "2")  # the kick leaves for the outro's last KICKOUT bars (the band plays on into t3's mallets, whose head has no 38-44 Hz)
 ARP32 = os.environ.get("C8T2_ARP32", "")    # the drop's arps on 1/32 (as the plan always said): double-time chip arps through C
 BAR = 16
 SEED = 2
@@ -124,9 +127,11 @@ def build():
                 for i in range(int(16 / step)):
                     q = i * step
                     add("arp", at + q, notes[i % len(notes)], step, int((70 if q % 4 else 84) * fade * (0.85 if step < 1 else 1)))
+            if HEADG and sec == "intro" and b < int(HEADG) and b % 2 == 0:
+                add("sub", at, "G1", 2 * BAR, HEADGV - 8 * (b // 2))
             groove = sec in ("A", "B", "C", "outro")
             if groove:
-                for q in (0, 4, 8, 12):
+                for q in ((0, 4, 8, 12) if not (KICKOUT and sec == "outro" and b >= nb - int(KICKOUT)) else ()):
                     add("kick", at + q, "k", 1, 116 if q == 0 else 106)
                 if sec in ("B", "C"):
                     for q in range(16):   # the sieve: the prime steps of each 32
