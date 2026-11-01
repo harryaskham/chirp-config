@@ -44,7 +44,8 @@ KICKLESS = [(41, 44), (57, 58), (73, 88), (105, 106)]
 # the downbeat moves continuously; re-locked at bar 129, long before the seam
 SLIDE = [{"over": "112bar", "to": 0}, {"over": "8bar", "to": 0.5, "curve": "smooth"},
          {"over": "8bar", "to": 0, "curve": "smooth"}]
-GHOST_ONE = {24, 32, 40, 96, 104, 120, 128, 136}
+GHOST_ONE = {23, 30, 40, 96, 104, 120, 128, 136}   # v17: section A's ghost ones at 23, 30, 40 - 7 then 10 bars apart,
+WHISPER = (23, 30)                                  # so the ear can't set a clock by them; the whispers follow
 
 
 def hole(bar, at):
@@ -125,6 +126,19 @@ for _b in range(99, 106):
 for _b, _r in zip(range(106, 113), [GS1, GS1 - 4, GS1 + 4, GS1, GS1 - 4, GS1 + 4, GS1]):
     DROP_PLAN[_b] = (_r, _r, M9)
 PENROSE = range(106, 113)
+# v17: SECTION A THROUGH-COMPOSED, 7 + 9 + 8: a PEDAL (17-23: G#m11, then a quartal stack C# F# B E over G# - the E a
+# bVI shadow - then G#m9); the LOOP SUBSTITUTED (24-32: the cycle again, but its second pass trades Emaj7 for Cmaj7#11,
+# a chromatic mediant a major third from G#, then D#7#9 > D#7b9); SLOWER with the stair pluck (33-40: G#m9, Emaj9#11,
+# C#m11, D#7b9, two bars each)
+Q4 = (0, 5, 10, 15)
+for _b, _c in zip(range(17, 24), [(GS1, GS1, M11)] * 3 + [(GS1, GS1 + 5, Q4)] * 2 + [(GS1, GS1, M9)] * 2):
+    DROP_PLAN[_b] = _c
+for _b, _r, _iv in zip(range(24, 33), [GS1, GS1 + 1, GS1 - 4, GS1 - 5, GS1, GS1 + 1, GS1 + 4, GS1 - 5, GS1 - 5],
+                       [M9, MAJ7S11, MAJ7S11, D7B9, M11, MAJ9S11, MAJ7S11, D7S9, D7B9]):
+    DROP_PLAN[_b] = (_r, _r, _iv)
+for _b, _r, _iv in zip(range(33, 41), [GS1] * 2 + [GS1 - 4] * 2 + [GS1 + 5] * 2 + [GS1 - 5] * 2,
+                       [M9, M9, MAJ9S11, MAJ9S11, M11, M11, D7B9, D7B9]):
+    DROP_PLAN[_b] = (_r, _r, _iv)
 
 
 def root_of(bar):
@@ -154,7 +168,7 @@ def voicing(r):
 def riff_iv(root, iv):
     """v8: the riff's minor third turns major (and its flat seventh a major seventh) over A and E; over D# its b7 stays."""
     pc = (root - GS1) % 12
-    if pc in (1, 8):
+    if pc in (1, 8, 4):                                   # v17: + C (Cmaj7#11, the chromatic mediant)
         return {3: 4, -2: -1}.get(iv, iv)
     if pc == 7:
         return {3: 4}.get(iv, iv)
@@ -289,7 +303,8 @@ def radio_lanes(side):
     dial = [["0b", 0.2 + k], [f"{b0(81):.2f}b", 1.0], [f"{b0(84):.2f}b", k], [f"{b0(87):.2f}b", k],
             [f"{b0(88) + 2:.2f}b", 0.45 + k], [f"{b0(89) - 0.25:.2f}b", 0.0], [f"{b0(90):.2f}b", 0.0]]
     rg = [["0b", -80.0]]
-    for a, z in ((b0(24) - 0.5, b0(24) + 2), (b0(32) - 0.5, b0(32) + 2), (b0(81) - 0.25, b0(90) + 2)):
+    for a, z in ((b0(WHISPER[0]) - 0.5, b0(WHISPER[0]) + 2), (b0(WHISPER[1]) - 0.5, b0(WHISPER[1]) + 2),
+                 (b0(81) - 0.25, b0(90) + 2)):
         rg += [[f"{a - 0.05:.2f}b", -80.0], [f"{a:.2f}b", 0.0], [f"{z:.2f}b", 0.0], [f"{z + 0.5:.2f}b", -80.0]]
     return {"dial": {"points": dial}, "rg": {"points": rg}}
 
@@ -301,7 +316,7 @@ def frame_the_holes():
     for g in sorted(GHOST_ONE):
         v = chord_of(g - 1)
         part("throw").add(b0(g) - 0.5, 0.25, ",".join(nm(m) for m in v), 92)
-        if g in (24, 32):
+        if g in WHISPER:
             for side in ("phL", "phR"):                       # v13: the whisper through the radio band, both sides
                 ph_note(side, b0(g), 0.5, 2 + (side == "phR"), 0, 0.55)
 
