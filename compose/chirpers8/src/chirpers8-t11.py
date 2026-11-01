@@ -125,7 +125,7 @@ def write_music():
         # THE TRANCE GATE: a muted ghost track, a sixteenth wherever the attractor's |y| is high enough
         for s in range(16):
             x, y, z = state(bar, s)
-            if abs(y) > 6 + (6 if sec in ("intro", "outro") else 0) or s % 4 == 0:
+            if bar <= 8 or abs(y) > 6 + (6 if sec in ("intro", "outro") else 0) or s % 4 == 0:   # v7: open for 8 bars
                 part("gtrig").add(b0(bar) + s / 4, 0.2, "rs", 110)
         # BASS: partial 2 (an octave above the fundamental), pumping eighths; the 3rd partial on the off-beat 'and'
         if sec not in ("intro", "break") and not (sec == "outro" and bar > 160):
