@@ -7,6 +7,7 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 - **SEPTIMAL CHORDS**: 6:7:9(:7/4) minor chords on roots the population picks every four bars (D, A, G, or the 7/4 C, a harmonic seventh above D).
 - **UPTIME**: a modal church bell on D tolling every eight bars; a gong on each change of rule.
 - **THE MACHINE TUNES ITSELF** (v2): written in 12-TET D minor; the song `tuning` ramps from `{edo: 12}` to 7-limit JI (`steps: [9/8, 7/6, 4/3, 3/2, 14/9, 7/4, 2/1], root: D4, ramp: 10bar`) through the boot: F, Bb and C sag into place. Chords are the scale's sevenths (D: 1 7/6 3/2 7/4).
+- **THE CELL'S SONG** (v3): "I only know the two beside me" (A3 C4 D4 F4 E4 D4 C4 A3 D4) / "and they are enough" (F4 E4 D4 C4 D4), sung (`chirp tts --sing`, src/t3/sing*.json) in the glider, snapped to the just scale.
 
 - **ANNEALING TARGET** (t7 Annealing, chirper-one): the tune the search converges to - 16 sixteenths in 5-limit just A minor (A = 220 Hz): A4 . C5 E5 D5 . C5 . A4 G4 . E4 G4 A4 . . - over an Am F C G progression in just ratios (1, 8/5, 6/5, 9/5), spans 6 5 7 6 5 8 6 7 bars.
 

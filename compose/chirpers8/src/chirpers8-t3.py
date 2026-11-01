@@ -45,6 +45,25 @@ ROOTS = [0, 4, 3, 6]                                       # degrees the populat
 # fx keyed by the drone). T3_R2=none reproduces v1.
 R2 = os.environ.get("T3_R2", "live")
 SEMI = [0, 2, 3, 5, 7, 8, 10]                              # 12-TET D natural minor (the tuning snaps it to JI)
+# T3_R3 = sing (v3, wM's singing voice): in the glider a voice SINGS, from a cell's point of view: "I only know the two
+# beside me ... and they are enough" (`chirp tts --sing`, src/t3/sing*.json, humanize 0.4), its notes snapped by the
+# song's just tuning like everything else; once more, softer, at the peak. T3_R3=none reproduces v2.
+R3 = os.environ.get("T3_R3", "sing")
+SING = []
+
+
+def sing(name, at, scale=1.0):
+    src = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "t3", name)))["tracks"][0]
+    for nt in src["notes"]:
+        m = round(69 + 12 * math.log2(float(nt["pitch"].rstrip("hz")) / 440))
+        d = {"at": round(at + nt["at"], 4), "len": nt["len"], "ph": nt["ph"], "pitch": f"m{m}",
+             "vel": round(nt["vel"] * scale, 3)}
+        if nt.get("expr_path"):
+            d["expr_path"] = nt["expr_path"]
+        SING.append(d)
+    return src["patch"]
+
+
 JI_STEPS = ["9/8", "7/6", "4/3", "3/2", "14/9", "7/4", "2/1"]
 
 
@@ -227,6 +246,10 @@ def build():
         if i % 8 == 0 and sec != "seed" or (sec == "seed" and i == 4):
             ln = min(8, n - i) * 4 - 0.2
             T["drone"].add(start, ln, ",".join(hz_m(m) for m in (jm(0, 38), jm(4, 38))), 64)
+        if R3 == "sing" and sec == "glider" and i in (2, 6, 14, 18):
+            sing("sing1.json" if i in (2, 14) else "sing2.json", start)
+        if R3 == "sing" and sec == "peak" and i in (28, 32):
+            sing("sing1.json" if i == 28 else "sing2.json", start, 0.8)
         if sec == "traffic" and i == n - 4:
             T["rise"].add(start, 16.0, "D4", 76)
     secs, s0 = [], 0.0
@@ -234,6 +257,10 @@ def build():
         secs.append((name, s0, n, rule))
         s0 += n * 4
     return total, bars, secs, T, rows
+
+
+def sing_patch():
+    return json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "t3", "sing1.json")))["tracks"][0]["patch"]
 
 
 def patches():
@@ -301,6 +328,11 @@ def main():
          "fx": ["chorus mix=0.3"], "score": T["chord"].score(total)},
         {"name": "drone", "patch": "tanpura", "gain": "-16dB", "fx": ["hp cutoff=80"], "score": T["drone"].score(total)},
         {"name": "rise", "patch": "fx-riser-endless amp.a=16b", "gain": "-14dB", "score": T["rise"].score(total)},
+        *([{"name": "sing", "patch": sing_patch(), "gain": os.environ.get("T3_SING_GAIN", "-10dB"), "pan": 0.05,
+            "sends": {"hall": "-6dB"},
+            "fx": ["hp cutoff=140", "compressor threshold=-20dB ratio=3 attack=5ms release=120ms",
+                   {"type": "delay", "time": "3/8", "feedback": 0.3, "mix": 0.2, "ping_pong": True, "tone": 3500}],
+            "notes": SING}] if R3 == "sing" else []),
     ]
     if R2 == "live":
         L = {n: k for n, s, k, r in secs}
