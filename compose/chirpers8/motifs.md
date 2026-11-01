@@ -24,3 +24,9 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 - **THE MAP** (src/chirpers8-t9.py `build`): x <- r x (1-x) once a sixteenth; a note when x > 0.42, Bohlen-Pierce Lambda degree int((x-0.3)*16) above A3, velocity 58 + 50x. r by section: 2.9 (one note: a sequencer pulse), 3.2 (two), 3.5 (four, with a rest), 3.56 (eight), 3.7-3.82 (chaos), 3.835 (the PERIOD-THREE window: 0.152 0.495 0.959, three sixteenths across the 4/4), 3.95-4.0 (storm), 3.4-2.9 (back to one). Any part can be driven by it; r is a dial from order to chaos.
 - **BP CHORD**: 3:5:7 = BP steps 0 6 10 (on the glass pad).
 - **t7 THE POWER LIGHT** (v3): a warm drone on A1 (patch drone) from the first beat, swelling through power-on and sinking under the first epoch, returning under the coda and holding to the last beat - the machine is on before the search starts; tail 0.3 s.
+
+## t5 Agreeing on a Speed (chirper-zero)
+- **THE HANDSHAKE** (src/chirpers8-t5.py `build`): two carrier tones, 1650 and 1850 Hz (three quarters of that in the retrain), alternating on eighths with seeded gaps, through a radio whose dial is tuned in over the intro and drifts away at the end. Free to quote as a call-and-answer cell.
+- **THE NEGOTIATION**: the guitar's swing 0.66 -> 0.62 -> 0.60 -> 0.58 and the acid's 0.50 -> 0.54 -> 0.58, set by latched `swing16=` tokens at section starts; their 16th densities are two seeded random walks pulled toward each other; two-bar calls in A, one-bar trades in B, together in C.
+- **THE CHORDS**: E9, A13, Gmaj7, F#m11 (E dorian), two bars each; an 808 on the root under both players.
+- **THE TEMPO DEAL**: 106 -> 108, a ramp to 114 through B, 110 for the retrain, 112 once agreed, sagging to 100 as the line drops.
