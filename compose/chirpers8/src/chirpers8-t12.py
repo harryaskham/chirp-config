@@ -119,7 +119,7 @@ def degree_pitch(d, base=FS4):
     return base + 12 * o + SCALE[k] * 12 / EDO
 
 
-def melody(sec, a, z, trk, base=FS4, vel=84, every=1, octave=0):
+def melody(sec, a, z, trk, base=FS4, vel=84, every=1, octave=0, legato=False):
     """Play the section's generation string from bar a to z, again and again, on trk."""
     s = lsys(GEN[sec])
     t, end, d, i = b0(a), b0(z + 1), 0, 0
@@ -129,7 +129,8 @@ def melody(sec, a, z, trk, base=FS4, vel=84, every=1, octave=0):
             d = 0                                   # each pass starts on the light's note
         if i % every == 0:
             p = degree_pitch(d, base) + 12 * octave
-            part(trk).add(t, DUR[c] * 0.9, f"m{p:.3f}", vel + (10 if c == "C" else 0) - (8 if c == "B" else 0))
+            part(trk).add(t, DUR[c] * (1.0 if legato else 0.9), f"m{p:.3f}",
+                          vel + (10 if c == "C" else 0) - (8 if c == "B" else 0))
         d += STEP[c]
         if d > 9 or d < -4:                         # fold back into range
             d -= 7 * (1 if d > 9 else -1)
@@ -210,6 +211,11 @@ def write_melody():
     melody("g6", 103, 157, "violins_lead", base=78, vel=72, every=2)
     melody("g6", 103, 157, "celesta", base=78, vel=68, every=5)
     melody("coda", 158, 178, "celesta", base=78, vel=74, every=2)
+    # v3: THE ONDES MARTENOT (one of the first electronic instruments) doubles the grown melody an octave up, legato,
+    # GLIDING between 31-EDO steps on its ribbon - the quarter-tones and neutral thirds heard as slides
+    melody("g5", 73, 89, "ondes", base=78, vel=80, legato=True)
+    melody("g6", 103, 157, "ondes", base=78, vel=84, legato=True)
+    melody("coda", 158, 174, "ondes", base=78, vel=76, legato=True)
     for bar in range(179, 187, 2):
         part("light").add(b0(bar), 1.5 if bar < 185 else 7.5, f"m{78:.3f}", 70 - (bar - 179) * 2)
     # the fan's hum under the light (seed and the last bars): a soft sine on F#2
@@ -323,7 +329,8 @@ def main():
         "volume": "0dB",
         "tracks": [
             tr("light", "music-box", gain="-6dB", sends={"hall": "-6dB"}),
-            tr("hum", "partial", gain="-22dB"),
+            tr("hum", "partial", gain="-28dB"),           # v3: 6 dB down, meeting t11's hum across the seam
+            tr("ondes", "ondes", gain="-12dB", pan=-0.2, sends={"hall": "-8dB"}),        # v3
             tr("celesta", "celesta", gain="-9dB", pan=0.2, sends={"hall": "-8dB"}),
             tr("kalimba", "kalimba", gain="-7dB", pan=-0.15, sends={"hall": "-10dB"}),
             tr("harp", "harp", gain="-6dB", pan=-0.1, sends={"hall": "-10dB"},
