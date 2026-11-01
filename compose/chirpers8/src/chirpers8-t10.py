@@ -187,6 +187,10 @@ def build():
                         P[key].append((at, tok(m + tp + 12 * lvl), dd / speed * 0.85, 70 - 4 * lvl))
                         at += dd / speed
     pw = [['0b', 0], [f'{total:.0f}b', 1]]
+    W3T = {'steps': [90.225, 192.18, 294.135, 390.225, 498.045, 588.27, 696.09, 792.18, 888.27, 996.09, 1092.18, 1200], 'root': 'C4'}
+    secs_t, t_acc = {}, 0.0
+    for nm_, n_, _ in FORM:
+        secs_t[nm_] = t_acc; t_acc += n_ * 4.0
     # section dynamics on the master (the return and the edges drop back; the final calls push)
     lv = {'intro': -5, 'expo': -3, 'calls1': 0, 'calls2': -1.5, 'calls3': 0, 'return': -8, 'final': 0.5, 'outro': -5}
     # (and the deeper the stack, the louder the machine: +0.8 dB a level)
@@ -231,6 +235,14 @@ def build():
             tr('d2', BELL, '-16dB', pan=-0.4, sends={'echo': '-16dB'}),
             tr('d3', 'glass', '-22dB', pan=0.5, fx=['hp cutoff=800'], sends={'hall': '-12dB'}),
             tr('kit', 'machine-kit', '-2dB', sends={'hall': '-20dB'}),
+            # (v3) THE STACK, AS A GRAMMAR: through the final calls, as the stack fills and unwinds, a celesta thinks recursively - the engine's own L-system (gen lsystem: wM's complex systems) read as a turtle over
+            # the D minor scale, where '[' saves its place and ']' RETURNS to it: a melody that calls into a branch, climbs,
+            # and snaps back, the subroutine audible; in Werckmeister III by the engine's own tuning (steps in cents)
+            {'name': 'lsys', 'patch': 'celesta', 'gain': '-14dB', 'pan': 0.25, 'tuning': W3T,
+             'score': f"R/{secs_t['final']:.0f}b",
+             'gen': {'type': 'lsystem', 'axiom': 'A', 'rules': {'A': 'A[+A]A[-B]A', 'B': '-A+b'}, 'depth': 4,
+                     'notes': 'D5 E5 F5 G5 A5 Bb5 C6 D6 E6', 'len': '/16', 'n': 512, 'seed': 7},
+             'sends': {'echo': '-10dB', 'hall': '-12dB'}},
             tr('sub', 'sub', '-8dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '250ms', 'curve': 0.6}]),
         ]}
     return song, depths
