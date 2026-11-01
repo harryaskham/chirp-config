@@ -104,6 +104,8 @@ def build():
                     P['kit'].append((t0 + 2.0 + qq * 0.25, 'rs', 0.2, 60 + 5 * qq))     # a rim fill back in
         elif s != 'return':
             kpat = {'calls2': [0.0, 1.75, 2.5], 'calls3': [0.0, 2.0]}.get(s, [0.0, 1.0, 2.0, 3.0])
+            if s == 'intro' and i < 2:
+                kpat = []                          # the bell tolls alone for two bars before the kick
             for kq in kpat:
                 P['kit'].append((t0 + kq, 'kd' if s == 'final' else 'k', 0.25, 118 if kq == 0 else 108))
             for qq in range(4):
@@ -130,7 +132,11 @@ def build():
                 if t0 <= at < t0 + 4.0:
                     P['kit'].append((at + 0.01, 'rs', 0.2, 74 if m % 4 == 0 else 62))
         # bass: roots in driving eighths with an octave hop (FM bass)
-        if s not in ('return',):
+        # (v4) the edges thin out: the machine powers up on the bell and the kick alone (no sub or bass for the intro's
+        # first four bars) and powers down the same way (the outro's last four bars), so it meets t9's thin tail and
+        # t11's head without a wall of low end
+        edge = (s == 'intro' and i < 4) or (s == 'outro' and i >= 4)
+        if s not in ('return',) and not edge:
             P['sub'].append((t0, tok(root - 12), 3.8, 96))
             if (s.startswith('calls') or s == 'final') and not ret:
                 # (v2) the bass plays the machine's own clave: three-three-two sixteenths twice a bar (a tresillo), so
@@ -175,6 +181,8 @@ def build():
         elif s == 'outro':
             if i % 2 == 0:
                 P['bell'].append((t0, tok(62 + tp), 7.5, 80))
+        if s == 'intro' and i < 4 and i % 2 == 0:
+            P['bell'].append((t0, tok(62 + tp), 7.5, 76))      # the bell tolls the machine awake
         # THE STACK: each level spawns a faster copy of this bar's subject, an octave higher each time
         d = depths[b]
         if d and (s.startswith('calls') or s == 'final'):
