@@ -623,6 +623,50 @@ def upload_sheet(meta, pub):
     return "\n".join(lines) + "\n"
 
 
+def master_mix(a, album, rel, rdir, out, rows, raws, pin, work, env, audio_md5):
+    """A mixtape's store tracks: the continuous mix rebuilt losslessly from the verified renders by mix_release itself
+    (its MP3 must match the released mix), then cut at each track's start, sample-accurate, so gapless playback is
+    the tape (The Endless Stair, 1 Nov)."""
+    import types
+    sys.path.insert(0, HERE)
+    import likeness as L
+    if any(tr["id"] not in raws for tr, _, _ in rows):
+        print("master: some tracks did not verify; no mix")
+        return [(tr, None, how) for tr, _, how in rows]
+    m = rel["mix"]
+    am = types.SimpleNamespace(album_id=a.album_id, overlap_bars=float(m.get("overlap_bars", a.overlap_bars)),
+                               swap=m.get("swap", a.swap))
+    order = sorted((tr for tr, _, _ in rows), key=lambda t: t["n"])
+    mrows = [{"n": t["n"], "id": t["id"], "title": t["title"], "wav": raws[t["id"]], "dur": float(t.get("dur", 0))}
+             for t in order]
+    plan = [{"gain_db": t["gain_db"]} for t in order]
+    mix_wav = os.path.join(work, "mix.wav")
+    got = mix_release(am, album, mrows, plan, pin, work, work, None, env, wav_out=mix_wav)
+    rebuilt = os.path.join(work, got["file"]) if got.get("file") else None
+    same = bool(rebuilt) and audio_md5(rebuilt) == audio_md5(os.path.join(rdir, m["file"]))
+    eq = None if same or not rebuilt else mp3_equivalent(os.path.join(rdir, m["file"]), mix_wav, 0.0, seconds=300)
+    if not (same or (eq and eq["ok"])):
+        print(f"master: the rebuilt mix does not match the released one ({eq}); no tracks")
+        return [(tr, None, "mix rebuild differs from the release") for tr, _, _ in rows]
+    how = "cut from the continuous mix, " + ("verified identical to the released mix" if same else
+                                             f"equivalent to the released mix (corr {eq['corr']:.5f}, {eq['residual_db']:.1f} dB)")
+    shutil.copy(mix_wav, os.path.join(out, os.path.splitext(m["file"])[0] + ".wav"))
+    starts = {x["n"]: float(x["start"]) for x in got["tracklist"]}
+    n_total = int(subprocess.run(["ffprobe", "-v", "error", "-select_streams", "a:0", "-count_packets", "-show_entries",
+                                  "stream=duration_ts", "-of", "csv=p=0", mix_wav], capture_output=True, text=True).stdout.strip() or 0)
+    res = []
+    for i, (tr, _, _) in enumerate(sorted(rows, key=lambda r: r[0]["n"])):
+        s0 = int(round(starts[tr["n"]] * L.SR))
+        nxt = [starts[x["n"]] for x in got["tracklist"] if x["n"] > tr["n"]]
+        s1 = int(round(min(nxt) * L.SR)) if nxt else n_total
+        wav = os.path.join(out, os.path.splitext(tr["file"])[0] + ".wav")
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", mix_wav, "-af",
+                        f"atrim=start_sample={s0}:end_sample={s1},asetpts=PTS-STARTPTS", "-c:a", "pcm_s24le", wav], check=True)
+        res.append(({**tr, "dur": (s1 - s0) / L.SR}, wav, how))
+        print(f"{tr['n']:2d} {tr['title'][:30]:30s} {(s1 - s0) / L.SR / 60:5.2f} min from the mix")
+    return res
+
+
 def cmd_master(a, args):
     """Lossless distribution masters of a RELEASED album, for Spotify and other stores via a distributor (Harry, 1 Nov).
     Each track is re-rendered with the release's own pin and seed and its release gain, written as 24-bit WAV, and
@@ -685,17 +729,23 @@ def cmd_master(a, args):
                 how = (f"verified: equivalent to the released MP3 (aligned {eq['lag']} samples, corr {eq['corr']:.5f}, "
                        f"residual {eq['residual_db']:.1f} dB)") if eq["ok"] else None
             if how:
+                shutil.copy(path, os.path.join(work, f"{tr['id']}.yaml"))     # the version mix_release's timeline reads
+                raws[tr["id"]] = raw
                 wav = os.path.join(out, os.path.splitext(tr["file"])[0] + ".wav")
-                subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", raw, "-af", g, "-c:a", "pcm_s24le", wav], check=True)
+                if not mixed:
+                    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", raw, "-af", g, "-c:a", "pcm_s24le", wav], check=True)
                 return tr, wav, how + (f"; song as of {rev[:8]} (the release caught an earlier version)" if rev else "")
         return tr, None, f"DIFFERS from the released MP3 at the working copy and {len(tries) - 1} earlier revisions: no master"
 
-    rows = []
+    mixed = bool((rel.get("mix") or {}).get("file"))
+    raws, rows = {}, []
     try:
         with cf.ThreadPoolExecutor(max_workers=a.jobs) as ex:
             for tr, wav, how in ex.map(one, sorted(rel["tracks"], key=lambda t: t["n"])):
                 print(f"{tr['n']:2d} {tr['title'][:30]:30s} {how}")
                 rows.append((tr, wav, how))
+        if mixed:
+            rows = master_mix(a, album, rel, rdir, out, rows, raws, pin, work, env, audio_md5)
     finally:
         shutil.rmtree(work, ignore_errors=True)
     pp = os.path.join(ROOT, "compose", "publishing.json")
@@ -726,7 +776,7 @@ def cmd_master(a, args):
     print(f"{name}: {ok}/{len(rows)} masters verified against the release -> {out}")
 
 
-def mix_release(a, album, rows, plan, pin, work, out_dir, art, env):
+def mix_release(a, album, rows, plan, pin, work, out_dir, art, env, wav_out=None):
     """The continuous mixtape: each track starts OVERLAP bars (mixplan.md, else --overlap-bars) before the previous
     one's musical end (chirp plan's `seconds`, at the outgoing song's declared tempo), crossfaded linearly; one MP3 and
     a tracklist/CUE. Returns the tracklist."""
@@ -759,6 +809,8 @@ def mix_release(a, album, rows, plan, pin, work, out_dir, art, env):
         "-metadata", f"artist={album['artist']}",
         "-metadata", f"album_artist={album['artist']}", "-metadata", f"album={album['album']}", mp3]
     ff = subprocess.Popen(cmd, stdin=subprocess.PIPE)
+    ffw = subprocess.Popen(["ffmpeg", "-y", "-loglevel", "error", "-f", "f32le", "-ar", str(L.SR), "-ac", "2", "-i", "-",
+                            "-c:a", "pcm_s24le", wav_out], stdin=subprocess.PIPE) if wav_out else None
 
     swaps = seam_swaps(a.album_id)
 
@@ -783,11 +835,17 @@ def mix_release(a, album, rows, plan, pin, work, out_dir, art, env):
             yield x, int(info[i].get("ov", 0) * L.SR), swap_of(i)
 
     def emit(block):
-        ff.stdin.write((np.clip(block, -1.0, 1.0) * 32767).astype("<i2").tobytes())
+        c = np.clip(block, -1.0, 1.0)
+        ff.stdin.write((c * 32767).astype("<i2").tobytes())
+        if ffw:                     # the same clipped stream, lossless (chirpers.py master's store tracks)
+            ffw.stdin.write(c.astype("<f4").tobytes())
 
     mix_stream(parts(), emit, L.SR)
     ff.stdin.close()
     ok = ff.wait() == 0
+    if ffw:
+        ffw.stdin.close()
+        ok = ffw.wait() == 0 and ok
     tl = [{"n": r["n"], "title": r["title"], "start": round(st, 2), "overlap_in_s": round(info[i].get("ov", 0.0), 2)}
           for i, (r, st) in enumerate(zip(rows, starts))]
     with open(os.path.join(out_dir, "mixtape-tracklist.txt"), "w") as f:
@@ -798,7 +856,7 @@ def mix_release(a, album, rows, plan, pin, work, out_dir, art, env):
             mm, ss = divmod(x["start"], 60)
             f.write(f'  TRACK {i:02d} AUDIO\n    TITLE "{x["title"]}"\n    INDEX 01 {int(mm):02d}:{int(ss):02d}:{int((ss % 1) * 75):02d}\n')
     print(f"mixtape: {len(tl)} tracks, {starts[-1] / 60:.1f} min to the last start -> {mp3}{'' if ok else '  ENCODE FAILED'}")
-    return {"file": os.path.basename(mp3) if ok else None, "tracklist": tl}
+    return {"file": os.path.basename(mp3) if ok else None, "tracklist": tl, "overlap_bars": a.overlap_bars, "swap": a.swap}
 
 
 def _beats(at):
@@ -1087,6 +1145,8 @@ def main(argv=None):
     p.add_argument("--out", default="~/Music/Chirpers")
     p.add_argument("--jobs", type=int, default=2)
     p.add_argument("--revisions", type=int, default=8, help="older song versions to try when the working copy differs")
+    p.add_argument("--overlap-bars", type=float, default=16.0, help="a mixtape's seam overlap, when release.json predates recording it")
+    p.add_argument("--swap", nargs="?", const="mid", default="mid", type=lambda v: v if v == "mid" else float(v))
     p = sub.add_parser("rebaseline")
     p.add_argument("album_id")
     p.add_argument("--ids")
