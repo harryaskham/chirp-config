@@ -30,6 +30,8 @@ BAR = 16
 SEED = 5
 HOOK = os.environ.get("C8T5_HOOK", "1")   # THE AGREEMENT: a two-bar E dorian figure that returns - the guitar PROPOSES its rhythm (A, chord stabs, the first two bars of every eight), the acid ANSWERS with its notes (B), and in C the horns sing it in unison: what they agree on
 VOX = os.environ.get("C8T5_VOX", "-12")     # voices: 'a little slower. a little faster. there.' (humanized tts) through the line in B and the retrain; 'keep it there' turning from speech to song (B3 D4 E4, the hook's last notes) in C; value = the bargain's gain dB
+MOD = os.environ.get("C8T5_MOD", "1")     # agreed, they lift: the second half of C (bars 25-48) a whole step up, E dorian -> F# dorian (every pitched part and the second 'keep it there') - one long section becomes two
+LISTEN = os.environ.get("C8T5_LISTEN", "")   # while one machine proposes the other LISTENS rather than leaving: the guitar keeps its off-beat stabs soft, the acid its root on the one - a conversation, not two monologues (the trades had read as a new section every four bars); value = velocity scale %
 HOOKF = [(0, "E4", 3), (3, "G4", 3), (6, "A4", 4), (10, "B4", 6), (16, "D5", 3), (19, "B4", 3), (22, "D5", 4), (26, "E5", 6)]
 FORM = [("intro", 12), ("A", 34), ("B", 26), ("retrain", 12), ("C", 48), ("outro", 16)]
 TRACKS = ("carrier", "conga", "gtr", "acid", "sub", "kick", "hats", "clap", "fretless", "horns", "lead")
@@ -38,6 +40,21 @@ SWING = {"gtr": {"A": 0.66, "B": 0.62, "retrain": 0.6, "C": 0.58, "outro": 0.58}
 # E dorian: E9, A13, Gmaj7, F#m11 (guitar voicings; roots for the acid)
 CH = [("E2", "E3,G#3,D4,F#4"), ("A1", "A2,G3,C#4,F#4"), ("G1", "G2,D3,F#3,B3"), ("F#1", "F#2,E3,A3,B3")]
 LEAD = ["E4", "G4", "A4", "B4", "D5", "E5", "F#5", "A5"]
+
+
+NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+PITCHED = ("gtr", "acid", "sub", "horns", "lead")
+
+
+def transpose(head, semis):
+    """Note names or comma chords (E3, G#3, F#1,...) up by semis."""
+    out = []
+    for tok in head.split(","):
+        name, octv = tok[:-1], int(tok[-1])
+        name = {"Db": "C#", "Eb": "D#", "Gb": "F#", "Ab": "G#", "Bb": "A#"}.get(name, name)
+        m = 12 * (octv + 1) + NAMES.index(name) + semis
+        out.append(f"{NAMES[m % 12]}{m // 12 - 1}")
+    return ",".join(out)
 
 
 def sec_start(name):
@@ -57,7 +74,11 @@ def build():
     rng = random.Random(SEED)
     ev = {k: [] for k in TRACKS}
 
+    cur = {"shift": 0}
+
     def add(tr, at, head, ln, vel, pri=1):
+        if cur["shift"] and pri and tr in PITCHED:
+            head = transpose(head, cur["shift"])
         ev[tr].append((at, pri, head, ln, vel))
 
     gd, bd = 0.55, 0.30          # the two players' 16th densities: random walks that drift toward each other
@@ -68,6 +89,7 @@ def build():
                 add(tr, a0, f"swing16={SWING[tr][sec]}", 0, 0, pri=0)
         for b in range(nb):
             at = a0 + b * BAR
+            cur["shift"] = 2 if MOD and sec == "C" and b >= 24 else 0
             root, chord = CH[(b // 2) % 4]
             # --- the handshake: two carriers calling and answering (through the radio)
             if sec in ("intro", "retrain") or (sec == "outro" and b >= 8):
@@ -101,6 +123,12 @@ def build():
                     for q, n, ln in HOOKF:
                         if q // 16 == b % 8:
                             add("horns", at + q % 16, n, ln, 104)
+                if LISTEN and not g_turn and sec in ("A", "B") and not hook_bar:
+                    for q in (2, 6, 10, 14):
+                        add("gtr", at + q, chord, 1, int(84 * int(LISTEN) / 100))
+                if LISTEN and not a_turn and sec in ("A", "B") and not (hook_bar and sec == "B"):
+                    add("acid", at, root, 2, int(96 * int(LISTEN) / 100))
+                    add("acid", at + 8, root, 1, int(80 * int(LISTEN) / 100))
                 if g_turn:
                     for q in range(16):
                         if q in (2, 6, 10, 14) or rng.random() < gd * (0.6 if q % 2 else 0.9):
@@ -155,6 +183,12 @@ def stream(events, tot):
     if t < tot:
         out.append(f"R/{(tot - t) / 4:g}b")
     return " ".join(out)
+
+
+def lifted(tr):
+    """The same voice a whole step up (its pitch fx, formant kept on its lane)."""
+    tr["fx"] = [dict(f, semitones=2) if isinstance(f, dict) and f.get("type") == "pitch" else f for f in tr["fx"]]
+    return tr
 
 
 def rmix_lane(offs16):
@@ -230,8 +264,10 @@ def song():
                           [{"type": "radio", "tune": 0.04, "hiss": "-40dB", "whistle": "-32dB", "fade": 0.3, "drift": 0.03,
                             "mix": {"value": 0, "mod": [{"src": "auto.rmix", "amount": 0.85}]}}, "hp cutoff=250"],
                           {"spring": "-12dB"})] if VOX else []),
-            *([voice("chirpers8-t5-keep.json", "keep", [st["C"] + 16 * BAR, st["C"] + 40 * BAR], f"{float(VOX) + 2:g}dB",
+            *([voice("chirpers8-t5-keep.json", "keep", [st["C"] + 16 * BAR] + ([] if MOD else [st["C"] + 40 * BAR]), f"{float(VOX) + 2:g}dB",
                      [{"type": "chorus", "rate": 0.3, "depth": 0.2, "mix": 0.2}, "hp cutoff=150"], {"room": "-10dB", "spring": "-16dB"})] if VOX else []),
+            *([lifted(voice("chirpers8-t5-keep.json", "keep2", [st["C"] + 40 * BAR], f"{float(VOX) + 2:g}dB",
+                            [{"type": "chorus", "rate": 0.3, "depth": 0.2, "mix": 0.2}, "hp cutoff=150"], {"room": "-10dB", "spring": "-16dB"}))] if VOX and MOD else []),
             {"name": "lead", "patch": "lead-wah", "gain": "-12dB", "pan": 0.1, "fx": [{"type": "chorus", "rate": 0.5, "depth": 0.4, "mix": 0.3}],
              "score": "swing16=0.58 " + T["lead"]},
         ],
