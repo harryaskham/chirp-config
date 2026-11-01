@@ -44,6 +44,10 @@ C4HZ = 261.6256
 # var swirls the Rhodes and the talking strings around the stereo field (a filter on it dulled the pad: spectrum 88 -> 71). The song now declares its `tuning: {edo: 19}` (the chords were
 # already written in 19-EDO steps; the celesta's chain snaps to them). T6_R2=none reproduces v1.
 R2 = os.environ.get("T6_R2", "strings")
+# T6_R3 = sing (v3, wM's singing voice): the hot bridge is SUNG now - "I counted every second ... none of them were
+# wasted" (`chirp tts --sing`, src/t6/sing*.json, humanize 0.4), every note rounded onto 19-EDO, over the Markov chain
+# at its hottest; a lighter ring and grain cloud on it, so the line stays a line. T6_R3=none reproduces v2.
+R3 = os.environ.get("T6_R3", "sing")
 CORPUS = ("G4/8 A4 C5 B4/4 A4/8 G4 E4/4 G4/8 A4 B4 C5/4 B4/8 A4 G4/2 E4/8 G4 A4 B4/4 C5/8 B4 A4 G4/4 . "
           "C5/8 B4 G4 A4/4 G4/8 E4 G4/2")
 
@@ -122,7 +126,8 @@ def build():
     rng = random.Random(6)
     names = ("kick", "snare", "hats", "ride", "rim", "bass", "pad", "talk", "strtalk", "keys", "bell")
     T = {k: Track(k) for k in names}
-    VOICE = {"voice": [], "radio": [], "ringv": []}
+    VOICE = {"voice": [], "radio": [], "ringv": [], "singb": []}
+    sung1, sung2 = load("sing1.json"), load("sing2.json")
     lines = [load(f"v{k}.json") for k in (1, 2, 3, 4)]
     chorus, still = load("chorus.json"), load("still.json")
     bars, pos = [], 0.0
@@ -211,8 +216,10 @@ def build():
             put("voice", chorus, start, k=min(i, 3) if i < 4 else 3, sung=i >= 2)
         if chorus_sec and sec == "chorus2" and 12 <= i < 20:
             put("voice", chorus, start, k=3, sung=True, scale=0.9)
-        if sec == "bridge" and i % 6 == 1:
+        if sec == "bridge" and i % 6 == 1 and R3 != "sing":
             put("ringv", lines[3], start + 0.5)                               # "I counted every second"
+        if R3 == "sing" and sec == "bridge" and i in (1, 5, 9, 13):
+            put("singb", sung1 if i in (1, 9) else sung2, start, sung=True)
         if sec == "outro" and i % 3 == 0 and i < 18:
             put("radio", still, start, k=i // 3, sung=True)
         if sec in ("intro", "outro") and i == 0:
@@ -275,6 +282,14 @@ def main():
                  "hiss": "-34dB", "whistle": "-32dB", "fade": 0.4, "drift": 0.04, "seed": 6},
                 "reverb kind=hall decay=3s mix=0.3"],
          "auto": {"dial": {"points": dial}}, "notes": V["radio"]},
+        *([{"name": "singb", "patch": json.load(open(os.path.join(HERE, "t6", "sing1.json")))["tracks"][0]["patch"],
+            "gain": os.environ.get("T6_SING_GAIN", "-10dB"), "pan": 0.0,
+            "fx": ["hp cutoff=120", "compressor threshold=-20dB ratio=3 attack=5ms release=120ms",
+                   {"type": "ring", "freq": 87, "mix": 0.15},
+                   {"type": "cloud", "size": "90ms", "density": 12, "position": "400ms", "spray": "250ms", "pitch": 0,
+                    "scatter": 3.16, "reverse": 0.3, "spread": 0.8, "mix": 0.25},
+                   {"type": "delay", "time": "3/8", "feedback": 0.3, "mix": 0.18, "tone": 3000},
+                   "reverb kind=hall decay=3s mix=0.3"], "notes": V["singb"]}] if R3 == "sing" else []),
         {"name": "ringv", "patch": "voice-speech", "gain": "-11dB", "pan": 0.1,
          "fx": [{"type": "ring", "freq": 87, "mix": 0.45},
                 {"type": "cloud", "size": "90ms", "density": 14, "position": "400ms", "spray": "250ms", "pitch": 0,

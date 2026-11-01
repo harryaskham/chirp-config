@@ -20,6 +20,7 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 ## t6 No Errors Since (chirper-two)
 - **THE STATUS LINES** (src/t6/*.json, humanized tts): "everything is where you left it", "the fan is still turning", "all checks passed", "I counted every second"; chorus "no errors since" (speech to song, G A C B rounded onto 19-EDO); outro "still here" (E C, through a radio tuning away). Borrow a line, or answer one.
 - **19-EDO CHORDS**: steps of 63.2 cents; maj 0-6-11, min 0-5-11, maj7 0-6-11-17, min7 0-5-11-16, and the off-piano SUBMINOR 0-4-11, SUPERMAJOR 0-7-11, sub7 0-4-11-15; a Markov chain whose temperature runs cool in the verses, hot in the bridge (roots a diesis apart).
+- **THE SUNG BRIDGE** (v3): "I counted every second" (E3 G3 A3 C4 B3 A3 G3 E3) / "none of them were wasted" (C4 B3 A3 G3 A3 E3), `chirp tts --sing`, rounded onto 19-EDO, over the hot Markov chain.
 - **t7 THE VOICE READS ITS LOSS** (v2): at each epoch a humanized voice (tts --humanize 0.7) reads the search's error aloud ('zero point eight six' ... 'zero point two eight'), melodized more each epoch (0, 0.15, 0.35, 0.6, 0.85) onto the riff (A C E D C A G E), and retuned to 5-limit just pitches once it sings; at convergence and in the coda it sings 'zero'; the reheat throws it back into speech. Stored in src/chirpers8-t7-voice.json.
 
 ## t9 Period Doubling (chirper-two)
