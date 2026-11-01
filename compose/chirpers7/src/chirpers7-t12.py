@@ -136,8 +136,20 @@ def build():
             mel = mel[::-1]
         if L > 8:
             mel = mel + mel[::-1]
+        durs = [2.0] * len(mel)
+        # (v26) THE GHOST LEARNS TO SING (Harry: sections that evolve rather than repeat): the ghost's tune grows through
+        # the track. In the first groove it sings the stair, there and back, as before - the tune to learn. In the second
+        # it runs the B-flat minor scale up through the stair and back (Bb C Db Eb F Gb F Db). In the last groove it
+        # sings out: a leaping arpeggio to the high B-flat in a dotted rhythm (3+3+2 beats, twice) that crosses the
+        # half-bars. The Rhodes answers follow it, so the speakers hear each new tune too
+        if L > 8 and secs['B'] <= a0 < secs['break']:
+            mel = [0, 2, 3, 5, 7, 8, 7, 3] if n % 2 == 0 else [7, 5, 3, 2, 0, 2, 3, 7]
+        elif L > 8 and secs['C'] <= a0 < secs['outro']:
+            mel = [0, 3, 7, 12, 7, 3] if n % 2 == 0 else [12, 7, 3, 0, 3, 7]
+            durs = [3.0, 3.0, 2.0, 3.0, 3.0, 2.0]
+        offs = [sum(durs[:j]) for j in range(len(mel))]
         for j, m in enumerate(mel):
-            gm += [[f'{a0 + 2 * j - 0.02:.2f}b', gm[-1][1]], [f'{a0 + 2 * j:.2f}b', round(m / 12, 4)]]
+            gm += [[f'{a0 + offs[j] - 0.02:.2f}b', gm[-1][1]], [f'{a0 + offs[j]:.2f}b', round(m / 12, 4)]]
         st = mel[-1]
         if (e > secs['A'] and (e - secs['A']) % 64 == 0) or e >= secs['outro']:   # (v16) the silences back on the sixteen-bar phrase ends
             gaps.append(e - 1.0)          # the silent beat only at the sixteen-bar phrase ends; the washes between flow on
@@ -156,7 +168,7 @@ def build():
             # (v8, chirper-zero's note) the room hears what the headphones heard: after the silence the Rhodes answers with the
             # ghost's whole melody, played, an octave below it, two beats a step into the echo - then the ghost's last note on top
             for j, m in enumerate(mel):
-                T['ghost'].append((e + 2 * j, f'{nm(70 + m)},{nm(70 + m - 5)}', 1.8, 74 + 3 * j))
+                T['ghost'].append((e + offs[j], f'{nm(70 + m)},{nm(70 + m - 5)}', durs[j] - 0.2, 74 + 3 * j))
             T['ghost'].append((e + 8, nm(70 + st + 12), 3.5, 80))
     lv = {'intro': -4, 'A': -2, 'B': 0, 'break': -7, 'C': 0.5, 'outro': -3}   # (v6) a deeper break, a fuller last groove
     pts = []
