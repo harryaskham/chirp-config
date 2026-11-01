@@ -424,13 +424,21 @@ def m_rhythm(ctx):
     # 46.9 frames/s, where a 16th at house tempo is ~6 frames), `grid` (divisions of the beat counted ON the grid:
     # 2 = eighths, the default; 4 = 16ths) and `band` (the off-grid share's target, default 0.1..0.6). On a clean
     # 120 bpm kick + 16th-hat loop the default reads straight 16ths as off-grid (0.39) and swing as LESS off-grid
-    # (0.10 at 20%, 0.01 at 50%); {hop: 256, grid: 4} reads 0.00 / 0.00 / 0.09 / 0.13 at 0 / 20 / 33 / 50% swing
+    # (0.10 at 20%, 0.01 at 50%); {hop: 256, grid: 4} reads 0.00 / 0.00 / 0.09 / 0.13 at 0 / 20 / 33 / 50% swing.
+    # `map: true` reads a tempo-mapped song in beat time (see below). It is honest about ramps both ways: chirpers8-t12 v8's
+    # 112 -> 126 accelerando reads off-grid 0.10 on one 121 grid (the ramp's smear) and 0.00 in beat time (rhythm 96.7 -> 56.0)
     rp = ((ctx.get("album") or {}).get("params") or {}).get("rhythm") or {}
     hop, div = int(rp.get("hop") or L.HOP), float(rp.get("grid") or 2)
     if hop == L.HOP:
         on, fps = ctx["F"].onset, L.FPS
     else:
         on, fps = fine_onset(ctx["x"], hop), L.SR / hop
+    # `map: true` (opt-in): read the onsets in beat time on the song's tempo map, so a ramp's pulse sits on one grid.
+    # Without it the grid is the map's median point BPM, which an extra point can move (chirper-three, 1 Nov: one
+    # 121 point moved t12's grid 121 -> 123 and its accelerando read metronomic, -3.8)
+    warped = bool(rp.get("map")) and bool(ctx.get("tempo_map")) and bool(ctx.get("bpm"))
+    if warped:
+        on = warp_onset(on, fps, ctx["tempo_map"], float(ctx["bpm"]))
     o = on - on.mean()
     ac = autocorr(o, int(4 * fps) + 2)
     ac = ac / (ac[0] + 1e-12)
@@ -455,7 +463,7 @@ def m_rhythm(ctx):
     lo, hi = rp.get("band") or (0.1, 0.6)
     return 0.7 * band(share, float(lo), float(hi), 0.1) + 0.3 * band(dens, 1.5, 10.0, 2.0), {
         "tempo": round(bpm, 1), "declared": bool(ctx.get("bpm")), "pulse_estimate": round(est, 1),
-        "offgrid_share": round(share, 2), "onsets_per_s": round(dens, 2)}
+        "offgrid_share": round(share, 2), "onsets_per_s": round(dens, 2), **({"tempo_map": True} if warped else {})}
 
 
 def m_cohesion(ctx):
@@ -525,25 +533,121 @@ def plugins():
 
 # ── scoring ─────────────────────────────────────────────────────────────────────────────────
 
-def declared_tempo(song):
-    """The song file's top-level tempo (BPM), or None. A JSON song's `tempo`; a YAML song's top-level `tempo:` line
-    (generator-written songs use YAML songfmt's restricted parser rejects)."""
-    try:
-        with open(song) as f:
-            text = f.read()
-        if text.lstrip().startswith("{"):
-            t = json.loads(text).get("tempo")
+def raw_tempo(song):
+    """The song file's top-level tempo as written: a number (or numeric string), a tempo map (a list of points) or
+    None. A JSON song's `tempo`; a YAML song's top-level `tempo:` line (generator-written songs use YAML songfmt's
+    restricted parser rejects). Raises on an unreadable file."""
+    with open(song) as f:
+        text = f.read()
+    if text.lstrip().startswith("{"):
+        return json.loads(text).get("tempo")
+    m = re.search(r"^tempo:\s*([0-9.]+)\s*(?:#.*)?$", text, re.M)
+    t = m.group(1) if m else None
+    if t is None:
+        # a tempo MAP: a flow list on the tempo: line, or a block list below it (until the next top-level key)
+        m = re.search(r"^tempo:[ \t]*(\[.*\])[ \t]*$", text, re.M)
+        if m:
+            t = json.loads(m.group(1))
         else:
-            m = re.search(r"^tempo:\s*([0-9.]+)\s*(?:#.*)?$", text, re.M)
-            t = m.group(1) if m else None
-            if t is None:
-                # a tempo MAP: a flow list on the tempo: line, or a block list below it (until the next top-level key)
-                m = re.search(r"^tempo:[ \t]*(\[.*\])[ \t]*$", text, re.M)
-                if m:
-                    t = json.loads(m.group(1))
-                else:
-                    m = re.search(r"^tempo:[ \t]*\n((?:[ \t-].*\n?)+)", text, re.M)
-                    t = [{"bpm": b} for b in re.findall(r"\bbpm:\s*([0-9.]+)", m.group(1))] if m else None
+            m = re.search(r"^tempo:[ \t]*\n((?:[ \t-].*\n?)+)", text, re.M)
+            t = [{"bpm": b} for b in re.findall(r"\bbpm:\s*([0-9.]+)", m.group(1))] if m else None
+    return t
+
+
+def tempo_points(song):
+    """The song's tempo map as [(beat, bpm, ramp)], sorted as the engine sorts it (stable, by beat; a point at beat 0
+    added when the first is later), when the map changes tempo and every position is in beats (`"64b"` or a number);
+    else None: a single tempo, a constant map, positions in bars or seconds, a block map without positions, an
+    unreadable file. A point with no bpm holds the previous point's (a meter change)."""
+    try:
+        t = raw_tempo(song)
+    except (OSError, ValueError, TypeError, AttributeError):
+        return None
+    if not isinstance(t, list) or not t:
+        return None
+    pts, prev = [], None
+    for p in t:
+        if not isinstance(p, dict):
+            return None
+        at = p.get("at", 0)
+        m = re.fullmatch(r"\s*([0-9]*\.?[0-9]+)\s*b?\s*", at) if isinstance(at, str) else None
+        if isinstance(at, (int, float)) and not isinstance(at, bool):
+            beat = float(at)
+        elif m:
+            beat = float(m.group(1))
+        else:
+            return None
+        try:
+            bpm = float(p["bpm"]) if p.get("bpm") is not None else prev
+        except (TypeError, ValueError):
+            return None
+        if bpm is None or not 1.0 <= bpm <= 1000.0:
+            return None
+        pts.append((beat, bpm, bool(p.get("ramp")) and p.get("bpm") is not None))
+        prev = bpm
+    pts.sort(key=lambda q: q[0])
+    if pts[0][0] > 0:
+        pts.insert(0, (0.0, pts[0][1], False))
+    if len({b for _, b, _ in pts}) < 2:
+        return None
+    return pts
+
+
+def tempo_segments(pts):
+    """The engine's tempo segments for POINTS (chirp-core tempo.rs): arrays b0, t0, bpm0, k (BPM change per beat;
+    a segment ramps when the NEXT point ramps and lies later)."""
+    b0, t0, v0, k = [], [], [], []
+    for i, (b, bpm, _) in enumerate(pts):
+        nxt = pts[i + 1] if i + 1 < len(pts) else None
+        kk = (nxt[1] - bpm) / (nxt[0] - b) if nxt and nxt[2] and nxt[0] > b else 0.0
+        t = 0.0 if not b0 else t0[-1] + _seg_secs(v0[-1], k[-1], b - b0[-1])
+        b0.append(b)
+        t0.append(t)
+        v0.append(bpm)
+        k.append(kk)
+    return np.array(b0), np.array(t0), np.array(v0), np.array(k)
+
+
+def _seg_secs(bpm0, k, db):
+    db = np.asarray(db, dtype=float)
+    k = np.asarray(k, dtype=float)
+    flat = np.abs(k) < 1e-12
+    ks = np.where(flat, 1.0, k)
+    ramp = 60.0 / ks * np.log(np.maximum((bpm0 + ks * db) / bpm0, 1e-9))
+    return np.where(flat, db * 60.0 / bpm0, ramp)
+
+
+def map_secs(segs, beats):
+    """Seconds at BEATS (an array) on the tempo map SEGS."""
+    b0, t0, v0, k = segs
+    i = np.clip(np.searchsorted(b0, beats, side="right") - 1, 0, len(b0) - 1)
+    return t0[i] + _seg_secs(v0[i], k[i], np.asarray(beats, dtype=float) - b0[i])
+
+
+def map_beats(segs, secs):
+    """Beats at SECS (a scalar) on the tempo map SEGS."""
+    b0, t0, v0, k = segs
+    i = int(np.clip(np.searchsorted(t0, secs, side="right") - 1, 0, len(b0) - 1))
+    dt = secs - t0[i]
+    if abs(k[i]) < 1e-12:
+        return float(b0[i] + dt * v0[i] / 60.0)
+    return float(b0[i] + v0[i] * (np.exp(k[i] * dt / 60.0) - 1.0) / k[i])
+
+
+def warp_onset(on, fps, pts, ref):
+    """The onset curve ON (frames at FPS) resampled into beat time on the tempo map PTS: REF bpm's frames per beat,
+    so a beat lasts the same number of frames everywhere and a ramp's pulse sits on one grid."""
+    segs = tempo_segments(pts)
+    r = fps * 60.0 / ref
+    total = map_beats(segs, len(on) / fps)
+    beats = np.arange(int(total * r)) / r
+    return np.interp(map_secs(segs, beats) * fps, np.arange(len(on)), on)
+
+
+def declared_tempo(song):
+    """The song file's top-level tempo (BPM), or None: see raw_tempo."""
+    try:
+        t = raw_tempo(song)
         if isinstance(t, list):
             # a map's points (ramps inside a track, as The Endless Stair's mix plan asks): the median BPM. Without
             # this every mapped song fell back to the autocorrelation estimate, and one landing on half tempo had its
@@ -589,7 +693,8 @@ def build_ctx(cid, wav, climb, album, song=None):
             "me": me, "density": me["density"], "others": others_features(album["id"], cid),
             "ratings": ratings(album["id"]), "owner": climb.get("owner"),
             "version": (climb.get("best") or {}).get("version"), "envelope": genre_envelope(album),
-            "bpm": declared_tempo(song or os.path.join(ROOT, climb.get("song") or f"songs/{cid}.yaml"))}
+            "bpm": declared_tempo(song or os.path.join(ROOT, climb.get("song") or f"songs/{cid}.yaml")),
+            "tempo_map": tempo_points(song or os.path.join(ROOT, climb.get("song") or f"songs/{cid}.yaml"))}
 
 
 def score(ctx, extra=None):

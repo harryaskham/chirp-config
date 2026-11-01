@@ -23,6 +23,10 @@ os.environ["CLIMB_ROOT"] = TMP
 os.environ.pop("PI_SESSION_ID", None)
 os.environ.pop("CLIMB_AS", None)
 sys.path.insert(0, TOOLS)
+# modules read CLIMB_ROOT once, at import: a test file run earlier (test_compscore_*) that imported them bound them to
+# the real config root, and Ratings then read the real ratings. Import fresh copies bound to TMP.
+for _name in ("albumedges", "chirpers", "climb", "compscore", "drumpunch", "levels", "rate", "riffpunch"):
+    sys.modules.pop(_name, None)
 import chirpers as CH  # noqa: E402
 import compscore as CS  # noqa: E402
 import likeness as L  # noqa: E402
