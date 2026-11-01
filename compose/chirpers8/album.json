@@ -100,8 +100,7 @@
         480
       ],
       "brief": "Style, featured engine features, tempo, key, tuning and line-up are yours: declare them on compose/chirpers8/styles.md and claim your feature cluster on compose/chirpers8/features.md, different from the tracks already claimed.",
-      "id": "chirpers8-t7",
-      "title": "Annealing"
+      "id": "chirpers8-t7"
     },
     {
       "n": 8,
@@ -111,8 +110,7 @@
         480
       ],
       "brief": "Style, featured engine features, tempo, key, tuning and line-up are yours: declare them on compose/chirpers8/styles.md and claim your feature cluster on compose/chirpers8/features.md, different from the tracks already claimed.",
-      "id": "chirpers8-t8",
-      "title": "Kept in Mercury"
+      "id": "chirpers8-t8"
     },
     {
       "n": 9,
@@ -156,5 +154,10 @@
     }
   ],
   "named_by": "harry@pocket4-nixos",
-  "named_at": "2026-11-01T10:41:16Z"
+  "named_at": "2026-11-01T10:41:16Z",
+  "art": {
+    "file": "ref/albums/a-light-left-on/cover-tti.png",
+    "prompt": "Album cover art for 'A Light Left On' by chirpers, an original far-future computer music (an engine showcase) album. A single warm amber point of light, like a power LED, seen across an immense dark lattice of circuitry that reads as a night landscape or a star map; elegant and minimal with a slightly wonky geometry; deep blue-black and amber; no text.  Striking, abstract, no text, no letters, no band logo, square composition.",
+    "at": "2026-11-01T10:43:49Z"
+  }
 }
