@@ -21,11 +21,16 @@ import json
 import os
 import random
 
+HERE = os.path.dirname(os.path.abspath(__file__))
+
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 OUT = os.environ.get("C8T5_OUT") or os.path.join(ROOT, "songs", "chirpers8-t5.yaml")
 
 BAR = 16
 SEED = 5
+HOOK = os.environ.get("C8T5_HOOK", "1")   # THE AGREEMENT: a two-bar E dorian figure that returns - the guitar PROPOSES its rhythm (A, chord stabs, the first two bars of every eight), the acid ANSWERS with its notes (B), and in C the horns sing it in unison: what they agree on
+VOX = os.environ.get("C8T5_VOX", "-12")     # voices: 'a little slower. a little faster. there.' (humanized tts) through the line in B and the retrain; 'keep it there' turning from speech to song (B3 D4 E4, the hook's last notes) in C; value = the bargain's gain dB
+HOOKF = [(0, "E4", 3), (3, "G4", 3), (6, "A4", 4), (10, "B4", 6), (16, "D5", 3), (19, "B4", 3), (22, "D5", 4), (26, "E5", 6)]
 FORM = [("intro", 12), ("A", 34), ("B", 26), ("retrain", 12), ("C", 48), ("outro", 16)]
 TRACKS = ("carrier", "conga", "gtr", "acid", "sub", "kick", "hats", "clap", "fretless", "horns", "lead")
 SWING = {"gtr": {"A": 0.66, "B": 0.62, "retrain": 0.6, "C": 0.58, "outro": 0.58},
@@ -81,6 +86,21 @@ def build():
             if groove:
                 g_turn = sec == "C" or (sec == "A" and (b // 2) % 2 == 0) or (sec == "B" and b % 2 == 0) or sec == "outro"
                 a_turn = sec == "C" or (sec == "A" and (b // 2) % 2 == 1) or (sec == "B" and b % 2 == 1) or (sec == "outro" and b < 4)
+                hook_bar = HOOK and b % 8 < 2 and sec in ("A", "B", "C")
+                if hook_bar and sec == "A":    # the guitar proposes: the hook's rhythm as chord stabs
+                    for q, n, ln in HOOKF:
+                        if q // 16 == b % 8:
+                            add("gtr", at + q % 16, chord, 1, 96)
+                    g_turn = False
+                if hook_bar and sec == "B":    # the acid answers with its notes, two octaves down
+                    for q, n, ln in HOOKF:
+                        if q // 16 == b % 8:
+                            add("acid", at + q % 16, n[:-1] + str(int(n[-1]) - 2), min(ln, 3), 112)
+                    a_turn = False
+                if hook_bar and sec == "C":    # agreed: the horns sing it
+                    for q, n, ln in HOOKF:
+                        if q // 16 == b % 8:
+                            add("horns", at + q % 16, n, ln, 104)
                 if g_turn:
                     for q in range(16):
                         if q in (2, 6, 10, 14) or rng.random() < gd * (0.6 if q % 2 else 0.9):
@@ -137,6 +157,28 @@ def stream(events, tot):
     return " ".join(out)
 
 
+def rmix_lane(offs16):
+    pts = [["0b", 0]]
+    for o in offs16:
+        pts += [[f"{(o - BAR) / 4:g}b", 0], [f"{o / 4:g}b", 1], [f"{(o + 3 * BAR) / 4:g}b", 1], [f"{(o + 3 * BAR + 4) / 4:g}b", 0]]
+    return {"points": pts}
+
+
+def voice(file, name, offs16, gain, fx, sends):
+    """A humanized tts line (tts --print), placed at each offset (sixteenths), on one track."""
+    src = json.load(open(os.path.join(HERE, file)))["tracks"][0]
+    notes, fv = [], []
+    for o16 in offs16:
+        off = o16 / 4
+        notes += [dict(n, at=round(n["at"] + off, 4)) for n in src["notes"]]
+        fv += [[f"{float(t[:-1]) + off:.3f}b", v] for t, v in src["auto"]["fv"]["points"]]
+    auto = {"fv": {"points": fv}}
+    if name == "bargain":
+        auto["rmix"] = rmix_lane(offs16)
+    return {"name": name, "patch": src.get("patch", "voice-speech"), "gain": gain, "pan": 0.05,
+            "fx": [*src["fx"], *fx], "auto": auto, "sends": sends, "notes": notes}
+
+
 def beats(t16):
     return f"{t16 / 4:g}b"
 
@@ -144,6 +186,7 @@ def beats(t16):
 def song():
     T = build()
     st = {sec: sec_start(sec) for sec, _ in FORM}
+    BARG = [st["B"] + 12 * BAR, st["retrain"] + 3 * BAR, st["retrain"] + 8 * BAR]
     end = total()
     tempo = [{"at": "0b", "bpm": 106}, {"at": beats(st["A"]), "bpm": 108}, {"at": beats(st["B"]), "bpm": 108},
              {"at": beats(st["retrain"]), "bpm": 114, "ramp": True}, {"at": beats(st["retrain"]), "bpm": 110},
@@ -183,6 +226,12 @@ def song():
             {"name": "clap", "patch": "909", "gain": "-9dB", "sends": {"room": "-8dB"}, "score": T["clap"]},
             {"name": "fretless", "patch": "fretless", "gain": "-8dB", "fx": [{"type": "tremolo", "rate": 3.0, "depth": 0.4}], "sends": {"spring": "-10dB"}, "score": T["fretless"]},
             {"name": "horns", "patch": "horn-section", "gain": "-9dB", "pan": -0.2, "sends": {"room": "-8dB"}, "score": T["horns"]},
+            *([voice("chirpers8-t5-bargain.json", "bargain", BARG, f"{VOX}dB",
+                          [{"type": "radio", "tune": 0.04, "hiss": "-40dB", "whistle": "-32dB", "fade": 0.3, "drift": 0.03,
+                            "mix": {"value": 0, "mod": [{"src": "auto.rmix", "amount": 0.85}]}}, "hp cutoff=250"],
+                          {"spring": "-12dB"})] if VOX else []),
+            *([voice("chirpers8-t5-keep.json", "keep", [st["C"] + 16 * BAR, st["C"] + 40 * BAR], f"{float(VOX) + 2:g}dB",
+                     [{"type": "chorus", "rate": 0.3, "depth": 0.2, "mix": 0.2}, "hp cutoff=150"], {"room": "-10dB", "spring": "-16dB"})] if VOX else []),
             {"name": "lead", "patch": "lead-wah", "gain": "-12dB", "pan": 0.1, "fx": [{"type": "chorus", "rate": 0.5, "depth": 0.4, "mix": 0.3}],
              "score": "swing16=0.58 " + T["lead"]},
         ],
