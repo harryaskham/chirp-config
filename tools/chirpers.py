@@ -574,6 +574,31 @@ def cmd_release(a, args):
         shutil.rmtree(work, ignore_errors=True)
 
 
+def mp3_equivalent(mp3, wav, gain_db, seconds=60):
+    """Whether a lossless render is the released MP3's music: after aligning the MP3's encoder offset (an older
+    encoder padded Phantom Downbeat's starts by 177 samples), correlation >= 0.9999 and a residual at the level of
+    MP3 coding noise (<= -35 dB relative). A different version of the song measures ~0.98 and -15 dB."""
+    import numpy as np
+    from scipy import signal as sg
+
+    def pcm(path, gain=0.0):
+        r = subprocess.run(["ffmpeg", "-nostats", "-loglevel", "error", "-i", path, "-map", "0:a", "-t", str(seconds),
+                            "-af", f"volume={gain}dB", "-ac", "1", "-ar", "48000", "-f", "f32le", "-"], capture_output=True)
+        return np.frombuffer(r.stdout, dtype="<f4").astype(np.float64)
+    x, y = pcm(mp3), pcm(wav, gain_db)
+    n = min(len(x), len(y))
+    if n < 48000:
+        return {"ok": False, "lag": 0, "corr": 0.0, "residual_db": 0.0}
+    x, y = x[:n], y[:n]
+    cc = sg.correlate(x, y, mode="full", method="fft")
+    mid = len(y) - 1
+    lag = int(np.argmax(cc[mid - 4000:mid + 4001])) - 4000
+    xs, ys = (x[lag:], y[:n - lag]) if lag >= 0 else (x[:n + lag], y[-lag:])
+    corr = float(np.corrcoef(xs, ys)[0, 1])
+    rel_db = 10 * np.log10((np.mean((xs - ys) ** 2) + 1e-20) / (np.mean(xs ** 2) + 1e-20))
+    return {"ok": corr >= 0.9999 and rel_db <= -35.0, "lag": lag, "corr": corr, "residual_db": float(rel_db)}
+
+
 def upload_sheet(meta, pub):
     """The distributor form, field by field, for a mastered album (UPLOAD.md beside the WAVs)."""
     g = meta.get("genres") or ["Electronic"]
@@ -628,22 +653,42 @@ def cmd_master(a, args):
                            capture_output=True, text=True)
         return r.stdout.strip()
 
+    def revisions(song):
+        """The song file's git revisions, newest first (the working copy is tried before these)."""
+        r = subprocess.run(["git", "log", "--format=%H", "-n", str(a.revisions), "--", os.path.relpath(song, ROOT)], cwd=ROOT,
+                           capture_output=True, text=True)
+        return [h for h in r.stdout.split() if h]
+
     def one(tr):
         c = next((c for c in reg["climbs"] if c["id"] == tr["id"]), None)
         if not c or not tr.get("file"):
             return tr, None, "no climb or no released file"
-        raw = os.path.join(work, f"{tr['id']}.wav")
-        err = render(pin, os.path.join(ROOT, c["song"]), rel.get("seed", 0), raw, env)
-        if err:
-            return tr, None, f"render failed: {err}"
+        song = os.path.join(ROOT, c["song"])
+        released = os.path.join(rdir, tr["file"])
         g = f"volume={tr['gain_db']}dB"
-        mp3 = os.path.join(work, f"{tr['id']}.mp3")
-        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", raw, "-af", g, "-c:a", "libmp3lame", "-q:a", "0", mp3], check=True)
-        same = audio_md5(mp3) == audio_md5(os.path.join(rdir, tr["file"]))
-        wav = os.path.join(out, os.path.splitext(tr["file"])[0] + ".wav")
-        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", raw, "-af", g, "-c:a", "pcm_s24le", wav], check=True)
-        how = "verified: identical to the released MP3" if same else "DIFFERS from the released MP3 (song changed since?)"
-        return tr, wav, how
+        tries = [(None, song)] + [(h, None) for h in revisions(song)[1:]]
+        for k, (rev, path) in enumerate(tries):
+            if rev:      # an older version of the song, for a release that caught a round mid-flight
+                path = os.path.join(work, f"{tr['id']}@{rev[:8]}.yaml")
+                with open(path, "w") as f:
+                    f.write(subprocess.run(["git", "show", f"{rev}:{c['song']}"], cwd=ROOT, capture_output=True, text=True).stdout)
+            raw = os.path.join(work, f"{tr['id']}-{k}.wav")
+            err = render(pin, path, rel.get("seed", 0), raw, env)
+            if err:
+                return tr, None, f"render failed: {err}"
+            mp3 = os.path.join(work, f"{tr['id']}-{k}.mp3")
+            subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", raw, "-af", g, "-c:a", "libmp3lame", "-q:a", "0", mp3], check=True)
+            if audio_md5(mp3) == audio_md5(released):
+                how = "verified: identical to the released MP3"
+            else:
+                eq = mp3_equivalent(released, raw, tr["gain_db"])
+                how = (f"verified: equivalent to the released MP3 (aligned {eq['lag']} samples, corr {eq['corr']:.5f}, "
+                       f"residual {eq['residual_db']:.1f} dB)") if eq["ok"] else None
+            if how:
+                wav = os.path.join(out, os.path.splitext(tr["file"])[0] + ".wav")
+                subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", raw, "-af", g, "-c:a", "pcm_s24le", wav], check=True)
+                return tr, wav, how + (f"; song as of {rev[:8]} (the release caught an earlier version)" if rev else "")
+        return tr, None, f"DIFFERS from the released MP3 at the working copy and {len(tries) - 1} earlier revisions: no master"
 
     rows = []
     try:
@@ -1041,6 +1086,7 @@ def main(argv=None):
     p.add_argument("album_id")
     p.add_argument("--out", default="~/Music/Chirpers")
     p.add_argument("--jobs", type=int, default=2)
+    p.add_argument("--revisions", type=int, default=8, help="older song versions to try when the working copy differs")
     p = sub.add_parser("rebaseline")
     p.add_argument("album_id")
     p.add_argument("--ids")

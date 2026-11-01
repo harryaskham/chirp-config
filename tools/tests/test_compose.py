@@ -275,6 +275,28 @@ class DistributionKit(unittest.TestCase):
             self.assertIn(want, sheet)
         self.assertIn("| NO |", sheet)
 
+    def test_mp3_equivalence_accepts_an_offset_encode_and_rejects_different_music(self):
+        import subprocess
+        d = tempfile.mkdtemp()
+        try:
+            sr = 48000
+            t = np.arange(sr * 4) / sr
+            x = (0.3 * np.sin(2 * np.pi * 220 * t) * (1 + 0.5 * np.sin(2 * np.pi * 1.5 * t))).astype(np.float32)
+            y = (0.3 * np.sin(2 * np.pi * 233 * t) * (1 + 0.5 * np.sin(2 * np.pi * 1.1 * t))).astype(np.float32)
+            for name, sig in (("a", x), ("b", y)):
+                subprocess.run(["ffmpeg", "-loglevel", "error", "-f", "f32le", "-ar", str(sr), "-ac", "1", "-i", "-",
+                                os.path.join(d, name + ".wav")], input=sig.tobytes(), check=True)
+            # the 'release': a's MP3 with 177 extra samples of silence at the start (an older encoder's padding)
+            pad = np.concatenate([np.zeros(177, np.float32), x])
+            subprocess.run(["ffmpeg", "-loglevel", "error", "-f", "f32le", "-ar", str(sr), "-ac", "1", "-i", "-", "-c:a",
+                            "libmp3lame", "-q:a", "0", os.path.join(d, "rel.mp3")], input=pad.tobytes(), check=True)
+            same = CH.mp3_equivalent(os.path.join(d, "rel.mp3"), os.path.join(d, "a.wav"), 0.0)
+            other = CH.mp3_equivalent(os.path.join(d, "rel.mp3"), os.path.join(d, "b.wav"), 0.0)
+            self.assertTrue(same["ok"], same)
+            self.assertFalse(other["ok"], other)
+        finally:
+            shutil.rmtree(d, ignore_errors=True)
+
 
 class IllusionPresence(unittest.TestCase):
     def test_a_buried_half_and_a_present_half(self):
