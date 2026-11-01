@@ -7527,8 +7527,8 @@
         "commit": "see git log songs/chirpers7-t11.yaml",
         "stale": {
           "score": 96.23,
-          "since": "2026-11-01T06:22:26Z",
-          "who": "chirper-three",
+          "since": "2026-11-01T06:37:59Z",
+          "who": "chirper-zero",
           "rating": 9.0,
           "version": "v14"
         }
