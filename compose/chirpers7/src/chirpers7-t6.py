@@ -107,8 +107,43 @@ ROOTS2 = [FS1 - 4, FS1 - 7, FS1 + 1, FS1 - 5]  # v10: the second drop's walk: Dm
 DEEP_END = (69, 80)                          # v5: after the hole: no stabs, no congas, the line at its most nasal
 
 
+M9, M11, MM9 = (0, 3, 7, 10, 14), (0, 3, 7, 10, 17), (0, 3, 7, 11, 14)
+MAJ7S11, SIX9S11, D7B9, D7S9 = (0, 4, 7, 11, 18), (0, 4, 9, 14, 18), (0, 4, 7, 10, 13), (0, 4, 7, 10, 15)
+# v15 (Harry's third steer: 'very simple progressions... formulaic'): THE GROOVE THROUGH-COMPOSED, 6 + 9 + 7 + 6 bars
+# instead of the one-bar loop: a PEDAL (the phantom holds F# while the chords move above it: F#m9, F#m11, Gmaj7#11
+# over F#); the loop MUTATING (each pass new extensions); the bass SPIRALLING (32-38: the phantom line as a
+# Shepard-Risset loop - the bass nobody plays climbs forever); CHROMATIC MEDIANTS (F#m9, Dmaj7#11, Bbmaj7#11, C#7b9)
+GROOVE_CHORD = {}
+for _b, _c in zip(range(17, 23), [(0, M9)] * 2 + [(0, M11)] * 2 + [(1, MAJ7S11)] * 2):
+    GROOVE_CHORD[_b] = _c
+_MUT = {0: [M9, M11, MM9], 1: [MAJ7S11, SIX9S11, MAJ7S11], 10: [M9, M11, M11], 7: [D7B9, D7S9, D7B9]}
+for _b in range(23, 32):
+    _r = (FS1 + [0, 1, -2, -5][(_b - 1) % 4] - FS1) % 12
+    GROOVE_CHORD[_b] = (_r, _MUT[_r][(_b - 23) // 4])
+for _b in range(32, 39):
+    GROOVE_CHORD[_b] = (0, M9 if _b < 36 else M11)
+for _b, _c in zip(range(39, 45), [(0, M9), (0, M9), (8, MAJ7S11), (4, MAJ7S11), (4, MAJ7S11), (7, D7B9)]):
+    GROOVE_CHORD[_b] = _c
+PEDAL = (17, 22)
+SPIRAL = (32, 38)
+
+
 def root_of(bar):
+    if bar in GROOVE_CHORD and not PEDAL[0] <= bar <= PEDAL[1]:
+        pc = GROOVE_CHORD[bar][0]
+        return FS1 + (pc if pc <= 4 else pc - 12)         # F#1 .. A#1 up, the rest below: within the line's range
+    if PEDAL[0] <= bar <= PEDAL[1]:
+        return FS1
     return (ROOTS2 if sec_of(bar) == "drop2" else ROOTS)[(bar - 1) % 4]
+
+
+def chord_of(bar):
+    """v15: the chord above the bass (MIDI notes, two octaves up): the groove's plan, else the old voicing."""
+    if bar in GROOVE_CHORD:
+        pc, ivs = GROOVE_CHORD[bar]
+        r = FS1 + 24 + (pc if pc <= 4 else pc - 12)
+        return [r + i for i in ivs]
+    return voicing(root_of(bar) + 24)
 
 
 def voicing(r):
@@ -136,6 +171,8 @@ def bass_line():
             part("phantom").add(b0(bar), BAR - 0.1, nm(FS1), 100)
             continue
         if sec == "break":
+            continue
+        if SPIRAL[0] <= bar <= SPIRAL[1]:                      # v15: the spiral plays the line here
             continue
         if sec == "outro" and bar >= 161:
             part("phantom").add(b0(bar), BAR - 0.1, nm(FS1 - 5), 98)             # C#1: t7's tonic
@@ -168,6 +205,19 @@ def bass_line():
         if sec in DROPS and not 127 <= bar <= 128 and bar < 141:
             part("sub").add(b0(bar), 1.6, nm(root), 104)
             part("sub").add(b0(bar) + 2.0, 1.4, nm(root), 96)
+
+
+def spiral_score():
+    """v15: one bar of the roll on F#1, written out with its rests, for the Risset spiral."""
+    out, cur = [], 0.0
+    for beat, ln, iv, v in ROLL:
+        if beat > cur + 1e-6:
+            out.append(f"R/{beat - cur:g}b")
+        out.append(f"{nm(FS1 + iv)}/{ln:g}b@{v}")
+        cur = beat + ln
+    if cur < 4.0 - 1e-6:
+        out.append(f"R/{4.0 - cur:g}b")
+    return " ".join(out)
 
 
 def riser():
@@ -247,13 +297,14 @@ def stabs():
             continue
         if DEEP_END[0] <= bar <= DEEP_END[1]:
             continue
-        r = root_of(bar) + 24
-        v = voicing(r)
+        v = chord_of(bar)
         for b in ((0.5, 1.5, 2.5, 3.5) if sec == "drop2" else (0.75, 2.75)):     # v4: on the 'a's; drop2 every off-beat
             part("stab").add(b0(bar) + b, 0.3 if sec == "drop2" else 0.45, ",".join(nm(m) for m in v), 74 if sec == "drop2" else 80)
         # the dark pad: the chord held through the bar (v2: an octave up, out of the bass's harmonics), deeper + drop
         if sec in ("deeper", "drop"):
             part("pad").add(b0(bar), BAR - 0.1, ",".join(nm(m) for m in v[1:]), 64 if sec == "deeper" else 72)
+    for bar in range(17, 45):                                   # v15: the pad carries the groove's new harmony
+        part("pad").add(b0(bar), BAR - 0.1, ",".join(nm(m) for m in chord_of(bar)[1:]), 56)
 
 
 def shaker():
@@ -360,6 +411,9 @@ def main():
             # harmonics endlessly while the pitch the ear rebuilds never moves
             tr("phantompole", "phantom-bass", gain="-5dB", fx=["barberpole cycle=4bar low=60", pump]),
             tr("riser", "fx-riser-endless amp.a=32b", gain="-13dB"),
+            {"name": "phantomspiral", "patch": "phantom-bass", "gain": "-7dB", "at": f"{b0(SPIRAL[0]):.0f}b",
+             "risset": {"cycle": "4bar", "layers": 3, "length": f"{SPIRAL[1] - SPIRAL[0] + 1}bar", "pitch": True},
+             "score": spiral_score()},                     # v15: the bass nobody plays, climbing forever
             tr("phantom", "phantom-bass", gain="-7dB", lfo={"tb": {"wave": "sine", "rate": "44b"}},
                auto={"nz": {"points": [["0b", 0.0], [f"{b0(DEEP_END[0]) - 0.5}b", 0.0], [f"{b0(DEEP_END[0])}b", 1.0],
                                        [f"{b0(DEEP_END[1] + 1) - 0.5}b", 1.0], [f"{b0(DEEP_END[1] + 1)}b", 0.0],
