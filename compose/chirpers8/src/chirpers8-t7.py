@@ -17,6 +17,8 @@ Every part anneals at its own rate:
 - drums: an electro kit whose sixteen-step pattern is sampled from noise at high temperature and from a motorik
   target as it cools.
 Tuning: A = 220 Hz, 5-limit just A minor (1, 9/8, 6/5, 4/3, 3/2, 8/5, 9/5), every pitch written in Hz.
+Voice (v2): a humanized voice reads the search's loss at each epoch, spoken while hot, sung (and retuned to just
+intonation) as it cools.
 Form (bars): power-on 12 / epochs 20, 18, 24, 14, 28 (cooling) / converged 16 / reheat 10 / coda 14 = 156 at 116 bpm.
 Emits songs/chirpers8-t7.yaml (JSON through tools/songfmt.py). Edit the music here, not the YAML.
 """
@@ -115,6 +117,22 @@ def build():
         seq_states.append(list(cand)); losses.append(round(loss(cand), 3))
     # ---- render the parts ----
     P = {k: [] for k in ('seq', 'pad', 'bass', 'kit')}
+    # (v2) THE VOICE READS ITS LOSS: at each epoch a humanized voice (chirp tts --humanize 0.7) reads the search's error
+    # aloud - 'zero point eight six', 'zero point six six', ... - spoken while the machine is hot, melodized onto the
+    # riff (--melodize, more each epoch) as it cools, and retuned into the same just intonation once it sings; at
+    # convergence it sings 'zero'; the reheat throws it back to speech; the coda sings 'zero' again
+    VOICE = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'chirpers8-t7-voice.json')))
+    JI = sorted(55.0 * 2 ** o * r for o in range(5) for r in RATIOS)
+    vnotes, fv = [], []
+    for sec, v in sorted(VOICE.items(), key=lambda kv: kv[1]['bar']):
+        off = v['bar'] * 4.0
+        for n_ in v['notes']:
+            n2 = dict(n_, at=round(off + n_['at'], 4))
+            if v['melodize'] >= 0.5:
+                f = float(n_['pitch'][:-2])
+                n2['pitch'] = f"{min(JI, key=lambda j: abs(math.log2(j / f))):.3f}hz"
+            vnotes.append(n2)
+        fv += [[f"{off + float(a_[:-1]):.3f}b", x_] for a_, x_ in v['fv']]
     span_i, span_left, chord_i = 0, SPANS[0], 0
     pad_cents = [0.0] * 4
     for b, (s, i) in enumerate(bars):
@@ -168,6 +186,10 @@ def build():
             tr('pad', 'partial', '-12dB', sends={'hall': '-8dB'}),
             tr('bass', 'moog-seq', '-8dB', fx=['lp cutoff=900']),
             tr('kit', 'electro-kit', '-5dB', sends={'hall': '-20dB'}),
+            {'name': 'voice', 'patch': 'voice-speech', 'gain': '-8dB', 'notes': vnotes, 'pan': -0.1,
+             'fx': [{'type': 'pitch', 'semitones': 0, 'formant': {'value': 0, 'mod': [{'src': 'auto.fv', 'amount': 1}]}},
+                    {'type': 'tape', 'drive': 0.15, 'mix': 1, 'wow': 3, 'flutter': 2, 'seed': 7}],
+             'auto': {'fv': {'points': fv}}, 'sends': {'echo': '-10dB', 'hall': '-12dB'}},
         ]}
     return song, losses, T
 
