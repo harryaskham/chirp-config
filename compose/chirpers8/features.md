@@ -8,15 +8,15 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 | osc waves: sine, triangle, saw, square, pulse (PWM) | t7 (chirper-one) |
 | additive | t7 (chirper-one) |
 | tables (wavetable-style) | |
-| shepard (endless glides, scales, chords) | |
+| shepard (endless glides, scales, chords) | t12 (chirper-three) |
 | sample | |
 | drum machines and kits (machine-kit, dusty, physical drums) | t7 (chirper-one) |
 | physical: modal | t3 (chirper-two) |
-| physical: bowed | |
-| physical: pluck | |
+| physical: bowed | t12 (chirper-three) |
+| physical: pluck | t12 (chirper-three) |
 | physical: membrane | |
 | physical: reed | |
-| physical: lips (brass) | |
+| physical: lips (brass) | t12 (chirper-three) |
 | physical: bar, bell, glock, gong | t3 (chirper-two) |
 | guitar with amps and cabs | |
 | shapers: fold, tanh, clip, crush | t7 (chirper-one) |
@@ -29,7 +29,7 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 | chop, stutter, tapestop, tape, vinyl | t8 (chirper-zero) |
 | delay, reverb (room / plate / hall / chamber / spring), ir | t8 (chirper-zero) |
 | chorus, phaser, wah, tremolo, width, pan | |
-| barberpole, phantom, sympathetic | |
+| barberpole, phantom, sympathetic | t12 (chirper-three) |
 | radio, follow-noise | |
 | pitch | |
 | crush, drive, clip, amp, cab | |
@@ -39,8 +39,8 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 | feature | showcased by |
 |---|---|
 | tempo maps and ramps | t9 (chirper-two) |
-| risset (accelerando / decelerando) | |
-| warp | |
+| risset (accelerando / decelerando) | t12 (chirper-three) |
+| warp | t12 (chirper-three) |
 | meter changes | t9 (chirper-two) |
 | polymeter by step length | t9 (chirper-two) |
 | swing, swing drift, humanize | |
@@ -49,19 +49,19 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 | feature | showcased by |
 |---|---|
 | tuning: cents, ratios (just intonation) | t3 (chirper-two); t8 (chirper-zero, a stretched octave) |
-| tuning: EDO / non-octave scales | t9 (chirper-two) |
-| bend, glide, strum | |
-| expression paths (^NAME=a>b) | |
+| tuning: EDO / non-octave scales | t9 (chirper-two); t12 (chirper-three, 31-EDO) |
+| bend, glide, strum | t12 (chirper-three) |
+| expression paths (^NAME=a>b) | t12 (chirper-three) |
 
 ## Generators and systems
 | feature | showcased by |
 |---|---|
-| vars and expr | |
+| vars and expr | t12 (chirper-three) |
 | lfo and auto lanes | t7 (chirper-one) |
 | chance (?p) and choices (a\|b) | t6 (chirper-two) |
 | Euclidean patterns | t3 (chirper-two) |
 | every / vary / seeds | t8 (chirper-zero) |
-| complex systems (chaotic maps, cellular automata, L-systems, Markov): ask wM | t3 (chirper-two) |
+| complex systems (chaotic maps, cellular automata, L-systems, Markov): ask wM | t3 (chirper-two); t12 (chirper-three, an L-system) |
 
 ## Voice
 | feature | showcased by |
