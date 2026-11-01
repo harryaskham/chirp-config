@@ -66,6 +66,8 @@ FNOISE = os.environ.get("C7T18_FNOISE", "1") == "1"  # wM's follow-noise (ce4d68
 DIAL = os.environ.get("C7T18_DIAL", "1") == "1"  # wM's radio fx on the human speech panel: the dial starts off the station (static), glides in over the first bar (the heterodyne whistle falling), sits within 0.03 of the station while the voice speaks and sings, and drifts off over the last bar; the radio's mix only on in the panel
 HCOUNT = os.environ.get("C7T18_HCOUNT", "1") == "1"  # the beat flip's counting voice made human (Harry's third steer #5): the 'one two three' count over the kickless bars and the ONE as the downbeat comes home keep their grid (every three eighths), but each word is lifted from wM's humanised tts ('one two three' --humanize 0.7 --repeat 12 --seed 8, chirpers7-t18-count.json): its own pitch, inner contour and effort, through the radio band, 4 dB under the old line
 COUNT = []
+HSUNG = os.environ.get("C7T18_HSUNG", "1") == "1"  # the interlock's and ALL AT ONCE's sung stair (the speech panel's line returning as song) made human too: each syllable lifted from the two most-sung repetitions of wM's humanised tts (chirpers7-t18-speech.json, melodize 0.9 and 1) onto the old grid, through the radio band
+SUNG = []
 COH = os.environ.get("C7T18_COH", "1") == "1"  # t17 v18's fix (measured 22:15): coherent Haas pairs - one source per pair, near ear direct and far ear through 18 ms, dry - so the turning panel's precedence cue exists (separate noise-kit tracks gave the ears different hits)
 COHB = {}
 ILV = float(os.environ.get("C7T18_ILV", "0"))  # every illusion track's level offset (dB)
@@ -292,7 +294,10 @@ def build():
                         head = f"{nm(pc)}^ph={ph}" + (f"^f0={gl}" if w < 0.95 else "")
                     else:
                         head = f"{nm(pitch - 12)}^ph={ph}" if sung else f"D3^ph={ph}^f0={glide}"
-                    add("speech", at + q, head, ln, 92 * lv)
+                    if HSUNG and w is None and sung and not sec.startswith("g"):
+                        SUNG.append((at + q, [x[0] for x in syl].index(ph), ln, lv))
+                    else:
+                        add("speech", at + q, head, ln, 92 * lv)
             if "tritone" in act:   # t4/t11: pairs a tritone apart, no up or down
                 if "t" in REF2:
                     for k, q in enumerate((0, 8)):
@@ -444,6 +449,18 @@ def count_track(gain):
             "sends": {"echo": "-6dB", "hall": "-12dB"}, "notes": notes}
 
 
+def sung_track(gain):
+    """The sung stair in the interlock and ALL, each syllable from the humanised tts's last two repetitions."""
+    src = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "chirpers7-t18-speech.json")))["tracks"][0]["notes"]
+    reps = [src[i:i + 4] for i in range(0, len(src), 4)][-2:]
+    notes = []
+    for k, (at16, i, ln16, lv) in enumerate(sorted(SUNG)):
+        n = reps[(k // 4) % 2][i]
+        notes.append(dict(n, at=round(at16 / 4, 4), len=round(ln16 / 4, 4), vel=round(n["vel"] * min(1.0, lv), 3)))
+    return {"name": "sung", "patch": "voice-speech", "gain": gain, "fx": ["hp cutoff=450", "lp cutoff=2600"],
+            "sends": {"echo": "-6dB", "hall": "-12dB"}, "notes": notes}
+
+
 def song():
     T, rspans, silent, srisset = build()
     st = {sec: sec_start(sec) for sec, _ in FORM}
@@ -589,6 +606,7 @@ def song():
             *endless("pole", T["pole"], 4, ilv(-9)),
             *([hspeech_track(ilv(-9 if RADIO else -6))] if HSPEECH else []),
             *([count_track(ilv(-13))] if HCOUNT else []),
+            *([sung_track(ilv(-13))] if HSUNG else []),
             {"name": "speech", "patch": "voice-speech", "gain": ilv(-9 if RADIO else -6), **({"fx": ["hp cutoff=450", "lp cutoff=2600"]} if RADIO else {}),
              "sends": {"echo": "-6dB" if RADIO else "-10dB", "hall": "-12dB"}, "score": T["speech"]},
             {"name": "tri", "patch": "tritone", "gain": ilv(-10), "pan": 0.2, "sends": {"hall": "-10dB"}, "score": T["tri"]},
