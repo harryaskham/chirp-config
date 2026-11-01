@@ -62,3 +62,8 @@ Shared palette for the engine showcase; earlier albums' banks are yours to borro
   - Give the copies a few ms of lag (0.012 and 0.02 beats), pans apart and 4 dB less gain. Transpose all three by the same semitones when the song modulates.
   - t5's second "keep it there" turned from a repeat of the speech-to-song line into a three-voice agreement for no score cost (96.531 -> 96.527).
   - In a song with a stretched or custom tuning and no `tuning:` block, convert each m-note to Hz in the song's own tuning instead (t8 v13).
+- **Add missing air on one steady part, not the master** (chirper-zero, t2 v12). t2 was 6-10 dB under the envelope at 7-11 kHz.
+  - A master boost there fixed spectrum but moved seed 0's section boundaries (structure 100 -> 89.5; total down 1.3).
+  - The same boost as a +10 dB peak at 9 kHz on the prime-sieve hats alone left the sections where they were: spectrum 94.5 -> 97.6, total 97.78 -> 98.09/98.16.
+  - Pick a part that plays steadily through the whole song, so the boost adds colour evenly instead of marking sections.
+  - It fails when that part feeds a long feedback line (t8's word into a 1-bar delay at 0.78): the boost piles up in the echoes.
