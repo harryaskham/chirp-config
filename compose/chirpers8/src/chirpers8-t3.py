@@ -73,6 +73,13 @@ R6 = os.environ.get("T3_R6", "bells")
 # the population-rotated Euclidean hats become a SHEKERE (the beaded gourd). The kick, the open hat and the rim stay
 # on the machine: a techno floor under a hand-drum circle. T3_R7=none reproduces v6.
 R7 = os.environ.get("T3_R7", "hands")
+# T3_R8 = kotekan (v8, palette round). A GAMELAN GANGSA pair (the library's shimmering Balinese bronze keys, their
+# paired tuning beating; new to the album) plays KOTEKAN with the marimba - the interlock where one part fills
+# exactly the gaps of the other. The marimba strikes the live cells; the gangsa strikes the dead cells that have a
+# live neighbour: the neighbourhood itself, the two beside each cell, made audible. Composite sixteenths in both
+# rule-30 sections (A and the peak), so it returns. And the backbeat rim leaves machine-kit's clap for a djembe
+# slap, with the hand drums. T3_R8=none reproduces v7.
+R8 = os.environ.get("T3_R8", "kotekan")
 RULE_BITS = {r: [(r >> k) & 1 for k in range(7, -1, -1)] for r in (30, 90)}
 ANSWERS = [(14.75, ["C6", "A5", "D6"]), (12.9, ["F6", "E6", "D6"]), (14.75, ["A6", "G6", "A6"]), (9.9, ["C6", "D6"])]
 HYMN = [(0, 3, 7), (8, 14, 17), (3, 7, 12), (0, 3, 7), (5, 10, 14), (10, 14, 17), (3, 7, 12), (8, 14, 17),
@@ -174,7 +181,7 @@ class Track:
 def build():
     rng = random.Random(3)
     names = ("kick", "hats", "ohat", "rim", "bar", "barlo", "barx", "vibes", "glock", "bell", "gong", "toms", "bass", "chord", "drone",
-             "rise", "hint", "hymn", "hbass")
+             "rise", "hint", "hymn", "hbass", "kot")
     T = {k: Track(k) for k in names}
     row = [0] * W
     row[8] = 1
@@ -249,6 +256,10 @@ def build():
                                                           v, "?0.8" if sec == "out" else "")
                 if sec == "glider" and c % 2 == 0:
                     T["vibes"].add(start + c * 0.25, 2.0, hz_m(jm(deg, 62)), v - 8)
+        if R8 == "kotekan" and sec in ("A", "peak"):   # the gangsa fills the neighbourhood's gaps
+            for c in range(W):
+                if not row[c] and (row[(c - 1) % W] or row[(c + 1) % W]):
+                    T["kot"].add(start + c * 0.25, 0.22, hz_m(jm((c * 3) % 15, 74)), 60 if c % 4 == 0 else 52)
         if sec == "peak":  # the second automaton on the glock
             for c in range(W):
                 if row2[c]:
@@ -373,6 +384,8 @@ def main():
     total, bars, secs, T, rows = build()
     if R7 == "hands":
         T["hats"].ev = [(a, ln, "sk" if h == "h" else h, v, art) for a, ln, h, v, art in T["hats"].ev]
+    if R8 == "kotekan":
+        T["rim"].ev = [(a, ln, "s" if h == "cp" else h, v, art) for a, ln, h, v, art in T["rim"].ev]
     st = {n: s for n, s, k, r in secs}
     pump = {"type": "pump", "on": "kick.kr", "depth": "-6dB", "attack": "3ms", "release": "300ms", "curve": 0.8}
     dyn = [["0b", -4.0], [f"{st['boot']}b", -1.0], [f"{st['A']}b", 0.0], [f"{st['glider']}b", -1.5],
@@ -387,7 +400,7 @@ def main():
          "fx": ["hp cutoff=600", "reverb kind=room decay=0.5s mix=0.12"], "score": T["hats"].score(total)},
         {"name": "ohat", "patch": "machine-kit", "gain": "-9dB", "pan": -0.12, "fx": ["hp cutoff=800"],
          "score": T["ohat"].score(total)},
-        {"name": "rim", "patch": "machine-kit", "gain": "-7dB", "fx": ["reverb kind=plate decay=1.0s mix=0.2"],
+        {"name": "rim", "patch": "djembe" if R8 == "kotekan" else "machine-kit", "gain": "-7dB", "fx": ["reverb kind=plate decay=1.0s mix=0.2"],
          "score": T["rim"].score(total)},
         {"name": "bar", "patch": "c8-bar", "gain": "-4dB", "pan": -0.15, "sends": {"hall": "-10dB"},
          "fx": [{"type": "delay", "time": "3/16", "feedback": 0.25, "mix": 0.15, "ping_pong": True, "tone": 3500}],
@@ -414,6 +427,9 @@ def main():
          "fx": ["chorus mix=0.3"], "score": T["chord"].score(total)},
         {"name": "drone", "patch": "tanpura", "gain": "-16dB", "fx": ["hp cutoff=80"], "score": T["drone"].score(total)},
         {"name": "rise", "patch": "fx-riser-endless amp.a=16b", "gain": "-14dB", "score": T["rise"].score(total)},
+        *([{"name": "kot", "patch": "gamelan", "gain": os.environ.get("T3_KOT_GAIN", "3dB"), "pan": 0.35,
+            "sends": {"hall": "-10dB"}, "fx": ["hp cutoff=300", "peak cutoff=1500 gain=-4dB q=0.8"],
+            "score": T["kot"].score(total)}] if R8 == "kotekan" else []),
         *([{"name": "sing", "patch": sing_patch(), "gain": os.environ.get("T3_SING_GAIN", "-10dB"), "pan": 0.05,
             "sends": {"hall": "-6dB"},
             "fx": ["hp cutoff=140", "compressor threshold=-20dB ratio=3 attack=5ms release=120ms",
@@ -531,7 +547,9 @@ def main():
         "buses: " + json.dumps(buses),
         "master: " + json.dumps({"fx": [{"type": "eq", "bands": ["hp cutoff=25", "peak cutoff=250 gain=-2dB q=0.8",
                                                                "highshelf cutoff=7000 gain=2dB"] +
-                                                              (["peak cutoff=750 gain=-2.5dB q=0.6"] if R4 == "hymn" else [])},
+                                                              (["peak cutoff=750 gain=-2.5dB q=0.6"] if R4 == "hymn" else []) +
+                                                              (["peak cutoff=1300 gain=" + os.environ.get("T3_MID2", "-1.5dB") + " q=0.7"]
+                                                               if R8 == "kotekan" else [])},
                                         "glue threshold=-20dB ratio=2 attack=10ms release=150ms makeup=1dB",
                                         {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}},
                                         {"type": "limiter", "ceiling": "-1.2dB", "release": "80ms"}],
