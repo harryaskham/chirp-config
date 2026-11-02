@@ -82,6 +82,25 @@ R6 = os.environ.get("T6_R6", "waltz")
 # AS KEPT: the horns only - the flute (T6_R7_FLUTE=1) darkened the whole record (spectrum 91 -> 78: the juno had been
 # carrying the song's air above 5 kHz). T6_R7=none reproduces v6.
 R7 = os.environ.get("T6_R7", "horns")
+# T6_R8 = speaker (v8, palette round). The voice leaves voice-speech, the album's most shared patch (eight songs), for
+# c6-voice, this song's own speaker: the same speech-mode voice layer with a longer tract (formants ~5% lower: an
+# older, warmer person), more breath, a softer ring and slightly covered upper formants - someone, not the default
+# someone. The radio keeps voice-speech, so the near voice and the far one are now two people. (tract 1.1 was too far:
+# Whisper heard nothing; 1.05 keeps the words.) T6_R8=none
+# reproduces v7.
+R8 = os.environ.get("T6_R8", "speaker")
+C6_VOICE = {"about": "chirper-two: No Errors Since's speaker - the speech-mode voice layer with a longer tract (an older, "
+                     "warmer person), more breath, a softer ring and covered upper formants.",
+            "play": {"mono": True, "glide": "30ms", "humanize": {"time": "4ms", "vel": 0.05}},
+            "synth": {"layers": [{"type": "voice", "speech": 1, "vowel": 0.5,
+                                  "tract": float(os.environ.get("T6_TRACT", "1.05")),
+                                  "breath": {"value": 0.28, "mod": [{"src": "vel", "amount": -0.1}]},
+                                  "effort": {"value": 0.5, "mod": [{"src": "vel", "amount": 0.3}]},
+                                  "ring": 0.15, "vary": 0.5, "formant_bw": 1.3,
+                                  "onset": "expr.on", "coda": "expr.off"}],
+                      "pitch": {"value": 0, "mod": [{"src": "expr.f0", "amount": 0.01}]},
+                      "amp": {"a": "15ms", "d": "0s", "s": 1, "r": "60ms"}},
+            "fx": ["reverb kind=room decay=0.6s mix=0.08"]}
 R7FLUTE = os.environ.get("T6_R7_FLUTE", "0") == "1" and R7 == "horns"   # opt-in: the flute swap cost spectrum 91 -> 78
 if R6 == "waltz":
     FORM = FORM[:5] + [("waltz", 12)] + FORM[5:]
@@ -390,7 +409,7 @@ def main():
             "gen": {"type": "markov", "order": 1, "from": CORPUS, "n": 120}}] if R2 == "strings" else []),
         {"name": "bell", "patch": "glass", "gain": "-16dB", "fx": ["reverb kind=hall decay=4s mix=0.4"],
          "score": T["bell"].score(total)},
-        {"name": "voice", "patch": "voice-speech", "gain": os.environ.get("T6_VOICE_GAIN", "-10dB"), "pan": 0.0,
+        {"name": "voice", "patch": "c6-voice" if R8 == "speaker" else "voice-speech", "gain": os.environ.get("T6_VOICE_GAIN", "-10dB"), "pan": 0.0,
          "fx": ["hp cutoff=110", "compressor threshold=-20dB ratio=3 attack=5ms release=120ms",
                 {"type": "delay", "time": "3/8", "feedback": 0.25, "mix": 0.15, "tone": 3000},
                 "reverb kind=plate decay=1.8s mix=0.22"], "notes": V["voice"]},
@@ -441,6 +460,7 @@ def main():
                                         {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}},
                                         {"type": "limiter", "ceiling": "-1.2dB", "release": "80ms"}],
                                  "auto": {"dyn": {"points": dyn}}}),
+        *(["patches: " + json.dumps({"c6-voice": C6_VOICE})] if R8 == "speaker" else []),
         "tracks:",
     ]
     lines += ["  - " + json.dumps(t) for t in tracks]
