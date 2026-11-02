@@ -44,6 +44,8 @@ CONGASOFT = os.environ.get("C8T5_CONGASOFT", "")     # the intro's first two bar
 SUNGKEEP = os.environ.get("C8T5_SUNGKEEP", "1")   # agreed, they sing it together: the second (lifted) 'keep it there' becomes a sung three-voice choir (tts --sing: B3 D4 E4 x3, the last up to B4), harmonised in the mode by hand - a diatonic third above and below (tts --mode choir harmonises in parallel major thirds: D#/G# against E dorian) - speech, then song, then agreement
 AGREE = os.environ.get("C8T5_AGREE", "-8")   # the negotiation as a system: a LOGISTIC map at r 2.95 (under 3 it settles, after a damped two-cycle) steps every two bars and drives the acid's resonance - early it flips high/low each step (q ~4.4/6.5: the proposals), the swing shrinking, until by C it holds near q 6 (it was 7): agreement as a fixed point, and the acid calmer once they agree. Value = range low end (the q offset at x=0)
 AGREEHI = float(os.environ.get("C8T5_AGREEHI", "0"))
+CONGAIN = os.environ.get("C8T5_CONGAIN", "1")    # the congas wait CONGAIN bars at the head (the E2 hum and the radio first): both seams read my 213 Hz (the congas' drums) +16-18 dB over the neighbours. Events dropped after generation, so no dice move
+CONGAOUT = os.environ.get("C8T5_CONGAOUT", "")  # the congas leave for the outro's last CONGAOUT bars (the radio and its carriers alone hand over to t6)
 HOOKF = [(0, "E4", 3), (3, "G4", 3), (6, "A4", 4), (10, "B4", 6), (16, "D5", 3), (19, "B4", 3), (22, "D5", 4), (26, "E5", 6)]
 CLEN = int(os.environ.get("C8T5_CLEN", "42"))   # C's length: 40 tightens the agreement (the lift at bar 25, the second 'keep it there' at 33)
 FORM = [("intro", 12), ("A", 34), ("B", 26), ("retrain", 12), ("C", CLEN), ("outro", 16)]
@@ -181,6 +183,10 @@ def build():
                 for q in range(0, 16, 2):
                     if rng.random() < 0.55:
                         add("lead", at + q, LEAD[rng.randrange(8)], 2 if rng.random() < 0.7 else 4, 92)
+    if CONGAIN or CONGAOUT:
+        i1 = sec_start("intro") + int(CONGAIN or 0) * BAR
+        o0 = total() - int(CONGAOUT or 0) * BAR if CONGAOUT else total() + 1
+        ev["conga"] = [e for e in ev["conga"] if i1 <= e[0] < o0]
     return {k: stream(ev[k], total()) for k in TRACKS}
 
 
