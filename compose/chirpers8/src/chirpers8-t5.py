@@ -54,6 +54,7 @@ BSPLITAT = int(os.environ.get("C8T5_BSPLITAT", "12"))   # the bar of B (0-based)
 LIFTSTOP = os.environ.get("C8T5_LIFTSTOP", "1")   # the gear change, announced: the band stops dead for the second half of the bar before the lift (C bar 24) - a clap fill climbing in sixteenths - then lands a whole step up (dropped after generation, so no dice move). Once B was split (v18) this splits C too without crowding the returns
 LIFTHAT = os.environ.get("C8T5_LIFTHAT", "1")   # after the lift the hats open: every off-beat hat an open hat - the agreed band, a step up, brighter on top
 ESTABLE = os.environ.get("C8T5_ESTABLE", "1")   # song-level event_stable (engine f5283535): each note's humanize and DSP draws come from its track, beat and pitch, so a window's edit stays in the window; switching it on re-rolls every humanized note once
+CBREAK = os.environ.get("C8T5_CBREAK", "34,4")   # SECTION ROUND (w8, C after the lift, static): take something away - for C bars START..START+LEN the kit (kick, hats, clap) stops and the hand drums, the cowbell, the keys and the bass carry the agreed groove alone; the kit comes back for C's last bars into the outro. event_stable keeps the rest of the song as it was. Value = 'start,len'
 PHASEIN = os.environ.get("C8T5_PHASEIN", "")   # the intro agrees on its speed: against the grid handshake a second one (no extra hiss) runs 10 to the bar, then 9, then 8 in step, from bar PHASEIN's start; value 'velocity,startbar'
 PERCSPLIT = os.environ.get("C8T5_PERCSPLIT", "C")   # WHOLE ROUND: the hand drums change hands - in the listed sections (e.g. 'C' or 'A,C') the congas give way to the djembe kit (unused on the album), same rhythm: open -> tone, tumba -> bass, slap -> slap, muted -> calabash, bongos -> slap/tone. All djembe made the sections alike (r50: one seed always over the returns cliff); as a contrast between sections it is a colour the song moves through. The congas there keep their notes at velocity 1 (no dice move) and the djembe plays on its own track, dj, listed last
 PHASE = os.environ.get("C8T5_PHASE", "66")   # SECTION ROUND (w9, the outro): agreed, and drifting apart again - over the outro's last eight bars, while the handshake returns on the grid, a second handshake (the same carriers, the same radio) runs nine to the bar against its eight, one eighth further ahead each bar: two clocks that had agreed on a speed, slipping as the record slows. Value = 'velocity' or 'velocity,notes-per-bar'
@@ -248,6 +249,12 @@ def build():
         i1 = sec_start("intro") + int(CONGAIN or 0) * BAR
         o0 = total() - int(CONGAOUT or 0) * BAR if CONGAOUT else total() + 1
         ev["conga"] = [e for e in ev["conga"] if i1 <= e[0] < o0]
+    if CBREAK:
+        c0 = sec_start("C")
+        bs, bl = (int(x) for x in CBREAK.split(","))
+        u, w = c0 + bs * BAR, c0 + (bs + bl) * BAR
+        for k in ("kick", "hats", "clap"):
+            ev[k] = [e for e in ev[k] if not (u <= e[0] < w and e[1] != 0)]
     if PERCSPLIT:
         mp = {"o": "t", "lo": "b", "sl": "s", "mu": "c", "bh": "s", "bl": "t"}
         spans = [(sec_start(x), sec_start(x) + dict(FORM)[x] * BAR) for x in PERCSPLIT.split(",")]
