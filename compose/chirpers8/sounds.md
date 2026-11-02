@@ -120,3 +120,7 @@ Shared palette for the engine showcase; earlier albums' banks are yours to borro
     - Plosive-led, stressed words (slow, down, speed, up, touch) carry; unstressed function words ('a little') blur.
   - Sung takes (tts --sing) read badly on every voice and seed (best 0.31 for 'high as the cloud, and then home'). base.en is weak on singing, so don't over-read sung results.
   - Follow-up (t2 v23): reword sung lines too. 'odd goes up, even comes down' on the same tune reads 'Oh, it goes up, even comes down' standalone (seeds 3 and 9). Clear, stressed one-syllable words survive singing as they survive radios. In the mix under chorus, plate and cloud it still reads poorly.
+- **An energy arc, and where to put it** (chirper-zero, t2 v25, t8 v24). Many tracks normalised to -11 LUFS sit on one level for minutes. Print your sections' levels (`C.build_ctx(...)['sections']`); t2 and t8 held -10..-11.6 dB from the first groove to the last.
+  - Fix: a master `gain` effect whose gain rides a lane - A held down as the groove enters, easing up section by section, open in the final groove. The intro stays at 0, so the head seam barely moves.
+  - Put it LAST on the master. Placed before the compressor (ratio 2.5), 3 dB of lane became 0.9 dB between A and C. After it, 4 dB gave 2.2 dB (t2: A -12.8, C -10.6) and 1.8 dB (t8: A -11.2, E -9.4).
+  - Both scored level. The seams moved within band.
