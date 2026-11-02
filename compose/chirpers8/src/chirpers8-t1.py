@@ -86,7 +86,7 @@ def build():
         secs[name] = t; t += n
     nb = t
     total = nb * 4.0
-    P = {k: [] for k in ('pad', 'sub', 'bass', 'kit', 'say', 'babble', 'ca', 'speak')}
+    P = {k: [] for k in ('pad', 'sub', 'bass', 'kit', 'say', 'babble', 'ca', 'speak', 'vib')}
     KSYL = [(round(n_['at'] * 4) / 4.0, n_['ph']) for n_ in VOICE[0]['notes'] if '1' in n_['ph']]
     for b in range(nb):
         s = next(name for name, n in FORM if secs[name] <= b < secs[name] + n)
@@ -192,6 +192,25 @@ def build():
         n_bars = dict(FORM)[sec_]
         for ph_ in range(0, n_bars, 8):
             P['babble'] += markov(order_, min(16, (n_bars - ph_) * 4), sd_ * 100 + ph_, (secs[sec_] + ph_) * 4.0)
+    # (v18) THE TUNE, GIVEN TO AN INSTRUMENT: the sung tune the voice is learning (F# E D B, D E F# A F#, D major
+    # pentatonic, inside every chord) is played on a vibraphone in the babble's silences - the machine talks for four
+    # bars, then the tune answers for four (once as written, once ending up on B) - through the second and third
+    # grooves; when the machine says the line back the vibraphone plays it with a third below, then the voice sings it
+    HOOK = [(66, .5), (64, .5), (62, 1.0), (59, 1.0), (None, 1.0), (62, .5), (64, .5), (66, 1.0), (69, 1.0), (66, 1.0)]
+    HOOK2 = HOOK[:6] + [(64, .5), (66, 1.0), (69, 1.0), (71, 1.0)]
+    def hook(t_, ph, harm=False, vel=80):
+        at_ = t_
+        for m_, d_ in ph:
+            if m_ is not None:
+                P['vib'].append((at_, nm(m_ + 12) + (',' + nm(m_ + 12 - (4 if (m_ % 12) in (6, 11) else 3)) if harm else ''), d_ * 0.95, vel))
+            at_ += d_
+    for sec_ in ('B', 'C'):
+        for ph_ in range(4, dict(FORM)[sec_], 8):
+            hook((secs[sec_] + ph_) * 4.0, HOOK, vel=74)
+            if ph_ + 2 < dict(FORM)[sec_]:
+                hook((secs[sec_] + ph_ + 2) * 4.0, HOOK2, vel=70)
+    for ph_ in (2, 10):
+        hook((secs['D'] + ph_) * 4.0, HOOK, harm=True, vel=72)
     # D: the machine says it back - the exact contour of each take, two octaves up, with the voice
     for v in VOICE:
         if secs['D'] < v['bar'] <= secs['D'] + 16:
@@ -258,6 +277,7 @@ def build():
             # (v12) IT SAYS IT IN YOUR VOICE: when the machine says the line back it no longer only borrows the vowels - its
             # FM voice takes the human voice's whole spectral envelope as they speak together (morph, mode cross, keyed by
             # the voice), so the machine's line comes out in the speaker's own mouth, two octaves up
+            tr('vib', 'vibes', '-9dB', pan=-0.25, sends={'hall': '-9dB', 'echo': '-16dB'}),
             tr('say', FMV, '-9dB', pan=0.2, sends={'echo': '-12dB', 'hall': '-12dB'},
                fx=[{'type': 'formant', 'vowel': {'value': 2, 'mod': [{'src': 'var.mouth', 'amount': 2}]}, 'q': 4, 'mix': 0.55},
                    {'type': 'morph', 'mode': 'cross', 'key': 'voice', 'amount': 0.85}]),
