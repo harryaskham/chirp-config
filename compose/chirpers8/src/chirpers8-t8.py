@@ -64,14 +64,14 @@ PLATEHIT = os.environ.get("C8T8_PLATEHIT", "rE")   # the write, struck: when the
 FILL = os.environ.get("C8T8_FILL", "0.7")   # the memory's continuity illusion: while the refresh rewrites the word (its first 4 bars, the word unread) a follow-noise on the word keeps sounding in the word's own colours (held 8 s from its last notes), so the line seems to run on through the gap - the Huggins/Zwicker fill the engine's follow-noise was made for; value = tone (0 smooth .. 1 pitched, ringing on the word's notes)
 WORDS = os.environ.get("C8T8_WORDS", "new")   # 'new': the voices stop asking 'say it back to me' four times (plain, and read 'say listed') and tell what a delay line is, sideways, a different line each time - 'nothing is kept.' (the word written), 'nothing is kept. it only goes around.' (the refresh), 'it only goes around.' (the outro); the sung line becomes 'it only travels' (same tune). voice-spoken, chosen by whisper (the spoken lines read back word-perfect dry)
 STRIDE = os.environ.get("C8T8_STRIDE", "C5D7")   # the same bits, read through another address map: the word's bit i sounds scale slot (i x stride) mod 8 - stride 3 everywhere before (D A F | F C A | G D: interlocking leaps); 'C5' reads the refreshed word in C with stride 5 (D D G A C F F A: a new tune from the same data), 'D7' the corrupted D with stride 7 (a leap, then falling down the scale); E is read the old way again (the tune comes home); e.g. 'C5D7'
-SKEW = os.environ.get("C8T8_SKEW", "1")   # SECTION ROUND, window 7 (D; 'little new vs w6'): the clock skews in the corruption - through D the hats leave the grid for dotted eighths (every 3 sixteenths, three against four), the open hat with them; E's repair puts them back
+SKEW = os.environ.get("C8T8_SKEW", "local")   # SECTION ROUND, window 7 (D; 'little new vs w6'): the clock skews in the corruption - through D the hats leave the grid for dotted eighths (every 3 sixteenths, three against four), the open hat with them; E's repair puts them back
 CPADUP = os.environ.get("C8T8_CPADUP", "1")   # SECTION ROUND, window 6 (2:42-3:15, C bars 20-31; 'little new vs w5'): the refreshed store opens out - for C's last twelve bars the pads (four voices) move up an octave, so the harmony brightens and lifts before the corruption (D) closes in
 A2LIFT = os.environ.get("C8T8_A2LIFT", "1")   # SECTION ROUND, window 3 (A bars 16-31, 'little new vs w2'; a fading low-pass and a quiet rim both failed): the tune grows halfway through A - from A bar 16 the word's upper half takes the octave leaps C and E have (bits 8 and 12 up an octave), so A's second half is brighter and the leap is heard first here
 ZEROS = os.environ.get("C8T8_ZEROS", "-18")   # SECTION ROUND, window 8 (E bars 4-19, the repaired word at its loudest; flagged static): the zeros sound. For sixteen bars the word's UNSET bits play too, an octave up on a glass chime (fb-crystal, which no other song here uses), filling the rests between the set ones - a hocket of ones and zeros. They fill in by four-bar steps (bit positions 0 mod 4, then 0-1, 0-2, all), so the window builds and then the zeros go quiet again. Gain in dB
 ARC = os.environ.get("C8T8_ARC", "4")   # an energy arc: A to E sat at one level for four minutes (-10.0..-10.4 dB a section). A gain lane last on the master (after the compressor) holds A ARC dB down as the groove enters, eases up through C and D and is open from E - the repaired word the loudest place in the record
 DARK = os.environ.get("C8T8_DARK", "8")  # the tape running out: a master low-pass closing over the outro's last bars (the hiss and the line's top go first); value = bars
 FORM = [("intro", 16), ("A", 36), ("refresh", 8), ("C", 32), ("D", 16), ("E", 28), ("outro", 16)]
-TRACKS = ("word", *(("zeros",) if ZEROS else ()), "pad0", "pad1", "pad2", "pad3", "org0", "org1", "hum", "hum2", "bass", "kick", "shk", "hats", "clap", "rim")
+TRACKS = ("word", *(("zeros",) if ZEROS else ()), "pad0", "pad1", "pad2", "pad3", "org0", "org1", "hum", "hum2", "bass", "kick", "shk", "hats", "clap", "rim") + (("hats2",) if os.environ.get("C8T8_SKEW", "local") == "local" else ())
 
 # the word's 16 bits -> pitches (D minor, spread so neighbours leap): D4 F4 G4 A4 C5 D5 F5 A5
 SC = [62, 65, 67, 69, 72, 74, 77, 81]
@@ -160,13 +160,14 @@ def build():
                     for k3 in range(-(-(BAR - (b * BAR) % 3) // 3)):
                         q = ((3 - (b * BAR) % 3) % 3) + 3 * k3
                         if q < 16:
-                            add("hats", at + q, "oh" if (b * BAR + q) % 6 == 0 else "h", 1, 70 if (b * BAR + q) % 6 == 0 else 58)
-                else:
+                            add("hats2" if SKEW == "local" else "hats", at + q, "oh" if (b * BAR + q) % 6 == 0 else "h", 1, 70 if (b * BAR + q) % 6 == 0 else 58)
+                if not (SKEW and sec == "D") or SKEW == "local":
+                  quiet = SKEW == "local" and sec == "D"   # the grid hats keep their places (velocity 1) so the per-note dice of every later hat stay put
                   for q in range(16):
                     if q % 4 == 2:
-                        add("hats", at + q, "oh", 1, 72)
+                        add("hats", at + q, "oh", 1, 1 if quiet else 72)
                     elif q % 2 == 1:
-                        add("hats", at + q, "h|?0.85", 1, 52)
+                        add("hats", at + q, "h|?0.85", 1, 1 if quiet else 52)
                 if SHAKE and sec in ("A", "C", "E"):
                     for q in range(16):
                         add("shk", at + q, "sh", 1, int(SHAKE) + (14 if q % 2 else 0) - (8 if q % 4 == 0 else 0))
@@ -341,6 +342,7 @@ def song():
                for f, nm, o in zip(("chirpers8-t8-say-kept.json", "chirpers8-t8-say-both.json", "chirpers8-t8-say-around.json"), ("say", "say2", "say3"), SAYOFFS[-3:])]
               if VOX and WORDS else []),
             {"name": "rim", "patch": "909", "gain": "-12dB", "pan": -0.3, "sends": {"line": "-14dB"}, "score": T["rim"]},
+            *([{"name": "hats2", "patch": "909", "gain": "-9dB", "pan": 0.15, "score": "swing16=0.56 " + T["hats2"]}] if SKEW == "local" else []),   # last, so no other track's dice move
         ],
     }
 
