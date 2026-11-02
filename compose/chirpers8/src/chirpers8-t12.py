@@ -278,6 +278,7 @@ def write_melody():
     tower()                                                   # v12: the generations counted
     tune_grows()                                              # v22: the tune grows like the tree
     tape_choir()                                              # v23: the voices on tape (g5)
+    relay()                                                   # v24: the tune passes hand to hand
     gong()                                                    # v15: the cut and the completion
     # the fan's hum under the light (seed and the last bars): a soft sine on F#2
     for a, z in ((1, 8), (179, 190)):
@@ -487,6 +488,23 @@ def gong():
 TUNE_GROWTH = {"g1": 1, "g2": 2, "g3": 3, "g4": 5, "g5": 8, "g6": 13}
 
 
+# v24 (ROUND TYPE: whole; Harry 'do more each round'): THE TUNE PASSES HAND TO HAND TO THE VOICE - after the theremin
+# states the grown tune on the band's return (127), a solo CELLO takes it an octave down (131), then a FRENCH HORN
+# (139; unused on the album), then the brass chorale (150) and at last the singer, with its words (158): a relay that
+# builds the last minute and a half toward the voice. And the tape choir (v23) now SWELLS ~8 dB across its sixteen
+# bars of g5 instead of holding one level.
+RELAY = (("tunecello", 131, -12), ("tunehorn", 139, -12))
+
+
+def relay():
+    t0 = SING[0][0]
+    for name, bar, octv in RELAY:
+        shift = (PLAN[bar][0] - PLAN[158][0]) * 12 / EDO
+        shift = ((shift + 6) % 12) - 6
+        for at, ln, ph, midi, vel, f0 in SING[:TUNE_GROWTH["g6"]]:
+            part(name).add(b0(bar) + at - t0, ln * 0.95, f"m{midi + shift + octv:.3f}", 92)
+
+
 def tune_grows():
     t0 = SING[0][0]
     starts = []
@@ -661,8 +679,13 @@ def main():
             tr("shepdown", "shepard-fall", gain="-16dB", sends={"hall": "-10dB"}),
             {"name": "rush", "patch": "machine-kit", "gain": "-8dB", "pan": -0.2, "at": f"{rb(158):g}b",
              "risset": {"cycle": "4bar", "layers": 3, "length": "20bar"}, "sends": {"room": "-12dB"}, "score": RUSH},
-            tr("tapechoir", "mellotron-choir", gain="-12dB", pan=-0.2, sends={"hall": "-6dB"}),  # v23: LAST
+            tr("tapechoir", "mellotron-choir", gain="-12dB", pan=-0.2, sends={"hall": "-6dB"},
+               fx=[{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.sw", "amount": 1}]}}],
+               auto={"sw": {"points": [["0b", -4.0], [f"{rb(TAPE_CHOIR[0]):g}b", -4.0],
+                                       [f"{rb(TAPE_CHOIR[1] + 1):g}b", 4.0]]}}),               # v23: LAST; v24 swells
             tr("crash12", "machine-kit", gain="-8dB", sends={"hall": "-10dB"}),                     # v23
+            tr("tunecello", "cello", gain="-3dB", pan=-0.3, sends={"hall": "-8dB"}),               # v24
+            tr("tunehorn", "horn", gain="-1dB", pan=0.3, sends={"hall": "-8dB"}),                  # v24
             tr("theremin", "theremin", gain="-5dB", pan=0.2, sends={"hall": "-8dB"}),        # v22: LAST
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=1.0s mix=1 predelay=10ms", "hp cutoff=250"]},
