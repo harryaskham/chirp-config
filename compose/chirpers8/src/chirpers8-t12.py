@@ -211,6 +211,10 @@ def write_harmony():
         # THE HORNS (lips) answer each bar whose chord is a B (the harmonic seventh) in g4-g6
         if sec in ("g4", "g5", "g6") and q == SEPT:
             part("horns").add(b0(bar) + 2.5, 1.2, chord(54 + root * 12 / EDO, q), 86)
+        # v11: THE BRASS CHORALE at the summit - g6's last eight bars, sustained lips-and-bore chords on the grown
+        # harmony, swelling bar by bar into the coda
+        if 150 <= bar <= 157:
+            part("horns").add(b0(bar), 3.9, chord(54 + root * 12 / EDO, q), 66 + (bar - 150) * 5)
 
 
 # ---------------------------------------------------------------- the lead, by generation
@@ -466,7 +470,7 @@ def main():
                 # v7: BENDS - each note scoops up from one 31-EDO step below (an expr_path on the pitch, in cents)
             tr("strum", "harp play.strum=55ms", gain="-9dB", pan=-0.3, sends={"hall": "-6dB"}),     # v7: strummed chords
             tr("pole", "strings", gain="-10dB", sends={"hall": "-4dB"}, fx=["barberpole cycle=2bar down=true"]),
-            tr("horns", "horn-section", gain="-10dB", pan=0.1, sends={"hall": "-8dB"}),
+            tr("horns", "brass", gain="-10dB", pan=0.1, sends={"hall": "-8dB"}),   # v11: REAL lips - a waveguide bore, 3 players
             tr("phantom", "phantom-bass", gain="-8dB"),
             tr("sub", "808", gain="-14dB", fx=[{"type": "phantom", "harmonics": "-6dB", "odd": 0.4, "remove": 0.0}]),
             tr("kick", "machine-kit", gain="-12dB"),
