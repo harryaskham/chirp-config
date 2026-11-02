@@ -549,14 +549,40 @@ SUNG = [   # v6: chirp tts --sing "it rained in the second room a-gain" --humani
 ]
 SUNG_PATCH = {"extends": "voice-speech", "synth": {"pitch": {"mod": [{"amount": 0.01, "src": "expr.f0"}], "value": 0}}}
 SUNG_AT = (105, 121)
+# v25 (ROUND TYPE: whole; Harry 'a tune good to hear', 'oblique words', 'do more each round'): THE HOOK GETS AN ANSWER.
+# The peak sang one line twice; now the second statement (121) answers 'it rained in the second room again' with
+# 'warm in the glass, and the weather stayed' - stresses on the hook's long notes (WARM, GLASS, WEATH-, STAYED): the
+# glass is the window, the screen, and the closer's 'warm glass' at once; the weather stayed in - the title, answered.
+# ('wires' was tried first: the voice splits it in two and the stresses slip.) The radio at 145 keeps the first line.
+# And event_stable is on from here.
+SUNG_B = [   # chirp tts --sing "C#5/4 D#5/8 F5/8 E5/4 G5/8 F5/8 D#5/4. C#5/8 C#5/2" "warm in the glass and the weather stayed" --humanize 0.4
+    ('W AO1 R M', 0.85, [-55.0, -28.0, -9.0, 2.0, 5.0, 5.0, 2.0, 2.0, 6.0, 13.0, 17.0, 13.0, 1.0, -13.0, -18.0, -8.0, 13.0, 30.0, 31.0, 16.0, -6.0, -21.0, -21.0, -5.0]),
+    ('IH0 N', 0.771, [-3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -6.0, -5.0, 2.0, 10.0, 9.0, -3.0]),
+    ('DH AH0', 0.791, [-3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -5.0, -5.0, 1.0, 7.0, 8.0, -1.0]),
+    ('G L AE1 S', 0.865, [4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 1.0, 1.0, 6.0, 14.0, 18.0, 13.0, -1.0, -16.0, -21.0, -8.0, 15.0, 32.0, 32.0, 14.0, -10.0, -25.0, -23.0, -4.0]),
+    ('AH0 N D', 0.783, [4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 1.0, 2.0, 9.0, 16.0, 16.0, 5.0]),
+    ('DH AH0', 0.773, [-3.0, -3.0, -3.0, -3.0, -3.0, -4.0, -7.0, -7.0, -1.0, 8.0, 12.0, 4.0]),
+    ('W EH1', 0.849, [-3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -5.0, -5.0, -1.0, 6.0, 9.0, 4.0, -8.0, -21.0, -23.0, -11.0, 9.0, 23.0, 21.0, 4.0, -17.0, -29.0, -24.0, -6.0, 15.0, 24.0, 17.0, -2.0, -22.0, -30.0, -20.0, 0.0, 19.0, 24.0, 13.0, -8.0]),
+    ('DH ER0', 0.801, [-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -4.0, -3.0, 3.0, 10.0, 11.0, 2.0]),
+    ('S T EY1 D', 0.839, [-3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -5.0, -7.0, -4.0, 2.0, 9.0, 9.0, 0.0, -13.0, -24.0, -24.0, -11.0, 9.0, 22.0, 21.0, 6.0, -14.0, -28.0, -28.0, -14.0, 6.0, 21.0, 22.0, 10.0, -10.0, -26.0, -29.0, -18.0, 2.0, 19.0, 23.0, 13.0, -6.0, -24.0, -30.0, -21.0, -3.0, 12.0, 15.0, 1.0, -26.0, -54.0, -75.0]),
+]
+
+
+def answer_harmony():
+    """v25: the answer sung as a duet - a second voice a pure 5/4 third above (the vibes' line), quieter, opposite."""
+    bar = SUNG_AT[1]
+    lb = lobe_at(bar)
+    return [{"at": round(b0(bar) + at + 0.02, 4), "len": round(ln * 0.95, 3), "ph": ph,
+             "pitch": mm(partial(n * 1.25, lb, 0)), "vel": round(vel * 0.85, 3), "expr_path": {"f0": f0}}
+            for (at, n, ln, v), (ph, vel, f0) in zip(HOOK, SUNG_B)]
 
 
 def sung_notes():
     """v6: in the peak the hook is SUNG - each syllable on the hook's own partial, in whichever lobe the weather is in."""
     out = []
-    for bar in SUNG_AT:
+    for k, bar in enumerate(SUNG_AT):
         lb = lobe_at(bar)
-        for (at, n, ln, v), (ph, vel, f0) in zip(HOOK, SUNG):
+        for (at, n, ln, v), (ph, vel, f0) in zip(HOOK, SUNG if k == 0 else SUNG_B):
             out.append({"at": round(b0(bar) + at, 4), "len": round(ln * 0.95, 3), "ph": ph,
                         "pitch": mm(partial(n, lb, 0)), "vel": vel, "expr_path": {"f0": f0}})
     return out
@@ -649,6 +675,7 @@ def main():
         "vars": {"gust": {"system": {"type": "lorenz", "axis": "x", "n": 1400, "range": [-0.7, 0.7]}, "every": "1/2"}},
         "tail": "0.5s",
         "loudness": -11,
+        "event_stable": True,                     # v25: each note's draws from its track, beat and pitch (wM f5283535)
         "volume": "0dB",
         "tracks": [
             tr("lead", lead_patch, gain="-10dB", pan=0.15, sends={"hall": "-10dB", "dly": "-12dB"},
@@ -703,6 +730,8 @@ def main():
             {"name": "backwall", "patch": "modal-tom", "gain": "-12dB", "pan": -0.1,
              "sends": {"room": "-10dB"}, "notes": backwall()[0]},                   # v23: the back wall
             {"name": "kickpush", "patch": "machine-kit", "gain": "-13dB", "notes": backwall()[1]},   # v23
+            {"name": "singerharm", "patch": SUNG_PATCH, "gain": "-10dB", "pan": 0.3,
+             "sends": {"hall": "-6dB", "dly": "-12dB"}, "notes": answer_harmony()},     # v25: the answer as a duet
             {"name": "drips", "patch": "music-box", "gain": "-11dB", "pan": 0.45,
              "sends": {"room": "-8dB", "hall": "-12dB"}, "notes": drips()},          # v24: after the storm
             tr("farsheet", SHEET, gain="-10dB", pan=-0.4, sends={"hall": "-2dB"},
