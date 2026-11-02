@@ -759,8 +759,19 @@ def song_features(canon, raw):
     tempo = canon.get("tempo")
     if isinstance(tempo, list) and len(tempo) > 1:
         got.add("tempo map")
-        if len({str(p.get("meter")) for p in tempo if isinstance(p, dict) and p.get("meter")}) > 1:
-            got.add("meter change")   # the README's form: `meter` on tempo-map points
+        # the README's form: `meter` on tempo-map points. A change against the starting meter (the song's `meter`, 4/4
+        # by default, or a beat-0 point's, which replaces it in the engine), so one point into 7/8 counts too
+        start = canon.get("meter") if isinstance(canon.get("meter"), str) else "4/4"
+        later = set()
+        for p in tempo:
+            if isinstance(p, dict) and p.get("meter"):
+                m = re.match(r"\s*([0-9]*\.?[0-9]+)", str(p.get("at", 0)))
+                if m and float(m.group(1)) == 0:
+                    start = str(p["meter"])
+                else:
+                    later.add(str(p["meter"]))
+        if later - {start}:
+            got.add("meter change")
     tun = [canon.get("tuning")] + [t.get("tuning") for t in canon.get("tracks") or []]
     for t in tun:
         for x in (t if isinstance(t, list) else [t]):

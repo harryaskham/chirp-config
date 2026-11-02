@@ -321,6 +321,18 @@ class Coverage(unittest.TestCase):
             self.assertIn(want, got)
         self.assertNotIn("wave:sine", got)
         self.assertNotIn("gen:lorenz", got)       # a var system, not a track gen (that's 'var system')
+        self.assertNotIn("meter change", got)
+
+    def test_meter_changes_on_tempo_map_points(self):
+        def mc(tempo, meter=None):
+            canon = {"tempo": tempo, **({"meter": meter} if meter else {})}
+            return "meter change" in CH.song_features(canon, "")
+        self.assertTrue(mc([{"at": "0b", "bpm": 120}, {"at": "64b", "bpm": 120, "meter": "7/8"}]))   # one point off 4/4
+        self.assertTrue(mc([{"at": "0b", "bpm": 140, "meter": "4/4"}, {"at": "80b", "bpm": 140, "meter": "7/8"},
+                            {"at": "136b", "bpm": 140, "meter": "4/4"}]))
+        self.assertFalse(mc([{"at": "0b", "bpm": 120, "meter": "7/8"}, {"at": "64b", "bpm": 124}]))  # 7/8 throughout
+        self.assertFalse(mc([{"at": "0b", "bpm": 120}, {"at": "64b", "bpm": 120, "meter": "3/4"}], meter="3/4"))
+        self.assertTrue(mc([{"at": 0, "bpm": 120}, {"at": 32, "bpm": 120, "meter": "5/4"}], meter="3/4"))
 
 
 class IllusionPresence(unittest.TestCase):
