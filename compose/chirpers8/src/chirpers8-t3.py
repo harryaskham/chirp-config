@@ -60,6 +60,14 @@ if R4 == "hymn":
 # the phrases the GLOCK ANSWERS: the last three notes of each sung line, two octaves up, as the machine says them
 # back. New tracks only (hfill, answer) plus lanes. T3_R5=none reproduces v4.
 R5 = os.environ.get("T3_R5", "breath")
+# T3_R6 = bells (v6, section round on w7, 3:05-3:36, the peak: "static, level jump"). THE RULES RING: the two
+# automata of the peak, rule 30 (marimba) and rule 90 (glock), have their RULE NUMBERS played as bell patterns - each
+# rule's eight output bits (neighbourhoods 111 down to 000) as eight eighths: rule 30 = 0 0 0 1 1 1 1 0 on a high
+# agogo, rule 90 = 0 1 0 1 1 0 1 0 on a low one - an interlock like a West African bell pair or a kotekan, built in
+# four-bar blocks across the window (high bell; + low bell; + shekere; both bells doubled into sixteenths) so the
+# peak climbs into the hymn's drop. The library's afro-perc, new to the album. New track only. T3_R6=none reproduces v5.
+R6 = os.environ.get("T3_R6", "bells")
+RULE_BITS = {r: [(r >> k) & 1 for k in range(7, -1, -1)] for r in (30, 90)}
 ANSWERS = [(14.75, ["C6", "A5", "D6"]), (12.9, ["F6", "E6", "D6"]), (14.75, ["A6", "G6", "A6"]), (9.9, ["C6", "D6"])]
 HYMN = [(0, 3, 7), (8, 14, 17), (3, 7, 12), (0, 3, 7), (5, 10, 14), (10, 14, 17), (3, 7, 12), (8, 14, 17),
         (0, 3, 7), (8, 14, 17), (7, 10, 16), (7, 10, 16), (8, 14, 17), (10, 14, 17), (0, 3, 7), (0, 3, 7)]
@@ -445,6 +453,30 @@ def main():
              "fx": [{"type": "delay", "time": "3/8", "feedback": 0.3, "mix": 0.2, "ping_pong": True, "tone": 5000}],
              "score": ans.score(total)},
         ]
+    if R6 == "bells":
+        rb, rb2, shk = Track("rbell"), Track("rbell2"), Track("shek")   # one track each: a Track keeps one onset
+        p0 = st["peak"] + 8            # peak bar 2: the window's first beat
+        for b in range(16):
+            bar = p0 + 4 * b
+            reps = 2 if b >= 12 else 1
+            step = 0.5 / reps
+            for r_ in range(reps):
+                for k in range(8):
+                    at = bar + r_ * 4.0 / reps + k * step
+                    if RULE_BITS[30][k]:
+                        rb.add(at, step, "ah", 74 if k == 3 else 62)
+                    if b >= 4 and RULE_BITS[90][k]:
+                        rb2.add(at, step, "al", 70 if k == 1 else 58)
+            if b >= 8:
+                for s in range(16):
+                    shk.add(bar + s * 0.25, 0.25, "sk", 52 if s % 4 == 2 else 38)
+        g = os.environ.get("T3_RBELL_GAIN", "-3dB")
+        tracks += [{"name": "rbell", "patch": "afro-perc", "gain": g, "pan": 0.3, "sends": {"hall": "-12dB"},
+                    "fx": ["hp cutoff=300"], "score": rb.score(total)},
+                   {"name": "rbell2", "patch": "afro-perc", "gain": g, "pan": -0.3, "sends": {"hall": "-12dB"},
+                    "fx": ["hp cutoff=300"], "score": rb2.score(total)},
+                   {"name": "shek", "patch": "afro-perc", "gain": f"{float(g[:-2]) - 4:g}dB", "pan": 0.1,
+                    "fx": ["hp cutoff=2000"], "score": shk.score(total)}]
     if R4 == "hymn":
         vfx = ["hp cutoff=140", "peak cutoff=600 gain=-3dB q=1", "compressor threshold=-20dB ratio=3 attack=5ms release=120ms",
                {"type": "delay", "time": "3/8", "feedback": 0.25, "mix": 0.15, "ping_pong": True, "tone": 3500}]
