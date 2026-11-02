@@ -70,6 +70,8 @@ KITOWN = os.environ.get("C8T8_KITOWN", "F1")   # PALETTE: the kick leaves the 90
 LATER = os.environ.get("C8T8_LATER", "-8")   # WHOLE ROUND: a second sung line, in E - 'it comes later on' (tts --sing "A4/8 G4/8 F4/4 E4/8 D4/2", seed 7; whisper reads it exactly on seeds 3, 5 and 7), sung once at E bar 12 a semitone up with E: what a delay line does, said plainly and sideways - the answer the outro's 'it only travels' completes. Own track, listed last; nearly dry (line -16, room -14). Value = dry gain dB
 LATERDROP = os.environ.get("C8T8_LATERDROP", "1")   # with LATER: the word steps aside for the voice - for E bars 12-13 the word, its marimba, the zeros, the hats and the clap are kept at velocity 1 (no dice move), so 'it comes later on' is heard over pads, bass and kick (in the full mix whisper heard nothing; soloed it reads exactly)
 HANDS = os.environ.get("C8T8_HANDS", "clap")   # PALETTE: the clap and the rim leave the 909 kit for the machine layer's own synthesised clap and rim ('clap', 'rim', or 'both'): with v36's kick, the kit is the song's own
+OWNHATS = os.environ.get("C8T8_OWNHATS", "300")   # PALETTE: the hats leave the 909 kit for the machine layer's synthesised hat - closed (60 ms) on hats and hats2, the open ones (OWNHATS ms) on their own track ohat, listed last (the open hits stay on hats/hats2 at velocity 1, so no dice move): with v36's kick and v37's clap, the whole groove is the song's own
+HPATCH = {"about": "the machine layer's closed hat", "synth": {"layers": [{"type": "machine", "machine": {"part": "hat", "decay": "60ms"}}]}}
 CPATCH = {"about": "the machine layer's clap", "synth": {"layers": [{"type": "machine", "machine": {"part": "clap", "decay": "200ms"}}]}}
 RPATCH = {"about": "the machine layer's rim", "synth": {"layers": [{"type": "machine", "machine": {"part": "rim"}}]}}
 KPATCH = {"about": "the machine layer's kick, tuned in the key", "synth": {"layers": [{"type": "machine", "machine": {"part": "kick", "punch": 24, "decay": "380ms", "click": 0.5, "drive": 0.25}}]}}
@@ -86,7 +88,7 @@ ZEROS = os.environ.get("C8T8_ZEROS", "-18")   # SECTION ROUND, window 8 (E bars 
 ARC = os.environ.get("C8T8_ARC", "4")   # an energy arc: A to E sat at one level for four minutes (-10.0..-10.4 dB a section). A gain lane last on the master (after the compressor) holds A ARC dB down as the groove enters, eases up through C and D and is open from E - the repaired word the loudest place in the record
 DARK = os.environ.get("C8T8_DARK", "8")  # the tape running out: a master low-pass closing over the outro's last bars (the hiss and the line's top go first); value = bars
 FORM = [("intro", 16), ("A", 36), ("refresh", 8), ("C", 32), ("D", 16), ("E", 28), ("outro", 16)]
-TRACKS = ("word", *(("zeros",) if ZEROS else ()), "pad0", "pad1", "pad2", "pad3", "org0", "org1", "hum", "hum2", "bass", "kick", "shk", "hats", "clap", "rim") + (("hats2",) if os.environ.get("C8T8_SKEW", "local") == "local" else ()) + (("kick2",) if os.environ.get("C8T8_CKICK", "lock") else ()) + (("mar",) if os.environ.get("C8T8_MARE", "-8") else ())
+TRACKS = ("word", *(("zeros",) if ZEROS else ()), "pad0", "pad1", "pad2", "pad3", "org0", "org1", "hum", "hum2", "bass", "kick", "shk", "hats", "clap", "rim") + (("hats2",) if os.environ.get("C8T8_SKEW", "local") == "local" else ()) + (("kick2",) if os.environ.get("C8T8_CKICK", "lock") else ()) + (("ohat",) if os.environ.get("C8T8_OWNHATS", "300") else ()) + (("mar",) if os.environ.get("C8T8_MARE", "-8") else ())
 
 # the word's 16 bits -> pitches (D minor, spread so neighbours leap): D4 F4 G4 A4 C5 D5 F5 A5
 SC = [62, 65, 67, 69, 72, 74, 77, 81]
@@ -217,6 +219,11 @@ def build():
         for k in ("word", "mar", "zeros", "hats", "clap"):
             if k in ev:
                 ev[k] = [(a, h, l, 1 if u <= a < w else v) for (a, h, l, v) in ev[k]]
+    if OWNHATS:
+        ev["ohat"] = sorted((a, "A4", 4, v) for k in ("hats", "hats2") if k in ev for (a, h, l, v) in ev[k] if h == "oh")
+        for k in ("hats", "hats2"):
+            if k in ev:
+                ev[k] = [(a, "A4" + h[1:] if h.startswith("h") else "A4", l, 1 if h == "oh" else v) for (a, h, l, v) in ev[k]]
     if HANDS:
         if HANDS in ("clap", "both"):
             ev["clap"] = [(a, "C4" if h == "cp" else h, l, v) for (a, h, l, v) in ev["clap"]]
@@ -321,6 +328,10 @@ def song():
         trs.append(b)   # 'travels' listed last
     if LATER:
         doc["tracks"].append(later_track(LATER))
+    if OWNHATS:
+        T = build()
+        doc["tracks"].append({"name": "ohat", "patch": {"about": "the machine layer's open hat", "synth": {"layers": [{"type": "machine", "machine": {"part": "hat", "decay": f"{OWNHATS}ms"}}]}},
+                              "gain": "-11dB", "pan": 0.15, "score": "swing16=0.56 " + T["ohat"]})
     return doc
 
 
@@ -408,7 +419,7 @@ def song0():
             {"name": "bass", "patch": "808", "gain": "-9dB", "fx": [pump], "score": T["bass"]},
             {"name": "kick", "patch": KPATCH if KITOWN else "909", "gain": os.environ.get("C8T8_KITGAIN", "-3dB") if KITOWN else "-3dB", "score": T["kick"]},
             *([{"name": "shk", "patch": "dusty-kit", "gain": "-12dB", "pan": 0.3, "fx": [{"type": "filter", "kind": "hp", "cutoff": 3500, "q": 0.7}], "score": T["shk"]}] if SHAKE else []),
-            {"name": "hats", "patch": "909", "gain": "-9dB", "pan": 0.15, "score": "swing16=0.56 " + T["hats"]},
+            {"name": "hats", "patch": HPATCH if OWNHATS else "909", "gain": "-9dB", "pan": 0.15, "score": "swing16=0.56 " + T["hats"]},
             {"name": "clap", "patch": CPATCH if HANDS in ("clap", "both") else "909", "gain": os.environ.get("C8T8_HANDSGAIN", "-13dB") if HANDS in ("clap", "both") else "-9dB", "sends": {"room": "-8dB"}, "score": T["clap"]},
             *([(sung_track(f"{SUNG}dB") if WORDS else reversed_back(sung_track(f"{SUNG}dB"), [sec_start("outro") + 8 * BAR], 1.758, 2.253))] if SUNG else []),
             *([reversed_back(voice("chirpers8-t8-say.json", "say", SAYOFFS, f"{VOX}dB",
@@ -417,7 +428,7 @@ def song0():
                for f, nm, o in zip(("chirpers8-t8-say-kept.json", "chirpers8-t8-say-both.json", "chirpers8-t8-say-around.json"), ("say", "say2", "say3"), SAYOFFS[-3:])]
               if VOX and WORDS else []),
             {"name": "rim", "patch": RPATCH if HANDS in ("rim", "both") else "909", "gain": "-12dB", "pan": -0.3, "sends": {"line": "-14dB"}, "score": T["rim"]},
-            *([{"name": "hats2", "patch": "909", "gain": "-9dB", "pan": 0.15, "score": "swing16=0.56 " + T["hats2"]}] if SKEW == "local" else []),   # last, so no other track's dice move
+            *([{"name": "hats2", "patch": HPATCH if OWNHATS else "909", "gain": "-9dB", "pan": 0.15, "score": "swing16=0.56 " + T["hats2"]}] if SKEW == "local" else []),   # last, so no other track's dice move
             *([{"name": "kick2", "patch": KPATCH if KITOWN else "909", "gain": os.environ.get("C8T8_KITGAIN", "-3dB") if KITOWN else "-3dB", "score": T["kick2"]}] if CKICK else []),
             *([{"name": "mar", "patch": "modal-marimba", "gain": "-12dB", "pan": 0.2, "score": T["mar"]}] if MARE else []),
         ],
