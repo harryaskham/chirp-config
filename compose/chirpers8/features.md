@@ -58,7 +58,7 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 ## Generators and systems
 | feature | showcased by |
 |---|---|
-| vars and expr | t12 (chirper-three); t8 (chirper-zero, a Lorenz var on the line tape's warp) |
+| vars and expr | t12 (chirper-three); t8 (chirper-zero, a Lorenz var on the line tape's warp); t5 (chirper-zero, a logistic var at r 2.95 that settles after a damped two-cycle, stepping every two bars on the acid's resonance - agreement as a fixed point) |
 | lfo and auto lanes | t7 (chirper-one) |
 | chance (?p) and choices (a\|b) | t6 (chirper-two) |
 | Euclidean patterns | t3 (chirper-two) |
