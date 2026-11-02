@@ -53,6 +53,8 @@ HEIGHTLO = float(os.environ.get("C8T2_HEIGHTLO", "1500"))   # the arps' cutoff a
 HEIGHTAIR = os.environ.get("C8T2_HEIGHTAIR", "")   # instead of closing the arps, the climb adds air: a high shelf (6 kHz) on the chip arps whose gain follows the height var, 0 dB at 1 up to +HEIGHTAIR dB at the top of a climb
 HEIGHTPAN = os.environ.get("C8T2_HEIGHTPAN", "0.9")   # the climb crosses the room: the chip arps' pan follows the height var, from 0.25 (right of centre, the number home) toward the left as a path climbs (to 0.25 - HEIGHTPAN at the top)
 SUNGCLOUD = os.environ.get("C8T2_SUNGCLOUD", "0.6")   # 'high as the cloud': on the sung word 'cloud' the voice goes up into a granular cloud - grains of the last half-second, an octave up (scatter 2, some reversed, spread wide) - swelling in on the word and gone again for 'and then home'; value = the cloud's peak mix
+COUNTDIAL = os.environ.get("C8T2_COUNTDIAL", "0.35")   # the count's radio drifts with the numbers: as the voice reads 7's path, each number moves the dial off the station by its height (log2 n / log2 52 x COUNTDIAL) - 52 half lost in static, the falling numbers tuning back in, 'one' clear
+COUNTPATH = [7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]
 ARP32 = os.environ.get("C8T2_ARP32", "")    # the drop's arps on 1/32 (as the plan always said): double-time chip arps through C
 BAR = 16
 SEED = 2
@@ -245,6 +247,28 @@ def clouded(tr, offs16):
     return tr
 
 
+def dialled(tr, off16):
+    """The count's dial lane: each spoken number of 7's path sets the radio's distance from the station by its height."""
+    if not COUNTDIAL:
+        return tr
+    src = json.load(open(os.path.join(HERE, "chirpers8-t2-count.json")))["tracks"][0]["notes"]
+    words, cur = [], [src[0]]
+    for a, b in zip(src, src[1:]):
+        if b["at"] - (a["at"] + a["len"]) > 0.35:
+            words.append(cur)
+            cur = [b]
+        else:
+            cur.append(b)
+    words.append(cur)
+    b0 = off16 / 4
+    pts = [["0b", 0]]
+    for w, n in zip(words, COUNTPATH):
+        h = round(math.log2(n) / math.log2(52), 3) if n > 1 else 0.0
+        pts += [[f"{b0 + w[0]['at'] - 0.15:.3f}b", pts[-1][1]], [f"{b0 + w[0]['at']:.3f}b", h]]
+    tr["auto"] = {**tr.get("auto", {}), "cd": {"points": pts}}
+    return tr
+
+
 def voice(file, name, off16, gain, fx, sends):
     """A tts line (tts --print) at one or more offsets (sixteenths); sung lines (--sing) have no formant lane."""
     src = json.load(open(os.path.join(HERE, file)))["tracks"][0]
@@ -302,7 +326,9 @@ def song():
             {"name": "hats", "patch": "machine-kit", "gain": "-7dB", "pan": 0.15, **({"fx": [{"type": "eq", "bands": [f"peak cutoff=9000 q=0.7 gain={HATAIR}dB"]}]} if HATAIR else {}), "score": T["hats"]},
             {"name": "clap", "patch": "machine-kit", "gain": "-9dB", "sends": {"plate": "-10dB"}, "score": T["clap"]},
             {"name": "pad", "patch": "dream-vox", "gain": "-13dB", "sends": {"plate": "-8dB"}, "score": T["pad"]},
-            voice("chirpers8-t2-count.json", "count", st["A"] + 4 * BAR, "-12dB", [radio, "hp cutoff=250"], {"plate": "-14dB"}),
+            dialled(voice("chirpers8-t2-count.json", "count", st["A"] + 4 * BAR, "-12dB",
+                          [dict(radio, tune={"value": 0.03, "mod": [{"src": "auto.cd", "amount": float(COUNTDIAL)}]}) if COUNTDIAL else radio, "hp cutoff=250"],
+                          {"plate": "-14dB"}), st["A"] + 4 * BAR),
             *([clouded(voice("chirpers8-t2-sung.json", "sung", [st["C"] + 12 * BAR, st["C"] + 40 * BAR], f"{SING}dB",
                      [{"type": "chorus", "rate": 0.25, "depth": 0.15, "mix": 0.2}, "hp cutoff=150"], {"plate": "-7dB", "echo": "-13dB"}),
                      [st["C"] + 12 * BAR, st["C"] + 40 * BAR])] if SING else []),
