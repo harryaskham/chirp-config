@@ -112,10 +112,21 @@ def build():
                 P['kit'].append((t0 + 1.0, 'cp', 0.25, 80)); P['kit'].append((t0 + 3.0, 'cp', 0.25, 84))
     # the voice: a different humanized take of the same line each time
     vnotes, fv = [], []
+    # (v9) THE LINE, REMEMBERED: in the break the two takes go into a granular cloud - the voice still heard, then held:
+    # once each take ends the cloud freezes on it and keeps scattering its grains (some backwards, spread wide) under
+    # the held chord until the next take or the third groove - the line as the machine remembers it, not as it was said
+    mnotes, frz = [], [['0b', 0.0]]
     for v in VOICE:
         if v['bar'] > secs['D'] + 16:
             continue                                  # (v7) the outro's takes are sung now, not spoken
         off = (v['bar'] - 1) * 4.0
+        if secs['break'] < v['bar'] <= secs['break'] + 8:
+            for n_ in v['notes']:
+                mnotes.append(dict(n_, at=round(off + n_['at'], 4)))
+            end_ = off + max(n_['at'] + n_['len'] for n_ in v['notes'])
+            frz += [[f"{off - 0.55:.2f}b", frz[-1][1]], [f"{off - 0.5:.2f}b", 0.0], [f"{end_ + 0.25:.2f}b", 0.0],
+                    [f"{end_ + 0.3:.2f}b", 1.0]]
+            continue
         for n_ in v['notes']:
             vnotes.append(dict(n_, at=round(off + n_['at'], 4)))
         fv += [[f"{off + float(a_[:-1]):.3f}b", x_] for a_, x_ in v['fv']]
@@ -186,6 +197,12 @@ def build():
              'notes': [dict(n_, at=round(secs['outro'] * 4.0 + rep * 16.0 + n_['at'], 4)) for rep in (0, 1) for n_ in SUNG['notes']],
              'fx': [{'type': 'tape', 'drive': 0.1, 'mix': 1, 'wow': 1.5, 'flutter': 0.8, 'seed': 2}],
              'sends': {'hall': '-10dB', 'echo': '-15dB'}},
+            {'name': 'vmem', 'patch': 'voice-speech', 'gain': '-5dB', 'notes': mnotes, 'pan': 0.0,
+             'fx': [{'type': 'cloud', 'size': '160ms', 'density': 14, 'position': '700ms', 'spray': '600ms', 'pitch': 0,
+                     'scatter': 0.25, 'reverse': 0.4, 'spread': 0.85, 'mix': 0.75, 'window': '4s',
+                     'freeze': {'value': 0, 'mod': [{'src': 'auto.frz', 'amount': 1}]}}],
+             'auto': {'frz': {'points': frz + [[f"{secs['C'] * 4.0 + 2:.2f}b", 1.0], [f"{secs['C'] * 4.0 + 2.05:.2f}b", 0.0]]}},
+             'sends': {'hall': '-8dB', 'echo': '-14dB'}},
             {'name': 'voice', 'patch': 'voice-speech', 'gain': '-6dB', 'notes': vnotes,
              'fx': [{'type': 'pitch', 'semitones': 0, 'formant': {'value': 0, 'mod': [{'src': 'auto.fv', 'amount': 1}]}}],
              'auto': {'fv': {'points': fv}}, 'sends': {'hall': '-14dB', 'echo': '-16dB'}},
