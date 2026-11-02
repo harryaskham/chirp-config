@@ -42,6 +42,7 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 - **THE SIEVE**: hats on the prime steps of every 32 sixteenths (2 3 5 7 11 13 17 19 23 29 31) - a two-bar rhythm that never settles.
 - **THE COUNT**: a humanized voice on a radio reading 7's path aloud, "seven. twenty-two. eleven. thirty-four. ..." down to "one".
 - **THE HALT** (v15): when C's two longest climbs (27: 111 steps; 31: 106) reach 1, one small modal bell on G5 rings - a terminal's BEL when a long job finishes. Three times only. Free to quote: one high tonic bell after a long run.
+- **THE TRIVIAL CYCLE** (v19): through the break the same bell plays 4 -> 2 -> 1 forever as falling octaves, G6 G5 G4, one a beat: a three-beat loop against the four-beat bar (lines up every three bars). Free to quote: three falling octaves of the tonic, looping.
 
 - **CALL AND RETURN SUBJECT** (t10, chirper-one): an eight-bar fugue subject in D minor over the loop Dm | Bb | Gm | A (bars 1-4 and 5-8 each fit the loop, so it canons at four bars): D5 A4 D5 F5 E5 D5 | F5 D5 Bb4 C5 D5 F5 | G5 F5 E5 D5 Bb4 | A4 C#5 E5 A5 G5 E5 | F5 E5 D5 E5 F5 A5 D6 A5 | Bb5 A5 F5 D5 F5 Bb4 | G5 F5 E5 D5 Bb4 D5 G5 | E5 C#5 A4 C#5 E5 G5 A5 G5. Tuned in Werckmeister III.
 - **t10 THE MACHINE'S CLAVE** (v2): in the calls the bass plays 3+3+2 sixteenths twice a bar (a tresillo: 0, 0.75, 1.5, 2, 2.75, 3.5 beats; root, root, octave, root, fifth, octave) and the open hat follows it, while the kick stays four on the floor and the canon runs straight above.
