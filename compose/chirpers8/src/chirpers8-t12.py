@@ -390,7 +390,7 @@ def sung_notes():
 # tonic is F# (the closer's home), re-tuned by the song's 31-EDO. (tonic MIDI, [(beat, length, MIDI)])
 ALPHA = 0.77965
 MEMORY = [
-    (59, [(0, .5, 62), (.5, .5, 61), (1, .5, 57), (1.5, 1, 66), (2.5, .5, 64)]),                      # t1 v15's new line
+    (59, [(0, .5, 54), (.5, .5, 52), (1, 1, 50), (2, 1, 47)]),                                      # t1 v16's line
     (55, [(0, 1, 59), (1, 1, 57), (2, 2, 55)]),                                                    # t2 four two one
     (62, [(i * .5, .5, m) for i, m in enumerate((57, 60, 62, 65, 64, 62, 60, 57))]),               # t3 the cell's song
     (57, [(i * .25, .25, 57 + s * ALPHA) for i, s in
