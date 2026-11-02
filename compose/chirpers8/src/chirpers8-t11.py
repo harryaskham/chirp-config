@@ -376,7 +376,7 @@ BASS_LINE = ([2, 2, 2.5, 3, 2, 2.5, 3, 3.5],
 # TUNE - in w3's weather bars (41-48), where the lead stops quoting, a low whistle (breathy fipple, unused on the
 # album) answers with the hook twice (41, 45), soft, far right, in the room, a hair behind the beat - someone in the
 # next room who caught the tune; on the partials of whichever lobe the weather is in. Its own track, listed last.
-WHISTLE_AT = (41, 45)
+WHISTLE_AT = (41, 45, 153)                  # v22: and once more in the outro, softer, farther, as the light goes
 
 # v21 (SECTION round, w5 2:08-2:40, bars 65-80, the second half of B - 'static, little new vs w4'; Harry: do more
 # each round): THREE CHANGES IN THE WINDOW. (1) THE HOOK IN HARMONY (65-72): for the first time the hook gets a second
@@ -387,13 +387,20 @@ WHISTLE_AT = (41, 45)
 # beats of bar 80 (silenced at velocity 1, held notes cut - every track keeps its note count), so the break arrives
 # from a held breath. New parts on new tracks, listed last.
 HARM = (65, 72)
+# v22 (ROUND TYPE: whole; Harry 'do more each round'): THE HARMONY GROWS THROUGH THE PEAK - the 5/4 voice now carries
+# through every hook phrase of C as well (97-136, under both sung statements too), and in C's last hook group
+# (129-136) a THIRD voice joins on chirper-two's physical modal-glock (a bell's minor-third tierce would fight the
+# triad), a pure 3/2 fifth above: the hook ends the
+# climax as a just major triad. And the whistle from A comes back once in the outro (153), softer and farther off.
+HARM_BARS = list(range(65, 73)) + list(range(97, 137))
+FIFTH = (129, 136)
 RAINMAR = (73, 80)
 ROLL = (8, 10, 12, 14, 12, 10, 8, 10)
 
 
 def hook_harmony():
     out = []
-    for bar in range(HARM[0], HARM[1] + 1):
+    for bar in HARM_BARS:
         if (bar - 17) % 2 or not hook_on(bar):
             continue
         x, y, z = state(bar)
@@ -402,6 +409,20 @@ def hook_harmony():
         for at, n, ln, v in hook_form(form):
             out.append({"at": round(b0(bar) + at, 4), "len": round(ln * 0.92, 3),
                         "pitch": mm(partial(n * 1.25, lb, 0)), "vel": round(0.7 * v / 96, 3)})
+    return out
+
+
+def hook_fifth():
+    out = []
+    for bar in range(FIFTH[0], FIFTH[1] + 1):
+        if (bar - 17) % 2 or not hook_on(bar):
+            continue
+        x, y, z = state(bar)
+        form = 0 if bar in (17, 19, 49, 97) + SUNG_AT else int(max(0, min(3, (y + 25) / 50 * 4)))
+        lb = lobe_at(bar)
+        for at, n, ln, v in hook_form(form):
+            out.append({"at": round(b0(bar) + at, 4), "len": round(ln * 0.92, 3),
+                        "pitch": mm(partial(n * 1.5, lb, 0)), "vel": round(0.62 * v / 96, 3)})
     return out
 
 
@@ -433,9 +454,10 @@ def whistle_notes():
     out = []
     for bar in WHISTLE_AT:
         lb = lobe_at(bar)
+        far = bar > 100                                  # v22: the goodbye is farther off and a little later
         for at, n, ln, v in HOOK:
-            out.append({"at": round(b0(bar) + at + 0.06, 4), "len": round(ln * 0.9, 3),
-                        "pitch": mm(partial(n, lb, 0)), "vel": round(0.62 * v / 96, 3)})
+            out.append({"at": round(b0(bar) + at + (0.1 if far else 0.06), 4), "len": round(ln * 0.9, 3),
+                        "pitch": mm(partial(n, lb, 0)), "vel": round((0.42 if far else 0.62) * v / 96, 3)})
     return out
 
 
@@ -615,6 +637,8 @@ def main():
              "sends": {"hall": "-8dB"}, "notes": hook_harmony()},                   # v21: the hook in harmony
             {"name": "rainmar", "patch": "modal-marimba", "gain": "-12dB", "pan": -0.55,
              "sends": {"room": "-8dB"}, "notes": rain_marimba()},                   # v21: rain into notes
+            {"name": "hookfifth", "patch": "modal-glock", "gain": "-12dB", "pan": 0.4,
+             "sends": {"hall": "-8dB"}, "notes": hook_fifth()},                     # v22: the triad at the peak
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=1.0s mix=1 predelay=10ms", "hp cutoff=250"]},
                   "hall": {"fx": ["reverb kind=hall decay=2.8s mix=1 predelay=25ms", "hp cutoff=250", WIDTH_FX],
