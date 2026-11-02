@@ -119,6 +119,7 @@ def build():
     # ---- render the parts ----
     P = {k: [] for k in ('seq', 'keys', 'pad', 'bass', 'kit', 'hum', 'rhum')}
     rng_t = random.Random(SEED + 99)
+    rng_b = random.Random(SEED + 77)
     # (v3) THE POWER LIGHT: the machine is on before the search starts - a warm drone on A (the hum of a box left on)
     # from the very first beat, swelling through power-on and sinking under the first epoch; it returns under the
     # coda and holds to the last beat, so the track meets its neighbours without a hole
@@ -199,9 +200,16 @@ def build():
             chord = ','.join(tok(hz(v, c)) for v, c in zip(voices, pad_cents))
             P['pad'].append((t0, chord, 3.9, 70))
             bc = rng.gauss(0, 30 * temp)
-            for q in range(8):
-                f = hz(root, bc, base=55.0) * (2 if q % 2 else 1)
-                P['bass'].append((t0 + q * 0.5, tok(f), 0.4, 96 if q % 2 == 0 else 80))
+            # (v11) THE BASS ANNEALS TOO: cold, the octave pulse in eighths (the machine's oldest bass line); hot, the same
+            # notes chosen step by step at random - sixteenths appear, eighths drop out, the octave flips - so the bass
+            # searches with the rest and settles into the pulse as the temperature falls
+            for q in range(16):
+                on8 = q % 2 == 0
+                pq = (1 - temp) * (1.0 if on8 else 0.0) + temp * (0.55 if on8 else 0.3)
+                if rng_b.random() < pq:
+                    up = ((q // 2) % 2 == 1) if rng_b.random() > temp * 0.5 else (rng_b.random() < 0.5)
+                    f = hz(root, bc, base=55.0) * (2 if up else 1)
+                    P['bass'].append((t0 + q * 0.25, tok(f), 0.4 if on8 else 0.2, (96 if not up else 80) if on8 else 70))
         # drums: sampled per step from noise (hot) or from the motorik target (cold)
         if s != 'power' or i >= 6:
             # (v10) THE TIMING ANNEALS TOO: while hot every drum hit lands off its grid by a random amount scaled by the
