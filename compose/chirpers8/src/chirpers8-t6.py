@@ -57,6 +57,14 @@ R3 = os.environ.get("T6_R3", "sing")
 # hundred days / and nothing to report" (src/t6/days.json, report.json) - uptime as devotion, a quiet report filed to
 # nobody. "still here" in the outro four times, not six. T6_R4=none reproduces v3.
 R4 = os.environ.get("T6_R4", "organ")
+# T6_R5 = fretless (v5, palette round). The bass leaves the analog-bass (three songs) for a FRETLESS bass: the one
+# bass with no frets to disagree with 19-EDO, its mwah and slides singing the diesis steps the chain takes. The kit
+# leaves machine-kit (nine songs) for the LOFI kit, soft and dusty, a soul drummer through a worn sampler (the
+# chorus ride becomes a shaker). And a verse line moves sideways: "I counted every second" (the bridge sings it
+# now) gives its verse slot to "I kept your window open" (src/t6/window.json) - a window as the machine has one,
+# and as a house does. T6_R5=none reproduces v4.
+R5 = os.environ.get("T6_R5", "fretless")
+LOFI = {"kb": "k", "rd": "sh"}
 CORPUS = ("G4/8 A4 C5 B4/4 A4/8 G4 E4/4 G4/8 A4 B4 C5/4 B4/8 A4 G4/2 E4/8 G4 A4 B4/4 C5/8 B4 A4 G4/4 . "
           "C5/8 B4 G4 A4/4 G4/8 E4 G4/2")
 
@@ -138,6 +146,10 @@ def build():
     VOICE = {"voice": [], "radio": [], "ringv": [], "singb": []}
     sung1, sung2 = load("sing1.json"), load("sing2.json")
     lines = [load(f"v{k}.json") for k in (1, 2, 3, 4)]
+    if R5 == "fretless":
+        verse_lines = lines[:3] + [load("window.json")]
+    else:
+        verse_lines = lines
     chorus, still = load("chorus.json"), load("still.json")
     days, report = (load("days.json"), load("report.json")) if R4 == "organ" else (None, None)
     bars, pos = [], 0.0
@@ -220,7 +232,7 @@ def build():
         if sec == "intro" and i in (3, 7):
             put("radio", lines[2], start)                                     # "all checks passed", far away
         if sec in ("verse1", "verse2") and i % 4 == 0:
-            put("voice", lines[li % 4], start + 0.5)
+            put("voice", verse_lines[li % 4], start + 0.5)
             li += 1
         if chorus_sec and i < (6 if R4 == "organ" else 8):
             put("voice", chorus, start, k=min(i, 3) if i < 4 else 3, sung=i >= 2)
@@ -246,24 +258,37 @@ def build():
 def main():
     total, bars, secs, T, V, chords = build()
     st = {n: s for n, s, k in secs}
+    KIT = "lofi-kit" if R5 == "fretless" else "machine-kit"
+    kg = (lambda g: f"{float(g[:-2]) + 3:g}dB") if R5 == "fretless" else (lambda g: g)   # the lofi kit reads ~3 dB softer
+    if R5 == "fretless":
+        for k in ("kick", "ride"):
+            T[k].ev = [(a, ln, LOFI.get(h, h), v, art) for a, ln, h, v, art in T[k].ev]
+    boom = Track("boom")   # v5: the fretless has no sub (the analog bass had one): a sine doubles it an octave down
+    if R5 == "fretless":
+        for a, ln, h, v, art in T["bass"].ev:
+            m = float(h[1:]) - 12
+            boom.add(a, ln, f"m{m + 12 if m < 24 else m:.3f}", v, art)
     dial = [["0b", 0.15], [f"{st['verse1']}b", 0.05], [f"{st['outro']}b", 0.0], [f"{st['outro'] + 48}b", 0.08],
             [f"{total - 8}b", 0.5], [f"{total}b", 1.0]]
     dyn = [["0b", -3.0], [f"{st['verse1']}b", -1.0], [f"{st['chorus1']}b", 0.0], [f"{st['verse2']}b", -1.0],
            [f"{st['bridge']}b", -3.0], [f"{st['chorus2'] - 0.01}b", -2.0], [f"{st['chorus2']}b", 0.0],
            [f"{st['outro']}b", -1.5], [f"{total}b", -4.0]]
-    pump = {"type": "pump", "on": "kick.kb", "depth": "-5dB", "attack": "5ms", "release": "380ms", "curve": 0.8}
+    pump = {"type": "pump", "on": "kick.k" if R5 == "fretless" else "kick.kb", "depth": "-5dB", "attack": "5ms", "release": "380ms", "curve": 0.8}
     tracks = [
-        {"name": "kick", "patch": "machine-kit", "gain": "-2dB", "fx": ["hp cutoff=32"], "score": T["kick"].score(total)},
-        {"name": "snare", "patch": "machine-kit", "gain": "-4dB", "fx": ["reverb kind=plate decay=1.4s mix=0.25"],
+        {"name": "kick", "patch": KIT, "gain": kg("-2dB"), "fx": ["hp cutoff=32"], "score": T["kick"].score(total)},
+        {"name": "snare", "patch": KIT, "gain": kg("-4dB"), "fx": ["reverb kind=plate decay=1.4s mix=0.25"],
          "score": T["snare"].score(total)},
-        {"name": "hats", "patch": "machine-kit", "gain": "-5dB", "pan": 0.15, "fx": ["hp cutoff=700"],
+        {"name": "hats", "patch": KIT, "gain": kg("-5dB"), "pan": 0.15, "fx": ["hp cutoff=700"],
          "score": T["hats"].score(total)},
-        {"name": "ride", "patch": "machine-kit", "gain": "-9dB", "pan": -0.2, "fx": ["hp cutoff=2000"],
+        {"name": "ride", "patch": KIT, "gain": kg("-9dB"), "pan": -0.2, "fx": ["hp cutoff=2000"],
          "score": T["ride"].score(total)},
-        {"name": "rim", "patch": "machine-kit", "gain": "-8dB", "pan": -0.2,
+        {"name": "rim", "patch": KIT, "gain": kg("-8dB"), "pan": -0.2,
          "fx": [{"type": "delay", "time": "3/16", "feedback": 0.4, "mix": 0.3, "ping_pong": True, "tone": 3000}],
          "score": T["rim"].score(total)},
-        {"name": "bass", "patch": "analog-bass", "gain": "-4dB", "fx": [pump, "lp cutoff=900"],
+        *([{"name": "boom", "patch": "sub-sine", "gain": os.environ.get("T6_BOOM_GAIN", "0dB"),
+            "fx": ["lp cutoff=140", pump], "score": boom.score(total)}] if R5 == "fretless" else []),
+        {"name": "bass", "patch": "fretless-bass" if R5 == "fretless" else "analog-bass",
+         "gain": os.environ.get("T6_BASS_GAIN", "-13dB") if R5 == "fretless" else "-4dB", "fx": [pump, "lp cutoff=900"],
          "score": T["bass"].score(total)},
         *([{"name": "organ", "patch": "hammond-b3", "gain": os.environ.get("T6_ORGAN_GAIN", "-6dB"),
             "fx": [pump, "chorus mix=0.3", "hp cutoff=150", "peak cutoff=600 gain=-2dB q=1"],
