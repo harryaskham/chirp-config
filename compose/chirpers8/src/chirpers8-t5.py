@@ -49,6 +49,8 @@ CONGAIN = os.environ.get("C8T5_CONGAIN", "1")    # the congas wait CONGAIN bars 
 CONGAOUT = os.environ.get("C8T5_CONGAOUT", "")  # the congas leave for the outro's last CONGAOUT bars (the radio and its carriers alone hand over to t6)
 CONGATHIN = os.environ.get("C8T5_CONGATHIN", "300")   # the drums go thin with the radio: over the outro's last four bars a high-pass on the congas rises to ~CONGATHIN Hz, so their bodies (213 Hz, +16 dB over t6's head) leave and the slaps stay
 HEADMIX = os.environ.get("C8T5_HEADMIX", "0.2")   # the radio comes up with the dial: the carriers' radio mix starts at HEADMIX (dry sines under it) and reaches 1 over the intro's first four bars - its hiss and whistle (2.6-3.1 kHz +17 dB over t4's tail) arrive after the seam; the tail keeps the full radio
+BSPLIT = os.environ.get("C8T5_BSPLIT", "both")   # B in two: the 909's claps ('clap'), hats ('hats') or both ('both') wait for B bar 13, where the bargaining voice comes in - the deal's second half gets its backbeat (compscore reads B as one 57 s section; seed 0's length cv 1.08). Events dropped after generation, so no dice move
+BSPLITAT = int(os.environ.get("C8T5_BSPLITAT", "12"))   # the bar of B (0-based) where the held-back 909 parts come in
 HOOKF = [(0, "E4", 3), (3, "G4", 3), (6, "A4", 4), (10, "B4", 6), (16, "D5", 3), (19, "B4", 3), (22, "D5", 4), (26, "E5", 6)]
 CLEN = int(os.environ.get("C8T5_CLEN", "42"))   # C's length: 40 tightens the agreement (the lift at bar 25, the second 'keep it there' at 33)
 FORM = [("intro", 12), ("A", 34), ("B", 26), ("retrain", 12), ("C", CLEN), ("outro", 16)]
@@ -186,6 +188,10 @@ def build():
                 for q in range(0, 16, 2):
                     if rng.random() < 0.55:
                         add("lead", at + q, LEAD[rng.randrange(8)], 2 if rng.random() < 0.7 else 4, 92)
+    if BSPLIT:
+        b0 = sec_start("B")
+        for k in (("clap",) if BSPLIT == "clap" else ("hats",) if BSPLIT == "hats" else ("clap", "hats")):
+            ev[k] = [e for e in ev[k] if not (b0 <= e[0] < b0 + BSPLITAT * BAR)]
     if CONGAIN or CONGAOUT:
         i1 = sec_start("intro") + int(CONGAIN or 0) * BAR
         o0 = total() - int(CONGAOUT or 0) * BAR if CONGAOUT else total() + 1
