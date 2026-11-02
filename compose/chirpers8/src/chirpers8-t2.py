@@ -37,6 +37,7 @@ OWNHATS = os.environ.get("C8T2_OWNHATS", "1")   # the rest of the drum machine o
 OWNKICK = os.environ.get("C8T2_OWNKICK", "1")   # and the kick: the machine layer's 909-style kick tuned to G1 (the key's root), instead of machine-kit's
 TOMBACK = os.environ.get("C8T2_TOMBACK", "swap")   # PALETTE ROUND: the backbeat on a drum machine of our own - the engine's `machine` layer (circuit-modelled drum-machine voices, unused on the album) as a tuned electronic tom: G3 on 2, D3 on 4 (the halving's lone 3 on G3), the syndrum backbeat of the old machine records. 'swap' replaces the machine-kit clap (a staple of 9 songs); 'layer' keeps the clap under it
 CONVERGE = os.environ.get("C8T2_CONVERGE", "6")   # WHOLE ROUND: THE PATHS MEET - in C the canon gives way to a second number. Each of C's climbs gets a partner whose own hailstone path joins it partway (27 and 41 meet 313, 31 meets 297), played on the second clarinet in its own register and the same parity rhythm, timed so the two land on the shared number together; they sound in unison for six steps, then the partner falls silent and one line goes on down to 1 - the conjecture heard: different starts, one road home. Value = 'unison steps'
+LANDING = os.environ.get("C8T2_LANDING", "92all")   # SECTION ROUND (w9): when C's high climb (27, an octave up) lands on 1 the band stops for the bar before 41 begins - drums, bass and arps out (their notes kept at velocity 1, so later dice stay put) - and a vibraphone (modal-vibes, the library's new physical mallet) rings G B D, the one; the partner already on its way to 41 carries through the hole and a crash brings the band back. 'all' also rings the vibes at C's other landings (no stop). Value = vibes velocity
 CONVSNAP = os.environ.get("C8T2_CONVSNAP", "")   # with CONVERGE: before it joins, the partner's notes snap to the tonic triad (degrees 0 2 4: G B D) - an arpeggio against the clarinet's scale line - and keep the song's pitch balance (all seven degrees made t2's chroma read 0.90 like t4's)
 HALVLOCAL = os.environ.get("C8T2_HALVLOCAL", "1")   # the halving kept local: the grid kicks and toms stay in place at velocity 1 (so every later hit's dice stay put) and the half-time hits and the return crash play on their own tracks (kick2, tom2, crash2), listed last
 PREFIGTRACK = os.environ.get("C8T2_PREFIGTRACK", "1")   # the foretold 4-2-1 on its own bell track (bell2, the same bell), listed last: on the bell track its notes shifted the dice of every later bell (the break's loop and C's halts moved by -16..-35 dB residual)
@@ -85,7 +86,7 @@ def barlen(sec):
     """Sixteenths in a bar of this section: the break is in 3/4 under METER."""
     return 12 if METER and sec == "break" else BAR
 SEEDS = {"intro": [6, 6], "A": [7, 12, 3, 7], "B": [9, 18, 11], "C": [27, 31, 27, 41], "outro": [1]}
-TRACKS = ("clar", "clar2", "arp", "bass", "sub", "kick", "shk", "hats", "clap", "pad", "bell", "crash") + (("tom",) if os.environ.get("C8T2_TOMBACK", "swap") else ()) + (("ohat",) if os.environ.get("C8T2_OWNHATS", "1") else ()) + (("bell2",) if os.environ.get("C8T2_PREFIGTRACK", "1") else ()) + (("kick2", "tom2", "crash2") if os.environ.get("C8T2_HALVLOCAL", "1") else ())
+TRACKS = ("clar", "clar2", "arp", "bass", "sub", "kick", "shk", "hats", "clap", "pad", "bell", "crash") + (("tom",) if os.environ.get("C8T2_TOMBACK", "swap") else ()) + (("ohat",) if os.environ.get("C8T2_OWNHATS", "1") else ()) + (("bell2",) if os.environ.get("C8T2_PREFIGTRACK", "1") else ()) + (("kick2", "tom2", "crash2") if os.environ.get("C8T2_HALVLOCAL", "1") else ()) + (("vib",) if os.environ.get("C8T2_LANDING", "92all") else ())
 GMAJ = ["G", "A", "B", "C", "D", "E", "F#"]
 CHORDS = [("G", [0, 2, 4]), ("E", [5, 7, 9]), ("C", [3, 5, 7]), ("D", [4, 6, 8])]   # I vi IV V as degrees from G
 PRIMES = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31)
@@ -169,6 +170,7 @@ def build():
 
     def add(tr, at, head, ln, vel):
         ev[tr].append((at, head, ln, vel))
+    landings = []
 
     # --- the clarinet: phrases from each seed, one number an eighth, each phrase from a bar line
     for sec, nb in FORM:
@@ -181,6 +183,8 @@ def build():
             path = collatz(n0) if n0 != 1 else [1, 4, 2, 1]
             up = 12 if sec == "C" and k % 4 == 2 else 0
             times, plen = clar_times(path)
+            if sec == "C":
+                landings.append((t + times[-1][0], k, t))
             if CONVERGE and sec == "C" and n0 in (27, 31, 41):
                 partner = {27: 313, 31: 297, 41: 313}[n0]
                 q = collatz(partner)
@@ -289,6 +293,22 @@ def build():
         wins = [(c0 + 12 * BAR - 1, c0 + 12 * BAR + 34), (c0 + 40 * BAR - 1, c0 + 40 * BAR + 34)]
         for k in SUNGROOM.split(","):
             ev[k] = [e for e in ev[k] if not any(a <= e[0] < b or (e[0] < a < e[0] + e[2]) for a, b in wins)]
+    if LANDING:
+        lv = int("".join(ch for ch in LANDING if ch.isdigit()))
+        starts = [x[2] for x in landings]
+        for land, k, t0 in landings:
+            hs = -(-(land + 4) // BAR) * BAR
+            nxt = next((s for s in starts if s > land), sec_start("outro"))
+            if k == 2:
+                for tr in ("kick", "kick2", "hats", "shk", "clap", "tom", "tom2", "bass", "sub", "arp"):
+                    if tr in ev:
+                        ev[tr] = [(a, h, l, 1 if hs <= a < nxt else v) for (a, h, l, v) in ev[tr]]
+                add("vib", hs, "G4,B4,D5,G5", 8, lv)
+                add("vib", hs + 8, "D6", 4, lv - 20)
+                if "crash2" in ev:
+                    add("crash2", nxt, "D5", 8 * BAR, 84)
+            elif "all" in LANDING:
+                add("vib", land, "G4,B4,D5", 6, lv - 14)
     if OWNHATS:
         ev["ohat"] = [(a, "A4", 4, v) for (a, h, l, v) in ev["hats"] if h == "oh"]
         ev["hats"] = [(a, "A4", 1, v) for (a, h, l, v) in ev["hats"] if h != "oh"]
@@ -396,12 +416,14 @@ def voice(file, name, off16, gain, fx, sends):
 
 def song():
     doc = song0()
-    if HALVLOCAL:
+    if HALVLOCAL or LANDING:
         T = build()
         trs = doc["tracks"]
-        for nm in ("kick", "tom", "crash"):
+        for nm in (("kick", "tom", "crash") if HALVLOCAL else ()):
             spec = next(t for t in trs if t["name"] == nm)
             trs.append(dict(spec, name=nm + "2", score=T[nm + "2"]))
+        if LANDING:
+            trs.append({"name": "vib", "patch": "modal-vibes", "gain": "-9dB", "pan": 0.2, "sends": {"plate": "-14dB"}, "score": T["vib"]})
     return doc
 
 
