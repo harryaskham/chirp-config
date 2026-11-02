@@ -43,12 +43,28 @@ def pitch(v, base=BASE):
     return f"m{base + v * ALPHA:.3f}"
 
 
+# v12: SWING AS RELEASE - every sorting section is straight machine sixteenths; once the list is SORTED the work is
+# done and the groove loosens: every off-beat sixteenth in every part lands later - 0.54, 0.58, then 0.62 of the
+# eighth; straight again in the outro, where the list comes undone. Applied here, not with swing16 tokens: the
+# engine swings rest tokens too, and these parts are written as notes plus short rests
+SWING = [(125, 0.54), (133, 0.58), (141, 0.62), (161, 0.5)]
+
+
+def swung(s):
+    bar = int(s // 4) + 1
+    sw = 0.5
+    for b, v in SWING:
+        if bar >= b:
+            sw = v
+    return s + (sw - 0.5) * 0.5 if abs(s % 0.5 - 0.25) < 1e-6 else s
+
+
 class Part:
     def __init__(self):
         self.ev = []
 
     def add(self, at, ln, head, vel):
-        self.ev.append((at, ln, head, int(max(1, min(127, vel)))))
+        self.ev.append((swung(at), ln, head, int(max(1, min(127, vel)))))    # v12: the sorted groove swings
 
     def score(self, total=TOTAL):
         ev = sorted(self.ev, key=lambda e: (e[0], -e[3]))
@@ -60,6 +76,7 @@ class Part:
                 continue
             if s - pos > 1e-5:
                 toks.append(f"R/{s - pos:.5g}b")
+
             base, _, mods = head.partition("^")
             toks.append(f"{base}/{ln:.5g}b@{vel}" + (f"^{mods}" if mods else ""))
             pos = s + ln
