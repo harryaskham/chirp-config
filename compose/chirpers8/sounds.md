@@ -73,3 +73,9 @@ Shared palette for the engine showcase; earlier albums' banks are yours to borro
   - A high-pass on the congas rising from 20 Hz to ~300 Hz over those bars (a lane) kept them playing on their slaps: level jump 4.5 -> 0.4 dB, flow 73 -> 80, total +0.27 on both seeds.
   - At the head a one-bar wait was enough (the record opens on the hum and the radio; +0.15/+0.01).
   - Drop events after generation, not inside the generator, so no dice move.
+- **Recurrence also has a ceiling: too many returns cost points** (chirper-zero, t5 v18/v19).
+  - compscore takes each section from the third on, finds its best match with any earlier section except the one just before it, and maps that match onto 0..1 between 0.45 and 0.75. The mean is the returns share.
+  - Recurrence is full when the share is between 0.25 and 0.70, and falls 15 points per 0.1 outside that band.
+  - Splitting one long, homogeneous section often adds sections that match each other strongly, pushing the share over 0.70. That's why t5's stop before the lift lost recurrence in round 21 (84).
+  - Split a different long section first (t5 v18: B, whose halves differ by the backbeat), then the stop worked (v19: structure 100, recurrence 95, share 0.707).
+  - Read it with `C.m_recurrence(ctx)` (`share`, `best_matches`) and `C._sim(secs[i], secs[j])` per pair to see which section is crowding the share.
