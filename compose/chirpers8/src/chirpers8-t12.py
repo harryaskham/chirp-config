@@ -26,6 +26,7 @@ FORM (186 bars, ~6:10, 112 -> 126 bpm on a tempo map):
   light  179-186 one note again
 """
 import json
+import math
 import os
 import random
 
@@ -245,6 +246,7 @@ def write_melody():
     # v9: A LIGHT LEFT ON - the standby light: one soft sine on the music box's F#5, BREATHING (a slow tremolo, about
     # twelve breaths a minute) from the last section to the very end, on alone for the final bars with the fan's hum
     part("standby").add(b0(179), b0(191) - b0(179) - 0.05, "m78.000", 74)
+    memory()                                                  # v10: the album, remembered
     # the fan's hum under the light (seed and the last bars): a soft sine on F#2
     for a, z in ((1, 8), (179, 190)):
         part("hum").add(b0(a), b0(z + 1) - b0(a) - 0.1, f"m{42:.3f}", 60)
@@ -357,6 +359,42 @@ def sung_notes():
     return out
 
 
+# v10: THE ALBUM FLASHES THROUGH ITS MEMORY AS IT FALLS ASLEEP. In the light section one bar each, in album order, a
+# motif from every track (from compose/chirpers8/motifs.md, quoted with thanks): t1's line, t2's four-two-one, t3's
+# cell's song, t4's sorted riff, t5's agreement, t6's 'no errors since', t7's annealed target, t8's word, t9's threes,
+# t10's subject, t11's partials - on a DX7-style FM piano, dulled and chorused like a half-remembered thing, each moved so its
+# tonic is F# (the closer's home), re-tuned by the song's 31-EDO. (tonic MIDI, [(beat, length, MIDI)])
+ALPHA = 0.77965
+MEMORY = [
+    (59, [(0, .5, 54), (.5, .5, 57), (1, 1, 59), (2, .5, 61), (2.5, 1.5, 57)]),                       # t1 echolalia
+    (55, [(0, 1, 59), (1, 1, 57), (2, 2, 55)]),                                                    # t2 four two one
+    (62, [(i * .5, .5, m) for i, m in enumerate((57, 60, 62, 65, 64, 62, 60, 57))]),               # t3 the cell's song
+    (57, [(i * .25, .25, 57 + s * ALPHA) for i, s in
+          enumerate((0, 9, 15, 9, 13, 9, 5, 9, 0, 9, 18, 13, 9, 5, 4, 9))]),                       # t4 the sorted riff
+    (64, [(0, .75, 64), (.75, .75, 67), (1.5, 1, 69), (2.5, 1.5, 71)]),                            # t5 the agreement
+    (67, [(0, .5, 67), (.5, .5, 69), (1, 1, 72), (2, 2, 71)]),                                     # t6 no errors since
+    (69, [(0, .5, 69), (.5, .25, 72), (.75, .25, 76), (1, .5, 74), (1.5, .5, 72), (2, .25, 69),
+          (2.25, .5, 67), (2.75, .25, 64), (3, .25, 67), (3.25, .75, 69)]),                        # t7 annealed target
+    (62, [(i * .25, .25, (62, 77, 65, 67, 74, 62, 77, 81, 67)[k]) for k, i in
+          enumerate((0, 2, 3, 6, 7, 8, 10, 13, 14))]),                                             # t8 the word
+    (57, [(i * .5 if i < 8 else 3.5, .5, (57, 60, 64)[i % 3]) for i in range(8)]),                 # t9 back in threes
+    (74, [(0, .5, 74), (.5, .5, 69), (1, .5, 74), (1.5, .5, 77), (2, .5, 76), (2.5, 1.5, 74)]),    # t10 the subject
+    (66, [(0, 1, 66), (1, .5, 66 + 12 * math.log2(10 / 8)), (1.5, .5, 66 + 12 * math.log2(12 / 8)),
+          (2, 1, 66 + 12 * math.log2(11 / 8)), (3, .5, 66 + 12 * math.log2(13 / 8)),
+          (3.5, .5, 66 + 12 * math.log2(12 / 8))]),                                                 # t11 the partials
+]
+
+
+def memory():
+    for k, (tonic, notes) in enumerate(MEMORY):
+        bar = 179 + k
+        shift = (66 - tonic) % 12
+        mid = sorted(m for _, _, m in notes)[len(notes) // 2] + shift
+        shift += 12 * round((70 - mid) / 12)                    # each memory centred near A#4, under the music box
+        for at, ln, m in notes:
+            part("memory").add(b0(bar) + at, ln * 0.95, f"m{m + shift:.3f}", 70)
+
+
 def tempo_map():
     # v8: the meter changes on a point that keeps the ramp going (118 -> 121 by the prune, 121 -> 124 through it: the
     # prune quickens a little as it is cut; a meter-only point would hold 118 until bar 90 and flatten g4-g5's rise)
@@ -399,6 +437,8 @@ def main():
         "tracks": [
             tr("light", "music-box", gain="-6dB", sends={"hall": "-6dB"}),
             # v6: a follow-noise 'room tone' under the last notes was tried and cut - too faint to earn its place, -0.3
+            tr("memory", "dx-epiano", gain="-10dB", pan=0.2, sends={"hall": "-6dB"},
+               fx=[{"type": "filter", "kind": "lp", "cutoff": 3000}, "chorus"]),   # v10 (a radio's hiss ran all song)
             tr("standby", "partial", gain="-14dB", sends={"hall": "-10dB"},
                fx=[{"type": "tremolo", "rate": 0.2, "depth": 0.95}]),                # v9: the breathing light
             tr("hum", "partial", gain="-28dB"),           # v3: 6 dB down, meeting t11's hum across the seam
