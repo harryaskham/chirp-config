@@ -32,6 +32,10 @@ FORM = [('intro', 8, 0), ('expo', 16, 0), ('calls1', 32, 0), ('calls2', 24, 5), 
 # the loop: Dm | Bb | Gm | A  (roots, chord tones)
 LOOP = [(38, [62, 65, 69]), (34, [62, 65, 70]), (31, [62, 67, 70]), (33, [61, 64, 69])]
 e, q, s16, h = 0.5, 1.0, 0.25, 2.0
+# (v16) THE COUNTERSUBJECT: what every fugue has and this one lacked - a second, slow line written to go with the
+# subject wherever it enters, long notes against its quavers, leaning on the leading tone (Dm | Bb | Gm | A, twice)
+CS = [[(69, h), (65, h)], [(74, 3.0), (72, q)], [(70, h), (74, h)], [(73, 4.0)],
+      [(74, h), (76, q), (77, q)], [(77, h), (74, h)], [(79, q), (77, q), (76, q), (74, q)], [(76, h), (73, h)]]
 # THE SUBJECT: eight bars, (midi, beats); bars 1-4 and 5-8 each fit the loop, so it canons at four bars
 SUBJ = [
     [(74, q), (69, e), (74, e), (77, q), (76, e), (74, e)],
@@ -65,7 +69,7 @@ def build():
         for i in range(n):
             bars.append((name, i, tp))
     total = len(bars) * 4.0
-    P = {k: [] for k in ('bell', 'sync', 'pwm', 'bass', 'sub', 'd1', 'd2', 'd3', 'kit', 'pulse', 'glass')}
+    P = {k: [] for k in ('bell', 'sync', 'pwm', 'bass', 'sub', 'd1', 'd2', 'd3', 'kit', 'pulse', 'glass', 'cs')}
     # the call stack: a seeded walk, one move every four bars in the calls sections
     depth, depths = 0, []
     for b, (s, i, tp) in enumerate(bars):
@@ -161,6 +165,11 @@ def build():
             # second half), the bell reads backwards again while the sync lead reads forwards: the canon against its mirror
             rv = s == 'calls3' or (s == 'final' and i >= 16)
             subj_bar(i, t0, tp, ob, 92, 'bell', rev=rv)
+            if (s == 'calls1' and i >= 16) or (s == 'final' and i < 16):
+                at_ = t0
+                for m_, d_ in CS[i % 8]:
+                    P['cs'].append((at_, tok(m_ + tp), d_ * 0.97, 74))
+                    at_ += d_
             if s != 'calls2':
                 subj_bar(i + 4, t0, tp, os_, 88, 'sync', rev=(s == 'calls3'))
             if s == 'calls2':
@@ -306,6 +315,7 @@ def build():
             tr('d3', 'glass', '-26dB', pan=0.5, fx=['hp cutoff=800'], sends={'hall': '-12dB'}),
             tr('kit', 'machine-kit', '-2dB', sends={'hall': '-20dB'}),
             tr('glass', 'glass', '-15dB', pan=0.1, sends={'hall': '-8dB'}),
+            tr('cs', 'clarinet', '-9dB', pan=-0.3, sends={'hall': '-10dB', 'echo': '-18dB'}),
             tr('pulse', 'clarinet', '-10dB', pan=-0.15, sends={'hall': '-14dB', 'echo': '-16dB'}),
             # (v8) THE MACHINE'S OWN PATTERNS: a percussion line written in the engine's Euclidean and chance tokens, a
             # different cycle for each key of the canon - in D minor seven triplet-eighth rims spread over the bar (7 in 12,
