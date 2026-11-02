@@ -677,8 +677,9 @@ def master_mix(a, album, rel, rdir, out, rows, raws, pin, work, env, audio_md5):
 # The engine catalogue the coverage board measures against (compose/chirpers8/features.md), as (group, feature) pairs.
 COVERAGE_CATALOGUE = {
     "synthesis": ["wave:sine", "wave:triangle", "wave:saw", "wave:square", "wave:pulse", "additive", "table", "shepard",
-                  "sample", "machine", "modal", "bowed", "pluck", "membrane", "reed", "lips", "bar", "bell", "glock", "gong",
-                  "guitar", "fm/pm", "sync", "shape:fold", "shape:tanh", "shape:clip", "shape:crush"],
+                  "sample", "machine", "modal", "bowed", "pluck", "membrane", "plate", "cymbal", "bar", "vibes", "bell",
+                  "glock", "gong", "reed", "jet", "lips", "sax", "guitar", "fm/pm", "sync", "shape:fold", "shape:tanh",
+                  "shape:clip", "shape:crush"],
     "fx": ["amp", "autolevel", "barberpole", "cab", "chop", "chorus", "clip", "cloud", "compressor", "crush", "delay", "drive",
            "duck", "eq", "filter", "follow-noise", "formant", "freeze", "gain", "gate", "glue", "ir", "limiter", "morph", "ott",
            "pan", "phantom", "phaser", "pitch", "pump", "radio", "reverb", "ring", "stutter", "sympathetic", "tape", "tapestop",
@@ -708,6 +709,13 @@ def song_features(canon, raw):
             infx = any(k in ("fx", "chain", "insert", "inserts") for k in path)
             if t == "filter" and "kind" not in o:
                 got.add("kind:lp")          # the schema's default kind
+            # physical sub-kinds live outside `type` in the canonical plan: a wind layer's `exciter` (default reed) and a
+            # modal layer's `modes` (default membrane). Reading `type` alone listed reed, lips, gong ... as unused while
+            # t2, t3, t5 and t12 used them (2 Nov)
+            if t == "wind":
+                got.add(str(o.get("exciter") or "reed"))
+            elif t == "modal" and isinstance(o.get("modes", "membrane"), str):
+                got.add(str(o.get("modes") or "membrane"))
             if isinstance(t, str):
                 if infx and t in fx_types:
                     got.add(t)

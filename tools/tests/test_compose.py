@@ -323,6 +323,17 @@ class Coverage(unittest.TestCase):
         self.assertNotIn("gen:lorenz", got)       # a var system, not a track gen (that's 'var system')
         self.assertNotIn("meter change", got)
 
+    def test_physical_sub_kinds_are_read_from_exciter_and_modes(self):
+        canon = {"patches": {"p": {"synth": {"layers": [{"type": "wind", "exciter": "lips"}, {"type": "wind"},
+                                                        {"type": "modal", "modes": "gong"}, {"type": "modal"}]}}}}
+        got = CH.song_features(canon, "")
+        for want in ("lips", "reed", "gong", "membrane", "modal"):     # reed and membrane are the defaults
+            self.assertIn(want, got)
+        self.assertNotIn("jet", got)
+        cat = {f for fs in CH.COVERAGE_CATALOGUE.values() for f in fs}
+        self.assertTrue({"reed", "jet", "lips", "sax", "membrane", "plate", "cymbal", "gong", "bar", "vibes", "glock",
+                         "bell"} <= cat)
+
     def test_meter_changes_on_tempo_map_points(self):
         def mc(tempo, meter=None):
             canon = {"tempo": tempo, **({"meter": meter} if meter else {})}
