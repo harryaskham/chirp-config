@@ -295,8 +295,12 @@ def drums():
             for e in range(7):
                 part("hats").add(b0(bar) + e * 0.5, 0.1, "rs", 92 if e == 0 else (74 if e in (2, 4) else 52 + hand.randint(-5, 5)))
             continue
+        half = sec == "coda" and bar >= HALF_FROM            # v26: the coda's second statement in half-time
         for b in range(4):
-            part("kick").add(b0(bar) + b, 0.5, "k", 112 if b == 0 else 104)
+            if not half or b == 0:
+                part("kick").add(b0(bar) + b, 0.5, "k", 112 if b == 0 else 104)
+            if half and b == 2:
+                part("kick").add(b0(bar) + 2.5, 0.5, "k", 98)
             part("hats").add(b0(bar) + b + 0.5, 0.25, "oh", 64 + hand.randint(-6, 6))
             for s in (1, 3):
                 if hand.random() < 0.65:
@@ -305,7 +309,7 @@ def drums():
             for e in range(8):
                 part("ride").add(b0(bar) + e * 0.5, 0.4, "rd", 70 if e % 2 == 0 else 54)
         if sec not in ("g3",):
-            for b in (1, 3):
+            for b in ((2,) if half else (1, 3)):
                 part("clap").add(b0(bar) + b + 0.02, 0.5, "cp", 88 + hand.randint(-4, 4))
 
 
@@ -511,11 +515,18 @@ TUNE_GROWTH = {"g1": 1, "g2": 2, "g3": 3, "g4": 5, "g5": 8, "g6": 13}
 # builds the last minute and a half toward the voice. And the tape choir (v23) now SWELLS ~8 dB across its sixteen
 # bars of g5 instead of holding one level.
 RELAY = (("tunecello", 131, -12), ("tunehorn", 139, -12))
+# v26 (ROUND TYPE: whole; Harry 'do more each round'): A CLIMAX AND A RELEASE for the 4:16-5:18 plateau (the map:
+# w9 static, w10 little new). (1) TUTTI: the relay's last step before the brass chorale is the WHOLE ORCHESTRA - a
+# physical violin section at pitch, a brass section an octave down, a cello section two down - playing the grown tune
+# at once (145), 'everything at once, and still a song'. (2) THE CODA DROPS TO HALF-TIME (from 158): kick on 1 and
+# the 'and' of 3, the snare on 3 only - the heart slows toward standby and the singer gets room.
+TUTTI = (145, (("tutti_vn", 0), ("tutti_br", -12), ("tutti_vc", -24)))
+HALF_FROM = 168            # the whole coda in half-time cost the spectrum term 4 points (thin drums for 21 bars)
 
 
 def relay():
     t0 = SING[0][0]
-    for name, bar, octv in RELAY:
+    for name, bar, octv in RELAY + tuple((n, TUTTI[0], o) for n, o in TUTTI[1]):
         shift = (PLAN[bar][0] - PLAN[158][0]) * 12 / EDO
         shift = ((shift + 6) % 12) - 6
         for at, ln, ph, midi, vel, f0 in SING[:TUNE_GROWTH["g6"]]:
@@ -703,6 +714,9 @@ def main():
             tr("crash12", "machine-kit", gain="-8dB", sends={"hall": "-10dB"}),                     # v23
             tr("tunecello", "cello", gain="-3dB", pan=-0.3, sends={"hall": "-8dB"}),               # v24
             tr("tunehorn", "horn", gain="-1dB", pan=0.3, sends={"hall": "-8dB"}),                  # v24
+            tr("tutti_vn", "violins", gain="-3dB", pan=-0.3, sends={"hall": "-6dB"}),               # v26: tutti
+            tr("tutti_br", "brass", gain="-5dB", pan=0.15, sends={"hall": "-8dB"}),                 # v26
+            tr("tutti_vc", "cellos", gain="-3dB", pan=0.35, sends={"hall": "-8dB"}),                # v26
             tr("theremin", "theremin", gain="-5dB", pan=0.2, sends={"hall": "-8dB"}),        # v22: LAST
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=1.0s mix=1 predelay=10ms", "hp cutoff=250"]},
