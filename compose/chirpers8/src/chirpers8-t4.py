@@ -202,6 +202,12 @@ def resorting(make, arr, seed):
 
 
 PROGRESS = []
+# v16: THE LAST PHYSICAL FAMILIES - merge sort, the most graceful algorithm, sings its emerging tune on the physical
+# alto sax (a reed on a conical bore) instead of the kalimba; and every finished pass (or finished sort) is marked by a
+# modal CYMBAL (a dense struck plate set, its wash blooming in after the hit) instead of the drum machine's crash
+CYMBAL = {"synth": {"layers": [{"type": "modal", "modes": "cymbal", "decay": "2.5s", "damp": 0.05, "bloom": 0.6,
+                                "strike": 0.7}],
+                    "amp": {"a": "1ms", "d": "3s", "s": 0, "r": "1.5s", "curve": 3}}}
 # v9: THE SEAM FROM T3 - t3 ends ringing a struck metal bar at ~912 Hz (its fourth partial 3648 Hz) with shimmer above
 # 10 kHz, fading over three seconds; t4 opens by catching that ring - the same pitch struck once on vibes, its partial
 # quietly, a soft cymbal for the air - while the sorting fades up underneath
@@ -288,9 +294,9 @@ def write():
             part("swap").add(b0(bar) + j / 4 + 0.125, 0.3, pitch(RIFF[arr[j]] + root_at(bar), BASE - 12),
                              84 + hand.randint(-6, 6))
         if (sec == "sorted" and chopped(bar) and not chopped(bar - 1)):
-            part("crash").add(b0(bar), 2.0, "cy", 84)                # v4: a crash where the sound gets sorted
+            part("crash").add(b0(bar), 2.0, "m74", 84)               # v4: a crash where the sound gets sorted
         if (sw == [] and sec not in ("intro", "sorted", "outro")) or done:
-            part("crash").add(b0(bar), 2.0, "cy", 80)
+            part("crash").add(b0(bar), 2.0, "m74", 80)
         # v6 (Harry: 'too squelchy... should be more interesting and good'): THE HARMONY NO LONGER CHASES THE ARRAY. A slow
         # progression in the alpha scale - i, v, a minor third up, a 'seventh' - two bars each, an 8-bar loop; the pad's
         # third is dark while the array is unsorted and brightens the bar it (or the sound) is sorted
@@ -466,7 +472,7 @@ def main():
             tr("ride", "machine-kit", gain="-9dB", pan=-0.3, sends={"room": "-12dB"}),      # v6: the top end
             tr("tune_mar", "marimba", gain="-8dB", pan=-0.1, sends={"dly": "-10dB"}),      # v6: each algorithm its voice
             tr("tune_flu", "flute", gain="-11dB", pan=-0.1, sends={"dly": "-10dB"}),
-            tr("tune_kal", "kalimba", gain="-8dB", pan=-0.1, sends={"dly": "-10dB"}),
+            tr("tune_kal", "alto-sax", gain="-6dB", pan=-0.1, sends={"dly": "-10dB", "room": "-12dB"}),   # v16: merge's voice
             {"name": "progress", "patch": "machine-kit", "gain": "-13dB", "pan": 0.3, "sends": {"room": "-12dB"},
              "score": progress_score()},                     # v5: the work's progress as a Euclidean rhythm
             tr("pad", "juno-pad", gain="-11dB", sends={"dly": "-14dB"},
@@ -478,7 +484,7 @@ def main():
             tr("hum", "808", gain="-4dB"),                     # v2: into t5's E2 (v8: 6 dB up - it sat at -36 dB alone)
             tr("tick", "909", gain="-17dB", pan=0.2, fx=[{"type": "filter", "kind": "hp", "cutoff": 3000}]),
             tr("swap", "modal-tom", gain="-15dB", pan=-0.2, sends={"room": "-10dB"}),     # v15: tuned membranes
-            tr("crash", "909", gain="-12dB", sends={"room": "-8dB"}),
+            tr("crash", CYMBAL, gain="-12dB", sends={"room": "-8dB"}),                    # v16: a real cymbal
             tr("kick", "909", gain="-10dB"),
             tr("clap", "909", gain="-6dB", sends={"room": "-8dB"}),
             tr("hats", "909", gain="-6dB", pan=0.1),
