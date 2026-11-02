@@ -252,6 +252,13 @@ def build():
                 P['babble'].append((at_ + drag * k_, f"m{m_ + wrong.get(k_, 0)}", d_ * 0.85, 82))
             at_ += d_
     P['babble'].sort()
+    # (v23) A HUMAN KIT: the drums were the album's machine-kit (nine of twelve songs). Echolalia is the one song about
+    # a human teaching a machine, so its drums are played by someone: a tight, dry, close-miked kit - a damped kick that
+    # still follows the line's syllables in the third groove, sidestick on the backbeat in the first two grooves and the
+    # said-back one, the full snare only in the third, the climax; the machine keeps its own cellular-automaton rim
+    for k_, e_ in enumerate(P['kit']):
+        if e_[1] == 'cp':
+            P['kit'][k_] = (e_[0], 's' if secs['C'] * 4.0 <= e_[0] < secs['D'] * 4.0 else 'ss', e_[2], e_[3])
     # D: the machine says it back - the exact contour of each take, two octaves up, with the voice
     for v in VOICE:
         if secs['D'] < v['bar'] <= secs['D'] + 16:
@@ -335,7 +342,8 @@ def build():
                sends={'hall': '-10dB'}),
             tr('sub', 'sub', '-4.5dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-5dB', 'release': '260ms', 'curve': 0.6}]),
             tr('bass', 'analog-bass', '-12dB', fx=['lp cutoff=1100']),
-            tr('kit', 'machine-kit', '-6dB', sends={'hall': '-18dB'}),
+            tr('kit', 'tight-kit', '-6dB', sends={'hall': '-18dB'},
+               fx=[{'type': 'eq', 'bands': ['peak cutoff=75 q=0.8 gain=4dB', 'highshelf cutoff=9000 gain=-5dB']}]),
             # a rim written by a cellular automaton (rule 90, Sierpinski), sixteenths, from the second groove
             # the rim: the engine's own elementary cellular automaton (gen ca, rule 90, Sierpinski) over 16 cells, a
             # generation every sixteenth, from the second groove to the end of the said-back groove
