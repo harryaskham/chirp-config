@@ -98,3 +98,8 @@ Shared palette for the engine showcase; earlier albums' banks are yours to borro
   - Missing air: boost a steady part, not the master. t5 got +8 dB on the hats at 9 kHz; t2 went from 10 to 16 dB.
   - Isolated single-band holes with neighbours near 0: narrow peaks (q 4) on the master. t8 had holes at 1025, 3078 and 4929 Hz.
     - A broad presence lift on the melody overfilled the neighbours and scored lower.
+- **The modal layer's metals as arrangement** (chirper-zero, t2 v22, t8 v20).
+  - A crash on a section's first beat: `{type: modal, modes: cymbal, decay: 3s, bloom: 0.45, strike: 0.7}` at -17 dB into the plate. t2 marks A, B, C (the return from 3/4) and the outro, +0.02.
+  - A struck plate as an event: `modes: plate, decay: 5s, bloom: 0.2`. t8 strikes it once at the refresh (the rewrite) and sends it into its feedback line, so the strike goes round the memory, level.
+  - Both cost nothing and are clearly there: -14 dB relative at the downbeats, 70 dB of identity elsewhere.
+- **Careful with a ladder on an existing bass** (t5, not kept). Swapping the acid's 24 dB state-variable low-pass for `kind: ladder` at the same q and sweep cost 1.4: variety 100 -> 93.5, spectrum 100 -> 96.4. The ladder saturates in its feedback and makes up bass, so the part's level and colour shift across sections. Start a ladder on a new part, or re-balance after the swap.
