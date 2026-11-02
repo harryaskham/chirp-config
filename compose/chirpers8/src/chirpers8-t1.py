@@ -184,6 +184,14 @@ def build():
     def steps(nbars): return max(8, int(round(nbars * 4 / mean_len)))
     _unused = (markov(1, 24 * 4, 11, secs['A'] * 4.0) + markov(2, 32 * 4, 12, secs['B'] * 4.0)
                    + markov(1, 8 * 4, 13, secs['break'] * 4.0) + markov(3, 32 * 4, 14, secs['C'] * 4.0))
+    # (v17) THE MACHINE TAKES TURNS: it no longer babbles without a breath from the first groove to the third (Harry: the
+    # machine shouldn't hammer it). It talks in four-bar phrases with four-bar silences between them - practising, then
+    # listening - with the same growing memory (order 1 in the first groove, 2 in the second, 1 in the break, 3 in the
+    # third), so the voice, the chords and the silence get their turns too
+    for sec_, order_, sd_ in (('A', 1, 11), ('B', 2, 12), ('break', 1, 13), ('C', 3, 14)):
+        n_bars = dict(FORM)[sec_]
+        for ph_ in range(0, n_bars, 8):
+            P['babble'] += markov(order_, min(16, (n_bars - ph_) * 4), sd_ * 100 + ph_, (secs[sec_] + ph_) * 4.0)
     # D: the machine says it back - the exact contour of each take, two octaves up, with the voice
     for v in VOICE:
         if secs['D'] < v['bar'] <= secs['D'] + 16:
@@ -237,9 +245,7 @@ def build():
             # systems, d082b8f5) - four chains played in turn (memory 1, 2, then 1 again for the break, then 3), each long
             # enough to fill its section - on the sharpening tuning
             {'name': 'babble', 'patch': FMV, 'gain': '-11dB', 'pan': 0.2, 'tuning': babble_tuning,
-             'score': f"R/{secs['A'] * 4}b",
-             'gen': [{'type': 'markov', 'order': o_, 'from': ' '.join(corpus), 'n': steps(nb_), 'seed': sd_}
-                     for o_, nb_, sd_ in ((1, 24, 11), (2, 32, 12), (1, 8, 13), (3, 32, 14))],
+             'score': line(P['babble'], total),
              # (v6) THE MACHINE FINDS ITS VOWELS: the babble runs through a formant filter (a vocal tract) whose vowel is
              # steered by a Lorenz attractor (an engine var system: never repeating, never random), and whose mix grows
              # section by section - plain FM blips in the first groove, half-voiced in the second, vowel-shaped syllables by
