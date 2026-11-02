@@ -246,8 +246,9 @@ def write_music():
                 part("gtrig").add(b0(bar) + s / 4, 0.2, "rs", 110)
         # BASS: partial 2 (an octave above the fundamental), pumping eighths; the 3rd partial on the off-beat 'and'
         if sec not in ("intro", "break") and not (sec == "outro" and bar > 160):
+            line = BASS_LINE[(bar - 17) % 2] if sec in ("A", "B", "C") else None
             for e in range(8):
-                n = 2 if e % 4 != 3 else 3
+                n = line[e] if line else (2 if e % 4 != 3 else 3)
                 part("bass").add(b0(bar) + e * 0.5, 0.45, mm(partial(n, lb, 0)), 100 if e % 2 == 0 else 84)
         # v4: THE HOOK, rearranged by the weather - in A, B and C every two-bar phrase plays the hook in one of four
         # forms (original, retrograde, inversion round the 12th partial, a partial up), chosen by y at its start
@@ -363,6 +364,14 @@ HOOK = [(0.0, 8, 1.0, 96), (1.0, 10, 0.5, 84), (1.5, 12, 0.5, 88), (2.0, 11, 1.0
 # and C - 52 statements back to back; now each section alternates 8 bars of hook with 8 bars of WEATHER, where the
 # lead stops quoting and improvises on the partials as the attractor's y moves (as it does in the break); the hook
 # keeps each section's plain first statement and both sung bars (the voice carries it there)
+# v18: A BASS THAT SINGS ('a tune good to hear', Harry on t1): through A, B and C the bass pumped partial 2 with a 3
+# on every fourth eighth - rhythm without a line. Now a two-bar line climbs and falls through the low harmonic series
+# in just intonation - 2, 5/2 (the pure major third), 3, 7/2 (the septimal seventh, a blue, subtly-off lean), 4 -
+# rising as the hook rises and falling home with it; the outro keeps the plain pulse as the weather calms
+BASS_LINE = ([2, 2, 2.5, 3, 2, 2.5, 3, 3.5],
+             [4, 3.5, 3, 2.5, 3, 2.5, 2, 2])
+
+
 def hook_on(bar):
     a = next(a for name, a, z in SECTIONS if a <= bar <= z)
     return ((bar - a) // 8) % 2 == 0 or any(s <= bar < s + 2 for s in SUNG_AT)
