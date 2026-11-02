@@ -372,6 +372,23 @@ BASS_LINE = ([2, 2, 2.5, 3, 2, 2.5, 3, 3.5],
              [4, 3.5, 3, 2.5, 3, 2.5, 2, 2])
 
 
+# v20 (SECTION round, w3 1:03-1:35, bars 33-48 - 'static, little new vs w2'): SOMEONE IN ANOTHER ROOM WHISTLES THE
+# TUNE - in w3's weather bars (41-48), where the lead stops quoting, a low whistle (breathy fipple, unused on the
+# album) answers with the hook twice (41, 45), soft, far right, in the room, a hair behind the beat - someone in the
+# next room who caught the tune; on the partials of whichever lobe the weather is in. Its own track, listed last.
+WHISTLE_AT = (41, 45)
+
+
+def whistle_notes():
+    out = []
+    for bar in WHISTLE_AT:
+        lb = lobe_at(bar)
+        for at, n, ln, v in HOOK:
+            out.append({"at": round(b0(bar) + at + 0.06, 4), "len": round(ln * 0.9, 3),
+                        "pitch": mm(partial(n, lb, 0)), "vel": round(0.62 * v / 96, 3)})
+    return out
+
+
 def hook_on(bar):
     a = next(a for name, a, z in SECTIONS if a <= bar <= z)
     return ((bar - a) // 8) % 2 == 0 or any(s <= bar < s + 2 for s in SUNG_AT)
@@ -541,6 +558,8 @@ def main():
                     {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.rg2", "amount": 1}]}}]},   # v14
             tr("hats", "machine-kit play.humanize.drunk=4ms", gain="0dB", pan=0.2, fx=["ott depth=0.35"]),
             tr("clap", "machine-kit play.humanize.nudge.cp=8ms", gain="-5dB", sends={"room": "-8dB"}),
+            {"name": "whistle", "patch": "low-whistle", "gain": "-6dB", "pan": 0.6,
+             "sends": {"room": "-4dB", "hall": "-10dB"}, "notes": whistle_notes()},   # v20: LAST (keeps every rng)
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=1.0s mix=1 predelay=10ms", "hp cutoff=250"]},
                   "hall": {"fx": ["reverb kind=hall decay=2.8s mix=1 predelay=25ms", "hp cutoff=250", WIDTH_FX],
