@@ -51,6 +51,9 @@ CONGATHIN = os.environ.get("C8T5_CONGATHIN", "300")   # the drums go thin with t
 HEADMIX = os.environ.get("C8T5_HEADMIX", "0.2")   # the radio comes up with the dial: the carriers' radio mix starts at HEADMIX (dry sines under it) and reaches 1 over the intro's first four bars - its hiss and whistle (2.6-3.1 kHz +17 dB over t4's tail) arrive after the seam; the tail keeps the full radio
 BSPLIT = os.environ.get("C8T5_BSPLIT", "both")   # B in two: the 909's claps ('clap'), hats ('hats') or both ('both') wait for B bar 13, where the bargaining voice comes in - the deal's second half gets its backbeat (compscore reads B as one 57 s section; seed 0's length cv 1.08). Events dropped after generation, so no dice move
 BSPLITAT = int(os.environ.get("C8T5_BSPLITAT", "12"))   # the bar of B (0-based) where the held-back 909 parts come in
+LIFTSTOP = os.environ.get("C8T5_LIFTSTOP", "1")   # the gear change, announced: the band stops dead for the second half of the bar before the lift (C bar 24) - a clap fill climbing in sixteenths - then lands a whole step up (dropped after generation, so no dice move). Once B was split (v18) this splits C too without crowding the returns
+LIFTHAT = os.environ.get("C8T5_LIFTHAT", "1")   # after the lift the hats open: every off-beat hat an open hat - the agreed band, a step up, brighter on top
+LIFTWAH = os.environ.get("C8T5_LIFTWAH", "")   # after the lift the guitar puts its foot down: an envelope wah (350-2200 Hz, q 3; harder strokes open it) fades in over the lift's first bar and stays to the outro; value = wet mix
 HOOKF = [(0, "E4", 3), (3, "G4", 3), (6, "A4", 4), (10, "B4", 6), (16, "D5", 3), (19, "B4", 3), (22, "D5", 4), (26, "E5", 6)]
 CLEN = int(os.environ.get("C8T5_CLEN", "42"))   # C's length: 40 tightens the agreement (the lift at bar 25, the second 'keep it there' at 33)
 FORM = [("intro", 12), ("A", 34), ("B", 26), ("retrain", 12), ("C", CLEN), ("outro", 16)]
@@ -192,6 +195,16 @@ def build():
         b0 = sec_start("B")
         for k in (("clap",) if BSPLIT == "clap" else ("hats",) if BSPLIT == "hats" else ("clap", "hats")):
             ev[k] = [e for e in ev[k] if not (b0 <= e[0] < b0 + BSPLITAT * BAR)]
+    if LIFTSTOP and MOD:
+        c0 = sec_start("C")
+        s0, s1 = c0 + 23 * BAR + 8, c0 + 24 * BAR
+        for k in ("gtr", "acid", "sub", "kick", "hats", "clap", "conga", "horns", "carrier"):
+            ev[k] = [e for e in ev[k] if not (s0 <= e[0] < s1)]
+        for q in range(8, 16):
+            add("clap", c0 + 23 * BAR + q, "cp", 1, 60 + 6 * (q - 8))
+    if LIFTHAT and MOD:
+        l0, l1 = sec_start("C") + 24 * BAR, sec_start("outro")
+        ev["hats"] = [(e[0], e[1], "oh", e[3], e[4]) if l0 <= e[0] < l1 else e for e in ev["hats"]]
     if CONGAIN or CONGAOUT:
         i1 = sec_start("intro") + int(CONGAIN or 0) * BAR
         o0 = total() - int(CONGAOUT or 0) * BAR if CONGAOUT else total() + 1
@@ -335,8 +348,13 @@ def song():
             {"name": "conga", "patch": "congas", "gain": "-8dB", "pan": -0.25, "sends": {"room": "-12dB"}, "score": T["conga"],
              **({"fx": [{"type": "filter", "kind": "hp", "q": 0.7, "cutoff": {"value": 20, "mod": [{"src": "auto.cth", "amount": math.log2(float(CONGATHIN) / 20)}]}}],
                  "auto": {"cth": lane([(0, 0), (end - 4 * BAR, 0), (end - BAR, 1), (end, 1)])}} if CONGATHIN else {})},
-            {"name": "gtr", "patch": "cutting-guitar", "gain": "-9dB", "pan": 0.3, **({"auto": {"mg": merge_lane}} if MERGE else {}),
+            {"name": "gtr", "patch": "cutting-guitar", "gain": "-9dB", "pan": 0.3,
+             **({"auto": {**({"mg": merge_lane} if MERGE else {}),
+                          **({"wh": lane([(0, 0), (st["C"] + 24 * BAR, 0), (st["C"] + 25 * BAR, 1), (st["outro"], 1), (st["outro"] + 2 * BAR, 0), (end, 0)])} if LIFTWAH else {})}}
+                if (MERGE or LIFTWAH) else {}),
              "fx": [*([{"type": "morph", "key": "acid", "mode": "morph", "amount": {"value": 0, "mod": [{"src": "auto.mg", "amount": float(MERGE)}]}}] if MERGE else []),
+                    *([{"type": "wah", "env": 1.0, "sens": "12dB", "q": 3.0, "low": 350, "high": 2200,
+                        "mix": {"value": 0, "mod": [{"src": "auto.wh", "amount": float(LIFTWAH)}]}}] if LIFTWAH else []),
                     {"type": "phaser", "rate": 0.4, "depth": 0.6, "feedback": 0.4, "stages": 6, "mix": 0.35},
                     {"type": "amp", "gain": 0.25, "mix": 0.5}, {"type": "cab", "mix": 0.6}],
              "sends": {"spring": "-14dB"}, "score": T["gtr"]},
