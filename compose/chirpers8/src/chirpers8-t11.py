@@ -396,6 +396,25 @@ def toll_notes():
     return out
 
 
+# v14: THE WEATHER SINGS ONCE MORE FROM THE RADIO - in the outro, as the weather clears into the closer, the hook comes
+# home one last time, SUNG THROUGH THE FORECAST'S RADIO: on the station as it begins, the dial drifting off (0 -> 0.3)
+# as the phrase goes on, the voice receding into static; a gate lane keeps the radio silent outside the phrase
+RADIO_SUNG_AT = 145
+
+
+def radio_sung_notes():
+    lb = lobe_at(RADIO_SUNG_AT)
+    return [{"at": round(b0(RADIO_SUNG_AT) + at, 4), "len": round(ln * 0.95, 3), "ph": ph, "pitch": mm(partial(n, lb, 0)),
+             "vel": round(vel * 0.9, 3), "expr_path": {"f0": f0}} for (at, n, ln, v), (ph, vel, f0) in zip(HOOK, SUNG)]
+
+
+def radio_sung_lanes():
+    a, z = b0(RADIO_SUNG_AT), b0(RADIO_SUNG_AT + 2) + 1
+    return {"dial2": {"points": [["0b", 0.0], [f"{a:.2f}b", 0.0], [f"{z:.2f}b", 0.3]]},
+            "rg2": {"points": [["0b", -80.0], [f"{a - 0.05:.2f}b", -80.0], [f"{a:.2f}b", 0.0], [f"{z:.2f}b", 0.0],
+                               [f"{z + 0.5:.2f}b", -80.0]]}}
+
+
 def wt_lane():
     """The wavetable position from x, once a bar: 0 (lobe F#, x -20) to 1 (lobe C#, x +20)."""
     return [[f"{b0(bar):.2f}b", round(max(0.0, min(1.0, (state(bar)[0] + 20) / 40)), 3)] for bar in range(1, BARS + 1)]
@@ -476,6 +495,11 @@ def main():
              "fx": [{"type": "radio", "tune": {"value": 0, "mod": [{"src": "auto.dial", "amount": 1}]}, "fade": 0.3,
                      "drift": 0.04, "hiss": "-32dB", "whistle": "-34dB", "seed": 5},
                     {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.rg", "amount": 1}]}}]},
+            {"name": "radiosinger", "patch": SUNG_PATCH, "gain": "-9dB", "pan": -0.1,
+             "sends": {"dly": "-10dB", "hall": "-10dB"}, "auto": radio_sung_lanes(), "notes": radio_sung_notes(),
+             "fx": [{"type": "radio", "tune": {"value": 0, "mod": [{"src": "auto.dial2", "amount": 1}]}, "fade": 0.3,
+                     "drift": 0.04, "hiss": "-32dB", "whistle": "-34dB", "seed": 6},
+                    {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.rg2", "amount": 1}]}}]},   # v14
             tr("hats", "machine-kit play.humanize.drunk=4ms", gain="0dB", pan=0.2, fx=["ott depth=0.35"]),
             tr("clap", "machine-kit play.humanize.nudge.cp=8ms", gain="-5dB", sends={"room": "-8dB"}),
         ],
