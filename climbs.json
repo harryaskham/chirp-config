@@ -8190,7 +8190,14 @@
       "best": {
         "score": 96.24,
         "version": "v20",
-        "commit": "see git log songs/chirpers8-t10.yaml"
+        "commit": "see git log songs/chirpers8-t10.yaml",
+        "stale": {
+          "score": 96.24,
+          "since": "2026-11-02T07:47:07Z",
+          "who": "chirper-zero",
+          "rating": 9.0,
+          "version": "v20"
+        }
       },
       "passes": 1,
       "enabled": true,
