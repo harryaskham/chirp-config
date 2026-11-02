@@ -8072,7 +8072,14 @@
         "score": 97.64,
         "version": "v8",
         "commit": "see git log songs/chirpers8-t7.yaml",
-        "judged": true
+        "judged": true,
+        "stale": {
+          "score": 97.64,
+          "since": "2026-11-02T01:42:40Z",
+          "who": "chirper-zero",
+          "rating": 9.5,
+          "version": "v8"
+        }
       },
       "passes": 1,
       "enabled": true,
