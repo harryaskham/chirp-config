@@ -276,6 +276,21 @@ def build():
             dyn += [[f'{b * 4.0 - 0.25:.2f}b', dyn[-1][1]], [f'{b * 4.0:.2f}b', v_]]
         elif not dyn:
             dyn = [['0b', v_]]
+    # (v30) THE UNWINDING BREATHES: from the top of the stack the final calls used to drive on unchanged until the
+    # last four bars. Now, as the stack unwinds (final bars 16-27), the groove unwinds with it into half time - the
+    # kick on one and the and of three, one backbeat on three, the hats kept - and the bass lets go of its clave for
+    # long roots, two to a bar, so the line can be sung into room before the band drops out altogether at bar 28
+    u0, u1 = secs_t['final'] + 64.0, secs_t['final'] + 112.0
+    def _uw(at_): return u0 - 1e-6 <= at_ < u1 - 1e-6
+    P['kit'] = [e_ for e_ in P['kit'] if not (_uw(e_[0]) and e_[1] in ('kd', 'cp'))]
+    P['bass'] = [e_ for e_ in P['bass'] if not _uw(e_[0])]
+    for b_ in range(16, 28):
+        t_ = secs_t['final'] + b_ * 4.0
+        bb_ = int(t_ // 4)
+        root_ = LOOP[bb_ % 4][0]
+        P['kit'] += [(t_, 'kd', 0.25, 116), (t_ + 2.5, 'kd', 0.25, 100), (t_ + 2.0, 'cp', 0.25, 90)]
+        P['bass'] += [(t_, tok(root_), 1.9, 100), (t_ + 2.0, tok(root_ + 12 if b_ % 2 else root_ + 7), 1.9, 88)]
+    P['kit'].sort(key=lambda e_: e_[0]); P['bass'].sort(key=lambda e_: e_[0])   # (by time only: line() truncates each note at the next onset, so equal-time order matters)
     # (v7) STACK OVERFLOW: at the very top of the final calls, where the stack is three deep, the last bar of each call
     # is a bar of 7/8 - the machine drops an eighth note and stumbles straight into the next downbeat - twice; then the
     # stack unwinds in 4/4. Events in the dropped eighth are cut, everything after slides half a beat earlier
