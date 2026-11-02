@@ -53,6 +53,7 @@ SUNG = os.environ.get("C8T8_SUNG", "-16")   # the words become a song: 'say it b
 HEADDARK = os.environ.get("C8T8_HEADDARK", "8")   # the mercury warms up: the master low-pass (the tape-running-out one) also starts closed (~5 kHz) and opens over the first HEADDARK bars - a delay line had to reach its working temperature before it held a word; t7 v7's tail reads my 12-15 kHz air +14-17 dB over it
 HEADDARKV = float(os.environ.get("C8T8_HEADDARKV", "0.6"))   # how closed it starts (0.6 ~ 5 kHz, 0.8 ~ 3.3 kHz)
 HUMV = int(os.environ.get("C8T8_HUMV", "85"))   # the A hum's 808 velocity: t7 v7's tail sits 5.5 dB under my head
+SAYHEAD = os.environ.get("C8T8_SAYHEAD", "move")   # t7 ends with its voice in the room, singing; here the voice answers at once: 'say it back to me' two beats into the record ('move': instead of at bar 9; 'add': as well), into the line as before
 DARK = os.environ.get("C8T8_DARK", "8")  # the tape running out: a master low-pass closing over the outro's last bars (the hiss and the line's top go first); value = bars
 FORM = [("intro", 16), ("A", 36), ("refresh", 8), ("C", 32), ("D", 16), ("E", 28), ("outro", 16)]
 TRACKS = ("word", "pad0", "pad1", "pad2", "pad3", "org0", "org1", "hum", "hum2", "bass", "kick", "shk", "hats", "clap", "rim")
@@ -254,7 +255,7 @@ def song():
             {"name": "hats", "patch": "909", "gain": "-9dB", "pan": 0.15, "score": "swing16=0.56 " + T["hats"]},
             {"name": "clap", "patch": "909", "gain": "-9dB", "sends": {"room": "-8dB"}, "score": T["clap"]},
             *([sung_track(f"{SUNG}dB")] if SUNG else []),
-            *([voice("chirpers8-t8-say.json", "say", [sec_start("intro") + 8 * BAR, sec_start("refresh") + BAR, sec_start("outro")], f"{VOX}dB",
+            *([voice("chirpers8-t8-say.json", "say", ([sec_start("intro") + 8] if SAYHEAD else []) + ([] if SAYHEAD == "move" else [sec_start("intro") + 8 * BAR]) + [sec_start("refresh") + BAR, sec_start("outro")], f"{VOX}dB",
                      ["hp cutoff=180"], {"line": "-2dB", "room": "-12dB"})] if VOX else []),
             {"name": "rim", "patch": "909", "gain": "-12dB", "pan": -0.3, "sends": {"line": "-14dB"}, "score": T["rim"]},
         ],
