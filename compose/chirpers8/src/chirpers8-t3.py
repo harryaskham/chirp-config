@@ -67,6 +67,12 @@ R5 = os.environ.get("T3_R5", "breath")
 # four-bar blocks across the window (high bell; + low bell; + shekere; both bells doubled into sixteenths) so the
 # peak climbs into the hymn's drop. The library's afro-perc, new to the album. New track only. T3_R6=none reproduces v5.
 R6 = os.environ.get("T3_R6", "bells")
+# T3_R7 = hands (v7, palette round). Out of machine-kit (seven album songs) where the concept lives: the two
+# self-writing drum machines - chirp's own cellular automata, rule 110 in the glider and rule 30 at the peak - now
+# play a DJEMBE ensemble (slap, open tone, calabash, shaker; new to the album), so the automata drum with hands; and
+# the population-rotated Euclidean hats become a SHEKERE (the beaded gourd). The kick, the open hat and the rim stay
+# on the machine: a techno floor under a hand-drum circle. T3_R7=none reproduces v6.
+R7 = os.environ.get("T3_R7", "hands")
 RULE_BITS = {r: [(r >> k) & 1 for k in range(7, -1, -1)] for r in (30, 90)}
 ANSWERS = [(14.75, ["C6", "A5", "D6"]), (12.9, ["F6", "E6", "D6"]), (14.75, ["A6", "G6", "A6"]), (9.9, ["C6", "D6"])]
 HYMN = [(0, 3, 7), (8, 14, 17), (3, 7, 12), (0, 3, 7), (5, 10, 14), (10, 14, 17), (3, 7, 12), (8, 14, 17),
@@ -365,6 +371,8 @@ def patches():
 
 def main():
     total, bars, secs, T, rows = build()
+    if R7 == "hands":
+        T["hats"].ev = [(a, ln, "sk" if h == "h" else h, v, art) for a, ln, h, v, art in T["hats"].ev]
     st = {n: s for n, s, k, r in secs}
     pump = {"type": "pump", "on": "kick.kr", "depth": "-6dB", "attack": "3ms", "release": "300ms", "curve": 0.8}
     dyn = [["0b", -4.0], [f"{st['boot']}b", -1.0], [f"{st['A']}b", 0.0], [f"{st['glider']}b", -1.5],
@@ -374,7 +382,8 @@ def main():
            [f"{total}b", -5.0]]
     tracks = [
         {"name": "kick", "patch": "machine-kit", "gain": "0dB", "score": T["kick"].score(total)},
-        {"name": "hats", "patch": "machine-kit", "gain": "-5dB", "pan": 0.12,
+        {"name": "hats", "patch": "afro-perc" if R7 == "hands" else "machine-kit",
+         "gain": os.environ.get("T3_SHEK_GAIN", "-15dB") if R7 == "hands" else "-5dB", "pan": 0.12,
          "fx": ["hp cutoff=600", "reverb kind=room decay=0.5s mix=0.12"], "score": T["hats"].score(total)},
         {"name": "ohat", "patch": "machine-kit", "gain": "-9dB", "pan": -0.12, "fx": ["hp cutoff=800"],
          "score": T["ohat"].score(total)},
@@ -421,16 +430,18 @@ def main():
                                        [f"{st['traffic'] + 44}b", 0.75], [f"{st['peak'] - 4}b", 0.0],
                                        [f"{total}b", 0.0]]}},
              "score": T["barx"].score(total)},
-            {"name": "ca-kit", "patch": "machine-kit", "gain": "-11dB", "pan": 0.22, "seed": 110,
+            {"name": "ca-kit", "patch": "djembe" if R7 == "hands" else "machine-kit",
+             "gain": os.environ.get("T3_DJ_GAIN", "-8dB") if R7 == "hands" else "-11dB", "pan": 0.22, "seed": 110,
              "fx": ["hp cutoff=300", "reverb kind=room decay=0.6s mix=0.15"],
              "score": f"R/{st['glider']:g}b",
              "gen": {"type": "ca", "rule": 110, "width": 16, "init": "random", "poly": 2,
-                     "notes": "rs h cb h oh h rs h", "n": L["glider"] * 16, "len": "/16"}},
-            {"name": "ca-kit2", "patch": "machine-kit", "gain": "-12dB", "pan": -0.22, "seed": 30,
+                     "notes": "s sh t sh c sh s sh" if R7 == "hands" else "rs h cb h oh h rs h", "n": L["glider"] * 16, "len": "/16"}},
+            {"name": "ca-kit2", "patch": "djembe" if R7 == "hands" else "machine-kit",
+             "gain": os.environ.get("T3_DJ_GAIN2", "-9dB") if R7 == "hands" else "-12dB", "pan": -0.22, "seed": 30,
              "fx": ["hp cutoff=400", "reverb kind=room decay=0.6s mix=0.15"],
              "score": f"R/{st['peak']:g}b",
              "gen": {"type": "ca", "rule": 30, "width": 16, "init": "center", "poly": 2,
-                     "notes": "h rs h cb h oh h cp", "n": L["peak"] * 16, "len": "/16"}},
+                     "notes": "sh s sh t sh c sh b" if R7 == "hands" else "h rs h cb h oh h cp", "n": L["peak"] * 16, "len": "/16"}},
         ]
     if R4 == "hymn" and R5 == "breath":
         h0 = st["hymn"]
