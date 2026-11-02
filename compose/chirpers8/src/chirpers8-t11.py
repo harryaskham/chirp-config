@@ -153,6 +153,32 @@ def write_wind():
             part("wind").add(b0(a), b0(z + 1) - b0(a) - 0.1, "m60.000", WIND_VEL[name])
 
 
+# v12: THE EYE OF THE STORM - at the peak's most extreme moment (bar 115, z ~40, right after the forecast's 'good
+# visibility, falling slowly') the storm stops dead for two bars: only the wind still whistling in the gap and the
+# opening's bell struck once on F#; then the storm crashes back with a thunderclap at 117
+EYE = (115, 117)
+EYE_KEEP = {"wind", "hum"}
+
+
+def eye_clear():
+    a, z = b0(EYE[0]), b0(EYE[1])
+    for n, prt in P.items():
+        if n in EYE_KEEP:
+            continue
+        ev = []
+        for s, ln, head, vel in prt.ev:
+            if a <= s < z and n in ("rainL", "rainR"):
+                ev.append((s, ln, head, 1))            # silent, but each drop still takes its roll of the engine's
+                continue                               # dice, so every later drop falls exactly as before
+            if a <= s < z:
+                continue
+            if s < a < s + ln:
+                ln = a - s - 0.02                      # nothing rings into the eye
+            ev.append((s, ln, head, vel))
+        prt.ev = ev
+    part("thunder").add(z, 8.0, "m28.000", 124)       # the storm crashes back
+
+
 RAIN_WEIGHT = {"intro": 0.35, "A": 0.7, "B": 0.9, "break": 0.15, "C": 1.0, "outro": 0.3}
 
 
@@ -352,6 +378,7 @@ BELL = {"synth": {"layers": [{"name": "m", "ratio": 3.5, "audible": False},
 
 def toll_notes():
     out = []
+    out.append({"at": b0(EYE[0]), "len": 7.5, "pitch": "m66", "vel": 0.72})   # v12: one toll in the eye
     for i, bar in enumerate((1, 3, 5, 7)):
         for pc in (("m62", "m66") if i == 0 else ("m66",)):      # first toll keeps t10's D with the F#; then the D drops away
             out.append({"at": b0(bar), "len": 7.5, "pitch": pc, "vel": round((92 - i * 9) / 127, 3)})
@@ -390,6 +417,7 @@ def main():
     write_rain()
     write_thunder()
     write_wind()
+    eye_clear()
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
     # v6: the wavetable scans VOWELS (u o a e i), not a resonant sweep: the weather speaks, no squelch
     lead_patch = {"extends": "juno-pad", "synth": {"layers": [
