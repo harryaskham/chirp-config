@@ -477,8 +477,34 @@ def roll_lane():
             [f"{b0(101):.2f}b", 0.0]]
 
 
+# v22 (SECTION round, w8 3:30-4:00, bars 113-128 - 'static, little new vs w7'; the song's payoff): THE ARRIVAL,
+# LANDED - the sort completes and at bar 125 the riff arrives sorted and the voice first sings it, but it passed as a
+# section change. Now the last beat of bar 124 STOPS: every note starting there is silenced (velocity 1, so each
+# track's note count and its engine randomness stay as they were) and held notes end before it; only the progress
+# bar keeps ticking, at 100%. A reverse cymbal swells through beats 3-4 into the silence, and an impact lands with the
+# sorted riff and the voice on 125's downbeat.
+STOP = 124
+
+
+def arrival():
+    a, z = b0(STOP) + 3, b0(STOP + 1)
+    for name, prt in P.items():
+        ev = []
+        for s, ln, head, vel in prt.ev:
+            if a <= s < z:
+                ev.append((s, ln, head, 1))
+            elif s < a < s + ln:
+                ev.append((s, a - s - 0.02, head, vel))
+            else:
+                ev.append((s, ln, head, vel))
+        prt.ev = ev
+    part("revcym").add(z - 2, 2.0, "m60", 100)
+    part("impact").add(z, 4.0, pitch(root_at(STOP + 1), BASE - 24), 110)
+
+
 def main():
     write()
+    arrival()                                     # v22: the stop, the reverse cymbal, the impact
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
     lead_patch = {"extends": "vibes", "synth": {"fx": [{"type": "pan", "pan": {"value": 0, "mod": [
         {"src": "expr.ix", "amount": 1}]}}, {"type": "filter", "kind": "lp", "cutoff": 4500}]}}
@@ -529,6 +555,8 @@ def main():
             tr("kick", "909", gain="-10dB"),
             tr("clap", "909", gain="-6dB", sends={"room": "-8dB"}),
             tr("hats", "909", gain="-6dB", pan=0.1),
+            tr("revcym", "fx-revcym", gain="-10dB", sends={"room": "-10dB"}),                 # v22: LAST (keeps rngs)
+            tr("impact", "fx-impact", gain="-10dB"),
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=0.9s mix=1 predelay=8ms", "hp cutoff=250"]},
                   "dly": {"fx": ["delay time=3/16 mix=1 feedback=0.35", "hp cutoff=400", "lp cutoff=5000"]}},
