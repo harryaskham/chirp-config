@@ -281,10 +281,20 @@ def write():
                 head = "(" + "|".join(pitch(RIFF[j] + root_at(bar)) for j in range(N)) + ")"
             elif sec == "bogo":
                 head = pitch(RIFF[k] + root_at(bar))       # v11: bar 100, THE MIRACLE - by luck it comes up sorted
+            elif sec == "intro" and bar <= 8:
+                # v19: THE TUNE FIRST - while the song rises out of t3's silence, the lead plays the riff as it will
+                # finally be, sorted, softly; at bar 9 the deck is shuffled and the four minutes of sorting begin
+                head = pitch(RIFF[k] + root_at(bar))
+                vel = int(vel * 0.85)
             else:
                 head = pitch(RIFF[v] + root_at(bar))
             part("lead").add(b0(bar) + k / 4, 0.22, head + f"^ix={ix}", vel)   # v7: the riff,
             # transposed with the progression like a sequencer under a keyboard
+        if sec == "intro" and bar == 8:
+            # v19: THE SHUFFLE - the last beat of bar 8 riffles the jumbled array's sixteen notes on a celesta, a 64th
+            # apart, rising in force, like a deck being shuffled
+            for i, v in enumerate(arr):
+                part("riffle").add(b0(9) - 1.0 + i / 16, 0.2, pitch(RIFF[v] + root_at(9), BASE + 12), 60 + i * 3)
         # THE WORK, AUDIBLE: a tick per comparison, a hit per swap; a crash when a pass changes nothing / it is done
         for j in cmp:
             part("tick").add(b0(bar) + j / 4, 0.1, "h", 52 + hand.randint(-6, 6))
@@ -486,6 +496,7 @@ def main():
             *voice_tracks(),                                                                 # v10: speech to song
             write_canon() or tr("canon", "bari-sax", gain="+2dB", pan=0.25,
                                 sends={"room": "-10dB", "dly": "-14dB"}),                    # v17: the large one
+            tr("riffle", "celesta", gain="-8dB", pan=0.15, sends={"room": "-8dB"}),       # v19: the shuffle
             tr("chimes", "chimes", gain="-14dB", pan=0.3, sends={"room": "-8dB"}),          # v14: the seam's air
             tr("ring", "vibes", gain="-2dB", pan=0.1, sends={"room": "-8dB", "dly": "-14dB"}),   # v9: t3's ring caught
             tr("ride", "machine-kit", gain="-9dB", pan=-0.3, sends={"room": "-12dB"}),      # v6: the top end
