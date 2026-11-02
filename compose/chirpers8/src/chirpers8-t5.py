@@ -53,6 +53,7 @@ BSPLIT = os.environ.get("C8T5_BSPLIT", "both")   # B in two: the 909's claps ('c
 BSPLITAT = int(os.environ.get("C8T5_BSPLITAT", "12"))   # the bar of B (0-based) where the held-back 909 parts come in
 LIFTSTOP = os.environ.get("C8T5_LIFTSTOP", "1")   # the gear change, announced: the band stops dead for the second half of the bar before the lift (C bar 24) - a clap fill climbing in sixteenths - then lands a whole step up (dropped after generation, so no dice move). Once B was split (v18) this splits C too without crowding the returns
 LIFTHAT = os.environ.get("C8T5_LIFTHAT", "1")   # after the lift the hats open: every off-beat hat an open hat - the agreed band, a step up, brighter on top
+PERCSPLIT = os.environ.get("C8T5_PERCSPLIT", "C")   # WHOLE ROUND: the hand drums change hands - in the listed sections (e.g. 'C' or 'A,C') the congas give way to the djembe kit (unused on the album), same rhythm: open -> tone, tumba -> bass, slap -> slap, muted -> calabash, bongos -> slap/tone. All djembe made the sections alike (r50: one seed always over the returns cliff); as a contrast between sections it is a colour the song moves through. The congas there keep their notes at velocity 1 (no dice move) and the djembe plays on its own track, dj, listed last
 PHASE = os.environ.get("C8T5_PHASE", "66")   # SECTION ROUND (w9, the outro): agreed, and drifting apart again - over the outro's last eight bars, while the handshake returns on the grid, a second handshake (the same carriers, the same radio) runs nine to the bar against its eight, one eighth further ahead each bar: two clocks that had agreed on a speed, slipping as the record slows. Value = 'velocity' or 'velocity,notes-per-bar'
 CARRIERA = os.environ.get("C8T5_CARRIERA", "24,8,78")   # SECTION ROUND, window 3 (1:11-1:47, A bars 20-33; 'little new vs w2'): the handshake breaks in - for 'start,len' bars of A the two carriers call and answer again through the radio (every eighth, the tones alternating, softer than the intro's), a reminder mid-proposal that the line is still being negotiated
 COW = os.environ.get("C8T5_COW", "96")   # SECTION ROUND, window 8 (4:05-4:39, C bars 28-41, after the lift; flagged static, little new vs w7): the agreement gets a cowbell - the engine's drum-machine cowbell (the `machine` layer's two detuned squares through a band-pass) on a syncopated funk figure (1, the a-of-1, the and-of-2, 3, the a-of-3, the and-of-4), only for these fourteen bars; value = peak velocity
@@ -71,7 +72,7 @@ KEEP3 = os.environ.get("C8T5_KEEP3", "1")   # fewer returns (Harry on t1: 'repea
 HOOKF = [(0, "E4", 3), (3, "G4", 3), (6, "A4", 4), (10, "B4", 6), (16, "D5", 3), (19, "B4", 3), (22, "D5", 4), (26, "E5", 6)]
 CLEN = int(os.environ.get("C8T5_CLEN", "42"))   # C's length: 40 tightens the agreement (the lift at bar 25, the second 'keep it there' at 33)
 FORM = [("intro", 12), ("A", 34), ("B", 26), ("retrain", 12), ("C", CLEN), ("outro", 16)]
-TRACKS = (*(("cow",) if os.environ.get("C8T5_COW", "96") else ()), "carrier", "conga", "gtr", "acid", "sub", "kick", "hats", "clap", "fretless", "horns", "lead") + (("keys",) if os.environ.get("C8T5_KEYS", "-14") else ()) + (("phase",) if os.environ.get("C8T5_PHASE", "66") else ())
+TRACKS = (*(("cow",) if os.environ.get("C8T5_COW", "96") else ()), "carrier", "conga", "gtr", "acid", "sub", "kick", "hats", "clap", "fretless", "horns", "lead") + (("keys",) if os.environ.get("C8T5_KEYS", "-14") else ()) + (("phase",) if os.environ.get("C8T5_PHASE", "66") else ()) + (("dj",) if os.environ.get("C8T5_PERCSPLIT", "C") else ())
 SWING = {"gtr": {"A": 0.66, "B": 0.62, "retrain": 0.6, "C": 0.58, "outro": 0.58},
          "acid": {"A": 0.50, "B": 0.54, "C": 0.58, "outro": 0.58}}
 # E dorian: E9, A13, Gmaj7, F#m11 (guitar voicings; roots for the acid)
@@ -238,6 +239,12 @@ def build():
         i1 = sec_start("intro") + int(CONGAIN or 0) * BAR
         o0 = total() - int(CONGAOUT or 0) * BAR if CONGAOUT else total() + 1
         ev["conga"] = [e for e in ev["conga"] if i1 <= e[0] < o0]
+    if PERCSPLIT:
+        mp = {"o": "t", "lo": "b", "sl": "s", "mu": "c", "bh": "s", "bl": "t"}
+        spans = [(sec_start(x), sec_start(x) + dict(FORM)[x] * BAR) for x in PERCSPLIT.split(",")]
+        inside = lambda a: any(u <= a < v for u, v in spans)
+        ev["dj"] = [(e[0], e[1], mp.get(e[2], e[2]), e[3], e[4]) for e in ev["conga"] if inside(e[0]) and e[1] != 0]
+        ev["conga"] = [(e[0], e[1], e[2], e[3], 1 if inside(e[0]) and e[1] != 0 else e[4]) for e in ev["conga"]]
     if SUBPATCH and SUBSPLIT:
         a0 = sec_start("A")
         ev["sub2"] = [e for e in ev["sub"] if e[0] >= a0]
@@ -352,6 +359,10 @@ def song():
         spec = next(t for t in doc["tracks"] if t["name"] == "carrier")
         fx = [dict(f, hiss="-80dB", whistle="-80dB") if isinstance(f, dict) and f.get("type") == "radio" else f for f in spec.get("fx", [])]   # its own radio without a second hiss and whistle, which would run the whole song
         doc["tracks"].append(dict(spec, name="phase", pan=0.45, fx=fx, score=T["phase"]))
+    if PERCSPLIT:
+        T = build()
+        spec = next(t for t in doc["tracks"] if t["name"] == "conga")
+        doc["tracks"].append(dict(spec, name="dj", patch="djembe", score=T["dj"]))
     return doc
 
 
