@@ -33,6 +33,9 @@ SUBOUT = os.environ.get("C8T2_SUBOUT", "4")  # the sine sub leaves for the outro
 SPARSE = os.environ.get("C8T2_SPARSE", "b")  # 'i' / 'b' / 'ib' - space: no arps in the intro's first 8 bars (the clarinet alone, then the chip arrives) and none in the break (the pads and the sung 4-2-1 alone)
 PADLOW = os.environ.get("C8T2_PADLOW", "1")  # the choir an octave down (G2 B2 D3 ... the body 98-160 Hz the mix lacked) and humming from the first bar, softly, so t1's warm tail lands on it
 AIR = os.environ.get("C8T2_AIR", "")        # air over the sieve: a quiet dusty shaker on every sixteenth through B and C (the 7-11 kHz the hats leave); value = velocity
+HALVING = os.environ.get("C8T2_HALVING", "24,8")   # SECTION ROUND, window 8 (3:30-4:00, C bars 21-37; flagged static, little new vs w7): THE HALVING - for 'start,len' bars of C the drums go half-time (kick on 1 and the and-of-3, the clap on 3 alone), the rule's 'even comes down' in the beat, then double back; hats and bass keep going
+HALVBASS = os.environ.get("C8T2_HALVBASS", "")   # with HALVING: the bass and the sub halve too (the bass on 1 and the and-of-3, held; the sub on 1, held) - the whole floor at half speed, the hats still running
+HALVCRASH = os.environ.get("C8T2_HALVCRASH", "90")   # with HALVING: the crash (CRASH's modal cymbal) marks the doubling back to full time - value = velocity
 SUNGSEND = os.environ.get("C8T2_SUNGSEND", "-18,-24")   # 'plate,echo' send levels (dB) for the sung line - at -7/-13 the plate and echo smeared it: whisper read the dry take 'it goes up, even comes down' but the sent one 'God goes on me, we can't stop'
 SUNGROOM = os.environ.get("C8T2_SUNGROOM", "clar,clar2,arp")   # tracks that rest while the voice sings (comma list, e.g. 'clar,clar2'): the clarinet's own line sat on top of the sung one, two tunes in one register - now it breathes for the voice's two bars and comes back
 SING = os.environ.get("C8T2_SING", "-13")      # a SUNG line (wM's tts --sing, b4151423): 'high as the cloud, and then home' on D4 E4 F#4 G4 | B3 A3 G3 - the climb, then the hook - as the 27 path falls home in the drop (C bars 13 and 41); value = gain dB
@@ -207,24 +210,28 @@ def build():
             if HEADG and sec == "intro" and b < int(HEADG) and b % 2 == 0:
                 add("sub", at, "G1", 2 * BAR, HEADGV - 8 * (b // 2))
             groove = sec in ("A", "B", "C", "outro")
+            half = bool(HALVING) and sec == "C" and int(HALVING.split(",")[0]) <= b < sum(int(x) for x in HALVING.split(","))
             if groove:
-                for q in ((0, 4, 8, 12) if not (KICKOUT and sec == "outro" and b >= nb - int(KICKOUT)) else ()):
+                for q in ((0, 10) if half else (0, 4, 8, 12) if not (KICKOUT and sec == "outro" and b >= nb - int(KICKOUT)) else ()):
                     add("kick", at + q, "k", 1, 116 if q == 0 else 106)
                 if sec in ("B", "C"):
                     for q in range(16):   # the sieve: the prime steps of each 32
                         if (q + 16 * (b % 2)) in PRIMES:
                             add("hats", at + q, "h", 1, 76 if q % 2 else 62)
                     add("hats", at + 14, "oh", 1, 64) if (14 + 16 * (b % 2)) not in PRIMES else None
-                    add("clap", at + 4, "cp", 1, 94)
-                    add("clap", at + 12, "cp", 1, 98)
+                    if half:
+                        add("clap", at + 8, "cp", 1, 100)
+                    else:
+                        add("clap", at + 4, "cp", 1, 94)
+                        add("clap", at + 12, "cp", 1, 98)
                 else:
                     for q in (2, 6, 10, 14):
                         add("hats", at + q, "h", 1, 70)
-                for q, ln, v in ((0, 2, 100), (3, 1, 76), (6, 2, 92), (10, 2, 96), (14, 1, 80)):   # the body: an analog bass on the root, octave 2
+                for q, ln, v in (((0, 6, 100), (10, 4, 92)) if half and HALVBASS else ((0, 2, 100), (3, 1, 76), (6, 2, 92), (10, 2, 96), (14, 1, 80))):   # the body: an analog bass on the root, octave 2
                     add("bass", at + q, f"{root}2", ln, v)
                 if DPEDAL and sec == "outro" and b == nb - 4:
                     add("sub", at, "D2", 4 * BAR, int(DPEDAL))
-                for q, ln in (((0, 3), (6, 2), (10, 3)) if not (SUBOUT and sec == "outro" and b >= nb - int(SUBOUT)) else ()):
+                for q, ln in (((0, 8), (10, 4)) if half and HALVBASS else ((0, 3), (6, 2), (10, 3)) if not (SUBOUT and sec == "outro" and b >= nb - int(SUBOUT)) else ()):
                     add("sub", at + q, f"{root}1" if root in ("A", "B", "C", "D", "E") else f"{root}1", ln, 100)
             endpad = ENDPAD and ENDI and sec == "outro" and b == nb - int(ENDI)
             if (sec in ("A", "break", "C") or (PADLOW and sec == "intro") or (OUTPAD and sec == "outro")) and (b % 4 == 0 or endpad):
@@ -235,6 +242,8 @@ def build():
                     add("shk", at + q, "sh", 1, int(AIR) + (14 if q % 2 else 0) - (8 if q % 4 == 0 else 0))
     for sec in (("A", "B", "C") + (("outro",) if "o" in CRASH else ())) if CRASH else ():
         add("crash", sec_start(sec), "D5", 8 * BAR, 100)
+    if HALVING and HALVCRASH and CRASH:
+        add("crash", sec_start("C") + sum(int(x) for x in HALVING.split(",")) * BAR, "D5", 8 * BAR, int(HALVCRASH))
     if LOOP421 and BELL:
         b0, b1 = sec_start("break"), sec_start("C")
         for i, at in enumerate(range(b0, b1, 4)):
