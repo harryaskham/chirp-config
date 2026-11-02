@@ -60,6 +60,8 @@ METER = os.environ.get("C8T2_METER", "3")   # the break in the cycle's own meter
 CRASH = os.environ.get("C8T2_CRASH", "ABCo")   # the big downbeats marked: a modal cymbal (the modal layer's cymbal modes, a wash that blooms) on the first beat of each section listed - 'ABC' (A, B, and C as the 3/4 break returns to four), 'ABCo' adds the outro
 SUNGWORDS = os.environ.get("C8T2_SUNGWORDS", "odd")   # 'odd': the sung line says the rule, sideways - 'odd goes up, even comes down' (same tune: up the scale on 'odd goes up', down it on 'even comes down'; whisper reads it 'Oh, it goes up, even comes down') instead of 'high as the cloud, and then home' (a stock image, read 'Pause the word and let it go'); the cloud now takes 'up'
 RHYTHM = os.environ.get("C8T2_RHYTHM", "parity")   # 'parity': the clarinet's rhythm says the rule too - an odd number (the one that jumps up, 3n+1) is held a dotted eighth, the first halving after it an eighth, and a run of halvings tumbles in sixteenths: odd goes up slow, even comes down fast (each path about as long as before)
+ARCPOS = os.environ.get("C8T2_ARCPOS", "post")   # 'post': the arc's gain goes last on the master (after the compressor, which flattened it ~3:1 when first)
+ARC = os.environ.get("C8T2_ARC", "4")   # an energy arc: A to C sat level for four minutes (-11.0..-11.6 dB a section), so the climb had nowhere to arrive. A master gain lane, ahead of the EQ and the compressor, holds A ARC dB down as it enters, eases up through B and the break and is open from C - the last groove is the loudest place in the record
 ARP32 = os.environ.get("C8T2_ARP32", "")    # the drop's arps on 1/32 (as the plan always said): double-time chip arps through C
 BAR = 16
 SEED = 2
@@ -346,12 +348,17 @@ def song():
         **({"vars": {"height": {"steps": heights(), "every": "1/8", "smooth": "80ms"}}} if (HEIGHTVAR or HEIGHTAIR or HEIGHTPAN) else {}),
         "tempo": ([{"at": "0b", "bpm": BPM}, {"at": f"{st['break'] / 4:g}b", "bpm": BPM, "meter": "3/4"},
                    {"at": f"{st['C'] / 4:g}b", "bpm": BPM, "meter": "4/4"}] if METER else BPM), "ceiling": "-1dB", "loudness": -11, "seed": SEED, "tail": "2s",
-        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=30", "peak cutoff=250 q=0.8 gain=-1.5dB", "peak cutoff=1500 q=0.7 gain=-3dB", "highshelf cutoff=7000 gain=1.5dB"]
+        "master": {"fx": [*([{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.arc", "amount": float(ARC)}]}}] if ARC and ARCPOS != "post" else []),
+                          {"type": "eq", "bands": ["highpass cutoff=30", "peak cutoff=250 q=0.8 gain=-1.5dB", "peak cutoff=1500 q=0.7 gain=-3dB", "highshelf cutoff=7000 gain=1.5dB"]
                            if not EQ8 else ["highpass cutoff=30", "peak cutoff=250 q=0.8 gain=-1.5dB", "peak cutoff=400 q=1.0 gain=-2.5dB", "peak cutoff=1400 q=1.2 gain=-2dB",
                                             "peak cutoff=1500 q=0.7 gain=-3dB", "highshelf cutoff=7000 gain=5dB"]},
                           {"type": "compressor", "threshold": "-18dB", "ratio": 2.5, "attack": "12ms", "release": "140ms", "makeup": "0dB"},
-                          *([{"type": "filter", "kind": "lp", "q": 0.7, "cutoff": {"value": 20000, "mod": [{"src": "auto.wake", "amount": -2}]}}] if HEADDARK else [])],
-                   **({"auto": {"wake": {"points": [["0b", 1], [f"{int(HEADDARK) * 4}b", 0], [f"{total() / 4:g}b", 0]]}}} if HEADDARK else {})},
+                          *([{"type": "filter", "kind": "lp", "q": 0.7, "cutoff": {"value": 20000, "mod": [{"src": "auto.wake", "amount": -2}]}}] if HEADDARK else []),
+                          *([{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.arc", "amount": float(ARC)}]}}] if ARC and ARCPOS == "post" else [])],
+                   **({"auto": {**({"wake": {"points": [["0b", 1], [f"{int(HEADDARK) * 4}b", 0], [f"{total() / 4:g}b", 0]]}} if HEADDARK else {}),
+                                **({"arc": {"points": [["0b", 0], [f"{st['A'] / 4 - 0.25:g}b", 0], [f"{st['A'] / 4:g}b", -1], [f"{st['B'] / 4:g}b", -0.6],
+                                                       [f"{st['break'] / 4:g}b", -0.4], [f"{st['C'] / 4 - 0.25:g}b", -0.4], [f"{st['C'] / 4:g}b", 0], [f"{total() / 4:g}b", 0]]}} if ARC else {})}}
+                      if (HEADDARK or ARC) else {})},
         "buses": {
             "plate": {"fx": ["reverb kind=plate decay=2.2s mix=1 predelay=25ms", "hp cutoff=300"]},
             "echo": {"fx": [{"type": "delay", "time": "3/16", "feedback": 0.35, "mix": 1, "tone": 4000, "ping_pong": True}, "hp cutoff=400"]},
