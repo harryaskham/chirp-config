@@ -48,6 +48,7 @@ AGREEHI = float(os.environ.get("C8T5_AGREEHI", "0"))
 CONGAIN = os.environ.get("C8T5_CONGAIN", "1")    # the congas wait CONGAIN bars at the head (the E2 hum and the radio first): both seams read my 213 Hz (the congas' drums) +16-18 dB over the neighbours. Events dropped after generation, so no dice move
 CONGAOUT = os.environ.get("C8T5_CONGAOUT", "")  # the congas leave for the outro's last CONGAOUT bars (the radio and its carriers alone hand over to t6)
 CONGATHIN = os.environ.get("C8T5_CONGATHIN", "300")   # the drums go thin with the radio: over the outro's last four bars a high-pass on the congas rises to ~CONGATHIN Hz, so their bodies (213 Hz, +16 dB over t6's head) leave and the slaps stay
+HEADMIX = os.environ.get("C8T5_HEADMIX", "0.2")   # the radio comes up with the dial: the carriers' radio mix starts at HEADMIX (dry sines under it) and reaches 1 over the intro's first four bars - its hiss and whistle (2.6-3.1 kHz +17 dB over t4's tail) arrive after the seam; the tail keeps the full radio
 HOOKF = [(0, "E4", 3), (3, "G4", 3), (6, "A4", 4), (10, "B4", 6), (16, "D5", 3), (19, "B4", 3), (22, "D5", 4), (26, "E5", 6)]
 CLEN = int(os.environ.get("C8T5_CLEN", "42"))   # C's length: 40 tightens the agreement (the lift at bar 25, the second 'keep it there' at 33)
 FORM = [("intro", 12), ("A", 34), ("B", 26), ("retrain", 12), ("C", CLEN), ("outro", 16)]
@@ -323,7 +324,8 @@ def song():
         "tracks": [
             {"name": "carrier", "patch": "carrier", "gain": "-22dB",
              "fx": [{"type": "radio", "tune": {"value": 0, "mod": [{"src": "auto.dial", "amount": 1}]}, "hiss": "-36dB", "whistle": "-28dB",
-                     "fade": 0.3, "drift": 0.05, "mix": 1}], "auto": {"dial": dial}, "score": T["carrier"]},
+                     "fade": 0.3, "drift": 0.05, "mix": {"value": 1, "mod": [{"src": "auto.cmix", "amount": -1}]} if HEADMIX else 1}],
+             "auto": {"dial": dial, **({"cmix": lane([(0, 1 - float(HEADMIX)), (4 * BAR, 0), (end, 0)])} if HEADMIX else {})}, "score": T["carrier"]},
             {"name": "conga", "patch": "congas", "gain": "-8dB", "pan": -0.25, "sends": {"room": "-12dB"}, "score": T["conga"],
              **({"fx": [{"type": "filter", "kind": "hp", "q": 0.7, "cutoff": {"value": 20, "mod": [{"src": "auto.cth", "amount": math.log2(float(CONGATHIN) / 20)}]}}],
                  "auto": {"cth": lane([(0, 0), (end - 4 * BAR, 0), (end - BAR, 1), (end, 1)])}} if CONGATHIN else {})},
