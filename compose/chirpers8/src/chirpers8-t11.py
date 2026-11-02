@@ -114,6 +114,28 @@ def lobe_at(bar, s16=0):
 
 
 # ---------------------------------------------------------------- writing
+# v10: THUNDER AT THE LOBE FLIPS - each time the attractor changes wing (the key change, C# <-> F#) the weather
+# announces it: a crack (pink noise through a low-pass that opens and shuts) rolling into a sub rumble, into the hall;
+# louder the higher the storm (z); distant and soft in the break; none in the intro and outro
+THUNDER = {"synth": {"layers": [{"type": "noise", "color": "pink"}, {"wave": "sine", "level": "-8dB"}],
+                     "filters": [{"kind": "lp", "q": 0.7,
+                                  "cutoff": {"value": 160, "mod": [{"src": "env.crack", "amount": 4}]}}],
+                     "env": {"crack": {"a": "2ms", "d": "600ms", "s": 0, "r": "200ms"}},
+                     "amp": {"a": "30ms", "d": "3.5s", "s": 0, "r": "1s"}},
+           "fx": [{"type": "tremolo", "rate": 3, "depth": 0.45}]}
+
+
+def write_thunder():
+    for bar in range(2, BARS + 1):
+        if lobe_at(bar) == lobe_at(bar - 1):
+            continue
+        sec = sec_of(bar)
+        if sec in ("A", "B", "C"):
+            part("thunder").add(b0(bar), 8.0, "m28.000", 84 + int(state(bar)[2]))
+        elif sec == "break":
+            part("thunder").add(b0(bar), 8.0, "m28.000", 52)
+
+
 RAIN_WEIGHT = {"intro": 0.35, "A": 0.7, "B": 0.9, "break": 0.15, "C": 1.0, "outro": 0.3}
 
 
@@ -349,6 +371,7 @@ def lanes():
 def main():
     write_music()
     write_rain()
+    write_thunder()
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
     # v6: the wavetable scans VOWELS (u o a e i), not a resonant sweep: the weather speaks, no squelch
     lead_patch = {"extends": "juno-pad", "synth": {"layers": [
@@ -375,6 +398,7 @@ def main():
              "fx": [{"type": "filter", "kind": "hp", "cutoff": 160}], "notes": sung_notes()},   # v6: the sung hook
             {"name": "toll", "patch": BELL, "gain": "-12dB", "pan": -0.15, "sends": {"hall": "-8dB", "dly": "-12dB"},
              "notes": toll_notes()},                                                       # v8: the bell carries over
+            tr("thunder", THUNDER, gain="-6dB", pan=-0.1, sends={"hall": "-4dB"}),          # v10: thunder at the flips
             tr("rainL", "celesta", gain="-8dB", pan=-0.6, sends={"hall": "-8dB"}),       # v9: rain indoors
             tr("rainR", "celesta", gain="-8dB", pan=0.6, sends={"hall": "-8dB"}),
             tr("pad", "juno-pad", gain="-11dB", pan=-0.15, sends={"hall": "-8dB"},
