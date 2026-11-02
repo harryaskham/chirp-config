@@ -1569,6 +1569,57 @@
    ]
   },
   {
+   "name": "wind",
+   "patch": {
+    "synth": {
+     "layers": [
+      {
+       "type": "noise",
+       "color": "pink"
+      }
+     ],
+     "filters": [
+      {
+       "kind": "comb",
+       "q": 12,
+       "cutoff": {
+        "value": 700,
+        "mod": [
+         {
+          "src": "var.gust",
+          "amount": 1.2
+         }
+        ]
+       }
+      },
+      {
+       "kind": "lp",
+       "cutoff": 2500
+      }
+     ],
+     "amp": {
+      "a": "2s",
+      "d": "0ms",
+      "s": 1,
+      "r": "3s"
+     }
+    },
+    "fx": [
+     {
+      "type": "tremolo",
+      "rate": 0.3,
+      "depth": 0.55
+     }
+    ]
+   },
+   "score": "R/64b m60.000/127.9b@58 R/0.1b m60.000/127.9b@76 R/0.1b m60.000/63.9b@100 R/0.1b m60.000/159.9b@84 R/128.1b",
+   "gain": "-14dB",
+   "pan": 0.25,
+   "sends": {
+    "hall": "-8dB"
+   }
+  },
+  {
    "name": "thunder",
    "patch": {
     "synth": {

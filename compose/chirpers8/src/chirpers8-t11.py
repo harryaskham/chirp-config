@@ -136,6 +136,23 @@ def write_thunder():
             part("thunder").add(b0(bar), 8.0, "m28.000", 52)
 
 
+# v11: THE WIND IN THE GAP - pink noise through a feedback COMB that whistles at its cutoff and harmonics, the
+# cutoff steered by the attractor's own var.gust (x, +-0.7) over 1.2 octaves (~390-1250 Hz), long swells, slow gusts;
+# strongest in the break, where the rain stops and only the wind is left; the intro and outro stay still
+WIND = {"synth": {"layers": [{"type": "noise", "color": "pink"}],
+                  "filters": [{"kind": "comb", "q": 12, "cutoff": {"value": 700, "mod": [{"src": "var.gust", "amount": 1.2}]}},
+                              {"kind": "lp", "cutoff": 2500}],
+                  "amp": {"a": "2s", "d": "0ms", "s": 1, "r": "3s"}},
+        "fx": [{"type": "tremolo", "rate": 0.3, "depth": 0.55}]}
+WIND_VEL = {"A": 58, "B": 76, "break": 100, "C": 84}
+
+
+def write_wind():
+    for name, a, z in SECTIONS:
+        if name in WIND_VEL:
+            part("wind").add(b0(a), b0(z + 1) - b0(a) - 0.1, "m60.000", WIND_VEL[name])
+
+
 RAIN_WEIGHT = {"intro": 0.35, "A": 0.7, "B": 0.9, "break": 0.15, "C": 1.0, "outro": 0.3}
 
 
@@ -372,6 +389,7 @@ def main():
     write_music()
     write_rain()
     write_thunder()
+    write_wind()
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
     # v6: the wavetable scans VOWELS (u o a e i), not a resonant sweep: the weather speaks, no squelch
     lead_patch = {"extends": "juno-pad", "synth": {"layers": [
@@ -398,6 +416,7 @@ def main():
              "fx": [{"type": "filter", "kind": "hp", "cutoff": 160}], "notes": sung_notes()},   # v6: the sung hook
             {"name": "toll", "patch": BELL, "gain": "-12dB", "pan": -0.15, "sends": {"hall": "-8dB", "dly": "-12dB"},
              "notes": toll_notes()},                                                       # v8: the bell carries over
+            tr("wind", WIND, gain="-14dB", pan=0.25, sends={"hall": "-8dB"}),           # v11: the wind in the gap
             tr("thunder", THUNDER, gain="-6dB", pan=-0.1, sends={"hall": "-4dB"}),          # v10: thunder at the flips
             tr("rainL", "celesta", gain="-8dB", pan=-0.6, sends={"hall": "-8dB"}),       # v9: rain indoors
             tr("rainR", "celesta", gain="-8dB", pan=0.6, sends={"hall": "-8dB"}),
