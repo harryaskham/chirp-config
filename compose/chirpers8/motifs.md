@@ -104,3 +104,4 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 - **t10 THE ENTRY IN THE BASS** (v26): calls2 bars 12-19 (G minor), the whole subject in the bass three octaves under the bell (track bentry, FM bass, listed last); the clave bass kept at velocity 1 there.
 - **t7 PALETTE** (v17): pad partial -> mellotron-strings (-16 dB, peak 1400 -5, highshelf 2500 -4); keys and glim epiano through an envelope wah (low 350, high 2600, env 0.9, q 4, mix 0.6) - the album's first wah.
 - **t1 THE SEQUENCER BASS** (v21): B and D: 16-step pattern root/octave/fifth/third+12 at steps 0,3,6,8,10,11,14; C (climax): busier climbing pattern at 0,2,3,6,7,8,10,11,12,14,15 ending on the twelfth. Bass register root+12.
+- **t7 THE QUENCH AND THE LAST FIRING** (v18): e4's last 4 bars drop to the seq alone at half velocity over the hum (pad, bass, kit at velocity 1); e5 builds a layer a bar - hats, +bass, +strings and backbeat, +kick - all in at e5 bar 4.

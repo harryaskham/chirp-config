@@ -235,6 +235,23 @@ def build():
     a0 = (dict((nm_, sum(n_ for nm2, n_ in FORM[:k_])) for k_, (nm_, _) in enumerate(FORM))['e2'] + 8) * 4.0
     for key in ('pad', 'bass', 'kit'):
         P[key] = [e_ for e_ in P[key] if not (a0 - 1e-6 <= e_[0] < a0 + 8.0 - 1e-6)]
+    # (v18) THE QUENCH AND THE LAST FIRING: between the fourth epoch and the fifth the furnace door opens - for four bars
+    # the band falls away to almost nothing, the search's blips alone and half as loud over the hum - and then the
+    # last, longest epoch builds back from that nothing a layer a bar: the hats, then the bass, then the strings and
+    # the backbeat, then the kick, and on the fifth bar everything. (The song spanned only 2.7 dB window to window, the
+    # flattest on the album; this is its breath.) Every note is still written - lifted parts drop to velocity 1, so
+    # the dice of every other bar stay where they were
+    q0 = sum(n_ for nm_, n_ in FORM[:[nm_ for nm_, _ in FORM].index('e5')]) * 4.0
+    def _in(at_, lo, hi): return q0 + lo * 4.0 - 1e-6 <= at_ < q0 + hi * 4.0 - 1e-6
+    def _quiet(e_): return (e_[0], e_[1], e_[2], 1)
+    for key in ('pad', 'bass'):
+        P[key] = [_quiet(e_) if _in(e_[0], -4, 0) or (_in(e_[0], 0, 1) and key == 'bass') or (_in(e_[0], 0, 2) and key == 'pad') else e_
+                  for e_ in P[key]]
+    P['kit'] = [_quiet(e_) if _in(e_[0], -4, 0) or (_in(e_[0], 0, 1) and e_[1] not in ('h', 'oh'))
+                or (_in(e_[0], 1, 2) and e_[1] not in ('h', 'oh')) or (_in(e_[0], 2, 3) and e_[1] == 'k') else e_
+                for e_ in P['kit']]
+    P['seq'] = [(e_[0], e_[1], e_[2], max(1, int(e_[3] * (0.5 + 0.5 * max(0.0, (e_[0] - q0 + 16.0) / 32.0)))))
+                if _in(e_[0], -4, 4) else e_ for e_ in P['seq']]
     # (v16) GLIMPSES: in the middle of the last, longest epoch, before the search has found anything, the electric
     # piano that will play the answer lets slip a few of its notes - the first two, exact and quiet, in their
     # places in the bar; four bars later the first three; then four; then the first phrase - the answer showing
