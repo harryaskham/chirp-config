@@ -179,6 +179,17 @@ def eye_clear():
     part("thunder").add(z, 8.0, "m28.000", 124)       # the storm crashes back
 
 
+# v13: THE ROOM BREATHES WITH THE STORM - the stereo width of the hall (where rain, wind, thunder, bell, singer and
+# lead all send) and of the pad follows the attractor's z: calm, the room is close and narrow (0.6); in the storm the
+# walls fall away (1.6). Drums, bass and voices stay centred; width keeps the bass mono below 120 Hz.
+def width_lane():
+    return [[f"{b0(bar):.2f}b", round(0.6 + 1.0 * min(1.0, max(0.0, (state(bar)[2] - 12) / 26)), 3)]
+            for bar in range(1, BARS + 1)]
+
+
+WIDTH_FX = {"type": "width", "width": {"value": 0, "mod": [{"src": "auto.wd", "amount": 1}]}}
+
+
 RAIN_WEIGHT = {"intro": 0.35, "A": 0.7, "B": 0.9, "break": 0.15, "C": 1.0, "outro": 0.3}
 
 
@@ -449,7 +460,8 @@ def main():
             tr("rainL", "celesta", gain="-8dB", pan=-0.6, sends={"hall": "-8dB"}),       # v9: rain indoors
             tr("rainR", "celesta", gain="-8dB", pan=0.6, sends={"hall": "-8dB"}),
             tr("pad", "juno-pad", gain="-11dB", pan=-0.15, sends={"hall": "-8dB"},
-               fx=["gate key=gtrig threshold=-40dB attack=1ms release=40ms", "ott depth=0.3"]),
+               fx=["gate key=gtrig threshold=-40dB attack=1ms release=40ms", "ott depth=0.3", WIDTH_FX],
+               auto={"wd": {"points": width_lane()}}),                                      # v13
             tr("gtrig", "machine-kit", gain="-80dB"),
             tr("bass", "808", gain="-11dB", fx=[{"type": "pump", "on": "kick", "depth": "-9dB", "release": "1/6",
                                                 "curve": 0.6}]),
@@ -468,7 +480,8 @@ def main():
             tr("clap", "machine-kit play.humanize.nudge.cp=8ms", gain="-5dB", sends={"room": "-8dB"}),
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=1.0s mix=1 predelay=10ms", "hp cutoff=250"]},
-                  "hall": {"fx": ["reverb kind=hall decay=2.8s mix=1 predelay=25ms", "hp cutoff=250"]},
+                  "hall": {"fx": ["reverb kind=hall decay=2.8s mix=1 predelay=25ms", "hp cutoff=250", WIDTH_FX],
+                           "auto": {"wd": {"points": width_lane()}}},                     # v13: the room breathes
                   "dly": {"fx": ["delay time=3/16 mix=1 feedback=0.4", "hp cutoff=400", "lp cutoff=4000"]}},
         "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=28", "peak cutoff=280 q=0.9 gain=-4dB",
                                                     "highshelf cutoff=5000 gain=5dB"]},     # v2: the album's envelope
