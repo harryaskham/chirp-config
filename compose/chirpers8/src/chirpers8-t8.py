@@ -66,6 +66,7 @@ WORDS = os.environ.get("C8T8_WORDS", "new")   # 'new': the voices stop asking 's
 STRIDE = os.environ.get("C8T8_STRIDE", "C5D7")   # the same bits, read through another address map: the word's bit i sounds scale slot (i x stride) mod 8 - stride 3 everywhere before (D A F | F C A | G D: interlocking leaps); 'C5' reads the refreshed word in C with stride 5 (D D G A C F F A: a new tune from the same data), 'D7' the corrupted D with stride 7 (a leap, then falling down the scale); E is read the old way again (the tune comes home); e.g. 'C5D7'
 UPPAD = os.environ.get("C8T8_UPPAD", "mellotron-choir")   # the two upper pad voices' instrument (the lower two stay on juno-pad, which carries the low end): e.g. mellotron-choir - tape-stored voices played back, a memory medium
 UPPADGAIN = os.environ.get("C8T8_UPPADGAIN", "-24")
+MARE = os.environ.get("C8T8_MARE", "-8")   # WHOLE ROUND: the repaired word in wood - through E the word's bits are doubled an octave down on a marimba (modal-marimba, the library's physical mallet from chirper-two's t3): the stored word, struck by hand. Its own track, listed last. Value = velocity offset
 CKICK = os.environ.get("C8T8_CKICK", "lock")   # WHOLE ROUND: contrast between the grooves - A and E keep four on the floor, but C (the refreshed word, the new stride-5 tune) puts the kick on a 3-3-2: 'tres' 1, the and-of-2, 4 (0 6 12), or 'lock' with the bass (0 6 10). The grid kicks stay at velocity 1 (the dice of every later kick stay put); the new hits play on kick2, listed last
 SKEW = os.environ.get("C8T8_SKEW", "local")   # SECTION ROUND, window 7 (D; 'little new vs w6'): the clock skews in the corruption - through D the hats leave the grid for dotted eighths (every 3 sixteenths, three against four), the open hat with them; E's repair puts them back
 CPADUP = os.environ.get("C8T8_CPADUP", "1")   # SECTION ROUND, window 6 (2:42-3:15, C bars 20-31; 'little new vs w5'): the refreshed store opens out - for C's last twelve bars the pads (four voices) move up an octave, so the harmony brightens and lifts before the corruption (D) closes in
@@ -74,7 +75,7 @@ ZEROS = os.environ.get("C8T8_ZEROS", "-18")   # SECTION ROUND, window 8 (E bars 
 ARC = os.environ.get("C8T8_ARC", "4")   # an energy arc: A to E sat at one level for four minutes (-10.0..-10.4 dB a section). A gain lane last on the master (after the compressor) holds A ARC dB down as the groove enters, eases up through C and D and is open from E - the repaired word the loudest place in the record
 DARK = os.environ.get("C8T8_DARK", "8")  # the tape running out: a master low-pass closing over the outro's last bars (the hiss and the line's top go first); value = bars
 FORM = [("intro", 16), ("A", 36), ("refresh", 8), ("C", 32), ("D", 16), ("E", 28), ("outro", 16)]
-TRACKS = ("word", *(("zeros",) if ZEROS else ()), "pad0", "pad1", "pad2", "pad3", "org0", "org1", "hum", "hum2", "bass", "kick", "shk", "hats", "clap", "rim") + (("hats2",) if os.environ.get("C8T8_SKEW", "local") == "local" else ()) + (("kick2",) if os.environ.get("C8T8_CKICK", "lock") else ())
+TRACKS = ("word", *(("zeros",) if ZEROS else ()), "pad0", "pad1", "pad2", "pad3", "org0", "org1", "hum", "hum2", "bass", "kick", "shk", "hats", "clap", "rim") + (("hats2",) if os.environ.get("C8T8_SKEW", "local") == "local" else ()) + (("kick2",) if os.environ.get("C8T8_CKICK", "lock") else ()) + (("mar",) if os.environ.get("C8T8_MARE", "-8") else ())
 
 # the word's 16 bits -> pitches (D minor, spread so neighbours leap): D4 F4 G4 A4 C5 D5 F5 A5
 SC = [62, 65, 67, 69, 72, 74, 77, 81]
@@ -189,6 +190,9 @@ def build():
                 add("bass", at, hz(r), 3, 100)
                 add("bass", at + 6, hz(r), 2, 88)
                 add("bass", at + 10, hz(r + 12 if b % 2 else r), 3, 92)
+    if MARE:
+        e0, e1 = sec_start("E"), sec_start("outro")
+        ev["mar"] = [(a, f"{float(h[:-2]) / 2:.2f}hz" if h.endswith("hz") else h, l, max(1, v + int(MARE))) for (a, h, l, v) in ev["word"] if e0 <= a < e1]
     return {k: stream(ev[k], total()) for k in TRACKS}
 
 
@@ -353,6 +357,7 @@ def song():
             {"name": "rim", "patch": "909", "gain": "-12dB", "pan": -0.3, "sends": {"line": "-14dB"}, "score": T["rim"]},
             *([{"name": "hats2", "patch": "909", "gain": "-9dB", "pan": 0.15, "score": "swing16=0.56 " + T["hats2"]}] if SKEW == "local" else []),   # last, so no other track's dice move
             *([{"name": "kick2", "patch": "909", "gain": "-3dB", "score": T["kick2"]}] if CKICK else []),
+            *([{"name": "mar", "patch": "modal-marimba", "gain": "-12dB", "pan": 0.2, "score": T["mar"]}] if MARE else []),
         ],
     }
 
