@@ -143,14 +143,25 @@ def build():
     conv = sum(n for nm_, n in FORM[:FORM.index(('converged', 16))])
     sung = [dict(n_, at=round((conv + 2 + rep * 6) * 4.0 + n_['at'], 4), pitch=ji(n_['pitch']))
             for rep in (0, 1) for n_ in SING['notes']]
+    # (v8) THE VOICE TUNES IN: while the machine is hot its voice reaches us over a radio whose dial is off the station by
+    # the temperature - the first reading half lost in static and whistle, the next nearer, the third almost tuned - and
+    # from the fourth epoch, cool enough, the voice is in the room, clear (the reheat throws it back onto the radio)
+    rnotes, dial = [], []
     for sec, v in sorted(VOICE.items(), key=lambda kv: kv[1]['bar']):
         off = v['bar'] * 4.0
+        hot = T[min(v['bar'], len(T) - 1)] > 0.2
+        if hot:
+            dv_ = round(min(0.75, 0.8 * T[v['bar']]), 3)
+            end_ = off + max(n_['at'] + n_['len'] for n_ in v['notes'])
+            # on the station (and quiet) between readings; the dial swings off only while it speaks
+            dial += [[f"{max(0.0, off - 2.5):.2f}b", 0.0], [f"{max(0.0, off - 1):.2f}b", dv_], [f"{end_ + 1:.2f}b", dv_],
+                     [f"{end_ + 3:.2f}b", 0.0]]
         for n_ in v['notes']:
             n2 = dict(n_, at=round(off + n_['at'], 4))
             if v['melodize'] >= 0.5:
                 f = float(n_['pitch'][:-2])
                 n2['pitch'] = f"{min(JI, key=lambda j: abs(math.log2(j / f))):.3f}hz"
-            vnotes.append(n2)
+            (rnotes if hot else vnotes).append(n2)
         fv += [[f"{off + float(a_[:-1]):.3f}b", x_] for a_, x_ in v['fv']]
     span_i, span_left, chord_i = 0, SPANS[0], 0
     pad_cents = [0.0] * 4
@@ -226,6 +237,10 @@ def build():
              'fx': [{'type': 'pitch', 'semitones': 0, 'formant': {'value': 0, 'mod': [{'src': 'auto.fv', 'amount': 1}]}},
                     {'type': 'tape', 'drive': 0.15, 'mix': 1, 'wow': 3, 'flutter': 2, 'seed': 7}],
              'auto': {'fv': {'points': fv}}, 'sends': {'echo': '-10dB', 'hall': '-12dB'}},
+            {'name': 'vradio', 'patch': 'voice-speech', 'gain': '-6dB', 'notes': rnotes, 'pan': -0.1,
+             'fx': [{'type': 'pitch', 'semitones': 0, 'formant': {'value': 0, 'mod': [{'src': 'auto.fv', 'amount': 1}]}},
+                    {'type': 'radio', 'tune': {'value': 0, 'mod': [{'src': 'auto.dial', 'amount': 1}]}}],
+             'auto': {'fv': {'points': fv}, 'dial': {'points': dial}}, 'sends': {'echo': '-12dB', 'hall': '-14dB'}},
         ]}
     return song, losses, T
 
