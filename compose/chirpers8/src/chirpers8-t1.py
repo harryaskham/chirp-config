@@ -77,6 +77,11 @@ def syll_midi(n_):
 
 
 def build():
+# (v24) IN TUNE OR NOT AT ALL: the takes used to drift from speech to song by degrees (melodize .15 ... .9), and the
+# middle takes landed between the two - pitches a quarter-tone off the tune (D#, A#, F#3 sung 40-60 cents flat) right
+# under the vibraphone playing it exactly: the 'ugly' Harry heard at ~3:40. Now the human SPEAKS the line through the
+# first half (four spoken takes), and from the third groove SINGS it, on the tune and in tune (melodize 1.0: F#3 E3 D3
+# B2, D3 E3 F#3 A3 F#3) - the change from speech to song is one step, at the climax, not a slide through the cracks
     VOICE = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'chirpers8-t1-voice.json')))
     # takes recorded against the 32-bar first groove: drop the one in the cut bars, move the later ones up
     # (v16) the takes are recorded against the current form: eight of them, not twenty-two
