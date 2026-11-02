@@ -118,6 +118,7 @@ def build():
         seq_states.append(list(cand)); losses.append(round(loss(cand), 3))
     # ---- render the parts ----
     P = {k: [] for k in ('seq', 'keys', 'pad', 'bass', 'kit', 'hum', 'rhum')}
+    rng_t = random.Random(SEED + 99)
     # (v3) THE POWER LIGHT: the machine is on before the search starts - a warm drone on A (the hum of a box left on)
     # from the very first beat, swelling through power-on and sinking under the first epoch; it returns under the
     # coda and holds to the last beat, so the track meets its neighbours without a hole
@@ -203,11 +204,17 @@ def build():
                 P['bass'].append((t0 + q * 0.5, tok(f), 0.4, 96 if q % 2 == 0 else 80))
         # drums: sampled per step from noise (hot) or from the motorik target (cold)
         if s != 'power' or i >= 6:
+            # (v10) THE TIMING ANNEALS TOO: while hot every drum hit lands off its grid by a random amount scaled by the
+            # temperature (up to a 32nd and more); as the search cools the machine's time tightens, and converged it is
+            # dead on the grid. (One hit per step, as the line has always played them; only where they land moves.)
+            used = set()
             for piece, tgt in DT.items():
                 for q in range(16):
                     p = (1 - temp) * (1.0 if q in tgt else 0.0) + temp * (0.22 if piece != 'k' else 0.3)
-                    if rng.random() < p:
-                        P['kit'].append((t0 + q * 0.25, piece, 0.2, 100 if q in tgt else 76))
+                    if rng.random() < p and q not in used:
+                        used.add(q)
+                        jt = max(-0.11, min(0.11, rng_t.gauss(0, 0.07 * temp))) if q else max(0.0, min(0.11, abs(rng_t.gauss(0, 0.07 * temp))))
+                        P['kit'].append((max(0.0, t0 + q * 0.25 + jt), piece, 0.2, 100 if q in tgt else 76))
     # the temperature as a lane (one point a bar)
     Tpts = [[f'{b * 4.0:.1f}b', T[b]] for b in range(nb)]
     tr = lambda name, patch, gain, **kw: dict({'name': name, 'patch': patch, 'gain': gain, 'score': line(P[name], total)}, **kw)
