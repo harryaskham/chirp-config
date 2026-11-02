@@ -285,6 +285,8 @@ def build():
                           {'type': 'compressor', 'threshold': '-18dB', 'ratio': 2.5, 'attack': '10ms', 'release': '120ms', 'makeup': '2dB'},
                           'limiter ceiling=-1dB']},
         'tracks': [
+            # (v20: the search on a plucked synth, arp-pluck, was tried - even without its ping-pong it thinned the song's
+            # body: variety 84, cohesion 92 - and the search stays on the moog-seq; the bass is what moved, below)
             tr('seq', {'extends': 'moog-seq', 'synth': {'pitch': {'value': 0, 'mod': [{'src': 'expr.sl', 'amount': 0.01}]}}}, '-7dB', sends={'echo': '-12dB', 'hall': '-16dB'},
                # (v5) less squelch (Harry, 1 Nov 18:19, of another track: 'too squelchy'): a gentler filter resonance and a
                # softer, less-bitten crusher when hot - the search noisy and glittering rather than resonant and chewed
@@ -303,7 +305,12 @@ def build():
             # try put 7 dB too much at 1.2-1.6 kHz)
             tr('pad', 'mellotron-strings', '-16dB', sends={'hall': '-10dB'},
                fx=[{'type': 'eq', 'bands': ['peak cutoff=1400 q=0.9 gain=-5dB', 'highshelf cutoff=2500 gain=-4dB']}]),
-            tr('bass', 'moog-seq', '-8dB', fx=['lp cutoff=900']),
+            # (v20, palette) THE BASS CHURNS: a Reese - two detuned saw pairs drifting against each other over a sine
+            # sub - so the low end beats and churns like something heated, and the octave pulse it settles into when cold
+            # still drifts a little: the one part of the machine that never quite stops moving
+            # (tried at -10/-14 dB with lp 650-800: the Reese is thin in 80-160 Hz next to the moog bass and the album -
+            # spectrum 85-88 - so it sits at -5 dB, lp 1.2 kHz, +3 dB at 110 Hz; at -3 dB its churn split seed 0 into 22 sections)
+            tr('bass', 'reese', '-5dB', fx=['lp cutoff=1200', {'type': 'eq', 'bands': ['peak cutoff=110 q=0.9 gain=3dB']}]),
             tr('kit', 'electro-kit', '-5dB', sends={'hall': '-20dB'}),
             tr('hum', 'drone', '-9dB', sends={'hall': '-14dB'}),
             tr('rhum', 'drone', '-5dB', fx=[{'type': 'radio', 'tune': {'value': 0, 'mod': [{'src': 'auto.dial', 'amount': 1}]}}],
