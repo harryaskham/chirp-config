@@ -32,7 +32,9 @@ import compscore as CS  # noqa: E402
 L = CS.L
 ROOT = CS.ROOT
 BAND_HZ = [30 * 533.33 ** ((i + 0.5) / 40) for i in range(40)]
-REPEAT = 0.985          # an earlier window this alike (texture and harmony) at a similar level: a near-repeat
+REPEAT_NOTES = 0.6      # a near-repeat: an earlier window whose note sequence is this close (seq_dist; a literal
+REPEAT_AVG = 0.97       # repeat reads 0.0-0.3, a new melody 2.6+), whose texture and harmony are this alike, at a
+                        # similar level (calibrated on P P' P P, 2 Nov)
 
 
 def song_path(cid):
@@ -57,22 +59,30 @@ def meter_beats(song):
         return 4.0
 
 
-def windows(song, dur, window_s=30.0):
-    """[(beat_a, beat_b, t_a, t_b)] covering 0..DUR seconds: whole bars of the song's tempo (its map's segments when it
-    has one) about WINDOW_S long. Beats are None when the song declares no tempo (plain WINDOW_S time windows)."""
+def beat_clock(song):
+    """(beats -> seconds for an array of beats, beats per minute of reference) on the song's tempo map, or (None, None)
+    when it declares no tempo."""
     pts = CS.tempo_points(song)
     bpm = CS.declared_tempo(song)
     if pts:
         segs = CS.tempo_segments(pts)
-        to_s = lambda b: float(CS.map_secs(segs, np.array([b]))[0])  # noqa: E731
-        total = CS.map_beats(segs, dur)
-    elif bpm:
-        to_s = lambda b: b * 60.0 / bpm  # noqa: E731
-        total = dur * bpm / 60.0
-    else:
+        return (lambda b: CS.map_secs(segs, np.atleast_1d(np.asarray(b, float)))), bpm
+    if bpm:
+        return (lambda b: np.atleast_1d(np.asarray(b, float)) * 60.0 / bpm), bpm
+    return None, None
+
+
+def windows(song, dur, window_s=30.0):
+    """[(beat_a, beat_b, t_a, t_b)] covering 0..DUR seconds: whole bars of the song's tempo (its map's segments when it
+    has one) about WINDOW_S long. Beats are None when the song declares no tempo (plain WINDOW_S time windows)."""
+    clock, bpm = beat_clock(song)
+    if clock is None:
         n = max(1, int(round(dur / window_s)))
         edges = list(np.linspace(0, dur, n + 1))
         return [(None, None, a, b) for a, b in zip(edges[:-1], edges[1:])]
+    pts = CS.tempo_points(song)
+    total = CS.map_beats(CS.tempo_segments(pts), dur) if pts else dur * bpm / 60.0
+    to_s = lambda b: float(clock(b)[0])  # noqa: E731
     bpb = meter_beats(song)
     w = round(window_s * float(bpm or 120) / 60.0 / bpb) * bpb
     phrase = 4 * bpb                                    # whole 4-bar phrases when the window holds at least one
@@ -89,7 +99,64 @@ def _cos(u, v):
 
 
 def _sim(p, q):
-    return 0.5 * _cos(p["vec"], q["vec"]) + 0.5 * _cos(p["chroma"], q["chroma"])
+    """How alike two windows are, 0..1: half their texture and average harmony, half their note sequence step by step
+    (pitch with register, twice a beat), so a melody moved, reordered or leapt an octave reads as different
+    (chirper-zero, 2 Nov: t8's octave leaps changed the window by -22 dB but the averages by 0.0025)."""
+    avg = 0.5 * _cos(p["vec"], q["vec"]) + 0.5 * _cos(p["chroma"], q["chroma"])
+    if p.get("seq") is None or q.get("seq") is None:
+        return avg
+    return 0.5 * avg + 0.5 * seq_sim(p["seq"], q["seq"])
+
+
+SEMI_LO, SEMI_HI = 36, 96                          # C2 .. B6: the notes, with their register
+
+
+def semitones(x, sr, hop_s=0.1):
+    """(frames x 60 semitone energies C2..B6, log-compressed; frame times in s) of the mono mix, at 12 kHz."""
+    from scipy import signal
+    m = x.astype(np.float32).mean(1) if x.ndim > 1 else x.astype(np.float32)
+    m = signal.resample_poly(m, 1, 4) if sr == 48000 else signal.resample_poly(m, 12000, sr)
+    fs, nfft, hop = 12000, 4096, int(hop_s * 12000)
+    if len(m) < nfft:
+        return np.zeros((0, SEMI_HI - SEMI_LO)), np.zeros(0)
+    n = 1 + (len(m) - nfft) // hop
+    win = np.hanning(nfft).astype(np.float32)
+    idx = np.round(69 + 12 * np.log2(np.maximum(np.fft.rfftfreq(nfft, 1 / fs), 1e-6) / 440.0)).astype(int)
+    S = np.zeros((n, SEMI_HI - SEMI_LO), dtype=np.float32)
+    for c0 in range(0, n, 512):
+        c1 = min(n, c0 + 512)
+        fr = np.stack([m[i * hop:i * hop + nfft] * win for i in range(c0, c1)])
+        mag = np.abs(np.fft.rfft(fr, axis=1))
+        for k in range(SEMI_LO, SEMI_HI):
+            sel = idx == k
+            if sel.any():
+                S[c0:c1, k - SEMI_LO] = mag[:, sel].sum(1)
+    S = np.log1p(S / (S.max() + 1e-12) * 1000.0)
+    return S, (np.arange(n) * hop + nfft / 2) / fs
+
+
+def seq_of(S, times, clock, ba, bb, ta, tb):
+    """A window's note sequence: semitone frames twice a beat (on the tempo map), or every 0.25 s without a tempo."""
+    if not len(times):
+        return np.zeros((0, SEMI_HI - SEMI_LO))
+    ts = clock(np.arange(ba, bb, 0.5)) if clock is not None and ba is not None else np.arange(ta, tb, 0.25)
+    i = np.clip(np.searchsorted(times, ts), 0, len(times) - 1)
+    return S[i]
+
+
+def seq_dist(A, B):
+    """How far apart two note sequences are: the mean over aligned steps of the largest change in any semitone's
+    (log) energy, so one new, moved or octave-leapt note counts even under a loud pad. About 0.002 for an untouched
+    window between two renders, 0.36 for t8 v26's octave leaps (the mean cosine read 0.0007 there)."""
+    n = min(len(A), len(B))
+    if n == 0:
+        return 0.0
+    return float(np.abs(np.asarray(A[:n], float) - np.asarray(B[:n], float)).max(1).mean())
+
+
+def seq_sim(A, B):
+    """Likeness of two note sequences, 0..1: exp(-seq_dist)."""
+    return float(np.exp(-seq_dist(A, B)))
 
 
 def analyse(wav, song, window_s=30.0):
@@ -100,6 +167,8 @@ def analyse(wav, song, window_s=30.0):
     wins = windows(song, dur, window_s)
     feats = CS.section_feats(F, x, [(ta, tb) for _, _, ta, tb in wins], X)
     nov = CS.novelty(X)
+    S, st = semitones(x, L.SR)
+    clock, _ = beat_clock(song)
     rows = []
     for i, ((ba, bb, ta, tb), f) in enumerate(zip(wins, feats)):
         prof = np.asarray(f["profile"], float)
@@ -109,13 +178,16 @@ def analyse(wav, song, window_s=30.0):
         motion = float(np.mean(nov[lo:hi])) if hi <= len(nov) and hi > lo else 0.0
         r = {"n": i + 1, "beats": [ba, bb], "time": [round(ta, 2), round(tb, 2)], "level": round(f["level"], 1),
              "bright_hz": round(bright), "density": round(f["density"], 2), "motion": round(motion, 4),
-             "vec": f["vec"], "chroma": f["chroma"]}
+             "vec": f["vec"], "chroma": f["chroma"], "seq": seq_of(S, st, clock, ba, bb, ta, tb)}
         if i:
             prev = rows[-1]
             r["change"] = round(1 - _sim(prev, r) + abs(r["level"] - prev["level"]) / 20.0, 4)
         best = max(((j, _sim(rows[j], r)) for j in range(i)), key=lambda t: t[1], default=None)
         if best:
-            r["like"] = {"n": best[0] + 1, "sim": round(best[1], 4), "dlevel": round(r["level"] - rows[best[0]]["level"], 1)}
+            j = best[0]
+            avg = 0.5 * _cos(rows[j]["vec"], r["vec"]) + 0.5 * _cos(rows[j]["chroma"], r["chroma"])
+            r["like"] = {"n": j + 1, "sim": round(best[1], 4), "dlevel": round(r["level"] - rows[j]["level"], 1),
+                         "notes": round(seq_dist(rows[j]["seq"], r["seq"]), 3), "avg": round(avg, 4)}
         rows.append(r)
     flag(rows)
     return rows, dur
@@ -132,7 +204,8 @@ def flag(rows):
     for r in rows:
         f = []
         lk = r.get("like")
-        if lk and lk["sim"] >= REPEAT and abs(lk["dlevel"]) <= 1.5:
+        if (lk and lk.get("notes", 9.0) <= REPEAT_NOTES and lk.get("avg", 0.0) >= REPEAT_AVG
+                and abs(lk["dlevel"]) <= 1.5):
             f.append(f"near-repeat of w{lk['n']}")
         if r["motion"] <= m25:
             f.append("static")
@@ -174,14 +247,34 @@ def read_ledger(cid):
         return []
 
 
-def compare(new, old):
-    """Per window: how the NEW render's window differs from the OLD's (same windows)."""
+def residual_db(xn, xo, ta, tb, sr):
+    """How much of a window is new, in dB: the energy of (new - old) against the new render's, sample-aligned (the
+    renders are deterministic). About -60 or lower: untouched; around -20: clearly changed."""
+    a, b = int(ta * sr), int(tb * sr)
+    n = xn[a:b].astype(np.float64)
+    o = xo[a:b].astype(np.float64)
+    k = min(len(n), len(o))
+    if k == 0:
+        return 0.0
+    n, o = n[:k], o[:k]
+    e = float(((n - o) ** 2).sum())
+    return round(max(-99.0, 10 * np.log10(e / (float((n ** 2).sum()) + 1e-20) + 1e-20)), 1)
+
+
+def compare(new, old, xn=None, xo=None, sr=None):
+    """Per window: how the NEW render's window differs from the OLD's (same windows): the residual in dB when both
+    renders' audio is given, the note-sequence change, and the feature deltas."""
     out = []
     for a, b in zip(new, old):
-        out.append({"n": a["n"], "change": round(1 - _sim(a, b) + abs(a["level"] - b["level"]) / 20.0, 4),
-                    "dlevel": round(a["level"] - b["level"], 1), "dbright_hz": a["bright_hz"] - b["bright_hz"],
-                    "ddensity": round(a["density"] - b["density"], 2), "dmotion": round(a["motion"] - b["motion"], 4),
-                    "change_vs_prev": [b.get("change"), a.get("change")]})
+        c = {"n": a["n"], "change": round(1 - _sim(a, b) + abs(a["level"] - b["level"]) / 20.0, 4),
+             "melody": round(seq_dist(a["seq"], b["seq"]), 3) if a.get("seq") is not None and b.get("seq") is not None
+             else None,
+             "dlevel": round(a["level"] - b["level"], 1), "dbright_hz": a["bright_hz"] - b["bright_hz"],
+             "ddensity": round(a["density"] - b["density"], 2), "dmotion": round(a["motion"] - b["motion"], 4),
+             "change_vs_prev": [b.get("change"), a.get("change")]}
+        if xn is not None and xo is not None:
+            c["residual_db"] = residual_db(xn, xo, a["time"][0], a["time"][1], sr or L.SR)
+        out.append(c)
     return out
 
 
@@ -266,23 +359,25 @@ def main(argv=None):
             old, _ = analyse(a.against, song, a.window)
             # the old render on the NEW render's windows (same song file, so the same beats)
             old = old[:len(rows)]
-            cmp_ = compare(rows, old)
+            cmp_ = compare(rows, old, L.load(wav), L.load(a.against), L.SR)
             if a.json:
                 print(json.dumps({"id": a.id, "compare": cmp_}))
                 return
-            top = max(c["change"] for c in cmp_) or 1e-9
-            print(f"{a.id}: {os.path.basename(wav)} against {os.path.basename(a.against)} (per window; change 0 = same)")
-            print(f"{'w':>3} {'time':>11} {'change':>7} {'dB':>6} {'bright':>7} {'dens':>6} {'motion':>8}  change vs prev (was -> now)")
+            print(f"{a.id}: {os.path.basename(wav)} against {os.path.basename(a.against)} (per window; residual: the energy "
+                  f"of new - old against new, about -60 untouched, -20 clearly changed; melody: note-sequence change)")
+            print(f"{'w':>3} {'time':>11} {'resid dB':>8} {'melody':>7} {'change':>7} {'dB':>6} {'bright':>7} {'dens':>6}  "
+                  f"change vs prev (was -> now)")
             for c, r in zip(cmp_, rows):
-                mark_ = " <" if c["change"] >= 0.25 * top and c["change"] > 0.002 else ""
+                mark_ = " <" if c["residual_db"] > -40 else ""
                 cv = c["change_vs_prev"]
                 cvs = f"{cv[0]:.3f} -> {cv[1]:.3f}" if cv[0] is not None and cv[1] is not None else "-"
-                print(f"{c['n']:>3} {fmt_t(r['time'][0]):>5}-{fmt_t(r['time'][1]):<5} {c['change']:>7.4f} {c['dlevel']:>6.1f} "
-                      f"{c['dbright_hz']:>7} {c['ddensity']:>6.2f} {c['dmotion']:>8.4f}  {cvs}{mark_}")
+                mel = f"{c['melody']:.3f}" if c["melody"] is not None else "-"
+                print(f"{c['n']:>3} {fmt_t(r['time'][0]):>5}-{fmt_t(r['time'][1]):<5} {c['residual_db']:>8.1f} {mel:>7} "
+                      f"{c['change']:>7.4f} {c['dlevel']:>6.1f} {c['dbright_hz']:>7} {c['ddensity']:>6.2f}  {cvs}{mark_}")
             return
         if a.json:
-            print(json.dumps({"id": a.id, "dur": dur, "windows": [{k: v for k, v in r.items() if k not in ("vec", "chroma")}
-                                                                   for r in rows],
+            print(json.dumps({"id": a.id, "dur": dur, "windows": [{k: v for k, v in r.items()
+                                                                   if k not in ("vec", "chroma", "seq")} for r in rows],
                               "focus": focus_order(rows, ledger)}))
             return
         print_map(a.id, song, rows, dur, ledger)

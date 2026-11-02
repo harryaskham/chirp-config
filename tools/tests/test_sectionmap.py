@@ -48,7 +48,7 @@ def _rows():
         if change is not None:
             r["change"] = change
         if like is not None:
-            r["like"] = {"n": 2, "sim": like, "dlevel": dl}
+            r["like"] = {"n": 2, "sim": like, "dlevel": dl, "notes": 0.2 if like > 0.99 else 2.5, "avg": like}
         rows.append(r)
     return rows
 
@@ -71,9 +71,28 @@ def test_focus_order_puts_flagged_first_and_rests_a_recent_window():
 
 def test_compare_reads_identical_windows_as_unchanged():
     rows = [{"n": 1, "level": -10.0, "bright_hz": 900, "density": 3.0, "motion": 0.1, "vec": np.ones(8),
-             "chroma": np.arange(12.0)}]
-    c = SM.compare(rows, [dict(rows[0])])[0]
-    assert c["change"] == 0.0 and c["dlevel"] == 0.0
+             "chroma": np.arange(12.0), "seq": np.ones((16, 60)), "time": [0.0, 1.0]}]
+    x = np.random.default_rng(0).standard_normal((48000, 2)).astype(np.float32)
+    c = SM.compare(rows, [dict(rows[0])], x, x.copy(), 48000)[0]
+    assert c["change"] == 0.0 and c["dlevel"] == 0.0 and c["melody"] == 0.0 and c["residual_db"] == -99.0
+
+
+def test_the_note_sequence_hears_a_melody_the_averages_miss():
+    # the same pitch classes and the same average energy, one octave apart: the window averages can't tell, the
+    # note sequence can (chirper-zero, t8 v26's octave leaps)
+    a = np.zeros((16, 60))
+    b = np.zeros((16, 60))
+    for t in range(16):
+        a[t, 24 + (t % 4)] = 3.0
+        b[t, 24 + (t % 4) + (12 if t % 2 else 0)] = 3.0
+    assert SM.seq_dist(a, a) == 0.0 and SM.seq_sim(a, a) == 1.0
+    assert SM.seq_dist(a, b) > 1.0
+    sr = 48000
+    t = np.arange(sr) / sr
+    x = np.sin(2 * np.pi * 440 * t)
+    y = x + 0.1 * np.sin(2 * np.pi * 880 * t)
+    assert SM.residual_db(x, x, 0, 1, sr) == -99.0
+    assert -25 < SM.residual_db(y, x, 0, 1, sr) < -15                       # a tenth's amplitude: about -20 dB
 
 
 def test_palette_reads_library_bases_and_patch_makeup():
