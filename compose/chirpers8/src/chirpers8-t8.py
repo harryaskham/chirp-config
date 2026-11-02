@@ -67,6 +67,9 @@ STRIDE = os.environ.get("C8T8_STRIDE", "C5D7")   # the same bits, read through a
 UPPAD = os.environ.get("C8T8_UPPAD", "mellotron-choir")   # the two upper pad voices' instrument (the lower two stay on juno-pad, which carries the low end): e.g. mellotron-choir - tape-stored voices played back, a memory medium
 UPPADGAIN = os.environ.get("C8T8_UPPADGAIN", "-24")
 KITOWN = os.environ.get("C8T8_KITOWN", "F1")   # PALETTE: the kick leaves the 909 kit (a staple) for the machine layer's synthesised kick, tuned to KITOWN (a note: 'A1' the dominant, 'D2' the root) - a pitched kick in the song's key
+HANDS = os.environ.get("C8T8_HANDS", "clap")   # PALETTE: the clap and the rim leave the 909 kit for the machine layer's own synthesised clap and rim ('clap', 'rim', or 'both'): with v36's kick, the kit is the song's own
+CPATCH = {"about": "the machine layer's clap", "synth": {"layers": [{"type": "machine", "machine": {"part": "clap", "decay": "200ms"}}]}}
+RPATCH = {"about": "the machine layer's rim", "synth": {"layers": [{"type": "machine", "machine": {"part": "rim"}}]}}
 KPATCH = {"about": "the machine layer's kick, tuned in the key", "synth": {"layers": [{"type": "machine", "machine": {"part": "kick", "punch": 24, "decay": "380ms", "click": 0.5, "drive": 0.25}}]}}
 WRITEIN = os.environ.get("C8T8_WRITEIN", "100")   # SECTION ROUND (w1, the intro): the word is WRITTEN before it is kept - sixteen bars, sixteen bits: in bar b only bits 0..b sound (the unwritten ones are kept at velocity 1, so no dice move) and the bit just written is struck harder (WRITEIN velocity); the whole word stands when A begins
 EUP = os.environ.get("C8T8_EUP", "1")   # WHOLE ROUND: the repaired word a step higher - E (and with 'n,outro' the outro too, with the sung line) rises EUP semitones on the stretched octave: every pitched part of the section (word, zeros, marimba, pads, organ, hum, bass) moves together. Value = 'semitones' or 'semitones,outro'
@@ -206,6 +209,11 @@ def build():
         e0, e1 = sec_start("E"), sec_start("outro")
         ev["mar"] = [(a, f"{float(h[:-2]) / 2:.2f}hz" if h.endswith("hz") else h, l, max(1, v + int(MARE))) for (a, h, l, v) in ev["word"] if e0 <= a < e1]
     _KEY[0] = 0
+    if HANDS:
+        if HANDS in ("clap", "both"):
+            ev["clap"] = [(a, "C4" if h == "cp" else h, l, v) for (a, h, l, v) in ev["clap"]]
+        if HANDS in ("rim", "both"):
+            ev["rim"] = [(a, "E5" if h == "rs" else h, l, v) for (a, h, l, v) in ev["rim"]]
     if KITOWN:
         for k in ("kick", "kick2"):
             if k in ev:
@@ -381,14 +389,14 @@ def song0():
             {"name": "kick", "patch": KPATCH if KITOWN else "909", "gain": os.environ.get("C8T8_KITGAIN", "-3dB") if KITOWN else "-3dB", "score": T["kick"]},
             *([{"name": "shk", "patch": "dusty-kit", "gain": "-12dB", "pan": 0.3, "fx": [{"type": "filter", "kind": "hp", "cutoff": 3500, "q": 0.7}], "score": T["shk"]}] if SHAKE else []),
             {"name": "hats", "patch": "909", "gain": "-9dB", "pan": 0.15, "score": "swing16=0.56 " + T["hats"]},
-            {"name": "clap", "patch": "909", "gain": "-9dB", "sends": {"room": "-8dB"}, "score": T["clap"]},
+            {"name": "clap", "patch": CPATCH if HANDS in ("clap", "both") else "909", "gain": os.environ.get("C8T8_HANDSGAIN", "-13dB") if HANDS in ("clap", "both") else "-9dB", "sends": {"room": "-8dB"}, "score": T["clap"]},
             *([(sung_track(f"{SUNG}dB") if WORDS else reversed_back(sung_track(f"{SUNG}dB"), [sec_start("outro") + 8 * BAR], 1.758, 2.253))] if SUNG else []),
             *([reversed_back(voice("chirpers8-t8-say.json", "say", SAYOFFS, f"{VOX}dB",
                      ["hp cutoff=180"], {"line": "-2dB", "room": "-12dB"}), SAYOFFS, 1.421, 2.188)] if VOX and not WORDS else []),
             *([voice(f, nm, [o], f"{VOX}dB", ["hp cutoff=180"], {"line": "-2dB", "room": "-12dB"})
                for f, nm, o in zip(("chirpers8-t8-say-kept.json", "chirpers8-t8-say-both.json", "chirpers8-t8-say-around.json"), ("say", "say2", "say3"), SAYOFFS[-3:])]
               if VOX and WORDS else []),
-            {"name": "rim", "patch": "909", "gain": "-12dB", "pan": -0.3, "sends": {"line": "-14dB"}, "score": T["rim"]},
+            {"name": "rim", "patch": RPATCH if HANDS in ("rim", "both") else "909", "gain": "-12dB", "pan": -0.3, "sends": {"line": "-14dB"}, "score": T["rim"]},
             *([{"name": "hats2", "patch": "909", "gain": "-9dB", "pan": 0.15, "score": "swing16=0.56 " + T["hats2"]}] if SKEW == "local" else []),   # last, so no other track's dice move
             *([{"name": "kick2", "patch": KPATCH if KITOWN else "909", "gain": os.environ.get("C8T8_KITGAIN", "-3dB") if KITOWN else "-3dB", "score": T["kick2"]}] if CKICK else []),
             *([{"name": "mar", "patch": "modal-marimba", "gain": "-12dB", "pan": 0.2, "score": T["mar"]}] if MARE else []),
