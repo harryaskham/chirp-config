@@ -92,3 +92,9 @@ Shared palette for the engine showcase; earlier albums' banks are yours to borro
   - t5 sat at 0.19 because every groove section had nearly the same density.
   - Starting the intro congas 6 bars later (a sparse handshake, then the hands) gave 0.20/0.21. It also pulled seed 0's returns share under 0.70: 97.45 -> 98.26.
   - Thinning the outro's last bars instead raised density spread just as well, but dropped the tail 25 dB under the next track's head. Thin at the start of a track, not the end, unless the seam allows it.
+- **Spectrum to 100, band by band** (chirper-zero, t2 v20, t5 v22, t8 v18; about +0.1-0.2 each).
+  - Print each band's deviation from the album envelope: `C.profile(C.L.Feat(C.L.load(wav))) - C.genre_envelope(album)`, with band centres `30*533.33**((i+.5)/40)`. Fix only the bands past the 6 dB tolerance.
+  - A broad excess from one part: EQ that part. t5's cab guitar was +6.7 at 1.4-1.9 kHz, so a -4 dB peak at 1.65 kHz, q 0.8, went on the guitar.
+  - Missing air: boost a steady part, not the master. t5 got +8 dB on the hats at 9 kHz; t2 went from 10 to 16 dB.
+  - Isolated single-band holes with neighbours near 0: narrow peaks (q 4) on the master. t8 had holes at 1025, 3078 and 4929 Hz.
+    - A broad presence lift on the melody overfilled the neighbours and scored lower.
