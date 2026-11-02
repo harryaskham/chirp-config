@@ -281,8 +281,8 @@ def build():
         tempo_map += [{'at': f'{st_:.2f}b', 'bpm': BPM, 'meter': '7/8'}, {'at': f'{st_ + 3.5:.2f}b', 'bpm': BPM, 'meter': '4/4'}]
     tr = lambda name, patch, gain, **kw: dict({'name': name, 'patch': patch, 'gain': gain, 'score': line(P[name], total)}, **kw)
     # (v15) GOING DOWN: at each overflow the voice stutters one word into the cut - 'down', five times, faster and lower
-    # each time (0, -2, -4, -6, -9 semitones), the last one swallowed by the dropped eighth: the subroutine's promise
-    # ('I go down a little') caught in the overflow, before the stack unwinds and the voice comes back home
+    # each time (0, -2, -4, -6, -9 semitones), the last one swallowed by the dropped eighth: the sung line's first
+    # word ('down the well of mirrors') caught in the overflow, before the stack unwinds and the voice comes back home
     DN = SING['down']['notes'][0]
     dnotes = []
     for b_ in SHORT:
@@ -340,16 +340,17 @@ def build():
             # (v17) the Euclidean percussion line (v8) removed: a seventh layer in the busiest sections, never prominent
             # (v5) THE SUBJECT, SUNG: where the canon turns to G minor and the sync lead rests, a human voice takes the
             # subject's first half twice, two octaves under the bell, one syllable a note (wM's chirp tts --sing, humanize 0.35):
-            # 'every time you call, I go down a little, further than before, and I always come back' - a subroutine's
-            # love letter, sideways; tuned in Werckmeister III with the rest
+            # since v22 (after Harry's ear on t1: oblique, not a plain sentence): 'down the well of mirrors, every landing
+            # holds a smaller lamp, and the smallest one is lit' - recursion as an image, the light left on at the bottom
+            # of the call stack (until v21: 'every time you call, I go down a little...'); tuned in Werckmeister III
             # (v11) AND IT COMES BACK: the sung subject returns, home in D minor, as the final calls unwind (their last eight
             # bars, after the overflow stumbles), the voice an octave lower, singing the subroutine home
             {'name': 'down', 'patch': SING['down']['patch'], 'gain': '-7dB', 'pan': -0.1, 'notes': dnotes,
              'fx': [{'type': 'tape', 'drive': 0.2, 'mix': 1, 'wow': 3, 'flutter': 2, 'seed': 6}, 'hp cutoff=160'],
              'sends': {'echo': '-9dB', 'hall': '-14dB'}},
             # (v19) THE WORDS READ BACKWARDS TOO: in A minor, where the program runs in retrograde, the voice sings with it -
-            # the subject's first half with every bar reversed, and the sung line's words in reverse order: 'back come
-            # always I and before than further little a down go I call you time every' - once
+            # the subject's first half with every bar reversed, and the sung line's words in reverse order: 'lit is one
+            # smallest the and lamp smaller a holds landing every mirrors of well the down' - once
             {'name': 'sing3', 'patch': SING['patch'], 'gain': '-9dB', 'pan': 0.1, 'tuning': W3T,
              'notes': [dict(n_, at=round(secs_t['calls3'] + n_['at'], 4)) for n_ in SING['backwards']['notes'][:23]],
              'fx': [{'type': 'tape', 'drive': 0.12, 'mix': 1, 'wow': 2, 'flutter': 1, 'seed': 8}],
