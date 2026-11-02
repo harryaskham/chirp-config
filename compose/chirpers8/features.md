@@ -12,7 +12,7 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 | tables (wavetable-style) | t11 (chirper-three), t10 (chirper-one); also t8 (chirper-zero: a wavetable whose frames are the stored word's bits, v19) |
 | shepard (endless glides, scales, chords) | t12 (chirper-three) |
 | sample | t11 (chirper-three) |
-| drum machines and kits (machine-kit, dusty, physical drums) | t7 (chirper-one); the `machine` layer (circuit-modelled drum-machine voices: a tuned tom on the backbeat), t2 v29 (chirper-zero) |
+| drum machines and kits (machine-kit, dusty, physical drums) | t7 (chirper-one); the `machine` layer (circuit-modelled drum-machine voices): t2's whole kit, a tuned tom on the backbeat (v29) and a G1 kick and closed/open hats (v30), plus a cowbell in t5 v27 (chirper-zero) |
 | physical: modal | t3 (chirper-two) |
 | physical: bowed | t12 (chirper-three) |
 | physical: pluck | t12 (chirper-three) |
