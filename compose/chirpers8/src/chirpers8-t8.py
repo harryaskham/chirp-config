@@ -70,6 +70,7 @@ KITOWN = os.environ.get("C8T8_KITOWN", "F1")   # PALETTE: the kick leaves the 90
 LATER = os.environ.get("C8T8_LATER", "-8")   # WHOLE ROUND: a second sung line, in E - 'it comes later on' (tts --sing "A4/8 G4/8 F4/4 E4/8 D4/2", seed 7; whisper reads it exactly on seeds 3, 5 and 7), sung once at E bar 12 a semitone up with E: what a delay line does, said plainly and sideways - the answer the outro's 'it only travels' completes. Own track, listed last; nearly dry (line -16, room -14). Value = dry gain dB
 LATERDROP = os.environ.get("C8T8_LATERDROP", "1")   # with LATER: the word steps aside for the voice - for E bars 12-13 the word, its marimba, the zeros, the hats and the clap are kept at velocity 1 (no dice move), so 'it comes later on' is heard over pads, bass and kick (in the full mix whisper heard nothing; soloed it reads exactly)
 HANDS = os.environ.get("C8T8_HANDS", "clap")   # PALETTE: the clap and the rim leave the 909 kit for the machine layer's own synthesised clap and rim ('clap', 'rim', or 'both'): with v36's kick, the kit is the song's own
+SAYTTS = os.environ.get("C8T8_SAYTTS", "1")   # PALETTE: the spoken voices that tell what a delay line is (say, say2, say3: voice-spoken) speak as a computer - voice-tts, the library's 1990s desktop text-to-speech; the words and their timing unchanged
 COUNTER = os.environ.get("C8T8_COUNTER", "78")   # SECTION ROUND (w5, C bars 4-19, static): the program counter - a marimba (its own track ctr, listed last) counts 1..16 in binary, one number a bar: bit k set strikes beat k, on D G C F (fourths, k = 0..3), so each bar's rhythm is the next address and the line runs through all sixteen patterns while the word is refreshed. Value = velocity
 OWNHATS = os.environ.get("C8T8_OWNHATS", "300")   # PALETTE: the hats leave the 909 kit for the machine layer's synthesised hat - closed (60 ms) on hats and hats2, the open ones (OWNHATS ms) on their own track ohat, listed last (the open hits stay on hats/hats2 at velocity 1, so no dice move): with v36's kick and v37's clap, the whole groove is the song's own
 HPATCH = {"about": "the machine layer's closed hat", "synth": {"layers": [{"type": "machine", "machine": {"part": "hat", "decay": "60ms"}}]}}
@@ -331,6 +332,10 @@ def voice(file, name, offs16, gain, fx, sends):
 
 def song():
     doc = song0()
+    if SAYTTS:
+        for t in doc["tracks"]:
+            if isinstance(t, dict) and t["name"] in ("say", "say2", "say3") and t.get("patch") == "voice-spoken":
+                t["patch"] = "voice-tts"
     if TRAVSPLIT:
         trs = doc["tracks"]
         i = next(k for k, t in enumerate(trs) if isinstance(t, list))
