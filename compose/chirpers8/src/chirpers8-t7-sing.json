@@ -1,5 +1,5 @@
 {
-"words": "there you are, you were always here",
+"words": "the glass remembers how it cooled",
 "sing": "A3/8 C4/8 E4/4 D4/8 C4/8 A3/4 G3/4 A3/2 ./4",
 "patch": {
 "extends": "voice-speech",
@@ -34,9 +34,9 @@
 ]
 },
 "len": 0.495,
-"ph": "DH EH1 R",
+"ph": "DH AH0",
 "pitch": "m57",
-"vel": 0.833
+"vel": 0.763
 },
 {
 "at": 0.741,
@@ -56,7 +56,7 @@
 ]
 },
 "len": 0.495,
-"ph": "Y UW1",
+"ph": "G L AE1 S",
 "pitch": "m60",
 "vel": 0.861
 },
@@ -83,15 +83,15 @@
 17.0,
 28.0,
 20.0,
--7.0,
--43.0,
--74.0
+-1.0,
+-22.0,
+-29.0
 ]
 },
-"len": 0.85,
-"ph": "AA1 R",
+"len": 0.99,
+"ph": "R IH0",
 "pitch": "m64",
-"vel": 0.834
+"vel": 0.764
 },
 {
 "at": 2.26,
@@ -111,7 +111,7 @@
 ]
 },
 "len": 0.495,
-"ph": "Y UW1",
+"ph": "M EH1 M",
 "pitch": "m62",
 "vel": 0.842
 },
@@ -133,9 +133,9 @@
 ]
 },
 "len": 0.495,
-"ph": "W ER1",
+"ph": "B ER0 Z",
 "pitch": "m60",
-"vel": 0.842
+"vel": 0.772
 },
 {
 "at": 3.248,
@@ -166,7 +166,7 @@
 ]
 },
 "len": 0.99,
-"ph": "AO1 L",
+"ph": "HH AW1",
 "pitch": "m57",
 "vel": 0.845
 },
@@ -199,9 +199,9 @@
 ]
 },
 "len": 0.99,
-"ph": "W EY2 Z",
+"ph": "IH1 T",
 "pitch": "m55",
-"vel": 0.776
+"vel": 0.846
 },
 {
 "at": 5.24,
@@ -255,7 +255,7 @@
 ]
 },
 "len": 1.7,
-"ph": "HH IY1 R",
+"ph": "K UW1 L D",
 "pitch": "m57",
 "vel": 0.839
 }

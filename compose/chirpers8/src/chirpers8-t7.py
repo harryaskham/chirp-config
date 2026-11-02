@@ -252,7 +252,8 @@ def build():
             tr('rhum', 'drone', '-5dB', fx=[{'type': 'radio', 'tune': {'value': 0, 'mod': [{'src': 'auto.dial', 'amount': 1}]}}],
                auto={'dial': {'points': [['0b', 0.9], ['6b', 0.3], ['9b', 0.0], ['22b', 0.0]]}}, sends={'hall': '-16dB'}),
             # (v6) THERE YOU ARE: when the search converges, the voice that read the error aloud SINGS - the riff it was looking
-            # for, slowed to a sung phrase, twice: 'there you are, you were always here' (chirp tts --sing, humanize 0.35),
+            # for, slowed to a sung phrase, twice: since v13 'the glass remembers how it cooled' (oblique, after Harry's ear on
+            # t1; until v12 'there you are, you were always here') (chirp tts --sing, humanize 0.35),
             # every note retuned to the same 5-limit just pitches as the band
             {'name': 'sing', 'patch': SING['patch'], 'gain': '-8dB', 'pan': 0.1, 'notes': sung,
              'fx': [{'type': 'tape', 'drive': 0.12, 'mix': 1, 'wow': 2, 'flutter': 1, 'seed': 5}],
