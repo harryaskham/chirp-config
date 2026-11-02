@@ -25,7 +25,8 @@ os.environ.pop("CLIMB_AS", None)
 sys.path.insert(0, TOOLS)
 # modules read CLIMB_ROOT once, at import: a test file run earlier (test_compscore_*) that imported them bound them to
 # the real config root, and Ratings then read the real ratings. Import fresh copies bound to TMP.
-for _name in ("albumedges", "chirpers", "climb", "compscore", "drumpunch", "levels", "rate", "riffpunch"):
+for _name in ("albumedges", "chirpers", "climb", "compscore", "drumpunch", "levels", "palette", "rate", "riffpunch",
+              "sectionmap"):
     sys.modules.pop(_name, None)
 import chirpers as CH  # noqa: E402
 import compscore as CS  # noqa: E402
@@ -344,6 +345,25 @@ class Coverage(unittest.TestCase):
         self.assertFalse(mc([{"at": "0b", "bpm": 120, "meter": "7/8"}, {"at": "64b", "bpm": 124}]))  # 7/8 throughout
         self.assertFalse(mc([{"at": "0b", "bpm": 120}, {"at": "64b", "bpm": 120, "meter": "3/4"}], meter="3/4"))
         self.assertTrue(mc([{"at": 0, "bpm": 120}, {"at": 32, "bpm": 120, "meter": "5/4"}], meter="3/4"))
+
+
+class RoundTypes(unittest.TestCase):
+    def test_round_type_is_opt_in_reproducible_and_overridable(self):
+        d = os.path.join(TMP, "compose", "rt")
+        os.makedirs(d, exist_ok=True)
+        with open(os.path.join(d, "album.json"), "w") as f:
+            json.dump({"id": "rt", "params": {"rounds": {"whole": 0.4, "section": 0.4, "palette": 0.2}}}, f)
+        c = {"id": "rt-t1", "mode": "compose", "album": "rt", "rounds": 7}
+        t = CH.C.round_type(c)
+        self.assertIn(t, ("whole", "section", "palette"))
+        self.assertEqual(t, CH.C.round_type(dict(c)))                     # same song, same round: the same type
+        seen = {CH.C.round_type({**c, "rounds": r}) for r in range(40)}
+        self.assertEqual(seen, {"whole", "section", "palette"})          # every type comes up across rounds
+        self.assertEqual(CH.C.round_type(c, "palette"), "palette")       # next --type overrides
+        with open(os.path.join(d, "album.json"), "w") as f:
+            json.dump({"id": "rt"}, f)
+        self.assertIsNone(CH.C.round_type(c))                             # no params.rounds: no type line
+        self.assertIsNone(CH.C.round_type({"id": "x", "mode": "climb"}))
 
 
 class IllusionPresence(unittest.TestCase):

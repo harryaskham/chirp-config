@@ -1391,12 +1391,22 @@ def main(argv=None):
     p.add_argument("--pin", help="chirp binary (default: tools/groove-pin)")
     p.add_argument("--json", action="store_true")
     p = sub.add_parser("seams", help="audit a mixtape's DJ seams: tempo drift across each overlap, dead air at the ends")
+    sub.add_parser("sections", help="section rounds: a song as ~30 s windows (map, --against A/B, --mark ledger); "
+                                    "tools/sectionmap.py", add_help=False)
+    sub.add_parser("palette", help="palette rounds: the song's instruments, album staples, unused library patches and "
+                                   "features; tools/palette.py", add_help=False)
     p.add_argument("album_id")
     p.add_argument("--pin", help="chirp binary (default: tools/groove-pin)")
     p.add_argument("--flam-ms", type=float, default=10.0, help="flag a seam whose beats drift this far apart")
     p.add_argument("--dead-s", type=float, default=0.5, help="flag a track with more dead air than this after its last bar")
     p.add_argument("--json", action="store_true")
     known, skip = [], False
+    if argv and argv[0] == "sections":      # section rounds' map, A/B and ledger (tools/sectionmap.py) take their own flags
+        import sectionmap
+        return sectionmap.main(argv[1:])
+    if argv and argv[0] == "palette":       # palette rounds' brief (tools/palette.py)
+        import palette
+        return palette.main(argv[1:])
     for i, x in enumerate(argv):            # climb.py's own flags (--as NAME, --no-git) go to its helpers, not argparse
         if skip:
             skip = False

@@ -748,6 +748,44 @@ def visible(hist):
     return hist[i:]
 
 
+ROUND_TYPES = {
+    "whole": "  ROUND TYPE: whole song - the bold change you believe moves the whole song most (as always).",
+    "section": ("  ROUND TYPE: section - work ONE ~30 s window in its context (Harry, 2 Nov: the small changes that make a song "
+                "feel handcrafted and unique). `chirpers.py sections {id} --wav YOUR_BEST_RENDER` maps the song and names "
+                "the windows to focus on (flagged, least recently focused) with the commands that render them; make that "
+                "window stand out or blend, with detail no other window has, and keep the variety moving. "
+                "`--against OLD_RENDER` shows whether the change stayed local; the full-length score must not regress beyond "
+                "noise (or keep it on judgment). Then `chirpers.py sections {id} --mark N --note '...'` and name the window "
+                "in your round note."),
+    "palette": ("  ROUND TYPE: palette - `chirpers.py palette {id}`: the song's instruments against the album's staples, "
+                "the library's unused patches and the engine features the album has not used. Change one or two "
+                "instruments (swap a staple for something no other track has, design a new patch, add the part the song "
+                "lacks), measured on full-length renders; name the swap in your round note."),
+}
+
+
+def round_type(c, override=None):
+    """This round's type for a composition climb whose album sets params.rounds ({whole, section, palette: weight}):
+    drawn per song and round number (reproducible), or OVERRIDE (`next --type T`). None when the album sets none."""
+    if override:
+        if override not in ROUND_TYPES:
+            die(f"--type must be one of {', '.join(ROUND_TYPES)}", 2)
+        return override
+    if c.get("mode") != "compose":
+        return None
+    try:
+        with open(os.path.join(ROOT, "compose", c["album"], "album.json")) as f:
+            w = ((json.load(f).get("params") or {}).get("rounds")) or {}
+    except (OSError, ValueError, KeyError):
+        return None
+    w = {k: float(v) for k, v in w.items() if k in ROUND_TYPES and float(v) > 0}
+    if not w:
+        return None
+    rng = random.Random(f"{c['id']}:{int(c.get('rounds') or 0) + 1}")
+    ks = sorted(w)
+    return rng.choices(ks, weights=[w[k] for k in ks])[0]
+
+
 def compose_brief(c):
     """A composition climb's brief (compose/README.md): its slot, the album, its neighbours and the latest ratings."""
     out = []
@@ -946,6 +984,9 @@ def cmd_next(a):
     if "--json" in a:
         out = {"climb": c, "history": visible(history(cid))[-5:],
                "odds": round(odds, 3) if odds is not None else None, "skipped_owned": skipped}
+        rt = round_type(c, opt(a, "--type"))
+        if rt:
+            out["round_type"] = rt
         if pending:
             out["untracked_setup"] = [p for p, _ in pending]
         print(json.dumps(out))
@@ -953,6 +994,9 @@ def cmd_next(a):
         how = f"odds {odds:.0%}" if odds is not None else "taken by id"
         skip = f"; skipped {len(skipped)} owned by others" if skipped else ""
         print(f"next for {me} ({how}{skip}):\n{brief(c, history(cid))}")
+        rt = round_type(c, opt(a, "--type"))
+        if rt:
+            print(ROUND_TYPES[rt].format(id=cid))
     if pending:
         print(f"climb: `{cid}` looks mid-setup by someone (untracked: "
               f"{', '.join(f'{p} {t}' for p, t in pending)}): ask before building it", file=sys.stderr)

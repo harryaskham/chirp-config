@@ -1,0 +1,313 @@
+#!/usr/bin/env python3
+"""sectionmap: a composed song as ~30 s windows, for SECTION rounds (Harry, 2 Nov: "a climber focuses really closely on
+say a 30s segment (knowing its context) and makes that section stand out or blend well and keep variety moving; whole
+song improvements might miss the smaller changes that make a song feel handcrafted and unique").
+
+  sectionmap.py ID [--wav W] [--window 30] [--json]      the map: per window level, brightness, density, motion,
+                                                          change from the window before, the earlier window it is most
+                                                          like, flags, the ledger's last focus; then the windows to
+                                                          focus on next and the commands that render them
+  sectionmap.py ID --wav NEW --against OLD               per-window deltas: did the round stay in its window, and how
+                                                          did that window move against its neighbours
+  sectionmap.py ID --mark N --note TEXT                  record a section round on window N in the song's ledger
+                                                          (compose/<album>/sections/<id>.jsonl; committed)
+
+Windows are whole bars on the song's own tempo map (beats, so they stay put when the audio changes), about WINDOW
+seconds each; a short last window joins the one before. Without --wav the song is rendered with the groove's pin
+(seed 0, idle CPU priority). The numbers are a flashlight for where to look, not a score to climb.
+"""
+import argparse
+import json
+import os
+import subprocess
+import sys
+import tempfile
+
+import numpy as np
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+import compscore as CS  # noqa: E402
+
+L = CS.L
+ROOT = CS.ROOT
+BAND_HZ = [30 * 533.33 ** ((i + 0.5) / 40) for i in range(40)]
+REPEAT = 0.985          # an earlier window this alike (texture and harmony) at a similar level: a near-repeat
+
+
+def song_path(cid):
+    c = CS.climb_of(cid)
+    return os.path.join(ROOT, c.get("song") or f"songs/{cid}.yaml"), c
+
+
+def meter_beats(song):
+    """Beats per bar of the song's starting meter (its top-level `meter`, else 4/4)."""
+    try:
+        with open(song) as f:
+            text = f.read()
+        if text.lstrip().startswith("{"):
+            m = json.loads(text).get("meter")
+        else:
+            import re
+            mm = re.search(r"^meter:\s*[\"']?(\d+)\s*/\s*(\d+)", text, re.M)
+            m = f"{mm.group(1)}/{mm.group(2)}" if mm else None
+        n, d = (m or "4/4").split("/")
+        return float(n) * 4.0 / float(d)
+    except (OSError, ValueError, AttributeError):
+        return 4.0
+
+
+def windows(song, dur, window_s=30.0):
+    """[(beat_a, beat_b, t_a, t_b)] covering 0..DUR seconds: whole bars of the song's tempo (its map's segments when it
+    has one) about WINDOW_S long. Beats are None when the song declares no tempo (plain WINDOW_S time windows)."""
+    pts = CS.tempo_points(song)
+    bpm = CS.declared_tempo(song)
+    if pts:
+        segs = CS.tempo_segments(pts)
+        to_s = lambda b: float(CS.map_secs(segs, np.array([b]))[0])  # noqa: E731
+        total = CS.map_beats(segs, dur)
+    elif bpm:
+        to_s = lambda b: b * 60.0 / bpm  # noqa: E731
+        total = dur * bpm / 60.0
+    else:
+        n = max(1, int(round(dur / window_s)))
+        edges = list(np.linspace(0, dur, n + 1))
+        return [(None, None, a, b) for a, b in zip(edges[:-1], edges[1:])]
+    bpb = meter_beats(song)
+    w = round(window_s * float(bpm or 120) / 60.0 / bpb) * bpb
+    phrase = 4 * bpb                                    # whole 4-bar phrases when the window holds at least one
+    w = max(2 * bpb, round(w / phrase) * phrase if w >= phrase else w)
+    edges = list(np.arange(0, total, w)) + [total]
+    if len(edges) > 2 and edges[-1] - edges[-2] < w / 2:
+        edges.pop(-2)
+    return [(float(a), float(b), to_s(a), min(dur, to_s(b))) for a, b in zip(edges[:-1], edges[1:])]
+
+
+def _cos(u, v):
+    u, v = np.asarray(u, float), np.asarray(v, float)
+    return float(u @ v / (np.linalg.norm(u) * np.linalg.norm(v) + 1e-12))
+
+
+def _sim(p, q):
+    return 0.5 * _cos(p["vec"], q["vec"]) + 0.5 * _cos(p["chroma"], q["chroma"])
+
+
+def analyse(wav, song, window_s=30.0):
+    x = L.load(wav)
+    F = L.Feat(x)
+    dur = CS.music_end(x, L.SR)
+    X = CS.frames(F)
+    wins = windows(song, dur, window_s)
+    feats = CS.section_feats(F, x, [(ta, tb) for _, _, ta, tb in wins], X)
+    nov = CS.novelty(X)
+    rows = []
+    for i, ((ba, bb, ta, tb), f) in enumerate(zip(wins, feats)):
+        prof = np.asarray(f["profile"], float)
+        wgt = np.maximum(prof - (prof.max() - 60.0), 0.0)   # dB above a 60 dB floor: the bands you hear, not the bass's power
+        bright = float(np.exp((wgt * np.log(BAND_HZ)).sum() / (wgt.sum() + 1e-12)))
+        lo, hi = int(ta * 2), max(int(ta * 2) + 1, int(tb * 2))
+        motion = float(np.mean(nov[lo:hi])) if hi <= len(nov) and hi > lo else 0.0
+        r = {"n": i + 1, "beats": [ba, bb], "time": [round(ta, 2), round(tb, 2)], "level": round(f["level"], 1),
+             "bright_hz": round(bright), "density": round(f["density"], 2), "motion": round(motion, 4),
+             "vec": f["vec"], "chroma": f["chroma"]}
+        if i:
+            prev = rows[-1]
+            r["change"] = round(1 - _sim(prev, r) + abs(r["level"] - prev["level"]) / 20.0, 4)
+        best = max(((j, _sim(rows[j], r)) for j in range(i)), key=lambda t: t[1], default=None)
+        if best:
+            r["like"] = {"n": best[0] + 1, "sim": round(best[1], 4), "dlevel": round(r["level"] - rows[best[0]]["level"], 1)}
+        rows.append(r)
+    flag(rows)
+    return rows, dur
+
+
+def flag(rows):
+    """Flags relative to the song itself (its own quartiles) plus a few absolute ones."""
+    if len(rows) < 3:
+        return
+    mot = np.array([r["motion"] for r in rows])
+    chg = np.array([r.get("change", np.nan) for r in rows])
+    m25 = float(np.percentile(mot, 25))
+    c25 = float(np.nanpercentile(chg, 25))
+    for r in rows:
+        f = []
+        lk = r.get("like")
+        if lk and lk["sim"] >= REPEAT and abs(lk["dlevel"]) <= 1.5:
+            f.append(f"near-repeat of w{lk['n']}")
+        if r["motion"] <= m25:
+            f.append("static")
+        if r.get("change") is not None and r["change"] <= c25:
+            f.append("little new vs w{}".format(r["n"] - 1))
+        if r.get("change") is not None and r["n"] > 1 and abs(r["level"] - rows[r["n"] - 2]["level"]) >= 6:
+            f.append("level jump")
+        r["flags"] = f
+
+
+def focus_order(rows, ledger, recent=3):
+    """Windows to focus on next: flagged ones first (most flags, then the most repeat-like), least recently focused
+    first; a window focused in the last RECENT marks waits."""
+    last = {}
+    for k, e in enumerate(ledger):
+        last[e.get("window")] = k
+    n = len(ledger)
+    cand = []
+    for r in rows:
+        if r["n"] in last and n - last[r["n"]] <= recent:
+            continue
+        score = 2.0 * len(r.get("flags") or []) + (r.get("like") or {}).get("sim", 0) - r["motion"] * 10
+        cand.append((-(score), last.get(r["n"], -1), r["n"]))
+    cand.sort()
+    return [c[2] for c in cand]
+
+
+def ledger_path(cid):
+    c = CS.climb_of(cid)
+    album = c.get("album") or (c.get("compose") or {}).get("album")
+    return os.path.join(ROOT, "compose", album, "sections", f"{cid}.jsonl")
+
+
+def read_ledger(cid):
+    try:
+        with open(ledger_path(cid)) as f:
+            return [json.loads(x) for x in f if x.strip()]
+    except (OSError, ValueError):
+        return []
+
+
+def compare(new, old):
+    """Per window: how the NEW render's window differs from the OLD's (same windows)."""
+    out = []
+    for a, b in zip(new, old):
+        out.append({"n": a["n"], "change": round(1 - _sim(a, b) + abs(a["level"] - b["level"]) / 20.0, 4),
+                    "dlevel": round(a["level"] - b["level"], 1), "dbright_hz": a["bright_hz"] - b["bright_hz"],
+                    "ddensity": round(a["density"] - b["density"], 2), "dmotion": round(a["motion"] - b["motion"], 4),
+                    "change_vs_prev": [b.get("change"), a.get("change")]})
+    return out
+
+
+def fmt_t(s):
+    return f"{int(s // 60)}:{int(s % 60):02d}"
+
+
+def render(song, pin, out):
+    def idle():
+        try:
+            os.sched_setscheduler(0, os.SCHED_IDLE, os.sched_param(0))
+        except (AttributeError, OSError):
+            os.nice(15)
+    r = subprocess.run([pin, "render", "-f", song, "--seed", "0", "-o", out], cwd=ROOT, capture_output=True, text=True,
+                       preexec_fn=idle)
+    if r.returncode:
+        raise SystemExit(f"sectionmap: render failed: {r.stderr.strip()[-400:]}")
+
+
+def print_map(cid, song, rows, dur, ledger):
+    rel = os.path.relpath(song, ROOT)
+    w0 = rows[0]
+    span = (w0["beats"][1] - w0["beats"][0]) if w0["beats"][0] is not None else None
+    print(f"{cid}: {len(rows)} windows" + (f" of {span:g} beats" if span else "") + f", music {fmt_t(dur)}"
+          f" — a flashlight, not a score")
+    last = {e.get("window"): e for e in ledger}
+    print(f"{'w':>3} {'time':>11} {'beats':>11} {'lvl dB':>7} {'bright':>7} {'dens':>5} {'motion':>7} {'change':>7}  "
+          f"{'most like':<14} flags / last focus")
+    for r in rows:
+        b = f"{r['beats'][0]:g}-{r['beats'][1]:.0f}" if r["beats"][0] is not None else "-"
+        lk = r.get("like")
+        like = f"w{lk['n']} {lk['sim']:.3f}" if lk else "-"
+        ch = f"{r['change']:.3f}" if r.get("change") is not None else "-"
+        lf = last.get(r["n"])
+        tail = ", ".join(r.get("flags") or [])
+        if lf:
+            tail += (" | " if tail else "") + f"focused {lf.get('at', '')[:16]} by {lf.get('who')}"
+        print(f"{r['n']:>3} {fmt_t(r['time'][0]):>5}-{fmt_t(r['time'][1]):<5} {b:>11} {r['level']:>7.1f} "
+              f"{r['bright_hz']:>7} {r['density']:>5.2f} {r['motion']:>7.4f} {ch:>7}  {like:<14} {tail}")
+    order = focus_order(rows, ledger)[:3]
+    if order:
+        print("focus next (flagged and least recently focused first):")
+        for n in order:
+            r = rows[n - 1]
+            why = ", ".join(r.get("flags") or []) or "no flags: polish"
+            print(f"  w{n} {fmt_t(r['time'][0])}-{fmt_t(r['time'][1])}: {why}")
+            if r["beats"][0] is not None:
+                a, b = r["beats"]
+                ctx_a = max(0.0, a - (b - a) / 2)
+                print(f"     chirp render -f {rel} --from {a:g}b --to {b:g}b -o /tmp/{cid}-w{n}.wav"
+                      f"   (in context: --from {ctx_a:g}b --to {b + (b - a) / 2:g}b)")
+    print(f"after the round: chirpers.py sections {cid} --mark N --note '…'  (and --against OLD.wav to check it stayed local)")
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap.add_argument("id")
+    ap.add_argument("--wav", help="the render to map (default: render the song with the groove pin, seed 0)")
+    ap.add_argument("--against", help="an earlier render of the same song: per-window deltas")
+    ap.add_argument("--window", type=float, default=30.0, help="window length in seconds (whole bars; default 30)")
+    ap.add_argument("--mark", type=int, help="record a section round on window N in the ledger")
+    ap.add_argument("--note", help="with --mark: what the round did")
+    ap.add_argument("--pin", help="chirp binary (default: tools/groove-pin)")
+    ap.add_argument("--json", action="store_true")
+    ap.add_argument("--as", dest="as_", help=argparse.SUPPRESS)
+    ap.add_argument("--no-git", action="store_true", help=argparse.SUPPRESS)
+    a = ap.parse_args(argv)
+    song, climb = song_path(a.id)
+    if a.mark is not None:
+        return mark(a, song, climb, argv or [])
+    tmp = None
+    wav = a.wav
+    if not wav:
+        tmp = tempfile.mkdtemp(prefix="chirp-sections-")
+        wav = os.path.join(tmp, f"{a.id}.wav")
+        render(song, a.pin or open(os.path.join(HERE, "groove-pin")).read().strip(), wav)
+    try:
+        rows, dur = analyse(wav, song, a.window)
+        ledger = read_ledger(a.id)
+        if a.against:
+            old, _ = analyse(a.against, song, a.window)
+            # the old render on the NEW render's windows (same song file, so the same beats)
+            old = old[:len(rows)]
+            cmp_ = compare(rows, old)
+            if a.json:
+                print(json.dumps({"id": a.id, "compare": cmp_}))
+                return
+            top = max(c["change"] for c in cmp_) or 1e-9
+            print(f"{a.id}: {os.path.basename(wav)} against {os.path.basename(a.against)} (per window; change 0 = same)")
+            print(f"{'w':>3} {'time':>11} {'change':>7} {'dB':>6} {'bright':>7} {'dens':>6} {'motion':>8}  change vs prev (was -> now)")
+            for c, r in zip(cmp_, rows):
+                mark_ = " <" if c["change"] >= 0.25 * top and c["change"] > 0.002 else ""
+                cv = c["change_vs_prev"]
+                cvs = f"{cv[0]:.3f} -> {cv[1]:.3f}" if cv[0] is not None and cv[1] is not None else "-"
+                print(f"{c['n']:>3} {fmt_t(r['time'][0]):>5}-{fmt_t(r['time'][1]):<5} {c['change']:>7.4f} {c['dlevel']:>6.1f} "
+                      f"{c['dbright_hz']:>7} {c['ddensity']:>6.2f} {c['dmotion']:>8.4f}  {cvs}{mark_}")
+            return
+        if a.json:
+            print(json.dumps({"id": a.id, "dur": dur, "windows": [{k: v for k, v in r.items() if k not in ("vec", "chroma")}
+                                                                   for r in rows],
+                              "focus": focus_order(rows, ledger)}))
+            return
+        print_map(a.id, song, rows, dur, ledger)
+    finally:
+        if tmp:
+            import shutil
+            shutil.rmtree(tmp, ignore_errors=True)
+
+
+def mark(a, song, climb, argv):
+    import chirpers as CH
+    C = CH.C
+    if not a.note:
+        raise SystemExit("sectionmap: --mark N needs --note '…' (what the round did to that window)")
+    path = ledger_path(a.id)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    e = {"id": a.id, "window": a.mark, "at": C.now_iso(), "who": C.whoami(argv),
+         "version": (climb.get("best") or {}).get("version"), "note": a.note}
+    with open(path, "a") as f:
+        f.write(json.dumps(e) + "\n")
+    print(f"{a.id}: section round on w{a.mark} recorded ({e['who']})")
+    if "--no-git" not in argv:
+        rel = os.path.relpath(path, ROOT)
+        subprocess.run(["git", "-C", ROOT, "add", rel], check=False)
+        C.commit_or_die([rel], f"compose: {e['who']} section round on {a.id} w{a.mark}: {a.note[:80]}", argv)
+
+
+if __name__ == "__main__":
+    main()

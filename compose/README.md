@@ -47,6 +47,32 @@ plus Harry's ratings), and Harry's ear decides.
 `tools/chirpers.py status ALBUM` shows the album; `chirpers.py refresh ALBUM` re-renders every composed song and
 re-saves features (run it after several songs change).
 
+### Round types (Harry, 2 Nov)
+
+An album can set `params.rounds` in its `album.json`, e.g. `{"whole": 0.4, "section": 0.4, "palette": 0.2}`. Then
+`climb.py next` draws each round's TYPE, from those weights, per song and round number (reproducible), and the brief
+says which. `next --type T` overrides the draw when you have a reason. Name the type in your round note. Without
+`params.rounds`, every round is a whole-song round as before.
+
+- **whole**: the usual round, the bold change that moves the whole song most.
+- **section**: one ~30 s window, worked closely in its context. The aim is the small changes a whole-song pass misses,
+  the ones that make a song feel handcrafted and unique: make that window stand out, or blend, and keep the variety
+  moving. `chirpers.py sections ALBUM-tN --wav BEST.wav` maps the song in windows of whole 4-bar phrases, about 30 s,
+  on its own tempo map. For each window it shows level, brightness, density, internal motion, the change from the
+  window before, and the earlier window it is most like. It flags near-repeats, static windows, little-new windows
+  and level jumps, then names the windows to focus on next: flagged, least recently focused first. It also prints the
+  `chirp render --from/--to` commands for each window, alone and in context. After the change,
+  `sections … --wav NEW.wav --against OLD.wav` shows per-window deltas, so you can confirm the change stayed in its
+  window and see how it moved against its neighbours. The full-length score must not regress beyond noise, or keep it
+  on judgment. Record the round with `sections … --mark N --note '…'`, which writes the song's ledger
+  `compose/ALBUM/sections/ALBUM-tN.jsonl` and commits it, so focus rotates through the song. The flags are a
+  flashlight, not a quota: a static window can be the point.
+- **palette**: `chirpers.py palette ALBUM-tN` lists the song's instruments (track, patch, what it is made of), the
+  album's staples (library patches three or more songs share), the library patches no song on the album uses, the
+  song's own patches (library candidates), and the engine features the album has not used. Change one or two
+  instruments: swap a staple for something no other track has, design a new patch, or add the part the song lacks.
+  Measure on full-length renders.
+
 ## The score (`tools/compscore.py`)
 
 The total is a weighted mean of the terms that apply; weights are in `album.json` (`weights`).

@@ -178,6 +178,11 @@
         0.6
       ],
       "map": true
+    },
+    "rounds": {
+      "whole": 0.4,
+      "section": 0.4,
+      "palette": 0.2
     }
   }
 }
