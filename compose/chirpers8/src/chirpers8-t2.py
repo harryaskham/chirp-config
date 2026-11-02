@@ -45,6 +45,7 @@ ENDI = os.environ.get("C8T2_ENDI", "2")   # everything falls to ONE, harmonicall
 ENDPAD = os.environ.get("C8T2_ENDPAD", "1")   # the pad follows the cadence: with ENDI the outro's last pad (struck four bars from the end on C) is cut to two bars and the tonic G is struck for the last two - before, the choir held C under the final G
 DPEDAL = os.environ.get("C8T2_DPEDAL", "90")   # a soft D2 sine (the G chord's fifth, t3's root: its tanpura and gong are on D) under the outro's last four bars; my tail sits 6.7 dB under t3's head and 22-24 dB thin at 71-83 Hz; value = velocity
 HATAIR = os.environ.get("C8T2_HATAIR", "10")   # the sieve's air: the prime-sieve hats get a +HATAIR dB peak at 9 kHz (the record is 6-10 dB under the album envelope at 7-11 kHz; a master boost there moved seed 0's sections, the hats are steady and everywhere)
+BEND = os.environ.get("C8T2_BEND", "1")   # the climb is a reach: every note the rule makes by 3n+1 (after an odd number) is scooped up into from BEND semitones below (bend in two 32nd steps, then home) - the halvings fall plainly, the multiplications strain upward
 ARP32 = os.environ.get("C8T2_ARP32", "")    # the drop's arps on 1/32 (as the plan always said): double-time chip arps through C
 BAR = 16
 SEED = 2
@@ -114,7 +115,12 @@ def build():
                     break
                 last = i == len(path) - 1
                 d = height(n) + (7 if up else 0)
-                add("clar", at, deg_note(d), 4 if last else 2, 100 if n % 2 else 82)
+                v = 100 if n % 2 else 82
+                if BEND and i > 0 and path[i - 1] % 2 == 1 and not last:
+                    b = float(BEND)
+                    add("clar", at, f"!bend=-{b:g} {deg_note(d)}/0.125b@{v} bend=-{b / 2:g} _/0.125b bend= _/0.25b", 2, v)
+                else:
+                    add("clar", at, deg_note(d), 4 if last else 2, v)
                 if CANON and sec in ("B", "C") and at + BAR < end:
                     add("clar2", at + BAR, deg_note(max(d - 7, 0)) if d >= 7 else deg_note(d), 4 if last else 2,
                         int((100 if n % 2 else 82) * int(CANON) / 100))
@@ -174,7 +180,7 @@ def stream(events, tot):
             continue
         if at > t:
             out.append(f"R/{(at - t) / 4:g}b")
-        out.append(f"{head}/{ln / 4:g}b@{int(vel)}")
+        out.append(head[1:] if head.startswith("!") else f"{head}/{ln / 4:g}b@{int(vel)}")
         t = at + ln
     if t < tot:
         out.append(f"R/{(tot - t) / 4:g}b")
