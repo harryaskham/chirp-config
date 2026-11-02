@@ -61,6 +61,7 @@ SPEQ = os.environ.get("C8T5_SPEQ", "4,8")   # 'G,H': colour against the album en
 BARGTAKE = os.environ.get("C8T5_BARGTAKE", "touch")   # 'touch': the bargain re-voiced so a listener can follow it - 'slow down a touch. speed up a touch. there.' (tts --voice voice-spoken --speed 0.9 --humanize 0.4 --seed 7, chosen by whisper: the old 'a little slower...' read 'Honey has a longer...' even dry; every voice turned 'a little' into 'honey')
 BARGG = os.environ.get("C8T5_BARGG", "")   # the bargain's gain offset from VOX (dB)
 BARGMIX = os.environ.get("C8T5_BARGMIX", "0.7")   # the bargain's radio mix (0.85 before)
+KEEP3 = os.environ.get("C8T5_KEEP3", "1")   # fewer returns (Harry on t1: 'repeats a lot'): the spoken 'keep it there' says it three times, not four - the second (the first half-sung) goes, leaving a bar's breath; still speech, then nearly song, then song
 HOOKF = [(0, "E4", 3), (3, "G4", 3), (6, "A4", 4), (10, "B4", 6), (16, "D5", 3), (19, "B4", 3), (22, "D5", 4), (26, "E5", 6)]
 CLEN = int(os.environ.get("C8T5_CLEN", "42"))   # C's length: 40 tightens the agreement (the lift at bar 25, the second 'keep it there' at 33)
 FORM = [("intro", 12), ("A", 34), ("B", 26), ("retrain", 12), ("C", CLEN), ("outro", 16)]
@@ -307,7 +308,7 @@ def voice(file, name, offs16, gain, fx, sends):
     notes, fv = [], []
     for o16 in offs16:
         off = o16 / 4
-        notes += [dict(n, at=round(n["at"] + off, 4)) for n in src["notes"]]
+        notes += [dict(n, at=round(n["at"] + off, 4)) for n in src["notes"] if not (KEEP3 and name == "keep" and 4 <= n["at"] < 8)]
         fv += [[f"{float(t[:-1]) + off:.3f}b", v] for t, v in src["auto"]["fv"]["points"]]
     auto = {"fv": {"points": fv}}
     if name == "bargain":
