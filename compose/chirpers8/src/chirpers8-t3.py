@@ -35,6 +35,29 @@ D3 = 50                                                    # MIDI D3
 FORM = [("seed", 12, 90), ("boot", 10, 90), ("A", 30, 30), ("glider", 26, 110), ("traffic", 16, 184),
         ("peak", 38, 30), ("decay", 18, 4), ("out", 20, 4)]
 ROOTS = [0, 4, 3, 6]                                       # degrees the population picks: D, A, G, the 7/4 C
+# T3_R4 = hymn (v4, whole-song round: a TUNE). The peak stood still for 38 bars (sections: w7-w9 static, little new),
+# and the cell's line was a fragment. Now the peak is 18 bars and a new 16-bar HYMN follows it: the cell's song in
+# full, sung as a duet (the clear voice on the tune, the rounder `voice` a third or a sixth under it, each its own
+# humanized take, src/t3/h*.json and l*.json) - "I only know the two beside me / what I become is what we were /
+# I only know the two beside me / and they are enough" (a cell's next state is what it and its two neighbours were).
+# Under it, for the first time in the song, a WRITTEN progression instead of one the population picks:
+# Dm Bb F Dm | Gm C F Bb | Dm Bb Am Am | Bb C Dm Dm, on a harmonium (no other song on the album has one; reeds by
+# the tanpura) and a walking pluck bass, all snapped into the septimal JI (the Bb chord is 9/7 + 7/6). The automaton
+# keeps running under the song, quietly, on the marimba. The tune is FORESHADOWED in the A section, augmented, on a
+# kora (also new to the album), so w3's static middle carries a line. And THREE NEIGHBOURS LEFT: the hymn hands the
+# decay three isolated cells (D, the septimal F and the 14/9 Bb: the hymn's Bb chord, 9/7 + 7/6), which rule 4
+# keeps and entropy takes until one is left - the 14/9 bar at ~913 Hz, struck once more, plainly, in the last bar, the
+# ring t4 opens by catching; the kora remembers "and they are enough" in the decay and the low voice sings
+# it alone once in the out, the song's last words.
+# T3_R4=none reproduces v3.
+R4 = os.environ.get("T3_R4", "hymn")
+if R4 == "hymn":
+    FORM = FORM[:5] + [("peak", 18, 30), ("hymn", 16, 30)] + FORM[6:]
+HYMN = [(0, 3, 7), (8, 14, 17), (3, 7, 12), (0, 3, 7), (5, 10, 14), (10, 14, 17), (3, 7, 12), (8, 14, 17),
+        (0, 3, 7), (8, 14, 17), (7, 10, 16), (7, 10, 16), (8, 14, 17), (10, 14, 17), (0, 3, 7), (0, 3, 7)]
+HYMN_BASS = [38, 34, 41, 38, 43, 36, 41, 34, 38, 34, 33, 33, 34, 36, 38, 38]
+HINT1 = [("A3", 2), ("D4", 1), ("E4", 1), ("F4", 2), ("E4", 1), ("D4", 1), ("C4", 2), ("A3", 1), ("D4", 4)]
+HINT4 = [("F4", 2), ("E4", 1), ("D4", 1), ("C4", 2), ("D4", 4)]
 # T3_R2 = live (v2, wM's tunings, complex systems and morph). The machine TUNES ITSELF: the notes are written in plain
 # 12-TET D minor and the song's `tuning` ramps from 12-TET into the 7-limit just scale over ten bars from the boot (F, Bb
 # and C sag a third of a semitone into the septimal minor third, sixth and harmonic seventh as you listen); chords are
@@ -129,7 +152,7 @@ class Track:
 def build():
     rng = random.Random(3)
     names = ("kick", "hats", "ohat", "rim", "bar", "barlo", "barx", "vibes", "glock", "bell", "gong", "toms", "bass", "chord", "drone",
-             "rise")
+             "rise", "hint", "hymn", "hbass")
     T = {k: Track(k) for k in names}
     row = [0] * W
     row[8] = 1
@@ -145,8 +168,11 @@ def build():
         prev = row
         if bi > 0:
             row = step(row, rule)
-            if sec == "decay":  # entropy: a cell is lost now and then
-                row = [c if rng.random() > 0.06 else 0 for c in row]
+            if R4 == "hymn" and sec == "decay" and i == 0:   # three neighbours left
+                row = [1 if c in (0, 3, 9) else 0 for c in range(W)]
+            if sec == "decay":  # entropy: a cell is lost now and then (v4: never the last one, cell 9, whose 14/9 bar
+                # at ~913 Hz is the ring t4 opens by catching)
+                row = [c if (rng.random() > 0.06 or (R4 == "hymn" and k == 9)) else 0 for k, c in enumerate(row)]
             if sec in ("decay", "out") and sum(row) == 0:
                 row = [0] * W
                 row[8] = 1
@@ -161,7 +187,7 @@ def build():
         pop = sum(row)
         born = [c for c in range(W) if row[c] and not prev[c]]
         died = [c for c in range(W) if prev[c] and not row[c]]
-        groove = sec in ("boot", "A", "glider", "peak", "decay")
+        groove = sec in ("boot", "A", "glider", "peak", "decay", "hymn")
         full = sec in ("glider", "peak")
         # ---- the chord root: every four bars the population picks it ----
         if i % 4 == 0:
@@ -176,14 +202,14 @@ def build():
                 T["kick"].add(start + b, 1.0, "kr", 112 if b == 0 else 104)
         # ---- hats: Euclidean, rotated by the population ----
         if groove and sec not in ("boot", "glider"):
-            k = {"A": 7, "peak": 9, "decay": 5}.get(sec, 5)
+            k = {"A": 7, "peak": 9, "decay": 5, "hymn": 7}.get(sec, 5)
             for s, on in enumerate(euclid(k, 16, pop % 16)):
                 if on:
                     T["hats"].add(start + s * 0.25 + 0.01, 0.1, "h", 50 + (10 if s % 4 == 2 else 0) + rng.randint(-5, 5))
-        if sec in ("glider", "peak"):
+        if sec in ("glider", "peak", "hymn"):
             for b in (0.5, 1.5, 2.5, 3.5):
                 T["ohat"].add(start + b + 0.01, 0.3, "oh", 58)
-        if sec == "peak":
+        if sec in ("peak", "hymn"):
             T["rim"].add(start + 1.0, 0.3, "cp", 84)
             T["rim"].add(start + 3.0, 0.3, "cp", 90)
         # ---- THE ROW: live cells strike ----
@@ -194,6 +220,8 @@ def build():
                 v = (78 if c % 4 == 0 else 66) + rng.randint(-6, 6)
                 if sec in ("out",):
                     v -= 10
+                if sec == "hymn":
+                    v -= 16
                 T["barlo" if sec == "decay" else ("barx" if (sec == "traffic" and R2 == "live") else line)].add(start + c * 0.25, 1.2 if line == "bar" else 2.0,
                                                           hz_m(jm(deg, (50 if sec == "decay" else 62) if line == "bar" else 74)),
                                                           v, "?0.8" if sec == "out" else "")
@@ -207,7 +235,7 @@ def build():
         if sec == "glider":  # the marimba only answers the births
             for c in born[:4]:
                 T["bar"].add(start + c * 0.25, 1.2, hz_m(jm((c * 3) % 15, 62)), 74, "?0.85")
-        elif sec not in ("seed", "traffic", "out"):
+        elif sec not in ("seed", "traffic", "out", "hymn"):
             for c in born[:3]:
                 T["vibes"].add(start + c * 0.25, 3.0, hz_m(jm((c * 3) % 15 + 7, 62)), 70, "?0.8")
             if sec not in ("boot",):
@@ -223,7 +251,7 @@ def build():
                      ",".join(hz_m(ratio_m(cm, r)) for r in (1, 7 / 6, 3 / 2, 7 / 4)))
             T["chord"].add(start, 15.6, heads, 76 if sec == "glider" else 62)
         # ---- the plucked bass: Euclidean, rotated by the population ----
-        if groove and sec != "decay" or (sec == "traffic" and i % 4 == 0):
+        if (groove and sec not in ("decay", "hymn")) or (sec == "traffic" and i % 4 == 0):
             if sec == "glider":
                 if i % 2 == 0:
                     T["bass"].add(start, 7.6, hz_m(root_m), 92)
@@ -252,11 +280,44 @@ def build():
             sing("sing1.json" if i == 28 else "sing2.json", start, 0.8)
         if sec == "traffic" and i == n - 4:
             T["rise"].add(start, 16.0, "D4", 76)
+        if R4 == "hymn":
+            if (sec == "A" and i in (12, 22)) or (sec == "decay" and i == 6):   # the tune on the kora, augmented, an octave up
+                at = start
+                for nt, ln in (HINT1 if (sec, i) == ("A", 12) else HINT4):
+                    T["hint"].add(at, 2 * ln, nt[:-1] + str(int(nt[-1]) + 1), 74)
+                    at += 2 * ln
+            if sec == "hymn":
+                ch = HYMN[i]
+                T["hymn"].add(start, 3.9, ",".join(f"m{50 + s}" for s in ch), 74 if i % 4 else 82)
+                r = HYMN_BASS[i]
+                for b, ln, off, v in ((0, 1.4, 0, 96), (1.5, 0.45, 7, 80), (2.5, 0.45, 12, 84), (3.5, 0.45, 7, 78)):
+                    T["hbass"].add(start + b, ln, f"m{r + off}", v)
+                if i % 4 == 0:
+                    for who, src in (("hlead", "h"), ("hlow", "l")):
+                        hum(who, f"{src}{i // 4 + 1}.json", start)
+            if sec == "out" and i == 6:                    # the last words, the low voice alone
+                hum("hlow", "l4.json", start)
+            if sec == "out" and i == n - 1:                # the last cell's ring, for t4 to catch
+                T["bar"].add(start + 3.5, 4.0, hz_m(jm(12, 62)), 64)
     secs, s0 = [], 0.0
     for name, n, rule in FORM:
         secs.append((name, s0, n, rule))
         s0 += n * 4
     return total, bars, secs, T, rows
+
+
+HUM = {"hlead": [], "hlow": []}
+HUM_PATCH = {}
+
+
+def hum(dst, name, at):
+    src = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "t3", name)))["tracks"][0]
+    HUM_PATCH[dst] = src["patch"]
+    for nt in src["notes"]:
+        d = {"at": round(at + nt["at"], 4), "len": nt["len"], "ph": nt["ph"], "pitch": nt["pitch"], "vel": nt["vel"]}
+        if nt.get("expr_path"):
+            d["expr_path"] = nt["expr_path"]
+        HUM[dst].append(d)
 
 
 def sing_patch():
@@ -355,6 +416,24 @@ def main():
              "gen": {"type": "ca", "rule": 30, "width": 16, "init": "center", "poly": 2,
                      "notes": "h rs h cb h oh h cp", "n": L["peak"] * 16, "len": "/16"}},
         ]
+    if R4 == "hymn":
+        vfx = ["hp cutoff=140", "peak cutoff=600 gain=-3dB q=1", "compressor threshold=-20dB ratio=3 attack=5ms release=120ms",
+               {"type": "delay", "time": "3/8", "feedback": 0.25, "mix": 0.15, "ping_pong": True, "tone": 3500}]
+        tracks += [
+            {"name": "hint", "patch": "kora", "gain": os.environ.get("T3_HINT_GAIN", "7dB"), "pan": -0.25, "sends": {"hall": "-8dB"},
+             "fx": ["hp cutoff=250", "peak cutoff=600 gain=-3dB q=1",
+                    {"type": "delay", "time": "3/8", "feedback": 0.3, "mix": 0.2, "ping_pong": True, "tone": 4000}],
+             "score": T["hint"].score(total)},
+            {"name": "hymn", "patch": "harmonium", "gain": os.environ.get("T3_HYMN_GAIN", "-12dB"), "pan": 0.0,
+             "sends": {"hall": "-8dB"}, "fx": ["hp cutoff=120", "peak cutoff=600 gain=-4dB q=1", "chorus mix=0.2"],
+             "score": T["hymn"].score(total)},
+            {"name": "hbass", "patch": "pluck", "gain": "-2dB", "fx": ["lp cutoff=1500", "drive drive=0.2"],
+             "score": T["hbass"].score(total)},
+            {"name": "hlead", "patch": HUM_PATCH["hlead"], "gain": os.environ.get("T3_HLEAD_GAIN", "-2dB"), "pan": 0.12,
+             "sends": {"hall": "-7dB"}, "fx": vfx, "notes": HUM["hlead"]},
+            {"name": "hlow", "patch": HUM_PATCH["hlow"], "gain": os.environ.get("T3_HLOW_GAIN", "-7dB"), "pan": -0.18,
+             "sends": {"hall": "-6dB"}, "fx": vfx, "notes": HUM["hlow"]},
+        ]
     buses = {"hall": {"gain": "-4dB", "fx": ["hp cutoff=200", "reverb kind=hall decay=3.2s mix=1"]}}
     secline = "; ".join(f"{n} rule {r} from {s:.0f}b ({k} bars)" for n, s, k, r in secs)
     about = ("chirpers - chirpers VIII, track 3. Original composition by chirper-two, generated by "
@@ -379,7 +458,8 @@ def main():
         "patches: " + json.dumps(patches()),
         "buses: " + json.dumps(buses),
         "master: " + json.dumps({"fx": [{"type": "eq", "bands": ["hp cutoff=25", "peak cutoff=250 gain=-2dB q=0.8",
-                                                               "highshelf cutoff=7000 gain=2dB"]},
+                                                               "highshelf cutoff=7000 gain=2dB"] +
+                                                              (["peak cutoff=750 gain=-2.5dB q=0.6"] if R4 == "hymn" else [])},
                                         "glue threshold=-20dB ratio=2 attack=10ms release=150ms makeup=1dB",
                                         {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}},
                                         {"type": "limiter", "ceiling": "-1.2dB", "release": "80ms"}],
