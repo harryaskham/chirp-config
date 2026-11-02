@@ -69,7 +69,7 @@ def build():
         for i in range(n):
             bars.append((name, i, tp))
     total = len(bars) * 4.0
-    P = {k: [] for k in ('bell', 'sync', 'pwm', 'bass', 'sub', 'd1', 'd2', 'd3', 'kit', 'pulse', 'glass', 'cs')}
+    P = {k: [] for k in ('bell', 'sync', 'pwm', 'bass', 'sub', 'd1', 'd2', 'd3', 'kit', 'pulse', 'glass', 'cs', 'bell0')}
     # the call stack: a seeded walk, one move every four bars in the calls sections
     depth, depths = 0, []
     for b, (s, i, tp) in enumerate(bars):
@@ -210,7 +210,9 @@ def build():
             for q_ in range(16):
                 P['pulse'].append((t0 + q_ * 0.25, tok(67 if i < 2 else 69), 0.22, int(70 - 10 * i + (8 if q_ % 4 == 0 else 0))))
         if s == 'intro' and i < 4 and i % 2 == 0:
-            P['bell'].append((t0, tok(62 + tp), 7.5, 76))      # the bell tolls the machine awake
+            # (v17) the first tolls are a softer, darker bell (less FM index) - the machine still waking, nearer the glass
+            # and clarinet t9 leaves behind - and the bell brightens to its full self when the subject begins
+            P['bell0'].append((t0, tok(62 + tp), 7.5, 76))      # the bell tolls the machine awake
         # THE STACK: each level spawns a faster copy of this bar's subject, an octave higher each time
         d = depths[b]
         if d and (s.startswith('calls') or s == 'final'):
@@ -306,6 +308,8 @@ def build():
                           'limiter ceiling=-1dB'], 'auto': {'dyn': {'points': dyn}}},
         'tracks': [
             tr('bell', BELL, '-8dB', pan=-0.15, sends={'echo': '-12dB', 'hall': '-14dB'}),
+            tr('bell0', {'synth': dict(BELL['synth'], layers=[BELL['synth']['layers'][0], {'wave': 'sine', 'pm': [{'from': 'm', 'depth': {'value': 0.12, 'mod': [{'src': 'env.bright', 'amount': 0.9}]}}]}])},
+               '-7dB', pan=-0.15, sends={'echo': '-12dB', 'hall': '-11dB'}),
             tr('sync', SYNC, '-12dB', pan=0.2, fx=['lp cutoff=4500'], sends={'hall': '-16dB'}),
             tr('pwm', PWM, '-15dB', pan=0.05, auto={'pw': {'points': pw}}, sends={'hall': '-10dB'}),
             tr('bass', FMBASS, '-7dB', fx=['lp cutoff=1600']),
@@ -321,9 +325,7 @@ def build():
             # different cycle for each key of the canon - in D minor seven triplet-eighth rims spread over the bar (7 in 12,
             # rotated, each with an 85% chance: a 7-against-4 the kick never agrees with), in G minor a cowbell five-in-
             # sixteen, in A minor a clap three-in-eight, 70% of the time
-            {'name': 'eu', 'patch': 'machine-kit', 'gain': '-10dB', 'pan': 0.35, 'sends': {'echo': '-14dB'},
-             'score': (f"R/{secs_t['calls1']:.0f}b [ rs(7,12,2)/12@70?0.85 ]x{FORMN['calls1']} "
-                       f"[ cb(5,16,3)/16@60 ]x{FORMN['calls2']} [ cp(3,8,1)/8@64?0.7 ]x{FORMN['calls3']}")},
+            # (v17) the Euclidean percussion line (v8) removed: a seventh layer in the busiest sections, never prominent
             # (v5) THE SUBJECT, SUNG: where the canon turns to G minor and the sync lead rests, a human voice takes the
             # subject's first half twice, two octaves under the bell, one syllable a note (wM's chirp tts --sing, humanize 0.35):
             # 'every time you call, I go down a little, further than before, and I always come back' - a subroutine's
