@@ -283,7 +283,10 @@ def write():
         for j in cmp:
             part("tick").add(b0(bar) + j / 4, 0.1, "h", 52 + hand.randint(-6, 6))
         for j in sw:
-            part("swap").add(b0(bar) + j / 4 + 0.125, 0.15, "rs", 84 + hand.randint(-6, 6))
+            # v15: THE SWAPS PLAY THE TOMS - each swap strikes a tuned membrane (modal layer) at the pitch of the
+            # element being moved, in the riff's notes an octave down: the work becomes a talking-drum line
+            part("swap").add(b0(bar) + j / 4 + 0.125, 0.3, pitch(RIFF[arr[j]] + root_at(bar), BASE - 12),
+                             84 + hand.randint(-6, 6))
         if (sec == "sorted" and chopped(bar) and not chopped(bar - 1)):
             part("crash").add(b0(bar), 2.0, "cy", 84)                # v4: a crash where the sound gets sorted
         if (sw == [] and sec not in ("intro", "sorted", "outro")) or done:
@@ -474,7 +477,7 @@ def main():
             tr("carrier", "partial", gain="-24dB", sends={"room": "-10dB"}),                # v8: the handshake
             tr("hum", "808", gain="-4dB"),                     # v2: into t5's E2 (v8: 6 dB up - it sat at -36 dB alone)
             tr("tick", "909", gain="-17dB", pan=0.2, fx=[{"type": "filter", "kind": "hp", "cutoff": 3000}]),
-            tr("swap", "909", gain="-11dB", pan=-0.2, sends={"room": "-10dB"}),
+            tr("swap", "modal-tom", gain="-15dB", pan=-0.2, sends={"room": "-10dB"}),     # v15: tuned membranes
             tr("crash", "909", gain="-12dB", sends={"room": "-8dB"}),
             tr("kick", "909", gain="-10dB"),
             tr("clap", "909", gain="-6dB", sends={"room": "-8dB"}),
