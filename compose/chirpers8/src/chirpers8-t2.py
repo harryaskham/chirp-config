@@ -33,6 +33,8 @@ SUBOUT = os.environ.get("C8T2_SUBOUT", "4")  # the sine sub leaves for the outro
 SPARSE = os.environ.get("C8T2_SPARSE", "b")  # 'i' / 'b' / 'ib' - space: no arps in the intro's first 8 bars (the clarinet alone, then the chip arrives) and none in the break (the pads and the sung 4-2-1 alone)
 PADLOW = os.environ.get("C8T2_PADLOW", "1")  # the choir an octave down (G2 B2 D3 ... the body 98-160 Hz the mix lacked) and humming from the first bar, softly, so t1's warm tail lands on it
 AIR = os.environ.get("C8T2_AIR", "")        # air over the sieve: a quiet dusty shaker on every sixteenth through B and C (the 7-11 kHz the hats leave); value = velocity
+SUNGSEND = os.environ.get("C8T2_SUNGSEND", "-18,-24")   # 'plate,echo' send levels (dB) for the sung line - at -7/-13 the plate and echo smeared it: whisper read the dry take 'it goes up, even comes down' but the sent one 'God goes on me, we can't stop'
+SUNGROOM = os.environ.get("C8T2_SUNGROOM", "clar,clar2,arp")   # tracks that rest while the voice sings (comma list, e.g. 'clar,clar2'): the clarinet's own line sat on top of the sung one, two tunes in one register - now it breathes for the voice's two bars and comes back
 SING = os.environ.get("C8T2_SING", "-13")      # a SUNG line (wM's tts --sing, b4151423): 'high as the cloud, and then home' on D4 E4 F#4 G4 | B3 A3 G3 - the climb, then the hook - as the 27 path falls home in the drop (C bars 13 and 41); value = gain dB
 JI = os.environ.get("C8T2_JI", "1")          # everything falls to ONE, the simplest ratio: from the break the song's tuning ramps over eight bars into 5-limit just G major (I, IV and V become 4:5:6, vi 10:12:15) - the numbers settle into small whole ones
 EQ8 = os.environ.get("C8T2_EQ8", "1")   # the master toward the album's envelope: 6.7-10.8 kHz sat 8-12 dB under it and 400 Hz / 1.4 kHz 7 dB over - a +5 dB air shelf at 7 kHz (was +1.5), -2.5 dB at 400 Hz, -2 dB at 1.4 kHz
@@ -237,6 +239,11 @@ def build():
         b0, b1 = sec_start("break"), sec_start("C")
         for i, at in enumerate(range(b0, b1, 4)):
             add("bell", at, (("G4", "G6", "G5") if METER else ("G6", "G5", "G4"))[i % 3], 4, int(LOOP421) + (6 if i % 3 == 0 else 0))
+    if SUNGROOM and SING:
+        c0 = sec_start("C")
+        wins = [(c0 + 12 * BAR - 1, c0 + 12 * BAR + 34), (c0 + 40 * BAR - 1, c0 + 40 * BAR + 34)]
+        for k in SUNGROOM.split(","):
+            ev[k] = [e for e in ev[k] if not any(a <= e[0] < b or (e[0] < a < e[0] + e[2]) for a, b in wins)]
     return {k: stream(ev[k], total()) for k in TRACKS}
 
 
@@ -393,7 +400,8 @@ def song():
                           [dict(radio, tune={"value": 0.03, "mod": [{"src": "auto.cd", "amount": float(COUNTDIAL)}]}) if COUNTDIAL else radio, "hp cutoff=250"],
                           {"plate": "-14dB"}), st["A"] + 4 * BAR),
             *([clouded(voice("chirpers8-t2-sung-odd.json" if SUNGWORDS == "odd" else "chirpers8-t2-sung.json", "sung", [st["C"] + 12 * BAR, st["C"] + 40 * BAR], f"{SING}dB",
-                     [{"type": "chorus", "rate": 0.25, "depth": 0.15, "mix": 0.2}, "hp cutoff=150"], {"plate": "-7dB", "echo": "-13dB"}),
+                     [{"type": "chorus", "rate": 0.25, "depth": 0.15, "mix": 0.2}, "hp cutoff=150"],
+                     {"plate": f"{SUNGSEND.split(',')[0]}dB", "echo": f"{SUNGSEND.split(',')[1]}dB"} if SUNGSEND else {"plate": "-7dB", "echo": "-13dB"}),
                      [st["C"] + 12 * BAR, st["C"] + 40 * BAR])] if SING else []),
             (waltz if METER else voice)("chirpers8-t2-refrain.json", "refrain", st["break"] + 4 * barlen("break"), "-9dB", [], {"plate": "-8dB", "echo": "-14dB"}),
         ],
