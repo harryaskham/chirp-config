@@ -66,6 +66,8 @@ WORDS = os.environ.get("C8T8_WORDS", "new")   # 'new': the voices stop asking 's
 STRIDE = os.environ.get("C8T8_STRIDE", "C5D7")   # the same bits, read through another address map: the word's bit i sounds scale slot (i x stride) mod 8 - stride 3 everywhere before (D A F | F C A | G D: interlocking leaps); 'C5' reads the refreshed word in C with stride 5 (D D G A C F F A: a new tune from the same data), 'D7' the corrupted D with stride 7 (a leap, then falling down the scale); E is read the old way again (the tune comes home); e.g. 'C5D7'
 UPPAD = os.environ.get("C8T8_UPPAD", "mellotron-choir")   # the two upper pad voices' instrument (the lower two stay on juno-pad, which carries the low end): e.g. mellotron-choir - tape-stored voices played back, a memory medium
 UPPADGAIN = os.environ.get("C8T8_UPPADGAIN", "-24")
+KITOWN = os.environ.get("C8T8_KITOWN", "F1")   # PALETTE: the kick leaves the 909 kit (a staple) for the machine layer's synthesised kick, tuned to KITOWN (a note: 'A1' the dominant, 'D2' the root) - a pitched kick in the song's key
+KPATCH = {"about": "the machine layer's kick, tuned in the key", "synth": {"layers": [{"type": "machine", "machine": {"part": "kick", "punch": 24, "decay": "380ms", "click": 0.5, "drive": 0.25}}]}}
 WRITEIN = os.environ.get("C8T8_WRITEIN", "100")   # SECTION ROUND (w1, the intro): the word is WRITTEN before it is kept - sixteen bars, sixteen bits: in bar b only bits 0..b sound (the unwritten ones are kept at velocity 1, so no dice move) and the bit just written is struck harder (WRITEIN velocity); the whole word stands when A begins
 EUP = os.environ.get("C8T8_EUP", "1")   # WHOLE ROUND: the repaired word a step higher - E (and with 'n,outro' the outro too, with the sung line) rises EUP semitones on the stretched octave: every pitched part of the section (word, zeros, marimba, pads, organ, hum, bass) moves together. Value = 'semitones' or 'semitones,outro'
 _KEY = [0]
@@ -204,6 +206,10 @@ def build():
         e0, e1 = sec_start("E"), sec_start("outro")
         ev["mar"] = [(a, f"{float(h[:-2]) / 2:.2f}hz" if h.endswith("hz") else h, l, max(1, v + int(MARE))) for (a, h, l, v) in ev["word"] if e0 <= a < e1]
     _KEY[0] = 0
+    if KITOWN:
+        for k in ("kick", "kick2"):
+            if k in ev:
+                ev[k] = [(a, KITOWN if h == "k" else h, 2, v) for (a, h, l, v) in ev[k]]
     return {k: stream(ev[k], total()) for k in TRACKS}
 
 
@@ -372,7 +378,7 @@ def song0():
             *([{"name": "hum2", "patch": "sub-sine", "gain": "-14dB", "score": T["hum2"]}] if HUMOCT else []),
             *([{"name": "hum", "patch": "808", "gain": "-12dB", "fx": [{"type": "filter", "kind": "lp", "cutoff": 120, "q": 0.7}], "score": T["hum"]}] if HUM else []),
             {"name": "bass", "patch": "808", "gain": "-9dB", "fx": [pump], "score": T["bass"]},
-            {"name": "kick", "patch": "909", "gain": "-3dB", "score": T["kick"]},
+            {"name": "kick", "patch": KPATCH if KITOWN else "909", "gain": os.environ.get("C8T8_KITGAIN", "-3dB") if KITOWN else "-3dB", "score": T["kick"]},
             *([{"name": "shk", "patch": "dusty-kit", "gain": "-12dB", "pan": 0.3, "fx": [{"type": "filter", "kind": "hp", "cutoff": 3500, "q": 0.7}], "score": T["shk"]}] if SHAKE else []),
             {"name": "hats", "patch": "909", "gain": "-9dB", "pan": 0.15, "score": "swing16=0.56 " + T["hats"]},
             {"name": "clap", "patch": "909", "gain": "-9dB", "sends": {"room": "-8dB"}, "score": T["clap"]},
@@ -384,7 +390,7 @@ def song0():
               if VOX and WORDS else []),
             {"name": "rim", "patch": "909", "gain": "-12dB", "pan": -0.3, "sends": {"line": "-14dB"}, "score": T["rim"]},
             *([{"name": "hats2", "patch": "909", "gain": "-9dB", "pan": 0.15, "score": "swing16=0.56 " + T["hats2"]}] if SKEW == "local" else []),   # last, so no other track's dice move
-            *([{"name": "kick2", "patch": "909", "gain": "-3dB", "score": T["kick2"]}] if CKICK else []),
+            *([{"name": "kick2", "patch": KPATCH if KITOWN else "909", "gain": os.environ.get("C8T8_KITGAIN", "-3dB") if KITOWN else "-3dB", "score": T["kick2"]}] if CKICK else []),
             *([{"name": "mar", "patch": "modal-marimba", "gain": "-12dB", "pan": 0.2, "score": T["mar"]}] if MARE else []),
         ],
     }
