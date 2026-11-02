@@ -58,6 +58,14 @@ R3 = os.environ.get("T9_R3", "sing")
 # T9_R4=none reproduces v3.
 R4 = os.environ.get("T9_R4", "break")
 KIT = "break-kit" if R4 == "break" else "machine-kit"
+# T9_R5 = orbit (v5, section round on w5, 1:49-2:17, the period-eight section's second half: "static, little new" and
+# the song's dynamic range only 5.3 dB). THE ATTRACTOR AS A CHORD: the drums fall away and a wordless choir (the
+# library's classic formant choir, new to the album) holds all eight points of the period-eight orbit at once, each
+# at its exact Bohlen-Pierce pitch (Hz, so no tuning snaps them): the orbit's four close pairs - the branches of the
+# bifurcation diagram that have only just split - sit ~60 cents apart and BEAT against each other. You hear period
+# doubling as pitches splitting. The drums come back through a ratcheted break fill. New tracks only (orbit, fill)
+# and lanes local to the window. T9_R5=none reproduces v4.
+R5 = os.environ.get("T9_R5", "orbit")
 C9_PULSE = {"about": "chirper-two: a one-bit loudspeaker voice - a very narrow pulse (6%, wider with velocity), crushed, "
                      "nothing smoothing it: a machine driving its speaker directly.",
             "synth": {"layers": [{"wave": "pulse", "width": {"value": 0.06, "mod": [{"src": "vel", "amount": 0.12}]}}],
@@ -222,6 +230,10 @@ def tempo_map(secs, total):
     return pts
 
 
+def j_even(k):
+    return k % 2 == 0
+
+
 def seconds(tm, total):
     pts = [(float(p["at"][:-1]), p["bpm"], p.get("ramp", False)) for p in tm]
     sec = 0.0
@@ -236,6 +248,15 @@ def seconds(tm, total):
 def main():
     total, secs, T, trace = build()
     st = {n: s for n, s, k, m in secs}
+    orbit, fill = Track("orbit"), Track("fill")
+    o0 = st["eight"] + 8 * 5                      # the eight section's ninth bar (256b): the window
+    if R5 == "orbit":
+        xs8 = next(xs for name, i, xs in trace if name == "eight" and i == 8)
+        hz = sorted(220.0 * 3 ** ((v - 0.3) * 16 / 13) for v in xs8)
+        orbit_notes = [{"at": o0, "len": 54.0, "pitch": f"{h:.2f}hz", "vel": 0.57 if k % 2 == 0 else 0.52}
+                       for k, h in enumerate(hz)]
+        for k, at in enumerate([o0 + 16 + 0.25 * j for j in range(16)]):   # the fill: 16th ratchets rising
+            fill.add(at, 0.25, "s2" if j_even(k) else "g", 50 + 3 * k, "^r=2" if k >= 8 else "")
     ksub = Track("ksub")   # v4: the break kit's kick is a 1969 kick (A#1): a short sine an octave under each one
     for at, ln, head, vel, art in T["kick"].ev:
         ksub.add(at, 0.4, "E1", vel, art)
@@ -244,6 +265,12 @@ def main():
              [f"{st['storm']}b", 0.2], [f"{st['settle']}b", 0.4], [f"{st['settle'] + 0.01}b", 0.0], [f"{total}b", 0.0]]
     dyn = [["0b", -3.0], [f"{st['two']}b", -1.0], [f"{st['chaos']}b", 0.0], [f"{st['window']}b", -2.0],
            [f"{st['storm'] - 0.01}b", -2.0], [f"{st['storm']}b", 0.0], [f"{st['settle']}b", -1.0], [f"{total}b", -4.0]]
+    if R5 == "orbit":   # the breakdown sits lower: the song's dynamic range opens
+        o0 = st["eight"] + 8 * 5
+        lv = lambda b: next(v0 + (v1 - v0) * (b - float(a0[:-1])) / (float(a1[:-1]) - float(a0[:-1]))   # noqa: E731
+                            for (a0, v0), (a1, v1) in zip(dyn, dyn[1:]) if float(a0[:-1]) <= b <= float(a1[:-1]))
+        dyn = sorted(dyn + [[f"{o0}b", lv(o0)], [f"{o0 + 4}b", lv(o0) - 3.0], [f"{o0 + 14}b", lv(o0) - 3.0],
+                            [f"{o0 + 16}b", lv(o0 + 16)]], key=lambda p: float(p[0][:-1]))
     pump = {"type": "pump", "on": "kick.k", "depth": "-5dB", "attack": "3ms", "release": "200ms", "curve": 0.8}
     tracks = [
         {"name": "kick", "patch": KIT, "gain": "-5dB", "out": "drums",
@@ -279,6 +306,11 @@ def main():
          "score": T["bell"].score(total)},
         *([{"name": "chop", "patch": "break-kit", "gain": os.environ.get("T9_CHOP_GAIN", "0dB"), "pan": -0.1,
             "out": "drums", "score": T["chop"].score(total)},
+           *([{"name": "orbit", "patch": "choir-classic amp.a=3s amp.r=4s", "gain": os.environ.get("T9_ORBIT_GAIN", "-10dB"),
+               "pan": 0.0, "fx": ["hp cutoff=180", "chorus mix=0.15", "reverb kind=hall decay=4s mix=0.35"],
+               "notes": orbit_notes},
+              {"name": "fill", "patch": "break-kit", "gain": "-3dB", "pan": 0.1, "out": "drums",
+               "score": fill.score(total)}] if R5 == "orbit" else []),
            {"name": "ksub", "patch": "sub-sine amp.d=180ms amp.s=0 amp.r=40ms", "gain": os.environ.get("T9_KSUB_GAIN", "-4dB"),
             "fx": ["lp cutoff=120"], "score": ksub.score(total)}] if R4 == "break" else []),
     ]
@@ -286,8 +318,13 @@ def main():
                        "fx": [{"type": "stutter", "slice": "1/16", "repeats": 4, "decay": 0.15, "pitch": 1.5, "seed": 9,
                                "chance": {"value": 0, "mod": [{"src": "auto.chaos", "amount": 1}]}},
                               "glue threshold=-16dB ratio=3 attack=5ms release=100ms",
-                              "reverb kind=room decay=0.5s mix=0.1"],
-                       "auto": {"chaos": {"points": chaos}}}}
+                              "reverb kind=room decay=0.5s mix=0.1"] +
+                             ([{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.drop", "amount": 1}]}}]
+                              if R5 == "orbit" else []),
+                       "auto": {"chaos": {"points": chaos},
+                                **({"drop": {"points": [["0b", 0.0], [f"{o0}b", 0.0], [f"{o0 + 4}b", -30.0],
+                                                        [f"{o0 + 14}b", -30.0], [f"{o0 + 16}b", 0.0],
+                                                        [f"{total}b", 0.0]]}} if R5 == "orbit" else {})}}}
     secline = "; ".join(f"{n} {m[0]}/{m[1]} from {s:g}b ({k} bars)" for n, s, k, m in secs)
     about = ("chirpers - A Light Left On, track 9. Original composition by chirper-two, generated by "
              "compose/chirpers8/src/chirpers8-t9.py. Polytempo braindance in Bohlen-Pierce tuning (13 steps to the 3:1 "
