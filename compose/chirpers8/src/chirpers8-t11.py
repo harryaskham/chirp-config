@@ -426,6 +426,37 @@ def hook_fifth():
     return out
 
 
+# v23 (ROUND TYPE: section, w8 3:44-4:16, bars 113-128; Harry 'do more each round'): THREE CHANGES around the eye.
+# (1) SUN THROUGH THE EYE (115-117): in the clearing a harp climbs the harmonic series slowly - partials 8 to 16 of
+# the song's own fundamental - light through the cloud. (2) THE BACK WALL (118-128): behind a real eye the winds are
+# strongest; thunder drums on the harmonic series (a pitched modal-tom, eighths on the lobe's 2nd and 3rd partials,
+# growing 60 -> 100) and a kick pushed before each bar bring the storm back harder than it left. (3) THE WIND TURNS
+# ROUND: behind the eye the hook's harmony voice (vibes) crosses to the other side of the stereo field (pan lane).
+SUNBEAM = (115, 8, 16, 1.25)
+BACKWALL = (118, 128)
+
+
+def sunbeam():
+    bar, lo, hi, step = SUNBEAM
+    lb = lobe_at(bar)
+    return [{"at": round(b0(bar) + i * step, 4), "len": 4.0, "pitch": mm(partial(n, lb, 0)),
+             "vel": round(0.5 + 0.03 * i, 3)} for i, n in enumerate(range(lo, hi + 1))]
+
+
+def backwall():
+    toms, push = [], []
+    a, z = BACKWALL
+    for bar in range(a, z + 1):
+        lb = lobe_at(bar)
+        g = (bar - a) / (z - a)
+        for e in range(8):
+            toms.append({"at": round(b0(bar) + e * 0.5, 4), "len": 0.45, "pitch": mm(partial(2 if e % 2 == 0 else 3, lb, 0)),
+                         "vel": round((0.47 + 0.32 * g) * (1.0 if e % 4 == 0 else 0.82), 3)})
+        if bar < z:
+            push.append({"at": round(b0(bar) + 3.75, 4), "len": 0.25, "pitch": "k", "vel": 0.72})
+    return toms, push
+
+
 def rain_marimba():
     out = []
     for bar in range(RAINMAR[0], RAINMAR[1] + 1):
@@ -633,12 +664,19 @@ def main():
             tr("clap", "machine-kit play.humanize.nudge.cp=8ms", gain="-5dB", sends={"room": "-8dB"}),
             {"name": "whistle", "patch": "low-whistle", "gain": "-6dB", "pan": 0.6,
              "sends": {"room": "-4dB", "hall": "-10dB"}, "notes": whistle_notes()},   # v20: LAST (keeps every rng)
-            {"name": "hookharm", "patch": "modal-vibes", "gain": "-9dB", "pan": -0.35,
+            {"name": "hookharm", "patch": "modal-vibes", "gain": "-9dB",
+             "pan": {"value": -0.35, "mod": [{"src": "auto.wt", "amount": 1}]},          # v23: the wind turns round
+             "auto": {"wt": {"points": [["0b", 0.0], [f"{b0(BACKWALL[0]):g}b", 0.0], [f"{b0(BACKWALL[0]) + 1:g}b", 0.7]]}},
              "sends": {"hall": "-8dB"}, "notes": hook_harmony()},                   # v21: the hook in harmony
             {"name": "rainmar", "patch": "modal-marimba", "gain": "-12dB", "pan": -0.55,
              "sends": {"room": "-8dB"}, "notes": rain_marimba()},                   # v21: rain into notes
             {"name": "hookfifth", "patch": "modal-glock", "gain": "-12dB", "pan": 0.4,
              "sends": {"hall": "-8dB"}, "notes": hook_fifth()},                     # v22: the triad at the peak
+            {"name": "sunbeam", "patch": "harp", "gain": "-8dB", "pan": 0.3,
+             "sends": {"hall": "-6dB"}, "notes": sunbeam()},                        # v23: sun through the eye
+            {"name": "backwall", "patch": "modal-tom", "gain": "-12dB", "pan": -0.1,
+             "sends": {"room": "-10dB"}, "notes": backwall()[0]},                   # v23: the back wall
+            {"name": "kickpush", "patch": "machine-kit", "gain": "-13dB", "notes": backwall()[1]},   # v23
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=1.0s mix=1 predelay=10ms", "hp cutoff=250"]},
                   "hall": {"fx": ["reverb kind=hall decay=2.8s mix=1 predelay=25ms", "hp cutoff=250", WIDTH_FX],
