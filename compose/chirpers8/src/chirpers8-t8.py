@@ -67,6 +67,8 @@ STRIDE = os.environ.get("C8T8_STRIDE", "C5D7")   # the same bits, read through a
 UPPAD = os.environ.get("C8T8_UPPAD", "mellotron-choir")   # the two upper pad voices' instrument (the lower two stay on juno-pad, which carries the low end): e.g. mellotron-choir - tape-stored voices played back, a memory medium
 UPPADGAIN = os.environ.get("C8T8_UPPADGAIN", "-24")
 KITOWN = os.environ.get("C8T8_KITOWN", "F1")   # PALETTE: the kick leaves the 909 kit (a staple) for the machine layer's synthesised kick, tuned to KITOWN (a note: 'A1' the dominant, 'D2' the root) - a pitched kick in the song's key
+LATER = os.environ.get("C8T8_LATER", "-8")   # WHOLE ROUND: a second sung line, in E - 'it comes later on' (tts --sing "A4/8 G4/8 F4/4 E4/8 D4/2", seed 7; whisper reads it exactly on seeds 3, 5 and 7), sung once at E bar 12 a semitone up with E: what a delay line does, said plainly and sideways - the answer the outro's 'it only travels' completes. Own track, listed last; nearly dry (line -16, room -14). Value = dry gain dB
+LATERDROP = os.environ.get("C8T8_LATERDROP", "1")   # with LATER: the word steps aside for the voice - for E bars 12-13 the word, its marimba, the zeros, the hats and the clap are kept at velocity 1 (no dice move), so 'it comes later on' is heard over pads, bass and kick (in the full mix whisper heard nothing; soloed it reads exactly)
 HANDS = os.environ.get("C8T8_HANDS", "clap")   # PALETTE: the clap and the rim leave the 909 kit for the machine layer's own synthesised clap and rim ('clap', 'rim', or 'both'): with v36's kick, the kit is the song's own
 CPATCH = {"about": "the machine layer's clap", "synth": {"layers": [{"type": "machine", "machine": {"part": "clap", "decay": "200ms"}}]}}
 RPATCH = {"about": "the machine layer's rim", "synth": {"layers": [{"type": "machine", "machine": {"part": "rim"}}]}}
@@ -209,6 +211,12 @@ def build():
         e0, e1 = sec_start("E"), sec_start("outro")
         ev["mar"] = [(a, f"{float(h[:-2]) / 2:.2f}hz" if h.endswith("hz") else h, l, max(1, v + int(MARE))) for (a, h, l, v) in ev["word"] if e0 <= a < e1]
     _KEY[0] = 0
+    if LATERDROP and LATER:
+        u = sec_start("E") + 12 * BAR
+        w = u + 2 * BAR
+        for k in ("word", "mar", "zeros", "hats", "clap"):
+            if k in ev:
+                ev[k] = [(a, h, l, 1 if u <= a < w else v) for (a, h, l, v) in ev[k]]
     if HANDS:
         if HANDS in ("clap", "both"):
             ev["clap"] = [(a, "C4" if h == "cp" else h, l, v) for (a, h, l, v) in ev["clap"]]
@@ -267,6 +275,16 @@ def sung_track(gain):
             "fx": ["hp cutoff=180"], "sends": {"line": "-4dB", "room": "-10dB"}, "notes": notes}
 
 
+def later_track(gain):
+    """'it comes later on', sung at E bar 12 on the stretched octave, lifted with E."""
+    src = json.load(open(os.path.join(HERE, "chirpers8-t8-sung-later.json")))["tracks"][0]
+    off = (sec_start("E") + 12 * BAR) / 4
+    up = int(EUP.split(",")[0]) if EUP else 0
+    notes = [dict(n, at=round(n["at"] + off, 4), pitch=hz(float(n["pitch"][1:]) + up)) for n in src["notes"]]
+    return {"name": "sungl", "patch": src.get("patch", "voice-speech"), "gain": f"{gain}dB", "pan": 0.1,
+            "fx": ["hp cutoff=180"], "sends": {"line": "-16dB", "room": "-14dB"}, "notes": notes}
+
+
 def reversed_back(tr, offs16, w0, w1):
     """A reverse grain cloud on one word of a voice track (word at beats w0..w1 of the take), at each offset (sixteenths)."""
     if not BACKREV:
@@ -301,6 +319,8 @@ def song():
         a, b = trs[i]
         trs[i] = a
         trs.append(b)   # 'travels' listed last
+    if LATER:
+        doc["tracks"].append(later_track(LATER))
     return doc
 
 
