@@ -57,6 +57,8 @@ SAYHEAD = os.environ.get("C8T8_SAYHEAD", "move")   # t7 ends with its voice in t
 BACKREV = os.environ.get("C8T8_BACKREV", "0.6")   # 'say it BACK to me': on the word 'back', every time (spoken and sung), a granular cloud reading the voice's last quarter-second plays it backwards (reverse 1) - the word itself played back the wrong way, as a tape would - swelling in for the word and gone for 'to me'; value = the cloud's peak mix
 WORDPRES = os.environ.get("C8T8_WORDPRES", "")   # presence on the melody, not the master: the record still sits 6.2-7.3 dB under the album at 1, 3 and 4.9 kHz; a broad peak (2.5 kHz, q 0.6) of WORDPRES dB on the dx-epiano word
 EQ4 = os.environ.get("C8T8_EQ4", "1")   # the three narrow holes left (1025, 3078, 4929 Hz at -6.7/-7.2/-6.2 against the album, neighbours ~0): narrow master peaks (q 4) of +2/+2.5/+1.5 dB x EQ4 - a broad presence lift on the melody overfills 1.6-2.2 kHz instead
+WTABLE = os.environ.get("C8T8_WTABLE", "-26")   # the word as a waveform: a wavetable whose frames ARE the stored word - frame per 4 bars, harmonic 1 always, harmonics 2-17 present where the word's 16 bits are set (gain 1/h^0.7) - holding each chord's root an octave up under the band; as bits flip and refresh repairs them the drone's timbre wears and mends with the memory; value = gain dB
+WT = {"notes": [], "frames": []}
 DARK = os.environ.get("C8T8_DARK", "8")  # the tape running out: a master low-pass closing over the outro's last bars (the hiss and the line's top go first); value = bars
 FORM = [("intro", 16), ("A", 36), ("refresh", 8), ("C", 32), ("D", 16), ("E", 28), ("outro", 16)]
 TRACKS = ("word", "pad0", "pad1", "pad2", "pad3", "org0", "org1", "hum", "hum2", "bass", "kick", "shk", "hats", "clap", "rim")
@@ -110,6 +112,10 @@ def build():
             e = err_rate(sec, b, nb)
             word = [bit ^ (1 if rng.random() < e else 0) for bit in word]
             history.append(list(word))
+            if WTABLE and b % 4 == 0 and sec in ("A", "C", "D", "E"):
+                rr = (CHORDS[(b // 4) % 4] if sec != "refresh" else CHORDS[0])[0]
+                WT["notes"].append((at, hz(rr + 12), 4 * BAR, 72))
+                WT["frames"].append([[1, 1.0]] + [[i + 2, round(1 / (i + 2) ** 0.7, 3)] for i, bit in enumerate(word) if bit])
             last_read = WORDEND and sec == "outro" and b >= nb - 4
             if sec not in ("outro", "refresh") or (sec == "refresh" and b >= 4) or last_read:
                 for i, bit in enumerate(word):
@@ -169,6 +175,16 @@ def stream(events, tot):
         t = at + ln
     if t < tot:
         out.append(f"R/{(tot - t) / 4:g}b")
+    return " ".join(out)
+
+
+def wt_score():
+    out, t = [], 0
+    for at, head, ln, vel in WT["notes"]:
+        if at > t:
+            out.append(f"R/{(at - t) / 4:g}b")
+        out.append(f"{head}/{ln / 4:g}b@{vel}")
+        t = at + ln
     return " ".join(out)
 
 
@@ -267,6 +283,13 @@ def song():
                     *([f"peak cutoff=2500 q=0.6 gain={WORDPRES}dB"] if WORDPRES else [])],
              "auto": {"sc": stut, **({"ch": chl} if CHOP else {})}, "sends": {"line": "-4dB", "room": "-12dB"}, "score": T["word"]},
             *([{"name": f"org{j}", "patch": "farfisa", "gain": "-17dB", "pan": (-0.35, 0.35)[j], "sends": {"room": "-14dB"}, "score": T[f"org{j}"]} for j in range(2)] if ORGAN else []),
+            *([{"name": "wtab", "gain": f"{WTABLE}dB", "pan": 0.05, "out": "pads",
+                "patch": {"about": "the stored word as a waveform: its 16 bits are the table's harmonics 2-17",
+                          "synth": {"layers": [{"type": "wavetable", "frames": WT["frames"],
+                                                "position": {"value": 0, "mod": [{"src": "auto.wp", "amount": 1}]}}],
+                                    "amp": {"a": "800ms", "d": "1s", "s": 0.85, "r": "2s"}}},
+                "auto": {"wp": {"points": [["0b", 0]] + [[f"{at / 4:g}b", round(k / max(1, len(WT['frames']) - 1), 4)] for k, (at, *_x) in enumerate(WT["notes"])]}},
+                "score": wt_score()}] if WTABLE else []),
             *[{"name": f"pad{j}", "patch": "juno-pad", "gain": "-20dB", "pan": (-0.4, -0.15, 0.15, 0.4)[j], "out": "pads", "score": T[f"pad{j}"]} for j in range(4)],
             *([{"name": "hum2", "patch": "sub-sine", "gain": "-14dB", "score": T["hum2"]}] if HUMOCT else []),
             *([{"name": "hum", "patch": "808", "gain": "-12dB", "fx": [{"type": "filter", "kind": "lp", "cutoff": 120, "q": 0.7}], "score": T["hum"]}] if HUM else []),
