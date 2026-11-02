@@ -340,6 +340,13 @@ def build():
             {'name': 'down', 'patch': SING['down']['patch'], 'gain': '-7dB', 'pan': -0.1, 'notes': dnotes,
              'fx': [{'type': 'tape', 'drive': 0.2, 'mix': 1, 'wow': 3, 'flutter': 2, 'seed': 6}, 'hp cutoff=160'],
              'sends': {'echo': '-9dB', 'hall': '-14dB'}},
+            # (v19) THE WORDS READ BACKWARDS TOO: in A minor, where the program runs in retrograde, the voice sings with it -
+            # the subject's first half with every bar reversed, and the sung line's words in reverse order: 'back come
+            # always I and before than further little a down go I call you time every' - once
+            {'name': 'sing3', 'patch': SING['patch'], 'gain': '-9dB', 'pan': 0.1, 'tuning': W3T,
+             'notes': [dict(n_, at=round(secs_t['calls3'] + n_['at'], 4)) for n_ in SING['backwards']['notes'][:23]],
+             'fx': [{'type': 'tape', 'drive': 0.12, 'mix': 1, 'wow': 2, 'flutter': 1, 'seed': 8}],
+             'sends': {'hall': '-10dB', 'echo': '-14dB'}},
             {'name': 'sing2', 'patch': SING['patch'], 'gain': '-8dB', 'pan': 0.05, 'tuning': W3T,
              'notes': [dict(n_, at=round(shift(secs_t['final'] + 96 + n_['at']), 4)) for n_ in SING['final']['notes']],
              'fx': [{'type': 'tape', 'drive': 0.12, 'mix': 1, 'wow': 2, 'flutter': 1, 'seed': 4}],
