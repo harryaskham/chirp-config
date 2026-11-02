@@ -195,6 +195,15 @@ PLAN = harmony_plan()
 # low-pass (the first synthesizers' filter; q 1.0, almost no resonance, no envelope - it cannot squelch) whose cutoff
 # opens on a lane in octaves across the whole of g6, the long last growth: from 250 Hz at bar 103 to ~3 kHz by the
 # brass chorale and fully open (~4.9 kHz) at its end (a first take under g5 as well made the generations alike)
+# v20 (palette round): the pad was juno-pad, a staple in six of the album's songs; now the library's FARFISA (the
+# Philip Glass Ensemble's sound), which no other track uses, playing the chords BROKEN into running eighths in an
+# ADDITIVE process - one continuous eighth-note count through g6, the arpeggio's cell (0-1-2-3-2-1-2-3) growing by one
+# note every 8 bars, 2 -> 8: a rocking pair, then odd cells of 3, 5 and 7 cycling against the bar (accents shifting),
+# until at 8 it locks to the bar as the brass arrives. Glass's phrases grew 1, 2, 3...; this tree grows 1, 2, 3, 5,
+# 8, 13, 21: the far-future machine tips its hat to the minimalists by sound, not quote. Still through the ladder.
+ARP = (0, 1, 2, 3, 2, 1, 2, 3)
+
+
 def ladder_lane():
     return [["0b", 0.0], [f"{rb(103):g}b", 0.0], [f"{rb(150):g}b", 3.6], [f"{rb(158):g}b", 4.3]]
 
@@ -207,8 +216,12 @@ def write_harmony():
             part("cellos").add(b0(bar), BAR - 0.05, chord(54 + root * 12 / EDO, q[:3]), 70 if sec != "g2" else 58)
         if sec in ("g5", "g6"):
             part("violins").add(b0(bar), BAR - 0.05, chord(66 + root * 12 / EDO, q[1:]), 62)
-            if sec == "g6":
-                part("analog").add(b0(bar), BAR - 0.05, chord(54 + root * 12 / EDO, q), 64)  # v19: the filter opens
+            if sec == "g6":                                                     # v19: the filter opens; v20: a
+                k = 2 + min(6, (bar - 103) // 8)                                # Farfisa, the cell growing 2 -> 8
+                for e in range(8):
+                    g = (bar - 103) * 8 + e
+                    part("analog").add(b0(bar) + e * 0.5, 0.45, m(q[ARP[g % k]], 60 + root * 12 / EDO),
+                                       76 if g % k == 0 else 64)
         if sec == "prune":
             part("pole").add(b0(bar), BAR - 0.05, chord(66 + root * 12 / EDO, q[1:]), 66)
         # THE BASS NOBODY PLAYS: the root, on the off-beat eighths, through the phantom
@@ -542,7 +555,7 @@ def main():
             tr("harp", "harp", gain="-6dB", pan=-0.1, sends={"hall": "-10dB"},
                fx=[{"type": "sympathetic", "notes": "F#1,C#2,F#2,B2", "decay": "1.4s", "mix": 0.08},
                    {"type": "pan", "pan": {"value": -0.1, "mod": [{"src": "var.breeze", "amount": 1}]}}]),
-            tr("analog", "juno-pad", gain="-7dB", sends={"hall": "-10dB"},
+            tr("analog", "farfisa", gain="-2dB", pan=-0.15, sends={"hall": "-10dB"},
                fx=[{"type": "filter", "kind": "ladder", "q": 1.0,
                     "cutoff": {"value": 250, "mod": [{"src": "auto.lc", "amount": 1}]}}],
                auto={"lc": {"points": ladder_lane()}}),                                          # v19: the ladder
