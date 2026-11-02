@@ -116,6 +116,10 @@ def build():
                 P['kit'].append((t0 + 1.0, 'cp', 0.25, 80)); P['kit'].append((t0 + 3.0, 'cp', 0.25, 84))
     # the voice: a different humanized take of the same line each time
     vnotes, fv = [], []
+    # (v11) BACK, BACK, BACK: from the third groove on, the last word of every take - 'back' - is repeated by the
+    # machine, four times, a dotted eighth apart, quieter and thinner each time and left-right-left-right: the track's
+    # name done literally, once a take, as the machine starts to say things back
+    bnotes, bnotes2 = [], []
     # (v9) THE LINE, REMEMBERED: in the break the two takes go into a granular cloud - the voice still heard, then held:
     # once each take ends the cloud freezes on it and keeps scattering its grains (some backwards, spread wide) under
     # the held chord until the next take or the third groove - the line as the machine remembers it, not as it was said
@@ -124,6 +128,12 @@ def build():
         if v['bar'] > secs['D'] + 16:
             continue                                  # (v7) the outro's takes are sung now, not spoken
         off = (v['bar'] - 1) * 4.0
+        if secs['C'] < v['bar'] <= secs['D'] + 16:
+            bk = [n_ for n_ in v['notes'] if 'B AE1 K' in n_.get('ph', '')]
+            if bk:
+                for r_ in range(1, 5):
+                    (bnotes if r_ % 2 else bnotes2).append(dict(bk[-1], at=round(off + bk[-1]['at'] + 0.75 * r_, 4),
+                                                                vel=round(bk[-1].get('vel', 0.8) * 0.8 ** r_, 3)))
         if secs['break'] < v['bar'] <= secs['break'] + 8:
             for n_ in v['notes']:
                 mnotes.append(dict(n_, at=round(off + n_['at'], 4)))
@@ -201,6 +211,12 @@ def build():
              'notes': [dict(n_, at=round(secs['outro'] * 4.0 + rep * 16.0 + n_['at'], 4)) for rep in (0, 1) for n_ in SUNG['notes']],
              'fx': [{'type': 'tape', 'drive': 0.1, 'mix': 1, 'wow': 1.5, 'flutter': 0.8, 'seed': 2}],
              'sends': {'hall': '-10dB', 'echo': '-15dB'}},
+            {'name': 'vback', 'patch': 'voice-speech', 'gain': '-8dB', 'notes': bnotes, 'pan': -0.55,
+             'fx': ['hp cutoff=420', {'type': 'tape', 'drive': 0.15, 'mix': 1, 'wow': 4, 'flutter': 3, 'seed': 9}],
+             'sends': {'hall': '-12dB'}},
+            {'name': 'vback2', 'patch': 'voice-speech', 'gain': '-8dB', 'notes': bnotes2, 'pan': 0.55,
+             'fx': ['hp cutoff=700', {'type': 'tape', 'drive': 0.15, 'mix': 1, 'wow': 4, 'flutter': 3, 'seed': 10}],
+             'sends': {'hall': '-12dB'}},
             {'name': 'vmem', 'patch': 'voice-speech', 'gain': '-5dB', 'notes': mnotes, 'pan': 0.0,
              'fx': [{'type': 'cloud', 'size': '160ms', 'density': 14, 'position': '700ms', 'spray': '600ms', 'pitch': 0,
                      'scatter': 0.25, 'reverse': 0.4, 'spread': 0.85, 'mix': 0.75, 'window': '4s',
