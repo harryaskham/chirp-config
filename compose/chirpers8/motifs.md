@@ -96,3 +96,4 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 - **t1 THE MACHINE TRIES THE TUNE** (v19): at B bar 24 the babble imitates the vibes hook an octave down (F#4 E4 D4 B3 ...), first with two notes a semitone wrong and dragging, then (HOOK2) with one.
 - **t10 HOCKET** (v25): calls1 bars 8-15, the bell subject passed note by note between the bell (pan -0.25) and a clarinet (track hq, pan +0.45).
 - **t7 GLIMPSES** (v16): e5 bars 10/14/18/22, the electric piano (track glim) lets slip the target's first 2, 3, 4 notes, then its first phrase, exact and quiet, before convergence.
+- **t1 THE MACHINE LEARNS THE TUNE** (v20): in C the vibes play the hook in thirds and the second phrase climbs F# E D B . D E F# A B D (to D6, the top note); in C's last hook slot (bars 28-31) the babble's FM voice doubles it exactly an octave down.

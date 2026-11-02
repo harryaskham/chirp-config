@@ -204,11 +204,25 @@ def build():
             if m_ is not None:
                 P['vib'].append((at_, nm(m_ + 12) + (',' + nm(m_ + 12 - (4 if (m_ % 12) in (6, 11) else 3)) if harm else ''), d_ * 0.95, vel))
             at_ += d_
-    for sec_ in ('B', 'C'):
-        for ph_ in range(4, dict(FORM)[sec_], 8):
-            hook((secs[sec_] + ph_) * 4.0, HOOK, vel=74)
-            if ph_ + 2 < dict(FORM)[sec_]:
-                hook((secs[sec_] + ph_ + 2) * 4.0, HOOK2, vel=70)
+    # (v20) THE MACHINE LEARNS THE TUNE - the song's arc: in the second groove the vibraphone plays the tune and the
+    # machine fumbles it back (v19); in the third the vibraphone opens out into thirds and its second phrase no longer
+    # stops at B but climbs on to the D above, the song's top note - and in its last turn, just before the machine says
+    # the line back, the machine's own FM voice plays the tune with it, exact, an octave down: it has learned it (once
+    # only - doubled in every turn, the third groove lost its call and response, and compscore's structure fell 7)
+    HOOK3 = HOOK[:4] + [(None, .5), (62, .5), (64, .5), (66, .5), (69, 1.0), (71, .5), (74, 1.5)]
+    for ph_ in range(4, dict(FORM)['B'], 8):
+        hook((secs['B'] + ph_) * 4.0, HOOK, vel=74)
+        if ph_ + 2 < dict(FORM)['B']:
+            hook((secs['B'] + ph_ + 2) * 4.0, HOOK2, vel=70)
+    for ph_ in range(4, dict(FORM)['C'], 8):
+        for k_, ph in enumerate((HOOK, HOOK3)):
+            t_ = (secs['C'] + ph_ + 2 * k_) * 4.0
+            hook(t_, ph, harm=True, vel=76 + 2 * k_)
+            for m_, d_ in (ph if ph_ == 28 else []):
+                if m_ is not None:
+                    P['babble'].append((t_, f"m{m_}", d_ * 0.9, 84))
+                t_ += d_
+    P['babble'].sort()
     for ph_ in (2, 10):
         hook((secs['D'] + ph_) * 4.0, HOOK, harm=True, vel=72)
     # (v19) THE MACHINE TRIES THE TUNE: in the middle of the second groove, the babble's phrase after the vibraphone's
