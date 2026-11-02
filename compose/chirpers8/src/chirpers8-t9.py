@@ -49,6 +49,22 @@ R2 = os.environ.get("T9_R2", "drift")
 # Bohlen-Pierce. Once more as the map settles, by then back in 12-TET: the same words, a different tuning.
 # T9_R3=none reproduces v2.
 R3 = os.environ.get("T9_R3", "sing")
+# T9_R4 = break (v4, palette round). Out of the album's staples: the kit leaves machine-kit (on nine songs) for the
+# BREAK-KIT, a squashed 1969 funk kit as a sampler hears it, and in chaos and storm the map CHOPS THE BREAK - each
+# sixteenth's iterate picks a piece (ghost, edit snare, open hat) the way a jungle producer slices the Amen, on its
+# own track into the drums bus (so the stutter and the glass pad's cross-synthesis hear it too). The blips leave the
+# library `blip` (four songs) for c9-pulse, a one-bit loudspeaker voice: a very narrow pulse train, crushed - the
+# sound of a machine driving its speaker directly, the oldest computer music there is, said sideways.
+# T9_R4=none reproduces v3.
+R4 = os.environ.get("T9_R4", "break")
+KIT = "break-kit" if R4 == "break" else "machine-kit"
+C9_PULSE = {"about": "chirper-two: a one-bit loudspeaker voice - a very narrow pulse (6%, wider with velocity), crushed, "
+                     "nothing smoothing it: a machine driving its speaker directly.",
+            "synth": {"layers": [{"wave": "pulse", "width": {"value": 0.06, "mod": [{"src": "vel", "amount": 0.12}]}}],
+                      "filters": ["hp cutoff=180", "lp cutoff=7k"],
+                      "amp": {"a": "0.5ms", "d": "80ms", "s": 0, "r": "20ms"}},
+            "fx": ["crush bits=5 rate=16kHz"],
+            "play": {"vel_sens": 0.7}}
 SING = []
 
 
@@ -110,7 +126,7 @@ class Track:
 
 def build():
     rng = random.Random(9)
-    names = ("kick", "snare", "hats", "ride", "lead", "blip", "bass", "pad", "padx", "bell")
+    names = ("kick", "snare", "hats", "ride", "lead", "blip", "bass", "pad", "padx", "bell", "chop")
     T = {k: Track(k) for k in names}
     x, y = 0.2, 0.71
     pos = 0.0
@@ -152,6 +168,12 @@ def build():
                         T["hats"].add(start + s * 0.25 + 0.01, 0.1, "h", int(40 + 40 * v), "?0.85")
                     if s % 4 == 2:
                         T["ride"].add(start + s * 0.25 + 0.01, 0.5, "rd", 60, "?0.9")
+                    if R4 == "break" and name in ("chaos", "storm"):   # the map chops the break
+                        piece = ("g" if 0.25 < v <= 0.45 else "s2" if 0.52 <= v < 0.62 else
+                                 "oh" if 0.8 < v <= 0.93 and s % 2 == 0 else None)
+                        if piece:
+                            T["chop"].add(start + s * 0.25, 0.25, piece,
+                                          {"g": 52, "s2": 74, "oh": 58}[piece] + int(20 * v))
             # ---- polytempo: blips on a 5:4 grid from the map's twin ----
             if name not in ("one", "two"):
                 k, t = 0, 0.0
@@ -214,6 +236,9 @@ def seconds(tm, total):
 def main():
     total, secs, T, trace = build()
     st = {n: s for n, s, k, m in secs}
+    ksub = Track("ksub")   # v4: the break kit's kick is a 1969 kick (A#1): a short sine an octave under each one
+    for at, ln, head, vel, art in T["kick"].ev:
+        ksub.add(at, 0.4, "E1", vel, art)
     tm = tempo_map(secs, total)
     chaos = [["0b", 0.0], [f"{st['chaos']}b", 0.05], [f"{st['window']}b", 0.25], [f"{st['window'] + 0.01}b", 0.05],
              [f"{st['storm']}b", 0.2], [f"{st['settle']}b", 0.4], [f"{st['settle'] + 0.01}b", 0.0], [f"{total}b", 0.0]]
@@ -221,17 +246,20 @@ def main():
            [f"{st['storm'] - 0.01}b", -2.0], [f"{st['storm']}b", 0.0], [f"{st['settle']}b", -1.0], [f"{total}b", -4.0]]
     pump = {"type": "pump", "on": "kick.k", "depth": "-5dB", "attack": "3ms", "release": "200ms", "curve": 0.8}
     tracks = [
-        {"name": "kick", "patch": "machine-kit", "gain": "-5dB", "out": "drums", "fx": ["hp cutoff=45"], "score": T["kick"].score(total)},
-        {"name": "snare", "patch": "machine-kit", "gain": "-4dB", "out": "drums", "score": T["snare"].score(total)},
-        {"name": "hats", "patch": "machine-kit", "gain": "-2dB", "pan": 0.2, "out": "drums", "fx": ["hp cutoff=800"],
+        {"name": "kick", "patch": KIT, "gain": "-5dB", "out": "drums",
+         "fx": ["hp cutoff=28", "lowshelf cutoff=60 gain=5dB"] if R4 == "break" else ["hp cutoff=45"], "score": T["kick"].score(total)},
+        {"name": "snare", "patch": KIT, "gain": "-4dB", "out": "drums", "score": T["snare"].score(total)},
+        {"name": "hats", "patch": KIT, "gain": "-2dB", "pan": 0.2, "out": "drums",
+         "fx": ["hp cutoff=800"] + (["lp cutoff=9k"] if R4 == "break" else []),
          "score": T["hats"].score(total)},
-        {"name": "ride", "patch": "machine-kit", "gain": "-5dB", "pan": -0.25, "out": "drums", "fx": ["hp cutoff=3000"],
+        {"name": "ride", "patch": KIT, "gain": "-5dB", "pan": -0.25, "out": "drums", "fx": ["hp cutoff=3000"],
          "score": T["ride"].score(total)},
         {"name": "lead", "patch": "clarinet", "gain": "-8dB",
          "pan": ({"value": 0.0, "mod": [{"src": "var.wander", "amount": 1}]} if R2 == "drift" else -0.1),
          "fx": ["hp cutoff=220", "peak cutoff=1200 gain=4dB q=0.8", {"type": "delay", "time": "3/16", "feedback": 0.3, "mix": 0.2, "ping_pong": True, "tone": 4000},
                 "reverb kind=room decay=0.9s mix=0.15"], "score": T["lead"].score(total)},
-        {"name": "blip", "patch": "blip", "gain": "-7dB", "pan": 0.35,
+        {"name": "blip", "patch": "c9-pulse" if R4 == "break" else "blip",
+         "gain": os.environ.get("T9_PULSE_GAIN", "-6dB") if R4 == "break" else "-7dB", "pan": 0.35,
          "fx": [{"type": "delay", "time": "1/8", "feedback": 0.35, "mix": 0.25, "ping_pong": True, "tone": 6000}],
          "score": T["blip"].score(total)},
         {"name": "bass", "patch": "sub-sine", "gain": "-13dB",
@@ -249,6 +277,10 @@ def main():
             "score": T["padx"].score(total)}] if R2 == "drift" else []),
         {"name": "bell", "patch": "bell", "gain": "-14dB", "fx": ["reverb kind=hall decay=3s mix=0.35"],
          "score": T["bell"].score(total)},
+        *([{"name": "chop", "patch": "break-kit", "gain": os.environ.get("T9_CHOP_GAIN", "0dB"), "pan": -0.1,
+            "out": "drums", "score": T["chop"].score(total)},
+           {"name": "ksub", "patch": "sub-sine amp.d=180ms amp.s=0 amp.r=40ms", "gain": os.environ.get("T9_KSUB_GAIN", "-4dB"),
+            "fx": ["lp cutoff=120"], "score": ksub.score(total)}] if R4 == "break" else []),
     ]
     buses = {"drums": {"gain": "0dB",
                        "fx": [{"type": "stutter", "slice": "1/16", "repeats": 4, "decay": 0.15, "pitch": 1.5, "seed": 9,
@@ -277,10 +309,15 @@ def main():
         'volume: "0dB"',
         "loudness: -11",
         "true_peak: true",
+        *(["patches: " + json.dumps({"c9-pulse": C9_PULSE})] if R4 == "break" else []),
         "buses: " + json.dumps(buses),
-        "master: " + json.dumps({"fx": [{"type": "eq", "bands": ["hp cutoff=25", "peak cutoff=90 gain=-4dB q=0.9",
+        "master: " + json.dumps({"fx": [{"type": "eq", "bands": (["hp cutoff=25", "peak cutoff=90 gain=-4dB q=0.9",
                                                                "peak cutoff=420 gain=-3dB q=0.8",
-                                                               "highshelf cutoff=5000 gain=5dB"]},
+                                                               "highshelf cutoff=5000 gain=5dB"] if R4 != "break" else
+                                                              ["hp cutoff=25", "peak cutoff=85 gain=-6dB q=0.9",
+                                                               "peak cutoff=380 gain=-4.5dB q=0.8",
+                                                               "peak cutoff=1150 gain=3dB q=0.6",
+                                                               "highshelf cutoff=5000 gain=-5dB"])},
                                         "glue threshold=-20dB ratio=2 attack=10ms release=150ms makeup=1dB",
                                         {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}},
                                         {"type": "limiter", "ceiling": "-1.2dB", "release": "80ms"}],

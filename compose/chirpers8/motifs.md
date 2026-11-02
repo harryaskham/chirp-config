@@ -32,6 +32,7 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 - **BP CHORD**: 3:5:7 = BP steps 0 6 10 (on the glass pad).
 - **THE CLOCK DRIFTS OUT OF TUNE AND BACK** (v2): `tuning: [{edo: 12}, {at: four, edo: 13, period: 3/1, root: A3, ramp: 20bar}, {at: settle+8bar, edo: 12, ramp: 16bar}]`: a plain 12-TET sequencer while the map holds one and two notes, exact Bohlen-Pierce once it doubles past four, 12-TET again as it settles.
 - **IT COMES BACK IN THREES** (v3): sung (`chirp tts --sing "A3/8 C4 E4" --repeat 3`): five syllables on a three-note cycle, so the words move across the tune each time round, over the period-three window; in Bohlen-Pierce there, in 12-TET when it returns in the settle.
+- **THE MAP CHOPS THE BREAK** (t9 v4): in chaos and storm each sixteenth's iterate picks a break-kit piece (0.25-0.45 ghost g, 0.52-0.62 edit snare s2, 0.8-0.93 open hat on even steps) over the grouped kicks; the blips on the 5:4 grid are now a one-bit pulse voice.
 - **t7 THE POWER LIGHT** (v3): a warm drone on A1 (patch drone) from the first beat, swelling through power-on and sinking under the first epoch, returning under the coda and holding to the last beat - the machine is on before the search starts; tail 0.3 s.
 
 ## t5 Agreeing on a Speed (chirper-zero)
