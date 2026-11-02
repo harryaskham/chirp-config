@@ -59,6 +59,7 @@ LOOP421 = os.environ.get("C8T2_LOOP421", "62")   # the trivial cycle: through th
 METER = os.environ.get("C8T2_METER", "3")   # the break in the cycle's own meter: every path ends in 4 -> 2 -> 1, a loop of three, so the break goes to 3/4 (20 bars; the tempo map's meter) and the voice counts it like a waltz - 'four' on two, 'two' on three, ONE on the downbeat, held longer each time until it sings - with the bell's loop turned so its 1 (G4) lands with the voice's
 CRASH = os.environ.get("C8T2_CRASH", "ABCo")   # the big downbeats marked: a modal cymbal (the modal layer's cymbal modes, a wash that blooms) on the first beat of each section listed - 'ABC' (A, B, and C as the 3/4 break returns to four), 'ABCo' adds the outro
 SUNGWORDS = os.environ.get("C8T2_SUNGWORDS", "odd")   # 'odd': the sung line says the rule, sideways - 'odd goes up, even comes down' (same tune: up the scale on 'odd goes up', down it on 'even comes down'; whisper reads it 'Oh, it goes up, even comes down') instead of 'high as the cloud, and then home' (a stock image, read 'Pause the word and let it go'); the cloud now takes 'up'
+RHYTHM = os.environ.get("C8T2_RHYTHM", "parity")   # 'parity': the clarinet's rhythm says the rule too - an odd number (the one that jumps up, 3n+1) is held a dotted eighth, the first halving after it an eighth, and a run of halvings tumbles in sixteenths: odd goes up slow, even comes down fast (each path about as long as before)
 ARP32 = os.environ.get("C8T2_ARP32", "")    # the drop's arps on 1/32 (as the plan always said): double-time chip arps through C
 BAR = 16
 SEED = 2
@@ -75,6 +76,16 @@ CHORDS = [("G", [0, 2, 4]), ("E", [5, 7, 9]), ("C", [3, 5, 7]), ("D", [4, 6, 8])
 PRIMES = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31)
 
 
+def clar_times(path):
+    """(offset, length) in sixteenths for each number of a path, and the phrase's length."""
+    out, t = [], 0
+    for i, n in enumerate(path):
+        ln = (3 if n % 2 else (1 if i > 0 and path[i - 1] % 2 == 0 else 2)) if RHYTHM == "parity" else 2
+        out.append((t, ln))
+        t += ln
+    return out, t
+
+
 def heights():
     """The clarinet's current number's height per eighth (0..1, log2 n / 13), held between phrases - the same walk as build()."""
     hv = [0.0] * (total() // 2 + 1)
@@ -86,12 +97,13 @@ def heights():
         while t < end:
             n0 = SEEDS[sec][k % len(SEEDS[sec])]
             path = collatz(n0) if n0 != 1 else [1, 4, 2, 1]
+            times, plen = clar_times(path)
             for i, n in enumerate(path):
-                at = t + 2 * i
+                at = t + times[i][0]
                 if at >= end:
                     break
                 hv[at // 2] = round(min(1.0, math.log2(n) / 13), 3) if n > 1 else 0.0
-            ln = 2 * len(path) + 4
+            ln = plen + 4
             t += -(-ln // BAR) * BAR + (BAR if sec in ("intro", "outro") else 0)
             k += 1
     last, out = 0.0, []
@@ -153,24 +165,26 @@ def build():
             n0 = SEEDS[sec][k % len(SEEDS[sec])]
             path = collatz(n0) if n0 != 1 else [1, 4, 2, 1]
             up = 12 if sec == "C" and k % 4 == 2 else 0
+            times, plen = clar_times(path)
             for i, n in enumerate(path):
-                at = t + 2 * i
+                at = t + times[i][0]
+                nl = times[i][1]
                 if at >= end:
                     break
                 last = i == len(path) - 1
                 d = height(n) + (7 if up else 0)
                 v = 100 if n % 2 else 82
-                if BEND and i > 0 and path[i - 1] % 2 == 1 and not last:
+                if BEND and i > 0 and path[i - 1] % 2 == 1 and not last and nl == 2:
                     b = float(BEND)
                     add("clar", at, f"!bend=-{b:g} {deg_note(d)}/0.125b@{v} bend=-{b / 2:g} _/0.125b bend= _/0.25b", 2, v)
                 else:
-                    add("clar", at, deg_note(d), 4 if last else 2, v)
+                    add("clar", at, deg_note(d), 4 if last else nl, v)
                 if BELL and last and n == 1 and (sec == "C" or (BELL == "Co" and sec == "outro" and at + 4 >= end - 2 * BAR)):
                     add("bell", at, "G5", 4 * BAR, 76)
                 if CANON and sec in ("B", "C") and at + BAR < end:
-                    add("clar2", at + BAR, deg_note(max(d - 7, 0)) if d >= 7 else deg_note(d), 4 if last else 2,
+                    add("clar2", at + BAR, deg_note(max(d - 7, 0)) if d >= 7 else deg_note(d), 4 if last else nl,
                         int((100 if n % 2 else 82) * int(CANON) / 100))
-            ln = 2 * len(path) + 4
+            ln = plen + 4
             t += -(-ln // BAR) * BAR + (BAR if sec in ("intro", "outro") else 0)
             k += 1
     for sec, nb in FORM:
