@@ -403,6 +403,22 @@ SUNG_PATCH = {"extends": "voice-speech", "synth": {"pitch": {"mod": [{"amount": 
 # illusion still lands where it matters
 SPOKEN_AT = [17, 33, 49, 65, 81, 105, 113, 121]
 SUNG_AT = (125, 133, 141, 149)
+# v25 (ROUND TYPE: whole; Harry 'a tune good to hear', 'oblique words', 'do more each round'): THE PAYOFF BECOMES A
+# SONG. The sorted section was one line sung four times on the riff's first nine steps; now it is CALL AND ANSWER on
+# composed alpha-scale tunes: 'the small ones first, then the rest of us' (125, 141: a pickup, a leap to the fifth,
+# a rise to the peak on 'rest', landing on the third) answered by a NEW line, 'nothing moved on the last pass'
+# (133, 149: falling home to the root) - how a bubble sort knows it is done (a pass with no swaps), and a still line.
+# chirp tts --sing "A4/8 G4/8 E4/4 E4/8 D4/8 C4/4 A3/2" "nothing moved on the last pass" --humanize 0.4
+SUNG_B = [(0.248, 0.495, 'N AH1', None, 0.85, [-55.0, -27.0, -7.0, 3.0, 5.0, 4.0, 2.0, 2.0, 8.0, 16.0, 17.0, 8.0]), (0.754, 0.495, 'TH IH0 NG', None, 0.771, [-3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -6.0, -5.0, 2.0, 10.0, 9.0, -3.0]), (1.244, 0.99, 'M UW1 V D', None, 0.861, [-3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -5.0, -5.0, -1.0, 5.0, 9.0, 5.0, -7.0, -20.0, -23.0, -13.0, 6.0, 21.0, 21.0, 6.0, -14.0, -27.0, -25.0, -10.0]), (2.241, 0.495, 'AA1 N', None, 0.865, [4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 1.0, 2.0, 8.0, 16.0, 17.0, 6.0]), (2.76, 0.495, 'DH AH0', None, 0.783, [4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 1.0, 2.0, 9.0, 16.0, 16.0, 5.0]), (3.246, 0.99, 'L AE1 S T', None, 0.843, [-3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -6.0, -8.0, -4.0, 5.0, 11.0, 9.0, -3.0, -19.0, -30.0, -25.0, -4.0, 18.0, 28.0, 19.0, -2.0, -24.0, -34.0, -26.0]), (4.25, 1.7, 'P AE1 S', None, 0.849, [-3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -5.0, -5.0, -1.0, 6.0, 9.0, 5.0, -7.0, -20.0, -24.0, -13.0, 7.0, 22.0, 22.0, 7.0, -14.0, -28.0, -26.0, -10.0, 12.0, 24.0, 20.0, 2.0, -19.0, -29.0, -24.0, -5.0, 15.0, 25.0, 17.0, -3.0, -22.0, -30.0, -20.0, 0.0, 19.0, 23.0, 9.0, -16.0, -40.0, -52.0, -49.0, -40.0])]
+TUNE_A = (0, 9, 5, 4, 5, 9, 13, 9, 5)
+TUNE_B = (15, 13, 9, 9, 5, 4, 0)
+BASS_FROM = 9                                     # v25: the bass waits for the kick (air in the intro). NB the
+# t3 seam's flow gap is NOT the bass (measured: unchanged) nor the pad (a pad wait moved it 62.4 -> 62.8): it is t4's
+# catch of t3's 913 Hz bar being ~24 dB under t3's ring in the 877 Hz band - a job for the catch's level
+
+
+def bass_waits():
+    P["bass"].ev = [(s, ln, h, 1 if s < b0(BASS_FROM) else v) for s, ln, h, v in P["bass"].ev]
 
 
 def voice_tracks():
@@ -413,10 +429,11 @@ def voice_tracks():
             if f0:
                 n["expr_path"] = {"f0": f0}
             spoken.append(n)
-    for bar in SUNG_AT:
-        for i, (at, ln, ph, p, v, f0) in enumerate(SUNG):
+    for k, bar in enumerate(SUNG_AT):
+        take, tune = (SUNG, TUNE_A) if k % 2 == 0 else (SUNG_B, TUNE_B)
+        for i, (at, ln, ph, p, v, f0) in enumerate(take):
             n = {"at": round(b0(bar) + at, 4), "len": ln, "ph": ph, "vel": v,
-                 "pitch": pitch(RIFF[i % 16] + root_at(bar + int(at // 4)))}
+                 "pitch": pitch(tune[i] + root_at(bar + int(at // 4)))}
             if f0:
                 n["expr_path"] = {"f0": f0}
             sung.append(n)
@@ -549,6 +566,7 @@ def main():
     write()
     arrival()                                     # v22: the stop, the reverse cymbal, the impact
     leaving()                                     # v23: small things leave first
+    bass_waits()                                  # v25: the bass waits for the kick
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
     lead_patch = {"extends": "vibes", "synth": {"fx": [{"type": "pan", "pan": {"value": 0, "mod": [
         {"src": "expr.ix", "amount": 1}]}}, {"type": "filter", "kind": "lp", "cutoff": 4500}]}}
