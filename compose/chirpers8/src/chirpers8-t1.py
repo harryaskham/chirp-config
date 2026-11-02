@@ -243,8 +243,12 @@ def build():
                     {'type': 'eq', 'bands': ['peak cutoff=520 q=1 gain=-5dB']}],
              'auto': {'fm': {'points': fm_pts}},
              'sends': {'echo': '-10dB', 'hall': '-14dB'}},
+            # (v12) IT SAYS IT IN YOUR VOICE: when the machine says the line back it no longer only borrows the vowels - its
+            # FM voice takes the human voice's whole spectral envelope as they speak together (morph, mode cross, keyed by
+            # the voice), so the machine's line comes out in the speaker's own mouth, two octaves up
             tr('say', FMV, '-9dB', pan=0.2, sends={'echo': '-12dB', 'hall': '-12dB'},
-               fx=[{'type': 'formant', 'vowel': {'value': 2, 'mod': [{'src': 'var.mouth', 'amount': 2}]}, 'q': 4, 'mix': 0.55}]),
+               fx=[{'type': 'formant', 'vowel': {'value': 2, 'mod': [{'src': 'var.mouth', 'amount': 2}]}, 'q': 4, 'mix': 0.55},
+                   {'type': 'morph', 'mode': 'cross', 'key': 'voice', 'amount': 0.85}]),
             # (v4) THE CHORDS LEARN TO TALK: through the third groove and the said-back groove a string section holds the
             # harmony and takes the voice's spectral envelope (wM's morph, mode cross, keyed by the voice): whenever the
             # voice speaks, the chords pronounce the line with it, a choir of the machine's harmony saying the words
