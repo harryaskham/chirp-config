@@ -69,7 +69,7 @@ def build():
         for i in range(n):
             bars.append((name, i, tp))
     total = len(bars) * 4.0
-    P = {k: [] for k in ('bell', 'sync', 'pwm', 'bass', 'sub', 'd1', 'd2', 'd3', 'kit', 'pulse', 'glass', 'cs', 'bell0', 'organ', 'hq')}
+    P = {k: [] for k in ('bell', 'sync', 'pwm', 'bass', 'sub', 'd1', 'd2', 'd3', 'kit', 'pulse', 'glass', 'cs', 'bell0', 'organ', 'hq', 'bentry')}
     # the call stack: a seeded walk, one move every four bars in the calls sections
     depth, depths = 0, []
     for b, (s, i, tp) in enumerate(bars):
@@ -286,6 +286,14 @@ def build():
         st_ = shift(c - 3.5)
         tempo_map += [{'at': f'{st_:.2f}b', 'bpm': BPM, 'meter': '7/8'}, {'at': f'{st_ + 3.5:.2f}b', 'bpm': BPM, 'meter': '4/4'}]
     tr = lambda name, patch, gain, **kw: dict({'name': name, 'patch': patch, 'gain': gain, 'score': line(P[name], total)}, **kw)
+    # (v26) THE ENTRY IN THE BASS: in the middle of the G minor calls, after the sung line, the subject makes the entry
+    # every fugue saves for last - in the bass, three octaves under the bell: for eight bars the bass stops pumping its
+    # clave and walks the whole subject instead, while the bell above runs four bars ahead of it (the old clave notes
+    # are kept at velocity 1, and the subject is on its own track listed last, so no other bar's dice move)
+    e0 = secs_t['calls2'] + 48.0
+    P['bass'] = [(e_[0], e_[1], e_[2], 1) if e0 - 1e-6 <= e_[0] < e0 + 32.0 - 1e-6 else e_ for e_ in P['bass']]
+    for k_ in range(8):
+        subj_bar(k_, e0 + 4.0 * k_, 5, -3, 104, 'bentry')
     # (v25) HOCKET: in the middle of the first calls (bars 8-15) the bell no longer plays the subject alone - it calls
     # one note and a clarinet on the other side returns the next, the line passed back and forth note by note (the
     # piece's call and return at the smallest scale), until the countersubject arrives and the bell takes it all back
@@ -391,6 +399,7 @@ def build():
                      'notes': 'D5 E5 F5 G5 A5 Bb5 C6 D6 E6', 'len': '/16', 'n': 512, 'seed': 7},
              'sends': {'echo': '-10dB', 'hall': '-12dB'}},
             tr('sub', 'sub', '-8dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '250ms', 'curve': 0.6}]),
+            tr('bentry', FMBASS, '-7dB', fx=['lp cutoff=1600']),
         ]}
     return song, depths
 
