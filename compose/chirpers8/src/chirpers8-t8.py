@@ -66,6 +66,7 @@ WORDS = os.environ.get("C8T8_WORDS", "new")   # 'new': the voices stop asking 's
 STRIDE = os.environ.get("C8T8_STRIDE", "C5D7")   # the same bits, read through another address map: the word's bit i sounds scale slot (i x stride) mod 8 - stride 3 everywhere before (D A F | F C A | G D: interlocking leaps); 'C5' reads the refreshed word in C with stride 5 (D D G A C F F A: a new tune from the same data), 'D7' the corrupted D with stride 7 (a leap, then falling down the scale); E is read the old way again (the tune comes home); e.g. 'C5D7'
 UPPAD = os.environ.get("C8T8_UPPAD", "mellotron-choir")   # the two upper pad voices' instrument (the lower two stay on juno-pad, which carries the low end): e.g. mellotron-choir - tape-stored voices played back, a memory medium
 UPPADGAIN = os.environ.get("C8T8_UPPADGAIN", "-24")
+TRAVSPLIT = os.environ.get("C8T8_TRAVSPLIT", "-16")   # WHOLE ROUND: only the word 'travels' travels - the sung 'it only travels' went whole into the delay line (send -4 dB) and blurred; now 'it only' sings nearly dry (line send TRAVSPLIT dB, room -14) and only 'travels' goes into the line, on its own track (sungv2, listed last), so the line repeats the one word that says what it does
 MARE = os.environ.get("C8T8_MARE", "-8")   # WHOLE ROUND: the repaired word in wood - through E the word's bits are doubled an octave down on a marimba (modal-marimba, the library's physical mallet from chirper-two's t3): the stored word, struck by hand. Its own track, listed last. Value = velocity offset
 CKICK = os.environ.get("C8T8_CKICK", "lock")   # WHOLE ROUND: contrast between the grooves - A and E keep four on the floor, but C (the refreshed word, the new stride-5 tune) puts the kick on a 3-3-2: 'tres' 1, the and-of-2, 4 (0 6 12), or 'lock' with the bass (0 6 10). The grid kicks stay at velocity 1 (the dice of every later kick stay put); the new hits play on kick2, listed last
 SKEW = os.environ.get("C8T8_SKEW", "local")   # SECTION ROUND, window 7 (D; 'little new vs w6'): the clock skews in the corruption - through D the hats leave the grid for dotted eighths (every 3 sixteenths, three against four), the open hat with them; E's repair puts them back
@@ -232,6 +233,11 @@ def sung_track(gain):
     src = json.load(open(os.path.join(HERE, "chirpers8-t8-sung-travels.json" if WORDS else "chirpers8-t8-sung.json")))["tracks"][0]
     off = (sec_start("outro") + 8 * BAR) / 4
     notes = [dict(n, at=round(n["at"] + off, 4), pitch=hz(float(n["pitch"][1:]))) for n in src["notes"]]
+    if TRAVSPLIT:
+        return [{"name": "sungv", "patch": src.get("patch", "voice-speech"), "gain": gain, "pan": -0.1,
+                 "fx": ["hp cutoff=180"], "sends": {"line": f"{TRAVSPLIT}dB", "room": "-14dB"}, "notes": notes[:3]},
+                {"name": "sungv2", "patch": src.get("patch", "voice-speech"), "gain": gain, "pan": -0.1,
+                 "fx": ["hp cutoff=180"], "sends": {"line": "-4dB", "room": "-10dB"}, "notes": notes[3:]}]
     return {"name": "sungv", "patch": src.get("patch", "voice-speech"), "gain": gain, "pan": -0.1,
             "fx": ["hp cutoff=180"], "sends": {"line": "-4dB", "room": "-10dB"}, "notes": notes}
 
@@ -263,6 +269,17 @@ def voice(file, name, offs16, gain, fx, sends):
 
 
 def song():
+    doc = song0()
+    if TRAVSPLIT:
+        trs = doc["tracks"]
+        i = next(k for k, t in enumerate(trs) if isinstance(t, list))
+        a, b = trs[i]
+        trs[i] = a
+        trs.append(b)   # 'travels' listed last
+    return doc
+
+
+def song0():
     SAYOFFS = ([sec_start("intro") + 8] if SAYHEAD else []) + ([] if SAYHEAD == "move" else [sec_start("intro") + 8 * BAR]) + [sec_start("refresh") + BAR, sec_start("outro")]
     T = build()
     st = {sec: sec_start(sec) for sec, _ in FORM}
