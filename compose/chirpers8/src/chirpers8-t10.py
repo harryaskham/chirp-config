@@ -180,13 +180,32 @@ def build():
             # the same harmony, but each bar's line and rhythm reversed - and in the final calls, as the stack unwinds (its
             # second half), the bell reads backwards again while the sync lead reads forwards: the canon against its mirror
             rv = s == 'calls3' or (s == 'final' and i >= 16)
-            subj_bar(i, t0, tp, ob, 92, 'bell', rev=rv)
+            # (v27) EPISODES: a fugue is not its subject over and over - between entries come episodes, where the subject
+            # rests and its head is worked in sequence. For four bars late in the first calls, four in the middle of the
+            # A minor calls and four in the final calls just before the stack reaches its top, the bell drops the subject
+            # and plays only its head (a long note, a leap down, back up), twice a bar from the top of each chord downwards,
+            # and the sync lead answers every head a beat later - a stretto - so the subject's return afterwards is an
+            # arrival rather than another lap
+            ep = (s == 'calls1' and 24 <= i < 28) or (s == 'calls3' and 12 <= i < 16) or (s == 'final' and 8 <= i < 12)
+            if ep:
+                pcs = {c_ % 12 for c_ in ch}
+                tones = [m_ for m_ in range(55, 82) if m_ % 12 in pcs]
+                x1 = max(m_ for m_ in tones if m_ <= 79)
+                x2 = max(m_ for m_ in tones if m_ < x1)
+                for h_, x_ in enumerate((x1, x2)):
+                    lows = [m_ for m_ in tones if x_ - 8 <= m_ <= x_ - 3]
+                    y_ = lows[-1] if lows else x_ - 5
+                    for m_, d_, off in ((x_, 1.0, 0.0), (y_, 0.5, 1.0), (x_, 0.5, 1.5)):
+                        P['bell'].append((t0 + 2 * h_ + off, tok(m_ + 12 * ob), d_ * 0.92, 96 - 4 * h_))
+                        P['sync'].append((t0 + 2 * h_ + off + 1.0, tok(m_ + 12 * os_), d_ * 0.92, 86))
+            else:
+                subj_bar(i, t0, tp, ob, 92, 'bell', rev=rv)
             if (s == 'calls1' and i >= 16) or (s == 'final' and i < 16):
                 at_ = t0
                 for m_, d_ in CS[i % 8]:
                     P['cs'].append((at_, tok(m_ + tp), d_ * 0.97, 74))
                     at_ += d_
-            if s != 'calls2':
+            if s != 'calls2' and not ep:
                 subj_bar(i + 4, t0, tp, os_, 88, 'sync', rev=(s == 'calls3'))
             if s == 'calls2':
                 arp = ch + [ch[0] + 12]
