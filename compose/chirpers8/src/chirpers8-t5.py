@@ -30,7 +30,7 @@ OUT = os.environ.get("C8T5_OUT") or os.path.join(ROOT, "songs", "chirpers8-t5.ya
 BAR = 16
 SEED = 5
 HOOK = os.environ.get("C8T5_HOOK", "1")   # THE AGREEMENT: a two-bar E dorian figure that returns - the guitar PROPOSES its rhythm (A, chord stabs, the first two bars of every eight), the acid ANSWERS with its notes (B), and in C the horns sing it in unison: what they agree on
-VOX = os.environ.get("C8T5_VOX", "-12")     # voices: 'a little slower. a little faster. there.' (humanized tts) through the line in B and the retrain; 'keep it there' turning from speech to song (B3 D4 E4, the hook's last notes) in C; value = the bargain's gain dB
+VOX = os.environ.get("C8T5_VOX", "-12")     # voices: 'slow down a touch. speed up a touch. there.' (humanized tts, re-voiced v23; was 'a little slower...') through the line in B and the retrain; 'keep it there' turning from speech to song (B3 D4 E4, the hook's last notes) in C; value = the bargain's gain dB
 MOD = os.environ.get("C8T5_MOD", "1")     # agreed, they lift: the second half of C (bars 25-48) a whole step up, E dorian -> F# dorian (every pitched part and the second 'keep it there') - one long section becomes two
 LISTEN = os.environ.get("C8T5_LISTEN", "")   # while one machine proposes the other LISTENS rather than leaving: the guitar keeps its off-beat stabs soft, the acid its root on the one - a conversation, not two monologues (the trades had read as a new section every four bars); value = velocity scale %
 MARK = os.environ.get("C8T5_MARK", "1")   # the lead LEARNS the agreement: a Markov chain (the engine's `gen`, order 1) over the hook's own tokens improvises C's lead - new phrases that only make the hook's moves (a step up for the lift); replaces the dice lead
@@ -58,6 +58,9 @@ KEEPFREEZE = os.environ.get("C8T5_KEEPFREEZE", "0.5")   # 'keep it there', kept:
 OUTSETTLE = os.environ.get("C8T5_OUTSETTLE", "")   # agreed and slowing, the hands settle: over the outro's last OUTSETTLE bars (as the tempo eases to 100) the congas keep only the low tone on one and the open tone on the 'and' of two - the pattern's bones, under the radio's carriers (draws no dice: the same rolls, fewer strokes kept)
 INTROLATE = os.environ.get("C8T5_INTROLATE", "6")   # the hands wait longer: in the intro the congas' strokes (not their ghosts) come in at bar INTROLATE instead of 4, so the handshake has the room to itself a little longer (draws no dice: the same rolls, fewer strokes kept)
 SPEQ = os.environ.get("C8T5_SPEQ", "4,8")   # 'G,H': colour against the album envelope, per part not on the master: the guitar (its cab's 1.4-1.9 kHz bite sits 6.4-6.7 dB over the album) dipped G dB at 1.65 kHz, and the hats given H dB of air at 9 kHz (6.4 dB under)
+BARGTAKE = os.environ.get("C8T5_BARGTAKE", "touch")   # 'touch': the bargain re-voiced so a listener can follow it - 'slow down a touch. speed up a touch. there.' (tts --voice voice-spoken --speed 0.9 --humanize 0.4 --seed 7, chosen by whisper: the old 'a little slower...' read 'Honey has a longer...' even dry; every voice turned 'a little' into 'honey')
+BARGG = os.environ.get("C8T5_BARGG", "")   # the bargain's gain offset from VOX (dB)
+BARGMIX = os.environ.get("C8T5_BARGMIX", "0.7")   # the bargain's radio mix (0.85 before)
 HOOKF = [(0, "E4", 3), (3, "G4", 3), (6, "A4", 4), (10, "B4", 6), (16, "D5", 3), (19, "B4", 3), (22, "D5", 4), (26, "E5", 6)]
 CLEN = int(os.environ.get("C8T5_CLEN", "42"))   # C's length: 40 tightens the agreement (the lift at bar 25, the second 'keep it there' at 33)
 FORM = [("intro", 12), ("A", 34), ("B", 26), ("retrain", 12), ("C", CLEN), ("outro", 16)]
@@ -382,9 +385,9 @@ def song():
             {"name": "clap", "patch": "909", "gain": "-9dB", "sends": {"room": "-8dB"}, "score": T["clap"]},
             {"name": "fretless", "patch": "fretless", "gain": "-8dB", "fx": [{"type": "tremolo", "rate": 3.0, "depth": 0.4}], "sends": {"spring": "-10dB"}, "score": T["fretless"]},
             {"name": "horns", "patch": "horn-section", "gain": "-9dB", "pan": -0.2, "sends": {"room": "-8dB"}, "score": T["horns"]},
-            *([voice("chirpers8-t5-bargain.json", "bargain", BARG, f"{VOX}dB",
+            *([voice("chirpers8-t5-bargain-touch.json" if BARGTAKE == "touch" else "chirpers8-t5-bargain.json", "bargain", BARG, f"{float(VOX) + float(BARGG or 0):g}dB",
                           [{"type": "radio", "tune": 0.04, "hiss": "-40dB", "whistle": "-32dB", "fade": 0.3, "drift": 0.03,
-                            "mix": {"value": 0, "mod": [{"src": "auto.rmix", "amount": 0.85}]}}, "hp cutoff=250"],
+                            "mix": {"value": 0, "mod": [{"src": "auto.rmix", "amount": float(BARGMIX) if BARGMIX else 0.85}]}}, "hp cutoff=250"],
                           {"spring": "-12dB"})] if VOX else []),
             *([voice("chirpers8-t5-keep.json", "keep", [st["C"] + 16 * BAR] + ([] if MOD else [st["C"] + (CLEN - 8) * BAR]), f"{float(VOX) + 2:g}dB",
                      [{"type": "chorus", "rate": 0.3, "depth": 0.2, "mix": 0.2}, "hp cutoff=150"], {"room": "-10dB", "spring": "-16dB"})] if VOX else []),
