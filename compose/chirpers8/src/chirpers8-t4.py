@@ -390,6 +390,14 @@ def voice_tracks():
              "notes": sung}]
 
 
+def pad_morph_lane():
+    """v13: THE HARMONY LEARNS TO SAY IT - the pad cross-synthesised with the speaker (morph, cross mode), its depth
+    climbing over the twelve spoken repeats (0 at bar 17 -> 0.9 by bar 117), so the chords articulate the phrase
+    more each time round; back to 0 when the voice sings (bar 125)."""
+    return [["0b", 0.0], [f"{b0(17):.2f}b", 0.0], [f"{b0(117):.2f}b", 0.9], [f"{b0(125) - 0.25:.2f}b", 0.9],
+            [f"{b0(125):.2f}b", 0.0]]
+
+
 def lanes():
     level = {"intro": -6, "bubble": -2, "insertion": -2, "quick": 0, "bogo": -4, "merge": 0, "sorted": 0, "outro": -6}
     pts = [["0b", -20.0]]                   # v9: the machinery FADES UP out of t3's last ring instead of switching on
@@ -456,7 +464,10 @@ def main():
             {"name": "progress", "patch": "machine-kit", "gain": "-13dB", "pan": 0.3, "sends": {"room": "-12dB"},
              "score": progress_score()},                     # v5: the work's progress as a Euclidean rhythm
             tr("pad", "juno-pad", gain="-11dB", sends={"dly": "-14dB"},
-               fx=["duck by=kick depth=-6dB", {"type": "filter", "kind": "hp", "cutoff": 200}]),                                           # v2; v4: ducked by the kick
+               fx=[{"type": "morph", "key": "speaker", "mode": "cross",
+                    "amount": {"value": 0, "mod": [{"src": "auto.pm", "amount": 1}]}},           # v13: the pad speaks
+                   "duck by=kick depth=-6dB", {"type": "filter", "kind": "hp", "cutoff": 200}],
+               auto={"pm": {"points": pad_morph_lane()}}),   # (its own name: morph_lane is v3's lead lane)                                           # v2; v4: ducked by the kick
             tr("carrier", "partial", gain="-24dB", sends={"room": "-10dB"}),                # v8: the handshake
             tr("hum", "808", gain="-4dB"),                     # v2: into t5's E2 (v8: 6 dB up - it sat at -36 dB alone)
             tr("tick", "909", gain="-17dB", pan=0.2, fx=[{"type": "filter", "kind": "hp", "cutoff": 3000}]),

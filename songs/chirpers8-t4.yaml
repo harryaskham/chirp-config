@@ -4310,13 +4310,53 @@
     "dly": "-14dB"
    },
    "fx": [
+    {
+     "type": "morph",
+     "key": "speaker",
+     "mode": "cross",
+     "amount": {
+      "value": 0,
+      "mod": [
+       {
+        "src": "auto.pm",
+        "amount": 1
+       }
+      ]
+     }
+    },
     "duck by=kick depth=-6dB",
     {
      "type": "filter",
      "kind": "hp",
      "cutoff": 200
     }
-   ]
+   ],
+   "auto": {
+    "pm": {
+     "points": [
+      [
+       "0b",
+       0.0
+      ],
+      [
+       "64.00b",
+       0.0
+      ],
+      [
+       "464.00b",
+       0.9
+      ],
+      [
+       "495.75b",
+       0.9
+      ],
+      [
+       "496.00b",
+       0.0
+      ]
+     ]
+    }
+   }
   },
   {
    "name": "carrier",
