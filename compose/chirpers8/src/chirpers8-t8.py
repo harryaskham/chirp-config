@@ -54,6 +54,7 @@ HEADDARK = os.environ.get("C8T8_HEADDARK", "8")   # the mercury warms up: the ma
 HEADDARKV = float(os.environ.get("C8T8_HEADDARKV", "0.6"))   # how closed it starts (0.6 ~ 5 kHz, 0.8 ~ 3.3 kHz)
 HUMV = int(os.environ.get("C8T8_HUMV", "85"))   # the A hum's 808 velocity: t7 v7's tail sits 5.5 dB under my head
 SAYHEAD = os.environ.get("C8T8_SAYHEAD", "move")   # t7 ends with its voice in the room, singing; here the voice answers at once: 'say it back to me' two beats into the record ('move': instead of at bar 9; 'add': as well), into the line as before
+BACKREV = os.environ.get("C8T8_BACKREV", "0.6")   # 'say it BACK to me': on the word 'back', every time (spoken and sung), a granular cloud reading the voice's last quarter-second plays it backwards (reverse 1) - the word itself played back the wrong way, as a tape would - swelling in for the word and gone for 'to me'; value = the cloud's peak mix
 DARK = os.environ.get("C8T8_DARK", "8")  # the tape running out: a master low-pass closing over the outro's last bars (the hiss and the line's top go first); value = bars
 FORM = [("intro", 16), ("A", 36), ("refresh", 8), ("C", 32), ("D", 16), ("E", 28), ("outro", 16)]
 TRACKS = ("word", "pad0", "pad1", "pad2", "pad3", "org0", "org1", "hum", "hum2", "bass", "kick", "shk", "hats", "clap", "rim")
@@ -183,6 +184,20 @@ def sung_track(gain):
             "fx": ["hp cutoff=180"], "sends": {"line": "-4dB", "room": "-10dB"}, "notes": notes}
 
 
+def reversed_back(tr, offs16, w0, w1):
+    """A reverse grain cloud on one word of a voice track (word at beats w0..w1 of the take), at each offset (sixteenths)."""
+    if not BACKREV:
+        return tr
+    pts = [["0b", 0]]
+    for o in offs16:
+        b = o / 4
+        pts += [[f"{b + w0 - 0.05:.3f}b", 0], [f"{b + w0 + 0.2:.3f}b", 1], [f"{b + w1:.3f}b", 1], [f"{b + w1 + 0.35:.3f}b", 0]]
+    tr["fx"] = [*tr["fx"], {"type": "cloud", "mix": {"value": 0, "mod": [{"src": "auto.rb", "amount": float(BACKREV)}]}, "density": 22, "size": "120ms",
+                            "position": "200ms", "spray": "80ms", "pitch": 0, "reverse": 1.0, "spread": 0.5, "seed": 4}]
+    tr["auto"] = {**tr.get("auto", {}), "rb": {"points": pts}}
+    return tr
+
+
 def voice(file, name, offs16, gain, fx, sends):
     """A humanized tts line (tts --print) at each offset (sixteenths)."""
     src = json.load(open(os.path.join(HERE, file)))["tracks"][0]
@@ -196,6 +211,7 @@ def voice(file, name, offs16, gain, fx, sends):
 
 
 def song():
+    SAYOFFS = ([sec_start("intro") + 8] if SAYHEAD else []) + ([] if SAYHEAD == "move" else [sec_start("intro") + 8 * BAR]) + [sec_start("refresh") + BAR, sec_start("outro")]
     T = build()
     st = {sec: sec_start(sec) for sec, _ in FORM}
     end = total()
@@ -254,9 +270,9 @@ def song():
             *([{"name": "shk", "patch": "dusty-kit", "gain": "-12dB", "pan": 0.3, "fx": [{"type": "filter", "kind": "hp", "cutoff": 3500, "q": 0.7}], "score": T["shk"]}] if SHAKE else []),
             {"name": "hats", "patch": "909", "gain": "-9dB", "pan": 0.15, "score": "swing16=0.56 " + T["hats"]},
             {"name": "clap", "patch": "909", "gain": "-9dB", "sends": {"room": "-8dB"}, "score": T["clap"]},
-            *([sung_track(f"{SUNG}dB")] if SUNG else []),
-            *([voice("chirpers8-t8-say.json", "say", ([sec_start("intro") + 8] if SAYHEAD else []) + ([] if SAYHEAD == "move" else [sec_start("intro") + 8 * BAR]) + [sec_start("refresh") + BAR, sec_start("outro")], f"{VOX}dB",
-                     ["hp cutoff=180"], {"line": "-2dB", "room": "-12dB"})] if VOX else []),
+            *([reversed_back(sung_track(f"{SUNG}dB"), [sec_start("outro") + 8 * BAR], 1.758, 2.253)] if SUNG else []),
+            *([reversed_back(voice("chirpers8-t8-say.json", "say", SAYOFFS, f"{VOX}dB",
+                     ["hp cutoff=180"], {"line": "-2dB", "room": "-12dB"}), SAYOFFS, 1.421, 2.188)] if VOX else []),
             {"name": "rim", "patch": "909", "gain": "-12dB", "pan": -0.3, "sends": {"line": "-14dB"}, "score": T["rim"]},
         ],
     }
