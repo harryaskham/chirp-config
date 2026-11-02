@@ -276,6 +276,7 @@ def write_melody():
     part("standby").add(b0(179), b0(191) - b0(179) - 0.05, "m78.000", 74)
     memory()                                                  # v10: the album, remembered
     tower()                                                   # v12: the generations counted
+    tune_grows()                                              # v22: the tune grows like the tree
     gong()                                                    # v15: the cut and the completion
     # the fan's hum under the light (seed and the last bars): a soft sine on F#2
     for a, z in ((1, 8), (179, 190)):
@@ -475,6 +476,30 @@ def gong():
     part("gong").add(b0(158), 15.0, "m42.000", 120)
 
 
+# v22 (ROUND TYPE: whole): THE TUNE GROWS LIKE THE TREE ('a tune good to hear', Harry on t1) - the closer's tune, the
+# coda line, was first heard 5 minutes in. Now at the start of each generation, as the tower's last toll sounds, a
+# THEREMIN (the earliest electronic instrument; unused on the album) plays the beginning of the coda melody - and each
+# generation adds notes in the tree's own Fibonacci counts: g1 1, g2 2, g3 3, g4 5, g5 8, g6 13 (stated again
+# mid-g6) - until the coda, where the voice sings all 15 with its words: planted early, it blossoms when sung.
+# Each fragment follows the chord root at its bar (relative to the coda's), folded within +-6 semitones; the song's
+# 31-EDO tuning snaps it. Its own part and track, listed last.
+TUNE_GROWTH = {"g1": 1, "g2": 2, "g3": 3, "g4": 5, "g5": 8, "g6": 13}
+
+
+def tune_grows():
+    t0 = SING[0][0]
+    starts = []
+    for name, a, z in SECTIONS:
+        if name in TUNE_GROWTH:
+            starts.append((a, b0(a) + 2 * GEN[name] - 1, TUNE_GROWTH[name]))
+    starts.append((130, b0(130), TUNE_GROWTH["g6"]))
+    for bar, at0, k in starts:
+        shift = (PLAN[bar][0] - PLAN[158][0]) * 12 / EDO
+        shift = ((shift + 6) % 12) - 6
+        for at, ln, ph, midi, vel, f0 in SING[:k]:
+            part("theremin").add(at0 + at - t0, ln * 0.95, f"m{midi + shift:.3f}", 84)
+
+
 def tower():
     for name, a, z in SECTIONS:
         if name.startswith("g") and name[1:].isdigit():
@@ -587,6 +612,7 @@ def main():
             tr("shepdown", "shepard-fall", gain="-16dB", sends={"hall": "-10dB"}),
             {"name": "rush", "patch": "machine-kit", "gain": "-8dB", "pan": -0.2, "at": f"{rb(158):g}b",
              "risset": {"cycle": "4bar", "layers": 3, "length": "20bar"}, "sends": {"room": "-12dB"}, "score": RUSH},
+            tr("theremin", "theremin", gain="-5dB", pan=0.2, sends={"hall": "-8dB"}),        # v22: LAST
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=1.0s mix=1 predelay=10ms", "hp cutoff=250"]},
                   "hall": {"fx": ["reverb kind=hall decay=3.2s mix=1 predelay=30ms", "hp cutoff=250"]}},
