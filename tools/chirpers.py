@@ -713,6 +713,8 @@ def song_features(canon, raw):
                     got.add(t)
                 elif t in synth:
                     got.add(t)
+                elif t == "wavetable":
+                    got.add("table")   # the canonical plan names the README's `table` layer `wavetable`
                 elif t in fx_types and t not in ("gain", "pan"):
                     got.add(t)
             for k, v in o.items():
