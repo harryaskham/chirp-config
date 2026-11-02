@@ -222,11 +222,18 @@ PROGS = {"intro": ([0, 9], 4), "bubble": (PA, 2), "insertion": (PB, 2), "quick":
          "bogo": ([0], 12), "merge": (PB, 2), "sorted": (PA, 2), "outro": ([0, 9], 4)}
 
 
+# v20 (SECTION round, w10 4:30-5:00, bars 145-160 - 'little new vs w9'): THE WONKY LIFT - for the last eight bars of
+# the sorted section the whole band (every part takes its pitch from root_at) lifts by two steps of the alpha scale,
+# 156 cents - the last-chorus key change, but not quite a whole tone; a celesta zips up the sorted riff into it on the
+# last beat of bar 152 and a cymbal lands it; the outro settles home
+LIFT = (153, 160, 2)
+
+
 def root_at(bar):
     for name, a, z in SECTIONS:
         if a <= bar <= z:
             prog, span = PROGS[name]
-            return prog[((bar - a) // span) % len(prog)]
+            return prog[((bar - a) // span) % len(prog)] + (LIFT[2] if LIFT[0] <= bar <= LIFT[1] else 0)
     return 0
 
 
@@ -290,6 +297,10 @@ def write():
                 head = pitch(RIFF[v] + root_at(bar))
             part("lead").add(b0(bar) + k / 4, 0.22, head + f"^ix={ix}", vel)   # v7: the riff,
             # transposed with the progression like a sequencer under a keyboard
+        if bar == LIFT[0] - 1:                     # v20: the zip up into the lift, and the cymbal that lands it
+            for i, v in enumerate(sorted(RIFF)):
+                part("riffle").add(b0(LIFT[0]) - 1.0 + i / 16, 0.2, pitch(v + root_at(LIFT[0]), BASE + 12), 64 + i * 3)
+            part("crash").add(b0(LIFT[0]), 2.0, "m74", 100)
         if sec == "intro" and bar == 8:
             # v19: THE SHUFFLE - the last beat of bar 8 riffles the jumbled array's sixteen notes on a celesta, a 64th
             # apart, rising in force, like a deck being shuffled
