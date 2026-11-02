@@ -251,6 +251,7 @@ def write_melody():
     # twelve breaths a minute) from the last section to the very end, on alone for the final bars with the fan's hum
     part("standby").add(b0(179), b0(191) - b0(179) - 0.05, "m78.000", 74)
     memory()                                                  # v10: the album, remembered
+    tower()                                                   # v12: the generations counted
     # the fan's hum under the light (seed and the last bars): a soft sine on F#2
     for a, z in ((1, 8), (179, 190)):
         part("hum").add(b0(a), b0(z + 1) - b0(a) - 0.1, f"m{42:.3f}", 60)
@@ -399,6 +400,25 @@ def memory():
             part("memory").add(b0(bar) + at, ln * 0.95, f"m{m + shift:.3f}", 70)
 
 
+# v12: A BELL TOWER COUNTS THE GENERATIONS - at the start of each one a church bell (chirper-two's modal-layer bell
+# from t3, 'UPTIME', borrowed with thanks: hum, prime, tierce, quint, nominal) tolls its number - once for g1 ...
+# six times for g6 - two beats apart, each toll still ringing under the next: a clock keeping count of the growth
+TOWER_BELL = {"synth": {"layers": [{"type": "modal", "modes": "bell", "decay": "7s", "damp": 0.03,
+                                    "bright": {"value": 0.5, "mod": [{"src": "vel", "amount": 0.35}]},
+                                    "strike": {"value": 0.4, "mod": [{"src": "rand", "amount": 0.08}]},
+                                    "tilt": -1.0, "vary": 0.4}],
+                        "amp": {"a": "1ms", "d": "9s", "s": 0, "r": "4s", "curve": 3}},
+              "play": {"vel_sens": 0.6}}
+
+
+def tower():
+    for name, a, z in SECTIONS:
+        if name.startswith("g") and name[1:].isdigit():
+            n = int(name[1:])
+            for k in range(n):
+                part("tower").add(b0(a) + 2 * k, 1.9, "m54.000", 100 - 4 * k)
+
+
 def tempo_map():
     # v8: the meter changes on a point that keeps the ramp going (118 -> 121 by the prune, 121 -> 124 through it: the
     # prune quickens a little as it is cut; a meter-only point would hold 118 until bar 90 and flatten g4-g5's rise)
@@ -441,6 +461,7 @@ def main():
         "tracks": [
             tr("light", "music-box", gain="-6dB", sends={"hall": "-6dB"}),
             # v6: a follow-noise 'room tone' under the last notes was tried and cut - too faint to earn its place, -0.3
+            tr("tower", TOWER_BELL, gain="-8dB", pan=-0.2, sends={"hall": "-6dB"}),      # v12: the bell tower
             tr("memory", "dx-epiano", gain="-10dB", pan=0.2, sends={"hall": "-6dB"},
                fx=[{"type": "filter", "kind": "lp", "cutoff": 3000}, "chorus"]),   # v10 (a radio's hiss ran all song)
             tr("standby", "partial", gain="-14dB", sends={"hall": "-10dB"},
