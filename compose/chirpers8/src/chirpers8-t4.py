@@ -401,6 +401,20 @@ def voice_tracks():
              "notes": sung}]
 
 
+# v17: SMALL THINGS BEFORE LARGE, LITERALLY - an AUGMENTATION CANON: once the riff has assembled and been sung, the
+# same riff enters at HALF SPEED, an octave down, on the physical bari sax (merge sort's alto sax, grown large):
+# each sixteenth becomes an eighth, one riff across two bars, following the progression's root bar by bar - the
+# small fast riff first, then its giant shadow (bars 141-156, from the third sung statement)
+CANON = (141, 157)
+
+
+def write_canon():
+    for c in range(CANON[0], CANON[1], 2):
+        for k, v in enumerate(RIFF):
+            bar = c + (1 if k >= 8 else 0)
+            part("canon").add(b0(c) + k * 0.5, 0.46, pitch(v + root_at(bar), BASE - 12), 96 if k % 4 == 0 else 84)
+
+
 def pad_morph_lane():
     """v13: THE HARMONY LEARNS TO SAY IT - the pad cross-synthesised with the speaker (morph, cross mode), its depth
     climbing over the twelve spoken repeats (0 at bar 17 -> 0.9 by bar 117), so the chords articulate the phrase
@@ -467,6 +481,8 @@ def main():
             tr("tune", "rhodes", gain="-10dB", pan=-0.1, sends={"dly": "-10dB"},
                fx=[{"type": "filter", "kind": "hp", "cutoff": 250}]),                      # v6: the tune that emerges
             *voice_tracks(),                                                                 # v10: speech to song
+            write_canon() or tr("canon", "bari-sax", gain="+2dB", pan=0.25,
+                                sends={"room": "-10dB", "dly": "-14dB"}),                    # v17: the large one
             tr("chimes", "chimes", gain="-14dB", pan=0.3, sends={"room": "-8dB"}),          # v14: the seam's air
             tr("ring", "vibes", gain="-2dB", pan=0.1, sends={"room": "-8dB", "dly": "-14dB"}),   # v9: t3's ring caught
             tr("ride", "machine-kit", gain="-9dB", pan=-0.3, sends={"room": "-12dB"}),      # v6: the top end
