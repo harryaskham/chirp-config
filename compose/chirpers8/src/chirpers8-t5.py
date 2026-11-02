@@ -53,6 +53,7 @@ BSPLIT = os.environ.get("C8T5_BSPLIT", "both")   # B in two: the 909's claps ('c
 BSPLITAT = int(os.environ.get("C8T5_BSPLITAT", "12"))   # the bar of B (0-based) where the held-back 909 parts come in
 LIFTSTOP = os.environ.get("C8T5_LIFTSTOP", "1")   # the gear change, announced: the band stops dead for the second half of the bar before the lift (C bar 24) - a clap fill climbing in sixteenths - then lands a whole step up (dropped after generation, so no dice move). Once B was split (v18) this splits C too without crowding the returns
 LIFTHAT = os.environ.get("C8T5_LIFTHAT", "1")   # after the lift the hats open: every off-beat hat an open hat - the agreed band, a step up, brighter on top
+CARRIERA = os.environ.get("C8T5_CARRIERA", "24,8,78")   # SECTION ROUND, window 3 (1:11-1:47, A bars 20-33; 'little new vs w2'): the handshake breaks in - for 'start,len' bars of A the two carriers call and answer again through the radio (every eighth, the tones alternating, softer than the intro's), a reminder mid-proposal that the line is still being negotiated
 COW = os.environ.get("C8T5_COW", "96")   # SECTION ROUND, window 8 (4:05-4:39, C bars 28-41, after the lift; flagged static, little new vs w7): the agreement gets a cowbell - the engine's drum-machine cowbell (the `machine` layer's two detuned squares through a band-pass) on a syncopated funk figure (1, the a-of-1, the and-of-2, 3, the a-of-3, the and-of-4), only for these fourteen bars; value = peak velocity
 KEYS = os.environ.get("C8T5_KEYS", "-14")   # PALETTE ROUND: the part machine funk lacked - a Wurlitzer (the library's wurli, a reedy barking FM electric piano no song here uses) comps C's chords on its own syncopation (bar 1: 1, the a-of-2, the and-of-3; bar 2: the e-of-1, the and-of-2, the and-of-4), left of the guitar, through the lift; gain in dB
 SUBSPLIT = os.environ.get("C8T5_SUBSPLIT", "1")   # with SUBPATCH: the intro's held low E (the line from t4) stays on the 808; from A the low line moves to SUBPATCH on its own track
@@ -137,6 +138,9 @@ def build():
                 for q in range(0, 16, 2):
                     if rng.random() < 0.8:
                         add("carrier", at + q, f"{(1650 if (q // 2 + b) % 2 == 0 else 1850) * (1 if sec != 'retrain' else 0.75):.0f}hz", 1, 70)
+            if CARRIERA and sec == "A" and int(CARRIERA.split(",")[0]) <= b < sum(int(x) for x in CARRIERA.split(",")[:2]):
+                for q in range(0, 16, 2):
+                    add("carrier", at + q, f"{1650 if (q // 2 + b) % 2 == 0 else 1850}hz", 1, (int(CARRIERA.split(",")[2]) if CARRIERA.count(",") > 1 else 58) + (6 if q % 4 == 0 else 0))
             # --- congas everywhere but the very start
             if HEAD and sec == "intro" and b == 0:
                 add("sub", at, "E2" if HEAD == "2" else "E1", 8 * BAR, 70 if HEAD == "2" else 84)
