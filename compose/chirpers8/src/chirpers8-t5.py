@@ -53,6 +53,8 @@ BSPLIT = os.environ.get("C8T5_BSPLIT", "both")   # B in two: the 909's claps ('c
 BSPLITAT = int(os.environ.get("C8T5_BSPLITAT", "12"))   # the bar of B (0-based) where the held-back 909 parts come in
 LIFTSTOP = os.environ.get("C8T5_LIFTSTOP", "1")   # the gear change, announced: the band stops dead for the second half of the bar before the lift (C bar 24) - a clap fill climbing in sixteenths - then lands a whole step up (dropped after generation, so no dice move). Once B was split (v18) this splits C too without crowding the returns
 LIFTHAT = os.environ.get("C8T5_LIFTHAT", "1")   # after the lift the hats open: every off-beat hat an open hat - the agreed band, a step up, brighter on top
+ESTABLE = os.environ.get("C8T5_ESTABLE", "1")   # song-level event_stable (engine f5283535): each note's humanize and DSP draws come from its track, beat and pitch, so a window's edit stays in the window; switching it on re-rolls every humanized note once
+PHASEIN = os.environ.get("C8T5_PHASEIN", "")   # the intro agrees on its speed: against the grid handshake a second one (no extra hiss) runs 10 to the bar, then 9, then 8 in step, from bar PHASEIN's start; value 'velocity,startbar'
 PERCSPLIT = os.environ.get("C8T5_PERCSPLIT", "C")   # WHOLE ROUND: the hand drums change hands - in the listed sections (e.g. 'C' or 'A,C') the congas give way to the djembe kit (unused on the album), same rhythm: open -> tone, tumba -> bass, slap -> slap, muted -> calabash, bongos -> slap/tone. All djembe made the sections alike (r50: one seed always over the returns cliff); as a contrast between sections it is a colour the song moves through. The congas there keep their notes at velocity 1 (no dice move) and the djembe plays on its own track, dj, listed last
 PHASE = os.environ.get("C8T5_PHASE", "66")   # SECTION ROUND (w9, the outro): agreed, and drifting apart again - over the outro's last eight bars, while the handshake returns on the grid, a second handshake (the same carriers, the same radio) runs nine to the bar against its eight, one eighth further ahead each bar: two clocks that had agreed on a speed, slipping as the record slows. Value = 'velocity' or 'velocity,notes-per-bar'
 CARRIERA = os.environ.get("C8T5_CARRIERA", "24,8,78")   # SECTION ROUND, window 3 (1:11-1:47, A bars 20-33; 'little new vs w2'): the handshake breaks in - for 'start,len' bars of A the two carriers call and answer again through the radio (every eighth, the tones alternating, softer than the intro's), a reminder mid-proposal that the line is still being negotiated
@@ -72,7 +74,7 @@ KEEP3 = os.environ.get("C8T5_KEEP3", "1")   # fewer returns (Harry on t1: 'repea
 HOOKF = [(0, "E4", 3), (3, "G4", 3), (6, "A4", 4), (10, "B4", 6), (16, "D5", 3), (19, "B4", 3), (22, "D5", 4), (26, "E5", 6)]
 CLEN = int(os.environ.get("C8T5_CLEN", "42"))   # C's length: 40 tightens the agreement (the lift at bar 25, the second 'keep it there' at 33)
 FORM = [("intro", 12), ("A", 34), ("B", 26), ("retrain", 12), ("C", CLEN), ("outro", 16)]
-TRACKS = (*(("cow",) if os.environ.get("C8T5_COW", "96") else ()), "carrier", "conga", "gtr", "acid", "sub", "kick", "hats", "clap", "fretless", "horns", "lead") + (("keys",) if os.environ.get("C8T5_KEYS", "-14") else ()) + (("phase",) if os.environ.get("C8T5_PHASE", "66") else ()) + (("dj",) if os.environ.get("C8T5_PERCSPLIT", "C") else ())
+TRACKS = (*(("cow",) if os.environ.get("C8T5_COW", "96") else ()), "carrier", "conga", "gtr", "acid", "sub", "kick", "hats", "clap", "fretless", "horns", "lead") + (("keys",) if os.environ.get("C8T5_KEYS", "-14") else ()) + (("phase",) if os.environ.get("C8T5_PHASE", "66") else ()) + (("dj",) if os.environ.get("C8T5_PERCSPLIT", "C") else ()) + (("phase0",) if os.environ.get("C8T5_PHASEIN", "") else ())
 SWING = {"gtr": {"A": 0.66, "B": 0.62, "retrain": 0.6, "C": 0.58, "outro": 0.58},
          "acid": {"A": 0.50, "B": 0.54, "C": 0.58, "outro": 0.58}}
 # E dorian: E9, A13, Gmaj7, F#m11 (guitar voicings; roots for the acid)
@@ -140,6 +142,13 @@ def build():
                 for q in range(0, 16, 2):
                     if rng.random() < 0.8:
                         add("carrier", at + q, f"{(1650 if (q // 2 + b) % 2 == 0 else 1850) * (1 if sec != 'retrain' else 0.75):.0f}hz", 1, 70)
+            if PHASEIN and sec == "intro":
+                pv0, pb0 = (int(x) for x in (PHASEIN + ",4").split(",")[:2])
+                if pb0 <= b < pb0 + 6:
+                    pn = (10, 10, 9, 9, 8, 8)[b - pb0]
+                    pv = pv0 - (0 if b < pb0 + 4 else 8 * (b - pb0 - 3))
+                    for i in range(pn):
+                        add("phase0", at + i * 16 / pn, f"{1850 if (i + b) % 2 == 0 else 1650}hz", 16 / pn / 2, pv + (4 if i % 2 == 0 else 0))
             if PHASE and sec == "outro" and b >= 8:
                 pv, pn = (int(x) for x in (PHASE + ",9").split(",")[:2])
                 for i in range(pn):
@@ -359,6 +368,13 @@ def song():
         spec = next(t for t in doc["tracks"] if t["name"] == "carrier")
         fx = [dict(f, hiss="-80dB", whistle="-80dB") if isinstance(f, dict) and f.get("type") == "radio" else f for f in spec.get("fx", [])]   # its own radio without a second hiss and whistle, which would run the whole song
         doc["tracks"].append(dict(spec, name="phase", pan=0.45, fx=fx, score=T["phase"]))
+    if ESTABLE:
+        doc["event_stable"] = True
+    if PHASEIN:
+        T = build()
+        spec = next(t for t in doc["tracks"] if t["name"] == "carrier")
+        fx = [dict(f, hiss="-80dB", whistle="-80dB") if isinstance(f, dict) and f.get("type") == "radio" else f for f in spec.get("fx", [])]
+        doc["tracks"].append(dict(spec, name="phase0", pan=0.45, fx=fx, score=T["phase0"]))
     if PERCSPLIT:
         T = build()
         spec = next(t for t in doc["tracks"] if t["name"] == "conga")
@@ -452,7 +468,7 @@ def song0():
 
 
 def dump(doc):
-    lines = [f"{k}: {json.dumps(doc[k])}" for k in ("about", "vars", "tempo", "ceiling", "loudness", "seed", "tail", "patches", "master") if k in doc]
+    lines = [f"{k}: {json.dumps(doc[k])}" for k in ("about", "vars", "tempo", "ceiling", "loudness", "seed", "tail", "event_stable", "patches", "master") if k in doc]
     lines.append("buses:")
     lines += [f"  {b}: {json.dumps(v)}" for b, v in doc["buses"].items()]
     lines.append("tracks:")
