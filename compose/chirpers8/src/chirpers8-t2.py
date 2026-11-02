@@ -57,6 +57,7 @@ COUNTDIAL = os.environ.get("C8T2_COUNTDIAL", "0.35")   # the count's radio drift
 COUNTPATH = [7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]
 LOOP421 = os.environ.get("C8T2_LOOP421", "62")   # the trivial cycle: through the break, where every path ends, the bell plays 4 -> 2 -> 1 forever as octaves (G6 G5 G4, one a beat) - a three-beat loop against the four-beat bar that lines up again every three bars; value = velocity
 METER = os.environ.get("C8T2_METER", "3")   # the break in the cycle's own meter: every path ends in 4 -> 2 -> 1, a loop of three, so the break goes to 3/4 (20 bars; the tempo map's meter) and the voice counts it like a waltz - 'four' on two, 'two' on three, ONE on the downbeat, held longer each time until it sings - with the bell's loop turned so its 1 (G4) lands with the voice's
+CRASH = os.environ.get("C8T2_CRASH", "ABCo")   # the big downbeats marked: a modal cymbal (the modal layer's cymbal modes, a wash that blooms) on the first beat of each section listed - 'ABC' (A, B, and C as the 3/4 break returns to four), 'ABCo' adds the outro
 ARP32 = os.environ.get("C8T2_ARP32", "")    # the drop's arps on 1/32 (as the plan always said): double-time chip arps through C
 BAR = 16
 SEED = 2
@@ -67,7 +68,7 @@ def barlen(sec):
     """Sixteenths in a bar of this section: the break is in 3/4 under METER."""
     return 12 if METER and sec == "break" else BAR
 SEEDS = {"intro": [6, 6], "A": [7, 12, 3, 7], "B": [9, 18, 11], "C": [27, 31, 27, 41], "outro": [1]}
-TRACKS = ("clar", "clar2", "arp", "bass", "sub", "kick", "shk", "hats", "clap", "pad", "bell")
+TRACKS = ("clar", "clar2", "arp", "bass", "sub", "kick", "shk", "hats", "clap", "pad", "bell", "crash")
 GMAJ = ["G", "A", "B", "C", "D", "E", "F#"]
 CHORDS = [("G", [0, 2, 4]), ("E", [5, 7, 9]), ("C", [3, 5, 7]), ("D", [4, 6, 8])]   # I vi IV V as degrees from G
 PRIMES = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31)
@@ -213,6 +214,8 @@ def build():
             if AIR and sec in ("B", "C"):
                 for q in range(16):
                     add("shk", at + q, "sh", 1, int(AIR) + (14 if q % 2 else 0) - (8 if q % 4 == 0 else 0))
+    for sec in (("A", "B", "C") + (("outro",) if "o" in CRASH else ())) if CRASH else ():
+        add("crash", sec_start(sec), "D5", 8 * BAR, 100)
     if LOOP421 and BELL:
         b0, b1 = sec_start("break"), sec_start("C")
         for i, at in enumerate(range(b0, b1, 4)):
@@ -338,6 +341,12 @@ def song():
             "echo": {"fx": [{"type": "delay", "time": "3/16", "feedback": 0.35, "mix": 1, "tone": 4000, "ping_pong": True}, "hp cutoff=400"]},
         },
         "tracks": [
+            *([{"name": "crash", "patch": {"about": "a crash cymbal from the modal layer: dense cymbal modes struck near the edge, the wash blooming",
+                                           "synth": {"layers": [{"type": "modal", "modes": "cymbal", "decay": "3s", "bloom": 0.45, "strike": 0.7,
+                                                                 "bright": {"value": 0.6, "mod": [{"src": "vel", "amount": 0.3}]}}],
+                                                     "amp": {"a": "1ms", "d": "4s", "s": 0, "r": "2s", "curve": 3}},
+                                           "play": {"vel_sens": 0.6}},
+                 "gain": "-17dB", "pan": -0.2, "sends": {"plate": "-12dB"}, "score": T["crash"]}] if CRASH else []),
             *([{"name": "bell", "patch": {"about": "a small bell for a finished job: modal bell modes, a short bright ring",
                                           "synth": {"layers": [{"type": "modal", "modes": "bell", "decay": "3s", "damp": 0.05,
                                                                 "bright": {"value": 0.6, "mod": [{"src": "vel", "amount": 0.3}]},
