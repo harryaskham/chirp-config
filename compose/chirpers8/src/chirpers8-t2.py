@@ -27,7 +27,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(HERE)))
 OUT = os.environ.get("C8T2_OUT") or os.path.join(ROOT, "songs", "chirpers8-t2.yaml")
 
-BPM = 128
+BPM = int(os.environ.get("C8T2_BPM", "130"))   # 130: two per cent quicker than t4 (both sat at 128, and compscore's tempo match made them read as twins once the beat tracker locked on)
 CANON = os.environ.get("C8T2_CANON", "80")    # two processes running the same program: a second clarinet plays each path one bar behind, an octave down (chalumeau), in B and C; value = velocity scale %
 SUBOUT = os.environ.get("C8T2_SUBOUT", "4")  # the sine sub leaves for the outro's last bars (the analog bass stays) - the tail stops piling 38-44 Hz on t3's head; value = bars
 SPARSE = os.environ.get("C8T2_SPARSE", "b")  # 'i' / 'b' / 'ib' - space: no arps in the intro's first 8 bars (the clarinet alone, then the chip arrives) and none in the break (the pads and the sung 4-2-1 alone)
@@ -36,6 +36,8 @@ AIR = os.environ.get("C8T2_AIR", "")        # air over the sieve: a quiet dusty 
 OWNHATS = os.environ.get("C8T2_OWNHATS", "1")   # the rest of the drum machine our own: the hats on the engine's machine layer (six squares at the 808's metal ratios, band-passed), closed (60 ms) and open (320 ms) on two tracks, instead of machine-kit's
 OWNKICK = os.environ.get("C8T2_OWNKICK", "1")   # and the kick: the machine layer's 909-style kick tuned to G1 (the key's root), instead of machine-kit's
 TOMBACK = os.environ.get("C8T2_TOMBACK", "swap")   # PALETTE ROUND: the backbeat on a drum machine of our own - the engine's `machine` layer (circuit-modelled drum-machine voices, unused on the album) as a tuned electronic tom: G3 on 2, D3 on 4 (the halving's lone 3 on G3), the syndrum backbeat of the old machine records. 'swap' replaces the machine-kit clap (a staple of 9 songs); 'layer' keeps the clap under it
+CONVERGE = os.environ.get("C8T2_CONVERGE", "6")   # WHOLE ROUND: THE PATHS MEET - in C the canon gives way to a second number. Each of C's climbs gets a partner whose own hailstone path joins it partway (27 and 41 meet 313, 31 meets 297), played on the second clarinet in its own register and the same parity rhythm, timed so the two land on the shared number together; they sound in unison for six steps, then the partner falls silent and one line goes on down to 1 - the conjecture heard: different starts, one road home. Value = 'unison steps'
+CONVSNAP = os.environ.get("C8T2_CONVSNAP", "")   # with CONVERGE: before it joins, the partner's notes snap to the tonic triad (degrees 0 2 4: G B D) - an arpeggio against the clarinet's scale line - and keep the song's pitch balance (all seven degrees made t2's chroma read 0.90 like t4's)
 HALVLOCAL = os.environ.get("C8T2_HALVLOCAL", "1")   # the halving kept local: the grid kicks and toms stay in place at velocity 1 (so every later hit's dice stay put) and the half-time hits and the return crash play on their own tracks (kick2, tom2, crash2), listed last
 PREFIGTRACK = os.environ.get("C8T2_PREFIGTRACK", "1")   # the foretold 4-2-1 on its own bell track (bell2, the same bell), listed last: on the bell track its notes shifted the dice of every later bell (the break's loop and C's halts moved by -16..-35 dB residual)
 PREFIG = os.environ.get("C8T2_PREFIG", "80")   # SECTION ROUND, window 3 (1:00-1:30, A bars 16-31; flagged static, little new vs w2): THE TRIVIAL CYCLE, FORETOLD - in A's second half, each time a clarinet path lands on 1 the bell answers once, softly, with 4 2 1 (G6 G5 G4: the loop the break will ring for twenty bars); value = velocity of the first stroke
@@ -179,6 +181,21 @@ def build():
             path = collatz(n0) if n0 != 1 else [1, 4, 2, 1]
             up = 12 if sec == "C" and k % 4 == 2 else 0
             times, plen = clar_times(path)
+            if CONVERGE and sec == "C" and n0 in (27, 31, 41):
+                partner = {27: 313, 31: 297, 41: 313}[n0]
+                q = collatz(partner)
+                pj = next(j for j, x in enumerate(q) if x in path)
+                pi = path.index(q[pj])
+                qq = q[:pj + 1 + int(CONVERGE)]
+                qt, _ = clar_times(qq)
+                p0 = t + times[pi][0] - qt[pj][0]
+                for j, x in enumerate(qq):
+                    pat = p0 + qt[j][0]
+                    if a0 <= pat < end:
+                        dd = height(x) + (7 if up else 0)
+                        if CONVSNAP and j < pj:
+                            dd = min((dd - dd % 7 + c for c in (0, 2, 4, 7)), key=lambda z: abs(z - dd))
+                        add("clar2", pat, deg_note(dd), qt[j][1] if j < len(qq) - 1 else 4, (92 if x % 2 else 76) - (0 if j >= pj else 6))
             for i, n in enumerate(path):
                 at = t + times[i][0]
                 nl = times[i][1]
@@ -198,7 +215,7 @@ def build():
                         add("bell2" if PREFIGTRACK else "bell", at + 4 + 4 * j, nn, ln2, pv - 6 * j)
                 if BELL and last and n == 1 and (sec == "C" or (BELL == "Co" and sec == "outro" and at + 4 >= end - 2 * BAR)):
                     add("bell", at, "G5", 4 * BAR, 76)
-                if CANON and sec in ("B", "C") and at + BAR < end:
+                if CANON and (sec == "B" or (sec == "C" and not CONVERGE)) and at + BAR < end:
                     add("clar2", at + BAR, deg_note(max(d - 7, 0)) if d >= 7 else deg_note(d), 4 if last else nl,
                         int((100 if n % 2 else 82) * int(CANON) / 100))
             ln = plen + 4
