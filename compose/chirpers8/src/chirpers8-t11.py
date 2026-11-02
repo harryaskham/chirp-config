@@ -378,6 +378,56 @@ BASS_LINE = ([2, 2, 2.5, 3, 2, 2.5, 3, 3.5],
 # next room who caught the tune; on the partials of whichever lobe the weather is in. Its own track, listed last.
 WHISTLE_AT = (41, 45)
 
+# v21 (SECTION round, w5 2:08-2:40, bars 65-80, the second half of B - 'static, little new vs w4'; Harry: do more
+# each round): THREE CHANGES IN THE WINDOW. (1) THE HOOK IN HARMONY (65-72): for the first time the hook gets a second
+# voice - every note a pure 5/4 major third above (partial n x 5/4), following whichever form the lead plays - on the
+# physical modal-vibes. (2) A COUNTER-LINE IN THE WEATHER (73-80): where the lead improvises, a physical modal-marimba
+# rolls the weather lobe's harmonic chord (partials 8, 10, 12 and the septimal 14) in soft rising and falling
+# eighths - the rain on the roof turning into notes. (3) A BREATH BEFORE THE BREAK: the drums drop for the last two
+# beats of bar 80 (silenced at velocity 1, held notes cut - every track keeps its note count), so the break arrives
+# from a held breath. New parts on new tracks, listed last.
+HARM = (65, 72)
+RAINMAR = (73, 80)
+ROLL = (8, 10, 12, 14, 12, 10, 8, 10)
+
+
+def hook_harmony():
+    out = []
+    for bar in range(HARM[0], HARM[1] + 1):
+        if (bar - 17) % 2 or not hook_on(bar):
+            continue
+        x, y, z = state(bar)
+        form = 0 if bar in (17, 19, 49, 97) + SUNG_AT else int(max(0, min(3, (y + 25) / 50 * 4)))
+        lb = lobe_at(bar)
+        for at, n, ln, v in hook_form(form):
+            out.append({"at": round(b0(bar) + at, 4), "len": round(ln * 0.92, 3),
+                        "pitch": mm(partial(n * 1.25, lb, 0)), "vel": round(0.7 * v / 96, 3)})
+    return out
+
+
+def rain_marimba():
+    out = []
+    for bar in range(RAINMAR[0], RAINMAR[1] + 1):
+        lb = lobe_at(bar)
+        for e, n in enumerate(ROLL):
+            out.append({"at": round(b0(bar) + e * 0.5, 4), "len": 0.45, "pitch": mm(partial(n, lb, 0)),
+                        "vel": 0.62 if e % 4 == 0 else 0.48})
+    return out
+
+
+def breath():
+    a, z = b0(80) + 2, b0(81)
+    for name in ("kick", "hats", "clap"):
+        ev = []
+        for s, ln, head, vel in P[name].ev:
+            if a <= s < z:
+                ev.append((s, ln, head, 1))
+            elif s < a < s + ln:
+                ev.append((s, a - s - 0.02, head, vel))
+            else:
+                ev.append((s, ln, head, vel))
+        P[name].ev = ev
+
 
 def whistle_notes():
     out = []
@@ -503,6 +553,7 @@ def main():
     write_thunder()
     write_wind()
     eye_clear()
+    breath()                                                     # v21: the drums breathe in before the break
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
     # v6: the wavetable scans VOWELS (u o a e i), not a resonant sweep: the weather speaks, no squelch
     lead_patch = {"extends": "juno-pad", "synth": {"layers": [
@@ -560,6 +611,10 @@ def main():
             tr("clap", "machine-kit play.humanize.nudge.cp=8ms", gain="-5dB", sends={"room": "-8dB"}),
             {"name": "whistle", "patch": "low-whistle", "gain": "-6dB", "pan": 0.6,
              "sends": {"room": "-4dB", "hall": "-10dB"}, "notes": whistle_notes()},   # v20: LAST (keeps every rng)
+            {"name": "hookharm", "patch": "modal-vibes", "gain": "-9dB", "pan": -0.35,
+             "sends": {"hall": "-8dB"}, "notes": hook_harmony()},                   # v21: the hook in harmony
+            {"name": "rainmar", "patch": "modal-marimba", "gain": "-12dB", "pan": -0.55,
+             "sends": {"room": "-8dB"}, "notes": rain_marimba()},                   # v21: rain into notes
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=1.0s mix=1 predelay=10ms", "hp cutoff=250"]},
                   "hall": {"fx": ["reverb kind=hall decay=2.8s mix=1 predelay=25ms", "hp cutoff=250", WIDTH_FX],
