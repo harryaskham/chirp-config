@@ -33,6 +33,7 @@ SUBOUT = os.environ.get("C8T2_SUBOUT", "4")  # the sine sub leaves for the outro
 SPARSE = os.environ.get("C8T2_SPARSE", "b")  # 'i' / 'b' / 'ib' - space: no arps in the intro's first 8 bars (the clarinet alone, then the chip arrives) and none in the break (the pads and the sung 4-2-1 alone)
 PADLOW = os.environ.get("C8T2_PADLOW", "1")  # the choir an octave down (G2 B2 D3 ... the body 98-160 Hz the mix lacked) and humming from the first bar, softly, so t1's warm tail lands on it
 AIR = os.environ.get("C8T2_AIR", "")        # air over the sieve: a quiet dusty shaker on every sixteenth through B and C (the 7-11 kHz the hats leave); value = velocity
+TOMBACK = os.environ.get("C8T2_TOMBACK", "swap")   # PALETTE ROUND: the backbeat on a drum machine of our own - the engine's `machine` layer (circuit-modelled drum-machine voices, unused on the album) as a tuned electronic tom: G3 on 2, D3 on 4 (the halving's lone 3 on G3), the syndrum backbeat of the old machine records. 'swap' replaces the machine-kit clap (a staple of 9 songs); 'layer' keeps the clap under it
 PREFIG = os.environ.get("C8T2_PREFIG", "80")   # SECTION ROUND, window 3 (1:00-1:30, A bars 16-31; flagged static, little new vs w2): THE TRIVIAL CYCLE, FORETOLD - in A's second half, each time a clarinet path lands on 1 the bell answers once, softly, with 4 2 1 (G6 G5 G4: the loop the break will ring for twenty bars); value = velocity of the first stroke
 HALVING = os.environ.get("C8T2_HALVING", "24,8")   # SECTION ROUND, window 8 (3:30-4:00, C bars 21-37; flagged static, little new vs w7): THE HALVING - for 'start,len' bars of C the drums go half-time (kick on 1 and the and-of-3, the clap on 3 alone), the rule's 'even comes down' in the beat, then double back; hats and bass keep going
 HALVBASS = os.environ.get("C8T2_HALVBASS", "")   # with HALVING: the bass and the sub halve too (the bass on 1 and the and-of-3, held; the sub on 1, held) - the whole floor at half speed, the hats still running
@@ -78,7 +79,7 @@ def barlen(sec):
     """Sixteenths in a bar of this section: the break is in 3/4 under METER."""
     return 12 if METER and sec == "break" else BAR
 SEEDS = {"intro": [6, 6], "A": [7, 12, 3, 7], "B": [9, 18, 11], "C": [27, 31, 27, 41], "outro": [1]}
-TRACKS = ("clar", "clar2", "arp", "bass", "sub", "kick", "shk", "hats", "clap", "pad", "bell", "crash")
+TRACKS = ("clar", "clar2", "arp", "bass", "sub", "kick", "shk", "hats", "clap", "pad", "bell", "crash") + (("tom",) if os.environ.get("C8T2_TOMBACK", "swap") else ())
 GMAJ = ["G", "A", "B", "C", "D", "E", "F#"]
 CHORDS = [("G", [0, 2, 4]), ("E", [5, 7, 9]), ("C", [3, 5, 7]), ("D", [4, 6, 8])]   # I vi IV V as degrees from G
 PRIMES = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31)
@@ -224,11 +225,15 @@ def build():
                         if (q + 16 * (b % 2)) in PRIMES:
                             add("hats", at + q, "h", 1, 76 if q % 2 else 62)
                     add("hats", at + 14, "oh", 1, 64) if (14 + 16 * (b % 2)) not in PRIMES else None
-                    if half:
-                        add("clap", at + 8, "cp", 1, 100)
-                    else:
-                        add("clap", at + 4, "cp", 1, 94)
-                        add("clap", at + 12, "cp", 1, 98)
+                    if TOMBACK:
+                        for q, nn, vv in (((8, "G3", 104),) if half else ((4, "G3", 98), (12, "D3", 102))):
+                            add("tom", at + q, nn, 2, vv)
+                    if TOMBACK != "swap":
+                        if half:
+                            add("clap", at + 8, "cp", 1, 100)
+                        else:
+                            add("clap", at + 4, "cp", 1, 94)
+                            add("clap", at + 12, "cp", 1, 98)
                 else:
                     for q in (2, 6, 10, 14):
                         add("hats", at + q, "h", 1, 70)
@@ -409,6 +414,9 @@ def song():
             *([{"name": "shk", "patch": "dusty-kit", "gain": "-13dB", "pan": 0.3, "fx": [{"type": "filter", "kind": "hp", "cutoff": 4000, "q": 0.7}], "score": T["shk"]}] if AIR else []),
             {"name": "hats", "patch": "machine-kit", "gain": "-7dB", "pan": 0.15, **({"fx": [{"type": "eq", "bands": [f"peak cutoff=9000 q=0.7 gain={HATAIR}dB"]}]} if HATAIR else {}), "score": T["hats"]},
             {"name": "clap", "patch": "machine-kit", "gain": "-9dB", "sends": {"plate": "-10dB"}, "score": T["clap"]},
+            *([{"name": "tom", "patch": {"about": "a tuned electronic tom from the engine's drum-machine layer (the syndrum backbeat)",
+                                         "synth": {"layers": [{"type": "machine", "machine": {"part": "tom", "punch": 9, "punch_time": "45ms", "decay": "320ms", "snappy": 0.25, "click": 0.25}}]}},
+                 "gain": "-10dB" if TOMBACK == "swap" else "-13dB", "pan": 0.1, "sends": {"plate": "-12dB"}, "score": T["tom"]}] if TOMBACK else []),
             {"name": "pad", "patch": "dream-vox", "gain": "-13dB", "sends": {"plate": "-8dB"}, "score": T["pad"]},
             dialled(voice("chirpers8-t2-count.json", "count", st["A"] + 4 * BAR, "-12dB",
                           [dict(radio, tune={"value": 0.03, "mod": [{"src": "auto.cd", "amount": float(COUNTDIAL)}]}) if COUNTDIAL else radio, "hp cutoff=250"],
