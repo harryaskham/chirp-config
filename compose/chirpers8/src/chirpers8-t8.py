@@ -59,6 +59,7 @@ WORDPRES = os.environ.get("C8T8_WORDPRES", "")   # presence on the melody, not t
 EQ4 = os.environ.get("C8T8_EQ4", "1")   # the three narrow holes left (1025, 3078, 4929 Hz at -6.7/-7.2/-6.2 against the album, neighbours ~0): narrow master peaks (q 4) of +2/+2.5/+1.5 dB x EQ4 - a broad presence lift on the melody overfills 1.6-2.2 kHz instead
 WTABLE = os.environ.get("C8T8_WTABLE", "-26")   # the word as a waveform: a wavetable whose frames ARE the stored word - frame per 4 bars, harmonic 1 always, harmonics 2-17 present where the word's 16 bits are set (gain 1/h^0.7) - holding each chord's root an octave up under the band; as bits flip and refresh repairs them the drone's timbre wears and mends with the memory; value = gain dB
 WT = {"notes": [], "frames": []}
+PLATEHIT = os.environ.get("C8T8_PLATEHIT", "rE")   # the write, struck: when the refresh rewrites the word, a metal plate is struck once (the modal layer's plate modes, a stretched D) and the strike goes into the line, so the write itself goes round the memory; 'r' at the refresh, 'rE' also as the repaired E begins
 DARK = os.environ.get("C8T8_DARK", "8")  # the tape running out: a master low-pass closing over the outro's last bars (the hiss and the line's top go first); value = bars
 FORM = [("intro", 16), ("A", 36), ("refresh", 8), ("C", 32), ("D", 16), ("E", 28), ("outro", 16)]
 TRACKS = ("word", "pad0", "pad1", "pad2", "pad3", "org0", "org1", "hum", "hum2", "bass", "kick", "shk", "hats", "clap", "rim")
@@ -283,6 +284,16 @@ def song():
                     *([f"peak cutoff=2500 q=0.6 gain={WORDPRES}dB"] if WORDPRES else [])],
              "auto": {"sc": stut, **({"ch": chl} if CHOP else {})}, "sends": {"line": "-4dB", "room": "-12dB"}, "score": T["word"]},
             *([{"name": f"org{j}", "patch": "farfisa", "gain": "-17dB", "pan": (-0.35, 0.35)[j], "sends": {"room": "-14dB"}, "score": T[f"org{j}"]} for j in range(2)] if ORGAN else []),
+            *([{"name": "plate", "gain": "-15dB", "pan": -0.15,
+                "patch": {"about": "a struck metal plate: the modal layer's plate modes, a long dense ring",
+                          "synth": {"layers": [{"type": "modal", "modes": "plate", "decay": "5s", "strike": 0.45, "bloom": 0.2,
+                                                "bright": {"value": 0.55, "mod": [{"src": "vel", "amount": 0.3}]}}],
+                                    "amp": {"a": "1ms", "d": "6s", "s": 0, "r": "3s", "curve": 3}},
+                          "play": {"vel_sens": 0.6}},
+                "sends": {"line": "-6dB", "room": "-10dB"},
+                "score": " ".join(f"R/{(a - b) / 4:g}b {hz(50)}/{4 * BAR / 4:g}b@100" if b < a else f"{hz(50)}/{4 * BAR / 4:g}b@100"
+                                  for a, b in zip([sec_start(x) for x in (["refresh"] + (["E"] if "E" in PLATEHIT else []))],
+                                                  [0] + [sec_start("refresh") + 4 * BAR]))}] if PLATEHIT else []),
             *([{"name": "wtab", "gain": f"{WTABLE}dB", "pan": 0.05, "out": "pads",
                 "patch": {"about": "the stored word as a waveform: its 16 bits are the table's harmonics 2-17",
                           "synth": {"layers": [{"type": "wavetable", "frames": WT["frames"],
