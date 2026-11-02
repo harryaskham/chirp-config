@@ -52,6 +52,7 @@ HEIGHTVAR = os.environ.get("C8T2_HEIGHTVAR", "")   # the number's height as a va
 HEIGHTLO = float(os.environ.get("C8T2_HEIGHTLO", "1500"))   # the arps' cutoff at height 0 (Hz)
 HEIGHTAIR = os.environ.get("C8T2_HEIGHTAIR", "")   # instead of closing the arps, the climb adds air: a high shelf (6 kHz) on the chip arps whose gain follows the height var, 0 dB at 1 up to +HEIGHTAIR dB at the top of a climb
 HEIGHTPAN = os.environ.get("C8T2_HEIGHTPAN", "0.9")   # the climb crosses the room: the chip arps' pan follows the height var, from 0.25 (right of centre, the number home) toward the left as a path climbs (to 0.25 - HEIGHTPAN at the top)
+SUNGCLOUD = os.environ.get("C8T2_SUNGCLOUD", "0.6")   # 'high as the cloud': on the sung word 'cloud' the voice goes up into a granular cloud - grains of the last half-second, an octave up (scatter 2, some reversed, spread wide) - swelling in on the word and gone again for 'and then home'; value = the cloud's peak mix
 ARP32 = os.environ.get("C8T2_ARP32", "")    # the drop's arps on 1/32 (as the plan always said): double-time chip arps through C
 BAR = 16
 SEED = 2
@@ -229,6 +230,21 @@ def to_m(pitch):
     return pitch
 
 
+def clouded(tr, offs16):
+    """The sung line's 'cloud' (beats 2.24-3.94 of the take) swells into an octave-up granular cloud; 'and then home' is dry."""
+    if not SUNGCLOUD:
+        return tr
+    m = float(SUNGCLOUD)
+    pts = [["0b", 0]]
+    for o in offs16:
+        b = o / 4
+        pts += [[f"{b + 2.0:g}b", 0], [f"{b + 2.6:g}b", m], [f"{b + 3.9:g}b", m], [f"{b + 4.5:g}b", 0]]
+    tr["fx"] = [*tr["fx"], {"type": "cloud", "mix": {"value": 0, "mod": [{"src": "auto.sc", "amount": 1}]}, "density": 20, "size": "110ms",
+                            "position": "350ms", "spray": "200ms", "pitch": 12, "scatter": 2, "reverse": 0.25, "spread": 0.9, "seed": 2}]
+    tr["auto"] = {**tr.get("auto", {}), "sc": {"points": pts}}
+    return tr
+
+
 def voice(file, name, off16, gain, fx, sends):
     """A tts line (tts --print) at one or more offsets (sixteenths); sung lines (--sing) have no formant lane."""
     src = json.load(open(os.path.join(HERE, file)))["tracks"][0]
@@ -287,8 +303,9 @@ def song():
             {"name": "clap", "patch": "machine-kit", "gain": "-9dB", "sends": {"plate": "-10dB"}, "score": T["clap"]},
             {"name": "pad", "patch": "dream-vox", "gain": "-13dB", "sends": {"plate": "-8dB"}, "score": T["pad"]},
             voice("chirpers8-t2-count.json", "count", st["A"] + 4 * BAR, "-12dB", [radio, "hp cutoff=250"], {"plate": "-14dB"}),
-            *([voice("chirpers8-t2-sung.json", "sung", [st["C"] + 12 * BAR, st["C"] + 40 * BAR], f"{SING}dB",
-                     [{"type": "chorus", "rate": 0.25, "depth": 0.15, "mix": 0.2}, "hp cutoff=150"], {"plate": "-7dB", "echo": "-13dB"})] if SING else []),
+            *([clouded(voice("chirpers8-t2-sung.json", "sung", [st["C"] + 12 * BAR, st["C"] + 40 * BAR], f"{SING}dB",
+                     [{"type": "chorus", "rate": 0.25, "depth": 0.15, "mix": 0.2}, "hp cutoff=150"], {"plate": "-7dB", "echo": "-13dB"}),
+                     [st["C"] + 12 * BAR, st["C"] + 40 * BAR])] if SING else []),
             voice("chirpers8-t2-refrain.json", "refrain", st["break"] + 4 * BAR, "-9dB", [], {"plate": "-8dB", "echo": "-14dB"}),
         ],
     }
