@@ -219,6 +219,11 @@ def build():
     # the line back, the machine's own FM voice plays the tune with it, exact, an octave down: it has learned it (once
     # only - doubled in every turn, the third groove lost its call and response, and compscore's structure fell 7)
     HOOK3 = HOOK[:4] + [(None, .5), (62, .5), (64, .5), (66, .5), (69, 1.0), (71, .5), (74, 1.5)]
+    # (v22) THE ALBUM OPENS ON THE TUNE: the opener's intro was the pad and one spoken take, then five bars of nothing
+    # new. Now, after the first take, the vibraphone plays the tune once, softly, alone over the pad - the record's
+    # first melody, the motif the closer remembers - and then it is not heard again until the second groove
+    hook((secs['intro'] + 4) * 4.0, HOOK, vel=60)
+    hook((secs['intro'] + 6) * 4.0, HOOK2, vel=56)
     for ph_ in range(4, dict(FORM)['B'], 8):
         hook((secs['B'] + ph_) * 4.0, HOOK, vel=74)
         if ph_ + 2 < dict(FORM)['B']:
@@ -295,8 +300,12 @@ def build():
              'auto': {'frz': {'points': frz + [[f"{secs['C'] * 4.0 + 2:.2f}b", 1.0], [f"{secs['C'] * 4.0 + 2.05:.2f}b", 0.0]]}},
              'sends': {'hall': '-8dB', 'echo': '-14dB'}},
             {'name': 'voice', 'patch': 'voice-speech', 'gain': '-6dB', 'notes': vnotes,
-             'fx': [{'type': 'pitch', 'semitones': 0, 'formant': {'value': 0, 'mod': [{'src': 'auto.fv', 'amount': 1}]}}],
-             'auto': {'fv': {'points': fv}}, 'sends': {'hall': '-14dB', 'echo': '-16dB'}},
+             # (v22) a produced voice, not a dry one: a short bright plate on the insert (the album's first plate),
+             # a gentle de-mud at 300 Hz and air on top, so the human sits in the room the machine is in
+             'fx': [{'type': 'pitch', 'semitones': 0, 'formant': {'value': 0, 'mod': [{'src': 'auto.fv', 'amount': 1}]}},
+                    {'type': 'eq', 'bands': ['peak cutoff=300 q=1 gain=-2.5dB', 'highshelf cutoff=8000 gain=2dB']},
+                    {'type': 'reverb', 'kind': 'plate', 'decay': '1.3s', 'predelay': '18ms', 'mix': 0.16}],
+             'auto': {'fv': {'points': fv}}, 'sends': {'hall': '-16dB', 'echo': '-16dB'}},
             # THE BABBLE: the engine's own Markov chains over the corpus, longer memory each groove, on a tuning that sharpens
             # (v3) THE ENGINE LEARNS IT ITSELF: the babble is now the engine's own gen markov over the corpus (wM's complex
             # systems, d082b8f5) - four chains played in turn (memory 1, 2, then 1 again for the break, then 3), each long
