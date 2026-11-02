@@ -425,6 +425,15 @@ def build():
              'sends': {'echo': '-10dB', 'hall': '-12dB'}},
             tr('sub', 'sub', '-8dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '250ms', 'curve': 0.6}]),
             tr('bentry', FMBASS, '-7dB', fx=['lp cutoff=1600']),
+            # (v29) A SECOND SINGER: when the sung line first arrives, in G minor, a second voice sings it with the first,
+            # mostly a third below and leaning on the chord where a third would rub (F# under 'holds', a fifth under 'lit') -
+            # a separate take (seed 21) on the other side, a little behind and a little quieter, so the words land as a
+            # duet; at the end, home in D minor, the first voice sings alone again
+            {'name': 'duet', 'patch': SING['patch'], 'gain': '-11dB', 'pan': 0.3, 'tuning': W3T,
+             'notes': [dict(n_, at=round(secs_t['calls2'] + n_['at'] + 0.02, 4),
+                            pitch=f"m{round(69 + 12 * math.log2(float(n_['pitch'][:-2]) / 440.0))}") for n_ in SING['harm']['notes'][:23]],
+             'fx': [{'type': 'tape', 'drive': 0.12, 'mix': 1, 'wow': 2, 'flutter': 1, 'seed': 4}],
+             'sends': {'hall': '-8dB', 'echo': '-14dB'}},
         ]}
     return song, depths
 
