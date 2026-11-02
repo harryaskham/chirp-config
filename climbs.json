@@ -8277,7 +8277,14 @@
         "score": 98.66,
         "version": "v11",
         "commit": "see git log songs/chirpers8-t12.yaml",
-        "judged": true
+        "judged": true,
+        "stale": {
+          "score": 98.66,
+          "since": "2026-11-02T02:39:14Z",
+          "who": "chirper-one",
+          "rating": 9.5,
+          "version": "v11"
+        }
       },
       "passes": 1,
       "enabled": true,
