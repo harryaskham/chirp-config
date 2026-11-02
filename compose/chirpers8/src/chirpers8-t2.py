@@ -55,6 +55,7 @@ HEIGHTPAN = os.environ.get("C8T2_HEIGHTPAN", "0.9")   # the climb crosses the ro
 SUNGCLOUD = os.environ.get("C8T2_SUNGCLOUD", "0.6")   # 'high as the cloud': on the sung word 'cloud' the voice goes up into a granular cloud - grains of the last half-second, an octave up (scatter 2, some reversed, spread wide) - swelling in on the word and gone again for 'and then home'; value = the cloud's peak mix
 COUNTDIAL = os.environ.get("C8T2_COUNTDIAL", "0.35")   # the count's radio drifts with the numbers: as the voice reads 7's path, each number moves the dial off the station by its height (log2 n / log2 52 x COUNTDIAL) - 52 half lost in static, the falling numbers tuning back in, 'one' clear
 COUNTPATH = [7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]
+LOOP421 = os.environ.get("C8T2_LOOP421", "62")   # the trivial cycle: through the break, where every path ends, the bell plays 4 -> 2 -> 1 forever as octaves (G6 G5 G4, one a beat) - a three-beat loop against the four-beat bar that lines up again every three bars; value = velocity
 ARP32 = os.environ.get("C8T2_ARP32", "")    # the drop's arps on 1/32 (as the plan always said): double-time chip arps through C
 BAR = 16
 SEED = 2
@@ -206,6 +207,10 @@ def build():
             if AIR and sec in ("B", "C"):
                 for q in range(16):
                     add("shk", at + q, "sh", 1, int(AIR) + (14 if q % 2 else 0) - (8 if q % 4 == 0 else 0))
+    if LOOP421 and BELL:
+        b0, b1 = sec_start("break"), sec_start("C")
+        for i, at in enumerate(range(b0, b1, 4)):
+            add("bell", at, ("G6", "G5", "G4")[i % 3], 4, int(LOOP421) + (6 if i % 3 == 0 else 0))
     return {k: stream(ev[k], total()) for k in TRACKS}
 
 
