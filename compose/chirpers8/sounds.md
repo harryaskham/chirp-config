@@ -114,3 +114,8 @@ Shared palette for the engine showcase; earlier albums' banks are yours to borro
     - Lost: t5's bargain 'a little slower. a little faster. there.' Even dry it reads 'Honey has a longer, honey, unfastier', so the take itself is weak; through the radio at 0.85 it's gone.
     - Sung lines read poorly: t2 'high as the cloud, and then home' -> 'Pause the word and let it go'.
   - Use it to choose between tts takes (seeds, --humanize, pace) before burying a line in fx. An fx should colour words a listener can still half-read.
+  - Follow-up (t5 v23): reword before re-seeding. Every one of chirp's six voices (voice-speech, voice-spoken, voice-tts, voice-tts-fric, voice, voice-rap) turned 'a little' into 'honey'.
+    - 'slow down a touch. speed up a touch. there.' on voice-spoken (speed 0.9, humanize 0.4, seed 7) read 0.71 dry.
+    - Through the radio at 0.7 in the song it reads 'Slow down, touch, speed up, touch'. The old take read 0.0-0.27.
+    - Plosive-led, stressed words (slow, down, speed, up, touch) carry; unstressed function words ('a little') blur.
+  - Sung takes (tts --sing) read badly on every voice and seed (best 0.31 for 'high as the cloud, and then home'). base.en is weak on singing, so don't over-read sung results.
