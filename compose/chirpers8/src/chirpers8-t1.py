@@ -44,6 +44,14 @@ def chord_at(s, i, b):
     return CH[(b // 2) % 4]
 NN = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
 def nm(m): return f"{NN[m % 12]}{m // 12 - 1}"
+# (v13) NEUTRAL THIRDS: through the third groove - where the babble is in 24 and then 96 notes to the octave - the
+# chords learn the quarter tones too: each chord's third is bent a quarter tone toward the middle (major thirds down,
+# minor thirds up), so every chord is neither major nor minor, a third the twelve notes do not have; when the machine
+# says the line back the first groove's plain chords return
+NEUTRAL = {tuple(DF[1]): {66: 65.5}, tuple(CH[1][1]): {71: 70.5}, tuple(EM9[1]): {67: 67.5}, tuple(A13[1]): {61: 60.5}}
+def ctoks(sec, ch):
+    bend = NEUTRAL.get(tuple(ch), {}) if sec == 'C' else {}
+    return ','.join(f"m{bend[m]:.1f}" if m in bend else nm(m) for m in ch)
 
 
 def line(events, total):
@@ -85,8 +93,8 @@ def build():
         prev = chord_at(s, i - 1, b - 1) if i > 0 else None
         if (s not in PROG and b % 2 == 0) or (s in PROG and (prev != (root, ch) or i == 0)):
             if s in ('C', 'D'):
-                P['speak'].append((t0, ','.join(nm(m) for m in ch), 40.0, 84))
-            P['pad'].append((t0, ','.join(nm(m) for m in ch), 40.0, 72 if s in ('intro', 'outro', 'break') else 64))
+                P['speak'].append((t0, ctoks(s, ch), 40.0, 84))
+            P['pad'].append((t0, ctoks(s, ch), 40.0, 72 if s in ('intro', 'outro', 'break') else 64))
         if s == 'outro' and i >= 6:
             P['sub'].append((t0, nm(31), 3.8, 80))           # G1 under the handshake
         if s in ('B', 'C', 'D'):

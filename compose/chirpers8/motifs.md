@@ -84,3 +84,4 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 - **t1 IT SAYS IT IN YOUR VOICE** (v12): the said-back FM line (D section, two octaves up) gets a morph cross keyed by the human voice (amount 0.85) after its formant filter.
 - **t7 THE TIMING ANNEALS TOO** (v10): each drum hit lands off its 16th by gauss(0, 0.07 T) beats (clamped to +-0.11, downbeats only late), its own seeded dice (SEED+99); converged, dead on the grid.
 - **t10 THE ORGAN** (v20): through the 32 final bars an organ-pipe (church pipe organ, -13 dB) holds each bar's chord, the root plus the triad an octave down (D2 + D3 F3 A3 | Bb1 + ...), whole notes.
+- **t1 NEUTRAL THIRDS** (v13): in C the pad's and speaking strings' chord thirds are bent a quarter tone toward neutral - D/F#: F#4 -> m65.5; Gmaj9: B4 -> m70.5; Em9: G4 -> m67.5; A13: C#4 -> m60.5; D returns to plain 12-TET.
