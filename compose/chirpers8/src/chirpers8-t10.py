@@ -356,14 +356,14 @@ def build():
              'fx': [{'type': 'tape', 'drive': 0.12, 'mix': 1, 'wow': 2, 'flutter': 1, 'seed': 8}],
              'sends': {'hall': '-10dB', 'echo': '-14dB'}},
             {'name': 'sing2', 'patch': SING['patch'], 'gain': '-8dB', 'pan': 0.05, 'tuning': W3T,
-             'notes': [dict(n_, at=round(shift(secs_t['final'] + 96 + n_['at']), 4)) for n_ in SING['final']['notes']],
+             'notes': [dict(n_, at=round(shift(secs_t['final'] + 96 + n_['at']), 4)) for n_ in SING['final']['notes'][:23]],   # (v23) once, not twice
              'fx': [{'type': 'tape', 'drive': 0.12, 'mix': 1, 'wow': 2, 'flutter': 1, 'seed': 4}],
              'sends': {'hall': '-9dB', 'echo': '-14dB'}},
             {'name': 'sing', 'patch': SING['patch'], 'gain': '-8dB', 'pan': -0.05, 'tuning': W3T,
              # (v6) the sung pitches come from tts as Hz, which a tuning never retunes (chirper-two's catch): rewritten as
              # MIDI note numbers so the track's Werckmeister III really snaps them
              'notes': [dict(n_, at=round(secs_t['calls2'] + n_['at'], 4),
-                            pitch=f"m{round(69 + 12 * math.log2(float(n_['pitch'][:-2]) / 440.0))}") for n_ in SING['notes']],
+                            pitch=f"m{round(69 + 12 * math.log2(float(n_['pitch'][:-2]) / 440.0))}") for n_ in SING['notes'][:23]],   # (v23) once
              'fx': [{'type': 'tape', 'drive': 0.12, 'mix': 1, 'wow': 2, 'flutter': 1, 'seed': 3}],
              'sends': {'hall': '-9dB', 'echo': '-14dB'}},
             # (v3) THE STACK, AS A GRAMMAR: through the final calls, as the stack fills and unwinds, a celesta thinks recursively - the engine's own L-system (gen lsystem: wM's complex systems) read as a turtle over
