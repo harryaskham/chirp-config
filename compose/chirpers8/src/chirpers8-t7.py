@@ -120,6 +120,7 @@ def build():
     P = {k: [] for k in ('seq', 'keys', 'pad', 'bass', 'kit', 'hum', 'rhum', 'glim')}
     rng_t = random.Random(SEED + 99)
     rng_b = random.Random(SEED + 77)
+    rng_h = random.Random(SEED + 55)
     # (v3) THE POWER LIGHT: the machine is on before the search starts - a warm drone on A (the hum of a box left on)
     # from the very first beat, swelling through power-on and sinking under the first epoch; it returns under the
     # coda and holds to the last beat, so the track meets its neighbours without a hole
@@ -196,7 +197,17 @@ def build():
                 P['seq'].append((t0 + q * 0.25, tok(hz(d, cents)) + art, 0.22, acc))
         # chords: spans cycle; the pad's voices re-detune at each span by the temperature
         if span_left == 0:
-            span_i += 1; span_left = SPANS[span_i % len(SPANS)]; chord_i = (chord_i + 1) % 4
+            span_i += 1; span_left = SPANS[span_i % len(SPANS)]
+            # (v19) THE HARMONY ANNEALS TOO: the four chords (Am F C G) used to turn in the same order for five minutes.
+            # Now the progression is searched like everything else - while hot, each change jumps to any other chord at
+            # random (with the temperature as the chance), and the loop's order emerges as the song cools; converged, it
+            # settles into a cadence that lands on home and stays there - F, G, A minor, A minor
+            if rng_h.random() < 0.85 * temp:
+                chord_i = rng_h.choice([c_ for c_ in range(4) if c_ != chord_i])
+            elif s in ('converged', 'coda'):
+                chord_i = (1, 3, 0, 0)[span_i % 4]
+            else:
+                chord_i = (chord_i + 1) % 4
         root, voices = CHORDS[chord_i]
         if span_left == SPANS[span_i % len(SPANS)] or b == 0:
             pad_cents = [rng.gauss(0, 35 * temp) for _ in voices]
