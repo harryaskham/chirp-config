@@ -755,7 +755,9 @@ def visible(hist):
 ROUND_TYPES = {
     "whole": "  ROUND TYPE: whole song - the bold change you believe moves the whole song most (as always).",
     "section": ("  ROUND TYPE: section - work ONE ~30 s window in its context (Harry, 2 Nov: the small changes that make a song "
-                "feel handcrafted and unique). `chirpers.py sections {id} --wav YOUR_BEST_RENDER` maps the song and names "
+                "feel handcrafted and unique), and make it a real change, not a nudge: rewrite that window's part, add a "
+                "counter-line, a new sound, a break, a fill, a key or texture move. "
+                "`chirpers.py sections {id} --wav YOUR_BEST_RENDER` maps the song and names "
                 "the windows to focus on (flagged, least recently focused) with the commands that render them; make that "
                 "window stand out or blend, with detail no other window has, and keep the variety moving. "
                 "`--against OLD_RENDER` shows whether the change stayed local; the full-length score must not regress beyond "
@@ -858,6 +860,10 @@ def compose_brief(c):
                    f"terms (--text) for ideas. compscore is a guardrail, not a gate: near its ceiling, keep what sounds "
                    f"better on judgment (`climb.py done … --keep`) unless it clearly breaks something. Variety over "
                    f"convergence. Then `climb.py done {c['id']} …` and compscore --save.")
+        out.append("  DO MORE EACH ROUND (Harry, 2 Nov 17:0x: 'do more each round to try to get progress made and interesting "
+                   "quality improvements made'): every round lands an interesting, audible quality improvement you would "
+                   "want Harry to hear, and preferably several. A level judgment-keep with a small tweak, a cleanup, a "
+                   "locality fix or a metric nudge is not a round's work: fold that into a round that also improves the music.")
     rp = os.path.join(ROOT, "compose", album["id"], "ratings.jsonl")
     if os.path.exists(rp):
         with open(rp) as f:
