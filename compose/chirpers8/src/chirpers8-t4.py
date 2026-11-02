@@ -14,6 +14,7 @@ FORM (176 bars, ~5:30, 128 bpm): intro 1-16 (the shuffled tune) | bubble 17-40 |
 bogosort 89-100 (the storm: no kick) | merge 101-124 | sorted 125-160 (the scale, then reversed) | outro 161-176
 """
 import json
+import math
 import os
 import random
 
@@ -417,6 +418,31 @@ BASS_FROM = 9                                     # v25: the bass waits for the 
 # catch of t3's 913 Hz bar being ~24 dB under t3's ring in the 877 Hz band - a job for the catch's level
 
 
+# v26 (ROUND TYPE: section, w1 0:00-0:33, bars 1-16; Harry 'do more each round'): THE TUNING HANDOVER. t3 ends on
+# its 14/9 bar (~912 Hz, septimal just intonation); t4 caught it only on vibes that die in two seconds, ~24 dB under
+# t3's ring. Now a solo VIOLIN catches t3's last pitch exactly, holds it, then BENDS a third of a semitone (+33 c) into
+# t4's alpha lattice (step 32) - a string player re-tuning as the key changes under them: t3's last note becomes t4's
+# first, re-tuned in front of the listener. It goes on as a COUNTER-LINE over the sorted-riff intro, falling two bars
+# at a time (alpha steps 32, 28, 24, 18; falls of 3.1, 3.1, 4.7 semitones - alpha's sweet minor thirds) onto chord
+# tones, landing on the fifth as the band arrives at bar 9.
+T3_RING_HZ = 912.0
+HAND_STEP = 32
+HAND_LINE = ((1, HAND_STEP, 8.0), (3, 28, 8.0), (5, 24, 8.0), (7, 18, 7.5))   # absolute steps: chord tones of
+# the intro's roots (0 for bars 1-4, 9 for 5-8): 13 over 0, the root over 9, the fifth over 9 - a steady fall
+HAND_PATCH = {"extends": "violin", "synth": {"pitch": {"value": 0, "mod": [{"src": "lfo.vib", "amount": 0.18},
+                                                                       {"src": "expr.bend", "amount": 1}]}}}
+
+
+def handover():
+    bend = BASE + HAND_STEP * ALPHA - (69 + 12 * math.log2(T3_RING_HZ / 440))
+    for k, (bar, step, ln) in enumerate(HAND_LINE):
+        if k == 0:
+            head = f"{T3_RING_HZ:g}hz^bend=0>0>{bend:.3f}>{bend:.3f}"
+        else:
+            head = pitch(step)
+        part("handover").add(b0(bar), ln, head, 84 - 6 * k)
+
+
 def bass_waits():
     P["bass"].ev = [(s, ln, h, 1 if s < b0(BASS_FROM) else v) for s, ln, h, v in P["bass"].ev]
 
@@ -567,6 +593,7 @@ def main():
     arrival()                                     # v22: the stop, the reverse cymbal, the impact
     leaving()                                     # v23: small things leave first
     bass_waits()                                  # v25: the bass waits for the kick
+    handover()                                    # v26: the tuning handover
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
     lead_patch = {"extends": "vibes", "synth": {"fx": [{"type": "pan", "pan": {"value": 0, "mod": [
         {"src": "expr.ix", "amount": 1}]}}, {"type": "filter", "kind": "lp", "cutoff": 4500}]}}
@@ -620,6 +647,7 @@ def main():
             tr("hats", "909", gain="-6dB", pan=0.1),
             tr("revcym", "fx-revcym", gain="-10dB", sends={"room": "-10dB"}),                 # v22: LAST (keeps rngs)
             tr("impact", "fx-impact", gain="-10dB"),
+            tr("handover", HAND_PATCH, gain="-6dB", pan=-0.15, sends={"room": "-8dB"}),        # v26: LAST
             tr("leaving", "modal-glock", gain="-8dB", pan=0.25, sends={"room": "-8dB"}),        # v23: LAST
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=0.9s mix=1 predelay=8ms", "hp cutoff=250"]},
