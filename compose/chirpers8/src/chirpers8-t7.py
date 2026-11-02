@@ -263,8 +263,18 @@ def build():
                fx=[{'type': 'filter', 'kind': 'lp', 'q': 0.75, 'cutoff': {'value': 3200, 'mod': [{'src': 'auto.T', 'amount': 1.8}]}},
                    {'type': 'crush', 'bits': 8, 'rate': {'value': 11000}, 'mix': {'value': 0, 'mod': [{'src': 'auto.T', 'amount': 0.45}]}}],
                auto={'T': {'points': Tpts}}),
-            tr('keys', 'epiano-tine', '-6dB', pan=-0.15, sends={'echo': '-14dB', 'hall': '-12dB'}),
-            tr('pad', 'partial', '-12dB', sends={'hall': '-8dB'}),
+            # (v17, palette) THE ANSWER SPEAKS: the electric piano that plays the found riff runs through an envelope wah
+            # (the engine's wah, new to the album) - each struck note opens the band-pass and lets it fall, so the riff the
+            # voice sings has a mouth of its own
+            tr('keys', 'epiano-tine', '-6dB', pan=-0.15, sends={'echo': '-14dB', 'hall': '-12dB'},
+               fx=[{'type': 'wah', 'low': 350, 'high': 2600, 'env': 0.9, 'q': 4, 'mix': 0.6}]),
+            # (v17, palette) THE BED ON TAPE: the pad was the album's additive 'partial' (four songs share it); now it is
+            # tape-replay strings - band-limited saws on a wobbling tape, a warm and slightly unstable bed for a song about
+            # heat, which no other track on the album uses
+            # (tamed: -16 dB, its 1.4 kHz bloom cut 5 dB and the top shelved 4 dB; the wah's mix 0.6, not 0.85 - the first
+            # try put 7 dB too much at 1.2-1.6 kHz)
+            tr('pad', 'mellotron-strings', '-16dB', sends={'hall': '-10dB'},
+               fx=[{'type': 'eq', 'bands': ['peak cutoff=1400 q=0.9 gain=-5dB', 'highshelf cutoff=2500 gain=-4dB']}]),
             tr('bass', 'moog-seq', '-8dB', fx=['lp cutoff=900']),
             tr('kit', 'electro-kit', '-5dB', sends={'hall': '-20dB'}),
             tr('hum', 'drone', '-9dB', sends={'hall': '-14dB'}),
@@ -286,7 +296,8 @@ def build():
                     {'type': 'radio', 'tune': {'value': 0, 'mod': [{'src': 'auto.dial', 'amount': 1}]}}],
              'auto': {'fv': {'points': fv}, 'dial': {'points': dial}}, 'sends': {'echo': '-12dB', 'hall': '-14dB'}},
             # (v16) the glimpses: the electric piano's own track, last, so nothing before it moves
-            tr('glim', 'epiano-tine', '-6dB', pan=-0.15, sends={'echo': '-14dB', 'hall': '-12dB'}),
+            tr('glim', 'epiano-tine', '-6dB', pan=-0.15, sends={'echo': '-14dB', 'hall': '-12dB'},
+               fx=[{'type': 'wah', 'low': 350, 'high': 2600, 'env': 0.9, 'q': 4, 'mix': 0.6}]),
         ]}
     return song, losses, T
 
