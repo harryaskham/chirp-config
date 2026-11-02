@@ -53,6 +53,8 @@ BSPLIT = os.environ.get("C8T5_BSPLIT", "both")   # B in two: the 909's claps ('c
 BSPLITAT = int(os.environ.get("C8T5_BSPLITAT", "12"))   # the bar of B (0-based) where the held-back 909 parts come in
 LIFTSTOP = os.environ.get("C8T5_LIFTSTOP", "1")   # the gear change, announced: the band stops dead for the second half of the bar before the lift (C bar 24) - a clap fill climbing in sixteenths - then lands a whole step up (dropped after generation, so no dice move). Once B was split (v18) this splits C too without crowding the returns
 LIFTHAT = os.environ.get("C8T5_LIFTHAT", "1")   # after the lift the hats open: every off-beat hat an open hat - the agreed band, a step up, brighter on top
+SUBSPLIT = os.environ.get("C8T5_SUBSPLIT", "1")   # with SUBPATCH: the intro's held low E (the line from t4) stays on the 808; from A the low line moves to SUBPATCH on its own track
+SUBPATCH = os.environ.get("C8T5_SUBPATCH", "log-drum")   # the low line's instrument: the 808 is a staple (5 of 12 songs); e.g. bass-pick-di (a picked electric bass, DI: machine funk with a string) or log-drum
 LIFTWAH = os.environ.get("C8T5_LIFTWAH", "")   # after the lift the guitar puts its foot down: an envelope wah (350-2200 Hz, q 3; harder strokes open it) fades in over the lift's first bar and stays to the outro; value = wet mix
 KEEPFREEZE = os.environ.get("C8T5_KEEPFREEZE", "0.5")   # 'keep it there', kept: on the choir's last 'there' a granular cloud FREEZES the three voices' chord and holds it for two bars after they stop, then lets it go (freeze and mix on lanes) - the words doing what they say; value = the frozen cloud's mix
 OUTSETTLE = os.environ.get("C8T5_OUTSETTLE", "")   # agreed and slowing, the hands settle: over the outro's last OUTSETTLE bars (as the tempo eases to 100) the congas keep only the low tone on one and the open tone on the 'and' of two - the pattern's bones, under the radio's carriers (draws no dice: the same rolls, fewer strokes kept)
@@ -219,6 +221,11 @@ def build():
         i1 = sec_start("intro") + int(CONGAIN or 0) * BAR
         o0 = total() - int(CONGAOUT or 0) * BAR if CONGAOUT else total() + 1
         ev["conga"] = [e for e in ev["conga"] if i1 <= e[0] < o0]
+    if SUBPATCH and SUBSPLIT:
+        a0 = sec_start("A")
+        ev["sub2"] = [e for e in ev["sub"] if e[0] >= a0]
+        ev["sub"] = [e for e in ev["sub"] if e[0] < a0]
+        return {k: stream(ev[k], total()) for k in (*TRACKS, "sub2")}
     return {k: stream(ev[k], total()) for k in TRACKS}
 
 
@@ -376,7 +383,8 @@ def song():
                     {"type": "phaser", "rate": 0.4, "depth": 0.6, "feedback": 0.4, "stages": 6, "mix": 0.35},
                     {"type": "amp", "gain": 0.25, "mix": 0.5}, {"type": "cab", "mix": 0.6}],
              "sends": {"spring": "-14dB"}, "score": T["gtr"]},
-            {"name": "sub", "patch": "808", "gain": "-10dB", "fx": [pump, {"type": "filter", "kind": "lp", "cutoff": 160, "q": 0.7}], "score": T["sub"]},
+            {"name": "sub", "patch": "808" if SUBSPLIT else (SUBPATCH or "808"), "gain": "-10dB", "fx": [pump, {"type": "filter", "kind": "lp", "cutoff": 160, "q": 0.7}], "score": T["sub"]},
+            *([{"name": "sub2", "patch": SUBPATCH, "gain": "-10dB", "fx": [pump, {"type": "filter", "kind": "lp", "cutoff": 160, "q": 0.7}], "score": T["sub2"]}] if SUBPATCH and SUBSPLIT else []),
             {"name": "acid", "patch": "acid-agree" if AGREE else "acid", "gain": "-10dB", "pan": -0.1,
              "fx": [pump, *([{"type": "filter", "kind": "ladder", "q": 0.45, "cutoff": {"value": 600, "mod": [{"src": "var.storm", "amount": 1}]}}] if STORM else [])],
              "score": T["acid"]},
