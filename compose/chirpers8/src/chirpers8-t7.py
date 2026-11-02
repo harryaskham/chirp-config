@@ -126,8 +126,10 @@ def build():
     # (v7) ON THE RADIO FIRST: t6 ends on a radio voice far away; Annealing's hum is first heard through that radio - a
     # dial sweeping onto the station, band-limited, static and whistle falling away - and only when the dial lands (bar
     # 4) does the hum come into the room, full and low
-    P['rhum'] += [(0.0, 'A2', 22.0, 84)]
-    P['hum'] += [(6.0, 'A1', 42.0, 84), (48.0, 'A1', 32.0, 70)]
+    # (v12) t6 ends warm and low, home on C: the radio now comes in nearer full strength, and the room's low A hum
+    # enters three beats sooner, so the record does not drop into a thin, distant opening
+    P['rhum'] += [(0.0, 'A2', 22.0, 92)]
+    P['hum'] += [(3.0, 'A1', 45.0, 88), (48.0, 'A1', 32.0, 70)]
     P['hum'] += [(142 * 4.0, 'A1', 14 * 4.0, 80)]
     # (v2) THE VOICE READS ITS LOSS: at each epoch a humanized voice (chirp tts --humanize 0.7) reads the search's error
     # aloud - 'zero point eight six', 'zero point six six', ... - spoken while the machine is hot, melodized onto the
@@ -247,7 +249,7 @@ def build():
             tr('bass', 'moog-seq', '-8dB', fx=['lp cutoff=900']),
             tr('kit', 'electro-kit', '-5dB', sends={'hall': '-20dB'}),
             tr('hum', 'drone', '-9dB', sends={'hall': '-14dB'}),
-            tr('rhum', 'drone', '-8dB', fx=[{'type': 'radio', 'tune': {'value': 0, 'mod': [{'src': 'auto.dial', 'amount': 1}]}}],
+            tr('rhum', 'drone', '-5dB', fx=[{'type': 'radio', 'tune': {'value': 0, 'mod': [{'src': 'auto.dial', 'amount': 1}]}}],
                auto={'dial': {'points': [['0b', 0.9], ['6b', 0.3], ['9b', 0.0], ['22b', 0.0]]}}, sends={'hall': '-16dB'}),
             # (v6) THERE YOU ARE: when the search converges, the voice that read the error aloud SINGS - the riff it was looking
             # for, slowed to a sung phrase, twice: 'there you are, you were always here' (chirp tts --sing, humanize 0.35),
