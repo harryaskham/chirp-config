@@ -83,3 +83,4 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 - **t10 THE WORDS READ BACKWARDS** (v19): at the start of calls3 (A minor) the voice sings the subject's first half with each bar reversed (A3 B3 C4 A3 E3 A3 | ...) to the sung line's words in reverse order: 'back come always I and before than further little a down go I call you time every' (tts --sing, humanize 0.35).
 - **t1 IT SAYS IT IN YOUR VOICE** (v12): the said-back FM line (D section, two octaves up) gets a morph cross keyed by the human voice (amount 0.85) after its formant filter.
 - **t7 THE TIMING ANNEALS TOO** (v10): each drum hit lands off its 16th by gauss(0, 0.07 T) beats (clamped to +-0.11, downbeats only late), its own seeded dice (SEED+99); converged, dead on the grid.
+- **t10 THE ORGAN** (v20): through the 32 final bars an organ-pipe (church pipe organ, -13 dB) holds each bar's chord, the root plus the triad an octave down (D2 + D3 F3 A3 | Bb1 + ...), whole notes.

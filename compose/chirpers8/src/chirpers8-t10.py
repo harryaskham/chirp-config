@@ -69,7 +69,7 @@ def build():
         for i in range(n):
             bars.append((name, i, tp))
     total = len(bars) * 4.0
-    P = {k: [] for k in ('bell', 'sync', 'pwm', 'bass', 'sub', 'd1', 'd2', 'd3', 'kit', 'pulse', 'glass', 'cs', 'bell0')}
+    P = {k: [] for k in ('bell', 'sync', 'pwm', 'bass', 'sub', 'd1', 'd2', 'd3', 'kit', 'pulse', 'glass', 'cs', 'bell0', 'organ')}
     # the call stack: a seeded walk, one move every four bars in the calls sections
     depth, depths = 0, []
     for b, (s, i, tp) in enumerate(bars):
@@ -156,6 +156,11 @@ def build():
                 for qq in range(8):
                     P['bass'].append((t0 + qq * 0.5 + (0.05 if qq % 2 else 0.0), tok(root + (12 if qq % 4 == 3 else 0)), 0.4, 100 if qq % 2 == 0 else 84))
         # THE CANON
+        if s == 'final':
+            # (v20) THE ORGAN: under the final calls a church pipe organ holds each bar's chord (the root and the chord
+            # an octave down, a principal chorus in its cathedral) - the fugue machine meets the instrument fugues were
+            # written for, and its last thirty-two bars stand on its pedal
+            P['organ'].append((t0, ','.join(tok(m_) for m_ in [root - 12] + [c - 12 for c in ch]), 3.95, 70))
         if s == 'expo':
             subj_bar(i, t0, tp, 0, 92, 'bell')                         # the bell from bar 1
             if i >= 4: subj_bar(i - 4, t0, tp, -1, 88, 'sync')          # the sync lead answers four bars later, below
@@ -325,6 +330,7 @@ def build():
             tr('kit', 'machine-kit', '-2dB', sends={'hall': '-20dB'}),
             tr('glass', 'glass', '-15dB', pan=0.1, sends={'hall': '-8dB'}),
             tr('cs', 'clarinet', '-9dB', pan=-0.3, sends={'hall': '-10dB', 'echo': '-18dB'}),
+            tr('organ', 'organ-pipe', '-13dB', pan=0.0),
             tr('pulse', 'clarinet', '-10dB', pan=-0.15, sends={'hall': '-14dB', 'echo': '-16dB'}),
             # (v8) THE MACHINE'S OWN PATTERNS: a percussion line written in the engine's Euclidean and chance tokens, a
             # different cycle for each key of the canon - in D minor seven triplet-eighth rims spread over the bar (7 in 12,
