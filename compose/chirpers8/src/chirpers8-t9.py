@@ -74,6 +74,28 @@ R5 = os.environ.get("T9_R5", "orbit")
 # Exact Bohlen-Pierce pitches (Hz, the map's own mapping), so no tuning snaps them. And the album-staple bell (three
 # songs) that marks each section becomes a HANDPAN. T9_R6=none reproduces v5.
 R6 = os.environ.get("T9_R6", "steel")
+# T9_R7 = lpg (v7, palette round). AS KEPT: the bass's sub-sine body stays (replacing it outright, and the dizi below,
+# both broke the sections' returns: recurrence 100 -> 56-85), and c9-lpg joins as the bass's VOICE, an octave over
+# it (T9_R7_BASS=layer; =lpg swaps the bass whole; T9_R7_DIZI=1 adds the flute). The design: c9-lpg, a patch of my own
+# after the West Coast: a triangle and its octave, folded, through a LOW-PASS GATE (one envelope opens the filter and
+# the amp together, then lets both fall: the "bongo" pluck of the first voltage-controlled music), so the 3:4 bass
+# speaks each note instead of humming under the floor. And in the early, static windows (w2 and w4: the two and four
+# sections), a DIZI - the bamboo flute with the buzzing membrane, new to the album - doubles the reed's accents (its
+# loudest iterates) an octave up, which in Bohlen-Pierce lands on the scale's nearest step to an octave: 1170 cents,
+# a slightly closed octave, the song's tuning pulling the flute in. The flute comes back as the map settles, so the
+# record's two calm ends share a colour. T9_R7=none reproduces v6.
+R7 = os.environ.get("T9_R7", "lpg")
+R7BASS = os.environ.get("T9_R7_BASS", "layer") if R7 == "lpg" else "none"   # lpg | layer | sub
+R7DIZI = os.environ.get("T9_R7_DIZI", "0") == "1" and R7 == "lpg"
+C9_LPG = {"about": "chirper-two: a West Coast low-pass-gate bass - triangle plus its octave, folded, through one "
+                   "envelope that opens the filter and the amp together and lets both fall (a struck, vocal pluck).",
+          "synth": {"layers": [{"wave": "triangle"}, {"wave": "sine", "ratio": 2, "level": "-10dB"}],
+                    "env": {"lpg": {"a": "1ms", "d": "320ms", "s": 0, "curve": 3}},
+                    "filters": [{"kind": "lp", "q": 1.4,
+                                 "cutoff": {"value": 140, "mod": [{"src": "env.lpg", "amount": 4.5}, {"src": "vel", "amount": 1.0}]}}],
+                    "drive": {"value": 0.35, "mod": [{"src": "vel", "amount": 0.3}]},
+                    "amp": {"a": "1ms", "d": "520ms", "s": 0, "r": "90ms", "curve": 3}},
+          "play": {"vel_sens": 0.6}}
 C9_PULSE = {"about": "chirper-two: a one-bit loudspeaker voice - a very narrow pulse (6%, wider with velocity), crushed, "
                      "nothing smoothing it: a machine driving its speaker directly.",
             "synth": {"layers": [{"wave": "pulse", "width": {"value": 0.06, "mod": [{"src": "vel", "amount": 0.12}]}}],
@@ -265,6 +287,15 @@ def main():
                        for k, h in enumerate(hz)]
         for k, at in enumerate([o0 + 16 + 0.25 * j for j in range(16)]):   # the fill: 16th ratchets rising
             fill.add(at, 0.25, "s2" if j_even(k) else "g", 50 + 3 * k, "^r=2" if k >= 8 else "")
+    dizi = Track("dizi")
+    bpl = Track("bpluck")
+    if R7BASS == "layer":   # the low-pass gate as the bass's voice, an octave over the sub body it leaves in place
+        for a, ln, h, v, art in T["bass"].ev:
+            bpl.add(a, min(ln, 0.9), f"m{float(h[1:]) + 12:.3f}", v, art)
+    if R7DIZI:
+        for a, ln, h, v, art in T["lead"].ev:
+            if (st["two"] <= a < st["eight"] or a >= st["settle"]) and v >= 92:
+                dizi.add(a, ln, f"m{float(h[1:]) + 12:.3f}", v - 14, art)
     steel = Track("steel")
     if R6 == "steel":
         sname, sbars, smeter, sr0, sr1 = next(s for s in SECS if s[0] == "settle")
@@ -312,8 +343,10 @@ def main():
          "gain": os.environ.get("T9_PULSE_GAIN", "-6dB") if R4 == "break" else "-7dB", "pan": 0.35,
          "fx": [{"type": "delay", "time": "1/8", "feedback": 0.35, "mix": 0.25, "ping_pong": True, "tone": 6000}],
          "score": T["blip"].score(total)},
-        {"name": "bass", "patch": "sub-sine", "gain": "-13dB",
-         "fx": [{"type": "drive", "drive": 0.55, "shape": "fold", "mix": 0.5}, "lp cutoff=600", "hp cutoff=38", pump],
+        {"name": "bass", "patch": "c9-lpg" if R7BASS == "lpg" else "sub-sine",
+         "gain": os.environ.get("T9_LPG_GAIN", "-15dB") if R7BASS == "lpg" else "-13dB",
+         "fx": [{"type": "drive", "drive": 0.55, "shape": "fold", "mix": 0.5},
+                "lp cutoff=1100" if R7BASS == "lpg" else "lp cutoff=600", "hp cutoff=38", pump],
          "score": T["bass"].score(total)},
         {"name": "pad", "patch": "pad-glass", "gain": "-19dB", "fx": [pump], "score": T["pad"].score(total)},
         *([{"name": "sing",
@@ -339,6 +372,13 @@ def main():
                "sends": {}, "fx": ["hp cutoff=150", {"type": "delay", "time": "3/8", "feedback": 0.3, "mix": 0.2,
                                                      "ping_pong": True, "tone": 3500}],
                "score": steel.score(total)}] if R6 == "steel" else []),
+           *([{"name": "dizi", "patch": "dizi", "gain": os.environ.get("T9_DIZI_GAIN", "-5dB"), "pan": 0.2,
+               "fx": ["hp cutoff=400", {"type": "delay", "time": "3/16", "feedback": 0.25, "mix": 0.18, "ping_pong": True,
+                                        "tone": 5000}, "reverb kind=room decay=0.9s mix=0.2"],
+               "score": dizi.score(total)}] if R7DIZI else []),
+           *([{"name": "bpluck", "patch": "c9-lpg", "gain": os.environ.get("T9_PLUCK_GAIN", "-16dB"), "pan": 0.08,
+               "fx": ["hp cutoff=90", {"type": "drive", "drive": 0.45, "shape": "fold", "mix": 0.4}, "lp cutoff=2400", pump],
+               "score": bpl.score(total)}] if R7BASS == "layer" else []),
            {"name": "ksub", "patch": "sub-sine amp.d=180ms amp.s=0 amp.r=40ms", "gain": os.environ.get("T9_KSUB_GAIN", "-4dB"),
             "fx": ["lp cutoff=120"], "score": ksub.score(total)}] if R4 == "break" else []),
     ]
@@ -374,14 +414,15 @@ def main():
         'volume: "0dB"',
         "loudness: -11",
         "true_peak: true",
-        *(["patches: " + json.dumps({"c9-pulse": C9_PULSE})] if R4 == "break" else []),
+        *(["patches: " + json.dumps({"c9-pulse": C9_PULSE, **({"c9-lpg": C9_LPG} if R7BASS in ("lpg", "layer") else {})})]
+          if R4 == "break" else []),
         "buses: " + json.dumps(buses),
         "master: " + json.dumps({"fx": [{"type": "eq", "bands": (["hp cutoff=25", "peak cutoff=90 gain=-4dB q=0.9",
                                                                "peak cutoff=420 gain=-3dB q=0.8",
                                                                "highshelf cutoff=5000 gain=5dB"] if R4 != "break" else
                                                               ["hp cutoff=25", "peak cutoff=85 gain=-6dB q=0.9",
                                                                "peak cutoff=380 gain=-4.5dB q=0.8",
-                                                               "peak cutoff=1150 gain=3dB q=0.6",
+                                                               "peak cutoff=1150 gain=" + os.environ.get("T9_MID_GAIN", "0dB" if R7BASS == "lpg" or R7DIZI else "1.5dB" if R7BASS == "layer" else "3dB") + " q=0.6",
                                                                "highshelf cutoff=5000 gain=-5dB"])},
                                         "glue threshold=-20dB ratio=2 attack=10ms release=150ms makeup=1dB",
                                         {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}},
