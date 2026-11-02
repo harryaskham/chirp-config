@@ -250,7 +250,15 @@ def write():
         for k, v in enumerate(arr):
             ix = round(-0.9 + 1.8 * k / (N - 1), 3)
             vel = 96 if k in acc else (82 if k % 4 == 0 else 70)
-            part("lead").add(b0(bar) + k / 4, 0.22, pitch(RIFF[v] + root_at(bar)) + f"^ix={ix}", vel)   # v7: the riff,
+            if sec == "bogo" and bar < 100:
+                # v11: BOGOSORT BY THE ENGINE'S DICE - every sixteenth a CHOICE over the riff's sixteen notes (weighted
+                # as a shuffle is), rolled fresh by the engine on every play: no two plays storm alike
+                head = "(" + "|".join(pitch(RIFF[j] + root_at(bar)) for j in range(N)) + ")"
+            elif sec == "bogo":
+                head = pitch(RIFF[k] + root_at(bar))       # v11: bar 100, THE MIRACLE - by luck it comes up sorted
+            else:
+                head = pitch(RIFF[v] + root_at(bar))
+            part("lead").add(b0(bar) + k / 4, 0.22, head + f"^ix={ix}", vel)   # v7: the riff,
             # transposed with the progression like a sequencer under a keyboard
         # THE WORK, AUDIBLE: a tick per comparison, a hit per swap; a crash when a pass changes nothing / it is done
         for j in cmp:
