@@ -36,7 +36,7 @@ SING = os.environ.get("C8T2_SING", "-13")      # a SUNG line (wM's tts --sing, b
 JI = os.environ.get("C8T2_JI", "1")          # everything falls to ONE, the simplest ratio: from the break the song's tuning ramps over eight bars into 5-limit just G major (I, IV and V become 4:5:6, vi 10:12:15) - the numbers settle into small whole ones
 EQ8 = os.environ.get("C8T2_EQ8", "1")   # the master toward the album's envelope: 6.7-10.8 kHz sat 8-12 dB under it and 400 Hz / 1.4 kHz 7 dB over - a +5 dB air shelf at 7 kHz (was +1.5), -2.5 dB at 400 Hz, -2 dB at 1.4 kHz
 HEADG = os.environ.get("C8T2_HEADG", "4")   # the record handed over in G: t1 ends on Gmaj9 over a G1 sub, so this one starts on the same low G (the sine sub, held, fading by steps) under the first HEADG bars - one G across the seam
-HEADGV = int(os.environ.get("C8T2_HEADGV", "64"))   # the held G's first velocity
+HEADGV = int(os.environ.get("C8T2_HEADGV", "44"))   # the held G's first velocity
 KICKOUT = os.environ.get("C8T2_KICKOUT", "2")  # the kick leaves for the outro's last KICKOUT bars (the band plays on into t3's mallets, whose head has no 38-44 Hz)
 SUNGM = os.environ.get("C8T2_SUNGM", "1")   # the sung line's pitches as MIDI note numbers (wM 46a24ab5: tunings snap m-notes, never Hz), so after the break it sings in the band's just G - the hook's B a pure 5/4 with the chords
 OUTPAD = os.environ.get("C8T2_OUTPAD", "84")   # the choir stays for the outro (low voicing), under the last 4-2-1 loops - a fuller tail into t3's mallets (the tail read 11 dB under t3's head); value = velocity
