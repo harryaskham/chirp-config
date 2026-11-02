@@ -37,6 +37,7 @@ OWNHATS = os.environ.get("C8T2_OWNHATS", "1")   # the rest of the drum machine o
 OWNKICK = os.environ.get("C8T2_OWNKICK", "1")   # and the kick: the machine layer's 909-style kick tuned to G1 (the key's root), instead of machine-kit's
 TOMBACK = os.environ.get("C8T2_TOMBACK", "swap")   # PALETTE ROUND: the backbeat on a drum machine of our own - the engine's `machine` layer (circuit-modelled drum-machine voices, unused on the album) as a tuned electronic tom: G3 on 2, D3 on 4 (the halving's lone 3 on G3), the syndrum backbeat of the old machine records. 'swap' replaces the machine-kit clap (a staple of 9 songs); 'layer' keeps the clap under it
 CONVERGE = os.environ.get("C8T2_CONVERGE", "6")   # WHOLE ROUND: THE PATHS MEET - in C the canon gives way to a second number. Each of C's climbs gets a partner whose own hailstone path joins it partway (27 and 41 meet 313, 31 meets 297), played on the second clarinet in its own register and the same parity rhythm, timed so the two land on the shared number together; they sound in unison for six steps, then the partner falls silent and one line goes on down to 1 - the conjecture heard: different starts, one road home. Value = 'unison steps'
+CANONA = os.environ.get("C8T2_CANONA", "16")   # SECTION ROUND (w3, A's second half: 'little new vs w2'): the second process starts early - from A bar CANONA the second clarinet runs the canon (a bar behind, an octave down) that B and C build on, so A's second half is two programs where its first was one; event_stable (v38) keeps the rest of the song as it was
 ESTABLE = os.environ.get("C8T2_ESTABLE", "1")   # song-level event_stable (engine f5283535): every note's humanize and DSP draws from its track, beat and pitch, so a window's edit stays in it; switching it on re-rolls the take once
 HALFARP = os.environ.get("C8T2_HALFARP", "1")   # SECTION ROUND (w8): the halving reaches the top - while the drums go half-time (C bars 24-31) the chip arps go to eighths (the notes between kept at velocity 1, no dice move), so the whole band halves, not just the kit
 GLKUP = os.environ.get("C8T2_GLKUP", "70")   # SECTION ROUND (w8): the high climb launches with a glockenspiel (modal-glock, the library's physical mallet) doubling the clarinet two octaves up from C bar 31 to 37, its own track listed last; value = velocity scale percent
@@ -224,7 +225,7 @@ def build():
                         add("bell2" if PREFIGTRACK else "bell", at + 4 + 4 * j, nn, ln2, pv - 6 * j)
                 if BELL and last and n == 1 and (sec == "C" or (BELL == "Co" and sec == "outro" and at + 4 >= end - 2 * BAR)):
                     add("bell", at, "G5", 4 * BAR, 76)
-                if CANON and (sec == "B" or (sec == "C" and not CONVERGE)) and at + BAR < end:
+                if CANON and (sec == "B" or (sec == "C" and not CONVERGE) or (CANONA and sec == "A" and at >= a0 + int(CANONA) * BAR)) and at + BAR < end:
                     add("clar2", at + BAR, deg_note(max(d - 7, 0)) if d >= 7 else deg_note(d), 4 if last else nl,
                         int((100 if n % 2 else 82) * int(CANON) / 100))
             ln = plen + 4
