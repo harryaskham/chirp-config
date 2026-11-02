@@ -55,6 +55,8 @@ HEADDARKV = float(os.environ.get("C8T8_HEADDARKV", "0.6"))   # how closed it sta
 HUMV = int(os.environ.get("C8T8_HUMV", "85"))   # the A hum's 808 velocity: t7 v7's tail sits 5.5 dB under my head
 SAYHEAD = os.environ.get("C8T8_SAYHEAD", "move")   # t7 ends with its voice in the room, singing; here the voice answers at once: 'say it back to me' two beats into the record ('move': instead of at bar 9; 'add': as well), into the line as before
 BACKREV = os.environ.get("C8T8_BACKREV", "0.6")   # 'say it BACK to me': on the word 'back', every time (spoken and sung), a granular cloud reading the voice's last quarter-second plays it backwards (reverse 1) - the word itself played back the wrong way, as a tape would - swelling in for the word and gone for 'to me'; value = the cloud's peak mix
+WORDPRES = os.environ.get("C8T8_WORDPRES", "")   # presence on the melody, not the master: the record still sits 6.2-7.3 dB under the album at 1, 3 and 4.9 kHz; a broad peak (2.5 kHz, q 0.6) of WORDPRES dB on the dx-epiano word
+EQ4 = os.environ.get("C8T8_EQ4", "1")   # the three narrow holes left (1025, 3078, 4929 Hz at -6.7/-7.2/-6.2 against the album, neighbours ~0): narrow master peaks (q 4) of +2/+2.5/+1.5 dB x EQ4 - a broad presence lift on the melody overfills 1.6-2.2 kHz instead
 DARK = os.environ.get("C8T8_DARK", "8")  # the tape running out: a master low-pass closing over the outro's last bars (the hiss and the line's top go first); value = bars
 FORM = [("intro", 16), ("A", 36), ("refresh", 8), ("C", 32), ("D", 16), ("E", 28), ("outro", 16)]
 TRACKS = ("word", "pad0", "pad1", "pad2", "pad3", "org0", "org1", "hum", "hum2", "bass", "kick", "shk", "hats", "clap", "rim")
@@ -236,7 +238,9 @@ def song():
                             if EQFIX != "2" else
                             ["highpass cutoff=30", "peak cutoff=150 q=0.9 gain=-3.5dB", "peak cutoff=300 q=0.8 gain=-2dB", "peak cutoff=1000 q=1.4 gain=6dB",
                              "peak cutoff=3000 q=1.4 gain=5dB", "highshelf cutoff=9000 gain=-1.5dB",
-                             *(["peak cutoff=1030 q=3 gain=5dB", "peak cutoff=3080 q=3 gain=5dB", "peak cutoff=100 q=1 gain=3dB", "peak cutoff=1650 q=2 gain=-2.5dB"] if EQ3 else [])])},
+                             *(["peak cutoff=1030 q=3 gain=5dB", "peak cutoff=3080 q=3 gain=5dB", "peak cutoff=100 q=1 gain=3dB", "peak cutoff=1650 q=2 gain=-2.5dB"] if EQ3 else []),
+                             *([f"peak cutoff=1025 q=4 gain={2 * float(EQ4):g}dB", f"peak cutoff=3078 q=4 gain={2.5 * float(EQ4):g}dB",
+                                f"peak cutoff=4929 q=4 gain={1.5 * float(EQ4):g}dB"] if EQ4 else [])])},
                           {"type": "tape", "drive": 0.1, "mix": 0.5, "wow": 5, "flutter": 1.5, "drift": 1, "hiss": "-62dB", "seed": 8},
                           {"type": "compressor", "threshold": "-18dB", "ratio": 2.5, "attack": "15ms", "release": "150ms", "makeup": "0dB"},
                           *([darkf] if DARK and DARKPOS == "end" else [])],
@@ -259,7 +263,8 @@ def song():
             {"name": "word", "patch": "dx-epiano", "gain": "-9dB", "pan": -0.1,
              "fx": [{"type": "stutter", "chance": {"value": 0, "mod": [{"src": "auto.sc", "amount": 1}]}, "slice": "1/16", "repeats": 3,
                      "decay": 0.3, "mix": 1, "seed": 8},
-                    *([{"type": "chop", "slices": 8, "pattern": "0 r1 2 2 . r5 6 _", "mix": {"value": 0, "mod": [{"src": "auto.ch", "amount": 1}]}}] if CHOP else [])],
+                    *([{"type": "chop", "slices": 8, "pattern": "0 r1 2 2 . r5 6 _", "mix": {"value": 0, "mod": [{"src": "auto.ch", "amount": 1}]}}] if CHOP else []),
+                    *([f"peak cutoff=2500 q=0.6 gain={WORDPRES}dB"] if WORDPRES else [])],
              "auto": {"sc": stut, **({"ch": chl} if CHOP else {})}, "sends": {"line": "-4dB", "room": "-12dB"}, "score": T["word"]},
             *([{"name": f"org{j}", "patch": "farfisa", "gain": "-17dB", "pan": (-0.35, 0.35)[j], "sends": {"room": "-14dB"}, "score": T[f"org{j}"]} for j in range(2)] if ORGAN else []),
             *[{"name": f"pad{j}", "patch": "juno-pad", "gain": "-20dB", "pan": (-0.4, -0.15, 0.15, 0.4)[j], "out": "pads", "score": T[f"pad{j}"]} for j in range(4)],
