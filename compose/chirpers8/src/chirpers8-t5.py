@@ -53,6 +53,7 @@ BSPLIT = os.environ.get("C8T5_BSPLIT", "both")   # B in two: the 909's claps ('c
 BSPLITAT = int(os.environ.get("C8T5_BSPLITAT", "12"))   # the bar of B (0-based) where the held-back 909 parts come in
 LIFTSTOP = os.environ.get("C8T5_LIFTSTOP", "1")   # the gear change, announced: the band stops dead for the second half of the bar before the lift (C bar 24) - a clap fill climbing in sixteenths - then lands a whole step up (dropped after generation, so no dice move). Once B was split (v18) this splits C too without crowding the returns
 LIFTHAT = os.environ.get("C8T5_LIFTHAT", "1")   # after the lift the hats open: every off-beat hat an open hat - the agreed band, a step up, brighter on top
+COW = os.environ.get("C8T5_COW", "96")   # SECTION ROUND, window 8 (4:05-4:39, C bars 28-41, after the lift; flagged static, little new vs w7): the agreement gets a cowbell - the engine's drum-machine cowbell (the `machine` layer's two detuned squares through a band-pass) on a syncopated funk figure (1, the a-of-1, the and-of-2, 3, the a-of-3, the and-of-4), only for these fourteen bars; value = peak velocity
 KEYS = os.environ.get("C8T5_KEYS", "-14")   # PALETTE ROUND: the part machine funk lacked - a Wurlitzer (the library's wurli, a reedy barking FM electric piano no song here uses) comps C's chords on its own syncopation (bar 1: 1, the a-of-2, the and-of-3; bar 2: the e-of-1, the and-of-2, the and-of-4), left of the guitar, through the lift; gain in dB
 SUBSPLIT = os.environ.get("C8T5_SUBSPLIT", "1")   # with SUBPATCH: the intro's held low E (the line from t4) stays on the 808; from A the low line moves to SUBPATCH on its own track
 SUBPATCH = os.environ.get("C8T5_SUBPATCH", "log-drum")   # the low line's instrument: the 808 is a staple (5 of 12 songs); e.g. bass-pick-di (a picked electric bass, DI: machine funk with a string) or log-drum
@@ -68,7 +69,7 @@ KEEP3 = os.environ.get("C8T5_KEEP3", "1")   # fewer returns (Harry on t1: 'repea
 HOOKF = [(0, "E4", 3), (3, "G4", 3), (6, "A4", 4), (10, "B4", 6), (16, "D5", 3), (19, "B4", 3), (22, "D5", 4), (26, "E5", 6)]
 CLEN = int(os.environ.get("C8T5_CLEN", "42"))   # C's length: 40 tightens the agreement (the lift at bar 25, the second 'keep it there' at 33)
 FORM = [("intro", 12), ("A", 34), ("B", 26), ("retrain", 12), ("C", CLEN), ("outro", 16)]
-TRACKS = ("carrier", "conga", "gtr", "acid", "sub", "kick", "hats", "clap", "fretless", "horns", "lead") + (("keys",) if os.environ.get("C8T5_KEYS", "-14") else ())
+TRACKS = (*(("cow",) if os.environ.get("C8T5_COW", "96") else ()), "carrier", "conga", "gtr", "acid", "sub", "kick", "hats", "clap", "fretless", "horns", "lead") + (("keys",) if os.environ.get("C8T5_KEYS", "-14") else ())
 SWING = {"gtr": {"A": 0.66, "B": 0.62, "retrain": 0.6, "C": 0.58, "outro": 0.58},
          "acid": {"A": 0.50, "B": 0.54, "C": 0.58, "outro": 0.58}}
 # E dorian: E9, A13, Gmaj7, F#m11 (guitar voicings; roots for the acid)
@@ -125,6 +126,9 @@ def build():
             at = a0 + b * BAR
             cur["shift"] = 2 if MOD and sec == "C" and b >= 24 else 0
             root, chord = CH[(b // 2) % 4]
+            if COW and sec == "C" and 28 <= b < 42:
+                for q, acc in ((0, 0), (3, -14), (6, -8), (8, -4), (11, -14), (14, -8)):
+                    add("cow", at + q, "C#5", 1, int(COW) + acc)
             if KEYS and sec == "C":
                 for q, ln, v in (((0, 3, 78), (7, 1, 62), (10, 2, 72)) if b % 2 == 0 else ((1, 1, 58), (6, 2, 74), (14, 2, 66))):
                     add("keys", at + q, chord, ln, v)
@@ -397,6 +401,8 @@ def song():
              **({"fx": [f"peak cutoff=9000 q=0.8 gain={SPEQ.split(',')[1]}dB"]} if SPEQ and float(SPEQ.split(',')[1]) else {})},
             {"name": "clap", "patch": "909", "gain": "-9dB", "sends": {"room": "-8dB"}, "score": T["clap"]},
             {"name": "fretless", "patch": "fretless", "gain": "-8dB", "fx": [{"type": "tremolo", "rate": 3.0, "depth": 0.4}], "sends": {"spring": "-10dB"}, "score": T["fretless"]},
+            *([{"name": "cow", "patch": {"about": "a drum-machine cowbell from the engine's machine layer", "synth": {"layers": [{"type": "machine", "machine": {"part": "cowbell"}}]}},
+                 "gain": "-17dB", "pan": 0.45, "sends": {"spring": "-16dB"}, "score": "swing16=0.58 " + T["cow"]}] if COW else []),
             *([{"name": "keys", "patch": "wurli", "gain": f"{KEYS}dB", "pan": -0.35, "sends": {"spring": "-14dB"}, "score": "swing16=0.58 " + T["keys"]}] if KEYS else []),
             {"name": "horns", "patch": "horn-section", "gain": "-9dB", "pan": -0.2, "sends": {"room": "-8dB"}, "score": T["horns"]},
             *([voice("chirpers8-t5-bargain-touch.json" if BARGTAKE == "touch" else "chirpers8-t5-bargain.json", "bargain", BARG, f"{float(VOX) + float(BARGG or 0):g}dB",
