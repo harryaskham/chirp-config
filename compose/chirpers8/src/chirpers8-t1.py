@@ -14,7 +14,7 @@ plays, in two ways at once:
 In the last groove it says the sentence back exactly, with the voice - and the voice is left alone at the end.
 Harmony Bm9 - Gmaj9 - Dmaj9 - A6 (two bars each) on a warm Juno bed; a soft machine kit from bar 17, its rim
 written by a cellular automaton (rule 90), a sub and an analog bass from the second groove.
-Form (bars): intro 8 / A 32 (order 1, 5-EDO) / B 32 (order 2, 12-EDO) / break 8 / C 32 (order 3, 24 -> 96-EDO) /
+Form (bars): intro 8 / A 24 (order 1, 5-EDO) / B 32 (order 2, 12-EDO) / break 8 / C 32 (order 3, 24 -> 96-EDO) /
 D 16 (said back) / outro 10 = 138 bars at 104 bpm (5:18).
 Emits songs/chirpers8-t1.yaml (JSON through tools/songfmt.py). Edit the music here, not the YAML.
 """
@@ -23,7 +23,9 @@ import json, math, os, random, subprocess, sys, tempfile
 ROOT = "/home/harry/.config/chirp"
 OUT = os.path.join(ROOT, "songs", "chirpers8-t1.yaml")
 BPM = 104.0
-FORM = [('intro', 8), ('A', 32), ('B', 32), ('break', 8), ('C', 32), ('D', 16), ('outro', 10)]
+# (v10) the first groove is 24 bars, not 32: the opener reaches its bass and its chords eight bars sooner
+FORM = [('intro', 8), ('A', 24), ('B', 32), ('break', 8), ('C', 32), ('D', 16), ('outro', 10)]
+A_CUT = 8
 CH = [(35, [62, 66, 69, 73]), (31, [62, 66, 69, 71]), (38, [61, 64, 66, 69]), (33, [61, 64, 66, 69])]   # Bm9 Gmaj9 Dmaj9 A6
 # (v2) THE HARMONY MOVES ON BY SECTION (it repeated one loop for five minutes): each groove its own progression in
 # uneven spans, the break on one held chord, and the first groove's loop RETURNING when the machine says the line back
@@ -65,6 +67,8 @@ def syll_midi(n_):
 
 def build():
     VOICE = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'chirpers8-t1-voice.json')))
+    # takes recorded against the 32-bar first groove: drop the one in the cut bars, move the later ones up
+    VOICE = [dict(v, bar=v['bar'] - A_CUT if v['bar'] > 40 else v['bar']) for v in VOICE if not (32 < v['bar'] <= 40)]
     SUNG = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'chirpers8-t1-sing.json')))
     secs, t = {}, 0
     for name, n in FORM:
@@ -159,7 +163,7 @@ def build():
         return out
     mean_len = sum(float(c.split('/')[1][:-1]) for c in corpus) / len(corpus)
     def steps(nbars): return max(8, int(round(nbars * 4 / mean_len)))
-    _unused = (markov(1, 32 * 4, 11, secs['A'] * 4.0) + markov(2, 32 * 4, 12, secs['B'] * 4.0)
+    _unused = (markov(1, 24 * 4, 11, secs['A'] * 4.0) + markov(2, 32 * 4, 12, secs['B'] * 4.0)
                    + markov(1, 8 * 4, 13, secs['break'] * 4.0) + markov(3, 32 * 4, 14, secs['C'] * 4.0))
     # D: the machine says it back - the exact contour of each take, two octaves up, with the voice
     for v in VOICE:
@@ -213,7 +217,7 @@ def build():
             {'name': 'babble', 'patch': FMV, 'gain': '-11dB', 'pan': 0.2, 'tuning': babble_tuning,
              'score': f"R/{secs['A'] * 4}b",
              'gen': [{'type': 'markov', 'order': o_, 'from': ' '.join(corpus), 'n': steps(nb_), 'seed': sd_}
-                     for o_, nb_, sd_ in ((1, 32, 11), (2, 32, 12), (1, 8, 13), (3, 32, 14))],
+                     for o_, nb_, sd_ in ((1, 24, 11), (2, 32, 12), (1, 8, 13), (3, 32, 14))],
              # (v6) THE MACHINE FINDS ITS VOWELS: the babble runs through a formant filter (a vocal tract) whose vowel is
              # steered by a Lorenz attractor (an engine var system: never repeating, never random), and whose mix grows
              # section by section - plain FM blips in the first groove, half-voiced in the second, vowel-shaped syllables by
