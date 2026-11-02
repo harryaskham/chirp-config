@@ -106,7 +106,13 @@ def build():
         # the and of three); half time in A minor; four on the floor again, harder, for the final calls)
         n_sec = dict((nm_, n_) for nm_, n_, _ in FORM)[s]
         ret = s.startswith('calls') and i >= n_sec - 2     # the section's own return: two bars with the drums pulled
-        if ret:
+        # (v24) THE STACK EMPTY: the final calls' last four bars, where the stack has unwound to nothing, lose the drums
+        # and the bass too - the sung line's last words ('...and the smallest one is lit') over the organ, the bell and
+        # the lead alone, until the outro's toll brings the kick back
+        empty = s == 'final' and i >= 28
+        if empty:
+            pass
+        elif ret:
             P['kit'].append((t0, 'k', 0.25, 110))
             if i == n_sec - 1:
                 for qq in range(8):
@@ -129,12 +135,12 @@ def build():
             elif s not in ('intro', 'outro'):
                 P['kit'].append((t0 + 1.0, 'cp', 0.25, 78)); P['kit'].append((t0 + 3.0, 'cp', 0.25, 82))
         # (v2) in the calls the open hat follows the bass's clave (3+3+2 sixteenths), not the off-beat
-        if (s.startswith('calls') or s == 'final') and not ret:
+        if (s.startswith('calls') or s == 'final') and not ret and not empty:
             for at_ in (0.75, 1.5, 2.75, 3.5):
                 P['kit'].append((t0 + at_, 'oh', 0.25, 70))
         # a rim on a THREE-sixteenth cycle (dotted eighths) through the calls, never reset - the machine's own
         # polyrhythm against the four, lining up with the bar only every three bars
-        if (s.startswith('calls') or s == 'final') and not ret:
+        if (s.startswith('calls') or s == 'final') and not ret and not empty:
             m0 = int(-(-t0 // 0.75))
             for m in range(m0, m0 + 6):
                 at = m * 0.75
@@ -145,7 +151,7 @@ def build():
         # first four bars) and powers down the same way (the outro's last four bars), so it meets t9's thin tail and
         # t11's head without a wall of low end
         edge = (s == 'intro' and i < 4) or (s == 'outro' and i >= 4)
-        if s not in ('return',) and not edge:
+        if s not in ('return',) and not edge and not empty:
             P['sub'].append((t0, tok(root - 12), 3.8, 96))
             if (s.startswith('calls') or s == 'final') and not ret:
                 # (v2) the bass plays the machine's own clave: three-three-two sixteenths twice a bar (a tresillo), so
