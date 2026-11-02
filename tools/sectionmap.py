@@ -111,8 +111,9 @@ def _sim(p, q):
 SEMI_LO, SEMI_HI = 36, 96                          # C2 .. B6: the notes, with their register
 
 
-def semitones(x, sr, hop_s=0.1):
-    """(frames x 60 semitone energies C2..B6, log-compressed; frame times in s) of the mono mix, at 12 kHz."""
+def semitones(x, sr, hop_s=0.1, ref=None, info=None):
+    """(frames x 60 semitone energies C2..B6, log-compressed; frame times in s) of the mono mix, at 12 kHz. The scale is
+    the render's own loudest semitone frame, or REF (another render's, so an A/B shares one scale); INFO gets 'sref'."""
     from scipy import signal
     m = x.astype(np.float32).mean(1) if x.ndim > 1 else x.astype(np.float32)
     m = signal.resample_poly(m, 1, 4) if sr == 48000 else signal.resample_poly(m, 12000, sr)
@@ -131,8 +132,27 @@ def semitones(x, sr, hop_s=0.1):
             sel = idx == k
             if sel.any():
                 S[c0:c1, k - SEMI_LO] = mag[:, sel].sum(1)
-    S = np.log1p(S / (S.max() + 1e-12) * 1000.0)
+    ref = float(S.max()) if ref is None else ref
+    if info is not None:
+        info["sref"] = ref
+    S = np.log1p(S / (ref + 1e-12) * 1000.0)
     return S, (np.arange(n) * hop + nfft / 2) / fs
+
+
+def match_gain(xn, xo, spans, sr):
+    """The gain that best maps the OLD render onto the NEW one: the median over windows (SPANS, [t_a, t_b] s) of each
+    window's least-squares gain, so one reworked window cannot pull it. Renders are loudness-normalised, so new energy
+    in one window turns the whole song down a little (chirper-three, t11 v21: ~0.3 dB put every untouched window at
+    -25 dB residual)."""
+    gs = []
+    for ta, tb in spans:
+        a, b = int(ta * sr), int(tb * sr)
+        n, o = xn[a:b].astype(np.float64), xo[a:b].astype(np.float64)
+        k = min(len(n), len(o))
+        oo = float((o[:k] ** 2).sum())
+        if k and oo > 1e-9:
+            gs.append(float((n[:k] * o[:k]).sum()) / oo)
+    return float(np.median(gs)) if gs else 1.0
 
 
 def seq_of(S, times, clock, ba, bb, ta, tb):
@@ -159,15 +179,17 @@ def seq_sim(A, B):
     return float(np.exp(-seq_dist(A, B)))
 
 
-def analyse(wav, song, window_s=30.0):
-    x = L.load(wav)
+def analyse(wav, song, window_s=30.0, x=None, sref=None, info=None):
+    """Map WAV (or the audio X) in windows. SREF puts the note sequence on another render's semitone scale (A/B);
+    INFO, a dict, receives this render's scale as 'sref'."""
+    x = L.load(wav) if x is None else x
     F = L.Feat(x)
     dur = CS.music_end(x, L.SR)
     X = CS.frames(F)
     wins = windows(song, dur, window_s)
     feats = CS.section_feats(F, x, [(ta, tb) for _, _, ta, tb in wins], X)
     nov = CS.novelty(X)
-    S, st = semitones(x, L.SR)
+    S, st = semitones(x, L.SR, ref=sref, info=info)
     clock, _ = beat_clock(song)
     rows = []
     for i, ((ba, bb, ta, tb), f) in enumerate(zip(wins, feats)):
@@ -259,6 +281,17 @@ def residual_db(xn, xo, ta, tb, sr):
     n, o = n[:k], o[:k]
     e = float(((n - o) ** 2).sum())
     return round(max(-99.0, 10 * np.log10(e / (float((n ** 2).sum()) + 1e-20) + 1e-20)), 1)
+
+
+def residual_floor(cmp_):
+    """(the median window residual, the level above which a window counts as changed): -40 dB, or 10 dB over the
+    floor when the whole song moved (chirper-three, t11 v21: the mastering gain into the master compressors moved
+    0.37 dB and put every window near -29 dB)."""
+    rs = [c["residual_db"] for c in cmp_ if c.get("residual_db") is not None]
+    if not rs:
+        return -99.0, -40.0
+    floor = float(np.median(rs))
+    return round(floor, 1), round(max(-40.0, floor + 10.0), 1)
 
 
 def compare(new, old, xn=None, xo=None, sr=None):
@@ -353,22 +386,36 @@ def main(argv=None):
         wav = os.path.join(tmp, f"{a.id}.wav")
         render(song, a.pin or open(os.path.join(HERE, "groove-pin")).read().strip(), wav)
     try:
-        rows, dur = analyse(wav, song, a.window)
+        xn = L.load(wav) if a.against else None
+        info = {}
+        rows, dur = analyse(wav, song, a.window, x=xn, info=info)
         ledger = read_ledger(a.id)
         if a.against:
-            old, _ = analyse(a.against, song, a.window)
-            # the old render on the NEW render's windows (same song file, so the same beats)
+            xo = L.load(a.against)
+            g = match_gain(xn, xo, [r["time"] for r in rows], L.SR)
+            xo = xo * g
+            # the old render, gain-matched and on the new render's semitone scale, on the NEW render's windows (same
+            # song file, so the same beats)
+            old, _ = analyse(a.against, song, a.window, x=xo, sref=info.get("sref"))
             old = old[:len(rows)]
-            cmp_ = compare(rows, old, L.load(wav), L.load(a.against), L.SR)
+            cmp_ = compare(rows, old, xn, xo, L.SR)
+            gain_db = round(20 * np.log10(max(g, 1e-9)), 2)
+            floor, cut = residual_floor(cmp_)
             if a.json:
-                print(json.dumps({"id": a.id, "compare": cmp_}))
+                print(json.dumps({"id": a.id, "gain_db": gain_db, "floor_db": floor, "changed_above_db": cut,
+                                  "compare": cmp_}))
                 return
-            print(f"{a.id}: {os.path.basename(wav)} against {os.path.basename(a.against)} (per window; residual: the energy "
+            print(f"{a.id}: {os.path.basename(wav)} against {os.path.basename(a.against)} (per window, the old render "
+                  f"matched by {gain_db:+.2f} dB first; residual: the energy "
                   f"of new - old against new, about -60 untouched, -20 clearly changed; melody: note-sequence change)")
+            if floor > -45:
+                print(f"  every window moved (median residual {floor:.1f} dB): a whole-song shift, most often the mastering "
+                      f"gain into the master's compressors moving because the edit changed the song's loudness, not edits "
+                      f"there. '<' marks windows above {cut:.1f} dB, well clear of that floor.")
             print(f"{'w':>3} {'time':>11} {'resid dB':>8} {'melody':>7} {'change':>7} {'dB':>6} {'bright':>7} {'dens':>6}  "
                   f"change vs prev (was -> now)")
             for c, r in zip(cmp_, rows):
-                mark_ = " <" if c["residual_db"] > -40 else ""
+                mark_ = " <" if c["residual_db"] > cut else ""
                 cv = c["change_vs_prev"]
                 cvs = f"{cv[0]:.3f} -> {cv[1]:.3f}" if cv[0] is not None and cv[1] is not None else "-"
                 mel = f"{c['melody']:.3f}" if c["melody"] is not None else "-"

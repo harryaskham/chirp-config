@@ -103,3 +103,24 @@ def test_palette_reads_library_bases_and_patch_makeup():
     s = P.summary({"synth": {"layers": [{"type": "wind", "exciter": "lips"}, {"type": "modal"}, {"type": "osc"}]},
                    "fx": [{"type": "reverb"}, {"type": "reverb"}, {"type": "tape"}]})
     assert s == "wind:lips+modal:membrane+osc:sine | fx reverb,tape"
+
+
+def test_gain_matching_and_the_residual_floor():
+    # a whole-song gain change is matched away; one reworked window cannot pull the gain (the median)
+    sr = 1000
+    rng = np.random.default_rng(1)
+    old = rng.standard_normal(10 * sr)
+    new = old * 0.96
+    new[3 * sr:4 * sr] = rng.standard_normal(sr)              # window 4 rewritten
+    spans = [(i, i + 1) for i in range(10)]
+    g = SM.match_gain(new, old, spans, sr)
+    assert abs(g - 0.96) < 1e-9
+    cmp_ = [{"residual_db": SM.residual_db(new, old * g, a, b, sr)} for a, b in spans]
+    floor, cut = SM.residual_floor(cmp_)
+    assert floor == -99.0 and cut == -40.0                      # untouched windows read as untouched
+    assert [i for i, c in enumerate(cmp_) if c["residual_db"] > cut] == [3]
+    # a song whose every window moved (the mastering gain through the master compressors): read against its floor
+    moved = [{"residual_db": r} for r in (-29.4, -28.4, -28.5, -3.1, -25.0, -29.1)]
+    floor, cut = SM.residual_floor(moved)
+    assert floor == -28.4 and cut == -18.4
+    assert [i for i, c in enumerate(moved) if c["residual_db"] > cut] == [3]
