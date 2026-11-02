@@ -357,8 +357,11 @@ def print_map(cid, song, rows, dur, ledger):
             if r["beats"][0] is not None:
                 a, b = r["beats"]
                 ctx_a = max(0.0, a - (b - a) / 2)
-                print(f"     chirp render -f {rel} --from {a:g}b --to {b:g}b -o /tmp/{cid}-w{n}.wav"
+                print(f"     chirp render -f {rel} --from {a:g}b --to {b:g}b --preroll 4 -o /tmp/{cid}-w{n}.wav"
                       f"   (in context: --from {ctx_a:g}b --to {b + (b - a) / 2:g}b)")
+        print("  (--preroll 4, engine 03b601e2+: starts 4 s before the window instead of from the top, 3-10x faster, "
+              "approximate (-40 to -100 dB residual); for listening and trying ideas. Drop it for exact checks and for "
+              "--against.)")
     print(f"after the round: chirpers.py sections {cid} --mark N --note '…'  (and --against OLD.wav to check it stayed local)")
 
 
