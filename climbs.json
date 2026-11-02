@@ -8235,6 +8235,13 @@
           "at": "2026-11-02T15:02:19Z",
           "was": 98.9,
           "how": "done --best-now"
+        },
+        "stale": {
+          "score": 98.9,
+          "since": "2026-11-02T16:22:39Z",
+          "who": "chirper-zero",
+          "rating": 9.5,
+          "version": "v18"
         }
       },
       "passes": 1,
