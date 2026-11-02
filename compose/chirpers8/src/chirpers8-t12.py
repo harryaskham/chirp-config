@@ -252,6 +252,7 @@ def write_melody():
     part("standby").add(b0(179), b0(191) - b0(179) - 0.05, "m78.000", 74)
     memory()                                                  # v10: the album, remembered
     tower()                                                   # v12: the generations counted
+    gong()                                                    # v15: the cut and the completion
     # the fan's hum under the light (seed and the last bars): a soft sine on F#2
     for a, z in ((1, 8), (179, 190)):
         part("hum").add(b0(a), b0(z + 1) - b0(a) - 0.1, f"m{42:.3f}", 60)
@@ -429,6 +430,18 @@ TOWER_BELL = {"synth": {"layers": [{"type": "modal", "modes": "bell", "decay": "
               "play": {"vel_sens": 0.6}}
 
 
+# v15: A GONG MARKS THE CUT AND THE COMPLETION - one stroke as the pruning begins (bar 90) and one as the growing ends
+# (the coda, bar 158), on the modal layer's gong (a dense low plate set, its high modes blooming in after the hit)
+GONG = {"synth": {"layers": [{"type": "modal", "modes": "gong", "decay": "10s", "damp": 0.02, "bloom": 0.7,
+                              "strike": 0.35, "tilt": -0.5}],
+                  "amp": {"a": "2ms", "d": "12s", "s": 0, "r": "5s", "curve": 3}}}
+
+
+def gong():
+    part("gong").add(b0(90), 15.0, "m42.000", 108)
+    part("gong").add(b0(158), 15.0, "m42.000", 120)
+
+
 def tower():
     for name, a, z in SECTIONS:
         if name.startswith("g") and name[1:].isdigit():
@@ -479,6 +492,7 @@ def main():
         "tracks": [
             tr("light", "music-box", gain="-6dB", sends={"hall": "-6dB"}),
             # v6: a follow-noise 'room tone' under the last notes was tried and cut - too faint to earn its place, -0.3
+            tr("gong", GONG, gain="-9dB", sends={"hall": "-8dB"}),                         # v15: the gong
             tr("tower", TOWER_BELL, gain="-8dB", pan=-0.2, sends={"hall": "-6dB"}),      # v12: the bell tower
             tr("memory", "dx-epiano", gain="-10dB", pan=0.2, sends={"hall": "-6dB"},
                fx=[{"type": "filter", "kind": "lp", "cutoff": 3000}, "chorus"]),   # v10 (a radio's hiss ran all song)

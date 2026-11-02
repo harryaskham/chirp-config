@@ -68,6 +68,36 @@
    }
   },
   {
+   "name": "gong",
+   "patch": {
+    "synth": {
+     "layers": [
+      {
+       "type": "modal",
+       "modes": "gong",
+       "decay": "10s",
+       "damp": 0.02,
+       "bloom": 0.7,
+       "strike": 0.35,
+       "tilt": -0.5
+      }
+     ],
+     "amp": {
+      "a": "2ms",
+      "d": "12s",
+      "s": 0,
+      "r": "5s",
+      "curve": 3
+     }
+    }
+   },
+   "score": "R/356b m42.000/15b@108 R/250.5b m42.000/15b@120 R/117b",
+   "gain": "-9dB",
+   "sends": {
+    "hall": "-8dB"
+   }
+  },
+  {
    "name": "tower",
    "patch": {
     "synth": {
