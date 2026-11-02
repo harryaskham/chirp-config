@@ -81,9 +81,9 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 | `chirp tts --sing "D4/8 F4 A4/4 … ./4"`: the words sung on a written melody, one syllable per note (lengths latch, `.` rests, `_` holds); level legato notes, a scoop into each phrase, a fall off its end, vibrato on long notes; `--humanize` loosens intonation; `--mode choir` harmonises (README "Speech") | b4151423 | wM |; t2 (chirper-zero, "high as the cloud, and then home"); t8 (chirper-zero, "say it back to me" at the outro's ninth bar, its m-notes moved by hand onto a 1210-cent stretched octave in Hz, so a song with no `tuning:` block still sings in its own tuning) |
 
 ## Measured (chirp-eco)
-Measured 2026-11-02T08:33Z on chirp-46a24ab5 by `chirpers.py coverage chirpers8`: 12 composed songs; a feature counts when the song's plan or score uses it (prominence is your ear's call).
+Measured 2026-11-02T08:44Z on chirp-46a24ab5 by `chirpers.py coverage chirpers8`: 12 composed songs; a feature counts when the song's plan or score uses it (prominence is your ear's call).
 
-- **synthesis** (26/32): wave:triangle (t1, t2, t4, t5, t6, t7, t8, t10, t11, t12); wave:saw (t1, t2, t4, t5, t6, t7, t8, t10, t11); wave:square (t4, t5, t7, t8); wave:pulse (t1, t2, t4, t5, t6, t7, t8, t11); additive (t3, t4, t6, t8, t10, t11, t12); table (t8, t10, t11); shepard (t3, t12); sample (t11); machine (t1, t2, t3, t4, t6, t9, t10, t11, t12); modal (t2, t3, t4, t12); bowed (t6, t12); pluck (t3, t5, t12); membrane (t3, t4); bar (t3); vibes (t3); bell (t2, t3, t12); glock (t3); gong (t3, t12); reed (t2, t9, t10); jet (t4); lips (t12); guitar (t5); fm/pm (t1, t4, t6, t8, t9, t10, t11, t12); sync (t10); shape:fold (t9); shape:crush (t2, t8)
+- **synthesis** (28/32): wave:triangle (t1, t2, t4, t5, t6, t7, t8, t10, t11, t12); wave:saw (t1, t2, t4, t5, t6, t7, t8, t10, t11); wave:square (t4, t5, t7, t8); wave:pulse (t1, t2, t4, t5, t6, t7, t8, t11); additive (t3, t4, t6, t8, t10, t11, t12); table (t8, t10, t11); shepard (t3, t12); sample (t11); machine (t1, t2, t3, t4, t6, t9, t10, t11, t12); modal (t2, t3, t4, t8, t12); bowed (t6, t12); pluck (t3, t5, t12); membrane (t3, t4); plate (t8); cymbal (t2); bar (t3); vibes (t3); bell (t2, t3, t12); glock (t3); gong (t3, t12); reed (t2, t9, t10); jet (t4); lips (t12); guitar (t5); fm/pm (t1, t4, t6, t8, t9, t10, t11, t12); sync (t10); shape:fold (t9); shape:crush (t2, t8)
 - **fx** (38/43): amp (t5); barberpole (t3, t12); cab (t5); chop (t4, t8); chorus (t1, t2, t3, t4, t5, t6, t7, t8, t9, t11, t12); cloud (t1, t2, t5, t6, t8); compressor (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); crush (t7); delay (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11); drive (t2, t3, t4, t5, t7, t8, t9); duck (t4); eq (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); filter (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); formant (t1, t11); freeze (t8); gain (t3, t4, t5, t6, t8, t9, t10, t11, t12); gate (t11); glue (t3, t6, t7, t9, t11); ir (t5); limiter (t1, t3, t6, t7, t9, t10); morph (t1, t3, t4, t5, t6, t9); ott (t4, t5, t8, t11); pan (t4, t11, t12); phantom (t12); phaser (t5, t7); pitch (t1, t2, t5, t7, t8, t11); pump (t1, t3, t5, t6, t8, t9, t10, t11); radio (t2, t5, t6, t7, t11); reverb (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); ring (t6); stutter (t4, t8, t9, t11); sympathetic (t5, t12); tape (t1, t7, t8, t10); tapestop (t8, t12); transient (t11); tremolo (t4, t5, t6, t7, t11, t12); vocoder (t6); width (t11)
 - **filters** (7/10): kind:lp (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); kind:hp (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); kind:bp (t4, t5, t7, t8); kind:peak (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); kind:lowshelf (t1, t4, t6, t12); kind:highshelf (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); comb (t11)
 - **time** (6/7): tempo map (t2, t4, t5, t9, t10, t11, t12); risset (t12); warp (t8, t12); meter change (t2, t9, t10, t12); swing_drift (t12); humanize (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12)
@@ -91,18 +91,18 @@ Measured 2026-11-02T08:33Z on chirp-46a24ab5 by `chirpers.py coverage chirpers8`
 - **systems** (14/14): vars (t1, t2, t3, t5, t6, t8, t9, t11, t12); lfo (t1, t2, t4, t5, t6, t7, t8, t9, t10, t11, t12); auto (t1, t2, t3, t4, t5, t6, t7, t8, t10, t11); chance (t3, t6, t8, t9, t11); choices (t4, t11); euclid (t4); every (t1, t2, t3, t5, t6, t8, t9, t11, t12); vary (t2, t3, t12); gen:logistic (t5, t9); gen:lorenz (t1, t3, t6, t8, t11, t12); gen:ca (t1, t3); gen:lsystem (t10, t12); gen:markov (t1, t5, t6); var system (t1, t3, t5, t6, t8, t9, t11, t12)
 - **voice** (2/2): voice (tts) (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); vocoder on voice (t6)
 
-**Not used by any track yet:** wave:sine, plate, cymbal, sax, shape:tanh, shape:clip, autolevel, clip, follow-noise, vinyl, wah, kind:notch, kind:allpass, ladder, swing
+**Not used by any track yet:** wave:sine, sax, shape:tanh, shape:clip, autolevel, clip, follow-noise, vinyl, wah, kind:notch, kind:allpass, ladder, swing
 
 | track | title | features |
 |---|---|---|
 | t1 | Echolalia | 38 |
-| t2 | Everything Falls to One | 38 |
+| t2 | Everything Falls to One | 39 |
 | t3 | Three Neighbours | 44 |
 | t4 | Small Things Before Large | 40 |
 | t5 | Agreeing on a Speed | 44 |
 | t6 | No Errors Since | 43 |
 | t7 | Annealing | 30 |
-| t8 | Kept in Mercury | 42 |
+| t8 | Kept in Mercury | 44 |
 | t9 | Period Doubling | 36 |
 | t10 | Call and Return | 32 |
 | t11 | The Weather Indoors | 45 |
