@@ -2,7 +2,8 @@
 """chirpers8-t1 (chirper-one): "Echolalia" - the opener of chirpers VIII ('A Light Left On').
 
 A machine learning to talk by saying things back. A human voice (chirp tts, humanized: every take a different breath)
-says one quiet line - "the light was still on when you came back" - every few bars. A small FM voice listens and
+says one quiet line - "nobody told the oscillator it could stop" (v15; it was "the light was still on when you came
+back" until Harry heard it as cliche) - every few bars. A small FM voice listens and
 answers by ECHOLALIA: a Markov chain, learnt by the engine from the pitches and lengths of the voice's own syllables
 (a Markov chain over the syllables), babbles new 'sentences' that only make moves the voice made. The machine's ear sharpens as the record
 plays, in two ways at once:
@@ -48,7 +49,9 @@ def nm(m): return f"{NN[m % 12]}{m // 12 - 1}"
 # chords learn the quarter tones too: each chord's third is bent a quarter tone toward the middle (major thirds down,
 # minor thirds up), so every chord is neither major nor minor, a third the twelve notes do not have; when the machine
 # says the line back the first groove's plain chords return
-NEUTRAL = {tuple(DF[1]): {66: 65.5}, tuple(CH[1][1]): {71: 70.5}, tuple(EM9[1]): {67: 67.5}, tuple(A13[1]): {61: 60.5}}
+# (v15) removed again after Harry's ear on v14 ('vocal line and tune kind of ugly ... mix this up a lot'): the
+# chords are plain twelve-note chords throughout
+NEUTRAL = {}
 def ctoks(sec, ch):
     bend = NEUTRAL.get(tuple(ch), {}) if sec == 'C' else {}
     return ','.join(f"m{bend[m]:.1f}" if m in bend else nm(m) for m in ch)
@@ -104,11 +107,11 @@ def build():
         if s == 'C':
             # (v8) THE DRUMS LEARN THE LINE: through the third groove the four-on-the-floor stops and the kick plays the
             # line's own rhythm instead - one kick on every stressed syllable of the first take, quantized to sixteenths,
-            # over two bars ('the LIGHT WAS STILL ON WHEN YOU CAME BACK'), heaviest on light, still and back - while the
+            # over two bars ('NObody TOLD the OScillator IT COULD STOP' since v15), heaviest on no, os and stop - while the
             # claps keep the backbeat and the hats keep the eighths; the said-back groove returns to the floor
             for at_, ph_ in KSYL:
                 if (i % 2) * 4.0 <= at_ < (i % 2) * 4.0 + 4.0:
-                    P['kit'].append((t0 + at_ - (i % 2) * 4.0, 'k', 0.25, 112 if ph_ in ('L AY1 T', 'S T IH1 L', 'B AE1 K') else 92))
+                    P['kit'].append((t0 + at_ - (i % 2) * 4.0, 'k', 0.25, 112 if ph_ in ('N OW1', 'AA1', 'S T AA1 P') else 92))
             for q in range(4):
                 P['kit'].append((t0 + q + 0.5, 'h', 0.25, 58))
                 P['kit'].append((t0 + q + 0.75 + 0.04, 'h', 0.25, 52))
@@ -124,7 +127,7 @@ def build():
                 P['kit'].append((t0 + 1.0, 'cp', 0.25, 80)); P['kit'].append((t0 + 3.0, 'cp', 0.25, 84))
     # the voice: a different humanized take of the same line each time
     vnotes, fv = [], []
-    # (v11) BACK, BACK, BACK: from the third groove on, the last word of every take - 'back' - is repeated by the
+    # (v11) BACK, BACK, BACK: from the third groove on, the last word of every take ('stop', since v15 - repeated, it never does) - is repeated by the
     # machine, four times, a dotted eighth apart, quieter and thinner each time and left-right-left-right: the track's
     # name done literally, once a take, as the machine starts to say things back
     bnotes, bnotes2 = [], []
@@ -137,7 +140,7 @@ def build():
             continue                                  # (v7) the outro's takes are sung now, not spoken
         off = (v['bar'] - 1) * 4.0
         if secs['C'] < v['bar'] <= secs['D'] + 16:
-            bk = [n_ for n_ in v['notes'] if 'B AE1 K' in n_.get('ph', '')]
+            bk = v['notes'][-1:]                           # the line's last word ('stop', since v15)
             if bk:
                 for r_ in range(1, 5):
                     (bnotes if r_ % 2 else bnotes2).append(dict(bk[-1], at=round(off + bk[-1]['at'] + 0.75 * r_, 4),
@@ -216,7 +219,8 @@ def build():
             tr('pad', 'juno-pad', '-16dB', fx=['hp cutoff=200', {'type': 'eq', 'bands': ['peak cutoff=450 q=0.9 gain=-4dB', 'highshelf cutoff=5000 gain=3dB']}], sends={'hall': '-9dB'}),
             # (v7) AND THEN IT IS SUNG: the human has said the line twenty times and the machine has learnt to say it back;
             # in the outro, over the last B minor, the human SINGS it at last - twice, low and plain (chirp tts --sing,
-            # humanize 0.35): 'the light was still on when you came back' - the album's first sung words
+            # humanize 0.35) - since v15 'nobody told the oscillator it could stop', on a new tune that leaps up a sixth to
+            # 'told' and falls to its low F# on 'stop'
             {'name': 'sung', 'patch': SUNG['patch'], 'gain': '-6dB', 'pan': -0.05,
              'notes': [dict(n_, at=round(secs['outro'] * 4.0 + rep * 16.0 + n_['at'], 4)) for rep in (0, 1) for n_ in SUNG['notes']],
              'fx': [{'type': 'tape', 'drive': 0.1, 'mix': 1, 'wow': 1.5, 'flutter': 0.8, 'seed': 2}],
