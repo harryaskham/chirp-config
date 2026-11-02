@@ -36,6 +36,7 @@ AIR = os.environ.get("C8T2_AIR", "")        # air over the sieve: a quiet dusty 
 OWNHATS = os.environ.get("C8T2_OWNHATS", "1")   # the rest of the drum machine our own: the hats on the engine's machine layer (six squares at the 808's metal ratios, band-passed), closed (60 ms) and open (320 ms) on two tracks, instead of machine-kit's
 OWNKICK = os.environ.get("C8T2_OWNKICK", "1")   # and the kick: the machine layer's 909-style kick tuned to G1 (the key's root), instead of machine-kit's
 TOMBACK = os.environ.get("C8T2_TOMBACK", "swap")   # PALETTE ROUND: the backbeat on a drum machine of our own - the engine's `machine` layer (circuit-modelled drum-machine voices, unused on the album) as a tuned electronic tom: G3 on 2, D3 on 4 (the halving's lone 3 on G3), the syndrum backbeat of the old machine records. 'swap' replaces the machine-kit clap (a staple of 9 songs); 'layer' keeps the clap under it
+HALVLOCAL = os.environ.get("C8T2_HALVLOCAL", "1")   # the halving kept local: the grid kicks and toms stay in place at velocity 1 (so every later hit's dice stay put) and the half-time hits and the return crash play on their own tracks (kick2, tom2, crash2), listed last
 PREFIGTRACK = os.environ.get("C8T2_PREFIGTRACK", "1")   # the foretold 4-2-1 on its own bell track (bell2, the same bell), listed last: on the bell track its notes shifted the dice of every later bell (the break's loop and C's halts moved by -16..-35 dB residual)
 PREFIG = os.environ.get("C8T2_PREFIG", "80")   # SECTION ROUND, window 3 (1:00-1:30, A bars 16-31; flagged static, little new vs w2): THE TRIVIAL CYCLE, FORETOLD - in A's second half, each time a clarinet path lands on 1 the bell answers once, softly, with 4 2 1 (G6 G5 G4: the loop the break will ring for twenty bars); value = velocity of the first stroke
 HALVING = os.environ.get("C8T2_HALVING", "24,8")   # SECTION ROUND, window 8 (3:30-4:00, C bars 21-37; flagged static, little new vs w7): THE HALVING - for 'start,len' bars of C the drums go half-time (kick on 1 and the and-of-3, the clap on 3 alone), the rule's 'even comes down' in the beat, then double back; hats and bass keep going
@@ -82,7 +83,7 @@ def barlen(sec):
     """Sixteenths in a bar of this section: the break is in 3/4 under METER."""
     return 12 if METER and sec == "break" else BAR
 SEEDS = {"intro": [6, 6], "A": [7, 12, 3, 7], "B": [9, 18, 11], "C": [27, 31, 27, 41], "outro": [1]}
-TRACKS = ("clar", "clar2", "arp", "bass", "sub", "kick", "shk", "hats", "clap", "pad", "bell", "crash") + (("tom",) if os.environ.get("C8T2_TOMBACK", "swap") else ()) + (("ohat",) if os.environ.get("C8T2_OWNHATS", "1") else ()) + (("bell2",) if os.environ.get("C8T2_PREFIGTRACK", "1") else ())
+TRACKS = ("clar", "clar2", "arp", "bass", "sub", "kick", "shk", "hats", "clap", "pad", "bell", "crash") + (("tom",) if os.environ.get("C8T2_TOMBACK", "swap") else ()) + (("ohat",) if os.environ.get("C8T2_OWNHATS", "1") else ()) + (("bell2",) if os.environ.get("C8T2_PREFIGTRACK", "1") else ()) + (("kick2", "tom2", "crash2") if os.environ.get("C8T2_HALVLOCAL", "1") else ())
 GMAJ = ["G", "A", "B", "C", "D", "E", "F#"]
 CHORDS = [("G", [0, 2, 4]), ("E", [5, 7, 9]), ("C", [3, 5, 7]), ("D", [4, 6, 8])]   # I vi IV V as degrees from G
 PRIMES = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31)
@@ -221,16 +222,21 @@ def build():
             groove = sec in ("A", "B", "C", "outro")
             half = bool(HALVING) and sec == "C" and int(HALVING.split(",")[0]) <= b < sum(int(x) for x in HALVING.split(","))
             if groove:
-                for q in ((0, 10) if half else (0, 4, 8, 12) if not (KICKOUT and sec == "outro" and b >= nb - int(KICKOUT)) else ()):
-                    add("kick", at + q, "k", 1, 116 if q == 0 else 106)
+                hl = half and HALVLOCAL
+                for q in ((0, 10) if half and not hl else (0, 4, 8, 12) if not (KICKOUT and sec == "outro" and b >= nb - int(KICKOUT)) else ()):
+                    add("kick", at + q, "k", 1, 1 if hl and q else (116 if q == 0 else 106))
+                if hl:
+                    add("kick2", at + 10, "k", 1, 106)
                 if sec in ("B", "C"):
                     for q in range(16):   # the sieve: the prime steps of each 32
                         if (q + 16 * (b % 2)) in PRIMES:
                             add("hats", at + q, "h", 1, 76 if q % 2 else 62)
                     add("hats", at + 14, "oh", 1, 64) if (14 + 16 * (b % 2)) not in PRIMES else None
                     if TOMBACK:
-                        for q, nn, vv in (((8, "G3", 104),) if half else ((4, "G3", 98), (12, "D3", 102))):
-                            add("tom", at + q, nn, 2, vv)
+                        for q, nn, vv in (((8, "G3", 104),) if half and not hl else ((4, "G3", 98), (12, "D3", 102))):
+                            add("tom", at + q, nn, 2, 1 if hl else vv)
+                        if hl:
+                            add("tom2", at + 8, "G3", 2, 104)
                     if TOMBACK != "swap":
                         if half:
                             add("clap", at + 8, "cp", 1, 100)
@@ -256,7 +262,7 @@ def build():
     for sec in (("A", "B", "C") + (("outro",) if "o" in CRASH else ())) if CRASH else ():
         add("crash", sec_start(sec), "D5", 8 * BAR, 100)
     if HALVING and HALVCRASH and CRASH:
-        add("crash", sec_start("C") + sum(int(x) for x in HALVING.split(",")) * BAR, "D5", 8 * BAR, int(HALVCRASH))
+        add("crash2" if HALVLOCAL else "crash", sec_start("C") + sum(int(x) for x in HALVING.split(",")) * BAR, "D5", 8 * BAR, int(HALVCRASH))
     if LOOP421 and BELL:
         b0, b1 = sec_start("break"), sec_start("C")
         for i, at in enumerate(range(b0, b1, 4)):
@@ -271,6 +277,7 @@ def build():
         ev["hats"] = [(a, "A4", 1, v) for (a, h, l, v) in ev["hats"] if h != "oh"]
     if OWNKICK:
         ev["kick"] = [(a, "G1", 2, v) for (a, h, l, v) in ev["kick"]]
+        ev["kick2"] = [(a, "G1", 2, v) for (a, h, l, v) in ev.get("kick2", [])]
     return {k: stream(ev[k], total()) for k in TRACKS}
 
 
@@ -371,6 +378,17 @@ def voice(file, name, off16, gain, fx, sends):
 
 
 def song():
+    doc = song0()
+    if HALVLOCAL:
+        T = build()
+        trs = doc["tracks"]
+        for nm in ("kick", "tom", "crash"):
+            spec = next(t for t in trs if t["name"] == nm)
+            trs.append(dict(spec, name=nm + "2", score=T[nm + "2"]))
+    return doc
+
+
+def song0():
     T = build()
     st = {sec: sec_start(sec) for sec, _ in FORM}
     radio = {"type": "radio", "tune": 0.03, "hiss": "-42dB", "whistle": "-34dB", "fade": 0.3, "drift": 0.03, "mix": 0.8}
