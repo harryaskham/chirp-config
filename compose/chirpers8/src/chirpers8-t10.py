@@ -259,6 +259,16 @@ def build():
         st_ = shift(c - 3.5)
         tempo_map += [{'at': f'{st_:.2f}b', 'bpm': BPM, 'meter': '7/8'}, {'at': f'{st_ + 3.5:.2f}b', 'bpm': BPM, 'meter': '4/4'}]
     tr = lambda name, patch, gain, **kw: dict({'name': name, 'patch': patch, 'gain': gain, 'score': line(P[name], total)}, **kw)
+    # (v15) GOING DOWN: at each overflow the voice stutters one word into the cut - 'down', five times, faster and lower
+    # each time (0, -2, -4, -6, -9 semitones), the last one swallowed by the dropped eighth: the subroutine's promise
+    # ('I go down a little') caught in the overflow, before the stack unwinds and the voice comes back home
+    DN = SING['down']['notes'][0]
+    dnotes = []
+    for b_ in SHORT:
+        for k_, (q_, st_) in enumerate(((1.5, 0), (2.25, -2), (2.75, -4), (3.0, -6), (3.25, -9))):
+            p_ = float(DN['pitch'][1:]) + st_
+            dnotes.append(dict(DN, at=round(shift(b_ * 4.0 + q_), 4), pitch=f"m{p_:.3f}", len=min(DN['len'], 0.45 if k_ == 0 else 0.24),
+                               vel=round(min(1.0, DN.get('vel', 0.8) * (0.85 + 0.05 * k_)), 3)))
     BELL = {'synth': {'layers': [{'name': 'm', 'ratio': 3.5, 'audible': False},
                                  {'wave': 'sine', 'pm': [{'from': 'm', 'depth': {'value': 0.3, 'mod': [{'src': 'env.bright', 'amount': 2.6}]}}]}],
                       'env': {'bright': {'a': '1ms', 'd': '450ms', 's': 0, 'r': '200ms'}},
@@ -310,6 +320,9 @@ def build():
             # love letter, sideways; tuned in Werckmeister III with the rest
             # (v11) AND IT COMES BACK: the sung subject returns, home in D minor, as the final calls unwind (their last eight
             # bars, after the overflow stumbles), the voice an octave lower, singing the subroutine home
+            {'name': 'down', 'patch': SING['down']['patch'], 'gain': '-7dB', 'pan': -0.1, 'notes': dnotes,
+             'fx': [{'type': 'tape', 'drive': 0.2, 'mix': 1, 'wow': 3, 'flutter': 2, 'seed': 6}, 'hp cutoff=160'],
+             'sends': {'echo': '-9dB', 'hall': '-14dB'}},
             {'name': 'sing2', 'patch': SING['patch'], 'gain': '-8dB', 'pan': 0.05, 'tuning': W3T,
              'notes': [dict(n_, at=round(shift(secs_t['final'] + 96 + n_['at']), 4)) for n_ in SING['final']['notes']],
              'fx': [{'type': 'tape', 'drive': 0.12, 'mix': 1, 'wow': 2, 'flutter': 1, 'seed': 4}],
