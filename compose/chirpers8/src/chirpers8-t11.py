@@ -251,7 +251,7 @@ def write_music():
                 part("bass").add(b0(bar) + e * 0.5, 0.45, mm(partial(n, lb, 0)), 100 if e % 2 == 0 else 84)
         # v4: THE HOOK, rearranged by the weather - in A, B and C every two-bar phrase plays the hook in one of four
         # forms (original, retrograde, inversion round the 12th partial, a partial up), chosen by y at its start
-        if sec in ("A", "B", "C") and (bar - 17) % 2 == 0:
+        if sec in ("A", "B", "C") and (bar - 17) % 2 == 0 and hook_on(bar):
             x, y, z = state(bar)
             form = 0 if bar in (17, 19, 49, 97) + SUNG_AT else int(max(0, min(3, (y + 25) / 50 * 4)))   # each section states it plain
             for at, n, ln, v in hook_form(form):
@@ -260,11 +260,12 @@ def write_music():
         else:
             continue_lead = True
         # THE LEAD (now the break's and the outro's): a wavetable, a partial chosen by y each eighth
-        if continue_lead and (sec == "break" or (sec == "outro" and bar < 153)):
+        weather = sec in ("A", "B", "C") and not hook_on(bar)                   # v17: the lead improvises
+        if continue_lead and (sec == "break" or (sec == "outro" and bar < 153) or weather):
             for e in range(8):
                 x, y, z = state(bar, e * 2)
                 x2, y2, z2 = state(bar, min(15, e * 2 + 1))
-                if abs(y2 - y) > (1.2 if sec != "break" else 0.6):
+                if abs(y2 - y) > (0.6 if sec == "break" else 0.9 if weather else 1.2):
                     k = int(round((y + 25) / 50 * (len(PARTIALS) - 1)))
                     n = PARTIALS[max(0, min(len(PARTIALS) - 1, k))]
                     part("lead").add(b0(bar) + e * 0.5, 0.42, mm(partial(n, lb, 0)), 76 + int(min(30, abs(y2 - y) * 4)))
@@ -356,6 +357,15 @@ def radio_lanes():
 # v4: THE HOOK - two bars in harmonic-series partials, rising through the alien 11th and 13th and falling home
 HOOK = [(0.0, 8, 1.0, 96), (1.0, 10, 0.5, 84), (1.5, 12, 0.5, 88), (2.0, 11, 1.0, 94), (3.0, 13, 0.5, 90),
         (3.5, 12, 0.5, 84), (4.0, 10, 1.5, 92), (5.5, 9, 0.5, 82), (6.0, 8, 2.0, 88)]
+
+
+# v17: FEWER RETURNS (Harry on t1: 'fewer returns', 'a tune good to hear'): the hook played every two bars through A, B
+# and C - 52 statements back to back; now each section alternates 8 bars of hook with 8 bars of WEATHER, where the
+# lead stops quoting and improvises on the partials as the attractor's y moves (as it does in the break); the hook
+# keeps each section's plain first statement and both sung bars (the voice carries it there)
+def hook_on(bar):
+    a = next(a for name, a, z in SECTIONS if a <= bar <= z)
+    return ((bar - a) // 8) % 2 == 0 or any(s <= bar < s + 2 for s in SUNG_AT)
 
 
 def hook_form(form):
