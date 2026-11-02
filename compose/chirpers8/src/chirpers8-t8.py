@@ -66,6 +66,7 @@ WORDS = os.environ.get("C8T8_WORDS", "new")   # 'new': the voices stop asking 's
 STRIDE = os.environ.get("C8T8_STRIDE", "C5D7")   # the same bits, read through another address map: the word's bit i sounds scale slot (i x stride) mod 8 - stride 3 everywhere before (D A F | F C A | G D: interlocking leaps); 'C5' reads the refreshed word in C with stride 5 (D D G A C F F A: a new tune from the same data), 'D7' the corrupted D with stride 7 (a leap, then falling down the scale); E is read the old way again (the tune comes home); e.g. 'C5D7'
 UPPAD = os.environ.get("C8T8_UPPAD", "mellotron-choir")   # the two upper pad voices' instrument (the lower two stay on juno-pad, which carries the low end): e.g. mellotron-choir - tape-stored voices played back, a memory medium
 UPPADGAIN = os.environ.get("C8T8_UPPADGAIN", "-24")
+WRITEIN = os.environ.get("C8T8_WRITEIN", "100")   # SECTION ROUND (w1, the intro): the word is WRITTEN before it is kept - sixteen bars, sixteen bits: in bar b only bits 0..b sound (the unwritten ones are kept at velocity 1, so no dice move) and the bit just written is struck harder (WRITEIN velocity); the whole word stands when A begins
 EUP = os.environ.get("C8T8_EUP", "1")   # WHOLE ROUND: the repaired word a step higher - E (and with 'n,outro' the outro too, with the sung line) rises EUP semitones on the stretched octave: every pitched part of the section (word, zeros, marimba, pads, organ, hum, bass) moves together. Value = 'semitones' or 'semitones,outro'
 _KEY = [0]
 TRAVSPLIT = os.environ.get("C8T8_TRAVSPLIT", "-16")   # WHOLE ROUND: only the word 'travels' travels - the sung 'it only travels' went whole into the delay line (send -4 dB) and blurred; now 'it only' sings nearly dry (line send TRAVSPLIT dB, room -14) and only 'travels' goes into the line, on its own track (sungv2, listed last), so the line repeats the one word that says what it does
@@ -140,7 +141,12 @@ def build():
                     if bit:
                         sd = {k: int(v) for k, v in re.findall(r"([A-Z])(\d)", STRIDE)}.get(sec, 3) if STRIDE else 3
                         p = SC[(i * sd) % 8] + (0 if i < 8 else 12 if (sec in ("C", "E") or (A2LIFT and sec == "A" and b >= 16)) and i % 4 == 0 else 0)
-                        add("word", at + i, hz(p), 1, int(WORDEND) if last_read else (86 if i % 4 == 0 else 70))
+                        wv = int(WORDEND) if last_read else (86 if i % 4 == 0 else 70)
+                        if WRITEIN and sec == "intro":
+                            rate = 2 if "x2" in WRITEIN else 1   # 'x2': two bits a bar, the word whole by bar 8
+                            hi = rate * b + rate - 1
+                            wv = 1 if i > hi else (int(WRITEIN.split(",")[0]) if i > hi - rate else wv)
+                        add("word", at + i, hz(p), 1, wv)
                     elif ZEROS and sec == "E" and 4 <= b < 20 and i % 4 <= (b - 4) // 4:
                         p = SC[(i * 3) % 8] + 12
                         add("zeros", at + i, hz(p), 1, 52 + 4 * ((b - 4) // 4) + (6 if i % 4 == 0 else 0))
