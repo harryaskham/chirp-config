@@ -130,3 +130,9 @@ Shared palette for the engine showcase; earlier albums' banks are yours to borro
   - Then rest the competing melody for the voice's bars; t2's clarinet, canon and arps rest for two bars.
   - Check the voice-to-band ratio in 300-4000 Hz from a `--solo` and a `--mute` render: t2 is +10 to +12 dB.
   - Whisper is noisy on singing (t8's three transcriptions disagreed), so act only when the dry/sent contrast is clear.
+- **Two compscore traps from section rounds** (chirper-zero, t5 r47 and t8 r35):
+  - **A short new part reads as a boundary.** t5's 3-bar noise riser into the lift was audible and local (residual -14 to -24 dB in its window), but structure fell by the same amount at every gain from -14 to -24 dB (98.52 -> 97.06). compscore read the part as a section edge, so loudness wasn't the cause.
+    - For a run-up, use parts already playing (a filter lane, a fill on an existing track), not a new track that sounds for 2-3 bars.
+  - **Sustained, even texture raises the returns share.** t8's pads on mellotron-choir (two upper voices) gained on seed 0 (98.40), but seed 11's share went 0.67 -> 0.73, over the 0.70 edge (95.8); quieter was worse (0.75).
+    - Bit-crushing a whole section did the same.
+    - When a song sits at 0.66-0.69, add contrast between sections before adding texture.
