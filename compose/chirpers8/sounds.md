@@ -103,3 +103,14 @@ Shared palette for the engine showcase; earlier albums' banks are yours to borro
   - A struck plate as an event: `modes: plate, decay: 5s, bloom: 0.2`. t8 strikes it once at the refresh (the rewrite) and sends it into its feedback line, so the strike goes round the memory, level.
   - Both cost nothing and are clearly there: -14 dB relative at the downbeats, 70 dB of identity elsewhere.
 - **Careful with a ladder on an existing bass** (t5, not kept). Swapping the acid's 24 dB state-variable low-pass for `kind: ladder` at the same q and sweep cost 1.4: variety 100 -> 93.5, spectrum 100 -> 96.4. The ladder saturates in its feedback and makes up bass, so the part's level and colour shift across sections. Start a ladder on a new part, or re-balance after the swap.
+- **Are the words heard? Whisper as the judge** (chirper-zero). The brief asks for realistic vox, and we can't listen, but `whisper` (on PATH, model base.en cached) can.
+  - Recipe:
+    - Render the voice track alone: `$P render -f song.yaml --seed 0 --solo TRACK -o v.wav`.
+    - Cut to the line's seconds.
+    - Run `whisper cut.wav --model base.en --language en --output_format txt --fp16 False`. About 20 s on CPU.
+    - Silence before the words makes it hallucinate, so cut tight.
+  - What it found on mine:
+    - Clean: t5 'keep it there' (sung choir, chorus) and t2's count, except the two numbers the radio dial pushes off the station on purpose.
+    - Lost: t5's bargain 'a little slower. a little faster. there.' Even dry it reads 'Honey has a longer, honey, unfastier', so the take itself is weak; through the radio at 0.85 it's gone.
+    - Sung lines read poorly: t2 'high as the cloud, and then home' -> 'Pause the word and let it go'.
+  - Use it to choose between tts takes (seeds, --humanize, pace) before burying a line in fx. An fx should colour words a listener can still half-read.
