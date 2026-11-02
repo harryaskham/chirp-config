@@ -207,11 +207,13 @@ def build():
         'vars': {'mouth': {'system': {'type': 'lorenz', 'axis': 'x', 'n': 512, 'range': [-1, 1], 'seed': 4}, 'every': '1/8'}},
         'buses': {'hall': {'fx': ['reverb kind=hall decay=3.4s mix=1', 'hp cutoff=200'], 'returns': []},
                   'echo': {'fx': [{'type': 'delay', 'time': '3/8', 'feedback': 0.38, 'mix': 1, 'ping_pong': True}, 'lp cutoff=4500', 'hp cutoff=300'], 'returns': []}},
-        'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=28', 'lowshelf cutoff=100 gain=4dB', 'peak cutoff=520 q=0.8 gain=-10dB', 'peak cutoff=1500 q=0.9 gain=-6dB', 'highshelf cutoff=6000 gain=8dB']},
+        'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=28', 'lowshelf cutoff=100 gain=4dB', 'peak cutoff=520 q=0.8 gain=-10dB', 'peak cutoff=1500 q=0.9 gain=-6dB', 'highshelf cutoff=6000 gain=8dB', 'highshelf cutoff=12000 gain=3dB']},
                           {'type': 'compressor', 'threshold': '-18dB', 'ratio': 2.2, 'attack': '15ms', 'release': '150ms', 'makeup': '2dB'},
                           'limiter ceiling=-1dB']},
         'tracks': [
-            tr('pad', 'juno-pad', '-14dB', fx=['hp cutoff=180'], sends={'hall': '-10dB'}),
+            # (v14) the pad stepped back out of the voice's band (its chords sit exactly where speech lives, 290-550 Hz):
+            # quieter and scooped there, so the words come forward; the sub a little fuller; more air on top
+            tr('pad', 'juno-pad', '-16dB', fx=['hp cutoff=200', {'type': 'eq', 'bands': ['peak cutoff=450 q=0.9 gain=-4dB', 'highshelf cutoff=5000 gain=3dB']}], sends={'hall': '-9dB'}),
             # (v7) AND THEN IT IS SUNG: the human has said the line twenty times and the machine has learnt to say it back;
             # in the outro, over the last B minor, the human SINGS it at last - twice, low and plain (chirp tts --sing,
             # humanize 0.35): 'the light was still on when you came back' - the album's first sung words
@@ -262,7 +264,7 @@ def build():
             # voice speaks, the chords pronounce the line with it, a choir of the machine's harmony saying the words
             tr('speak', 'strings-saw', '-7dB', pan=-0.15, fx=[{'type': 'morph', 'mode': 'cross', 'key': 'voice', 'amount': 0.95}],
                sends={'hall': '-10dB'}),
-            tr('sub', 'sub', '-6dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-5dB', 'release': '260ms', 'curve': 0.6}]),
+            tr('sub', 'sub', '-4.5dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-5dB', 'release': '260ms', 'curve': 0.6}]),
             tr('bass', 'analog-bass', '-12dB', fx=['lp cutoff=1100']),
             tr('kit', 'machine-kit', '-6dB', sends={'hall': '-18dB'}),
             # a rim written by a cellular automaton (rule 90, Sierpinski), sixteenths, from the second groove
