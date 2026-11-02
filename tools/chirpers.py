@@ -759,6 +759,8 @@ def song_features(canon, raw):
     tempo = canon.get("tempo")
     if isinstance(tempo, list) and len(tempo) > 1:
         got.add("tempo map")
+        if len({str(p.get("meter")) for p in tempo if isinstance(p, dict) and p.get("meter")}) > 1:
+            got.add("meter change")   # the README's form: `meter` on tempo-map points
     tun = [canon.get("tuning")] + [t.get("tuning") for t in canon.get("tracks") or []]
     for t in tun:
         for x in (t if isinstance(t, list) else [t]):
