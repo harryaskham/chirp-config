@@ -249,7 +249,9 @@ def write():
         if bar == 1:
             part("ring").add(0.0, 8.0, "912hz", 112)
             part("ring").add(0.0, 6.0, "3648hz", 58)
-            part("ride").add(0.0, 4.0, "cy", 64)
+            part("ride").add(0.0, 4.0, "cy", 76)               # v14: a firmer swell for t3's air
+            for k, (at, nt) in enumerate(((0.0, "m93"), (0.75, "m98"), (1.6, "m96"), (2.5, "m100"), (3.5, "m95"), (5.0, "m97"))):
+                part("chimes").add(at, 6.0, nt, 90 - 6 * k)   # v14: wind chimes - t3's metal, still in the air
         if bar > BARS - 6:                  # v8: the last six bars clear to the low E alone - what t5 begins with
             PROGRESS.append(0)
             if (bar - (BARS - 7)) % 2 == 0:
@@ -400,11 +402,11 @@ def pad_morph_lane():
 
 def lanes():
     level = {"intro": -6, "bubble": -2, "insertion": -2, "quick": 0, "bogo": -4, "merge": 0, "sorted": 0, "outro": -6}
-    pts = [["0b", -20.0]]                   # v9: the machinery FADES UP out of t3's last ring instead of switching on
+    pts = [["0b", -34.0]]                   # v9: the machinery FADES UP out of t3's last ring (v14: from -34 dB)
     for name, a, z in SECTIONS:
         if len(pts) > 1:
             pts.append([f"{b0(a) - 0.25:.2f}b", pts[-1][1]])
-        pts.append([f"{b0(a + 2 if name == 'intro' else a):.2f}b", float(level[name])])
+        pts.append([f"{b0(a + 3 if name == 'intro' else a):.2f}b", float(level[name])])   # v14: over three bars
     return pts
 
 
@@ -456,6 +458,7 @@ def main():
             tr("tune", "rhodes", gain="-10dB", pan=-0.1, sends={"dly": "-10dB"},
                fx=[{"type": "filter", "kind": "hp", "cutoff": 250}]),                      # v6: the tune that emerges
             *voice_tracks(),                                                                 # v10: speech to song
+            tr("chimes", "chimes", gain="-14dB", pan=0.3, sends={"room": "-8dB"}),          # v14: the seam's air
             tr("ring", "vibes", gain="-2dB", pan=0.1, sends={"room": "-8dB", "dly": "-14dB"}),   # v9: t3's ring caught
             tr("ride", "machine-kit", gain="-9dB", pan=-0.3, sends={"room": "-12dB"}),      # v6: the top end
             tr("tune_mar", "marimba", gain="-8dB", pan=-0.1, sends={"dly": "-10dB"}),      # v6: each algorithm its voice
