@@ -46,12 +46,13 @@ ENDPAD = os.environ.get("C8T2_ENDPAD", "1")   # the pad follows the cadence: wit
 DPEDAL = os.environ.get("C8T2_DPEDAL", "90")   # a soft D2 sine (the G chord's fifth, t3's root: its tanpura and gong are on D) under the outro's last four bars; my tail sits 6.7 dB under t3's head and 22-24 dB thin at 71-83 Hz; value = velocity
 HATAIR = os.environ.get("C8T2_HATAIR", "10")   # the sieve's air: the prime-sieve hats get a +HATAIR dB peak at 9 kHz (the record is 6-10 dB under the album envelope at 7-11 kHz; a master boost there moved seed 0's sections, the hats are steady and everywhere)
 BEND = os.environ.get("C8T2_BEND", "1")   # the climb is a reach: every note the rule makes by 3n+1 (after an odd number) is scooped up into from BEND semitones below (bend in two 32nd steps, then home) - the halvings fall plainly, the multiplications strain upward
+BELL = os.environ.get("C8T2_BELL", "C")   # the halt: when one of C's long climbs (27: 111 steps; 31: 106) finally reaches 1, a small bell rings - a modal bell struck on G5, like a terminal's BEL when a job finishes ('C': those three; 'Co': and the record's very last 1)
 ARP32 = os.environ.get("C8T2_ARP32", "")    # the drop's arps on 1/32 (as the plan always said): double-time chip arps through C
 BAR = 16
 SEED = 2
 FORM = [("intro", 16), ("A", 36), ("B", 24), ("break", 16), ("C", 56), ("outro", 16)]
 SEEDS = {"intro": [6, 6], "A": [7, 12, 3, 7], "B": [9, 18, 11], "C": [27, 31, 27, 41], "outro": [1]}
-TRACKS = ("clar", "clar2", "arp", "bass", "sub", "kick", "shk", "hats", "clap", "pad")
+TRACKS = ("clar", "clar2", "arp", "bass", "sub", "kick", "shk", "hats", "clap", "pad", "bell")
 GMAJ = ["G", "A", "B", "C", "D", "E", "F#"]
 CHORDS = [("G", [0, 2, 4]), ("E", [5, 7, 9]), ("C", [3, 5, 7]), ("D", [4, 6, 8])]   # I vi IV V as degrees from G
 PRIMES = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31)
@@ -121,6 +122,8 @@ def build():
                     add("clar", at, f"!bend=-{b:g} {deg_note(d)}/0.125b@{v} bend=-{b / 2:g} _/0.125b bend= _/0.25b", 2, v)
                 else:
                     add("clar", at, deg_note(d), 4 if last else 2, v)
+                if BELL and last and n == 1 and (sec == "C" or (BELL == "Co" and sec == "outro" and at + 4 >= end - 2 * BAR)):
+                    add("bell", at, "G5", 4 * BAR, 76)
                 if CANON and sec in ("B", "C") and at + BAR < end:
                     add("clar2", at + BAR, deg_note(max(d - 7, 0)) if d >= 7 else deg_note(d), 4 if last else 2,
                         int((100 if n % 2 else 82) * int(CANON) / 100))
@@ -232,6 +235,13 @@ def song():
             "echo": {"fx": [{"type": "delay", "time": "3/16", "feedback": 0.35, "mix": 1, "tone": 4000, "ping_pong": True}, "hp cutoff=400"]},
         },
         "tracks": [
+            *([{"name": "bell", "patch": {"about": "a small bell for a finished job: modal bell modes, a short bright ring",
+                                          "synth": {"layers": [{"type": "modal", "modes": "bell", "decay": "3s", "damp": 0.05,
+                                                                "bright": {"value": 0.6, "mod": [{"src": "vel", "amount": 0.3}]},
+                                                                "strike": 0.35, "tilt": -1.0, "vary": 0.3}],
+                                                    "amp": {"a": "1ms", "d": "4s", "s": 0, "r": "2s", "curve": 3}},
+                                          "play": {"vel_sens": 0.6}},
+                 "gain": "-18dB", "pan": 0.15, "sends": {"plate": "-8dB"}, "score": T["bell"]}] if BELL else []),
             {"name": "clar", "patch": "clarinet", "gain": "-6dB", "pan": -0.05, "sends": {"plate": "-10dB", "echo": "-16dB"}, "score": T["clar"]},
             *([{"name": "clar2", "patch": "clarinet", "gain": "-9dB", "pan": 0.35, "sends": {"plate": "-12dB"}, "score": T["clar2"]}] if CANON else []),
             {"name": "arp", "patch": "chip-lead", "gain": "-21dB", "pan": 0.25, "sends": {"echo": "-12dB"}, "score": T["arp"]},
