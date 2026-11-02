@@ -36,6 +36,7 @@ AIR = os.environ.get("C8T2_AIR", "")        # air over the sieve: a quiet dusty 
 OWNHATS = os.environ.get("C8T2_OWNHATS", "1")   # the rest of the drum machine our own: the hats on the engine's machine layer (six squares at the 808's metal ratios, band-passed), closed (60 ms) and open (320 ms) on two tracks, instead of machine-kit's
 OWNKICK = os.environ.get("C8T2_OWNKICK", "1")   # and the kick: the machine layer's 909-style kick tuned to G1 (the key's root), instead of machine-kit's
 TOMBACK = os.environ.get("C8T2_TOMBACK", "swap")   # PALETTE ROUND: the backbeat on a drum machine of our own - the engine's `machine` layer (circuit-modelled drum-machine voices, unused on the album) as a tuned electronic tom: G3 on 2, D3 on 4 (the halving's lone 3 on G3), the syndrum backbeat of the old machine records. 'swap' replaces the machine-kit clap (a staple of 9 songs); 'layer' keeps the clap under it
+PREFIGTRACK = os.environ.get("C8T2_PREFIGTRACK", "1")   # the foretold 4-2-1 on its own bell track (bell2, the same bell), listed last: on the bell track its notes shifted the dice of every later bell (the break's loop and C's halts moved by -16..-35 dB residual)
 PREFIG = os.environ.get("C8T2_PREFIG", "80")   # SECTION ROUND, window 3 (1:00-1:30, A bars 16-31; flagged static, little new vs w2): THE TRIVIAL CYCLE, FORETOLD - in A's second half, each time a clarinet path lands on 1 the bell answers once, softly, with 4 2 1 (G6 G5 G4: the loop the break will ring for twenty bars); value = velocity of the first stroke
 HALVING = os.environ.get("C8T2_HALVING", "24,8")   # SECTION ROUND, window 8 (3:30-4:00, C bars 21-37; flagged static, little new vs w7): THE HALVING - for 'start,len' bars of C the drums go half-time (kick on 1 and the and-of-3, the clap on 3 alone), the rule's 'even comes down' in the beat, then double back; hats and bass keep going
 HALVBASS = os.environ.get("C8T2_HALVBASS", "")   # with HALVING: the bass and the sub halve too (the bass on 1 and the and-of-3, held; the sub on 1, held) - the whole floor at half speed, the hats still running
@@ -81,7 +82,7 @@ def barlen(sec):
     """Sixteenths in a bar of this section: the break is in 3/4 under METER."""
     return 12 if METER and sec == "break" else BAR
 SEEDS = {"intro": [6, 6], "A": [7, 12, 3, 7], "B": [9, 18, 11], "C": [27, 31, 27, 41], "outro": [1]}
-TRACKS = ("clar", "clar2", "arp", "bass", "sub", "kick", "shk", "hats", "clap", "pad", "bell", "crash") + (("tom",) if os.environ.get("C8T2_TOMBACK", "swap") else ()) + (("ohat",) if os.environ.get("C8T2_OWNHATS", "1") else ())
+TRACKS = ("clar", "clar2", "arp", "bass", "sub", "kick", "shk", "hats", "clap", "pad", "bell", "crash") + (("tom",) if os.environ.get("C8T2_TOMBACK", "swap") else ()) + (("ohat",) if os.environ.get("C8T2_OWNHATS", "1") else ()) + (("bell2",) if os.environ.get("C8T2_PREFIGTRACK", "1") else ())
 GMAJ = ["G", "A", "B", "C", "D", "E", "F#"]
 CHORDS = [("G", [0, 2, 4]), ("E", [5, 7, 9]), ("C", [3, 5, 7]), ("D", [4, 6, 8])]   # I vi IV V as degrees from G
 PRIMES = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31)
@@ -193,7 +194,7 @@ def build():
                 if PREFIG and BELL and last and n == 1 and sec == "A" and 16 * BAR <= at - a0 < 32 * BAR:
                     pv = int(PREFIG)
                     for j, (nn, ln2) in enumerate((("G6", 4), ("G5", 4), ("G4", 8))):
-                        add("bell", at + 4 + 4 * j, nn, ln2, pv - 6 * j)
+                        add("bell2" if PREFIGTRACK else "bell", at + 4 + 4 * j, nn, ln2, pv - 6 * j)
                 if BELL and last and n == 1 and (sec == "C" or (BELL == "Co" and sec == "outro" and at + 4 >= end - 2 * BAR)):
                     add("bell", at, "G5", 4 * BAR, 76)
                 if CANON and sec in ("B", "C") and at + BAR < end:
@@ -436,6 +437,13 @@ def song():
                      {"plate": f"{SUNGSEND.split(',')[0]}dB", "echo": f"{SUNGSEND.split(',')[1]}dB"} if SUNGSEND else {"plate": "-7dB", "echo": "-13dB"}),
                      [st["C"] + 12 * BAR, st["C"] + 40 * BAR])] if SING else []),
             (waltz if METER else voice)("chirpers8-t2-refrain.json", "refrain", st["break"] + 4 * barlen("break"), "-9dB", [], {"plate": "-8dB", "echo": "-14dB"}),
+            *([{"name": "bell2", "patch": {"about": "a small bell for a finished job: modal bell modes, a short bright ring",
+                                          "synth": {"layers": [{"type": "modal", "modes": "bell", "decay": "3s", "damp": 0.05,
+                                                                "bright": {"value": 0.6, "mod": [{"src": "vel", "amount": 0.3}]},
+                                                                "strike": 0.35, "tilt": -1.0, "vary": 0.3}],
+                                                    "amp": {"a": "1ms", "d": "4s", "s": 0, "r": "2s", "curve": 3}},
+                                          "play": {"vel_sens": 0.6}},
+                 "gain": "-18dB", "pan": 0.15, "sends": {"plate": "-8dB"}, "score": T["bell2"]}] if BELL and PREFIG and PREFIGTRACK else []),   # last, so no other track's dice move
         ],
     }
 
