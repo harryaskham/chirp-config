@@ -95,3 +95,4 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 - **t1 THE TUNE ON VIBES** (v18): the sung tune an octave up on vibes, F#5 E5 D5 B4 . | D5 E5 F#5 A5 F#5 (and a variant ending E5 F#5 A5 B5), in the babble's 4-bar silences through B and C; twice in D with a third below.
 - **t1 THE MACHINE TRIES THE TUNE** (v19): at B bar 24 the babble imitates the vibes hook an octave down (F#4 E4 D4 B3 ...), first with two notes a semitone wrong and dragging, then (HOOK2) with one.
 - **t10 HOCKET** (v25): calls1 bars 8-15, the bell subject passed note by note between the bell (pan -0.25) and a clarinet (track hq, pan +0.45).
+- **t7 GLIMPSES** (v16): e5 bars 10/14/18/22, the electric piano (track glim) lets slip the target's first 2, 3, 4 notes, then its first phrase, exact and quiet, before convergence.

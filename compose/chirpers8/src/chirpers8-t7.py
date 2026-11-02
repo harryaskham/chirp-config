@@ -117,7 +117,7 @@ def build():
                     cand = new
         seq_states.append(list(cand)); losses.append(round(loss(cand), 3))
     # ---- render the parts ----
-    P = {k: [] for k in ('seq', 'keys', 'pad', 'bass', 'kit', 'hum', 'rhum')}
+    P = {k: [] for k in ('seq', 'keys', 'pad', 'bass', 'kit', 'hum', 'rhum', 'glim')}
     rng_t = random.Random(SEED + 99)
     rng_b = random.Random(SEED + 77)
     # (v3) THE POWER LIGHT: the machine is on before the search starts - a warm drone on A (the hum of a box left on)
@@ -235,6 +235,15 @@ def build():
     a0 = (dict((nm_, sum(n_ for nm2, n_ in FORM[:k_])) for k_, (nm_, _) in enumerate(FORM))['e2'] + 8) * 4.0
     for key in ('pad', 'bass', 'kit'):
         P[key] = [e_ for e_ in P[key] if not (a0 - 1e-6 <= e_[0] < a0 + 8.0 - 1e-6)]
+    # (v16) GLIMPSES: in the middle of the last, longest epoch, before the search has found anything, the electric
+    # piano that will play the answer lets slip a few of its notes - the first two, exact and quiet, in their
+    # places in the bar; four bars later the first three; then four; then the first phrase - the answer showing
+    # through the search before the search reaches it
+    g0 = sum(n_ for nm_, n_ in FORM[:[nm_ for nm_, _ in FORM].index('e5')])
+    for k_, (gb, upto) in enumerate(((10, 3), (14, 4), (18, 5), (22, 7))):
+        for q in range(upto):
+            if TARGET[q] is not None:
+                P['glim'].append(((g0 + gb) * 4.0 + q * 0.25, tok(hz(TARGET[q], 0)), 0.5, 62 + 4 * k_))
     # the temperature as a lane (one point a bar)
     Tpts = [[f'{b * 4.0:.1f}b', T[b]] for b in range(nb)]
     tr = lambda name, patch, gain, **kw: dict({'name': name, 'patch': patch, 'gain': gain, 'score': line(P[name], total)}, **kw)
@@ -276,6 +285,8 @@ def build():
              'fx': [{'type': 'pitch', 'semitones': 0, 'formant': {'value': 0, 'mod': [{'src': 'auto.fv', 'amount': 1}]}},
                     {'type': 'radio', 'tune': {'value': 0, 'mod': [{'src': 'auto.dial', 'amount': 1}]}}],
              'auto': {'fv': {'points': fv}, 'dial': {'points': dial}}, 'sends': {'echo': '-12dB', 'hall': '-14dB'}},
+            # (v16) the glimpses: the electric piano's own track, last, so nothing before it moves
+            tr('glim', 'epiano-tine', '-6dB', pan=-0.15, sends={'echo': '-14dB', 'hall': '-12dB'}),
         ]}
     return song, losses, T
 
