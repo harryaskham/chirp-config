@@ -53,6 +53,7 @@ BSPLIT = os.environ.get("C8T5_BSPLIT", "both")   # B in two: the 909's claps ('c
 BSPLITAT = int(os.environ.get("C8T5_BSPLITAT", "12"))   # the bar of B (0-based) where the held-back 909 parts come in
 LIFTSTOP = os.environ.get("C8T5_LIFTSTOP", "1")   # the gear change, announced: the band stops dead for the second half of the bar before the lift (C bar 24) - a clap fill climbing in sixteenths - then lands a whole step up (dropped after generation, so no dice move). Once B was split (v18) this splits C too without crowding the returns
 LIFTHAT = os.environ.get("C8T5_LIFTHAT", "1")   # after the lift the hats open: every off-beat hat an open hat - the agreed band, a step up, brighter on top
+PHASE = os.environ.get("C8T5_PHASE", "66")   # SECTION ROUND (w9, the outro): agreed, and drifting apart again - over the outro's last eight bars, while the handshake returns on the grid, a second handshake (the same carriers, the same radio) runs nine to the bar against its eight, one eighth further ahead each bar: two clocks that had agreed on a speed, slipping as the record slows. Value = 'velocity' or 'velocity,notes-per-bar'
 CARRIERA = os.environ.get("C8T5_CARRIERA", "24,8,78")   # SECTION ROUND, window 3 (1:11-1:47, A bars 20-33; 'little new vs w2'): the handshake breaks in - for 'start,len' bars of A the two carriers call and answer again through the radio (every eighth, the tones alternating, softer than the intro's), a reminder mid-proposal that the line is still being negotiated
 COW = os.environ.get("C8T5_COW", "96")   # SECTION ROUND, window 8 (4:05-4:39, C bars 28-41, after the lift; flagged static, little new vs w7): the agreement gets a cowbell - the engine's drum-machine cowbell (the `machine` layer's two detuned squares through a band-pass) on a syncopated funk figure (1, the a-of-1, the and-of-2, 3, the a-of-3, the and-of-4), only for these fourteen bars; value = peak velocity
 KEYS = os.environ.get("C8T5_KEYS", "-14")   # PALETTE ROUND: the part machine funk lacked - a Wurlitzer (the library's wurli, a reedy barking FM electric piano no song here uses) comps C's chords on its own syncopation (bar 1: 1, the a-of-2, the and-of-3; bar 2: the e-of-1, the and-of-2, the and-of-4), left of the guitar, through the lift; gain in dB
@@ -70,7 +71,7 @@ KEEP3 = os.environ.get("C8T5_KEEP3", "1")   # fewer returns (Harry on t1: 'repea
 HOOKF = [(0, "E4", 3), (3, "G4", 3), (6, "A4", 4), (10, "B4", 6), (16, "D5", 3), (19, "B4", 3), (22, "D5", 4), (26, "E5", 6)]
 CLEN = int(os.environ.get("C8T5_CLEN", "42"))   # C's length: 40 tightens the agreement (the lift at bar 25, the second 'keep it there' at 33)
 FORM = [("intro", 12), ("A", 34), ("B", 26), ("retrain", 12), ("C", CLEN), ("outro", 16)]
-TRACKS = (*(("cow",) if os.environ.get("C8T5_COW", "96") else ()), "carrier", "conga", "gtr", "acid", "sub", "kick", "hats", "clap", "fretless", "horns", "lead") + (("keys",) if os.environ.get("C8T5_KEYS", "-14") else ())
+TRACKS = (*(("cow",) if os.environ.get("C8T5_COW", "96") else ()), "carrier", "conga", "gtr", "acid", "sub", "kick", "hats", "clap", "fretless", "horns", "lead") + (("keys",) if os.environ.get("C8T5_KEYS", "-14") else ()) + (("phase",) if os.environ.get("C8T5_PHASE", "66") else ())
 SWING = {"gtr": {"A": 0.66, "B": 0.62, "retrain": 0.6, "C": 0.58, "outro": 0.58},
          "acid": {"A": 0.50, "B": 0.54, "C": 0.58, "outro": 0.58}}
 # E dorian: E9, A13, Gmaj7, F#m11 (guitar voicings; roots for the acid)
@@ -138,6 +139,10 @@ def build():
                 for q in range(0, 16, 2):
                     if rng.random() < 0.8:
                         add("carrier", at + q, f"{(1650 if (q // 2 + b) % 2 == 0 else 1850) * (1 if sec != 'retrain' else 0.75):.0f}hz", 1, 70)
+            if PHASE and sec == "outro" and b >= 8:
+                pv, pn = (int(x) for x in (PHASE + ",9").split(",")[:2])
+                for i in range(pn):
+                    add("phase", at + i * 16 / pn, f"{1850 if (i + b) % 2 == 0 else 1650}hz", 16 / pn / 2, pv + (4 if i % 2 == 0 else 0))
             if CARRIERA and sec == "A" and int(CARRIERA.split(",")[0]) <= b < sum(int(x) for x in CARRIERA.split(",")[:2]):
                 for q in range(0, 16, 2):
                     add("carrier", at + q, f"{1650 if (q // 2 + b) % 2 == 0 else 1850}hz", 1, (int(CARRIERA.split(",")[2]) if CARRIERA.count(",") > 1 else 58) + (6 if q % 4 == 0 else 0))
@@ -341,6 +346,16 @@ def beats(t16):
 
 
 def song():
+    doc = song0()
+    if PHASE:
+        T = build()
+        spec = next(t for t in doc["tracks"] if t["name"] == "carrier")
+        fx = [dict(f, hiss="-80dB", whistle="-80dB") if isinstance(f, dict) and f.get("type") == "radio" else f for f in spec.get("fx", [])]   # its own radio without a second hiss and whistle, which would run the whole song
+        doc["tracks"].append(dict(spec, name="phase", pan=0.45, fx=fx, score=T["phase"]))
+    return doc
+
+
+def song0():
     T = build()
     st = {sec: sec_start(sec) for sec, _ in FORM}
     BARG = [st["B"] + 12 * BAR, st["retrain"] + 3 * BAR, st["retrain"] + 8 * BAR]
