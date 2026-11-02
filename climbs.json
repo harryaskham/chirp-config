@@ -8252,7 +8252,14 @@
       "best": {
         "score": 98.83,
         "version": "v17",
-        "commit": "see git log songs/chirpers8-t12.yaml"
+        "commit": "see git log songs/chirpers8-t12.yaml",
+        "stale": {
+          "score": 98.83,
+          "since": "2026-11-02T11:10:11Z",
+          "who": "chirper-zero",
+          "rating": 9.5,
+          "version": "v17"
+        }
       },
       "passes": 1,
       "enabled": true,
