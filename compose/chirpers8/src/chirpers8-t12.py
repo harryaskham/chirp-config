@@ -399,6 +399,23 @@ def choir_notes(rows):
     return out
 
 
+# v25 (ROUND TYPE: whole; Harry 'do more each round'): BOTH ENDS OF THE ARC. (1) THE MACHINE WAKES: the closer ends
+# with a tape power-down into standby (v14); now it opens with the mirror - the master is held stopped for a breath
+# and released into a 6-beat SPIN-UP, so the seed's first note rises from standstill to speed and pitch: the song is
+# bracketed by waking and sleeping, the title's two halves. (2) THE VOICE DOUBLED: at the second sung statement
+# (168, with the choir) the singer gets ARTIFICIAL DOUBLE-TRACKING - a second copy 0.03 beats late, 7 cents sharp,
+# panned opposite: the studio machine's trick for making one voice two. (3) event_stable on from here.
+WAKE_UP = "2b"
+ADT = (0.07, 0.03)
+
+
+def adt_notes():
+    out = []
+    for n in sung_notes()[len(SING):]:
+        out.append(dict(n, at=round(n["at"] + ADT[1], 4)))
+    return out
+
+
 def sung_notes():
     """v5: in the coda the voice that SPOKE in the prune now SINGS, twice (the second softer): written as note numbers
     so the song's 31-EDO tuning snaps the voice onto the same lattice as everything else."""
@@ -690,7 +707,9 @@ def main():
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=1.0s mix=1 predelay=10ms", "hp cutoff=250"]},
                   "hall": {"fx": ["reverb kind=hall decay=3.2s mix=1 predelay=30ms", "hp cutoff=250"]}},
-        "master": {"fx": [{"type": "tapestop", "time": "4b", "curve": 1.6, "mix": 1,          # v14: power down
+        "master": {"fx": [{"type": "tapestop", "time": "0.01b", "curve": 1.6, "mix": 1, "up": WAKE_UP,   # v25: power up
+                           "stop": {"value": 0, "mod": [{"src": "auto.tu", "amount": 1}]}},
+                          {"type": "tapestop", "time": "4b", "curve": 1.6, "mix": 1,          # v14: power down
                            "stop": {"value": 0, "mod": [{"src": "auto.ts", "amount": 1}]}},
                           {"type": "eq", "bands": ["highpass cutoff=28", "peak cutoff=300 q=0.8 gain=-5dB",
                                                     "highshelf cutoff=6000 gain=5dB"]},     # v2: the album's envelope
@@ -700,10 +719,15 @@ def main():
                    "auto": {"dyn": {"points": lanes()},
                             # v14: POWER DOWN TO STANDBY - through the coda's last bar the whole band winds down like a
                             # motor losing power (tapestop, curve 1.6), then the light section starts on the live signal
+                            "tu": {"points": [["0b", 1.0], ["0.01b", 1.0], ["0.02b", 0.0]]},   # v25: wake
                             "ts": {"points": [["0b", 0.0], [f"{rb(178) - 0.01:g}b", 0.0], [f"{rb(178):g}b", 1.0],
                                               [f"{rb(179) - 0.01:g}b", 1.0], [f"{rb(179):g}b", 0.0]]}}},
     }
     clear_lanes(song)                             # v23: the clearing's gain lanes on the melodic layers
+    song["event_stable"] = True                   # v25: each note's draws from its track, beat and pitch (wM f5283535)
+    song["tracks"].append({"name": "singer2", "patch": SING_PATCH, "gain": "-14dB", "pan": 0.3, "transpose": ADT[0],
+                           "sends": {"hall": "-5dB"}, "fx": [{"type": "filter", "kind": "hp", "cutoff": 160}],
+                           "notes": adt_notes()})                               # v25: the voice doubled
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print("wrote", OUT, "bars", BARS, "gens", {g: len(lsys(g)) for g in range(7)})
