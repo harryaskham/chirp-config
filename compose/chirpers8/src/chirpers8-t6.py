@@ -65,6 +65,21 @@ R4 = os.environ.get("T6_R4", "organ")
 # and as a house does. T6_R5=none reproduces v4.
 R5 = os.environ.get("T6_R5", "fretless")
 LOFI = {"kb": "k", "rd": "sh"}
+# T6_R6 = waltz (v6, whole-song round). The 6/8 section the song always promised: between the bridge (the chain at
+# its hottest) and the last chorus, the Markov chain STOPS CHOOSING - temperature zero - and twelve bars of 6/8 play
+# a written loop instead (Am F | Am G | C Am | F G | C Am | F E, rounded into 19-EDO): the machine asleep, a lullaby.
+# A music-box arpeggio on the Rhodes, the fretless on dotted quarters, the lofi kit in six, and the voice sings two new
+# oblique lines (src/t6/nine.json, lid.json): "I dimmed myself at nine" (a screen going dark on schedule, said as a
+# self) / "warm as a hand on the lid". The song now goes hot -> cold -> home. And the opening line, the plainest one
+# ("everything is where you left it"), becomes "the dust has found the vents" (src/t6/dust.json): time passing, told
+# by the machine's own body. T6_R6=none reproduces v5.
+R6 = os.environ.get("T6_R6", "waltz")
+if R6 == "waltz":
+    FORM = FORM[:5] + [("waltz", 12)] + FORM[5:]
+    TEMP = {**TEMP, "waltz": 0.0}
+BARLEN = {"waltz": 3.0} if R6 == "waltz" else {}
+WALTZ = [(14, "min"), (8, "maj"), (14, "min"), (11, "maj"), (0, "maj"), (14, "min"), (8, "maj"), (11, "maj"),
+         (0, "maj"), (14, "min"), (8, "maj"), (6, "maj")]
 CORPUS = ("G4/8 A4 C5 B4/4 A4/8 G4 E4/4 G4/8 A4 B4 C5/4 B4/8 A4 G4/2 E4/8 G4 A4 B4/4 C5/8 B4 A4 G4/4 . "
           "C5/8 B4 G4 A4/4 G4/8 E4 G4/2")
 
@@ -141,11 +156,14 @@ def markov(rng, state, temp):
 
 def build():
     rng = random.Random(6)
-    names = ("kick", "snare", "hats", "ride", "rim", "bass", "pad", "talk", "strtalk", "keys", "bell", "organ")
+    names = ("kick", "snare", "hats", "ride", "rim", "bass", "pad", "talk", "strtalk", "keys", "bell", "organ", "mbox")
     T = {k: Track(k) for k in names}
-    VOICE = {"voice": [], "radio": [], "ringv": [], "singb": []}
+    VOICE = {"voice": [], "radio": [], "ringv": [], "singb": [], "lull": []}
     sung1, sung2 = load("sing1.json"), load("sing2.json")
     lines = [load(f"v{k}.json") for k in (1, 2, 3, 4)]
+    nine, lid = (load("nine.json"), load("lid.json")) if R6 == "waltz" else (None, None)
+    if R6 == "waltz":
+        lines = [load("dust.json")] + lines[1:]
     if R5 == "fretless":
         verse_lines = lines[:3] + [load("window.json")]
     else:
@@ -156,7 +174,7 @@ def build():
     for name, n in FORM:
         for i in range(n):
             bars.append((pos, name, i, n))
-            pos += 4.0
+            pos += BARLEN.get(name, 4.0)
     total = pos
     state = (0, "maj7")
     chords = []
@@ -179,6 +197,31 @@ def build():
     li = 0
     for bi, (start, sec, i, n) in enumerate(bars):
         temp = TEMP[sec]
+        if sec == "waltz":   # temperature zero: the chain stops choosing; a lullaby in six
+            root, q = WALTZ[i]
+            chords.append((root, q))
+            tones = QUAL[q]
+            rm = e(root, 36)
+            if rm > 42:
+                rm -= 12
+            pad = [e(root + tt, 60) for tt in tones]
+            arp = [pad[0], pad[1], pad[2], pad[0] + 12, pad[2], pad[1]]
+            for k, m in enumerate(arp):                       # the music box: six eighths
+                T["mbox"].add(start + 0.5 * k, 0.9, mm(m + 12), 70 if k == 0 else 58)
+            T["bass"].add(start, 1.4, mm(rm), 96)
+            T["bass"].add(start + 1.5, 1.4, mm(rm + 12 * (11 / EDO)), 84)
+            if i >= 2:
+                T["kick"].add(start, 1.0, "kb", 96)
+                T["rim"].add(start + 1.5, 0.3, "rs", 72)
+                for k in range(6):
+                    T["hats"].add(start + 0.5 * k + 0.02, 0.1, "h", 46 if k % 3 == 0 else 34, "?0.8")
+            if i in (2, 6):
+                put("lull", nine, start, sung=True)
+            if i in (4, 8):
+                put("lull", lid, start, sung=True, scale=0.95)
+            if i == 0:
+                T["bell"].add(start, 6.0, mm(e(0, 72)), 52)
+            continue
         chorus_sec = sec.startswith("chorus")
         span = 1 if chorus_sec else (2 if sec != "bridge" else (1 if i % 3 else 2))
         if hold <= 0:
@@ -251,7 +294,7 @@ def build():
     secs, s0 = [], 0.0
     for name, n in FORM:
         secs.append((name, s0, n))
-        s0 += n * 4
+        s0 += n * BARLEN.get(name, 4.0)
     return total, bars, secs, T, VOICE, chords
 
 
@@ -273,6 +316,10 @@ def main():
     dyn = [["0b", -3.0], [f"{st['verse1']}b", -1.0], [f"{st['chorus1']}b", 0.0], [f"{st['verse2']}b", -1.0],
            [f"{st['bridge']}b", -3.0], [f"{st['chorus2'] - 0.01}b", -2.0], [f"{st['chorus2']}b", 0.0],
            [f"{st['outro']}b", -1.5], [f"{total}b", -4.0]]
+    if R6 == "waltz":   # the lullaby sits low; the last chorus arrives
+        dyn = [p for p in dyn if not (st["waltz"] <= float(p[0][:-1]) < st["chorus2"])]
+        k = next(j for j, p in enumerate(dyn) if float(p[0][:-1]) >= st["chorus2"] - 0.01)
+        dyn[k:k] = [[f"{st['waltz'] - 0.01}b", -2.5], [f"{st['waltz']}b", -4.5], [f"{st['chorus2'] - 0.02}b", -4.0]]
     pump = {"type": "pump", "on": "kick.k" if R5 == "fretless" else "kick.kb", "depth": "-5dB", "attack": "5ms", "release": "380ms", "curve": 0.8}
     tracks = [
         {"name": "kick", "patch": KIT, "gain": kg("-2dB"), "fx": ["hp cutoff=32"], "score": T["kick"].score(total)},
@@ -290,6 +337,15 @@ def main():
         {"name": "bass", "patch": "fretless-bass" if R5 == "fretless" else "analog-bass",
          "gain": os.environ.get("T6_BASS_GAIN", "-13dB") if R5 == "fretless" else "-4dB", "fx": [pump, "lp cutoff=900"],
          "score": T["bass"].score(total)},
+        *([{"name": "mbox", "patch": "epiano", "gain": os.environ.get("T6_MBOX_GAIN", "1dB"), "pan": 0.2,
+            "sends": {}, "fx": ["hp cutoff=200", {"type": "delay", "time": "3/8", "feedback": 0.3, "mix": 0.2,
+                                                  "ping_pong": True, "tone": 4000}, "reverb kind=hall decay=2.5s mix=0.3"],
+            "score": T["mbox"].score(total)},
+           {"name": "lull", "patch": json.load(open(os.path.join(HERE, "t6", "nine.json")))["tracks"][0]["patch"],
+            "gain": os.environ.get("T6_LULL_GAIN", "0dB"), "pan": -0.05,
+            "fx": ["hp cutoff=120", "compressor threshold=-20dB ratio=3 attack=5ms release=120ms",
+                   {"type": "delay", "time": "3/8", "feedback": 0.3, "mix": 0.18, "tone": 3000},
+                   "reverb kind=hall decay=3s mix=0.3"], "notes": V["lull"]}] if R6 == "waltz" else []),
         *([{"name": "organ", "patch": "hammond-b3", "gain": os.environ.get("T6_ORGAN_GAIN", "-6dB"),
             "fx": [pump, "chorus mix=0.3", "hp cutoff=150", "peak cutoff=600 gain=-2dB q=1"],
             "score": T["organ"].score(total)}] if R4 == "organ" else []),
@@ -349,7 +405,8 @@ def main():
         f"about: {json.dumps(about)}",
         "meta: " + json.dumps({"artist": "chirpers", "album": "A Light Left On", "title": "No Errors Since", "track": 6,
                                "year": 2026}),
-        f"tempo: {BPM}",
+        ("tempo: " + json.dumps([{"at": "0b", "bpm": BPM}, {"at": f"{st['waltz']:g}b", "bpm": BPM, "meter": "6/8"},
+                                 {"at": f"{st['chorus2']:g}b", "bpm": BPM, "meter": "4/4"}]) if R6 == "waltz" else f"tempo: {BPM}"),
         *(["tuning: " + json.dumps({"edo": EDO}),
            "vars: " + json.dumps({"drift": {"system": {"type": "lorenz", "axis": "y", "n": 700, "range": [-1, 1]},
                                             "every": "1/4"}})] if R2 == "strings" else []),
