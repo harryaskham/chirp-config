@@ -151,7 +151,10 @@ def build():
     # the temperature - the first reading half lost in static and whistle, the next nearer, the third almost tuned - and
     # from the fourth epoch, cool enough, the voice is in the room, clear (the reheat throws it back onto the radio)
     rnotes, dial = [], []
-    for sec, v in sorted(VOICE.items(), key=lambda kv: kv[1]['bar']):
+    # (v14) FEWER READINGS (Harry on t1: it repeats a lot): the voice reads the error at the first, third and fifth
+    # epochs only, then 'zero' at convergence and the reheat's jump - five readings, not eight; the coda is left to the
+    # instruments
+    for sec, v in sorted(((k_, v_) for k_, v_ in VOICE.items() if k_ not in ('e2', 'e4', 'coda')), key=lambda kv: kv[1]['bar']):
         off = v['bar'] * 4.0
         hot = T[min(v['bar'], len(T) - 1)] > 0.2
         if hot:
