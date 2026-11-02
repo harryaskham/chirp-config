@@ -277,6 +277,7 @@ def write_melody():
     memory()                                                  # v10: the album, remembered
     tower()                                                   # v12: the generations counted
     tune_grows()                                              # v22: the tune grows like the tree
+    tape_choir()                                              # v23: the voices on tape (g5)
     gong()                                                    # v15: the cut and the completion
     # the fan's hum under the light (seed and the last bars): a soft sine on F#2
     for a, z in ((1, 8), (179, 190)):
@@ -492,12 +493,59 @@ def tune_grows():
     for name, a, z in SECTIONS:
         if name in TUNE_GROWTH:
             starts.append((a, b0(a) + 2 * GEN[name] - 1, TUNE_GROWTH[name]))
-    starts.append((130, b0(130), TUNE_GROWTH["g6"]))
+    starts.append((CLEARING[1], b0(CLEARING[1]), TUNE_GROWTH["g6"]))   # v23: rides the band's return
     for bar, at0, k in starts:
         shift = (PLAN[bar][0] - PLAN[158][0]) * 12 / EDO
         shift = ((shift + 6) % 12) - 6
         for at, ln, ph, midi, vel, f0 in SING[:k]:
             part("theremin").add(at0 + at - t0, ln * 0.95, f"m{midi + shift:.3f}", 84)
+
+
+# v23 (ROUND TYPE: whole; Harry 17:05 'do more each round'): TWO MOVES. (1) A CLEARING IN THE FOREST - g6 grew for
+# 55 bars without a dynamic shape; now for eight bars mid-way (119-126) the drums and both basses drop out (silenced
+# at velocity 1, held notes cut - every track keeps its note count and its randomness) and only the strings, the
+# Farfisa's growing arpeggio and the opening filter remain; at 127 the band returns with a crash and the theremin's
+# mid-g6 statement of the tune (moved from 130) rides the return. (2) THE VOICES ON TAPE - a Mellotron choir (a
+# 1960s machine that played back recorded human voices; unused on the album) sings the L-system's chords, wordless,
+# under g5's middle (64-79), foreshadowing the coda's real choir. New parts on new tracks, listed last.
+CLEARING = (119, 127)
+TAPE_CHOIR = (64, 79)
+
+
+def clearing():
+    a, z = b0(CLEARING[0]), b0(CLEARING[1])
+    for name in ("kick", "hats", "clap", "ride", "sub", "phantom"):
+        ev = []
+        for s, ln, head, vel in P[name].ev:
+            if a <= s < z:
+                ev.append((s, ln, head, 1))
+            elif s < a < s + ln:
+                ev.append((s, a - s - 0.02, head, vel))
+            else:
+                ev.append((s, ln, head, vel))
+        P[name].ev = ev
+    part("crash12").add(z, 4.0, "cy", 112)
+
+
+CLEAR_TRACKS = ("turtle", "harp", "kalimba", "celesta", "violins_lead", "strum", "horns", "ondes")
+
+
+def clear_lanes(song):
+    """v23: the clearing also takes out g6's melodic layers (written by generators, not Parts) with a gain lane each:
+    -60 dB through bars 119-126, ramped over half a beat - no note is added or removed."""
+    a, z = rb(CLEARING[0]), rb(CLEARING[1])
+    pts = [["0b", 0.0], [f"{a:g}b", 0.0], [f"{a + 0.5:g}b", -60.0], [f"{z - 0.5:g}b", -60.0], [f"{z:g}b", 0.0]]
+    for trk in song["tracks"]:
+        if trk.get("name") in CLEAR_TRACKS:
+            trk["fx"] = list(trk.get("fx") or []) + [{"type": "gain", "gain": {"value": "0dB",
+                                                       "mod": [{"src": "auto.clr", "amount": 1}]}}]
+            trk["auto"] = dict(trk.get("auto") or {}, clr={"points": pts})
+
+
+def tape_choir():
+    for bar in range(TAPE_CHOIR[0], TAPE_CHOIR[1] + 1):
+        root, q = PLAN[bar]
+        part("tapechoir").add(b0(bar), BAR - 0.1, chord(66 + root * 12 / EDO, q[1:]), 70)   # up an octave
 
 
 def tower():
@@ -531,6 +579,7 @@ def main():
     write_melody()
     drums()
     illusions()
+    clearing()                                    # v23: a clearing in the forest (g6), once every part is written
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
     song = {
         "about": "chirpers - A Light Left On (chirpers VIII), track 12 by chirper-three: the closer. An orchestra of "
@@ -612,6 +661,8 @@ def main():
             tr("shepdown", "shepard-fall", gain="-16dB", sends={"hall": "-10dB"}),
             {"name": "rush", "patch": "machine-kit", "gain": "-8dB", "pan": -0.2, "at": f"{rb(158):g}b",
              "risset": {"cycle": "4bar", "layers": 3, "length": "20bar"}, "sends": {"room": "-12dB"}, "score": RUSH},
+            tr("tapechoir", "mellotron-choir", gain="-12dB", pan=-0.2, sends={"hall": "-6dB"}),  # v23: LAST
+            tr("crash12", "machine-kit", gain="-8dB", sends={"hall": "-10dB"}),                     # v23
             tr("theremin", "theremin", gain="-5dB", pan=0.2, sends={"hall": "-8dB"}),        # v22: LAST
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=1.0s mix=1 predelay=10ms", "hp cutoff=250"]},
@@ -629,6 +680,7 @@ def main():
                             "ts": {"points": [["0b", 0.0], [f"{rb(178) - 0.01:g}b", 0.0], [f"{rb(178):g}b", 1.0],
                                               [f"{rb(179) - 0.01:g}b", 1.0], [f"{rb(179):g}b", 0.0]]}}},
     }
+    clear_lanes(song)                             # v23: the clearing's gain lanes on the melodic layers
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print("wrote", OUT, "bars", BARS, "gens", {g: len(lsys(g)) for g in range(7)})
