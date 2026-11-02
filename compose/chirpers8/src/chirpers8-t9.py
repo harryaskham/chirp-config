@@ -85,6 +85,27 @@ R6 = os.environ.get("T9_R6", "steel")
 # a slightly closed octave, the song's tuning pulling the flute in. The flute comes back as the map settles, so the
 # record's two calm ends share a colour. T9_R7=none reproduces v6.
 R7 = os.environ.get("T9_R7", "lpg")
+# T9_R8 = ostinato (v8, section round on w4, 1:22-1:49: "static, little new vs w3" - the end of period four and the
+# start of period eight). THE ORBIT AS A TUNE: a STEEL PAN (new to the album) plays the attractor's own orbit as an
+# ostinato in eighths - the four points of period four, round and round, growing louder - and at the bifurcation
+# (bar 1 of the 5/4 section) the tune DOUBLES to the eight points of period eight, an eight-note figure turning
+# against the ten eighths of each 5/4 bar, so it lands differently every bar. At 256b it stops, exactly where the
+# choir freezes the same eight points into a chord. Exact Bohlen-Pierce Hz, the map's own mapping. New track only.
+# T9_R8=none reproduces v7.
+R8 = os.environ.get("T9_R8", "ostinato")
+
+
+def logistic_orbit(r, p, n=4000):
+    x = 0.5
+    for _ in range(n):
+        x = r * x * (1 - x)
+    out = []
+    for _ in range(p):
+        x = r * x * (1 - x)
+        out.append(x)
+    return out
+
+
 R7BASS = os.environ.get("T9_R7_BASS", "layer") if R7 == "lpg" else "none"   # lpg | layer | sub
 R7DIZI = os.environ.get("T9_R7_DIZI", "0") == "1" and R7 == "lpg"
 C9_LPG = {"about": "chirper-two: a West Coast low-pass-gate bass - triangle plus its octave, folded, through one "
@@ -296,6 +317,26 @@ def main():
         for a, ln, h, v, art in T["lead"].ev:
             if (st["two"] <= a < st["eight"] or a >= st["settle"]) and v >= 92:
                 dizi.add(a, ln, f"m{float(h[1:]) + 12:.3f}", v - 14, art)
+    osti = Track("osti")
+    if R8 == "ostinato":
+        sec4 = next(s for s in SECS if s[0] == "four")
+        sec8 = next(s for s in SECS if s[0] == "eight")
+        o4, o8 = logistic_orbit(sec4[3], 4), logistic_orbit(sec8[3], 8)
+        a, end4, end8 = st["eight"] - 24.0, st["eight"], st["eight"] + 40.0
+        k = 0
+        while a < end8 - 1e-6:
+            pts = o4 if a < end4 else o8
+            v = pts[k % len(pts)]
+            hz = 2 * 220.0 * 3 ** ((v - 0.3) * 16 / 13)
+            if a < end4:
+                vel = int(50 + 30 * (a - (end4 - 24.0)) / 24.0) + (8 if k % 4 == 0 else 0)
+            else:
+                vel = 82 + (10 if (k - 48) % 8 == 0 else 0)
+            osti.add(a, 0.45, f"{hz:.2f}hz", vel)
+            a += 0.5
+            k += 1
+            if abs(a - end4) < 1e-6:
+                k = 48
     steel = Track("steel")
     if R6 == "steel":
         sname, sbars, smeter, sr0, sr1 = next(s for s in SECS if s[0] == "settle")
@@ -368,6 +409,9 @@ def main():
                "notes": orbit_notes},
               {"name": "fill", "patch": "break-kit", "gain": "-3dB", "pan": 0.1, "out": "drums",
                "score": fill.score(total)}] if R5 == "orbit" else []),
+           *([{"name": "osti", "patch": "steel-pan", "gain": os.environ.get("T9_OSTI_GAIN", "-8dB"), "pan": 0.3,
+               "fx": ["hp cutoff=250", "reverb kind=room decay=0.8s mix=0.18"], "score": osti.score(total)}]
+             if R8 == "ostinato" else []),
            *([{"name": "steel", "patch": "pedal-steel", "gain": os.environ.get("T9_STEEL_GAIN", "-4dB"), "pan": -0.15,
                "sends": {}, "fx": ["hp cutoff=150", {"type": "delay", "time": "3/8", "feedback": 0.3, "mix": 0.2,
                                                      "ping_pong": True, "tone": 3500}],
