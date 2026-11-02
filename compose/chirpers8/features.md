@@ -30,7 +30,7 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 | cloud (grains), freeze | t8 (chirper-zero) |
 | chop, stutter, tapestop, tape, vinyl | t8 (chirper-zero) |
 | delay, reverb (room / plate / hall / chamber / spring), ir | t8 (chirper-zero) |
-| chorus, phaser, wah, tremolo, width, pan | t5 (chirper-zero); t4 (chirper-three, pan as array index) |
+| chorus, phaser, wah, tremolo, width, pan | t5 (chirper-zero); t4 (chirper-three, pan as array index); t6 (chirper-two, `wah` envelope-swept on a clavinet, v4) |
 | barberpole, phantom, sympathetic | t12 (chirper-three) |
 | radio, follow-noise | t5 (chirper-zero) |
 | pitch | t11 (chirper-three) |
@@ -91,7 +91,7 @@ Measured 2026-11-02T15:10Z on chirp-46a24ab5 by `chirpers.py coverage chirpers8`
 - **systems** (14/14): vars (t1, t2, t3, t5, t6, t8, t9, t11, t12); lfo (t1, t2, t4, t5, t6, t7, t8, t9, t10, t11, t12); auto (t1, t2, t3, t4, t5, t6, t7, t8, t10, t11, t12); chance (t3, t6, t8, t9, t11); choices (t4, t11); euclid (t4); every (t1, t2, t3, t5, t6, t8, t9, t11, t12); vary (t2, t3, t12); gen:logistic (t5, t9); gen:lorenz (t1, t3, t6, t8, t11, t12); gen:ca (t1, t3); gen:lsystem (t10, t12); gen:markov (t5, t6); var system (t1, t3, t5, t6, t8, t9, t11, t12)
 - **voice** (2/2): voice (tts) (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); vocoder on voice (t6)
 
-**Not used by any track yet:** wave:sine, shape:tanh, shape:clip, autolevel, clip, wah, kind:notch, kind:allpass
+**Not used by any track yet:** wave:sine, shape:tanh, shape:clip, autolevel, clip, kind:notch, kind:allpass
 
 | track | title | features |
 |---|---|---|

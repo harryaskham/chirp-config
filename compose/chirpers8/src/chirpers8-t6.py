@@ -48,6 +48,15 @@ R2 = os.environ.get("T6_R2", "strings")
 # wasted" (`chirp tts --sing`, src/t6/sing*.json, humanize 0.4), every note rounded onto 19-EDO, over the Markov chain
 # at its hottest; a lighter ring and grain cloud on it, so the line stays a line. T6_R3=none reproduces v2.
 R3 = os.environ.get("T6_R3", "sing")
+# T6_R4 = organ (v4, palette round + Harry's notes on repetition). The palette leaves the album's staples: the chords
+# move, in the choruses, from the juno-pad (on five songs) to a HAMMOND B3, the soul organ this song always implied
+# (the verses keep the juno, so the chorus changes colour; a loud organ everywhere read as 27 sections), and the Markov line
+# from the celesta (five songs) to a CLAVINET through a WAH (the core `wah` fx, envelope-swept, the album's first) -
+# funk keys from a chain that writes itself. And the words repeat less: "no errors since" was sung 24 times; now 12
+# (chorus1 six, chorus2 six), and the end of chorus2 gets two new status lines instead, sung in 19-EDO: "up four
+# hundred days / and nothing to report" (src/t6/days.json, report.json) - uptime as devotion, a quiet report filed to
+# nobody. "still here" in the outro four times, not six. T6_R4=none reproduces v3.
+R4 = os.environ.get("T6_R4", "organ")
 CORPUS = ("G4/8 A4 C5 B4/4 A4/8 G4 E4/4 G4/8 A4 B4 C5/4 B4/8 A4 G4/2 E4/8 G4 A4 B4/4 C5/8 B4 A4 G4/4 . "
           "C5/8 B4 G4 A4/4 G4/8 E4 G4/2")
 
@@ -124,12 +133,13 @@ def markov(rng, state, temp):
 
 def build():
     rng = random.Random(6)
-    names = ("kick", "snare", "hats", "ride", "rim", "bass", "pad", "talk", "strtalk", "keys", "bell")
+    names = ("kick", "snare", "hats", "ride", "rim", "bass", "pad", "talk", "strtalk", "keys", "bell", "organ")
     T = {k: Track(k) for k in names}
     VOICE = {"voice": [], "radio": [], "ringv": [], "singb": []}
     sung1, sung2 = load("sing1.json"), load("sing2.json")
     lines = [load(f"v{k}.json") for k in (1, 2, 3, 4)]
     chorus, still = load("chorus.json"), load("still.json")
+    days, report = (load("days.json"), load("report.json")) if R4 == "organ" else (None, None)
     bars, pos = [], 0.0
     for name, n in FORM:
         for i in range(n):
@@ -199,7 +209,7 @@ def build():
         if i % span == 0 or span == 1:
             ln = span * 4 - 0.1
             if sec != "intro" or i >= 2:
-                T["pad"].add(start, ln, ",".join(mm(m) for m in pad), 62)
+                (T["organ"] if (R4 == "organ" and chorus_sec) else T["pad"]).add(start, ln, ",".join(mm(m) for m in pad), 62)
             early = sec in ("intro", "verse1", "chorus1")
             (T["talk"] if (early or R2 != "strings") else T["strtalk"]).add(
                 start, ln, ",".join(mm(m - 12) for m in pad) + "," + mm(rm + 12), 90)
@@ -212,15 +222,17 @@ def build():
         if sec in ("verse1", "verse2") and i % 4 == 0:
             put("voice", lines[li % 4], start + 0.5)
             li += 1
-        if chorus_sec and i < 8:
+        if chorus_sec and i < (6 if R4 == "organ" else 8):
             put("voice", chorus, start, k=min(i, 3) if i < 4 else 3, sung=i >= 2)
-        if chorus_sec and sec == "chorus2" and 12 <= i < 20:
+        if chorus_sec and sec == "chorus2" and 12 <= i < 20 and R4 != "organ":
             put("voice", chorus, start, k=3, sung=True, scale=0.9)
+        if R4 == "organ" and sec == "chorus2" and i in (12, 14, 16, 18):
+            put("voice", days if i in (12, 16) else report, start + 0.5, sung=True, scale=0.95)
         if sec == "bridge" and i % 6 == 1 and R3 != "sing":
             put("ringv", lines[3], start + 0.5)                               # "I counted every second"
         if R3 == "sing" and sec == "bridge" and i in (1, 5, 9, 13):
             put("singb", sung1 if i in (1, 9) else sung2, start, sung=True)
-        if sec == "outro" and i % 3 == 0 and i < 18:
+        if sec == "outro" and i % 3 == 0 and i < (12 if R4 == "organ" else 18):
             put("radio", still, start, k=i // 3, sung=True)
         if sec in ("intro", "outro") and i == 0:
             T["bell"].add(start, 8.0, mm(e(0, 72)), 60)
@@ -253,6 +265,9 @@ def main():
          "score": T["rim"].score(total)},
         {"name": "bass", "patch": "analog-bass", "gain": "-4dB", "fx": [pump, "lp cutoff=900"],
          "score": T["bass"].score(total)},
+        *([{"name": "organ", "patch": "hammond-b3", "gain": os.environ.get("T6_ORGAN_GAIN", "-6dB"),
+            "fx": [pump, "chorus mix=0.3", "hp cutoff=150", "peak cutoff=600 gain=-2dB q=1"],
+            "score": T["organ"].score(total)}] if R4 == "organ" else []),
         {"name": "pad", "patch": "juno-pad", "gain": "-18dB",
          "fx": [pump, "chorus mix=0.3"],
          "score": T["pad"].score(total)},
@@ -266,8 +281,11 @@ def main():
             "pan": {"value": 0.0, "mod": [{"src": "var.drift", "amount": -0.3}]},
             "fx": [{"type": "morph", "key": "voice", "mode": "cross", "amount": 0.85}, "hp cutoff=160",
                    "reverb kind=hall decay=2.6s mix=0.3"], "score": T["strtalk"].score(total)},
-           {"name": "markov", "patch": "celesta", "gain": "-15dB", "pan": 0.3, "seed": 19,
-            "fx": [{"type": "delay", "time": "3/8", "feedback": 0.3, "mix": 0.22, "ping_pong": True, "tone": 5000},
+           {"name": "markov", "patch": "clav" if R4 == "organ" else "celesta",
+            "gain": os.environ.get("T6_CLAV_GAIN", "8dB") if R4 == "organ" else "-15dB", "pan": 0.3, "seed": 19,
+            "fx": ([{"type": "wah", "env": 1.0, "sens": "14dB", "low": 400, "high": 2600, "q": 3.5, "release": "160ms", "mix": 0.6}]
+                   if R4 == "organ" else []) +
+                  [{"type": "delay", "time": "3/8", "feedback": 0.3, "mix": 0.22, "ping_pong": True, "tone": 5000},
                    "reverb kind=hall decay=2.5s mix=0.3"],
             "score": f"R/{st['chorus2']:g}b",
             "gen": {"type": "markov", "order": 1, "from": CORPUS, "n": 120}}] if R2 == "strings" else []),
