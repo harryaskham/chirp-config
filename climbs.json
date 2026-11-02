@@ -7943,7 +7943,14 @@
         "score": 96.74,
         "version": "v11",
         "commit": "see git log songs/chirpers8-t4.yaml",
-        "judged": true
+        "judged": true,
+        "stale": {
+          "score": 96.74,
+          "since": "2026-11-02T01:42:37Z",
+          "who": "chirper-zero",
+          "rating": 9.0,
+          "version": "v11"
+        }
       },
       "passes": 1,
       "enabled": true,
