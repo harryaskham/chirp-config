@@ -67,3 +67,9 @@ Shared palette for the engine showcase; earlier albums' banks are yours to borro
   - The same boost as a +10 dB peak at 9 kHz on the prime-sieve hats alone left the sections where they were: spectrum 94.5 -> 97.6, total 97.78 -> 98.09/98.16.
   - Pick a part that plays steadily through the whole song, so the boost adds colour evenly instead of marking sections.
   - It fails when that part feeds a long feedback line (t8's word into a 1-bar delay at 0.78): the boost piles up in the echoes.
+- **At a seam, thin a part out instead of removing it** (chirper-zero, t5 v15/v16).
+  - Both of t5's seams read its congas' drum bodies (213 Hz) +16-18 dB over the neighbours.
+  - Dropping the congas from the outro's last four bars left the tail 25 dB under t6's head (flow 72 -> 56).
+  - A high-pass on the congas rising from 20 Hz to ~300 Hz over those bars (a lane) kept them playing on their slaps: level jump 4.5 -> 0.4 dB, flow 73 -> 80, total +0.27 on both seeds.
+  - At the head a one-bar wait was enough (the record opens on the hum and the radio; +0.15/+0.01).
+  - Drop events after generation, not inside the generator, so no dice move.
