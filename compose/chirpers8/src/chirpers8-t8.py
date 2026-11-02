@@ -39,7 +39,7 @@ HUMA = os.environ.get("C8T8_HUMA", "4")   # the hum starts on A1 (t7's drone, th
 SHAKE = os.environ.get("C8T8_SHAKE", "40")  # the line's own clock: a dusty shaker on every sixteenth through the grooves (A, C, E), accents on the off-sixteenths - the high, fine grain of the floor; value = velocity
 DARKPOS = os.environ.get("C8T8_DARKPOS", "end")  # 'end': the tape-running-out low-pass goes LAST on the master (it sat first, so the master tape's hiss was added after it and the tail stayed bright: +36 dB at 10-15 kHz over t9's head)
 LZ = os.environ.get("C8T8_LZ", "1.5")   # the line's wear wanders: a Lorenz attractor (a var, stepped every beat) drives the line tape's `warp` (its wow and flutter depth), 0 up to LZ - the memory degrades unevenly, never the same way twice
-VOX = os.environ.get("C8T8_VOX", "-18")   # a spoken word into the store: a humanized voice says 'say it back to me' (intro bar 9, the refresh's second bar, the outro's first) and is sent hard into the line, so the words go round and wear away with the tune; value = dry gain dB
+VOX = os.environ.get("C8T8_VOX", "-18")   # a spoken word into the store: a humanized voice speaks into the store - v22: 'nothing is kept.' / 'nothing is kept. it only goes around.' / 'it only goes around.' (WORDS; was 'say it back to me') - (intro bar 9, the refresh's second bar, the outro's first) and is sent hard into the line, so the words go round and wear away with the tune; value = dry gain dB
 OUTPAD = os.environ.get("C8T8_OUTPAD", "88")   # the pads stay up through the outro's last eight bars (velocity OUTPAD, low voicing kept), so the dark tail still holds 300-470 Hz for t9's glass pads to land on
 CHOP = os.environ.get("C8T8_CHOP", "1")   # recall, corrupted: through D the word's previous bar comes back CHOPPED (8 slices, '0 r1 2 2 . r5 6 _': repeats, reversals, a hole, a glimpse of the live bar) - memory read back wrong
 VINYL = os.environ.get("C8T8_VINYL", "") # the medium wears: vinyl on the line - crackle 0.05 rising to 0.35 into D, 0.15 for the repair, 0.5 in the outro where the line is alone; dust 0.3, wear 0.3
@@ -49,7 +49,7 @@ OUTUP = os.environ.get("C8T8_OUTUP", "1")   # the memory floats up as it fades: 
 HUMOCT = os.environ.get("C8T8_HUMOCT", "55")   # the A hum doubled an octave up (A2, ~110 Hz: where t7's drone is strongest) for its four bars - velocity
 EQ3 = os.environ.get("C8T8_EQ3", "1")   # the last narrow holes against the album envelope: +5 dB at 1.03 and 3.08 kHz (q 3), +3 dB around 100 Hz, -2.5 dB at 1.65 kHz
 WORDEND = os.environ.get("C8T8_WORDEND", "64")   # one last read: the word itself returns, faint, in the outro's last four bars (the line had been alone) - its 300-900 Hz chime meeting t9's head; value = velocity
-SUNG = os.environ.get("C8T8_SUNG", "-16")   # the words become a song: 'say it back to me' SUNG once (tts --sing, A4 F4 D4 E4 D4 on the stretched octave) at the outro's ninth bar, into the line - the memory's last voice is a tune; value = dry gain dB
+SUNG = os.environ.get("C8T8_SUNG", "-16")   # the words become a song: 'it only travels' (v22, WORDS; was 'say it back to me') SUNG once (tts --sing, A4 F4 D4 E4 D4 on the stretched octave) at the outro's ninth bar, into the line - the memory's last voice is a tune; value = dry gain dB
 HEADDARK = os.environ.get("C8T8_HEADDARK", "8")   # the mercury warms up: the master low-pass (the tape-running-out one) also starts closed (~5 kHz) and opens over the first HEADDARK bars - a delay line had to reach its working temperature before it held a word; t7 v7's tail reads my 12-15 kHz air +14-17 dB over it
 HEADDARKV = float(os.environ.get("C8T8_HEADDARKV", "0.6"))   # how closed it starts (0.6 ~ 5 kHz, 0.8 ~ 3.3 kHz)
 HUMV = int(os.environ.get("C8T8_HUMV", "85"))   # the A hum's 808 velocity: t7 v7's tail sits 5.5 dB under my head
@@ -61,6 +61,7 @@ WTABLE = os.environ.get("C8T8_WTABLE", "-26")   # the word as a waveform: a wave
 WT = {"notes": [], "frames": []}
 PLATEHIT = os.environ.get("C8T8_PLATEHIT", "rE")   # the write, struck: when the refresh rewrites the word, a metal plate is struck once (the modal layer's plate modes, a stretched D) and the strike goes into the line, so the write itself goes round the memory; 'r' at the refresh, 'rE' also as the repaired E begins
 FILL = os.environ.get("C8T8_FILL", "0.7")   # the memory's continuity illusion: while the refresh rewrites the word (its first 4 bars, the word unread) a follow-noise on the word keeps sounding in the word's own colours (held 8 s from its last notes), so the line seems to run on through the gap - the Huggins/Zwicker fill the engine's follow-noise was made for; value = tone (0 smooth .. 1 pitched, ringing on the word's notes)
+WORDS = os.environ.get("C8T8_WORDS", "new")   # 'new': the voices stop asking 'say it back to me' four times (plain, and read 'say listed') and tell what a delay line is, sideways, a different line each time - 'nothing is kept.' (the word written), 'nothing is kept. it only goes around.' (the refresh), 'it only goes around.' (the outro); the sung line becomes 'it only travels' (same tune). voice-spoken, chosen by whisper (the spoken lines read back word-perfect dry)
 DARK = os.environ.get("C8T8_DARK", "8")  # the tape running out: a master low-pass closing over the outro's last bars (the hiss and the line's top go first); value = bars
 FORM = [("intro", 16), ("A", 36), ("refresh", 8), ("C", 32), ("D", 16), ("E", 28), ("outro", 16)]
 TRACKS = ("word", "pad0", "pad1", "pad2", "pad3", "org0", "org1", "hum", "hum2", "bass", "kick", "shk", "hats", "clap", "rim")
@@ -197,7 +198,7 @@ def lane(points):
 
 def sung_track(gain):
     """The sung line (tts --sing --print writes m-notes), its pitches moved onto the stretched octave in Hz."""
-    src = json.load(open(os.path.join(HERE, "chirpers8-t8-sung.json")))["tracks"][0]
+    src = json.load(open(os.path.join(HERE, "chirpers8-t8-sung-travels.json" if WORDS else "chirpers8-t8-sung.json")))["tracks"][0]
     off = (sec_start("outro") + 8 * BAR) / 4
     notes = [dict(n, at=round(n["at"] + off, 4), pitch=hz(float(n["pitch"][1:]))) for n in src["notes"]]
     return {"name": "sungv", "patch": src.get("patch", "voice-speech"), "gain": gain, "pan": -0.1,
@@ -313,9 +314,12 @@ def song():
             *([{"name": "shk", "patch": "dusty-kit", "gain": "-12dB", "pan": 0.3, "fx": [{"type": "filter", "kind": "hp", "cutoff": 3500, "q": 0.7}], "score": T["shk"]}] if SHAKE else []),
             {"name": "hats", "patch": "909", "gain": "-9dB", "pan": 0.15, "score": "swing16=0.56 " + T["hats"]},
             {"name": "clap", "patch": "909", "gain": "-9dB", "sends": {"room": "-8dB"}, "score": T["clap"]},
-            *([reversed_back(sung_track(f"{SUNG}dB"), [sec_start("outro") + 8 * BAR], 1.758, 2.253)] if SUNG else []),
+            *([(sung_track(f"{SUNG}dB") if WORDS else reversed_back(sung_track(f"{SUNG}dB"), [sec_start("outro") + 8 * BAR], 1.758, 2.253))] if SUNG else []),
             *([reversed_back(voice("chirpers8-t8-say.json", "say", SAYOFFS, f"{VOX}dB",
-                     ["hp cutoff=180"], {"line": "-2dB", "room": "-12dB"}), SAYOFFS, 1.421, 2.188)] if VOX else []),
+                     ["hp cutoff=180"], {"line": "-2dB", "room": "-12dB"}), SAYOFFS, 1.421, 2.188)] if VOX and not WORDS else []),
+            *([voice(f, nm, [o], f"{VOX}dB", ["hp cutoff=180"], {"line": "-2dB", "room": "-12dB"})
+               for f, nm, o in zip(("chirpers8-t8-say-kept.json", "chirpers8-t8-say-both.json", "chirpers8-t8-say-around.json"), ("say", "say2", "say3"), SAYOFFS[-3:])]
+              if VOX and WORDS else []),
             {"name": "rim", "patch": "909", "gain": "-12dB", "pan": -0.3, "sends": {"line": "-14dB"}, "score": T["rim"]},
         ],
     }
