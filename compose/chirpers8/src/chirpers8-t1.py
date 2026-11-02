@@ -211,6 +211,19 @@ def build():
                 hook((secs[sec_] + ph_ + 2) * 4.0, HOOK2, vel=70)
     for ph_ in (2, 10):
         hook((secs['D'] + ph_) * 4.0, HOOK, harm=True, vel=72)
+    # (v19) THE MACHINE TRIES THE TUNE: in the middle of the second groove, the babble's phrase after the vibraphone's
+    # stops being Markov chatter - the machine imitates the tune it has just heard, in its own FM voice an octave down:
+    # the first try with two notes a semitone wrong and dragging, the second with one, still a little late (echolalia
+    # proper: the words come back before the sense does)
+    i0 = (secs['B'] + 24) * 4.0
+    P['babble'] = [e_ for e_ in P['babble'] if not (i0 - 1e-6 <= e_[0] < i0 + 16.0 - 1e-6)]
+    for try_, (t_, wrong, drag) in enumerate(((i0, {3: -1, 7: +1}, 0.06), (i0 + 8.0, {8: +1}, 0.03))):
+        at_ = t_
+        for k_, (m_, d_) in enumerate(HOOK2 if try_ else HOOK):
+            if m_ is not None:
+                P['babble'].append((at_ + drag * k_, f"m{m_ + wrong.get(k_, 0)}", d_ * 0.85, 82))
+            at_ += d_
+    P['babble'].sort()
     # D: the machine says it back - the exact contour of each take, two octaves up, with the voice
     for v in VOICE:
         if secs['D'] < v['bar'] <= secs['D'] + 16:
