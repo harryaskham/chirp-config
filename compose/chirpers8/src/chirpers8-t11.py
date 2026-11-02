@@ -135,11 +135,11 @@ SHEET = {"synth": {"layers": [{"type": "modal", "modes": "plate", "decay": "4s",
 SHEET_ROLL = (0.0, 0.11, 0.24, 0.4, 0.6, 0.86, 1.2)
 
 
-def sheet_roll(bar, vel):
+def sheet_roll(bar, vel, name="sheet"):
     rng = random.Random(1000 + bar)
     nt = f"m{rng.choice((37, 38, 39, 40))}"
     for k, at in enumerate(SHEET_ROLL):
-        part("sheet").add(b0(bar) + at + rng.uniform(-0.02, 0.02), 1.5, nt, max(30, int(vel * (1 - 0.11 * k)) + rng.randint(-5, 5)))
+        part(name).add(b0(bar) + at + rng.uniform(-0.02, 0.02), 1.5, nt, max(30, int(vel * (1 - 0.11 * k)) + rng.randint(-5, 5)))
 
 
 def write_thunder():
@@ -457,6 +457,31 @@ def backwall():
     return toms, push
 
 
+# v24 (ROUND TYPE: section, w9 4:16-4:48 - flagged 'little new vs w8' - its second half, bars 137-144, the storm
+# passing into the outro): (1) DRIPS FROM THE GUTTERS - single high partials of the harmonic series on a MUSIC BOX,
+# timed by the attractor itself (a sixteenth drips when |13.7y + 3.1z| mod 1 falls under a density that thins across
+# the eight bars), irregular and deterministic; the closer's first sound is a music-box note. (2) THE LAST THUNDER,
+# FAR OFF - one thunder-sheet roll at 140, soft, low-passed and drowned in hall: the storm a long way away.
+DRIPS = (137, 144)
+FAR_THUNDER = 140
+
+
+def drips():
+    out = []
+    a, z = DRIPS
+    for bar in range(a, z + 1):
+        lb = lobe_at(bar)
+        dens = 0.3 * (1 - 0.6 * (bar - a) / (z - a))
+        for s in range(16):
+            x, y, zz = state(bar, s)
+            h = abs(13.7 * y + 3.1 * zz) % 1
+            if h < dens:
+                n = (8, 9, 10, 12, 14, 16)[int(abs(zz)) % 6]
+                out.append({"at": round(b0(bar) + s / 4, 4), "len": 1.5, "pitch": mm(partial(n, lb, 1)),
+                            "vel": round(0.45 + 0.25 * (h / max(dens, 1e-9)), 3)})
+    return out
+
+
 def rain_marimba():
     out = []
     for bar in range(RAINMAR[0], RAINMAR[1] + 1):
@@ -604,6 +629,7 @@ def main():
     write_music()
     write_rain()
     write_thunder()
+    sheet_roll(FAR_THUNDER, 70, "farsheet")              # v24: the last thunder, far off
     write_wind()
     eye_clear()
     breath()                                                     # v21: the drums breathe in before the break
@@ -677,6 +703,10 @@ def main():
             {"name": "backwall", "patch": "modal-tom", "gain": "-12dB", "pan": -0.1,
              "sends": {"room": "-10dB"}, "notes": backwall()[0]},                   # v23: the back wall
             {"name": "kickpush", "patch": "machine-kit", "gain": "-13dB", "notes": backwall()[1]},   # v23
+            {"name": "drips", "patch": "music-box", "gain": "-11dB", "pan": 0.45,
+             "sends": {"room": "-8dB", "hall": "-12dB"}, "notes": drips()},          # v24: after the storm
+            tr("farsheet", SHEET, gain="-10dB", pan=-0.4, sends={"hall": "-2dB"},
+               fx=[{"type": "filter", "kind": "lp", "cutoff": 900}]),               # v24: the last thunder, far off
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=1.0s mix=1 predelay=10ms", "hp cutoff=250"]},
                   "hall": {"fx": ["reverb kind=hall decay=2.8s mix=1 predelay=25ms", "hp cutoff=250", WIDTH_FX],
