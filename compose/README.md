@@ -75,7 +75,10 @@ owners who rotate their own songs. Name the type in your round note. Without
   the change leaks into later windows (-6 to -9 dB residual there). Put the window's new material on its own new
   track, listed last (tracks seed by name, so other tracks are untouched). When a generator skips parts in some
   bars, write them as usual and filter the events out afterwards, so its own random sequence does not shift.
-  `--against` shows any leak.
+  `--against` shows any leak. Since engine f5283535 (2 Nov, wM, bd-89f091) a song can say `event_stable: true` at
+  its top level instead: every note's humanize and DSP draws then come from its track, beat and pitch, so an edit to
+  one window leaves the rest as it was, on any track. Switching it on re-rolls the humanized notes once, so do it in a
+  round that changes the music anyway, and measure after it.
 - **palette**: `chirpers.py palette ALBUM-tN` lists the song's instruments (track, patch, what it is made of), the
   album's staples (library patches three or more songs share), the library patches no song on the album uses, the
   song's own patches (library candidates), and the engine features the album has not used. Change one or two
