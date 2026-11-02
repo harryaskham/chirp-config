@@ -117,7 +117,7 @@ def build():
                     cand = new
         seq_states.append(list(cand)); losses.append(round(loss(cand), 3))
     # ---- render the parts ----
-    P = {k: [] for k in ('seq', 'pad', 'bass', 'kit', 'hum', 'rhum')}
+    P = {k: [] for k in ('seq', 'keys', 'pad', 'bass', 'kit', 'hum', 'rhum')}
     # (v3) THE POWER LIGHT: the machine is on before the search starts - a warm drone on A (the hum of a box left on)
     # from the very first beat, swelling through power-on and sinking under the first epoch; it returns under the
     # coda and holds to the last beat, so the track meets its neighbours without a hole
@@ -180,6 +180,12 @@ def build():
                 # notes land dead on
                 sl = max(-700, min(700, rng.gauss(0, 380 * temp)))
                 art = f"^sl={sl:.0f}>0" if abs(sl) >= 8 else ""
+                # (v9) THE ANSWER ON AN INSTRUMENT: once the search has converged, the riff it found is no longer a
+                # sequencer blip - it is played on an electric piano (the engine's tine model), warm and exact, under the
+                # voice singing it; the reheat hands it back to the machine
+                if s == 'converged' or (s == 'coda' and i >= 8):
+                    P['keys'].append((t0 + q * 0.25, tok(hz(d, cents)), 0.24, acc - 6))
+                    continue
                 P['seq'].append((t0 + q * 0.25, tok(hz(d, cents)) + art, 0.22, acc))
         # chords: spans cycle; the pad's voices re-detune at each span by the temperature
         if span_left == 0:
@@ -221,6 +227,7 @@ def build():
                fx=[{'type': 'filter', 'kind': 'lp', 'q': 0.75, 'cutoff': {'value': 3200, 'mod': [{'src': 'auto.T', 'amount': 1.8}]}},
                    {'type': 'crush', 'bits': 8, 'rate': {'value': 11000}, 'mix': {'value': 0, 'mod': [{'src': 'auto.T', 'amount': 0.45}]}}],
                auto={'T': {'points': Tpts}}),
+            tr('keys', 'epiano-tine', '-6dB', pan=-0.15, sends={'echo': '-14dB', 'hall': '-12dB'}),
             tr('pad', 'partial', '-12dB', sends={'hall': '-8dB'}),
             tr('bass', 'moog-seq', '-8dB', fx=['lp cutoff=900']),
             tr('kit', 'electro-kit', '-5dB', sends={'hall': '-20dB'}),
