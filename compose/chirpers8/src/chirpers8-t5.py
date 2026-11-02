@@ -18,6 +18,7 @@ Generated; edit and re-run:  python3 compose/chirpers8/src/chirpers8-t5.py
 """
 
 import json
+import math
 import os
 import random
 
@@ -46,6 +47,7 @@ AGREE = os.environ.get("C8T5_AGREE", "-8")   # the negotiation as a system: a LO
 AGREEHI = float(os.environ.get("C8T5_AGREEHI", "0"))
 CONGAIN = os.environ.get("C8T5_CONGAIN", "1")    # the congas wait CONGAIN bars at the head (the E2 hum and the radio first): both seams read my 213 Hz (the congas' drums) +16-18 dB over the neighbours. Events dropped after generation, so no dice move
 CONGAOUT = os.environ.get("C8T5_CONGAOUT", "")  # the congas leave for the outro's last CONGAOUT bars (the radio and its carriers alone hand over to t6)
+CONGATHIN = os.environ.get("C8T5_CONGATHIN", "300")   # the drums go thin with the radio: over the outro's last four bars a high-pass on the congas rises to ~CONGATHIN Hz, so their bodies (213 Hz, +16 dB over t6's head) leave and the slaps stay
 HOOKF = [(0, "E4", 3), (3, "G4", 3), (6, "A4", 4), (10, "B4", 6), (16, "D5", 3), (19, "B4", 3), (22, "D5", 4), (26, "E5", 6)]
 CLEN = int(os.environ.get("C8T5_CLEN", "42"))   # C's length: 40 tightens the agreement (the lift at bar 25, the second 'keep it there' at 33)
 FORM = [("intro", 12), ("A", 34), ("B", 26), ("retrain", 12), ("C", CLEN), ("outro", 16)]
@@ -322,7 +324,9 @@ def song():
             {"name": "carrier", "patch": "carrier", "gain": "-22dB",
              "fx": [{"type": "radio", "tune": {"value": 0, "mod": [{"src": "auto.dial", "amount": 1}]}, "hiss": "-36dB", "whistle": "-28dB",
                      "fade": 0.3, "drift": 0.05, "mix": 1}], "auto": {"dial": dial}, "score": T["carrier"]},
-            {"name": "conga", "patch": "congas", "gain": "-8dB", "pan": -0.25, "sends": {"room": "-12dB"}, "score": T["conga"]},
+            {"name": "conga", "patch": "congas", "gain": "-8dB", "pan": -0.25, "sends": {"room": "-12dB"}, "score": T["conga"],
+             **({"fx": [{"type": "filter", "kind": "hp", "q": 0.7, "cutoff": {"value": 20, "mod": [{"src": "auto.cth", "amount": math.log2(float(CONGATHIN) / 20)}]}}],
+                 "auto": {"cth": lane([(0, 0), (end - 4 * BAR, 0), (end - BAR, 1), (end, 1)])}} if CONGATHIN else {})},
             {"name": "gtr", "patch": "cutting-guitar", "gain": "-9dB", "pan": 0.3, **({"auto": {"mg": merge_lane}} if MERGE else {}),
              "fx": [*([{"type": "morph", "key": "acid", "mode": "morph", "amount": {"value": 0, "mod": [{"src": "auto.mg", "amount": float(MERGE)}]}}] if MERGE else []),
                     {"type": "phaser", "rate": 0.4, "depth": 0.6, "feedback": 0.4, "stages": 6, "mix": 0.35},
