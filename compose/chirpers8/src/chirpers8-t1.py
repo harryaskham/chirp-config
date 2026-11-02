@@ -102,8 +102,17 @@ def build():
             P['sub'].append((t0, nm(31), 3.8, 80))           # G1 under the handshake
         if s in ('B', 'C', 'D'):
             P['sub'].append((t0, nm(root), 1.8, 92)); P['sub'].append((t0 + 2.5, nm(root), 1.2, 84))
-            for q, o in ((1.5, 12), (3.0, 7), (3.75, 12)):
-                P['bass'].append((t0 + q, nm(root + 12 + o - 12), 0.35, 80))
+            # (v21) THE SEQUENCER BASS: three blips a bar became a sixteenth-note sequence that leans across the beat -
+            # root, octave and fifth with the chord's third let in - so the grooves move under the tune; the third groove,
+            # the climax, gets a busier, climbing pattern, and the said-back groove returns to the first
+            third = next(((c_ - root) % 12 for c_ in ch if (c_ - root) % 12 in (3, 4)), 5)   # (sus: the fourth)
+            pat = {0: (0, 100, .45), 3: (12, 74, .2), 6: (0, 86, .2), 8: (7, 82, .3), 10: (12, 76, .2), 11: (0, 68, .2),
+                   14: (third + 12, 74, .2)}
+            if s == 'C':
+                pat = {0: (0, 104, .45), 2: (12, 72, .2), 3: (0, 80, .2), 6: (7, 86, .2), 7: (12, 70, .2), 8: (0, 96, .3),
+                       10: (third, 78, .2), 11: (7, 74, .2), 12: (12, 84, .2), 14: (third + 12, 78, .2), 15: (12 + 7, 70, .2)}
+            for st_, (o, v_, d_) in sorted(pat.items()):
+                P['bass'].append((t0 + st_ * 0.25, nm(root + 12 + o), d_, v_))
         if s == 'C':
             # (v8) THE DRUMS LEARN THE LINE: through the third groove the four-on-the-floor stops and the kick plays the
             # line's own rhythm instead - one kick on every stressed syllable of the first take, quantized to sixteenths,
@@ -268,6 +277,8 @@ def build():
         'tracks': [
             # (v14) the pad stepped back out of the voice's band (its chords sit exactly where speech lives, 290-550 Hz):
             # quieter and scooped there, so the words come forward; the sub a little fuller; more air on top
+            # (v21: a wordless choir-classic pad was tried in juno-pad's place - its formants crowded 300 Hz and 1 kHz, and
+            # even tamed it broke the hand-over into t2: flow 96.7 -> 61)
             tr('pad', 'juno-pad', '-16dB', fx=['hp cutoff=200', {'type': 'eq', 'bands': ['peak cutoff=450 q=0.9 gain=-4dB', 'highshelf cutoff=5000 gain=3dB']}], sends={'hall': '-9dB'}),
             # (v7) AND THEN IT IS SUNG: the human has said the line twenty times and the machine has learnt to say it back;
             # in the outro, over the last B minor, the human SINGS it at last - twice, low and plain (chirp tts --sing,
