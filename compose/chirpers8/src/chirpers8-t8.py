@@ -70,6 +70,7 @@ KITOWN = os.environ.get("C8T8_KITOWN", "F1")   # PALETTE: the kick leaves the 90
 LATER = os.environ.get("C8T8_LATER", "-8")   # WHOLE ROUND: a second sung line, in E - 'it comes later on' (tts --sing "A4/8 G4/8 F4/4 E4/8 D4/2", seed 7; whisper reads it exactly on seeds 3, 5 and 7), sung once at E bar 12 a semitone up with E: what a delay line does, said plainly and sideways - the answer the outro's 'it only travels' completes. Own track, listed last; nearly dry (line -16, room -14). Value = dry gain dB
 LATERDROP = os.environ.get("C8T8_LATERDROP", "1")   # with LATER: the word steps aside for the voice - for E bars 12-13 the word, its marimba, the zeros, the hats and the clap are kept at velocity 1 (no dice move), so 'it comes later on' is heard over pads, bass and kick (in the full mix whisper heard nothing; soloed it reads exactly)
 HANDS = os.environ.get("C8T8_HANDS", "clap")   # PALETTE: the clap and the rim leave the 909 kit for the machine layer's own synthesised clap and rim ('clap', 'rim', or 'both'): with v36's kick, the kit is the song's own
+COUNTER = os.environ.get("C8T8_COUNTER", "78")   # SECTION ROUND (w5, C bars 4-19, static): the program counter - a marimba (its own track ctr, listed last) counts 1..16 in binary, one number a bar: bit k set strikes beat k, on D G C F (fourths, k = 0..3), so each bar's rhythm is the next address and the line runs through all sixteen patterns while the word is refreshed. Value = velocity
 OWNHATS = os.environ.get("C8T8_OWNHATS", "300")   # PALETTE: the hats leave the 909 kit for the machine layer's synthesised hat - closed (60 ms) on hats and hats2, the open ones (OWNHATS ms) on their own track ohat, listed last (the open hits stay on hats/hats2 at velocity 1, so no dice move): with v36's kick and v37's clap, the whole groove is the song's own
 HPATCH = {"about": "the machine layer's closed hat", "synth": {"layers": [{"type": "machine", "machine": {"part": "hat", "decay": "60ms"}}]}}
 CPATCH = {"about": "the machine layer's clap", "synth": {"layers": [{"type": "machine", "machine": {"part": "clap", "decay": "200ms"}}]}}
@@ -88,7 +89,7 @@ ZEROS = os.environ.get("C8T8_ZEROS", "-18")   # SECTION ROUND, window 8 (E bars 
 ARC = os.environ.get("C8T8_ARC", "4")   # an energy arc: A to E sat at one level for four minutes (-10.0..-10.4 dB a section). A gain lane last on the master (after the compressor) holds A ARC dB down as the groove enters, eases up through C and D and is open from E - the repaired word the loudest place in the record
 DARK = os.environ.get("C8T8_DARK", "8")  # the tape running out: a master low-pass closing over the outro's last bars (the hiss and the line's top go first); value = bars
 FORM = [("intro", 16), ("A", 36), ("refresh", 8), ("C", 32), ("D", 16), ("E", 28), ("outro", 16)]
-TRACKS = ("word", *(("zeros",) if ZEROS else ()), "pad0", "pad1", "pad2", "pad3", "org0", "org1", "hum", "hum2", "bass", "kick", "shk", "hats", "clap", "rim") + (("hats2",) if os.environ.get("C8T8_SKEW", "local") == "local" else ()) + (("kick2",) if os.environ.get("C8T8_CKICK", "lock") else ()) + (("ohat",) if os.environ.get("C8T8_OWNHATS", "300") else ()) + (("mar",) if os.environ.get("C8T8_MARE", "-8") else ())
+TRACKS = ("word", *(("zeros",) if ZEROS else ()), "pad0", "pad1", "pad2", "pad3", "org0", "org1", "hum", "hum2", "bass", "kick", "shk", "hats", "clap", "rim") + (("hats2",) if os.environ.get("C8T8_SKEW", "local") == "local" else ()) + (("kick2",) if os.environ.get("C8T8_CKICK", "lock") else ()) + (("ohat",) if os.environ.get("C8T8_OWNHATS", "300") else ()) + (("ctr",) if os.environ.get("C8T8_COUNTER", "78") else ()) + (("mar",) if os.environ.get("C8T8_MARE", "-8") else ())
 
 # the word's 16 bits -> pitches (D minor, spread so neighbours leap): D4 F4 G4 A4 C5 D5 F5 A5
 SC = [62, 65, 67, 69, 72, 74, 77, 81]
@@ -219,6 +220,16 @@ def build():
         for k in ("word", "mar", "zeros", "hats", "clap"):
             if k in ev:
                 ev[k] = [(a, h, l, 1 if u <= a < w else v) for (a, h, l, v) in ev[k]]
+    if COUNTER:
+        c0 = sec_start("C")
+        ev["ctr"] = []
+        for i in range(16):
+            n = i + 1
+            for k in range(4):
+                if n >> k & 1:
+                    ev["ctr"].append((c0 + (4 + i) * BAR + 4 * k, hz((62, 67, 72, 77)[k]), 3, int(COUNTER) + (8 if k == 0 else 0)))
+            if n == 16:
+                ev["ctr"].append((c0 + (4 + i) * BAR, hz(50), 8, int(COUNTER) + 10))   # 16 = 10000: the carry, out of four bits - a low D
     if OWNHATS:
         ev["ohat"] = sorted((a, "A4", 4, v) for k in ("hats", "hats2") if k in ev for (a, h, l, v) in ev[k] if h == "oh")
         for k in ("hats", "hats2"):
@@ -328,10 +339,13 @@ def song():
         trs.append(b)   # 'travels' listed last
     if LATER:
         doc["tracks"].append(later_track(LATER))
+    if OWNHATS or COUNTER:
+        T = build()   # one build for the song-level tracks (each build adds to the wavetable's frames)
     if OWNHATS:
-        T = build()
         doc["tracks"].append({"name": "ohat", "patch": {"about": "the machine layer's open hat", "synth": {"layers": [{"type": "machine", "machine": {"part": "hat", "decay": f"{OWNHATS}ms"}}]}},
                               "gain": "-11dB", "pan": 0.15, "score": "swing16=0.56 " + T["ohat"]})
+    if COUNTER:
+        doc["tracks"].append({"name": "ctr", "patch": "modal-marimba", "gain": "-10dB", "pan": -0.3, "sends": {"room": "-12dB"}, "score": T["ctr"]})
     return doc
 
 
