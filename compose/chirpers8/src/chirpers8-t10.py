@@ -317,19 +317,20 @@ def build():
                           {'type': 'compressor', 'threshold': '-18dB', 'ratio': 2.5, 'attack': '10ms', 'release': '120ms', 'makeup': '2dB'},
                           'limiter ceiling=-1dB'], 'auto': {'dyn': {'points': dyn}}},
         'tracks': [
-            tr('bell', BELL, '-8dB', pan=-0.15, sends={'echo': '-12dB', 'hall': '-14dB'}),
+            # (v21) the canon's voices given room: wider apart in the stereo field, and each in its own band
+            tr('bell', BELL, '-8dB', pan=-0.25, sends={'echo': '-12dB', 'hall': '-14dB'}),
             tr('bell0', {'synth': dict(BELL['synth'], layers=[BELL['synth']['layers'][0], {'wave': 'sine', 'pm': [{'from': 'm', 'depth': {'value': 0.12, 'mod': [{'src': 'env.bright', 'amount': 0.9}]}}]}])},
                '-7dB', pan=-0.15, sends={'echo': '-12dB', 'hall': '-11dB'}),
-            tr('sync', SYNC, '-12dB', pan=0.2, fx=['lp cutoff=4500'], sends={'hall': '-16dB'}),
-            tr('pwm', PWM, '-15dB', pan=0.05, auto={'pw': {'points': pw}}, sends={'hall': '-10dB'}),
+            tr('sync', SYNC, '-12dB', pan=0.4, fx=['hp cutoff=220', 'lp cutoff=3600'], sends={'hall': '-16dB'}),
+            tr('pwm', PWM, '-15dB', pan=0.1, fx=['hp cutoff=380'], auto={'pw': {'points': pw}}, sends={'hall': '-10dB'}),
             tr('bass', FMBASS, '-7dB', fx=['lp cutoff=1600']),
-            tr('d1', BELL, '-13dB', pan=0.35, sends={'echo': '-14dB'}),
+            tr('d1', BELL, '-13dB', pan=0.6, sends={'echo': '-14dB'}),
             # (v12) the deepest copies thinner (chirper-three: the densest stack may crowd the subject)
-            tr('d2', BELL, '-19dB', pan=-0.4, sends={'echo': '-16dB'}),
+            tr('d2', BELL, '-19dB', pan=-0.6, sends={'echo': '-16dB'}),
             tr('d3', 'glass', '-26dB', pan=0.5, fx=['hp cutoff=800'], sends={'hall': '-12dB'}),
             tr('kit', 'machine-kit', '-2dB', sends={'hall': '-20dB'}),
             tr('glass', 'glass', '-15dB', pan=0.1, sends={'hall': '-8dB'}),
-            tr('cs', 'clarinet', '-9dB', pan=-0.3, sends={'hall': '-10dB', 'echo': '-18dB'}),
+            tr('cs', 'clarinet', '-9dB', pan=-0.45, sends={'hall': '-10dB', 'echo': '-18dB'}),
             tr('organ', 'organ-pipe', '-13dB', pan=0.0),
             tr('pulse', 'clarinet', '-10dB', pan=-0.15, sends={'hall': '-14dB', 'echo': '-16dB'}),
             # (v8) THE MACHINE'S OWN PATTERNS: a percussion line written in the engine's Euclidean and chance tokens, a
