@@ -64,6 +64,7 @@ PLATEHIT = os.environ.get("C8T8_PLATEHIT", "rE")   # the write, struck: when the
 FILL = os.environ.get("C8T8_FILL", "0.7")   # the memory's continuity illusion: while the refresh rewrites the word (its first 4 bars, the word unread) a follow-noise on the word keeps sounding in the word's own colours (held 8 s from its last notes), so the line seems to run on through the gap - the Huggins/Zwicker fill the engine's follow-noise was made for; value = tone (0 smooth .. 1 pitched, ringing on the word's notes)
 WORDS = os.environ.get("C8T8_WORDS", "new")   # 'new': the voices stop asking 'say it back to me' four times (plain, and read 'say listed') and tell what a delay line is, sideways, a different line each time - 'nothing is kept.' (the word written), 'nothing is kept. it only goes around.' (the refresh), 'it only goes around.' (the outro); the sung line becomes 'it only travels' (same tune). voice-spoken, chosen by whisper (the spoken lines read back word-perfect dry)
 STRIDE = os.environ.get("C8T8_STRIDE", "C5D7")   # the same bits, read through another address map: the word's bit i sounds scale slot (i x stride) mod 8 - stride 3 everywhere before (D A F | F C A | G D: interlocking leaps); 'C5' reads the refreshed word in C with stride 5 (D D G A C F F A: a new tune from the same data), 'D7' the corrupted D with stride 7 (a leap, then falling down the scale); E is read the old way again (the tune comes home); e.g. 'C5D7'
+ARC = os.environ.get("C8T8_ARC", "4")   # an energy arc: A to E sat at one level for four minutes (-10.0..-10.4 dB a section). A gain lane last on the master (after the compressor) holds A ARC dB down as the groove enters, eases up through C and D and is open from E - the repaired word the loudest place in the record
 DARK = os.environ.get("C8T8_DARK", "8")  # the tape running out: a master low-pass closing over the outro's last bars (the hiss and the line's top go first); value = bars
 FORM = [("intro", 16), ("A", 36), ("refresh", 8), ("C", 32), ("D", 16), ("E", 28), ("outro", 16)]
 TRACKS = ("word", "pad0", "pad1", "pad2", "pad3", "org0", "org1", "hum", "hum2", "bass", "kick", "shk", "hats", "clap", "rim")
@@ -265,8 +266,10 @@ def song():
                                 f"peak cutoff=4929 q=4 gain={1.5 * float(EQ4):g}dB"] if EQ4 else [])])},
                           {"type": "tape", "drive": 0.1, "mix": 0.5, "wow": 5, "flutter": 1.5, "drift": 1, "hiss": "-62dB", "seed": 8},
                           {"type": "compressor", "threshold": "-18dB", "ratio": 2.5, "attack": "15ms", "release": "150ms", "makeup": "0dB"},
-                          *([darkf] if DARK and DARKPOS == "end" else [])],
-                   "auto": {"ts": ts, **({"lp": lane([*([(0, HEADDARKV), (int(HEADDARK) * BAR, 0)] if HEADDARK else [(0, 0)]), (end - int(DARK) * BAR, 0), (end - 2 * BAR, 0.86), (end, 1)])} if DARK else {})}},
+                          *([darkf] if DARK and DARKPOS == "end" else []),
+                          *([{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.arc", "amount": float(ARC)}]}}] if ARC else [])],
+                   "auto": {"ts": ts, **({"arc": lane([(0, 0), (sec_start("A") - 1, 0), (sec_start("A"), -1), (sec_start("refresh"), -0.7), (sec_start("C"), -0.6),
+                                                        (sec_start("D"), -0.35), (sec_start("E") - 1, -0.35), (sec_start("E"), 0), (end, 0)])} if ARC else {}), **({"lp": lane([*([(0, HEADDARKV), (int(HEADDARK) * BAR, 0)] if HEADDARK else [(0, 0)]), (end - int(DARK) * BAR, 0), (end - 2 * BAR, 0.86), (end, 1)])} if DARK else {})}},
         "buses": {
             "line": {"fx": [{"type": "delay", "time": "1bar", "feedback": 0.78, "mix": 1, "tone": 3200, "ping_pong": True},
                             {"type": "tape", "drive": 0.15, "mix": 0.7, "wow": 9, "flutter": 2.5, "drift": 1.5, "hiss": "-58dB", "seed": 3,
