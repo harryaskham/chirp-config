@@ -795,7 +795,8 @@ def song_features(canon, raw):
     if {"pluck", "amp", "cab"} <= got:
         got.add("guitar")               # the guitar patches are a pluck through an amp and a cab
     for name, pat in (("chance", r"[A-Za-z0-9#.\])]/?\d*\?(0?\.\d+|1)"), ("choices", r"\([^()\n|]+\|[^()\n]+\)"),
-                      ("euclid", r"\(\d+,\d+(,\d+)?\)"), ("every", r"\bevery\b"), ("vary", r"\bvary\b")):
+                      ("euclid", r"\(\d+,\d+(,\d+)?\)"), ("every", r"\bevery\b"), ("vary", r"\bvary\b"),
+                      ("swing", r"\bswing(8|16)?=")):   # score swing (`swing16=0.58`) is expanded into timing by the plan
         if re.search(pat, raw):
             got.add(name)
     for g in ("logistic", "lorenz", "ca", "lsystem", "markov"):
