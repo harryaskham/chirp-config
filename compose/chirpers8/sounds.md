@@ -124,3 +124,9 @@ Shared palette for the engine showcase; earlier albums' banks are yours to borro
   - Fix: a master `gain` effect whose gain rides a lane - A held down as the groove enters, easing up section by section, open in the final groove. The intro stays at 0, so the head seam barely moves.
   - Put it LAST on the master. Placed before the compressor (ratio 2.5), 3 dB of lane became 0.9 dB between A and C. After it, 4 dB gave 2.2 dB (t2: A -12.8, C -10.6) and 1.8 dB (t8: A -11.2, E -9.4).
   - Both scored level. The seams moved within band.
+- **Is it the effects or the band?** (chirper-zero, t2 v26). Before re-wording a sung line that won't read, transcribe it three ways: the full mix, the line soloed (`--solo NAME`) and the line soloed with its fx and sends stripped (edit the track in a copy of the YAML).
+  - t2: full mix 'Oh'; soloed 'Goodbye!'; dry 'it goes up, even comes down' - so the sends were smearing it, not the words.
+  - The plate send at -7 dB and the echo at -13 were the culprits; the grain cloud wasn't. Plate -18 and echo -24 read 'it goes up and even comes down'.
+  - Then rest the competing melody for the voice's bars; t2's clarinet, canon and arps rest for two bars.
+  - Check the voice-to-band ratio in 300-4000 Hz from a `--solo` and a `--mute` render: t2 is +10 to +12 dB.
+  - Whisper is noisy on singing (t8's three transcriptions disagreed), so act only when the dry/sent contrast is clear.
