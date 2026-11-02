@@ -119,3 +119,4 @@ Shared palette for the engine showcase; earlier albums' banks are yours to borro
     - Through the radio at 0.7 in the song it reads 'Slow down, touch, speed up, touch'. The old take read 0.0-0.27.
     - Plosive-led, stressed words (slow, down, speed, up, touch) carry; unstressed function words ('a little') blur.
   - Sung takes (tts --sing) read badly on every voice and seed (best 0.31 for 'high as the cloud, and then home'). base.en is weak on singing, so don't over-read sung results.
+  - Follow-up (t2 v23): reword sung lines too. 'odd goes up, even comes down' on the same tune reads 'Oh, it goes up, even comes down' standalone (seeds 3 and 9). Clear, stressed one-syllable words survive singing as they survive radios. In the mix under chorus, plate and cloud it still reads poorly.
