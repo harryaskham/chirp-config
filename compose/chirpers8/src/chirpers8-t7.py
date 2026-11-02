@@ -228,6 +228,13 @@ def build():
                         used.add(q)
                         jt = max(-0.11, min(0.11, rng_t.gauss(0, 0.07 * temp))) if q else max(0.0, min(0.11, abs(rng_t.gauss(0, 0.07 * temp))))
                         P['kit'].append((max(0.0, t0 + q * 0.25 + jt), piece, 0.2, 100 if q in tgt else 76))
+    # (v15) THE MACHINE LISTENS TO ITSELF: halfway through the second epoch the band drops away for two bars and the
+    # sequencer plays its current candidate alone over the hum - the search auditioning what it has so far - then
+    # everything comes back in on the next downbeat (the parts are written as before and then lifted out, so every
+    # other bar of the track is unchanged)
+    a0 = (dict((nm_, sum(n_ for nm2, n_ in FORM[:k_])) for k_, (nm_, _) in enumerate(FORM))['e2'] + 8) * 4.0
+    for key in ('pad', 'bass', 'kit'):
+        P[key] = [e_ for e_ in P[key] if not (a0 - 1e-6 <= e_[0] < a0 + 8.0 - 1e-6)]
     # the temperature as a lane (one point a bar)
     Tpts = [[f'{b * 4.0:.1f}b', T[b]] for b in range(nb)]
     tr = lambda name, patch, gain, **kw: dict({'name': name, 'patch': patch, 'gain': gain, 'score': line(P[name], total)}, **kw)
