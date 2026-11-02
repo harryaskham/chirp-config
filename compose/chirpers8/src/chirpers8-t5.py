@@ -57,6 +57,7 @@ LIFTWAH = os.environ.get("C8T5_LIFTWAH", "")   # after the lift the guitar puts 
 KEEPFREEZE = os.environ.get("C8T5_KEEPFREEZE", "0.5")   # 'keep it there', kept: on the choir's last 'there' a granular cloud FREEZES the three voices' chord and holds it for two bars after they stop, then lets it go (freeze and mix on lanes) - the words doing what they say; value = the frozen cloud's mix
 OUTSETTLE = os.environ.get("C8T5_OUTSETTLE", "")   # agreed and slowing, the hands settle: over the outro's last OUTSETTLE bars (as the tempo eases to 100) the congas keep only the low tone on one and the open tone on the 'and' of two - the pattern's bones, under the radio's carriers (draws no dice: the same rolls, fewer strokes kept)
 INTROLATE = os.environ.get("C8T5_INTROLATE", "6")   # the hands wait longer: in the intro the congas' strokes (not their ghosts) come in at bar INTROLATE instead of 4, so the handshake has the room to itself a little longer (draws no dice: the same rolls, fewer strokes kept)
+SPEQ = os.environ.get("C8T5_SPEQ", "4,8")   # 'G,H': colour against the album envelope, per part not on the master: the guitar (its cab's 1.4-1.9 kHz bite sits 6.4-6.7 dB over the album) dipped G dB at 1.65 kHz, and the hats given H dB of air at 9 kHz (6.4 dB under)
 HOOKF = [(0, "E4", 3), (3, "G4", 3), (6, "A4", 4), (10, "B4", 6), (16, "D5", 3), (19, "B4", 3), (22, "D5", 4), (26, "E5", 6)]
 CLEN = int(os.environ.get("C8T5_CLEN", "42"))   # C's length: 40 tightens the agreement (the lift at bar 25, the second 'keep it there' at 33)
 FORM = [("intro", 12), ("A", 34), ("B", 26), ("retrain", 12), ("C", CLEN), ("outro", 16)]
@@ -364,7 +365,8 @@ def song():
              **({"auto": {**({"mg": merge_lane} if MERGE else {}),
                           **({"wh": lane([(0, 0), (st["C"] + 24 * BAR, 0), (st["C"] + 25 * BAR, 1), (st["outro"], 1), (st["outro"] + 2 * BAR, 0), (end, 0)])} if LIFTWAH else {})}}
                 if (MERGE or LIFTWAH) else {}),
-             "fx": [*([{"type": "morph", "key": "acid", "mode": "morph", "amount": {"value": 0, "mod": [{"src": "auto.mg", "amount": float(MERGE)}]}}] if MERGE else []),
+             "fx": [*([f"peak cutoff=1650 q=0.8 gain=-{SPEQ.split(',')[0]}dB"] if SPEQ and float(SPEQ.split(',')[0]) else []),
+                    *([{"type": "morph", "key": "acid", "mode": "morph", "amount": {"value": 0, "mod": [{"src": "auto.mg", "amount": float(MERGE)}]}}] if MERGE else []),
                     *([{"type": "wah", "env": 1.0, "sens": "12dB", "q": 3.0, "low": 350, "high": 2200,
                         "mix": {"value": 0, "mod": [{"src": "auto.wh", "amount": float(LIFTWAH)}]}}] if LIFTWAH else []),
                     {"type": "phaser", "rate": 0.4, "depth": 0.6, "feedback": 0.4, "stages": 6, "mix": 0.35},
@@ -375,7 +377,8 @@ def song():
              "fx": [pump, *([{"type": "filter", "kind": "ladder", "q": 0.45, "cutoff": {"value": 600, "mod": [{"src": "var.storm", "amount": 1}]}}] if STORM else [])],
              "score": T["acid"]},
             {"name": "kick", "patch": "909", "gain": "-3dB", "score": T["kick"]},
-            {"name": "hats", "patch": "909", "gain": "-10dB", "pan": 0.15, "score": "swing16=0.58 " + T["hats"]},
+            {"name": "hats", "patch": "909", "gain": "-10dB", "pan": 0.15, "score": "swing16=0.58 " + T["hats"],
+             **({"fx": [f"peak cutoff=9000 q=0.8 gain={SPEQ.split(',')[1]}dB"]} if SPEQ and float(SPEQ.split(',')[1]) else {})},
             {"name": "clap", "patch": "909", "gain": "-9dB", "sends": {"room": "-8dB"}, "score": T["clap"]},
             {"name": "fretless", "patch": "fretless", "gain": "-8dB", "fx": [{"type": "tremolo", "rate": 3.0, "depth": 0.4}], "sends": {"spring": "-10dB"}, "score": T["fretless"]},
             {"name": "horns", "patch": "horn-section", "gain": "-9dB", "pan": -0.2, "sends": {"room": "-8dB"}, "score": T["horns"]},
