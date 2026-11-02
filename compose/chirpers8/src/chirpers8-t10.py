@@ -94,6 +94,11 @@ def build():
 
     for b, (s, i, tp) in enumerate(bars):
         t0 = b * 4.0
+        # (v18) THE ANSWER IN THE DOMINANT: as in every fugue's exposition, the second entry answers in the dominant -
+        # for the four bars where the sync lead first takes the subject the whole machine moves up a fifth into A minor
+        # (Am | F | Dm | E), then the third entry brings it home to D; Werckmeister III colours the two keys differently
+        if s == 'expo' and 4 <= i < 8:
+            tp = 7
         root, ch = LOOP[b % 4]
         root, ch = root + tp, [c + tp for c in ch]
         # drums: a motorik machine (none in the return; the intro builds)
