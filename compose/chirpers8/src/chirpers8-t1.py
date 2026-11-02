@@ -2,8 +2,8 @@
 """chirpers8-t1 (chirper-one): "Echolalia" - the opener of chirpers VIII ('A Light Left On').
 
 A machine learning to talk by saying things back. A human voice (chirp tts, humanized: every take a different breath)
-says one quiet line - "nobody told the oscillator it could stop" (v15; it was "the light was still on when you came
-back" until Harry heard it as cliche) - every few bars. A small FM voice listens and
+says one oblique line - "standby amber, the fan's long vowel" (v16, after Harry: fewer returns, oblique words, a tune
+that is good to hear) - eight times, speaking at first and singing more each time. A small FM voice listens and
 answers by ECHOLALIA: a Markov chain, learnt by the engine from the pitches and lengths of the voice's own syllables
 (a Markov chain over the syllables), babbles new 'sentences' that only make moves the voice made. The machine's ear sharpens as the record
 plays, in two ways at once:
@@ -79,7 +79,7 @@ def syll_midi(n_):
 def build():
     VOICE = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'chirpers8-t1-voice.json')))
     # takes recorded against the 32-bar first groove: drop the one in the cut bars, move the later ones up
-    VOICE = [dict(v, bar=v['bar'] - A_CUT if v['bar'] > 40 else v['bar']) for v in VOICE if not (32 < v['bar'] <= 40)]
+    # (v16) the takes are recorded against the current form: eight of them, not twenty-two
     SUNG = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'chirpers8-t1-sing.json')))
     secs, t = {}, 0
     for name, n in FORM:
@@ -107,11 +107,11 @@ def build():
         if s == 'C':
             # (v8) THE DRUMS LEARN THE LINE: through the third groove the four-on-the-floor stops and the kick plays the
             # line's own rhythm instead - one kick on every stressed syllable of the first take, quantized to sixteenths,
-            # over two bars ('NObody TOLD the OScillator IT COULD STOP' since v15), heaviest on no, os and stop - while the
+            # over two bars ('STANDBY AMBER, the FAN'S LONG VOWEL' since v16), heaviest on stand, am and vow - while the
             # claps keep the backbeat and the hats keep the eighths; the said-back groove returns to the floor
             for at_, ph_ in KSYL:
                 if (i % 2) * 4.0 <= at_ < (i % 2) * 4.0 + 4.0:
-                    P['kit'].append((t0 + at_ - (i % 2) * 4.0, 'k', 0.25, 112 if ph_ in ('N OW1', 'AA1', 'S T AA1 P') else 92))
+                    P['kit'].append((t0 + at_ - (i % 2) * 4.0, 'k', 0.25, 112 if ph_ in ('S T AE1 N D', 'AE1 M', 'V AW1') else 92))
             for q in range(4):
                 P['kit'].append((t0 + q + 0.5, 'h', 0.25, 58))
                 P['kit'].append((t0 + q + 0.75 + 0.04, 'h', 0.25, 52))
@@ -127,9 +127,7 @@ def build():
                 P['kit'].append((t0 + 1.0, 'cp', 0.25, 80)); P['kit'].append((t0 + 3.0, 'cp', 0.25, 84))
     # the voice: a different humanized take of the same line each time
     vnotes, fv = [], []
-    # (v11) BACK, BACK, BACK: from the third groove on, the last word of every take ('stop', since v15 - repeated, it never does) - is repeated by the
-    # machine, four times, a dotted eighth apart, quieter and thinner each time and left-right-left-right: the track's
-    # name done literally, once a take, as the machine starts to say things back
+    # (v11-v15) the repeated last word ('back, back, back') was removed in v16: Harry heard the track repeat too much
     bnotes, bnotes2 = [], []
     # (v9) THE LINE, REMEMBERED: in the break the two takes go into a granular cloud - the voice still heard, then held:
     # once each take ends the cloud freezes on it and keeps scattering its grains (some backwards, spread wide) under
@@ -139,8 +137,8 @@ def build():
         if v['bar'] > secs['D'] + 16:
             continue                                  # (v7) the outro's takes are sung now, not spoken
         off = (v['bar'] - 1) * 4.0
-        if secs['C'] < v['bar'] <= secs['D'] + 16:
-            bk = v['notes'][-1:]                           # the line's last word ('stop', since v15)
+        if False:                                       # (v16) the repeated last word is gone: the machine no longer hammers
+            bk = v['notes'][-1:]
             if bk:
                 for r_ in range(1, 5):
                     (bnotes if r_ % 2 else bnotes2).append(dict(bk[-1], at=round(off + bk[-1]['at'] + 0.75 * r_, 4),
@@ -193,7 +191,7 @@ def build():
             for n_ in v['notes']:
                 P['say'].append((off + n_['at'], f"m{syll_midi(n_) + 24:.2f}", n_['len'] * 0.95, 84))
     babble_tuning = [{'edo': 5, 'root': 'A2'},
-                     {'at': f"{secs['B']}bar", 'edo': 12, 'root': 'A2', 'ramp': '4bar'},
+                     {'at': f"{secs['A'] + 8}bar", 'edo': 12, 'root': 'A2', 'ramp': '4bar'},   # (v16) crude for 8 bars only
                      {'at': f"{secs['C']}bar", 'edo': 24, 'root': 'A2', 'ramp': '4bar'},
                      {'at': f"{secs['C'] + 16}bar", 'edo': 96, 'root': 'A2', 'ramp': '12bar'}]
     FMV = {'synth': {'layers': [{'name': 'm', 'ratio': 2, 'audible': False},
@@ -219,18 +217,12 @@ def build():
             tr('pad', 'juno-pad', '-16dB', fx=['hp cutoff=200', {'type': 'eq', 'bands': ['peak cutoff=450 q=0.9 gain=-4dB', 'highshelf cutoff=5000 gain=3dB']}], sends={'hall': '-9dB'}),
             # (v7) AND THEN IT IS SUNG: the human has said the line twenty times and the machine has learnt to say it back;
             # in the outro, over the last B minor, the human SINGS it at last - twice, low and plain (chirp tts --sing,
-            # humanize 0.35) - since v15 'nobody told the oscillator it could stop', on a new tune that leaps up a sixth to
-            # 'told' and falls to its low F# on 'stop'
+            # humanize 0.35) - since v16 'standby amber, the fan's long vowel' on a D major pentatonic tune
+            # (F# E D B, then D E F# A F#) that the spoken takes have been melodizing toward all along
             {'name': 'sung', 'patch': SUNG['patch'], 'gain': '-6dB', 'pan': -0.05,
              'notes': [dict(n_, at=round(secs['outro'] * 4.0 + rep * 16.0 + n_['at'], 4)) for rep in (0, 1) for n_ in SUNG['notes']],
              'fx': [{'type': 'tape', 'drive': 0.1, 'mix': 1, 'wow': 1.5, 'flutter': 0.8, 'seed': 2}],
              'sends': {'hall': '-10dB', 'echo': '-15dB'}},
-            {'name': 'vback', 'patch': 'voice-speech', 'gain': '-8dB', 'notes': bnotes, 'pan': -0.55,
-             'fx': ['hp cutoff=420', {'type': 'tape', 'drive': 0.15, 'mix': 1, 'wow': 4, 'flutter': 3, 'seed': 9}],
-             'sends': {'hall': '-12dB'}},
-            {'name': 'vback2', 'patch': 'voice-speech', 'gain': '-8dB', 'notes': bnotes2, 'pan': 0.55,
-             'fx': ['hp cutoff=700', {'type': 'tape', 'drive': 0.15, 'mix': 1, 'wow': 4, 'flutter': 3, 'seed': 10}],
-             'sends': {'hall': '-12dB'}},
             {'name': 'vmem', 'patch': 'voice-speech', 'gain': '-5dB', 'notes': mnotes, 'pan': 0.0,
              'fx': [{'type': 'cloud', 'size': '160ms', 'density': 14, 'position': '700ms', 'spray': '600ms', 'pitch': 0,
                      'scatter': 0.25, 'reverse': 0.4, 'spread': 0.85, 'mix': 0.75, 'window': '4s',
