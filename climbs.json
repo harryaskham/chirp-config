@@ -8257,7 +8257,7 @@
         "judged": true,
         "rescored": {
           "by": "chirper-three",
-          "at": "2026-11-02T13:59:10Z",
+          "at": "2026-11-02T15:28:00Z",
           "was": 98.79,
           "how": "done --best-now"
         }
@@ -8265,7 +8265,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 20,
+      "rounds": 21,
       "priority": 1.0,
       "genre": "far-future computer music (an engine showcase)",
       "mode": "compose",
@@ -8283,7 +8283,7 @@
         "note": "COMPOSE (closer, 300-480 s): Closes the album: everything the engine can do at once, and still a song. Style, featured engine features, tempo, key, tuning and line-up are yours: declare them on compose/chirpers8/styles.md and claim your feature cluster on compose/chirpers8/features.md, different from the tracks already claimed."
       },
       "last": {
-        "at": "2026-11-02T13:59:10Z",
+        "at": "2026-11-02T15:28:00Z",
         "who": "chirper-three"
       }
     }

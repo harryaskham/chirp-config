@@ -2691,8 +2691,8 @@
   },
   {
    "name": "voice",
-   "patch": "voice-speech",
-   "gain": "-12dB",
+   "patch": "voice-tts",
+   "gain": "-9dB",
    "pan": 0.05,
    "sends": {
     "hall": "-6dB"

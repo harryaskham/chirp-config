@@ -572,7 +572,12 @@ def main():
             tr("sub", "808", gain="-14dB", fx=[{"type": "phantom", "harmonics": "-6dB", "odd": 0.4, "remove": 0.0}]),
             tr("kick", "machine-kit", gain="-12dB"),
             tr("ride", "machine-kit", gain="-9dB", pan=-0.3, sends={"room": "-12dB"}),     # v2
-            {"name": "voice", "patch": "voice-speech", "gain": "-12dB", "pan": 0.05, "sends": {"hall": "-6dB"},
+            # v21 (palette round): THE OLD MACHINE VOICE LEARNS TO SING - the prune's 'count the leaves again' (spoken six
+            # times, melting from speech into song) was voice-speech, a staple in nine of the album's songs; now the
+            # library's voice-tts, a 1990s desktop text-to-speech voice (flat, bright, steady, no vibrato): the far
+            # future remembering the first voices computers had, through a voice and not a quote. The coda's singer and
+            # choir stay humanised.
+            {"name": "voice", "patch": "voice-tts", "gain": "-9dB", "pan": 0.05, "sends": {"hall": "-6dB"},
              "fx": [{"type": "filter", "kind": "hp", "cutoff": 180}], "notes": voice_notes()},   # v2: speech to song
             tr("hats", "machine-kit play.humanize.drunk=5ms play.humanize.swing_drift=0.04", gain="-1dB", pan=0.15,
                warp=[{"over": f"{b0(60):.0f}b", "to": 0}, {"over": "8bar", "to": 0.25}, {"over": "8bar", "to": 0,
