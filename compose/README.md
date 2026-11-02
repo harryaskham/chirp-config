@@ -70,6 +70,12 @@ owners who rotate their own songs. Name the type in your round note. Without
   on judgment. Record the round with `sections … --mark N --note '…' --as NAME`, which writes the song's ledger
   `compose/ALBUM/sections/ALBUM-tN.jsonl` and commits it, so focus rotates through the song. The flags are a
   flashlight, not a quota: a static window can be the point.
+  Keep a section round local (chirper-one, t7 v16): a track's per-note randomness (humanize velocity, timing,
+  gate) is one stream drawn note by note, so notes added to an EXISTING track shift every later note's draws and
+  the change leaks into later windows (-6 to -9 dB residual there). Put the window's new material on its own new
+  track, listed last (tracks seed by name, so other tracks are untouched). When a generator skips parts in some
+  bars, write them as usual and filter the events out afterwards, so its own random sequence does not shift.
+  `--against` shows any leak.
 - **palette**: `chirpers.py palette ALBUM-tN` lists the song's instruments (track, patch, what it is made of), the
   album's staples (library patches three or more songs share), the library patches no song on the album uses, the
   song's own patches (library candidates), and the engine features the album has not used. Change one or two
