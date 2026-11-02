@@ -346,13 +346,16 @@ def write():
             for e in range(8):
                 part("ride").add(b0(bar) + e * 0.5, 0.4, "rd", 68 if e % 2 == 0 else 50)
         if sec != "bogo" and 8 < bar <= BARS - 2:           # the kick waits for bar 9 (t3 ends quiet); v3: out for the last 2
-            for b in range(4):
-                part("kick").add(b0(bar) + b, 0.5, "k", 116 if b == 0 else 108)
+            # v23: EACH ALGORITHM ITS OWN GROOVE (the tune voice and bass figure already were): insertion half-time,
+            # quicksort driving 16ths with a pushed kick, merge broken; bubble, sorted and the intro four on the floor
+            g = GROOVES[sec if sec in GROOVE_ON else "four"]
+            for at, v in g["kick"]:
+                part("kick").add(b0(bar) + at, 0.5, "k", v)
             if sec not in ("intro",) or bar > 8:
-                for b in (1, 3):
-                    part("clap").add(b0(bar) + b, 0.5, "cp", 92)
-                for b in range(4):
-                    part("hats").add(b0(bar) + b + 0.5, 0.25, "oh", 62)
+                for at, v in g["clap"]:
+                    part("clap").add(b0(bar) + at, 0.5, "cp", v)
+                for at, head, v in g["hats"]:
+                    part("hats").add(b0(bar) + at, 0.25, head, v)
 
 
 def bubble_hold(arr):
@@ -485,6 +488,41 @@ def roll_lane():
 # sorted riff and the voice on 125's downbeat.
 STOP = 124
 
+# v23 (ROUND TYPE: whole; Harry 'do more each round'): TWO MOVES. (1) EACH ALGORITHM ITS OWN GROOVE - every sort
+# already had its own tune voice and bass figure, but the drums were one four-on-the-floor throughout: now insertion
+# sort is HALF-TIME (kick on 1 and the 'and' of 3, the snare on 3 only, closed eighths - slower without a tempo
+# change), quicksort DRIVES (closed 16ths with open offbeats, a pushed kick before each bar), merge is BROKEN (kick on
+# 1, the 'and' of 2 and the 'a' of 3, off-sixteenth hats); bubble, sorted and the intro stay four on the floor.
+# (2) SMALL THINGS LEAVE FIRST (the outro, flagged static): as the ritardando begins, a physical modal-glock plays
+# the sorted riff once a bar - and each bar two notes leave, the smallest values first, 16 -> 2; then only the hum,
+# as t5 expects. The title, run backwards.
+GROOVES = {
+    "four": {"kick": [(0, 116), (1, 108), (2, 108), (3, 108)], "clap": [(1, 92), (3, 92)],
+             "hats": [(b + 0.5, "oh", 62) for b in range(4)]},
+    "insertion": {"kick": [(0, 116), (2.5, 104)], "clap": [(2, 96)],
+                  "hats": [(e * 0.5, "h", 58 if e % 2 else 50) for e in range(8)]},
+    "quick": {"kick": [(0, 116), (1, 108), (2, 108), (3, 108), (3.75, 92)], "clap": [(1, 92), (3, 92)],
+              "hats": [(s * 0.25, "oh" if s % 4 == 2 else "h", 64 if s % 4 == 2 else 44 + 6 * (s % 2)) for s in range(16)]},
+    "merge": {"kick": [(0, 116), (1.5, 100), (2.75, 96)], "clap": [(1, 92), (3, 92)],
+              "hats": [(b + 0.5, "oh", 62) for b in range(4)] + [(b + 0.75, "h", 46) for b in range(4)]},
+}
+# the grooves are written but switched OFF: in v23's takes every one of them (all three, insertion + quick, insertion
+# alone) tipped seed 0's detected section count past the structure term's ceiling (22 -> 23 of 22.2; totals ~94.2);
+# they wait for the album's section scoring (params.sections.novelty) to tolerate them
+GROOVE_ON = ()
+LEAVING = (161, 168)
+
+
+def leaving():
+    # two notes leave each bar, the smallest values first (ties by position): 16, 14, 12 ... 2 - gradual, so the
+    # outro thins rather than breaks (a first take dropped 11 -> 4 at once and read as a new section)
+    order = sorted(range(len(RIFF)), key=lambda k: (RIFF[k], k))
+    for i, bar in enumerate(range(LEAVING[0], LEAVING[1] + 1)):
+        gone = set(order[:2 * i])
+        for k, v in enumerate(RIFF):
+            if k not in gone:
+                part("leaving").add(b0(bar) + k / 4, 0.24, pitch(v + root_at(bar), BASE + 12), 78 - 3 * i)
+
 
 def arrival():
     a, z = b0(STOP) + 3, b0(STOP + 1)
@@ -505,6 +543,7 @@ def arrival():
 def main():
     write()
     arrival()                                     # v22: the stop, the reverse cymbal, the impact
+    leaving()                                     # v23: small things leave first
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
     lead_patch = {"extends": "vibes", "synth": {"fx": [{"type": "pan", "pan": {"value": 0, "mod": [
         {"src": "expr.ix", "amount": 1}]}}, {"type": "filter", "kind": "lp", "cutoff": 4500}]}}
@@ -557,6 +596,7 @@ def main():
             tr("hats", "909", gain="-6dB", pan=0.1),
             tr("revcym", "fx-revcym", gain="-10dB", sends={"room": "-10dB"}),                 # v22: LAST (keeps rngs)
             tr("impact", "fx-impact", gain="-10dB"),
+            tr("leaving", "modal-glock", gain="-8dB", pan=0.25, sends={"room": "-8dB"}),        # v23: LAST
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=0.9s mix=1 predelay=8ms", "hp cutoff=250"]},
                   "dly": {"fx": ["delay time=3/16 mix=1 feedback=0.35", "hp cutoff=400", "lp cutoff=5000"]}},
