@@ -74,6 +74,15 @@ LOFI = {"kb": "k", "rd": "sh"}
 # ("everything is where you left it"), becomes "the dust has found the vents" (src/t6/dust.json): time passing, told
 # by the machine's own body. T6_R6=none reproduces v5.
 R6 = os.environ.get("T6_R6", "waltz")
+# T6_R7 = horns (v7, palette round). The part an electro-soul song lacked: a HORN SECTION (the library's brass-synth,
+# horns and trombones that bloom and scoop into notes, new to the album) answers in both choruses - two stabs a bar,
+# "da-DAH" on the and of two and on three, voicing whatever chord the Markov chain chose, so the machine's harmony is
+# punched out by a section that cannot know it was random. And the verse pad leaves the juno (four album songs) for
+# a MELLOTRON FLUTE: tape replay, wow and band-limit, a sound from the first machines that remembered sounds.
+# AS KEPT: the horns only - the flute (T6_R7_FLUTE=1) darkened the whole record (spectrum 91 -> 78: the juno had been
+# carrying the song's air above 5 kHz). T6_R7=none reproduces v6.
+R7 = os.environ.get("T6_R7", "horns")
+R7FLUTE = os.environ.get("T6_R7_FLUTE", "0") == "1" and R7 == "horns"   # opt-in: the flute swap cost spectrum 91 -> 78
 if R6 == "waltz":
     FORM = FORM[:5] + [("waltz", 12)] + FORM[5:]
     TEMP = {**TEMP, "waltz": 0.0}
@@ -156,7 +165,8 @@ def markov(rng, state, temp):
 
 def build():
     rng = random.Random(6)
-    names = ("kick", "snare", "hats", "ride", "rim", "bass", "pad", "talk", "strtalk", "keys", "bell", "organ", "mbox")
+    names = ("kick", "snare", "hats", "ride", "rim", "bass", "pad", "talk", "strtalk", "keys", "bell", "organ", "mbox",
+             "horns")
     T = {k: Track(k) for k in names}
     VOICE = {"voice": [], "radio": [], "ringv": [], "singb": [], "lull": []}
     sung1, sung2 = load("sing1.json"), load("sing2.json")
@@ -237,6 +247,10 @@ def build():
         pad = [e(root + t, 60) for t in tones]
         groove = sec in ("verse1", "chorus1", "verse2", "chorus2") or (sec == "outro" and i < 12) \
             or (sec == "bridge" and i >= 10)
+        if R7 == "horns" and chorus_sec:   # the section answers the chain
+            hv = ",".join(mm(m) for m in (e(root + tt, 55) for tt in tones))
+            T["horns"].add(start + 1.5, 0.35, hv, 84)
+            T["horns"].add(start + 2.0, 0.85, hv, 96)
         # ---- the half-time 808 ----
         if groove:
             T["kick"].add(start, 1.0, "kb", 110)
@@ -349,7 +363,11 @@ def main():
         *([{"name": "organ", "patch": "hammond-b3", "gain": os.environ.get("T6_ORGAN_GAIN", "-6dB"),
             "fx": [pump, "chorus mix=0.3", "hp cutoff=150", "peak cutoff=600 gain=-2dB q=1"],
             "score": T["organ"].score(total)}] if R4 == "organ" else []),
-        {"name": "pad", "patch": "juno-pad", "gain": "-18dB",
+        *([{"name": "horns", "patch": "brass-synth", "gain": os.environ.get("T6_HORN_GAIN", "-8dB"), "pan": 0.15,
+            "fx": ["hp cutoff=250", "peak cutoff=600 gain=-2dB q=1", "reverb kind=plate decay=1.2s mix=0.18"],
+            "score": T["horns"].score(total)}] if R7 == "horns" else []),
+        {"name": "pad", "patch": "mellotron-flute" if R7FLUTE else "juno-pad",
+         "gain": os.environ.get("T6_FLUTE_GAIN", "-15dB") if R7FLUTE else "-18dB",
          "fx": [pump, "chorus mix=0.3"],
          "score": T["pad"].score(total)},
         {"name": "talk", "patch": "saw-pad", "gain": os.environ.get("T6_TALK_GAIN", "-8dB"),
