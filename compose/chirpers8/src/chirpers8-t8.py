@@ -46,12 +46,13 @@ VINYL = os.environ.get("C8T8_VINYL", "") # the medium wears: vinyl on the line -
 EQFIX = os.environ.get("C8T8_EQFIX", "2")   # (a measurement) the master toward the album's colour: -3 dB at 150 Hz, +4 dB at 1 kHz and 3 kHz, no +2 dB air shelf
 ORGAN = os.environ.get("C8T8_ORGAN", "")   # the operator's console: a reedy combo organ pulsing eighths on the chord's two upper tones an octave up (stretched, two voices) through A, C and E - minimalist machine-pulse in the 1-3 kHz the track lacked; value = velocity
 OUTUP = os.environ.get("C8T8_OUTUP", "1")   # the memory floats up as it fades: the outro's last eight bars voice the pads an octave higher (the 290-470 Hz t9's glass pads open in)
-HUMOCT = os.environ.get("C8T8_HUMOCT", "90")   # the A hum doubled an octave up (A2, ~110 Hz: where t7's drone is strongest) for its four bars - velocity
+HUMOCT = os.environ.get("C8T8_HUMOCT", "55")   # the A hum doubled an octave up (A2, ~110 Hz: where t7's drone is strongest) for its four bars - velocity
 EQ3 = os.environ.get("C8T8_EQ3", "1")   # the last narrow holes against the album envelope: +5 dB at 1.03 and 3.08 kHz (q 3), +3 dB around 100 Hz, -2.5 dB at 1.65 kHz
 WORDEND = os.environ.get("C8T8_WORDEND", "64")   # one last read: the word itself returns, faint, in the outro's last four bars (the line had been alone) - its 300-900 Hz chime meeting t9's head; value = velocity
 SUNG = os.environ.get("C8T8_SUNG", "-16")   # the words become a song: 'say it back to me' SUNG once (tts --sing, A4 F4 D4 E4 D4 on the stretched octave) at the outro's ninth bar, into the line - the memory's last voice is a tune; value = dry gain dB
 HEADDARK = os.environ.get("C8T8_HEADDARK", "8")   # the mercury warms up: the master low-pass (the tape-running-out one) also starts closed (~5 kHz) and opens over the first HEADDARK bars - a delay line had to reach its working temperature before it held a word; t7 v7's tail reads my 12-15 kHz air +14-17 dB over it
 HEADDARKV = float(os.environ.get("C8T8_HEADDARKV", "0.6"))   # how closed it starts (0.6 ~ 5 kHz, 0.8 ~ 3.3 kHz)
+HUMV = int(os.environ.get("C8T8_HUMV", "85"))   # the A hum's 808 velocity: t7 v7's tail sits 5.5 dB under my head
 DARK = os.environ.get("C8T8_DARK", "8")  # the tape running out: a master low-pass closing over the outro's last bars (the hiss and the line's top go first); value = bars
 FORM = [("intro", 16), ("A", 36), ("refresh", 8), ("C", 32), ("D", 16), ("E", 28), ("outro", 16)]
 TRACKS = ("word", "pad0", "pad1", "pad2", "pad3", "org0", "org1", "hum", "hum2", "bass", "kick", "shk", "hats", "clap", "rim")
@@ -118,7 +119,7 @@ def build():
                     add(f"pad{j}", at, hz(n + (12 if OUTUP and sec == "outro" and b >= nb - 8 else 0)), 4 * BAR, int(OUTPAD) if OUTPAD and sec == "outro" and b >= nb - 8 else (64 if sec in ("intro", "outro") else 72))
             if HUM and sec == "intro" and b < int(HUM) and HUMA and b < int(HUMA):
                 if b == 0:
-                    add("hum", at, hz(33), int(HUMA) * BAR, 110)
+                    add("hum", at, hz(33), int(HUMA) * BAR, HUMV)
                     if HUMOCT:
                         add("hum2", at, hz(45), int(HUMA) * BAR, int(HUMOCT))
             elif HUM and sec == "intro" and b < int(HUM) and (b % 4 == 0 or (HUMA and b == int(HUMA))):
