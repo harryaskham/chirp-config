@@ -66,6 +66,14 @@ KIT = "break-kit" if R4 == "break" else "machine-kit"
 # doubling as pitches splitting. The drums come back through a ratcheted break fill. New tracks only (orbit, fill)
 # and lanes local to the window. T9_R5=none reproduces v4.
 R5 = os.environ.get("T9_R5", "orbit")
+# T9_R6 = steel (v6, palette round). The song had no sustained, singing line: reed, blips and pulses are all
+# staccato. Now, as the map SETTLES (r 3.4 -> 2.9), a PEDAL STEEL (new to the album) plays the period-two orbit
+# itself: its two points as two long notes a bar, gliding one into the other (the steel's swell and slide), their
+# interval narrowing bar by bar as r falls, until at r = 3 - the bifurcation point - they meet in one note, the
+# fixed point 1 - 1/r, which it holds to the end. The bifurcation diagram heard backwards, as a tune that closes.
+# Exact Bohlen-Pierce pitches (Hz, the map's own mapping), so no tuning snaps them. And the album-staple bell (three
+# songs) that marks each section becomes a HANDPAN. T9_R6=none reproduces v5.
+R6 = os.environ.get("T9_R6", "steel")
 C9_PULSE = {"about": "chirper-two: a one-bit loudspeaker voice - a very narrow pulse (6%, wider with velocity), crushed, "
                      "nothing smoothing it: a machine driving its speaker directly.",
             "synth": {"layers": [{"wave": "pulse", "width": {"value": 0.06, "mod": [{"src": "vel", "amount": 0.12}]}}],
@@ -257,6 +265,21 @@ def main():
                        for k, h in enumerate(hz)]
         for k, at in enumerate([o0 + 16 + 0.25 * j for j in range(16)]):   # the fill: 16th ratchets rising
             fill.add(at, 0.25, "s2" if j_even(k) else "g", 50 + 3 * k, "^r=2" if k >= 8 else "")
+    steel = Track("steel")
+    if R6 == "steel":
+        sname, sbars, smeter, sr0, sr1 = next(s for s in SECS if s[0] == "settle")
+        for i in range(2, sbars):
+            r = sr0 + (sr1 - sr0) * i / max(1, sbars - 1)
+            a = st["settle"] + 4 * i
+            if r > 3.0:
+                d = math.sqrt((r + 1) * (r - 3))
+                pts = [((r + 1) + d) / (2 * r), ((r + 1) - d) / (2 * r)]
+            else:
+                pts = [1 - 1 / r]
+            for k, v in enumerate(pts):
+                hz = 220.0 * 3 ** ((v - 0.3) * 16 / 13)
+                ln = 4.0 / len(pts)
+                steel.add(a + k * ln, ln, f"{hz:.2f}hz", 78 if k == 0 else 70, "^gate=1.15")
     ksub = Track("ksub")   # v4: the break kit's kick is a 1969 kick (A#1): a short sine an octave under each one
     for at, ln, head, vel, art in T["kick"].ev:
         ksub.add(at, 0.4, "E1", vel, art)
@@ -302,7 +325,8 @@ def main():
         *([{"name": "padx", "patch": "pad-glass", "gain": os.environ.get("T9_PADX_GAIN", "-14dB"),
             "fx": [{"type": "morph", "key": "drums", "mode": "cross", "amount": 0.8}, "hp cutoff=200"],
             "score": T["padx"].score(total)}] if R2 == "drift" else []),
-        {"name": "bell", "patch": "bell", "gain": "-14dB", "fx": ["reverb kind=hall decay=3s mix=0.35"],
+        {"name": "bell", "patch": "handpan" if R6 == "steel" else "bell",
+         "gain": os.environ.get("T9_PAN_GAIN", "-6dB") if R6 == "steel" else "-14dB", "fx": ["reverb kind=hall decay=3s mix=0.35"],
          "score": T["bell"].score(total)},
         *([{"name": "chop", "patch": "break-kit", "gain": os.environ.get("T9_CHOP_GAIN", "0dB"), "pan": -0.1,
             "out": "drums", "score": T["chop"].score(total)},
@@ -311,6 +335,10 @@ def main():
                "notes": orbit_notes},
               {"name": "fill", "patch": "break-kit", "gain": "-3dB", "pan": 0.1, "out": "drums",
                "score": fill.score(total)}] if R5 == "orbit" else []),
+           *([{"name": "steel", "patch": "pedal-steel", "gain": os.environ.get("T9_STEEL_GAIN", "-4dB"), "pan": -0.15,
+               "sends": {}, "fx": ["hp cutoff=150", {"type": "delay", "time": "3/8", "feedback": 0.3, "mix": 0.2,
+                                                     "ping_pong": True, "tone": 3500}],
+               "score": steel.score(total)}] if R6 == "steel" else []),
            {"name": "ksub", "patch": "sub-sine amp.d=180ms amp.s=0 amp.r=40ms", "gain": os.environ.get("T9_KSUB_GAIN", "-4dB"),
             "fx": ["lp cutoff=120"], "score": ksub.score(total)}] if R4 == "break" else []),
     ]
