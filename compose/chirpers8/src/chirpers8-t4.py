@@ -506,10 +506,15 @@ GROOVES = {
     "merge": {"kick": [(0, 116), (1.5, 100), (2.75, 96)], "clap": [(1, 92), (3, 92)],
               "hats": [(b + 0.5, "oh", 62) for b in range(4)] + [(b + 0.75, "h", 46) for b in range(4)]},
 }
-# the grooves are written but switched OFF: in v23's takes every one of them (all three, insertion + quick, insertion
-# alone) tipped seed 0's detected section count past the structure term's ceiling (22 -> 23 of 22.2; totals ~94.2);
-# they wait for the album's section scoring (params.sections.novelty) to tolerate them
-GROOVE_ON = ()
+# the grooves were written in v23 but switched off: every variant tipped seed 0's detected section count past the
+# structure term's ceiling (22 -> 23 of 22.2). v24's palette (a picked bass, a glass pad) brought the count down to
+# 21/20, and with all three grooves on it reads 22/21 - inside the band - so they are ON from v24
+GROOVE_ON = ("insertion", "quick", "merge")
+# v24 (ROUND TYPE: palette; Harry 'do more each round'): the two album staples under everything change - the pad from
+# juno-pad (5 songs) to PAD-GLASS, an FM bell-glass bloom (FM: the computer's own sound, the digital technique that
+# left the lab for a million keyboards), and the bass from the 808 (5 songs) to BASS-PICK-DI, a picked electric bass
+# straight into the desk, so the per-algorithm bass figures (v6) become a player's lines - a person among the
+# machines. The hum stays the 808 (t5 takes its low E). And event_stable is on from here (re-rolls humanize once).
 LEAVING = (161, 168)
 
 
@@ -556,6 +561,7 @@ def main():
                   {"at": f"{b0(BARS + 1):.0f}b", "bpm": 106, "ramp": True}],   # v3: the ritardando into t5's 106
         "tail": "0.5s",
         "loudness": -11,
+        "event_stable": True,                     # v24: each note's draws from its track, beat and pitch (wM f5283535)
         "volume": "0dB",
         "tracks": [
             tr("lead", lead_patch, gain="-8dB", sends={"dly": "-12dB"},
@@ -566,7 +572,7 @@ def main():
                     "amount": {"value": 0, "mod": [{"src": "auto.m", "amount": 1}]}},
                    {"type": "stutter", "slice": "1/16", "repeats": 6, "roll": 0.6, "pitch": 0.5,
                     "chance": {"value": 0, "mod": [{"src": "auto.roll", "amount": 1}]}}]),
-            tr("bass", "808", gain="-9dB", fx=["duck by=kick depth=-4dB"]),                  # v6: round, no squelch
+            tr("bass", "bass-pick-di", gain="-1dB", fx=["duck by=kick depth=-4dB"]),         # v6: round, no squelch; v24: a player's bass
             tr("tune", "rhodes", gain="-10dB", pan=-0.1, sends={"dly": "-10dB"},
                fx=[{"type": "filter", "kind": "hp", "cutoff": 250}]),                      # v6: the tune that emerges
             *voice_tracks(),                                                                 # v10: speech to song
@@ -581,7 +587,7 @@ def main():
             tr("tune_kal", "alto-sax", gain="-6dB", pan=-0.1, sends={"dly": "-10dB", "room": "-12dB"}),   # v16: merge's voice
             {"name": "progress", "patch": "machine-kit", "gain": "-13dB", "pan": 0.3, "sends": {"room": "-12dB"},
              "score": progress_score()},                     # v5: the work's progress as a Euclidean rhythm
-            tr("pad", "juno-pad", gain="-11dB", sends={"dly": "-14dB"},
+            tr("pad", "pad-glass", gain="-14dB", sends={"dly": "-14dB"},
                fx=[{"type": "morph", "key": "speaker", "mode": "cross",
                     "amount": {"value": 0, "mod": [{"src": "auto.pm", "amount": 1}]}},           # v13: the pad speaks
                    "duck by=kick depth=-6dB", {"type": "filter", "kind": "hp", "cutoff": 200}],
