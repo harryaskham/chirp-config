@@ -530,12 +530,18 @@ def main():
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=1.0s mix=1 predelay=10ms", "hp cutoff=250"]},
                   "hall": {"fx": ["reverb kind=hall decay=3.2s mix=1 predelay=30ms", "hp cutoff=250"]}},
-        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=28", "peak cutoff=300 q=0.8 gain=-5dB",
+        "master": {"fx": [{"type": "tapestop", "time": "4b", "curve": 1.6, "mix": 1,          # v14: power down
+                           "stop": {"value": 0, "mod": [{"src": "auto.ts", "amount": 1}]}},
+                          {"type": "eq", "bands": ["highpass cutoff=28", "peak cutoff=300 q=0.8 gain=-5dB",
                                                     "highshelf cutoff=6000 gain=5dB"]},     # v2: the album's envelope
                           {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}},
                           {"type": "compressor", "threshold": "-12dB", "ratio": 8, "attack": "0.3ms",
                            "release": "60ms", "makeup": "0dB"}],
-                   "auto": {"dyn": {"points": lanes()}}},
+                   "auto": {"dyn": {"points": lanes()},
+                            # v14: POWER DOWN TO STANDBY - through the coda's last bar the whole band winds down like a
+                            # motor losing power (tapestop, curve 1.6), then the light section starts on the live signal
+                            "ts": {"points": [["0b", 0.0], [f"{rb(178) - 0.01:g}b", 0.0], [f"{rb(178):g}b", 1.0],
+                                              [f"{rb(179) - 0.01:g}b", 1.0], [f"{rb(179):g}b", 0.0]]}}},
     }
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
