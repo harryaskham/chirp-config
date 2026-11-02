@@ -58,6 +58,7 @@ COUNTPATH = [7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]
 LOOP421 = os.environ.get("C8T2_LOOP421", "62")   # the trivial cycle: through the break, where every path ends, the bell plays 4 -> 2 -> 1 forever as octaves (G6 G5 G4, one a beat) - a three-beat loop against the four-beat bar that lines up again every three bars; value = velocity
 METER = os.environ.get("C8T2_METER", "3")   # the break in the cycle's own meter: every path ends in 4 -> 2 -> 1, a loop of three, so the break goes to 3/4 (20 bars; the tempo map's meter) and the voice counts it like a waltz - 'four' on two, 'two' on three, ONE on the downbeat, held longer each time until it sings - with the bell's loop turned so its 1 (G4) lands with the voice's
 CRASH = os.environ.get("C8T2_CRASH", "ABCo")   # the big downbeats marked: a modal cymbal (the modal layer's cymbal modes, a wash that blooms) on the first beat of each section listed - 'ABC' (A, B, and C as the 3/4 break returns to four), 'ABCo' adds the outro
+SUNGWORDS = os.environ.get("C8T2_SUNGWORDS", "odd")   # 'odd': the sung line says the rule, sideways - 'odd goes up, even comes down' (same tune: up the scale on 'odd goes up', down it on 'even comes down'; whisper reads it 'Oh, it goes up, even comes down') instead of 'high as the cloud, and then home' (a stock image, read 'Pause the word and let it go'); the cloud now takes 'up'
 ARP32 = os.environ.get("C8T2_ARP32", "")    # the drop's arps on 1/32 (as the plan always said): double-time chip arps through C
 BAR = 16
 SEED = 2
@@ -254,7 +255,8 @@ def clouded(tr, offs16):
     pts = [["0b", 0]]
     for o in offs16:
         b = o / 4
-        pts += [[f"{b + 2.0:g}b", 0], [f"{b + 2.6:g}b", m], [f"{b + 3.9:g}b", m], [f"{b + 4.5:g}b", 0]]
+        w0, w1, w2, w3 = (1.55, 1.85, 3.0, 3.6) if SUNGWORDS == "odd" else (2.0, 2.6, 3.9, 4.5)   # 'up' / 'cloud'
+        pts += [[f"{b + w0:g}b", 0], [f"{b + w1:g}b", m], [f"{b + w2:g}b", m], [f"{b + w3:g}b", 0]]
     tr["fx"] = [*tr["fx"], {"type": "cloud", "mix": {"value": 0, "mod": [{"src": "auto.sc", "amount": 1}]}, "density": 20, "size": "110ms",
                             "position": "350ms", "spray": "200ms", "pitch": 12, "scatter": 2, "reverse": 0.25, "spread": 0.9, "seed": 2}]
     tr["auto"] = {**tr.get("auto", {}), "sc": {"points": pts}}
@@ -369,7 +371,7 @@ def song():
             dialled(voice("chirpers8-t2-count.json", "count", st["A"] + 4 * BAR, "-12dB",
                           [dict(radio, tune={"value": 0.03, "mod": [{"src": "auto.cd", "amount": float(COUNTDIAL)}]}) if COUNTDIAL else radio, "hp cutoff=250"],
                           {"plate": "-14dB"}), st["A"] + 4 * BAR),
-            *([clouded(voice("chirpers8-t2-sung.json", "sung", [st["C"] + 12 * BAR, st["C"] + 40 * BAR], f"{SING}dB",
+            *([clouded(voice("chirpers8-t2-sung-odd.json" if SUNGWORDS == "odd" else "chirpers8-t2-sung.json", "sung", [st["C"] + 12 * BAR, st["C"] + 40 * BAR], f"{SING}dB",
                      [{"type": "chorus", "rate": 0.25, "depth": 0.15, "mix": 0.2}, "hp cutoff=150"], {"plate": "-7dB", "echo": "-13dB"}),
                      [st["C"] + 12 * BAR, st["C"] + 40 * BAR])] if SING else []),
             (waltz if METER else voice)("chirpers8-t2-refrain.json", "refrain", st["break"] + 4 * barlen("break"), "-9dB", [], {"plate": "-8dB", "echo": "-14dB"}),
