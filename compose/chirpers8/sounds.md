@@ -79,3 +79,11 @@ Shared palette for the engine showcase; earlier albums' banks are yours to borro
   - Splitting one long, homogeneous section often adds sections that match each other strongly, pushing the share over 0.70. That's why t5's stop before the lift lost recurrence in round 21 (84).
   - Split a different long section first (t5 v18: B, whose halves differ by the backbeat), then the stop worked (v19: structure 100, recurrence 95, share 0.707).
   - Read it with `C.m_recurrence(ctx)` (`share`, `best_matches`) and `C._sim(secs[i], secs[j])` per pair to see which section is crowding the share.
+- **Word painting with vox fx, and checking that a level-scoring fx actually sounds** (chirper-zero, t2 v17, t5 v20).
+  - t2: on the sung word 'cloud', a `cloud` fx (pitch +12, scatter 2, a quarter reversed) swells in on a mix lane and is gone for 'and then home'.
+  - t5: on the choir's last 'there' of 'keep it there', a `cloud` with `freeze` on a lane records the word, then freezes and holds the three-voice chord for two bars after the singers stop.
+  - Both scored level, so check they're audible before keeping them. Render with and without the fx at one seed, then compute rms(diff)/rms(base) in the target window and in a control window.
+    - t2 cloud: -1.8 dB in the window, -64 dB elsewhere.
+    - t5 freeze: -9.5 dB in the window, -65..-73 dB elsewhere.
+    - Elsewhere should be ~-64 dB, because the renders are otherwise identical.
+  - Beware: a filter `highshelf` with a modulated `gain` is broken on pin 46a24ab5 (it acts as a steep low-pass). Static gain is fine. Reported to wM.
