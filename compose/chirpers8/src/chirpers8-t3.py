@@ -53,6 +53,14 @@ ROOTS = [0, 4, 3, 6]                                       # degrees the populat
 R4 = os.environ.get("T3_R4", "hymn")
 if R4 == "hymn":
     FORM = FORM[:5] + [("peak", 18, 30), ("hymn", 16, 30)] + FORM[6:]
+# T3_R5 = breath (v5, section round on w8, 3:36-4:07, the hymn: "static, little new vs w7" - the peak's drums ran on
+# under it). The hymn now BREATHES: for its first two phrases the drums fall silent (gain lanes on the drum tracks,
+# 0 dB everywhere else) and the duet, the harmonium, the walking bass and the quiet automaton carry it alone; a
+# roll of tuned toms (the JI scale falling) brings the floor back for the third phrase, the climb to A4. And between
+# the phrases the GLOCK ANSWERS: the last three notes of each sung line, two octaves up, as the machine says them
+# back. New tracks only (hfill, answer) plus lanes. T3_R5=none reproduces v4.
+R5 = os.environ.get("T3_R5", "breath")
+ANSWERS = [(14.75, ["C6", "A5", "D6"]), (12.9, ["F6", "E6", "D6"]), (14.75, ["A6", "G6", "A6"]), (9.9, ["C6", "D6"])]
 HYMN = [(0, 3, 7), (8, 14, 17), (3, 7, 12), (0, 3, 7), (5, 10, 14), (10, 14, 17), (3, 7, 12), (8, 14, 17),
         (0, 3, 7), (8, 14, 17), (7, 10, 16), (7, 10, 16), (8, 14, 17), (10, 14, 17), (0, 3, 7), (0, 3, 7)]
 HYMN_BASS = [38, 34, 41, 38, 43, 36, 41, 34, 38, 34, 33, 33, 34, 36, 38, 38]
@@ -415,6 +423,27 @@ def main():
              "score": f"R/{st['peak']:g}b",
              "gen": {"type": "ca", "rule": 30, "width": 16, "init": "center", "poly": 2,
                      "notes": "h rs h cb h oh h cp", "n": L["peak"] * 16, "len": "/16"}},
+        ]
+    if R4 == "hymn" and R5 == "breath":
+        h0 = st["hymn"]
+        hd = {"hd": {"points": [["0b", 0.0], [f"{h0 - 0.5}b", 0.0], [f"{h0 + 0.25}b", -40.0], [f"{h0 + 28}b", -40.0],
+                                [f"{h0 + 32}b", 0.0], [f"{total}b", 0.0]]}}
+        for tr in tracks:
+            if tr["name"] in ("kick", "hats", "ohat", "rim"):
+                tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.hd", "amount": 1}]}}]
+                tr["auto"] = hd
+        fill, ans = Track("hfill"), Track("answer")
+        for k, deg in enumerate([7, 6, 5, 4, 3, 2, 1, 0]):     # the toms fall down the JI scale into bar 8
+            fill.add(h0 + 30 + 0.25 * k, 0.4, hz_m(jm(deg, 43)), 70 + 4 * k)
+        for k, (off, notes) in enumerate(ANSWERS):
+            for j, nt in enumerate(notes):
+                ans.add(h0 + 16 * k + off + 0.38 * j, 1.2, nt, 62 - 4 * j)
+        tracks += [
+            {"name": "hfill", "patch": "c8-tom", "gain": "-5dB", "pan": -0.1, "fx": ["reverb kind=room decay=0.8s mix=0.2"],
+             "score": fill.score(total)},
+            {"name": "answer", "patch": "c8-glock", "gain": "-11dB", "pan": 0.3, "sends": {"hall": "-5dB"},
+             "fx": [{"type": "delay", "time": "3/8", "feedback": 0.3, "mix": 0.2, "ping_pong": True, "tone": 5000}],
+             "score": ans.score(total)},
         ]
     if R4 == "hymn":
         vfx = ["hp cutoff=140", "peak cutoff=600 gain=-3dB q=1", "compressor threshold=-20dB ratio=3 attack=5ms release=120ms",
