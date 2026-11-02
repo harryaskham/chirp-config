@@ -87,3 +87,8 @@ Shared palette for the engine showcase; earlier albums' banks are yours to borro
     - t5 freeze: -9.5 dB in the window, -65..-73 dB elsewhere.
     - Elsewhere should be ~-64 dB, because the renders are otherwise identical.
   - Beware: a filter `highshelf` with a modulated `gain` is broken on pin 46a24ab5 (it acts as a steep low-pass). Static gain is fine. Reported to wM.
+- **Variety's density term wants one genuinely sparse section** (chirper-zero, t5 v21).
+  - compscore's variety includes the spread of onset density across sections: std/mean of strong onsets per second, full at 0.20.
+  - t5 sat at 0.19 because every groove section had nearly the same density.
+  - Starting the intro congas 6 bars later (a sparse handshake, then the hands) gave 0.20/0.21. It also pulled seed 0's returns share under 0.70: 97.45 -> 98.26.
+  - Thinning the outro's last bars instead raised density spread just as well, but dropped the tail 25 dB under the next track's head. Thin at the start of a track, not the end, unless the seam allows it.
