@@ -55,6 +55,8 @@ LIFTSTOP = os.environ.get("C8T5_LIFTSTOP", "1")   # the gear change, announced: 
 LIFTHAT = os.environ.get("C8T5_LIFTHAT", "1")   # after the lift the hats open: every off-beat hat an open hat - the agreed band, a step up, brighter on top
 LIFTWAH = os.environ.get("C8T5_LIFTWAH", "")   # after the lift the guitar puts its foot down: an envelope wah (350-2200 Hz, q 3; harder strokes open it) fades in over the lift's first bar and stays to the outro; value = wet mix
 KEEPFREEZE = os.environ.get("C8T5_KEEPFREEZE", "0.5")   # 'keep it there', kept: on the choir's last 'there' a granular cloud FREEZES the three voices' chord and holds it for two bars after they stop, then lets it go (freeze and mix on lanes) - the words doing what they say; value = the frozen cloud's mix
+OUTSETTLE = os.environ.get("C8T5_OUTSETTLE", "")   # agreed and slowing, the hands settle: over the outro's last OUTSETTLE bars (as the tempo eases to 100) the congas keep only the low tone on one and the open tone on the 'and' of two - the pattern's bones, under the radio's carriers (draws no dice: the same rolls, fewer strokes kept)
+INTROLATE = os.environ.get("C8T5_INTROLATE", "6")   # the hands wait longer: in the intro the congas' strokes (not their ghosts) come in at bar INTROLATE instead of 4, so the handshake has the room to itself a little longer (draws no dice: the same rolls, fewer strokes kept)
 HOOKF = [(0, "E4", 3), (3, "G4", 3), (6, "A4", 4), (10, "B4", 6), (16, "D5", 3), (19, "B4", 3), (22, "D5", 4), (26, "E5", 6)]
 CLEN = int(os.environ.get("C8T5_CLEN", "42"))   # C's length: 40 tightens the agreement (the lift at bar 25, the second 'keep it there' at 33)
 FORM = [("intro", 12), ("A", 34), ("B", 26), ("retrain", 12), ("C", CLEN), ("outro", 16)]
@@ -129,7 +131,9 @@ def build():
                     add("conga", at + 15, "mu", 1, int(CONGA16) - 4)
                 for q, piece, v in ((0, "lo", 84), (3, "mu", 60), (6, "o", 78), (8, "sl", 70), (11, "o", 74), (14, "bh", 64)):
                     soft_skip = CONGASOFT and sec == "intro" and b < 2 and piece in ("sl", "bh", "mu")
-                    if rng.random() < 0.9 and not soft_skip:
+                    settle_skip = OUTSETTLE and sec == "outro" and b >= nb - int(OUTSETTLE) and piece not in ("lo", "o") or (OUTSETTLE and sec == "outro" and b >= nb - int(OUTSETTLE) and q == 11)
+                    late_skip = INTROLATE and sec == "intro" and b < int(INTROLATE)
+                    if rng.random() < 0.9 and not soft_skip and not settle_skip and not late_skip:
                         add("conga", at + q, piece, 1, v)
             groove = sec in ("A", "B", "C") or (sec == "outro" and b < 8)
             # --- the two players: in A two-bar calls, in B one-bar trades, in C together
