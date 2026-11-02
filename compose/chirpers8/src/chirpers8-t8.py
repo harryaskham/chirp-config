@@ -60,6 +60,7 @@ EQ4 = os.environ.get("C8T8_EQ4", "1")   # the three narrow holes left (1025, 307
 WTABLE = os.environ.get("C8T8_WTABLE", "-26")   # the word as a waveform: a wavetable whose frames ARE the stored word - frame per 4 bars, harmonic 1 always, harmonics 2-17 present where the word's 16 bits are set (gain 1/h^0.7) - holding each chord's root an octave up under the band; as bits flip and refresh repairs them the drone's timbre wears and mends with the memory; value = gain dB
 WT = {"notes": [], "frames": []}
 PLATEHIT = os.environ.get("C8T8_PLATEHIT", "rE")   # the write, struck: when the refresh rewrites the word, a metal plate is struck once (the modal layer's plate modes, a stretched D) and the strike goes into the line, so the write itself goes round the memory; 'r' at the refresh, 'rE' also as the repaired E begins
+FILL = os.environ.get("C8T8_FILL", "0.7")   # the memory's continuity illusion: while the refresh rewrites the word (its first 4 bars, the word unread) a follow-noise on the word keeps sounding in the word's own colours (held 8 s from its last notes), so the line seems to run on through the gap - the Huggins/Zwicker fill the engine's follow-noise was made for; value = tone (0 smooth .. 1 pitched, ringing on the word's notes)
 DARK = os.environ.get("C8T8_DARK", "8")  # the tape running out: a master low-pass closing over the outro's last bars (the hiss and the line's top go first); value = bars
 FORM = [("intro", 16), ("A", 36), ("refresh", 8), ("C", 32), ("D", 16), ("E", 28), ("outro", 16)]
 TRACKS = ("word", "pad0", "pad1", "pad2", "pad3", "org0", "org1", "hum", "hum2", "bass", "kick", "shk", "hats", "clap", "rim")
@@ -281,8 +282,11 @@ def song():
              "fx": [{"type": "stutter", "chance": {"value": 0, "mod": [{"src": "auto.sc", "amount": 1}]}, "slice": "1/16", "repeats": 3,
                      "decay": 0.3, "mix": 1, "seed": 8},
                     *([{"type": "chop", "slices": 8, "pattern": "0 r1 2 2 . r5 6 _", "mix": {"value": 0, "mod": [{"src": "auto.ch", "amount": 1}]}}] if CHOP else []),
-                    *([f"peak cutoff=2500 q=0.6 gain={WORDPRES}dB"] if WORDPRES else [])],
-             "auto": {"sc": stut, **({"ch": chl} if CHOP else {})}, "sends": {"line": "-4dB", "room": "-12dB"}, "score": T["word"]},
+                    *([f"peak cutoff=2500 q=0.6 gain={WORDPRES}dB"] if WORDPRES else []),
+                    *([{"type": "follow-noise", "tone": float(FILL), "hold": "8s", "mix": {"value": 0, "mod": [{"src": "auto.hole", "amount": 1}]}}] if FILL else [])],
+             "auto": {"sc": stut, **({"ch": chl} if CHOP else {}),
+                      **({"hole": {"points": [["0b", 0], [f"{sec_start('refresh') / 4 - 0.05:g}b", 0], [f"{sec_start('refresh') / 4 + 0.25:g}b", 1],
+                                              [f"{sec_start('refresh') / 4 + 15.5:g}b", 1], [f"{sec_start('refresh') / 4 + 16:g}b", 0]]}} if FILL else {})}, "sends": {"line": "-4dB", "room": "-12dB"}, "score": T["word"]},
             *([{"name": f"org{j}", "patch": "farfisa", "gain": "-17dB", "pan": (-0.35, 0.35)[j], "sends": {"room": "-14dB"}, "score": T[f"org{j}"]} for j in range(2)] if ORGAN else []),
             *([{"name": "plate", "gain": "-15dB", "pan": -0.15,
                 "patch": {"about": "a struck metal plate: the modal layer's plate modes, a long dense ring",
