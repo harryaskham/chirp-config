@@ -5,3 +5,4 @@
 {"id": "chirpers8-t8", "window": 6, "at": "2026-11-02T15:12:51Z", "who": "chirper-zero", "version": "v27", "note": "v27: the pads up an octave for C's last twelve bars (the store opens out before D); residual -16.3 dB, melody 0.757, local"}
 {"id": "chirpers8-t8", "window": 7, "at": "2026-11-02T15:48:07Z", "who": "chirper-zero", "version": "v28", "note": "v28: the clock skews - D's hats on dotted eighths (3 against 4); a bit-crush on the word was tried first and crossed the returns cliff on seed 11"}
 {"id": "chirpers8-t8", "window": 7, "at": "2026-11-02T16:44:29Z", "who": "chirper-zero", "version": "v29", "note": "v29: D's skew made local - the grid hats stay (velocity 1) so later dice don't move; the dotted eighths on their own last track; w8-10 now -74..-80 dB vs v27"}
+{"id": "chirpers8-t8", "window": 1, "at": "2026-11-02T19:58:49Z", "who": "chirper-zero", "version": "v35", "note": "v35: the word is written bit by bit over the intro's sixteen bars"}
