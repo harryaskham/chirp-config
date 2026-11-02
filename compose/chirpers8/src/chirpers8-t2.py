@@ -56,10 +56,16 @@ SUNGCLOUD = os.environ.get("C8T2_SUNGCLOUD", "0.6")   # 'high as the cloud': on 
 COUNTDIAL = os.environ.get("C8T2_COUNTDIAL", "0.35")   # the count's radio drifts with the numbers: as the voice reads 7's path, each number moves the dial off the station by its height (log2 n / log2 52 x COUNTDIAL) - 52 half lost in static, the falling numbers tuning back in, 'one' clear
 COUNTPATH = [7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]
 LOOP421 = os.environ.get("C8T2_LOOP421", "62")   # the trivial cycle: through the break, where every path ends, the bell plays 4 -> 2 -> 1 forever as octaves (G6 G5 G4, one a beat) - a three-beat loop against the four-beat bar that lines up again every three bars; value = velocity
+METER = os.environ.get("C8T2_METER", "3")   # the break in the cycle's own meter: every path ends in 4 -> 2 -> 1, a loop of three, so the break goes to 3/4 (20 bars; the tempo map's meter) and the voice counts it like a waltz - 'four' on two, 'two' on three, ONE on the downbeat, held longer each time until it sings - with the bell's loop turned so its 1 (G4) lands with the voice's
 ARP32 = os.environ.get("C8T2_ARP32", "")    # the drop's arps on 1/32 (as the plan always said): double-time chip arps through C
 BAR = 16
 SEED = 2
-FORM = [("intro", 16), ("A", 36), ("B", 24), ("break", 16), ("C", 56), ("outro", 16)]
+FORM = [("intro", 16), ("A", 36), ("B", 24), ("break", 20 if METER else 16), ("C", 56), ("outro", 16)]
+
+
+def barlen(sec):
+    """Sixteenths in a bar of this section: the break is in 3/4 under METER."""
+    return 12 if METER and sec == "break" else BAR
 SEEDS = {"intro": [6, 6], "A": [7, 12, 3, 7], "B": [9, 18, 11], "C": [27, 31, 27, 41], "outro": [1]}
 TRACKS = ("clar", "clar2", "arp", "bass", "sub", "kick", "shk", "hats", "clap", "pad", "bell")
 GMAJ = ["G", "A", "B", "C", "D", "E", "F#"]
@@ -121,12 +127,12 @@ def sec_start(name):
     for sec, nb in FORM:
         if sec == name:
             return t
-        t += nb * BAR
+        t += nb * barlen(sec)
     raise KeyError(name)
 
 
 def total():
-    return sum(nb for _, nb in FORM) * BAR
+    return sum(nb * barlen(sec) for sec, nb in FORM)
 
 
 def build():
@@ -168,7 +174,7 @@ def build():
     for sec, nb in FORM:
         a0 = sec_start(sec)
         for b in range(nb):
-            at = a0 + b * BAR
+            at = a0 + b * barlen(sec)
             root, degs = CHORDS[0] if (ENDI and sec == "outro" and b >= nb - int(ENDI)) else CHORDS[(b // 2) % 4]
             # --- chip arps: chord tones up two octaves, 1/16 (1/32 in the drop)
             fade = 1.0   # the outro keeps the band to the last beat and bleeds into t3 (a fade read as a 40 dB drop against t3's head)
@@ -203,14 +209,14 @@ def build():
             endpad = ENDPAD and ENDI and sec == "outro" and b == nb - int(ENDI)
             if (sec in ("A", "break", "C") or (PADLOW and sec == "intro") or (OUTPAD and sec == "outro")) and (b % 4 == 0 or endpad):
                 add("pad", at, ",".join(deg_note(d - 7 if PADLOW else d, 2 if False else 3) for d in degs) if not PADLOW else ",".join(deg_note(d, 2) for d in degs),
-                    (min(4, (nb - int(ENDI)) - b) if (ENDPAD and ENDI and sec == "outro" and b < nb - int(ENDI)) else 4) * BAR if not endpad else int(ENDI) * BAR, (54 + 4 * (b // 4) if sec == "intro" else int(OUTPAD) if sec == "outro" else 70))
+                    (min(4, (nb - int(ENDI)) - b) if (ENDPAD and ENDI and sec == "outro" and b < nb - int(ENDI)) else 4) * barlen(sec) if not endpad else int(ENDI) * BAR, (54 + 4 * (b // 4) if sec == "intro" else int(OUTPAD) if sec == "outro" else 70))
             if AIR and sec in ("B", "C"):
                 for q in range(16):
                     add("shk", at + q, "sh", 1, int(AIR) + (14 if q % 2 else 0) - (8 if q % 4 == 0 else 0))
     if LOOP421 and BELL:
         b0, b1 = sec_start("break"), sec_start("C")
         for i, at in enumerate(range(b0, b1, 4)):
-            add("bell", at, ("G6", "G5", "G4")[i % 3], 4, int(LOOP421) + (6 if i % 3 == 0 else 0))
+            add("bell", at, (("G4", "G6", "G5") if METER else ("G6", "G5", "G4"))[i % 3], 4, int(LOOP421) + (6 if i % 3 == 0 else 0))
     return {k: stream(ev[k], total()) for k in TRACKS}
 
 
@@ -274,6 +280,25 @@ def dialled(tr, off16):
     return tr
 
 
+def waltz(file, name, off16, gain, fx, sends):
+    """The refrain counted in 3/4: each 'four, two, one' (rep r, two bars) puts 'four' on beat 2, 'two' on beat 3 and 'one' on
+    the next downbeat; the take's own small lead-ins are kept; 'four'/'two' fit a beat, 'one' is held longer each time."""
+    tr = voice(file, name, off16, gain, fx, sends)
+    src = json.load(open(os.path.join(HERE, file)))["tracks"][0]
+    off = off16 / 4
+    notes, fv = [], []
+    for i, n in enumerate(src["notes"]):
+        r, w = divmod(i, 3)
+        lead = n["at"] - (8 * r + 1.5 * w)
+        at = 6 * r + (1, 2, 3)[w] + max(0.0, min(lead, 0.35))
+        ln = min(n["len"], 0.9) if w < 2 else min(2.6, n["len"] * (1 + 0.25 * r))
+        notes.append(dict(n, at=round(at + off, 4), len=round(ln, 3)))
+        fv.append([f"{at + off:.3f}b", src["auto"]["fv"]["points"][i][1]])
+    tr["notes"] = notes
+    tr["auto"] = {**tr.get("auto", {}), "fv": {"points": fv}}
+    return tr
+
+
 def voice(file, name, off16, gain, fx, sends):
     """A tts line (tts --print) at one or more offsets (sixteenths); sung lines (--sing) have no formant lane."""
     src = json.load(open(os.path.join(HERE, file)))["tracks"][0]
@@ -300,7 +325,8 @@ def song():
         **({"tuning": [{"edo": 12}, {"at": f"{st['break'] // BAR}bar", "steps": ["9/8", "5/4", "4/3", "3/2", "5/3", "15/8", "2/1"],
                                    "root": "G3", "ramp": "8bar"}]} if JI else {}),
         **({"vars": {"height": {"steps": heights(), "every": "1/8", "smooth": "80ms"}}} if (HEIGHTVAR or HEIGHTAIR or HEIGHTPAN) else {}),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": -11, "seed": SEED, "tail": "2s",
+        "tempo": ([{"at": "0b", "bpm": BPM}, {"at": f"{st['break'] / 4:g}b", "bpm": BPM, "meter": "3/4"},
+                   {"at": f"{st['C'] / 4:g}b", "bpm": BPM, "meter": "4/4"}] if METER else BPM), "ceiling": "-1dB", "loudness": -11, "seed": SEED, "tail": "2s",
         "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=30", "peak cutoff=250 q=0.8 gain=-1.5dB", "peak cutoff=1500 q=0.7 gain=-3dB", "highshelf cutoff=7000 gain=1.5dB"]
                            if not EQ8 else ["highpass cutoff=30", "peak cutoff=250 q=0.8 gain=-1.5dB", "peak cutoff=400 q=1.0 gain=-2.5dB", "peak cutoff=1400 q=1.2 gain=-2dB",
                                             "peak cutoff=1500 q=0.7 gain=-3dB", "highshelf cutoff=7000 gain=5dB"]},
@@ -337,7 +363,7 @@ def song():
             *([clouded(voice("chirpers8-t2-sung.json", "sung", [st["C"] + 12 * BAR, st["C"] + 40 * BAR], f"{SING}dB",
                      [{"type": "chorus", "rate": 0.25, "depth": 0.15, "mix": 0.2}, "hp cutoff=150"], {"plate": "-7dB", "echo": "-13dB"}),
                      [st["C"] + 12 * BAR, st["C"] + 40 * BAR])] if SING else []),
-            voice("chirpers8-t2-refrain.json", "refrain", st["break"] + 4 * BAR, "-9dB", [], {"plate": "-8dB", "echo": "-14dB"}),
+            (waltz if METER else voice)("chirpers8-t2-refrain.json", "refrain", st["break"] + 4 * barlen("break"), "-9dB", [], {"plate": "-8dB", "echo": "-14dB"}),
         ],
     }
 
