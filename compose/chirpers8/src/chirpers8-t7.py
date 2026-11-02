@@ -272,6 +272,23 @@ def build():
         for q in range(upto):
             if TARGET[q] is not None:
                 P['glim'].append(((g0 + gb) * 4.0 + q * 0.25, tok(hz(TARGET[q], 0)), 0.5, 62 + 4 * k_))
+    # (v21) THE HEAT IS LOUD: after the intro the song sat within 1.2 dB for five minutes (chirp-eco: the album's
+    # flattest). Now its energy follows the physics - hot is loud, and as the search cools the whole machine really
+    # cools: a master gain lane, one point a bar, +0.5 dB through the hot first epochs, falling through the cooling
+    # ones to -2.5, a clear -2 for the convergence (the voice and the found riff still on top), a +1.5 dB flare for
+    # the reheat, then the cold crystal of the coda sinking to -7
+    secb = {}
+    acc_ = 0
+    for nm_, n_ in FORM:
+        secb[nm_] = (acc_, n_); acc_ += n_
+    def energy(b_):
+        for nm_, (s0_, n_) in secb.items():
+            if s0_ <= b_ < s0_ + n_:
+                f_ = (b_ - s0_) / max(1, n_ - 1)
+                return {'power': -3 + 3.5 * f_, 'e1': 0.5, 'e2': 0.5 - 0.5 * f_, 'e3': -1.5 * f_, 'e4': -1.5 - 1.0 * f_,
+                        'e5': -2.5, 'converged': -2.0, 'reheat': 1.5, 'coda': -3.0 - 4.0 * f_}[nm_]
+        return -7.0
+    Epts = [[f'{b * 4.0:.1f}b', round(energy(b), 2)] for b in range(nb)]
     # the temperature as a lane (one point a bar)
     Tpts = [[f'{b * 4.0:.1f}b', T[b]] for b in range(nb)]
     tr = lambda name, patch, gain, **kw: dict({'name': name, 'patch': patch, 'gain': gain, 'score': line(P[name], total)}, **kw)
@@ -283,7 +300,8 @@ def build():
                   'echo': {'fx': [{'type': 'delay', 'time': '3/16', 'feedback': 0.4, 'mix': 1}, 'lp cutoff=4000', 'hp cutoff=250'], 'returns': []}},
         'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=30', 'peak cutoff=60 q=0.9 gain=-5dB', 'peak cutoff=300 q=0.8 gain=-2dB', 'highshelf cutoff=4500 gain=7dB']},
                           {'type': 'compressor', 'threshold': '-18dB', 'ratio': 2.5, 'attack': '10ms', 'release': '120ms', 'makeup': '2dB'},
-                          'limiter ceiling=-1dB']},
+                          {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.E', 'amount': 1}]}},
+                          'limiter ceiling=-1dB'], 'auto': {'E': {'points': Epts}}},
         'tracks': [
             # (v20: the search on a plucked synth, arp-pluck, was tried - even without its ping-pong it thinned the song's
             # body: variety 84, cohesion 92 - and the search stays on the moog-seq; the bass is what moved, below)

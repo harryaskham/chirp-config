@@ -121,3 +121,4 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 - **t1 A HUMAN KIT** (v23): kit machine-kit -> tight-kit (eq peak 75 +4, highshelf 9k -5); claps -> sidestick (ss) in A/B/D, full snare (s) in C; the CA rim stays on machine-kit.
 - **t7 THE BASS CHURNS** (v20): bass moog-seq -> reese (-5 dB, lp 1200, peak 110 +3): detuned drifting saw pairs over a sine sub. Tried and dropped: the search on arp-pluck (structure 70 with its ping-pong, variety 84 without).
 - **t10 A SECOND SINGER** (v29): calls2 bars 0-7, a duet voice (track duet, seed 21, pan +0.3, -11 dB) mostly a third below the G minor line: G3 F3 D3 | Eb3 C3 Eb3 | Eb3 F3 G3 Bb3 A3 | F#3 | F3 Bb3 A3 G3 | Eb3 G3 Bb3 G3 | G3 C4 | A3.
+- **t7 THE HEAT IS LOUD** (v21): master gain lane E after the compressor, one point a bar: power -3 -> +0.5, e1 +0.5, e2 +0.5 -> 0, e3 0 -> -1.5, e4 -1.5 -> -2.5, e5 -2.5, converged -2, reheat +1.5, coda -3 -> -7.
