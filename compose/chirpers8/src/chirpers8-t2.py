@@ -37,6 +37,8 @@ OWNHATS = os.environ.get("C8T2_OWNHATS", "1")   # the rest of the drum machine o
 OWNKICK = os.environ.get("C8T2_OWNKICK", "1")   # and the kick: the machine layer's 909-style kick tuned to G1 (the key's root), instead of machine-kit's
 TOMBACK = os.environ.get("C8T2_TOMBACK", "swap")   # PALETTE ROUND: the backbeat on a drum machine of our own - the engine's `machine` layer (circuit-modelled drum-machine voices, unused on the album) as a tuned electronic tom: G3 on 2, D3 on 4 (the halving's lone 3 on G3), the syndrum backbeat of the old machine records. 'swap' replaces the machine-kit clap (a staple of 9 songs); 'layer' keeps the clap under it
 CONVERGE = os.environ.get("C8T2_CONVERGE", "6")   # WHOLE ROUND: THE PATHS MEET - in C the canon gives way to a second number. Each of C's climbs gets a partner whose own hailstone path joins it partway (27 and 41 meet 313, 31 meets 297), played on the second clarinet in its own register and the same parity rhythm, timed so the two land on the shared number together; they sound in unison for six steps, then the partner falls silent and one line goes on down to 1 - the conjecture heard: different starts, one road home. Value = 'unison steps'
+HALFARP = os.environ.get("C8T2_HALFARP", "1")   # SECTION ROUND (w8): the halving reaches the top - while the drums go half-time (C bars 24-31) the chip arps go to eighths (the notes between kept at velocity 1, no dice move), so the whole band halves, not just the kit
+GLKUP = os.environ.get("C8T2_GLKUP", "70")   # SECTION ROUND (w8): the high climb launches with a glockenspiel (modal-glock, the library's physical mallet) doubling the clarinet two octaves up from C bar 31 to 37, its own track listed last; value = velocity scale percent
 BKEY = os.environ.get("C8T2_BKEY", "2")   # SECTION ROUND (w4, B's first twelve bars): the small climbs (9, 18, 11) start somewhere else - B opens BKEY semitones up and comes home to G at bar 12, where 18 begins again: the same numbers in another key, then the same numbers at home. Every pitched part moves (clarinet, canon a bar later, arps, bass, sub, pad, bells); no note is added or removed, so no dice move
 VOXDROP = os.environ.get("C8T2_VOXDROP", "12,4")   # SECTION ROUND (w7): the floor drops under the first sung line - for C bars START..START+LEN (default 12,4: the line and 27's landing on 1) the kit thins to a kick on each bar's one (hats, shaker, clap, tom out, their notes kept at velocity 1 so no dice move); bass, pad and the vibes' chime stay; the band is back for 31. The second landing (v34) is a full stop, so the song builds the gesture: thin, then silent. Value = 'start,len' bars
 LANDING = os.environ.get("C8T2_LANDING", "92all")   # SECTION ROUND (w9): when C's high climb (27, an octave up) lands on 1 the band stops for the bar before 41 begins - drums, bass and arps out (their notes kept at velocity 1, so later dice stay put) - and a vibraphone (modal-vibes, the library's new physical mallet) rings G B D, the one; the partner already on its way to 41 carries through the hole and a crash brings the band back. 'all' also rings the vibes at C's other landings (no stop). Value = vibes velocity
@@ -88,7 +90,7 @@ def barlen(sec):
     """Sixteenths in a bar of this section: the break is in 3/4 under METER."""
     return 12 if METER and sec == "break" else BAR
 SEEDS = {"intro": [6, 6], "A": [7, 12, 3, 7], "B": [9, 18, 11], "C": [27, 31, 27, 41], "outro": [1]}
-TRACKS = ("clar", "clar2", "arp", "bass", "sub", "kick", "shk", "hats", "clap", "pad", "bell", "crash") + (("tom",) if os.environ.get("C8T2_TOMBACK", "swap") else ()) + (("ohat",) if os.environ.get("C8T2_OWNHATS", "1") else ()) + (("bell2",) if os.environ.get("C8T2_PREFIGTRACK", "1") else ()) + (("kick2", "tom2", "crash2") if os.environ.get("C8T2_HALVLOCAL", "1") else ()) + (("vib",) if os.environ.get("C8T2_LANDING", "92all") else ())
+TRACKS = ("clar", "clar2", "arp", "bass", "sub", "kick", "shk", "hats", "clap", "pad", "bell", "crash") + (("tom",) if os.environ.get("C8T2_TOMBACK", "swap") else ()) + (("ohat",) if os.environ.get("C8T2_OWNHATS", "1") else ()) + (("bell2",) if os.environ.get("C8T2_PREFIGTRACK", "1") else ()) + (("kick2", "tom2", "crash2") if os.environ.get("C8T2_HALVLOCAL", "1") else ()) + (("vib",) if os.environ.get("C8T2_LANDING", "92all") else ()) + (("glk",) if os.environ.get("C8T2_GLKUP", "70") else ())
 GMAJ = ["G", "A", "B", "C", "D", "E", "F#"]
 CHORDS = [("G", [0, 2, 4]), ("E", [5, 7, 9]), ("C", [3, 5, 7]), ("D", [4, 6, 8])]   # I vi IV V as degrees from G
 PRIMES = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31)
@@ -295,6 +297,21 @@ def build():
         wins = [(c0 + 12 * BAR - 1, c0 + 12 * BAR + 34), (c0 + 40 * BAR - 1, c0 + 40 * BAR + 34)]
         for k in SUNGROOM.split(","):
             ev[k] = [e for e in ev[k] if not any(a <= e[0] < b or (e[0] < a < e[0] + e[2]) for a, b in wins)]
+    if HALFARP and HALVING:
+        c0 = sec_start("C")
+        h0, hn = (int(x) for x in HALVING.split(","))
+        u, w = c0 + h0 * BAR, c0 + (h0 + hn) * BAR
+        ev["arp"] = [(a, h, l, 1 if u <= a < w and (a - c0) % 2 != 0 else v) for (a, h, l, v) in ev["arp"]]
+    if GLKUP:
+        import re as _re
+        NN2 = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+        def up12(mo):
+            n = NN2.index(mo.group(1)) + {"#": 1, "b": -1, "": 0}[mo.group(2)] + 12 * int(mo.group(3)) + 12
+            return f"{NN2[n % 12]}{n // 12}"
+        pat2 = _re.compile(r"(?<![A-Za-z])([A-G])(#|b|)(\d)(?![\d.])")
+        c0 = sec_start("C")
+        ev["glk"] = [(a, pat2.sub(up12, h), l, max(1, int(v * int(GLKUP) / 100))) for (a, h, l, v) in ev["clar"]
+                     if c0 + 31 * BAR <= a < c0 + 37 * BAR and not h.startswith("!")]
     if BKEY:
         import re
         NN = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
@@ -436,7 +453,7 @@ def voice(file, name, off16, gain, fx, sends):
 
 def song():
     doc = song0()
-    if HALVLOCAL or LANDING:
+    if HALVLOCAL or LANDING or GLKUP:
         T = build()
         trs = doc["tracks"]
         for nm in (("kick", "tom", "crash") if HALVLOCAL else ()):
@@ -444,6 +461,8 @@ def song():
             trs.append(dict(spec, name=nm + "2", score=T[nm + "2"]))
         if LANDING:
             trs.append({"name": "vib", "patch": "modal-vibes", "gain": "-9dB", "pan": 0.2, "sends": {"plate": "-14dB"}, "score": T["vib"]})
+        if GLKUP:
+            trs.append({"name": "glk", "patch": "modal-glock", "gain": "-12dB", "pan": -0.25, "sends": {"plate": "-12dB"}, "score": T["glk"]})
     return doc
 
 
