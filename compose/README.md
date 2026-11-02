@@ -51,7 +51,8 @@ re-saves features (run it after several songs change).
 
 An album can set `params.rounds` in its `album.json`, e.g. `{"whole": 0.4, "section": 0.4, "palette": 0.2}`. Then
 `climb.py next` draws each round's TYPE, from those weights, per song and round number (reproducible), and the brief
-says which. `next --type T` overrides the draw when you have a reason. Name the type in your round note. Without
+says which. `next --type T` overrides the draw when you have a reason; `climb.py type ID` prints one song's type, for
+owners who rotate their own songs. Name the type in your round note. Without
 `params.rounds`, every round is a whole-song round as before.
 
 - **whole**: the usual round, the bold change that moves the whole song most.
@@ -64,7 +65,7 @@ says which. `next --type T` overrides the draw when you have a reason. Name the 
   `chirp render --from/--to` commands for each window, alone and in context. After the change,
   `sections … --wav NEW.wav --against OLD.wav` shows per-window deltas, so you can confirm the change stayed in its
   window and see how it moved against its neighbours. The full-length score must not regress beyond noise, or keep it
-  on judgment. Record the round with `sections … --mark N --note '…'`, which writes the song's ledger
+  on judgment. Record the round with `sections … --mark N --note '…' --as NAME`, which writes the song's ledger
   `compose/ALBUM/sections/ALBUM-tN.jsonl` and commits it, so focus rotates through the song. The flags are a
   flashlight, not a quota: a static window can be the point.
 - **palette**: `chirpers.py palette ALBUM-tN` lists the song's instruments (track, patch, what it is made of), the

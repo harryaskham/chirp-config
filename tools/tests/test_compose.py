@@ -365,6 +365,12 @@ class RoundTypes(unittest.TestCase):
         self.assertIsNone(CH.C.round_type(c))                             # no params.rounds: no type line
         self.assertIsNone(CH.C.round_type({"id": "x", "mode": "climb"}))
 
+    def test_the_section_ledger_records_who_focused_which_window(self):
+        import sectionmap as SM
+        quiet(SM.main, ["alb-t3", "--mark", "2", "--note", "the bridge, thinned", "--as", "chirper-x", "--no-git"])
+        last = SM.read_ledger("alb-t3")[-1]
+        self.assertEqual((last["who"], last["window"], last["note"]), ("chirper-x", 2, "the bridge, thinned"))
+
 
 class IllusionPresence(unittest.TestCase):
     def test_a_buried_half_and_a_present_half(self):

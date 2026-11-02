@@ -246,12 +246,13 @@ def main(argv=None):
     ap.add_argument("--note", help="with --mark: what the round did")
     ap.add_argument("--pin", help="chirp binary (default: tools/groove-pin)")
     ap.add_argument("--json", action="store_true")
-    ap.add_argument("--as", dest="as_", help=argparse.SUPPRESS)
-    ap.add_argument("--no-git", action="store_true", help=argparse.SUPPRESS)
+    ap.add_argument("--as", dest="as_", metavar="NAME", help="who you are, as climb.py's --as (default: CLIMB_AS or the "
+                                                                "session, else the song's owner)")
+    ap.add_argument("--no-git", action="store_true", help="with --mark: write the ledger without committing")
     a = ap.parse_args(argv)
     song, climb = song_path(a.id)
     if a.mark is not None:
-        return mark(a, song, climb, argv or [])
+        return mark(a, song, climb, list(sys.argv[1:] if argv is None else argv))
     tmp = None
     wav = a.wav
     if not wav:
@@ -298,15 +299,20 @@ def mark(a, song, climb, argv):
         raise SystemExit("sectionmap: --mark N needs --note '…' (what the round did to that window)")
     path = ledger_path(a.id)
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    e = {"id": a.id, "window": a.mark, "at": C.now_iso(), "who": C.whoami(argv),
+    who = a.as_ or C.whoami(argv)
+    fallback = f"{os.environ.get('USER', '?')}@{os.uname().nodename}"
+    if who == fallback and climb.get("owner"):
+        who = str(climb["owner"]).split()[0]           # no identity set: the song's owner (section rounds are theirs)
+    e = {"id": a.id, "window": a.mark, "at": C.now_iso(), "who": who,
          "version": (climb.get("best") or {}).get("version"), "note": a.note}
     with open(path, "a") as f:
         f.write(json.dumps(e) + "\n")
     print(f"{a.id}: section round on w{a.mark} recorded ({e['who']})")
-    if "--no-git" not in argv:
+    if not a.no_git:
         rel = os.path.relpath(path, ROOT)
         subprocess.run(["git", "-C", ROOT, "add", rel], check=False)
-        C.commit_or_die([rel], f"compose: {e['who']} section round on {a.id} w{a.mark}: {a.note[:80]}", argv)
+        C.commit_or_die([rel], f"compose: {e['who']} section round on {a.id} w{a.mark}: {a.note[:80]}",
+                        argv + (["--as", who] if "--as" not in argv else []))
 
 
 if __name__ == "__main__":

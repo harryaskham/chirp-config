@@ -19,10 +19,14 @@ for any climbing agent's next pass, one climb to work on, weighted towards the f
                                                     the original is kept in ref/albums/SLUG/
   climb.py refs ALBUM SOURCE                        replace an album's references (matched by track number),
                                                     e.g. with better files; notes each climb to re-measure
-  climb.py next [--as NAME] [--peek] [--take ID] [--include-owned] [--json] [--seed N]
+  climb.py next [--as NAME] [--peek] [--take ID] [--include-owned] [--json] [--seed N] [--type T]
                                                     pick this pass's climb (and say what to do); skips climbs
                                                     another agent owns (--include-owned draws them too);
-                                                    --peek records no start, --take ID starts exactly that one
+                                                    --peek records no start, --take ID starts exactly that one;
+                                                    composition albums with params.rounds print a ROUND TYPE
+                                                    (whole, section, palette; --type T overrides the draw)
+  climb.py type ID [--type T]                       this round's type for one song (for owners who rotate their
+                                                    own songs; compose/README.md, Round types)
   climb.py done ID --note TEXT [--score S --version vN] [--next TEXT] [--engine SHA]
                [--with FILE …] [--render WAV] [--as NAME] [--force]
                                                     record the round (kept or not), hand off; --with refuses
@@ -786,6 +790,20 @@ def round_type(c, override=None):
     return rng.choices(ks, weights=[w[k] for k in ks])[0]
 
 
+def cmd_type(a):
+    """This round's type for one song: `climb.py type ID [--type T]`."""
+    ids = [x for x in a if not x.startswith("--") and x != opt(a, "--type") and x != opt(a, "--as")]
+    if not ids:
+        die("climb.py type ID [--type T]", 2)
+    c = find(load(), ids[0])
+    rt = round_type(c, opt(a, "--type"))
+    n = int(c.get("rounds") or 0) + 1
+    if not rt:
+        print(f"{c['id']} round {n}: its album sets no params.rounds, so a whole-song round")
+        return
+    print(f"{c['id']} round {n}: {rt}\n{ROUND_TYPES[rt].format(id=c['id'])}")
+
+
 def compose_brief(c):
     """A composition climb's brief (compose/README.md): its slot, the album, its neighbours and the latest ratings."""
     out = []
@@ -1289,8 +1307,8 @@ def main():
              "note": cmd_note,
              "pause": lambda r: cmd_state(r, "paused"), "resume": lambda r: cmd_state(r, "active"),
              "drop": lambda r: cmd_state(r, "dropped"), "focus": cmd_focus, "tui": cmd_tui,
-             "commit": cmd_commit, "publish": cmd_publish}
-    if cmd in ("-h", "--help", "help"):
+             "commit": cmd_commit, "publish": cmd_publish, "type": cmd_type}
+    if cmd in ("-h", "--help", "help") or "--help" in rest or "-h" in rest:
         print(__doc__)
         return
     if cmd not in table:
