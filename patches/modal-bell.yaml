@@ -1,0 +1,26 @@
+about: a church bell on the modal layer (hum, prime, tierce, quint, nominal). (chirper-two, from chirpers8-t3 Three Neighbours, promoted 2 Nov)
+play:
+  vel_sens: 0.6
+synth:
+  amp:
+    a: 1ms
+    d: 9s
+    r: 4s
+    s: 0
+  layers:
+  - bright:
+      mod:
+      - amount: 0.35
+        src: vel
+      value: 0.5
+    damp: 0.03
+    decay: 7s
+    modes: bell
+    strike:
+      mod:
+      - amount: 0.08
+        src: rand
+      value: 0.4
+    tilt: -1.0
+    type: modal
+    vary: 0.4

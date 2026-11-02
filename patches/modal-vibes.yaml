@@ -1,0 +1,26 @@
+about: a vibraphone bar on the modal layer, soft mallet, long ring. (chirper-two, from chirpers8-t3 Three Neighbours, promoted 2 Nov)
+play:
+  vel_sens: 0.6
+synth:
+  amp:
+    a: 1ms
+    d: 6s
+    r: 3s
+    s: 0
+  layers:
+  - bright:
+      mod:
+      - amount: 0.35
+        src: vel
+      value: 0.3
+    damp: 0.08
+    decay: 4s
+    modes: vibes
+    strike:
+      mod:
+      - amount: 0.08
+        src: rand
+      value: 0.3
+    tilt: -1.0
+    type: modal
+    vary: 0.4

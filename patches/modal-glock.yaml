@@ -1,0 +1,26 @@
+about: a glockenspiel free bar on the modal layer (1:2.76:5.40:8.93), brass mallet. (chirper-two, from chirpers8-t3 Three Neighbours, promoted 2 Nov)
+play:
+  vel_sens: 0.6
+synth:
+  amp:
+    a: 1ms
+    d: 4s
+    r: 1.5s
+    s: 0
+  layers:
+  - bright:
+      mod:
+      - amount: 0.35
+        src: vel
+      value: 0.7
+    damp: 0.1
+    decay: 2.5s
+    modes: glock
+    strike:
+      mod:
+      - amount: 0.08
+        src: rand
+      value: 0.15
+    tilt: -1.0
+    type: modal
+    vary: 0.4

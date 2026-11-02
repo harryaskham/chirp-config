@@ -1,0 +1,26 @@
+about: a rosewood bar on the modal layer (marimba modes 1:4:10), hard yarn. (chirper-two, from chirpers8-t3 Three Neighbours, promoted 2 Nov)
+play:
+  vel_sens: 0.6
+synth:
+  amp:
+    a: 1ms
+    d: 4s
+    r: 1.5s
+    s: 0
+  layers:
+  - bright:
+      mod:
+      - amount: 0.35
+        src: vel
+      value: 0.45
+    damp: 0.25
+    decay: 1.4s
+    modes: bar
+    strike:
+      mod:
+      - amount: 0.08
+        src: rand
+      value: 0.22
+    tilt: -1.0
+    type: modal
+    vary: 0.4
