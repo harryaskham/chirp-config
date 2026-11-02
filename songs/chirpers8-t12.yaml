@@ -163,8 +163,55 @@
      "kind": "lp",
      "cutoff": 3000
     },
-    "chorus"
-   ]
+    "chorus",
+    {
+     "type": "vinyl",
+     "crackle": 0.35,
+     "dust": 0.3,
+     "noise": "-56dB",
+     "rumble": 0.2,
+     "warp": 8,
+     "wear": 0.45
+    },
+    {
+     "type": "gain",
+     "gain": {
+      "value": "0dB",
+      "mod": [
+       {
+        "src": "auto.vg",
+        "amount": 1
+       }
+      ]
+     }
+    }
+   ],
+   "auto": {
+    "vg": {
+     "points": [
+      [
+       "0b",
+       -80.0
+      ],
+      [
+       "703b",
+       -80.0
+      ],
+      [
+       "703.5b",
+       0.0
+      ],
+      [
+       "749.5b",
+       0.0
+      ],
+      [
+       "752.5b",
+       -80.0
+      ]
+     ]
+    }
+   }
   },
   {
    "name": "standby",

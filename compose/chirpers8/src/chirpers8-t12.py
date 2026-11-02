@@ -409,6 +409,15 @@ MEMORY = [
 ]
 
 
+# v16: THE MEMORIES PLAY BACK FROM A RECORD - the reel runs through vinyl (crackle, dust, surface noise, rumble, wow
+# of 8 cents per platter turn, wear rolling off the top); a gate lane keeps the record silent outside the reel (the
+# lesson of the radio in v10): the needle drops half a bar before the first memory, and in the last bar the
+# crackle fades away while the standby light breathes on - the record ends, the light stays on
+def vinyl_gate():
+    return [["0b", -80.0], [f"{rb(179) - 2.5:g}b", -80.0], [f"{rb(179) - 2:g}b", 0.0], [f"{rb(190):g}b", 0.0],
+            [f"{rb(190) + 3:g}b", -80.0]]
+
+
 def memory():
     for k, (tonic, notes) in enumerate(MEMORY):
         bar = 179 + k
@@ -495,7 +504,11 @@ def main():
             tr("gong", GONG, gain="-9dB", sends={"hall": "-8dB"}),                         # v15: the gong
             tr("tower", TOWER_BELL, gain="-8dB", pan=-0.2, sends={"hall": "-6dB"}),      # v12: the bell tower
             tr("memory", "dx-epiano", gain="-10dB", pan=0.2, sends={"hall": "-6dB"},
-               fx=[{"type": "filter", "kind": "lp", "cutoff": 3000}, "chorus"]),   # v10 (a radio's hiss ran all song)
+               fx=[{"type": "filter", "kind": "lp", "cutoff": 3000}, "chorus",     # v10 (a radio's hiss ran all song)
+                   {"type": "vinyl", "crackle": 0.35, "dust": 0.3, "noise": "-56dB", "rumble": 0.2, "warp": 8,
+                    "wear": 0.45},                                                  # v16: played back from a record
+                   {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.vg", "amount": 1}]}}],
+               auto={"vg": {"points": vinyl_gate()}}),
             tr("standby", "partial", gain="-14dB", sends={"hall": "-10dB"},
                fx=[{"type": "tremolo", "rate": 0.2, "depth": 0.95}]),                # v9: the breathing light
             tr("hum", "partial", gain="-28dB"),           # v3: 6 dB down, meeting t11's hum across the seam
