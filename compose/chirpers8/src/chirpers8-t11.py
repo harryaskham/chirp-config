@@ -125,6 +125,23 @@ THUNDER = {"synth": {"layers": [{"type": "noise", "color": "pink"}, {"wave": "si
            "fx": [{"type": "tremolo", "rate": 3, "depth": 0.45}]}
 
 
+# v16: A THUNDER SHEET - before recordings, theatres made thunder INDOORS by shaking a big metal sheet; every thunder
+# now has one: a modal PLATE (the album's last unused physical family) struck near its edge, so its dense upper modes
+# ring, with a large bloom - and SHAKEN, a roll of ~7 strikes over a beat and a half, decaying, at a slightly
+# different low pitch each time: the storm in this song is stage weather, made indoors
+SHEET = {"synth": {"layers": [{"type": "modal", "modes": "plate", "decay": "4s", "damp": 0.03, "bloom": 0.8,
+                               "strike": 0.8}],
+                   "amp": {"a": "1ms", "d": "4s", "s": 0, "r": "2s", "curve": 3}}}
+SHEET_ROLL = (0.0, 0.11, 0.24, 0.4, 0.6, 0.86, 1.2)
+
+
+def sheet_roll(bar, vel):
+    rng = random.Random(1000 + bar)
+    nt = f"m{rng.choice((37, 38, 39, 40))}"
+    for k, at in enumerate(SHEET_ROLL):
+        part("sheet").add(b0(bar) + at + rng.uniform(-0.02, 0.02), 1.5, nt, max(30, int(vel * (1 - 0.11 * k)) + rng.randint(-5, 5)))
+
+
 def write_thunder():
     for bar in range(2, BARS + 1):
         if lobe_at(bar) == lobe_at(bar - 1):
@@ -132,8 +149,10 @@ def write_thunder():
         sec = sec_of(bar)
         if sec in ("A", "B", "C"):
             part("thunder").add(b0(bar), 8.0, "m28.000", 84 + int(state(bar)[2]))
+            sheet_roll(bar, 70 + int(state(bar)[2]))                                  # v16: the sheet
         elif sec == "break":
             part("thunder").add(b0(bar), 8.0, "m28.000", 52)
+            sheet_roll(bar, 50)
 
 
 # v11: THE WIND IN THE GAP - pink noise through a feedback COMB that whistles at its cutoff and harmonics, the
@@ -476,6 +495,7 @@ def main():
              "notes": toll_notes()},                                                       # v8: the bell carries over
             tr("wind", WIND, gain="-14dB", pan=0.25, sends={"hall": "-8dB"}),           # v11: the wind in the gap
             tr("thunder", THUNDER, gain="-6dB", pan=-0.1, sends={"hall": "-4dB"}),          # v10: thunder at the flips
+            tr("sheet", SHEET, gain="-10dB", pan=0.15, sends={"hall": "-6dB"}),            # v16: the thunder sheet
             tr("rainL", "celesta", gain="-8dB", pan=-0.6, sends={"hall": "-8dB"}),       # v9: rain indoors
             tr("rainR", "celesta", gain="-8dB", pan=0.6, sends={"hall": "-8dB"}),
             tr("pad", "juno-pad", gain="-11dB", pan=-0.15, sends={"hall": "-8dB"},
