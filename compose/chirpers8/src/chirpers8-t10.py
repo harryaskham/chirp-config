@@ -69,7 +69,7 @@ def build():
         for i in range(n):
             bars.append((name, i, tp))
     total = len(bars) * 4.0
-    P = {k: [] for k in ('bell', 'sync', 'pwm', 'bass', 'sub', 'd1', 'd2', 'd3', 'kit', 'pulse', 'glass', 'cs', 'bell0', 'organ')}
+    P = {k: [] for k in ('bell', 'sync', 'pwm', 'bass', 'sub', 'd1', 'd2', 'd3', 'kit', 'pulse', 'glass', 'cs', 'bell0', 'organ', 'hq')}
     # the call stack: a seeded walk, one move every four bars in the calls sections
     depth, depths = 0, []
     for b, (s, i, tp) in enumerate(bars):
@@ -286,6 +286,15 @@ def build():
         st_ = shift(c - 3.5)
         tempo_map += [{'at': f'{st_:.2f}b', 'bpm': BPM, 'meter': '7/8'}, {'at': f'{st_ + 3.5:.2f}b', 'bpm': BPM, 'meter': '4/4'}]
     tr = lambda name, patch, gain, **kw: dict({'name': name, 'patch': patch, 'gain': gain, 'score': line(P[name], total)}, **kw)
+    # (v25) HOCKET: in the middle of the first calls (bars 8-15) the bell no longer plays the subject alone - it calls
+    # one note and a clarinet on the other side returns the next, the line passed back and forth note by note (the
+    # piece's call and return at the smallest scale), until the countersubject arrives and the bell takes it all back
+    h0, h1 = secs_t['calls1'] + 32.0, secs_t['calls1'] + 64.0
+    hb = sorted(e_ for e_ in P['bell'] if h0 - 1e-6 <= e_[0] < h1 - 1e-6)
+    P['bell'] = [e_ for e_ in P['bell'] if not (h0 - 1e-6 <= e_[0] < h1 - 1e-6)]
+    for k_, e_ in enumerate(hb):
+        (P['hq'] if k_ % 2 else P['bell']).append(e_ if k_ % 2 == 0 else (e_[0], e_[1], e_[2], e_[3] - 8))
+    P['bell'].sort()
     # (v15) GOING DOWN: at each overflow the voice stutters one word into the cut - 'down', five times, faster and lower
     # each time (0, -2, -4, -6, -9 semitones), the last one swallowed by the dropped eighth: the sung line's first
     # word ('down the well of mirrors') caught in the overflow, before the stack unwinds and the voice comes back home
@@ -339,6 +348,7 @@ def build():
             tr('cs', 'clarinet', '-9dB', pan=-0.45, sends={'hall': '-10dB', 'echo': '-18dB'}),
             tr('organ', 'organ-pipe', '-13dB', pan=0.0),
             tr('pulse', 'clarinet', '-10dB', pan=-0.15, sends={'hall': '-14dB', 'echo': '-16dB'}),
+            tr('hq', 'clarinet', '-9dB', pan=0.45, sends={'hall': '-12dB', 'echo': '-16dB'}),
             # (v8) THE MACHINE'S OWN PATTERNS: a percussion line written in the engine's Euclidean and chance tokens, a
             # different cycle for each key of the canon - in D minor seven triplet-eighth rims spread over the bar (7 in 12,
             # rotated, each with an 85% chance: a 7-against-4 the kick never agrees with), in G minor a cowbell five-in-
