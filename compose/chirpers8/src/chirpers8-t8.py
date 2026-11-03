@@ -71,6 +71,7 @@ LATER = os.environ.get("C8T8_LATER", "-8")   # WHOLE ROUND: a second sung line, 
 LATERDROP = os.environ.get("C8T8_LATERDROP", "1")   # with LATER: the word steps aside for the voice - for E bars 12-13 the word, its marimba, the zeros, the hats and the clap are kept at velocity 1 (no dice move), so 'it comes later on' is heard over pads, bass and kick (in the full mix whisper heard nothing; soloed it reads exactly)
 HANDS = os.environ.get("C8T8_HANDS", "clap")   # PALETTE: the clap and the rim leave the 909 kit for the machine layer's own synthesised clap and rim ('clap', 'rim', or 'both'): with v36's kick, the kit is the song's own
 ECHOCH = os.environ.get("C8T8_ECHOCH", "84")   # SECTION ROUND (w8, E: static): it comes later on - the sung line's tune (A4 G4 F4 E4 D4, as sung at E bar 12) comes back on the tape choir (mellotron-choir, wordless, its own track echoch listed last) four bars later and again four bars after that, softer each time: the delay line handing the phrase back. Lifted with E. Value = first velocity
+FLYBY = os.environ.get("C8T8_FLYBY", "20,1")   # SECTION ROUND (w9, E's end: little new vs w8): the last read flies past - v46's second readback (E bars 24-27, the word's four notes a semitone up) moves to its own track and passes the listener left to right, one fly-by across the four bars (orbit path=line, engine c7606671), the Doppler drop on each note as it goes by: the memory read out of the line one last time and carried away. Value = 'radius,doppler'
 WORDORB = os.environ.get("C8T8_WORDORB", "rate=1/8 radius=2 mix=0.7")   # WHOLE ROUND: the word recirculates - a mercury delay line keeps a word by sending it round and round, so the word (dx-epiano, its bits all song) goes round the listener: an orbit (engine c7606671, after Chowning's moving sources, 1971) circling the head, darker behind, a lap every few bars, all song. Value = the orbit fx's args
 CBRK = os.environ.get("C8T8_CBRK", "28,4")   # SECTION ROUND (w6, C bars 20-31: little new vs w5, where more texture failed): the kit steps out - for C bars CBRK ('start,len') kick, hats, open hats, clap, rim and shaker stop, and what is left is the line itself: the Life cells, the VOSIM voice reading the word, the bass and the pads, until the kit comes back for D
 VOSWORD = os.environ.get("C8T8_VOSWORD", "90")   # WHOLE ROUND: the memory speaks its word - after the program counter, through C bars 20-31 (w6, 'little new vs w5', where Life alone reads as texture), a VOSIM voice (engine 1a5a0572; Kaegi and Tempelaars, 1978: two pulse-train layers make a vowel, their formants swept by a slow jaw and tongue) sings the word's bits as the dx-epiano plays them, an octave down: the oldest computer voice reading what the line holds. Value = velocity
@@ -396,9 +397,10 @@ def song():
     if READBACK:
         r0 = sec_start("refresh")
         evs = [(r0 + i * BAR, n, BAR, int(READBACK)) for i, n in enumerate(("D4", "A#3", "G3", "A3"))]
-        if READBACK2:
-            e24 = sec_start("E") + 24 * BAR
-            evs += [(e24 + i * BAR, n, BAR, int(READBACK2)) for i, n in enumerate(("D#4", "B3", "G#3", "A#3"))]
+        e24 = sec_start("E") + 24 * BAR
+        evs2 = [(e24 + i * BAR, n, BAR, int(READBACK2)) for i, n in enumerate(("D#4", "B3", "G#3", "A#3"))] if READBACK2 else []
+        if not FLYBY:
+            evs += evs2
         doc["tracks"].append({"name": "readback", "patch": {"synth": {"layers": [{"type": "bytebeat", "bytebeat": {"formula": "t*(8+8*(t>>12&3))", "clock": 8000}}]}},
                               "gain": os.environ.get("C8T8_READGAIN", "-20dB"), "pan": -0.2, "fx": [{"type": "filter", "kind": "lp", "cutoff": 2400, "q": 0.7}],
                               "sends": {"line": "-8dB", "room": "-12dB"}, "score": stream(evs, total())})
@@ -423,6 +425,15 @@ def song():
                                                              {"type": "vosim", "level": 0.55, "vosim": {"formant": {"value": 1500, "mod": [{"src": "lfo.tongue", "amount": 0.6}]}, "pulses": 4, "decay": 0.75}}],
                                                   "amp": "10ms 0.8 0.7 120ms"}},
                               "sends": {"line": "-12dB", "room": "-12dB"}, "score": T["vos"]})
+    if FLYBY and READBACK and READBACK2:
+        rad, dop = FLYBY.split(",")
+        e24 = sec_start("E") + 24 * BAR
+        ph = (-(e24 / 4) / 16) % 1
+        evs2 = [(e24 + i * BAR, n, BAR, int(READBACK2)) for i, n in enumerate(("D#4", "B3", "G#3", "A#3"))]
+        doc["tracks"].append({"name": "readback2", "patch": {"synth": {"layers": [{"type": "bytebeat", "bytebeat": {"formula": "t*(8+8*(t>>12&3))", "clock": 8000}}]}},
+                              "gain": os.environ.get("C8T8_FLYGAIN", "-14dB"),
+                              "fx": [{"type": "filter", "kind": "lp", "cutoff": 2400, "q": 0.7}, f"orbit path=line rate=1/4 radius={rad} distance=2 doppler={dop} phase={ph:.4f}"],
+                              "sends": {"line": "-8dB", "room": "-12dB"}, "score": stream(evs2, total())})
     return doc
 
 
