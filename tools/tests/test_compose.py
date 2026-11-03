@@ -349,6 +349,9 @@ class Coverage(unittest.TestCase):
         # engine f3872739 (wM, bd-1d50cb): audio-rate strange attractors
         self.assertIn("chaos", CH.song_features({"patches": {"r": {"synth": {"layers": [{"type": "chaos"}]}}}}, ""))
         self.assertIn("chaos", CH.COVERAGE_CATALOGUE["synthesis"])
+        # engine 8f150090 (wM, bd-7680b6): Karplus-Strong as published
+        self.assertIn("ks", CH.song_features({"patches": {"k": {"synth": {"layers": [{"type": "ks"}]}}}}, ""))
+        self.assertIn("ks", CH.COVERAGE_CATALOGUE["synthesis"])
         # engine c7606671 (wM, bd-4f38a2): Chowning-style moving sources, canonical {"type": "orbit", ...}
         self.assertIn("orbit", CH.song_features({"tracks": [{"fx": [{"type": "orbit", "rate": "1/2", "radius": 3.0}]}]}, ""))
         self.assertIn("orbit", CH.COVERAGE_CATALOGUE["fx"])
