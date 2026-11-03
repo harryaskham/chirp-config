@@ -469,6 +469,30 @@ def freeze_lane():
     return [["0b", 0.0], [f"{a - 0.01:g}b", 0.0], [f"{a:g}b", 1.0], [f"{z - 0.01:g}b", 1.0], [f"{z:g}b", 0.0]]
 
 
+# v29 (ROUND TYPE: section, w12 5:48-6:11, the light - flagged 'static'; wM's bytebeat, pinned 709cf900): THE MACHINE
+# KEEPS COUNTING. After the power-down, under the breathing standby light and the memory reel, one held BYTEBEAT note
+# unfolds by itself - a lullaby made of arithmetic, still running while you sleep. Formula our own:
+# t*(2+(t>>13&3))|t>>5 - harmonics 2, 3, 4, 5 of one fundamental, stepping every ~0.35 s: a just major arpeggio; the
+# clock (8372) sets that fundamental exactly three octaves under the light's own note (m78), so it is F# major under
+# the F# light (measured: 185, 278, 370, 463 Hz). Low-passed, quiet, fading in under the reel and out with the album.
+BYTE_LULL = {"about": "chirper-three: the machine counting - t*(2+(t>>13&3))|t>>5, a just arpeggio three octaves "
+                      "under the standby light",
+             "synth": {"layers": [{"type": "bytebeat", "bytebeat": {"formula": "t*(2+(t>>13&3))|t>>5", "clock": 8372}}],
+                       "filters": ["lp cutoff=1800", "hp cutoff=120"],
+                       "amp": {"a": "400ms", "d": "0s", "s": 1, "r": "2s"}}}
+COUNTING = (181, 191)
+
+
+def counting_notes():
+    a, z = COUNTING
+    return [{"at": round(warp(b0(a)), 4), "len": round(warp(b0(z)) - warp(b0(a)) - 0.1, 3), "pitch": "m78.000", "vel": 0.7}]
+
+
+def counting_lane():
+    a, z = rb(COUNTING[0]), rb(COUNTING[1])
+    return [["0b", -80.0], [f"{a:g}b", -30.0], [f"{a + 8:g}b", 0.0], [f"{z - 12:g}b", 0.0], [f"{z - 0.5:g}b", -40.0]]
+
+
 def adt_notes():
     out = []
     for n in sung_notes()[len(SING):]:
@@ -810,6 +834,10 @@ def main():
     song["tracks"].append({"name": "verse", "patch": SING_PATCH, "gain": "-12dB", "pan": 0.05,
                            "sends": {"hall": "-5dB", "echo": "-12dB"}, "fx": [{"type": "filter", "kind": "hp", "cutoff": 160}],
                            "notes": verse_notes()})                             # v27: the voice grows with the tune
+    song["tracks"].append({"name": "counting", "patch": BYTE_LULL, "gain": "-22dB", "pan": -0.1,
+                           "sends": {"hall": "-10dB"}, "auto": {"cg": {"points": counting_lane()}},
+                           "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.cg", "amount": 1}]}}],
+                           "notes": counting_notes()})                          # v29: the machine keeps counting
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print("wrote", OUT, "bars", BARS, "gens", {g: len(lsys(g)) for g in range(7)})

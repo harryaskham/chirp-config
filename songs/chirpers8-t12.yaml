@@ -5178,6 +5178,86 @@
      }
     }
    ]
+  },
+  {
+   "name": "counting",
+   "patch": {
+    "about": "chirper-three: the machine counting - t*(2+(t>>13&3))|t>>5, a just arpeggio three octaves under the standby light",
+    "synth": {
+     "layers": [
+      {
+       "type": "bytebeat",
+       "bytebeat": {
+        "formula": "t*(2+(t>>13&3))|t>>5",
+        "clock": 8372
+       }
+      }
+     ],
+     "filters": [
+      "lp cutoff=1800",
+      "hp cutoff=120"
+     ],
+     "amp": {
+      "a": "400ms",
+      "d": "0s",
+      "s": 1,
+      "r": "2s"
+     }
+    }
+   },
+   "gain": "-22dB",
+   "pan": -0.1,
+   "sends": {
+    "hall": "-10dB"
+   },
+   "auto": {
+    "cg": {
+     "points": [
+      [
+       "0b",
+       -80.0
+      ],
+      [
+       "713.5b",
+       -30.0
+      ],
+      [
+       "721.5b",
+       0.0
+      ],
+      [
+       "741.5b",
+       0.0
+      ],
+      [
+       "753b",
+       -40.0
+      ]
+     ]
+    }
+   },
+   "fx": [
+    {
+     "type": "gain",
+     "gain": {
+      "value": "0dB",
+      "mod": [
+       {
+        "src": "auto.cg",
+        "amount": 1
+       }
+      ]
+     }
+    }
+   ],
+   "notes": [
+    {
+     "at": 713.5,
+     "len": 39.9,
+     "pitch": "m78.000",
+     "vel": 0.7
+    }
+   ]
   }
  ],
  "buses": {
