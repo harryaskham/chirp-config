@@ -62,6 +62,7 @@ CONGALAYER = os.environ.get("C8T5_CONGALAYER", "-26")   # WHOLE ROUND: inside th
 OUTKS = os.environ.get("C8T5_OUTKS", "0:-14")   # SECTION ROUND (w9, the outro: level jump): the deal, plucked as they part - the tune they sang at C's end (B3 D4 E4, the last time up to B4) comes back in the outro on Karplus-Strong (engine 8f150090, 1983: a noise burst settling in a one-period loop), stretched to ring long: every two bars, four times, then up to B4, then one E4 left ringing at bar 12, each softer. A notes-only track, outro only. Value 'blend:gain'
 ROBOCHOIR = os.environ.get("C8T5_ROBOCHOIR", "-12")   # SECTION ROUND (the agreement sung, C's last bars): the machine sings too - the three-voice choir that sings 'keep it there' together at C's end gets a fourth voice, a vocoder twin of its middle voice: the same words shaping a held E minor chord of saws (E2 B2 E3 G3) band by band. Agreeing on a speed: humans and the machine sing the deal together. Value = gain dB
 GTRRUSH = os.environ.get("C8T5_GTRRUSH", "0.25")   # SECTION ROUND (w2, the intro's end into A: level jump): the first proposal is rushed - with no kick under it yet, the guitar's opening calls in A run ahead of the band (its own clock: GTRRUSH beats early by A's downbeat), settling back onto the grid over A's first eight bars, so it is exactly on time the bar the kick comes in. Value = beats early
+HAGGLE = os.environ.get("C8T5_HAGGLE", "-18")   # SECTION ROUND (B's middle, the haggling): offer and counter-offer - a Chebyshev brass (Le Brun & Arfib 1979, engine 817a5de6; the index on velocity, so louder is brighter) trades two-note calls through B bars 4-15: a bright, loud offer (E4 B3) and a bar later a darker, softer counter-offer (D4 A3), the gap between them narrowing in brightness each time (vel 0.95/0.35 -> 0.7/0.6) as the two sides come closer. A notes-only track. Value = gain dB
 SCANC = os.environ.get("C8T5_SCANC", "-20")   # SECTION ROUND (w6, C's first bars: the agreement begins): one resonance - as C starts (the machines finally at one speed) a ring of masses and springs (scanned synthesis, Verplank/Mathews/Shaw 2000, engine ee46ab71; round strike, fixed push) holds the agreed chord, E minor 7 (E3 G3 B3 D4), for C's first eight bars and lets it ring off: the two speeds become one medium. A notes-only track in that window. Value = gain dB
 KEEPACK = os.environ.get("C8T5_KEEPACK", "-3")   # SECTION ROUND (w7, C bar 16: the deal stated): the terms read back - as a protocol acknowledges what it received, the deal ('keep', C bar 16, plain lpc since v51) is read back one bar later by the speaking toy (5-bit monotone lpc on E3), a few dB under: stated, then acknowledged, the way machines agree. Value = gain offset dB
 LPCNUDGE = os.environ.get("C8T5_LPCNUDGE", "")   # v51's lpc keep was nudged 0.07 beats early for lpc's lag; engine ee46ab71 compensates, so the nudge is off ('') from v59
@@ -616,6 +617,18 @@ def song():
                               "patch": {"about": "scanned synthesis (Mathews 2000): a ring of masses and springs", "synth": {"layers": [{"type": "scanned", "scanned": {"speed": 0.4, "width": 0.5, "smooth": 0.45, "push": 0.12}, "decay": "6s"}], "amp": "1.2s 0.9 0.85 3s"}},
                               "fx": ["chorus mix=0.2"],
                               "notes": [{"at": c0, "pitch": p_, "len": 32, "vel": 0.7} for p_ in ("E3", "G3", "B3", "D4")]})
+    if HAGGLE:
+        b0 = sec_start("B") / 4
+        notes = []
+        for i, bar in enumerate(range(4, 16, 2)):
+            hi, lo = round(0.95 - 0.05 * i, 2), round(0.35 + 0.05 * i, 2)
+            t0 = b0 + bar * BAR / 4
+            notes += [{"at": t0, "pitch": "E4", "len": 1.0, "vel": hi}, {"at": t0 + 1.5, "pitch": "B3", "len": 1.5, "vel": hi},
+                      {"at": t0 + 4, "pitch": "D4", "len": 1.0, "vel": lo}, {"at": t0 + 5.5, "pitch": "A3", "len": 1.5, "vel": lo}]
+        doc["tracks"].append({"name": "haggle", "gain": f"{HAGGLE}dB", "pan": 0.25,
+                              "patch": {"about": "Chebyshev brass (1979): louder is brighter", "synth": {"layers": [{"type": "shaper", "shaper": {"harmonics": [1, 0.8, 0.6, 0.45, 0.35, 0.25, 0.18, 0.12], "index": {"value": 0.05, "mod": [{"src": "env.blow", "amount": 0.4}, {"src": "vel", "amount": 0.55}]}}}],
+                                        "amp": "40ms 200ms 0.8 150ms", "env": {"blow": {"a": "60ms", "d": "300ms", "s": 0.7, "r": "150ms"}}}},
+                              "fx": ["delay time=3/8 mix=0.15 feedback=0.3"], "notes": notes})
     return doc
 
 
