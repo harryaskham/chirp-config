@@ -343,6 +343,9 @@ class Coverage(unittest.TestCase):
         # engine 758ba1dc (wM, bd-83b17b): wave terrain synthesis
         self.assertIn("terrain", CH.song_features({"patches": {"w": {"synth": {"layers": [{"type": "terrain"}]}}}}, ""))
         self.assertIn("terrain", CH.COVERAGE_CATALOGUE["synthesis"])
+        # engine f6713421 (wM, bd-db5db5): Casio CZ phase distortion
+        self.assertIn("pd", CH.song_features({"patches": {"c": {"synth": {"layers": [{"type": "pd"}]}}}}, ""))
+        self.assertIn("pd", CH.COVERAGE_CATALOGUE["synthesis"])
         self.assertIn("choices", CH.song_features({}, "score: (C4|E4|G4)/4"))
 
     def test_life_henon_and_walk_systems_are_features(self):
