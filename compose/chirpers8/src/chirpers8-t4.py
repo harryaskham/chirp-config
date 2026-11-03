@@ -203,6 +203,7 @@ def resorting(make, arr, seed):
 
 
 PROGRESS = []
+ARRS = {}
 # v16: THE LAST PHYSICAL FAMILIES - merge sort, the most graceful algorithm, sings its emerging tune on the physical
 # alto sax (a reed on a conical bore) instead of the kalimba; and every finished pass (or finished sort) is marked by a
 # modal CYMBAL (a dense struck plate set, its wash blooming in after the hit) instead of the drum machine's crash
@@ -259,6 +260,7 @@ def write():
     for bar in range(1, BARS + 1):
         sec = sec_of(bar)
         arr, cmp, sw, acc = next(gens[sec])
+        ARRS[bar] = list(arr)                               # v34: the array per bar (for the runs)
         done = arr == sorted(arr) and sec not in ("intro", "sorted", "outro")
         if bar == 1:
             part("ring").add(0.0, 8.0, "912hz", 112)
@@ -709,6 +711,43 @@ def house_stabs():
 DICE_LAP = round(128 / 60 / 4, 4)          # a lap a bar at 128 bpm (laps per second)
 
 
+# v34 (ROUND TYPE: section, w7 3:00-3:30 = bogo's end and merge's start, flagged static; chaos pinned f3872739): THE
+# ROUTE OUT OF CHAOS. wM's chaos layer integrates a strange attractor (Rossler) once per period of the note, and its
+# amount walks the PERIOD-DOUBLING route: a tone, period 2 (a subharmonic an octave down), 4, then chaos. Merge sort
+# runs that route backwards - many sorted runs merging into fewer. So a Rossler voice on the chord root follows the
+# number of SORTED RUNS in the array each bar: the bogo storm is chaos; bogo's miracle (100) a pure tone; merge starts
+# shuffled - chaos again - and period-halves back towards a tone as its runs merge, 8 -> 7 -> 5 -> 4 -> 3 -> 2 -> 1,
+# landing on the pure tone the bar the first merge completes (116; four bars past the window, for the payoff). The
+# entropy meter hears disorder as noise; this hears STRUCTURE - how many ordered pieces there are.
+ROUTE = (97, 116)
+ROUTE_PATCH = {"synth": {"layers": [{"type": "chaos", "chaos": {"system": "rossler", "axis": "x", "amount": {
+    "value": 0.0, "mod": [{"src": "auto.rt", "amount": 1}]}}}],
+    "amp": "300ms 1 1 800ms", "filters": [{"kind": "lp", "cutoff": 3000, "q": 0.6}]}}
+
+
+def route_amount(runs):
+    # measured (spectral flatness, solo): 0.93 reads 0.27 (chaos), 0.85 reads 0.005 - still periodic on axis x
+    return 0.0 if runs <= 1 else 0.3 if runs == 2 else 0.5 if runs <= 4 else 0.7 if runs <= 6 else 0.93
+
+
+def route_runs(bar):
+    a = ARRS[bar]
+    return 1 if bar == 100 else 1 + sum(1 for i in range(len(a) - 1) if a[i] > a[i + 1])
+
+
+def route():
+    for bar in range(ROUTE[0], ROUTE[1] + 1, 2):
+        part("route").add(b0(bar), 2 * BAR - 0.05, pitch(root_at(bar), BASE + 12), 84)
+
+
+def route_lane():
+    pts = []
+    for bar in range(ROUTE[0], ROUTE[1] + 1):
+        v = route_amount(route_runs(bar))
+        pts.append([f"{b0(bar) + 2:g}b", v])        # mid-bar points, linear between: a glide, not steps
+    return pts
+
+
 def main():
     write()
     arrival()                                     # v22: the stop, the reverse cymbal, the impact
@@ -718,6 +757,7 @@ def main():
     dice_and_check()                              # v27: the dice and the check
     entropy()                                     # v30: the entropy meter
     house_stabs()                                 # v32: CZ house stabs
+    route()                                       # v34: the route out of chaos
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
     lead_patch = {"extends": "vibes", "synth": {"fx": [{"type": "pan", "pan": {"value": 0, "mod": [
         {"src": "expr.ix", "amount": 1}]}}, {"type": "filter", "kind": "lp", "cutoff": 4500}]}}
@@ -800,6 +840,9 @@ def main():
     song["tracks"].append({"name": "stab", "patch": STAB_PD, "gain": "-16dB", "pan": -0.2,
                            "sends": {"room": "-10dB", "dly": "-14dB"}, "score": part("stab").score(),
                            "auto": {"en": {"points": entropy_lane()}}})                    # v32: listed last
+    song["tracks"].append({"name": "route", "patch": ROUTE_PATCH, "gain": "-19dB", "pan": 0.15,
+                           "sends": {"room": "-10dB"}, "score": part("route").score(),
+                           "auto": {"rt": {"points": route_lane()}}})                      # v34: listed last
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print("wrote", OUT, "bars", BARS)
