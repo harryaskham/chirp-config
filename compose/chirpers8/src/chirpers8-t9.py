@@ -296,6 +296,17 @@ C9_KS = {"about": "chirper-two: the 1983 Karplus-Strong string, stretched to rin
 # top. And the storm is let in by ONE BEAT OF SILENCE: everything stops on the last beat of the window, then the
 # storm. T9_R22=none reproduces v21.
 R22 = os.environ.get("T9_R22", "crisis")
+# T9_R23 = two (v23, section round on w2, 0:27-0:54: one into TWO, "static"). THE FIRST FORK, SUNG. The map's first
+# bifurcation (period 1 -> 2) now gets what the fork into eight got: the last bar of ONE loses its floor (kick,
+# sub, bass, its plucked double), and everything lands on the split. And the voice, which in eight will sing "eight
+# steps and I'm standing where I stood" and in the window "it comes back in threes", turns up first here, twice,
+# in the 7/8: "every other morning I'm someone else" on a tune that does nothing but alternate - D4 B3 D4 B3 ...
+# - a period-2 orbit sung (chirp tts --sing "D4/8 B3 D4 B3 D4 B3 D4 B3 D4 B3/4 D4/2" --bpm 140 --seed 9
+# --humanize 0.3 --hz, src/t9/other.json; ASR raw: "ever in the morning on someone else"; in the song, with the
+# delay cut to mix 0.1 - at 0.22 the 3/16 ping-pong smeared it to nothing - "never be a normal name on someone
+# else"). The song's three
+# sung lines now name its periods: two, eight, three. T9_R23=none reproduces v22.
+R23 = os.environ.get("T9_R23", "two")
 TERRAIN_GAIN = os.environ.get("T9_TERRAIN_GAIN", "-14.5dB")
 EYE = float(os.environ.get("T9_EYE", "636"))   # where the drum bus drops out (to 640b)
 C9_GENDY = {"about": "chirper-two: a gendyn squall - level and segment-length steps both ride velocity, wide spread, "
@@ -352,6 +363,7 @@ SING = []
 
 
 SING8 = []
+SING2 = []
 
 
 def sing(at, scale=1.0, fn="sing.json", into=None):
@@ -514,6 +526,8 @@ def build():
                 T["pad"].add(start, steps / 4 * 2 - 0.1, ",".join(mm(base + st * BP) for st in (0, 6, 10)), 64)
             if R3 == "sing" and ((name == "window" and i in (2, 10)) or (name == "settle" and i == 22)):
                 sing(start, 0.85 if name == "settle" else 1.0)
+            if R3 == "sing" and R23 == "two" and name == "two" and i in (4, 10):
+                sing(start, 1.0 if i == 4 else 0.9, "other.json", SING2)
             if R3 == "sing" and R20 == "cycle" and name == "eight" and i in (10, 14) \
                     and os.environ.get("T9_R20_VOX", "on") == "on":
                 sing(start, 1.0 if i == 10 else 0.9, "eight.json", SING8)
@@ -710,6 +724,12 @@ def main():
             "fx": ["hp cutoff=140", "compressor threshold=-20dB ratio=3 attack=5ms release=120ms",
                    {"type": "delay", "time": "3/16", "feedback": 0.35, "mix": 0.22, "ping_pong": True, "tone": 3500},
                    "reverb kind=room decay=1.2s mix=0.2"], "notes": SING8}] if SING8 else []),
+        *([{"name": "other",
+            "patch": json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "t9", "other.json")))["tracks"][0]["patch"],
+            "gain": os.environ.get("T9_OTHER_GAIN", "0dB"), "pan": 0.0,
+            "fx": ["hp cutoff=140", "compressor threshold=-20dB ratio=3 attack=5ms release=120ms",
+                   {"type": "delay", "time": "3/16", "feedback": 0.3, "mix": float(os.environ.get("T9_OTHER_DLY", "0.1")), "ping_pong": True, "tone": 3500},
+                   "reverb kind=room decay=1.2s mix=0.2"], "notes": SING2}] if SING2 else []),
         *([{"name": "padx", "patch": "pad-glass", "gain": os.environ.get("T9_PADX_GAIN", "-14dB"),
             "fx": [{"type": "morph", "key": "drums", "mode": "cross", "amount": 0.8}, "hp cutoff=200"],
             "score": T["padx"].score(total)}] if R2 == "drift" else []),
@@ -845,6 +865,15 @@ def main():
             if tr["name"] in ("kick", "ksub", "bass", "bpluck", "osti"):
                 tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.fork", "amount": 1}]}}]
                 tr["auto"] = {**tr.get("auto", {}), "fork": lane}
+    if R23 == "two" and os.environ.get("T9_R23_FORK", "on") == "on":
+        f1 = st["two"]
+        f0 = f1 - 4.0
+        lane = {"points": [["0b", 0.0], [f"{f0 - 0.1}b", 0.0], [f"{f0 + 0.05}b", -40.0], [f"{f1 - 0.1}b", -40.0],
+                           [f"{f1}b", 0.0], [f"{total}b", 0.0]]}
+        for tr in tracks:
+            if tr["name"] in ("kick", "ksub", "bass", "bpluck", "osti"):
+                tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.fork1", "amount": 1}]}}]
+                tr["auto"] = {**tr.get("auto", {}), "fork1": lane}
     if R22 == "crisis" and os.environ.get("T9_R22_GAP", "on") == "on":
         g1 = st["storm"]
         lane = {"points": [["0b", 0.0], [f"{g1 - 1.15}b", 0.0], [f"{g1 - 0.95}b", -40.0], [f"{g1 - 0.08}b", -40.0],
