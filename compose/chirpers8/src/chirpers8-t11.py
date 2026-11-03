@@ -588,6 +588,7 @@ def backwall():
 # the eight bars), irregular and deterministic; the closer's first sound is a music-box note. (2) THE LAST THUNDER,
 # FAR OFF - one thunder-sheet roll at 140, soft, low-passed and drowned in hall: the storm a long way away.
 DRIPS = (137, 144)
+LAST_DRIPS = (145, 166)        # v35
 FAR_THUNDER = 140
 
 
@@ -604,6 +605,18 @@ def drips():
                 n = (8, 9, 10, 12, 14, 16)[int(abs(zz)) % 6]
                 out.append({"at": round(b0(bar) + s / 4, 4), "len": 1.5, "pitch": mm(partial(n, lb, 1)),
                             "vel": round(0.45 + 0.25 * (h / max(dens, 1e-9)), 3)})
+    # v35: THE LAST DRIPS FILL THE GLASS - the drips go on through the outro, each gap 9% longer than the last (half a
+    # beat to ~8), as a gutter slows after rain; they fall into a glass, so the pitch RISES as it fills - a smooth climb
+    # up the outro's F# harmonic series, partial 8 to 16, an octave
+    a0, z0 = b0(LAST_DRIPS[0]), b0(LAST_DRIPS[1])
+    at, gap = a0, 0.5
+    while at < z0:
+        frac = (at - a0) / (z0 - a0)
+        n = 8 * 2 ** frac
+        out.append({"at": round(at, 4), "len": 1.5, "pitch": mm(FUND[-1] + 12 * math.log2(n) + 12),
+                    "vel": round(0.32 - 0.14 * frac, 3)})            # faint: 0.62 dominated the outro
+        at += gap
+        gap *= 1.09
     return out
 
 
