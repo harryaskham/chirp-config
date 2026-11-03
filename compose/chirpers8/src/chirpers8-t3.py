@@ -173,6 +173,15 @@ R15 = os.environ.get("T3_R15", "space")
 # without the kick left the album's sub band 7.2 dB short (s0 97.88 without it, 98.13 with). T3_R16=none reproduces v15.
 R16 = os.environ.get("T3_R16", "reboot")
 FLOOR = {"kick", "hats", "ohat", "rim", "toms", "ca-kit", "ca-kit2", "shek", "rbell", "rbell2", "hfill"}
+# T3_R17 = fade (v17, section round on w9, 4:07-4:38: the decay, "static"). THE FLOOR DIES WITH THE CELLS. In the
+# decay the automaton loses cells at random - but the floor under it kept time as if nothing were happening: a kick on
+# every beat, hats on every eighth. Now the floor dies too. The hats thin away over three bars from the decay's fifth;
+# the kick, the song's heartbeat, weakens from its ninth bar and is gone by its fourteenth, so the last bars of the
+# decay are the dying cells, the drone, the cell's last lines ("when the left goes dark / I keep its count") and the
+# gendyn voice coming apart - no pulse. Both return for the out. Gain lanes, and the master follows the band report
+# (without the floor the mids read louder): 550 Hz -2 -> -3 dB, 292 Hz -1 dB, 1.9 kHz -1.5 -> -2.5 dB, 45 Hz +2.5 ->
+# +3.5 dB (s0 97.97 without, 98.14 with). T3_R17=none reproduces v16.
+R17 = os.environ.get("T3_R17", "fade")
 R11KICK = os.environ.get("T3_R11_KICK", "machine")   # "bronze": the kit's own kick too (cost spectrum 97 -> 75-80)
 C8_KIT = {
     "about": "chirper-two: Three Neighbours' own kit - kr a D1 sine kick that drops into place with a low modal membrane "
@@ -652,6 +661,16 @@ def main():
             if tr["name"] in os.environ.get("T3_LEAVE", "kick,hats,ohat,rim,toms,ca-kit,ca-kit2,shek,skin,click,tone,air,bronze").split(","):
                 tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.leave", "amount": 1}]}}]
                 tr["auto"] = {**tr.get("auto", {}), "leave": lane}
+    if R17 == "fade":
+        d0, o0 = st["decay"], st["out"]
+        fades = {"hats": [[d0 + 16 - 0.1, 0.0], [d0 + 28, -40.0]],
+                 "kick": [[d0 + 32 - 0.1, 0.0], [d0 + 48, -12.0], [d0 + 56, -40.0]]}
+        for tr in tracks:
+            if tr["name"] in fades:
+                pts = [["0b", 0.0]] + [[f"{a:g}b", v] for a, v in fades[tr["name"]]] + \
+                      [[f"{o0 - 0.1:g}b", -40.0], [f"{o0:g}b", 0.0], [f"{total}b", 0.0]]
+                tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.die", "amount": 1}]}}]
+                tr["auto"] = {**tr.get("auto", {}), "die": {"points": pts}}
     if R16 == "reboot":
         a0 = st["A"]
         gap0, floor1 = a0 - 4.0, a0 + 4.0 * int(os.environ.get("T3_FLOOR_BARS", "4"))
@@ -791,11 +810,13 @@ def main():
         "master: " + json.dumps({"fx": [{"type": "eq", "bands": ["hp cutoff=25",
                                                                "peak cutoff=250 gain=" + (os.environ.get("T3_LOWMID", "-0.5dB") if R15 == "space" else "-2dB") + " q=0.8",
                                                                "highshelf cutoff=7000 gain=2dB"] +
-                                                              (["peak cutoff=550 gain=" + os.environ.get("T3_MID0", "-2dB") + " q=1.0"] if R15 == "space" else []) +
-                                                              (["peak cutoff=45 gain=" + os.environ.get("T3_SUB45", "2.5dB" if R16 == "reboot" else "0dB") + " q=1.0"]
-                                                               if os.environ.get("T3_SUB45", "2.5dB" if R16 == "reboot" else "0dB") != "0dB" else []) +
-                                                              (["peak cutoff=1900 gain=" + os.environ.get("T3_HIMID", "-1.5dB") + " q=1.0"]
-                                                               if (R15 == "space" and os.environ.get("T3_HIMID", "-1.5dB") != "0dB") else []) +
+                                                              (["peak cutoff=550 gain=" + os.environ.get("T3_MID0", "-3dB" if R17 == "fade" else "-2dB") + " q=1.0"] if R15 == "space" else []) +
+                                                              (["peak cutoff=292 gain=" + os.environ.get("T3_MID292", "-1dB") + " q=1.2"]
+                                                               if R17 == "fade" else []) +
+                                                              (["peak cutoff=45 gain=" + os.environ.get("T3_SUB45", ("3.5dB" if R17 == "fade" else "2.5dB") if R16 == "reboot" else "0dB") + " q=1.0"]
+                                                               if os.environ.get("T3_SUB45", ("3.5dB" if R17 == "fade" else "2.5dB") if R16 == "reboot" else "0dB") != "0dB" else []) +
+                                                              (["peak cutoff=1900 gain=" + os.environ.get("T3_HIMID", "-2.5dB" if R17 == "fade" else "-1.5dB") + " q=1.0"]
+                                                               if (R15 == "space" and os.environ.get("T3_HIMID", "-2.5dB" if R17 == "fade" else "-1.5dB") != "0dB") else []) +
                                                               (["peak cutoff=750 gain=-2.5dB q=0.6"] if R4 == "hymn" else []) +
                                                               (["peak cutoff=1300 gain=" + os.environ.get("T3_MID2", "-1.5dB") + " q=0.7"]
                                                                if R8 == "kotekan" else [])},
