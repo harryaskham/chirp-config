@@ -203,7 +203,15 @@ def build():
     # where the machine says the line back - a second singer joins, a diatonic third above (A G F# D F# G A C# A over
     # the tune's F# E D B D E F# A F#), the same breath and syllables a hair behind, a brighter throat (formant up),
     # on the other side: the human has found someone to sing with, while the machine is still learning to talk
-    D_UP = {54: 57, 52: 55, 50: 54, 47: 50, 57: 61, 55: 59, 59: 62, 61: 64, 45: 49, 49: 52}
+    D_UP = {54: 57, 52: 55, 50: 54, 47: 50, 57: 61, 55: 59, 59: 62, 61: 64, 45: 49, 49: 52, 62: 66, 64: 67}
+    # (v38) THE SINGING GOES SOMEWHERE (Harry: keep hillclimbing it): all four sung lines used to sit on the one tune,
+    # falling F# E D B and climbing back to F# - four times the same question. Now the tune is the question and the
+    # lines answer it: the first sung line keeps it; the cursor line ANSWERS it, rising D E F# to B on 'breath-' and
+    # falling home to D on 'types' (the first sung line ever to end on the tonic); the machine's turn keeps the tune
+    # (it says back what it was taught); and the last, the album's title line, takes the tune's opening and then
+    # climbs past it - F# A on 'long', up to the D an octave above home on 'vow-', settling on B: the human's last
+    # line reaches the song's top note, and the machine, saying it back, has to reach for it too
+    # (same takes, same words and breath - chirp tts seeds 905 and 907, humanize 0.5 - only --melody changed)
     h_notes, h_fv = [], []
     for v in VOICE:
         if v['bar'] not in (89, 105, 113):
