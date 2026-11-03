@@ -54,6 +54,7 @@ BSPLITAT = int(os.environ.get("C8T5_BSPLITAT", "12"))   # the bar of B (0-based)
 LIFTSTOP = os.environ.get("C8T5_LIFTSTOP", "1")   # the gear change, announced: the band stops dead for the second half of the bar before the lift (C bar 24) - a clap fill climbing in sixteenths - then lands a whole step up (dropped after generation, so no dice move). Once B was split (v18) this splits C too without crowding the returns
 LIFTHAT = os.environ.get("C8T5_LIFTHAT", "1")   # after the lift the hats open: every off-beat hat an open hat - the agreed band, a step up, brighter on top
 ESTABLE = os.environ.get("C8T5_ESTABLE", "1")   # song-level event_stable (engine f5283535): each note's humanize and DSP draws come from its track, beat and pitch, so a window's edit stays in the window; switching it on re-rolls every humanized note once
+FFWD = os.environ.get("C8T5_FFWD", "120")   # SECTION ROUND (w7, C bars 12-28: static): fall-forward - a connected modem tries the next speed up when the line is good, and drops back if it isn't: at C bar 16 the agreed tempo steps up (112 -> FFWD's bpm), holds eight bars, and falls back to 112 at C bar 24, the speed tried and given up. Value 'bpm' (a step) or 'bpm,ramp' (two bars up)
 HORNP = os.environ.get("C8T5_HORNP", "vosim")   # PALETTE: the voices that sing the hook once the machines agree (horn-section) become machine voices: 'vosim' two VOSIM pulse trains ('ah', F1 ~650 / F2 ~1100 Hz, drifting), the 1978 synthetic voice singing the agreed tune; 'czbrass' Casio CZ phase distortion brass (a sine opening into a saw on an 80 ms envelope), the 1984 home computer's horn section
 HALFT = os.environ.get("C8T5_HALFT", "10q")   # SECTION ROUND (w4, B's first half: little new vs w3): the haggling quickens - A trades two-bar calls, B one-bar trades, C plays together; now B bars 10-15 trade half bars (the guitar the first eight steps, the acid the last eight), and with 'q' bars 14-15 trade quarter bars, so the turns shorten toward agreement. The trades are drawn from their own dice, so the rest of the song is untouched
 PDKEYS = os.environ.get("C8T5_PDKEYS", "-3")   # PALETTE: C's comping keys leave the Wurlitzer for the home computer's synth - Casio CZ phase distortion (engine f6713421; 1984): a reso_tri wave whose resonance sweeps down inside each note on an envelope (the CZ's filter sweep with no filter), plucked. Once the machines agree, the chords come from a 1984 keyboard. Value = gain offset dB from KEYS
@@ -493,7 +494,10 @@ def song0():
     end = total()
     tempo = [{"at": "0b", "bpm": 106}, {"at": beats(st["A"]), "bpm": 108}, {"at": beats(st["B"]), "bpm": 108},
              {"at": beats(st["retrain"]), "bpm": 114, "ramp": True}, {"at": beats(st["retrain"]), "bpm": 110},
-             {"at": beats(st["C"]), "bpm": 112}, {"at": beats(st["outro"]), "bpm": 112}, {"at": beats(end), "bpm": 100, "ramp": True}]
+             {"at": beats(st["C"]), "bpm": 112},
+             *(([{"at": beats(st["C"] + 16 * BAR), "bpm": 112}, {"at": beats(st["C"] + 18 * BAR), "bpm": float(FFWD.split(",")[0]), "ramp": True}] if FFWD.endswith("ramp") else
+                [{"at": beats(st["C"] + 16 * BAR), "bpm": float(FFWD)}]) + [{"at": beats(st["C"] + 24 * BAR), "bpm": 112}] if FFWD else []),
+             {"at": beats(st["outro"]), "bpm": 112}, {"at": beats(end), "bpm": 100, "ramp": True}]
     pump = {"type": "pump", "on": "kick.k", "depth": "-5dB", "attack": "2ms", "release": "160ms", "curve": 0.7}
     spb = 60 / 110
 
