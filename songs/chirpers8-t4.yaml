@@ -3489,6 +3489,26 @@
    "gain": "-10dB"
   },
   {
+   "name": "life",
+   "patch": "toy-piano",
+   "gain": "-16dB",
+   "pan": 0.35,
+   "sends": {
+    "room": "-8dB"
+   },
+   "at": "496b",
+   "gen": {
+    "type": "life",
+    "width": 16,
+    "height": 8,
+    "init": "center",
+    "poly": 3,
+    "n": 448,
+    "len": "/16",
+    "notes": "m69.000 m72.119 m72.898 m76.017 m79.135 m80.695 m83.034 m84.593"
+   }
+  },
+  {
    "name": "dice",
    "patch": "afro-perc",
    "score": "R/352b sk/0.2b@34 R/0.05b sk/0.2b@37 R/0.05b sk/0.2b@40 R/0.05b sk/0.2b@43 R/0.05b sk/0.2b@46 R/0.05b sk/0.2b@49 R/0.05b sk/0.2b@52 R/0.05b sk/0.2b@55 R/0.05b sk/0.2b@58 R/0.05b sk/0.2b@61 R/0.05b sk/0.2b@64 R/0.05b sk/0.2b@67 R/0.05b sk/0.2b@70 R/0.05b sk/0.2b@73 R/0.05b cl/0.3b@100 R/0.2b sk/0.2b@34 R/0.05b sk/0.2b@37 R/0.05b sk/0.2b@40 R/0.05b sk/0.2b@43 R/0.05b sk/0.2b@46 R/0.05b sk/0.2b@49 R/0.05b sk/0.2b@52 R/0.05b sk/0.2b@55 R/0.05b sk/0.2b@58 R/0.05b sk/0.2b@61 R/0.05b sk/0.2b@64 R/0.05b sk/0.2b@67 R/0.05b sk/0.2b@70 R/0.05b sk/0.2b@73 R/0.05b cl/0.3b@100 R/0.2b sk/0.2b@34 R/0.05b sk/0.2b@37 R/0.05b sk/0.2b@40 R/0.05b sk/0.2b@43 R/0.05b sk/0.2b@46 R/0.05b sk/0.2b@49 R/0.05b sk/0.2b@52 R/0.05b sk/0.2b@55 R/0.05b sk/0.2b@58 R/0.05b sk/0.2b@61 R/0.05b sk/0.2b@64 R/0.05b sk/0.2b@67 R/0.05b sk/0.2b@70 R/0.05b sk/0.2b@73 R/0.05b cl/0.3b@100 R/0.2b sk/0.2b@34 R/0.05b sk/0.2b@37 R/0.05b sk/0.2b@40 R/0.05b sk/0.2b@43 R/0.05b sk/0.2b@46 R/0.05b sk/0.2b@49 R/0.05b sk/0.2b@52 R/0.05b sk/0.2b@55 R/0.05b sk/0.2b@58 R/0.05b sk/0.2b@61 R/0.05b sk/0.2b@64 R/0.05b sk/0.2b@67 R/0.05b sk/0.2b@70 R/0.05b sk/0.2b@73 R/0.05b cl/0.3b@100 R/0.2b sk/0.2b@34 R/0.05b sk/0.2b@37 R/0.05b sk/0.2b@40 R/0.05b sk/0.2b@43 R/0.05b sk/0.2b@46 R/0.05b sk/0.2b@49 R/0.05b sk/0.2b@52 R/0.05b sk/0.2b@55 R/0.05b sk/0.2b@58 R/0.05b sk/0.2b@61 R/0.05b sk/0.2b@64 R/0.05b sk/0.2b@67 R/0.05b sk/0.2b@70 R/0.05b sk/0.2b@73 R/0.05b cl/0.3b@100 R/0.2b sk/0.2b@34 R/0.05b sk/0.2b@37 R/0.05b sk/0.2b@40 R/0.05b sk/0.2b@43 R/0.05b sk/0.2b@46 R/0.05b sk/0.2b@49 R/0.05b sk/0.2b@52 R/0.05b sk/0.2b@55 R/0.05b sk/0.2b@58 R/0.05b sk/0.2b@61 R/0.05b sk/0.2b@64 R/0.05b sk/0.2b@67 R/0.05b sk/0.2b@70 R/0.05b sk/0.2b@73 R/0.05b cl/0.3b@100 R/0.2b sk/0.2b@34 R/0.05b sk/0.2b@37 R/0.05b sk/0.2b@40 R/0.05b sk/0.2b@43 R/0.05b sk/0.2b@46 R/0.05b sk/0.2b@49 R/0.05b sk/0.2b@52 R/0.05b sk/0.2b@55 R/0.05b sk/0.2b@58 R/0.05b sk/0.2b@61 R/0.05b sk/0.2b@64 R/0.05b sk/0.2b@67 R/0.05b sk/0.2b@70 R/0.05b sk/0.2b@73 R/0.05b cl/0.3b@100 R/0.2b sk/0.2b@34 R/0.05b sk/0.2b@37 R/0.05b sk/0.2b@40 R/0.05b sk/0.2b@43 R/0.05b sk/0.2b@46 R/0.05b sk/0.2b@49 R/0.05b sk/0.2b@52 R/0.05b sk/0.2b@55 R/0.05b sk/0.2b@58 R/0.05b sk/0.2b@61 R/0.05b sk/0.2b@64 R/0.05b sk/0.2b@67 R/0.05b sk/0.2b@70 R/0.05b sk/0.2b@73 R/0.05b cl/0.3b@100 R/0.2b sk/0.2b@34 R/0.05b sk/0.2b@37 R/0.05b sk/0.2b@40 R/0.05b sk/0.2b@43 R/0.05b sk/0.2b@46 R/0.05b sk/0.2b@49 R/0.05b sk/0.2b@52 R/0.05b sk/0.2b@55 R/0.05b sk/0.2b@58 R/0.05b sk/0.2b@61 R/0.05b sk/0.2b@64 R/0.05b sk/0.2b@67 R/0.05b sk/0.2b@70 R/0.05b sk/0.2b@73 R/0.05b cl/0.3b@100 R/0.2b sk/0.2b@34 R/0.05b sk/0.2b@37 R/0.05b sk/0.2b@40 R/0.05b sk/0.2b@43 R/0.05b sk/0.2b@46 R/0.05b sk/0.2b@49 R/0.05b sk/0.2b@52 R/0.05b sk/0.2b@55 R/0.05b sk/0.2b@58 R/0.05b sk/0.2b@61 R/0.05b sk/0.2b@64 R/0.05b sk/0.2b@67 R/0.05b sk/0.2b@70 R/0.05b sk/0.2b@73 R/0.05b cl/0.3b@100 R/0.2b sk/0.2b@34 R/0.05b sk/0.2b@37 R/0.05b sk/0.2b@40 R/0.05b sk/0.2b@43 R/0.05b sk/0.2b@46 R/0.05b sk/0.2b@49 R/0.05b sk/0.2b@52 R/0.05b sk/0.2b@55 R/0.05b sk/0.2b@58 R/0.05b sk/0.2b@61 R/0.05b sk/0.2b@64 R/0.05b sk/0.2b@67 R/0.05b sk/0.2b@70 R/0.05b sk/0.2b@73 R/0.05b cl/0.3b@100 R/0.2b sk/0.2b@34 R/0.05b sk/0.2b@37 R/0.05b sk/0.2b@40 R/0.05b sk/0.2b@43 R/0.05b sk/0.2b@46 R/0.05b sk/0.2b@49 R/0.05b sk/0.2b@52 R/0.05b sk/0.2b@55 R/0.05b sk/0.2b@58 R/0.05b sk/0.2b@61 R/0.05b sk/0.2b@64 R/0.05b sk/0.2b@67 R/0.05b sk/0.2b@70 R/0.05b sk/0.2b@73 R/0.05b cl/0.3b@100 R/304.2b",

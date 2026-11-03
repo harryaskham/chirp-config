@@ -588,6 +588,14 @@ BYTE_TICK = {"about": "chirper-three: a comparison, as bytebeat - (t*8&t>>4)|t*4
              "synth": {"layers": [{"type": "bytebeat", "bytebeat": {"formula": "(t*8&t>>4)|t*4", "clock": 8000}}],
                        "filters": ["hp cutoff=1200", "lp cutoff=9k"],
                        "amp": {"a": "1ms", "d": "60ms", "s": 0, "r": "20ms"}}}
+# v29 (ROUND TYPE: whole; wM's systems pinned ade7b930; the sorted section flagged static): AFTER ORDER, LIFE. Once
+# the list is sorted (125) the machine has nothing left to do - so it starts something: CONWAY'S GAME OF LIFE as a
+# sequencer (the engine's own `life` gen) on the sorted riff's alpha values, on a TOY PIANO (unused on the album:
+# small hammers on metal rods, a little out of tune). From an R-pentomino - five cells, a small thing - the colony
+# grows into large structures under the sung call and answer: one bar per generation (a 16-wide torus), 8 rows
+# picking the riff's notes bottom-low, up to 3 at once; it stops before the lift (153). Order, then emergence.
+LIFE = (125, 153)
+LIFE_POOL = (0, 4, 5, 9, 13, 15, 18, 20)
 GROOVE_ON = ("insertion", "quick", "merge")
 # v24 (ROUND TYPE: palette; Harry 'do more each round'): the two album staples under everything change - the pad from
 # juno-pad (5 songs) to PAD-GLASS, an FM bell-glass bloom (FM: the computer's own sound, the digital technique that
@@ -684,6 +692,11 @@ def main():
             tr("hats", "909", gain="-6dB", pan=0.1),
             tr("revcym", "fx-revcym", gain="-10dB", sends={"room": "-10dB"}),                 # v22: LAST (keeps rngs)
             tr("impact", "fx-impact", gain="-10dB"),
+            {"name": "life", "patch": "toy-piano", "gain": "-16dB", "pan": 0.35, "sends": {"room": "-8dB"},
+             "at": f"{b0(LIFE[0]):g}b",
+             "gen": {"type": "life", "width": 16, "height": 8, "init": "center", "poly": 3,
+                     "n": 16 * (LIFE[1] - LIFE[0]), "len": "/16",
+                     "notes": " ".join(pitch(v, BASE + 12) for v in LIFE_POOL)}},                  # v29: life
             tr("dice", "afro-perc", gain="-14dB", pan=0.3, sends={"room": "-10dB"}),            # v27
             tr("check", C9_PULSE, gain="-16dB", pan=-0.2, sends={"room": "-12dB"}),             # v27
             tr("handover", HAND_PATCH, gain="-6dB", pan=-0.15, sends={"room": "-8dB"}),        # v26: LAST
