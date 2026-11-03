@@ -334,6 +334,9 @@ class Coverage(unittest.TestCase):
         self.assertNotIn("choices", got)
         self.assertNotIn("chance", got)
         self.assertIn("bytebeat", CH.COVERAGE_CATALOGUE["synthesis"])
+        # engine 6014b933 (wM, bd-aa2cda): Xenakis's GENDYN
+        self.assertIn("gendyn", CH.song_features({"patches": {"g": {"synth": {"layers": [{"type": "gendyn"}]}}}}, ""))
+        self.assertIn("gendyn", CH.COVERAGE_CATALOGUE["synthesis"])
         self.assertIn("choices", CH.song_features({}, "score: (C4|E4|G4)/4"))
 
     def test_life_henon_and_walk_systems_are_features(self):
