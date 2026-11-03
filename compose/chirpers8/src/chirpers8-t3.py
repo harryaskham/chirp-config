@@ -203,6 +203,16 @@ C3_VOSBELL = {"about": "chirper-two: a VOSIM bell - two high formants of many sh
 # the cell's voice dies with them, down to a speech chip. (On every line it was unintelligible - Whisper heard "I" -
 # so T3_LPC_ALL=on keeps that as a knob.) The hymn's voices stay human. T3_R19=none reproduces v18.
 R19 = os.environ.get("T3_R19", "chip")
+# T3_R20 = drummer (v20, section round on w7, 3:05-3:36: the PEAK, "static, level jump"; motion 0.039, the
+# song's stillest window - four on the floor under the densest ring). Two events.
+# THE RING BLINKS: on the last beat of the peak's ninth bar everything stops for one beat but the voice
+# ("...add up to the next of me" carries on alone into the hole), and again on the beat before the hymn: the peak
+# breathes in before each turn. (Four blinks, every four bars, scored the same and sounded like a gimmick:
+# T3_BLINKS=396,412,428,444.)
+# THE CELLS TAKE THE KICK: from there to the hymn the four-on-the-floor kick gives way to the ring itself - beat one
+# always, then every live cell on an even sixteenth strikes the kick (rule 30: a different bar every bar), the claps
+# holding two and four. The automaton drums its own climax. T3_R20=none reproduces v19.
+R20 = os.environ.get("T3_R20", "drummer")
 R11KICK = os.environ.get("T3_R11_KICK", "machine")   # "bronze": the kit's own kick too (cost spectrum 97 -> 75-80)
 C8_KIT = {
     "about": "chirper-two: Three Neighbours' own kit - kr a D1 sine kick that drops into place with a low modal membrane "
@@ -396,6 +406,10 @@ def build():
         if groove and sec == "glider":  # half time: the floor drops away under the gliders
             for b in (0.0, 2.5):
                 T["kick"].add(start + b, 1.0, "kr", 112 if b == 0 else 100)
+        elif groove and R20 == "drummer" and sec == "peak" and i >= int(os.environ.get("T3_DRUM_FROM", "9")):
+            T["kick"].add(start, 1.0, "kr", 112)
+            for c in [c for c in range(2, W, 2) if row[c]][:int(os.environ.get("T3_DRUM_MAX", "5"))]:
+                T["kick"].add(start + c * 0.25, 0.5, "kr", 98 if c % 4 == 0 else 90)
         elif groove:
             for b in range(4):
                 T["kick"].add(start + b, 1.0, "kr", 112 if b == 0 else 104)
@@ -713,6 +727,19 @@ def main():
                       [[f"{o0 - 0.1:g}b", -40.0], [f"{o0:g}b", 0.0], [f"{total}b", 0.0]]
                 tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.die", "amount": 1}]}}]
                 tr["auto"] = {**tr.get("auto", {}), "die": {"points": pts}}
+    if R20 == "drummer" and os.environ.get("T3_BLINK", "on") == "on":
+        b1 = st["peak"] + 4.0 * int(os.environ.get("T3_DRUM_FROM", "9"))
+        bl = os.environ.get("T3_BLINKS", "")
+        blinks = [float(x) for x in bl.split(",")] if bl else [b1] + ([st["hymn"]] if "hymn" in st else [])
+        pts = [["0b", 0.0]]
+        for bk in blinks:
+            pts += [[f"{bk - 1.2}b", 0.0], [f"{bk - 0.95}b", -40.0], [f"{bk - 0.1}b", -40.0], [f"{bk}b", 0.0]]
+        lane = {"points": pts + [[f"{total}b", 0.0]]}
+        for tr in tracks:
+            if tr["name"] in ("story", "sing", "chip"):
+                continue
+            tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.blink", "amount": 1}]}}]
+            tr["auto"] = {**tr.get("auto", {}), "blink": lane}
     if R16 == "reboot":
         a0 = st["A"]
         gap0, floor1 = a0 - 4.0, a0 + 4.0 * int(os.environ.get("T3_FLOOR_BARS", "4"))
