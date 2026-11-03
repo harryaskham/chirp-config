@@ -355,6 +355,11 @@ class Coverage(unittest.TestCase):
         # engine ee46ab71 (wM, bd-ebc329): scanned synthesis (Verplank, Mathews, Shaw 2000)
         self.assertIn("scanned", CH.song_features({"patches": {"s": {"synth": {"layers": [{"type": "scanned"}]}}}}, ""))
         self.assertIn("scanned", CH.COVERAGE_CATALOGUE["synthesis"])
+        # engine 817a5de6 (wM, bd-5bfd0c): Chebyshev waveshaping layer; not the fx-style `shape: fold` strings
+        got = CH.song_features({"patches": {"c": {"synth": {"layers": [{"type": "shaper", "shaper": {"harmonics": [1, 0.5]}}]}}}}, "")
+        self.assertIn("shaper", got)
+        self.assertFalse(any(f.startswith("shape:") for f in got))
+        self.assertIn("shaper", CH.COVERAGE_CATALOGUE["synthesis"])
         # engine c7606671 (wM, bd-4f38a2): Chowning-style moving sources, canonical {"type": "orbit", ...}
         self.assertIn("orbit", CH.song_features({"tracks": [{"fx": [{"type": "orbit", "rate": "1/2", "radius": 3.0}]}]}, ""))
         self.assertIn("orbit", CH.COVERAGE_CATALOGUE["fx"])
