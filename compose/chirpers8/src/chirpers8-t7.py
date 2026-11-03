@@ -424,6 +424,20 @@ def build():
             tr('bass', 'reese', '-5dB', fx=['lp cutoff=1200', {'type': 'eq', 'bands': ['peak cutoff=110 q=0.9 gain=3dB', 'peak cutoff=82 q=1.2 gain=4dB']}]),
             tr('kit', 'electro-kit', '-5dB', sends={'hall': '-20dB'}),
             tr('hum', 'drone', '-9dB', sends={'hall': '-14dB'}),
+            # (v31, palette) THE POWER SUPPLY SETTLES: over the hum as the machine powers up, a second voice of the same
+            # A - an audio-rate Rossler attractor (wM's chaos layer, its buzzy z axis: a spike train like mains through a
+            # transformer) whose control starts high and decays over twenty seconds - comes in unstable and frayed,
+            # chaotic, then doubling, and settles into one steady electrical tone: a supply finding its regulation before
+            # the search begins. (As the whole hum it took the low-mid body the joins with t6 and t8 rely on - flow 72
+            # -> 44 - so the old drone stays under it.)
+            {'name': 'psu', 'gain': '-17dB', 'score': 'R/6b A1/40b',
+             'patch': {'fx': ['reverb kind=hall decay=5s mix=0.3'],
+                       'synth': {'layers': [{'type': 'chaos', 'chaos': {'system': 'rossler', 'axis': 'z',
+                                    'amount': {'value': 0.1, 'mod': [{'src': 'env.settle', 'amount': 0.75}]}}}],
+                                 'env': {'settle': {'a': '5ms', 'd': '18s', 's': 0.0, 'r': '1s'}},
+                                 'amp': {'a': '2.5s', 'd': '1s', 's': 0.9, 'r': '4s'},
+                                 'filters': [{'kind': 'lp', 'cutoff': 900, 'q': 0.6}, 'hp cutoff=45']}},
+             'sends': {'hall': '-14dB'}},
             tr('rhum', 'drone', '-5dB', fx=[{'type': 'radio', 'tune': {'value': 0, 'mod': [{'src': 'auto.dial', 'amount': 1}]}}],
                auto={'dial': {'points': [['0b', 0.9], ['6b', 0.3], ['9b', 0.0], ['22b', 0.0]]}}, sends={'hall': '-16dB'}),
             # (v6) THERE YOU ARE: when the search converges, the voice that read the error aloud SINGS - the riff it was looking
