@@ -492,6 +492,14 @@ def build():
             tr('ride', 'tight-kit', '-9dB', pan=-0.15, sends={'hall': '-16dB'},
                fx=[{'type': 'eq', 'bands': ['peak cutoff=75 q=0.8 gain=4dB', 'highshelf cutoff=9000 gain=-4dB']}]),
         ]}
+    # (v33) THE HUMANS SWING: the band - drums, bass, vibraphone, piano - plays its sixteenths with a light swing
+    # (each off-sixteenth a little late, 0.57), the feel of people playing together; the machine's own parts - its
+    # babble in every mouth, its cellular-automaton rim, its bytebeat hum - stay dead straight, on the grid. Only when it
+    # says the line back does the machine swing too: it has learnt the feel along with the words
+    SW = {'kit', 'kit2', 'kit3', 'ride', 'fill', 'bass', 'vib', 'pno', 'say'}
+    for t_ in song['tracks']:
+        if t_['name'] in SW and isinstance(t_.get('score'), str):
+            t_['score'] = 'swing16=0.57 ' + t_['score']
     return song
 
 
