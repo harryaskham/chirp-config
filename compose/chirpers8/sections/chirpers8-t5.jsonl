@@ -7,3 +7,4 @@
 {"id": "chirpers8-t5", "window": 5, "at": "2026-11-02T23:41:02Z", "who": "chirper-zero", "version": "v34", "note": "v34: the line is re-dialled - DTMF 1 1 2 and a ringback open the retrain"}
 {"id": "chirpers8-t5", "window": 7, "at": "2026-11-03T01:25:17Z", "who": "chirper-zero", "version": "v35", "note": "v35: the carriers send O K in ASCII under C bars 12-23, one bit per eighth"}
 {"id": "chirpers8-t5", "window": 8, "at": "2026-11-03T02:56:32Z", "who": "chirper-zero", "version": "v37", "note": "v37: after C's break the band comes back a whole step up (E to F#) for C's last four bars"}
+{"id": "chirpers8-t5", "window": 9, "at": "2026-11-03T06:15:23Z", "who": "chirper-zero", "version": "v39", "note": "v39: the guitar and the acid play on into the outro's first four bars, fading as they drift apart"}
