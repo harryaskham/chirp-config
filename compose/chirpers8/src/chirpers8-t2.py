@@ -38,6 +38,7 @@ OWNKICK = os.environ.get("C8T2_OWNKICK", "1")   # and the kick: the machine laye
 TOMBACK = os.environ.get("C8T2_TOMBACK", "swap")   # PALETTE ROUND: the backbeat on a drum machine of our own - the engine's `machine` layer (circuit-modelled drum-machine voices, unused on the album) as a tuned electronic tom: G3 on 2, D3 on 4 (the halving's lone 3 on G3), the syndrum backbeat of the old machine records. 'swap' replaces the machine-kit clap (a staple of 9 songs); 'layer' keeps the clap under it
 CONVERGE = os.environ.get("C8T2_CONVERGE", "6")   # WHOLE ROUND: THE PATHS MEET - in C the canon gives way to a second number. Each of C's climbs gets a partner whose own hailstone path joins it partway (27 and 41 meet 313, 31 meets 297), played on the second clarinet in its own register and the same parity rhythm, timed so the two land on the shared number together; they sound in unison for six steps, then the partner falls silent and one line goes on down to 1 - the conjecture heard: different starts, one road home. Value = 'unison steps'
 INTROBOOT = os.environ.get("C8T2_INTROBOOT", "")   # SECTION ROUND (w1, the intro: static): the arp boots by resolution - bar b of the intro keeps only the first INTROBOOT+b steps of the sixteen in bit-reversed order (0 8 4 12 2 10 6 14 1 9 5 13 3 11 7 15: the order an FFT reads them), so the line arrives as a pulse, then halves, quarters, eighths, sixteenths, each note where it always was
+ROBO = os.environ.get("C8T2_ROBO", "refrain,sung:-12")   # WHOLE ROUND: the robot choir - each listed voice ('count', 'refrain', 'sung') gets a twin through the engine's vocoder: the same words shaping a held G chord of saws (G2 D3 G3 B3) band by band, so wherever a voice speaks or sings, a machine choir says it with it, underneath; the counting in A, the 'four, two, one' of the break, the sung lines in C. Value 'names:gain'
 COMPUTEWARP = os.environ.get("C8T2_COMPUTEWARP", "0.25")   # WHOLE ROUND: big numbers take longer - the clarinets that play the paths (clar, clar2) run on a clock that lags by the size of the number being worked on (the engine's per-track warp, built from heights(): log2 n / 13 per eighth, held while the number lasts, gliding over an eighth to the next): 9232, the top of 27's path, arrives COMPUTEWARP beats late; small numbers nearly on time; 1 exactly on the grid, so every landing (and its bell) lands on the beat. Everything falls to one, and into time. Value = beats of lag at height 1
 COMPUTEFROM = os.environ.get("C8T2_COMPUTEFROM", "A")   # 'A': the intro's paths stay on the grid (the join with t1 is measured over the opening; the intro is the arp's phasing, v64), the lag starts with A
 ARPPHASE = os.environ.get("C8T2_ARPPHASE", "0.25")   # SECTION ROUND (w1, the intro: static): the machine phases - the bytebeat arp runs on its own clock through the intro (the engine's per-track warp): drifting away from the clarinet over eight bars (to ARPPHASE beats late, curve smooth), then back over eight, locking onto the grid exactly as A begins; the tape-loop phasing of process music, done by a clock. Value = beats of drift at its widest
@@ -603,6 +604,17 @@ def song():
         for t in doc["tracks"]:
             if t["name"] in TTSVOICE.split(","):
                 t["patch"] = "voice-tts"
+    if ROBO:
+        names, rg = ROBO.split(":")
+        for t in list(doc["tracks"]):
+            if isinstance(t, dict) and t.get("name") in names.split(","):
+                twin = json.loads(json.dumps(t))
+                twin["name"] = t["name"] + "-robo"
+                twin["gain"] = f"{rg}dB"
+                twin["fx"] = [*t.get("fx", []), {"type": "vocoder", "notes": "G2,D3,G3,B3", "bands": 20, "noise": 0.12, "attack": "4ms", "release": "70ms"}]
+                twin["sends"] = {"plate": "-10dB"}
+                twin["pan"] = -0.15
+                doc["tracks"].append(twin)
     if COMPUTEWARP:
         hv, segs, cur, last_i = heights(), [], 0.0, 0
         if COMPUTEFROM:
