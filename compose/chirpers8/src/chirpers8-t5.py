@@ -55,6 +55,7 @@ LIFTSTOP = os.environ.get("C8T5_LIFTSTOP", "1")   # the gear change, announced: 
 LIFTHAT = os.environ.get("C8T5_LIFTHAT", "1")   # after the lift the hats open: every off-beat hat an open hat - the agreed band, a step up, brighter on top
 ESTABLE = os.environ.get("C8T5_ESTABLE", "1")   # song-level event_stable (engine f5283535): each note's humanize and DSP draws come from its track, beat and pitch, so a window's edit stays in the window; switching it on re-rolls every humanized note once
 ACIDX = os.environ.get("C8T5_ACIDX", "-18")   # WHOLE ROUND: the route out of chaos - the acid's line is doubled by a chaos voice (engine f3872739: a Rossler attractor, one loop per period of the note, read on its x axis, a tone with a chaotic flutter) whose amount walks the route backwards across the song: chaotic through A's proposals (0.9), calming through B, period-doubling (an octave-down subharmonic) at the retrain, a plain tone once they agree in C, and back toward chaos as they part at the end. Value = gain dB
+DJLAYER = os.environ.get("C8T5_DJLAYER", "-19")   # WHOLE ROUND: both hand drums carry the computer's drum - the djembe gets the same Karplus-Strong twin as the congas (v55: the 1983 paper's blend 0.5, under the stock drum), its hits at the kit's pitches with the two bass strokes an octave up (b C2 -> C3, c G1 -> G2: the loop drum can't make a skin's low boom, the stock djembe keeps that), so every hand-drum stroke in the song has a grain of digital rattle. Value = the twin's gain dB
 TAPE = os.environ.get("C8T5_TAPE", "r,outro")   # WHOLE ROUND: the machine is stopped to change its speed - the engine's tapestop on the master: over B's last bar the whole band winds down to a halt like a tape losing power, and the retrain spins up from silence over two beats at its new speed ('r'); with 'r,outro' the agreement is stopped the same way over C's last bar and the outro spins up out of it as they part ('end': a last stop over the outro's final two bars broke the join with t6, flow 80 -> 38)
 CONGALAYER = os.environ.get("C8T5_CONGALAYER", "-26")   # WHOLE ROUND: inside the hand drum, the computer's first drum - the congas keep their wood and skin (the stock kit carries the groove's low body: replacing it outright cost 0.6-1.3, r87) and gain a twin underneath, Karplus-Strong's own drum (engine 8f150090; the 1983 paper's blend 0.5: a noise burst whose loop flips sign at random, so it thumps and rattles rather than ringing), on the same hits at the kit's pitches. Value = the twin's gain dB
 OUTKS = os.environ.get("C8T5_OUTKS", "0:-14")   # SECTION ROUND (w9, the outro: level jump): the deal, plucked as they part - the tune they sang at C's end (B3 D4 E4, the last time up to B4) comes back in the outro on Karplus-Strong (engine 8f150090, 1983: a noise burst settling in a one-period loop), stretched to ring long: every two bars, four times, then up to B4, then one E4 left ringing at bar 12, each softer. A notes-only track, outro only. Value 'blend:gain'
@@ -588,6 +589,15 @@ def song():
         pts += [(total(), pts[-1][1])]
         doc["master"]["auto"] = dict(doc["master"].get("auto", {}), ts={"points": [[f"{x / 4:g}b", y] for x, y in pts]})
         doc["master"]["fx"] = list(doc["master"]["fx"]) + [{"type": "tapestop", "stop": {"value": 0, "mod": [{"src": "auto.ts", "amount": 1}]}, "time": "4b", "up": "2b", "curve": 1.6}]
+    if DJLAYER:
+        for t_ in list(doc["tracks"]):
+            if isinstance(t_, dict) and t_.get("name") == "dj" and t_.get("patch") == "djembe":
+                hits = {"b": "C3", "c": "G2", "s": "B4", "t": "E4"}
+                tw = json.loads(json.dumps(t_))
+                tw.update(name="djks", gain=f"{DJLAYER}dB",
+                          patch={"about": "Karplus-Strong's drum (1983): blend 0.5", "synth": {"layers": [{"type": "ks", "bright": 0.45, "ks": {"blend": 0.5, "stretch": 1, "tune": True}}], "amp": "1ms 1 0 160ms"}})
+                tw["score"] = " ".join(hits.get(tok.split("/")[0], tok.split("/")[0]) + tok[len(tok.split("/")[0]):] for tok in t_["score"].split())
+                doc["tracks"].append(tw)
     return doc
 
 
