@@ -90,6 +90,26 @@ R8 = os.environ.get("T3_R8", "kotekan")
 # notices. New tracks plus a kick gain lane (T3_CONE_DROP=none: cone only, +0.015 but w3 stayed "static").
 # T3_R9=none reproduces v8.
 R9 = os.environ.get("T3_R9", "cone")
+# T3_R10 = byte (v10, whole-song round). THE MACHINE UNDERNEATH: a BYTEBEAT (wM's new layer; one integer formula of a
+# counter, 8-bit, the one-line computer music of 2011) written for this song. Its integer multipliers ARE just
+# intonation - t*4, t*5, t*6, t*7 sound 4:5:6:7, the harmonic-seventh chord of 7-limit JI on D - and which multiplier
+# sounds is chosen by RULE 30 applied to the bits of a sixteenth counter (left ^ (centre | right)), with a rule-90 bit
+# bouncing the octave every two sixteenths: an arpeggio chord, the home computer's chord, out of the song's own rule.
+# The clock is set so t*4 is exactly D3 and a step is a sixteenth at 124 bpm. It wakes in the seed, runs the boot,
+# carries the traffic jam, and fades through the first bars of the out, gone well before the last bell (the ~913 Hz
+# ring t4 catches). Low-passed, never squelched. Scored on pin 709cf900 (s0): everywhere at -7 dB 97.02 (spectrum
+# 97.2 -> 89.5, sections 14 -> 10: one voice under every section blurs them); everywhere quiet (-13 dB, lp 1.8k) 97.26;
+# boot + out 97.63; so by default it only BOOTS the machine - the seed's tail and the boot, at -10 dB, lp 1.8k
+# (97.75, parity) - and then the song takes over. T3_BYTE_SECS=all|bookends keep the rest. T3_R10=none reproduces v9.
+R10 = os.environ.get("T3_R10", "byte")
+C3_BYTE = {"about": "chirper-two: a bytebeat whose multipliers are 7-limit JI (t*4..7 = 4:5:6:7 on the note) chosen by "
+                    "rule 30 on the bits of a sixteenth counter, a rule-90 bit bouncing the octave; clock 16744 puts t*4 "
+                    "on the note and a step on a 124-bpm sixteenth for D3.",
+           "synth": {"layers": [{"type": "bytebeat", "bytebeat": {
+               "formula": "t*((4+((t/4548^(t/2274|t/1137))&1)+2*((t/18192^(t/9096|t/4548))&1))<<((t/2274^t/1137)&1))",
+               "clock": 16744}}],
+               "amp": {"a": "8ms", "s": 1, "r": "120ms"}},
+           "fx": []}
 RULE_BITS = {r: [(r >> k) & 1 for k in range(7, -1, -1)] for r in (30, 90)}
 ANSWERS = [(14.75, ["C6", "A5", "D6"]), (12.9, ["F6", "E6", "D6"]), (14.75, ["A6", "G6", "A6"]), (9.9, ["C6", "D6"])]
 HYMN = [(0, 3, 7), (8, 14, 17), (3, 7, 12), (0, 3, 7), (5, 10, 14), (10, 14, 17), (3, 7, 12), (8, 14, 17),
@@ -500,6 +520,24 @@ def main():
             if tr["name"] == "kick":
                 tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.cone", "amount": 1}]}}]
                 tr["auto"] = {**tr.get("auto", {}), "cone": lane}
+    if R10 == "byte":
+        byte = Track("byte")
+        plan = [(st["seed"] + 16.0, st["boot"], 44, 64), (st["boot"], st["A"], 76, 80),
+                (st["traffic"], st["peak"], 38, 38), (st["out"], st["out"] + 32.0, 66, 34)]
+        BYTE_SECS = os.environ.get("T3_BYTE_SECS", "boot")
+        if BYTE_SECS == "bookends":   # the machine boots and powers down, nothing in between
+            plan = [plan[1], plan[3]]
+        elif BYTE_SECS == "boot":     # the machine only boots: the seed's tail and the boot, then the song takes over
+            plan = [plan[0], plan[1]]
+        for a0, a1, v0, v1 in plan:
+            n = int(round((a1 - a0) / 8.0))
+            for k in range(n):
+                byte.add(a0 + 8.0 * k, 8.0, "146.83hz", v0 + (v1 - v0) * k / max(1, n - 1))
+        tracks.append({"name": "byte", "patch": "c3-byte", "gain": os.environ.get("T3_BYTE_GAIN", "-10dB"), "pan": -0.15,
+                       "fx": ["hp cutoff=130", "lp cutoff=" + os.environ.get("T3_BYTE_LP", "1800") + " q=0.5",
+                              {"type": "delay", "time": "3/16", "feedback": 0.25, "mix": 0.18, "ping_pong": True, "tone": 2500},
+                              "reverb kind=room decay=0.8s mix=0.15"],
+                       "score": byte.score(total)})
     if R4 == "hymn" and R5 == "breath":
         fill, ans = Track("hfill"), Track("answer")
         for k, deg in enumerate([7, 6, 5, 4, 3, 2, 1, 0]):     # the toms fall down the JI scale into bar 8
@@ -577,7 +615,7 @@ def main():
         'volume: "0dB"',
         "loudness: -11",
         "true_peak: true",
-        "patches: " + json.dumps(patches()),
+        "patches: " + json.dumps({**patches(), **({"c3-byte": C3_BYTE} if R10 == "byte" else {})}),
         "buses: " + json.dumps(buses),
         "master: " + json.dumps({"fx": [{"type": "eq", "bands": ["hp cutoff=25", "peak cutoff=250 gain=-2dB q=0.8",
                                                                "highshelf cutoff=7000 gain=2dB"] +
