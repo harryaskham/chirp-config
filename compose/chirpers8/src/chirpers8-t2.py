@@ -38,6 +38,7 @@ OWNKICK = os.environ.get("C8T2_OWNKICK", "1")   # and the kick: the machine laye
 TOMBACK = os.environ.get("C8T2_TOMBACK", "swap")   # PALETTE ROUND: the backbeat on a drum machine of our own - the engine's `machine` layer (circuit-modelled drum-machine voices, unused on the album) as a tuned electronic tom: G3 on 2, D3 on 4 (the halving's lone 3 on G3), the syndrum backbeat of the old machine records. 'swap' replaces the machine-kit clap (a staple of 9 songs); 'layer' keeps the clap under it
 CONVERGE = os.environ.get("C8T2_CONVERGE", "6")   # WHOLE ROUND: THE PATHS MEET - in C the canon gives way to a second number. Each of C's climbs gets a partner whose own hailstone path joins it partway (27 and 41 meet 313, 31 meets 297), played on the second clarinet in its own register and the same parity rhythm, timed so the two land on the shared number together; they sound in unison for six steps, then the partner falls silent and one line goes on down to 1 - the conjecture heard: different starts, one road home. Value = 'unison steps'
 INTROBOOT = os.environ.get("C8T2_INTROBOOT", "")   # SECTION ROUND (w1, the intro: static): the arp boots by resolution - bar b of the intro keeps only the first INTROBOOT+b steps of the sixteen in bit-reversed order (0 8 4 12 2 10 6 14 1 9 5 13 3 11 7 15: the order an FFT reads them), so the line arrives as a pulse, then halves, quarters, eighths, sixteenths, each note where it always was
+CHAOSONE = os.environ.get("C8T2_CHAOSONE", "-24")   # WHOLE ROUND: everything falls to one, chaos to a period - the clarinet's paths are doubled by a chaos voice (engine f3872739: a Rossler attractor, one loop per period of the note, on its x axis) whose amount rides the height var: high in a path (the numbers wandering up toward 9232) it is chaotic, a tone that never repeats; as the path falls it calms through period doubling; at one it is a plain periodic tone. Value = gain dB
 VOSORB = os.environ.get("C8T2_VOSORB", "rate=1/2 radius=2")   # SECTION ROUND (w10, the outro: static, little new vs w9): the last voice goes round - v49's VOSIM voice, singing the outro's 1 4 2 1 an octave down as the band falls away, circles the listener (orbit fx, engine c7606671, after Chowning 1971: round the head, darker behind), the number's final loop sung from all sides. Value = the orbit's args
 ROLESWAP = os.environ.get("C8T2_ROLESWAP", "1")   # SECTION ROUND (w8, C's middle: little new vs w7 - the seed 27 comes round a second time): the machine leads the second time - for C's third path (27 again, an octave up) the terrain clarinet (clar2, v51) takes the path and the clarinet takes the partner (313) that falls in to meet it, the roles of the first 27 reversed; with 'v' the two also trade levels (clar2's line +3 dB, clar's -3 dB)
 PDPAD = os.environ.get("C8T2_PDPAD", "-17")   # PALETTE: the choir pad (dream-vox: pulse and saw with noise, the humming bed from the first bar, in A, the break and C) becomes Casio CZ phase distortion: a reso_trap whose resonance breathes on a slow sine (one cycle every four bars), a resonant CZ pad, the bass's sibling. Value = gain dB
@@ -597,6 +598,11 @@ def song():
                                                   "amp": "30ms 0.8 0.8 250ms"}},
                               **({"fx": [f"orbit {VOSORB}"]} if VOSORB else {}),
                               "sends": {"plate": "-14dB"}, "score": T["vos"]})
+    if CHAOSONE:
+        doc["tracks"].append({"name": "chx", "gain": f"{CHAOSONE}dB", "pan": 0.15,
+                              "patch": {"synth": {"layers": [{"type": "chaos", "chaos": {"system": "rossler", "axis": "x", "amount": {"value": 0, "mod": [{"src": "var.height", "amount": 0.9}]}}}],
+                                                  "amp": "20ms 0.8 0.75 150ms", "filters": [{"kind": "lp", "cutoff": 3000}]}},
+                              "sends": {"plate": "-14dB"}, "score": T["clar"]})
     return doc
 
 
