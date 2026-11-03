@@ -563,6 +563,15 @@ MEMORY = [
 # of 8 cents per platter turn, wear rolling off the top); a gate lane keeps the record silent outside the reel (the
 # lesson of the radio in v10): the needle drops half a bar before the first memory, and in the last bar the
 # crackle fades away while the standby light breathes on - the record ends, the light stays on
+# v35 (ROUND TYPE: whole; orbit pinned c7606671): THE CLOSER GETS ITS FLOOR, AND THE MEMORIES CIRCLE. (1) compscore
+# --bands said the closer was tilted bass-light and mid-boxy: 38-71 Hz 8-9 dB short of the album, 400 and 750-880 Hz
+# 8.5 dB over. The sub up 5 dB, a 55 Hz peak on the kick, and two master cuts (400 Hz, ~810 Hz, 3 dB each). (2) In the
+# light section the album flashes through its memory - one bar per track's motif, on a dulled FM piano played back
+# from a record - and now each memory CIRCLES THE LISTENER as it passes (Chowning's orbit, a lap every two bars, round
+# the head): the album drifting round you as you fall asleep.
+MEMORY_ORBIT = {"type": "orbit", "path": "circle", "rate": round(126 / 60 / 8, 4), "radius": 3, "distance": 0}
+
+
 def vinyl_gate():
     return [["0b", -80.0], [f"{rb(179) - 2.5:g}b", -80.0], [f"{rb(179) - 2:g}b", 0.0], [f"{rb(190):g}b", 0.0],
             [f"{rb(190) + 3:g}b", -80.0]]
@@ -847,7 +856,8 @@ def main():
                fx=[{"type": "filter", "kind": "lp", "cutoff": 3000}, "chorus",     # v10 (a radio's hiss ran all song)
                    {"type": "vinyl", "crackle": 0.35, "dust": 0.3, "noise": "-56dB", "rumble": 0.2, "warp": 8,
                     "wear": 0.45},                                                  # v16: played back from a record
-                   {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.vg", "amount": 1}]}}],
+                   {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.vg", "amount": 1}]}},
+                   MEMORY_ORBIT],                                                   # v35: the memories circle
                auto={"vg": {"points": vinyl_gate()}}),
             tr("standby", "partial", gain="-14dB", sends={"hall": "-10dB"},
                fx=[{"type": "tremolo", "rate": 0.2, "depth": 0.95}]),                # v9: the breathing light
@@ -885,8 +895,9 @@ def main():
             tr("pole", "strings", gain="-10dB", sends={"hall": "-4dB"}, fx=["barberpole cycle=2bar down=true"]),
             tr("horns", "brass", gain="-10dB", pan=0.1, sends={"hall": "-8dB"}),   # v11: REAL lips - a waveguide bore, 3 players
             tr("phantom", "phantom-bass", gain="-8dB"),
-            tr("sub", "808", gain="-14dB", fx=[{"type": "phantom", "harmonics": "-6dB", "odd": 0.4, "remove": 0.0}]),
-            tr("kick", "machine-kit", gain="-12dB"),
+            tr("sub", "808", gain="-11dB", fx=[{"type": "phantom", "harmonics": "-6dB", "odd": 0.4, "remove": 0.0}]),
+            tr("kick", "machine-kit", gain="-12dB",
+               fx=[{"type": "filter", "kind": "peak", "cutoff": 55, "q": 0.9, "gain": "4dB"}]),   # v35: the floor
             tr("ride", "machine-kit", gain="-9dB", pan=-0.3, sends={"room": "-12dB"}),     # v2
             # v21 (palette round): THE OLD MACHINE VOICE LEARNS TO SING - the prune's 'count the leaves again' (spoken six
             # times, melting from speech into song) was voice-speech, a staple in nine of the album's songs; now the
@@ -930,6 +941,7 @@ def main():
                           {"type": "tapestop", "time": "4b", "curve": 1.6, "mix": 1,          # v14: power down
                            "stop": {"value": 0, "mod": [{"src": "auto.ts", "amount": 1}]}},
                           {"type": "eq", "bands": ["highpass cutoff=28", "peak cutoff=300 q=0.8 gain=-5dB",
+                                                    "peak cutoff=400 q=1.0 gain=-3dB", "peak cutoff=810 q=0.8 gain=-3dB",
                                                     "highshelf cutoff=6000 gain=5dB"]},     # v2: the album's envelope
                           {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}},
                           {"type": "compressor", "threshold": "-12dB", "ratio": 8, "attack": "0.3ms",
