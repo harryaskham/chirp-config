@@ -212,6 +212,14 @@ R19 = os.environ.get("T6_R19", "warm")
 # of 2, beat 4), a single rim on the "and" of 3, no snare, and the hats go to soft triplet eighths - the same
 # machine, ticking over at rest. Drum events only, in the outro's groove bars. T6_R20=none reproduces v18.
 R20 = os.environ.get("T6_R20", "idle")
+# T6_R21 = lift (v20, whole-song round). THE CHORUSES LIFT. Every groove bar of the song sat on the same half-time
+# 808, verse and chorus alike, so the choruses only got louder. Now both choruses go to the floor: four on the
+# floor, a clap on two and four, sixteenth hats opening on the off-beats (the ride stays) - the electro-soul lift,
+# and the verses keep the half-time sway, so the song breathes between them. From each chorus's seventh bar the bass
+# can go to octave eighths (T6_R21_BASS=half; =on for the whole chorus) - off: it cost 0.05 and moved no groove.
+# With the lift the air shelf goes from +3 to +5 dB (9.2 and 14.8 kHz were 6.5-6.8 dB short).
+# T6_R21=none reproduces v19.
+R21 = os.environ.get("T6_R21", "lift")
 TESTS = [102.0, 150.0, 238.0, 302.0, 318.0, 394.0, 426.0]
 TEST_KEEP = {"voice", "lull", "singb", "ringv", "vosim", "tline", "radio", "ack", "test", "idle-in", "idle-out"}
 WALK_POOL = [0, 3, 6, 8, 11, 14, 17, 19, 22, 25, 27, 30, 33, 36, 38, 41]   # 19-EDO major steps, two octaves up from C5
@@ -394,7 +402,19 @@ def build():
             for b, tt in ((3.0, tones[0]), (3.5, tones[2] if len(tones) > 2 else tones[-1])):
                 T["ack"].add(start + b, 0.42, mm(e(root + tt, 72)), 92 if b == 3.0 else 80)
         # ---- the half-time 808 ----
-        if groove and R20 == "idle" and sec == "outro":   # the machine idles: tresillo kick, a rim, triplet hats
+        if groove and R21 == "lift" and chorus_sec:   # the lift: four on the floor, claps, open-hat off-beats
+            for b in range(4):
+                T["kick"].add(start + b, 0.5 if b else 1.0, "kb", (108, 94, 102, 94)[b])
+            for b in (1.0, 3.0):
+                T["snare"].add(start + b, 0.5, "cp", 100)
+            for b in (0.5, 1.5, 2.5, 3.5):
+                T["ride"].add(start + b, 0.5, "rd", 62, "?0.85")
+            for s in range(16):
+                if s % 4 == 2:
+                    T["hats"].add(start + s * 0.25, 0.2, "oh", 64)
+                elif s % 4 != 0:
+                    T["hats"].add(start + s * 0.25 + (0.02 if s % 2 else 0), 0.1, "h", 50 if s % 2 == 0 else 40, "?0.8")
+        elif groove and R20 == "idle" and sec == "outro":   # the machine idles: tresillo kick, a rim, triplet hats
             for b, v in ((0.0, 104), (1.5, 88), (3.0, 92)):
                 T["kick"].add(start + b, 0.5 if b else 1.0, "kb", v)
             T["rim"].add(start + 2.5, 0.2, "rs", 74)
@@ -420,7 +440,11 @@ def build():
             for b in (0.75, 2.75):
                 T["rim"].add(start + b, 0.2, "rs", 70, "?0.7")
         # ---- bass on the roots ----
-        if groove or sec == "bridge":
+        r21b = os.environ.get("T6_R21_BASS", "off")   # half: s0 98.109 (-0.05), w4/w9 groove unmoved
+        if groove and R21 == "lift" and chorus_sec and (r21b == "on" or (r21b == "half" and i >= 6)):
+            for k in range(8):   # octave eighths
+                T["bass"].add(start + k * 0.5, 0.4, mm(rm + (12 if k % 2 else 0)), 96 if k % 2 == 0 else 82)
+        elif groove or sec == "bridge":
             T["bass"].add(start, 1.4, mm(rm), 100)
             T["bass"].add(start + 1.5, 0.4, mm(rm), 84)
             T["bass"].add(start + 2.75, 0.9, mm(rm + 12 * (11 / EDO)), 88)  # its fifth (19-EDO)
@@ -759,7 +783,7 @@ def main():
                                                                "highshelf cutoff=6500 gain=4dB"] +
                                                               (["peak cutoff=105 gain=" + os.environ.get("T6_LOW105", "3dB") + " q=1.0",
                                                                 "peak cutoff=1500 gain=" + os.environ.get("T6_MID1500", "-2.5dB") + " q=1.0",
-                                                                "highshelf cutoff=9000 gain=" + os.environ.get("T6_AIR", "3dB")]
+                                                                "highshelf cutoff=9000 gain=" + os.environ.get("T6_AIR", "5dB" if R21 == "lift" else "3dB")]
                                                                if R17 == "bands" else [])},
                                         "glue threshold=-20dB ratio=2 attack=10ms release=150ms makeup=1dB",
                                         {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}},
