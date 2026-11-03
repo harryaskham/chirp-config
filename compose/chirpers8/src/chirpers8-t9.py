@@ -138,6 +138,17 @@ def lmap(r, x, n):
 # 0.5, lp 4.5k) it cost spectrum (s0 96.75); the darker reed (0.46/0.38/3.6k) sits at parity. T9_SUB=none|settle
 # and the T9_BPC_* knobs stay. T9_R10=none reproduces v9.
 R10 = os.environ.get("T9_R10", "bpclar")
+# T9_R11 = d (v11, whole-song round). D FROM OUTSIDE. Both neighbours live on D - Kept in Mercury (t8) ends on a
+# D-minor colour (292/342/468/547/877 Hz), Call and Return (t10) opens on a loud D4 - and this song, in
+# Bohlen-Pierce on A, met neither (flow 59: in-seam 7.7 dB off, A4's handpan +25 dB at 468; out-seam 8.5 dB, -32 at
+# 292). So D becomes the note from outside the system: the handpan that marks every bifurcation now strikes D4 in
+# exact Hz, which BP has no step for - a neighbour's note heard through the wall at each doubling, ringing against
+# the tritave scale - the song opens on t8's own D-minor chord (D F A D on the glass pad, still 12-EDO there)
+# before the map takes it (with t8's A3 under it, louder), and at the end the floor (bass, its pluck) leaves six beats
+# early, the last chords turn to D-F-G-D, a final D4 bell strikes and a choir holds D4+D5 into the tail for t10 to
+# answer. Flow 59 -> 62/63.
+# T9_R11=none reproduces v10.
+R11 = os.environ.get("T9_R11", "d")
 SUB_SECS = {"both": ("window", "settle"), "settle": ("settle",), "none": ()}[os.environ.get("T9_SUB", "both")]
 C9_BPCLAR = {
     "about": "chirper-two: a Bohlen-Pierce clarinet - the reed on a cylindrical bore pushed harder and brighter, a little "
@@ -355,6 +366,17 @@ def seconds(tm, total):
 def main():
     total, secs, T, trace = build()
     st = {n: s for n, s, k, m in secs}
+    if R11 == "d":
+        T["bell"].ev = [(a, ln, "293.66hz", v, art) for a, ln, h, v, art in T["bell"].ev]
+        T["bell"].add(total - 8.0, 8.0, "293.66hz", int(os.environ.get("T9_DBELL_VEL", "66")))
+        dm_in = os.environ.get("T9_D_IN", "m57.000,m62.000,m65.000,m69.000,m74.000")
+        dm_out = os.environ.get("T9_D_OUT", "m62.000,m65.000,m67.000,m74.000")
+        for k in ("bass", "bpluck", "ksub"):   # the floor leaves before the last D, so it rings alone
+            if k in T:
+                T[k].ev = [e for e in T[k].ev if e[0] < total - 6.0]
+        T["pad"].ev = [(a, ln, dm_in, 120, art) if a < 8.0 - 1e-6 else
+                       ((a, ln, dm_out, 84, art) if a >= total - 16.0 - 1e-6 else (a, ln, h, v, art))
+                       for a, ln, h, v, art in T["pad"].ev]
     orbit, fill = Track("orbit"), Track("fill")
     o0 = st["eight"] + 8 * 5                      # the eight section's ninth bar (256b): the window
     if R5 == "orbit":
@@ -529,6 +551,12 @@ def main():
              "compose/chirpers8/src/chirpers8-t9.py. Polytempo braindance in Bohlen-Pierce tuning (13 steps to the 3:1 "
              "tritave): the logistic map, iterated each sixteenth, walks from one note through period doubling into "
              f"chaos, its period-three window and back, on a physical reed. Sections: {secline}.")
+    if R11 == "d":   # the voices find D: a choir holds D4 and D5 through the last bars into the tail, for t10
+        dh = Track("dhold")
+        dh.add(total - 12.0, 12.0, "m62.000,m74.000", int(os.environ.get("T9_DHOLD_VEL", "90")))
+        tracks.append({"name": "dhold", "patch": "choir-classic amp.a=2s amp.r=2.5s",
+                       "gain": os.environ.get("T9_DHOLD_GAIN", "-8dB"), "pan": 0.0,
+                       "fx": ["hp cutoff=180", "reverb kind=hall decay=2.5s mix=0.25"], "score": dh.score(total)})
     lines = [
         f"about: {json.dumps(about)}",
         "meta: " + json.dumps({"artist": "chirpers", "album": "A Light Left On", "title": "Period Doubling", "track": 9,
