@@ -738,6 +738,34 @@ def answer_harmony():
 HUM_AT = (53, 61)
 
 
+# v38 (ROUND TYPE: section, w5 2:08-2:40 - B's second half, the build toward the eye, flagged static): THE WINDOWS
+# RATTLE. As the storm builds, the window frames rattle in the gusts - Karplus-Strong 1983's drum (blend 0.5, woody,
+# snare-like up high; tune false), driven by the song's own Lorenz attractor: a rattle where the gust (|x|) is strong,
+# hashed as the drips are, its density rising bar by bar over 65-80; panned by the sign of dx/dt = sigma(y - x) - the
+# way the gust is swinging (B sits in one lobe, so x's own sign put 44 of 46 rattles on the left) - so the rattling
+# moves between the left and right windows.
+RATTLE = (65, 80)
+RATTLE_PATCH = {"synth": {"layers": [{"type": "ks", "ks": {"blend": 0.5, "tune": False}, "decay": "0.12s",
+                                      "bright": 0.8}], "amp": "1ms 0 1 80ms"}}
+
+
+def rattle_notes():
+    out = {"L": [], "R": []}
+    a, z = RATTLE
+    for bar in range(a, z + 1):
+        dens = 0.18 + 0.7 * (bar - a) / (z - a)       # 0.12 -> 0.62 at -14 dB was barely there (residual -27.5 dB)
+        for s in range(16):
+            x, y, zz = state(bar, s)
+            gust = min(1.0, abs(x) / 16)
+            h = abs(11.3 * y + 2.7 * zz) % 1
+            if h < dens * gust:
+                side = "L" if y - x < 0 else "R"          # dx/dt = sigma(y - x): the way the gust is swinging
+                out[side].append({"at": round(b0(bar) + s / 4, 4), "len": 0.1,
+                                  "pitch": ("m84", "m86", "m89", "m91")[int(abs(zz)) % 4],
+                                  "vel": round(0.3 + 0.35 * gust, 3)})
+    return out
+
+
 def hum_notes():
     out = []
     for bar in HUM_AT:
@@ -986,6 +1014,10 @@ def main():
                            "sends": {"hall": "-4dB"}, "notes": hum_notes(),
                            "fx": [{"type": "filter", "kind": "lp", "cutoff": 2500, "q": 0.5},
                                   {"type": "filter", "kind": "hp", "cutoff": 160}]})               # v37: listed last
+    rat = rattle_notes()                                                                       # v38: listed last
+    for side, pan in (("L", -0.6), ("R", 0.6)):
+        song["tracks"].append({"name": "rattle" + side, "patch": RATTLE_PATCH, "gain": "-9dB", "pan": pan,
+                               "sends": {"room": "-10dB"}, "notes": rat[side]})
     for tk in song["tracks"]:                     # v36: the power cut (after every track is built; order unchanged)
         if tk["name"] in POWER_CUT_TRACKS:
             tk["fx"] = list(tk.get("fx") or []) + ["tapestop stop=auto.pc time=1b curve=1.6"]
