@@ -317,6 +317,24 @@ R23 = os.environ.get("T9_R23", "two")
 # and t10 catches the held D4 - the out-join's 292 Hz band fell to -43.6 dB without it, s0 97.65).
 # T9_R24=none reproduces v23.
 R24 = os.environ.get("T9_R24", "choir")
+# T9_R25 = branches (v25, whole-song round). THE CHOIR SINGS THE DIAGRAM. A wordless CHANT choir (wM's `fof`) holds
+# the map's attractor as a chord, every four bars, all the way through: in `one` one voice (the fixed point), in
+# `two` two, in `four` four, in `eight` eight - the bifurcation diagram sung, each branch a singer - then in the
+# chaos a different handful of iterates every two bars, in the window three again ("it comes back in threes"), the
+# storm a crowd re-voiced every bar, and in the settle the choir folds back to two and to one as r falls. Each orbit
+# value x goes to the map's own pitch mapping a tritave down (146.7 Hz * 3^((x - 0.3) * 16/13)), snapped to the
+# song's Bohlen-Pierce lambda scale, and is sung by whichever voice owns that register (bass, tenor, alto,
+# soprano). The vowel opens with the period - "oo" at one, through "oh", to "ah" in the chaos - on one shared lane.
+# T9_R25=none reproduces v24.
+R25 = os.environ.get("T9_R25", "branches")
+BR_PATCHES = {}
+def c9_fof(voice, vib):
+    return {"about": f"chirper-two: a CHANT/FOF {voice} singing the logistic map's branches",
+            "synth": {"layers": [{"type": "fof", "fof": {"voice": voice, "vowel": "u>a", "attack": 8,
+                                                         "morph": {"value": 0.0, "mod": [{"src": "auto.mouth", "amount": 1}]}}}],
+                      "pitch": {"value": 0, "mod": [{"src": "lfo.vib", "amount": vib}]},
+                      "lfo": {"vib": {"wave": "sine", "rate": "5.5hz"}},
+                      "amp": {"a": "350ms", "d": "600ms", "s": 0.85, "r": "1.2s"}}}
 TERRAIN_GAIN = os.environ.get("T9_TERRAIN_GAIN", "-14.5dB")
 EYE = float(os.environ.get("T9_EYE", "636"))   # where the drum bus drops out (to 640b)
 C9_GENDY = {"about": "chirper-two: a gendyn squall - level and segment-length steps both ride velocity, wide spread, "
@@ -818,6 +836,55 @@ def main():
             sq.add(s0 + 8.0 * k, 8.0, ",".join(mm(bp(d, 57)) for d in (0, 6)), 50 + 15 * k)
         tracks.append({"name": "squall", "patch": "c9-gendy", "gain": os.environ.get("T9_SQUALL_GAIN", "-16dB"), "pan": 0.0,
                        "fx": ["hp cutoff=150", "reverb kind=hall decay=2.5s mix=0.3"], "score": sq.score(total)})
+    if R25 == "branches":
+        cands = sorted(bp(d, 38) for d in range(0, 40))
+        def snap(x):
+            m = 69 + 12 * math.log2(146.67 * 3 ** ((x - 0.3) * 16 / 13) / 440.0)
+            return min(cands, key=lambda c: abs(c - m))
+        VO = (("bbass", "bass", -99, 55.0, 0.1, 0.0), ("bten", "tenor", 55.0, 62.0, 0.15, -0.3),
+              ("balt", "alto", 62.0, 69.0, 0.22, 0.3), ("bsop", "soprano", 69.0, 99, 0.3, 0.0))
+        chords = {v[0]: [] for v in VO}
+        mouth_pts = [["0b", 0.0]]
+        VOWEL = {"one": 0.0, "two": 0.25, "four": 0.5, "eight": 0.7, "chaos": 1.0, "window": 0.5, "storm": 1.0, "settle": 0.2}
+        rng = __import__("random").Random(25)
+        end_b = total - float(os.environ.get("T9_BR_END", "16"))
+        for name, bars, meter, r0, r1 in SECS:
+            s0 = st[name]
+            bl = meter[0] * 4.0 / meter[1]
+            mouth_pts += [[f"{s0:g}b", VOWEL[name]]]
+            step = 1 if name == "storm" else (2 if name == "chaos" else 4)
+            for b in range(0, bars, step):
+                a = s0 + b * bl
+                if (name == "one" and b < 4) or a >= end_b:
+                    continue
+                r = r0 + (r1 - r0) * b / max(1, bars - 1)
+                if name in ("chaos", "storm"):
+                    x = rng.random()
+                    for _ in range(500):
+                        x = r * x * (1 - x)
+                    pts = []
+                    for _ in range(4 if name == "chaos" else 5):
+                        x = r * x * (1 - x)
+                        pts.append(x)
+                else:
+                    per = {"one": 1, "two": 2, "four": 4, "eight": 8, "window": 3}.get(name)
+                    if per is None:   # settle: r falls through 2 to 1
+                        per = 2 if r > 3.0 else 1
+                    pts = logistic_orbit(r, per)
+                ln = min(step * bl, end_b - a) - 0.1
+                for m in sorted(set(snap(x) for x in pts)):
+                    nm = next(v[0] for v in VO if v[2] <= m < v[3])
+                    chords[nm].append({"at": round(a + (0.0 if nm == "bbass" else 0.08), 4), "len": round(ln, 4),
+                                       "pitch": mm(m), "vel": 0.7})
+        mouth_pts += [[f"{total}b", 0.0]]
+        bg = float(os.environ.get("T9_BR_GAIN", "-3"))
+        for nm, voice, lo, hi, vib, pan in VO:
+            if not chords[nm]:
+                continue
+            tracks.append({"name": nm, "patch": f"c9-{nm}", "gain": f"{bg:g}dB", "pan": pan,
+                           "fx": ["hp cutoff=70", "peak cutoff=550 gain=-4dB q=1.2", "reverb kind=hall decay=2.6s mix=0.3"],
+                           "notes": chords[nm], "auto": {"mouth": {"points": mouth_pts}}})
+            BR_PATCHES[f"c9-{nm}"] = c9_fof(voice, vib)
     if R11 == "d" and R24 == "choir":   # the voices find D, sung: four takes of "on", a beat apart, bottom up
         here = os.path.dirname(os.path.abspath(__file__))
         cg = float(os.environ.get("T9_CHOIR_GAIN", "-13").replace("dB", ""))
@@ -957,7 +1024,8 @@ def main():
                                      **({"c9-route": C9_ROUTE} if R17 == "route" else {}),
                                      **({"c9-lam": C9_LAM} if R18 == "intermit" else {}),
                                      **({"c9-cbass": C9_CBASS} if R19 == "cz" else {}),
-                                     **({"c9-ks": C9_KS} if (R21 == "split" or R22 == "crisis") else {})})]
+                                     **({"c9-ks": C9_KS} if (R21 == "split" or R22 == "crisis") else {}),
+                                     **BR_PATCHES})]
           if R4 == "break" else []),
         "buses: " + json.dumps(buses),
         "master: " + json.dumps({"fx": [{"type": "eq", "bands": (["hp cutoff=25", "peak cutoff=90 gain=-4dB q=0.9",
