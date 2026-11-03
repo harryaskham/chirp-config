@@ -191,6 +191,23 @@ def build():
         for n_ in v['notes']:
             vnotes.append(dict(n_, at=round(off + n_['at'], 4)))
         fv += [[f"{off + float(a_[:-1]):.3f}b", x_] for a_, x_ in v['fv']]
+    # (v36) ECHOLALIA, LITERALLY: echolalia is how a child (or a machine) learns to talk - by saying back the tail of
+    # what it just heard. Now after each of the human's lines from the first groove to the third, the machine says the
+    # last few syllables back ('-der it, you'; 'no one types'; 'words were yours'; then sung: 'long vowel', 'no one
+    # types'), two beats after the human stops, through LPC (wM's lpc: the speech-chip resynthesis of the first
+    # talking machines) - and its codec grows up as it learns: four poles, 4-bit coefficients and a 5 kHz band at
+    # first, a murky buzz with the shape of words; then six, then eight poles; by the third groove ten poles, 8-bit,
+    # 11 kHz, clear. In the last groove it no longer needs to echo: it says the whole line back itself
+    CHIPS = [(17, 'lpc order=4 bits=4 rate=5kHz', '-14dB'), (33, 'lpc order=6 bits=4 rate=6kHz', '-13dB'),
+             (65, 'lpc order=8 bits=5 rate=8kHz', '-12dB'), (73, 'lpc order=10 bits=6 rate=8kHz', '-12dB'),
+             (89, 'lpc order=10 bits=8 rate=11kHz', '-11dB')]
+    chip_notes = {}
+    for bar_, _, _ in CHIPS:
+        v = next(v_ for v_ in VOICE if v_['bar'] == bar_)
+        off = (bar_ - 1) * 4.0
+        end_ = off + max(n_['at'] + n_['len'] for n_ in v['notes'])
+        frag = v['notes'][-3:]
+        chip_notes[bar_] = [dict(n_, at=round(end_ + 2.0 + n_['at'] - frag[0]['at'], 4)) for n_ in frag]
     # (v32) THE HUMAN SAYS MORE THAN ONE THING (Harry: it repeats a lot): the human used to say the same line ten
     # times. Now the line is where it starts and where it comes back, and between, the human goes on describing the
     # room at night to the machine - 'standby amber, the fan's long vowel'; 'the fan's long vowel, and under it, you';
@@ -554,6 +571,8 @@ def build():
             tr('ride', 'tight-kit', '-9dB', pan=-0.15, sends={'hall': '-16dB'},
                fx=[{'type': 'eq', 'bands': ['peak cutoff=75 q=0.8 gain=4dB', 'highshelf cutoff=9000 gain=-4dB']}]),
             tr('tpt', 'trumpet-mute', '-9dB', pan=-0.2, sends={'hall': '-12dB', 'echo': '-16dB'}),
+        ] + [{'name': f"chip{k_ + 1}", 'patch': 'voice-speech', 'gain': g_, 'pan': 0.35 - 0.1 * k_, 'notes': chip_notes[bar_],
+               'fx': [fx_], 'sends': {'hall': '-12dB', 'echo': '-14dB'}} for k_, (bar_, fx_, g_) in enumerate(CHIPS)] + [
         ]}
     # (v33) THE HUMANS SWING: the band - drums, bass, vibraphone, piano - plays its sixteenths with a light swing
     # (each off-sixteenth a little late, 0.57), the feel of people playing together; the machine's own parts - its

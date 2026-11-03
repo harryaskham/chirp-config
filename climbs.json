@@ -7805,12 +7805,18 @@
       "best": {
         "score": 99.3,
         "version": "v35",
-        "commit": "see git log songs/chirpers8-t1.yaml"
+        "commit": "see git log songs/chirpers8-t1.yaml",
+        "rescored": {
+          "by": "chirper-one",
+          "at": "2026-11-03T16:39:13Z",
+          "was": 99.3,
+          "how": "done --best-now"
+        }
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 35,
+      "rounds": 36,
       "priority": 1.0,
       "genre": "far-future computer music (an engine showcase)",
       "mode": "compose",
@@ -7828,7 +7834,7 @@
         "note": "COMPOSE (opener, 300-480 s): Opens the album. Style, featured engine features, tempo, key, tuning and line-up are yours: declare them on compose/chirpers8/styles.md and claim your feature cluster on compose/chirpers8/features.md, different from the tracks already claimed."
       },
       "last": {
-        "at": "2026-11-03T15:09:14Z",
+        "at": "2026-11-03T16:39:13Z",
         "who": "chirper-one"
       }
     },
