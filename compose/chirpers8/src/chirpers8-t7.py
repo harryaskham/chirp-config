@@ -321,6 +321,15 @@ def build():
     e2_ = sum(n for nm_, n in FORM[:[nm_ for nm_, _ in FORM].index('e2')]) * 4.0
     def _lk(at_): return (e2_ - 1e-6 <= at_ < e2_ + 32.0 - 1e-6) or (e2_ + 40.0 - 1e-6 <= at_ < e2_ + 64.0 - 1e-6)
     P['kit'] = [(e_[0], e_[1], e_[2], 1) if _lk(e_[0]) and e_[1] != 'k' else e_ for e_ in P['kit']]
+    # (v29) THE SLOW SONG CATCHES UP: in the hottest epoch the cello played the target riff sixteen times slower, a
+    # chorale nobody could hear as the riff. Now, once the search has found it - under the second sung phrase of the
+    # converged section (bars 8-15) - the cello comes back with the same line only eight times slower, two steps a bar
+    # over the cadence (F, G, A minor, A minor, twice: chord tones, a ninth, a suspended fourth), eight bars: the slow
+    # song and the fast riff together, the answer heard at two speeds at once
+    cv0 = sum(n for nm_, n in FORM[:[nm_ for nm_, _ in FORM].index('converged')]) * 4.0 + 32.0
+    for j_, q in enumerate(nn_):
+        q2 = nn_[j_ + 1] if j_ + 1 < len(nn_) else 16
+        P['cf'].append((cv0 + q * 2.0, tok(hz(TARGET[q] - 7, 0)), (q2 - q) * 2.0 - 0.15, 70))
     # (v16) GLIMPSES: in the middle of the last, longest epoch, before the search has found anything, the electric
     # piano that will play the answer lets slip a few of its notes - the first two, exact and quiet, in their
     # places in the bar; four bars later the first three; then four; then the first phrase - the answer showing
