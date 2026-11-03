@@ -352,6 +352,15 @@ def build():
     P['bass'] = [(e_[0], e_[1], e_[2], 1) if e0 - 1e-6 <= e_[0] < e0 + 32.0 - 1e-6 else e_ for e_ in P['bass']]
     for k_ in range(8):
         subj_bar(k_, e0 + 4.0 * k_, 5, -3, 104, 'bentry')
+    # (v32) THE HOCKET IN THE OPEN: for the hocket's second half (first calls, bars 12-15) the band steps back - no
+    # kick, clap, hats or bass, only the rim's three-against-four ticking under the bell and the clarinet passing the
+    # line between them - and two beats of clap sixteenths, rising, bring everything back with the countersubject
+    hb0 = secs_t['calls1'] + 48.0
+    def _hb(at_): return hb0 - 1e-6 <= at_ < hb0 + 16.0 - 1e-6
+    P['kit'] = [e_ for e_ in P['kit'] if not (_hb(e_[0]) and e_[1] != 'rs')]
+    P['bass'] = [e_ for e_ in P['bass'] if not _hb(e_[0])]
+    P['sub'] = [e_ for e_ in P['sub'] if not _hb(e_[0])]
+    P['kit'] += [(hb0 + 14.0 + qq * 0.25, 'cp', 0.2, 56 + 7 * qq) for qq in range(8)]
     # (v25) HOCKET: in the middle of the first calls (bars 8-15) the bell no longer plays the subject alone - it calls
     # one note and a clarinet on the other side returns the next, the line passed back and forth note by note (the
     # piece's call and return at the smallest scale), until the countersubject arrives and the bell takes it all back
