@@ -43,6 +43,7 @@ COMPUTEWARP = os.environ.get("C8T2_COMPUTEWARP", "0.25")   # WHOLE ROUND: big nu
 COMPUTEFROM = os.environ.get("C8T2_COMPUTEFROM", "A")   # 'A': the intro's paths stay on the grid (the join with t1 is measured over the opening; the intro is the arp's phasing, v64), the lag starts with A
 ARPPHASE = os.environ.get("C8T2_ARPPHASE", "0.25")   # SECTION ROUND (w1, the intro: static): the machine phases - the bytebeat arp runs on its own clock through the intro (the engine's per-track warp): drifting away from the clarinet over eight bars (to ARPPHASE beats late, curve smooth), then back over eight, locking onto the grid exactly as A begins; the tape-loop phasing of process music, done by a clock. Value = beats of drift at its widest
 LPCV = os.environ.get("C8T2_LPCV", "count,refrain")   # WHOLE ROUND: the numbers read by a speaking toy - LPC (engine 78e838c5, LPC-10: the first speech chips; the toy that read arithmetic to children spoke this way). 'count': the voice that reads the numbers in A goes through 5-bit monotone LPC on G3 before its radio; 'count,refrain': and the break's 'four, two, one' (the turn from speech into song) through plain, inflecting LPC, so the counting machine begins to sing before the human-sung lines of C. Notes nudged 0.075 beats early for LPC's ~35 ms (chirper-three's measure)
+PALKS = os.environ.get("C8T2_PALKS", "vib")   # PALETTE: a struck bar becomes a plucked loop - 'glk' (the boot glock that counts the machine up in the intro and rings on the paths) or 'vib' (the vibraphone chords that hold each landing) leaves its modal bar for Karplus-Strong (engine 8f150090, 1983: a noise burst settling to pitch in a one-period loop), bright and stretched, so the mallet becomes the first digital string
 BELLKS = os.environ.get("C8T2_BELLKS", "0.3")   # WHOLE ROUND: the finished-job chime gets a third era - under each landing bell's modal strike (physical modelling) and VOSIM ring (1978), a Karplus-Strong string (1983, engine 8f150090: a noise burst settling in a one-period loop): every time a path reaches one, three generations of computer synthesis ring together. Value = the string's level
 BELLVOS = os.environ.get("C8T2_BELLVOS", "1")   # PALETTE: the bells that ring when a path lands on one (small bells for a finished job, modal) are struck in the machine's own voice too - a VOSIM pulse train (six pulses, formant ~2.6 kHz) ringing under the strike: the finished-job chime of a computer
 BHALF = os.environ.get("C8T2_BHALF", "12")   # SECTION ROUND (w4, B's first twelve bars: static): n/2 in the groove - the even step of the map is halving, and B opens (up a whole step, v-era BKEY) in half time: for its first BHALF bars the kick plays only the one and the and-of-three, the clap moves from two and four to three, the hats thin to quarters, so the band moves at half the pulse under the same clarinet, and doubles back at the bar the key comes home
@@ -678,6 +679,12 @@ def song():
                 t_["fx"] = list(t_.get("fx", [])) + [{"type": "orbit", "rate": 0.25, "radius": {"value": 1, "mod": [{"src": "var.height", "amount": 10}]},
                                                       "speed": {"value": 1.6, "mod": [{"src": "var.height", "amount": -1.2}]}, "doppler": 0.5}]
                 t_["gain"] = f"{float(str(t_['gain']).replace('dB', '')) + 3:g}dB"
+    if PALKS:
+        for t in doc["tracks"]:
+            if isinstance(t, dict) and t.get("name") == PALKS and t.get("patch") in ("modal-glock", "modal-vibes"):
+                t["patch"] = {"about": "Karplus-Strong 1983, bright", "synth": {"layers": [{"type": "ks", "bright": 0.8, "ks": {"blend": 1, "stretch": 3 if PALKS == "vib" else 2, "tune": True}},
+                                                                                     *([{"type": "modal", "modes": "vibes", "decay": "1.2s", "level": 0.35}] if PALKS == "vib" else [])],
+                                                                          "amp": "1ms 1 1 900ms"}}
     return doc
 
 
