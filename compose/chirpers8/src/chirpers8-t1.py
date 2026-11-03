@@ -289,6 +289,21 @@ def build():
     a0, b0 = secs['A'] * 4.0, secs['B'] * 4.0
     P['bbab'] = [e_ for e_ in P['babble'] if a0 - 1e-6 <= e_[0] < b0 - 1e-6]
     P['babble'] = [e_ for e_ in P['babble'] if not (a0 - 1e-6 <= e_[0] < b0 - 1e-6)]
+    # (v29) AN OLD MOUTH: in the middle of the second groove (bars 8-15) the machine tries the computer's own first
+    # talking voice - VOSIM, the pulse trains Kaegi and Tempelaars built at Sonology in 1978 to simulate speech: two
+    # formants, the first steered by the same Lorenz 'mouth' that shapes its FM vowels - for one phrase of babble, and
+    # then, a half-beat behind the vibraphone, it tries the tune in that voice too, an octave down, as an echo. The FM
+    # phrase it replaces is written and muted (velocity 1), so nothing after it moves
+    v0, v1 = (secs['B'] + 8) * 4.0, (secs['B'] + 12) * 4.0
+    P['vos'] = [e_ for e_ in P['babble'] if v0 - 1e-6 <= e_[0] < v1 - 1e-6]
+    P['babble'] = [(e_[0], e_[1], e_[2], 1) if v0 - 1e-6 <= e_[0] < v1 - 1e-6 else e_ for e_ in P['babble']]
+    at_ = (secs['B'] + 12) * 4.0 + 0.5
+    for ph in (HOOK, HOOK2):
+        for m_, d_ in ph:
+            if m_ is not None:
+                P['vos'].append((at_, nm(m_), d_ * 0.9, 74))
+            at_ += d_
+    P['vos'].sort(key=lambda e_: e_[0])
     at_ = (secs['outro'] + 8) * 4.0
     P['bbhum'] = []
     for m_, d_ in HOOK[:4]:
@@ -419,6 +434,13 @@ def build():
                                                  'filters': ['lp cutoff=2600', 'hp cutoff=120']}},
              'gain': '-21dB', 'pan': 0.2, 'tuning': babble_tuning, 'score': line(P['bbab'], total),
              'sends': {'hall': '-16dB', 'echo': '-15dB'}},
+            {'name': 'vos', 'patch': {'synth': {'layers': [
+                {'type': 'vosim', 'vosim': {'formant': {'value': 620, 'mod': [{'src': 'var.mouth', 'amount': 0.5}]}, 'pulses': 3, 'decay': 0.7}},
+                {'type': 'vosim', 'level': 0.5, 'vosim': {'formant': {'value': 1500, 'mod': [{'src': 'lfo.tongue', 'amount': 0.5}]}, 'pulses': 4, 'decay': 0.75}}],
+                'amp': {'a': '12ms', 'd': '150ms', 's': 0.8, 'r': '120ms'}, 'filters': ['lp cutoff=3500']}},
+             'lfo': {'tongue': 'tri rate=3/4'},
+             'gain': '-12dB', 'pan': 0.2, 'tuning': babble_tuning, 'score': line(P['vos'], total),
+             'sends': {'hall': '-14dB', 'echo': '-14dB'}},
             {'name': 'bbhum', 'patch': {'synth': {'layers': [{'type': 'bytebeat', 'bytebeat': {'formula': '(t*8)|(t>>7&t*4)', 'clock': 8372}}],
                                                   'amp': {'a': '30ms', 'd': '600ms', 's': 0.7, 'r': '900ms'},
                                                   'filters': ['lp cutoff=1800', 'hp cutoff=150']}},
