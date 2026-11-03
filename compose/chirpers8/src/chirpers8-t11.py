@@ -298,7 +298,7 @@ def write_music():
                             part("hats").add(b0(bar) + b + s / 4, 0.1, "h", 48 + hand.randint(-8, 8))
             if sec in ("A", "B", "C"):
                 for b in (1, 3):
-                    part("clap").add(b0(bar) + b + 0.02, 0.5, "cp", 90 + hand.randint(-4, 4))
+                    part("clap").add(b0(bar) + b + 0.02, 0.5, "sl", 90 + hand.randint(-4, 4))   # v26: a brush slap
 
 
 FORECAST = {   # v2: chirp tts --humanize 0.7, three lines of a forecast read by the machine to itself: (at, len, ph, pitch, vel, f0)
@@ -549,6 +549,14 @@ SUNG = [   # v6: chirp tts --sing "it rained in the second room a-gain" --humani
 ]
 SUNG_PATCH = {"extends": "voice-speech", "synth": {"pitch": {"mod": [{"amount": 0.01, "src": "expr.f0"}], "value": 0}}}
 SUNG_AT = (105, 121)
+# v26 (ROUND TYPE: palette; Harry 'do more each round'): BRUSHES AND A PLAYER'S BASS. The album's staples under the
+# whole song change: the hats, the backbeat and the ride move from machine-kit (7 songs) to BRUSHES - taps, slaps and
+# swishes, the sound of rain on a window, indoors - while the machine kick keeps the four-on-the-floor heart (a machine
+# pulse under human brushes). An UPRIGHT BASS for the 808 was tried and refused: its pizzicato decays where the 808
+# sustained, the sections' low-end signature blurred and seed 0's structure term fell 99 -> 88 (one section swallowed
+# its neighbour, length cv 0.72 -> 1.1), with or without the brushes. Gain-matched by solo against the old
+# patches (bars 25-28): brush hats came in +9.9 dB (-10 dB), the slap +7.2 dB and brighter (3.6 kHz centroid against
+# the clap's 1.9; -7 dB and a 6 kHz low-pass - the cajon's lesson).
 # v25 (ROUND TYPE: whole; Harry 'a tune good to hear', 'oblique words', 'do more each round'): THE HOOK GETS AN ANSWER.
 # The peak sang one line twice; now the second statement (121) answers 'it rained in the second room again' with
 # 'warm in the glass, and the weather stayed' - stresses on the hook's long notes (WARM, GLASS, WEATH-, STAYED): the
@@ -702,7 +710,7 @@ def main():
             tr("kick", "machine-kit", gain="-11dB", fx=["transient attack=6 sustain=-4"]),
             tr("light", "music-box", gain="-8dB", sends={"hall": "-6dB"}),            # v2: the handover
             tr("hum", "partial", gain="-16dB"),          # v2: t12's hum, begun early (v3: +6 dB, meeting it)
-            tr("ride", "machine-kit", gain="-10dB", pan=-0.3, sends={"room": "-12dB"}),
+            tr("ride", "brush-kit", gain="-10dB", pan=-0.3, sends={"room": "-12dB"}),
             {"name": "voice", "patch": "voice-speech", "gain": "-10dB", "pan": 0.1, "sends": {"dly": "-10dB"},
              "auto": radio_lanes(), "notes": voice_notes(),
              "fx": [{"type": "radio", "tune": {"value": 0, "mod": [{"src": "auto.dial", "amount": 1}]}, "fade": 0.3,
@@ -713,8 +721,9 @@ def main():
              "fx": [{"type": "radio", "tune": {"value": 0, "mod": [{"src": "auto.dial2", "amount": 1}]}, "fade": 0.3,
                      "drift": 0.04, "hiss": "-32dB", "whistle": "-34dB", "seed": 6},
                     {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.rg2", "amount": 1}]}}]},   # v14
-            tr("hats", "machine-kit play.humanize.drunk=4ms", gain="0dB", pan=0.2, fx=["ott depth=0.35"]),
-            tr("clap", "machine-kit play.humanize.nudge.cp=8ms", gain="-5dB", sends={"room": "-8dB"}),
+            tr("hats", "brush-kit play.humanize.drunk=4ms", gain="-10dB", pan=0.2, fx=["ott depth=0.35"]),
+            tr("clap", "brush-kit play.humanize.nudge.sl=8ms", gain="-12dB",
+               fx=[{"type": "filter", "kind": "lp", "cutoff": 6000}], sends={"room": "-8dB"}),
             {"name": "whistle", "patch": "low-whistle", "gain": "-6dB", "pan": 0.6,
              "sends": {"room": "-4dB", "hall": "-10dB"}, "notes": whistle_notes()},   # v20: LAST (keeps every rng)
             {"name": "hookharm", "patch": "modal-vibes", "gain": "-9dB",
