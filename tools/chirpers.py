@@ -679,7 +679,7 @@ COVERAGE_CATALOGUE = {
     "synthesis": ["wave:sine", "wave:triangle", "wave:saw", "wave:square", "wave:pulse", "additive", "table", "shepard",
                   "sample", "machine", "modal", "bowed", "pluck", "membrane", "plate", "cymbal", "bar", "vibes", "bell",
                   "glock", "gong", "reed", "jet", "lips", "sax", "guitar", "fm/pm", "sync", "shape:fold", "shape:tanh",
-                  "shape:clip", "shape:crush"],
+                  "shape:clip", "shape:crush", "bytebeat"],
     "fx": ["amp", "autolevel", "barberpole", "cab", "chop", "chorus", "clip", "cloud", "compressor", "crush", "delay", "drive",
            "duck", "eq", "filter", "follow-noise", "formant", "freeze", "gain", "gate", "glue", "ir", "limiter", "morph", "ott",
            "pan", "phantom", "phaser", "pitch", "pump", "radio", "reverb", "ring", "stutter", "sympathetic", "tape", "tapestop",
@@ -700,7 +700,7 @@ def song_features(canon, raw):
     import re
     fx_types = set(COVERAGE_CATALOGUE["fx"])
     synth = {"additive", "table", "shepard", "sample", "machine", "modal", "bowed", "pluck", "membrane", "reed", "lips", "bar",
-             "bell", "glock", "gong", "guitar", "comb", "ladder"}
+             "bell", "glock", "gong", "guitar", "comb", "ladder", "bytebeat"}
     got = set()
 
     def walk(o, path):
@@ -794,6 +794,8 @@ def song_features(canon, raw):
         got.add("vocoder on voice")
     if {"pluck", "amp", "cab"} <= got:
         got.add("guitar")               # the guitar patches are a pluck through an amp and a cab
+    # a bytebeat formula is C, not score syntax: its `|`, `?` and `(a,b)` must not read as choices, chance or Euclid
+    raw = re.sub(r"""['"]?formula['"]?\s*:\s*("[^"\n]*"|'[^'\n]*')""", "", raw)
     for name, pat in (("chance", r"[A-Za-z0-9#.\])]/?\d*\?(0?\.\d+|1)"), ("choices", r"\([^()\n|]+\|[^()\n]+\)"),
                       ("euclid", r"\(\d+,\d+(,\d+)?\)"), ("every", r"\bevery\b"), ("vary", r"\bvary\b"),
                       ("swing", r"\bswing(8|16)?=")):   # score swing (`swing16=0.58`) is expanded into timing by the plan

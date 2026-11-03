@@ -324,6 +324,18 @@ class Coverage(unittest.TestCase):
         self.assertNotIn("gen:lorenz", got)       # a var system, not a track gen (that's 'var system')
         self.assertNotIn("meter change", got)
 
+    def test_bytebeat_is_a_feature_and_its_formula_is_not_score_syntax(self):
+        # engine 709cf900 (wM, bd-e999ad): `type: bytebeat`. Its C formula's `|` and `?` must not read as choices or chance
+        canon = {"patches": {"bb": {"synth": {"layers": [{"type": "bytebeat",
+                                                         "bytebeat": {"formula": "t*(t>>9|t>>13)&t>>6"}}]}}}}
+        got = CH.song_features(canon, 'bytebeat: {formula: "t*(t>>9|t>>13)&t>>6", clock: 8000}\n'
+                                      "other: {formula: 't>5?(t|3):t'}")
+        self.assertIn("bytebeat", got)
+        self.assertNotIn("choices", got)
+        self.assertNotIn("chance", got)
+        self.assertIn("bytebeat", CH.COVERAGE_CATALOGUE["synthesis"])
+        self.assertIn("choices", CH.song_features({}, "score: (C4|E4|G4)/4"))
+
     def test_physical_sub_kinds_are_read_from_exciter_and_modes(self):
         canon = {"patches": {"p": {"synth": {"layers": [{"type": "wind", "exciter": "lips"}, {"type": "wind"},
                                                         {"type": "modal", "modes": "gong"}, {"type": "modal"}]}}}}
