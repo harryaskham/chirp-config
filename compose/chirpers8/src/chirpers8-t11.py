@@ -219,6 +219,41 @@ def frost():
         part("frost").add(b0(bar), b0(bar + ring) - b0(bar) - 0.1, mm(partial(n, lb, 1)), 80)
 
 
+# v31 (ROUND TYPE: section, w5 2:08-2:40 = B's second half, flagged static; phase distortion pinned f6713421): THE
+# OVERTONE SINGER. The CZ's resonant phase-distortion shapes put a resonance at (1 + 15*amount) x the note - so
+# sweeping amount walks the resonance up the note's own HARMONIC SERIES, the series this song is built from. After the
+# hook in harmony (65-72), a low PD drone holds the lobe's fundamental (F#1, 46 Hz) and a lane steps amount onto
+# exact partials, so the resonance SINGS THE HOOK in overtones above the drone, as a throat singer does - the hook at
+# 73, its retrograde at 77, gliding between notes, holding partial 8 between, closing to the fundamental at the end.
+THROAT = (73, 80)
+THROAT_PATCH = {"synth": {"layers": [{"type": "pd", "pd": {"shape": "reso_trap", "amount": {
+    "value": 0.0, "mod": [{"src": "auto.ov", "amount": 1}]}}}], "amp": "1.5s 1 1 2.5s"}}
+
+
+def throat():
+    part("throat").add(b0(THROAT[0]), b0(THROAT[1] + 1) - b0(THROAT[0]) - 0.1, mm(partial(1, lobe_at(THROAT[0]))), 92)
+
+
+def throat_amount(n):
+    return round((n - 1) / 15, 4)       # partial n, over a drone ON the lobe's FUND (on partial 2 the odd partials,
+    #                                     not harmonics of the drone, split between neighbours: 11 sounded as 12)
+
+
+def throat_lane():
+    a = b0(THROAT[0])
+    pts = [[f"{a:g}b", throat_amount(8)]]
+    for start, form in ((THROAT[0], 0), (THROAT[0] + 4, 1)):
+        s0 = b0(start)
+        for at, n, ln, v in hook_form(form):
+            pts.append([f"{s0 + at + 0.06:g}b", throat_amount(n)])
+            pts.append([f"{s0 + at + ln - 0.06:g}b", throat_amount(n)])
+        pts.append([f"{s0 + 8 + 0.3:g}b", throat_amount(8)])
+    z = b0(THROAT[1] + 1)
+    pts += [[f"{z - 4:g}b", throat_amount(8)], [f"{z - 0.5:g}b", 0.0]]
+    pts.sort(key=lambda e: float(e[0][:-1]))
+    return pts
+
+
 def write_wind():
     for name, a, z in SECTIONS:
         if name in WIND_VEL:
@@ -754,6 +789,7 @@ def main():
     write_wind()
     aeolian()                                     # v29: the Aeolian harp
     frost()                                       # v30: frost on the glass
+    throat()                                      # v31: the overtone singer
     eye_clear()
     breath()                                                     # v21: the drums breathe in before the break
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
@@ -865,6 +901,8 @@ def main():
     # v30: new tracks go LAST - a track inserted mid-list re-seeds every later track's noise and stochastic layers
     song["tracks"].append(tr("frost", FROST_PATCH, gain="-14dB", pan=0.3, sends={"hall": "-8dB"},
                              auto={"fr": {"points": [[f"{b0(FROST[0]):g}b", 0.0], [f"{b0(FROST[1] + 1):g}b", 1.0]]}}))
+    song["tracks"].append(tr("throat", THROAT_PATCH, gain="-14dB", pan=-0.1, sends={"hall": "-8dB"},
+                             auto={"ov": {"points": throat_lane()}}))                              # v31: listed last
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print("wrote", OUT, "bars", BARS, "lobe flips", flips,
