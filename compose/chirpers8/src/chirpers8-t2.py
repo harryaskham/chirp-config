@@ -37,6 +37,7 @@ OWNHATS = os.environ.get("C8T2_OWNHATS", "1")   # the rest of the drum machine o
 OWNKICK = os.environ.get("C8T2_OWNKICK", "1")   # and the kick: the machine layer's 909-style kick tuned to G1 (the key's root), instead of machine-kit's
 TOMBACK = os.environ.get("C8T2_TOMBACK", "swap")   # PALETTE ROUND: the backbeat on a drum machine of our own - the engine's `machine` layer (circuit-modelled drum-machine voices, unused on the album) as a tuned electronic tom: G3 on 2, D3 on 4 (the halving's lone 3 on G3), the syndrum backbeat of the old machine records. 'swap' replaces the machine-kit clap (a staple of 9 songs); 'layer' keeps the clap under it
 CONVERGE = os.environ.get("C8T2_CONVERGE", "6")   # WHOLE ROUND: THE PATHS MEET - in C the canon gives way to a second number. Each of C's climbs gets a partner whose own hailstone path joins it partway (27 and 41 meet 313, 31 meets 297), played on the second clarinet in its own register and the same parity rhythm, timed so the two land on the shared number together; they sound in unison for six steps, then the partner falls silent and one line goes on down to 1 - the conjecture heard: different starts, one road home. Value = 'unison steps'
+ENDSOLO = os.environ.get("C8T2_ENDSOLO", "2")   # WHOLE ROUND: the last 1 alone - for the outro's last ENDSOLO bars the band (kit, bass, sub, pad, arps) stops and the clarinet's final 1 4 2 1 lands by itself, the trivial cycle with nothing under it; event_stable keeps the rest as it was
 TTSVOICE = os.environ.get("C8T2_TTSVOICE", "count")   # PALETTE: the voice that reads the numbers is a computer's - the listed voice tracks ('count', 'count,refrain') move from voice-speech (a staple of eight songs) to voice-tts, the library's 1990s desktop text-to-speech: flat, bright, steady, no vibrato. The words and their timing are unchanged
 FINALE = os.environ.get("C8T2_FINALE", "1")   # WHOLE ROUND: everything falls to one, at the end, together - the outro's trivial cycle (1 4 2 1 on the clarinet, every two bars) is joined by the song's other voices one by one: the second clarinet a beat behind and an octave down from bar 2, the glockenspiel two octaves up from bar 4, the vibraphone's chime on each final 1 from bar 8; they all leave before the last phrase, so the clarinet hands over to t3 alone. event_stable keeps the rest as it was
 CANONA = os.environ.get("C8T2_CANONA", "16")   # SECTION ROUND (w3, A's second half: 'little new vs w2'): the second process starts early - from A bar CANONA the second clarinet runs the canon (a bar behind, an octave down) that B and C build on, so A's second half is two programs where its first was one; event_stable (v38) keeps the rest of the song as it was
@@ -301,6 +302,12 @@ def build():
         wins = [(c0 + 12 * BAR - 1, c0 + 12 * BAR + 34), (c0 + 40 * BAR - 1, c0 + 40 * BAR + 34)]
         for k in SUNGROOM.split(","):
             ev[k] = [e for e in ev[k] if not any(a <= e[0] < b or (e[0] < a < e[0] + e[2]) for a, b in wins)]
+    if ENDSOLO:
+        e1 = total()
+        e0 = e1 - int(ENDSOLO) * BAR
+        for k in ("kick", "kick2", "hats", "ohat", "shk", "clap", "tom", "tom2", "bass", "sub", "pad", "arp", "crash", "crash2", "bell"):
+            if k in ev:
+                ev[k] = [e for e in ev[k] if not (e0 <= e[0] < e1)]
     if FINALE:
         import re as _r3
         NN3 = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
