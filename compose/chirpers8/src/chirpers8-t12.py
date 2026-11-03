@@ -597,10 +597,11 @@ def duffing_bass():
 def duffing_lane():
     pts = []
     for bar in range(DUFF[0], DUFF[1] + 1):
-        v = 0.05 + 0.55 * (bar - DUFF[0]) / (DUFF[1] - DUFF[0])
+        v = 0.05 + 0.70 * (bar - DUFF[0]) / (DUFF[1] - DUFF[0])   # v38: to 0.75 - wM's regime table: 0.6 sat in a
+        #                                                      periodic window (0.4-0.625); 0.625-0.85 is chaotic
         pts.append([f"{warp(b0(bar) + 1):g}b", round(v, 3)])
     a = warp(b0(DUFF[1] + 1))
-    pts += [[f"{a - 0.1:g}b", 0.6], [f"{a:g}b", 0.0]]
+    pts += [[f"{a - 0.1:g}b", 0.75], [f"{a:g}b", 0.0]]
     return pts
 
 
@@ -634,6 +635,41 @@ TUNER_PATCH = {"synth": {"layers": [{"type": "pd", "pd": {"shape": "square", "am
 
 
 TUNER_AT = 8.0
+# v38 (ROUND TYPE: whole; lpc pinned 78e838c5): THE VOICE BREAKS WITH THE MACHINE, THEN SINGS WITH US - t4's arc
+# mirrored. In the prune the spoken 'count the leaves again' (six repeats) degrades as the Duffing bass breaks up:
+# repeats 1-2 human, 3-4 through LPC, 5-6 through the speaking toy (5-bit, monotone on F#); healed, in the coda the
+# machine SINGS ALONG - an LPC copy of 'Moth, the warm glass holds you...' following the singer's own pitch, quiet and
+# panned opposite: the computer and a person singing the album's last song together.
+LPC_EARLY = 0.075              # beats: LPC answers ~35-39 ms late (chirp-eco measured 39 ms; wM may fix it in the fx)
+
+
+def lpc_voices(song):
+    tracks = {tk["name"]: tk for tk in song["tracks"]}
+    out = []
+    voice = tracks["voice"]
+    per = len(voice["notes"]) // 6
+    for name, reps, fx, gain in (("voice_chip", (2, 3), "lpc", "-23dB"),        # lpc on voice-tts came out ~14 dB
+                                 ("voice_toy", (4, 5), "lpc pitch=F#2 bits=5", "-21dB")):   # hot: matched solo
+        notes = []
+        for i, n in enumerate(voice["notes"]):
+            if i // per in reps:
+                c = dict(n)
+                c["at"] = round(float(str(n["at"]).rstrip("b")) - LPC_EARLY, 4)
+                notes.append(c)
+        out.append({"name": name, "patch": voice["patch"], "gain": gain, "pan": voice.get("pan", 0),
+                    "sends": voice.get("sends", {}), "fx": [fx] + list(voice.get("fx") or []), "notes": notes})
+    for i, n in enumerate(voice["notes"]):                       # the human take is silent where the chip speaks
+        if i // per >= 2:
+            n["vel"] = 0.01
+    singer = tracks["singer"]
+    sc = []
+    for n in singer["notes"]:
+        c = dict(n)
+        c["at"] = round(float(str(n["at"]).rstrip("b")) - LPC_EARLY, 4)
+        sc.append(c)
+    out.append({"name": "singer_chip", "patch": singer["patch"], "gain": "-26dB", "pan": -0.35,   # ~8 dB under
+                "sends": singer.get("sends", {}), "fx": ["lpc"] + list(singer.get("fx") or []), "notes": sc})
+    song["tracks"] += out
 
 
 def tuner():
@@ -1058,6 +1094,7 @@ def main():
                            "auto": {"dm": {"points": duffing_lane()}}})                            # v36: listed last
     song["tracks"].append({"name": "tuner", "patch": TUNER_PATCH, "gain": "-30dB", "pan": 0.25,
                            "sends": {"hall": "-8dB"}, "score": part("tuner").score()})            # v37: listed last
+    lpc_voices(song)                                                                           # v38: listed last
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print("wrote", OUT, "bars", BARS, "gens", {g: len(lsys(g)) for g in range(7)})
