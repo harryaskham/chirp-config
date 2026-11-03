@@ -730,6 +730,24 @@ def answer_harmony():
             for (at, n, ln, v), (ph, vel, f0) in zip(HOOK, SUNG_B)]
 
 
+# v37 (ROUND TYPE: section, w4 1:35-2:08 - B's first half, flagged little new vs w3; Harry on t1 at 17:13: 'the
+# singing came a long way ... keep hillclimbing it'): SOMEONE SINGING TO THEMSELVES IN THE NEXT ROOM. A and B had no
+# voice at all; now, in B's first half (53, 61), a wordless 'ooh' VOCALISE of the hook on its own partials (the sung
+# take's own pitch contours, so the wobble is a person's), soft, panned left, low-passed and sent to the hall - heard
+# through a wall: a human presence indoors while it rains, and the hook that will be sung outright at 105.
+HUM_AT = (53, 61)
+
+
+def hum_notes():
+    out = []
+    for bar in HUM_AT:
+        lb = lobe_at(bar)
+        for i, ((at, n, ln, v), (ph, vel, f0)) in enumerate(zip(HOOK, SUNG)):
+            out.append({"at": round(b0(bar) + at, 4), "len": round(ln * 0.98, 3), "ph": "UW1" if i else "W UW1",
+                        "pitch": mm(partial(n, lb, 0)), "vel": round(vel * 0.8, 3), "expr_path": {"f0": f0}})
+    return out
+
+
 def sung_notes():
     """v6: in the peak the hook is SUNG - each syllable on the hook's own partial, in whichever lobe the weather is in."""
     out = []
@@ -964,7 +982,11 @@ def main():
                              auto={"fr": {"points": [[f"{b0(FROST[0]):g}b", 0.0], [f"{b0(FROST[1] + 1):g}b", 1.0]]}}))
     song["tracks"].append(tr("throat", THROAT_PATCH, gain="-14dB", pan=-0.1, sends={"hall": "-8dB"},
                              auto={"ov": {"points": throat_lane()}}))                              # v31: listed last
-    for tk in song["tracks"]:                     # v37: the power cut (after every track is built; order unchanged)
+    song["tracks"].append({"name": "next_room", "patch": SUNG_PATCH, "gain": "-8dB", "pan": -0.4,   # ~10 dB under the singer
+                           "sends": {"hall": "-4dB"}, "notes": hum_notes(),
+                           "fx": [{"type": "filter", "kind": "lp", "cutoff": 2500, "q": 0.5},
+                                  {"type": "filter", "kind": "hp", "cutoff": 160}]})               # v37: listed last
+    for tk in song["tracks"]:                     # v36: the power cut (after every track is built; order unchanged)
         if tk["name"] in POWER_CUT_TRACKS:
             tk["fx"] = list(tk.get("fx") or []) + ["tapestop stop=auto.pc time=1b curve=1.6"]
             tk.setdefault("auto", {})["pc"] = {"points": [["0b", 0], [f"{b0(POWER_CUT[0]) - 0.01:g}b", 0],
