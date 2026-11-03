@@ -155,6 +155,15 @@ C6_VOSIM = {"about": "chirper-two: two VOSIM formant layers (650 and 1500 Hz) wh
                 "lfo": {"talk": {"wave": "sine", "rate": "0.9hz"}},
                 "amp": {"a": "40ms", "s": 1, "r": "180ms"}},
             "fx": []}
+# T6_R14 = selftest (v14, whole-song round). THE SELF-TEST. Seven times, at the end of a phrase - verse one, chorus
+# one, verse two, twice in the bridge, twice in chorus two - the band stops dead for two beats (every instrument, its
+# reverb too; the voices keep going) and in the gap the bytebeat ACK runs a memory test: a sweep up the 19-EDO scale
+# in sixteenths. Each test gets further than the last (three notes, then four ... eight), and from the bridge on the
+# sweep turns and comes back down part of the way: by chorus two it passes. The machine checking itself is the
+# song's rhythm of doubt; then the band comes back as if nothing happened. T6_R14=none reproduces v13.
+R14 = os.environ.get("T6_R14", "selftest")
+TESTS = [102.0, 150.0, 238.0, 302.0, 318.0, 394.0, 426.0]
+TEST_KEEP = {"voice", "lull", "singb", "ringv", "vosim", "tline", "radio", "ack", "test", "idle-in", "idle-out"}
 WALK_POOL = [0, 3, 6, 8, 11, 14, 17, 19, 22, 25, 27, 30, 33, 36, 38, 41]   # 19-EDO major steps, two octaves up from C5
 C6_ACK = {"about": "chirper-two: a bytebeat acknowledgement - t*4, 5, 6, 8 (root, third, fifth, octave on the note) "
                    "stepping every 2048 counts, a chirp that races up in a quarter second; clock 16744 puts t*4 on the note.",
@@ -549,6 +558,28 @@ def main():
             if tr["name"] in ("kick", "snare", "hats", "ride", "rim"):
                 tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.stop", "amount": 1}]}}]
                 tr["auto"] = {**tr.get("auto", {}), "stop": lane}
+    if R14 == "selftest":
+        tt_ = Track("test")
+        sweep = [0, 3, 6, 8, 11, 14, 17, 19]
+        for i, a in enumerate(TESTS):
+            n = min(8, 3 + i)
+            seq = sweep[:n]
+            if i >= 3:                       # from the bridge on it turns and comes partway back down
+                seq = seq + sweep[max(0, n - 3):n - 1][::-1]
+            seq = seq[:8]
+            for j, s in enumerate(seq):
+                tt_.add(a + 0.25 * j, 0.22, mm(e(s, 72)), 78 + 3 * j)
+        tracks.append({"name": "test", "patch": "c6-ack", "gain": os.environ.get("T6_TEST_GAIN", "2dB"), "pan": -0.15,
+                       "fx": ["hp cutoff=300", "lp cutoff=4000 q=0.5", "reverb kind=room decay=0.6s mix=0.15"],
+                       "score": tt_.score(total)})
+        pts = [["0b", 0.0]]
+        for a in TESTS:
+            pts += [[f"{a - 0.12}b", 0.0], [f"{a + 0.03}b", -40.0], [f"{a + 1.9}b", -40.0], [f"{a + 2.0}b", 0.0]]
+        pts.append([f"{total}b", 0.0])
+        for tr in tracks:
+            if tr["name"] not in TEST_KEEP:
+                tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.test", "amount": 1}]}}]
+                tr["auto"] = {**tr.get("auto", {}), "test": {"points": pts}}
     if R13 == "vosim":   # the machine sings along: a 19-EDO third above the chorus singing, below the lullaby
         vh = Track("vosim")
         c1s, v2s, c2s, ous = st["chorus1"], st["verse2"], st["chorus2"], st["outro"]
@@ -614,9 +645,9 @@ def main():
                                         {"type": "limiter", "ceiling": "-1.2dB", "release": "80ms"}],
                                  "auto": {"dyn": {"points": dyn}}}),
         *(["patches: " + json.dumps({**({"c6-voice": C6_VOICE} if R8 == "speaker" else {}),
-                                     **({"c6-ack": C6_ACK} if R11 == "ack" else {}),
+                                     **({"c6-ack": C6_ACK} if (R11 == "ack" or R14 == "selftest") else {}),
                                      **({"c6-vosim": C6_VOSIM} if R13 == "vosim" else {})})]
-          if (R8 == "speaker" or R11 == "ack" or R13 == "vosim") else []),
+          if (R8 == "speaker" or R11 == "ack" or R13 == "vosim" or R14 == "selftest") else []),
         "tracks:",
     ]
     lines += ["  - " + json.dumps(t) for t in tracks]
