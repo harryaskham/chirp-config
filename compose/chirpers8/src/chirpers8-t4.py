@@ -632,6 +632,34 @@ def arrival():
     part("impact").add(z, 4.0, pitch(root_at(STOP + 1), BASE - 24), 110)
 
 
+# v30 (ROUND TYPE: whole; gendyn pinned 6014b933): AN ENTROPY METER IN XENAKIS'S SOUND. A GENDYN voice (dynamic
+# stochastic synthesis: each wave cycle a polygon whose breakpoints random-walk) holds the progression's root, two bars
+# a note, from the shuffle at bar 9 to the end of the leaving - and its randomness IS the array's disorder: a lane
+# (1 - PROGRESS/16, how many of the sixteen are not yet in place) drives the gendyn's amp and time. Shuffled, the
+# waveform wanders and the pitch slides into glissando clouds (wildest in the bogo storm); as each sort converges the
+# cloud calms, and it blooms again at every reshuffle; SORTED (125-160) the lane is 0 - amp and time 0, the gendyn's
+# frozen state - and the noise becomes one still, pure tone. Order freezes the stochastic sound.
+ENTROPY = (9, 168)
+ENT_PATCH = {"synth": {"layers": [{"type": "gendyn", "gendyn": {
+    "points": 12, "amp": {"value": 0.0, "mod": [{"src": "auto.en", "amount": 0.1}]},
+    "time": {"value": 0.0, "mod": [{"src": "auto.en", "amount": 0.15}]}, "spread": 0.8}}],
+    "amp": "400ms 1 1 1s", "filters": [{"kind": "lp", "cutoff": 1100, "q": 0.6},
+                                       {"kind": "lp", "cutoff": 1100, "q": 0.5}]}}   # two stages: the polygon is jagged
+
+
+def entropy():
+    for bar in range(ENTROPY[0], ENTROPY[1] + 1, 2):
+        part("entropy").add(b0(bar), 2 * BAR - 0.05, pitch(root_at(bar), BASE), 84)
+
+
+def entropy_lane():
+    pts = []
+    for bar in range(ENTROPY[0], ENTROPY[1] + 2):
+        d = 0.0 if (sec_of(bar) == "sorted" or bar == 100) else 1 - PROGRESS[bar - 1] / N   # 100: bogo's miracle
+        pts.append([f"{b0(bar):g}b", round(d, 3)])
+    return pts
+
+
 def main():
     write()
     arrival()                                     # v22: the stop, the reverse cymbal, the impact
@@ -639,6 +667,7 @@ def main():
     bass_waits()                                  # v25: the bass waits for the kick
     handover()                                    # v26: the tuning handover
     dice_and_check()                              # v27: the dice and the check
+    entropy()                                     # v30: the entropy meter
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
     lead_patch = {"extends": "vibes", "synth": {"fx": [{"type": "pan", "pan": {"value": 0, "mod": [
         {"src": "expr.ix", "amount": 1}]}}, {"type": "filter", "kind": "lp", "cutoff": 4500}]}}
@@ -692,6 +721,8 @@ def main():
             tr("hats", "909", gain="-6dB", pan=0.1),
             tr("revcym", "fx-revcym", gain="-10dB", sends={"room": "-10dB"}),                 # v22: LAST (keeps rngs)
             tr("impact", "fx-impact", gain="-10dB"),
+            tr("entropy", ENT_PATCH, gain="-18dB", pan=-0.3, sends={"room": "-10dB"},
+               auto={"en": {"points": entropy_lane()}}),                                         # v30: entropy
             {"name": "life", "patch": "toy-piano", "gain": "-16dB", "pan": 0.35, "sends": {"room": "-8dB"},
              "at": f"{b0(LIFE[0]):g}b",
              "gen": {"type": "life", "width": 16, "height": 8, "init": "center", "poly": 3,
