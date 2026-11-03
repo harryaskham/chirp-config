@@ -485,6 +485,16 @@ def build():
             tr('kit3', 'machine-kit', '-2dB', sends={'hall': '-20dB'}),
             tr('kit4', 'machine-kit', '-2dB', sends={'hall': '-20dB'}),
             tr('bentry', FMBASS, '-7dB', fx=['lp cutoff=1600']),
+            # (v34) THE COLONY: through the G minor calls' middle (bars 8-23), while the subject walks in the bass, a Game of
+            # Life (wM's life system: Conway's rule on an 8x8 torus, starting from an R-pentomino, which churns a long time)
+            # plays a kalimba - the playhead reads one column per eighth, so each bar is one generation, and the colony's
+            # live cells pick notes from open fifths that sit in every chord of the loop (G and D, with A), bottom row low:
+            # a texture that never repeats, growing and thinning by its own rule under the fugue's rules
+            {'name': 'life', 'patch': 'kalimba', 'gain': '-14dB', 'pan': -0.35, 'tuning': W3T,
+             'score': f"R/{secs_t['calls2'] + 32.0:.4f}b",
+             'gen': {'type': 'life', 'width': 8, 'height': 8, 'init': 'center', 'poly': 2, 'n': 16 * 8, 'len': '/8',
+                     'notes': 'G3 D4 G4 A4 D5 G5 A5 D6'},
+             'sends': {'hall': '-12dB', 'echo': '-14dB'}},
             tr('bb', {'synth': {'layers': [{'type': 'bytebeat', 'bytebeat': {'formula': '(t*8&t>>5)|(t*4&t>>9)', 'clock': 8372}}],
                                 'amp': {'a': '8ms', 'd': '400ms', 's': 0.8, 'r': '250ms'}, 'filters': ['lp cutoff=2400', 'hp cutoff=90']}},
                '-17dB', pan=0.2, sends={'hall': '-12dB', 'echo': '-16dB'}),
