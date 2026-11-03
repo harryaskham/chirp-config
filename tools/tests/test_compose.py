@@ -343,6 +343,13 @@ class Coverage(unittest.TestCase):
         self.assertTrue({"gen:life", "gen:henon", "gen:walk"} <= got)
         self.assertTrue({"gen:life", "gen:henon", "gen:walk"} <= set(CH.COVERAGE_CATALOGUE["systems"]))
 
+    def test_a_default_oscillator_layer_is_a_sine(self):
+        # the canonical plan prunes the default wave, so an oscillator at its defaults is `{}` (t12's `partial`)
+        got = CH.song_features({"patches": {"partial": {"synth": {"layers": [{}]}}}}, "")
+        self.assertIn("wave:sine", got)
+        got = CH.song_features({"patches": {"p": {"synth": {"layers": [{"wave": "saw"}, {"type": "modal"}]}}}}, "")
+        self.assertNotIn("wave:sine", got)
+
     def test_physical_sub_kinds_are_read_from_exciter_and_modes(self):
         canon = {"patches": {"p": {"synth": {"layers": [{"type": "wind", "exciter": "lips"}, {"type": "wind"},
                                                         {"type": "modal", "modes": "gong"}, {"type": "modal"}]}}}}

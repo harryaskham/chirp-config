@@ -732,6 +732,12 @@ def song_features(canon, raw):
                     got.add(v)
                 elif k == "wave" and isinstance(v, str):
                     got.add("wave:" + v)
+                elif k == "layers" and isinstance(v, list):
+                    # an oscillator layer at its defaults is `{}` in the canonical plan: sine is the default wave, so it
+                    # is pruned (t12's `partial` read as no sine anywhere, 3 Nov)
+                    for ly in v:
+                        if isinstance(ly, dict) and ly.get("type") in (None, "osc", "oscillator") and "wave" not in ly:
+                            got.add("wave:sine")
                 elif k in ("shape", "shaper") and isinstance(v, str) and v in ("fold", "tanh", "clip", "crush"):
                     got.add("shape:" + v)
                 elif k in ("fm", "pm") and v:

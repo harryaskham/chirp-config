@@ -83,29 +83,29 @@ Harry asked for a showcase of ALL the different combinations of chirp's engine f
 | more systems for `gen` and vars: `life` (Conway's Game of Life on a `width` × `height` torus as a sequencer: a playhead reads a column per step, live cells sound up to `poly`, rows pick the pool bottom-low, each pass is a generation; `life: B3/S23` or any B/S rule; `init: center` = R-pentomino, `glider`, `random`, rows `010/001/111`), `henon` (`a` 1.4, `b` 0.3, `axis` x/y), `walk` (random walk over `width` positions, up to `step`, bouncing) | (pending pin, wM) | wM | |
 
 ## Measured (chirp-eco)
-Measured 2026-11-02T15:10Z on chirp-46a24ab5 by `chirpers.py coverage chirpers8`: 12 composed songs; a feature counts when the song's plan or score uses it (prominence is your ear's call).
+Measured 2026-11-03T04:02Z on chirp-ade7b930 by `chirpers.py coverage chirpers8`: 12 composed songs; a feature counts when the song's plan or score uses it (prominence is your ear's call).
 
-- **synthesis** (29/32): wave:triangle (t1, t2, t4, t5, t6, t7, t8, t10, t11, t12); wave:saw (t1, t2, t4, t5, t6, t7, t8, t10, t11, t12); wave:square (t4, t5, t7, t8); wave:pulse (t1, t2, t4, t5, t6, t7, t8, t11, t12); additive (t1, t3, t4, t6, t8, t10, t11, t12); table (t8, t10, t11); shepard (t3, t12); sample (t11); machine (t1, t2, t3, t4, t6, t9, t10, t11, t12); modal (t2, t3, t4, t8, t11, t12); bowed (t6, t12); pluck (t3, t5, t12); membrane (t3, t4); plate (t8, t11); cymbal (t2, t4); bar (t3); vibes (t3); bell (t2, t3, t12); glock (t3); gong (t3, t12); reed (t2, t9, t10); jet (t4); lips (t12); sax (t4); guitar (t5); fm/pm (t1, t4, t5, t6, t8, t9, t10, t11, t12); sync (t10); shape:fold (t9); shape:crush (t2, t8)
-- **fx** (40/43): amp (t5); barberpole (t3, t12); cab (t5); chop (t4, t8); chorus (t1, t2, t3, t4, t5, t6, t7, t8, t9, t11, t12); cloud (t1, t2, t5, t6, t8); compressor (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); crush (t7); delay (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11); drive (t2, t3, t4, t5, t7, t8, t9); duck (t4); eq (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); filter (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); follow-noise (t8); formant (t1, t11); freeze (t8); gain (t2, t3, t4, t5, t6, t8, t9, t10, t11, t12); gate (t11); glue (t3, t6, t7, t9, t11); ir (t5); limiter (t1, t3, t6, t7, t9, t10); morph (t1, t3, t4, t5, t6, t9); ott (t4, t5, t8, t11); pan (t4, t11, t12); phantom (t12); phaser (t5, t7); pitch (t1, t2, t5, t7, t8, t11); pump (t1, t3, t5, t6, t8, t9, t10, t11); radio (t2, t5, t6, t7, t11); reverb (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); ring (t6); stutter (t4, t8, t9, t11); sympathetic (t5, t12); tape (t1, t7, t8, t10); tapestop (t8, t12); transient (t11); tremolo (t4, t5, t6, t7, t11, t12); vinyl (t12); vocoder (t6); width (t11)
-- **filters** (8/10): kind:lp (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); kind:hp (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); kind:bp (t4, t5, t7, t8); kind:peak (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); kind:lowshelf (t1, t4, t6, t12); kind:highshelf (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); comb (t11); ladder (t12)
-- **time** (7/7): tempo map (t2, t4, t5, t9, t10, t11, t12); risset (t12); warp (t8, t12); meter change (t2, t9, t10, t12); swing (t5, t8); swing_drift (t12); humanize (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12)
-- **pitch** (8/8): tuning (t1, t2, t3, t6, t9, t10, t12); tuning:edo (t1, t2, t3, t6, t9, t12); tuning:steps (t2, t3, t10); tuning:ramp (t1, t2, t3, t9, t12); bend (t2); glide (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); strum (t5, t12); expr (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12)
-- **systems** (14/14): vars (t1, t2, t3, t5, t6, t8, t9, t11, t12); lfo (t1, t2, t4, t5, t6, t7, t8, t9, t10, t11, t12); auto (t1, t2, t3, t4, t5, t6, t7, t8, t10, t11, t12); chance (t3, t6, t8, t9, t11); choices (t4, t11); euclid (t4); every (t1, t2, t3, t5, t6, t8, t9, t11, t12); vary (t2, t3, t12); gen:logistic (t5, t9); gen:lorenz (t1, t3, t6, t8, t11, t12); gen:ca (t1, t3); gen:lsystem (t10, t12); gen:markov (t5, t6); var system (t1, t3, t5, t6, t8, t9, t11, t12)
+- **synthesis** (31/33): wave:sine (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); wave:triangle (t1, t4, t5, t6, t7, t8, t9, t10, t11, t12); wave:saw (t1, t2, t3, t5, t6, t7, t8, t9, t10, t11, t12); wave:square (t1, t4, t5, t6, t7, t8, t9, t11); wave:pulse (t1, t2, t3, t4, t5, t6, t7, t8, t9, t11, t12); additive (t1, t3, t4, t6, t8, t9, t10, t11, t12); table (t8, t10, t11); shepard (t3, t12); sample (t11); machine (t1, t2, t3, t4, t5, t8, t10, t11, t12); modal (t2, t3, t4, t8, t11, t12); bowed (t4, t6, t12); pluck (t3, t4, t5, t6, t9, t11, t12); membrane (t3, t4, t11); plate (t8, t11); cymbal (t2, t4); bar (t3, t8, t11); vibes (t2, t3, t11); bell (t2, t3, t12); glock (t2, t3, t4, t11); gong (t3, t12); reed (t2, t9, t10); jet (t4); lips (t12); sax (t4); guitar (t5); fm/pm (t1, t4, t5, t6, t7, t8, t9, t10, t11, t12); sync (t10); shape:fold (t9); shape:crush (t6, t8, t9); bytebeat (t1, t2, t3, t4, t5, t6, t8, t10, t12)
+- **fx** (41/43): amp (t5); barberpole (t3, t12); cab (t5); chop (t4, t8); chorus (t1, t2, t3, t4, t5, t6, t7, t8, t9, t11, t12); cloud (t1, t2, t5, t6, t8); compressor (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); crush (t4, t7, t9); delay (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); drive (t3, t4, t5, t6, t7, t8, t9); duck (t4); eq (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); filter (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); follow-noise (t8); formant (t1, t11); freeze (t8); gain (t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); gate (t11); glue (t3, t6, t7, t9, t11); ir (t5); limiter (t1, t3, t6, t7, t9, t10); morph (t1, t3, t4, t5, t6, t9); ott (t4, t5, t8, t11); pan (t4, t11, t12); phantom (t12); phaser (t5, t7); pitch (t1, t2, t5, t7, t8, t11); pump (t1, t3, t5, t6, t8, t9, t10, t11); radio (t2, t5, t6, t7, t11); reverb (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); ring (t6); stutter (t4, t8, t9, t11, t12); sympathetic (t5, t12); tape (t1, t4, t6, t7, t8, t9, t10, t11, t12); tapestop (t8, t12); transient (t11); tremolo (t3, t4, t5, t6, t7, t11, t12); vinyl (t12); vocoder (t6); wah (t6, t7); width (t4, t7, t11)
+- **filters** (8/10): kind:lp (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); kind:hp (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); kind:bp (t1, t4, t5, t6, t7, t8, t11); kind:peak (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); kind:lowshelf (t1, t4, t6, t9, t12); kind:highshelf (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); comb (t11); ladder (t12)
+- **time** (7/7): tempo map (t2, t4, t5, t6, t9, t10, t11, t12); risset (t12); warp (t8, t12); meter change (t2, t6, t9, t10, t12); swing (t5, t8); swing_drift (t12); humanize (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12)
+- **pitch** (8/8): tuning (t1, t2, t3, t6, t9, t10, t12); tuning:edo (t1, t2, t3, t6, t9, t12); tuning:steps (t2, t3, t10); tuning:ramp (t1, t2, t3, t9, t12); bend (t2, t4); glide (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); strum (t3, t5, t9, t11, t12); expr (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12)
+- **systems** (15/17): vars (t1, t2, t3, t5, t6, t8, t9, t11, t12); lfo (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); auto (t1, t2, t3, t4, t5, t6, t7, t8, t10, t11, t12); chance (t3, t6, t8, t9, t11); choices (t4, t11); euclid (t4); every (t1, t2, t3, t5, t6, t8, t9, t11, t12); vary (t2, t3, t6, t12); gen:logistic (t5, t9); gen:lorenz (t1, t3, t6, t8, t11, t12); gen:ca (t1, t3); gen:lsystem (t10, t12); gen:markov (t5, t6); gen:life (t4); var system (t1, t3, t5, t6, t8, t9, t11, t12)
 - **voice** (2/2): voice (tts) (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12); vocoder on voice (t6)
 
-**Not used by any track yet:** wave:sine, shape:tanh, shape:clip, autolevel, clip, kind:notch, kind:allpass
+**Not used by any track yet:** shape:tanh, shape:clip, autolevel, clip, kind:notch, kind:allpass, gen:henon, gen:walk
 
 | track | title | features |
 |---|---|---|
-| t1 | Echolalia | 38 |
-| t2 | Everything Falls to One | 40 |
-| t3 | Three Neighbours | 44 |
-| t4 | Small Things Before Large | 42 |
-| t5 | Agreeing on a Speed | 46 |
-| t6 | No Errors Since | 43 |
-| t7 | Annealing | 30 |
-| t8 | Kept in Mercury | 46 |
-| t9 | Period Doubling | 36 |
-| t10 | Call and Return | 32 |
-| t11 | The Weather Indoors | 47 |
-| t12 | Still Running When You Wake | 53 |
+| t1 | Echolalia | 42 |
+| t2 | Everything Falls to One | 41 |
+| t3 | Three Neighbours | 51 |
+| t4 | Small Things Before Large | 51 |
+| t5 | Agreeing on a Speed | 49 |
+| t6 | No Errors Since | 54 |
+| t7 | Annealing | 35 |
+| t8 | Kept in Mercury | 50 |
+| t9 | Period Doubling | 47 |
+| t10 | Call and Return | 34 |
+| t11 | The Weather Indoors | 57 |
+| t12 | Still Running When You Wake | 58 |
