@@ -605,7 +605,11 @@ def duffing_lane():
     return pts
 
 
-THEREMIN_ORBIT = {"type": "orbit", "rate": 0.3, "distance": 0, "doppler": 0.6,
+# v40 (ROUND TYPE: whole; orbit 'level' pinned 8f150090 - chirper-three's request): THE TUNE FLIES IN. v36's spiral
+# moved but never APPROACHED (orbit loudness was relative to the closest point); with level 1.5 m, distance is loudness
+# (1/distance), so at every generation's statement the theremin starts faint ~11.5 m out (about -18 dB), spirals in and
+# swells as it lands: the song keeps bringing its melody in from the distance, 9 to 129.
+THEREMIN_ORBIT = {"type": "orbit", "rate": 0.3, "distance": 0, "doppler": 0.6, "level": 1.5,
                   "radius": {"value": 1.5, "mod": [{"src": "auto.sp", "amount": 10}]}}
 
 
@@ -1053,7 +1057,7 @@ def main():
             tr("tutti_vn", "violins", gain="-3dB", pan=-0.3, sends={"hall": "-6dB"}),               # v26: tutti
             tr("tutti_br", "brass", gain="-5dB", pan=0.15, sends={"hall": "-8dB"}),                 # v26
             tr("tutti_vc", "cellos", gain="-3dB", pan=0.35, sends={"hall": "-8dB"}),                # v26
-            tr("theremin", "theremin", gain="-5dB", pan=0.2, sends={"hall": "-8dB"},
+            tr("theremin", "theremin", gain="-2dB", pan=0.2, sends={"hall": "-8dB"},   # v40: +3 dB, lands where it did
                fx=[THEREMIN_ORBIT], auto={"sp": {"points": spiral_lane()}}),                   # v22: LAST; v36: spirals in
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=1.0s mix=1 predelay=10ms", "hp cutoff=250"]},
