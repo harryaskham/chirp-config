@@ -589,6 +589,13 @@ def backwall():
 # FAR OFF - one thunder-sheet roll at 140, soft, low-passed and drowned in hall: the storm a long way away.
 DRIPS = (137, 144)
 LAST_DRIPS = (145, 166)        # v35
+# v36 (ROUND TYPE: section, w9 4:16-4:48, flagged little new vs w8): THE POWER CUT. At the storm's last height (133)
+# the house loses power: everything electric - the lead, bass, guitar trigger, pad, chops, the hook's harmonies, and
+# the drum machine - winds down like a dying tape motor over a bar (tapestop, curve 1.6); for three bars only the
+# weather is left (rain, thunder, the sheet, the aeolian harp, the wind); and on the outro's downbeat (137) the power
+# comes back, snapping on with the drips - the light back on.
+POWER_CUT = (133, 137)
+POWER_CUT_TRACKS = ("lead", "bass", "gtrig", "pad", "chops", "kick", "ride", "hats", "clap", "hookharm", "hookfifth")
 FAR_THUNDER = 140
 
 
@@ -957,6 +964,13 @@ def main():
                              auto={"fr": {"points": [[f"{b0(FROST[0]):g}b", 0.0], [f"{b0(FROST[1] + 1):g}b", 1.0]]}}))
     song["tracks"].append(tr("throat", THROAT_PATCH, gain="-14dB", pan=-0.1, sends={"hall": "-8dB"},
                              auto={"ov": {"points": throat_lane()}}))                              # v31: listed last
+    for tk in song["tracks"]:                     # v37: the power cut (after every track is built; order unchanged)
+        if tk["name"] in POWER_CUT_TRACKS:
+            tk["fx"] = list(tk.get("fx") or []) + ["tapestop stop=auto.pc time=1b curve=1.6"]
+            tk.setdefault("auto", {})["pc"] = {"points": [["0b", 0], [f"{b0(POWER_CUT[0]) - 0.01:g}b", 0],
+                                                          [f"{b0(POWER_CUT[0]):g}b", 1],
+                                                          [f"{b0(POWER_CUT[1]) - 0.01:g}b", 1],
+                                                          [f"{b0(POWER_CUT[1]):g}b", 0]]}
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print("wrote", OUT, "bars", BARS, "lobe flips", flips,
