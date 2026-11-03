@@ -124,6 +124,20 @@ R10 = os.environ.get("T6_R10", "title")
 # in on a bare floor: kick and snare stay out for its first four bars, so the spoken line arrives over hats, keys
 # and bass. New track plus kick/snare gain lanes. T6_R11=none reproduces v10.
 R11 = os.environ.get("T6_R11", "ack")
+# T6_R12 = walk (v12, whole-song round). THE ROOM BREATHES. wM's new `walk` system (a random walk that moves a step
+# at a time and bounces at the ends) becomes a song-wide var, one step a half note, crossing its range in about eight
+# bars, and four things lean on it all song long: the Rhodes' low-pass opens and closes with it, the hats' high-pass
+# moves the other way (as the keys brighten the hats darken - two things sharing one breath), the talkbox's carrier
+# is shaded by it, and in the intro and the outro the radio's dial wanders on it, never quite on the station. Nothing
+# repeats exactly twice: the same chorus comes back in different air. (Scored: -0.04 and no window's motion moved -
+# an eight-bar breath is too slow to hear as change - so it is T6_R12=walk, opt-in.) THE DEFAULT, T6_R12=line: the walk
+# as a TUNE. `gen: walk` (width 16, step 1) over two octaves of 19-EDO major steps on a MUSIC BOX, eighths, rest 0.45:
+# the machine's idle tune, a melody that only ever moves to a neighbour, wandering at the song's two doors - under the
+# radio in the intro, and through the outro until the last bars - two different walks (seeds 6 and 19), the same
+# habit. Intro and outro lose their "static" flags. T6_R12=none reproduces v11.
+R12 = os.environ.get("T6_R12", "line")   # "line": the walk as a music-box tune at the edges; "walk": the filter breath
+WALK_AMT = float(os.environ.get("T6_WALK_AMT", "1.0"))
+WALK_POOL = [0, 3, 6, 8, 11, 14, 17, 19, 22, 25, 27, 30, 33, 36, 38, 41]   # 19-EDO major steps, two octaves up from C5
 C6_ACK = {"about": "chirper-two: a bytebeat acknowledgement - t*4, 5, 6, 8 (root, third, fifth, octave on the note) "
                    "stepping every 2048 counts, a chirp that races up in a quarter second; clock 16744 puts t*4 on the note.",
           "synth": {"layers": [{"type": "bytebeat", "bytebeat": {
@@ -423,7 +437,9 @@ def main():
         {"name": "kick", "patch": KIT, "gain": kg("-2dB"), "fx": ["hp cutoff=32"], "score": T["kick"].score(total)},
         {"name": "snare", "patch": KIT, "gain": kg("-4dB"), "fx": ["reverb kind=plate decay=1.4s mix=0.25"],
          "score": T["snare"].score(total)},
-        {"name": "hats", "patch": KIT, "gain": kg("-5dB"), "pan": 0.15, "fx": ["hp cutoff=700"],
+        {"name": "hats", "patch": KIT, "gain": kg("-5dB"), "pan": 0.15,
+         "fx": ([{"type": "filter", "kind": "hp", "cutoff": {"value": 900, "mod": [{"src": "var.walk", "amount": -0.8 * WALK_AMT}]}}]
+                if R12 == "walk" else ["hp cutoff=700"]),
          "score": T["hats"].score(total)},
         {"name": "ride", "patch": KIT, "gain": kg("-9dB"), "pan": -0.2, "fx": ["hp cutoff=2000"],
          "score": T["ride"].score(total)},
@@ -456,9 +472,13 @@ def main():
          "score": T["pad"].score(total)},
         {"name": "talk", "patch": "saw-pad", "gain": os.environ.get("T6_TALK_GAIN", "-8dB"),
          "fx": [{"type": "vocoder", "key": "voice", "bands": 20, "noise": 0.12, "attack": "4ms", "release": "70ms"},
-                "hp cutoff=150", "reverb kind=hall decay=2.4s mix=0.3"], "score": T["talk"].score(total)},
+                "hp cutoff=150", *([{"type": "filter", "kind": "lp", "cutoff": {"value": 3200, "mod": [{"src": "var.walk", "amount": 0.7 * WALK_AMT}]}, "q": 0.5}]
+                                   if R12 == "walk" else []),
+                "reverb kind=hall decay=2.4s mix=0.3"], "score": T["talk"].score(total)},
         {"name": "keys", "patch": "rhodes", "gain": "-14dB",
-         "pan": ({"value": 0.0, "mod": [{"src": "var.drift", "amount": 0.25}]} if R2 == "strings" else 0.2), "fx": [pump],
+         "pan": ({"value": 0.0, "mod": [{"src": "var.drift", "amount": 0.25}]} if R2 == "strings" else 0.2),
+         "fx": [pump] + ([{"type": "filter", "kind": "lp", "cutoff": {"value": 1600, "mod": [{"src": "var.walk", "amount": 1.2 * WALK_AMT}]}, "q": 0.6}]
+                         if R12 == "walk" else []),
          "score": T["keys"].score(total)},
         *([{"name": "strtalk", "patch": "strings", "gain": os.environ.get("T6_STR_GAIN", "-6dB"),
             "pan": {"value": 0.0, "mod": [{"src": "var.drift", "amount": -0.3}]},
@@ -479,7 +499,8 @@ def main():
                 {"type": "delay", "time": "3/8", "feedback": 0.25, "mix": 0.15, "tone": 3000},
                 "reverb kind=plate decay=1.8s mix=0.22"], "notes": V["voice"]},
         {"name": "radio", "patch": "voice-speech", "gain": "-10dB", "pan": -0.1,
-         "fx": [{"type": "radio", "tune": {"value": 0, "mod": [{"src": "auto.dial", "amount": 1}]},
+         "fx": [{"type": "radio", "tune": {"value": 0, "mod": [{"src": "auto.dial", "amount": 1}] +
+                                          ([{"src": "var.walk", "amount": 0.06 * WALK_AMT}] if R12 == "walk" else [])},
                  "hiss": "-34dB", "whistle": "-32dB", "fade": 0.4, "drift": 0.04, "seed": 6},
                 "reverb kind=hall decay=3s mix=0.3"],
          "auto": {"dial": {"points": dial}}, "notes": V["radio"]},
@@ -510,6 +531,16 @@ def main():
             if tr["name"] in ("kick", "snare", "hats", "ride", "rim"):
                 tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.stop", "amount": 1}]}}]
                 tr["auto"] = {**tr.get("auto", {}), "stop": lane}
+    if R12 == "line":   # the idle tune: a random walk, a step at a time, on the music box at the song's two doors
+        pool = " ".join(mm(e(s, 72)) for s in WALK_POOL)
+        for nm, a0, a1, sd, g in (("idle-in", 4.0, st["verse1"], 6, "-20dB"), ("idle-out", st["outro"] + 8.0, total - 8.0, 19, "-7dB")):
+            tracks.append({"name": nm, "patch": "music-box", "gain": os.environ.get("T6_IDLE_GAIN_" + nm[5:].upper(), g),
+                           "pan": 0.25, "seed": sd,
+                           "fx": ["hp cutoff=300", {"type": "delay", "time": "3/8", "feedback": 0.3, "mix": 0.22,
+                                                    "ping_pong": True, "tone": 3500}, "reverb kind=hall decay=2.5s mix=0.3"],
+                           "score": f"R/{a0:g}b",
+                           "gen": {"type": "walk", "width": 16, "step": 1, "n": int((a1 - a0) * 2), "notes": pool,
+                                   "len": "/8", "rest": 0.45}})
     if R11 == "ack":
         tracks.append({"name": "ack", "patch": "c6-ack", "gain": os.environ.get("T6_ACK_GAIN", "4dB"), "pan": 0.3,
                        "fx": ["hp cutoff=300", "lp cutoff=3500 q=0.5",
@@ -536,7 +567,10 @@ def main():
                                  {"at": f"{st['chorus2']:g}b", "bpm": BPM, "meter": "4/4"}]) if R6 == "waltz" else f"tempo: {BPM}"),
         *(["tuning: " + json.dumps({"edo": EDO}),
            "vars: " + json.dumps({"drift": {"system": {"type": "lorenz", "axis": "y", "n": 700, "range": [-1, 1]},
-                                            "every": "1/4"}})] if R2 == "strings" else []),
+                                            "every": "1/4"},
+                                  **({"walk": {"system": {"type": "walk", "width": 16, "step": 1, "n": int(total / 2) + 8,
+                                                          "range": [-1, 1]}, "every": "1/2"}} if R12 == "walk" else {})})]
+          if R2 == "strings" else []),
         f'length: "{total:g}b"',
         'tail: "3s"',
         'ceiling: "-1dB"',
