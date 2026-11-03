@@ -220,6 +220,17 @@ R20 = os.environ.get("T3_R20", "drummer")
 # apart in time, the neighbours 5 dB under the cell (~7.5 dB in level: lower notes, less energy). The decay's chip line stays alone (its neighbours are gone);
 # the hymn keeps its own two parts. T3_R21=none reproduces v20.
 R21 = os.environ.get("T3_R21", "neighbours")
+# T3_R22 = ksdrum (v22, palette round). THE ERRORS TICK. The light cone's error cells (where the shadow ring, one
+# cell flipped, disagrees with the real one) rang on the library's glass (an album staple, 3 songs). Now each error
+# strikes Karplus and Strong's 1983 DRUM - the paper's own variant, the loop's samples flipped in sign at random
+# (blend 0.75 - at the paper's 0.5 it was all hiss), so a pitched string becomes a noisy pitched tick, two octaves under the glass (at the glass's D6 the
+# drum is pure hiss: centroid 14 kHz, 17 dB under): the errors sound like errors, glitches in the scale, left and
+# right of the cell that caused them. T3_R22=none reproduces v21.
+R22 = os.environ.get("T3_R22", "ksdrum")
+C3_KSERR = {"about": "chirper-two: the 1983 Karplus-Strong drum (blend 0.5) - a noisy pitched tick for the error cells",
+            "synth": {"layers": [{"type": "ks", "ks": {"blend": float(os.environ.get("T3_KS_BLEND", "0.75")), "stretch": 1},
+                                           "bright": 0.4}],
+                      "amp": {"a": "1ms", "d": "350ms", "s": 0, "r": "120ms"}}}
 R11KICK = os.environ.get("T3_R11_KICK", "machine")   # "bronze": the kit's own kick too (cost spectrum 97 -> 75-80)
 C8_KIT = {
     "about": "chirper-two: Three Neighbours' own kit - kr a D1 sine kick that drops into place with a low modal membrane "
@@ -399,7 +410,7 @@ def build():
             diff = [c for c in range(W) if shadow[c] != row[c]]
             for c in diff:
                 vel = 92 if i == 10 else (72 if len(diff) < 6 else 56)
-                T["errl" if c < 8 else "errr"].add(start + c * 0.25, 0.5, hz_m(jm((c * 3) % 15, 86)), vel)
+                T["errl" if c < 8 else "errr"].add(start + c * 0.25, 0.5, hz_m(jm((c * 3) % 15, 62 if R22 == "ksdrum" else 86)), vel)
         pop = sum(row)
         born = [c for c in range(W) if row[c] and not prev[c]]
         died = [c for c in range(W) if prev[c] and not row[c]]
@@ -627,8 +638,10 @@ def main():
          "fx": ["chorus mix=0.3"], "score": T["chord"].score(total)},
         {"name": "drone", "patch": "tanpura", "gain": "-16dB", "fx": ["hp cutoff=80"], "score": T["drone"].score(total)},
         {"name": "rise", "patch": "fx-riser-endless amp.a=16b", "gain": "-14dB", "score": T["rise"].score(total)},
-        *([{"name": nm, "patch": "glass", "gain": os.environ.get("T3_ERR_GAIN", "-6dB"), "pan": pn,
-            "sends": {"hall": "-8dB"}, "fx": ["hp cutoff=400"], "score": T[nm].score(total)}
+        *([{"name": nm, "patch": "c3-kserr" if R22 == "ksdrum" else "glass",
+            "gain": os.environ.get("T3_KSERR_GAIN", "7dB") if R22 == "ksdrum" else os.environ.get("T3_ERR_GAIN", "-6dB"), "pan": pn,
+            "sends": {"hall": "-8dB"}, "fx": ["hp cutoff=400"] + (["lp cutoff=5000"] if R22 == "ksdrum" else []),
+            "score": T[nm].score(total)}
            for nm, pn in (("errl", -0.55), ("errr", 0.55))] if R9 == "cone" else []),
         *([{"name": "kot", "patch": "gamelan", "gain": os.environ.get("T3_KOT_GAIN", "3dB"), "pan": 0.35,
             "sends": {"hall": "-10dB"}, "fx": ["hp cutoff=300", "peak cutoff=1500 gain=-4dB q=0.8"],
@@ -897,7 +910,8 @@ def main():
         "patches: " + json.dumps({**patches(), **({"c3-byte": C3_BYTE} if R10 == "byte" else {}),
                                   **({"c8-kit": C8_KIT} if R11 == "bronze" else {}),
                                   **({"c3-gendy": C3_GENDY} if R12 == "gendy" else {}),
-                                  **({"c3-vosbell": C3_VOSBELL} if R18 == "palette" else {})}),
+                                  **({"c3-vosbell": C3_VOSBELL} if R18 == "palette" else {}),
+                                  **({"c3-kserr": C3_KSERR} if R22 == "ksdrum" else {})}),
         "buses: " + json.dumps(buses),
         "master: " + json.dumps({"fx": [{"type": "eq", "bands": ["hp cutoff=25",
                                                                "peak cutoff=250 gain=" + (os.environ.get("T3_LOWMID", "-0.5dB") if R15 == "space" else "-2dB") + " q=0.8",
