@@ -106,6 +106,30 @@ def logistic_orbit(r, p, n=4000):
     return out
 
 
+# T9_R9 = return (v9, section round on w2, 0:27-0:54: "static" - the end of `one` and most of `two`). IT COMES BACK:
+# a KOTO (new to the album) knocks the map off its attractor and lets it return, one iterate per eighth. At the end
+# of `one` (r = 2.9, where the fixed point is about to lose its footing: multiplier -0.9) the knocked value spirals
+# home slowly, high-low-high, narrowing - the period-two alternation heard coming before it arrives. In `two` every
+# other 7/8 bar is a knock and a return in seven eighths (seven iterates), each knock a different size and side, so
+# the lick recurs but never repeats. Under it a TABLA (new to the album) plays a 3+2+2 cycle in the 7/8, a te-re fill
+# every fourth bar. New tracks only. (T9_KNOCK=every, a knock in every bar: w2 motion 0.032 -> 0.038, still
+# "static", s0 -0.04; opt-in.) T9_R9=none reproduces v8.
+R9 = os.environ.get("T9_R9", "return")
+KNOCKS = [0.22, -0.18, 0.3, -0.25, 0.12, -0.3, 0.26, -0.1]
+TABLA = [["tin", "tin", "na", "dhin", "na", "dhin", "na"],
+         ["dha", "tin", "na", "dhin", "na", "dhin", "na"],
+         ["tin", "tin", "na", "dhin", "na", "ge", "na"],
+         ["dha", "te", "re", "dhin", "na", "dhin", "dha"]]
+
+
+def lmap(r, x, n):
+    out = []
+    for _ in range(n):
+        x = r * x * (1 - x)
+        out.append(x)
+    return out
+
+
 R7BASS = os.environ.get("T9_R7_BASS", "layer") if R7 == "lpg" else "none"   # lpg | layer | sub
 R7DIZI = os.environ.get("T9_R7_DIZI", "0") == "1" and R7 == "lpg"
 C9_LPG = {"about": "chirper-two: a West Coast low-pass-gate bass - triangle plus its octave, folded, through one "
@@ -317,6 +341,32 @@ def main():
         for a, ln, h, v, art in T["lead"].ev:
             if (st["two"] <= a < st["eight"] or a >= st["settle"]) and v >= 92:
                 dizi.add(a, ln, f"m{float(h[1:]) + 12:.3f}", v - 14, art)
+    ret, tab = Track("ret"), Track("tab")
+    if R9 == "return":
+        one, two = next(s for s in SECS if s[0] == "one"), next(s for s in SECS if s[0] == "two")
+        hz = lambda v: f"{2 * 220.0 * 3 ** ((v - 0.3) * 16 / 13):.2f}hz"
+        xs = 1 - 1 / one[3]
+        for a, x0 in ((st["two"] - 16.0, xs - 0.2), (st["two"] - 8.0, xs + 0.18)):
+            for i, v in enumerate([x0] + lmap(one[3], x0, 15)):
+                ret.add(a + i * 0.5, 0.45, hz(v), max(40, 74 - 2 * i))
+        orb = logistic_orbit(two[3], 2)
+        bl = 3.5
+        for b in range(two[1]):
+            a = st["two"] + b * bl
+            pat = TABLA[b % 4] if b % 4 != 3 else TABLA[3]
+            for i, bol in enumerate(pat):
+                if bol == "te":
+                    tab.add(a + i * 0.5, 0.25, "te", 62)
+                    tab.add(a + i * 0.5 + 0.25, 0.25, "re", 56)
+                elif bol == "re":
+                    continue
+                else:
+                    tab.add(a + i * 0.5, 0.5, bol, 78 if i in (0, 3, 5) else 60)
+            if b % 2 == 1 or os.environ.get("T9_KNOCK", "half") == "every":
+                d = KNOCKS[(b // 2) % len(KNOCKS)] * (1 if b % 2 else -0.7)
+                x0 = min(0.95, max(0.05, orb[b % 2] + d))
+                for i, v in enumerate([x0] + lmap(two[3], x0, 6)):
+                    ret.add(a + i * 0.5, 0.45, hz(v), 76 if i == 0 else 60)
     osti = Track("osti")
     if R8 == "ostinato":
         sec4 = next(s for s in SECS if s[0] == "four")
@@ -409,6 +459,11 @@ def main():
                "notes": orbit_notes},
               {"name": "fill", "patch": "break-kit", "gain": "-3dB", "pan": 0.1, "out": "drums",
                "score": fill.score(total)}] if R5 == "orbit" else []),
+           *([{"name": "ret", "patch": "koto", "gain": os.environ.get("T9_KOTO_GAIN", "1dB"), "pan": -0.28,
+               "fx": ["hp cutoff=200", "reverb kind=room decay=0.9s mix=0.16"], "score": ret.score(total)},
+              {"name": "tab", "patch": "tabla-kit", "gain": os.environ.get("T9_TABLA_GAIN", "-5dB"), "pan": 0.22,
+               "fx": ["reverb kind=room decay=0.5s mix=0.12"], "score": tab.score(total)}]
+             if R9 == "return" else []),
            *([{"name": "osti", "patch": "steel-pan", "gain": os.environ.get("T9_OSTI_GAIN", "-8dB"), "pan": 0.3,
                "fx": ["hp cutoff=250", "reverb kind=room decay=0.8s mix=0.18"], "score": osti.score(total)}]
              if R8 == "ostinato" else []),
