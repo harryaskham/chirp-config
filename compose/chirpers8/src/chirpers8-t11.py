@@ -166,6 +166,32 @@ WIND = {"synth": {"layers": [{"type": "noise", "color": "pink"}],
 WIND_VEL = {"A": 58, "B": 76, "break": 100, "C": 84}
 
 
+# v29 (ROUND TYPE: whole; gendyn pinned 6014b933): THE AEOLIAN HARP. Wind across a string makes it sound its HARMONIC
+# PARTIALS - the series this whole song is built from - and the harder the wind, the higher the partial. Through the
+# break and C (81-136), where the wind is strongest, strings the weather plays by itself: a GENDYN voice (Xenakis's
+# stochastic synthesis - a living tone that never quite repeats), one new string a bar, each ringing three bars (or to
+# the next lobe flip), three at once panned left/centre/right; the attractor's HEIGHT (z) at that bar picks which
+# partial (8-16) of the lobe's fundamental sounds, an octave up; and the Lorenz var.gust modulates the gendyn's amp and
+# time, so the tone wavers as the wind gusts. Two systems coupled: the Lorenz weather plays Xenakis's strings.
+AEOLIAN = (81, 136)
+AEOL_PATCH = {"synth": {"layers": [{"type": "gendyn", "gendyn": {
+    "points": 10, "amp": {"value": 0.04, "mod": [{"src": "var.gust", "amount": 0.04}]},
+    "time": {"value": 0.01, "mod": [{"src": "var.gust", "amount": 0.008}]}, "spread": 0.05}}],
+    "amp": "1.2s 1 1 2.5s", "filters": [{"kind": "lp", "cutoff": 2600, "q": 0.6}, {"kind": "lp", "cutoff": 2600, "q": 0.5}]}}
+
+
+def aeolian():
+    for bar in range(AEOLIAN[0], AEOLIAN[1] + 1):
+        z = state(bar)[2]
+        n = PARTIALS[max(0, min(8, round((z - 10) / 30 * 8)))]
+        lb = lobe_at(bar)
+        ring = 1
+        while ring < 3 and bar + ring <= AEOLIAN[1] + 2 and lobe_at(bar + ring) == lb:
+            ring += 1
+        part(f"aeolian{bar % 3}").add(b0(bar), b0(bar + ring) - b0(bar) - 0.1, mm(partial(n, lb, 1)),
+                                      92 if sec_of(bar) == "break" else 72)
+
+
 def write_wind():
     for name, a, z in SECTIONS:
         if name in WIND_VEL:
@@ -176,7 +202,7 @@ def write_wind():
 # visibility, falling slowly') the storm stops dead for two bars: only the wind still whistling in the gap and the
 # opening's bell struck once on F#; then the storm crashes back with a thunderclap at 117
 EYE = (115, 117)
-EYE_KEEP = {"wind", "hum"}
+EYE_KEEP = {"wind", "hum", "aeolian0", "aeolian1", "aeolian2"}     # v29: the harp keeps singing in the eye
 
 
 def eye_clear():
@@ -699,6 +725,7 @@ def main():
     write_thunder()
     sheet_roll(FAR_THUNDER, 70, "farsheet")              # v24: the last thunder, far off
     write_wind()
+    aeolian()                                     # v29: the Aeolian harp
     eye_clear()
     breath()                                                     # v21: the drums breathe in before the break
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
@@ -731,6 +758,9 @@ def main():
             {"name": "toll", "patch": BELL, "gain": "-12dB", "pan": -0.15, "sends": {"hall": "-8dB", "dly": "-12dB"},
              "notes": toll_notes()},                                                       # v8: the bell carries over
             tr("wind", WIND, gain="-14dB", pan=0.25, sends={"hall": "-8dB"}),           # v11: the wind in the gap
+            tr("aeolian0", AEOL_PATCH, gain="-17dB", pan=-0.5, sends={"hall": "-6dB"}),     # v29
+            tr("aeolian1", AEOL_PATCH, gain="-17dB", pan=0.05, sends={"hall": "-6dB"}),     # v29
+            tr("aeolian2", AEOL_PATCH, gain="-17dB", pan=0.5, sends={"hall": "-6dB"}),     # v29
             tr("thunder", THUNDER, gain="-6dB", pan=-0.1, sends={"hall": "-4dB"}),          # v10: thunder at the flips
             tr("sheet", SHEET, gain="-10dB", pan=0.15, sends={"hall": "-6dB"}),            # v16: the thunder sheet
             tr("rainL", "celesta", gain="-8dB", pan=-0.6, sends={"hall": "-8dB"}),       # v9: rain indoors
