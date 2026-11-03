@@ -537,7 +537,14 @@ def build():
             # (v3) THE STACK, AS A GRAMMAR: through the final calls, as the stack fills and unwinds, a celesta thinks recursively - the engine's own L-system (gen lsystem: wM's complex systems) read as a turtle over
             # the D minor scale, where '[' saves its place and ']' RETURNS to it: a melody that calls into a branch, climbs,
             # and snaps back, the subroutine audible; in Werckmeister III by the engine's own tuning (steps in cents)
-            {'name': 'lsys', 'patch': 'celesta', 'gain': '-14dB', 'pan': 0.25, 'tuning': W3T,
+            # (v40, palette) THE SUBROUTINE TALKS: the L-system's sixteenths through the final calls were on the album's
+            # celesta (three songs). Now they ring on VOSIM bells (Sonology's 1978 voice-simulation pulse trains, wM's
+            # vosim layer: eight decaying pulses a period, their width a formant) whose formant drifts on a slow
+            # triangle - so the recursive line rings like bells that almost form vowels: the subroutine muttering
+            {'name': 'lsys', 'gain': '-15dB', 'pan': 0.25, 'tuning': W3T, 'lfo': {'mouth': 'tri rate=1/6'},
+             'patch': {'synth': {'layers': [{'type': 'vosim', 'vosim': {'formant': {'value': 2300, 'mod': [{'src': 'lfo.mouth', 'amount': 0.45}]},
+                                                                        'pulses': 8, 'decay': 0.86}}],
+                                 'amp': {'a': '2ms', 'd': '350ms', 's': 0.0, 'r': '200ms'}, 'filters': ['lp cutoff=6000']}},
              'score': f"R/{secs_t['final']:.0f}b",
              'gen': {'type': 'lsystem', 'axiom': 'A', 'rules': {'A': 'A[+A]A[-B]A', 'B': '-A+b'}, 'depth': 4,
                      'notes': 'D5 E5 F5 G5 A5 Bb5 C6 D6 E6', 'len': '/16', 'n': 512, 'seed': 7},
@@ -552,7 +559,13 @@ def build():
             # plays a kalimba - the playhead reads one column per eighth, so each bar is one generation, and the colony's
             # live cells pick notes from open fifths that sit in every chord of the loop (G and D, with A), bottom row low:
             # a texture that never repeats, growing and thinning by its own rule under the fugue's rules
-            {'name': 'life', 'patch': 'kalimba', 'gain': '-14dB', 'pan': -0.35, 'tuning': W3T,
+            # (v40, palette) the colony's notes were the album's kalimba (four songs); now a Casio CZ phase-distortion
+            # pluck (1984, wM's pd layer): a sine bent into a square at each pluck and relaxing back - each live cell a
+            # little digital blip, the home computer's voice for the Game of Life
+            {'name': 'life', 'gain': '-15dB', 'pan': -0.35, 'tuning': W3T,
+             'patch': {'synth': {'layers': [{'type': 'pd', 'pd': {'shape': 'square', 'amount': {'value': 0.08, 'mod': [{'src': 'env.p', 'amount': 0.75}]}}}],
+                                 'env': {'p': {'a': '1ms', 'd': '130ms', 's': 0.0, 'r': '60ms'}},
+                                 'amp': {'a': '1ms', 'd': '320ms', 's': 0.0, 'r': '150ms'}, 'filters': ['lp cutoff=4500']}},
              'score': f"R/{secs_t['calls2'] + 32.0:.4f}b",
              'gen': {'type': 'life', 'width': 8, 'height': 8, 'init': 'center', 'poly': 2, 'n': 16 * 8, 'len': '/8',
                      'notes': 'G3 D4 G4 A4 D5 G5 A5 D6'},
