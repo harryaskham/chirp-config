@@ -198,6 +198,22 @@ def build():
     # talking machines) - and its codec grows up as it learns: four poles, 4-bit coefficients and a 5 kHz band at
     # first, a murky buzz with the shape of words; then six, then eight poles; by the third groove ten poles, 8-bit,
     # 11 kHz, clear. In the last groove it no longer needs to echo: it says the whole line back itself
+    # (v37) A SECOND VOICE (Harry, on v35: 'the singing came a long way ... keep hillclimbing it'): the human sang
+    # every sung line alone. Now, from the cursor line in the third groove on - and both sung lines of the last groove,
+    # where the machine says the line back - a second singer joins, a diatonic third above (A G F# D F# G A C# A over
+    # the tune's F# E D B D E F# A F#), the same breath and syllables a hair behind, a brighter throat (formant up),
+    # on the other side: the human has found someone to sing with, while the machine is still learning to talk
+    D_UP = {54: 57, 52: 55, 50: 54, 47: 50, 57: 61, 55: 59, 59: 62, 61: 64, 45: 49, 49: 52}
+    h_notes, h_fv = [], []
+    for v in VOICE:
+        if v['bar'] not in (89, 105, 113):
+            continue
+        off = (v['bar'] - 1) * 4.0 + 0.04
+        for n_ in v['notes']:
+            m_ = round(69 + 12 * math.log2(float(n_['pitch'][:-2]) / 440.0))
+            h_notes.append(dict(n_, at=round(off + n_['at'], 4), pitch=f"{440.0 * 2 ** ((D_UP.get(m_, m_ + 3) - 69) / 12):.2f}hz",
+                                vel=round(n_.get('vel', 0.8) * 0.9, 3)))
+        h_fv += [[f"{off + float(a_[:-1]):.3f}b", x_ + 0.2] for a_, x_ in v['fv']]
     CHIPS = [(17, 'lpc order=4 bits=4 rate=5kHz', '-14dB'), (33, 'lpc order=6 bits=4 rate=6kHz', '-13dB'),
              (65, 'lpc order=8 bits=5 rate=8kHz', '-12dB'), (73, 'lpc order=10 bits=6 rate=8kHz', '-12dB'),
              (89, 'lpc order=10 bits=8 rate=11kHz', '-11dB')]
@@ -571,6 +587,11 @@ def build():
             tr('ride', 'tight-kit', '-9dB', pan=-0.15, sends={'hall': '-16dB'},
                fx=[{'type': 'eq', 'bands': ['peak cutoff=75 q=0.8 gain=4dB', 'highshelf cutoff=9000 gain=-4dB']}]),
             tr('tpt', 'trumpet-mute', '-9dB', pan=-0.2, sends={'hall': '-12dB', 'echo': '-16dB'}),
+            {'name': 'voice2', 'patch': 'voice-speech', 'gain': '-8dB', 'pan': -0.3, 'notes': h_notes,
+             'fx': [{'type': 'pitch', 'semitones': 0, 'formant': {'value': 0, 'mod': [{'src': 'auto.fv', 'amount': 1}]}},
+                    {'type': 'eq', 'bands': ['peak cutoff=300 q=1 gain=-3dB', 'highshelf cutoff=8000 gain=2dB']},
+                    {'type': 'reverb', 'kind': 'plate', 'decay': '1.5s', 'predelay': '24ms', 'mix': 0.2}],
+             'auto': {'fv': {'points': h_fv}}, 'sends': {'hall': '-14dB', 'echo': '-16dB'}},
         ] + [{'name': f"chip{k_ + 1}", 'patch': 'voice-speech', 'gain': g_, 'pan': 0.35 - 0.1 * k_, 'notes': chip_notes[bar_],
                'fx': [fx_], 'sends': {'hall': '-12dB', 'echo': '-14dB'}} for k_, (bar_, fx_, g_) in enumerate(CHIPS)] + [
         ]}
