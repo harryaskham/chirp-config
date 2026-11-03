@@ -130,6 +130,37 @@ def lmap(r, x, n):
     return out
 
 
+# T9_R10 = bpclar (v10, palette round). The lead leaves the library clarinet (three album songs) for c9-bpclar, this
+# song's own BOHLEN-PIERCE CLARINET: Bohlen-Pierce is the clarinet's scale (a cylindrical bore sounds odd harmonics,
+# and BP repeats at the 3:1 tritave, not the octave), so this reed is pushed harder and brighter, a little airier, and
+# carries a quiet sine at exactly 3:1 - the third harmonic, the tritave, sung on top of every note. In the calm
+# sections (the period-3 window, the settle) it plays SUBTONE: breathy, dark, close. Pushed bright (press 0.52, bright
+# 0.5, lp 4.5k) it cost spectrum (s0 96.75); the darker reed (0.46/0.38/3.6k) sits at parity. T9_SUB=none|settle
+# and the T9_BPC_* knobs stay. T9_R10=none reproduces v9.
+R10 = os.environ.get("T9_R10", "bpclar")
+SUB_SECS = {"both": ("window", "settle"), "settle": ("settle",), "none": ()}[os.environ.get("T9_SUB", "both")]
+C9_BPCLAR = {
+    "about": "chirper-two: a Bohlen-Pierce clarinet - the reed on a cylindrical bore pushed harder and brighter, a little "
+             "airier, with a quiet sine at exactly 3:1 (the tritave BP repeats at) on every note; ^sub subtone.",
+    "synth": {
+        "layers": [
+            {"name": "reed", "type": "wind", "exciter": "reed",
+             "pressure": {"value": float(os.environ.get("T9_BPC_PRESS", "0.46")), "mod": [{"src": "vel", "amount": 0.3}, {"src": "expr.sub", "amount": -0.3}]},
+             "breath": {"value": 0.22, "mod": [{"src": "expr.sub", "amount": 0.55}]},
+             "bright": {"value": float(os.environ.get("T9_BPC_BRIGHT", "0.38")), "mod": [{"src": "vel", "amount": 0.25}, {"src": "expr.sub", "amount": -0.35}]}},
+            {"name": "tritave", "type": "osc", "wave": "sine", "ratio": 3,
+             "level": {"value": os.environ.get("T9_TRITAVE", "-20dB"), "mod": [{"src": "expr.sub", "amount": -12}]}},
+            {"name": "tongue", "type": "noise",
+             "level": {"value": "-70dB", "mod": [{"src": "env.t", "amount": 40}, {"src": "vel", "amount": 8}]}}],
+        "env": {"f": {"a": "30ms", "d": "350ms", "s": 0.75, "r": "150ms"}, "t": {"a": "2ms", "d": "30ms", "s": 0}},
+        "pitch": {"value": 0, "mod": [{"src": "rand", "amount": 0.01}]},
+        "filters": ["hp cutoff=90",
+                    {"kind": "lp", "cutoff": {"value": os.environ.get("T9_BPC_LP", "3.6k"), "mod": [{"src": "vel", "amount": 0.8}, {"src": "expr.sub", "amount": -1}]}, "q": 0.7},
+                    "peak cutoff=1.5k q=1.4 gain=2dB", "peak cutoff=3.2k q=2 gain=1dB"],
+        "amp": {"a": "30ms", "s": 1, "r": "120ms", "curve": 3}},
+    "play": {"gate": 0.97, "vel_sens": 0.5, "humanize": {"time": "6ms", "vel": 0.05}},
+    "fx": ["reverb kind=room decay=1.4s mix=0.2"],
+    "gain": "-3dB"}
 R7BASS = os.environ.get("T9_R7_BASS", "layer") if R7 == "lpg" else "none"   # lpg | layer | sub
 R7DIZI = os.environ.get("T9_R7_DIZI", "0") == "1" and R7 == "lpg"
 C9_LPG = {"about": "chirper-two: a West Coast low-pass-gate bass - triangle plus its octave, folded, through one "
@@ -233,7 +264,8 @@ def build():
                 for s, v in enumerate(xs):
                     if v > 0.42:
                         deg = max(0, min(13, int((v - 0.3) * 16)))
-                        T["lead"].add(start + s * 0.25, 0.24, mm(bp(deg, 57)), int(58 + 50 * v))
+                        T["lead"].add(start + s * 0.25, 0.24, mm(bp(deg, 57)), int(58 + 50 * v),
+                                      "^sub=0.7" if R10 == "bpclar" and name in SUB_SECS else "")
             # ---- drums: grouped kicks, a snare on the last group, map-made accents and ratchets ----
             groove = name not in ("one",) or i >= 8
             if groove and name != "settle" or (name == "settle" and i < 20):
@@ -426,7 +458,7 @@ def main():
          "score": T["hats"].score(total)},
         {"name": "ride", "patch": KIT, "gain": "-5dB", "pan": -0.25, "out": "drums", "fx": ["hp cutoff=3000"],
          "score": T["ride"].score(total)},
-        {"name": "lead", "patch": "clarinet", "gain": "-8dB",
+        {"name": "lead", "patch": "c9-bpclar" if R10 == "bpclar" else "clarinet", "gain": "-10.5dB" if R10 == "bpclar" else "-8dB",
          "pan": ({"value": 0.0, "mod": [{"src": "var.wander", "amount": 1}]} if R2 == "drift" else -0.1),
          "fx": ["hp cutoff=220", "peak cutoff=1200 gain=4dB q=0.8", {"type": "delay", "time": "3/16", "feedback": 0.3, "mix": 0.2, "ping_pong": True, "tone": 4000},
                 "reverb kind=room decay=0.9s mix=0.15"], "score": T["lead"].score(total)},
@@ -513,7 +545,8 @@ def main():
         'volume: "0dB"',
         "loudness: -11",
         "true_peak: true",
-        *(["patches: " + json.dumps({"c9-pulse": C9_PULSE, **({"c9-lpg": C9_LPG} if R7BASS in ("lpg", "layer") else {})})]
+        *(["patches: " + json.dumps({"c9-pulse": C9_PULSE, **({"c9-lpg": C9_LPG} if R7BASS in ("lpg", "layer") else {}),
+                                     **({"c9-bpclar": C9_BPCLAR} if R10 == "bpclar" else {})})]
           if R4 == "break" else []),
         "buses: " + json.dumps(buses),
         "master: " + json.dumps({"fx": [{"type": "eq", "bands": (["hp cutoff=25", "peak cutoff=90 gain=-4dB q=0.9",
