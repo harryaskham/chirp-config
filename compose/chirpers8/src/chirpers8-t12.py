@@ -663,6 +663,14 @@ COLONY = (132, 145)
 COLONY_INIT = "0001110101001001/0110010000111011/0001101000000011/1111101010000100"
 
 
+# v33 (ROUND TYPE: section, w9 4:16-4:47 = the colony, still flagged static - the colony moved the rhythm, nothing
+# pitched moved with it): THE COLONY SINGS. A second life gen with the SAME torus, rule and start reads the same cells
+# bar by bar, so it lands exactly on the colony's hits - its four rows playing the closer's home chord, the harmonic
+# seventh on F# (4:5:6:7 - F#, A#, C#, the septimal E; 31-EDO holds them): the kick row is the root, the hat row the
+# seventh. On marimba. Life plays the rhythm and the harmony at once.
+COLONY_TONES = "m66 m69.863 m73.02 m75.688"
+
+
 def colony():
     a, z = b0(COLONY[0]), b0(COLONY[1])
     for name in ("kick", "hats", "clap", "ride"):
@@ -931,6 +939,10 @@ def main():
                                    "n": 16 * (COLONY[1] - COLONY[0]), "len": "/16", "notes": "k rs cp h"}})  # v30
     song["tracks"].append({"name": "sap", "patch": SAP_PATCH, "gain": "-16dB", "pan": 0.1,
                            "sends": {"hall": "-8dB"}, "notes": sap_notes()})            # v32: sap rising
+    song["tracks"].append({"name": "colony_tones", "patch": "marimba", "gain": "-16dB", "pan": 0.25,
+                           "sends": {"hall": "-12dB"}, "at": f"{b0(COLONY[0]):g}b",
+                           "gen": {"type": "life", "width": 16, "height": 4, "init": COLONY_INIT, "poly": 3,
+                                   "n": 16 * (COLONY[1] - COLONY[0]), "len": "/16", "notes": COLONY_TONES}})  # v33
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print("wrote", OUT, "bars", BARS, "gens", {g: len(lsys(g)) for g in range(7)})
