@@ -675,6 +675,31 @@ TALK = {"synth": {"layers": [
     "fx": [{"type": "pan", "pan": {"value": 0, "mod": [{"src": "expr.ix", "amount": 1}]}}]}}
 
 
+# v32 (ROUND TYPE: whole; phase distortion pinned f6713421): CZ HOUSE STABS. This is a sorting HOUSE track, and the
+# house of the late 80s was built on a cheap home-computer-era synth: Casio's PHASE DISTORTION (1984). A PD chord stab
+# - three notes of the progression's alpha-scale chord - plays each working sort's own house pattern: insertion's
+# half-time (1.5, 3.5), quicksort's driving off-beats (the organ-stab four), merge's broken (0.75, 1.5, 3). An envelope
+# on the PD amount bends each stab from a saw back to a sine (the CZ's 'filter' sweep with no filter; non-resonant -
+# Harry's 'too squelchy' stands), and the ENTROPY lane rides the amount too: bright and buzzy while the list is
+# shuffled, mellowing as each sort converges, the third brightening on bars the list is sorted.
+STAB_PAT = {"insertion": (1.5, 3.5), "quick": (0.5, 1.5, 2.5, 3.5), "merge": (0.75, 1.5, 3.0)}
+STAB_PD = {"synth": {"layers": [{"type": "pd", "pd": {"shape": "saw", "amount": {
+    "value": 0.1, "mod": [{"src": "env.k", "amount": 0.55}, {"src": "auto.en", "amount": 0.3}]}}}],
+    "env": {"k": "1ms 1 0 160ms"}, "amp": "2ms 0.8 0 260ms", "filters": [{"kind": "lp", "cutoff": 5000, "q": 0.5}]}}
+
+
+def house_stabs():
+    for bar in range(1, BARS + 1):
+        sec = sec_of(bar)
+        if sec not in STAB_PAT:
+            continue
+        root = root_at(bar)
+        third = 5 if PROGRESS[bar - 1] == N else 4
+        chord = ",".join(pitch(root + s, BASE) for s in (0, third, 9))
+        for k, at in enumerate(STAB_PAT[sec]):
+            part("stab").add(b0(bar) + at, 0.2, chord, 92 if k == 0 else 80)
+
+
 def main():
     write()
     arrival()                                     # v22: the stop, the reverse cymbal, the impact
@@ -683,6 +708,7 @@ def main():
     handover()                                    # v26: the tuning handover
     dice_and_check()                              # v27: the dice and the check
     entropy()                                     # v30: the entropy meter
+    house_stabs()                                 # v32: CZ house stabs
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
     lead_patch = {"extends": "vibes", "synth": {"fx": [{"type": "pan", "pan": {"value": 0, "mod": [
         {"src": "expr.ix", "amount": 1}]}}, {"type": "filter", "kind": "lp", "cutoff": 4500}]}}
@@ -706,7 +732,7 @@ def main():
                     "amount": {"value": 0, "mod": [{"src": "auto.m", "amount": 1}]}},
                    {"type": "stutter", "slice": "1/16", "repeats": 6, "roll": 0.6, "pitch": 0.5,
                     "chance": {"value": 0, "mod": [{"src": "auto.roll", "amount": 1}]}}]),
-            tr("bass", "bass-pick-di", gain="-1dB", fx=["duck by=kick depth=-4dB"]),         # v6: round, no squelch; v24: a player's bass
+            tr("bass", "bass-pick-di", gain="+2.5dB", fx=["duck by=kick depth=-4dB"]),       # v6: round, no squelch; v24: a player's bass; v32: +3.5 dB (band 8, ~114 Hz, was short)
             tr("tune", "rhodes", gain="-10dB", pan=-0.1, sends={"dly": "-10dB"},
                fx=[{"type": "filter", "kind": "hp", "cutoff": 250}]),                      # v6: the tune that emerges
             *voice_tracks(),                                                                 # v10: speech to song
@@ -758,6 +784,9 @@ def main():
                            "release": "60ms", "makeup": "0dB"}],
                    "auto": {"dyn": {"points": lanes()}}},
     }
+    song["tracks"].append({"name": "stab", "patch": STAB_PD, "gain": "-16dB", "pan": -0.2,
+                           "sends": {"room": "-10dB", "dly": "-14dB"}, "score": part("stab").score(),
+                           "auto": {"en": {"points": entropy_lane()}}})                    # v32: listed last
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print("wrote", OUT, "bars", BARS)
