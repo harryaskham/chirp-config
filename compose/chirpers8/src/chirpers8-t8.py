@@ -71,6 +71,7 @@ LATER = os.environ.get("C8T8_LATER", "-8")   # WHOLE ROUND: a second sung line, 
 LATERDROP = os.environ.get("C8T8_LATERDROP", "1")   # with LATER: the word steps aside for the voice - for E bars 12-13 the word, its marimba, the zeros, the hats and the clap are kept at velocity 1 (no dice move), so 'it comes later on' is heard over pads, bass and kick (in the full mix whisper heard nothing; soloed it reads exactly)
 HANDS = os.environ.get("C8T8_HANDS", "clap")   # PALETTE: the clap and the rim leave the 909 kit for the machine layer's own synthesised clap and rim ('clap', 'rim', or 'both'): with v36's kick, the kit is the song's own
 ECHOCH = os.environ.get("C8T8_ECHOCH", "84")   # SECTION ROUND (w8, E: static): it comes later on - the sung line's tune (A4 G4 F4 E4 D4, as sung at E bar 12) comes back on the tape choir (mellotron-choir, wordless, its own track echoch listed last) four bars later and again four bars after that, softer each time: the delay line handing the phrase back. Lifted with E. Value = first velocity
+READBACK2 = os.environ.get("C8T8_READBACK2", "70")   # SECTION ROUND (w9, 4:20-4:52, E's end into the outro: little new vs w8): the memory is read back once more before the end - the refresh's bytebeat returns over E's last four bars, on the same roots lifted with E (D#4 B3 G#3 A#3), so the line's own overtone arpeggio leads into the outro where the choir keeps the promise. Value = velocity
 READBACK = os.environ.get("C8T8_READBACK", "90")   # WHOLE ROUND: the refresh reads the memory back as a bytebeat (engine 709cf900): one formula on the counter t, t*(8+8*(t>>12&3)) - a saw stepping up the harmonic series 1 2 3 4 about once a beat, so the read-back rings as an arpeggio of its own overtones - one note a bar on the chord roots (D Bb G A) in the refresh's first four bars, low-passed, into the mercury line. Value = velocity
 ECHOEND = os.environ.get("C8T8_ECHOEND", "84,0,0")   # the latest it can come: the sung line's tune returns once more on the tape choir across the outro's last eight bars, an octave down and at half speed (A3 G3 F3 E3 D3), then again lower still, the last D held to the end - so the song ends on the line it promised, and the tail holds the 250/470 Hz t9's head opens on. Value = velocity
 PUMPON = os.environ.get("C8T8_PUMPON", "-6")   # WHOLE ROUND: the pads and the bass breathe with the kick again - their sidechain pump was keyed on 'kick.k', and v36's machine kick has no kit pieces, so it never fired after v36 (wM's plan warning, 2 Nov); now it keys on every kick note. Value = depth dB (e.g. -6 as designed)
@@ -379,6 +380,9 @@ def song():
     if READBACK:
         r0 = sec_start("refresh")
         evs = [(r0 + i * BAR, n, BAR, int(READBACK)) for i, n in enumerate(("D4", "A#3", "G3", "A3"))]
+        if READBACK2:
+            e24 = sec_start("E") + 24 * BAR
+            evs += [(e24 + i * BAR, n, BAR, int(READBACK2)) for i, n in enumerate(("D#4", "B3", "G#3", "A#3"))]
         doc["tracks"].append({"name": "readback", "patch": {"synth": {"layers": [{"type": "bytebeat", "bytebeat": {"formula": "t*(8+8*(t>>12&3))", "clock": 8000}}]}},
                               "gain": os.environ.get("C8T8_READGAIN", "-20dB"), "pan": -0.2, "fx": [{"type": "filter", "kind": "lp", "cutoff": 2400, "q": 0.7}],
                               "sends": {"line": "-8dB", "room": "-12dB"}, "score": stream(evs, total())})
