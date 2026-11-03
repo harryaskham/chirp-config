@@ -54,6 +54,7 @@ BSPLITAT = int(os.environ.get("C8T5_BSPLITAT", "12"))   # the bar of B (0-based)
 LIFTSTOP = os.environ.get("C8T5_LIFTSTOP", "1")   # the gear change, announced: the band stops dead for the second half of the bar before the lift (C bar 24) - a clap fill climbing in sixteenths - then lands a whole step up (dropped after generation, so no dice move). Once B was split (v18) this splits C too without crowding the returns
 LIFTHAT = os.environ.get("C8T5_LIFTHAT", "1")   # after the lift the hats open: every off-beat hat an open hat - the agreed band, a step up, brighter on top
 ESTABLE = os.environ.get("C8T5_ESTABLE", "1")   # song-level event_stable (engine f5283535): each note's humanize and DSP draws come from its track, beat and pitch, so a window's edit stays in the window; switching it on re-rolls every humanized note once
+KEYUP = os.environ.get("C8T5_KEYUP", "38,2")   # SECTION ROUND (w8, C after the break: static, little new vs w7): when the kit comes back after C's break (bar 38) the whole band comes back a step up - 'bar,semis' - for C's last four bars, so the agreed speed ends on a lift before the outro's drift falls home. Notes held into the change are cut at it
 TRAIN = os.environ.get("C8T5_TRAIN", "90")   # WHOLE ROUND: the training burst - a real handshake ends in a scrambled hiss before the line connects, so the last two bars of each handshake (the intro's, the retrain's) give their tones to a bytebeat (engine 709cf900): a formula on the counter t built on the modem scrambler's taps (t>>14, t>>17), its steps changing every 64 ms, through the carriers' radio. Then the band enters on the connected line. Value = velocity
 TRAINF = os.environ.get("C8T5_TRAINF", "(t*5^t>>14^t>>17)*(t>>9&7)")
 CDATA = os.environ.get("C8T5_CDATA", "60")   # SECTION ROUND (w7, C before the lift: static): now that they agree on a speed, data flows - the carriers come back under C bars 12-23 in time with the band, one bit per eighth (1650 Hz a 0, 1850 Hz a 1), sending the two letters O K in ASCII (01001111 01001011), two bars a message, six times over. Value = velocity
@@ -283,6 +284,25 @@ def build():
         u, w = c0 + bs * BAR, c0 + (bs + bl) * BAR
         for k in ("kick", "hats", "clap"):
             ev[k] = [e for e in ev[k] if not (u <= e[0] < w and e[1] != 0)]
+    if KEYUP:
+        import re as _rk
+        kb, ks = (int(x) for x in KEYUP.split(","))
+        c0 = sec_start("C")
+        u, w = c0 + kb * BAR, sec_start("outro")
+        isn = _rk.compile(r"^([A-G](#|b)?-?\d)(,[A-G](#|b)?-?\d)*$")
+        for k in ("gtr", "acid", "sub", "fretless", "horns", "lead", "keys"):
+            if k not in ev:
+                continue
+            out = []
+            for e in ev[k]:
+                a, pri, h, ln, v = e[0], e[1], e[2], e[3], e[4]
+                if pri != 0 and isinstance(h, str) and isn.match(h):
+                    if u <= a < w:
+                        e = (a, pri, transpose(h, ks), ln, v) + tuple(e[5:])
+                    elif a < u < a + ln:
+                        e = (a, pri, h, u - a, v) + tuple(e[5:])
+                out.append(e)
+            ev[k] = out
     if PERCSPLIT:
         mp = {"o": "t", "lo": "b", "sl": "s", "mu": "c", "bh": "s", "bl": "t"}
         spans = [(sec_start(x), sec_start(x) + dict(FORM)[x] * BAR) for x in PERCSPLIT.split(",")]
