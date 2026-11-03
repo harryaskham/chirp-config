@@ -102,6 +102,40 @@ R9 = os.environ.get("T3_R9", "cone")
 # boot + out 97.63; so by default it only BOOTS the machine - the seed's tail and the boot, at -10 dB, lp 1.8k
 # (97.75, parity) - and then the song takes over. T3_BYTE_SECS=all|bookends keep the rest. T3_R10=none reproduces v9.
 R10 = os.environ.get("T3_R10", "byte")
+# T3_R11 = bronze (v11, palette round). The last of machine-kit (seven album songs) leaves t3: its own KIT, c8-kit,
+# made of the song's materials. The kick (kr) is a sine on D1 with a pitch that drops into place PLUS a low modal
+# membrane - a skin struck with a bronze-weighted beater, a "tok" over the sub, the kendang's low stroke in a techno
+# floor - and the open hat (oh) is a small bronze: a high modal bell over a breath of noise, a cengceng's tick, not
+# a machine's hiss. The pump stays keyed on kick.kr. Scored: the kit's own kick cost spectrum 97 -> 80 (A1 sine:
+# +4 dB at 61-71 Hz, -4 at 97-250) and 75 (A2 skin over a 0.375-ratio sine: still 83% of its energy under 60 Hz) - the
+# machine's kick carries 90-250 Hz the floor needs - so by default only the open hat is bronze (T3_R11_KICK=bronze
+# keeps the kick for later work). T3_R11=none reproduces v10.
+R11 = os.environ.get("T3_R11", "bronze")
+R11KICK = os.environ.get("T3_R11_KICK", "machine")   # "bronze": the kit's own kick too (cost spectrum 97 -> 75-80)
+C8_KIT = {
+    "about": "chirper-two: Three Neighbours' own kit - kr a D1 sine kick that drops into place with a low modal membrane "
+             "(skin and bronze), oh a small bronze tick (a high modal bell over noise).",
+    "play": {"len": "/16", "vel_sens": 0.45, "humanize": {"time": "1ms", "vel": 0.03}},
+    "kit": {
+        "kr": {"pitch": os.environ.get("T3_KICK_PITCH", "A2"), "patch": {
+            "synth": {"layers": [
+                {"name": "tone", "wave": "sine", "ratio": float(os.environ.get("T3_KICK_SUBRATIO", "0.375"))},
+                {"name": "skin", "type": "modal", "modes": "membrane", "decay": "0.22s", "damp": 0.55, "bright": 0.3,
+                 "strike": 0.2, "tilt": -3, "vary": 0.2, "level": os.environ.get("T3_KICK_SKIN", "-2dB")},
+                {"name": "click", "type": "noise", "level": {"value": "-70dB", "mod": [{"src": "env.c", "amount": 52}, {"src": "vel", "amount": 8}]}}],
+                "pitch": {"value": 0, "mod": [{"src": "env.p", "amount": 14}]},
+                "env": {"p": {"a": "0.1ms", "d": "38ms", "s": 0, "curve": 3}, "c": {"a": "0.1ms", "d": "2ms", "s": 0}},
+                "filters": ["hp cutoff=25", {"kind": "lp", "cutoff": {"value": "2.2k", "mod": [{"src": "vel", "amount": 1}]}}],
+                "amp": {"a": "0.3ms", "d": "480ms", "s": 0, "r": "30ms", "curve": 3}},
+            "play": {"vel_sens": 0.4}}},
+        "oh": {"pitch": "A6", "gain": "-10dB", "patch": {
+            "synth": {"layers": [
+                {"name": "air", "type": "noise", "level": "-14dB"},
+                {"name": "bronze", "type": "modal", "modes": "bell", "decay": "0.35s", "damp": 0.5, "bright": 0.7,
+                 "strike": 0.3, "tilt": -1, "vary": 0.3, "level": "-4dB"}],
+                "filters": ["hp cutoff=2500"],
+                "amp": {"a": "0.2ms", "d": "320ms", "s": 0, "r": "40ms", "curve": 3}},
+            "play": {"vel_sens": 0.6}}}}}
 C3_BYTE = {"about": "chirper-two: a bytebeat whose multipliers are 7-limit JI (t*4..7 = 4:5:6:7 on the note) chosen by "
                     "rule 30 on the bits of a sixteenth counter, a rule-90 bit bouncing the octave; clock 16744 puts t*4 "
                     "on the note and a step on a 124-bpm sixteenth for D3.",
@@ -434,11 +468,12 @@ def main():
            [f"{st['out']}b", -4.0],
            [f"{total}b", -5.0]]
     tracks = [
-        {"name": "kick", "patch": "machine-kit", "gain": "0dB", "score": T["kick"].score(total)},
+        {"name": "kick", "patch": "c8-kit" if (R11 == "bronze" and R11KICK == "bronze") else "machine-kit",
+         "gain": os.environ.get("T3_KICK_GAIN", "-2dB") if (R11 == "bronze" and R11KICK == "bronze") else "0dB", "score": T["kick"].score(total)},
         {"name": "hats", "patch": "afro-perc" if R7 == "hands" else "machine-kit",
          "gain": os.environ.get("T3_SHEK_GAIN", "-15dB") if R7 == "hands" else "-5dB", "pan": 0.12,
          "fx": ["hp cutoff=600", "reverb kind=room decay=0.5s mix=0.12"], "score": T["hats"].score(total)},
-        {"name": "ohat", "patch": "machine-kit", "gain": "-9dB", "pan": -0.12, "fx": ["hp cutoff=800"],
+        {"name": "ohat", "patch": "c8-kit" if R11 == "bronze" else "machine-kit", "gain": "-9dB", "pan": -0.12, "fx": ["hp cutoff=800"],
          "score": T["ohat"].score(total)},
         {"name": "rim", "patch": "djembe" if R8 == "kotekan" else "machine-kit", "gain": "-7dB", "fx": ["reverb kind=plate decay=1.0s mix=0.2"],
          "score": T["rim"].score(total)},
@@ -615,7 +650,8 @@ def main():
         'volume: "0dB"',
         "loudness: -11",
         "true_peak: true",
-        "patches: " + json.dumps({**patches(), **({"c3-byte": C3_BYTE} if R10 == "byte" else {})}),
+        "patches: " + json.dumps({**patches(), **({"c3-byte": C3_BYTE} if R10 == "byte" else {}),
+                                  **({"c8-kit": C8_KIT} if R11 == "bronze" else {})}),
         "buses: " + json.dumps(buses),
         "master: " + json.dumps({"fx": [{"type": "eq", "bands": ["hp cutoff=25", "peak cutoff=250 gain=-2dB q=0.8",
                                                                "highshelf cutoff=7000 gain=2dB"] +
