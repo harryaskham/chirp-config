@@ -54,6 +54,7 @@ BSPLITAT = int(os.environ.get("C8T5_BSPLITAT", "12"))   # the bar of B (0-based)
 LIFTSTOP = os.environ.get("C8T5_LIFTSTOP", "1")   # the gear change, announced: the band stops dead for the second half of the bar before the lift (C bar 24) - a clap fill climbing in sixteenths - then lands a whole step up (dropped after generation, so no dice move). Once B was split (v18) this splits C too without crowding the returns
 LIFTHAT = os.environ.get("C8T5_LIFTHAT", "1")   # after the lift the hats open: every off-beat hat an open hat - the agreed band, a step up, brighter on top
 ESTABLE = os.environ.get("C8T5_ESTABLE", "1")   # song-level event_stable (engine f5283535): each note's humanize and DSP draws come from its track, beat and pitch, so a window's edit stays in the window; switching it on re-rolls every humanized note once
+ACIDX = os.environ.get("C8T5_ACIDX", "-18")   # WHOLE ROUND: the route out of chaos - the acid's line is doubled by a chaos voice (engine f3872739: a Rossler attractor, one loop per period of the note, read on its x axis, a tone with a chaotic flutter) whose amount walks the route backwards across the song: chaotic through A's proposals (0.9), calming through B, period-doubling (an octave-down subharmonic) at the retrain, a plain tone once they agree in C, and back toward chaos as they part at the end. Value = gain dB
 FFWD = os.environ.get("C8T5_FFWD", "120")   # SECTION ROUND (w7, C bars 12-28: static): fall-forward - a connected modem tries the next speed up when the line is good, and drops back if it isn't: at C bar 16 the agreed tempo steps up (112 -> FFWD's bpm), holds eight bars, and falls back to 112 at C bar 24, the speed tried and given up. Value 'bpm' (a step) or 'bpm,ramp' (two bars up)
 HORNP = os.environ.get("C8T5_HORNP", "vosim")   # PALETTE: the voices that sing the hook once the machines agree (horn-section) become machine voices: 'vosim' two VOSIM pulse trains ('ah', F1 ~650 / F2 ~1100 Hz, drifting), the 1978 synthetic voice singing the agreed tune; 'czbrass' Casio CZ phase distortion brass (a sine opening into a saw on an 80 ms envelope), the 1984 home computer's horn section
 HALFT = os.environ.get("C8T5_HALFT", "10q")   # SECTION ROUND (w4, B's first half: little new vs w3): the haggling quickens - A trades two-bar calls, B one-bar trades, C plays together; now B bars 10-15 trade half bars (the guitar the first eight steps, the acid the last eight), and with 'q' bars 14-15 trade quarter bars, so the turns shorten toward agreement. The trades are drawn from their own dice, so the rest of the song is untouched
@@ -481,6 +482,17 @@ def song():
         fx = [dict(f, hiss="-80dB", whistle="-80dB") if isinstance(f, dict) and f.get("type") == "radio" else f for f in spec.get("fx", [])]
         doc["tracks"].append(dict(spec, name="train", patch={"synth": {"layers": [{"type": "bytebeat", "bytebeat": {"formula": TRAINF, "clock": 8000}}]}},
                                   gain=os.environ.get("C8T5_TRAINGAIN", "-20dB"), pan=0.0, fx=fx, score=T["train"]))
+    if ACIDX:
+        st = {sec: sec_start(sec) for sec, _ in FORM}
+
+        def bt(x):
+            return f"{x / 4:g}b"
+        cx = {"points": [[bt(x), y] for x, y in ((0, 0.9), (st["A"] + 20 * BAR, 0.9), (st["B"], 0.75), (st["retrain"], 0.45), (st["retrain"] + 8 * BAR, 0.3),
+                                                 (st["C"], 0), (st["outro"] + 4 * BAR, 0), (total(), 0.7))]}
+        doc["tracks"].append({"name": "acidx", "gain": f"{ACIDX}dB", "pan": -0.15, "auto": {"cx": cx},
+                              "patch": {"synth": {"layers": [{"type": "chaos", "chaos": {"system": "rossler", "axis": "x", "amount": {"value": 0, "mod": [{"src": "auto.cx", "amount": 1}]}}}],
+                                                  "amp": "4ms 0.8 0.5 120ms", "filters": [{"kind": "lp", "cutoff": 2400}]}},
+                              "fx": [{"type": "pump", "on": "kick.k", "depth": "-5dB", "attack": "2ms", "release": "160ms", "curve": 0.7}], "score": T["acid"]})
     return doc
 
 
