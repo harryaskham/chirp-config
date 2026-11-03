@@ -71,6 +71,7 @@ LATER = os.environ.get("C8T8_LATER", "-8")   # WHOLE ROUND: a second sung line, 
 LATERDROP = os.environ.get("C8T8_LATERDROP", "1")   # with LATER: the word steps aside for the voice - for E bars 12-13 the word, its marimba, the zeros, the hats and the clap are kept at velocity 1 (no dice move), so 'it comes later on' is heard over pads, bass and kick (in the full mix whisper heard nothing; soloed it reads exactly)
 HANDS = os.environ.get("C8T8_HANDS", "clap")   # PALETTE: the clap and the rim leave the 909 kit for the machine layer's own synthesised clap and rim ('clap', 'rim', or 'both'): with v36's kick, the kit is the song's own
 ECHOCH = os.environ.get("C8T8_ECHOCH", "84")   # SECTION ROUND (w8, E: static): it comes later on - the sung line's tune (A4 G4 F4 E4 D4, as sung at E bar 12) comes back on the tape choir (mellotron-choir, wordless, its own track echoch listed last) four bars later and again four bars after that, softer each time: the delay line handing the phrase back. Lifted with E. Value = first velocity
+DUFFBASS = os.environ.get("C8T8_DUFFBASS", "700")   # PALETTE: the bass leaves the 808 for the machine's own oscillation - a Duffing oscillator held in its locked regime (amount 0.2: periodic, wM's table), a nonlinear spring ringing at the note's pitch, low-passed: the same system that breaks the word up as it decays (v56), here steady, under it. Value = lp cutoff Hz
 WORDWARP = os.environ.get("C8T8_WORDWARP", "0.5")   # WHOLE ROUND: the word arrives late as it decays - a delay line's word comes round on the tank's clock, not the machine's, and drifts as the mercury warms; regeneration re-times it. The word (and its decay double) runs on its own clock (the engine's per-track warp): drifting steadily late through the intro and A (to WORDWARP beats behind the band), re-locked in one bar at the refresh, drifting late again through C, D and E, re-locked at the outro. Value = beats of lag at full decay
 DECFIX = os.environ.get("C8T8_DECFIX", "")   # v56's decay double peaks at lane 0.55, which wM's regime table puts in Duffing's locked window (0.4-0.625): it broke up mid-way and then re-locked before each refresh. DECFIX scales its amount so the peak sits in the chaotic band (1.3 x 0.55 = 0.715, inside 0.625-0.85): the word really comes apart just before it is regenerated
 SAYLPC = os.environ.get("C8T8_SAYLPC", "plain")   # SECTION ROUND (w1, the intro: static): the first explanation in a speech chip - the intro's spoken line (say, bar 8: what a delay line keeps) goes through LPC (engine 78e838c5): 'plain' (LPC-10, inflecting) or 'toy' (5-bit monotone on D3, the tonic); the later lines (say2 at the refresh, say3 at the outro) stay as they are. Notes 0.07 beats early for LPC's ~35 ms
@@ -489,6 +490,13 @@ def song():
                 t_["fx"] = [{"plain": "lpc", "toy": "lpc pitch=D3 bits=5"}[SAYLPC], *t_.get("fx", [])]
                 for n in t_.get("notes", []):
                     n["at"] = round(max(0.0, n["at"] - 0.07), 4)
+    if DUFFBASS:
+        for t_ in doc["tracks"]:
+            if isinstance(t_, dict) and t_.get("name") == "bass" and t_.get("patch") == "808":
+                t_["patch"] = {"about": "a Duffing oscillator held periodic, as a bass", "synth": {"layers": [{"type": "chaos", "chaos": {"system": "duffing", "axis": "x", "amount": 0.2}}, "sine"],
+                                                                                              "amp": "4ms 1 0.75 160ms", "filters": [{"kind": "lp", "cutoff": int(DUFFBASS)}]}}
+                if os.environ.get("C8T8_DUFFBASSG", "-16"):
+                    t_["gain"] = os.environ.get("C8T8_DUFFBASSG", "-16") + "dB"
     return doc
 
 
