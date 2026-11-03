@@ -58,16 +58,33 @@ def ctoks(sec, ch):
 
 
 def line(events, total):
+    # (v25) events that share an onset become one chord token (chirp-eco's catch: before, the first of a same-time
+    # pair became a 0.02-beat blip and the second was silently dropped - 161 notes in this song)
     ev = sorted(events, key=lambda x: x[0])
+    groups = []
+    for e_ in ev:
+        if groups and abs(e_[0] - groups[-1][0][0]) < 1e-6: groups[-1].append(e_)
+        else: groups.append([e_])
     toks, t = [], 0.0
-    for k, (at, p, d, v) in enumerate(ev):
+    for k, g in enumerate(groups):
+        at = g[0][0]
         if at < t - 1e-6: continue
         if at > t + 1e-4: toks.append(f"R/{at - t:.4f}b")
-        nxt = ev[k + 1][0] if k + 1 < len(ev) else total
-        d = max(0.02, min(d, nxt - at))
-        toks.append(f"{p}/{d:.4f}b@{v}"); t = at + d
+        nxt = groups[k + 1][0][0] if k + 1 < len(groups) else total
+        d = max(0.02, min(max(x[2] for x in g), nxt - at))
+        p = ','.join(dict.fromkeys(x[1] for x in g))
+        toks.append(f"{p}/{d:.4f}b@{max(x[3] for x in g)}"); t = at + d
     if total > t + 1e-4: toks.append(f"R/{total - t:.4f}b")
     return ' '.join(toks)
+
+
+def lanes(events, n):
+    # (v25) a kit written as layers needs more than one line: each hit goes to the first lane free when it starts
+    out, ends = [[] for _ in range(n)], [-1e9] * n
+    for e_ in sorted(events, key=lambda x: x[0]):
+        j = next((j_ for j_ in range(n) if e_[0] >= ends[j_] - 1e-6), min(range(n), key=lambda j_: ends[j_]))
+        out[j].append(e_); ends[j] = max(ends[j], e_[0] + e_[2])
+    return out
 
 
 def syll_midi(n_):
@@ -280,6 +297,11 @@ def build():
                      'amp': {'a': '6ms', 'd': '300ms', 's': 0.55, 'r': '150ms'}}}
     fm_pts = [['0b', 0.0], [f"{secs['B'] * 4}b", 0.0], [f"{secs['B'] * 4 + 32}b", 0.25], [f"{secs['C'] * 4}b", 0.25],
               [f"{secs['C'] * 4 + 32}b", 0.5], [f"{total}b", 0.55]]
+    # (v25) THE KIT AS WRITTEN: the kicks keep their own line (the sub's pump listens to it); the hats and the backbeat
+    # are dealt across two more lanes of the same kit, so no hit is cut short or lost under another
+    _kk = [e_ for e_ in P['kit'] if e_[1] == 'k']
+    P['kit2'], P['kit3'] = lanes([e_ for e_ in P['kit'] if e_[1] != 'k'], 2)
+    P['kit'] = _kk
     tr = lambda name, patch, gain, **kw: dict({'name': name, 'patch': patch, 'gain': gain, 'score': line(P[name], total)}, **kw)
     song = {
         'about': "chirpers - A Light Left On, track 1 by chirper-one: Echolalia. A machine learning to talk by saying things "
@@ -348,6 +370,10 @@ def build():
             tr('sub', 'sub', '-4.5dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-5dB', 'release': '260ms', 'curve': 0.6}]),
             tr('bass', 'analog-bass', '-12dB', fx=['lp cutoff=1100']),
             tr('kit', 'tight-kit', '-6dB', sends={'hall': '-18dB'},
+               fx=[{'type': 'eq', 'bands': ['peak cutoff=75 q=0.8 gain=4dB', 'highshelf cutoff=9000 gain=-5dB']}]),
+            tr('kit2', 'tight-kit', '-6dB', sends={'hall': '-18dB'},
+               fx=[{'type': 'eq', 'bands': ['peak cutoff=75 q=0.8 gain=4dB', 'highshelf cutoff=9000 gain=-5dB']}]),
+            tr('kit3', 'tight-kit', '-6dB', sends={'hall': '-18dB'},
                fx=[{'type': 'eq', 'bands': ['peak cutoff=75 q=0.8 gain=4dB', 'highshelf cutoff=9000 gain=-5dB']}]),
             # a rim written by a cellular automaton (rule 90, Sierpinski), sixteenths, from the second groove
             # the rim: the engine's own elementary cellular automaton (gen ca, rule 90, Sierpinski) over 16 cells, a
