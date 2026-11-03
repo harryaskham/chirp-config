@@ -259,6 +259,21 @@ C9_CBASS = {"about": "chirper-two: a Rossler chaos bass (axis x), amount on the 
             "synth": {"layers": [{"type": "chaos", "chaos": {"system": "rossler", "axis": "x",
                                                              "amount": {"value": 0.0, "mod": [{"src": "auto.route", "amount": 1}]}}}],
                       "amp": {"a": "4ms", "d": "300ms", "s": 0.8, "r": "120ms"}}}
+# T9_R20 = cycle (v20, section round on w5, 1:49-2:17, beats 256-320: the second half of EIGHT, "static, little new
+# vs w4"). Two events where the period-8 orbit was a held chord over an unchanged 5/4 floor.
+# EIGHT TO THE BAR (T9_R20_FLOOR=eight): from the eight section's ninth bar the 5/4 floor becomes eight hits on
+# quarter-note triplets, the period-8 cycle's high values on the kick and its low values on the snare, and the hats
+# leave sixteenths for TRIPLET eighths, loud where the cycle is high (T9_R20_HATS). The bar plays the cycle.
+# (T9_R20_FLOOR=rotate - the grouping turning one group per bar - was too small to hear: groove change 0.018; the
+# triplet hats alone, too; the loud onsets have to move: eight-to-the-bar gives 0.085, a new groove.)
+# THE ATTRACTOR ASSEMBLES: the eight values of the period-8 cycle no longer arrive at once as a 54-beat chord; they
+# enter one per bar in the order the map visits them, each held to the same end, so the chord builds across eight
+# bars, a value at a time.
+# THE EIGHTH STEP (T9_R20_VOX): the voice that later sings "it comes back in threes" first turns up here, twice, as
+# the chord assembles: "eight steps and I'm standing where I stood" (`chirp tts --sing "E4/8 A3 D4 B3 E4 A3 D4 B3
+# E4/2" --bpm 140 --seed 9 --humanize 0.5 --hz`, src/t9/eight.json) - its tune alternates high and low like the
+# period-8 orbit and lands on the note it left. T9_R20=none reproduces v19.
+R20 = os.environ.get("T9_R20", "cycle")
 TERRAIN_GAIN = os.environ.get("T9_TERRAIN_GAIN", "-14.5dB")
 EYE = float(os.environ.get("T9_EYE", "636"))   # where the drum bus drops out (to 640b)
 C9_GENDY = {"about": "chirper-two: a gendyn squall - level and segment-length steps both ride velocity, wide spread, "
@@ -314,15 +329,18 @@ C9_PULSE = {"about": "chirper-two: a one-bit loudspeaker voice - a very narrow p
 SING = []
 
 
-def sing(at, scale=1.0):
-    src = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "t9", "sing.json")))["tracks"][0]
+SING8 = []
+
+
+def sing(at, scale=1.0, fn="sing.json", into=None):
+    src = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "t9", fn)))["tracks"][0]
     for nt in src["notes"]:
         m = round(69 + 12 * math.log2(float(nt["pitch"].rstrip("hz")) / 440))
         d = {"at": round(at + nt["at"], 4), "len": nt["len"], "ph": nt["ph"], "pitch": f"m{m}",
              "vel": round(nt["vel"] * scale, 3)}
         if nt.get("expr_path"):
             d["expr_path"] = nt["expr_path"]
-        SING.append(d)
+        (SING if into is None else into).append(d)
     return src["patch"]
 GROUPS = {(4, 4): [4, 4, 4, 4], (7, 8): [4, 4, 6], (5, 4): [6, 4, 6, 4], (6, 8): [6, 6], (11, 8): [6, 6, 6, 4]}  # 16ths
 
@@ -382,6 +400,10 @@ def build():
         secs.append((name, pos, nbars, meter))
         steps = int(round(meter[0] * 16 / meter[1]))  # sixteenths a bar
         groups = GROUPS[meter]
+        R20F = os.environ.get("T9_R20_FLOOR", "eight") if R20 == "cycle" else "none"
+        if name == "eight" and i >= 8 and R20F == "rotate":
+            rot = (i - 8) % len(groups)
+            groups = tuple(groups[rot:]) + tuple(groups[:rot])
         for i in range(nbars):
             start = pos
             frac = i / max(1, nbars - 1)
@@ -400,7 +422,18 @@ def build():
                                       "^sub=0.7" if R10 == "bpclar" and name in SUB_SECS else "")
             # ---- drums: grouped kicks, a snare on the last group, map-made accents and ratchets ----
             groove = name not in ("one",) or i >= 8
-            if groove and name != "settle" or (name == "settle" and i < 20):
+            if groove and R20F == "eight" and name == "eight" and i >= 8:
+                # eight hits to the 5/4 bar on quarter-note triplets: the cycle's high values on the kick, low on the snare
+                for k in range(8):
+                    v = xs[k % len(xs)]
+                    if v >= 0.6:
+                        T["kick"].add(start + k * 2 / 3, 0.5, "k", int(84 + 30 * v))
+                    else:
+                        T["snare"].add(start + k * 2 / 3, 0.4, "s", int(70 + 40 * v))
+                for s, v in enumerate(xs):
+                    if s % 4 == 2:
+                        T["ride"].add(start + s * 0.25 + 0.01, 0.5, "rd", 60, "?0.9")
+            elif groove and name != "settle" or (name == "settle" and i < 20):
                 g0 = 0
                 for gi, g in enumerate(groups):
                     T["kick"].add(start + g0 * 0.25, 0.5, "k", 112 if gi == 0 else 100)
@@ -411,7 +444,9 @@ def build():
                         T["kick"].add(start + s * 0.25, 0.25, "k", 90)
                     if 0.45 < v < 0.52 and name in ("chaos", "storm"):
                         T["snare"].add(start + s * 0.25, 0.25, "s", 80, "^r=3")
-                    if s % 2 == 1 or name in ("chaos", "storm", "window"):
+                    if R20 == "cycle" and name == "eight" and i >= 8 and os.environ.get("T9_R20_HATS", "on") == "on":
+                        pass   # the hats go to triplets below
+                    elif s % 2 == 1 or name in ("chaos", "storm", "window"):
                         T["hats"].add(start + s * 0.25 + 0.01, 0.1, "h", int(40 + 40 * v), "?0.85")
                     if s % 4 == 2:
                         T["ride"].add(start + s * 0.25 + 0.01, 0.5, "rd", 60, "?0.9")
@@ -421,6 +456,10 @@ def build():
                         if piece:
                             T["chop"].add(start + s * 0.25, 0.25, piece,
                                           {"g": 52, "s2": 74, "oh": 58}[piece] + int(20 * v))
+            if R20 == "cycle" and name == "eight" and i >= 8 and os.environ.get("T9_R20_HATS", "on") == "on" and groove:
+                for k in range(int(steps / 4 * 3)):   # triplet eighths, loud where the cycle is high
+                    v = xs[(k * 7) % len(xs)]
+                    T["hats"].add(start + k / 3 + 0.01, 0.1, "h", int(36 + 44 * v), "" if k % 3 == 0 else "?0.85")
             # ---- polytempo: blips on a 5:4 grid from the map's twin ----
             if name not in ("one", "two"):
                 k, t = 0, 0.0
@@ -447,6 +486,9 @@ def build():
                 T["pad"].add(start, steps / 4 * 2 - 0.1, ",".join(mm(base + st * BP) for st in (0, 6, 10)), 64)
             if R3 == "sing" and ((name == "window" and i in (2, 10)) or (name == "settle" and i == 22)):
                 sing(start, 0.85 if name == "settle" else 1.0)
+            if R3 == "sing" and R20 == "cycle" and name == "eight" and i in (10, 14) \
+                    and os.environ.get("T9_R20_VOX", "on") == "on":
+                sing(start, 1.0 if i == 10 else 0.9, "eight.json", SING8)
             if R2 == "drift" and i % 2 == 0 and name in ("chaos", "storm"):
                 root = int(xs[0] * 5)
                 base = bp(root, 57)
@@ -505,6 +547,11 @@ def main():
         hz = sorted(220.0 * 3 ** ((v - 0.3) * 16 / 13) for v in xs8)
         orbit_notes = [{"at": o0, "len": 54.0, "pitch": f"{h:.2f}hz", "vel": 0.57 if k % 2 == 0 else 0.52}
                        for k, h in enumerate(hz)]
+        if R20 == "cycle" and os.environ.get("T9_R20_CHORD", "on") == "on":   # one value per 5/4 bar, in visit order
+            bl8 = 5.0
+            orbit_notes = [{"at": o0 + k * bl8, "len": 54.0 - k * bl8,
+                            "pitch": f"{220.0 * 3 ** ((v - 0.3) * 16 / 13):.2f}hz", "vel": 0.6 if k % 2 == 0 else 0.55}
+                           for k, v in enumerate(xs8)]
         for k, at in enumerate([o0 + 16 + 0.25 * j for j in range(16)]):   # the fill: 16th ratchets rising
             fill.add(at, 0.25, "s2" if j_even(k) else "g", 50 + 3 * k, "^r=2" if k >= 8 else "")
     dizi = Track("dizi")
@@ -623,6 +670,12 @@ def main():
             "fx": ["hp cutoff=140", "compressor threshold=-20dB ratio=3 attack=5ms release=120ms",
                    {"type": "delay", "time": "3/16", "feedback": 0.35, "mix": 0.22, "ping_pong": True, "tone": 3500},
                    "reverb kind=room decay=1.2s mix=0.2"], "notes": SING}] if R3 == "sing" else []),
+        *([{"name": "eight",
+            "patch": json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "t9", "eight.json")))["tracks"][0]["patch"],
+            "gain": os.environ.get("T9_EIGHT_GAIN", "3dB"), "pan": 0.0,
+            "fx": ["hp cutoff=140", "compressor threshold=-20dB ratio=3 attack=5ms release=120ms",
+                   {"type": "delay", "time": "3/16", "feedback": 0.35, "mix": 0.22, "ping_pong": True, "tone": 3500},
+                   "reverb kind=room decay=1.2s mix=0.2"], "notes": SING8}] if SING8 else []),
         *([{"name": "padx", "patch": "pad-glass", "gain": os.environ.get("T9_PADX_GAIN", "-14dB"),
             "fx": [{"type": "morph", "key": "drums", "mode": "cross", "amount": 0.8}, "hp cutoff=200"],
             "score": T["padx"].score(total)}] if R2 == "drift" else []),
