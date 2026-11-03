@@ -239,6 +239,7 @@ def build():
         fv += [[f"{off + float(a_[:-1]):.3f}b", x_] for a_, x_ in v['fv']]
     span_i, span_left, chord_i = 0, SPANS[0], 0
     pad_cents = [0.0] * 4
+    bar_chord = {}
     for b, (s, i) in enumerate(bars):
         t0 = b * 4.0
         temp = T[b]
@@ -275,6 +276,7 @@ def build():
             else:
                 chord_i = (chord_i + 1) % 4
         root, voices = CHORDS[chord_i]
+        bar_chord[b] = voices                         # (v36) noted for the records, nothing drawn
         if span_left == SPANS[span_i % len(SPANS)] or b == 0:
             pad_cents = [rng.gauss(0, 35 * temp) for _ in voices]
         span_left -= 1
@@ -389,6 +391,27 @@ def build():
             d_, c_ = st_[q]
             if d_ is not None:
                 P['rep'].append((b_ * 4.0 + q * 0.25, tok(hz(d_, c_)), 0.45, 80 if q % 8 == 0 else 66))
+    # (v36) THE RECORDS FALL: the search keeps no trophies - it only knows its error now. Now its best-ever error is
+    # kept, and every time the search beats it by a clear margin, brass marks the record on that bar's downbeat: a
+    # short swell of the bar's chord on a Chebyshev-waveshaped brass (wM's shaper - Le Brun and Arfib, 1979 - voiced as
+    # Risset's trumpet: the drive rises with the breath and with how hard it is blown, so louder is brighter), harder the
+    # bigger the jump. None in the hot first epochs, where nothing it finds lasts; a few as the second epoch ends; then,
+    # through the cooling, they come thicker and faster, a crowd that has started to believe; at convergence the whole
+    # chord held for a bar; the reheat beats no record (silence); the coda, matching it a fourth higher, gets one more
+    P['brass'] = []
+    best_ = None
+    for b_, l_ in enumerate(losses):
+        if bars[b_][0] == 'power':
+            best_ = l_ if best_ is None else min(best_, l_)
+            continue
+        if best_ is not None and l_ < best_ - 0.3:
+            gain_ = best_ - l_
+            held_ = l_ == 0.0
+            v_ = 112 if held_ else int(min(104, 64 + 14 * gain_))
+            P['brass'].append((b_ * 4.0, ','.join(tok(hz(v, 0)) for v in bar_chord[b_]), 3.8 if held_ else 1.4, v_))
+            best_ = l_
+    cb_ = coda0 + 8
+    P['brass'].append((cb_ * 4.0, ','.join(tok(hz(v, 0) * 4 / 3) for v in bar_chord[cb_]), 3.8, 100))
     # (v26) THE TEMPERATURE, AUDIBLE: under everything, an open fifth (A and E) on Xenakis's dynamic stochastic
     # synthesis (GENDY, 1991: each wave cycle a polygon whose corners random-walk) - the same idea as the search itself,
     # a random walk with a step size. Its step sizes are the temperature: while the machine is hot the corners and the
@@ -558,6 +581,11 @@ def build():
                                    'amp': {'a': '2ms', 'd': '300ms', 's': 0.35, 'r': '120ms'}, 'filters': ['lp cutoff=4200', 'hp cutoff=180']}},
                '-11dB', pan=-0.45, fx=['delay time=3/16 feedback=0.2 mix=0.18'], sends={'hall': '-12dB'}),
             tr('xtal', 'vosim-bell', '-21dB', pan=-0.3, fx=['hp cutoff=300'], sends={'hall': '-10dB'}),
+            tr('brass', {'synth': {'layers': [{'type': 'shaper', 'shaper': {'harmonics': [1, 0.62, 0.48, 0.37, 0.28, 0.2, 0.14, 0.09, 0.06],
+                                              'index': {'value': 0.04, 'mod': [{'src': 'env.blow', 'amount': 0.7}, {'src': 'vel', 'amount': 0.25}]}}}],
+                                   'env': {'blow': {'a': '70ms', 'd': '500ms', 's': 0.35, 'r': '250ms'}},
+                                   'amp': {'a': '45ms', 'd': '600ms', 's': 0.55, 'r': '350ms'}, 'filters': ['hp cutoff=90']}},
+               '-13dB', pan=-0.15, sends={'hall': '-8dB'}),
             tr('rep', {'synth': {'layers': [{'type': 'ks', 'ks': {}, 'decay': '1.6s', 'bright': 0.55}], 'amp': '1ms 0 1 220ms',
                                  'filters': ['hp cutoff=150']}}, '-10dB', pan=0.45,
                fx=['delay time=3/8 feedback=0.22 mix=0.16'], sends={'hall': '-12dB'}),
