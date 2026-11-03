@@ -37,6 +37,9 @@ OWNHATS = os.environ.get("C8T2_OWNHATS", "1")   # the rest of the drum machine o
 OWNKICK = os.environ.get("C8T2_OWNKICK", "1")   # and the kick: the machine layer's 909-style kick tuned to G1 (the key's root), instead of machine-kit's
 TOMBACK = os.environ.get("C8T2_TOMBACK", "swap")   # PALETTE ROUND: the backbeat on a drum machine of our own - the engine's `machine` layer (circuit-modelled drum-machine voices, unused on the album) as a tuned electronic tom: G3 on 2, D3 on 4 (the halving's lone 3 on G3), the syndrum backbeat of the old machine records. 'swap' replaces the machine-kit clap (a staple of 9 songs); 'layer' keeps the clap under it
 CONVERGE = os.environ.get("C8T2_CONVERGE", "6")   # WHOLE ROUND: THE PATHS MEET - in C the canon gives way to a second number. Each of C's climbs gets a partner whose own hailstone path joins it partway (27 and 41 meet 313, 31 meets 297), played on the second clarinet in its own register and the same parity rhythm, timed so the two land on the shared number together; they sound in unison for six steps, then the partner falls silent and one line goes on down to 1 - the conjecture heard: different starts, one road home. Value = 'unison steps'
+INTROBOOT = os.environ.get("C8T2_INTROBOOT", "")   # SECTION ROUND (w1, the intro: static): the arp boots by resolution - bar b of the intro keeps only the first INTROBOOT+b steps of the sixteen in bit-reversed order (0 8 4 12 2 10 6 14 1 9 5 13 3 11 7 15: the order an FFT reads them), so the line arrives as a pulse, then halves, quarters, eighths, sixteenths, each note where it always was
+GLKFIX = os.environ.get("C8T2_GLKFIX", "1")   # v40's finale put the glock into the outro, but GLKUP then replaced the glock's events with its C doubles, so the glock never joined the finale; keep both
+INTROGLK = os.environ.get("C8T2_INTROGLK", "30")   # SECTION ROUND (w1): instead of thinning the arp (the seam from t1 needs its full head), a glock boots over it by resolution - in intro bar b it doubles, an octave up, the arp's first b+1 steps of the sixteen in bit-reversed order (0 8 4 12 2 10 6 14 1 9 5 13 3 11 7 15, the order an FFT reads them): a pulse, then halves, quarters, eighths, and by the last bar every sixteenth. Value = velocity
 ENDSOLO = os.environ.get("C8T2_ENDSOLO", "2")   # WHOLE ROUND: the last 1 alone - for the outro's last ENDSOLO bars the band (kit, bass, sub, pad, arps) stops and the clarinet's final 1 4 2 1 lands by itself, the trivial cycle with nothing under it; event_stable keeps the rest as it was
 TTSVOICE = os.environ.get("C8T2_TTSVOICE", "count")   # PALETTE: the voice that reads the numbers is a computer's - the listed voice tracks ('count', 'count,refrain') move from voice-speech (a staple of eight songs) to voice-tts, the library's 1990s desktop text-to-speech: flat, bright, steady, no vibrato. The words and their timing are unchanged
 FINALE = os.environ.get("C8T2_FINALE", "1")   # WHOLE ROUND: everything falls to one, at the end, together - the outro's trivial cycle (1 4 2 1 on the clarinet, every two bars) is joined by the song's other voices one by one: the second clarinet a beat behind and an octave down from bar 2, the glockenspiel two octaves up from bar 4, the vibraphone's chime on each final 1 from bar 8; they all leave before the last phrase, so the clarinet hands over to t3 alone. event_stable keeps the rest as it was
@@ -302,6 +305,15 @@ def build():
         wins = [(c0 + 12 * BAR - 1, c0 + 12 * BAR + 34), (c0 + 40 * BAR - 1, c0 + 40 * BAR + 34)]
         for k in SUNGROOM.split(","):
             ev[k] = [e for e in ev[k] if not any(a <= e[0] < b or (e[0] < a < e[0] + e[2]) for a, b in wins)]
+    if INTROBOOT:
+        rev = [int(f"{i:04b}"[::-1], 2) for i in range(16)]
+        i0 = sec_start("intro")
+        def _keep(e):
+            if not (i0 <= e[0] < i0 + 16 * BAR):
+                return True
+            b, q = divmod(e[0] - i0, BAR)
+            return rev.index(int(q)) < int(INTROBOOT) + b
+        ev["arp"] = [e for e in ev["arp"] if _keep(e)]
     if ENDSOLO:
         e1 = total()
         e0 = e1 - int(ENDSOLO) * BAR
@@ -339,8 +351,15 @@ def build():
             return f"{NN2[n % 12]}{n // 12}"
         pat2 = _re.compile(r"(?<![A-Za-z])([A-G])(#|b|)(\d)(?![\d.])")
         c0 = sec_start("C")
-        ev["glk"] = [(a, pat2.sub(up12, h), l, max(1, int(v * int(GLKUP) / 100))) for (a, h, l, v) in ev["clar"]
+        ev["glk"] = (ev["glk"] if GLKFIX else []) + [(a, pat2.sub(up12, h), l, max(1, int(v * int(GLKUP) / 100))) for (a, h, l, v) in ev["clar"]
                      if c0 + 31 * BAR <= a < c0 + 37 * BAR and not h.startswith("!")]
+        if INTROGLK:
+            rev = [int(f"{i:04b}"[::-1], 2) for i in range(16)]
+            i0 = sec_start("intro")
+            for (a, h, l, v) in [e for e in ev["arp"] if i0 <= e[0] < i0 + 16 * BAR]:
+                b, q = divmod(a - i0, BAR)
+                if rev.index(int(q)) < 1 + b:
+                    ev["glk"].append((a, pat2.sub(up12, h), 2, int(INTROGLK)))
     if BKEY:
         import re
         NN = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
