@@ -87,7 +87,7 @@ def build():
         for i in range(n):
             bars.append((name, i, tp))
     total = len(bars) * 4.0
-    P = {k: [] for k in ('bell', 'sync', 'pwm', 'bass', 'sub', 'd1', 'd2', 'd3', 'kit', 'pulse', 'glass', 'cs', 'bell0', 'organ', 'hq', 'bentry')}
+    P = {k: [] for k in ('bell', 'sync', 'pwm', 'bass', 'sub', 'd1', 'd2', 'd3', 'kit', 'pulse', 'glass', 'cs', 'bell0', 'organ', 'hq', 'bentry', 'bb')}
     # the call stack: a seeded walk, one move every four bars in the calls sections
     depth, depths = 0, []
     for b, (s, i, tp) in enumerate(bars):
@@ -361,6 +361,15 @@ def build():
     P['bass'] = [e_ for e_ in P['bass'] if not _hb(e_[0])]
     P['sub'] = [e_ for e_ in P['sub'] if not _hb(e_[0])]
     P['kit'] += [(hb0 + 14.0 + qq * 0.25, 'cp', 0.2, 56 + 7 * qq) for qq in range(8)]
+    # (v33) THE MACHINE'S BAREST VOICE: late in the A minor calls (bars 16-21), where the bell reads the subject
+    # backwards, a bytebeat doubles it an octave down - the 2011 one-line form of computer music, a formula over a
+    # counter that IS the sound (my own: (t*8&t>>5)|(t*4&t>>9), its clock set so the notes sound in tune); each note
+    # restarts the counter, so every note is a small burst of the formula's own pattern under the mirror-image line
+    import re as _re
+    c3 = secs_t['calls3']
+    for e_ in P['bell']:
+        if c3 + 64.0 - 1e-6 <= e_[0] < c3 + 88.0 - 1e-6:
+            P['bb'].append((e_[0], _re.sub(r'm(\d+\.\d+)', lambda m_: f"m{float(m_.group(1)) - 12:.3f}", e_[1]), e_[2], 84))
     # (v25) HOCKET: in the middle of the first calls (bars 8-15) the bell no longer plays the subject alone - it calls
     # one note and a clarinet on the other side returns the next, the line passed back and forth note by note (the
     # piece's call and return at the smallest scale), until the countersubject arrives and the bell takes it all back
@@ -476,6 +485,9 @@ def build():
             tr('kit3', 'machine-kit', '-2dB', sends={'hall': '-20dB'}),
             tr('kit4', 'machine-kit', '-2dB', sends={'hall': '-20dB'}),
             tr('bentry', FMBASS, '-7dB', fx=['lp cutoff=1600']),
+            tr('bb', {'synth': {'layers': [{'type': 'bytebeat', 'bytebeat': {'formula': '(t*8&t>>5)|(t*4&t>>9)', 'clock': 8372}}],
+                                'amp': {'a': '8ms', 'd': '400ms', 's': 0.8, 'r': '250ms'}, 'filters': ['lp cutoff=2400', 'hp cutoff=90']}},
+               '-17dB', pan=0.2, sends={'hall': '-12dB', 'echo': '-16dB'}),
             # (v29) A SECOND SINGER: when the sung line first arrives, in G minor, a second voice sings it with the first,
             # mostly a third below and leaning on the chord where a third would rub (F# under 'holds', a fifth under 'lit') -
             # a separate take (seed 21) on the other side, a little behind and a little quieter, so the words land as a
