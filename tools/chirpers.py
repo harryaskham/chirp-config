@@ -689,7 +689,7 @@ COVERAGE_CATALOGUE = {
     "time": ["tempo map", "risset", "warp", "meter change", "swing", "swing_drift", "humanize"],
     "pitch": ["tuning", "tuning:edo", "tuning:steps", "tuning:ramp", "bend", "glide", "strum", "expr"],
     "systems": ["vars", "lfo", "auto", "chance", "choices", "euclid", "every", "vary", "gen:logistic", "gen:lorenz", "gen:ca",
-                "gen:lsystem", "gen:markov", "var system"],
+                "gen:lsystem", "gen:markov", "gen:life", "gen:henon", "gen:walk", "var system"],
     "voice": ["voice (tts)", "vocoder on voice"],
 }
 
@@ -801,7 +801,7 @@ def song_features(canon, raw):
                       ("swing", r"\bswing(8|16)?=")):   # score swing (`swing16=0.58`) is expanded into timing by the plan
         if re.search(pat, raw):
             got.add(name)
-    for g in ("logistic", "lorenz", "ca", "lsystem", "markov"):
+    for g in ("logistic", "lorenz", "ca", "lsystem", "markov", "life", "henon", "walk"):   # life/henon/walk: 3 Nov
         if re.search(r"['\"]?type['\"]?\s*:\s*['\"]?" + g + r"\b", raw):
             got.add("gen:" + g)
     return got

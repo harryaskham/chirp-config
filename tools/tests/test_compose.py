@@ -336,6 +336,13 @@ class Coverage(unittest.TestCase):
         self.assertIn("bytebeat", CH.COVERAGE_CATALOGUE["synthesis"])
         self.assertIn("choices", CH.song_features({}, "score: (C4|E4|G4)/4"))
 
+    def test_life_henon_and_walk_systems_are_features(self):
+        # engine ade7b930 (wM, bd-752bf7): three more gen/var systems
+        raw = "gen: {type: life, width: 16, height: 8}\nvars: {x: {type: henon, axis: x}, y: {type: 'walk', step: 2}}"
+        got = CH.song_features({}, raw)
+        self.assertTrue({"gen:life", "gen:henon", "gen:walk"} <= got)
+        self.assertTrue({"gen:life", "gen:henon", "gen:walk"} <= set(CH.COVERAGE_CATALOGUE["systems"]))
+
     def test_physical_sub_kinds_are_read_from_exciter_and_modes(self):
         canon = {"patches": {"p": {"synth": {"layers": [{"type": "wind", "exciter": "lips"}, {"type": "wind"},
                                                         {"type": "modal", "modes": "gong"}, {"type": "modal"}]}}}}
