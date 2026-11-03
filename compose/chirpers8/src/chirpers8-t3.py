@@ -134,6 +134,18 @@ C3_GENDY = {"about": "chirper-two: Xenakis's dynamic stochastic synthesis (gendy
                 "filters": [{"kind": "lp", "cutoff": 2600, "q": 0.5}],
                 "amp": {"a": "1.5s", "s": 1, "r": "2.5s"}},
             "fx": []}
+# T3_R13 = colony (v13, section round on w5, 2:03-2:34: the glider's end, "static, little new vs w4"). THE PLANE.
+# All song long the automaton has been a LINE - one row of cells, the next row its future. Here, for the glider's
+# last twelve bars, a PLANE appears beside it: Conway's Life (wM's `gen: life`) on an 8 x 8 torus, seeded with a
+# single glider, read column by column on a kalimba over the song's 7-limit JI (bottom row low). The glider walks
+# diagonally through the grid, so the figure keeps its shape and slides in pitch and time - a creature, not a rule.
+# For two bars it has the floor to itself: the kick and both djembe rings stop (it has left the line), and they come
+# back for the traffic, and one low gong (the section gong's D2) holds the gap. New tracks + one gain lane. Scored s0
+# (v12 97.740): colony alone 97.729 (w5 still static); + the two-bar stop 97.604 (static cleared - the kick's absence
+# is the motion - but the low end goes); one bar 97.669 (static); stop without the kick 97.722 (static); + the gong
+# 97.662, the default (static again: the gong's ring is still). Knobs: T3_LEAVE, T3_LEAVE_BARS, T3_LEAVE_GONG,
+# T3_COLONY_GAIN. T3_R13=none reproduces v12.
+R13 = os.environ.get("T3_R13", "colony")
 R11KICK = os.environ.get("T3_R11_KICK", "machine")   # "bronze": the kit's own kick too (cost spectrum 97 -> 75-80)
 C8_KIT = {
     "about": "chirper-two: Three Neighbours' own kit - kr a D1 sine kick that drops into place with a low modal membrane "
@@ -578,6 +590,25 @@ def main():
             if tr["name"] == "kick":
                 tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.cone", "amount": 1}]}}]
                 tr["auto"] = {**tr.get("auto", {}), "cone": lane}
+    if R13 == "colony":
+        c0, c1 = st["glider"] + 56.0, st["glider"] + 104.0
+        pool = " ".join(hz_m(jm(d, D3 + 12)) for d in range(8))
+        tracks.append({"name": "colony", "patch": "kalimba", "gain": os.environ.get("T3_COLONY_GAIN", "-9dB"), "pan": -0.2,
+                       "seed": 13, "fx": ["hp cutoff=250", {"type": "delay", "time": "3/16", "feedback": 0.25, "mix": 0.18,
+                                                             "ping_pong": True, "tone": 3500}],
+                       "score": f"R/{c0:g}b",
+                       "gen": {"type": "life", "width": 8, "height": 8, "init": "glider", "life": "B3/S23",
+                               "notes": pool, "poly": 3, "len": "/16", "n": int((c1 - c0) * 4)}})
+        l0 = st["glider"] + 96.0 - 4.0 * float(os.environ.get("T3_LEAVE_BARS", "2"))
+        lane = {"points": [["0b", 0.0], [f"{l0 - 0.3}b", 0.0], [f"{l0 + 0.05}b", -40.0], [f"{st['glider'] + 95.7}b", -40.0],
+                           [f"{st['glider'] + 96.0}b", 0.0], [f"{total}b", 0.0]]}
+        if os.environ.get("T3_LEAVE_GONG", "on") == "on":   # the glider leaves the line: one low gong holds the gap
+            tracks.append({"name": "lgong", "patch": "modal-gong", "gain": "-8dB", "sends": {"hall": "-6dB"},
+                           "score": f"R/{l0:g}b m38.000/8b@84"})
+        for tr in tracks:
+            if tr["name"] in os.environ.get("T3_LEAVE", "kick,hats,ohat,rim,toms,ca-kit,ca-kit2,shek,skin,click,tone,air,bronze").split(","):
+                tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.leave", "amount": 1}]}}]
+                tr["auto"] = {**tr.get("auto", {}), "leave": lane}
     if R12 == "gendy" and R12MODE == "drone":
         T["drone"].ev = [(a, ln, h, int(os.environ.get("T3_GDRONE_VEL", "50")), art) for a, ln, h, v, art in T["drone"].ev]
         for tr in tracks:
