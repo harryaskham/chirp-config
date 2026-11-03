@@ -149,6 +149,16 @@ R10 = os.environ.get("T9_R10", "bpclar")
 # answer. Flow 59 -> 62/63.
 # T9_R11=none reproduces v10.
 R11 = os.environ.get("T9_R11", "d")
+# T9_R12 = henon (v12, whole-song round). A SECOND MAP. Through the two chaotic stretches (chaos, storm: w6-w10,
+# "little new" by the sections tool) the logistic map gets company: wM's new `gen: henon` - the Henon map, the
+# two-dimensional strange attractor (x <- 1 - a x^2 + y, y <- b x; a 1.4, b 0.3) - plays both its axes at once. And
+# since y is only x one step late (times b), the two axes are a CANON the attractor writes by itself: a XYLOPHONE
+# (new to the album) reads x on the Lambda mode of Bohlen-Pierce from A4, a MARIMBA reads y a tritave down and one
+# step behind. It jumps where the logistic line folds: two chaoses, one written, one answering. New tracks only.
+# Scored s0 (pin ade7b930): in both chaos and storm 96.70 (sections 11 -> 9, returns 4 -> 2: one timbre over both
+# stretches joins them), storm only 96.78, chaos only 96.82 - the default; T9_HEN_SECS=both|storm stay.
+# T9_R12=none reproduces v11.
+R12 = os.environ.get("T9_R12", "henon")
 SUB_SECS = {"both": ("window", "settle"), "settle": ("settle",), "none": ()}[os.environ.get("T9_SUB", "both")]
 C9_BPCLAR = {
     "about": "chirper-two: a Bohlen-Pierce clarinet - the reed on a cylindrical bore pushed harder and brighter, a little "
@@ -551,6 +561,19 @@ def main():
              "compose/chirpers8/src/chirpers8-t9.py. Polytempo braindance in Bohlen-Pierce tuning (13 steps to the 3:1 "
              "tritave): the logistic map, iterated each sixteenth, walks from one note through period doubling into "
              f"chaos, its period-three window and back, on a physical reed. Sections: {secline}.")
+    if R12 == "henon":
+        pool = lambda base: " ".join(mm(bp(k, base)) for k in range(9))
+        for sec in {"both": ("chaos", "storm"), "chaos": ("chaos",), "storm": ("storm",)}[os.environ.get("T9_HEN_SECS", "chaos")]:
+            nxt = {"chaos": "window", "storm": "settle"}[sec]
+            n = int((st[nxt] - st[sec]) * 2)   # eighths
+            for ax, nm, patch, base, pan, g in (("x", "henx", "xylophone", 69, 0.35, "T9_HENX_GAIN"),
+                                                 ("y", "heny", "marimba", 57, -0.3, "T9_HENY_GAIN")):
+                tracks.append({"name": f"{nm}-{sec}", "patch": patch,
+                               "gain": os.environ.get(g, "-14dB" if ax == "x" else "-11dB"), "pan": pan,
+                               "fx": ["hp cutoff=200", "reverb kind=room decay=0.9s mix=0.18"],
+                               "score": f"R/{st[sec]:g}b",
+                               "gen": {"type": "henon", "a": 1.4, "b": 0.3, "axis": ax, "n": n,
+                                       "notes": pool(base), "len": "/8", "rest": 0.2}})
     if R11 == "d":   # the voices find D: a choir holds D4 and D5 through the last bars into the tail, for t10
         dh = Track("dhold")
         dh.add(total - 12.0, 12.0, "m62.000,m74.000", int(os.environ.get("T9_DHOLD_VEL", "90")))
