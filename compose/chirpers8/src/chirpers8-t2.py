@@ -38,6 +38,7 @@ OWNKICK = os.environ.get("C8T2_OWNKICK", "1")   # and the kick: the machine laye
 TOMBACK = os.environ.get("C8T2_TOMBACK", "swap")   # PALETTE ROUND: the backbeat on a drum machine of our own - the engine's `machine` layer (circuit-modelled drum-machine voices, unused on the album) as a tuned electronic tom: G3 on 2, D3 on 4 (the halving's lone 3 on G3), the syndrum backbeat of the old machine records. 'swap' replaces the machine-kit clap (a staple of 9 songs); 'layer' keeps the clap under it
 CONVERGE = os.environ.get("C8T2_CONVERGE", "6")   # WHOLE ROUND: THE PATHS MEET - in C the canon gives way to a second number. Each of C's climbs gets a partner whose own hailstone path joins it partway (27 and 41 meet 313, 31 meets 297), played on the second clarinet in its own register and the same parity rhythm, timed so the two land on the shared number together; they sound in unison for six steps, then the partner falls silent and one line goes on down to 1 - the conjecture heard: different starts, one road home. Value = 'unison steps'
 INTROBOOT = os.environ.get("C8T2_INTROBOOT", "")   # SECTION ROUND (w1, the intro: static): the arp boots by resolution - bar b of the intro keeps only the first INTROBOOT+b steps of the sixteen in bit-reversed order (0 8 4 12 2 10 6 14 1 9 5 13 3 11 7 15: the order an FFT reads them), so the line arrives as a pulse, then halves, quarters, eighths, sixteenths, each note where it always was
+MACHC = os.environ.get("C8T2_MACHC", "37,10")   # SECTION ROUND (w9, 3:56-4:25: little new vs w8): the machine voice comes back for the second time through 27 - B's bytebeat double (an octave under the clarinet) returns over C bars MACHC ('start,len'), so the repeated hailstone path is sung by woodwind and computer together the second time round
 ARPBB = os.environ.get("C8T2_ARPBB", "sq")   # PALETTE: the chip arps become a bytebeat (engine 709cf900): the formula ARPBB on the counter t, clock 8372 so t*8 sits on the written pitch - 'sq' is t*8&128, one bit of the count, a bare square; 'sp' adds the octave above gated by a slower bit; the arp's gain ARPBBGAIN
 MACHV = os.environ.get("C8T2_MACHV", "90")   # SECTION ROUND (w4, 1:28-1:58: static): the machine sings the numbers - through B's first twelve bars (the whole step up) a bytebeat (engine 709cf900) doubles the clarinet an octave down: (t*8)^(t>>6), a saw whose wave is XORed with its own slower count, so its colour turns as each note is held; clock 8372 puts t*8 on the written pitch. Value = velocity
 PEDALEND = os.environ.get("C8T2_PEDALEND", "up")   # the D pedal (sub, D2, the outro's last four bars) began before the solo and so outlived ENDSOLO: the last 1 was not alone, and the album's seam to t3 read 38-61 Hz +15..+34 dB. 'cut' ends it where the solo starts; 'up' moves it to D3
@@ -387,6 +388,10 @@ def build():
             return f"{NN4[n % 12]}{n // 12}"
         b0 = sec_start("B")
         ev["mach"] = [(a, pat4.sub(dn12, h), l, int(MACHV)) for (a, h, l, v) in ev["clar"] if b0 <= a < b0 + 12 * BAR and not h.startswith("!") and h != "_"]
+        if MACHC:
+            c0 = sec_start("C")
+            ms_, ml_ = (int(x) for x in MACHC.split(","))
+            ev["mach"] += [(a, pat4.sub(dn12, h), l, int(MACHV)) for (a, h, l, v) in ev["clar"] if c0 + ms_ * BAR <= a < c0 + (ms_ + ml_) * BAR and not h.startswith("!") and h != "_"]
     if VOXDROP:
         c0 = sec_start("C")
         for rng_ in VOXDROP.split(";"):   # one or more 'start,len' ranges in C bars
