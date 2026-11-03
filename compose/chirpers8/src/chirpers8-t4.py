@@ -263,11 +263,12 @@ def write():
         ARRS[bar] = list(arr)                               # v34: the array per bar (for the runs)
         done = arr == sorted(arr) and sec not in ("intro", "sorted", "outro")
         if bar == 1:
-            part("ring").add(0.0, 8.0, "912hz", 112)
-            part("ring").add(0.0, 6.0, "3648hz", 58)
-            part("ride").add(0.0, 4.0, "cy", 76)               # v14: a firmer swell for t3's air
+            part("ring").add(RING_AT, 8.0, "912hz", 96)                 # v35: after the room is heard, softer
+            part("ring").add(RING_AT + 1.0, 6.0, "3648hz", 58)
+            part("roomtone").add(0.0, 8.0, "m60", 90)                   # v35: t3's air, carried over
+            part("ride").add(CHIMES_AT, 4.0, "cy", 76)         # v14: a firmer swell for t3's air; v35: with the chimes
             for k, (at, nt) in enumerate(((0.0, "m93"), (0.75, "m98"), (1.6, "m96"), (2.5, "m100"), (3.5, "m95"), (5.0, "m97"))):
-                part("chimes").add(at, 6.0, nt, 90 - 6 * k)   # v14: wind chimes - t3's metal, still in the air
+                part("chimes").add(CHIMES_AT + at, 6.0, nt, 90 - 6 * k)   # v14: wind chimes - t3's metal, still in the air; v35: later
         if bar > BARS - 6:                  # v8: the last six bars clear to the low E alone - what t5 begins with
             PROGRESS.append(0)
             if (bar - (BARS - 7)) % 2 == 0:
@@ -748,6 +749,17 @@ def route_lane():
     return pts
 
 
+# v35 (ROUND TYPE: whole; the seam from t3 was t4's weakest term - flow 65.5): THE ROOM BETWEEN THE SONGS. t3 ends on
+# a quiet, broadband room tone (its last 3 s: -42 dB, a flat spectrum); t4 began 4.9 dB louder and peaky - the ring and
+# the wind chimes +19-21 dB at 1.9-2.6 kHz, nothing under 100 Hz (-21 to -25 dB). Now t4 begins IN THAT ROOM: a soft
+# pink-noise room tone for the first two bars, fading as the song arrives (t3's air, carried over), the ring catching
+# t3's strike a beat and a half in, and the wind chimes from beat 6 - the metal arrives once the room is heard.
+RING_AT = 1.5
+CHIMES_AT = 7.0           # beat 6 still sat inside the join's 3 s (2.8 s); the ride's swell moves with them
+ROOMTONE = {"synth": {"layers": [{"type": "noise", "color": "pink"}], "amp": "5ms 1 1 2.5s",
+                      "filters": [{"kind": "lp", "cutoff": 7000, "q": 0.5}]}}
+
+
 def main():
     write()
     arrival()                                     # v22: the stop, the reverse cymbal, the impact
@@ -843,6 +855,7 @@ def main():
     song["tracks"].append({"name": "route", "patch": ROUTE_PATCH, "gain": "-19dB", "pan": 0.15,
                            "sends": {"room": "-10dB"}, "score": part("route").score(),
                            "auto": {"rt": {"points": route_lane()}}})                      # v34: listed last
+    song["tracks"].append({"name": "roomtone", "patch": ROOMTONE, "gain": "-30dB", "score": part("roomtone").score()})  # v35
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print("wrote", OUT, "bars", BARS)
