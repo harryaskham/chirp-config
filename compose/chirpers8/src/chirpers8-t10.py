@@ -560,7 +560,11 @@ def build():
              'fx': [{'type': 'tape', 'drive': 0.12, 'mix': 1, 'wow': 2, 'flutter': 1, 'seed': 8}],
              'sends': {'hall': '-10dB', 'echo': '-14dB'}},
             {'name': 'sing2', 'patch': SING['patch'], 'gain': '-8dB', 'pan': 0.05, 'tuning': W3T,
-             'notes': [dict(n_, at=round(shift(secs_t['final'] + 96 + n_['at']), 4)) for n_ in SING['final']['notes'][:23]],   # (v23) once, not twice
+             # (v45) THE RETURN HAS ITS OWN WORDS (Harry, of t1's singing: keep hillclimbing it): the line came home with
+             # the words it went down with. Now the call goes down and the return comes up - 'up the well of mirrors, every
+             # landing hands its lamp along, and the highest one is on' - the same tune an octave lower, home in D minor,
+             # ending on 'on' (a light left on) where it went down ending on 'lit'
+             'notes': [dict(n_, at=round(shift(secs_t['final'] + 96 + n_['at']), 4)) for n_ in SING['final_up']['notes'][:23]],   # (v23) once, not twice
              'fx': [{'type': 'tape', 'drive': 0.12, 'mix': 1, 'wow': 2, 'flutter': 1, 'seed': 4}],
              'sends': {'hall': '-9dB', 'echo': '-14dB'}},
             {'name': 'sing', 'patch': SING['patch'], 'gain': '-8dB', 'pan': -0.05, 'tuning': W3T,
@@ -625,7 +629,9 @@ def build():
             # time, a speaking toy (wM's speak-toy: speech through 5-bit LPC) says the words first, flat and small, once,
             # into the echo - the machine already knows the line; the call comes before the singer's return
             {'name': 'toy', 'patch': 'speak-toy', 'gain': '-9dB', 'pan': -0.3,
-             'notes': [dict(n_, at=round(secs_t['calls2'] - 10.0 + n_['at'], 4)) for n_ in TOY],
+             # (v45) and the toy prompts the return too: 'up the well', flat and small, two bars before the human sings it
+             'notes': [dict(n_, at=round(secs_t['calls2'] - 10.0 + n_['at'], 4)) for n_ in TOY]
+                      + [dict(n_, at=round(shift(secs_t['final'] + 88.0 + n_['at']), 4)) for n_ in SING['toy_up']['notes']],
              'sends': {'echo': '-8dB', 'hall': '-14dB'}},
             # (v43, section w10) THE GATE OPENS: the outro used to power down into its last tolls and a second and a half of
             # nothing, then chirper-three's t11 starts six dB louder on a kick and trance-gated pads. Now, under the
