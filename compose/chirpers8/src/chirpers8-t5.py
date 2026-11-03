@@ -55,6 +55,7 @@ LIFTSTOP = os.environ.get("C8T5_LIFTSTOP", "1")   # the gear change, announced: 
 LIFTHAT = os.environ.get("C8T5_LIFTHAT", "1")   # after the lift the hats open: every off-beat hat an open hat - the agreed band, a step up, brighter on top
 ESTABLE = os.environ.get("C8T5_ESTABLE", "1")   # song-level event_stable (engine f5283535): each note's humanize and DSP draws come from its track, beat and pitch, so a window's edit stays in the window; switching it on re-rolls every humanized note once
 ACIDX = os.environ.get("C8T5_ACIDX", "-18")   # WHOLE ROUND: the route out of chaos - the acid's line is doubled by a chaos voice (engine f3872739: a Rossler attractor, one loop per period of the note, read on its x axis, a tone with a chaotic flutter) whose amount walks the route backwards across the song: chaotic through A's proposals (0.9), calming through B, period-doubling (an octave-down subharmonic) at the retrain, a plain tone once they agree in C, and back toward chaos as they part at the end. Value = gain dB
+CHLEAD = os.environ.get("C8T5_CHLEAD", "-16")   # PALETTE: the markov lead over C's second half (lead-wah) becomes a chaos voice (engine f3872739): a Rossler attractor read on its x axis, a sine with a chaotic flutter, its amount wandering on a slow LFO through the attractor's windows (wM's recipe: 0.7 +- 0.25), so each phrase passes between a clean tone, a doubled one and a fluttering one: once the speed is agreed, the lead improvises at the edge of chaos. Value = gain dB
 RTSPIRAL = os.environ.get("C8T5_RTSPIRAL", "1")   # SECTION ROUND (w5, the retrain): the handshake comes in from far off - for the retrain's twelve bars the carriers (the modems' tones) orbit the listener (orbit mods, engine 206fbfb8), starting 12 m out and slow, spiralling in and quickening as the training goes on (Doppler lifting them as they near), arriving close at C where they connect and stand still again. Value = the orbit's mix at full
 CSPIKE = os.environ.get("C8T5_CSPIKE", "0.93")   # SECTION ROUND (w8, C bars 28-42: static, little new vs w7): line noise - after they agree the acid's chaos double (v45) is a plain tone, until a burst of noise on the line: from mid C bar 30 its amount glides up to CSPIKE (chirper-three's measure: 0.93 and 0.7 chaotic, 0.85 a periodic window), holds through bar 31, and recovers by bar 34, the connection riding it out
 FFWD = os.environ.get("C8T5_FFWD", "120")   # SECTION ROUND (w7, C bars 12-28: static): fall-forward - a connected modem tries the next speed up when the line is good, and drops back if it isn't: at C bar 16 the agreed tempo steps up (112 -> FFWD's bpm), holds eight bars, and falls back to 112 at C bar 24, the speed tried and given up. Value 'bpm' (a step) or 'bpm,ramp' (two bars up)
@@ -379,8 +380,9 @@ def hook_tokens(semis):
 
 def markov_lead(name, at16, semis, n):
     """A gen-only lead: the engine's Markov chain over the hook, from `at16` (sixteenths, tempo-map aware as beats)."""
-    return {"name": name, "patch": "lead-wah", "gain": "-12dB", "pan": 0.1, "at": f"{at16 / 4:g}b", "seed": 50 + semis,
-            "fx": [{"type": "chorus", "rate": 0.5, "depth": 0.4, "mix": 0.3}],
+    return {"name": name, "patch": ({"about": "a Rossler flutter lead", "synth": {"layers": [{"type": "chaos", "chaos": {"system": "rossler", "axis": "x", "amount": {"value": 0.7, "mod": [{"src": "lfo.wander", "amount": 0.25}]}}}], "amp": "30ms 0.75 0.8 400ms"}} if CHLEAD else "lead-wah"),
+            "gain": f"{CHLEAD}dB" if CHLEAD else "-12dB", "pan": 0.1, "at": f"{at16 / 4:g}b", "seed": 50 + semis, **({"lfo": {"wander": "sine rate=1/3"}} if CHLEAD else {}),
+            "fx": [{"type": "chorus", "rate": 0.5, "depth": 0.4, "mix": 0.3}, *(["delay time=3/8 feedback=0.3 mix=0.2"] if CHLEAD else [])],
             "score": "swing16=0.58 vel=0.72", "gen": {"type": "markov", "order": 1, "from": hook_tokens(semis), "n": n}}
 
 
