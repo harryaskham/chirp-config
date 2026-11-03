@@ -23,6 +23,7 @@ out 20 = 170 bars (about 5'29").
 Emits songs/chirpers8-t3.yaml. Edit the music here.
 """
 import json
+import re
 import math
 import os
 import random
@@ -182,6 +183,18 @@ FLOOR = {"kick", "hats", "ohat", "rim", "toms", "ca-kit", "ca-kit2", "shek", "rb
 # (without the floor the mids read louder): 550 Hz -2 -> -3 dB, 292 Hz -1 dB, 1.9 kHz -1.5 -> -2.5 dB, 45 Hz +2.5 ->
 # +3.5 dB (s0 97.97 without, 98.14 with). T3_R17=none reproduces v16.
 R17 = os.environ.get("T3_R17", "fade")
+# T3_R18 = palette (v18, palette round). Two album staples go. THE COLONY RINGS: the Life glider's kalimba (4 songs
+# share it) becomes a VOSIM BELL - Kaegi and Tempelaars's pulse trains (1978) pushed high, many short sin^2 pulses at
+# a high formant, which ring like struck metal instead of speaking (t6 uses the same layer low, as a voice); the
+# creature now sounds like nothing else on the album. THE FLOOR GOES ELECTRO (T3_R18_KICK): the machine-kit kick
+# (7 songs) becomes the library's unused electro-kit - OFF by default: s0 97.77 (-0.65; its kick is thin at 90-140 Hz,
+# spectrum 95 with 114 Hz 8.6 dB short, flow 69). The bell alone: 98.413/98.403, level with v17. First take (formants
+# 2400/3700) was a centroid of 1.7 kHz against the kalimba's 360 Hz: dropped to 1300/2600. T3_R18=none reproduces v17.
+R18 = os.environ.get("T3_R18", "palette")
+C3_VOSBELL = {"about": "chirper-two: a VOSIM bell - two high formants of many short pulses, struck and left to ring",
+              "synth": {"layers": [{"type": "vosim", "vosim": {"formant": 1300, "pulses": 6, "decay": 0.85}},
+                                   {"type": "vosim", "level": 0.4, "vosim": {"formant": 2600, "pulses": 9, "decay": 0.8}}],
+                        "amp": {"a": "1ms", "d": "700ms", "s": 0, "r": "300ms"}}}
 R11KICK = os.environ.get("T3_R11_KICK", "machine")   # "bronze": the kit's own kick too (cost spectrum 97 -> 75-80)
 C8_KIT = {
     "about": "chirper-two: Three Neighbours' own kit - kr a D1 sine kick that drops into place with a low modal membrane "
@@ -550,7 +563,8 @@ def main():
            [f"{st['out']}b", -4.0],
            [f"{total}b", -5.0]]
     tracks = [
-        {"name": "kick", "patch": "c8-kit" if (R11 == "bronze" and R11KICK == "bronze") else "machine-kit",
+        {"name": "kick", "patch": "c8-kit" if (R11 == "bronze" and R11KICK == "bronze") else
+                                  ("electro-kit" if (R18 == "palette" and os.environ.get("T3_R18_KICK", "off") == "on") else "machine-kit"),
          "gain": os.environ.get("T3_KICK_GAIN", "-2dB") if (R11 == "bronze" and R11KICK == "bronze") else "0dB", "score": T["kick"].score(total)},
         {"name": "hats", "patch": "afro-perc" if R7 == "hands" else "machine-kit",
          "gain": os.environ.get("T3_SHEK_GAIN", "-15dB") if R7 == "hands" else "-5dB", "pan": 0.12,
@@ -645,7 +659,9 @@ def main():
     if R13 == "colony":
         c0, c1 = st["glider"] + 56.0, st["glider"] + 104.0
         pool = " ".join(hz_m(jm(d, D3 + 12)) for d in range(8))
-        tracks.append({"name": "colony", "patch": "kalimba", "gain": os.environ.get("T3_COLONY_GAIN", "-9dB"), "pan": -0.2,
+        cbell = R18 == "palette" and os.environ.get("T3_R18_BELL", "on") == "on"
+        tracks.append({"name": "colony", "patch": "c3-vosbell" if cbell else "kalimba",
+                       "gain": os.environ.get("T3_VOSBELL_GAIN", "-7dB") if cbell else os.environ.get("T3_COLONY_GAIN", "-9dB"), "pan": -0.2,
                        "seed": 13, "fx": ["hp cutoff=250", {"type": "delay", "time": "3/16", "feedback": 0.25, "mix": 0.18,
                                                              "ping_pong": True, "tone": 3500}],
                        "score": f"R/{c0:g}b",
@@ -661,6 +677,10 @@ def main():
             if tr["name"] in os.environ.get("T3_LEAVE", "kick,hats,ohat,rim,toms,ca-kit,ca-kit2,shek,skin,click,tone,air,bronze").split(","):
                 tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.leave", "amount": 1}]}}]
                 tr["auto"] = {**tr.get("auto", {}), "leave": lane}
+    if R18 == "palette" and os.environ.get("T3_R18_KICK", "off") == "on":
+        for tr in tracks:
+            if tr["name"] == "kick" and tr.get("patch") == "electro-kit":
+                tr["score"] = re.sub(r"\bkr/", "k/", tr["score"])
     if R17 == "fade":
         d0, o0 = st["decay"], st["out"]
         fades = {"hats": [[d0 + 16 - 0.1, 0.0], [d0 + 28, -40.0]],
@@ -805,7 +825,8 @@ def main():
         "true_peak: true",
         "patches: " + json.dumps({**patches(), **({"c3-byte": C3_BYTE} if R10 == "byte" else {}),
                                   **({"c8-kit": C8_KIT} if R11 == "bronze" else {}),
-                                  **({"c3-gendy": C3_GENDY} if R12 == "gendy" else {})}),
+                                  **({"c3-gendy": C3_GENDY} if R12 == "gendy" else {}),
+                                  **({"c3-vosbell": C3_VOSBELL} if R18 == "palette" else {})}),
         "buses: " + json.dumps(buses),
         "master: " + json.dumps({"fx": [{"type": "eq", "bands": ["hp cutoff=25",
                                                                "peak cutoff=250 gain=" + (os.environ.get("T3_LOWMID", "-0.5dB") if R15 == "space" else "-2dB") + " q=0.8",
