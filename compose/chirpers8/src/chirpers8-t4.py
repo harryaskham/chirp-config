@@ -477,10 +477,38 @@ def bass_waits():
     P["bass"].ev = [(s, ln, h, 1 if s < b0(BASS_FROM) else v) for s, ln, h, v in P["bass"].ev]
 
 
+# v37 (ROUND TYPE: whole; lpc pinned 78e838c5): THE SPEECH CHIP LEARNS TO SING. The speech-to-song illusion gets a
+# second arc - machine, then person, then song. The early returns of the spoken phrase (17-65) come from the SPEAKING
+# TOY (LPC-10, 5-bit coefficients, monotone on the tonic A); the late sorts' returns (81, 105) from a full LPC chip
+# that follows the voice's own pitch - the machine starts to inflect; the last two before it sings (113, 121) are the
+# human voice; then, sorted, it sings. The computer's voice becomes a person's as the list sorts itself.
+CHIP_TOY = (17, 33, 49, 65)
+CHIP = (81, 105)
+LPC_EARLY = 0.075              # beats: LPC answers ~35 ms late
+
+
+def chip_tracks():
+    out = []
+    for name, bars, fx, gain in (("chip_toy", CHIP_TOY, "lpc pitch=A2 bits=5", "-7.5dB"),
+                                 ("chip", CHIP, "lpc", "-9dB")):
+        notes = []
+        for bar in bars:
+            for at, ln, ph, p, v, f0 in SPOKEN:
+                n = {"at": round(b0(bar) + at - LPC_EARLY, 4), "len": ln, "ph": ph, "pitch": p, "vel": v}
+                if f0:
+                    n["expr_path"] = {"f0": f0}
+                notes.append(n)
+        out.append({"name": name, "patch": SPOKEN_PATCH, "gain": gain, "pan": -0.05,
+                    "sends": {"room": "-12dB", "dly": "-16dB"},
+                    "fx": [fx, {"type": "filter", "kind": "hp", "cutoff": 140}], "notes": notes})
+    return out
+
+
 def voice_tracks():
     spoken, sung = [], []
     for bar in SPOKEN_AT:
         for at, ln, ph, p, v, f0 in SPOKEN:
+            v = 0.01 if bar in CHIP_TOY + CHIP else v               # v37: these returns are the chip's
             n = {"at": round(b0(bar) + at, 4), "len": ln, "ph": ph, "pitch": p, "vel": v}
             if f0:
                 n["expr_path"] = {"f0": f0}
@@ -869,6 +897,7 @@ def main():
                            "sends": {"room": "-10dB"}, "score": part("route").score(),
                            "auto": {"rt": {"points": route_lane()}}})                      # v34: listed last
     song["tracks"].append({"name": "roomtone", "patch": ROOMTONE, "gain": "-30dB", "score": part("roomtone").score()})  # v35
+    song["tracks"] += chip_tracks()                                                          # v37: listed last
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print("wrote", OUT, "bars", BARS)
