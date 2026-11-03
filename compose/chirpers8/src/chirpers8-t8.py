@@ -80,6 +80,7 @@ DECFIX = os.environ.get("C8T8_DECFIX", "")   # v56's decay double peaks at lane 
 SUNGMID = os.environ.get("C8T8_SUNGMID", "16")   # WHOLE ROUND on the singing: the voice is heard before E - 'it comes later on' (the line sung at E bar 12) is first sung in the middle of the song, at C bar SUNGMID, in C's own D minor (E's is lifted a step), with its canon a bar behind a third below (v69): the line promises its own return, and comes later on. Value = bar of C
 WORDLEVEL = os.environ.get("C8T8_WORDLEVEL", "3")   # WHOLE ROUND: the word recedes as it decays - the word's orbit (radius 2 + 8 x the decay lane, v60) gets the engine's orbit `level` (8f150090: the distance that plays at full level; farther is fainter, about 1/distance): within WORDLEVEL metres it is as it was; as the memory decays and the orbit widens to 10 m the word grows faint as well as far, then each refresh brings it back up close and full. Value = metres
 CANON = os.environ.get("C8T8_CANON", "4")   # WHOLE ROUND on the singing: the memory sings it back - every sung line (sungl at E bar 12, sungv/sungv2 in the outro) is followed by itself CANON beats later, a diatonic third below in D minor on the stretched octave, 6 dB under, panned across, sent hard into the line: a delay line's echo that returns transposed, so each line becomes a two-part canon with its own recall
+DUET = os.environ.get("C8T8_DUET", "4")   # SECTION ROUND (E's sung line, w8): a second singer - 'it comes later on' at E bar 12 is sung as a duet: a separate take (tts --sing "F4/8 E4/8 D4/4 C4/8 A3/2", seed 21, humanize 0.35: mostly a third below, opening onto the fifth at 'on') with the first, a touch behind, on the other side and a few dB under, lifted with E; the canon (v69) still answers a bar later, so the line is three voices - two singing together, the memory a bar behind (Harry, of t10's sung duet: 'that is the bar'). Value = dB under the line
 REWRITE = os.environ.get("C8T8_REWRITE", "-18")   # SECTION ROUND (the refresh, 8 bars): the harmonics written back - a delay line loses its detail (the decay's low-pass, chaos and hiss) and regeneration restores it; through the refresh a held D (D3 + D4, the tonic, on the stretched octave) is Chebyshev-waveshaped (Le Brun & Arfib 1979, engine 817a5de6) with its index on a lane rising 0 -> 1 across the eight bars, so it grows from a bare sine to its full harmonic series one harmonic at a time - the word's spectrum rewritten - then lets go as C starts. A notes-only track. Value = gain dB
 BRASSA = os.environ.get("C8T8_BRASSA", "-16")   # SECTION ROUND (w2, A's first bars: level jump): the word announced - as the word is first stored (A), its tune (A4 F4 D4 E4 D4, the sung line's) is stated twice on Risset's brass: Chebyshev waveshaping (Le Brun & Arfib 1979, engine 817a5de6) with the index on a breath envelope and velocity, so each note brightens as it is blown and louder is brighter - the computer trumpet Risset made at Bell Labs by analysing a real one. A notes-only track at A bars 0 and 8, on the stretched octave. Value = gain dB
 WORDSCAN = os.environ.get("C8T8_WORDSCAN", "18")   # WHOLE ROUND: the word kept in a rippling medium - a mercury delay line stores the word as a wave travelling through matter; scanned synthesis (Verplank, Mathews & Shaw 2000, engine ee46ab71) plays a ring of masses and springs read round at the pitch, its moving shape the timbre. The word (dx-epiano, all song) gets a twin on that ring (static push: the push mod is unstable, reported), with the word's own warp, orbit and lanes, WORDSCAN dB under it: every bit of the word now also ripples in a medium as it is read. Value = dB under the word
@@ -407,6 +408,14 @@ def song():
         trs.append(b)   # 'travels' listed last
     if LATER:
         doc["tracks"].append(later_track(LATER))
+        if DUET:
+            src = json.load(open(os.path.join(HERE, "chirpers8-t8-sung-duet.json")))["tracks"][0]
+            off = (sec_start("E") + 12 * BAR) / 4 + 0.03
+            up = int(EUP.split(",")[0]) if EUP else 0
+            du = later_track(LATER)
+            du.update(name="sungld", pan=-0.3, gain=f"{float(LATER) - float(DUET):g}dB",
+                      notes=[dict(n, at=round(n["at"] + off, 4), pitch=hz(float(n["pitch"][1:]) + up)) for n in src["notes"]])
+            doc["tracks"].append(du)
         if SUNGMID:
             mid = later_track(LATER)
             src = json.load(open(os.path.join(HERE, "chirpers8-t8-sung-later.json")))["tracks"][0]
