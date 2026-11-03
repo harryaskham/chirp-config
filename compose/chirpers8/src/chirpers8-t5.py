@@ -54,6 +54,7 @@ BSPLITAT = int(os.environ.get("C8T5_BSPLITAT", "12"))   # the bar of B (0-based)
 LIFTSTOP = os.environ.get("C8T5_LIFTSTOP", "1")   # the gear change, announced: the band stops dead for the second half of the bar before the lift (C bar 24) - a clap fill climbing in sixteenths - then lands a whole step up (dropped after generation, so no dice move). Once B was split (v18) this splits C too without crowding the returns
 LIFTHAT = os.environ.get("C8T5_LIFTHAT", "1")   # after the lift the hats open: every off-beat hat an open hat - the agreed band, a step up, brighter on top
 ESTABLE = os.environ.get("C8T5_ESTABLE", "1")   # song-level event_stable (engine f5283535): each note's humanize and DSP draws come from its track, beat and pitch, so a window's edit stays in the window; switching it on re-rolls every humanized note once
+CDATA = os.environ.get("C8T5_CDATA", "60")   # SECTION ROUND (w7, C before the lift: static): now that they agree on a speed, data flows - the carriers come back under C bars 12-23 in time with the band, one bit per eighth (1650 Hz a 0, 1850 Hz a 1), sending the two letters O K in ASCII (01001111 01001011), two bars a message, six times over. Value = velocity
 DIAL = os.environ.get("C8T5_DIAL", "80")   # SECTION ROUND (w5, the retrain): the line is re-dialled - the retrain's first two bars lose their handshake and the computer dials instead: DTMF 1 1 2 (697+1209, 697+1209, 697+1336 Hz: the speed they will agree on), then one ringback (440+480 Hz), and the retrained handshake answers from bar 2. Two tracks (dtlo, dthi: a DTMF tone is two pitches at once, which hz notes cannot stack), the carriers' radio without a second hiss. Value = velocity
 PHASEA = os.environ.get("C8T5_PHASEA", "66")   # SECTION ROUND (w3, A's second half: 'little new vs w2'): before the retrain the clocks disagree - while the carriers' handshake runs on the grid in A bars 24-31, a second handshake (the same carriers, no extra hiss, its own track phaseA listed last) runs nine to the bar against its eight. The retrain then teaches them one speed, C agrees, and the outro (v29) lets them drift again. Value = velocity
 CBREAK = os.environ.get("C8T5_CBREAK", "34,4")   # SECTION ROUND (w8, C after the lift, static): take something away - for C bars START..START+LEN the kit (kick, hats, clap) stops and the hand drums, the cowbell, the keys and the bass carry the agreed groove alone; the kit comes back for C's last bars into the outro. event_stable keeps the rest of the song as it was. Value = 'start,len'
@@ -254,6 +255,12 @@ def build():
         i1 = sec_start("intro") + int(CONGAIN or 0) * BAR
         o0 = total() - int(CONGAOUT or 0) * BAR if CONGAOUT else total() + 1
         ev["conga"] = [e for e in ev["conga"] if i1 <= e[0] < o0]
+    if CDATA:
+        c0 = sec_start("C")
+        bits = f"{ord('O'):08b}{ord('K'):08b}"
+        for bar in range(12, 24):
+            for i in range(8):
+                add("carrier", c0 + bar * BAR + 2 * i, f"{1850 if bits[(bar % 2) * 8 + i] == '1' else 1650}hz", 2, int(CDATA))
     if DIAL:
         r0 = sec_start("retrain")
         ev["carrier"] = [e for e in ev["carrier"] if not (r0 <= e[0] < r0 + 2 * BAR and e[1] != 0)]
