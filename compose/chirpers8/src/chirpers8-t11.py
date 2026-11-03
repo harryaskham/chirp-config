@@ -259,8 +259,35 @@ def throat_lane():
 # the listener, about 24 s, darker as it passes behind - and (2) the THUNDER MOVES: a long fly-by path (25 m wide, 6 m
 # ahead, a pass every 50 s, Doppler 0.4), so each strike at a lobe flip lands somewhere else in the sky - near or far,
 # left or right, bending as it rolls past. Best on headphones; on speakers the wind swells and darkens.
-WIND_ORBIT = {"type": "orbit", "path": "circle", "rate": round(1 / 24, 4), "radius": 4, "distance": 0}
-THUNDER_ORBIT = {"type": "orbit", "path": "line", "rate": 0.02, "radius": 25, "distance": 6, "doppler": 0.4}
+# v34 (ROUND TYPE: whole; orbit mods pinned 206fbfb8, chirper-three's request): THE STORM APPROACHES AND PASSES. One
+# storm-intensity lane (auto.si: the song's own Lorenz orbit speed per bar x the section's wind, smoothed over five
+# bars, easing to nothing through the outro) now moves the weather's DISTANCES: the thunder's path stands ~30 m off when
+# the weather is calm (A's distant rumbles), comes OVERHEAD (~4 m) at the storm's peak and RECEDES as it passes - in an
+# orbit distance is level, darkness and Doppler, so speakers hear it too; and the wind circles FASTER and CLOSER as
+# the storm builds (speed up to x2.6, radius 6 -> 2.4 m), slowing and widening as it passes.
+WIND_ORBIT = {"type": "orbit", "path": "circle", "rate": round(1 / 24, 4), "distance": 0,
+              "radius": {"value": 6, "mod": [{"src": "auto.si", "amount": -3.6}]},
+              "speed": {"value": 1.0, "mod": [{"src": "auto.si", "amount": 1.6}]}}
+THUNDER_ORBIT = {"type": "orbit", "path": "line", "rate": 0.02, "radius": 25, "doppler": 0.4,
+                 "distance": {"value": 30, "mod": [{"src": "auto.si", "amount": -26}]}}
+
+
+def storm_intensity(bar):
+    sp = sum(math.dist(state(bar, k), state(bar, k + 1)) for k in range(15))
+    return WIND_VEL.get(sec_of(bar), 0) / 100 * (0.4 + 0.6 * min(1.0, max(0.0, (sp - 9.1) / 35.2)))
+
+
+def storm_lane():
+    raw = {b: storm_intensity(b) for b in range(1, BARS + 1)}
+    pts, last = [], 0.0
+    for bar in range(1, BARS + 1):
+        if bar >= 137:                                   # the outro: the storm passes
+            v = last * max(0.0, 1 - (bar - 136) / 20)
+        else:
+            win = [raw[b] for b in range(max(1, bar - 2), min(BARS, bar + 2) + 1)]
+            v = last = sum(win) / len(win)
+        pts.append([f"{b0(bar) + 2:g}b", round(min(1.0, v / 0.85), 3)])
+    return pts
 THUNDER_GAIN = "-2dB"     # +4 dB: the path averages -5.3 dB (strikes land -0.8 to -22 dB from near to far)
 
 
@@ -832,12 +859,14 @@ def main():
             {"name": "toll", "patch": BELL, "gain": "-12dB", "pan": -0.15, "sends": {"hall": "-8dB", "dly": "-12dB"},
              "notes": toll_notes()},                                                       # v8: the bell carries over
             tr("wind", WIND, gain="-13dB", pan=0.25, sends={"hall": "-8dB"},
-               fx=[WIND_ORBIT]),                                                           # v11: the wind in the gap; v32: circles
+               fx=[WIND_ORBIT], auto={"si": {"points": storm_lane()}}),                                                           # v11: the wind in the gap; v32: circles
             tr("aeolian0", AEOL_PATCH, gain="-17dB", pan=-0.5, sends={"hall": "-6dB"}),     # v29
             tr("aeolian1", AEOL_PATCH, gain="-17dB", pan=0.05, sends={"hall": "-6dB"}),     # v29
             tr("aeolian2", AEOL_PATCH, gain="-17dB", pan=0.5, sends={"hall": "-6dB"}),     # v29
             tr("thunder", THUNDER, gain=THUNDER_GAIN, pan=-0.1, sends={"hall": "-4dB"},
-               fx=[THUNDER_ORBIT]),                                                        # v10: thunder at the flips; v32: moves
+               fx=[THUNDER_ORBIT, {"type": "gain", "gain": {"value": "-10dB", "mod": [{"src": "auto.si", "amount": 10}]}}],
+               auto={"si": {"points": storm_lane()}}),          # v34: orbit level is relative to the closest approach, so
+               #                                                  distant thunder also needs its own gain (-10 dB when calm)                                                        # v10: thunder at the flips; v32: moves
             tr("sheet", SHEET, gain="-10dB", pan=0.15, sends={"hall": "-6dB"}),            # v16: the thunder sheet
             tr("rainL", "celesta", gain="-8dB", pan=-0.6, sends={"hall": "-8dB"}),       # v9: rain indoors
             tr("rainR", "celesta", gain="-8dB", pan=0.6, sends={"hall": "-8dB"}),
