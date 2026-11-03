@@ -80,6 +80,8 @@ DECFIX = os.environ.get("C8T8_DECFIX", "")   # v56's decay double peaks at lane 
 SUNGMID = os.environ.get("C8T8_SUNGMID", "16")   # WHOLE ROUND on the singing: the voice is heard before E - 'it comes later on' (the line sung at E bar 12) is first sung in the middle of the song, at C bar SUNGMID, in C's own D minor (E's is lifted a step), with its canon a bar behind a third below (v69): the line promises its own return, and comes later on. Value = bar of C
 WORDLEVEL = os.environ.get("C8T8_WORDLEVEL", "3")   # WHOLE ROUND: the word recedes as it decays - the word's orbit (radius 2 + 8 x the decay lane, v60) gets the engine's orbit `level` (8f150090: the distance that plays at full level; farther is fainter, about 1/distance): within WORDLEVEL metres it is as it was; as the memory decays and the orbit widens to 10 m the word grows faint as well as far, then each refresh brings it back up close and full. Value = metres
 CANON = os.environ.get("C8T8_CANON", "4")   # WHOLE ROUND on the singing: the memory sings it back - every sung line (sungl at E bar 12, sungv/sungv2 in the outro) is followed by itself CANON beats later, a diatonic third below in D minor on the stretched octave, 6 dB under, panned across, sent hard into the line: a delay line's echo that returns transposed, so each line becomes a two-part canon with its own recall
+SAYARRIVE = os.environ.get("C8T8_SAYARRIVE", "15")   # SECTION ROUND (w1, the intro): the answer arrives - 'say it back to me', t8's first words (answering t7's voice across the seam), spirals in from ~15 m to 1 m over its first three bars (an orbit whose radius lane falls 15 -> 1, with the engine's orbit level, 2 m: far is faint), so the chip voice is heard coming from where t7 left off before it is close. Value = start radius in metres
+LPCNUDGE = os.environ.get("C8T8_LPCNUDGE", "")   # v63's lpc 'say' was nudged 0.07 beats early for lpc's lag; engine ee46ab71 compensates, so the nudge is off ('') from v72
 SAYLPC = os.environ.get("C8T8_SAYLPC", "plain")   # SECTION ROUND (w1, the intro: static): the first explanation in a speech chip - the intro's spoken line (say, bar 8: what a delay line keeps) goes through LPC (engine 78e838c5): 'plain' (LPC-10, inflecting) or 'toy' (5-bit monotone on D3, the tonic); the later lines (say2 at the refresh, say3 at the outro) stay as they are. Notes 0.07 beats early for LPC's ~35 ms
 ECHOVOS = os.environ.get("C8T8_ECHOVOS", "-10")   # PALETTE: the choir that answers the sung line in E and sings the tune at half speed in the outro (v42/v44: mellotron-choir, a tape of voices) is sung by the machine instead - our own VOSIM 'oh' (two pulse trains, F1 ~450 Hz, F2 ~800 Hz, drifting on slow sines, a slow swell): the memory answering in the synthetic voice of the time it would be read back in. Value = gain dB
 LINEHISS = os.environ.get("C8T8_LINEHISS", "-44")   # WHOLE ROUND: the line's noise floor - a delay line's signal sinks toward its noise as it decays, and regeneration is what clears it: a high, thin hiss (white noise above 7 kHz, held under the whole song) rides v56's decay lane, rising as the memory decays (up to +12 dB), cleared at the refresh, rising again through C, D and E, cleared at the outro. Value = its base gain dB
@@ -515,7 +517,11 @@ def song():
             if isinstance(t_, dict) and t_.get("name") == "say":
                 t_["fx"] = [{"plain": "lpc", "toy": "lpc pitch=D3 bits=5"}[SAYLPC], *t_.get("fx", [])]
                 for n in t_.get("notes", []):
-                    n["at"] = round(max(0.0, n["at"] - 0.07), 4)
+                    n["at"] = round(max(0.0, n["at"] - (0.07 if LPCNUDGE else 0)), 4)
+                if SAYARRIVE:
+                    r0 = float(SAYARRIVE)
+                    t_["auto"] = dict(t_.get("auto", {}), app={"points": [["0b", 1], ["12b", 0], [f"{total() / 4:g}b", 0]]})
+                    t_["fx"] = [*t_["fx"], {"type": "orbit", "rate": "1/2", "radius": {"value": 1, "mod": [{"src": "auto.app", "amount": r0 - 1}]}, "level": 2, "mix": 0.85}]
     if DUFFBASS:
         for t_ in doc["tracks"]:
             if isinstance(t_, dict) and t_.get("name") == "bass" and t_.get("patch") == "808":
