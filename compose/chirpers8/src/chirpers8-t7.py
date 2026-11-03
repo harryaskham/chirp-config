@@ -120,7 +120,7 @@ def build():
                     cand = new
         seq_states.append(list(cand)); losses.append(round(loss(cand), 3))
     # ---- render the parts ----
-    P = {k: [] for k in ('seq', 'keys', 'pad', 'bass', 'kit', 'hum', 'rhum', 'glim')}
+    P = {k: [] for k in ('seq', 'keys', 'pad', 'bass', 'kit', 'hum', 'rhum', 'glim', 'cf')}
     rng_t = random.Random(SEED + 99)
     rng_b = random.Random(SEED + 77)
     rng_h = random.Random(SEED + 55)
@@ -288,6 +288,15 @@ def build():
         return _re.sub(r'm(\d+\.\d+)', lambda m_: f"m{float(m_.group(1)) + FOURTH:.3f}", tok_)
     for key in ('pad', 'bass', 'seq', 'keys'):
         P[key] = [(e_[0], _up(e_[1]), e_[2], e_[3]) if e_[0] >= coda0 * 4.0 - 1e-6 else e_ for e_ in P[key]]
+    # (v25) THE ANSWER WAS ALWAYS IN THE ROOM: through the hottest epoch's middle (bars 4-19 of the first), while the
+    # search flails, a cello plays the very thing it is looking for - the target riff, an octave down and slowed sixteen
+    # times, one sixteenth to a bar, so it is a long, patient chorale line (A . C E D . C . A G . E G A . .) that nobody
+    # could hear as the riff yet; when the search finds it at the end, it has been heard once already, as a slow song
+    cf0 = sum(n for nm_, n in FORM[:[nm_ for nm_, _ in FORM].index('e1')]) * 4.0 + 16.0
+    nn_ = [q for q in range(16) if TARGET[q] is not None]
+    for j_, q in enumerate(nn_):
+        q2 = nn_[j_ + 1] if j_ + 1 < len(nn_) else 16
+        P['cf'].append((cf0 + q * 4.0, tok(hz(TARGET[q] - 7, 0)), (q2 - q) * 4.0 - 0.3, 66 + (6 if q in (3, 4) else 0)))
     # (v16) GLIMPSES: in the middle of the last, longest epoch, before the search has found anything, the electric
     # piano that will play the answer lets slip a few of its notes - the first two, exact and quiet, in their
     # places in the bar; four bars later the first three; then four; then the first phrase - the answer showing
@@ -376,6 +385,7 @@ def build():
             # (v16) the glimpses: the electric piano's own track, last, so nothing before it moves
             tr('glim', 'epiano-tine', '-6dB', pan=-0.15, sends={'echo': '-14dB', 'hall': '-12dB'},
                fx=[{'type': 'wah', 'low': 350, 'high': 2600, 'env': 0.9, 'q': 4, 'mix': 0.6}]),
+            tr('cf', 'cello', '-11dB', pan=0.25, sends={'hall': '-10dB'}),
         ]}
     return song, losses, T
 
