@@ -101,6 +101,14 @@ C6_VOICE = {"about": "chirper-two: No Errors Since's speaker - the speech-mode v
                       "pitch": {"value": 0, "mod": [{"src": "expr.f0", "amount": 0.01}]},
                       "amp": {"a": "15ms", "d": "0s", "s": 1, "r": "60ms"}},
             "fx": ["reverb kind=room decay=0.6s mix=0.08"]}
+# T6_R9 = climb (v9, whole-song round). THE SONG CANNOT HELP RISING, a diesis at a time. Pop's last-chorus key change,
+# but in 19-EDO, where the smallest step is a DIESIS (63 cents, between a quarter-tone and a semitone, a lift no piano
+# can play): the second half of chorus one rises one diesis; chorus two rises one diesis at its bar 8 and another at
+# its bar 15 (126 cents up, the ground still moving under the same words); the outro comes home, the radio tuning
+# back down to where the song began. Every pitched part moves together (chords, Rhodes, bass and its sub, horns, the
+# organ, the vocoder's carrier and the sung voice that shapes it); the drums stay put. T6_R9=none reproduces v8.
+R9 = os.environ.get("T6_R9", "climb")
+CLIMB_STEP = int(os.environ.get("T6_CLIMB_STEP", "1"))
 R7FLUTE = os.environ.get("T6_R7_FLUTE", "0") == "1" and R7 == "horns"   # opt-in: the flute swap cost spectrum 91 -> 78
 if R6 == "waltz":
     FORM = FORM[:5] + [("waltz", 12)] + FORM[5:]
@@ -334,6 +342,35 @@ def build():
 def main():
     total, bars, secs, T, V, chords = build()
     st = {n: s for n, s, k in secs}
+    if R9 == "climb":
+        c1, c2 = st["chorus1"], st["chorus2"]
+        bl = 4.0
+
+        def lift(a):
+            if c1 + 7 * bl - 1e-6 <= a < st["verse2"] - 1e-6:
+                return CLIMB_STEP
+            if c2 + 15 * bl - 1e-6 <= a < st["outro"] - 1e-6:
+                return 2 * CLIMB_STEP
+            if c2 + 8 * bl - 1e-6 <= a < st["outro"] - 1e-6:
+                return CLIMB_STEP
+            return 0
+
+        def shift_head(h, k):
+            out = []
+            for tok in str(h).split(","):
+                if len(tok) > 1 and tok[0] == "m" and tok[1:].replace(".", "", 1).replace("-", "", 1).isdigit():
+                    out.append(mm(float(tok[1:]) + k * 12 / EDO))
+                else:
+                    out.append(tok)
+            return ",".join(out)
+
+        for tr in T.values():
+            tr.ev = [(a, ln, shift_head(h, lift(a)) if lift(a) else h, v, art) for a, ln, h, v, art in tr.ev]
+        for lst in V.values():
+            for d in lst:
+                k = lift(d["at"])
+                if k and str(d.get("pitch", "")).endswith("hz"):
+                    d["pitch"] = f"{float(d['pitch'][:-2]) * 2 ** (k / EDO):.2f}hz"
     KIT = "lofi-kit" if R5 == "fretless" else "machine-kit"
     kg = (lambda g: f"{float(g[:-2]) + 3:g}dB") if R5 == "fretless" else (lambda g: g)   # the lofi kit reads ~3 dB softer
     if R5 == "fretless":
