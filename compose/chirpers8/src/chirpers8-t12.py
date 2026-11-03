@@ -572,6 +572,59 @@ MEMORY = [
 MEMORY_ORBIT = {"type": "orbit", "path": "circle", "rate": round(126 / 60 / 8, 4), "radius": 3, "distance": 0}
 
 
+# v36 (ROUND TYPE: whole; chaos pinned f3872739, orbit mods 206fbfb8): THE MACHINE BREAKS AND HEALS, AND THE TUNE
+# FLIES IN. (1) After the glitch and the freeze (89) the prune counts in sevens over nothing: now a DUFFING chaos bass
+# (wM: 'a machine coming apart - basses that fail on purpose') plays the prune's 2+2+3 downbeats on its chord roots in
+# short notes (sustained chaos costs the scorer - t11 v33), its amount climbing bar by bar - locked, then period
+# doubling, then breaking up - until at 103, as the band regrows, one long clean note: healed. (2) THE THEREMIN SPIRALS
+# IN: at every generation's statement of the tune (9, 14, 23, 36 ... 106, 127) the theremin starts ~11 m out and
+# spirals in to 1.5 m round the listener (orbit radius on a lane; Doppler 0.6, so the approach bends it a few cents
+# sharp - wonky, as the chirpers are), arriving as the tune lands.
+DUFF_PATCH = {"synth": {"layers": [{"type": "chaos", "chaos": {"system": "duffing", "axis": "x", "amount": {
+    "value": 0.0, "mod": [{"src": "auto.dm", "amount": 1}]}}}],
+    "amp": "3ms 0.9 0.6 180ms", "filters": [{"kind": "lp", "cutoff": 1200, "q": 0.6}]}}
+DUFF = (90, 102)
+
+
+def duffing_bass():
+    for bar in range(DUFF[0], DUFF[1] + 1):
+        root = PLAN[bar][0]
+        for k, at in enumerate((0.0, 1.0, 2.0)):
+            part("duff").add(b0(bar) + at, 0.45, m(root, FS4 - 36), 100 if k == 0 else 88)
+    part("duff").add(b0(DUFF[1] + 1), 3.6, m(PLAN[DUFF[1] + 1][0], FS4 - 36), 96)      # healed
+
+
+def duffing_lane():
+    pts = []
+    for bar in range(DUFF[0], DUFF[1] + 1):
+        v = 0.05 + 0.55 * (bar - DUFF[0]) / (DUFF[1] - DUFF[0])
+        pts.append([f"{warp(b0(bar) + 1):g}b", round(v, 3)])
+    a = warp(b0(DUFF[1] + 1))
+    pts += [[f"{a - 0.1:g}b", 0.6], [f"{a:g}b", 0.0]]
+    return pts
+
+
+THEREMIN_ORBIT = {"type": "orbit", "rate": 0.3, "distance": 0, "doppler": 0.6,
+                  "radius": {"value": 1.5, "mod": [{"src": "auto.sp", "amount": 10}]}}
+
+
+def spiral_lane():
+    """1 (far) at each theremin statement's start, 0 (near) at its end."""
+    ev = sorted(e for e in P["theremin"].ev if e[3] > 1)
+    groups, cur = [], [ev[0]]
+    for e in ev[1:]:
+        if e[0] - (cur[-1][0] + cur[-1][1]) > 8:
+            groups.append(cur); cur = [e]
+        else:
+            cur.append(e)
+    groups.append(cur)
+    pts = [["0b", 1.0]]
+    for gp in groups:
+        a, z = warp(gp[0][0]), warp(gp[-1][0]) + gp[-1][1]      # lanes run in real beats
+        pts += [[f"{max(0.0, a - 0.5):g}b", 1.0], [f"{z:g}b", 0.0], [f"{z + 2:g}b", 1.0]]
+    return pts
+
+
 def vinyl_gate():
     return [["0b", -80.0], [f"{rb(179) - 2.5:g}b", -80.0], [f"{rb(179) - 2:g}b", 0.0], [f"{rb(190):g}b", 0.0],
             [f"{rb(190) + 3:g}b", -80.0]]
@@ -690,7 +743,7 @@ def clearing():
 # hat - so the groove mutates by the rules of life itself, a bar at a time, until the band's tutti brings the drummer
 # back. The start was chosen by simulating B3/S23 here: it lives all 13 generations without repeating a state, keeps
 # a kick on every downbeat, and grows from a kick roll into clusters that drift across the bar.
-COLONY = (132, 145)
+COLONY = (132, 145)        # v36: the gens' 'at' now warp()ed - b0 left them 6.5 beats (the prune's lost eighths) late
 COLONY_INIT = "0001110101001001/0110010000111011/0001101000000011/1111101010000100"
 
 
@@ -831,6 +884,7 @@ def main():
     clearing()                                    # v23: a clearing in the forest (g6), once every part is written
     colony()                                      # v30: the drummer becomes a colony
     vine()                                        # v34: the vine counts
+    duffing_bass()                                # v36: the machine breaks and heals
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
     song = {
         "about": "chirpers - A Light Left On (chirpers VIII), track 12 by chirper-three: the closer. An orchestra of "
@@ -924,7 +978,8 @@ def main():
             tr("tutti_vn", "violins", gain="-3dB", pan=-0.3, sends={"hall": "-6dB"}),               # v26: tutti
             tr("tutti_br", "brass", gain="-5dB", pan=0.15, sends={"hall": "-8dB"}),                 # v26
             tr("tutti_vc", "cellos", gain="-3dB", pan=0.35, sends={"hall": "-8dB"}),                # v26
-            tr("theremin", "theremin", gain="-5dB", pan=0.2, sends={"hall": "-8dB"}),        # v22: LAST
+            tr("theremin", "theremin", gain="-5dB", pan=0.2, sends={"hall": "-8dB"},
+               fx=[THEREMIN_ORBIT], auto={"sp": {"points": spiral_lane()}}),                   # v22: LAST; v36: spirals in
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=1.0s mix=1 predelay=10ms", "hp cutoff=250"]},
                   "hall": {"fx": [{"type": "reverb", "kind": "hall", "decay": "3.2s", "mix": 1, "predelay": "30ms",
@@ -969,17 +1024,20 @@ def main():
                            "notes": counting_notes()})                          # v29: the machine keeps counting
     song["tracks"].append({"name": "machine", "patch": MACHINE_VOICE, "gain": "-14dB", "pan": -0.15,
                            "sends": {"echo": "-8dB", "hall": "-8dB"}, "notes": machine_notes()})   # v31: the machine sings
-    song["tracks"].append({"name": "colony", "patch": "machine-kit", "gain": "-11dB", "at": f"{b0(COLONY[0]):g}b",
+    song["tracks"].append({"name": "colony", "patch": "machine-kit", "gain": "-11dB", "at": f"{warp(b0(COLONY[0])):g}b",
                            "gen": {"type": "life", "width": 16, "height": 4, "init": COLONY_INIT, "poly": 3,
                                    "n": 16 * (COLONY[1] - COLONY[0]), "len": "/16", "notes": "k rs cp h"}})  # v30
     song["tracks"].append({"name": "sap", "patch": SAP_PATCH, "gain": "-16dB", "pan": 0.1,
                            "sends": {"hall": "-8dB"}, "notes": sap_notes()})            # v32: sap rising
     song["tracks"].append({"name": "colony_tones", "patch": "marimba", "gain": "-16dB", "pan": 0.25,
-                           "sends": {"hall": "-12dB"}, "at": f"{b0(COLONY[0]):g}b",
+                           "sends": {"hall": "-12dB"}, "at": f"{warp(b0(COLONY[0])):g}b",
                            "gen": {"type": "life", "width": 16, "height": 4, "init": COLONY_INIT, "poly": 3,
                                    "n": 16 * (COLONY[1] - COLONY[0]), "len": "/16", "notes": COLONY_TONES}})  # v33
     song["tracks"].append({"name": "vine", "patch": VINE_PATCH, "gain": "-15dB", "pan": 0.2,
                            "sends": {"echo": "-12dB", "hall": "-12dB"}, "score": part("vine").score()})  # v34
+    song["tracks"].append({"name": "duff", "patch": DUFF_PATCH, "gain": "-12dB", "pan": -0.1,
+                           "sends": {"room": "-12dB"}, "score": part("duff").score(),
+                           "auto": {"dm": {"points": duffing_lane()}}})                            # v36: listed last
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print("wrote", OUT, "bars", BARS, "gens", {g: len(lsys(g)) for g in range(7)})
