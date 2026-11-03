@@ -392,6 +392,27 @@ def build():
     for key in ('kit', 'bass', 'sub', 'pno'):
         P[key] = [(e_[0], e_[1], e_[2], 1) if _bd(e_[0]) else e_ for e_ in P[key]]
     P['fill'] = [(bd1 - 2.0 + 0.25 * q_, 's', 0.2, 46 + 9 * q_) for q_ in range(8)]
+    # (v35) A GUEST TAKES A CHORUS: in the middle of the second groove (bars 16-23, Bm9 into the long F#7sus and back
+    # to Em11) a muted trumpet walks in and takes one chorus - a human in the band nobody had heard yet, playing
+    # around the tune rather than the tune: it starts on the chord's ninth, leans on the sus, paraphrases the tune's
+    # falling opening a bar early and lifts it to the D above at the top of the Em11, then lets it go on a long E.
+    # The vibraphone lays out for its turn (written, then muted to velocity 1); the machine fumbles the tune
+    # straight after as before - it has just heard something it cannot copy yet
+    SOLO = [(None, 1.0), (66, .5), (69, .5), (73, 1.5), (71, .5),
+            (69, .5), (66, .5), (64, 1.0), (61, .5), (64, .5), (66, 1.0),
+            (None, 1.5), (71, .5), (73, .5), (71, .5), (69, 1.0),
+            (68, .5), (66, 1.5), (None, 2.0),
+            (66, .5), (64, .5), (62, 1.0), (59, 1.0), (None, 1.0),
+            (61, .5), (64, .5), (66, .5), (69, .5), (71, 1.0), (73, 1.0),
+            (74, 1.5), (71, .5), (67, 1.0), (66, 1.0),
+            (64, 3.0), (None, 1.0)]
+    s0_, s1_ = (secs['B'] + 16) * 4.0, (secs['B'] + 20) * 4.0
+    at_, P['tpt'] = s0_, []
+    for j_, (m_, d_) in enumerate(SOLO):
+        if m_ is not None:
+            P['tpt'].append((at_ + 0.03, f"m{m_}", d_ * (0.97 if d_ >= 1 else 0.85), 74 + (12 if d_ >= 1.5 else 0) + (j_ * 7) % 9))
+        at_ += d_
+    P['vib'] = [(e_[0], e_[1], e_[2], 1) if s1_ - 1e-6 <= e_[0] < s1_ + 16.0 - 1e-6 else e_ for e_ in P['vib']]
     P['pad2'] = [e_ for e_ in P['pad'] if e_[0] >= secs['outro'] * 4.0 - 1e-6]
     P['pad'] = [e_ for e_ in P['pad'] if e_[0] < secs['outro'] * 4.0 - 1e-6]
     # D: the machine says it back - the exact contour of each take, two octaves up, with the voice
@@ -532,12 +553,13 @@ def build():
                fx=[{'type': 'eq', 'bands': ['peak cutoff=75 q=0.8 gain=4dB', 'highshelf cutoff=9000 gain=-5dB']}]),
             tr('ride', 'tight-kit', '-9dB', pan=-0.15, sends={'hall': '-16dB'},
                fx=[{'type': 'eq', 'bands': ['peak cutoff=75 q=0.8 gain=4dB', 'highshelf cutoff=9000 gain=-4dB']}]),
+            tr('tpt', 'trumpet-mute', '-9dB', pan=-0.2, sends={'hall': '-12dB', 'echo': '-16dB'}),
         ]}
     # (v33) THE HUMANS SWING: the band - drums, bass, vibraphone, piano - plays its sixteenths with a light swing
     # (each off-sixteenth a little late, 0.57), the feel of people playing together; the machine's own parts - its
     # babble in every mouth, its cellular-automaton rim, its bytebeat hum - stay dead straight, on the grid. Only when it
     # says the line back does the machine swing too: it has learnt the feel along with the words
-    SW = {'kit', 'kit2', 'kit3', 'ride', 'fill', 'bass', 'vib', 'pno', 'say'}
+    SW = {'kit', 'kit2', 'kit3', 'ride', 'fill', 'bass', 'vib', 'pno', 'say', 'tpt'}
     for t_ in song['tracks']:
         if t_['name'] in SW and isinstance(t_.get('score'), str):
             t_['score'] = 'swing16=0.57 ' + t_['score']
