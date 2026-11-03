@@ -487,6 +487,31 @@ CHIP = (81, 105)
 LPC_EARLY = 0.075              # beats: LPC answers ~35 ms late
 
 
+# v38 (ROUND TYPE: section, w8 3:30-4:00 - merge's second run, flagged static, little new vs w7): THE FINAL MERGE, AS
+# A ZIPPER. Merge sort ends by joining two sorted halves, taking whichever head is smaller each step - and merging by
+# value plays RIFF[v] in order: the TUNE. So in 117-124 a kalimba on the left holds the array's first half and a marimba
+# on the right its second, and every sixteenth is played by the side the merge takes from: the sorted tune zips
+# together between them, a hocket, bar by bar from that bar's own halves; and over the eight bars the two sides pan
+# INWARD (+-0.85 -> +-0.1), meeting in the centre as the list is sorted and the voice sings (125).
+ZIP = (117, 124)
+
+
+def zipper():
+    for bar in range(ZIP[0], ZIP[1] + 1):
+        left = set(ARRS[bar][:N // 2])
+        frac = (bar - ZIP[0]) / (ZIP[1] - ZIP[0])
+        pl = round(-0.85 + 0.75 * frac, 3)
+        for k, v in enumerate(range(N)):
+            side, pan = ("zipL", pl) if v in left else ("zipR", -pl)
+            grow = min(1.0, 0.45 + 0.55 * ((bar - ZIP[0]) * N + k) / (3 * N))   # fades in over three bars: a hard
+            part(side).add(b0(bar) + k / 4, 0.2, pitch(RIFF[v] + root_at(bar), BASE + 12) + f"^ix={pan}",   # entrance
+                           int((90 if k % 4 == 0 else 78) * grow))                  # made a 23rd section (seed 11)
+
+
+def zip_patch(base):
+    return {"extends": base, "synth": {"fx": [{"type": "pan", "pan": {"value": 0, "mod": [{"src": "expr.ix", "amount": 1}]}}]}}
+
+
 def chip_tracks():
     out = []
     for name, bars, fx, gain in (("chip_toy", CHIP_TOY, "lpc pitch=A2 bits=5", "-7.5dB"),
@@ -898,6 +923,10 @@ def main():
                            "auto": {"rt": {"points": route_lane()}}})                      # v34: listed last
     song["tracks"].append({"name": "roomtone", "patch": ROOMTONE, "gain": "-30dB", "score": part("roomtone").score()})  # v35
     song["tracks"] += chip_tracks()                                                          # v37: listed last
+    zipper()                                                                                 # v38: listed last
+    for name, base in (("zipL", "kalimba"), ("zipR", "marimba")):
+        song["tracks"].append({"name": name, "patch": zip_patch(base), "gain": "-21dB",
+                               "sends": {"room": "-12dB"}, "score": part(name).score()})
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print("wrote", OUT, "bars", BARS)
