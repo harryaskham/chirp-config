@@ -470,11 +470,19 @@ def build():
                '-7dB', pan=-0.15, sends={'echo': '-12dB', 'hall': '-11dB'}),
             tr('sync', SYNC, '-12dB', pan=0.4, fx=['hp cutoff=220', 'lp cutoff=3600'], sends={'hall': '-16dB'}),
             tr('pwm', PWM, '-15dB', pan=0.1, fx=['hp cutoff=380'], auto={'pw': {'points': pw}}, sends={'hall': '-10dB'}),
-            tr('bass', FMBASS, '-7dB', fx=['lp cutoff=1600']),
+            # (v41, palette) THE MACHINE COMING APART: the clave bass was an FM bass. Now it is a driven Duffing oscillator
+            # locked to each note (wM's duffing-bass, from today's chaos layer): its short tresillo notes stay clean and
+            # punchy through the calls - but as the stack unwinds in the final calls the bass turns to long roots, and
+            # over each held root the oscillator walks into chaos and jumps between its two wells: the machine audibly
+            # coming apart as it returns
+            tr('bass', 'duffing-bass', '-6dB', fx=['lp cutoff=1600', {'type': 'eq', 'bands': ['peak cutoff=180 q=0.9 gain=4dB']}]),
             tr('d1', BELL, '-13dB', pan=0.6, sends={'echo': '-14dB'}),
             # (v12) the deepest copies thinner (chirper-three: the densest stack may crowd the subject)
             tr('d2', BELL, '-19dB', pan=-0.6, sends={'echo': '-16dB'}),
-            tr('d3', 'glass', '-26dB', pan=0.5, fx=['hp cutoff=800'], sends={'hall': '-12dB'}),
+            # (v41, palette) the deepest call - the subject at eight times speed, three levels down - leaves the album's
+            # glass (three songs) for a pitched bytebeat chip (wM's bytebeat-chip, t*8|t>>5): at the bottom of the stack
+            # the machine is raw arithmetic
+            tr('d3', 'bytebeat-chip', '-28dB', pan=0.5, fx=['hp cutoff=800', 'lp cutoff=5000'], sends={'hall': '-12dB'}),
             # (v39) PERIOD ONE, DOUBLING: t9 is 'Period Doubling' and ends with its logistic map settled on one value. Under
             # this song's intro an A (the call's root) is held on an audio-rate Rossler attractor (wM's chaos layer, one
             # loop of the attractor per period of the note) whose control walks the same route t9 is named for, upwards,
@@ -489,7 +497,7 @@ def build():
              'score': 'R/8b A2/24b', 'sends': {'hall': '-10dB'}},   # (from bar 3, fading in: the join from t9 stays thin)
             tr('u1', BELL, '-11dB', fx=[f"orbit rate={ORB_RATE} radius=30 distance=2 path=line phase={orb_phase['1']:.4f}"], sends={'echo': '-14dB'}),
             tr('u2', BELL, '-17dB', fx=[f"orbit rate={ORB_RATE} radius=30 distance=2 path=line phase={orb_phase['2']:.4f}"], sends={'echo': '-16dB'}),
-            tr('u3', 'glass', '-24dB', fx=['hp cutoff=800', f"orbit rate={ORB_RATE} radius=30 distance=2 path=line phase={orb_phase['3']:.4f}"], sends={'hall': '-12dB'}),
+            tr('u3', 'bytebeat-chip', '-26dB', fx=['hp cutoff=800', 'lp cutoff=5000', f"orbit rate={ORB_RATE} radius=30 distance=2 path=line phase={orb_phase['3']:.4f}"], sends={'hall': '-12dB'}),
             tr('kit', 'machine-kit', '-2dB', sends={'hall': '-20dB'}),
             tr('glass', 'glass', '-15dB', pan=0.1, sends={'hall': '-8dB'}),
             tr('cs', 'clarinet', '-9dB', pan=-0.45, sends={'hall': '-10dB', 'echo': '-18dB'}),
