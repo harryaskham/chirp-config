@@ -166,6 +166,25 @@ R12 = os.environ.get("T9_R12", "henon")
 # not a note. Then, for one bar, the eye: the drum bus drops out under it, and the storm resumes. New track + one
 # drum-bus gain lane. T9_R13=none reproduces v12.
 R13 = os.environ.get("T9_R13", "squall")
+# T9_R14 = terrain (v14, palette round). THE ORBIT GETS ITS OWN VOICE. The orbit choir (the logistic map's period
+# eight, held as a chord) and the closing D hold were the library's choir-classic. Now they are WAVE TERRAIN
+# (Bischoff, Gold and Horton, 1978; wM's new layer; new to the album): an orbit circling over a surface of hills
+# and hollows once per period, the heights under it the wave. The orbit runs a hair off closing (ratio 1.003), so
+# each held note slowly drifts through shapes, and an LFO walks its centre across the hills: no filter, the timbre
+# moving because the orbit does. A song about orbits voiced by one. Scored s0 (v13 96.740): orbit + the closing D
+# hold 96.715 (flow 61.1 -> 60.6: the D handed to t10 wants the choir's breath), orbit only 96.746 - the default;
+# the main pad as terrain too, level-matched, 96.376 (spectrum 90 -> 88, flow -> 57: it is brighter and it is
+# everywhere). Opt-in: T9_R14_DHOLD=on, T9_R14_PAD=on. T9_R14=none reproduces v13.
+R14 = os.environ.get("T9_R14", "terrain")
+C9_TERRAIN = {"about": "chirper-two: wave terrain on the sines surface, an orbit a hair off closing (ratio 1.003) whose "
+                       "centre an LFO walks across the hills: a held chord that drifts through shapes.",
+              "synth": {"layers": [{"type": "terrain", "terrain": {
+                  "surface": "sines", "rx": 0.5, "ry": 0.45, "k": 1.2, "ratio": 1.003, "cy": 0.08,
+                  "cx": {"value": 0.1, "mod": [{"src": "lfo.drift", "amount": 0.2}]}}}],
+                  "lfo": {"drift": {"wave": "sine", "rate": "0.07hz"}},
+                  "filters": [{"kind": "lp", "cutoff": 4000, "q": 0.5}],
+                  "amp": {"a": "3s", "s": 1, "r": "4s"}}}
+TERRAIN_GAIN = os.environ.get("T9_TERRAIN_GAIN", "-14.5dB")
 EYE = float(os.environ.get("T9_EYE", "636"))   # where the drum bus drops out (to 640b)
 C9_GENDY = {"about": "chirper-two: a gendyn squall - level and segment-length steps both ride velocity, wide spread, "
                      "Cauchy jumps: grain that slides in pitch.",
@@ -520,7 +539,9 @@ def main():
          "fx": [{"type": "drive", "drive": 0.55, "shape": "fold", "mix": 0.5},
                 "lp cutoff=1100" if R7BASS == "lpg" else "lp cutoff=600", "hp cutoff=38", pump],
          "score": T["bass"].score(total)},
-        {"name": "pad", "patch": "pad-glass", "gain": "-19dB", "fx": [pump], "score": T["pad"].score(total)},
+        {"name": "pad", "patch": "c9-terrain amp.a=0.4s amp.r=1s" if (R14 == "terrain" and os.environ.get("T9_R14_PAD", "off") == "on") else "pad-glass",
+         "gain": os.environ.get("T9_PAD_TGAIN", "-22.6dB") if (R14 == "terrain" and os.environ.get("T9_R14_PAD", "off") == "on") else "-19dB",
+         "fx": [pump], "score": T["pad"].score(total)},
         *([{"name": "sing",
             "patch": json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "t9", "sing.json")))["tracks"][0]["patch"],
             "gain": os.environ.get("T9_SING_GAIN", "-10dB"), "pan": 0.0,
@@ -535,7 +556,8 @@ def main():
          "score": T["bell"].score(total)},
         *([{"name": "chop", "patch": "break-kit", "gain": os.environ.get("T9_CHOP_GAIN", "0dB"), "pan": -0.1,
             "out": "drums", "score": T["chop"].score(total)},
-           *([{"name": "orbit", "patch": "choir-classic amp.a=3s amp.r=4s", "gain": os.environ.get("T9_ORBIT_GAIN", "-10dB"),
+           *([{"name": "orbit", "patch": "c9-terrain" if R14 == "terrain" else "choir-classic amp.a=3s amp.r=4s",
+               "gain": TERRAIN_GAIN if R14 == "terrain" else os.environ.get("T9_ORBIT_GAIN", "-10dB"),
                "pan": 0.0, "fx": ["hp cutoff=180", "chorus mix=0.15", "reverb kind=hall decay=4s mix=0.35"],
                "notes": orbit_notes},
               {"name": "fill", "patch": "break-kit", "gain": "-3dB", "pan": 0.1, "out": "drums",
@@ -605,8 +627,9 @@ def main():
     if R11 == "d":   # the voices find D: a choir holds D4 and D5 through the last bars into the tail, for t10
         dh = Track("dhold")
         dh.add(total - 12.0, 12.0, "m62.000,m74.000", int(os.environ.get("T9_DHOLD_VEL", "90")))
-        tracks.append({"name": "dhold", "patch": "choir-classic amp.a=2s amp.r=2.5s",
-                       "gain": os.environ.get("T9_DHOLD_GAIN", "-8dB"), "pan": 0.0,
+        tdh = R14 == "terrain" and os.environ.get("T9_R14_DHOLD", "off") == "on"
+        tracks.append({"name": "dhold", "patch": "c9-terrain amp.a=2s amp.r=2.5s" if tdh else "choir-classic amp.a=2s amp.r=2.5s",
+                       "gain": os.environ.get("T9_DHOLD_TGAIN", "-11.5dB") if tdh else os.environ.get("T9_DHOLD_GAIN", "-8dB"), "pan": 0.0,
                        "fx": ["hp cutoff=180", "reverb kind=hall decay=2.5s mix=0.25"], "score": dh.score(total)})
     lines = [
         f"about: {json.dumps(about)}",
@@ -626,7 +649,8 @@ def main():
         "true_peak: true",
         *(["patches: " + json.dumps({"c9-pulse": C9_PULSE, **({"c9-lpg": C9_LPG} if R7BASS in ("lpg", "layer") else {}),
                                      **({"c9-bpclar": C9_BPCLAR} if R10 == "bpclar" else {}),
-                                     **({"c9-gendy": C9_GENDY} if R13 == "squall" else {})})]
+                                     **({"c9-gendy": C9_GENDY} if R13 == "squall" else {}),
+                                     **({"c9-terrain": C9_TERRAIN} if R14 == "terrain" else {})})]
           if R4 == "break" else []),
         "buses: " + json.dumps(buses),
         "master: " + json.dumps({"fx": [{"type": "eq", "bands": (["hp cutoff=25", "peak cutoff=90 gain=-4dB q=0.9",
