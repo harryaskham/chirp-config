@@ -120,7 +120,7 @@ def build():
                     cand = new
         seq_states.append(list(cand)); losses.append(round(loss(cand), 3))
     # ---- render the parts ----
-    P = {k: [] for k in ('seq', 'keys', 'pad', 'bass', 'kit', 'hum', 'rhum', 'glim', 'cf', 'gdy')}
+    P = {k: [] for k in ('seq', 'keys', 'pad', 'bass', 'kit', 'hum', 'rhum', 'glim', 'cf', 'gdy', 'sub')}
     rng_t = random.Random(SEED + 99)
     rng_b = random.Random(SEED + 77)
     rng_h = random.Random(SEED + 55)
@@ -231,6 +231,9 @@ def build():
             chord = ','.join(tok(hz(v, c)) for v, c in zip(voices, pad_cents))
             P['pad'].append((t0, chord, 3.9, 70))
             bc = rng.gauss(0, 30 * temp)
+            # (v28) a sine an octave under the bass's root, one long note a bar: the album's floor (compscore's spectrum:
+            # 38 Hz was 9 dB short of the album)
+            P['sub'].append((t0, tok(hz(root, bc, base=27.5)), 3.85, 80))
             # (v11) THE BASS ANNEALS TOO: cold, the octave pulse in eighths (the machine's oldest bass line); hot, the same
             # notes chosen step by step at random - sixteenths appear, eighths drop out, the octave flips - so the bass
             # searches with the rest and settles into the pulse as the temperature falls
@@ -286,7 +289,7 @@ def build():
     FOURTH = 1200 * math.log2(4 / 3) / 100.0
     def _up(tok_):
         return _re.sub(r'm(\d+\.\d+)', lambda m_: f"m{float(m_.group(1)) + FOURTH:.3f}", tok_)
-    for key in ('pad', 'bass', 'seq', 'keys'):
+    for key in ('pad', 'bass', 'seq', 'keys', 'sub'):
         P[key] = [(e_[0], _up(e_[1]), e_[2], e_[3]) if e_[0] >= coda0 * 4.0 - 1e-6 else e_ for e_ in P[key]]
     # (v25) THE ANSWER WAS ALWAYS IN THE ROOM: through the hottest epoch's middle (bars 4-19 of the first), while the
     # search flails, a cello plays the very thing it is looking for - the target riff, an octave down and slowed sixteen
@@ -346,6 +349,9 @@ def build():
     Epts = [[f'{b * 4.0:.1f}b', round(energy(b), 2)] for b in range(nb)]
     # the temperature as a lane (one point a bar)
     Tpts = [[f'{b * 4.0:.1f}b', T[b]] for b in range(nb)]
+    # the sub speaks only in bars where the bass is heard (the quench, the listening bars and the power-up keep it out)
+    bass_bars = {int(e_[0] // 4) for e_ in P['bass'] if e_[3] > 1}
+    P['sub'] = [e_ if int(e_[0] // 4) in bass_bars else (e_[0], e_[1], e_[2], 1) for e_ in P['sub']]
     tr = lambda name, patch, gain, **kw: dict({'name': name, 'patch': patch, 'gain': gain, 'score': line(P[name], total)}, **kw)
     song = {
         'about': "chirpers - chirpers VIII, track 7 by chirper-one: Annealing. A sequence that composes itself by simulated "
@@ -360,7 +366,19 @@ def build():
         'tracks': [
             # (v20: the search on a plucked synth, arp-pluck, was tried - even without its ping-pong it thinned the song's
             # body: variety 84, cohesion 92 - and the search stays on the moog-seq; the bass is what moved, below)
-            tr('seq', {'extends': 'moog-seq', 'synth': {'pitch': {'value': 0, 'mod': [{'src': 'expr.sl', 'amount': 0.01}]}}}, '-7dB', sends={'echo': '-12dB', 'hall': '-16dB'},
+            # (v28, palette) THE SEARCH ON A HOME COMPUTER: the search's blips were a Berlin-school Moog sequencer voice
+            # (a saw through a resonant filter). Now they are Casio CZ phase distortion (1984; wM's pd layer) - a sine
+            # whose phase is bent into a resonant saw, no filter: each blip starts with its resonance up (an envelope on
+            # the bend) and the temperature adds more, so hot the search chirps and glitters, cold it rounds off towards
+            # a plain tone; a square an octave below for body, as the Moog had
+            tr('seq', {'gain': '-4dB', 'fx': ['delay time=3/16 feedback=0.3 mix=0.18 ping_pong=true tone=2500'],
+                       'play': {'gate': 0.8, 'vel_sens': 0.5},
+                       'synth': {'layers': [{'type': 'pd', 'pd': {'shape': 'reso_saw', 'amount': {'value': 0.05, 'mod': [
+                                                 {'src': 'env.zap', 'amount': 0.3}, {'src': 'auto.T', 'amount': 0.15}]}}},
+                                            {'type': 'pd', 'level': 0.45, 'semi': -12, 'pd': {'shape': 'square', 'amount': 0.4}}],
+                                 'env': {'zap': {'a': '1ms', 'd': '170ms', 's': 0.0, 'r': '80ms'}},
+                                 'amp': {'a': '2ms', 'd': '220ms', 's': 0.6, 'r': '90ms'},
+                                 'pitch': {'value': 0, 'mod': [{'src': 'expr.sl', 'amount': 0.01}]}}}, '-7dB', sends={'echo': '-12dB', 'hall': '-16dB'},
                # (v5) less squelch (Harry, 1 Nov 18:19, of another track: 'too squelchy'): a gentler filter resonance and a
                # softer, less-bitten crusher when hot - the search noisy and glittering rather than resonant and chewed
                fx=[{'type': 'filter', 'kind': 'lp', 'q': 0.75, 'cutoff': {'value': 3200, 'mod': [{'src': 'auto.T', 'amount': 1.8}]}},
@@ -407,6 +425,7 @@ def build():
             tr('glim', 'epiano-tine', '-6dB', pan=-0.15, sends={'echo': '-14dB', 'hall': '-12dB'},
                fx=[{'type': 'wah', 'low': 350, 'high': 2600, 'env': 0.9, 'q': 4, 'mix': 0.6}]),
             tr('cf', 'cello', '-11dB', pan=0.25, sends={'hall': '-10dB'}),
+            tr('sub', 'sub', '-13dB', fx=['lp cutoff=120']),
             {'name': 'life1', 'patch': 'electro-kit', 'gain': '-8dB', 'pan': -0.1, 'score': f"R/{e2_:.4f}b",
              'gen': {'type': 'life', 'width': 16, 'height': 4, 'init': 'glider', 'poly': 2, 'n': 8 * 16, 'len': '/16',
                      'notes': 's cl cb h'}, 'sends': {'hall': '-20dB'}},
