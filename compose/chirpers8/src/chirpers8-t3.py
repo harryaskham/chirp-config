@@ -213,6 +213,13 @@ R19 = os.environ.get("T3_R19", "chip")
 # always, then every live cell on an even sixteenth strikes the kick (rule 30: a different bar every bar), the claps
 # holding two and four. The automaton drums its own climax. T3_R20=none reproduces v19.
 R20 = os.environ.get("T3_R20", "drummer")
+# T3_R21 = neighbours (v21, whole-song round). THREE NEIGHBOURS SING. Every rule here reads a cell and its two
+# neighbours; now the cell's lines are sung that way too. Each glider and peak line gets its left neighbour two
+# scale steps under it, hard left, and its right neighbour two steps over it, hard right - parallel thirds in the
+# song's 7-limit scale, so the chords come out septimal (7:6 and 9:7 thirds) - the same voice three times, a hair
+# apart in time, the neighbours 5 dB under the cell (~7.5 dB in level: lower notes, less energy). The decay's chip line stays alone (its neighbours are gone);
+# the hymn keeps its own two parts. T3_R21=none reproduces v20.
+R21 = os.environ.get("T3_R21", "neighbours")
 R11KICK = os.environ.get("T3_R11_KICK", "machine")   # "bronze": the kit's own kick too (cost spectrum 97 -> 75-80)
 C8_KIT = {
     "about": "chirper-two: Three Neighbours' own kit - kr a D1 sine kick that drops into place with a low modal membrane "
@@ -699,6 +706,21 @@ def main():
             if tr["name"] in os.environ.get("T3_LEAVE", "kick,hats,ohat,rim,toms,ca-kit,ca-kit2,shek,skin,click,tone,air,bronze").split(","):
                 tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.leave", "amount": 1}]}}]
                 tr["auto"] = {**tr.get("auto", {}), "leave": lane}
+    if R21 == "neighbours":
+        scale = sorted(m for o in range(2, 9) for m in (o * 12 + x for x in (0, 2, 4, 5, 7, 9, 10)))   # D's 7 steps
+        def shift(pm, k):
+            m = int(pm[1:])
+            i = min(range(len(scale)), key=lambda j: abs(scale[j] - m))
+            return f"m{scale[i + k]}"
+        nd = float(os.environ.get("T3_NB_DB", "5"))
+        for tr in list(tracks):
+            if tr["name"] in ("story", "sing"):
+                g = float(str(tr["gain"]).replace("dB", ""))
+                for side, k, pan, dt in (("l", -2, -0.55, 0.018), ("r", 2, 0.55, -0.012)):
+                    nb = {**tr, "name": f'{tr["name"]}-{side}', "pan": pan, "gain": f"{g - nd:g}dB",
+                          "notes": [{**n_, "at": round(n_["at"] + dt, 4), "pitch": shift(n_["pitch"], k)}
+                                    for n_ in tr["notes"] if n_["at"] < st["decay"]]}
+                    tracks.append(nb)
     if R19 == "chip" and os.environ.get("T3_LPC_ALL", "off") == "on":   # every cell line: unintelligible (ASR: "I")
         for tr in tracks:
             if tr["name"] in ("sing", "story"):
