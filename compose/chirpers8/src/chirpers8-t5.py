@@ -62,6 +62,8 @@ CONGALAYER = os.environ.get("C8T5_CONGALAYER", "-26")   # WHOLE ROUND: inside th
 OUTKS = os.environ.get("C8T5_OUTKS", "0:-14")   # SECTION ROUND (w9, the outro: level jump): the deal, plucked as they part - the tune they sang at C's end (B3 D4 E4, the last time up to B4) comes back in the outro on Karplus-Strong (engine 8f150090, 1983: a noise burst settling in a one-period loop), stretched to ring long: every two bars, four times, then up to B4, then one E4 left ringing at bar 12, each softer. A notes-only track, outro only. Value 'blend:gain'
 ROBOCHOIR = os.environ.get("C8T5_ROBOCHOIR", "-12")   # SECTION ROUND (the agreement sung, C's last bars): the machine sings too - the three-voice choir that sings 'keep it there' together at C's end gets a fourth voice, a vocoder twin of its middle voice: the same words shaping a held E minor chord of saws (E2 B2 E3 G3) band by band. Agreeing on a speed: humans and the machine sing the deal together. Value = gain dB
 GTRRUSH = os.environ.get("C8T5_GTRRUSH", "0.25")   # SECTION ROUND (w2, the intro's end into A: level jump): the first proposal is rushed - with no kick under it yet, the guitar's opening calls in A run ahead of the band (its own clock: GTRRUSH beats early by A's downbeat), settling back onto the grid over A's first eight bars, so it is exactly on time the bar the kick comes in. Value = beats early
+KEEPACK = os.environ.get("C8T5_KEEPACK", "-3")   # SECTION ROUND (w7, C bar 16: the deal stated): the terms read back - as a protocol acknowledges what it received, the deal ('keep', C bar 16, plain lpc since v51) is read back one bar later by the speaking toy (5-bit monotone lpc on E3), a few dB under: stated, then acknowledged, the way machines agree. Value = gain offset dB
+LPCNUDGE = os.environ.get("C8T5_LPCNUDGE", "")   # v51's lpc keep was nudged 0.07 beats early for lpc's lag; engine ee46ab71 compensates, so the nudge is off ('') from v59
 KEEPLPC = os.environ.get("C8T5_KEEPLPC", "plain")   # SECTION ROUND (w7, C bars 12-28): the agreement spoken by a speech chip - the line that states the deal at C bar 16 (keep) goes through LPC (engine 78e838c5): 'plain' (inflecting) or 'toy' (5-bit monotone on E3, the tonic, the speaking toy); keep2 at C's end stays as it was. Notes 0.07 beats early for LPC's ~35 ms
 ACIDWARP = os.environ.get("C8T5_ACIDWARP", "0.25")   # WHOLE ROUND: agreeing on a speed, literally - the acid runs on its own clock (the engine's per-track warp; the acid alone, its chaos double keeping the band's clock as the grid it wanders around): locked through the intro, drifting behind the band through A's proposals (to +W beats), drifting ahead of it through B's haggling (-W/2), easing back through the retrain to re-lock exactly on C's first bar (curve smooth: no jump), locked through the agreement, and drifting behind again as they part in the outro. Value = W, the largest shift in beats
 WIDTHAGREE = os.environ.get("C8T5_WIDTHAGREE", "0.5,1.5")   # WHOLE ROUND: agreement is one channel - the whole mix's stereo width (a width stage on the master) follows v38's meet lane: wide while the two machines are apart (A, B: the image as wide as their argument), narrowing through the retrain, nearly one channel once they agree in C, opening again as they part at the end. Value 'lo,hi' (width when met, when apart)
@@ -543,7 +545,15 @@ def song():
             if isinstance(t_, dict) and t_.get("name") == "keep":
                 t_["fx"] = [{"plain": "lpc", "toy": "lpc pitch=E3 bits=5"}[KEEPLPC], *t_.get("fx", [])]
                 for n in t_.get("notes", []):
-                    n["at"] = round(max(0.0, n["at"] - 0.07), 4)
+                    n["at"] = round(max(0.0, n["at"] - (0.07 if LPCNUDGE else 0)), 4)
+                if KEEPACK:
+                    ack = json.loads(json.dumps(t_))
+                    ack["name"] = "keep-ack"
+                    ack["fx"] = ["lpc pitch=E3 bits=5", *t_.get("fx", [])[1:]]
+                    ack["gain"] = f"{float(str(t_['gain']).replace('dB', '')) + float(KEEPACK):g}dB"
+                    ack["pan"] = -0.3
+                    ack["notes"] = [dict(n, at=round(n["at"] + 4, 4)) for n in t_.get("notes", [])]
+                    doc["tracks"].append(ack)
     if GTRRUSH:
         fl = dict(FORM)
         for t_ in doc["tracks"]:
