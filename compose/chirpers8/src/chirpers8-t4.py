@@ -584,34 +584,6 @@ def unsung_tracks():
     return out
 
 
-# v42 (ROUND TYPE: section, w1 0:00-0:30 - the intro, flagged static; Harry at 22:15 on t10's 'vocal choiry
-# section ... that is the bar'): A CHOIR OVER THE TUNE FIRST. While the intro plays the riff as it will finally be,
-# sorted, a wordless CHANT choir (fof, Rodet's IRCAM singing voice) holds the progression under it from bar 3 - after
-# the join with t3, whose 3 s stay t3's room - its vowel opening from 'u' to 'a' as the tune plays; at the shuffle (9)
-# the mouth closes again and the choir fades by 13, the order lost. Alpha has no octave, so the chords are root, a just
-# third (5 steps), a fifth (9) and a ninth (18). The voice arc now opens with the machine's oldest singing voice.
-INTRO_CHOIR = (3, 12)
-INTRO_VOICES = (("ic_b", "bass", 0, BASE - 24, 0.1), ("ic_t", "tenor", 9, BASE - 12, 0.15),
-                ("ic_a", "alto", 5, BASE, 0.2), ("ic_s", "soprano", 18, BASE, 0.3))
-
-
-def intro_fof_patch(voice, vib):
-    return {"synth": {"layers": [{"type": "fof", "fof": {"voice": voice, "vowel": "u>a", "attack": "3ms",
-                                                          "morph": {"value": 0, "mod": [{"src": "auto.mouth", "amount": 1}]}}}],
-                      "pitch": {"value": 0, "mod": [{"src": "lfo.vib", "amount": vib}, {"src": "env.scoop", "amount": -0.3}]},
-                      "lfo": {"vib": {"wave": "sine", "rate": "5.5hz", "delay": "300ms", "fade": "400ms"}},
-                      "env": {"scoop": {"a": "1ms", "d": "120ms", "s": 0}}, "amp": "600ms 0 1 1.5s"}}
-
-
-def intro_choir():
-    a, z = INTRO_CHOIR
-    for name, voice, step, base, vib in INTRO_VOICES:
-        for bar in range(a, z + 1):
-            vel = 50 + 6 * (bar - a) if bar < 9 else max(30, 86 - 14 * (bar - 8))
-            part(name).add(b0(bar), BAR + 0.1,
-                           pitch(step + root_at(bar), base), vel)
-
-
 def zip_patch(base):
     return {"extends": base, "synth": {"fx": [{"type": "pan", "pan": {"value": 0, "mod": [{"src": "expr.ix", "amount": 1}]}}]}}
 
@@ -1035,12 +1007,6 @@ def main():
     song["tracks"].append({"name": "cards", "patch": CARD_PATCH, "gain": "-14dB", "pan": 0.2,
                            "sends": {"room": "-10dB"}, "score": part("cards").score()})   # v39: listed last
     song["tracks"] += choir_tracks() + unsung_tracks()                                       # v41: listed last
-    intro_choir()                                                                            # v42: listed last
-    mouth = {"mouth": {"points": [[f"{b0(INTRO_CHOIR[0]):g}b", 0.0], [f"{b0(9):g}b", 1.0], [f"{b0(13):g}b", 0.0]]}}
-    for (name, voice, step, base, vib), gain, pan in zip(INTRO_VOICES, ("-17dB", "-18dB", "-17dB", "-22dB"),   # solo-matched
-                                                         (-0.1, 0.25, -0.25, 0.1)):
-        song["tracks"].append({"name": name, "patch": intro_fof_patch(voice, vib), "gain": gain, "pan": pan,
-                               "sends": {"room": "-8dB"}, "auto": mouth, "score": part(name).score()})
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print("wrote", OUT, "bars", BARS)
