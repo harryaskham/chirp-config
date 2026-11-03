@@ -8,3 +8,4 @@
 {"id": "chirpers8-t8", "window": 1, "at": "2026-11-02T19:58:49Z", "who": "chirper-zero", "version": "v35", "note": "v35: the word is written bit by bit over the intro's sixteen bars"}
 {"id": "chirpers8-t8", "window": 5, "at": "2026-11-02T22:46:57Z", "who": "chirper-zero", "version": "v40", "note": "v40: the program counter - a marimba counts 1..16 in binary across C bars 4-19"}
 {"id": "chirpers8-t8", "window": 8, "at": "2026-11-03T00:13:32Z", "who": "chirper-zero", "version": "v42", "note": "v42: the sung line's tune comes back on the tape choir four and eight bars later"}
+{"id": "chirpers8-t8", "window": 9, "at": "2026-11-03T03:46:50Z", "who": "chirper-zero", "version": "v46", "note": "v46: the refresh's bytebeat read-back returns over E's last four bars, lifted with E"}
