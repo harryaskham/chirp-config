@@ -13,3 +13,4 @@
 {"id": "chirpers8-t5", "window": 7, "at": "2026-11-03T11:18:58Z", "who": "chirper-zero", "version": "v44", "note": "v44: fall-forward - C bars 16-23 jump to 120 bpm and drop back to 112"}
 {"id": "chirpers8-t5", "window": 8, "at": "2026-11-03T12:12:49Z", "who": "chirper-zero", "version": "v46", "note": "v46: line noise - the acid's chaos double flares to 0.93 (+14 dB) for C bars 30-33 and recovers"}
 {"id": "chirpers8-t5", "window": 5, "at": "2026-11-03T13:47:15Z", "who": "chirper-zero", "version": "v47", "note": "v47: the retrain's carriers spiral in from 12 m and quicken (orbit mods), still again at C"}
+{"id": "chirpers8-t5", "window": 7, "at": "2026-11-03T16:19:26Z", "who": "chirper-zero", "version": "v51", "note": "v51: the agreement line (keep, C bar 16) through plain LPC"}
