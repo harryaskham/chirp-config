@@ -43,6 +43,8 @@ COMPUTEWARP = os.environ.get("C8T2_COMPUTEWARP", "0.25")   # WHOLE ROUND: big nu
 COMPUTEFROM = os.environ.get("C8T2_COMPUTEFROM", "A")   # 'A': the intro's paths stay on the grid (the join with t1 is measured over the opening; the intro is the arp's phasing, v64), the lag starts with A
 ARPPHASE = os.environ.get("C8T2_ARPPHASE", "0.25")   # SECTION ROUND (w1, the intro: static): the machine phases - the bytebeat arp runs on its own clock through the intro (the engine's per-track warp): drifting away from the clarinet over eight bars (to ARPPHASE beats late, curve smooth), then back over eight, locking onto the grid exactly as A begins; the tape-loop phasing of process music, done by a clock. Value = beats of drift at its widest
 LPCV = os.environ.get("C8T2_LPCV", "count,refrain")   # WHOLE ROUND: the numbers read by a speaking toy - LPC (engine 78e838c5, LPC-10: the first speech chips; the toy that read arithmetic to children spoke this way). 'count': the voice that reads the numbers in A goes through 5-bit monotone LPC on G3 before its radio; 'count,refrain': and the break's 'four, two, one' (the turn from speech into song) through plain, inflecting LPC, so the counting machine begins to sing before the human-sung lines of C. Notes nudged 0.075 beats early for LPC's ~35 ms (chirper-three's measure)
+SCANPAD = os.environ.get("C8T2_SCANPAD", "")   # PALETTE: the pad becomes Max Mathews' last instrument - scanned synthesis (Verplank, Mathews & Shaw 2000; engine ee46ab71): a ring of masses and springs rippling at the speed of a hand, read round at the pitch, its shape the timbre; a slow hand (lfo, one sweep per 16 bars, as the CZ pad's) pushes and lets go, so the chords breathe by physics, not by filter. The father of computer music under a song about a computer counting. Value = gain dB
+LPCNUDGE = os.environ.get("C8T2_LPCNUDGE", "")   # v63's lpc voices were nudged 0.075 beats early for lpc's ~35 ms lag; engine ee46ab71 compensates it, so the nudge is off ('' ) from v70
 PALKS = os.environ.get("C8T2_PALKS", "vib")   # PALETTE: a struck bar becomes a plucked loop - 'glk' (the boot glock that counts the machine up in the intro and rings on the paths) or 'vib' (the vibraphone chords that hold each landing) leaves its modal bar for Karplus-Strong (engine 8f150090, 1983: a noise burst settling to pitch in a one-period loop), bright and stretched, so the mallet becomes the first digital string
 BELLKS = os.environ.get("C8T2_BELLKS", "0.3")   # WHOLE ROUND: the finished-job chime gets a third era - under each landing bell's modal strike (physical modelling) and VOSIM ring (1978), a Karplus-Strong string (1983, engine 8f150090: a noise burst settling in a one-period loop): every time a path reaches one, three generations of computer synthesis ring together. Value = the string's level
 BELLVOS = os.environ.get("C8T2_BELLVOS", "1")   # PALETTE: the bells that ring when a path lands on one (small bells for a finished job, modal) are struck in the machine's own voice too - a VOSIM pulse train (six pulses, formant ~2.6 kHz) ringing under the strike: the finished-job chime of a computer
@@ -642,7 +644,7 @@ def song():
             if isinstance(t, dict) and t.get("name") in LPCV.split(",") and t["name"] in mode:
                 t["fx"] = [mode[t["name"]], *t.get("fx", [])]
                 for n in t.get("notes", []):
-                    n["at"] = round(max(0.0, n["at"] - 0.075), 4)
+                    n["at"] = round(max(0.0, n["at"] - (0.075 if LPCNUDGE else 0)), 4)
     if ESTABLE:
         doc["event_stable"] = True
     if HALVLOCAL or LANDING or GLKUP:
@@ -685,6 +687,14 @@ def song():
                 t["patch"] = {"about": "Karplus-Strong 1983, bright", "synth": {"layers": [{"type": "ks", "bright": 0.8, "ks": {"blend": 1, "stretch": 3 if PALKS == "vib" else 2, "tune": True}},
                                                                                      *([{"type": "modal", "modes": "vibes", "decay": "1.2s", "level": 0.35}] if PALKS == "vib" else [])],
                                                                           "amp": "1ms 1 1 900ms"}}
+    if SCANPAD:
+        for t in doc["tracks"]:
+            if isinstance(t, dict) and t.get("name") == "pad":
+                t["patch"] = {"about": "scanned synthesis (Mathews 2000): a ring of masses and springs, pushed by a slow hand",
+                              "synth": {"layers": [{"type": "scanned", "scanned": {"speed": 0.4, "width": 0.18, "smooth": 0.3, "push": {"value": 0.15, "mod": [{"src": "lfo.hand", "amount": 0.6}]}}, "decay": "6s"}],
+                                        "amp": "800ms 0.8 0.85 1.5s"}}
+                t["lfo"] = dict(t.get("lfo", {}), hand="sine rate=1/16")
+                t["gain"] = f"{SCANPAD}dB"
     return doc
 
 
