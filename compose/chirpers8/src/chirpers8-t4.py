@@ -535,6 +535,55 @@ def card_runs():
                               100 if last else 62 + 3 * k)
 
 
+# v41 (ROUND TYPE: whole; Harry on t1: 'the singing came a long way ... keep hillclimbing it'): THE SONG COMES APART.
+# v37 gave the voice an arc - machine (the speaking toy), person, then song when sorted. This round enlarges its peak
+# and closes the circle. (1) A CHOIR on the third and fourth sung statements (141, 149 - where the canon arrives): two
+# voices join the singer a just major third (5 alpha steps, 390 cents) and a fifth (9 steps, 702) above - Carlos's
+# alpha scale holds both almost pure. (2) In the outro the array unsorts itself, and the sung line comes back with its
+# SYLLABLES IN THE ORDER THE UNSORTING ARRAY GIVES THEM - the melody keeps its shape while the words come apart - and
+# the voice goes back into the machine: 163 through lpc (the order of bar 166: 'the small ones first REST then OF the
+# us'), 167 through the 5-bit speaking toy (bar 170's order). Machine, person, song, machine.
+CHOIR_AT = (141, 149)
+UNSUNG = ((163, 166, "lpc", "-15dB"), (167, 170, "lpc pitch=A2 bits=5", "-7dB"))   # gains solo-matched
+
+
+def choir_tracks():
+    c3, c5 = [], []
+    for k, bar in enumerate(SUNG_AT):
+        if bar not in CHOIR_AT:
+            continue
+        take, tune = (SUNG, TUNE_A) if k % 2 == 0 else (SUNG_B, TUNE_B)
+        for i, (at, ln, ph, p, v, f0) in enumerate(take):
+            for out, up in ((c3, 5), (c5, 9)):
+                n = {"at": round(b0(bar) + at, 4), "len": ln, "ph": ph, "vel": round(v * 0.75, 3),
+                     "pitch": pitch(tune[i] + up + root_at(bar + int(at // 4)))}
+                if f0:
+                    n["expr_path"] = {"f0": f0}
+                out.append(n)
+    return [{"name": "choir3", "patch": SUNG_PATCH, "gain": "-9dB", "pan": -0.35,     # solo-matched ~7-10 dB under
+             "sends": {"room": "-8dB", "dly": "-14dB"}, "fx": [{"type": "filter", "kind": "hp", "cutoff": 180}], "notes": c3},
+            {"name": "choir5", "patch": SUNG_PATCH, "gain": "-10dB", "pan": 0.35,
+             "sends": {"room": "-8dB", "dly": "-14dB"}, "fx": [{"type": "filter", "kind": "hp", "cutoff": 180}], "notes": c5}]
+
+
+def unsung_tracks():
+    out = []
+    for bar, order_bar, fx, gain in UNSUNG:
+        order = [v for v in ARRS[order_bar] if v < len(SUNG)]
+        notes = []
+        for i, (at, ln, ph, p, v, f0) in enumerate(SUNG):
+            src = SUNG[order[i]]
+            n = {"at": round(b0(bar) + at, 4), "len": ln, "ph": src[2], "vel": round(src[4] * 0.85, 3),
+                 "pitch": pitch(TUNE_A[i] + root_at(bar + int(at // 4)))}
+            if src[5]:
+                n["expr_path"] = {"f0": src[5]}
+            notes.append(n)
+        out.append({"name": f"unsung{bar}", "patch": SUNG_PATCH, "gain": gain, "pan": 0.05,
+                    "sends": {"room": "-6dB", "dly": "-10dB"},
+                    "fx": [fx, {"type": "filter", "kind": "hp", "cutoff": 160}], "notes": notes})
+    return out
+
+
 def zip_patch(base):
     return {"extends": base, "synth": {"fx": [{"type": "pan", "pan": {"value": 0, "mod": [{"src": "expr.ix", "amount": 1}]}}]}}
 
@@ -957,6 +1006,7 @@ def main():
                                "sends": {"room": "-12dB"}, "score": part(name).score()})
     song["tracks"].append({"name": "cards", "patch": CARD_PATCH, "gain": "-14dB", "pan": 0.2,
                            "sends": {"room": "-10dB"}, "score": part("cards").score()})   # v39: listed last
+    song["tracks"] += choir_tracks() + unsung_tracks()                                       # v41: listed last
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print("wrote", OUT, "bars", BARS)
