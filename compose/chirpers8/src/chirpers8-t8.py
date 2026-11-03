@@ -46,7 +46,7 @@ CHOP = os.environ.get("C8T8_CHOP", "1")   # recall, corrupted: through D the wor
 VINYL = os.environ.get("C8T8_VINYL", "") # the medium wears: vinyl on the line - crackle 0.05 rising to 0.35 into D, 0.15 for the repair, 0.5 in the outro where the line is alone; dust 0.3, wear 0.3
 EQFIX = os.environ.get("C8T8_EQFIX", "2")   # (a measurement) the master toward the album's colour: -3 dB at 150 Hz, +4 dB at 1 kHz and 3 kHz, no +2 dB air shelf
 ORGAN = os.environ.get("C8T8_ORGAN", "")   # the operator's console: a reedy combo organ pulsing eighths on the chord's two upper tones an octave up (stretched, two voices) through A, C and E - minimalist machine-pulse in the 1-3 kHz the track lacked; value = velocity
-OUTUP = os.environ.get("C8T8_OUTUP", "1")   # the memory floats up as it fades: the outro's last eight bars voice the pads an octave higher (the 290-470 Hz t9's glass pads open in)
+OUTUP = os.environ.get("C8T8_OUTUP", "")   # the memory floats up as it fades: the outro's last eight bars voice the pads an octave higher (the 290-470 Hz t9's glass pads open in)
 HUMOCT = os.environ.get("C8T8_HUMOCT", "55")   # the A hum doubled an octave up (A2, ~110 Hz: where t7's drone is strongest) for its four bars - velocity
 EQ3 = os.environ.get("C8T8_EQ3", "1")   # the last narrow holes against the album envelope: +5 dB at 1.03 and 3.08 kHz (q 3), +3 dB around 100 Hz, -2.5 dB at 1.65 kHz
 WORDEND = os.environ.get("C8T8_WORDEND", "64")   # one last read: the word itself returns, faint, in the outro's last four bars (the line had been alone) - its 300-900 Hz chime meeting t9's head; value = velocity
@@ -71,6 +71,7 @@ LATER = os.environ.get("C8T8_LATER", "-8")   # WHOLE ROUND: a second sung line, 
 LATERDROP = os.environ.get("C8T8_LATERDROP", "1")   # with LATER: the word steps aside for the voice - for E bars 12-13 the word, its marimba, the zeros, the hats and the clap are kept at velocity 1 (no dice move), so 'it comes later on' is heard over pads, bass and kick (in the full mix whisper heard nothing; soloed it reads exactly)
 HANDS = os.environ.get("C8T8_HANDS", "clap")   # PALETTE: the clap and the rim leave the 909 kit for the machine layer's own synthesised clap and rim ('clap', 'rim', or 'both'): with v36's kick, the kit is the song's own
 ECHOCH = os.environ.get("C8T8_ECHOCH", "84")   # SECTION ROUND (w8, E: static): it comes later on - the sung line's tune (A4 G4 F4 E4 D4, as sung at E bar 12) comes back on the tape choir (mellotron-choir, wordless, its own track echoch listed last) four bars later and again four bars after that, softer each time: the delay line handing the phrase back. Lifted with E. Value = first velocity
+ECHOEND = os.environ.get("C8T8_ECHOEND", "84,0,0")   # the latest it can come: the sung line's tune returns once more on the tape choir across the outro's last eight bars, an octave down and at half speed (A3 G3 F3 E3 D3), then again lower still, the last D held to the end - so the song ends on the line it promised, and the tail holds the 250/470 Hz t9's head opens on. Value = velocity
 PUMPON = os.environ.get("C8T8_PUMPON", "-6")   # WHOLE ROUND: the pads and the bass breathe with the kick again - their sidechain pump was keyed on 'kick.k', and v36's machine kick has no kit pieces, so it never fired after v36 (wM's plan warning, 2 Nov); now it keys on every kick note. Value = depth dB (e.g. -6 as designed)
 SAYTTS = os.environ.get("C8T8_SAYTTS", "1")   # PALETTE: the spoken voices that tell what a delay line is (say, say2, say3: voice-spoken) speak as a computer - voice-tts, the library's 1990s desktop text-to-speech; the words and their timing unchanged
 COUNTER = os.environ.get("C8T8_COUNTER", "78")   # SECTION ROUND (w5, C bars 4-19, static): the program counter - a marimba (its own track ctr, listed last) counts 1..16 in binary, one number a bar: bit k set strikes beat k, on D G C F (fourths, k = 0..3), so each bar's rhythm is the next address and the line runs through all sixteen patterns while the word is refreshed. Value = velocity
@@ -362,6 +363,16 @@ def song():
             for m, ln in ((69, 2), (67, 2), (65, 4), (64, 2), (62, 8)):
                 evs.append((t0 + q, hz(m + up), ln, int(ECHOCH) - 14 * k))
                 q += ln
+        if ECHOEND:
+            o0 = sec_start("outro")
+            uo = up if (EUP and "outro" in EUP) else 0
+            eo = [int(x) for x in ECHOEND.split(",")[1:]] or [-12, -24]
+            for k, (bar, oc) in enumerate(((8, eo[0]), (12, eo[1]))):
+                t0, q = o0 + bar * BAR, 0
+                for m, ln in ((69, 4), (67, 4), (65, 8), (64, 4), (62, 16)):
+                    last = k == 1 and m == 62
+                    evs.append((t0 + q, hz(m + oc + uo), (total() - t0 - q) if last else ln, int(ECHOEND.split(",")[0]) - 6 * k))
+                    q += ln
         doc["tracks"].append({"name": "echoch", "patch": "mellotron-choir", "gain": os.environ.get("C8T8_ECHOGAIN", "-10dB"), "pan": 0.25, "sends": {"line": "-12dB", "room": "-10dB"},
                               "score": stream(evs, total())})
     return doc
