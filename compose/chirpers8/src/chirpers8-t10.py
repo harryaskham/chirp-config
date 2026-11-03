@@ -355,6 +355,27 @@ def build():
         P[key] = [(shift(e_[0]),) + tuple(e_[1:]) for e_ in P[key] if not dropped(e_[0])]
     ORB_RATE = 0.0625                      # half a lap (centre to 30 m off) in eight seconds, four bars
     orb_phase = {k_[1]: (0.5 - shift(secs_t['final'] + b0_ * 4.0) * 60.0 / BPM * ORB_RATE) % 1.0 for k_, b0_ in UNW.items()}
+    # (v46) THE CALLS ARRIVE: since v38 every return is heard as a voice leaving the room (each copy flies off to thirty
+    # metres as the stack unwinds). Now every CALL is heard as one arriving: each time a copy of the subject enters -
+    # one level down, two, three, all through the calls and the final - it starts thirty metres off, faint, dark and
+    # far, and comes in to two metres over its first three seconds (wM's orbit with a distance lane, Chowning's moving
+    # source; a little of the Doppler, so it barely sharpens as it approaches). Every call is a voice walking into the
+    # room, every return one walking out
+    far_lanes = {}
+    for key_ in ('d1', 'd2', 'd3'):
+        pts_, last_end = [['0b', 1.0]], -1e9
+        for e_ in sorted(P[key_], key=lambda x: x[0]):
+            if e_[3] <= 1:
+                continue
+            if e_[0] > last_end + 2.0:
+                if len(pts_) > 1:
+                    pts_.append([f"{e_[0] - 0.1:.3f}b", 0.0])      # (lanes glide between points: hold near until the gap)
+                pts_ += [[f"{max(0.0, e_[0] - 0.05):.3f}b", 1.0], [f"{e_[0]:.3f}b", 1.0], [f"{e_[0] + 6.0:.3f}b", 0.0]]
+            last_end = max(last_end, e_[0] + e_[2])
+        far_lanes[key_] = pts_
+    def arrive(key_):
+        return {'type': 'orbit', 'path': 'circle', 'rate': 0.01, 'radius': 0.0, 'doppler': 0.3, 'level': 2.0,
+                'distance': {'value': 2.0, 'mod': [{'src': 'auto.far', 'amount': 28.0}]}}
     def clampcut(t):
         for c in cuts:
             if c - 1e-9 <= t < c + 0.5:
@@ -504,13 +525,13 @@ def build():
             # over each held root the oscillator walks into chaos and jumps between its two wells: the machine audibly
             # coming apart as it returns
             tr('bass', 'duffing-bass', '-6dB', fx=['lp cutoff=1600', {'type': 'eq', 'bands': ['peak cutoff=180 q=0.9 gain=4dB']}]),
-            tr('d1', BELL, '-13dB', pan=0.6, sends={'echo': '-14dB'}),
+            tr('d1', BELL, '-13dB', pan=0.6, fx=[arrive('d1')], auto={'far': {'points': far_lanes['d1']}}, sends={'echo': '-14dB'}),
             # (v12) the deepest copies thinner (chirper-three: the densest stack may crowd the subject)
-            tr('d2', BELL, '-19dB', pan=-0.6, sends={'echo': '-16dB'}),
+            tr('d2', BELL, '-19dB', pan=-0.6, fx=[arrive('d2')], auto={'far': {'points': far_lanes['d2']}}, sends={'echo': '-16dB'}),
             # (v41, palette) the deepest call - the subject at eight times speed, three levels down - leaves the album's
             # glass (three songs) for a pitched bytebeat chip (wM's bytebeat-chip, t*8|t>>5): at the bottom of the stack
             # the machine is raw arithmetic
-            tr('d3', 'bytebeat-chip', '-28dB', pan=0.5, fx=['hp cutoff=800', 'lp cutoff=5000'], sends={'hall': '-12dB'}),
+            tr('d3', 'bytebeat-chip', '-28dB', pan=0.5, fx=['hp cutoff=800', 'lp cutoff=5000', arrive('d3')], auto={'far': {'points': far_lanes['d3']}}, sends={'hall': '-12dB'}),
             # (v39) PERIOD ONE, DOUBLING: t9 is 'Period Doubling' and ends with its logistic map settled on one value. Under
             # this song's intro an A (the call's root) is held on an audio-rate Rossler attractor (wM's chaos layer, one
             # loop of the attractor per period of the note) whose control walks the same route t9 is named for, upwards,
