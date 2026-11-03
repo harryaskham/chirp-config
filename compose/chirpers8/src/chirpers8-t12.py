@@ -668,6 +668,36 @@ KS_HARP = {"synth": {"layers": [{"type": "ks", "ks": {"blend": 0, "stretch": 2, 
 KS_AT = (103, 110)
 
 
+# v42 (ROUND TYPE: section, w11 5:18-5:48 - the coda's sung line; unflagged, chosen for Harry's notes today: t10's
+# 'vocal choiry section ... that is the bar', t1's 'the singing came a long way'; the flagged w12 is the album's last
+# light and w1 was worked in v37): THE CHANT CHOIR. Under 'Moth, the warm glass holds you...' a four-voice FOF choir
+# (fof pinned 91b04b25: Rodet's CHANT at IRCAM, 1979-84 - computer music's own classic singing voice, formant grains
+# and no filters) holds each bar's 31-EDO chord, wordless: bass on the root, tenor the fifth, alto the third, soprano
+# the seventh; the vowel opens from 'u' to 'a' across the coda on one lane, as a choir opens its mouth; it fades in under
+# the first statement, swells under the harmonised second (168-170) and lets go as the machine's VOSIM voice speaks.
+FOF_AT = (160, 170)
+FOF_VOICES = (("fof_b", "bass", 0, -24, 0.1), ("fof_t", "tenor", 18, -12, 0.15),
+              ("fof_a", "alto", 1, 0, 0.2), ("fof_s", "soprano", 3, 0, 0.3))   # (track, voice, tone, octave, vib)
+
+
+def fof_patch(voice, vib):
+    return {"synth": {"layers": [{"type": "fof", "fof": {"voice": voice, "vowel": "u>a", "attack": "3ms",
+                                                          "morph": {"value": 0, "mod": [{"src": "auto.mouth", "amount": 1}]}}}],
+                      "pitch": {"value": 0, "mod": [{"src": "lfo.vib", "amount": vib}, {"src": "env.scoop", "amount": -0.3}]},
+                      "lfo": {"vib": {"wave": "sine", "rate": "5.5hz", "delay": "300ms", "fade": "400ms"}},
+                      "env": {"scoop": {"a": "1ms", "d": "120ms", "s": 0}}, "amp": "300ms 0 1 900ms"}}
+
+
+def fof_choir():
+    a, z = FOF_AT
+    for name, voice, tone, octave, vib in FOF_VOICES:
+        for bar in range(a, z + 1):
+            root, chord = PLAN[bar]
+            step = root + (tone if tone >= 18 else chord[tone])
+            vel = 92 if bar >= 168 else 58 + 2 * (bar - a)
+            part(name).add(b0(bar), 5.5 if bar == z else 4.3, m(step, FS4 + octave), vel)
+
+
 def ks_harp():
     for bar in range(KS_AT[0], KS_AT[1] + 1):
         root, chord = PLAN[bar]
@@ -974,6 +1004,7 @@ def main():
     duffing_bass()                                # v36: the machine breaks and heals
     tuner()                                       # v37: the machine checks its tuning
     ks_harp()                                     # v39: the first plucked string regrows
+    fof_choir()                                   # v42: the CHANT choir
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
     song = {
         "about": "chirpers - A Light Left On (chirpers VIII), track 12 by chirper-three: the closer. An orchestra of "
@@ -1132,6 +1163,11 @@ def main():
     lpc_voices(song)                                                                           # v38: listed last
     song["tracks"].append({"name": "ksharp", "patch": KS_HARP, "gain": "-10dB", "pan": 0.3,
                            "sends": {"hall": "-10dB"}, "score": part("ksharp").score()})          # v39: listed last
+    mouth = {"mouth": {"points": [[f"{rb(FOF_AT[0]):g}b", 0.0], [f"{rb(FOF_AT[1] + 1):g}b", 1.0]]}}
+    for (name, voice, tone, octave, vib), gain, pan in zip(FOF_VOICES, ("-18dB", "-19dB", "-18dB", "-17dB"),
+                                                           (-0.1, 0.25, -0.25, 0.1)):
+        song["tracks"].append({"name": name, "patch": fof_patch(voice, vib), "gain": gain, "pan": pan,
+                               "sends": {"hall": "-6dB"}, "auto": mouth, "score": part(name).score()})   # v42: listed last
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print("wrote", OUT, "bars", BARS, "gens", {g: len(lsys(g)) for g in range(7)})
