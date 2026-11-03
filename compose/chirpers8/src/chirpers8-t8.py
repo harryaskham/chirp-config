@@ -71,6 +71,8 @@ LATER = os.environ.get("C8T8_LATER", "-8")   # WHOLE ROUND: a second sung line, 
 LATERDROP = os.environ.get("C8T8_LATERDROP", "1")   # with LATER: the word steps aside for the voice - for E bars 12-13 the word, its marimba, the zeros, the hats and the clap are kept at velocity 1 (no dice move), so 'it comes later on' is heard over pads, bass and kick (in the full mix whisper heard nothing; soloed it reads exactly)
 HANDS = os.environ.get("C8T8_HANDS", "clap")   # PALETTE: the clap and the rim leave the 909 kit for the machine layer's own synthesised clap and rim ('clap', 'rim', or 'both'): with v36's kick, the kit is the song's own
 ECHOCH = os.environ.get("C8T8_ECHOCH", "84")   # SECTION ROUND (w8, E: static): it comes later on - the sung line's tune (A4 G4 F4 E4 D4, as sung at E bar 12) comes back on the tape choir (mellotron-choir, wordless, its own track echoch listed last) four bars later and again four bars after that, softer each time: the delay line handing the phrase back. Lifted with E. Value = first velocity
+WORDWARP = os.environ.get("C8T8_WORDWARP", "0.5")   # WHOLE ROUND: the word arrives late as it decays - a delay line's word comes round on the tank's clock, not the machine's, and drifts as the mercury warms; regeneration re-times it. The word (and its decay double) runs on its own clock (the engine's per-track warp): drifting steadily late through the intro and A (to WORDWARP beats behind the band), re-locked in one bar at the refresh, drifting late again through C, D and E, re-locked at the outro. Value = beats of lag at full decay
+DECFIX = os.environ.get("C8T8_DECFIX", "")   # v56's decay double peaks at lane 0.55, which wM's regime table puts in Duffing's locked window (0.4-0.625): it broke up mid-way and then re-locked before each refresh. DECFIX scales its amount so the peak sits in the chaotic band (1.3 x 0.55 = 0.715, inside 0.625-0.85): the word really comes apart just before it is regenerated
 SAYLPC = os.environ.get("C8T8_SAYLPC", "plain")   # SECTION ROUND (w1, the intro: static): the first explanation in a speech chip - the intro's spoken line (say, bar 8: what a delay line keeps) goes through LPC (engine 78e838c5): 'plain' (LPC-10, inflecting) or 'toy' (5-bit monotone on D3, the tonic); the later lines (say2 at the refresh, say3 at the outro) stay as they are. Notes 0.07 beats early for LPC's ~35 ms
 ECHOVOS = os.environ.get("C8T8_ECHOVOS", "-10")   # PALETTE: the choir that answers the sung line in E and sings the tune at half speed in the outro (v42/v44: mellotron-choir, a tape of voices) is sung by the machine instead - our own VOSIM 'oh' (two pulse trains, F1 ~450 Hz, F2 ~800 Hz, drifting on slow sines, a slow swell): the memory answering in the synthetic voice of the time it would be read back in. Value = gain dB
 LINEHISS = os.environ.get("C8T8_LINEHISS", "-44")   # WHOLE ROUND: the line's noise floor - a delay line's signal sinks toward its noise as it decays, and regeneration is what clears it: a high, thin hiss (white noise above 7 kHz, held under the whole song) rides v56's decay lane, rising as the memory decays (up to +12 dB), cleared at the refresh, rising again through C, D and E, cleared at the outro. Value = its base gain dB
@@ -470,9 +472,17 @@ def song():
                     t_["fx"] = [f for f in t_["fx"] if not (isinstance(f, str) and f.startswith("orbit "))] + [
                         {"type": "orbit", "rate": "1/8", "radius": {"value": 2, "mod": [{"src": "auto.dec", "amount": float(WORDFADE)}]}, "mix": 0.7}]
         doc["tracks"].append({"name": "decay", "gain": f"{DECAY}dB", "pan": 0.1, "auto": {"dec": dec},
-                              "patch": {"synth": {"layers": [{"type": "chaos", "chaos": {"system": "duffing", "axis": "x", "amount": {"value": 0, "mod": [{"src": "auto.dec", "amount": 1}]}}}],
+                              "patch": {"synth": {"layers": [{"type": "chaos", "chaos": {"system": "duffing", "axis": "x", "amount": {"value": 0, "mod": [{"src": "auto.dec", "amount": float(DECFIX) if DECFIX else 1}]}}}],
                                                   "amp": "8ms 0.8 0.6 250ms", "filters": [{"kind": "lp", "cutoff": int(os.environ.get("C8T8_DECLP", "2500"))}]}},
                               "sends": {"line": "-10dB"}, "score": T["word"]})
+        if WORDWARP:
+            fl = dict(FORM)
+            wv = float(WORDWARP)
+            warp = [{"over": f"{fl['intro'] + fl['A']}bar", "to": wv, "curve": "linear"}, {"over": "1bar", "to": 0, "curve": "smooth"}, {"over": f"{fl['refresh'] - 1}bar", "to": 0},
+                    {"over": f"{fl['C'] + fl['D'] + fl['E']}bar", "to": wv, "curve": "linear"}, {"over": "1bar", "to": 0, "curve": "smooth"}]
+            for t_ in doc["tracks"]:
+                if isinstance(t_, dict) and t_.get("name") in ("word", "decay"):
+                    t_["warp"] = warp
     if SAYLPC:
         for t_ in doc["tracks"]:
             if isinstance(t_, dict) and t_.get("name") == "say":
