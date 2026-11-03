@@ -717,6 +717,41 @@ def clear_lanes(song):
             trk["auto"] = dict(trk.get("auto") or {}, clr={"points": pts})
 
 
+# v32 (ROUND TYPE: section, w7 3:15-3:46 = the prune's end and g6's entrance, flagged 'little new vs w6': at 103 the
+# whole band returned in one bar, as g5 had been): REGROWTH AFTER THE PRUNE. (1) The band regrows LAYER BY LAYER, as a
+# tree from a cut - kick, sub and hats at 103, then harp and phantom, celesta, ondes and violins, the analog ladder and
+# ride, clap and strum, and the lead violins and horns last at 109 - gain lanes (auto.rg), no note added or removed.
+# (2) SAP RISING: under the regrowth one long WAVE TERRAIN note from bar 99 glides up an octave (expr.bend) as its orbit
+# widens (expr.op: rx/ry 0.25 -> 0.85), so the tone opens as the tree fills - reshaped, not filtered.
+REGROW = {"harp": 104, "phantom": 104, "celesta": 105, "ondes": 106, "violins": 106, "analog": 107, "ride": 107,
+          "clap": 108, "strum": 108, "violins_lead": 109, "horns": 109}
+SAP = (99, 111)
+SAP_PATCH = {"synth": {"layers": [{"type": "terrain", "terrain": {
+    "surface": "sines", "ratio": 1.002, "k": 1.1, "cx": 0.05,
+    "rx": {"value": 0.25, "mod": [{"src": "expr.op", "amount": 0.6}]},
+    "ry": {"value": 0.25, "mod": [{"src": "expr.op", "amount": 0.5}]}}}],
+    "pitch": {"value": 0, "mod": [{"src": "expr.bend", "amount": 1}]},
+    "amp": "3s 1 1 1.5s"}}
+
+
+def regrow_lanes(song):
+    for trk in song["tracks"]:
+        at = REGROW.get(trk.get("name"))
+        if at is None:
+            continue
+        a, z = rb(102), rb(at)
+        pts = [["0b", 0.0], [f"{a:g}b", 0.0], [f"{a + 0.5:g}b", -60.0], [f"{z - 0.25:g}b", -60.0], [f"{z:g}b", 0.0]]
+        trk["fx"] = list(trk.get("fx") or []) + [{"type": "gain", "gain": {"value": "0dB",
+                                                   "mod": [{"src": "auto.rg", "amount": 1}]}}]
+        trk["auto"] = dict(trk.get("auto") or {}, rg={"points": pts})
+
+
+def sap_notes():
+    a, z = warp(b0(SAP[0])), warp(b0(SAP[1]))
+    return [{"at": round(a, 4), "len": round(z - a, 4), "pitch": "m54", "vel": 0.8,
+             "expr": {"bend": 0.0, "op": 0.0}, "expr_end": {"bend": 12.0, "op": 1.0}}]
+
+
 def tape_choir():
     for bar in range(TAPE_CHOIR[0], TAPE_CHOIR[1] + 1):
         root, q = PLAN[bar]
@@ -877,6 +912,7 @@ def main():
                                               [f"{rb(179) - 0.01:g}b", 1.0], [f"{rb(179):g}b", 0.0]]}}},
     }
     clear_lanes(song)                             # v23: the clearing's gain lanes on the melodic layers
+    regrow_lanes(song)                            # v32: the band regrows after the prune
     song["event_stable"] = True                   # v25: each note's draws from its track, beat and pitch (wM f5283535)
     song["tracks"].append({"name": "singer2", "patch": SING_PATCH, "gain": "-14dB", "pan": 0.3, "transpose": ADT[0],
                            "sends": {"hall": "-5dB", "echo": "-14dB"}, "fx": [{"type": "filter", "kind": "hp", "cutoff": 160}],
@@ -893,6 +929,8 @@ def main():
     song["tracks"].append({"name": "colony", "patch": "machine-kit", "gain": "-11dB", "at": f"{b0(COLONY[0]):g}b",
                            "gen": {"type": "life", "width": 16, "height": 4, "init": COLONY_INIT, "poly": 3,
                                    "n": 16 * (COLONY[1] - COLONY[0]), "len": "/16", "notes": "k rs cp h"}})  # v30
+    song["tracks"].append({"name": "sap", "patch": SAP_PATCH, "gain": "-16dB", "pan": 0.1,
+                           "sends": {"hall": "-8dB"}, "notes": sap_notes()})            # v32: sap rising
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print("wrote", OUT, "bars", BARS, "gens", {g: len(lsys(g)) for g in range(7)})
