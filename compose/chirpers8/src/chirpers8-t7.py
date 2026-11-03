@@ -151,6 +151,10 @@ def build():
     conv = sum(n for nm_, n in FORM[:FORM.index(('converged', 16))])
     sung = [dict(n_, at=round((conv + 2 + rep * 6) * 4.0 + n_['at'], 4), pitch=ji(n_['pitch']))
             for rep in (0, 1) for n_ in SING['notes']]
+    # (v23) and once more in the coda, a just fourth higher (4/3), with the cooled band moved up into D minor beneath it
+    coda0 = sum(n for nm_, n in FORM[:[nm_ for nm_, _ in FORM].index('coda')])
+    sung += [dict(n_, at=round((coda0 + 4) * 4.0 + n_['at'], 4), pitch=f"{float(ji(n_['pitch'])[:-2]) * 4 / 3:.3f}hz")
+             for n_ in SING['notes']]
     # (v8) THE VOICE TUNES IN: while the machine is hot its voice reaches us over a radio whose dial is off the station by
     # the temperature - the first reading half lost in static and whistle, the next nearer, the third almost tuned - and
     # from the fourth epoch, cool enough, the voice is in the room, clear (the reheat throws it back onto the radio)
@@ -267,6 +271,16 @@ def build():
                 for e_ in P['kit']]
     P['seq'] = [(e_[0], e_[1], e_[2], max(1, int(e_[3] * (0.5 + 0.5 * max(0.0, (e_[0] - q0 + 16.0) / 32.0)))))
                 if _in(e_[0], -4, 4) else e_ for e_ in P['seq']]
+    # (v23) THE LAST FIRING, A FOURTH HIGHER: after the reheat the machine cools again - and this time it settles a
+    # just fourth (4/3) above where it found its answer the first time: in the coda the pad, the bass, the search and the
+    # electric piano all move up into D minor, and the voice sings 'the glass remembers how it cooled' once more, up
+    # there, over the cooling band - not the same answer found twice, but the same shape found somewhere new
+    import re as _re
+    FOURTH = 1200 * math.log2(4 / 3) / 100.0
+    def _up(tok_):
+        return _re.sub(r'm(\d+\.\d+)', lambda m_: f"m{float(m_.group(1)) + FOURTH:.3f}", tok_)
+    for key in ('pad', 'bass', 'seq', 'keys'):
+        P[key] = [(e_[0], _up(e_[1]), e_[2], e_[3]) if e_[0] >= coda0 * 4.0 - 1e-6 else e_ for e_ in P[key]]
     # (v16) GLIMPSES: in the middle of the last, longest epoch, before the search has found anything, the electric
     # piano that will play the answer lets slip a few of its notes - the first two, exact and quiet, in their
     # places in the bar; four bars later the first three; then four; then the first phrase - the answer showing
