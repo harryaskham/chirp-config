@@ -38,6 +38,7 @@ OWNKICK = os.environ.get("C8T2_OWNKICK", "1")   # and the kick: the machine laye
 TOMBACK = os.environ.get("C8T2_TOMBACK", "swap")   # PALETTE ROUND: the backbeat on a drum machine of our own - the engine's `machine` layer (circuit-modelled drum-machine voices, unused on the album) as a tuned electronic tom: G3 on 2, D3 on 4 (the halving's lone 3 on G3), the syndrum backbeat of the old machine records. 'swap' replaces the machine-kit clap (a staple of 9 songs); 'layer' keeps the clap under it
 CONVERGE = os.environ.get("C8T2_CONVERGE", "6")   # WHOLE ROUND: THE PATHS MEET - in C the canon gives way to a second number. Each of C's climbs gets a partner whose own hailstone path joins it partway (27 and 41 meet 313, 31 meets 297), played on the second clarinet in its own register and the same parity rhythm, timed so the two land on the shared number together; they sound in unison for six steps, then the partner falls silent and one line goes on down to 1 - the conjecture heard: different starts, one road home. Value = 'unison steps'
 INTROBOOT = os.environ.get("C8T2_INTROBOOT", "")   # SECTION ROUND (w1, the intro: static): the arp boots by resolution - bar b of the intro keeps only the first INTROBOOT+b steps of the sixteen in bit-reversed order (0 8 4 12 2 10 6 14 1 9 5 13 3 11 7 15: the order an FFT reads them), so the line arrives as a pulse, then halves, quarters, eighths, sixteenths, each note where it always was
+VOSEND = os.environ.get("C8T2_VOSEND", "90")   # SECTION ROUND (w10, the outro: static): the computer's first voice says the last numbers - from outro bar 6 to bar 13 (before the clarinet's last two bars alone) a VOSIM voice (engine 1a5a0572; Kaegi and Tempelaars's 1978 voice-simulation pulse trains, two layers for a vowel, their formants swept by a slow jaw and tongue) sings the clarinet's 1 4 2 1 an octave down, as if talking. Value = velocity
 TEMPOH = os.environ.get("C8T2_TEMPOH", "4")   # WHOLE ROUND: the song breathes with its numbers - a tempo map with a point at every bar, ramping, whose bpm follows the clarinet's height there (log2 n / 13): BPM + TEMPOH x (height - the song's mean height): under BPM while a path is home near 1, above it toward the top of a climb (27's 9232), the mean tempo kept at BPM (t4 sits at 128). The climbs press forward, the falls to one ease back; the break's 3/4 and C's 4/4 kept
 MACHC = os.environ.get("C8T2_MACHC", "37,10")   # SECTION ROUND (w9, 3:56-4:25: little new vs w8): the machine voice comes back for the second time through 27 - B's bytebeat double (an octave under the clarinet) returns over C bars MACHC ('start,len'), so the repeated hailstone path is sung by woodwind and computer together the second time round
 ARPBB = os.environ.get("C8T2_ARPBB", "sq")   # PALETTE: the chip arps become a bytebeat (engine 709cf900): the formula ARPBB on the counter t, clock 8372 so t*8 sits on the written pitch - 'sq' is t*8&128, one bit of the count, a bare square; 'sp' adds the octave above gated by a slower bit; the arp's gain ARPBBGAIN
@@ -103,7 +104,7 @@ def barlen(sec):
     """Sixteenths in a bar of this section: the break is in 3/4 under METER."""
     return 12 if METER and sec == "break" else BAR
 SEEDS = {"intro": [6, 6], "A": [7, 12, 3, 7], "B": [9, 18, 11], "C": [27, 31, 27, 41], "outro": [1]}
-TRACKS = ("clar", "clar2", "arp", "bass", "sub", "kick", "shk", "hats", "clap", "pad", "bell", "crash") + (("tom",) if os.environ.get("C8T2_TOMBACK", "swap") else ()) + (("ohat",) if os.environ.get("C8T2_OWNHATS", "1") else ()) + (("bell2",) if os.environ.get("C8T2_PREFIGTRACK", "1") else ()) + (("kick2", "tom2", "crash2") if os.environ.get("C8T2_HALVLOCAL", "1") else ()) + (("vib",) if os.environ.get("C8T2_LANDING", "92all") else ()) + (("glk",) if os.environ.get("C8T2_GLKUP", "70") else ()) + (("mach",) if os.environ.get("C8T2_MACHV", "90") else ())
+TRACKS = ("clar", "clar2", "arp", "bass", "sub", "kick", "shk", "hats", "clap", "pad", "bell", "crash") + (("tom",) if os.environ.get("C8T2_TOMBACK", "swap") else ()) + (("ohat",) if os.environ.get("C8T2_OWNHATS", "1") else ()) + (("bell2",) if os.environ.get("C8T2_PREFIGTRACK", "1") else ()) + (("kick2", "tom2", "crash2") if os.environ.get("C8T2_HALVLOCAL", "1") else ()) + (("vib",) if os.environ.get("C8T2_LANDING", "92all") else ()) + (("glk",) if os.environ.get("C8T2_GLKUP", "70") else ()) + (("mach",) if os.environ.get("C8T2_MACHV", "90") else ()) + (("vos",) if os.environ.get("C8T2_VOSEND", "90") else ())
 GMAJ = ["G", "A", "B", "C", "D", "E", "F#"]
 CHORDS = [("G", [0, 2, 4]), ("E", [5, 7, 9]), ("C", [3, 5, 7]), ("D", [4, 6, 8])]   # I vi IV V as degrees from G
 PRIMES = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31)
@@ -411,6 +412,9 @@ def build():
             return f"{NN4[n % 12]}{n // 12}"
         b0 = sec_start("B")
         ev["mach"] = [(a, pat4.sub(dn12, h), l, int(MACHV)) for (a, h, l, v) in ev["clar"] if b0 <= a < b0 + 12 * BAR and not h.startswith("!") and h != "_"]
+        if VOSEND:
+            o0 = sec_start("outro")
+            ev["vos"] = [(a, pat4.sub(dn12, h), l, int(VOSEND)) for (a, h, l, v) in ev["clar"] if o0 + 6 * BAR <= a < o0 + 14 * BAR and not h.startswith("!") and h != "_"]
         if MACHC:
             c0 = sec_start("C")
             ms_, ml_ = (int(x) for x in MACHC.split(","))
@@ -567,6 +571,13 @@ def song():
         doc["tracks"].append({"name": "mach", "patch": {"synth": {"layers": [{"type": "bytebeat", "bytebeat": {"formula": "(t*8)^(t>>6)", "clock": 8372}}]}},
                               "gain": os.environ.get("C8T2_MACHGAIN", "-15dB"), "pan": 0.15, "fx": [{"type": "filter", "kind": "lp", "cutoff": 3000, "q": 0.7}],
                               "sends": {"plate": "-16dB"}, "score": T["mach"]})
+    if VOSEND:
+        T = build()
+        doc["tracks"].append({"name": "vos", "gain": os.environ.get("C8T2_VOSGAIN", "-10dB"), "pan": -0.1, "lfo": {"jaw": "sine rate=1/2", "tongue": "tri rate=3/4"},
+                              "patch": {"synth": {"layers": [{"type": "vosim", "vosim": {"formant": {"value": 600, "mod": [{"src": "lfo.jaw", "amount": 0.45}]}, "pulses": 3, "decay": 0.7}},
+                                                             {"type": "vosim", "level": 0.55, "vosim": {"formant": {"value": 1500, "mod": [{"src": "lfo.tongue", "amount": 0.6}]}, "pulses": 4, "decay": 0.75}}],
+                                                  "amp": "30ms 0.8 0.8 250ms"}},
+                              "sends": {"plate": "-14dB"}, "score": T["vos"]})
     return doc
 
 
