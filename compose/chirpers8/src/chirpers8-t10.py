@@ -588,10 +588,23 @@ def build():
             {'name': 'duet', 'patch': SING['patch'], 'gain': '-11dB', 'pan': 0.3, 'tuning': W3T,
              'notes': [dict(n_, at=round(secs_t['calls2'] + n_['at'] + 0.02, 4),
                             pitch=f"m{round(69 + 12 * math.log2(float(n_['pitch'][:-2]) / 440.0))}") for n_ in SING['harm']['notes'][:23]],
-             'fx': [{'type': 'tape', 'drive': 0.12, 'mix': 1, 'wow': 2, 'flutter': 1, 'seed': 4}],
+             # (v42) ...and the second singer is the machine: its take goes through LPC-10 (wM's lpc: 8 kHz, ten poles a
+             # 22.5 ms frame, rebuilt from buzz and hiss like the first speech chips), so the duet is a human voice and a
+             # speech chip singing the same words a third apart
+             'fx': ['lpc bits=6', {'type': 'tape', 'drive': 0.12, 'mix': 1, 'wow': 2, 'flutter': 1, 'seed': 4}],
              'sends': {'hall': '-8dB', 'echo': '-14dB'}},
+            # (v42, section w4) THE PROMPTER: four bars before the human sings 'down the well of mirrors' for the first
+            # time, a speaking toy (wM's speak-toy: speech through 5-bit LPC) says the words first, flat and small, once,
+            # into the echo - the machine already knows the line; the call comes before the singer's return
+            {'name': 'toy', 'patch': 'speak-toy', 'gain': '-9dB', 'pan': -0.3,
+             'notes': [dict(n_, at=round(secs_t['calls2'] - 10.0 + n_['at'], 4)) for n_ in TOY],
+             'sends': {'echo': '-8dB', 'hall': '-14dB'}},
         ]}
     return song, depths
+
+
+# (v42) 'down the well of mirrors' - chirp tts, seed 1001, key D3, humanize 0.6, at 120 bpm (beats from the phrase start)
+TOY = [{"at": 0.224, "expr_path": {"f0": [0.0, 7.0, 14.0, 20.0, 25.0, 28.0, 30.0, 32.0, 35.0, 37.0, 34.0, 24.0, 12.0, 2.0, -5.0, -8.0, -12.0]}, "len": 0.78, "ph": "D AW1 N", "pitch": "m54.223", "vel": 0.813}, {"at": 1.033, "expr_path": {"f0": [0.0, -3.0, -7.0, -10.0, -14.0, -17.0, -21.0, -24.0]}, "len": 0.37, "ph": "DH AH0", "pitch": "m51.023", "vel": 0.836}, {"at": 1.392, "expr_path": {"f0": [0.0, 7.0, 14.0, 20.0, 25.0, 28.0, 30.0, 32.0, 35.0, 37.0, 34.0, 24.0, 12.0, 2.0, -5.0, -8.0, -12.0]}, "len": 0.78, "ph": "W EH1 L", "pitch": "m52.78", "vel": 0.845}, {"at": 2.193, "expr_path": {"f0": [0.0, 9.0, 18.0, 25.0, 30.0, 30.0, 28.0, 29.0, 29.0, 23.0, 11.0, -6.0, -24.0]}, "len": 0.601, "ph": "AH1 V", "pitch": "m52.465", "vel": 0.745}, {"at": 2.81, "expr_path": {"f0": [0.0, 9.0, 18.0, 25.0, 30.0, 30.0, 28.0, 29.0, 29.0, 23.0, 11.0, -6.0, -24.0]}, "len": 0.601, "ph": "M IH1", "pitch": "m51.588", "vel": 0.869}, {"at": 3.386, "expr_path": {"f0": [0.0, -6.0, -11.0, -17.0, -22.0, -30.0, -37.0, -40.0, -41.0, -43.0, -50.0, -61.0, -72.0, -80.0, -82.0]}, "len": 0.696, "ph": "R ER0 Z", "pitch": "m46.461", "vel": 0.815}]
 
 
 if __name__ == '__main__':
