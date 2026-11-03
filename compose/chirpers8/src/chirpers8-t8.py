@@ -71,6 +71,7 @@ LATER = os.environ.get("C8T8_LATER", "-8")   # WHOLE ROUND: a second sung line, 
 LATERDROP = os.environ.get("C8T8_LATERDROP", "1")   # with LATER: the word steps aside for the voice - for E bars 12-13 the word, its marimba, the zeros, the hats and the clap are kept at velocity 1 (no dice move), so 'it comes later on' is heard over pads, bass and kick (in the full mix whisper heard nothing; soloed it reads exactly)
 HANDS = os.environ.get("C8T8_HANDS", "clap")   # PALETTE: the clap and the rim leave the 909 kit for the machine layer's own synthesised clap and rim ('clap', 'rim', or 'both'): with v36's kick, the kit is the song's own
 ECHOCH = os.environ.get("C8T8_ECHOCH", "84")   # SECTION ROUND (w8, E: static): it comes later on - the sung line's tune (A4 G4 F4 E4 D4, as sung at E bar 12) comes back on the tape choir (mellotron-choir, wordless, its own track echoch listed last) four bars later and again four bars after that, softer each time: the delay line handing the phrase back. Lifted with E. Value = first velocity
+EBRK = os.environ.get("C8T8_EBRK", "12,4")   # SECTION ROUND (w8, E's first half: static): a breath before the words - E bars EBRK ('start,len') lose the kit (kick, hats, clap, rim, shaker), so the line, the pads and the bass hold alone and the sung line at E bar 16 enters out of the quiet, the drums landing back under it
 LIFEPD = os.environ.get("C8T8_LIFEPD", "-28")   # PALETTE: the Life cells (v47: gen life 8x8 on glass, C bar 20 through D) are played on the instrument of the machines that ran Life at home - Casio CZ phase distortion (1984): a sine bent toward a square for an instant on each note and let go (the CZ pluck), so each live cell is a small bright click of a home computer. Value = gain dB
 FLYBY = os.environ.get("C8T8_FLYBY", "20,1")   # SECTION ROUND (w9, E's end: little new vs w8): the last read flies past - v46's second readback (E bars 24-27, the word's four notes a semitone up) moves to its own track and passes the listener left to right, one fly-by across the four bars (orbit path=line, engine c7606671), the Doppler drop on each note as it goes by: the memory read out of the line one last time and carried away. Value = 'radius,doppler'
 WORDORB = os.environ.get("C8T8_WORDORB", "rate=1/8 radius=2 mix=0.7")   # WHOLE ROUND: the word recirculates - a mercury delay line keeps a word by sending it round and round, so the word (dx-epiano, its bits all song) goes round the listener: an orbit (engine c7606671, after Chowning's moving sources, 1971) circling the head, darker behind, a lap every few bars, all song. Value = the orbit fx's args
@@ -245,9 +246,11 @@ def build():
                     ev["ctr"].append((c0 + (4 + i) * BAR + 4 * k, hz((62, 67, 72, 77)[k]), 3, int(COUNTER) + (8 if k == 0 else 0)))
             if n == 16:
                 ev["ctr"].append((c0 + (4 + i) * BAR, hz(50), 8, int(COUNTER) + 10))   # 16 = 10000: the carry, out of four bits - a low D
-    if CBRK:
-        bs, bl = (int(x) for x in CBRK.split(","))
-        u, w = sec_start("C") + bs * BAR, sec_start("C") + (bs + bl) * BAR
+    for _sec, _brk in (("C", CBRK), ("E", EBRK)):
+        if not _brk:
+            continue
+        bs, bl = (int(x) for x in _brk.split(","))
+        u, w = sec_start(_sec) + bs * BAR, sec_start(_sec) + (bs + bl) * BAR
         for k in ("kick", "kick2", "hats", "hats2", "ohat", "clap", "rim", "shk"):
             if k in ev:
                 ev[k] = [e for e in ev[k] if not (u <= e[0] < w)]
