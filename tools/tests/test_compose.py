@@ -340,6 +340,9 @@ class Coverage(unittest.TestCase):
         # engine 1a5a0572 (wM, bd-d036e1): VOSIM pulse trains
         self.assertIn("vosim", CH.song_features({"patches": {"v": {"synth": {"layers": [{"type": "vosim"}]}}}}, ""))
         self.assertIn("vosim", CH.COVERAGE_CATALOGUE["synthesis"])
+        # engine 758ba1dc (wM, bd-83b17b): wave terrain synthesis
+        self.assertIn("terrain", CH.song_features({"patches": {"w": {"synth": {"layers": [{"type": "terrain"}]}}}}, ""))
+        self.assertIn("terrain", CH.COVERAGE_CATALOGUE["synthesis"])
         self.assertIn("choices", CH.song_features({}, "score: (C4|E4|G4)/4"))
 
     def test_life_henon_and_walk_systems_are_features(self):

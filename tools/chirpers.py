@@ -679,7 +679,7 @@ COVERAGE_CATALOGUE = {
     "synthesis": ["wave:sine", "wave:triangle", "wave:saw", "wave:square", "wave:pulse", "additive", "table", "shepard",
                   "sample", "machine", "modal", "bowed", "pluck", "membrane", "plate", "cymbal", "bar", "vibes", "bell",
                   "glock", "gong", "reed", "jet", "lips", "sax", "guitar", "fm/pm", "sync", "shape:fold", "shape:tanh",
-                  "shape:clip", "shape:crush", "bytebeat", "gendyn", "vosim"],
+                  "shape:clip", "shape:crush", "bytebeat", "gendyn", "vosim", "terrain"],
     "fx": ["amp", "autolevel", "barberpole", "cab", "chop", "chorus", "clip", "cloud", "compressor", "crush", "delay", "drive",
            "duck", "eq", "filter", "follow-noise", "formant", "freeze", "gain", "gate", "glue", "ir", "limiter", "morph", "ott",
            "pan", "phantom", "phaser", "pitch", "pump", "radio", "reverb", "ring", "stutter", "sympathetic", "tape", "tapestop",
@@ -700,7 +700,7 @@ def song_features(canon, raw):
     import re
     fx_types = set(COVERAGE_CATALOGUE["fx"])
     synth = {"additive", "table", "shepard", "sample", "machine", "modal", "bowed", "pluck", "membrane", "reed", "lips", "bar",
-             "bell", "glock", "gong", "guitar", "comb", "ladder", "bytebeat", "gendyn", "vosim"}
+             "bell", "glock", "gong", "guitar", "comb", "ladder", "bytebeat", "gendyn", "vosim", "terrain"}
     got = set()
 
     def walk(o, path):
