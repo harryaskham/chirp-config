@@ -146,6 +146,16 @@ C3_GENDY = {"about": "chirper-two: Xenakis's dynamic stochastic synthesis (gendy
 # 97.662, the default (static again: the gong's ring is still). Knobs: T3_LEAVE, T3_LEAVE_BARS, T3_LEAVE_GONG,
 # T3_COLONY_GAIN. T3_R13=none reproduces v12.
 R13 = os.environ.get("T3_R13", "colony")
+# T3_R14 = story (v14, whole-song round). THE CELL TELLS IT. The voice used to say one thing - "I only know the two
+# beside me / and they are enough" - five times. Now that line is the hymn's refrain and the first thing the cell
+# sings, and the rest of the song it says what knowing two neighbours is like, a pair of lines per section:
+#   glider (later):  "the left one is weather" / "the right one is news"
+#   peak (bars 8, 12; the old peak lines sat at bars 28/32, which the hymn's shorter peak never reaches):
+#                    "two rumors and a mirror" / "add up to the next of me"   (left, self, right -> the rule)
+#   decay (new):     "when the left goes dark" / "I keep its count"
+# Same voice, same humanize, a D-minor tune per line (`chirp tts --sing`, src/t3/s3a..s5b.json), snapped by the
+# just tuning like the rest. T3_R14=none reproduces v13.
+R14 = os.environ.get("T3_R14", "story")
 R11KICK = os.environ.get("T3_R11_KICK", "machine")   # "bronze": the kit's own kick too (cost spectrum 97 -> 75-80)
 C8_KIT = {
     "about": "chirper-two: Three Neighbours' own kit - kr a D1 sine kick that drops into place with a low modal membrane "
@@ -203,7 +213,11 @@ R3 = os.environ.get("T3_R3", "sing")
 SING = []
 
 
-def sing(name, at, scale=1.0):
+STORY = []
+
+
+def sing(name, at, scale=1.0, dst=None):
+    dst = SING if dst is None else dst
     src = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "t3", name)))["tracks"][0]
     for nt in src["notes"]:
         m = round(69 + 12 * math.log2(float(nt["pitch"].rstrip("hz")) / 440))
@@ -211,7 +225,7 @@ def sing(name, at, scale=1.0):
              "vel": round(nt["vel"] * scale, 3)}
         if nt.get("expr_path"):
             d["expr_path"] = nt["expr_path"]
-        SING.append(d)
+        dst.append(d)
     return src["patch"]
 
 
@@ -417,9 +431,16 @@ def build():
             ln = min(8, n - i) * 4 - 0.2
             T["drone"].add(start, ln, ",".join(hz_m(m) for m in (jm(0, 38), jm(4, 38))), 64)
         if R3 == "sing" and sec == "glider" and i in (2, 6, 14, 18):
-            sing("sing1.json" if i in (2, 14) else "sing2.json", start)
-        if R3 == "sing" and sec == "peak" and i in (28, 32):
-            sing("sing1.json" if i == 28 else "sing2.json", start, 0.8)
+            if R14 == "story" and i in (14, 18):
+                sing("s3a.json" if i == 14 else "s3b.json", start, 1.0, STORY)
+            else:
+                sing("sing1.json" if i in (2, 14) else "sing2.json", start)
+        if R3 == "sing" and sec == "peak" and i in (28, 32) and R14 != "story":   # (unreached since the hymn
+            sing("sing1.json" if i == 28 else "sing2.json", start, 0.8)              #  shortened the peak to 18 bars)
+        if R3 == "sing" and R14 == "story" and sec == "peak" and i in (8, 12):
+            sing("s4a.json" if i == 8 else "s4b.json", start, 1.0, STORY)
+        if R3 == "sing" and R14 == "story" and sec == "decay" and i in (2, 6):
+            sing("s5a.json" if i == 2 else "s5b.json", start, 1.0, STORY)
         if sec == "traffic" and i == n - 4:
             T["rise"].add(start, 16.0, "D4", 76)
         if R4 == "hymn":
@@ -548,6 +569,11 @@ def main():
             "fx": ["hp cutoff=140", "compressor threshold=-20dB ratio=3 attack=5ms release=120ms",
                    {"type": "delay", "time": "3/8", "feedback": 0.3, "mix": 0.2, "ping_pong": True, "tone": 3500}],
             "notes": SING}] if R3 == "sing" else []),
+        *([{"name": "story", "patch": sing_patch(), "gain": os.environ.get("T3_STORY_GAIN", "-2dB"), "pan": -0.05,
+            "sends": {"hall": "-6dB"},
+            "fx": ["hp cutoff=140", "compressor threshold=-20dB ratio=3 attack=5ms release=120ms",
+                   {"type": "delay", "time": "3/8", "feedback": 0.3, "mix": 0.2, "ping_pong": True, "tone": 3500}],
+            "notes": STORY}] if (R3 == "sing" and R14 == "story") else []),
     ]
     if R2 == "live":
         L = {n: k for n, s, k, r in secs}
