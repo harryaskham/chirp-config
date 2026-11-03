@@ -1,0 +1,4 @@
+about: 'The speaking toy (wM, chirpers8): the speech voice through LPC-10 at 8 kHz with 5-bit coefficients, the talking toys'' and first speech chips'' voice. Add `fx` `lpc pitch=C3 bits=5` instead for the monotone.'
+extends: voice-speech
+fx:
+  - lpc bits=5
