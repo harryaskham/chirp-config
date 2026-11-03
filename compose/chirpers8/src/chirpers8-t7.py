@@ -139,6 +139,13 @@ def build():
     # aloud - 'zero point eight six', 'zero point six six', ... - spoken while the machine is hot, melodized onto the
     # riff (--melodize, more each epoch) as it cools, and retuned into the same just intonation once it sings; at
     # convergence it sings 'zero'; the reheat throws it back to speech; the coda sings 'zero' again
+    # (v24) THE READINGS SAY WHAT THE NUMBER MEANS (Harry: oblique words; and t1's lesson, sung or spoken, nothing
+    # between): each reading is the number and then a few words on what that temperature is like - 'zero point eight six,
+    # and it takes the worse road gladly' (hot, it accepts worse answers on purpose), 'zero point six six, it has started
+    # to keep things', 'zero point two eight, nearly' - this one sung exactly, in A minor, ending on the B above the A it
+    # has not reached yet - then 'zero', and the reheat's 'zero point eight eight, shaken loose again'. The hot ones are
+    # plainly spoken (melodize 0, chirp tts --key A3 --humanize 0.7, seeds 301/303/307); the old half-melodized readings
+    # sat between notes
     VOICE = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'chirpers8-t7-voice.json')))
     JI = sorted(55.0 * 2 ** o * r for o in range(5) for r in RATIOS)
     vnotes, fv = [], []
