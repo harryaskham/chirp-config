@@ -71,6 +71,7 @@ LATER = os.environ.get("C8T8_LATER", "-8")   # WHOLE ROUND: a second sung line, 
 LATERDROP = os.environ.get("C8T8_LATERDROP", "1")   # with LATER: the word steps aside for the voice - for E bars 12-13 the word, its marimba, the zeros, the hats and the clap are kept at velocity 1 (no dice move), so 'it comes later on' is heard over pads, bass and kick (in the full mix whisper heard nothing; soloed it reads exactly)
 HANDS = os.environ.get("C8T8_HANDS", "clap")   # PALETTE: the clap and the rim leave the 909 kit for the machine layer's own synthesised clap and rim ('clap', 'rim', or 'both'): with v36's kick, the kit is the song's own
 ECHOCH = os.environ.get("C8T8_ECHOCH", "84")   # SECTION ROUND (w8, E: static): it comes later on - the sung line's tune (A4 G4 F4 E4 D4, as sung at E bar 12) comes back on the tape choir (mellotron-choir, wordless, its own track echoch listed last) four bars later and again four bars after that, softer each time: the delay line handing the phrase back. Lifted with E. Value = first velocity
+GENDY = os.environ.get("C8T8_GENDY", "-12")   # SECTION ROUND (w3, A bars 16-31: little new vs w2): the mercury trembles - under A's second half a gendyn drone (engine 6014b933; Xenakis's dynamic stochastic synthesis: a 12-point wave whose levels, and a little of its segment lengths, random-walk every cycle) holds each chord's root an octave over the bass, four bars a chord (D Bb G A), never quite the same wave twice: the line's medium, a liquid that won't sit still. Low-passed at 1.5 kHz, into the line. Value = gain dB
 HUMGAIN = os.environ.get("C8T8_HUMGAIN", "-18dB")   # the store powering up, quieter: the in seam read t8's head 6.1 dB louder than t7's tail, and the hum (97/114 Hz +13.7) was the loud thing
 ESTABLE = os.environ.get("C8T8_ESTABLE", "1")   # event_stable: each note's dice from its track, beat and pitch, so later edits stay local (switching it on re-rolls the take once)
 LIFE = os.environ.get("C8T8_LIFE", "C20")   # WHOLE ROUND: the memory is alive - after the program counter stops (C bar 20), a Game of Life (engine ade7b930's gen: life, B3/S23 on an 8 x 8 torus, seeded with an R-pentomino) plays the stored bits on glass: a playhead reads one column a sixteenth, live cells sound (up to three, rows on the song's scale, bottom low), each pass across the grid one generation, into the mercury line. 'C20' runs from C bar 20 through D; 'D' through D only
@@ -398,6 +399,12 @@ def song():
                                       "notes": "D4 F4 G4 A4 C5 D5 F5 A5", "len": "/16"}})   # note names: hz can't stack in a chord (poly 3); within a few cents of hz()'s stretch
     if ESTABLE:
         doc["event_stable"] = True
+    if GENDY:
+        a0 = sec_start("A")
+        gev = [(a0 + b * BAR, hz(CHORDS[(b // 4) % 4][0] + 12), 4 * BAR, 84) for b in range(16, 32, 4)]
+        doc["tracks"].append({"name": "gdy", "patch": {"about": "a gendyn drone: the mercury trembling", "synth": {"layers": [{"type": "gendyn", "gendyn": {"points": 12, "amp": 0.04, "time": 0.01, "spread": 0.1, "dist": "cauchy"}}]}},
+                              "gain": f"{GENDY}dB", "pan": 0.1, "fx": [{"type": "filter", "kind": "lp", "cutoff": 1500, "q": 0.7}],
+                              "sends": {"line": "-10dB", "room": "-12dB"}, "score": stream(gev, total())})
     return doc
 
 
