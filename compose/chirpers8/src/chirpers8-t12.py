@@ -443,6 +443,32 @@ def verse_notes():
     return out
 
 
+# v28 (ROUND TYPE: whole; Harry 'do more each round'; the closer used only 9 effect types): GLITCH, FREEZE, REBOOT,
+# and AN ECHO FOR THE VOICES. (1) At the top of the fifth generation (the last beat of bar 89) the machine GLITCHES -
+# a master stutter replays slices of the beat, rolling faster and climbing - then the hall reverb FREEZES, holding
+# g5's last chord like a frozen screen while the prune's 7/8 counting begins beneath it; it thaws at bar 92 and the
+# tail falls away. (2) The verse, the singer and its double get an ECHO bus (a dotted-eighth delay with a dark
+# feedback path), so every vocal moment is produced, not dry.
+GLITCH_BAR = 89
+FREEZE_TO = 92
+
+
+def glitch_lane():
+    a = rb(GLITCH_BAR) + 2
+    return [["0b", 0.0], [f"{a - 0.01:g}b", 0.0], [f"{a:g}b", 1.0], [f"{a + 1.99:g}b", 1.0], [f"{a + 2:g}b", 0.0]]
+
+
+def freeze_gain_lane():
+    """the frozen chord is brought up 6 dB while it hangs (measured: alone it sat under the prune), then let go"""
+    a, z = rb(GLITCH_BAR) + 3.95, rb(FREEZE_TO)
+    return [["0b", 0.0], [f"{a:g}b", 0.0], [f"{a + 0.25:g}b", 6.0], [f"{z:g}b", 6.0], [f"{z + 2:g}b", 0.0]]
+
+
+def freeze_lane():
+    a, z = rb(GLITCH_BAR) + 3.95, rb(FREEZE_TO)
+    return [["0b", 0.0], [f"{a - 0.01:g}b", 0.0], [f"{a:g}b", 1.0], [f"{z - 0.01:g}b", 1.0], [f"{z:g}b", 0.0]]
+
+
 def adt_notes():
     out = []
     for n in sung_notes()[len(SING):]:
@@ -693,7 +719,7 @@ def main():
              "gen": {"type": "lsystem", "axiom": "A", "rules": {"A": "A+B", "B": "-A[B]a"}, "depth": 6,
                      "notes": " ".join(f"~{s}" for s in (0, 5, 9, 13, 18, 23, 26, 31, 36, 40, 44, 49)),
                      "n": 440, "len": "/8"}},
-            {"name": "singer", "patch": SING_PATCH, "gain": "-12dB", "pan": -0.05, "sends": {"hall": "-5dB"},
+            {"name": "singer", "patch": SING_PATCH, "gain": "-12dB", "pan": -0.05, "sends": {"hall": "-5dB", "echo": "-12dB"},
              "fx": [{"type": "filter", "kind": "hp", "cutoff": 160}], "notes": sung_notes()},      # v5: the voice sings
             *[{"name": nm, "patch": SING_PATCH, "gain": gn, "pan": pn, "sends": {"hall": "-5dB"},
                "fx": [{"type": "filter", "kind": "hp", "cutoff": 160}], "notes": choir_notes(rows)}
@@ -750,8 +776,16 @@ def main():
             tr("theremin", "theremin", gain="-5dB", pan=0.2, sends={"hall": "-8dB"}),        # v22: LAST
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=1.0s mix=1 predelay=10ms", "hp cutoff=250"]},
-                  "hall": {"fx": ["reverb kind=hall decay=3.2s mix=1 predelay=30ms", "hp cutoff=250"]}},
-        "master": {"fx": [{"type": "tapestop", "time": "0.01b", "curve": 1.6, "mix": 1, "up": WAKE_UP,   # v25: power up
+                  "hall": {"fx": [{"type": "reverb", "kind": "hall", "decay": "3.2s", "mix": 1, "predelay": "30ms",
+                                   "freeze": {"value": 0, "mod": [{"src": "auto.fz", "amount": 1}]}},   # v28: the freeze
+                                  "hp cutoff=250",
+                                  {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.fg", "amount": 1}]}}],
+                           "auto": {"fz": {"points": freeze_lane()}, "fg": {"points": freeze_gain_lane()}}},
+                  "echo": {"fx": [{"type": "delay", "time": "3/16", "feedback": 0.38, "mix": 1, "tone": 2800},
+                                  "hp cutoff=300"]}},                                 # v28: a tape-ish echo for the voices
+        "master": {"fx": [{"type": "stutter", "slice": "1/16", "repeats": 4, "roll": 0.6, "pitch": 1.0, "seed": 3,
+                           "chance": {"value": 0, "mod": [{"src": "auto.st", "amount": 1}]}},           # v28: the glitch
+                          {"type": "tapestop", "time": "0.01b", "curve": 1.6, "mix": 1, "up": WAKE_UP,   # v25: power up
                            "stop": {"value": 0, "mod": [{"src": "auto.tu", "amount": 1}]}},
                           {"type": "tapestop", "time": "4b", "curve": 1.6, "mix": 1,          # v14: power down
                            "stop": {"value": 0, "mod": [{"src": "auto.ts", "amount": 1}]}},
@@ -763,6 +797,7 @@ def main():
                    "auto": {"dyn": {"points": lanes()},
                             # v14: POWER DOWN TO STANDBY - through the coda's last bar the whole band winds down like a
                             # motor losing power (tapestop, curve 1.6), then the light section starts on the live signal
+                            "st": {"points": glitch_lane()},                                   # v28: the glitch
                             "tu": {"points": [["0b", 1.0], ["0.01b", 1.0], ["0.02b", 0.0]]},   # v25: wake
                             "ts": {"points": [["0b", 0.0], [f"{rb(178) - 0.01:g}b", 0.0], [f"{rb(178):g}b", 1.0],
                                               [f"{rb(179) - 0.01:g}b", 1.0], [f"{rb(179):g}b", 0.0]]}}},
@@ -770,10 +805,10 @@ def main():
     clear_lanes(song)                             # v23: the clearing's gain lanes on the melodic layers
     song["event_stable"] = True                   # v25: each note's draws from its track, beat and pitch (wM f5283535)
     song["tracks"].append({"name": "singer2", "patch": SING_PATCH, "gain": "-14dB", "pan": 0.3, "transpose": ADT[0],
-                           "sends": {"hall": "-5dB"}, "fx": [{"type": "filter", "kind": "hp", "cutoff": 160}],
+                           "sends": {"hall": "-5dB", "echo": "-14dB"}, "fx": [{"type": "filter", "kind": "hp", "cutoff": 160}],
                            "notes": adt_notes()})                               # v25: the voice doubled
     song["tracks"].append({"name": "verse", "patch": SING_PATCH, "gain": "-12dB", "pan": 0.05,
-                           "sends": {"hall": "-5dB"}, "fx": [{"type": "filter", "kind": "hp", "cutoff": 160}],
+                           "sends": {"hall": "-5dB", "echo": "-12dB"}, "fx": [{"type": "filter", "kind": "hp", "cutoff": 160}],
                            "notes": verse_notes()})                             # v27: the voice grows with the tune
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)

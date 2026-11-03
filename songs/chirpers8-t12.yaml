@@ -316,7 +316,8 @@
    "gain": "-12dB",
    "pan": -0.05,
    "sends": {
-    "hall": "-5dB"
+    "hall": "-5dB",
+    "echo": "-12dB"
    },
    "fx": [
     {
@@ -4024,7 +4025,8 @@
    "pan": 0.3,
    "transpose": 0.07,
    "sends": {
-    "hall": "-5dB"
+    "hall": "-5dB",
+    "echo": "-14dB"
    },
    "fx": [
     {
@@ -4580,7 +4582,8 @@
    "gain": "-12dB",
    "pan": 0.05,
    "sends": {
-    "hall": "-5dB"
+    "hall": "-5dB",
+    "echo": "-12dB"
    },
    "fx": [
     {
@@ -5186,13 +5189,119 @@
   },
   "hall": {
    "fx": [
-    "reverb kind=hall decay=3.2s mix=1 predelay=30ms",
-    "hp cutoff=250"
+    {
+     "type": "reverb",
+     "kind": "hall",
+     "decay": "3.2s",
+     "mix": 1,
+     "predelay": "30ms",
+     "freeze": {
+      "value": 0,
+      "mod": [
+       {
+        "src": "auto.fz",
+        "amount": 1
+       }
+      ]
+     }
+    },
+    "hp cutoff=250",
+    {
+     "type": "gain",
+     "gain": {
+      "value": "0dB",
+      "mod": [
+       {
+        "src": "auto.fg",
+        "amount": 1
+       }
+      ]
+     }
+    }
+   ],
+   "auto": {
+    "fz": {
+     "points": [
+      [
+       "0b",
+       0.0
+      ],
+      [
+       "355.94b",
+       0.0
+      ],
+      [
+       "355.95b",
+       1.0
+      ],
+      [
+       "362.99b",
+       1.0
+      ],
+      [
+       "363b",
+       0.0
+      ]
+     ]
+    },
+    "fg": {
+     "points": [
+      [
+       "0b",
+       0.0
+      ],
+      [
+       "355.95b",
+       0.0
+      ],
+      [
+       "356.2b",
+       6.0
+      ],
+      [
+       "363b",
+       6.0
+      ],
+      [
+       "365b",
+       0.0
+      ]
+     ]
+    }
+   }
+  },
+  "echo": {
+   "fx": [
+    {
+     "type": "delay",
+     "time": "3/16",
+     "feedback": 0.38,
+     "mix": 1,
+     "tone": 2800
+    },
+    "hp cutoff=300"
    ]
   }
  },
  "master": {
   "fx": [
+   {
+    "type": "stutter",
+    "slice": "1/16",
+    "repeats": 4,
+    "roll": 0.6,
+    "pitch": 1.0,
+    "seed": 3,
+    "chance": {
+     "value": 0,
+     "mod": [
+      {
+       "src": "auto.st",
+       "amount": 1
+      }
+     ]
+    }
+   },
    {
     "type": "tapestop",
     "time": "0.01b",
@@ -5331,6 +5440,30 @@
      [
       "705.50b",
       -9.0
+     ]
+    ]
+   },
+   "st": {
+    "points": [
+     [
+      "0b",
+      0.0
+     ],
+     [
+      "353.99b",
+      0.0
+     ],
+     [
+      "354b",
+      1.0
+     ],
+     [
+      "355.99b",
+      1.0
+     ],
+     [
+      "356b",
+      0.0
      ]
     ]
    },
