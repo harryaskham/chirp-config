@@ -660,6 +660,21 @@ def entropy_lane():
     return pts
 
 
+# v31 (ROUND TYPE: palette; VOSIM pinned 1a5a0572): THE ARRAY SPEAKS. A VOSIM voice (voice-simulation pulse trains,
+# Sonology 1978) doubles the lead's sixteen notes, and its two formants follow the SAME expr.ix that pans each element
+# by its index: left (index 0) is 'ah' (F1 ~730, F2 ~1090 Hz), right (index 15) is 'ee' (F1 ~270, F2 ~2290 Hz). So
+# pitch, place and VOWEL all say the element's number: shuffled, a bar is machine babble; sorted, the vowels sweep in
+# order, ah-eh-ee, left to right - a word forming as the list comes into order. And the riffle (the deck shuffled at
+# bar 8) moves from the celesta (a 4-song staple) to a CAVAQUINHO, unused on the album: a riffled deck is a strum.
+TALK = {"synth": {"layers": [
+    {"type": "vosim", "vosim": {"formant": {"value": 444, "mod": [{"src": "expr.ix", "amount": -0.8}]}, "pulses": 3, "decay": 0.7}},
+    {"type": "vosim", "level": 0.7, "vosim": {"formant": {"value": 1580, "mod": [{"src": "expr.ix", "amount": 0.6}]},
+                                               "pulses": 4, "decay": 0.75}}],
+    "amp": "6ms 0.8 0.5 140ms", "filters": [{"kind": "hp", "cutoff": 450, "q": 0.6},
+                                                   {"kind": "hp", "cutoff": 450, "q": 0.5}],   # the pulses' fundamental
+    "fx": [{"type": "pan", "pan": {"value": 0, "mod": [{"src": "expr.ix", "amount": 1}]}}]}}
+
+
 def main():
     write()
     arrival()                                     # v22: the stop, the reverse cymbal, the impact
@@ -697,7 +712,7 @@ def main():
             *voice_tracks(),                                                                 # v10: speech to song
             write_canon() or tr("canon", "bari-sax", gain="+2dB", pan=0.25,
                                 sends={"room": "-10dB", "dly": "-14dB"}),                    # v17: the large one
-            tr("riffle", "celesta", gain="-8dB", pan=0.15, sends={"room": "-8dB"}),       # v19: the shuffle
+            tr("riffle", "cavaquinho", gain="-8dB", pan=0.15, sends={"room": "-8dB"}),       # v19: the shuffle
             tr("chimes", "chimes", gain="-14dB", pan=0.3, sends={"room": "-8dB"}),          # v14: the seam's air
             tr("ring", "vibes", gain="-2dB", pan=0.1, sends={"room": "-8dB", "dly": "-14dB"}),   # v9: t3's ring caught
             tr("ride", "machine-kit", gain="-9dB", pan=-0.3, sends={"room": "-12dB"}),      # v6: the top end
@@ -723,6 +738,7 @@ def main():
             tr("impact", "fx-impact", gain="-10dB"),
             tr("entropy", ENT_PATCH, gain="-18dB", pan=-0.3, sends={"room": "-10dB"},
                auto={"en": {"points": entropy_lane()}}),                                         # v30: entropy
+            tr("talk", TALK, gain="-18dB", sends={"room": "-10dB"}, score=part("lead").score()),  # v31: speaks
             {"name": "life", "patch": "toy-piano", "gain": "-16dB", "pan": 0.35, "sends": {"room": "-8dB"},
              "at": f"{b0(LIFE[0]):g}b",
              "gen": {"type": "life", "width": 16, "height": 8, "init": "center", "poly": 3,
