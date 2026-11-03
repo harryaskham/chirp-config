@@ -379,6 +379,14 @@ def build():
     for k_, e_ in enumerate(hb):
         (P['hq'] if k_ % 2 else P['bell']).append(e_ if k_ % 2 == 0 else (e_[0], e_[1], e_[2], e_[3] - 8))
     P['bell'].sort()
+    # (v35) THE BELL RESTS BETWEEN ENTRIES: the bell used to read the subject through every bar of every calls section -
+    # fourteen laps of the same eight bars. Now, after each later section's entry, it stops: in G minor it gives the
+    # subject away after eight bars (to the bass at bars 12-19; around it the Life colony, the pulse's arpeggios and
+    # the sung line have the air), and in A minor after four, leaving the sync lead to read the mirror-image line alone
+    # until the episode. Written, then muted to velocity 1, so nothing after them moves
+    c2_, c3_ = secs_t['calls2'], secs_t['calls3']
+    def _rest(at_): return (c2_ + 32.0 - 1e-6 <= at_ < c2_ + 96.0 - 1e-6) or (c3_ + 16.0 - 1e-6 <= at_ < c3_ + 48.0 - 1e-6)
+    P['bell'] = [(e_[0], e_[1], e_[2], 1) if _rest(e_[0]) else e_ for e_ in P['bell']]
     # (v15) GOING DOWN: at each overflow the voice stutters one word into the cut - 'down', five times, faster and lower
     # each time (0, -2, -4, -6, -9 semitones), the last one swallowed by the dropped eighth: the sung line's first
     # word ('down the well of mirrors') caught in the overflow, before the stack unwinds and the voice comes back home
