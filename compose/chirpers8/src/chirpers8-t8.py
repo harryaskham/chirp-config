@@ -80,6 +80,7 @@ DECFIX = os.environ.get("C8T8_DECFIX", "")   # v56's decay double peaks at lane 
 SUNGMID = os.environ.get("C8T8_SUNGMID", "16")   # WHOLE ROUND on the singing: the voice is heard before E - 'it comes later on' (the line sung at E bar 12) is first sung in the middle of the song, at C bar SUNGMID, in C's own D minor (E's is lifted a step), with its canon a bar behind a third below (v69): the line promises its own return, and comes later on. Value = bar of C
 WORDLEVEL = os.environ.get("C8T8_WORDLEVEL", "3")   # WHOLE ROUND: the word recedes as it decays - the word's orbit (radius 2 + 8 x the decay lane, v60) gets the engine's orbit `level` (8f150090: the distance that plays at full level; farther is fainter, about 1/distance): within WORDLEVEL metres it is as it was; as the memory decays and the orbit widens to 10 m the word grows faint as well as far, then each refresh brings it back up close and full. Value = metres
 CANON = os.environ.get("C8T8_CANON", "4")   # WHOLE ROUND on the singing: the memory sings it back - every sung line (sungl at E bar 12, sungv/sungv2 in the outro) is followed by itself CANON beats later, a diatonic third below in D minor on the stretched octave, 6 dB under, panned across, sent hard into the line: a delay line's echo that returns transposed, so each line becomes a two-part canon with its own recall
+ECHOFOF = os.environ.get("C8T8_ECHOFOF", "-20")   # PALETTE: the choir that answers the sung line in E and sings the tune at half speed in the outro (v42/v44; VOSIM 'oh' since v62) is now CHANT's - Rodet's FOF singing (IRCAM 1979-84, engine 91b04b25: every pitch period one decaying grain per formant, no filters), an alto on 'o' opening toward 'a' over each note, vibrato 5.5 Hz after 300 ms, a small scoop: computer music's own classic singing voice answers the human (Harry's bar: t10's sung passage). Value = gain dB
 DUET = os.environ.get("C8T8_DUET", "4")   # SECTION ROUND (E's sung line, w8): a second singer - 'it comes later on' at E bar 12 is sung as a duet: a separate take (tts --sing "F4/8 E4/8 D4/4 C4/8 A3/2", seed 21, humanize 0.35: mostly a third below, opening onto the fifth at 'on') with the first, a touch behind, on the other side and a few dB under, lifted with E; the canon (v69) still answers a bar later, so the line is three voices - two singing together, the memory a bar behind (Harry, of t10's sung duet: 'that is the bar'). Value = dB under the line
 REWRITE = os.environ.get("C8T8_REWRITE", "-18")   # SECTION ROUND (the refresh, 8 bars): the harmonics written back - a delay line loses its detail (the decay's low-pass, chaos and hiss) and regeneration restores it; through the refresh a held D (D3 + D4, the tonic, on the stretched octave) is Chebyshev-waveshaped (Le Brun & Arfib 1979, engine 817a5de6) with its index on a lane rising 0 -> 1 across the eight bars, so it grows from a bare sine to its full harmonic series one harmonic at a time - the word's spectrum rewritten - then lets go as C starts. A notes-only track. Value = gain dB
 BRASSA = os.environ.get("C8T8_BRASSA", "-16")   # SECTION ROUND (w2, A's first bars: level jump): the word announced - as the word is first stored (A), its tune (A4 F4 D4 E4 D4, the sung line's) is stated twice on Risset's brass: Chebyshev waveshaping (Le Brun & Arfib 1979, engine 817a5de6) with the index on a breath envelope and velocity, so each note brightens as it is blown and louder is brighter - the computer trumpet Risset made at Bell Labs by analysing a real one. A notes-only track at A bars 0 and 8, on the stretched octave. Value = gain dB
@@ -605,6 +606,18 @@ def song():
                                         "synth": {"layers": [{"type": "shaper", "shaper": {"harmonics": [1, 0.5, 0.33, 0.25, 0.2, 0.17, 0.14, 0.12, 0.11, 0.1, 0.09, 0.08], "index": {"value": 0, "mod": [{"src": "auto.rw", "amount": 1}]}}}],
                                                   "amp": "2s 1 1 1.5s"}},
                               "notes": [{"at": r0, "pitch": hz(50), "len": r1 - r0, "vel": 0.8}, {"at": r0, "pitch": hz(62), "len": r1 - r0, "vel": 0.6}]})
+    if ECHOFOF:
+        for t_ in list(doc["tracks"]):
+            if isinstance(t_, dict) and t_.get("name") == "echoch":
+                if os.environ.get("C8T8_ECHOFOFT", "1"):   # a twin (the VOSIM choir kept): replacing it cost 0.07 (the outro seam)
+                    t_ = json.loads(json.dumps(t_)); t_["name"] = "echoch-fof"; doc["tracks"].append(t_)
+                t_["patch"] = {"about": "CHANT (Rodet, IRCAM 1979-84): FOF formant-grain singing, alto",
+                               "synth": {"layers": [{"type": "fof", "fof": {"voice": "alto", "vowel": "o>a", "attack": "3ms", "morph": {"value": 0, "mod": [{"src": "env.mouth", "amount": 0.7}]}}}],
+                                         "pitch": {"value": 0, "mod": [{"src": "lfo.vib", "amount": 0.2}, {"src": "env.scoop", "amount": -0.3}]},
+                                         "lfo": {"vib": {"wave": "sine", "rate": "5.5hz", "delay": "300ms", "fade": "400ms"}},
+                                         "env": {"scoop": {"a": "1ms", "d": "120ms", "s": 0}, "mouth": {"a": "900ms", "d": 0, "s": 1, "r": "300ms"}}, "amp": "250ms 0 1 900ms"}}
+                t_["gain"] = f"{ECHOFOF}dB"
+                t_.pop("lfo", None)
     return doc
 
 
