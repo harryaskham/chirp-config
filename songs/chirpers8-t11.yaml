@@ -8488,6 +8488,71 @@
      "cutoff": 900
     }
    ]
+  },
+  {
+   "name": "frost",
+   "patch": {
+    "synth": {
+     "layers": [
+      {
+       "type": "terrain",
+       "terrain": {
+        "surface": "sines",
+        "ratio": 1.003,
+        "k": 1.2,
+        "rx": {
+         "value": 0.3,
+         "mod": [
+          {
+           "src": "auto.fr",
+           "amount": 0.6
+          }
+         ]
+        },
+        "ry": {
+         "value": 0.3,
+         "mod": [
+          {
+           "src": "auto.fr",
+           "amount": 0.5
+          }
+         ]
+        },
+        "cx": {
+         "value": 0.0,
+         "mod": [
+          {
+           "src": "var.gust",
+           "amount": 0.4
+          }
+         ]
+        }
+       }
+      }
+     ],
+     "amp": "700ms 1 0.9 1.8s"
+    }
+   },
+   "score": "R/128b m78.000/7.9b@80 R/0.1b m80.039/7.9b@80 R/0.1b m81.863/7.9b@80 R/0.1b m83.513/7.9b@80 R/0.1b m85.020/7.9b@80 R/0.1b m86.405/7.9b@80 R/0.1b m87.688/7.9b@80 R/0.1b m90.000/3.9b@80 R/484.1b",
+   "gain": "-14dB",
+   "pan": 0.3,
+   "sends": {
+    "hall": "-8dB"
+   },
+   "auto": {
+    "fr": {
+     "points": [
+      [
+       "128b",
+       0.0
+      ],
+      [
+       "192b",
+       1.0
+      ]
+     ]
+    }
+   }
   }
  ],
  "buses": {

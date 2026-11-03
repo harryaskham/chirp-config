@@ -192,6 +192,33 @@ def aeolian():
                                       92 if sec_of(bar) == "break" else 72)
 
 
+# v30 (ROUND TYPE: section, w3 1:03-1:35 = A's second half, flagged static / little new vs w2; terrain pinned
+# 758ba1dc): FROST ON THE GLASS. A slow descant - one long note every two bars, climbing the lobe's partials 8 -> 16 an
+# octave up, as frost spreads up a window - on WAVE TERRAIN synthesis (an orbit circling a surface of hills, its heights
+# the wave): a lane widens the orbit across the sixteen bars, so the tone OPENS from hollow (odd harmonics only, like
+# a clarinet) to glassy and bright - reshaped, not filtered - and the Lorenz var.gust pushes the orbit off centre, so
+# even harmonics join when the wind blows; ratio 1.003 lets it drift. Slow and sparse on purpose: busy mid-register
+# lines here merged A's second half into B (v28's first placement).
+FROST = (33, 48)
+FROST_PARTIALS = (8, 9, 10, 11, 12, 13, 14, 16)
+FROST_PATCH = {"synth": {"layers": [{"type": "terrain", "terrain": {
+    "surface": "sines", "ratio": 1.003, "k": 1.2,
+    "rx": {"value": 0.3, "mod": [{"src": "auto.fr", "amount": 0.6}]},     # rx 1.3 put a 6-7 kHz harmonic on top
+    "ry": {"value": 0.3, "mod": [{"src": "auto.fr", "amount": 0.5}]},
+    "cx": {"value": 0.0, "mod": [{"src": "var.gust", "amount": 0.4}]}}}],
+    "amp": "700ms 1 0.9 1.8s"}}
+
+
+def frost():
+    for i, n in enumerate(FROST_PARTIALS):
+        bar = FROST[0] + 2 * i
+        lb = lobe_at(bar)
+        ring = 1
+        while ring < 2 and lobe_at(bar + ring) == lb:
+            ring += 1
+        part("frost").add(b0(bar), b0(bar + ring) - b0(bar) - 0.1, mm(partial(n, lb, 1)), 80)
+
+
 def write_wind():
     for name, a, z in SECTIONS:
         if name in WIND_VEL:
@@ -726,6 +753,7 @@ def main():
     sheet_roll(FAR_THUNDER, 70, "farsheet")              # v24: the last thunder, far off
     write_wind()
     aeolian()                                     # v29: the Aeolian harp
+    frost()                                       # v30: frost on the glass
     eye_clear()
     breath()                                                     # v21: the drums breathe in before the break
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
@@ -834,6 +862,9 @@ def main():
                            "release": "60ms", "makeup": "0dB"}],
                    "auto": {"dyn": {"points": lanes()}}},
     }
+    # v30: new tracks go LAST - a track inserted mid-list re-seeds every later track's noise and stochastic layers
+    song["tracks"].append(tr("frost", FROST_PATCH, gain="-14dB", pan=0.3, sends={"hall": "-8dB"},
+                             auto={"fr": {"points": [[f"{b0(FROST[0]):g}b", 0.0], [f"{b0(FROST[1] + 1):g}b", 1.0]]}}))
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print("wrote", OUT, "bars", BARS, "lobe flips", flips,
