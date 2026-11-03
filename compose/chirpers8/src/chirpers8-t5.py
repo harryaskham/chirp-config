@@ -55,6 +55,7 @@ LIFTSTOP = os.environ.get("C8T5_LIFTSTOP", "1")   # the gear change, announced: 
 LIFTHAT = os.environ.get("C8T5_LIFTHAT", "1")   # after the lift the hats open: every off-beat hat an open hat - the agreed band, a step up, brighter on top
 ESTABLE = os.environ.get("C8T5_ESTABLE", "1")   # song-level event_stable (engine f5283535): each note's humanize and DSP draws come from its track, beat and pitch, so a window's edit stays in the window; switching it on re-rolls every humanized note once
 ACIDX = os.environ.get("C8T5_ACIDX", "-18")   # WHOLE ROUND: the route out of chaos - the acid's line is doubled by a chaos voice (engine f3872739: a Rossler attractor, one loop per period of the note, read on its x axis, a tone with a chaotic flutter) whose amount walks the route backwards across the song: chaotic through A's proposals (0.9), calming through B, period-doubling (an octave-down subharmonic) at the retrain, a plain tone once they agree in C, and back toward chaos as they part at the end. Value = gain dB
+OUTKS = os.environ.get("C8T5_OUTKS", "0:-14")   # SECTION ROUND (w9, the outro: level jump): the deal, plucked as they part - the tune they sang at C's end (B3 D4 E4, the last time up to B4) comes back in the outro on Karplus-Strong (engine 8f150090, 1983: a noise burst settling in a one-period loop), stretched to ring long: every two bars, four times, then up to B4, then one E4 left ringing at bar 12, each softer. A notes-only track, outro only. Value 'blend:gain'
 ROBOCHOIR = os.environ.get("C8T5_ROBOCHOIR", "-12")   # SECTION ROUND (the agreement sung, C's last bars): the machine sings too - the three-voice choir that sings 'keep it there' together at C's end gets a fourth voice, a vocoder twin of its middle voice: the same words shaping a held E minor chord of saws (E2 B2 E3 G3) band by band. Agreeing on a speed: humans and the machine sing the deal together. Value = gain dB
 GTRRUSH = os.environ.get("C8T5_GTRRUSH", "0.25")   # SECTION ROUND (w2, the intro's end into A: level jump): the first proposal is rushed - with no kick under it yet, the guitar's opening calls in A run ahead of the band (its own clock: GTRRUSH beats early by A's downbeat), settling back onto the grid over A's first eight bars, so it is exactly on time the bar the kick comes in. Value = beats early
 KEEPLPC = os.environ.get("C8T5_KEEPLPC", "plain")   # SECTION ROUND (w7, C bars 12-28): the agreement spoken by a speech chip - the line that states the deal at C bar 16 (keep) goes through LPC (engine 78e838c5): 'plain' (inflecting) or 'toy' (5-bit monotone on E3, the tonic, the speaking toy); keep2 at C's end stays as it was. Notes 0.07 beats early for LPC's ~35 ms
@@ -552,6 +553,18 @@ def song():
                 twin.update(name="choir-robo", gain=f"{ROBOCHOIR}dB", pan=-0.2)
                 twin["fx"] = [*t_.get("fx", []), {"type": "vocoder", "notes": "E2,B2,E3,G3", "bands": 20, "noise": 0.12, "attack": "4ms", "release": "70ms"}]
                 doc["tracks"].append(twin)
+    if OUTKS:
+        kb, kg = OUTKS.split(":")
+        o0 = sec_start("outro") / 4
+        notes = []
+        for r in range(5):
+            top = "B4" if r == 4 else "E4"
+            v = round(0.8 - 0.08 * r, 2)
+            notes += [{"at": o0 + 8 * r, "pitch": "B3", "len": 1.5, "vel": v}, {"at": o0 + 8 * r + 1.5, "pitch": "D4", "len": 1.5, "vel": v}, {"at": o0 + 8 * r + 3, "pitch": top, "len": 3, "vel": v}]
+        notes = [n for n in notes if n["at"] < o0 + 48] + [{"at": o0 + 48, "pitch": "E4", "len": 8, "vel": 0.36}]
+        doc["tracks"].append({"name": "outks", "gain": f"{kg}dB", "pan": 0.2,
+                              "patch": {"about": "Karplus-Strong 1983, stretched", "synth": {"layers": [{"type": "ks", "ks": {"blend": float(kb), "stretch": 4, "tune": True}}], "amp": "1ms 1 1 1.5s"}},
+                              "notes": notes})
     return doc
 
 
