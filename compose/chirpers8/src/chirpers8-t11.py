@@ -254,6 +254,16 @@ def throat_lane():
     return pts
 
 
+# v32 (ROUND TYPE: whole; orbit pinned c7606671 - Chowning's moving sound sources, 1971): THE WEATHER MOVES THROUGH
+# THE HOUSE. The weather indoors stood still in the stereo field; now (1) the WIND CIRCLES THE HOUSE - a slow lap round
+# the listener, about 24 s, darker as it passes behind - and (2) the THUNDER MOVES: a long fly-by path (25 m wide, 6 m
+# ahead, a pass every 50 s, Doppler 0.4), so each strike at a lobe flip lands somewhere else in the sky - near or far,
+# left or right, bending as it rolls past. Best on headphones; on speakers the wind swells and darkens.
+WIND_ORBIT = {"type": "orbit", "path": "circle", "rate": round(1 / 24, 4), "radius": 4, "distance": 0}
+THUNDER_ORBIT = {"type": "orbit", "path": "line", "rate": 0.02, "radius": 25, "distance": 6, "doppler": 0.4}
+THUNDER_GAIN = "-2dB"     # +4 dB: the path averages -5.3 dB (strikes land -0.8 to -22 dB from near to far)
+
+
 def write_wind():
     for name, a, z in SECTIONS:
         if name in WIND_VEL:
@@ -821,11 +831,13 @@ def main():
              "fx": [{"type": "filter", "kind": "hp", "cutoff": 160}], "notes": sung_notes()},   # v6: the sung hook
             {"name": "toll", "patch": BELL, "gain": "-12dB", "pan": -0.15, "sends": {"hall": "-8dB", "dly": "-12dB"},
              "notes": toll_notes()},                                                       # v8: the bell carries over
-            tr("wind", WIND, gain="-14dB", pan=0.25, sends={"hall": "-8dB"}),           # v11: the wind in the gap
+            tr("wind", WIND, gain="-13dB", pan=0.25, sends={"hall": "-8dB"},
+               fx=[WIND_ORBIT]),                                                           # v11: the wind in the gap; v32: circles
             tr("aeolian0", AEOL_PATCH, gain="-17dB", pan=-0.5, sends={"hall": "-6dB"}),     # v29
             tr("aeolian1", AEOL_PATCH, gain="-17dB", pan=0.05, sends={"hall": "-6dB"}),     # v29
             tr("aeolian2", AEOL_PATCH, gain="-17dB", pan=0.5, sends={"hall": "-6dB"}),     # v29
-            tr("thunder", THUNDER, gain="-6dB", pan=-0.1, sends={"hall": "-4dB"}),          # v10: thunder at the flips
+            tr("thunder", THUNDER, gain=THUNDER_GAIN, pan=-0.1, sends={"hall": "-4dB"},
+               fx=[THUNDER_ORBIT]),                                                        # v10: thunder at the flips; v32: moves
             tr("sheet", SHEET, gain="-10dB", pan=0.15, sends={"hall": "-6dB"}),            # v16: the thunder sheet
             tr("rainL", "celesta", gain="-8dB", pan=-0.6, sends={"hall": "-8dB"}),       # v9: rain indoors
             tr("rainR", "celesta", gain="-8dB", pan=0.6, sends={"hall": "-8dB"}),
