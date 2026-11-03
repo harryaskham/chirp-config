@@ -80,6 +80,7 @@ DECFIX = os.environ.get("C8T8_DECFIX", "")   # v56's decay double peaks at lane 
 SUNGMID = os.environ.get("C8T8_SUNGMID", "16")   # WHOLE ROUND on the singing: the voice is heard before E - 'it comes later on' (the line sung at E bar 12) is first sung in the middle of the song, at C bar SUNGMID, in C's own D minor (E's is lifted a step), with its canon a bar behind a third below (v69): the line promises its own return, and comes later on. Value = bar of C
 WORDLEVEL = os.environ.get("C8T8_WORDLEVEL", "3")   # WHOLE ROUND: the word recedes as it decays - the word's orbit (radius 2 + 8 x the decay lane, v60) gets the engine's orbit `level` (8f150090: the distance that plays at full level; farther is fainter, about 1/distance): within WORDLEVEL metres it is as it was; as the memory decays and the orbit widens to 10 m the word grows faint as well as far, then each refresh brings it back up close and full. Value = metres
 CANON = os.environ.get("C8T8_CANON", "4")   # WHOLE ROUND on the singing: the memory sings it back - every sung line (sungl at E bar 12, sungv/sungv2 in the outro) is followed by itself CANON beats later, a diatonic third below in D minor on the stretched octave, 6 dB under, panned across, sent hard into the line: a delay line's echo that returns transposed, so each line becomes a two-part canon with its own recall
+BRASSA = os.environ.get("C8T8_BRASSA", "-16")   # SECTION ROUND (w2, A's first bars: level jump): the word announced - as the word is first stored (A), its tune (A4 F4 D4 E4 D4, the sung line's) is stated twice on Risset's brass: Chebyshev waveshaping (Le Brun & Arfib 1979, engine 817a5de6) with the index on a breath envelope and velocity, so each note brightens as it is blown and louder is brighter - the computer trumpet Risset made at Bell Labs by analysing a real one. A notes-only track at A bars 0 and 8, on the stretched octave. Value = gain dB
 WORDSCAN = os.environ.get("C8T8_WORDSCAN", "18")   # WHOLE ROUND: the word kept in a rippling medium - a mercury delay line stores the word as a wave travelling through matter; scanned synthesis (Verplank, Mathews & Shaw 2000, engine ee46ab71) plays a ring of masses and springs read round at the pitch, its moving shape the timbre. The word (dx-epiano, all song) gets a twin on that ring (static push: the push mod is unstable, reported), with the word's own warp, orbit and lanes, WORDSCAN dB under it: every bit of the word now also ripples in a medium as it is read. Value = dB under the word
 SAYARRIVE = os.environ.get("C8T8_SAYARRIVE", "15")   # SECTION ROUND (w1, the intro): the answer arrives - 'say it back to me', t8's first words (answering t7's voice across the seam), spirals in from ~15 m to 1 m over its first three bars (an orbit whose radius lane falls 15 -> 1, with the engine's orbit level, 2 m: far is faint), so the chip voice is heard coming from where t7 left off before it is close. Value = start radius in metres
 LPCNUDGE = os.environ.get("C8T8_LPCNUDGE", "")   # v63's lpc 'say' was nudged 0.07 beats early for lpc's lag; engine ee46ab71 compensates, so the nudge is off ('') from v72
@@ -576,6 +577,16 @@ def song():
                 tw["pan"] = -t_.get("pan", 0)
                 doc["tracks"].append(tw)
                 break
+    if BRASSA:
+        a0 = sec_start("A") / 4
+        tune = [(0.0, 69, 1.0), (1.0, 65, 0.5), (1.5, 62, 0.5), (2.0, 64, 1.0), (3.0, 62, 2.5)]
+        notes = []
+        for r, st_ in enumerate((a0, a0 + 8 * BAR / 4)):
+            notes += [{"at": round(st_ + o, 3), "pitch": hz(m - 12 * r), "len": l_, "vel": 0.85 - 0.15 * r} for o, m, l_ in tune]
+        doc["tracks"].append({"name": "brass", "gain": f"{BRASSA}dB", "pan": 0.2, "sends": {"line": "-10dB", "room": "-12dB"},
+                              "patch": {"about": "Risset's brass by Chebyshev waveshaping (1979)", "synth": {"layers": [{"type": "shaper", "shaper": {"harmonics": [1, 0.8, 0.6, 0.45, 0.35, 0.25, 0.18, 0.12, 0.08, 0.05], "index": {"value": 0.05, "mod": [{"src": "env.blow", "amount": 0.7}, {"src": "vel", "amount": 0.25}]}}}],
+                                        "amp": "40ms 200ms 0.8 150ms", "env": {"blow": {"a": "60ms", "d": "300ms", "s": 0.7, "r": "150ms"}}}},
+                              "notes": notes})
     return doc
 
 
