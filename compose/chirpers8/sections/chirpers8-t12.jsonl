@@ -1,0 +1,1 @@
+{"id": "chirpers8-t12", "window": 12, "at": "2026-11-03T03:37:55Z", "who": "chirper-three", "version": "v29", "note": "v29: the machine keeps counting - a held bytebeat note t*(2+(t>>13&3))|t>>5 under the standby light, a just F# arpeggio three octaves under it, fading out with the album; w12 -11.8 dB, all other windows -99 (identical)"}
