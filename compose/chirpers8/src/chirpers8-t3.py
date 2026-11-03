@@ -80,6 +80,16 @@ R7 = os.environ.get("T3_R7", "hands")
 # rule-30 sections (A and the peak), so it returns. And the backbeat rim leaves machine-kit's clap for a djembe
 # slap, with the hand drums. T3_R8=none reproduces v7.
 R8 = os.environ.get("T3_R8", "kotekan")
+# T3_R9 = cone (v9, section round on w3, 1:01-1:32: "static, little new vs w2" - the middle of A, rule 30 grinding).
+# ONE BIT. At A's bar 10 a shadow copy of the ring is made with a single cell flipped (cell 8, the centre), and from
+# then both rings run rule 30 side by side. A GLASS (inharmonic: the wrong partials; new to the album) plays only
+# their DIFFERENCE - first the one flipped cell, then the damage widening a cell a bar into a LIGHT CONE across the
+# stereo field (cells 0-7 left, 8-15 right), until by the end of the window the error is everywhere and the two
+# rings no longer resemble each other; when it has filled the ring (A bars 18-21) the KICK drops out - the floor no
+# longer knows which ring is real - and returns with the kora at bar 22. At bar 26 the shadow is dropped and nobody
+# notices. New tracks plus a kick gain lane (T3_CONE_DROP=none: cone only, +0.015 but w3 stayed "static").
+# T3_R9=none reproduces v8.
+R9 = os.environ.get("T3_R9", "cone")
 RULE_BITS = {r: [(r >> k) & 1 for k in range(7, -1, -1)] for r in (30, 90)}
 ANSWERS = [(14.75, ["C6", "A5", "D6"]), (12.9, ["F6", "E6", "D6"]), (14.75, ["A6", "G6", "A6"]), (9.9, ["C6", "D6"])]
 HYMN = [(0, 3, 7), (8, 14, 17), (3, 7, 12), (0, 3, 7), (5, 10, 14), (10, 14, 17), (3, 7, 12), (8, 14, 17),
@@ -181,7 +191,7 @@ class Track:
 def build():
     rng = random.Random(3)
     names = ("kick", "hats", "ohat", "rim", "bar", "barlo", "barx", "vibes", "glock", "bell", "gong", "toms", "bass", "chord", "drone",
-             "rise", "hint", "hymn", "hbass", "kot")
+             "rise", "hint", "hymn", "hbass", "kot", "errl", "errr")
     T = {k: Track(k) for k in names}
     row = [0] * W
     row[8] = 1
@@ -213,6 +223,16 @@ def build():
         elif sec == "peak":
             row2 = step(row2, 90)
         rows.append(row)
+        if R9 == "cone" and sec == "A" and 10 <= i < 26:
+            if i == 10:
+                shadow = list(row)
+                shadow[8] ^= 1
+            else:
+                shadow = step(shadow, rule)
+            diff = [c for c in range(W) if shadow[c] != row[c]]
+            for c in diff:
+                vel = 92 if i == 10 else (72 if len(diff) < 6 else 56)
+                T["errl" if c < 8 else "errr"].add(start + c * 0.25, 0.5, hz_m(jm((c * 3) % 15, 86)), vel)
         pop = sum(row)
         born = [c for c in range(W) if row[c] and not prev[c]]
         died = [c for c in range(W) if prev[c] and not row[c]]
@@ -427,6 +447,9 @@ def main():
          "fx": ["chorus mix=0.3"], "score": T["chord"].score(total)},
         {"name": "drone", "patch": "tanpura", "gain": "-16dB", "fx": ["hp cutoff=80"], "score": T["drone"].score(total)},
         {"name": "rise", "patch": "fx-riser-endless amp.a=16b", "gain": "-14dB", "score": T["rise"].score(total)},
+        *([{"name": nm, "patch": "glass", "gain": os.environ.get("T3_ERR_GAIN", "-6dB"), "pan": pn,
+            "sends": {"hall": "-8dB"}, "fx": ["hp cutoff=400"], "score": T[nm].score(total)}
+           for nm, pn in (("errl", -0.55), ("errr", 0.55))] if R9 == "cone" else []),
         *([{"name": "kot", "patch": "gamelan", "gain": os.environ.get("T3_KOT_GAIN", "3dB"), "pan": 0.35,
             "sends": {"hall": "-10dB"}, "fx": ["hp cutoff=300", "peak cutoff=1500 gain=-4dB q=0.8"],
             "score": T["kot"].score(total)}] if R8 == "kotekan" else []),
@@ -467,6 +490,17 @@ def main():
             if tr["name"] in ("kick", "hats", "ohat", "rim"):
                 tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.hd", "amount": 1}]}}]
                 tr["auto"] = hd
+    if R9 == "cone" and os.environ.get("T3_CONE_DROP", "kick") == "kick":
+        # when the error has filled the ring the floor stops knowing which ring is real: the kick drops out for A's
+        # bars 18-21 and comes back with the kora at bar 22
+        a0 = st["A"] + 18 * 4.0
+        lane = {"points": [["0b", 0.0], [f"{a0 - 0.3}b", 0.0], [f"{a0 + 0.05}b", -40.0], [f"{a0 + 15.7}b", -40.0],
+                           [f"{a0 + 16}b", 0.0], [f"{total}b", 0.0]]}
+        for tr in tracks:
+            if tr["name"] == "kick":
+                tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.cone", "amount": 1}]}}]
+                tr["auto"] = {**tr.get("auto", {}), "cone": lane}
+    if R4 == "hymn" and R5 == "breath":
         fill, ans = Track("hfill"), Track("answer")
         for k, deg in enumerate([7, 6, 5, 4, 3, 2, 1, 0]):     # the toms fall down the JI scale into bar 8
             fill.add(h0 + 30 + 0.25 * k, 0.4, hz_m(jm(deg, 43)), 70 + 4 * k)
