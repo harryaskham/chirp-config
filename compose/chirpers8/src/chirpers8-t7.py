@@ -131,6 +131,35 @@ def build():
                         worse.append((b, j, d, cents, nd, nc, dl))   # (v33) an uphill move taken: noted, nothing drawn
                     cand = new
         seq_states.append(list(cand)); losses.append(round(loss(cand), 3))
+    # (v35, section w3) PARALLEL TEMPERING: annealing has a sibling trick - run a second copy of the search hotter
+    # than the first, and now and then let it take the colder one's answer (replica exchange). Through the second
+    # epoch's first sixteen bars a replica does exactly that, out loud: it starts from where the search is, runs at a
+    # higher temperature on its own dice (rng SEED+313; the main search is untouched), and every four bars, if its
+    # answer is worse than the main search's, it takes the main one's - so a second line on a Karplus-Strong string
+    # (1983, the first plucked string a computer made: noise in a one-period loop) wanders off from the sequencer,
+    # snaps into unison with it, and drifts away again; in the two bars where the machine listens to itself, the two
+    # searches are heard alone together
+    rng_r = random.Random(SEED + 313)
+    e2b = sum(n for nm_, n in FORM[:[nm_ for nm_, _ in FORM].index('e2')])
+    rep, rep_states, exch = list(seq_states[e2b - 1]), {}, []
+    for b in range(e2b, e2b + 16):
+        if (b - e2b) in (4, 8, 12) and loss(rep) > loss(seq_states[b]):
+            rep = list(seq_states[b]); exch.append(b)
+        temp_r = min(1.0, 0.25 + 1.6 * T[b])
+        for _ in range(3):
+            j = rng_r.randrange(16)
+            d, cents = rep[j]
+            if rng_r.random() < 0.25:
+                nd = None if d is not None else rng_r.randint(0, 20)
+            else:
+                k = 1 + int(4 * temp_r)
+                nd = max(0, min(20, (d if d is not None else rng_r.randint(0, 20)) + rng_r.randint(-k, k)))
+            nc = cents * 0.8 + rng_r.gauss(0, 40 * temp_r)
+            new = list(rep); new[j] = (nd, nc)
+            dl = loss(new) - loss(rep)
+            if dl <= 0 or rng_r.random() < math.exp(-dl / (temp_r * 1.5 + 1e-6)):
+                rep = new
+        rep_states[b] = list(rep)
     # ---- render the parts ----
     P = {k: [] for k in ('seq', 'keys', 'pad', 'bass', 'kit', 'hum', 'rhum', 'glim', 'cf', 'gdy', 'sub')}
     rng_t = random.Random(SEED + 99)
@@ -354,6 +383,12 @@ def build():
         v_ = int(min(100, 70 + 12 * dl_))
         P['worse'].append((t_, tok(f0_), 0.3, v_))
         P['worse'].append((t_ + 0.25, tok(hz(d1_ - 7, c1_)), 0.55, v_ - 6))
+    P['rep'] = []
+    for b_, st_ in sorted(rep_states.items()):
+        for q in range(0, 16, 2):
+            d_, c_ = st_[q]
+            if d_ is not None:
+                P['rep'].append((b_ * 4.0 + q * 0.25, tok(hz(d_, c_)), 0.45, 80 if q % 8 == 0 else 66))
     # (v26) THE TEMPERATURE, AUDIBLE: under everything, an open fifth (A and E) on Xenakis's dynamic stochastic
     # synthesis (GENDY, 1991: each wave cycle a polygon whose corners random-walk) - the same idea as the search itself,
     # a random walk with a step size. Its step sizes are the temperature: while the machine is hot the corners and the
@@ -523,6 +558,9 @@ def build():
                                    'amp': {'a': '2ms', 'd': '300ms', 's': 0.35, 'r': '120ms'}, 'filters': ['lp cutoff=4200', 'hp cutoff=180']}},
                '-11dB', pan=-0.45, fx=['delay time=3/16 feedback=0.2 mix=0.18'], sends={'hall': '-12dB'}),
             tr('xtal', 'vosim-bell', '-21dB', pan=-0.3, fx=['hp cutoff=300'], sends={'hall': '-10dB'}),
+            tr('rep', {'synth': {'layers': [{'type': 'ks', 'ks': {}, 'decay': '1.6s', 'bright': 0.55}], 'amp': '1ms 0 1 220ms',
+                                 'filters': ['hp cutoff=150']}}, '-10dB', pan=0.45,
+               fx=['delay time=3/8 feedback=0.22 mix=0.16'], sends={'hall': '-12dB'}),
             {'name': 'sing2', 'patch': SING['patch'], 'gain': '-11dB', 'pan': -0.3, 'notes': sung2,
              'fx': [{'type': 'pitch', 'semitones': 0, 'formant': 0.15}, {'type': 'tape', 'drive': 0.12, 'mix': 1, 'wow': 2, 'flutter': 1, 'seed': 9}],
              'sends': {'echo': '-11dB', 'hall': '-9dB'}},
