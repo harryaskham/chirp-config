@@ -71,6 +71,7 @@ LATER = os.environ.get("C8T8_LATER", "-8")   # WHOLE ROUND: a second sung line, 
 LATERDROP = os.environ.get("C8T8_LATERDROP", "1")   # with LATER: the word steps aside for the voice - for E bars 12-13 the word, its marimba, the zeros, the hats and the clap are kept at velocity 1 (no dice move), so 'it comes later on' is heard over pads, bass and kick (in the full mix whisper heard nothing; soloed it reads exactly)
 HANDS = os.environ.get("C8T8_HANDS", "clap")   # PALETTE: the clap and the rim leave the 909 kit for the machine layer's own synthesised clap and rim ('clap', 'rim', or 'both'): with v36's kick, the kit is the song's own
 ECHOCH = os.environ.get("C8T8_ECHOCH", "84")   # SECTION ROUND (w8, E: static): it comes later on - the sung line's tune (A4 G4 F4 E4 D4, as sung at E bar 12) comes back on the tape choir (mellotron-choir, wordless, its own track echoch listed last) four bars later and again four bars after that, softer each time: the delay line handing the phrase back. Lifted with E. Value = first velocity
+LINEHISS = os.environ.get("C8T8_LINEHISS", "-44")   # WHOLE ROUND: the line's noise floor - a delay line's signal sinks toward its noise as it decays, and regeneration is what clears it: a high, thin hiss (white noise above 7 kHz, held under the whole song) rides v56's decay lane, rising as the memory decays (up to +12 dB), cleared at the refresh, rising again through C, D and E, cleared at the outro. Value = its base gain dB
 WORDFADE = os.environ.get("C8T8_WORDFADE", "8")   # WHOLE ROUND: the word drifts as it decays - v52's orbit (the word circling the listener, a lap every 8 bars) now takes v56's decay lane on its radius (orbit mods, engine 206fbfb8): as the memory decays through the intro and A the word's circle widens and it drifts away from the listener (quieter, darker behind), at the refresh it is back close, it drifts again through C, D and E, and the outro's last refresh brings it home. Value = metres of drift at full decay per unit of the lane
 HOOT = os.environ.get("C8T8_HOOT", "-14")   # PALETTE: the program counter (v-era COUNTER: 1..16 in binary through C, on marimba) is played the way the first computers played music - CSIRAC, whose memory was mercury delay lines, played tunes in 1951 by pulsing a loudspeaker straight from its instruction bus: a raw square 'hoot' (a sine bent all the way to a square, phase distortion; short, a little lp), the machine's own voice counting. Value = gain dB
 PDPADS = os.environ.get("C8T8_PDPADS", "-23")   # PALETTE: the lower pads (pad0, pad1: juno-pad, an album staple) become Casio CZ phase distortion - a reso_trap whose resonance breathes on a slow sine, the bed of a 1984 home computer under the tape choir above (t2 v53's pad, here in D minor). Value = gain dB
@@ -452,6 +453,11 @@ def song():
         st_ = {k: sec_start(k) for k in ("refresh", "outro")}
         dec = {"points": [["0b", 0], [f"{st_['refresh'] / 4 - 0.25:g}b", 0.55], [f"{st_['refresh'] / 4:g}b", 0],
                           [f"{st_['outro'] / 4 - 0.25:g}b", 0.55], [f"{st_['outro'] / 4:g}b", 0], [f"{total() / 4:g}b", 0]]}
+        if LINEHISS:
+            doc["tracks"].append({"name": "hiss", "gain": f"{LINEHISS}dB", "auto": {"dec": dec},
+                                  "patch": {"synth": {"layers": ["white"], "amp": "2s 1 1 2s", "filters": [{"kind": "hp", "cutoff": 7000, "q": 0.7}, {"kind": "lp", "cutoff": 11000, "q": 0.7}]}},
+                                  "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dec", "amount": 22}]}}],
+                                  "score": f"C4/{total() / 4 - 2:g}b"})
         if WORDFADE and WORDORB:
             for t_ in doc["tracks"]:
                 if isinstance(t_, dict) and t_.get("name") == "word":
