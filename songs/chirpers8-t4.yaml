@@ -8357,6 +8357,322 @@
      }
     }
    ]
+  },
+  {
+   "name": "ic_b",
+   "patch": {
+    "synth": {
+     "layers": [
+      {
+       "type": "fof",
+       "fof": {
+        "voice": "bass",
+        "vowel": "u>a",
+        "attack": "3ms",
+        "morph": {
+         "value": 0,
+         "mod": [
+          {
+           "src": "auto.mouth",
+           "amount": 1
+          }
+         ]
+        }
+       }
+      }
+     ],
+     "pitch": {
+      "value": 0,
+      "mod": [
+       {
+        "src": "lfo.vib",
+        "amount": 0.1
+       },
+       {
+        "src": "env.scoop",
+        "amount": -0.3
+       }
+      ]
+     },
+     "lfo": {
+      "vib": {
+       "wave": "sine",
+       "rate": "5.5hz",
+       "delay": "300ms",
+       "fade": "400ms"
+      }
+     },
+     "env": {
+      "scoop": {
+       "a": "1ms",
+       "d": "120ms",
+       "s": 0
+      }
+     },
+     "amp": "600ms 0 1 1.5s"
+    }
+   },
+   "gain": "-17dB",
+   "pan": -0.1,
+   "sends": {
+    "room": "-8dB"
+   },
+   "auto": {
+    "mouth": {
+     "points": [
+      [
+       "8b",
+       0.0
+      ],
+      [
+       "32b",
+       1.0
+      ],
+      [
+       "48b",
+       0.0
+      ]
+     ]
+    }
+   },
+   "score": "R/8b m33.000/4b@50 m33.000/4b@56 m40.017/4b@62 m40.017/4b@68 m40.017/4b@74 m40.017/4b@80 m33.000/4b@72 m33.000/4b@58 m33.000/4b@44 m33.000/4.1b@30 R/655.9b"
+  },
+  {
+   "name": "ic_t",
+   "patch": {
+    "synth": {
+     "layers": [
+      {
+       "type": "fof",
+       "fof": {
+        "voice": "tenor",
+        "vowel": "u>a",
+        "attack": "3ms",
+        "morph": {
+         "value": 0,
+         "mod": [
+          {
+           "src": "auto.mouth",
+           "amount": 1
+          }
+         ]
+        }
+       }
+      }
+     ],
+     "pitch": {
+      "value": 0,
+      "mod": [
+       {
+        "src": "lfo.vib",
+        "amount": 0.15
+       },
+       {
+        "src": "env.scoop",
+        "amount": -0.3
+       }
+      ]
+     },
+     "lfo": {
+      "vib": {
+       "wave": "sine",
+       "rate": "5.5hz",
+       "delay": "300ms",
+       "fade": "400ms"
+      }
+     },
+     "env": {
+      "scoop": {
+       "a": "1ms",
+       "d": "120ms",
+       "s": 0
+      }
+     },
+     "amp": "600ms 0 1 1.5s"
+    }
+   },
+   "gain": "-18dB",
+   "pan": 0.25,
+   "sends": {
+    "room": "-8dB"
+   },
+   "auto": {
+    "mouth": {
+     "points": [
+      [
+       "8b",
+       0.0
+      ],
+      [
+       "32b",
+       1.0
+      ],
+      [
+       "48b",
+       0.0
+      ]
+     ]
+    }
+   },
+   "score": "R/8b m52.017/4b@50 m52.017/4b@56 m59.034/4b@62 m59.034/4b@68 m59.034/4b@74 m59.034/4b@80 m52.017/4b@72 m52.017/4b@58 m52.017/4b@44 m52.017/4.1b@30 R/655.9b"
+  },
+  {
+   "name": "ic_a",
+   "patch": {
+    "synth": {
+     "layers": [
+      {
+       "type": "fof",
+       "fof": {
+        "voice": "alto",
+        "vowel": "u>a",
+        "attack": "3ms",
+        "morph": {
+         "value": 0,
+         "mod": [
+          {
+           "src": "auto.mouth",
+           "amount": 1
+          }
+         ]
+        }
+       }
+      }
+     ],
+     "pitch": {
+      "value": 0,
+      "mod": [
+       {
+        "src": "lfo.vib",
+        "amount": 0.2
+       },
+       {
+        "src": "env.scoop",
+        "amount": -0.3
+       }
+      ]
+     },
+     "lfo": {
+      "vib": {
+       "wave": "sine",
+       "rate": "5.5hz",
+       "delay": "300ms",
+       "fade": "400ms"
+      }
+     },
+     "env": {
+      "scoop": {
+       "a": "1ms",
+       "d": "120ms",
+       "s": 0
+      }
+     },
+     "amp": "600ms 0 1 1.5s"
+    }
+   },
+   "gain": "-17dB",
+   "pan": -0.25,
+   "sends": {
+    "room": "-8dB"
+   },
+   "auto": {
+    "mouth": {
+     "points": [
+      [
+       "8b",
+       0.0
+      ],
+      [
+       "32b",
+       1.0
+      ],
+      [
+       "48b",
+       0.0
+      ]
+     ]
+    }
+   },
+   "score": "R/8b m60.898/4b@50 m60.898/4b@56 m67.915/4b@62 m67.915/4b@68 m67.915/4b@74 m67.915/4b@80 m60.898/4b@72 m60.898/4b@58 m60.898/4b@44 m60.898/4.1b@30 R/655.9b"
+  },
+  {
+   "name": "ic_s",
+   "patch": {
+    "synth": {
+     "layers": [
+      {
+       "type": "fof",
+       "fof": {
+        "voice": "soprano",
+        "vowel": "u>a",
+        "attack": "3ms",
+        "morph": {
+         "value": 0,
+         "mod": [
+          {
+           "src": "auto.mouth",
+           "amount": 1
+          }
+         ]
+        }
+       }
+      }
+     ],
+     "pitch": {
+      "value": 0,
+      "mod": [
+       {
+        "src": "lfo.vib",
+        "amount": 0.3
+       },
+       {
+        "src": "env.scoop",
+        "amount": -0.3
+       }
+      ]
+     },
+     "lfo": {
+      "vib": {
+       "wave": "sine",
+       "rate": "5.5hz",
+       "delay": "300ms",
+       "fade": "400ms"
+      }
+     },
+     "env": {
+      "scoop": {
+       "a": "1ms",
+       "d": "120ms",
+       "s": 0
+      }
+     },
+     "amp": "600ms 0 1 1.5s"
+    }
+   },
+   "gain": "-22dB",
+   "pan": 0.1,
+   "sends": {
+    "room": "-8dB"
+   },
+   "auto": {
+    "mouth": {
+     "points": [
+      [
+       "8b",
+       0.0
+      ],
+      [
+       "32b",
+       1.0
+      ],
+      [
+       "48b",
+       0.0
+      ]
+     ]
+    }
+   },
+   "score": "R/8b m71.034/4b@50 m71.034/4b@56 m78.051/4b@62 m78.051/4b@68 m78.051/4b@74 m78.051/4b@80 m71.034/4b@72 m71.034/4b@58 m71.034/4b@44 m71.034/4.1b@30 R/655.9b"
   }
  ],
  "buses": {
