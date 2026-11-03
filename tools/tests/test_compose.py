@@ -346,6 +346,9 @@ class Coverage(unittest.TestCase):
         # engine f6713421 (wM, bd-db5db5): Casio CZ phase distortion
         self.assertIn("pd", CH.song_features({"patches": {"c": {"synth": {"layers": [{"type": "pd"}]}}}}, ""))
         self.assertIn("pd", CH.COVERAGE_CATALOGUE["synthesis"])
+        # engine c7606671 (wM, bd-4f38a2): Chowning-style moving sources, canonical {"type": "orbit", ...}
+        self.assertIn("orbit", CH.song_features({"tracks": [{"fx": [{"type": "orbit", "rate": "1/2", "radius": 3.0}]}]}, ""))
+        self.assertIn("orbit", CH.COVERAGE_CATALOGUE["fx"])
         self.assertIn("choices", CH.song_features({}, "score: (C4|E4|G4)/4"))
 
     def test_life_henon_and_walk_systems_are_features(self):
