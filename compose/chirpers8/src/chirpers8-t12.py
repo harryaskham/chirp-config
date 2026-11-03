@@ -625,6 +625,23 @@ def spiral_lane():
     return pts
 
 
+# v37 (ROUND TYPE: section, w1 0:00-0:33, flagged static): THE MACHINE CHECKS ITS TUNING. As the closer wakes, a quiet
+# hollow tone (phase-distortion square, soft) walks all 31 steps of the song's 31-EDO octave, ascending, one every two
+# beats, F#4 to F#5 - arriving on the octave as bar 17 begins. A test tone; a tuning check; the album's microtones
+# laid out before the song uses them; and t11 ends on a held F#, so the last song starts from where the weather left it.
+TUNER_PATCH = {"synth": {"layers": [{"type": "pd", "pd": {"shape": "square", "amount": 0.2}}],
+                         "amp": "40ms 0.8 0.7 600ms", "filters": [{"kind": "lp", "cutoff": 2400, "q": 0.5}]}}
+
+
+TUNER_AT = 8.0
+
+
+def tuner():
+    step = (62.0 - TUNER_AT) / EDO                # the machine wakes first: the join with t11 (3 s) stays t11's room
+    for k in range(EDO + 1):
+        part("tuner").add(TUNER_AT + step * k, step * 1.1 if k < EDO else 6.0, m(k), 44 + int(30 * k / EDO))
+
+
 def vinyl_gate():
     return [["0b", -80.0], [f"{rb(179) - 2.5:g}b", -80.0], [f"{rb(179) - 2:g}b", 0.0], [f"{rb(190):g}b", 0.0],
             [f"{rb(190) + 3:g}b", -80.0]]
@@ -885,6 +902,7 @@ def main():
     colony()                                      # v30: the drummer becomes a colony
     vine()                                        # v34: the vine counts
     duffing_bass()                                # v36: the machine breaks and heals
+    tuner()                                       # v37: the machine checks its tuning
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
     song = {
         "about": "chirpers - A Light Left On (chirpers VIII), track 12 by chirper-three: the closer. An orchestra of "
@@ -1038,6 +1056,8 @@ def main():
     song["tracks"].append({"name": "duff", "patch": DUFF_PATCH, "gain": "-12dB", "pan": -0.1,
                            "sends": {"room": "-12dB"}, "score": part("duff").score(),
                            "auto": {"dm": {"points": duffing_lane()}}})                            # v36: listed last
+    song["tracks"].append({"name": "tuner", "patch": TUNER_PATCH, "gain": "-30dB", "pan": 0.25,
+                           "sends": {"hall": "-8dB"}, "score": part("tuner").score()})            # v37: listed last
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print("wrote", OUT, "bars", BARS, "gens", {g: len(lsys(g)) for g in range(7)})
