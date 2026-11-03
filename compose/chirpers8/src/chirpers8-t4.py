@@ -204,6 +204,7 @@ def resorting(make, arr, seed):
 
 PROGRESS = []
 ARRS = {}
+SWS = {}
 # v16: THE LAST PHYSICAL FAMILIES - merge sort, the most graceful algorithm, sings its emerging tune on the physical
 # alto sax (a reed on a conical bore) instead of the kalimba; and every finished pass (or finished sort) is marked by a
 # modal CYMBAL (a dense struck plate set, its wash blooming in after the hit) instead of the drum machine's crash
@@ -261,6 +262,7 @@ def write():
         sec = sec_of(bar)
         arr, cmp, sw, acc = next(gens[sec])
         ARRS[bar] = list(arr)                               # v34: the array per bar (for the runs)
+        SWS[bar] = (list(sw), list(acc))                    # v39: the swaps per bar (for the cards)
         done = arr == sorted(arr) and sec not in ("intro", "sorted", "outro")
         if bar == 1:
             part("ring").add(RING_AT, 8.0, "912hz", 96)                 # v35: after the room is heard, softer
@@ -506,6 +508,31 @@ def zipper():
             grow = min(1.0, 0.45 + 0.55 * ((bar - ZIP[0]) * N + k) / (3 * N))   # fades in over three bars: a hard
             part(side).add(b0(bar) + k / 4, 0.2, pitch(RIFF[v] + root_at(bar), BASE + 12) + f"^ix={pan}",   # entrance
                            int((90 if k % 4 == 0 else 78) * grow))                  # made a 23rd section (seed 11)
+
+
+# v39 (ROUND TYPE: section, w4 1:30-2:00 - insertion sort's second half, flagged little new vs w3; w1, the intro,
+# left alone - its first seconds are the join with t3): THE HAND SLIDES THE CARD IN. Insertion sort is how a hand of
+# cards is sorted: take one, slide it left past the larger ones, drop it in its place. Now each pass is heard as that
+# gesture - a Karplus-Strong (1983) pluck run through the values the key slides past, in 32nds, ending on the key's own
+# note exactly on the next downbeat: the card dropping into the hand.
+CARDS = (49, 63)
+CARD_PATCH = {"synth": {"layers": [{"type": "ks", "ks": {}, "decay": "0.9s", "bright": 0.7}], "amp": "1ms 0 1 150ms"}}
+
+
+def card_runs():
+    for bar in range(CARDS[0], CARDS[1] + 1):
+        if sec_of(bar) != "insertion":
+            continue
+        sw, acc = SWS[bar]
+        if not sw or not acc:
+            continue
+        before, i = ARRS[bar], acc[0]
+        seq = [before[i - 1 - k] for k in range(len(sw))] + [before[i]]
+        start = b0(bar + 1) - (len(seq) - 1) * 0.125
+        for k, v in enumerate(seq):
+            last = k == len(seq) - 1
+            part("cards").add(start + k * 0.125, 1.2 if last else 0.3, pitch(RIFF[v] + root_at(bar), BASE + 12),
+                              100 if last else 62 + 3 * k)
 
 
 def zip_patch(base):
@@ -924,9 +951,12 @@ def main():
     song["tracks"].append({"name": "roomtone", "patch": ROOMTONE, "gain": "-30dB", "score": part("roomtone").score()})  # v35
     song["tracks"] += chip_tracks()                                                          # v37: listed last
     zipper()                                                                                 # v38: listed last
+    card_runs()                                                                              # v39
     for name, base in (("zipL", "kalimba"), ("zipR", "marimba")):
         song["tracks"].append({"name": name, "patch": zip_patch(base), "gain": "-21dB",
                                "sends": {"room": "-12dB"}, "score": part(name).score()})
+    song["tracks"].append({"name": "cards", "patch": CARD_PATCH, "gain": "-14dB", "pan": 0.2,
+                           "sends": {"room": "-10dB"}, "score": part("cards").score()})   # v39: listed last
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print("wrote", OUT, "bars", BARS)
