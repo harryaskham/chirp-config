@@ -71,6 +71,7 @@ LATER = os.environ.get("C8T8_LATER", "-8")   # WHOLE ROUND: a second sung line, 
 LATERDROP = os.environ.get("C8T8_LATERDROP", "1")   # with LATER: the word steps aside for the voice - for E bars 12-13 the word, its marimba, the zeros, the hats and the clap are kept at velocity 1 (no dice move), so 'it comes later on' is heard over pads, bass and kick (in the full mix whisper heard nothing; soloed it reads exactly)
 HANDS = os.environ.get("C8T8_HANDS", "clap")   # PALETTE: the clap and the rim leave the 909 kit for the machine layer's own synthesised clap and rim ('clap', 'rim', or 'both'): with v36's kick, the kit is the song's own
 ECHOCH = os.environ.get("C8T8_ECHOCH", "84")   # SECTION ROUND (w8, E: static): it comes later on - the sung line's tune (A4 G4 F4 E4 D4, as sung at E bar 12) comes back on the tape choir (mellotron-choir, wordless, its own track echoch listed last) four bars later and again four bars after that, softer each time: the delay line handing the phrase back. Lifted with E. Value = first velocity
+DECAY = os.environ.get("C8T8_DECAY", "-22")   # WHOLE ROUND: the memory decays and is refreshed - a delay line loses its bits unless it is regenerated, so the word gets a double on a chaos voice (engine f3872739: a Duffing oscillator, one loop of its two wells per period of the note) whose amount rises all through the intro and A (clean, then the period doubles, then from ~0.35 the voice breaks up between its wells), snaps back to clean at the refresh, decays again through C, D and E, and is refreshed for good at the outro: the word kept, against the physics. Value = gain dB
 EBRK = os.environ.get("C8T8_EBRK", "12,4")   # SECTION ROUND (w8, E's first half: static): a breath before the words - E bars EBRK ('start,len') lose the kit (kick, hats, clap, rim, shaker), so the line, the pads and the bass hold alone and the sung line at E bar 16 enters out of the quiet, the drums landing back under it
 LIFEPD = os.environ.get("C8T8_LIFEPD", "-28")   # PALETTE: the Life cells (v47: gen life 8x8 on glass, C bar 20 through D) are played on the instrument of the machines that ran Life at home - Casio CZ phase distortion (1984): a sine bent toward a square for an instant on each note and let go (the CZ pluck), so each live cell is a small bright click of a home computer. Value = gain dB
 FLYBY = os.environ.get("C8T8_FLYBY", "20,1")   # SECTION ROUND (w9, E's end: little new vs w8): the last read flies past - v46's second readback (E bars 24-27, the word's four notes a semitone up) moves to its own track and passes the listener left to right, one fly-by across the four bars (orbit path=line, engine c7606671), the Doppler drop on each note as it goes by: the memory read out of the line one last time and carried away. Value = 'radius,doppler'
@@ -440,6 +441,14 @@ def song():
                               "gain": os.environ.get("C8T8_FLYGAIN", "-14dB"),
                               "fx": [{"type": "filter", "kind": "lp", "cutoff": 2400, "q": 0.7}, f"orbit path=line rate=1/4 radius={rad} distance=2 doppler={dop} phase={ph:.4f}"],
                               "sends": {"line": "-8dB", "room": "-12dB"}, "score": stream(evs2, total())})
+    if DECAY:
+        st_ = {k: sec_start(k) for k in ("refresh", "outro")}
+        dec = {"points": [["0b", 0], [f"{st_['refresh'] / 4 - 0.25:g}b", 0.55], [f"{st_['refresh'] / 4:g}b", 0],
+                          [f"{st_['outro'] / 4 - 0.25:g}b", 0.55], [f"{st_['outro'] / 4:g}b", 0], [f"{total() / 4:g}b", 0]]}
+        doc["tracks"].append({"name": "decay", "gain": f"{DECAY}dB", "pan": 0.1, "auto": {"dec": dec},
+                              "patch": {"synth": {"layers": [{"type": "chaos", "chaos": {"system": "duffing", "axis": "x", "amount": {"value": 0, "mod": [{"src": "auto.dec", "amount": 1}]}}}],
+                                                  "amp": "8ms 0.8 0.6 250ms", "filters": [{"kind": "lp", "cutoff": int(os.environ.get("C8T8_DECLP", "2500"))}]}},
+                              "sends": {"line": "-10dB"}, "score": T["word"]})
     return doc
 
 
