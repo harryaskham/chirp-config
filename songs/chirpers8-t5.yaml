@@ -7,7 +7,7 @@ seed: 5
 tail: "2s"
 event_stable: true
 patches: {"carrier": {"about": "a carrier tone: a plain sine with a soft edge", "synth": {"layers": ["sine"], "amp": {"a": "4ms", "s": 1, "r": "30ms"}}}, "acid-agree": {"about": "the acid with its resonance on the logistic var 'agree'", "extends": "acid", "synth": {"filters": [{"kind": "lp", "slope": 24, "q": {"value": 7, "mod": [{"src": "var.agree", "amount": 1}]}, "cutoff": {"value": 260, "mod": [{"src": "env.f", "amount": 4.2}, {"src": "vel", "amount": 2}]}}]}}}
-master: {"fx": [{"type": "eq", "bands": ["highpass cutoff=30", "peak cutoff=250 q=0.8 gain=-2dB", "peak cutoff=1600 q=0.7 gain=-3dB", "highshelf cutoff=7000 gain=1.5dB"]}, {"type": "compressor", "threshold": "-18dB", "ratio": 2.5, "attack": "12ms", "release": "140ms", "makeup": "0dB"}]}
+master: {"fx": [{"type": "eq", "bands": ["highpass cutoff=30", "peak cutoff=250 q=0.8 gain=-2dB", "peak cutoff=1600 q=0.7 gain=-3dB", "highshelf cutoff=7000 gain=1.5dB"]}, {"type": "compressor", "threshold": "-18dB", "ratio": 2.5, "attack": "12ms", "release": "140ms", "makeup": "0dB"}, {"type": "width", "width": {"value": 0.5, "mod": [{"src": "auto.mw", "amount": 1.0}]}}], "auto": {"mw": {"points": [["0b", 1], ["184b", 1], ["288b", 0.55], ["336b", 0.3], ["368b", 0], ["504b", 0], ["568b", 0.8]]}}}
 buses:
   room: {"fx": ["reverb kind=room decay=1.1s mix=1 predelay=10ms", "hp cutoff=250"]}
   spring: {"fx": ["reverb kind=spring decay=2.2s mix=1", "hp cutoff=300"]}

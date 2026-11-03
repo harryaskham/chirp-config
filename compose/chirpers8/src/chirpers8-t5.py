@@ -55,6 +55,7 @@ LIFTSTOP = os.environ.get("C8T5_LIFTSTOP", "1")   # the gear change, announced: 
 LIFTHAT = os.environ.get("C8T5_LIFTHAT", "1")   # after the lift the hats open: every off-beat hat an open hat - the agreed band, a step up, brighter on top
 ESTABLE = os.environ.get("C8T5_ESTABLE", "1")   # song-level event_stable (engine f5283535): each note's humanize and DSP draws come from its track, beat and pitch, so a window's edit stays in the window; switching it on re-rolls every humanized note once
 ACIDX = os.environ.get("C8T5_ACIDX", "-18")   # WHOLE ROUND: the route out of chaos - the acid's line is doubled by a chaos voice (engine f3872739: a Rossler attractor, one loop per period of the note, read on its x axis, a tone with a chaotic flutter) whose amount walks the route backwards across the song: chaotic through A's proposals (0.9), calming through B, period-doubling (an octave-down subharmonic) at the retrain, a plain tone once they agree in C, and back toward chaos as they part at the end. Value = gain dB
+WIDTHAGREE = os.environ.get("C8T5_WIDTHAGREE", "0.5,1.5")   # WHOLE ROUND: agreement is one channel - the whole mix's stereo width (a width stage on the master) follows v38's meet lane: wide while the two machines are apart (A, B: the image as wide as their argument), narrowing through the retrain, nearly one channel once they agree in C, opening again as they part at the end. Value 'lo,hi' (width when met, when apart)
 CHLEAD = os.environ.get("C8T5_CHLEAD", "-16")   # PALETTE: the markov lead over C's second half (lead-wah) becomes a chaos voice (engine f3872739): a Rossler attractor read on its x axis, a sine with a chaotic flutter, its amount wandering on a slow LFO through the attractor's windows (wM's recipe: 0.7 +- 0.25), so each phrase passes between a clean tone, a doubled one and a fluttering one: once the speed is agreed, the lead improvises at the edge of chaos. Value = gain dB
 RTSPIRAL = os.environ.get("C8T5_RTSPIRAL", "1")   # SECTION ROUND (w5, the retrain): the handshake comes in from far off - for the retrain's twelve bars the carriers (the modems' tones) orbit the listener (orbit mods, engine 206fbfb8), starting 12 m out and slow, spiralling in and quickening as the training goes on (Doppler lifting them as they near), arriving close at C where they connect and stand still again. Value = the orbit's mix at full
 CSPIKE = os.environ.get("C8T5_CSPIKE", "0.93")   # SECTION ROUND (w8, C bars 28-42: static, little new vs w7): line noise - after they agree the acid's chaos double (v45) is a plain tone, until a burst of noise on the line: from mid C bar 30 its amount glides up to CSPIKE (chirper-three's measure: 0.93 and 0.7 chaotic, 0.85 a periodic window), holds through bar 31, and recovers by bar 34, the connection riding it out
@@ -486,6 +487,12 @@ def song():
         fx = [dict(f, hiss="-80dB", whistle="-80dB") if isinstance(f, dict) and f.get("type") == "radio" else f for f in spec.get("fx", [])]
         doc["tracks"].append(dict(spec, name="train", patch={"synth": {"layers": [{"type": "bytebeat", "bytebeat": {"formula": TRAINF, "clock": 8000}}]}},
                                   gain=os.environ.get("C8T5_TRAINGAIN", "-20dB"), pan=0.0, fx=fx, score=T["train"]))
+    if WIDTHAGREE:
+        st = {sec: sec_start(sec) for sec, _ in FORM}
+        lo, hi = (float(x) for x in WIDTHAGREE.split(","))
+        mw = {"points": [[f"{x / 4:g}b", y] for x, y in ((0, 1), (st["B"], 1), (st["retrain"], 0.55), (st["C"], 0.3), (st["C"] + 8 * BAR, 0), (st["outro"], 0), (total(), 0.8))]}
+        doc["master"]["auto"] = dict(doc["master"].get("auto", {}), mw=mw)
+        doc["master"]["fx"] = list(doc["master"]["fx"]) + [{"type": "width", "width": {"value": lo, "mod": [{"src": "auto.mw", "amount": hi - lo}]}}]
     if RTSPIRAL:
         st = {sec: sec_start(sec) for sec, _ in FORM}
         r0, c0 = st["retrain"], st["C"]
