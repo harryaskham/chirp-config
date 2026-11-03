@@ -299,6 +299,21 @@ def build():
             dyn += [[f'{b * 4.0 - 0.25:.2f}b', dyn[-1][1]], [f'{b * 4.0:.2f}b', v_]]
         elif not dyn:
             dyn = [['0b', v_]]
+    # (v37) THE SONG BREATHES: the section dynamics above sit before the master's compressor, which flattened them -
+    # the whole song lived within about 5 dB. A second lane after the compressor now gives the form its shape: the
+    # opening and the G minor calls (the sung line, the colony, the bell resting) step back, the A minor calls lean in,
+    # the return - the stack empty - drops right away, the final calls climb with the stack's depth to the top, and as
+    # it unwinds the level unwinds with it into the quiet last bars and the outro
+    ARC = {'intro': -2.5, 'expo': -1.5, 'calls1': 0.0, 'calls2': -2.5, 'calls3': 0.5, 'return': -6.0, 'final': 0.0, 'outro': -4.0}
+    arc = []
+    for b, (s_, i_, _) in enumerate(bars):
+        v_ = ARC[s_]
+        if s_ == 'final':
+            v_ = (-1.0 + 0.7 * depths[b]) if i_ < 28 else -3.5
+        if arc and abs(arc[-1][1] - v_) > 1e-6:
+            arc += [[f'{b * 4.0 - 0.5:.2f}b', arc[-1][1]], [f'{b * 4.0:.2f}b', v_]]
+        elif not arc:
+            arc = [['0b', v_]]
     # (v30) THE UNWINDING BREATHES: from the top of the stack the final calls used to drive on unchanged until the
     # last four bars. Now, as the stack unwinds (final bars 16-27), the groove unwinds with it into half time - the
     # kick on one and the and of three, one backbeat on three, the hats kept - and the bass lets go of its clave for
@@ -337,6 +352,12 @@ def build():
         t_ = max(t_, last)
         dyn2.append([f"{t_:.3f}b", v_]); last = t_
     dyn = dyn2
+    arc2, last = [], -1.0
+    for a_, v_ in arc:
+        t_ = 0.0 if a_ == '0b' else shift(clampcut(float(a_[:-1])))
+        t_ = max(t_, last)
+        arc2.append([f"{t_:.3f}b", v_]); last = t_
+    arc = arc2
     total = shift(total)
     tempo_map = [{'at': '0b', 'bpm': BPM}]
     for c in cuts:
@@ -428,7 +449,8 @@ def build():
         'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=28', 'peak cutoff=250 q=0.8 gain=2dB', 'highshelf cutoff=4500 gain=-3dB']},
                           {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.dyn', 'amount': 1}]}},
                           {'type': 'compressor', 'threshold': '-18dB', 'ratio': 2.5, 'attack': '10ms', 'release': '120ms', 'makeup': '2dB'},
-                          'limiter ceiling=-1dB'], 'auto': {'dyn': {'points': dyn}}},
+                          {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.arc', 'amount': 1}]}},
+                          'limiter ceiling=-1dB'], 'auto': {'dyn': {'points': dyn}, 'arc': {'points': arc}}},
         'tracks': [
             # (v21) the canon's voices given room: wider apart in the stereo field, and each in its own band
             tr('bell', BELL, '-8dB', pan=-0.25, sends={'echo': '-12dB', 'hall': '-14dB'}),
