@@ -326,6 +326,8 @@ def build():
     for key in ('kit', 'bass', 'sub', 'pno'):
         P[key] = [(e_[0], e_[1], e_[2], 1) if _bd(e_[0]) else e_ for e_ in P[key]]
     P['fill'] = [(bd1 - 2.0 + 0.25 * q_, 's', 0.2, 46 + 9 * q_) for q_ in range(8)]
+    P['pad2'] = [e_ for e_ in P['pad'] if e_[0] >= secs['outro'] * 4.0 - 1e-6]
+    P['pad'] = [e_ for e_ in P['pad'] if e_[0] < secs['outro'] * 4.0 - 1e-6]
     # D: the machine says it back - the exact contour of each take, two octaves up, with the voice
     for v in VOICE:
         if secs['D'] < v['bar'] <= secs['D'] + 16:
@@ -363,7 +365,18 @@ def build():
             # quieter and scooped there, so the words come forward; the sub a little fuller; more air on top
             # (v21: a wordless choir-classic pad was tried in juno-pad's place - its formants crowded 300 Hz and 1 kHz, and
             # even tamed it broke the hand-over into t2: flow 96.7 -> 61)
-            tr('pad', 'juno-pad', '-16dB', fx=['hp cutoff=200', {'type': 'eq', 'bands': ['peak cutoff=450 q=0.9 gain=-4dB', 'highshelf cutoff=5000 gain=3dB']}], sends={'hall': '-9dB'}),
+            # (v30, palette) THE ROOM'S OWN HARMONY: the pad was the album's juno-pad (four songs). Now it is wave terrain
+            # synthesis (Bischoff, Gold and Horton, 1978; wM's terrain layer): an orbit circling a surface of hills once
+            # per period, whose heights are the wave. The orbit's centre drifts on a slow sine and its two turns run a
+            # hair apart (ratio 1.003), so every held chord slowly turns through hollow, clarinet-like odd harmonics into
+            # fuller even ones and back - a pad that is never quite the same twice, with no filter moving at all
+            tr('pad', {'synth': {'layers': [{'type': 'terrain', 'terrain': {
+                   'surface': 'sines', 'rx': 0.5, 'ry': 0.42, 'k': 1.2, 'ratio': 1.003,
+                   'cx': {'value': 0.05, 'mod': [{'src': 'lfo.drift', 'amount': 0.3}]},
+                   'cy': {'value': 0.1, 'mod': [{'src': 'lfo.sway', 'amount': 0.15}]}}}],
+                   'amp': {'a': '700ms', 'd': '1s', 's': 0.85, 'r': '2s'}, 'filters': ['lp cutoff=3200']}},
+               '-29dB', lfo={'drift': 'sine rate=1/8', 'sway': 'tri rate=1/12'},
+               fx=['hp cutoff=200', 'chorus mix=0.25', {'type': 'eq', 'bands': ['peak cutoff=450 q=0.9 gain=-4dB', 'highshelf cutoff=5000 gain=3dB']}], sends={'hall': '-9dB'}),
             # (v7) AND THEN IT IS SUNG: the human has said the line twenty times and the machine has learnt to say it back;
             # in the outro, over the last B minor, the human SINGS it at last - twice, low and plain (chirp tts --sing,
             # humanize 0.35) - since v16 'standby amber, the fan's long vowel' on a D major pentatonic tune
@@ -446,6 +459,9 @@ def build():
                                                   'filters': ['lp cutoff=1800', 'hp cutoff=150']}},
              'gain': '-22dB', 'pan': -0.15, 'score': line(P['bbhum'], total), 'sends': {'hall': '-10dB', 'echo': '-12dB'}},
             tr('pno', 'piano-muted', '-12dB', pan=0.3, sends={'hall': '-16dB'}),   # (listed last: nothing before it moves)
+            # the outro keeps the old analogue pad, warm and low, for the hand-over into the next song (the terrain's bright
+            # odd harmonics there put 17 dB more at 1 kHz into the join than the next song opens with)
+            tr('pad2', 'juno-pad', '-16dB', fx=['hp cutoff=200', {'type': 'eq', 'bands': ['peak cutoff=450 q=0.9 gain=-4dB', 'highshelf cutoff=5000 gain=3dB']}], sends={'hall': '-9dB'}),
             tr('fill', 'tight-kit', '-7dB', sends={'hall': '-16dB'},
                fx=[{'type': 'eq', 'bands': ['peak cutoff=75 q=0.8 gain=4dB', 'highshelf cutoff=9000 gain=-5dB']}]),
         ]}
