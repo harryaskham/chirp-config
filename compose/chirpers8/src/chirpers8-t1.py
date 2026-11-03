@@ -260,14 +260,55 @@ def build():
     # first melody, the motif the closer remembers - and then it is not heard again until the second groove
     hook((secs['intro'] + 4) * 4.0, HOOK, vel=60)
     hook((secs['intro'] + 6) * 4.0, HOOK2, vel=56)
+    # (v34) THE HUMAN NEVER PLAYS IT THE SAME WAY TWICE: the vibraphonist used to play the tune note for note at every
+    # turn, ten times through the grooves - the most repeated thing in the song after the line itself. Now, like a
+    # player taking the head, every turn after the first is varied: a note pushed a sixteenth early, an upper
+    # neighbour leaning into a long note, a run of sixteenths filling the rest, the last note lifted an octave, the
+    # ending answered by its own echo - two of these each time, chosen by the player's own dice, all inside
+    # the tune's D major pentatonic. The machine is the one that repeats exactly: where it plays the tune with the
+    # vibraphone (the third groove's last turn) and when it says the line back, the vibraphone plays it straight.
+    PENT = [47, 50, 52, 54, 57, 59, 62, 64, 66, 69, 71, 74, 76, 78, 81]
+    rng_v = random.Random(20261104)                 # the vibraphonist's own dice
+    def up_(m_): return next((x for x in PENT if x > m_), m_ + 2)
+    def vary(ph):
+        out = list(ph)
+        moves = rng_v.sample(['push', 'lean', 'fill', 'lift', 'echo'], 2)
+        if 'fill' in moves:
+            for j_, (m_, d_) in enumerate(out):
+                if m_ is None and d_ >= 1.0 and j_ + 1 < len(out) and out[j_ + 1][0] is not None:
+                    tgt = out[j_ + 1][0]
+                    run = [x for x in PENT if x < tgt][-3:] if rng_v.random() < 0.5 else [x for x in PENT if x > tgt][:3][::-1]
+                    out[j_:j_ + 1] = [(None, d_ - 0.75)] + [(x, 0.25) for x in run]
+                    break
+        if 'lean' in moves:
+            longs = [j_ for j_, (m_, d_) in enumerate(out) if m_ is not None and d_ >= 1.0]
+            if longs:
+                j_ = rng_v.choice(longs); m_, d_ = out[j_]
+                out[j_:j_ + 1] = [(up_(m_), 0.25), (m_, d_ - 0.25)]
+        if 'push' in moves:
+            for j_ in range(1, len(out)):
+                if out[j_][0] is not None and out[j_ - 1][1] >= 1.0 and rng_v.random() < 0.6:
+                    pm_, pd_ = out[j_ - 1]; m_, d_ = out[j_]
+                    out[j_ - 1] = (pm_, pd_ - 0.25); out[j_] = (m_, d_ + 0.25)
+        if 'lift' in moves:
+            for j_ in range(len(out) - 1, -1, -1):
+                if out[j_][0] is not None:
+                    out[j_] = (out[j_][0] + 12 if out[j_][0] < 70 else out[j_][0], out[j_][1]); break
+        if 'echo' in moves:
+            last = [x for x in out if x[0] is not None][-2:]
+            if len(last) == 2 and last[-1][1] >= 1.0:
+                m_, d_ = out[-1]
+                out[-1] = (m_, d_ - 0.5)
+                out += [(last[0][0], 0.25), (last[1][0], 0.25)]
+        return out
     for ph_ in range(4, dict(FORM)['B'], 8):
-        hook((secs['B'] + ph_) * 4.0, HOOK, vel=74)
+        hook((secs['B'] + ph_) * 4.0, HOOK if ph_ == 4 else vary(HOOK), vel=74)
         if ph_ + 2 < dict(FORM)['B']:
-            hook((secs['B'] + ph_ + 2) * 4.0, HOOK2, vel=70)
+            hook((secs['B'] + ph_ + 2) * 4.0, HOOK2 if ph_ == 4 else vary(HOOK2), vel=70)
     for ph_ in range(4, dict(FORM)['C'], 8):
         for k_, ph in enumerate((HOOK, HOOK3)):
             t_ = (secs['C'] + ph_ + 2 * k_) * 4.0
-            hook(t_, ph, harm=True, vel=76 + 2 * k_)
+            hook(t_, ph if ph_ in (4, 28) else vary(ph), harm=True, vel=76 + 2 * k_)
             for m_, d_ in (ph if ph_ == 28 else []):
                 if m_ is not None:
                     P['babble'].append((t_, f"m{m_}", d_ * 0.9, 84))
