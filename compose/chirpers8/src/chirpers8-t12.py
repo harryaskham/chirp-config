@@ -639,6 +639,16 @@ TUNER_PATCH = {"synth": {"layers": [{"type": "pd", "pd": {"shape": "square", "am
 
 
 TUNER_AT = 8.0
+# v41 (ROUND TYPE: palette; shaper pinned 817a5de6): RISSET'S BRASS. Jean-Claude Risset's synthesised trumpet (Bell
+# Labs, the 1960s) is one of computer music's founding sounds - he found that real brass gets brighter as it gets
+# louder. The closer's horns (v11's waveguide lips, 37-157) and the tune's horn (139-141) become Chebyshev-shaped brass
+# (Le Brun & Arfib 1979): a sine driving a polynomial that writes the brass partials, its drive (index) on a blowing
+# envelope and on velocity - louder is brighter. The tutti's brass (145-147) stays the physical waveguide, so in the
+# tutti the computer's brass and the modelled lips play together.
+RISSET_BRASS = {"synth": {"layers": [{"type": "shaper", "shaper": {
+    "harmonics": [1, 0.8, 0.6, 0.45, 0.35, 0.25, 0.18, 0.12, 0.08, 0.05],
+    "index": {"value": 0.05, "mod": [{"src": "env.blow", "amount": 0.7}, {"src": "vel", "amount": 0.25}]}}}],
+    "amp": "40ms 200ms 0.8 150ms", "env": {"blow": {"a": "60ms", "d": "300ms", "s": 0.7, "r": "150ms"}}}}
 # v38 (ROUND TYPE: whole; lpc pinned 78e838c5): THE VOICE BREAKS WITH THE MACHINE, THEN SINGS WITH US - t4's arc
 # mirrored. In the prune the spoken 'count the leaves again' (six repeats) degrades as the Duffing bass breaks up:
 # repeats 1-2 human, 3-4 through LPC, 5-6 through the speaking toy (5-bit, monotone on F#); healed, in the coda the
@@ -1026,7 +1036,7 @@ def main():
                 # v7: BENDS - each note scoops up from one 31-EDO step below (an expr_path on the pitch, in cents)
             tr("strum", "harp play.strum=55ms", gain="-9dB", pan=-0.3, sends={"hall": "-6dB"}),     # v7: strummed chords
             tr("pole", "strings", gain="-10dB", sends={"hall": "-4dB"}, fx=["barberpole cycle=2bar down=true"]),
-            tr("horns", "brass", gain="-10dB", pan=0.1, sends={"hall": "-8dB"}),   # v11: REAL lips - a waveguide bore, 3 players
+            tr("horns", RISSET_BRASS, gain="-13dB", pan=0.1, sends={"hall": "-8dB"}),   # v41: Risset's brass (+3 dB hot)   # v11: REAL lips - a waveguide bore, 3 players
             tr("phantom", "phantom-bass", gain="-8dB"),
             tr("sub", "808", gain="-11dB", fx=[{"type": "phantom", "harmonics": "-6dB", "odd": 0.4, "remove": 0.0}]),
             tr("kick", "machine-kit", gain="-12dB",
@@ -1053,7 +1063,7 @@ def main():
                                        [f"{rb(TAPE_CHOIR[1] + 1):g}b", 4.0]]}}),               # v23: LAST; v24 swells
             tr("crash12", "machine-kit", gain="-8dB", sends={"hall": "-10dB"}),                     # v23
             tr("tunecello", "cello", gain="-3dB", pan=-0.3, sends={"hall": "-8dB"}),               # v24
-            tr("tunehorn", "horn", gain="-1dB", pan=0.3, sends={"hall": "-8dB"}),                  # v24
+            tr("tunehorn", RISSET_BRASS, gain="-4dB", pan=0.3, sends={"hall": "-8dB"}),           # v41: Risset                  # v24
             tr("tutti_vn", "violins", gain="-3dB", pan=-0.3, sends={"hall": "-6dB"}),               # v26: tutti
             tr("tutti_br", "brass", gain="-5dB", pan=0.15, sends={"hall": "-8dB"}),                 # v26
             tr("tutti_vc", "cellos", gain="-3dB", pan=0.35, sends={"hall": "-8dB"}),                # v26
