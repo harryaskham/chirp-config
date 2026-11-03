@@ -310,6 +310,14 @@ def build():
         ch_ = ','.join(tok(hz(d_, 0) * f_) for d_ in (-7, -3))
         P['gdy'].append((b0_ * 4.0, ch_, (st_ + n_ - b0_) * 4.0 + 1.5, 76))
         st_ += n_
+    # (v27) THE DRUMS FIND A RULE FIRST: through the second epoch (bars 0-7 and 10-15, around the two bars where the
+    # machine listens to itself) the hot drums are no longer noise sampled step by step: the kick keeps its place, and
+    # everything else is played by a Game of Life - a glider crossing a 16 x 4 torus, one generation a bar, whose live
+    # cells pick snare, clave, cowbell and hat (bottom row low) - so the kit mutates by a rule, a shape that keeps
+    # moving, while the notes above are still searching at random. The step-sampled hits are written and muted
+    e2_ = sum(n for nm_, n in FORM[:[nm_ for nm_, _ in FORM].index('e2')]) * 4.0
+    def _lk(at_): return (e2_ - 1e-6 <= at_ < e2_ + 32.0 - 1e-6) or (e2_ + 40.0 - 1e-6 <= at_ < e2_ + 64.0 - 1e-6)
+    P['kit'] = [(e_[0], e_[1], e_[2], 1) if _lk(e_[0]) and e_[1] != 'k' else e_ for e_ in P['kit']]
     # (v16) GLIMPSES: in the middle of the last, longest epoch, before the search has found anything, the electric
     # piano that will play the answer lets slip a few of its notes - the first two, exact and quiet, in their
     # places in the bar; four bars later the first three; then four; then the first phrase - the answer showing
@@ -399,6 +407,12 @@ def build():
             tr('glim', 'epiano-tine', '-6dB', pan=-0.15, sends={'echo': '-14dB', 'hall': '-12dB'},
                fx=[{'type': 'wah', 'low': 350, 'high': 2600, 'env': 0.9, 'q': 4, 'mix': 0.6}]),
             tr('cf', 'cello', '-11dB', pan=0.25, sends={'hall': '-10dB'}),
+            {'name': 'life1', 'patch': 'electro-kit', 'gain': '-8dB', 'pan': -0.1, 'score': f"R/{e2_:.4f}b",
+             'gen': {'type': 'life', 'width': 16, 'height': 4, 'init': 'glider', 'poly': 2, 'n': 8 * 16, 'len': '/16',
+                     'notes': 's cl cb h'}, 'sends': {'hall': '-20dB'}},
+            {'name': 'life2', 'patch': 'electro-kit', 'gain': '-8dB', 'pan': 0.1, 'score': f"R/{e2_ + 40.0:.4f}b",
+             'gen': {'type': 'life', 'width': 16, 'height': 4, 'init': 'glider', 'life': 'B36/S23', 'poly': 2, 'n': 6 * 16, 'len': '/16',
+                     'notes': 's cl cb h'}, 'sends': {'hall': '-20dB'}},
             tr('gdy', {'synth': {'layers': [{'type': 'gendyn', 'gendyn': {
                    'points': 12, 'amp': {'value': 0.004, 'mod': [{'src': 'auto.temp', 'amount': 0.12}]},
                    'time': {'value': 0.0, 'mod': [{'src': 'auto.temp', 'amount': 0.2}]},
