@@ -62,6 +62,7 @@ CONGALAYER = os.environ.get("C8T5_CONGALAYER", "-26")   # WHOLE ROUND: inside th
 OUTKS = os.environ.get("C8T5_OUTKS", "0:-14")   # SECTION ROUND (w9, the outro: level jump): the deal, plucked as they part - the tune they sang at C's end (B3 D4 E4, the last time up to B4) comes back in the outro on Karplus-Strong (engine 8f150090, 1983: a noise burst settling in a one-period loop), stretched to ring long: every two bars, four times, then up to B4, then one E4 left ringing at bar 12, each softer. A notes-only track, outro only. Value 'blend:gain'
 ROBOCHOIR = os.environ.get("C8T5_ROBOCHOIR", "-12")   # SECTION ROUND (the agreement sung, C's last bars): the machine sings too - the three-voice choir that sings 'keep it there' together at C's end gets a fourth voice, a vocoder twin of its middle voice: the same words shaping a held E minor chord of saws (E2 B2 E3 G3) band by band. Agreeing on a speed: humans and the machine sing the deal together. Value = gain dB
 GTRRUSH = os.environ.get("C8T5_GTRRUSH", "0.25")   # SECTION ROUND (w2, the intro's end into A: level jump): the first proposal is rushed - with no kick under it yet, the guitar's opening calls in A run ahead of the band (its own clock: GTRRUSH beats early by A's downbeat), settling back onto the grid over A's first eight bars, so it is exactly on time the bar the kick comes in. Value = beats early
+SCANC = os.environ.get("C8T5_SCANC", "-20")   # SECTION ROUND (w6, C's first bars: the agreement begins): one resonance - as C starts (the machines finally at one speed) a ring of masses and springs (scanned synthesis, Verplank/Mathews/Shaw 2000, engine ee46ab71; round strike, fixed push) holds the agreed chord, E minor 7 (E3 G3 B3 D4), for C's first eight bars and lets it ring off: the two speeds become one medium. A notes-only track in that window. Value = gain dB
 KEEPACK = os.environ.get("C8T5_KEEPACK", "-3")   # SECTION ROUND (w7, C bar 16: the deal stated): the terms read back - as a protocol acknowledges what it received, the deal ('keep', C bar 16, plain lpc since v51) is read back one bar later by the speaking toy (5-bit monotone lpc on E3), a few dB under: stated, then acknowledged, the way machines agree. Value = gain offset dB
 LPCNUDGE = os.environ.get("C8T5_LPCNUDGE", "")   # v51's lpc keep was nudged 0.07 beats early for lpc's lag; engine ee46ab71 compensates, so the nudge is off ('') from v59
 KEEPLPC = os.environ.get("C8T5_KEEPLPC", "plain")   # SECTION ROUND (w7, C bars 12-28): the agreement spoken by a speech chip - the line that states the deal at C bar 16 (keep) goes through LPC (engine 78e838c5): 'plain' (inflecting) or 'toy' (5-bit monotone on E3, the tonic, the speaking toy); keep2 at C's end stays as it was. Notes 0.07 beats early for LPC's ~35 ms
@@ -609,6 +610,12 @@ def song():
                           patch={"about": "Karplus-Strong's drum (1983): blend 0.5", "synth": {"layers": [{"type": "ks", "bright": 0.45, "ks": {"blend": 0.5, "stretch": 1, "tune": True}}], "amp": "1ms 1 0 160ms"}})
                 tw["score"] = " ".join(hits.get(tok.split("/")[0], tok.split("/")[0]) + tok[len(tok.split("/")[0]):] for tok in t_["score"].split())
                 doc["tracks"].append(tw)
+    if SCANC:
+        c0 = sec_start("C") / 4
+        doc["tracks"].append({"name": "scanc", "gain": f"{SCANC}dB", "pan": 0.0,
+                              "patch": {"about": "scanned synthesis (Mathews 2000): a ring of masses and springs", "synth": {"layers": [{"type": "scanned", "scanned": {"speed": 0.4, "width": 0.5, "smooth": 0.45, "push": 0.12}, "decay": "6s"}], "amp": "1.2s 0.9 0.85 3s"}},
+                              "fx": ["chorus mix=0.2"],
+                              "notes": [{"at": c0, "pitch": p_, "len": 32, "vel": 0.7} for p_ in ("E3", "G3", "B3", "D4")]})
     return doc
 
 
