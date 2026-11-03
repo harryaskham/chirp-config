@@ -38,6 +38,7 @@ OWNKICK = os.environ.get("C8T2_OWNKICK", "1")   # and the kick: the machine laye
 TOMBACK = os.environ.get("C8T2_TOMBACK", "swap")   # PALETTE ROUND: the backbeat on a drum machine of our own - the engine's `machine` layer (circuit-modelled drum-machine voices, unused on the album) as a tuned electronic tom: G3 on 2, D3 on 4 (the halving's lone 3 on G3), the syndrum backbeat of the old machine records. 'swap' replaces the machine-kit clap (a staple of 9 songs); 'layer' keeps the clap under it
 CONVERGE = os.environ.get("C8T2_CONVERGE", "6")   # WHOLE ROUND: THE PATHS MEET - in C the canon gives way to a second number. Each of C's climbs gets a partner whose own hailstone path joins it partway (27 and 41 meet 313, 31 meets 297), played on the second clarinet in its own register and the same parity rhythm, timed so the two land on the shared number together; they sound in unison for six steps, then the partner falls silent and one line goes on down to 1 - the conjecture heard: different starts, one road home. Value = 'unison steps'
 INTROBOOT = os.environ.get("C8T2_INTROBOOT", "")   # SECTION ROUND (w1, the intro: static): the arp boots by resolution - bar b of the intro keeps only the first INTROBOOT+b steps of the sixteen in bit-reversed order (0 8 4 12 2 10 6 14 1 9 5 13 3 11 7 15: the order an FFT reads them), so the line arrives as a pulse, then halves, quarters, eighths, sixteenths, each note where it always was
+ROLESWAP = os.environ.get("C8T2_ROLESWAP", "1")   # SECTION ROUND (w8, C's middle: little new vs w7 - the seed 27 comes round a second time): the machine leads the second time - for C's third path (27 again, an octave up) the terrain clarinet (clar2, v51) takes the path and the clarinet takes the partner (313) that falls in to meet it, the roles of the first 27 reversed; with 'v' the two also trade levels (clar2's line +3 dB, clar's -3 dB)
 PDPAD = os.environ.get("C8T2_PDPAD", "-17")   # PALETTE: the choir pad (dream-vox: pulse and saw with noise, the humming bed from the first bar, in A, the break and C) becomes Casio CZ phase distortion: a reso_trap whose resonance breathes on a slow sine (one cycle every four bars), a resonant CZ pad, the bass's sibling. Value = gain dB
 PDBASS = os.environ.get("C8T2_PDBASS", "reso")   # WHOLE ROUND: the body is a home computer's - the bass under every groove (the analog saw on the root, octave 2) becomes Casio CZ phase distortion (engine f6713421; 1984): 'reso' a reso_saw whose resonance drops inside each note on a short envelope (the CZ bass pluck), 'saw' a sine bent most of the way into a saw. With the bytebeat arp (2011), the terrain clarinet (1978), the VOSIM voice (1978) and the machine kit, every layer of the song is now a different era of the computer's own sound
 TERRC2 = os.environ.get("C8T2_TERRC2", "0.6")   # WHOLE ROUND: the second clarinet is the computer's - clar2 (the canon, the paths' partners, the finale) leaves the reed model for wave terrain synthesis (engine 758ba1dc; Bischoff/Gold/Horton 1978): an orbit circling a field of sine hills, centred so it plays only odd harmonics, the hollow clarinet-ish tone a computer finds on its own. Its orbit's centre rides the height var, so as a path climbs the orbit slides off centre and even harmonics join (brighter, less clarinet), and at 1 it is hollow again. Value = how far the height moves it (cx)
@@ -227,6 +228,9 @@ def build():
             n0 = SEEDS[sec][k % len(SEEDS[sec])]
             path = collatz(n0) if n0 != 1 else [1, 4, 2, 1]
             up = 12 if sec == "C" and k % 4 == 2 else 0
+            swp = bool(ROLESWAP) and sec == "C" and k % 4 == 2
+            CL, CL2 = ("clar2", "clar") if swp else ("clar", "clar2")
+            vs1, vs2 = ((1.4, 0.7) if swp and ROLESWAP == "v" else (1, 1))
             times, plen = clar_times(path)
             if sec == "C":
                 landings.append((t + times[-1][0], k, t))
@@ -244,7 +248,7 @@ def build():
                         dd = height(x) + (7 if up else 0)
                         if CONVSNAP and j < pj:
                             dd = min((dd - dd % 7 + c for c in (0, 2, 4, 7)), key=lambda z: abs(z - dd))
-                        add("clar2", pat, deg_note(dd), qt[j][1] if j < len(qq) - 1 else 4, (92 if x % 2 else 76) - (0 if j >= pj else 6))
+                        add(CL2, pat, deg_note(dd), qt[j][1] if j < len(qq) - 1 else 4, min(127, int(((92 if x % 2 else 76) - (0 if j >= pj else 6)) * vs2)))
             for i, n in enumerate(path):
                 at = t + times[i][0]
                 nl = times[i][1]
@@ -257,9 +261,9 @@ def build():
                 v = 100 if n % 2 else 82
                 if BEND and i > 0 and path[i - 1] % 2 == 1 and not last and nl == 2:
                     b = float(BEND)
-                    add("clar", at, f"!bend=-{b:g} {deg_note(d)}/0.125b@{v} bend=-{b / 2:g} _/0.125b bend= _/0.25b", 2, v)
+                    add(CL, at, f"!bend=-{b:g} {deg_note(d)}/0.125b@{v} bend=-{b / 2:g} _/0.125b bend= _/0.25b", 2, v)
                 else:
-                    add("clar", at, deg_note(d), 4 if last else nl, v)
+                    add(CL, at, deg_note(d), 4 if last else nl, min(127, int(v * vs1)))
                 if PREFIG and BELL and last and n == 1 and sec == "A" and 16 * BAR <= at - a0 < 32 * BAR:
                     pv = int(PREFIG)
                     for j, (nn, ln2) in enumerate((("G6", 4), ("G5", 4), ("G4", 8))):
