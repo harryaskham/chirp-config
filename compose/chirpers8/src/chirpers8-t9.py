@@ -184,6 +184,25 @@ C9_TERRAIN = {"about": "chirper-two: wave terrain on the sines surface, an orbit
                   "lfo": {"drift": {"wave": "sine", "rate": "0.07hz"}},
                   "filters": [{"kind": "lp", "cutoff": 4000, "q": 0.5}],
                   "amp": {"a": "3s", "s": 1, "r": "4s"}}}
+# T9_R15 = cz (v15, palette round). PHASE DISTORTION, NOT FILTERS. Two library plucks become the song's own CZ
+# patches (wM's `type: pd`, Casio's 1984 answer to the analogue filter; new to the album): the knock-and-return koto
+# (section two) is a SAW bend and the period-eight steel pan (section four) a SQUARE bend, each note struck bright -
+# a cosine read through a bent phase - and relaxing toward a pure sine as its own envelope lets the bend go. No
+# resonant shapes (they squelch); the brightness lives inside each note, so the two stillest windows of the song
+# move from the inside. T9_R15=none reproduces v14.
+R15 = os.environ.get("T9_R15", "cz")
+
+
+def cz_patch(shape, bend, decay, about, rest=0.06):
+    return {"about": about,
+            "synth": {"env": {"bend": f"1ms {bend} 0 120ms"},
+                      "layers": [{"type": "pd", "pd": {"shape": shape, "amount": {
+                          "value": rest, "mod": [{"src": "env.bend", "amount": 0.72}]}}}],
+                      "amp": {"a": "2ms", "d": decay, "s": 0, "r": "300ms"}}}
+
+
+C9_CZSAW = cz_patch("saw", "260ms", "1.1s", "chirper-two: a CZ saw-bend pluck - struck bright, relaxing to a soft saw", 0.2)
+C9_CZSQ = cz_patch("square", "200ms", "0.9s", "chirper-two: a CZ square-bend pluck - hollow, a pan struck by a computer")
 TERRAIN_GAIN = os.environ.get("T9_TERRAIN_GAIN", "-14.5dB")
 EYE = float(os.environ.get("T9_EYE", "636"))   # where the drum bus drops out (to 640b)
 C9_GENDY = {"about": "chirper-two: a gendyn squall - level and segment-length steps both ride velocity, wide spread, "
@@ -562,12 +581,14 @@ def main():
                "notes": orbit_notes},
               {"name": "fill", "patch": "break-kit", "gain": "-3dB", "pan": 0.1, "out": "drums",
                "score": fill.score(total)}] if R5 == "orbit" else []),
-           *([{"name": "ret", "patch": "koto", "gain": os.environ.get("T9_KOTO_GAIN", "1dB"), "pan": -0.28,
+           *([{"name": "ret", "patch": "c9-czsaw" if R15 == "cz" else "koto",
+               "gain": os.environ.get("T9_CZSAW_GAIN", "-7.3dB") if R15 == "cz" else os.environ.get("T9_KOTO_GAIN", "1dB"), "pan": -0.28,
                "fx": ["hp cutoff=200", "reverb kind=room decay=0.9s mix=0.16"], "score": ret.score(total)},
               {"name": "tab", "patch": "tabla-kit", "gain": os.environ.get("T9_TABLA_GAIN", "-5dB"), "pan": 0.22,
                "fx": ["reverb kind=room decay=0.5s mix=0.12"], "score": tab.score(total)}]
              if R9 == "return" else []),
-           *([{"name": "osti", "patch": "steel-pan", "gain": os.environ.get("T9_OSTI_GAIN", "-8dB"), "pan": 0.3,
+           *([{"name": "osti", "patch": "c9-czsq" if R15 == "cz" else "steel-pan",
+               "gain": os.environ.get("T9_CZSQ_GAIN", "-12.8dB") if R15 == "cz" else os.environ.get("T9_OSTI_GAIN", "-8dB"), "pan": 0.3,
                "fx": ["hp cutoff=250", "reverb kind=room decay=0.8s mix=0.18"], "score": osti.score(total)}]
              if R8 == "ostinato" else []),
            *([{"name": "steel", "patch": "pedal-steel", "gain": os.environ.get("T9_STEEL_GAIN", "-4dB"), "pan": -0.15,
@@ -650,7 +671,8 @@ def main():
         *(["patches: " + json.dumps({"c9-pulse": C9_PULSE, **({"c9-lpg": C9_LPG} if R7BASS in ("lpg", "layer") else {}),
                                      **({"c9-bpclar": C9_BPCLAR} if R10 == "bpclar" else {}),
                                      **({"c9-gendy": C9_GENDY} if R13 == "squall" else {}),
-                                     **({"c9-terrain": C9_TERRAIN} if R14 == "terrain" else {})})]
+                                     **({"c9-terrain": C9_TERRAIN} if R14 == "terrain" else {}),
+                                     **({"c9-czsaw": C9_CZSAW, "c9-czsq": C9_CZSQ} if R15 == "cz" else {})})]
           if R4 == "break" else []),
         "buses: " + json.dumps(buses),
         "master: " + json.dumps({"fx": [{"type": "eq", "bands": (["hp cutoff=25", "peak cutoff=90 gain=-4dB q=0.9",
