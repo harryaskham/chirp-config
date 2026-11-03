@@ -38,6 +38,7 @@ OWNKICK = os.environ.get("C8T2_OWNKICK", "1")   # and the kick: the machine laye
 TOMBACK = os.environ.get("C8T2_TOMBACK", "swap")   # PALETTE ROUND: the backbeat on a drum machine of our own - the engine's `machine` layer (circuit-modelled drum-machine voices, unused on the album) as a tuned electronic tom: G3 on 2, D3 on 4 (the halving's lone 3 on G3), the syndrum backbeat of the old machine records. 'swap' replaces the machine-kit clap (a staple of 9 songs); 'layer' keeps the clap under it
 CONVERGE = os.environ.get("C8T2_CONVERGE", "6")   # WHOLE ROUND: THE PATHS MEET - in C the canon gives way to a second number. Each of C's climbs gets a partner whose own hailstone path joins it partway (27 and 41 meet 313, 31 meets 297), played on the second clarinet in its own register and the same parity rhythm, timed so the two land on the shared number together; they sound in unison for six steps, then the partner falls silent and one line goes on down to 1 - the conjecture heard: different starts, one road home. Value = 'unison steps'
 INTROBOOT = os.environ.get("C8T2_INTROBOOT", "")   # SECTION ROUND (w1, the intro: static): the arp boots by resolution - bar b of the intro keeps only the first INTROBOOT+b steps of the sixteen in bit-reversed order (0 8 4 12 2 10 6 14 1 9 5 13 3 11 7 15: the order an FFT reads them), so the line arrives as a pulse, then halves, quarters, eighths, sixteenths, each note where it always was
+BHALF = os.environ.get("C8T2_BHALF", "12")   # SECTION ROUND (w4, B's first twelve bars: static): n/2 in the groove - the even step of the map is halving, and B opens (up a whole step, v-era BKEY) in half time: for its first BHALF bars the kick plays only the one and the and-of-three, the clap moves from two and four to three, the hats thin to quarters, so the band moves at half the pulse under the same clarinet, and doubles back at the bar the key comes home
 SUMBRK = os.environ.get("C8T2_SUMBRK", "4")   # SECTION ROUND (w9, C's last path: little new vs w8): the last climb alone - 41 is the longest path the song walks (109 steps); for the SUMBRK bars before its summit (9232) the kit drops out and the clarinet climbs the last of it over the bass and pad alone, then the kit lands back on the summit with v50's vibes chord and crash
 WIDTHONE = os.environ.get("C8T2_WIDTHONE", "0.4,1.7")   # WHOLE ROUND: everything falls to ONE channel - the whole mix's stereo width rides the height var (a width stage on the master): as a path climbs toward 9232 the image opens wide; as it falls it narrows; each time a path reaches one the song is very nearly mono, one channel, before the next number spreads it again. Value 'lo,hi' (width at one, at the summit; 1 = as mixed)
 SPIRAL = os.environ.get("C8T2_SPIRAL", "chx")   # WHOLE ROUND: everything falls to one, here - the voices that follow the numbers circle the listener at a radius set by the height var (orbit mods, engine 206fbfb8): a path high up (toward 9232) circles far off, 11 m, slowly; as it falls the circle tightens and quickens, the Doppler lifting it as it nears; at one it is in the listener's head. Value: 'chx' (the Duffing chaos double, v56/57) or 'chx,mach' (and the bytebeat mach doubling the clarinet in B and C)
@@ -449,6 +450,21 @@ def build():
                 add("vib", at, "G5,B5,D6", 8, int(SUMMIT))
             if "crash2" in ev:
                 add("crash2", at, "D5", 16, int(SUMMIT))
+    if BHALF:
+        b0 = sec_start("B")
+        u, w = b0, b0 + int(BHALF) * BAR
+        if "kick" in ev:
+            ev["kick"] = [e for e in ev["kick"] if not (u <= e[0] < w) or (e[0] - b0) % BAR in (0, 10)]
+        if "clap" in ev:
+            cl = [e for e in ev["clap"] if u <= e[0] < w]
+            ev["clap"] = [e for e in ev["clap"] if not (u <= e[0] < w)]
+            if cl:
+                for bb in range(int(BHALF)):
+                    add("clap", u + bb * BAR + 8, cl[0][1], cl[0][2], cl[0][3])
+        if "hats" in ev:
+            ev["hats"] = [e for e in ev["hats"] if not (u <= e[0] < w) or (e[0] - b0) % 4 == 0]
+        if "ohat" in ev:
+            ev["ohat"] = [e for e in ev["ohat"] if not (u <= e[0] < w)]
     if SUMBRK and summits:
         s1 = summits[-1]
         s0 = s1 - int(SUMBRK) * BAR
