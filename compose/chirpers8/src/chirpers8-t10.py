@@ -310,6 +310,8 @@ def build():
         v_ = ARC[s_]
         if s_ == 'final':
             v_ = (-1.0 + 0.7 * depths[b]) if i_ < 28 else -3.5
+        if s_ == 'outro' and i_ >= 4:
+            v_ = -4.0 + 0.7 * (i_ - 3)                 # (v43) the hand-off rises into t11
         if arc and abs(arc[-1][1] - v_) > 1e-6:
             arc += [[f'{b * 4.0 - 0.5:.2f}b', arc[-1][1]], [f'{b * 4.0:.2f}b', v_]]
         elif not arc:
@@ -599,6 +601,18 @@ def build():
             {'name': 'toy', 'patch': 'speak-toy', 'gain': '-9dB', 'pan': -0.3,
              'notes': [dict(n_, at=round(secs_t['calls2'] - 10.0 + n_['at'], 4)) for n_ in TOY],
              'sends': {'echo': '-8dB', 'hall': '-14dB'}},
+            # (v43, section w10) THE GATE OPENS: the outro used to power down into its last tolls and a second and a half of
+            # nothing, then chirper-three's t11 starts six dB louder on a kick and trance-gated pads. Now, under the
+            # last four bars' Picardy tolls, the same D major (F# on top - the note t11 opens on) comes in on a CZ pad
+            # chopped into sixteenths - a trance gate, rising from nothing to full over the four bars to the last
+            # sixteenth, while the master rises 3 dB with it: the fugue machine hands the next song its own gate, already open
+            {'name': 'tgate', 'gain': '-17dB', 'tuning': W3T,
+             'patch': {'synth': {'layers': [{'type': 'pd', 'pd': {'shape': 'reso_trap', 'amount': {'value': 0.18, 'mod': [{'src': 'lfo.sw', 'amount': 0.12}]}}}],
+                                 'lfo': {'sw': 'sine rate=1/4'},
+                                 'amp': {'a': '3ms', 'd': '90ms', 's': 0.55, 'r': '35ms'}, 'filters': ['lp cutoff=3800', 'hp cutoff=160']},
+                       'fx': ['chorus mix=0.25']},
+             'score': ' '.join([f"R/{secs_t['outro'] + 16.0:.4f}b"] + [f"m62,m66,m69,m78/0.17b@{int(18 + 82 * (q_ / 63) ** 1.5)} R/0.08b" for q_ in range(64)]),
+             'sends': {'hall': '-14dB'}},
         ]}
     return song, depths
 
