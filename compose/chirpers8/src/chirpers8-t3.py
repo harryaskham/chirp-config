@@ -242,6 +242,24 @@ C3_KSERR = {"about": "chirper-two: the 1983 Karplus-Strong drum (blend 0.5) - a 
 # without the lift 98.32; 4 bars with it 98.40, spectrum 100). (The moving kick alone moved nothing: motion 0.056.)
 # T3_R23=none reproduces v22.
 R23 = os.environ.get("T3_R23", "track")
+# T3_R24 = chant (v24, section round on w5, 2:03-2:34: the glider's second half, "static, little new vs w4").
+# THE MACHINE'S CHOIR ANSWERS. Under "the left one is weather / the right one is news" the glider's septimal chords
+# are sung: a four-voice CHANT choir (wM's `fof`, the grain voices of IRCAM's CHANT; chirper-three's t12 recipe) -
+# bass on the root, tenor the fifth (3:2), alto the septimal third (7:6), soprano the harmonic seventh (7:4) - its
+# vowel opening from "oo" to "ah" on one shared lane across the two lines and closing after them, vibrato deeper at
+# the top. The three neighbours sing over a choir of the machine's own voices. Under it (256b to the glider's leave at
+# 312b) the kick walks a tresillo, 3+3+2 (T3_TRES=off keeps the leading-edge kick): the window's groove moves, where
+# the choir alone (s0 98.401) left w5 static. T3_R24=none reproduces v23.
+R24 = os.environ.get("T3_R24", "chant")
+CHANT = []   # (start, chord root as fractional MIDI)
+PATCH_EXTRA = {}
+def c3_fof(voice, vib):
+    return {"about": f"chirper-two: a CHANT/FOF {voice} for the glider's choir",
+            "synth": {"layers": [{"type": "fof", "fof": {"voice": voice, "vowel": "u>a", "attack": 8,
+                                                         "morph": {"value": 0.0, "mod": [{"src": "auto.mouth", "amount": 1}]}}}],
+                      "pitch": {"value": 0, "mod": [{"src": "lfo.vib", "amount": vib}]},
+                      "lfo": {"vib": {"wave": "sine", "rate": "5.5hz"}},
+                      "amp": {"a": "300ms", "d": "500ms", "s": 0.9, "r": "900ms"}}}
 R11KICK = os.environ.get("T3_R11_KICK", "machine")   # "bronze": the kit's own kick too (cost spectrum 97 -> 75-80)
 C8_KIT = {
     "about": "chirper-two: Three Neighbours' own kit - kr a D1 sine kick that drops into place with a low modal membrane "
@@ -434,6 +452,12 @@ def build():
         # ---- the deep four ----
         if groove and sec == "glider" and R23 == "track" and i < int(os.environ.get("T3_FLOAT_BARS", "4")):
             pass   # the glider floats: no kick while the three neighbours sing
+        elif (groove and sec == "glider" and R23 == "track" and R24 == "chant" and os.environ.get("T3_TRES", "on") == "on"
+              and float(os.environ.get("T3_CHANT_FROM", "256")) <= start < float(os.environ.get("T3_TRES_TO", "312"))):
+            hush = [float(x) for x in os.environ.get("T3_CHANT_HUSH", "272,288").split(",") if x]
+            if not (hush and hush[0] <= start < hush[1]):   # the second line floats: the choir and the voices alone
+                for b, v in ((0.0, 112), (1.5, 96), (3.0, 104)):   # under the choir the floor walks a tresillo, 3+3+2
+                    T["kick"].add(start + b, 1.0 if b < 3 else 0.5, "kr", v)
         elif groove and sec == "glider" and R23 == "track":   # the second kick rides the glider's leading edge
             T["kick"].add(start, 1.0, "kr", 112)
             lead = [c for c in born if c >= 4]
@@ -503,6 +527,8 @@ def build():
             heads = (",".join(hz_m(jm(root_deg + k, 62)) for k in (0, 2, 4, 6)) if R2 == "live" else
                      ",".join(hz_m(ratio_m(cm, r)) for r in (1, 7 / 6, 3 / 2, 7 / 4)))
             T["chord"].add(start, 15.6, heads, 76 if sec == "glider" else 62)
+            if R24 == "chant" and sec == "glider" and float(os.environ.get("T3_CHANT_FROM", "256")) <= start < float(os.environ.get("T3_CHANT_TO", "288")):
+                CHANT.append((start, cm))
         # ---- the plucked bass: Euclidean, rotated by the population ----
         if (groove and sec not in ("decay", "hymn")) or (sec == "traffic" and i % 4 == 0):
             if sec == "glider":
@@ -737,6 +763,19 @@ def main():
             if tr["name"] in os.environ.get("T3_LEAVE", "kick,hats,ohat,rim,toms,ca-kit,ca-kit2,shek,skin,click,tone,air,bronze").split(","):
                 tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.leave", "amount": 1}]}}]
                 tr["auto"] = {**tr.get("auto", {}), "leave": lane}
+    if R24 == "chant" and CHANT:
+        c0, c1 = CHANT[0][0], CHANT[-1][0] + 16.0
+        mouth = {"points": [["0b", 0.0], [f"{c0:g}b", 0.0], [f"{c0 + 24:g}b", 1.0], [f"{c1 - 6:g}b", 1.0], [f"{c1:g}b", 0.0],
+                            [f"{total}b", 0.0]]}
+        cg = float(os.environ.get("T3_CHANT_GAIN", "-9"))
+        for nm, voice, r, oct_, vib, pan, dg in (("cbass", "bass", 1.0, -24, 0.1, 0.0, 1), ("cten", "tenor", 1.5, -12, 0.15, -0.3, 0),
+                                                ("calt", "alto", 7 / 6, 0, 0.22, 0.3, 0), ("csop", "soprano", 7 / 4, 0, 0.3, 0.0, -2)):
+            notes = [{"at": round(s_ + (0.12 if nm != "cbass" else 0.0), 4), "len": 15.6, "pitch": hz_m(ratio_m(cm_ + oct_, r)),
+                      "vel": 0.7} for s_, cm_ in CHANT]
+            tracks.append({"name": nm, "patch": f"c3-{nm}", "gain": f"{cg + dg:g}dB", "pan": pan,
+                           "fx": ["hp cutoff=70", "reverb kind=hall decay=2.6s mix=0.3"], "notes": notes,
+                           "auto": {"mouth": mouth}})
+            PATCH_EXTRA[f"c3-{nm}"] = c3_fof(voice, vib)
     if R21 == "neighbours":
         scale = sorted(m for o in range(2, 9) for m in (o * 12 + x for x in (0, 2, 4, 5, 7, 9, 10)))   # D's 7 steps
         def shift(pm, k):
@@ -929,7 +968,8 @@ def main():
                                   **({"c8-kit": C8_KIT} if R11 == "bronze" else {}),
                                   **({"c3-gendy": C3_GENDY} if R12 == "gendy" else {}),
                                   **({"c3-vosbell": C3_VOSBELL} if R18 == "palette" else {}),
-                                  **({"c3-kserr": C3_KSERR} if R22 == "ksdrum" else {})}),
+                                  **({"c3-kserr": C3_KSERR} if R22 == "ksdrum" else {}),
+                                  **PATCH_EXTRA}),
         "buses: " + json.dumps(buses),
         "master: " + json.dumps({"fx": [{"type": "eq", "bands": ["hp cutoff=25",
                                                                "peak cutoff=250 gain=" + (os.environ.get("T3_LOWMID", "-0.5dB") if R15 == "space" else "-2dB") + " q=0.8",
