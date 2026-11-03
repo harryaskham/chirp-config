@@ -176,6 +176,19 @@ C6_CZ = {"about": "chirper-two: a CZ saw-bend stab - phase distortion struck bri
                    "layers": [{"type": "pd", "pd": {"shape": "saw", "amount": {
                        "value": 0.12, "mod": [{"src": "env.bend", "amount": 0.7}]}}}],
                    "amp": {"a": "2ms", "d": "260ms", "s": 0.0, "r": "90ms"}}}
+# T6_R16 = modem (v16, section round on w6, 2:30-3:00: verse two into the bridge, "little new vs w5"). THE CARRIER.
+# The bridge opens with a handshake: for its first bar the drums step out and a modem speaks - Bell 202 frequency
+# shift keying, 1200 Hz for a one, 2200 Hz for a zero, a bit every thirty-second note - and then it keeps talking in
+# short bursts at the top of the next six bars. What it sends, eight bits a character, is the album's title: "a light
+# left on". Nobody in the song can read it. New track + one gain lane. T6_R16=none reproduces v15.
+R16 = os.environ.get("T6_R16", "modem")
+C6_FSK = {"about": "chirper-two: a modem tone - a sine with a little square, hard-keyed",
+          "synth": {"layers": [{"wave": "sine"}, {"wave": "square", "level": 0.12}],
+                    "amp": {"a": "1ms", "s": 1, "r": "6ms"}}}
+# T6_R17 = bands (v16, with the section round). The mix answers the album envelope by compscore --bands: t6 was +7 dB
+# at 1.4-1.6 kHz, -6 to -7 dB at 97-114 Hz and -7 to -9 dB above 9 kHz: +3 dB at 105 Hz, -2.5 dB at 1.5 kHz, and a
+# +3 dB shelf from 9 kHz on the master. T6_R17=none reproduces the master of v15.
+R17 = os.environ.get("T6_R17", "bands")
 TESTS = [102.0, 150.0, 238.0, 302.0, 318.0, 394.0, 426.0]
 TEST_KEEP = {"voice", "lull", "singb", "ringv", "vosim", "tline", "radio", "ack", "test", "idle-in", "idle-out"}
 WALK_POOL = [0, 3, 6, 8, 11, 14, 17, 19, 22, 25, 27, 30, 33, 36, 38, 41]   # 19-EDO major steps, two octaves up from C5
@@ -572,6 +585,27 @@ def main():
             if tr["name"] in ("kick", "snare", "hats", "ride", "rim"):
                 tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.stop", "amount": 1}]}}]
                 tr["auto"] = {**tr.get("auto", {}), "stop": lane}
+    if R16 == "modem":
+        msg = "a light left on "
+        bits = "".join(f"{ord(c):08b}" for c in msg)
+        fsk = Track("fsk")
+        b0, pos = st["bridge"], 0
+        for k in range(7):
+            nbits = 32 if k == 0 else 16
+            for j in range(nbits):
+                if pos >= len(bits):
+                    break
+                fsk.add(b0 + 4.0 * k + 0.125 * j, 0.12, "1200hz" if bits[pos] == "1" else "2200hz", 70)
+                pos += 1
+        tracks.append({"name": "fsk", "patch": "c6-fsk", "gain": os.environ.get("T6_FSK_GAIN", "-9dB"), "pan": 0.3,
+                       "fx": ["hp cutoff=400", "lp cutoff=5000 q=0.5", "reverb kind=room decay=0.4s mix=0.12"],
+                       "score": fsk.score(total)})
+        lane = {"points": [["0b", 0.0], [f"{b0 - 0.15}b", 0.0], [f"{b0 + 0.02}b", -40.0], [f"{b0 + 3.85}b", -40.0],
+                           [f"{b0 + 4.0}b", 0.0], [f"{total}b", 0.0]]}
+        for tr in tracks:
+            if tr["name"] in ("kick", "snare", "hats", "ride", "rim"):
+                tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.carrier", "amount": 1}]}}]
+                tr["auto"] = {**tr.get("auto", {}), "carrier": lane}
     if R15 == "stabs" and R4 == "organ":
         s0_, s1_ = st["chorus2"] + 36.0, st["chorus2"] + 60.0
         sb = Track("stab")
@@ -672,7 +706,11 @@ def main():
         "true_peak: true",
         "master: " + json.dumps({"fx": [{"type": "eq", "bands": ["hp cutoff=25", "peak cutoff=300 gain=-2dB q=0.8",
                                                                "peak cutoff=1100 gain=-2.5dB q=0.6",
-                                                               "highshelf cutoff=6500 gain=4dB"]},
+                                                               "highshelf cutoff=6500 gain=4dB"] +
+                                                              (["peak cutoff=105 gain=" + os.environ.get("T6_LOW105", "3dB") + " q=1.0",
+                                                                "peak cutoff=1500 gain=" + os.environ.get("T6_MID1500", "-2.5dB") + " q=1.0",
+                                                                "highshelf cutoff=9000 gain=" + os.environ.get("T6_AIR", "3dB")]
+                                                               if R17 == "bands" else [])},
                                         "glue threshold=-20dB ratio=2 attack=10ms release=150ms makeup=1dB",
                                         {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}},
                                         {"type": "limiter", "ceiling": "-1.2dB", "release": "80ms"}],
@@ -680,7 +718,8 @@ def main():
         *(["patches: " + json.dumps({**({"c6-voice": C6_VOICE} if R8 == "speaker" else {}),
                                      **({"c6-ack": C6_ACK} if (R11 == "ack" or R14 == "selftest") else {}),
                                      **({"c6-vosim": C6_VOSIM} if R13 == "vosim" else {}),
-                                     **({"c6-cz": C6_CZ} if R15 == "stabs" else {})})]
+                                     **({"c6-cz": C6_CZ} if R15 == "stabs" else {}),
+                                     **({"c6-fsk": C6_FSK} if R16 == "modem" else {})})]
           if (R8 == "speaker" or R11 == "ack" or R13 == "vosim" or R14 == "selftest") else []),
         "tracks:",
     ]
