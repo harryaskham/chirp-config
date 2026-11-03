@@ -241,6 +241,32 @@ R23 = os.environ.get("T6_R23", "cursor")
 # smoother: w3 motion 0.079 -> 0.071, returns 4 -> 3; the eighths and the beat gap: 0.074, returns 5.) The
 # first lift now arrives instead of just starting. T6_R24=none reproduces v22.
 R24 = os.environ.get("T6_R24", "build")
+# T6_R25 = palette (v24, palette round). Two album staples go. THE PAD SINGS: the juno-pad (3 songs) under the verses,
+# bridge and waltz becomes a CHOIR - FOF, the grain voices of IRCAM's CHANT (Rodet 1979-84; wM's `fof`): an alto and a
+# tenor on the same chord tones, a slow 5 Hz vibrato, and their mouths moving between "ah" and "oh" on a lane that
+# opens and closes every four bars - wordless singers holding the 19-EDO chords where a synth used to. THE IDLE TUNE
+# RINGS ON A NEW BELL: the music box (3 songs) under the idle walk at the song's two doors becomes a Chebyshev
+# waveshaper (Le Brun and Arfib 1979; wM's `shaper`) - odd harmonics only, hollow, its brightness opened by a fast
+# envelope on the index, so each note is struck bright and settles to a soft glass flute. T6_R25=none reproduces v23.
+R25 = os.environ.get("T6_R25", "none")   # OPT-IN (not kept): s0/s11 98.168/98.152 vs v23 98.277/98.284
+# Measured: the FOF pair came out 6.7 dB under the juno-pad at the same gain (so -13 dB, not -18) and put a 547 Hz
+# bump (+7.4 dB) and 9 kHz short (-7.7) into the song: a 550 Hz cut on the pad and the air shelf 5 -> 6.5 dB bought
+# back 97.99 -> 98.17; the shaper idle tune +3.3 dB over the music box (-3 dB). Flow 72.5 -> 71.7 stayed whatever the
+# pad gain, release (0.8 -> 2.5 s) or air; sections 18 -> 19, returns 5 -> 7. Waiting on Harry's ear.
+C6_FOF = {"about": "chirper-two: a wordless FOF choir - alto + tenor CHANT grains, vowels moved by the track's mouth lane",
+          "synth": {"layers": [
+              {"type": "fof", "fof": {"voice": "alto", "vowel": "a>o", "attack": 8,
+                                      "morph": {"value": 0.0, "mod": [{"src": "auto.mouth", "amount": 1}]}}},
+              {"type": "fof", "level": 0.6, "fof": {"voice": "tenor", "vowel": "a>o", "attack": 10,
+                                                    "morph": {"value": 0.0, "mod": [{"src": "auto.mouth", "amount": 1}]}}}],
+              "pitch": {"value": 0, "mod": [{"src": "lfo.vib", "amount": 0.12}]},
+              "lfo": {"vib": {"wave": "sine", "rate": "5.2hz"}},
+              "amp": {"a": "250ms", "d": "400ms", "s": 0.9, "r": os.environ.get("T6_FOF_REL", "2.5s")}}}
+C6_SHAPER = {"about": "chirper-two: a Chebyshev waveshaper bell - odd harmonics, index opened by a fast envelope",
+             "synth": {"layers": [{"type": "shaper", "shaper": {"harmonics": [1, 0, 0.35, 0, 0.18, 0, 0.08],
+                                                                "index": {"value": 0.15, "mod": [{"src": "env.open", "amount": 0.85}]}}}],
+                       "env": {"open": {"a": "1ms", "d": "300ms", "s": 0}},
+                       "amp": {"a": "2ms", "d": "1.4s", "s": 0, "r": "500ms"}}}
 BD_KEEP = {"voice", "vosim", "organ", "snare", "tline", "singb", "ringv", "stab", "test", "fsk"}
 TESTS = [102.0, 150.0, 238.0, 302.0, 318.0, 394.0, 426.0]
 TEST_KEEP = {"voice", "lull", "singb", "ringv", "vosim", "tline", "radio", "ack", "test", "idle-in", "idle-out"}
@@ -611,9 +637,12 @@ def main():
         *([{"name": "horns", "patch": "brass-synth", "gain": os.environ.get("T6_HORN_GAIN", "-8dB"), "pan": 0.15,
             "fx": ["hp cutoff=250", "peak cutoff=600 gain=-2dB q=1", "reverb kind=plate decay=1.2s mix=0.18"],
             "score": T["horns"].score(total)}] if R7 == "horns" else []),
-        {"name": "pad", "patch": "mellotron-flute" if R7FLUTE else "juno-pad",
-         "gain": os.environ.get("T6_FLUTE_GAIN", "-15dB") if R7FLUTE else "-18dB",
-         "fx": [pump, "chorus mix=0.3"],
+        {"name": "pad", "patch": "mellotron-flute" if R7FLUTE else ("c6-fof" if R25 == "palette" else "juno-pad"),
+         "gain": os.environ.get("T6_FLUTE_GAIN", "-15dB") if R7FLUTE else (os.environ.get("T6_FOF_GAIN", "-13dB") if R25 == "palette" else "-18dB"),
+         **({"auto": {"mouth": {"points": [[f"{b:g}b", (0.85 if (b // 16) % 2 else 0.15)] for b in range(0, 560, 16)]}}}
+            if R25 == "palette" else {}),
+         "fx": [pump, "chorus mix=0.3"] + (["peak cutoff=550 gain=-5dB q=1.2", "reverb kind=hall decay=2.4s mix=0.22"]
+                                          if R25 == "palette" else []),
          "score": T["pad"].score(total)},
         {"name": "talk", "patch": "saw-pad", "gain": os.environ.get("T6_TALK_GAIN", "-8dB"),
          "fx": [{"type": "vocoder", "key": "voice", "bands": 20, "noise": 0.12, "attack": "4ms", "release": "70ms"},
@@ -762,7 +791,8 @@ def main():
     if R12 == "line":   # the idle tune: a random walk, a step at a time, on the music box at the song's two doors
         pool = " ".join(mm(e(s, 72)) for s in WALK_POOL)
         for nm, a0, a1, sd, g in (("idle-in", 4.0, st["verse1"], 6, "-20dB"), ("idle-out", st["outro"] + 8.0, total - 8.0, 19, "-7dB")):
-            tracks.append({"name": nm, "patch": "music-box", "gain": os.environ.get("T6_IDLE_GAIN_" + nm[5:].upper(), g),
+            tracks.append({"name": nm, "patch": "c6-shaper" if R25 == "palette" else "music-box",
+                           "gain": os.environ.get("T6_IDLE_GAIN_" + nm[5:].upper(), f"{float(g[:-2]) - 3:g}dB" if R25 == "palette" else g),
                            "pan": 0.25, "seed": sd,
                            "fx": ["hp cutoff=300", {"type": "delay", "time": "3/8", "feedback": 0.3, "mix": 0.22,
                                                     "ping_pong": True, "tone": 3500}, "reverb kind=hall decay=2.5s mix=0.3"],
@@ -849,7 +879,7 @@ def main():
                                                                "highshelf cutoff=6500 gain=4dB"] +
                                                               (["peak cutoff=105 gain=" + os.environ.get("T6_LOW105", "3dB") + " q=1.0",
                                                                 "peak cutoff=1500 gain=" + os.environ.get("T6_MID1500", "-2.5dB") + " q=1.0",
-                                                                "highshelf cutoff=9000 gain=" + os.environ.get("T6_AIR", "5dB" if R21 == "lift" else "3dB")]
+                                                                "highshelf cutoff=9000 gain=" + os.environ.get("T6_AIR", ("6.5dB" if R25 == "palette" else "5dB") if R21 == "lift" else "3dB")]
                                                                if R17 == "bands" else [])},
                                         "glue threshold=-20dB ratio=2 attack=10ms release=150ms makeup=1dB",
                                         {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}},
@@ -859,7 +889,8 @@ def main():
                                      **({"c6-ack": C6_ACK} if (R11 == "ack" or R14 == "selftest") else {}),
                                      **({"c6-vosim": C6_VOSIM} if R13 == "vosim" else {}),
                                      **({"c6-cz": C6_CZ} if R15 == "stabs" else {}),
-                                     **({"c6-fsk": C6_FSK} if R16 == "modem" else {})})]
+                                     **({"c6-fsk": C6_FSK} if R16 == "modem" else {}),
+                                     **({"c6-fof": C6_FOF, "c6-shaper": C6_SHAPER} if R25 == "palette" else {})})]
           if (R8 == "speaker" or R11 == "ack" or R13 == "vosim" or R14 == "selftest") else []),
         "tracks:",
     ]
