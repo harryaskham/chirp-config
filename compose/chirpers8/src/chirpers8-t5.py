@@ -55,6 +55,7 @@ LIFTSTOP = os.environ.get("C8T5_LIFTSTOP", "1")   # the gear change, announced: 
 LIFTHAT = os.environ.get("C8T5_LIFTHAT", "1")   # after the lift the hats open: every off-beat hat an open hat - the agreed band, a step up, brighter on top
 ESTABLE = os.environ.get("C8T5_ESTABLE", "1")   # song-level event_stable (engine f5283535): each note's humanize and DSP draws come from its track, beat and pitch, so a window's edit stays in the window; switching it on re-rolls every humanized note once
 ACIDX = os.environ.get("C8T5_ACIDX", "-18")   # WHOLE ROUND: the route out of chaos - the acid's line is doubled by a chaos voice (engine f3872739: a Rossler attractor, one loop per period of the note, read on its x axis, a tone with a chaotic flutter) whose amount walks the route backwards across the song: chaotic through A's proposals (0.9), calming through B, period-doubling (an octave-down subharmonic) at the retrain, a plain tone once they agree in C, and back toward chaos as they part at the end. Value = gain dB
+CONGALAYER = os.environ.get("C8T5_CONGALAYER", "-26")   # WHOLE ROUND: inside the hand drum, the computer's first drum - the congas keep their wood and skin (the stock kit carries the groove's low body: replacing it outright cost 0.6-1.3, r87) and gain a twin underneath, Karplus-Strong's own drum (engine 8f150090; the 1983 paper's blend 0.5: a noise burst whose loop flips sign at random, so it thumps and rattles rather than ringing), on the same hits at the kit's pitches. Value = the twin's gain dB
 OUTKS = os.environ.get("C8T5_OUTKS", "0:-14")   # SECTION ROUND (w9, the outro: level jump): the deal, plucked as they part - the tune they sang at C's end (B3 D4 E4, the last time up to B4) comes back in the outro on Karplus-Strong (engine 8f150090, 1983: a noise burst settling in a one-period loop), stretched to ring long: every two bars, four times, then up to B4, then one E4 left ringing at bar 12, each softer. A notes-only track, outro only. Value 'blend:gain'
 ROBOCHOIR = os.environ.get("C8T5_ROBOCHOIR", "-12")   # SECTION ROUND (the agreement sung, C's last bars): the machine sings too - the three-voice choir that sings 'keep it there' together at C's end gets a fourth voice, a vocoder twin of its middle voice: the same words shaping a held E minor chord of saws (E2 B2 E3 G3) band by band. Agreeing on a speed: humans and the machine sing the deal together. Value = gain dB
 GTRRUSH = os.environ.get("C8T5_GTRRUSH", "0.25")   # SECTION ROUND (w2, the intro's end into A: level jump): the first proposal is rushed - with no kick under it yet, the guitar's opening calls in A run ahead of the band (its own clock: GTRRUSH beats early by A's downbeat), settling back onto the grid over A's first eight bars, so it is exactly on time the bar the kick comes in. Value = beats early
@@ -565,6 +566,15 @@ def song():
         doc["tracks"].append({"name": "outks", "gain": f"{kg}dB", "pan": 0.2,
                               "patch": {"about": "Karplus-Strong 1983, stretched", "synth": {"layers": [{"type": "ks", "ks": {"blend": float(kb), "stretch": 4, "tune": True}}], "amp": "1ms 1 1 1.5s"}},
                               "notes": notes})
+    if CONGALAYER:
+        for t_ in list(doc["tracks"]):
+            if isinstance(t_, dict) and t_.get("name") == "conga" and t_.get("patch") == "congas":
+                hits = {"bh": "F4", "bl": "C4", "lo": "D3", "mu": "G3", "o": "A3", "sl": "C4"}
+                tw = json.loads(json.dumps(t_))
+                tw.update(name="congaks", gain=f"{CONGALAYER}dB",
+                          patch={"about": "Karplus-Strong's drum (1983): blend 0.5", "synth": {"layers": [{"type": "ks", "bright": 0.45, "ks": {"blend": 0.5, "stretch": 1, "tune": True}}], "amp": "1ms 1 0 160ms"}})
+                tw["score"] = " ".join(hits.get(tok.split("/")[0], tok.split("/")[0]) + tok[len(tok.split("/")[0]):] for tok in t_["score"].split())
+                doc["tracks"].append(tw)
     return doc
 
 
