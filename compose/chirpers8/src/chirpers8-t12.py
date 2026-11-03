@@ -644,7 +644,7 @@ TUNER_AT = 8.0
 # repeats 1-2 human, 3-4 through LPC, 5-6 through the speaking toy (5-bit, monotone on F#); healed, in the coda the
 # machine SINGS ALONG - an LPC copy of 'Moth, the warm glass holds you...' following the singer's own pitch, quiet and
 # panned opposite: the computer and a person singing the album's last song together.
-LPC_EARLY = 0.075              # beats: LPC answers ~35-39 ms late (chirp-eco measured 39 ms; wM may fix it in the fx)
+LPC_EARLY = 0.0                # ee46ab71 (adopted 20:21) compensates lpc in the engine: the hand nudge (0.075 beats) is out
 
 
 # v39 (ROUND TYPE: section, w7 3:15-3:46 - the prune's end and the regrowth, flagged little new vs w6; w12, the
