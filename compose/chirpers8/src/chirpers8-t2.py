@@ -38,6 +38,7 @@ OWNKICK = os.environ.get("C8T2_OWNKICK", "1")   # and the kick: the machine laye
 TOMBACK = os.environ.get("C8T2_TOMBACK", "swap")   # PALETTE ROUND: the backbeat on a drum machine of our own - the engine's `machine` layer (circuit-modelled drum-machine voices, unused on the album) as a tuned electronic tom: G3 on 2, D3 on 4 (the halving's lone 3 on G3), the syndrum backbeat of the old machine records. 'swap' replaces the machine-kit clap (a staple of 9 songs); 'layer' keeps the clap under it
 CONVERGE = os.environ.get("C8T2_CONVERGE", "6")   # WHOLE ROUND: THE PATHS MEET - in C the canon gives way to a second number. Each of C's climbs gets a partner whose own hailstone path joins it partway (27 and 41 meet 313, 31 meets 297), played on the second clarinet in its own register and the same parity rhythm, timed so the two land on the shared number together; they sound in unison for six steps, then the partner falls silent and one line goes on down to 1 - the conjecture heard: different starts, one road home. Value = 'unison steps'
 INTROBOOT = os.environ.get("C8T2_INTROBOOT", "")   # SECTION ROUND (w1, the intro: static): the arp boots by resolution - bar b of the intro keeps only the first INTROBOOT+b steps of the sixteen in bit-reversed order (0 8 4 12 2 10 6 14 1 9 5 13 3 11 7 15: the order an FFT reads them), so the line arrives as a pulse, then halves, quarters, eighths, sixteenths, each note where it always was
+ARPPHASE = os.environ.get("C8T2_ARPPHASE", "0.25")   # SECTION ROUND (w1, the intro: static): the machine phases - the bytebeat arp runs on its own clock through the intro (the engine's per-track warp): drifting away from the clarinet over eight bars (to ARPPHASE beats late, curve smooth), then back over eight, locking onto the grid exactly as A begins; the tape-loop phasing of process music, done by a clock. Value = beats of drift at its widest
 LPCV = os.environ.get("C8T2_LPCV", "count,refrain")   # WHOLE ROUND: the numbers read by a speaking toy - LPC (engine 78e838c5, LPC-10: the first speech chips; the toy that read arithmetic to children spoke this way). 'count': the voice that reads the numbers in A goes through 5-bit monotone LPC on G3 before its radio; 'count,refrain': and the break's 'four, two, one' (the turn from speech into song) through plain, inflecting LPC, so the counting machine begins to sing before the human-sung lines of C. Notes nudged 0.075 beats early for LPC's ~35 ms (chirper-three's measure)
 BELLVOS = os.environ.get("C8T2_BELLVOS", "1")   # PALETTE: the bells that ring when a path lands on one (small bells for a finished job, modal) are struck in the machine's own voice too - a VOSIM pulse train (six pulses, formant ~2.6 kHz) ringing under the strike: the finished-job chime of a computer
 BHALF = os.environ.get("C8T2_BHALF", "12")   # SECTION ROUND (w4, B's first twelve bars: static): n/2 in the groove - the even step of the map is halving, and B opens (up a whole step, v-era BKEY) in half time: for its first BHALF bars the kick plays only the one and the and-of-three, the clap moves from two and four to three, the hats thin to quarters, so the band moves at half the pulse under the same clarinet, and doubles back at the bar the key comes home
@@ -600,6 +601,10 @@ def song():
         for t in doc["tracks"]:
             if t["name"] in TTSVOICE.split(","):
                 t["patch"] = "voice-tts"
+    if ARPPHASE:
+        for t in doc["tracks"]:
+            if isinstance(t, dict) and t.get("name") == "arp":
+                t["warp"] = [{"over": "8bar", "to": float(ARPPHASE), "curve": "smooth"}, {"over": "8bar", "to": 0, "curve": "smooth"}]
     if LPCV:
         mode = {"count": "lpc pitch=G3 bits=5", "refrain": "lpc"}
         for t in doc["tracks"]:
