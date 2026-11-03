@@ -43,6 +43,7 @@ COMPUTEWARP = os.environ.get("C8T2_COMPUTEWARP", "0.25")   # WHOLE ROUND: big nu
 COMPUTEFROM = os.environ.get("C8T2_COMPUTEFROM", "A")   # 'A': the intro's paths stay on the grid (the join with t1 is measured over the opening; the intro is the arp's phasing, v64), the lag starts with A
 ARPPHASE = os.environ.get("C8T2_ARPPHASE", "0.25")   # SECTION ROUND (w1, the intro: static): the machine phases - the bytebeat arp runs on its own clock through the intro (the engine's per-track warp): drifting away from the clarinet over eight bars (to ARPPHASE beats late, curve smooth), then back over eight, locking onto the grid exactly as A begins; the tape-loop phasing of process music, done by a clock. Value = beats of drift at its widest
 LPCV = os.environ.get("C8T2_LPCV", "count,refrain")   # WHOLE ROUND: the numbers read by a speaking toy - LPC (engine 78e838c5, LPC-10: the first speech chips; the toy that read arithmetic to children spoke this way). 'count': the voice that reads the numbers in A goes through 5-bit monotone LPC on G3 before its radio; 'count,refrain': and the break's 'four, two, one' (the turn from speech into song) through plain, inflecting LPC, so the counting machine begins to sing before the human-sung lines of C. Notes nudged 0.075 beats early for LPC's ~35 ms (chirper-three's measure)
+CHANT = os.environ.get("C8T2_CHANT", "-18")   # SECTION ROUND (w7, the first sung line in C, 'odd goes up, even comes down'): THE CHANT CHOIR - under the human line a wordless four-voice choir of FOF singers (Rodet's CHANT, IRCAM 1979-84, engine 91b04b25: formant grains, no filters), chirper-three's voicing (bass root, tenor fifth, alto third, soprano seventh): Gmaj7 under 'odd goes up' (D E F# G), Em7 under 'even comes down' (B A G) - up on the major, down onto its relative minor - the vowel opening u -> a across the line on one shared lane, vibrato 5.5 Hz after 300 ms (deeper up top), a small scoop. Harry's bar (t10's sung passage). Value = gain dB per voice
 SUNGVOICE = os.environ.get("C8T2_SUNGVOICE", "1")   # PALETTE (the singing): the sung lines of C ('odd goes up, even comes down', C13 and C41) move from the speech voice to the library's singing voice ('voice': rounder, a glottal source through a five-formant tract with a singer's formant), keeping the take's own pitch path; the robot choir twin (v66) stays on the speech voice it vocodes. Harry's bar (t10's sung duet, t1's singing): the sung passages should sound sung, properly produced
 CLSH = os.environ.get("C8T2_CLSH", "h:-8")   # SECTION ROUND (w4, B's half-time opening: static): the clarinet computed - for B's first twelve bars the clarinet hands its numbers to a Chebyshev clarinet (Le Brun & Arfib 1979, engine 817a5de6: a sine through a polynomial that writes exactly the odd harmonics 1, 1/3 ... a clarinet's spectrum, by arithmetic), its brightness (index) driven by 'h' the number's height (var.height: big numbers written with more harmonics) or 'b' a breath envelope; the physical clarinet returns at bar 12. Value 'mode:gain'
 CLKS = os.environ.get("C8T2_CLKS", "1:-14")   # SECTION ROUND (w3, A bars 16-31: little new vs w2): the paths plucked - for A's second half the clarinet's numbers are doubled by Karplus-Strong (engine 8f150090, 1983: a noise burst settling to pitch in a one-period loop) on a track that holds only those bars' notes (r72's gated full-song copy tipped the structure), on the clarinet's clock (its compute lag, v65): each number plucked as it is computed. Value 'blend:gain'
@@ -725,6 +726,22 @@ def song():
         for t in doc["tracks"]:
             if isinstance(t, dict) and t.get("name") == "sung" and isinstance(t.get("patch"), dict):
                 t["patch"] = dict(t["patch"], extends="voice")
+    if CHANT:
+        sung_ = next((t for t in doc["tracks"] if isinstance(t, dict) and t.get("name") == "sung"), None)
+        a_ = min(n["at"] for n in sung_["notes"]) if sung_ else 0
+        b_ = a_ + 4 if sung_ else 0
+        z_ = max(n["at"] + n["len"] for n in sung_["notes"] if n["at"] < a_ + 16) if sung_ else 0
+        for nm, vc, vib, p1, p2 in (("chant-b", "bass", 0.1, 43, 40), ("chant-t", "tenor", 0.15, 50, 47), ("chant-a", "alto", 0.2, 59, 55), ("chant-s", "soprano", 0.3, 66, 62)):
+            doc["tracks"].append({"name": nm, "gain": f"{CHANT}dB", "pan": {"bass": 0, "tenor": -0.3, "alto": 0.3, "soprano": -0.1}[vc],
+                                  "sends": dict(sung_.get("sends", {})) if sung_ else {},
+                                  "auto": {"mouth": {"points": [["0b", 0], [f"{a_ - 1:g}b", 0], [f"{z_:g}b", 1], [f"{z_ + 8:g}b", 1]]}},
+                                  "patch": {"about": "CHANT (Rodet, IRCAM 1979-84): FOF singing, " + vc,
+                                            "synth": {"layers": [{"type": "fof", "fof": {"voice": vc, "vowel": "u>a", "attack": "3ms", "morph": {"value": 0, "mod": [{"src": "auto.mouth", "amount": 1}]}}}],
+                                                      "pitch": {"value": 0, "mod": [{"src": "lfo.vib", "amount": vib}, {"src": "env.scoop", "amount": -0.3}]},
+                                                      "lfo": {"vib": {"wave": "sine", "rate": "5.5hz", "delay": "300ms", "fade": "400ms"}},
+                                                      "env": {"scoop": {"a": "1ms", "d": "120ms", "s": 0}}, "amp": "300ms 0 1 900ms"}},
+                                  "notes": [{"at": round(a_ - 1, 3), "pitch": f"m{p1}", "len": round(b_ - a_ + 1, 3), "vel": 0.7},
+                                            {"at": round(b_, 3), "pitch": f"m{p2}", "len": round(z_ - b_ + 0.5, 3), "vel": 0.8}]})
     return doc
 
 
