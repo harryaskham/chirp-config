@@ -54,6 +54,7 @@ BSPLITAT = int(os.environ.get("C8T5_BSPLITAT", "12"))   # the bar of B (0-based)
 LIFTSTOP = os.environ.get("C8T5_LIFTSTOP", "1")   # the gear change, announced: the band stops dead for the second half of the bar before the lift (C bar 24) - a clap fill climbing in sixteenths - then lands a whole step up (dropped after generation, so no dice move). Once B was split (v18) this splits C too without crowding the returns
 LIFTHAT = os.environ.get("C8T5_LIFTHAT", "1")   # after the lift the hats open: every off-beat hat an open hat - the agreed band, a step up, brighter on top
 ESTABLE = os.environ.get("C8T5_ESTABLE", "1")   # song-level event_stable (engine f5283535): each note's humanize and DSP draws come from its track, beat and pitch, so a window's edit stays in the window; switching it on re-rolls every humanized note once
+PANMEET = os.environ.get("C8T5_PANMEET", "0.65")   # WHOLE ROUND: the two machines meet in the middle - the guitar starts far right and the acid far left (the spread PANMEET either side of their resting places), and as they come to terms they walk toward each other: still apart through A, closing through B and the retrain, together by C bar 8 (where the guitar's morph into the acid completes), and drifting apart again through the outro as the line hangs up
 KEYUP = os.environ.get("C8T5_KEYUP", "38,2")   # SECTION ROUND (w8, C after the break: static, little new vs w7): when the kit comes back after C's break (bar 38) the whole band comes back a step up - 'bar,semis' - for C's last four bars, so the agreed speed ends on a lift before the outro's drift falls home. Notes held into the change are cut at it
 TRAIN = os.environ.get("C8T5_TRAIN", "90")   # WHOLE ROUND: the training burst - a real handshake ends in a scrambled hiss before the line connects, so the last two bars of each handshake (the intro's, the retrain's) give their tones to a bytebeat (engine 709cf900): a formula on the counter t built on the modem scrambler's taps (t>>14, t>>17), its steps changing every 64 ms, through the carriers' radio. Then the band enters on the connected line. Value = velocity
 TRAINF = os.environ.get("C8T5_TRAINF", "(t*5^t>>14^t>>17)*(t>>9&7)")
@@ -458,6 +459,7 @@ def song0():
     T = build()
     st = {sec: sec_start(sec) for sec, _ in FORM}
     BARG = [st["B"] + 12 * BAR, st["retrain"] + 3 * BAR, st["retrain"] + 8 * BAR]
+    meet_lane = {"points": [[f"{x / 4:g}b", y] for x, y in ((0, 1), (st["B"], 1), (st["retrain"], 0.55), (st["C"], 0.3), (st["C"] + 8 * BAR, 0), (st["outro"], 0), (total(), 0.8))]}
     merge_lane = {"points": [["0b", 0], [f"{st['C'] / 4:g}b", 0], [f"{(st['C'] + 8 * BAR) / 4:g}b", 1], [f"{(st['outro'] - BAR) / 4:g}b", 1],
                              [f"{st['outro'] / 4:g}b", 0], [f"{total() / 4:g}b", 0]]}
     end = total()
@@ -498,8 +500,8 @@ def song0():
             {"name": "conga", "patch": "congas", "gain": "-8dB", "pan": -0.25, "sends": {"room": "-12dB"}, "score": T["conga"],
              **({"fx": [{"type": "filter", "kind": "hp", "q": 0.7, "cutoff": {"value": 20, "mod": [{"src": "auto.cth", "amount": math.log2(float(CONGATHIN) / 20)}]}}],
                  "auto": {"cth": lane([(0, 0), (end - 4 * BAR, 0), (end - BAR, 1), (end, 1)])}} if CONGATHIN else {})},
-            {"name": "gtr", "patch": "cutting-guitar", "gain": "-9dB", "pan": 0.3,
-             **({"auto": {**({"mg": merge_lane} if MERGE else {}),
+            {"name": "gtr", "patch": "cutting-guitar", "gain": "-9dB", "pan": {"value": 0.1, "mod": [{"src": "auto.pm", "amount": float(PANMEET)}]} if PANMEET else 0.3,
+             **({"auto": {**({"mg": merge_lane} if MERGE else {}), **({"pm": meet_lane} if PANMEET else {}),
                           **({"wh": lane([(0, 0), (st["C"] + 24 * BAR, 0), (st["C"] + 25 * BAR, 1), (st["outro"], 1), (st["outro"] + 2 * BAR, 0), (end, 0)])} if LIFTWAH else {})}}
                 if (MERGE or LIFTWAH) else {}),
              "fx": [*([f"peak cutoff=1650 q=0.8 gain=-{SPEQ.split(',')[0]}dB"] if SPEQ and float(SPEQ.split(',')[0]) else []),
@@ -511,7 +513,8 @@ def song0():
              "sends": {"spring": "-14dB"}, "score": T["gtr"]},
             {"name": "sub", "patch": "808" if SUBSPLIT else (SUBPATCH or "808"), "gain": "-10dB", "fx": [pump, {"type": "filter", "kind": "lp", "cutoff": 160, "q": 0.7}], "score": T["sub"]},
             *([{"name": "sub2", "patch": SUBPATCH, "gain": "-10dB", "fx": [pump, {"type": "filter", "kind": "lp", "cutoff": 160, "q": 0.7}], "score": T["sub2"]}] if SUBPATCH and SUBSPLIT else []),
-            {"name": "acid", "patch": "acid-agree" if AGREE else "acid", "gain": "-10dB", "pan": -0.1,
+            {"name": "acid", "patch": "acid-agree" if AGREE else "acid", "gain": "-10dB", "pan": {"value": -0.1, "mod": [{"src": "auto.pm", "amount": -float(PANMEET)}]} if PANMEET else -0.1,
+             **({"auto": {"pm": meet_lane}} if PANMEET else {}),
              "fx": [pump, *([{"type": "filter", "kind": "ladder", "q": 0.45, "cutoff": {"value": 600, "mod": [{"src": "var.storm", "amount": 1}]}}] if STORM else [])],
              "score": T["acid"]},
             {"name": "kick", "patch": "909", "gain": "-3dB", "score": T["kick"]},
