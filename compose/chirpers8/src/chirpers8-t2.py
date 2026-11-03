@@ -43,6 +43,7 @@ COMPUTEWARP = os.environ.get("C8T2_COMPUTEWARP", "0.25")   # WHOLE ROUND: big nu
 COMPUTEFROM = os.environ.get("C8T2_COMPUTEFROM", "A")   # 'A': the intro's paths stay on the grid (the join with t1 is measured over the opening; the intro is the arp's phasing, v64), the lag starts with A
 ARPPHASE = os.environ.get("C8T2_ARPPHASE", "0.25")   # SECTION ROUND (w1, the intro: static): the machine phases - the bytebeat arp runs on its own clock through the intro (the engine's per-track warp): drifting away from the clarinet over eight bars (to ARPPHASE beats late, curve smooth), then back over eight, locking onto the grid exactly as A begins; the tape-loop phasing of process music, done by a clock. Value = beats of drift at its widest
 LPCV = os.environ.get("C8T2_LPCV", "count,refrain")   # WHOLE ROUND: the numbers read by a speaking toy - LPC (engine 78e838c5, LPC-10: the first speech chips; the toy that read arithmetic to children spoke this way). 'count': the voice that reads the numbers in A goes through 5-bit monotone LPC on G3 before its radio; 'count,refrain': and the break's 'four, two, one' (the turn from speech into song) through plain, inflecting LPC, so the counting machine begins to sing before the human-sung lines of C. Notes nudged 0.075 beats early for LPC's ~35 ms (chirper-three's measure)
+CLSH = os.environ.get("C8T2_CLSH", "h:-8")   # SECTION ROUND (w4, B's half-time opening: static): the clarinet computed - for B's first twelve bars the clarinet hands its numbers to a Chebyshev clarinet (Le Brun & Arfib 1979, engine 817a5de6: a sine through a polynomial that writes exactly the odd harmonics 1, 1/3 ... a clarinet's spectrum, by arithmetic), its brightness (index) driven by 'h' the number's height (var.height: big numbers written with more harmonics) or 'b' a breath envelope; the physical clarinet returns at bar 12. Value 'mode:gain'
 CLKS = os.environ.get("C8T2_CLKS", "1:-14")   # SECTION ROUND (w3, A bars 16-31: little new vs w2): the paths plucked - for A's second half the clarinet's numbers are doubled by Karplus-Strong (engine 8f150090, 1983: a noise burst settling to pitch in a one-period loop) on a track that holds only those bars' notes (r72's gated full-song copy tipped the structure), on the clarinet's clock (its compute lag, v65): each number plucked as it is computed. Value 'blend:gain'
 SCANPAD = os.environ.get("C8T2_SCANPAD", "")   # PALETTE: the pad becomes Max Mathews' last instrument - scanned synthesis (Verplank, Mathews & Shaw 2000; engine ee46ab71): a ring of masses and springs rippling at the speed of a hand, read round at the pitch, its shape the timbre; a slow hand (lfo, one sweep per 16 bars, as the CZ pad's) pushes and lets go, so the chords breathe by physics, not by filter. The father of computer music under a song about a computer counting. Value = gain dB
 LPCNUDGE = os.environ.get("C8T2_LPCNUDGE", "")   # v63's lpc voices were nudged 0.075 beats early for lpc's ~35 ms lag; engine ee46ab71 compensates it, so the nudge is off ('' ) from v70
@@ -126,7 +127,7 @@ def barlen(sec):
     """Sixteenths in a bar of this section: the break is in 3/4 under METER."""
     return 12 if METER and sec == "break" else BAR
 SEEDS = {"intro": [6, 6], "A": [7, 12, 3, 7], "B": [9, 18, 11], "C": [27, 31, 27, 41], "outro": [1]}
-TRACKS = ("clar", "clar2", "arp", "bass", "sub", "kick", "shk", "hats", "clap", "pad", "bell", "crash") + (("tom",) if os.environ.get("C8T2_TOMBACK", "swap") else ()) + (("ohat",) if os.environ.get("C8T2_OWNHATS", "1") else ()) + (("bell2",) if os.environ.get("C8T2_PREFIGTRACK", "1") else ()) + (("kick2", "tom2", "crash2") if os.environ.get("C8T2_HALVLOCAL", "1") else ()) + (("vib",) if os.environ.get("C8T2_LANDING", "92all") else ()) + (("glk",) if os.environ.get("C8T2_GLKUP", "70") else ()) + (("mach",) if os.environ.get("C8T2_MACHV", "90") else ()) + (("vos",) if os.environ.get("C8T2_VOSEND", "90") else ()) + (("clks",) if os.environ.get("C8T2_CLKS", "1:-14") else ())
+TRACKS = ("clar", "clar2", "arp", "bass", "sub", "kick", "shk", "hats", "clap", "pad", "bell", "crash") + (("tom",) if os.environ.get("C8T2_TOMBACK", "swap") else ()) + (("ohat",) if os.environ.get("C8T2_OWNHATS", "1") else ()) + (("bell2",) if os.environ.get("C8T2_PREFIGTRACK", "1") else ()) + (("kick2", "tom2", "crash2") if os.environ.get("C8T2_HALVLOCAL", "1") else ()) + (("vib",) if os.environ.get("C8T2_LANDING", "92all") else ()) + (("glk",) if os.environ.get("C8T2_GLKUP", "70") else ()) + (("mach",) if os.environ.get("C8T2_MACHV", "90") else ()) + (("vos",) if os.environ.get("C8T2_VOSEND", "90") else ()) + (("clks",) if os.environ.get("C8T2_CLKS", "1:-14") else ()) + (("clsh",) if os.environ.get("C8T2_CLSH", "h:-8") else ())
 GMAJ = ["G", "A", "B", "C", "D", "E", "F#"]
 CHORDS = [("G", [0, 2, 4]), ("E", [5, 7, 9]), ("C", [3, 5, 7]), ("D", [4, 6, 8])]   # I vi IV V as degrees from G
 PRIMES = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31)
@@ -504,6 +505,11 @@ def build():
     if OWNKICK:
         ev["kick"] = [(a, "G1", 2, v) for (a, h, l, v) in ev["kick"]]
         ev["kick2"] = [(a, "G1", 2, v) for (a, h, l, v) in ev.get("kick2", [])]
+    if CLSH:
+        b0_ = sec_start("B")
+        inw = lambda a, h: b0_ <= a < b0_ + 12 * BAR and not h.startswith("!") and h != "_"
+        ev["clsh"] = [(a, h, l, v) for (a, h, l, v) in ev["clar"] if inw(a, h)]
+        ev["clar"] = [e for e in ev["clar"] if not inw(e[0], e[1])]
     if CLKS:
         a0 = sec_start("A")
         ev["clks"] = [(a, h, l, v) for (a, h, l, v) in ev["clar"] if a0 + 16 * BAR <= a < a0 + 32 * BAR and not h.startswith("!") and h != "_"]
@@ -705,6 +711,15 @@ def song():
         doc["tracks"].append({"name": "clks", "gain": f"{kg}dB", "pan": 0.25, "sends": {"plate": "-12dB"},
                               "patch": {"about": "Karplus-Strong 1983", "synth": {"layers": [{"type": "ks", "bright": 0.7, "ks": {"blend": float(kb), "stretch": 2, "tune": True}}], "amp": "1ms 1 1 400ms"}},
                               **({"warp": warp} if warp else {}), "score": build()["clks"]})
+    if CLSH:
+        mode, sg = CLSH.split(":")
+        warp = next((t.get("warp") for t in doc["tracks"] if isinstance(t, dict) and t.get("name") == "clar"), None)
+        idx = ({"value": 0.25, "mod": [{"src": "var.height", "amount": 0.7}]} if mode == "h" else {"value": 0.3, "mod": [{"src": "env.breath", "amount": 0.5}]})
+        doc["tracks"].append({"name": "clsh", "gain": f"{sg}dB", "pan": 0.0, "sends": {"plate": "-10dB"},
+                              "patch": {"about": "Chebyshev clarinet (Le Brun & Arfib 1979): odd harmonics written by a polynomial",
+                                        "synth": {"layers": [{"type": "shaper", "shaper": {"harmonics": [1, 0, 0.45, 0, 0.25, 0, 0.15, 0, 0.08], "index": idx}}],
+                                                  "amp": "30ms 0 1 120ms", "env": {"breath": {"a": "200ms", "d": 0, "s": 1, "r": "100ms"}}}},
+                              **({"warp": warp} if warp else {}), "score": build()["clsh"]})
     return doc
 
 
