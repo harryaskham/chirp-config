@@ -71,6 +71,7 @@ LATER = os.environ.get("C8T8_LATER", "-8")   # WHOLE ROUND: a second sung line, 
 LATERDROP = os.environ.get("C8T8_LATERDROP", "1")   # with LATER: the word steps aside for the voice - for E bars 12-13 the word, its marimba, the zeros, the hats and the clap are kept at velocity 1 (no dice move), so 'it comes later on' is heard over pads, bass and kick (in the full mix whisper heard nothing; soloed it reads exactly)
 HANDS = os.environ.get("C8T8_HANDS", "clap")   # PALETTE: the clap and the rim leave the 909 kit for the machine layer's own synthesised clap and rim ('clap', 'rim', or 'both'): with v36's kick, the kit is the song's own
 ECHOCH = os.environ.get("C8T8_ECHOCH", "84")   # SECTION ROUND (w8, E: static): it comes later on - the sung line's tune (A4 G4 F4 E4 D4, as sung at E bar 12) comes back on the tape choir (mellotron-choir, wordless, its own track echoch listed last) four bars later and again four bars after that, softer each time: the delay line handing the phrase back. Lifted with E. Value = first velocity
+TUNEKS = os.environ.get("C8T8_TUNEKS", "1:-15")   # SECTION ROUND (w3, A bars 16-31: little new vs w2): the tune circulates before it is sung - the word's sung tune (A4 F4 D4 E4 D4, as sung later) plucked on a Karplus-Strong string (engine 8f150090: a noise burst in a one-period loop, the delay line as an instrument) every four bars through A's second half, quieter each pass, the last pass slower: the memory already holding the tune that the voice will only sing in E. A notes-only track in that window. Value 'blend:gain'
 MARKS = os.environ.get("C8T8_MARKS", "0.75")   # SECTION ROUND (E's second half): the word leaves the wood for a delay loop - from E bar 16 the marimba doubling the repaired word (MARE) hands over to Karplus-Strong (engine 8f150090, as published in 1983): a burst of noise circulating in a one-period loop, averaged on each pass until only the tone survives - a recirculating delay line losing its detail, the song's own mercury memory as an instrument. The marimba keeps E's first half (struck by hand), the loop its second (kept by the machine). Value = the loop's blend (1 a string, lower toward the paper's drum)
 ROBOSUNG = os.environ.get("C8T8_ROBOSUNG", "-12")   # SECTION ROUND (the later sung line's window): the line is sung back by the machine as well - a vocoder twin of the later sung line (sungl), its words shaping a held D minor chord of saws (D2 A2 D3 F3) band by band: the memory's tune, said back by the machine that keeps it. Value = gain dB
 DUFFBASS = os.environ.get("C8T8_DUFFBASS", "700")   # PALETTE: the bass leaves the 808 for the machine's own oscillation - a Duffing oscillator held in its locked regime (amount 0.2: periodic, wM's table), a nonlinear spring ringing at the note's pitch, low-passed: the same system that breaks the word up as it decays (v56), here steady, under it. Value = lp cutoff Hz
@@ -518,6 +519,18 @@ def song():
                           patch={"about": "Karplus-Strong 1983: a noise burst in a one-period averaging loop", "synth": {"layers": [{"type": "ks", "ks": {"blend": float(MARKS), "stretch": 2, "tune": True}}], "amp": "1ms 1 1 400ms"}})
                 ks["fx"] = [*ks.get("fx", []), {"type": "gain", "gain": {"value": "-60dB", "mod": [{"src": "auto.xf", "amount": 60}]}}]
                 doc["tracks"].append(ks)
+    if TUNEKS:
+        kb, kg = TUNEKS.split(":")
+        a0 = sec_start("A") / 4 + 16 * BAR / 4
+        tune = [(0.0, "A4", 1.0), (1.0, "F4", 0.5), (1.5, "D4", 0.5), (2.0, "E4", 1.0), (3.0, "D4", 1.7)]
+        notes = []
+        for r in range(4):
+            st_ = a0 + r * 4 * BAR / 4
+            sc = 2.0 if r == 3 else 1.0
+            notes += [{"at": round(st_ + o * sc, 3), "pitch": p_, "len": round(l_ * sc, 3), "vel": round(0.8 - 0.1 * r, 2)} for o, p_, l_ in tune]
+        doc["tracks"].append({"name": "tuneks", "gain": f"{kg}dB", "pan": -0.25, "sends": {"line": "-12dB"},
+                              "patch": {"about": "Karplus-Strong 1983", "synth": {"layers": [{"type": "ks", "ks": {"blend": float(kb), "stretch": 3, "tune": True}}], "amp": "1ms 1 1 800ms"}},
+                              "notes": notes})
     return doc
 
 
