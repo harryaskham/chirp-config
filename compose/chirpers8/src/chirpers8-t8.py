@@ -71,6 +71,8 @@ LATER = os.environ.get("C8T8_LATER", "-8")   # WHOLE ROUND: a second sung line, 
 LATERDROP = os.environ.get("C8T8_LATERDROP", "1")   # with LATER: the word steps aside for the voice - for E bars 12-13 the word, its marimba, the zeros, the hats and the clap are kept at velocity 1 (no dice move), so 'it comes later on' is heard over pads, bass and kick (in the full mix whisper heard nothing; soloed it reads exactly)
 HANDS = os.environ.get("C8T8_HANDS", "clap")   # PALETTE: the clap and the rim leave the 909 kit for the machine layer's own synthesised clap and rim ('clap', 'rim', or 'both'): with v36's kick, the kit is the song's own
 ECHOCH = os.environ.get("C8T8_ECHOCH", "84")   # SECTION ROUND (w8, E: static): it comes later on - the sung line's tune (A4 G4 F4 E4 D4, as sung at E bar 12) comes back on the tape choir (mellotron-choir, wordless, its own track echoch listed last) four bars later and again four bars after that, softer each time: the delay line handing the phrase back. Lifted with E. Value = first velocity
+HUMGAIN = os.environ.get("C8T8_HUMGAIN", "-18dB")   # the store powering up, quieter: the in seam read t8's head 6.1 dB louder than t7's tail, and the hum (97/114 Hz +13.7) was the loud thing
+ESTABLE = os.environ.get("C8T8_ESTABLE", "1")   # event_stable: each note's dice from its track, beat and pitch, so later edits stay local (switching it on re-rolls the take once)
 LIFE = os.environ.get("C8T8_LIFE", "C20")   # WHOLE ROUND: the memory is alive - after the program counter stops (C bar 20), a Game of Life (engine ade7b930's gen: life, B3/S23 on an 8 x 8 torus, seeded with an R-pentomino) plays the stored bits on glass: a playhead reads one column a sixteenth, live cells sound (up to three, rows on the song's scale, bottom low), each pass across the grid one generation, into the mercury line. 'C20' runs from C bar 20 through D; 'D' through D only
 READBACK2 = os.environ.get("C8T8_READBACK2", "70")   # SECTION ROUND (w9, 4:20-4:52, E's end into the outro: little new vs w8): the memory is read back once more before the end - the refresh's bytebeat returns over E's last four bars, on the same roots lifted with E (D#4 B3 G#3 A#3), so the line's own overtone arpeggio leads into the outro where the choir keeps the promise. Value = velocity
 READBACK = os.environ.get("C8T8_READBACK", "90")   # WHOLE ROUND: the refresh reads the memory back as a bytebeat (engine 709cf900): one formula on the counter t, t*(8+8*(t>>12&3)) - a saw stepping up the harmonic series 1 2 3 4 about once a beat, so the read-back rings as an arpeggio of its own overtones - one note a bar on the chord roots (D Bb G A) in the refresh's first four bars, low-passed, into the mercury line. Value = velocity
@@ -394,6 +396,8 @@ def song():
                               "sends": {"line": "-10dB", "room": "-12dB"}, **({"fx": [{"type": "filter", "kind": "lp", "cutoff": int(os.environ["C8T8_LIFELP"]), "q": 0.7}]} if os.environ.get("C8T8_LIFELP") else {}),
                               "gen": {"type": "life", "width": 8, "height": 8, "init": "center", "n": nsteps, "poly": 3,
                                       "notes": "D4 F4 G4 A4 C5 D5 F5 A5", "len": "/16"}})   # note names: hz can't stack in a chord (poly 3); within a few cents of hz()'s stretch
+    if ESTABLE:
+        doc["event_stable"] = True
     return doc
 
 
@@ -477,7 +481,7 @@ def song0():
                 "score": wt_score()}] if WTABLE else []),
             *[{"name": f"pad{j}", "patch": (UPPAD if UPPAD and j >= 2 else "juno-pad"), "gain": f"{UPPADGAIN if UPPAD and j >= 2 else -20}dB", "pan": (-0.4, -0.15, 0.15, 0.4)[j], "out": "pads", "score": T[f"pad{j}"]} for j in range(4)],
             *([{"name": "hum2", "patch": "sub-sine", "gain": "-14dB", "score": T["hum2"]}] if HUMOCT else []),
-            *([{"name": "hum", "patch": "808", "gain": "-12dB", "fx": [{"type": "filter", "kind": "lp", "cutoff": 120, "q": 0.7}], "score": T["hum"]}] if HUM else []),
+            *([{"name": "hum", "patch": "808", "gain": HUMGAIN, "fx": [{"type": "filter", "kind": "lp", "cutoff": 120, "q": 0.7}], "score": T["hum"]}] if HUM else []),
             {"name": "bass", "patch": "808", "gain": "-9dB", "fx": [pump], "score": T["bass"]},
             {"name": "kick", "patch": KPATCH if KITOWN else "909", "gain": os.environ.get("C8T8_KITGAIN", "-3dB") if KITOWN else "-3dB", "score": T["kick"]},
             *([{"name": "shk", "patch": "dusty-kit", "gain": "-12dB", "pan": 0.3, "fx": [{"type": "filter", "kind": "hp", "cutoff": 3500, "q": 0.7}], "score": T["shk"]}] if SHAKE else []),
@@ -498,7 +502,7 @@ def song0():
 
 
 def dump(doc):
-    lines = [f"{k}: {json.dumps(doc[k])}" for k in ("about", "vars", "tempo", "ceiling", "loudness", "seed", "tail", "master") if k in doc]
+    lines = [f"{k}: {json.dumps(doc[k])}" for k in ("about", "vars", "tempo", "ceiling", "loudness", "seed", "tail", "event_stable", "master") if k in doc]
     lines.append("buses:")
     lines += [f"  {b}: {json.dumps(v)}" for b, v in doc["buses"].items()]
     lines.append("tracks:")
