@@ -110,6 +110,37 @@ def _sim(p, q):
 
 SEMI_LO, SEMI_HI = 36, 96                          # C2 .. B6: the notes, with their register
 
+# Groove: where in the beat the attacks fall. A 24-bin onset-phase histogram per window on the song's beat clock; 1 - its
+# cosine with the previous window's is the groove change. Straight 8ths/16ths and a triplet shuffle land in different bins
+# (chirper-three, 3 Nov: t4 v36's swing moved nothing in `change`, which hears texture, harmony and notes, not feel).
+# Steady grooves read under ~0.06 on chirpers8; drums entering or leaving, and t4's shuffle (0.149), read 0.08 or more.
+GROOVE_BINS = 24
+GROOVE_NEW = 0.08
+
+
+def onset_env(x, sr, hop=256, n=1024):
+    """Attack strength (log-magnitude flux above its running median) at ~5 ms, with the attack times: finer than
+    likeness's 21 ms frames, since a 16th and a triplet 8th differ by a 12th of a beat (~40 ms at 120 bpm)."""
+    from scipy import signal
+    mono = x.mean(1) if x.ndim == 2 else x
+    _, t, Z = signal.stft(mono, sr, nperseg=n, noverlap=n - hop, boundary=None, padded=False)
+    mag = np.log1p(100 * np.abs(Z))
+    flux = np.maximum(np.diff(mag, axis=1), 0).sum(0)
+    k = 2 * int(0.25 * sr / hop) + 1
+    base = signal.medfilt(flux, k) if len(flux) > k else np.median(flux)
+    return np.maximum(flux - base, 0), t[1:] + n / (2 * sr)        # a frame's flux leads its attack by half a window
+
+
+def groove_hist(env, times, clock, ba, bb):
+    """Onset strength by position within the beat (GROOVE_BINS bins, one-bin circular smear), normalised."""
+    grid = np.arange(ba, bb + 1e-9, 1 / 96)
+    secs = clock(grid)
+    sel = (times >= secs[0]) & (times < secs[-1])
+    beats = np.interp(times[sel], secs, grid)
+    h = np.bincount(((beats % 1.0) * GROOVE_BINS).astype(int) % GROOVE_BINS, weights=env[sel], minlength=GROOVE_BINS)
+    h = h + 0.5 * (np.roll(h, 1) + np.roll(h, -1))
+    return h / (h.sum() + 1e-12)
+
 
 def semitones(x, sr, hop_s=0.1, ref=None, info=None):
     """(frames x 60 semitone energies C2..B6, log-compressed; frame times in s) of the mono mix, at 12 kHz. The scale is
@@ -191,6 +222,7 @@ def analyse(wav, song, window_s=30.0, x=None, sref=None, info=None):
     nov = CS.novelty(X)
     S, st = semitones(x, L.SR, ref=sref, info=info)
     clock, _ = beat_clock(song)
+    env, etimes = onset_env(x, L.SR) if clock is not None else (None, None)
     rows = []
     for i, ((ba, bb, ta, tb), f) in enumerate(zip(wins, feats)):
         prof = np.asarray(f["profile"], float)
@@ -201,9 +233,13 @@ def analyse(wav, song, window_s=30.0, x=None, sref=None, info=None):
         r = {"n": i + 1, "beats": [ba, bb], "time": [round(ta, 2), round(tb, 2)], "level": round(f["level"], 1),
              "bright_hz": round(bright), "density": round(f["density"], 2), "motion": round(motion, 4),
              "vec": f["vec"], "chroma": f["chroma"], "seq": seq_of(S, st, clock, ba, bb, ta, tb)}
+        if env is not None and ba is not None:
+            r["ghist"] = groove_hist(env, etimes, clock, ba, bb)
         if i:
             prev = rows[-1]
             r["change"] = round(1 - _sim(prev, r) + abs(r["level"] - prev["level"]) / 20.0, 4)
+            if r.get("ghist") is not None and prev.get("ghist") is not None:
+                r["groove"] = round(1 - _cos(prev["ghist"], r["ghist"]), 3)
         best = max(((j, _sim(rows[j], r)) for j in range(i)), key=lambda t: t[1], default=None)
         if best:
             j = best[0]
@@ -231,7 +267,8 @@ def flag(rows):
             f.append(f"near-repeat of w{lk['n']}")
         if r["motion"] <= m25:
             f.append("static")
-        if r.get("change") is not None and r["change"] <= c25:
+        if (r.get("change") is not None and r["change"] <= c25
+                and r.get("groove", 0.0) < GROOVE_NEW):           # a new groove is new, whatever texture says
             f.append("little new vs w{}".format(r["n"] - 1))
         if r.get("change") is not None and r["n"] > 1 and abs(r["level"] - rows[r["n"] - 2]["level"]) >= 6:
             f.append("level jump")
@@ -305,6 +342,8 @@ def compare(new, old, xn=None, xo=None, sr=None):
              "dlevel": round(a["level"] - b["level"], 1), "dbright_hz": a["bright_hz"] - b["bright_hz"],
              "ddensity": round(a["density"] - b["density"], 2), "dmotion": round(a["motion"] - b["motion"], 4),
              "change_vs_prev": [b.get("change"), a.get("change")]}
+        if a.get("ghist") is not None and b.get("ghist") is not None:
+            c["groove"] = round(1 - _cos(a["ghist"], b["ghist"]), 3)        # the window's feel, new vs old
         if xn is not None and xo is not None:
             c["residual_db"] = residual_db(xn, xo, a["time"][0], a["time"][1], sr or L.SR)
         out.append(c)
@@ -334,19 +373,22 @@ def print_map(cid, song, rows, dur, ledger):
     print(f"{cid}: {len(rows)} windows" + (f" of {span:g} beats" if span else "") + f", music {fmt_t(dur)}"
           f" — a flashlight, not a score")
     last = {e.get("window"): e for e in ledger}
-    print(f"{'w':>3} {'time':>11} {'beats':>11} {'lvl dB':>7} {'bright':>7} {'dens':>5} {'motion':>7} {'change':>7}  "
-          f"{'most like':<14} flags / last focus")
+    print(f"{'w':>3} {'time':>11} {'beats':>11} {'lvl dB':>7} {'bright':>7} {'dens':>5} {'motion':>7} {'change':>7} "
+          f"{'groove':>6}  {'most like':<14} flags / last focus")
     for r in rows:
         b = f"{r['beats'][0]:g}-{r['beats'][1]:.0f}" if r["beats"][0] is not None else "-"
         lk = r.get("like")
         like = f"w{lk['n']} {lk['sim']:.3f}" if lk else "-"
         ch = f"{r['change']:.3f}" if r.get("change") is not None else "-"
+        gv = f"{r['groove']:.3f}" if r.get("groove") is not None else "-"
         lf = last.get(r["n"])
         tail = ", ".join(r.get("flags") or [])
+        if r.get("groove", 0.0) >= GROOVE_NEW:
+            tail += ("; " if tail else "") + "(new groove)"
         if lf:
             tail += (" | " if tail else "") + f"focused {lf.get('at', '')[:16]} by {lf.get('who')}"
         print(f"{r['n']:>3} {fmt_t(r['time'][0]):>5}-{fmt_t(r['time'][1]):<5} {b:>11} {r['level']:>7.1f} "
-              f"{r['bright_hz']:>7} {r['density']:>5.2f} {r['motion']:>7.4f} {ch:>7}  {like:<14} {tail}")
+              f"{r['bright_hz']:>7} {r['density']:>5.2f} {r['motion']:>7.4f} {ch:>7} {gv:>6}  {like:<14} {tail}")
     order = focus_order(rows, ledger)[:3]
     if order:
         print("focus next (flagged and least recently focused first):")
@@ -415,19 +457,20 @@ def main(argv=None):
                 print(f"  every window moved (median residual {floor:.1f} dB): a whole-song shift, most often the mastering "
                       f"gain into the master's compressors moving because the edit changed the song's loudness, not edits "
                       f"there. '<' marks windows above {cut:.1f} dB, well clear of that floor.")
-            print(f"{'w':>3} {'time':>11} {'resid dB':>8} {'melody':>7} {'change':>7} {'dB':>6} {'bright':>7} {'dens':>6}  "
-                  f"change vs prev (was -> now)")
+            print(f"{'w':>3} {'time':>11} {'resid dB':>8} {'melody':>7} {'groove':>6} {'change':>7} {'dB':>6} {'bright':>7} "
+                  f"{'dens':>6}  change vs prev (was -> now)")
             for c, r in zip(cmp_, rows):
                 mark_ = " <" if c["residual_db"] > cut else ""
                 cv = c["change_vs_prev"]
                 cvs = f"{cv[0]:.3f} -> {cv[1]:.3f}" if cv[0] is not None and cv[1] is not None else "-"
                 mel = f"{c['melody']:.3f}" if c["melody"] is not None else "-"
-                print(f"{c['n']:>3} {fmt_t(r['time'][0]):>5}-{fmt_t(r['time'][1]):<5} {c['residual_db']:>8.1f} {mel:>7} "
+                gv = f"{c['groove']:.3f}" if c.get("groove") is not None else "-"
+                print(f"{c['n']:>3} {fmt_t(r['time'][0]):>5}-{fmt_t(r['time'][1]):<5} {c['residual_db']:>8.1f} {mel:>7} {gv:>6} "
                       f"{c['change']:>7.4f} {c['dlevel']:>6.1f} {c['dbright_hz']:>7} {c['ddensity']:>6.2f}  {cvs}{mark_}")
             return
         if a.json:
             print(json.dumps({"id": a.id, "dur": dur, "windows": [{k: v for k, v in r.items()
-                                                                   if k not in ("vec", "chroma", "seq")} for r in rows],
+                                                                   if k not in ("vec", "chroma", "seq", "ghist")} for r in rows],
                               "focus": focus_order(rows, ledger)}))
             return
         print_map(a.id, song, rows, dur, ledger)

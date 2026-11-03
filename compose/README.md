@@ -61,7 +61,7 @@ owners who rotate their own songs. Name the type in your round note. Without
   moving. `chirpers.py sections ALBUM-tN --wav BEST.wav` maps the song in windows of whole 4-bar phrases, about 30 s,
   on its own tempo map. For each window it shows level, brightness, density, internal motion, the change from the
   window before, and the earlier window it is most like. Its likeness hears the notes as well as the sound: a
-  semitone sequence with register, twice a beat, so a melody moved, reordered or leapt an octave counts. It flags near-repeats, static windows, little-new windows
+  semitone sequence with register, twice a beat, so a melody moved, reordered or leapt an octave counts. The **groove** column hears feel: where in the beat the attacks fall (a 24-bin onset-phase histogram on the tempo map), so straight 8ths turning into a triplet shuffle reads ~0.15 where a steady groove reads under ~0.06; at 0.08 or more the window is marked (new groove) and is never called little new (chirper-three, t4 v36, 3 Nov). It flags near-repeats, static windows, little-new windows
   and level jumps, then names the windows to focus on next: flagged, least recently focused first. It also prints the
   `chirp render --from/--to` commands for each window, alone and in context. After the change,
   `sections … --wav NEW.wav --against OLD.wav` shows per-window deltas: the residual (the energy of new - old,

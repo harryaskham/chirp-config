@@ -124,3 +124,40 @@ def test_gain_matching_and_the_residual_floor():
     floor, cut = SM.residual_floor(moved)
     assert floor == -28.4 and cut == -18.4
     assert [i for i, c in enumerate(moved) if c["residual_db"] > cut] == [3]
+
+
+def _clicks(times, sr=48000, dur=None):
+    x = np.zeros(int(sr * (dur or (times[-1] + 1.0))), np.float32)
+    burst = (np.random.default_rng(0).standard_normal(240) * np.hanning(240)).astype(np.float32)
+    for t in times:
+        i = int(t * sr)
+        x[i:i + 240] += burst[:len(x) - i]
+    return np.stack([x, x], 1)
+
+
+def test_groove_hears_a_shuffle_that_texture_misses():
+    # 120 bpm, 16 bars: straight 8ths, then a triplet shuffle (off-beats at 2/3 of the beat); same clicks, same density
+    song = _song({"tempo": 120, "tracks": []})
+    clock, _ = SM.beat_clock(song)
+    straight = [b * 0.5 for b in range(64)] + [(b + 0.5) * 0.5 for b in range(64)]
+    shuffle = [32 + b * 0.5 for b in range(64)] + [32 + (b + 2 / 3) * 0.5 for b in range(64)]
+    x = _clicks(sorted(straight + shuffle), dur=65.0)
+    env, t = SM.onset_env(x, 48000)
+    h1 = SM.groove_hist(env, t, clock, 0, 32)
+    h2 = SM.groove_hist(env, t, clock, 32, 64)
+    h3 = SM.groove_hist(env, t, clock, 64, 96)
+    h4 = SM.groove_hist(env, t, clock, 96, 128)
+    assert 1 - SM._cos(h1, h2) < 0.02                       # straight vs straight
+    assert 1 - SM._cos(h3, h4) < 0.02                       # shuffle vs shuffle
+    assert 1 - SM._cos(h2, h3) >= SM.GROOVE_NEW             # straight -> shuffle
+    # the off-beat mass sits at half a beat, then at two thirds of one
+    assert int(np.argmax(h2[6:18])) + 6 == SM.GROOVE_BINS // 2
+    assert int(np.argmax(h3[6:18])) + 6 == 2 * SM.GROOVE_BINS // 3
+
+
+def test_a_new_groove_is_never_little_new():
+    rows = _rows()
+    rows[3]["groove"] = SM.GROOVE_NEW + 0.05
+    SM.flag(rows)
+    assert not any(f.startswith("little new") for f in rows[3]["flags"])
+    assert "static" in rows[3]["flags"]                     # the window's own motion still reads as it did
