@@ -162,6 +162,20 @@ C6_VOSIM = {"about": "chirper-two: two VOSIM formant layers (650 and 1500 Hz) wh
 # sweep turns and comes back down part of the way: by chorus two it passes. The machine checking itself is the
 # song's rhythm of doubt; then the band comes back as if nothing happened. T6_R14=none reproduces v13.
 R14 = os.environ.get("T6_R14", "selftest")
+# T6_R15 = stabs (v15, section round on w9, 4:00-4:30: chorus two's middle, "static" - the stillest window in the
+# song, held up by the organ). THE ORGAN STEPS OUT. For six bars of chorus two the held Hammond lifts away and the
+# same chords come back as STABS on a phase-distortion patch (wM's `type: pd`, the Casio CZ's 1984 bent cosine; new
+# to this song): a syncopated sixteenth figure (1, a-of-1, and-of-2, and-of-3, 4, and-of-4), each stab struck bright
+# and bent back toward a sine within its own length. The Markov chords dip 6 dB under them. The organ comes back
+# for the title line. New track + two gain lanes. T6_R15=none reproduces v14.
+R15 = os.environ.get("T6_R15", "stabs")
+STAB_AT = [0.0, 0.75, 1.5, 2.5, 3.0, 3.5]
+C6_CZ = {"about": "chirper-two: a CZ saw-bend stab - phase distortion struck bright and bent back toward a sine in "
+                  "~120 ms, short and percussive.",
+         "synth": {"env": {"bend": "1ms 120ms 0 60ms"},
+                   "layers": [{"type": "pd", "pd": {"shape": "saw", "amount": {
+                       "value": 0.12, "mod": [{"src": "env.bend", "amount": 0.7}]}}}],
+                   "amp": {"a": "2ms", "d": "260ms", "s": 0.0, "r": "90ms"}}}
 TESTS = [102.0, 150.0, 238.0, 302.0, 318.0, 394.0, 426.0]
 TEST_KEEP = {"voice", "lull", "singb", "ringv", "vosim", "tline", "radio", "ack", "test", "idle-in", "idle-out"}
 WALK_POOL = [0, 3, 6, 8, 11, 14, 17, 19, 22, 25, 27, 30, 33, 36, 38, 41]   # 19-EDO major steps, two octaves up from C5
@@ -558,6 +572,25 @@ def main():
             if tr["name"] in ("kick", "snare", "hats", "ride", "rim"):
                 tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.stop", "amount": 1}]}}]
                 tr["auto"] = {**tr.get("auto", {}), "stop": lane}
+    if R15 == "stabs" and R4 == "organ":
+        s0_, s1_ = st["chorus2"] + 36.0, st["chorus2"] + 60.0
+        sb = Track("stab")
+        for bar in range(int((s1_ - s0_) / 4)):
+            for k, off in enumerate(STAB_AT):
+                at = s0_ + 4.0 * bar + off
+                head = next((h for a, ln, h, v, art in T["organ"].ev if a <= at < a + ln), None)
+                if head:
+                    sb.add(at, 0.22, head, 100 if off in (0.0, 1.5) else 82)
+        tracks.append({"name": "stab", "patch": "c6-cz", "gain": os.environ.get("T6_STAB_GAIN", "-8dB"), "pan": 0.1,
+                       "fx": ["hp cutoff=200", {"type": "delay", "time": "3/16", "feedback": 0.2, "mix": 0.14, "tone": 3000},
+                              "reverb kind=room decay=0.7s mix=0.15"], "score": sb.score(total)})
+        for nm, depth in (("organ", -40.0), ("markov", -6.0)):
+            lane = {"points": [["0b", 0.0], [f"{s0_ - 0.3}b", 0.0], [f"{s0_}b", depth], [f"{s1_ - 0.3}b", depth],
+                               [f"{s1_}b", 0.0], [f"{total}b", 0.0]]}
+            for tr in tracks:
+                if tr["name"] == nm:
+                    tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.step", "amount": 1}]}}]
+                    tr["auto"] = {**tr.get("auto", {}), "step": lane}
     if R14 == "selftest":
         tt_ = Track("test")
         sweep = [0, 3, 6, 8, 11, 14, 17, 19]
@@ -646,7 +679,8 @@ def main():
                                  "auto": {"dyn": {"points": dyn}}}),
         *(["patches: " + json.dumps({**({"c6-voice": C6_VOICE} if R8 == "speaker" else {}),
                                      **({"c6-ack": C6_ACK} if (R11 == "ack" or R14 == "selftest") else {}),
-                                     **({"c6-vosim": C6_VOSIM} if R13 == "vosim" else {})})]
+                                     **({"c6-vosim": C6_VOSIM} if R13 == "vosim" else {}),
+                                     **({"c6-cz": C6_CZ} if R15 == "stabs" else {})})]
           if (R8 == "speaker" or R11 == "ack" or R13 == "vosim" or R14 == "selftest") else []),
         "tracks:",
     ]
