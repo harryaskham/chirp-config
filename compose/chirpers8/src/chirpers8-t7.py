@@ -310,6 +310,23 @@ def build():
     for j_, q in enumerate(nn_):
         q2 = nn_[j_ + 1] if j_ + 1 < len(nn_) else 16
         P['cf'].append((cf0 + q * 4.0, tok(hz(TARGET[q] - 7, 0)), (q2 - q) * 4.0 - 0.3, 66 + (6 if q in (3, 4) else 0)))
+    # (v32) THE CRYSTAL: annealing is how metal grows its crystals - one cell repeated at every scale. In the coda's
+    # last eight bars, once the search has found its answer again a fourth higher, the answer is heard at three scales
+    # at once: the keys at its own speed, a VOSIM bell (wM's vosim-bell) an octave up at half speed, and the cello -
+    # which played it sixteen times slower in the hottest epoch and eight times slower at convergence - now only four
+    # times slower: a mensuration canon of the found riff, the slow song nearly caught up, the lattice ringing
+    P['xtal'] = []
+    for pass_ in range(2):
+        c0_ = (coda0 + 6 + 4 * pass_) * 4.0
+        for j_, q in enumerate(nn_):
+            q2 = nn_[j_ + 1] if j_ + 1 < len(nn_) else 16
+            P['cf'].append((c0_ + q * 1.0, tok(hz(TARGET[q] - 7, 0) * 4 / 3), (q2 - q) * 1.0 - 0.08, 64 + 4 * pass_ + (6 if q in (3, 4) else 0)))
+    for pass_ in range(4):
+        c0_ = (coda0 + 6 + 2 * pass_) * 4.0
+        for j_, q in enumerate(nn_):
+            q2 = nn_[j_ + 1] if j_ + 1 < len(nn_) else 16
+            P['xtal'].append((c0_ + q * 0.5, tok(hz(TARGET[q] + 7, 0) * 4 / 3), (q2 - q) * 0.5, 58 + 6 * pass_))
+    P['cf'].sort(key=lambda e_: e_[0])
     # (v26) THE TEMPERATURE, AUDIBLE: under everything, an open fifth (A and E) on Xenakis's dynamic stochastic
     # synthesis (GENDY, 1991: each wave cycle a polygon whose corners random-walk) - the same idea as the search itself,
     # a random walk with a step size. Its step sizes are the temperature: while the machine is hot the corners and the
@@ -473,6 +490,7 @@ def build():
                  'amp': {'a': '2s', 'd': '1s', 's': 1.0, 'r': '2s'}, 'filters': ['lp cutoff=1600', 'hp cutoff=70']}},
                '-17dB', sends={'hall': '-10dB'},
                auto={'temp': {'points': [[f"{b_ * 4.0:.2f}b", T[b_]] for b_ in range(nb)]}}),
+            tr('xtal', 'vosim-bell', '-21dB', pan=-0.3, fx=['hp cutoff=300'], sends={'hall': '-10dB'}),
         ]}
     return song, losses, T
 
