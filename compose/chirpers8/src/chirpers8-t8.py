@@ -71,6 +71,7 @@ LATER = os.environ.get("C8T8_LATER", "-8")   # WHOLE ROUND: a second sung line, 
 LATERDROP = os.environ.get("C8T8_LATERDROP", "1")   # with LATER: the word steps aside for the voice - for E bars 12-13 the word, its marimba, the zeros, the hats and the clap are kept at velocity 1 (no dice move), so 'it comes later on' is heard over pads, bass and kick (in the full mix whisper heard nothing; soloed it reads exactly)
 HANDS = os.environ.get("C8T8_HANDS", "clap")   # PALETTE: the clap and the rim leave the 909 kit for the machine layer's own synthesised clap and rim ('clap', 'rim', or 'both'): with v36's kick, the kit is the song's own
 ECHOCH = os.environ.get("C8T8_ECHOCH", "84")   # SECTION ROUND (w8, E: static): it comes later on - the sung line's tune (A4 G4 F4 E4 D4, as sung at E bar 12) comes back on the tape choir (mellotron-choir, wordless, its own track echoch listed last) four bars later and again four bars after that, softer each time: the delay line handing the phrase back. Lifted with E. Value = first velocity
+WORDFADE = os.environ.get("C8T8_WORDFADE", "8")   # WHOLE ROUND: the word drifts as it decays - v52's orbit (the word circling the listener, a lap every 8 bars) now takes v56's decay lane on its radius (orbit mods, engine 206fbfb8): as the memory decays through the intro and A the word's circle widens and it drifts away from the listener (quieter, darker behind), at the refresh it is back close, it drifts again through C, D and E, and the outro's last refresh brings it home. Value = metres of drift at full decay per unit of the lane
 HOOT = os.environ.get("C8T8_HOOT", "-14")   # PALETTE: the program counter (v-era COUNTER: 1..16 in binary through C, on marimba) is played the way the first computers played music - CSIRAC, whose memory was mercury delay lines, played tunes in 1951 by pulsing a loudspeaker straight from its instruction bus: a raw square 'hoot' (a sine bent all the way to a square, phase distortion; short, a little lp), the machine's own voice counting. Value = gain dB
 PDPADS = os.environ.get("C8T8_PDPADS", "-23")   # PALETTE: the lower pads (pad0, pad1: juno-pad, an album staple) become Casio CZ phase distortion - a reso_trap whose resonance breathes on a slow sine, the bed of a 1984 home computer under the tape choir above (t2 v53's pad, here in D minor). Value = gain dB
 TANKTEMP = os.environ.get("C8T8_TANKTEMP", "3")   # WHOLE ROUND: the tank's temperature - a mercury delay line's delay moves with its temperature (the tanks were kept heated, a thermostat cycling around 40 C), and the machine's clock had to follow it: the tempo now breathes with the thermostat, a slow sine around 118 bpm (a cycle every 16 bars, points every two bars, ramped), so the whole song's clock is very slightly warm and cool by turns. Value = bpm amplitude
@@ -451,6 +452,12 @@ def song():
         st_ = {k: sec_start(k) for k in ("refresh", "outro")}
         dec = {"points": [["0b", 0], [f"{st_['refresh'] / 4 - 0.25:g}b", 0.55], [f"{st_['refresh'] / 4:g}b", 0],
                           [f"{st_['outro'] / 4 - 0.25:g}b", 0.55], [f"{st_['outro'] / 4:g}b", 0], [f"{total() / 4:g}b", 0]]}
+        if WORDFADE and WORDORB:
+            for t_ in doc["tracks"]:
+                if isinstance(t_, dict) and t_.get("name") == "word":
+                    t_["auto"] = dict(t_.get("auto", {}), dec=dec)
+                    t_["fx"] = [f for f in t_["fx"] if not (isinstance(f, str) and f.startswith("orbit "))] + [
+                        {"type": "orbit", "rate": "1/8", "radius": {"value": 2, "mod": [{"src": "auto.dec", "amount": float(WORDFADE)}]}, "mix": 0.7}]
         doc["tracks"].append({"name": "decay", "gain": f"{DECAY}dB", "pan": 0.1, "auto": {"dec": dec},
                               "patch": {"synth": {"layers": [{"type": "chaos", "chaos": {"system": "duffing", "axis": "x", "amount": {"value": 0, "mod": [{"src": "auto.dec", "amount": 1}]}}}],
                                                   "amp": "8ms 0.8 0.6 250ms", "filters": [{"kind": "lp", "cutoff": int(os.environ.get("C8T8_DECLP", "2500"))}]}},
