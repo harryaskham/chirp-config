@@ -71,6 +71,7 @@ LATER = os.environ.get("C8T8_LATER", "-8")   # WHOLE ROUND: a second sung line, 
 LATERDROP = os.environ.get("C8T8_LATERDROP", "1")   # with LATER: the word steps aside for the voice - for E bars 12-13 the word, its marimba, the zeros, the hats and the clap are kept at velocity 1 (no dice move), so 'it comes later on' is heard over pads, bass and kick (in the full mix whisper heard nothing; soloed it reads exactly)
 HANDS = os.environ.get("C8T8_HANDS", "clap")   # PALETTE: the clap and the rim leave the 909 kit for the machine layer's own synthesised clap and rim ('clap', 'rim', or 'both'): with v36's kick, the kit is the song's own
 ECHOCH = os.environ.get("C8T8_ECHOCH", "84")   # SECTION ROUND (w8, E: static): it comes later on - the sung line's tune (A4 G4 F4 E4 D4, as sung at E bar 12) comes back on the tape choir (mellotron-choir, wordless, its own track echoch listed last) four bars later and again four bars after that, softer each time: the delay line handing the phrase back. Lifted with E. Value = first velocity
+MARKS = os.environ.get("C8T8_MARKS", "0.75")   # SECTION ROUND (E's second half): the word leaves the wood for a delay loop - from E bar 16 the marimba doubling the repaired word (MARE) hands over to Karplus-Strong (engine 8f150090, as published in 1983): a burst of noise circulating in a one-period loop, averaged on each pass until only the tone survives - a recirculating delay line losing its detail, the song's own mercury memory as an instrument. The marimba keeps E's first half (struck by hand), the loop its second (kept by the machine). Value = the loop's blend (1 a string, lower toward the paper's drum)
 ROBOSUNG = os.environ.get("C8T8_ROBOSUNG", "-12")   # SECTION ROUND (the later sung line's window): the line is sung back by the machine as well - a vocoder twin of the later sung line (sungl), its words shaping a held D minor chord of saws (D2 A2 D3 F3) band by band: the memory's tune, said back by the machine that keeps it. Value = gain dB
 DUFFBASS = os.environ.get("C8T8_DUFFBASS", "700")   # PALETTE: the bass leaves the 808 for the machine's own oscillation - a Duffing oscillator held in its locked regime (amount 0.2: periodic, wM's table), a nonlinear spring ringing at the note's pitch, low-passed: the same system that breaks the word up as it decays (v56), here steady, under it. Value = lp cutoff Hz
 WORDWARP = os.environ.get("C8T8_WORDWARP", "0.5")   # WHOLE ROUND: the word arrives late as it decays - a delay line's word comes round on the tank's clock, not the machine's, and drifts as the mercury warms; regeneration re-times it. The word (and its decay double) runs on its own clock (the engine's per-track warp): drifting steadily late through the intro and A (to WORDWARP beats behind the band), re-locked in one bar at the refresh, drifting late again through C, D and E, re-locked at the outro. Value = beats of lag at full decay
@@ -505,6 +506,18 @@ def song():
                 twin.update(name="sungl-robo", gain=f"{ROBOSUNG}dB", pan=-0.2)
                 twin["fx"] = [*t_.get("fx", []), {"type": "vocoder", "notes": "D2,A2,D3,F3", "bands": 20, "noise": 0.12, "attack": "4ms", "release": "70ms"}]
                 doc["tracks"].append(twin)
+    if MARKS:
+        xb = (sec_start("E") + 16 * BAR) / 4
+        xf = {"points": [["0b", 0], [f"{xb - 0.25:g}b", 0], [f"{xb:g}b", 1], [f"{total() / 4:g}b", 1]]}
+        for t_ in list(doc["tracks"]):
+            if isinstance(t_, dict) and t_.get("name") == "mar":
+                ks = json.loads(json.dumps(t_))
+                t_["auto"] = dict(t_.get("auto", {}), xf=xf)
+                t_["fx"] = [*t_.get("fx", []), {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.xf", "amount": -60}]}}]
+                ks.update(name="marks", auto=dict(ks.get("auto", {}), xf=xf),
+                          patch={"about": "Karplus-Strong 1983: a noise burst in a one-period averaging loop", "synth": {"layers": [{"type": "ks", "ks": {"blend": float(MARKS), "stretch": 2, "tune": True}}], "amp": "1ms 1 1 400ms"}})
+                ks["fx"] = [*ks.get("fx", []), {"type": "gain", "gain": {"value": "-60dB", "mod": [{"src": "auto.xf", "amount": 60}]}}]
+                doc["tracks"].append(ks)
     return doc
 
 
