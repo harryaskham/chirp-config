@@ -189,6 +189,12 @@ C6_FSK = {"about": "chirper-two: a modem tone - a sine with a little square, har
 # at 1.4-1.6 kHz, -6 to -7 dB at 97-114 Hz and -7 to -9 dB above 9 kHz: +3 dB at 105 Hz, -2.5 dB at 1.5 kHz, and a
 # +3 dB shelf from 9 kHz on the master. T6_R17=none reproduces the master of v15.
 R17 = os.environ.get("T6_R17", "bands")
+# T6_R18 = lamp (v17, section round on w11, 5:00-5:40: the outro, and the join to t7 - the song faded to -52 dB in
+# its last 3 s, a 20 dB jump to t7's opening). THE LIGHT LEFT ON. In the outro's last six bars the organ comes back
+# alone under the radio and the idle tune, the home chord swelling up from nothing, and it does not go out: the chord
+# is still sounding when the song ends, its long release carrying it into the gap before the next track. The title,
+# done rather than sung. New track + its own swell lane. T6_R18=none reproduces v16.
+R18 = os.environ.get("T6_R18", "lamp")
 TESTS = [102.0, 150.0, 238.0, 302.0, 318.0, 394.0, 426.0]
 TEST_KEEP = {"voice", "lull", "singb", "ringv", "vosim", "tline", "radio", "ack", "test", "idle-in", "idle-out"}
 WALK_POOL = [0, 3, 6, 8, 11, 14, 17, 19, 22, 25, 27, 30, 33, 36, 38, 41]   # 19-EDO major steps, two octaves up from C5
@@ -585,6 +591,16 @@ def main():
             if tr["name"] in ("kick", "snare", "hats", "ride", "rim"):
                 tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.stop", "amount": 1}]}}]
                 tr["auto"] = {**tr.get("auto", {}), "stop": lane}
+    if R18 == "lamp":
+        l0 = total - float(os.environ.get("T6_LAMP_BEATS", "24"))
+        lamp = Track("lamp")
+        lamp.add(l0, total - l0 + float(os.environ.get("T6_LAMP_OVER", "4")), ",".join(mm(e(s, 48)) for s in (0, 11, 19, 25, 30)), 90)
+        tracks.append({"name": "lamp", "patch": "hammond-b3 amp.r=4s", "gain": os.environ.get("T6_LAMP_GAIN", "-16dB"),
+                       "pan": 0.0, "fx": ["hp cutoff=90", "lp cutoff=5000 q=0.5", "reverb kind=hall decay=3s mix=0.3",
+                                          {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.swell", "amount": 1}]}}],
+                       "auto": {"swell": {"points": [["0b", -40.0], [f"{l0}b", -40.0], [f"{l0 + 16}b", 0.0],
+                                                     [f"{total + 8}b", 0.0]]}},
+                       "score": lamp.score(total)})
     if R16 == "modem":
         msg = "a light left on "
         bits = "".join(f"{ord(c):08b}" for c in msg)
