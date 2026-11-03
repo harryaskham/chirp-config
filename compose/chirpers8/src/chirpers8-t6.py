@@ -234,6 +234,13 @@ R22 = os.environ.get("T6_R22", "breakdown")
 # so the last chorus stays its own. And the second time, on "stopped", THE BAND STOPS (T6_R23_STOP): the chorus's
 # last bar is the voice and its VOSIM third alone, then verse two comes in. T6_R23=none reproduces v21.
 R23 = os.environ.get("T6_R23", "cursor")
+# T6_R24 = build (v23, section round on w3, 1:00-1:30: the end of verse one into chorus one, "little new vs w2" -
+# the groove's change at the lift 0.073, just under new). THE PRE-CHORUS PULLS. The last bar of verse one now
+# winds up: a snare climbing in eighths for three beats, then a BEAT OF SILENCE - everything but the voice drops
+# out - and the chorus lands on its four-on-the-floor. (T6_BUILD=sixteenths - a 16th roll into a 16th gap - read
+# smoother: w3 motion 0.079 -> 0.071, returns 4 -> 3; the eighths and the beat gap: 0.074, returns 5.) The
+# first lift now arrives instead of just starting. T6_R24=none reproduces v22.
+R24 = os.environ.get("T6_R24", "build")
 BD_KEEP = {"voice", "vosim", "organ", "snare", "tline", "singb", "ringv", "stab", "test", "fsk"}
 TESTS = [102.0, 150.0, 238.0, 302.0, 318.0, 394.0, 426.0]
 TEST_KEEP = {"voice", "lull", "singb", "ringv", "vosim", "tline", "radio", "ack", "test", "idle-in", "idle-out"}
@@ -418,6 +425,14 @@ def build():
             for b, tt in ((3.0, tones[0]), (3.5, tones[2] if len(tones) > 2 else tones[-1])):
                 T["ack"].add(start + b, 0.42, mm(e(root + tt, 72)), 92 if b == 3.0 else 80)
         # ---- the half-time 808 ----
+        if R24 == "build" and sec == "verse1" and i == n - 1:   # the pre-chorus roll
+            if os.environ.get("T6_BUILD", "eighths") == "sixteenths":
+                for k in range(15):
+                    T["snare"].add(start + k * 0.25, 0.2, "s", int(40 + 70 * (k / 14) ** 1.5))
+                T["hats"].add(start + 3.0, 0.7, "oh", 82)
+            else:   # eighths up to the stop
+                for k in range(6):
+                    T["snare"].add(start + k * 0.5, 0.3, "s", int(52 + 56 * (k / 5) ** 1.3))
         if groove and R21 == "lift" and chorus_sec:   # the lift: four on the floor, claps, open-hat off-beats
             for b in range(4):
                 T["kick"].add(start + b, 0.5 if b else 1.0, "kb", (108, 94, 102, 94)[b])
@@ -775,6 +790,16 @@ def main():
                 tr["fx"] = [{"type": "filter", "kind": "lp", "q": 0.5,
                              "cutoff": {"value": 20000, "mod": [{"src": "auto.warm", "amount": 1}]}}] + tr.get("fx", [])
                 tr["auto"] = {**tr.get("auto", {}), "warm": warm}
+    if R24 == "build":
+        h1 = st["chorus1"]
+        h0 = h1 - (0.25 if os.environ.get("T6_BUILD", "eighths") == "sixteenths" else 1.0)
+        lane = {"points": [["0b", 0.0], [f"{h0 - 0.02}b", 0.0], [f"{h0 + 0.01}b", -40.0], [f"{h1 - 0.02}b", -40.0],
+                           [f"{h1}b", 0.0], [f"{total}b", 0.0]]}
+        for tr in tracks:
+            if tr["name"] in ("voice", "vosim"):
+                continue
+            tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.pull", "amount": 1}]}}]
+            tr["auto"] = {**tr.get("auto", {}), "pull": lane}
     if R23 == "cursor" and os.environ.get("T6_R23_STOP", "on") == "on":
         q1 = st["verse2"]
         q0 = q1 - 4.0
