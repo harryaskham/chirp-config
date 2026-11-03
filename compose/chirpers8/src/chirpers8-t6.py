@@ -226,6 +226,14 @@ R21 = os.environ.get("T6_R21", "lift")
 # stabs: the soul breakdown, the singer in the open. A snare climbs the last beat and the whole floor lands back
 # under the next line. T6_R22=none reproduces v20.
 R22 = os.environ.get("T6_R22", "breakdown")
+# T6_R23 = cursor (v22, section round on w4, 1:30-2:00: the second half of chorus one, "static, little new vs w3" -
+# 34 beats of the chorus groove with nobody singing). THE CURSOR BLINKS. The first chorus gets a tag of its own,
+# twice, where the voice had gone quiet: "the cursor blinks where you stopped" (chirp tts --sing "D3/8 F3 F3 G3/4
+# F3/8 D3 C3/2" --bpm 96 --seed 7 --humanize 0.3 --hz, src/t6/cursor.json; the F3 blinks twice), sung on the 19-EDO
+# grid with its VOSIM third - the machine's answer to "no errors since": it has kept your place. Only in chorus one,
+# so the last chorus stays its own. And the second time, on "stopped", THE BAND STOPS (T6_R23_STOP): the chorus's
+# last bar is the voice and its VOSIM third alone, then verse two comes in. T6_R23=none reproduces v21.
+R23 = os.environ.get("T6_R23", "cursor")
 BD_KEEP = {"voice", "vosim", "organ", "snare", "tline", "singb", "ringv", "stab", "test", "fsk"}
 TESTS = [102.0, 150.0, 238.0, 302.0, 318.0, 394.0, 426.0]
 TEST_KEEP = {"voice", "lull", "singb", "ringv", "vosim", "tline", "radio", "ack", "test", "idle-in", "idle-out"}
@@ -333,6 +341,7 @@ def build():
     else:
         verse_lines = lines
     chorus, still = load("chorus.json"), load("still.json")
+    cursor = load("cursor.json") if R23 == "cursor" else None
     days, report = (load("days.json"), load("report.json")) if R4 == "organ" else (None, None)
     bars, pos = [], 0.0
     for name, n in FORM:
@@ -477,6 +486,8 @@ def build():
             li += 1
         if chorus_sec and i < (6 if R4 == "organ" else 8):
             put("voice", chorus, start, k=min(i, 3) if i < 4 else 3, sung=i >= 2)
+        if R23 == "cursor" and sec == "chorus1" and i in (8, 12):
+            put("voice", cursor, start + 0.5, sung=True, scale=0.95 if i == 8 else 0.9)
         if chorus_sec and sec == "chorus2" and 12 <= i < 20 and R4 != "organ":
             put("voice", chorus, start, k=3, sung=True, scale=0.9)
         if R4 == "organ" and sec == "chorus2" and i in (12, 14, 16, 18):
@@ -764,6 +775,16 @@ def main():
                 tr["fx"] = [{"type": "filter", "kind": "lp", "q": 0.5,
                              "cutoff": {"value": 20000, "mod": [{"src": "auto.warm", "amount": 1}]}}] + tr.get("fx", [])
                 tr["auto"] = {**tr.get("auto", {}), "warm": warm}
+    if R23 == "cursor" and os.environ.get("T6_R23_STOP", "on") == "on":
+        q1 = st["verse2"]
+        q0 = q1 - 4.0
+        lane = {"points": [["0b", 0.0], [f"{q0 - 0.1}b", 0.0], [f"{q0 + 0.05}b", -40.0], [f"{q1 - 0.1}b", -40.0],
+                           [f"{q1}b", 0.0], [f"{total}b", 0.0]]}
+        for tr in tracks:
+            if tr["name"] in ("voice", "vosim"):
+                continue
+            tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.stopped", "amount": 1}]}}]
+            tr["auto"] = {**tr.get("auto", {}), "stopped": lane}
     if R22 == "breakdown":
         b0 = st["chorus2"] + 4.0 * int(os.environ.get("T6_BD_BAR", "12"))
         b1 = b0 + 4.0 * int(os.environ.get("T6_BD_BARS", "4"))
