@@ -77,6 +77,7 @@ ROBOSUNG = os.environ.get("C8T8_ROBOSUNG", "-12")   # SECTION ROUND (the later s
 DUFFBASS = os.environ.get("C8T8_DUFFBASS", "700")   # PALETTE: the bass leaves the 808 for the machine's own oscillation - a Duffing oscillator held in its locked regime (amount 0.2: periodic, wM's table), a nonlinear spring ringing at the note's pitch, low-passed: the same system that breaks the word up as it decays (v56), here steady, under it. Value = lp cutoff Hz
 WORDWARP = os.environ.get("C8T8_WORDWARP", "0.5")   # WHOLE ROUND: the word arrives late as it decays - a delay line's word comes round on the tank's clock, not the machine's, and drifts as the mercury warms; regeneration re-times it. The word (and its decay double) runs on its own clock (the engine's per-track warp): drifting steadily late through the intro and A (to WORDWARP beats behind the band), re-locked in one bar at the refresh, drifting late again through C, D and E, re-locked at the outro. Value = beats of lag at full decay
 DECFIX = os.environ.get("C8T8_DECFIX", "")   # v56's decay double peaks at lane 0.55, which wM's regime table puts in Duffing's locked window (0.4-0.625): it broke up mid-way and then re-locked before each refresh. DECFIX scales its amount so the peak sits in the chaotic band (1.3 x 0.55 = 0.715, inside 0.625-0.85): the word really comes apart just before it is regenerated
+SUNGMID = os.environ.get("C8T8_SUNGMID", "16")   # WHOLE ROUND on the singing: the voice is heard before E - 'it comes later on' (the line sung at E bar 12) is first sung in the middle of the song, at C bar SUNGMID, in C's own D minor (E's is lifted a step), with its canon a bar behind a third below (v69): the line promises its own return, and comes later on. Value = bar of C
 WORDLEVEL = os.environ.get("C8T8_WORDLEVEL", "3")   # WHOLE ROUND: the word recedes as it decays - the word's orbit (radius 2 + 8 x the decay lane, v60) gets the engine's orbit `level` (8f150090: the distance that plays at full level; farther is fainter, about 1/distance): within WORDLEVEL metres it is as it was; as the memory decays and the orbit widens to 10 m the word grows faint as well as far, then each refresh brings it back up close and full. Value = metres
 CANON = os.environ.get("C8T8_CANON", "4")   # WHOLE ROUND on the singing: the memory sings it back - every sung line (sungl at E bar 12, sungv/sungv2 in the outro) is followed by itself CANON beats later, a diatonic third below in D minor on the stretched octave, 6 dB under, panned across, sent hard into the line: a delay line's echo that returns transposed, so each line becomes a two-part canon with its own recall
 SAYLPC = os.environ.get("C8T8_SAYLPC", "plain")   # SECTION ROUND (w1, the intro: static): the first explanation in a speech chip - the intro's spoken line (say, bar 8: what a delay line keeps) goes through LPC (engine 78e838c5): 'plain' (LPC-10, inflecting) or 'toy' (5-bit monotone on D3, the tonic); the later lines (say2 at the refresh, say3 at the outro) stay as they are. Notes 0.07 beats early for LPC's ~35 ms
@@ -341,7 +342,7 @@ def canon_of(tr, lag):
     """The memory sings it back: the sung track again, LAG beats later, a diatonic third below in D minor, on the same stretched octave."""
     down = {9: 4, 7: 3, 5: 3, 4: 4, 2: 4, 0: 3, 10: 3, 11: 4, 1: 4, 3: 3, 6: 3, 8: 4}   # pitch class -> semitones down to the third below
     lg2 = __import__("math").log2
-    lift = (int(EUP.split(",")[0]) if EUP and (tr["name"] == "sungl" or "outro" in EUP) else 0)   # E (and the outro, if lifted) sits a step up: thirds in that key
+    lift = (int(EUP.split(",")[0]) if EUP and (tr["name"] == "sungl" or (tr["name"] != "sungc" and "outro" in EUP)) else 0)   # E (and the outro, if lifted) sits a step up: thirds in that key
     out = []
     for n in tr["notes"]:
         m = 69 - _KEY[0] + 12 * lg2(float(str(n["pitch"])[:-2]) / 440) / STRETCH
@@ -401,6 +402,12 @@ def song():
         trs.append(b)   # 'travels' listed last
     if LATER:
         doc["tracks"].append(later_track(LATER))
+        if SUNGMID:
+            mid = later_track(LATER)
+            src = json.load(open(os.path.join(HERE, "chirpers8-t8-sung-later.json")))["tracks"][0]
+            off = (sec_start("C") + int(SUNGMID) * BAR) / 4
+            mid.update(name="sungc", pan=-0.1, notes=[dict(n, at=round(n["at"] + off, 4), pitch=hz(float(n["pitch"][1:]))) for n in src["notes"]])
+            doc["tracks"].append(mid)
     if OWNHATS or COUNTER or VOSWORD:
         T = build()   # one build for the song-level tracks (each build adds to the wavetable's frames)
     if OWNHATS:
@@ -549,7 +556,7 @@ def song():
                               "notes": notes})
     if CANON:
         for t_ in list(doc["tracks"]):
-            if isinstance(t_, dict) and t_.get("name") in ("sungv", "sungv2", "sungl") and t_.get("notes"):
+            if isinstance(t_, dict) and t_.get("name") in ("sungv", "sungv2", "sungl", "sungc") and t_.get("notes"):
                 doc["tracks"].append(canon_of(t_, float(CANON)))
     return doc
 
