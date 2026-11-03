@@ -36,7 +36,10 @@ def hz(deg, cents=0.0, base=A3):
     return base * (2 ** o) * RATIOS[d] * 2 ** (cents / 1200.0)
 def tok(f): return f"m{69 + 12 * math.log2(f / 440.0):.3f}"     # fractional MIDI: any pitch, chords too
 
-FORM = [('power', 12), ('e1', 20), ('e2', 18), ('e3', 24), ('e4', 14), ('e5', 28), ('converged', 16), ('reheat', 10), ('coda', 14)]
+FORM = [('power', 12), ('e1', 20), ('e2', 18), ('e3', 24), ('e4', 14), ('e5', 20), ('converged', 16), ('reheat', 10), ('coda', 14)]
+# (v22) the last epoch cut from 28 bars to 20: near the target the search repeated its almost-answer for nearly a minute
+# (Harry: it repeats a lot); the readings written against the old form after it move up eight bars (E5_CUT)
+E5_CUT = 8
 # THE TARGET: what the search is looking for (degrees above A3; None = rest). A4 . C5 E5 D5 . C5 . A4 G4 . E4 G4 A4 . .
 TARGET = [7, None, 9, 11, 10, None, 9, None, 7, 6, None, 4, 6, 7, None, None]
 # chords (root degree for the bass; voices for the pad), spans in bars, cycling: Am - F - C - G (just)
@@ -70,7 +73,7 @@ def build():
     total = nb * 4.0
     # ---- the temperature schedule ----
     T = []
-    cool_start, cool_end = 12, 12 + 20 + 18 + 24 + 14 + 28          # bars 12..116 cool from 1 to ~0.03
+    cool_start, cool_end = 12, 12 + 20 + 18 + 24 + 14 + 20          # bars 12..108 cool from 1 to ~0.03 (v22: e5 20 bars)
     for b, (s, i) in enumerate(bars):
         if s == 'power':
             T.append(1.0)
@@ -156,10 +159,11 @@ def build():
     # epochs only, then 'zero' at convergence and the reheat's jump - five readings, not eight; the coda is left to the
     # instruments
     for sec, v in sorted(((k_, v_) for k_, v_ in VOICE.items() if k_ not in ('e2', 'e4', 'coda')), key=lambda kv: kv[1]['bar']):
-        off = v['bar'] * 4.0
-        hot = T[min(v['bar'], len(T) - 1)] > 0.2
+        vb_ = v['bar'] - E5_CUT if v['bar'] >= 116 else v['bar']
+        off = vb_ * 4.0
+        hot = T[min(vb_, len(T) - 1)] > 0.2
         if hot:
-            dv_ = round(min(0.75, 0.8 * T[v['bar']]), 3)
+            dv_ = round(min(0.75, 0.8 * T[vb_]), 3)
             end_ = off + max(n_['at'] + n_['len'] for n_ in v['notes'])
             # on the station (and quiet) between readings; the dial swings off only while it speaks
             dial += [[f"{max(0.0, off - 2.5):.2f}b", 0.0], [f"{max(0.0, off - 1):.2f}b", dv_], [f"{end_ + 1:.2f}b", dv_],
@@ -268,7 +272,7 @@ def build():
     # places in the bar; four bars later the first three; then four; then the first phrase - the answer showing
     # through the search before the search reaches it
     g0 = sum(n_ for nm_, n_ in FORM[:[nm_ for nm_, _ in FORM].index('e5')])
-    for k_, (gb, upto) in enumerate(((10, 3), (14, 4), (18, 5), (22, 7))):
+    for k_, (gb, upto) in enumerate(((6, 3), (10, 4), (14, 5), (18, 7))):
         for q in range(upto):
             if TARGET[q] is not None:
                 P['glim'].append(((g0 + gb) * 4.0 + q * 0.25, tok(hz(TARGET[q], 0)), 0.5, 62 + 4 * k_))
