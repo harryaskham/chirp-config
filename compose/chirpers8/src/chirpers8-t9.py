@@ -307,6 +307,16 @@ R22 = os.environ.get("T9_R22", "crisis")
 # else"). The song's three
 # sung lines now name its periods: two, eight, three. T9_R23=none reproduces v22.
 R23 = os.environ.get("T9_R23", "two")
+# T9_R24 = choir (v24, palette round). THE VOICES LAND IT. The last twelve beats' held D (D4 + D5 for t10 to catch)
+# was the library's choir-classic - a saw and noise imitating a choir. Now it is sung: four real voices from the
+# song's own voice engine, each its own take (chirp tts "on" --sing "<note>/1 _ _" --bpm 154 --seed 9..12
+# --humanize 0.45 --hz; src/t9/on1-4.json), D3 A3 D4 F#4, entering a beat apart from the bottom up and spread
+# across the stereo field, all on one word - "on" - the album's last word sung under the map's final settling. The
+# same voice that sang "every other morning", "eight steps" and "comes back in threes" ends the song as a choir.
+# The choir-classic hold stays under it, 2 dB down (T9_R24_KEEP=off drops it: the TTS vowels end before the tail
+# and t10 catches the held D4 - the out-join's 292 Hz band fell to -43.6 dB without it, s0 97.65).
+# T9_R24=none reproduces v23.
+R24 = os.environ.get("T9_R24", "choir")
 TERRAIN_GAIN = os.environ.get("T9_TERRAIN_GAIN", "-14.5dB")
 EYE = float(os.environ.get("T9_EYE", "636"))   # where the drum bus drops out (to 640b)
 C9_GENDY = {"about": "chirper-two: a gendyn squall - level and segment-length steps both ride velocity, wide spread, "
@@ -808,12 +818,29 @@ def main():
             sq.add(s0 + 8.0 * k, 8.0, ",".join(mm(bp(d, 57)) for d in (0, 6)), 50 + 15 * k)
         tracks.append({"name": "squall", "patch": "c9-gendy", "gain": os.environ.get("T9_SQUALL_GAIN", "-16dB"), "pan": 0.0,
                        "fx": ["hp cutoff=150", "reverb kind=hall decay=2.5s mix=0.3"], "score": sq.score(total)})
-    if R11 == "d":   # the voices find D: a choir holds D4 and D5 through the last bars into the tail, for t10
+    if R11 == "d" and R24 == "choir":   # the voices find D, sung: four takes of "on", a beat apart, bottom up
+        here = os.path.dirname(os.path.abspath(__file__))
+        cg = float(os.environ.get("T9_CHOIR_GAIN", "-13").replace("dB", ""))
+        for k, pan in enumerate((-0.35, -0.12, 0.12, 0.35)):
+            src = json.load(open(os.path.join(here, "t9", f"on{k + 1}.json")))["tracks"][0]
+            nt = src["notes"][0]
+            a_ = round(total - 12.0 + k * 1.0 + nt["at"], 4)
+            note = {"at": a_, "len": round(total - a_, 4), "ph": nt["ph"],   # every voice holds to the end (D4 into t10)
+                    "pitch": nt["pitch"], "vel": round(nt["vel"] * (1.0 if k == 0 else 0.92), 3)}
+            if nt.get("expr_path"):
+                note["expr_path"] = nt["expr_path"]
+            tracks.append({"name": f"dch{k + 1}", "patch": src["patch"], "gain": f"{cg + (2 if k == 0 else 0):g}dB", "pan": pan,
+                           "fx": ["hp cutoff=90", "compressor threshold=-20dB ratio=2.5 attack=8ms release=150ms",
+                                  "reverb kind=hall decay=2.8s mix=0.3"], "notes": [note]})
+    if R11 == "d" and (R24 != "choir" or os.environ.get("T9_R24_KEEP", "on") == "on"):
+        # the voices find D: a choir holds D4 and D5 through the last bars into the tail, for t10 (with the sung choir
+        # on top it stays, 2 dB down: the TTS vowels end before the tail, and t10 catches the held D4 - without it
+        # the out-join's 292 Hz band fell from -31.5 to -43.6 dB)
         dh = Track("dhold")
         dh.add(total - 12.0, 12.0, "m62.000,m74.000", int(os.environ.get("T9_DHOLD_VEL", "90")))
         tdh = R14 == "terrain" and os.environ.get("T9_R14_DHOLD", "off") == "on"
         tracks.append({"name": "dhold", "patch": "c9-terrain amp.a=2s amp.r=2.5s" if tdh else "choir-classic amp.a=2s amp.r=2.5s",
-                       "gain": os.environ.get("T9_DHOLD_TGAIN", "-11.5dB") if tdh else os.environ.get("T9_DHOLD_GAIN", "-8dB"), "pan": 0.0,
+                       "gain": os.environ.get("T9_DHOLD_TGAIN", "-11.5dB") if tdh else os.environ.get("T9_DHOLD_GAIN", "-10dB" if R24 == "choir" else "-8dB"), "pan": 0.0,
                        "fx": ["hp cutoff=180", "reverb kind=hall decay=2.5s mix=0.25"], "score": dh.score(total)})
     if R18 == "intermit":
         i0b, steps = 384.0, 240
