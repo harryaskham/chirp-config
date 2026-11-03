@@ -244,6 +244,21 @@ C9_LAM = {"about": "chirper-two: a Rossler oscillator (axis z, spiky) held perio
           "synth": {"layers": [{"type": "chaos", "chaos": {"system": "rossler", "axis": "z", "amount": 0.12}}],
                     "filters": [{"kind": "lp", "cutoff": 5000, "q": 0.5}],
                     "amp": {"a": "2ms", "d": "180ms", "s": 0, "r": "60ms"}}}
+# T9_R19 = cz (v19, palette round). THE BASS FOLLOWS THE MAP. The sub-sine bass (an album staple, 4 songs) becomes
+# the song's own CHAOS BASS: a Rossler oscillator on its x axis - nearly a sine - whose amount rides the same route
+# lane as the route voice, scaled down (x0.55): pure through one/two/four, a flutter in eight, a rough chaotic grain
+# in chaos and the storm, clean again as it settles. Through the same fold drive and filters, same level. The ground
+# under the song is now a strange attractor too - TRIED AND OFF (T9_R19_BASS=on): s0 90.31, recurrence 98 -> 49
+# (returns 1, sections 9). The bass is what makes the sections come back; a bass that changes character with each
+# section takes the song's memory away. What stays: THE PAN ANSWERS - the Henon canon's y voice moves from the
+# marimba (an album staple, 3 songs) to the library's steel pan (unused on the album since v15 turned t9's own pan
+# into a CZ patch), level-matched -12 dB; x stays on the xylophone. T9_R19=none reproduces v18.
+R19 = os.environ.get("T9_R19", "cz")
+R19BASS = os.environ.get("T9_R19_BASS", "off")   # the chaos bass: s0 90.31 - recurrence 49 (the bass is what returns)
+C9_CBASS = {"about": "chirper-two: a Rossler chaos bass (axis x), amount on the track's auto.route lane",
+            "synth": {"layers": [{"type": "chaos", "chaos": {"system": "rossler", "axis": "x",
+                                                             "amount": {"value": 0.0, "mod": [{"src": "auto.route", "amount": 1}]}}}],
+                      "amp": {"a": "4ms", "d": "300ms", "s": 0.8, "r": "120ms"}}}
 TERRAIN_GAIN = os.environ.get("T9_TERRAIN_GAIN", "-14.5dB")
 EYE = float(os.environ.get("T9_EYE", "636"))   # where the drum bus drops out (to 640b)
 C9_GENDY = {"about": "chirper-two: a gendyn squall - level and segment-length steps both ride velocity, wide spread, "
@@ -594,8 +609,8 @@ def main():
          "gain": os.environ.get("T9_PULSE_GAIN", "-6dB") if R4 == "break" else "-7dB", "pan": 0.35,
          "fx": [{"type": "delay", "time": "1/8", "feedback": 0.35, "mix": 0.25, "ping_pong": True, "tone": 6000}],
          "score": T["blip"].score(total)},
-        {"name": "bass", "patch": "c9-lpg" if R7BASS == "lpg" else "sub-sine",
-         "gain": os.environ.get("T9_LPG_GAIN", "-15dB") if R7BASS == "lpg" else "-13dB",
+        {"name": "bass", "patch": "c9-lpg" if R7BASS == "lpg" else ("c9-cbass" if (R19 == "cz" and R19BASS == "on") else "sub-sine"),
+         "gain": os.environ.get("T9_LPG_GAIN", "-15dB") if R7BASS == "lpg" else (os.environ.get("T9_CBASS_GAIN", "-13.8dB") if (R19 == "cz" and R19BASS == "on") else "-13dB"),
          "fx": [{"type": "drive", "drive": 0.55, "shape": "fold", "mix": 0.5},
                 "lp cutoff=1100" if R7BASS == "lpg" else "lp cutoff=600", "hp cutoff=38", pump],
          "score": T["bass"].score(total)},
@@ -672,9 +687,9 @@ def main():
             nxt = {"chaos": "window", "storm": "settle"}[sec]
             n = int((st[nxt] - st[sec]) * 2)   # eighths
             for ax, nm, patch, base, pan, g in (("x", "henx", "xylophone", 69, 0.35, "T9_HENX_GAIN"),
-                                                 ("y", "heny", "marimba", 57, -0.3, "T9_HENY_GAIN")):
+                                                 ("y", "heny", "steel-pan" if R19 == "cz" else "marimba", 57, -0.3, "T9_HENY_GAIN")):
                 tracks.append({"name": f"{nm}-{sec}", "patch": patch,
-                               "gain": os.environ.get(g, "-14dB" if ax == "x" else "-11dB"), "pan": pan,
+                               "gain": os.environ.get(g, "-14dB" if ax == "x" else (os.environ.get("T9_PAN_GAIN", "-12dB") if R19 == "cz" else "-11dB")), "pan": pan,
                                "fx": ["hp cutoff=200", "reverb kind=room decay=0.9s mix=0.18"],
                                "score": f"R/{st[sec]:g}b",
                                "gen": {"type": "henon", "a": 1.4, "b": 0.3, "axis": ax, "n": n,
@@ -724,6 +739,16 @@ def main():
             if tr["name"] in ("henx-chaos", "heny-chaos"):
                 tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.lam", "amount": 1}]}}]
                 tr["auto"] = {**tr.get("auto", {}), "lam": {"points": duck}}
+    if R19 == "cz" and R19BASS == "on":
+        sc_ = float(os.environ.get("T9_CBASS_SCALE", "0.55"))
+        bp_ = [["0b", 0.0]]
+        for nm, s, k, m in secs:
+            v = ROUTE.get(nm, 0.0) * sc_
+            bp_ += [[f"{s:g}b", bp_[-1][1]], [f"{s + 4:g}b", v]]
+        bp_.append([f"{total}b", 0.0])
+        for tr in tracks:
+            if tr["name"] == "bass":
+                tr["auto"] = {**tr.get("auto", {}), "route": {"points": bp_}}
     if R17 == "route":
         pts = [["0b", 0.0]]
         for nm, s, k, m in secs:
@@ -771,7 +796,8 @@ def main():
                                      **({"c9-terrain": C9_TERRAIN} if R14 == "terrain" else {}),
                                      **({"c9-czsaw": C9_CZSAW, "c9-czsq": C9_CZSQ} if R15 == "cz" else {}),
                                      **({"c9-route": C9_ROUTE} if R17 == "route" else {}),
-                                     **({"c9-lam": C9_LAM} if R18 == "intermit" else {})})]
+                                     **({"c9-lam": C9_LAM} if R18 == "intermit" else {}),
+                                     **({"c9-cbass": C9_CBASS} if R19 == "cz" else {})})]
           if R4 == "break" else []),
         "buses: " + json.dumps(buses),
         "master: " + json.dumps({"fx": [{"type": "eq", "bands": (["hp cutoff=25", "peak cutoff=90 gain=-4dB q=0.9",
