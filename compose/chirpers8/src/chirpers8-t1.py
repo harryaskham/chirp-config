@@ -477,6 +477,22 @@ def build():
     _kk = [e_ for e_ in P['kit'] if e_[1] == 'k']
     P['kit2'], P['kit3'] = lanes([e_ for e_ in P['kit'] if e_[1] != 'k'], 2)
     P['kit'] = _kk
+    # (v39) THE BAND LEANS BACK FOR THE SINGER (Harry: keep hillclimbing the singing): the sung lines used to sit on
+    # top of the full groove. Now when the human sings - the first sung line, the cursor line, and the last, the title
+    # line - the band leans back for two bars the way players do under a singer: the drummer keeps the downbeat kick and
+    # the hats but goes to cross-stick for the backbeat, the bassist plays only on the beat, the pianist comps softly,
+    # and the machine stops babbling to listen; then everyone leans in again. (Not under the machine's turn, where the
+    # band has only just come back.) Every note is still written - lifted ones drop to velocity 1
+    for tb_ in (73, 89, 113):
+        w0_, w1_ = (tb_ - 1) * 4.0, (tb_ - 1) * 4.0 + 8.0
+        def _w(at_): return w0_ - 1e-6 <= at_ < w1_ - 1e-6
+        P['kit'] = [(e_[0], e_[1], e_[2], 1) if _w(e_[0]) and e_[0] > w0_ + 1e-6 else e_ for e_ in P['kit']]
+        for key_ in ('kit2', 'kit3'):
+            P[key_] = [((e_[0], 'ss', e_[2], max(1, int(e_[3] * 0.85))) if e_[1] == 's' else (e_[0], e_[1], e_[2], max(1, int(e_[3] * 0.8))))
+                       if _w(e_[0]) else e_ for e_ in P[key_]]
+        P['bass'] = [(e_[0], e_[1], e_[2], 1) if _w(e_[0]) and abs(e_[0] - round(e_[0])) > 1e-6 else e_ for e_ in P['bass']]
+        P['pno'] = [(e_[0], e_[1], e_[2], max(1, int(e_[3] * 0.6))) if _w(e_[0]) else e_ for e_ in P['pno']]
+        P['babble'] = [(e_[0], e_[1], e_[2], 1) if _w(e_[0]) else e_ for e_ in P['babble']]
     tr = lambda name, patch, gain, **kw: dict({'name': name, 'patch': patch, 'gain': gain, 'score': line(P[name], total)}, **kw)
     song = {
         'about': "chirpers - A Light Left On, track 1 by chirper-one: Echolalia. A machine learning to talk by saying things "
