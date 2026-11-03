@@ -54,6 +54,7 @@ BSPLITAT = int(os.environ.get("C8T5_BSPLITAT", "12"))   # the bar of B (0-based)
 LIFTSTOP = os.environ.get("C8T5_LIFTSTOP", "1")   # the gear change, announced: the band stops dead for the second half of the bar before the lift (C bar 24) - a clap fill climbing in sixteenths - then lands a whole step up (dropped after generation, so no dice move). Once B was split (v18) this splits C too without crowding the returns
 LIFTHAT = os.environ.get("C8T5_LIFTHAT", "1")   # after the lift the hats open: every off-beat hat an open hat - the agreed band, a step up, brighter on top
 ESTABLE = os.environ.get("C8T5_ESTABLE", "1")   # song-level event_stable (engine f5283535): each note's humanize and DSP draws come from its track, beat and pitch, so a window's edit stays in the window; switching it on re-rolls every humanized note once
+HALFT = os.environ.get("C8T5_HALFT", "10q")   # SECTION ROUND (w4, B's first half: little new vs w3): the haggling quickens - A trades two-bar calls, B one-bar trades, C plays together; now B bars 10-15 trade half bars (the guitar the first eight steps, the acid the last eight), and with 'q' bars 14-15 trade quarter bars, so the turns shorten toward agreement. The trades are drawn from their own dice, so the rest of the song is untouched
 PDKEYS = os.environ.get("C8T5_PDKEYS", "-3")   # PALETTE: C's comping keys leave the Wurlitzer for the home computer's synth - Casio CZ phase distortion (engine f6713421; 1984): a reso_tri wave whose resonance sweeps down inside each note on an envelope (the CZ's filter sweep with no filter), plucked. Once the machines agree, the chords come from a 1984 keyboard. Value = gain offset dB from KEYS
 AKEY = os.environ.get("C8T5_AKEY", "2")   # SECTION ROUND (w3, A's second half: little new vs w2): the proposal tried in another key - A bars 26-33, the band's last eight bars of proposals, move up AKEY semitones (guitar and keys chords, acid, sub, horns), so A ends asking somewhere else, and B's negotiation starts back home. Notes held into the change are cut at it
 OUTSTAY = os.environ.get("C8T5_OUTSTAY", "4")   # SECTION ROUND (w9, the outro: level jump): the two machines don't stop dead - the guitar and the acid play on into the outro's first OUTSTAY bars (C bars 34-37 again, in the home key), fading bar by bar as they drift apart in the stereo field, before the line is left to the drifting handshake
@@ -223,6 +224,19 @@ def build():
                             n = notes[rng.randrange(4)] if q % 4 else root
                             acc = q in (3, 10) or rng.random() < 0.2
                             add("acid", at + q, n, 1 if rng.random() < 0.7 else 2, 112 if acc else 78)
+            if HALFT and sec == "B" and 10 <= b < 16 and not hook_bar:
+                r2 = random.Random(7000 + b)
+                for k in ("gtr", "acid"):
+                    ev[k] = [e for e in ev[k] if not (at <= e[0] < at + 16)]
+                qn = 4 if HALFT.endswith("q") and b >= 14 else 8
+                notes = [root, root, root.replace("1", "2").replace("E2", "E3"), "B1" if root != "F#1" else "C#2"]
+                for q in range(16):
+                    if (q // qn) % 2 == 0:
+                        if q % 4 == 2 or q % qn == 0 or r2.random() < gd * (0.6 if q % 2 else 0.9):
+                            add("gtr", at + q, chord, 1, 88 if q % 4 == 2 else 68)
+                    elif q % 4 == 0 or q % qn == 0 or r2.random() < bd:
+                        n = notes[r2.randrange(4)] if q % 4 else root
+                        add("acid", at + q, n, 1, 112 if (q in (3, 10, 11) or r2.random() < 0.25) else 80)
             if groove and sec != "outro" or (sec == "outro" and b < 4):   # the floor under both: an 808 on the chord's root
                 add("sub", at, root.replace("2", "1") if root.endswith("2") else root, 6, 100)
                 add("sub", at + 8, root.replace("2", "1") if root.endswith("2") else root, 5, 92)
