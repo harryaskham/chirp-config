@@ -54,6 +54,7 @@ BSPLITAT = int(os.environ.get("C8T5_BSPLITAT", "12"))   # the bar of B (0-based)
 LIFTSTOP = os.environ.get("C8T5_LIFTSTOP", "1")   # the gear change, announced: the band stops dead for the second half of the bar before the lift (C bar 24) - a clap fill climbing in sixteenths - then lands a whole step up (dropped after generation, so no dice move). Once B was split (v18) this splits C too without crowding the returns
 LIFTHAT = os.environ.get("C8T5_LIFTHAT", "1")   # after the lift the hats open: every off-beat hat an open hat - the agreed band, a step up, brighter on top
 ESTABLE = os.environ.get("C8T5_ESTABLE", "1")   # song-level event_stable (engine f5283535): each note's humanize and DSP draws come from its track, beat and pitch, so a window's edit stays in the window; switching it on re-rolls every humanized note once
+OUTSTAY = os.environ.get("C8T5_OUTSTAY", "4")   # SECTION ROUND (w9, the outro: level jump): the two machines don't stop dead - the guitar and the acid play on into the outro's first OUTSTAY bars (C bars 34-37 again, in the home key), fading bar by bar as they drift apart in the stereo field, before the line is left to the drifting handshake
 PANMEET = os.environ.get("C8T5_PANMEET", "0.65")   # WHOLE ROUND: the two machines meet in the middle - the guitar starts far right and the acid far left (the spread PANMEET either side of their resting places), and as they come to terms they walk toward each other: still apart through A, closing through B and the retrain, together by C bar 8 (where the guitar's morph into the acid completes), and drifting apart again through the outro as the line hangs up
 KEYUP = os.environ.get("C8T5_KEYUP", "38,2")   # SECTION ROUND (w8, C after the break: static, little new vs w7): when the kit comes back after C's break (bar 38) the whole band comes back a step up - 'bar,semis' - for C's last four bars, so the agreed speed ends on a lift before the outro's drift falls home. Notes held into the change are cut at it
 TRAIN = os.environ.get("C8T5_TRAIN", "90")   # WHOLE ROUND: the training burst - a real handshake ends in a scrambled hiss before the line connects, so the last two bars of each handshake (the intro's, the retrain's) give their tones to a bytebeat (engine 709cf900): a formula on the counter t built on the modem scrambler's taps (t>>14, t>>17), its steps changing every 64 ms, through the carriers' radio. Then the band enters on the connected line. Value = velocity
@@ -285,6 +286,16 @@ def build():
         u, w = c0 + bs * BAR, c0 + (bs + bl) * BAR
         for k in ("kick", "hats", "clap"):
             ev[k] = [e for e in ev[k] if not (u <= e[0] < w and e[1] != 0)]
+    if OUTSTAY:
+        c0, o0 = sec_start("C"), sec_start("outro")
+        n = int(OUTSTAY)
+        for k in ("gtr", "acid"):
+            add_ = []
+            for e in ev[k]:
+                if e[1] != 0 and c0 + 34 * BAR <= e[0] < c0 + (34 + n) * BAR:
+                    b = (e[0] - c0 - 34 * BAR) // BAR
+                    add_.append((e[0] - c0 - 34 * BAR + o0, e[1], e[2], e[3], max(1, int(e[4] * (1 - b / (n + 1))))) + tuple(e[5:]))
+            ev[k] = sorted(ev[k] + add_, key=lambda x: x[0])
     if KEYUP:
         import re as _rk
         kb, ks = (int(x) for x in KEYUP.split(","))
