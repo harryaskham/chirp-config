@@ -195,6 +195,14 @@ C3_VOSBELL = {"about": "chirper-two: a VOSIM bell - two high formants of many sh
               "synth": {"layers": [{"type": "vosim", "vosim": {"formant": 1300, "pulses": 6, "decay": 0.85}},
                                    {"type": "vosim", "level": 0.4, "vosim": {"formant": 2600, "pulses": 9, "decay": 0.8}}],
                         "amp": {"a": "1ms", "d": "700ms", "s": 0, "r": "300ms"}}}
+# T3_R19 = chip (v19, palette round). THE CELL SPEAKS LIKE A CHIP. The cell's voice (its glider lines and its story)
+# was the album's commonest timbre - voice-speech, in 8 songs. Now it goes through LPC-10 (wM's `lpc` fx: linear
+# predictive coding, the voice of the talking toys and the first speech chips): resampled to 8 kHz, each 22.5 ms frame
+# boiled down to a 10-pole filter, a gain and a pitch, and rebuilt from buzz and hiss, with 5-bit coefficients for the
+# old chips' grain - but only in the DECAY: "when the left goes dark / I keep its count" is sung as the cells die, and
+# the cell's voice dies with them, down to a speech chip. (On every line it was unintelligible - Whisper heard "I" -
+# so T3_LPC_ALL=on keeps that as a knob.) The hymn's voices stay human. T3_R19=none reproduces v18.
+R19 = os.environ.get("T3_R19", "chip")
 R11KICK = os.environ.get("T3_R11_KICK", "machine")   # "bronze": the kit's own kick too (cost spectrum 97 -> 75-80)
 C8_KIT = {
     "about": "chirper-two: Three Neighbours' own kit - kr a D1 sine kick that drops into place with a low modal membrane "
@@ -677,6 +685,20 @@ def main():
             if tr["name"] in os.environ.get("T3_LEAVE", "kick,hats,ohat,rim,toms,ca-kit,ca-kit2,shek,skin,click,tone,air,bronze").split(","):
                 tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.leave", "amount": 1}]}}]
                 tr["auto"] = {**tr.get("auto", {}), "leave": lane}
+    if R19 == "chip" and os.environ.get("T3_LPC_ALL", "off") == "on":   # every cell line: unintelligible (ASR: "I")
+        for tr in tracks:
+            if tr["name"] in ("sing", "story"):
+                tr["fx"] = [os.environ.get("T3_LPC", "lpc bits=6")] + tr.get("fx", [])
+    elif R19 == "chip":   # only the decay's lines: as the cells die the cell's voice goes down to a chip
+        for tr in list(tracks):
+            if tr["name"] == "story":
+                d0 = st["decay"]
+                late = [n_ for n_ in tr["notes"] if n_["at"] >= d0]
+                tr["notes"] = [n_ for n_ in tr["notes"] if n_["at"] < d0]
+                chip = {**tr, "name": "chip", "notes": late,
+                        "fx": [os.environ.get("T3_LPC", "lpc bits=5")] + tr.get("fx", []),
+                        "gain": os.environ.get("T3_CHIP_GAIN", tr["gain"])}
+                tracks.append(chip)
     if R18 == "palette" and os.environ.get("T3_R18_KICK", "off") == "on":
         for tr in tracks:
             if tr["name"] == "kick" and tr.get("patch") == "electro-kit":
