@@ -352,6 +352,9 @@ class Coverage(unittest.TestCase):
         # engine c7606671 (wM, bd-4f38a2): Chowning-style moving sources, canonical {"type": "orbit", ...}
         self.assertIn("orbit", CH.song_features({"tracks": [{"fx": [{"type": "orbit", "rate": "1/2", "radius": 3.0}]}]}, ""))
         self.assertIn("orbit", CH.COVERAGE_CATALOGUE["fx"])
+        # engine 78e838c5 (wM, bd-8ec8ed): LPC-10 speech resynthesis
+        self.assertIn("lpc", CH.song_features({"tracks": [{"fx": [{"type": "lpc", "bits": 5}]}]}, ""))
+        self.assertIn("lpc", CH.COVERAGE_CATALOGUE["fx"])
         self.assertIn("choices", CH.song_features({}, "score: (C4|E4|G4)/4"))
 
     def test_life_henon_and_walk_systems_are_features(self):
