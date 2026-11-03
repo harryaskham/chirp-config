@@ -137,6 +137,24 @@ R11 = os.environ.get("T6_R11", "ack")
 # habit. Intro and outro lose their "static" flags. T6_R12=none reproduces v11.
 R12 = os.environ.get("T6_R12", "line")   # "line": the walk as a music-box tune at the edges; "walk": the filter breath
 WALK_AMT = float(os.environ.get("T6_WALK_AMT", "1.0"))
+# T6_R13 = vosim (v13, whole-song round). THE MACHINE SINGS ALONG. VOSIM - Kaegi and Tempelaars's voice-simulation
+# pulse trains (Institute of Sonology, 1978; wM's new layer; new to the album), one of the first ways a computer was
+# taught to sound like a throat - shadows every SUNG line of the song: a 19-EDO major third above the choruses' "no
+# errors since" (and "up four hundred days / and nothing to report"), a major third below the waltz's lullaby. Two
+# pulse-train formants make its vowel and a slow LFO moves them, so it is always nearly saying something. The human
+# voice sings; the oldest computer voice harmonises, a little behind. Lifted with the climb. T6_R13=none reproduces v12.
+R13 = os.environ.get("T6_R13", "vosim")
+C6_VOSIM = {"about": "chirper-two: two VOSIM formant layers (650 and 1500 Hz) whose formants drift on a slow LFO: a "
+                     "1978 computer voice, nearly saying something.",
+            "play": {"mono": True, "glide": "40ms"},
+            "synth": {"layers": [
+                {"type": "vosim", "vosim": {"formant": {"value": 650, "mod": [{"src": "lfo.talk", "amount": 0.35}]},
+                                            "pulses": 3, "decay": 0.7}},
+                {"type": "vosim", "level": 0.5, "vosim": {"formant": {"value": 1500, "mod": [{"src": "lfo.talk", "amount": -0.3}]},
+                                                          "pulses": 4, "decay": 0.6}}],
+                "lfo": {"talk": {"wave": "sine", "rate": "0.9hz"}},
+                "amp": {"a": "40ms", "s": 1, "r": "180ms"}},
+            "fx": []}
 WALK_POOL = [0, 3, 6, 8, 11, 14, 17, 19, 22, 25, 27, 30, 33, 36, 38, 41]   # 19-EDO major steps, two octaves up from C5
 C6_ACK = {"about": "chirper-two: a bytebeat acknowledgement - t*4, 5, 6, 8 (root, third, fifth, octave on the note) "
                    "stepping every 2048 counts, a chirp that races up in a quarter second; clock 16744 puts t*4 on the note.",
@@ -531,6 +549,17 @@ def main():
             if tr["name"] in ("kick", "snare", "hats", "ride", "rim"):
                 tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.stop", "amount": 1}]}}]
                 tr["auto"] = {**tr.get("auto", {}), "stop": lane}
+    if R13 == "vosim":   # the machine sings along: a 19-EDO third above the chorus singing, below the lullaby
+        vh = Track("vosim")
+        c1s, v2s, c2s, ous = st["chorus1"], st["verse2"], st["chorus2"], st["outro"]
+        sung = [(d, 6) for d in V["voice"] if (c1s + 8.0 <= d["at"] < v2s) or (c2s <= d["at"] < ous)]
+        sung += [(d, -6) for d in V.get("lull", [])]
+        for d, stp in sung:
+            hz = float(str(d["pitch"]).rstrip("hz")) * 2 ** (stp / EDO)
+            vh.add(float(d["at"]) + 0.06, float(d["len"]), f"{hz:.2f}hz", int(min(127, 127 * float(d.get("vel", 0.8)) * 0.85)))
+        tracks.append({"name": "vosim", "patch": "c6-vosim", "gain": os.environ.get("T6_VOSIM_GAIN", "-4dB"), "pan": -0.22,
+                       "fx": ["hp cutoff=180", {"type": "delay", "time": "3/16", "feedback": 0.2, "mix": 0.15, "tone": 3000},
+                              "reverb kind=hall decay=2.2s mix=0.3"], "score": vh.score(total)})
     if R12 == "line":   # the idle tune: a random walk, a step at a time, on the music box at the song's two doors
         pool = " ".join(mm(e(s, 72)) for s in WALK_POOL)
         for nm, a0, a1, sd, g in (("idle-in", 4.0, st["verse1"], 6, "-20dB"), ("idle-out", st["outro"] + 8.0, total - 8.0, 19, "-7dB")):
@@ -585,8 +614,9 @@ def main():
                                         {"type": "limiter", "ceiling": "-1.2dB", "release": "80ms"}],
                                  "auto": {"dyn": {"points": dyn}}}),
         *(["patches: " + json.dumps({**({"c6-voice": C6_VOICE} if R8 == "speaker" else {}),
-                                     **({"c6-ack": C6_ACK} if R11 == "ack" else {})})]
-          if (R8 == "speaker" or R11 == "ack") else []),
+                                     **({"c6-ack": C6_ACK} if R11 == "ack" else {}),
+                                     **({"c6-vosim": C6_VOSIM} if R13 == "vosim" else {})})]
+          if (R8 == "speaker" or R11 == "ack" or R13 == "vosim") else []),
         "tracks:",
     ]
     lines += ["  - " + json.dumps(t) for t in tracks]
