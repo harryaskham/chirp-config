@@ -71,6 +71,7 @@ LATER = os.environ.get("C8T8_LATER", "-8")   # WHOLE ROUND: a second sung line, 
 LATERDROP = os.environ.get("C8T8_LATERDROP", "1")   # with LATER: the word steps aside for the voice - for E bars 12-13 the word, its marimba, the zeros, the hats and the clap are kept at velocity 1 (no dice move), so 'it comes later on' is heard over pads, bass and kick (in the full mix whisper heard nothing; soloed it reads exactly)
 HANDS = os.environ.get("C8T8_HANDS", "clap")   # PALETTE: the clap and the rim leave the 909 kit for the machine layer's own synthesised clap and rim ('clap', 'rim', or 'both'): with v36's kick, the kit is the song's own
 ECHOCH = os.environ.get("C8T8_ECHOCH", "84")   # SECTION ROUND (w8, E: static): it comes later on - the sung line's tune (A4 G4 F4 E4 D4, as sung at E bar 12) comes back on the tape choir (mellotron-choir, wordless, its own track echoch listed last) four bars later and again four bars after that, softer each time: the delay line handing the phrase back. Lifted with E. Value = first velocity
+VOSWORD = os.environ.get("C8T8_VOSWORD", "90")   # WHOLE ROUND: the memory speaks its word - after the program counter, through C bars 20-31 (w6, 'little new vs w5', where Life alone reads as texture), a VOSIM voice (engine 1a5a0572; Kaegi and Tempelaars, 1978: two pulse-train layers make a vowel, their formants swept by a slow jaw and tongue) sings the word's bits as the dx-epiano plays them, an octave down: the oldest computer voice reading what the line holds. Value = velocity
 GENDY = os.environ.get("C8T8_GENDY", "-12")   # SECTION ROUND (w3, A bars 16-31: little new vs w2): the mercury trembles - under A's second half a gendyn drone (engine 6014b933; Xenakis's dynamic stochastic synthesis: a 12-point wave whose levels, and a little of its segment lengths, random-walk every cycle) holds each chord's root an octave over the bass, four bars a chord (D Bb G A), never quite the same wave twice: the line's medium, a liquid that won't sit still. Low-passed at 1.5 kHz, into the line. Value = gain dB
 HUMGAIN = os.environ.get("C8T8_HUMGAIN", "-18dB")   # the store powering up, quieter: the in seam read t8's head 6.1 dB louder than t7's tail, and the hum (97/114 Hz +13.7) was the loud thing
 ESTABLE = os.environ.get("C8T8_ESTABLE", "1")   # event_stable: each note's dice from its track, beat and pitch, so later edits stay local (switching it on re-rolls the take once)
@@ -99,7 +100,7 @@ ZEROS = os.environ.get("C8T8_ZEROS", "-18")   # SECTION ROUND, window 8 (E bars 
 ARC = os.environ.get("C8T8_ARC", "4")   # an energy arc: A to E sat at one level for four minutes (-10.0..-10.4 dB a section). A gain lane last on the master (after the compressor) holds A ARC dB down as the groove enters, eases up through C and D and is open from E - the repaired word the loudest place in the record
 DARK = os.environ.get("C8T8_DARK", "8")  # the tape running out: a master low-pass closing over the outro's last bars (the hiss and the line's top go first); value = bars
 FORM = [("intro", 16), ("A", 36), ("refresh", 8), ("C", 32), ("D", 16), ("E", 28), ("outro", 16)]
-TRACKS = ("word", *(("zeros",) if ZEROS else ()), "pad0", "pad1", "pad2", "pad3", "org0", "org1", "hum", "hum2", "bass", "kick", "shk", "hats", "clap", "rim") + (("hats2",) if os.environ.get("C8T8_SKEW", "local") == "local" else ()) + (("kick2",) if os.environ.get("C8T8_CKICK", "lock") else ()) + (("ohat",) if os.environ.get("C8T8_OWNHATS", "300") else ()) + (("ctr",) if os.environ.get("C8T8_COUNTER", "78") else ()) + (("mar",) if os.environ.get("C8T8_MARE", "-8") else ())
+TRACKS = ("word", *(("zeros",) if ZEROS else ()), "pad0", "pad1", "pad2", "pad3", "org0", "org1", "hum", "hum2", "bass", "kick", "shk", "hats", "clap", "rim") + (("hats2",) if os.environ.get("C8T8_SKEW", "local") == "local" else ()) + (("kick2",) if os.environ.get("C8T8_CKICK", "lock") else ()) + (("ohat",) if os.environ.get("C8T8_OWNHATS", "300") else ()) + (("ctr",) if os.environ.get("C8T8_COUNTER", "78") else ()) + (("mar",) if os.environ.get("C8T8_MARE", "-8") else ()) + (("vos",) if os.environ.get("C8T8_VOSWORD", "90") else ())
 
 # the word's 16 bits -> pitches (D minor, spread so neighbours leap): D4 F4 G4 A4 C5 D5 F5 A5
 SC = [62, 65, 67, 69, 72, 74, 77, 81]
@@ -240,6 +241,9 @@ def build():
                     ev["ctr"].append((c0 + (4 + i) * BAR + 4 * k, hz((62, 67, 72, 77)[k]), 3, int(COUNTER) + (8 if k == 0 else 0)))
             if n == 16:
                 ev["ctr"].append((c0 + (4 + i) * BAR, hz(50), 8, int(COUNTER) + 10))   # 16 = 10000: the carry, out of four bits - a low D
+    if VOSWORD:
+        c20, c32 = sec_start("C") + 20 * BAR, sec_start("C") + 32 * BAR
+        ev["vos"] = [(a, f"{float(h[:-2]) / 2:.2f}hz", max(l, 2), int(VOSWORD)) for (a, h, l, v) in ev["word"] if c20 <= a < c32 and h.endswith("hz") and v > 1]
     if OWNHATS:
         ev["ohat"] = sorted((a, "A4", 4, v) for k in ("hats", "hats2") if k in ev for (a, h, l, v) in ev[k] if h == "oh")
         for k in ("hats", "hats2"):
@@ -353,7 +357,7 @@ def song():
         trs.append(b)   # 'travels' listed last
     if LATER:
         doc["tracks"].append(later_track(LATER))
-    if OWNHATS or COUNTER:
+    if OWNHATS or COUNTER or VOSWORD:
         T = build()   # one build for the song-level tracks (each build adds to the wavetable's frames)
     if OWNHATS:
         doc["tracks"].append({"name": "ohat", "patch": {"about": "the machine layer's open hat", "synth": {"layers": [{"type": "machine", "machine": {"part": "hat", "decay": f"{OWNHATS}ms"}}]}},
@@ -405,6 +409,12 @@ def song():
         doc["tracks"].append({"name": "gdy", "patch": {"about": "a gendyn drone: the mercury trembling", "synth": {"layers": [{"type": "gendyn", "gendyn": {"points": 12, "amp": 0.04, "time": 0.01, "spread": 0.1, "dist": "cauchy"}}]}},
                               "gain": f"{GENDY}dB", "pan": 0.1, "fx": [{"type": "filter", "kind": "lp", "cutoff": 1500, "q": 0.7}],
                               "sends": {"line": "-10dB", "room": "-12dB"}, "score": stream(gev, total())})
+    if VOSWORD:
+        doc["tracks"].append({"name": "vos", "gain": os.environ.get("C8T8_VOSGAIN", "-12dB"), "pan": 0.2, "lfo": {"jaw": "sine rate=1/2", "tongue": "tri rate=3/4"},
+                              "patch": {"synth": {"layers": [{"type": "vosim", "vosim": {"formant": {"value": 600, "mod": [{"src": "lfo.jaw", "amount": 0.45}]}, "pulses": 3, "decay": 0.7}},
+                                                             {"type": "vosim", "level": 0.55, "vosim": {"formant": {"value": 1500, "mod": [{"src": "lfo.tongue", "amount": 0.6}]}, "pulses": 4, "decay": 0.75}}],
+                                                  "amp": "10ms 0.8 0.7 120ms"}},
+                              "sends": {"line": "-12dB", "room": "-12dB"}, "score": T["vos"]})
     return doc
 
 
