@@ -281,6 +281,19 @@ def build():
                 P['babble'].append((at_ + drag * k_, f"m{m_ + wrong.get(k_, 0)}", d_ * 0.85, 82))
             at_ += d_
     P['babble'].sort()
+    # (v27) ARITHMETIC FIRST: before it has vowels the machine has only numbers - in the first groove its babble is a
+    # bytebeat (the 2011 one-line form of computer music: a formula over a counter that IS the sound; my formula,
+    # (t*8)&(t>>5|t>>8), a saw chattering through its own shifting bit-masks), on the same sharpening tuning; from the
+    # second groove it is the FM voice finding its formants as before. And at the very end, when the voice has sung its
+    # line for the last time, the machine hums the tune's first four notes, slowly, in that first voice of numbers
+    a0, b0 = secs['A'] * 4.0, secs['B'] * 4.0
+    P['bbab'] = [e_ for e_ in P['babble'] if a0 - 1e-6 <= e_[0] < b0 - 1e-6]
+    P['babble'] = [e_ for e_ in P['babble'] if not (a0 - 1e-6 <= e_[0] < b0 - 1e-6)]
+    at_ = (secs['outro'] + 8) * 4.0
+    P['bbhum'] = []
+    for m_, d_ in HOOK[:4]:
+        P['bbhum'].append((at_, nm(m_), d_ * 1.9, 70))
+        at_ += d_ * 2
     # (v23) A HUMAN KIT: the drums were the album's machine-kit (nine of twelve songs). Echolalia is the one song about
     # a human teaching a machine, so its drums are played by someone: a tight, dry, close-miked kit - a damped kick that
     # still follows the line's syllables in the third groove, sidestick on the backbeat in the first two grooves and the
@@ -391,6 +404,15 @@ def build():
              'gen': {'type': 'ca', 'rule': 90, 'width': 16, 'init': 'center', 'poly': 1, 'notes': 'rs rs cb rs',
                      'n': (secs['D'] + 16 - secs['B']) * 16, 'len': '/16'},
              'sends': {'echo': '-14dB'}},
+            {'name': 'bbab', 'patch': {'synth': {'layers': [{'type': 'bytebeat', 'bytebeat': {'formula': '(t*8)&(t>>5|t>>8)', 'clock': 8372}}],
+                                                 'amp': {'a': '3ms', 'd': '120ms', 's': 0.6, 'r': '60ms'},
+                                                 'filters': ['lp cutoff=2600', 'hp cutoff=120']}},
+             'gain': '-21dB', 'pan': 0.2, 'tuning': babble_tuning, 'score': line(P['bbab'], total),
+             'sends': {'hall': '-16dB', 'echo': '-15dB'}},
+            {'name': 'bbhum', 'patch': {'synth': {'layers': [{'type': 'bytebeat', 'bytebeat': {'formula': '(t*8)|(t>>7&t*4)', 'clock': 8372}}],
+                                                  'amp': {'a': '30ms', 'd': '600ms', 's': 0.7, 'r': '900ms'},
+                                                  'filters': ['lp cutoff=1800', 'hp cutoff=150']}},
+             'gain': '-22dB', 'pan': -0.15, 'score': line(P['bbhum'], total), 'sends': {'hall': '-10dB', 'echo': '-12dB'}},
             tr('pno', 'piano-muted', '-12dB', pan=0.3, sends={'hall': '-16dB'}),   # (listed last: nothing before it moves)
         ]}
     return song
