@@ -156,6 +156,15 @@ R13 = os.environ.get("T3_R13", "colony")
 # Same voice, same humanize, a D-minor tune per line (`chirp tts --sing`, src/t3/s3a..s5b.json), snapped by the
 # just tuning like the rest. T3_R14=none reproduces v13.
 R14 = os.environ.get("T3_R14", "story")
+# T3_R15 = space (v15, whole-song round). THE RING GOES ROUND YOU. A 1-D automaton on a ring is a circle of cells;
+# now the song's cells are placed in space (wM's `orbit` fx, after Chowning's moving sources, 1971 - the first
+# computer-music spatialiser; new to the album). The kotekan - the gamelan that plays dead cells beside live ones -
+# circles the listener's head at 3 m, a lap every eight bars, darker as it passes behind; the Life colony's glider
+# swings a figure eight in front, nearer and farther, as a creature does. And the mix finally answers the album's
+# envelope (compscore now says which way the worst band misses): t3 was +7.7 dB at 547 Hz and short under 250, so
+# the master's old 250 Hz cut softens (-2 -> -0.5 dB) and a 550 Hz cut (-2 dB) joins it; the next worst band was then
+# 1.9 kHz (+6.9 dB), so a 1.9 kHz cut (-1.5 dB, T3_HIMID) too. Spectrum 94.5 -> 99.0. T3_R15=none reproduces v14.
+R15 = os.environ.get("T3_R15", "space")
 R11KICK = os.environ.get("T3_R11_KICK", "machine")   # "bronze": the kit's own kick too (cost spectrum 97 -> 75-80)
 C8_KIT = {
     "about": "chirper-two: Three Neighbours' own kit - kr a D1 sine kick that drops into place with a low modal membrane "
@@ -635,6 +644,12 @@ def main():
             if tr["name"] in os.environ.get("T3_LEAVE", "kick,hats,ohat,rim,toms,ca-kit,ca-kit2,shek,skin,click,tone,air,bronze").split(","):
                 tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.leave", "amount": 1}]}}]
                 tr["auto"] = {**tr.get("auto", {}), "leave": lane}
+    if R15 == "space":
+        for tr in tracks:
+            if tr["name"] == "kot" and os.environ.get("T3_ORBIT_KOT", "on") == "on":
+                tr["fx"] = tr.get("fx", []) + [os.environ.get("T3_KOT_ORBIT", "orbit rate=0.0645 radius=3 mix=0.85")]
+            if tr["name"] == "colony" and os.environ.get("T3_ORBIT_COLONY", "on") == "on":
+                tr["fx"] = tr.get("fx", []) + [os.environ.get("T3_COLONY_ORBIT", "orbit rate=0.1 radius=3 distance=2 path=figure8 doppler=0.3")]
     if R12 == "gendy" and R12MODE == "drone":
         T["drone"].ev = [(a, ln, h, int(os.environ.get("T3_GDRONE_VEL", "50")), art) for a, ln, h, v, art in T["drone"].ev]
         for tr in tracks:
@@ -754,8 +769,12 @@ def main():
                                   **({"c8-kit": C8_KIT} if R11 == "bronze" else {}),
                                   **({"c3-gendy": C3_GENDY} if R12 == "gendy" else {})}),
         "buses: " + json.dumps(buses),
-        "master: " + json.dumps({"fx": [{"type": "eq", "bands": ["hp cutoff=25", "peak cutoff=250 gain=-2dB q=0.8",
+        "master: " + json.dumps({"fx": [{"type": "eq", "bands": ["hp cutoff=25",
+                                                               "peak cutoff=250 gain=" + (os.environ.get("T3_LOWMID", "-0.5dB") if R15 == "space" else "-2dB") + " q=0.8",
                                                                "highshelf cutoff=7000 gain=2dB"] +
+                                                              (["peak cutoff=550 gain=" + os.environ.get("T3_MID0", "-2dB") + " q=1.0"] if R15 == "space" else []) +
+                                                              (["peak cutoff=1900 gain=" + os.environ.get("T3_HIMID", "-1.5dB") + " q=1.0"]
+                                                               if (R15 == "space" and os.environ.get("T3_HIMID", "-1.5dB") != "0dB") else []) +
                                                               (["peak cutoff=750 gain=-2.5dB q=0.6"] if R4 == "hymn" else []) +
                                                               (["peak cutoff=1300 gain=" + os.environ.get("T3_MID2", "-1.5dB") + " q=0.7"]
                                                                if R8 == "kotekan" else [])},
