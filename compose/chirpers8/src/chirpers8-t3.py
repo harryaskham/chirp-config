@@ -165,6 +165,14 @@ R14 = os.environ.get("T3_R14", "story")
 # the master's old 250 Hz cut softens (-2 -> -0.5 dB) and a 550 Hz cut (-2 dB) joins it; the next worst band was then
 # 1.9 kHz (+6.9 dB), so a 1.9 kHz cut (-1.5 dB, T3_HIMID) too. Spectrum 94.5 -> 99.0. T3_R15=none reproduces v14.
 R15 = os.environ.get("T3_R15", "space")
+# T3_R16 = reboot (v16, section round on w2, 0:30-1:01: the boot into A, "static"). THE MACHINE COMES UP TWICE.
+# The boot's last bar goes dark - every track, its reverb too (a gain lane after the fx), except the bytebeat that has
+# been booting it - and A starts on the far side of the silence with only the automaton: mallets, bass, drone. The
+# floor (kick, hats, rim, the djembe rings, shekere, bells) waits four bars and comes in on A's fifth: the rule has to
+# be running before anything dances to it. Gain lanes, plus a 45 Hz master lift (+2.5 dB, T3_SUB45): four bars
+# without the kick left the album's sub band 7.2 dB short (s0 97.88 without it, 98.13 with). T3_R16=none reproduces v15.
+R16 = os.environ.get("T3_R16", "reboot")
+FLOOR = {"kick", "hats", "ohat", "rim", "toms", "ca-kit", "ca-kit2", "shek", "rbell", "rbell2", "hfill"}
 R11KICK = os.environ.get("T3_R11_KICK", "machine")   # "bronze": the kit's own kick too (cost spectrum 97 -> 75-80)
 C8_KIT = {
     "about": "chirper-two: Three Neighbours' own kit - kr a D1 sine kick that drops into place with a low modal membrane "
@@ -644,6 +652,17 @@ def main():
             if tr["name"] in os.environ.get("T3_LEAVE", "kick,hats,ohat,rim,toms,ca-kit,ca-kit2,shek,skin,click,tone,air,bronze").split(","):
                 tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.leave", "amount": 1}]}}]
                 tr["auto"] = {**tr.get("auto", {}), "leave": lane}
+    if R16 == "reboot":
+        a0 = st["A"]
+        gap0, floor1 = a0 - 4.0, a0 + 4.0 * int(os.environ.get("T3_FLOOR_BARS", "4"))
+        for tr in tracks:
+            if tr["name"] == "byte":
+                continue
+            end = floor1 if tr["name"] in FLOOR else a0
+            lane = {"points": [["0b", 0.0], [f"{gap0 - 0.2}b", 0.0], [f"{gap0 + 0.05}b", -40.0], [f"{end - 0.1}b", -40.0],
+                               [f"{end}b", 0.0], [f"{total}b", 0.0]]}
+            tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.reboot", "amount": 1}]}}]
+            tr["auto"] = {**tr.get("auto", {}), "reboot": lane}
     if R15 == "space":
         for tr in tracks:
             if tr["name"] == "kot" and os.environ.get("T3_ORBIT_KOT", "on") == "on":
@@ -773,6 +792,8 @@ def main():
                                                                "peak cutoff=250 gain=" + (os.environ.get("T3_LOWMID", "-0.5dB") if R15 == "space" else "-2dB") + " q=0.8",
                                                                "highshelf cutoff=7000 gain=2dB"] +
                                                               (["peak cutoff=550 gain=" + os.environ.get("T3_MID0", "-2dB") + " q=1.0"] if R15 == "space" else []) +
+                                                              (["peak cutoff=45 gain=" + os.environ.get("T3_SUB45", "2.5dB" if R16 == "reboot" else "0dB") + " q=1.0"]
+                                                               if os.environ.get("T3_SUB45", "2.5dB" if R16 == "reboot" else "0dB") != "0dB" else []) +
                                                               (["peak cutoff=1900 gain=" + os.environ.get("T3_HIMID", "-1.5dB") + " q=1.0"]
                                                                if (R15 == "space" and os.environ.get("T3_HIMID", "-1.5dB") != "0dB") else []) +
                                                               (["peak cutoff=750 gain=-2.5dB q=0.6"] if R4 == "hymn" else []) +
