@@ -203,6 +203,16 @@ def cz_patch(shape, bend, decay, about, rest=0.06):
 
 C9_CZSAW = cz_patch("saw", "260ms", "1.1s", "chirper-two: a CZ saw-bend pluck - struck bright, relaxing to a soft saw", 0.2)
 C9_CZSQ = cz_patch("square", "200ms", "0.9s", "chirper-two: a CZ square-bend pluck - hollow, a pan struck by a computer")
+# T9_R16 = space (v16, whole-song round). ORBITS YOU CAN STAND INSIDE. A song about orbits finally has one in the
+# room (wM's `orbit` fx, after Chowning's moving sources, 1971; new to this song): the period-eight chord - already an
+# orbit voiced by an orbit (wave terrain) - circles the listener's head, a lap every ~16 s, darker behind; and the
+# Henon canon's two coordinates, x on the xylophone and y on the marimba, circle on opposite sides of the head (phase
+# 0 and 0.5), so the strange attractor is a pair of points going round you, never meeting. And the mix answers the
+# album envelope by its signed worst band: t9 was SHORT at 114-133 Hz (-8.6 dB) and over at 292-400 Hz and 1.9 kHz,
+# so the master gains a 130 Hz lift (+3 dB), a 300 Hz cut (-2 dB), a 1.9 kHz cut (-1.5 dB), and its 5 kHz shelf
+# softens (-5 -> -4 dB); the worst band was then 44 Hz (-7.4 dB short), so a 45 Hz lift (+3 dB) too. Spectrum
+# 91.0 -> 99.9 (s0). T9_R16=none reproduces v15.
+R16 = os.environ.get("T9_R16", "space")
 TERRAIN_GAIN = os.environ.get("T9_TERRAIN_GAIN", "-14.5dB")
 EYE = float(os.environ.get("T9_EYE", "636"))   # where the drum bus drops out (to 640b)
 C9_GENDY = {"about": "chirper-two: a gendyn squall - level and segment-length steps both ride velocity, wide spread, "
@@ -652,6 +662,13 @@ def main():
         tracks.append({"name": "dhold", "patch": "c9-terrain amp.a=2s amp.r=2.5s" if tdh else "choir-classic amp.a=2s amp.r=2.5s",
                        "gain": os.environ.get("T9_DHOLD_TGAIN", "-11.5dB") if tdh else os.environ.get("T9_DHOLD_GAIN", "-8dB"), "pan": 0.0,
                        "fx": ["hp cutoff=180", "reverb kind=hall decay=2.5s mix=0.25"], "score": dh.score(total)})
+    if R16 == "space":
+        orb = {"orbit": os.environ.get("T9_ORBIT_ORBIT", "orbit rate=0.06 radius=3 mix=0.85"),
+               "henx-chaos": os.environ.get("T9_ORBIT_HENX", "orbit rate=0.11 radius=3 mix=0.8"),
+               "heny-chaos": os.environ.get("T9_ORBIT_HENY", "orbit rate=0.11 radius=3 phase=0.5 mix=0.8")}
+        for tr in tracks:
+            if tr["name"] in orb and orb[tr["name"]] != "off":
+                tr["fx"] = tr.get("fx", []) + [orb[tr["name"]]]
     lines = [
         f"about: {json.dumps(about)}",
         "meta: " + json.dumps({"artist": "chirpers", "album": "A Light Left On", "title": "Period Doubling", "track": 9,
@@ -681,7 +698,13 @@ def main():
                                                               ["hp cutoff=25", "peak cutoff=85 gain=-6dB q=0.9",
                                                                "peak cutoff=380 gain=-4.5dB q=0.8",
                                                                "peak cutoff=1150 gain=" + os.environ.get("T9_MID_GAIN", "0dB" if R7BASS == "lpg" or R7DIZI else "1.5dB" if R7BASS == "layer" else "3dB") + " q=0.6",
-                                                               "highshelf cutoff=5000 gain=-5dB"])},
+                                                               "highshelf cutoff=5000 gain=" + (os.environ.get("T9_SHELF", "-4dB") if R16 == "space" else "-5dB")] +
+                                                              (["peak cutoff=45 gain=" + os.environ.get("T9_SUB45", "3dB") + " q=1.0"]
+                                                               if (R16 == "space" and os.environ.get("T9_SUB45", "3dB") != "0dB") else []) +
+                                                              (["peak cutoff=130 gain=" + os.environ.get("T9_LOW130", "3dB") + " q=1.2",
+                                                                "peak cutoff=300 gain=" + os.environ.get("T9_MID300", "-2dB") + " q=1.2",
+                                                                "peak cutoff=1900 gain=" + os.environ.get("T9_HI1900", "-1.5dB") + " q=1.0"]
+                                                               if R16 == "space" else []))},
                                         "glue threshold=-20dB ratio=2 attack=10ms release=150ms makeup=1dB",
                                         {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}},
                                         {"type": "limiter", "ceiling": "-1.2dB", "release": "80ms"}],
