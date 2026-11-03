@@ -38,6 +38,7 @@ OWNKICK = os.environ.get("C8T2_OWNKICK", "1")   # and the kick: the machine laye
 TOMBACK = os.environ.get("C8T2_TOMBACK", "swap")   # PALETTE ROUND: the backbeat on a drum machine of our own - the engine's `machine` layer (circuit-modelled drum-machine voices, unused on the album) as a tuned electronic tom: G3 on 2, D3 on 4 (the halving's lone 3 on G3), the syndrum backbeat of the old machine records. 'swap' replaces the machine-kit clap (a staple of 9 songs); 'layer' keeps the clap under it
 CONVERGE = os.environ.get("C8T2_CONVERGE", "6")   # WHOLE ROUND: THE PATHS MEET - in C the canon gives way to a second number. Each of C's climbs gets a partner whose own hailstone path joins it partway (27 and 41 meet 313, 31 meets 297), played on the second clarinet in its own register and the same parity rhythm, timed so the two land on the shared number together; they sound in unison for six steps, then the partner falls silent and one line goes on down to 1 - the conjecture heard: different starts, one road home. Value = 'unison steps'
 INTROBOOT = os.environ.get("C8T2_INTROBOOT", "")   # SECTION ROUND (w1, the intro: static): the arp boots by resolution - bar b of the intro keeps only the first INTROBOOT+b steps of the sixteen in bit-reversed order (0 8 4 12 2 10 6 14 1 9 5 13 3 11 7 15: the order an FFT reads them), so the line arrives as a pulse, then halves, quarters, eighths, sixteenths, each note where it always was
+SUMMIT = os.environ.get("C8T2_SUMMIT", "90")   # WHOLE ROUND: everything climbs to 9232 before it falls to one - 27, 31, 27 and 41, C's four seeds, all peak at the same number, so each time a C phrase reaches its top a summit rings: the vibes' high G B D over a crash, the mirror of v34's landings on 1. Value = velocity
 VOSEND = os.environ.get("C8T2_VOSEND", "90")   # SECTION ROUND (w10, the outro: static): the computer's first voice says the last numbers - from outro bar 6 to bar 13 (before the clarinet's last two bars alone) a VOSIM voice (engine 1a5a0572; Kaegi and Tempelaars's 1978 voice-simulation pulse trains, two layers for a vowel, their formants swept by a slow jaw and tongue) sings the clarinet's 1 4 2 1 an octave down, as if talking. Value = velocity
 TEMPOH = os.environ.get("C8T2_TEMPOH", "4")   # WHOLE ROUND: the song breathes with its numbers - a tempo map with a point at every bar, ramping, whose bpm follows the clarinet's height there (log2 n / 13): BPM + TEMPOH x (height - the song's mean height): under BPM while a path is home near 1, above it toward the top of a climb (27's 9232), the mean tempo kept at BPM (t4 sits at 128). The climbs press forward, the falls to one ease back; the break's 3/4 and C's 4/4 kept
 MACHC = os.environ.get("C8T2_MACHC", "37,10")   # SECTION ROUND (w9, 3:56-4:25: little new vs w8): the machine voice comes back for the second time through 27 - B's bytebeat double (an octave under the clarinet) returns over C bars MACHC ('start,len'), so the repeated hailstone path is sung by woodwind and computer together the second time round
@@ -211,6 +212,7 @@ def build():
     def add(tr, at, head, ln, vel):
         ev[tr].append((at, head, ln, vel))
     landings = []
+    summits = []
 
     # --- the clarinet: phrases from each seed, one number an eighth, each phrase from a bar line
     for sec, nb in FORM:
@@ -246,6 +248,8 @@ def build():
                 if at >= end:
                     break
                 last = i == len(path) - 1
+                if SUMMIT and sec == "C" and n == max(path) and n > 1000:
+                    summits.append(at)
                 d = height(n) + (7 if up else 0)
                 v = 100 if n % 2 else 82
                 if BEND and i > 0 and path[i - 1] % 2 == 1 and not last and nl == 2:
@@ -427,6 +431,12 @@ def build():
             for tr in ("hats", "shk", "clap", "tom", "kick"):
                 if tr in ev:
                     ev[tr] = [(a, h, l, 1 if u <= a < w and not (tr == "kick" and (a - c0) % BAR == 0) else v) for (a, h, l, v) in ev[tr]]
+    if SUMMIT:
+        for at in summits:
+            if "vib" in ev:
+                add("vib", at, "G5,B5,D6", 8, int(SUMMIT))
+            if "crash2" in ev:
+                add("crash2", at, "D5", 16, int(SUMMIT))
     if LANDING:
         lv = int("".join(ch for ch in LANDING if ch.isdigit()))
         starts = [x[2] for x in landings]
