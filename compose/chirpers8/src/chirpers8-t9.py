@@ -213,6 +213,24 @@ C9_CZSQ = cz_patch("square", "200ms", "0.9s", "chirper-two: a CZ square-bend plu
 # softens (-5 -> -4 dB); the worst band was then 44 Hz (-7.4 dB short), so a 45 Hz lift (+3 dB) too. Spectrum
 # 91.0 -> 99.9 (s0). T9_R16=none reproduces v15.
 R16 = os.environ.get("T9_R16", "space")
+# T9_R17 = route (v17, whole-song round). ONE VOICE WALKS THE WHOLE ROUTE. wM's `type: chaos` (an audio-rate
+# Rossler attractor, 1976, whose loop is the note's pitch) holds the BP root for the entire song - one note, one
+# voice - and an automation lane walks its `amount` along the logistic map's own road, section by section: a plain
+# tone in ONE; at TWO the period doubles and a subharmonic an octave down appears; FOUR and EIGHT push it further;
+# CHAOS lets it go; the WINDOW - the map's period-three island inside chaos - pulls it back almost to order; the
+# STORM is the classic attractor (0.93); it settles and ends a plain tone again. The synth does with its waveform
+# what the song does with its notes. axis x (a near-sine with a chaotic flutter, not the buzzy z spikes).
+# Held as one note the whole song it cost 0.9 (s0 96.77: a +11 dB bump at 213 Hz and variety 97 - one sustained tone
+# blurs every section); so it SNAPSHOTS: the voice enters at each section's start and holds through ~60% of it at the
+# section's amount (T9_ROUTE_MODE=hold for the single note). T9_R17=none reproduces v16.
+R17 = os.environ.get("T9_R17", "route")
+C9_ROUTE = {"about": "chirper-two: a Rossler chaotic oscillator (axis x) whose amount rides the track's auto.route lane",
+            "synth": {"layers": [{"type": "chaos", "chaos": {"system": "rossler", "axis": "x",
+                                                             "amount": {"value": 0.0, "mod": [{"src": "auto.route", "amount": 1}]}}}],
+                      "filters": [{"kind": "lp", "cutoff": 2400, "q": 0.5}],
+                      "amp": {"a": "6s", "s": 1, "r": "4s"}}}
+ROUTE = {"one": 0.0, "two": 0.3, "four": 0.45, "eight": 0.55, "chaos": 0.8, "window": 0.35, "storm": 0.93,
+         "settle": 0.2, "end": 0.0}
 TERRAIN_GAIN = os.environ.get("T9_TERRAIN_GAIN", "-14.5dB")
 EYE = float(os.environ.get("T9_EYE", "636"))   # where the drum bus drops out (to 640b)
 C9_GENDY = {"about": "chirper-two: a gendyn squall - level and segment-length steps both ride velocity, wide spread, "
@@ -662,6 +680,24 @@ def main():
         tracks.append({"name": "dhold", "patch": "c9-terrain amp.a=2s amp.r=2.5s" if tdh else "choir-classic amp.a=2s amp.r=2.5s",
                        "gain": os.environ.get("T9_DHOLD_TGAIN", "-11.5dB") if tdh else os.environ.get("T9_DHOLD_GAIN", "-8dB"), "pan": 0.0,
                        "fx": ["hp cutoff=180", "reverb kind=hall decay=2.5s mix=0.25"], "score": dh.score(total)})
+    if R17 == "route":
+        pts = [["0b", 0.0]]
+        for nm, s, k, m in secs:
+            v = ROUTE.get(nm, 0.0)
+            pts += [[f"{s:g}b", pts[-1][1]], [f"{s + 4:g}b", v]]
+        pts.append([f"{total}b", 0.0])
+        if os.environ.get("T9_ROUTE_MODE", "snap") == "hold":   # one note, the whole song (s0 96.77: a 213 Hz bump, variety)
+            rsc = f"{mm(bp(0, 57))}/{total - 2:g}b@80"
+        else:   # SNAPSHOTS: the voice enters at each section's start and holds through ~60% of it, then lets go
+            rt = Track("route")
+            for i, (nm, s, k, m) in enumerate(secs):
+                nxt = secs[i + 1][1] if i + 1 < len(secs) else total
+                rt.add(s + 4.0, min(48.0, 0.6 * (nxt - s)), mm(bp(0, 57)), 80)
+            rsc = rt.score(total)
+        tracks.append({"name": "route", "patch": "c9-route", "gain": os.environ.get("T9_ROUTE_GAIN", "-16dB"), "pan": 0.0,
+                       "fx": ["hp cutoff=60", "reverb kind=hall decay=3s mix=0.25"],
+                       "auto": {"route": {"points": pts}},
+                       "score": rsc})
     if R16 == "space":
         orb = {"orbit": os.environ.get("T9_ORBIT_ORBIT", "orbit rate=0.06 radius=3 mix=0.85"),
                "henx-chaos": os.environ.get("T9_ORBIT_HENX", "orbit rate=0.11 radius=3 mix=0.8"),
@@ -689,7 +725,8 @@ def main():
                                      **({"c9-bpclar": C9_BPCLAR} if R10 == "bpclar" else {}),
                                      **({"c9-gendy": C9_GENDY} if R13 == "squall" else {}),
                                      **({"c9-terrain": C9_TERRAIN} if R14 == "terrain" else {}),
-                                     **({"c9-czsaw": C9_CZSAW, "c9-czsq": C9_CZSQ} if R15 == "cz" else {})})]
+                                     **({"c9-czsaw": C9_CZSAW, "c9-czsq": C9_CZSQ} if R15 == "cz" else {}),
+                                     **({"c9-route": C9_ROUTE} if R17 == "route" else {})})]
           if R4 == "break" else []),
         "buses: " + json.dumps(buses),
         "master: " + json.dumps({"fx": [{"type": "eq", "bands": (["hp cutoff=25", "peak cutoff=90 gain=-4dB q=0.9",
