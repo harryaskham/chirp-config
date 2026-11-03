@@ -412,6 +412,32 @@ def build():
             best_ = l_
     cb_ = coda0 + 8
     P['brass'].append((cb_ * 4.0, ','.join(tok(hz(v, 0) * 4 / 3) for v in bar_chord[cb_]), 3.8, 100))
+    # (v37) THE CHOIR COOLS INTO A CHORD (Harry on t10, 3 Nov: 'the vocal choiry section ... that is the bar'): a
+    # four-voice CHANT choir (Rodet's FOF singing, IRCAM 1979-84 - wM's fof layer) sings the song's chords from the
+    # first epoch to the end - bass on the root, tenor the fifth, alto the third, soprano the seventh - but the choir
+    # anneals too. Hot, each singer wanders off the chord by its own random walk, whole steps and cents, scaled by the
+    # temperature, so the choir is a smeared, sliding cluster with closed mouths ('u'); as the search cools the
+    # singers find their notes and their mouths open (one shared vowel lane, u to a, following the temperature); at
+    # convergence the chords are pure and open - Am7, Fmaj7, Cmaj7, G7 in just intonation - under the sung lines; the
+    # reheat scatters them again, and the coda's chords ring a fourth higher. (Own dice, SEED+515: nothing else moves)
+    rng_c = random.Random(SEED + 515)
+    CHOIR = (('ch_b', -7), ('ch_t', 4 - 7), ('ch_a', 2), ('ch_s', 6))
+    dev = {nm_: [0, 0.0] for nm_, _ in CHOIR}
+    for nm_, _ in CHOIR:
+        P[nm_] = []
+    for b_ in range(12, nb):
+        tb_ = T[b_]
+        root_ = next(r_ for r_, v_ in CHORDS if v_ == bar_chord[b_])
+        up_ = 4 / 3 if b_ >= coda0 else 1.0
+        for nm_, iv_ in CHOIR:
+            d_ = dev[nm_]
+            if rng_c.random() < 0.6 * tb_:
+                d_[0] = rng_c.randint(-2, 2)
+            elif rng_c.random() > tb_:
+                d_[0] = 0
+            d_[1] = 0.7 * d_[1] + rng_c.gauss(0, 120 * tb_)
+            f_ = hz(root_ + iv_ + d_[0], d_[1]) * up_
+            P[nm_].append((b_ * 4.0, tok(f_), 3.9, int(50 + 40 * (1 - tb_))))
     # (v26) THE TEMPERATURE, AUDIBLE: under everything, an open fifth (A and E) on Xenakis's dynamic stochastic
     # synthesis (GENDY, 1991: each wave cycle a polygon whose corners random-walk) - the same idea as the search itself,
     # a random walk with a step size. Its step sizes are the temperature: while the machine is hot the corners and the
@@ -581,6 +607,15 @@ def build():
                                    'amp': {'a': '2ms', 'd': '300ms', 's': 0.35, 'r': '120ms'}, 'filters': ['lp cutoff=4200', 'hp cutoff=180']}},
                '-11dB', pan=-0.45, fx=['delay time=3/16 feedback=0.2 mix=0.18'], sends={'hall': '-12dB'}),
             tr('xtal', 'vosim-bell', '-21dB', pan=-0.3, fx=['hp cutoff=300'], sends={'hall': '-10dB'}),
+        ] + [tr(nm_, {'synth': {'layers': [{'type': 'fof', 'fof': {'voice': vc_, 'vowel': 'u>a', 'attack': '3ms',
+                                                                   'morph': {'value': 0, 'mod': [{'src': 'auto.mouth', 'amount': 1}]}}}],
+                                 'pitch': {'value': 0, 'mod': [{'src': 'lfo.vib', 'amount': vib_}]},
+                                 'lfo': {'vib': {'wave': 'sine', 'rate': '5.5hz', 'delay': '300ms', 'fade': '400ms'}},
+                                 'amp': '300ms 0 1 900ms'}},
+                 g_, pan=pn_, sends={'hall': '-7dB'},
+                 auto={'mouth': {'points': [[f"{b_ * 4.0:.1f}b", round(1.0 - T[b_], 3)] for b_ in range(nb)]}})
+             for nm_, vc_, vib_, g_, pn_ in (('ch_b', 'bass', 0.1, '-21dB', -0.1), ('ch_t', 'tenor', 0.15, '-23dB', 0.25),
+                                             ('ch_a', 'alto', 0.2, '-23dB', -0.25), ('ch_s', 'soprano', 0.3, '-23dB', 0.1))] + [
             tr('brass', {'synth': {'layers': [{'type': 'shaper', 'shaper': {'harmonics': [1, 0.62, 0.48, 0.37, 0.28, 0.2, 0.14, 0.09, 0.06],
                                               'index': {'value': 0.04, 'mod': [{'src': 'env.blow', 'amount': 0.7}, {'src': 'vel', 'amount': 0.25}]}}}],
                                    'env': {'blow': {'a': '70ms', 'd': '500ms', 's': 0.35, 'r': '250ms'}},
