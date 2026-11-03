@@ -653,6 +653,22 @@ def clearing():
     part("crash12").add(z, 4.0, "cy", 112)
 
 
+# v30 (ROUND TYPE: whole; g6's middle flagged static / little new, w9-w10; wM's systems pinned ade7b930): THE DRUMMER
+# BECOMES A COLONY. From bar 132 to the tutti (145) the regular kit steps aside and the SAME kit plays CONWAY'S GAME OF
+# LIFE (the engine's life gen): a 16 x 4 torus, one bar of sixteenths per generation, rows bottom-up kick, rim, clap,
+# hat - so the groove mutates by the rules of life itself, a bar at a time, until the band's tutti brings the drummer
+# back. The start was chosen by simulating B3/S23 here: it lives all 13 generations without repeating a state, keeps
+# a kick on every downbeat, and grows from a kick roll into clusters that drift across the bar.
+COLONY = (132, 145)
+COLONY_INIT = "0001110101001001/0110010000111011/0001101000000011/1111101010000100"
+
+
+def colony():
+    a, z = b0(COLONY[0]), b0(COLONY[1])
+    for name in ("kick", "hats", "clap", "ride"):
+        P[name].ev = [(s, ln, head, 1 if a <= s < z else vel) for s, ln, head, vel in P[name].ev]
+
+
 CLEAR_TRACKS = ("turtle", "harp", "kalimba", "celesta", "violins_lead", "strum", "horns", "ondes")
 
 
@@ -706,6 +722,7 @@ def main():
     drums()
     illusions()
     clearing()                                    # v23: a clearing in the forest (g6), once every part is written
+    colony()                                      # v30: the drummer becomes a colony
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
     song = {
         "about": "chirpers - A Light Left On (chirpers VIII), track 12 by chirper-three: the closer. An orchestra of "
@@ -838,6 +855,9 @@ def main():
                            "sends": {"hall": "-10dB"}, "auto": {"cg": {"points": counting_lane()}},
                            "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.cg", "amount": 1}]}}],
                            "notes": counting_notes()})                          # v29: the machine keeps counting
+    song["tracks"].append({"name": "colony", "patch": "machine-kit", "gain": "-11dB", "at": f"{b0(COLONY[0]):g}b",
+                           "gen": {"type": "life", "width": 16, "height": 4, "init": COLONY_INIT, "poly": 3,
+                                   "n": 16 * (COLONY[1] - COLONY[0]), "len": "/16", "notes": "k rs cp h"}})  # v30
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print("wrote", OUT, "bars", BARS, "gens", {g: len(lsys(g)) for g in range(7)})
