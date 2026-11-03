@@ -413,6 +413,36 @@ WAKE_UP = "2b"
 ADT = (0.07, 0.03)
 
 
+# v27 (ROUND TYPE: whole; Harry 'a tune good to hear', 'oblique words', 'do more each round'): THE VOICE GROWS WITH
+# THE TUNE. The tune has grown by generations (1, 2, 3, 5, 8, 13 notes) but the voice only came at the end, full
+# grown. Now in g5 (68, 76 - the map's 'little new vs w4' window) the singer sings the tune AS IT STANDS IN g5, its
+# 8-note generation, with its own words: 'night: the slow vine knows two, then four' - a vine doubling overnight (the
+# L-system), two-then-four (a machine counting); the tape choir swells beneath. The coda then sings the grown tune
+# and the grown words: a verse and a chorus, the voice growing like the tree. Each statement in its bar's key.
+VERSE = [   # chirp tts --sing "F#4/4 G#4/8 A4/8 B4/4 C#5/4 B4/2 A4/8 G#4/2" "night the slow vine knows two then four" --humanize 0.4
+    (0.248, 0.99, 'N AY1 T', 66, 0.85, [-55.0, -28.0, -9.0, 2.0, 5.0, 5.0, 2.0, 2.0, 6.0, 13.0, 17.0, 13.0, 1.0, -13.0, -18.0, -8.0, 13.0, 30.0, 31.0, 16.0, -6.0, -21.0, -21.0, -5.0]),
+    (1.254, 0.495, 'DH AH0', 68, 0.771, [-3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -6.0, -5.0, 2.0, 10.0, 9.0, -3.0]),
+    (1.744, 0.495, 'S L OW1', 69, 0.861, [-3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -5.0, -5.0, 1.0, 7.0, 8.0, -1.0]),
+    (2.241, 0.99, 'V AY1 N', 71, 0.865, [4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 1.0, 1.0, 6.0, 14.0, 18.0, 13.0, -1.0, -16.0, -21.0, -8.0, 15.0, 32.0, 32.0, 14.0, -10.0, -25.0, -23.0, -4.0]),
+    (3.26, 0.99, 'N OW1 Z', 73, 0.853, [4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 2.0, 1.0, 6.0, 14.0, 17.0, 11.0, -3.0, -16.0, -18.0, -4.0, 18.0, 33.0, 29.0, 10.0, -13.0, -25.0, -18.0, 2.0]),
+    (4.246, 1.98, 'T UW1', 71, 0.843, [-3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -6.0, -8.0, -5.0, 3.0, 10.0, 11.0, 1.0, -15.0, -28.0, -28.0, -13.0, 11.0, 26.0, 25.0, 8.0, -15.0, -32.0, -33.0, -17.0, 6.0, 24.0, 26.0, 12.0, -11.0, -30.0, -34.0, -21.0, 2.0, 22.0, 27.0, 16.0, -6.0, -27.0, -34.0, -25.0, -3.0, 19.0, 28.0, 19.0, -2.0, -24.0, -34.0]),
+    (6.25, 0.495, 'DH EH1 N', 69, 0.849, [-3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -5.0, -4.0, 2.0, 9.0, 7.0, -4.0]),
+    (6.761, 1.7, 'F AO1 R', 68, 0.871, [-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -3.0, -4.0, -1.0, 6.0, 11.0, 9.0, -1.0, -15.0, -22.0, -17.0, 1.0, 19.0, 26.0, 17.0, -2.0, -20.0, -27.0, -18.0, 1.0, 19.0, 25.0, 16.0, -3.0, -21.0, -27.0, -18.0, 2.0, 20.0, 25.0, 16.0, -4.0, -21.0, -27.0, -17.0, 2.0, 19.0, 22.0, 7.0, -19.0, -45.0, -60.0, -62.0]),
+]
+VERSE_AT = (68, 76)
+
+
+def verse_notes():
+    out = []
+    for bar in VERSE_AT:
+        shift = (PLAN[bar][0] - PLAN[158][0]) * 12 / EDO
+        shift = ((shift + 6) % 12) - 6
+        for a, ln, ph, midi, v, f0 in VERSE:
+            out.append({"at": round(warp(b0(bar) + a), 4), "len": ln, "ph": ph, "pitch": f"m{midi + shift:.3f}",
+                        "vel": round(v * 0.9, 3), "expr_path": {"f0": f0}})
+    return out
+
+
 def adt_notes():
     out = []
     for n in sung_notes()[len(SING):]:
@@ -742,6 +772,9 @@ def main():
     song["tracks"].append({"name": "singer2", "patch": SING_PATCH, "gain": "-14dB", "pan": 0.3, "transpose": ADT[0],
                            "sends": {"hall": "-5dB"}, "fx": [{"type": "filter", "kind": "hp", "cutoff": 160}],
                            "notes": adt_notes()})                               # v25: the voice doubled
+    song["tracks"].append({"name": "verse", "patch": SING_PATCH, "gain": "-12dB", "pan": 0.05,
+                           "sends": {"hall": "-5dB"}, "fx": [{"type": "filter", "kind": "hp", "cutoff": 160}],
+                           "notes": verse_notes()})                             # v27: the voice grows with the tune
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print("wrote", OUT, "bars", BARS, "gens", {g: len(lsys(g)) for g in range(7)})
