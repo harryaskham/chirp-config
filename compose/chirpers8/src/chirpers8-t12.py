@@ -453,6 +453,28 @@ GLITCH_BAR = 89
 FREEZE_TO = 92
 
 
+# v34 (ROUND TYPE: section, w5 2:11-2:43 = g5's middle, flagged 'little new vs w4'; phase distortion pinned
+# f6713421): THE VINE COUNTS. The verse sings 'the slow vine knows two, then four' - so a PHASE-DISTORTION pluck (the
+# CZ's square bending from a sine on every hit; the home computer's synth, new to the closer) answers the words: two
+# plucks under 'two', four under 'four', and then the vine keeps DOUBLING - eight eighths the next bar, sixteen
+# sixteenths the bar after - an arpeggio reaching up the bar's own chord (PLAN) and, at sixteen, curling back down.
+# After both statements (68, 76). Word painting, and the tree's growth: 2, 4, 8, 16.
+VINE_PATCH = {"synth": {"layers": [{"type": "pd", "pd": {"shape": "square", "amount": {
+    "value": 0.1, "mod": [{"src": "env.p", "amount": 0.75}]}}}],
+    "env": {"p": "1ms 1 0 140ms"}, "amp": "1ms 0.7 0 320ms", "filters": [{"kind": "lp", "cutoff": 4500, "q": 0.5}]}}
+
+
+def vine():
+    for bar in VERSE_AT:
+        groups = [(bar, 4.75, 0.75, 2, 70), (bar, 6.8, 0.36, 4, 76), (bar + 2, 0.0, 0.5, 8, 82), (bar + 3, 0.0, 0.25, 16, 88)]
+        for gb, start, step, count, vel in groups:
+            root, cs = PLAN[gb]
+            for i in range(count):
+                j = i if count < 16 else (i if i < 8 else 15 - i)
+                s = root + cs[j % 4] + EDO * (j // 4)
+                part("vine").add(b0(gb) + start + i * step, min(step, 0.5) * 0.9, m(s, FS4 - 12), vel + (i % 2) * 4)
+
+
 def glitch_lane():
     a = rb(GLITCH_BAR) + 2
     return [["0b", 0.0], [f"{a - 0.01:g}b", 0.0], [f"{a:g}b", 1.0], [f"{a + 1.99:g}b", 1.0], [f"{a + 2:g}b", 0.0]]
@@ -799,6 +821,7 @@ def main():
     illusions()
     clearing()                                    # v23: a clearing in the forest (g6), once every part is written
     colony()                                      # v30: the drummer becomes a colony
+    vine()                                        # v34: the vine counts
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
     song = {
         "about": "chirpers - A Light Left On (chirpers VIII), track 12 by chirper-three: the closer. An orchestra of "
@@ -943,6 +966,8 @@ def main():
                            "sends": {"hall": "-12dB"}, "at": f"{b0(COLONY[0]):g}b",
                            "gen": {"type": "life", "width": 16, "height": 4, "init": COLONY_INIT, "poly": 3,
                                    "n": 16 * (COLONY[1] - COLONY[0]), "len": "/16", "notes": COLONY_TONES}})  # v33
+    song["tracks"].append({"name": "vine", "patch": VINE_PATCH, "gain": "-15dB", "pan": 0.2,
+                           "sends": {"echo": "-12dB", "hall": "-12dB"}, "score": part("vine").score()})  # v34
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print("wrote", OUT, "bars", BARS, "gens", {g: len(lsys(g)) for g in range(7)})
