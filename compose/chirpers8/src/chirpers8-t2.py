@@ -38,6 +38,7 @@ OWNKICK = os.environ.get("C8T2_OWNKICK", "1")   # and the kick: the machine laye
 TOMBACK = os.environ.get("C8T2_TOMBACK", "swap")   # PALETTE ROUND: the backbeat on a drum machine of our own - the engine's `machine` layer (circuit-modelled drum-machine voices, unused on the album) as a tuned electronic tom: G3 on 2, D3 on 4 (the halving's lone 3 on G3), the syndrum backbeat of the old machine records. 'swap' replaces the machine-kit clap (a staple of 9 songs); 'layer' keeps the clap under it
 CONVERGE = os.environ.get("C8T2_CONVERGE", "6")   # WHOLE ROUND: THE PATHS MEET - in C the canon gives way to a second number. Each of C's climbs gets a partner whose own hailstone path joins it partway (27 and 41 meet 313, 31 meets 297), played on the second clarinet in its own register and the same parity rhythm, timed so the two land on the shared number together; they sound in unison for six steps, then the partner falls silent and one line goes on down to 1 - the conjecture heard: different starts, one road home. Value = 'unison steps'
 INTROBOOT = os.environ.get("C8T2_INTROBOOT", "")   # SECTION ROUND (w1, the intro: static): the arp boots by resolution - bar b of the intro keeps only the first INTROBOOT+b steps of the sixteen in bit-reversed order (0 8 4 12 2 10 6 14 1 9 5 13 3 11 7 15: the order an FFT reads them), so the line arrives as a pulse, then halves, quarters, eighths, sixteenths, each note where it always was
+TEMPOH = os.environ.get("C8T2_TEMPOH", "4")   # WHOLE ROUND: the song breathes with its numbers - a tempo map with a point at every bar, ramping, whose bpm follows the clarinet's height there (log2 n / 13): BPM + TEMPOH x (height - the song's mean height): under BPM while a path is home near 1, above it toward the top of a climb (27's 9232), the mean tempo kept at BPM (t4 sits at 128). The climbs press forward, the falls to one ease back; the break's 3/4 and C's 4/4 kept
 MACHC = os.environ.get("C8T2_MACHC", "37,10")   # SECTION ROUND (w9, 3:56-4:25: little new vs w8): the machine voice comes back for the second time through 27 - B's bytebeat double (an octave under the clarinet) returns over C bars MACHC ('start,len'), so the repeated hailstone path is sung by woodwind and computer together the second time round
 ARPBB = os.environ.get("C8T2_ARPBB", "sq")   # PALETTE: the chip arps become a bytebeat (engine 709cf900): the formula ARPBB on the counter t, clock 8372 so t*8 sits on the written pitch - 'sq' is t*8&128, one bit of the count, a bare square; 'sp' adds the octave above gated by a slower bit; the arp's gain ARPBBGAIN
 MACHV = os.environ.get("C8T2_MACHV", "90")   # SECTION ROUND (w4, 1:28-1:58: static): the machine sings the numbers - through B's first twelve bars (the whole step up) a bytebeat (engine 709cf900) doubles the clarinet an octave down: (t*8)^(t>>6), a saw whose wave is XORed with its own slower count, so its colour turns as each note is held; clock 8372 puts t*8 on the written pitch. Value = velocity
@@ -116,6 +117,28 @@ def clar_times(path):
         out.append((t, ln))
         t += ln
     return out, t
+
+
+def tempo_h():
+    """TEMPOH: a ramped point at every bar, bpm from the bar's mean height."""
+    hv = heights()
+    d = float(TEMPOH)
+    hm = sum(hv) / len(hv)   # centred on the song's mean height, so the mean tempo stays BPM (t4 sits at 128)
+    pts = []
+    for sec, nb in FORM:
+        a0 = sec_start(sec)
+        for b in range(nb):
+            at = a0 + b * barlen(sec)
+            seg = hv[at // 2: (at + barlen(sec)) // 2] or [0.0]
+            h = sum(seg) / len(seg)
+            p = {"at": f"{at / 4:g}b", "bpm": round(BPM + d * (h - hm), 2)}
+            if pts:
+                p["ramp"] = True
+            if METER and b == 0 and sec in ("break", "C"):
+                pts.append(dict(p))
+                p = {"at": p["at"], "bpm": p["bpm"], "meter": "3/4" if sec == "break" else "4/4"}
+            pts.append(p)
+    return pts
 
 
 def heights():
@@ -557,7 +580,7 @@ def song0():
         **({"tuning": [{"edo": 12}, {"at": f"{st['break'] // BAR}bar", "steps": ["9/8", "5/4", "4/3", "3/2", "5/3", "15/8", "2/1"],
                                    "root": "G3", "ramp": "8bar"}]} if JI else {}),
         **({"vars": {"height": {"steps": heights(), "every": "1/8", "smooth": "80ms"}}} if (HEIGHTVAR or HEIGHTAIR or HEIGHTPAN) else {}),
-        "tempo": ([{"at": "0b", "bpm": BPM}, {"at": f"{st['break'] / 4:g}b", "bpm": BPM, "meter": "3/4"},
+        "tempo": (tempo_h() if TEMPOH else [{"at": "0b", "bpm": BPM}, {"at": f"{st['break'] / 4:g}b", "bpm": BPM, "meter": "3/4"},
                    {"at": f"{st['C'] / 4:g}b", "bpm": BPM, "meter": "4/4"}] if METER else BPM), "ceiling": "-1dB", "loudness": -11, "seed": SEED, "tail": "2s",
         "master": {"fx": [*([{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.arc", "amount": float(ARC)}]}}] if ARC and ARCPOS != "post" else []),
                           {"type": "eq", "bands": ["highpass cutoff=30", "peak cutoff=250 q=0.8 gain=-1.5dB", "peak cutoff=1500 q=0.7 gain=-3dB", "highshelf cutoff=7000 gain=1.5dB"]
