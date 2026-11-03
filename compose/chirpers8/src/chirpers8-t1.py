@@ -212,16 +212,24 @@ def build():
     # climbs past it - F# A on 'long', up to the D an octave above home on 'vow-', settling on B: the human's last
     # line reaches the song's top note, and the machine, saying it back, has to reach for it too
     # (same takes, same words and breath - chirp tts seeds 905 and 907, humanize 0.5 - only --melody changed)
-    h_notes, h_fv = [], []
+    # (v40) A CHOIR, AND THE MACHINE IN IT (Harry on t10's duet, 3 Nov 22:15: 'the vocal choiry section ... super good
+    # ... that is the bar'): the second voice was the lead's own take moved up a third - one singer twice. Now it is
+    # its own performance (a separate take of the same words on the harmony, chirp tts seeds 1009/925/933; the low part 945/953) a hair
+    # behind; and in the last groove, where the machine says the line back, a third voice joins a third BELOW the
+    # lead - and it is the machine, singing through its speech chip (LPC, ten poles, 6-bit), in the choir at last:
+    # it began the song babbling, learned to echo the ends of lines, and ends it singing the harmony
+    CHOIR = SUNG['choir']
+    h_notes, h_fv, l_notes = [], [], []
     for v in VOICE:
         if v['bar'] not in (89, 105, 113):
             continue
-        off = (v['bar'] - 1) * 4.0 + 0.04
-        for n_ in v['notes']:
-            m_ = round(69 + 12 * math.log2(float(n_['pitch'][:-2]) / 440.0))
-            h_notes.append(dict(n_, at=round(off + n_['at'], 4), pitch=f"{440.0 * 2 ** ((D_UP.get(m_, m_ + 3) - 69) / 12):.2f}hz",
-                                vel=round(n_.get('vel', 0.8) * 0.9, 3)))
-        h_fv += [[f"{off + float(a_[:-1]):.3f}b", x_ + 0.2] for a_, x_ in v['fv']]
+        off = (v['bar'] - 1) * 4.0
+        c_ = CHOIR[f"up{v['bar']}"]
+        h_notes += [dict(n_, at=round(off + 0.04 + n_['at'], 4), vel=round(n_.get('vel', 0.8) * 0.9, 3)) for n_ in c_['notes']]
+        h_fv += [[f"{off + 0.04 + float(a_[:-1]):.3f}b", x_ + 0.15] for a_, x_ in (c_['fv'] or v['fv'])]
+        if f"dn{v['bar']}" in CHOIR:
+            l_notes += [dict(n_, at=round(off + 0.07 + n_['at'], 4), vel=round(n_.get('vel', 0.8) * 0.9, 3))
+                        for n_ in CHOIR[f"dn{v['bar']}"]['notes']]
     CHIPS = [(17, 'lpc order=4 bits=4 rate=5kHz', '-14dB'), (33, 'lpc order=6 bits=4 rate=6kHz', '-13dB'),
              (65, 'lpc order=8 bits=5 rate=8kHz', '-12dB'), (73, 'lpc order=10 bits=6 rate=8kHz', '-12dB'),
              (89, 'lpc order=10 bits=8 rate=11kHz', '-11dB')]
@@ -616,6 +624,10 @@ def build():
                     {'type': 'eq', 'bands': ['peak cutoff=300 q=1 gain=-3dB', 'highshelf cutoff=8000 gain=2dB']},
                     {'type': 'reverb', 'kind': 'plate', 'decay': '1.5s', 'predelay': '24ms', 'mix': 0.2}],
              'auto': {'fv': {'points': h_fv}}, 'sends': {'hall': '-14dB', 'echo': '-16dB'}},
+            {'name': 'voice3', 'patch': 'voice-speech', 'gain': '-10dB', 'pan': 0.3, 'notes': l_notes,
+             'fx': ['lpc bits=6', {'type': 'eq', 'bands': ['peak cutoff=300 q=1 gain=-2dB']},
+                    {'type': 'reverb', 'kind': 'plate', 'decay': '1.5s', 'predelay': '24ms', 'mix': 0.2}],
+             'sends': {'hall': '-14dB', 'echo': '-16dB'}},
         ] + [{'name': f"chip{k_ + 1}", 'patch': 'voice-speech', 'gain': g_, 'pan': 0.35 - 0.1 * k_, 'notes': chip_notes[bar_],
                'fx': [fx_], 'sends': {'hall': '-12dB', 'echo': '-14dB'}} for k_, (bar_, fx_, g_) in enumerate(CHIPS)] + [
         ]}
