@@ -700,6 +700,15 @@ def house_stabs():
             part("stab").add(b0(bar) + at, 0.2, chord, 92 if k == 0 else 80)
 
 
+# v33 (ROUND TYPE: whole; orbit pinned c7606671 - Chowning's moving sound sources, 1971, the first computer-music
+# spatialiser): THE STORM WHIRLS. (1) Bogo's dice storm (89-100) circles the listener's head, a lap a bar, behind too
+# (darker there) - randomness all around you, until the miracle. (2) The entropy cloud ORBITS BY ITS DISORDER: an
+# orbit a lap every four seconds whose mix is the entropy lane - shuffled, the stochastic cloud circles you; as each
+# sort converges it settles; sorted, it is still, in front. (3) The low end: compscore's worst band was still a
+# deficit (133 Hz, -8.3 dB): the bass up another 2 dB.
+DICE_LAP = round(128 / 60 / 4, 4)          # a lap a bar at 128 bpm (laps per second)
+
+
 def main():
     write()
     arrival()                                     # v22: the stop, the reverse cymbal, the impact
@@ -732,7 +741,8 @@ def main():
                     "amount": {"value": 0, "mod": [{"src": "auto.m", "amount": 1}]}},
                    {"type": "stutter", "slice": "1/16", "repeats": 6, "roll": 0.6, "pitch": 0.5,
                     "chance": {"value": 0, "mod": [{"src": "auto.roll", "amount": 1}]}}]),
-            tr("bass", "bass-pick-di", gain="+2.5dB", fx=["duck by=kick depth=-4dB"]),       # v6: round, no squelch; v24: a player's bass; v32: +3.5 dB (band 8, ~114 Hz, was short)
+            tr("bass", "bass-pick-di", gain="+4.5dB", fx=["duck by=kick depth=-4dB",
+               {"type": "filter", "kind": "peak", "cutoff": 133, "q": 0.9, "gain": "5dB"}]),   # v33: 133 Hz short       # v6: round, no squelch; v24: a player's bass; v32: +3.5 dB (band 8, ~114 Hz, was short)
             tr("tune", "rhodes", gain="-10dB", pan=-0.1, sends={"dly": "-10dB"},
                fx=[{"type": "filter", "kind": "hp", "cutoff": 250}]),                      # v6: the tune that emerges
             *voice_tracks(),                                                                 # v10: speech to song
@@ -763,6 +773,8 @@ def main():
             tr("revcym", "fx-revcym", gain="-10dB", sends={"room": "-10dB"}),                 # v22: LAST (keeps rngs)
             tr("impact", "fx-impact", gain="-10dB"),
             tr("entropy", ENT_PATCH, gain="-18dB", pan=-0.3, sends={"room": "-10dB"},
+               fx=[{"type": "orbit", "rate": 0.25, "radius": 3, "distance": 0,
+                    "mix": {"value": 0, "mod": [{"src": "auto.en", "amount": 1}]}}],             # v33: orbits by disorder
                auto={"en": {"points": entropy_lane()}}),                                         # v30: entropy
             tr("talk", TALK, gain="-18dB", sends={"room": "-10dB"}, score=part("lead").score()),  # v31: speaks
             {"name": "life", "patch": "toy-piano", "gain": "-16dB", "pan": 0.35, "sends": {"room": "-8dB"},
@@ -770,14 +782,15 @@ def main():
              "gen": {"type": "life", "width": 16, "height": 8, "init": "center", "poly": 3,
                      "n": 16 * (LIFE[1] - LIFE[0]), "len": "/16",
                      "notes": " ".join(pitch(v, BASE + 12) for v in LIFE_POOL)}},                  # v29: life
-            tr("dice", "afro-perc", gain="-14dB", pan=0.3, sends={"room": "-10dB"}),            # v27
+            tr("dice", "afro-perc", gain="-14dB", pan=0.3, sends={"room": "-10dB"},
+               fx=[{"type": "orbit", "rate": DICE_LAP, "radius": 3, "distance": 0}]),             # v27; v33: whirls
             tr("check", C9_PULSE, gain="-16dB", pan=-0.2, sends={"room": "-12dB"}),             # v27
             tr("handover", HAND_PATCH, gain="-6dB", pan=-0.15, sends={"room": "-8dB"}),        # v26: LAST
             tr("leaving", "modal-glock", gain="-8dB", pan=0.25, sends={"room": "-8dB"}),        # v23: LAST
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=0.9s mix=1 predelay=8ms", "hp cutoff=250"]},
                   "dly": {"fx": ["delay time=3/16 mix=1 feedback=0.35", "hp cutoff=400", "lp cutoff=5000"]}},
-        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=28", "peak cutoff=300 q=0.8 gain=-5dB",
+        "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=28", "peak cutoff=300 q=0.8 gain=-5dB", "peak cutoff=420 q=1.0 gain=-3dB",
                                                     "highshelf cutoff=5000 gain=4dB"]},     # v6: the envelope again
                           {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}},
                           {"type": "compressor", "threshold": "-12dB", "ratio": 8, "attack": "0.3ms",
