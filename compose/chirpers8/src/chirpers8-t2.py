@@ -38,6 +38,7 @@ OWNKICK = os.environ.get("C8T2_OWNKICK", "1")   # and the kick: the machine laye
 TOMBACK = os.environ.get("C8T2_TOMBACK", "swap")   # PALETTE ROUND: the backbeat on a drum machine of our own - the engine's `machine` layer (circuit-modelled drum-machine voices, unused on the album) as a tuned electronic tom: G3 on 2, D3 on 4 (the halving's lone 3 on G3), the syndrum backbeat of the old machine records. 'swap' replaces the machine-kit clap (a staple of 9 songs); 'layer' keeps the clap under it
 CONVERGE = os.environ.get("C8T2_CONVERGE", "6")   # WHOLE ROUND: THE PATHS MEET - in C the canon gives way to a second number. Each of C's climbs gets a partner whose own hailstone path joins it partway (27 and 41 meet 313, 31 meets 297), played on the second clarinet in its own register and the same parity rhythm, timed so the two land on the shared number together; they sound in unison for six steps, then the partner falls silent and one line goes on down to 1 - the conjecture heard: different starts, one road home. Value = 'unison steps'
 INTROBOOT = os.environ.get("C8T2_INTROBOOT", "")   # SECTION ROUND (w1, the intro: static): the arp boots by resolution - bar b of the intro keeps only the first INTROBOOT+b steps of the sixteen in bit-reversed order (0 8 4 12 2 10 6 14 1 9 5 13 3 11 7 15: the order an FFT reads them), so the line arrives as a pulse, then halves, quarters, eighths, sixteenths, each note where it always was
+MACHV = os.environ.get("C8T2_MACHV", "90")   # SECTION ROUND (w4, 1:28-1:58: static): the machine sings the numbers - through B's first twelve bars (the whole step up) a bytebeat (engine 709cf900) doubles the clarinet an octave down: (t*8)^(t>>6), a saw whose wave is XORed with its own slower count, so its colour turns as each note is held; clock 8372 puts t*8 on the written pitch. Value = velocity
 PEDALEND = os.environ.get("C8T2_PEDALEND", "up")   # the D pedal (sub, D2, the outro's last four bars) began before the solo and so outlived ENDSOLO: the last 1 was not alone, and the album's seam to t3 read 38-61 Hz +15..+34 dB. 'cut' ends it where the solo starts; 'up' moves it to D3
 GLKFIX = os.environ.get("C8T2_GLKFIX", "1")   # v40's finale put the glock into the outro, but GLKUP then replaced the glock's events with its C doubles, so the glock never joined the finale; keep both
 INTROGLK = os.environ.get("C8T2_INTROGLK", "30")   # SECTION ROUND (w1): instead of thinning the arp (the seam from t1 needs its full head), a glock boots over it by resolution - in intro bar b it doubles, an octave up, the arp's first b+1 steps of the sixteen in bit-reversed order (0 8 4 12 2 10 6 14 1 9 5 13 3 11 7 15, the order an FFT reads them): a pulse, then halves, quarters, eighths, and by the last bar every sixteenth. Value = velocity
@@ -99,7 +100,7 @@ def barlen(sec):
     """Sixteenths in a bar of this section: the break is in 3/4 under METER."""
     return 12 if METER and sec == "break" else BAR
 SEEDS = {"intro": [6, 6], "A": [7, 12, 3, 7], "B": [9, 18, 11], "C": [27, 31, 27, 41], "outro": [1]}
-TRACKS = ("clar", "clar2", "arp", "bass", "sub", "kick", "shk", "hats", "clap", "pad", "bell", "crash") + (("tom",) if os.environ.get("C8T2_TOMBACK", "swap") else ()) + (("ohat",) if os.environ.get("C8T2_OWNHATS", "1") else ()) + (("bell2",) if os.environ.get("C8T2_PREFIGTRACK", "1") else ()) + (("kick2", "tom2", "crash2") if os.environ.get("C8T2_HALVLOCAL", "1") else ()) + (("vib",) if os.environ.get("C8T2_LANDING", "92all") else ()) + (("glk",) if os.environ.get("C8T2_GLKUP", "70") else ())
+TRACKS = ("clar", "clar2", "arp", "bass", "sub", "kick", "shk", "hats", "clap", "pad", "bell", "crash") + (("tom",) if os.environ.get("C8T2_TOMBACK", "swap") else ()) + (("ohat",) if os.environ.get("C8T2_OWNHATS", "1") else ()) + (("bell2",) if os.environ.get("C8T2_PREFIGTRACK", "1") else ()) + (("kick2", "tom2", "crash2") if os.environ.get("C8T2_HALVLOCAL", "1") else ()) + (("vib",) if os.environ.get("C8T2_LANDING", "92all") else ()) + (("glk",) if os.environ.get("C8T2_GLKUP", "70") else ()) + (("mach",) if os.environ.get("C8T2_MACHV", "90") else ())
 GMAJ = ["G", "A", "B", "C", "D", "E", "F#"]
 CHORDS = [("G", [0, 2, 4]), ("E", [5, 7, 9]), ("C", [3, 5, 7]), ("D", [4, 6, 8])]   # I vi IV V as degrees from G
 PRIMES = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31)
@@ -376,6 +377,15 @@ def build():
         for tr in ("clar", "clar2", "arp", "bass", "sub", "pad", "bell"):
             u, w = b0, b0 + (13 if tr == "clar2" else 12) * BAR
             ev[tr] = [(a, pat.sub(tr_note, h) if u <= a < w else h, l, v) for (a, h, l, v) in ev[tr]]
+    if MACHV:
+        import re as _r4
+        NN4 = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+        pat4 = _r4.compile(r"(?<![A-Za-z])([A-G])(#|b|)(\d)(?![\d.])")
+        def dn12(mo):
+            n = NN4.index(mo.group(1)) + {"#": 1, "b": -1, "": 0}[mo.group(2)] + 12 * int(mo.group(3)) - 12
+            return f"{NN4[n % 12]}{n // 12}"
+        b0 = sec_start("B")
+        ev["mach"] = [(a, pat4.sub(dn12, h), l, int(MACHV)) for (a, h, l, v) in ev["clar"] if b0 <= a < b0 + 12 * BAR and not h.startswith("!") and h != "_"]
     if VOXDROP:
         c0 = sec_start("C")
         for rng_ in VOXDROP.split(";"):   # one or more 'start,len' ranges in C bars
@@ -523,6 +533,11 @@ def song():
             trs.append({"name": "vib", "patch": "modal-vibes", "gain": "-9dB", "pan": 0.2, "sends": {"plate": "-14dB"}, "score": T["vib"]})
         if GLKUP:
             trs.append({"name": "glk", "patch": "modal-glock", "gain": "-12dB", "pan": -0.25, "sends": {"plate": "-12dB"}, "score": T["glk"]})
+    if MACHV:
+        T = build()
+        doc["tracks"].append({"name": "mach", "patch": {"synth": {"layers": [{"type": "bytebeat", "bytebeat": {"formula": "(t*8)^(t>>6)", "clock": 8372}}]}},
+                              "gain": os.environ.get("C8T2_MACHGAIN", "-15dB"), "pan": 0.15, "fx": [{"type": "filter", "kind": "lp", "cutoff": 3000, "q": 0.7}],
+                              "sends": {"plate": "-16dB"}, "score": T["mach"]})
     return doc
 
 
