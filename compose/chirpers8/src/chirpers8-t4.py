@@ -443,6 +443,31 @@ def handover():
         part("handover").add(b0(bar), ln, head, 84 - 6 * k)
 
 
+# v27 (ROUND TYPE: section, w6 2:30-3:00 - flagged 'little new vs w5' - and bogosort's run to its miracle, bars
+# 89-100; Harry 'do more each round'): THE DICE AND THE CHECK. Bogosort shuffles, looks, fails, shuffles again - the
+# engine's dice already rolled the notes (v11), but you could not hear it LOOK. Now every bogo bar is a little scene:
+# the dice RATTLE (a shekere in growing sixteenths), the dice LAND (a clave on the 'and' of 4), and the CHECK FAILS -
+# a short falling beep on a one-bit loudspeaker voice (chirper-two's c9-pulse from t9, borrowed with thanks: the
+# machine driving its speaker directly). Eleven failures; at bar 100, the miracle, the beep RISES.
+C9_PULSE = {"about": "chirper-two (t9): a one-bit loudspeaker voice - a very narrow pulse (6%, wider with velocity), "
+                     "crushed, nothing smoothing it: a machine driving its speaker directly.",
+            "synth": {"layers": [{"wave": "pulse", "width": {"value": 0.06, "mod": [{"src": "vel", "amount": 0.12}]}}],
+                      "filters": ["hp cutoff=180", "lp cutoff=7k"], "amp": {"a": "0.5ms", "d": "80ms", "s": 0, "r": "20ms"}},
+            "fx": ["crush bits=5 rate=16kHz"], "play": {"vel_sens": 0.7}}
+DICE = (89, 100)
+
+
+def dice_and_check():
+    a, z = DICE
+    for bar in range(a, z + 1):
+        for s in range(14):
+            part("dice").add(b0(bar) + s / 4, 0.2, "sk", 34 + 3 * s)
+        part("dice").add(b0(bar) + 3.5, 0.3, "cl", 100)
+        beeps = (("m81", 0.0), ("m76", 0.125)) if bar < z else (("m76", 0.0), ("m81", 0.125), ("m88", 0.25))
+        for nt, off in beeps:
+            part("check").add(b0(bar) + 3.75 + off, 0.11 if bar < z else 0.2, nt, 92)
+
+
 def bass_waits():
     P["bass"].ev = [(s, ln, h, 1 if s < b0(BASS_FROM) else v) for s, ln, h, v in P["bass"].ev]
 
@@ -594,6 +619,7 @@ def main():
     leaving()                                     # v23: small things leave first
     bass_waits()                                  # v25: the bass waits for the kick
     handover()                                    # v26: the tuning handover
+    dice_and_check()                              # v27: the dice and the check
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
     lead_patch = {"extends": "vibes", "synth": {"fx": [{"type": "pan", "pan": {"value": 0, "mod": [
         {"src": "expr.ix", "amount": 1}]}}, {"type": "filter", "kind": "lp", "cutoff": 4500}]}}
@@ -647,6 +673,8 @@ def main():
             tr("hats", "909", gain="-6dB", pan=0.1),
             tr("revcym", "fx-revcym", gain="-10dB", sends={"room": "-10dB"}),                 # v22: LAST (keeps rngs)
             tr("impact", "fx-impact", gain="-10dB"),
+            tr("dice", "afro-perc", gain="-14dB", pan=0.3, sends={"room": "-10dB"}),            # v27
+            tr("check", C9_PULSE, gain="-16dB", pan=-0.2, sends={"room": "-12dB"}),             # v27
             tr("handover", HAND_PATCH, gain="-6dB", pan=-0.15, sends={"room": "-8dB"}),        # v26: LAST
             tr("leaving", "modal-glock", gain="-8dB", pan=0.25, sends={"room": "-8dB"}),        # v23: LAST
         ],

@@ -3473,6 +3473,60 @@
    "gain": "-10dB"
   },
   {
+   "name": "dice",
+   "patch": "afro-perc",
+   "score": "R/352b sk/0.2b@34 R/0.05b sk/0.2b@37 R/0.05b sk/0.2b@40 R/0.05b sk/0.2b@43 R/0.05b sk/0.2b@46 R/0.05b sk/0.2b@49 R/0.05b sk/0.2b@52 R/0.05b sk/0.2b@55 R/0.05b sk/0.2b@58 R/0.05b sk/0.2b@61 R/0.05b sk/0.2b@64 R/0.05b sk/0.2b@67 R/0.05b sk/0.2b@70 R/0.05b sk/0.2b@73 R/0.05b cl/0.3b@100 R/0.2b sk/0.2b@34 R/0.05b sk/0.2b@37 R/0.05b sk/0.2b@40 R/0.05b sk/0.2b@43 R/0.05b sk/0.2b@46 R/0.05b sk/0.2b@49 R/0.05b sk/0.2b@52 R/0.05b sk/0.2b@55 R/0.05b sk/0.2b@58 R/0.05b sk/0.2b@61 R/0.05b sk/0.2b@64 R/0.05b sk/0.2b@67 R/0.05b sk/0.2b@70 R/0.05b sk/0.2b@73 R/0.05b cl/0.3b@100 R/0.2b sk/0.2b@34 R/0.05b sk/0.2b@37 R/0.05b sk/0.2b@40 R/0.05b sk/0.2b@43 R/0.05b sk/0.2b@46 R/0.05b sk/0.2b@49 R/0.05b sk/0.2b@52 R/0.05b sk/0.2b@55 R/0.05b sk/0.2b@58 R/0.05b sk/0.2b@61 R/0.05b sk/0.2b@64 R/0.05b sk/0.2b@67 R/0.05b sk/0.2b@70 R/0.05b sk/0.2b@73 R/0.05b cl/0.3b@100 R/0.2b sk/0.2b@34 R/0.05b sk/0.2b@37 R/0.05b sk/0.2b@40 R/0.05b sk/0.2b@43 R/0.05b sk/0.2b@46 R/0.05b sk/0.2b@49 R/0.05b sk/0.2b@52 R/0.05b sk/0.2b@55 R/0.05b sk/0.2b@58 R/0.05b sk/0.2b@61 R/0.05b sk/0.2b@64 R/0.05b sk/0.2b@67 R/0.05b sk/0.2b@70 R/0.05b sk/0.2b@73 R/0.05b cl/0.3b@100 R/0.2b sk/0.2b@34 R/0.05b sk/0.2b@37 R/0.05b sk/0.2b@40 R/0.05b sk/0.2b@43 R/0.05b sk/0.2b@46 R/0.05b sk/0.2b@49 R/0.05b sk/0.2b@52 R/0.05b sk/0.2b@55 R/0.05b sk/0.2b@58 R/0.05b sk/0.2b@61 R/0.05b sk/0.2b@64 R/0.05b sk/0.2b@67 R/0.05b sk/0.2b@70 R/0.05b sk/0.2b@73 R/0.05b cl/0.3b@100 R/0.2b sk/0.2b@34 R/0.05b sk/0.2b@37 R/0.05b sk/0.2b@40 R/0.05b sk/0.2b@43 R/0.05b sk/0.2b@46 R/0.05b sk/0.2b@49 R/0.05b sk/0.2b@52 R/0.05b sk/0.2b@55 R/0.05b sk/0.2b@58 R/0.05b sk/0.2b@61 R/0.05b sk/0.2b@64 R/0.05b sk/0.2b@67 R/0.05b sk/0.2b@70 R/0.05b sk/0.2b@73 R/0.05b cl/0.3b@100 R/0.2b sk/0.2b@34 R/0.05b sk/0.2b@37 R/0.05b sk/0.2b@40 R/0.05b sk/0.2b@43 R/0.05b sk/0.2b@46 R/0.05b sk/0.2b@49 R/0.05b sk/0.2b@52 R/0.05b sk/0.2b@55 R/0.05b sk/0.2b@58 R/0.05b sk/0.2b@61 R/0.05b sk/0.2b@64 R/0.05b sk/0.2b@67 R/0.05b sk/0.2b@70 R/0.05b sk/0.2b@73 R/0.05b cl/0.3b@100 R/0.2b sk/0.2b@34 R/0.05b sk/0.2b@37 R/0.05b sk/0.2b@40 R/0.05b sk/0.2b@43 R/0.05b sk/0.2b@46 R/0.05b sk/0.2b@49 R/0.05b sk/0.2b@52 R/0.05b sk/0.2b@55 R/0.05b sk/0.2b@58 R/0.05b sk/0.2b@61 R/0.05b sk/0.2b@64 R/0.05b sk/0.2b@67 R/0.05b sk/0.2b@70 R/0.05b sk/0.2b@73 R/0.05b cl/0.3b@100 R/0.2b sk/0.2b@34 R/0.05b sk/0.2b@37 R/0.05b sk/0.2b@40 R/0.05b sk/0.2b@43 R/0.05b sk/0.2b@46 R/0.05b sk/0.2b@49 R/0.05b sk/0.2b@52 R/0.05b sk/0.2b@55 R/0.05b sk/0.2b@58 R/0.05b sk/0.2b@61 R/0.05b sk/0.2b@64 R/0.05b sk/0.2b@67 R/0.05b sk/0.2b@70 R/0.05b sk/0.2b@73 R/0.05b cl/0.3b@100 R/0.2b sk/0.2b@34 R/0.05b sk/0.2b@37 R/0.05b sk/0.2b@40 R/0.05b sk/0.2b@43 R/0.05b sk/0.2b@46 R/0.05b sk/0.2b@49 R/0.05b sk/0.2b@52 R/0.05b sk/0.2b@55 R/0.05b sk/0.2b@58 R/0.05b sk/0.2b@61 R/0.05b sk/0.2b@64 R/0.05b sk/0.2b@67 R/0.05b sk/0.2b@70 R/0.05b sk/0.2b@73 R/0.05b cl/0.3b@100 R/0.2b sk/0.2b@34 R/0.05b sk/0.2b@37 R/0.05b sk/0.2b@40 R/0.05b sk/0.2b@43 R/0.05b sk/0.2b@46 R/0.05b sk/0.2b@49 R/0.05b sk/0.2b@52 R/0.05b sk/0.2b@55 R/0.05b sk/0.2b@58 R/0.05b sk/0.2b@61 R/0.05b sk/0.2b@64 R/0.05b sk/0.2b@67 R/0.05b sk/0.2b@70 R/0.05b sk/0.2b@73 R/0.05b cl/0.3b@100 R/0.2b sk/0.2b@34 R/0.05b sk/0.2b@37 R/0.05b sk/0.2b@40 R/0.05b sk/0.2b@43 R/0.05b sk/0.2b@46 R/0.05b sk/0.2b@49 R/0.05b sk/0.2b@52 R/0.05b sk/0.2b@55 R/0.05b sk/0.2b@58 R/0.05b sk/0.2b@61 R/0.05b sk/0.2b@64 R/0.05b sk/0.2b@67 R/0.05b sk/0.2b@70 R/0.05b sk/0.2b@73 R/0.05b cl/0.3b@100 R/304.2b",
+   "gain": "-14dB",
+   "pan": 0.3,
+   "sends": {
+    "room": "-10dB"
+   }
+  },
+  {
+   "name": "check",
+   "patch": {
+    "about": "chirper-two (t9): a one-bit loudspeaker voice - a very narrow pulse (6%, wider with velocity), crushed, nothing smoothing it: a machine driving its speaker directly.",
+    "synth": {
+     "layers": [
+      {
+       "wave": "pulse",
+       "width": {
+        "value": 0.06,
+        "mod": [
+         {
+          "src": "vel",
+          "amount": 0.12
+         }
+        ]
+       }
+      }
+     ],
+     "filters": [
+      "hp cutoff=180",
+      "lp cutoff=7k"
+     ],
+     "amp": {
+      "a": "0.5ms",
+      "d": "80ms",
+      "s": 0,
+      "r": "20ms"
+     }
+    },
+    "fx": [
+     "crush bits=5 rate=16kHz"
+    ],
+    "play": {
+     "vel_sens": 0.7
+    }
+   },
+   "score": "R/355.75b m81/0.11b@92 R/0.015b m76/0.11b@92 R/3.765b m81/0.11b@92 R/0.015b m76/0.11b@92 R/3.765b m81/0.11b@92 R/0.015b m76/0.11b@92 R/3.765b m81/0.11b@92 R/0.015b m76/0.11b@92 R/3.765b m81/0.11b@92 R/0.015b m76/0.11b@92 R/3.765b m81/0.11b@92 R/0.015b m76/0.11b@92 R/3.765b m81/0.11b@92 R/0.015b m76/0.11b@92 R/3.765b m81/0.11b@92 R/0.015b m76/0.11b@92 R/3.765b m81/0.11b@92 R/0.015b m76/0.11b@92 R/3.765b m81/0.11b@92 R/0.015b m76/0.11b@92 R/3.765b m81/0.11b@92 R/0.015b m76/0.11b@92 R/3.765b m76/0.125b@92 m81/0.125b@92 m88/0.2b@92 R/303.8b",
+   "gain": "-16dB",
+   "pan": -0.2,
+   "sends": {
+    "room": "-12dB"
+   }
+  },
+  {
    "name": "handover",
    "patch": {
     "extends": "violin",
