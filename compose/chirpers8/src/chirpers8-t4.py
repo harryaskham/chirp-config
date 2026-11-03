@@ -48,7 +48,7 @@ def pitch(v, base=BASE):
 # done and the groove loosens: every off-beat sixteenth in every part lands later - 0.54, 0.58, then 0.62 of the
 # eighth; straight again in the outro, where the list comes undone. Applied here, not with swing16 tokens: the
 # engine swings rest tokens too, and these parts are written as notes plus short rests
-SWING = [(125, 0.54), (133, 0.58), (141, 0.62), (161, 0.5)]
+SWING = [(125, 0.58), (133, 0.63), (141, 2 / 3), (161, 0.5)]   # v36: the swing arrives at a full triplet shuffle (the walk)
 
 
 def swung(s):
@@ -354,7 +354,7 @@ def write():
         if sec != "bogo" and 8 < bar <= BARS - 2:           # the kick waits for bar 9 (t3 ends quiet); v3: out for the last 2
             # v23: EACH ALGORITHM ITS OWN GROOVE (the tune voice and bass figure already were): insertion half-time,
             # quicksort driving 16ths with a pushed kick, merge broken; bubble, sorted and the intro four on the floor
-            g = GROOVES[sec if sec in GROOVE_ON else "four"]
+            g = GROOVES["walk" if WALK[0] <= bar <= WALK[1] else (sec if sec in GROOVE_ON else "four")]   # v36: walk
             for at, v in g["kick"]:
                 part("kick").add(b0(bar) + at, 0.5, "k", v)
             if sec not in ("intro",) or bar > 8:
@@ -600,6 +600,19 @@ BYTE_TICK = {"about": "chirper-three: a comparison, as bytebeat - (t*8&t>>4)|t*4
 LIFE = (125, 153)
 LIFE_POOL = (0, 4, 5, 9, 13, 15, 18, 20)
 GROOVE_ON = ("insertion", "quick", "merge")
+# v36 (ROUND TYPE: whole; chirp-eco's overview: t4 'develops least' of the album - w8-w9, the sorted stretch, flagged
+# static / little new): THE SORTED LIST WALKS. Every algorithm got its own groove (v23) except the finished list, which
+# went back to bubble's four on the floor. Now, sorted (125-152), the groove turns to a TRIPLET SHUFFLE - the first swing
+# in the song: hats on a 12/8 grid with the beats accented, the kick on 1 and 3 with a triplet pickup, claps on 2 and
+# 4. Order reached, the machine relaxes and walks; the lift (153) snaps back to straight time.
+WALK = (125, 152)
+T3 = 1 / 3
+GROOVES["walk"] = {
+    "kick": [(0, 116), (2, 108), (2 + 2 * T3, 92)],
+    "clap": [(1, 94), (3, 94)],
+    "hats": [(k * T3, "oh" if k % 3 == 2 and k // 3 in (1, 3) else "h", (60 if k % 3 == 0 else 50 if k % 3 == 2 else 34))
+             for k in range(12)],
+}
 # v24 (ROUND TYPE: palette; Harry 'do more each round'): the two album staples under everything change - the pad from
 # juno-pad (5 songs) to PAD-GLASS, an FM bell-glass bloom (FM: the computer's own sound, the digital technique that
 # left the lab for a million keyboards), and the bass from the 808 (5 songs) to BASS-PICK-DI, a picked electric bass
