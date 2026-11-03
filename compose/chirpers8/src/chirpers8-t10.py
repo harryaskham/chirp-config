@@ -50,16 +50,34 @@ SUBJ = [
 
 
 def line(events, total):
+    # (v31) events that share an onset become one chord token (chirp-eco's catch: before, the first of a same-time
+    # pair became a 0.02-beat blip and the second was silently dropped - 370 notes in this song, 367 of them drums)
     ev = sorted(events, key=lambda x: x[0])
+    groups = []
+    for e_ in ev:
+        if groups and abs(e_[0] - groups[-1][0][0]) < 1e-6: groups[-1].append(e_)
+        else: groups.append([e_])
     toks, t = [], 0.0
-    for k, (at, p, d, v) in enumerate(ev):
+    for k, g in enumerate(groups):
+        at = g[0][0]
         if at < t - 1e-6: continue
         if at > t + 1e-4: toks.append(f"R/{at - t:.4f}b")
-        nxt = ev[k + 1][0] if k + 1 < len(ev) else total
-        d = max(0.02, min(d, nxt - at))
-        toks.append(f"{p}/{d:.4f}b@{v}"); t = at + d
+        nxt = groups[k + 1][0][0] if k + 1 < len(groups) else total
+        d = max(0.02, min(max(x[2] for x in g), nxt - at))
+        p = ','.join(dict.fromkeys(x[1] for x in g))
+        toks.append(f"{p}/{d:.4f}b@{max(x[3] for x in g)}"); t = at + d
     if total > t + 1e-4: toks.append(f"R/{total - t:.4f}b")
     return ' '.join(toks)
+
+
+def lanes(events, n):
+    # (v31) a kit written as layers needs more than one line: each hit goes to the first lane that is free when it
+    # starts, so no hit is cut short by the next one or merged into it, and every written velocity survives
+    out, ends = [[] for _ in range(n)], [-1e9] * n
+    for e_ in sorted(events, key=lambda x: x[0]):
+        j = next((j_ for j_ in range(n) if e_[0] >= ends[j_] - 1e-6), min(range(n), key=lambda j_: ends[j_]))
+        out[j].append(e_); ends[j] = max(ends[j], e_[0] + e_[2])
+    return out
 
 
 def build():
@@ -319,6 +337,12 @@ def build():
     for c in cuts:
         st_ = shift(c - 3.5)
         tempo_map += [{'at': f'{st_:.2f}b', 'bpm': BPM, 'meter': '7/8'}, {'at': f'{st_ + 3.5:.2f}b', 'bpm': BPM, 'meter': '4/4'}]
+    # (v31) THE KIT AS WRITTEN: the kicks keep their own line (the sub's pump listens to it); every other hit is dealt
+    # across three more lanes of the same kit, so the claps on the kicks, the open hats on the clave and the rim's
+    # three-against-four all actually sound, at the velocities they were written with
+    _kk = [e_ for e_ in P['kit'] if e_[1] in ('k', 'kd')]
+    P['kit2'], P['kit3'], P['kit4'] = lanes([e_ for e_ in P['kit'] if e_[1] not in ('k', 'kd')], 3)
+    P['kit'] = _kk
     tr = lambda name, patch, gain, **kw: dict({'name': name, 'patch': patch, 'gain': gain, 'score': line(P[name], total)}, **kw)
     # (v26) THE ENTRY IN THE BASS: in the middle of the G minor calls, after the sung line, the subject makes the entry
     # every fugue saves for last - in the bass, three octaves under the bell: for eight bars the bass stops pumping its
@@ -439,6 +463,9 @@ def build():
                      'notes': 'D5 E5 F5 G5 A5 Bb5 C6 D6 E6', 'len': '/16', 'n': 512, 'seed': 7},
              'sends': {'echo': '-10dB', 'hall': '-12dB'}},
             tr('sub', 'sub', '-8dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '250ms', 'curve': 0.6}]),
+            tr('kit2', 'machine-kit', '-2dB', sends={'hall': '-20dB'}),
+            tr('kit3', 'machine-kit', '-2dB', sends={'hall': '-20dB'}),
+            tr('kit4', 'machine-kit', '-2dB', sends={'hall': '-20dB'}),
             tr('bentry', FMBASS, '-7dB', fx=['lp cutoff=1600']),
             # (v29) A SECOND SINGER: when the sung line first arrives, in G minor, a second voice sings it with the first,
             # mostly a third below and leaning on the chord where a third would rub (F# under 'holds', a fifth under 'lit') -
