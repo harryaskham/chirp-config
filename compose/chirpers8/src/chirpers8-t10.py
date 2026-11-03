@@ -475,6 +475,18 @@ def build():
             # (v12) the deepest copies thinner (chirper-three: the densest stack may crowd the subject)
             tr('d2', BELL, '-19dB', pan=-0.6, sends={'echo': '-16dB'}),
             tr('d3', 'glass', '-26dB', pan=0.5, fx=['hp cutoff=800'], sends={'hall': '-12dB'}),
+            # (v39) PERIOD ONE, DOUBLING: t9 is 'Period Doubling' and ends with its logistic map settled on one value. Under
+            # this song's intro an A (the call's root) is held on an audio-rate Rossler attractor (wM's chaos layer, one
+            # loop of the attractor per period of the note) whose control walks the same route t9 is named for, upwards,
+            # across the intro's last twelve seconds: a plain tone, then the period doubles (an octave-down shadow appears
+            # under it), then just before the subject enters it begins to flutter into chaos - the previous machine's
+            # settled value waking into this one - and it lets go as the bell starts the canon
+            {'name': 'wake', 'gain': '-17dB', 'pan': 0.0,
+             'patch': {'synth': {'layers': [{'type': 'chaos', 'chaos': {'system': 'rossler', 'axis': 'x',
+                                    'amount': {'value': 0.0, 'mod': [{'src': 'env.climb', 'amount': 0.72}]}}}],
+                                 'env': {'climb': '11s 0 1 2s'}, 'amp': '6s 0.9 1 2.5s',
+                                 'filters': [{'kind': 'lp', 'cutoff': 2400, 'q': 0.7}, 'hp cutoff=50']}},
+             'score': 'R/8b A2/24b', 'sends': {'hall': '-10dB'}},   # (from bar 3, fading in: the join from t9 stays thin)
             tr('u1', BELL, '-11dB', fx=[f"orbit rate={ORB_RATE} radius=30 distance=2 path=line phase={orb_phase['1']:.4f}"], sends={'echo': '-14dB'}),
             tr('u2', BELL, '-17dB', fx=[f"orbit rate={ORB_RATE} radius=30 distance=2 path=line phase={orb_phase['2']:.4f}"], sends={'echo': '-16dB'}),
             tr('u3', 'glass', '-24dB', fx=['hp cutoff=800', f"orbit rate={ORB_RATE} radius=30 distance=2 path=line phase={orb_phase['3']:.4f}"], sends={'hall': '-12dB'}),
