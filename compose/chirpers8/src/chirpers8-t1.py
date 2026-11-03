@@ -191,6 +191,13 @@ def build():
         for n_ in v['notes']:
             vnotes.append(dict(n_, at=round(off + n_['at'], 4)))
         fv += [[f"{off + float(a_[:-1]):.3f}b", x_] for a_, x_ in v['fv']]
+    # (v32) THE HUMAN SAYS MORE THAN ONE THING (Harry: it repeats a lot): the human used to say the same line ten
+    # times. Now the line is where it starts and where it comes back, and between, the human goes on describing the
+    # room at night to the machine - 'standby amber, the fan's long vowel'; 'the fan's long vowel, and under it, you';
+    # 'a cursor breathing where no one types'; in the break, 'slower now, as if the words were yours'; then sung, on
+    # the same tune: the first line, the cursor, the first line again as the machine says it back, and last 'a light
+    # left on, the fan's long vowel' (chirp tts, humanize 0.5, seeds 900-907; sung takes melodize 1.0 on the tune).
+    # The machine's corpus is the first five takes, so its babble now has more words to learn from
     # THE CORPUS the machine learns from: the first five takes' syllables as tokens (two octaves up), with the breath
     corpus = []
     for v in VOICE[:5]:
