@@ -54,6 +54,7 @@ BSPLITAT = int(os.environ.get("C8T5_BSPLITAT", "12"))   # the bar of B (0-based)
 LIFTSTOP = os.environ.get("C8T5_LIFTSTOP", "1")   # the gear change, announced: the band stops dead for the second half of the bar before the lift (C bar 24) - a clap fill climbing in sixteenths - then lands a whole step up (dropped after generation, so no dice move). Once B was split (v18) this splits C too without crowding the returns
 LIFTHAT = os.environ.get("C8T5_LIFTHAT", "1")   # after the lift the hats open: every off-beat hat an open hat - the agreed band, a step up, brighter on top
 ESTABLE = os.environ.get("C8T5_ESTABLE", "1")   # song-level event_stable (engine f5283535): each note's humanize and DSP draws come from its track, beat and pitch, so a window's edit stays in the window; switching it on re-rolls every humanized note once
+AKEY = os.environ.get("C8T5_AKEY", "2")   # SECTION ROUND (w3, A's second half: little new vs w2): the proposal tried in another key - A bars 26-33, the band's last eight bars of proposals, move up AKEY semitones (guitar and keys chords, acid, sub, horns), so A ends asking somewhere else, and B's negotiation starts back home. Notes held into the change are cut at it
 OUTSTAY = os.environ.get("C8T5_OUTSTAY", "4")   # SECTION ROUND (w9, the outro: level jump): the two machines don't stop dead - the guitar and the acid play on into the outro's first OUTSTAY bars (C bars 34-37 again, in the home key), fading bar by bar as they drift apart in the stereo field, before the line is left to the drifting handshake
 PANMEET = os.environ.get("C8T5_PANMEET", "0.65")   # WHOLE ROUND: the two machines meet in the middle - the guitar starts far right and the acid far left (the spread PANMEET either side of their resting places), and as they come to terms they walk toward each other: still apart through A, closing through B and the retrain, together by C bar 8 (where the guitar's morph into the acid completes), and drifting apart again through the outro as the line hangs up
 KEYUP = os.environ.get("C8T5_KEYUP", "38,2")   # SECTION ROUND (w8, C after the break: static, little new vs w7): when the kit comes back after C's break (bar 38) the whole band comes back a step up - 'bar,semis' - for C's last four bars, so the agreed speed ends on a lift before the outro's drift falls home. Notes held into the change are cut at it
@@ -296,11 +297,11 @@ def build():
                     b = (e[0] - c0 - 34 * BAR) // BAR
                     add_.append((e[0] - c0 - 34 * BAR + o0, e[1], e[2], e[3], max(1, int(e[4] * (1 - b / (n + 1))))) + tuple(e[5:]))
             ev[k] = sorted(ev[k] + add_, key=lambda x: x[0])
-    if KEYUP:
+    for _kspec in ([("C", KEYUP)] if KEYUP else []) + ([("A", f"26,{AKEY}")] if AKEY else []):
         import re as _rk
-        kb, ks = (int(x) for x in KEYUP.split(","))
-        c0 = sec_start("C")
-        u, w = c0 + kb * BAR, sec_start("outro")
+        kb, ks = (int(x) for x in _kspec[1].split(","))
+        c0 = sec_start(_kspec[0])
+        u, w = c0 + kb * BAR, (sec_start("outro") if _kspec[0] == "C" else sec_start("B"))
         isn = _rk.compile(r"^([A-G](#|b)?-?\d)(,[A-G](#|b)?-?\d)*$")
         for k in ("gtr", "acid", "sub", "fretless", "horns", "lead", "keys"):
             if k not in ev:
