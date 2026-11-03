@@ -373,10 +373,36 @@ def build():
         arc2.append([f"{t_:.3f}b", v_]); last = t_
     arc = arc2
     total = shift(total)
-    tempo_map = [{'at': '0b', 'bpm': BPM}]
+    # (v44) THE STACK WEIGHS: every call pushes a frame, and a machine with a deep stack runs heavy - so now the clock
+    # itself follows the call stack. Each level of depth takes 2.5% off the tempo, in steps, on the bar where the call is
+    # made: 120 with the stack empty, 117 one call down, 114 at two, 111 at three - the canon thickening and slowing
+    # under its own weight, each return snapping the clock back up a notch, the final calls sinking to 111 at the
+    # overflow and climbing back through the unwinding to 120 for the outro (and t11). Intro, exposition, the return
+    # and the outro stay at 120, so both joins are untouched
+    bpm_of = [round(BPM * (1.0 - 0.025 * depths[b_]), 3) for b_ in range(len(bars))]
+    tpts, prev_ = {}, None
+    for b_ in range(len(bars)):
+        at_ = shift(b_ * 4.0)
+        if bpm_of[b_] != prev_ or b_ in SHORT:
+            tpts[round(at_, 3)] = {'at': f'{at_:.2f}b', 'bpm': bpm_of[b_]}
+            prev_ = bpm_of[b_]
     for c in cuts:
+        b_ = int(c // 4)
         st_ = shift(c - 3.5)
-        tempo_map += [{'at': f'{st_:.2f}b', 'bpm': BPM, 'meter': '7/8'}, {'at': f'{st_ + 3.5:.2f}b', 'bpm': BPM, 'meter': '4/4'}]
+        tpts[round(st_, 3)] = {'at': f'{st_:.2f}b', 'bpm': bpm_of[b_], 'meter': '7/8'}
+        tpts[round(st_ + 3.5, 3)] = {'at': f'{st_ + 3.5:.2f}b', 'bpm': bpm_of[b_ + 1], 'meter': '4/4'}
+    tpts[0.0] = {'at': '0b', 'bpm': bpm_of[0]}
+    tempo_map = [tpts[k_] for k_ in sorted(tpts)]
+    def secs_at(beat_):
+        out_, last_b, last_bpm = 0.0, 0.0, tempo_map[0]['bpm']
+        for pt_ in tempo_map[1:]:
+            pb_ = float(pt_['at'][:-1])
+            if pb_ >= beat_:
+                break
+            out_ += (pb_ - last_b) * 60.0 / last_bpm
+            last_b, last_bpm = pb_, pt_['bpm']
+        return out_ + (beat_ - last_b) * 60.0 / last_bpm
+    orb_phase = {k_[1]: (0.5 - secs_at(shift(secs_t['final'] + b0_ * 4.0)) * ORB_RATE) % 1.0 for k_, b0_ in UNW.items()}
     # (v31) THE KIT AS WRITTEN: the kicks keep their own line (the sub's pump listens to it); every other hit is dealt
     # across three more lanes of the same kit, so the claps on the kicks, the open hats on the clave and the rim's
     # three-against-four all actually sound, at the velocities they were written with
