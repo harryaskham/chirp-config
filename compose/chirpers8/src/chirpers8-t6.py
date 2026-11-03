@@ -206,6 +206,12 @@ R18 = os.environ.get("T6_R18", "lamp")
 # and the idle tune from ~2.5 kHz (98.12/98.15, joins unchanged). The intro's "static" flag stays. T6_R19=none
 # reproduces v17.
 R19 = os.environ.get("T6_R19", "warm")
+# T6_R20 = idle (v19, section round on w10, 4:30-5:00: the end of chorus two into the outro, "static, little new vs
+# w9", its groove unchanged). THE MACHINE IDLES. The outro used to keep chorus two's half-time 808 under a quieter
+# song. Now, as the radio comes back, the floor changes feel: the kick drops to a 3+3+2 tresillo (beat 1, the "and"
+# of 2, beat 4), a single rim on the "and" of 3, no snare, and the hats go to soft triplet eighths - the same
+# machine, ticking over at rest. Drum events only, in the outro's groove bars. T6_R20=none reproduces v18.
+R20 = os.environ.get("T6_R20", "idle")
 TESTS = [102.0, 150.0, 238.0, 302.0, 318.0, 394.0, 426.0]
 TEST_KEEP = {"voice", "lull", "singb", "ringv", "vosim", "tline", "radio", "ack", "test", "idle-in", "idle-out"}
 WALK_POOL = [0, 3, 6, 8, 11, 14, 17, 19, 22, 25, 27, 30, 33, 36, 38, 41]   # 19-EDO major steps, two octaves up from C5
@@ -388,7 +394,15 @@ def build():
             for b, tt in ((3.0, tones[0]), (3.5, tones[2] if len(tones) > 2 else tones[-1])):
                 T["ack"].add(start + b, 0.42, mm(e(root + tt, 72)), 92 if b == 3.0 else 80)
         # ---- the half-time 808 ----
-        if groove:
+        if groove and R20 == "idle" and sec == "outro":   # the machine idles: tresillo kick, a rim, triplet hats
+            for b, v in ((0.0, 104), (1.5, 88), (3.0, 92)):
+                T["kick"].add(start + b, 0.5 if b else 1.0, "kb", v)
+            T["rim"].add(start + 2.5, 0.2, "rs", 74)
+            for k in range(12):
+                if k % 3 == 0 and k % 6 == 0:
+                    continue
+                T["hats"].add(start + k / 3, 0.1, "h", 50 if k % 3 == 0 else 38, "?0.8" if k % 3 else "")
+        elif groove:
             T["kick"].add(start, 1.0, "kb", 110)
             T["kick"].add(start + 1.5, 0.5, "kb", 92)
             if i % 2 == 1:
