@@ -231,6 +231,17 @@ C3_KSERR = {"about": "chirper-two: the 1983 Karplus-Strong drum (blend 0.5) - a 
             "synth": {"layers": [{"type": "ks", "ks": {"blend": float(os.environ.get("T3_KS_BLEND", "0.75")), "stretch": 1},
                                            "bright": 0.4}],
                       "amp": {"a": "1ms", "d": "350ms", "s": 0, "r": "120ms"}}}
+# T3_R23 = track (v23, section round on w4, 1:32-2:03: the end of A into the GLIDER, "static"). THE KICK FOLLOWS
+# THE GLIDER. Under the gliders the floor was a fixed half-time (beat one and the and of three). Now the second kick
+# lands wherever the ring was last born - the sixteenth of the newest live cell (the glider's leading edge) - so
+# the kick travels across the bar as the glider travels round the ring, bar by bar a different place (when nothing
+# is born it falls back to the and of three). And it does not start at once: THE GLIDER FLOATS - the first four
+# bars of the glider have no kick at all (the kick was the window's loudest part: -21.8 dB solo in a -20.7 dB mix),
+# the three neighbours starting to sing over the bells and the glock, and the kick drops in under them. The kick
+# carried the sub: the 45 Hz master lift goes 3.5 -> 4.5 dB to pay it back (7 bars: s0 98.27, spectrum 98.6; 4 bars
+# without the lift 98.32; 4 bars with it 98.40, spectrum 100). (The moving kick alone moved nothing: motion 0.056.)
+# T3_R23=none reproduces v22.
+R23 = os.environ.get("T3_R23", "track")
 R11KICK = os.environ.get("T3_R11_KICK", "machine")   # "bronze": the kit's own kick too (cost spectrum 97 -> 75-80)
 C8_KIT = {
     "about": "chirper-two: Three Neighbours' own kit - kr a D1 sine kick that drops into place with a low modal membrane "
@@ -421,7 +432,14 @@ def build():
             root_deg = ROOTS[pop % 4]
         root_m = jm(root_deg, 38)  # bass register (D2 base)
         # ---- the deep four ----
-        if groove and sec == "glider":  # half time: the floor drops away under the gliders
+        if groove and sec == "glider" and R23 == "track" and i < int(os.environ.get("T3_FLOAT_BARS", "4")):
+            pass   # the glider floats: no kick while the three neighbours sing
+        elif groove and sec == "glider" and R23 == "track":   # the second kick rides the glider's leading edge
+            T["kick"].add(start, 1.0, "kr", 112)
+            lead = [c for c in born if c >= 4]
+            b2 = lead[-1] * 0.25 if lead else 2.5
+            T["kick"].add(start + b2, 1.0 if b2 >= 2 else 0.5, "kr", 100)
+        elif groove and sec == "glider":  # half time: the floor drops away under the gliders
             for b in (0.0, 2.5):
                 T["kick"].add(start + b, 1.0, "kr", 112 if b == 0 else 100)
         elif groove and R20 == "drummer" and sec == "peak" and i >= int(os.environ.get("T3_DRUM_FROM", "9")):
@@ -919,8 +937,8 @@ def main():
                                                               (["peak cutoff=550 gain=" + os.environ.get("T3_MID0", "-3dB" if R17 == "fade" else "-2dB") + " q=1.0"] if R15 == "space" else []) +
                                                               (["peak cutoff=292 gain=" + os.environ.get("T3_MID292", "-1dB") + " q=1.2"]
                                                                if R17 == "fade" else []) +
-                                                              (["peak cutoff=45 gain=" + os.environ.get("T3_SUB45", ("3.5dB" if R17 == "fade" else "2.5dB") if R16 == "reboot" else "0dB") + " q=1.0"]
-                                                               if os.environ.get("T3_SUB45", ("3.5dB" if R17 == "fade" else "2.5dB") if R16 == "reboot" else "0dB") != "0dB" else []) +
+                                                              (["peak cutoff=45 gain=" + os.environ.get("T3_SUB45", (("4.5dB" if R23 == "track" else "3.5dB") if R17 == "fade" else "2.5dB") if R16 == "reboot" else "0dB") + " q=1.0"]
+                                                               if os.environ.get("T3_SUB45", (("4.5dB" if R23 == "track" else "3.5dB") if R17 == "fade" else "2.5dB") if R16 == "reboot" else "0dB") != "0dB" else []) +
                                                               (["peak cutoff=1900 gain=" + os.environ.get("T3_HIMID", "-2.5dB" if R17 == "fade" else "-1.5dB") + " q=1.0"]
                                                                if (R15 == "space" and os.environ.get("T3_HIMID", "-2.5dB" if R17 == "fade" else "-1.5dB") != "0dB") else []) +
                                                               (["peak cutoff=750 gain=-2.5dB q=0.6"] if R4 == "hymn" else []) +
