@@ -31,6 +31,11 @@ FORM = [('intro', 8, 0), ('expo', 16, 0), ('calls1', 32, 0), ('calls2', 24, 5), 
         ('final', 32, 0), ('outro', 8, 0)]
 # the loop: Dm | Bb | Gm | A  (roots, chord tones)
 LOOP = [(38, [62, 65, 69]), (34, [62, 65, 70]), (31, [62, 67, 70]), (33, [61, 64, 69])]
+# (v36) THE SAME LINES, NEW GROUND: in the D minor calls every second lap of the loop is reharmonised - F | Gm | C7 | A
+# (III, iv, VII7, V) instead of Dm | Bb | Gm | A - chords a third away that keep the subject's and the countersubject's
+# notes consonant (checked bar by bar: the subject's E over C7 is its third, over E-flat it would have been a minor
+# ninth), so the harmony runs in eight-bar periods instead of four-bar ones while the lines above stay exactly the same
+LOOP2 = [(41, [65, 69, 72]), (31, [62, 67, 70]), (36, [64, 67, 70]), (33, [61, 64, 69])]
 e, q, s16, h = 0.5, 1.0, 0.25, 2.0
 # (v16) THE COUNTERSUBJECT: what every fugue has and this one lacked - a second, slow line written to go with the
 # subject wherever it enters, long notes against its quavers, leaning on the leading tone (Dm | Bb | Gm | A, twice)
@@ -117,7 +122,7 @@ def build():
         # (Am | F | Dm | E), then the third entry brings it home to D; Werckmeister III colours the two keys differently
         if s == 'expo' and 4 <= i < 8:
             tp = 7
-        root, ch = LOOP[b % 4]
+        root, ch = (LOOP2 if s in ('calls1', 'final') and (i // 4) % 2 == 1 else LOOP)[b % 4]
         root, ch = root + tp, [c + tp for c in ch]
         # drums: a motorik machine (none in the return; the intro builds)
         # (the kick changes its mind by section: four on the floor; an electro break in G minor (one, the 'a' of two,
@@ -305,7 +310,7 @@ def build():
     for b_ in range(16, 28):
         t_ = secs_t['final'] + b_ * 4.0
         bb_ = int(t_ // 4)
-        root_ = LOOP[bb_ % 4][0]
+        root_ = (LOOP2 if (b_ // 4) % 2 == 1 else LOOP)[bb_ % 4][0]
         P['kit'] += [(t_, 'kd', 0.25, 116), (t_ + 2.5, 'kd', 0.25, 100), (t_ + 2.0, 'cp', 0.25, 90)]
         P['bass'] += [(t_, tok(root_), 1.9, 100), (t_ + 2.0, tok(root_ + 12 if b_ % 2 else root_ + 7), 1.9, 88)]
     P['kit'].sort(key=lambda e_: e_[0]); P['bass'].sort(key=lambda e_: e_[0])   # (by time only: line() truncates each note at the next onset, so equal-time order matters)
