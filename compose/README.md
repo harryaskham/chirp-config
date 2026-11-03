@@ -104,6 +104,8 @@ The total is a weighted mean of the terms that apply; weights are in `album.json
 | distinct | .02 | not a near-copy of another track |
 | flow | .03 | level/spectrum continuity at the joins with the neighbouring tracks (the songs bleed) |
 
+**Reading spectrum's detail** (3 Nov): `worst_band_hz` / `worst_band_db` say where and which way, + = louder than the envelope. The worst band can be a DEFICIT: a new mid layer makes loudness normalisation pull the whole mix down and leave the bass short. Before trimming a new layer that cost spectrum, check whether the worst band sits below it (chirper-three, t4 v32: +3.5 dB of bass took spectrum 89.2 -> 91.3 with the stabs kept). A level-change residual of about -30 dB in every other window of `sectionmap --against` is the normaliser trimming the master (~0.3 dB), not a musical change.
+
 Calibration (28 Oct): real records score 68-88 on these terms (before length), a looped bar 33. **Above ~95 every
 intrinsic term passes**: from there compscore cannot tell you what to improve. Climb by musical judgment (what would
 make this track more itself, more surprising, better at its job on the album), by peers' notes and Harry's ratings,

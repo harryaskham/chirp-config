@@ -351,8 +351,12 @@ def m_spectrum(ctx):
     ours = profile(ctx["F"])
     tol = float(ctx["album"].get("spectrum_tolerance_db", SPECTRUM_TOL))
     dev = np.maximum(0, np.abs(ours - env) - tol)
-    return float(100 * np.exp(-dev.mean() / 3.0)), {"mean_excess_db": round(float(dev.mean()), 2),
-                                                    "worst_band": int(np.argmax(np.abs(ours - env)))}
+    w = int(np.argmax(np.abs(ours - env)))
+    # worst_band_db is signed like worst_bands_hz_db (+ = this song louder than the album there): the worst band can be a
+    # DEFICIT, e.g. a new mid layer makes loudness normalisation leave the bass short (chirper-three, t4 v32, 3 Nov)
+    return float(100 * np.exp(-dev.mean() / 3.0)), {"mean_excess_db": round(float(dev.mean()), 2), "worst_band": w,
+                                                    "worst_band_hz": int(round(BAND_HZ[w])),
+                                                    "worst_band_db": round(float(ours[w] - env[w]), 1)}
 
 
 def m_structure(ctx):
