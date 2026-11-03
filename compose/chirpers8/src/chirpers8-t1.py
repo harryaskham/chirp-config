@@ -301,6 +301,16 @@ def build():
     for k_, e_ in enumerate(P['kit']):
         if e_[1] == 'cp':
             P['kit'][k_] = (e_[0], 's' if secs['C'] * 4.0 <= e_[0] < secs['D'] * 4.0 else 'ss', e_[2], e_[3])
+    # (v28) THE MACHINE PLAYS IT ALONE: for the last four bars of the third groove - where the machine's own voice first
+    # plays the tune with the vibraphone, exact - the band stops: drums, bass, sub and piano fall silent (written, then
+    # muted to velocity 1, so nothing after them moves), leaving the pad, the vibraphone in thirds, the machine's voice on
+    # the tune and its cellular-automaton rim ticking on by itself; a snare roll on the last two beats brings the band
+    # back as the machine says the line back
+    bd0, bd1 = (secs['C'] + 28) * 4.0, secs['D'] * 4.0
+    def _bd(at_): return bd0 - 1e-6 <= at_ < bd1 - 1e-6
+    for key in ('kit', 'bass', 'sub', 'pno'):
+        P[key] = [(e_[0], e_[1], e_[2], 1) if _bd(e_[0]) else e_ for e_ in P[key]]
+    P['fill'] = [(bd1 - 2.0 + 0.25 * q_, 's', 0.2, 46 + 9 * q_) for q_ in range(8)]
     # D: the machine says it back - the exact contour of each take, two octaves up, with the voice
     for v in VOICE:
         if secs['D'] < v['bar'] <= secs['D'] + 16:
@@ -414,6 +424,8 @@ def build():
                                                   'filters': ['lp cutoff=1800', 'hp cutoff=150']}},
              'gain': '-22dB', 'pan': -0.15, 'score': line(P['bbhum'], total), 'sends': {'hall': '-10dB', 'echo': '-12dB'}},
             tr('pno', 'piano-muted', '-12dB', pan=0.3, sends={'hall': '-16dB'}),   # (listed last: nothing before it moves)
+            tr('fill', 'tight-kit', '-7dB', sends={'hall': '-16dB'},
+               fx=[{'type': 'eq', 'bands': ['peak cutoff=75 q=0.8 gain=4dB', 'highshelf cutoff=9000 gain=-5dB']}]),
         ]}
     return song
 
