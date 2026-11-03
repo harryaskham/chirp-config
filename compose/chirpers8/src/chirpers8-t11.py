@@ -404,7 +404,8 @@ def write_music():
         # v2: a ride in the peak, for the top end
         if sec == "C":
             for e in range(8):
-                part("ride").add(b0(bar) + e * 0.5, 0.4, "rd", 66 if e % 2 == 0 else 50)
+                sw = (0.1667 if e % 2 else 0) if SWIRL[0] <= bar <= SWIRL[1] else 0    # v39: swung in the swirl
+                part("ride").add(b0(bar) + e * 0.5 + sw, 0.4, "rd", 66 if e % 2 == 0 else 50)
         # CHOPS: the sampled voice, sliced, fires near the top of the attractor (z high)
         if sec in ("B", "C"):
             for s in range(0, 16, 2):
@@ -417,10 +418,14 @@ def write_music():
                 if not (sec == "outro" and bar > 156):           # v2: the kick leaves before the handover
                     part("kick").add(b0(bar) + b, 0.5, "k", 114 if b == 0 else 106)
                 if (sec != "intro" or bar > 8) and bar <= BARS - 8:
-                    part("hats").add(b0(bar) + b + 0.5, 0.25, "oh", 66 + hand.randint(-6, 6))
+                    swirl = SWIRL[0] <= bar <= SWIRL[1]          # v39: the same random draws, placed in triplets
+                    part("hats").add(b0(bar) + b + (0.6667 if swirl else 0.5), 0.25, "oh", 66 + hand.randint(-6, 6))
                     for s in (1, 3):
                         if hand.random() < 0.7:
-                            part("hats").add(b0(bar) + b + s / 4, 0.1, "h", 48 + hand.randint(-8, 8))
+                            at = (0.3333 if s == 1 else 0.0) if swirl else s / 4   # 4 decimals: the score's rests
+                            #                                                   stay exact (1/3 drifted later hats 0.1 ms)
+                            part("hats").add(b0(bar) + b + at, 0.1, "h", (48 if s == 1 else 40) + hand.randint(-8, 8)
+                                             if swirl else 48 + hand.randint(-8, 8))
             if sec in ("A", "B", "C"):
                 for b in (1, 3):
                     part("clap").add(b0(bar) + b + 0.02, 0.5, "sl", 90 + hand.randint(-4, 4))   # v26: a brush slap
@@ -745,6 +750,12 @@ HUM_AT = (53, 61)
 # way the gust is swinging (B sits in one lobe, so x's own sign put 44 of 46 rattles on the left) - so the rattling
 # moves between the left and right windows.
 RATTLE = (65, 80)
+# v39 (ROUND TYPE: section, w8 3:44-4:16 - C's middle, the second sung line, flagged little new vs w7; both windows
+# were 'C with singing' on the same straight brushes): THE BRUSHES SWIRL. Under 'warm in the glass and the weather
+# stayed' the brushes turn to a triplet swirl - the circular stroke under a ballad: the swish on each beat's last
+# triplet, a ghost tap on its middle one, a soft tap on the beat, the ride's off-beats swung - the room at its warmest,
+# the singer's moment. The hats keep the same random draws in the same order, so every later bar is unchanged.
+SWIRL = (113, 128)
 RATTLE_PATCH = {"synth": {"layers": [{"type": "ks", "ks": {"blend": 0.5, "tune": False}, "decay": "0.12s",
                                       "bright": 0.8}], "amp": "1ms 0 1 80ms"}}
 
