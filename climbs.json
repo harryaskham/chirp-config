@@ -8041,7 +8041,7 @@
         "commit": "see git log songs/chirpers8-t7.yaml",
         "rescored": {
           "by": "chirper-one",
-          "at": "2026-11-03T15:40:12Z",
+          "at": "2026-11-03T17:13:18Z",
           "was": 98.44,
           "how": "done --best-now"
         }
@@ -8049,7 +8049,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 32,
+      "rounds": 33,
       "priority": 1.0,
       "genre": "far-future computer music (an engine showcase)",
       "mode": "compose",
@@ -8067,7 +8067,7 @@
         "note": "COMPOSE (song, 300-480 s): Style, featured engine features, tempo, key, tuning and line-up are yours: declare them on compose/chirpers8/styles.md and claim your feature cluster on compose/chirpers8/features.md, different from the tracks already claimed."
       },
       "last": {
-        "at": "2026-11-03T15:40:12Z",
+        "at": "2026-11-03T17:13:18Z",
         "who": "chirper-one"
       }
     },

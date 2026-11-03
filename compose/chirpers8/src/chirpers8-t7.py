@@ -106,7 +106,7 @@ def build():
             return 1.2
         return min(3.0, abs(d - t) * 0.5) + abs(cents) / 40.0
     def loss(cs): return sum(step_loss(c, t) for c, t in zip(cs, TARGET))
-    seq_states, losses = [], []
+    seq_states, losses, worse = [], [], []
     for b, (s, i) in enumerate(bars):
         temp = T[b]
         if s == 'converged' or (s == 'coda' and i >= 8):
@@ -127,6 +127,8 @@ def build():
                 new = list(cand); new[j] = (nd, nc)
                 dl = loss(new) - loss(cand)
                 if dl <= 0 or rng.random() < math.exp(-dl / (temp * 1.5 + 1e-6)):
+                    if dl > 0:
+                        worse.append((b, j, d, cents, nd, nc, dl))   # (v33) an uphill move taken: noted, nothing drawn
                     cand = new
         seq_states.append(list(cand)); losses.append(round(loss(cand), 3))
     # ---- render the parts ----
@@ -327,6 +329,21 @@ def build():
             q2 = nn_[j_ + 1] if j_ + 1 < len(nn_) else 16
             P['xtal'].append((c0_ + q * 0.5, tok(hz(TARGET[q] + 7, 0) * 4 / 3), (q2 - q) * 0.5, 58 + 6 * pass_))
     P['cf'].sort(key=lambda e_: e_[0])
+    # (v33, section w2) THE WORSE ROAD, GLADLY: the first reading says the hot machine 'takes the worse road gladly' -
+    # that is the Metropolis rule, the heart of annealing: hot, it accepts moves that make the answer worse. Through
+    # the hottest epoch's middle (its bars 4-19) every such move it takes is now heard as itself: a little CZ voice
+    # slides from the step's old note to the worse one it has just chosen, on that very step, thrown left or right -
+    # an octave under the search, a slip, a shrug, more of them where it is wildest; the better moves stay silent
+    P['worse'] = []
+    e1b_ = sum(n for nm_, n in FORM[:[nm_ for nm_, _ in FORM].index('e1')])
+    for k_, (b_, j_, d0_, c0_, d1_, c1_, dl_) in enumerate(worse):
+        if not (e1b_ + 4 <= b_ < e1b_ + 20) or d1_ is None:
+            continue
+        t_ = b_ * 4.0 + j_ * 0.25
+        f0_ = hz(d0_ - 7, c0_) if d0_ is not None else hz(d1_ - 7, c1_) * 2 ** (5 / 12)
+        v_ = int(min(100, 70 + 12 * dl_))
+        P['worse'].append((t_, tok(f0_), 0.3, v_))
+        P['worse'].append((t_ + 0.25, tok(hz(d1_ - 7, c1_)), 0.55, v_ - 6))
     # (v26) THE TEMPERATURE, AUDIBLE: under everything, an open fifth (A and E) on Xenakis's dynamic stochastic
     # synthesis (GENDY, 1991: each wave cycle a polygon whose corners random-walk) - the same idea as the search itself,
     # a random walk with a step size. Its step sizes are the temperature: while the machine is hot the corners and the
@@ -490,6 +507,11 @@ def build():
                  'amp': {'a': '2s', 'd': '1s', 's': 1.0, 'r': '2s'}, 'filters': ['lp cutoff=1600', 'hp cutoff=70']}},
                '-17dB', sends={'hall': '-10dB'},
                auto={'temp': {'points': [[f"{b_ * 4.0:.2f}b", T[b_]] for b_ in range(nb)]}}),
+            tr('worse', {'play': {'glide': '90ms', 'legato': True, 'mono': True},
+                         'synth': {'layers': [{'type': 'pd', 'pd': {'shape': 'reso_tri', 'amount': {'value': 0.05, 'mod': [{'src': 'env.wow', 'amount': 0.4}]}}}],
+                                   'env': {'wow': {'a': '1ms', 'd': '200ms', 's': 0.0}},
+                                   'amp': {'a': '2ms', 'd': '300ms', 's': 0.35, 'r': '120ms'}, 'filters': ['lp cutoff=4200', 'hp cutoff=180']}},
+               '-11dB', pan=-0.45, fx=['delay time=3/16 feedback=0.2 mix=0.18'], sends={'hall': '-12dB'}),
             tr('xtal', 'vosim-bell', '-21dB', pan=-0.3, fx=['hp cutoff=300'], sends={'hall': '-10dB'}),
         ]}
     return song, losses, T
