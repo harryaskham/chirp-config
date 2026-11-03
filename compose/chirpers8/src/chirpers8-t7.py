@@ -168,12 +168,22 @@ def build():
         o_, pc = divmod(dd, 12)
         return f"{220.0 * 2 ** o_ * JIR.get(pc, 2 ** (pc / 12)):.3f}hz"
     conv = sum(n for nm_, n in FORM[:FORM.index(('converged', 16))])
+    # (v34) THE SONG FINDS ITS WORDS (Harry on t1: 'the singing came a long way ... keep hillclimbing it'): the voice
+    # that sings at convergence sang one line three times. Now each time is a new line on the same tune - 'the glass
+    # remembers how it cooled', then 'the wrong roads are kept in its shape' (every worse move it took is in the answer
+    # it found), and in the coda, a fourth higher, 'and holds the heat it gave away' - and that last one in two parts:
+    # a second voice a diatonic third above (C E G F E C B C over A C E D C A G A), in the same just intonation, a hair
+    # behind, on the other side: the crystal sung as a chord
     sung = [dict(n_, at=round((conv + 2 + rep * 6) * 4.0 + n_['at'], 4), pitch=ji(n_['pitch']))
-            for rep in (0, 1) for n_ in SING['notes']]
+            for rep, key_ in ((0, 'notes'), (1, 'notes2')) for n_ in SING[key_]]
     # (v23) and once more in the coda, a just fourth higher (4/3), with the cooled band moved up into D minor beneath it
     coda0 = sum(n for nm_, n in FORM[:[nm_ for nm_, _ in FORM].index('coda')])
     sung += [dict(n_, at=round((coda0 + 4) * 4.0 + n_['at'], 4), pitch=f"{float(ji(n_['pitch'])[:-2]) * 4 / 3:.3f}hz")
-             for n_ in SING['notes']]
+             for n_ in SING['notes3']]
+    A_UP = {57: 60, 60: 64, 64: 67, 62: 65, 55: 59}
+    sung2 = [dict(n_, at=round((coda0 + 4) * 4.0 + n_['at'] + 0.04, 4), vel=round(n_.get('vel', 0.8) * 0.9, 3),
+                  pitch=f"{float(ji('m%d' % A_UP.get(int(n_['pitch'][1:]), int(n_['pitch'][1:]) + 3))[:-2]) * 4 / 3:.3f}hz")
+             for n_ in SING['notes3']]
     # (v8) THE VOICE TUNES IN: while the machine is hot its voice reaches us over a radio whose dial is off the station by
     # the temperature - the first reading half lost in static and whistle, the next nearer, the third almost tuned - and
     # from the fourth epoch, cool enough, the voice is in the room, clear (the reheat throws it back onto the radio)
@@ -513,6 +523,9 @@ def build():
                                    'amp': {'a': '2ms', 'd': '300ms', 's': 0.35, 'r': '120ms'}, 'filters': ['lp cutoff=4200', 'hp cutoff=180']}},
                '-11dB', pan=-0.45, fx=['delay time=3/16 feedback=0.2 mix=0.18'], sends={'hall': '-12dB'}),
             tr('xtal', 'vosim-bell', '-21dB', pan=-0.3, fx=['hp cutoff=300'], sends={'hall': '-10dB'}),
+            {'name': 'sing2', 'patch': SING['patch'], 'gain': '-11dB', 'pan': -0.3, 'notes': sung2,
+             'fx': [{'type': 'pitch', 'semitones': 0, 'formant': 0.15}, {'type': 'tape', 'drive': 0.12, 'mix': 1, 'wow': 2, 'flutter': 1, 'seed': 9}],
+             'sends': {'echo': '-11dB', 'hall': '-9dB'}},
         ]}
     return song, losses, T
 
