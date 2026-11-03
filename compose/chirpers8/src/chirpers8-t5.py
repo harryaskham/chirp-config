@@ -54,6 +54,8 @@ BSPLITAT = int(os.environ.get("C8T5_BSPLITAT", "12"))   # the bar of B (0-based)
 LIFTSTOP = os.environ.get("C8T5_LIFTSTOP", "1")   # the gear change, announced: the band stops dead for the second half of the bar before the lift (C bar 24) - a clap fill climbing in sixteenths - then lands a whole step up (dropped after generation, so no dice move). Once B was split (v18) this splits C too without crowding the returns
 LIFTHAT = os.environ.get("C8T5_LIFTHAT", "1")   # after the lift the hats open: every off-beat hat an open hat - the agreed band, a step up, brighter on top
 ESTABLE = os.environ.get("C8T5_ESTABLE", "1")   # song-level event_stable (engine f5283535): each note's humanize and DSP draws come from its track, beat and pitch, so a window's edit stays in the window; switching it on re-rolls every humanized note once
+TRAIN = os.environ.get("C8T5_TRAIN", "90")   # WHOLE ROUND: the training burst - a real handshake ends in a scrambled hiss before the line connects, so the last two bars of each handshake (the intro's, the retrain's) give their tones to a bytebeat (engine 709cf900): a formula on the counter t built on the modem scrambler's taps (t>>14, t>>17), its steps changing every 64 ms, through the carriers' radio. Then the band enters on the connected line. Value = velocity
+TRAINF = os.environ.get("C8T5_TRAINF", "(t*5^t>>14^t>>17)*(t>>9&7)")
 CDATA = os.environ.get("C8T5_CDATA", "60")   # SECTION ROUND (w7, C before the lift: static): now that they agree on a speed, data flows - the carriers come back under C bars 12-23 in time with the band, one bit per eighth (1650 Hz a 0, 1850 Hz a 1), sending the two letters O K in ASCII (01001111 01001011), two bars a message, six times over. Value = velocity
 DIAL = os.environ.get("C8T5_DIAL", "80")   # SECTION ROUND (w5, the retrain): the line is re-dialled - the retrain's first two bars lose their handshake and the computer dials instead: DTMF 1 1 2 (697+1209, 697+1209, 697+1336 Hz: the speed they will agree on), then one ringback (440+480 Hz), and the retrained handshake answers from bar 2. Two tracks (dtlo, dthi: a DTMF tone is two pitches at once, which hz notes cannot stack), the carriers' radio without a second hiss. Value = velocity
 PHASEA = os.environ.get("C8T5_PHASEA", "66")   # SECTION ROUND (w3, A's second half: 'little new vs w2'): before the retrain the clocks disagree - while the carriers' handshake runs on the grid in A bars 24-31, a second handshake (the same carriers, no extra hiss, its own track phaseA listed last) runs nine to the bar against its eight. The retrain then teaches them one speed, C agrees, and the outro (v29) lets them drift again. Value = velocity
@@ -78,7 +80,7 @@ KEEP3 = os.environ.get("C8T5_KEEP3", "1")   # fewer returns (Harry on t1: 'repea
 HOOKF = [(0, "E4", 3), (3, "G4", 3), (6, "A4", 4), (10, "B4", 6), (16, "D5", 3), (19, "B4", 3), (22, "D5", 4), (26, "E5", 6)]
 CLEN = int(os.environ.get("C8T5_CLEN", "42"))   # C's length: 40 tightens the agreement (the lift at bar 25, the second 'keep it there' at 33)
 FORM = [("intro", 12), ("A", 34), ("B", 26), ("retrain", 12), ("C", CLEN), ("outro", 16)]
-TRACKS = (*(("cow",) if os.environ.get("C8T5_COW", "96") else ()), "carrier", "conga", "gtr", "acid", "sub", "kick", "hats", "clap", "fretless", "horns", "lead") + (("keys",) if os.environ.get("C8T5_KEYS", "-14") else ()) + (("phase",) if os.environ.get("C8T5_PHASE", "66") else ()) + (("dj",) if os.environ.get("C8T5_PERCSPLIT", "C") else ()) + (("phase0",) if os.environ.get("C8T5_PHASEIN", "") else ()) + (("phaseA",) if os.environ.get("C8T5_PHASEA", "66") else ()) + (("dtlo", "dthi") if os.environ.get("C8T5_DIAL", "80") else ())
+TRACKS = (*(("cow",) if os.environ.get("C8T5_COW", "96") else ()), "carrier", "conga", "gtr", "acid", "sub", "kick", "hats", "clap", "fretless", "horns", "lead") + (("keys",) if os.environ.get("C8T5_KEYS", "-14") else ()) + (("phase",) if os.environ.get("C8T5_PHASE", "66") else ()) + (("dj",) if os.environ.get("C8T5_PERCSPLIT", "C") else ()) + (("phase0",) if os.environ.get("C8T5_PHASEIN", "") else ()) + (("phaseA",) if os.environ.get("C8T5_PHASEA", "66") else ()) + (("dtlo", "dthi") if os.environ.get("C8T5_DIAL", "80") else ()) + (("train",) if os.environ.get("C8T5_TRAIN", "90") else ())
 SWING = {"gtr": {"A": 0.66, "B": 0.62, "retrain": 0.6, "C": 0.58, "outro": 0.58},
          "acid": {"A": 0.50, "B": 0.54, "C": 0.58, "outro": 0.58}}
 # E dorian: E9, A13, Gmaj7, F#m11 (guitar voicings; roots for the acid)
@@ -255,6 +257,11 @@ def build():
         i1 = sec_start("intro") + int(CONGAIN or 0) * BAR
         o0 = total() - int(CONGAOUT or 0) * BAR if CONGAOUT else total() + 1
         ev["conga"] = [e for e in ev["conga"] if i1 <= e[0] < o0]
+    if TRAIN:
+        for sec in os.environ.get("C8T5_TRAINAT", "retrain").split(","):
+            s0 = sec_start(sec) + 10 * BAR
+            ev["carrier"] = [e for e in ev["carrier"] if not (s0 <= e[0] < s0 + 2 * BAR and e[1] != 0)]
+            add("train", s0, "C4", 2 * BAR, int(TRAIN))
     if CDATA:
         c0 = sec_start("C")
         bits = f"{ord('O'):08b}{ord('K'):08b}"
@@ -418,6 +425,12 @@ def song():
         fx = [dict(f, hiss="-80dB", whistle="-80dB") if isinstance(f, dict) and f.get("type") == "radio" else f for f in spec.get("fx", [])]
         for nm, pn in (("dtlo", -0.1), ("dthi", 0.1)):
             doc["tracks"].append(dict(spec, name=nm, pan=pn, fx=fx, gain="-16dB", score=T[nm]))
+    if TRAIN:
+        T = build()
+        spec = next(t for t in doc["tracks"] if t["name"] == "carrier")
+        fx = [dict(f, hiss="-80dB", whistle="-80dB") if isinstance(f, dict) and f.get("type") == "radio" else f for f in spec.get("fx", [])]
+        doc["tracks"].append(dict(spec, name="train", patch={"synth": {"layers": [{"type": "bytebeat", "bytebeat": {"formula": TRAINF, "clock": 8000}}]}},
+                                  gain=os.environ.get("C8T5_TRAINGAIN", "-20dB"), pan=0.0, fx=fx, score=T["train"]))
     return doc
 
 
