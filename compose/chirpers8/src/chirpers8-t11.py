@@ -625,6 +625,30 @@ def radio_sung_notes():
              "vel": round(vel * 0.9, 3), "expr_path": {"f0": f0}} for (at, n, ln, v), (ph, vel, f0) in zip(HOOK, SUNG)]
 
 
+# v27 (ROUND TYPE: whole; the intro flagged static since the map began): THE RADIO IS SWITCHED ON AT THE START. In the
+# intro someone indoors turns the dial looking for the forecast: from bar 3 the radio's static wanders between
+# stations (the tune lane sweeping), the dial LOCKS as the hook arrives sung at bar 5, holds through the phrase, drifts
+# off and closes before the band (bar 9). The radio at 145 becomes a return - the same station found again near the
+# end - so the radio frames the song. Sung once (Harry: fewer returns).
+RADIO_INTRO = (3, 5, 9)
+
+
+def radio_intro_notes():
+    a, sung, z = RADIO_INTRO
+    lb = lobe_at(sung)
+    return [{"at": round(b0(sung) + at, 4), "len": round(ln * 0.95, 3), "ph": ph, "pitch": mm(partial(n, lb, 0)),
+             "vel": round(vel * 0.85, 3), "expr_path": {"f0": f0}} for (at, n, ln, v), (ph, vel, f0) in zip(HOOK, SUNG)]
+
+
+def radio_intro_lanes():
+    a, sung, z = (b0(x) for x in RADIO_INTRO)
+    dial = [[0.0, 0.6], [a, 0.6], [a + 2, 0.35], [a + 4, 0.55], [a + 6, 0.3], [sung - 1.5, 0.15], [sung + 0.5, 0.0],
+            [sung + 8, 0.0], [z - 1, 0.35]]
+    gain = [[0.0, -80.0], [a - 0.05, -80.0], [a + 1, -6.0], [sung - 1, 0.0], [z - 1.5, 0.0], [z - 0.25, -80.0]]
+    return {"dial3": {"points": [[f"{x:.2f}b", y] for x, y in dial]},
+            "rg3": {"points": [[f"{x:.2f}b", y] for x, y in gain]}}
+
+
 def radio_sung_lanes():
     a, z = b0(RADIO_SUNG_AT), b0(RADIO_SUNG_AT + 2) + 1
     return {"dial2": {"points": [["0b", 0.0], [f"{a:.2f}b", 0.0], [f"{z:.2f}b", 0.3]]},
@@ -741,6 +765,11 @@ def main():
             {"name": "kickpush", "patch": "machine-kit", "gain": "-13dB", "notes": backwall()[1]},   # v23
             {"name": "singerharm", "patch": SUNG_PATCH, "gain": "-10dB", "pan": 0.3,
              "sends": {"hall": "-6dB", "dly": "-12dB"}, "notes": answer_harmony()},     # v25: the answer as a duet
+            {"name": "radiointro", "patch": SUNG_PATCH, "gain": "-11dB", "pan": 0.15,
+             "sends": {"hall": "-12dB"}, "auto": radio_intro_lanes(), "notes": radio_intro_notes(),
+             "fx": [{"type": "radio", "tune": {"value": 0, "mod": [{"src": "auto.dial3", "amount": 1}]}, "fade": 0.3,
+                     "drift": 0.05, "hiss": "-18dB", "whistle": "-24dB", "seed": 9},
+                    {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.rg3", "amount": 1}]}}]},   # v27
             {"name": "drips", "patch": "music-box", "gain": "-11dB", "pan": 0.45,
              "sends": {"room": "-8dB", "hall": "-12dB"}, "notes": drips()},          # v24: after the storm
             tr("farsheet", SHEET, gain="-10dB", pan=-0.4, sends={"hall": "-2dB"},
