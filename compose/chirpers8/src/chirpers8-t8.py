@@ -71,6 +71,7 @@ LATER = os.environ.get("C8T8_LATER", "-8")   # WHOLE ROUND: a second sung line, 
 LATERDROP = os.environ.get("C8T8_LATERDROP", "1")   # with LATER: the word steps aside for the voice - for E bars 12-13 the word, its marimba, the zeros, the hats and the clap are kept at velocity 1 (no dice move), so 'it comes later on' is heard over pads, bass and kick (in the full mix whisper heard nothing; soloed it reads exactly)
 HANDS = os.environ.get("C8T8_HANDS", "clap")   # PALETTE: the clap and the rim leave the 909 kit for the machine layer's own synthesised clap and rim ('clap', 'rim', or 'both'): with v36's kick, the kit is the song's own
 ECHOCH = os.environ.get("C8T8_ECHOCH", "84")   # SECTION ROUND (w8, E: static): it comes later on - the sung line's tune (A4 G4 F4 E4 D4, as sung at E bar 12) comes back on the tape choir (mellotron-choir, wordless, its own track echoch listed last) four bars later and again four bars after that, softer each time: the delay line handing the phrase back. Lifted with E. Value = first velocity
+PUMPON = os.environ.get("C8T8_PUMPON", "-6")   # WHOLE ROUND: the pads and the bass breathe with the kick again - their sidechain pump was keyed on 'kick.k', and v36's machine kick has no kit pieces, so it never fired after v36 (wM's plan warning, 2 Nov); now it keys on every kick note. Value = depth dB (e.g. -6 as designed)
 SAYTTS = os.environ.get("C8T8_SAYTTS", "1")   # PALETTE: the spoken voices that tell what a delay line is (say, say2, say3: voice-spoken) speak as a computer - voice-tts, the library's 1990s desktop text-to-speech; the words and their timing unchanged
 COUNTER = os.environ.get("C8T8_COUNTER", "78")   # SECTION ROUND (w5, C bars 4-19, static): the program counter - a marimba (its own track ctr, listed last) counts 1..16 in binary, one number a bar: bit k set strikes beat k, on D G C F (fourths, k = 0..3), so each bar's rhythm is the next address and the line runs through all sixteen patterns while the word is refreshed. Value = velocity
 OWNHATS = os.environ.get("C8T8_OWNHATS", "300")   # PALETTE: the hats leave the 909 kit for the machine layer's synthesised hat - closed (60 ms) on hats and hats2, the open ones (OWNHATS ms) on their own track ohat, listed last (the open hits stay on hats/hats2 at velocity 1, so no dice move): with v36's kick and v37's clap, the whole groove is the song's own
@@ -371,7 +372,7 @@ def song0():
     T = build()
     st = {sec: sec_start(sec) for sec, _ in FORM}
     end = total()
-    pump = {"type": "pump", "on": "kick.k", "depth": "-6dB", "attack": "2ms", "release": "180ms", "curve": 0.7}
+    pump = {"type": "pump", "on": "kick" if (KITOWN and PUMPON) else "kick.k", "depth": f"{PUMPON or -6}dB" if (KITOWN and PUMPON) else "-6dB", "attack": "2ms", "release": "180ms", "curve": 0.7}   # PUMPON: since v36's machine kick plays notes, not kit pieces, 'kick.k' never fired (wM's plan warning); key on the kick track itself
     ts = lane([(0, 0), (st["refresh"] - 8, 0), (st["refresh"] - 1, 1), (st["refresh"], 0), (end, 0)])
     cloudmix = lane([(0, 0), (st["C"], 0), (st["C"] + 8 * BAR, 0.5), (st["D"], 0.8), (st["E"], 0.25), (st["outro"], 0.6), (end, 0.8)])
     frz = lane([(0, 0), (st["refresh"], 0), (st["refresh"] + 1, 1), (st["refresh"] + 6 * BAR, 1), (st["refresh"] + 8 * BAR, 0), (end, 0)])
