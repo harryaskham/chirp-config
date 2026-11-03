@@ -316,6 +316,24 @@ def build():
     for k_, e_ in enumerate(P['kit']):
         if e_[1] == 'cp':
             P['kit'][k_] = (e_[0], 's' if secs['C'] * 4.0 <= e_[0] < secs['D'] * 4.0 else 'ss', e_[2], e_[3])
+    # (v31) THE HALFWAY HINGE: the third groove ran thirty-two bars on one feel. Now its fifteenth bar stops - one kick
+    # on the downbeat, then nothing but the voices and the vibraphone, and a tom run down the kit on the last two beats -
+    # and from bar sixteen, where the piano comes in, the drummer moves off the hats onto the ride, a splash on the
+    # downbeat: the climax's second half lifts instead of continuing. (Written, then muted to velocity 1.)
+    st0 = (secs['C'] + 15) * 4.0
+    def _st(at_): return st0 - 1e-6 <= at_ < st0 + 4.0 - 1e-6
+    def _rd(at_): return st0 + 4.0 - 1e-6 <= at_ < secs['D'] * 4.0 - 1e-6
+    P['kit'] = [(e_[0], e_[1], e_[2], 1) if (_st(e_[0]) and not (e_[1] == 'k' and e_[0] < st0 + 0.1)) or (_rd(e_[0]) and e_[1] == 'h') else e_
+                for e_ in P['kit']]
+    for key in ('bass', 'sub', 'pno'):
+        P[key] = [(e_[0], e_[1], e_[2], 1) if _st(e_[0]) and e_[0] >= st0 + 0.1 else e_ for e_ in P[key]]
+    P['ride'] = [(st0 + 2.0 + 0.25 * q_, ('t1', 't1', 't2', 't2', 't3', 't3', 'ft', 'ft')[q_], 0.25, 70 + 5 * q_) for q_ in range(8)]
+    P['ride'] += [(st0 + 4.0, 'sp', 0.5, 96)]
+    for b_ in range(16, 28):
+        t_ = (secs['C'] + b_) * 4.0
+        for q_ in range(4):
+            P['ride'] += [(t_ + q_, 'rc', 0.25, 74 if q_ % 2 == 0 else 66), (t_ + q_ + 0.5 + 0.03, 'rc', 0.25, 52)]
+    P['ride'].sort(key=lambda e_: e_[0])
     # (v28) THE MACHINE PLAYS IT ALONE: for the last four bars of the third groove - where the machine's own voice first
     # plays the tune with the vibraphone, exact - the band stops: drums, bass, sub and piano fall silent (written, then
     # muted to velocity 1, so nothing after them moves), leaving the pad, the vibraphone in thirds, the machine's voice on
@@ -464,6 +482,8 @@ def build():
             tr('pad2', 'juno-pad', '-16dB', fx=['hp cutoff=200', {'type': 'eq', 'bands': ['peak cutoff=450 q=0.9 gain=-4dB', 'highshelf cutoff=5000 gain=3dB']}], sends={'hall': '-9dB'}),
             tr('fill', 'tight-kit', '-7dB', sends={'hall': '-16dB'},
                fx=[{'type': 'eq', 'bands': ['peak cutoff=75 q=0.8 gain=4dB', 'highshelf cutoff=9000 gain=-5dB']}]),
+            tr('ride', 'tight-kit', '-9dB', pan=-0.15, sends={'hall': '-16dB'},
+               fx=[{'type': 'eq', 'bands': ['peak cutoff=75 q=0.8 gain=4dB', 'highshelf cutoff=9000 gain=-4dB']}]),
         ]}
     return song
 
