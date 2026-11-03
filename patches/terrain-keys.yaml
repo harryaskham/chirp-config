@@ -1,0 +1,34 @@
+about: 'Wave-terrain keys (wM, chirpers8): an orbit drifting over a surface of sines (slow LFOs on its centre), so the timbre wanders with no filter, after Bischoff, Gold and Horton (1978).'
+synth:
+  layers:
+    - type: terrain
+      terrain:
+        surface: sines
+        rx: 0.45
+        ry: 0.45
+        cx:
+          value: 0
+          mod:
+            - src: lfo.drift
+              amount: 0.35
+        cy:
+          value: 0.1
+          mod:
+            - src: lfo.wobble
+              amount: 0.2
+        k: 1.7
+  lfo:
+    drift:
+      wave: sine
+      rate: 0.12hz
+    wobble:
+      wave: triangle
+      rate: 0.3hz
+  amp:
+    a: 15ms
+    d: 1.5s
+    s: 0.75
+    r: 500ms
+fx:
+  - chorus mix=0.2
+gain: -2dB

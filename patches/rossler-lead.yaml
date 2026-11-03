@@ -1,0 +1,22 @@
+about: 'A Rössler lead (wM, chirpers8): a chaotic attractor looping at the note''s pitch (its x axis, a sine with a chaotic flutter), swaying between period doubling and chaos on a slow LFO.'
+synth:
+  layers:
+    - type: chaos
+      chaos:
+        system: rossler
+        axis: x
+        amount:
+          value: 0.7
+          mod:
+            - src: lfo.sway
+              amount: 0.25
+  lfo:
+    sway:
+      wave: sine
+      rate: 0.25hz
+  amp:
+    a: 40ms
+    d: 0
+    s: 1
+    r: 500ms
+gain: -5.5dB

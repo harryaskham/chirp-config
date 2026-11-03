@@ -1,0 +1,19 @@
+about: 'A living GENDYN drone (wM, chirpers8): Xenakis''s dynamic stochastic synthesis with tiny level and length steps, so the tone breathes and grains but holds its pitch. Low-passed.'
+synth:
+  layers:
+    - type: gendyn
+      gendyn:
+        points: 14
+        amp: 0.03
+        time: 0.01
+        spread: 0.02
+  filters:
+    - kind: lp
+      cutoff: 1400
+      q: 0.6
+  amp:
+    a: 1.5s
+    d: 0
+    s: 1
+    r: 2.5s
+gain: -8.5dB

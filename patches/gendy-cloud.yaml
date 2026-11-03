@@ -1,0 +1,30 @@
+about: 'A GENDY3-style glissando cloud (wM, chirpers8): GENDYN with big Cauchy steps on level and segment length, so each voice slides and wanders around its note; the walk wakes up as the note swells. Hold chords.'
+synth:
+  layers:
+    - type: gendyn
+      gendyn:
+        points: 8
+        amp:
+          value: 0.12
+          mod:
+            - src: env.swell
+              amount: 0.2
+        time: 0.25
+        spread: 1.2
+  env:
+    swell:
+      a: 4s
+      d: 0
+      s: 1
+      r: 2s
+  filters:
+    - kind: lp
+      cutoff: 3500
+  amp:
+    a: 2.5s
+    d: 0
+    s: 0.85
+    r: 3s
+fx:
+  - reverb kind=hall decay=4s mix=0.3
+gain: -8dB

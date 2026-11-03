@@ -1,0 +1,35 @@
+about: 'A talking VOSIM voice (wM, chirpers8): two pulse-train formants (F1 near 600, F2 near 1500 Hz) swept by slow LFOs so the vowel keeps changing, after Kaegi and Tempelaars (1978). Sweep lfo rates or bind formants per note for words.'
+synth:
+  layers:
+    - type: vosim
+      vosim:
+        formant:
+          value: 600
+          mod:
+            - src: lfo.jaw
+              amount: 0.45
+        pulses: 3
+        decay: 0.7
+    - type: vosim
+      level: 0.55
+      vosim:
+        formant:
+          value: 1500
+          mod:
+            - src: lfo.tongue
+              amount: 0.6
+        pulses: 4
+        decay: 0.75
+  lfo:
+    jaw:
+      wave: sine
+      rate: 0.9hz
+    tongue:
+      wave: triangle
+      rate: 0.6hz
+  amp:
+    a: 30ms
+    d: 0
+    s: 1
+    r: 250ms
+gain: -3.5dB

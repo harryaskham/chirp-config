@@ -1,0 +1,28 @@
+about: 'CZ-style phase-distortion bass (wM, chirpers8): a reso_saw whose resonance leaps to about 7x the note and falls back on every pluck, the CZ''s resonant sweep with no filter; velocity opens it further. Mono, short glide.'
+synth:
+  layers:
+    - type: pd
+      pd:
+        shape: reso_saw
+        amount:
+          value: 0.04
+          mod:
+            - src: env.wow
+              amount: 0.36
+            - src: vel
+              amount: 0.12
+  env:
+    wow:
+      a: 1ms
+      d: 220ms
+      s: 0
+  amp:
+    a: 2ms
+    d: 0
+    s: 1
+    r: 80ms
+play:
+  mono: true
+  legato: true
+  glide: 30ms
+gain: -5dB

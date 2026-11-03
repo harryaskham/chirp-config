@@ -1,0 +1,16 @@
+about: 'A pitched bytebeat chip (wM, chirpers8): the one-line formula t*8 | t>>5, clocked at 8372 so every note sounds at its own pitch, raw 8-bit steps; held notes grow a little grit as t>>5 counts up.'
+synth:
+  layers:
+    - type: bytebeat
+      bytebeat:
+        formula: t*8|t>>5
+        clock: 8372
+  filters:
+    - kind: lp
+      cutoff: 6000
+  amp:
+    a: 2ms
+    d: 0
+    s: 1
+    r: 60ms
+gain: -5dB

@@ -1,0 +1,23 @@
+about: 'CZ-style phase-distortion pad (wM, chirpers8): a reso_trap resonance drifting between 3x and 7x the note on a slow LFO, chorused: the 1984 digital pad, no filter.'
+synth:
+  layers:
+    - type: pd
+      pd:
+        shape: reso_trap
+        amount:
+          value: 0.25
+          mod:
+            - src: lfo.drift
+              amount: 0.15
+  lfo:
+    drift:
+      wave: sine
+      rate: 0.15hz
+  amp:
+    a: 500ms
+    d: 1s
+    s: 0.8
+    r: 1.2s
+fx:
+  - chorus mix=0.3
+gain: -11dB

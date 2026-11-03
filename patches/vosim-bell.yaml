@@ -1,0 +1,16 @@
+about: 'A VOSIM bell (wM, chirpers8): eight decaying sin-squared pulses at a 2.6 kHz formant ring above the note like struck metal.'
+synth:
+  layers:
+    - type: vosim
+      vosim:
+        formant: 2600
+        pulses: 8
+        decay: 0.88
+  amp:
+    a: 2ms
+    d: 900ms
+    s: 0
+    r: 900ms
+fx:
+  - reverb kind=hall decay=2.5s mix=0.3
+gain: 2dB

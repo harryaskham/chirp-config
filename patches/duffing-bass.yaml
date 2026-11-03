@@ -1,0 +1,27 @@
+about: 'A Duffing bass that breaks (wM, chirpers8): a driven Duffing oscillator locked to the note that, over each held note, walks into chaos and jumps between its wells: a machine coming apart. Short notes stay clean.'
+synth:
+  layers:
+    - type: chaos
+      chaos:
+        system: duffing
+        axis: x
+        amount:
+          value: 0
+          mod:
+            - src: env.break
+              amount: 0.6
+  env:
+    break:
+      a: 1.2s
+      d: 0
+      s: 1
+      r: 200ms
+  filters:
+    - kind: lp
+      cutoff: 2500
+  amp:
+    a: 8ms
+    d: 0
+    s: 1
+    r: 250ms
+gain: 2dB
