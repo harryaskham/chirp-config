@@ -231,6 +231,19 @@ C9_ROUTE = {"about": "chirper-two: a Rossler chaotic oscillator (axis x) whose a
                       "amp": {"a": "6s", "s": 1, "r": "4s"}}}
 ROUTE = {"one": 0.0, "two": 0.3, "four": 0.45, "eight": 0.55, "chaos": 0.8, "window": 0.35, "storm": 0.93,
          "settle": 0.2, "end": 0.0}
+# T9_R18 = intermit (v18, section round on w7, 2:44-3:10: the end of chaos, "little new vs w6"). INTERMITTENCY. Just
+# below the period-three window (r = 3.8284) the logistic map is not uniformly chaotic: it settles into a near-perfect
+# three-cycle for a while (a "laminar" phase), then bursts into chaos, then settles again, at random-seeming lengths
+# (Pomeau and Manneville, 1980). Here the map itself is iterated once per sixteenth at r = 3.8272 across the
+# chaos's last fifteen bars, and wherever it is laminar - each iterate within 0.02 of the one three steps back - a
+# buzzy periodic blip (a Rossler oscillator at amount 0.12, still orderly, its spiky z axis) plays the iterate in BP,
+# and the Henon canon ducks 12 dB under it; in the bursts the Henon pair has the floor. The three-cycle that the
+# window will lock into is heard first in these flashes. Generated, not placed. T9_R18=none reproduces v17.
+R18 = os.environ.get("T9_R18", "intermit")
+C9_LAM = {"about": "chirper-two: a Rossler oscillator (axis z, spiky) held periodic (amount 0.12), struck short",
+          "synth": {"layers": [{"type": "chaos", "chaos": {"system": "rossler", "axis": "z", "amount": 0.12}}],
+                    "filters": [{"kind": "lp", "cutoff": 5000, "q": 0.5}],
+                    "amp": {"a": "2ms", "d": "180ms", "s": 0, "r": "60ms"}}}
 TERRAIN_GAIN = os.environ.get("T9_TERRAIN_GAIN", "-14.5dB")
 EYE = float(os.environ.get("T9_EYE", "636"))   # where the drum bus drops out (to 640b)
 C9_GENDY = {"about": "chirper-two: a gendyn squall - level and segment-length steps both ride velocity, wide spread, "
@@ -680,6 +693,37 @@ def main():
         tracks.append({"name": "dhold", "patch": "c9-terrain amp.a=2s amp.r=2.5s" if tdh else "choir-classic amp.a=2s amp.r=2.5s",
                        "gain": os.environ.get("T9_DHOLD_TGAIN", "-11.5dB") if tdh else os.environ.get("T9_DHOLD_GAIN", "-8dB"), "pan": 0.0,
                        "fx": ["hp cutoff=180", "reverb kind=hall decay=2.5s mix=0.25"], "score": dh.score(total)})
+    if R18 == "intermit":
+        i0b, steps = 384.0, 240
+        r_, x_ = float(os.environ.get("T9_INT_R", "3.8272")), 0.3
+        for _ in range(500):
+            x_ = r_ * x_ * (1 - x_)
+        xs = []
+        for _ in range(steps):
+            x_ = r_ * x_ * (1 - x_)
+            xs.append(x_)
+        lamf = [i >= 3 and abs(xs[i] - xs[i - 3]) < 0.02 for i in range(steps)]
+        lt = Track("lam")
+        runs, cur = [], None
+        for i, (xv, lf) in enumerate(zip(xs, lamf)):
+            if lf:
+                lt.add(i0b + 0.25 * i, 0.2, mm(bp(int(xv * 12), 57)), int(70 + 30 * xv))
+                cur = [i, i] if cur is None or i - cur[1] > 2 else [cur[0], i]
+                if cur and (not runs or runs[-1][0] != cur[0]):
+                    runs.append(cur)
+                else:
+                    runs[-1] = cur
+        tracks.append({"name": "lam", "patch": "c9-lam", "gain": os.environ.get("T9_LAM_GAIN", "6dB"), "pan": -0.1,
+                       "fx": ["hp cutoff=200", "reverb kind=room decay=0.6s mix=0.15"], "score": lt.score(total)})
+        duck = [["0b", 0.0]]
+        for a_, b_ in runs:
+            s_, e_ = i0b + 0.25 * a_, i0b + 0.25 * (b_ + 1)
+            duck += [[f"{s_ - 0.1:g}b", 0.0], [f"{s_:g}b", -12.0], [f"{e_:g}b", -12.0], [f"{e_ + 0.25:g}b", 0.0]]
+        duck.append([f"{total}b", 0.0])
+        for tr in tracks:
+            if tr["name"] in ("henx-chaos", "heny-chaos"):
+                tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.lam", "amount": 1}]}}]
+                tr["auto"] = {**tr.get("auto", {}), "lam": {"points": duck}}
     if R17 == "route":
         pts = [["0b", 0.0]]
         for nm, s, k, m in secs:
@@ -726,7 +770,8 @@ def main():
                                      **({"c9-gendy": C9_GENDY} if R13 == "squall" else {}),
                                      **({"c9-terrain": C9_TERRAIN} if R14 == "terrain" else {}),
                                      **({"c9-czsaw": C9_CZSAW, "c9-czsq": C9_CZSQ} if R15 == "cz" else {}),
-                                     **({"c9-route": C9_ROUTE} if R17 == "route" else {})})]
+                                     **({"c9-route": C9_ROUTE} if R17 == "route" else {}),
+                                     **({"c9-lam": C9_LAM} if R18 == "intermit" else {})})]
           if R4 == "break" else []),
         "buses: " + json.dumps(buses),
         "master: " + json.dumps({"fx": [{"type": "eq", "bands": (["hp cutoff=25", "peak cutoff=90 gain=-4dB q=0.9",
