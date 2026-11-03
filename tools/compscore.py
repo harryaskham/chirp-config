@@ -359,6 +359,24 @@ def m_spectrum(ctx):
                                                     "worst_band_db": round(float(ours[w] - env[w]), 1)}
 
 
+def spectrum_bands(ctx):
+    """Per live band: (Hz, ours - envelope dB, dB beyond tolerance, spectrum points if that band alone came within
+    tolerance). The whole picture behind spectrum's worst_band, for fixing several bands from one render (3 Nov)."""
+    env = ctx.get("envelope")
+    if env is None:
+        return []
+    ours = profile(ctx["F"])
+    tol = float(ctx["album"].get("spectrum_tolerance_db", SPECTRUM_TOL))
+    diff = ours - env
+    dev = np.maximum(0, np.abs(diff) - tol)
+    now = 100 * np.exp(-dev.mean() / 3.0)
+    out = []
+    for i in np.flatnonzero(LIVE):
+        gain = 100 * np.exp(-(dev.sum() - dev[i]) / len(dev) / 3.0) - now
+        out.append((int(round(BAND_HZ[i])), round(float(diff[i]), 1), round(float(dev[i]), 1), round(float(gain), 2)))
+    return out
+
+
 def m_structure(ctx):
     secs, dur = ctx["sections"], ctx["dur"]
     n = len(secs)
@@ -726,6 +744,8 @@ def main(argv=None):
     ap.add_argument("--save", action="store_true", help="store this render's features for the album terms")
     ap.add_argument("--text", action="store_true")
     ap.add_argument("--song", help="the song file the render came from (default: the climb's song)")
+    ap.add_argument("--bands", action="store_true", help="print spectrum's per-band picture: signed dB vs the album "
+                    "envelope (+ = louder), dB beyond tolerance, and the points fixing each band alone would give")
     a = ap.parse_args(argv)
     climb = climb_of(a.id)
     album_id = climb.get("album") or (climb.get("compose") or {}).get("album")
@@ -739,6 +759,16 @@ def main(argv=None):
         os.makedirs(d, exist_ok=True)
         with open(os.path.join(d, f"{a.id}.json"), "w") as f:
             json.dump(ctx["me"], f)
+    if a.bands:
+        w = res["weights"].get("spectrum", 0.0)
+        print(f"{a.id}: total {res['total']:.2f}, spectrum {res['terms'].get('spectrum', float('nan')):.1f} (w {w:.3f}); "
+              "bands vs the album envelope (+ = louder)")
+        print("      Hz   dB vs env  beyond tol  fix alone: spectrum / total")
+        for hz, d, over, gain in spectrum_bands(ctx):
+            bar = ("+" if d > 0 else "-") * min(20, int(round(abs(d))))
+            fix = f"+{gain:.2f} / +{gain * w:.2f}" if over > 0 else ""
+            print(f"  {hz:6d}  {d:+8.1f}  {over:9.1f}   {fix:20s} {bar}")
+        return
     if a.text:
         print(f"{a.id}: total {res['total']:.2f}")
         for k, v in sorted(res["terms"].items(), key=lambda kv: -res["weights"][kv[0]]):
