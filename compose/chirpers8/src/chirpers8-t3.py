@@ -111,6 +111,29 @@ R10 = os.environ.get("T3_R10", "byte")
 # machine's kick carries 90-250 Hz the floor needs - so by default only the open hat is bronze (T3_R11_KICK=bronze
 # keeps the kick for later work). T3_R11=none reproduces v10.
 R11 = os.environ.get("T3_R11", "bronze")
+# T3_R12 = gendy (v12, palette round). ENTROPY HAS A VOICE. In the decay - where cells are lost at random and the
+# ring empties - a GENDYN voice enters (wM's new layer: Xenakis's dynamic stochastic synthesis, GENDY3, 1991; new to
+# the album): one wave cycle drawn through twelve breakpoints that each take a random step every cycle. It holds the
+# drone's D and A an octave up, and its velocity - which here drives how far each breakpoint may stray, and how far
+# each segment's length may wander - rises bar by bar through the decay: a clean tone going grainy, then sliding,
+# order dissolving as the automaton thins. It eases out through the first bars of the out and is gone well before the
+# last bell (the ~913 Hz ring t4 catches). Scored s0 (pin 6014b933; v11 97.828): through all the decay + out at -12 dB
+# 97.33 (spectrum 97 -> 92), notched at 750 and -15 dB 97.52, high-passed at 900 Hz 97.34, as the DRONE (replacing the
+# tanpura, level-matched) 97.66; a MOMENT - only the decay's last six bars, the ring emptying, at -16 dB - 97.74, the
+# default. This song sits on the album envelope's tolerance edge: a sustained new timbre anywhere costs. Knobs:
+# T3_GENDY_FROM (0 = all the decay + out), T3_R12_MODE=drone, T3_GENDY_HP. T3_R12=none reproduces v11.
+R12 = os.environ.get("T3_R12", "gendy")
+R12MODE = os.environ.get("T3_R12_MODE", "decay")   # "decay": an added voice in decay/out; "drone": gendyn IS the drone
+C3_GENDY = {"about": "chirper-two: Xenakis's dynamic stochastic synthesis (gendyn) whose disorder rides velocity: amp and "
+                     "time steps grow with vel, Cauchy jumps, a slow swell; entropy as a timbre.",
+            "synth": {"layers": [{"type": "gendyn", "gendyn": {
+                "points": 12,
+                "amp": {"value": 0.005, "mod": [{"src": "vel", "amount": 0.12}]},
+                "time": {"value": 0.0, "mod": [{"src": "vel", "amount": 0.12}]},
+                "spread": 0.8, "dist": "cauchy"}}],
+                "filters": [{"kind": "lp", "cutoff": 2600, "q": 0.5}],
+                "amp": {"a": "1.5s", "s": 1, "r": "2.5s"}},
+            "fx": []}
 R11KICK = os.environ.get("T3_R11_KICK", "machine")   # "bronze": the kit's own kick too (cost spectrum 97 -> 75-80)
 C8_KIT = {
     "about": "chirper-two: Three Neighbours' own kit - kr a D1 sine kick that drops into place with a low modal membrane "
@@ -555,6 +578,26 @@ def main():
             if tr["name"] == "kick":
                 tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.cone", "amount": 1}]}}]
                 tr["auto"] = {**tr.get("auto", {}), "cone": lane}
+    if R12 == "gendy" and R12MODE == "drone":
+        T["drone"].ev = [(a, ln, h, int(os.environ.get("T3_GDRONE_VEL", "50")), art) for a, ln, h, v, art in T["drone"].ev]
+        for tr in tracks:
+            if tr["name"] == "drone":
+                tr["patch"] = "c3-gendy"
+                tr["gain"] = os.environ.get("T3_GDRONE_GAIN", "-16dB")
+                tr["score"] = T["drone"].score(total)
+    if R12 == "gendy" and R12MODE == "decay":
+        gd = Track("gendy")
+        a0, nd = st["decay"], 18
+        k0 = int(os.environ.get("T3_GENDY_FROM", "12"))   # 12: only the decay's last six bars, the ring emptying
+        for k in range(k0, nd, 2):   # two bars a note, disorder rising
+            gd.add(a0 + 4.0 * k, 8.0, ",".join(hz_m(m) for m in (jm(0, 50), jm(4, 50))), int(30 + 90 * k / (nd - 2)))
+        o0, go = st["out"], Track("gendy-out")
+        for k in range(0, 8 if k0 == 0 else 0, 2):    # easing out through the out's first eight bars (its own gain: the out is sparse)
+            go.add(o0 + 4.0 * k, 8.0, ",".join(hz_m(m) for m in (jm(0, 50), jm(4, 50))), int(110 - 18 * k))
+        for nm, tr, g in (("gendy", gd, "-16dB"), ("gendy-out", go, "-20dB")):
+            tracks.append({"name": nm, "patch": "c3-gendy", "gain": os.environ.get("T3_" + nm.upper().replace("-", "_") + "_GAIN", g),
+                           "pan": 0.0, "fx": ["hp cutoff=" + os.environ.get("T3_GENDY_HP", "120"), "peak cutoff=750 gain=-6dB q=0.8",
+                                              "reverb kind=hall decay=3s mix=0.3"], "score": tr.score(total)})
     if R10 == "byte":
         byte = Track("byte")
         plan = [(st["seed"] + 16.0, st["boot"], 44, 64), (st["boot"], st["A"], 76, 80),
@@ -651,7 +694,8 @@ def main():
         "loudness: -11",
         "true_peak: true",
         "patches: " + json.dumps({**patches(), **({"c3-byte": C3_BYTE} if R10 == "byte" else {}),
-                                  **({"c8-kit": C8_KIT} if R11 == "bronze" else {})}),
+                                  **({"c8-kit": C8_KIT} if R11 == "bronze" else {}),
+                                  **({"c3-gendy": C3_GENDY} if R12 == "gendy" else {})}),
         "buses: " + json.dumps(buses),
         "master: " + json.dumps({"fx": [{"type": "eq", "bands": ["hp cutoff=25", "peak cutoff=250 gain=-2dB q=0.8",
                                                                "highshelf cutoff=7000 gain=2dB"] +
