@@ -55,6 +55,7 @@ LIFTSTOP = os.environ.get("C8T5_LIFTSTOP", "1")   # the gear change, announced: 
 LIFTHAT = os.environ.get("C8T5_LIFTHAT", "1")   # after the lift the hats open: every off-beat hat an open hat - the agreed band, a step up, brighter on top
 ESTABLE = os.environ.get("C8T5_ESTABLE", "1")   # song-level event_stable (engine f5283535): each note's humanize and DSP draws come from its track, beat and pitch, so a window's edit stays in the window; switching it on re-rolls every humanized note once
 ACIDX = os.environ.get("C8T5_ACIDX", "-18")   # WHOLE ROUND: the route out of chaos - the acid's line is doubled by a chaos voice (engine f3872739: a Rossler attractor, one loop per period of the note, read on its x axis, a tone with a chaotic flutter) whose amount walks the route backwards across the song: chaotic through A's proposals (0.9), calming through B, period-doubling (an octave-down subharmonic) at the retrain, a plain tone once they agree in C, and back toward chaos as they part at the end. Value = gain dB
+KEEPLPC = os.environ.get("C8T5_KEEPLPC", "plain")   # SECTION ROUND (w7, C bars 12-28): the agreement spoken by a speech chip - the line that states the deal at C bar 16 (keep) goes through LPC (engine 78e838c5): 'plain' (inflecting) or 'toy' (5-bit monotone on E3, the tonic, the speaking toy); keep2 at C's end stays as it was. Notes 0.07 beats early for LPC's ~35 ms
 ACIDWARP = os.environ.get("C8T5_ACIDWARP", "0.25")   # WHOLE ROUND: agreeing on a speed, literally - the acid runs on its own clock (the engine's per-track warp; the acid alone, its chaos double keeping the band's clock as the grid it wanders around): locked through the intro, drifting behind the band through A's proposals (to +W beats), drifting ahead of it through B's haggling (-W/2), easing back through the retrain to re-lock exactly on C's first bar (curve smooth: no jump), locked through the agreement, and drifting behind again as they part in the outro. Value = W, the largest shift in beats
 WIDTHAGREE = os.environ.get("C8T5_WIDTHAGREE", "0.5,1.5")   # WHOLE ROUND: agreement is one channel - the whole mix's stereo width (a width stage on the master) follows v38's meet lane: wide while the two machines are apart (A, B: the image as wide as their argument), narrowing through the retrain, nearly one channel once they agree in C, opening again as they part at the end. Value 'lo,hi' (width when met, when apart)
 CHLEAD = os.environ.get("C8T5_CHLEAD", "-16")   # PALETTE: the markov lead over C's second half (lead-wah) becomes a chaos voice (engine f3872739): a Rossler attractor read on its x axis, a sine with a chaotic flutter, its amount wandering on a slow LFO through the attractor's windows (wM's recipe: 0.7 +- 0.25), so each phrase passes between a clean tone, a doubled one and a fluttering one: once the speed is agreed, the lead improvises at the edge of chaos. Value = gain dB
@@ -530,6 +531,12 @@ def song():
         for t_ in doc["tracks"]:
             if isinstance(t_, dict) and t_.get("name") == "acid":   # the acid alone: its chaos double (v45) stays on the band's clock, the grid the acid wanders around
                 t_["warp"] = warp
+    if KEEPLPC:
+        for t_ in doc["tracks"]:
+            if isinstance(t_, dict) and t_.get("name") == "keep":
+                t_["fx"] = [{"plain": "lpc", "toy": "lpc pitch=E3 bits=5"}[KEEPLPC], *t_.get("fx", [])]
+                for n in t_.get("notes", []):
+                    n["at"] = round(max(0.0, n["at"] - 0.07), 4)
     return doc
 
 
