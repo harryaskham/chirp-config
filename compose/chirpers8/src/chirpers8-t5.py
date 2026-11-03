@@ -55,6 +55,7 @@ LIFTSTOP = os.environ.get("C8T5_LIFTSTOP", "1")   # the gear change, announced: 
 LIFTHAT = os.environ.get("C8T5_LIFTHAT", "1")   # after the lift the hats open: every off-beat hat an open hat - the agreed band, a step up, brighter on top
 ESTABLE = os.environ.get("C8T5_ESTABLE", "1")   # song-level event_stable (engine f5283535): each note's humanize and DSP draws come from its track, beat and pitch, so a window's edit stays in the window; switching it on re-rolls every humanized note once
 ACIDX = os.environ.get("C8T5_ACIDX", "-18")   # WHOLE ROUND: the route out of chaos - the acid's line is doubled by a chaos voice (engine f3872739: a Rossler attractor, one loop per period of the note, read on its x axis, a tone with a chaotic flutter) whose amount walks the route backwards across the song: chaotic through A's proposals (0.9), calming through B, period-doubling (an octave-down subharmonic) at the retrain, a plain tone once they agree in C, and back toward chaos as they part at the end. Value = gain dB
+RTSPIRAL = os.environ.get("C8T5_RTSPIRAL", "1")   # SECTION ROUND (w5, the retrain): the handshake comes in from far off - for the retrain's twelve bars the carriers (the modems' tones) orbit the listener (orbit mods, engine 206fbfb8), starting 12 m out and slow, spiralling in and quickening as the training goes on (Doppler lifting them as they near), arriving close at C where they connect and stand still again. Value = the orbit's mix at full
 CSPIKE = os.environ.get("C8T5_CSPIKE", "0.93")   # SECTION ROUND (w8, C bars 28-42: static, little new vs w7): line noise - after they agree the acid's chaos double (v45) is a plain tone, until a burst of noise on the line: from mid C bar 30 its amount glides up to CSPIKE (chirper-three's measure: 0.93 and 0.7 chaotic, 0.85 a periodic window), holds through bar 31, and recovers by bar 34, the connection riding it out
 FFWD = os.environ.get("C8T5_FFWD", "120")   # SECTION ROUND (w7, C bars 12-28: static): fall-forward - a connected modem tries the next speed up when the line is good, and drops back if it isn't: at C bar 16 the agreed tempo steps up (112 -> FFWD's bpm), holds eight bars, and falls back to 112 at C bar 24, the speed tried and given up. Value 'bpm' (a step) or 'bpm,ramp' (two bars up)
 HORNP = os.environ.get("C8T5_HORNP", "vosim")   # PALETTE: the voices that sing the hook once the machines agree (horn-section) become machine voices: 'vosim' two VOSIM pulse trains ('ah', F1 ~650 / F2 ~1100 Hz, drifting), the 1978 synthetic voice singing the agreed tune; 'czbrass' Casio CZ phase distortion brass (a sine opening into a saw on an 80 ms envelope), the 1984 home computer's horn section
@@ -483,6 +484,17 @@ def song():
         fx = [dict(f, hiss="-80dB", whistle="-80dB") if isinstance(f, dict) and f.get("type") == "radio" else f for f in spec.get("fx", [])]
         doc["tracks"].append(dict(spec, name="train", patch={"synth": {"layers": [{"type": "bytebeat", "bytebeat": {"formula": TRAINF, "clock": 8000}}]}},
                                   gain=os.environ.get("C8T5_TRAINGAIN", "-20dB"), pan=0.0, fx=fx, score=T["train"]))
+    if RTSPIRAL:
+        st = {sec: sec_start(sec) for sec, _ in FORM}
+        r0, c0 = st["retrain"], st["C"]
+        rt = {"points": [[f"{x / 4:g}b", y] for x, y in ((0, 0), (r0 - 8, 0), (r0 + 8, 1), (c0 - BAR, 1), (c0, 0), (total(), 0))]}
+        rr = {"points": [[f"{x / 4:g}b", y] for x, y in ((0, 1), (r0, 1), (c0, 0), (total(), 0))]}
+        for t_ in doc["tracks"]:
+            if isinstance(t_, dict) and t_.get("name") == "carrier":
+                t_["auto"] = dict(t_.get("auto", {}), rt=rt, rr=rr)
+                t_["fx"] = list(t_.get("fx", [])) + [{"type": "orbit", "rate": "1/2", "radius": {"value": 1, "mod": [{"src": "auto.rr", "amount": 11}]},
+                                                      "speed": {"value": 2, "mod": [{"src": "auto.rr", "amount": -1.5}]}, "doppler": 0.6,
+                                                      "mix": {"value": 0, "mod": [{"src": "auto.rt", "amount": float(RTSPIRAL)}]}}]
     if ACIDX:
         st = {sec: sec_start(sec) for sec, _ in FORM}
 
