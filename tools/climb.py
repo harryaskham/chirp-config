@@ -864,6 +864,11 @@ def compose_brief(c):
                    "quality improvements made'): every round lands an interesting, audible quality improvement you would "
                    "want Harry to hear, and preferably several. A level judgment-keep with a small tweak, a cleanup, a "
                    "locality fix or a metric nudge is not a round's work: fold that into a round that also improves the music.")
+        out.append("  PRAISE IS LOCAL (Harry, 3 Nov 23:4x: 'i need to be able to say \"i like this bit\" without the whole album "
+                   "turning into that! keep things varied. not all singing. but not NO singing either! nuance is key'): when "
+                   "Harry likes a moment in one song, that moment is good THERE. It is not a template for every song. Ask what "
+                   "THIS song wants, and if another song already has a move, find this song's own version or a different idea. "
+                   "Singing, choirs, new engine layers: where they serve the song, not everywhere and not nowhere.")
     rp = os.path.join(ROOT, "compose", album["id"], "ratings.jsonl")
     if os.path.exists(rp):
         with open(rp) as f:

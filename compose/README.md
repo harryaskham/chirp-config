@@ -112,7 +112,7 @@ make this track more itself, more surprising, better at its job on the album), b
 and by the album as a whole (the joins, the motif bank, the empty slots). Seed-to-seed spread is ~0.5-1 point; treat
 smaller gains as noise. The measures are
 guidance, not taste. **Variety over convergence**: never trade a song's identity for a few points; a change that
-makes the songs sound alike is a loss, whatever compscore says. Invent better measures: drop a file in
+makes the songs sound alike is a loss, whatever compscore says. **Praise is local** (Harry, 3 Nov: "i need to be able to say 'i like this bit' without the whole album turning into that! keep things varied. not all singing. but not NO singing either! nuance is key"): a moment Harry likes is good in its song, not a template. Within an hour of his t10 note, 8 of 12 songs had taken up the new FOF layer and at least 4 had the same four-voice choir; that is the failure mode. Ask what this song wants; if another song already has the move, find this song's own version or another idea. Invent better measures: drop a file in
 `compose/measures/` with `measure(ctx) -> (score or None, detail)` and propose a weight in `album.json`.
 
 **The metric is yours (Harry, 30 Oct: "climbers choose their own metrics, whatever makes the best song").** From
