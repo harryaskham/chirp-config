@@ -38,6 +38,7 @@ OWNKICK = os.environ.get("C8T2_OWNKICK", "1")   # and the kick: the machine laye
 TOMBACK = os.environ.get("C8T2_TOMBACK", "swap")   # PALETTE ROUND: the backbeat on a drum machine of our own - the engine's `machine` layer (circuit-modelled drum-machine voices, unused on the album) as a tuned electronic tom: G3 on 2, D3 on 4 (the halving's lone 3 on G3), the syndrum backbeat of the old machine records. 'swap' replaces the machine-kit clap (a staple of 9 songs); 'layer' keeps the clap under it
 CONVERGE = os.environ.get("C8T2_CONVERGE", "6")   # WHOLE ROUND: THE PATHS MEET - in C the canon gives way to a second number. Each of C's climbs gets a partner whose own hailstone path joins it partway (27 and 41 meet 313, 31 meets 297), played on the second clarinet in its own register and the same parity rhythm, timed so the two land on the shared number together; they sound in unison for six steps, then the partner falls silent and one line goes on down to 1 - the conjecture heard: different starts, one road home. Value = 'unison steps'
 INTROBOOT = os.environ.get("C8T2_INTROBOOT", "")   # SECTION ROUND (w1, the intro: static): the arp boots by resolution - bar b of the intro keeps only the first INTROBOOT+b steps of the sixteen in bit-reversed order (0 8 4 12 2 10 6 14 1 9 5 13 3 11 7 15: the order an FFT reads them), so the line arrives as a pulse, then halves, quarters, eighths, sixteenths, each note where it always was
+PEDALEND = os.environ.get("C8T2_PEDALEND", "up")   # the D pedal (sub, D2, the outro's last four bars) began before the solo and so outlived ENDSOLO: the last 1 was not alone, and the album's seam to t3 read 38-61 Hz +15..+34 dB. 'cut' ends it where the solo starts; 'up' moves it to D3
 GLKFIX = os.environ.get("C8T2_GLKFIX", "1")   # v40's finale put the glock into the outro, but GLKUP then replaced the glock's events with its C doubles, so the glock never joined the finale; keep both
 INTROGLK = os.environ.get("C8T2_INTROGLK", "30")   # SECTION ROUND (w1): instead of thinning the arp (the seam from t1 needs its full head), a glock boots over it by resolution - in intro bar b it doubles, an octave up, the arp's first b+1 steps of the sixteen in bit-reversed order (0 8 4 12 2 10 6 14 1 9 5 13 3 11 7 15, the order an FFT reads them): a pulse, then halves, quarters, eighths, and by the last bar every sixteenth. Value = velocity
 ENDSOLO = os.environ.get("C8T2_ENDSOLO", "2")   # WHOLE ROUND: the last 1 alone - for the outro's last ENDSOLO bars the band (kit, bass, sub, pad, arps) stops and the clarinet's final 1 4 2 1 lands by itself, the trivial cycle with nothing under it; event_stable keeps the rest as it was
@@ -320,6 +321,10 @@ def build():
         for k in ("kick", "kick2", "hats", "ohat", "shk", "clap", "tom", "tom2", "bass", "sub", "pad", "arp", "crash", "crash2", "bell"):
             if k in ev:
                 ev[k] = [e for e in ev[k] if not (e0 <= e[0] < e1)]
+        if PEDALEND == "cut":
+            ev["sub"] = [(a, h, min(l, e0 - a) if a < e0 < a + l else l, v) for (a, h, l, v) in ev["sub"]]
+        elif PEDALEND == "up":
+            ev["sub"] = [(a, "D3" if (h == "D2" and a < e0 < a + l) else h, l, v) for (a, h, l, v) in ev["sub"]]
     if FINALE:
         import re as _r3
         NN3 = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
