@@ -108,7 +108,7 @@ def build():
         secs[name] = t; t += n
     nb = t
     total = nb * 4.0
-    P = {k: [] for k in ('pad', 'sub', 'bass', 'kit', 'say', 'babble', 'ca', 'speak', 'vib')}
+    P = {k: [] for k in ('pad', 'sub', 'bass', 'kit', 'say', 'babble', 'ca', 'speak', 'vib', 'pno')}
     KSYL = [(round(n_['at'] * 4) / 4.0, n_['ph']) for n_ in VOICE[0]['notes'] if '1' in n_['ph']]
     for b in range(nb):
         s = next(name for name, n in FORM if secs[name] <= b < secs[name] + n)
@@ -122,6 +122,13 @@ def build():
             P['pad'].append((t0, ctoks(s, ch), 40.0, 72 if s in ('intro', 'outro', 'break') else 64))
         if s == 'outro' and i >= 6:
             P['sub'].append((t0, nm(31), 3.8, 80))           # G1 under the handshake
+        # (v26, palette) A PIANIST: halfway through the third groove, the climax, a felt-muted piano comes in comping the
+        # chords on the off-beats - the and of two and the and of four, short and dark, a little late - the human band's
+        # third player, lifting the groove's second half (comping through all three grooves made them too alike:
+        # compscore found 11-12 sections, not 14; through all of the third, it merged that groove into one long block)
+        if s == 'C' and i >= 16:
+            for q_, v_ in ((1.5, 70), (3.5, 64)):
+                P['pno'].append((t0 + q_ + 0.03, ctoks(s, ch), 0.4, v_))
         if s in ('B', 'C', 'D'):
             P['sub'].append((t0, nm(root), 1.8, 92)); P['sub'].append((t0 + 2.5, nm(root), 1.2, 84))
             # (v21) THE SEQUENCER BASS: three blips a bar became a sixteenth-note sequence that leans across the beat -
@@ -368,6 +375,8 @@ def build():
             tr('speak', 'strings-saw', '-7dB', pan=-0.15, fx=[{'type': 'morph', 'mode': 'cross', 'key': 'voice', 'amount': 0.95}],
                sends={'hall': '-10dB'}),
             tr('sub', 'sub', '-4.5dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-5dB', 'release': '260ms', 'curve': 0.6}]),
+            # (v26: a fingerstyle electric bass, finger-bass, was tried here - it moved a section boundary, structure 88 on
+            # seed 11 - and the analog bass stays)
             tr('bass', 'analog-bass', '-12dB', fx=['lp cutoff=1100']),
             tr('kit', 'tight-kit', '-6dB', sends={'hall': '-18dB'},
                fx=[{'type': 'eq', 'bands': ['peak cutoff=75 q=0.8 gain=4dB', 'highshelf cutoff=9000 gain=-5dB']}]),
@@ -382,6 +391,7 @@ def build():
              'gen': {'type': 'ca', 'rule': 90, 'width': 16, 'init': 'center', 'poly': 1, 'notes': 'rs rs cb rs',
                      'n': (secs['D'] + 16 - secs['B']) * 16, 'len': '/16'},
              'sends': {'echo': '-14dB'}},
+            tr('pno', 'piano-muted', '-12dB', pan=0.3, sends={'hall': '-16dB'}),   # (listed last: nothing before it moves)
         ]}
     return song
 
