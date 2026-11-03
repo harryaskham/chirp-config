@@ -339,8 +339,20 @@ def build():
         return t - 0.5 * sum(1 for c in cuts if t >= c + 0.5 - 1e-9)
     def dropped(t):
         return any(c - 1e-9 <= t < c + 0.5 - 1e-9 for c in cuts)
+    # (v38) THE RETURNS LEAVE: as the stack unwinds in the final calls, each copy of the subject used simply to stop -
+    # the fastest at bar 20, the next at 24, the last at 28. Now in its last four bars each one flies away: it is
+    # moved, as Chowning moved sounds in 1971 (wM's orbit), from right in front of the listener out along a line to
+    # thirty metres off - fading with distance, darkening, its pitch sagging a little with the Doppler - so every
+    # RETURN is heard as a voice leaving the room, deepest first. (The copies there are written, then muted.)
+    UNW = {'d3': 16, 'd2': 20, 'd1': 24}
+    for key_, b0_ in UNW.items():
+        a0_, a1_ = secs_t['final'] + b0_ * 4.0, secs_t['final'] + (b0_ + 4) * 4.0
+        P['u' + key_[1]] = [e_ for e_ in P[key_] if a0_ - 1e-6 <= e_[0] < a1_ - 1e-6]
+        P[key_] = [(e_[0], e_[1], e_[2], 1) if a0_ - 1e-6 <= e_[0] < a1_ - 1e-6 else e_ for e_ in P[key_]]
     for key in P:
         P[key] = [(shift(e_[0]),) + tuple(e_[1:]) for e_ in P[key] if not dropped(e_[0])]
+    ORB_RATE = 0.0625                      # half a lap (centre to 30 m off) in eight seconds, four bars
+    orb_phase = {k_[1]: (0.5 - shift(secs_t['final'] + b0_ * 4.0) * 60.0 / BPM * ORB_RATE) % 1.0 for k_, b0_ in UNW.items()}
     def clampcut(t):
         for c in cuts:
             if c - 1e-9 <= t < c + 0.5:
@@ -463,6 +475,9 @@ def build():
             # (v12) the deepest copies thinner (chirper-three: the densest stack may crowd the subject)
             tr('d2', BELL, '-19dB', pan=-0.6, sends={'echo': '-16dB'}),
             tr('d3', 'glass', '-26dB', pan=0.5, fx=['hp cutoff=800'], sends={'hall': '-12dB'}),
+            tr('u1', BELL, '-11dB', fx=[f"orbit rate={ORB_RATE} radius=30 distance=2 path=line phase={orb_phase['1']:.4f}"], sends={'echo': '-14dB'}),
+            tr('u2', BELL, '-17dB', fx=[f"orbit rate={ORB_RATE} radius=30 distance=2 path=line phase={orb_phase['2']:.4f}"], sends={'echo': '-16dB'}),
+            tr('u3', 'glass', '-24dB', fx=['hp cutoff=800', f"orbit rate={ORB_RATE} radius=30 distance=2 path=line phase={orb_phase['3']:.4f}"], sends={'hall': '-12dB'}),
             tr('kit', 'machine-kit', '-2dB', sends={'hall': '-20dB'}),
             tr('glass', 'glass', '-15dB', pan=0.1, sends={'hall': '-8dB'}),
             tr('cs', 'clarinet', '-9dB', pan=-0.45, sends={'hall': '-10dB', 'echo': '-18dB'}),
