@@ -486,7 +486,7 @@ def bass_waits():
 # human voice; then, sorted, it sings. The computer's voice becomes a person's as the list sorts itself.
 CHIP_TOY = (17, 33, 49, 65)
 CHIP = (81, 105)
-LPC_EARLY = 0.075              # beats: LPC answers ~35 ms late
+LPC_EARLY = 0.0                # ee46ab71 (adopted 20:21) compensates lpc in the engine: the hand nudge (0.075 beats) is out
 
 
 # v38 (ROUND TYPE: section, w8 3:30-4:00 - merge's second run, flagged static, little new vs w7): THE FINAL MERGE, AS
