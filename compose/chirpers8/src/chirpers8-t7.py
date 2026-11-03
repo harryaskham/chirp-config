@@ -120,7 +120,7 @@ def build():
                     cand = new
         seq_states.append(list(cand)); losses.append(round(loss(cand), 3))
     # ---- render the parts ----
-    P = {k: [] for k in ('seq', 'keys', 'pad', 'bass', 'kit', 'hum', 'rhum', 'glim', 'cf')}
+    P = {k: [] for k in ('seq', 'keys', 'pad', 'bass', 'kit', 'hum', 'rhum', 'glim', 'cf', 'gdy')}
     rng_t = random.Random(SEED + 99)
     rng_b = random.Random(SEED + 77)
     rng_h = random.Random(SEED + 55)
@@ -297,6 +297,19 @@ def build():
     for j_, q in enumerate(nn_):
         q2 = nn_[j_ + 1] if j_ + 1 < len(nn_) else 16
         P['cf'].append((cf0 + q * 4.0, tok(hz(TARGET[q] - 7, 0)), (q2 - q) * 4.0 - 0.3, 66 + (6 if q in (3, 4) else 0)))
+    # (v26) THE TEMPERATURE, AUDIBLE: under everything, an open fifth (A and E) on Xenakis's dynamic stochastic
+    # synthesis (GENDY, 1991: each wave cycle a polygon whose corners random-walk) - the same idea as the search itself,
+    # a random walk with a step size. Its step sizes are the temperature: while the machine is hot the corners and the
+    # segment lengths wander far, so the drone slides and frays into glissando clouds; as it cools the steps shrink and
+    # the tone settles; converged, the walk all but stops and the waveform freezes into one steady, grainy tone. The
+    # reheat shakes it loose again, and in the coda it moves up the fourth with the band
+    st_ = 0
+    for nm_, n_ in FORM:
+        b0_ = st_ + (4 if nm_ == 'power' else 0)
+        f_ = (4 / 3) if nm_ == 'coda' else 1.0
+        ch_ = ','.join(tok(hz(d_, 0) * f_) for d_ in (-7, -3))
+        P['gdy'].append((b0_ * 4.0, ch_, (st_ + n_ - b0_) * 4.0 + 1.5, 76))
+        st_ += n_
     # (v16) GLIMPSES: in the middle of the last, longest epoch, before the search has found anything, the electric
     # piano that will play the answer lets slip a few of its notes - the first two, exact and quiet, in their
     # places in the bar; four bars later the first three; then four; then the first phrase - the answer showing
@@ -386,6 +399,13 @@ def build():
             tr('glim', 'epiano-tine', '-6dB', pan=-0.15, sends={'echo': '-14dB', 'hall': '-12dB'},
                fx=[{'type': 'wah', 'low': 350, 'high': 2600, 'env': 0.9, 'q': 4, 'mix': 0.6}]),
             tr('cf', 'cello', '-11dB', pan=0.25, sends={'hall': '-10dB'}),
+            tr('gdy', {'synth': {'layers': [{'type': 'gendyn', 'gendyn': {
+                   'points': 12, 'amp': {'value': 0.004, 'mod': [{'src': 'auto.temp', 'amount': 0.12}]},
+                   'time': {'value': 0.0, 'mod': [{'src': 'auto.temp', 'amount': 0.2}]},
+                   'spread': {'value': 0.05, 'mod': [{'src': 'auto.temp', 'amount': 0.9}]}}}],
+                 'amp': {'a': '2s', 'd': '1s', 's': 1.0, 'r': '2s'}, 'filters': ['lp cutoff=1600', 'hp cutoff=70']}},
+               '-17dB', sends={'hall': '-10dB'},
+               auto={'temp': {'points': [[f"{b_ * 4.0:.2f}b", T[b_]] for b_ in range(nb)]}}),
         ]}
     return song, losses, T
 
