@@ -600,7 +600,7 @@ def song():
                               "sends": {"plate": "-14dB"}, "score": T["vos"]})
     if CHAOSONE:
         doc["tracks"].append({"name": "chx", "gain": f"{CHAOSONE}dB", "pan": 0.15,
-                              "patch": {"synth": {"layers": [{"type": "chaos", "chaos": {"system": "rossler", "axis": "x", "amount": {"value": 0, "mod": [{"src": "var.height", "amount": 0.9}]}}}],
+                              "patch": {"synth": {"layers": [{"type": "chaos", "chaos": {"system": os.environ.get("C8T2_CHSYS", "duffing"), "axis": "x", "amount": {"value": 0, "mod": [{"src": "var.height", "amount": float(os.environ.get("C8T2_CHAMT", "0.8"))}]}}}],
                                                   "amp": "20ms 0.8 0.75 150ms", "filters": [{"kind": "lp", "cutoff": 3000}]}},
                               "sends": {"plate": "-14dB"}, "score": T["clar"]})
     return doc
