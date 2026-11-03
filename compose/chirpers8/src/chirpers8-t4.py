@@ -309,7 +309,9 @@ def write():
                 part("riffle").add(b0(9) - 1.0 + i / 16, 0.2, pitch(RIFF[v] + root_at(9), BASE + 12), 60 + i * 3)
         # THE WORK, AUDIBLE: a tick per comparison, a hit per swap; a crash when a pass changes nothing / it is done
         for j in cmp:
-            part("tick").add(b0(bar) + j / 4, 0.1, "h", 52 + hand.randint(-6, 6))
+            # v28: THE COMPARISONS SPEAK BYTEBEAT - each comparison is a one-line-formula chirp pitched at the compared
+            # element's value, two octaves up: the machine audibly READS the array (the hand-swaps stay tuned toms)
+            part("tick").add(b0(bar) + j / 4, 0.1, pitch(RIFF[arr[j]] + root_at(bar), BASE + 24), 52 + hand.randint(-6, 6))
         for j in sw:
             # v15: THE SWAPS PLAY THE TOMS - each swap strikes a tuned membrane (modal layer) at the pitch of the
             # element being moved, in the riff's notes an octave down: the work becomes a talking-drum line
@@ -577,6 +579,15 @@ GROOVES = {
 # the grooves were written in v23 but switched off: every variant tipped seed 0's detected section count past the
 # structure term's ceiling (22 -> 23 of 22.2). v24's palette (a picked bass, a glass pad) brought the count down to
 # 21/20, and with all three grooves on it reads 22/21 - inside the band - so they are ON from v24
+# v28 (ROUND TYPE: whole; wM's bytebeat layer, pinned 709cf900 'made for this album'): THE COMPARISONS SPEAK BYTEBEAT.
+# Every comparison every algorithm makes was a quiet 909 hat tick at its position; now it is a short chirp of a
+# one-line formula over a counter (the 2011 form of computer music), pitched at the compared element's value two
+# octaves above the riff - pitch scales the formula's clock, so the chirps trace the array as it is read. The
+# machine looks (8-bit chirps), the hand moves (the swaps' tuned toms). Formula our own: (t*8&t>>4)|t*4.
+BYTE_TICK = {"about": "chirper-three: a comparison, as bytebeat - (t*8&t>>4)|t*4, short and bright",
+             "synth": {"layers": [{"type": "bytebeat", "bytebeat": {"formula": "(t*8&t>>4)|t*4", "clock": 8000}}],
+                       "filters": ["hp cutoff=1200", "lp cutoff=9k"],
+                       "amp": {"a": "1ms", "d": "60ms", "s": 0, "r": "20ms"}}}
 GROOVE_ON = ("insertion", "quick", "merge")
 # v24 (ROUND TYPE: palette; Harry 'do more each round'): the two album staples under everything change - the pad from
 # juno-pad (5 songs) to PAD-GLASS, an FM bell-glass bloom (FM: the computer's own sound, the digital technique that
@@ -665,7 +676,7 @@ def main():
                auto={"pm": {"points": pad_morph_lane()}}),   # (its own name: morph_lane is v3's lead lane)                                           # v2; v4: ducked by the kick
             tr("carrier", "partial", gain="-24dB", sends={"room": "-10dB"}),                # v8: the handshake
             tr("hum", "808", gain="-4dB"),                     # v2: into t5's E2 (v8: 6 dB up - it sat at -36 dB alone)
-            tr("tick", "909", gain="-17dB", pan=0.2, fx=[{"type": "filter", "kind": "hp", "cutoff": 3000}]),
+            tr("tick", BYTE_TICK, gain="-14dB", pan=0.2),                                       # v28: bytebeat
             tr("swap", "modal-tom", gain="-15dB", pan=-0.2, sends={"room": "-10dB"}),     # v15: tuned membranes
             tr("crash", CYMBAL, gain="-12dB", sends={"room": "-8dB"}),                    # v16: a real cymbal
             tr("kick", "909", gain="-10dB"),
