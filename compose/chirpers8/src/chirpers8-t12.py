@@ -669,6 +669,39 @@ def colony():
         P[name].ev = [(s, ln, head, 1 if a <= s < z else vel) for s, ln, head, vel in P[name].ev]
 
 
+# v31 (ROUND TYPE: whole; VOSIM pinned 1a5a0572): THE MACHINE LEARNS THE SONG. After the voice's second coda
+# statement, the computer's own early voice sings the tune back: VOSIM (voice-simulation pulse trains, Sonology 1978),
+# two formant layers making vowels - and each note's vowel is taken from the PHONEME the human sang on it (AO, AE, OW,
+# UW, ER, IY...), so the machine imitates the words in its own vowels, without consonants; diphthongs glide (expr_end).
+# An octave down, steady, unhumanised - a machine singing a song it has just learnt - then the power-down.
+MACHINE_AT = 172
+VOWELS = {"AA": (730, 1090), "AO": (570, 840), "AH": (640, 1190), "AE": (660, 1720), "OW": (500, 900),
+          "UW": (300, 870), "ER": (490, 1350), "IH": (390, 1990), "IY": (270, 2290), "EH": (530, 1840),
+          "UH": (440, 1020), "EY": (530, 1840), "AY": (730, 1090), "AW": (730, 1090), "OY": (570, 840)}
+GLIDES = {"OW": (300, 870), "EY": (270, 2290), "AY": (270, 2290), "AW": (300, 870), "OY": (270, 2290)}
+MACHINE_VOICE = {"synth": {"layers": [
+    {"type": "vosim", "vosim": {"formant": {"value": 500, "mod": [{"src": "expr.v1", "amount": 1}]}, "pulses": 3, "decay": 0.7}},
+    {"type": "vosim", "level": 0.5, "vosim": {"formant": {"value": 1500, "mod": [{"src": "expr.v2", "amount": 1}]},
+                                               "pulses": 4, "decay": 0.75}}],
+    "amp": "40ms 0.9 0.85 300ms"}}
+
+
+def machine_notes():
+    out = []
+    for a, ln, ph, midi, v, f0 in SING:
+        vow = next(x.rstrip("012") for x in ph.split() if x[-1] in "012")
+        f1, f2 = VOWELS["AH"] if vow == "AH" and "AH0" in ph else VOWELS[vow]
+        if "AH0" in ph:
+            f1, f2 = 500, 1500                                 # the unstressed schwa
+        n = {"at": round(warp(b0(MACHINE_AT) + a), 4), "len": round(ln, 3), "pitch": f"m{midi - 12}", "vel": 0.8,
+             "expr": {"v1": round(math.log2(f1 / 500), 3), "v2": round(math.log2(f2 / 1500), 3)}}
+        if vow in GLIDES:
+            g1, g2 = GLIDES[vow]
+            n["expr_end"] = {"v1": round(math.log2(g1 / 500), 3), "v2": round(math.log2(g2 / 1500), 3)}
+        out.append(n)
+    return out
+
+
 CLEAR_TRACKS = ("turtle", "harp", "kalimba", "celesta", "violins_lead", "strum", "horns", "ondes")
 
 
@@ -855,6 +888,8 @@ def main():
                            "sends": {"hall": "-10dB"}, "auto": {"cg": {"points": counting_lane()}},
                            "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.cg", "amount": 1}]}}],
                            "notes": counting_notes()})                          # v29: the machine keeps counting
+    song["tracks"].append({"name": "machine", "patch": MACHINE_VOICE, "gain": "-14dB", "pan": -0.15,
+                           "sends": {"echo": "-8dB", "hall": "-8dB"}, "notes": machine_notes()})   # v31: the machine sings
     song["tracks"].append({"name": "colony", "patch": "machine-kit", "gain": "-11dB", "at": f"{b0(COLONY[0]):g}b",
                            "gen": {"type": "life", "width": 16, "height": 4, "init": COLONY_INIT, "poly": 3,
                                    "n": 16 * (COLONY[1] - COLONY[0]), "len": "/16", "notes": "k rs cp h"}})  # v30
