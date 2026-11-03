@@ -288,6 +288,14 @@ R21 = os.environ.get("T9_R21", "split")
 C9_KS = {"about": "chirper-two: the 1983 Karplus-Strong string, stretched to ring, the burst a little dark",
          "synth": {"layers": [{"type": "ks", "ks": {"blend": 1.0, "stretch": 2}, "bright": 0.45}],
                    "amp": {"a": "1ms", "d": "900ms", "s": 0, "r": "250ms"}}}
+# T9_R22 = crisis (v22, section round on w9, 3:35-4:00: the STORM's entry, "little new vs w8" - groove change
+# 0.074, just under new). THE ATTRACTOR FILLS THE INTERVAL. At r = 4 the map's crisis spreads its orbit over all of
+# [0, 1]; the song only ever played the top of it (the reed is silent under 0.42). Now, through the storm, the
+# bottom plays too: every iterate under 0.42 strikes the Karplus-Strong string a tritave down, hard left - the voice
+# that split at the fork in eight comes back, fallen, and the storm sounds the whole interval from the floor to the
+# top. And the storm is let in by ONE BEAT OF SILENCE: everything stops on the last beat of the window, then the
+# storm. T9_R22=none reproduces v21.
+R22 = os.environ.get("T9_R22", "crisis")
 TERRAIN_GAIN = os.environ.get("T9_TERRAIN_GAIN", "-14.5dB")
 EYE = float(os.environ.get("T9_EYE", "636"))   # where the drum bus drops out (to 640b)
 C9_GENDY = {"about": "chirper-two: a gendyn squall - level and segment-length steps both ride velocity, wide spread, "
@@ -404,7 +412,7 @@ class Track:
 
 def build():
     rng = random.Random(9)
-    names = ("kick", "snare", "hats", "ride", "lead", "blip", "bass", "pad", "padx", "bell", "chop", "ks")
+    names = ("kick", "snare", "hats", "ride", "lead", "blip", "bass", "pad", "padx", "bell", "chop", "ks", "ksl")
     T = {k: Track(k) for k in names}
     x, y = 0.2, 0.71
     pos = 0.0
@@ -430,6 +438,9 @@ def build():
             # ---- the lead: the map, one sixteenth per iterate (silent under 0.42) ----
             if not (name == "one" and i < 2):
                 for s, v in enumerate(xs):
+                    if R22 == "crisis" and name == "storm" and 0.03 < v <= 0.42:   # the bottom of the interval
+                        T["ksl"].add(start + s * 0.25, 0.5, mm(bp(min(8, int(v / 0.42 * 9)), 57 - TRITAVE)),
+                                     int(60 + 50 * (0.42 - v)), "?0.85")
                     if v > 0.42:
                         deg = max(0, min(13, int((v - 0.3) * 16)))
                         if R21 == "split" and name == "eight" and v >= float(os.environ.get("T9_KS_SPLIT", "0.7")):
@@ -672,6 +683,9 @@ def main():
         *([{"name": "ks", "patch": "c9-ks", "gain": os.environ.get("T9_KS_GAIN", "-19dB"), "pan": 0.55,
             "fx": ["hp cutoff=180", "lp cutoff=5000", {"type": "delay", "time": "3/16", "feedback": 0.3, "mix": 0.18, "ping_pong": True, "tone": 4000},
                    "reverb kind=room decay=0.9s mix=0.15"], "score": T["ks"].score(total)}] if R21 == "split" else []),
+        *([{"name": "ksl", "patch": "c9-ks", "gain": os.environ.get("T9_KSL_GAIN", "-8dB"), "pan": -0.6,
+            "fx": ["hp cutoff=60", "lp cutoff=3500", {"type": "delay", "time": "3/16", "feedback": 0.3, "mix": 0.15, "ping_pong": True, "tone": 3000},
+                   "reverb kind=room decay=0.9s mix=0.15"], "score": T["ksl"].score(total)}] if R22 == "crisis" else []),
         {"name": "blip", "patch": "c9-pulse" if R4 == "break" else "blip",
          "gain": os.environ.get("T9_PULSE_GAIN", "-6dB") if R4 == "break" else "-7dB", "pan": 0.35,
          "fx": [{"type": "delay", "time": "1/8", "feedback": 0.35, "mix": 0.25, "ping_pong": True, "tone": 6000}],
@@ -831,6 +845,13 @@ def main():
             if tr["name"] in ("kick", "ksub", "bass", "bpluck", "osti"):
                 tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.fork", "amount": 1}]}}]
                 tr["auto"] = {**tr.get("auto", {}), "fork": lane}
+    if R22 == "crisis" and os.environ.get("T9_R22_GAP", "on") == "on":
+        g1 = st["storm"]
+        lane = {"points": [["0b", 0.0], [f"{g1 - 1.15}b", 0.0], [f"{g1 - 0.95}b", -40.0], [f"{g1 - 0.08}b", -40.0],
+                           [f"{g1}b", 0.0], [f"{total}b", 0.0]]}
+        for tr in tracks:
+            tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.crisis", "amount": 1}]}}]
+            tr["auto"] = {**tr.get("auto", {}), "crisis": lane}
     if R17 == "route":
         pts = [["0b", 0.0]]
         for nm, s, k, m in secs:
@@ -880,7 +901,7 @@ def main():
                                      **({"c9-route": C9_ROUTE} if R17 == "route" else {}),
                                      **({"c9-lam": C9_LAM} if R18 == "intermit" else {}),
                                      **({"c9-cbass": C9_CBASS} if R19 == "cz" else {}),
-                                     **({"c9-ks": C9_KS} if R21 == "split" else {})})]
+                                     **({"c9-ks": C9_KS} if (R21 == "split" or R22 == "crisis") else {})})]
           if R4 == "break" else []),
         "buses: " + json.dumps(buses),
         "master: " + json.dumps({"fx": [{"type": "eq", "bands": (["hp cutoff=25", "peak cutoff=90 gain=-4dB q=0.9",
