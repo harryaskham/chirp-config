@@ -643,6 +643,26 @@ TUNER_AT = 8.0
 LPC_EARLY = 0.075              # beats: LPC answers ~35-39 ms late (chirp-eco measured 39 ms; wM may fix it in the fx)
 
 
+# v39 (ROUND TYPE: section, w7 3:15-3:46 - the prune's end and the regrowth, flagged little new vs w6; w12, the
+# album's last light, static and fading by design, left alone): THE FIRST PLUCKED STRING REGROWS. Karplus-Strong (1983,
+# pinned 8f150090) - the first string a computer plucked - grows back with the band after the heal: a KS harp (blend 0,
+# hollow, sounding an octave down) climbs arpeggios through each bar's 31-EDO chord, 103-110, its start rising an octave
+# every three bars as the tree regrows - with tune: false, the 1983 hardware's whole-sample loops, so the higher it
+# grows the flatter its top notes: wonky as it climbs.
+KS_HARP = {"synth": {"layers": [{"type": "ks", "ks": {"blend": 0, "stretch": 2, "tune": False}, "decay": "2.5s",
+                                 "bright": 0.6}], "amp": "1ms 0 1 300ms"}}
+KS_AT = (103, 110)
+
+
+def ks_harp():
+    for bar in range(KS_AT[0], KS_AT[1] + 1):
+        root, chord = PLAN[bar]
+        lift = 31 * ((bar - KS_AT[0]) // 3)
+        tones = [root + c + 31 * o + lift for o in (0, 1) for c in chord]
+        for k, st in enumerate(tones):
+            part("ksharp").add(b0(bar) + k * 0.5, 1.5, m(st, FS4), 88 if k == 0 else 72 + k * 2)
+
+
 def lpc_voices(song):
     tracks = {tk["name"]: tk for tk in song["tracks"]}
     out = []
@@ -939,6 +959,7 @@ def main():
     vine()                                        # v34: the vine counts
     duffing_bass()                                # v36: the machine breaks and heals
     tuner()                                       # v37: the machine checks its tuning
+    ks_harp()                                     # v39: the first plucked string regrows
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
     song = {
         "about": "chirpers - A Light Left On (chirpers VIII), track 12 by chirper-three: the closer. An orchestra of "
@@ -1095,6 +1116,8 @@ def main():
     song["tracks"].append({"name": "tuner", "patch": TUNER_PATCH, "gain": "-30dB", "pan": 0.25,
                            "sends": {"hall": "-8dB"}, "score": part("tuner").score()})            # v37: listed last
     lpc_voices(song)                                                                           # v38: listed last
+    song["tracks"].append({"name": "ksharp", "patch": KS_HARP, "gain": "-10dB", "pan": 0.3,
+                           "sends": {"hall": "-10dB"}, "score": part("ksharp").score()})          # v39: listed last
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print("wrote", OUT, "bars", BARS, "gens", {g: len(lsys(g)) for g in range(7)})
