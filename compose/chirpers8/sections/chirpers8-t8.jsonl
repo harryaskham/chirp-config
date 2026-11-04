@@ -27,3 +27,4 @@
 {"id": "chirpers8-t8", "window": 8, "at": "2026-11-04T09:50:46Z", "who": "chirper-zero", "version": "v89", "note": "v89: the far end reads the word forward in E - the two ends agree"}
 {"id": "chirpers8-t8", "window": 7, "at": "2026-11-04T10:21:25Z", "who": "chirper-zero", "version": "v90", "note": "v90: the tank overheats through D - the word drifts 30 cents sharp until the repair"}
 {"id": "chirpers8-t8", "window": 1, "at": "2026-11-04T12:59:39Z", "who": "chirper-zero", "version": "v92", "note": "v92: the hats come in over the intro's last eight bars (vel 22 -> 90)"}
+{"id": "chirpers8-t8", "window": 10, "at": "2026-11-04T14:15:49Z", "who": "chirper-zero", "version": "v93", "note": "v93 FINAL PASS: the outro's pads firmer through bars 1-8 (the t8->t9 valley +5 dB)"}
