@@ -3,6 +3,7 @@ looks:
   doubling:
     palette: ocean
     params: {r: 2.9}
+    env: {lift: {on: audio.lift, attack: 30ms, decay: 1.4s}}
     layers:
       - {type: gradient, angle: 0.25, spread: 0.12, pos: 0.08, light: "0.3 + audio.low*0.2"}
       - {type: attractor, kind: logistic, lo: 2.8, hi: 4.0, upto: param.r, points: 400000, gain: "2.6 + audio.level*2", spread: 0.5, pos: "0.3 + lfo.drift*0.08", y: "lfo.drift*0.03"}
@@ -11,7 +12,7 @@ looks:
       - {type: scope, mode: wave, y: -0.86, size: 3.4, gain: 1.2, width: 0.003, glow: 0.5, pos: 0.7, opacity: 0.7}
     lfo: {drift: "sine period=16b"}
     filters:
-      - {type: camera, zoom: "1 + scene.progress*0.18", x: "scene.progress*0.45", y: "scene.progress*0.05"}
+      - {type: camera, zoom: "1 + scene.progress*0.18 + env.lift*0.06", x: "scene.progress*0.45", y: "scene.progress*0.05"}
       - {type: feedback, zoom: "1.002 + audio.onset*0.01", decay: 0.55}
       - {type: bloom, threshold: 0.4, amount: "0.6 + audio.level*0.4", radius: 0.025}
       - {type: vignette, amount: 0.5}
