@@ -277,6 +277,16 @@ def storm_intensity(bar):
     return WIND_VEL.get(sec_of(bar), 0) / 100 * (0.4 + 0.6 * min(1.0, max(0.0, (sp - 9.1) / 35.2)))
 
 
+# v41 (ROUND TYPE: palette): A ROUND BASS. The 808 (five songs on the album) gives way to a CHEBYSHEV-SHAPED bass
+# (Le Brun & Arfib 1979): a sine through a polynomial writing four warm partials, its drive on a plucked envelope -
+# round, not boomy; no other song's bass. Refused in the same round: the pad as a SCANNED ring pushed by the storm
+# lane - it pulled the whole song toward t12 (distinct 92.7/84.8 with the bass, 80.0/86.2 alone; t12 closest at 0.87-
+# 0.88 similarity) and the storm's push barely changed it (level and brightness flat between calm and storm).
+SHAPER_BASS = {"synth": {"layers": [{"type": "shaper", "shaper": {
+    "harmonics": [1, 0.6, 0.3, 0.15], "index": {"value": 0.2, "mod": [{"src": "env.pluck", "amount": 0.8}]}}}],
+    "amp": "3ms 0 1 100ms", "env": {"pluck": {"a": "1ms", "d": "250ms", "s": 0.1, "r": "50ms"}}}}
+
+
 def storm_lane():
     raw = {b: storm_intensity(b) for b in range(1, BARS + 1)}
     pts, last = [], 0.0
@@ -1020,7 +1030,7 @@ def main():
                fx=["gate key=gtrig threshold=-40dB attack=1ms release=40ms", "ott depth=0.3", WIDTH_FX],
                auto={"wd": {"points": width_lane()}}),                                      # v13
             tr("gtrig", "machine-kit", gain="-80dB"),
-            tr("bass", "808", gain="-11dB", fx=[{"type": "pump", "on": "kick", "depth": "-9dB", "release": "1/6",
+            tr("bass", SHAPER_BASS, gain="-11dB", fx=[{"type": "pump", "on": "kick", "depth": "-9dB", "release": "1/6",   # v41
                                                 "curve": 0.6}]),
             tr("chops", "chopper", gain="-12dB", sends={"dly": "-8dB"},
                fx=[{"type": "pan", "pan": {"value": 0, "mod": [{"src": "var.gust", "amount": 1}]}}]),
