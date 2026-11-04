@@ -517,7 +517,14 @@ def build():
             tr('bell', BELL, '-8dB', pan=-0.25, sends={'echo': '-12dB', 'hall': '-14dB'}),
             tr('bell0', {'synth': dict(BELL['synth'], layers=[BELL['synth']['layers'][0], {'wave': 'sine', 'pm': [{'from': 'm', 'depth': {'value': 0.12, 'mod': [{'src': 'env.bright', 'amount': 0.9}]}}]}])},
                '-7dB', pan=-0.15, sends={'echo': '-12dB', 'hall': '-11dB'}),
-            tr('sync', SYNC, '-12dB', pan=0.4, fx=['hp cutoff=220', 'lp cutoff=3600'], sends={'hall': '-16dB'}),
+            # (v49, palette) THE SECOND VOICE LEAVES THE ANALOGUE STUDIO: the fugue is three voices in three bands -
+            # Chowning's FM bell (the subject), a hard-sync saw lead and a pulse-width wavetable - and the sync lead was the
+            # analogue synthesiser's classic. Now the second voice is a wave-terrain lead (Bischoff, Gold and Horton's
+            # 1978 idea, Mitsuhashi's 1982 papers; wM's terrain-keys): an orbit read across a surface of sines whose centre
+            # drifts, so each note's colour is wherever its path crosses the hills - no filter, the timbre wandering on
+            # its own. Same line, same band, same place in the room. (The pulse-width voice to Mathews' scanned mallet
+            # was tried with it: variety fell to 94, so it stays)
+            tr('sync', 'terrain-keys', '-12dB', pan=0.4, fx=['hp cutoff=220', 'lp cutoff=3600'], sends={'hall': '-16dB'}),
             tr('pwm', PWM, '-15dB', pan=0.1, fx=['hp cutoff=380'], auto={'pw': {'points': pw}}, sends={'hall': '-10dB'}),
             # (v41, palette) THE MACHINE COMING APART: the clave bass was an FM bass. Now it is a driven Duffing oscillator
             # locked to each note (wM's duffing-bass, from today's chaos layer): its short tresillo notes stay clean and
