@@ -80,6 +80,7 @@ DECFIX = os.environ.get("C8T8_DECFIX", "")   # v56's decay double peaks at lane 
 SUNGMID = os.environ.get("C8T8_SUNGMID", "16")   # WHOLE ROUND on the singing: the voice is heard before E - 'it comes later on' (the line sung at E bar 12) is first sung in the middle of the song, at C bar SUNGMID, in C's own D minor (E's is lifted a step), with its canon a bar behind a third below (v69): the line promises its own return, and comes later on. Value = bar of C
 WORDLEVEL = os.environ.get("C8T8_WORDLEVEL", "3")   # WHOLE ROUND: the word recedes as it decays - the word's orbit (radius 2 + 8 x the decay lane, v60) gets the engine's orbit `level` (8f150090: the distance that plays at full level; farther is fainter, about 1/distance): within WORDLEVEL metres it is as it was; as the memory decays and the orbit widens to 10 m the word grows faint as well as far, then each refresh brings it back up close and full. Value = metres
 CANON = os.environ.get("C8T8_CANON", "4")   # WHOLE ROUND on the singing: the memory sings it back - every sung line (sungl at E bar 12, sungv/sungv2 in the outro) is followed by itself CANON beats later, a diatonic third below in D minor on the stretched octave, 6 dB under, panned across, sent hard into the line: a delay line's echo that returns transposed, so each line becomes a two-part canon with its own recall
+WARMUP = os.environ.get("C8T8_WARMUP", "40")   # SECTION ROUND (w1, the intro: flagged static): THE TANK WARMS - sound's speed in mercury depends on its temperature, and a cold tank delays its word wrongly; through the intro, while the word is written bit by bit (WRITEIN), the word sounds flat by this many cents at first and glides into tune as the tank comes up to temperature, true by A - the memory warming up before it can keep anything. Value = cents flat at the start
 BITERR = os.environ.get("C8T8_BITERR", "0.25")   # WHOLE ROUND: BIT ERRORS - a delay-line memory loses bits between refreshes; now the stored word does: here and there a note of it comes back a semitone wrong (up or down, fixed by a seeded die so every render agrees), rarely at first and more often the longer it has gone unrefreshed - rising through A to the value given, gone in the refresh, rising again through C and D, and none in E (the repair) or after: the chirpers' slightly-off signature with a reason. Value = the error rate at its worst
 FAREND = os.environ.get("C8T8_FAREND", "-14")   # SECTION ROUND (w3, A's second half: 'little new vs w2'): READ FROM THE FAR END - a mercury tank has a transducer at each end; through A's second half (bars 18-35) the stored word is also read back from the other end, each bar of it in retrograde (the same notes, the bar's line and rhythm reversed) on wM's ks-harp (Karplus-Strong, stretch 3: a wire harp), quiet and on the other side - the word and its mirror in the one medium. Value = gain dB
 ZEROSCAN = os.environ.get("C8T8_ZEROSCAN", "-18")   # PALETTE: the zeros struck in the medium - the word's unset bits (E bars 4-19, v-early) moved from the library's glass chime (fb-crystal) to wM's scanned-mallet (engine 502b6b8d): a narrow strike on a ring of masses and springs with no hand, the sharp shape splitting into ripples that run round the ring and smooth away - in a mercury delay-line memory a bit IS a pulse running round the medium, so each zero is now heard as one, shimmering and mellowing as it circulates. Value = gain dB
@@ -669,6 +670,13 @@ def song():
     if FAREND:
         wt_ = next((t_ for t_ in doc["tracks"] if isinstance(t_, dict) and t_.get("name") == "word"), {})
         doc["tracks"].append({"name": "farend", "patch": "ks-harp", "gain": f"{FAREND}dB", "pan": 0.45, "sends": dict(wt_.get("sends", {})), "score": stream(globals().get("_FAREND_EV", []), total())})
+    if WARMUP:
+        i0_ = sec_start("A") / 4
+        for t_ in doc["tracks"]:
+            if isinstance(t_, dict) and t_.get("name") == "word":
+                base_ = t_.get("patch")
+                t_["patch"] = {"extends": base_, "synth": {"pitch": {"value": 0, "mod": [{"src": "auto.tank", "amount": -float(WARMUP) / 100}]}}} if isinstance(base_, str) else base_
+                t_.setdefault("auto", {})["tank"] = {"points": [["0b", 1], [f"{i0_ * 0.25:g}b", 0.85], [f"{i0_:g}b", 0], [f"{total() / 4:g}b", 0]]}
     return doc
 
 
