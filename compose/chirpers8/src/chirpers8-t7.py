@@ -421,6 +421,18 @@ def build():
     # (v38) the v37 CHANT choir is gone again: it came within the hour of Harry's praise for t10's duet, the same
     # four-voice choir several songs took at once - the album's latest idea, not this song's (Harry, 00:00: 'praise is
     # local ... keep things varied'). The annealing cluster it sang is the gendyn drone's job here already
+    # (v40, section w5) THE CHECKPOINT: an annealing schedule cools in stages, and the song marked them only with the
+    # voice's readings. Now, at the end of the third epoch (flagged static), the band stops for two bars: drums, bass
+    # and sub drop out and the search is heard alone in its scattered colours over the pad and the drone - the
+    # machine saving its state - then a snare roll on its own track (rising from a whisper) and a crash bring the band
+    # back on the fourth epoch's first downbeat, exactly where the voice reads the new temperature, 'zero point three
+    # eight'. Muted in place (vel 1), nothing removed
+    ck0_ = (sum(n for nm_, n in FORM[:[nm_ for nm_, _ in FORM].index('e4')]) - 2) * 4.0
+    for key in ('kit', 'bass', 'sub'):
+        P[key] = [(e_[0], e_[1], e_[2], 1) if ck0_ - 1e-6 <= e_[0] < ck0_ + 8.0 - 1e-6 else e_ for e_ in P[key]]
+    P['roll'] = [(ck0_ + 6.0 + 0.25 * j_, 's', 0.2, int(28 + 11 * j_)) for j_ in range(8)]
+    P['roll'] += [(ck0_ + 5.5, 's', 0.2, 40), (ck0_ + 8.0, 'k', 0.5, 110), (ck0_ + 8.0, 'cy', 2.0, 92)]
+    P['roll'].sort(key=lambda e_: e_[0])
     # (v39) THE COLOURS ANNEAL (Klangfarbenmelodie): hot, the search's notes are not one instrument's - each is handed
     # at random to one of four other machines (a VOSIM vowel blip, a terrain-wave key, a scanned-synthesis mallet, a
     # Rossler-chaos lead), Webern's melody of tone colours, so the riff the search is trying out is scattered across
@@ -618,6 +630,7 @@ def build():
             tr('rep', {'synth': {'layers': [{'type': 'ks', 'ks': {}, 'decay': '1.6s', 'bright': 0.55}], 'amp': '1ms 0 1 220ms',
                                  'filters': ['hp cutoff=150']}}, '-10dB', pan=0.45,
                fx=['delay time=3/8 feedback=0.22 mix=0.16'], sends={'hall': '-12dB'}),
+            tr('roll', 'electro-kit', '-5dB', sends={'hall': '-14dB'}),
             tr('kf1', 'vosim-voice', '-12dB', pan=-0.55, sends={'echo': '-12dB', 'hall': '-14dB'}),
             tr('kf2', 'terrain-keys', '-10dB', pan=0.5, sends={'echo': '-12dB', 'hall': '-14dB'}),
             tr('kf3', 'scanned-mallet', '-10dB', pan=-0.2, sends={'echo': '-12dB', 'hall': '-14dB'}),
