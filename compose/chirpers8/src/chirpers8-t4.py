@@ -526,6 +526,32 @@ def scan_and_sweep():
         part("check").add(b0(z) + 3.75 + off, 0.11, nt, 92)
 
 
+# v45 (ROUND TYPE: section, w7 3:00-3:30 - bogosort's last failures and its miracle, then merge sort's first bars;
+# flagged static): (1) THE GASP. At bar 100 bogosort succeeds by pure chance - and now the whole band HOLDS ITS BREATH
+# for two beats (every track but the dice and the check dips -36 dB on one lane), so the dice rattle, land, and the
+# rising beep sounds ALONE over the room's tail; merge sort slams in at 101. (2) MERGE SORT'S MAP. A swap at sixteenth j
+# is a swap at array index j, so the bar is the array: through 101-112 the swaps (tuned toms) pan with it, index 0 hard
+# left to 15 right - divide-and-conquer heard as small merges flickering on one side and runs sweeping across.
+GASP = (100, 1.75, 4.0)
+GASP_SPARED = ("check", "dice")
+SWAP_MAP = (101, 112)
+
+
+def gasp_lane():
+    bar, a, z = GASP
+    return [["0b", 0.0], [f"{b0(bar) + a:g}b", 0.0], [f"{b0(bar) + a + 0.25:g}b", 1.0],
+            [f"{b0(bar) + z - 0.02:g}b", 1.0], [f"{b0(bar) + z:g}b", 0.0]]
+
+
+def swap_map_lane():
+    a, z = SWAP_MAP
+    pts = [["0b", 0.0], [f"{b0(a) - 0.05:g}b", 0.0]]
+    for bar in range(a, z + 1):
+        pts += [[f"{b0(bar):g}b", -1.0], [f"{b0(bar) + 3.875:g}b", 1.0], [f"{b0(bar) + 3.99:g}b", 1.0]]
+    pts += [[f"{b0(z + 1):g}b", 0.0]]
+    return pts
+
+
 def zipper():
     for bar in range(ZIP[0], ZIP[1] + 1):
         left = set(ARRS[bar][:N // 2])
@@ -572,7 +598,8 @@ def card_runs():
 # the voice goes back into the machine: 163 through lpc (the order of bar 166: 'the small ones first REST then OF the
 # us'), 167 through the 5-bit speaking toy (bar 170's order). Machine, person, song, machine.
 CHOIR_AT = (141, 149)
-UNSUNG = ((163, 166, "lpc", "-15dB"), (167, 170, "lpc pitch=A2 bits=5", "-7dB"))   # gains solo-matched
+UNSUNG = ((163, 166, "lpc", "-11dB"), (167, 170, "lpc pitch=A2 bits=5", "-8.9dB"))   # solo-matched; v45: +4.0 / -1.9 dB
+# for engine 502b6b8d (lpc level-neutral; chirp-eco measured them solo, 4 Nov) - the pair matched again
 
 
 # v43 (ROUND TYPE: section, w10 4:30-5:00; Harry 23:4x 'i like this bit without the whole album turning into that'):
@@ -1002,7 +1029,8 @@ def main():
             tr("carrier", "partial", gain="-24dB", sends={"room": "-10dB"}),                # v8: the handshake
             tr("hum", "808", gain="-4dB"),                     # v2: into t5's E2 (v8: 6 dB up - it sat at -36 dB alone)
             tr("tick", BYTE_TICK, gain="-14dB", pan=0.2),                                       # v28: bytebeat
-            tr("swap", "modal-tom", gain="-15dB", pan=-0.2, sends={"room": "-10dB"}),     # v15: tuned membranes
+            tr("swap", "modal-tom", gain="-15dB", pan={"value": -0.2, "mod": [{"src": "auto.ix", "amount": 0.8}]},
+               sends={"room": "-10dB"}, auto={"ix": {"points": swap_map_lane()}}),     # v15: tuned membranes; v45: the map
             tr("crash", CYMBAL, gain="-12dB", sends={"room": "-8dB"}),                    # v16: a real cymbal
             tr("kick", "909", gain="-10dB"),
             tr("clap", "909", gain="-6dB", sends={"room": "-8dB"}),
@@ -1051,6 +1079,11 @@ def main():
                            "sends": {"room": "-10dB"}, "score": part("cards").score()})   # v39: listed last
     song["tracks"] += choir_tracks() + unsung_tracks()                                       # v41: listed last
     song["tracks"].append(tr("scan", SCAN_PATCH, gain="-16dB", pan=0.3, sends={"room": "-10dB"}))   # v44: listed last
+    for tk in song["tracks"]:                     # v45: the gasp (after every track is built; order unchanged)
+        if tk["name"] in GASP_SPARED or "at" in tk:
+            continue
+        tk["fx"] = list(tk.get("fx") or []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.gp", "amount": -36}]}}]
+        tk.setdefault("auto", {})["gp"] = {"points": gasp_lane()}
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print("wrote", OUT, "bars", BARS)
