@@ -43,6 +43,7 @@ COMPUTEWARP = os.environ.get("C8T2_COMPUTEWARP", "0.25")   # WHOLE ROUND: big nu
 COMPUTEFROM = os.environ.get("C8T2_COMPUTEFROM", "A")   # 'A': the intro's paths stay on the grid (the join with t1 is measured over the opening; the intro is the arp's phasing, v64), the lag starts with A
 ARPPHASE = os.environ.get("C8T2_ARPPHASE", "0.25")   # SECTION ROUND (w1, the intro: static): the machine phases - the bytebeat arp runs on its own clock through the intro (the engine's per-track warp): drifting away from the clarinet over eight bars (to ARPPHASE beats late, curve smooth), then back over eight, locking onto the grid exactly as A begins; the tape-loop phasing of process music, done by a clock. Value = beats of drift at its widest
 LPCV = os.environ.get("C8T2_LPCV", "count,refrain")   # WHOLE ROUND: the numbers read by a speaking toy - LPC (engine 78e838c5, LPC-10: the first speech chips; the toy that read arithmetic to children spoke this way). 'count': the voice that reads the numbers in A goes through 5-bit monotone LPC on G3 before its radio; 'count,refrain': and the break's 'four, two, one' (the turn from speech into song) through plain, inflecting LPC, so the counting machine begins to sing before the human-sung lines of C. Notes nudged 0.075 beats early for LPC's ~35 ms (chirper-three's measure)
+PARITYSEC = os.environ.get("C8T2_PARITYSEC", "intro,outro")   # WHOLE ROUND (Harry ~00:00: 'not all singing, but not NO singing ... nuance'): the parity singer (v75) sang the whole song over every path - too much voice. Now it sings only in the named sections (comma list of FORM names), the rest left to the clarinet alone
 PARITY = os.environ.get("C8T2_PARITY", "-20")   # WHOLE ROUND: THE RULE SUNG - the clarinet's whole walk (every path, the whole song) is doubled by a lone FOF singer (Rodet's CHANT grains, engine 91b04b25), an alto whose mouth IS the rule: on an odd number (3n+1, the path goes up) it opens to 'a', on an even one (n/2, it comes down) it closes to 'u' - the parity is already in the clarinet's velocity (100 odd, 82 even), which drives the vowel morph - so the Collatz walk is heard as a voice saying a-u-u-a-u-u-u...: a machine that has learnt one rule and sings it. Value = gain dB
 CHANT = os.environ.get("C8T2_CHANT", "")   # (off from v75: the four-voice CHANT choir became the album's common move - chirp-eco's variety note, 23:36 - and this song's own FOF is PARITY; -18 dB was v74) SECTION ROUND (w7, the first sung line in C, 'odd goes up, even comes down'): THE CHANT CHOIR - under the human line a wordless four-voice choir of FOF singers (Rodet's CHANT, IRCAM 1979-84, engine 91b04b25: formant grains, no filters), chirper-three's voicing (bass root, tenor fifth, alto third, soprano seventh): Gmaj7 under 'odd goes up' (D E F# G), Em7 under 'even comes down' (B A G) - up on the major, down onto its relative minor - the vowel opening u -> a across the line on one shared lane, vibrato 5.5 Hz after 300 ms (deeper up top), a small scoop. Harry's bar (t10's sung passage). Value = gain dB per voice
 SUNGVOICE = os.environ.get("C8T2_SUNGVOICE", "1")   # PALETTE (the singing): the sung lines of C ('odd goes up, even comes down', C13 and C41) move from the speech voice to the library's singing voice ('voice': rounder, a glottal source through a five-formant tract with a singer's formant), keeping the take's own pitch path; the robot choir twin (v66) stays on the speech voice it vocodes. Harry's bar (t10's sung duet, t1's singing): the sung passages should sound sung, properly produced
@@ -130,7 +131,7 @@ def barlen(sec):
     """Sixteenths in a bar of this section: the break is in 3/4 under METER."""
     return 12 if METER and sec == "break" else BAR
 SEEDS = {"intro": [6, 6], "A": [7, 12, 3, 7], "B": [9, 18, 11], "C": [27, 31, 27, 41], "outro": [1]}
-TRACKS = ("clar", "clar2", "arp", "bass", "sub", "kick", "shk", "hats", "clap", "pad", "bell", "crash") + (("tom",) if os.environ.get("C8T2_TOMBACK", "swap") else ()) + (("ohat",) if os.environ.get("C8T2_OWNHATS", "1") else ()) + (("bell2",) if os.environ.get("C8T2_PREFIGTRACK", "1") else ()) + (("kick2", "tom2", "crash2") if os.environ.get("C8T2_HALVLOCAL", "1") else ()) + (("vib",) if os.environ.get("C8T2_LANDING", "92all") else ()) + (("glk",) if os.environ.get("C8T2_GLKUP", "70") else ()) + (("mach",) if os.environ.get("C8T2_MACHV", "90") else ()) + (("vos",) if os.environ.get("C8T2_VOSEND", "90") else ()) + (("clks",) if os.environ.get("C8T2_CLKS", "1:-14") else ()) + (("clsh",) if os.environ.get("C8T2_CLSH", "h:-8") else ())
+TRACKS = ("clar", "clar2", "arp", "bass", "sub", "kick", "shk", "hats", "clap", "pad", "bell", "crash") + (("tom",) if os.environ.get("C8T2_TOMBACK", "swap") else ()) + (("ohat",) if os.environ.get("C8T2_OWNHATS", "1") else ()) + (("bell2",) if os.environ.get("C8T2_PREFIGTRACK", "1") else ()) + (("kick2", "tom2", "crash2") if os.environ.get("C8T2_HALVLOCAL", "1") else ()) + (("vib",) if os.environ.get("C8T2_LANDING", "92all") else ()) + (("glk",) if os.environ.get("C8T2_GLKUP", "70") else ()) + (("mach",) if os.environ.get("C8T2_MACHV", "90") else ()) + (("vos",) if os.environ.get("C8T2_VOSEND", "90") else ()) + (("clks",) if os.environ.get("C8T2_CLKS", "1:-14") else ()) + (("clsh",) if os.environ.get("C8T2_CLSH", "h:-8") else ()) + (("clarfof",) if os.environ.get("C8T2_PARITYSEC", "intro,outro") else ())
 GMAJ = ["G", "A", "B", "C", "D", "E", "F#"]
 CHORDS = [("G", [0, 2, 4]), ("E", [5, 7, 9]), ("C", [3, 5, 7]), ("D", [4, 6, 8])]   # I vi IV V as degrees from G
 PRIMES = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31)
@@ -508,6 +509,9 @@ def build():
     if OWNKICK:
         ev["kick"] = [(a, "G1", 2, v) for (a, h, l, v) in ev["kick"]]
         ev["kick2"] = [(a, "G1", 2, v) for (a, h, l, v) in ev.get("kick2", [])]
+    if PARITYSEC:
+        keep_ = [(sec_start(sc), sec_start(sc) + nb * barlen(sc)) for sc, nb in FORM if sc in PARITYSEC.split(",")]
+        ev["clarfof"] = [e for e in ev["clar"] if any(a <= e[0] < z for a, z in keep_)]
     if CLSH:
         b0_ = sec_start("B")
         inw = lambda a, h: b0_ <= a < b0_ + 12 * BAR and not h.startswith("!") and h != "_"
@@ -748,6 +752,8 @@ def song():
         if cl_:
             tw = json.loads(json.dumps(cl_))
             tw["name"], tw["gain"], tw["pan"] = "clar-fof", f"{PARITY}dB", 0.2
+            if PARITYSEC:
+                tw["score"] = build()["clarfof"]
             tw["patch"] = {"about": "CHANT (Rodet, IRCAM 1979-84): one FOF alto whose vowel is the number's parity (velocity 100 odd -> 'a', 82 even -> 'u')",
                            "synth": {"layers": [{"type": "fof", "fof": {"voice": "alto", "vowel": "u>a", "attack": "4ms", "morph": {"value": -3.9, "mod": [{"src": "vel", "amount": 6.0}]}}}],
                                      "pitch": {"value": 0, "mod": [{"src": "lfo.vib", "amount": 0.15}]},
