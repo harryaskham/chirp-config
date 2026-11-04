@@ -5,7 +5,7 @@ looks:
     env: {thunder: {on: track.thunder, decay: 1.2s}}
     vars: {turn: {integrate: "0.01 + audio.level*0.03"}}
     layers:
-      - {type: noise, scale: 1.1, speed: "0.05 + audio.mid*0.2", octaves: 4, warp: 1.4, spread: 0.6, threshold: 0.4, pos: 0.1, light: "0.25 + env.thunder*0.5"}
+      - {type: noise, res: 0.38, scale: 1.1, speed: "0.05 + audio.mid*0.2", octaves: 4, warp: 1.4, spread: 0.6, threshold: 0.4, pos: 0.1, light: "0.25 + env.thunder*0.5"}
       - {type: attractor, kind: lorenz, points: 6000, speed: "1 + audio.level*1.5", size: 0.75, rotate: var.turn, gain: 1.4, spread: 0.6, pos: 0.45}
       - {type: particles, on: track.rainL, count: 6, speed: 1.4, dir: 0.72, spread: 0.02, gravity: 1, life: 1.2, x: -0.9, y: 1.1, jitter: 0.9, size: 0.002, pos: 0.6, shape: spark}
       - {type: particles, on: track.rainR, count: 6, speed: 1.4, dir: 0.72, spread: 0.02, gravity: 1, life: 1.2, x: 0.9, y: 1.1, jitter: 0.9, size: 0.002, pos: 0.6, shape: spark}
