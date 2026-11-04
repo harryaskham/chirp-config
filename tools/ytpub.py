@@ -159,6 +159,17 @@ def stream_starts(path):
     return out
 
 
+def audio_seconds(path):
+    """Seconds of audio in a file's first audio stream, from its sample count (duration_ts at 1/rate)."""
+    r = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "a:0", "-show_entries",
+                        "stream=duration_ts,time_base,duration", "-of", "json", path], capture_output=True, text=True)
+    s = (json.loads(r.stdout or "{}").get("streams") or [{}])[0]
+    num, _, den = (s.get("time_base") or "1/1").partition("/")
+    if s.get("duration_ts") not in (None, "N/A"):
+        return int(s["duration_ts"]) * float(num) / float(den or 1)
+    return float(s.get("duration") or 0.0)
+
+
 def sync_problem(starts):
     """None when the picture and the audio start within half a frame of each other, else why not."""
     if "video" not in starts or "audio" not in starts:
@@ -267,9 +278,16 @@ def build_kit(aid, meta, rdir, force_tracks=False, video_file=None):
         vstart = stream_starts(video_file).get("video", 0.0)
         if vstart:
             cmd += ["-itsoffset", f"{-vstart:.6f}"]
-        cmd += ["-i", video_file, "-f", "concat", "-safe", "0",
-                "-i", listfile, "-map", "0:v:0", "-map", "1:a", "-c:v", "copy", "-c:a", "pcm_s24le", "-ar", "48000",
-                "-shortest", video]
+        cmd += ["-i", video_file]
+        # The audio: each release file decoded on its own (its mp3 priming and padding trimmed, as chirp video decodes
+        # it) and joined sample-exactly by the concat FILTER, restamped from 0 by sample count. The concat demuxer
+        # kept the first file's 1105-sample priming as a 23 ms start and lost 2163 samples over 12 files (4 Nov).
+        for p in audio:
+            cmd += ["-i", p]
+        graph = "".join(f"[{i + 1}:a]" for i in range(len(audio))) + f"concat=n={len(audio)}:v=0:a=1,asetpts=N/SR/TB[a]"
+        # no -shortest: the picture is whole frames (up to a frame shy of the program), the audio every sample
+        cmd += ["-filter_complex", graph, "-map", "0:v:0", "-map", "[a]", "-c:v", "copy", "-c:a", "pcm_s24le",
+                "-ar", "48000", video]
     # Lossless audio: ffmpeg's AAC encoder overshot these limited masters by ~4 dB (Soft Concrete: -1.6 -> +2.5 dBFS),
     # and YouTube transcodes anyway, so the upload carries PCM and gets exactly one lossy encode, YouTube's.
     t0 = time.time()
@@ -281,6 +299,9 @@ def build_kit(aid, meta, rdir, force_tracks=False, video_file=None):
         why = sync_problem(stream_starts(video))
         if why:
             sys.exit(f"ytpub: {video} is out of sync: {why}; not using it")
+        got = audio_seconds(video)
+        if abs(got - ad) > 0.005:
+            sys.exit(f"ytpub: {video} carries {got:.4f} s of audio against the release program's {ad:.4f} s; not using it")
     peak, src = sample_peak_db(video), max(sample_peak_db(p) for p in audio)
     if not peak_ok(peak, src):
         sys.exit(f"ytpub: the video's audio peaks at {peak:+.2f} dBFS against the release files' {src:+.2f}; not using it")

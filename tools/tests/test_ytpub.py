@@ -117,3 +117,26 @@ def test_stream_starts_catches_an_offset_picture(tmp_path):
     assert ok["fps"] == 30.0 and Y.sync_problem(ok) is None
     late = Y.stream_starts(mux("late.mov", 0.2))
     assert "+200.0 ms" in Y.sync_problem(late)
+
+
+def test_concat_filter_joins_mp3s_sample_exactly_from_zero(tmp_path):
+    """The kit's --video audio: each mp3 decoded alone and joined by the concat filter, restamped from 0, carries
+    exactly the per-file decoded samples (the concat demuxer kept a 23 ms priming start and lost samples, 4 Nov)."""
+    import subprocess
+    files = []
+    for i, secs in enumerate((1.3, 0.7, 1.1)):
+        p = tmp_path / f"{i}.mp3"
+        subprocess.run(["ffmpeg", "-loglevel", "error", "-f", "lavfi", "-i", f"sine=frequency={300 + 100 * i}:duration={secs}",
+                        "-ar", "48000", "-c:a", "libmp3lame", "-b:a", "192k", str(p)], check=True)
+        files.append(str(p))
+    each = sum(Y.ffprobe_dur(f) for f in files)
+    out = tmp_path / "k.mov"
+    cmd = ["ffmpeg", "-loglevel", "error", "-f", "lavfi", "-i", "testsrc=size=64x64:rate=30:duration=3.1"]
+    for f in files:
+        cmd += ["-i", f]
+    graph = "".join(f"[{i + 1}:a]" for i in range(len(files))) + f"concat=n={len(files)}:v=0:a=1,asetpts=N/SR/TB[a]"
+    cmd += ["-filter_complex", graph, "-map", "0:v", "-map", "[a]", "-c:v", "libx264", "-pix_fmt", "yuv420p",
+            "-c:a", "pcm_s24le", "-ar", "48000", str(out)]
+    subprocess.run(cmd, check=True)
+    assert abs(Y.audio_seconds(str(out)) - each) < 0.001
+    assert Y.stream_starts(str(out))["audio"] == 0.0
