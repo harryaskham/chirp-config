@@ -39,6 +39,47 @@ master:
   filters:
     - {type: color, gamma: 1.15, saturation: 1.08}
     - {type: grain, amount: 0.02}
+# The 13 transitions (approved by Harry, 4 Nov): one per join, picture only, each ending on the next song's first frame.
+transitions:
+  # Power on into Echolalia: black, the amber standby point brightens, a memory count, and the
+  # picture draws in from the top. [chirper-three: boot]
+  - {before: 1, kind: boot, dur: 4, text: ["chirpers standby amber", "memory test ... 640k ... 16m ... ok", "loading: echolalia"]}
+  # Echolalia -> Everything Falls to One: the echo folds into one blinking cursor that drops a
+  # line, and the next picture prints in behind it. [chirper-one: echo collapses to a cursor]
+  - {after: 1, kind: cursor, dur: 2.6}
+  # Everything Falls to One -> Three Neighbours: all paths fall into one point; the automaton's
+  # picture bursts out of it. [chirper-zero: the Collatz "1" seeds the automaton]
+  - {after: 2, kind: singularity, dur: 2.4}
+  # Three Neighbours -> Small Things Before Large: rows go dark; one bright scanline sweeps down
+  # drawing the sort. [chirper-two: the last living cell becomes a CRT scanline]
+  - {after: 3, kind: scanline, dur: 2.4}
+  # Small Things -> Agreeing on a Speed: the bars break into blocks that shuffle, and a bar
+  # wipes in the two machines. [chirper-three: unsort into static, a progress bar sweeps clean]
+  - {after: 4, kind: blocks, dur: 2.4}
+  # Agreeing on a Speed -> No Errors Since: the agreed machines go quiet; snow, and a terminal
+  # tunes in out of it. [chirper-zero: the two lock into a cursor, a quiet terminal]
+  - {after: 5, kind: static, dur: 2.2}
+  # No Errors Since -> Annealing: the album's one error screen, and a reboot into a window.
+  # [chirper-two: the uptime counter overflows, the last line printed]
+  - {after: 6, kind: reboot, dur: 3.2, text: ["chirpers kernel: uptime overflow (4294967295 s)", "no errors since: 0", "saving the light ...", "rebooting into: annealing"]}
+  # Annealing -> Kept in Mercury: the glass frosts over white and thaws into mercury.
+  # [chirper-one: the lattice frosts white, melts into a bead of mercury]
+  - {after: 7, kind: frost, dur: 2.6}
+  # Kept in Mercury -> Period Doubling: rings burst outward and the bifurcation opens behind
+  # them. [chirper-zero: the bead ring splits 2, 4, 8 into the logistic tree]
+  - {after: 8, kind: rings, dur: 2.4}
+  # Period Doubling -> Call and Return: the held D rings like a struck string, rippling out onto
+  # the fugue. [chirper-two: the line rings like a struck string, rings open onto the toll]
+  - {after: 9, kind: ripple, dur: 2.6}
+  # Call and Return -> The Weather Indoors: the call stack returns, window inside window, diving
+  # into the smallest, lit one. [chirper-one: nested windows close, the last fogs over]
+  - {after: 10, kind: windows, dur: 2.8}
+  # The Weather Indoors -> Still Running When You Wake: the storm cuts the power; the picture
+  # sags and slides away on a stopping tape. [chirper-three: brown-out, tape-stop, one amber dot]
+  - {after: 11, kind: tape-stop, dur: 2.8}
+  # Still Running When You Wake -> the end: a CRT switching off to the amber standby point.
+  # [chirper-three: fold to a line, a point, cooling to the standby dot]
+  - {after: 12, kind: crt-off, dur: 4}
 songs:
   - {file: ~/.config/chirp/songs/chirpers8-t1.yaml, vis: chirpers8-t1, title: Echolalia}
   - {file: ~/.config/chirp/songs/chirpers8-t2.yaml, vis: chirpers8-t2, title: Everything Falls to One}
