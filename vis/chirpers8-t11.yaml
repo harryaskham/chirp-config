@@ -1,0 +1,35 @@
+about: "A Light Left On, 11 The Weather Indoors: a house steered by a strange attractor. The Lorenz attractor turns over the room - its two lobes are the song's two harmonic worlds - with rain on the rain tracks, thunder in the clouds and frost at the end."
+looks:
+  weather:
+    palette: storm
+    env: {thunder: {on: track.thunder, decay: 1.2s}}
+    vars: {turn: {integrate: "0.01 + audio.level*0.03"}}
+    layers:
+      - {type: noise, scale: 1.1, speed: "0.05 + audio.mid*0.2", octaves: 4, warp: 1.4, spread: 0.6, threshold: 0.4, pos: 0.1, light: "0.25 + env.thunder*0.5"}
+      - {type: attractor, kind: lorenz, points: 6000, speed: "1 + audio.level*1.5", size: 0.75, rotate: var.turn, gain: 1.4, spread: 0.6, pos: 0.45}
+      - {type: particles, on: track.rainL, count: 6, speed: 1.4, dir: 0.72, spread: 0.02, gravity: 1, life: 1.2, x: -0.9, y: 1.1, jitter: 0.9, size: 0.002, pos: 0.6, shape: spark}
+      - {type: particles, on: track.rainR, count: 6, speed: 1.4, dir: 0.72, spread: 0.02, gravity: 1, life: 1.2, x: 0.9, y: 1.1, jitter: 0.9, size: 0.002, pos: 0.6, shape: spark}
+    filters:
+      - {type: feedback, zoom: 1.0, decay: 0.9}
+      - {type: bloom, threshold: 0.5, amount: 0.6}
+      - {type: vignette, amount: 0.55}
+  frost:
+    extends: crystal
+    palette: ice
+  eye:
+    palette: storm
+    vars: {turn: {integrate: "0.02 + audio.level*0.05"}}
+    layers:
+      - {type: gradient, radial: 1, spread: 0.25, pos: 0.05, light: 0.3}
+      - {type: attractor, kind: lorenz, points: 8000, speed: "0.6 + audio.level", size: 0.5, rotate: var.turn, gain: 1.6, spread: 0.5, pos: 0.55}
+      - {type: rings, count: 4, speed: 0.15, tunnel: 0, duty: 0.04, soft: 0.03, spread: 0.2, pos: 0.4, opacity: 0.4}
+    filters:
+      - {type: feedback, zoom: 0.99, rotate: 0.01, decay: 0.92}
+      - {type: bloom, threshold: 0.45, amount: 0.7}
+      - {type: vignette, amount: 0.6}
+scenes:
+  - {at: 0, look: weather}
+  - {at: 48bar, look: weather, xfade: 2s}
+  - {at: 80bar, look: eye, xfade: 4s}
+  - {at: 96bar, look: weather, xfade: 4s}
+  - {at: 136bar, look: frost, xfade: 8s}

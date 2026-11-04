@@ -1,0 +1,21 @@
+about: "A Light Left On, 3 Three Neighbours: the cellular automaton that plays the gamelan, drawn - every section switches the rule (90, 30, 110, 184, 30, 4), a generation per beat, the newest row flashing on the kick."
+looks:
+  rule:
+    palette: ember
+    params: {rule: 90, rate: 4}
+    layers:
+      - {type: gradient, radial: 1, spread: 0.15, pos: 0.0, light: 0.22}
+      - {type: ca, rule: param.rule, rate: param.rate, on: track.kick, cells: 112, rows: 63, start: random, width: 3.4, height: 1.9, fill: 0.78, spread: 0.35, pos: 0.45, fade: 0.75, flash: 0.9}
+      - {type: spectrum, mode: radial, radius: 0.55, height: 0.25, fill: 0.3, floor: 0.35, spread: 0.3, pos: 0.6, opacity: "0.15 + track.gong.hit*0.5"}
+    filters:
+      - {type: bloom, threshold: 0.5, amount: 0.7, radius: 0.03}
+      - {type: vignette, amount: 0.55}
+scenes:
+  - {at: 0, look: rule, params: {rule: 90, rate: 1}}
+  - {at: 12bar, look: rule, params: {rule: 90, rate: 3}, xfade: 2s}
+  - {at: 22bar, look: rule, params: {rule: 30, rate: 4}, xfade: 3s}
+  - {at: 52bar, look: rule, params: {rule: 110, rate: 5}, xfade: 3s}
+  - {at: 78bar, look: rule, params: {rule: 184, rate: 7}, xfade: 3s}
+  - {at: 94bar, look: rule, params: {rule: 30, rate: 8}, xfade: 3s}
+  - {at: 132bar, look: rule, params: {rule: 4, rate: 3}, xfade: 4s}
+  - {at: 150bar, look: rule, params: {rule: 4, rate: 1}, xfade: 6s}

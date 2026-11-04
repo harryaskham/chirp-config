@@ -1,0 +1,32 @@
+about: "A Light Left On, 4 Small Things Before Large: sixteen notes, one bar, sorted live. The tune is drawn as sixteen bars each bar - you watch it put itself in order - with every swap a flash and the algorithm's name on screen."
+looks:
+  sort:
+    palette: acid
+    env: {swap: {on: track.swap, decay: 180ms}}
+    layers:
+      - {type: gradient, angle: 0.25, spread: 0.1, pos: 0.02, light: "0.12 + env.swap*0.08"}
+      - {type: notes, mode: steps, tracks: [tune], steps: 16, window: 4, lo: 36, hi: 96, width: 3.0, height: 1.3, y: -0.05, spread: 0, pos: 0.45, opacity: 1}
+      - {type: notes, mode: steps, tracks: [lead], steps: 16, window: 4, lo: 36, hi: 96, width: 3.0, height: 1.3, y: -0.05, spread: 0, pos: 0.75, opacity: 0.3}
+      - {type: particles, on: track.tick, count: 3, speed: 0.4, dir: 0.25, spread: 0.2, life: 0.6, size: 0.003, x: 0, y: -0.72, jitter: 1.4, pos: 0.5}
+      - {type: spectrum, mode: line, y: -0.86, size: 3.2, height: 0.08, width: 0.003, floor: 0.3, pos: 0.4, opacity: 0.5}
+    filters:
+      - {type: bloom, threshold: 0.5, amount: "0.5 + env.swap*0.6"}
+      - {type: scanlines, amount: 0.12, count: 300}
+      - {type: vignette, amount: 0.45}
+scenes:
+  - {at: 0, look: sort}
+master:
+  layers:
+    - type: captions
+      size: 0.12
+      y: 0.74
+      color: "#c6ff00"
+      typing: 10
+      fade: 0.8
+      lines:
+        - [16bar, 12, "BUBBLE"]
+        - [40bar, 12, "INSERTION"]
+        - [64bar, 12, "QUICK"]
+        - [88bar, 10, "BOGO"]
+        - [100bar, 12, "MERGE"]
+        - [124bar, 16, "SORTED"]

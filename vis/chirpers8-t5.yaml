@@ -1,0 +1,39 @@
+about: "A Light Left On, 5 Agreeing on a Speed: two machines each in its own time - a triangle turned by the guitar, a square by the acid bass - drifting until they agree (the song's `agree`) and lock into one figure, then the horns."
+looks:
+  two:
+    palette: sunset
+    params: {lock: 0}
+    vars:
+      a: {integrate: "0.05 + track.gtr.hit*0.5"}
+      b: {integrate: "0.07 + track.acid.hit*0.5"}
+      agree: {follow: "1 + song.agree*0.125 + param.lock", attack: 300ms, release: 1.5s}
+    layers:
+      - {type: gradient, radial: 1, spread: 0.25, pos: "0.05 + var.agree*0.1", light: 0.25}
+      - {type: shape, sides: 3, radius: 0.55, width: 0.005, rotate: var.a, x: "-0.55 + var.agree*0.55", count: 5, scale: 0.82, turn: 0.01, spread: 0.06, pos: 0.4, glow: 0}
+      - {type: shape, sides: 4, radius: 0.55, width: 0.005, rotate: var.b, x: "0.55 - var.agree*0.55", count: 5, scale: 0.82, turn: -0.01, spread: 0.06, pos: 0.7}
+      - {type: scope, mode: xy, gain: 2.0, size: 1.2, width: 0.0025, glow: 0.4, pos: 0.85, opacity: "0.2 + var.agree*0.6"}
+    filters:
+      - {type: feedback, zoom: 1.0, decay: 0.75}
+      - {type: bloom, threshold: 0.45, amount: 0.7}
+      - {type: vignette, amount: 0.55}
+  horns:
+    palette: sunset
+    vars:
+      a: {integrate: "0.08 + track.horns.hit*0.4"}
+    layers:
+      - {type: gradient, radial: 1, spread: 0.3, pos: 0.12, light: "0.3 + audio.low*0.2"}
+      - {type: rings, count: 7, speed: "0.4 + audio.level*1.5", tunnel: 0.6, duty: 0.12, soft: 0.06, spread: 0.4, pos: 0.55, opacity: 0.5}
+      - {type: shape, sides: 3, radius: 0.5, width: 0.006, rotate: var.a, count: 6, scale: 0.8, turn: 0.02, spread: 0.06, pos: 0.4}
+      - {type: shape, sides: 4, radius: 0.5, width: 0.006, rotate: var.a, count: 6, scale: 0.8, turn: 0.02, spread: 0.06, pos: 0.7}
+      - {type: particles, on: track.horns, count: 30, speed: 0.7, life: 1.2, drag: 1, size: 0.006, pos: 0.8, hues: 0.2}
+    filters:
+      - {type: kaleido, n: 6, rotate: "var.a*0.5"}
+      - {type: bloom, threshold: 0.45, amount: 0.8}
+      - {type: vignette, amount: 0.55}
+scenes:
+  - {at: 0, look: two}
+  - {at: 46bar, look: two, xfade: 3s}
+  - {at: 72bar, look: tunnel, xfade: 3s}
+  - {at: 84bar, look: two, params: {lock: 0.6}, xfade: 3s}
+  - {at: 104bar, look: horns, xfade: 4s}
+  - {at: 126bar, look: two, params: {lock: 1}, xfade: 6s}

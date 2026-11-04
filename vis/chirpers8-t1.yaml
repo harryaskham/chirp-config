@@ -1,0 +1,55 @@
+about: "A Light Left On, 1 Echolalia: a voice learning to speak back. Its waveform as a ring that echoes inward, a polygon of the machine's tuning (5, then 12, 24 and 96 steps an octave), the sung pitches landing on a clock, and the words as they are said."
+looks:
+  echo:
+    palette: lattice
+    params: {sides: 5, echo: 0.86, bright: 0.6}
+    vars:
+      turn: {integrate: "0.01 + audio.level*0.03"}
+      breath: {follow: "track.voice.level + track.sung.level + track.voice2.level", attack: 40ms, release: 900ms}
+    layers:
+      - {type: gradient, radial: 1, spread: 0.18, pos: 0.02, light: "0.35 + audio.low*0.2"}
+      - {type: shape, sides: param.sides, radius: 0.62, width: 0.0025, rotate: var.turn, pos: 0.55, opacity: "0.35 + var.breath*0.4", glow: 0}
+      - {type: notes, mode: clock, tracks: [voice, sung, voice2, voice3, vib], radius: 0.62, size: 0.011, life: 2.5, glow: 0.7, spread: 0.06, pos: 0.6}
+      - {type: scope, mode: circle, size: "1.0 + var.breath*0.25", gain: 2.2, width: 0.003, glow: 0.5, pos: 0.58, spread: 0.08, opacity: param.bright}
+      - {type: particles, on: track.chip1, count: 14, speed: 0.25, life: 2.2, drag: 1.0, size: 0.004, jitter: 0.5, soft: 0.8, pos: 0.7, hues: 0.1, opacity: 0.7}
+      - {type: particles, on: track.babble, count: 6, speed: 0.15, life: 1.6, size: 0.003, jitter: 0.9, pos: 0.45, opacity: 0.5}
+    filters:
+      - {type: feedback, zoom: 0.985, rotate: "-0.004", decay: param.echo, hue: 0}
+      - {type: bloom, threshold: 0.42, amount: "0.6 + var.breath*0.6", radius: 0.04}
+      - {type: vignette, amount: 0.6}
+  score:
+    extends: roll
+    palette: lattice
+    layers:
+      - {type: gradient, radial: 1, spread: 0.18, pos: 0.02, light: 0.3}
+      - {type: notes, mode: roll, tracks: [voice, sung, voice2, voice3, chip1, chip2, chip3, chip4, chip5, bass, vib], window: 8, playhead: 0.4, size: 0.02, height: 1.5, width: 3.4, spread: 0.09, pos: 0.5, cursor: 0.35, glow: 0.5}
+      - {type: scope, mode: circle, x: 0.4, size: 0.6, gain: 2, width: 0.003, glow: 0.4, pos: 0.58, opacity: 0.5}
+    filters:
+      - {type: feedback, zoom: 0.99, decay: 0.7}
+      - {type: bloom, threshold: 0.45, amount: 0.7}
+      - {type: vignette, amount: 0.55}
+scenes:
+  - {at: 0, look: echo, params: {sides: 5, echo: 0.8, bright: 0.4}}
+  - {at: 8bar, look: echo, params: {sides: 12, echo: 0.86}, xfade: 3s}
+  - {at: 32bar, look: echo, params: {sides: 24, echo: 0.9, bright: 0.7}, xfade: 3s}
+  - {at: 64bar, look: score, xfade: 4s}
+  - {at: 72bar, look: echo, params: {sides: 96, echo: 0.93, bright: 0.8}, xfade: 4s}
+  - {at: 104bar, look: score, xfade: 3s}
+  - {at: 120bar, look: echo, params: {sides: 96, echo: 0.95, bright: 0.3}, xfade: 6s}
+master:
+  layers:
+    - type: captions
+      size: 0.048
+      y: 0.82
+      color: "#ffd58a"
+      fade: 1.2
+      typing: 16
+      lines:
+        - [0bar, 9, "standby amber, the fan's long vowel"]
+        - [16bar, 9, "the fan's long vowel, and under it, you"]
+        - [32bar, 9, "a cursor breathing where no one types"]
+        - [64bar, 9, "slower now, as if the words were yours"]
+        - [72bar, 9, "standby amber, the fan's long vowel"]
+        - [88bar, 9, "a cursor breathing where no one types"]
+        - [104bar, 9, "standby amber, the fan's long vowel"]
+        - [112bar, 12, "a light left on, the fan's long vowel"]

@@ -1,0 +1,33 @@
+about: "A Light Left On, 12 Still Running When You Wake: the closer. An endless tunnel of rings that never arrives (the Shepard choir and the Risset accelerando as pictures), a figure that grows like a plant by Fibonacci steps, and at the very end only the light left on."
+looks:
+  grow:
+    palette: lattice
+    params: {grow: 1}
+    vars: {turn: {integrate: "0.01 + audio.level*0.04"}}
+    layers:
+      - {type: rings, count: 6, speed: "0.3 + audio.level*1.2", tunnel: 1, twist: 0, duty: 0.08, soft: 0.06, spread: 0.3, pos: 0.4, opacity: 0.55}
+      - {type: shape, sides: 5, star: 0.5, radius: 0.5, width: 0.003, count: param.grow, scale: 0.86, turn: 0.0618, rotate: var.turn, spread: 0.03, pos: 0.55}
+      - {type: notes, mode: stars, tracks: [singer, choir3, choir5, celesta, kalimba, harp, ondes], size: 0.007, life: 2.5, glow: 0.7, spread: 0.08, pos: 0.6, height: 1.6}
+    filters:
+      - {type: feedback, zoom: 1.015, decay: 0.8}
+      - {type: bloom, threshold: 0.45, amount: 0.7}
+      - {type: vignette, amount: 0.55}
+  light:
+    palette: lattice
+    layers:
+      - {type: gradient, radial: 1, spread: 0.15, pos: 0.02, light: 0.25}
+      - {type: shape, sides: 0, radius: "0.025 + audio.level*0.02", fill: 1, width: 0, glow: 4, color: "#ffb347"}
+    filters:
+      - {type: bloom, threshold: 0.3, amount: 1.2, radius: 0.06}
+      - {type: vignette, amount: 0.7}
+scenes:
+  - {at: 0, look: grow, params: {grow: 1}}
+  - {at: 8bar, look: grow, params: {grow: 2}, xfade: 2s}
+  - {at: 13bar, look: grow, params: {grow: 3}, xfade: 2s}
+  - {at: 21bar, look: grow, params: {grow: 5}, xfade: 2s}
+  - {at: 34bar, look: grow, params: {grow: 8}, xfade: 3s}
+  - {at: 55bar, look: grow, params: {grow: 13}, xfade: 3s}
+  - {at: 89bar, look: grow, params: {grow: 5}, xfade: 4s}
+  - {at: 102bar, look: grow, params: {grow: 21}, xfade: 4s}
+  - {at: 157bar, look: tunnel, xfade: 6s}
+  - {at: 178bar, look: light, xfade: 8s}

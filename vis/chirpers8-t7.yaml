@@ -1,0 +1,46 @@
+about: "A Light Left On, 7 Annealing: a sequencer cooling into a riff. The picture has a temperature: hot, it is turbulent, scattered and fringed; as the search cools it settles, the colours cool and a crystal lattice appears; one reheat shakes it loose; the coda is glass."
+looks:
+  anneal:
+    palette: ["#03050b", "#0b2140", "#2c6596", "#9fd0ee", "#f3e2c0", "#ffb347", "#d9531e", "#5e1600"]
+    params: {heat: 1}
+    vars:
+      spin: {integrate: "0.01 + param.heat*0.08"}
+    layers:
+      - {type: noise, scale: "1.0 + param.heat*1.6", speed: "0.02 + param.heat*0.5", octaves: 5, warp: "0.2 + param.heat*2.2", spread: 0.26, threshold: 0.2, pos: "0.17 + param.heat*0.45", light: "0.34 + param.heat*0.16"}
+      - {type: particles, on: track.seq, count: "4 + param.heat*20", speed: "0.1 + param.heat*0.9", spread: 1, drag: "3.3 - param.heat*3", life: 1.4, size: 0.004, jitter: "0.2 + param.heat*1.2", soft: 0.6, pos: "0.3 + param.heat*0.42", hues: "param.heat*0.2"}
+      - {type: shape, sides: 6, star: 0.42, radius: 0.42, width: 0.003, count: 7, scale: 0.78, turn: 0.0833, rotate: var.spin, spread: 0.04, pos: 0.4, opacity: "0.9 - param.heat*0.9"}
+      - {type: notes, mode: clock, tracks: [seq, keys], radius: 0.7, size: 0.009, life: 1.2, glow: 0.6, spread: 0.1, pos: "0.4 + param.heat*0.3", opacity: 0.8}
+    filters:
+      - {type: chroma, amount: "param.heat*0.008"}
+      - {type: warp, amount: "param.heat*0.02", scale: 4, speed: 0.6}
+      - {type: bloom, threshold: 0.45, amount: 0.7}
+      - {type: vignette, amount: 0.55}
+scenes:
+  - {at: 0, look: anneal, params: {heat: 1}}
+  - {at: 12bar, look: anneal, params: {heat: 0.86}, xfade: 4s}
+  - {at: 32bar, look: anneal, params: {heat: 0.9}, xfade: 4s}
+  - {at: 50bar, look: anneal, params: {heat: 0.66}, xfade: 4s}
+  - {at: 74bar, look: anneal, params: {heat: 0.38}, xfade: 4s}
+  - {at: 88bar, look: anneal, params: {heat: 0.28}, xfade: 4s}
+  - {at: 108bar, look: anneal, params: {heat: 0}, xfade: 6s}
+  - {at: 124bar, look: anneal, params: {heat: 0.88}, xfade: 1.5s}
+  - {at: 134bar, look: anneal, params: {heat: 0}, xfade: 8s}
+master:
+  layers:
+    - type: captions
+      size: 0.042
+      y: 0.84
+      color: "#ffd58a"
+      typing: 18
+      lines:
+        - [12bar, 7, "zero point eight six, and it takes the worse road gladly"]
+        - [32bar, 5, "zero point nine"]
+        - [50bar, 7, "zero point six six, it has started to keep things"]
+        - [74bar, 5, "zero point three eight"]
+        - [88bar, 6, "zero point two eight, nearly"]
+        - [108bar, 4, "zero"]
+        - [124bar, 7, "zero point eight eight, shaken loose again"]
+        - [134bar, 4, "zero"]
+        - [138bar, 7, "the glass remembers how it cooled"]
+        - [142bar, 7, "the wrong roads are kept in its shape"]
+        - [146bar, 8, "and holds the heat it gave away"]

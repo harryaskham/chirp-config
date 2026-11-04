@@ -1,0 +1,41 @@
+about: "The video for A Light Left On (chirpers): each track's own programme from ~/.config/chirp/vis/chirpers8-tN.yaml, and the album's master over all of them - a small amber light that never goes out (the art's power LED), the track's number and title as it begins, and a little grain. Render: chirp video --album compose/chirpers8/video.yaml -o a-light-left-on.mp4"
+meta: {artist: chirpers, album: A Light Left On}
+video: {size: 1920x1080, fps: 30}
+loudness: -11
+limit: true
+master:
+  layers:
+    - {type: shape, sides: 0, radius: "0.006 + audio.level*0.004", fill: 1, width: 0, glow: 2.5, x: 1.64, y: -0.88, color: "#ffb347", opacity: 0.9}
+    - type: captions
+      x: -1.64
+      y: -0.86
+      align: left
+      size: 0.055
+      color: "#ffd58a"
+      typing: 12
+      fade: 1.2
+      lines: [[1, 7, "{track}  {title}"]]
+    - type: captions
+      x: -1.64
+      y: -0.93
+      align: left
+      size: 0.028
+      color: "#6f8db3"
+      typing: 30
+      fade: 1.2
+      lines: [[2, 6, "chirpers - a light left on"]]
+  filters:
+    - {type: grain, amount: 0.02}
+songs:
+  - {file: ~/.config/chirp/songs/chirpers8-t1.yaml, vis: chirpers8-t1, title: Echolalia}
+  - {file: ~/.config/chirp/songs/chirpers8-t2.yaml, vis: chirpers8-t2, title: Everything Falls to One}
+  - {file: ~/.config/chirp/songs/chirpers8-t3.yaml, vis: chirpers8-t3, title: Three Neighbours}
+  - {file: ~/.config/chirp/songs/chirpers8-t4.yaml, vis: chirpers8-t4, title: Small Things Before Large}
+  - {file: ~/.config/chirp/songs/chirpers8-t5.yaml, vis: chirpers8-t5, title: Agreeing on a Speed}
+  - {file: ~/.config/chirp/songs/chirpers8-t6.yaml, vis: chirpers8-t6, title: No Errors Since}
+  - {file: ~/.config/chirp/songs/chirpers8-t7.yaml, vis: chirpers8-t7, title: Annealing}
+  - {file: ~/.config/chirp/songs/chirpers8-t8.yaml, vis: chirpers8-t8, title: Kept in Mercury}
+  - {file: ~/.config/chirp/songs/chirpers8-t9.yaml, vis: chirpers8-t9, title: Period Doubling}
+  - {file: ~/.config/chirp/songs/chirpers8-t10.yaml, vis: chirpers8-t10, title: Call and Return}
+  - {file: ~/.config/chirp/songs/chirpers8-t11.yaml, vis: chirpers8-t11, title: The Weather Indoors}
+  - {file: ~/.config/chirp/songs/chirpers8-t12.yaml, vis: chirpers8-t12, title: Still Running When You Wake}

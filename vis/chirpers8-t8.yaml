@@ -1,0 +1,31 @@
+about: "A Light Left On, 8 Kept in Mercury: a melody kept alive by being played back to itself. Everything drawn goes round a long feedback loop and comes back a little worn (the song's `wear`): silver trails, a ring of the waveform, rows of returning echoes."
+looks:
+  line:
+    palette: mercury
+    vars:
+      turn: {integrate: "0.004 + audio.level*0.01"}
+    layers:
+      - {type: gradient, radial: 1, spread: 0.12, pos: 0.1, light: 0.3}
+      - {type: scope, mode: circle, size: "1.3 + audio.low*0.3", gain: 2.6, width: 0.004, glow: 0.6, pos: 0.5, spread: 0.1}
+      - {type: notes, mode: clock, tracks: [sungv, sungl, sungc, mar, word], radius: 0.75, size: 0.008, life: 4, glow: 0.7, spread: 0.08, pos: 0.55}
+    filters:
+      - {type: feedback, zoom: 1.006, rotate: var.turn, decay: "0.95 - song.wear*0.1", hue: 0}
+      - {type: warp, amount: "0.002 + song.wear*0.012", scale: 3, speed: 0.2}
+      - {type: grain, amount: "0.02 + song.wear*0.08"}
+      - {type: bloom, threshold: 0.55, amount: 0.5}
+      - {type: vignette, amount: 0.6}
+  rows:
+    extends: pleasures
+    palette: mercury
+    layers:
+      - {type: lines, rows: 44, every: 0.12, height: 0.38, y: 0.78, size: 1.25, spacing: 0.034, width: 0.003, color: "#e6ecf2", occlude: 1}
+    filters:
+      - {type: feedback, zoom: 1.0, decay: 0.5}
+      - {type: grain, amount: "0.03 + song.wear*0.08"}
+      - {type: vignette, amount: 0.45}
+scenes:
+  - {at: 0, look: line}
+  - {at: 52bar, look: rows, xfade: 3s}
+  - {at: 60bar, look: line, xfade: 4s}
+  - {at: 108bar, look: rows, xfade: 4s}
+  - {at: 136bar, look: line, xfade: 6s}

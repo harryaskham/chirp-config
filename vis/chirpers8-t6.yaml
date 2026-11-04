@@ -1,0 +1,22 @@
+about: "A Light Left On, 6 No Errors Since: a machine's status lines sung as tenderness. A warm phosphor console counts its uptime, soft weather drifts with the Markov harmony (the song's `drift`), and the sung lines bloom like a lamp."
+looks:
+  console:
+    palette: [ "#05040a", "#2a1530", "#e8a33a", "#ffd58a", "#c0587a", "#2a1530" ]
+    vars:
+      warm: {follow: "track.voice.level + track.singb.level + track.talk.level", attack: 60ms, release: 1.2s}
+    layers:
+      - {type: noise, scale: 0.9, speed: "0.03 + song.drift*0.1", octaves: 4, warp: 1.2, spread: 0.5, threshold: 0.35, pos: "0.05 + song.drift*0.2", light: "0.16 + var.warm*0.3"}
+      - {type: notes, mode: stars, tracks: [keys, bell, mbox, pad], size: 0.006, life: 3, glow: 0.8, spread: 0.15, pos: 0.45, height: 1.6}
+      - {type: text, text: "UPTIME {time}", x: -1.62, y: 0.86, align: left, size: 0.045, color: "#e8a33a", opacity: 0.85, glow: 0.2}
+      - {type: text, text: "NO ERRORS", x: 1.62, y: 0.86, align: right, size: 0.045, color: "#e8a33a", opacity: "0.4 + time.barphase*0.0", glow: 0.2}
+      - {type: shape, sides: 0, radius: "0.05 + var.warm*0.12", fill: 1, width: 0, glow: 3, pos: 0.4, opacity: "0.25 + var.warm*0.6"}
+    filters:
+      - {type: bloom, threshold: 0.4, amount: 0.8, radius: 0.05}
+      - {type: scanlines, amount: 0.2, count: 270}
+      - {type: vignette, amount: 0.6}
+scenes:
+  - {at: 0, look: console}
+  - {at: 44bar, look: pleasures, xfade: 4s}
+  - {at: 64bar, look: console, xfade: 4s}
+  - {at: 84bar, look: console, xfade: 4s}
+  - {at: 102bar, look: console, xfade: 4s}

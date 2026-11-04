@@ -1,0 +1,33 @@
+about: "A Light Left On, 9 Period Doubling: the logistic map the song is built on, drawn as its bifurcation diagram - each section pushes r further (2.9, 3.2, 3.5, 3.56, 3.7-3.82, the window at 3.835, the storm at 4.0) and settles back; the Henon map for the storm's own chaos."
+looks:
+  doubling:
+    palette: ocean
+    params: {r: 2.9}
+    layers:
+      - {type: gradient, angle: 0.25, spread: 0.1, pos: 0.02, light: 0.14}
+      - {type: attractor, kind: logistic, lo: 2.8, hi: 4.0, upto: param.r, points: 400000, gain: 2.2, spread: 0.5, pos: 0.35}
+      - {type: spectrum, mode: line, y: -0.9, size: 3.4, height: 0.08, width: 0.0025, floor: 0.3, pos: 0.7, opacity: 0.5}
+    filters:
+      - {type: bloom, threshold: 0.45, amount: 0.6, radius: 0.02}
+      - {type: vignette, amount: 0.5}
+  storm:
+    palette: storm
+    vars: {spin: {integrate: "0.01 + audio.level*0.05"}}
+    layers:
+      - {type: attractor, kind: henon, a: "1.4 + lfo.w*0.02", points: 120000, size: 0.62, rotate: var.spin, gain: 1.3, spread: 0.7, pos: 0.4}
+      - {type: particles, on: track.snare, count: 20, speed: 0.9, life: 0.7, size: 0.003, spread: 1, jitter: 0.6, pos: 0.7, shape: spark}
+    lfo: {w: "noise period=4b"}
+    filters:
+      - {type: feedback, zoom: 1.01, decay: 0.7, rotate: 0.01}
+      - {type: chroma, amount: "0.002 + audio.onset*0.006"}
+      - {type: bloom, threshold: 0.45, amount: 0.7}
+      - {type: vignette, amount: 0.55}
+scenes:
+  - {at: 0, look: doubling, params: {r: 2.95}}
+  - {at: 20bar, look: doubling, params: {r: 3.2}, xfade: 3s}
+  - {at: 36bar, look: doubling, params: {r: 3.5}, xfade: 3s}
+  - {at: 56bar, look: doubling, params: {r: 3.56}, xfade: 3s}
+  - {at: 76bar, look: doubling, params: {r: 3.82}, xfade: 4s}
+  - {at: 108bar, look: doubling, params: {r: 3.835}, xfade: 3s}
+  - {at: 126bar, look: storm, xfade: 2s}
+  - {at: 150bar, look: doubling, params: {r: 3.1}, xfade: 6s}
