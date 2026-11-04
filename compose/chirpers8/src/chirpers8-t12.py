@@ -801,7 +801,21 @@ def last_note():
 # derived from physics instead of drawn as an envelope. Physical modelling: the machine computing the real thing from
 # its equations, the other great dream of computer music. Only k changes; the rest of machine-kit stays.
 PHYS_K = {"patch": {"synth": {"layers": [{"type": "drum", "beater": "plastic", "decay": "0.6s", "sharp": 90, "reso": 1.06, "cavity": 0.25, "reso_level": 0.35, "air": 0.5, "strike": 0.08, "damp": 0.6, "shell": 0.1, "contact": 1.4, "slap": 0.45}], "filters": [{"kind": "peak", "cutoff": {"value": "4.2k", "mod": [{"src": "rand", "amount": 0.1}]}, "q": 1, "gain": {"value": "3dB", "mod": [{"src": "vel", "amount": 5}]}}, "lowshelf cutoff=75 gain=4dB"], "amp": {"a": "0.2ms", "d": "520ms", "s": 0, "r": "25ms", "curve": 1.5}, "drive": 0.35}, "play": {"vel_sens": 0.45}}, "pitch": "G1"}
-T12_KIT = {"extends": "machine-kit", "kit": {"k": PHYS_K}}
+# v51 (ROUND TYPE: whole): THE REST OF THE HANDS. machine-kit's rimshot is still played in exactly t10, t11 and t12 -
+# here by the Life colony (half its cells are rs and cp) and two fills in the rush. Now in the closer's kit the rimshot
+# is a PHYSICAL RIMSHOT (stick on head and rim at once, the crack ringing the shell) on a small high-tuned drum, a
+# timbale where the 909 had a ping; and the colony's clap a PHYSICAL SNARE (stick, wires thrown off the resonant head
+# through a gap). The colony's cells now strike modelled drums - the darker, pitched drums its window wanted (v49's
+# chip kit was too bright). The 909's hats, ride and crash stay: the machine is still in the band.
+PHYS_RS = {"pitch": "A4", "patch": {"synth": {
+    "layers": [{"type": "drum", "beater": "rimshot", "decay": "0.15s", "sharp": 20, "reso": 1.4, "cavity": 0.3,
+                "reso_level": 0.4, "shell": 0.6, "shell_hz": 620, "strike": 0.5}],
+    "amp": {"a": "0.1ms", "d": "300ms", "s": 0, "r": "40ms"}}}}
+PHYS_SN = {"pitch": "D3", "patch": {"synth": {
+    "layers": [{"type": "drum", "beater": "stick", "decay": "0.3s", "sharp": 25, "reso": 1.5, "cavity": 0.3,
+                "reso_level": 0.5, "shell": 0.3, "shell_hz": 500, "wires": 0.65, "gap": 0.25, "strike": 0.4}],
+    "amp": {"a": "0.1ms", "d": "450ms", "s": 0, "r": "50ms"}}}}
+T12_KIT = {"extends": "machine-kit", "kit": {"k": PHYS_K, "rs": PHYS_RS, "cp": PHYS_SN}}
 
 
 def ks_harp():
@@ -1195,7 +1209,7 @@ def main():
             tr("clap", "machine-kit play.humanize.nudge.cp=10ms", gain="-6dB", sends={"room": "-8dB"}),
             tr("shepup", "shepard-pad", gain="-16dB", sends={"hall": "-10dB"}),
             tr("shepdown", "shepard-fall", gain="-16dB", sends={"hall": "-10dB"}),
-            {"name": "rush", "patch": "machine-kit", "gain": "-8dB", "pan": -0.2, "at": f"{rb(158):g}b",
+            {"name": "rush", "patch": T12_KIT, "gain": "-8dB", "pan": -0.2, "at": f"{rb(158):g}b",
              "risset": {"cycle": "4bar", "layers": 3, "length": "20bar"}, "sends": {"room": "-12dB"}, "score": RUSH},
             tr("tapechoir", "mellotron-choir", gain="-12dB", pan=-0.2, sends={"hall": "-6dB"},
                fx=[{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.sw", "amount": 1}]}}],
