@@ -392,6 +392,14 @@ R30 = os.environ.get("T9_R30", "arc")
 # 95.59, `four` from 3.5 95.74; all four, each from its own split, 97.589 with returns 3 -> 4. T9_SWEEP picks them.)
 # T9_R31=none reproduces v30.
 R31 = os.environ.get("T9_R31", "sweep")
+# T9_R32 = floor (v32, section round on w7, 2:44-3:10: chaos's second half, "static, little new vs w6"). THE FLOOR
+# KNOWS. Since v18 the map at r = 3.8272 runs under chaos's last fifteen bars, flickering between laminar three-cycles
+# and bursts, but the drums went on straight through it - the kick alone sits two dB under the whole mix there. Now
+# the floor follows the intermittency: wherever the map holds a three-cycle for two beats or more, kick, snare, hats
+# and ride fall away (-20 dB) and the three-cycle's blip, the bass and the pads are left; when it bursts, the floor
+# comes back. Five laminar stretches of 2 to 6.5 beats, at the map's own irregular times - the last one running into
+# the window, which keeps the three for good. Generated, not placed. T9_R32=none reproduces v31.
+R32 = os.environ.get("T9_R32", "floor")
 if R31 == "sweep":
     _sw = {"one": (2.8, 2.98), "two": (3.05, 3.42), "four": (float(os.environ.get("T9_SW_FOUR0", "3.452")), 3.543), "eight": (3.5445, 3.5643)}
     _which = os.environ.get("T9_SWEEP", "one,two,four,eight").split(",")
@@ -1064,6 +1072,19 @@ def main():
             if tr["name"] in ("henx-chaos", "heny-chaos"):
                 tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.lam", "amount": 1}]}}]
                 tr["auto"] = {**tr.get("auto", {}), "lam": {"points": duck}}
+        if R32 == "floor":   # the floor falls away in the long laminar stretches
+            minlen = int(os.environ.get("T9_FLOOR_MIN", "8"))
+            fl = [["0b", 0.0]]
+            for a_, b_ in runs:
+                if b_ - a_ + 1 < minlen:
+                    continue
+                s_, e_ = i0b + 0.25 * a_, i0b + 0.25 * (b_ + 1)
+                fl += [[f"{s_ - 0.05:g}b", 0.0], [f"{s_ + 0.05:g}b", -20.0], [f"{e_ - 0.05:g}b", -20.0], [f"{e_ + 0.05:g}b", 0.0]]
+            fl.append([f"{total}b", 0.0])
+            for tr in tracks:
+                if tr["name"] in ("kick", "snare", "hats", "ride"):
+                    tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.floor", "amount": 1}]}}]
+                    tr["auto"] = {**tr.get("auto", {}), "floor": {"points": fl}}
     if R19 == "cz" and R19BASS == "on":
         sc_ = float(os.environ.get("T9_CBASS_SCALE", "0.55"))
         bp_ = [["0b", 0.0]]
