@@ -26,6 +26,7 @@ scenes:
   - {at: 108bar, look: anneal, params: {heat: 0}, xfade: 6s}
   - {at: 124bar, look: anneal, params: {heat: 0.88}, xfade: 1.5s}
   - {at: 134bar, look: anneal, params: {heat: 0}, xfade: 8s}
+# The words, where they are sung (found by tools/vislyrics.py from the song's phrase files).
 master:
   layers:
     - type: captions
@@ -34,14 +35,13 @@ master:
       color: "#ffd58a"
       typing: 18
       lines:
-        - [12bar, 7, "zero point eight six, and it takes the worse road gladly"]
-        - [32bar, 5, "zero point nine"]
-        - [50bar, 7, "zero point six six, it has started to keep things"]
-        - [74bar, 5, "zero point three eight"]
-        - [88bar, 6, "zero point two eight, nearly"]
-        - [108bar, 4, "zero"]
-        - [124bar, 7, "zero point eight eight, shaken loose again"]
-        - [134bar, 4, "zero"]
-        - [138bar, 7, "the glass remembers how it cooled"]
-        - [142bar, 7, "the wrong roads are kept in its shape"]
-        - [146bar, 8, "and holds the heat it gave away"]
+        - [52.277b, 1.7, "zero point eight six,"]  # vradio
+        - [55.808b, 4.5, "and it takes the worse road gladly"]  # vradio
+        - [204.270b, 1.9, "zero point six six,"]  # vradio
+        - [208.098b, 4.6, "it has started to keep things"]  # vradio
+        - [356.250b, 4.2, "zero point two eight, nearly"]  # voice
+        - [436.250b, 1.9, "zero"]  # voice
+        - [440.245b, 5.0, "the glass remembers how it cooled"]  # sing
+        - [464.256b, 5.0, "the wrong roads are kept in its shape"]  # sing
+        - [500.250b, 5.0, "zero point eight eight, shaken loose again"]  # vradio
+        - [552.256b, 5.0, "and holds the heat it gave away"]  # sing

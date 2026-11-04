@@ -38,6 +38,7 @@ scenes:
   - {at: 72bar, look: echo, params: {sides: 96, echo: 0.93, bright: 0.8, hue: 0.5}, xfade: 4s}
   - {at: 104bar, look: score, xfade: 3s}
   - {at: 120bar, look: echo, params: {sides: 96, echo: 0.95, bright: 0.35, hue: 0}, xfade: 6s}
+# The words, where they are sung (found by tools/vislyrics.py from the song's phrase files).
 master:
   layers:
     - type: captions
@@ -47,11 +48,19 @@ master:
       fade: 1.2
       typing: 16
       lines:
-        - [0bar, 9, "standby amber, the fan's long vowel"]
-        - [16bar, 9, "the fan's long vowel, and under it, you"]
-        - [32bar, 9, "a cursor breathing where no one types"]
-        - [64bar, 9, "slower now, as if the words were yours"]
-        - [72bar, 9, "standby amber, the fan's long vowel"]
-        - [88bar, 9, "a cursor breathing where no one types"]
-        - [104bar, 9, "standby amber, the fan's long vowel"]
-        - [112bar, 12, "a light left on, the fan's long vowel"]
+        - [0.236b, 1.5, "standby amber, the fan's long vowel"]  # voice
+        - [3.035b, 2.9, "the fan's long vowel, and under it, you"]  # voice
+        - [64.245b, 5.2, "the fan's long vowel, and under it, you"]  # voice
+        - [128.261b, 4.6, "a cursor breathing where no one types"]  # voice
+        - [256.234b, 5.0, "slower now, as if the words were yours"]  # vmem
+        - [288.250b, 1.4, "standby amber, the fan's long vowel"]  # voice
+        - [291.000b, 3.0, "the fan's long vowel, and under it, you"]  # voice
+        - [352.250b, 4.8, "a cursor breathing where no one types"]  # voice
+        - [416.250b, 1.4, "standby amber, the fan's long vowel"]  # voice
+        - [419.000b, 3.0, "the fan's long vowel, and under it, you"]  # voice
+        - [448.250b, 1.4, "a light left on, the fan's long vowel"]  # voice
+        - [451.000b, 3.0, "the fan's long vowel, and under it, you"]  # voice
+        - [480.250b, 2.2, "standby amber, the fan's long vowel"]  # sung
+        - [484.244b, 3.3, "the fan's long vowel, and under it, you"]  # sung
+        - [496.250b, 2.2, "standby amber, the fan's long vowel"]  # sung
+        - [500.244b, 3.3, "the fan's long vowel, and under it, you"]  # sung

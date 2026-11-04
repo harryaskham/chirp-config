@@ -50,19 +50,46 @@ def song_tracks(path, chirp):
     return tracks, bpm
 
 
+def found_in(doc, out):
+    """Phrases in a phrase file, whatever its shape: `chirp tts` output (`about` holds the
+    words), or any object with `text`/`words` beside `notes` (`wordsN` with `notesN`)."""
+    if isinstance(doc, list):
+        for x in doc:
+            found_in(x, out)
+        return
+    if not isinstance(doc, dict):
+        return
+    try:
+        m = re.search(r"\):\s*(.+)$", doc.get("about", "") or "")
+        if m:
+            add(out, m.group(1), doc["tracks"][0]["notes"])
+    except (KeyError, IndexError, TypeError):
+        pass
+    for k, v in doc.items():
+        mk = re.fullmatch(r"notes(\d*)", k)
+        if mk and isinstance(v, list):
+            text = doc.get("words" + mk.group(1)) or (doc.get("text") if not mk.group(1) else None)
+            if isinstance(text, str):
+                add(out, text, v)
+        elif isinstance(v, (dict, list)):
+            found_in(v, out)
+
+
+def add(out, text, notes):
+    ph = [n.get("ph", "") for n in notes if isinstance(n, dict)]
+    if len(ph) >= 2 and all(ph):
+        out.append((text.strip(), ph))
+
+
 def phrases(dirs):
     out = []
     for d in dirs:
-        for f in sorted(glob.glob(os.path.join(d, "*.json"))):
+        files = [d] if os.path.isfile(d) else sorted(glob.glob(os.path.join(d, "*.json")))
+        for f in files:
             try:
-                doc = json.load(open(f))
-                notes = doc["tracks"][0]["notes"]
-            except (KeyError, IndexError, ValueError, TypeError):
+                found_in(json.load(open(f)), out)
+            except (OSError, ValueError):
                 continue
-            m = re.search(r"\):\s*(.+)$", doc.get("about", ""))
-            ph = [n.get("ph", "") for n in notes]
-            if m and len(ph) >= 2 and all(ph):
-                out.append((m.group(1).strip(), ph))
     return out
 
 
@@ -74,6 +101,7 @@ def main():
     ap.add_argument("--hold", type=float, default=1.5, help="seconds a line stays after it is sung")
     ap.add_argument("--key", type=int, default=4, help="phonemes that must match when a phrase is cut short")
     ap.add_argument("--chirp", default=os.environ.get("CHIRP", "chirp"), help="chirp binary for `plan`")
+    ap.add_argument("--split", type=int, default=0, help="cut lines longer than this many letters in two")
     ap.add_argument("--longest", type=float, default=9.0, help="seconds a line may stay at most")
     a = ap.parse_args()
     tracks, bpm = song_tracks(a.song, a.chirp)
@@ -105,7 +133,24 @@ def main():
         if i + 1 < len(lines):
             secs = min(secs, (lines[i + 1][0] - at) * 60.0 / bpm - 0.2)
         secs = min(secs, a.longest)
-        print(f'        - [{at:g}b, {max(secs, 1.0):.1f}, {json.dumps(text.lower())}]  # {name}')
+        # A long line is cut at its most central comma (or space); the second part waits
+        # for its share of the phrase.
+        parts = [text]
+        if a.split and len(text) > a.split:
+            cuts = [k for k, ch in enumerate(text) if ch == ","] or [k for k, ch in enumerate(text) if ch == " "]
+            k = min(cuts, key=lambda c: abs(c - len(text) / 2))
+            parts = [text[:k + 1].strip(), text[k + 1:].strip()]
+        # The second part waits for its share of the phrase; the first gives way to it.
+        cut = (end - at) * (len(parts[0]) / len(text)) if len(parts) > 1 else None
+        for j, part in enumerate(parts):
+            if j == 0:
+                beat, show = at, (cut * 60.0 / bpm - 0.1 if cut is not None else secs)
+            else:
+                beat = at + cut
+                show = max(secs - cut * 60.0 / bpm, (end - beat) * 60.0 / bpm + a.hold)
+                if i + 1 < len(lines):
+                    show = min(show, (lines[i + 1][0] - beat) * 60.0 / bpm - 0.2)
+            print(f'        - [{beat:.3f}b, {max(min(show, a.longest), 1.0):.1f}, {json.dumps(part.lower())}]  # {name}')
 
 
 if __name__ == "__main__":
