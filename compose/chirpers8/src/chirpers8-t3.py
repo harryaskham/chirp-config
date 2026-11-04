@@ -313,6 +313,17 @@ R30 = os.environ.get("T3_R30", "scan")
 # rule the marimba is already playing - and the plucked bass locks to it (the same eighths, the root, up an octave on
 # the fourth and eighth), a riff out of a random-number generator - then the four comes back. T3_R31=none reproduces v30.
 R31 = os.environ.get("T3_R31", "random")
+# T3_R32 = limits (v32, whole-song round). EACH RULE ITS PRIMES. The song booted from 12-TET into one 7-limit scale and
+# stayed there. Now the harmonic world follows the rule the ring is running. Rule 110 - the glider, the one rule here
+# that can compute anything - reaches past seven to the next prime: its fourth leaves 4/3 for 11/8, the undecimal
+# fourth, half a quarter-tone sharp and neither major nor minor. Rule 184 - traffic, a rule that conserves its cars -
+# keeps only what fifths can reach: Pythagorean, its third, sixth and seventh 32/27, 128/81, 16/9 (the septimal
+# softness gone, the minor thirds tight and bright). The peak's two rules bring the 7-limit back, and from there to the
+# end nothing moves (the ring t4 catches stays 14/9). Each move ramps over two bars, as the boot's did.
+# T3_R32=none reproduces v31.
+R32 = os.environ.get("T3_R32", "limits")
+STEPS_11 = ["9/8", "7/6", "11/8", "3/2", "14/9", "7/4", "2/1"]
+STEPS_3 = ["9/8", "32/27", "4/3", "3/2", "128/81", "16/9", "2/1"]
 
 
 def centre_column(n):   # rule 30 from a single cell, read down the middle (wide enough never to wrap)
@@ -1108,7 +1119,11 @@ def main():
                                "year": 2026}),
         f"tempo: {json.dumps(clock_map(st, total)) if R26 == 'clock' else BPM}",
         *([f"tuning: " + json.dumps([{"edo": 12}, {"at": f"{st['boot']:g}b", "steps": JI_STEPS, "root": "D4",
-                                                    "ramp": "10bar"}]),
+                                                    "ramp": "10bar"}]
+                                    + ([{"at": f"{st['glider']:g}b", "steps": STEPS_11, "root": "D4", "ramp": "2bar"},
+                                        {"at": f"{st['traffic']:g}b", "steps": STEPS_3, "root": "D4", "ramp": "2bar"},
+                                        {"at": f"{st['peak']:g}b", "steps": JI_STEPS, "root": "D4", "ramp": "2bar"}]
+                                       if R32 == "limits" else [])),
            "vars: " + json.dumps({"swirl": {"system": {"type": "lorenz", "axis": "x", "n": 800, "range": [0, 2.5]},
                                             "every": "1/4"}})] if R2 == "live" else []),
         f'length: "{total:g}b"',
