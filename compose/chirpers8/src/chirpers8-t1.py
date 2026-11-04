@@ -671,7 +671,10 @@ def build():
             tr('hoot', {'synth': {'layers': [{'wave': 'square'}], 'amp': '6ms 0 1 70ms',
                                   'filters': [{'kind': 'lp', 'cutoff': 2400}, {'kind': 'hp', 'cutoff': 200}]}},
                '-23dB', pan=0.3, fx=['reverb kind=room mix=0.25'], sends={'hall': '-10dB', 'echo': '-14dB'}),
-            tr('pno', 'ks-harp', '-14dB', pan=0.3, sends={'hall': '-16dB'}, fx=['lp cutoff=5000']),   # (listed last: nothing before it moves)
+            # (v46, palette) the clavichord comping (v42) leaves too: the Karplus-Strong harp became an album staple overnight
+            # (four songs), so the band's keyboard is now a Wurlitzer - a reed struck by a hammer, the bark and the
+            # bell of a sixties soul session - the one keyboard nobody else on the album plays
+            tr('pno', 'wurli', '-13dB', pan=0.3, sends={'hall': '-16dB'}, fx=['lp cutoff=5000']),   # (listed last: nothing before it moves)
             # the outro keeps the old analogue pad, warm and low, for the hand-over into the next song (the terrain's bright
             # odd harmonics there put 17 dB more at 1 kHz into the join than the next song opens with)
             tr('pad2', 'juno-pad', '-16dB', fx=['hp cutoff=200', {'type': 'eq', 'bands': ['peak cutoff=450 q=0.9 gain=-4dB', 'highshelf cutoff=5000 gain=3dB']}], sends={'hall': '-9dB'}),
