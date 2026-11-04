@@ -2,6 +2,8 @@ about: "The video for A Light Left On (chirpers): each track's own programme fro
 meta: {artist: chirpers, album: A Light Left On}
 video: {size: 1920x1080, fps: 30}
 loudness: -11
+# Each song's picture rises from black and returns to it; the amber light (master) stays on between them.
+fade: [1.5, 3]
 limit: true
 master:
   layers:
