@@ -370,6 +370,14 @@ R28B = R28 == "odd" and os.environ.get("T9_R28_BRASS", "off") == "on"
 # beats in (held through the whole settle, -14 dB, the drone hid the settle's return: recurrence 98 -> 68, s0 93.2).
 # T9_R29=none reproduces v28.
 R29 = os.environ.get("T9_R29", "sync")
+# T9_R30 = arc (v30, whole-song round). THE LYAPUNOV ARC. The song ran at one loudness from the second section to the
+# settle (4.2 dB of dynamics; the album spans 7-20), and "developed least" but one. Now its level follows the map's
+# Lyapunov exponent - how fast two nearby orbits fly apart, negative while the orbit is periodic and positive in chaos:
+# the doublings sit back and creep up as each period doubles toward the edge of chaos, chaos arrives a step up, the
+# period-3 window (order inside chaos) falls back, the storm (r near 4, where it is largest) is the loudest place in
+# the song, and the settle fades as the orbit converges. One gain lane on every track (T9_ARC, dB per section);
+# the edges are held where they were for the joins. T9_R30=none reproduces v29.
+R30 = os.environ.get("T9_R30", "arc")
 C9_SWARM = {"about": "chirper-two: a Kuramoto swarm, 16 saws spread 60 cents, coupling on the track's sync lane",
             "synth": {"layers": [{"type": "kuramoto", "kuramoto": {
                 "count": 16, "wave": "saw", "spread": float(os.environ.get("T9_SWARM_SPREAD", "60")),
@@ -767,6 +775,12 @@ def main():
              [f"{st['storm']}b", 0.2], [f"{st['settle']}b", 0.4], [f"{st['settle'] + 0.01}b", 0.0], [f"{total}b", 0.0]]
     dyn = [["0b", -3.0], [f"{st['two']}b", -1.0], [f"{st['chaos']}b", 0.0], [f"{st['window']}b", -2.0],
            [f"{st['storm'] - 0.01}b", -2.0], [f"{st['storm']}b", 0.0], [f"{st['settle']}b", -1.0], [f"{total}b", -4.0]]
+    if R30 == "arc":   # the master's level lane (after the glue, before the limiter) follows the Lyapunov exponent
+        a = [float(v) for v in os.environ.get("T9_ARC", "-3.5,-3.5,-3,-2.5,-1.5,0,-5,0.5,0,-7").split(",")]
+        dyn = [["0b", a[0]], [f"{st['two']}b", a[1]], [f"{st['four']}b", a[2]], [f"{st['eight']}b", a[3]],
+               [f"{st['chaos'] - 0.01}b", a[4]], [f"{st['chaos']}b", a[5]], [f"{st['window']}b", a[5]],
+               [f"{st['window'] + 4}b", a[6]], [f"{st['storm'] - 0.01}b", a[6]], [f"{st['storm']}b", a[7]],
+               [f"{st['settle']}b", a[8]], [f"{total}b", a[9]]]
     if R5 == "orbit":   # the breakdown sits lower: the song's dynamic range opens
         o0 = st["eight"] + 8 * 5
         lv = lambda b: next(v0 + (v1 - v0) * (b - float(a0[:-1])) / (float(a1[:-1]) - float(a0[:-1]))   # noqa: E731
@@ -1092,6 +1106,21 @@ def main():
         for tr in tracks:
             if tr["name"] in orb and orb[tr["name"]] != "off":
                 tr["fx"] = tr.get("fx", []) + [orb[tr["name"]]]
+    if R30 == "tracks":   # (a gain lane on every track instead: the glue compressors halved it)
+        lv = dict(zip(("one", "two", "four", "eight", "chaos", "window", "storm", "settle", "end"),
+                      (float(v) for v in os.environ.get("T9_ARC", "-3,-3,-2.5,-2,0,-3.5,0.5,-1.5,-3").split(","))))
+        ramp = float(os.environ.get("T9_ARC_RAMP", "4"))
+        pts = [["0b", lv.get(secs[0][0], 0.0)]]
+        for nm, s, k, m in secs[1:]:
+            v = lv.get(nm, pts[-1][1])
+            if nm == "settle":   # the settle fades across its length, to the end's level
+                pts += [[f"{s:g}b", pts[-1][1]], [f"{s + ramp:g}b", v]]
+            else:
+                pts += [[f"{s:g}b", pts[-1][1]], [f"{s + ramp:g}b", v]]
+        pts.append([f"{total}b", lv.get("end", pts[-1][1])])
+        for tr in tracks:
+            tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.arc", "amount": 1}]}}]
+            tr["auto"] = {**tr.get("auto", {}), "arc": {"points": pts}}
     lines = [
         f"about: {json.dumps(about)}",
         "meta: " + json.dumps({"artist": "chirpers", "album": "A Light Left On", "title": "Period Doubling", "track": 9,
