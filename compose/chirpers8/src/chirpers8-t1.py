@@ -575,7 +575,14 @@ def build():
             # (v4) THE CHORDS LEARN TO TALK: through the third groove and the said-back groove a string section holds the
             # harmony and takes the voice's spectral envelope (wM's morph, mode cross, keyed by the voice): whenever the
             # voice speaks, the chords pronounce the line with it, a choir of the machine's harmony saying the words
-            tr('speak', 'strings-saw', '-7dB', pan=-0.15, fx=[{'type': 'morph', 'mode': 'cross', 'key': 'voice', 'amount': 0.95}],
+            # (v41, palette) ...and the strings that take the voice's shape are no longer a saw string section: they are
+            # Max Mathews' last instrument, scanned synthesis (Verplank, Mathews and Shaw, 2000; wM's scanned) - a ring of
+            # masses and springs read round at each pitch, a slow hand pressing on it - so the harmony that pronounces the
+            # words is a vibrating surface, not a section: the father of computer music's string, learning to talk
+            tr('speak', {'synth': {'layers': [{'type': 'scanned', 'scanned': {'speed': 0.5, 'width': 0.18, 'smooth': 0.3,
+                                                                              'push': {'value': 0.12, 'mod': [{'src': 'lfo.hand', 'amount': 0.5}]}}, 'decay': '5s'}],
+                                   'amp': '400ms 0 0.9 1.2s', 'lfo': {'hand': {'wave': 'sine', 'rate': '0.13hz'}}}},
+               '-7dB', pan=-0.15, fx=[{'type': 'morph', 'mode': 'cross', 'key': 'voice', 'amount': 0.95}],
                sends={'hall': '-10dB'}),
             tr('sub', 'sub', '-4.5dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-5dB', 'release': '260ms', 'curve': 0.6}]),
             # (v26: a fingerstyle electric bass, finger-bass, was tried here - it moved a section boundary, structure 88 on
@@ -590,7 +597,17 @@ def build():
             # a rim written by a cellular automaton (rule 90, Sierpinski), sixteenths, from the second groove
             # the rim: the engine's own elementary cellular automaton (gen ca, rule 90, Sierpinski) over 16 cells, a
             # generation every sixteenth, from the second groove to the end of the said-back groove
-            {'name': 'ca', 'patch': 'machine-kit', 'gain': '-13dB', 'pan': -0.3, 'score': f"R/{secs['B'] * 4}b",
+            # (v41, palette) THE AUTOMATON PLUCKS: its ticking was the album's shared analogue machine kit (seven
+            # songs). Now the cellular automaton's live cells pluck Karplus and Strong's 1983 loop (wM's ks): its rims are
+            # the paper's 'drum' - a burst of noise in a one-period loop with the sign flipped at random, a dry woody
+            # knock - and its cowbell is a plucked string ringing a fifth above the song's home, so the machine's own
+            # clock now has a pitch in it, a small harp left ticking in the corner of the room
+            {'name': 'ca', 'patch': {'extends': 'machine-kit', 'kit': {
+                 'rs': {'gain': '-4dB', 'pitch': 'D5', 'patch': {'synth': {'layers': [{'type': 'ks', 'ks': {'blend': 0.5}, 'decay': '0.12s', 'bright': 0.6}],
+                                                                         'amp': '0.1ms 0 1 150ms'}}},
+                 'cb': {'gain': '-6dB', 'pitch': 'A5', 'patch': {'synth': {'layers': [{'type': 'ks', 'ks': {'blend': 0.0}, 'decay': '1.2s', 'bright': 0.5}],
+                                                                         'amp': '0.1ms 0 1 400ms'}}}}},
+             'gain': '-13dB', 'pan': -0.3, 'score': f"R/{secs['B'] * 4}b",
              'gen': {'type': 'ca', 'rule': 90, 'width': 16, 'init': 'center', 'poly': 1, 'notes': 'rs rs cb rs',
                      'n': (secs['D'] + 16 - secs['B']) * 16, 'len': '/16'},
              'sends': {'echo': '-14dB'}},
