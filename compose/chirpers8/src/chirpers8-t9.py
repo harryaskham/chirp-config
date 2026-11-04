@@ -341,6 +341,14 @@ BR_PATCHES = {}
 # of x; the main state advances as before, so the storm and the settle are note-for-note v25).
 # T9_R26=none reproduces v25.
 R26 = os.environ.get("T9_R26", "cascade")
+# T9_R27 = scanned (v27, palette round). MATHEWS' RING. Two library sounds give way to scanned synthesis - Max Mathews
+# and Bill Verplank's ring of masses and springs read as a wavetable (wM's library patches, engine 502b6b8d): the
+# father of computer music's last instrument, in the album's love letter to the machine. The D bell that keeps
+# landing through the song (and rings at the end for t10 to catch) is struck on the ring (scanned-mallet: a narrow
+# strike splitting into ripples that run round and smooth away - it mellows and shimmers as it dies) instead of the
+# handpan; and the chaos's cross-morphed pad breathes on it (scanned-breath: a slow hand leaning in and out every
+# seven seconds) instead of pad-glass. Level-matched to what they replace. T9_R27=none reproduces v26.
+R27 = os.environ.get("T9_R27", "scanned")
 WINDOW_R = [float(v) for v in os.environ.get("T9_WIN_R", "3.835*10,3.8425*4,3.8445*2,3.853*2").replace("*", " ").replace(",", " ").split()[0::2]]
 WINDOW_N = [int(v) for v in os.environ.get("T9_WIN_R", "3.835*10,3.8425*4,3.8445*2,3.853*2").replace("*", " ").replace(",", " ").split()[1::2]]
 WINDOW_SCHED = [r_ for r_, n_ in zip(WINDOW_R, WINDOW_N) for _ in range(n_)]
@@ -788,11 +796,13 @@ def main():
             "fx": ["hp cutoff=140", "compressor threshold=-20dB ratio=3 attack=5ms release=120ms",
                    {"type": "delay", "time": "3/16", "feedback": 0.3, "mix": float(os.environ.get("T9_OTHER_DLY", "0.1")), "ping_pong": True, "tone": 3500},
                    "reverb kind=room decay=1.2s mix=0.2"], "notes": SING2}] if SING2 else []),
-        *([{"name": "padx", "patch": "pad-glass", "gain": os.environ.get("T9_PADX_GAIN", "-14dB"),
+        *([{"name": "padx", "patch": "scanned-breath" if R27 == "scanned" else "pad-glass",
+            "gain": os.environ.get("T9_PADX_GAIN", os.environ.get("T9_SBREATH_GAIN", "-13dB") if R27 == "scanned" else "-14dB"),
             "fx": [{"type": "morph", "key": "drums", "mode": "cross", "amount": 0.8}, "hp cutoff=200"],
             "score": T["padx"].score(total)}] if R2 == "drift" else []),
-        {"name": "bell", "patch": "handpan" if R6 == "steel" else "bell",
-         "gain": os.environ.get("T9_PAN_GAIN", "-6dB") if R6 == "steel" else "-14dB", "fx": ["reverb kind=hall decay=3s mix=0.35"],
+        {"name": "bell", "patch": ("scanned-mallet" if R27 == "scanned" else "handpan") if R6 == "steel" else "bell",
+         "gain": (os.environ.get("T9_SMALLET_GAIN", "-4dB") if R27 == "scanned" else os.environ.get("T9_PAN_GAIN", "-6dB")) if R6 == "steel" else "-14dB",
+         "fx": ([f"lp cutoff={os.environ.get('T9_SMALLET_LP', '1500')} q=0.5"] if R27 == "scanned" and R6 == "steel" else []) + ["reverb kind=hall decay=3s mix=0.35"],
          "score": T["bell"].score(total)},
         *([{"name": "chop", "patch": "break-kit", "gain": os.environ.get("T9_CHOP_GAIN", "0dB"), "pan": -0.1,
             "out": "drums", "score": T["chop"].score(total)},
