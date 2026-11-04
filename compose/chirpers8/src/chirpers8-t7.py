@@ -511,6 +511,9 @@ def build():
     Epts = [[f'{b * 4.0:.1f}b', round(energy(b), 2)] for b in range(nb)]
     # the temperature as a lane (one point a bar)
     Tpts = [[f'{b * 4.0:.1f}b', T[b]] for b in range(nb)]
+    KSWARM = {'synth': {'layers': [{'type': 'kuramoto', 'kuramoto': {'count': 8, 'spread': 22, 'wave': 'saw',
+                                     'coupling': {'value': 2.6, 'mod': [{'src': 'auto.T', 'amount': -2.4}]}}}],
+                        'filters': ['lp cutoff=2600 q=0.7'], 'amp': {'a': '3ms', 'd': '260ms', 's': 0.5, 'r': '120ms'}}}
     # the sub speaks only in bars where the bass is heard (the quench, the listening bars and the power-up keep it out)
     bass_bars = {int(e_[0] // 4) for e_ in P['bass'] if e_[3] > 1}
     P['sub'] = [e_ if int(e_[0] // 4) in bass_bars else (e_[0], e_[1], e_[2], 1) for e_ in P['sub']]
@@ -549,8 +552,15 @@ def build():
             # (v17, palette) THE ANSWER SPEAKS: the electric piano that plays the found riff runs through an envelope wah
             # (the engine's wah, new to the album) - each struck note opens the band-pass and lets it fall, so the riff the
             # voice sings has a mouth of its own
-            tr('keys', 'epiano-tine', '-6dB', pan=-0.15, sends={'echo': '-14dB', 'hall': '-12dB'},
-               fx=[{'type': 'wah', 'low': 350, 'high': 2600, 'env': 0.9, 'q': 4, 'mix': 0.6}]),
+            # (v42, palette) THE ANSWER COMES INTO FOCUS: the keys that double the found riff (from convergence to the
+            # end, and its glimpses in the fifth epoch) were an electric piano. Now each of their notes is a swarm -
+            # Kuramoto's coupled oscillators (1975; wM's kuramoto, pinned at 05:49): eight detuned saws starting from
+            # random phases and pulled into step, so every note of the answer FINDS its pitch out of a crowd in its first
+            # moments - a focusing attack - and rings as one tone. The pull follows the temperature: cold, it is strong
+            # and the notes snap into focus; in the reheat it weakens and the riff smears back into a beating chorus,
+            # then refocuses as the coda cools. (Same wah, same notes)
+            tr('keys', KSWARM, '-11dB', pan=-0.15, sends={'echo': '-14dB', 'hall': '-12dB'},
+               fx=[{'type': 'wah', 'low': 350, 'high': 2600, 'env': 0.9, 'q': 4, 'mix': 0.6}], auto={'T': {'points': Tpts}}),
             # (v17, palette) THE BED ON TAPE: the pad was the album's additive 'partial' (four songs share it); now it is
             # tape-replay strings - band-limited saws on a wobbling tape, a warm and slightly unstable bed for a song about
             # heat, which no other track on the album uses
@@ -599,8 +609,8 @@ def build():
                     {'type': 'radio', 'tune': {'value': 0, 'mod': [{'src': 'auto.dial', 'amount': 1}]}}],
              'auto': {'fv': {'points': fv}, 'dial': {'points': dial}}, 'sends': {'echo': '-12dB', 'hall': '-14dB'}},
             # (v16) the glimpses: the electric piano's own track, last, so nothing before it moves
-            tr('glim', 'epiano-tine', '-6dB', pan=-0.15, sends={'echo': '-14dB', 'hall': '-12dB'},
-               fx=[{'type': 'wah', 'low': 350, 'high': 2600, 'env': 0.9, 'q': 4, 'mix': 0.6}]),
+            tr('glim', KSWARM, '-11dB', pan=-0.15, sends={'echo': '-14dB', 'hall': '-12dB'},
+               fx=[{'type': 'wah', 'low': 350, 'high': 2600, 'env': 0.9, 'q': 4, 'mix': 0.6}], auto={'T': {'points': Tpts}}),
             tr('cf', 'cello', '-11dB', pan=0.25, sends={'hall': '-10dB'}),
             # (v41, palette) THE FLOOR ANNEALS: the sub was the album's plain sine sub (four songs share it). Now it is
             # Chebyshev waveshaping (Le Brun and Arfib, 1979; the engine's shaper) with the temperature on its index: hot,
