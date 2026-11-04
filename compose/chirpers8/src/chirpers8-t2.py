@@ -43,6 +43,7 @@ COMPUTEWARP = os.environ.get("C8T2_COMPUTEWARP", "0.25")   # WHOLE ROUND: big nu
 COMPUTEFROM = os.environ.get("C8T2_COMPUTEFROM", "A")   # 'A': the intro's paths stay on the grid (the join with t1 is measured over the opening; the intro is the arp's phasing, v64), the lag starts with A
 ARPPHASE = os.environ.get("C8T2_ARPPHASE", "0.25")   # SECTION ROUND (w1, the intro: static): the machine phases - the bytebeat arp runs on its own clock through the intro (the engine's per-track warp): drifting away from the clarinet over eight bars (to ARPPHASE beats late, curve smooth), then back over eight, locking onto the grid exactly as A begins; the tape-loop phasing of process music, done by a clock. Value = beats of drift at its widest
 LPCV = os.environ.get("C8T2_LPCV", "count,refrain")   # WHOLE ROUND: the numbers read by a speaking toy - LPC (engine 78e838c5, LPC-10: the first speech chips; the toy that read arithmetic to children spoke this way). 'count': the voice that reads the numbers in A goes through 5-bit monotone LPC on G3 before its radio; 'count,refrain': and the break's 'four, two, one' (the turn from speech into song) through plain, inflecting LPC, so the counting machine begins to sing before the human-sung lines of C. Notes nudged 0.075 beats early for LPC's ~35 ms (chirper-three's measure)
+RISERB = os.environ.get("C8T2_RISERB", "-20")   # FINAL PASS (w3/w4, A's second half into B: flagged static; the close-out plan 'a non-vocal riser of its own'): a purpose-built riser - white noise through a band-pass that climbs 4.5 octaves (400 Hz up to ~9 kHz) over A's last eight bars, swelling in and cut on B's downbeat - so A's long second half leans towards B instead of standing (the two earlier tries filtered the quiet pad/arp, or added a second spoken line; this is its own voice). Value = gain dB
 OPS = os.environ.get("C8T2_OPS", "-25")   # WHOLE ROUND: THE ARITHMETIC AS PERCUSSION - every step of every path is one of two machine operations, and now each is heard: an odd number (3n+1, the climb) strikes a bright high pluck on the right, an even number (n/2, the fall) a soft low blip on the left - the computation's own rhythm under the clarinet, two operations ticking like a machine's two instructions, its long runs of halvings audible as runs of left-hand blips falling home. Value = gain dB
 FLOAT = os.environ.get("C8T2_FLOAT", "20:28")   # SECTION ROUND (w8, C's middle: flagged little new vs w7): THE PATH FLOATS - while the long path climbs through C's middle, the drums (kick, shaker, hats, clap, open hat) drop out for these bars and only the clarinets, the pad, the bass and the halvings carry it, high as the cloud with nothing under it, until the groove lands back. Value 'a:b' = C bars a..b-1 without drums
 HALVES = os.environ.get("C8T2_HALVES", "-21")   # WHOLE ROUND: HALVING IS AN OCTAVE - every path ends falling through the powers of two (... 16 8 4 2 1), and halving a number is halving a frequency: whenever the clarinet reaches the unbroken run of powers of two at its path's end, a quiet pure tone sounds the same step as an octave - G at octave log2(n)+1 (16 = G5, 8 = G4, 4 = G3, 2 = G2, 1 = G1), each note under the clarinet's - so every landing in the song is heard as what it is arithmetically: the frequency halving down to the root. Value = gain dB
@@ -850,6 +851,14 @@ def song():
         doc["tracks"].append({"name": "opseven", "gain": f"{float(OPS) - 2:g}dB", "pan": -0.45, "sends": {"plate": "-18dB"},
                               "patch": {"about": "the n/2 operation: a soft low blip", "synth": {"layers": [{"type": "shaper", "shaper": {"harmonics": [1, 0.2], "index": 0.8}}], "amp": "2ms 0.6 0 90ms"}},
                               "score": T_["opseven"]})
+    if RISERB:
+        bb_ = sec_start("B") / 4
+        doc["tracks"].append({"name": "riser", "gain": f"{RISERB}dB", "pan": 0.0, "sends": {"plate": "-10dB"},
+                              "patch": {"about": "a noise riser: white noise through a climbing band-pass, swelling to B",
+                                        "synth": {"layers": ["white"], "amp": "12s 1 1 60ms",
+                                                  "filters": [{"kind": "bp", "q": 2.0, "cutoff": {"value": 400, "mod": [{"src": "auto.rise", "amount": 4.5}]}}]}},
+                              "auto": {"rise": {"points": [["0b", 0], [f"{bb_ - 32:g}b", 0], [f"{bb_:g}b", 1], [f"{total() / 4:g}b", 1]]}},
+                              "notes": [{"at": bb_ - 32, "pitch": "C4", "len": 32, "vel": 0.8}]})
     return doc
 
 
