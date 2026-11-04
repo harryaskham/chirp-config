@@ -375,8 +375,11 @@ R29 = os.environ.get("T9_R29", "sync")
 # Lyapunov exponent - how fast two nearby orbits fly apart, negative while the orbit is periodic and positive in chaos:
 # the doublings sit back and creep up as each period doubles toward the edge of chaos, chaos arrives a step up, the
 # period-3 window (order inside chaos) falls back, the storm (r near 4, where it is largest) is the loudest place in
-# the song, and the settle fades as the orbit converges. One gain lane on every track (T9_ARC, dB per section);
-# the edges are held where they were for the joins. T9_R30=none reproduces v29.
+# the song, and the settle fades as the orbit converges. It deepens the master's existing level lane (after the glue,
+# before the limiter): T9_ARC, dB at one, two, four, eight, just before chaos, chaos, the window, the storm, the
+# settle's start, the end. (A lane on every track instead - T9_R30=tracks - was halved by the glue compressors;
+# starting the song at -5.5 dB widened the in-join from 5.8 to 7.1 dB, so the first section holds at -3.5.)
+# Window levels -16.6 .. -11.4 dB: 5.4 dB of dynamics (was 4.2). T9_R30=none reproduces v29.
 R30 = os.environ.get("T9_R30", "arc")
 C9_SWARM = {"about": "chirper-two: a Kuramoto swarm, 16 saws spread 60 cents, coupling on the track's sync lane",
             "synth": {"layers": [{"type": "kuramoto", "kuramoto": {
