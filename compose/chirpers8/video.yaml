@@ -1,7 +1,7 @@
-about: "The video for A Light Left On (chirpers): each track's own programme from ~/.config/chirp/vis/chirpers8-tN.yaml, and the album's master over all of them - a small amber light that never goes out (the art's power LED), the track's number and title as it begins, and a little grain. Render: chirp video --album compose/chirpers8/video.yaml -o a-light-left-on.mp4"
+about: "The video for Standby Amber (chirpers): each track's own programme from ~/.config/chirp/vis/chirpers8-tN.yaml, and the album's master over all of them - a small amber light that never goes out (the art's power LED), the track's number and title as it begins, and a little grain. Render: chirp video --album compose/chirpers8/video.yaml -o a-light-left-on.mp4"
 meta:
   artist: chirpers
-  album: A Light Left On
+  album: Standby Amber
   year: 2026
   # For the YouTube description (OUT.description.txt); edit freely.
   description: "Twelve songs, each drawn as it plays by the system inside it: a voice learning its tuning, a count that always falls to one, an automaton at the gamelan, a melody sorting itself, two machines agreeing on a speed, glass cooling, an echo kept in mercury, a fork into chaos, a fugue's call stack, weather in a quiet room, and growth by Fibonacci until the light is left on."
