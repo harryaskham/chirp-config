@@ -409,6 +409,17 @@ R32 = os.environ.get("T9_R32", "floor")
 # D4/2" --bpm 140 --seed 12 --humanize 0.3 --hz, src/t9/coats.json; ASR raw: "two coats of people and pasts are
 # lying"). Twice, bars 2 and 10. T9_R33=none reproduces v32.
 R33 = os.environ.get("T9_R33", "fork4")
+# T9_R34 = sync (v34, FINAL PASS: the existing plan from v29). THE CROWD BRIGHTENS AS IT AGREES. The Kuramoto swarm that
+# finds its pitch at the settle's door went darker as it locked (a locked swarm is purer: the engine measures the
+# centroid falling about 390 -> 170 Hz), so the moment of agreement sank. Now its low-pass reads the swarm's own
+# coherence (the `sync` mod, adopted b8f9d6b1): from 700 Hz, opening four octaves with the order parameter, so the
+# agreement no longer sinks (solo swarm centroid, crowd -> locked: v33 450 -> 283 Hz; now 348 -> 352; 1400 Hz and 1.5
+# octaves only halved the fall). And the seam into t10, which opens on a D4 toll: t9's last three seconds had 34 dB less
+# at 292 Hz than t10's first, so the closing D bell is struck harder (vel 66 -> 110) and once more four beats from the
+# end - and, because the album plays the files back to back (no overlap), a plain D4 of the song's own holds from eight
+# beats before the end and lets go only as the file ends (a 1.8 s release through the render's tail), so the toll
+# comes in on a D that is still sounding rather than into a gap. T9_R34=none reproduces v33.
+R34 = os.environ.get("T9_R34", "sync")
 if R31 == "sweep":
     _sw = {"one": (2.8, 2.98), "two": (3.05, 3.42), "four": (float(os.environ.get("T9_SW_FOUR0", "3.452")), 3.543), "eight": (3.5445, 3.5643)}
     _which = os.environ.get("T9_SWEEP", "one,two,four,eight").split(",")
@@ -419,6 +430,11 @@ C9_SWARM = {"about": "chirper-two: a Kuramoto swarm, 16 saws spread 60 cents, co
                 "coupling": {"value": 0, "mod": [{"src": "auto.sync", "amount": 3}]}}}],
                 "filters": ["hp cutoff=120", "lp cutoff=2200 q=0.4"],
                 "amp": {"a": "3s", "s": 1, "r": "2.5s"}}}
+if R34 == "sync":   # the low-pass opens with the swarm's coherence
+    C9_SWARM["synth"]["filters"] = ["hp cutoff=120",
+                                    {"kind": "lp", "q": 0.4,
+                                     "cutoff": {"value": float(os.environ.get("T9_SYNC_LP", "700")),
+                                                "mod": [{"src": "sync", "amount": float(os.environ.get("T9_SYNC_OCT", "4"))}]}}]
 WINDOW_R = [float(v) for v in os.environ.get("T9_WIN_R", "3.835*10,3.8425*4,3.8445*2,3.853*2").replace("*", " ").replace(",", " ").split()[0::2]]
 WINDOW_N = [int(v) for v in os.environ.get("T9_WIN_R", "3.835*10,3.8425*4,3.8445*2,3.853*2").replace("*", " ").replace(",", " ").split()[1::2]]
 WINDOW_SCHED = [r_ for r_, n_ in zip(WINDOW_R, WINDOW_N) for _ in range(n_)]
@@ -711,7 +727,9 @@ def main():
             T[nm].ev = [e_ for e_ in T[nm].ev if not (w0 <= e_[0] < w1)]
     if R11 == "d":
         T["bell"].ev = [(a, ln, "293.66hz", v, art) for a, ln, h, v, art in T["bell"].ev]
-        T["bell"].add(total - 8.0, 8.0, "293.66hz", int(os.environ.get("T9_DBELL_VEL", "66")))
+        T["bell"].add(total - 8.0, 8.0, "293.66hz", int(os.environ.get("T9_DBELL_VEL", "110" if R34 == "sync" else "66")))
+        if R34 == "sync" and os.environ.get("T9_DBELL2", "on") == "on":   # the last D, struck again into t10's toll
+            T["bell"].add(total - 4.0, 4.0, "293.66hz", int(os.environ.get("T9_DBELL2_VEL", "100")))
         dm_in = os.environ.get("T9_D_IN", "m57.000,m62.000,m65.000,m69.000,m74.000")
         dm_out = os.environ.get("T9_D_OUT", "m62.000,m65.000,m67.000,m74.000")
         for k in ("bass", "bpluck", "ksub"):   # the floor leaves before the last D, so it rings alone
@@ -1165,6 +1183,13 @@ def main():
         for tr in tracks:
             if tr["name"] in orb and orb[tr["name"]] != "off":
                 tr["fx"] = tr.get("fx", []) + [orb[tr["name"]]]
+    if R34 == "sync" and os.environ.get("T9_DLAST", "on") == "on":   # the last D, held to the end of the file
+        tracks.append({"name": "dlast", "patch": "c9-dlast", "gain": os.environ.get("T9_DLAST_GAIN", "-8dB"), "pan": 0.0,
+                       "fx": ["reverb kind=hall decay=2.5s mix=0.25"],
+                       "score": f"R/{total - 8.0:g}b 293.66hz/8b@80"})
+        BR_PATCHES["c9-dlast"] = {"about": "chirper-two: the last D - a sine and a soft octave, slow in, long out",
+                                  "synth": {"layers": [{"wave": "sine"}, {"wave": "sine", "ratio": 2, "level": "-14dB"}],
+                                            "amp": {"a": "1s", "s": 1, "r": "1.8s"}}}
     if R30 == "tracks":   # (a gain lane on every track instead: the glue compressors halved it)
         lv = dict(zip(("one", "two", "four", "eight", "chaos", "window", "storm", "settle", "end"),
                       (float(v) for v in os.environ.get("T9_ARC", "-3,-3,-2.5,-2,0,-3.5,0.5,-1.5,-3").split(","))))
