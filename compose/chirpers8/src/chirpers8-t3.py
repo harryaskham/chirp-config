@@ -251,6 +251,13 @@ R23 = os.environ.get("T3_R23", "track")
 # 312b) the kick walks a tresillo, 3+3+2 (T3_TRES=off keeps the leading-edge kick): the window's groove moves, where
 # the choir alone (s0 98.401) left w5 static. T3_R24=none reproduces v23.
 R24 = os.environ.get("T3_R24", "chant")
+# T3_R25 = sides (v25, section round on w5 again). THE CHOIR GOES, THE BARS TAKE SIDES. v24's four-voice CHANT
+# choir under the glider's lines was the album's move of the hour (t12's, then four songs'), not this song's: it
+# goes (T3_R25_CHOIR=on keeps it). The kick's tresillo and the float under the second line stay. In its place the
+# song's own instruments answer the words literally: while the neighbours sing "the left one is weather" the
+# mallets - the bars, vibes, glock, bell and the held chord - lean hard left, and for "the right one is news" they
+# cross to the right, then come home to the middle. Three neighbours, a left and a right. T3_R25=none reproduces v24.
+R25 = os.environ.get("T3_R25", "sides")
 CHANT = []   # (start, chord root as fractional MIDI)
 PATCH_EXTRA = {}
 def c3_fof(voice, vib):
@@ -763,7 +770,7 @@ def main():
             if tr["name"] in os.environ.get("T3_LEAVE", "kick,hats,ohat,rim,toms,ca-kit,ca-kit2,shek,skin,click,tone,air,bronze").split(","):
                 tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.leave", "amount": 1}]}}]
                 tr["auto"] = {**tr.get("auto", {}), "leave": lane}
-    if R24 == "chant" and CHANT:
+    if R24 == "chant" and CHANT and (R25 != "sides" or os.environ.get("T3_R25_CHOIR", "off") == "on"):
         c0, c1 = CHANT[0][0], CHANT[-1][0] + 16.0
         mouth = {"points": [["0b", 0.0], [f"{c0:g}b", 0.0], [f"{c0 + 24:g}b", 1.0], [f"{c1 - 6:g}b", 1.0], [f"{c1:g}b", 0.0],
                             [f"{total}b", 0.0]]}
@@ -776,6 +783,19 @@ def main():
                            "fx": ["hp cutoff=70", "reverb kind=hall decay=2.6s mix=0.3"], "notes": notes,
                            "auto": {"mouth": mouth}})
             PATCH_EXTRA[f"c3-{nm}"] = c3_fof(voice, vib)
+    if R25 == "sides":
+        lines = [s_ for s_, _ in CHANT] if CHANT else [256.0, 272.0]   # the chords under the two lines
+        amt = float(os.environ.get("T3_SIDE", "0.8"))
+        pts = [["0b", 0.0]]
+        for a_, sgn in ((lines[0] + 8.0, -1), (lines[0] + 24.0, 1)):   # the lines start 8 beats into each chord
+            pts += [[f"{a_ - 0.8:g}b", 0.0], [f"{a_:g}b", sgn * amt], [f"{a_ + 6.0:g}b", sgn * amt], [f"{a_ + 8.0:g}b", 0.0]]
+        pts += [[f"{total}b", 0.0]]
+        for tr in tracks:
+            if tr["name"] in os.environ.get("T3_SIDE_TRACKS", "bar,barlo,vibes,glock,bell,chord").split(","):
+                p0 = tr.get("pan", 0.0)
+                mod = {"src": "auto.side", "amount": 1}
+                tr["pan"] = ({**p0, "mod": p0.get("mod", []) + [mod]} if isinstance(p0, dict) else {"value": p0, "mod": [mod]})
+                tr["auto"] = {**tr.get("auto", {}), "side": {"points": pts}}
     if R21 == "neighbours":
         scale = sorted(m for o in range(2, 9) for m in (o * 12 + x for x in (0, 2, 4, 5, 7, 9, 10)))   # D's 7 steps
         def shift(pm, k):
