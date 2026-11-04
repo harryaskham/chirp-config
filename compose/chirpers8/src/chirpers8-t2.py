@@ -43,6 +43,7 @@ COMPUTEWARP = os.environ.get("C8T2_COMPUTEWARP", "0.25")   # WHOLE ROUND: big nu
 COMPUTEFROM = os.environ.get("C8T2_COMPUTEFROM", "A")   # 'A': the intro's paths stay on the grid (the join with t1 is measured over the opening; the intro is the arp's phasing, v64), the lag starts with A
 ARPPHASE = os.environ.get("C8T2_ARPPHASE", "0.25")   # SECTION ROUND (w1, the intro: static): the machine phases - the bytebeat arp runs on its own clock through the intro (the engine's per-track warp): drifting away from the clarinet over eight bars (to ARPPHASE beats late, curve smooth), then back over eight, locking onto the grid exactly as A begins; the tape-loop phasing of process music, done by a clock. Value = beats of drift at its widest
 LPCV = os.environ.get("C8T2_LPCV", "count,refrain")   # WHOLE ROUND: the numbers read by a speaking toy - LPC (engine 78e838c5, LPC-10: the first speech chips; the toy that read arithmetic to children spoke this way). 'count': the voice that reads the numbers in A goes through 5-bit monotone LPC on G3 before its radio; 'count,refrain': and the break's 'four, two, one' (the turn from speech into song) through plain, inflecting LPC, so the counting machine begins to sing before the human-sung lines of C. Notes nudged 0.075 beats early for LPC's ~35 ms (chirper-three's measure)
+OPS = os.environ.get("C8T2_OPS", "-25")   # WHOLE ROUND: THE ARITHMETIC AS PERCUSSION - every step of every path is one of two machine operations, and now each is heard: an odd number (3n+1, the climb) strikes a bright high pluck on the right, an even number (n/2, the fall) a soft low blip on the left - the computation's own rhythm under the clarinet, two operations ticking like a machine's two instructions, its long runs of halvings audible as runs of left-hand blips falling home. Value = gain dB
 FLOAT = os.environ.get("C8T2_FLOAT", "20:28")   # SECTION ROUND (w8, C's middle: flagged little new vs w7): THE PATH FLOATS - while the long path climbs through C's middle, the drums (kick, shaker, hats, clap, open hat) drop out for these bars and only the clarinets, the pad, the bass and the halvings carry it, high as the cloud with nothing under it, until the groove lands back. Value 'a:b' = C bars a..b-1 without drums
 HALVES = os.environ.get("C8T2_HALVES", "-21")   # WHOLE ROUND: HALVING IS AN OCTAVE - every path ends falling through the powers of two (... 16 8 4 2 1), and halving a number is halving a frequency: whenever the clarinet reaches the unbroken run of powers of two at its path's end, a quiet pure tone sounds the same step as an octave - G at octave log2(n)+1 (16 = G5, 8 = G4, 4 = G3, 2 = G2, 1 = G1), each note under the clarinet's - so every landing in the song is heard as what it is arithmetically: the frequency halving down to the root. Value = gain dB
 RISSETBELL = os.environ.get("C8T2_RISSETBELL", "bell")   # PALETTE: the bell that rings each landing (and, with 'seed', the intro's miniature path) becomes JEAN-CLAUDE RISSET's bell - the additive bell of his 1969 Introductory Catalogue of Computer Synthesized Sounds (Bell Labs, MUSIC V): eleven inharmonic partials, two pairs beating about a hertz apart, each partial dying at its own rate, so the bright strike melts into a long low hum. Inlined from wM's library patch risset-bell. Value: 'bell' or 'bell,seed'
@@ -141,7 +142,7 @@ def barlen(sec):
     """Sixteenths in a bar of this section: the break is in 3/4 under METER."""
     return 12 if METER and sec == "break" else BAR
 SEEDS = {"intro": [6, 6], "A": [7, 12, 3, 7], "B": [9, 18, 11], "C": [27, 31, 27, 41], "outro": [1]}
-TRACKS = ("clar", "clar2", "arp", "bass", "sub", "kick", "shk", "hats", "clap", "pad", "bell", "crash") + (("tom",) if os.environ.get("C8T2_TOMBACK", "swap") else ()) + (("ohat",) if os.environ.get("C8T2_OWNHATS", "1") else ()) + (("bell2",) if os.environ.get("C8T2_PREFIGTRACK", "1") else ()) + (("kick2", "tom2", "crash2") if os.environ.get("C8T2_HALVLOCAL", "1") else ()) + (("vib",) if os.environ.get("C8T2_LANDING", "92all") else ()) + (("glk",) if os.environ.get("C8T2_GLKUP", "70") else ()) + (("mach",) if os.environ.get("C8T2_MACHV", "90") else ()) + (("vos",) if os.environ.get("C8T2_VOSEND", "90") else ()) + (("clks",) if os.environ.get("C8T2_CLKS", "1:-14") else ()) + (("clsh",) if os.environ.get("C8T2_CLSH", "h:-8") else ()) + (("clarfof",) if os.environ.get("C8T2_PARITYSEC", "intro,outro") else ()) + (("clbr",) if os.environ.get("C8T2_CLBR", "-12") else ()) + (("seed",) if os.environ.get("C8T2_SEEDPATH", "-16") else ()) + (("halves",) if os.environ.get("C8T2_HALVES", "-21") else ())
+TRACKS = ("clar", "clar2", "arp", "bass", "sub", "kick", "shk", "hats", "clap", "pad", "bell", "crash") + (("tom",) if os.environ.get("C8T2_TOMBACK", "swap") else ()) + (("ohat",) if os.environ.get("C8T2_OWNHATS", "1") else ()) + (("bell2",) if os.environ.get("C8T2_PREFIGTRACK", "1") else ()) + (("kick2", "tom2", "crash2") if os.environ.get("C8T2_HALVLOCAL", "1") else ()) + (("vib",) if os.environ.get("C8T2_LANDING", "92all") else ()) + (("glk",) if os.environ.get("C8T2_GLKUP", "70") else ()) + (("mach",) if os.environ.get("C8T2_MACHV", "90") else ()) + (("vos",) if os.environ.get("C8T2_VOSEND", "90") else ()) + (("clks",) if os.environ.get("C8T2_CLKS", "1:-14") else ()) + (("clsh",) if os.environ.get("C8T2_CLSH", "h:-8") else ()) + (("clarfof",) if os.environ.get("C8T2_PARITYSEC", "intro,outro") else ()) + (("clbr",) if os.environ.get("C8T2_CLBR", "-12") else ()) + (("seed",) if os.environ.get("C8T2_SEEDPATH", "-16") else ()) + (("halves",) if os.environ.get("C8T2_HALVES", "-21") else ()) + (("opsodd", "opseven") if os.environ.get("C8T2_OPS", "-25") else ())
 GMAJ = ["G", "A", "B", "C", "D", "E", "F#"]
 CHORDS = [("G", [0, 2, 4]), ("E", [5, 7, 9]), ("C", [3, 5, 7]), ("D", [4, 6, 8])]   # I vi IV V as degrees from G
 PRIMES = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31)
@@ -296,6 +297,8 @@ def build():
                     add(CL, at, f"!bend=-{b:g} {deg_note(d)}/0.125b@{v} bend=-{b / 2:g} _/0.125b bend= _/0.25b", 2, v)
                 else:
                     add(CL, at, deg_note(d), 4 if last else nl, min(127, int(v * vs1)))
+                if OPS:
+                    add("opsodd" if n % 2 else "opseven", at, "G6" if n % 2 else "G2", 1, 92 if n % 2 else 70)
                 if HALVES and n & (n - 1) == 0 and all(p_ & (p_ - 1) == 0 for p_ in path[i:]):
                     add("halves", at, f"G{min(7, int(math.log2(n)) + 1)}", 4 if last else nl, 74 if n > 1 else 84)
                 if PREFIG and BELL and last and n == 1 and sec == "A" and 16 * BAR <= at - a0 < 32 * BAR:
@@ -839,6 +842,14 @@ def song():
                               "patch": {"about": "a pure tone for the halvings: a sine with a little second harmonic, struck and let ring",
                                         "synth": {"layers": [{"type": "shaper", "shaper": {"harmonics": [1, 0.08], "index": 1}}], "amp": "4ms 0.7 0.5 700ms"}},
                               "score": build()["halves"]})
+    if OPS:
+        T_ = build()
+        doc["tracks"].append({"name": "opsodd", "gain": f"{OPS}dB", "pan": 0.45, "sends": {"plate": "-16dB"},
+                              "patch": {"about": "the 3n+1 operation: a bright short pluck", "synth": {"layers": [{"type": "ks", "bright": 0.85, "ks": {"blend": 0.9, "stretch": 1.0}}], "amp": "1ms 1 0 120ms"}},
+                              "score": T_["opsodd"]})
+        doc["tracks"].append({"name": "opseven", "gain": f"{float(OPS) - 2:g}dB", "pan": -0.45, "sends": {"plate": "-18dB"},
+                              "patch": {"about": "the n/2 operation: a soft low blip", "synth": {"layers": [{"type": "shaper", "shaper": {"harmonics": [1, 0.2], "index": 0.8}}], "amp": "2ms 0.6 0 90ms"}},
+                              "score": T_["opseven"]})
     return doc
 
 
