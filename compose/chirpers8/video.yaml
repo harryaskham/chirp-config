@@ -22,15 +22,17 @@ master:
       color: "#ffd58a"
       typing: 12
       fade: 1.2
+      shadow: 0.9
       lines: [[1, 7, "{track}  {title}"]]
     - type: captions
       x: -1.64
       y: -0.93
       align: left
       size: 0.028
-      color: "#6f8db3"
+      color: "#8fa9cc"
       typing: 30
       fade: 1.2
+      shadow: 0.9
       lines: [[2, 6, "{artist} - {album}"]]
   filters:
     - {type: color, gamma: 1.15, saturation: 1.08}
