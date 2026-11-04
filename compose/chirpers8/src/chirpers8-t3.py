@@ -336,7 +336,12 @@ STEPS_3 = ["9/8", "32/27", "4/3", "3/2", "128/81", "16/9", "2/1"]
 # about 0.22 under v32 at any level the cycle can be heard. Default none = v32.
 R33 = os.environ.get("T3_R33", "none")
 GONGAN_SECS = os.environ.get("T3_GONGAN_SECS", "A,peak,hymn").split(",")
-GONG_BASE = int(os.environ.get("T3_GONG_BASE", "38"))   # D2; the kempul and great gong sit an octave above it
+GONG_BASE = int(os.environ.get("T3_GONG_BASE", "38"))
+# T3_R34 = ease (v34, FINAL PASS: the existing plan for w10). THE STEP DOWN, EASED. From the decay into the out the
+# level fell ten dB at once (w10's "level jump"): the master's lane met the out at -4 dB. Now it meets it at -2 dB and
+# eases back to the old curve eight beats before the end, so the last cell's ring and the join t4 catches are untouched.
+# T3_R34=none reproduces v32.
+R34 = os.environ.get("T3_R34", "ease")   # D2; the kempul and great gong sit an octave above it
 
 
 def centre_column(n):   # rule 30 from a single cell, read down the middle (wide enough never to wrap)
@@ -808,6 +813,11 @@ def main():
            [f"{st['peak'] - 0.01}b", -5.0], [f"{st['peak']}b", 0.0], [f"{st['decay'] - 0.01}b", 0.0], [f"{st['decay']}b", -2.5],
            [f"{st['out']}b", -4.0],
            [f"{total}b", -5.0]]
+    if R34 == "ease":
+        o0 = st["out"]
+        dyn = dyn[:-2] + [[f"{o0}b", float(os.environ.get("T3_OUT_DB", "-2.0"))],
+                          [f"{total - 8:g}b", round(-4.0 + (-1.0) * (total - 8 - o0) / (total - o0), 3)],
+                          [f"{total}b", -5.0]]
     tracks = [
         {"name": "kick", "patch": "c8-kit" if (R11 == "bronze" and R11KICK == "bronze") else
                                   ("electro-kit" if (R18 == "palette" and os.environ.get("T3_R18_KICK", "off") == "on") else "machine-kit"),
