@@ -278,7 +278,16 @@ R26 = os.environ.get("T3_R26", "clock")
 # together. Measured: the agreements ALONE (=only) cost 0.15 (spectrum 100 -> 98.7: the kick carries the low end);
 # with the four 98.345; ducking the peak's kick 3 dB as well (T3_PEAK_KICK_DB=-3) 98.323. None of them cleared w7's
 # "static" (the song's densest window; v20's four blinks were a gimmick). T3_R27=none reproduces v26.
-R27 = os.environ.get("T3_R27", "none")   # OPT-IN (not kept): 98.345/98.349 vs v26 98.387/98.385
+R27 = os.environ.get("T3_R27", "none")
+# T3_R28 = chorale (v28, palette round). RISSET'S HYMN. The palette's one staple is machine-kit (six songs) - and the
+# kick is t3's low end: a tuned membrane kick of the song's own (D2, a 55 Hz sine swept down an octave over 90 ms -
+# the knobs T3_KICK_PITCH/SUBRATIO/SKIN/PAMT/PDECAY with T3_R11_KICK=bronze) matched machine-kit's bands below
+# 100 Hz but not its 100-250 Hz body, and cost 0.72 (spectrum 100 -> 92.7) - so the kick stays. Instead the hymn,
+# the cell's song after the peak, leaves the harmonium for a brass chorale: wM's shaper-brass, Chebyshev
+# waveshaping in the manner of Risset's Bell Labs trumpet studies (louder is brighter: the drive follows the
+# envelope and velocity). A chorale on a computer's brass for the machine's own hymn. Level-matched.
+# T3_R28=none reproduces v26.
+R28 = os.environ.get("T3_R28", "chorale")   # OPT-IN (not kept): 98.345/98.349 vs v26 98.387/98.385
 
 
 def clock_map(st, total):
@@ -309,8 +318,8 @@ C8_KIT = {
                 {"name": "skin", "type": "modal", "modes": "membrane", "decay": "0.22s", "damp": 0.55, "bright": 0.3,
                  "strike": 0.2, "tilt": -3, "vary": 0.2, "level": os.environ.get("T3_KICK_SKIN", "-2dB")},
                 {"name": "click", "type": "noise", "level": {"value": "-70dB", "mod": [{"src": "env.c", "amount": 52}, {"src": "vel", "amount": 8}]}}],
-                "pitch": {"value": 0, "mod": [{"src": "env.p", "amount": 14}]},
-                "env": {"p": {"a": "0.1ms", "d": "38ms", "s": 0, "curve": 3}, "c": {"a": "0.1ms", "d": "2ms", "s": 0}},
+                "pitch": {"value": 0, "mod": [{"src": "env.p", "amount": (lambda v: int(v) if v.is_integer() else v)(float(os.environ.get("T3_KICK_PAMT", "14")))}]},
+                "env": {"p": {"a": "0.1ms", "d": os.environ.get("T3_KICK_PDECAY", "38ms"), "s": 0, "curve": 3}, "c": {"a": "0.1ms", "d": "2ms", "s": 0}},
                 "filters": ["hp cutoff=25", {"kind": "lp", "cutoff": {"value": "2.2k", "mod": [{"src": "vel", "amount": 1}]}}],
                 "amp": {"a": "0.3ms", "d": "480ms", "s": 0, "r": "30ms", "curve": 3}},
             "play": {"vel_sens": 0.4}}},
@@ -1001,8 +1010,9 @@ def main():
              "fx": ["hp cutoff=250", "peak cutoff=600 gain=-3dB q=1",
                     {"type": "delay", "time": "3/8", "feedback": 0.3, "mix": 0.2, "ping_pong": True, "tone": 4000}],
              "score": T["hint"].score(total)},
-            {"name": "hymn", "patch": "harmonium", "gain": os.environ.get("T3_HYMN_GAIN", "-12dB"), "pan": 0.0,
-             "sends": {"hall": "-8dB"}, "fx": ["hp cutoff=120", "peak cutoff=600 gain=-4dB q=1", "chorus mix=0.2"],
+            {"name": "hymn", "patch": "shaper-brass" if R28 == "chorale" else "harmonium",
+             "gain": os.environ.get("T3_HYMN_GAIN", os.environ.get("T3_BRASS_GAIN", "-16dB") if R28 == "chorale" else "-12dB"), "pan": 0.0,
+             "sends": {"hall": "-8dB"}, "fx": ["hp cutoff=120"] + ([] if R28 == "chorale" else ["peak cutoff=600 gain=-4dB q=1"]) + ["chorus mix=0.2"],
              "score": T["hymn"].score(total)},
             {"name": "hbass", "patch": "pluck", "gain": "-2dB", "fx": ["lp cutoff=1500", "drive drive=0.2"],
              "score": T["hbass"].score(total)},
