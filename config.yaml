@@ -2,6 +2,9 @@
 output:
   sink: vsink_fx          # notifications
 outputs:
+  # this machine's own default device (CoreAudio on macOS, the local/PULSE_SERVER Pulse default on Linux):
+  # `chirp ... -o local` on any machine with this config, e.g. playing an album on a laptop
+  local: {backend: auto, role: music}
   music: {server: "tcp:sgu24:4713", sink: vsink_music, role: music}
   fx: {server: "tcp:sgu24:4713", sink: vsink_fx}
   # pocket4-local null sink (48 kHz): no network in the loop — deterministic for benchmark runs
