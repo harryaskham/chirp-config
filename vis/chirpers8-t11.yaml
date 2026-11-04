@@ -3,11 +3,13 @@ looks:
   weather:
     # Indoors: the weather in a lamp-lit room (violet dusk, rose, lamp amber), not the sky outside.
     palette: [ "#07040c", "#2a1236", "#7a2c52", "#c8566a", "#f0a060", "#ffe2b8" ]
+    # storm: how much weather is in the room (the intro's gated pads to C's peak).
+    params: {storm: 0.6}
     env: {thunder: {on: track.thunder, decay: 1.2s}}
-    vars: {turn: {integrate: "0.01 + audio.level*0.03"}}
+    vars: {turn: {integrate: "0.01 + audio.level*0.03 + param.storm*0.01"}}
     layers:
-      - {type: noise, res: 0.38, scale: 1.1, speed: "0.05 + audio.mid*0.2", octaves: 4, warp: 1.4, spread: 0.32, threshold: 0.4, pos: 0.08, light: "0.3 + env.thunder*0.5"}
-      - {type: attractor, kind: lorenz, points: 6000, speed: "1 + audio.level*1.5", size: 0.75, rotate: var.turn, gain: 1.4, spread: 0.6, pos: 0.45}
+      - {type: noise, res: 0.38, scale: 1.1, speed: "0.03 + param.storm*0.06 + audio.mid*0.2", octaves: 4, warp: "0.8 + param.storm*1.2", spread: 0.32, threshold: 0.4, pos: 0.08, light: "0.18 + param.storm*0.2 + env.thunder*0.5"}
+      - {type: attractor, kind: lorenz, points: "3000 + param.storm*5000", speed: "0.6 + param.storm*0.8 + audio.level*1.5", size: 0.75, rotate: var.turn, gain: "0.9 + param.storm*0.9", spread: 0.6, pos: 0.45}
       - {type: particles, on: track.rainL, count: 6, speed: 1.4, dir: 0.72, spread: 0.02, gravity: 1, life: 1.2, x: -0.9, y: 1.1, jitter: 0.9, size: 0.002, pos: 0.6, shape: spark}
       - {type: particles, on: track.rainR, count: 6, speed: 1.4, dir: 0.72, spread: 0.02, gravity: 1, life: 1.2, x: 0.9, y: 1.1, jitter: 0.9, size: 0.002, pos: 0.6, shape: spark}
     filters:
@@ -30,8 +32,11 @@ looks:
       - {type: bloom, threshold: 0.45, amount: 0.7}
       - {type: vignette, amount: 0.6}
 scenes:
-  - {at: 0, look: weather}
-  - {at: 48bar, look: weather, xfade: 2s}
+  # intro 1-16 gated pads, A 17-48 the lead, B 49-80 full, break 81-96 the attractor alone,
+  # C 97-136 the peak, outro 137-168 thinning into frost.
+  - {at: 0, look: weather, params: {storm: 0.15}}
+  - {at: 16bar, look: weather, params: {storm: 0.5}, xfade: 4s}
+  - {at: 48bar, look: weather, params: {storm: 0.75}, xfade: 2s}
   - {at: 80bar, look: eye, xfade: 4s, transition: iris}
-  - {at: 96bar, look: weather, xfade: 4s}
+  - {at: 96bar, look: weather, params: {storm: 1}, xfade: 4s}
   - {at: 136bar, look: frost, xfade: 8s, transition: rise}
