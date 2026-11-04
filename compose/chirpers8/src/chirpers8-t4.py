@@ -498,6 +498,34 @@ LPC_EARLY = 0.0                # ee46ab71 (adopted 20:21) compensates lpc in the
 ZIP = (117, 124)
 
 
+# v44 (ROUND TYPE: section, w8 3:30-4:00 - the last merge into sorted(), flagged static and 'little new vs w7'): THE
+# SCAN AND THE SWEEP. The song sorts, but you never heard the machine READ its array the way a sorting visualiser does.
+# Now a soft triangle blip reads each bar's array every sixteenth, pitch = the element's number (two alpha steps a
+# number), so as the last merges land (113-116) its runs climb into ladders; when merge sort FINISHES at 116, the
+# VERIFICATION SWEEP - sixteen thirty-seconds rising up the sorted list onto 117's downbeat. Then, softer under the
+# zipper, the scan reads the second, doomed merge (117-124), and at 124 the old bogo check-beep FAILS, falling - and
+# Python's sorted() takes over at 125.
+SCAN = (113, 124)
+SCAN_DONE = 116
+SCAN_PATCH = {"synth": {"layers": [{"wave": "triangle"}], "filters": ["lp cutoff=5k"],
+                        "amp": {"a": "1ms", "d": "70ms", "s": 0, "r": "30ms"}}, "play": {"vel_sens": 0.6}}
+
+
+def scan_and_sweep():
+    a, z = SCAN
+    for bar in range(a, z + 1):
+        arr = ARRS[bar]
+        soft = bar > SCAN_DONE
+        reads = 8 if bar == SCAN_DONE else 16
+        for i in range(reads):
+            part("scan").add(b0(bar) + i * 0.25, 0.2, pitch(2 * arr[i], BASE), 46 if soft else 74)
+        if bar == SCAN_DONE:
+            for i in range(16):
+                part("scan").add(b0(bar) + 2 + i * 0.125, 0.12 if i < 15 else 1.2, pitch(2 * i, BASE), 70 + 2 * i)
+    for nt, off in (("m81", 0.0), ("m76", 0.125)):
+        part("check").add(b0(z) + 3.75 + off, 0.11, nt, 92)
+
+
 def zipper():
     for bar in range(ZIP[0], ZIP[1] + 1):
         left = set(ARRS[bar][:N // 2])
@@ -923,6 +951,7 @@ def main():
     bass_waits()                                  # v25: the bass waits for the kick
     handover()                                    # v26: the tuning handover
     dice_and_check()                              # v27: the dice and the check
+    scan_and_sweep()                              # v44: the scan and the sweep
     entropy()                                     # v30: the entropy meter
     house_stabs()                                 # v32: CZ house stabs
     route()                                       # v34: the route out of chaos
@@ -1021,6 +1050,7 @@ def main():
     song["tracks"].append({"name": "cards", "patch": CARD_PATCH, "gain": "-14dB", "pan": 0.2,
                            "sends": {"room": "-10dB"}, "score": part("cards").score()})   # v39: listed last
     song["tracks"] += choir_tracks() + unsung_tracks()                                       # v41: listed last
+    song["tracks"].append(tr("scan", SCAN_PATCH, gain="-16dB", pan=0.3, sends={"room": "-10dB"}))   # v44: listed last
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print("wrote", OUT, "bars", BARS)
