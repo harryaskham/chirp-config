@@ -276,6 +276,16 @@ R27 = os.environ.get("T6_R27", "typed")
 # a kick - score-neutral, w10 still "little new", and it put a level jump into w11.)
 # T6_R28=none reproduces v26.
 R28 = os.environ.get("T6_R28", "erase")
+# T6_R29 = answer (v28, whole-song round). THE CHORUS GETS AN ANSWER. Each chorus opened on six bars of the title:
+# four for the speech-to-song turn (spoken, then sung - the song's idea, kept) and two more of the same sung phrase,
+# and chorus two did it all again. Now, once the phrase has become song, something answers it, in the voice's own
+# register, a different answer each time - small evidence of a long, attended absence:
+#   chorus one, after the four turns: "the fish have learned the glass" / "the moon went by on time"
+#   chorus two, already singing from its first bar: "no errors since" / "one tab still open to the sea" /
+#   "no errors since" / "I logged the light at seven" (then the band has two bars to itself).
+# chirp tts --sing at 96 bpm, --humanize 0.3, src/t6/fish, moon, sea, seven.json; tunes picked by Whisper (fish and
+# seven heard exactly or nearly; long notes on the stressed syllables). T6_R29=none reproduces v27.
+R29 = os.environ.get("T6_R29", "answer")
 C6_FOF = {"about": "chirper-two: a wordless FOF choir - alto + tenor CHANT grains, vowels moved by the track's mouth lane",
           "synth": {"layers": [
               {"type": "fof", "fof": {"voice": "alto", "vowel": "a>o", "attack": 8,
@@ -397,6 +407,7 @@ def build():
     else:
         verse_lines = lines
     chorus, still = load("chorus.json"), load("still.json")
+    ans = {k: load(k + ".json") for k in ("fish", "moon", "sea", "seven")} if R29 == "answer" else {}
     cursor = load("cursor.json") if R23 == "cursor" else None
     days, report = (load("days.json"), load("report.json")) if R4 == "organ" else (None, None)
     bars, pos = [], 0.0
@@ -548,7 +559,22 @@ def build():
         if sec in ("verse1", "verse2") and i % 4 == 0:
             put("voice", verse_lines[li % 4], start + 0.5)
             li += 1
-        if chorus_sec and i < (6 if R4 == "organ" else 8):
+        if R29 == "answer" and chorus_sec and i < 6:
+            if sec == "chorus1":
+                if i < 4:
+                    put("voice", chorus, start, k=i, sung=i >= 2)
+                elif i == 4:
+                    put("voice", ans["fish"], start, sung=True)
+                else:
+                    put("voice", ans["moon"], start + 0.5, sung=True, scale=0.95)
+            else:
+                if i in (0, 2):
+                    put("voice", chorus, start, k=3, sung=True)
+                elif i == 1:
+                    put("voice", ans["sea"], start, sung=True)
+                elif i == 3:
+                    put("voice", ans["seven"], start, sung=True, scale=0.95)
+        elif chorus_sec and i < (6 if R4 == "organ" else 8):
             put("voice", chorus, start, k=min(i, 3) if i < 4 else 3, sung=i >= 2)
         if R23 == "cursor" and sec == "chorus1" and i in (8, 12):
             put("voice", cursor, start + 0.5, sung=True, scale=0.95 if i == 8 else 0.9)
