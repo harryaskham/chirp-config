@@ -771,6 +771,30 @@ def tempo_map():
     return pts
 
 
+# v48 (ROUND TYPE: whole; waveset pinned a5cb622d): THE SOUND IS SORTED TOO. The lead riff IS the array, each element
+# playing its note. Now it runs through WAVESET SHUFFLE (Wishart's waveset distortion, CDP: the waveform cut at its
+# zero crossings, each group of eight wavesets scrambled in place - the sound crumbles, still in tune), its mix on a
+# lane equal to the array's DISORDER each bar (its inversions, from what is heard): at each algorithm's
+# start the list is scrambled and so is the riff's very waveform; as the sort proceeds it cleans up with it; sorted, it
+# is pristine (the intro's sorted riff and all of sorted(), the singer's payoff, read 0); the outro unsorts and it crumbles again.
+# The song's idea one scale down, in the waveform itself. Capped at 0.8 so the riff stays legible.
+CRUMBLE = {"type": "waveset", "mode": "shuffle", "n": 8, "max": "10ms", "seed": 16,
+           "mix": {"value": 0, "mod": [{"src": "auto.dis", "amount": 0.8}]}}
+
+
+def disorder_lane():
+    """Inversions of what is heard, / 120 (the most 16 elements can have), x 1.6, capped at 1."""
+    pts = [["0b", 0.0]]
+    for bar in range(1, BARS + 1):
+        arr = ARRS[bar]
+        if bar <= 8 or sec_of(bar) == "sorted":          # sorted() is the payoff: the singer's section stays clean
+            inv = 0
+        else:
+            inv = sum(1 for i in range(N) for j in range(i + 1, N) if arr[i] > arr[j])
+        pts.append([f"{b0(bar):g}b", round(min(1.0, 1.6 * inv / 120), 3)])
+    return pts
+
+
 def lanes():
     level = {"intro": -6, "bubble": -2, "insertion": -2, "quick": 0, "bogo": -4, "merge": 0, "sorted": 0, "outro": -6}
     pts = [["0b", -34.0]]                   # v9: the machinery FADES UP out of t3's last ring (v14: from -34 dB)
@@ -1047,7 +1071,7 @@ def main():
         "event_stable": True,                     # v24: each note's draws from its track, beat and pitch (wM f5283535)
         "volume": "0dB",
         "tracks": [
-            tr("lead", lead_patch, gain="-8dB", sends={"dly": "-12dB"},
+            tr("lead", lead_patch, gain="-8dB", sends={"dly": "-12dB"},   # v48: crumbles with the disorder (fx below)
                auto={"roll": {"points": roll_lane()}, "m": {"points": morph_lane()}, "ch": {"points": chop_lane()}},
                fx=[{"type": "chop", "slices": N, "pattern": SORT_PATTERN,          # v4: the sound sorted
                     "mix": {"value": 0, "mod": [{"src": "auto.ch", "amount": 1}]}},
@@ -1129,6 +1153,10 @@ def main():
                            "sends": {"room": "-10dB"}, "score": part("cards").score()})   # v39: listed last
     song["tracks"] += choir_tracks() + unsung_tracks()                                       # v41: listed last
     song["tracks"].append(tr("scan", SCAN_PATCH, gain="-16dB", pan=0.3, sends={"room": "-10dB"}))   # v44: listed last
+    for tk in song["tracks"]:                     # v48: the lead crumbles with the disorder (order unchanged)
+        if tk["name"] == "lead":
+            tk["fx"] = list(tk.get("fx") or []) + [CRUMBLE]
+            tk.setdefault("auto", {})["dis"] = {"points": disorder_lane()}
     for tk in song["tracks"]:                     # v45: the gasp (after every track is built; order unchanged)
         if tk["name"] in GASP_SPARED or "at" in tk:
             continue
