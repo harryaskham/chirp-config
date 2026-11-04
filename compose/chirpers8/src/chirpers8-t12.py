@@ -780,6 +780,19 @@ def half_time():
         P[name].ev = ev
 
 
+# v48 (ROUND TYPE: whole): THE LAST NOTE HOLDS EVERYTHING. The closer ends where the seed began - one F# again (the
+# light, 179-190). Now under it a held F#3 on RISSET'S HARMONIC ARPEGGIO (risset-arpeggio: five near-unison copies of
+# a ten-harmonic tone, each a hair apart, so harmonic k beats k times as fast - Mutations, 1969): the one note slowly
+# arpeggiates its own overtones, a melody nobody plays, out of the single tone the album ends on. Everything the engine
+# can do, folded back into one note that turns out to contain a song.
+LAST_NOTE = (179, 190)
+
+
+def last_note():
+    a, z = LAST_NOTE
+    part("lastnote").add(b0(a), b0(z + 1) - b0(a), m(-EDO), 72)
+
+
 def ks_harp():
     for bar in range(KS_AT[0], KS_AT[1] + 1):
         root, chord = PLAN[bar]
@@ -1089,6 +1102,7 @@ def main():
     fof_choir()                                   # v42: the CHANT choir
     fireflies()                                   # v45: the fireflies learn the beat
     half_time()                                   # v46: the band breathes
+    last_note()                                   # v48: the last note holds everything
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
     song = {
         "about": "chirpers - A Light Left On (chirpers VIII), track 12 by chirper-three: the closer. An orchestra of "
@@ -1255,6 +1269,8 @@ def main():
                                "sends": {"hall": "-6dB"}, "auto": mouth, "score": part(name).score()})   # v42: listed last
     song["tracks"].append({"name": "fireflies", "patch": "music-box", "gain": "-17dB", "pan": 0.15,
                            "sends": {"hall": "-8dB"}, "score": part("fireflies").score()})       # v45: listed last
+    song["tracks"].append({"name": "lastnote", "patch": "risset-arpeggio", "gain": "-21dB", "pan": 0.0,
+                           "sends": {"hall": "-8dB"}, "score": part("lastnote").score()})        # v48: listed last
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print("wrote", OUT, "bars", BARS, "gens", {g: len(lsys(g)) for g in range(7)})
