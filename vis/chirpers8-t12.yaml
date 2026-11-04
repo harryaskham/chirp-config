@@ -42,4 +42,4 @@ scenes:
 master:
   layers:
     - {type: captions, size: 0.085, y: -0.42, color: "#ffd58a", typing: 10, fade: 2.5, glow: 0.4, lines: [[355, 16, "{album}"]]}
-    - {type: captions, size: 0.045, y: -0.58, color: "#e0c890", typing: 14, fade: 2.5, lines: [[358, 13, "{artist}"]]}
+    - {type: captions, size: 0.045, y: -0.58, color: "#e0c890", typing: 14, fade: 2.5, case: as-is, lines: [[358, 13, "{artist}"]]}
