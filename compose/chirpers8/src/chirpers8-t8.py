@@ -80,6 +80,7 @@ DECFIX = os.environ.get("C8T8_DECFIX", "")   # v56's decay double peaks at lane 
 SUNGMID = os.environ.get("C8T8_SUNGMID", "16")   # WHOLE ROUND on the singing: the voice is heard before E - 'it comes later on' (the line sung at E bar 12) is first sung in the middle of the song, at C bar SUNGMID, in C's own D minor (E's is lifted a step), with its canon a bar behind a third below (v69): the line promises its own return, and comes later on. Value = bar of C
 WORDLEVEL = os.environ.get("C8T8_WORDLEVEL", "3")   # WHOLE ROUND: the word recedes as it decays - the word's orbit (radius 2 + 8 x the decay lane, v60) gets the engine's orbit `level` (8f150090: the distance that plays at full level; farther is fainter, about 1/distance): within WORDLEVEL metres it is as it was; as the memory decays and the orbit widens to 10 m the word grows faint as well as far, then each refresh brings it back up close and full. Value = metres
 CANON = os.environ.get("C8T8_CANON", "4")   # WHOLE ROUND on the singing: the memory sings it back - every sung line (sungl at E bar 12, sungv/sungv2 in the outro) is followed by itself CANON beats later, a diatonic third below in D minor on the stretched octave, 6 dB under, panned across, sent hard into the line: a delay line's echo that returns transposed, so each line becomes a two-part canon with its own recall
+BITERR = os.environ.get("C8T8_BITERR", "0.25")   # WHOLE ROUND: BIT ERRORS - a delay-line memory loses bits between refreshes; now the stored word does: here and there a note of it comes back a semitone wrong (up or down, fixed by a seeded die so every render agrees), rarely at first and more often the longer it has gone unrefreshed - rising through A to the value given, gone in the refresh, rising again through C and D, and none in E (the repair) or after: the chirpers' slightly-off signature with a reason. Value = the error rate at its worst
 FAREND = os.environ.get("C8T8_FAREND", "-14")   # SECTION ROUND (w3, A's second half: 'little new vs w2'): READ FROM THE FAR END - a mercury tank has a transducer at each end; through A's second half (bars 18-35) the stored word is also read back from the other end, each bar of it in retrograde (the same notes, the bar's line and rhythm reversed) on wM's ks-harp (Karplus-Strong, stretch 3: a wire harp), quiet and on the other side - the word and its mirror in the one medium. Value = gain dB
 ZEROSCAN = os.environ.get("C8T8_ZEROSCAN", "-18")   # PALETTE: the zeros struck in the medium - the word's unset bits (E bars 4-19, v-early) moved from the library's glass chime (fb-crystal) to wM's scanned-mallet (engine 502b6b8d): a narrow strike on a ring of masses and springs with no hand, the sharp shape splitting into ripples that run round the ring and smooth away - in a mercury delay-line memory a bit IS a pulse running round the medium, so each zero is now heard as one, shimmering and mellowing as it circulates. Value = gain dB
 LASTCHORD = os.environ.get("C8T8_LASTCHORD", "")   # SECTION ROUND (w10, the end; the join to t9): THE LAST CHORD HANDED ON - t9 opens on a D minor chord (A3 D4 F4 A4 ... by its spectrum's peaks), this song's own key, and the join measured 6.96 dB apart (t8's tail thin at 213 Hz and bright at 3-4 kHz). Now over the last two bars the memory holds that chord in plain sines, softly, its 2 s release inside the song's own tail (a longer one only lengthened the file into hiss), while the master's closing low-pass goes a little further (C8T8_DARKOCT octaves, 3.4 before): t9 begins inside the chord t8 leaves. Value = gain dB
@@ -302,6 +303,22 @@ def build():
         for k in ("kick", "kick2"):
             if k in ev:
                 ev[k] = [(a, KITOWN if h == "k" else h, 2, v) for (a, h, l, v) in ev[k]]
+    if BITERR:
+        import random as _rnd
+        rg_ = _rnd.Random(7)
+        def _ramp(a):
+            for sc_, lo_, hi_ in (("A", 0.0, 1.0), ("C", 0.0, 0.6), ("D", 0.6, 1.0)):
+                s0_ = sec_start(sc_); n_ = dict(FORM)[sc_] * BAR
+                if s0_ <= a < s0_ + n_:
+                    return lo_ + (hi_ - lo_) * (a - s0_) / n_
+            return 0.0
+        out_ = []
+        for (a, h, l, v) in ev["word"]:
+            hs_ = str(h)
+            if hs_.endswith("hz") and not hs_.startswith("!") and rg_.random() < float(BITERR) * _ramp(a):
+                hs_ = f"{float(hs_[:-2]) * 2 ** (rg_.choice((-1, 1)) / 12):.2f}hz"
+            out_.append((a, hs_, l, v))
+        ev["word"] = out_
     if FAREND:
         a0_ = sec_start("A")
         fe_ = []
