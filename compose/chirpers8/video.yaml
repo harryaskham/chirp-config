@@ -25,6 +25,7 @@ master:
       fade: 1.2
       lines: [[2, 6, "chirpers - a light left on"]]
   filters:
+    - {type: color, gamma: 1.15, saturation: 1.08}
     - {type: grain, amount: 0.02}
 songs:
   - {file: ~/.config/chirp/songs/chirpers8-t1.yaml, vis: chirpers8-t1, title: Echolalia}
