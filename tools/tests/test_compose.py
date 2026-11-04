@@ -363,6 +363,8 @@ class Coverage(unittest.TestCase):
         # engine 91b04b25 (wM, bd-cdab5e): FOF / CHANT formant-grain singing
         self.assertIn("fof", CH.song_features({"patches": {"f": {"synth": {"layers": [{"type": "fof"}]}}}}, ""))
         self.assertIn("fof", CH.COVERAGE_CATALOGUE["synthesis"])
+        self.assertIn("kuramoto", CH.song_features({"patches": {"k": {"synth": {"layers": [{"type": "kuramoto", "coupling": 1.5}]}}}}, ""))
+        self.assertIn("kuramoto", CH.COVERAGE_CATALOGUE["synthesis"])
         # engine c7606671 (wM, bd-4f38a2): Chowning-style moving sources, canonical {"type": "orbit", ...}
         self.assertIn("orbit", CH.song_features({"tracks": [{"fx": [{"type": "orbit", "rate": "1/2", "radius": 3.0}]}]}, ""))
         self.assertIn("orbit", CH.COVERAGE_CATALOGUE["fx"])
