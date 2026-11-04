@@ -303,6 +303,13 @@ R30 = os.environ.get("T6_R30", "safe")
 # track (-2 dB, appended last): on the old bell track, at -16 dB, it sat 25 dB under the mix, unheard; now ~13.
 # T6_R31=none reproduces v29.
 R31 = os.environ.get("T6_R31", "uptime")
+# T6_R32 = float (v31, section round on w4, 1:30-2:00: chorus one's tail into verse two, "little new vs w3"). THE
+# FLOOR GOES OUT FROM UNDER VERSE TWO. Verse two came back on exactly verse one's groove. Now, for its first two bars,
+# the kit and the 808 drop away: what is left is the bass, the voice, the pad - and the uptime counter on its glass,
+# for once heard alone, ticking off the bars since the boot. On the second bar's last beat the snare climbs four
+# sixteenths and the floor comes back. Chorus one's last two bars exhale into it first: the four-on-the-floor halves
+# to a kick on one and three-and and a clap on three - full, half, nothing, back. T6_R32=none reproduces v30.
+R32 = os.environ.get("T6_R32", "float")
 BD_SAFE = {"voice", "vosim", "tline", "test"}
 C6_FOF = {"about": "chirper-two: a wordless FOF choir - alto + tenor CHANT grains, vowels moved by the track's mouth lane",
           "synth": {"layers": [
@@ -523,9 +530,14 @@ def build():
                 for k in range(6):
                     T["snare"].add(start + k * 0.5, 0.3, "s", int(52 + 56 * (k / 5) ** 1.3))
         if groove and R21 == "lift" and chorus_sec:   # the lift: four on the floor, claps, open-hat off-beats
-            for b in range(4):
+            exhale = R32 == "float" and sec == "chorus1" and i >= n - int(os.environ.get("T6_EXHALE_BARS", "2"))
+            if exhale:   # the chorus exhales into the float: half time, a kick on one and three-and, a clap on three
+                for b, v in ((0.0, 108), (2.5, 90)):
+                    T["kick"].add(start + b, 1.0 if b == 0 else 0.5, "kb", v)
+                T["snare"].add(start + 2.0, 0.5, "cp", 100)
+            for b in (range(4) if not exhale else ()):
                 T["kick"].add(start + b, 0.5 if b else 1.0, "kb", (108, 94, 102, 94)[b])
-            for b in (1.0, 3.0):
+            for b in ((1.0, 3.0) if not exhale else ()):
                 T["snare"].add(start + b, 0.5, "cp", 100)
             if R22 == "breakdown" and sec == "chorus2" and i == int(os.environ.get("T6_BD_BAR", "12")) + 3:
                 for k in range(4):   # the snare climbs the last beat back in
@@ -551,6 +563,9 @@ def build():
             if i % 2 == 1:
                 T["kick"].add(start + 3.25, 0.5, "kb", 84)
             T["snare"].add(start + 2.0, 0.5, "cp" if chorus_sec else "s", 100)
+            if R32 == "float" and sec == "verse2" and i == int(os.environ.get("T6_FLOAT_BARS", "2")) - 1:
+                for k in range(4):   # the floor climbs back in
+                    T["snare"].add(start + 3.0 + k * 0.25, 0.2, "s", 60 + 12 * k)
             if chorus_sec:  # air: a ride on the off-beats
                 for b in (0.5, 1.5, 2.5, 3.5):
                     T["ride"].add(start + b, 0.5, "rd", 62, "?0.85")
@@ -970,6 +985,17 @@ def main():
                 continue
             tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.stopped", "amount": 1}]}}]
             tr["auto"] = {**tr.get("auto", {}), "stopped": lane}
+    if R32 == "float":
+        f0 = st["verse2"]
+        f1 = f0 + 4.0 * int(os.environ.get("T6_FLOAT_BARS", "2"))
+        lane_f = {"points": [["0b", 0.0], [f"{f0 - 0.1}b", 0.0], [f"{f0 + 0.05}b", -40.0], [f"{f1 - 0.1}b", -40.0],
+                             [f"{f1}b", 0.0], [f"{total}b", 0.0]]}
+        lane_fs = {"points": [["0b", 0.0], [f"{f0 - 0.1}b", 0.0], [f"{f0 + 0.05}b", -40.0], [f"{f1 - 1.1}b", -40.0],
+                              [f"{f1 - 1.0}b", 0.0], [f"{total}b", 0.0]]}
+        for tr in tracks:
+            if tr["name"] in ("kick", "snare", "hats", "ride", "rim", "boom"):
+                tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.float", "amount": 1}]}}]
+                tr["auto"] = {**tr.get("auto", {}), "float": lane_fs if tr["name"] == "snare" else lane_f}
     if R22 == "breakdown":
         b0 = st["chorus2"] + 4.0 * int(os.environ.get("T6_BD_BAR", "12"))
         b1 = b0 + 4.0 * int(os.environ.get("T6_BD_BARS", "4"))
