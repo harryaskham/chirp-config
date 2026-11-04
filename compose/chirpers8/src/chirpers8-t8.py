@@ -80,6 +80,7 @@ DECFIX = os.environ.get("C8T8_DECFIX", "")   # v56's decay double peaks at lane 
 SUNGMID = os.environ.get("C8T8_SUNGMID", "16")   # WHOLE ROUND on the singing: the voice is heard before E - 'it comes later on' (the line sung at E bar 12) is first sung in the middle of the song, at C bar SUNGMID, in C's own D minor (E's is lifted a step), with its canon a bar behind a third below (v69): the line promises its own return, and comes later on. Value = bar of C
 WORDLEVEL = os.environ.get("C8T8_WORDLEVEL", "3")   # WHOLE ROUND: the word recedes as it decays - the word's orbit (radius 2 + 8 x the decay lane, v60) gets the engine's orbit `level` (8f150090: the distance that plays at full level; farther is fainter, about 1/distance): within WORDLEVEL metres it is as it was; as the memory decays and the orbit widens to 10 m the word grows faint as well as far, then each refresh brings it back up close and full. Value = metres
 CANON = os.environ.get("C8T8_CANON", "4")   # WHOLE ROUND on the singing: the memory sings it back - every sung line (sungl at E bar 12, sungv/sungv2 in the outro) is followed by itself CANON beats later, a diatonic third below in D minor on the stretched octave, 6 dB under, panned across, sent hard into the line: a delay line's echo that returns transposed, so each line becomes a two-part canon with its own recall
+RISSETMID = os.environ.get("C8T8_RISSETMID", "-16")   # WHOLE ROUND: THE HELD WORD READ OUT, MID-SONG - through C and D (the memory at its busiest, between the refresh and the repair) the first pad's held notes are doubled in Jean-Claude Risset's harmonic arpeggio (Mutations, 1969; library risset-arpeggio, inlined, darkened: tilt -4): five ten-harmonic copies a hair apart, so every held pad note plays its overtones out one by one, slowly - a held tone read out serially, as a delay line reads its word bit by bit. Kept off the intro, A, E and the outro (the whole-song version rewrote both joins: -0.14/-0.21). Value = gain dB
 CRUMBLE = os.environ.get("C8T8_CRUMBLE", "0.6")   # WHOLE ROUND: THE WORD CRUMBLES - Trevor Wishart's waveset distortion (Composers' Desktop Project, 1980s-90s; engine a5cb622d): the word's sound cut at its zero crossings into single cycles and each group of eight shuffled in place, so it crumbles like a worn recording while staying in tune - mixed in along the same curve as the bit errors (BITERR): none in the intro, growing through A the longer the word goes unrefreshed, gone at once when the refresh comes, growing again through C and D, and none in E (the repair) or after. The memory decaying below the level of notes. Value = the mix at its worst
 VERIFY = os.environ.get("C8T8_VERIFY", "-16")   # WHOLE ROUND: THE CHECKSUM - a memory checks what it kept; at the end of every section a two-note check sounds on the glass chime (fb-crystal), a beat before the boundary: a clean perfect fifth (D-A) where the word came through intact (intro, refresh, E), a sour minor second (D-D#) where bit errors (BITERR) crept in (A, C, D) - so the song's form is audibly read as pass / fail / pass / fail / fail / pass, and the refresh and the repair are heard to work. Value = gain dB
 WARMUP = os.environ.get("C8T8_WARMUP", "40")   # SECTION ROUND (w1, the intro: flagged static): THE TANK WARMS - sound's speed in mercury depends on its temperature, and a cold tank delays its word wrongly; through the intro, while the word is written bit by bit (WRITEIN), the word sounds flat by this many cents at first and glides into tune as the tank comes up to temperature, true by A - the memory warming up before it can keep anything. Value = cents flat at the start
@@ -327,6 +328,9 @@ def build():
                         globals()["_ERRS"][sc_] += 1
             out_.append((a, hs_, l, v))
         ev["word"] = out_
+    if RISSETMID:
+        m0_, m1_ = sec_start("C"), sec_start("E")
+        globals()["_RMID_EV"] = [e for e in ev["pad0"] if m0_ <= e[0] < m1_]
     if VERIFY:
         ve_ = []
         for sc_, _n in FORM[:-1]:
@@ -711,6 +715,13 @@ def song():
                 fx_.insert(0 if os.environ.get("C8T8_CRUMBLEFIRST", "1") else len(fx_), {"type": "waveset", "mode": "shuffle", "n": 8, "max": "10ms", "seed": 7, "mix": {"value": 0, "mod": [{"src": "auto.crumble", "amount": 1}]}})
                 t_["fx"] = fx_
                 t_.setdefault("auto", {})["crumble"] = {"points": pts_}
+    if RISSETMID:
+        p0_ = next((t_ for t_ in doc["tracks"] if isinstance(t_, dict) and t_.get("name") == "pad0"), {})
+        doc["tracks"].append({"name": "pad0-risset", "gain": f"{RISSETMID}dB", "pan": p0_.get("pan", 0), "sends": json.loads(json.dumps(p0_.get("sends", {}))),
+                              "patch": {"about": "Risset's harmonic arpeggio (Mutations, 1969; library risset-arpeggio), darkened (tilt -4)",
+                                        "synth": {"layers": [{"type": "additive", "count": 10, "tilt": -4, "level": 0.2, **({"cents": c_} if c_ else {})} for c_ in (-3.14, -1.57, 0, 1.57, 3.14)],
+                                                  "amp": {"a": "2s", "d": 0, "s": 1, "r": "3s"}}, "gain": "-2.4dB"},
+                              "score": stream(globals().get("_RMID_EV", []), total())})
     return doc
 
 
