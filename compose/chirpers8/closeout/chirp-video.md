@@ -29,3 +29,10 @@
 - Scene sweep: all 12 swept. Lifted the dark scenes: t9's storm, t1's score, t10's deep stack, t12's opening and t6's intro and verses.
 - Seams: the dip at each cut is now under a second (0.7 s down, 0.5 s up), with the amber light holding through it.
 - Final render dry-run on stand-in MP3s passed: length equal to the release program (0.00 s difference) and 12 chapters. Ready for release.json.
+
+**Release (4 Nov, evening).**
+- Standby Amber, rendered at 4K: 3840x2160, HEVC on the GPU, drawn in 6 parallel parts under release.json's files.
+- 13 unique transitions, approved by Harry: a boot into t1, then one per join, then a power-down to the amber standby light. Each ends on the next song's first frame.
+- Sync: every frame sits on the album's own timeline, measured with tools/vissync.py (0 ±1 frame wherever the picture clearly follows the sound).
+- Fixed on the way: captions cut short at the placeholder's length; lower case for the band ("chirpers").
+- Still missing (for next time): a true picture crossfade across songs, synth observables (`sync` and the systems' state) as vis sources, and album programmes in the web pane.
