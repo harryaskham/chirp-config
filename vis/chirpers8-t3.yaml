@@ -10,7 +10,7 @@ looks:
       - {type: spectrum, mode: radial, radius: 0.55, height: 0.25, fill: 0.3, floor: 0.35, spread: 0.3, pos: 0.6, opacity: "0.15 + track.gong.hit*0.5"}
     filters:
       # Where the gamelan lifts, the grid leans in and glows.
-      - {type: camera, zoom: "1 + env.lift*0.04"}
+      - {type: camera, zoom: "1 + env.lift*0.04 + scene.progress*0.05"}
       - {type: bloom, threshold: 0.5, amount: "0.7 + env.lift*0.5", radius: 0.03}
       - {type: vignette, amount: 0.55}
 scenes:
