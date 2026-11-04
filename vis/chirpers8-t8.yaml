@@ -36,3 +36,23 @@ scenes:
   - {at: 84bar, look: line, params: {glint: 1, cool: 0.5}, xfade: 4s}
   - {at: 108bar, look: rows, xfade: 4s}
   - {at: 136bar, look: line, params: {glint: 1, cool: 0}, xfade: 6s}
+
+# The words, where they are sung (found by tools/vislyrics.py from the song's tts phrases).
+master:
+  layers:
+    - type: captions
+      shadow: 0.8
+      y: -0.8
+      size: 0.05
+      color: "#e6ecf2"
+      typing: 16
+      fade: 1.4
+      lines:
+        - [2.253b, 3.2, "nothing is kept."]  # say
+        - [212.253b, 1.9, "nothing is kept. it only goes around."]  # say2
+        - [216.439b, 3.6, "it only goes around."]  # say2
+        - [304.244b, 1.8, "it comes later on"]  # sungc
+        - [308.244b, 3.6, "it comes later on"]  # sungc-canon
+        - [480.244b, 1.8, "it comes later on"]  # sungl
+        - [484.244b, 3.6, "it comes later on"]  # sungl-canon
+        - [544.253b, 3.6, "it only goes around."]  # say3

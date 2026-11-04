@@ -36,3 +36,24 @@ scenes:
   - {at: 108bar, look: doubling, params: {r: 3.835}, xfade: 3s}
   - {at: 126bar, look: storm, xfade: 2s}
   - {at: 150bar, look: doubling, params: {r: 3.1}, xfade: 6s}
+
+# The words, where they are sung (found by tools/vislyrics.py from the song's tts phrases).
+master:
+  layers:
+    - type: captions
+      shadow: 0.8
+      y: 0.82
+      size: 0.05
+      color: "#bff6ff"
+      typing: 18
+      fade: 1.2
+      lines:
+        - [94.259b, 4.6, "every other morning i'm someone else"]  # other
+        - [115.259b, 4.6, "every other morning i'm someone else"]  # other
+        - [266.266b, 3.9, "eight steps and i'm standing where i stood"]  # eight
+        - [286.266b, 3.9, "eight steps and i'm standing where i stood"]  # eight
+        - [452.263b, 1.9, "it comes back in threes"]  # sing
+        - [457.256b, 9.0, "it comes back in threes"]  # sing
+        - [484.263b, 1.9, "it comes back in threes"]  # sing
+        - [489.256b, 9.0, "it comes back in threes"]  # sing
+        - [736.263b, 4.7, "it comes back in threes"]  # sing

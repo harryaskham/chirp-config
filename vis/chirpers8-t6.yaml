@@ -6,18 +6,18 @@ looks:
     vars:
       warm: {follow: "track.voice.level + track.singb.level + track.talk.level", attack: 60ms, release: 1.2s}
     layers:
-      - {type: noise, scale: 0.9, speed: "0.03 + song.drift*0.1", octaves: 4, warp: 1.2, spread: 0.5, threshold: 0.35, pos: "0.05 + song.drift*0.2", light: "0.14 + var.warm*0.3 + env.kick*0.12 + audio.low*0.1"}
+      - {type: noise, scale: 0.9, speed: "0.03 + song.drift*0.1", octaves: 4, warp: 1.2, spread: 0.5, threshold: 0.35, pos: "0.05 + song.drift*0.2", light: "0.12 + var.warm*0.1 + env.kick*0.1 + audio.low*0.08"}
       - {type: notes, mode: stars, tracks: [keys, bell, mbox, pad], size: 0.006, life: 3, glow: 0.8, spread: 0.15, pos: 0.45, height: 1.6}
       - {type: text, text: "UPTIME {time}", x: -1.62, y: 0.86, align: left, size: 0.045, color: "#e8a33a", opacity: 0.85, glow: 0.2}
       - {type: text, text: "NO ERRORS", x: 1.62, y: 0.86, align: right, size: 0.045, color: "#e8a33a", opacity: "0.4 + time.barphase*0.0", glow: 0.2}
-      - {type: shape, sides: 0, radius: "0.05 + var.warm*0.12 + env.snare*0.02", fill: 1, width: 0, glow: 3, pos: 0.4, opacity: "0.25 + var.warm*0.6 + env.kick*0.2"}
+      - {type: shape, sides: 0, radius: "0.04 + var.warm*0.05 + env.snare*0.015", fill: 1, width: 0, glow: 3, pos: 0.4, opacity: "0.25 + var.warm*0.45 + env.kick*0.2"}
       # The machine's activity lights: one per part, lit by its hits.
       - {type: shape, sides: 0, radius: 0.022, fill: 1, width: 0, glow: 2, x: -1.6, y: -0.86, color: "#e8a33a", opacity: "0.2 + env.kick*0.9"}
       - {type: shape, sides: 0, radius: 0.022, fill: 1, width: 0, glow: 2, x: -1.5, y: -0.86, color: "#e8a33a", opacity: "0.2 + env.snare*0.9"}
       - {type: shape, sides: 0, radius: 0.022, fill: 1, width: 0, glow: 2, x: -1.4, y: -0.86, color: "#ffd58a", opacity: "0.2 + env.hats*0.9"}
       - {type: shape, sides: 0, radius: 0.022, fill: 1, width: 0, glow: 2, x: -1.3, y: -0.86, color: "#c0587a", opacity: "0.2 + env.bell*0.9"}
       - {type: text, text: "KCK SNR HAT BEL", x: -1.635, y: -0.77, align: left, size: 0.034, color: "#e8a33a", opacity: 0.55}
-      - {type: scope, mode: wave, gain: 0.35, y: -0.62, size: 3.1, width: 0.002, glow: 0.3, color: "#e8a33a", opacity: "0.25 + audio.level*0.6"}
+      - {type: scope, mode: wave, gain: 0.3, y: -0.7, size: 3.1, width: 0.002, glow: 0.3, color: "#e8a33a", opacity: "0.25 + audio.level*0.6"}
     filters:
       - {type: bloom, threshold: 0.4, amount: 0.8, radius: 0.05}
       - {type: scanlines, amount: 0.2, count: 270}
@@ -33,3 +33,53 @@ scenes:
   - {at: 64bar, look: console, xfade: 4s}
   - {at: 84bar, look: console, xfade: 4s}
   - {at: 102bar, look: console, xfade: 4s}
+
+# The words, where they are sung (found by tools/vislyrics.py from the song's tts phrases).
+master:
+  layers:
+    - type: captions
+      shadow: 0.8
+      x: -1.62
+      y: -0.42
+      align: left
+      size: 0.048
+      color: "#ffd58a"
+      typing: 22
+      fade: 1.0
+      lines:
+        - [12.254b, 3.0, "> all checks passed"]  # radio
+        - [28.254b, 3.0, "> all checks passed"]  # radio
+        - [40.762b, 4.0, "> the dust has found the vents"]  # voice
+        - [56.748b, 3.5, "> the fan is still turning"]  # voice
+        - [72.754b, 3.0, "> all checks passed"]  # voice
+        - [88.762b, 3.7, "> i kept your window open"]  # voice
+        - [104.762b, 4.0, "> the dust has found the vents"]  # voice
+        - [120.227b, 9.0, "> no errors since"]  # voice
+        - [136.246b, 2.6, "> the fish have learned the glass"]  # voice
+        - [140.746b, 4.8, "> the moon went by on time"]  # voice
+        - [152.746b, 4.7, "> the cursor blinks where you stopped"]  # voice
+        - [168.746b, 4.7, "> the cursor blinks where you stopped"]  # voice
+        - [176.748b, 3.5, "> the fan is still turning"]  # voice
+        - [192.754b, 3.0, "> all checks passed"]  # voice
+        - [208.762b, 3.7, "> i kept your window open"]  # voice
+        - [224.762b, 4.0, "> the dust has found the vents"]  # voice
+        - [240.748b, 3.5, "> the fan is still turning"]  # voice
+        - [260.24b, 5.4, "> i counted every second"]  # singb
+        - [276.245b, 4.4, "> none of them were wasted"]  # singb
+        - [292.24b, 5.4, "> i counted every second"]  # singb
+        - [308.245b, 4.4, "> none of them were wasted"]  # singb
+        - [334.245b, 3.6, "> i dimmed myself at nine"]  # lull
+        - [340.25b, 3.5, "> warm as a hand on the lid"]  # lull
+        - [346.245b, 3.6, "> i dimmed myself at nine"]  # lull
+        - [352.25b, 5.1, "> warm as a hand on the lid"]  # lull
+        - [368.256b, 3.9, "> one tab still open to the sea"]  # voice
+        - [376.246b, 4.5, "> i logged the light at seven"]  # voice
+        - [412.752b, 4.4, "> up four hundred days"]  # voice
+        - [420.756b, 4.4, "> and nothing to report"]  # voice
+        - [428.752b, 2.0, "> up four hundred days"]  # voice
+        - [432.24b, 2.6, "> a light left on"]  # tline
+        - [436.756b, 2.0, "> and nothing to report"]  # voice
+        - [440.24b, 5.7, "> in the room that nobody uses"]  # tline
+        - [452.24b, 7.3, "> still here"]  # radio
+        - [464.261b, 7.3, "> still here"]  # radio
+        - [476.246b, 9.0, "> still here"]  # radio

@@ -19,3 +19,29 @@ scenes:
   - {at: 94bar, look: rule, params: {rule: 30, rate: 8}, xfade: 3s}
   - {at: 132bar, look: rule, params: {rule: 4, rate: 3}, xfade: 4s}
   - {at: 150bar, look: rule, params: {rule: 4, rate: 1}, xfade: 6s}
+
+# The words, where they are sung (found by tools/vislyrics.py from the song's tts phrases).
+master:
+  layers:
+    - type: captions
+      shadow: 1
+      width: 0.16
+      y: -0.78
+      size: 0.062
+      color: "#f4efe6"
+      typing: 18
+      fade: 1.2
+      lines:
+        - [216.248b, 5.1, "i only know the two beside me"]  # sing
+        - [232.244b, 3.7, "and they are enough"]  # sing-r
+        - [264.248b, 4.3, "the left one is weather"]  # story
+        - [280.248b, 3.8, "the right one is news"]  # story
+        - [408.248b, 4.6, "two rumors and a mirror"]  # story
+        - [424.248b, 4.3, "add up to the next of me"]  # story
+        - [448.256b, 8.4, "i only know the two beside me"]  # hlead
+        - [464.257b, 8.1, "what i become is what we were"]  # hlead
+        - [480.239b, 8.4, "i only know the two beside me"]  # hlead
+        - [496.245b, 6.5, "and they are enough"]  # hlead
+        - [520.248b, 4.0, "when the left goes dark"]  # chip
+        - [536.248b, 3.5, "i keep its count"]  # chip
+        - [608.259b, 6.5, "and they are enough"]  # hlow
