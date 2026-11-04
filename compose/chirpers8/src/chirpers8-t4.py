@@ -567,6 +567,37 @@ def swap_map_lane():
     return pts
 
 
+# v49 (ROUND TYPE: section, w3 1:00-1:30 - bubble's last bars into insertion sort, flagged 'little new vs w2' and
+# never focused): THE SLIDE. Insertion sort takes one card and SLIDES it left until it fits - and nothing in the song
+# slid. Now in insertion's first bars (41-48) each insertion is played by a SINGING SAW (a bowed musical saw of the
+# song's own: a sine with a faint octave, a slow swell, a vibrato that fades in) gliding, over the bar, from the card's
+# starting place down to where it lands - place as pitch (two alpha steps a place, on the bar's root),
+# so bar 47's card travelling seven to two is a long fall and bar 44's one-place step a sigh.
+SLIDE = (41, 48)
+SAW_PATCH = {"synth": {"layers": [{"wave": "sine"}, {"wave": "sine", "ratio": 2, "level": "-18dB"}],
+                       "pitch": {"value": 0, "mod": [{"src": "auto.sl", "amount": 1}, {"src": "lfo.vib", "amount": 0.25}]},
+                       "lfo": {"vib": {"wave": "sine", "rate": "5.5hz", "delay": "300ms", "fade": "400ms"}},
+                       "amp": {"a": "250ms", "d": "0ms", "s": 1, "r": "400ms"}}}
+
+
+def slide_track():
+    a, z = SLIDE
+    notes, lane = [], [["0b", 0.0]]
+    for bar in range(a, z + 1):
+        sw, acc = SWS[bar]
+        if not sw:
+            continue
+        start, end = max(sw) + 1, min(sw)
+        root = root_at(bar)
+        notes.append({"at": b0(bar), "len": 3.75, "pitch": pitch(2 * start + root, BASE), "vel": 0.75})
+        drop = round(-2 * (start - end) * ALPHA, 3)
+        lane += [[f"{b0(bar) - 0.01:g}b", 0.0], [f"{b0(bar) + 0.5:g}b", 0.0], [f"{b0(bar) + 3.5:g}b", drop],
+                 [f"{b0(bar) + 3.98:g}b", drop]]
+    lane.append([f"{b0(z + 1):g}b", 0.0])
+    return {"name": "slide", "patch": SAW_PATCH, "gain": "-21dB", "pan": -0.3, "sends": {"room": "-8dB", "dly": "-14dB"},
+            "notes": notes, "auto": {"sl": {"points": lane}}}
+
+
 def zipper():
     for bar in range(ZIP[0], ZIP[1] + 1):
         left = set(ARRS[bar][:N // 2])
@@ -1153,6 +1184,7 @@ def main():
                            "sends": {"room": "-10dB"}, "score": part("cards").score()})   # v39: listed last
     song["tracks"] += choir_tracks() + unsung_tracks()                                       # v41: listed last
     song["tracks"].append(tr("scan", SCAN_PATCH, gain="-16dB", pan=0.3, sends={"room": "-10dB"}))   # v44: listed last
+    song["tracks"].append(slide_track())                                                     # v49: listed last
     for tk in song["tracks"]:                     # v48: the lead crumbles with the disorder (order unchanged)
         if tk["name"] == "lead":
             tk["fx"] = list(tk.get("fx") or []) + [CRUMBLE]
