@@ -1,0 +1,4 @@
+WORDS: yes  LANGUAGE: English
+seven. twenty-two. eleven. thirty-four. seventeen. fifty-two. twenty-six. thirteen. forty. twenty. ten. five. sixteen. eight. four. two. one.
+four, two, one (x4)
+odd goes up, even comes down (x2)
