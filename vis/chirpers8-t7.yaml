@@ -3,10 +3,11 @@ looks:
   anneal:
     palette: ["#03050b", "#0b2140", "#2c6596", "#9fd0ee", "#f3e2c0", "#ffb347", "#d9531e", "#5e1600"]
     params: {heat: 1}
+    env: {kick: {on: track.kit, decay: 240ms}}
     vars:
       spin: {integrate: "0.01 + param.heat*0.08"}
     layers:
-      - {type: noise, scale: "1.0 + param.heat*1.6", speed: "0.02 + param.heat*0.5", octaves: 5, warp: "0.2 + param.heat*2.2", spread: 0.26, threshold: 0.2, pos: "0.17 + param.heat*0.45", light: "0.34 + param.heat*0.16"}
+      - {type: noise, scale: "1.0 + param.heat*1.6", speed: "0.02 + param.heat*0.5", octaves: 5, warp: "0.2 + param.heat*2.2", spread: 0.26, threshold: 0.2, pos: "0.17 + param.heat*0.45", light: "0.3 + param.heat*0.16 + env.kick*0.1 + audio.low*0.12"}
       - {type: particles, on: track.seq, count: "4 + param.heat*20", speed: "0.1 + param.heat*0.9", spread: 1, drag: "3.3 - param.heat*3", life: 1.4, size: 0.004, jitter: "0.2 + param.heat*1.2", soft: 0.6, pos: "0.3 + param.heat*0.42", hues: "param.heat*0.2"}
       - {type: shape, sides: 6, star: 0.42, radius: 0.42, width: 0.003, count: 7, scale: 0.78, turn: 0.0833, rotate: var.spin, spread: 0.04, pos: 0.4, opacity: "0.9 - param.heat*0.9"}
       - {type: notes, mode: clock, tracks: [seq, keys], radius: 0.7, size: 0.009, life: 1.2, glow: 0.6, spread: 0.1, pos: "0.4 + param.heat*0.3", opacity: 0.8}
