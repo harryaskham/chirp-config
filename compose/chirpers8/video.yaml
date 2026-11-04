@@ -8,7 +8,8 @@ meta:
 video: {size: 1920x1080, fps: 30}
 loudness: -11
 # Each song's picture rises from black and returns to it; the amber light (master) stays on between them.
-fade: [1.5, 3]
+# The album is gapless (the songs bleed into one another), so the dip is short: a chapter mark, not a pause.
+fade: [0.8, 1.2]
 limit: true
 master:
   layers:
