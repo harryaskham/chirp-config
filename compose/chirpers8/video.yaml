@@ -31,7 +31,7 @@ master:
       color: "#6f8db3"
       typing: 30
       fade: 1.2
-      lines: [[2, 6, "chirpers - a light left on"]]
+      lines: [[2, 6, "{artist} - {album}"]]
   filters:
     - {type: color, gamma: 1.15, saturation: 1.08}
     - {type: grain, amount: 0.02}

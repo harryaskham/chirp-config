@@ -41,5 +41,5 @@ scenes:
 # The end card: the album's name in the last light, while the picture fades out and the amber stays on.
 master:
   layers:
-    - {type: captions, size: 0.085, y: -0.42, color: "#ffd58a", typing: 10, fade: 2.5, glow: 0.4, lines: [[355, 16, "a light left on"]]}
-    - {type: captions, size: 0.045, y: -0.58, color: "#e0c890", typing: 14, fade: 2.5, lines: [[358, 13, "chirpers"]]}
+    - {type: captions, size: 0.085, y: -0.42, color: "#ffd58a", typing: 10, fade: 2.5, glow: 0.4, lines: [[355, 16, "{album}"]]}
+    - {type: captions, size: 0.045, y: -0.58, color: "#e0c890", typing: 14, fade: 2.5, lines: [[358, 13, "{artist}"]]}
