@@ -379,6 +379,20 @@ def build():
     P['harp'] = [e_ for e_ in P['pwm'] if c2a_ - 1e-6 <= e_[0] < c2b_ - 1e-6]
     P['pwm'] = [(e_[0], e_[1], e_[2], 1) if c2a_ - 1e-6 <= e_[0] < c2b_ - 1e-6 else e_ for e_ in P['pwm']]
     UNW = {'d3': 16, 'd2': 20, 'd1': 24}
+    # (v54) COPIES OF COPIES: every call pushes a copy of the subject, faster and higher - but a copy of a copy loses
+    # something each generation, as every recursion's frame is a little worse than the one that called it. The bell
+    # carrying the subject stays whole; one call down the copy has lost every other waveset (Trevor Wishart's waveset
+    # distortion from the Composers' Desktop Project, wM's waveset: the sound cut at its zero crossings and one cycle in
+    # two thrown away, a gritty thinning); two calls down, its wavesets are shuffled in fours - the line crumbling in
+    # place, still in tune; three down, shuffled in eights and nearly all crumb. The deeper the stack, the more the copies
+    # sound like a memory being copied too many times - and every return comes back to the clean bell
+    # (and under the duet Harry singled out the copies stay clean, exactly as he heard them: a 'loss' lane at 0 there)
+    def _lm(m_): return {'value': 0.0, 'mod': [{'src': 'auto.loss', 'amount': m_}]}
+    LOSS = {1: {'type': 'waveset', 'mode': 'omit', 'n': 2, 'mix': _lm(0.7)},
+            2: {'type': 'waveset', 'mode': 'shuffle', 'n': 4, 'max': '12ms', 'seed': 7, 'mix': _lm(0.85)},
+            3: {'type': 'waveset', 'mode': 'shuffle', 'n': 8, 'max': '10ms', 'seed': 11, 'mix': _lm(1.0)}}
+    _d0, _d1 = secs_t['calls2'], secs_t['calls2'] + 32.0
+    loss_pts = [['0b', 1.0], [f'{_d0 - 0.05:.2f}b', 1.0], [f'{_d0:.2f}b', 0.0], [f'{_d1 - 0.05:.2f}b', 0.0], [f'{_d1:.2f}b', 1.0]]
     for key_, b0_ in UNW.items():
         a0_, a1_ = secs_t['final'] + b0_ * 4.0, secs_t['final'] + (b0_ + 4) * 4.0
         P['u' + key_[1]] = [e_ for e_ in P[key_] if a0_ - 1e-6 <= e_[0] < a1_ - 1e-6]
@@ -577,13 +591,13 @@ def build():
             # over each held root the oscillator walks into chaos and jumps between its two wells: the machine audibly
             # coming apart as it returns
             tr('bass', 'duffing-bass', '-6dB', fx=['lp cutoff=1600', {'type': 'eq', 'bands': ['peak cutoff=180 q=0.9 gain=4dB']}]),
-            tr('d1', BELL, '-13dB', pan=0.6, fx=[arrive('d1')], auto={'far': {'points': far_lanes['d1']}}, sends={'echo': '-14dB'}),
+            tr('d1', BELL, '-13dB', pan=0.6, fx=[LOSS[1], arrive('d1')], auto={'far': {'points': far_lanes['d1']}, 'loss': {'points': loss_pts}}, sends={'echo': '-14dB'}),
             # (v12) the deepest copies thinner (chirper-three: the densest stack may crowd the subject)
-            tr('d2', BELL, '-19dB', pan=-0.6, fx=[arrive('d2')], auto={'far': {'points': far_lanes['d2']}}, sends={'echo': '-16dB'}),
+            tr('d2', BELL, '-18dB', pan=-0.6, fx=[LOSS[2], arrive('d2')], auto={'far': {'points': far_lanes['d2']}, 'loss': {'points': loss_pts}}, sends={'echo': '-16dB'}),
             # (v41, palette) the deepest call - the subject at eight times speed, three levels down - leaves the album's
             # glass (three songs) for a pitched bytebeat chip (wM's bytebeat-chip, t*8|t>>5): at the bottom of the stack
             # the machine is raw arithmetic
-            tr('d3', 'bytebeat-chip', '-28dB', pan=0.5, fx=['hp cutoff=800', 'lp cutoff=5000', arrive('d3')], auto={'far': {'points': far_lanes['d3']}}, sends={'hall': '-12dB'}),
+            tr('d3', 'bytebeat-chip', '-27dB', pan=0.5, fx=[LOSS[3], 'hp cutoff=800', 'lp cutoff=5000', arrive('d3')], auto={'far': {'points': far_lanes['d3']}, 'loss': {'points': loss_pts}}, sends={'hall': '-12dB'}),
             # (v39) PERIOD ONE, DOUBLING: t9 is 'Period Doubling' and ends with its logistic map settled on one value. Under
             # this song's intro an A (the call's root) is held on an audio-rate Rossler attractor (wM's chaos layer, one
             # loop of the attractor per period of the note) whose control walks the same route t9 is named for, upwards,
@@ -596,9 +610,9 @@ def build():
                                  'env': {'climb': '11s 0 1 2s'}, 'amp': '6s 0.9 1 2.5s',
                                  'filters': [{'kind': 'lp', 'cutoff': 2400, 'q': 0.7}, 'hp cutoff=50']}},
              'score': 'R/8b A2/24b', 'sends': {'hall': '-10dB'}},   # (from bar 3, fading in: the join from t9 stays thin)
-            tr('u1', BELL, '-11dB', fx=[f"orbit rate={ORB_RATE} radius=30 distance=2 path=line phase={orb_phase['1']:.4f}"], sends={'echo': '-14dB'}),
-            tr('u2', BELL, '-17dB', fx=[f"orbit rate={ORB_RATE} radius=30 distance=2 path=line phase={orb_phase['2']:.4f}"], sends={'echo': '-16dB'}),
-            tr('u3', 'bytebeat-chip', '-26dB', fx=['hp cutoff=800', 'lp cutoff=5000', f"orbit rate={ORB_RATE} radius=30 distance=2 path=line phase={orb_phase['3']:.4f}"], sends={'hall': '-12dB'}),
+            tr('u1', BELL, '-11dB', fx=[LOSS[1], f"orbit rate={ORB_RATE} radius=30 distance=2 path=line phase={orb_phase['1']:.4f}"], auto={'loss': {'points': loss_pts}}, sends={'echo': '-14dB'}),
+            tr('u2', BELL, '-16dB', fx=[LOSS[2], f"orbit rate={ORB_RATE} radius=30 distance=2 path=line phase={orb_phase['2']:.4f}"], auto={'loss': {'points': loss_pts}}, sends={'echo': '-16dB'}),
+            tr('u3', 'bytebeat-chip', '-25dB', fx=[LOSS[3], 'hp cutoff=800', 'lp cutoff=5000', f"orbit rate={ORB_RATE} radius=30 distance=2 path=line phase={orb_phase['3']:.4f}"], auto={'loss': {'points': loss_pts}}, sends={'hall': '-12dB'}),
             tr('kit', 'machine-kit', '-2dB', sends={'hall': '-20dB'}),
             tr('glass', 'glass', '-15dB', pan=0.1, sends={'hall': '-8dB'}),
             # (v48, palette) THE CLARINET, COMPUTED: t9 hands this song a clarinet - its pulse on G, which this song
