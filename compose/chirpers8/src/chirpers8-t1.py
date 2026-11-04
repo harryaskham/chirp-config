@@ -579,10 +579,12 @@ def build():
             # Max Mathews' last instrument, scanned synthesis (Verplank, Mathews and Shaw, 2000; wM's scanned) - a ring of
             # masses and springs read round at each pitch, a slow hand pressing on it - so the harmony that pronounces the
             # words is a vibrating surface, not a section: the father of computer music's string, learning to talk
+            # (engine 502b6b8d: push is now a brightness across 0..1 and a scanned note starts ~9 dB lower - wM's
+            # measured equivalent of the old push 0.12 is push 1.0 and +9 dB, so the hand now breathes 0.75..1.0)
             tr('speak', {'synth': {'layers': [{'type': 'scanned', 'scanned': {'speed': 0.5, 'width': 0.18, 'smooth': 0.3,
-                                                                              'push': {'value': 0.12, 'mod': [{'src': 'lfo.hand', 'amount': 0.5}]}}, 'decay': '5s'}],
+                                                                              'push': {'value': 0.88, 'mod': [{'src': 'lfo.hand', 'amount': 0.12}]}}, 'decay': '5s'}],
                                    'amp': '400ms 0 0.9 1.2s', 'lfo': {'hand': {'wave': 'sine', 'rate': '0.13hz'}}}},
-               '-7dB', pan=-0.15, fx=[{'type': 'morph', 'mode': 'cross', 'key': 'voice', 'amount': 0.95}],
+               '+2dB', pan=-0.15, fx=[{'type': 'morph', 'mode': 'cross', 'key': 'voice', 'amount': 0.95}],
                sends={'hall': '-10dB'}),
             tr('sub', 'sub', '-4.5dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-5dB', 'release': '260ms', 'curve': 0.6}]),
             # (v26: a fingerstyle electric bass, finger-bass, was tried here - it moved a section boundary, structure 88 on
