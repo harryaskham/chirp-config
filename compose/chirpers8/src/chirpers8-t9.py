@@ -400,6 +400,15 @@ R31 = os.environ.get("T9_R31", "sweep")
 # comes back. Five laminar stretches of 2 to 6.5 beats, at the map's own irregular times - the last one running into
 # the window, which keeps the three for good. Generated, not placed. T9_R32=none reproduces v31.
 R32 = os.environ.get("T9_R32", "floor")
+# T9_R33 = fork4 (v33, section round on w3, 0:54-1:22: two into FOUR, "static"). THE MISSING FORK. The first split
+# (one -> two) and the third (four -> eight) each lost their floor for the bar before and landed on the split; the
+# second (two -> four) just went on. Now it does the same: the last 7/8 bar of TWO drops kick, sub, bass, the plucked
+# double and the ostinato, and everything lands on four. And four gets its line, as two and eight have theirs, sung by
+# the same voice on a tune that cycles in fours (D4 B3 E4 A3, twice, home to D4): "two coats, and each one has a
+# lining" - each of the two things it had now has its own inner double (chirp tts --sing "D4/8 B3 E4 A3 D4 B3 E4 A3/4
+# D4/2" --bpm 140 --seed 12 --humanize 0.3 --hz, src/t9/coats.json; ASR raw: "two coats of people and pasts are
+# lying"). Twice, bars 2 and 10. T9_R33=none reproduces v32.
+R33 = os.environ.get("T9_R33", "fork4")
 if R31 == "sweep":
     _sw = {"one": (2.8, 2.98), "two": (3.05, 3.42), "four": (float(os.environ.get("T9_SW_FOUR0", "3.452")), 3.543), "eight": (3.5445, 3.5643)}
     _which = os.environ.get("T9_SWEEP", "one,two,four,eight").split(",")
@@ -649,6 +658,8 @@ def build():
                 sing(start, 0.85 if name == "settle" else 1.0)
             if R3 == "sing" and R23 == "two" and name == "two" and i in (4, 10):
                 sing(start, 1.0 if i == 4 else 0.9, "other.json", SING2)
+            if R33 == "fork4" and name == "four" and i in (2, 10) and os.environ.get("T9_COATS", "on") == "on":
+                sing(start, 1.0 if i == 2 else 0.9, "coats.json", SING2)
             if R3 == "sing" and R20 == "cycle" and name == "eight" and i in (10, 14) \
                     and os.environ.get("T9_R20_VOX", "on") == "on":
                 sing(start, 1.0 if i == 10 else 0.9, "eight.json", SING8)
@@ -1104,6 +1115,15 @@ def main():
             if tr["name"] in ("kick", "ksub", "bass", "bpluck", "osti"):
                 tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.fork", "amount": 1}]}}]
                 tr["auto"] = {**tr.get("auto", {}), "fork": lane}
+    if R33 == "fork4":   # two -> four: the 7/8 bar before the split loses its floor
+        f1 = st["four"]
+        f0 = f1 - 3.5
+        lane = {"points": [["0b", 0.0], [f"{f0 - 0.1}b", 0.0], [f"{f0 + 0.05}b", -40.0], [f"{f1 - 0.1}b", -40.0],
+                           [f"{f1}b", 0.0], [f"{total}b", 0.0]]}
+        for tr in tracks:
+            if tr["name"] in ("kick", "ksub", "bass", "bpluck", "osti"):
+                tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.fork2", "amount": 1}]}}]
+                tr["auto"] = {**tr.get("auto", {}), "fork2": lane}
     if R23 == "two" and os.environ.get("T9_R23_FORK", "on") == "on":
         f1 = st["two"]
         f0 = f1 - 4.0
