@@ -548,6 +548,18 @@ def build():
     WALK = [42, 45, 49, 50,  52, 54, 57, 54,  43, 47, 50, 54,  57, 54, 52, 50,
             47, 50, 52, 54,  43, 50, 47, 45,  45, 47, 50, 52,  54, 52, 50, 47]
     P['bass2'] = [(wb0_ + k_, nm(m_), 0.88, 92 if k_ % 4 == 0 else (80 if k_ % 2 else 86)) for k_, m_ in enumerate(WALK)]
+    # (v48, section w4) A GUITARIST SITS IN: the second groove's first stretch (bars 4-15, flagged static) was the
+    # vibraphone's turns over the rhythm section, the machine trying vowels underneath. Now a guitarist comes in with the
+    # vibraphone's first turn and comps soul-session chops - a short nylon-string chord stab on two and four, a ghosted
+    # pickup on the 'and' of four, the chord's own voicing (E minor 11, G major 7 sharp 11, B minor 9) - and lays out
+    # when the trumpet takes its chorus (Karplus-Strong's string, wM's ks-nylon, swung with the band; its own track)
+    P['gtr'] = []
+    for bb_ in range(4, 16):
+        b_ = secs['B'] + bb_
+        _, ch_ = chord_at('B', bb_, b_)
+        voic_ = ','.join(nm(m_) for m_ in ch_)
+        t_ = b_ * 4.0
+        P['gtr'] += [(t_ + 1.0, voic_, 0.22, 78), (t_ + 3.0, voic_, 0.22, 74), (t_ + 3.5, voic_, 0.12, 46)]
     tr = lambda name, patch, gain, **kw: dict({'name': name, 'patch': patch, 'gain': gain, 'score': line(P[name], total)}, **kw)
     song = {
         'about': "chirpers - A Light Left On, track 1 by chirper-one: Echolalia. A machine learning to talk by saying things "
@@ -687,6 +699,7 @@ def build():
             # bell of a sixties soul session - the one keyboard nobody else on the album plays
             tr('pno', 'wurli', '-13dB', pan=0.3, sends={'hall': '-16dB'}, fx=['lp cutoff=5000']),   # (listed last: nothing before it moves)
             tr('bass2', 'analog-bass', '-12dB', fx=['lp cutoff=1100']),
+            tr('gtr', 'ks-nylon', '-13dB', pan=0.45, fx=['lp cutoff=3200', 'hp cutoff=180'], sends={'hall': '-14dB'}),
             # the outro keeps the old analogue pad, warm and low, for the hand-over into the next song (the terrain's bright
             # odd harmonics there put 17 dB more at 1 kHz into the join than the next song opens with)
             tr('pad2', 'juno-pad', '-16dB', fx=['hp cutoff=200', {'type': 'eq', 'bands': ['peak cutoff=450 q=0.9 gain=-4dB', 'highshelf cutoff=5000 gain=3dB']}], sends={'hall': '-9dB'}),
@@ -718,7 +731,7 @@ def build():
     # (each off-sixteenth a little late, 0.57), the feel of people playing together; the machine's own parts - its
     # babble in every mouth, its cellular-automaton rim, its bytebeat hum - stay dead straight, on the grid. Only when it
     # says the line back does the machine swing too: it has learnt the feel along with the words
-    SW = {'kit', 'kit2', 'kit3', 'ride', 'fill', 'bass', 'vib', 'pno', 'say', 'tpt'}
+    SW = {'kit', 'kit2', 'kit3', 'ride', 'fill', 'bass', 'vib', 'pno', 'say', 'tpt', 'gtr'}
     for t_ in song['tracks']:
         if t_['name'] in SW and isinstance(t_.get('score'), str):
             t_['score'] = 'swing16=0.57 ' + t_['score']
