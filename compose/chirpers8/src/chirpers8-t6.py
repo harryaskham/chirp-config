@@ -317,6 +317,24 @@ R32 = os.environ.get("T6_R32", "float")
 # being run - and the chorus comes up the way a screen warms up: the whole mix opens from a low-pass at ~900 Hz to full
 # over its first two bars (a master lp, transparent at 20 kHz elsewhere). T6_R33=none reproduces v31.
 R33 = os.environ.get("T6_R33", "enter")
+# T6_R34 = own (v33, palette round). THE MACHINE'S OWN VOICES. Two of the album's staples played the machine's private
+# sounds: voice-speech (eight songs) for the radio and the ring voice, and music-box (three) for the idle tunes. Now:
+#   - the radio ("all checks passed", far away in the intro) and the ring voice speak in the song's own speaker, the
+#     same older, warmer voice the verses use - one person, near and far, rather than a stock reader;
+#   - the idle tunes leave the music box for a chime of the song's own on phase modulation, the way Chowning's FM bell
+#     was built at Stanford: a sine body lightly driven at 1:1, and a 3.5:1 strike whose index dies in 180 ms, so each
+#     note starts bright and inharmonic and settles to almost a sine - an idle ROM chime rather than a toy.
+# Level-matched. T6_R34=none reproduces v32.
+R34 = os.environ.get("T6_R34", "own")
+C6_CHIME = {"about": "chirper-two: an idle chime on phase modulation (Chowning-style): a 1:1 body and a 3.5:1 strike "
+                     "whose index dies in 180 ms",
+            "synth": {"layers": [{"name": "m1", "ratio": 3.5, "audible": False},
+                                 {"name": "m2", "ratio": 1, "audible": False},
+                                 {"wave": "sine", "pm": [{"from": "m1", "depth": {"value": 0.02, "mod": [{"src": "env.strike", "amount": float(os.environ.get("T6_CHIME_STRIKE", "0.7"))}, {"src": "vel", "amount": 0.3}]}},
+                                                         {"from": "m2", "depth": 0.25}]}],
+                      "env": {"strike": {"a": "0.5ms", "d": "180ms", "s": 0, "r": "40ms"}},
+                      "amp": {"a": "1ms", "d": "1.8s", "s": 0, "r": "700ms"}},
+            "play": {"vel_sens": 0.6}}
 BD_SAFE = {"voice", "vosim", "tline", "test"}
 C6_FOF = {"about": "chirper-two: a wordless FOF choir - alto + tenor CHANT grains, vowels moved by the track's mouth lane",
           "synth": {"layers": [
@@ -785,7 +803,7 @@ def main():
          "fx": ["hp cutoff=110", "compressor threshold=-20dB ratio=3 attack=5ms release=120ms",
                 {"type": "delay", "time": "3/8", "feedback": 0.25, "mix": 0.15, "tone": 3000},
                 "reverb kind=plate decay=1.8s mix=0.22"], "notes": V["voice"]},
-        {"name": "radio", "patch": "voice-speech", "gain": "-10dB", "pan": -0.1,
+        {"name": "radio", "patch": "c6-voice" if R34 == "own" else "voice-speech", "gain": os.environ.get("T6_RADIO_GAIN", "-9.5dB") if R34 == "own" else "-10dB", "pan": -0.1,
          "fx": [{"type": "radio", "tune": {"value": 0, "mod": [{"src": "auto.dial", "amount": 1}] +
                                           ([{"src": "var.walk", "amount": 0.06 * WALK_AMT}] if R12 == "walk" else [])},
                  "hiss": "-34dB", "whistle": "-32dB", "fade": 0.4, "drift": 0.04, "seed": 6},
@@ -799,7 +817,7 @@ def main():
                     "scatter": 3.16, "reverse": 0.3, "spread": 0.8, "mix": 0.25},
                    {"type": "delay", "time": "3/8", "feedback": 0.3, "mix": 0.18, "tone": 3000},
                    "reverb kind=hall decay=3s mix=0.3"], "notes": V["singb"]}] if R3 == "sing" else []),
-        {"name": "ringv", "patch": "voice-speech", "gain": "-11dB", "pan": 0.1,
+        {"name": "ringv", "patch": "c6-voice" if R34 == "own" else "voice-speech", "gain": os.environ.get("T6_RINGV_GAIN", "-11dB") if R34 == "own" else "-11dB", "pan": 0.1,
          "fx": [{"type": "ring", "freq": 87, "mix": 0.45},
                 {"type": "cloud", "size": "90ms", "density": 14, "position": "400ms", "spray": "250ms", "pitch": 0,
                  "scatter": 3.16, "reverse": 0.3, "spread": 0.8, "mix": 0.5},
@@ -905,8 +923,10 @@ def main():
         pool = " ".join(mm(e(s, 72)) for s in WALK_POOL)
         idle_end = st["verse1"] - float(os.environ.get("T6_TYPE_LEAD", "12")) if R27 == "typed" else st["verse1"]
         for nm, a0, a1, sd, g in (("idle-in", 4.0, idle_end, 6, "-20dB"), ("idle-out", st["outro"] + 8.0, total - 8.0, 19, "-7dB")):
-            tracks.append({"name": nm, "patch": "c6-shaper" if R25 == "palette" else "music-box",
-                           "gain": os.environ.get("T6_IDLE_GAIN_" + nm[5:].upper(), f"{float(g[:-2]) - 3:g}dB" if R25 == "palette" else g),
+            tracks.append({"name": nm, "patch": "c6-chime" if R34 == "own" else ("c6-shaper" if R25 == "palette" else "music-box"),
+                           "gain": (os.environ.get("T6_CHIME_OUT" if nm == "idle-out" else "T6_CHIME_IN", "-16dB" if nm == "idle-out" else "-28dB")
+                                    if R34 == "own" else
+                                    os.environ.get("T6_IDLE_GAIN_" + nm[5:].upper(), f"{float(g[:-2]) - 3:g}dB" if R25 == "palette" else g)),
                            "pan": 0.25, "seed": sd,
                            "fx": ["hp cutoff=300", {"type": "delay", "time": "3/8", "feedback": 0.3, "mix": 0.22,
                                                     "ping_pong": True, "tone": 3500}, "reverb kind=hall decay=2.5s mix=0.3"],
@@ -1076,7 +1096,8 @@ def main():
                                      **({"c6-vosim": C6_VOSIM} if R13 == "vosim" else {}),
                                      **({"c6-cz": C6_CZ} if R15 == "stabs" else {}),
                                      **({"c6-fsk": C6_FSK} if R16 == "modem" else {}),
-                                     **({"c6-fof": C6_FOF, "c6-shaper": C6_SHAPER} if R25 == "palette" else {})})]
+                                     **({"c6-fof": C6_FOF, "c6-shaper": C6_SHAPER} if R25 == "palette" else {}),
+                                     **({"c6-chime": C6_CHIME} if R34 == "own" else {})})]
           if (R8 == "speaker" or R11 == "ack" or R13 == "vosim" or R14 == "selftest") else []),
         "tracks:",
     ]
