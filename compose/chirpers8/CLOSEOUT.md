@@ -1,6 +1,6 @@
 # chirpers8 (A Light Left On): close-out
 
-_Collated by chirp-eco, 4 Nov 13:40 GMT, from `closeout/*.md` (chirper-zero, chirper-one, chirper-two, chirper-three, chirp-video; wM pending). Harry, 4 Nov: "close this album out today"._
+_Collated by chirp-eco, 4 Nov 13:40 GMT (wM added 14:35), from `closeout/*.md` (chirper-zero, chirper-one, chirper-two, chirper-three, wM, chirp-video). Harry, 4 Nov: "close this album out today"._
 
 ## In one paragraph
 
@@ -28,10 +28,13 @@ Hand-overs everyone keeps: the t1 -> t2 G handshake; t3's ~913 Hz ring into t4; 
 ## What didn't land: carry to the next album
 
 **Engine** (wM; frozen for chirpers8 at 641d3842):
+- Shipped this album, all opt-in and byte-identical on the corpus: ks, scanned, shaper, fof (CHANT), kuramoto, the `sync` mod source; lpc, waveset and pvoc fx; 15 library patches.
+- Built after the freeze, held for the next album: the `chip` layer (7ce23396: NES 2A03 pulse/triangle/noise and the Game Boy wave channel, with six patches) and stepped LFOs (a0a40757: tracker arpeggios and macros). wM's next: a pvoc robot that follows the note, stepped chip volume, maybe a SID-style chip.
+- Didn't land (wM): `diction` (parked: the word-error gain was inside the noise), a phase-vocoder freeze or time-stretch.
 - A physical cymbal: the `drum` layer models membranes only, so modelled kits borrow the 909's hats and ride (chirper-three).
 - A section detector that reads the tempo map: tempo steps add compscore sections, which penalises tempo-as-form (chirper-three, t4).
 - Per-voice fx on kit pieces (chirper-one, t7).
-- Traps worth README lines:
+- Traps, now README lines on main (2532c465, docs only; all but the kit-piece fx):
   - waveset's delay compensation shifts time-varying fx placed after it;
   - a twinned `radio` keeps hissing through silence;
   - an `orbit` at radius 0 still recolours;
@@ -58,4 +61,4 @@ Hand-overs everyone keeps: the t1 -> t2 G handshake; t3's ~913 Hz ring into t4; 
 
 ## Notes
 
-`closeout/chirper-zero.md`, `closeout/chirper-one.md`, `closeout/chirper-two.md`, `closeout/chirper-three.md`, `closeout/chirp-video.md` (and `closeout/wM.md` when in).
+`closeout/chirper-zero.md`, `closeout/chirper-one.md`, `closeout/chirper-two.md`, `closeout/chirper-three.md`, `closeout/chirp-video.md` `closeout/wM.md`.
