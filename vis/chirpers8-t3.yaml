@@ -3,12 +3,15 @@ looks:
   rule:
     palette: ember
     params: {rule: 90, rate: 4}
+    env: {lift: {on: audio.lift, attack: 30ms, decay: 1.2s}}
     layers:
       - {type: gradient, radial: 1, spread: 0.15, pos: 0.0, light: "0.16 + audio.low*0.3 + track.gong.hit*0.2"}
       - {type: ca, rule: param.rule, rate: param.rate, on: track.kick, cells: 112, rows: 63, start: random, width: 3.4, height: 1.9, fill: 0.78, spread: 0.35, pos: 0.45, fade: 0.75, flash: 1.6, opacity: "0.7 + audio.level*0.3"}
       - {type: spectrum, mode: radial, radius: 0.55, height: 0.25, fill: 0.3, floor: 0.35, spread: 0.3, pos: 0.6, opacity: "0.15 + track.gong.hit*0.5"}
     filters:
-      - {type: bloom, threshold: 0.5, amount: 0.7, radius: 0.03}
+      # Where the gamelan lifts, the grid leans in and glows.
+      - {type: camera, zoom: "1 + env.lift*0.04"}
+      - {type: bloom, threshold: 0.5, amount: "0.7 + env.lift*0.5", radius: 0.03}
       - {type: vignette, amount: 0.55}
 scenes:
   - {at: 0, look: rule, params: {rule: 90, rate: 1}}
