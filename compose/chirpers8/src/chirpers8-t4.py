@@ -475,6 +475,21 @@ def dice_and_check():
             part("check").add(b0(bar) + 3.75 + off, 0.11 if bar < z else 0.2, nt, 92)
 
 
+# v47 (ROUND TYPE: section, w4 1:30-2:00 - insertion sort's second half, flagged 'little new vs w3'; OVERVIEW 4 Nov:
+# t4 'develops least', 0.61 vs the album's 0.76): THE ALGORITHM ALONE. For insertion sort's last eight bars (57-64)
+# the drum kit drops out - kick, clap and hats silenced at velocity 1 (each keeps its notes and randomness) - so what
+# is left is the sorting itself: the riff being re-ordered, the comparisons' chirps, the swaps' tuned toms, the cards,
+# the tune, the bass. A machine sorting cards in a quiet room. Then quicksort bursts in at 65, the full kit at 142.
+ALONE = (57, 64)
+ALONE_DRUMS = ("kick", "clap", "hats")
+
+
+def drums_out():
+    a, z = ALONE
+    for name in ALONE_DRUMS:
+        P[name].ev = [(s, ln, h, 1 if b0(a) <= s < b0(z + 1) else v) for s, ln, h, v in P[name].ev]
+
+
 def bass_waits():
     P["bass"].ev = [(s, ln, h, 1 if s < b0(BASS_FROM) else v) for s, ln, h, v in P["bass"].ev]
 
@@ -1011,6 +1026,7 @@ def main():
     arrival()                                     # v22: the stop, the reverse cymbal, the impact
     leaving()                                     # v23: small things leave first
     bass_waits()                                  # v25: the bass waits for the kick
+    drums_out()                                   # v47: the algorithm alone
     handover()                                    # v26: the tuning handover
     dice_and_check()                              # v27: the dice and the check
     scan_and_sweep()                              # v44: the scan and the sweep
