@@ -111,16 +111,22 @@ def main():
         # Clear of the cut itself (the dip and the title), where both sides change at once.
         for which, (s, e) in (("start", (at + 3, at + 3 + a.window)), ("end", (at + L - 3 - a.window, at + L - 3))):
             i0, i1 = int(round(s * a.fps)), min(int(round(e * a.fps)), n)
-            lag, c = best_lag(mot[i0:i1], env[i0:i1], a.max_lag)
-            res.append((which, lag, c))
+            glag, gc = best_lag(mot[i0:i1], env[i0:i1], a.max_lag)
+            # Within a frame or three: the picture's own response, not a beat away.
+            lag, c = best_lag(mot[i0:i1], env[i0:i1], 3)
+            res.append((which, lag, c, glag, gc))
             if c > 0.12:
                 worst = max(worst, abs(lag))
         rows.append((k + 1, title, res))
         at += L
     for k, title, res in rows:
-        cells = "   ".join(f"{w}: {lag:+d} fr ({lag * 1000 / a.fps:+.0f} ms, r {c:.2f})" + ("" if c > 0.12 else " unclear") for w, lag, c in res)
+        cells = "   ".join(
+            f"{w}: {lag:+d} fr ({lag * 1000 / a.fps:+.0f} ms, r {c:.2f})"
+            + ("" if c > 0.12 else " unclear")
+            + (f" [widest peak {glag:+d} fr, r {gc:.2f}]" if glag != lag else "")
+            for w, lag, c, glag, gc in res)
         print(f"{k:2} {title[:28]:28}  {cells}")
-    print(f"worst |lag| where the picture clearly follows the sound (r > 0.12): {worst} frame(s)")
+    print(f"worst |lag| within +-3 frames where the picture clearly follows the sound (r > 0.12): {worst} frame(s)")
 
 
 if __name__ == "__main__":
