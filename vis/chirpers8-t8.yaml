@@ -2,17 +2,22 @@ about: "A Light Left On, 8 Kept in Mercury: a melody kept alive by being played 
 looks:
   line:
     palette: mercury
+    params: {glint: 0, cool: 0}
+    env: {kick: {on: "track.kick + track.kick2", decay: 260ms}, clap: {on: track.clap, decay: 200ms}}
     vars:
       turn: {integrate: "0.004 + audio.level*0.01"}
     layers:
-      - {type: gradient, radial: 1, spread: 0.12, pos: 0.1, light: 0.3}
-      - {type: scope, mode: circle, size: "1.3 + audio.low*0.3", gain: 2.6, width: 0.004, glow: 0.6, pos: 0.5, spread: 0.1}
+      - {type: gradient, radial: 1, spread: 0.12, pos: 0.1, light: "0.28 + env.kick*0.08 + audio.low*0.1"}
+      - {type: scope, mode: circle, size: "1.3 + audio.low*0.3 + env.kick*0.08", gain: 2.6, width: 0.004, glow: 0.6, pos: 0.5, spread: 0.1}
+      # The light left on, reflected in the mercury: it comes and goes with the sections.
+      - {type: shape, sides: 0, radius: "0.03 + env.clap*0.01", fill: 1, width: 0, glow: 4, x: 0.55, y: 0.32, color: "#ffb347", opacity: "param.glint*(0.5 + env.kick*0.4)"}
       - {type: notes, mode: clock, tracks: [sungv, sungl, sungc, mar, word], radius: 0.75, size: 0.008, life: 4, glow: 0.7, spread: 0.08, pos: 0.55}
     filters:
       - {type: feedback, zoom: 1.006, rotate: var.turn, decay: "0.95 - song.wear*0.1", hue: 0}
       - {type: warp, amount: "0.002 + song.wear*0.012", scale: 3, speed: 0.2}
       - {type: grain, amount: "0.02 + song.wear*0.08"}
       - {type: bloom, threshold: 0.55, amount: 0.5}
+      - {type: tint, palette: [ "#02040a", "#1d3a5a", "#9ec4e6", "#f2f6ff" ], amount: "param.cool*0.6"}
       - {type: vignette, amount: 0.6}
   rows:
     extends: pleasures
@@ -25,7 +30,9 @@ looks:
       - {type: vignette, amount: 0.45}
 scenes:
   - {at: 0, look: line}
+  - {at: 24bar, look: line, params: {glint: 1}, xfade: 4s}
   - {at: 52bar, look: rows, xfade: 3s}
-  - {at: 60bar, look: line, xfade: 4s}
+  - {at: 60bar, look: line, params: {glint: 0, cool: 1}, xfade: 4s}
+  - {at: 84bar, look: line, params: {glint: 1, cool: 0.5}, xfade: 4s}
   - {at: 108bar, look: rows, xfade: 4s}
-  - {at: 136bar, look: line, xfade: 6s}
+  - {at: 136bar, look: line, params: {glint: 1, cool: 0}, xfade: 6s}
