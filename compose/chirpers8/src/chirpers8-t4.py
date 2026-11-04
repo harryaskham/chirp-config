@@ -484,6 +484,45 @@ ALONE = (57, 64)
 ALONE_DRUMS = ("kick", "clap", "hats")
 
 
+# v50 (ROUND TYPE: whole): EACH ALGORITHM ITS OWN DRUMMER - INSERTION PUTS DOWN THE STICKS. The 909 played every
+# sort alike. Insertion sort slides cards - so in insertion (41-64) the drummer plays BRUSHES, on the engine's physical
+# drum (type drum): a felt-beater kick on 1 and the and of 3; the half-time backbeat a brushed snare SWEPT (the
+# bristles dragged across the head for 250 ms, wires buzzing off the resonant head); the eighths brush taps. The same
+# groove, a different pair of hands; the 909 comes back for quicksort. Each 909 hit is kept at velocity 1 (event
+# stable) and its twin plays on the brush tracks (listed last).
+BRUSH = (41, 64)
+_SNARE = {"type": "drum", "beater": "brush", "decay": "0.35s", "sharp": 15, "reso": 1.5, "cavity": 0.3,
+          "reso_level": 0.5, "shell": 0.2, "wires": 0.6, "gap": 0.2, "strike": 0.45}
+BRUSH_KIT = {"about": "t4's brushes: a felt kick, a swept brushed snare, brush taps (physical drum)",
+             "kit": {"k": {"pitch": "A1", "patch": {"synth": {
+                         "layers": [{"type": "drum", "beater": "felt", "decay": "0.5s", "sharp": 60, "reso": 1.06,
+                                     "cavity": 0.25, "reso_level": 0.4, "air": 0.5, "strike": 0.1, "slap": 0.6}],
+                         "filters": ["lowshelf cutoff=70 gain=4dB"],
+                         "amp": {"a": "0.2ms", "d": "450ms", "s": 0, "r": "30ms"}}, "play": {"vel_sens": 0.5}}},
+                     "cp": {"pitch": "D3", "patch": {"synth": {
+                         "layers": [dict(_SNARE, sweep="250ms")],
+                         "amp": {"a": "0.2ms", "d": "600ms", "s": 0, "r": "80ms"}}}},
+                     "h": {"pitch": "D3", "gain": "-4dB", "patch": {"synth": {
+                         "layers": [dict(_SNARE, wires=0.35, strike=0.6, decay="0.2s")],
+                         "amp": {"a": "0.2ms", "d": "250ms", "s": 0, "r": "40ms"}}}}},
+             "fx": ["reverb kind=room decay=0.7s mix=0.12"]}
+BRUSH_TWIN = {"kick": "kick_br", "clap": "clap_br", "hats": "hats_br"}
+
+
+def brushes():
+    a, z = BRUSH
+    for name, twin in BRUSH_TWIN.items():
+        keep, moved = [], []
+        for s, ln, h, v in P[name].ev:
+            if b0(a) <= s < b0(z + 1) and v > 1:
+                moved.append((s, ln, h, v)); keep.append((s, ln, h, 1))
+            else:
+                keep.append((s, ln, h, v))
+        P[name].ev = keep
+        for s, ln, h, v in moved:
+            part(twin).add(s, ln, h, v)
+
+
 def drums_out():
     a, z = ALONE
     for name in ALONE_DRUMS:
@@ -1082,6 +1121,7 @@ def main():
     leaving()                                     # v23: small things leave first
     bass_waits()                                  # v25: the bass waits for the kick
     drums_out()                                   # v47: the algorithm alone
+    brushes()                                     # v50: insertion puts down the sticks (after drums_out)
     handover()                                    # v26: the tuning handover
     dice_and_check()                              # v27: the dice and the check
     scan_and_sweep()                              # v44: the scan and the sweep
@@ -1185,6 +1225,9 @@ def main():
     song["tracks"] += choir_tracks() + unsung_tracks()                                       # v41: listed last
     song["tracks"].append(tr("scan", SCAN_PATCH, gain="-16dB", pan=0.3, sends={"room": "-10dB"}))   # v44: listed last
     song["tracks"].append(slide_track())                                                     # v49: listed last
+    song["tracks"] += [tr("kick_br", BRUSH_KIT, gain="-10dB"),                               # v50: listed last
+                       tr("clap_br", BRUSH_KIT, gain="-23dB", sends={"room": "-8dB"}, fx=["lp cutoff=7k"]),
+                       tr("hats_br", BRUSH_KIT, gain="-9dB", pan=0.1)]
     for tk in song["tracks"]:                     # v48: the lead crumbles with the disorder (order unchanged)
         if tk["name"] == "lead":
             tk["fx"] = list(tk.get("fx") or []) + [CRUMBLE]
