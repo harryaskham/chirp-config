@@ -9,6 +9,7 @@ DJ mix when the release has one), with YouTube chapters for the tracks, an hones
     ytpub.py whoami                  the authorised channel
     ytpub.py list                    original albums, release and upload state
     ytpub.py kit ALBUM [--tracks]    build ~/Music/Chirpers/<album>/youtube/ (video.mp4, description.txt, thumb.jpg)
+    ytpub.py kit ALBUM --video FILE  the same with a ready-made album video (chirp video) in place of the cover still
     ytpub.py upload ALBUM [--privacy private|unlisted|public] [--dry-run]
     ytpub.py publish ALBUM [--privacy public]
     ytpub.py update ALBUM [--dry-run]  re-push an uploaded video's title, description and tags
@@ -200,7 +201,7 @@ def program(rel, rdir, force_tracks=False):
     return audio, chapters(starts), False
 
 
-def build_kit(aid, meta, rdir, force_tracks=False):
+def build_kit(aid, meta, rdir, force_tracks=False, video_file=None):
     rel = release_of(rdir)
     if not rel:
         sys.exit(f"ytpub: {meta['album']} has no release in {rdir}; run chirpers.py release {aid} first")
@@ -219,6 +220,17 @@ def build_kit(aid, meta, rdir, force_tracks=False):
            "-f", "concat", "-safe", "0", "-i", listfile, "-map", "0:v", "-map", "1:a", "-c:v", "libx264",
            "-preset", "veryfast", "-tune", "stillimage", "-crf", "20", "-pix_fmt", "yuv420p", "-threads", "2",
            "-c:a", "pcm_s24le", "-ar", "48000", "-shortest", video]
+    if video_file:
+        # a ready-made album video (`chirp video --album`, 4 Nov) in place of the cover still: its picture is copied as
+        # is and the release's own audio laid under it, as for the still, so the upload carries exactly the release
+        # audio and the chapters land. It must last as long as the program.
+        vd, ad = ffprobe_dur(video_file), sum(ffprobe_dur(p) for p in audio)
+        if abs(vd - ad) > 2.0:
+            os.remove(listfile)
+            sys.exit(f"ytpub: {video_file} lasts {stamp(vd)} but the release program {stamp(ad)}; render it from this release")
+        cmd = ["nice", "-n", "15", "ffmpeg", "-y", "-loglevel", "error", "-i", video_file, "-f", "concat", "-safe", "0",
+               "-i", listfile, "-map", "0:v:0", "-map", "1:a", "-c:v", "copy", "-c:a", "pcm_s24le", "-ar", "48000",
+               "-shortest", video]
     # Lossless audio: ffmpeg's AAC encoder overshot these limited masters by ~4 dB (Soft Concrete: -1.6 -> +2.5 dBFS),
     # and YouTube transcodes anyway, so the upload carries PCM and gets exactly one lossy encode, YouTube's.
     t0 = time.time()
@@ -237,8 +249,10 @@ def build_kit(aid, meta, rdir, force_tracks=False):
         f.write(desc + "\n")
     state_p = os.path.join(out, "meta.json")
     state = json.load(open(state_p)) if os.path.exists(state_p) else {}
+    state.pop("video_source", None)
     state.update({"album_id": aid, "album": meta["album"], "title": video_title(meta, is_mix), "mix": is_mix,
                   "tags": tags(meta), "video": "video.mov", "thumbnail": "thumb.jpg", "duration": round(ffprobe_dur(video), 2),
+                  **({"video_source": os.path.abspath(video_file)} if video_file else {}),
                   "audio_peak_dbfs": round(peak, 2), "release_peak_dbfs": round(src, 2),
                   "built_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())})
     json.dump(state, open(state_p, "w"), indent=1)
@@ -581,7 +595,7 @@ def cmd_list(a):
 
 def cmd_kit(a):
     aid, meta, rdir = resolve(a.album)
-    build_kit(aid, meta, rdir, force_tracks=a.tracks)
+    build_kit(aid, meta, rdir, force_tracks=a.tracks, video_file=a.video)
 
 
 def main(argv=None):
@@ -597,6 +611,8 @@ def main(argv=None):
     s = sub.add_parser("kit")
     s.add_argument("album")
     s.add_argument("--tracks", action="store_true", help="the album's tracks back to back even when it has a mix")
+    s.add_argument("--video", metavar="FILE", help="a ready-made album video (chirp video --album) instead of the cover "
+                   "still: its picture is kept, the release audio laid under it; it must last as long as the album")
     s.set_defaults(fn=cmd_kit)
     s = sub.add_parser("upload")
     s.add_argument("album")
