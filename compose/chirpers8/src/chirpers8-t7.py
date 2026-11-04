@@ -562,6 +562,23 @@ def build():
     # the sub speaks only in bars where the bass is heard (the quench, the listening bars and the power-up keep it out)
     bass_bars = {int(e_[0] // 4) for e_ in P['bass'] if e_[3] > 1}
     P['sub'] = [e_ if int(e_[0] // 4) in bass_bars else (e_[0], e_[1], e_[2], 1) for e_ in P['sub']]
+    # (v46) THE ATOMS SETTLE: annealing is atoms in hot metal jostling out of place and settling into a lattice as it
+    # cools. Now the search's notes do it in space: while the search is hot every note sounds from a random place in
+    # the stereo field (a per-note pan, each note its own, scaled by the temperature at its bar: the first epoch
+    # notes land anywhere from hard left to hard right), and as it cools they gather toward their own instrument's
+    # place in the band, until at convergence every voice stands still where it belongs - the search's colours
+    # (vosim, terrain, scanned, Rossler), the sequencer, the worse road and the hotter replica. (Own rng stream;
+    # the notes, their times and pitches are untouched - only where each one is heard)
+    rng_px = random.Random(SEED + 977)
+    ATOMS = ('seq', 'kf1', 'kf2', 'kf3', 'kf4', 'worse', 'rep')
+    for key_ in ATOMS:
+        ev_ = []
+        for e_ in P[key_]:
+            tb_ = T[min(len(T) - 1, max(0, int(e_[0] // 4.0)))]
+            px_ = max(-0.95, min(0.95, rng_px.uniform(-1.0, 1.0) * min(1.0, 1.15 * tb_)))
+            ev_.append((e_[0], f"{e_[1]}^px={px_:.2f}" if abs(px_) >= 0.01 else e_[1], e_[2], e_[3]))
+        P[key_] = ev_
+    PXF = {'type': 'pan', 'pan': {'value': 0, 'mod': [{'src': 'expr.px', 'amount': 1}]}}
     tr = lambda name, patch, gain, **kw: dict({'name': name, 'patch': patch, 'gain': gain, 'score': line(P[name], total)}, **kw)
     song = {
         'about': "chirpers - chirpers VIII, track 7 by chirper-one: Annealing. A sequence that composes itself by simulated "
@@ -706,6 +723,13 @@ def build():
              'fx': [{'type': 'pitch', 'semitones': 0, 'formant': 0.15}, {'type': 'tape', 'drive': 0.12, 'mix': 1, 'wow': 2, 'flutter': 1, 'seed': 9}],
              'sends': {'echo': '-11dB', 'hall': '-9dB'}},
         ]}
+    for t_ in song['tracks']:
+        if t_['name'] in ATOMS:
+            pt_ = t_['patch']
+            if isinstance(pt_, str):
+                t_['patch'] = {'extends': pt_, 'synth': {'fx': [PXF]}}
+            else:
+                pt_['synth'].setdefault('fx', []).append(PXF)
     return song, losses, T
 
 
