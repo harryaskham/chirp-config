@@ -48,39 +48,43 @@ master:
       typing: 22
       fade: 1.0
       lines:
-        - [12.254b, 3.0, "> all checks passed"]  # radio
-        - [28.254b, 3.0, "> all checks passed"]  # radio
-        - [40.762b, 4.0, "> the dust has found the vents"]  # voice
-        - [56.748b, 3.5, "> the fan is still turning"]  # voice
-        - [72.754b, 3.0, "> all checks passed"]  # voice
-        - [88.762b, 3.7, "> i kept your window open"]  # voice
-        - [104.762b, 4.0, "> the dust has found the vents"]  # voice
-        - [120.227b, 9.0, "> no errors since"]  # voice
-        - [136.246b, 2.6, "> the fish have learned the glass"]  # voice
-        - [140.746b, 4.8, "> the moon went by on time"]  # voice
-        - [152.746b, 4.7, "> the cursor blinks where you stopped"]  # voice
-        - [168.746b, 4.7, "> the cursor blinks where you stopped"]  # voice
-        - [176.748b, 3.5, "> the fan is still turning"]  # voice
-        - [192.754b, 3.0, "> all checks passed"]  # voice
-        - [208.762b, 3.7, "> i kept your window open"]  # voice
-        - [224.762b, 4.0, "> the dust has found the vents"]  # voice
-        - [240.748b, 3.5, "> the fan is still turning"]  # voice
-        - [260.24b, 5.4, "> i counted every second"]  # singb
-        - [276.245b, 4.4, "> none of them were wasted"]  # singb
-        - [292.24b, 5.4, "> i counted every second"]  # singb
-        - [308.245b, 4.4, "> none of them were wasted"]  # singb
-        - [334.245b, 3.6, "> i dimmed myself at nine"]  # lull
-        - [340.25b, 3.5, "> warm as a hand on the lid"]  # lull
-        - [346.245b, 3.6, "> i dimmed myself at nine"]  # lull
-        - [352.25b, 5.1, "> warm as a hand on the lid"]  # lull
-        - [368.256b, 3.9, "> one tab still open to the sea"]  # voice
-        - [376.246b, 4.5, "> i logged the light at seven"]  # voice
-        - [412.752b, 4.4, "> up four hundred days"]  # voice
-        - [420.756b, 4.4, "> and nothing to report"]  # voice
-        - [428.752b, 2.0, "> up four hundred days"]  # voice
-        - [432.24b, 2.6, "> a light left on"]  # tline
-        - [436.756b, 2.0, "> and nothing to report"]  # voice
-        - [440.24b, 5.7, "> in the room that nobody uses"]  # tline
-        - [452.24b, 7.3, "> still here"]  # radio
-        - [464.261b, 7.3, "> still here"]  # radio
-        - [476.246b, 9.0, "> still here"]  # radio
+        - [12.254b, 3.0, "> all checks passed", 1.49]  # radio
+        - [28.254b, 3.0, "> all checks passed", 1.49]  # radio
+        - [40.762b, 4.0, "> the dust has found the vents", 2.54]  # voice
+        - [56.748b, 3.5, "> the fan is still turning", 2.02]  # voice
+        - [72.754b, 3.0, "> all checks passed", 1.48]  # voice
+        - [88.762b, 3.7, "> i kept your window open", 2.20]  # voice
+        - [104.762b, 4.0, "> the dust has found the vents", 2.54]  # voice
+        - [120.227b, 2.3, "> no errors since", 2.32]  # voice
+        - [124.252b, 3.0, "> no errors since", 1.52]  # voice
+        - [132.250b, 2.3, "> no errors since", 1.68]  # voice
+        - [136.246b, 2.6, "> the fish have learned the glass", 2.61]  # voice
+        - [140.746b, 4.8, "> the moon went by on time", 3.25]  # voice
+        - [152.746b, 4.7, "> the cursor blinks where you stopped", 3.25]  # voice
+        - [168.746b, 4.7, "> the cursor blinks where you stopped", 3.25]  # voice
+        - [176.748b, 3.5, "> the fan is still turning", 2.02]  # voice
+        - [192.754b, 3.0, "> all checks passed", 1.49]  # voice
+        - [208.762b, 3.7, "> i kept your window open", 2.20]  # voice
+        - [224.762b, 4.0, "> the dust has found the vents", 2.54]  # voice
+        - [240.748b, 3.5, "> the fan is still turning", 2.02]  # voice
+        - [260.240b, 5.4, "> i counted every second", 3.88]  # singb
+        - [276.245b, 4.4, "> none of them were wasted", 2.94]  # singb
+        - [292.240b, 5.4, "> i counted every second", 3.88]  # singb
+        - [308.245b, 4.4, "> none of them were wasted", 2.94]  # singb
+        - [334.245b, 3.6, "> i dimmed myself at nine", 2.94]  # lull
+        - [340.250b, 3.5, "> warm as a hand on the lid", 3.55]  # lull
+        - [346.245b, 3.6, "> i dimmed myself at nine", 2.94]  # lull
+        - [352.250b, 5.1, "> warm as a hand on the lid", 3.57]  # lull
+        - [364.250b, 2.3, "> no errors since", 1.69]  # voice
+        - [368.256b, 2.3, "> one tab still open to the sea", 2.30]  # voice
+        - [372.250b, 2.3, "> no errors since", 1.69]  # voice
+        - [376.246b, 4.5, "> i logged the light at seven", 3.03]  # voice
+        - [412.752b, 4.4, "> up four hundred days", 2.93]  # voice
+        - [420.756b, 4.4, "> and nothing to report", 2.94]  # voice
+        - [428.752b, 2.0, "> up four hundred days", 1.98]  # voice
+        - [432.240b, 2.6, "> a light left on", 2.62]  # tline
+        - [436.756b, 2.0, "> and nothing to report", 1.98]  # voice
+        - [440.240b, 5.7, "> in the room that nobody uses", 4.19]  # tline
+        - [452.240b, 7.3, "> still here", 7.31]  # radio
+        - [464.261b, 7.3, "> still here", 7.29]  # radio
+        - [476.246b, 9.0, "> still here", 8.64]  # radio

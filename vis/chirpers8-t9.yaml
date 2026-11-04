@@ -49,12 +49,13 @@ master:
       typing: 18
       fade: 1.2
       lines:
-        - [94.259b, 4.6, "every other morning i'm someone else"]  # other
-        - [115.259b, 4.6, "every other morning i'm someone else"]  # other
-        - [266.266b, 3.9, "eight steps and i'm standing where i stood"]  # eight
-        - [286.266b, 3.9, "eight steps and i'm standing where i stood"]  # eight
-        - [452.263b, 1.9, "it comes back in threes"]  # sing
-        - [457.256b, 9.0, "it comes back in threes"]  # sing
-        - [484.263b, 1.9, "it comes back in threes"]  # sing
-        - [489.256b, 9.0, "it comes back in threes"]  # sing
-        - [736.263b, 4.7, "it comes back in threes"]  # sing
+        - [94.259b, 4.6, "every other morning i'm someone else", 3.08]  # other
+        - [115.259b, 4.6, "every other morning i'm someone else", 3.08]  # other
+        - [266.266b, 3.9, "eight steps and i'm standing where i stood", 2.44]  # eight
+        - [286.266b, 3.9, "eight steps and i'm standing where i stood", 2.44]  # eight
+        - [452.263b, 1.9, "it comes back in threes", 1.94]  # sing
+        - [457.256b, 9.0, "it comes back in threes", 9.00]  # sing
+        - [484.263b, 1.9, "it comes back in threes", 1.94]  # sing
+        - [489.256b, 9.0, "it comes back in threes", 9.00]  # sing
+        - [736.263b, 1.9, "it comes back in threes", 1.94]  # sing
+        - [741.256b, 2.4, "it comes back in threes", 0.85]  # sing

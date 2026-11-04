@@ -58,12 +58,12 @@ master:
       typing: 18
       fade: 1.2
       lines:
-        - [232.232b, 6.5, "slow down a touch. speed up a touch. there."]  # bargain
-        - [300.232b, 6.5, "slow down a touch. speed up a touch. there."]  # bargain
-        - [320.232b, 6.5, "slow down a touch. speed up a touch. there."]  # bargain
-        - [400.257b, 2.1, "keep it there, keep it there, keep it there"]  # keep
-        - [404.257b, 2.1, "keep it there, keep it there, keep it there"]  # keep-ack
-        - [408.249b, 2.1, "keep it there"]  # keep
-        - [412.249b, 4.2, "keep it there"]  # keep-ack
-        - [472.25b, 1.5, "keep it there, keep it there, keep it there"]  # choir
-        - [475.252b, 3.5, "keep it there"]  # choir
+        - [232.232b, 6.5, "slow down a touch. speed up a touch. there.", 5.02]  # bargain
+        - [300.232b, 6.5, "slow down a touch. speed up a touch. there.", 5.02]  # bargain
+        - [320.232b, 6.5, "slow down a touch. speed up a touch. there.", 5.02]  # bargain
+        - [400.257b, 2.1, "keep it there, keep it there, keep it there", 2.06]  # keep
+        - [404.257b, 2.1, "keep it there, keep it there, keep it there", 2.06]  # keep-ack
+        - [408.249b, 2.1, "keep it there", 2.06]  # keep
+        - [412.249b, 4.2, "keep it there, keep it there, keep it there", 2.68]  # keep-ack
+        - [472.250b, 1.5, "keep it there, keep it there, keep it there", 1.50]  # choir
+        - [475.252b, 3.5, "keep it there", 1.98]  # choir

@@ -48,19 +48,19 @@ master:
       fade: 1.2
       typing: 16
       lines:
-        - [0.236b, 1.5, "standby amber, the fan's long vowel"]  # voice
-        - [3.035b, 2.9, "the fan's long vowel, and under it, you"]  # voice
-        - [64.245b, 5.2, "the fan's long vowel, and under it, you"]  # voice
-        - [128.261b, 4.6, "a cursor breathing where no one types"]  # voice
-        - [256.234b, 5.0, "slower now, as if the words were yours"]  # vmem
-        - [288.250b, 1.4, "standby amber, the fan's long vowel"]  # voice
-        - [291.000b, 3.0, "the fan's long vowel, and under it, you"]  # voice
-        - [352.250b, 4.8, "a cursor breathing where no one types"]  # voice
-        - [416.250b, 1.4, "standby amber, the fan's long vowel"]  # voice
-        - [419.000b, 3.0, "the fan's long vowel, and under it, you"]  # voice
-        - [448.250b, 1.4, "a light left on, the fan's long vowel"]  # voice
-        - [451.000b, 3.0, "the fan's long vowel, and under it, you"]  # voice
-        - [480.250b, 2.2, "standby amber, the fan's long vowel"]  # sung
-        - [484.244b, 3.3, "the fan's long vowel, and under it, you"]  # sung
-        - [496.250b, 2.2, "standby amber, the fan's long vowel"]  # sung
-        - [500.244b, 3.3, "the fan's long vowel, and under it, you"]  # sung
+        - [0.236b, 1.5, "standby amber, the fan's long vowel", 1.48]  # voice
+        - [3.035b, 2.9, "the fan's long vowel, and under it, you", 1.41]  # voice
+        - [64.245b, 5.2, "the fan's long vowel, and under it, you", 3.72]  # voice
+        - [128.261b, 4.6, "a cursor breathing where no one types", 3.14]  # voice
+        - [256.234b, 5.0, "slower now, as if the words were yours", 3.54]  # vmem
+        - [288.250b, 1.4, "standby amber, the fan's long vowel", 1.45]  # voice
+        - [291.000b, 3.0, "the fan's long vowel, and under it, you", 1.49]  # voice
+        - [352.250b, 4.8, "a cursor breathing where no one types", 3.34]  # voice
+        - [416.250b, 1.4, "standby amber, the fan's long vowel", 1.45]  # voice
+        - [419.000b, 3.0, "the fan's long vowel, and under it, you", 1.49]  # voice
+        - [448.250b, 1.4, "a light left on, the fan's long vowel", 1.45]  # voice
+        - [451.000b, 3.0, "the fan's long vowel, and under it, you", 1.49]  # voice
+        - [480.250b, 2.2, "standby amber, the fan's long vowel", 2.20]  # sung
+        - [484.244b, 3.3, "the fan's long vowel, and under it, you", 1.80]  # sung
+        - [496.250b, 2.2, "standby amber, the fan's long vowel", 2.20]  # sung
+        - [500.244b, 3.3, "the fan's long vowel, and under it, you", 1.80]  # sung

@@ -35,13 +35,13 @@ master:
       color: "#ffd58a"
       typing: 18
       lines:
-        - [52.277b, 1.7, "zero point eight six,"]  # vradio
-        - [55.808b, 4.5, "and it takes the worse road gladly"]  # vradio
-        - [204.270b, 1.9, "zero point six six,"]  # vradio
-        - [208.098b, 4.6, "it has started to keep things"]  # vradio
-        - [356.250b, 4.2, "zero point two eight, nearly"]  # voice
-        - [436.250b, 1.9, "zero"]  # voice
-        - [440.245b, 5.0, "the glass remembers how it cooled"]  # sing
-        - [464.256b, 5.0, "the wrong roads are kept in its shape"]  # sing
-        - [500.250b, 5.0, "zero point eight eight, shaken loose again"]  # vradio
-        - [552.256b, 5.0, "and holds the heat it gave away"]  # sing
+        - [52.277b, 1.7, "zero point eight six,", 1.73]  # vradio
+        - [55.808b, 4.5, "and it takes the worse road gladly", 3.04]  # vradio
+        - [204.270b, 1.9, "zero point six six,", 1.88]  # vradio
+        - [208.098b, 4.6, "it has started to keep things", 3.13]  # vradio
+        - [356.250b, 4.2, "zero point two eight, nearly", 2.68]  # voice
+        - [436.250b, 1.9, "zero", 0.61]  # voice
+        - [440.245b, 5.0, "the glass remembers how it cooled", 3.46]  # sing
+        - [464.256b, 5.0, "the wrong roads are kept in its shape", 3.47]  # sing
+        - [500.250b, 5.0, "zero point eight eight, shaken loose again", 3.49]  # vradio
+        - [552.256b, 5.0, "and holds the heat it gave away", 3.47]  # sing

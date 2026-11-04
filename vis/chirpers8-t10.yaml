@@ -36,12 +36,12 @@ master:
       color: "#f4efe6"
       typing: 14
       lines:
-        - [214.224b, 1.0, "down the well of mirrors, every landing holds a smaller lamp,"]  # toy
-        - [215.985b, 1.9, "and the smallest one is lit"]  # toy
-        - [224.245b, 9.0, "down the well of mirrors, every landing holds a smaller lamp,"]  # sing
-        - [245.770b, 6.4, "and the smallest one is lit"]  # sing
-        - [320.253b, 1.0, "lit is one smallest the and lamp smaller a"]  # sing3
-        - [321.461b, 2.1, "holds landing every mirrors of well the down"]  # sing3
-        - [535.266b, 2.5, "up the well"]  # toy
-        - [543.248b, 9.0, "up the well of mirrors, every landing hands its lamp along,"]  # sing2
-        - [565.048b, 6.3, "and the highest one is on"]  # sing2
+        - [214.224b, 1.0, "down the well of mirrors, every landing holds a smaller lamp,", 0.88]  # toy
+        - [215.985b, 1.9, "and the smallest one is lit", 0.40]  # toy
+        - [224.245b, 9.0, "down the well of mirrors, every landing holds a smaller lamp,", 9.00]  # sing
+        - [245.770b, 6.4, "and the smallest one is lit", 4.94]  # sing
+        - [320.253b, 1.0, "lit is one smallest the and lamp smaller a", 0.60]  # sing3
+        - [321.461b, 2.1, "holds landing every mirrors of well the down", 0.65]  # sing3
+        - [535.266b, 2.5, "up the well", 1.05]  # toy
+        - [543.248b, 9.0, "up the well of mirrors, every landing hands its lamp along,", 9.00]  # sing2
+        - [565.048b, 6.3, "and the highest one is on", 4.80]  # sing2

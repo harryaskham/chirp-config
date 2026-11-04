@@ -47,8 +47,8 @@ master:
       typing: 16
       fade: 1.2
       lines:
-        - [317.248b, 2.6, "four, two, one"]
-        - [323.252b, 2.6, "four, two, one"]
-        - [329.251b, 4.7, "four, two, one"]
-        - [412.248b, 5.1, "odd goes up, even comes down"]
-        - [524.248b, 5.1, "odd goes up, even comes down"]
+        - [317.248b, 2.6, "four, two, one", 2.58]  # refrain
+        - [323.252b, 2.6, "four, two, one", 2.58]  # refrain
+        - [329.251b, 4.7, "four, two, one", 3.20]  # refrain
+        - [412.248b, 5.1, "odd goes up, even comes down", 3.57]  # sung
+        - [524.248b, 5.1, "odd goes up, even comes down", 3.57]  # sung

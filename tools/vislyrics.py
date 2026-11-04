@@ -101,6 +101,7 @@ def main():
     ap.add_argument("--hold", type=float, default=1.5, help="seconds a line stays after it is sung")
     ap.add_argument("--key", type=int, default=4, help="phonemes that must match when a phrase is cut short")
     ap.add_argument("--chirp", default=os.environ.get("CHIRP", "chirp"), help="chirp binary for `plan`")
+    ap.add_argument("--sung", action="store_true", help="type each line over the time it is sung (a 4th value)")
     ap.add_argument("--split", type=int, default=0, help="cut lines longer than this many letters in two")
     ap.add_argument("--longest", type=float, default=9.0, help="seconds a line may stay at most")
     a = ap.parse_args()
@@ -145,12 +146,17 @@ def main():
         for j, part in enumerate(parts):
             if j == 0:
                 beat, show = at, (cut * 60.0 / bpm - 0.1 if cut is not None else secs)
+                sung = (cut if cut is not None else end - at) * 60.0 / bpm
             else:
                 beat = at + cut
                 show = max(secs - cut * 60.0 / bpm, (end - beat) * 60.0 / bpm + a.hold)
                 if i + 1 < len(lines):
                     show = min(show, (lines[i + 1][0] - beat) * 60.0 / bpm - 0.2)
-            print(f'        - [{beat:.3f}b, {max(min(show, a.longest), 1.0):.1f}, {json.dumps(part.lower())}]  # {name}')
+                sung = (end - beat) * 60.0 / bpm
+            show = max(min(show, a.longest), 1.0)
+            # Typed as it is sung: the last letter lands with the last syllable.
+            over = f", {min(sung, show):.2f}" if a.sung else ""
+            print(f'        - [{beat:.3f}b, {show:.1f}, {json.dumps(part.lower())}{over}]  # {name}')
 
 
 if __name__ == "__main__":

@@ -36,16 +36,16 @@ master:
       typing: 18
       fade: 1.2
       lines:
-        - [216.248b, 5.1, "i only know the two beside me"]  # sing
-        - [232.244b, 3.7, "and they are enough"]  # sing-r
-        - [264.248b, 4.3, "the left one is weather"]  # story
-        - [280.248b, 3.8, "the right one is news"]  # story
-        - [408.248b, 4.6, "two rumors and a mirror"]  # story
-        - [424.248b, 4.3, "add up to the next of me"]  # story
-        - [448.256b, 8.4, "i only know the two beside me"]  # hlead
-        - [464.257b, 8.1, "what i become is what we were"]  # hlead
-        - [480.239b, 8.4, "i only know the two beside me"]  # hlead
-        - [496.245b, 6.5, "and they are enough"]  # hlead
-        - [520.248b, 4.0, "when the left goes dark"]  # chip
-        - [536.248b, 3.5, "i keep its count"]  # chip
-        - [608.259b, 6.5, "and they are enough"]  # hlow
+        - [216.248b, 5.1, "i only know the two beside me", 3.59]  # sing
+        - [232.244b, 3.7, "and they are enough", 2.24]  # sing-r
+        - [264.248b, 4.3, "the left one is weather", 2.78]  # story
+        - [280.248b, 3.8, "the right one is news", 2.26]  # story
+        - [408.248b, 4.6, "two rumors and a mirror", 3.06]  # story
+        - [424.248b, 4.3, "add up to the next of me", 2.79]  # story
+        - [448.256b, 8.4, "i only know the two beside me", 7.71]  # hlead
+        - [464.257b, 8.1, "what i become is what we were", 6.63]  # hlead
+        - [480.239b, 8.4, "i only know the two beside me", 7.72]  # hlead
+        - [496.245b, 6.5, "and they are enough", 5.04]  # hlead
+        - [520.248b, 4.0, "when the left goes dark", 2.52]  # chip
+        - [536.248b, 3.5, "i keep its count", 1.99]  # chip
+        - [608.259b, 6.5, "and they are enough", 5.04]  # hlow

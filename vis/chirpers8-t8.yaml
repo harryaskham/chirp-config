@@ -48,11 +48,11 @@ master:
       typing: 16
       fade: 1.4
       lines:
-        - [2.253b, 3.2, "nothing is kept."]  # say
-        - [212.253b, 1.9, "nothing is kept. it only goes around."]  # say2
-        - [216.439b, 3.6, "it only goes around."]  # say2
-        - [304.244b, 1.8, "it comes later on"]  # sungc
-        - [308.244b, 3.6, "it comes later on"]  # sungc-canon
-        - [480.244b, 1.8, "it comes later on"]  # sungl
-        - [484.244b, 3.6, "it comes later on"]  # sungl-canon
-        - [544.253b, 3.6, "it only goes around."]  # say3
+        - [2.253b, 3.2, "nothing is kept. it only goes around.", 1.71]  # say
+        - [212.253b, 1.9, "nothing is kept. it only goes around.", 1.93]  # say2
+        - [216.439b, 3.6, "it only goes around.", 2.08]  # say2
+        - [304.244b, 1.8, "it comes later on", 1.83]  # sungc
+        - [308.244b, 3.6, "it comes later on", 2.14]  # sungc-canon
+        - [480.244b, 1.8, "it comes later on", 1.83]  # sungl
+        - [484.244b, 3.6, "it comes later on", 2.14]  # sungl-canon
+        - [544.253b, 3.6, "it only goes around.", 2.09]  # say3
