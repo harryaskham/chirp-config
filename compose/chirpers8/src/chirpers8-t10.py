@@ -92,7 +92,7 @@ def build():
         for i in range(n):
             bars.append((name, i, tp))
     total = len(bars) * 4.0
-    P = {k: [] for k in ('bell', 'sync', 'pwm', 'bass', 'sub', 'd1', 'd2', 'd3', 'kit', 'pulse', 'glass', 'cs', 'bell0', 'organ', 'hq', 'bentry', 'bb')}
+    P = {k: [] for k in ('bell', 'sync', 'pwm', 'bass', 'sub', 'd1', 'd2', 'd3', 'kit', 'pulse', 'glass', 'cs', 'bell0', 'organ', 'hq', 'bentry', 'bb', 'bed')}
     # the call stack: a seeded walk, one move every four bars in the calls sections
     depth, depths = 0, []
     for b, (s, i, tp) in enumerate(bars):
@@ -190,6 +190,14 @@ def build():
             # an octave down, a principal chorus in its cathedral) - the fugue machine meets the instrument fugues were
             # written for, and its last thirty-two bars stand on its pedal
             P['organ'].append((t0, ','.join(tok(m_) for m_ in [root - 12] + [c - 12 for c in ch]), 3.95, 70))
+        # (v55) THE STACK AS A CROWD: under the calls and the return a bed of Kuramoto oscillators holds each bar's chord
+        # - eight detuned saws to a note, each pulled toward the others' mean phase (Kuramoto, 1975: fireflies,
+        # pendulum clocks, a clapping audience). How hard they pull is the call stack: with the stack empty they lock into
+        # one pure tone, three calls deep they are a shimmering crowd that cannot agree; so every descent smears the
+        # harmony and every return brings it back together, and their filter opens as they agree (the engine's 'sync').
+        # (Not in the exposition, not under the duet Harry singled out, not under the final's organ)
+        if s in ('calls1', 'calls2', 'calls3', 'return') and not (s == 'calls2' and i < 8):
+            P['bed'].append((t0, ','.join(tok(c - 12) for c in ch), 3.9, 70))
         if s == 'expo':
             subj_bar(i, t0, tp, 0, 92, 'bell')                         # the bell from bar 1
             if i >= 4: subj_bar(i - 4, t0, tp, -1, 88, 'sync')          # the sync lead answers four bars later, below
@@ -456,6 +464,10 @@ def build():
     # (the duet's eight bars at the top of the second calls - Harry's 'that is the bar' - stay dry, exactly as they were)
     duet0_ = secs_t['calls2'] / 4.0
     well_pts = [[f'{shift(b_ * 4.0):.2f}b', 0.0 if duet0_ <= b_ < duet0_ + 8 else round(depths[b_] / 3.0, 3)] for b_ in range(len(bars))]
+    BED = {'synth': {'layers': [{'type': 'kuramoto', 'kuramoto': {'count': 8, 'spread': 28, 'wave': 'saw',
+                                  'coupling': {'value': 2.6, 'mod': [{'src': 'auto.well', 'amount': -2.4}]}}}],
+                     'filters': [{'kind': 'lp', 'cutoff': {'value': 500, 'mod': [{'src': 'sync', 'amount': 2.0}]}}, 'hp cutoff=140'],
+                     'amp': {'a': '600ms', 'd': 0, 's': 1, 'r': '1.6s'}}}
     def mirror(fb_=0.13, mix_=0.42):
         return {'type': 'delay', 'time': '3/16', 'ping_pong': True,
                 'feedback': {'value': 0.1, 'mod': [{'src': 'auto.well', 'amount': fb_ * 3.0}]},
@@ -624,6 +636,7 @@ def build():
             # hands over; the machine's reed answers
             tr('cs', 'shaper-reed', '-9dB', pan=-0.45, sends={'hall': '-10dB', 'echo': '-18dB'}),
             tr('organ', 'organ-pipe', '-13dB', pan=0.0),
+            tr('bed', BED, '-18dB', pan=0.0, auto={'well': {'points': well_pts}}, sends={'hall': '-10dB'}),
             tr('pulse', 'clarinet', '-10dB', pan=-0.15, sends={'hall': '-14dB', 'echo': '-16dB'}),
             tr('hq', 'shaper-reed', '-9dB', pan=0.45, sends={'hall': '-12dB', 'echo': '-16dB'}),
             # (v8) THE MACHINE'S OWN PATTERNS: a percussion line written in the engine's Euclidean and chance tokens, a
