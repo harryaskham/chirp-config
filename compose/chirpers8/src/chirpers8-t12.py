@@ -793,6 +793,17 @@ def last_note():
     part("lastnote").add(b0(a), b0(z + 1) - b0(a), m(-EDO), 72)
 
 
+# v50 (ROUND TYPE: whole): THE HEART IS A MODELLED DRUM. machine-kit's kick - a 909 circuit - is played in exactly
+# t10, t11 and t12 (eco's kit-voice palette): the album's last three songs share one pulse. The closer's kick is now a
+# SIMULATED BASS DRUM (the engine's physical drum, chirper-two's kick from metal-kit-phys with a longer body): a plastic
+# beater whose contact shortens as it is struck harder, a membrane ringing at the Bessel zeros, a resonant head coupled
+# to it through the air in the shell, the pitch falling as the head's tension relaxes - the 909's swept punch, but
+# derived from physics instead of drawn as an envelope. Physical modelling: the machine computing the real thing from
+# its equations, the other great dream of computer music. Only k changes; the rest of machine-kit stays.
+PHYS_K = {"patch": {"synth": {"layers": [{"type": "drum", "beater": "plastic", "decay": "0.6s", "sharp": 90, "reso": 1.06, "cavity": 0.25, "reso_level": 0.35, "air": 0.5, "strike": 0.08, "damp": 0.6, "shell": 0.1, "contact": 1.4, "slap": 0.45}], "filters": [{"kind": "peak", "cutoff": {"value": "4.2k", "mod": [{"src": "rand", "amount": 0.1}]}, "q": 1, "gain": {"value": "3dB", "mod": [{"src": "vel", "amount": 5}]}}, "lowshelf cutoff=75 gain=4dB"], "amp": {"a": "0.2ms", "d": "520ms", "s": 0, "r": "25ms", "curve": 1.5}, "drive": 0.35}, "play": {"vel_sens": 0.45}}, "pitch": "G1"}
+T12_KIT = {"extends": "machine-kit", "kit": {"k": PHYS_K}}
+
+
 def ks_harp():
     for bar in range(KS_AT[0], KS_AT[1] + 1):
         root, chord = PLAN[bar]
@@ -1168,8 +1179,8 @@ def main():
             tr("horns", RISSET_BRASS, gain="-13dB", pan=0.1, sends={"hall": "-8dB"}),   # v41: Risset's brass (+3 dB hot)   # v11: REAL lips - a waveguide bore, 3 players
             tr("phantom", "phantom-bass", gain="-8dB"),
             tr("sub", "808", gain="-11dB", fx=[{"type": "phantom", "harmonics": "-6dB", "odd": 0.4, "remove": 0.0}]),
-            tr("kick", "machine-kit", gain="-12dB",
-               fx=[{"type": "filter", "kind": "peak", "cutoff": 55, "q": 0.9, "gain": "4dB"}]),   # v35: the floor
+            tr("kick", T12_KIT, gain="-11dB",
+               fx=[{"type": "filter", "kind": "peak", "cutoff": 47, "q": 0.9, "gain": "7dB"}]),   # v35: the floor; v50: lower and deeper for the drum
             tr("ride", "machine-kit", gain="-9dB", pan=-0.3, sends={"room": "-12dB"}),     # v2
             # v21 (palette round): THE OLD MACHINE VOICE LEARNS TO SING - the prune's 'count the leaves again' (spoken six
             # times, melting from speech into song) was voice-speech, a staple in nine of the album's songs; now the
@@ -1242,7 +1253,7 @@ def main():
                            "notes": counting_notes()})                          # v29: the machine keeps counting
     song["tracks"].append({"name": "machine", "patch": MACHINE_VOICE, "gain": "-14dB", "pan": -0.15,
                            "sends": {"echo": "-8dB", "hall": "-8dB"}, "notes": machine_notes()})   # v31: the machine sings
-    song["tracks"].append({"name": "colony", "patch": "machine-kit", "gain": "-11dB", "at": f"{warp(b0(COLONY[0])):g}b",
+    song["tracks"].append({"name": "colony", "patch": T12_KIT, "gain": "-11dB", "at": f"{warp(b0(COLONY[0])):g}b",
                            "gen": {"type": "life", "width": 16, "height": 4, "init": COLONY_INIT, "poly": 3,
                                    "n": 16 * (COLONY[1] - COLONY[0]), "len": "/16", "notes": "k rs cp h"}})  # v30
     song["tracks"].append({"name": "sap", "patch": SAP_PATCH, "gain": "-16dB", "pan": 0.1,
