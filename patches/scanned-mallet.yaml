@@ -1,0 +1,15 @@
+about: 'Scanned-synthesis mallet (wM, chirpers8): a narrow strike on the ring with no hand, so the sharp shape splits into ripples that run round the ring and smooth away: a struck tone that mellows and shimmers as it dies.'
+synth:
+  layers:
+    - type: scanned
+      decay: 3s
+      scanned:
+        speed: 1.6
+        width: 0.08
+        smooth: 0.5
+  amp:
+    a: 1ms
+    d: 0
+    s: 1
+    r: 600ms
+gain: -2.3dB

@@ -1,0 +1,24 @@
+about: 'Scanned-synthesis pad (wM, chirpers8): Mathews and Verplank''s ring of masses and springs read as a wavetable, held by a slow hand. An LFO on push leans the hand in and out every seven seconds, so the pad brightens and mellows as it breathes.'
+synth:
+  layers:
+    - type: scanned
+      decay: 6s
+      scanned:
+        speed: 0.35
+        width: 0.3
+        smooth: 0.35
+        push:
+          value: 0.45
+          mod:
+            - src: lfo.hand
+              amount: 0.35
+  lfo:
+    hand:
+      wave: sine
+      rate: 0.15hz
+  amp:
+    a: 900ms
+    d: 0
+    s: 1
+    r: 2s
+gain: -7.6dB
