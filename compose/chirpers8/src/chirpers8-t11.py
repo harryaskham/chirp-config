@@ -777,6 +777,34 @@ RATTLE_PATCH = {"synth": {"layers": [{"type": "ks", "ks": {"blend": 0.5, "tune":
                                       "bright": 0.8}], "amp": "1ms 0 1 80ms"}}
 
 
+# v42 (ROUND TYPE: section, w2 0:32-1:03 - A's first half, flagged static and never focused): THE RADIATOR WARMS. As
+# the song proper begins, the heating comes on: the radiator's pipes TICK as the metal expands - irregular, sparse,
+# then crowding as the room warms (one tick a bar at 17, six by 28) and easing to two by 32 - on the sixteenths where
+# the attractor's x runs hottest, so the warming follows the weather. Each tick is a short VOSIM ping (Kaegi and
+# Tempelaars' pulse trains, Utrecht 1978) on a high partial the song never plays - 17, 19, 21, 23 of the lobe's
+# series, the metal's own wonk. Indoors, not a voice.
+RADIATOR = (17, 32)
+RADIATOR_PARTIALS = (17, 19, 21, 23)
+RADIATOR_PATCH = {"synth": {"layers": [{"type": "vosim", "vosim": {"formant": 3200, "pulses": 4, "decay": 0.8}}],
+                            "amp": {"a": "0.5ms", "d": "180ms", "s": 0, "r": "200ms"}}}
+
+
+def radiator_notes():
+    rnd = random.Random(1717)                       # its own generator: the shared draws stay as they were
+    out = []
+    a, z = RADIATOR
+    for bar in range(a, z + 1):
+        k = bar - a
+        count = 1 + k // 2 if bar <= 28 else max(2, 6 - (bar - 28))
+        heat = sorted(range(16), key=lambda s: -abs(state(bar, s)[0]))[:count]
+        lb = lobe_at(bar)
+        for s in sorted(heat):
+            n = rnd.choice(RADIATOR_PARTIALS)
+            out.append({"at": round(b0(bar) + s / 4 + rnd.uniform(0, 0.06), 4), "len": 0.2,
+                        "pitch": mm(partial(n, lb, 0)), "vel": round(rnd.uniform(0.35, 0.75), 3)})
+    return out
+
+
 def rattle_notes():
     out = {"L": [], "R": []}
     a, z = RATTLE
@@ -1108,6 +1136,8 @@ def main():
     for side, pan in (("L", -0.6), ("R", 0.6)):
         song["tracks"].append({"name": "rattle" + side, "patch": RATTLE_PATCH, "gain": "-9dB", "pan": pan,
                                "sends": {"room": "-10dB"}, "notes": rat[side]})
+    song["tracks"].append({"name": "radiator", "patch": RADIATOR_PATCH, "gain": "-10dB", "pan": 0.45,
+                           "sends": {"room": "-8dB"}, "notes": radiator_notes()})              # v42: listed last
     for tk in song["tracks"]:                     # v36: the power cut (after every track is built; order unchanged)
         if tk["name"] in POWER_CUT_TRACKS:
             tk["fx"] = list(tk.get("fx") or []) + ["tapestop stop=auto.pc time=1b curve=1.6"]
