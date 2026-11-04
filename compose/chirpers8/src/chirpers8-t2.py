@@ -43,6 +43,7 @@ COMPUTEWARP = os.environ.get("C8T2_COMPUTEWARP", "0.25")   # WHOLE ROUND: big nu
 COMPUTEFROM = os.environ.get("C8T2_COMPUTEFROM", "A")   # 'A': the intro's paths stay on the grid (the join with t1 is measured over the opening; the intro is the arp's phasing, v64), the lag starts with A
 ARPPHASE = os.environ.get("C8T2_ARPPHASE", "0.25")   # SECTION ROUND (w1, the intro: static): the machine phases - the bytebeat arp runs on its own clock through the intro (the engine's per-track warp): drifting away from the clarinet over eight bars (to ARPPHASE beats late, curve smooth), then back over eight, locking onto the grid exactly as A begins; the tape-loop phasing of process music, done by a clock. Value = beats of drift at its widest
 LPCV = os.environ.get("C8T2_LPCV", "count,refrain")   # WHOLE ROUND: the numbers read by a speaking toy - LPC (engine 78e838c5, LPC-10: the first speech chips; the toy that read arithmetic to children spoke this way). 'count': the voice that reads the numbers in A goes through 5-bit monotone LPC on G3 before its radio; 'count,refrain': and the break's 'four, two, one' (the turn from speech into song) through plain, inflecting LPC, so the counting machine begins to sing before the human-sung lines of C. Notes nudged 0.075 beats early for LPC's ~35 ms (chirper-three's measure)
+SUBSHAPE = os.environ.get("C8T2_SUBSHAPE", "0.5")   # PALETTE: the sub computed - the sub (sub-sine, an album staple: C1-G1, 33-49 Hz, below what most speakers play) becomes a Chebyshev-shaped sub (Le Brun & Arfib 1979, as the song's computed clarinet and brass): harmonics 1, .4, .15 written by a polynomial, so each low note also sounds its octave and twelfth and is heard as a pitch on small speakers, the deepest rumble high-passed at 28 Hz. Value = shaper index
 PLATEHEIGHT = os.environ.get("C8T2_PLATEHEIGHT", "-1.5:6")   # WHOLE ROUND: BIG NUMBERS ARE FAR AWAY - the plate reverb's return (the room most of the song's voices share) rides the number's height (var.height, log2 n / 13): small numbers dry and close, the climbs to 9232 opening into the room, and every fall to 1 coming back to the listener's ear - everything falls to one, here in space. "base_dB:span_dB"
 GLKHARP = os.environ.get("C8T2_GLKHARP", "-12")   # PALETTE: the boot glock (modal-glock, an album staple: the bar that counts the machine up in the intro and rings on the paths) becomes wM's ks-harp - Karplus-Strong (1983) with stretch 3: a wire harp / clavichord, bright and long - the machine's count plucked on wire. Value = gain dB
 CLBR = os.environ.get("C8T2_CLBR", "-12")   # SECTION ROUND (w9, after the last summit: 9232 falling home): THE FALL BLOWN - from the song's last summit (9232, the top of 27's, 31's and 41's walks) down to its landing on 1, the clarinet is doubled by Risset's brass (Chebyshev waveshaping, Le Brun & Arfib 1979) whose brightness is the number's height (var.height, over a floor): it starts blazing at 9232 and goes plain as the numbers halve their way down to 4, 2, 1 - the fall heard as a brass losing its harmonics. A notes-only track. Value = gain dB
@@ -784,6 +785,12 @@ def song():
         pl_ = doc.get("buses", {}).get("plate")
         if isinstance(pl_, dict):
             pl_["fx"] = list(pl_["fx"]) + [{"type": "gain", "gain": {"value": f"{b_:g}dB", "mod": [{"src": "var.height", "amount": sp_}]}}]
+    if SUBSHAPE:
+        for t in doc["tracks"]:
+            if isinstance(t, dict) and t.get("name") == "sub":
+                t["patch"] = {"about": "a Chebyshev-shaped sub: harmonics 1, .4, .15 by polynomial",
+                              "synth": {"layers": [{"type": "shaper", "shaper": {"harmonics": [1, 0.4, 0.15], "index": float(SUBSHAPE)}}],
+                                        "filters": ["hp cutoff=28"], "amp": "6ms 1 1 150ms"}}
     return doc
 
 
