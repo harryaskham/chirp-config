@@ -1,0 +1,18 @@
+about: 'Karplus-Strong nylon string (wM, chirpers8): the 1983 algorithm itself, a burst of noise in a one-period loop smoothed on every pass. A darker burst for a fingered nylon string; velocity brightens it.'
+synth:
+  layers:
+    - type: ks
+      decay: 2.5s
+      bright:
+        value: 0.3
+        mod:
+          - src: vel
+            amount: 0.4
+      ks:
+        blend: 1
+  amp:
+    a: 1ms
+    d: 0
+    s: 1
+    r: 150ms
+gain: -3.6dB

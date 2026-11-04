@@ -1,0 +1,22 @@
+about: 'FOF soprano (wM, chirpers8): Rodet''s CHANT voice (IRCAM, 1979-84), one grain per formant per pitch period and no filters, singing "a" with a 5.5 Hz vibrato, the classic CHANT soprano.'
+synth:
+  layers:
+    - type: fof
+      fof:
+        voice: soprano
+        vowel: a
+  lfo:
+    vib:
+      wave: sine
+      rate: 5.5hz
+  pitch:
+    value: 0
+    mod:
+      - src: lfo.vib
+        amount: 0.3
+  amp:
+    a: 120ms
+    d: 0
+    s: 1
+    r: 300ms
+gain: -2.3dB

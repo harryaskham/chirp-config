@@ -1,0 +1,19 @@
+about: 'Karplus-Strong drum (wM, chirpers8): the paper''s drum variant, blend 0.5, where each sample''s sign flips at random, so the string turns to a noisy pitched skin. A low-pass takes the edge off the hiss. Play it high for a snare, low for toms; the attack is peaky (crest ~18 dB), so it sits at about -5 dBFS peak.'
+synth:
+  layers:
+    - type: ks
+      decay: 450ms
+      bright:
+        value: 0.5
+        mod:
+          - src: vel
+            amount: 0.4
+      ks:
+        blend: 0.5
+  filters: ["lp cutoff=3500 q=0.7"]
+  amp:
+    a: 0ms
+    d: 0
+    s: 1
+    r: 60ms
+gain: 1.6dB

@@ -1,0 +1,25 @@
+about: 'Waveshaping brass (wM, chirpers8): a sine through a Chebyshev polynomial (Le Brun and Arfib, 1979). The drive follows the envelope and velocity, so every note blooms brighter as it swells and louder notes are brassier, after Risset''s trumpet: no filter anywhere.'
+synth:
+  layers:
+    - type: shaper
+      shaper:
+        harmonics: [1, 0.7, 0.5, 0.38, 0.3, 0.22, 0.16, 0.12]
+        index:
+          value: 0.15
+          mod:
+            - src: env.blow
+              amount: 0.6
+            - src: vel
+              amount: 0.25
+  env:
+    blow:
+      a: 60ms
+      d: 400ms
+      s: 0.55
+      r: 150ms
+  amp:
+    a: 40ms
+    d: 300ms
+    s: 0.85
+    r: 150ms
+gain: -1dB

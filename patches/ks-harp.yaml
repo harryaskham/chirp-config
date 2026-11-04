@@ -1,0 +1,15 @@
+about: 'Karplus-Strong harp (wM, chirpers8): the 1983 loop with stretch 3 (only one pass in three smoothed), so the full noise burst rings bright and long, like a wire harp or a clavichord.'
+synth:
+  layers:
+    - type: ks
+      decay: 5s
+      bright: 0.8
+      ks:
+        blend: 1
+        stretch: 3
+  amp:
+    a: 1ms
+    d: 0
+    s: 1
+    r: 400ms
+gain: -5dB
