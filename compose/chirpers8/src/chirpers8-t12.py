@@ -717,6 +717,47 @@ def colony_root_lane():
     return pts
 
 
+# v45 (ROUND TYPE: section, w2 0:33-1:06 - g2's end and the pulse arriving at g3 (22), flagged 'level jump'; w12 left
+# alone; no voice, no groove copy): THE FIREFLIES LEARN THE BEAT. The seed's music box is the light. In g2 the light
+# multiplies into a swarm of twelve FIREFLIES, each flashing at its own rate (tempo scattered +-18%) on its own tone of
+# the bar's 31-EDO chord - a sparkle - and each pulled toward the swarm's mean phase (the KURAMOTO model, 1975: the
+# maths of fireflies and pacemaker cells, integrated here note by note) with a coupling that rises through the
+# critical point, while a gentle pacemaker draws the swarm onto the song's beat. By bar 22 they flash together, chord
+# tones striking on every beat: the pulse is born out of synchrony; the kick takes over as they fade (to 25).
+FIREFLY = (14, 22, 26)          # swarm from, locked by, gone by
+FIREFLY_N = 12
+
+
+def fireflies():
+    rnd = random.Random(31)                         # its own generator: the shared draws stay as they were
+    a, lock, z = FIREFLY
+    omega = [2 * math.pi * (1 + 0.18 * (2 * rnd.random() - 1)) for _ in range(FIREFLY_N)]
+    theta = [2 * math.pi * rnd.random() for _ in range(FIREFLY_N)]
+    t0, t1, tl = b0(a), b0(z), b0(lock)
+    dt = 1 / 64
+    t = t0
+    while t < t1:
+        ramp = min(1.0, (t - t0) / (tl - 2 - t0)) ** 1.5          # the pull creeps up; full two beats before the lock
+        k, f = 1.6 * ramp, 1.5 * ramp                               # the pacemaker just beats the widest detune (1.13)
+        cx = sum(math.cos(x) for x in theta) / FIREFLY_N
+        sy = sum(math.sin(x) for x in theta) / FIREFLY_N
+        r, psi = math.hypot(cx, sy), math.atan2(sy, cx)
+        beat = 2 * math.pi * (t - t0)                               # the pacemaker: one cycle a beat, on the grid
+        bar = int(a + (t - t0) // BAR)
+        root, chord = PLAN[bar]
+        fade = 1.0 if t < tl else max(0.0, 1 - (t - tl) / (t1 - tl))
+        for i in range(FIREFLY_N):
+            d = omega[i] + k * r * math.sin(psi - theta[i]) + f * math.sin(beat - theta[i])
+            new = theta[i] + d * dt
+            if math.floor(new / (2 * math.pi)) > math.floor(theta[i] / (2 * math.pi)):
+                step = root + chord[i % 4] + EDO * (1 + i // 8) - (EDO if i % 8 >= 4 else 0)
+                vel = (38 + 46 * r) * fade
+                if vel > 8:
+                    part("fireflies").add(round(t, 4), 0.2, m(step), vel)
+            theta[i] = new
+        t += dt
+
+
 def ks_harp():
     for bar in range(KS_AT[0], KS_AT[1] + 1):
         root, chord = PLAN[bar]
@@ -1024,6 +1065,7 @@ def main():
     tuner()                                       # v37: the machine checks its tuning
     ks_harp()                                     # v39: the first plucked string regrows
     fof_choir()                                   # v42: the CHANT choir
+    fireflies()                                   # v45: the fireflies learn the beat
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
     song = {
         "about": "chirpers - A Light Left On (chirpers VIII), track 12 by chirper-three: the closer. An orchestra of "
@@ -1188,6 +1230,8 @@ def main():
                                                            (-0.1, 0.25, -0.25, 0.1)):
         song["tracks"].append({"name": name, "patch": fof_patch(voice, vib), "gain": gain, "pan": pan,
                                "sends": {"hall": "-6dB"}, "auto": mouth, "score": part(name).score()})   # v42: listed last
+    song["tracks"].append({"name": "fireflies", "patch": "music-box", "gain": "-17dB", "pan": 0.15,
+                           "sends": {"hall": "-8dB"}, "score": part("fireflies").score()})       # v45: listed last
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print("wrote", OUT, "bars", BARS, "gens", {g: len(lsys(g)) for g in range(7)})
