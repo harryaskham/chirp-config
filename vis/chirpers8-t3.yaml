@@ -25,6 +25,7 @@ master:
   layers:
     - type: captions
       shadow: 1
+      band: 0.85
       width: 0.16
       y: -0.78
       size: 0.062
