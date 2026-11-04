@@ -6,8 +6,8 @@ looks:
     vars: {turn: {integrate: "0.01 + audio.level*0.04"}}
     env: {kick: {on: track.kick, decay: 350ms}, lift: {on: audio.lift, attack: 40ms, decay: 1.6s}}
     layers:
-      - {type: gradient, radial: 1, spread: 0.2, pos: 0.03, light: "0.12 + param.grow*0.006 + audio.low*0.1 + env.lift*0.12"}
-      - {type: rings, res: 0.5, count: 6, speed: "0.3 + audio.level*1.2", tunnel: 1, twist: 0, duty: 0.08, soft: 0.06, spread: 0.3, pos: 0.4, opacity: "0.2 + param.grow*0.025"}
+      - {type: gradient, radial: 1, spread: 0.22, pos: 0.09, light: "0.2 + param.grow*0.004 + audio.low*0.1 + env.lift*0.12"}
+      - {type: rings, res: 0.5, count: 6, speed: "0.3 + audio.level*1.2", tunnel: 1, twist: 0, duty: 0.08, soft: 0.06, spread: 0.3, pos: 0.4, opacity: "0.38 + param.grow*0.02"}
       - {type: shape, sides: 5, star: 0.5, radius: "0.28 + param.grow*0.02 + env.kick*0.03", width: 0.003, count: param.grow, scale: 0.88, turn: 0.0618, rotate: var.turn, spread: 0.025, pos: 0.55}
       - {type: shape, sides: 3, radius: "0.5 + param.grow*0.02", width: 0.002, count: "param.grow/2", scale: 0.9, turn: -0.0618, rotate: "0 - var.turn*1.5", spread: 0.04, pos: 0.7, opacity: 0.6}
       - {type: particles, on: track.kick, count: "param.grow*1.5", speed: 0.6, spread: 1, drag: 1.2, life: 1.6, size: 0.005, soft: 0.7, pos: 0.6, hues: 0.15}

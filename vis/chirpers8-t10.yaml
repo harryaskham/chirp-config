@@ -8,7 +8,7 @@ looks:
     vars:
       depth: {follow: "track.d1.gate + track.d2.gate + track.d3.gate + track.u1.gate + track.u2.gate + track.u3.gate", attack: 100ms, release: 800ms}
     layers:
-      - {type: gradient, angle: 0.25, spread: 0.06, pos: "0.5 - param.deep*0.35", light: "0.07 + param.deep*0.08 + env.kick*0.06 + audio.low*0.06"}
+      - {type: gradient, angle: 0.25, spread: 0.06, pos: "0.5 - param.deep*0.15", light: "0.09 + param.deep*0.08 + env.kick*0.06 + audio.low*0.06"}
       - {type: shape, sides: 4, radius: 0.92, width: 0.003, rotate: 0.125, count: "1 + var.depth*2", scale: 0.84, turn: 0, spread: 0.0, color: "#e8221b", opacity: "0.6 + env.kick*0.4", y: -0.05}
       - {type: notes, mode: roll, tracks: [bell, sync, pwm, bass, d1, d2, d3, u1, u2, u3, sing, sing2, cs], window: 6, playhead: 0.0, size: 0.02, height: 1.5, width: 3.5, spread: 0.5, pos: 0.0, cursor: 0.45, glow: 0.6, palette: ["#f4efe6", "#e8221b"]}
     filters:
