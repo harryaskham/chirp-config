@@ -856,6 +856,81 @@ KETTLE_WHISTLE = {"synth": {"layers": [{"wave": "sine"}],
 GLASS_WORD = 3                  # 'G L AE1 S' in SING_B
 
 
+# v48 (ROUND TYPE: section, w6 2:40-3:12 - the break, the storm's eye, never focused): THE CLOCK IN THE EYE. When a
+# storm drops for a moment you hear the house's clock. A pendulum clock now ticks through the break - in REAL SECONDS
+# (one tick a second, found by integrating the weather's own tempo map), so the room's clock drifts against the
+# music's: two clocks in one house, neither quite the other's. A little escapement wobble (+-6 ms). At the break's
+# middle (bar 89) it strikes four, on a struck bell of the song's own (hum, prime, tierce, fifth, octave) at C#3 - the
+# C# lobe's fourth partial (F# pulled the song toward the F#-centred closer). No chime tune: four plain strokes. The storm returns at 97 over it.
+CLOCK = (81, 97)
+CLOCK_STRIKE = (89, 4)
+CLOCK_KIT = {"about": "t11's clock: tick and tock, band-passed clicks with a short wooden ring",
+             "kit": {p: {"pitch": "C4", "patch": {"synth": {
+                         "layers": [{"type": "noise", "color": "white"}, {"wave": "sine", "ratio": r, "level": "-14dB"}],
+                         "filters": [f"bp cutoff={c} q=4"],
+                         "amp": {"a": "0.2ms", "d": "22ms", "s": 0, "r": "15ms"}}}}
+                     for p, c, r in (("t", "3.2k", 2.5), ("k", "2.3k", 1.8))},
+             "fx": ["reverb mix=0.12 size=0.3"]}
+CLOCK_BELL = {"about": "t11's clock bell: a struck bell, hum to octave",
+              "synth": {"layers": [{"type": "additive", "partials": [[0.5, 0.55], [1, 1], [1.19, 0.45], [1.5, 0.3],
+                                                                    [2, 0.38], [2.52, 0.16], [3.01, 0.1]],
+                                    "damp": 0.9}],
+                        "amp": {"a": "1ms", "d": "4.5s", "s": 0, "r": "1.5s"}},
+              "fx": ["reverb mix=0.25 size=0.6"]}
+
+
+def beat_clock(tempo):
+    """Return (sec_of_beat, beat_of_sec) for a tempo list of {at, bpm, ramp}, by integrating in small steps."""
+    pts = [(float(str(x["at"]).rstrip("b")), float(x["bpm"]), bool(x.get("ramp"))) for x in tempo]
+    def bpm_at(b):
+        prev = pts[0]
+        for q in pts[1:]:
+            if b < q[0]:
+                if q[2]:
+                    return prev[1] + (q[1] - prev[1]) * (b - prev[0]) / max(1e-9, q[0] - prev[0])
+                return prev[1]
+            prev = q
+        return prev[1]
+    step, beats, secs, s, b = 0.01, [0.0], [0.0], 0.0, 0.0
+    end = b0(BARS + 2)
+    while b < end:
+        s += 60.0 / bpm_at(b + step / 2) * step
+        b += step
+        beats.append(b); secs.append(s)
+    def beat_of_sec(x):
+        lo, hi = 0, len(secs) - 1
+        while hi - lo > 1:
+            mid = (lo + hi) // 2
+            lo, hi = (mid, hi) if secs[mid] <= x else (lo, mid)
+        f = (x - secs[lo]) / max(1e-9, secs[hi] - secs[lo])
+        return beats[lo] + f * (beats[hi] - beats[lo])
+    def sec_of_beat(x):
+        i = min(len(beats) - 2, int(x / step))
+        return secs[i] + (x - beats[i]) / step * (secs[i + 1] - secs[i])
+    return sec_of_beat, beat_of_sec
+
+
+def clock_tracks(tempo):
+    sec_of_beat, beat_of_sec = beat_clock(tempo)
+    rnd = random.Random(1981)
+    a, z = CLOCK
+    s0, s1 = sec_of_beat(b0(a)), sec_of_beat(b0(z))
+    ticks, n, x = [], 0, math.ceil(s0)
+    while x < s1:
+        fade = min(1.0, (x - s0) / 2.0, (s1 - x) / 2.0)
+        bt = beat_of_sec(x + rnd.uniform(-0.006, 0.006))
+        ticks.append({"at": round(bt, 4), "len": 0.25, "pitch": "t" if n % 2 == 0 else "k",
+                      "vel": round(max(0.2, 0.75 * fade), 3)})
+        n += 1; x += 1.0
+    sb, count = CLOCK_STRIKE
+    first = math.ceil(sec_of_beat(b0(sb)))
+    strikes = [{"at": round(beat_of_sec(first + 2.0 * k), 4), "len": 4, "pitch": mm(partial(4, +1)), "vel": 0.8}
+               for k in range(count)]
+    return ([{"name": "clock", "patch": CLOCK_KIT, "gain": "-14dB", "pan": -0.35, "notes": ticks},
+             {"name": "clockbell", "patch": CLOCK_BELL, "gain": "-16dB", "pan": -0.35, "sends": {"hall": "-10dB"},
+              "notes": strikes}])
+
+
 def rim_track():
     bar = SUNG_AT[1]
     at, ln, ph, vel, f0 = SING_B[GLASS_WORD]
@@ -1215,6 +1290,7 @@ def main():
                            "sends": {"room": "-8dB"}, "notes": radiator_notes()})              # v42: listed last
     song["tracks"] += kettle_tracks()                                                          # v44: listed last
     song["tracks"].append(rim_track())                                                         # v46: listed last
+    song["tracks"] += clock_tracks(song["tempo"])                                              # v48: listed last
     for tk in song["tracks"]:                     # v36: the power cut (after every track is built; order unchanged)
         if tk["name"] in POWER_CUT_TRACKS:
             tk["fx"] = list(tk.get("fx") or []) + ["tapestop stop=auto.pc time=1b curve=1.6"]

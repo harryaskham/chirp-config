@@ -12754,6 +12754,351 @@
      "vel": 0.7
     }
    ]
+  },
+  {
+   "name": "clock",
+   "patch": {
+    "about": "t11's clock: tick and tock, band-passed clicks with a short wooden ring",
+    "kit": {
+     "t": {
+      "pitch": "C4",
+      "patch": {
+       "synth": {
+        "layers": [
+         {
+          "type": "noise",
+          "color": "white"
+         },
+         {
+          "wave": "sine",
+          "ratio": 2.5,
+          "level": "-14dB"
+         }
+        ],
+        "filters": [
+         "bp cutoff=3.2k q=4"
+        ],
+        "amp": {
+         "a": "0.2ms",
+         "d": "22ms",
+         "s": 0,
+         "r": "15ms"
+        }
+       }
+      }
+     },
+     "k": {
+      "pitch": "C4",
+      "patch": {
+       "synth": {
+        "layers": [
+         {
+          "type": "noise",
+          "color": "white"
+         },
+         {
+          "wave": "sine",
+          "ratio": 1.8,
+          "level": "-14dB"
+         }
+        ],
+        "filters": [
+         "bp cutoff=2.3k q=4"
+        ],
+        "amp": {
+         "a": "0.2ms",
+         "d": "22ms",
+         "s": 0,
+         "r": "15ms"
+        }
+       }
+      }
+     }
+    },
+    "fx": [
+     "reverb mix=0.12 size=0.3"
+    ]
+   },
+   "gain": "-14dB",
+   "pan": -0.35,
+   "notes": [
+    {
+     "at": 321.5189,
+     "len": 0.25,
+     "pitch": "t",
+     "vel": 0.286
+    },
+    {
+     "at": 323.5265,
+     "len": 0.25,
+     "pitch": "k",
+     "vel": 0.661
+    },
+    {
+     "at": 325.5288,
+     "len": 0.25,
+     "pitch": "t",
+     "vel": 0.75
+    },
+    {
+     "at": 327.5172,
+     "len": 0.25,
+     "pitch": "k",
+     "vel": 0.75
+    },
+    {
+     "at": 329.4817,
+     "len": 0.25,
+     "pitch": "t",
+     "vel": 0.75
+    },
+    {
+     "at": 331.46,
+     "len": 0.25,
+     "pitch": "k",
+     "vel": 0.75
+    },
+    {
+     "at": 333.4327,
+     "len": 0.25,
+     "pitch": "t",
+     "vel": 0.75
+    },
+    {
+     "at": 335.4172,
+     "len": 0.25,
+     "pitch": "k",
+     "vel": 0.75
+    },
+    {
+     "at": 337.3678,
+     "len": 0.25,
+     "pitch": "t",
+     "vel": 0.75
+    },
+    {
+     "at": 339.3504,
+     "len": 0.25,
+     "pitch": "k",
+     "vel": 0.75
+    },
+    {
+     "at": 341.3295,
+     "len": 0.25,
+     "pitch": "t",
+     "vel": 0.75
+    },
+    {
+     "at": 343.32,
+     "len": 0.25,
+     "pitch": "k",
+     "vel": 0.75
+    },
+    {
+     "at": 345.3132,
+     "len": 0.25,
+     "pitch": "t",
+     "vel": 0.75
+    },
+    {
+     "at": 347.3018,
+     "len": 0.25,
+     "pitch": "k",
+     "vel": 0.75
+    },
+    {
+     "at": 349.3233,
+     "len": 0.25,
+     "pitch": "t",
+     "vel": 0.75
+    },
+    {
+     "at": 351.3159,
+     "len": 0.25,
+     "pitch": "k",
+     "vel": 0.75
+    },
+    {
+     "at": 353.3356,
+     "len": 0.25,
+     "pitch": "t",
+     "vel": 0.75
+    },
+    {
+     "at": 355.3538,
+     "len": 0.25,
+     "pitch": "k",
+     "vel": 0.75
+    },
+    {
+     "at": 357.3601,
+     "len": 0.25,
+     "pitch": "t",
+     "vel": 0.75
+    },
+    {
+     "at": 359.3394,
+     "len": 0.25,
+     "pitch": "k",
+     "vel": 0.75
+    },
+    {
+     "at": 361.3371,
+     "len": 0.25,
+     "pitch": "t",
+     "vel": 0.75
+    },
+    {
+     "at": 363.3096,
+     "len": 0.25,
+     "pitch": "k",
+     "vel": 0.75
+    },
+    {
+     "at": 365.2903,
+     "len": 0.25,
+     "pitch": "t",
+     "vel": 0.75
+    },
+    {
+     "at": 367.2386,
+     "len": 0.25,
+     "pitch": "k",
+     "vel": 0.75
+    },
+    {
+     "at": 369.1894,
+     "len": 0.25,
+     "pitch": "t",
+     "vel": 0.75
+    },
+    {
+     "at": 371.1647,
+     "len": 0.25,
+     "pitch": "k",
+     "vel": 0.75
+    },
+    {
+     "at": 373.1279,
+     "len": 0.25,
+     "pitch": "t",
+     "vel": 0.75
+    },
+    {
+     "at": 375.1204,
+     "len": 0.25,
+     "pitch": "k",
+     "vel": 0.75
+    },
+    {
+     "at": 377.1092,
+     "len": 0.25,
+     "pitch": "t",
+     "vel": 0.75
+    },
+    {
+     "at": 379.1075,
+     "len": 0.25,
+     "pitch": "k",
+     "vel": 0.75
+    },
+    {
+     "at": 381.125,
+     "len": 0.25,
+     "pitch": "t",
+     "vel": 0.536
+    },
+    {
+     "at": 383.1376,
+     "len": 0.25,
+     "pitch": "k",
+     "vel": 0.2
+    }
+   ]
+  },
+  {
+   "name": "clockbell",
+   "patch": {
+    "about": "t11's clock bell: a struck bell, hum to octave",
+    "synth": {
+     "layers": [
+      {
+       "type": "additive",
+       "partials": [
+        [
+         0.5,
+         0.55
+        ],
+        [
+         1,
+         1
+        ],
+        [
+         1.19,
+         0.45
+        ],
+        [
+         1.5,
+         0.3
+        ],
+        [
+         2,
+         0.38
+        ],
+        [
+         2.52,
+         0.16
+        ],
+        [
+         3.01,
+         0.1
+        ]
+       ],
+       "damp": 0.9
+      }
+     ],
+     "amp": {
+      "a": "1ms",
+      "d": "4.5s",
+      "s": 0,
+      "r": "1.5s"
+     }
+    },
+    "fx": [
+     "reverb mix=0.25 size=0.6"
+    ]
+   },
+   "gain": "-16dB",
+   "pan": -0.35,
+   "sends": {
+    "hall": "-10dB"
+   },
+   "notes": [
+    {
+     "at": 353.3434,
+     "len": 4,
+     "pitch": "m49.000",
+     "vel": 0.8
+    },
+    {
+     "at": 357.355,
+     "len": 4,
+     "pitch": "m49.000",
+     "vel": 0.8
+    },
+    {
+     "at": 361.3333,
+     "len": 4,
+     "pitch": "m49.000",
+     "vel": 0.8
+    },
+    {
+     "at": 365.2785,
+     "len": 4,
+     "pitch": "m49.000",
+     "vel": 0.8
+    }
+   ]
   }
  ],
  "buses": {
