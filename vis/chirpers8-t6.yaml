@@ -8,7 +8,7 @@ looks:
     vars:
       warm: {follow: "track.voice.level + track.singb.level + track.talk.level", attack: 60ms, release: 1.2s}
     layers:
-      - {type: noise, scale: 0.9, speed: "0.02 + param.temp*0.08 + song.drift*0.1", octaves: 4, warp: "0.8 + param.temp*1.6", spread: "0.4 + param.temp*0.3", threshold: 0.35, pos: "0.05 + song.drift*0.2 + param.chorus*0.03", light: "0.1 + param.chorus*0.02 + var.warm*0.08 + env.kick*0.1 + audio.low*0.08"}
+      - {type: noise, scale: 0.9, speed: "0.035 + param.temp*0.08 + song.drift*0.1", octaves: 4, warp: "0.8 + param.temp*1.6", spread: "0.4 + param.temp*0.3", threshold: 0.35, pos: "0.05 + song.drift*0.2 + param.chorus*0.03", light: "0.13 + param.chorus*0.02 + var.warm*0.08 + env.kick*0.1 + audio.low*0.08"}
       - {type: notes, mode: stars, tracks: [keys, bell, mbox, pad], size: 0.006, life: 3, glow: 0.8, spread: 0.15, pos: 0.45, height: 1.6}
       - {type: text, text: "UPTIME {time}", x: -1.62, y: 0.86, align: left, size: 0.045, color: "#e8a33a", opacity: 0.85, glow: 0.2}
       - {type: text, text: "NO ERRORS", x: 1.62, y: 0.86, align: right, size: 0.045, color: "#e8a33a", opacity: "0.4 + time.barphase*0.0", glow: 0.2}
