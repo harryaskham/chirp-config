@@ -2,14 +2,14 @@ about: "A Light Left On, 1 Echolalia: a voice learning to speak back. Its wavefo
 looks:
   echo:
     palette: lattice
-    params: {sides: 5, echo: 0.86, bright: 0.6}
+    params: {sides: 5, echo: 0.86, bright: 0.6, hue: 0}
     vars:
       turn: {integrate: "0.01 + audio.level*0.03"}
       breath: {follow: "track.voice.level + track.sung.level + track.voice2.level", attack: 40ms, release: 900ms}
     layers:
-      - {type: gradient, radial: 1, spread: 0.18, pos: 0.02, light: "0.35 + audio.low*0.2"}
-      - {type: shape, sides: param.sides, radius: 0.62, width: 0.0025, rotate: var.turn, pos: 0.55, opacity: "0.35 + var.breath*0.4", glow: 0}
-      - {type: notes, mode: clock, tracks: [voice, sung, voice2, voice3, vib], radius: 0.62, size: 0.011, life: 2.5, glow: 0.7, spread: 0.06, pos: 0.6}
+      - {type: gradient, radial: 1, spread: 0.22, pos: 0.02, light: "0.36 + audio.low*0.22 + var.breath*0.1"}
+      - {type: shape, sides: param.sides, radius: 0.62, width: 0.003, rotate: var.turn, pos: 0.55, opacity: "0.45 + var.breath*0.4", glow: 0.4}
+      - {type: notes, mode: clock, tracks: [voice, sung, voice2, voice3, vib], radius: 0.62, size: 0.011, life: 2.5, glow: 0.7, spread: "0.02 + param.sides*0.003", pos: 0.6}
       - {type: scope, mode: circle, size: "1.0 + var.breath*0.25", gain: 2.2, width: 0.003, glow: 0.5, pos: 0.58, spread: 0.08, opacity: param.bright}
       - {type: particles, on: track.chip1, count: 14, speed: 0.25, life: 2.2, drag: 1.0, size: 0.004, jitter: 0.5, soft: 0.8, pos: 0.7, hues: 0.1, opacity: 0.7}
       - {type: particles, on: track.babble, count: 6, speed: 0.15, life: 1.6, size: 0.003, jitter: 0.9, pos: 0.45, opacity: 0.5}
@@ -17,6 +17,7 @@ looks:
       - {type: camera, zoom: "1 + scene.progress*0.08", rotate: "scene.progress*0.02"}
       - {type: feedback, zoom: 0.985, rotate: "-0.004", decay: param.echo, hue: 0}
       - {type: bloom, threshold: 0.42, amount: "0.6 + var.breath*0.6", radius: 0.04}
+      - {type: hue, shift: param.hue}
       - {type: vignette, amount: 0.6}
   score:
     extends: roll
@@ -30,13 +31,13 @@ looks:
       - {type: bloom, threshold: 0.45, amount: 0.7}
       - {type: vignette, amount: 0.55}
 scenes:
-  - {at: 0, look: echo, params: {sides: 5, echo: 0.8, bright: 0.4}}
-  - {at: 8bar, look: echo, params: {sides: 12, echo: 0.86}, xfade: 3s}
-  - {at: 32bar, look: echo, params: {sides: 24, echo: 0.9, bright: 0.7}, xfade: 3s}
+  - {at: 0, look: echo, params: {sides: 5, echo: 0.8, bright: 0.45, hue: 0}}
+  - {at: 8bar, look: echo, params: {sides: 12, echo: 0.86, hue: -0.03}, xfade: 3s}
+  - {at: 32bar, look: echo, params: {sides: 24, echo: 0.9, bright: 0.7, hue: -0.07}, xfade: 3s}
   - {at: 64bar, look: score, xfade: 4s}
-  - {at: 72bar, look: echo, params: {sides: 96, echo: 0.93, bright: 0.8}, xfade: 4s}
+  - {at: 72bar, look: echo, params: {sides: 96, echo: 0.93, bright: 0.8, hue: 0.5}, xfade: 4s}
   - {at: 104bar, look: score, xfade: 3s}
-  - {at: 120bar, look: echo, params: {sides: 96, echo: 0.95, bright: 0.3}, xfade: 6s}
+  - {at: 120bar, look: echo, params: {sides: 96, echo: 0.95, bright: 0.35, hue: 0}, xfade: 6s}
 master:
   layers:
     - type: captions
