@@ -63,6 +63,7 @@ OUTKS = os.environ.get("C8T5_OUTKS", "0:-14")   # SECTION ROUND (w9, the outro: 
 ROBOCHOIR = os.environ.get("C8T5_ROBOCHOIR", "-12")   # SECTION ROUND (the agreement sung, C's last bars): the machine sings too - the three-voice choir that sings 'keep it there' together at C's end gets a fourth voice, a vocoder twin of its middle voice: the same words shaping a held E minor chord of saws (E2 B2 E3 G3) band by band. Agreeing on a speed: humans and the machine sing the deal together. Value = gain dB
 GTRRUSH = os.environ.get("C8T5_GTRRUSH", "0.25")   # SECTION ROUND (w2, the intro's end into A: level jump): the first proposal is rushed - with no kick under it yet, the guitar's opening calls in A run ahead of the band (its own clock: GTRRUSH beats early by A's downbeat), settling back onto the grid over A's first eight bars, so it is exactly on time the bar the kick comes in. Value = beats early
 SWARM = os.environ.get("C8T5_SWARM", "-16")   # WHOLE ROUND: THE SWARM AGREES - wM's kuramoto layer (engine 63e9a72a: Kuramoto 1975, the textbook model of synchrony - fireflies, pacemaker cells, an audience's applause falling into step): the keys' chords doubled by a swarm of 12 saws spread 40 cents round each note, each pulled toward the swarm's mean phase by a coupling on a lane - 0.3 (a crowd, beating like a detuned chorus) through the intro, A and B while the machines disagree, rising through the retrain, 3 (a locked core, the note found out of the crowd) from C on: the song's agreement made in the oscillators themselves. Value = gain dB
+ORIGINATE = os.environ.get("C8T5_ORIGINATE", "8:12")   # SECTION ROUND (w1, the intro: flagged static): THE OTHER MACHINE ANSWERS - the carrier's blips are a V.21 modem's ANSWER channel (1650/1850 Hz mark/space); halfway through the intro the ORIGINATE channel joins (980/1180 Hz, ITU-T V.21, 1964: the same bits a channel lower), its twin on the same radio, orbit and filter, so the intro is two machines talking over each other before the groove - the song's two parties heard first as the oldest modem pair. Intro only. Value 'a:b' = intro bars
 SYNCBLOOM = os.environ.get("C8T5_SYNCBLOOM", "500")   # WHOLE ROUND: AGREEMENT OPENS THE SOUND - both swarms (keys v70, guitar v71) now filter themselves by their own measured coherence (wM's 'sync' mod source, engine b8f9d6b1: 0.3 a crowd ... 1 locked): a lowpass whose cutoff rises 2.5 octaves with sync, so the disagreeing crowd of A and B is muffled, as if heard through a wall, and the sound blooms open exactly as fast as the swarm actually agrees through the retrain and C - the brightness is the agreement, measured, not drawn (and it offsets a locked swarm's own darkening: centroid 390 -> 170 Hz). Value = cutoff Hz at sync 0
 RISSETHOLD = os.environ.get("C8T5_RISSETHOLD", "-18")   # SECTION ROUND (w8, C's last sixteen bars: flagged static, little new vs w7): THE AGREED SPEED, HELD - once the swarms have locked, a single E2 is held under the groove for C's last sixteen bars in Jean-Claude Risset's harmonic arpeggio (Mutations, 1969; wM's library risset-arpeggio, committed 9bc19360, inlined): five ten-harmonic copies a hair apart, so the held note slowly plays its own overtones one after another - motion inside a held agreement, five voices that agreed and still breathe against each other. Kept away from both joins (the carrier attempt rewrote them). Value = gain dB
 ACKTONE = os.environ.get("C8T5_ACKTONE", "sine")   # SECTION ROUND (w7/w8, C after the agreement: flagged static): THE MACHINE ANSWERS IN ITS OWN TONGUE - the acknowledgement that follows 'keep' (keep-ack) goes through Trevor Wishart's waveset substitution (CDP; engine a5cb622d): every cycle of the voice swapped for one clean cycle as long and as loud, so the reply is a pure buzz that follows the speech's pitch and loudness exactly - the words gone, their contour kept: a modem's acknowledgement tone shaped like a sentence. Value: sine or square
@@ -772,6 +773,31 @@ def song():
         for t_ in doc["tracks"]:
             if isinstance(t_, dict) and t_.get("name") in ("swarm", "swarm-gtr") and isinstance(t_.get("patch"), dict):
                 t_["patch"]["synth"]["filters"] = [{"kind": "lp", "q": 0.8, "cutoff": {"value": float(SYNCBLOOM), "mod": [{"src": "sync", "amount": 2.5}]}}]
+    if ORIGINATE:
+        oa_, ob_ = (int(x) for x in ORIGINATE.split(":"))
+        ca_ = next((t_ for t_ in doc["tracks"] if isinstance(t_, dict) and t_.get("name") == "carrier"), None)
+        if ca_ is not None and isinstance(ca_.get("score"), str):
+            import re as _re
+            t0_, t1_ = oa_ * 4, ob_ * 4
+            out_, tt_ = [], 0.0
+            for tok_ in ca_["score"].split():
+                m_ = _re.match(r"^(\d+(?:\.\d+)?)hz/(\d+(?:\.\d+)?)b(@\d+)?$", tok_)
+                r_ = _re.match(r"^R/(\d+(?:\.\d+)?)b$", tok_)
+                if m_:
+                    d_ = float(m_.group(2))
+                    f_ = {1650.0: 980, 1850.0: 1180}.get(float(m_.group(1)), None)
+                    out_.append(f"{f_}hz/{m_.group(2)}b{m_.group(3) or ''}" if (f_ and t0_ <= tt_ < t1_) else f"R/{m_.group(2)}b")
+                    tt_ += d_
+                elif r_:
+                    out_.append(tok_); tt_ += float(r_.group(1))
+                else:
+                    out_.append(tok_)
+            tw_ = json.loads(json.dumps(ca_))
+            tw_.update(name="carrier-orig", score=" ".join(out_), pan=-0.3)
+            for fx_ in tw_.get("fx", []):
+                if isinstance(fx_, dict) and fx_.get("type") == "radio":
+                    fx_["hiss"] = "-90dB"; fx_["whistle"] = "-90dB"
+            doc["tracks"].append(tw_)
     return doc
 
 
