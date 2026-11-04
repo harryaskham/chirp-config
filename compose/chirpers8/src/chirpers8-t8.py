@@ -80,6 +80,7 @@ DECFIX = os.environ.get("C8T8_DECFIX", "")   # v56's decay double peaks at lane 
 SUNGMID = os.environ.get("C8T8_SUNGMID", "16")   # WHOLE ROUND on the singing: the voice is heard before E - 'it comes later on' (the line sung at E bar 12) is first sung in the middle of the song, at C bar SUNGMID, in C's own D minor (E's is lifted a step), with its canon a bar behind a third below (v69): the line promises its own return, and comes later on. Value = bar of C
 WORDLEVEL = os.environ.get("C8T8_WORDLEVEL", "3")   # WHOLE ROUND: the word recedes as it decays - the word's orbit (radius 2 + 8 x the decay lane, v60) gets the engine's orbit `level` (8f150090: the distance that plays at full level; farther is fainter, about 1/distance): within WORDLEVEL metres it is as it was; as the memory decays and the orbit widens to 10 m the word grows faint as well as far, then each refresh brings it back up close and full. Value = metres
 CANON = os.environ.get("C8T8_CANON", "4")   # WHOLE ROUND on the singing: the memory sings it back - every sung line (sungl at E bar 12, sungv/sungv2 in the outro) is followed by itself CANON beats later, a diatonic third below in D minor on the stretched octave, 6 dB under, panned across, sent hard into the line: a delay line's echo that returns transposed, so each line becomes a two-part canon with its own recall
+FAREND = os.environ.get("C8T8_FAREND", "-14")   # SECTION ROUND (w3, A's second half: 'little new vs w2'): READ FROM THE FAR END - a mercury tank has a transducer at each end; through A's second half (bars 18-35) the stored word is also read back from the other end, each bar of it in retrograde (the same notes, the bar's line and rhythm reversed) on wM's ks-harp (Karplus-Strong, stretch 3: a wire harp), quiet and on the other side - the word and its mirror in the one medium. Value = gain dB
 ZEROSCAN = os.environ.get("C8T8_ZEROSCAN", "-18")   # PALETTE: the zeros struck in the medium - the word's unset bits (E bars 4-19, v-early) moved from the library's glass chime (fb-crystal) to wM's scanned-mallet (engine 502b6b8d): a narrow strike on a ring of masses and springs with no hand, the sharp shape splitting into ripples that run round the ring and smooth away - in a mercury delay-line memory a bit IS a pulse running round the medium, so each zero is now heard as one, shimmering and mellowing as it circulates. Value = gain dB
 LASTCHORD = os.environ.get("C8T8_LASTCHORD", "")   # SECTION ROUND (w10, the end; the join to t9): THE LAST CHORD HANDED ON - t9 opens on a D minor chord (A3 D4 F4 A4 ... by its spectrum's peaks), this song's own key, and the join measured 6.96 dB apart (t8's tail thin at 213 Hz and bright at 3-4 kHz). Now over the last two bars the memory holds that chord in plain sines, softly, its 2 s release inside the song's own tail (a longer one only lengthened the file into hiss), while the master's closing low-pass goes a little further (C8T8_DARKOCT octaves, 3.4 before): t9 begins inside the chord t8 leaves. Value = gain dB
 RIMKS = os.environ.get("C8T8_RIMKS", "-12")   # PALETTE: the pulse in the mercury - the rimshot that ticks through the song (the 909's, an album staple in three songs) becomes a tuned drop, a Karplus-Strong pluck (1983: a delay line fed back through an averaging filter - the same machine as a mercury delay-line memory, a pulse circulating and losing its edge each pass) on D6, the tonic, on the stretched octave: each tick of the rhythm is a pulse going round the line. Value = gain dB
@@ -135,7 +136,7 @@ ZEROS = os.environ.get("C8T8_ZEROS", "-18")   # SECTION ROUND, window 8 (E bars 
 ARC = os.environ.get("C8T8_ARC", "4")   # an energy arc: A to E sat at one level for four minutes (-10.0..-10.4 dB a section). A gain lane last on the master (after the compressor) holds A ARC dB down as the groove enters, eases up through C and D and is open from E - the repaired word the loudest place in the record
 DARK = os.environ.get("C8T8_DARK", "8")  # the tape running out: a master low-pass closing over the outro's last bars (the hiss and the line's top go first); value = bars
 FORM = [("intro", 16), ("A", 36), ("refresh", 8), ("C", 32), ("D", 16), ("E", 28), ("outro", 16)]
-TRACKS = ("word", *(("zeros",) if ZEROS else ()), "pad0", "pad1", "pad2", "pad3", "org0", "org1", "hum", "hum2", "bass", "kick", "shk", "hats", "clap", "rim") + (("hats2",) if os.environ.get("C8T8_SKEW", "local") == "local" else ()) + (("kick2",) if os.environ.get("C8T8_CKICK", "lock") else ()) + (("ohat",) if os.environ.get("C8T8_OWNHATS", "300") else ()) + (("ctr",) if os.environ.get("C8T8_COUNTER", "78") else ()) + (("mar",) if os.environ.get("C8T8_MARE", "-8") else ()) + (("vos",) if os.environ.get("C8T8_VOSWORD", "90") else ())
+TRACKS = ("word", *(("zeros",) if ZEROS else ()), "pad0", "pad1", "pad2", "pad3", "org0", "org1", "hum", "hum2", "bass", "kick", "shk", "hats", "clap", "rim") + (("hats2",) if os.environ.get("C8T8_SKEW", "local") == "local" else ()) + (("kick2",) if os.environ.get("C8T8_CKICK", "lock") else ()) + (("ohat",) if os.environ.get("C8T8_OWNHATS", "300") else ()) + (("ctr",) if os.environ.get("C8T8_COUNTER", "78") else ()) + (("mar",) if os.environ.get("C8T8_MARE", "-8") else ()) + (("vos",) if os.environ.get("C8T8_VOSWORD", "90") else ()) + (("farend",) if os.environ.get("C8T8_FAREND", "-14") else ())
 
 # the word's 16 bits -> pitches (D minor, spread so neighbours leap): D4 F4 G4 A4 C5 D5 F5 A5
 SC = [62, 65, 67, 69, 72, 74, 77, 81]
@@ -301,6 +302,16 @@ def build():
         for k in ("kick", "kick2"):
             if k in ev:
                 ev[k] = [(a, KITOWN if h == "k" else h, 2, v) for (a, h, l, v) in ev[k]]
+    if FAREND:
+        a0_ = sec_start("A")
+        fe_ = []
+        for b_ in range(18, 36):
+            s0_, s1_ = a0_ + b_ * BAR, a0_ + (b_ + 1) * BAR
+            for (a, h, l, v) in ev["word"]:
+                if s0_ <= a < s1_ and not str(h).startswith("!") and h != "_":
+                    fe_.append((s0_ + (s1_ - (a + l)), h, l, v))
+        ev["farend"] = sorted(fe_, key=lambda e: e[0])
+        globals()["_FAREND_EV"] = list(ev["farend"])
     return {k: stream(ev[k], total()) for k in TRACKS}
 
 
@@ -638,6 +649,9 @@ def song():
         for t_ in doc["tracks"]:
             if isinstance(t_, dict) and t_.get("name") == "zeros":
                 t_["patch"], t_["gain"] = "scanned-mallet", f"{ZEROSCAN}dB"
+    if FAREND:
+        wt_ = next((t_ for t_ in doc["tracks"] if isinstance(t_, dict) and t_.get("name") == "word"), {})
+        doc["tracks"].append({"name": "farend", "patch": "ks-harp", "gain": f"{FAREND}dB", "pan": 0.45, "sends": dict(wt_.get("sends", {})), "score": stream(globals().get("_FAREND_EV", []), total())})
     return doc
 
 
