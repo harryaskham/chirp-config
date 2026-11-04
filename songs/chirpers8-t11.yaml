@@ -10498,8 +10498,8 @@
   },
   {
    "name": "drips",
-   "patch": "music-box",
-   "gain": "-11dB",
+   "patch": "glass",
+   "gain": "-13dB",
    "pan": 0.45,
    "sends": {
     "room": "-8dB",
@@ -12700,6 +12700,23 @@
      ]
     }
    }
+  },
+  {
+   "name": "rim",
+   "patch": "singing-bowl-rim",
+   "gain": "-8dB",
+   "pan": 0.2,
+   "sends": {
+    "hall": "-8dB"
+   },
+   "notes": [
+    {
+     "at": 482.761,
+     "len": 8.53,
+     "pitch": "m64.883",
+     "vel": 0.7
+    }
+   ]
   }
  ],
  "buses": {

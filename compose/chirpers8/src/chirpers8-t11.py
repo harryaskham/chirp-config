@@ -834,6 +834,26 @@ KETTLE_WHISTLE = {"synth": {"layers": [{"wave": "sine"}],
                             "amp": {"a": "1.6s", "d": "0ms", "s": 1, "r": "80ms"}}}
 
 
+# v46 (ROUND TYPE: whole; aim: t11 away from t12, which shares its music-box colour): WARM IN THE GLASS. The answer
+# line sings 'warm in the GLASS and the weather stayed' - so the song's bell colour turns to glass and bronze: (1) the
+# drips at the end (137-166) no longer fall on a music box but into GLASS (an inharmonic struck glass whose upper
+# partials fade first); (2) on the word 'glass' at 121 a RUBBED SINGING BOWL (singing-bowl-rim: a slow swell into
+# beating bronze partial pairs) takes up the sung note an octave down and holds it past the line - the glass singing
+# back. The light's music-box F# at the very end stays: it is the album's light, handed to the closer across the seam.
+GLASS_WORD = 3                  # 'G L AE1 S' in SING_B
+
+
+def rim_track():
+    bar = SUNG_AT[1]
+    at, ln, ph, vel, f0 = SING_B[GLASS_WORD]
+    last = SING_B[-1]
+    start = b0(bar) + at
+    end = b0(bar) + last[0] + last[1] + 2
+    pitch = mm(partial(MEL_B[GLASS_WORD], lobe_at(bar), -1))
+    return {"name": "rim", "patch": "singing-bowl-rim", "gain": "-8dB", "pan": 0.2, "sends": {"hall": "-8dB"},
+            "notes": [{"at": round(start, 4), "len": round(end - start, 3), "pitch": pitch, "vel": 0.7}]}
+
+
 def kettle_tracks():
     a, w, z = KETTLE
     rise = round(12 * math.log2(24 / 20), 3)
@@ -1148,7 +1168,7 @@ def main():
              "at": f"{b0(HENON[0]):g}b",
              "gen": {"type": "henon", "n": 8 * (HENON[1] - HENON[0] + 1), "len": "/8", "rest": 0.3,
                      "notes": " ".join(mm(p) for p in HENON_POOL)}},                        # v28: a second weather
-            {"name": "drips", "patch": "music-box", "gain": "-11dB", "pan": 0.45,
+            {"name": "drips", "patch": "glass", "gain": "-13dB", "pan": 0.45,             # v46: into glass
              "sends": {"room": "-8dB", "hall": "-12dB"}, "notes": drips()},          # v24: after the storm
             tr("farsheet", SHEET, gain="-10dB", pan=-0.4, sends={"hall": "-2dB"},
                fx=[{"type": "filter", "kind": "lp", "cutoff": 900}]),               # v24: the last thunder, far off
@@ -1181,6 +1201,7 @@ def main():
     song["tracks"].append({"name": "radiator", "patch": RADIATOR_PATCH, "gain": "-10dB", "pan": 0.45,
                            "sends": {"room": "-8dB"}, "notes": radiator_notes()})              # v42: listed last
     song["tracks"] += kettle_tracks()                                                          # v44: listed last
+    song["tracks"].append(rim_track())                                                         # v46: listed last
     for tk in song["tracks"]:                     # v36: the power cut (after every track is built; order unchanged)
         if tk["name"] in POWER_CUT_TRACKS:
             tk["fx"] = list(tk.get("fx") or []) + ["tapestop stop=auto.pc time=1b curve=1.6"]
