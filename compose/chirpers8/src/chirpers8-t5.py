@@ -63,6 +63,7 @@ OUTKS = os.environ.get("C8T5_OUTKS", "0:-14")   # SECTION ROUND (w9, the outro: 
 ROBOCHOIR = os.environ.get("C8T5_ROBOCHOIR", "-12")   # SECTION ROUND (the agreement sung, C's last bars): the machine sings too - the three-voice choir that sings 'keep it there' together at C's end gets a fourth voice, a vocoder twin of its middle voice: the same words shaping a held E minor chord of saws (E2 B2 E3 G3) band by band. Agreeing on a speed: humans and the machine sing the deal together. Value = gain dB
 GTRRUSH = os.environ.get("C8T5_GTRRUSH", "0.25")   # SECTION ROUND (w2, the intro's end into A: level jump): the first proposal is rushed - with no kick under it yet, the guitar's opening calls in A run ahead of the band (its own clock: GTRRUSH beats early by A's downbeat), settling back onto the grid over A's first eight bars, so it is exactly on time the bar the kick comes in. Value = beats early
 SWARM = os.environ.get("C8T5_SWARM", "-16")   # WHOLE ROUND: THE SWARM AGREES - wM's kuramoto layer (engine 63e9a72a: Kuramoto 1975, the textbook model of synchrony - fireflies, pacemaker cells, an audience's applause falling into step): the keys' chords doubled by a swarm of 12 saws spread 40 cents round each note, each pulled toward the swarm's mean phase by a coupling on a lane - 0.3 (a crowd, beating like a detuned chorus) through the intro, A and B while the machines disagree, rising through the retrain, 3 (a locked core, the note found out of the crowd) from C on: the song's agreement made in the oscillators themselves. Value = gain dB
+OUTFADE = os.environ.get("C8T5_OUTFADE", "all")   # FINAL PASS (w9, the outro: flagged level jump): THE MACHINES WIND DOWN ONE BY ONE - eight parts (keys and their swarm, horns, clap, cow, both djembes, the Risset hold) used to stop together on the outro's downbeat, a 3 dB step down (then another four bars later); now the keys' last chord sounds on through the outro's first four bars, each a little softer (x0.7 a bar - the swarm follows the keys), the horns' for two, and the held Risset E2 for four bars more, so the agreement winds down in stages instead of falling off a cliff. Value: 'all' (keys, horns, hold) or 'keys'
 TEMPOBARG = os.environ.get("C8T5_TEMPOBARG", "4")   # WHOLE ROUND: THE TEMPO DOES WHAT IT IS TOLD - the voice says 'slow down a touch. speed up a touch. there.' three times (B bar 12, retrain bars 3 and 8), and now the whole band obeys it each time: the tempo eases down through 'slow down a touch', climbs past where it was through 'speed up a touch', and settles back on 'there.' - by this many bpm the first time, 60% the second, 30% the third, so the haggle narrows to agreement by itself before C locks at 112. Value = bpm of the first offer
 ORIGINATE = os.environ.get("C8T5_ORIGINATE", "8:12")   # SECTION ROUND (w1, the intro: flagged static): THE OTHER MACHINE ANSWERS - the carrier's blips are a V.21 modem's ANSWER channel (1650/1850 Hz mark/space); halfway through the intro the ORIGINATE channel joins (980/1180 Hz, ITU-T V.21, 1964: the same bits a channel lower), its twin on the same radio, orbit and filter, so the intro is two machines talking over each other before the groove - the song's two parties heard first as the oldest modem pair. Intro only. Value 'a:b' = intro bars
 SYNCBLOOM = os.environ.get("C8T5_SYNCBLOOM", "500")   # WHOLE ROUND: AGREEMENT OPENS THE SOUND - both swarms (keys v70, guitar v71) now filter themselves by their own measured coherence (wM's 'sync' mod source, engine b8f9d6b1: 0.3 a crowd ... 1 locked): a lowpass whose cutoff rises 2.5 octaves with sync, so the disagreeing crowd of A and B is muffled, as if heard through a wall, and the sound blooms open exactly as fast as the swarm actually agrees through the retrain and C - the brightness is the agreement, measured, not drawn (and it offsets a locked swarm's own darkening: centroid 390 -> 170 Hz). Value = cutoff Hz at sync 0
@@ -375,6 +376,37 @@ def build():
         inside = lambda a: any(u <= a < v for u, v in spans)
         ev["dj"] = [(e[0], e[1], mp.get(e[2], e[2]), e[3], e[4]) for e in ev["conga"] if inside(e[0]) and e[1] != 0]
         ev["conga"] = [(e[0], e[1], e[2], e[3], 1 if inside(e[0]) and e[1] != 0 else e[4]) for e in ev["conga"]]
+    if OUTFADE:
+        o0_ = sec_start("outro")
+        for k_, reps_ in (("keys", 4), ("horns", 2)):
+            if k_ == "horns" and OUTFADE != "all":
+                continue
+            pre_ = [e for e in ev.get(k_, []) if e[0] < o0_]
+            if pre_:
+                lt_ = max(e[0] for e in pre_)
+                lc_ = [e for e in pre_ if e[0] == lt_]
+                for r_ in range(reps_):
+                    for e in lc_:
+                        ev[k_].append((o0_ + r_ * BAR, e[1], e[2], min(e[3], BAR), max(1, int(e[4] * 0.7 ** (r_ + 1)))))
+                ev[k_].sort(key=lambda e: e[0])
+        if OUTFADE == "all":
+            for k_, reps_ in (("dj", 4), ("clap", 2), ("cow", 2)):
+                lb_ = [e for e in ev.get(k_, []) if o0_ - BAR <= e[0] < o0_]
+                for r_ in range(reps_):
+                    for e in lb_:
+                        ev[k_].append((e[0] + (r_ + 1) * BAR, e[1], e[2], e[3], max(1, int(e[4] * 0.72 ** (r_ + 1)))))
+                if lb_:
+                    ev[k_].sort(key=lambda e: e[0])
+            for k_, reps_ in (("hats", 3), ("kick", 2), ("acid", 2), ("sub2", 1)):
+                inn_ = [e for e in ev.get(k_, []) if o0_ <= e[0] < o0_ + 8 * BAR]
+                if not inn_:
+                    continue
+                lbs_ = o0_ + ((max(e[0] for e in inn_) - o0_) // BAR) * BAR
+                lb_ = [e for e in inn_ if lbs_ <= e[0] < lbs_ + BAR]
+                for r_ in range(reps_):
+                    for e in lb_:
+                        ev[k_].append((e[0] + (r_ + 1) * BAR, e[1], e[2], e[3], max(1, int(e[4] * 0.7 ** (r_ + 1)))))
+                ev[k_].sort(key=lambda e: e[0])
     if HEMIOLA:
         h0_ = sec_start("B"); h1_ = h0_ + int(HEMIOLA) * BAR
         ev["hats"] = [e for e in ev["hats"] if not (h0_ <= e[0] < h1_)]
@@ -769,7 +801,7 @@ def song():
                               "patch": {"about": "Risset's harmonic arpeggio (Mutations, 1969; library risset-arpeggio): five ten-harmonic copies a hair apart",
                                         "synth": {"layers": [{"type": "additive", "count": 10, "tilt": 0, "level": 0.2, **({"cents": c_} if c_ else {})} for c_ in (-3.14, -1.57, 0, 1.57, 3.14)],
                                                   "amp": {"a": "2s", "d": 0, "s": 1, "r": "3s"}}, "gain": "-2.4dB"},
-                              "notes": [{"at": h0_, "pitch": "E2", "len": 62, "vel": 0.8}]})
+                              "notes": [{"at": h0_, "pitch": "E2", "len": 62 + (16 if OUTFADE == "all" else 0), "vel": 0.8}]})
     if SYNCBLOOM:
         for t_ in doc["tracks"]:
             if isinstance(t_, dict) and t_.get("name") in ("swarm", "swarm-gtr") and isinstance(t_.get("patch"), dict):
