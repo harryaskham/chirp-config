@@ -2,7 +2,7 @@ about: "A Light Left On, 6 No Errors Since: a machine's status lines sung as ten
 looks:
   console:
     palette: [ "#05040a", "#2a1530", "#e8a33a", "#ffd58a", "#c0587a", "#2a1530" ]
-    env: {kick: {on: track.kick, decay: 260ms}, snare: {on: track.snare, decay: 180ms}}
+    env: {kick: {on: track.kick, decay: 260ms}, snare: {on: track.snare, decay: 180ms}, hats: {on: track.hats, decay: 90ms}, bell: {on: track.bell, decay: 600ms}}
     vars:
       warm: {follow: "track.voice.level + track.singb.level + track.talk.level", attack: 60ms, release: 1.2s}
     layers:
@@ -11,6 +11,13 @@ looks:
       - {type: text, text: "UPTIME {time}", x: -1.62, y: 0.86, align: left, size: 0.045, color: "#e8a33a", opacity: 0.85, glow: 0.2}
       - {type: text, text: "NO ERRORS", x: 1.62, y: 0.86, align: right, size: 0.045, color: "#e8a33a", opacity: "0.4 + time.barphase*0.0", glow: 0.2}
       - {type: shape, sides: 0, radius: "0.05 + var.warm*0.12 + env.snare*0.02", fill: 1, width: 0, glow: 3, pos: 0.4, opacity: "0.25 + var.warm*0.6 + env.kick*0.2"}
+      # The machine's activity lights: one per part, lit by its hits.
+      - {type: shape, sides: 0, radius: 0.022, fill: 1, width: 0, glow: 2, x: -1.6, y: -0.86, color: "#e8a33a", opacity: "0.2 + env.kick*0.9"}
+      - {type: shape, sides: 0, radius: 0.022, fill: 1, width: 0, glow: 2, x: -1.5, y: -0.86, color: "#e8a33a", opacity: "0.2 + env.snare*0.9"}
+      - {type: shape, sides: 0, radius: 0.022, fill: 1, width: 0, glow: 2, x: -1.4, y: -0.86, color: "#ffd58a", opacity: "0.2 + env.hats*0.9"}
+      - {type: shape, sides: 0, radius: 0.022, fill: 1, width: 0, glow: 2, x: -1.3, y: -0.86, color: "#c0587a", opacity: "0.2 + env.bell*0.9"}
+      - {type: text, text: "KCK SNR HAT BEL", x: -1.635, y: -0.77, align: left, size: 0.034, color: "#e8a33a", opacity: 0.55}
+      - {type: scope, mode: wave, gain: 0.35, y: -0.62, size: 3.1, width: 0.002, glow: 0.3, color: "#e8a33a", opacity: "0.25 + audio.level*0.6"}
     filters:
       - {type: bloom, threshold: 0.4, amount: 0.8, radius: 0.05}
       - {type: scanlines, amount: 0.2, count: 270}
