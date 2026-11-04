@@ -43,6 +43,7 @@ COMPUTEWARP = os.environ.get("C8T2_COMPUTEWARP", "0.25")   # WHOLE ROUND: big nu
 COMPUTEFROM = os.environ.get("C8T2_COMPUTEFROM", "A")   # 'A': the intro's paths stay on the grid (the join with t1 is measured over the opening; the intro is the arp's phasing, v64), the lag starts with A
 ARPPHASE = os.environ.get("C8T2_ARPPHASE", "0.25")   # SECTION ROUND (w1, the intro: static): the machine phases - the bytebeat arp runs on its own clock through the intro (the engine's per-track warp): drifting away from the clarinet over eight bars (to ARPPHASE beats late, curve smooth), then back over eight, locking onto the grid exactly as A begins; the tape-loop phasing of process music, done by a clock. Value = beats of drift at its widest
 LPCV = os.environ.get("C8T2_LPCV", "count,refrain")   # WHOLE ROUND: the numbers read by a speaking toy - LPC (engine 78e838c5, LPC-10: the first speech chips; the toy that read arithmetic to children spoke this way). 'count': the voice that reads the numbers in A goes through 5-bit monotone LPC on G3 before its radio; 'count,refrain': and the break's 'four, two, one' (the turn from speech into song) through plain, inflecting LPC, so the counting machine begins to sing before the human-sung lines of C. Notes nudged 0.075 beats early for LPC's ~35 ms (chirper-three's measure)
+FINALONE2 = os.environ.get("C8T2_FINALONE2", "-14")   # SECTION ROUND (w10, the last two bars; the join to t3): ALL FALLS TO ONE NOTE - the song ended on the sub's D3 pedal alone (solo tail renders: the last 3 s are that one tone), and t3 opens broad and warm at 70-100 Hz; the join read 5.35 dB. Now a separate part (appended after everything else, so the solo ending and the pedal are untouched) sounds D2 and D4 around the pedal on the song's CZ pad for the last eight beats: one note in three octaves, everything fallen to one pitch. Value = gain dB
 REFRAINVOICE = os.environ.get("C8T2_REFRAINVOICE", "1")   # PALETTE: the refrain's voice - the spoken refrain (voice-speech, the album's commonest library patch, eight songs; through plain LPC since v63) moves to the library's rounder singing source ('voice': a glottal source through a five-formant tract), keeping its words, pitch path and LPC; the robot twin (v66) keeps the speech voice it vocodes
 SUBSHAPE = os.environ.get("C8T2_SUBSHAPE", "0.5")   # PALETTE: the sub computed - the sub (sub-sine, an album staple: C1-G1, 33-49 Hz, below what most speakers play) becomes a Chebyshev-shaped sub (Le Brun & Arfib 1979, as the song's computed clarinet and brass): harmonics 1, .4, .15 written by a polynomial, so each low note also sounds its octave and twelfth and is heard as a pitch on small speakers, the deepest rumble high-passed at 28 Hz. Value = shaper index
 PLATEHEIGHT = os.environ.get("C8T2_PLATEHEIGHT", "-1.5:6")   # WHOLE ROUND: BIG NUMBERS ARE FAR AWAY - the plate reverb's return (the room most of the song's voices share) rides the number's height (var.height, log2 n / 13): small numbers dry and close, the climbs to 9232 opening into the room, and every fall to 1 coming back to the listener's ear - everything falls to one, here in space. "base_dB:span_dB"
@@ -796,6 +797,16 @@ def song():
         for t in doc["tracks"]:
             if isinstance(t, dict) and t.get("name") == "refrain":
                 t["patch"] = dict(t["patch"], extends="voice") if isinstance(t.get("patch"), dict) else "voice"
+    if FINALONE2:
+        pd_ = next((t for t in doc["tracks"] if isinstance(t, dict) and t.get("name") == "pad"), {})
+        e_ = total() / 4
+        fo_ = {"name": "finalone", "gain": f"{FINALONE2}dB", "pan": 0.0, "patch": json.loads(json.dumps(pd_.get("patch", "pad"))),
+               "notes": [{"at": e_ - 8, "pitch": "D2", "len": 8, "vel": 0.8}, {"at": e_ - 8, "pitch": "D4", "len": 8, "vel": 0.55}]}
+        if isinstance(fo_["patch"], dict):
+            fo_["patch"].setdefault("synth", {})["amp"] = "1.2s 0 1 0.8s"
+        if "lfo" in pd_:
+            fo_["lfo"] = json.loads(json.dumps(pd_["lfo"]))
+        doc["tracks"].append(fo_)
     return doc
 
 
