@@ -346,7 +346,30 @@ def build():
     # moved, as Chowning moved sounds in 1971 (wM's orbit), from right in front of the listener out along a line to
     # thirty metres off - fading with distance, darkening, its pitch sagging a little with the Doppler - so every
     # RETURN is heard as a voice leaving the room, deepest first. (The copies there are written, then muted.)
-    UNW = {'d3': 16, 'd2': 20, 'd1': 24}
+    # (v53, section w2) THE EXPOSITION CLOSES IN STRETTO: the exposition was three voices entering four bars apart and
+    # then running on in strict canon - by its last four bars, the window flagged static, nothing new was arriving. A
+    # fugue's exposition usually tightens before the episodes, so now it does: for those four bars the three voices
+    # drop the long subject and chase its head motif (the leap down a fifth and back, then the step down through the
+    # third) through the loop's chords in STRETTO - a new entry every two beats, bell, terrain lead, pulse, bell...,
+    # each starting on the root of the chord under it (D, B flat, G, A), so two voices are always overlapping and the
+    # line tumbles down the room into the first call. (The canon's notes there muted in place; the stretto on its own
+    # tracks, listed last)
+    st0_ = secs_t['expo'] + 48.0
+    for key_ in ('bell', 'sync', 'pwm'):
+        P[key_] = [(e_[0], e_[1], e_[2], 1) if st0_ - 1e-6 <= e_[0] < st0_ + 16.0 - 1e-6 else e_ for e_ in P[key_]]
+    ST_V = [('st_b', 0, 90), ('st_s', -1, 86), ('st_p', 1, 72)]
+    for k_ in ('st_b', 'st_s', 'st_p'):
+        P[k_] = []
+    for n_ in range(8):
+        at_ = st0_ + 2.0 * n_
+        b_ = int(at_ // 4)
+        r_, ch_ = LOOP[b_ % 4]
+        third_ = 3 if r_ in (38, 31) else 4                 # D minor, G minor; B flat and A major
+        base_ = r_ + 36
+        key_, oc_, vel_ = ST_V[n_ % 3]
+        for m_, d_ in ((0, 1.0), (-5, 0.5), (0, 0.5), (third_, 1.0), (2, 0.5), (0, 0.5)):
+            P[key_].append((at_, tok(base_ + m_ + 12 * oc_), d_ * 0.92, vel_ - (6 if d_ < 1 else 0)))
+            at_ += d_
     # (v50, palette) THE ARPEGGIO, PLUCKED: through the second calls the pulse-width voice stops comping and runs the
     # chord in sixteenths. Once the duet Harry singled out is over (its eight bars stay exactly as they were: 'that is
     # the bar'), those sixteenths are plucked instead - Karplus and Strong's 1983 loop with its noise burst left
@@ -355,6 +378,7 @@ def build():
     c2a_, c2b_ = secs_t['calls2'] + 32.0, secs_t['calls3']
     P['harp'] = [e_ for e_ in P['pwm'] if c2a_ - 1e-6 <= e_[0] < c2b_ - 1e-6]
     P['pwm'] = [(e_[0], e_[1], e_[2], 1) if c2a_ - 1e-6 <= e_[0] < c2b_ - 1e-6 else e_ for e_ in P['pwm']]
+    UNW = {'d3': 16, 'd2': 20, 'd1': 24}
     for key_, b0_ in UNW.items():
         a0_, a1_ = secs_t['final'] + b0_ * 4.0, secs_t['final'] + (b0_ + 4) * 4.0
         P['u' + key_[1]] = [e_ for e_ in P[key_] if a0_ - 1e-6 <= e_[0] < a1_ - 1e-6]
@@ -706,6 +730,9 @@ def build():
              'score': ' '.join([f"R/{secs_t['outro'] + 16.0:.4f}b"] + [f"m62,m66,m69,m78/0.17b@{int(18 + 82 * (q_ / 63) ** 1.5)} R/0.08b" for q_ in range(64)]),
              'sends': {'hall': '-14dB'}},
             tr('harp', 'ks-harp', '-16dB', pan=0.1, fx=['hp cutoff=380'], sends={'hall': '-10dB'}),
+            tr('st_b', BELL, '-8dB', pan=-0.25, sends={'echo': '-12dB', 'hall': '-14dB'}),
+            tr('st_s', 'terrain-keys', '-12dB', pan=0.4, fx=['hp cutoff=220', 'lp cutoff=3600'], sends={'hall': '-16dB'}),
+            tr('st_p', PWM, '-15dB', pan=0.1, fx=['hp cutoff=380'], auto={'pw': {'points': pw}}, sends={'hall': '-10dB'}),
         ]}
     return song, depths
 
