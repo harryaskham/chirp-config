@@ -2,13 +2,14 @@ about: "A Light Left On, 5 Agreeing on a Speed: two machines each in its own tim
 looks:
   two:
     palette: sunset
-    params: {lock: 0}
+    params: {lock: 0, light: 0.25, hue: 0}
     vars:
       a: {integrate: "0.05 + track.gtr.hit*0.5"}
       b: {integrate: "0.07 + track.acid.hit*0.5"}
-      agree: {follow: "1 + song.agree*0.125 + param.lock", attack: 300ms, release: 1.5s}
+      # 0 apart .. 1 one figure: the song's agree (the logistic negotiation, -8..0) plus lock.
+      agree: {follow: "1 + song.agree*0.125 + param.lock", attack: 300ms, release: 1.5s, lo: 0, hi: 1}
     layers:
-      - {type: gradient, radial: 1, spread: 0.25, pos: "0.05 + var.agree*0.1", light: 0.25}
+      - {type: gradient, radial: 1, spread: 0.25, pos: "0.05 + var.agree*0.1", light: param.light}
       - {type: shape, sides: 3, radius: 0.55, width: 0.005, rotate: var.a, x: "-0.55 + var.agree*0.55", count: 5, scale: 0.82, turn: 0.01, spread: 0.06, pos: 0.4, glow: 0}
       - {type: shape, sides: 4, radius: 0.55, width: 0.005, rotate: var.b, x: "0.55 - var.agree*0.55", count: 5, scale: 0.82, turn: -0.01, spread: 0.06, pos: 0.7}
       - {type: scope, mode: xy, gain: 2.0, size: 1.2, width: 0.0025, glow: 0.4, pos: 0.85, opacity: "0.2 + var.agree*0.6"}
@@ -16,6 +17,7 @@ looks:
     filters:
       - {type: feedback, zoom: 1.0, decay: 0.75}
       - {type: bloom, threshold: 0.45, amount: 0.7}
+      - {type: hue, shift: param.hue}
       - {type: vignette, amount: 0.55}
   retrain:
     extends: two
@@ -40,12 +42,14 @@ looks:
       - {type: bloom, threshold: 0.45, amount: 0.8}
       - {type: vignette, amount: 0.55}
 scenes:
-  - {at: 0, look: two}
-  - {at: 46bar, look: two, xfade: 3s}
+  # intro 12, A 34, B 26, retrain 12, C, outro 16 (bars)
+  - {at: 0, look: two, params: {light: 0.14, hue: -0.04}}
+  - {at: 12bar, look: two, params: {light: 0.25, hue: 0}, xfade: 4s}
+  - {at: 46bar, look: two, params: {light: 0.3, hue: 0.07}, xfade: 3s}
   - {at: 72bar, look: retrain, xfade: 2s, transition: grain}
-  - {at: 84bar, look: two, params: {lock: 0.6}, xfade: 3s, transition: iris}
+  - {at: 84bar, look: two, params: {lock: 0.6, light: 0.28, hue: -0.08}, xfade: 3s, transition: iris}
   - {at: 104bar, look: horns, xfade: 4s, transition: diamond}
-  - {at: 126bar, look: two, params: {lock: 1}, xfade: 6s}
+  - {at: 126bar, look: two, params: {lock: 1, light: 0.22, hue: 0}, xfade: 6s}
 
 # The words, where they are sung (found by tools/vislyrics.py from the song's tts phrases).
 master:
