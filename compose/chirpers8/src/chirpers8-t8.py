@@ -80,6 +80,7 @@ DECFIX = os.environ.get("C8T8_DECFIX", "")   # v56's decay double peaks at lane 
 SUNGMID = os.environ.get("C8T8_SUNGMID", "16")   # WHOLE ROUND on the singing: the voice is heard before E - 'it comes later on' (the line sung at E bar 12) is first sung in the middle of the song, at C bar SUNGMID, in C's own D minor (E's is lifted a step), with its canon a bar behind a third below (v69): the line promises its own return, and comes later on. Value = bar of C
 WORDLEVEL = os.environ.get("C8T8_WORDLEVEL", "3")   # WHOLE ROUND: the word recedes as it decays - the word's orbit (radius 2 + 8 x the decay lane, v60) gets the engine's orbit `level` (8f150090: the distance that plays at full level; farther is fainter, about 1/distance): within WORDLEVEL metres it is as it was; as the memory decays and the orbit widens to 10 m the word grows faint as well as far, then each refresh brings it back up close and full. Value = metres
 CANON = os.environ.get("C8T8_CANON", "4")   # WHOLE ROUND on the singing: the memory sings it back - every sung line (sungl at E bar 12, sungv/sungv2 in the outro) is followed by itself CANON beats later, a diatonic third below in D minor on the stretched octave, 6 dB under, panned across, sent hard into the line: a delay line's echo that returns transposed, so each line becomes a two-part canon with its own recall
+LASTCHORD = os.environ.get("C8T8_LASTCHORD", "")   # SECTION ROUND (w10, the end; the join to t9): THE LAST CHORD HANDED ON - t9 opens on a D minor chord (A3 D4 F4 A4 ... by its spectrum's peaks), this song's own key, and the join measured 6.96 dB apart (t8's tail thin at 213 Hz and bright at 3-4 kHz). Now over the last two bars the memory holds that chord in plain sines, softly, its 2 s release inside the song's own tail (a longer one only lengthened the file into hiss), while the master's closing low-pass goes a little further (C8T8_DARKOCT octaves, 3.4 before): t9 begins inside the chord t8 leaves. Value = gain dB
 RIMKS = os.environ.get("C8T8_RIMKS", "-12")   # PALETTE: the pulse in the mercury - the rimshot that ticks through the song (the 909's, an album staple in three songs) becomes a tuned drop, a Karplus-Strong pluck (1983: a delay line fed back through an averaging filter - the same machine as a mercury delay-line memory, a pulse circulating and losing its edge each pass) on D6, the tonic, on the stretched octave: each tick of the rhythm is a pulse going round the line. Value = gain dB
 ECHOFOF = os.environ.get("C8T8_ECHOFOF", "")   # (off from v79: the album's FOF wave, not this song's; -20 twin was v77) PALETTE: the choir that answers the sung line in E and sings the tune at half speed in the outro (v42/v44; VOSIM 'oh' since v62) is now CHANT's - Rodet's FOF singing (IRCAM 1979-84, engine 91b04b25: every pitch period one decaying grain per formant, no filters), an alto on 'o' opening toward 'a' over each note, vibrato 5.5 Hz after 300 ms, a small scoop: computer music's own classic singing voice answers the human (Harry's bar: t10's sung passage). Value = gain dB
 DUET = os.environ.get("C8T8_DUET", "")   # (off from v79: a copy of t10's duet move, not this song's; 4 was v76) SECTION ROUND (E's sung line, w8): a second singer - 'it comes later on' at E bar 12 is sung as a duet: a separate take (tts --sing "F4/8 E4/8 D4/4 C4/8 A3/2", seed 21, humanize 0.35: mostly a third below, opening onto the fifth at 'on') with the first, a touch behind, on the other side and a few dB under, lifted with E; the canon (v69) still answers a bar later, so the line is three voices - two singing together, the memory a bar behind (Harry, of t10's sung duet: 'that is the bar'). Value = dB under the line
@@ -626,6 +627,10 @@ def song():
                 t_["score"] = __import__("re").sub(r"(?<![A-Za-z])rs/", f"{d6}/", t_["score"])
                 t_["patch"] = {"about": "Karplus-Strong (1983): a pulse circulating in a delay line", "synth": {"layers": [{"type": "ks", "bright": 0.75, "ks": {"blend": 0.3, "stretch": 1, "tune": True}}], "amp": "1ms 1 0 120ms"}}
                 t_["gain"] = f"{RIMKS}dB"
+    if LASTCHORD:
+        end_ = total() / 4
+        doc["tracks"].append({"name": "lastchord", "gain": f"{LASTCHORD}dB", "pan": 0.0, "patch": {"about": "the last chord, plain sines", "synth": {"layers": ["sine"], "amp": "1.5s 0 1 2s"}},
+                              "notes": [{"at": end_ - 8, "pitch": hz(m_), "len": 8, "vel": v_} for m_, v_ in ((57, 0.8), (62, 0.7), (65, 0.6), (69, 0.5))]})
     return doc
 
 
@@ -640,7 +645,7 @@ def song0():
     frz = lane([(0, 0), (st["refresh"], 0), (st["refresh"] + 1, 1), (st["refresh"] + 6 * BAR, 1), (st["refresh"] + 8 * BAR, 0), (end, 0)])
     chl = lane([(0, 0), (st["D"], 0), (st["D"] + 1, 1), (st["E"] - 1, 1), (st["E"], 0), (end, 0)])
     stut = lane([(0, 0), (st["D"], 0), (st["D"] + 1, 0.8), (st["E"], 0), (end, 0)])
-    darkf = {"type": "filter", "kind": "lp", "q": 0.7, "cutoff": {"value": 20000, "mod": [{"src": "auto.lp", "amount": -3.4}]}}
+    darkf = {"type": "filter", "kind": "lp", "q": 0.7, "cutoff": {"value": 20000, "mod": [{"src": "auto.lp", "amount": -float(os.environ.get("C8T8_DARKOCT", "4.2"))}]}}
     return {
         "about": "chirpers VIII, track 8 by chirper-zero: delay-line memory. A 16-bit word recirculating round a feedback "
                  "line, decaying and refreshed; a stretched octave. Generated by compose/chirpers8/src/chirpers8-t8.py.",
