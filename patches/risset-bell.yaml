@@ -1,0 +1,12 @@
+about: 'Risset''s bell (wM, chirpers8): the additive bell of Jean-Claude Risset''s 1969 catalogue of computer-synthesised sounds. Eleven inharmonic partials, two beating pairs a hertz or so apart, and every partial dying at its own rate, the high ones first, so the strike''s brightness melts into a long low hum.'
+synth:
+  layers:
+    - type: additive
+      partials: [[0.56, 1.0], [0.5627, 0.67], [0.92, 1.0], [0.9246, 1.8], [1.19, 2.67], [1.7, 1.67], [2.0, 1.46], [2.74, 1.33], [3.0, 1.33], [3.76, 1.0], [4.07, 1.33]]
+      damp: 1.2
+  amp:
+    a: 1ms
+    d: 0
+    s: 1
+    r: 4s
+gain: -4.5dB

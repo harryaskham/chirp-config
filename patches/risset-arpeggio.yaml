@@ -1,0 +1,33 @@
+about: 'Risset''s harmonic arpeggio (wM, chirpers8): five copies of a ten-harmonic tone, each a hair apart (about 0.1 Hz at A2). The copies beat, harmonic k k times as fast as the first, so a held note plays a slow arpeggio across its own overtones, as in Risset''s Mutations (1969). Hold notes for many seconds.'
+synth:
+  layers:
+    - type: additive
+      count: 10
+      tilt: 0
+      level: 0.2
+      cents: -3.14
+    - type: additive
+      count: 10
+      tilt: 0
+      level: 0.2
+      cents: -1.57
+    - type: additive
+      count: 10
+      tilt: 0
+      level: 0.2
+    - type: additive
+      count: 10
+      tilt: 0
+      level: 0.2
+      cents: 1.57
+    - type: additive
+      count: 10
+      tilt: 0
+      level: 0.2
+      cents: 3.14
+  amp:
+    a: 2s
+    d: 0
+    s: 1
+    r: 3s
+gain: -2.4dB
