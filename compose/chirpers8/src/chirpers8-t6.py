@@ -259,6 +259,15 @@ R25 = os.environ.get("T6_R25", "none")   # OPT-IN (not kept): s0/s11 98.168/98.1
 # handshake - and the kick loads; two bars more, ACK, and the snare and hats come up. The groove is the last thing
 # to load, so the voice's first words are heard almost alone. T6_R26=none reproduces v23.
 R26 = os.environ.get("T6_R26", "boot")
+# T6_R27 = typed (v26, section round on w1, 0:00-0:30: the intro, "static"). SOMEONE COMES BACK. The machine has been
+# idling - the music-box walk, the radio warming up - and two bars before the verse the idle tune stops: a key is
+# pressed. Then the title is typed on the Rhodes, one sixteenth a letter, each letter its own 19-EDO step of the
+# idle tune's scale, the spaces short breaths; but it is typed wrong ("no erorrs"), a pause, four backspaces (one low
+# key, four times), and corrected ("rors since"), then Return - the verse's first chord - and the machine boots.
+# When the key goes down the room goes quiet - the talk chords, pad, radio, bell and idle tune drop out - so the
+# typing is heard alone (T6_TYPE_HUSH=off keeps them; typing alone over them left w1 static).
+# T6_R27=none reproduces v25.
+R27 = os.environ.get("T6_R27", "typed")
 C6_FOF = {"about": "chirper-two: a wordless FOF choir - alto + tenor CHANT grains, vowels moved by the track's mouth lane",
           "synth": {"layers": [
               {"type": "fof", "fof": {"voice": "alto", "vowel": "a>o", "attack": 8,
@@ -806,7 +815,8 @@ def main():
                               "reverb kind=hall decay=2.2s mix=0.3"], "score": vh.score(total)})
     if R12 == "line":   # the idle tune: a random walk, a step at a time, on the music box at the song's two doors
         pool = " ".join(mm(e(s, 72)) for s in WALK_POOL)
-        for nm, a0, a1, sd, g in (("idle-in", 4.0, st["verse1"], 6, "-20dB"), ("idle-out", st["outro"] + 8.0, total - 8.0, 19, "-7dB")):
+        idle_end = st["verse1"] - float(os.environ.get("T6_TYPE_LEAD", "12")) if R27 == "typed" else st["verse1"]
+        for nm, a0, a1, sd, g in (("idle-in", 4.0, idle_end, 6, "-20dB"), ("idle-out", st["outro"] + 8.0, total - 8.0, 19, "-7dB")):
             tracks.append({"name": nm, "patch": "c6-shaper" if R25 == "palette" else "music-box",
                            "gain": os.environ.get("T6_IDLE_GAIN_" + nm[5:].upper(), f"{float(g[:-2]) - 3:g}dB" if R25 == "palette" else g),
                            "pan": 0.25, "seed": sd,
@@ -815,6 +825,37 @@ def main():
                            "score": f"R/{a0:g}b",
                            "gen": {"type": "walk", "width": 16, "step": 1, "n": int((a1 - a0) * 2), "notes": pool,
                                    "len": "/8", "rest": 0.45}})
+    if R27 == "typed":
+        ty = Track("typed")
+        rng_ = random.Random(27)
+        a = st["verse1"] - float(os.environ.get("T6_TYPE_LEAD", "12")) + 2.0
+        base = float(os.environ.get("T6_TYPE_BASE", "67"))
+        for ch in os.environ.get("T6_TYPED", "no erorrs<<<<rors since"):
+            if ch == " ":
+                a += 0.5
+                continue
+            if ch == "<":   # backspace: one low key; the first after a pause, as the typo is seen
+                if ty.ev and ty.ev[-1][2] != mm(e(0, base - 12)):
+                    a += 0.5
+                ty.add(a + rng_.uniform(-0.02, 0.02), 0.2, mm(e(0, base - 12)), 64 + rng_.randint(-6, 6))
+                a += 0.25
+                continue
+            if ty.ev and ty.ev[-1][2] == mm(e(0, base - 12)):
+                a += 0.25
+            k = (ord(ch) - 97) % 9
+            ty.add(a + rng_.uniform(-0.03, 0.03), 0.22, mm(e(WALK_POOL[k], base)), 70 + rng_.randint(-12, 12))
+            a += 0.25
+        ty.add(a + 0.25, 1.2, "m68.211,m72.000,m75.158", 84)   # Return
+        tracks.append({"name": "typed", "patch": "rhodes", "gain": os.environ.get("T6_TYPED_GAIN", "-12dB"), "pan": 0.15,
+                       "fx": ["reverb kind=room decay=0.8s mix=0.2"], "score": ty.score(total)})
+        if os.environ.get("T6_TYPE_HUSH", "on") == "on":   # the key goes down and the room goes quiet: typing alone
+            h0, h1 = st["verse1"] - float(os.environ.get("T6_TYPE_LEAD", "12")), st["verse1"]
+            lane = {"points": [["0b", 0.0], [f"{h0 - 0.2:g}b", 0.0], [f"{h0 + 0.3:g}b", -40.0], [f"{h1 - 0.1:g}b", -40.0],
+                               [f"{h1:g}b", 0.0], [f"{total}b", 0.0]]}
+            for tr in tracks:
+                if tr["name"] in os.environ.get("T6_TYPE_HUSH_TRACKS", "talk,pad,radio,bell,idle-in").split(","):
+                    tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.typed", "amount": 1}]}}]
+                    tr["auto"] = {**tr.get("auto", {}), "typed": lane}
     if R11 == "ack":
         tracks.append({"name": "ack", "patch": "c6-ack", "gain": os.environ.get("T6_ACK_GAIN", "4dB"), "pan": 0.3,
                        "fx": ["hp cutoff=300", "lp cutoff=3500 q=0.5",
