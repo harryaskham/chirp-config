@@ -4,11 +4,11 @@ looks:
     palette: ocean
     params: {r: 2.9}
     layers:
-      - {type: gradient, angle: 0.25, spread: 0.12, pos: 0.05, light: "0.22 + audio.low*0.12"}
-      - {type: attractor, kind: logistic, lo: 2.8, hi: 4.0, upto: param.r, points: 400000, gain: "1.8 + audio.level*1.6", spread: 0.5, pos: "0.3 + lfo.drift*0.08"}
+      - {type: gradient, angle: 0.25, spread: 0.12, pos: 0.08, light: "0.3 + audio.low*0.2"}
+      - {type: attractor, kind: logistic, lo: 2.8, hi: 4.0, upto: param.r, points: 400000, gain: "2.6 + audio.level*2", spread: 0.5, pos: "0.3 + lfo.drift*0.08", y: "lfo.drift*0.03"}
       - {type: particles, on: track.lead, count: 10, speed: 0.4, spread: 1, drag: 1.5, life: 1.0, size: 0.004, jitter: 0.8, soft: 0.7, pos: 0.6, hues: 0.2}
       - {type: notes, mode: stars, tracks: [sing, bell, ks], size: 0.008, life: 2, glow: 0.7, spread: 0.1, pos: 0.65, height: 1.5}
-      - {type: spectrum, mode: line, y: -0.9, size: 3.4, height: 0.08, width: 0.0025, floor: 0.3, pos: 0.7, opacity: 0.5}
+      - {type: scope, mode: wave, y: -0.86, size: 3.4, gain: 1.2, width: 0.003, glow: 0.5, pos: 0.7, opacity: 0.7}
     lfo: {drift: "sine period=16b"}
     filters:
       - {type: feedback, zoom: "1.002 + audio.onset*0.01", decay: 0.55}
