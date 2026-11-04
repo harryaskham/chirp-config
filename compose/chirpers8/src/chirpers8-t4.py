@@ -547,21 +547,35 @@ CHOIR_AT = (141, 149)
 UNSUNG = ((163, 166, "lpc", "-15dB"), (167, 170, "lpc pitch=A2 bits=5", "-7dB"))   # gains solo-matched
 
 
+# v43 (ROUND TYPE: section, w10 4:30-5:00; Harry 23:4x 'i like this bit without the whole album turning into that'):
+# v41's parallel choir (+5 / +9 steps on 141 and 149) was t12's coda move copied here - not this song's idea. Now ONE
+# voice, THE SORTED SHADOW: the same syllables at the same moments, but on the melody's own pitches SORTED - rising
+# under 141, falling under 149 - an alpha near-octave (15 steps, 1170 cents) below: the tune sung beside its sorted
+# self, over the canon. choir5 is silenced (velocity 0.01; the track order stays).
+SHADOW_DOWN = 15
+
+
 def choir_tracks():
     c3, c5 = [], []
     for k, bar in enumerate(SUNG_AT):
         if bar not in CHOIR_AT:
             continue
         take, tune = (SUNG, TUNE_A) if k % 2 == 0 else (SUNG_B, TUNE_B)
+        shadow = sorted(tune[:len(take)], reverse=(bar == CHOIR_AT[1]))
         for i, (at, ln, ph, p, v, f0) in enumerate(take):
             for out, up in ((c3, 5), (c5, 9)):
                 n = {"at": round(b0(bar) + at, 4), "len": ln, "ph": ph, "vel": round(v * 0.75, 3),
                      "pitch": pitch(tune[i] + up + root_at(bar + int(at // 4)))}
+                if out is c3:
+                    n["vel"] = round(v * 0.85, 3)
+                    n["pitch"] = pitch(shadow[i] - SHADOW_DOWN + root_at(bar + int(at // 4)))
+                else:
+                    n["vel"] = 0.01
                 if f0:
                     n["expr_path"] = {"f0": f0}
                 out.append(n)
-    return [{"name": "choir3", "patch": SUNG_PATCH, "gain": "-9dB", "pan": -0.35,     # solo-matched ~7-10 dB under
-             "sends": {"room": "-8dB", "dly": "-14dB"}, "fx": [{"type": "filter", "kind": "hp", "cutoff": 180}], "notes": c3},
+    return [{"name": "choir3", "patch": SUNG_PATCH, "gain": "-9dB", "pan": -0.35,     # v43: the sorted shadow
+             "sends": {"room": "-8dB", "dly": "-14dB"}, "fx": [{"type": "filter", "kind": "hp", "cutoff": 90}], "notes": c3},
             {"name": "choir5", "patch": SUNG_PATCH, "gain": "-10dB", "pan": 0.35,
              "sends": {"room": "-8dB", "dly": "-14dB"}, "fx": [{"type": "filter", "kind": "hp", "cutoff": 180}], "notes": c5}]
 
