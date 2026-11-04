@@ -62,6 +62,27 @@ def base(key, lib):
     return None
 
 
+def kit_voices(cn, lib):
+    """{(library kit, voice)} a song's tracks actually PLAY. A kit counts as one library patch in the staples, but what two
+    songs share is a voice: machine-kit's kick in six songs is much of what makes neighbours read alike in 'distinct'
+    (chirper-three, t11 v47, 4 Nov). The plan lists every voice of a kit, so the voices come from the notes."""
+    pats = (cn or {}).get("patches") or {}
+    got, stack = set(), list((cn or {}).get("tracks") or [])
+    while stack:
+        t = stack.pop()
+        stack.extend(t.get("tracks") or [])
+        pk = t.get("patch")
+        b = base(pk, lib) if isinstance(pk, str) else None
+        kit = (pats.get(pk) or {}).get("kit") if b else None
+        if not isinstance(kit, dict):
+            continue
+        for n in t.get("notes") or []:
+            v = n.get("pitch") if isinstance(n, dict) else None
+            if isinstance(v, str) and v in kit:
+                got.add((b, v))
+    return got
+
+
 def summary(p):
     """What a canonical patch is made of, in a few words: layer types (with wind exciters and modal mode sets), fx."""
     if not isinstance(p, dict):
@@ -145,18 +166,25 @@ def main(argv=None):
     own = [k for k in pats if not base(k, lib) and "." not in k.split()[0]]
     if own:
         print(f"this song's own patches (library candidates if they are good): {', '.join(own)}")
-    used = {}
+    used, voices = {}, {}
     for cid, sp in album_songs(album_id):
         cn = canon if cid == a.id else plan(sp, pin)
         for k in (cn or {}).get("patches") or {}:
             b = base(k, lib)
             if b:
                 used.setdefault(b, set()).add(cid.rsplit("-", 1)[-1])
+        for b, v in kit_voices(cn, lib):
+            voices.setdefault(f"{b}.{v}", set()).add(cid.rsplit("-", 1)[-1])
     staples = sorted(((b, s) for b, s in used.items() if len(s) >= 3), key=lambda t: -len(t[1]))
     if staples:
         print("album staples (library patches 3+ songs share; a swap here adds variety):")
         for b, s in staples:
             print(f"  {b:<16} {len(s)} songs ({', '.join(sorted(s, key=lambda x: int(x[1:]) if x[1:].isdigit() else 0))})")
+    shared = sorted(((k, s) for k, s in voices.items() if len(s) >= 3), key=lambda t: (-len(t[1]), t[0]))
+    if shared:
+        print("kit voices 3+ songs play (the staple inside a kit: another kit's voice or a drum of the song's own steps away):")
+        for k, s in shared:
+            print(f"  {k:<16} {len(s)} songs ({', '.join(sorted(s, key=lambda x: int(x[1:]) if x[1:].isdigit() else 0))})")
     unused = [(n, ab) for n, ab in lib.items() if n not in used]
     if a.grep:
         g = a.grep.lower()
