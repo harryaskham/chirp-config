@@ -523,6 +523,77 @@ def brushes():
             part(twin).add(s, ln, h, v)
 
 
+# v51 (ROUND TYPE: section, w8 3:25-3:55 - merge sort's second half, flagged static and 'little new vs w7'): TWO
+# DRUMMERS, ONE MERGE. Merge sort takes, again and again, the smaller head of two lists - left or right. So through
+# 113-124 the drums are two players, one per list: the 909 on the LEFT, a physical stick kit on the RIGHT (a plastic-
+# beater kick and a wired stick snare of the song's own; the hats and ride keep their timbre and only change sides).
+# Each bar's merge is replayed from the array and every hit goes to whichever list the merge is taking from at that
+# moment in the bar: a run from one side is one drummer playing alone, an interleave is the two trading strokes, and
+# the final merges are the two kits converging. Left hits stay on the 909 tracks, panned by a lane (0 outside the
+# window); right hits move to twin tracks (listed last), their originals kept at velocity 1.
+MERGE_DUO = (113, 124)
+MERGE_R_KIT = {"about": "t4's right-hand drummer for the merge: a physical kick and stick snare (909 hats)",
+               "extends": "909",
+               "kit": {"k": {"pitch": "A1", "patch": {"synth": {
+                           "layers": [{"type": "drum", "beater": "plastic", "decay": "0.4s", "sharp": 80, "reso": 1.06,
+                                       "cavity": 0.25, "reso_level": 0.35, "air": 0.5, "strike": 0.08, "damp": 0.6,
+                                       "shell": 0.1, "contact": 1.4, "slap": 0.45}],
+                           "filters": ["lowshelf cutoff=70 gain=4dB", "lp cutoff=6k"],
+                           "amp": {"a": "0.2ms", "d": "380ms", "s": 0, "r": "25ms"}}}},
+                       "cp": {"pitch": "D3", "patch": {"synth": {
+                           "layers": [{"type": "drum", "beater": "stick", "decay": "0.3s", "sharp": 25, "reso": 1.5,
+                                       "cavity": 0.3, "reso_level": 0.5, "shell": 0.3, "shell_hz": 480, "wires": 0.6,
+                                       "gap": 0.25, "strike": 0.4}],
+                           "amp": {"a": "0.1ms", "d": "420ms", "s": 0, "r": "50ms"}}}}}}
+MERGE_TWIN = {"kick": "kick_mr", "clap": "clap_mr", "hats": "hats_mr", "ride": "ride_mr"}
+MERGE_PAN = {"kick": (0, -0.45), "clap": (0, -0.45), "hats": (0.1, -0.45), "ride": (-0.3, -0.3)}
+
+
+def merge_sides(bar):
+    """Replay the bar's merge: the list each output element was taken from, in order ('L' / 'R')."""
+    before, (sw, acc) = ARRS[bar], SWS[bar]
+    if len(acc) != 2:
+        return []
+    lo, mid = acc
+    hi = min(lo + 2 * (mid - lo), N)
+    left, right = before[lo:mid], before[mid:hi]
+    i = j = 0
+    out = []
+    while i < len(left) and j < len(right):
+        if left[i] <= right[j]:
+            out.append("L"); i += 1
+        else:
+            out.append("R"); j += 1
+    return out + ["L"] * (len(left) - i) + ["R"] * (len(right) - j)
+
+
+def merge_duo():
+    a, z = MERGE_DUO
+    sides = {bar: merge_sides(bar) for bar in range(a, z + 1)}
+    for name, twin in MERGE_TWIN.items():
+        keep = []
+        for s, ln, h, v in P[name].ev:
+            bar = int(s // BAR) + 1
+            sd = sides.get(bar) if a <= bar <= z else None
+            if sd and v > 1:
+                k = min(len(sd) - 1, int((s - b0(bar)) / BAR * len(sd)))
+                if sd[k] == "R":
+                    part(twin).add(s, ln, h, v); keep.append((s, ln, h, 1)); continue
+            keep.append((s, ln, h, v))
+        P[name].ev = keep
+
+
+def duo_lane():
+    a, z = MERGE_DUO
+    return [["0b", 0.0], [f"{b0(a) - 0.01:g}b", 0.0], [f"{b0(a):g}b", 1.0], [f"{b0(z + 1) - 0.01:g}b", 1.0],
+            [f"{b0(z + 1):g}b", 0.0]]
+
+
+def duo_pan(name):
+    v, amt = MERGE_PAN[name]
+    return {"value": v, "mod": [{"src": "auto.dl", "amount": amt}]}
+
+
 def drums_out():
     a, z = ALONE
     for name in ALONE_DRUMS:
@@ -1122,6 +1193,7 @@ def main():
     bass_waits()                                  # v25: the bass waits for the kick
     drums_out()                                   # v47: the algorithm alone
     brushes()                                     # v50: insertion puts down the sticks (after drums_out)
+    merge_duo()                                   # v51: two drummers, one merge
     handover()                                    # v26: the tuning handover
     dice_and_check()                              # v27: the dice and the check
     scan_and_sweep()                              # v44: the scan and the sweep
@@ -1160,7 +1232,8 @@ def main():
             tr("riffle", "cavaquinho", gain="-8dB", pan=0.15, sends={"room": "-8dB"}),       # v19: the shuffle
             tr("chimes", "chimes", gain="-14dB", pan=0.3, sends={"room": "-8dB"}),          # v14: the seam's air
             tr("ring", "vibes", gain="-2dB", pan=0.1, sends={"room": "-8dB", "dly": "-14dB"}),   # v9: t3's ring caught
-            tr("ride", "machine-kit", gain="-9dB", pan=-0.3, sends={"room": "-12dB"}),      # v6: the top end
+            tr("ride", "machine-kit", gain="-9dB", pan=duo_pan("ride"), sends={"room": "-12dB"},
+               auto={"dl": {"points": duo_lane()}}),                                         # v6: the top end; v51
             tr("tune_mar", "marimba", gain="-8dB", pan=-0.1, sends={"dly": "-10dB"}),      # v6: each algorithm its voice
             tr("tune_flu", "flute", gain="-11dB", pan=-0.1, sends={"dly": "-10dB"}),
             tr("tune_kal", "alto-sax", gain="-6dB", pan=-0.1, sends={"dly": "-10dB", "room": "-12dB"}),   # v16: merge's voice
@@ -1177,9 +1250,10 @@ def main():
             tr("swap", "modal-tom", gain="-15dB", pan={"value": -0.2, "mod": [{"src": "auto.ix", "amount": 0.8}]},
                sends={"room": "-10dB"}, auto={"ix": {"points": swap_map_lane()}}),     # v15: tuned membranes; v45: the map
             tr("crash", CYMBAL, gain="-12dB", sends={"room": "-8dB"}),                    # v16: a real cymbal
-            tr("kick", "909", gain="-10dB"),
-            tr("clap", "909", gain="-6dB", sends={"room": "-8dB"}),
-            tr("hats", "909", gain="-6dB", pan=0.1),
+            tr("kick", "909", gain="-10dB", pan=duo_pan("kick"), auto={"dl": {"points": duo_lane()}}),
+            tr("clap", "909", gain="-6dB", sends={"room": "-8dB"}, pan=duo_pan("clap"),
+               auto={"dl": {"points": duo_lane()}}),
+            tr("hats", "909", gain="-6dB", pan=duo_pan("hats"), auto={"dl": {"points": duo_lane()}}),   # v51: the duo
             tr("revcym", "fx-revcym", gain="-10dB", sends={"room": "-10dB"}),                 # v22: LAST (keeps rngs)
             tr("impact", "fx-impact", gain="-10dB"),
             tr("entropy", ENT_PATCH, gain="-18dB", pan=-0.3, sends={"room": "-10dB"},
@@ -1228,6 +1302,10 @@ def main():
     song["tracks"] += [tr("kick_br", BRUSH_KIT, gain="-10dB"),                               # v50: listed last
                        tr("clap_br", BRUSH_KIT, gain="-23dB", sends={"room": "-8dB"}, fx=["lp cutoff=7k"]),
                        tr("hats_br", BRUSH_KIT, gain="-9dB", pan=0.1)]
+    song["tracks"] += [tr("kick_mr", MERGE_R_KIT, gain="-10dB", pan=0.45),                    # v51: listed last
+                       tr("clap_mr", MERGE_R_KIT, gain="-14dB", pan=0.45, sends={"room": "-8dB"}),
+                       tr("hats_mr", "909", gain="-6dB", pan=0.55),
+                       tr("ride_mr", "machine-kit", gain="-9dB", pan=0.45, sends={"room": "-12dB"})]
     for tk in song["tracks"]:                     # v48: the lead crumbles with the disorder (order unchanged)
         if tk["name"] == "lead":
             tk["fx"] = list(tk.get("fx") or []) + [CRUMBLE]
