@@ -304,6 +304,31 @@ R29 = os.environ.get("T3_R29", "grow")
 # struck. Rule 90's triangle opens out from the middle, the glider walks across the room, traffic's cars drive left to
 # right, the decay's three last cells keep their own places. T3_R30=none reproduces v29.
 R30 = os.environ.get("T3_R30", "scan")
+# T3_R31 = random (v31, section round on w3, 1:04-1:35: the middle of A, "static, little new vs w2"). THE CENTRE COLUMN.
+# A's middle was rule 30's chaos on the bars over one unchanging four-on-the-floor (the kick alone sits within a dB of
+# the whole mix there). Rule 30 has a famous second life: the column under its single seed cell looks random enough
+# that a well-known computer algebra system used it as its random-number generator. For eight bars of A the kick is
+# handed to that column - a second rule-30 automaton grown from one cell, read down its centre, one bit an eighth: the
+# kick keeps beat one and strikes on every eighth whose bit is set, a broken beat no drummer would choose, from the
+# rule the marimba is already playing - and the plucked bass locks to it (the same eighths, the root, up an octave on
+# the fourth and eighth), a riff out of a random-number generator - then the four comes back. T3_R31=none reproduces v30.
+R31 = os.environ.get("T3_R31", "random")
+
+
+def centre_column(n):   # rule 30 from a single cell, read down the middle (wide enough never to wrap)
+    w = 2 * n + 3
+    row = [0] * w
+    row[w // 2] = 1
+    bits = []
+    for _ in range(n):
+        bits.append(row[w // 2])
+        row = [30 >> (row[(k - 1) % w] * 4 + row[k] * 2 + row[(k + 1) % w]) & 1 for k in range(w)]
+    return bits
+
+
+RNG_FROM = int(os.environ.get("T3_RNG_FROM", "16"))
+RNG_BARS = int(os.environ.get("T3_RNG_BARS", "8"))
+RNG_BITS = centre_column(8 * RNG_BARS)
 SCAN = float(os.environ.get("T3_SCAN", "0.8"))
 
 
@@ -545,6 +570,12 @@ def build():
             both = [c for c in range(1, W) if row[c] and row2[c] and (c % 4 or os.environ.get("T3_AGREE_MODE", "add") != "add")][:int(os.environ.get("T3_AGREE_MAX", "4"))]
             for c in both:
                 T["kick"].add(start + c * 0.25, 0.5, "kr", 100 if c % 4 == 0 else 90)
+        elif groove and R31 == "random" and sec == "A" and RNG_FROM <= i < RNG_FROM + RNG_BARS:
+            T["kick"].add(start, 1.0, "kr", 112)
+            bits = RNG_BITS[8 * (i - RNG_FROM): 8 * (i - RNG_FROM) + 8]
+            for j in range(1, 8):
+                if bits[j]:
+                    T["kick"].add(start + 0.5 * j, 0.5, "kr", 102 if j % 2 == 0 else 90)
         elif groove and R20 == "drummer" and sec == "peak" and i >= int(os.environ.get("T3_DRUM_FROM", "9")):
             T["kick"].add(start, 1.0, "kr", 112)
             for c in [c for c in range(2, W, 2) if row[c]][:int(os.environ.get("T3_DRUM_MAX", "5"))]:
@@ -615,6 +646,11 @@ def build():
                     T["bass"].add(start, 7.6, hz_m(root_m), 92)
             elif sec == "traffic":
                 T["bass"].add(start, 15.6, hz_m(root_m), 90)
+            elif R31 == "random" and sec == "A" and RNG_FROM <= i < RNG_FROM + RNG_BARS and os.environ.get("T3_RNG_BASS", "on") == "on":
+                bits = RNG_BITS[8 * (i - RNG_FROM): 8 * (i - RNG_FROM) + 8]   # the bass locks to the random kick
+                for j in range(8):
+                    if j == 0 or bits[j]:
+                        T["bass"].add(start + 0.5 * j, 0.4, hz_m(root_m + (12 if j in (3, 7) else 0)), 96 if j == 0 else 84)
             else:
                 k = 3 + pop % 4
                 for s, on in enumerate(euclid(k, 16, (pop * 3) % 16)):
