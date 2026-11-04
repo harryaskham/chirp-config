@@ -349,6 +349,18 @@ R26 = os.environ.get("T9_R26", "cascade")
 # handpan; and the chaos's cross-morphed pad breathes on it (scanned-breath: a slow hand leaning in and out every
 # seven seconds) instead of pad-glass. Level-matched to what they replace. T9_R27=none reproduces v26.
 R27 = os.environ.get("T9_R27", "scanned")
+# T9_R28 = odd (v28, palette round). ODD HARMONICS FOR AN ODD SCALE. Bohlen-Pierce was built for timbres with only odd
+# partials - its consonances are 3:5:7:9, the clarinet's - and the song's lead was always a clarinet; but its pad,
+# holding the chords from the first bar to the last, was pad-glass, a full-spectrum sine pad whose even partials rub
+# against the tritave. Now the pad is a Chebyshev waveshaper with odd harmonics only (wM's shaper-reed: 1, 0, .55,
+# 0, .3, 0, .16 - Le Brun and Arfib's hollow reed), its brightness opening with a slow breath: the chords sit in
+# their own scale's acoustics. The pad's first and last chords (16 beats each end) stay glass: the joins to t8 and
+# t10 heard the reed (in-join spectral 7.1 -> 9.3, s0 97.45 with the whole pad on it). Level-matched: the reed
+# takes pad-glass's envelope, velocity response (0.3), chorus and hall. (Opt-in T9_R28_BRASS=on: the settle's two
+# converging lines on wM's shaper-brass, Risset's waveshaped trumpet, -6 dB - its delay tail reached the out-join,
+# spectral 7.34 -> 8.14.) T9_R28=none reproduces v27.
+R28 = os.environ.get("T9_R28", "odd")
+R28B = R28 == "odd" and os.environ.get("T9_R28_BRASS", "off") == "on"
 WINDOW_R = [float(v) for v in os.environ.get("T9_WIN_R", "3.835*10,3.8425*4,3.8445*2,3.853*2").replace("*", " ").replace(",", " ").split()[0::2]]
 WINDOW_N = [int(v) for v in os.environ.get("T9_WIN_R", "3.835*10,3.8425*4,3.8445*2,3.853*2").replace("*", " ").replace(",", " ").split()[1::2]]
 WINDOW_SCHED = [r_ for r_, n_ in zip(WINDOW_R, WINDOW_N) for _ in range(n_)]
@@ -822,7 +834,8 @@ def main():
                "gain": os.environ.get("T9_CZSQ_GAIN", "-12.8dB") if R15 == "cz" else os.environ.get("T9_OSTI_GAIN", "-8dB"), "pan": 0.3,
                "fx": ["hp cutoff=250", "reverb kind=room decay=0.8s mix=0.18"], "score": osti.score(total)}]
              if R8 == "ostinato" else []),
-           *([{"name": "steel", "patch": "pedal-steel", "gain": os.environ.get("T9_STEEL_GAIN", "-4dB"), "pan": -0.15,
+           *([{"name": "steel", "patch": "shaper-brass" if R28B else "pedal-steel",
+               "gain": os.environ.get("T9_STEEL_GAIN", os.environ.get("T9_BRASS_GAIN", "-6dB") if R28B else "-4dB"), "pan": -0.15,
                "sends": {}, "fx": ["hp cutoff=150", {"type": "delay", "time": "3/8", "feedback": 0.3, "mix": 0.2,
                                                      "ping_pong": True, "tone": 3500}],
                "score": steel.score(total)}] if R6 == "steel" else []),
@@ -876,6 +889,19 @@ def main():
             sq.add(s0 + 8.0 * k, 8.0, ",".join(mm(bp(d, 57)) for d in (0, 6)), 50 + 15 * k)
         tracks.append({"name": "squall", "patch": "c9-gendy", "gain": os.environ.get("T9_SQUALL_GAIN", "-16dB"), "pan": 0.0,
                        "fx": ["hp cutoff=150", "reverb kind=hall decay=2.5s mix=0.3"], "score": sq.score(total)})
+    if R28 == "odd":   # the middle of the pad moves to the odd-harmonic reed; its first and last chords stay glass
+        edge = float(os.environ.get("T9_REED_EDGE", "16"))
+        padr = Track("padr")
+        padr.ev = [x for x in T["pad"].ev if edge <= x[0] < total - edge]
+        pad_tr = next(tr for tr in tracks if tr["name"] == "pad")
+        keep = Track("pad")
+        keep.ev = [x for x in T["pad"].ev if not (edge <= x[0] < total - edge)]
+        pad_tr["score"] = keep.score(total)
+        tracks.append({"name": "padr", "patch": "shaper-reed amp.a=500ms amp.d=1s amp.s=0.85 amp.r=1.6s play.vel_sens=0.3",
+                       "gain": os.environ.get("T9_REED_GAIN", "-19dB"),
+                       "fx": [dict(f) if isinstance(f, dict) else f for f in pad_tr["fx"]]
+                             + ["chorus rate=0.3 depth=0.5 mix=0.35", "reverb kind=hall decay=4.5s mix=0.38 predelay=30ms"],
+                       "score": padr.score(total)})
     if R25 == "branches" and (R26 != "cascade" or os.environ.get("T9_R26_BR", "off") == "on"):
         cands = sorted(bp(d, 38) for d in range(0, 40))
         def snap(x):
