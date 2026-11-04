@@ -421,6 +421,26 @@ def build():
     # (v38) the v37 CHANT choir is gone again: it came within the hour of Harry's praise for t10's duet, the same
     # four-voice choir several songs took at once - the album's latest idea, not this song's (Harry, 00:00: 'praise is
     # local ... keep things varied'). The annealing cluster it sang is the gendyn drone's job here already
+    # (v39) THE COLOURS ANNEAL (Klangfarbenmelodie): hot, the search's notes are not one instrument's - each is handed
+    # at random to one of four other machines (a VOSIM vowel blip, a terrain-wave key, a scanned-synthesis mallet, a
+    # Rossler-chaos lead), Webern's melody of tone colours, so the riff the search is trying out is scattered across
+    # the room as well as across the scale; as the temperature falls fewer notes leave home, and converged every note
+    # is the search's own phase-distortion voice again - the answer found in one colour. Its own dice (SEED+611); a
+    # note that leaves is muted at home (vel 1), never removed
+    rng_k = random.Random(SEED + 611)
+    KF = ['kf1', 'kf2', 'kf3', 'kf4']
+    for k_ in KF:
+        P[k_] = []
+    seq_ = []
+    for e_ in P['seq']:
+        b_ = min(len(T) - 1, int(e_[0] // 4))
+        u_, k_ = rng_k.random(), rng_k.choice(KF)
+        if e_[3] > 1 and u_ < min(0.85, 1.1 * T[b_]):
+            P[k_].append(e_)
+            seq_.append((e_[0], e_[1], e_[2], 1))
+        else:
+            seq_.append(e_)
+    P['seq'] = seq_
     # (v26) THE TEMPERATURE, AUDIBLE: under everything, an open fifth (A and E) on Xenakis's dynamic stochastic
     # synthesis (GENDY, 1991: each wave cycle a polygon whose corners random-walk) - the same idea as the search itself,
     # a random walk with a step size. Its step sizes are the temperature: while the machine is hot the corners and the
@@ -598,6 +618,10 @@ def build():
             tr('rep', {'synth': {'layers': [{'type': 'ks', 'ks': {}, 'decay': '1.6s', 'bright': 0.55}], 'amp': '1ms 0 1 220ms',
                                  'filters': ['hp cutoff=150']}}, '-10dB', pan=0.45,
                fx=['delay time=3/8 feedback=0.22 mix=0.16'], sends={'hall': '-12dB'}),
+            tr('kf1', 'vosim-voice', '-12dB', pan=-0.55, sends={'echo': '-12dB', 'hall': '-14dB'}),
+            tr('kf2', 'terrain-keys', '-10dB', pan=0.5, sends={'echo': '-12dB', 'hall': '-14dB'}),
+            tr('kf3', 'scanned-mallet', '-10dB', pan=-0.2, sends={'echo': '-12dB', 'hall': '-14dB'}),
+            tr('kf4', 'rossler-lead', '-13dB', pan=0.25, sends={'echo': '-12dB', 'hall': '-14dB'}),
             {'name': 'sing2', 'patch': SING['patch'], 'gain': '-11dB', 'pan': -0.3, 'notes': sung2,
              'fx': [{'type': 'pitch', 'semitones': 0, 'formant': 0.15}, {'type': 'tape', 'drive': 0.12, 'mix': 1, 'wow': 2, 'flutter': 1, 'seed': 9}],
              'sends': {'echo': '-11dB', 'hall': '-9dB'}},
