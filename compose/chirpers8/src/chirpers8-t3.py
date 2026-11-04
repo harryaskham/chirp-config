@@ -267,6 +267,18 @@ R25 = os.environ.get("T3_R25", "sides")
 # to 9 dB.) Everything is placed in beats, so every part follows; only the sung lines
 # stretch or tighten (+-10%). T3_CLOCK lists the eleven bpm points. T3_R26=none reproduces v25.
 R26 = os.environ.get("T3_R26", "clock")
+# T3_R27 = agree (v27, section round on w7, 3:08-3:39: the peak, "static, level jump" - the lowest motion in the song,
+# and the kick alone is within 0.6 dB of the whole mix there). WHERE THE TWO AUTOMATA AGREE. The peak runs two
+# automata at once - rule 30 on the marimba, rule 90 on the glock, the second growing from a single cell. For its
+# first eight bars the floor was a plain four-on-the-floor; now the kick plays the downbeat and only the sixteenths
+# where BOTH automata have a live cell (up to four more): at first, with rule 90 still one cell wide, almost
+# nothing - the peak arrives on its mallets - and the floor assembles itself bar by bar as the triangle widens and
+# the two rows meet more often, until the drummer takes over at bar 9. AS KEPT the deep four stays under them
+# (T3_AGREE_MODE=add): the agreements are extra kicks on the off-sixteenths, a syncopation the two automata write
+# together. Measured: the agreements ALONE (=only) cost 0.15 (spectrum 100 -> 98.7: the kick carries the low end);
+# with the four 98.345; ducking the peak's kick 3 dB as well (T3_PEAK_KICK_DB=-3) 98.323. None of them cleared w7's
+# "static" (the song's densest window; v20's four blinks were a gimmick). T3_R27=none reproduces v26.
+R27 = os.environ.get("T3_R27", "none")   # OPT-IN (not kept): 98.345/98.349 vs v26 98.387/98.385
 
 
 def clock_map(st, total):
@@ -491,6 +503,15 @@ def build():
         elif groove and sec == "glider":  # half time: the floor drops away under the gliders
             for b in (0.0, 2.5):
                 T["kick"].add(start + b, 1.0, "kr", 112 if b == 0 else 100)
+        elif groove and R27 == "agree" and sec == "peak" and i < int(os.environ.get("T3_DRUM_FROM", "9")):
+            if os.environ.get("T3_AGREE_MODE", "add") == "add":   # the deep four stays; the agreements ride on it
+                for b in range(4):
+                    T["kick"].add(start + b, 1.0, "kr", 112 if b == 0 else 104)
+            else:
+                T["kick"].add(start, 1.0, "kr", 112)
+            both = [c for c in range(1, W) if row[c] and row2[c] and (c % 4 or os.environ.get("T3_AGREE_MODE", "add") != "add")][:int(os.environ.get("T3_AGREE_MAX", "4"))]
+            for c in both:
+                T["kick"].add(start + c * 0.25, 0.5, "kr", 100 if c % 4 == 0 else 90)
         elif groove and R20 == "drummer" and sec == "peak" and i >= int(os.environ.get("T3_DRUM_FROM", "9")):
             T["kick"].add(start, 1.0, "kr", 112)
             for c in [c for c in range(2, W, 2) if row[c]][:int(os.environ.get("T3_DRUM_MAX", "5"))]:
@@ -801,6 +822,15 @@ def main():
                            "fx": ["hp cutoff=70", "reverb kind=hall decay=2.6s mix=0.3"], "notes": notes,
                            "auto": {"mouth": mouth}})
             PATCH_EXTRA[f"c3-{nm}"] = c3_fof(voice, vib)
+    if R27 == "agree" and float(os.environ.get("T3_PEAK_KICK_DB", "0")) != 0:   # the peak belongs to the automata
+        p0, p1 = st["peak"], st["peak"] + 72.0
+        kd = float(os.environ.get("T3_PEAK_KICK_DB", "0"))
+        lane = {"points": [["0b", 0.0], [f"{p0 - 0.1:g}b", 0.0], [f"{p0:g}b", kd], [f"{p1 - 0.1:g}b", kd], [f"{p1:g}b", 0.0],
+                           [f"{total}b", 0.0]]}
+        for tr in tracks:
+            if tr["name"] == "kick":
+                tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.pk", "amount": 1}]}}]
+                tr["auto"] = {**tr.get("auto", {}), "pk": lane}
     if R25 == "sides":
         lines = [s_ for s_, _ in CHANT] if CHANT else [256.0, 272.0]   # the chords under the two lines
         amt = float(os.environ.get("T3_SIDE", "0.8"))
