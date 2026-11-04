@@ -24,3 +24,8 @@
 1. Finish the per-scene sweep (t5-t8, t10-t12) and fix any dark or still scene.
 2. Render the final video from the release files: each track's `audio:` set to release.json's files, back to back with no gaps. Check its length against the release program (±2 s, ytpub's limit), and check the chapters.
 3. Render the parts in parallel so 1080p fits the release window, then score and look at the whole album once more.
+
+**Final pass, done (14:10).**
+- Scene sweep: all 12 swept. Lifted the dark scenes: t9's storm, t1's score, t10's deep stack, t12's opening and t6's intro and verses.
+- Seams: the dip at each cut is now under a second (0.7 s down, 0.5 s up), with the amber light holding through it.
+- Final render dry-run on stand-in MP3s passed: length equal to the release program (0.00 s difference) and 12 chapters. Ready for release.json.
