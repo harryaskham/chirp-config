@@ -11,6 +11,7 @@ looks:
       - {type: scope, mode: wave, y: -0.86, size: 3.4, gain: 1.2, width: 0.003, glow: 0.5, pos: 0.7, opacity: 0.7}
     lfo: {drift: "sine period=16b"}
     filters:
+      - {type: camera, zoom: "1 + scene.progress*0.18", x: "scene.progress*0.45", y: "scene.progress*0.05"}
       - {type: feedback, zoom: "1.002 + audio.onset*0.01", decay: 0.55}
       - {type: bloom, threshold: 0.4, amount: "0.6 + audio.level*0.4", radius: 0.025}
       - {type: vignette, amount: 0.5}

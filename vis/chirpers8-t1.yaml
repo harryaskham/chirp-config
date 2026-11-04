@@ -14,6 +14,7 @@ looks:
       - {type: particles, on: track.chip1, count: 14, speed: 0.25, life: 2.2, drag: 1.0, size: 0.004, jitter: 0.5, soft: 0.8, pos: 0.7, hues: 0.1, opacity: 0.7}
       - {type: particles, on: track.babble, count: 6, speed: 0.15, life: 1.6, size: 0.003, jitter: 0.9, pos: 0.45, opacity: 0.5}
     filters:
+      - {type: camera, zoom: "1 + scene.progress*0.08", rotate: "scene.progress*0.02"}
       - {type: feedback, zoom: 0.985, rotate: "-0.004", decay: param.echo, hue: 0}
       - {type: bloom, threshold: 0.42, amount: "0.6 + var.breath*0.6", radius: 0.04}
       - {type: vignette, amount: 0.6}
