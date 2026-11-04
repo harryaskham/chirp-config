@@ -627,7 +627,10 @@ def build():
                                                   'amp': {'a': '30ms', 'd': '600ms', 's': 0.7, 'r': '900ms'},
                                                   'filters': ['lp cutoff=1800', 'hp cutoff=150']}},
              'gain': '-22dB', 'pan': -0.15, 'score': line(P['bbhum'], total), 'sends': {'hall': '-10dB', 'echo': '-12dB'}},
-            tr('pno', 'piano-muted', '-12dB', pan=0.3, sends={'hall': '-16dB'}),   # (listed last: nothing before it moves)
+            # (v42, palette) and the comping piano is a clavichord made of Karplus-Strong loops (wM's ks-harp: stretch
+            # 3, the whole noise burst left ringing bright) - the band's keyboard now plucked by the same 1983 arithmetic
+            # as the automaton's rim; the muted piano's dark felt traded for wire
+            tr('pno', 'ks-harp', '-14dB', pan=0.3, sends={'hall': '-16dB'}, fx=['lp cutoff=5000']),   # (listed last: nothing before it moves)
             # the outro keeps the old analogue pad, warm and low, for the hand-over into the next song (the terrain's bright
             # odd harmonics there put 17 dB more at 1 kHz into the join than the next song opens with)
             tr('pad2', 'juno-pad', '-16dB', fx=['hp cutoff=200', {'type': 'eq', 'bands': ['peak cutoff=450 q=0.9 gain=-4dB', 'highshelf cutoff=5000 gain=3dB']}], sends={'hall': '-9dB'}),
@@ -635,7 +638,14 @@ def build():
                fx=[{'type': 'eq', 'bands': ['peak cutoff=75 q=0.8 gain=4dB', 'highshelf cutoff=9000 gain=-5dB']}]),
             tr('ride', 'tight-kit', '-9dB', pan=-0.15, sends={'hall': '-16dB'},
                fx=[{'type': 'eq', 'bands': ['peak cutoff=75 q=0.8 gain=4dB', 'highshelf cutoff=9000 gain=-4dB']}]),
-            tr('tpt', 'trumpet-mute', '-9dB', pan=-0.2, sends={'hall': '-12dB', 'echo': '-16dB'}),
+            # (v42, palette) RISSET'S TRUMPET: the guest who takes the chorus over the second groove was the library's
+            # muted trumpet. The guest is now the computer's own trumpet - Jean-Claude Risset's discovery at Bell Labs
+            # (1964-69) that a brass tone is brighter the louder it plays, built the way Le Brun and Arfib later made
+            # cheap: a sine through a Chebyshev polynomial whose drive follows the swell and the velocity (wM's
+            # shaper-brass), so every note blooms as it's pushed and the accents bray. Same hand-written solo, same
+            # swing; a cup mute's narrow band stays on it so it still sits behind the vibes
+            tr('tpt', 'shaper-brass', '-10dB', pan=-0.2, sends={'hall': '-12dB', 'echo': '-16dB'},
+               fx=[{'type': 'eq', 'bands': ['peak cutoff=1400 q=0.9 gain=4dB', 'lowshelf cutoff=300 gain=-4dB', 'highshelf cutoff=6000 gain=-6dB']}]),
             {'name': 'voice2', 'patch': 'voice-speech', 'gain': '-8dB', 'pan': -0.3, 'notes': h_notes,
              'fx': [{'type': 'pitch', 'semitones': 0, 'formant': {'value': 0, 'mod': [{'src': 'auto.fv', 'amount': 1}]}},
                     {'type': 'eq', 'bands': ['peak cutoff=300 q=1 gain=-3dB', 'highshelf cutoff=8000 gain=2dB']},
