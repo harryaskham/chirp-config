@@ -268,6 +268,14 @@ R26 = os.environ.get("T6_R26", "boot")
 # typing is heard alone (T6_TYPE_HUSH=off keeps them; typing alone over them left w1 static).
 # T6_R27=none reproduces v25.
 R27 = os.environ.get("T6_R27", "typed")
+# T6_R28 = erase (v27, section round on w10, 4:30-5:00: chorus two's end into the outro, "little new vs w9"). THE
+# TITLE IS ERASED. The intro typed it (wrong, then right); at the end of the last chorus, in the bar where the drums
+# stop, the same low key is held down: one press, the keyboard's repeat delay, then the auto-repeat - fifteen
+# characters, "no errors since", deleted at the typematic rate (about ten a second), the band holding its last
+# chord over it, and the outro idles on an empty line. (Opt-in T6_IDLE_FLOAT=4: the outro's first four bars without
+# a kick - score-neutral, w10 still "little new", and it put a level jump into w11.)
+# T6_R28=none reproduces v26.
+R28 = os.environ.get("T6_R28", "erase")
 C6_FOF = {"about": "chirper-two: a wordless FOF choir - alto + tenor CHANT grains, vowels moved by the track's mouth lane",
           "synth": {"layers": [
               {"type": "fof", "fof": {"voice": "alto", "vowel": "a>o", "attack": 8,
@@ -570,6 +578,9 @@ def build():
 def main():
     total, bars, secs, T, V, chords = build()
     st = {n: s for n, s, k in secs}
+    if R28 == "erase":
+        o0 = st["outro"]
+        T["kick"].ev = [x for x in T["kick"].ev if not (o0 <= x[0] < o0 + 4.0 * float(os.environ.get("T6_IDLE_FLOAT", "0")))]
     if R26 == "boot":
         v1 = st["verse1"]
         kick_at = v1 + float(os.environ.get("T6_BOOT_KICK", "8"))
@@ -846,6 +857,13 @@ def main():
             ty.add(a + rng_.uniform(-0.03, 0.03), 0.22, mm(e(WALK_POOL[k], base)), 70 + rng_.randint(-12, 12))
             a += 0.25
         ty.add(a + 0.25, 1.2, "m68.211,m72.000,m75.158", 84)   # Return
+        if R28 == "erase":   # chorus two's last bar: backspace held - a press, the repeat delay, then auto-repeat
+            e0 = st["outro"] - 4.0
+            bk = mm(e(0, base - 12))
+            ty.add(e0, 0.2, bk, 72)
+            rate = float(os.environ.get("T6_ERASE_RATE", "6"))   # repeats per beat (96 bpm: ~9.6 a second)
+            for k in range(14):
+                ty.add(e0 + float(os.environ.get("T6_ERASE_DELAY", "0.75")) + k / rate, 0.12, bk, 66 - k)
         tracks.append({"name": "typed", "patch": "rhodes", "gain": os.environ.get("T6_TYPED_GAIN", "-12dB"), "pan": 0.15,
                        "fx": ["reverb kind=room decay=0.8s mix=0.2"], "score": ty.score(total)})
         if os.environ.get("T6_TYPE_HUSH", "on") == "on":   # the key goes down and the room goes quiet: typing alone
