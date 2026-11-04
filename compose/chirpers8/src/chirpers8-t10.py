@@ -347,6 +347,14 @@ def build():
     # thirty metres off - fading with distance, darkening, its pitch sagging a little with the Doppler - so every
     # RETURN is heard as a voice leaving the room, deepest first. (The copies there are written, then muted.)
     UNW = {'d3': 16, 'd2': 20, 'd1': 24}
+    # (v50, palette) THE ARPEGGIO, PLUCKED: through the second calls the pulse-width voice stops comping and runs the
+    # chord in sixteenths. Once the duet Harry singled out is over (its eight bars stay exactly as they were: 'that is
+    # the bar'), those sixteenths are plucked instead - Karplus and Strong's 1983 loop with its noise burst left
+    # ringing (wM's ks-harp), a wire harp under the canon - for the rest of the second calls; the pulse-width voice
+    # keeps its chords elsewhere. Same notes, same place in the room; muted in place on the pulse (vel 1)
+    c2a_, c2b_ = secs_t['calls2'] + 32.0, secs_t['calls3']
+    P['harp'] = [e_ for e_ in P['pwm'] if c2a_ - 1e-6 <= e_[0] < c2b_ - 1e-6]
+    P['pwm'] = [(e_[0], e_[1], e_[2], 1) if c2a_ - 1e-6 <= e_[0] < c2b_ - 1e-6 else e_ for e_ in P['pwm']]
     for key_, b0_ in UNW.items():
         a0_, a1_ = secs_t['final'] + b0_ * 4.0, secs_t['final'] + (b0_ + 4) * 4.0
         P['u' + key_[1]] = [e_ for e_ in P[key_] if a0_ - 1e-6 <= e_[0] < a1_ - 1e-6]
@@ -680,6 +688,7 @@ def build():
                        'fx': ['chorus mix=0.25']},
              'score': ' '.join([f"R/{secs_t['outro'] + 16.0:.4f}b"] + [f"m62,m66,m69,m78/0.17b@{int(18 + 82 * (q_ / 63) ** 1.5)} R/0.08b" for q_ in range(64)]),
              'sends': {'hall': '-14dB'}},
+            tr('harp', 'ks-harp', '-16dB', pan=0.1, fx=['hp cutoff=380'], sends={'hall': '-10dB'}),
         ]}
     return song, depths
 
