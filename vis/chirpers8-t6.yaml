@@ -2,15 +2,17 @@ about: "A Light Left On, 6 No Errors Since: a machine's status lines sung as ten
 looks:
   console:
     palette: [ "#05040a", "#2a1530", "#e8a33a", "#ffd58a", "#c0587a", "#2a1530" ]
+    # chorus: the room warms (speech turns to song); temp: the Markov harmony's temperature.
+    params: {chorus: 0, temp: 0.15}
     env: {kick: {on: track.kick, decay: 260ms}, snare: {on: track.snare, decay: 180ms}, hats: {on: track.hats, decay: 90ms}, bell: {on: track.bell, decay: 600ms}}
     vars:
       warm: {follow: "track.voice.level + track.singb.level + track.talk.level", attack: 60ms, release: 1.2s}
     layers:
-      - {type: noise, scale: 0.9, speed: "0.03 + song.drift*0.1", octaves: 4, warp: 1.2, spread: 0.5, threshold: 0.35, pos: "0.05 + song.drift*0.2", light: "0.12 + var.warm*0.1 + env.kick*0.1 + audio.low*0.08"}
+      - {type: noise, scale: 0.9, speed: "0.02 + param.temp*0.08 + song.drift*0.1", octaves: 4, warp: "0.8 + param.temp*1.6", spread: "0.4 + param.temp*0.3", threshold: 0.35, pos: "0.05 + song.drift*0.2 + param.chorus*0.03", light: "0.1 + param.chorus*0.02 + var.warm*0.08 + env.kick*0.1 + audio.low*0.08"}
       - {type: notes, mode: stars, tracks: [keys, bell, mbox, pad], size: 0.006, life: 3, glow: 0.8, spread: 0.15, pos: 0.45, height: 1.6}
       - {type: text, text: "UPTIME {time}", x: -1.62, y: 0.86, align: left, size: 0.045, color: "#e8a33a", opacity: 0.85, glow: 0.2}
       - {type: text, text: "NO ERRORS", x: 1.62, y: 0.86, align: right, size: 0.045, color: "#e8a33a", opacity: "0.4 + time.barphase*0.0", glow: 0.2}
-      - {type: shape, sides: 0, radius: "0.04 + var.warm*0.05 + env.snare*0.015", fill: 1, width: 0, glow: 3, pos: 0.4, opacity: "0.25 + var.warm*0.45 + env.kick*0.2"}
+      - {type: shape, sides: 0, radius: "0.04 + var.warm*0.05 + env.snare*0.015", fill: 1, width: 0, glow: "3 + param.chorus*0.8", pos: 0.4, opacity: "0.25 + param.chorus*0.1 + var.warm*0.35 + env.kick*0.2"}
       # The machine's activity lights: one per part, lit by its hits.
       - {type: shape, sides: 0, radius: 0.022, fill: 1, width: 0, glow: 2, x: -1.6, y: -0.86, color: "#e8a33a", opacity: "0.2 + env.kick*0.9"}
       - {type: shape, sides: 0, radius: 0.022, fill: 1, width: 0, glow: 2, x: -1.5, y: -0.86, color: "#e8a33a", opacity: "0.2 + env.snare*0.9"}
@@ -26,14 +28,18 @@ looks:
   rows:
     extends: pleasures
     layers:
-      - {type: lines, rows: 36, every: 0.11, height: 0.4, y: 0.72, size: 1.2, spacing: 0.04, width: 0.0035, color: "#e8a33a", occlude: 1}
+      - {type: lines, rows: 36, every: 0.11, height: 0.5, y: 0.8, size: 2.0, spacing: 0.045, width: 0.004, color: "#e8a33a", occlude: 1}
       - {type: text, text: "UPTIME {time}", x: -1.62, y: 0.86, align: left, size: 0.045, color: "#e8a33a", opacity: 0.85, glow: 0.2}
+# intro 10, verse1 20, chorus1 14, verse2 20, bridge 18, chorus2 22, outro 22 (bars), with
+# the song's Markov temperature per section.
 scenes:
-  - {at: 0, look: console}
+  - {at: 0, look: console, params: {chorus: 0, temp: 0.1}}
+  - {at: 10bar, look: console, params: {chorus: 0, temp: 0.15}, xfade: 3s}
+  - {at: 30bar, look: console, params: {chorus: 1, temp: 0.35}, xfade: 3s}
   - {at: 44bar, look: rows, xfade: 4s, transition: wipe}
-  - {at: 64bar, look: console, xfade: 4s, transition: clock}
-  - {at: 84bar, look: console, xfade: 4s}
-  - {at: 102bar, look: console, xfade: 4s}
+  - {at: 64bar, look: console, params: {chorus: 0, temp: 0.95}, xfade: 4s, transition: clock}
+  - {at: 82bar, look: console, params: {chorus: 1, temp: 0.4}, xfade: 4s}
+  - {at: 104bar, look: console, params: {chorus: 0, temp: 0.05}, xfade: 6s}
 
 # The words, where they are sung (found by tools/vislyrics.py from the song's tts phrases).
 master:
