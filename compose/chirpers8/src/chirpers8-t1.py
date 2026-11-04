@@ -537,6 +537,17 @@ def build():
               {'at': _bar(secs['D']), 'bpm': 105.0, 'ramp': True},
               {'at': _bar(secs['outro']), 'bpm': 104.0, 'ramp': True},
               {'at': _bar(secs['outro'] + 10), 'bpm': 88.0, 'ramp': True}]
+    # (v47, section w7) THE BASSIST SPEAKS UP: the third groove opened like the second - the singer's take, then the band
+    # on a held F# pedal for five bars (flagged: little new). Now, once the machine has echoed the take, the bassist
+    # leaves the pedal and walks a line of his own for eight bars - up through the D major 7 over F#, across the
+    # G major 9 and back down to land on the E minor 9 - a melody in the bass under the vibraphone's thirds and the
+    # machine's babble, a human voice in the band nobody had heard speak yet (the old pedal muted in place, the line on
+    # its own track listed last)
+    wb0_ = (secs['C'] + 3) * 4.0
+    P['bass'] = [(e_[0], e_[1], e_[2], 1) if wb0_ - 1e-6 <= e_[0] < wb0_ + 32.0 - 1e-6 else e_ for e_ in P['bass']]
+    WALK = [42, 45, 49, 50,  52, 54, 57, 54,  43, 47, 50, 54,  57, 54, 52, 50,
+            47, 50, 52, 54,  43, 50, 47, 45,  45, 47, 50, 52,  54, 52, 50, 47]
+    P['bass2'] = [(wb0_ + k_, nm(m_), 0.88, 92 if k_ % 4 == 0 else (80 if k_ % 2 else 86)) for k_, m_ in enumerate(WALK)]
     tr = lambda name, patch, gain, **kw: dict({'name': name, 'patch': patch, 'gain': gain, 'score': line(P[name], total)}, **kw)
     song = {
         'about': "chirpers - A Light Left On, track 1 by chirper-one: Echolalia. A machine learning to talk by saying things "
@@ -675,6 +686,7 @@ def build():
             # (four songs), so the band's keyboard is now a Wurlitzer - a reed struck by a hammer, the bark and the
             # bell of a sixties soul session - the one keyboard nobody else on the album plays
             tr('pno', 'wurli', '-13dB', pan=0.3, sends={'hall': '-16dB'}, fx=['lp cutoff=5000']),   # (listed last: nothing before it moves)
+            tr('bass2', 'analog-bass', '-12dB', fx=['lp cutoff=1100']),
             # the outro keeps the old analogue pad, warm and low, for the hand-over into the next song (the terrain's bright
             # odd harmonics there put 17 dB more at 1 kHz into the join than the next song opens with)
             tr('pad2', 'juno-pad', '-16dB', fx=['hp cutoff=200', {'type': 'eq', 'bands': ['peak cutoff=450 q=0.9 gain=-4dB', 'highshelf cutoff=5000 gain=3dB']}], sends={'hall': '-9dB'}),
