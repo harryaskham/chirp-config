@@ -2,26 +2,32 @@ about: "A Light Left On, 4 Small Things Before Large: sixteen notes, one bar, so
 looks:
   sort:
     palette: acid
-    params: {hue: 0}
+    params: {hue: 0, chaos: 0}
     env: {swap: {on: track.swap, decay: 180ms}, beat: {on: beat, decay: 250ms, vel: false}}
     layers:
-      - {type: gradient, angle: 0.25, spread: 0.18, pos: "0.1 + param.hue", light: "0.22 + env.swap*0.25 + env.beat*0.08 + audio.low*0.15"}
-      - {type: notes, mode: steps, tracks: [tune], range: auto, steps: 16, window: 4, width: 3.0, height: 1.3, y: -0.05, spread: 0, pos: "0.45 + param.hue", opacity: "0.75 + audio.level*0.25"}
-      - {type: notes, mode: steps, tracks: [lead], range: auto, steps: 16, window: 4, width: 3.0, height: 1.3, y: -0.05, spread: 0, pos: 0.75, opacity: 0.3}
+      - {type: gradient, angle: 0.25, spread: 0.18, pos: 0.1, light: "0.2 + env.swap*0.25 + env.beat*0.08 + audio.low*0.15"}
+      - {type: notes, mode: steps, tracks: [tune], range: auto, steps: 16, window: 4, width: 3.0, height: 1.3, y: -0.05, spread: 0, pos: 0.45, opacity: "0.9 + audio.level*0.1"}
+      - {type: notes, mode: steps, tracks: [lead], range: auto, steps: 16, window: 4, width: 3.0, height: 1.3, y: -0.05, spread: 0, pos: 0.75, opacity: 0.45}
       - {type: particles, on: track.tick, count: 3, speed: 0.4, dir: 0.25, spread: 0.2, life: 0.6, size: 0.003, x: 0, y: -0.72, jitter: 1.4, pos: 0.5}
       - {type: spectrum, mode: line, y: -0.86, size: 3.2, height: 0.08, width: 0.003, floor: 0.3, pos: 0.4, opacity: 0.5}
     filters:
-      - {type: bloom, threshold: 0.5, amount: "0.5 + env.swap*0.6"}
+      - {type: warp, amount: "param.chaos*0.03", scale: 4, speed: 1.5}
+      - {type: chroma, amount: "param.chaos*0.006 + env.swap*param.chaos*0.01"}
+      - {type: bloom, threshold: 0.45, amount: "0.6 + env.swap*0.6"}
+      - {type: hue, shift: param.hue}
+      - {type: color, gamma: 1.3, saturation: 1.15}
       - {type: scanlines, amount: 0.12, count: 300}
       - {type: vignette, amount: 0.45}
 scenes:
-  - {at: 0, look: sort, params: {hue: 0}}
-  - {at: 16bar, look: sort, params: {hue: 0.12}, xfade: 2s}
-  - {at: 40bar, look: sort, params: {hue: 0.3}, xfade: 2s}
-  - {at: 64bar, look: sort, params: {hue: 0.47}, xfade: 2s}
-  - {at: 88bar, look: sort, params: {hue: 0.62}, xfade: 1s}
-  - {at: 100bar, look: sort, params: {hue: 0.8}, xfade: 2s}
-  - {at: 124bar, look: sort, params: {hue: 0.95}, xfade: 4s}
+  # A colour per algorithm: bubble green, insertion cyan, quick violet, bogo red and shaken,
+  # merge blue, sorted gold.
+  - {at: 0, look: sort, params: {hue: 0, chaos: 0}}
+  - {at: 16bar, look: sort, params: {hue: 0.02, chaos: 0}, xfade: 2s}
+  - {at: 40bar, look: sort, params: {hue: 0.2, chaos: 0}, xfade: 2s}
+  - {at: 64bar, look: sort, params: {hue: 0.45, chaos: 0}, xfade: 2s}
+  - {at: 88bar, look: sort, params: {hue: 0.68, chaos: 1}, xfade: 1s}
+  - {at: 100bar, look: sort, params: {hue: 0.33, chaos: 0}, xfade: 2s}
+  - {at: 124bar, look: sort, params: {hue: 0.88, chaos: 0}, xfade: 4s}
 master:
   layers:
     - type: captions
