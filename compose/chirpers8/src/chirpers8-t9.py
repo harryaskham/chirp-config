@@ -361,6 +361,21 @@ R27 = os.environ.get("T9_R27", "scanned")
 # spectral 7.34 -> 8.14.) T9_R28=none reproduces v27.
 R28 = os.environ.get("T9_R28", "odd")
 R28B = R28 == "odd" and os.environ.get("T9_R28_BRASS", "off") == "on"
+# T9_R29 = sync (v29, section round on w10, 4:00-4:25: the storm's second half, "little new vs w9"). THE CROWD FINDS
+# ITS PITCH. Late in the storm a swarm comes in - wM's Kuramoto layer (Kuramoto 1975, the maths of synchrony: fireflies,
+# pacemaker cells, applause falling into step): sixteen saw oscillators each at its own frequency round D3 and the
+# tritave above it (A4, BP's 3:1), uncoupled - a beating, detuned crowd under the chaos. When the map settles, the
+# coupling rises past critical, and the crowd locks onto the note: the orbit's collapse from chaos to a fixed point
+# heard a second way, as synchrony - locking in the eight beats either side of the settle's door, and gone sixteen
+# beats in (held through the whole settle, -14 dB, the drone hid the settle's return: recurrence 98 -> 68, s0 93.2).
+# T9_R29=none reproduces v28.
+R29 = os.environ.get("T9_R29", "sync")
+C9_SWARM = {"about": "chirper-two: a Kuramoto swarm, 16 saws spread 60 cents, coupling on the track's sync lane",
+            "synth": {"layers": [{"type": "kuramoto", "kuramoto": {
+                "count": 16, "wave": "saw", "spread": float(os.environ.get("T9_SWARM_SPREAD", "60")),
+                "coupling": {"value": 0, "mod": [{"src": "auto.sync", "amount": 3}]}}}],
+                "filters": ["hp cutoff=120", "lp cutoff=2200 q=0.4"],
+                "amp": {"a": "3s", "s": 1, "r": "2.5s"}}}
 WINDOW_R = [float(v) for v in os.environ.get("T9_WIN_R", "3.835*10,3.8425*4,3.8445*2,3.853*2").replace("*", " ").replace(",", " ").split()[0::2]]
 WINDOW_N = [int(v) for v in os.environ.get("T9_WIN_R", "3.835*10,3.8425*4,3.8445*2,3.853*2").replace("*", " ").replace(",", " ").split()[1::2]]
 WINDOW_SCHED = [r_ for r_, n_ in zip(WINDOW_R, WINDOW_N) for _ in range(n_)]
@@ -951,6 +966,17 @@ def main():
                            "fx": ["hp cutoff=70", "peak cutoff=550 gain=-4dB q=1.2", "reverb kind=hall decay=2.6s mix=0.3"],
                            "notes": chords[nm], "auto": {"mouth": {"points": mouth_pts}}})
             BR_PATCHES[f"c9-{nm}"] = c9_fof(voice, vib)
+    if R29 == "sync":
+        s0, s1 = float(os.environ.get("T9_SWARM_FROM", "584")), st["settle"]
+        s_end = s1 + float(os.environ.get("T9_SWARM_TAIL", "16"))   # it locks at the settle's door and goes
+        sync = {"points": [["0b", 0.0], [f"{s0:g}b", 0.0], [f"{s1 - 8:g}b", 0.15], [f"{s1 + 8:g}b", 1.0],
+                           [f"{total}b", 1.0]]}
+        tracks.append({"name": "swarm", "patch": "c9-swarm", "gain": os.environ.get("T9_SWARM_GAIN", "-16dB"), "pan": 0.0,
+                       "fx": ["reverb kind=hall decay=3s mix=0.3"],
+                       "notes": [{"at": s0, "len": round(s_end - s0, 3), "pitch": "146.83hz", "vel": 0.7},
+                                 {"at": s0 + 4.0, "len": round(s_end - s0 - 4.0, 3), "pitch": "440.49hz", "vel": 0.55}],
+                       "auto": {"sync": sync}})
+        BR_PATCHES["c9-swarm"] = C9_SWARM
     if R11 == "d" and R24 == "choir":   # the voices find D, sung: four takes of "on", a beat apart, bottom up
         here = os.path.dirname(os.path.abspath(__file__))
         cg = float(os.environ.get("T9_CHOIR_GAIN", "-13").replace("dB", ""))
