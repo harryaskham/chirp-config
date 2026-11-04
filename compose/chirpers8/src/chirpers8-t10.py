@@ -649,7 +649,11 @@ def build():
             tr('kit2', 'machine-kit', '-2dB', sends={'hall': '-20dB'}),
             tr('kit3', 'machine-kit', '-2dB', sends={'hall': '-20dB'}),
             tr('kit4', 'machine-kit', '-2dB', sends={'hall': '-20dB'}),
-            tr('bentry', FMBASS, '-7dB', fx=['lp cutoff=1600']),
+            # (v52, palette) THE BASS ENTRY, BOWED: the entry every fugue saves for last - the subject in the bass, eight
+            # bars in the G minor calls - was an FM bass, the same family as the bell above it. Now it is bowed (the
+            # engine's bowed-string model, a cello in its lowest register): the first acoustic body in the canon, the
+            # subject dug out of the floor by a bow, a fugue's bass entry the way an orchestra plays it
+            tr('bentry', 'cello', '-9dB', fx=['lp cutoff=1600'], sends={'hall': '-14dB'}),
             # (v34) THE COLONY: through the G minor calls' middle (bars 8-23), while the subject walks in the bass, a Game of
             # Life (wM's life system: Conway's rule on an 8x8 torus, starting from an R-pentomino, which churns a long time)
             # plays a kalimba - the playhead reads one column per eighth, so each bar is one generation, and the colony's
