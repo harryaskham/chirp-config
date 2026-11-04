@@ -293,6 +293,16 @@ R29 = os.environ.get("T6_R29", "answer")
 # heard bare; the memory test at 426b runs alone in the quiet; and the snare's climb on the last beat (kept out of
 # the hush) brings the full machine back up. T6_R30=none reproduces v28.
 R30 = os.environ.get("T6_R30", "safe")
+# T6_R31 = uptime (v30, whole-song round). THE UPTIME. The song is a machine reporting how long it has run without a
+# fault; now you can hear it counting. From the first bar of verse one (the boot) a counter ticks once a bar, and each
+# bar plays its own number in binary on the glass bell: eight eighths, the highest bit first, each set bit a tone of the
+# bar's chord (a ladder falling from the high bits to the ones, so the bits that flip fastest sit in the middle and the
+# rare high ones sparkle above). The figure never repeats: every bar a new number, the low bits a pattern that rolls
+# over every 2, 4, 8 bars. It counts silently through the bridge and the waltz (the clock keeps running) and the
+# breakdown's safe mode mutes it. After the backspace the outro counts again from zero - since now. Its own glass
+# track (-2 dB, appended last): on the old bell track, at -16 dB, it sat 25 dB under the mix, unheard; now ~13.
+# T6_R31=none reproduces v29.
+R31 = os.environ.get("T6_R31", "uptime")
 BD_SAFE = {"voice", "vosim", "tline", "test"}
 C6_FOF = {"about": "chirper-two: a wordless FOF choir - alto + tenor CHANT grains, vowels moved by the track's mouth lane",
           "synth": {"layers": [
@@ -402,7 +412,7 @@ def markov(rng, state, temp):
 def build():
     rng = random.Random(6)
     names = ("kick", "snare", "hats", "ride", "rim", "bass", "pad", "talk", "strtalk", "keys", "bell", "organ", "mbox",
-             "horns", "ack")
+             "horns", "ack", "uptime")
     T = {k: Track(k) for k in names}
     VOICE = {"voice": [], "radio": [], "ringv": [], "singb": [], "lull": [], "tline": []}
     sung1, sung2 = load("sing1.json"), load("sing2.json")
@@ -443,6 +453,7 @@ def build():
             VOICE[dst].append(d)
 
     li = 0
+    vb = next(k for k, b in enumerate(bars) if b[1] == "verse1")
     for bi, (start, sec, i, n) in enumerate(bars):
         temp = TEMP[sec]
         if sec == "waltz":   # temperature zero: the chain stops choosing; a lullaby in six
@@ -485,6 +496,16 @@ def build():
         pad = [e(root + t, 60) for t in tones]
         groove = sec in ("verse1", "chorus1", "verse2", "chorus2") or (sec == "outro" and i < 12) \
             or (sec == "bridge" and i >= 10)
+        if R31 == "uptime" and bi >= vb and (sec in ("verse1", "chorus1", "verse2")
+                                             or (sec == "chorus2" and i < n - 1)
+                                             or (sec == "outro" and i < int(os.environ.get("T6_UP_OUT", "16")))):
+            num = i if sec == "outro" else bi - vb + 1
+            L = len(tones)
+            lad = [e(root + tones[k % L] + EDO * (k // L), int(os.environ.get("T6_UP_BASE", "67"))) for k in range(8)]
+            for j in range(8):   # slot j holds bit 7-j; its pitch falls from the top of the ladder to the bottom
+                if num >> (7 - j) & 1:
+                    T["uptime"].add(start + 0.5 * j, 0.45, mm(lad[j] if os.environ.get("T6_UP_LADDER", "fall") == "rise" else lad[7 - j]),
+                                  int(os.environ.get("T6_UP_VEL", "50")))
         if R7 == "horns" and chorus_sec:   # the section answers the chain
             hv = ",".join(mm(m) for m in (e(root + tt, 55) for tt in tones))
             T["horns"].add(start + 1.5, 0.35, hv, 84)
@@ -969,6 +990,10 @@ def main():
              "lines in a realistic human voice (chirp tts --humanize), speech to song in the choruses, a talkbox pad the "
              "voice shapes, and a Markov chain of 19-EDO chords whose temperature drifts by section. "
              f"Sections: {secline}.")
+    if R31 == "uptime":   # the counter's own glass (appended last: the other tracks' dice are untouched)
+        tracks.append({"name": "uptime", "patch": "glass", "gain": os.environ.get("T6_UP_GAIN", "-2dB"), "pan": 0.2,
+                       "fx": ["hp cutoff=300", "lp cutoff=5000", "reverb kind=hall decay=2.5s mix=0.3"],
+                       "score": T["uptime"].score(total)})
     lines = [
         f"about: {json.dumps(about)}",
         "meta: " + json.dumps({"artist": "chirpers", "album": "A Light Left On", "title": "No Errors Since", "track": 6,
