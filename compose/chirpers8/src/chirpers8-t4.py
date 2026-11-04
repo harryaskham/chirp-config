@@ -531,7 +531,8 @@ def brushes():
 # moment in the bar: a run from one side is one drummer playing alone, an interleave is the two trading strokes, and
 # the final merges are the two kits converging. Left hits stay on the 909 tracks, panned by a lane (0 outside the
 # window); right hits move to twin tracks (listed last), their originals kept at velocity 1.
-MERGE_DUO = (113, 124)
+MERGE_DUO = (101, 124)          # FINAL PASS: all of merge (v51 covered only 113-124): pairs trade every half bar early,
+                                # longer runs alone as the merged lists grow
 MERGE_R_KIT = {"about": "t4's right-hand drummer for the merge: a physical kick and stick snare (909 hats)",
                "extends": "909",
                "kit": {"k": {"pitch": "A1", "patch": {"synth": {
