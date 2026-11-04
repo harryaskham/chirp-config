@@ -54,7 +54,7 @@
    "ramp": "16bar"
   }
  ],
- "tail": "3s",
+ "tail": "2.3s",
  "loudness": -11,
  "volume": "0dB",
  "tracks": [
@@ -8874,6 +8874,143 @@
     "hall": "-8dB"
    },
    "score": "R/705.5b m54.000/48b@72"
+  },
+  {
+   "name": "colony2",
+   "patch": {
+    "extends": "machine-kit",
+    "kit": {
+     "k": {
+      "patch": {
+       "synth": {
+        "layers": [
+         {
+          "type": "drum",
+          "beater": "plastic",
+          "decay": "0.6s",
+          "sharp": 90,
+          "reso": 1.06,
+          "cavity": 0.25,
+          "reso_level": 0.35,
+          "air": 0.5,
+          "strike": 0.08,
+          "damp": 0.6,
+          "shell": 0.1,
+          "contact": 1.4,
+          "slap": 0.45
+         }
+        ],
+        "filters": [
+         {
+          "kind": "peak",
+          "cutoff": {
+           "value": "4.2k",
+           "mod": [
+            {
+             "src": "rand",
+             "amount": 0.1
+            }
+           ]
+          },
+          "q": 1,
+          "gain": {
+           "value": "3dB",
+           "mod": [
+            {
+             "src": "vel",
+             "amount": 5
+            }
+           ]
+          }
+         },
+         "lowshelf cutoff=75 gain=4dB"
+        ],
+        "amp": {
+         "a": "0.2ms",
+         "d": "520ms",
+         "s": 0,
+         "r": "25ms",
+         "curve": 1.5
+        },
+        "drive": 0.35
+       },
+       "play": {
+        "vel_sens": 0.45
+       }
+      },
+      "pitch": "G1"
+     },
+     "rs": {
+      "pitch": "A4",
+      "patch": {
+       "synth": {
+        "layers": [
+         {
+          "type": "drum",
+          "beater": "rimshot",
+          "decay": "0.15s",
+          "sharp": 20,
+          "reso": 1.4,
+          "cavity": 0.3,
+          "reso_level": 0.4,
+          "shell": 0.6,
+          "shell_hz": 620,
+          "strike": 0.5
+         }
+        ],
+        "amp": {
+         "a": "0.1ms",
+         "d": "300ms",
+         "s": 0,
+         "r": "40ms"
+        }
+       }
+      }
+     },
+     "cp": {
+      "pitch": "D3",
+      "patch": {
+       "synth": {
+        "layers": [
+         {
+          "type": "drum",
+          "beater": "stick",
+          "decay": "0.3s",
+          "sharp": 25,
+          "reso": 1.5,
+          "cavity": 0.3,
+          "reso_level": 0.5,
+          "shell": 0.3,
+          "shell_hz": 500,
+          "wires": 0.65,
+          "gap": 0.25,
+          "strike": 0.4
+         }
+        ],
+        "amp": {
+         "a": "0.1ms",
+         "d": "450ms",
+         "s": 0,
+         "r": "50ms"
+        }
+       }
+      }
+     }
+    }
+   },
+   "gain": "-14dB",
+   "pan": 0.35,
+   "at": "545.5b",
+   "gen": {
+    "type": "life",
+    "width": 16,
+    "height": 4,
+    "poly": 3,
+    "init": "1001001010111000/1101110000100110/1100000001011000/0010000101011111",
+    "n": 96,
+    "len": "/16",
+    "notes": "k rs cp h"
+   }
   }
  ],
  "buses": {

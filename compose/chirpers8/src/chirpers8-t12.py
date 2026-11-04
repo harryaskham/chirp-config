@@ -816,6 +816,10 @@ PHYS_SN = {"pitch": "D3", "patch": {"synth": {
                 "reso_level": 0.5, "shell": 0.3, "shell_hz": 500, "wires": 0.65, "gap": 0.25, "strike": 0.4}],
     "amp": {"a": "0.1ms", "d": "450ms", "s": 0, "r": "50ms"}}}}
 T12_KIT = {"extends": "machine-kit", "kit": {"k": PHYS_K, "rs": PHYS_RS, "cp": PHYS_SN}}
+# FINAL PASS (v51's plan for w9: the colony's density growing through the window): at bar 139, halfway through the
+# colony, it DIVIDES - a daughter colony (the same seed mirrored row by row) joins on the same modelled kit, 3 dB
+# under, panned right, so the second half has twice the cells. Listed last; nothing before 139 changes.
+COLONY_DAUGHTER = 139
 
 
 def ks_harp():
@@ -1141,7 +1145,7 @@ def main():
         "vars": {"breeze": {"system": {"type": "lorenz", "axis": "x", "n": 1500, "range": [-0.5, 0.5]},
                             "every": "1/2"}},                  # v6: the engine's weather, gently, on two pans
         "tuning": [{"edo": 12, "root": "F#4"}, {"at": f"{b0(14):.0f}b", "edo": 31, "root": "F#4", "ramp": "16bar"}],
-        "tail": "3s",
+        "tail": "2.3s",                           # FINAL PASS: 0.72 s of dead air trimmed after the light's decay
         "loudness": -11,
         "volume": "0dB",
         "tracks": [
@@ -1296,6 +1300,11 @@ def main():
                            "sends": {"hall": "-8dB"}, "score": part("fireflies").score()})       # v45: listed last
     song["tracks"].append({"name": "lastnote", "patch": "risset-arpeggio", "gain": "-21dB", "pan": 0.0,
                            "sends": {"hall": "-8dB"}, "score": part("lastnote").score()})        # v48: listed last
+    song["tracks"].append({"name": "colony2", "patch": T12_KIT, "gain": "-14dB", "pan": 0.35,          # FINAL PASS
+                           "at": f"{warp(b0(COLONY_DAUGHTER)):g}b",
+                           "gen": {"type": "life", "width": 16, "height": 4, "poly": 3,
+                                   "init": "/".join(r[::-1] for r in COLONY_INIT.split("/")),
+                                   "n": 16 * (COLONY[1] - COLONY_DAUGHTER), "len": "/16", "notes": "k rs cp h"}})
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print("wrote", OUT, "bars", BARS, "gens", {g: len(lsys(g)) for g in range(7)})
