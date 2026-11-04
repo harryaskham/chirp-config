@@ -819,6 +819,34 @@ def radiator_notes():
     return out
 
 
+# v44 (ROUND TYPE: section, w4 1:35-2:08 - B's first half, flagged 'little new vs w3'; no voice, no groove): THE
+# KETTLE. The radiator came on in A; in B someone puts the kettle on. Its RUMBLE (pink noise through a band-pass whose
+# centre climbs three octaves on a lane, 300 Hz -> 2.4 kHz) rises from bar 55 under the hum from the next room; at 61
+# it starts to WHISTLE - a sine gliding up the lobe's own series from its 20th partial to its 24th (a wonky minor
+# third), a slight wobble in the steam - and at 64 it is LIFTED OFF: everything stops at once, 80 ms.
+KETTLE = (55, 61, 64)            # rumble from, whistle from, lifted off at
+KETTLE_RUMBLE = {"synth": {"layers": [{"type": "noise", "color": "pink"}],
+                           "filters": [{"kind": "bp", "q": 2.5, "cutoff": {"value": 300, "mod": [{"src": "auto.kt", "amount": 3}]}}],
+                           "amp": {"a": "3s", "d": "0ms", "s": 1, "r": "80ms"}}}
+KETTLE_WHISTLE = {"synth": {"layers": [{"wave": "sine"}],
+                            "pitch": {"value": 0, "mod": [{"src": "auto.kw", "amount": 1}, {"src": "lfo.st", "amount": 0.12}]},
+                            "lfo": {"st": {"wave": "sine", "rate": "5.2hz"}},
+                            "amp": {"a": "1.6s", "d": "0ms", "s": 1, "r": "80ms"}}}
+
+
+def kettle_tracks():
+    a, w, z = KETTLE
+    rise = round(12 * math.log2(24 / 20), 3)
+    rumble = {"name": "kettle_rumble", "patch": KETTLE_RUMBLE, "gain": "-20dB", "pan": 0.35,
+              "sends": {"room": "-10dB"}, "notes": [{"at": b0(a), "len": b0(z) - b0(a) - 0.05, "pitch": "m60", "vel": 0.8}],
+              "auto": {"kt": {"points": [["0b", 0.0], [f"{b0(a):g}b", 0.0], [f"{b0(z) - 0.1:g}b", 1.0]]}}}
+    whistle = {"name": "kettle", "patch": KETTLE_WHISTLE, "gain": "-20dB", "pan": 0.35,
+               "sends": {"room": "-10dB"},
+               "notes": [{"at": b0(w), "len": b0(z) - b0(w) - 0.05, "pitch": mm(partial(20, lobe_at(w), 0)), "vel": 0.7}],
+               "auto": {"kw": {"points": [["0b", 0.0], [f"{b0(w) + 2:g}b", 0.0], [f"{b0(z) - 2:g}b", rise]]}}}
+    return [rumble, whistle]
+
+
 def rattle_notes():
     out = {"L": [], "R": []}
     a, z = RATTLE
@@ -1152,6 +1180,7 @@ def main():
                                "sends": {"room": "-10dB"}, "notes": rat[side]})
     song["tracks"].append({"name": "radiator", "patch": RADIATOR_PATCH, "gain": "-10dB", "pan": 0.45,
                            "sends": {"room": "-8dB"}, "notes": radiator_notes()})              # v42: listed last
+    song["tracks"] += kettle_tracks()                                                          # v44: listed last
     for tk in song["tracks"]:                     # v36: the power cut (after every track is built; order unchanged)
         if tk["name"] in POWER_CUT_TRACKS:
             tk["fx"] = list(tk.get("fx") or []) + ["tapestop stop=auto.pc time=1b curve=1.6"]

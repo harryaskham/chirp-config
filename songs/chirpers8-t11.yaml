@@ -12567,6 +12567,139 @@
      "vel": 0.554
     }
    ]
+  },
+  {
+   "name": "kettle_rumble",
+   "patch": {
+    "synth": {
+     "layers": [
+      {
+       "type": "noise",
+       "color": "pink"
+      }
+     ],
+     "filters": [
+      {
+       "kind": "bp",
+       "q": 2.5,
+       "cutoff": {
+        "value": 300,
+        "mod": [
+         {
+          "src": "auto.kt",
+          "amount": 3
+         }
+        ]
+       }
+      }
+     ],
+     "amp": {
+      "a": "3s",
+      "d": "0ms",
+      "s": 1,
+      "r": "80ms"
+     }
+    }
+   },
+   "gain": "-20dB",
+   "pan": 0.35,
+   "sends": {
+    "room": "-10dB"
+   },
+   "notes": [
+    {
+     "at": 216.0,
+     "len": 35.95,
+     "pitch": "m60",
+     "vel": 0.8
+    }
+   ],
+   "auto": {
+    "kt": {
+     "points": [
+      [
+       "0b",
+       0.0
+      ],
+      [
+       "216b",
+       0.0
+      ],
+      [
+       "251.9b",
+       1.0
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "kettle",
+   "patch": {
+    "synth": {
+     "layers": [
+      {
+       "wave": "sine"
+      }
+     ],
+     "pitch": {
+      "value": 0,
+      "mod": [
+       {
+        "src": "auto.kw",
+        "amount": 1
+       },
+       {
+        "src": "lfo.st",
+        "amount": 0.12
+       }
+      ]
+     },
+     "lfo": {
+      "st": {
+       "wave": "sine",
+       "rate": "5.2hz"
+      }
+     },
+     "amp": {
+      "a": "1.6s",
+      "d": "0ms",
+      "s": 1,
+      "r": "80ms"
+     }
+    }
+   },
+   "gain": "-20dB",
+   "pan": 0.35,
+   "sends": {
+    "room": "-10dB"
+   },
+   "notes": [
+    {
+     "at": 240.0,
+     "len": 11.95,
+     "pitch": "m76.863",
+     "vel": 0.7
+    }
+   ],
+   "auto": {
+    "kw": {
+     "points": [
+      [
+       "0b",
+       0.0
+      ],
+      [
+       "242b",
+       0.0
+      ],
+      [
+       "250b",
+       3.156
+      ]
+     ]
+    }
+   }
   }
  ],
  "buses": {
