@@ -549,21 +549,17 @@ def build():
             tr('u3', 'bytebeat-chip', '-26dB', fx=['hp cutoff=800', 'lp cutoff=5000', f"orbit rate={ORB_RATE} radius=30 distance=2 path=line phase={orb_phase['3']:.4f}"], sends={'hall': '-12dB'}),
             tr('kit', 'machine-kit', '-2dB', sends={'hall': '-20dB'}),
             tr('glass', 'glass', '-15dB', pan=0.1, sends={'hall': '-8dB'}),
-            # (v47, palette) THE COUNTERSUBJECT, SUNG: the countersubject - the line that answers the subject in the first
-            # calls and again in the final - was a clarinet, one of three clarinets in the song. Now nobody plays it: one
-            # voice sings it without words, on Rodet's CHANT grains (wM's fof, an alto on 'o' opening to 'ah' over each
-            # phrase, a slow vibrato that blooms late) - a fugue line sung the way the Swingle Singers sang Bach (1963), a
-            # single voice, not a choir, just before the human first sings and again as the stack fills at the end
-            tr('cs', {'synth': {'layers': [{'type': 'fof', 'fof': {'voice': 'alto', 'vowel': 'o>a', 'attack': '4ms',
-                                                                   'morph': {'value': 0.0, 'mod': [{'src': 'env.open', 'amount': 0.8}]}}}],
-                                'pitch': {'value': 0, 'mod': [{'src': 'lfo.vib', 'amount': 0.2}]},
-                                'lfo': {'vib': {'wave': 'sine', 'rate': '5.2hz', 'delay': '250ms', 'fade': '350ms'}},
-                                'env': {'open': {'a': '400ms', 'd': '0s', 's': 1.0, 'r': '200ms'}},
-                                'amp': '50ms 0 1 260ms'}},
-               '-10dB', pan=-0.45, sends={'hall': '-9dB', 'echo': '-18dB'}),
+            # (v48, palette) THE CLARINET, COMPUTED: t9 hands this song a clarinet - its pulse on G, which this song
+            # picks up in its first bars on the same clarinet. After that the clarinets that carry the counterpoint (the
+            # countersubject, and the hocketed answer in the first calls) are no longer the library's clarinet - nor
+            # v47's wordless sung line, one more voice in a song that already sings (Harry, 00:00: not all singing) -
+            # but the computer's own clarinet: Chebyshev waveshaping with odd harmonics only, the hollow reed of Le Brun
+            # and Arfib's 1979 papers (wM's shaper-reed), its drive rising as each note is held. The real clarinet
+            # hands over; the machine's reed answers
+            tr('cs', 'shaper-reed', '-9dB', pan=-0.45, sends={'hall': '-10dB', 'echo': '-18dB'}),
             tr('organ', 'organ-pipe', '-13dB', pan=0.0),
             tr('pulse', 'clarinet', '-10dB', pan=-0.15, sends={'hall': '-14dB', 'echo': '-16dB'}),
-            tr('hq', 'clarinet', '-9dB', pan=0.45, sends={'hall': '-12dB', 'echo': '-16dB'}),
+            tr('hq', 'shaper-reed', '-9dB', pan=0.45, sends={'hall': '-12dB', 'echo': '-16dB'}),
             # (v8) THE MACHINE'S OWN PATTERNS: a percussion line written in the engine's Euclidean and chance tokens, a
             # different cycle for each key of the canon - in D minor seven triplet-eighth rims spread over the bar (7 in 12,
             # rotated, each with an 85% chance: a 7-against-4 the kick never agrees with), in G minor a cowbell five-in-
