@@ -42,7 +42,8 @@ scenes:
 master:
   layers:
     - type: captions
-      size: 0.048
+      shadow: 0.7
+      size: 0.052
       y: 0.82
       color: "#ffd58a"
       fade: 1.2

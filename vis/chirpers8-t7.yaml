@@ -30,7 +30,8 @@ scenes:
 master:
   layers:
     - type: captions
-      size: 0.042
+      shadow: 0.7
+      size: 0.05
       y: 0.84
       color: "#ffd58a"
       typing: 18
