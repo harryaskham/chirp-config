@@ -143,6 +143,8 @@ def sheet_roll(bar, vel, name="sheet"):
 
 
 def write_thunder():
+    for bar, vel in INTRO_THUNDER:                                                       # v43: far off, approaching
+        part("thunder").add(b0(bar), 8.0, "m28.000", vel)
     for bar in range(2, BARS + 1):
         if lobe_at(bar) == lobe_at(bar - 1):
             continue
@@ -301,10 +303,22 @@ def storm_lane():
 THUNDER_GAIN = "-2dB"     # +4 dB: the path averages -5.3 dB (strikes land -0.8 to -22 dB from near to far)
 
 
+# v43 (ROUND TYPE: section, w1 0:00-0:32 - the intro, flagged static (the song's stillest window) and never focused):
+# WEATHER THROUGH THE GLASS. The intro was kept still - no wind, no thunder - so the room had no outside. Now, after the
+# 3 s join, the outside is heard but far: thunder ROLLS where the attractor first flips lobe (bar 3, under the radio's
+# first words) and again at 8 and 13, a little nearer each time (the storm lane already holds it ~30 m off and -10 dB in
+# this calm), and a faint DRAUGHT - the comb-whistling wind at velocity 56, just under A's 58 - comes through the gap for the intro's second
+# half (9-16), gusting with the attractor: the storm the song will meet in C, approaching.
+INTRO_THUNDER = ((3, 56), (8, 64), (13, 72))
+INTRO_DRAUGHT = (9, 16, 56)
+
+
 def write_wind():
     for name, a, z in SECTIONS:
         if name in WIND_VEL:
             part("wind").add(b0(a), b0(z + 1) - b0(a) - 0.1, "m60.000", WIND_VEL[name])
+    a, z, vel = INTRO_DRAUGHT
+    part("wind").add(b0(a), b0(z + 1) - b0(a) - 0.1, "m60.000", vel)                    # v43: the draught
 
 
 # v12: THE EYE OF THE STORM - at the peak's most extreme moment (bar 115, z ~40, right after the forecast's 'good
