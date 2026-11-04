@@ -63,6 +63,7 @@ OUTKS = os.environ.get("C8T5_OUTKS", "0:-14")   # SECTION ROUND (w9, the outro: 
 ROBOCHOIR = os.environ.get("C8T5_ROBOCHOIR", "-12")   # SECTION ROUND (the agreement sung, C's last bars): the machine sings too - the three-voice choir that sings 'keep it there' together at C's end gets a fourth voice, a vocoder twin of its middle voice: the same words shaping a held E minor chord of saws (E2 B2 E3 G3) band by band. Agreeing on a speed: humans and the machine sing the deal together. Value = gain dB
 GTRRUSH = os.environ.get("C8T5_GTRRUSH", "0.25")   # SECTION ROUND (w2, the intro's end into A: level jump): the first proposal is rushed - with no kick under it yet, the guitar's opening calls in A run ahead of the band (its own clock: GTRRUSH beats early by A's downbeat), settling back onto the grid over A's first eight bars, so it is exactly on time the bar the kick comes in. Value = beats early
 SWARM = os.environ.get("C8T5_SWARM", "-16")   # WHOLE ROUND: THE SWARM AGREES - wM's kuramoto layer (engine 63e9a72a: Kuramoto 1975, the textbook model of synchrony - fireflies, pacemaker cells, an audience's applause falling into step): the keys' chords doubled by a swarm of 12 saws spread 40 cents round each note, each pulled toward the swarm's mean phase by a coupling on a lane - 0.3 (a crowd, beating like a detuned chorus) through the intro, A and B while the machines disagree, rising through the retrain, 3 (a locked core, the note found out of the crowd) from C on: the song's agreement made in the oscillators themselves. Value = gain dB
+TEMPOBARG = os.environ.get("C8T5_TEMPOBARG", "4")   # WHOLE ROUND: THE TEMPO DOES WHAT IT IS TOLD - the voice says 'slow down a touch. speed up a touch. there.' three times (B bar 12, retrain bars 3 and 8), and now the whole band obeys it each time: the tempo eases down through 'slow down a touch', climbs past where it was through 'speed up a touch', and settles back on 'there.' - by this many bpm the first time, 60% the second, 30% the third, so the haggle narrows to agreement by itself before C locks at 112. Value = bpm of the first offer
 ORIGINATE = os.environ.get("C8T5_ORIGINATE", "8:12")   # SECTION ROUND (w1, the intro: flagged static): THE OTHER MACHINE ANSWERS - the carrier's blips are a V.21 modem's ANSWER channel (1650/1850 Hz mark/space); halfway through the intro the ORIGINATE channel joins (980/1180 Hz, ITU-T V.21, 1964: the same bits a channel lower), its twin on the same radio, orbit and filter, so the intro is two machines talking over each other before the groove - the song's two parties heard first as the oldest modem pair. Intro only. Value 'a:b' = intro bars
 SYNCBLOOM = os.environ.get("C8T5_SYNCBLOOM", "500")   # WHOLE ROUND: AGREEMENT OPENS THE SOUND - both swarms (keys v70, guitar v71) now filter themselves by their own measured coherence (wM's 'sync' mod source, engine b8f9d6b1: 0.3 a crowd ... 1 locked): a lowpass whose cutoff rises 2.5 octaves with sync, so the disagreeing crowd of A and B is muffled, as if heard through a wall, and the sound blooms open exactly as fast as the swarm actually agrees through the retrain and C - the brightness is the agreement, measured, not drawn (and it offsets a locked swarm's own darkening: centroid 390 -> 170 Hz). Value = cutoff Hz at sync 0
 RISSETHOLD = os.environ.get("C8T5_RISSETHOLD", "-18")   # SECTION ROUND (w8, C's last sixteen bars: flagged static, little new vs w7): THE AGREED SPEED, HELD - once the swarms have locked, a single E2 is held under the groove for C's last sixteen bars in Jean-Claude Risset's harmonic arpeggio (Mutations, 1969; wM's library risset-arpeggio, committed 9bc19360, inlined): five ten-harmonic copies a hair apart, so the held note slowly plays its own overtones one after another - motion inside a held agreement, five voices that agreed and still breathe against each other. Kept away from both joins (the carrier attempt rewrote them). Value = gain dB
@@ -798,6 +799,24 @@ def song():
                 if isinstance(fx_, dict) and fx_.get("type") == "radio":
                     fx_["hiss"] = "-90dB"; fx_["whistle"] = "-90dB"
             doc["tracks"].append(tw_)
+    if TEMPOBARG and isinstance(doc.get("tempo"), list):
+        d0_ = float(TEMPOBARG)
+        st_ = {nm_: sum(n_ for x_, n_ in FORM[:i_]) * BAR for i_, (nm_, _n) in enumerate(FORM)}
+        offs_ = [(st_["B"] + 12 * BAR) / 4, (st_["retrain"] + 3 * BAR) / 4, (st_["retrain"] + 8 * BAR) / 4]
+        def _bpm_at(b_):
+            cur_ = None
+            for e_ in doc["tempo"]:
+                if float(str(e_["at"]).rstrip("b")) <= b_:
+                    cur_ = e_["bpm"]
+            return float(cur_)
+        add_ = []
+        for j_, o_ in enumerate(offs_):
+            dd_ = d0_ * (1.0, 0.6, 0.3)[j_]
+            b_ = _bpm_at(o_)
+            add_ += [{"at": f"{o_ + 0.2:g}b", "bpm": b_}, {"at": f"{o_ + 3.3:g}b", "bpm": round(b_ - dd_, 2), "ramp": True},
+                     {"at": f"{o_ + 4.0:g}b", "bpm": round(b_ - dd_, 2)}, {"at": f"{o_ + 7.1:g}b", "bpm": round(b_ + 0.75 * dd_, 2), "ramp": True},
+                     {"at": f"{o_ + 7.9:g}b", "bpm": round(b_ + 0.75 * dd_, 2)}, {"at": f"{o_ + 9.1:g}b", "bpm": b_, "ramp": True}]
+        doc["tempo"] = sorted(doc["tempo"] + add_, key=lambda e_: float(str(e_["at"]).rstrip("b")))
     return doc
 
 
