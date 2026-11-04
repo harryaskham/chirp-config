@@ -287,7 +287,16 @@ R27 = os.environ.get("T3_R27", "none")
 # waveshaping in the manner of Risset's Bell Labs trumpet studies (louder is brighter: the drive follows the
 # envelope and velocity). A chorale on a computer's brass for the machine's own hymn. Level-matched.
 # T3_R28=none reproduces v26.
-R28 = os.environ.get("T3_R28", "chorale")   # OPT-IN (not kept): 98.345/98.349 vs v26 98.387/98.385
+R28 = os.environ.get("T3_R28", "chorale")
+# T3_R29 = grow (v29, whole-song round). THE CELLS LEARN THE TUNE. The hymn's first phrase (A D E F E D C A D) was heard
+# whole on the kora in A, long before the hymn. Now the automaton learns it: once in each section - the boot, twice in
+# A, the glider's floating bars, traffic, the top of the peak - the kora plays the phrase with each of its nine notes
+# sounding only if the cell under it (its place on the ring of sixteen) is alive - at the peak a neighbour either side
+# may lend it. So the tune arrives as the rules allow: a few notes out of the boot's triangle, broken outlines through
+# rule 30's chaos and the glider, whatever cars are on the ring in traffic, nearly whole at the peak - and the hymn
+# then sings it complete. (A neighbour's help from A on made it whole by A's middle: no growth.) T3_R29=none reproduces v28.
+R29 = os.environ.get("T3_R29", "grow")
+GROW = {("boot", 8): 0, ("A", 4): 0, ("A", 12): 0, ("glider", 2): 0, ("traffic", 4): 0, ("peak", 0): 1}   # OPT-IN (not kept): 98.345/98.349 vs v26 98.387/98.385
 
 
 def clock_map(st, total):
@@ -622,7 +631,16 @@ def build():
         if sec == "traffic" and i == n - 4:
             T["rise"].add(start, 16.0, "D4", 76)
         if R4 == "hymn":
-            if (sec == "A" and i in (12, 22)) or (sec == "decay" and i == 6):   # the tune on the kora, augmented, an octave up
+            if R29 == "grow" and (sec, i) in GROW:   # the tune, as far as the cells know it
+                rr, at = GROW[(sec, i)], start
+                for k, (nt, ln) in enumerate(HINT1):
+                    c = (k * W) // len(HINT1)
+                    if any(row[(c + d) % W] for d in range(-rr, rr + 1)):
+                        T["hint"].add(at, 2 * ln, nt[:-1] + str(int(nt[-1]) + int(os.environ.get("T3_GROW_OCT", "1"))),
+                                     int(os.environ.get("T3_GROW_VEL", "62")) + 2 * rr)   # (T3_GROW_OCT=0, the voices' own
+                                     # pitch, cost more: 98.28)
+                    at += 2 * ln
+            if (R29 != "grow" and sec == "A" and i in (12, 22)) or (R29 == "grow" and sec == "A" and i == 22) or (sec == "decay" and i == 6):   # the tune on the kora, augmented, an octave up
                 at = start
                 for nt, ln in (HINT1 if (sec, i) == ("A", 12) else HINT4):
                     T["hint"].add(at, 2 * ln, nt[:-1] + str(int(nt[-1]) + 1), 74)
