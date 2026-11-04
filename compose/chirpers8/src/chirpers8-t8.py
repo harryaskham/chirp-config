@@ -80,6 +80,7 @@ DECFIX = os.environ.get("C8T8_DECFIX", "")   # v56's decay double peaks at lane 
 SUNGMID = os.environ.get("C8T8_SUNGMID", "16")   # WHOLE ROUND on the singing: the voice is heard before E - 'it comes later on' (the line sung at E bar 12) is first sung in the middle of the song, at C bar SUNGMID, in C's own D minor (E's is lifted a step), with its canon a bar behind a third below (v69): the line promises its own return, and comes later on. Value = bar of C
 WORDLEVEL = os.environ.get("C8T8_WORDLEVEL", "3")   # WHOLE ROUND: the word recedes as it decays - the word's orbit (radius 2 + 8 x the decay lane, v60) gets the engine's orbit `level` (8f150090: the distance that plays at full level; farther is fainter, about 1/distance): within WORDLEVEL metres it is as it was; as the memory decays and the orbit widens to 10 m the word grows faint as well as far, then each refresh brings it back up close and full. Value = metres
 CANON = os.environ.get("C8T8_CANON", "4")   # WHOLE ROUND on the singing: the memory sings it back - every sung line (sungl at E bar 12, sungv/sungv2 in the outro) is followed by itself CANON beats later, a diatonic third below in D minor on the stretched octave, 6 dB under, panned across, sent hard into the line: a delay line's echo that returns transposed, so each line becomes a two-part canon with its own recall
+HUMXFMR = os.environ.get("C8T8_HUMXFMR", "-12")   # PALETTE: the machine's power hum, off the album's 808 (4 songs share it) and onto the song's own TRANSFORMER: a Chebyshev shaper writing only odd harmonics (1, 0.35, 0.15, 0.06 - the square-ish buzz of a mains transformer's laminations), slow in and out, so the computer's power supply hums like one instead of like a drum machine's long kick. Value = gain offset dB
 OVERHEAT = os.environ.get("C8T8_OVERHEAT", "30")   # SECTION ROUND (w6, D: flagged static, little new vs w5): THE TANK OVERHEATS - the intro's cold tank warmed into tune (v85); through D, the memory working hardest and its bit errors at their worst, the tank runs hot and the word drifts sharp by this many cents, slowly across D's sixteen bars, until the repair (E) brings it back to pitch at once - heat and errors arriving together, as they would in the machine. Value = cents sharp at D's end
 FARENDE = os.environ.get("C8T8_FARENDE", "4:20")   # SECTION ROUND (w8, E - the repair: flagged static, little new vs w7): THE TWO ENDS AGREE - in A the tank's far end read the word back in retrograde (v83: the word and its mirror, out of step); in E, repaired, the far end reads it FORWARD on the same wire harp, so both transducers now say the same thing at once: the word in unison with itself, a repaired memory heard as agreement. Value 'a:b' = E bars a..b-1
 RISSETMID = os.environ.get("C8T8_RISSETMID", "-16")   # WHOLE ROUND: THE HELD WORD READ OUT, MID-SONG - through C and D (the memory at its busiest, between the refresh and the repair) the first pad's held notes are doubled in Jean-Claude Risset's harmonic arpeggio (Mutations, 1969; library risset-arpeggio, inlined, darkened: tilt -4): five ten-harmonic copies a hair apart, so every held pad note plays its overtones out one by one, slowly - a held tone read out serially, as a delay line reads its word bit by bit. Kept off the intro, A, E and the outro (the whole-song version rewrote both joins: -0.14/-0.21). Value = gain dB
@@ -728,6 +729,13 @@ def song():
                                         "synth": {"layers": [{"type": "additive", "count": 10, "tilt": -4, "level": 0.2, **({"cents": c_} if c_ else {})} for c_ in (-3.14, -1.57, 0, 1.57, 3.14)],
                                                   "amp": {"a": "2s", "d": 0, "s": 1, "r": "3s"}}, "gain": "-2.4dB"},
                               "score": stream(globals().get("_RMID_EV", []), total())})
+    if HUMXFMR:
+        for t_ in doc["tracks"]:
+            if isinstance(t_, dict) and t_.get("name") == "hum":
+                g_ = float(str(t_.get("gain", "0dB")).replace("dB", "")) + float(HUMXFMR)
+                t_["patch"] = {"about": "a mains transformer's hum: odd harmonics written by a Chebyshev polynomial, slow in and out",
+                               "synth": {"layers": [{"type": "shaper", "shaper": {"harmonics": [1, 0, 0.35, 0, 0.15, 0, 0.06], "index": 0.9}}], "amp": "400ms 1 1 1.5s"}}
+                t_["gain"] = f"{g_:g}dB"
     return doc
 
 
