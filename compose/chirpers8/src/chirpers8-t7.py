@@ -450,6 +450,26 @@ def build():
     P['fill7'] = [(co0_ - 4.0 + 0.5 * j_, ('lt', 'lt', 'mt', 'mt', 'ht', 'ht', 'ht', 's')[j_], 0.4, 70 + 5 * j_) for j_ in range(8)]
     P['fill7'] += [(co0_, 'k', 0.5, 112), (co0_, 'cy', 2.0, 96)]
     P['fill7'].sort(key=lambda e_: e_[0])
+    # (v44, section w6) NEARLY: the fourth epoch's last bars ran on as the search's usual churn, and then the voice
+    # says 'zero point two eight, nearly'. Now the band says it first: for the last two bars of the fourth epoch the bass
+    # and a brass section play the answer in unison, twice, as a hit - the target riff, an octave and two octaves
+    # down - with ONE note wrong (its E an F, a semitone off), while the search keeps churning above them; then the
+    # voice: 'nearly'. The first time the whole band has played the riff - and it is not quite it yet. (The bass's own
+    # notes there muted in place; the unison on its own tracks)
+    nr0_ = (sum(n for nm_, n in FORM[:[nm_ for nm_, _ in FORM].index('e5')]) - 2) * 4.0
+    NEAR = list(TARGET); NEAR[3] = 12
+    P['bass'] = [(e_[0], e_[1], e_[2], 1) if nr0_ - 1e-6 <= e_[0] < nr0_ + 8.0 - 1e-6 else e_ for e_ in P['bass']]
+    P['nbr'], P['nbs'] = [], []
+    for rep_ in range(2):
+        for q, d in enumerate(NEAR):
+            if d is None:
+                continue
+            q2 = next((k for k in range(q + 1, 16) if NEAR[k] is not None), 16)
+            at_ = nr0_ + rep_ * 4.0 + q * 0.25
+            dur_ = min(0.5, (q2 - q) * 0.25) * 0.9
+            acc_ = 100 if q in (0, 8) else 86
+            P['nbr'].append((at_, tok(hz(d - 7)), dur_, acc_))
+            P['nbs'].append((at_, tok(hz(d - 14)), dur_, acc_))
     # (v39) THE COLOURS ANNEAL (Klangfarbenmelodie): hot, the search's notes are not one instrument's - each is handed
     # at random to one of four other machines (a VOSIM vowel blip, a terrain-wave key, a scanned-synthesis mallet, a
     # Rossler-chaos lead), Webern's melody of tone colours, so the riff the search is trying out is scattered across
@@ -667,6 +687,8 @@ def build():
                fx=['delay time=3/8 feedback=0.22 mix=0.16'], sends={'hall': '-12dB'}),
             tr('roll', 'electro-kit', '-5dB', sends={'hall': '-14dB'}),
             tr('fill7', 'electro-kit', '-5dB', sends={'hall': '-14dB'}),
+            tr('nbr', 'shaper-brass', '-9dB', pan=0.2, sends={'hall': '-10dB'}),
+            tr('nbs', 'reese', '-6dB', fx=['lp cutoff=1200']),
             tr('kf1', 'vosim-voice', '-12dB', pan=-0.55, sends={'echo': '-12dB', 'hall': '-14dB'}),
             tr('kf2', 'terrain-keys', '-10dB', pan=0.5, sends={'echo': '-12dB', 'hall': '-14dB'}),
             tr('kf3', 'scanned-mallet', '-10dB', pan=-0.2, sends={'echo': '-12dB', 'hall': '-14dB'}),
