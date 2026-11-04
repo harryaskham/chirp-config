@@ -43,6 +43,7 @@ COMPUTEWARP = os.environ.get("C8T2_COMPUTEWARP", "0.25")   # WHOLE ROUND: big nu
 COMPUTEFROM = os.environ.get("C8T2_COMPUTEFROM", "A")   # 'A': the intro's paths stay on the grid (the join with t1 is measured over the opening; the intro is the arp's phasing, v64), the lag starts with A
 ARPPHASE = os.environ.get("C8T2_ARPPHASE", "0.25")   # SECTION ROUND (w1, the intro: static): the machine phases - the bytebeat arp runs on its own clock through the intro (the engine's per-track warp): drifting away from the clarinet over eight bars (to ARPPHASE beats late, curve smooth), then back over eight, locking onto the grid exactly as A begins; the tape-loop phasing of process music, done by a clock. Value = beats of drift at its widest
 LPCV = os.environ.get("C8T2_LPCV", "count,refrain")   # WHOLE ROUND: the numbers read by a speaking toy - LPC (engine 78e838c5, LPC-10: the first speech chips; the toy that read arithmetic to children spoke this way). 'count': the voice that reads the numbers in A goes through 5-bit monotone LPC on G3 before its radio; 'count,refrain': and the break's 'four, two, one' (the turn from speech into song) through plain, inflecting LPC, so the counting machine begins to sing before the human-sung lines of C. Notes nudged 0.075 beats early for LPC's ~35 ms (chirper-three's measure)
+GLKHARP = os.environ.get("C8T2_GLKHARP", "-12")   # PALETTE: the boot glock (modal-glock, an album staple: the bar that counts the machine up in the intro and rings on the paths) becomes wM's ks-harp - Karplus-Strong (1983) with stretch 3: a wire harp / clavichord, bright and long - the machine's count plucked on wire. Value = gain dB
 CLBR = os.environ.get("C8T2_CLBR", "-12")   # SECTION ROUND (w9, after the last summit: 9232 falling home): THE FALL BLOWN - from the song's last summit (9232, the top of 27's, 31's and 41's walks) down to its landing on 1, the clarinet is doubled by Risset's brass (Chebyshev waveshaping, Le Brun & Arfib 1979) whose brightness is the number's height (var.height, over a floor): it starts blazing at 9232 and goes plain as the numbers halve their way down to 4, 2, 1 - the fall heard as a brass losing its harmonics. A notes-only track. Value = gain dB
 PARITYSEC = os.environ.get("C8T2_PARITYSEC", "intro,outro")   # WHOLE ROUND (Harry ~00:00: 'not all singing, but not NO singing ... nuance'): the parity singer (v75) sang the whole song over every path - too much voice. Now it sings only in the named sections (comma list of FORM names), the rest left to the clarinet alone
 PARITY = os.environ.get("C8T2_PARITY", "-20")   # WHOLE ROUND: THE RULE SUNG - the clarinet's whole walk (every path, the whole song) is doubled by a lone FOF singer (Rodet's CHANT grains, engine 91b04b25), an alto whose mouth IS the rule: on an odd number (3n+1, the path goes up) it opens to 'a', on an even one (n/2, it comes down) it closes to 'u' - the parity is already in the clarinet's velocity (100 odd, 82 even), which drives the vowel morph - so the Collatz walk is heard as a voice saying a-u-u-a-u-u-u...: a machine that has learnt one rule and sings it. Value = gain dB
@@ -773,6 +774,10 @@ def song():
                                         "synth": {"layers": [{"type": "shaper", "shaper": {"harmonics": [1, 0.8, 0.6, 0.45, 0.35, 0.25, 0.18, 0.12, 0.08, 0.05], "index": {"value": 0.25, "mod": [{"src": "var.height", "amount": 0.75}]}}}],
                                                   "amp": "30ms 150ms 0.85 150ms"}},
                               **({"warp": warp} if warp else {}), "score": build()["clbr"]})
+    if GLKHARP:
+        for t in doc["tracks"]:
+            if isinstance(t, dict) and t.get("name") == "glk":
+                t["patch"], t["gain"] = "ks-harp", f"{GLKHARP}dB"
     return doc
 
 
