@@ -381,6 +381,21 @@ R29 = os.environ.get("T9_R29", "sync")
 # starting the song at -5.5 dB widened the in-join from 5.8 to 7.1 dB, so the first section holds at -3.5.)
 # Window levels -16.6 .. -11.4 dB: 5.4 dB of dynamics (was 4.2). T9_R30=none reproduces v29.
 R30 = os.environ.get("T9_R30", "arc")
+# T9_R31 = sweep (v31, whole-song round). THE PARAMETER MOVES. The period sections each held r still (2.9, 3.2, 3.5,
+# 3.56), so each played one fixed loop for twenty bars - the static windows of the song's first half. Now r sweeps
+# through each regime the way the bifurcation diagram is read, left to right: `one` creeps up toward 3 (the fixed
+# point's pull weakening), `two` starts just past the first split, so its two notes begin a step apart and draw away
+# from each other bar by bar until they are six apart; `four` starts at its own split (3.449), the two branches
+# opening into four; `eight` starts at its split (3.544) and stops just short of sixteen (3.5644). The orbit carries
+# straight on from section to section, so every bar is the map's honest next iterate. (Measured, and chaotic in its
+# own way: the orbit's phase carries into every later section, so partial sweeps move recurrence a lot - `two` alone
+# 95.59, `four` from 3.5 95.74; all four, each from its own split, 97.589 with returns 3 -> 4. T9_SWEEP picks them.)
+# T9_R31=none reproduces v30.
+R31 = os.environ.get("T9_R31", "sweep")
+if R31 == "sweep":
+    _sw = {"one": (2.8, 2.98), "two": (3.05, 3.42), "four": (float(os.environ.get("T9_SW_FOUR0", "3.452")), 3.543), "eight": (3.5445, 3.5643)}
+    _which = os.environ.get("T9_SWEEP", "one,two,four,eight").split(",")
+    SECS = [(nm, nb, mt, *(_sw[nm] if nm in _sw and nm in _which else (a, b))) for nm, nb, mt, a, b in SECS]
 C9_SWARM = {"about": "chirper-two: a Kuramoto swarm, 16 saws spread 60 cents, coupling on the track's sync lane",
             "synth": {"layers": [{"type": "kuramoto", "kuramoto": {
                 "count": 16, "wave": "saw", "spread": float(os.environ.get("T9_SWARM_SPREAD", "60")),
