@@ -296,6 +296,21 @@ R28 = os.environ.get("T3_R28", "chorale")
 # rule 30's chaos and the glider, whatever cars are on the ring in traffic, nearly whole at the peak - and the hymn
 # then sings it complete. (A neighbour's help from A on made it whole by A's middle: no growth.) T3_R29=none reproduces v28.
 R29 = os.environ.get("T3_R29", "grow")
+# T3_R30 = scan (v30, whole-song round). THE SCANLINE. The ring of sixteen cells is read out across each bar - cell c
+# strikes on the bar's c-th sixteenth - so every bar is one row of the automaton's spacetime diagram, drawn left to
+# right. Now it is drawn across the stereo field too, like a raster beam: each struck bar (marimba, vibes, glock - the
+# rows, the births, the peak's second automaton) is panned to its cell's place, -0.8 at cell 0 to +0.8 at cell 15, per
+# note (a per-voice pan on the modal bars, fed by an expr.cx mark on each note), so a sustained bar stays where it was
+# struck. Rule 90's triangle opens out from the middle, the glider walks across the room, traffic's cars drive left to
+# right, the decay's three last cells keep their own places. T3_R30=none reproduces v29.
+R30 = os.environ.get("T3_R30", "scan")
+SCAN = float(os.environ.get("T3_SCAN", "0.8"))
+
+
+def cx(c):   # a cell's place in the stereo field, as a note mark
+    return f"^cx={(-SCAN + 2 * SCAN * c / 15):.3f}" if R30 == "scan" else ""
+
+
 GROW = {("boot", 8): 0, ("A", 4): 0, ("A", 12): 0, ("glider", 2): 0, ("traffic", 4): 0, ("peak", 0): 1}   # OPT-IN (not kept): 98.345/98.349 vs v26 98.387/98.385
 
 
@@ -561,9 +576,9 @@ def build():
                     v -= 16
                 T["barlo" if sec == "decay" else ("barx" if (sec == "traffic" and R2 == "live") else line)].add(start + c * 0.25, 1.2 if line == "bar" else 2.0,
                                                           hz_m(jm(deg, (50 if sec == "decay" else 62) if line == "bar" else 74)),
-                                                          v, "?0.8" if sec == "out" else "")
+                                                          v, cx(c) + ("?0.8" if sec == "out" else ""))
                 if sec == "glider" and c % 2 == 0:
-                    T["vibes"].add(start + c * 0.25, 2.0, hz_m(jm(deg, 62)), v - 8)
+                    T["vibes"].add(start + c * 0.25, 2.0, hz_m(jm(deg, 62)), v - 8, cx(c))
         if R8 == "kotekan" and sec in ("A", "peak"):   # the gangsa fills the neighbourhood's gaps
             for c in range(W):
                 if not row[c] and (row[(c - 1) % W] or row[(c + 1) % W]):
@@ -571,20 +586,20 @@ def build():
         if sec == "peak":  # the second automaton on the glock
             for c in range(W):
                 if row2[c]:
-                    T["glock"].add(start + c * 0.25 + 0.125, 1.5, hz_m(jm((c * 5) % 14, 74)), 58 + rng.randint(-5, 5))
+                    T["glock"].add(start + c * 0.25 + 0.125, 1.5, hz_m(jm((c * 5) % 14, 74)), 58 + rng.randint(-5, 5), cx(c))
         # ---- births ring on the vibes, deaths fall on the toms ----
         if sec == "glider":  # the marimba only answers the births
             for c in born[:4]:
-                T["bar"].add(start + c * 0.25, 1.2, hz_m(jm((c * 3) % 15, 62)), 74, "?0.85")
+                T["bar"].add(start + c * 0.25, 1.2, hz_m(jm((c * 3) % 15, 62)), 74, cx(c) + "?0.85")
         elif sec not in ("seed", "traffic", "out", "hymn"):
             for c in born[:3]:
-                T["vibes"].add(start + c * 0.25, 3.0, hz_m(jm((c * 3) % 15 + 7, 62)), 70, "?0.8")
+                T["vibes"].add(start + c * 0.25, 3.0, hz_m(jm((c * 3) % 15 + 7, 62)), 70, cx(c) + "?0.8")
             if sec not in ("boot",):
                 for c in died[:3]:
                     T["toms"].add(start + c * 0.25, 0.8, hz_m(jm(ROOTS[c % 4], 43)), 76, "?0.7")
         elif sec == "seed":
             for c in born[:2]:
-                T["vibes"].add(start + c * 0.25, 4.0, hz_m(jm((c * 3) % 15 + 7, 62)), 60)
+                T["vibes"].add(start + c * 0.25, 4.0, hz_m(jm((c * 3) % 15 + 7, 62)), 60, cx(c))
         # ---- septimal chords (6:7:9 on the root), held, in the glider and the peak ----
         if full and i % 4 == 0:
             cm = root_m + 24
@@ -692,13 +707,19 @@ def patches():
             layer.update(extra)
         return {"synth": {"layers": [layer], "amp": {"a": a, "d": d, "s": 0, "r": r, "curve": 3}},
                 "play": {"vel_sens": 0.6}}
+    scan_fx = {"fx": [{"type": "pan", "pan": {"value": 0, "mod": [{"src": "expr.cx", "amount": 1}]}}]} if R30 == "scan" else {}
+
+    def sc(pp):
+        if scan_fx:
+            pp = {**pp, "synth": {**pp["synth"], **scan_fx}}
+        return pp
     return {
         "c8-bar": {"about": "chirper-two: a rosewood bar on the modal layer (marimba modes 1:4:10), hard yarn.",
-                   **modal("bar", "1.4s", 0.25, 0.45, strike=0.22)},
+                   **sc(modal("bar", "1.4s", 0.25, 0.45, strike=0.22))},
         "c8-vibes": {"about": "chirper-two: a vibraphone bar on the modal layer, soft mallet, long ring.",
-                     **modal("vibes", "4s", 0.08, 0.3, strike=0.3, d="6s", r="3s")},
+                     **sc(modal("vibes", "4s", 0.08, 0.3, strike=0.3, d="6s", r="3s"))},
         "c8-glock": {"about": "chirper-two: a glockenspiel free bar on the modal layer (1:2.76:5.40:8.93), brass mallet.",
-                     **modal("glock", "2.5s", 0.1, 0.7, strike=0.15, d="4s")},
+                     **sc(modal("glock", "2.5s", 0.1, 0.7, strike=0.15, d="4s"))},
         "c8-bell": {"about": "chirper-two: a church bell on the modal layer (hum, prime, tierce, quint, nominal).",
                     **modal("bell", "7s", 0.03, 0.5, strike=0.4, d="9s", r="4s")},
         "c8-tom": {"about": "chirper-two: a tuned membrane on the modal layer, centre strike, a pitch that settles.",
