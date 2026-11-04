@@ -409,6 +409,19 @@ def build():
     # overflow and climbing back through the unwinding to 120 for the outro (and t11). Intro, exposition, the return
     # and the outro stay at 120, so both joins are untouched
     bpm_of = [round(BPM * (1.0 - 0.025 * depths[b_]), 3) for b_ in range(len(bars))]
+    # (v51) DOWN THE WELL OF MIRRORS: the song has sung 'down the well of mirrors' since v42, and the stack's depth has
+    # moved the clock since v44 - but the room never changed with it. Now the canon's three voices (the bell's subject,
+    # the terrain lead, the pulse) each carry a ping-pong mirror - an echo whose level and feedback follow the call
+    # stack: empty, the voices are dry and close; one call down a faint reflection answers each note; three down,
+    # every note comes back from both sides, again and again, as if sung down a shaft of mirrors - and each return
+    # pulls the voices back up into the dry room. (One lane, 'well' = depth / 3, per bar)
+    # (the duet's eight bars at the top of the second calls - Harry's 'that is the bar' - stay dry, exactly as they were)
+    duet0_ = secs_t['calls2'] / 4.0
+    well_pts = [[f'{shift(b_ * 4.0):.2f}b', 0.0 if duet0_ <= b_ < duet0_ + 8 else round(depths[b_] / 3.0, 3)] for b_ in range(len(bars))]
+    def mirror(fb_=0.13, mix_=0.42):
+        return {'type': 'delay', 'time': '3/16', 'ping_pong': True,
+                'feedback': {'value': 0.1, 'mod': [{'src': 'auto.well', 'amount': fb_ * 3.0}]},
+                'mix': {'value': 0.0, 'mod': [{'src': 'auto.well', 'amount': mix_}]}}
     tpts, prev_ = {}, None
     for b_ in range(len(bars)):
         at_ = shift(b_ * 4.0)
@@ -522,7 +535,7 @@ def build():
                           'limiter ceiling=-1dB'], 'auto': {'dyn': {'points': dyn}, 'arc': {'points': arc}}},
         'tracks': [
             # (v21) the canon's voices given room: wider apart in the stereo field, and each in its own band
-            tr('bell', BELL, '-8dB', pan=-0.25, sends={'echo': '-12dB', 'hall': '-14dB'}),
+            tr('bell', BELL, '-8dB', pan=-0.25, fx=[mirror()], auto={'well': {'points': well_pts}}, sends={'echo': '-12dB', 'hall': '-14dB'}),
             tr('bell0', {'synth': dict(BELL['synth'], layers=[BELL['synth']['layers'][0], {'wave': 'sine', 'pm': [{'from': 'm', 'depth': {'value': 0.12, 'mod': [{'src': 'env.bright', 'amount': 0.9}]}}]}])},
                '-7dB', pan=-0.15, sends={'echo': '-12dB', 'hall': '-11dB'}),
             # (v49, palette) THE SECOND VOICE LEAVES THE ANALOGUE STUDIO: the fugue is three voices in three bands -
@@ -532,8 +545,8 @@ def build():
             # drifts, so each note's colour is wherever its path crosses the hills - no filter, the timbre wandering on
             # its own. Same line, same band, same place in the room. (The pulse-width voice to Mathews' scanned mallet
             # was tried with it: variety fell to 94, so it stays)
-            tr('sync', 'terrain-keys', '-12dB', pan=0.4, fx=['hp cutoff=220', 'lp cutoff=3600'], sends={'hall': '-16dB'}),
-            tr('pwm', PWM, '-15dB', pan=0.1, fx=['hp cutoff=380'], auto={'pw': {'points': pw}}, sends={'hall': '-10dB'}),
+            tr('sync', 'terrain-keys', '-12dB', pan=0.4, fx=['hp cutoff=220', 'lp cutoff=3600', mirror()], auto={'well': {'points': well_pts}}, sends={'hall': '-16dB'}),
+            tr('pwm', PWM, '-15dB', pan=0.1, fx=['hp cutoff=380', mirror()], auto={'pw': {'points': pw}, 'well': {'points': well_pts}}, sends={'hall': '-10dB'}),
             # (v41, palette) THE MACHINE COMING APART: the clave bass was an FM bass. Now it is a driven Duffing oscillator
             # locked to each note (wM's duffing-bass, from today's chaos layer): its short tresillo notes stay clean and
             # punchy through the calls - but as the stack unwinds in the final calls the bass turns to long roots, and
