@@ -420,6 +420,14 @@ R33 = os.environ.get("T9_R33", "fork4")
 # beats before the end and lets go only as the file ends (a 1.8 s release through the render's tail), so the toll
 # comes in on a D that is still sounding rather than into a gap. T9_R34=none reproduces v33.
 R34 = os.environ.get("T9_R34", "sync")
+# T9_R35 = held (v35, FINAL PASS, the seam: eco asked 14:3x). The release plays files back to back, and a song's render
+# tail IS its last seconds there: every note stops at the length, and the 2 s tail is only release - the held D4 still
+# fell ~18 dB inside it before t10's toll. A short tail (2 s -> 0.75 s, as t6 v34) ends the file with the D still
+# sounding. NOT KEPT (opt-in T9_R35=held): s0 97.408 vs v34 97.593 - t9's last seconds are loud (the choir's "on",
+# the held D, about -16 dB RMS) and t10 opens soft, so ending on them made the out-join a 7.2 dB drop (was 3.3) and its
+# spectrum further off (8.48, was 7.07), while the 292 Hz shortfall barely moved (-26.2 -> -25.0: compscore compares
+# band shape, and t10's head is toll-dominated). The 2 s tail stays; default none = v34.
+R35 = os.environ.get("T9_R35", "none")
 if R31 == "sweep":
     _sw = {"one": (2.8, 2.98), "two": (3.05, 3.42), "four": (float(os.environ.get("T9_SW_FOUR0", "3.452")), 3.543), "eight": (3.5445, 3.5643)}
     _which = os.environ.get("T9_SWEEP", "one,two,four,eight").split(",")
@@ -1216,7 +1224,7 @@ def main():
            "vars: " + json.dumps({"wander": {"system": {"type": "logistic", "r": 3.95, "n": 1600, "range": [-0.6, 0.6]},
                                              "every": "1/8"}})] if R2 == "drift" else []),
         f'length: "{total:g}b"',
-        'tail: "2s"',
+        f'tail: "{os.environ.get("T9_TAIL", "0.75s") if R35 == "held" else "2s"}"',
         'ceiling: "-1dB"',
         'volume: "0dB"',
         "loudness: -11",
