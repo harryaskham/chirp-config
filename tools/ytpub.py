@@ -137,6 +137,38 @@ def ffprobe_dur(path):
     return float(r.stdout.strip())
 
 
+# A ready-made album video must last as long as the release program to within ~3 frames (Harry, 4 Nov: "make sure
+# the video is in perfect sync"); the still-cover kit needs no such bound.
+VIDEO_SYNC_S = 0.1
+
+
+def stream_starts(path):
+    """{'video': start s, 'audio': start s, 'fps': frame rate} of a file's first video and audio streams."""
+    r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "stream=codec_type,start_time,r_frame_rate",
+                        "-of", "json", path], capture_output=True, text=True)
+    out = {}
+    for s in json.loads(r.stdout or "{}").get("streams", []):
+        kind = s.get("codec_type")
+        if kind not in ("video", "audio") or kind in out:
+            continue
+        st = s.get("start_time")
+        out[kind] = float(st) if st not in (None, "N/A") else 0.0
+        if kind == "video":
+            num, _, den = (s.get("r_frame_rate") or "30/1").partition("/")
+            out["fps"] = float(num) / float(den) if den and float(den) else 30.0
+    return out
+
+
+def sync_problem(starts):
+    """None when the picture and the audio start within half a frame of each other, else why not."""
+    if "video" not in starts or "audio" not in starts:
+        return "it lacks a video or an audio stream"
+    off = starts["video"] - starts["audio"]
+    if abs(off) > 0.5 / (starts.get("fps") or 30.0):
+        return f"its picture starts {off * 1000:+.1f} ms from its audio (more than half a frame)"
+    return None
+
+
 def sample_peak_db(path):
     """The decoded audio's sample peak in dBFS (streamed, so long mixes stay small in memory)."""
     import numpy as np
@@ -225,12 +257,19 @@ def build_kit(aid, meta, rdir, force_tracks=False, video_file=None):
         # is and the release's own audio laid under it, as for the still, so the upload carries exactly the release
         # audio and the chapters land. It must last as long as the program.
         vd, ad = ffprobe_dur(video_file), sum(ffprobe_dur(p) for p in audio)
-        if abs(vd - ad) > 2.0:
+        if abs(vd - ad) > VIDEO_SYNC_S:
             os.remove(listfile)
-            sys.exit(f"ytpub: {video_file} lasts {stamp(vd)} but the release program {stamp(ad)}; render it from this release")
-        cmd = ["nice", "-n", "15", "ffmpeg", "-y", "-loglevel", "error", "-i", video_file, "-f", "concat", "-safe", "0",
-               "-i", listfile, "-map", "0:v:0", "-map", "1:a", "-c:v", "copy", "-c:a", "pcm_s24le", "-ar", "48000",
-               "-shortest", video]
+            sys.exit(f"ytpub: {video_file} lasts {vd:.3f} s but the release program {ad:.3f} s ({vd - ad:+.3f} s, over "
+                     f"{VIDEO_SYNC_S} s); render it from this release")
+        cmd = ["nice", "-n", "15", "ffmpeg", "-y", "-loglevel", "error"]
+        # chirp video's mp4 starts its picture 21.4 ms late (AAC's 1025-sample priming shifts the mux, 4 Nov); its
+        # frames are drawn on the audio's own timeline, so frame 0 belongs at 0 under the release audio: shift it back.
+        vstart = stream_starts(video_file).get("video", 0.0)
+        if vstart:
+            cmd += ["-itsoffset", f"{-vstart:.6f}"]
+        cmd += ["-i", video_file, "-f", "concat", "-safe", "0",
+                "-i", listfile, "-map", "0:v:0", "-map", "1:a", "-c:v", "copy", "-c:a", "pcm_s24le", "-ar", "48000",
+                "-shortest", video]
     # Lossless audio: ffmpeg's AAC encoder overshot these limited masters by ~4 dB (Soft Concrete: -1.6 -> +2.5 dBFS),
     # and YouTube transcodes anyway, so the upload carries PCM and gets exactly one lossy encode, YouTube's.
     t0 = time.time()
@@ -238,6 +277,10 @@ def build_kit(aid, meta, rdir, force_tracks=False, video_file=None):
     os.remove(listfile)
     if r.returncode:
         sys.exit(f"ytpub: video encode failed: {r.stderr[-400:]}")
+    if video_file:
+        why = sync_problem(stream_starts(video))
+        if why:
+            sys.exit(f"ytpub: {video} is out of sync: {why}; not using it")
     peak, src = sample_peak_db(video), max(sample_peak_db(p) for p in audio)
     if not peak_ok(peak, src):
         sys.exit(f"ytpub: the video's audio peaks at {peak:+.2f} dBFS against the release files' {src:+.2f}; not using it")

@@ -93,3 +93,27 @@ def test_banner_jpeg_is_16_9_and_small(tmp_path):
 def test_artist_is_lowercase_and_channel_match_ignores_case():
     assert Y.artist({"artist": "Chirpers"}) == "chirpers" and Y.artist({}) == "chirpers"
     assert Y.same_channel("Chirpers") and Y.same_channel(" chirpers ") and not Y.same_channel("Harry Askham")
+
+
+def test_sync_problem_bounds():
+    assert Y.sync_problem({"video": 0.0, "audio": 0.0, "fps": 30.0}) is None
+    assert Y.sync_problem({"video": 0.016, "audio": 0.0, "fps": 30.0}) is None          # under half a frame
+    assert "+20.0 ms" in Y.sync_problem({"video": 0.02, "audio": 0.0, "fps": 30.0})     # over half a frame at 30 fps
+    assert "lacks" in Y.sync_problem({"video": 0.0})
+
+
+def test_stream_starts_catches_an_offset_picture(tmp_path):
+    import subprocess
+
+    def mux(name, offset):
+        p = tmp_path / name
+        subprocess.run(["ffmpeg", "-loglevel", "error", "-itsoffset", str(offset), "-f", "lavfi", "-i",
+                        "testsrc=size=64x64:rate=30:duration=1", "-f", "lavfi", "-i", "sine=frequency=440:duration=1",
+                        "-map", "0:v", "-map", "1:a", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "pcm_s16le",
+                        str(p)], check=True)
+        return str(p)
+
+    ok = Y.stream_starts(mux("ok.mov", 0))
+    assert ok["fps"] == 30.0 and Y.sync_problem(ok) is None
+    late = Y.stream_starts(mux("late.mov", 0.2))
+    assert "+200.0 ms" in Y.sync_problem(late)
