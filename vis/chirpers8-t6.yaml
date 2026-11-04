@@ -31,7 +31,7 @@ looks:
 scenes:
   - {at: 0, look: console}
   - {at: 44bar, look: rows, xfade: 4s, transition: wipe}
-  - {at: 64bar, look: console, xfade: 4s}
+  - {at: 64bar, look: console, xfade: 4s, transition: clock}
   - {at: 84bar, look: console, xfade: 4s}
   - {at: 102bar, look: console, xfade: 4s}
 

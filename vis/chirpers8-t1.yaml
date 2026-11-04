@@ -34,9 +34,9 @@ scenes:
   - {at: 0, look: echo, params: {sides: 5, echo: 0.8, bright: 0.45, hue: 0}}
   - {at: 8bar, look: echo, params: {sides: 12, echo: 0.86, hue: -0.03}, xfade: 3s}
   - {at: 32bar, look: echo, params: {sides: 24, echo: 0.9, bright: 0.7, hue: -0.07}, xfade: 3s}
-  - {at: 64bar, look: score, xfade: 4s}
-  - {at: 72bar, look: echo, params: {sides: 96, echo: 0.93, bright: 0.8, hue: 0.5}, xfade: 4s}
-  - {at: 104bar, look: score, xfade: 3s}
+  - {at: 64bar, look: score, xfade: 4s, transition: rise}
+  - {at: 72bar, look: echo, params: {sides: 96, echo: 0.93, bright: 0.8, hue: 0.5}, xfade: 4s, transition: clock}
+  - {at: 104bar, look: score, xfade: 3s, transition: rise}
   - {at: 120bar, look: echo, params: {sides: 96, echo: 0.95, bright: 0.35, hue: 0}, xfade: 6s}
 # The words, where they are sung (found by tools/vislyrics.py from the song's phrase files).
 master:

@@ -35,7 +35,7 @@ scenes:
   - {at: 56bar, look: doubling, params: {r: 3.56}, xfade: 3s}
   - {at: 76bar, look: doubling, params: {r: 3.82}, xfade: 4s}
   - {at: 108bar, look: doubling, params: {r: 3.835}, xfade: 3s}
-  - {at: 126bar, look: storm, xfade: 2s}
+  - {at: 126bar, look: storm, xfade: 2s, transition: diamond}
   - {at: 150bar, look: doubling, params: {r: 3.1}, xfade: 6s}
 
 # The words, where they are sung (found by tools/vislyrics.py from the song's tts phrases).

@@ -32,6 +32,6 @@ looks:
 scenes:
   - {at: 0, look: weather}
   - {at: 48bar, look: weather, xfade: 2s}
-  - {at: 80bar, look: eye, xfade: 4s}
+  - {at: 80bar, look: eye, xfade: 4s, transition: iris}
   - {at: 96bar, look: weather, xfade: 4s}
-  - {at: 136bar, look: frost, xfade: 8s}
+  - {at: 136bar, look: frost, xfade: 8s, transition: rise}

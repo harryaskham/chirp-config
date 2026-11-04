@@ -31,10 +31,10 @@ looks:
 scenes:
   - {at: 0, look: line}
   - {at: 24bar, look: line, params: {glint: 1}, xfade: 4s}
-  - {at: 52bar, look: rows, xfade: 3s}
+  - {at: 52bar, look: rows, xfade: 3s, transition: blinds}
   - {at: 60bar, look: line, params: {glint: 0, cool: 1}, xfade: 4s}
   - {at: 84bar, look: line, params: {glint: 1, cool: 0.5}, xfade: 4s}
-  - {at: 108bar, look: rows, xfade: 4s}
+  - {at: 108bar, look: rows, xfade: 4s, transition: blinds}
   - {at: 136bar, look: line, params: {glint: 1, cool: 0}, xfade: 6s}
 
 # The words, where they are sung (found by tools/vislyrics.py from the song's tts phrases).
