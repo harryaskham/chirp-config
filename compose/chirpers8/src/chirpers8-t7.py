@@ -550,8 +550,12 @@ def build():
         for nm_, (s0_, n_) in secb.items():
             if s0_ <= b_ < s0_ + n_:
                 f_ = (b_ - s0_) / max(1, n_ - 1)
-                return {'power': -3 + 3.5 * f_, 'e1': 0.5, 'e2': 0.5 - 0.5 * f_, 'e3': -1.5 * f_, 'e4': -1.5 - 1.0 * f_,
-                        'e5': -2.5, 'converged': -2.0, 'reheat': 1.5, 'coda': -3.0 - 4.0 * f_}[nm_]
+                # (v47, FINAL PASS) the lane above, measured: the sections still spanned only 4 dB (hot -12.4,
+                # coldest -15.2), so the cooling is now carried further, as planned since v21 - the hot epochs a
+                # little louder (+1.2), the cooling falling to -4.5 by the last epoch, the convergence clear of it
+                # at -2, the reheat flaring to +2.2; the coda's sink into t8 as it was
+                return {'power': -3.5 + 4.7 * f_, 'e1': 1.2, 'e2': 1.2 - 1.2 * f_, 'e3': -2.2 * f_, 'e4': -2.2 - 1.8 * f_,
+                        'e5': -4.0 - 0.5 * f_, 'converged': -2.0, 'reheat': 2.2, 'coda': -3.0 - 4.0 * f_}[nm_]
         return -7.0
     Epts = [[f'{b * 4.0:.1f}b', round(energy(b), 2)] for b in range(nb)]
     # the temperature as a lane (one point a bar)
