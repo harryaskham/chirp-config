@@ -289,6 +289,19 @@ SHAPER_BASS = {"synth": {"layers": [{"type": "shaper", "shaper": {
     "amp": "3ms 0 1 100ms", "env": {"pluck": {"a": "1ms", "d": "250ms", "s": 0.1, "r": "50ms"}}}}
 
 
+# v47 (ROUND TYPE: palette): A TUMBLER OF ITS OWN. v46's drips went into the built-in glass - which t6 and t10 already
+# use - so they fall instead into a TUMBLER of t11's own: an additive struck glass with its own partials (1 : 2.1 :
+# 3.6 : 5.3, upper ones dying first), the water in it. Tried and refused in the same round: the kick and push kick on a
+# FRAME DRUM (the bodhran's boom) - t12 similarity fell 0.845 -> 0.78 (the shared machine-kit kick is much of what
+# makes t11 sound like t12), but the dark boom cost spectrum 93, variety ~91, flow 75 (96.4 / 96.6). A punchier
+# non-staple kick is the next try.
+TUMBLER = {"about": "t11's tumbler: a struck water glass, its own partials, upper ones dying first",
+           "synth": {"layers": [{"type": "additive", "partials": [[1, 1], [2.1, 0.5], [3.6, 0.28], [5.3, 0.14]],
+                                 "damp": 1.3}],
+                     "amp": {"a": "1ms", "d": "1.8s", "s": 0, "r": "500ms"}},
+           "fx": ["reverb mix=0.18 size=0.5"]}
+
+
 def storm_lane():
     raw = {b: storm_intensity(b) for b in range(1, BARS + 1)}
     pts, last = [], 0.0
@@ -1168,7 +1181,7 @@ def main():
              "at": f"{b0(HENON[0]):g}b",
              "gen": {"type": "henon", "n": 8 * (HENON[1] - HENON[0] + 1), "len": "/8", "rest": 0.3,
                      "notes": " ".join(mm(p) for p in HENON_POOL)}},                        # v28: a second weather
-            {"name": "drips", "patch": "glass", "gain": "-13dB", "pan": 0.45,             # v46: into glass
+            {"name": "drips", "patch": TUMBLER, "gain": "-13dB", "pan": 0.45,             # v46: into glass; v47: its own
              "sends": {"room": "-8dB", "hall": "-12dB"}, "notes": drips()},          # v24: after the storm
             tr("farsheet", SHEET, gain="-10dB", pan=-0.4, sends={"hall": "-2dB"},
                fx=[{"type": "filter", "kind": "lp", "cutoff": 900}]),               # v24: the last thunder, far off

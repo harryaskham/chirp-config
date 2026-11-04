@@ -10498,7 +10498,44 @@
   },
   {
    "name": "drips",
-   "patch": "glass",
+   "patch": {
+    "about": "t11's tumbler: a struck water glass, its own partials, upper ones dying first",
+    "synth": {
+     "layers": [
+      {
+       "type": "additive",
+       "partials": [
+        [
+         1,
+         1
+        ],
+        [
+         2.1,
+         0.5
+        ],
+        [
+         3.6,
+         0.28
+        ],
+        [
+         5.3,
+         0.14
+        ]
+       ],
+       "damp": 1.3
+      }
+     ],
+     "amp": {
+      "a": "1ms",
+      "d": "1.8s",
+      "s": 0,
+      "r": "500ms"
+     }
+    },
+    "fx": [
+     "reverb mix=0.18 size=0.5"
+    ]
+   },
    "gain": "-13dB",
    "pan": 0.45,
    "sends": {
