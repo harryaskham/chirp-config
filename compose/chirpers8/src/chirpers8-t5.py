@@ -62,6 +62,7 @@ CONGALAYER = os.environ.get("C8T5_CONGALAYER", "-26")   # WHOLE ROUND: inside th
 OUTKS = os.environ.get("C8T5_OUTKS", "0:-14")   # SECTION ROUND (w9, the outro: level jump): the deal, plucked as they part - the tune they sang at C's end (B3 D4 E4, the last time up to B4) comes back in the outro on Karplus-Strong (engine 8f150090, 1983: a noise burst settling in a one-period loop), stretched to ring long: every two bars, four times, then up to B4, then one E4 left ringing at bar 12, each softer. A notes-only track, outro only. Value 'blend:gain'
 ROBOCHOIR = os.environ.get("C8T5_ROBOCHOIR", "-12")   # SECTION ROUND (the agreement sung, C's last bars): the machine sings too - the three-voice choir that sings 'keep it there' together at C's end gets a fourth voice, a vocoder twin of its middle voice: the same words shaping a held E minor chord of saws (E2 B2 E3 G3) band by band. Agreeing on a speed: humans and the machine sing the deal together. Value = gain dB
 GTRRUSH = os.environ.get("C8T5_GTRRUSH", "0.25")   # SECTION ROUND (w2, the intro's end into A: level jump): the first proposal is rushed - with no kick under it yet, the guitar's opening calls in A run ahead of the band (its own clock: GTRRUSH beats early by A's downbeat), settling back onto the grid over A's first eight bars, so it is exactly on time the bar the kick comes in. Value = beats early
+SWARM = os.environ.get("C8T5_SWARM", "-16")   # WHOLE ROUND: THE SWARM AGREES - wM's kuramoto layer (engine 63e9a72a: Kuramoto 1975, the textbook model of synchrony - fireflies, pacemaker cells, an audience's applause falling into step): the keys' chords doubled by a swarm of 12 saws spread 40 cents round each note, each pulled toward the swarm's mean phase by a coupling on a lane - 0.3 (a crowd, beating like a detuned chorus) through the intro, A and B while the machines disagree, rising through the retrain, 3 (a locked core, the note found out of the crowd) from C on: the song's agreement made in the oscillators themselves. Value = gain dB
 CONGAPHASE = os.environ.get("C8T5_CONGAPHASE", "1")   # WHOLE ROUND: PHASING (Reich, 1966-67: two machines at almost the same speed) - the congas, one machine's hands, run on their own clock: in phase through the intro, then through A they gain on the kick, slipping smoothly forward until a whole beat ahead (in step again, a beat out), drift back to half a beat ahead through B (the furthest apart, the beats interleaved), and the retrain pulls them back into phase - from C on, locked: the agreement heard as two clocks coming to one. Value = beats ahead at A's end (B goes to half of it)
 ECHOCANCEL = os.environ.get("C8T5_ECHOCANCEL", "-4")   # WHOLE ROUND: THE ECHO CANCELLED - a modem hears its own voice come back down the line and trains an adaptive filter (LMS) to cancel it; that is much of what a retrain is for. Now the machines' melodic voices (gtr, horns, lead, keys) send into a line-echo bus (a dark 3/16 delay, feedback .35) whose return is cancelled across the song as the filter converges: loud through the intro and A (about -8 dB), less in B (-14), almost gone by the retrain (-30) and cancelled for C and the outro, where the agreement is clean. Value = send dB
 LINEOPEN = os.environ.get("C8T5_LINEOPEN", "6:16")   # SECTION ROUND (w1, the opening; the join from t4): THE LINE OPENS - t4 ends band-limited (nothing above ~2 kHz) and this song opened with the carrier's radio already hissing and whistling up to 5 kHz (its head 5.4 dB from t4's tail, flow 80). Now the carrier begins down a narrow line, a low-pass at ~1.8 kHz (a telephone line's top), so the FSK tones arrive bare, and the line opens to full width over the next bars - the connection established before the noise of it. "closed_until_beats:open_by_beats"
@@ -702,6 +703,20 @@ def song():
                 t_["warp"] = [{"over": f"{fl_['intro']}bar", "to": 0}, {"over": f"{fl_['A']}bar", "to": ph_, "curve": "smooth"},
                               {"over": f"{fl_['B']}bar", "to": ph_ / 2, "curve": "smooth"}, {"over": f"{fl_['retrain']}bar", "to": 0, "curve": "smooth"},
                               {"over": f"{fl_['C'] + fl_['outro']}bar", "to": 0}]
+    if SWARM:
+        fl_ = dict(FORM)
+        kt_ = next((t_ for t_ in doc["tracks"] if isinstance(t_, dict) and t_.get("name") == "keys"), None)
+        if kt_ is not None:
+            sw_ = json.loads(json.dumps(kt_))
+            r0_ = (fl_["intro"] + fl_["A"] + fl_["B"]) * 4
+            r1_ = r0_ + fl_["retrain"] * 4
+            sw_.update(name="swarm", gain=f"{SWARM}dB", pan=0.3)
+            sw_.pop("fx", None); sw_.pop("lfo", None); sw_.pop("warp", None)
+            sw_["patch"] = {"synth": {"layers": [{"type": "kuramoto", "kuramoto": {"count": 12, "spread": 40, "wave": "saw",
+                                      "coupling": {"value": 0.3, "mod": [{"src": "auto.agree", "amount": 2.7}]}}}],
+                                      "filters": ["lp cutoff=3200"], "amp": "40ms 0.8 0.8 400ms"}}
+            sw_["auto"] = {"agree": {"points": [["0b", 0], [f"{r0_}b", 0], [f"{r1_}b", 1], [f"{total() / 4:g}b", 1]]}}
+            doc["tracks"].append(sw_)
     return doc
 
 
