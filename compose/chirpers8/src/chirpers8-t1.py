@@ -560,6 +560,18 @@ def build():
         voic_ = ','.join(nm(m_) for m_ in ch_)
         t_ = b_ * 4.0
         P['gtr'] += [(t_ + 1.0, voic_, 0.22, 78), (t_ + 3.0, voic_, 0.22, 74), (t_ + 3.5, voic_, 0.12, 46)]
+    # (v51, FINAL PASS) ...and comes back when the trumpet has had its say (the groove's last eight bars, which repeated
+    # its first half): the same chords, but answering now - pushed stabs on the 'and' of two, a chop on four, and every
+    # other bar a ghosted anticipation of the next chord on the 'and' of four, the comp leaning forward into the break
+    for bb_ in range(24, 32):
+        b_ = secs['B'] + bb_
+        _, ch_ = chord_at('B', bb_, b_)
+        voic_ = ','.join(nm(m_) for m_ in ch_)
+        t_ = b_ * 4.0
+        P['gtr'] += [(t_ + 1.5, voic_, 0.2, 76), (t_ + 3.0, voic_, 0.22, 70)]
+        if bb_ % 2 == 1 and bb_ < 31:
+            _, chn_ = chord_at('B', bb_ + 1, b_ + 1)
+            P['gtr'].append((t_ + 3.5, ','.join(nm(m_) for m_ in chn_), 0.3, 58))
     tr = lambda name, patch, gain, **kw: dict({'name': name, 'patch': patch, 'gain': gain, 'score': line(P[name], total)}, **kw)
     # (v49, palette) THE DRUMMER'S CYMBALS: the hi-hat under the whole song was the album's shared metal-kit hat (three
     # songs), and the ride the metal kit's too. Now both are struck plates on the engine's modal layer - a cymbal's own
