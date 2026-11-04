@@ -14,9 +14,14 @@ looks:
       - {type: bloom, threshold: 0.4, amount: 0.8, radius: 0.05}
       - {type: scanlines, amount: 0.2, count: 270}
       - {type: vignette, amount: 0.6}
+  rows:
+    extends: pleasures
+    layers:
+      - {type: lines, rows: 36, every: 0.11, height: 0.4, y: 0.72, size: 1.2, spacing: 0.04, width: 0.0035, color: "#e8a33a", occlude: 1}
+      - {type: text, text: "UPTIME {time}", x: -1.62, y: 0.86, align: left, size: 0.045, color: "#e8a33a", opacity: 0.85, glow: 0.2}
 scenes:
   - {at: 0, look: console}
-  - {at: 44bar, look: pleasures, xfade: 4s}
+  - {at: 44bar, look: rows, xfade: 4s, transition: wipe}
   - {at: 64bar, look: console, xfade: 4s}
   - {at: 84bar, look: console, xfade: 4s}
   - {at: 102bar, look: console, xfade: 4s}

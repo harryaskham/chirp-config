@@ -4,13 +4,17 @@ looks:
     palette: lattice
     params: {grow: 1}
     vars: {turn: {integrate: "0.01 + audio.level*0.04"}}
+    env: {kick: {on: track.kick, decay: 350ms}}
     layers:
-      - {type: rings, count: 6, speed: "0.3 + audio.level*1.2", tunnel: 1, twist: 0, duty: 0.08, soft: 0.06, spread: 0.3, pos: 0.4, opacity: 0.55}
-      - {type: shape, sides: 5, star: 0.5, radius: 0.5, width: 0.003, count: param.grow, scale: 0.86, turn: 0.0618, rotate: var.turn, spread: 0.03, pos: 0.55}
-      - {type: notes, mode: stars, tracks: [singer, choir3, choir5, celesta, kalimba, harp, ondes], size: 0.007, life: 2.5, glow: 0.7, spread: 0.08, pos: 0.6, height: 1.6}
+      - {type: gradient, radial: 1, spread: 0.2, pos: 0.03, light: "0.12 + param.grow*0.006 + audio.low*0.1"}
+      - {type: rings, count: 6, speed: "0.3 + audio.level*1.2", tunnel: 1, twist: 0, duty: 0.08, soft: 0.06, spread: 0.3, pos: 0.4, opacity: "0.2 + param.grow*0.025"}
+      - {type: shape, sides: 5, star: 0.5, radius: "0.28 + param.grow*0.02 + env.kick*0.03", width: 0.003, count: param.grow, scale: 0.88, turn: 0.0618, rotate: var.turn, spread: 0.025, pos: 0.55}
+      - {type: shape, sides: 3, radius: "0.5 + param.grow*0.02", width: 0.002, count: "param.grow/2", scale: 0.9, turn: -0.0618, rotate: "0 - var.turn*1.5", spread: 0.04, pos: 0.7, opacity: 0.6}
+      - {type: particles, on: track.kick, count: "param.grow*1.5", speed: 0.6, spread: 1, drag: 1.2, life: 1.6, size: 0.005, soft: 0.7, pos: 0.6, hues: 0.15}
+      - {type: notes, mode: stars, tracks: [singer, choir3, choir5, celesta, kalimba, harp, ondes, theremin], size: 0.007, life: 2.5, glow: 0.7, spread: 0.08, pos: 0.6, height: 1.6}
     filters:
-      - {type: feedback, zoom: 1.015, decay: 0.8}
-      - {type: bloom, threshold: 0.45, amount: 0.7}
+      - {type: feedback, zoom: "1.01 + param.grow*0.0006", decay: 0.8}
+      - {type: bloom, threshold: 0.42, amount: "0.6 + param.grow*0.02"}
       - {type: vignette, amount: 0.55}
   light:
     palette: lattice

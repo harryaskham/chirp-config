@@ -16,6 +16,14 @@ looks:
       - {type: feedback, zoom: 1.0, decay: 0.75}
       - {type: bloom, threshold: 0.45, amount: 0.7}
       - {type: vignette, amount: 0.55}
+  retrain:
+    extends: two
+    filters:
+      - {type: feedback, zoom: 1.01, decay: 0.8}
+      - {type: chroma, amount: "0.004 + audio.onset*0.01", angle: 0.25}
+      - {type: warp, amount: "0.01 + audio.level*0.02", scale: 5, speed: 0.8}
+      - {type: bloom, threshold: 0.45, amount: 0.7}
+      - {type: vignette, amount: 0.55}
   horns:
     palette: sunset
     vars:
@@ -33,7 +41,7 @@ looks:
 scenes:
   - {at: 0, look: two}
   - {at: 46bar, look: two, xfade: 3s}
-  - {at: 72bar, look: tunnel, xfade: 3s}
-  - {at: 84bar, look: two, params: {lock: 0.6}, xfade: 3s}
+  - {at: 72bar, look: retrain, xfade: 2s, transition: grain}
+  - {at: 84bar, look: two, params: {lock: 0.6}, xfade: 3s, transition: iris}
   - {at: 104bar, look: horns, xfade: 4s}
   - {at: 126bar, look: two, params: {lock: 1}, xfade: 6s}
