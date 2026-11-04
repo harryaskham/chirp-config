@@ -310,6 +310,13 @@ R31 = os.environ.get("T6_R31", "uptime")
 # sixteenths and the floor comes back. Chorus one's last two bars exhale into it first: the four-on-the-floor halves
 # to a kick on one and three-and and a clap on three - full, half, nothing, back. T6_R32=none reproduces v30.
 R32 = os.environ.get("T6_R32", "float")
+# T6_R33 = enter (v32, section round on w3, 1:00-1:30: verse one's end into chorus one, "static, little new vs w2").
+# THE COMMAND. In the intro the machine typed its own status line (with a typo) and pressed Return to start the song.
+# Now, in the half-bar of air the pre-chorus roll leaves before chorus one, it types one more word on the same keys -
+# "sing" - and presses Return on chorus one's downbeat: the chorus, which turns from speech into song, is the command
+# being run - and the chorus comes up the way a screen warms up: the whole mix opens from a low-pass at ~900 Hz to full
+# over its first two bars (a master lp, transparent at 20 kHz elsewhere). T6_R33=none reproduces v31.
+R33 = os.environ.get("T6_R33", "enter")
 BD_SAFE = {"voice", "vosim", "tline", "test"}
 C6_FOF = {"about": "chirper-two: a wordless FOF choir - alto + tenor CHANT grains, vowels moved by the track's mouth lane",
           "synth": {"layers": [
@@ -927,6 +934,15 @@ def main():
             ty.add(a + rng_.uniform(-0.03, 0.03), 0.22, mm(e(WALK_POOL[k], base)), 70 + rng_.randint(-12, 12))
             a += 0.25
         ty.add(a + 0.25, 1.2, "m68.211,m72.000,m75.158", 84)   # Return
+        if R33 == "enter":   # the command, typed into the roll's last half bar, entered on chorus one's downbeat
+            rq = random.Random(33)
+            word = os.environ.get("T6_ENTER", "sing")
+            a2 = st["chorus1"] - 0.25 * (len(word) + 1)
+            for ch in word:
+                k = (ord(ch) - 97) % 9
+                ty.add(a2 + rq.uniform(-0.03, 0.03), 0.22, mm(e(WALK_POOL[k], base)), 72 + rq.randint(-10, 10))
+                a2 += 0.25
+            ty.add(st["chorus1"], 1.2, "m68.211,m72.000,m75.158", 88)   # Return
         if R28 == "erase":   # chorus two's last bar: backspace held - a press, the repeat delay, then auto-repeat
             e0 = st["outro"] - 4.0
             bk = mm(e(0, base - 12))
@@ -1047,8 +1063,14 @@ def main():
                                                                if R17 == "bands" else [])},
                                         "glue threshold=-20dB ratio=2 attack=10ms release=150ms makeup=1dB",
                                         {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}},
+                                        *([{"type": "filter", "kind": "lp", "q": float(os.environ.get("T6_WARM_Q", "0.707")),
+                                            "cutoff": {"value": 20000, "mod": [{"src": "auto.warm", "amount": 1}]}}] if R33 == "enter" else []),
                                         {"type": "limiter", "ceiling": "-1.2dB", "release": "80ms"}],
-                                 "auto": {"dyn": {"points": dyn}}}),
+                                 "auto": {"dyn": {"points": dyn},
+                                          **({"warm": {"points": [["0b", 0.0], [f"{st['chorus1'] - 0.02:g}b", 0.0],
+                                                                  [f"{st['chorus1']:g}b", -float(os.environ.get("T6_WARM_OCT", "4.5"))],
+                                                                  [f"{st['chorus1'] + 8:g}b", 0.0], [f"{total}b", 0.0]]}}
+                                             if R33 == "enter" else {})}}),
         *(["patches: " + json.dumps({**({"c6-voice": C6_VOICE} if R8 == "speaker" else {}),
                                      **({"c6-ack": C6_ACK} if (R11 == "ack" or R14 == "selftest") else {}),
                                      **({"c6-vosim": C6_VOSIM} if R13 == "vosim" else {}),
