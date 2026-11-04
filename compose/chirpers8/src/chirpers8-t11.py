@@ -302,6 +302,20 @@ TUMBLER = {"about": "t11's tumbler: a struck water glass, its own partials, uppe
            "fx": ["reverb mix=0.18 size=0.5"]}
 
 
+# v49 (ROUND TYPE: palette): THE PAD BECOMES A BAROMETER. juno-pad (t1, t6, t11) leaves for a PHASE-DISTORTION pad
+# of t11's own (after wM's cz-pad: Casio's 1984 digital pad, a reso_trap resonance, no filter, chorused): its
+# resonance amount is 0.2 + a slow drift + 0.35 x the storm lane, so the chords are round in the calm and a resonant
+# whistle rises inside them as the weather builds - the 1984 home synthesiser as a barometer. (-5 dB at 1.2 kHz:
+# the first render piled the whistle into one band, +7.8 dB.) The trance gate (keyed
+# by gtrig), OTT, the width lane and the power-cut tape stop all stay on the track.
+CZ_PAD = {"about": "t11's barometer pad: phase distortion, its resonance on the storm",
+          "synth": {"layers": [{"type": "pd", "pd": {"shape": "reso_trap", "amount": {"value": 0.2, "mod": [
+                        {"src": "lfo.drift", "amount": 0.12}, {"src": "auto.si", "amount": 0.35}]}}}],
+                    "lfo": {"drift": {"wave": "sine", "rate": "0.15hz"}},
+                    "amp": {"a": "500ms", "d": "1s", "s": 0.8, "r": "1.2s"}},
+          "fx": ["chorus mix=0.3", {"type": "filter", "kind": "peak", "cutoff": 1200, "q": 1, "gain": "-5dB"}]}
+
+
 def storm_lane():
     raw = {b: storm_intensity(b) for b in range(1, BARS + 1)}
     pts, last = [], 0.0
@@ -1203,10 +1217,10 @@ def main():
             tr("sheet", SHEET, gain="-10dB", pan=0.15, sends={"hall": "-6dB"}),            # v16: the thunder sheet
             tr("rainL", "celesta", gain="-8dB", pan=-0.6, sends={"hall": "-8dB"}),       # v9: rain indoors
             tr("rainR", "celesta", gain="-8dB", pan=0.6, sends={"hall": "-8dB"}),
-            tr("pad", "juno-pad", gain="-11dB", pan={"value": -0.15, "mod": [{"src": "var.drift", "amount": 1}]},
+            tr("pad", CZ_PAD, gain="-19dB", pan={"value": -0.15, "mod": [{"src": "var.drift", "amount": 1}]},
                sends={"hall": "-8dB"},
                fx=["gate key=gtrig threshold=-40dB attack=1ms release=40ms", "ott depth=0.3", WIDTH_FX],
-               auto={"wd": {"points": width_lane()}}),                                      # v13
+               auto={"wd": {"points": width_lane()}, "si": {"points": storm_lane()}}),     # v13; v49: the storm
             tr("gtrig", "machine-kit", gain="-80dB"),
             tr("bass", SHAPER_BASS, gain="-11dB", fx=[{"type": "pump", "on": "kick", "depth": "-9dB", "release": "1/6",   # v41
                                                 "curve": 0.6}]),
