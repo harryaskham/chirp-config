@@ -328,6 +328,22 @@ R24 = os.environ.get("T9_R24", "choir")
 # T9_R25=none reproduces v24.
 R25 = os.environ.get("T9_R25", "branches")
 BR_PATCHES = {}
+# T9_R26 = cascade (v26, section round on w8, 3:10-3:35: the period-3 window, never focused, "static"). FIRST, THE
+# CHOIR STEPS BACK: v25's whole-song CHANT chords were the album's move of the hour (Harry, 23:55: "keep things
+# varied. not all singing"), and t9's singing is its three lines and the sung "on" at the end - the diagram goes
+# (T9_R26_BR=on keeps it). THEN THE WINDOW DOES WHAT WINDOWS DO. In the real map the period-3 window is a small copy
+# of the whole diagram: three doubles to six (r 3.8415), six to twelve (3.8442), and the window fills with its own
+# chaos before the crisis (3.857) throws the orbit out into the storm. Now the window plays it: ten bars of period 3
+# (r 3.835), four of 6 (3.8425), two of 12 (3.8445), two of the window's own chaos (3.853) - the lead, the kicks
+# on its peaks and the hats all follow, and where three becomes six the floor opens (no kick or snare for the four
+# bars of period 6 at first - two bars, T9_OPEN_BARS (all four cleared w8 too but cost 0.06: the kick carries the low
+# end) - the doubled orbit alone; T9_R26_OPEN=off keeps the floor). The rest of the song's orbit is untouched (the window runs on its own copy
+# of x; the main state advances as before, so the storm and the settle are note-for-note v25).
+# T9_R26=none reproduces v25.
+R26 = os.environ.get("T9_R26", "cascade")
+WINDOW_R = [float(v) for v in os.environ.get("T9_WIN_R", "3.835*10,3.8425*4,3.8445*2,3.853*2").replace("*", " ").replace(",", " ").split()[0::2]]
+WINDOW_N = [int(v) for v in os.environ.get("T9_WIN_R", "3.835*10,3.8425*4,3.8445*2,3.853*2").replace("*", " ").replace(",", " ").split()[1::2]]
+WINDOW_SCHED = [r_ for r_, n_ in zip(WINDOW_R, WINDOW_N) for _ in range(n_)]
 def c9_fof(voice, vib):
     return {"about": f"chirper-two: a CHANT/FOF {voice} singing the logistic map's branches",
             "synth": {"layers": [{"type": "fof", "fof": {"voice": voice, "vowel": "u>a", "attack": 8,
@@ -471,9 +487,17 @@ def build():
             frac = i / max(1, nbars - 1)
             r = r0 + (r1 - r0) * frac
             xs = []
-            for s in range(steps):
-                x = r * x * (1 - x)
-                xs.append(x)
+            if R26 == "cascade" and name == "window" and i < len(WINDOW_SCHED):
+                if i == 0:
+                    xw = x
+                for s in range(steps):   # the window's own copy of the orbit; the main state goes on as before
+                    x = r * x * (1 - x)
+                    xw = WINDOW_SCHED[i] * xw * (1 - xw)
+                    xs.append(xw)
+            else:
+                for s in range(steps):
+                    x = r * x * (1 - x)
+                    xs.append(x)
             trace.append((name, i, [round(v, 3) for v in xs[:8]]))
             # ---- the lead: the map, one sixteenth per iterate (silent under 0.42) ----
             if not (name == "one" and i < 2):
@@ -599,6 +623,12 @@ def seconds(tm, total):
 def main():
     total, secs, T, trace = build()
     st = {n: s for n, s, k, m in secs}
+    if R26 == "cascade" and os.environ.get("T9_R26_OPEN", "on") == "on":
+        # where three becomes six the floor opens: four bars without kick and snare, the doubled orbit alone
+        w0 = st["window"] + 4.0 * WINDOW_N[0]
+        w1 = w0 + 4.0 * int(os.environ.get("T9_OPEN_BARS", "2"))
+        for nm in ("kick", "snare"):
+            T[nm].ev = [e_ for e_ in T[nm].ev if not (w0 <= e_[0] < w1)]
     if R11 == "d":
         T["bell"].ev = [(a, ln, "293.66hz", v, art) for a, ln, h, v, art in T["bell"].ev]
         T["bell"].add(total - 8.0, 8.0, "293.66hz", int(os.environ.get("T9_DBELL_VEL", "66")))
@@ -836,7 +866,7 @@ def main():
             sq.add(s0 + 8.0 * k, 8.0, ",".join(mm(bp(d, 57)) for d in (0, 6)), 50 + 15 * k)
         tracks.append({"name": "squall", "patch": "c9-gendy", "gain": os.environ.get("T9_SQUALL_GAIN", "-16dB"), "pan": 0.0,
                        "fx": ["hp cutoff=150", "reverb kind=hall decay=2.5s mix=0.3"], "score": sq.score(total)})
-    if R25 == "branches":
+    if R25 == "branches" and (R26 != "cascade" or os.environ.get("T9_R26_BR", "off") == "on"):
         cands = sorted(bp(d, 38) for d in range(0, 40))
         def snap(x):
             m = 69 + 12 * math.log2(146.67 * 3 ** ((x - 0.3) * 16 / 13) / 440.0)
