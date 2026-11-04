@@ -755,6 +755,18 @@ def build():
 if __name__ == '__main__':
     out = sys.argv[1] if len(sys.argv) > 1 else OUT
     song = build()
+    # (v50) ONE ROOM FOR THE BAND, AND THE MACHINE OUTSIDE IT: the band the machine is copying was a set of separate
+    # instruments sharing only a long hall. Now they share a room as well - a small live room (the engine's FDN reverb
+    # in its room model: a short, dense decay, strong early reflections off near walls), every player and the singer
+    # sent into it, so the drums, the bass, the vibraphone, the guitar, the trumpet and the voice sound like people
+    # recorded together. The machine is not in the room: its babble, its bytebeat, its VOSIM and its chips stay dry
+    # in the box - until the last groove, when it says the line back exactly and its voice is sent into the room too
+    song['buses']['room'] = {'fx': ['reverb kind=room decay=0.8s early=0.7 mix=1 width=1 mono_below=200', 'hp cutoff=160', 'lp cutoff=9000'], 'returns': []}
+    ROOM = {'kit': -15, 'kit2': -17, 'kit3': -17, 'ride': -15, 'fill': -15, 'bass': -20, 'bass2': -20, 'vib': -11,
+            'pno': -11, 'gtr': -11, 'tpt': -11, 'voice': -13, 'voice2': -13, 'voice3': -13, 'sung': -13, 'say': -12}
+    for t_ in song['tracks']:
+        if t_['name'] in ROOM:
+            t_.setdefault('sends', {})['room'] = f"{ROOM[t_['name']]}dB"
     if out.endswith('.json'):
         json.dump(song, open(out, 'w'), indent=1)
     else:
