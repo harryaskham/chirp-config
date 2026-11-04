@@ -602,7 +602,15 @@ def build():
             tr('glim', 'epiano-tine', '-6dB', pan=-0.15, sends={'echo': '-14dB', 'hall': '-12dB'},
                fx=[{'type': 'wah', 'low': 350, 'high': 2600, 'env': 0.9, 'q': 4, 'mix': 0.6}]),
             tr('cf', 'cello', '-11dB', pan=0.25, sends={'hall': '-10dB'}),
-            tr('sub', 'sub', '-13dB', fx=['lp cutoff=120']),
+            # (v41, palette) THE FLOOR ANNEALS: the sub was the album's plain sine sub (four songs share it). Now it is
+            # Chebyshev waveshaping (Le Brun and Arfib, 1979; the engine's shaper) with the temperature on its index: hot,
+            # the floor growls - its second and third harmonics up, a rough low edge under the search - and as the
+            # machine cools the drive falls away until, converged, it is a pure sine again. (It also gives the song
+            # some of the 80-110 Hz it has always been short of)
+            tr('sub', {'synth': {'layers': [{'type': 'shaper', 'shaper': {'harmonics': [1, 0.45, 0.3, 0.12],
+                                              'index': {'value': 0.25, 'mod': [{'src': 'auto.T', 'amount': 0.75}]}}}],
+                                 'amp': {'a': '20ms', 'd': '0s', 's': 1.0, 'r': '200ms'}}},
+               '-13dB', fx=['lp cutoff=240'], auto={'T': {'points': Tpts}}),
             {'name': 'life1', 'patch': 'electro-kit', 'gain': '-8dB', 'pan': -0.1, 'score': f"R/{e2_:.4f}b",
              'gen': {'type': 'life', 'width': 16, 'height': 4, 'init': 'glider', 'poly': 2, 'n': 8 * 16, 'len': '/16',
                      'notes': 's cl cb h'}, 'sends': {'hall': '-20dB'}},
