@@ -80,6 +80,7 @@ DECFIX = os.environ.get("C8T8_DECFIX", "")   # v56's decay double peaks at lane 
 SUNGMID = os.environ.get("C8T8_SUNGMID", "16")   # WHOLE ROUND on the singing: the voice is heard before E - 'it comes later on' (the line sung at E bar 12) is first sung in the middle of the song, at C bar SUNGMID, in C's own D minor (E's is lifted a step), with its canon a bar behind a third below (v69): the line promises its own return, and comes later on. Value = bar of C
 WORDLEVEL = os.environ.get("C8T8_WORDLEVEL", "3")   # WHOLE ROUND: the word recedes as it decays - the word's orbit (radius 2 + 8 x the decay lane, v60) gets the engine's orbit `level` (8f150090: the distance that plays at full level; farther is fainter, about 1/distance): within WORDLEVEL metres it is as it was; as the memory decays and the orbit widens to 10 m the word grows faint as well as far, then each refresh brings it back up close and full. Value = metres
 CANON = os.environ.get("C8T8_CANON", "4")   # WHOLE ROUND on the singing: the memory sings it back - every sung line (sungl at E bar 12, sungv/sungv2 in the outro) is followed by itself CANON beats later, a diatonic third below in D minor on the stretched octave, 6 dB under, panned across, sent hard into the line: a delay line's echo that returns transposed, so each line becomes a two-part canon with its own recall
+CRUMBLE = os.environ.get("C8T8_CRUMBLE", "0.6")   # WHOLE ROUND: THE WORD CRUMBLES - Trevor Wishart's waveset distortion (Composers' Desktop Project, 1980s-90s; engine a5cb622d): the word's sound cut at its zero crossings into single cycles and each group of eight shuffled in place, so it crumbles like a worn recording while staying in tune - mixed in along the same curve as the bit errors (BITERR): none in the intro, growing through A the longer the word goes unrefreshed, gone at once when the refresh comes, growing again through C and D, and none in E (the repair) or after. The memory decaying below the level of notes. Value = the mix at its worst
 VERIFY = os.environ.get("C8T8_VERIFY", "-16")   # WHOLE ROUND: THE CHECKSUM - a memory checks what it kept; at the end of every section a two-note check sounds on the glass chime (fb-crystal), a beat before the boundary: a clean perfect fifth (D-A) where the word came through intact (intro, refresh, E), a sour minor second (D-D#) where bit errors (BITERR) crept in (A, C, D) - so the song's form is audibly read as pass / fail / pass / fail / fail / pass, and the refresh and the repair are heard to work. Value = gain dB
 WARMUP = os.environ.get("C8T8_WARMUP", "40")   # SECTION ROUND (w1, the intro: flagged static): THE TANK WARMS - sound's speed in mercury depends on its temperature, and a cold tank delays its word wrongly; through the intro, while the word is written bit by bit (WRITEIN), the word sounds flat by this many cents at first and glides into tune as the tank comes up to temperature, true by A - the memory warming up before it can keep anything. Value = cents flat at the start
 BITERR = os.environ.get("C8T8_BITERR", "0.25")   # WHOLE ROUND: BIT ERRORS - a delay-line memory loses bits between refreshes; now the stored word does: here and there a note of it comes back a semitone wrong (up or down, fixed by a seeded die so every render agrees), rarely at first and more often the longer it has gone unrefreshed - rising through A to the value given, gone in the refresh, rising again through C and D, and none in E (the repair) or after: the chirpers' slightly-off signature with a reason. Value = the error rate at its worst
@@ -697,6 +698,19 @@ def song():
                               "score": stream(globals().get("_VERIFY_EV", []), total())})
         doc["tracks"].append({"name": "verify2", "patch": "fb-crystal", "gain": f"{VERIFY}dB", "pan": -0.2, "sends": {"room": "-10dB"},
                               "score": stream(globals().get("_VERIFY2_EV", []), total())})
+    if CRUMBLE:
+        cm_ = float(CRUMBLE)
+        def _b(sc_, frac_=0.0):
+            return f"{(sec_start(sc_) + frac_ * dict(FORM)[sc_] * BAR) / 4:g}b"
+        pts_ = [["0b", 0], [_b("A"), 0], [_b("A", 0.999), cm_], [_b("refresh"), 0], [_b("C"), 0], [_b("C", 0.999), 0.6 * cm_],
+                [_b("D", 0.999), cm_], [_b("E"), 0], [f"{total() / 4:g}b", 0]]
+        for t_ in doc["tracks"]:
+            if isinstance(t_, dict) and t_.get("name") == "word":
+                fx_ = t_.get("fx", [])
+                fx_ = list(fx_) if isinstance(fx_, list) else [fx_]
+                fx_.insert(0 if os.environ.get("C8T8_CRUMBLEFIRST", "1") else len(fx_), {"type": "waveset", "mode": "shuffle", "n": 8, "max": "10ms", "seed": 7, "mix": {"value": 0, "mod": [{"src": "auto.crumble", "amount": 1}]}})
+                t_["fx"] = fx_
+                t_.setdefault("auto", {})["crumble"] = {"points": pts_}
     return doc
 
 
