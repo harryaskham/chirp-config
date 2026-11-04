@@ -698,6 +698,25 @@ def fof_choir():
             part(name).add(b0(bar), 5.5 if bar == z else 4.3, m(step, FS4 + octave), vel)
 
 
+# v43 (ROUND TYPE: section, w9 4:16-4:47 - the colony, flagged static; w12, the album's last light, left alone): THE
+# COLONY SINGS THE CHANGES. The Life colony's tones (v33) were four fixed pitches on F# while the chords moved under
+# them. Now its rows are quality-neutral - root, fifth, octave, twelfth (0, 18, 31, 49 steps) - and a pitch lane moves
+# them with each bar's 31-EDO chord root (gliding a quarter beat at the bar line): the same cells, the same life, now
+# singing the harmony. (No voice, no choir, no more Karplus-Strong - Harry's 'keep things varied'.)
+COLONY_SING = " ".join(m(s) for s in (0, 18, 31, 49))
+COLONY_SING_PATCH = {"extends": "marimba", "synth": {"pitch": {"value": 0, "mod": [{"src": "auto.tr", "amount": 1}]}}}
+
+
+def colony_root_lane():
+    """Lanes on a track with 'at' count from the track's start (found here: song-time points held the first value)."""
+    at = warp(b0(COLONY[0]))
+    pts = []
+    for bar in range(COLONY[0], COLONY[1] + 2):
+        st = round(PLAN[bar][0] * 12 / EDO, 3)
+        pts += [[f"{rb(bar) - at:g}b", st], [f"{rb(bar + 1) - 0.25 - at:g}b", st]]
+    return pts
+
+
 def ks_harp():
     for bar in range(KS_AT[0], KS_AT[1] + 1):
         root, chord = PLAN[bar]
@@ -1149,10 +1168,11 @@ def main():
                                    "n": 16 * (COLONY[1] - COLONY[0]), "len": "/16", "notes": "k rs cp h"}})  # v30
     song["tracks"].append({"name": "sap", "patch": SAP_PATCH, "gain": "-16dB", "pan": 0.1,
                            "sends": {"hall": "-8dB"}, "notes": sap_notes()})            # v32: sap rising
-    song["tracks"].append({"name": "colony_tones", "patch": "marimba", "gain": "-16dB", "pan": 0.25,
+    song["tracks"].append({"name": "colony_tones", "patch": COLONY_SING_PATCH, "gain": "-16dB", "pan": 0.25,   # v43
+                           "auto": {"tr": {"points": colony_root_lane()}},
                            "sends": {"hall": "-12dB"}, "at": f"{warp(b0(COLONY[0])):g}b",
                            "gen": {"type": "life", "width": 16, "height": 4, "init": COLONY_INIT, "poly": 3,
-                                   "n": 16 * (COLONY[1] - COLONY[0]), "len": "/16", "notes": COLONY_TONES}})  # v33
+                                   "n": 16 * (COLONY[1] - COLONY[0]), "len": "/16", "notes": COLONY_SING}})  # v33; v43
     song["tracks"].append({"name": "vine", "patch": VINE_PATCH, "gain": "-15dB", "pan": 0.2,
                            "sends": {"echo": "-12dB", "hall": "-12dB"}, "score": part("vine").score()})  # v34
     song["tracks"].append({"name": "duff", "patch": DUFF_PATCH, "gain": "-12dB", "pan": -0.1,
