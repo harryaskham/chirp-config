@@ -43,6 +43,7 @@ COMPUTEWARP = os.environ.get("C8T2_COMPUTEWARP", "0.25")   # WHOLE ROUND: big nu
 COMPUTEFROM = os.environ.get("C8T2_COMPUTEFROM", "A")   # 'A': the intro's paths stay on the grid (the join with t1 is measured over the opening; the intro is the arp's phasing, v64), the lag starts with A
 ARPPHASE = os.environ.get("C8T2_ARPPHASE", "0.25")   # SECTION ROUND (w1, the intro: static): the machine phases - the bytebeat arp runs on its own clock through the intro (the engine's per-track warp): drifting away from the clarinet over eight bars (to ARPPHASE beats late, curve smooth), then back over eight, locking onto the grid exactly as A begins; the tape-loop phasing of process music, done by a clock. Value = beats of drift at its widest
 LPCV = os.environ.get("C8T2_LPCV", "count,refrain")   # WHOLE ROUND: the numbers read by a speaking toy - LPC (engine 78e838c5, LPC-10: the first speech chips; the toy that read arithmetic to children spoke this way). 'count': the voice that reads the numbers in A goes through 5-bit monotone LPC on G3 before its radio; 'count,refrain': and the break's 'four, two, one' (the turn from speech into song) through plain, inflecting LPC, so the counting machine begins to sing before the human-sung lines of C. Notes nudged 0.075 beats early for LPC's ~35 ms (chirper-three's measure)
+FLOAT = os.environ.get("C8T2_FLOAT", "20:28")   # SECTION ROUND (w8, C's middle: flagged little new vs w7): THE PATH FLOATS - while the long path climbs through C's middle, the drums (kick, shaker, hats, clap, open hat) drop out for these bars and only the clarinets, the pad, the bass and the halvings carry it, high as the cloud with nothing under it, until the groove lands back. Value 'a:b' = C bars a..b-1 without drums
 HALVES = os.environ.get("C8T2_HALVES", "-21")   # WHOLE ROUND: HALVING IS AN OCTAVE - every path ends falling through the powers of two (... 16 8 4 2 1), and halving a number is halving a frequency: whenever the clarinet reaches the unbroken run of powers of two at its path's end, a quiet pure tone sounds the same step as an octave - G at octave log2(n)+1 (16 = G5, 8 = G4, 4 = G3, 2 = G2, 1 = G1), each note under the clarinet's - so every landing in the song is heard as what it is arithmetically: the frequency halving down to the root. Value = gain dB
 RISSETBELL = os.environ.get("C8T2_RISSETBELL", "bell")   # PALETTE: the bell that rings each landing (and, with 'seed', the intro's miniature path) becomes JEAN-CLAUDE RISSET's bell - the additive bell of his 1969 Introductory Catalogue of Computer Synthesized Sounds (Bell Labs, MUSIC V): eleven inharmonic partials, two pairs beating about a hertz apart, each partial dying at its own rate, so the bright strike melts into a long low hum. Inlined from wM's library patch risset-bell. Value: 'bell' or 'bell,seed'
 SEEDPATH = os.environ.get("C8T2_SEEDPATH", "-16")   # SECTION ROUND (w1, the intro: flagged static): THE SONG IN MINIATURE - before the clarinet's long paths, the intro plays the shortest interesting one: 7's Collatz path (7 22 11 34 17 52 26 13 40 20 10 5 16 8 4 2 1, sixteen steps) on the song's small bell, one number a bar, each number's height (log2) as a scale degree - up and down and up again, and down for good through 16 8 4 2 - landing on 1 (the tonic) on A's downbeat: the whole song's argument stated once, slowly and quietly, so the intro moves and tells you what is coming. Value = gain dB
@@ -536,6 +537,12 @@ def build():
     if CLKS:
         a0 = sec_start("A")
         ev["clks"] = [(a, h, l, v) for (a, h, l, v) in ev["clar"] if a0 + 16 * BAR <= a < a0 + 32 * BAR and not h.startswith("!") and h != "_"]
+    if FLOAT:
+        fa_, fb_ = (int(x) for x in FLOAT.split(":"))
+        f0_, f1_ = sec_start("C") + fa_ * BAR, sec_start("C") + fb_ * BAR
+        for k_ in ("kick", "shk", "hats", "clap", "ohat"):
+            if k_ in ev:
+                ev[k_] = [e for e in ev[k_] if not (f0_ <= e[0] < f1_)]
     if SEEDPATH:
         p_ = collatz(7)
         s0_ = sec_start("intro")
