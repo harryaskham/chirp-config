@@ -35,3 +35,20 @@ scenes:
   - {at: 76bar, look: hail, params: {density: 0.5, hue: 0.55}, xfade: 3s}
   - {at: 92bar, look: hail, params: {density: 1.6, hue: 0.7}, xfade: 3s}
   - {at: 148bar, look: one, xfade: 8s}
+# The words: the count spoken as numbers (typed as they are said), then the refrains.
+master:
+  layers:
+    - {type: captions, shadow: 0.8, y: 0.8, size: 0.06, color: "#f2f2f2", typing: 2.3, fade: 1.5, lines: [[80.247b, 22, "7 22 11 34 17 52 26 13 40 20 10 5 16 8 4 2 1"]]}
+    - type: captions
+      shadow: 0.8
+      y: -0.8
+      size: 0.05
+      color: "#f2f2f2"
+      typing: 16
+      fade: 1.2
+      lines:
+        - [317.248b, 2.6, "four, two, one"]
+        - [323.252b, 2.6, "four, two, one"]
+        - [329.251b, 4.7, "four, two, one"]
+        - [412.248b, 5.1, "odd goes up, even comes down"]
+        - [524.248b, 5.1, "odd goes up, even comes down"]
