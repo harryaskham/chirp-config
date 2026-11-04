@@ -19,6 +19,7 @@ looks:
       - {type: text, text: "KCK SNR HAT BEL", x: -1.635, y: -0.77, align: left, size: 0.034, color: "#e8a33a", opacity: 0.55}
       - {type: scope, mode: wave, gain: 0.3, y: -0.7, size: 3.1, width: 0.002, glow: 0.3, color: "#e8a33a", opacity: "0.25 + audio.level*0.6"}
     filters:
+      - {type: camera, zoom: "1 + scene.progress*0.05", x: "scene.progress*0.02"}
       - {type: bloom, threshold: 0.4, amount: 0.8, radius: 0.05}
       - {type: scanlines, amount: 0.2, count: 270}
       - {type: vignette, amount: 0.6}

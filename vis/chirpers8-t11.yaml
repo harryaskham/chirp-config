@@ -11,6 +11,7 @@ looks:
       - {type: particles, on: track.rainL, count: 6, speed: 1.4, dir: 0.72, spread: 0.02, gravity: 1, life: 1.2, x: -0.9, y: 1.1, jitter: 0.9, size: 0.002, pos: 0.6, shape: spark}
       - {type: particles, on: track.rainR, count: 6, speed: 1.4, dir: 0.72, spread: 0.02, gravity: 1, life: 1.2, x: 0.9, y: 1.1, jitter: 0.9, size: 0.002, pos: 0.6, shape: spark}
     filters:
+      - {type: camera, zoom: "1.02 + scene.progress*0.1", rotate: "scene.progress*0.03"}
       - {type: feedback, zoom: 1.0, decay: 0.9}
       - {type: bloom, threshold: 0.5, amount: 0.6}
       - {type: vignette, amount: 0.55}
