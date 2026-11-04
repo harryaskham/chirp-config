@@ -80,6 +80,7 @@ DECFIX = os.environ.get("C8T8_DECFIX", "")   # v56's decay double peaks at lane 
 SUNGMID = os.environ.get("C8T8_SUNGMID", "16")   # WHOLE ROUND on the singing: the voice is heard before E - 'it comes later on' (the line sung at E bar 12) is first sung in the middle of the song, at C bar SUNGMID, in C's own D minor (E's is lifted a step), with its canon a bar behind a third below (v69): the line promises its own return, and comes later on. Value = bar of C
 WORDLEVEL = os.environ.get("C8T8_WORDLEVEL", "3")   # WHOLE ROUND: the word recedes as it decays - the word's orbit (radius 2 + 8 x the decay lane, v60) gets the engine's orbit `level` (8f150090: the distance that plays at full level; farther is fainter, about 1/distance): within WORDLEVEL metres it is as it was; as the memory decays and the orbit widens to 10 m the word grows faint as well as far, then each refresh brings it back up close and full. Value = metres
 CANON = os.environ.get("C8T8_CANON", "4")   # WHOLE ROUND on the singing: the memory sings it back - every sung line (sungl at E bar 12, sungv/sungv2 in the outro) is followed by itself CANON beats later, a diatonic third below in D minor on the stretched octave, 6 dB under, panned across, sent hard into the line: a delay line's echo that returns transposed, so each line becomes a two-part canon with its own recall
+HATSIN = os.environ.get("C8T8_HATSIN", "90")   # SECTION ROUND (w2, the intro's end into A: flagged level jump): THE CLOCK STARTS BEFORE THE WORD - A's groove used to arrive all at once; now the hats come in through the intro's last four bars, offbeat eighths growing from a whisper (vel 22) towards A's level, then a bar of sixteenths, so the machine's clock is heard starting up and A lands on a running clock instead of out of silence. Value = velocity reached at A
 HUMXFMR = os.environ.get("C8T8_HUMXFMR", "-12")   # PALETTE: the machine's power hum, off the album's 808 (4 songs share it) and onto the song's own TRANSFORMER: a Chebyshev shaper writing only odd harmonics (1, 0.35, 0.15, 0.06 - the square-ish buzz of a mains transformer's laminations), slow in and out, so the computer's power supply hums like one instead of like a drum machine's long kick. Value = gain offset dB
 OVERHEAT = os.environ.get("C8T8_OVERHEAT", "30")   # SECTION ROUND (w6, D: flagged static, little new vs w5): THE TANK OVERHEATS - the intro's cold tank warmed into tune (v85); through D, the memory working hardest and its bit errors at their worst, the tank runs hot and the word drifts sharp by this many cents, slowly across D's sixteen bars, until the repair (E) brings it back to pitch at once - heat and errors arriving together, as they would in the machine. Value = cents sharp at D's end
 FARENDE = os.environ.get("C8T8_FARENDE", "4:20")   # SECTION ROUND (w8, E - the repair: flagged static, little new vs w7): THE TWO ENDS AGREE - in A the tank's far end read the word back in retrograde (v83: the word and its mirror, out of step); in E, repaired, the far end reads it FORWARD on the same wire harp, so both transducers now say the same thing at once: the word in unison with itself, a repaired memory heard as agreement. Value 'a:b' = E bars a..b-1
@@ -334,6 +335,16 @@ def build():
     if RISSETMID:
         m0_, m1_ = sec_start("C"), sec_start("E")
         globals()["_RMID_EV"] = [e for e in ev["pad0"] if m0_ <= e[0] < m1_]
+    if HATSIN:
+        a0h_ = sec_start("A")
+        hm_ = int(HATSIN)
+        nb_ = int(os.environ.get("C8T8_HATSINBARS", "8"))
+        for i_ in range(nb_ * BAR):
+            a_ = a0h_ - nb_ * BAR + i_
+            bar_ = i_ // BAR
+            if (bar_ < nb_ - 1 and i_ % 4 == 2) or (bar_ == nb_ - 1):
+                ev["hats"].append((a_, "A4" if OWNHATS else "h", 1, int(22 + (hm_ - 22) * i_ / (nb_ * BAR))))
+        ev["hats"].sort(key=lambda e: e[0])
     if VERIFY:
         ve_ = []
         for sc_, _n in FORM[:-1]:
