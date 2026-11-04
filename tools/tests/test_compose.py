@@ -371,6 +371,8 @@ class Coverage(unittest.TestCase):
         # engine 78e838c5 (wM, bd-8ec8ed): LPC-10 speech resynthesis
         self.assertIn("lpc", CH.song_features({"tracks": [{"fx": [{"type": "lpc", "bits": 5}]}]}, ""))
         self.assertIn("lpc", CH.COVERAGE_CATALOGUE["fx"])
+        self.assertIn("waveset", CH.song_features({"tracks": [{"fx": [{"type": "waveset", "mode": "reverse"}]}]}, ""))
+        self.assertIn("waveset", CH.COVERAGE_CATALOGUE["fx"])
         self.assertIn("choices", CH.song_features({}, "score: (C4|E4|G4)/4"))
 
     def test_life_henon_and_walk_systems_are_features(self):

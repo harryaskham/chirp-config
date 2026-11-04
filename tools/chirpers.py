@@ -684,7 +684,7 @@ COVERAGE_CATALOGUE = {
     "fx": ["amp", "autolevel", "barberpole", "cab", "chop", "chorus", "clip", "cloud", "compressor", "crush", "delay", "drive",
            "duck", "eq", "filter", "follow-noise", "formant", "freeze", "gain", "gate", "glue", "ir", "limiter", "lpc", "morph",
            "orbit", "ott", "pan", "phantom", "phaser", "pitch", "pump", "radio", "reverb", "ring", "stutter", "sympathetic", "tape",
-           "tapestop", "transient", "tremolo", "vinyl", "vocoder", "wah", "width"],
+           "tapestop", "transient", "tremolo", "vinyl", "vocoder", "wah", "waveset", "width"],
     "filters": ["kind:lp", "kind:hp", "kind:bp", "kind:notch", "kind:peak", "kind:lowshelf", "kind:highshelf", "kind:allpass",
                 "comb", "ladder"],
     "time": ["tempo map", "risset", "warp", "meter change", "swing", "swing_drift", "humanize"],
