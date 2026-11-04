@@ -63,6 +63,7 @@ OUTKS = os.environ.get("C8T5_OUTKS", "0:-14")   # SECTION ROUND (w9, the outro: 
 ROBOCHOIR = os.environ.get("C8T5_ROBOCHOIR", "-12")   # SECTION ROUND (the agreement sung, C's last bars): the machine sings too - the three-voice choir that sings 'keep it there' together at C's end gets a fourth voice, a vocoder twin of its middle voice: the same words shaping a held E minor chord of saws (E2 B2 E3 G3) band by band. Agreeing on a speed: humans and the machine sing the deal together. Value = gain dB
 GTRRUSH = os.environ.get("C8T5_GTRRUSH", "0.25")   # SECTION ROUND (w2, the intro's end into A: level jump): the first proposal is rushed - with no kick under it yet, the guitar's opening calls in A run ahead of the band (its own clock: GTRRUSH beats early by A's downbeat), settling back onto the grid over A's first eight bars, so it is exactly on time the bar the kick comes in. Value = beats early
 SWARM = os.environ.get("C8T5_SWARM", "-16")   # WHOLE ROUND: THE SWARM AGREES - wM's kuramoto layer (engine 63e9a72a: Kuramoto 1975, the textbook model of synchrony - fireflies, pacemaker cells, an audience's applause falling into step): the keys' chords doubled by a swarm of 12 saws spread 40 cents round each note, each pulled toward the swarm's mean phase by a coupling on a lane - 0.3 (a crowd, beating like a detuned chorus) through the intro, A and B while the machines disagree, rising through the retrain, 3 (a locked core, the note found out of the crowd) from C on: the song's agreement made in the oscillators themselves. Value = gain dB
+HEMIOLA = os.environ.get("C8T5_HEMIOLA", "26")   # SECTION ROUND (w4, B: flagged static, little new vs A): THEY DISAGREE ABOUT THE METRE TOO - through B (the counter-offer) the hats stop counting in four: one hit every three sixteenths, accented every fourth hit, so the hats' bar is twelve sixteenths long against everyone else's sixteen - three against four, the machines arguing not only about the speed but about where the beat falls, until B's end. Value = bars of B, from its start
 LOCKSLOW = os.environ.get("C8T5_LOCKSLOW", "1")   # SECTION ROUND (w7, C's first half: flagged static): THE AGREEMENT TAKES ITS TIME - both swarms' coupling lane reshaped after wM's measurement that most of the change happens between coupling 1 and 2: the crowd crosses 0.3 -> 1 (the critical point) in the retrain's first bar, then spends the retrain and C's first sixteen bars between 1 and 2 (the core forming, the outliers still slipping round it), and locks fully (3) only by C bar 28 - so C is no longer a held state but the agreement still being reached. Value: any
 SWARMGTR = os.environ.get("C8T5_SWARMGTR", "-24")   # WHOLE ROUND: THE CROWD BEFORE THE AGREEMENT - the keys' swarm (v70) only plays from C, so its uncoupled crowd was never heard (solo renders: silent until 180 s); now the guitar's chords, which run from A to the outro, get a swarm of their own on the same coupling lane: through A and B a crowd of 10 detuned saws per note (coupling 0.3: drifting, beating, a loose chorus of disagreement under the guitar), pulled together through the retrain, locked from C - the whole arc of the song's argument in one sound. Value = gain dB
 CONGAPHASE = os.environ.get("C8T5_CONGAPHASE", "1")   # WHOLE ROUND: PHASING (Reich, 1966-67: two machines at almost the same speed) - the congas, one machine's hands, run on their own clock: in phase through the intro, then through A they gain on the kick, slipping smoothly forward until a whole beat ahead (in step again, a beat out), drift back to half a beat ahead through B (the furthest apart, the beats interleaved), and the retrain pulls them back into phase - from C on, locked: the agreement heard as two clocks coming to one. Value = beats ahead at A's end (B goes to half of it)
@@ -369,6 +370,20 @@ def build():
         inside = lambda a: any(u <= a < v for u, v in spans)
         ev["dj"] = [(e[0], e[1], mp.get(e[2], e[2]), e[3], e[4]) for e in ev["conga"] if inside(e[0]) and e[1] != 0]
         ev["conga"] = [(e[0], e[1], e[2], e[3], 1 if inside(e[0]) and e[1] != 0 else e[4]) for e in ev["conga"]]
+    if HEMIOLA:
+        h0_ = sec_start("B"); h1_ = h0_ + int(HEMIOLA) * BAR
+        ev["hats"] = [e for e in ev["hats"] if not (h0_ <= e[0] < h1_)]
+        for i_, a_ in enumerate(range(h0_, h1_, 3)):
+            ev["hats"].append((a_, 1, "h", 1, 84 if i_ % 4 == 0 else 60))
+        ev["hats"].sort(key=lambda e: e[0])
+        if os.environ.get("C8T5_HEMCOW", "1") and "cow" in ev:
+            ch_ = next((e[2] for e in ev["cow"]), None)
+            if ch_ is not None:
+                ev["cow"] = [e for e in ev["cow"] if not (h0_ <= e[0] < h1_)]
+                for i_, a_ in enumerate(range(h0_, h1_, 3)):
+                    if i_ % 2 == 0:
+                        ev["cow"].append((a_, 1, ch_, 1, 92 if i_ % 4 == 0 else 66))
+                ev["cow"].sort(key=lambda e: e[0])
     if SUBPATCH and SUBSPLIT:
         a0 = sec_start("A")
         ev["sub2"] = [e for e in ev["sub"] if e[0] >= a0]
