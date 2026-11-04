@@ -433,6 +433,23 @@ def build():
     P['roll'] = [(ck0_ + 6.0 + 0.25 * j_, 's', 0.2, int(28 + 11 * j_)) for j_ in range(8)]
     P['roll'] += [(ck0_ + 5.5, 's', 0.2, 40), (ck0_ + 8.0, 'k', 0.5, 110), (ck0_ + 8.0, 'cy', 2.0, 92)]
     P['roll'].sort(key=lambda e_: e_[0])
+    # (v43, section w7) THE LAST DESCENT, QUIET: the song's loudness has hardly moved from start to end (2.8 dB, the
+    # album's flattest), and the last bars before convergence - the search nearly cold, the answer almost found - were
+    # its most static stretch. Now the band thins out for the final eight bars of the fifth epoch: the bass holds one
+    # long note a bar, the snare, clap and open hats stop, only a kick on each downbeat and the closed hats at half strength
+    # keep time - the search heard almost alone over the pad and the drone, holding its breath - and in the last bar a
+    # tom fill falls down the kit, low to high, into a kick and a crash on the downbeat where it converges, the band all
+    # back at once. Muted in place (vel 1); the fill on its own track
+    co0_ = sum(n for nm_, n in FORM[:[nm_ for nm_, _ in FORM].index('converged')]) * 4.0
+    bd0_ = co0_ - 32.0
+    def _bd(t_): return bd0_ - 1e-6 <= t_ < co0_ - 1e-6
+    P['kit'] = [((e_[0], e_[1], e_[2], 1) if _bd(e_[0]) and not ((e_[1] == 'k' and abs(e_[0] % 4.0) < 0.2) or e_[1] == 'h') else
+                 ((e_[0], e_[1], e_[2], max(1, int(e_[3] * 0.5))) if _bd(e_[0]) and e_[1] == 'h' else e_)) for e_ in P['kit']]
+    P['bass'] = [((e_[0], e_[1], 3.6, e_[3]) if abs(e_[0] % 4.0) < 0.2 else (e_[0], e_[1], e_[2], 1)) if _bd(e_[0]) else e_
+                 for e_ in P['bass']]
+    P['fill7'] = [(co0_ - 4.0 + 0.5 * j_, ('lt', 'lt', 'mt', 'mt', 'ht', 'ht', 'ht', 's')[j_], 0.4, 70 + 5 * j_) for j_ in range(8)]
+    P['fill7'] += [(co0_, 'k', 0.5, 112), (co0_, 'cy', 2.0, 96)]
+    P['fill7'].sort(key=lambda e_: e_[0])
     # (v39) THE COLOURS ANNEAL (Klangfarbenmelodie): hot, the search's notes are not one instrument's - each is handed
     # at random to one of four other machines (a VOSIM vowel blip, a terrain-wave key, a scanned-synthesis mallet, a
     # Rossler-chaos lead), Webern's melody of tone colours, so the riff the search is trying out is scattered across
@@ -649,6 +666,7 @@ def build():
                                  'filters': ['hp cutoff=150']}}, '-10dB', pan=0.45,
                fx=['delay time=3/8 feedback=0.22 mix=0.16'], sends={'hall': '-12dB'}),
             tr('roll', 'electro-kit', '-5dB', sends={'hall': '-14dB'}),
+            tr('fill7', 'electro-kit', '-5dB', sends={'hall': '-14dB'}),
             tr('kf1', 'vosim-voice', '-12dB', pan=-0.55, sends={'echo': '-12dB', 'hall': '-14dB'}),
             tr('kf2', 'terrain-keys', '-10dB', pan=0.5, sends={'echo': '-12dB', 'hall': '-14dB'}),
             tr('kf3', 'scanned-mallet', '-10dB', pan=-0.2, sends={'echo': '-12dB', 'hall': '-14dB'}),
