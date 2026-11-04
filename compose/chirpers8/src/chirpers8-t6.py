@@ -326,6 +326,12 @@ R33 = os.environ.get("T6_R33", "enter")
 #     note starts bright and inharmonic and settles to almost a sine - an idle ROM chime rather than a toy.
 # Level-matched. T6_R34=none reproduces v32.
 R34 = os.environ.get("T6_R34", "own")
+# T6_R35 = held (v34, FINAL PASS: the existing v17 plan, "the light left on ... does not go out"). The album plays the
+# files back to back, so the join to t7 is t6's last three seconds against t7's first - and those three seconds were
+# the render's tail: every note stopped at the song's length and the lamp chord fell -29 -> -53 dB before t7 came in
+# (compscore out-join: a 13.4 dB step). Now the tail is a short one, so the file ends with the organ chord still
+# sounding and t7 arrives on it. T6_R35=none reproduces v33.
+R35 = os.environ.get("T6_R35", "held")
 C6_CHIME = {"about": "chirper-two: an idle chime on phase modulation (Chowning-style): a 1:1 body and a 3.5:1 strike "
                      "whose index dies in 180 ms",
             "synth": {"layers": [{"name": "m1", "ratio": 3.5, "audible": False},
@@ -841,7 +847,8 @@ def main():
         lamp = Track("lamp")
         lamp.add(l0, total - l0 + float(os.environ.get("T6_LAMP_OVER", "4")), ",".join(mm(e(s, 48)) for s in (0, 11, 19, 25, 30)), 90)
         tracks.append({"name": "lamp", "patch": "hammond-b3 amp.r=4s", "gain": os.environ.get("T6_LAMP_GAIN", "-16dB"),
-                       "pan": 0.0, "fx": ["hp cutoff=90", "lp cutoff=5000 q=0.5", "reverb kind=hall decay=3s mix=0.3",
+                       "pan": 0.0, "fx": [f"hp cutoff={os.environ.get('T6_LAMP_HP', '360') if R35 == 'held' else '90'}",
+                                          "lp cutoff=5000 q=0.5", "reverb kind=hall decay=3s mix=0.3",
                                           {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.swell", "amount": 1}]}}],
                        "auto": {"swell": {"points": [["0b", -40.0], [f"{l0}b", -40.0], [f"{l0 + 16}b", 0.0],
                                                      [f"{total + 8}b", 0.0]]}},
@@ -1069,7 +1076,7 @@ def main():
                                                           "range": [-1, 1]}, "every": "1/2"}} if R12 == "walk" else {})})]
           if R2 == "strings" else []),
         f'length: "{total:g}b"',
-        'tail: "3s"',
+        f'tail: "{os.environ.get("T6_TAIL", "0.75s") if R35 == "held" else "3s"}"',
         'ceiling: "-1dB"',
         'volume: "0dB"',
         "loudness: -11",
