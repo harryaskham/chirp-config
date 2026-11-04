@@ -6514,7 +6514,7 @@
   {
    "name": "voice_chip",
    "patch": "voice-tts",
-   "gain": "-23dB",
+   "gain": "-14dB",
    "pan": 0.05,
    "sends": {
     "hall": "-6dB"
@@ -6805,7 +6805,7 @@
   {
    "name": "voice_toy",
    "patch": "voice-tts",
-   "gain": "-21dB",
+   "gain": "-19.5dB",
    "pan": 0.05,
    "sends": {
     "hall": "-6dB"
@@ -7102,7 +7102,7 @@
      }
     }
    },
-   "gain": "-26dB",
+   "gain": "-22dB",
    "pan": -0.35,
    "sends": {
     "hall": "-5dB",

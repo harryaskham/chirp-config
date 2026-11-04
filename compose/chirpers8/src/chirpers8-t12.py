@@ -731,8 +731,8 @@ def lpc_voices(song):
     out = []
     voice = tracks["voice"]
     per = len(voice["notes"]) // 6
-    for name, reps, fx, gain in (("voice_chip", (2, 3), "lpc", "-23dB"),        # lpc on voice-tts came out ~14 dB
-                                 ("voice_toy", (4, 5), "lpc pitch=F#2 bits=5", "-21dB")):   # hot: matched solo
+    for name, reps, fx, gain in (("voice_chip", (2, 3), "lpc", "-14dB"),        # lpc on voice-tts came out ~14 dB
+                                 ("voice_toy", (4, 5), "lpc pitch=F#2 bits=5", "-19.5dB")):   # hot: matched solo
         notes = []
         for i, n in enumerate(voice["notes"]):
             if i // per in reps:
@@ -750,7 +750,7 @@ def lpc_voices(song):
         c = dict(n)
         c["at"] = round(float(str(n["at"]).rstrip("b")) - LPC_EARLY, 4)
         sc.append(c)
-    out.append({"name": "singer_chip", "patch": singer["patch"], "gain": "-26dB", "pan": -0.35,   # ~8 dB under
+    out.append({"name": "singer_chip", "patch": singer["patch"], "gain": "-22dB", "pan": -0.35,   # ~8 dB under
                 "sends": singer.get("sends", {}), "fx": ["lpc"] + list(singer.get("fx") or []), "notes": sc})
     song["tracks"] += out
 
