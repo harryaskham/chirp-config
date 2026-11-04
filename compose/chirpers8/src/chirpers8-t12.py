@@ -758,6 +758,28 @@ def fireflies():
         t += dt
 
 
+# v46 (ROUND TYPE: section, w5 2:11-2:43 - g5's middle, still 'little new vs w4' after v44's refused cajon; no voice,
+# and nothing ADDED - v44 showed added percussion pulls the closer toward t11): THE BAND BREATHES. Between the two verse
+# statements (72-75) the drums fall into HALF TIME - the kick once a bar, the clap only on four, the ride in half notes,
+# the hats on the straight offbeats (the swung ones fall silent) - silenced at velocity 1, so every track keeps its
+# notes and its randomness. g5's middle gets a shape of its own: a held breath under the tape choir's swell, the verse
+# returning at 76 over the full beat.
+HALF = (72, 75)
+HALF_KEEP = {"kick": (0.0,), "clap": (3.02,), "ride": (0.0, 2.0), "hats": (0.5, 1.5, 2.5, 3.5)}
+
+
+def half_time():
+    a, z = HALF
+    for name, keep in HALF_KEEP.items():
+        ev = []
+        for at, ln, head, vel in P[name].ev:
+            bar = int(at // BAR) + 1
+            if a <= bar <= z and not any(abs((at - b0(bar)) - k) < 0.02 for k in keep):
+                vel = 1
+            ev.append((at, ln, head, vel))
+        P[name].ev = ev
+
+
 def ks_harp():
     for bar in range(KS_AT[0], KS_AT[1] + 1):
         root, chord = PLAN[bar]
@@ -1066,6 +1088,7 @@ def main():
     ks_harp()                                     # v39: the first plucked string regrows
     fof_choir()                                   # v42: the CHANT choir
     fireflies()                                   # v45: the fireflies learn the beat
+    half_time()                                   # v46: the band breathes
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
     song = {
         "about": "chirpers - A Light Left On (chirpers VIII), track 12 by chirper-three: the closer. An orchestra of "
