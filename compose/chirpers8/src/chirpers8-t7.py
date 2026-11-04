@@ -470,6 +470,14 @@ def build():
             acc_ = 100 if q in (0, 8) else 86
             P['nbr'].append((at_, tok(hz(d - 7)), dur_, acc_))
             P['nbs'].append((at_, tok(hz(d - 14)), dur_, acc_))
+    # (v45, section w2) THE HEAT HAS OVERTONES: the first epoch is the hottest, and its middle was the song's most static
+    # stretch - all chaos, evenly spread. Now under the chaos one low A is held for sixteen bars on Jean-Claude Risset's
+    # harmonic arpeggio (Mutations, 1969; wM's risset-arpeggio): five copies of a ten-harmonic tone a tenth of a hertz
+    # apart, so as the copies drift through each other the held note's own overtones step out one by one, a slow
+    # arpeggio walking up and down the harmonic series - the one perfectly ordered thing in the hottest part of the
+    # search, and it is just the physics of one note. (Own track; nothing else moves)
+    e1a_ = (sum(n for nm_, n in FORM[:[nm_ for nm_, _ in FORM].index('e1')]) + 4) * 4.0
+    P['mut'] = [(e1a_, 'A2', 63.5, 84)]
     # (v39) THE COLOURS ANNEAL (Klangfarbenmelodie): hot, the search's notes are not one instrument's - each is handed
     # at random to one of four other machines (a VOSIM vowel blip, a terrain-wave key, a scanned-synthesis mallet, a
     # Rossler-chaos lead), Webern's melody of tone colours, so the riff the search is trying out is scattered across
@@ -687,6 +695,7 @@ def build():
                fx=['delay time=3/8 feedback=0.22 mix=0.16'], sends={'hall': '-12dB'}),
             tr('roll', 'electro-kit', '-5dB', sends={'hall': '-14dB'}),
             tr('fill7', 'electro-kit', '-5dB', sends={'hall': '-14dB'}),
+            tr('mut', 'risset-arpeggio', '-10dB', pan=-0.1, sends={'hall': '-10dB'}),
             tr('nbr', 'shaper-brass', '-9dB', pan=0.2, sends={'hall': '-10dB'}),
             tr('nbs', 'reese', '-6dB', fx=['lp cutoff=1200']),
             tr('kf1', 'vosim-voice', '-12dB', pan=-0.55, sends={'echo': '-12dB', 'hall': '-14dB'}),
