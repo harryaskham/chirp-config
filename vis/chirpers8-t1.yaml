@@ -23,9 +23,9 @@ looks:
     extends: roll
     palette: lattice
     layers:
-      - {type: gradient, radial: 1, spread: 0.18, pos: 0.02, light: 0.3}
-      - {type: notes, mode: roll, tracks: [voice, sung, voice2, voice3, chip1, chip2, chip3, chip4, chip5, bass, vib], window: 8, playhead: 0.4, size: 0.02, height: 1.5, width: 3.4, spread: 0.09, pos: 0.5, cursor: 0.35, glow: 0.5}
-      - {type: scope, mode: circle, x: 0.4, size: 0.6, gain: 2, width: 0.003, glow: 0.4, pos: 0.58, opacity: 0.5}
+      - {type: gradient, radial: 1, spread: 0.3, pos: 0.22, light: "0.32 + audio.low*0.15"}
+      - {type: notes, mode: roll, tracks: [voice, sung, voice2, voice3, vmem, pno, gtr, tpt, chip1, chip2, chip3, chip4, chip5, bass, vib], range: auto, window: 8, playhead: 0.4, size: 0.03, height: 1.5, width: 3.4, spread: 0.12, pos: 0.55, cursor: 0.4, glow: 0.8}
+      - {type: scope, mode: circle, x: 0.4, size: 0.85, gain: 2.4, width: 0.004, glow: 0.6, pos: 0.58, opacity: 0.75}
     filters:
       - {type: feedback, zoom: 0.99, decay: 0.7}
       - {type: bloom, threshold: 0.45, amount: 0.7}
