@@ -17,6 +17,9 @@ looks:
       - {type: bloom, threshold: 0.42, amount: "0.7 + env.kick*0.3", radius: 0.03}
       - {type: color, contrast: 1.15}
       - {type: invert, amount: "param.paper*0.9"}
+      # Paper, not a lamp: the printed score a little darker and warmer than white.
+      - {type: color, exposure: "1 - param.paper*0.18", saturation: "1 + param.paper*0.2"}
+      - {type: tint, palette: [ "#1b1612", "#efe4cf" ], amount: "param.paper*0.35"}
       - {type: scanlines, amount: 0.12, count: 360}
       - {type: vignette, amount: "0.5 - param.paper*0.3"}
 scenes:
