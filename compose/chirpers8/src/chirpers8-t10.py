@@ -498,6 +498,24 @@ def build():
     # (v31) THE KIT AS WRITTEN: the kicks keep their own line (the sub's pump listens to it); every other hit is dealt
     # across three more lanes of the same kit, so the claps on the kicks, the open hats on the clave and the rim's
     # three-against-four all actually sound, at the velocities they were written with
+    # (v56, FINAL PASS) THE UNWINDING, FINISHED: v30 unwound the groove into half time as the stack empties, and v24 left
+    # the last four bars to 'the organ, the bell and the lead alone' - but the rest of the band kept playing through the
+    # unwinding unchanged, and the pulse kept running to the end. Now the band pops off the stack with it: when the
+    # second call returns (final bar 20) the rim's three-against-four stops; when the first returns (bar 24) the open
+    # hats go, the closed hats drop to a lighter touch and the pulse lead leaves - so the last bars really are the
+    # bell and the lead over the organ. (Muted in place, velocity 1: nothing else moves)
+    fu20_, fu24_, fend_ = shift(secs_t['final'] + 80.0), shift(secs_t['final'] + 96.0), shift(secs_t['final'] + 128.0)
+    def _unw(e_):
+        if fu20_ - 1e-6 <= e_[0] < fend_ - 1e-6 and e_[1] == 'rs':
+            return (e_[0], e_[1], e_[2], 1)
+        if fu24_ - 1e-6 <= e_[0] < fend_ - 1e-6:
+            if e_[1] == 'oh':
+                return (e_[0], e_[1], e_[2], 1)
+            if e_[1] == 'h':
+                return (e_[0], e_[1], e_[2], max(1, int(e_[3] * 0.6)))
+        return e_
+    P['kit'] = [_unw(e_) for e_ in P['kit']]
+    P['pwm'] = [(e_[0], e_[1], e_[2], 1) if fu24_ - 1e-6 <= e_[0] < fend_ - 1e-6 else e_ for e_ in P['pwm']]
     _kk = [e_ for e_ in P['kit'] if e_[1] in ('k', 'kd')]
     P['kit2'], P['kit3'], P['kit4'] = lanes([e_ for e_ in P['kit'] if e_[1] not in ('k', 'kd')], 3)
     P['kit'] = _kk
