@@ -43,6 +43,7 @@ COMPUTEWARP = os.environ.get("C8T2_COMPUTEWARP", "0.25")   # WHOLE ROUND: big nu
 COMPUTEFROM = os.environ.get("C8T2_COMPUTEFROM", "A")   # 'A': the intro's paths stay on the grid (the join with t1 is measured over the opening; the intro is the arp's phasing, v64), the lag starts with A
 ARPPHASE = os.environ.get("C8T2_ARPPHASE", "0.25")   # SECTION ROUND (w1, the intro: static): the machine phases - the bytebeat arp runs on its own clock through the intro (the engine's per-track warp): drifting away from the clarinet over eight bars (to ARPPHASE beats late, curve smooth), then back over eight, locking onto the grid exactly as A begins; the tape-loop phasing of process music, done by a clock. Value = beats of drift at its widest
 LPCV = os.environ.get("C8T2_LPCV", "count,refrain")   # WHOLE ROUND: the numbers read by a speaking toy - LPC (engine 78e838c5, LPC-10: the first speech chips; the toy that read arithmetic to children spoke this way). 'count': the voice that reads the numbers in A goes through 5-bit monotone LPC on G3 before its radio; 'count,refrain': and the break's 'four, two, one' (the turn from speech into song) through plain, inflecting LPC, so the counting machine begins to sing before the human-sung lines of C. Notes nudged 0.075 beats early for LPC's ~35 ms (chirper-three's measure)
+SEEDPATH = os.environ.get("C8T2_SEEDPATH", "-16")   # SECTION ROUND (w1, the intro: flagged static): THE SONG IN MINIATURE - before the clarinet's long paths, the intro plays the shortest interesting one: 7's Collatz path (7 22 11 34 17 52 26 13 40 20 10 5 16 8 4 2 1, sixteen steps) on the song's small bell, one number a bar, each number's height (log2) as a scale degree - up and down and up again, and down for good through 16 8 4 2 - landing on 1 (the tonic) on A's downbeat: the whole song's argument stated once, slowly and quietly, so the intro moves and tells you what is coming. Value = gain dB
 FINALONE2 = os.environ.get("C8T2_FINALONE2", "-14")   # SECTION ROUND (w10, the last two bars; the join to t3): ALL FALLS TO ONE NOTE - the song ended on the sub's D3 pedal alone (solo tail renders: the last 3 s are that one tone), and t3 opens broad and warm at 70-100 Hz; the join read 5.35 dB. Now a separate part (appended after everything else, so the solo ending and the pedal are untouched) sounds D2 and D4 around the pedal on the song's CZ pad for the last eight beats: one note in three octaves, everything fallen to one pitch. Value = gain dB
 REFRAINVOICE = os.environ.get("C8T2_REFRAINVOICE", "1")   # PALETTE: the refrain's voice - the spoken refrain (voice-speech, the album's commonest library patch, eight songs; through plain LPC since v63) moves to the library's rounder singing source ('voice': a glottal source through a five-formant tract), keeping its words, pitch path and LPC; the robot twin (v66) keeps the speech voice it vocodes
 SUBSHAPE = os.environ.get("C8T2_SUBSHAPE", "0.5")   # PALETTE: the sub computed - the sub (sub-sine, an album staple: C1-G1, 33-49 Hz, below what most speakers play) becomes a Chebyshev-shaped sub (Le Brun & Arfib 1979, as the song's computed clarinet and brass): harmonics 1, .4, .15 written by a polynomial, so each low note also sounds its octave and twelfth and is heard as a pitch on small speakers, the deepest rumble high-passed at 28 Hz. Value = shaper index
@@ -137,7 +138,7 @@ def barlen(sec):
     """Sixteenths in a bar of this section: the break is in 3/4 under METER."""
     return 12 if METER and sec == "break" else BAR
 SEEDS = {"intro": [6, 6], "A": [7, 12, 3, 7], "B": [9, 18, 11], "C": [27, 31, 27, 41], "outro": [1]}
-TRACKS = ("clar", "clar2", "arp", "bass", "sub", "kick", "shk", "hats", "clap", "pad", "bell", "crash") + (("tom",) if os.environ.get("C8T2_TOMBACK", "swap") else ()) + (("ohat",) if os.environ.get("C8T2_OWNHATS", "1") else ()) + (("bell2",) if os.environ.get("C8T2_PREFIGTRACK", "1") else ()) + (("kick2", "tom2", "crash2") if os.environ.get("C8T2_HALVLOCAL", "1") else ()) + (("vib",) if os.environ.get("C8T2_LANDING", "92all") else ()) + (("glk",) if os.environ.get("C8T2_GLKUP", "70") else ()) + (("mach",) if os.environ.get("C8T2_MACHV", "90") else ()) + (("vos",) if os.environ.get("C8T2_VOSEND", "90") else ()) + (("clks",) if os.environ.get("C8T2_CLKS", "1:-14") else ()) + (("clsh",) if os.environ.get("C8T2_CLSH", "h:-8") else ()) + (("clarfof",) if os.environ.get("C8T2_PARITYSEC", "intro,outro") else ()) + (("clbr",) if os.environ.get("C8T2_CLBR", "-12") else ())
+TRACKS = ("clar", "clar2", "arp", "bass", "sub", "kick", "shk", "hats", "clap", "pad", "bell", "crash") + (("tom",) if os.environ.get("C8T2_TOMBACK", "swap") else ()) + (("ohat",) if os.environ.get("C8T2_OWNHATS", "1") else ()) + (("bell2",) if os.environ.get("C8T2_PREFIGTRACK", "1") else ()) + (("kick2", "tom2", "crash2") if os.environ.get("C8T2_HALVLOCAL", "1") else ()) + (("vib",) if os.environ.get("C8T2_LANDING", "92all") else ()) + (("glk",) if os.environ.get("C8T2_GLKUP", "70") else ()) + (("mach",) if os.environ.get("C8T2_MACHV", "90") else ()) + (("vos",) if os.environ.get("C8T2_VOSEND", "90") else ()) + (("clks",) if os.environ.get("C8T2_CLKS", "1:-14") else ()) + (("clsh",) if os.environ.get("C8T2_CLSH", "h:-8") else ()) + (("clarfof",) if os.environ.get("C8T2_PARITYSEC", "intro,outro") else ()) + (("clbr",) if os.environ.get("C8T2_CLBR", "-12") else ()) + (("seed",) if os.environ.get("C8T2_SEEDPATH", "-16") else ())
 GMAJ = ["G", "A", "B", "C", "D", "E", "F#"]
 CHORDS = [("G", [0, 2, 4]), ("E", [5, 7, 9]), ("C", [3, 5, 7]), ("D", [4, 6, 8])]   # I vi IV V as degrees from G
 PRIMES = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31)
@@ -531,6 +532,10 @@ def build():
     if CLKS:
         a0 = sec_start("A")
         ev["clks"] = [(a, h, l, v) for (a, h, l, v) in ev["clar"] if a0 + 16 * BAR <= a < a0 + 32 * BAR and not h.startswith("!") and h != "_"]
+    if SEEDPATH:
+        p_ = collatz(7)
+        s0_ = sec_start("intro")
+        ev["seed"] = [(s0_ + i_ * BAR, deg_note(round(math.log2(n_) * 1.5) + int(os.environ.get("C8T2_SEEDOFF", "0")), 4), BAR if n_ != 1 else 2 * BAR, 74 if n_ != 1 else 82) for i_, n_ in enumerate(p_[:17])]
     return {k: stream(ev[k], total()) for k in TRACKS}
 
 
@@ -807,6 +812,10 @@ def song():
         if "lfo" in pd_:
             fo_["lfo"] = json.loads(json.dumps(pd_["lfo"]))
         doc["tracks"].append(fo_)
+    if SEEDPATH:
+        bl_ = next((t for t in doc["tracks"] if isinstance(t, dict) and t.get("name") == "bell"), {})
+        doc["tracks"].append({"name": "seed", "patch": json.loads(json.dumps(bl_.get("patch", "modal-glock"))), "gain": f"{SEEDPATH}dB", "pan": 0.15,
+                              "sends": {"plate": "-8dB"}, "score": build()["seed"]})
     return doc
 
 
