@@ -253,6 +253,12 @@ R25 = os.environ.get("T6_R25", "none")   # OPT-IN (not kept): s0/s11 98.168/98.1
 # bump (+7.4 dB) and 9 kHz short (-7.7) into the song: a 550 Hz cut on the pad and the air shelf 5 -> 6.5 dB bought
 # back 97.99 -> 98.17; the shaper idle tune +3.3 dB over the music box (-3 dB). Flow 72.5 -> 71.7 stayed whatever the
 # pad gain, release (0.8 -> 2.5 s) or air; sections 18 -> 19, returns 5 -> 7. Waiting on Harry's ear.
+# T6_R26 = boot (v25, section round on w2, 0:30-1:00: "level jump" - the intro at -17 dB, then all of verse one at
+# once). THE MACHINE BOOTS. Verse one no longer arrives whole: it comes online a module at a time, each one
+# acknowledged. Two bars of kernel (the voice, the boom and bass, the keys), then the ACK - the song's own two-note
+# handshake - and the kick loads; two bars more, ACK, and the snare and hats come up. The groove is the last thing
+# to load, so the voice's first words are heard almost alone. T6_R26=none reproduces v23.
+R26 = os.environ.get("T6_R26", "boot")
 C6_FOF = {"about": "chirper-two: a wordless FOF choir - alto + tenor CHANT grains, vowels moved by the track's mouth lane",
           "synth": {"layers": [
               {"type": "fof", "fof": {"voice": "alto", "vowel": "a>o", "attack": 8,
@@ -555,6 +561,16 @@ def build():
 def main():
     total, bars, secs, T, V, chords = build()
     st = {n: s for n, s, k in secs}
+    if R26 == "boot":
+        v1 = st["verse1"]
+        kick_at = v1 + float(os.environ.get("T6_BOOT_KICK", "8"))
+        kit_at = v1 + float(os.environ.get("T6_BOOT_KIT", "16"))
+        T["kick"].ev = [x for x in T["kick"].ev if not (v1 <= x[0] < kick_at)]
+        for nm in ("snare", "hats"):
+            T[nm].ev = [x for x in T[nm].ev if not (v1 <= x[0] < kit_at)]
+        for a in (kick_at - 0.5, kit_at - 0.5):   # the handshake before each module loads
+            T["ack"].add(a, 0.42, "m77.685", 92)
+            T["ack"].add(a + 0.5, 0.42, "m84.632", 80)
     if R9 == "climb":
         c1, c2 = st["chorus1"], st["chorus2"]
         bl = 4.0
