@@ -7855,7 +7855,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 93,
+      "rounds": 94,
       "priority": 1.0,
       "genre": "far-future computer music (an engine showcase)",
       "mode": "compose",
@@ -7873,7 +7873,7 @@
         "note": "COMPOSE (song, 300-480 s): Style, featured engine features, tempo, key, tuning and line-up are yours: declare them on compose/chirpers8/styles.md and claim your feature cluster on compose/chirpers8/features.md, different from the tracks already claimed."
       },
       "last": {
-        "at": "2026-11-04T05:53:57Z",
+        "at": "2026-11-04T06:19:50Z",
         "who": "chirper-zero"
       }
     },
