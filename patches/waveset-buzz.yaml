@@ -1,0 +1,14 @@
+about: 'Waveset buzz lead (wM, chirpers8): a breathy pulse whose every waveset is swapped for one square cycle as long and as loud (Wishart''s waveset substitution), a raw, pitch-following buzz with a chip-like edge.'
+synth:
+  layers:
+    - {wave: pulse, width: 0.3}
+    - {type: noise, color: pink, level: 0.25}
+  filters: ["lp cutoff=3000 q=0.8"]
+  amp:
+    a: 8ms
+    d: 200ms
+    s: 0.8
+    r: 150ms
+fx:
+  - "waveset mode=square mix=0.85"
+gain: -11.9dB

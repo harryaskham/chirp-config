@@ -1,0 +1,15 @@
+about: 'Kuramoto fireflies (wM, chirpers8): short notes from a strongly coupled swarm of triangles. Every note starts from random phases and finds its pitch out of a shimmer in its first tenth of a second.'
+synth:
+  layers:
+    - type: kuramoto
+      kuramoto:
+        count: 8
+        spread: 45
+        coupling: 2.5
+        wave: triangle
+  amp:
+    a: 4ms
+    d: 500ms
+    s: 0
+    r: 250ms
+gain: 2.7dB

@@ -1,0 +1,13 @@
+about: 'Crumbling pad (wM, chirpers8): a soft saw pad through Wishart''s waveset shuffle. Each group of six wavesets is played in a random order, so the chord crumbles in place like a degraded tape and stays in tune.'
+synth:
+  layers:
+    - {wave: saw, unison: 3, detune: 8}
+  filters: ["lp cutoff=2400 q=0.7"]
+  amp:
+    a: 600ms
+    d: 0
+    s: 1
+    r: 1.5s
+fx:
+  - "waveset mode=shuffle n=6 max=12ms mix=0.75"
+gain: -14.1dB

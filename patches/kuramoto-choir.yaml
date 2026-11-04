@@ -1,0 +1,29 @@
+about: 'Kuramoto swarm pad (wM, chirpers8): twelve detuned saws pulled toward their mean phase. A slow LFO leans the coupling back and forth across the critical point, so the pad keeps falling into one pure tone and drifting back into a crowd; `sync` opens the filter as they agree.'
+synth:
+  layers:
+    - type: kuramoto
+      kuramoto:
+        count: 12
+        spread: 30
+        coupling:
+          value: 1.3
+          mod:
+            - src: lfo.agree
+              amount: 0.8
+  lfo:
+    agree:
+      wave: sine
+      rate: 0.07hz
+  filters:
+    - kind: lp
+      cutoff:
+        value: 400
+        mod:
+          - src: sync
+            amount: 2.5
+  amp:
+    a: 1.2s
+    d: 0
+    s: 1
+    r: 2.5s
+gain: -9.5dB
