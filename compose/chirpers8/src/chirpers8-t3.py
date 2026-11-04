@@ -324,6 +324,19 @@ R31 = os.environ.get("T3_R31", "random")
 R32 = os.environ.get("T3_R32", "limits")
 STEPS_11 = ["9/8", "7/6", "11/8", "3/2", "14/9", "7/4", "2/1"]
 STEPS_3 = ["9/8", "32/27", "4/3", "3/2", "128/81", "16/9", "2/1"]
+# T3_R33 = gongan (v33, whole-song round). THE GONG CYCLE. A gamelan of automata, but its phrases were counted the way a
+# drum machine counts them, from the front. Now the steady sections (A, the peak, the hymn) carry a colotomic cycle, the
+# punctuation gamelan hangs its music on, sixteen beats long and weighted at its end: a kenong (a pot gong, D4 and A3 by
+# turns) on every bar's fourth beat, a kempul (a small hanging gong, A2 - G2 - A2) on the second beat of the cycle's last
+# three bars, and the great gong (D2) on its last beat - so every four bars the automaton's rows land on the gong
+# rather than leave from the downbeat. (Not where a section's own gong follows at once; not in the glider's float,
+# traffic, the decay or the out: the joins stay.) Javanese lancaran shape, the song's own tuning.
+# NOT KEPT (opt-in, T3_R33=gongan): s0 97.994 at kenong -11 / kempul -9 / gong -7 dB (spectrum 99.5 -> 96.0, 44 Hz
+# short, returns 6 -> 4); 98.108 at -16/-14/-12 with kempul and gong an octave up; 98.113 with a 180 Hz hp as well -
+# about 0.22 under v32 at any level the cycle can be heard. Default none = v32.
+R33 = os.environ.get("T3_R33", "none")
+GONGAN_SECS = os.environ.get("T3_GONGAN_SECS", "A,peak,hymn").split(",")
+GONG_BASE = int(os.environ.get("T3_GONG_BASE", "38"))   # D2; the kempul and great gong sit an octave above it
 
 
 def centre_column(n):   # rule 30 from a single cell, read down the middle (wide enough never to wrap)
@@ -505,6 +518,7 @@ def build():
     rng = random.Random(3)
     names = ("kick", "hats", "ohat", "rim", "bar", "barlo", "barx", "vibes", "glock", "bell", "gong", "toms", "bass", "chord", "drone",
              "rise", "hint", "hymn", "hbass", "kot", "errl", "errr")
+    names = names + ("kenong", "kempul", "ageng")
     T = {k: Track(k) for k in names}
     row = [0] * W
     row[8] = 1
@@ -673,6 +687,13 @@ def build():
             T["bell"].add(start, 8.0, hz_m(jm(0, 50)), 70 if sec != "out" else 60)
         if i == 0 and sec != "boot":
             T["gong"].add(start, 12.0, hz_m(jm(0, 38)), 84)
+        if R33 == "gongan" and sec in GONGAN_SECS:
+            cyc = i % 4
+            T["kenong"].add(start + 3.0, 3.0, hz_m(jm(0, 62) if cyc % 2 else jm(4, 50)), 70)
+            if cyc:
+                T["kempul"].add(start + 1.0, 6.0, hz_m(jm(3 if cyc == 2 else 4, GONG_BASE + 12)), 76)
+            if cyc == 3 and i < n - 1:
+                T["ageng"].add(start + 3.0, 12.0, hz_m(jm(0, GONG_BASE + 12)), 84)
         if sec == "out" and i == n - 4:
             T["gong"].add(start, 16.0, hz_m(jm(0, 38)), 70)
         # ---- the drone holds the tuning ----
@@ -926,6 +947,13 @@ def main():
             if tr["name"] == "kick":
                 tr["fx"] = tr.get("fx", []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.pk", "amount": 1}]}}]
                 tr["auto"] = {**tr.get("auto", {}), "pk": lane}
+    if R33 == "gongan":   # the cycle's three gongs, appended last
+        for nm, g, pn in (("kenong", os.environ.get("T3_KENONG_GAIN", "-16dB"), -0.25),
+                          ("kempul", os.environ.get("T3_KEMPUL_GAIN", "-14dB"), 0.25),
+                          ("ageng", os.environ.get("T3_AGENG_GAIN", "-12dB"), 0.0)):
+            tracks.append({"name": nm, "patch": "modal-gong", "gain": g, "pan": pn, "sends": {"hall": "-6dB"},
+                           "fx": [f"hp cutoff={os.environ.get('T3_GONG_HP', '180')}"],
+                           "score": T[nm].score(total)})
     if R25 == "sides":
         lines = [s_ for s_, _ in CHANT] if CHANT else [256.0, 272.0]   # the chords under the two lines
         amt = float(os.environ.get("T3_SIDE", "0.8"))
