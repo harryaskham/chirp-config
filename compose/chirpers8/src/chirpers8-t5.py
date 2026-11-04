@@ -62,6 +62,7 @@ CONGALAYER = os.environ.get("C8T5_CONGALAYER", "-26")   # WHOLE ROUND: inside th
 OUTKS = os.environ.get("C8T5_OUTKS", "0:-14")   # SECTION ROUND (w9, the outro: level jump): the deal, plucked as they part - the tune they sang at C's end (B3 D4 E4, the last time up to B4) comes back in the outro on Karplus-Strong (engine 8f150090, 1983: a noise burst settling in a one-period loop), stretched to ring long: every two bars, four times, then up to B4, then one E4 left ringing at bar 12, each softer. A notes-only track, outro only. Value 'blend:gain'
 ROBOCHOIR = os.environ.get("C8T5_ROBOCHOIR", "-12")   # SECTION ROUND (the agreement sung, C's last bars): the machine sings too - the three-voice choir that sings 'keep it there' together at C's end gets a fourth voice, a vocoder twin of its middle voice: the same words shaping a held E minor chord of saws (E2 B2 E3 G3) band by band. Agreeing on a speed: humans and the machine sing the deal together. Value = gain dB
 GTRRUSH = os.environ.get("C8T5_GTRRUSH", "0.25")   # SECTION ROUND (w2, the intro's end into A: level jump): the first proposal is rushed - with no kick under it yet, the guitar's opening calls in A run ahead of the band (its own clock: GTRRUSH beats early by A's downbeat), settling back onto the grid over A's first eight bars, so it is exactly on time the bar the kick comes in. Value = beats early
+AGREEDUO = os.environ.get("C8T5_AGREEDUO", "-16")   # WHOLE ROUND (Harry 00:0x: 'i need to be able to say i like this bit without the whole album turning into that ... not all singing, but not NO singing ... nuance'): THIS SONG'S OWN SINGERS, NOT THE ALBUM'S CHOIR - the four-voice CHANT choir (v63: A's hum, the retrain, the agreement) was the album's common move; it goes. What stays is this song's idea: two FOF singers, the two machines - in the retrain trembling at different speeds (4.2 / 6.8 Hz, v64), and under the sung agreement at C's end the same two, on the same notes, now trembling together at one speed (5.5 Hz both): the agreement heard as two vibratos locking. A's hum is gone (silence there is better than a copy). Value = gain dB of the agreeing pair
 DUOVIB = os.environ.get("C8T5_DUOVIB", "-16")   # SECTION ROUND (w6, the retrain's last bars): TWO SPEEDS, SUNG - in the retrain the choir's chord gives way to two FOF singers, the two machines still haggling: a tenor on E3 trembling at 4.2 Hz and an alto on B3 at 6.8 Hz (wide, +-0.35 st), an open fifth whose two vibratos never line up - the song's argument as two voices' tremor - before the full choir sings the agreement at C's end in one shared 5.5 Hz. Value = gain dB
 CHANTARC = os.environ.get("C8T5_CHANTARC", "-18")   # WHOLE ROUND: THE MOUTH OPENS - a wordless four-voice CHANT choir (Rodet's FOF singing, IRCAM 1979-84, engine 91b04b25; chirper-three's voicing: bass root, tenor fifth, alto third, soprano seventh - Em7, E2 B2 G3 D4) is heard three times as the machines come to terms: a closed hum ('u') through A's last four bars, half open ('o') through the retrain's last four, and open ('a') under the sung agreement at C's end - one vowel lane opening across the whole song. Value = gain dB per voice
 CHOIRVOICE = os.environ.get("C8T5_CHOIRVOICE", "1")   # PALETTE (the singing): the three humans who sing the deal at C's end ('keep it there', choir, choirhi, choirlo: three takes in thirds) move from the library's speech voice to its singing voice ('voice': a glottal source through a five-formant tract with a singer's formant, rounder), each keeping its take's own pitch path; the vocoder twin (v53) stays on the speech voice it vocodes. Harry's bar (t10's sung duet): the choir should sound like a choir
@@ -643,7 +644,7 @@ def song():
         aa_, ra_ = sec_start("B") / 4 - BAR, sec_start("C") / 4 - BAR
         spans = ((aa_, aa_ + BAR - 0.5, 0.55), (ra_, ra_ + BAR - 0.5, 0.7), (ca_ - 1, cz_ + 0.5, 0.85))
         mouth = [["0b", 0], [f"{ra_ - 1:g}b", 0], [f"{ra_:g}b", 0.45], [f"{ca_ - 2:g}b", 0.45], [f"{ca_ - 1:g}b", 1], [f"{total() / 4:g}b", 1]]
-        for nm, vc, vib, p_ in (("chant-b", "bass", 0.1, 40), ("chant-t", "tenor", 0.15, 47), ("chant-a", "alto", 0.2, 55), ("chant-s", "soprano", 0.3, 62)):
+        for nm, vc, vib, p_ in (() if os.environ.get("C8T5_NOCHOIR") or AGREEDUO else (("chant-b", "bass", 0.1, 40), ("chant-t", "tenor", 0.15, 47), ("chant-a", "alto", 0.2, 55), ("chant-s", "soprano", 0.3, 62))):
             doc["tracks"].append({"name": nm, "gain": f"{CHANTARC}dB", "pan": {"bass": 0, "tenor": -0.3, "alto": 0.3, "soprano": -0.1}[vc],
                                   "sends": dict((ch_ or {}).get("sends", {})),
                                   "auto": {"mouth": {"points": mouth}},
@@ -662,6 +663,15 @@ def song():
                                                           "pitch": {"value": 0, "mod": [{"src": "lfo.vib", "amount": 0.35}]},
                                                           "lfo": {"vib": {"wave": "sine", "rate": rate, "delay": "200ms", "fade": "600ms"}}, "amp": "600ms 0 1 1.2s"}},
                                       "notes": [{"at": round(ra_, 3), "pitch": f"m{p_}", "len": round(BAR - 0.5, 3), "vel": 0.75}]})
+        if AGREEDUO:
+            for nm, vc, p_, pan in (("agree-m1", "tenor", 52, -0.3), ("agree-m2", "alto", 59, 0.3)):
+                doc["tracks"].append({"name": nm, "gain": f"{AGREEDUO}dB", "pan": pan, "sends": dict((ch_ or {}).get("sends", {})),
+                                      "auto": {"mouth": {"points": mouth}},
+                                      "patch": {"about": "CHANT (FOF), the two machines agreed: one vibrato speed",
+                                                "synth": {"layers": [{"type": "fof", "fof": {"voice": vc, "vowel": "u>a", "attack": "3ms", "morph": {"value": 0, "mod": [{"src": "auto.mouth", "amount": 1}]}}}],
+                                                          "pitch": {"value": 0, "mod": [{"src": "lfo.vib", "amount": 0.25}]},
+                                                          "lfo": {"vib": {"wave": "sine", "rate": "5.5hz", "delay": "300ms", "fade": "500ms"}}, "amp": "600ms 0 1 1.2s"}},
+                                      "notes": [{"at": round(ca_ - 1, 3), "pitch": f"m{p_}", "len": round(cz_ + 0.5 - (ca_ - 1), 3), "vel": 0.8}]})
     return doc
 
 
