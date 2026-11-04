@@ -230,7 +230,7 @@ def build():
         if f"dn{v['bar']}" in CHOIR:
             l_notes += [dict(n_, at=round(off + 0.07 + n_['at'], 4), vel=round(n_.get('vel', 0.8) * 0.9, 3))
                         for n_ in CHOIR[f"dn{v['bar']}"]['notes']]
-    CHIPS = [(17, 'lpc order=4 bits=4 rate=5kHz', '-14dB'), (33, 'lpc order=6 bits=4 rate=6kHz', '-13dB'),
+    CHIPS = [(17, 'lpc order=4 bits=4 rate=5kHz', '-14dB'), (33, 'lpc order=6 bits=4 rate=6kHz', '-8.2dB'),
              (65, 'lpc order=8 bits=5 rate=8kHz', '-12dB'), (73, 'lpc order=10 bits=6 rate=8kHz', '-12dB'),
              (89, 'lpc order=10 bits=8 rate=11kHz', '-11dB')]
     chip_notes = {}
@@ -309,6 +309,23 @@ def build():
     # first melody, the motif the closer remembers - and then it is not heard again until the second groove
     hook((secs['intro'] + 4) * 4.0, HOOK, vel=60)
     hook((secs['intro'] + 6) * 4.0, HOOK2, vel=56)
+    # (v44, section w1) THE FIRST ECHO: the intro was the pad, one spoken take and the tune twice on the vibraphone
+    # (flagged static). Now the vibraphonist plays the tune once, and the machine answers it - the album's first call and
+    # response, and the song's title in miniature - in the voice computers first sang with: the 'hoot' of the 1951
+    # machines (Ferranti Mark 1, CSIRAC), a square wave made by looping instructions, so every pitch is a whole number
+    # of clock ticks and lands where the clock allows, not where the tune asked (an 8 kHz clock: 15-30 cents off each
+    # note, the chirpers' wonk, honestly come by). Straight time, no swing: a machine's rhythm under a human's tune.
+    # The vibraphone's second phrase is muted in its place (vel 1)
+    def _hoot_m(m_):
+        n_ = round(8000.0 / (440.0 * 2 ** ((m_ - 69) / 12.0)))
+        return 69 + 12 * math.log2(8000.0 / n_ / 440.0)
+    h0_ = (secs['intro'] + 6) * 4.0
+    P['vib'] = [(e_[0], e_[1], e_[2], 1) if h0_ - 1e-6 <= e_[0] < h0_ + 8.0 - 1e-6 else e_ for e_ in P['vib']]
+    P['hoot'], at_ = [], h0_
+    for m_, d_ in HOOK:
+        if m_ is not None:
+            P["hoot"].append((at_, f"m{_hoot_m(m_):.3f}", d_ * 0.8, 62))
+        at_ += d_
     # (v34) THE HUMAN NEVER PLAYS IT THE SAME WAY TWICE: the vibraphonist used to play the tune note for note at every
     # turn, ten times through the grooves - the most repeated thing in the song after the line itself. Now, like a
     # player taking the head, every turn after the first is varied: a note pushed a sixteenth early, an upper
@@ -632,6 +649,9 @@ def build():
             # (v42, palette) and the comping piano is a clavichord made of Karplus-Strong loops (wM's ks-harp: stretch
             # 3, the whole noise burst left ringing bright) - the band's keyboard now plucked by the same 1983 arithmetic
             # as the automaton's rim; the muted piano's dark felt traded for wire
+            tr('hoot', {'synth': {'layers': [{'wave': 'square'}], 'amp': '6ms 0 1 70ms',
+                                  'filters': [{'kind': 'lp', 'cutoff': 2400}, {'kind': 'hp', 'cutoff': 200}]}},
+               '-23dB', pan=0.3, fx=['reverb kind=room mix=0.25'], sends={'hall': '-10dB', 'echo': '-14dB'}),
             tr('pno', 'ks-harp', '-14dB', pan=0.3, sends={'hall': '-16dB'}, fx=['lp cutoff=5000']),   # (listed last: nothing before it moves)
             # the outro keeps the old analogue pad, warm and low, for the hand-over into the next song (the terrain's bright
             # odd harmonics there put 17 dB more at 1 kHz into the join than the next song opens with)
