@@ -84,7 +84,7 @@ def sec_of(bar):
 def build():
     rng = random.Random(SEED)
     total = NBARS * 4.0
-    P = {k: [] for k in ('far', 'near', 'tide', 'acid', 'e5', 'kit', 'hats', 'lights', 'sub', 'farbass')}
+    P = {k: [] for k in ('far', 'near', 'tide', 'acid', 'e5', 'kit', 'hats', 'lights', 'sub', 'farbass', 'e5b')}
 
     # ---- E1 in two layers moving in opposite directions in time; each section restarts the cell on its downbeat ----
     def e1_layer(key, speeds, octave, vel0):
@@ -176,7 +176,7 @@ def build():
             P['acid'].append((at, m(KEY + rt + E2_PITCH[st] + (12 if rt + E2_PITCH[st] < 0 else 0)), 0.22 if st != 3 else 0.4, (110 if st == 0 else 84) + (8 if s_ in ('surge', 'torn') else 0)))
         t += 1.75
 
-    # ---- E5, the inner orbit (arp-pluck): received stretched x2 in the in-seam, squeezed back to x1 by bar 9 ----
+    # ---- E5, the inner orbit (steel pan): received stretched x2 in the in-seam, squeezed back to x1 by bar 9 ----
     t = 0.0
     while t < SEC['pull'] * 4.0 + 8.0 - 1e-6:
         f = 2.0 if t < 32.0 else 1.0
@@ -195,6 +195,18 @@ def build():
             if p_ is not None and at < SEC['out'] * 4.0:
                 P['e5'].append((at, m(p_ + (12 if s_ == 'surge' else 0)), 0.2, (92 if k in (0, 6) else 72) + (10 if s_ == 'crest' else 0)))
         t += 3.0
+    # (v4) THE INNER ORBIT, HEARD: E5 was on a pluck patch 35 dB under the mix (tools/presence.py: BURIED) - t5's
+    # element, carried, and inaudible. Now it is the song's hook on a steel pan (bright, its octave blooming after the
+    # strike - the heat of the inner disk), and in the tide, the squeeze and the surge a kora plays it STRETCHED
+    # x1.5 an octave down against it - E5 against itself at 3:2, the tide inside the orbit; they meet every 9 beats
+    for nm_ in ('tide', 'squeeze', 'surge'):
+        t, t1_ = SEC[nm_] * 4.0, (SEC[nm_] + 16) * 4.0
+        while t < t1_ - 1e-6:
+            for k, p_ in enumerate(E5):
+                at = t + k * 0.375
+                if p_ is not None and at < t1_ - 1e-6:
+                    P['e5b'].append((at, m(p_ - 12), 0.34, 88 if k in (0, 6) else 70))
+            t += 4.5
 
     # ---- drums (prog kit): from 'pull' the kit plays E2 as its cell (kick 0, rim 2, snare 3, rim 5) against 16th hats ----
     t = e2_start
@@ -326,13 +338,14 @@ def build():
             tr('sub', 'sub', '-12dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '200ms', 'curve': 0.6}]),
             tr('acid', 'acid', '-10dB', fx=['hp cutoff=50'], sends={'echo': '-20dB'}),
             tr('kit', 'prog-kit', '-6dB', sends={'hall': '-20dB'}),
-            tr('hats', 'prog-kit', '-12dB', pan=0.2, fx=[{'type': 'eq', 'bands': ['highshelf cutoff=8000 gain=5dB']}]),
+            tr('hats', 'prog-kit', '-7dB', pan=0.2, fx=[{'type': 'eq', 'bands': ['highshelf cutoff=8000 gain=5dB']}]),
             tr('far', 'cello', '-8dB', pan=-0.25, sends={'hall': '-12dB'}),
             tr('farbass', FARBASS, '-9dB', pan=-0.1, auto={'strain': {'points': strain_pts}}, fx=['lp cutoff=1400', 'hp cutoff=35']),
             tr('near', 'modal-marimba', '-11dB', pan=0.3, auto={'shut': {'points': shut_pts}},
                fx=[{'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 700, 'mod': [{'src': 'auto.shut', 'amount': 4.0}]}}],
                sends={'echo': '-14dB', 'hall': '-14dB'}),
-            tr('e5', 'arp-pluck', '-15dB', pan=-0.1, sends={'echo': '-16dB'}),
+            tr('e5', 'steel-pan', '-10dB', pan=-0.15, sends={'echo': '-16dB', 'hall': '-18dB'}),
+            tr('e5b', 'kora', '-11dB', pan=0.35, sends={'hall': '-16dB'}),
             dict({k: v for k, v in vtr.items() if k != 'notes'}, name='voice', notes=vnotes, gain='-6dB', pan=-0.05,
                  sends={'hall': '-14dB'}),
         ]}
