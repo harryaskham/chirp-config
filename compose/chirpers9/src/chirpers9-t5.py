@@ -46,6 +46,7 @@ E4 = [  # E4 'four lights', voiced close around middle C
 ]
 E4_LEN = 10.0                                 # beats per chord (t4: 5)
 CRESTGAP = os.environ.get("C9T5_CRESTGAP", "8")   # SECTION (w5, the build into the crest: flagged static; the crest was a level line, -12.1 dB either side): THE PULL BEFORE THE MEETING - for the last CRESTGAP beats before the crest the drums, the quick bass and the floor drop out and every heat filter is sucked shut, only the orbit's trill and E1's stretto left spinning; then every cycle lands on the shared downbeat at once: the filters snap open past where they were, and the drum machine and a crash hit together
+VOXLINE = os.environ.get("C9T5_VOXLINE", "326,346,366")   # SECTION (w6, 2:48-3:20, C after the crest: flagged static, little new vs w5): THE VOICE ACCRETES - after the crest the robot's one word grows into a line, 'nearer. the middle hums.' (the voice sideways about the disk's centre), sung on E5's notes by the same pvoc robot, three times across the window. Value: comma-separated beats
 BASS808 = os.environ.get("C9T5_BASS808", "-10")   # WHOLE ROUND: THE WEIGHT OF THE INNER DISK - E2's seven-eighths bass moves from the CZ pluck (short, light) to an 808 (unused on the album until now): the same hits on E4's roots, now ringing and dropping in pitch on each attack, so the inner disk has the gravity the outer disk lacked (the low end around 100 Hz was 17 dB short). Value = gain dB
 BASSFROM = os.environ.get("C9T5_BASSFROM", "build")   # with BASS808: the section the 808 takes over from ('build' or 'C'); before it the CZ pluck stays - the weight arrives as the disk tightens
 FLOORUP = os.environ.get("C9T5_FLOORUP", "")   # with it: the held roots an octave up and opened (lp 500 -> 900 Hz), gain dB
@@ -252,9 +253,24 @@ def voice():
             "sends": {"room": "-6dB"}, "notes": ns}
 
 
+def voxline():
+    src = json.load(open(os.path.join(HERE, "chirpers9-t5-hums.json")))["tracks"][0]["notes"]
+    ns = []
+    for i, at in enumerate(float(x) for x in VOXLINE.split(",")):
+        for n in src:
+            ns.append(dict(n, at=round(at + n["at"], 4), vel=(0.75, 0.85, 0.7, 0.6)[i % 4]))
+    return {"name": "hums", "patch": "voice-speech", "gain": "-8dB", "pan": 0.1,
+            "fx": [{"type": "pvoc", "mode": "robot", "pitch": "C4",
+                    "tune": {"value": 0, "mod": [{"src": "track.orbit.key", "amount": 12}]}},
+                   "hp cutoff=200"],
+            "sends": {"room": "-6dB"}, "notes": ns}
+
+
 def song():
     b_ = bass()
     tracks = [orbit(), *seed(), lights(), *(b_ if isinstance(b_, list) else [b_]), drums(), air(), voice(), floor()]
+    if VOXLINE:
+        tracks.append(voxline())
     if CRESTGAP and CRESTHIT:
         tracks.append({"name": "crest", "patch": "modal-crash", "gain": f"{CRESTHIT}dB", "pan": 0.0,
                        "sends": {"room": "-6dB"}, "notes": [note(TC, "C4", 8, 0.9)]})

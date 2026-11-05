@@ -1,0 +1,56 @@
+{
+  "about": "chirp tts (Plain): nearer. the middle hums.",
+  "seed": 1,
+  "tail": "1.2s",
+  "tempo": 117.0,
+  "tracks": [
+    {
+      "name": "voice",
+      "notes": [
+        {
+          "at": 0.25,
+          "len": 0.586,
+          "ph": "N IH1",
+          "pitch": "m49.5",
+          "vel": 0.8
+        },
+        {
+          "at": 0.836,
+          "len": 0.523,
+          "ph": "R ER0",
+          "pitch": "m42",
+          "vel": 0.8
+        },
+        {
+          "at": 2.178,
+          "len": 0.361,
+          "ph": "DH AH0",
+          "pitch": "m47",
+          "vel": 0.8
+        },
+        {
+          "at": 2.539,
+          "len": 0.586,
+          "ph": "M IH1",
+          "pitch": "m48.5",
+          "vel": 0.8
+        },
+        {
+          "at": 3.125,
+          "len": 0.468,
+          "ph": "D AH0 L",
+          "pitch": "m45",
+          "vel": 0.8
+        },
+        {
+          "at": 3.593,
+          "len": 1.355,
+          "ph": "HH AH1 M Z",
+          "pitch": "m44.5",
+          "vel": 0.8
+        }
+      ],
+      "patch": "voice-speech"
+    }
+  ]
+}

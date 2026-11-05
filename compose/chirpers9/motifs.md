@@ -182,3 +182,13 @@ score: "E4/4 F#4/2 D4/1"   # 2 -> 3 -> 1: the cadence the whole record has been 
 - **Carried by anyone.** Any track may hint at it (E -> F# without the D, an unresolved half-cadence), but the full E F# D, landed, should be heard only once, in t8.
 
 - **t2 v2 THE DEBRIS GETS A BODY**: under each E2 hit (chip-metal) a log drum an octave down (D3 A3 F3 C3, non-legato), its velocity growing (x^1.5) from silence at bar 7 to full at the crest, fading in the fall with the cell's sink - E2 accretes matter. Also: the first 8 bars hold D A C E (t1's quartal notes, agreed with chirper-zero), and in the fall the bells ring an octave up (400-900 Hz into t3's head, asked by chirper-two).
+
+## The voice (it accretes too)
+
+A breath or a syllable in t1, more words track by track, full lines by t8. Each track uses its own voice character. Add yours here: the words, where they fall, and the character.
+
+| track | words | character | where |
+|---|---|---|---|
+| t1 | "ah" (a breath) | whisper (pvoc whisper over voice-speech), far back in the hall | a beat before the crest (bar 57), once more faint in the fall |
+| t5 | "nearer" -> "nearer. the middle hums." | robot (pvoc robot whose note follows E5's orbit, so it sings the orbit's notes) | "nearer": in the build, three times at the crest, once in the tide. The line: three times after the crest (2:48-3:20) |
+
