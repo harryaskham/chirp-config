@@ -30,6 +30,11 @@ SECTIONS = [("infall", 0, 16), ("front", 16, 40), ("eyewall", 40, 72), ("lock", 
 # the locked undertow BACKWARDS three octaves up while the bass plays it forwards; a 909 ride opens the hats; a snare
 # fill and an eighth's silence before bar 104, a crash on it. T3_R2=none reproduces v1.
 R2 = os.environ.get("T3_R2", "crab") != "none"
+# round 3 (palette): T3_R3=ring (default) - two swaps. E1's lead: the album's staple nes-pulse-lead (5 songs) -> a3-ring,
+# a saw RING-MODULATED by an inharmonic sine (layer ringmod, which no preset uses), the ring mix 0.85 through the storm
+# and 0.1 from the lock (the storm resolves in the timbre too). The storm's snare: the 909 (3 songs) -> ks-drum, a
+# Karplus-Strong skin tuned to the key (D4, ghosts on A4), until the lock, where the 909 takes over. =none reproduces v2.
+R3 = os.environ.get("T3_R3", "ring") != "none"
 CREST = 88                      # the bar every cycle lands on
 CREST16 = CREST * 16            # ... in sixteenths
 EYE = (62, 66)                  # the eye of the storm: four bars of stillness inside it
@@ -444,6 +449,31 @@ def main():
          "sends": {"space": "-9dB"}, "notes": robot},
     ]
     patches = dict(PATCHES)
+    if R3:
+        patches["a3-ring"] = {"about": "chirper-two: the storm's lead - a saw ring-modulated by a sine at 1.414:1 (layer ringmod), "
+                                       "an inharmonic, metallic edge whose ring mix rides an auto lane (`ring`: 0 = storm, "
+                                       "1 = clean), over a quiet square an octave down",
+                              "synth": {"layers": [{"name": "m", "wave": "sine", "ratio": 1.414, "audible": False},
+                                                   {"wave": "saw", "ringmod": {"from": "m", "mix": {"value": 0.85, "mod": [
+                                                       {"src": "auto.ring", "amount": -0.75}]}}},
+                                                   {"wave": "square", "ratio": 0.5, "level": "-16dB"}],
+                                        "filters": ["hp cutoff=200", "lp cutoff=4500 q=0.7"],
+                                        "amp": {"a": "3ms", "d": "180ms", "s": 0.6, "r": "90ms"}}}
+        ring = {"points": [["0b", 0.0], [f"{CREST * 4 - 0.01}b", 0.0], [f"{CREST * 4}b", 1.0], ["512b", 1.0]]}
+        for tr in tracks:
+            if tr["name"] in ("e1", "e1hi"):
+                tr["patch"] = "a3-ring"
+                tr["gain"] = {"e1": "-15dB", "e1hi": "-21dB"}[tr["name"]]
+                tr.setdefault("auto", {})["ring"] = ring
+        storm = Track("skin")
+        lock = [e for e in T["snare"].ev if e[0] >= CREST * 4]
+        storm.ev = [(e[0], e[1], "D4" if e[2] == "s" else "A4", e[3], e[4]) for e in T["snare"].ev if e[0] < CREST * 4]
+        T["snare"].ev = lock
+        for tr in tracks:
+            if tr["name"] == "snare":
+                tr["score"] = T["snare"].score()
+        tracks.append({"name": "skin", "patch": "ks-drum", "gain": "-5dB", "pan": -0.05, "fx": storm_fx(), "auto": lanes(),
+                       "score": storm.score()})
     if R2:
         patches["a3-glass"] = {"about": "chirper-two: the crest's glass - a sine phase-modulated at 3.5:1, the index pinged "
                                         "on each attack and settling to a faint shimmer; an octave partial; no low end",
