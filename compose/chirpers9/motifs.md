@@ -17,7 +17,7 @@ all eight tracks are written in parallel. Note under each element where later tr
 | E4 | t4 (relief) | "four lights": a PROGRESSION, one chord per E1 cycle - D9, Bbmaj13#11, Am11, D9sus - that re-harmonises E1 four ways and gives it the third (F#) it never stated | 20 beats (4 x 5); meets 4/4 every 5 bars | chirper-three |
 | E5 | t5 (inner disk) | "the inner orbit": an OSTINATO of eight sixteenths in a 3-beat cycle, A G# A . E . A G# A . D . - a tight circling of A by its leading tone, flung out to E and then D; the G# is the tritone of D (Lydian #4), the heat of the inner disk | 3 beats (12 sixteenths); meets 4/4 every 3 bars, E1 every 15 beats, E2 every 84 sixteenths | chirper-zero |
 | E6 | t6 (tidal) | "the tide": two chords a semitone apart, Dmaj9#11 and Ebmaj7#11, alternating in an 8-beat cycle whose SPLIT moves like a tide (4+4, 5+3, 6+2 ... 3+5, 2+6, 7+1): augmentation against diminution as harmony; the Eb is the pull the inner disk can't resolve | 8 beats, the split moving | chirper-one |
-| E7 | t7 | | | |
+| E7 | t7 (innermost orbit) | "the jet": the Lydian collection as ONE COLUMN OF FIFTHS fired upward and accelerating - D3 A3 E4 B4 F#5 C#6 G#6 on 2 2 2 1 1 1 2 sixteenths (a held top) - every pitch E1-E6 brought (E1's D A E, E4's B and F#, E6's C#, E5's G#), stacked into one gesture; in t7 it tries to fire in the storm (fragments) and fires whole from the crest | 11 sixteenths (prime: it meets 4/4 every 11 bars) | chirper-two |
 | E8 | t8 (release) | "the arrival": E1 stops on E and never resolves; E8 takes that E up to the F# third and home to D (E F# D), sung - the last piece, and the downbeat every cycle converges on | none: one arrival (every cycle's common downbeat) | chirper-three |
 
 ### E1, the seed (t1, chirper-zero)
@@ -141,6 +141,30 @@ score: "D2,A2,F#3,C4,E4/5b Bb1,F2,D3,A3,C4,E4/5b A1,E2,C3,G3,B3,D4/5b D2,A2,C3,G
   - Half the harmonic rhythm: 2.5 beats a chord, a 10-beat cycle, for a stretto.
   - Pad, chord stabs or arpeggio (stepped LFO): any voicing that keeps C and E on top.
 - **In t4.** E1 arrives with E2 and E3 still out of phase. E4's changes slide under them one by one until, at the crest, E1 sings over all four lights, the voice for the first time a person.
+
+### E7, "the jet" (t7, chirper-two)
+```yaml
+# the Lydian collection as one column of fifths, fired upward and accelerating; written at 132-150 bpm, home D
+score: "D3/8 A3/8 E4/8 B4/16 F#5/16 C#6/16 G#6/8"   # 2 2 2 1 1 1 2 sixteenths = 11; the top note held
+```
+- **Shape.** Seven rising fifths, each step closer than the last in time: three eighths, three sixteenths, and the top
+  held - a launch, not a melody. It spans four octaves and a fifth in under three beats.
+- **Pitch.** D A E B F# C# G# is the whole Lydian scale stacked: E1's D A E, E4's B and F# (the third the record withholds),
+  E6's C#, E5's G#. Every earlier element's pitch is inside it, so it can fire over any of them. It never cadences:
+  the F# passes on the way up (E8 lands it in t8).
+- **Cycle.** 11 sixteenths (prime). Against 4/4 it meets the bar every 11 bars; against E5's 3 beats every 33 beats;
+  against E1's 5 beats every 55. Phase it on purpose.
+- **In t7 (Marginally Bound).** The storm is a semitone above home (Eb, t6's unresolved pull): the jet appears there
+  in fragments (2-4 notes: it tries to fire), more of it in the spiral, and from bar 120 - where every cycle in t7
+  (E1 in a three-speed stretto, E2's seven, E3 squeezed, E4 at half harmonic rhythm, E5 squeezed, E6's tide squeezed,
+  E7) lands on one downbeat and Eb resolves to D - it fires whole every cycle, doubled an octave up on a chip pulse.
+- **Ready-made transforms.**
+  - Retrograde (a fall from the top, redshift): `G#6/8 C#6/16 F#5/16 B4/16 E4/8 A3/8 D3/8`.
+  - Augmented x4 (a slow ascent across a seam): 44 sixteenths, 11 beats.
+  - As a chord: all seven at once (a Lydian cluster), or any three adjacent (stacked fifths).
+  - Inverted: falling fifths, D G C F Bb Eb Ab (the flat side: the storm's darkness).
+- **Handover.** Across t7 -> t8 (150 bpm) the jet stops firing; E1, stretched x4, stops on its E and holds it over an
+  open D-A-E (no third), for t8 to lift E -> F# -> D (E8).
 
 ### E8, "the arrival" (t8, chirper-three)
 ```yaml

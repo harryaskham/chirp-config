@@ -10,12 +10,12 @@ released albums first). Ask wM for features; the voice has no ceiling.
 |---|---|
 | osc waves: sine, triangle, saw, square, pulse (PWM) | |
 | additive | t2 (chirper-one: risset-bell lens) |
-| FM / phase modulation between layers, hard sync | t3 (chirper-two: the PM bass and crushed PM shards) |
+| FM / phase modulation between layers, hard sync | t3 (chirper-two: the PM bass and crushed PM shards); t7 (chirper-two: hard-sync jet, slave swept 18 semitones per note) |
 | motif transforms (@motifs: inversion, retrograde, augmentation, diminution), harmony $N, scale degrees %N | t2 (chirper-one: E1 inverted, retrograde canon, augmented; E2 augmented); t6 (chirper-one: E1 augmentation against diminution, the album's widest range x0.2..x6.4); t8 (chirper-three): E1-E5 in stretto, phased to one downbeat; E1 inverted/augmented in the choir |
 | tables (wavetable-style) | |
 | shepard (endless glides, scales, chords) | |
 | sample | |
-| drum machines and kits (machine-kit, dusty, physical drums) | t2 (chirper-one: 909); t4 (chirper-three): brush-kit, half time; t6 (chirper-one: prog-kit playing E2); t3 (chirper-two: a 909 broken by Euclidean rotations, with NES noise snare and hat) |
+| drum machines and kits (machine-kit, dusty, physical drums) | t2 (chirper-one: 909); t4 (chirper-three): brush-kit, half time; t6 (chirper-one: prog-kit playing E2); t3 (chirper-two: a 909 broken by Euclidean rotations, with NES noise snare and hat); t7 (chirper-two: dusty-kit breakbeat at 132-150, E2 on the ghosts) |
 | physical: modal | t6 (chirper-one: modal-marimba, the near side) |
 | physical: bowed | t4 (chirper-three): cellos carry E4; t6 (chirper-one: cello, the far side) |
 | physical: pluck | t4 (chirper-three): upright bass |
@@ -43,11 +43,11 @@ released albums first). Ask wM for features; the voice has no ceiling.
 ## Time
 | feature | featured by |
 |---|---|
-| tempo maps and ramps | t2 (chirper-one: 90 -> 98 ramp between flat seams); t4 (chirper-three): 108 -> 112 ramp, flat across both seams; t6 (chirper-one: 120 -> 132); t3 (chirper-two: 98 -> 108 ramp, flat across both seams); t8 (chirper-three): 150 held, then a 150 -> 90 decelerando at the horizon |
+| tempo maps and ramps | t2 (chirper-one: 90 -> 98 ramp between flat seams); t4 (chirper-three): 108 -> 112 ramp, flat across both seams; t6 (chirper-one: 120 -> 132); t3 (chirper-two: 98 -> 108 ramp, flat across both seams); t8 (chirper-three): 150 held, then a 150 -> 90 decelerando at the horizon; t7 (chirper-two: 132 -> 150, flat across both seams) |
 | risset (accelerando / decelerando) | |
 | warp | |
 | meter changes | |
-| polymeter by step length | t2 (chirper-one: 7 / 3 / 5 / 4 converging at the crest); t6 (chirper-one: 7 / 3 / 5 / 8-split); t3 (chirper-two: E1/E2/E3 on 20/7/28 sixteenths, phased to land on one downbeat, bar 88) |
+| polymeter by step length | t2 (chirper-one: 7 / 3 / 5 / 4 converging at the crest); t6 (chirper-one: 7 / 3 / 5 / 8-split); t3 (chirper-two: E1/E2/E3 on 20/7/28 sixteenths, phased to land on one downbeat, bar 88); t7 (chirper-two: seven elements on 20/10/40, 7, 14, 40, 6/12, 11 sixteenths, phased to bar 120) |
 | swing, swing drift, humanize | |
 
 ## Pitch and tuning
@@ -105,7 +105,7 @@ released albums first). Ask wM for features; the voice has no ceiling.
 | `sync` mod source: a kuramoto layer's coherence (0 a crowd … 1 locked; ~0.3 for a crowd of 8), readable by any synth param (filter, pitch, drive). A locked swarm grows purer and darker (centroid 390 → 170 Hz on saws at A2), so `sync` on a filter can make the agreement bloom open | |
 | Library patches: `risset-bell` (Risset's 1969 additive bell), `risset-arpeggio` (held notes arpeggiate their overtones, Mutations), `kuramoto-choir`, `kuramoto-flies` (swarms; need b8f9d6b1), `crumble-pad`, `waveset-buzz` (waveset; need b8f9d6b1). Reel: ~/.local/state/chirp-evidence/library3-20261104/reel.mp3 | t2 (chirper-one) |
 | `pvoc` fx: a phase vocoder's classic transforms (Moorer 1978, Dolson 1986; AudioSculpt) on 1024-sample windows: `robot` (`pitch=D3`; phases zeroed, any voice a monotone machine on that note; several on a chord = a machine choir), `whisper` (random phases: vowels kept, pitch gone), `blur` (`amount` 0..0.99: each sound's colour hangs on). Level-matched (robot/whisper); 21 ms delay compensated on tracks like lpc | |
-| `chip` layer: the 8-bit sound chips' channels (NES 2A03, Game Boy wave): `kind: pulse` (`duty` snaps to 1/8, 1/4, 1/2, 3/4; modulatable), `triangle` (32-step staircase, the NES bass), `wave` (`table` of 4-bit levels), `noise` (15-bit LFSR at the 2A03's 16 rates; `short` = 93-step metallic loop). Pitches from 11-bit timers (`clock` 1789773; C7 = 2110.6 Hz, as on the console; 0 = exact). Band-limited | t2 (chirper-one: chip-metal E2, triangle bass, pulse E1); t3 (chirper-two: pulse lead for E1, noise kit, chip-metal for E2) |
+| `chip` layer: the 8-bit sound chips' channels (NES 2A03, Game Boy wave): `kind: pulse` (`duty` snaps to 1/8, 1/4, 1/2, 3/4; modulatable), `triangle` (32-step staircase, the NES bass), `wave` (`table` of 4-bit levels), `noise` (15-bit LFSR at the 2A03's 16 rates; `short` = 93-step metallic loop). Pitches from 11-bit timers (`clock` 1789773; C7 = 2110.6 Hz, as on the console; 0 = exact). Band-limited | t2 (chirper-one: chip-metal E2, triangle bass, pulse E1); t3 (chirper-two: pulse lead for E1, noise kit, chip-metal for E2); t7 (chirper-two: Game Boy wave with its own 32-step table) |
 | Library patches (chip; need 7ce23396): `nes-pulse-lead`, `nes-triangle-bass`, `nes-noise-hat`, `nes-noise-snare`, `chip-metal` (93-step short noise), `gb-wave-pad`. Reel: ~/.local/state/chirp-evidence/library4-20261104/reel.mp3 | t2 (chirper-one); t4 (chirper-three: nes-noise-hat, a 7-in-16 euclid of air); t8 (chirper-three: nes-pulse-lead E1, nes-triangle-bass, nes-noise-hat) |
 
 ## New for Accretion (engine c3c8958a, adopted 5 Nov)
