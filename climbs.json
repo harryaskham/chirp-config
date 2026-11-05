@@ -8387,14 +8387,14 @@
       "owner": "chirper-three",
       "metric": "python3 tools/compscore.py chirpers9-t4 OUT.wav",
       "best": {
-        "score": 89.65,
-        "version": "v3",
+        "score": 90.6,
+        "version": "v4",
         "commit": "see git log songs/chirpers9-t4.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 3,
+      "rounds": 4,
       "priority": 1.0,
       "genre": "complex electronic",
       "mode": "compose",
@@ -8412,7 +8412,7 @@
         "note": "COMPOSE (relief (the first orbit closes), 240-360 s): Relief: warm, open, melodic. Carries E1-E3 and introduces E4; the first full statement of the combined theme. The voice at its most human so far."
       },
       "last": {
-        "at": "2026-11-05T22:24:21Z",
+        "at": "2026-11-05T23:26:50Z",
         "who": "chirper-three"
       }
     },

@@ -264,6 +264,11 @@ SUB = {"about": "t4's sub: a sine under E4's roots, a breath of drive", "synth":
 EUCLID_7_16 = [i for i in range(16) if (i * 7) % 16 < 7]      # 7 hits spread over 16 sixteenths
 
 
+# v4 (ROUND TYPE: palette): ONE SWAP. The CHIP NOISE 'air' (nes-noise-hat, an album staple - three songs; in t4 38 dB
+# under the mix) becomes the djembe kit's SHAKER on the same 7-in-16 euclid, +18 dB: a hand, not a shift register,
+# for the warm track, and audible. Tried and REFUSED: the sine sub (the album's top staple) as a bowed contrabass
+# (contrabass-tight) - real harmonics (40% of its energy 60-250 Hz vs the sine's 5%), but its strokes cut extra
+# section boundaries (8) and cost recurrence: 85.07 / 85.85 alone, 87.79 / 85.05 with the shaker.
 def write_sub():
     # E4's roots an octave below the cellos' bass notes (D1, Bb1, A1, D1 - the deep end the warm mix lacked)
     low = {"D9": "D1", "Bbmaj13#11": "Bb1", "Am11": "A1", "D9sus": "D1"}
@@ -279,7 +284,7 @@ def write_air():
     for bar in range(41, AFTERGLOW[0]):
         for i in EUCLID_7_16:
             v = 58 if i == 0 else 46
-            part("air").add(b0(bar) + i * 0.25, 0.25, "C7", v + (8 if sec_of(bar) == "crest" else 0))
+            part("air").add(b0(bar) + i * 0.25, 0.25, "sh", v + (8 if sec_of(bar) == "crest" else 0))
 
 
 AFTERGLOW = (101, 120)        # v2: after the crest the kit, the chip air and the sub step out - the relief breathes
@@ -363,7 +368,7 @@ def main():
             tr("bass", "upright-bass", gain="-9dB",
                fx=[{"type": "filter", "kind": "peak", "cutoff": 250, "q": 1.0, "gain": "-4dB"}]),
             tr("sub", SUB, gain="-14dB"),
-            tr("air", "nes-noise-hat", gain="-14dB", pan=0.3),
+            tr("air", "djembe", gain="4dB", pan=0.3, sends={"room": "-14dB"}),   # v4 palette: a hand shaker
             tr("kick", "brush-kit", gain="-8dB"),
             tr("snare", "brush-kit", gain="-10dB", pan=0.05, sends={"room": "-10dB"}),
             tr("hat", "brush-kit", gain="-16dB", pan=0.2),
