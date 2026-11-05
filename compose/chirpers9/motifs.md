@@ -16,7 +16,7 @@ all eight tracks are written in parallel. Note under each element where later tr
 | E3 | t3 (first storm) | "the undertow": a BASS RIFF of 7 beats (E2's seven sixteenths augmented x4) on D, the Neapolitan Eb and C - D2 D2 D3 / Eb2 Eb2 Bb1 / C2 C2 G2 C3 - with its storm harmony, one chord per segment (Dm(add9), Ebmaj7#11, C11; D4 common to all three); it brings the FLAT SECOND (Eb), the storm's darkness | 7 beats (28 sixteenths); re-barred to 8 at the lock | chirper-two |
 | E4 | t4 (relief) | "four lights": a PROGRESSION, one chord per E1 cycle - D9, Bbmaj13#11, Am11, D9sus - that re-harmonises E1 four ways and gives it the third (F#) it never stated | 20 beats (4 x 5); meets 4/4 every 5 bars | chirper-three |
 | E5 | t5 (inner disk) | "the inner orbit": an OSTINATO of eight sixteenths in a 3-beat cycle, A G# A . E . A G# A . D . - a tight circling of A by its leading tone, flung out to E and then D; the G# is the tritone of D (Lydian #4), the heat of the inner disk | 3 beats (12 sixteenths); meets 4/4 every 3 bars, E1 every 15 beats, E2 every 84 sixteenths | chirper-zero |
-| E6 | t6 (tidal) | PROVISIONAL: "the tide" - two chords that pull against each other, their lengths stretching and squeezing (3+5, 4+4, 5+3 beats ...): augmentation against diminution as harmony; firmed up when t6 is drafted | 8 beats, unevenly split | chirper-one |
+| E6 | t6 (tidal) | "the tide": two chords a semitone apart, Dmaj9#11 and Ebmaj7#11, alternating in an 8-beat cycle whose SPLIT moves like a tide (4+4, 5+3, 6+2 ... 3+5, 2+6, 7+1): augmentation against diminution as harmony; the Eb is the pull the inner disk can't resolve | 8 beats, the split moving | chirper-one |
 | E7 | t7 | | | |
 | E8 | t8 (release) | "the arrival": E1 stops on E and never resolves; E8 takes that E up to the F# third and home to D (E F# D), sung - the last piece, and the downbeat every cycle converges on | none: one arrival (every cycle's common downbeat) | chirper-three |
 
@@ -77,6 +77,22 @@ score: "A4/16 G#4 A4 . E5 . A4 G#4 A4 . D5 ."   # hits on sixteenths 0 1 2 4 6 7
   - Retrograde: `. D5 . A4 G#4 A4 . E5 . A4 G#4 A4`.
 - **In t5.** E1 arrives already whole but tight: diminished x2 and in stretto, the inner disk's faster orbit. E5 is the new pull that circles under everything, on an NES pulse that pans and narrows. Through the song the orbit tightens (sixteenths, then the trill) until every cycle (E1's 5 and 2.5, E2's 7/16, E4's 20, E5's 3) meets on one downbeat at the crest. Then the elements are pulled apart, stretched and squeezed, into t6's tide.
 - **Handover.** Across the t5 -> t6 seam (120 bpm, 16 bars) E5 stretches (augmented) while E1 squeezes (diminished): the tidal pull t6 lenses.
+
+### E6, "the tide" (t6, chirper-one)
+```yaml
+# two chords a semitone apart, written at 120 bpm (the t5 -> t6 seam; t6 ramps to 132), home D Lydian (E5's G#)
+# X = D F# A C# E G# (Dmaj9#11), Y = Eb G Bb D A (Ebmaj7#11); one 8-beat cycle, X's share moving cycle by cycle
+score: "D3,F#3,A3,C#4,E4,G#4/5b Eb3,G3,Bb3,D4,A4/3b  D3,F#3,A3,C#4,E4,G#4/6b Eb3,G3,Bb3,D4,A4/2b"   # 5+3, then 6+2
+```
+- **Shape.** Home and a semitone above it, both bright (major sevenths, a sharp eleventh). Nothing resolves: Eb pulls back to D and D leans up to Eb, like a tide.
+- **The tide.** The point where X gives way to Y moves through the cycle: 4+4 (slack water), 5+3, 6+2, 7+1 (spring tide), then back, 3+5, 2+6, 1+7. It is the album's augmentation-against-diminution as harmony: one chord stretched while the other is squeezed.
+- **Cycle.** 8 beats (two bars), so it sits on the bar - the polymeter is inside it, in the moving split.
+- **Ready-made transforms.**
+  - Squeezed: a 2-beat cycle (1+1), a pulsing alternation for a storm.
+  - Stretched: a 32-beat cycle, each chord a long held breath.
+  - Frozen: stop on Y (Eb) - the unresolved pull (t6 hands it to t7 this way).
+  - As a bass line alone: D and Eb, the split's rhythm on one note pair.
+- **In t6.** A harmonium breathes it; a 303 plays E2 (t2's seven) on its roots. At the crest it gives way to E4's four lights, one chord per E1 cycle, as E1's two layers - one squeezed, one stretched all song long - meet at the same speed.
 
 ### E3, "the undertow" (t3, chirper-two)
 ```yaml

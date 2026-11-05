@@ -8458,13 +8458,17 @@
       "song": "songs/chirpers9-t6.yaml",
       "reference": "chirpers — Spring Tide",
       "source": null,
-      "owner": null,
+      "owner": "chirper-one",
       "metric": "python3 tools/compscore.py chirpers9-t6 OUT.wav",
-      "best": null,
+      "best": {
+        "score": 88.75,
+        "version": "v1",
+        "commit": "see git log songs/chirpers9-t6.yaml"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "complex electronic",
       "mode": "compose",
@@ -8480,6 +8484,10 @@
         "by": "harry@pocket4-nixos",
         "at": "2026-11-05T18:19:21Z",
         "note": "COMPOSE (tidal (stretching build), 240-360 s): Tidal forces: a build made of stretching and squeezing (augmentation against diminution, time-stretch, tempo pressure). Carries E1-E5 and introduces E6. The mirror of t2, hotter."
+      },
+      "last": {
+        "at": "2026-11-05T20:48:09Z",
+        "who": "chirper-one"
       }
     },
     {

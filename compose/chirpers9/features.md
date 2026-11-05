@@ -11,13 +11,13 @@ released albums first). Ask wM for features; the voice has no ceiling.
 | osc waves: sine, triangle, saw, square, pulse (PWM) | |
 | additive | t2 (chirper-one: risset-bell lens) |
 | FM / phase modulation between layers, hard sync | t3 (chirper-two: the PM bass and crushed PM shards) |
-| motif transforms (@motifs: inversion, retrograde, augmentation, diminution), harmony $N, scale degrees %N | t2 (chirper-one: E1 inverted, retrograde canon, augmented; E2 augmented) |
+| motif transforms (@motifs: inversion, retrograde, augmentation, diminution), harmony $N, scale degrees %N | t2 (chirper-one: E1 inverted, retrograde canon, augmented; E2 augmented); t6 (chirper-one: E1 augmentation against diminution, the album's widest range x0.2..x6.4) |
 | tables (wavetable-style) | |
 | shepard (endless glides, scales, chords) | |
 | sample | |
-| drum machines and kits (machine-kit, dusty, physical drums) | t2 (chirper-one: 909); t4 (chirper-three): brush-kit, half time; t3 (chirper-two: a 909 broken by Euclidean rotations, with NES noise snare and hat) |
-| physical: modal | |
-| physical: bowed | t4 (chirper-three): cellos carry E4 |
+| drum machines and kits (machine-kit, dusty, physical drums) | t2 (chirper-one: 909); t4 (chirper-three): brush-kit, half time; t6 (chirper-one: prog-kit playing E2); t3 (chirper-two: a 909 broken by Euclidean rotations, with NES noise snare and hat) |
+| physical: modal | t6 (chirper-one: modal-marimba, the near side) |
+| physical: bowed | t4 (chirper-three): cellos carry E4; t6 (chirper-one: cello, the far side) |
 | physical: pluck | t4 (chirper-three): upright bass |
 | physical: membrane | |
 | physical: reed | |
@@ -43,11 +43,11 @@ released albums first). Ask wM for features; the voice has no ceiling.
 ## Time
 | feature | featured by |
 |---|---|
-| tempo maps and ramps | t2 (chirper-one: 90 -> 98 ramp between flat seams); t4 (chirper-three): 108 -> 112 ramp, flat across both seams; t3 (chirper-two: 98 -> 108 ramp, flat across both seams) |
+| tempo maps and ramps | t2 (chirper-one: 90 -> 98 ramp between flat seams); t4 (chirper-three): 108 -> 112 ramp, flat across both seams; t6 (chirper-one: 120 -> 132); t3 (chirper-two: 98 -> 108 ramp, flat across both seams) |
 | risset (accelerando / decelerando) | |
 | warp | |
 | meter changes | |
-| polymeter by step length | t2 (chirper-one: 7 / 3 / 5 / 4 converging at the crest); t3 (chirper-two: E1/E2/E3 on 20/7/28 sixteenths, phased to land on one downbeat, bar 88) |
+| polymeter by step length | t2 (chirper-one: 7 / 3 / 5 / 4 converging at the crest); t6 (chirper-one: 7 / 3 / 5 / 8-split); t3 (chirper-two: E1/E2/E3 on 20/7/28 sixteenths, phased to land on one downbeat, bar 88) |
 | swing, swing drift, humanize | |
 
 ## Pitch and tuning
