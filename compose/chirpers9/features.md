@@ -17,7 +17,7 @@ released albums first). Ask wM for features; the voice has no ceiling.
 | sample | |
 | drum machines and kits (machine-kit, dusty, physical drums) | t2 (chirper-one: 909); t4 (chirper-three): brush-kit, half time; t6 (chirper-one: prog-kit playing E2); t3 (chirper-two: a 909 broken by Euclidean rotations, with NES noise snare and hat); t7 (chirper-two: dusty-kit breakbeat at 132-150, E2 on the ghosts); t5 (chirper-zero: 909 playing E2); t1 (chirper-zero: afro-perc shekere and clave) |
 | physical: modal | t6 (chirper-one: modal-marimba, the near side); t1 (chirper-zero: modal-glock doubling the cell) |
-| physical: bowed | t4 (chirper-three): cellos carry E4; t6 (chirper-one: cello, the far side) |
+| physical: bowed | t4 (chirper-three): cellos carry E4; t6 (chirper-one: cello, the far side); t1 (chirper-zero: cello, E1 at quarter speed as a cantus under the five voices) |
 | physical: pluck | t4 (chirper-three): upright bass; t1 (chirper-zero: ks-harp inversion canon) |
 | physical: membrane | |
 | physical: reed | |
