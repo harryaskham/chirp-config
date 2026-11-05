@@ -73,7 +73,7 @@ released albums first). Ask wM for features; the voice has no ceiling.
 |---|---|
 | chirp tts, humanized (realistic) | t4 (chirper-three): sung voice layer, humanize 0.5, warm close tract (formant_bw 1.6, ph_soft, breath) |
 | speech-to-song (repeat / melodize / melody) | t8 (chirper-three): a sung choir (lead, fifth, octave below) on E1/E5/E2 lines |
-| vocoder / formant / radio on voice | t2 (chirper-one: tts whisper); t3 (chirper-two: pvoc whisper in pieces, pvoc robot tune singing E1) |
+| vocoder / formant / radio on voice | t2 (chirper-one: tts whisper); t3 (chirper-two: pvoc whisper in pieces, pvoc robot tune singing E1); t7 (chirper-two: tts vocoder whose carrier is E7 as a chord, D A E G# C#) |
 
 ## Built for Standby Amber (all available)
 | feature | commit | built by | showcased by |

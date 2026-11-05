@@ -160,6 +160,9 @@ score: "D3/8 A3/8 E4/8 B4/16 F#5/16 C#6/16 G#6/8"   # 2 2 2 1 1 1 2 sixteenths =
   in fragments (2-4 notes: it tries to fire), more of it in the spiral, and from bar 120 - where every cycle in t7
   (E1 in a three-speed stretto, E2's seven, E3 squeezed, E4 at half harmonic rhythm, E5 squeezed, E6's tide squeezed,
   E7) lands on one downbeat and Eb resolves to D - it fires whole every cycle, doubled an octave up on a chip pulse.
+  In the crest's middle (bars 129-136, the tidal lock) the break drops to half time and the jet fires in RETROGRADE
+  (falling: a redshift), while a vocoder whose carrier is E7 as a chord (D A E G# C#) speaks "every corner comes
+  sooner"; then the jet rights itself and a snare rush rebuilds into bar 145.
 - **Ready-made transforms.**
   - Retrograde (a fall from the top, redshift): `G#6/8 C#6/16 F#5/16 B4/16 E4/8 A3/8 D3/8`.
   - Augmented x4 (a slow ascent across a seam): 44 sixteenths, 11 beats.
