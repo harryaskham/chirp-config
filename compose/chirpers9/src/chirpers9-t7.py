@@ -33,6 +33,12 @@ R2 = os.environ.get("T7_R2", "lock") != "none"
 # built inside one sound. The floor: sub (6 songs) -> a7-floor, a sine with its octave, a slow swell and a little drive,
 # easing in from bar 17 (the in-seam had +29 dB at 38-44 Hz against t6's body). T7_R3=none reproduces v2.
 R3 = os.environ.get("T7_R3", "column") != "none"
+# round 4 (section, w7 = bars 97-112, the spiral, flagged static; presence.py found E4, the hats and the ghosts BURIED
+# there, 27-34 dB under the mix, and the E1 bells and E5 22-25 dB under): T7_R4=spiral (default) - THE SPIRAL TIGHTENS.
+# The bass and the tide step back and the elements come forward one by one, each in its own lane: E1's three bells at
+# bar 97, E5's orbit an octave UP at 101, E4's lights at 105, the hats and E2's ghosts at 109 with 32nd rolls; and the
+# tide squeezes from one beat to a half (105) and a quarter (109) - a tremolo between Eb and D. =none reproduces v3.
+R4 = os.environ.get("T7_R4", "spiral") != "none"
 W9 = (128, 144)
 
 BARS, BPB = 176, 4
@@ -437,6 +443,40 @@ def main():
                 tr.update(patch="a7-column", gain="-17dB", score=T["jethi"].score())
             if tr["name"] == "sub":
                 tr.update(patch="a7-floor", gain="-9dB", score=T["sub"].score())
+    if R4:
+        lo, hi = 96 * 4.0, 112 * 4.0
+        lift = {"e1a": (96, 9), "e1b": (96, 10), "e1c": (96, 7), "e5": (100, 11), "e4": (104, 17), "hats": (104 + 4, 15),
+                "ghost": (108, 10)}
+
+        def db(g):
+            return float(g.replace("dB", ""))
+        spec = {tr["name"]: tr for tr in tracks}
+        for k, (start, boost) in lift.items():
+            a = start * 4.0
+            moved = [e for e in T[k].ev if a <= e[0] < hi]
+            T[k].ev = [e for e in T[k].ev if not (a <= e[0] < hi)]
+            if k == "e5":
+                moved = [(e[0], e[1], mtok(float(e[2][1:]) + 12), e[3], e[4]) for e in moved]
+            w = Track(k + "w")
+            w.ev = moved
+            if k == "hats":
+                for bar in range(108, 112):
+                    for b in range(4):
+                        for j in range(2):
+                            w.add(bar * 4.0 + b + 0.75 + j * 0.125, 0.06, "h", 60 + 10 * j)
+            spec[k]["score"] = T[k].score()
+            nw = dict(spec[k], name=k + "w", gain=f"{db(spec[k]['gain']) + boost:g}dB", score=w.score())
+            tracks.append(nw)
+        X, Y = ",".join(mtok(m) for m in E6_X), ",".join(mtok(m) for m in E6_Y)
+        T["tide"].ev = [e if not (lo <= e[0] < 104 * 4.0) else (e[0], e[1], e[2], int(e[3] * 0.7), e[4])
+                        for e in T["tide"].ev if not (104 * 4.0 <= e[0] < hi)]
+        for bar in range(104, 112):
+            step = 0.5 if bar < 108 else 0.25
+            for i in range(int(4 / step)):
+                T["tide"].add(bar * 4.0 + i * step, step * 0.92, Y if i % 2 == 0 else X, 48)
+        T["bass"].ev = [e if not (lo <= e[0] < hi) else (e[0], e[1], e[2], int(e[3] * 0.72), e[4]) for e in T["bass"].ev]
+        spec["tide"]["score"] = T["tide"].score()
+        spec["bass"]["score"] = T["bass"].score()
     if R2:
         cv = json.load(open(os.path.join(HERE, "t7", "corner.json")))["tracks"][0]
         vnotes = []
