@@ -1,0 +1,137 @@
+{
+  "id": "chirpers9",
+  "artist": "chirpers",
+  "album": "Accretion",
+  "named": false,
+  "year": 2026,
+  "genre": "complex electronic",
+  "brief": "The chirpers' ninth album (Harry, 5 Nov). Working title Accretion (the chirpers name it later). THE RECORD IS AN ACCRETION DISK: themes fall inward, pile up, heat up and radiate. In Harry's words: 'play to our strengths, complex electronic, at times difficult but rewarding as things resolve and build upon themselves; eight excellent tracks of 4 to 6 minutes each, seamless blends', with 'black hole overlap as well as accumulating themes', and the same balance as Standby Amber: generative and intentional media together, with section climbs until every bar feels hand-crafted. Aim for very high quality. Genre anchor: complex electronic in the lineage of IDM and process music: intricate rhythm, polymeter, micro-edits, generative systems, dense counterpoint, and big earned payoffs. DIFFICULT -> REWARDING IS A RULE: material arrives fragmented, dissonant or out of phase, and the track's own process assembles it, so every resolution is earned and audible. ACCRETION (the album's spine, compose/chirpers9/motifs.md): each track introduces exactly ONE new element (E1..E8: a melodic cell, a rhythm cell, a progression, a timbre or a voice line) and carries every earlier element, TRANSFORMED rather than quoted (inversion, retrograde, augmentation and diminution, mensuration canon, stretto, polymetric displacement, re-harmonisation, re-voicing). t1 is a single seed; t8 holds E1..E8 at once and resolves them. Post your element as notes and rhythm in motifs.md in your first round, so all eight tracks are composed in parallel. Recurring payoff: layers in different cycle lengths (5, 7, 4, 3 ...) that converge on a shared downbeat at a crest. MOOD: calm -> storm -> relief, more than once: two orbits (t1-t4 the outer disk, cool and wide; t5-t8 the inner disk, hotter, faster, denser), and each track crests inside itself too. The orbit decays inward: each wave shorter, hotter and louder, until the final release. BLACK-HOLE OVERLAP: a DJ-mixed album (compose/chirpers9/mixplan.md): long overlaps where the outgoing track's material falls into the next (redshift: pitch sinking, time stretching, filters closing) while the incoming track lenses it into its own version; the inherited element is audibly what crosses the seam. Seam tempos are flat across the overlap; adjacent tracks meet at the same tempo. THE VOICE: chirp's voice is an instrument of the album and it accretes too: a breath or a syllable in t1, more words track by track, full lines by the end; the words obtuse and sideways, never the album name repeated; every track a different voice character (size, age, register, texture, choir, whisper, vocoder, formant). Improving the voice is a standing engine climb with no ceiling (realism, consonants, breath, vibrato, legato phrasing, harmony stacks): ask wM for what you need. ENGINE: new engine features, new patches and new params are welcome, opt-in only: never change a released album's sound. Fork a patch (a new name) instead of editing one an old album uses; every engine pin is gated byte-identical over the released albums before adoption. Starting engine: chip channels (NES/Game Boy), stepped LFOs (tracker arpeggios and macros), pvoc robot tune (the robot sings a melody). VISUALS: chirp-video climbs visual engine features in parallel (an accretion-disk renderer driven by each song's notes and onsets: one ring per element, orbiting debris, lensing, jets at crests, one continuous descent rather than cuts); concrete visuals for a track only after its length, tempo map and sections freeze. References stay sideways: no quoted melodies, titles or lyrics of any existing piece, and never copy or closely imitate one. Public text follows compose/README 'Publishing': the band is chirpers, lowercase.",
+  "palette": "Everything chirp has, aimed at intricate electronic music: drum machines and kits with micro-edits (stutter, chop, tapestop, crush), granular cloud and freeze, polymeter by step length, Euclidean patterns, swing drift and humanize, chance, choices, vars, expr, lfo and auto lanes, seeds, Risset and warp time illusions, tempo ramps, microtonal tuning; the new chip channels and stepped LFOs (tracker arpeggios, macros); FM, additive, tables, shepard and sample sources; physical models (modal, bowed, pluck, bell, gong, membrane, reed) for warmth in the relief sections; 42 fx including ott, glue, formant, vocoder, ring, phaser, barberpole, sympathetic, ir and reverbs; the voice (chirp tts, speech-to-song, pvoc robot tune). Plus anything you build with wM.",
+  "art_brief": "An accretion disk seen almost edge-on: a thin, intensely bright ring of warm white-gold and orange light around a perfectly black centre, its far side lensed up and over the top into a halo, tiny specks of debris spiralling inward. Stylised and elegant rather than photographic, with the chirpers' slightly wonky geometry (the ring a little off-true); deep black space; no text.",
+  "bleed": true,
+  "genre_refs": [
+    "actium",
+    "ptolemy",
+    "hedphelym",
+    "green-calx",
+    "pulsewidth",
+    "pulk-pull-revolving-doors",
+    "like-spinning-plates",
+    "fitter-happier"
+  ],
+  "master": {
+    "rms": [
+      -16.0,
+      -9.0
+    ],
+    "peak_max": 0.0,
+    "crest": [
+      7.0,
+      14.0
+    ]
+  },
+  "params": {
+    "rhythm": {
+      "band": [
+        0.0,
+        0.6
+      ],
+      "map": true
+    },
+    "rounds": {
+      "whole": 0.35,
+      "section": 0.45,
+      "palette": 0.2
+    }
+  },
+  "tracks": [
+    {
+      "n": 1,
+      "role": "seed (outer disk, calm)",
+      "length": [
+        240,
+        360
+      ],
+      "owner_suggested": "chirper-zero",
+      "brief": "The seed. Introduces E1: one short, memorable, endlessly transformable cell (at most 7 notes, a distinctive rhythm), stated sparsely and wide, slow (the album's lowest tempo). Calm, with one small crest. The voice is only a breath or a syllable. Ends by handing E1 into the first overlap.",
+      "id": "chirpers9-t1"
+    },
+    {
+      "n": 2,
+      "role": "infall (gathering)",
+      "length": [
+        240,
+        360
+      ],
+      "owner_suggested": "chirper-one",
+      "brief": "Infall. Carries E1 transformed and introduces E2 (a rhythm cell, ideally in a different cycle length so the first polymeter appears). Gathering energy; crest in the middle; a first taste of convergence.",
+      "id": "chirpers9-t2"
+    },
+    {
+      "n": 3,
+      "role": "first storm",
+      "length": [
+        240,
+        360
+      ],
+      "owner_suggested": "chirper-two",
+      "brief": "The first storm and the first difficult track: dense, abrasive, glitching, rhythmically hard. Carries E1-E2 and introduces E3. The storm resolves when the elements lock into one groove.",
+      "id": "chirpers9-t3"
+    },
+    {
+      "n": 4,
+      "role": "relief (the first orbit closes)",
+      "length": [
+        240,
+        360
+      ],
+      "owner_suggested": "chirper-three",
+      "brief": "Relief: warm, open, melodic. Carries E1-E3 and introduces E4; the first full statement of the combined theme. The voice at its most human so far.",
+      "id": "chirpers9-t4"
+    },
+    {
+      "n": 5,
+      "role": "inner disk (calm, closer)",
+      "length": [
+        240,
+        360
+      ],
+      "owner_suggested": "chirper-zero",
+      "brief": "The inner disk: calm again but closer and hotter: faster, tighter, tense. Carries E1-E4 and introduces E5. The calm before the second storm, and the mirror of t1.",
+      "id": "chirpers9-t5"
+    },
+    {
+      "n": 6,
+      "role": "tidal (stretching build)",
+      "length": [
+        240,
+        360
+      ],
+      "owner_suggested": "chirper-one",
+      "brief": "Tidal forces: a build made of stretching and squeezing (augmentation against diminution, time-stretch, tempo pressure). Carries E1-E5 and introduces E6. The mirror of t2, hotter.",
+      "id": "chirpers9-t6"
+    },
+    {
+      "n": 7,
+      "role": "innermost orbit (the big storm)",
+      "length": [
+        240,
+        360
+      ],
+      "owner_suggested": "chirper-two",
+      "brief": "The innermost stable orbit: the album's hardest, fastest, densest track, everything colliding. Carries E1-E6 and introduces E7. The album's crest. The mirror of t3, and beyond it.",
+      "id": "chirpers9-t7"
+    },
+    {
+      "n": 8,
+      "role": "jet and horizon (release)",
+      "length": [
+        240,
+        360
+      ],
+      "owner_suggested": "chirper-three",
+      "brief": "The release: E1-E7 and the new E8 in stretto, resolving into one radiant theme (the jet), then the horizon: a held light that redshifts away. The payoff of the whole record. The voice sings full lines.",
+      "id": "chirpers9-t8"
+    }
+  ]
+}

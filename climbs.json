@@ -8254,6 +8254,238 @@
         "at": "2026-11-04T14:01:21Z",
         "who": "chirper-three"
       }
+    },
+    {
+      "id": "chirpers9-t1",
+      "song": "songs/chirpers9-t1.yaml",
+      "reference": "chirpers — Track 1 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers9-t1 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "complex electronic",
+      "mode": "compose",
+      "album": "chirpers9",
+      "meta": {
+        "artist": "chirpers",
+        "album": "Accretion",
+        "title": "Track 1 (untitled)",
+        "track": 1,
+        "year": 2026
+      },
+      "requested": {
+        "by": "harry@pocket4-nixos",
+        "at": "2026-11-05T18:19:21Z",
+        "note": "COMPOSE (seed (outer disk, calm), 240-360 s): The seed. Introduces E1: one short, memorable, endlessly transformable cell (at most 7 notes, a distinctive rhythm), stated sparsely and wide, slow (the album's lowest tempo). Calm, with one small crest. The voice is only a breath or a syllable. Ends by handing E1 into the first overlap."
+      }
+    },
+    {
+      "id": "chirpers9-t2",
+      "song": "songs/chirpers9-t2.yaml",
+      "reference": "chirpers — Track 2 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers9-t2 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "complex electronic",
+      "mode": "compose",
+      "album": "chirpers9",
+      "meta": {
+        "artist": "chirpers",
+        "album": "Accretion",
+        "title": "Track 2 (untitled)",
+        "track": 2,
+        "year": 2026
+      },
+      "requested": {
+        "by": "harry@pocket4-nixos",
+        "at": "2026-11-05T18:19:21Z",
+        "note": "COMPOSE (infall (gathering), 240-360 s): Infall. Carries E1 transformed and introduces E2 (a rhythm cell, ideally in a different cycle length so the first polymeter appears). Gathering energy; crest in the middle; a first taste of convergence."
+      }
+    },
+    {
+      "id": "chirpers9-t3",
+      "song": "songs/chirpers9-t3.yaml",
+      "reference": "chirpers — Track 3 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers9-t3 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "complex electronic",
+      "mode": "compose",
+      "album": "chirpers9",
+      "meta": {
+        "artist": "chirpers",
+        "album": "Accretion",
+        "title": "Track 3 (untitled)",
+        "track": 3,
+        "year": 2026
+      },
+      "requested": {
+        "by": "harry@pocket4-nixos",
+        "at": "2026-11-05T18:19:21Z",
+        "note": "COMPOSE (first storm, 240-360 s): The first storm and the first difficult track: dense, abrasive, glitching, rhythmically hard. Carries E1-E2 and introduces E3. The storm resolves when the elements lock into one groove."
+      }
+    },
+    {
+      "id": "chirpers9-t4",
+      "song": "songs/chirpers9-t4.yaml",
+      "reference": "chirpers — Track 4 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers9-t4 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "complex electronic",
+      "mode": "compose",
+      "album": "chirpers9",
+      "meta": {
+        "artist": "chirpers",
+        "album": "Accretion",
+        "title": "Track 4 (untitled)",
+        "track": 4,
+        "year": 2026
+      },
+      "requested": {
+        "by": "harry@pocket4-nixos",
+        "at": "2026-11-05T18:19:21Z",
+        "note": "COMPOSE (relief (the first orbit closes), 240-360 s): Relief: warm, open, melodic. Carries E1-E3 and introduces E4; the first full statement of the combined theme. The voice at its most human so far."
+      }
+    },
+    {
+      "id": "chirpers9-t5",
+      "song": "songs/chirpers9-t5.yaml",
+      "reference": "chirpers — Track 5 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers9-t5 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "complex electronic",
+      "mode": "compose",
+      "album": "chirpers9",
+      "meta": {
+        "artist": "chirpers",
+        "album": "Accretion",
+        "title": "Track 5 (untitled)",
+        "track": 5,
+        "year": 2026
+      },
+      "requested": {
+        "by": "harry@pocket4-nixos",
+        "at": "2026-11-05T18:19:21Z",
+        "note": "COMPOSE (inner disk (calm, closer), 240-360 s): The inner disk: calm again but closer and hotter: faster, tighter, tense. Carries E1-E4 and introduces E5. The calm before the second storm, and the mirror of t1."
+      }
+    },
+    {
+      "id": "chirpers9-t6",
+      "song": "songs/chirpers9-t6.yaml",
+      "reference": "chirpers — Track 6 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers9-t6 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "complex electronic",
+      "mode": "compose",
+      "album": "chirpers9",
+      "meta": {
+        "artist": "chirpers",
+        "album": "Accretion",
+        "title": "Track 6 (untitled)",
+        "track": 6,
+        "year": 2026
+      },
+      "requested": {
+        "by": "harry@pocket4-nixos",
+        "at": "2026-11-05T18:19:21Z",
+        "note": "COMPOSE (tidal (stretching build), 240-360 s): Tidal forces: a build made of stretching and squeezing (augmentation against diminution, time-stretch, tempo pressure). Carries E1-E5 and introduces E6. The mirror of t2, hotter."
+      }
+    },
+    {
+      "id": "chirpers9-t7",
+      "song": "songs/chirpers9-t7.yaml",
+      "reference": "chirpers — Track 7 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers9-t7 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "complex electronic",
+      "mode": "compose",
+      "album": "chirpers9",
+      "meta": {
+        "artist": "chirpers",
+        "album": "Accretion",
+        "title": "Track 7 (untitled)",
+        "track": 7,
+        "year": 2026
+      },
+      "requested": {
+        "by": "harry@pocket4-nixos",
+        "at": "2026-11-05T18:19:21Z",
+        "note": "COMPOSE (innermost orbit (the big storm), 240-360 s): The innermost stable orbit: the album's hardest, fastest, densest track, everything colliding. Carries E1-E6 and introduces E7. The album's crest. The mirror of t3, and beyond it."
+      }
+    },
+    {
+      "id": "chirpers9-t8",
+      "song": "songs/chirpers9-t8.yaml",
+      "reference": "chirpers — Track 8 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers9-t8 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "complex electronic",
+      "mode": "compose",
+      "album": "chirpers9",
+      "meta": {
+        "artist": "chirpers",
+        "album": "Accretion",
+        "title": "Track 8 (untitled)",
+        "track": 8,
+        "year": 2026
+      },
+      "requested": {
+        "by": "harry@pocket4-nixos",
+        "at": "2026-11-05T18:19:21Z",
+        "note": "COMPOSE (jet and horizon (release), 240-360 s): The release: E1-E7 and the new E8 in stretto, resolving into one radiant theme (the jet), then the horizon: a held light that redshifts away. The payoff of the whole record. The voice sings full lines."
+      }
     }
   ],
   "focus": "Standby Amber"
