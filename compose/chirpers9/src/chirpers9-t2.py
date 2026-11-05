@@ -82,7 +82,7 @@ def chord(bar):
 def build():
     rng = random.Random(SEED)
     total = NBARS * 4.0
-    P = {k: [] for k in ('e2m', 'bass', 'e1in', 'e1p', 'e1c', 'kit', 'hat3', 'pad', 'sub', 'voice_', 'e2body', 'infall')}
+    P = {k: [] for k in ('e2m', 'bass', 'e1in', 'e1p', 'e1c', 'kit', 'hat3', 'pad', 'sub', 'voice_', 'e2body', 'infall', 'dust')}
     fall0 = SEC['fall'] * 4.0
 
     # ---- E2: the cell of seven, from bar 6, assembling out of fragments ----
@@ -90,6 +90,7 @@ def build():
     # half; the downbeat hit (step 0) first, the others later - debris falling a piece at a time
     t = E2_START * 4.0
     cyc = 0
+    dust_rng = random.Random(SEED + 77)
     while t < total - 1e-6:
         bar = int(t // 4)
         s_, i_ = sec_of(bar)
@@ -119,6 +120,11 @@ def build():
                 body_ *= max(0.25, 1.0 - (t - fall0) / 80.0)
             if body_ > 0.04:
                 P['e2body'].append((at, m(KEY + 12 + E2_PITCH[st] + sink), 0.3 * stretch, 30 + 80 * body_ * (E2_VEL[st] / 112.0)))
+            # (v4) DUST: some hits throw off a glint - a wind-chime three octaves up, the debris catching the light;
+            # more of them as the cell gathers, the most at the crest, few as it falls away
+            pd_ = {'in': 0.0, 'gather': 0.14, 'build': 0.22, 'crest': 0.4, 'break': 0.0, 'drift': 0.26, 'fall': 0.14}[s_]
+            if dust_rng.random() < pd_:
+                P['dust'].append((at, m(KEY + 48 + E2_PITCH[st] + sink), 2.0, 56 + 30 * dust_rng.random()))
         t += 7 * 0.25 * stretch
         cyc += 1
 
@@ -190,7 +196,7 @@ def build():
         if s_ == 'break':
             continue
         kicks = {'gather': [0, 2.5], 'build': [0, 1.0, 2.5, 3.0], 'crest': [0, 1.0, 2.0, 3.0, 3.5],
-                 'drift': [0, 0.75, 2.5, 3.0], 'fall': [0, 2.0]}[s_]
+                 'drift': [0, 0.75, 2.5, 3.0], 'fall': [0] if i_ < 8 else []}[s_]   # (v4) the fall: a heartbeat, then nothing
         for k_ in kicks:
             P['kit'].append((b0 + k_, 'k', 0.25, 118 if k_ == 0 else 100))
         if s_ in ('build', 'crest', 'drift'):
@@ -203,7 +209,7 @@ def build():
     # hats in a THREE-beat cycle (12 sixteenths, x.xx.x.xx.x. ), from bar 18
     H3 = [0, 2, 3, 5, 7, 8, 10]
     t = H3_START * 4.0
-    while t < fall0 + 16.0 - 1e-6:
+    while t < fall0 - 1e-6:          # (v4) the hats stop where the fall begins, so the fall is a place of its own
         for st in H3:
             at = t + st * 0.25
             v = 92 if st == 0 else 58 + 10 * (st % 2)
@@ -261,6 +267,38 @@ def build():
     tempo = [{'at': '0b', 'bpm': 90.0}, {'at': f'{SEC["gather"] * 4.0:.1f}b', 'bpm': 90.0},
              {'at': f'{fall0:.1f}b', 'bpm': 98.0, 'ramp': True}]
 
+    # ---- (v4) THE SPIRAL: the infall as a place. E2's debris orbits the listener - wide and slow at first, then
+    # closer and faster (Kepler: the nearer, the quicker round), until at the crest it sits dead centre, locked; it
+    # drifts wide again after the break and spirals in a second time through the fall, into t3. Each hit is panned
+    # by where the orbit is when it lands (a per-note pan expression); the body (the log drum) orbits on half the
+    # radius, the dust on all of it ----
+    import bisect
+    SPAN_B = [0.0]; TH = [0.0]
+    def omega_r(b_):
+        s_, i_ = sec_of(int(b_ // 4))
+        if b_ < CREST * 4.0:
+            u_ = min(1.0, max(0.0, (b_ - E2_START * 4.0) / ((CREST - E2_START) * 4.0)))
+            return 1 / 64 + (1 / 4 - 1 / 64) * u_ * u_, 0.9 * (1.0 - u_) ** 0.8
+        if s_ == 'crest':
+            return 1 / 8, 0.0
+        if s_ == 'break':
+            return 1 / 32, 0.3
+        if s_ == 'drift':
+            return 1 / 16, 0.3 + 0.45 * i_ / 16.0
+        f_ = min(1.0, (b_ - fall0) / 64.0)
+        return 1 / 16 + (1 / 2 - 1 / 16) * f_ * f_, 0.75 * (1.0 - f_) ** 0.8
+    bb_ = 0.0
+    while bb_ < total:
+        w_, _ = omega_r(bb_)
+        TH.append(TH[-1] + 2 * math.pi * w_ * 0.125); bb_ += 0.125; SPAN_B.append(bb_)
+    def spiral(b_, scale=1.0):
+        k_ = min(len(TH) - 1, bisect.bisect_left(SPAN_B, b_))
+        _, r_ = omega_r(b_)
+        return max(-0.95, min(0.95, scale * r_ * math.sin(TH[k_])))
+    for key_, sc_ in (('e2m', 1.0), ('e2body', 0.5), ('dust', 1.0)):
+        P[key_] = [(a_, f"{p_}^px={spiral(a_, sc_):.2f}", d_, v_) for a_, p_, d_, v_ in P[key_]]
+    PXF = {'type': 'pan', 'pan': {'value': 0, 'mod': [{'src': 'expr.px', 'amount': 1}]}}
+
     tr = lambda name, patch, gain, **kw: dict({'name': name, 'patch': patch, 'gain': gain, 'score': line(P[name], total)}, **kw)
     PAD = {'extends': 'kuramoto-choir',
            'synth': {'layers': [{'type': 'kuramoto', 'kuramoto': {'count': 10, 'spread': 26, 'wave': 'saw',
@@ -287,10 +325,13 @@ def build():
                fx=[{'type': 'stutter', 'slice': '1/16', 'repeats': 3, 'chance': {'value': 0.0, 'mod': [{'src': 'auto.glitch', 'amount': 1.0}]}, 'seed': 5}]),
             tr('hat3', '909', '-12dB', pan=0.25, sends={'echo': '-20dB'}),
             tr('infall', 'shepard-fall', '-20dB', sends={'hall': '-16dB'}),
-            tr('e2m', 'chip-metal', '-14dB', pan=-0.2, auto={'shut': {'points': shut_pts}},
+            tr('dust', {'extends': 'chimes', 'synth': {'fx': [PXF]}}, '-21dB', auto={'shut': {'points': shut_pts}},
+               fx=[{'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 3000, 'mod': [{'src': 'auto.shut', 'amount': 3.0}]}}],
+               sends={'echo': '-14dB'}),
+            tr('e2m', {'extends': 'chip-metal', 'synth': {'fx': [PXF]}}, '-14dB', auto={'shut': {'points': shut_pts}},
                fx=['hp cutoff=500', {'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 900, 'mod': [{'src': 'auto.shut', 'amount': 3.5}]}}],
                sends={'echo': '-12dB', 'hall': '-14dB'}),
-            tr('e2body', {'extends': 'log-drum', 'play': {'legato': False, 'mono': False, 'glide': '0ms'}}, '-9dB', pan=-0.1,
+            tr('e2body', {'extends': 'log-drum', 'play': {'legato': False, 'mono': False, 'glide': '0ms'}, 'synth': {'fx': [PXF]}}, '-9dB',
                sends={'hall': '-18dB'}),
             tr('e1in', 'risset-bell', '-12dB', pan=0.15, auto={'lens': {'points': lens_pts}},
                fx=[{'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 400, 'mod': [{'src': 'auto.lens', 'amount': 4.0}]}}],
