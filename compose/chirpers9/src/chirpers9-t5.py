@@ -46,6 +46,9 @@ E4 = [  # E4 'four lights', voiced close around middle C
 ]
 E4_LEN = 10.0                                 # beats per chord (t4: 5)
 CRESTGAP = os.environ.get("C9T5_CRESTGAP", "8")   # SECTION (w5, the build into the crest: flagged static; the crest was a level line, -12.1 dB either side): THE PULL BEFORE THE MEETING - for the last CRESTGAP beats before the crest the drums, the quick bass and the floor drop out and every heat filter is sucked shut, only the orbit's trill and E1's stretto left spinning; then every cycle lands on the shared downbeat at once: the filters snap open past where they were, and the drum machine and a crash hit together
+BASS808 = os.environ.get("C9T5_BASS808", "-10")   # WHOLE ROUND: THE WEIGHT OF THE INNER DISK - E2's seven-eighths bass moves from the CZ pluck (short, light) to an 808 (unused on the album until now): the same hits on E4's roots, now ringing and dropping in pitch on each attack, so the inner disk has the gravity the outer disk lacked (the low end around 100 Hz was 17 dB short). Value = gain dB
+BASSFROM = os.environ.get("C9T5_BASSFROM", "build")   # with BASS808: the section the 808 takes over from ('build' or 'C'); before it the CZ pluck stays - the weight arrives as the disk tightens
+FLOORUP = os.environ.get("C9T5_FLOORUP", "")   # with it: the held roots an octave up and opened (lp 500 -> 900 Hz), gain dB
 CRESTHIT = os.environ.get("C9T5_CRESTHIT", "-14")   # with CRESTGAP: the crash's gain (dB)
 CRESTDEEP = os.environ.get("C9T5_CRESTDEEP", "1")   # with CRESTGAP: a deeper pull - E1's stretto leaves too and the filters close to near-dark, so only E5's trill is left spinning into the meeting
 
@@ -173,6 +176,15 @@ def bass():
             t = c + h / 2
             if ST["A"] <= t < ST["outro"] + 8 * BAR:
                 ns.append(note(t, root, 0.4, (0.85, 0.55, 0.7, 0.55)[i]))
+    if BASS808 and BASSFROM:
+        b0 = ST[BASSFROM]
+        cz = [n for n in ns if n["at"] < b0]
+        e8 = [dict(n, len=1.2 if n["vel"] >= 0.8 else 0.9) for n in ns if n["at"] >= b0]
+        return [{"name": "bass", "patch": "cz-bass", "gain": "-12dB", "pan": 0.0, "notes": gapped(cz)},
+                {"name": "bass808", "patch": "808", "gain": f"{BASS808}dB", "pan": 0.0, "notes": gapped(e8)}]
+    if BASS808:
+        ns = [dict(n, len=1.2 if n["vel"] >= 0.8 else 0.9) for n in ns]
+        return {"name": "bass", "patch": "808", "gain": f"{BASS808}dB", "pan": 0.0, "notes": gapped(ns)}
     return {"name": "bass", "patch": "cz-bass", "gain": "-12dB", "pan": 0.0, "notes": gapped(ns)}
 
 
@@ -184,9 +196,9 @@ def floor():
         for i, ch in enumerate(E4):
             t = c + i * E4_LEN
             if ST["A"] <= t < ST["outro"] + 8 * BAR:
-                ns.append(note(t, ch[1], E4_LEN - 0.5, 0.65 if t < TC else 0.75))
-    return {"name": "floor", "patch": "analog-bass", "gain": "-15dB", "pan": 0.0,
-            "fx": [{"type": "filter", "kind": "lp", "q": 0.6, "cutoff": {"value": 500, "mod": [{"src": "auto.heat", "amount": 1.0}]}}],
+                ns.append(note(t, ch[2 if FLOORUP else 1], E4_LEN - 0.5, 0.65 if t < TC else 0.75))
+    return {"name": "floor", "patch": "analog-bass", "gain": f"{FLOORUP}dB" if FLOORUP else "-15dB", "pan": 0.0,
+            "fx": [{"type": "filter", "kind": "lp", "q": 0.6, "cutoff": {"value": 900 if FLOORUP else 500, "mod": [{"src": "auto.heat", "amount": 1.0}]}}],
             "auto": {"heat": heat(1, 1.2, 0.5, -0.5, lo=0, at_a=False)},
             "notes": gapped(ns)}
 
@@ -241,7 +253,8 @@ def voice():
 
 
 def song():
-    tracks = [orbit(), *seed(), lights(), bass(), drums(), air(), voice(), floor()]
+    b_ = bass()
+    tracks = [orbit(), *seed(), lights(), *(b_ if isinstance(b_, list) else [b_]), drums(), air(), voice(), floor()]
     if CRESTGAP and CRESTHIT:
         tracks.append({"name": "crest", "patch": "modal-crash", "gain": f"{CRESTHIT}dB", "pan": 0.0,
                        "sends": {"room": "-6dB"}, "notes": [note(TC, "C4", 8, 0.9)]})
