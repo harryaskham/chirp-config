@@ -8365,7 +8365,7 @@
     {
       "id": "chirpers9-t4",
       "song": "songs/chirpers9-t4.yaml",
-      "reference": "chirpers — Track 4 (untitled)",
+      "reference": "chirpers — The Warm Third",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers9-t4 OUT.wav",
@@ -8381,7 +8381,7 @@
       "meta": {
         "artist": "chirpers",
         "album": "Accretion",
-        "title": "Track 4 (untitled)",
+        "title": "The Warm Third",
         "track": 4,
         "year": 2026
       },
