@@ -194,6 +194,41 @@ def write_bass():
         beat += E1_CYCLE
 
 
+# v2 (ROUND TYPE: whole): THE COMBINED THEME. t4 now carries E2 and E3 as the brief asks, each TRANSFORMED for the
+# relief and each PHASED (like E1 and E4) so a cycle lands exactly on the crest's downbeat (beat 320):
+# - E2 'seven' (chirper-one, t2) in the MAJOR: D A F# C (its minor third lifted, like the storm's at bar 9), on a
+#   harp, its seven sixteenths turning against the bar from 25 (320 - 128 x 1.75 = 96: it starts on bar 25 exactly).
+# - E3 'the undertow' (chirper-two, t3) INVERTED around D: D D D | C# C# F# | E E A E - the flat second becomes a
+#   leading tone, the storm's drag becomes a lift - on vibes an octave up, its 2+2+3 against everything from 42.5.
+# Before the crest they turn against the 4/4 and the 5s; at 81 E1 (the voice), E2, E3 and E4 meet one downbeat: the
+# first full statement of the combined theme.
+E2_MAJ = [("D5", 0, 100), ("A5", 2, 76), ("F#5", 3, 88), ("C5", 5, 70)]          # sixteenth steps of 7
+E3_INV = [("D3", 0.0, 0.75), ("D3", 0.75, 0.75), ("D2", 1.5, 0.5), ("C#3", 2.0, 0.5), ("C#3", 2.5, 0.75),
+          ("F#3", 3.25, 0.75), ("E3", 4.0, 0.75), ("E3", 4.75, 0.75), ("A2", 5.5, 0.5), ("E2", 6.0, 1.0)]
+
+
+def phase_start(cycle, entry_bar, target=None):
+    target = b0(CREST) if target is None else target
+    k = int((target - b0(entry_bar)) // cycle)
+    return target - k * cycle
+
+
+def write_combined():
+    vel = {"A": -14, "B": -8, "rise": -4, "crest": 0, "relief": -4}
+    beat = phase_start(1.75, 25)
+    while beat < b0(121) - 0.01:
+        s = sec_of(int(beat // BPB) + 1)
+        for n, step, v in E2_MAJ:
+            part("e2").add(beat + step * 0.25, 0.5, n, v + vel.get(s, -20))
+        beat += 1.75
+    beat = phase_start(7.0, 41)
+    while beat < b0(121) - 0.01:
+        s = sec_of(int(beat // BPB) + 1)
+        for n, on, ln in E3_INV:
+            part("e3").add(beat + on, ln, n, 74 + vel.get(s, -20))
+        beat += 7.0
+
+
 SUB = {"about": "t4's sub: a sine under E4's roots, a breath of drive", "synth": {"layers": [{"wave": "sine"}],
        "amp": {"a": "15ms", "d": "0s", "s": 1, "r": "200ms"}}, "fx": ["drive drive=0.12"]}
 EUCLID_7_16 = [i for i in range(16) if (i * 7) % 16 < 7]      # 7 hits spread over 16 sixteenths
@@ -203,7 +238,7 @@ def write_sub():
     # E4's roots an octave below the cellos' bass notes (D1, Bb1, A1, D1 - the deep end the warm mix lacked)
     low = {"D9": "D1", "Bbmaj13#11": "Bb1", "Am11": "A1", "D9sus": "D1"}
     beat = b0(41)
-    while beat < b0(121) - 0.01:
+    while beat < b0(AFTERGLOW[0]) - 0.01:
         k, name, notes = chord_at(beat)
         part("sub").add(beat, E1_CYCLE - 0.25, low[name], 96 if sec_of(int(beat // BPB) + 1) == "crest" else 84)
         beat += E1_CYCLE
@@ -211,14 +246,17 @@ def write_sub():
 
 def write_air():
     # the chip's noise channel: a 7-in-16 euclid of sixteenths (polymeter against E1's 5 and E4's 20), quiet
-    for bar in range(41, 121):
+    for bar in range(41, AFTERGLOW[0]):
         for i in EUCLID_7_16:
             v = 58 if i == 0 else 46
             part("air").add(b0(bar) + i * 0.25, 0.25, "C7", v + (8 if sec_of(bar) == "crest" else 0))
 
 
+AFTERGLOW = (101, 120)        # v2: after the crest the kit, the chip air and the sub step out - the relief breathes
+
+
 def write_drums():
-    for bar in range(41, 121):
+    for bar in range(41, AFTERGLOW[0]):
         s = sec_of(bar)
         t = b0(bar)
         part("kick").add(t, 0.5, "k", 100 if s == "crest" else 92)
@@ -269,6 +307,7 @@ def main():
     write_drums()
     write_sub()
     write_air()
+    write_combined()
     voice = sung_notes(b0(CREST), TAKES) + sung_notes(b0(101), TAKES[2:])
     tempo = [{"at": "0b", "bpm": SEAM_IN}, {"at": f"{b0(17):g}b", "bpm": SEAM_IN},
              {"at": f"{b0(121):g}b", "bpm": SEAM_OUT, "ramp": True}]
@@ -300,6 +339,8 @@ def main():
             tr("ride", "brush-kit", gain="-15dB", pan=-0.25),
             {"name": "voice", "patch": VOICE, "gain": "-8dB", "pan": 0.0,
              "sends": {"hall": "-9dB", "dly": "-16dB"}, "notes": voice},
+            tr("e2", "harp", gain="-17dB", pan=0.4, sends={"hall": "-10dB", "dly": "-16dB"}),     # v2: listed last
+            tr("e3", "vibes", gain="-16dB", pan=-0.35, sends={"hall": "-10dB"}),
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=0.8s mix=1 predelay=6ms", "hp cutoff=200"]},
                   "hall": {"fx": ["reverb kind=hall decay=3.2s mix=1 predelay=20ms", "hp cutoff=180"]},

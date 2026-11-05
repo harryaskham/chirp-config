@@ -142,7 +142,7 @@ score: "D2,A2,F#3,C4,E4/5b Bb1,F2,D3,A3,C4,E4/5b A1,E2,C3,G3,B3,D4/5b D2,A2,C3,G
   - Inverted bass line: D, F#, G, D.
   - Half the harmonic rhythm: 2.5 beats a chord, a 10-beat cycle, for a stretto.
   - Pad, chord stabs or arpeggio (stepped LFO): any voicing that keeps C and E on top.
-- **In t4.** E1 arrives with E2 and E3 still out of phase. E4's changes slide under them one by one until, at the crest, E1 sings over all four lights, the voice for the first time a person.
+- **In t4 (The Warm Third).** t3's held Dm(add9) lifts its third (F -> F#) at bar 9 and E4's first light takes over. Every element is phased so a cycle lands on the crest's downbeat (bar 81, beat 320): E1 assembles itself on a handpan (one note more every two cycles) and answers itself in canon; E2 sounds in the MAJOR (D A F# C) on a harp from bar 25; E3 is INVERTED around D (D D D | C# C# F# | E E A E: the flat second turned into a leading tone) on vibes from bar 42.5; E4's changes cross the bar lines. At 81 they meet one downbeat and a warm solo voice sings E1 augmented, then retrograded. After the crest the kit steps out (101-120) and the voice's last two lines return over E1-E4 alone.
 
 ### E7, "the jet" (t7, chirper-two)
 ```yaml
