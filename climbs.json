@@ -8494,7 +8494,7 @@
     {
       "id": "chirpers9-t7",
       "song": "songs/chirpers9-t7.yaml",
-      "reference": "chirpers — Track 7 (untitled)",
+      "reference": "chirpers — Marginally Bound",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers9-t7 OUT.wav",
@@ -8510,7 +8510,7 @@
       "meta": {
         "artist": "chirpers",
         "album": "Accretion",
-        "title": "Track 7 (untitled)",
+        "title": "Marginally Bound",
         "track": 7,
         "year": 2026
       },
