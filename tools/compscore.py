@@ -271,6 +271,44 @@ def features(x, F, dur):
             "tail": {"level": lvl(tail), "profile": profile(F, max(0, F.n - n3), None).tolist()}}
 
 
+def window_feats(x, F, a, b):
+    """Level and profile of seconds A..B of the render (the head/tail summary's shape)."""
+    a, b = max(0.0, a), max(a + 0.1, b)
+    s = x[int(a * L.SR):int(b * L.SR)]
+    lvl = 10 * np.log10(float((s.astype(float) ** 2).mean()) + 1e-12) if len(s) else -120.0
+    return {"level": lvl, "profile": profile(F, int(a * L.FPS), max(int(a * L.FPS) + 1, int(b * L.FPS))).tolist(),
+            "at": round(a, 2)}
+
+
+def mix_windows(me, x, F, album, slot, song, secs=3.0):
+    """A mixtape album (compose/ALBUM/mixplan.md): add the bodies the listener hears either side of each crossfade,
+    placed as the groove and release --mix place them. mix_head is SECS from this song's bar OVERLAP (its in-seam's
+    crossfade done), mix_tail the SECS before its out-seam starts (the outgoing bar line OVERLAP bars before its last
+    bar line, chirpers.seam_start). Other albums: unchanged (no keys added)."""
+    n = (slot or {}).get("n")
+    if not n or not os.path.exists(os.path.join(ROOT, "compose", album["id"], "mixplan.md")) or not os.path.exists(song):
+        return
+    import chirpers as CH
+    try:
+        pin = open(os.path.join(HERE, "groove-pin")).read().strip()
+        tl = CH.song_timeline(pin, song)
+        seams, default = CH.seam_overlaps(album["id"])
+    except (OSError, ValueError, KeyError):
+        return
+    if not tl:
+        return
+    have = {t.get("n") for t in album.get("tracks", [])}
+    if n - 1 in have:
+        k = int(round(seams.get((n - 1, n), default) * 4))
+        if k < len(tl["times"]):
+            t0 = tl["times"][k]
+            me["mix_head"] = dict(window_feats(x, F, t0, t0 + secs), bars=k / 4)
+    if n + 1 in have:
+        bars = seams.get((n, n + 1), default)
+        t1 = CH.seam_start(tl, bars)
+        me["mix_tail"] = dict(window_feats(x, F, t1 - secs, t1), bars=bars)
+
+
 def others_features(album_id, cid):
     out = {}
     for p in glob.glob(os.path.join(cache_dir(album_id), "features", "*.json")):
@@ -523,6 +561,14 @@ def m_flow(ctx):
             continue
         mine = ctx["me"]["head" if side == "in" else "tail"]
         theirs = oth[t["id"]]["tail" if side == "in" else "head"]
+        how = None
+        mk_mine, mk_theirs = ("mix_head", "mix_tail") if side == "in" else ("mix_tail", "mix_head")
+        if mk_mine in ctx["me"]:      # a mixtape seam: the bodies either side of the crossfade, not the faded ends
+            if mk_theirs in oth[t["id"]]:
+                mine, theirs = ctx["me"][mk_mine], oth[t["id"]][mk_theirs]
+                how = f"mix: bodies either side of the {mine.get('bars', 0):g}-bar crossfade"
+            else:
+                how = f"back to back: {t['id']}'s saved features predate the mix windows (re-score it with --save)"
         jump = abs(mine["level"] - theirs["level"])
         spec = float(np.abs(np.array(mine["profile"]) - np.array(theirs["profile"])).mean())
         # graded far out (chirper-two: at a 4 dB decay a 14 dB join and a 23 dB one both scored ~0, so join work had
@@ -530,6 +576,8 @@ def m_flow(ctx):
         s = 0.5 * band(jump, 0, 6.0, 12.0) + 0.5 * band(spec, 0, 3.0, 3.0)
         joins[side] = {"with": t["id"], "level_jump_db": round(jump, 1), "spectral_db": round(spec, 2),
                        "worst_bands_hz_db": worst_bands(mine["profile"], theirs["profile"])}   # + = this song louder
+        if how:
+            joins[side]["measured"] = how
         scores.append(s)
     if not scores:
         return None, {}
@@ -710,6 +758,7 @@ def build_ctx(cid, wav, climb, album, song=None):
         sets = [section_feats(F, x, section_bounds(F, end, X, thr=t, nov=nov), X) for t in ths]
         secs = sets[len(sets) // 2]
     me = features(x, F, dur)
+    mix_windows(me, x, F, album, slot, song or os.path.join(ROOT, climb.get("song") or f"songs/{cid}.yaml"))
     return {"id": cid, "wav": wav, "x": x, "F": F, "dur": dur, "album": album, "slot": slot, "sections": secs,
             "section_sets": sets, "novelty_thresholds": ths,
             "me": me, "density": me["density"], "others": others_features(album["id"], cid),
