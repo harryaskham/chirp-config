@@ -45,6 +45,28 @@ E4 = [  # E4 'four lights', voiced close around middle C
     ["D2", "D3", "G3", "A3", "C4", "E4"],
 ]
 E4_LEN = 10.0                                 # beats per chord (t4: 5)
+CRESTGAP = os.environ.get("C9T5_CRESTGAP", "8")   # SECTION (w5, the build into the crest: flagged static; the crest was a level line, -12.1 dB either side): THE PULL BEFORE THE MEETING - for the last CRESTGAP beats before the crest the drums, the quick bass and the floor drop out and every heat filter is sucked shut, only the orbit's trill and E1's stretto left spinning; then every cycle lands on the shared downbeat at once: the filters snap open past where they were, and the drum machine and a crash hit together
+CRESTHIT = os.environ.get("C9T5_CRESTHIT", "-14")   # with CRESTGAP: the crash's gain (dB)
+CRESTDEEP = os.environ.get("C9T5_CRESTDEEP", "1")   # with CRESTGAP: a deeper pull - E1's stretto leaves too and the filters close to near-dark, so only E5's trill is left spinning into the meeting
+
+
+def heat(pre, peak, after, end, lo=-0.6, at_a=True):
+    """A heat lane: lo at the top, 0 at A, rising to `pre` by the crest; with CRESTGAP, sucked shut across the gap and
+    snapping to `peak` on the shared downbeat."""
+    pts = [["0b", lo]] + ([[f"{ST['A']}b", 0]] if at_a else [])
+    if CRESTGAP:
+        g = float(CRESTGAP)
+        pts += [[f"{TC - g}b", pre], [f"{TC - 0.05}b", -1.6 if CRESTDEEP else -0.4], [f"{TC}b", peak]]
+    else:
+        pts += [[f"{TC}b", pre]]
+    return {"points": pts + [[f"{ST['outro']}b", after], [f"{TOTAL}b", end]]}
+
+
+def gapped(ns):
+    if not CRESTGAP:
+        return ns
+    g = float(CRESTGAP)
+    return [n for n in ns if not (TC - g <= n["at"] < TC)]
 
 
 def note(at, pitch, ln, vel):
@@ -90,7 +112,7 @@ def orbit():
     return {"name": "orbit", "patch": "nes-pulse-lead", "gain": "-16dB", "pan": 0.2,
             "fx": [{"type": "filter", "kind": "lp", "q": 0.8, "cutoff": {"value": 2500, "mod": [{"src": "auto.heat", "amount": 2.2}]}},
                    {"type": "delay", "time": "3/16", "feedback": 0.3, "mix": 0.18, "tone": 3500, "ping_pong": True}],
-            "auto": {"heat": {"points": [["0b", -0.6], [f"{ST['A']}b", 0], [f"{TC}b", 1], [f"{ST['outro']}b", 0.6], [f"{TOTAL}b", -0.8]]}},
+            "auto": {"heat": heat(1, 1.3, 0.6, -0.8)},
             "notes": ns}
 
 
@@ -112,6 +134,8 @@ def seed():
         k = (c - ST["outro"]) / (TOTAL - ST["outro"])
         for o, ln, p in zip(E1_OFF, E1_LEN, E1_MIDI):
             a.append(note(c + o / 4, p + 12, ln / 4, 0.6 - 0.35 * k))
+    if CRESTDEEP:
+        a, b = gapped(a), gapped(b)
     return [
         {"name": "seed-hi", "patch": "chip-lead", "gain": "-19dB", "pan": -0.45, "sends": {"room": "-12dB"}, "notes": a},
         {"name": "seed-lo", "patch": "pluck-lead", "gain": "-16dB", "pan": 0.45, "sends": {"room": "-12dB"}, "notes": b},
@@ -135,7 +159,7 @@ def lights():
     return {"name": "lights", "patch": "cz-pad", "gain": "-16dB", "pan": 0.0,
             "fx": [{"type": "chorus", "rate": 0.4, "depth": 0.25, "mix": 0.3},
                    {"type": "filter", "kind": "lp", "q": 0.7, "cutoff": {"value": 1800, "mod": [{"src": "auto.heat", "amount": 1.6}]}}],
-            "auto": {"heat": {"points": [["0b", -0.3], [f"{ST['A']}b", 0], [f"{TC}b", 1], [f"{ST['outro']}b", 0.6], [f"{TOTAL}b", -0.8]]}},
+            "auto": {"heat": heat(1, 1.3, 0.6, -0.8, lo=-0.3)},
             "sends": {"room": "-8dB"}, "notes": ns}
 
 
@@ -149,7 +173,7 @@ def bass():
             t = c + h / 2
             if ST["A"] <= t < ST["outro"] + 8 * BAR:
                 ns.append(note(t, root, 0.4, (0.85, 0.55, 0.7, 0.55)[i]))
-    return {"name": "bass", "patch": "cz-bass", "gain": "-12dB", "pan": 0.0, "notes": ns}
+    return {"name": "bass", "patch": "cz-bass", "gain": "-12dB", "pan": 0.0, "notes": gapped(ns)}
 
 
 def floor():
@@ -163,8 +187,8 @@ def floor():
                 ns.append(note(t, ch[1], E4_LEN - 0.5, 0.65 if t < TC else 0.75))
     return {"name": "floor", "patch": "analog-bass", "gain": "-15dB", "pan": 0.0,
             "fx": [{"type": "filter", "kind": "lp", "q": 0.6, "cutoff": {"value": 500, "mod": [{"src": "auto.heat", "amount": 1.0}]}}],
-            "auto": {"heat": {"points": [["0b", 0], [f"{TC}b", 1], [f"{ST['outro']}b", 0.5], [f"{TOTAL}b", -0.5]]}},
-            "notes": ns}
+            "auto": {"heat": heat(1, 1.2, 0.5, -0.5, lo=0, at_a=False)},
+            "notes": gapped(ns)}
 
 
 def drums():
@@ -185,6 +209,10 @@ def drums():
         if (t % BAR) == 3.5:
             ns.append(note(t, "oh", 0.5, 0.45))
         t += 0.25
+    ns = gapped(ns)
+    if CRESTGAP:
+        ns = [n for n in ns if n["at"] != TC] + [note(TC, "k", 0.5, 1.0), note(TC, "cp", 0.5, 0.95)]
+        ns.sort(key=lambda n: n["at"])
     return {"name": "drums", "patch": "909", "gain": "-11dB", "pan": 0.0, "sends": {"room": "-14dB"},
             "fx": [{"type": "filter", "kind": "hp", "q": 0.7, "cutoff": {"value": 60, "mod": [{"src": "auto.tide", "amount": 3.0}]}}],
             "auto": {"tide": {"points": [["0b", 0], [f"{ST['outro']}b", 0], [f"{b0}b", 1]]}},
@@ -214,6 +242,9 @@ def voice():
 
 def song():
     tracks = [orbit(), *seed(), lights(), bass(), drums(), air(), voice(), floor()]
+    if CRESTGAP and CRESTHIT:
+        tracks.append({"name": "crest", "patch": "modal-crash", "gain": f"{CRESTHIT}dB", "pan": 0.0,
+                       "sends": {"room": "-6dB"}, "notes": [note(TC, "C4", 8, 0.9)]})
     return {
         "about": "chirpers IX (Accretion), track 5 by chirper-zero: the inner disk - E1, E2 and E4 tight and fast, "
                  "and the new E5, 'the inner orbit', circling under them until every cycle meets at the crest. "
