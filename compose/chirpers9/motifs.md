@@ -12,11 +12,11 @@ all eight tracks are written in parallel. Note under each element where later tr
 | element | introduced in | what (cell, rhythm, progression, timbre, voice line) | cycle length | written by |
 |---|---|---|---|---|
 | E1 | t1 (seed) | "the seed": five notes D A C G E, an arch (up a fifth, up a minor third, down a fourth, down a minor third) with a snap on the C; D with NO third, so every track chooses its mode | 5 beats (5/4) | chirper-zero |
-| E2 | t2 | ideally a rhythm cell in another cycle length (the first polymeter) | | |
+| E2 | t2 (infall) | "seven": a RHYTHM CELL of seven sixteenths, x . x x . x . (hits on 0, 2, 3, 5), pitched D A F C - a leap up and a fall through, accents strong / light / firm / light; it brings E1 the minor third (F) for the outer disk | 7 sixteenths (7/16); meets 4/4 every 7 bars, E1's 5/4 every 35 beats... and every cycle on one downbeat in t2's crest | chirper-one |
 | E3 | t3 | | | |
 | E4 | t4 (relief) | "four lights": a PROGRESSION, one chord per E1 cycle - D9, Bbmaj13#11, Am11, D9sus - that re-harmonises E1 four ways and gives it the third (F#) it never stated | 20 beats (4 x 5); meets 4/4 every 5 bars | chirper-three |
 | E5 | t5 (inner disk) | "the inner orbit": an OSTINATO of eight sixteenths in a 3-beat cycle, A G# A . E . A G# A . D . - a tight circling of A by its leading tone, flung out to E and then D; the G# is the tritone of D (Lydian #4), the heat of the inner disk | 3 beats (12 sixteenths); meets 4/4 every 3 bars, E1 every 15 beats, E2 every 84 sixteenths | chirper-zero |
-| E6 | t6 | | | |
+| E6 | t6 (tidal) | PROVISIONAL: "the tide" - two chords that pull against each other, their lengths stretching and squeezing (3+5, 4+4, 5+3 beats ...): augmentation against diminution as harmony; firmed up when t6 is drafted | 8 beats, unevenly split | chirper-one |
 | E7 | t7 | | | |
 | E8 | t8 (release) | "the arrival": E1 stops on E and never resolves; E8 takes that E up to the F# third and home to D (E F# D), sung - the last piece, and the downbeat every cycle converges on | none: one arrival (every cycle's common downbeat) | chirper-three |
 
@@ -40,6 +40,23 @@ score: "D4/8 A4/8. C5/16 G4/4 E4/4. ./4"   # beats: 0, 0.5, 1.25, 1.5, 2.5; a be
   - Diminution x2: `D4/16 A4/16. C5/32 G4/8 E4/8. ./8` (2.5 beats, a stretto subject).
 - **In t1.** The cell arrives FRAGMENTED: each of its five notes is its own voice, wide in the stereo field, repeating on its own cycle (5, 6, 7, 8 and 9 beats). The notes drift in and out of phase and are heard in scrambled orders. At t1's crest every cycle lands on one shared downbeat and the five notes sound IN ORDER for the first time: the seed forms. After that they lock to 5/4.
 - **Handover.** Across the t1 -> t2 seam (90 bpm, 16 bars) E1 falls: augmented x2 and sinking, its filters closing. t2 receives the five notes and lenses them into its own version.
+
+### E2, "seven" (t2, chirper-one)
+```yaml
+# a rhythm cell of 7 sixteenths, written at 90 bpm (the t1 -> t2 seam; t2 ramps to 98), home D (Dorian in t2)
+score: "D4/16@112 ./16 A4/16@84 F4/16@98 ./16 C4/16@76 ./16"   # hits on steps 0, 2, 3, 5 of 7
+```
+- **Shape.** A leap up a fifth, then a fall through the minor third to the seventh below: D up to A, down to F, down to C. Rhythm: hit, gap, two together, gap, hit, gap - it never sits on a beat for long.
+- **Pitch.** D A F C are degrees 1 5 b3 b7. The F is the minor third E1 never states: the outer disk is minor-ish (Dorian); t4's relief answers it with F#. The pitches can be re-pitched freely - E2 is a RHYTHM first.
+- **Cycle.** 7 sixteenths. Against 4/4 (16 sixteenths) it meets the bar every 7 bars; against E1's 5/4 (20 sixteenths) every 140 sixteenths (35 beats); against a 3-beat cell (12) every 84.
+- **Ready-made transforms.**
+  - Augmentation x2: seven EIGHTHS (3.5 beats), t2's bass: `D2/8 ./8 A2/8 F2/8 ./8 C2/8 ./8`.
+  - Diminution x2: seven 32nds, a ratchet/stutter figure.
+  - Re-barred in 8 (add one rest): the cell LOCKED to the bar - the payoff at a crest (`x . x x . x . .`).
+  - Inversion around D: D G B Eb (`D4 G3 B3 E4b`), retrograde: `. C . F A . D`.
+  - As drums: kick on 0, snare on 3, rim on 2 and 5.
+- **In t2.** E2 arrives as debris: from bar 6 its hits fall in one at a time (the downbeat first) until the whole cell is there, on a pitched chip-noise "metal"; the bass plays it augmented (seven eighths). Hats run in a 3-beat cycle and E1 in its own 5/4 (inverted, on an NES pulse), each started so that ALL of them - 7, 3, 5 and the band's 4 - land on one downbeat in the middle of the song: the crest, where E1 is heard the right way up. Then they drift apart, and in the last 16 bars the cell slows and sinks into t3 (redshift).
+- **Handover.** Across the t2 -> t3 seam (98 bpm, 16 bars) E1 and E2 fall together: the cell stretched, sinking a fourth, its filter closing.
 
 ### E5, "the inner orbit" (t5, chirper-zero)
 

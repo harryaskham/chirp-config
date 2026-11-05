@@ -8309,13 +8309,17 @@
       "song": "songs/chirpers9-t2.yaml",
       "reference": "chirpers — The Long Way In",
       "source": null,
-      "owner": null,
+      "owner": "chirper-one",
       "metric": "python3 tools/compscore.py chirpers9-t2 OUT.wav",
-      "best": null,
+      "best": {
+        "score": 94.32,
+        "version": "v1",
+        "commit": "see git log songs/chirpers9-t2.yaml"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "complex electronic",
       "mode": "compose",
@@ -8331,6 +8335,10 @@
         "by": "harry@pocket4-nixos",
         "at": "2026-11-05T18:19:21Z",
         "note": "COMPOSE (infall (gathering), 240-360 s): Infall. Carries E1 transformed and introduces E2 (a rhythm cell, ideally in a different cycle length so the first polymeter appears). Gathering energy; crest in the middle; a first taste of convergence."
+      },
+      "last": {
+        "at": "2026-11-05T20:31:47Z",
+        "who": "chirper-one"
       }
     },
     {
