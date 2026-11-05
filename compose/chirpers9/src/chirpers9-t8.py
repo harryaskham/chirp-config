@@ -125,6 +125,64 @@ def chord(notes, bright=False):
     return ",".join(name_of(m) for m in ms)
 
 
+# v2 (ROUND TYPE: whole): THE STRETTO COMPLETE. E6 and E7 are posted, so t8 now holds E1-E7:
+# - E6 'the tide' (chirper-one, t6): Dmaj9#11 / Ebmaj7#11 on an 8-beat cycle whose split moves like a tide; here it
+#   enters at 65 (organ) and its split ebbs and flows but DRIFTS toward D - 4+4 ... 7+1 - until the last cycle before
+#   the jet is 8+0: D alone, the pull of Eb gone. The tide resolves on the jet.
+# - E7 'the jet' (chirper-two, t7): the Lydian collection as one column of fifths, D3 A3 E4 B4 F#5 C#6 G#6 on
+#   2 2 2 1 1 1 2 sixteenths (11, prime), fired on a brass synth from 81, phased so a column STARTS on beat 384 - so
+#   the jet IS E7: at bar 97 the column fires and HOLDS (supersaw), the whole collection as one chord, and the choir
+#   lands E8 over it. After the jet the column is re-barred into the lock (11 sixteenths + 5 rest) every 4 bars.
+E6_D = ("D3", "F#3", "A3", "C#4", "E4", "G#4")
+E6_EB = ("Eb3", "G3", "Bb3", "D4", "A4")
+E7 = [("D3", 0, 2), ("A3", 2, 2), ("E4", 4, 2), ("B4", 6, 1), ("F#5", 7, 1), ("C#6", 8, 1), ("G#6", 9, 2)]
+E7_CYCLE = 2.75
+JET_NOTES = []
+TIDE_WOBBLE = [0, 1, 0, -1, 1, 0, -1, 0, 1, 0, -0.5, 0.5, 0, 0.5, 0, 0]
+
+
+def write_tide_and_jet():
+    start = b0(65)
+    n = int((JB - start) // 8)                     # 16 cycles, the last ending exactly on the jet
+    for k in range(n):
+        beat = start + k * 8
+        split = 4 + 4 * k / (n - 1) + TIDE_WOBBLE[k % len(TIDE_WOBBLE)]
+        split = max(2.0, min(8.0, round(split * 2) / 2))
+        if k == n - 1:
+            split = 8.0                            # the tide resolves: D alone into the jet
+        v = 50 + k * 2
+        part("e6").add(beat, split, chord(E6_D), v)
+        if split < 8:
+            part("e6").add(beat + split, 8 - split, chord(E6_EB), v - 6)
+    c = E7_CYCLE
+    beat = JB - int((JB - b0(81)) // c) * c
+    while beat < JB - 0.01:
+        v = 46 + int(54 * (beat - b0(81)) / (JB - b0(81)))
+        for nm, s, ln in E7:
+            part("e7").add(beat + s * 0.25, ln * 0.25, nm, v)
+        beat += c
+    # the jet: the column fired at bar 97 and held - and again at the jet's return after the breakdown
+    for bar, ln, v in ((JET, 16.0, 0.82), (BREAK[1] + 1, 8.0, 0.72)):
+        for nm, s, _ in E7:                        # explicit notes: the column's voices overlap and HOLD together
+            JET_NOTES.append({"at": b0(bar) + s * 0.25, "len": ln - s * 0.25, "pitch": nm, "vel": v})
+    for bar in range(JET + 4, HORIZON, 4):
+        if in_break(bar) or bar == BREAK[1] + 1:
+            continue
+        for nm, s, ln in E7:
+            part("e7").add(b0(bar) + s * 0.25, ln * 0.25 + (0.25 if nm == "G#6" else 0), nm, 72)
+
+
+LULL = (57, 64)               # v2: a false calm in the stretto - E2, the pedal and E1 step out; E3 and E5 alone
+VACUUM = JET - 1              # v2: the bar before the jet - everything stops but the riser and E7's columns
+
+
+def carve(names, a_bar, z_bar):
+    lo, hi = b0(a_bar), b0(z_bar + 1)
+    for n in names:
+        if n in P:
+            P[n].ev = [e for e in P[n].ev if not (lo - 1e-6 <= e[0] < hi - 1e-6)]
+
+
 # ---------------------------------------------------------------- the stretto (before the jet)
 def write_stretto():
     # E4: the lights catch the fall, phased from beat 4 so a turn lands on the jet
@@ -274,6 +332,9 @@ def main():
     write_stretto()
     write_jet()
     write_horizon()
+    write_tide_and_jet()
+    carve(["e1", "e2", "bass"], *LULL)
+    carve(["lights", "e1", "e2", "e3", "e5", "e6", "bass", "kick", "hat"], VACUUM, VACUUM)
     lead, fifth, low = choir()
     lead += [{"at": b0(HORIZON), "len": b0(BARS + 1) - b0(HORIZON) - 4, "pitch": "D4", "vel": 0.6}]   # the held 'ah'
     tempo = [{"at": "0b", "bpm": SEAM_IN}, {"at": f"{b0(HORIZON):g}b", "bpm": SEAM_IN},
@@ -313,6 +374,9 @@ def main():
              "auto": {"rs": {"points": horizon_lane(-5.0)}}},
             tr("hold", HOLD, gain="-14dB", sends={"hall": "-4dB"},
                auto={"rs": {"points": horizon_lane(-5.0)}, "cl": {"points": cl}}),
+            tr("e6", "organ", gain="-19dB", pan=-0.3, sends={"hall": "-8dB"}, fx=["lp cutoff=3500"]),
+            tr("e7", "brass-synth", gain="-18dB", pan=0.15, sends={"dly": "-12dB", "hall": "-10dB"}),
+            {"name": "jet", "patch": "supersaw", "gain": "-15dB", "sends": {"hall": "-6dB"}, "notes": JET_NOTES},
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=0.8s mix=1 predelay=6ms", "hp cutoff=200"]},
                   "hall": {"fx": ["reverb kind=hall decay=4s mix=1 predelay=24ms", "hp cutoff=180"]},
