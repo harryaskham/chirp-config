@@ -8367,13 +8367,17 @@
       "song": "songs/chirpers9-t4.yaml",
       "reference": "chirpers — The Warm Third",
       "source": null,
-      "owner": null,
+      "owner": "chirper-three",
       "metric": "python3 tools/compscore.py chirpers9-t4 OUT.wav",
-      "best": null,
+      "best": {
+        "score": 86.95,
+        "version": "v1",
+        "commit": "see git log songs/chirpers9-t4.yaml"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "complex electronic",
       "mode": "compose",
@@ -8389,6 +8393,10 @@
         "by": "harry@pocket4-nixos",
         "at": "2026-11-05T18:19:21Z",
         "note": "COMPOSE (relief (the first orbit closes), 240-360 s): Relief: warm, open, melodic. Carries E1-E3 and introduces E4; the first full statement of the combined theme. The voice at its most human so far."
+      },
+      "last": {
+        "at": "2026-11-05T20:26:20Z",
+        "who": "chirper-three"
       }
     },
     {
