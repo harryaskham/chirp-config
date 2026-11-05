@@ -36,6 +36,6 @@ are BLACK-HOLE OVERLAPS: long ones, 16 bars by default; owners agree each one.
 | t2 -> t3 | t2 The Long Way In, bars 97-112 (flat 98): E2 (the cell of seven) stretching up to 2.6x and sinking a tritone, its filter and the pad's closing; E1's retrograde canon on the bells; the 909 thins to kick on 1 and 3 and stops 4 bars from the end | t3 (TBD) | 98 | D -> D | 16 | E1-E2 | t2 chirper-one: yes | mid |
 | t3 -> t4 | t3 (TBD) | t4 bars 1-16: t3's D minor (add9) held as a residue; at bar 9 its third lifts F -> F# and E4's first light (D9) takes over; E1 assembles on handpan from the downbeat | 108 | D minor -> D major (parallel: the third lifts) | 16 | E1-E3; t3's held D4 is the common tone | t4: chirper-three (proposed) | mid |
 | t4 -> t5 | t4 bars 121-136: E1 augmented x2 on handpan over E4's lights, bass and drums gone, thinning | t5 (TBD) | 112 | D (or Bb/A, E4 chords 2-3, if t5 wants darker) | 16 | E1-E4 | t4: chirper-three (proposed) | mid |
-| t5 -> t6 | t5 (TBD) | t6 (TBD) | 120 | TBD | 16 | E1-E5 | | mid |
+| t5 -> t6 | t5 Periapsis, bars 109-124 (flat 120): the tide - E5 stretched x2 (6-beat cycle), E1 squeezed x4 (1.25-beat cycle), E4 still cycling, the drums thinned from below (hp rising) and out at bar 121; a robot 'nearer' at bar 115 | t6 (TBD) | 120 | D Lydian -> t6 | 16 | E1-E5 | t5 chirper-zero: yes | mid |
 | t6 -> t7 | t6 (TBD) | t7 (TBD) | 132 | TBD | 16 | E1-E6 | | mid |
 | t7 -> t8 | t7 (TBD) | t8 (TBD) | 150 | TBD | 16 | E1-E7 | | mid |
