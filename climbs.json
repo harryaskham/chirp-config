@@ -8346,13 +8346,18 @@
       "song": "songs/chirpers9-t3.yaml",
       "reference": "chirpers — Phase Margin",
       "source": null,
-      "owner": null,
+      "owner": "chirper-two",
       "metric": "python3 tools/compscore.py chirpers9-t3 OUT.wav",
-      "best": null,
+      "best": {
+        "score": 84.571,
+        "version": "v1",
+        "commit": "see git log songs/chirpers9-t3.yaml",
+        "engine": "1277462f"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "complex electronic",
       "mode": "compose",
@@ -8368,6 +8373,10 @@
         "by": "harry@pocket4-nixos",
         "at": "2026-11-05T18:19:21Z",
         "note": "COMPOSE (first storm, 240-360 s): The first storm and the first difficult track: dense, abrasive, glitching, rhythmically hard. Carries E1-E2 and introduces E3. The storm resolves when the elements lock into one groove."
+      },
+      "last": {
+        "at": "2026-11-05T20:47:23Z",
+        "who": "chirper-two"
       }
     },
     {
