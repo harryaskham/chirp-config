@@ -82,7 +82,7 @@ def chord(bar):
 def build():
     rng = random.Random(SEED)
     total = NBARS * 4.0
-    P = {k: [] for k in ('e2m', 'bass', 'e1in', 'e1p', 'e1c', 'kit', 'hat3', 'pad', 'sub', 'voice_', 'e2body')}
+    P = {k: [] for k in ('e2m', 'bass', 'e1in', 'e1p', 'e1c', 'kit', 'hat3', 'pad', 'sub', 'voice_', 'e2body', 'infall')}
     fall0 = SEC['fall'] * 4.0
 
     # ---- E2: the cell of seven, from bar 6, assembling out of fragments ----
@@ -224,6 +224,15 @@ def build():
         if s_ != 'in' or i_ >= 8:
             P['sub'].append((bar * 4.0, m(KEY - 12 + root_ + (12 if root_ < -3 else 0)), 7.8, 96))
 
+    # ---- (v3) the fall: a Shepard-Risset tone on D, falling an octave every four seconds and never arriving - the long
+    # way in made audible, growing as the cell stretches and sinks, held into the seam with t3; kept low (-20 dB):
+    # louder, it filled the fall up to the level of the drift and the song lost its fall (tried at -16 and -13 dB).
+    # (v3 also tried swapping the 909, a three-song staple, for the electro kit: its booming kick flattened the
+    # dynamics - variety 99 -> 91 - so the 909 stays for now) ----
+    for k_ in range(8):
+        at = fall0 + k_ * 8.0
+        P['infall'].append((at, m(KEY), 7.9 if k_ < 7 else 7.5, 30 + 6 * k_))
+
     # ---- the voice: a whisper, close and dry, seven syllables - once at the crest's end, twice in the drift ----
     VO = json.load(open(os.path.join(HERE, 'chirpers9-t2-voice.json')))
     vtr = VO['tracks'][0]
@@ -277,6 +286,7 @@ def build():
                auto={'glitch': {'points': [['0b', 0.0], [f"{SEC['drift'] * 4.0 - 0.1:.1f}b", 0.0], [f"{SEC['drift'] * 4.0:.1f}b", 0.22], [f"{fall0 - 0.1:.1f}b", 0.3], [f"{fall0:.1f}b", 0.0]]}},
                fx=[{'type': 'stutter', 'slice': '1/16', 'repeats': 3, 'chance': {'value': 0.0, 'mod': [{'src': 'auto.glitch', 'amount': 1.0}]}, 'seed': 5}]),
             tr('hat3', '909', '-12dB', pan=0.25, sends={'echo': '-20dB'}),
+            tr('infall', 'shepard-fall', '-20dB', sends={'hall': '-16dB'}),
             tr('e2m', 'chip-metal', '-14dB', pan=-0.2, auto={'shut': {'points': shut_pts}},
                fx=['hp cutoff=500', {'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 900, 'mod': [{'src': 'auto.shut', 'amount': 3.5}]}}],
                sends={'echo': '-12dB', 'hall': '-14dB'}),
