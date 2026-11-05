@@ -72,13 +72,17 @@ def sec_of(bar):
 
 
 def chord(bar):
+    # (v2) the first eight bars hold ONE chord, D A C E - t1's quartal pad's own notes (agreed with chirper-zero at
+    # the seam), with no third: t2's F, and the harmony moving, arrive only when t1's tail has gone
+    if bar < 8:
+        return (0, [7, 10, 14, 19])
     return PROG[(bar // 2) % len(PROG)]
 
 
 def build():
     rng = random.Random(SEED)
     total = NBARS * 4.0
-    P = {k: [] for k in ('e2m', 'bass', 'e1in', 'e1p', 'e1c', 'kit', 'hat3', 'pad', 'sub', 'voice_')}
+    P = {k: [] for k in ('e2m', 'bass', 'e1in', 'e1p', 'e1c', 'kit', 'hat3', 'pad', 'sub', 'voice_', 'e2body')}
     fall0 = SEC['fall'] * 4.0
 
     # ---- E2: the cell of seven, from bar 6, assembling out of fragments ----
@@ -108,6 +112,13 @@ def build():
             if s_ == 'crest' and abs(at - CREST * 4.0) < 1e-6:
                 v = 124
             P['e2m'].append((at, m(KEY + 24 + E2_PITCH[st] + sink), 0.22 * stretch, v))
+            # (v2) THE DEBRIS GETS A BODY: under each chip-metal hit a woody pitched drum (a log drum, an octave
+            # down) that grows with the cell - silent while it is debris, a full body by the crest: matter accreting
+            body_ = min(1.0, max(0.0, (t - E2_START * 4.0) / ((CREST - E2_START) * 4.0))) ** 1.5
+            if t >= fall0:
+                body_ *= max(0.25, 1.0 - (t - fall0) / 80.0)
+            if body_ > 0.04:
+                P['e2body'].append((at, m(KEY + 12 + E2_PITCH[st] + sink), 0.3 * stretch, 30 + 80 * body_ * (E2_VEL[st] / 112.0)))
         t += 7 * 0.25 * stretch
         cyc += 1
 
@@ -165,7 +176,8 @@ def build():
         at = t
         for semi, ln in reversed(E1):
             if at < fall0 + 32.0 and semi is not None:
-                P['e1c'].append((at, m(KEY + 19 + semi), ln * 2 * 0.9, 74))
+                hi_ = 12 if at >= fall0 else 0      # (v2) in the fall the bells ring an octave up, into t3's head
+                P['e1c'].append((at, m(KEY + 19 + hi_ + semi), ln * 2 * 0.9, 74 + (8 if hi_ else 0)))
             at += ln * 2
         t += tot1 * 2 + 4.0
 
@@ -268,6 +280,8 @@ def build():
             tr('e2m', 'chip-metal', '-14dB', pan=-0.2, auto={'shut': {'points': shut_pts}},
                fx=['hp cutoff=500', {'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 900, 'mod': [{'src': 'auto.shut', 'amount': 3.5}]}}],
                sends={'echo': '-12dB', 'hall': '-14dB'}),
+            tr('e2body', {'extends': 'log-drum', 'play': {'legato': False, 'mono': False, 'glide': '0ms'}}, '-9dB', pan=-0.1,
+               sends={'hall': '-18dB'}),
             tr('e1in', 'risset-bell', '-12dB', pan=0.15, auto={'lens': {'points': lens_pts}},
                fx=[{'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 400, 'mod': [{'src': 'auto.lens', 'amount': 4.0}]}}],
                sends={'hall': '-6dB'}),

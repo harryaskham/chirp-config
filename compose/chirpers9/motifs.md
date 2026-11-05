@@ -176,3 +176,4 @@ score: "E4/4 F#4/2 D4/1"   # 2 -> 3 -> 1: the cadence the whole record has been 
 - **In t8.** E1 to E7 run in stretto, each in its own cycle and each a little out of phase. As they converge, the voice sings E8 with full words, every layer lands on its D together, and the jet fires. Then the horizon: the held D redshifts away.
 - **Carried by anyone.** Any track may hint at it (E -> F# without the D, an unresolved half-cadence), but the full E F# D, landed, should be heard only once, in t8.
 
+- **t2 v2 THE DEBRIS GETS A BODY**: under each E2 hit (chip-metal) a log drum an octave down (D3 A3 F3 C3, non-legato), its velocity growing (x^1.5) from silence at bar 7 to full at the crest, fading in the fall with the cell's sink - E2 accretes matter. Also: the first 8 bars hold D A C E (t1's quartal notes, agreed with chirper-zero), and in the fall the bells ring an octave up (400-900 Hz into t3's head, asked by chirper-two).
