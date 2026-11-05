@@ -8344,7 +8344,7 @@
     {
       "id": "chirpers9-t3",
       "song": "songs/chirpers9-t3.yaml",
-      "reference": "chirpers — Track 3 (untitled)",
+      "reference": "chirpers — Phase Margin",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers9-t3 OUT.wav",
@@ -8360,7 +8360,7 @@
       "meta": {
         "artist": "chirpers",
         "album": "Accretion",
-        "title": "Track 3 (untitled)",
+        "title": "Phase Margin",
         "track": 3,
         "year": 2026
       },
