@@ -213,6 +213,36 @@ def phase_start(cycle, entry_bar, target=None):
     return target - k * cycle
 
 
+# v3 (ROUND TYPE: section, bars 79-92): THE HELD BREATH. The crest is where the voice is at its most human, so the
+# band makes room for it: on the last beat of bar 80 the rhythm section, the felt piano, the canon and the chip air
+# stop (the lights sustain); the first line ('around the warm stone', bars 81 - 83.5) is sung over the lights, harp
+# and vibes alone, with only the convergence downbeat struck (kick and swish); first try: the band came back at bar 83
+# beat 3 (a 5.4 s stop, under the section detector's minimum: one seed lost a boundary elsewhere, -4.3); now the stop
+# holds through both E1-augmented lines and the band comes back at bar 86 for the retrograde lines. Measured: the brush kit sits ~18-36 dB under the mix (the sub is its bulk),
+# so the stop that the ear hears is the upright resting, the sub and the lights stepping back.
+BREATH = (b0(CREST) - 1.0, b0(CREST))                 # the last beat of bar 80
+STOP = (b0(CREST), b0(86))                            # stop-time under the first two lines (E1 augmented); the band
+                                                      # returns at bar 86 - an E4 turn (beat 340, D9) - for the two
+                                                      # retrograde lines that come home
+
+
+def hold_breath():
+    def cut(names, lo, hi, keep=lambda e: False):
+        for n in names:
+            if n in P:
+                P[n].ev = [e for e in P[n].ev if keep(e) or not (lo - 1e-6 <= e[0] < hi - 1e-6)]
+    cut(["kick", "snare", "hat", "ride", "felt", "canon", "air", "bass", "sub"], *BREATH)
+    cut(["kick", "snare", "hat", "ride", "air"], *STOP, keep=lambda e: abs(e[0] - b0(CREST)) < 1e-6)
+    cut(["bass"], *STOP)                                  # the upright rests under the first line
+    if "sub" in P:                                        # the floor strikes the convergence downbeat, then falls away
+        P["sub"].ev = [(s, 1.0 if abs(s - STOP[0]) < 1e-6 else ln, h, v) for s, ln, h, v in P["sub"].ev
+                       if abs(s - STOP[0]) < 1e-6 or not (STOP[0] <= s < STOP[1])]
+    soften = {"felt": 8, "lights": 16}                    # and what carries the energy steps back (measured: the sub
+    for n, dv in soften.items():                          # is the mix's bulk, the lights next), leaving the voice
+        if n in P:
+            P[n].ev = [(s, ln, h, v - dv) if STOP[0] <= s < STOP[1] else (s, ln, h, v) for s, ln, h, v in P[n].ev]
+
+
 def write_combined():
     vel = {"A": -14, "B": -8, "rise": -4, "crest": 0, "relief": -4}
     beat = phase_start(1.75, 25)
@@ -308,6 +338,7 @@ def main():
     write_sub()
     write_air()
     write_combined()
+    hold_breath()
     voice = sung_notes(b0(CREST), TAKES) + sung_notes(b0(101), TAKES[2:])
     tempo = [{"at": "0b", "bpm": SEAM_IN}, {"at": f"{b0(17):g}b", "bpm": SEAM_IN},
              {"at": f"{b0(121):g}b", "bpm": SEAM_OUT, "ramp": True}]
