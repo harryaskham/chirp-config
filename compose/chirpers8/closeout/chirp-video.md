@@ -36,3 +36,7 @@
 - Sync: every frame sits on the album's own timeline, measured with tools/vissync.py (0 ±1 frame wherever the picture clearly follows the sound).
 - Fixed on the way: captions cut short at the placeholder's length; lower case for the band ("chirpers").
 - Still missing (for next time): a true picture crossfade across songs, synth observables (`sync` and the systems' state) as vis sources, and album programmes in the web pane.
+
+**4K final delivered (5 Nov, 03:40).** /tmp/cv/final/standby-amber-2160p.mp4: 35.2 GB, HEVC qp 18, 3893.88 s (the release exactly), 116816 frames, sync 0±1 frame wherever the picture clearly follows the sound. eco's chain kits and uploads it unlisted.
+- A daemon restart at 23:03 killed 7 half-drawn parts; they were redrawn in their own systemd unit.
+- The join moved from the SD to the NVMe on Harry's word (4 min instead of more than an hour).
