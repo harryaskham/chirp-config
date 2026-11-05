@@ -48,6 +48,7 @@ DETUNE = [0.38, -0.31, 0.27, -0.42, 0.22]   # semitones off at entry, pulled to 
 
 TEMPO_LO, TEMPO_HI = 84.0, 90.0
 SINK = float(os.environ.get("C9T1_SINK", "0"))   # semitones E1 sinks across the t1 -> t2 overlap (chirper-one, 5 Nov: meet in D, no sink -> 0)
+WOBBLE = os.environ.get("C9T1_WOBBLE", "240:288")   # SECTION (w6, 2:46-3:19, B after the crest: flagged static - the locked cell repeating, unchanged): THE SEED BREATHES - having formed, the five voices loosen once: across the window each drifts off its place in the cell (up to half a beat early or late, and a little out of tune, as they were before the crest) and settles back, locked again, by the window's end - the memory of the scatter inside the lock. Value 'A:B' = beats
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -78,9 +79,16 @@ def fragments():
             ns.append(note(t, m(E1_MIDI[i] + det), ln, vel))
         # the crest and the lock: the cell in order every 5 beats through B
         t = TC + E1_OFF[i]
+        wa, wb = (float(x) for x in WOBBLE.split(":")) if WOBBLE else (0.0, 0.0)
         while t < ST["outro"]:
             vel = 0.85 if t < TC + E1_CYC else 0.7
-            ns.append(note(t, m(E1_MIDI[i]), E1_LEN[i], vel))
+            if WOBBLE and wa <= t < wb:
+                import math
+                w = math.sin(math.pi * (t - wa) / (wb - wa))
+                drift = (0.0, 0.3, -0.25, 0.5, -0.45)[i] * w
+                ns.append(note(t + drift, m(E1_MIDI[i] + 0.5 * DETUNE[i] * w), E1_LEN[i] * (1 + 0.6 * w), vel))
+            else:
+                ns.append(note(t, m(E1_MIDI[i]), E1_LEN[i], vel))
             t += E1_CYC
         # the fall: augmented x2 (10-beat cycle), sinking a semitone across the outro
         t = ST["outro"] + 2 * E1_OFF[i]
