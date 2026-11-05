@@ -307,11 +307,44 @@ def choir():
 
 
 # ---------------------------------------------------------------- the horizon
+# v4 (ROUND TYPE: section, bars 141-160, ~35 s as the tempo slows): THE LAST IMAGES. At an event horizon what fell
+# in is seen forever, frozen, stretched and reddened. So the horizon no longer just holds a sinking chord: each element
+# returns ONCE on its own instrument, each SLOWER and LOWER than the one before - E7's column (brass) x2 a semitone
+# down at 141, E5's orbit (marimba) x2 two down at 144, E1 (chip pulse) x3 three down at 147, E2 (glock) x4 four down
+# at 152, two of E4's lights x2 five down at 155 - while the held light sinks on its lane beneath; the choir's last
+# line ('and it was ours') returns at half speed on the same lane at 150, and the held 'ah' takes over from 157.
+# (E8 stays sung once, at the jet.)
+def echo(name, cell, bar, factor, transpose, vel):
+    """cell: [(note, onset beats, length beats)] - placed at `bar`, augmented by `factor`, transposed."""
+    for n, on, ln in cell:
+        m = brighten(midi(n)) + transpose
+        part(name).add(b0(bar) + on * factor, ln * factor, name_of(m), vel)
+
+
 def write_horizon():
     a, z = HORIZON, BARS
     part("hold").add(b0(a), b0(z + 1) - b0(a) - 2, "D3,A3,D4,F#4", 80)
     part("hsub").add(b0(a), b0(z + 1) - b0(a) - 2, "D1", 84)
-    part("lights").add(b0(a), 16.0, chord(E4[0], bright=True), 70)
+    echo("e7", [(nm, s * 0.25, ln * 0.25) for nm, s, ln in E7], a, 2, -1, 84)
+    echo("e5", [(n, s * 0.25, 0.5) for n, s in E5], a + 3, 2, -2, 78)
+    echo("e1", E1, a + 6, 3, -3, 72)
+    echo("e2", [(n, st * 0.25, 0.25) for n, st, v in E2], a + 11, 4, -4, 66)
+    for i, k in enumerate((0, 1)):
+        notes = [name_of(brighten(midi(n)) - 5) for n in E4[k]]
+        part("lights").add(b0(a + 14) + i * 10, 10.0, ",".join(notes), 60 - i * 6)
+
+
+def horizon_line():
+    """The choir's last line at half speed, at bar 150 (the lead's redshift lane sinks it)."""
+    tk, at = TAKES[3], b0(HORIZON + 9)
+    out = []
+    for n in tk["notes"]:
+        d = {"at": round(at + 2 * n["at"], 4), "len": 2 * n["len"], "ph": n["ph"], "pitch": n["pitch"],
+             "vel": round(n["vel"] * 0.8, 3)}
+        if n.get("expr_path"):
+            d["expr_path"] = n["expr_path"]
+        out.append(d)
+    return out
 
 
 def horizon_lane(drop):
@@ -333,7 +366,7 @@ HOLD = {"about": "t8's horizon: a held light, its pitch sinking on a lane",
         "synth": {"layers": [{"wave": "saw", "level": "-6dB"}, {"wave": "saw", "cents": 7, "level": "-6dB"},
                              {"wave": "sine", "ratio": 0.5, "level": "-8dB"}],
                   "pitch": {"value": 0, "mod": [{"src": "auto.rs", "amount": 1}]},
-                  "filters": [{"kind": "lp", "cutoff": {"value": 3000, "mod": [{"src": "auto.cl", "amount": -2600}]}}],
+                  "filters": [{"kind": "lp", "cutoff": {"value": 3000, "mod": [{"src": "auto.cl", "amount": -3}]}}],   # octaves (v4: was -2600, which shut the light off)
                   "amp": {"a": "3s", "d": "0s", "s": 1, "r": "6s"}}}
 
 
@@ -345,7 +378,8 @@ def main():
     carve(["e1", "e2", "bass"], *LULL)
     carve(["lights", "e1", "e2", "e3", "e5", "e6", "bass", "kick", "hat"], VACUUM, VACUUM)
     lead, fifth, low = choir()
-    lead += [{"at": b0(HORIZON), "len": b0(BARS + 1) - b0(HORIZON) - 4, "pitch": "D4", "vel": 0.6}]   # the held 'ah'
+    lead += horizon_line()
+    lead += [{"at": b0(HORIZON + 16), "len": b0(BARS + 1) - b0(HORIZON + 16) - 4, "pitch": "D4", "vel": 0.6}]   # the held 'ah'
     tempo = [{"at": "0b", "bpm": SEAM_IN}, {"at": f"{b0(HORIZON):g}b", "bpm": SEAM_IN},
              {"at": f"{b0(BARS + 1):g}b", "bpm": 90, "ramp": True}]
     cl = [["0b", 0.0], [f"{b0(HORIZON):g}b", 0.0], [f"{b0(BARS + 1):g}b", 1.0]]
@@ -381,7 +415,7 @@ def main():
              "auto": {"rs": {"points": horizon_lane(-5.0)}}},
             {"name": "choir8", "patch": VOICE8, "gain": "-14dB", "pan": -0.3, "sends": {"hall": "-6dB"}, "notes": low,
              "auto": {"rs": {"points": horizon_lane(-5.0)}}},
-            tr("hold", HOLD, gain="-14dB", sends={"hall": "-4dB"},
+            tr("hold", HOLD, gain="-18dB", sends={"hall": "-4dB"},
                auto={"rs": {"points": horizon_lane(-5.0)}, "cl": {"points": cl}}),
             tr("e6", "organ", gain="-24dB", pan=-0.3, sends={"hall": "-8dB"}, fx=["lp cutoff=3500"]),
             tr("e7", "brass-synth", gain="-11dB", pan=0.15, sends={"dly": "-12dB", "hall": "-10dB"}),
