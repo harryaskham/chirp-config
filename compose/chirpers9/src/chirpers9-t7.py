@@ -27,6 +27,12 @@ OUT = os.environ.get("T7_OUT", os.path.join(ROOT, "songs", "chirpers9-t7.yaml"))
 # column of fifths - speaks "every corner comes sooner"; then the jet rights itself and a snare rush rebuilds into
 # bar 144. T7_R2=none reproduces v1.
 R2 = os.environ.get("T7_R2", "lock") != "none"
+# round 3 (palette): T7_R3=column (default) - two swaps away from album staples. The jet's octave double: nes-pulse-lead
+# (4 songs) -> a7-column, a WAVETABLE (unused on the album, no preset uses one) whose frames add the harmonics 1, 3, 9,
+# 27, 81, 243 - each a fifth (and an octave) above the last - scanned upward on every note: the jet's column of fifths
+# built inside one sound. The floor: sub (6 songs) -> a7-floor, a sine with its octave, a slow swell and a little drive,
+# easing in from bar 17 (the in-seam had +29 dB at 38-44 Hz against t6's body). T7_R3=none reproduces v2.
+R3 = os.environ.get("T7_R3", "column") != "none"
 W9 = (128, 144)
 
 BARS, BPB = 176, 4
@@ -407,6 +413,30 @@ def main():
         {"name": "riser", "patch": "fx-riser", "gain": "-10dB", "score": T["riser"].score()},
     ]
     patches = dict(PATCHES)
+    if R3:
+        cols = [[[1, 1.0]]]
+        for h, g in ((3, 0.7), (9, 0.55), (27, 0.42), (81, 0.3), (243, 0.2)):
+            cols.append(cols[-1] + [[h, g]])
+        patches["a7-column"] = {"about": "chirper-two: the jet's column inside one sound - a wavetable whose six frames add the "
+                                         "harmonics 1, 3, 9, 27, 81, 243 (each a fifth and an octave above the last), "
+                                         "scanned upward by an envelope on every note",
+                                "synth": {"layers": [{"type": "wavetable", "frames": cols,
+                                                      "position": {"value": 0.0, "mod": [{"src": "env.burn", "amount": 1.0}]}}],
+                                          "env": {"burn": {"a": "140ms", "d": "0ms", "s": 1.0, "r": "60ms"}},
+                                          "filters": ["hp cutoff=250", "lp cutoff=9000 q=0.6"],
+                                          "amp": {"a": "2ms", "d": "250ms", "s": 0.55, "r": "120ms"}}}
+        patches["a7-floor"] = {"about": "chirper-two: the inner orbit's floor - a sine with its octave (-9 dB), a slow swell and "
+                                        "a little drive, low-passed: a floor that breathes in rather than sits",
+                               "synth": {"layers": [{"wave": "sine"}, {"wave": "sine", "ratio": 2, "level": "-9dB"}],
+                                         "drive": 0.15, "filters": ["lp cutoff=240 q=0.6"],
+                                         "amp": {"a": "350ms", "d": "0ms", "s": 1.0, "r": "450ms"}}}
+        T["sub"].ev = [(e[0], e[1], e[2], int(e[3] * (0.45 if e[0] < 64 else min(1.0, 0.45 + 0.55 * (e[0] - 64) / 96.0))), e[4])
+                       for e in T["sub"].ev]
+        for tr in tracks:
+            if tr["name"] == "jethi":
+                tr.update(patch="a7-column", gain="-17dB", score=T["jethi"].score())
+            if tr["name"] == "sub":
+                tr.update(patch="a7-floor", gain="-9dB", score=T["sub"].score())
     if R2:
         cv = json.load(open(os.path.join(HERE, "t7", "corner.json")))["tracks"][0]
         vnotes = []
