@@ -8523,7 +8523,7 @@
     {
       "id": "chirpers9-t8",
       "song": "songs/chirpers9-t8.yaml",
-      "reference": "chirpers — Track 8 (untitled)",
+      "reference": "chirpers — All of It Falls",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers9-t8 OUT.wav",
@@ -8539,7 +8539,7 @@
       "meta": {
         "artist": "chirpers",
         "album": "Accretion",
-        "title": "Track 8 (untitled)",
+        "title": "All of It Falls",
         "track": 8,
         "year": 2026
       },
