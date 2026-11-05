@@ -47,6 +47,8 @@ FRAG = [
 DETUNE = [0.38, -0.31, 0.27, -0.42, 0.22]   # semitones off at entry, pulled to 0 at the crest
 
 TEMPO_LO, TEMPO_HI = 84.0, 90.0
+SINK = float(os.environ.get("C9T1_SINK", "0"))   # semitones E1 sinks across the t1 -> t2 overlap (chirper-one, 5 Nov: meet in D, no sink -> 0)
+HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
 def m(x):
@@ -84,7 +86,7 @@ def fragments():
         t = ST["outro"] + 2 * E1_OFF[i]
         while t < TOTAL - 2:
             k = (t - ST["outro"]) / (TOTAL - ST["outro"])
-            ns.append(note(t, m(E1_MIDI[i] - 1.0 * k), 2 * E1_LEN[i], 0.65 - 0.35 * k))
+            ns.append(note(t, m(E1_MIDI[i] - SINK * k), 2 * E1_LEN[i], 0.65 - 0.35 * k))
             t += 2 * E1_CYC
         tracks.append({"name": name, "patch": patch, "gain": gain, "pan": pan,
                        "fx": [{"type": "filter", "kind": "lp", "q": 0.7,
@@ -192,6 +194,14 @@ def hats():
         for o in E1_OFF:
             ns.append(note(t + o, "C7", 0.25, 0.55 if o == 0 else 0.4))
         t += E1_CYC
+    if HATP == "shekere":
+        ns = [dict(n, pitch="sk", vel=round(min(1.0, n["vel"] * 1.15), 3)) for n in ns]
+        t = TC
+        while t < ST["outro"] + 8 * BAR:
+            ns.append(note(t, "cl", 0.25, 0.5))
+            t += E1_CYC
+        ns.sort(key=lambda n: (n["at"], n["pitch"]))
+        return {"name": "hats", "patch": "afro-perc", "gain": "-17dB", "pan": 0.35, "sends": {"space": "-10dB"}, "notes": ns}
     return {"name": "hats", "patch": "nes-noise-hat", "gain": "-19dB", "pan": 0.35, "sends": {"space": "-12dB"}, "notes": ns}
 
 
