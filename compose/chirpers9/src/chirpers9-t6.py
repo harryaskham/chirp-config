@@ -84,7 +84,7 @@ def sec_of(bar):
 def build():
     rng = random.Random(SEED)
     total = NBARS * 4.0
-    P = {k: [] for k in ('far', 'near', 'tide', 'acid', 'e5', 'kit', 'hats', 'lights', 'sub')}
+    P = {k: [] for k in ('far', 'near', 'tide', 'acid', 'e5', 'kit', 'hats', 'lights', 'sub', 'farbass')}
 
     # ---- E1 in two layers moving in opposite directions in time; each section restarts the cell on its downbeat ----
     def e1_layer(key, speeds, octave, vel0):
@@ -101,6 +101,14 @@ def build():
                     at += d
                 t += 5.0 * f
     e1_layer('far', FAR, 12, 84)               # D3: the cello, the far side
+    # (v3) THE FAR SIDE IS THE WEIGHT: the far side doubled an octave down (D2) on a Duffing bass - a driven
+    # oscillator that walks into chaos as a 'strain' lane rises, so the far side of the body is what the tide
+    # tears: clean in the in-seam, groaning in the squeeze, locked and clean again at the crest (the convergence),
+    # then breaking up through the surge into the tear
+    # (tried: leaving it out of the out-seam, under t7's Eb floor, and softer in the tide - the song lost its
+    # returns and its range, 85 against 92; in the out-seam its blur on E1's notes over the frozen Eb is the tear's
+    # last gasp)
+    P['farbass'] = [(a_, m(float(p_[1:]) - 12), d_, v_) for a_, p_, d_, v_ in P['far']]
     e1_layer('near', NEAR, 36, 78)             # D5: the marimba, the near side
 
     # ---- E6, the tide: X and Y alternating in 8-beat cycles, the split moving; E4's four lights at the crest ----
@@ -288,6 +296,16 @@ def build():
         s_, i_ = sec_of(b_)
         a_, z_ = EN[s_]
         energy_pts.append([f'{b_ * 4.0:.1f}b', round(a_ + (z_ - a_) * i_ / 15.0, 2)])
+    STRAIN = {'in': (0.0, 0.0), 'pull': (0.0, 0.15), 'tide': (0.15, 0.25), 'squeeze': (0.25, 0.45), 'crest': (0.05, 0.05),
+              'cross': (0.2, 0.35), 'surge': (0.35, 0.55), 'torn': (0.6, 0.85), 'out': (0.85, 0.7)}
+    strain_pts = []
+    for b_ in range(NBARS):
+        s_, i_ = sec_of(b_)
+        a_, z_ = STRAIN[s_]
+        strain_pts.append([f'{b_ * 4.0:.1f}b', round(a_ + (z_ - a_) * i_ / 15.0, 3)])
+    FARBASS = {'extends': 'duffing-bass',
+               'synth': {'layers': [{'type': 'chaos', 'chaos': {'system': 'duffing', 'axis': 'x',
+                                     'amount': {'value': 0, 'mod': [{'src': 'auto.strain', 'amount': 1.0}]}}}]}}
     tr = lambda name, patch, gain, **kw: dict({'name': name, 'patch': patch, 'gain': gain, 'score': line(P[name], total)}, **kw)
     song = {
         'about': "chirpers - Accretion, track 6 by chirper-one: Spring Tide. Tidal forces: E1 in two layers, one squeezed "
@@ -310,6 +328,7 @@ def build():
             tr('kit', 'prog-kit', '-6dB', sends={'hall': '-20dB'}),
             tr('hats', 'prog-kit', '-12dB', pan=0.2, fx=[{'type': 'eq', 'bands': ['highshelf cutoff=8000 gain=5dB']}]),
             tr('far', 'cello', '-8dB', pan=-0.25, sends={'hall': '-12dB'}),
+            tr('farbass', FARBASS, '-9dB', pan=-0.1, auto={'strain': {'points': strain_pts}}, fx=['lp cutoff=1400', 'hp cutoff=35']),
             tr('near', 'modal-marimba', '-11dB', pan=0.3, auto={'shut': {'points': shut_pts}},
                fx=[{'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 700, 'mod': [{'src': 'auto.shut', 'amount': 4.0}]}}],
                sends={'echo': '-14dB', 'hall': '-14dB'}),
