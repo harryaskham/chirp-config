@@ -35,6 +35,13 @@ R2 = os.environ.get("T3_R2", "crab") != "none"
 # and 0.1 from the lock (the storm resolves in the timbre too). The storm's snare: the 909 (3 songs) -> ks-drum, a
 # Karplus-Strong skin tuned to the key (D4, ghosts on A4), until the lock, where the 909 takes over. =none reproduces v2.
 R3 = os.environ.get("T3_R3", "ring") != "none"
+# round 4 (section, w7 = bars 72-84, the lock assembling, flagged static): T3_R4=align (default) - the arithmetic made
+# audible. Glass ticks count the bar's downbeats upward through D Phrygian (D5 Eb5 F5 G5 A5 Bb5 C6, two bars a step, to
+# the break), and every downbeat where a cycle ALREADY lines up with the bar - E1 at bars 73, 78, 83; E2 and E3 together
+# at 74 and 81 - lands an alignment hit (crash, kick, a shard chord), the double ones after an eighth of held breath.
+# Bar 88 is where all of them line up at once. T3_R4=none reproduces v3.
+R4 = os.environ.get("T3_R4", "align") != "none"
+CLEAR = []      # R4: the bar-82 statement, spoken clearly (the voice clears as the arithmetic does)
 CREST = 88                      # the bar every cycle lands on
 CREST16 = CREST * 16            # ... in sixteenths
 EYE = (62, 66)                  # the eye of the storm: four bars of stillness inside it
@@ -173,7 +180,7 @@ def build():
     rng = random.Random(9)
     T = {k: Track(k) for k in ("kick", "snare", "hats", "perc", "chipsn", "chiphat", "bass", "shard", "arp0",
                                "arp1", "arp2", "e1", "e1hi", "e2", "dust", "sub", "hold", "riser", "whisper", "robot", "floor",
-                               "glass")}
+                               "glass", "tick")}
 
     # ---- E3: the progression -------------------------------------------------------------------------------
     # infall: augmented x2 on the dust pad (14-beat cycle), phased to the crest as well
@@ -379,8 +386,29 @@ def build():
                       (82, {0, 1, 2, 3})):
         put(whisper, bar * 4.0 + 0.5, keep)
     put(whisper, (CREST - 2) * 4.0, None)                 # whole, two bars before the lock
+    if R4:
+        CLEAR.extend(n for n in whisper if 82 * 4.0 <= n["at"] < 84 * 4.0)
+        whisper[:] = [n for n in whisper if not (82 * 4.0 <= n["at"] < 84 * 4.0)]
     for bar in (92, 100, 108):
         put(robot, bar * 4.0, None)
+    if R4:
+        hits = {}
+        for name, ln in (("E1", E1_LEN16), ("E2", E2_LEN), ("E3", E3_LEN16)):
+            for c in cycle_starts(ln, 72 * 16, 86 * 16):
+                if c % 16 == 0 and 72 * 16 <= c < 86 * 16:
+                    hits.setdefault(c // 16, []).append(name)
+        drums = ("kick", "snare", "hats", "perc", "chipsn", "chiphat")
+        for bar, who in sorted(hits.items()):
+            b0 = bar * 4.0
+            if len(who) > 1:
+                for k in drums:
+                    T[k].ev = [e for e in T[k].ev if not (b0 - 0.5 <= e[0] < b0)]
+            T["perc"].add(b0, 1.0, "c", 96 if len(who) == 1 else 116)
+            T["kick"].add(b0, 0.25, "k", 112 if len(who) == 1 else 124)
+            T["shard"].add(b0, 0.5, ",".join(mtok(m + 12) for m in E3[0][0]), 92 if len(who) == 1 else 112)
+        steps = ["D5", "Eb5", "F5", "G5", "A5", "Bb5", "C6"]
+        for bar in range(72, 86):
+            T["tick"].add(bar * 4.0, 0.9, mtok(midi(steps[(bar - 72) // 2])), 84 + 2 * (bar - 72) + (12 if bar in hits else 0))
     return T, whisper, robot
 
 
@@ -474,7 +502,7 @@ def main():
                 tr["score"] = T["snare"].score()
         tracks.append({"name": "skin", "patch": "ks-drum", "gain": "-5dB", "pan": -0.05, "fx": storm_fx(), "auto": lanes(),
                        "score": storm.score()})
-    if R2:
+    if R2 or R4:
         patches["a3-glass"] = {"about": "chirper-two: the crest's glass - a sine phase-modulated at 3.5:1, the index pinged "
                                         "on each attack and settling to a faint shimmer; an octave partial; no low end",
                                "synth": {"layers": [{"name": "g", "ratio": 3.5, "audible": False},
@@ -484,9 +512,16 @@ def main():
                                          "env": {"ping": {"a": "0.5ms", "d": "250ms", "s": 0.05, "r": "100ms"}},
                                          "filters": ["hp cutoff=300", "lp cutoff=8000 q=0.6"],
                                          "amp": {"a": "2ms", "d": "600ms", "s": 0.45, "r": "400ms"}}}
+    if R2:
         tracks.append({"name": "glass", "patch": "a3-glass", "gain": "-8dB", "pan": 0.25,
                        "fx": ["delay time=3/8 mix=0.2 feedback=0.35"], "sends": {"space": "-6dB"},
                        "score": T["glass"].score()})
+    if R4:
+        tracks.append({"name": "speak", "patch": "voice-speech", "gain": "3dB", "pan": 0.0,
+                       "fx": ["delay time=3/8 mix=0.12 feedback=0.25"], "sends": {"space": "-10dB"}, "notes": CLEAR})
+        tracks.append({"name": "tick", "patch": "a3-glass", "gain": "-10dB", "pan": -0.2,
+                       "fx": ["delay time=1/4 mix=0.2 feedback=0.4"], "sends": {"space": "-6dB"},
+                       "score": T["tick"].score()})
     master = {"fx": [{"type": "eq", "bands": ["hp cutoff=25", "peak cutoff=100 gain=3dB q=1.0",
                                               "peak cutoff=320 gain=-2dB q=0.8",
                                               "highshelf cutoff=8000 gain=2dB"]},
