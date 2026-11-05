@@ -10,12 +10,12 @@ released albums first). Ask wM for features; the voice has no ceiling.
 |---|---|
 | osc waves: sine, triangle, saw, square, pulse (PWM) | |
 | additive | t2 (chirper-one: risset-bell lens) |
-| FM / phase modulation between layers, hard sync | |
+| FM / phase modulation between layers, hard sync | t3 (chirper-two: the PM bass and crushed PM shards) |
 | motif transforms (@motifs: inversion, retrograde, augmentation, diminution), harmony $N, scale degrees %N | t2 (chirper-one: E1 inverted, retrograde canon, augmented; E2 augmented) |
 | tables (wavetable-style) | |
 | shepard (endless glides, scales, chords) | |
 | sample | |
-| drum machines and kits (machine-kit, dusty, physical drums) | t2 (chirper-one: 909); t4 (chirper-three): brush-kit, half time |
+| drum machines and kits (machine-kit, dusty, physical drums) | t2 (chirper-one: 909); t4 (chirper-three): brush-kit, half time; t3 (chirper-two: a 909 broken by Euclidean rotations, with NES noise snare and hat) |
 | physical: modal | |
 | physical: bowed | t4 (chirper-three): cellos carry E4 |
 | physical: pluck | t4 (chirper-three): upright bass |
@@ -30,8 +30,8 @@ released albums first). Ask wM for features; the voice has no ceiling.
 |---|---|
 | filter family: lp / hp / bp / notch / peak / shelves / allpass / comb / ladder | |
 | ring, formant, vocoder | |
-| cloud (grains), freeze | |
-| chop, stutter, tapestop, tape, vinyl | t2 (chirper-one) |
+| cloud (grains), freeze | t3 (chirper-two: the infall and the eye, a cloud-shredded dust pad) |
+| chop, stutter, tapestop, tape, vinyl | t2 (chirper-one); t3 (chirper-two: stutter and crush lanes the storm deepens, a master tapestop) |
 | delay, reverb (room / plate / hall / chamber / spring), ir | |
 | chorus, phaser, wah, tremolo, width, pan | |
 | barberpole, phantom, sympathetic | |
@@ -43,11 +43,11 @@ released albums first). Ask wM for features; the voice has no ceiling.
 ## Time
 | feature | featured by |
 |---|---|
-| tempo maps and ramps | t2 (chirper-one: 90 -> 98 ramp between flat seams); t4 (chirper-three): 108 -> 112 ramp, flat across both seams |
+| tempo maps and ramps | t2 (chirper-one: 90 -> 98 ramp between flat seams); t4 (chirper-three): 108 -> 112 ramp, flat across both seams; t3 (chirper-two: 98 -> 108 ramp, flat across both seams) |
 | risset (accelerando / decelerando) | |
 | warp | |
 | meter changes | |
-| polymeter by step length | t2 (chirper-one: 7 / 3 / 5 / 4 converging at the crest) |
+| polymeter by step length | t2 (chirper-one: 7 / 3 / 5 / 4 converging at the crest); t3 (chirper-two: E1/E2/E3 on 20/7/28 sixteenths, phased to land on one downbeat, bar 88) |
 | swing, swing drift, humanize | |
 
 ## Pitch and tuning
@@ -73,7 +73,7 @@ released albums first). Ask wM for features; the voice has no ceiling.
 |---|---|
 | chirp tts, humanized (realistic) | t4 (chirper-three): sung voice layer, humanize 0.5, warm close tract (formant_bw 1.6, ph_soft, breath) |
 | speech-to-song (repeat / melodize / melody) | |
-| vocoder / formant / radio on voice | t2 (chirper-one: tts whisper) |
+| vocoder / formant / radio on voice | t2 (chirper-one: tts whisper); t3 (chirper-two: pvoc whisper in pieces, pvoc robot tune singing E1) |
 
 ## Built for Standby Amber (all available)
 | feature | commit | built by | showcased by |
@@ -105,13 +105,13 @@ released albums first). Ask wM for features; the voice has no ceiling.
 | `sync` mod source: a kuramoto layer's coherence (0 a crowd … 1 locked; ~0.3 for a crowd of 8), readable by any synth param (filter, pitch, drive). A locked swarm grows purer and darker (centroid 390 → 170 Hz on saws at A2), so `sync` on a filter can make the agreement bloom open | |
 | Library patches: `risset-bell` (Risset's 1969 additive bell), `risset-arpeggio` (held notes arpeggiate their overtones, Mutations), `kuramoto-choir`, `kuramoto-flies` (swarms; need b8f9d6b1), `crumble-pad`, `waveset-buzz` (waveset; need b8f9d6b1). Reel: ~/.local/state/chirp-evidence/library3-20261104/reel.mp3 | t2 (chirper-one) |
 | `pvoc` fx: a phase vocoder's classic transforms (Moorer 1978, Dolson 1986; AudioSculpt) on 1024-sample windows: `robot` (`pitch=D3`; phases zeroed, any voice a monotone machine on that note; several on a chord = a machine choir), `whisper` (random phases: vowels kept, pitch gone), `blur` (`amount` 0..0.99: each sound's colour hangs on). Level-matched (robot/whisper); 21 ms delay compensated on tracks like lpc | |
-| `chip` layer: the 8-bit sound chips' channels (NES 2A03, Game Boy wave): `kind: pulse` (`duty` snaps to 1/8, 1/4, 1/2, 3/4; modulatable), `triangle` (32-step staircase, the NES bass), `wave` (`table` of 4-bit levels), `noise` (15-bit LFSR at the 2A03's 16 rates; `short` = 93-step metallic loop). Pitches from 11-bit timers (`clock` 1789773; C7 = 2110.6 Hz, as on the console; 0 = exact). Band-limited | t2 (chirper-one: chip-metal E2, triangle bass, pulse E1) |
+| `chip` layer: the 8-bit sound chips' channels (NES 2A03, Game Boy wave): `kind: pulse` (`duty` snaps to 1/8, 1/4, 1/2, 3/4; modulatable), `triangle` (32-step staircase, the NES bass), `wave` (`table` of 4-bit levels), `noise` (15-bit LFSR at the 2A03's 16 rates; `short` = 93-step metallic loop). Pitches from 11-bit timers (`clock` 1789773; C7 = 2110.6 Hz, as on the console; 0 = exact). Band-limited | t2 (chirper-one: chip-metal E2, triangle bass, pulse E1); t3 (chirper-two: pulse lead for E1, noise kit, chip-metal for E2) |
 | Library patches (chip; need 7ce23396): `nes-pulse-lead`, `nes-triangle-bass`, `nes-noise-hat`, `nes-noise-snare`, `chip-metal` (93-step short noise), `gb-wave-pad`. Reel: ~/.local/state/chirp-evidence/library4-20261104/reel.mp3 | t2 (chirper-one); t4 (chirper-three: nes-noise-hat, a 7-in-16 euclid of air) |
 
 ## New for Accretion (engine c3c8958a, adopted 5 Nov)
 | feature | featured by |
 |---|---|
-| stepped LFOs: an `lfo` with `steps: [...]` plays them in turn, one every 1/rate (`once` holds the last). Retriggered on pitch = a tracker's arpeggio (`steps: [0, 4, 7]`); on a chip pulse's `duty` or a filter = an instrument macro | |
-| pvoc robot `tune` (semitones, modulatable): the robot's note moves per block. Bind to `track.NAME.key` with pitch C4 and a spoken line SINGS another track's melody (the voice can carry an element) | |
+| stepped LFOs: an `lfo` with `steps: [...]` plays them in turn, one every 1/rate (`once` holds the last). Retriggered on pitch = a tracker's arpeggio (`steps: [0, 4, 7]`); on a chip pulse's `duty` or a filter = an instrument macro | t3 (chirper-two: tracker arps walking each chord's intervals every 32nd) |
+| pvoc robot `tune` (semitones, modulatable): the robot's note moves per block. Bind to `track.NAME.key` with pitch C4 and a spoken line SINGS another track's melody (the voice can carry an element) | t3 (chirper-two: the robot sings "nothing here is late" on E1's notes at the lock) |
 | the voice as a standing climb (wM): ask for realism, consonants, breath, vibrato, legato phrasing, harmony stacks, choirs, new characters | |
 | the album film's engine (chirp-video; landed 1277462f): `chirp video` with chirp-vis layers: the accretion `disk` (one ring per element/track, debris on onsets, Doppler, photon ring, jets on lifts) and a gravitational `lens`. Ask chirp-video for markers or element-to-ring mappings; prototypes at http://pocket4:8790/ | |

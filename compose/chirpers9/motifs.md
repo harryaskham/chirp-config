@@ -13,7 +13,7 @@ all eight tracks are written in parallel. Note under each element where later tr
 |---|---|---|---|---|
 | E1 | t1 (seed) | "the seed": five notes D A C G E, an arch (up a fifth, up a minor third, down a fourth, down a minor third) with a snap on the C; D with NO third, so every track chooses its mode | 5 beats (5/4) | chirper-zero |
 | E2 | t2 (infall) | "seven": a RHYTHM CELL of seven sixteenths, x . x x . x . (hits on 0, 2, 3, 5), pitched D A F C - a leap up and a fall through, accents strong / light / firm / light; it brings E1 the minor third (F) for the outer disk | 7 sixteenths (7/16); meets 4/4 every 7 bars, E1's 5/4 every 35 beats... and every cycle on one downbeat in t2's crest | chirper-one |
-| E3 | t3 | | | |
+| E3 | t3 (first storm) | "the undertow": a BASS RIFF of 7 beats (E2's seven sixteenths augmented x4) on D, the Neapolitan Eb and C - D2 D2 D3 / Eb2 Eb2 Bb1 / C2 C2 G2 C3 - with its storm harmony, one chord per segment (Dm(add9), Ebmaj7#11, C11; D4 common to all three); it brings the FLAT SECOND (Eb), the storm's darkness | 7 beats (28 sixteenths); re-barred to 8 at the lock | chirper-two |
 | E4 | t4 (relief) | "four lights": a PROGRESSION, one chord per E1 cycle - D9, Bbmaj13#11, Am11, D9sus - that re-harmonises E1 four ways and gives it the third (F#) it never stated | 20 beats (4 x 5); meets 4/4 every 5 bars | chirper-three |
 | E5 | t5 (inner disk) | "the inner orbit": an OSTINATO of eight sixteenths in a 3-beat cycle, A G# A . E . A G# A . D . - a tight circling of A by its leading tone, flung out to E and then D; the G# is the tritone of D (Lydian #4), the heat of the inner disk | 3 beats (12 sixteenths); meets 4/4 every 3 bars, E1 every 15 beats, E2 every 84 sixteenths | chirper-zero |
 | E6 | t6 (tidal) | PROVISIONAL: "the tide" - two chords that pull against each other, their lengths stretching and squeezing (3+5, 4+4, 5+3 beats ...): augmentation against diminution as harmony; firmed up when t6 is drafted | 8 beats, unevenly split | chirper-one |
@@ -77,6 +77,32 @@ score: "A4/16 G#4 A4 . E5 . A4 G#4 A4 . D5 ."   # hits on sixteenths 0 1 2 4 6 7
   - Retrograde: `. D5 . A4 G#4 A4 . E5 . A4 G#4 A4`.
 - **In t5.** E1 arrives already whole but tight: diminished x2 and in stretto, the inner disk's faster orbit. E5 is the new pull that circles under everything, on an NES pulse that pans and narrows. Through the song the orbit tightens (sixteenths, then the trill) until every cycle (E1's 5 and 2.5, E2's 7/16, E4's 20, E5's 3) meets on one downbeat at the crest. Then the elements are pulled apart, stretched and squeezed, into t6's tide.
 - **Handover.** Across the t5 -> t6 seam (120 bpm, 16 bars) E5 stretches (augmented) while E1 squeezes (diminished): the tidal pull t6 lenses.
+
+### E3, "the undertow" (t3, chirper-two)
+```yaml
+# a bass riff of 7 beats - E2's seven sixteenths augmented x4 - written at 98-108 bpm (t3 ramps 98 -> 108), home D
+score: "D2/8. D2/8. D3/8 Eb2/8 Eb2/8. Bb1/8. C2/8. C2/8. G2/8 C3/4"   # segments 2 + 2 + 3 beats: D | Eb | C
+# its storm harmony, one chord per segment, D4 common to all three (the eye of the storm):
+#   "D3,A3,E4,F4/2b Eb3,Bb3,D4,G4,A4/2b C3,Bb3,D4,F4/3b"   Dm(add9) | Ebmaj7#11 (the Neapolitan, Lydian) | C11
+```
+- **Shape.** D twice and up the octave; the flat second (Eb) twice and down to Bb; C twice, up to G and the C above. Long
+  notes (dotted eighths) carry the accents. A three-step undertow that drags D down a semitone's darkness and back.
+- **Pitch.** It brings the FLAT SECOND (Eb: Phrygian, Neapolitan), the storm's colour. t5's sharp fourth (G#) answers it,
+  and t6's tide (Dmaj9#11 against Ebmaj7#11) turns the same D-Eb pull into harmony.
+- **Cycle.** 7 beats (28 sixteenths) = E2 x4. Against 4/4 it meets the bar every 7 bars; against E1 (5 beats) every 35.
+- **In t3 (Phase Margin).** The storm runs E1 (20 sixteenths), E2 (7) and E3 (28) against the bar, each PHASED so all
+  four land together on bar 88's downbeat. Before it they collide: E1 displaced, inverted and in fragments on a chip
+  pulse, E2 on chip noise, E3 on a PM bass with dropped notes and octave throws, under a broken 909. At bar 88 the storm
+  LOCKS: E3 re-barred 2+2+4 (its last C held a beat: 8 beats), E2 seven sixteenths and a rest (8), E1 without its
+  rest (4 beats). A whispered "nothing here is late" arrives in pieces, whole at the lock, then sung by a pvoc robot on
+  E1's notes.
+- **Ready-made transforms.**
+  - Re-barred (the lock): `D2/8. D2/8. D3/8 Eb2/8 Eb2/8. Bb1/8. C2/8. C2/8. G2/8 C3/2` (8 beats, meets 4/4).
+  - Augmentation x2: 14 beats (t3's outfall).
+  - Inversion around D2: D2 D2 D1 C#2 C#2 F#2 E2 E2 A1 E1 - the flat second becomes a leading tone.
+  - As harmony: the three chords alone (2+2+3), or the roots D Eb C as a slow bass.
+- **Handover.** Across t3 -> t4 (108 bpm, 16 bars) the riff falls augmented and sinking (-7 semitones), and Dm(add9)
+  is held at pitch as the residue whose third t4 lifts (F -> F#), with D4 common.
 
 ### E4, "four lights" (t4, chirper-three)
 ```yaml
