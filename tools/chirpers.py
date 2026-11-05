@@ -42,6 +42,7 @@ import glob
 import importlib.util
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -606,8 +607,45 @@ def master_verified(how):
     return h.startswith("verified") or (h.startswith("cut from the continuous mix") and ("verified" in h or "equivalent" in h))
 
 
-def upload_sheet(meta, pub):
-    """The distributor form, field by field, for a mastered album (UPLOAD.md beside the WAVs)."""
+def album_lyrics(album_id, root=None):
+    """{track n: {"language", "words", "text"}} from compose/ALBUM/lyrics/tN.txt (first line
+    'WORDS: yes  LANGUAGE: English', then the words as sung); {} when the album has none."""
+    d = os.path.join(root or ROOT, "compose", album_id, "lyrics")
+    out = {}
+    if not os.path.isdir(d):
+        return out
+    for f in sorted(os.listdir(d)):
+        m = re.fullmatch(r"t(\d+)\.txt", f)
+        if not m:
+            continue
+        lines = open(os.path.join(d, f), encoding="utf-8").read().splitlines()
+        head = lines[0] if lines else ""
+        words = re.search(r"WORDS:\s*(\w+)", head)
+        lang = re.search(r"LANGUAGE:\s*([^\s].*?)\s*$", head)
+        has_head = bool(words or lang)
+        text = "\n".join(lines[1:] if has_head else lines).strip()
+        out[int(m.group(1))] = {"words": (words.group(1).lower() != "no") if words else bool(text),
+                                "language": lang.group(1) if lang else "English", "text": text}
+    return out
+
+
+def lyrics_section(meta, lyrics):
+    """UPLOAD.md's per-track lyrics: language and the words to paste, or instrumental."""
+    lines = ["", "## Lyrics (per track)", "",
+             "The form asks each track for its lyrics language and, where it has words, the lyrics. Paste each block as "
+             "written ('(x2)' marks a sung repeat). Explicit: no.", ""]
+    for t in meta["tracks"]:
+        ly = lyrics.get(t["n"])
+        if ly and ly["words"] and ly["text"]:
+            lines += [f"### {t['n']}. {t['title']} ({ly['language']})", "", "```", ly["text"], "```", ""]
+        else:
+            lines += [f"### {t['n']}. {t['title']} (instrumental)", ""]
+    return "\n".join(lines).rstrip("\n") + "\n"
+
+
+def upload_sheet(meta, pub, lyrics=None):
+    """The distributor form, field by field, for a mastered album (UPLOAD.md beside the WAVs); with LYRICS
+    (album_lyrics), a per-track lyrics section after the table (unchanged without)."""
     g = meta.get("genres") or ["Electronic"]
     lines = [f"# {meta['album']}: upload sheet ({pub.get('distributor', 'distributor')})", "",
              "Fill the form in this order; every file named here is in this folder.", "",
@@ -627,7 +665,23 @@ def upload_sheet(meta, pub):
         secs = int(round(t.get("seconds") or 0))
         lines.append(f"| {t['n']} | {t['title']} | `{t.get('file')}` | {secs // 60}:{secs % 60:02d} | "
                      f"{(t.get('sha256') or '')[:12]} | {'yes' if t.get('verified') else 'NO'} | {(t.get('source') or '')[:90]} |")
-    return "\n".join(lines) + "\n"
+    return "\n".join(lines) + "\n" + (lyrics_section(meta, lyrics) if lyrics else "")
+
+
+def cmd_upload_sheet(a, args):
+    """Rewrite a mastered album's UPLOAD.md from its master/metadata.json (no re-mastering), e.g. once lyrics land."""
+    album = load_album(a.album_id)
+    rdir = os.path.expanduser(os.path.join(a.out, "".join(ch for ch in album["album"] if ch not in '/\\:*?"<>|')))
+    mp = os.path.join(rdir, "master", "metadata.json")
+    if not os.path.exists(mp):
+        sys.exit(f"upload-sheet: no {mp}; run chirpers.py master {a.album_id} first")
+    pp = os.path.join(ROOT, "compose", "publishing.json")
+    pub = json.load(open(pp)) if os.path.exists(pp) else {}
+    lyrics = album_lyrics(a.album_id)
+    with open(os.path.join(rdir, "master", "UPLOAD.md"), "w") as f:
+        f.write(upload_sheet(json.load(open(mp)), pub, lyrics))
+    sung = sum(1 for v in lyrics.values() if v["words"] and v["text"])
+    print(f"{album['album']}: UPLOAD.md rewritten ({sung} track(s) with lyrics) -> {os.path.join(rdir, 'master')}")
 
 
 def master_mix(a, album, rel, rdir, out, rows, raws, pin, work, env, audio_md5):
@@ -986,7 +1040,7 @@ def cmd_master(a, args):
     with open(os.path.join(out, "metadata.json"), "w") as f:
         json.dump(meta, f, indent=1)
     with open(os.path.join(out, "UPLOAD.md"), "w") as f:
-        f.write(upload_sheet(meta, pub))
+        f.write(upload_sheet(meta, pub, album_lyrics(a.album_id)))
     ok = sum(1 for _, w, h in rows if w and master_verified(h))
     print(f"{name}: {ok}/{len(rows)} masters verified against the release -> {out}")
 
@@ -1365,6 +1419,9 @@ def main(argv=None):
     p.add_argument("--revisions", type=int, default=8, help="older song versions to try when the working copy differs")
     p.add_argument("--overlap-bars", type=float, default=16.0, help="a mixtape's seam overlap, when release.json predates recording it")
     p.add_argument("--swap", nargs="?", const="mid", default="mid", type=lambda v: v if v == "mid" else float(v))
+    p = sub.add_parser("upload-sheet", help="rewrite a mastered album's UPLOAD.md (e.g. with lyrics) without re-mastering")
+    p.add_argument("album_id")
+    p.add_argument("--out", default="~/Music/Chirpers")
     p = sub.add_parser("rebaseline")
     p.add_argument("album_id")
     p.add_argument("--ids")
@@ -1429,7 +1486,8 @@ def main(argv=None):
     a = ap.parse_args(known)
     {"new": cmd_new, "name": cmd_name, "title": cmd_title, "art": cmd_art, "status": cmd_status,
      "refresh": cmd_refresh, "rebaseline": cmd_rebaseline, "release": cmd_release, "seams": cmd_seams, "seam": cmd_seam,
-     "illusion": cmd_illusion, "master": cmd_master, "coverage": cmd_coverage}[a.cmd](a, argv)
+     "illusion": cmd_illusion, "master": cmd_master, "coverage": cmd_coverage,
+     "upload-sheet": cmd_upload_sheet}[a.cmd](a, argv)
 
 
 if __name__ == "__main__":
