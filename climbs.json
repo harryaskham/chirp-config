@@ -7810,7 +7810,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 52,
       "priority": 1.0,
       "genre": "far-future computer music (an engine showcase)",
@@ -7831,7 +7831,8 @@
       "last": {
         "at": "2026-11-04T14:33:47Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers8-t2",
@@ -7847,7 +7848,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 102,
       "priority": 1.0,
       "genre": "far-future computer music (an engine showcase)",
@@ -7868,7 +7869,8 @@
       "last": {
         "at": "2026-11-04T14:21:17Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers8-t3",
@@ -7886,7 +7888,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 34,
       "priority": 1.0,
       "genre": "far-future computer music (an engine showcase)",
@@ -7907,7 +7909,8 @@
       "last": {
         "at": "2026-11-04T14:08:27Z",
         "who": "chirper-two"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers8-t4",
@@ -7924,7 +7927,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 52,
       "priority": 1.0,
       "genre": "far-future computer music (an engine showcase)",
@@ -7945,7 +7948,8 @@
       "last": {
         "at": "2026-11-04T14:27:32Z",
         "who": "chirper-three"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers8-t5",
@@ -7961,7 +7965,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 116,
       "priority": 1.0,
       "genre": "far-future computer music (an engine showcase)",
@@ -7982,7 +7986,8 @@
       "last": {
         "at": "2026-11-04T14:00:07Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers8-t6",
@@ -7999,7 +8004,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 34,
       "priority": 1.0,
       "genre": "far-future computer music (an engine showcase)",
@@ -8020,7 +8025,8 @@
       "last": {
         "at": "2026-11-04T14:33:23Z",
         "who": "chirper-two"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers8-t7",
@@ -8037,7 +8043,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 48,
       "priority": 1.0,
       "genre": "far-future computer music (an engine showcase)",
@@ -8058,7 +8064,8 @@
       "last": {
         "at": "2026-11-04T14:33:50Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers8-t8",
@@ -8074,7 +8081,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 115,
       "priority": 1.0,
       "genre": "far-future computer music (an engine showcase)",
@@ -8095,7 +8102,8 @@
       "last": {
         "at": "2026-11-04T14:15:28Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers8-t9",
@@ -8118,7 +8126,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 35,
       "priority": 1.0,
       "genre": "far-future computer music (an engine showcase)",
@@ -8139,7 +8147,8 @@
       "last": {
         "at": "2026-11-04T14:38:00Z",
         "who": "chirper-two"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers8-t10",
@@ -8156,7 +8165,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 57,
       "priority": 1.0,
       "genre": "far-future computer music (an engine showcase)",
@@ -8177,7 +8186,8 @@
       "last": {
         "at": "2026-11-04T14:33:53Z",
         "who": "chirper-one"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers8-t11",
@@ -8194,7 +8204,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 50,
       "priority": 1.0,
       "genre": "far-future computer music (an engine showcase)",
@@ -8215,7 +8225,8 @@
       "last": {
         "at": "2026-11-04T14:59:22Z",
         "who": "chirper-three"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers8-t12",
@@ -8232,7 +8243,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 52,
       "priority": 1.0,
       "genre": "far-future computer music (an engine showcase)",
@@ -8253,7 +8264,8 @@
       "last": {
         "at": "2026-11-04T14:01:21Z",
         "who": "chirper-three"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers9-t1",
@@ -8488,5 +8500,5 @@
       }
     }
   ],
-  "focus": "Standby Amber"
+  "focus": "Accretion"
 }
