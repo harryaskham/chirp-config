@@ -1,0 +1,17 @@
+about: 'NES pulse lead (wM, chirpers8): the 2A03''s 25% pulse at the pitches its 11-bit timer reaches, with a delayed vibrato as a tracker''s 4xy. Change `duty` (0.125, 0.25, 0.5 or 0.75) for the other three classic timbres.'
+synth:
+  layers:
+    - type: chip
+      chip: {kind: pulse, duty: 0.25}
+  lfo:
+    vib: {wave: sine, rate: 5.5hz, delay: 250ms, fade: 200ms}
+  pitch:
+    value: 0
+    mod:
+      - {src: lfo.vib, amount: 0.2}
+  amp:
+    a: 2ms
+    d: 150ms
+    s: 0.7
+    r: 80ms
+gain: -8.2dB

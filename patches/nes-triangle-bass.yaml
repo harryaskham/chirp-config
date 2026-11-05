@@ -1,0 +1,11 @@
+about: 'NES triangle bass (wM, chirpers8): the 2A03''s 32-step, 16-level staircase triangle, the console''s bass. It has no volume control on the chip, so it plays full or not at all.'
+synth:
+  layers:
+    - type: chip
+      chip: {kind: triangle}
+  amp:
+    a: 1ms
+    d: 0
+    s: 1
+    r: 15ms
+gain: -6.2dB

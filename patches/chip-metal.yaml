@@ -1,0 +1,11 @@
+about: 'Chip metal (wM, chirpers8): the 2A03''s short-mode noise, a 93-step loop of the shift register: a metallic, pitched buzz on the note, for bells, zaps and tom-like hits.'
+synth:
+  layers:
+    - type: chip
+      chip: {kind: noise, short: true}
+  amp:
+    a: 1ms
+    d: 300ms
+    s: 0
+    r: 80ms
+gain: -0.4dB

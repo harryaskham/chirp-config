@@ -1,0 +1,14 @@
+about: 'Game Boy wave pad (wM, chirpers8): the wave channel''s 32 four-bit samples (a soft, slightly hollow shape) at the Game Boy''s own timer pitches, swelling in and out.'
+synth:
+  layers:
+    - type: chip
+      chip:
+        kind: wave
+        clock: 2097152
+        table: [8, 11, 13, 15, 15, 14, 12, 10, 8, 6, 5, 4, 4, 5, 6, 8, 9, 10, 11, 11, 10, 9, 7, 5, 3, 1, 0, 0, 1, 3, 5, 7]
+  amp:
+    a: 60ms
+    d: 0
+    s: 1
+    r: 300ms
+gain: -13.6dB

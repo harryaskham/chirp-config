@@ -1,0 +1,11 @@
+about: 'NES noise snare (wM, chirpers8): the 2A03''s long-mode noise at a middle rate (play around G4), with a quick decay.'
+synth:
+  layers:
+    - type: chip
+      chip: {kind: noise}
+  amp:
+    a: 1ms
+    d: 170ms
+    s: 0
+    r: 60ms
+gain: -3.6dB

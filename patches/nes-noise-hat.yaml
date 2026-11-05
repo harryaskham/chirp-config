@@ -1,0 +1,11 @@
+about: 'NES noise hat (wM, chirpers8): the 2A03''s long-mode shift-register hiss, short. The note picks one of the chip''s 16 noise rates: C6..C7 are hats, lower notes darker.'
+synth:
+  layers:
+    - type: chip
+      chip: {kind: noise}
+  amp:
+    a: 1ms
+    d: 50ms
+    s: 0
+    r: 30ms
+gain: -0.5dB
