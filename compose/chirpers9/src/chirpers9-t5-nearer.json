@@ -1,0 +1,28 @@
+{
+  "about": "chirp tts (Plain): nearer",
+  "seed": 1,
+  "tail": "1.2s",
+  "tempo": 112.0,
+  "tracks": [
+    {
+      "name": "voice",
+      "notes": [
+        {
+          "at": 0.25,
+          "len": 0.561,
+          "ph": "N IH1",
+          "pitch": "m49.5",
+          "vel": 0.8
+        },
+        {
+          "at": 0.811,
+          "len": 0.501,
+          "ph": "R ER0",
+          "pitch": "m42",
+          "vel": 0.8
+        }
+      ],
+      "patch": "voice-speech"
+    }
+  ]
+}

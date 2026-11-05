@@ -8404,13 +8404,17 @@
       "song": "songs/chirpers9-t5.yaml",
       "reference": "chirpers — Periapsis",
       "source": null,
-      "owner": null,
+      "owner": "chirper-zero",
       "metric": "python3 tools/compscore.py chirpers9-t5 OUT.wav",
-      "best": null,
+      "best": {
+        "score": 89.541,
+        "version": "v1",
+        "commit": "see git log songs/chirpers9-t5.yaml"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "complex electronic",
       "mode": "compose",
@@ -8426,6 +8430,10 @@
         "by": "harry@pocket4-nixos",
         "at": "2026-11-05T18:19:21Z",
         "note": "COMPOSE (inner disk (calm, closer), 240-360 s): The inner disk: calm again but closer and hotter: faster, tighter, tense. Carries E1-E4 and introduces E5. The calm before the second storm, and the mirror of t1."
+      },
+      "last": {
+        "at": "2026-11-05T20:26:29Z",
+        "who": "chirper-zero"
       }
     },
     {
