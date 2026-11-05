@@ -26,6 +26,10 @@ BARS, BPB = 128, 4
 TOTAL = BARS * BPB
 SECTIONS = [("infall", 0, 16), ("front", 16, 40), ("eyewall", 40, 72), ("lock", 72, 88), ("crest", 88, 112),
             ("outfall", 112, 128)]
+# round 2 (section, w9 = bars 96-108, the crest's middle): T3_R2=crab (default) - a crab canon: a glass descant plays
+# the locked undertow BACKWARDS three octaves up while the bass plays it forwards; a 909 ride opens the hats; a snare
+# fill and an eighth's silence before bar 104, a crash on it. T3_R2=none reproduces v1.
+R2 = os.environ.get("T3_R2", "crab") != "none"
 CREST = 88                      # the bar every cycle lands on
 CREST16 = CREST * 16            # ... in sixteenths
 EYE = (62, 66)                  # the eye of the storm: four bars of stillness inside it
@@ -163,7 +167,8 @@ for _i, _st in ARP_STEPS.items():
 def build():
     rng = random.Random(9)
     T = {k: Track(k) for k in ("kick", "snare", "hats", "perc", "chipsn", "chiphat", "bass", "shard", "arp0",
-                               "arp1", "arp2", "e1", "e1hi", "e2", "dust", "sub", "hold", "riser", "whisper", "robot", "floor")}
+                               "arp1", "arp2", "e1", "e1hi", "e2", "dust", "sub", "hold", "riser", "whisper", "robot", "floor",
+                               "glass")}
 
     # ---- E3: the progression -------------------------------------------------------------------------------
     # infall: augmented x2 on the dust pad (14-beat cycle), phased to the crest as well
@@ -330,6 +335,27 @@ def build():
     T["riser"].add(BREAK[0] * 4.0, (BREAK[1] - BREAK[0]) * 4.0, "C4", 96)
     T["dust"].add(BREAK[0] * 4.0, 7.8, ",".join(mtok(m) for m in E3[2][0]), 80)
 
+    # ---- round 2: the crest's middle (w9, bars 96-108) - a crab canon, a ride, a fill and a held breath -----------
+    if R2:
+        r2 = random.Random(31)
+        lock = E3_RIFF[:-1] + [(E3_RIFF[-1][0], E3_RIFF[-1][1] + 1.0)]          # 2+2+4, 8 beats
+        crab = list(reversed(lock))
+        for cyc, bar in enumerate(range(96, 108, 2)):
+            at = bar * 4.0
+            for n, ln in crab:
+                T["glass"].add(at, ln * 0.95, mtok(midi(n) + 36 - (12 if cyc % 2 and midi(n) + 36 > 84 else 0)),
+                               80 if ln >= 0.75 else 68)
+                at += ln
+        for bar in range(96, 108):
+            for b in range(4):
+                T["perc"].add(bar * 4.0 + b, 0.25, "rd", 66 if b % 2 else 78)
+        b0 = 103 * 4.0
+        for j in range(6):                                                       # the fill: 16ths, rising
+            T["snare"].add(b0 + 2.0 + j * 0.25, 0.25, "s", 78 + 7 * j)
+        gap = (b0 + 3.5, b0 + 4.0)                                               # an eighth of held breath
+        for k in T:
+            T[k].ev = [e for e in T[k].ev if not (gap[0] <= e[0] < gap[1])]
+        T["perc"].add(104 * 4.0, 1.0, "c", 100 + r2.randint(0, 10))
     # ---- the voice: whispered in pieces through the storm, whole at the lock, then sung by the robot -------------
     late = json.load(open(os.path.join(HERE, "t3", "late.json")))["tracks"][0]["notes"]
     whisper, robot = [], []
@@ -417,6 +443,20 @@ def main():
                  "tune": {"value": 0, "mod": [{"src": "track.e1.key", "amount": 12}]}}],
          "sends": {"space": "-9dB"}, "notes": robot},
     ]
+    patches = dict(PATCHES)
+    if R2:
+        patches["a3-glass"] = {"about": "chirper-two: the crest's glass - a sine phase-modulated at 3.5:1, the index pinged "
+                                        "on each attack and settling to a faint shimmer; an octave partial; no low end",
+                               "synth": {"layers": [{"name": "g", "ratio": 3.5, "audible": False},
+                                                    {"wave": "sine", "pm": [{"from": "g", "depth": {"value": 0.06, "mod": [
+                                                        {"src": "env.ping", "amount": 0.45}]}}]},
+                                                    {"wave": "sine", "ratio": 2, "level": "-14dB"}],
+                                         "env": {"ping": {"a": "0.5ms", "d": "250ms", "s": 0.05, "r": "100ms"}},
+                                         "filters": ["hp cutoff=300", "lp cutoff=8000 q=0.6"],
+                                         "amp": {"a": "2ms", "d": "600ms", "s": 0.45, "r": "400ms"}}}
+        tracks.append({"name": "glass", "patch": "a3-glass", "gain": "-8dB", "pan": 0.25,
+                       "fx": ["delay time=3/8 mix=0.2 feedback=0.35"], "sends": {"space": "-6dB"},
+                       "score": T["glass"].score()})
     master = {"fx": [{"type": "eq", "bands": ["hp cutoff=25", "peak cutoff=100 gain=3dB q=1.0",
                                               "peak cutoff=320 gain=-2dB q=0.8",
                                               "highshelf cutoff=8000 gain=2dB"]},
@@ -444,7 +484,7 @@ def main():
         "loudness: -11",
         "true_peak: true",
         "event_stable: true",
-        "patches: " + json.dumps(PATCHES),
+        "patches: " + json.dumps(patches),
         "buses: " + json.dumps({"space": {"gain": "-5dB", "fx": ["hp cutoff=250", "reverb kind=plate decay=2.2s mix=1"]}}),
         "master: " + json.dumps(master),
         "tracks:",
