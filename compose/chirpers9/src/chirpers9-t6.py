@@ -232,6 +232,48 @@ def build():
         for n_ in vtr['notes']:
             vnotes.append(dict(n_, at=round(b_ * 4.0 + n_['at'] * tempo_ / 110.0, 4), len=round(n_['len'] * tempo_ / 110.0, 4)))
 
+    # (v2, section w8) THE TEAR: the 'torn' section ran on as the surge did (flagged static). Now the tide tears the band
+    # itself: for eight bars the kit plays E2 STRETCHED (seven eighths, half time) while the hats are SQUEEZED into
+    # 32nds - augmentation and diminution in one drummer; on the last beat of the eighth bar the whole mix winds down
+    # like a stopping tape, and for one bar nothing is left but the far side's cello blur; then everything snaps back
+    tr0 = SEC['torn'] * 4.0
+    tear_mid, void0, void1, tr_end = tr0 + 28.0, tr0 + 31.0, tr0 + 36.0, tr0 + 64.0
+    P['kit'] = [e_ for e_ in P['kit'] if not (tr0 - 1e-6 <= e_[0] < tr_end - 1e-6)]
+    t = tr0
+    while t < void0 - 1e-6:
+        for st, pc, v in ((0, 'k', 118), (2, 'rs', 72), (3, 's', 108), (5, 'rs', 66)):
+            if t + st * 0.5 < void0:
+                P['kit'].append((t + st * 0.5, pc, 0.3, v))
+        t += 3.5
+    # after the void the band snaps back into the CREST's locked groove for seven bars - a last look back at the
+    # convergence before the out-seam tears it apart: E2 re-barred into eight, E4's four lights, E5 at its own speed
+    for bar in range(int(void1 // 4), int(tr_end // 4)):
+        b0 = bar * 4.0
+        for half in (0, 2.0):
+            for st, pc, v in ((0, 'k', 120), (2, 'rs', 76), (3, 's', 110), (5, 'rs', 70)):
+                P['kit'].append((b0 + half + st * 0.25, pc, 0.2, v))
+    P['tide'] = [e_ for e_ in P['tide'] if not (void1 - 1e-6 <= e_[0] < tr_end - 1e-6)]
+    P['sub'] = [e_ for e_ in P['sub'] if not (void1 - 1e-6 <= e_[0] < tr_end - 1e-6)]
+    for c in range(8):
+        at = void1 + c * 5.0
+        if at >= tr_end - 1e-6:
+            break
+        ch = E4[c % 4]
+        ln = min(5.0, tr_end - at) - 0.05
+        P['lights'].append((at, ','.join(m(n) for n in ch), ln, 84))
+        P['sub'].append((at, m(ch[0] - 12 if ch[0] >= 48 else ch[0]), ln, 96))
+    P['lights'].sort(key=lambda e_: e_[0]); P['sub'].sort(key=lambda e_: e_[0])
+    P['hats'] = [e_ for e_ in P['hats'] if not (tr0 - 1e-6 <= e_[0] < tr_end - 1e-6)]
+    for q in range(int((void0 - tr0) / 0.25)):
+        P['hats'].append((tr0 + q * 0.25, 'h^r=2', 0.25, 70 if q % 4 == 0 else 52))
+    for q in range(int((tr_end - void1) / 0.25)):
+        P['hats'].append((void1 + q * 0.25, 'h' if q % 8 != 6 else 'oh', 0.2, 80 if q % 4 == 0 else 56))
+    # the void: one bar where only the cello blur (and the stopped tape's tail) remains
+    for key in ('kit', 'hats', 'acid', 'e5', 'near', 'tide', 'sub'):
+        P[key] = [e_ for e_ in P[key] if not (void0 + 1.0 - 1e-6 <= e_[0] < void1 - 1e-6)]
+
+    stop_pts = [['0b', 0.0], [f'{void0:.2f}b', 0.0], [f'{void0 + 0.9:.2f}b', 1.0], [f'{void0 + 0.98:.2f}b', 1.0], [f'{void0 + 1.0:.2f}b', 0.0]]
+
     tempo = [{'at': '0b', 'bpm': 120.0}, {'at': f'{SEC["pull"] * 4.0:.1f}b', 'bpm': 120.0},
              {'at': f'{SEC["out"] * 4.0:.1f}b', 'bpm': 132.0, 'ramp': True}]
     # the near side's filter closes in the out-seam as it slows (redshift into t7)
@@ -258,7 +300,8 @@ def build():
         'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=28', 'peak cutoff=300 q=0.8 gain=-2dB', 'highshelf cutoff=7000 gain=1.5dB']},
                           {'type': 'compressor', 'threshold': '-18dB', 'ratio': 2.2, 'attack': '15ms', 'release': '140ms', 'makeup': '1dB'},
                           {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.E', 'amount': 1}]}},
-                          'limiter ceiling=-1dB'], 'auto': {'E': {'points': energy_pts}}},
+                          'tapestop stop=auto.stop time=1b',
+                          'limiter ceiling=-1dB'], 'auto': {'E': {'points': energy_pts}, 'stop': {'points': stop_pts}}},
         'tracks': [
             tr('tide', 'harmonium', '-9dB', sends={'hall': '-10dB'}),
             tr('lights', 'harmonium', '-10dB', sends={'hall': '-8dB'}),
