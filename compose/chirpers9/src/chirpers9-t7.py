@@ -22,6 +22,13 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
 OUT = os.environ.get("T7_OUT", os.path.join(ROOT, "songs", "chirpers9-t7.yaml"))
 
+# round 2 (section, w9 = bars 128-144, the crest's middle): T7_R2=lock (default) - THE TIDAL LOCK: the break drops to
+# half time for 8 bars while the jet fires BACKWARDS (falling: redshift) and a vocoder - its carrier the jet's own
+# column of fifths - speaks "every corner comes sooner"; then the jet rights itself and a snare rush rebuilds into
+# bar 144. T7_R2=none reproduces v1.
+R2 = os.environ.get("T7_R2", "lock") != "none"
+W9 = (128, 144)
+
 BARS, BPB = 176, 4
 TOTAL = BARS * BPB
 SECTIONS = [("infall", 0, 16), ("approach", 16, 48), ("collision", 48, 80), ("slack", 80, 88), ("spiral", 88, 120),
@@ -287,6 +294,44 @@ def build():
             if rng.random() < 0.55:
                 T["ghost"].add((c + h) / 4.0, 0.12, "rs", v - 54)
     T["riser"].add((CREST - 2) * 4.0, 8.0, "C4", 96)
+    if R2:
+        r2 = random.Random(29)
+        lo, mid, hi = W9[0] * 4.0, 136 * 4.0, W9[1] * 4.0
+        for k in ("kick", "snare", "hats", "perc"):
+            T[k].ev = [e for e in T[k].ev if not (lo <= e[0] < hi)]
+        T["ghost"].ev = [e if not (lo <= e[0] < mid) else (e[0], e[1], e[2], max(1, e[3] - 14), e[4]) for e in T["ghost"].ev]
+        for bar in range(W9[0], 136):                                      # half time: the orbit's tidal lock
+            b0 = bar * 4.0
+            T["kick"].add(b0, 0.25, "k", 118)
+            if bar % 2:
+                T["kick"].add(b0 + 2.75, 0.25, "k", 92)
+            T["snare"].add(b0 + 2.0, 0.25, "s", 116)
+            for s in range(0, 16, 2):
+                T["hats"].add(b0 + s / 4, 0.1, "oh" if s == 6 else "h", 74 if s % 4 == 0 else 52 + r2.randint(0, 10))
+        for bar in range(136, W9[1]):                                      # the rebuild
+            b0 = bar * 4.0
+            ks, ss = ((0, 10), (4, 12)) if bar % 2 == 0 else ((0, 3, 10), (4, 12))
+            for s in ks:
+                T["kick"].add(b0 + s / 4, 0.25, "k", 116 if s == 0 else 100)
+            for s in ss:
+                T["snare"].add(b0 + s / 4, 0.25, "s", 112)
+            for s in range(16):
+                T["hats"].add(b0 + s / 4, 0.1, "h", (80 if s % 4 == 0 else 56) + r2.randint(0, 12))
+            if bar >= 142:                                                 # the rush
+                for s in range(16 if bar == 143 else 8):
+                    st = (0 if bar == 143 else 2.0) + s / 4
+                    T["perc"].add(b0 + st, 0.12, "sn", 50 + int(60 * ((bar - 142) * 16 + s) / 24))
+        T["perc"].add(hi, 0.5, "oh", 112)
+        for k in ("jet", "jethi"):                                         # the jet falls (retrograde) for 8 bars
+            T[k].ev = [e for e in T[k].ev if not (lo <= e[0] < mid)]
+        retro = list(reversed(E7))
+        for c in cycle_starts(E7_LEN16, W9[0] * 16, 136 * 16):
+            at = c / 4.0
+            if at < lo:
+                continue
+            for i, (nt, l16) in enumerate(retro):
+                T["jet"].add(at, l16 / 4 * 0.9, mtok(midi(nt)), 108 - 4 * i)
+                at += l16 / 4
     for bar in range(160, 168):                                               # the last pulse into t8
         T["kick"].add(bar * 4.0, 0.25, "k", 92 - 4 * (bar - 160))
     for bar in range(160, 172):
@@ -362,7 +407,21 @@ def main():
         {"name": "riser", "patch": "fx-riser", "gain": "-10dB", "score": T["riser"].score()},
     ]
     patches = dict(PATCHES)
+    if R2:
+        cv = json.load(open(os.path.join(HERE, "t7", "corner.json")))["tracks"][0]
+        vnotes = []
+        for bar in (130, 134):
+            for n in cv["notes"]:
+                d = {"at": round(bar * 4.0 + n["at"], 4), "len": n["len"], "ph": n["ph"], "pitch": n["pitch"], "vel": n["vel"]}
+                if n.get("expr_path"):
+                    d["expr_path"] = n["expr_path"]
+                vnotes.append(d)
+        vfx = [dict(cv["fx"][0], notes="D2,A2,E3,G#3,C#4", mix=0.62), "lp cutoff=5000", "chorus mix=0.25",
+               "delay time=3/8 mix=0.2 feedback=0.3"]
+        patches["a7-vocoder-voice"] = cv["patch"]
     for name, tr, notes in voice_tracks():
+        if R2 and name.startswith("d"):
+            notes = [n for n in notes if not (W9[0] * 4.0 <= n["at"] < 136 * 4.0)]
         p = tr["patch"]
         if not isinstance(p, str):
             patches["a7-voice"] = p
@@ -370,6 +429,9 @@ def main():
         tracks.append({"name": f"v{name}", "patch": p, "gain": tr.get("gain", "0dB"), "pan": tr.get("pan", 0.0),
                        "fx": ["chorus", "delay time=1/4 mix=0.15 feedback=0.25"], "sends": {"space": "-6dB"},
                        "notes": notes})
+    if R2:
+        tracks.append({"name": "vocoder", "patch": "a7-vocoder-voice", "gain": "3dB", "pan": 0.0, "fx": vfx,
+                       "sends": {"space": "-8dB"}, "notes": vnotes})
     master = {"fx": [{"type": "eq", "bands": ["hp cutoff=25", "lowshelf cutoff=120 gain=5dB", "peak cutoff=160 gain=-2.5dB q=1.2",
                                               "peak cutoff=320 gain=-2dB q=0.8", "peak cutoff=1400 gain=-2.5dB q=0.7",
                                               "highshelf cutoff=8000 gain=1dB"]},
