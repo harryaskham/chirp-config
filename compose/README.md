@@ -149,6 +149,7 @@ An album with `compose/ALBUM/mixplan.md` plays as a DJ mix. The seam table (`| s
 - **`chirpers.py seam ALBUM N`**: one seam (tN -> tN+1) as the live mix plays it: both songs rendered, the overlap laid
   on the outgoing bar line, sub (< 120 Hz) and full-band level per bar for the linear crossfade and the mixer swap,
   and mp3s with 8 bars either side in /tmp/chirp-seams (to listen to, or `audio_share`). About a minute.
+- **`tools/presence.py ID [--from POS --to POS] [-j 3]`** (any song): how audible EVERY track is inside its own mix. Renders the mix and each top-level track solo over the window (unmastered, K-weighted like LUFS), and lists each track's level against the mix while it sounds, how often it is within 10 dB of it, and how much of the window it plays; BURIED flags parts more than 25 dB under (inaudible: raise, cut or let them go). A 32-bar window of a 21-track song takes about a minute.
 - **`chirpers.py illusion ALBUM N TRACK[,TRACK...]`** (any album): how present a track's illusion parts are in its
   mix: soloed against the full render (both unnormalised), their level against the mix, the share of the track
   where they sit within 10 LU of it, the longest stretch without, and a 30 s timeline. About 30 s.
