@@ -112,6 +112,8 @@ score: "D2/8. D2/8. D3/8 Eb2/8 Eb2/8. Bb1/8. C2/8. C2/8. G2/8 C3/4"   # segments
   LOCKS: E3 re-barred 2+2+4 (its last C held a beat: 8 beats), E2 seven sixteenths and a rest (8), E1 without its
   rest (4 beats). A whispered "nothing here is late" arrives in pieces, whole at the lock, then sung by a pvoc robot on
   E1's notes.
+  In the crest's middle (bars 96-108) a CRAB CANON: a glass descant plays the locked riff backwards, three octaves up,
+  against the bass playing it forwards (they cross on the Eb).
 - **Ready-made transforms.**
   - Re-barred (the lock): `D2/8. D2/8. D3/8 Eb2/8 Eb2/8. Bb1/8. C2/8. C2/8. G2/8 C3/2` (8 beats, meets 4/4).
   - Augmentation x2: 14 beats (t3's outfall).
