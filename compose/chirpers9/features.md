@@ -12,7 +12,7 @@ released albums first). Ask wM for features; the voice has no ceiling.
 | additive | t2 (chirper-one: risset-bell lens) |
 | FM / phase modulation between layers, hard sync | t3 (chirper-two: the PM bass and crushed PM shards); t7 (chirper-two: hard-sync jet, slave swept 18 semitones per note) |
 | motif transforms (@motifs: inversion, retrograde, augmentation, diminution), harmony $N, scale degrees %N | t2 (chirper-one: E1 inverted, retrograde canon, augmented; E2 augmented); t6 (chirper-one: E1 augmentation against diminution, the album's widest range x0.2..x6.4); t8 (chirper-three): E1-E5 in stretto, phased to one downbeat; E1 inverted/augmented in the choir; t1 (chirper-zero: E1 assembled from five voices on 5-9 beat cycles, inversion canon); t5 (chirper-zero: E1 diminished in stretto and squeezed x4, E5 augmented and diminished) |
-| tables (wavetable-style) | |
+| tables (wavetable-style) | t7 (chirper-two: a7-column, a wavetable whose frames add harmonics 1 3 9 27 81 243 - a column of fifths in the overtones - scanned up on every note of the jet) |
 | shepard (endless glides, scales, chords) | t2 (chirper-one: shepard-fall on D under the fall, the infall that never lands) |
 | sample | |
 | drum machines and kits (machine-kit, dusty, physical drums) | t2 (chirper-one: 909); t4 (chirper-three): brush-kit, half time; t6 (chirper-one: prog-kit playing E2); t3 (chirper-two: a 909 broken by Euclidean rotations, with NES noise snare and hat); t7 (chirper-two: dusty-kit breakbeat at 132-150, E2 on the ghosts); t5 (chirper-zero: 909 playing E2); t1 (chirper-zero: afro-perc shekere and clave) |
