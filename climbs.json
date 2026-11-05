@@ -8270,7 +8270,7 @@
     {
       "id": "chirpers9-t1",
       "song": "songs/chirpers9-t1.yaml",
-      "reference": "chirpers — Track 1 (untitled)",
+      "reference": "chirpers — Nucleation",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers9-t1 OUT.wav",
@@ -8286,7 +8286,7 @@
       "meta": {
         "artist": "chirpers",
         "album": "Accretion",
-        "title": "Track 1 (untitled)",
+        "title": "Nucleation",
         "track": 1,
         "year": 2026
       },
