@@ -148,6 +148,8 @@ def write_tide_and_jet():
         beat = start + k * 8
         split = 4 + 4 * k / (n - 1) + TIDE_WOBBLE[k % len(TIDE_WOBBLE)]
         split = max(2.0, min(8.0, round(split * 2) / 2))
+        if k == n - 2:
+            split = 7.0                            # the overshoot (chirper-one): the last Eb a single beat, a final tug
         if k == n - 1:
             split = 8.0                            # the tide resolves: D alone into the jet
         v = 50 + k * 2
@@ -169,7 +171,7 @@ def write_tide_and_jet():
         if in_break(bar) or bar == BREAK[1] + 1:
             continue
         for nm, s, ln in E7:
-            part("e7").add(b0(bar) + s * 0.25, ln * 0.25 + (0.25 if nm == "G#6" else 0), nm, 72)
+            part("e7").add(b0(bar) + s * 0.25, ln * 0.25 + (0.25 if nm == "G#6" else 0), nm, 96)
 
 
 LULL = (57, 64)               # v2: a false calm in the stretto - E2, the pedal and E1 step out; E3 and E5 alone
@@ -182,6 +184,13 @@ def carve(names, a_bar, z_bar):
         if n in P:
             P[n].ev = [e for e in P[n].ev if not (lo - 1e-6 <= e[0] < hi - 1e-6)]
 
+
+# v3 (ROUND TYPE: whole): THE STRETTO LEGIBLE. Solo-vs-mix measurement (bars 81-96 / 97-112) found the stretto's
+# point buried: E2 -40 dB under the mix (arp-pluck sixteenths too short to speak at 150), E7 - the jet's own herald -
+# -18, E6's organ on top (-3.7); at the jet the held column -18, snare -28, hats -38, crash -54, the sub the bulk.
+# Rebalanced so every element is audible in its own register: E2 on a modal glock, E6 -5, lights -2, bass +2; E1 +4,
+# E3 +2, E5 +1, E7 +7 (re-barred columns vel 96), the jet column +7, snare +10, hats +5, crash +4. And chirper-one's
+# overshoot: the tide's last two cycles are 7+1 then 8+0 - the last Eb a single beat, a final tug before it lets go.
 
 # ---------------------------------------------------------------- the stretto (before the jet)
 def write_stretto():
@@ -351,19 +360,19 @@ def main():
         "tail": "6s",
         "event_stable": True,
         "tracks": [
-            tr("lights", "strings", gain="-12dB", sends={"hall": "-8dB"},
+            tr("lights", "strings", gain="-14dB", sends={"hall": "-8dB"},
                fx=[{"type": "filter", "kind": "peak", "cutoff": 230, "q": 0.9, "gain": "-5dB"}]),
-            tr("e1", "nes-pulse-lead", gain="-16dB", pan=-0.25, sends={"dly": "-12dB"}),
-            tr("e2", "arp-pluck", gain="-17dB", pan=0.35, sends={"dly": "-14dB"}),
-            tr("e3", "strings-synth", gain="-18dB", pan=-0.1, sends={"hall": "-8dB"}, fx=["lp cutoff=1800"]),
-            tr("e5", "marimba", gain="-14dB", pan=0.2, sends={"room": "-10dB"}),
-            tr("bass", "nes-triangle-bass", gain="-8dB"),
+            tr("e1", "nes-pulse-lead", gain="-12dB", pan=-0.25, sends={"dly": "-12dB"}),
+            tr("e2", "modal-glock", gain="-16dB", pan=0.35, sends={"dly": "-14dB"}),
+            tr("e3", "strings-synth", gain="-16dB", pan=-0.1, sends={"hall": "-8dB"}, fx=["lp cutoff=1800"]),
+            tr("e5", "marimba", gain="-13dB", pan=0.2, sends={"room": "-10dB"}),
+            tr("bass", "nes-triangle-bass", gain="-6dB"),
             tr("sub", SUB8, gain="-12dB"),
             tr("hsub", HSUB, gain="-13dB", auto={"rs": {"points": horizon_lane(-5.0)}}),
             tr("kick", "machine-kit", gain="-8dB"),
-            tr("snare", "machine-kit", gain="-10dB", sends={"room": "-10dB"}),
-            tr("hat", "nes-noise-hat", gain="-17dB", pan=0.25),
-            tr("crash", "machine-kit", gain="-14dB", pan=-0.2),
+            tr("snare", "machine-kit", gain="0dB", sends={"room": "-10dB"}),
+            tr("hat", "nes-noise-hat", gain="-12dB", pan=0.25),
+            tr("crash", "machine-kit", gain="-10dB", pan=-0.2),
             tr("riser", "fx-revcym", gain="-12dB"),
             tr("impact", "fx-impact", gain="-10dB"),
             {"name": "choir", "patch": VOICE8, "gain": "-7dB", "sends": {"hall": "-7dB", "dly": "-16dB"},
@@ -374,9 +383,9 @@ def main():
              "auto": {"rs": {"points": horizon_lane(-5.0)}}},
             tr("hold", HOLD, gain="-14dB", sends={"hall": "-4dB"},
                auto={"rs": {"points": horizon_lane(-5.0)}, "cl": {"points": cl}}),
-            tr("e6", "organ", gain="-19dB", pan=-0.3, sends={"hall": "-8dB"}, fx=["lp cutoff=3500"]),
-            tr("e7", "brass-synth", gain="-18dB", pan=0.15, sends={"dly": "-12dB", "hall": "-10dB"}),
-            {"name": "jet", "patch": "supersaw", "gain": "-15dB", "sends": {"hall": "-6dB"}, "notes": JET_NOTES},
+            tr("e6", "organ", gain="-24dB", pan=-0.3, sends={"hall": "-8dB"}, fx=["lp cutoff=3500"]),
+            tr("e7", "brass-synth", gain="-11dB", pan=0.15, sends={"dly": "-12dB", "hall": "-10dB"}),
+            {"name": "jet", "patch": "supersaw", "gain": "-8dB", "sends": {"hall": "-6dB"}, "notes": JET_NOTES},
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=0.8s mix=1 predelay=6ms", "hp cutoff=200"]},
                   "hall": {"fx": ["reverb kind=hall decay=4s mix=1 predelay=24ms", "hp cutoff=180"]},
