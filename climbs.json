@@ -8394,7 +8394,7 @@
     {
       "id": "chirpers9-t5",
       "song": "songs/chirpers9-t5.yaml",
-      "reference": "chirpers — Track 5 (untitled)",
+      "reference": "chirpers — Periapsis",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers9-t5 OUT.wav",
@@ -8410,7 +8410,7 @@
       "meta": {
         "artist": "chirpers",
         "album": "Accretion",
-        "title": "Track 5 (untitled)",
+        "title": "Periapsis",
         "track": 5,
         "year": 2026
       },
