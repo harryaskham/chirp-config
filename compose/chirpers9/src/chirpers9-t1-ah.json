@@ -1,0 +1,21 @@
+{
+  "about": "chirp tts (Plain): ah",
+  "seed": 1,
+  "tail": "1.2s",
+  "tempo": 84.0,
+  "tracks": [
+    {
+      "name": "voice",
+      "notes": [
+        {
+          "at": 0.25,
+          "len": 0.429,
+          "ph": "AA1",
+          "pitch": "m47.5",
+          "vel": 0.8
+        }
+      ],
+      "patch": "voice-speech"
+    }
+  ]
+}

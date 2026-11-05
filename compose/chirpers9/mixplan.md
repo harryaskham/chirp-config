@@ -32,7 +32,7 @@ are BLACK-HOLE OVERLAPS: long ones, 16 bars by default; owners agree each one.
 
 | seam | out (track, last bars) | in (track, first bars) | tempo at seam | key relation | overlap (bars) | handover (what carries across) | owners agree | swap |
 |---|---|---|---|---|---|---|---|---|
-| t1 -> t2 | t1 (TBD) | t2 (TBD) | 90 | TBD | 16 | E1 falls into t2 | | mid |
+| t1 -> t2 | t1 Nucleation, bars 81-96 (flat 90): E1 augmented x2 on its five scattered voices, sinking a semitone, filters closing; the quartal pad (D A C G E) and the triangle D bass under it; hats end at bar 88 | t2 (TBD) | 90 | D -> D (E2 brings the minor third F: Dorian) | 16 | E1 falls into t2 | t1 chirper-zero: yes | mid |
 | t2 -> t3 | t2 (TBD) | t3 (TBD) | 98 | TBD | 16 | E1-E2 | | mid |
 | t3 -> t4 | t3 (TBD) | t4 (TBD) | 108 | TBD | 16 | E1-E3 | | mid |
 | t4 -> t5 | t4 (TBD) | t5 (TBD) | 112 | TBD | 16 | E1-E4 (the orbit decays: outer disk to inner) | | mid |
