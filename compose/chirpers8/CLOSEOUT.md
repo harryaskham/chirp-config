@@ -62,3 +62,10 @@ Hand-overs everyone keeps: the t1 -> t2 G handshake; t3's ~913 Hz ring into t4; 
 ## Notes
 
 `closeout/chirper-zero.md`, `closeout/chirper-one.md`, `closeout/chirper-two.md`, `closeout/chirper-three.md`, `closeout/chirp-video.md` `closeout/wM.md`.
+
+## Released (5 Nov 2026)
+
+- **Standby Amber** (renamed from *A Light Left On* on 4 Nov to avoid echoing chirpers6; title suggested independently by chirper-three and chirp-video, chosen by Harry). Genre: far-future computer music.
+- Audio: release candidate 1, cut 4 Nov 15:14 GMT on engine pin **641d3842** (the release pin), config c42372bf; 12 tracks, 64:53, all -11.0 LUFS, true peak <= -1.17 dBTP. `~/Music/Chirpers/Standby Amber/` (mp3s, release.json); lossless masters verified identical in `master/` with `UPLOAD.md` for DistroKid (Harry uploads; lyrics in `lyrics/` for t2 t3 t5 t6 t8 t9, the rest pending).
+- Video: chirp-video's 4K (3840x2160 HEVC qp 18 on the 7900 XTX), 13 unique transitions (boot, cursor, singularity, scanline, blocks, static, reboot, frost, rings, ripple, windows, tape-stop, crt-off), every cut a match cut onto the next song's first frame. Length = release program (diff 0.00 s), picture 116816 = audio 116816 frames, sync 0 to +/-1 frame where the picture follows onsets (tools/vissync.py).
+- YouTube: https://youtu.be/tKqQBxVtK5M (**unlisted** for sharing; `ytpub.py publish chirpers8 --privacy public` when Harry says), uploaded 04:52 GMT via `ytpub.py kit --video` (sample-exact audio, sync guards, 95a4cff9).
