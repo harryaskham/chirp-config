@@ -502,6 +502,21 @@ def build():
     # a bolder version - recurrence collapsed 100 -> 42..71: t6's sections are heard as returns BECAUSE they share
     # their colours; contrast here comes from the voices and the form, not from subtraction)
 
+    # (v24, section w3: the tide 'little new vs w2' - the pull's level and weight carried straight on) THE TIDE COMES
+    # IN WAVES: through the tide section the harmonium - the tide itself - swells with each swing - from a low at each
+    # cycle's start up to a crest exactly where the chord turns (D -> C, or D -> G; the split moving 6 5 4 3 2 3 4 5
+    # beats, so the waves arrive early, earlier, then late again), and back down to the next cycle - a breathing of
+    # about 4 dB every two bars, the section's name heard as motion, under the spoken voice (tried on the whole band
+    # at 3 dB first: recurrence 100 -> 81, the tide no longer heard as a return of the other tide sections; on the
+    # harmonium at 7 dB, recurrence 92)
+    ti0_ = SEC['tide'] * 4.0
+    wave_pts = [['0b', 0.0], [f'{ti0_ - 0.01:.2f}b', 0.0]]
+    sp_ = SPLIT['tide']
+    for c_ in range(8):
+        t_ = ti0_ + 8.0 * c_
+        wave_pts.append([f'{t_:.2f}b', -3.0 if c_ else 0.0])
+        wave_pts.append([f'{t_ + sp_[c_]:.2f}b', 1.0])
+    wave_pts.append([f'{ti0_ + 64.0:.2f}b', 0.0])
     stop_pts = [['0b', 0.0], [f'{void0:.2f}b', 0.0], [f'{void0 + 0.9:.2f}b', 1.0], [f'{void0 + 0.98:.2f}b', 1.0], [f'{void0 + 1.0:.2f}b', 0.0]]
 
     tempo = [{'at': '0b', 'bpm': 120.0}, {'at': f'{SEC["pull"] * 4.0:.1f}b', 'bpm': 120.0},
@@ -545,8 +560,9 @@ def build():
         'tracks': [
             # (v9) and the harmonium is LENSED in: a low-pass that opens from 600 Hz over the in-seam's 16 bars, so t6's
             # own chord arrives from behind t5's tail rather than on top of it
-            tr('tide', 'harmonium', '-9dB', sends={'hall': '-10dB'}, auto={'lens': {'points': [['0b', 0.0], ['64b', 1.0]]}},
-               fx=[{'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 600, 'mod': [{'src': 'auto.lens', 'amount': 4.0}]}}]),
+            tr('tide', 'harmonium', '-9dB', sends={'hall': '-10dB'}, auto={'lens': {'points': [['0b', 0.0], ['64b', 1.0]]}, 'W': {'points': wave_pts}},
+               fx=[{'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 600, 'mod': [{'src': 'auto.lens', 'amount': 4.0}]}},
+                   {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.W', 'amount': 1}]}}]),
             # (v10, whole song) THE STAGE CLEARS FOR THE TUNE: presence.py had the hook (E1 on the whistle) 8-12 dB under
             # the mix, behind a constant acid line and three other E1s at other speeds - the tune one strand of six. Now the
             # hook is up 3 dB, the acid down 2, and everything melodic around it (both harmoniums' lights, the acid, the
