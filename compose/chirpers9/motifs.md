@@ -105,7 +105,8 @@ score: "D3,F#3,A3,C#4,E4,G#4/5b Eb3,G3,Bb3,D4,A4/3b  D3,F#3,A3,C#4,E4,G#4/6b Eb3
 **v2 (6 Nov, after Harry's note - tone is home).** The same rhythm and segments, re-pitched consonant:
 `D2/8. D2/8. D3/8 Bb1/8 Bb1/8. F2/8. C2/8. C2/8. G2/8 C3/4` = D | Bb | C (i - VI - VII in D minor), harmony
 Dm(add9) | Bbmaj7 | C(add9). The v1 pitches below (the Neapolitan Eb) survive only as a passing spice. In a MAJOR
-context (t7's crest, D Mixolydian) it locks 2+2+4 as I | bVII | IV: D | C | G.
+context (t7's crest, D Mixolydian) it locks 2+2+4 as I | bVII | IV: D | C | G. In t3 (v6) the lock resolves home every two
+bars: Dm | Bb | C | Dm (2+2+2+2), the riff's held last beat C -> D.
 
 ```yaml
 # a bass riff of 7 beats - E2's seven sixteenths augmented x4 - written at 98-108 bpm (t3 ramps 98 -> 108), home D
