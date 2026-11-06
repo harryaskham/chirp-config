@@ -411,15 +411,16 @@ def build():
                fx=[{'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 600, 'mod': [{'src': 'auto.shut', 'amount': 3.5}]}}],
                sends={'hall': '-8dB'}),
             tr('sub', 'sub', '-9dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '220ms', 'curve': 0.6}]),
-            tr('bass', 'nes-triangle-bass', '-4dB', fx=['lp cutoff=2400']),
+            tr('bass', 'nes-triangle-bass', '-6dB', fx=['lp cutoff=2400']),
             tr('kit', '909', '-6dB', sends={'hall': '-20dB'},
                auto={'glitch': {'points': [['0b', 0.0], [f"{(CREST + 8) * 4.0 - 0.1:.1f}b", 0.0], [f"{(CREST + 8) * 4.0:.1f}b", 0.35],
                                            [f"{(CREST + 12) * 4.0 - 0.1:.1f}b", 0.35], [f"{(CREST + 12) * 4.0:.1f}b", 0.0], [f"{SEC['drift'] * 4.0 - 0.1:.1f}b", 0.0], [f"{SEC['drift'] * 4.0:.1f}b", 0.22], [f"{84 * 4.0 - 0.1:.1f}b", 0.26], [f"{84 * 4.0:.1f}b", 0.0], [f"{fall0:.1f}b", 0.0]]}},
                fx=[{'type': 'stutter', 'slice': '1/16', 'repeats': 3, 'chance': {'value': 0.0, 'mod': [{'src': 'auto.glitch', 'amount': 1.0}]}, 'seed': 5}]),
-            tr('hat3', '909', '-12dB', pan=0.25, sends={'echo': '-20dB'}),
+            # (v9) presence.py had the three-beat hats 33 dB under the mix - the polymeter you couldn't hear
+            tr('hat3', '909', '-1dB', pan=0.25, sends={'echo': '-20dB'}),
             tr('infall', 'shepard-fall', '-20dB', sends={'hall': '-16dB'}),
             tr('hook', 'ondes', '-5dB', pan=-0.05, sends={'hall': '-12dB', 'echo': '-20dB'}),
-            tr('dust', {'extends': 'chimes', 'synth': {'fx': [PXF]}}, '-21dB', auto={'shut': {'points': shut_pts}},
+            tr('dust', {'extends': 'chimes', 'synth': {'fx': [PXF]}}, '-17dB', auto={'shut': {'points': shut_pts}},
                fx=[{'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 3000, 'mod': [{'src': 'auto.shut', 'amount': 3.0}]}}],
                sends={'echo': '-14dB'}),
             tr('e2m', {'extends': 'chip-metal', 'synth': {'fx': [PXF]}}, '-14dB', auto={'shut': {'points': shut_pts}},
@@ -430,7 +431,11 @@ def build():
             tr('e1in', 'risset-bell', '-12dB', pan=0.15, auto={'lens': {'points': lens_pts}},
                fx=[{'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 400, 'mod': [{'src': 'auto.lens', 'amount': 4.0}]}}],
                sends={'hall': '-6dB'}),
-            tr('e1p', 'nes-pulse-lead', '-13dB', pan=0.3, sends={'echo': '-10dB', 'hall': '-14dB'}),
+            # (v9) THE HOOK UPSIDE DOWN: E1 inverted, from bar 29 to the crest and through the drift, was a thin NES pulse
+            # (an album staple, three tracks) 13 dB down - the song's through-line, barely there. Now it is a Wurlitzer,
+            # reedy and warm, up front: the tune you follow upside down until the crest turns it over (and the ondes
+            # sings it the right way up)
+            tr('e1p', 'wurli', '-6dB', pan=0.2, sends={'echo': '-14dB', 'hall': '-14dB'}),
             tr('e1c', 'risset-bell', '-14dB', pan=-0.35, sends={'hall': '-8dB'}),
             dict({k: v for k, v in vtr.items() if k != 'notes'}, name='voice', notes=vnotes, gain='-8dB', pan=0.05,
                  sends={'echo': '-14dB', 'hall': '-16dB'}),
