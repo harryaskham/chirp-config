@@ -1546,6 +1546,16 @@
        "harmony_key": "D mixolydian"
       }
      ],
+     "lfo": {
+      "vib": {
+       "wave": "sine",
+       "rate": "5.6hz",
+       "delay": "320ms",
+       "fade": "500ms",
+       "retrig": true,
+       "per_note": true
+      }
+     },
      "pitch": {
       "value": 0,
       "mod": [
@@ -1556,6 +1566,10 @@
        {
         "src": "auto.rs",
         "amount": 1
+       },
+       {
+        "src": "lfo.vib",
+        "amount": 0.14
        }
       ]
      },
@@ -3495,6 +3509,16 @@
        "together": true
       }
      ],
+     "lfo": {
+      "vib": {
+       "wave": "sine",
+       "rate": "5.6hz",
+       "delay": "320ms",
+       "fade": "500ms",
+       "retrig": true,
+       "per_note": true
+      }
+     },
      "pitch": {
       "value": 0,
       "mod": [
@@ -3505,6 +3529,10 @@
        {
         "src": "auto.rs",
         "amount": 1
+       },
+       {
+        "src": "lfo.vib",
+        "amount": 0.14
        }
       ]
      },
@@ -5438,6 +5466,16 @@
        "together": true
       }
      ],
+     "lfo": {
+      "vib": {
+       "wave": "sine",
+       "rate": "5.6hz",
+       "delay": "320ms",
+       "fade": "500ms",
+       "retrig": true,
+       "per_note": true
+      }
+     },
      "pitch": {
       "value": 0,
       "mod": [
@@ -5448,6 +5486,10 @@
        {
         "src": "auto.rs",
         "amount": 1
+       },
+       {
+        "src": "lfo.vib",
+        "amount": 0.14
        }
       ]
      },
@@ -7594,6 +7636,16 @@
        "even": 1.0
       }
      ],
+     "lfo": {
+      "vib": {
+       "wave": "sine",
+       "rate": "5.0hz",
+       "delay": "280ms",
+       "fade": "500ms",
+       "retrig": true,
+       "per_note": true
+      }
+     },
      "pitch": {
       "value": 0,
       "mod": [
@@ -7604,6 +7656,10 @@
        {
         "src": "auto.rs",
         "amount": 1
+       },
+       {
+        "src": "lfo.vib",
+        "amount": 0.2
        }
       ]
      },

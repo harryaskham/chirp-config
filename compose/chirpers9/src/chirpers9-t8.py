@@ -604,8 +604,17 @@ VOICE8 = {"about": "t8's choir lead: bright and open - a smaller tract, more air
           "play": {"mono": True, "glide": "90ms", "glide_smooth": True, "fall": 1.0, "glide_overshoot": 0.05},
           "synth": {"layers": [{"type": "voice", "tract": 0.92, "breath": 0.18, "ph_soft": 0.2, "pulse_rate": 5,
                                 "join": True, "inhale": 0.45, "inhale_time": "350ms"}],
-                    "pitch": {"value": 0, "mod": [{"src": "expr.f0", "amount": 0.01}, {"src": "auto.rs", "amount": 1}]},
+                    "lfo": {"vib": {"wave": "sine", "rate": "5.6hz", "delay": "320ms", "fade": "500ms",
+                                    "retrig": True, "per_note": True}},                  # v27: each held note blooms
+                    "pitch": {"value": 0, "mod": [{"src": "expr.f0", "amount": 0.01}, {"src": "auto.rs", "amount": 1},
+                                                  {"src": "lfo.vib", "amount": 0.14}]},
                     "amp": {"a": "30ms", "d": "0s", "s": 1, "r": "300ms"}}}
+# v27 (ROUND TYPE: whole song): THE VOICES BLOOM. t8's voices had NO vibrato at all - the choir and the solo voice
+# sang dead straight on every held note (their pitch followed only the take's contour and the redshift lane). Now
+# every held note blooms the way a trained singer's does, and only the held ones: wM's per-note vibrato (pinned
+# 58ee9ba3) restarts its delay and fade on each joined note, so quick notes stay plain. The choir's is quick and
+# modest (5.6 Hz, 0.14 semitone, from 320 ms - a choir's vibrato is small, its singers already drift); the solo
+# voice's, the one that opens the song and sings its last line, slower and wider (5.0 Hz, 0.2, from 280 ms).
 # v12 (ROUND TYPE: whole song; voice batch 2 pinned - 65c7745c): THE MANY BECOME ONE. The 'choir' was three single
 # voices. Now the jet's choir is a CHOIR - each part sung by several singers (singers: the lead in tune in the middle,
 # the others with their own size, level, entry and drift; detune kept modest, 0.12 st, so it stays in tune - Harry's
@@ -637,6 +646,8 @@ def choir_patch(singers, tract=0.92, third=False):
 SOLO8 = json.loads(json.dumps(VOICE8))
 SOLO8["about"] = "t8's last voice: the choir's lead alone, even vowels - the horizon's last line"
 SOLO8["synth"]["layers"][0]["even"] = 1.0
+SOLO8["synth"]["lfo"]["vib"].update({"rate": "5.0hz", "delay": "280ms"})
+SOLO8["synth"]["pitch"]["mod"][-1]["amount"] = 0.2
 # v23 (ROUND TYPE: whole song): THE VOICES LET GO. t8's voices span the song - the solo voice opens it (her question,
 # v21) and closes it (the last line), the choir sings the jet - so they take wM's singing gestures, in t8's own way
 # (t4's warm soloist scoops 1.2 and falls 2): the CHOIR enters together and clean (no scoop), swings a little past
