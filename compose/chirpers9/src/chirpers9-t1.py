@@ -75,6 +75,7 @@ BASSOUT = os.environ.get("C9T1_BASSOUT", "")   # the t1 -> t2 seam: t1's NES-tri
 BREATHX = os.environ.get("C9T1_BREATHX", "synth.layers.0.breath.value=0.85 synth.layers.0.breath.mod.0.amount=-0.7 synth.amp.a=600ms synth.amp.r=1200ms")   # PALETTE: the breath becomes breath - the far choir's 'ah' was tone at every level; with wM's recipe its breath rises as it softens, so the 'ah' before the crest is a voice and the faint one in the fall is mostly air (the voice the album grows from, still only a breath). Value: extra patch params appended to BREATHP
 HATG = os.environ.get("C9T1_HATG", "-8")   # WHOLE ROUND: THE PULSE YOU CAN HEAR - t1's time is a process (the shekere ticks a 5-in-16 Euclid in A, quickens to 7-in-16 in the build, then plays E1's own rhythm with a clave on each cycle from the crest), but it sat buried (-29 dB under the mix), so the song's rhythm was a texture nobody hears. Brought up (dB) so the process is heard all the way through, and it fills t1's thin top (7.9 kHz was the worst band)
 LANDING = os.environ.get("C9T1_LANDING", "2")   # SECTION w2 (0:36-1:13, A's arrival: flagged 'level jump; new groove', never focused): THE HOOK FIRST - at A the whistle's plain E1 used to land inside the band's arrival (the bass, the shekere and the warm fifth all came in on the same beat). Now the hook is stated over the scatter and the pedal alone, and the band drops in after it (value: bars), so A arrives on the seed's tune, not on a level jump
+LASTHOOK = os.environ.get("C9T1_LASTHOOK", "300,320x2")   # SECTION w7 (3:27-3:59, the lock's end into the fall: flagged static): THE HOOK, ONCE MORE - after the crest the whistle (the hook's instrument) never came back, and the lock just repeated. Now it states E1 plainly once more as the lock exhales ('beat'), and with 'beat,beatx2' it carries on into the fall, playing E1 at half speed with the scattered voices, so the hook itself is handed into the t1 -> t2 overlap
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -225,6 +226,18 @@ def tease():
     hp, _, hg = (HOOKP or "kalimba").partition("@")
     hg = os.environ.get("C9T1_TEASEG", "-10") or hg
     return {"name": "tease", "patch": hp, "gain": f"{hg or -11}dB", "pan": 0.15, "sends": {"space": "-7dB"}, "notes": ns}
+
+
+def lasthook():
+    ns = []
+    for it in LASTHOOK.split(","):
+        aug = it.endswith("x2")
+        b = float(it[:-2] if aug else it)
+        f = 2.0 if aug else 1.0
+        for j in range(5):
+            ns.append(note(b + f * E1_OFF[j], m(E1_MIDI[j]), f * E1_LEN[j] * (1.0 if j < 4 else 1.5), 0.8 if not aug else 0.6))
+    hp, _, hg = (HOOKP or "kalimba").partition("@")
+    return {"name": "hook-last", "patch": hp, "gain": f"{hg or -11}dB", "pan": -0.1, "sends": {"space": "-7dB"}, "notes": ns}
 
 
 def cantus():
@@ -383,7 +396,7 @@ def breath():
 
 
 def song():
-    tracks = [*fragments(), *unison(), *([deep()] if DEEP else []), *([tease()] if TEASE else []), *([hook()] if HOOK else []), *(firstlight() if FIRSTLIGHT else []), *([cantus()] if CANTUS else []), pad(), warmth(), bass(), hats(), kick(), air(), breath()]
+    tracks = [*fragments(), *unison(), *([deep()] if DEEP else []), *([tease()] if TEASE else []), *([lasthook()] if LASTHOOK else []), *([hook()] if HOOK else []), *(firstlight() if FIRSTLIGHT else []), *([cantus()] if CANTUS else []), pad(), warmth(), bass(), hats(), kick(), air(), breath()]
     if LANDING:
         L = ST["A"] + float(LANDING) * BAR
         for tr in tracks:
