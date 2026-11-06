@@ -220,5 +220,5 @@ A breath or a syllable in t1, more words track by track, full lines by t8. Each 
 | track | words | character | where |
 |---|---|---|---|
 | t1 | "ah" (a breath) | since t1 v10: a real inhale, then a sung "ah" by voice-backing (three soft, breathy singers: a far little choir), D rising to A (E1's first two notes) in one breath, distant in the hall | a beat before the crest (bar 57), once more faint in the fall |
-| t5 | "nearer" -> "nearer. the middle hums." | sung (voice-legato since t5 v10: joined, breathing; "near-er" on A G, the line on E5 v2's notes A G A E A D, resolving to D) | "nearer": in the build, three times at the crest, once in the tide. The line: three times after the crest (2:48-3:20) |
+| t5 | "nearer" -> "nearer. the middle hums." | sung, near (voice-near since t5 v12: close, young, breathy, even vowels; one singer where t1 has a far little choir); "near-er" on A G, the line on E5 v2's notes A G A E A D resolving to D, with a harmony a fourth below (E D E B E A) | "nearer": in the build, three times at the crest, once in the tide. The line: three times after the crest (2:48-3:20) |
 

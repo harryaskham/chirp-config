@@ -46,6 +46,7 @@ SEAMHEAD = os.environ.get("C9T5_SEAMHEAD", "hold,assemble")   # SECTION (w1, 0:0
 ORBITLEAD = os.environ.get("C9T5_ORBITLEAD", "128:192:low")   # SECTION (w3, 1:08-1:42, A's second half; presence: the quick bass loudest at -3 dB, E5 - t5's hook - 12 dB under the mix and followable 12% of the time): THE ORBIT SINGS - a Rhodes (new to the album) doubles E5 v2, swelling in over four bars and out again before the build; the orbit itself comes forward and the quick bass steps back, so for half a minute t5's hook is the tune you hear. Value 'A:B' or 'A:B:low' (the Rhodes an octave down)
 CRESTE1 = os.environ.get("C9T5_CRESTE1", "rhodes")   # SECTION (w5, 2:15-2:48, the build's end and the crest; presence at the crest: the voice and the 808 loudest, E1's two voices 16-17 dB under and followable a fifth of the time): E1 SINGS ON THE CREST - for the first four cycles after the meeting the seed is heard plainly: 'rhodes' adds the Rhodes (the one that sang E5 in A) on E1 in octaves with the seed voices, 'lift' brings the two seed voices forward instead (x1.4)
 WEIGHT = os.environ.get("C9T5_WEIGHT", "2")   # SECTION (w4, 1:42-2:15, A's end into the build - never focused; the 808's arrival was a quiet swap of one bass for another): THE WEIGHT ARRIVES - for the last WEIGHT bars of A the quick bass and the drums step out (the orbit, E1's stretto and the lights carry on), and the 808 lands on the build's downbeat on D, its first two bars full - the inner disk's gravity as an event
+VOICEP = os.environ.get("C9T5_VOICEP", "near,harm")   # WHOLE ROUND (voice batch 2 pinned): THE NEAR VOICE - t5 is the disk 'closer and hotter', so its singer is voice-near (close, young, breathy, even vowels) where t1's is a far little choir; 'harm' adds a harmony a fourth below on the line after the crest (A G A E A D over E D E B E A, all in D mixolydian), the line's one moment of two voices
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -355,7 +356,7 @@ def voice():
         for n in src:
             ns.append(dict(n, at=round(at + n["at"], 4), vel=vel))
     if SUNG:
-        return {"name": "nearer", "patch": "voice-legato", "gain": "-9dB", "pan": -0.1,
+        return {"name": "nearer", "patch": "voice-near" if VOICEP else "voice-legato", "gain": "-9dB", "pan": -0.1,
                 "fx": ["hp cutoff=150"], "sends": {"room": "-7dB"}, "notes": ns}
     return {"name": "nearer", "patch": "voice-speech", "gain": "-8dB", "pan": -0.1,
             "fx": [{"type": "pvoc", "mode": "robot", "pitch": "C4",
@@ -375,7 +376,7 @@ def voxline():
         for n in src:
             ns.append(dict(n, at=round(at + n["at"], 4), vel=(0.75, 0.85, 0.7, 0.6)[i % 4]))
     if SUNG:
-        return {"name": "hums", "patch": "voice-legato", "gain": "-9dB", "pan": 0.1,
+        return {"name": "hums", "patch": ({"extends": "voice-near synth.layers.0.harmony=[-5]"} if "harm" in VOICEP else "voice-near") if VOICEP else "voice-legato", "gain": "-9dB", "pan": 0.1,
                 "fx": ["hp cutoff=150"], "sends": {"room": "-7dB"}, "notes": ns}
     return {"name": "hums", "patch": "voice-speech", "gain": "-8dB", "pan": 0.1,
             "fx": [{"type": "pvoc", "mode": "robot", "pitch": "C4",
