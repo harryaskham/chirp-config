@@ -43,6 +43,7 @@ E1_MIDI = [62, 69, 72, 67, 64]               # D4 A4 C5 G4 E4
 E5 = [(0, 69), (1, 68), (2, 69), (4, 76), (6, 69), (7, 68), (8, 69), (10, 74)]   # sixteenth, MIDI
 TONAL = os.environ.get("C9T5_TONAL", "1")   # WHOLE ROUND (Harry, 00:30: 'quite ugly chaos ... atonal, very tough listening; get musicality back and play with time and texture'): TONE IS HOME - E5 v2 drops its G# for G (A G A . E . A G A . D ., a hummable ostinato in D, the time idea kept whole), E4's second light becomes Bbmaj9 (no E against the Bb), and the GENDYN air (a noise cloud, buried anyway) is cut. D mixolydian with a borrowed bVI: every clash gone, the complexity left in the time (the 3-beat orbit, E2's seven, E1's stretto, the converging cycles)
 SEAMHEAD = os.environ.get("C9T5_SEAMHEAD", "hold,assemble")   # SECTION (w1, 0:00-0:34, the head = the t4 -> t5 overlap; flagged static; chirper-three 01:20: t4's fall holds D9 with F#, so my head's move to Bbmaj9 at bar 9 rubbed F against F#): THE ORBIT ASSEMBLES AS THE SEED DISASSEMBLES - the head's light holds D9 for all 16 bars ('hold'), and ('assemble') E5 builds itself hit by hit, one more every two cycles (A, then E, D, the A's, the G neighbours last), while t4's handpan E1 loses one note every two cycles down to its lone D: the two elements cross in the overlap, and E5 is whole as A begins
+ORBITLEAD = os.environ.get("C9T5_ORBITLEAD", "128:192:low")   # SECTION (w3, 1:08-1:42, A's second half; presence: the quick bass loudest at -3 dB, E5 - t5's hook - 12 dB under the mix and followable 12% of the time): THE ORBIT SINGS - a Rhodes (new to the album) doubles E5 v2, swelling in over four bars and out again before the build; the orbit itself comes forward and the quick bass steps back, so for half a minute t5's hook is the tune you hear. Value 'A:B' or 'A:B:low' (the Rhodes an octave down)
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -125,6 +126,9 @@ def orbit():
             if have is not None and s not in have:
                 continue
             ns.append(note(c + s / 4, p, 0.22, v * (1.0 if s in (4, 10) else 0.8)))
+    if ORBITLEAD:
+        la, lb = (float(x) for x in ORBITLEAD.split(":")[:2])
+        ns = [dict(n, vel=round(min(1.0, n["vel"] * 1.5), 3)) if la <= n["at"] < lb else n for n in ns]
     for c in cyc(END["build"] - 8 * BAR, ST["C"], 1.5):          # the trill: E5 diminished x2
         for s, p in E5:
             ns.append(note(c + s / 8, p, 0.11, 0.7))
@@ -209,6 +213,9 @@ def bass():
                 ns.append(note(t, root, 0.4, (0.85, 0.55, 0.7, 0.55)[i]))
     if BASS808 and BASSFROM:
         b0 = ST[BASSFROM]
+        if ORBITLEAD:
+            la, lb = (float(x) for x in ORBITLEAD.split(":")[:2])
+            ns = [dict(n, vel=round(n["vel"] * 0.7, 3)) if la <= n["at"] < lb else n for n in ns]
         cz = [n for n in ns if n["at"] < b0]
         e8 = [dict(n, len=1.2 if n["vel"] >= 0.8 else 0.9) for n in ns if n["at"] >= b0]
         return [{"name": "bass", "patch": "cz-bass", "gain": "-12dB", "pan": 0.0, "notes": gapped(cz)},
@@ -216,6 +223,9 @@ def bass():
     if BASS808:
         ns = [dict(n, len=1.2 if n["vel"] >= 0.8 else 0.9) for n in ns]
         return {"name": "bass", "patch": "808", "gain": f"{BASS808}dB", "pan": 0.0, "notes": gapped(ns)}
+    if ORBITLEAD:
+        la, lb = (float(x) for x in ORBITLEAD.split(":")[:2])
+        ns = [dict(n, vel=round(n["vel"] * 0.7, 3)) if la <= n["at"] < lb else n for n in ns]
     return {"name": "bass", "patch": "cz-bass", "gain": "-12dB", "pan": 0.0, "notes": gapped(ns)}
 
 
@@ -278,6 +288,19 @@ def spin():
     return {"name": "spin", "patch": "909", "gain": "-10dB", "pan": 0.05, "sends": {"room": "-12dB"}, "notes": ns}
 
 
+def orbitlead():
+    a, b, *opt = ORBITLEAD.split(":")
+    a, b, low = float(a), float(b), bool(opt)
+    ns = []
+    for c in cyc(a, b, 3.0):
+        e = min((c - a) / 16, 1.0) * min((b - c) / 12, 1.0)
+        if e <= 0.05:
+            continue
+        for s_, p in E5:
+            ns.append(note(c + s_ / 4, p - (12 if low else 0), 0.3, e * (0.85 if s_ in (4, 10) else 0.7)))
+    return {"name": "orbit-lead", "patch": "rhodes", "gain": "-12dB", "pan": -0.15, "sends": {"room": "-9dB"}, "notes": ns}
+
+
 def air():
     if TONALAIR == "shimmer":
         return {"name": "air", "patch": "drone", "gain": "-22dB", "pan": 0.0,
@@ -322,6 +345,8 @@ def song():
         tracks.append(voxline())
     if SPIN:
         tracks.append(spin())
+    if ORBITLEAD:
+        tracks.append(orbitlead())
     if CRESTGAP and CRESTHIT:
         tracks.append({"name": "crest", "patch": "modal-crash", "gain": f"{CRESTHIT}dB", "pan": 0.0,
                        "sends": {"room": "-6dB"}, "notes": [note(TC, "C4", 8, 0.9)]})
