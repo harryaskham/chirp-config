@@ -58,6 +58,7 @@ WOBBLE = os.environ.get("C9T1_WOBBLE", "240:288")   # SECTION (w6, 2:46-3:19, B 
 CANTUS = os.environ.get("C9T1_CANTUS", "cello")   # WHOLE ROUND: THE SEED'S SHADOW - under the scattered notes, E1 at a quarter speed (a 20-beat cycle, D3 A3 C4 G3 E3, an octave down) as a slow bowed cantus, phased to meet the five voices on the crest: it grows from nothing in A, sings through the convergence and the lock, and fades in the fall. It gives the outer disk its missing body (the low-mids around 150-350 Hz were thin) and the seed a voice below its own. Value = patch
 CANTUSG = os.environ.get("C9T1_CANTUSG", "-13")
 FIRSTLIGHT = os.environ.get("C9T1_FIRSTLIGHT", "echo,pedal")   # SECTION (w1, 0:00-0:34, the album's first half-minute: flagged static, an 8 dB step up into A): FIRST LIGHT - the opening statement of the seed rings out into a long ping-pong echo, so the plain tune scatters into its own repeats (the scatter the five voices then take over), and ('pedal') a low bowed D on the cello swells up under the intro into A, a floor for the album's first breath. Value 'echo' or 'echo,pedal'
+CRESTHOOK = os.environ.get("C9T1_CRESTHOOK", "1")   # SECTION (w5, 2:14-2:46, the build into the crest; presence: at the crest the bass and the cello are loudest, the five converging voices 12-20 dB under, the hook silent): THE SEED IS RECOGNISED - on the crest, the kalimba that showed the seed at the start states it again, plainly, with the five voices as they lock, so the moment the scatter aligns is the moment the tune you were shown comes back ('pull' also: the floor drops for the last two bars before the crest - bass out, cello thinned - so everything arrives together on the downbeat)
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -146,6 +147,10 @@ def hook():
         for c in (s0, s0 + E1_CYC):
             for o, ln, p in zip(E1_OFF, E1_LEN, E1_MIDI):
                 ns.append(note(c + o, m(p), ln * 1.2, v))
+    if CRESTHOOK:
+        for c in (TC, TC + E1_CYC):
+            for o, ln, p in zip(E1_OFF, E1_LEN, E1_MIDI):
+                ns.append(note(c + o, m(p), ln * 1.2, 0.85 if c == TC else 0.7))
     if "B" in HOOK:
         t = TC
         while t < ST["outro"]:
@@ -186,6 +191,8 @@ def cantus():
                 v = 0.75 - 0.45 * (a - ST["outro"]) / (TOTAL - ST["outro"])
             ns.append(note(a, m(p - 12), 4 * ln - 0.15, v))
         t += 20
+    if CRESTHOOK and "pull" in CRESTHOOK:
+        ns = [dict(n, vel=round(n["vel"] * 0.4, 3)) if TC - 8 <= n["at"] < TC else n for n in ns]
     return {"name": "cantus", "patch": CANTUS, "gain": f"{CANTUSG}dB", "pan": -0.05, "sends": {"space": "-6dB"}, "notes": ns}
 
 
@@ -242,6 +249,9 @@ def bass():
             ns.append(note(t, seq[i % len(seq)], min(ln, b - t) - 0.25, 0.7))
             t += ln
             i += 1
+    if CRESTHOOK and "pull" in CRESTHOOK:
+        ns = [n for n in ns if not (TC - 8 <= n["at"] < TC)]
+        ns = [dict(n, len=min(n["len"], TC - 8 - n["at"])) if n["at"] < TC - 8 < n["at"] + n["len"] else n for n in ns]
     return {"name": "bass", "patch": "nes-triangle-bass", "gain": "-11dB", "pan": 0.0, "notes": ns}
 
 
