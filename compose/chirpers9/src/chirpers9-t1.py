@@ -69,6 +69,9 @@ DEEP = os.environ.get("C9T1_DEEP", "partial@-18")   # WHOLE ROUND: THE DEEP - t1
 BREATHE = os.environ.get("C9T1_BREATHE", "78,90,86")   # WHOLE ROUND: TIME BREATHES - t1's tempo only crept 84 -> 90 in a straight line. Now it breathes with the seed: the opening is slower (the first light), the scattered voices hurry together into the crest, the lock relaxes, and the fall rises to t2's 90 (flat for the whole overlap). Value 'lo,crest,lock' bpm (the outro is always 90)
 HOOKP = os.environ.get("C9T1_HOOKP", "low-whistle@-13")   # PALETTE: the plain statements of E1 (the hook: at the start, its echo, at A, the build and on the crest) shared kalimba with the scatter's D voice, so the album's hook blurred into the scatter. They move to their own instrument: 'patch' or 'patch@gaindB'
 TEASE = os.environ.get("C9T1_TEASE", "152:2,168:3,176:4")   # SECTION w4 (A's second half, flagged 'little new vs w3', never focused): THE SEED TRIES TO FORM - where the scattered cycles happen to fall in phase (beat 152: the D, C and G voices together; 168 and 176: pairs), the whistle tries the hook and stops short, a note longer each time (D A ... D A C ... D A C G), never the last E; the build's full statement completes it. Value 'beat:notes,...'
+DEEPOUT = os.environ.get("C9T1_DEEPOUT", "1")   # WHOLE ROUND (with chirper-one, the t1 -> t2 seam): THE FLOOR HANDS OVER - t1's D1 pedal and t2's sub both sat on D1 in the overlap and cancelled in the crossfade (the sub band fell to -31 dB at overlap bars 7-8). Now the pedal steps down through the first half of the overlap and is gone by bar 9, where t2's sub has the floor alone
+EXHALE = os.environ.get("C9T1_EXHALE", "0.25")   # with DEEPOUT: the lock exhales over its last four bars (a further velocity fraction) before the fall begins, so the handover into t2's quieter gather starts lower
+BASSOUT = os.environ.get("C9T1_BASSOUT", "")   # the t1 -> t2 seam: t1's NES-triangle D2 and t2's (the same patch, the same note) cancelled each other in the crossfade (overlap bars 7-8: the sub band -32 dB, the whole mix -23 dB, against -16 for either alone). Now t1's bass hands over: full for overlap bars 1-4, half for 5-8, then t2's bass has the low end alone
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -195,7 +198,7 @@ def firstlight():
 def deep():
     dp, _, dg = DEEP.partition("@")
     ns, t = [], ST["A"]
-    while t < TOTAL - 2:
+    while t < (ST["outro"] if DEEPOUT else TOTAL - 2):
         ln = min(8 * BAR, TOTAL - 2 - t)
         if t < TC:
             v = 0.45 + 0.4 * (t - ST["A"]) / (TC - ST["A"])
@@ -203,6 +206,10 @@ def deep():
             v = 0.85 - 0.35 * (t - TC) / (TOTAL - TC)
         ns.append(note(t, "D1", ln, v))
         t += 8 * BAR
+    if DEEPOUT:
+        v = 0.85 - 0.35 * (ST["outro"] - TC) / (TOTAL - TC)
+        for k, f in enumerate((0.7, 0.45, 0.25, 0.1)):
+            ns.append(note(ST["outro"] + 2 * BAR * k, "D1", 2 * BAR, round(v * f, 3)))
     return {"name": "deep", "patch": dp, "gain": f"{dg or -14}dB", "pan": 0.0, "notes": ns}
 
 
@@ -298,7 +305,8 @@ def bass():
         seq, i, t = roots[sec], 0, a
         while t < b:
             ln = 2 * BAR if sec != "outro" else 4 * BAR
-            ns.append(note(t, seq[i % len(seq)], min(ln, b - t) - 0.25, 0.7))
+            if not (BASSOUT and sec == "outro" and t >= a + 8 * BAR):
+                ns.append(note(t, seq[i % len(seq)], min(ln, b - t) - 0.25, 0.35 if BASSOUT and sec == "outro" and t >= a + 4 * BAR else 0.7))
             t += ln
             i += 1
     if CRESTHOOK and "pull" in CRESTHOOK:
@@ -379,6 +387,8 @@ def song():
             for n in tr["notes"]:
                 if n["at"] >= d0:
                     f = 1 - d * min(1.0, (n["at"] - d0) / (d1 - d0))
+                    if EXHALE and d1 - 4 * BAR <= n["at"] < d1:
+                        f *= 1 - float(EXHALE) * (n["at"] - (d1 - 4 * BAR)) / (4 * BAR)
                     n["vel"] = round(max(0.05, n["vel"] * f), 3)
     return {
         "about": "chirpers IX (Accretion), track 1 by chirper-zero: nucleation - the seed cell E1, shown plainly first, forms "
