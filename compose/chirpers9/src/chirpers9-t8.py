@@ -418,6 +418,21 @@ VOICE8 = {"about": "t8's choir lead: bright and open - a smaller tract, more air
                                 "join": True, "inhale": 0.45, "inhale_time": "350ms"}],
                     "pitch": {"value": 0, "mod": [{"src": "expr.f0", "amount": 0.01}, {"src": "auto.rs", "amount": 1}]},
                     "amp": {"a": "30ms", "d": "0s", "s": 1, "r": "300ms"}}}
+# v12 (ROUND TYPE: whole song; voice batch 2 pinned - 65c7745c): THE MANY BECOME ONE. The 'choir' was three single
+# voices. Now the jet's choir is a CHOIR - each part sung by several singers (singers: the lead in tune in the middle,
+# the others with their own size, level, entry and drift; detune kept modest, 0.12 st, so it stays in tune - Harry's
+# direction) and every vowel even - while the horizon's last line ('and it was ours', at half speed, sinking on the
+# redshift lane) is sung by ONE voice alone on its own track: the many become one as the light leaves.
+def choir_patch(singers, tract=0.92):
+    pt = json.loads(json.dumps(VOICE8))
+    pt["about"] = f"t8's choir part: {singers} singers on one line, even vowels, joined, a breath before each phrase"
+    pt["synth"]["layers"][0].update({"singers": singers, "spread": 0.7, "detune": 0.12, "even": 1.0, "tract": tract})
+    return pt
+
+
+SOLO8 = json.loads(json.dumps(VOICE8))
+SOLO8["about"] = "t8's last voice: the choir's lead alone, even vowels - the horizon's last line"
+SOLO8["synth"]["layers"][0]["even"] = 1.0
 SUB8 = {"about": "t8's sub: a sine under the lights' roots", "synth": {"layers": [{"wave": "sine"}],
         "amp": {"a": "15ms", "d": "0s", "s": 1, "r": "250ms"}}, "fx": ["drive drive=0.1"]}
 HSUB = {"about": "t8's horizon sub: the held D's floor, sinking with it",
@@ -439,7 +454,7 @@ def main():
     carve(["e1", "e2", "bass"], *LULL)
     carve(["lights", "e1", "e2", "e3", "e5", "e6", "bass", "kick", "hat"], VACUUM, VACUUM)
     lead, fifth, low = choir()
-    lead += horizon_line()
+    solo = horizon_line()                                        # v12: the last line, one voice alone
     lead += [{"at": b0(HORIZON + 16), "len": b0(BARS + 1) - b0(HORIZON + 16) - 4, "pitch": "D4", "vel": 0.6}]   # the held 'ah'
     tempo = [{"at": "0b", "bpm": SEAM_IN},
              {"at": f"{b0(BREAK[0]):g}b", "bpm": SEAM_IN},                        # v11: time dilation in the
@@ -478,11 +493,11 @@ def main():
             tr("crash", "machine-kit", gain="2dB", pan=-0.2),
             tr("riser", "fx-revcym", gain="-12dB"),
             tr("impact", "fx-impact", gain="-10dB"),
-            {"name": "choir", "patch": VOICE8, "gain": "-7dB", "sends": {"hall": "-7dB", "dly": "-16dB"},
+            {"name": "choir", "patch": choir_patch(4), "gain": "-7dB", "sends": {"hall": "-7dB", "dly": "-16dB"},
              "notes": lead, "auto": {"rs": {"points": horizon_lane(-5.0)}}},
-            {"name": "choir5", "patch": VOICE8, "gain": "-15dB", "pan": 0.3, "sends": {"hall": "-6dB"}, "notes": fifth,
+            {"name": "choir5", "patch": choir_patch(3), "gain": "-15dB", "pan": 0.3, "sends": {"hall": "-6dB"}, "notes": fifth,
              "auto": {"rs": {"points": horizon_lane(-5.0)}}},
-            {"name": "choir8", "patch": VOICE8, "gain": "-14dB", "pan": -0.3, "sends": {"hall": "-6dB"}, "notes": low,
+            {"name": "choir8", "patch": choir_patch(3, tract=1.0), "gain": "-14dB", "pan": -0.3, "sends": {"hall": "-6dB"}, "notes": low,
              "auto": {"rs": {"points": horizon_lane(-5.0)}}},
             tr("hold", HOLD, gain="-18dB", sends={"hall": "-4dB"},
                auto={"rs": {"points": horizon_lane(-5.0)}, "cl": {"points": cl}}),
@@ -491,6 +506,8 @@ def main():
             tr("e7", "brass-synth", gain="-11dB", pan=0.15, sends={"dly": "-12dB", "hall": "-10dB"}),
             {"name": "jet", "patch": "supersaw", "gain": "-8dB", "sends": {"hall": "-6dB"}, "notes": JET_NOTES},
             tr("hook", "flute", gain="-2dB", pan=0.1, sends={"dly": "-14dB", "hall": "-12dB"}),   # v5
+            {"name": "solo", "patch": SOLO8, "gain": "-7dB", "sends": {"hall": "-5dB", "dly": "-16dB"},   # v12 (last)
+             "notes": solo, "auto": {"rs": {"points": horizon_lane(-5.0)}}},
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=0.8s mix=1 predelay=6ms", "hp cutoff=200"]},
                   "hall": {"fx": ["reverb kind=hall decay=4s mix=1 predelay=24ms", "hp cutoff=180"]},

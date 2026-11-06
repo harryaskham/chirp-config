@@ -306,7 +306,7 @@
   {
    "name": "choir",
    "patch": {
-    "about": "t8's choir lead: bright and open - a smaller tract, more air; joined phrases, a breath before each",
+    "about": "t8's choir part: 4 singers on one line, even vowels, joined, a breath before each phrase",
     "play": {
      "mono": true,
      "glide": "90ms",
@@ -322,7 +322,11 @@
        "pulse_rate": 5,
        "join": true,
        "inhale": 0.45,
-       "inhale_time": "350ms"
+       "inhale_time": "350ms",
+       "singers": 4,
+       "spread": 0.7,
+       "detune": 0.12,
+       "even": 1.0
       }
      ],
      "pitch": {
@@ -2212,164 +2216,6 @@
      }
     },
     {
-     "at": 596.522,
-     "len": 1.98,
-     "ph": "AH0 N D",
-     "pitch": "m62",
-     "vel": 0.615,
-     "expr_path": {
-      "f0": [
-       -60.0,
-       -31.0,
-       -11.0,
-       -1.0,
-       0.0,
-       0.0,
-       -2.0,
-       -2.0,
-       3.0,
-       10.0,
-       12.0,
-       6.0,
-       -7.0,
-       -19.0,
-       -19.0,
-       -5.0,
-       14.0
-      ]
-     }
-    },
-    {
-     "at": 598.522,
-     "len": 1.98,
-     "ph": "IH1 T",
-     "pitch": "m69",
-     "vel": 0.69,
-     "expr_path": {
-      "f0": [
-       -4.0,
-       -4.0,
-       -4.0,
-       -4.0,
-       -4.0,
-       -4.0,
-       -7.0,
-       -7.0,
-       -1.0,
-       6.0,
-       9.0,
-       2.0,
-       -12.0,
-       -24.0,
-       -24.0,
-       -10.0,
-       11.0
-      ]
-     }
-    },
-    {
-     "at": 600.516,
-     "len": 1.98,
-     "ph": "W AA1 Z",
-     "pitch": "m66",
-     "vel": 0.698,
-     "expr_path": {
-      "f0": [
-       1.0,
-       1.0,
-       1.0,
-       1.0,
-       1.0,
-       0.0,
-       -2.0,
-       -1.0,
-       6.0,
-       13.0,
-       11.0,
-       -2.0,
-       -17.0,
-       -22.0,
-       -10.0,
-       14.0,
-       29.0
-      ]
-     }
-    },
-    {
-     "at": 602.512,
-     "len": 3.4,
-     "ph": "AW1",
-     "pitch": "m72",
-     "vel": 0.695,
-     "expr_path": {
-      "f0": [
-       3.0,
-       3.0,
-       3.0,
-       3.0,
-       3.0,
-       3.0,
-       1.0,
-       0.0,
-       4.0,
-       12.0,
-       17.0,
-       13.0,
-       0.0,
-       -15.0,
-       -21.0,
-       -11.0,
-       10.0,
-       28.0,
-       32.0,
-       18.0,
-       -5.0,
-       -22.0,
-       -25.0,
-       -10.0,
-       13.0,
-       30.0,
-       31.0,
-       15.0,
-       -8.0,
-       -24.0,
-       -25.0,
-       -14.0,
-       -1.0,
-       2.0,
-       -15.0
-      ]
-     }
-    },
-    {
-     "at": 608.514,
-     "len": 1.7,
-     "ph": "ER0 Z",
-     "pitch": "m62",
-     "vel": 0.621,
-     "expr_path": {
-      "f0": [
-       -64.0,
-       -35.0,
-       -16.0,
-       -6.0,
-       -4.0,
-       -4.0,
-       -7.0,
-       -6.0,
-       -1.0,
-       6.0,
-       8.0,
-       0.0,
-       -14.0,
-       -25.0,
-       -24.0,
-       -21.0,
-       -31.0
-      ]
-     }
-    },
-    {
      "at": 624,
      "len": 76,
      "pitch": "D4",
@@ -2398,7 +2244,7 @@
   {
    "name": "choir5",
    "patch": {
-    "about": "t8's choir lead: bright and open - a smaller tract, more air; joined phrases, a breath before each",
+    "about": "t8's choir part: 3 singers on one line, even vowels, joined, a breath before each phrase",
     "play": {
      "mono": true,
      "glide": "90ms",
@@ -2414,7 +2260,11 @@
        "pulse_rate": 5,
        "join": true,
        "inhale": 0.45,
-       "inhale_time": "350ms"
+       "inhale_time": "350ms",
+       "singers": 3,
+       "spread": 0.7,
+       "detune": 0.12,
+       "even": 1.0
       }
      ],
      "pitch": {
@@ -4326,7 +4176,7 @@
   {
    "name": "choir8",
    "patch": {
-    "about": "t8's choir lead: bright and open - a smaller tract, more air; joined phrases, a breath before each",
+    "about": "t8's choir part: 3 singers on one line, even vowels, joined, a breath before each phrase",
     "play": {
      "mono": true,
      "glide": "90ms",
@@ -4336,13 +4186,17 @@
      "layers": [
       {
        "type": "voice",
-       "tract": 0.92,
+       "tract": 1.0,
        "breath": 0.18,
        "ph_soft": 0.2,
        "pulse_rate": 5,
        "join": true,
        "inhale": 0.45,
-       "inhale_time": "350ms"
+       "inhale_time": "350ms",
+       "singers": 3,
+       "spread": 0.7,
+       "detune": 0.12,
+       "even": 1.0
       }
      ],
      "pitch": {
@@ -6473,6 +6327,234 @@
    "sends": {
     "dly": "-14dB",
     "hall": "-12dB"
+   }
+  },
+  {
+   "name": "solo",
+   "patch": {
+    "about": "t8's last voice: the choir's lead alone, even vowels - the horizon's last line",
+    "play": {
+     "mono": true,
+     "glide": "90ms",
+     "glide_smooth": true
+    },
+    "synth": {
+     "layers": [
+      {
+       "type": "voice",
+       "tract": 0.92,
+       "breath": 0.18,
+       "ph_soft": 0.2,
+       "pulse_rate": 5,
+       "join": true,
+       "inhale": 0.45,
+       "inhale_time": "350ms",
+       "even": 1.0
+      }
+     ],
+     "pitch": {
+      "value": 0,
+      "mod": [
+       {
+        "src": "expr.f0",
+        "amount": 0.01
+       },
+       {
+        "src": "auto.rs",
+        "amount": 1
+       }
+      ]
+     },
+     "amp": {
+      "a": "30ms",
+      "d": "0s",
+      "s": 1,
+      "r": "300ms"
+     }
+    }
+   },
+   "gain": "-7dB",
+   "sends": {
+    "hall": "-5dB",
+    "dly": "-16dB"
+   },
+   "notes": [
+    {
+     "at": 596.522,
+     "len": 1.98,
+     "ph": "AH0 N D",
+     "pitch": "m62",
+     "vel": 0.615,
+     "expr_path": {
+      "f0": [
+       -60.0,
+       -31.0,
+       -11.0,
+       -1.0,
+       0.0,
+       0.0,
+       -2.0,
+       -2.0,
+       3.0,
+       10.0,
+       12.0,
+       6.0,
+       -7.0,
+       -19.0,
+       -19.0,
+       -5.0,
+       14.0
+      ]
+     }
+    },
+    {
+     "at": 598.522,
+     "len": 1.98,
+     "ph": "IH1 T",
+     "pitch": "m69",
+     "vel": 0.69,
+     "expr_path": {
+      "f0": [
+       -4.0,
+       -4.0,
+       -4.0,
+       -4.0,
+       -4.0,
+       -4.0,
+       -7.0,
+       -7.0,
+       -1.0,
+       6.0,
+       9.0,
+       2.0,
+       -12.0,
+       -24.0,
+       -24.0,
+       -10.0,
+       11.0
+      ]
+     }
+    },
+    {
+     "at": 600.516,
+     "len": 1.98,
+     "ph": "W AA1 Z",
+     "pitch": "m66",
+     "vel": 0.698,
+     "expr_path": {
+      "f0": [
+       1.0,
+       1.0,
+       1.0,
+       1.0,
+       1.0,
+       0.0,
+       -2.0,
+       -1.0,
+       6.0,
+       13.0,
+       11.0,
+       -2.0,
+       -17.0,
+       -22.0,
+       -10.0,
+       14.0,
+       29.0
+      ]
+     }
+    },
+    {
+     "at": 602.512,
+     "len": 3.4,
+     "ph": "AW1",
+     "pitch": "m72",
+     "vel": 0.695,
+     "expr_path": {
+      "f0": [
+       3.0,
+       3.0,
+       3.0,
+       3.0,
+       3.0,
+       3.0,
+       1.0,
+       0.0,
+       4.0,
+       12.0,
+       17.0,
+       13.0,
+       0.0,
+       -15.0,
+       -21.0,
+       -11.0,
+       10.0,
+       28.0,
+       32.0,
+       18.0,
+       -5.0,
+       -22.0,
+       -25.0,
+       -10.0,
+       13.0,
+       30.0,
+       31.0,
+       15.0,
+       -8.0,
+       -24.0,
+       -25.0,
+       -14.0,
+       -1.0,
+       2.0,
+       -15.0
+      ]
+     }
+    },
+    {
+     "at": 608.514,
+     "len": 1.7,
+     "ph": "ER0 Z",
+     "pitch": "m62",
+     "vel": 0.621,
+     "expr_path": {
+      "f0": [
+       -64.0,
+       -35.0,
+       -16.0,
+       -6.0,
+       -4.0,
+       -4.0,
+       -7.0,
+       -6.0,
+       -1.0,
+       6.0,
+       8.0,
+       0.0,
+       -14.0,
+       -25.0,
+       -24.0,
+       -21.0,
+       -31.0
+      ]
+     }
+    }
+   ],
+   "auto": {
+    "rs": {
+     "points": [
+      [
+       "0b",
+       0.0
+      ],
+      [
+       "640b",
+       0.0
+      ],
+      [
+       "704b",
+       -5.0
+      ]
+     ]
+    }
    }
   }
  ],
