@@ -259,8 +259,18 @@ def write_stretto():
     beat = phase_start("E2", 33)
     while beat < JB - 0.01:
         for n, step, v in E2[:2]:
-            part("bass").add(beat + step * 0.25, 0.25, "D2", v - 10)
+            if not (E3_LIGHT[0] <= beat + step * 0.25 < E3_LIGHT[1]):      # v13: E3's spotlight takes the bass
+                part("bass").add(beat + step * 0.25, 0.25, "D2", v - 10)
         beat += 1.75
+    # v13: in E3's spotlight the bass is E3's own bass line - its roots, long, on E3's seven-beat cycle
+    beat = phase_start("E3", ENTRY["E3"])
+    while beat < E3_LIGHT[1] - 0.01:
+        on = 0.0
+        for notes, ln in E3:
+            if E3_LIGHT[0] <= beat + on < E3_LIGHT[1]:
+                part("bass").add(beat + on, ln - 0.1, name_of(midi(notes[0]) - 12), 92)
+            on += ln
+        beat += 7.0
     # the drums gather: noise snare and hat on E5's 3 against the bar, from 65
     for bar in range(65, JET):
         part("kick").add(b0(bar), 0.5, "k", 90)
@@ -390,12 +400,22 @@ def horizon_line():
 # recedes (and sits 2 dB further forward). From bar 92 every orbit swings back in, and at the jet all of it is there at
 # full: the cycles converge at the crest.
 ORBIT_IN = {"e2": (29, 41, -5.0), "e3": (41, 53, -5.0), "e5": (53, 65, -5.0), "e6": (65, 81, -4.0)}
+# v13 (ROUND TYPE: section, E3's arrival 41-56, ~26 s; rewritten): E3 ARRIVES. Its spotlight never happened - E3 sat
+# at -10.8 under E1, E5, the lights and E2, under a busy D pedal (the loudest thing there, -4.4). Now E2 makes room
+# early (it sinks over bars 39-41, not 41-45), E3 sings 4 dB up through its twelve bars, and the bass leaves the pedal
+# to play E3's own bass line - D | Bb | C, long, on E3's seven-beat cycle - so for twelve bars the whole band moves on
+# E3's harmony; the pedal returns with E5 at 53.
+E3_LIGHT = (b0(41), b0(53))
+ORBIT_EARLY = {"e2": 2}                # bars before the next entry that the sink starts (and ends at the entry)
+ORBIT_BOOST = {"e3": 4.0}              # dB in the element's own spotlight
 
 
 def orbit_lane(name):
     """0 dB in the element's spotlight, sinking into orbit as the next enters, swinging back in before the jet."""
     _, nxt, depth = ORBIT_IN[name]
-    return [["0b", 0.0], [f"{b0(nxt):g}b", 0.0], [f"{b0(nxt + 4):g}b", depth],
+    up, early = ORBIT_BOOST.get(name, 0.0), ORBIT_EARLY.get(name, 0)
+    start, end = (nxt - early, nxt) if early else (nxt, nxt + 4)
+    return [["0b", up], [f"{b0(start):g}b", up], [f"{b0(end):g}b", depth],
             [f"{b0(92):g}b", depth], [f"{b0(VACUUM):g}b", 0.0]]
 
 
