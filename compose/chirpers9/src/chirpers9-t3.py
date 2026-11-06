@@ -211,6 +211,15 @@ R25 = os.environ.get("T3_R25", "bloom") != "none"
 # crusher retires (as in t7 v25): the grit lane, a 6-bit 9 kHz crush on the kit and the bass through the storm, goes
 # to zero; the stutter (time texture) stays. T3_R26=none reproduces v25.
 R26 = os.environ.get("T3_R26", "arc") != "none"
+# round 27 (section, w4 = bars 37-48, the storm build, flagged 'little new vs w3'): T3_R27=flute (default) - THE HOOK
+# SURFACES IN THE STORM. Through the build E1 is only there in shards (the chip line breaks it up, -23 dB under the
+# bass and the shards). From bar 41, where the storm rises, a DIZI (bamboo flute, its buzzing membrane; no Accretion
+# track has one) plays E1 WHOLE - D5 A5 C6 G5 E5, in the chip line's own register - on the storm's own 5-beat cycle
+# against the 4/4 bar: six plain statements, each landing somewhere new in the bar, growing louder towards the eye's
+# approach. The hook heard plainly while the time stays complex. And the flute COMES BACK: at the crest it doubles
+# the singer's hook an octave above (bars 91, 95 and 109) - the line that surfaced in the storm now sings with her.
+# Own track. T3_R27=none reproduces v26.
+R27 = os.environ.get("T3_R27", "flute") != "none"
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
 R21_DROPS = os.environ.get("T3_R21", "open") == "lift"
 R21_OPEN = os.environ.get("T3_R21", "open") == "open"          # let go of the third (no F#): t4 brings it
@@ -1097,6 +1106,18 @@ def main():
                 tr["patch"] = "a3-hum"
                 tracks.append(dict(tr, name="hum3", patch="a3-hum3", notes=second))
                 break
+    if R27:                                                 # w4: the hook surfaces in the storm (dizi, bars 41-48)
+        dz = Track("dizi")
+        for k in range(6):
+            at = 40 * 4.0 + 5.0 * k
+            for j, (m, ln) in enumerate(((74, 0.5), (81, 0.75), (84, 0.25), (79, 1.0), (76, 1.0))):
+                dz.add(at, ln * (0.95 if j < 4 else 1.4), mtok(m), 76 + 3 * k + (6 if j == 0 else 0))
+                at += ln
+        for bar in (90, 94, 108):                           # ...and sings with her at the crest (8va)
+            for off, m, ln in ((0.0, 74, 0.49), (0.5, 81, 0.74), (1.245, 84, 0.25), (1.5, 79, 0.99), (2.5, 76, 1.27)):
+                dz.add(bar * 4.0 + off, ln, mtok(m), 84 if off == 0.0 else 80)
+        tracks.append({"name": "dizi", "patch": "dizi", "gain": "-7dB", "pan": -0.2,
+                       "fx": ["delay time=3/8 mix=0.15 feedback=0.3"], "sends": {"space": "-8dB"}, "score": dz.score()})
     if R25:                                                 # held notes bloom; the crest's phrases scoop and fall
         for k in list(patches):
             pt = patches[k]
