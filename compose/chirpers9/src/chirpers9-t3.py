@@ -72,6 +72,15 @@ SUNG_BARS = (90, 94)
 # the eyewall's end (61-72), then at the lock it takes ONE MORE SIXTEENTH - the seven becomes eight - and sits on the
 # bar through the crest. T3_R9=none reproduces v8.
 R9 = os.environ.get("T3_R9", "tight") != "none"
+# round 10 (WHOLE): T3_R10=accrete (default) - THE VOICE BECOMES THE SONG'S THREAD. With wM's voice-legato pinned
+# (joined syllables, an inhale before each phrase, a wandering vibrato, smooth glides), t3's singer is a small near
+# voice (tract 0.86, breath 0.35, ring 0.15, drier - t8's choir keeps the big dark one), and it carries E1 through
+# the song instead of appearing once: (1) a distant wordless hum of E1 ("oo") in the front at bars 25 and 33 - the
+# hook heard before it has words; (2) "nothing here is late" at the lock (91, 95), now legato; (3) the pvoc robot's
+# echoes give way to the voice's ANSWER, "everything comes round" on E1 at bars 101 and 109 - the storm's arithmetic
+# in five words. Whisper and the dry speech stay (not all singing). T3_R10=none reproduces v9.
+R10 = os.environ.get("T3_R10", "accrete") != "none"
+SUNG2_BARS, HUM_BARS = (100, 108), (24, 32)
 # round 8 (section, w5 = bars 49-60, the eyewall's first half, flagged 'little new'): T3_R8=seven (default) - TIME,
 # NOT NOISE. The storm's random Euclid drums give way for 12 bars to ONE groove in sevens: E2's cell (hits 0 2 3 5 of
 # 7 sixteenths) as kick / hat / snare / hat, cycling across the bar line - a cross-rhythm you can follow - and over it
@@ -444,7 +453,7 @@ def build():
     if R4:
         CLEAR.extend(n for n in whisper if 82 * 4.0 <= n["at"] < 84 * 4.0)
         whisper[:] = [n for n in whisper if not (82 * 4.0 <= n["at"] < 84 * 4.0)]
-    for bar in ((100, 108) if R7 else (92, 100, 108)):
+    for bar in (() if R10 else (100, 108) if R7 else (92, 100, 108)):
         put(robot, bar * 4.0, None)
     if R4:
         hits = {}
@@ -661,14 +670,27 @@ def main():
         # voice-legato (join/inhale/wander/glide_smooth) needs a newer engine than the groove pin: until it is pinned,
         # the built-in singing voice with a mono glide carries the line (same notes, same phonemes)
         patches["a3-sung"] = dict(src["patch"], extends="voice play.glide=90ms play.mono=true")
-        notes = []
-        for bar in SUNG_BARS:
-            for n in src["notes"]:
-                d = {"at": round(bar * 4.0 - 0.25 + n["at"], 4), "len": n["len"], "ph": n["ph"], "pitch": n["pitch"],
-                     "vel": n["vel"]}
-                if n.get("expr_path"):
-                    d["expr_path"] = n["expr_path"]
-                notes.append(d)
+        if R10:
+            patches["a3-sung"] = dict(src["patch"], extends="voice-legato synth.layers.0.tract=0.86 "
+                                                            "synth.layers.0.breath=0.35 synth.layers.0.ring=0.15")
+
+        def place(srcn, bars, scale=1.0):
+            out = []
+            for bar in bars:
+                for n in srcn:
+                    d = {"at": round(bar * 4.0 - 0.25 + n["at"], 4), "len": n["len"], "ph": n["ph"],
+                         "pitch": n["pitch"], "vel": round(n["vel"] * scale, 3)}
+                    if n.get("expr_path"):
+                        d["expr_path"] = n["expr_path"]
+                    out.append(d)
+            return out
+        notes = place(src["notes"], SUNG_BARS)
+        if R10:
+            notes += place(json.load(open(os.path.join(HERE, "t3", "sung2.json")))["tracks"][0]["notes"], SUNG2_BARS)
+            tracks[:] = [tr for tr in tracks if tr["name"] != "robot"]
+            hum = place(json.load(open(os.path.join(HERE, "t3", "hum.json")))["tracks"][0]["notes"], HUM_BARS, 0.85)
+            tracks.append({"name": "hum", "patch": "a3-sung", "gain": "-8dB", "pan": -0.2,
+                           "fx": ["delay time=3/8 mix=0.3 feedback=0.4"], "sends": {"space": "-1dB"}, "notes": hum})
         # the lock's groove was buried under the undertow (presence, bars 89-96: bass -0.2 dB vs the mix, the 909 snare
         # -26, hats -34, percussion -42): the bass steps back and the kit comes up, so the reward is a groove you hear
         for tr in tracks:
@@ -677,6 +699,8 @@ def main():
                 tr["gain"] = f"{float(tr['gain'].replace('dB', '')) + g:g}dB"
         tracks.append({"name": "sung", "patch": "a3-sung", "gain": "0dB", "pan": 0.0,
                        "fx": ["delay time=3/8 mix=0.14 feedback=0.25"], "sends": {"space": "-7dB"}, "notes": notes})
+        if R10:
+            tracks[-1].update({"fx": ["delay time=3/8 mix=0.1 feedback=0.2"], "sends": {"space": "-11dB"}})
     master = {"fx": [{"type": "eq", "bands": ["hp cutoff=25", "peak cutoff=100 gain=3dB q=1.0",
                                               "peak cutoff=320 gain=-2dB q=0.8",
                                               "highshelf cutoff=8000 gain=2dB"]},
