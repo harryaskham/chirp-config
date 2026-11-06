@@ -614,8 +614,15 @@ def main():
         "buses": {"room": {"fx": ["reverb kind=room decay=0.8s mix=1 predelay=6ms", "hp cutoff=200"]},
                   "hall": {"fx": ["reverb kind=hall decay=3.2s mix=1 predelay=20ms", "hp cutoff=180"]},
                   "dly": {"fx": ["delay time=3/8 mix=1 feedback=0.3", "hp cutoff=400", "lp cutoff=5000"]}},
+        # v20 (ROUND TYPE: whole song): OPEN THE WINDOW. compscore --bands: t4 ran +6.5 to +9.4 dB hot from 468 to
+        # 1643 Hz and -8 to -11.5 dB dark above 6.7 kHz against the album - boxy and dull, the whole song. Few
+        # fundamentals live there (the harp and glock, both quiet): it is the harmonics and formants of the handpan,
+        # cellos, strings and voice. So the master takes a broad two-octave scoop centred on 900 Hz (-4 dB, Q 0.6)
+        # and its 6 kHz shelf rises from +5 to +8 dB: the same warm song, with air in it. (Milder, -3 / +7 dB: 95.65 /
+        # 95.32 - the same structure cost, less spectrum.)
         "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=28", "peak cutoff=240 q=0.8 gain=-3dB",
-                                                   "highshelf cutoff=6000 gain=5dB"]},
+                                                   "peak cutoff=900 q=0.6 gain=-4dB",
+                                                   "highshelf cutoff=6000 gain=8dB"]},
                           {"type": "compressor", "threshold": "-14dB", "ratio": 3, "attack": "8ms",
                            "release": "120ms", "makeup": "0dB"}]},
     }
