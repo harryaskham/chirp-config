@@ -390,6 +390,19 @@ def build():
         P['lights'].append((at, ','.join(m(n) for n in ch), ln, 84))
         P['sub'].append((at, m(ch[0] - 12 if ch[0] >= 48 else ch[0]), ln, 96))
     P['lights'].sort(key=lambda e_: e_[0]); P['sub'].sort(key=lambda e_: e_[0])
+    # (v16, section w8: 'little new vs w7' - after the void the crest's groove came back much as the surge had it)
+    # THE LAST CHORUS: when the band snaps back after the stopped tape, the chorus comes with it, home in D this time
+    # (at the crest it was lifted to E): the choir sings the line - 'the near side keeps the time / the far side lets
+    # it go' - with a third above in D Mixolydian, twice, the voices alone carrying the tune (no whistle: the surge
+    # just had it), and the second time the old voice sings with them. Then the out-seam, where
+    # the old voice alone has the last word
+    CHD = json.load(open(os.path.join(HERE, 'chirpers9-t6-chorus-d.json')))
+    c2notes = []
+    for b_ in (void1, void1 + 10.0):
+        for n_ in CHD['tracks'][0]['notes']:
+            c2notes.append(dict(n_, at=round(b_ + n_['at'] - 0.256, 4)))
+    for n_ in SU['tracks'][0]['notes']:
+        snotes.append(dict(n_, at=round(void1 + 10.0 + n_['at'] - 0.245, 4)))
     P['hats'] = [e_ for e_ in P['hats'] if not (tr0 - 1e-6 <= e_[0] < tr_end - 1e-6)]
     for q in range(int((void0 - tr0) / 0.25)):
         P['hats'].append((tr0 + q * 0.25, 'h^r=2', 0.25, 70 if q % 4 == 0 else 52))
@@ -474,6 +487,8 @@ def build():
                  sends={'hall': '-14dB'}),
             {'name': 'chorus', 'patch': dict(CHO['tracks'][0]['patch'], extends='voice-choir synth.layers.0.harmony=[2] synth.layers.0.harmony_key=E:mixolydian'),
              'notes': cnotes, 'gain': '-9dB', 'pan': 0.0, 'sends': {'hall': '-9dB'}},
+            {'name': 'chorus2', 'patch': dict(CHD['tracks'][0]['patch'], extends='voice-choir synth.layers.0.harmony=[2] synth.layers.0.harmony_key=D:mixolydian'),
+             'notes': c2notes, 'gain': '-9dB', 'pan': 0.0, 'sends': {'hall': '-9dB'}},
             {'name': 'sung', 'patch': SU['tracks'][0]['patch'],
              'notes': sorted(snotes, key=lambda n_: n_['at']), 'gain': '-7dB', 'pan': 0.0, 'sends': {'hall': '-12dB', 'echo': '-22dB'}},
             # (v14) the second pass's company now sings a THIRD below in D Mixolydian (harmony_key), not a fixed fourth
