@@ -1,0 +1,2 @@
+about: "Connected speech (wM, Accretion voice climb): voice-speech with `join` (the syllables continue one voice: no seams between them, the formants coarticulate; Whisper reads chirp tts lines at 0.32 WER against 0.38) and a light `inhale` at pauses. Write touching `^ph=` syllables, or take a line from `chirp tts --join --print`. Needs the voice engine with join/inhale."
+extends: "voice-speech synth.layers.0.join=true synth.layers.0.inhale=0.3"
