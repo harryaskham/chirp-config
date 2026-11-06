@@ -1,0 +1,51 @@
+{
+  "about": "chirp tts (Plain): nothing here is late",
+  "seed": 3,
+  "tail": "1.2s",
+  "tempo": 103.0,
+  "tracks": [
+    {
+      "name": "voice",
+      "notes": [
+        {
+          "at": 0.25,
+          "len": 0.477,
+          "ph": "N AH1",
+          "pitch": "m49.5",
+          "vel": 0.8
+        },
+        {
+          "at": 0.727,
+          "len": 0.442,
+          "ph": "TH IH0 NG",
+          "pitch": "m46.25",
+          "vel": 0.8
+        },
+        {
+          "at": 1.169,
+          "len": 0.422,
+          "ph": "HH IY1 R",
+          "pitch": "m48",
+          "vel": 0.8
+        },
+        {
+          "at": 1.591,
+          "len": 0.553,
+          "ph": "IH1 Z",
+          "pitch": "m47.25",
+          "vel": 0.8
+        },
+        {
+          "at": 2.144,
+          "len": 0.585,
+          "ph": "L EY1 T",
+          "pitch": "m44.5",
+          "vel": 0.8
+        }
+      ],
+      "patch": {
+        "extends": "voice-speech synth.layers.0.join=true"
+      }
+    }
+  ]
+}

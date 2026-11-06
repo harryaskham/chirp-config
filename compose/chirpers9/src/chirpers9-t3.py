@@ -136,6 +136,16 @@ OPEN_BARS = (100, 108)
 # skin (ks-drum) falls into the answer: six sixteenths D4 C4 A3 G3 F3 D3 at the end of bar 100. T3_R17=none
 # reproduces v16.
 R17 = os.environ.get("T3_R17", "duet") != "none"
+# round 18 (section, w7 = bars 73-84, the lock assembling, flagged 'static'): T3_R18=pull (default) - THE OLD SEVEN
+# PULLS ONCE MORE. (1) For bars 81-84 the kit drops back into the eyewall's sevens (v8's groove: kick, a tuned skin,
+# two hats on E2's seven sixteenths), against the congas and the rain, which are already counting eight: the storm's
+# old meter tugs at the lock one last time before it closes at bar 85 - and the eyewall's groove comes back instead of
+# being left behind. (2) The dry spoken line in bar 83 ("nothing here is") is re-printed with wM's natural rhythm
+# (tts --rhythm --join, pinned c5b2c55e: each syllable as long as its sounds, one breath; src/t3/late_r.json), so it
+# sounds said rather than placed. Old drums silenced (velocity 1); the sevens on v8's own tracks. T3_R18=none
+# reproduces v17.
+R18 = os.environ.get("T3_R18", "pull") != "none"
+PULL = (80, 84)
 CALL_BAR, FILL = 96, ((2.5, 74), (2.75, 72), (3.0, 69), (3.25, 67), (3.5, 65), (3.75, 62))
 # round 16 (section, w3 = bars 25-36, the front's middle, flagged 'static', never focused): T3_R16=rainonly (default;
 # =rain adds the held breath) -
@@ -600,6 +610,17 @@ def build():
             for n, ln in E1:
                 T["glass7"].add(at, ln * 2 * 0.95, mtok(midi(n) + 12), 86)
                 at += ln * 2
+    if R18 and R8:                                          # w7: the old seven pulls once more (bars 81-84)
+        lo, hi = PULL[0] * 4.0, PULL[1] * 4.0
+        for k in ("kick", "snare", "hats"):
+            T[k].ev = [(e[0], e[1], e[2], 1, e[4]) if lo <= e[0] < hi else e for e in T[k].ev]
+        for c in range(PULL[0] * 16, PULL[1] * 16, 7):
+            b = c / 4.0
+            up = int(14 * (c - PULL[0] * 16) / ((PULL[1] - PULL[0]) * 16))
+            T["kick7"].add(b, 0.25, "k", 108 + up)
+            T["hats7"].add(b + 0.5, 0.1, "h", 70 + up)
+            T["snare7"].add(b + 0.75, 0.25, "D4", 98 + up)
+            T["hats7"].add(b + 1.25, 0.1, "h", 58 + up)
     if R17:                                                 # the call at bar 97: the lead steps out; the fill
         for k in ("e1", "e1hi"):
             T[k].ev = [(e[0], e[1], e[2], 1, e[4]) if CALL_BAR * 4.0 <= e[0] < CALL_BAR * 4.0 + 4.0 else e for e in T[k].ev]
@@ -820,6 +841,19 @@ def main():
                        "fx": ["delay time=3/8 mix=0.14 feedback=0.25"], "sends": {"space": "-7dB"}, "notes": notes})
         if R10:
             tracks[-1].update({"fx": ["delay time=3/8 mix=0.1 feedback=0.2"], "sends": {"space": "-11dB"}})
+    if R18 and R4:                                          # bar 83: said, not placed (tts --rhythm --join)
+        rsrc = json.load(open(os.path.join(HERE, "t3", "late_r.json")))["tracks"][0]
+        patches["a3-speak"] = {"extends": rsrc["patch"]["extends"]}
+        said = []
+        for i, n in enumerate(rsrc["notes"][:4]):
+            d = {"at": round(82 * 4.0 + 0.5 + n["at"], 4), "len": n["len"], "ph": n["ph"], "pitch": n["pitch"],
+                 "vel": n["vel"]}
+            if n.get("expr_path"):
+                d["expr_path"] = n["expr_path"]
+            said.append(d)
+        for tr in tracks:
+            if tr["name"] == "speak":
+                tr.update(patch="a3-speak", notes=said)
     if R17:
         dsrc = json.load(open(os.path.join(HERE, "t3", "sung.json")))["tracks"][0]
         patches["a3-duet"] = dict(dsrc["patch"], extends="voice-near synth.layers.0.harmony=[2] "
