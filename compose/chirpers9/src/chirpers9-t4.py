@@ -342,7 +342,7 @@ def write_combined():
         for n, step, v in E2_MAJ:
             part("e2").add(beat + step * 0.25, 0.5, n, v + vel.get(s, -20))
         beat += 1.75
-    beat = phase_start(7.0, 41)
+    beat = phase_start(7.0, A_GATHER[1])                 # v14: E3 joins at 33 (was 41), still phased onto the crest
     while beat < b0(121) - 0.01:
         s = sec_of(int(beat // BPB) + 1)
         for n, on, ln in E3_INV:
@@ -368,6 +368,24 @@ def write_sub():
         k, name, notes = chord_at(beat)
         part("sub").add(beat, E1_CYCLE - 0.25, low[name], 96 if sec_of(int(beat // BPB) + 1) == "crest" else 84)
         beat += E1_CYCLE
+
+
+# v14 (ROUND TYPE: section, A's second half 25-40, ~35 s; rewritten): THE THEME GATHERS. Section A was the handpan's
+# E1 over the lights and the bass, with the harp's E2 from 25 - E3 waited for B, so the 'first full statement of the
+# combined theme' was not combined until later, and nothing sounded above 4 kHz for forty bars. Now the shaker's first
+# whispers arrive with the harp at 25 (only the first hit of its seven-in-sixteen), E3's undertow joins on the pedal
+# steel at 33 - E1 + E2 + E3 + E4 together for the first time - and the handpan steps back a little to let them in.
+# The shaker stays a whisper through A (first hit only): with its full euclid A sounded like B and the two sections
+# blurred (85.30 / 85.89, recurrence 99 -> 60) - B keeps the full euclid as its own.
+A_GATHER = (25, 33)
+
+
+def gather_a():
+    lo, hi = b0(A_GATHER[1]), b0(41)
+    P["seed"].ev = [(s, ln, h, v - 6) if lo <= s < hi else (s, ln, h, v) for s, ln, h, v in P["seed"].ev]
+    for bar in range(A_GATHER[0], 41):
+        for i in EUCLID_7_16[:1]:                        # only the first hit: B keeps the full euclid as its own
+            part("air").add(b0(bar) + i * 0.25, 0.25, "sh", (42 if i == 0 else 32) + (bar - A_GATHER[0]) // 2)
 
 
 def write_air():
@@ -473,6 +491,7 @@ def main():
     write_sub()
     write_air()
     write_combined()
+    gather_a()
     gather()
     hold_breath()
     voice = sorted(sung_notes(b0(CREST), TAKES) + sung_notes(b0(101), TAKES[2:]) + hums(), key=lambda d: d["at"])
