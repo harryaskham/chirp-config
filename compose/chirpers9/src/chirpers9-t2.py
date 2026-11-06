@@ -76,13 +76,15 @@ def chord(bar):
     # the seam), with no third: t2's F, and the harmony moving, arrive only when t1's tail has gone
     if bar < 8:
         return (0, [7, 10, 14, 19])
+    if 84 <= bar < 96 and (bar // 2) % len(PROG) == 1:
+        return (3, [4, 7, 11, 14, 21])          # (v6, w8) F major 9 with a sixth on top: no B against the F
     return PROG[(bar // 2) % len(PROG)]
 
 
 def build():
     rng = random.Random(SEED)
     total = NBARS * 4.0
-    P = {k: [] for k in ('e2m', 'bass', 'e1in', 'e1p', 'e1c', 'kit', 'hat3', 'pad', 'sub', 'voice_', 'e2body', 'infall', 'dust')}
+    P = {k: [] for k in ('e2m', 'bass', 'e1in', 'e1p', 'e1c', 'kit', 'hat3', 'pad', 'sub', 'voice_', 'e2body', 'infall', 'dust', 'hook')}
     fall0 = SEC['fall'] * 4.0
 
     # ---- E2: the cell of seven, from bar 6, assembling out of fragments ----
@@ -256,7 +258,7 @@ def build():
         if s_ == 'build': return 1.3 + 0.9 * i_ / 16.0
         if s_ == 'crest': return 3.0
         if s_ == 'break': return 0.35
-        if s_ == 'drift': return 1.2
+        if s_ == 'drift': return 1.2 if bar < 84 else 3.0      # (v6, w8) the swarm locks in tune under the hook
         return 0.6
     lock_pts = [[f'{b * 4.0:.1f}b', round(lock(b), 3)] for b in range(NBARS)]
     # the fall's filter: the cell and the pad close as they fall into t3 (1 = open)
@@ -303,6 +305,23 @@ def build():
             t_ += 2.5
     for key_ in ('e2m', 'e2body', 'e1p', 'e1c'):
         P[key_].sort(key=lambda e_: e_[0])
+
+    # ---- (v6, section w8, Harry 6 Nov: a hook you can hum, tone is home) THE SEED, PLAINLY: the drift's second half
+    # (bars 85-96, the last look before the fall) ran on, static. Now E1 is sung there the right way up, at its own
+    # speed, on an ondes Martenot - a near-sine voice gliding on its ribbon - nine times through its 5-beat cycle
+    # against the bar (so it lands somewhere new each time and comes home on bar 96); the pulse's inverted E1 gives way
+    # to it, the Kuramoto swarm locks in tune under it, the kit's stutter edits stop, and the F chord loses its B
+    h0, h1 = 84 * 4.0, fall0
+    P['e1p'] = [e_ for e_ in P['e1p'] if not (h0 - 1e-6 <= e_[0] < h1 - 1e-6)]
+    t_ = h0
+    while t_ < h1 - 1e-6:
+        at = t_
+        for k, (semi, ln) in enumerate(E1):
+            if semi is not None and at < h1 - 1e-6:
+                P['hook'].append((at, m(KEY + 24 + semi), min(ln * 0.97, h1 - at), 98 if k == 0 else 86))
+            at += ln
+        t_ += 5.0
+    P['e1c'] = [(a_, p_, d_, v_ - 14 if h0 <= a_ < h1 else v_) for a_, p_, d_, v_ in P['e1c']]
 
     # ---- (v4) THE SPIRAL: the infall as a place. E2's debris orbits the listener - wide and slow at first, then
     # closer and faster (Kepler: the nearer, the quicker round), until at the crest it sits dead centre, locked; it
@@ -359,10 +378,11 @@ def build():
             tr('bass', 'nes-triangle-bass', '-4dB', fx=['lp cutoff=2400']),
             tr('kit', '909', '-6dB', sends={'hall': '-20dB'},
                auto={'glitch': {'points': [['0b', 0.0], [f"{(CREST + 8) * 4.0 - 0.1:.1f}b", 0.0], [f"{(CREST + 8) * 4.0:.1f}b", 0.35],
-                                           [f"{(CREST + 12) * 4.0 - 0.1:.1f}b", 0.35], [f"{(CREST + 12) * 4.0:.1f}b", 0.0], [f"{SEC['drift'] * 4.0 - 0.1:.1f}b", 0.0], [f"{SEC['drift'] * 4.0:.1f}b", 0.22], [f"{fall0 - 0.1:.1f}b", 0.3], [f"{fall0:.1f}b", 0.0]]}},
+                                           [f"{(CREST + 12) * 4.0 - 0.1:.1f}b", 0.35], [f"{(CREST + 12) * 4.0:.1f}b", 0.0], [f"{SEC['drift'] * 4.0 - 0.1:.1f}b", 0.0], [f"{SEC['drift'] * 4.0:.1f}b", 0.22], [f"{84 * 4.0 - 0.1:.1f}b", 0.26], [f"{84 * 4.0:.1f}b", 0.0], [f"{fall0:.1f}b", 0.0]]}},
                fx=[{'type': 'stutter', 'slice': '1/16', 'repeats': 3, 'chance': {'value': 0.0, 'mod': [{'src': 'auto.glitch', 'amount': 1.0}]}, 'seed': 5}]),
             tr('hat3', '909', '-12dB', pan=0.25, sends={'echo': '-20dB'}),
             tr('infall', 'shepard-fall', '-20dB', sends={'hall': '-16dB'}),
+            tr('hook', 'ondes', '-5dB', pan=-0.05, sends={'hall': '-12dB', 'echo': '-20dB'}),
             tr('dust', {'extends': 'chimes', 'synth': {'fx': [PXF]}}, '-21dB', auto={'shut': {'points': shut_pts}},
                fx=[{'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 3000, 'mod': [{'src': 'auto.shut', 'amount': 3.0}]}}],
                sends={'echo': '-14dB'}),
