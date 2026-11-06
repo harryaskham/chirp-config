@@ -415,6 +415,20 @@ def build():
     for k_, b_ in enumerate((SEC['crest'] - 8, SEC['crest'] - 4)):
         for n_ in SU['tracks'][0]['notes']:
             (snotes if k_ == 0 else snotes2).append(dict(n_, at=round(b_ * 4.0 + n_['at'], 4)))
+    # (v26, whole song) THE NEAR SIDE AND THE FAR SIDE, SUNG BY TWO: the line was SPOKEN twice (the tide, the cross)
+    # on a speech voice - the song's words heard first as talk. Now nothing in t6 is spoken: in those two places the
+    # line becomes a duet that does what it says - 'the near side keeps the time' sung by a young, near voice (wM's
+    # voice-near, an octave up: D4 A4 C5 G4 E4 D4) and 'the far side lets it go' answered by the old, far voice
+    # (voice-old: D3 A3 C4 G3 A3 D3) - the song's two layers of E1, the near and the far, given two singers. The
+    # squeeze then has the old voice sing the whole line alone, and the choirs take it at the crest and after the void
+    dnear = []
+    L1_ = [n_ for n_ in SU['tracks'][0]['notes'] if n_['at'] < 5.0]
+    L2_ = [n_ for n_ in SU['tracks'][0]['notes'] if n_['at'] >= 5.0]
+    for b_ in (SEC['tide'] + 4, SEC['cross'] + 6):
+        for n_ in L1_:
+            dnear.append(dict(n_, at=round(b_ * 4.0 + n_['at'], 4), pitch=f"m{int(str(n_['pitch'])[1:]) + 12}"))
+        for n_ in L2_:
+            snotes.append(dict(n_, at=round(b_ * 4.0 + n_['at'], 4)))
     # (v13, section w1: the in-seam 'static') THE ANSWER: t5 ends with its young voice singing 'nearer the middle
     # hums' twice inside our overlap (chirper-zero's voice-near, at t6's bars 5 and 9). Now t6's old voice - a
     # different person - ANSWERS each one in the gap after it: 'the tide comes in', low, A G E D, landing on D as the
@@ -593,8 +607,10 @@ def build():
                sends={'echo': '-14dB', 'hall': '-14dB'}),
             tr('e5', 'steel-pan', '-10dB', pan=-0.15, sends={'echo': '-16dB', 'hall': '-18dB'}, fx=[{'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}]),
             tr('e5b', 'kora', '-11dB', pan=0.35, sends={'hall': '-16dB'}, fx=[{'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}]),
-            dict({k: v for k, v in vtr.items() if k != 'notes'}, name='voice', notes=vnotes, gain='-6dB', pan=-0.05,
-                 sends={'hall': '-14dB'}),
+            # (v26) the spoken voice's track is now the duet's near singer
+            {'name': 'duetnear', 'patch': dict(SU['tracks'][0]['patch'], extends='voice-near synth.lfo.vib.per_note=true',
+                                               play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
+             'notes': dnear, 'gain': '-9dB', 'pan': -0.12, 'sends': {'hall': '-12dB', 'echo': '-20dB'}},
             # (v25, palette) THE SINGERS SING AS ONE, AND EACH HELD NOTE BLOOMS: wM's two newest voice features (pinned
             # 19:43 and 21:32) on all four sung lines. together=true: in the choruses (five singers and a keyed third)
             # and the old voice's lower part, every singer now follows the line's breath, effort and vowel instead of
