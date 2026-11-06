@@ -243,6 +243,37 @@ STOP = (b0(CREST), b0(86))                            # stop-time under the firs
                                                       # retrograde lines that come home
 
 
+# v8 (ROUND TYPE: section, the rise 65-80, ~35 s; rewritten): THE GATHERING. The hook rests here, so the rise is
+# made of TIME and TEXTURE (Harry: complexity goes there): soft kicks on E2's seven-sixteenth cycle (phased like the
+# harp) pull a second pulse against the 4/4 snare and grow toward the crest; the harp's E2 comes forward as the
+# rhythmic lead; from bar 73 every felt-piano eighth gets a sixteenth echo an octave up, a shimmer thickening into the
+# held breath; the vibes double E3's inverted undertow an octave up. All in key; nothing new, just gathered.
+RISE = (65, 80)
+
+
+def gather():
+    lo, hi = b0(RISE[0]), b0(RISE[1] + 1)
+    beat = phase_start(1.75, 25)
+    while beat < hi - 0.01:
+        if beat >= lo - 1e-6:
+            prog = (beat - lo) / (hi - lo)
+            part("kick").add(beat, 0.25, "k", int(60 + 40 * prog))
+        beat += 1.75
+    for name, dv in (("e2", 16),):
+        P[name].ev = [(s, ln, h, v + dv) if lo <= s < hi else (s, ln, h, v) for s, ln, h, v in P[name].ev]
+    extra = []
+    for s, ln, h, v in P["felt"].ev:
+        if b0(73) <= s < hi and "," not in h:
+            extra.append((s + 0.25, 0.25, f"m{midi_of(h) + 12}", v - 10))
+    for e in extra:
+        P["felt"].ev.append(e)
+    extra = []
+    for s, ln, h, v in P["e3"].ev:
+        if lo <= s < hi:
+            extra.append((s, ln, f"m{midi_of(h) + 12}", v - 12))
+    part("e3hi").ev.extend(extra)
+
+
 def hold_breath():
     def cut(names, lo, hi, keep=lambda e: False):
         for n in names:
@@ -388,6 +419,7 @@ def main():
     write_sub()
     write_air()
     write_combined()
+    gather()
     hold_breath()
     voice = sung_notes(b0(CREST), TAKES) + sung_notes(b0(101), TAKES[2:])
     duet = [dict(n, pitch=f"m{third_above(midi_of(n['pitch']))}", vel=round(n["vel"] * 0.8, 3))
@@ -430,6 +462,7 @@ def main():
             {"name": "duet", "patch": VOICE2, "gain": "-12dB", "pan": 0.18, "sends": {"hall": "-8dB"}, "notes": duet},
             {"name": "breath", "patch": BREATH_AIR, "gain": "2dB", "pan": 0.0, "sends": {"room": "-12dB"},
              "notes": breaths},
+            tr("e3hi", "vibes", gain="-18dB", pan=0.35, sends={"hall": "-8dB"}),     # v8: E3 an octave up in the rise
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=0.8s mix=1 predelay=6ms", "hp cutoff=200"]},
                   "hall": {"fx": ["reverb kind=hall decay=3.2s mix=1 predelay=20ms", "hp cutoff=180"]},
