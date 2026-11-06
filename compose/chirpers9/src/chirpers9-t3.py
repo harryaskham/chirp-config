@@ -64,6 +64,12 @@ R6 = os.environ.get("T3_R6", "tonal") != "none"
 # only its later echoes (101, 109). T3_R7=none reproduces v6.
 R7 = os.environ.get("T3_R7", "sung") != "none"
 SUNG_BARS = (90, 94)
+# round 8 (section, w5 = bars 49-60, the eyewall's first half, flagged 'little new'): T3_R8=seven (default) - TIME,
+# NOT NOISE. The storm's random Euclid drums give way for 12 bars to ONE groove in sevens: E2's cell (hits 0 2 3 5 of
+# 7 sixteenths) as kick / hat / snare / hat, cycling across the bar line - a cross-rhythm you can follow - and over it
+# the glass sings E1 STRETCHED x2 (D A C G E, ten beats a statement) three times: the hook as a long line above the
+# storm. T3_R8=none reproduces v7.
+R8 = os.environ.get("T3_R8", "seven") != "none"
 CLEAR = []      # R4: the bar-82 statement, spoken clearly (the voice clears as the arithmetic does)
 CREST = 88                      # the bar every cycle lands on
 CREST16 = CREST * 16            # ... in sixteenths
@@ -450,6 +456,25 @@ def build():
         steps = ["D5", "E5" if R6 else "Eb5", "F5", "G5", "A5", "Bb5", "C6"]  # (R4 count)
         for bar in range(72, 86):
             T["tick"].add(bar * 4.0, 0.9, mtok(midi(steps[(bar - 72) // 2])), 84 + 2 * (bar - 72) + (12 if bar in hits else 0))
+    if R8:                                                  # w5: one groove in sevens + E1 stretched on the glass
+        lo, hi = 48 * 4.0, 60 * 4.0
+        # silence (velocity 1) rather than delete, so later events keep their per-event randomness; the new parts
+        # live on their own tracks
+        for k in ("kick", "snare", "hats"):
+            T[k].ev = [(e[0], e[1], e[2], 1, e[4]) if lo <= e[0] < hi else e for e in T[k].ev]
+        for k in ("kick7", "snare7", "hats7", "glass7"):
+            T[k] = Track(k)
+        for c in range(48 * 16, 60 * 16, 7):
+            b = c / 4.0
+            T["kick7"].add(b, 0.25, "k", 114)
+            T["hats7"].add(b + 0.5, 0.1, "h", 74)
+            T["snare7"].add(b + 0.75, 0.25, "D4", 104)
+            T["hats7"].add(b + 1.25, 0.1, "h", 62)
+        at = lo
+        for _ in range(3):
+            for n, ln in E1:
+                T["glass7"].add(at, ln * 2 * 0.95, mtok(midi(n) + 12), 86)
+                at += ln * 2
     if R7:                                                  # the voice sings E1 alone in its bars; the lead answers
         for bar in SUNG_BARS:
             T["e1"].ev = [e for e in T["e1"].ev if not (bar * 4.0 <= e[0] < bar * 4.0 + 4.0)]
@@ -575,7 +600,7 @@ def main():
                 tr["score"] = T["snare"].score()
         tracks.append({"name": "skin", "patch": "ks-drum", "gain": "-5dB", "pan": -0.05, "fx": storm_fx(), "auto": lanes(),
                        "score": storm.score()})
-    if R2 or R4 or R5:
+    if R2 or R4 or R5 or R8:
         patches["a3-glass"] = {"about": "chirper-two: the crest's glass - a sine phase-modulated at 3.5:1, the index pinged "
                                         "on each attack and settling to a faint shimmer; an octave partial; no low end",
                                "synth": {"layers": [{"name": "g", "ratio": 3.5, "audible": False},
@@ -585,7 +610,7 @@ def main():
                                          "env": {"ping": {"a": "0.5ms", "d": "250ms", "s": 0.05, "r": "100ms"}},
                                          "filters": ["hp cutoff=300", "lp cutoff=8000 q=0.6"],
                                          "amp": {"a": "2ms", "d": "600ms", "s": 0.45, "r": "400ms"}}}
-    if R2 or R5:
+    if R2 or R5 or R8:
         tracks.append({"name": "glass", "patch": "a3-glass", "gain": "-8dB", "pan": 0.25,
                        "fx": ["delay time=3/8 mix=0.2 feedback=0.35"], "sends": {"space": "-6dB"},
                        "score": T["glass"].score()})
@@ -595,6 +620,11 @@ def main():
         tracks.append({"name": "tick", "patch": "a3-glass", "gain": "-10dB", "pan": -0.2,
                        "fx": ["delay time=1/4 mix=0.2 feedback=0.4"], "sends": {"space": "-6dB"},
                        "score": T["tick"].score()})
+    if R8:
+        spec = {tr["name"]: tr for tr in tracks}
+        for new, old in (("kick7", "kick"), ("hats7", "hats"), ("snare7", "skin"), ("glass7", "glass")):
+            if old in spec:
+                tracks.append(dict(spec[old], name=new, score=T[new].score()))
     if R7:
         src = json.load(open(os.path.join(HERE, "t3", "sung.json")))["tracks"][0]
         # voice-legato (join/inhale/wander/glide_smooth) needs a newer engine than the groove pin: until it is pinned,
