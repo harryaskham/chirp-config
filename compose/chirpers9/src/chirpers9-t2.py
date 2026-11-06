@@ -16,7 +16,8 @@ Form (bars): in 16 (the seam from t1, 90 bpm flat) / gather 32 / crest 16 / drif
 t3, 98 bpm flat) = 112 bars; the tempo ramps 90 -> 98 between the seams (the inward spiral, mixplan.md).
 Emits songs/chirpers9-t2.yaml (JSON through tools/songfmt.py). Edit the music here, not the YAML.
 """
-import json, math, os, random, subprocess, sys, tempfile
+import json
+import re, math, os, random, subprocess, sys, tempfile
 
 ROOT = "/home/harry/.config/chirp"
 OUT = os.path.join(ROOT, "songs", "chirpers9-t2.yaml")
@@ -516,9 +517,10 @@ def build():
         for n_ in V2['tracks'][0]['notes']:
             vsnotes.append(dict(n_, at=round(b_ + 4.0 + n_['at'] - 0.25, 4)))
     dsnotes = []
+    dsnotes2 = []
     for k_, b_ in enumerate((346.0, 356.0, 366.0, 376.0)):
         for n_ in CS['tracks'][0]['notes']:
-            dsnotes.append(dict(n_, at=round(b_ + n_['at'] - 0.25, 4), vel=round(min(1.0, n_.get('vel', 0.8) * (0.82 + 0.06 * k_)), 3)))
+            (dsnotes if k_ < 3 else dsnotes2).append(dict(n_, at=round(b_ + n_['at'] - 0.25, 4), vel=round(min(1.0, n_.get('vel', 0.8) * (0.82 + 0.06 * k_)), 3)))
     P['e1p'] = [e_ for e_ in P['e1p'] if not (h0 - 1e-6 <= e_[0] < h1 - 1e-6)]
     t_ = h0
     while t_ < h1 - 1e-6:
@@ -594,6 +596,20 @@ def build():
         P[key_] = [(e_[0], e_[1], min(e_[2], bd0_ - e_[0]), *e_[3:]) if e_[0] < bd0_ < e_[0] + e_[2] else e_ for e_ in P[key_]]
     for key_ in ('kit', 'bass', 'sub'):
         P[key_].sort(key=lambda e_: e_[0])
+    # (v28, whole song) THE LAST CHORUS LIFTS: after the breakdown and the snare pickup, the fourth and last statement
+    # of the line comes back a whole tone UP - the band, the bass, the pad, the debris, the ondes and the voices all in
+    # E Dorian for those two bars (the voices' third above follows the key: harmony_key E Dorian) - the pop record's
+    # last-chorus lift, landed on the crash; and then the fall drops the song back into D with t3's chords: the lift
+    # is the last thing before the infall, so the fall is a real fall
+    lf0_, lf1_ = 94.0 * 4.0, 96.0 * 4.0
+    def lift_(ev_):
+        if not isinstance(ev_[1], str) or not re.match(r'm\d', ev_[1]):
+            return ev_
+        return (ev_[0], re.sub(r'm(\d+(?:\.\d+)?)', lambda q_: f"m{float(q_.group(1)) + 2:.3f}", ev_[1]), *ev_[2:])
+    for key_ in list(P.keys()):
+        if key_ in ('kit', 'hat3'):
+            continue
+        P[key_] = [lift_(e_) if lf0_ - 1e-6 <= e_[0] < lf1_ - 1e-6 else e_ for e_ in P[key_]]
 
     song = {
         'about': "chirpers - Accretion, track 2 by chirper-one: The Long Way In. The infall: a rhythm cell in seven "
@@ -648,22 +664,24 @@ def build():
             {'name': 'farchoir', 'patch': dict(SU['tracks'][0]['patch'], extends='voice-backing synth.layers.0.together=true synth.layers.0.breath.value=0.55 synth.lfo.vib.per_note=true',
                                            play={'scoop': 1, 'fall': 2.5}),
              'notes': echonotes, 'gain': '-10dB', 'pan': -0.1, 'sends': {'echo': '-12dB', 'hall': '-6dB'}},
-            {'name': 'choir', 'patch': {'extends': 'voice-backing synth.layers.0.harmony=[7]',
+            {'name': 'choir', 'patch': {'extends': 'voice-backing synth.layers.0.harmony=[7] synth.layers.0.together=true',
                                         'synth': CH['tracks'][0]['patch'].get('synth', {})},
              'notes': chnotes, 'gain': '-15dB', 'pan': 0.0, 'sends': {'hall': '-8dB'}},
             # (v15) and the sung line is wM's voice-near - close, young, breathy, dry, even vowels - made for this track,
             # in place of voice-legato pushed toward it
-            {'name': 'ooh', 'patch': dict(OOH['tracks'][0]['patch'], extends='voice-backing synth.layers.0.harmony=[-2] synth.layers.0.harmony_key=D:dorian'),
+            {'name': 'ooh', 'patch': dict(OOH['tracks'][0]['patch'], extends='voice-backing synth.layers.0.harmony=[-2] synth.layers.0.harmony_key=D:dorian synth.layers.0.together=true'),
              'notes': oohn, 'gain': '-17dB', 'pan': 0.0, 'sends': {'hall': '-8dB'}},
-            {'name': 'oohin', 'patch': dict(dict(OOH['tracks'][0]['patch'], extends='voice-backing synth.layers.0.harmony=[4] synth.layers.0.harmony_key=D:dorian'), play={'scoop': 1}),
+            {'name': 'oohin', 'patch': dict(dict(OOH['tracks'][0]['patch'], extends='voice-backing synth.layers.0.harmony=[4] synth.layers.0.harmony_key=D:dorian synth.layers.0.together=true'), play={'scoop': 1}),
              'notes': oohin, 'gain': '-15dB', 'pan': 0.0, 'sends': {'hall': '-7dB'}},
-            {'name': 'verse', 'patch': dict(V1['tracks'][0]['patch'], play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
+            {'name': 'verse', 'patch': dict(V1['tracks'][0]['patch'], extends='voice-near synth.lfo.vib.per_note=true', play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
              'notes': vsnotes, 'gain': '-13dB', 'pan': -0.05, 'sends': {'echo': '-16dB', 'hall': '-12dB'}},
-            {'name': 'driftsung', 'patch': dict(dict(CS['tracks'][0]['patch'], extends='voice-near synth.layers.0.harmony=[2] synth.layers.0.harmony_key=D:dorian'), play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
+            {'name': 'driftsung', 'patch': dict(dict(CS['tracks'][0]['patch'], extends='voice-near synth.layers.0.harmony=[2] synth.layers.0.harmony_key=D:dorian synth.layers.0.together=true synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
              'notes': dsnotes, 'gain': '-9dB', 'pan': 0.0, 'sends': {'echo': '-18dB', 'hall': '-12dB'}},
-            {'name': 'crestsung', 'patch': dict(dict(CS['tracks'][0]['patch'], extends='voice-near synth.layers.0.harmony=[2] synth.layers.0.harmony_key=D:mixolydian'), play={'glide_overshoot': 0.06}),
+            {'name': 'driftlift', 'patch': dict(dict(CS['tracks'][0]['patch'], extends='voice-near synth.layers.0.harmony=[2] synth.layers.0.harmony_key=E:dorian synth.layers.0.together=true synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
+             'notes': [dict(n_, pitch=f"m{int(str(n_['pitch'])[1:]) + 2}") for n_ in dsnotes2], 'gain': '-8dB', 'pan': 0.0, 'sends': {'echo': '-18dB', 'hall': '-12dB'}},
+            {'name': 'crestsung', 'patch': dict(dict(CS['tracks'][0]['patch'], extends='voice-near synth.layers.0.harmony=[2] synth.layers.0.harmony_key=D:mixolydian synth.layers.0.together=true synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.06}),
              'notes': csnotes, 'gain': '-9dB', 'pan': 0.0, 'sends': {'echo': '-18dB', 'hall': '-12dB'}},
-            {'name': 'sung', 'patch': SU['tracks'][0]['patch'],
+            {'name': 'sung', 'patch': dict(SU['tracks'][0]['patch'], extends='voice-near synth.lfo.vib.per_note=true'),
              'notes': snotes, 'gain': '-11dB', 'pan': 0.05, 'sends': {'echo': '-16dB', 'hall': '-12dB'}},
         ]}
     return song
