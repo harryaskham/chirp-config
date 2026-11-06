@@ -441,6 +441,21 @@ def write_horizon():
         part("lights").add(b0(a + 14) + i * 10, 10.0, ",".join(notes), 60 - i * 6)
 
 
+# v21 (ROUND TYPE: section, the opening 1-16, ~26 s; rewritten): CATCHING THE E. t7 ends by stopping on an E and
+# holding it - 'the E for t8 to lift' (mixplan) - and t8's first sixteen bars only caught it with the lights. Now the
+# solo voice (the one that sings the album's last line) catches it: she holds t7's E, softly, on 'oo' (over Dm9, where
+# E is in the chord; again over Am7 and Dsus2), then asks the question herself before any instrument does - E, F, E
+# (E8's minor shadow; F rubs briefly against t7's fading E and resolves) - and falls silent four bars before the
+# stretto. The album's last song opens and closes on one voice, and the flute's asks (from 28) echo her question.
+def opening_voice():
+    m = lambda n: f"m{midi(n)}"
+    return [{"at": 4.0, "len": 5.0, "ph": "UW1", "pitch": m("E4"), "vel": 0.42},
+            {"at": 14.0, "len": 10.0, "ph": "UW1", "pitch": m("E4"), "vel": 0.46},
+            {"at": 24.0, "len": 2.5, "ph": "UW1", "pitch": m("E4"), "vel": 0.5},
+            {"at": 26.5, "len": 3.0, "ph": "UW1", "pitch": m("F4"), "vel": 0.54},
+            {"at": 29.5, "len": 14.0, "ph": "UW1", "pitch": m("E4"), "vel": 0.44}]
+
+
 def horizon_line():
     """The choir's last line at half speed, at bar 150 (the lead's redshift lane sinks it)."""
     tk, at = TAKES[3], b0(HORIZON + 9)
@@ -555,7 +570,7 @@ def main():
     carve(["e1", "e2", "bass"], *LULL)
     carve(["lights", "e1", "e2", "e3", "e5", "e6", "bass", "kick", "hat"], VACUUM, VACUUM)
     lead, fifth, low = choir()
-    solo = horizon_line()                                        # v12: the last line, one voice alone
+    solo = opening_voice() + horizon_line()                      # v12: the last line, one voice alone (v21: and the first)
     lead += [{"at": b0(HORIZON + 16), "len": b0(BARS + 1) - b0(HORIZON + 16) - 4, "pitch": "D4", "vel": 0.6}]   # the held 'ah'
     tempo = [{"at": "0b", "bpm": SEAM_IN},
              {"at": f"{b0(BREAK[0]):g}b", "bpm": SEAM_IN},                        # v11: time dilation in the
