@@ -62,6 +62,7 @@ PERNOTE = os.environ.get("C9T5_PERNOTE", "1")   # PALETTE (per-note vibrato pinn
 EQ1400 = os.environ.get("C9T5_EQ1400", "orbit+seed-hi+seed-lo:-6")   # PALETTE: THE CHIP CHANNELS STOP SHOUTING - the NES pulse orbit (and the chip/pluck seeds) piled up +10 dB at 1.4 kHz, the song's worst band; swapping their instruments only moved the pile-up lower. Their tone is carved instead: a peak cut at 1.4 kHz ('track+track:dB'), so the circling stays bright on top but loses its nasal honk
 TOGETHER = os.environ.get("C9T5_TOGETHER", "1")   # PALETTE (together pinned, 8083e37e): the crest line's harmony part (the third above in the key) sang with a fresh voice's defaults while the lead was voice-near's breathy close singer (wM's 'together' bug); now both singers share the line's breath and effort, so the thirds sound like one person double-tracked, not a singer and a stranger
 CRESTE1P = os.environ.get("C9T5_CRESTE1P", "dx-epiano")   # PALETTE: E1 in octaves after the crest moves off the Rhodes the orbit's E5 line also uses ('patch' or 'patch@gaindB'), so the album's seed gets its own colour at the meeting
+CRESTCHOIR = os.environ.get("C9T5_CRESTCHOIR", "accrete")   # SECTION w6 (2:47-3:20, the crest line, sung three times the same): THE CHOIR ACCRETES - the line after the crest ('near-er the mid-dle hums') came three times with the same third above. Now the first is her alone, the second adds the third above in the key, the third adds an octave below as well ('accrete'), so the voice grows inside the window the way the album grows track by track; every statement scoops in and falls off ('sing' alone: the gestures only)
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -509,6 +510,23 @@ def song():
                 tr["patch"] = pp
                 if pg:
                     tr["gain"] = f"{pg}dB"
+    if CRESTCHOIR:
+        hums = [tr for tr in tracks if tr["name"] == "hums"]
+        if hums:
+            h = hums[0]
+            base = h["patch"]["extends"] + " play.scoop=1 play.fall=2"
+            if "accrete" in CRESTCHOIR:
+                starts = [float(x) for x in VOXLINE.split(",")]
+                parts = []
+                for k, s0 in enumerate(starts):
+                    s1 = starts[k + 1] if k + 1 < len(starts) else 1e9
+                    pt = (base.replace(" synth.layers.0.harmony=[2] synth.layers.0.harmony_key=D:mixolydian", "") if k == 0 else
+                          base if k == 1 else base.replace("synth.layers.0.harmony=[2]", "synth.layers.0.harmony=[2,-7]"))
+                    parts.append(dict(h, name=f"hums-{k + 1}", patch={"extends": pt},
+                                      notes=[n for n in h["notes"] if s0 - 1 <= n["at"] < s1 - 1]))
+                tracks = [tr for tr in tracks if tr["name"] != "hums"] + parts
+            else:
+                h["patch"] = {"extends": base}
     if CALLRESP:
         lines = [float(x) for x in VOXA.split(",")] if VOXA else []
         for tr in tracks:
