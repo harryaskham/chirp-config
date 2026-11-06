@@ -118,6 +118,15 @@ R13 = os.environ.get("T3_R13", "clean") != "none"
 # DEFAULT IS boc: the shaker (T3_R14=air) helped the in-seam flow +1.9 but cost recurrence 1.9 (s0) / 5.8 (s11) -
 # the storm's sections stopped returning to each other - so it is kept only as an option.
 R14 = os.environ.get("T3_R14", "boc") != "none"
+# round 15 (WHOLE): T3_R15=open (default) - THE LOCK OPENS. The crest is the storm's reward, and it was static (the
+# sections map: w9 'static, little new vs w8'): Dm | Bb | C | Dm, two beats a chord, for 24 bars. Now, for the eight
+# bars of the answer (101-108, "everything comes round"), the lock's last two chords turn: Dm | Bb | F | C - i VI III
+# VII, the relative major lifting under the singer, then C falling back to Dm as the crest cools (109). Shards, arps,
+# the undertow and its floor move in place (same events, new pitches: C -> F is the riff up a fourth; Dm(add9) -> C
+# (add9) note by note), and the backing singers follow (F5 F5 F5 E5 over A4 Bb4 A4 G4). E1 sits on it: its D A C
+# over F, its G E over C. T3_R15=none reproduces v14.
+R15 = os.environ.get("T3_R15", "open") != "none"
+OPEN_BARS = (100, 108)
 R14_AIR = os.environ.get("T3_R14", "boc") in ("air", "shaker")
 R14_BOC = os.environ.get("T3_R14", "boc") in ("air", "boc")
 # round 8 (section, w5 = bars 49-60, the eyewall's first half, flagged 'little new'): T3_R8=seven (default) - TIME,
@@ -512,6 +521,24 @@ def build():
         steps = ["D5", "E5" if R6 else "Eb5", "F5", "G5", "A5", "Bb5", "C6"]  # (R4 count)
         for bar in range(72, 86):
             T["tick"].add(bar * 4.0, 0.9, mtok(midi(steps[(bar - 72) // 2])), 84 + 2 * (bar - 72) + (12 if bar in hits else 0))
+    if R15:                                                 # the crest's answer: Dm | Bb | F | C
+        lo, hi = OPEN_BARS[0] * 4.0, OPEN_BARS[1] * 4.0
+
+        def dm_to_c(m):
+            return m - 1 if m % 12 == 5 else m - 2           # F -> E; D, A, E -> C, G, D
+
+        for k in ("shard", "arp0", "arp1", "arp2", "bass", "floor", "hold"):
+            if k not in T:
+                continue
+            ev = []
+            for e in T[k].ev:
+                if lo <= e[0] < hi and isinstance(e[2], str) and e[2].startswith("m"):
+                    pos = (e[0] - CREST * 4.0) % 8.0
+                    f = (lambda m: m + 5) if 4.0 <= pos < 6.0 else dm_to_c if pos >= 6.0 else None
+                    if f is not None:
+                        e = (e[0], e[1], ",".join(mtok(f(int(float(h[1:])))) for h in e[2].split(",")), e[3], e[4])
+                ev.append(e)
+            T[k].ev = ev
     if R8:                                                  # w5: one groove in sevens + E1 stretched on the glass
         lo, hi = 48 * 4.0, 60 * 4.0
         # silence (velocity 1) rather than delete, so later events keep their per-event randomness; the new parts
@@ -748,7 +775,9 @@ def main():
     if R12:
         hi, lo = [], []
         for bar in range(96, 112, 2):
-            for j, (h, l) in enumerate(((77, 69), (77, 70), (76, 67), (77, 69))):
+            opened = R15 and OPEN_BARS[0] <= bar < OPEN_BARS[1]
+            for j, (h, l) in enumerate(((77, 69), (77, 70), (77, 69), (76, 67)) if opened else
+                                       ((77, 69), (77, 70), (76, 67), (77, 69))):
                 at = bar * 4.0 + j * 2.0
                 ln = 1.75 if j == 3 else 2.0                      # touching inside the two bars, a breath at the end
                 v = 0.62 + 0.04 * ((bar - 96) // 4)
