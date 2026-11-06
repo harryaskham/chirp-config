@@ -189,6 +189,13 @@ R22 = os.environ.get("T3_R22", "breath") != "none"
 # at bar 41 instead of idling. The old hum notes stay (velocity) so later notes keep their randomness.
 # T3_R23=none reproduces v22.
 R23 = os.environ.get("T3_R23", "gather") != "none"
+# round 24 (section, w9 = bars 97-108, the crest's second half, flagged 'static, little new vs w8'): T3_R24=counts
+# (default) - THE VOICE COUNTS EIGHT. After the duet's answer (bars 101-102) the crest just held its groove. Now for
+# bars 103-108 the small singer's "doo" riff from the eyewall comes back - E2 itself, D A F C - but in EIGHTS, locked
+# to the bar like the congas and the rain at the lock: the voice that struggled in sevens (v20) now counts with the
+# crest, a third above in the key from the start (a3-doo3); and the rain (ks-nylon) doubles it an octave up. Both
+# are the song's own material returning, transformed. Own tracks / appended events. T3_R24=none reproduces v23.
+R24 = os.environ.get("T3_R24", "counts") != "none"
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
 R21_DROPS = os.environ.get("T3_R21", "open") == "lift"
 R21_OPEN = os.environ.get("T3_R21", "open") == "open"          # let go of the third (no F#): t4 brings it
@@ -658,6 +665,10 @@ def build():
             for n, ln in E1:
                 T["glass7"].add(at, ln * 2 * 0.95, mtok(midi(n) + 12), 86)
                 at += ln * 2
+    if R24 and "rain" in T:                                 # w9: the rain doubles the doo riff in eights (103-108)
+        for c in range(102 * 16, 108 * 16, 8):
+            for pos, m in RAIN_CELL:
+                T["rain"].add((c + pos) / 4.0, 0.4, mtok(m + 12 if m < 72 else m), 70 + (6 if pos == 0 else 0))
     if R23:                                                 # w3: the arps climb an octave for bars 33-36
         for k in ("arp0", "arp1", "arp2"):
             T[k].ev = [(e[0], e[1], ",".join(mtok(int(float(p[1:])) + 12) if p.startswith("m") else p
@@ -965,6 +976,15 @@ def main():
         for name, patch, ns in (("doo", "voice-near", doo), ("doo3", "a3-doo3", doo3)):
             tracks.append({"name": name, "patch": patch, "gain": "-6dB", "pan": 0.2,
                            "fx": ["delay time=3/16 mix=0.12 feedback=0.2"], "sends": {"space": "-8dB"}, "notes": ns})
+        if R24:                                             # w9: the voice counts eight (bars 103-108)
+            doo8 = []
+            for c in range(102 * 16, 108 * 16, 8):
+                for h in E2_HITS:
+                    v = 0.56 + 0.1 * (c - 102 * 16) / (6 * 16) + (0.08 if h == 0 else 0.0)
+                    doo8.append({"at": round((c + h) / 4.0, 4), "len": 0.22, "ph": "D UW1", "pitch": mtok(DOO[h]),
+                                 "vel": round(v, 3)})
+            tracks.append({"name": "doo8", "patch": "a3-doo3", "gain": "-6dB", "pan": -0.15,
+                           "fx": ["delay time=3/16 mix=0.12 feedback=0.2"], "sends": {"space": "-8dB"}, "notes": doo8})
     if R19 and R12:                                         # w8: the crest lands
         spec = {tr["name"]: tr for tr in tracks}
         hi8, lo8 = [], []
