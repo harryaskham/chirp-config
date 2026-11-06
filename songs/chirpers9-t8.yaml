@@ -1521,7 +1521,15 @@
       {
        "type": "voice",
        "tract": 0.92,
-       "breath": 0.18,
+       "breath": {
+        "value": 0.34,
+        "mod": [
+         {
+          "src": "vel",
+          "amount": -0.2
+         }
+        ]
+       },
        "ph_soft": 0.2,
        "pulse_rate": 5,
        "join": true,
@@ -1531,6 +1539,7 @@
        "spread": 0.7,
        "detune": 0.12,
        "even": 1.0,
+       "together": true,
        "harmony": [
         2
        ],
@@ -2518,7 +2527,7 @@
      "len": 1.001,
      "ph": "W IY1",
      "pitch": "m74",
-     "vel": 0.824,
+     "vel": 0.494,
      "expr_path": {
       "f0": [
        -63.0,
@@ -2546,7 +2555,7 @@
      "len": 1.528,
      "ph": "W ER1",
      "pitch": "m67",
-     "vel": 0.846,
+     "vel": 0.508,
      "expr_path": {
       "f0": [
        5.0,
@@ -2583,7 +2592,7 @@
      "len": 0.472,
      "ph": "DH AH0",
      "pitch": "m64",
-     "vel": 0.791,
+     "vel": 0.475,
      "expr_path": {
       "f0": [
        -4.0,
@@ -2602,7 +2611,7 @@
      "len": 2.027,
      "ph": "F AA1 R",
      "pitch": "m69",
-     "vel": 0.856,
+     "vel": 0.514,
      "expr_path": {
       "f0": [
        0.0,
@@ -2648,7 +2657,7 @@
      "len": 1.7,
      "ph": "S AY1 D",
      "pitch": "m72",
-     "vel": 0.876,
+     "vel": 0.526,
      "expr_path": {
       "f0": [
        -0.0,
@@ -2694,7 +2703,7 @@
      "len": 1.0,
      "ph": "AH0 N D",
      "pitch": "m62",
-     "vel": 0.769,
+     "vel": 0.461,
      "expr_path": {
       "f0": [
        -60.0,
@@ -2722,7 +2731,7 @@
      "len": 0.997,
      "ph": "IH1 T",
      "pitch": "m69",
-     "vel": 0.863,
+     "vel": 0.518,
      "expr_path": {
       "f0": [
        -4.0,
@@ -2750,7 +2759,7 @@
      "len": 0.998,
      "ph": "W AA1 Z",
      "pitch": "m66",
-     "vel": 0.872,
+     "vel": 0.523,
      "expr_path": {
       "f0": [
        1.0,
@@ -2778,7 +2787,7 @@
      "len": 1.7,
      "ph": "AW1",
      "pitch": "m72",
-     "vel": 0.869,
+     "vel": 0.521,
      "expr_path": {
       "f0": [
        3.0,
@@ -2824,7 +2833,7 @@
      "len": 0.85,
      "ph": "ER0 Z",
      "pitch": "m62",
-     "vel": 0.776,
+     "vel": 0.466,
      "expr_path": {
       "f0": [
        -64.0,
@@ -3465,7 +3474,15 @@
       {
        "type": "voice",
        "tract": 0.92,
-       "breath": 0.18,
+       "breath": {
+        "value": 0.34,
+        "mod": [
+         {
+          "src": "vel",
+          "amount": -0.2
+         }
+        ]
+       },
        "ph_soft": 0.2,
        "pulse_rate": 5,
        "join": true,
@@ -3474,7 +3491,8 @@
        "singers": 3,
        "spread": 0.7,
        "detune": 0.12,
-       "even": 1.0
+       "even": 1.0,
+       "together": true
       }
      ],
      "pitch": {
@@ -4458,7 +4476,7 @@
      "len": 1.001,
      "ph": "W IY1",
      "pitch": "m81",
-     "vel": 0.577,
+     "vel": 0.346,
      "expr_path": {
       "f0": [
        -63.0,
@@ -4486,7 +4504,7 @@
      "len": 1.528,
      "ph": "W ER1",
      "pitch": "m74",
-     "vel": 0.592,
+     "vel": 0.355,
      "expr_path": {
       "f0": [
        5.0,
@@ -4523,7 +4541,7 @@
      "len": 0.472,
      "ph": "DH AH0",
      "pitch": "m71",
-     "vel": 0.554,
+     "vel": 0.332,
      "expr_path": {
       "f0": [
        -4.0,
@@ -4542,7 +4560,7 @@
      "len": 2.027,
      "ph": "F AA1 R",
      "pitch": "m76",
-     "vel": 0.599,
+     "vel": 0.36,
      "expr_path": {
       "f0": [
        0.0,
@@ -4588,7 +4606,7 @@
      "len": 1.7,
      "ph": "S AY1 D",
      "pitch": "m79",
-     "vel": 0.613,
+     "vel": 0.368,
      "expr_path": {
       "f0": [
        -0.0,
@@ -4634,7 +4652,7 @@
      "len": 1.0,
      "ph": "AH0 N D",
      "pitch": "m69",
-     "vel": 0.538,
+     "vel": 0.323,
      "expr_path": {
       "f0": [
        -60.0,
@@ -4662,7 +4680,7 @@
      "len": 0.997,
      "ph": "IH1 T",
      "pitch": "m76",
-     "vel": 0.604,
+     "vel": 0.362,
      "expr_path": {
       "f0": [
        -4.0,
@@ -4690,7 +4708,7 @@
      "len": 0.998,
      "ph": "W AA1 Z",
      "pitch": "m73",
-     "vel": 0.61,
+     "vel": 0.366,
      "expr_path": {
       "f0": [
        1.0,
@@ -4718,7 +4736,7 @@
      "len": 1.7,
      "ph": "AW1",
      "pitch": "m79",
-     "vel": 0.608,
+     "vel": 0.365,
      "expr_path": {
       "f0": [
        3.0,
@@ -4764,7 +4782,7 @@
      "len": 0.85,
      "ph": "ER0 Z",
      "pitch": "m69",
-     "vel": 0.543,
+     "vel": 0.326,
      "expr_path": {
       "f0": [
        -64.0,
@@ -5399,7 +5417,15 @@
       {
        "type": "voice",
        "tract": 1.0,
-       "breath": 0.18,
+       "breath": {
+        "value": 0.34,
+        "mod": [
+         {
+          "src": "vel",
+          "amount": -0.2
+         }
+        ]
+       },
        "ph_soft": 0.2,
        "pulse_rate": 5,
        "join": true,
@@ -5408,7 +5434,8 @@
        "singers": 3,
        "spread": 0.7,
        "detune": 0.12,
-       "even": 1.0
+       "even": 1.0,
+       "together": true
       }
      ],
      "pitch": {
@@ -6392,7 +6419,7 @@
      "len": 1.001,
      "ph": "W IY1",
      "pitch": "m62",
-     "vel": 0.659,
+     "vel": 0.396,
      "expr_path": {
       "f0": [
        -63.0,
@@ -6420,7 +6447,7 @@
      "len": 1.528,
      "ph": "W ER1",
      "pitch": "m55",
-     "vel": 0.677,
+     "vel": 0.406,
      "expr_path": {
       "f0": [
        5.0,
@@ -6457,7 +6484,7 @@
      "len": 0.472,
      "ph": "DH AH0",
      "pitch": "m52",
-     "vel": 0.633,
+     "vel": 0.38,
      "expr_path": {
       "f0": [
        -4.0,
@@ -6476,7 +6503,7 @@
      "len": 2.027,
      "ph": "F AA1 R",
      "pitch": "m57",
-     "vel": 0.685,
+     "vel": 0.411,
      "expr_path": {
       "f0": [
        0.0,
@@ -6522,7 +6549,7 @@
      "len": 1.7,
      "ph": "S AY1 D",
      "pitch": "m60",
-     "vel": 0.701,
+     "vel": 0.42,
      "expr_path": {
       "f0": [
        -0.0,
@@ -6568,7 +6595,7 @@
      "len": 1.0,
      "ph": "AH0 N D",
      "pitch": "m50",
-     "vel": 0.615,
+     "vel": 0.369,
      "expr_path": {
       "f0": [
        -60.0,
@@ -6596,7 +6623,7 @@
      "len": 0.997,
      "ph": "IH1 T",
      "pitch": "m57",
-     "vel": 0.69,
+     "vel": 0.414,
      "expr_path": {
       "f0": [
        -4.0,
@@ -6624,7 +6651,7 @@
      "len": 0.998,
      "ph": "W AA1 Z",
      "pitch": "m54",
-     "vel": 0.698,
+     "vel": 0.419,
      "expr_path": {
       "f0": [
        1.0,
@@ -6652,7 +6679,7 @@
      "len": 1.7,
      "ph": "AW1",
      "pitch": "m60",
-     "vel": 0.695,
+     "vel": 0.417,
      "expr_path": {
       "f0": [
        3.0,
@@ -6698,7 +6725,7 @@
      "len": 0.85,
      "ph": "ER0 Z",
      "pitch": "m50",
-     "vel": 0.621,
+     "vel": 0.372,
      "expr_path": {
       "f0": [
        -64.0,

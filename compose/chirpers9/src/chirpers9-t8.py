@@ -450,9 +450,10 @@ def choir():
             (BREAK[1] + 1, 1), (BREAK[1] + 5, 2), (BREAK[1] + 9, 3)]
     lead, fifth, low = [], [], []
     for bar, k in plan:
-        lead += sung(b0(bar), TAKES[k])
-        fifth += sung(b0(bar), TAKES[k], transpose=7, vel_scale=0.7)
-        low += sung(b0(bar), TAKES[k], transpose=-12, vel_scale=0.8)
+        hush = BREAK_HUSH if in_break(bar) else 1.0                 # v26: the whole choir whispers in the break
+        lead += sung(b0(bar), TAKES[k], vel_scale=hush)
+        fifth += sung(b0(bar), TAKES[k], transpose=7, vel_scale=0.7 * hush)
+        low += sung(b0(bar), TAKES[k], transpose=-12, vel_scale=0.8 * hush)
     return lead, fifth, low
 
 
@@ -610,10 +611,20 @@ VOICE8 = {"about": "t8's choir lead: bright and open - a smaller tract, more air
 # the others with their own size, level, entry and drift; detune kept modest, 0.12 st, so it stays in tune - Harry's
 # direction) and every vowel even - while the horizon's last line ('and it was ours', at half speed, sinking on the
 # redshift lane) is sung by ONE voice alone on its own track: the many become one as the light leaves.
+# v26 (ROUND TYPE: palette - an engine feature the album has not used, `together`, pinned today 8083e37e): THE WHOLE
+# CHOIR BREATHES. Until today a choir's extra singers ignored the line's breath and effort (wM found it): t8's jet
+# choir (4 / 3 / 3 singers and a third in key) had one breathing voice per part and the rest at defaults. Now every
+# singer follows the line (together), and the line's breath follows its loudness (0.34 - 0.2 x velocity: ~0.16 at
+# full voice, as before) - and the dilated break's four lines are sung at 0.6, so the whole choir turns to a hushed,
+# airy whisper while time slows (121-128), and sings out again when the jet fires (129).
+BREAK_HUSH = 0.6
+
+
 def choir_patch(singers, tract=0.92, third=False):
     pt = json.loads(json.dumps(VOICE8))
     pt["about"] = f"t8's choir part: {singers} singers on one line, even vowels, joined, a breath before each phrase"
-    pt["synth"]["layers"][0].update({"singers": singers, "spread": 0.7, "detune": 0.12, "even": 1.0, "tract": tract})
+    pt["synth"]["layers"][0].update({"singers": singers, "spread": 0.7, "detune": 0.12, "even": 1.0, "tract": tract,
+                                     "together": True, "breath": {"value": 0.34, "mod": [{"src": "vel", "amount": -0.2}]}})
     if third:
         # v15 (ROUND TYPE: palette - an engine feature the album had not used: harmony in a key, pin 8e25c1a9): the
         # lead's line is sung again a THIRD above IN THE KEY (D Mixolydian, the jet's E4 v2 - D9 Cmaj9 Am11 G6/9),
