@@ -163,10 +163,11 @@
   {
    "name": "voice",
    "patch": {
-    "about": "t4's voice: a warm, close, human singer - slightly larger tract, soft breath, covered vowels; joined lines and a breath before each (v7)",
+    "about": "t4's voice: a warm, close, human singer - slightly larger tract, soft breath, covered vowels; joined lines, a real breath before each, a wandering vibrato (v10)",
     "play": {
      "mono": true,
-     "glide": "70ms"
+     "glide": "110ms",
+     "glide_smooth": true
     },
     "synth": {
      "layers": [
@@ -177,15 +178,31 @@
        "formant_bw": 1.6,
        "ph_soft": 0.35,
        "consonant_level": "-4dB",
-       "pulse_rate": 5
+       "pulse_rate": 5,
+       "join": true,
+       "inhale": 0.4
       }
      ],
+     "lfo": {
+      "vib": {
+       "wave": "sine",
+       "rate": "5.2hz",
+       "delay": "300ms",
+       "fade": "500ms",
+       "retrig": true,
+       "wander": 0.7
+      }
+     },
      "pitch": {
       "value": 0,
       "mod": [
        {
         "src": "expr.f0",
         "amount": 0.01
+       },
+       {
+        "src": "lfo.vib",
+        "amount": 0.2
        }
       ]
      },
@@ -1568,10 +1585,11 @@
   {
    "name": "duet",
    "patch": {
-    "about": "t4's second singer (v7): lighter and a little brighter, a third above in the duet",
+    "about": "t4's second singer (v7): lighter and a little brighter, a third above in the duet; joined (v10)",
     "play": {
      "mono": true,
-     "glide": "60ms"
+     "glide": "90ms",
+     "glide_smooth": true
     },
     "synth": {
      "layers": [
@@ -1582,15 +1600,31 @@
        "formant_bw": 1.4,
        "ph_soft": 0.35,
        "consonant_level": "-6dB",
-       "pulse_rate": 5
+       "pulse_rate": 5,
+       "join": true,
+       "inhale": 0.3
       }
      ],
+     "lfo": {
+      "vib": {
+       "wave": "sine",
+       "rate": "5.6hz",
+       "delay": "250ms",
+       "fade": "400ms",
+       "retrig": true,
+       "wander": 0.6
+      }
+     },
      "pitch": {
       "value": 0,
       "mod": [
        {
         "src": "expr.f0",
         "amount": 0.01
+       },
+       {
+        "src": "lfo.vib",
+        "amount": 0.16
        }
       ]
      },

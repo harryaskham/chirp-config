@@ -387,18 +387,28 @@ def midi_of(p):
 # beat of bar 80 and stops at the downbeat - the singer breathing in before 'around the warm stone' - and again before
 # the band returns at 86. There a second, lighter singer joins the two retrograde lines ('I kept your far side / and
 # turned toward you') a diatonic third above in D Mixolydian: a duet, two people, not t8's choir. Lines are legato.
+# v10 (ROUND TYPE: palette - an engine feature the album had not used): both singers move onto the VOICE ENGINE
+# (groove pin 8ebc9a86): JOIN (each line's touching notes one breath - the glottis and tract carry on, the formants
+# glide from syllable to syllable), a real INHALE before each line, a WANDERING vibrato (rate and depth drift on slow
+# curves, entering late as a singer's does) and S-shaped slides (glide_smooth). The lead is warm and slow-vibrato'd;
+# the duet a third above is lighter, breathes less and wavers quicker. The hand-made noise breath (v7) stays as the
+# band's breath around the singer's own (retiring it cost the crest's edges: structure on seed 0 83.9 -> 79.9).
 VOICE = {"about": "t4's voice: a warm, close, human singer - slightly larger tract, soft breath, covered vowels; "
-                  "joined lines and a breath before each (v7)",
-         "play": {"mono": True, "glide": "70ms"},
+                  "joined lines, a real breath before each, a wandering vibrato (v10)",
+         "play": {"mono": True, "glide": "110ms", "glide_smooth": True},
          "synth": {"layers": [{"type": "voice", "tract": 1.02, "breath": 0.12, "formant_bw": 1.6, "ph_soft": 0.35,
-                               "consonant_level": "-4dB", "pulse_rate": 5}],
-                   "pitch": {"value": 0, "mod": [{"src": "expr.f0", "amount": 0.01}]},
+                               "consonant_level": "-4dB", "pulse_rate": 5, "join": True, "inhale": 0.4}],
+                   "lfo": {"vib": {"wave": "sine", "rate": "5.2hz", "delay": "300ms", "fade": "500ms",
+                                   "retrig": True, "wander": 0.7}},
+                   "pitch": {"value": 0, "mod": [{"src": "expr.f0", "amount": 0.01}, {"src": "lfo.vib", "amount": 0.2}]},
                    "amp": {"a": "40ms", "d": "0s", "s": 1, "r": "250ms"}}}
-VOICE2 = {"about": "t4's second singer (v7): lighter and a little brighter, a third above in the duet",
-          "play": {"mono": True, "glide": "60ms"},
+VOICE2 = {"about": "t4's second singer (v7): lighter and a little brighter, a third above in the duet; joined (v10)",
+          "play": {"mono": True, "glide": "90ms", "glide_smooth": True},
           "synth": {"layers": [{"type": "voice", "tract": 0.95, "breath": 0.16, "formant_bw": 1.4, "ph_soft": 0.35,
-                                "consonant_level": "-6dB", "pulse_rate": 5}],
-                    "pitch": {"value": 0, "mod": [{"src": "expr.f0", "amount": 0.01}]},
+                                "consonant_level": "-6dB", "pulse_rate": 5, "join": True, "inhale": 0.3}],
+                    "lfo": {"vib": {"wave": "sine", "rate": "5.6hz", "delay": "250ms", "fade": "400ms",
+                                    "retrig": True, "wander": 0.6}},
+                    "pitch": {"value": 0, "mod": [{"src": "expr.f0", "amount": 0.01}, {"src": "lfo.vib", "amount": 0.16}]},
                     "amp": {"a": "50ms", "d": "0s", "s": 1, "r": "250ms"}}}
 BREATH_AIR = {"about": "t4's breath (v7): band-passed air swelling in, stopped at the phrase",
           "synth": {"layers": [{"color": "pink"}],
