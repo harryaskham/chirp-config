@@ -554,6 +554,24 @@ def build():
     PAD = {'extends': 'kuramoto-choir',
            'synth': {'layers': [{'type': 'kuramoto', 'kuramoto': {'count': 10, 'spread': 12, 'wave': 'saw',
                                  'coupling': {'value': 0.0, 'mod': [{'src': 'auto.lock', 'amount': 1.0}]}}}]}}
+    # (v25, section w8: the drift 'static' - one groove under the last chorus to the end) THE FLOOR FALLS AWAY FOR THE
+    # THIRD TIME: at the last chorus's third statement (bars 92-94) the band drops out - no kit, no hats, no debris,
+    # no bass, no sub - and only the voice, the ondes, the pad and the bells are left, the line sung nearly alone;
+    # then half a bar of 909 snare in sixteenths, rising, and the whole band lands with the fourth and last statement
+    # (bar 95), which carries the song into the fall. The arrangement breathes the way the words do
+    bd0_, bd1_, bd2_ = 91.0 * 4.0, 93.5 * 4.0, 94.0 * 4.0
+    for key_ in ('kit', 'hat3', 'e2m', 'e2body', 'dust', 'bass', 'sub'):
+        P[key_] = [e_ for e_ in P[key_] if not (bd0_ - 1e-6 <= e_[0] < bd2_ - 1e-6)]
+    for q_ in range(8):
+        P['kit'].append((bd1_ + q_ * 0.25, 's', 0.1, 64 + 6 * q_))
+    P['kit'].append((bd2_, 'k', 0.2, 124))
+    P['kit'].append((bd2_, 'c', 2.0, 110))
+    for key_ in ('bass', 'sub'):
+        # the notes already sounding when the floor falls away stop with it (the bar-95 ones are the band's return)
+        P[key_] = [(e_[0], e_[1], min(e_[2], bd0_ - e_[0]), *e_[3:]) if e_[0] < bd0_ < e_[0] + e_[2] else e_ for e_ in P[key_]]
+    for key_ in ('kit', 'bass', 'sub'):
+        P[key_].sort(key=lambda e_: e_[0])
+
     song = {
         'about': "chirpers - Accretion, track 2 by chirper-one: The Long Way In. The infall: a rhythm cell in seven "
                  "assembles out of falling fragments against the band's sixteen, every cycle landing together at the crest. "
