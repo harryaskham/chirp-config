@@ -519,6 +519,37 @@ def third_above(m):
     return m + up
 
 
+# v19 (ROUND TYPE: section, the crest's second half 91-100, ~21 s; rewritten): THE HOOK, SUNG BACK. The voice's four
+# lines end at bar 91, and the handpan and the canon rest through the crest (the voice carries E1 there) - so the
+# second half of t4's climax had no hook at all: ten bars of band led by the sub and the lights. Now, after a bar of
+# air, the singer sings E1 ITSELF on an open 'ah', full-voiced, four times (cycles 73-76, bars 92-97), and on the last
+# two the duet joins a third above - the hook in two voices; then the voices rest and the handpan answers with E1,
+# the nylon canon a fourth below two beats behind (cycles 77-79), carrying it straight into the relief.
+SUNG_HOOK = range(73, 77)                 # E1 cycles (5 beats each): bars 92.25 - 97
+HANDS_HOOK = range(77, 80)                # bars 97.25 - 101, into the relief's own seed and canon
+
+
+def crest_hook():
+    voice, duet = [], []
+    for j, c in enumerate(SUNG_HOOK):
+        beat = c * E1_CYCLE
+        for i, (n, on, ln) in enumerate(E1):
+            last = i == len(E1) - 1
+            v = round((0.68 if on == 0 else 0.62) * (0.92 + 0.04 * j), 3)   # an answer, not a second climax
+            d = {"at": round(beat + on, 4), "len": ln + (0.75 if last else 0.0), "ph": "AA1",
+                 "pitch": f"m{midi_of(n)}", "vel": v}
+            voice.append(d)
+            if j >= 2:
+                duet.append(dict(d, pitch=f"m{third_above(midi_of(n))}", vel=round(v * 0.65, 3)))
+    for c in HANDS_HOOK:
+        beat = c * E1_CYCLE
+        for n, on, ln in E1:
+            part("seed").add(beat + on, ln, n, 66 if on == 0 else 58)
+            part("canon").add(beat + 2 + on, ln, f"m{midi(n) - 5}", 48)
+    breath = {"at": SUNG_HOOK[0] * E1_CYCLE - 0.7, "len": 0.7, "pitch": "C4", "vel": 0.5}
+    return voice, duet, breath
+
+
 def main():
     write_lens()
     write_lights()
@@ -532,12 +563,15 @@ def main():
     gather_a()
     gather()
     hold_breath()
-    voice = sorted(sung_notes(b0(CREST), TAKES) + sung_notes(b0(101), TAKES[2:]) + hums(), key=lambda d: d["at"])
+    hook_v, hook_d, hook_b = crest_hook()                           # v19: the hook, sung back (91-100)
+    voice = sorted(sung_notes(b0(CREST), TAKES) + sung_notes(b0(101), TAKES[2:]) + hums() + hook_v,
+                   key=lambda d: d["at"])
     duet = [dict(n, pitch=f"m{third_above(midi_of(n['pitch']))}", vel=round(n["vel"] * 0.8, 3))
-            for n in sung_notes(b0(CREST) + 20, TAKES[2:]) + sung_notes(b0(101), TAKES[2:])]   # v7: lines 3-4 at
+            for n in sung_notes(b0(CREST) + 20, TAKES[2:]) + sung_notes(b0(101), TAKES[2:])] + hook_d   # v7: lines 3-4 at
                                                                   # 86-90 and their return in the afterglow (101-105)
+    duet.sort(key=lambda d: d["at"])
     breaths = [{"at": b0(CREST) - 0.85, "len": 0.85, "pitch": "C4", "vel": 0.55},
-               {"at": b0(CREST) + 20 - 0.75, "len": 0.75, "pitch": "C4", "vel": 0.45}]
+               {"at": b0(CREST) + 20 - 0.75, "len": 0.75, "pitch": "C4", "vel": 0.45}, hook_b]
     tempo = [{"at": "0b", "bpm": SEAM_IN}, {"at": f"{b0(17):g}b", "bpm": SEAM_IN},
              {"at": f"{b0(121):g}b", "bpm": SEAM_OUT, "ramp": True}]
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
