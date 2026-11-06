@@ -174,12 +174,21 @@ def write_seed():
                 part("canon").add(beat + 2 + on, ln, f"m{m}", 50)
         beat += E1_CYCLE
         cyc += 1
-    # the fall: E1 augmented x2, the last statement handed over the seam
-    beat = b0(121)
-    while beat < b0(BARS + 1) - 10:
-        for n, on, ln in E1:
-            part("seed").add(beat + 2 * on, 2 * ln, n, 54)
-        beat += 2 * E1_CYCLE
+    # v5 (ROUND TYPE: section, bars 121-136, ~34 s; rewritten): THE ORBIT CLOSES - the fall MIRRORS the lens. The seed,
+    # which assembled itself one note more every two cycles from the downbeat, now DISASSEMBLES: whole at 121, one note
+    # fewer every two cycles (5 5 4 4 3 3 2 2 1 ...) until only its D is left - the D t5 picks up under its D9 pad. Over
+    # it the storm's residue returns LIFTED (D3 A3 E4 F#4, the voicing bar 9 lifted it to, on the same strings-synth),
+    # swelling slightly as the orbit closes. (Was: E1 augmented x2 over the fading lights.)
+    beat, cyc = b0(121), 0
+    while beat < b0(BARS + 1) - 0.01:
+        k = max(1, 5 - cyc // 2)
+        v = 66 - min(16, cyc * 2)
+        for n, on, ln in E1[:k]:
+            part("seed").add(beat + on, ln, n, v + (4 if on == 0 else 0))
+        beat += E1_CYCLE
+        cyc += 1
+    for i, bar in enumerate(range(121, BARS + 1, 4)):
+        part("residue").add(b0(bar), 4 * BPB, head(("D3", "A3", "E4", "F#4")), 46 + 2 * i)
 
 
 def write_bass():
