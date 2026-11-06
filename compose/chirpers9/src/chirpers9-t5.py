@@ -48,6 +48,7 @@ CRESTE1 = os.environ.get("C9T5_CRESTE1", "rhodes")   # SECTION (w5, 2:15-2:48, t
 WEIGHT = os.environ.get("C9T5_WEIGHT", "2")   # SECTION (w4, 1:42-2:15, A's end into the build - never focused; the 808's arrival was a quiet swap of one bass for another): THE WEIGHT ARRIVES - for the last WEIGHT bars of A the quick bass and the drums step out (the orbit, E1's stretto and the lights carry on), and the 808 lands on the build's downbeat on D, its first two bars full - the inner disk's gravity as an event
 VOICEP = os.environ.get("C9T5_VOICEP", "near,harm")   # WHOLE ROUND (voice batch 2 pinned): THE NEAR VOICE - t5 is the disk 'closer and hotter', so its singer is voice-near (close, young, breathy, even vowels) where t1's is a far little choir; 'harm' adds a harmony a fourth below on the line after the crest (A G A E A D over E D E B E A, all in D mixolydian), the line's one moment of two voices
 OUTLINE = os.environ.get("C9T5_OUTLINE", "x1")   # SECTION (w8, 3:52-4:18, the outro = the t5 -> t6 overlap; never focused): THE LINE STRETCHES - the outro's single 'near-er' becomes the whole sung line once more, 'near-er the mid-dle hums', stretched to half speed like E5 in the tide ('x2'), or twice at its own speed ('x1'): the hook as the inner disk lets go into t6, resolving to D
+VOXA = os.environ.get("C9T5_VOXA", "110,140,170")   # WHOLE ROUND: THE LINE IS A CHORUS - the sung line 'near-er the mid-dle hums' first came only after the crest; now the voice sings it in A too (comma-separated beats), over the Rhodes' E5, so by the crest it is a tune you already know: the song's chorus, heard early, returned to at the crest and the end (Harry: hooks stated plainly and repeated enough to stick)
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -414,6 +415,15 @@ def song():
         tracks.append(creste1())
     if OUTLINE:
         tracks.append(outline())
+    if VOXA:
+        line = [("N IH1", "A4", 0.0, 0.5), ("R ER0", "G4", 0.5, 0.5), ("DH AH0", "A4", 1.0, 1.0), ("M IH1", "E5", 2.0, 1.0),
+                ("D AH0 L", "A4", 3.0, 1.0), ("HH AH1 M Z", "D5", 4.0, 2.25)]
+        vns = []
+        for k, s0 in enumerate(float(x) for x in VOXA.split(",")):
+            for ph, p_, at, ln in line:
+                vns.append({"at": s0 + at, "len": ln, "ph": ph, "pitch": p_, "vel": 0.6 + 0.05 * k})
+        tracks.append({"name": "hums-a", "patch": "voice-near", "gain": "-10dB", "pan": -0.05,
+                       "fx": ["hp cutoff=150"], "sends": {"room": "-6dB"}, "notes": vns})
     if CRESTGAP and CRESTHIT:
         tracks.append({"name": "crest", "patch": "modal-crash", "gain": f"{CRESTHIT}dB", "pan": 0.0,
                        "sends": {"room": "-6dB"}, "notes": [note(TC, "C4", 8, 0.9)]})
