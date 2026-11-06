@@ -52,6 +52,7 @@ VOXA = os.environ.get("C9T5_VOXA", "110,140,170")   # WHOLE ROUND: THE LINE IS A
 KEYHARM = os.environ.get("C9T5_KEYHARM", "1")   # WHOLE ROUND (harmony in a key is pinned): THE LINE IN THIRDS - the chorus is heard plain three times in A; at the crest its harmony becomes a third above IN THE KEY (D mixolydian: A G A E A D over C B C G C F#), sweeter than the fixed fourth below; with 'out' the farewell in the tide is sung in thirds too, ending on D with F# above it (the D major the album resolves to)
 ARC = os.environ.get("C9T5_ARC", "0.2")   # WHOLE ROUND: THE ARC AFTER THE CREST - from four bars after the crest to the outro, the instruments (not the voices, not the spin) ease by ARC (a velocity fraction: + settles, - heats toward t6's storm)
 BREATHE = os.environ.get("C9T5_BREATHE", "118,115")   # WHOLE ROUND: TIME BREATHES, t1's mirror - t5 held 112 to A and then crept to 120 in a straight line. Now, like t1, it breathes: the head stays 112 for the t4 overlap, A and the build hurry into the crest, the lock relaxes, and the outro rises to t6's 120. Value 'crest,lock' bpm
+SINGE1 = os.environ.get("C9T5_SINGE1", "398,418")   # SECTION w7 (C's last bars, flagged static: nothing melodic new after the crest): THE SEED SUNG - the near singer sings E1 itself (D A C G E, at half speed so it can be sung) to 'clo-ser and clo-ser', answering 'near-er the mid-dle hums' before the farewell. Value 'beat,beat,...[:harm]' (harm = a third above in the key)
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -436,6 +437,16 @@ def song():
                 if n["at"] >= d0:
                     f = 1 - d * min(1.0, (n["at"] - d0) / (d1 - d0))
                     n["vel"] = round(max(0.05, min(1.0, n["vel"] * f)), 3)
+    if SINGE1:
+        bs, _, hm = SINGE1.partition(":")
+        e1 = [("K L OW1", "D4", 0.0, 1.0), ("S ER0", "A4", 1.0, 1.5), ("AH0 N D", "C5", 2.5, 0.5),
+              ("K L OW1", "G4", 3.0, 2.0), ("S ER0", "E4", 5.0, 3.0)]
+        ens = []
+        for k, s0 in enumerate(float(x) for x in bs.split(",")):
+            for ph, p_, at, ln in e1:
+                ens.append({"at": s0 + at, "len": ln, "ph": ph, "pitch": p_, "vel": 0.62 + 0.04 * k})
+        tracks.append({"name": "hums-e1", "patch": {"extends": "voice-near synth.layers.0.harmony=[2] synth.layers.0.harmony_key=D:mixolydian"} if hm else "voice-near",
+                       "gain": "-9dB", "pan": 0.05, "fx": ["hp cutoff=150"], "sends": {"room": "-6dB"}, "notes": ens})
     if CRESTGAP and CRESTHIT:
         tracks.append({"name": "crest", "patch": "modal-crash", "gain": f"{CRESTHIT}dB", "pan": 0.0,
                        "sends": {"room": "-6dB"}, "notes": [note(TC, "C4", 8, 0.9)]})
