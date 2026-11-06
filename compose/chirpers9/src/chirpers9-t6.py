@@ -66,10 +66,13 @@ TIDE_Z = (-4, [0, 4, 7, 14])
 LIFT = {'crest': 2}
 # X's share of each 8-beat cycle, per section (the tide moving)
 SPLIT = {'in': [4, 4], 'pull': [5, 5, 6, 6], 'tide': [6, 5, 4, 3, 2, 3, 4, 5], 'squeeze': [7, 1, 7, 1, 6, 2, 6, 2],
-         'cross': [3, 3, 2, 2], 'surge': [2, 6, 2, 6], 'torn': [1, 1, 1, 1], 'out': [4, 3, 2, 1, 0, 0, 0, 0]}
+         'cross': [3, 3, 2, 2], 'surge': [5, 3, 5, 3], 'torn': [1, 1, 1, 1], 'out': [4, 3, 2, 1, 0, 0, 0, 0]}
 # the two E1 layers' speed factors per section (1 = E1's own 5 beats)
-FAR = {'pull': 3.2, 'tide': 2.4, 'squeeze': 1.6, 'crest': 1.0, 'cross': 0.8, 'surge': 0.4, 'torn': 0.2, 'out': 0.2}
-NEAR = {'in': 0.25, 'pull': 0.4, 'tide': 0.6, 'squeeze': 0.8, 'crest': 1.0, 'cross': 1.6, 'surge': 2.4, 'torn': 3.2, 'out': 6.4}
+FAR = {'pull': 3.2, 'tide': 2.4, 'squeeze': 1.6, 'crest': 1.0, 'cross': 0.8, 'surge': 0.5, 'torn': 0.2, 'out': 0.2}
+NEAR = {'in': 0.25, 'pull': 0.4, 'tide': 0.6, 'squeeze': 0.8, 'crest': 1.0, 'cross': 1.6, 'surge': 2.0, 'torn': 3.2, 'out': 6.4}
+# (v7, section w7: the surge was static, little new vs the cross) THE SURGE IS A MENSURATION CANON: the far side at
+# x0.5, the hook at x1 and the near side at x2 - E1 at three speeds at once, the clean ratios of the squeeze and the
+# stretch, all starting on bar 97's downbeat and coming back together every 10 beats (every 5 bars on a bar line)
 
 
 def line(events, total):
@@ -139,6 +142,15 @@ def build():
                     if semi is not None:
                         P['hook'].append((at, m(KEY + 36 + semi + LIFT.get(nm_, 0)), ln * 0.95, 96 if k == 0 else 84))
                     at += ln
+    # the canon's middle voice: the hook at x1 right through the surge (and the far and near layers at x0.5 and x2)
+    t, t1_ = SEC['surge'] * 4.0, (SEC['surge'] + 16) * 4.0
+    while t < t1_ - 1e-6:
+        at = t
+        for k, (semi, ln) in enumerate(E1L):
+            if semi is not None and at < t1_ - 1e-6:
+                P['hook'].append((at, m(KEY + 36 + semi), min(ln * 0.95, t1_ - at), 92 if k == 0 else 82))
+            at += ln
+        t += 5.0
 
     # ---- E6, the tide: X and Y alternating in 8-beat cycles, the split moving; E4's four lights at the crest ----
     for nm_, n_ in FORM:
