@@ -304,6 +304,19 @@ def build():
     for b_, tempo_ in ((SEC['tide'] + 4, 124.0), (SEC['cross'] + 6, 128.0)):
         for n_ in vtr['notes']:
             vnotes.append(dict(n_, at=round(b_ * 4.0 + n_['at'] * tempo_ / 110.0, 4), len=round(n_['len'] * tempo_ / 110.0, 4)))
+    # (v8, section w4: the squeeze before the crest was static) THE VOICE SINGS BEFORE THE LIFT: the same low voice
+    # that SPEAKS its line in the tide now SINGS it in the squeeze's last eight bars, on E1 itself - 'the near side
+    # keeps the time' on D A C G E D, 'the far side lets it go' on D A C G A D - twice, on wM's joined, breathing
+    # voice-legato (a larger tract and more breath for age), and the crest lifts out of the second 'go': the voice
+    # accretes inside the track, spoken -> sung. Under it the kit thins to the cell's kick and rim (no snare) so
+    # the words sit in the gap
+    SU = json.load(open(os.path.join(HERE, 'chirpers9-t6-sung.json')))
+    snotes = []
+    for b_ in (SEC['crest'] - 8, SEC['crest'] - 4):
+        for n_ in SU['tracks'][0]['notes']:
+            snotes.append(dict(n_, at=round(b_ * 4.0 + n_['at'], 4)))
+    sq0, sq1 = (SEC['crest'] - 8) * 4.0, SEC['crest'] * 4.0
+    P['kit'] = [e_ for e_ in P['kit'] if not (sq0 - 1e-6 <= e_[0] < sq1 - 1e-6 and e_[1] == 's')]
 
     # (v2, section w8) THE TEAR: the 'torn' section ran on as the surge did (flagged static). Now the tide tears the band
     # itself: for eight bars the kit plays E2 STRETCHED (seven eighths, half time) while the hats are SQUEEZED into
@@ -403,6 +416,9 @@ def build():
             tr('e5b', 'kora', '-11dB', pan=0.35, sends={'hall': '-16dB'}),
             dict({k: v for k, v in vtr.items() if k != 'notes'}, name='voice', notes=vnotes, gain='-6dB', pan=-0.05,
                  sends={'hall': '-14dB'}),
+            {'name': 'sung', 'patch': {'extends': 'voice-legato synth.layers.0.tract=1.12 synth.layers.0.breath.value=0.3',
+                                       'synth': SU['tracks'][0]['patch'].get('synth', {})},
+             'notes': snotes, 'gain': '-7dB', 'pan': 0.0, 'sends': {'hall': '-12dB', 'echo': '-22dB'}},
         ]}
     return song
 
