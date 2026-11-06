@@ -140,6 +140,22 @@ def build():
         t += 7 * 0.25 * stretch
         cyc += 1
 
+    # (v16, section w1: the in-seam 'static' - one chord, a lensed bell, debris arriving at random) THE CELL FALLS IN
+    # FROM FAR AWAY: before E2 arrives at its own speed (bar 7) it is already there, slowed - a log drum playing the
+    # cell at x4 (seven beats a turn) from the first bar, twice, then at x2 (three and a half) with the chip-metal
+    # catching it, twice, landing exactly where the cell begins at x1: the infall heard as an accelerando of one
+    # rhythm, the debris speeding up as it nears. And while t1's quartal pad is still sounding, the slowed cell
+    # sings t1's notes - D A E C, E for F - the minor third arrives only when the cell is up to speed
+    for t0_, sx_ in ((3.0, 4.0), (10.0, 4.0), (17.0, 2.0), (20.5, 2.0)):
+        for st in E2_STEPS:
+            at = t0_ + st * 0.25 * sx_
+            pc_ = {0: 0, 2: 7, 3: 2, 5: -2}[st]
+            P['e2body'].append((at, m(KEY + 12 + pc_), 0.3 * sx_, (60 if sx_ == 4.0 else 72) + (12 if st == 0 else 0)))
+            if sx_ == 2.0:
+                P['e2m'].append((at, m(KEY + 24 + pc_), 0.22, 54 + (14 if st == 0 else 0)))
+    for key_ in ('e2body', 'e2m'):
+        P[key_].sort(key=lambda e_: e_[0])
+
     # ---- the bass: E2's pitches in AUGMENTATION (seven eighths), from 'gather'; locks to the bar at the crest ----
     t = (CREST - 28) * 4.0                   # bar 20: 7 eighths = 3.5 beats; 28 bars = 32 cycles -> lands on bar 48
     while t < fall0 + 32.0 - 1e-6:
