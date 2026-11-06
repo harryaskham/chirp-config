@@ -267,6 +267,43 @@ def build():
     tempo = [{'at': '0b', 'bpm': 90.0}, {'at': f'{SEC["gather"] * 4.0:.1f}b', 'bpm': 90.0},
              {'at': f'{fall0:.1f}b', 'bpm': 98.0, 'ramp': True}]
 
+    # ---- (v5, section w5) THE CREST BLOOMS: the crest's first 12 bars sat locked and still (flagged static).
+    # Now the lock is where things start to happen: bars 49-52 the lock as it was (every cycle on the downbeat, E1
+    # the right way up for the first time); bars 53-56 E1 answers itself in STRETTO, a Risset bell a fifth above
+    # and one beat behind - the seed harmonised by its own echo; bars 57-60 everything at the centre spins twice as
+    # fast (Kepler again: the nearest orbit is the quickest) - E2's cell in diminution (seven 32nds), E1 and its
+    # stretto at double speed, the kit's micro-edits switched on - and bar 61 lands back in the lock for the voice
+    st0, sp0, sp1 = (CREST + 4) * 4.0, (CREST + 8) * 4.0, (CREST + 12) * 4.0
+    for semi_off, t_ in ((7, st0 + 1.0),):
+        while t_ < sp0 - 1e-6:
+            at = t_
+            for semi, ln in E1:
+                if semi is not None and at < sp0:
+                    P['e1c'].append((at, m(KEY + 31 + semi_off + semi), ln * 0.9, 80))
+                at += ln
+            t_ += 5.0
+    for key_ in ('e2m', 'e2body', 'e1p'):
+        P[key_] = [e_ for e_ in P[key_] if not (sp0 - 1e-6 <= e_[0] < sp1 - 1e-6)]
+    t_ = sp0
+    while t_ < sp1 - 1e-6:
+        for st in E2_STEPS:
+            at = t_ + st * 0.125
+            if at < sp1:
+                P['e2m'].append((at, m(KEY + 24 + E2_PITCH[st]), 0.11, E2_VEL[st] + 6))
+                P['e2body'].append((at, m(KEY + 12 + E2_PITCH[st]), 0.15, 30 + 76 * (E2_VEL[st] / 112.0)))
+        t_ += 0.875
+    for off_, key_, semi_off in ((0.0, 'e1p', 0), (0.5, 'e1c', 7)):
+        t_ = sp0 + off_
+        while t_ < sp1 - 1e-6:
+            at = t_
+            for k, (semi, ln) in enumerate(E1):
+                if semi is not None and at < sp1:
+                    P[key_].append((at, m(KEY + 31 + semi_off + semi), ln * 0.5 * 0.8, (104 if k == 0 else 84)))
+                at += ln * 0.5
+            t_ += 2.5
+    for key_ in ('e2m', 'e2body', 'e1p', 'e1c'):
+        P[key_].sort(key=lambda e_: e_[0])
+
     # ---- (v4) THE SPIRAL: the infall as a place. E2's debris orbits the listener - wide and slow at first, then
     # closer and faster (Kepler: the nearer, the quicker round), until at the crest it sits dead centre, locked; it
     # drifts wide again after the break and spirals in a second time through the fall, into t3. Each hit is panned
@@ -321,7 +358,8 @@ def build():
             tr('sub', 'sub', '-9dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '220ms', 'curve': 0.6}]),
             tr('bass', 'nes-triangle-bass', '-4dB', fx=['lp cutoff=2400']),
             tr('kit', '909', '-6dB', sends={'hall': '-20dB'},
-               auto={'glitch': {'points': [['0b', 0.0], [f"{SEC['drift'] * 4.0 - 0.1:.1f}b", 0.0], [f"{SEC['drift'] * 4.0:.1f}b", 0.22], [f"{fall0 - 0.1:.1f}b", 0.3], [f"{fall0:.1f}b", 0.0]]}},
+               auto={'glitch': {'points': [['0b', 0.0], [f"{(CREST + 8) * 4.0 - 0.1:.1f}b", 0.0], [f"{(CREST + 8) * 4.0:.1f}b", 0.35],
+                                           [f"{(CREST + 12) * 4.0 - 0.1:.1f}b", 0.35], [f"{(CREST + 12) * 4.0:.1f}b", 0.0], [f"{SEC['drift'] * 4.0 - 0.1:.1f}b", 0.0], [f"{SEC['drift'] * 4.0:.1f}b", 0.22], [f"{fall0 - 0.1:.1f}b", 0.3], [f"{fall0:.1f}b", 0.0]]}},
                fx=[{'type': 'stutter', 'slice': '1/16', 'repeats': 3, 'chance': {'value': 0.0, 'mod': [{'src': 'auto.glitch', 'amount': 1.0}]}, 'seed': 5}]),
             tr('hat3', '909', '-12dB', pan=0.25, sends={'echo': '-20dB'}),
             tr('infall', 'shepard-fall', '-20dB', sends={'hall': '-16dB'}),
