@@ -145,6 +145,13 @@ R17 = os.environ.get("T3_R17", "duet") != "none"
 # sounds said rather than placed. Old drums silenced (velocity 1); the sevens on v8's own tracks. T3_R18=none
 # reproduces v17.
 R18 = os.environ.get("T3_R18", "pull") != "none"
+# round 19 (section, w8 = bars 85-96, the held breath and the crest's arrival, flagged 'little new vs w7'):
+# T3_R19=arrive (default) - THE CREST LANDS. The reward arrived as more of the lock. (1) The held breath (bars 87-88)
+# ends in a snare roll, eight sixteenths rising, into the downbeat. (2) Bar 89 lands: a crash and a long 808 drop on D1
+# (the storm's floor, once). (3) The backing singers - who came in at bar 97 - arrive WITH the crest, softer, on the
+# lock's chords ("ah", F5 over A4 / Bb4 / G4), under the sung hook (91/95), so the first thing the crest does is open
+# into voices. New parts on their own tracks. T3_R19=none reproduces v18.
+R19 = os.environ.get("T3_R19", "arrive") != "none"
 PULL = (80, 84)
 CALL_BAR, FILL = 96, ((2.5, 74), (2.75, 72), (3.0, 69), (3.25, 67), (3.5, 65), (3.75, 62))
 # round 16 (section, w3 = bars 25-36, the front's middle, flagged 'static', never focused): T3_R16=rainonly (default;
@@ -887,6 +894,25 @@ def main():
                        "sends": {"space": "-6dB"}, "notes": hi})
         tracks.append({"name": "backlo", "patch": "voice-backing", "gain": "-13dB", "pan": -0.35, "fx": ["lp cutoff=4500"],
                        "sends": {"space": "-6dB"}, "notes": lo})
+    if R19 and R12:                                         # w8: the crest lands
+        spec = {tr["name"]: tr for tr in tracks}
+        hi8, lo8 = [], []
+        for bar in range(CREST, 96, 2):
+            for j, (h, l) in enumerate(((77, 69), (77, 70), (76, 67), (77, 69))):
+                ln = 1.75 if j == 3 else 2.0
+                v = 0.5 + 0.04 * ((bar - CREST) // 2)
+                hi8.append({"at": bar * 4.0 + j * 2.0, "len": ln, "ph": "AA1", "pitch": mtok(h), "vel": round(v, 3)})
+                lo8.append({"at": bar * 4.0 + j * 2.0, "len": ln, "ph": "AA1", "pitch": mtok(l), "vel": round(v - 0.04, 3)})
+        tracks.append(dict(spec["backhi"], name="backhi8", notes=hi8))
+        tracks.append(dict(spec["backlo"], name="backlo8", notes=lo8))
+        roll, crash, boom = Track("roll"), Track("crash"), Track("boom")
+        for s in range(8):
+            roll.add((CREST - 1) * 4.0 + 2.0 + s / 4, 0.2, "s", 60 + 7 * s)
+        crash.add(CREST * 4.0, 4.0, "c", 112)
+        boom.add(CREST * 4.0, 6.0, mtok(26), 104)
+        tracks.append(dict(spec["snare"], name="roll", score=roll.score()))
+        tracks.append(dict(spec["perc"], name="crash", score=crash.score()))
+        tracks.append({"name": "boom", "patch": "808", "gain": "-6dB", "score": boom.score()})
     if R11:
         patches["a3-residue"] = {"about": "chirper-two: the storm's residue for t4 - two triangles a few cents apart and "
                                           "an octave sine, slow in, mids only (600-1300 Hz), a little chorus",
