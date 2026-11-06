@@ -152,6 +152,14 @@ R18 = os.environ.get("T3_R18", "pull") != "none"
 # lock's chords ("ah", F5 over A4 / Bb4 / G4), under the sung hook (91/95), so the first thing the crest does is open
 # into voices. New parts on their own tracks. T3_R19=none reproduces v18.
 R19 = os.environ.get("T3_R19", "arrive") != "none"
+# round 20 (section, w5 = bars 49-60, the eyewall in sevens, flagged 'little new vs w4'): T3_R20=doo (default) -
+# THE VOICE COUNTS SEVEN. The hardest stretch of the storm was all machine: v8's kit in sevens and E1 stretched on the
+# glass. NEW: the small singer (voice-near) sings E2 itself on "doo" - D4 A4 F4 C4 on its hits (0 2 3 5 of seven
+# sixteenths), locked to the kick's cycle and growing - a human riff you can sing back inside the difficult part; for
+# the last four bars (57-60) a second singer joins a third above in the key (harmony_key D minor). Own tracks.
+# T3_R20=none reproduces v19.
+R20 = os.environ.get("T3_R20", "doo") != "none"
+DOO = {0: 62, 2: 69, 3: 65, 5: 60}
 PULL = (80, 84)
 CALL_BAR, FILL = 96, ((2.5, 74), (2.75, 72), (3.0, 69), (3.25, 67), (3.5, 65), (3.75, 62))
 # round 16 (section, w3 = bars 25-36, the front's middle, flagged 'static', never focused): T3_R16=rainonly (default;
@@ -894,6 +902,20 @@ def main():
                        "sends": {"space": "-6dB"}, "notes": hi})
         tracks.append({"name": "backlo", "patch": "voice-backing", "gain": "-13dB", "pan": -0.35, "fx": ["lp cutoff=4500"],
                        "sends": {"space": "-6dB"}, "notes": lo})
+    if R20 and R8:                                          # w5: the voice counts seven
+        patches["a3-doo3"] = {"extends": "voice-near synth.layers.0.harmony=[2] synth.layers.0.harmony_key=D:minor"}
+        doo, doo3 = [], []
+        for c in range(48 * 16, 60 * 16, 7):
+            for h in E2_HITS:
+                g = c + h
+                if g >= 60 * 16:
+                    continue
+                v = 0.5 + 0.2 * (g - 48 * 16) / (12 * 16) + (0.08 if h == 0 else 0.0)
+                (doo3 if g >= 56 * 16 else doo).append({"at": round(g / 4.0, 4), "len": 0.22, "ph": "D UW1",
+                                                        "pitch": mtok(DOO[h]), "vel": round(v, 3)})
+        for name, patch, ns in (("doo", "voice-near", doo), ("doo3", "a3-doo3", doo3)):
+            tracks.append({"name": name, "patch": patch, "gain": "-6dB", "pan": 0.2,
+                           "fx": ["delay time=3/16 mix=0.12 feedback=0.2"], "sends": {"space": "-8dB"}, "notes": ns})
     if R19 and R12:                                         # w8: the crest lands
         spec = {tr["name"]: tr for tr in tracks}
         hi8, lo8 = [], []
