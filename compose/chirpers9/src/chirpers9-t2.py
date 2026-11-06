@@ -78,6 +78,10 @@ def chord(bar):
     # the seam), with no third: t2's F, and the harmony moving, arrive only when t1's tail has gone
     if bar < 8:
         return (0, [7, 10, 14, 19])
+    if 36 <= bar < 48:
+        # (v8, w4) the build CLIMBS instead of circling: the bass rises D -> F -> G -> A under Dm9 | Fmaj9 | G6/9 | A7sus4,
+        # and A7sus4 holds for the last six bars - the dominant the crest's D minor resolves
+        return {36: (0, [3, 7, 10, 14]), 38: (3, [4, 7, 11, 14]), 40: (5, [4, 7, 9, 14])}.get(bar - bar % 2, (7, [5, 7, 10, 14]))
     return PROG[(bar // 2) % len(PROG)]
 
 
@@ -146,7 +150,7 @@ def build():
                 continue
             # (v7) the cell is moved DIATONICALLY onto each chord (root, fifth, third, seventh of that chord in D Dorian),
             # not transposed - no E-flat, A-flat or B-flat in the bass any more
-            pm_ = {3: {0: 0, 2: 7, 3: 4, 5: -1}, -2: {0: 0, 2: 7, 3: 4, 5: -1}}.get(root_, E2_PITCH)
+            pm_ = {3: {0: 0, 2: 7, 3: 4, 5: -1}, -2: {0: 0, 2: 7, 3: 4, 5: -1}, 5: {0: 0, 2: 7, 3: 4, 5: -2}, 7: {0: 0, 2: 7, 3: 5, 5: -2}}.get(root_, E2_PITCH)   # on A7sus4: A E D G
             p_ = KEY + root_ + pm_[st]
             while p_ < KEY - 5: p_ += 12
             while p_ > KEY + 12: p_ -= 12
@@ -310,6 +314,23 @@ def build():
             t_ += 2.5
     for key_ in ('e2m', 'e2body', 'e1p', 'e1c'):
         P[key_].sort(key=lambda e_: e_[0])
+
+    # ---- (v8, section w4: the build's second half was static) THE GAP BEFORE THE CREST: over the held A7sus4 the
+    # kick drops out for the last two bars and a 909 snare roll climbs eighths -> sixteenths -> thirty-seconds,
+    # crescendo, so the crest (bar 49) lands out of a held breath instead of out of more of the same
+    g0 = (CREST - 4) * 4.0
+    P['kit'] = [e_ for e_ in P['kit'] if not (e_[1] == 'k' and (CREST - 2) * 4.0 - 1e-6 <= e_[0] < CREST * 4.0 - 1e-6)]
+    for bi_, step_ in ((0, 0.5), (1, 0.5), (2, 0.25), (3, 0.25)):
+        b0_ = g0 + bi_ * 4.0
+        n_ = int(4.0 / step_)
+        for q_ in range(n_):
+            at_ = b0_ + q_ * step_
+            if bi_ == 3 and q_ >= 12:          # the last beat in thirty-seconds
+                for r_ in (0.0, 0.125):
+                    P['kit'].append((at_ + r_, 's', 0.1, 92 + 8 * (q_ - 12) + 8 * (r_ > 0)))
+                continue
+            P['kit'].append((at_, 's', 0.12, int(54 + 60 * (bi_ * 4.0 + q_ * step_) / 16.0)))
+    P['kit'].sort(key=lambda e_: e_[0])
 
     # ---- (v6, section w8, Harry 6 Nov: a hook you can hum, tone is home) THE SEED, PLAINLY: the drift's second half
     # (bars 85-96, the last look before the fall) ran on, static. Now E1 is sung there the right way up, at its own
