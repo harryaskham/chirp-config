@@ -1,0 +1,3 @@
+about: "A close, young, slightly breathy voice: near, not big (wM, Accretion voice climb). voice-hook with a smaller tract (0.86: brighter, younger), more breath, less of the singer's 3 kHz ring (intimate, not projected), lighter effort, and dry: no plate. For a small sung line in the foreground or a second voice that is more than a whisper and less than full."
+extends: "voice-hook synth.layers.0.tract=0.86 synth.layers.0.breath.value=0.36 synth.layers.0.ring=0.12 synth.layers.0.effort.value=0.22"
+fx: []

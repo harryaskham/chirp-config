@@ -1,0 +1,2 @@
+about: "Backing vocals that sit under the band (wM, Accretion voice climb): three soft, breathy singers on one line (`singers: 3`, spread across the field), with even vowels, little of the singer's ring, light effort and a plate. Put it 6-10 dB under the lead, or alone as a pad of voices; add `synth.layers.0.harmony=[7]` or `[-5, 7]` for open stacks."
+extends: "voice-hook synth.layers.0.singers=3 synth.layers.0.spread=0.7 synth.layers.0.detune=0.2 synth.layers.0.breath.value=0.42 synth.layers.0.ring=0.08 synth.layers.0.effort.value=0.15 synth.layers.0.tract=0.95"

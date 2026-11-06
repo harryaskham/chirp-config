@@ -1,0 +1,2 @@
+about: "A sung hook that sits at one level in a mix (wM, Accretion voice climb): voice-legato (joined, breathing, a singer's vibrato, smooth slides) with `even: 1`, so an 'ee' or 'oo' no longer drops 10-20 dB under an 'ah' on high notes. Mid register, in tune, clear words: `^ph=` syllables per note, touching inside a phrase, a rest before each phrase. Add `synth.layers.0.harmony=[7]` for a fifth above, or `singers=3` to double it."
+extends: "voice-legato synth.layers.0.even=1"

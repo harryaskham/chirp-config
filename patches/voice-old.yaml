@@ -1,0 +1,2 @@
+about: "A low, older male voice (wM, Accretion voice climb): voice-hook with a larger tract (1.15: darker, bigger), a little rasp and more jitter (an aged, less steady source), a wider vibrato that wanders freely, and more breath. Sing it low (A2-D4)."
+extends: "voice-hook synth.layers.0.tract=1.15 synth.layers.0.rasp.value=0.12 synth.layers.0.vary=0.8 synth.layers.0.breath.value=0.3 synth.lfo.vib.wander=1 synth.lfo.vib.rate=4.8hz synth.pitch.mod.0.amount=0.32"

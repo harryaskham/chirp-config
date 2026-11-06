@@ -1,0 +1,4 @@
+about: "A choir on one line (wM, Accretion voice climb): five singers (the lead in tune in the middle; the others with their own size, level, entry and drifting tuning across the field), even vowels, joined and breathing together, with a hall-ish plate. `synth.layers.0.harmony=[-5, 7]` makes a three-part open stack of fifteen voices; a larger `tract` (1.1) darkens it."
+extends: "voice-hook synth.layers.0.singers=5 synth.layers.0.spread=0.85 synth.layers.0.detune=0.2 synth.layers.0.tract=1.05"
+fx:
+  - "reverb kind=plate decay=2.4s mix=0.22 predelay=25ms"
