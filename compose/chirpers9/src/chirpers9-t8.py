@@ -281,6 +281,22 @@ def write_stretto():
     part("riser").add(b0(BREAK[1] - 1), 8.0, "C4", 92)              # v11: the slingshot out of the dilated break
 
 
+# v14 (ROUND TYPE: whole song): THE ARRIVAL IS ASKED. E8 ('the arrival', E F# D) is sung once, at the jet, on 'light'
+# - but nothing in the stretto asked for it. Now the flute (t8's hook voice) asks its minor shadow - E F, unresolved,
+# no D - at the end of every orbit spotlight (bars 28, 40, 52, 64, 80) and once more in the vacuum bar (96), a little
+# louder each time; at the jet the choir answers E F# D: the F lifts to F# as the arrival lands, the album's turn
+# from minor to major as the payoff of the whole stretto. E F is in D natural minor, so the question never rubs the
+# stretto; only in the vacuum does it touch E7's top E for a beat before the jet resolves it.
+ASKS = (28, 40, 52, 64, 80, VACUUM)
+
+
+def write_asks():
+    for i, bar in enumerate(ASKS):
+        v = 64 + i * 7
+        part("ask").add(b0(bar), 1.5, "E5", v)
+        part("ask").add(b0(bar) + 1.5, 2.25 if bar != VACUUM else 2.4, "F5", v + 4)
+
+
 # ---------------------------------------------------------------- the jet (locked 4/4, major)
 def write_jet():
     part("impact").add(JB, 4.0, "C3", 120)
@@ -469,6 +485,7 @@ HOLD = {"about": "t8's horizon: a held light, its pitch sinking on a lane",
 def main():
     write_stretto()
     write_jet()
+    write_asks()
     write_horizon()
     write_tide_and_jet()
     carve(["e1", "e2", "bass"], *LULL)
@@ -528,6 +545,7 @@ def main():
             tr("hook", "flute", gain="-2dB", pan=0.1, sends={"dly": "-14dB", "hall": "-12dB"}),   # v5
             {"name": "solo", "patch": SOLO8, "gain": "-7dB", "sends": {"hall": "-5dB", "dly": "-16dB"},   # v12 (last)
              "notes": solo, "auto": {"rs": {"points": horizon_lane(-5.0)}}},
+            tr("ask", "flute", gain="-9dB", pan=-0.15, sends={"hall": "-6dB", "dly": "-12dB"}),   # v14 (last)
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=0.8s mix=1 predelay=6ms", "hp cutoff=200"]},
                   "hall": {"fx": ["reverb kind=hall decay=4s mix=1 predelay=24ms", "hp cutoff=180"]},
