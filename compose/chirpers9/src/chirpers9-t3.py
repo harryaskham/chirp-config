@@ -81,6 +81,14 @@ R9 = os.environ.get("T3_R9", "tight") != "none"
 # in five words. Whisper and the dry speech stay (not all singing). T3_R10=none reproduces v9.
 R10 = os.environ.get("T3_R10", "accrete") != "none"
 SUNG2_BARS, HUM_BARS = (100, 108), (24, 32)
+# round 11 (section, w11 = bars 113-128, the overlap into t4 - flagged 'level jump'; the low-end handover agreed with
+# chirper-three, 6 Nov 06:05): T3_R11=handover (default) - THE STORM HANDS OVER ITS RESIDUE. (1) The D1 thump stops
+# at bar 112 (the floor steps down: the redshifting undertow is the soft floor left, and t4 puts a D2 sine under its
+# lens that takes over); (2) a new warm mid pad - two triangles and an octave sine, slow in, a little chorus - holds
+# Dm(add9) as D5 F5 A5 E6 (587-1319 Hz) from bar 113 to the end, swelling in: the 600-900 Hz warmth t4's cellos
+# inherit, with the F that t4 lifts to F#; (3) the singer's last trace - the E1 hum ("oo") at HALF SPEED, far off,
+# from bar 119: the tune handed to t4's handpan, which assembles E1 from its downbeat. T3_R11=none reproduces v10.
+R11 = os.environ.get("T3_R11", "handover") != "none"
 # round 8 (section, w5 = bars 49-60, the eyewall's first half, flagged 'little new'): T3_R8=seven (default) - TIME,
 # NOT NOISE. The storm's random Euclid drums give way for 12 bars to ONE groove in sevens: E2's cell (hits 0 2 3 5 of
 # 7 sixteenths) as kick / hat / snare / hat, cycling across the bar line - a cross-rhythm you can follow - and over it
@@ -655,7 +663,7 @@ def main():
         ksub = Track("ksub")
         for k in ("kick", "kick7"):
             for e in (T[k].ev if k in T else []):
-                if e[3] > 1:
+                if e[3] > 1 and not (R11 and e[0] >= 112 * 4.0):
                     ksub.add(e[0], 0.3, "D1", e[3])
         tracks.append({"name": "ksub", "patch": "808-short", "gain": "-4dB", "score": ksub.score()})
         tracks.append({"name": "hand", "patch": "congas", "gain": "-7dB", "pan": 0.3, "sends": {"space": "-12dB"},
@@ -701,6 +709,28 @@ def main():
                        "fx": ["delay time=3/8 mix=0.14 feedback=0.25"], "sends": {"space": "-7dB"}, "notes": notes})
         if R10:
             tracks[-1].update({"fx": ["delay time=3/8 mix=0.1 feedback=0.2"], "sends": {"space": "-11dB"}})
+    if R11:
+        patches["a3-residue"] = {"about": "chirper-two: the storm's residue for t4 - two triangles a few cents apart and "
+                                          "an octave sine, slow in, mids only (600-1300 Hz), a little chorus",
+                                 "synth": {"layers": [{"wave": "triangle", "detune": -5}, {"wave": "triangle", "detune": 5},
+                                                      {"wave": "sine", "ratio": 2, "level": "-14dB"}],
+                                           "filters": ["hp cutoff=320", "lp cutoff=3200 q=0.4"],
+                                           "amp": {"a": "4s", "d": "1s", "s": 0.9, "r": "4s"}}}
+        res = Track("residue")
+        res.add(112 * 4.0, 16 * 4.0 - 0.2, ",".join(mtok(m) for m in (74, 77, 81, 88)), 78)
+        tracks.append({"name": "residue", "patch": "a3-residue", "gain": "-16dB", "pan": 0.0, "fx": ["chorus mix=0.3"],
+                       "sends": {"space": "-6dB"}, "score": res.score()})
+        if R10 and R7:
+            hsrc = json.load(open(os.path.join(HERE, "t3", "hum.json")))["tracks"][0]["notes"]
+            last = []
+            for n in hsrc:
+                d = {"at": round(118 * 4.0 - 0.5 + n["at"] * 2, 4), "len": round(n["len"] * 2, 4), "ph": n["ph"],
+                     "pitch": n["pitch"], "vel": round(n["vel"] * 0.8, 3)}
+                if n.get("expr_path"):
+                    d["expr_path"] = n["expr_path"]
+                last.append(d)
+            tracks.append({"name": "humlast", "patch": "a3-sung", "gain": "-9dB", "pan": 0.2,
+                           "fx": ["delay time=3/8 mix=0.35 feedback=0.45"], "sends": {"space": "0dB"}, "notes": last})
     master = {"fx": [{"type": "eq", "bands": ["hp cutoff=25", "peak cutoff=100 gain=3dB q=1.0",
                                               "peak cutoff=320 gain=-2dB q=0.8",
                                               "highshelf cutoff=8000 gain=2dB"]},
