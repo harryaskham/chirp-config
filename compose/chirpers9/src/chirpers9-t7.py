@@ -245,6 +245,13 @@ SPIRAL_PROG = [(100, 37, (49, 53, 56, 63)), (104, 35, (47, 51, 54, 58)), (108, 3
 # two bars (the crest's horn choir, glimpsed once early). A call and response where there was one voice and a loop.
 # Own tracks. T7_R21=none reproduces v20.
 R21 = os.environ.get("T7_R21", "reply") != "none"
+# round 22 (palette): T7_R22=gesture (default) - SUNG, NOT PLACED. wM's scoop and fall (pinned e986de70; first use
+# on the album): every phrase's first note now rises in from below and its last note sags as it dies, as a singer
+# does - the notes in between untouched (overshoot from v19 still swings between them). The soloist and her harmonies
+# scoop 1 semitone and fall 2.5 (her lines sit in delay and space, which mask a smaller fall); the three-tract choir
+# 0.6 / 1.5; and the erhu (a7-erhu = erhu + scoop 1.5, fall 1) slides into each bowed note as a player does.
+# T7_R22=none reproduces v21.
+R22 = os.environ.get("T7_R22", "gesture") != "none"
 REPLY_BARS = (34, 42)
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
 BOW_LINE = [(128, 69, 7.6), (130, 67, 7.6), (132, 66, 7.6), (134, 64, 7.8), (136, 62, 7.5)]
@@ -966,6 +973,16 @@ def main():
             if k.startswith("a7-sung") or k.startswith("a7-choir"):
                 pt["extends"] = pt["extends"] + (" play.glide_overshoot=0.05" if k.startswith("a7-choir")
                                                  else " play.glide_overshoot=0.08")
+    if R22:
+        for k, pt in patches.items():
+            if k.startswith("a7-sung"):
+                pt["extends"] = pt["extends"] + " play.scoop=1 play.fall=2.5"
+            elif k.startswith("a7-choir"):
+                pt["extends"] = pt["extends"] + " play.scoop=0.6 play.fall=1.5"
+        patches["a7-erhu"] = {"extends": "erhu play.scoop=1.5 play.fall=1"}
+        for tr in tracks:
+            if tr["name"] == "bow":
+                tr["patch"] = "a7-erhu"
     master = {"fx": [{"type": "eq", "bands": ["hp cutoff=25", "lowshelf cutoff=120 gain=5dB", "peak cutoff=160 gain=-2.5dB q=1.2",
                                               "peak cutoff=320 gain=-2dB q=0.8", "peak cutoff=1400 gain=-2.5dB q=0.7",
                                               "highshelf cutoff=8000 gain=1dB"]},
