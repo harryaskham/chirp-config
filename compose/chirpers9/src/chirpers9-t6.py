@@ -43,20 +43,23 @@ E1 = [(0, 0.5), (7, 0.75), (10, 0.25), (5, 1.0), (2, 1.5), (None, 1.0)]
 # G# E), so it sits inside the tide's chords and E5's G# instead of rubbing against them; E1's own C and G come back
 # only in the out-seam, over B-flat, where they are consonant again (the seed cooling as it crosses into t7)
 E1L = [(0, 0.5), (7, 0.75), (11, 0.25), (6, 1.0), (2, 1.5), (None, 1.0)]
+# (v6) the album settled on D MIXOLYDIAN (E1's own scale: E5 v2, E3 v2, E4 v2, t5, t7): E1 is back in its own form
+# everywhere in t6 - D A C G E, the hook plainly - and the Lydian spelling above is retired
+E1L = E1
 # E2 (t2): seven sixteenths, hits 0 2 3 5, pitches D A F C (here re-pitched on the tide's roots)
 E2_STEPS = [0, 2, 3, 5]
-E2_PITCH = {0: 0, 2: 7, 3: 4, 5: -1}          # (v5) D A F# C#: the cell in D Lydian
-E2_ON = {0: E2_PITCH, 2: {0: 0, 2: 7, 3: 4, 5: -2}, -4: {0: 0, 2: 7, 3: 4, 5: 2}}   # on E: E B G# D; on Bb: Bb F D C
+E2_PITCH = {0: 0, 2: 7, 3: 4, 5: -2}          # (v6) D A F# C: the cell in D Mixolydian
+E2_ON = {0: E2_PITCH, -2: {0: 0, 2: 7, 3: 4, 5: 2}, -4: {0: 0, 2: 7, 3: 4, 5: 2}}   # on C: C G E D; on Bb: Bb F D C
 # E5 (chirper-zero): A G# A . E . A G# A . D . - a 3-beat ostinato (sixteenths; None = rest), MIDI pitches
-E5 = [69, 68, 69, None, 76, None, 69, 68, 69, None, 74, None]
+E5 = [69, 67, 69, None, 76, None, 69, 67, 69, None, 74, None]     # (v6) E5 v2: the G# became G (chirper-zero, 6 Nov)
 # E4 (chirper-three): four lights, one chord per E1 cycle: D9, Bbmaj13#11, Am11, D9sus (MIDI voicings)
 # (v5) re-harmonised into D Lydian, the same rhythm (one chord per E1 cycle): Dmaj9 | E/D | Bm9 | A(add9)
-E4 = [[50, 57, 61, 64, 66], [50, 56, 59, 64, 66], [59, 54, 57, 61, 62, 66], [57, 61, 64, 69, 71]]
+E4 = [[50, 54, 57, 60, 64], [48, 52, 55, 59, 62], [57, 60, 64, 67, 71, 74], [55, 59, 62, 64, 69]]   # (v6) E4 v2: D9 | Cmaj9 | Am11 | G6/9
 # E6: the tide - X = Dmaj9#11, Y = Ebmaj7#11 (semitones above KEY + 12)
 # (v5) E6 v2: the tide is now I and II of D Lydian - Dmaj9 and E over a D pedal (no semitone clash); in the out-seam
 # Y becomes B-flat (D in common), the V of t7's E-flat, and the tide ebbs out onto it
-TIDE_X = (0, [0, 4, 7, 11, 14])
-TIDE_Y = (2, [0, 4, 7, 14])
+TIDE_X = (0, [0, 4, 7, 14, 16])   # (v6) D(add9): D F# A E F#
+TIDE_Y = (-2, [0, 4, 7, 14])      # (v6) E6 v3: C(add9) over the D pedal - I and bVII of D Mixolydian (C E G D)
 TIDE_Z = (-4, [0, 4, 7, 14])
 # (v5) THE LIFT: the crest goes up a whole tone, into E - the four lights, both E1 layers meeting, the hook, E5 and
 # the 303 all lifted - the payoff as a key change; the tear's look back at the crest stays home in D
@@ -96,7 +99,7 @@ def sec_of(bar):
 def build():
     rng = random.Random(SEED)
     total = NBARS * 4.0
-    P = {k: [] for k in ('far', 'near', 'tide', 'acid', 'e5', 'kit', 'hats', 'lights', 'sub', 'farbass', 'e5b', 'hook')}
+    P = {k: [] for k in ('far', 'near', 'tide', 'acid', 'e5', 'kit', 'hats', 'lights', 'sub', 'farbass', 'e5b', 'hook', 'root')}
 
     # ---- E1 in two layers moving in opposite directions in time; each section restarts the cell on its downbeat ----
     def e1_layer(key, speeds, octave, vel0):
@@ -145,12 +148,21 @@ def build():
         for c in range(n_ // 2):
             t = (SEC[nm_] + 2 * c) * 4.0
             x = sp[c % len(sp)]
-            for (root, voic), ln, at in ((TIDE_X, x, t), (TIDE_Z if nm_ == 'out' else TIDE_Y, 8 - x, t + x)):
+            pair_ = (TIDE_X, TIDE_Y)
+            if nm_ == 'out':
+                # the ebb into t7, whole steps down: D -> C for four cycles, C -> B-flat for two, then B-flat alone
+                pair_ = [(TIDE_X, TIDE_Y)] * 4 + [(TIDE_Y, TIDE_Z)] * 2 + [(TIDE_Z, TIDE_Z)] * 2
+                pair_ = pair_[c]
+                x = [4, 3, 2, 1, 4, 2, 8, 8][c]
+            for (root, voic), ln, at in ((pair_[0], x, t), (pair_[1], 8 - x, t + x)):
                 if ln <= 0:
                     continue
                 P['tide'].append((at, ','.join(m(KEY + 12 + root + v) for v in voic), ln - 0.05, 74 if root == 0 else 80))
-                # the sub holds the D pedal under I and II (E over D: the Lydian sound); under B-flat it moves
-                P['sub'].append((at, m(KEY - 12 + (root + 12 if root < 0 else 0)), ln - 0.05, 92))
+                # the sub holds the D pedal under D and C; under B-flat it moves
+                P['sub'].append((at, m(KEY - 12 + (root + 12 if root == -4 else 0)), ln - 0.05, 92))
+                # (v6) and a second, warmer floor an octave up follows the chord's own root - D2, C2, B-flat 1 - so the
+                # bass line moves D -> C with the tide (and fills the low-mids the pedal alone left empty)
+                P['root'].append((at, m(KEY + root + (12 if root == -4 else 0) - (12 if root == -4 else 0)), ln - 0.05, 90))
     for c in range(16 * 4 // 5 + 1):
         at = CREST * 4.0 + c * 5.0
         if at >= (CREST + 16) * 4.0 - 1e-6:
@@ -186,7 +198,7 @@ def build():
                     at = bar * 4.0 + half + st * 0.25
                     c = int((at - CREST * 4.0) // 5.0) % 4
                     rt = E4[c][0] - 12 - KEY
-                    pm_ = {9: {0: 0, 2: 7, 3: 3, 5: -2}, 7: {0: 0, 2: 7, 3: 4, 5: -1}}.get(rt, E2_PITCH)   # B: B F# D A; A: A E C# G#
+                    pm_ = {-2: {0: 0, 2: 7, 3: 4, 5: 2}, 7: {0: 0, 2: 7, 3: 3, 5: -2}, 5: {0: 0, 2: 7, 3: 4, 5: 2}}.get(rt, E2_PITCH)   # C: C G E D; A: A E C G; G: G D B A
                     P['acid'].append((at, m(KEY + 2 + rt + pm_[st] + (12 if rt + pm_[st] < 0 else 0)), 0.22, 112 if st == 0 else 92))
             t = (bar + 1) * 4.0
             if sec_of(int(t // 4))[0] != 'crest':
@@ -369,6 +381,7 @@ def build():
             tr('kit', 'prog-kit', '-6dB', sends={'hall': '-20dB'}),
             tr('hats', 'prog-kit', '-7dB', pan=0.2, fx=[{'type': 'eq', 'bands': ['highshelf cutoff=8000 gain=5dB']}]),
             tr('far', 'cello', '-8dB', pan=-0.25, sends={'hall': '-12dB'}),
+            tr('root', 'sub', '-14dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-4dB', 'release': '200ms', 'curve': 0.6}]),
             tr('farbass', 'fretless', '-6dB', pan=-0.1, fx=['lp cutoff=1800', 'hp cutoff=35']),
             tr('hook', 'low-whistle', '-9dB', pan=0.05, sends={'hall': '-12dB', 'echo': '-18dB'}),
             tr('near', 'modal-marimba', '-11dB', pan=0.3, auto={'shut': {'points': shut_pts}},
