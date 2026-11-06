@@ -50,6 +50,7 @@ E1L = E1
 E2_STEPS = [0, 2, 3, 5]
 E2_PITCH = {0: 0, 2: 7, 3: 4, 5: -2}          # (v6) D A F# C: the cell in D Mixolydian
 E2_ON = {0: E2_PITCH, -2: {0: 0, 2: 7, 3: 4, 5: 2}, -4: {0: 0, 2: 7, 3: 4, 5: 2}}   # on C: C G E D; on Bb: Bb F D C
+E2_ON[-7] = {0: 0, 2: 7, 3: 4, 5: 2}                      # (v21) on G: G D B A
 # E5 (chirper-zero): A G# A . E . A G# A . D . - a 3-beat ostinato (sixteenths; None = rest), MIDI pitches
 E5 = [69, 67, 69, None, 76, None, 69, 67, 69, None, 74, None]     # (v6) E5 v2: the G# became G (chirper-zero, 6 Nov)
 # E4 (chirper-three): four lights, one chord per E1 cycle: D9, Bbmaj13#11, Am11, D9sus (MIDI voicings)
@@ -61,6 +62,13 @@ E4 = [[50, 54, 57, 60, 64], [48, 52, 55, 59, 62], [57, 60, 64, 67, 71, 74], [55,
 TIDE_X = (0, [0, 4, 7, 14, 16])   # (v6) D(add9): D F# A E F#
 TIDE_Y = (-2, [0, 4, 7, 14])      # (v6) E6 v3: C(add9) over the D pedal - I and bVII of D Mixolydian (C E G D)
 TIDE_Z = (-4, [0, 4, 7, 14])
+# (v21, whole song) THE TIDE LEARNS ITS THIRD CHORD: for three minutes the tide rocked between two chords, D and C.
+# Now every fourth swing (the last two bars of each eight) it reaches G instead of C - G(add9) over its D, the IV of
+# D Mixolydian: I - bVII, I - bVII, I - bVII, I - IV, the album's mode heard as a cadence, so the phrase has an end
+# and the pull, the tide, the cross and the surge sound like verses of a song, not a loop (not in the in-seam, the
+# squeeze's one-beat swings or the out-seam's ebb)
+TIDE_W = (-7, [0, 4, 7, 14])      # G(add9): G B D A, its D the tide's own
+W_SECS = ('pull', 'tide', 'cross', 'surge')
 # (v5) THE LIFT: the crest goes up a whole tone, into E - the four lights, both E1 layers meeting, the hook, E5 and
 # the 303 all lifted - the payoff as a key change; the tear's look back at the crest stays home in D
 LIFT = {'crest': 2}
@@ -192,6 +200,8 @@ def build():
             t = (SEC[nm_] + 2 * c) * 4.0
             x = sp[c % len(sp)]
             pair_ = (TIDE_X, TIDE_Y)
+            if nm_ in W_SECS and c % 4 == 3:
+                pair_ = (TIDE_X, TIDE_W)
             if nm_ == 'out':
                 # the ebb into t7, whole steps down: D -> C for four cycles, C -> B-flat for two, then B-flat alone
                 pair_ = [(TIDE_X, TIDE_Y)] * 4 + [(TIDE_Y, TIDE_Z)] * 2 + [(TIDE_Z, TIDE_Z)] * 2
@@ -538,16 +548,16 @@ def build():
             tr('e5b', 'kora', '-11dB', pan=0.35, sends={'hall': '-16dB'}, fx=[{'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}]),
             dict({k: v for k, v in vtr.items() if k != 'notes'}, name='voice', notes=vnotes, gain='-6dB', pan=-0.05,
                  sends={'hall': '-14dB'}),
-            {'name': 'chorus', 'patch': dict(dict(CHO['tracks'][0]['patch'], extends='voice-choir synth.layers.0.harmony=[2] synth.layers.0.harmony_key=E:mixolydian'), play={'glide_overshoot': 0.06}),
+            {'name': 'chorus', 'patch': dict(dict(CHO['tracks'][0]['patch'], extends='voice-choir synth.layers.0.harmony=[2] synth.layers.0.harmony_key=E:mixolydian'), play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
              'notes': cnotes, 'gain': '-9dB', 'pan': 0.0, 'sends': {'hall': '-9dB'}},
-            {'name': 'chorus2', 'patch': dict(dict(CHD['tracks'][0]['patch'], extends='voice-choir synth.layers.0.harmony=[2] synth.layers.0.harmony_key=D:mixolydian'), play={'glide_overshoot': 0.06}),
+            {'name': 'chorus2', 'patch': dict(dict(CHD['tracks'][0]['patch'], extends='voice-choir synth.layers.0.harmony=[2] synth.layers.0.harmony_key=D:mixolydian'), play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
              'notes': c2notes, 'gain': '-9dB', 'pan': 0.0, 'sends': {'hall': '-9dB'}},
             # (v18) wM's singer's glide (glide_overshoot, pinned 14:27) on every sung line: on each leap the old voice and
             # the choir swing a little past the note and settle, as singers do, instead of landing dead on it (0.06: subtle)
-            {'name': 'sung', 'patch': dict(SU['tracks'][0]['patch'], play={'glide_overshoot': 0.06}),
+            {'name': 'sung', 'patch': dict(SU['tracks'][0]['patch'], play={'glide_overshoot': 0.06, 'scoop': 1.5, 'fall': 2.5}),
              'notes': sorted(snotes, key=lambda n_: n_['at']), 'gain': '-7dB', 'pan': 0.0, 'sends': {'hall': '-12dB', 'echo': '-22dB'}},
             # (v14) the second pass's company now sings a THIRD below in D Mixolydian (harmony_key), not a fixed fourth
-            {'name': 'sung2', 'patch': dict(dict(SU['tracks'][0]['patch'], extends='voice-old synth.layers.0.harmony=[-2] synth.layers.0.harmony_key=D:mixolydian'), play={'glide_overshoot': 0.06}),
+            {'name': 'sung2', 'patch': dict(dict(SU['tracks'][0]['patch'], extends='voice-old synth.layers.0.harmony=[-2] synth.layers.0.harmony_key=D:mixolydian'), play={'glide_overshoot': 0.06, 'scoop': 1.5, 'fall': 2.5}),
              'notes': snotes2, 'gain': '-8dB', 'pan': 0.0, 'sends': {'hall': '-12dB', 'echo': '-22dB'}},
         ]}
     return song
