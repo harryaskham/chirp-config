@@ -313,10 +313,14 @@ def build():
     # accretes inside the track, spoken -> sung. Under it the kit thins to the cell's kick and rim (no snare) so
     # the words sit in the gap
     SU = json.load(open(os.path.join(HERE, 'chirpers9-t6-sung.json')))
-    snotes = []
-    for b_ in (SEC['crest'] - 8, SEC['crest'] - 4):
+    # (v11, palette) the singer is now wM's voice-old - the low, older male voice made for this song (a larger tract,
+    # a little rasp, an aged unsteady source, a wide wandering vibrato, even vowels) - in place of voice-legato
+    # stretched toward age; and the SECOND time through, the line is sung again a fourth below (harmony [-5]: A E G D
+    # A under D A C G E - open, quartal, all in the mode): the old voice finds company as the crest comes
+    snotes, snotes2 = [], []
+    for k_, b_ in enumerate((SEC['crest'] - 8, SEC['crest'] - 4)):
         for n_ in SU['tracks'][0]['notes']:
-            snotes.append(dict(n_, at=round(b_ * 4.0 + n_['at'], 4)))
+            (snotes if k_ == 0 else snotes2).append(dict(n_, at=round(b_ * 4.0 + n_['at'], 4)))
     sq0, sq1 = (SEC['crest'] - 8) * 4.0, SEC['crest'] * 4.0
     P['kit'] = [e_ for e_ in P['kit'] if not (sq0 - 1e-6 <= e_[0] < sq1 - 1e-6 and e_[1] == 's')]
 
@@ -428,9 +432,10 @@ def build():
             tr('e5b', 'kora', '-11dB', pan=0.35, sends={'hall': '-16dB'}, fx=[{'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}]),
             dict({k: v for k, v in vtr.items() if k != 'notes'}, name='voice', notes=vnotes, gain='-6dB', pan=-0.05,
                  sends={'hall': '-14dB'}),
-            {'name': 'sung', 'patch': {'extends': 'voice-legato synth.layers.0.tract=1.12 synth.layers.0.breath.value=0.3',
-                                       'synth': SU['tracks'][0]['patch'].get('synth', {})},
+            {'name': 'sung', 'patch': SU['tracks'][0]['patch'],
              'notes': snotes, 'gain': '-7dB', 'pan': 0.0, 'sends': {'hall': '-12dB', 'echo': '-22dB'}},
+            {'name': 'sung2', 'patch': dict(SU['tracks'][0]['patch'], extends='voice-old synth.layers.0.harmony=[-5]'),
+             'notes': snotes2, 'gain': '-8dB', 'pan': 0.0, 'sends': {'hall': '-12dB', 'echo': '-22dB'}},
         ]}
     return song
 

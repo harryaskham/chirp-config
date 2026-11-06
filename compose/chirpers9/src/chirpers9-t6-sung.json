@@ -337,7 +337,7 @@
         }
       ],
       "patch": {
-        "extends": "voice-legato",
+        "extends": "voice-old",
         "synth": {
           "pitch": {
             "mod": [
