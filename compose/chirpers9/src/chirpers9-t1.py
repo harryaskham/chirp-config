@@ -62,6 +62,7 @@ CRESTHOOK = os.environ.get("C9T1_CRESTHOOK", "1")   # SECTION (w5, 2:14-2:46, th
 CATCHUP = os.environ.get("C9T1_CATCHUP", "288:320")   # SECTION (w7, 3:19-3:51, the lock's last bars into the fall: flagged static, little new vs w6): THE SHADOW CATCHES UP - the cello cantus (E1 at a quarter speed, the loudest line here) doubles its pace for these bars, E1 at half speed, the speed the five voices will fall at, so the shadow runs ahead into the fall and the lock's end moves; then it settles back to its own pace. Value 'A:B' = beats; ':up' also lifts it an octave (the cello's singing register)
 SEEDUP = os.environ.get("C9T1_SEEDUP", "")   # WHOLE ROUND: THE SEED IN FRONT - the five voices that carry E1 (t1's subject, and the album's hook) sat 12-22 dB under their own bed after the crest; they come up across the song (dB, e.g. '4') and the triangle bass, the loudest part, steps back 3 dB
 BREATH = os.environ.get("C9T1_BREATH", "-16")   # WHOLE ROUND (the voice is pinned: voice-legato, with a real inhale): THE FIRST BREATH - the whispered 'ah' becomes a breath taken and a sung 'ah' on E1's first two notes, D rising to A, joined in one breath, a beat before the crest (and a faint D in the fall): the album's voice is born on the seed ('sung')
+BREATHP = os.environ.get("C9T1_BREATHP", "voice-backing")   # PALETTE (voice batch 2 pinned): the breath's voice - voice-legato becomes 'voice-backing' (soft, breathy, three singers under the band: the seed's first breath as a far little choir) or 'voice-near' (close, young, breathy)
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -322,7 +323,7 @@ def breath():
         ns = [{"at": TC - 2.0, "len": 1.0, "ph": "AA1", "pitch": "D4", "vel": 0.7},
               {"at": TC - 1.0, "len": 2.5, "ph": "AA1", "pitch": "A4", "vel": 0.75},
               {"at": ST["outro"] + 8 * BAR - 1.0, "len": 3.0, "ph": "AA1", "pitch": "D4", "vel": 0.45}]
-        return {"name": "breath", "patch": "voice-legato", "gain": "-10dB" if BREATH == "sung" else f"{BREATH}dB", "pan": -0.15,
+        return {"name": "breath", "patch": BREATHP or "voice-legato", "gain": "-10dB" if BREATH == "sung" else f"{BREATH}dB", "pan": -0.15,
                 "fx": ["hp cutoff=150"], "sends": {"space": "-3dB"}, "notes": ns}
     src = json.load(open(os.path.join(HERE, "chirpers9-t1-ah.json")))["tracks"][0]["notes"]
     ns = []

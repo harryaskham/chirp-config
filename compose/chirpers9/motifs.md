@@ -219,6 +219,6 @@ A breath or a syllable in t1, more words track by track, full lines by t8. Each 
 
 | track | words | character | where |
 |---|---|---|---|
-| t1 | "ah" (a breath) | since t1 v9: a real inhale, then a sung "ah" on voice-legato, D rising to A (E1's first two notes) in one breath, distant in the hall | a beat before the crest (bar 57), once more faint in the fall |
+| t1 | "ah" (a breath) | since t1 v10: a real inhale, then a sung "ah" by voice-backing (three soft, breathy singers: a far little choir), D rising to A (E1's first two notes) in one breath, distant in the hall | a beat before the crest (bar 57), once more faint in the fall |
 | t5 | "nearer" -> "nearer. the middle hums." | sung (voice-legato since t5 v10: joined, breathing; "near-er" on A G, the line on E5 v2's notes A G A E A D, resolving to D) | "nearer": in the build, three times at the crest, once in the tide. The line: three times after the crest (2:48-3:20) |
 
