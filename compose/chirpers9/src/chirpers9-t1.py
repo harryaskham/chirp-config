@@ -67,6 +67,7 @@ SEEDEP = os.environ.get("C9T1_SEEDEP", "music-box")   # PALETTE: the seed's E (i
 DECAY = os.environ.get("C9T1_DECAY", "0.3")   # WHOLE ROUND: THE ARC SETTLES - t1 is the calm one with one small crest, but after the crest it held its peak level through the whole lock and only fell at the outro (the body before the t1 -> t2 seam sat ~8 dB over t2's). Now, from four bars after the crest, everything eases down by DECAY (a velocity fraction) across the lock, and the fall carries on from there: the seed forms, rings, and settles into t2
 DEEP = os.environ.get("C9T1_DEEP", "partial@-18")   # WHOLE ROUND: THE DEEP - t1 had no sub: its lowest band (38 Hz) sat 10 dB under the album's and 30 dB under t2's after the crossfade. A D pedal at D1 (37 Hz, the seed's home) now sounds under everything from A to the end, a pure sine swelling with the arc (growing into the crest, settling with the lock); value 'patch' or 'patch@gaindB'
 BREATHE = os.environ.get("C9T1_BREATHE", "78,90,86")   # WHOLE ROUND: TIME BREATHES - t1's tempo only crept 84 -> 90 in a straight line. Now it breathes with the seed: the opening is slower (the first light), the scattered voices hurry together into the crest, the lock relaxes, and the fall rises to t2's 90 (flat for the whole overlap). Value 'lo,crest,lock' bpm (the outro is always 90)
+HOOKP = os.environ.get("C9T1_HOOKP", "low-whistle@-13")   # PALETTE: the plain statements of E1 (the hook: at the start, its echo, at A, the build and on the crest) shared kalimba with the scatter's D voice, so the album's hook blurred into the scatter. They move to their own instrument: 'patch' or 'patch@gaindB'
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -170,7 +171,8 @@ def hook():
             for o, ln, p in zip(E1_OFF, E1_LEN, E1_MIDI):
                 ns.append(note(t + o, m(p), ln * 1.2, 0.7))
             t += 2 * E1_CYC
-    return {"name": "hook", "patch": "kalimba", "gain": "-11dB", "pan": 0.0, "sends": {"space": "-9dB"}, "notes": ns}
+    hp, _, hg = HOOKP.partition("@")
+    return {"name": "hook", "patch": hp or "kalimba", "gain": f"{hg or -11}dB", "pan": 0.0, "sends": {"space": "-9dB"}, "notes": ns}
 
 
 def firstlight():
@@ -179,7 +181,8 @@ def firstlight():
     for c in (4.0, 4.0 + E1_CYC):
         for o, ln, p in zip(E1_OFF, E1_LEN, E1_MIDI):
             ns.append(note(c + o, m(p), ln * 1.2, 0.55))
-    out.append({"name": "hook0", "patch": "kalimba", "gain": "-11dB", "pan": 0.0, "sends": {"space": "-7dB"},
+    hp, _, hg = HOOKP.partition("@")
+    out.append({"name": "hook0", "patch": hp or "kalimba", "gain": f"{hg or -11}dB", "pan": 0.0, "sends": {"space": "-7dB"},
                 "fx": [{"type": "delay", "time": "3/8", "feedback": 0.55, "mix": 0.4, "tone": 3000, "ping_pong": True}],
                 "notes": ns})
     if "pedal" in FIRSTLIGHT:
