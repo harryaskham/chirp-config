@@ -170,6 +170,26 @@ def write_felt():
         part("felt").add(beat, 0.5, n, v)
 
 
+# v12 (ROUND TYPE: whole song; voice batch 2 pinned - 65c7745c): THE VOICE IS THE THROUGH-LINE. It sang only at the
+# crest; now it accretes inside the song: in B it HUMS E1 - the hook, on 'oo', in unison with the handpan, on alternate
+# cycles (a verse before words) - at the crest it finds the words, and in the relief it hums the hook again after the
+# last lines (hum -> words -> hum). E1's notes touch, so each hum is one joined breath; 'even' keeps the held 'oo' level
+# with the band. The duet a third above comes down 3 dB (it sat only 4 dB under the lead).
+def hums():
+    out = []
+    beat = 0.0
+    while beat < b0(121) - 0.01:
+        bar = int(beat // BPB) + 1
+        cyc = int(round(beat / E1_CYCLE))
+        if cyc % 2 == 0 and ((sec_of(bar) == "B" and beat >= b0(45)) or (beat >= b0(108) and beat + 5 <= b0(121))):
+            for i, (n, on, ln) in enumerate(E1):
+                last = i == len(E1) - 1
+                out.append({"at": round(beat + on, 4), "len": ln + (0.75 if last else 0.0), "ph": "UW1",
+                            "pitch": f"m{midi_of(n)}", "vel": 0.5 if on else 0.56})
+        beat += E1_CYCLE
+    return out
+
+
 def write_seed():
     # E1 ASSEMBLES ITSELF: from the downbeat, one note more every two cycles, then whole; later in other shapes
     cyc = 0
@@ -411,7 +431,8 @@ VOICE = {"about": "t4's voice: a warm, close, human singer - slightly larger tra
                   "joined lines, a real breath before each, a wandering vibrato (v10)",
          "play": {"mono": True, "glide": "110ms", "glide_smooth": True},
          "synth": {"layers": [{"type": "voice", "tract": 1.02, "breath": 0.12, "formant_bw": 1.6, "ph_soft": 0.35,
-                               "consonant_level": "-4dB", "pulse_rate": 5, "join": True, "inhale": 0.4}],
+                               "consonant_level": "-4dB", "pulse_rate": 5, "join": True, "inhale": 0.4,
+                               "even": 1.0}],
                    "lfo": {"vib": {"wave": "sine", "rate": "5.2hz", "delay": "300ms", "fade": "500ms",
                                    "retrig": True, "wander": 0.7}},
                    "pitch": {"value": 0, "mod": [{"src": "expr.f0", "amount": 0.01}, {"src": "lfo.vib", "amount": 0.2}]},
@@ -450,7 +471,7 @@ def main():
     write_combined()
     gather()
     hold_breath()
-    voice = sung_notes(b0(CREST), TAKES) + sung_notes(b0(101), TAKES[2:])
+    voice = sorted(sung_notes(b0(CREST), TAKES) + sung_notes(b0(101), TAKES[2:]) + hums(), key=lambda d: d["at"])
     duet = [dict(n, pitch=f"m{third_above(midi_of(n['pitch']))}", vel=round(n["vel"] * 0.8, 3))
             for n in sung_notes(b0(CREST) + 20, TAKES[2:]) + sung_notes(b0(101), TAKES[2:])]   # v7: lines 3-4 at
                                                                   # 86-90 and their return in the afterglow (101-105)
@@ -488,7 +509,7 @@ def main():
              "sends": {"hall": "-9dB", "dly": "-16dB"}, "notes": voice},
             tr("e2", "harp", gain="-17dB", pan=0.4, sends={"hall": "-10dB", "dly": "-16dB"}),     # v2: listed last
             tr("e3", "pedal-steel", gain="-11dB", pan=-0.35, sends={"hall": "-10dB"}),
-            {"name": "duet", "patch": VOICE2, "gain": "-12dB", "pan": 0.18, "sends": {"hall": "-8dB"}, "notes": duet},
+            {"name": "duet", "patch": VOICE2, "gain": "-15dB", "pan": 0.18, "sends": {"hall": "-8dB"}, "notes": duet},
             {"name": "breath", "patch": BREATH_AIR, "gain": "2dB", "pan": 0.0, "sends": {"room": "-12dB"},
              "notes": breaths},
             tr("e3hi", "pedal-steel", gain="-15dB", pan=0.35, sends={"hall": "-8dB"}),     # v8: E3 an octave up in the rise
