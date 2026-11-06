@@ -654,6 +654,11 @@ SOLO8["synth"]["pitch"]["mod"][-1]["amount"] = 0.2
 # its leaps (overshoot 0.05) and lets each phrase's end tail off (fall 1); the SOLO voice scoops lightly into her
 # phrases (0.8) and lets each one fall away three semitones - her last line at the horizon redshifts with the light.
 SOLO8["play"] = dict(SOLO8["play"], scoop=0.8, fall=3.0, glide_overshoot=0.06)
+# v28 (ROUND TYPE: palette): ONE SWAP. The jet's deep sub - the sine, the album's most-shared patch (t2 t3 t6 t8) -
+# becomes SUB-SATURATED (a sine with a triangle and a little saw driven together, low-passed at 2 kHz). compscore
+# --bands still had t8 7.8 dB short at 97-114 Hz: the sub's roots sit at A0-G1 (27-49 Hz) and v18's lift sine an
+# octave up has no overtones; the saturated sub's own 2nd and 3rd harmonics (55-147 Hz) fill that gap and carry the
+# jet's weight on small speakers. The lift and the horizon's floor stay sines.
 SUB8 = {"about": "t8's sub: a sine under the lights' roots", "synth": {"layers": [{"wave": "sine"}],
         "amp": {"a": "15ms", "d": "0s", "s": 1, "r": "250ms"}}, "fx": ["drive drive=0.1"]}
 HSUB = {"about": "t8's horizon sub: the held D's floor, sinking with it",
@@ -709,7 +714,7 @@ def main():
             tr("e5", "marimba", gain="-13dB", pan=0.2, sends={"room": "-10dB"},
                fx=[ORBIT_FX], auto={"orb": {"points": orbit_lane("e5")}}),
             tr("bass", "nes-triangle-bass", gain="-6dB"),
-            tr("sub", SUB8, gain="-12dB"),
+            tr("sub", "sub-saturated", gain="-12dB"),                       # v28: the staple sine -> saturated
             tr("hsub", HSUB, gain="-13dB", auto={"rs": {"points": horizon_lane(0.0)}}),     # v17: the floor stays home
             tr("kick", "machine-kit", gain="-8dB"),
             tr("snare", "machine-kit", gain="0dB", sends={"room": "-10dB"}),
