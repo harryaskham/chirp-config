@@ -282,9 +282,15 @@ def notify(album, note, track):
     env["CACOPHONY_ACTOR"] = AGENTS["chirp-eco"]
     with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False) as f:
         f.write(body)
-    for i in dict.fromkeys(ids):
-        subprocess.run(["caco", "msg", "send", "--project", "tools", "--target", i, "--no-tts", "--body-file", f.name],
-                       env=env, capture_output=True, timeout=90)
+    with open(os.path.join(album_dir(album), "notify.log"), "a") as logf:
+        for i in dict.fromkeys(ids):
+            try:
+                r = subprocess.run(["caco", "msg", "send", "--project", "tools", "--target", i, "--no-tts", "--body-file",
+                                    f.name], env=env, capture_output=True, text=True, timeout=90)
+                res = f"rc {r.returncode} {(r.stderr or r.stdout).strip()[-160:]!r}"
+            except (OSError, subprocess.SubprocessError) as e:
+                res = f"error {e!r}"
+            logf.write(f"{now_iso()} note {note['id']} -> {i}: {res}\n")
     os.unlink(f.name)
 
 
