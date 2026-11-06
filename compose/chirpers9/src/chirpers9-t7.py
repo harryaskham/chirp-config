@@ -276,6 +276,16 @@ R24 = os.environ.get("T7_R24", "organ") != "none"
 # plays E1 itself an octave under the brass, and the erhu plays it an octave over - the whole orchestra on the seed,
 # once, at the album's hardest crest. Old horn chords there silenced (velocity 1). T7_R25=none reproduces v24.
 R25 = os.environ.get("T7_R25", "polish") != "none"
+# round 26 (section, w8 = bars 113-128, the spiral's end into the crest, never focused): T7_R26=turn (default) - THE
+# KEY TURNS. The spiral ran in E-flat minor right up to bar 120 and the crest simply dropped a semitone into D: the
+# album's hardest crest arrived without being prepared. Now bars 117-120 turn the key: the band leaves E-flat minor
+# for E-FLAT MAJOR (bars 117-118, the storm's own chord brightened - and D's Neapolitan) and then A7sus4 -> A7 (bars
+# 119-120, D's dominant), so the crest's D lands as an arrival. The brass sings the storm's E1 (Eb Bb Db Ab F) over
+# the major chord, then falls A4 G4 E4 - E4 C#4 onto the hook's D; the horn choir holds the chords, voice-leading
+# into the crest's first chord (C#4 -> D4). Bass, pad, organ and sub move with them (new tracks); the old pitched
+# parts there are silenced (velocity 1) or cut at bar 117. The drums and the riser keep going. T7_R26=none reproduces v25.
+R26 = os.environ.get("T7_R26", "turn") != "none"
+TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
 BOW_LINE = [(128, 69, 7.6), (130, 67, 7.6), (132, 66, 7.6), (134, 64, 7.8), (136, 62, 7.5)]
@@ -656,6 +666,26 @@ def build():
             if bar >= 104:
                 for off in (1.5, 3.5):
                     T["e4w7"].add(bar * 4.0 + off, 0.35, ",".join(mtok(m + 12) for m in ch[1:]), 82 if off == 1.5 else 74)
+    if R26:                                                                   # w8: the key turns (bars 117-120)
+        lo, hi = 116 * 4.0, 120 * 4.0
+        for k in ("tide", "bass", "sub", "e4", "jet", "jethi", "e5", "e1a", "e1b", "e1c", "tide7", "bass7", "e4w7"):
+            if k not in T:
+                continue
+            T[k].ev = [(e[0], e[1], e[2], 1, e[4]) if lo <= e[0] < hi else
+                       (e[0], max(0.03, round(lo - e[0] - 0.05, 4)), e[2], e[3], e[4]) if e[0] < lo < e[0] + e[1] else e
+                       for e in T[k].ev]
+        for k in ("tide8", "bass8", "sub8", "e4w8"):
+            T[k] = Track(k)
+        for bar in range(116, 120):
+            root, sroot, ch = [(r, s, c) for b0, r, s, c in TURN if b0 <= bar][-1]
+            for i in range(8):
+                T["tide8"].add(bar * 4.0 + i * 0.5, 0.45, ",".join(mtok(m) for m in ch), 66 if i % 2 == 0 else 58)
+                m = root + (12 if i in (2, 6) else 0)
+                T["bass8"].add(bar * 4.0 + i * 0.5, 0.42, mtok(m), 98 if i % 4 == 0 else 86)
+            for off in (1.5, 3.5):
+                T["e4w8"].add(bar * 4.0 + off, 0.35, ",".join(mtok(m + 12) for m in ch[1:]), 82 if off == 1.5 else 74)
+        for b0, b1, s in ((116, 118, 27), (118, 120, 33)):
+            T["sub8"].add(b0 * 4.0, (b1 - b0) * 4.0 - 0.1, mtok(s), 70)
     return T
 
 
@@ -980,6 +1010,21 @@ def main():
         spec = {tr["name"]: tr for tr in tracks}
         for new, old in (("tide7", "tide"), ("bass7", "bass"), ("e4w7", "e4")):
             tracks.append(dict(spec[old], name=new, score=T[new].score()))
+    if R26:                                                 # w8: the key turns - band, horn choir and brass
+        spec = {tr["name"]: tr for tr in tracks}
+        for new, old in (("tide8", "tide"), ("bass8", "bass"), ("sub8", "sub"), ("e4w8", "e4")):
+            tracks.append(dict(spec[old], name=new, score=T[new].score()))
+        turnh, turnb = Track("turnh"), Track("turnb")
+        for b0, ln, ch in ((116, 8.0, (51, 55, 58, 63)), (118, 4.0, (52, 55, 57, 62)), (119, 4.0, (52, 55, 57, 61))):
+            turnh.add(b0 * 4.0, ln * 0.97, ",".join(mtok(m) for m in ch), 80 if b0 == 116 else 86)
+        at = 116 * 4.0
+        for nt, ln in [("Eb4", 0.5), ("Bb4", 0.75), ("Db5", 0.25), ("Ab4", 1.0), ("F4", 1.0), ("Eb4", 4.5),
+                       ("A4", 1.5), ("G4", 1.5), ("E4", 1.0), ("E4", 1.0), ("C#4", 3.0)]:
+            turnb.add(at, ln * 0.92, mtok(midi(nt)), 92 if ln >= 1.5 else 84)
+            at += ln
+        tracks.append(dict(spec["horns"] if "horns" in spec else spec["hook"], name="turnh", gain="-7dB",
+                           score=turnh.score()))
+        tracks.append(dict(spec["hook"], name="turnb", score=turnb.score()))
     if R23:
         spec = {tr["name"]: tr for tr in tracks}
         stabs, boom = Track("stabs"), Track("boom")
