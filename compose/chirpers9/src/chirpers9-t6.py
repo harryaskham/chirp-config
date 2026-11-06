@@ -65,7 +65,9 @@ TIDE_Z = (-4, [0, 4, 7, 14])
 # the 303 all lifted - the payoff as a key change; the tear's look back at the crest stays home in D
 LIFT = {'crest': 2}
 # X's share of each 8-beat cycle, per section (the tide moving)
-SPLIT = {'in': [4, 4], 'pull': [5, 5, 6, 6], 'tide': [6, 5, 4, 3, 2, 3, 4, 5], 'squeeze': [7, 1, 7, 1, 6, 2, 6, 2],
+# (v9, section w1: the in-seam was static) THE TIDE COMES IN: the head starts on D alone (8+0), the D9 world of t5's
+# tail, and the C creeps in a beat at a time (7+1, 6+2, 5+3) to the even 4+4 by bar 16 - the tide visibly arriving
+SPLIT = {'in': [8, 7, 7, 6, 6, 5, 5, 4], 'pull': [5, 5, 6, 6], 'tide': [6, 5, 4, 3, 2, 3, 4, 5], 'squeeze': [7, 1, 7, 1, 6, 2, 6, 2],
          'cross': [3, 3, 2, 2], 'surge': [5, 3, 5, 3], 'torn': [1, 1, 1, 1], 'out': [4, 3, 2, 1, 0, 0, 0, 0]}
 # the two E1 layers' speed factors per section (1 = E1's own 5 beats)
 FAR = {'pull': 3.2, 'tide': 2.4, 'squeeze': 1.6, 'crest': 1.0, 'cross': 0.8, 'surge': 0.5, 'torn': 0.2, 'out': 0.2}
@@ -399,7 +401,10 @@ def build():
                           'tapestop stop=auto.stop time=1b',
                           'limiter ceiling=-1dB'], 'auto': {'E': {'points': energy_pts}, 'stop': {'points': stop_pts}}},
         'tracks': [
-            tr('tide', 'harmonium', '-9dB', sends={'hall': '-10dB'}),
+            # (v9) and the harmonium is LENSED in: a low-pass that opens from 600 Hz over the in-seam's 16 bars, so t6's
+            # own chord arrives from behind t5's tail rather than on top of it
+            tr('tide', 'harmonium', '-9dB', sends={'hall': '-10dB'}, auto={'lens': {'points': [['0b', 0.0], ['64b', 1.0]]}},
+               fx=[{'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 600, 'mod': [{'src': 'auto.lens', 'amount': 4.0}]}}]),
             tr('lights', 'harmonium', '-10dB', sends={'hall': '-8dB'}),
             tr('sub', 'sub', '-10dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '200ms', 'curve': 0.6}]),
             tr('acid', 'acid', '-10dB', fx=['hp cutoff=50'], sends={'echo': '-20dB'}),
