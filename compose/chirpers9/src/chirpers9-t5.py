@@ -2,8 +2,8 @@
 """chirpers IX (Accretion), track 5 (chirper-zero): the inner disk - calm again, but closer and hotter. t1's mirror.
 
 t1 (Nucleation) began scattered and converged once. Here everything arrives already whole but TIGHT - the inner disk
-orbits faster - and the new element, E5 'the inner orbit' (compose/chirpers9/motifs.md: A G# A . E . A G# A . D ., a
-3-beat ostinato whose G# is the tritone of D), circles under it all. It carries:
+orbits faster - and the new element, E5 'the inner orbit' (compose/chirpers9/motifs.md: v2 A G A . E . A G A . D ., a
+3-beat ostinato in D; v1's G# went in v6, Harry's 'tone is home'), circles under it all. It carries:
   E1 (t1) diminished x2 (a 2.5-beat cycle) in stretto, two chip voices a bar-and-a-bit apart;
   E2 (t2, 'seven': hits on 0 2 3 5 of seven sixteenths) as the drum machine's cell against the 4/4 floor;
   E4 (t4, 'four lights': D9, Bbmaj13#11, Am11, D9sus) twice as fast as t4 (one chord per 10 beats), voiced close;
@@ -11,7 +11,11 @@ orbits faster - and the new element, E5 'the inner orbit' (compose/chirpers9/mot
 Every cycle (2.5, 5, 7/16, 3, 40) is phased to land on one shared downbeat at the crest (C). Then the outro (the
 t5 -> t6 overlap, flat 120) pulls them apart: E5 stretches (augmented) while E1 squeezes (diminished), into t6's tide.
 
-Tempo 112 (flat across the t4 -> t5 overlap) rising to 120 (flat across t5 -> t6). Home D, Lydian (E5's G#). The voice:
+Since v6: E1 is stated plainly first (8 bars at its own speed) before the stretto, E4's second light is Bbmaj9 (no #11),
+and the air is a pitched drone on D and A. All the complexity is in the time; the pitch is consonant D mixolydian
+with a borrowed bVI.
+
+Tempo 112 (flat across the t4 -> t5 overlap) rising to 120 (flat across t5 -> t6). Home D mixolydian. The voice:
 one word, 'nearer', spoken by a robot (pvoc) that sings E5's notes.
 
 Writes songs/chirpers9-t5.yaml (or $C9T5_OUT).
@@ -37,6 +41,11 @@ E1_OFF = [0.0, 0.5, 1.25, 1.5, 2.5]
 E1_LEN = [0.5, 0.75, 0.25, 1.0, 1.5]
 E1_MIDI = [62, 69, 72, 67, 64]               # D4 A4 C5 G4 E4
 E5 = [(0, 69), (1, 68), (2, 69), (4, 76), (6, 69), (7, 68), (8, 69), (10, 74)]   # sixteenth, MIDI
+TONAL = os.environ.get("C9T5_TONAL", "1")   # WHOLE ROUND (Harry, 00:30: 'quite ugly chaos ... atonal, very tough listening; get musicality back and play with time and texture'): TONE IS HOME - E5 v2 drops its G# for G (A G A . E . A G A . D ., a hummable ostinato in D, the time idea kept whole), E4's second light becomes Bbmaj9 (no E against the Bb), and the GENDYN air (a noise cloud, buried anyway) is cut. D mixolydian with a borrowed bVI: every clash gone, the complexity left in the time (the 3-beat orbit, E2's seven, E1's stretto, the converging cycles)
+TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
+PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
+if TONAL:
+    E5 = [(s_, 67 if p_ == 68 else p_) for s_, p_ in E5]
 E2_HITS = [0, 2, 3, 5]                        # of 7 sixteenths
 E4 = [  # E4 'four lights', voiced close around middle C
     ["D2", "D3", "F#3", "A3", "C4", "E4"],
@@ -44,6 +53,8 @@ E4 = [  # E4 'four lights', voiced close around middle C
     ["A1", "A2", "C3", "G3", "D4", "E4"],
     ["D2", "D3", "G3", "A3", "C4", "E4"],
 ]
+if TONAL:
+    E4[1] = ["Bb1", "Bb2", "D3", "F3", "A3", "C4"]
 E4_LEN = 10.0                                 # beats per chord (t4: 5)
 CRESTGAP = os.environ.get("C9T5_CRESTGAP", "8")   # SECTION (w5, the build into the crest: flagged static; the crest was a level line, -12.1 dB either side): THE PULL BEFORE THE MEETING - for the last CRESTGAP beats before the crest the drums, the quick bass and the floor drop out and every heat filter is sucked shut, only the orbit's trill and E1's stretto left spinning; then every cycle lands on the shared downbeat at once: the filters snap open past where they were, and the drum machine and a crash hit together
 SPIN = os.environ.get("C9T5_SPIN", "384:448:full")   # SECTION (w7, 3:20-3:52, C's second half: flagged static, little new vs w6; presence: the drums 13 dB under the mix, followable 7% of the time): THE DISK SPINS UP - a second 909 swells in over E2's seven: ride eighths, a backbeat on 2 and 4 (and with 'full', four on the floor), straight time against the seven-sixteenth cell, the first hint of t6's storm; it falls away as the outro's tide begins. Value 'A:B' or 'A:B:full' = beats
@@ -125,7 +136,15 @@ def seed():
     """E1 diminished x2 in stretto: two chip voices, the second 1.25 beats behind and an octave down; whole speed at the
     crest (both voices in unison, the cell as t1 left it), squeezed to x4 in the outro."""
     a, b = [], []
+    pe = ST["A"] + int(PLAINE1 or 0) * BAR
+    if PLAINE1:
+        for c in cyc(ST["A"], pe, 5.0):
+            for o, ln, p in zip(E1_OFF, E1_LEN, E1_MIDI):
+                if c + o < pe:
+                    a.append(note(c + o, p + 12, ln, 0.75))
     for c in cyc(ST["A"], ST["C"], 2.5):
+        if c < pe:
+            continue
         v = ramp(c, ST["A"], ST["C"], 0.45, 0.8)
         for o, ln, p in zip(E1_OFF, E1_LEN, E1_MIDI):
             a.append(note(c + o / 2, p + 12, ln / 2, v))
@@ -250,6 +269,9 @@ def spin():
 
 
 def air():
+    if TONALAIR == "shimmer":
+        return {"name": "air", "patch": "drone", "gain": "-22dB", "pan": 0.0,
+                "notes": [note(0, "D2", TOTAL, 0.5), note(0, "A2", TOTAL, 0.4)]}
     return {"name": "air", "patch": "gendy-drone", "gain": "-27dB", "pan": 0.0,
             "notes": [note(0, "D2", TOTAL, 0.5)]}
 
@@ -285,7 +307,7 @@ def voxline():
 
 def song():
     b_ = bass()
-    tracks = [orbit(), *seed(), lights(), *(b_ if isinstance(b_, list) else [b_]), drums(), air(), voice(), floor()]
+    tracks = [orbit(), *seed(), lights(), *(b_ if isinstance(b_, list) else [b_]), drums(), *([] if TONAL and not TONALAIR else [air()]), voice(), floor()]
     if VOXLINE:
         tracks.append(voxline())
     if SPIN:
