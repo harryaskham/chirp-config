@@ -256,7 +256,13 @@ def write_bass():
 #   leading tone, the storm's drag becomes a lift - on vibes an octave up, its 2+2+3 against everything from 42.5.
 # Before the crest they turn against the 4/4 and the 5s; at 81 E1 (the voice), E2, E3 and E4 meet one downbeat: the
 # first full statement of the combined theme.
-E2_MAJ = [("D5", 0, 100), ("A5", 2, 76), ("F#5", 3, 88), ("C5", 5, 70)]          # sixteenth steps of 7
+E2_MAJ = [("D6", 0, 100), ("A6", 2, 76), ("F#6", 3, 88), ("C6", 5, 70)]          # sixteenth steps of 7
+# v16 (ROUND TYPE: whole song): MAKE ROOM FOR THE VOICE. The song ran +9 dB hot at 600-1000 Hz against the album
+# (compscore --bands) - the band a voice lives in, and t4's brief is the voice at its most human. Counting
+# fundamentals: the harp's E2 put 75% of its 880 notes there (D5 A5 F#5 C5, on its seven-sixteenth cycle from bar 25
+# to 120) and the glock half of its. E2 moves an octave up (D6 A6 F#6 C6): sparkle above the singer instead of chatter
+# inside her band. (Moving the glock's low notes up too cost structure - 92.9 -> 89.4 / 99 -> 92.9: its register
+# marks B to the relief - so the glock stays.)
 E3_INV = [("D3", 0.0, 0.75), ("D3", 0.75, 0.75), ("D2", 1.5, 0.5), ("F#3", 2.0, 0.5), ("F#3", 2.5, 0.75),
           ("B2", 3.25, 0.75), ("E3", 4.0, 0.75), ("E3", 4.75, 0.75), ("A2", 5.5, 0.5), ("E2", 6.0, 1.0)]
 # v6: E3 v2 (chirper-two: D | Bb | C) inverted around D - D D D | F# F# B | E E A E (I - iii - ii, all in D; was C#)
