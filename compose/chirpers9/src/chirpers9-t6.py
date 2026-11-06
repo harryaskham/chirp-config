@@ -405,20 +405,27 @@ def build():
             # own chord arrives from behind t5's tail rather than on top of it
             tr('tide', 'harmonium', '-9dB', sends={'hall': '-10dB'}, auto={'lens': {'points': [['0b', 0.0], ['64b', 1.0]]}},
                fx=[{'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 600, 'mod': [{'src': 'auto.lens', 'amount': 4.0}]}}]),
-            tr('lights', 'harmonium', '-10dB', sends={'hall': '-8dB'}),
+            # (v10, whole song) THE STAGE CLEARS FOR THE TUNE: presence.py had the hook (E1 on the whistle) 8-12 dB under
+            # the mix, behind a constant acid line and three other E1s at other speeds - the tune one strand of six. Now the
+            # hook is up 3 dB, the acid down 2, and everything melodic around it (both harmoniums' lights, the acid, the
+            # far and near layers, the fretless, the pans and the kora) DUCKS under it - slow, 40 ms in, half a second
+            # out - so whenever E1 is stated the band leans back and the tune stands in front; between statements the
+            # process music fills back in
+            tr('lights', 'harmonium', '-10dB', sends={'hall': '-8dB'}, fx=[{'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}]),
             tr('sub', 'sub', '-10dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '200ms', 'curve': 0.6}]),
-            tr('acid', 'acid', '-10dB', fx=['hp cutoff=50'], sends={'echo': '-20dB'}),
+            tr('acid', 'acid', '-12dB', fx=['hp cutoff=50', {'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}], sends={'echo': '-20dB'}),
             tr('kit', 'prog-kit', '-6dB', sends={'hall': '-20dB'}),
             tr('hats', 'prog-kit', '-7dB', pan=0.2, fx=[{'type': 'eq', 'bands': ['highshelf cutoff=8000 gain=5dB']}]),
-            tr('far', 'cello', '-8dB', pan=-0.25, sends={'hall': '-12dB'}),
-            tr('root', 'sub', '-14dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-4dB', 'release': '200ms', 'curve': 0.6}]),
-            tr('farbass', 'fretless', '-6dB', pan=-0.1, fx=['lp cutoff=1800', 'hp cutoff=35']),
-            tr('hook', 'low-whistle', '-9dB', pan=0.05, sends={'hall': '-12dB', 'echo': '-18dB'}),
+            tr('far', 'cello', '-8dB', pan=-0.25, sends={'hall': '-12dB'}, fx=[{'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}]),
+            # (v10) the chord-root sub up 5 dB: compscore's one spectrum fault was a hole at 61 Hz, where the C root sits
+            tr('root', 'sub', '-9dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-4dB', 'release': '200ms', 'curve': 0.6}]),
+            tr('farbass', 'fretless', '-6dB', pan=-0.1, fx=['lp cutoff=1800', 'hp cutoff=35', {'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}]),
+            tr('hook', 'low-whistle', '-6dB', pan=0.05, sends={'hall': '-12dB', 'echo': '-18dB'}),
             tr('near', 'modal-marimba', '-11dB', pan=0.3, auto={'shut': {'points': shut_pts}},
-               fx=[{'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 700, 'mod': [{'src': 'auto.shut', 'amount': 4.0}]}}],
+               fx=[{'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 700, 'mod': [{'src': 'auto.shut', 'amount': 4.0}]}}, {'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}],
                sends={'echo': '-14dB', 'hall': '-14dB'}),
-            tr('e5', 'steel-pan', '-10dB', pan=-0.15, sends={'echo': '-16dB', 'hall': '-18dB'}),
-            tr('e5b', 'kora', '-11dB', pan=0.35, sends={'hall': '-16dB'}),
+            tr('e5', 'steel-pan', '-10dB', pan=-0.15, sends={'echo': '-16dB', 'hall': '-18dB'}, fx=[{'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}]),
+            tr('e5b', 'kora', '-11dB', pan=0.35, sends={'hall': '-16dB'}, fx=[{'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}]),
             dict({k: v for k, v in vtr.items() if k != 'notes'}, name='voice', notes=vnotes, gain='-6dB', pan=-0.05,
                  sends={'hall': '-14dB'}),
             {'name': 'sung', 'patch': {'extends': 'voice-legato synth.layers.0.tract=1.12 synth.layers.0.breath.value=0.3',
