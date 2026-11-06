@@ -95,6 +95,12 @@ def chord(bar):
         # climb remembered a step lower; the sung line lands on G6/9, which holds every note it sings but C (the sus4
         # passing), and A7sus4 hands the drift its Dm9
         return {72: (-2, [4, 7, 11, 14]), 74: (3, [4, 7, 11, 14]), 76: (5, [4, 7, 9, 14])}.get(bar - bar % 2, (7, [5, 7, 10, 14]))
+    if bar >= 96:
+        # (v22, section w9: the fall) THE FALL HANDS t3 ITS CHORDS: the fall's harmony becomes E3 itself - D | B-flat |
+        # C, t3's progression - as Dm7 | B-flat maj7 | Csus2 | Dm7, every chord without an E or a B: across the seam
+        # t3's dust pad plays Dm(add9) / E-flat maj7#11 / C11, and the old PROG's E naturals (in all four of its
+        # chords) rubbed against its E-flat; now both sides share D F A C and the B-flat
+        return [(0, [3, 7, 10, 15]), (-4, [4, 7, 11, 16]), (-2, [2, 7, 12, 14]), (0, [3, 7, 10, 15])][((bar - 96) // 2) % 4]
     return PROG[(bar // 2) % len(PROG)]
 
 
@@ -120,7 +126,11 @@ def build():
         if t >= fall0:
             f_ = (t - fall0) / 64.0
             stretch = 1.0 + 1.6 * f_
-            sink = -6.0 * f_
+            # (v22) the sink was a slide of a tritone - continuous, so for most of the fall the cell sat BETWEEN
+            # pitches, out of tune with everything (Harry: tone is home). Now it sinks in the cell's own notes: the
+            # first half home, the second half an octave down - the redshift as a drop in register, D A F C throughout
+            # (all four in t3's chords as well)
+            sink = 0.0 if f_ < 0.5 else -12.0
         for st in E2_STEPS:
             need = {0: 0.0, 3: 0.25, 2: 0.5, 5: 0.7}[st]
             if prog_ < 1.0 and rng.random() > min(1.0, 0.15 + 1.3 * max(0.0, prog_ - need)):
