@@ -595,16 +595,22 @@ def build():
             tr('e5b', 'kora', '-11dB', pan=0.35, sends={'hall': '-16dB'}, fx=[{'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}]),
             dict({k: v for k, v in vtr.items() if k != 'notes'}, name='voice', notes=vnotes, gain='-6dB', pan=-0.05,
                  sends={'hall': '-14dB'}),
-            {'name': 'chorus', 'patch': dict(dict(CHO['tracks'][0]['patch'], extends='voice-choir synth.layers.0.harmony=[2] synth.layers.0.harmony_key=E:mixolydian'), play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
+            # (v25, palette) THE SINGERS SING AS ONE, AND EACH HELD NOTE BLOOMS: wM's two newest voice features (pinned
+            # 19:43 and 21:32) on all four sung lines. together=true: in the choruses (five singers and a keyed third)
+            # and the old voice's lower part, every singer now follows the line's breath, effort and vowel instead of
+            # only the lead (the other voices had sung a plain default voice under him). per_note vibrato: the vibrato
+            # starts again on each note - quick notes plain, each held note blooming on its own - so the line's long
+            # words ('time', 'go', 'in') bloom and the quick ones stop wobbling
+            {'name': 'chorus', 'patch': dict(dict(CHO['tracks'][0]['patch'], extends='voice-choir synth.layers.0.harmony=[2] synth.layers.0.harmony_key=E:mixolydian synth.layers.0.together=true synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
              'notes': cnotes, 'gain': '-9dB', 'pan': 0.0, 'sends': {'hall': '-9dB'}},
-            {'name': 'chorus2', 'patch': dict(dict(CHD['tracks'][0]['patch'], extends='voice-choir synth.layers.0.harmony=[2] synth.layers.0.harmony_key=D:mixolydian'), play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
+            {'name': 'chorus2', 'patch': dict(dict(CHD['tracks'][0]['patch'], extends='voice-choir synth.layers.0.harmony=[2] synth.layers.0.harmony_key=D:mixolydian synth.layers.0.together=true synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
              'notes': c2notes, 'gain': '-9dB', 'pan': 0.0, 'sends': {'hall': '-9dB'}},
             # (v18) wM's singer's glide (glide_overshoot, pinned 14:27) on every sung line: on each leap the old voice and
             # the choir swing a little past the note and settle, as singers do, instead of landing dead on it (0.06: subtle)
-            {'name': 'sung', 'patch': dict(SU['tracks'][0]['patch'], play={'glide_overshoot': 0.06, 'scoop': 1.5, 'fall': 2.5}),
+            {'name': 'sung', 'patch': dict(SU['tracks'][0]['patch'], extends='voice-old synth.lfo.vib.per_note=true', play={'glide_overshoot': 0.06, 'scoop': 1.5, 'fall': 2.5}),
              'notes': sorted(snotes, key=lambda n_: n_['at']), 'gain': '-7dB', 'pan': 0.0, 'sends': {'hall': '-12dB', 'echo': '-22dB'}},
             # (v14) the second pass's company now sings a THIRD below in D Mixolydian (harmony_key), not a fixed fourth
-            {'name': 'sung2', 'patch': dict(dict(SU['tracks'][0]['patch'], extends='voice-old synth.layers.0.harmony=[-2] synth.layers.0.harmony_key=D:mixolydian'), play={'glide_overshoot': 0.06, 'scoop': 1.5, 'fall': 2.5}),
+            {'name': 'sung2', 'patch': dict(dict(SU['tracks'][0]['patch'], extends='voice-old synth.layers.0.harmony=[-2] synth.layers.0.harmony_key=D:mixolydian synth.layers.0.together=true synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.06, 'scoop': 1.5, 'fall': 2.5}),
              'notes': snotes2, 'gain': '-8dB', 'pan': 0.0, 'sends': {'hall': '-12dB', 'echo': '-22dB'}},
         ]}
     return song
