@@ -138,6 +138,29 @@ def build():
     # (v5, Harry: 'quite ugly chaos') the Duffing bass's chaos is gone: the far side's weight is now a fretless bass,
     # singing each note open - the same doubling, in tune (a tamer Duffing, strain halved, scored lower and still growled)
     e1_layer('near', NEAR, 36, 78)             # D5: the marimba, the near side
+    # (v17, section w7: the surge 'static' - the three-speed canon ran unchanged for sixteen bars) THE CANON
+    # CONVERGES: the surge keeps its canon for eight bars (E1 at x0.5 on the far cello, x1 on the whistle, x2 on the
+    # near marimba), then the far side slows into step with the whistle (from bar 105, an octave and a half apart),
+    # and from bar 109 the near side speeds up to join them: for the surge's last four bars all three sing E1 in
+    # unison across three octaves - the hook stated as plainly and hugely as it gets - and then the tear rips it apart
+    sg0_ = SEC['surge'] * 4.0
+    st2_, st3_, sg1_ = sg0_ + 35.0, sg0_ + 50.0, sg0_ + 64.0
+    def e1_run(key_, t0_, t1_, octave_, vel0_):
+        t_ = t0_
+        while t_ < t1_ - 1e-6:
+            at_ = t_
+            for k, (semi, ln) in enumerate(E1L):
+                if semi is not None and at_ < t1_ - 1e-6:
+                    acc = 12 if k == 0 else (8 if semi in (10, 11) else 0)
+                    P[key_].append((at_, m(KEY + octave_ + semi), min(ln * 0.92, t1_ - at_), vel0_ + acc))
+                at_ += ln
+            t_ += 5.0
+    P['far'] = [e_ for e_ in P['far'] if not (st2_ - 1e-6 <= e_[0] < sg1_ - 1e-6)]
+    e1_run('far', st2_, sg1_, 12, 84)
+    P['near'] = [e_ for e_ in P['near'] if not (st3_ - 1e-6 <= e_[0] < sg1_ - 1e-6)]
+    e1_run('near', st3_, sg1_, 36, 78)
+    P['far'].sort(key=lambda e_: e_[0]); P['near'].sort(key=lambda e_: e_[0])
+    P['farbass'] = [(a_, m(float(p_[1:]) - 12), d_, v_) for a_, p_, d_, v_ in P['far']]
     # (v5) THE HOOK, PLAINLY: E1 (Lydian) at its own speed on a low whistle, twice through, at the head of the pull,
     # the tide, the crest and the cross and again eight bars into each - the album's tune, stated so it
     # sticks, while the two layers stretch and squeeze it underneath
