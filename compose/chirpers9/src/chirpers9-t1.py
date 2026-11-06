@@ -68,6 +68,7 @@ DECAY = os.environ.get("C9T1_DECAY", "0.3")   # WHOLE ROUND: THE ARC SETTLES - t
 DEEP = os.environ.get("C9T1_DEEP", "partial@-18")   # WHOLE ROUND: THE DEEP - t1 had no sub: its lowest band (38 Hz) sat 10 dB under the album's and 30 dB under t2's after the crossfade. A D pedal at D1 (37 Hz, the seed's home) now sounds under everything from A to the end, a pure sine swelling with the arc (growing into the crest, settling with the lock); value 'patch' or 'patch@gaindB'
 BREATHE = os.environ.get("C9T1_BREATHE", "78,90,86")   # WHOLE ROUND: TIME BREATHES - t1's tempo only crept 84 -> 90 in a straight line. Now it breathes with the seed: the opening is slower (the first light), the scattered voices hurry together into the crest, the lock relaxes, and the fall rises to t2's 90 (flat for the whole overlap). Value 'lo,crest,lock' bpm (the outro is always 90)
 HOOKP = os.environ.get("C9T1_HOOKP", "low-whistle@-13")   # PALETTE: the plain statements of E1 (the hook: at the start, its echo, at A, the build and on the crest) shared kalimba with the scatter's D voice, so the album's hook blurred into the scatter. They move to their own instrument: 'patch' or 'patch@gaindB'
+TEASE = os.environ.get("C9T1_TEASE", "152:2,168:3,176:4")   # SECTION w4 (A's second half, flagged 'little new vs w3', never focused): THE SEED TRIES TO FORM - where the scattered cycles happen to fall in phase (beat 152: the D, C and G voices together; 168 and 176: pairs), the whistle tries the hook and stops short, a note longer each time (D A ... D A C ... D A C G), never the last E; the build's full statement completes it. Value 'beat:notes,...'
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -203,6 +204,17 @@ def deep():
         ns.append(note(t, "D1", ln, v))
         t += 8 * BAR
     return {"name": "deep", "patch": dp, "gain": f"{dg or -14}dB", "pan": 0.0, "notes": ns}
+
+
+def tease():
+    ns = []
+    for k, it in enumerate(TEASE.split(",")):
+        b, n = it.split(":")
+        for j in range(int(n)):
+            ns.append(note(float(b) + E1_OFF[j], m(E1_MIDI[j]), E1_LEN[j] * (1.0 if j < int(n) - 1 else 2.0), 0.5 + 0.06 * k))
+    hp, _, hg = (HOOKP or "kalimba").partition("@")
+    hg = os.environ.get("C9T1_TEASEG", "-10") or hg
+    return {"name": "tease", "patch": hp, "gain": f"{hg or -11}dB", "pan": 0.15, "sends": {"space": "-7dB"}, "notes": ns}
 
 
 def cantus():
@@ -360,7 +372,7 @@ def breath():
 
 
 def song():
-    tracks = [*fragments(), *unison(), *([deep()] if DEEP else []), *([hook()] if HOOK else []), *(firstlight() if FIRSTLIGHT else []), *([cantus()] if CANTUS else []), pad(), warmth(), bass(), hats(), kick(), air(), breath()]
+    tracks = [*fragments(), *unison(), *([deep()] if DEEP else []), *([tease()] if TEASE else []), *([hook()] if HOOK else []), *(firstlight() if FIRSTLIGHT else []), *([cantus()] if CANTUS else []), pad(), warmth(), bass(), hats(), kick(), air(), breath()]
     if DECAY:
         d, d0, d1 = float(DECAY), TC + 4 * BAR, ST["outro"]
         for tr in tracks:
