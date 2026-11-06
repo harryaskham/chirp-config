@@ -222,7 +222,11 @@ def build():
         for e_ in P['tide']:
             pass
         return None
-    tide_roots = sorted((e_[0], e_[2], int(round(float(e_[1].split(',')[0][1:]) - 12 - KEY))) for e_ in P['tide'])
+    # (v20, whole song) THE SEQUENCER BACK IN THE KEY: since v14 put a low fifth at the bottom of every tide chord,
+    # this read the FIFTH as the chord's root - so the cell played on A over D (A E C# G: a C#, out of D Mixolydian)
+    # and on G over C (G D B F: an F against the chord's E, a semitone clash), for three minutes, pull to surge. It
+    # reads the real root again (the chord's second note): on D, D A F# C; on C, C G E D; on B-flat, B-flat F D C
+    tide_roots = sorted((e_[0], e_[2], int(round(float(e_[1].split(',')[1][1:]) - 12 - KEY))) for e_ in P['tide'])
     def tide_root(at):
         r = 0
         for a_, ln_, rt in tide_roots:
