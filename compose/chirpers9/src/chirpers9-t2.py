@@ -348,6 +348,13 @@ def build():
     SU = json.load(open(os.path.join(HERE, 'chirpers9-t2-sung.json')))
     OOH = json.load(open(os.path.join(HERE, 'chirpers9-t2-ooh.json')))
     oohn = [dict(OOH['tracks'][0]['notes'][0], at=round(b_ * 4.0, 4), len=7.3) for b_ in (76, 78)]
+    # (v23, section w1, bars 5-8: chirper-zero's seam tool found t2's head thin there - -27 / -30 dB alone in bars 7-8,
+    # a valley in the crossfade just before the bass and sub arrive at bar 9) THE HEAD BREATHES IN: the backing
+    # voices that close the break open the song - 'ooh' on D4 with the open fifth above (A4, in key: no third, so it
+    # sits inside t1's quartal D A C E), twice, the second louder - an inhale over four bars that the bass, the sub
+    # and the gather land on at bar 9. The ooh comes back at the end of the break (bars 77-80): the song's two
+    # thresholds share one breath
+    oohin = [dict(OOH['tracks'][0]['notes'][0], at=16.0, len=7.6, vel=0.6), dict(OOH['tracks'][0]['notes'][0], at=24.0, len=7.9, vel=0.88)]
     snotes = [dict(n_, at=round((SEC['break'] + 12) * 4.0 + n_['at'], 4)) for n_ in SU['tracks'][0]['notes']]
 
     # ---- lanes ----
@@ -595,6 +602,8 @@ def build():
             # in place of voice-legato pushed toward it
             {'name': 'ooh', 'patch': dict(OOH['tracks'][0]['patch'], extends='voice-backing synth.layers.0.harmony=[-2] synth.layers.0.harmony_key=D:dorian'),
              'notes': oohn, 'gain': '-17dB', 'pan': 0.0, 'sends': {'hall': '-8dB'}},
+            {'name': 'oohin', 'patch': dict(dict(OOH['tracks'][0]['patch'], extends='voice-backing synth.layers.0.harmony=[4] synth.layers.0.harmony_key=D:dorian'), play={'scoop': 1}),
+             'notes': oohin, 'gain': '-15dB', 'pan': 0.0, 'sends': {'hall': '-7dB'}},
             {'name': 'crestsung', 'patch': dict(dict(CS['tracks'][0]['patch'], extends='voice-near synth.layers.0.harmony=[2] synth.layers.0.harmony_key=D:mixolydian'), play={'glide_overshoot': 0.06}),
              'notes': csnotes, 'gain': '-9dB', 'pan': 0.0, 'sends': {'echo': '-18dB', 'hall': '-12dB'}},
             {'name': 'sung', 'patch': SU['tracks'][0]['patch'],
