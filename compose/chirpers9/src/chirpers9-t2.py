@@ -182,15 +182,21 @@ def build():
         bar = int(t // 4)
         s_, _ = sec_of(bar)
         at = t
+        # (v14, section w4: the build 'static') THE ORBIT DECAYS: as the build climbs, E1's upside-down cycle turns
+        # faster - five beats, then four (from bar 40), then three (from bar 44) - Kepler again, the nearer the quicker
+        # - until the crest catches it, turns it the right way up and gives it back its own five beats
+        L_ = 4.0 if 157.0 - 1e-6 <= t < 173.0 - 1e-6 else (3.0 if 173.0 - 1e-6 <= t < 191.0 - 1e-6 else 5.0)
         for k, (semi, ln) in enumerate(E1):
-            d = ln * 5.0 / tot1
+            d = ln * L_ / tot1
             if semi is not None and s_ != 'break':
                 inv = -semi
                 if s_ == 'crest':
                     inv = semi                 # at the crest, E1 rights itself: the first time it is heard the right way up
                 P['e1p'].append((at, m(KEY + 31 + inv), d * 0.8, (100 if k == 0 else 78) + (10 if s_ == 'crest' else 0)))
             at += d
-        t += 5.0
+        t += L_
+        if abs(t - 191.0) < 1e-6:
+            t = 192.0                     # the crest's downbeat
     # ---- in the drift E1 runs in RETROGRADE canon: the bell, augmented x2, against the pulse ----
     t = SEC['break'] * 4.0
     while t < fall0 + 32.0 - 1e-6:
@@ -244,12 +250,19 @@ def build():
     H3 = [0, 2, 3, 5, 7, 8, 10]
     t = H3_START * 4.0
     while t < fall0 - 1e-6:          # (v4) the hats stop where the fall begins, so the fall is a place of its own
-        for st in H3:
+        # (v14) and the hats' orbit decays with it: the three-beat cycle shrinks to two beats (bars 40-43) and one
+        # (44-47), the polymeter collapsing into the beat as the crest arrives; from the crest, three again
+        steps_, L_ = H3, 3.0
+        if 159.0 - 1e-6 <= t < 175.0 - 1e-6:
+            steps_, L_ = [0, 2, 3, 5, 6], 2.0
+        elif 175.0 - 1e-6 <= t < 192.0 - 1e-6:
+            steps_, L_ = [0, 2, 3], 1.0
+        for st in steps_:
             at = t + st * 0.25
             v = 92 if st == 0 else 58 + 10 * (st % 2)
             if sec_of(int(at // 4))[0] != 'break':
                 P['hat3'].append((at, 'h' if st != 7 else 'oh', 0.12, v))
-        t += 3.0
+        t += L_
 
     # ---- the pad (Kuramoto choir: a swarm that locks): chords every two bars from bar 4 ----
     for bar in range(0, NBARS, 2):
