@@ -328,8 +328,12 @@ def sung_notes(at_beat, takes, transpose=0):
     out = []
     t = at_beat
     for tk in takes:
-        for n in tk["notes"]:
-            d = {"at": round(t + n["at"], 4), "len": n["len"], "ph": n["ph"],
+        ns = tk["notes"]
+        for i, n in enumerate(ns):
+            ln = n["len"]
+            if i + 1 < len(ns) and ns[i + 1]["at"] - n["at"] - ln < 0.5:
+                ln = ns[i + 1]["at"] - n["at"]             # v7: legato inside a line - touching notes, one breath (join)
+            d = {"at": round(t + n["at"], 4), "len": round(ln, 4), "ph": n["ph"],
                  "pitch": f"m{midi_of(n['pitch']) + transpose}", "vel": n["vel"]}
             if n.get("expr_path"):
                 d["expr_path"] = n["expr_path"]
@@ -342,12 +346,36 @@ def midi_of(p):
     return int(float(p[1:])) if p.startswith("m") else midi(p)
 
 
-VOICE = {"about": "t4's voice: a warm, close, human singer - slightly larger tract, soft breath, covered vowels",
-         "play": {"mono": True, "glide": "40ms"},
+# v7 (ROUND TYPE: section, the crest 79-92): THE BREATH AND THE DUET. (wM's join/inhale are in the library patch
+# but not yet in the pinned engine, so the breath is made by hand.) A soft band-passed breath swells over the held
+# beat of bar 80 and stops at the downbeat - the singer breathing in before 'around the warm stone' - and again before
+# the band returns at 86. There a second, lighter singer joins the two retrograde lines ('I kept your far side / and
+# turned toward you') a diatonic third above in D Mixolydian: a duet, two people, not t8's choir. Lines are legato.
+VOICE = {"about": "t4's voice: a warm, close, human singer - slightly larger tract, soft breath, covered vowels; "
+                  "joined lines and a breath before each (v7)",
+         "play": {"mono": True, "glide": "70ms"},
          "synth": {"layers": [{"type": "voice", "tract": 1.02, "breath": 0.12, "formant_bw": 1.6, "ph_soft": 0.35,
                                "consonant_level": "-4dB", "pulse_rate": 5}],
                    "pitch": {"value": 0, "mod": [{"src": "expr.f0", "amount": 0.01}]},
                    "amp": {"a": "40ms", "d": "0s", "s": 1, "r": "250ms"}}}
+VOICE2 = {"about": "t4's second singer (v7): lighter and a little brighter, a third above in the duet",
+          "play": {"mono": True, "glide": "60ms"},
+          "synth": {"layers": [{"type": "voice", "tract": 0.95, "breath": 0.16, "formant_bw": 1.4, "ph_soft": 0.35,
+                                "consonant_level": "-6dB", "pulse_rate": 5}],
+                    "pitch": {"value": 0, "mod": [{"src": "expr.f0", "amount": 0.01}]},
+                    "amp": {"a": "50ms", "d": "0s", "s": 1, "r": "250ms"}}}
+BREATH_AIR = {"about": "t4's breath (v7): band-passed air swelling in, stopped at the phrase",
+          "synth": {"layers": [{"color": "pink"}],
+                    "filters": [{"kind": "bp", "cutoff": 1700, "q": 0.8}],
+                    "amp": {"a": "380ms", "d": "0s", "s": 1, "r": "25ms"}}}
+MIXO = [2, 4, 6, 7, 9, 11, 0]                       # D Mixolydian pitch classes, degree order
+
+
+def third_above(m):
+    pc = m % 12
+    k = MIXO.index(pc)
+    up = (MIXO[(k + 2) % 7] - pc) % 12
+    return m + up
 
 
 def main():
@@ -362,6 +390,11 @@ def main():
     write_combined()
     hold_breath()
     voice = sung_notes(b0(CREST), TAKES) + sung_notes(b0(101), TAKES[2:])
+    duet = [dict(n, pitch=f"m{third_above(midi_of(n['pitch']))}", vel=round(n["vel"] * 0.8, 3))
+            for n in sung_notes(b0(CREST) + 20, TAKES[2:]) + sung_notes(b0(101), TAKES[2:])]   # v7: lines 3-4 at
+                                                                  # 86-90 and their return in the afterglow (101-105)
+    breaths = [{"at": b0(CREST) - 0.85, "len": 0.85, "pitch": "C4", "vel": 0.55},
+               {"at": b0(CREST) + 20 - 0.75, "len": 0.75, "pitch": "C4", "vel": 0.45}]
     tempo = [{"at": "0b", "bpm": SEAM_IN}, {"at": f"{b0(17):g}b", "bpm": SEAM_IN},
              {"at": f"{b0(121):g}b", "bpm": SEAM_OUT, "ramp": True}]
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
@@ -389,11 +422,14 @@ def main():
             tr("kick", "brush-kit", gain="-8dB"),
             tr("snare", "brush-kit", gain="-4dB", pan=0.05, sends={"room": "-10dB"}),
             tr("hat", "brush-kit", gain="-2dB", pan=0.2),
-            tr("ride", "brush-kit", gain="-15dB", pan=-0.25),
+            tr("ride", "brush-kit", gain="-5dB", pan=-0.25),
             {"name": "voice", "patch": VOICE, "gain": "-8dB", "pan": 0.0,
              "sends": {"hall": "-9dB", "dly": "-16dB"}, "notes": voice},
             tr("e2", "harp", gain="-17dB", pan=0.4, sends={"hall": "-10dB", "dly": "-16dB"}),     # v2: listed last
             tr("e3", "vibes", gain="-16dB", pan=-0.35, sends={"hall": "-10dB"}),
+            {"name": "duet", "patch": VOICE2, "gain": "-12dB", "pan": 0.18, "sends": {"hall": "-8dB"}, "notes": duet},
+            {"name": "breath", "patch": BREATH_AIR, "gain": "2dB", "pan": 0.0, "sends": {"room": "-12dB"},
+             "notes": breaths},
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=0.8s mix=1 predelay=6ms", "hp cutoff=200"]},
                   "hall": {"fx": ["reverb kind=hall decay=3.2s mix=1 predelay=20ms", "hp cutoff=180"]},
