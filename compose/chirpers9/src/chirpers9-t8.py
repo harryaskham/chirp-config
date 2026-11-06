@@ -561,7 +561,7 @@ def horizon_lane(drop):
 # breathing in, and the jet lands on its first word) and S-shaped slides (glide_smooth). Lines legato inside a phrase;
 # E5's rests in 'round and round...' stay, as quick breaths.
 VOICE8 = {"about": "t8's choir lead: bright and open - a smaller tract, more air; joined phrases, a breath before each",
-          "play": {"mono": True, "glide": "90ms", "glide_smooth": True},
+          "play": {"mono": True, "glide": "90ms", "glide_smooth": True, "fall": 1.0, "glide_overshoot": 0.05},
           "synth": {"layers": [{"type": "voice", "tract": 0.92, "breath": 0.18, "ph_soft": 0.2, "pulse_rate": 5,
                                 "join": True, "inhale": 0.45, "inhale_time": "350ms"}],
                     "pitch": {"value": 0, "mod": [{"src": "expr.f0", "amount": 0.01}, {"src": "auto.rs", "amount": 1}]},
@@ -587,6 +587,12 @@ def choir_patch(singers, tract=0.92, third=False):
 SOLO8 = json.loads(json.dumps(VOICE8))
 SOLO8["about"] = "t8's last voice: the choir's lead alone, even vowels - the horizon's last line"
 SOLO8["synth"]["layers"][0]["even"] = 1.0
+# v23 (ROUND TYPE: whole song): THE VOICES LET GO. t8's voices span the song - the solo voice opens it (her question,
+# v21) and closes it (the last line), the choir sings the jet - so they take wM's singing gestures, in t8's own way
+# (t4's warm soloist scoops 1.2 and falls 2): the CHOIR enters together and clean (no scoop), swings a little past
+# its leaps (overshoot 0.05) and lets each phrase's end tail off (fall 1); the SOLO voice scoops lightly into her
+# phrases (0.8) and lets each one fall away three semitones - her last line at the horizon redshifts with the light.
+SOLO8["play"] = dict(SOLO8["play"], scoop=0.8, fall=3.0, glide_overshoot=0.06)
 SUB8 = {"about": "t8's sub: a sine under the lights' roots", "synth": {"layers": [{"wave": "sine"}],
         "amp": {"a": "15ms", "d": "0s", "s": 1, "r": "250ms"}}, "fx": ["drive drive=0.1"]}
 HSUB = {"about": "t8's horizon sub: the held D's floor, sinking with it",

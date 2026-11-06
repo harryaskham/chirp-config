@@ -310,7 +310,9 @@
     "play": {
      "mono": true,
      "glide": "90ms",
-     "glide_smooth": true
+     "glide_smooth": true,
+     "fall": 1.0,
+     "glide_overshoot": 0.05
     },
     "synth": {
      "layers": [
@@ -2252,7 +2254,9 @@
     "play": {
      "mono": true,
      "glide": "90ms",
-     "glide_smooth": true
+     "glide_smooth": true,
+     "fall": 1.0,
+     "glide_overshoot": 0.05
     },
     "synth": {
      "layers": [
@@ -4184,7 +4188,9 @@
     "play": {
      "mono": true,
      "glide": "90ms",
-     "glide_smooth": true
+     "glide_smooth": true,
+     "fall": 1.0,
+     "glide_overshoot": 0.05
     },
     "synth": {
      "layers": [
@@ -6340,7 +6346,10 @@
     "play": {
      "mono": true,
      "glide": "90ms",
-     "glide_smooth": true
+     "glide_smooth": true,
+     "fall": 3.0,
+     "glide_overshoot": 0.06,
+     "scoop": 0.8
     },
     "synth": {
      "layers": [
