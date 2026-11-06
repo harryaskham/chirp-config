@@ -554,6 +554,27 @@ def orbit_lane(name):
 ORBIT_FX = "gain gain=0dB+auto.orb*1"
 
 
+# v25 (ROUND TYPE: section, the first spotlights 17-40, ~38 s; rewritten): ORBITS YOU CAN HEAR. chirpers.py sections
+# had this window 'static': E1 on the chip, then E2's pluck, each fixed in its place, no drums until 65. Every element
+# of this stretto is an orbit, so now they orbit the listener: E1 swings once around the stereo field per E1 cycle (5
+# beats, phase-locked to its own cycle so every statement sweeps the same way), widening from 17 and settling back
+# to its place by 41; E2 orbits the other way, once per four of its seven-sixteenth cells (7 beats), from 29. Their
+# paths cross in the middle. Motion in space, not pitch (Harry: complexity in time and texture).
+def orbit_pan(entry, cycle, sign, full=4, end=41):
+    """A pan lane in [-1, 1]: one sweep per cycle, phased like the element, widening over `full` bars from entry and
+    gone by `end`."""
+    import math as _m
+    start, stop = b0(entry), b0(end)
+    pts, beat = [["0b", 0.0], [f"{start:g}b", 0.0]], start
+    while beat < stop - 1e-6:
+        env = min(1.0, (beat - start) / (full * BPB), (stop - beat) / (4 * BPB))
+        v = sign * env * _m.sin(2 * _m.pi * ((beat - JB) % cycle) / cycle)
+        pts.append([f"{beat:g}b", round(v, 3)])
+        beat += 0.5
+    pts.append([f"{stop:g}b", 0.0])
+    return pts
+
+
 # v17 (ROUND TYPE: whole song): HOME AT THE END. The horizon's held light sank 5 semitones on the redshift lane, so
 # the record's last chord was A major - the dominant, away from home (Harry: tone is home). Now the light redshifts a
 # full OCTAVE and lands on D again, an octave down: it falls all the way and arrives home - and the sub stays on D1
@@ -656,9 +677,11 @@ def main():
         "tracks": [
             tr("lights", "strings", gain="-14dB", sends={"hall": "-8dB"},
                fx=[{"type": "filter", "kind": "peak", "cutoff": 230, "q": 0.9, "gain": "-5dB"}]),
-            tr("e1", "nes-pulse-lead", gain="-10dB", pan=-0.25, sends={"dly": "-12dB"}),
-            tr("e2", "modal-glock", gain="-16dB", pan=0.35, sends={"dly": "-14dB"},
-               fx=[ORBIT_FX], auto={"orb": {"points": orbit_lane("e2")}}),
+            tr("e1", "nes-pulse-lead", gain="-10dB", pan={"value": -0.25, "mod": [{"src": "auto.pn", "amount": 0.6}]},
+               sends={"dly": "-12dB"}, auto={"pn": {"points": orbit_pan(ENTRY["E1"], 5.0, 1.0)}}),   # v25
+            tr("e2", "modal-glock", gain="-16dB", pan={"value": 0.35, "mod": [{"src": "auto.pn", "amount": 0.6}]},
+               sends={"dly": "-14dB"}, fx=[ORBIT_FX],
+               auto={"orb": {"points": orbit_lane("e2")}, "pn": {"points": orbit_pan(ENTRY["E2"], 7.0, -1.0)}}),   # v25
             tr("e3", "strings-synth", gain="-16dB", pan=-0.1, sends={"hall": "-8dB"}, fx=["lp cutoff=1800", ORBIT_FX],
                auto={"orb": {"points": orbit_lane("e3")}}),
             tr("e5", "marimba", gain="-13dB", pan=0.2, sends={"room": "-10dB"},
