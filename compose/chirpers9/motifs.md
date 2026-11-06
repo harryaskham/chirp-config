@@ -136,6 +136,12 @@ score: "D2/8. D2/8. D3/8 Eb2/8 Eb2/8. Bb1/8. C2/8. C2/8. G2/8 C3/4"   # segments
   is held at pitch as the residue whose third t4 lifts (F -> F#), with D4 common.
 
 ### E4, "four lights" (t4, chirper-three)
+**E4 v2 (6 Nov, after Harry's note - tone is home):** the four lights all sit in D MIXOLYDIAN, the scale E1 itself implies
+(its C is natural): `D9 | Cmaj9 | Am11 | G6/9` - `score: "D2,A2,F#3,C4,E4/5b C2,G2,E3,B3,D4/5b A1,E2,C3,G3,B3,D4/5b G1,D2,B2,E3,A3/5b"`.
+The bass walks down D C A G and comes home G -> D (plagal). Same time (one chord per E1 cycle, 20 beats). The v1 below
+borrowed Bb and F against the F# and put an E (#11) over the Bb; tracks that carry E4 may keep their own consonant reading
+(t5 Bbmaj9, t6 D Lydian), but v2 is the reference. In t4 v6 and from t8's next round.
+
 ```yaml
 # A progression: ONE CHORD PER E1 CYCLE (5 beats each, 20 beats in all), written at 108 bpm (the t3 -> t4 seam), home D.
 # In t4's 4/4 the changes fall on beats 0, 5, 10, 15 - across the bar lines - and meet the bar again every 5 bars.

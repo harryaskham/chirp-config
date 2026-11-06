@@ -91,10 +91,14 @@ def part(n):
 E1 = [("D4", 0.0, 0.5), ("A4", 0.5, 0.75), ("C5", 1.25, 0.25), ("G4", 1.5, 1.0), ("E4", 2.5, 1.0)]
 E1_CYCLE = 5.0
 # E4, four lights (this track): one chord per E1 cycle
+# v6 (ROUND TYPE: whole; Harry 6 Nov 00:30 - 'atonal, very tough listening... missing catchiness/hook'; album direction
+# 'tone is home'): E4 v2. The four lights were D9 | Bbmaj13#11 | Am11 | D9sus - a borrowed Bb and F against the F#, an E
+# (#11) over the Bb. Now all four sit in D MIXOLYDIAN, the scale E1 itself implies (its C is natural): D9 | Cmaj9 | Am11 |
+# G6/9 - the bass walks down D C A G and comes home G -> D (plagal), one chord per E1 cycle as before.
 E4 = [("D9", ("D2", "A2", "F#3", "C4", "E4")),
-      ("Bbmaj13#11", ("Bb1", "F2", "D3", "A3", "C4", "E4")),
+      ("Cmaj9", ("C2", "G2", "E3", "B3", "D4")),
       ("Am11", ("A1", "E2", "C3", "G3", "B3", "D4")),
-      ("D9sus", ("D2", "A2", "C3", "G3", "B3", "E4"))]
+      ("G6/9", ("G1", "D2", "B2", "E3", "A3"))]
 E4_CYCLE = 20.0
 # E3, the storm's progression (chirper-two, t3) - here only its first chord, the residue the relief lifts
 STORM_DM = ("D3", "A3", "E4", "F4")
@@ -132,7 +136,9 @@ def write_lights():
         if s == "fall":
             v = max(30, vel["fall"] - (bar - 121) * 2)
         k, name, notes = chord_at(beat)
-        part("lights").add(beat, E1_CYCLE, head(notes), v)
+        if s == "fall":
+            notes = E4[0][1]                      # v6: the fall holds the first light alone (the lens mirrored; no
+        part("lights").add(beat, E1_CYCLE, head(notes), v)   # second chord against t5's head)
         beat += E1_CYCLE
 
 
@@ -158,7 +164,8 @@ def write_seed():
         bar = int(beat // BPB) + 1
         s = sec_of(bar)
         k = min(5, 1 + cyc // 2)
-        if s in ("crest",):
+        if s in ("crest", "rise"):                 # v6: the hook rests through the rise, so the crest's sung E1
+                                                    # arrives as its return (and the build is texture: canon, harp, vibes)
             beat += E1_CYCLE; cyc += 1
             continue                                         # the voice carries it at the crest
         cell = E1[:k] if s in ("lens", "A") else E1
@@ -170,7 +177,7 @@ def write_seed():
         if s in ("B", "rise", "relief"):
             # a second voice in canon two beats behind, a fifth below (A G E D B): the cell answering itself
             for n, on, ln in E1:
-                m = midi(n) - 7
+                m = midi(n) - 5                       # v6: a fourth below (A E G D B, all in key; a fifth gave F)
                 part("canon").add(beat + 2 + on, ln, f"m{m}", 50)
         beat += E1_CYCLE
         cyc += 1
@@ -212,8 +219,9 @@ def write_bass():
 # Before the crest they turn against the 4/4 and the 5s; at 81 E1 (the voice), E2, E3 and E4 meet one downbeat: the
 # first full statement of the combined theme.
 E2_MAJ = [("D5", 0, 100), ("A5", 2, 76), ("F#5", 3, 88), ("C5", 5, 70)]          # sixteenth steps of 7
-E3_INV = [("D3", 0.0, 0.75), ("D3", 0.75, 0.75), ("D2", 1.5, 0.5), ("C#3", 2.0, 0.5), ("C#3", 2.5, 0.75),
-          ("F#3", 3.25, 0.75), ("E3", 4.0, 0.75), ("E3", 4.75, 0.75), ("A2", 5.5, 0.5), ("E2", 6.0, 1.0)]
+E3_INV = [("D3", 0.0, 0.75), ("D3", 0.75, 0.75), ("D2", 1.5, 0.5), ("F#3", 2.0, 0.5), ("F#3", 2.5, 0.75),
+          ("B2", 3.25, 0.75), ("E3", 4.0, 0.75), ("E3", 4.75, 0.75), ("A2", 5.5, 0.5), ("E2", 6.0, 1.0)]
+# v6: E3 v2 (chirper-two: D | Bb | C) inverted around D - D D D | F# F# B | E E A E (I - iii - ii, all in D; was C#)
 
 
 def phase_start(cycle, entry_bar, target=None):
@@ -280,7 +288,7 @@ EUCLID_7_16 = [i for i in range(16) if (i * 7) % 16 < 7]      # 7 hits spread ov
 # section boundaries (8) and cost recurrence: 85.07 / 85.85 alone, 87.79 / 85.05 with the shaker.
 def write_sub():
     # E4's roots an octave below the cellos' bass notes (D1, Bb1, A1, D1 - the deep end the warm mix lacked)
-    low = {"D9": "D1", "Bbmaj13#11": "Bb1", "Am11": "A1", "D9sus": "D1"}
+    low = {"D9": "D1", "Cmaj9": "C1", "Am11": "A1", "G6/9": "G1"}
     beat = b0(41)
     while beat < b0(AFTERGLOW[0]) - 0.01:
         k, name, notes = chord_at(beat)
@@ -371,16 +379,16 @@ def main():
                fx=["lp cutoff=2200"]),
             tr("lights", "cellos", gain="-12dB", sends={"hall": "-8dB"},
                fx=[{"type": "filter", "kind": "peak", "cutoff": 220, "q": 0.9, "gain": "-6dB"}]),
-            tr("felt", "piano-muted", gain="-16dB", pan=0.25, sends={"room": "-8dB"}),
-            tr("seed", "handpan", gain="-9dB", pan=-0.2, sends={"hall": "-10dB"}),
+            tr("felt", "piano-muted", gain="-6dB", pan=0.25, sends={"room": "-8dB"}),
+            tr("seed", "handpan", gain="-5dB", pan=-0.2, sends={"hall": "-10dB"}),
             tr("canon", "kalimba", gain="-17dB", pan=0.35, sends={"hall": "-8dB"}),
             tr("bass", "upright-bass", gain="-9dB",
                fx=[{"type": "filter", "kind": "peak", "cutoff": 250, "q": 1.0, "gain": "-4dB"}]),
-            tr("sub", SUB, gain="-14dB"),
+            tr("sub", SUB, gain="-19dB"),
             tr("air", "djembe", gain="4dB", pan=0.3, sends={"room": "-14dB"}),   # v4 palette: a hand shaker
             tr("kick", "brush-kit", gain="-8dB"),
-            tr("snare", "brush-kit", gain="-10dB", pan=0.05, sends={"room": "-10dB"}),
-            tr("hat", "brush-kit", gain="-16dB", pan=0.2),
+            tr("snare", "brush-kit", gain="-4dB", pan=0.05, sends={"room": "-10dB"}),
+            tr("hat", "brush-kit", gain="-2dB", pan=0.2),
             tr("ride", "brush-kit", gain="-15dB", pan=-0.25),
             {"name": "voice", "patch": VOICE, "gain": "-8dB", "pan": 0.0,
              "sends": {"hall": "-9dB", "dly": "-16dB"}, "notes": voice},
