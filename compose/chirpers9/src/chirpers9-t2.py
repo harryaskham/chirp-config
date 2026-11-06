@@ -82,6 +82,13 @@ def chord(bar):
         # (v8, w4) the build CLIMBS instead of circling: the bass rises D -> F -> G -> A under Dm9 | Fmaj9 | G6/9 | A7sus4,
         # and A7sus4 holds for the last six bars - the dominant the crest's D minor resolves
         return {36: (0, [3, 7, 10, 14]), 38: (3, [4, 7, 11, 14]), 40: (5, [4, 7, 9, 14])}.get(bar - bar % 2, (7, [5, 7, 10, 14]))
+    if 48 <= bar < 60:
+        # (v18, section w5) THE LIGHT COMES ON: when E1 rights itself at the crest, the mode turns too - D Dorian's F
+        # becomes F#, D Mixolydian, E1's own scale and the album's language - and the harmony turns bright and plain:
+        # Dadd9 | G6/9 | Cadd9 | Dadd9 | G6/9 | Cadd9 (I - IV - bVII), every chord holding E1's notes; at bar 61 the
+        # Am7 brings the F back and the break is Dorian again
+        return {48: (0, [4, 7, 14]), 50: (5, [4, 7, 9, 14]), 52: (-2, [4, 7, 14]),
+                54: (0, [4, 7, 14]), 56: (5, [4, 7, 9, 14])}.get(bar - bar % 2, (-2, [4, 7, 14]))
     if 72 <= bar < 80:
         # (v11, section w7: 'little new vs w6' - the break circled the crest's chords to its end) THE BREAK CLIMBS OUT:
         # its last eight bars rise C -> F -> G -> A under Cmaj9 | Fmaj9 | G6/9 | A7sus4 (all in D Dorian), the build's
@@ -469,6 +476,17 @@ def build():
         k_ = min(len(TH) - 1, bisect.bisect_left(SPAN_B, b_))
         _, r_ = omega_r(b_)
         return max(-0.95, min(0.95, scale * r_ * math.sin(TH[k_])))
+    # (v18) and in the crest's twelve bars every F the cell and its bass play becomes F# (the lit mode), and the
+    # bass's cell on G takes F# for its seventh
+    c0_, c1_ = CREST * 4.0, (CREST + 12) * 4.0
+    def lit_(p_):
+        base_, sep_, attr_ = p_.partition('^')
+        n_ = float(base_[1:])
+        if abs(n_ - round(n_)) < 1e-6 and int(round(n_)) % 12 == 5:
+            n_ += 1
+        return m(n_) + sep_ + attr_
+    for key_ in ('e2m', 'e2body', 'dust', 'bass'):
+        P[key_] = [((a_, lit_(p_), d_, v_) if c0_ - 1e-6 <= a_ < c1_ - 1e-6 else (a_, p_, d_, v_)) for a_, p_, d_, v_ in P[key_]]
     for key_, sc_ in (('e2m', 1.0), ('e2body', 0.5), ('dust', 1.0)):
         P[key_] = [(a_, f"{p_}^px={spiral(a_, sc_):.2f}", d_, v_) for a_, p_, d_, v_ in P[key_]]
     PXF = {'type': 'pan', 'pan': {'value': 0, 'mod': [{'src': 'expr.px', 'amount': 1}]}}
