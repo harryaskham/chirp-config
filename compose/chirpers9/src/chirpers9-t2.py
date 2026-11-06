@@ -346,6 +346,17 @@ def build():
     # voice-legato made close and young (a smaller tract, more breath and a little ring: wM's approximation of the
     # coming voice-near). The voice accretes inside the track as across the album: whispered twice, then sung
     SU = json.load(open(os.path.join(HERE, 'chirpers9-t2-sung.json')))
+    # (v27, section w6: the crest's end and the break's first half; the line WHISPERED twice there, on a speech
+    # voice) THE CHORUS ECHOES: the whispers go. In their place a far little choir (voice-backing, three singers,
+    # breathing together - wM's 'together' - in a big hall) sings the crest's line back as an echo: at bar 61, just
+    # after the chorus, softly; at bar 69, deep in the break, slower (x1.5) and further away - the chorus going out
+    # like light from the crest. Then at bar 77 the near voice finds it again, alone. Chorus -> echo -> found: every
+    # statement of the line is now SUNG (Harry: the sung line at the crest is the moment), none spoken
+    echonotes = []
+    for b_, sx_, vm_ in ((CREST + 12, 1.0, 0.8), (SEC['break'] + 4, 1.5, 0.62)):
+        for n_ in SU['tracks'][0]['notes']:
+            echonotes.append(dict(n_, at=round(b_ * 4.0 + (n_['at'] - 0.25) * sx_, 4), len=round(n_['len'] * sx_, 4),
+                                  vel=round(n_.get('vel', 0.8) * vm_, 3)))
     OOH = json.load(open(os.path.join(HERE, 'chirpers9-t2-ooh.json')))
     oohn = [dict(OOH['tracks'][0]['notes'][0], at=round(b_ * 4.0, 4), len=7.3) for b_ in (76, 78)]
     # (v23, section w1, bars 5-8: chirper-zero's seam tool found t2's head thin there - -27 / -30 dB alone in bars 7-8,
@@ -633,8 +644,10 @@ def build():
             # sings it the right way up)
             tr('e1p', 'wurli', '-6dB', pan=0.2, sends={'echo': '-14dB', 'hall': '-14dB'}),
             tr('e1c', 'risset-bell', '-14dB', pan=-0.35, sends={'hall': '-8dB'}),
-            dict({k: v for k, v in vtr.items() if k != 'notes'}, name='voice', notes=vnotes, gain='-8dB', pan=0.05,
-                 sends={'echo': '-14dB', 'hall': '-16dB'}),
+            # (v27) the whisper's track is now the far choir's echo, 'farchoir' (below)
+            {'name': 'farchoir', 'patch': dict(SU['tracks'][0]['patch'], extends='voice-backing synth.layers.0.together=true synth.layers.0.breath.value=0.55 synth.lfo.vib.per_note=true',
+                                           play={'scoop': 1, 'fall': 2.5}),
+             'notes': echonotes, 'gain': '-10dB', 'pan': -0.1, 'sends': {'echo': '-12dB', 'hall': '-6dB'}},
             {'name': 'choir', 'patch': {'extends': 'voice-backing synth.layers.0.harmony=[7]',
                                         'synth': CH['tracks'][0]['patch'].get('synth', {})},
              'notes': chnotes, 'gain': '-15dB', 'pan': 0.0, 'sends': {'hall': '-8dB'}},
