@@ -44,6 +44,7 @@ E5 = [(0, 69), (1, 68), (2, 69), (4, 76), (6, 69), (7, 68), (8, 69), (10, 74)]  
 TONAL = os.environ.get("C9T5_TONAL", "1")   # WHOLE ROUND (Harry, 00:30: 'quite ugly chaos ... atonal, very tough listening; get musicality back and play with time and texture'): TONE IS HOME - E5 v2 drops its G# for G (A G A . E . A G A . D ., a hummable ostinato in D, the time idea kept whole), E4's second light becomes Bbmaj9 (no E against the Bb), and the GENDYN air (a noise cloud, buried anyway) is cut. D mixolydian with a borrowed bVI: every clash gone, the complexity left in the time (the 3-beat orbit, E2's seven, E1's stretto, the converging cycles)
 SEAMHEAD = os.environ.get("C9T5_SEAMHEAD", "hold,assemble")   # SECTION (w1, 0:00-0:34, the head = the t4 -> t5 overlap; flagged static; chirper-three 01:20: t4's fall holds D9 with F#, so my head's move to Bbmaj9 at bar 9 rubbed F against F#): THE ORBIT ASSEMBLES AS THE SEED DISASSEMBLES - the head's light holds D9 for all 16 bars ('hold'), and ('assemble') E5 builds itself hit by hit, one more every two cycles (A, then E, D, the A's, the G neighbours last), while t4's handpan E1 loses one note every two cycles down to its lone D: the two elements cross in the overlap, and E5 is whole as A begins
 ORBITLEAD = os.environ.get("C9T5_ORBITLEAD", "128:192:low")   # SECTION (w3, 1:08-1:42, A's second half; presence: the quick bass loudest at -3 dB, E5 - t5's hook - 12 dB under the mix and followable 12% of the time): THE ORBIT SINGS - a Rhodes (new to the album) doubles E5 v2, swelling in over four bars and out again before the build; the orbit itself comes forward and the quick bass steps back, so for half a minute t5's hook is the tune you hear. Value 'A:B' or 'A:B:low' (the Rhodes an octave down)
+CRESTE1 = os.environ.get("C9T5_CRESTE1", "rhodes")   # SECTION (w5, 2:15-2:48, the build's end and the crest; presence at the crest: the voice and the 808 loudest, E1's two voices 16-17 dB under and followable a fifth of the time): E1 SINGS ON THE CREST - for the first four cycles after the meeting the seed is heard plainly: 'rhodes' adds the Rhodes (the one that sang E5 in A) on E1 in octaves with the seed voices, 'lift' brings the two seed voices forward instead (x1.4)
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -172,6 +173,9 @@ def seed():
         k = (c - ST["outro"]) / (TOTAL - ST["outro"])
         for o, ln, p in zip(E1_OFF, E1_LEN, E1_MIDI):
             a.append(note(c + o / 4, p + 12, ln / 4, 0.6 - 0.35 * k))
+    if CRESTE1 == "lift":
+        a = [dict(n, vel=round(min(1.0, n["vel"] * 1.4), 3)) if TC <= n["at"] < TC + 4 * E1_CYC_T5 else n for n in a]
+        b = [dict(n, vel=round(min(1.0, n["vel"] * 1.4), 3)) if TC <= n["at"] < TC + 4 * E1_CYC_T5 else n for n in b]
     if CRESTDEEP:
         a, b = gapped(a), gapped(b)
     return [
@@ -301,6 +305,20 @@ def orbitlead():
     return {"name": "orbit-lead", "patch": "rhodes", "gain": "-12dB", "pan": -0.15, "sends": {"room": "-9dB"}, "notes": ns}
 
 
+E1_CYC_T5 = 5.0
+
+
+def creste1():
+    ns = []
+    for k in range(4):
+        c = TC + k * E1_CYC_T5
+        for o, ln, p in zip(E1_OFF, E1_LEN, E1_MIDI):
+            v = 0.9 if k == 0 else 0.8 - 0.08 * k
+            ns.append(note(c + o, p, ln * 1.2, v))
+            ns.append(note(c + o, p - 12, ln * 1.2, v * 0.7))
+    return {"name": "crest-e1", "patch": "rhodes", "gain": "-12dB", "pan": 0.1, "sends": {"room": "-9dB"}, "notes": ns}
+
+
 def air():
     if TONALAIR == "shimmer":
         return {"name": "air", "patch": "drone", "gain": "-22dB", "pan": 0.0,
@@ -347,6 +365,8 @@ def song():
         tracks.append(spin())
     if ORBITLEAD:
         tracks.append(orbitlead())
+    if CRESTE1 == "rhodes":
+        tracks.append(creste1())
     if CRESTGAP and CRESTHIT:
         tracks.append({"name": "crest", "patch": "modal-crash", "gain": f"{CRESTHIT}dB", "pan": 0.0,
                        "sends": {"room": "-6dB"}, "notes": [note(TC, "C4", 8, 0.9)]})
