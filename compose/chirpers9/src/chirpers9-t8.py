@@ -27,6 +27,7 @@ SECTIONS = [("lens", 1, 16), ("stretto", 17, 96), ("jet", 97, 140), ("horizon", 
 JET = 97
 JB = (JET - 1) * BPB          # beat 384: every cycle lands here
 HORIZON = 141
+SINK = 161                    # v5: the light sinks only once the echoes are gone (light and 'ah' sink together)
 BREAK = (121, 128)            # the breakdown inside the jet: the lens returns (lights and choir), then the jet again
 
 
@@ -61,7 +62,7 @@ def name_of(m):
     return f"m{m}"
 
 
-MAJOR = {5: 6, 3: 4}          # after the jet: F -> F#, Eb -> E (pitch classes)
+MAJOR = {5: 6}                # after the jet: F -> F# (v5: no Eb left to lift - the stretto is consonant D minor)
 
 
 def brighten(m):
@@ -103,10 +104,18 @@ def part(n):
 # ---------------------------------------------------------------- the elements (motifs.md)
 E1 = [("D4", 0.0, 0.5), ("A4", 0.5, 0.75), ("C5", 1.25, 0.25), ("G4", 1.5, 1.0), ("E4", 2.5, 1.0)]     # 5 beats
 E2 = [("D4", 0, 112), ("A4", 2, 84), ("F4", 3, 98), ("C4", 5, 76)]                                       # 7 sixteenths
-E3 = [(("D3", "A3", "E4", "F4"), 2.0), (("Eb3", "Bb3", "D4", "G4", "A4"), 2.0), (("C3", "Bb3", "D4", "F4"), 3.0)]
+# v5 (Harry 00:30 'atonal, very tough listening'; album direction 'tone is home'): consonant forms of every element,
+# their TIME kept. E3 is chirper-two's E3 v2 (D | Bb | C, i - VI - VII, same 2+2+3); E5's G# is G (the orbit circles A
+# by its lower neighbour, no tritone); E6's tide is Dm9 against Bbmaj9 (i and VI share D F A: the split still moves);
+# E7's column is open fifths and fourths (D A E A D E A) in the stretto and lands at the jet as D(add9) - the F#
+# arriving there is E8's third; E4 is minor (Dm9 Bbmaj7 Am7 Dsus2) until the jet and cleanly major after it.
+E3 = [(("D3", "A3", "E4", "F4"), 2.0), (("Bb2", "F3", "A3", "D4"), 2.0), (("C3", "G3", "C4", "E4"), 3.0)]
 E4 = [("D2", "A2", "F#3", "C4", "E4"), ("Bb1", "F2", "D3", "A3", "C4", "E4"), ("A1", "E2", "C3", "G3", "B3", "D4"),
       ("D2", "A2", "C3", "G3", "B3", "E4")]
-E5 = [("A4", 0), ("G#4", 1), ("A4", 2), ("E5", 4), ("A4", 6), ("G#4", 7), ("A4", 8), ("D5", 10)]          # 3 beats
+E5 = [("A4", 0), ("G4", 1), ("A4", 2), ("E5", 4), ("A4", 6), ("G4", 7), ("A4", 8), ("D5", 10)]            # 3 beats
+E4m = [("D2", "A2", "F3", "C4", "E4"), ("Bb1", "F2", "D3", "A3"), ("A1", "E2", "C3", "G3"), ("D2", "A2", "D3", "E3", "A3")]
+E4M = [("D2", "A2", "F#3", "C4", "E4"), ("Bb1", "F2", "D3", "A3", "C4"), ("A1", "E2", "C3", "G3", "D4"),
+       ("D2", "A2", "D3", "E3", "A3")]
 CYCLE = {"E1": 5.0, "E2": 1.75, "E3": 7.0, "E4": 20.0, "E5": 3.0}
 ENTRY = {"E4": 1, "E1": 17, "E2": 29, "E3": 41, "E5": 53}          # the stretto's entries (bars)
 
@@ -133,9 +142,10 @@ def chord(notes, bright=False):
 #   2 2 2 1 1 1 2 sixteenths (11, prime), fired on a brass synth from 81, phased so a column STARTS on beat 384 - so
 #   the jet IS E7: at bar 97 the column fires and HOLDS (supersaw), the whole collection as one chord, and the choir
 #   lands E8 over it. After the jet the column is re-barred into the lock (11 sixteenths + 5 rest) every 4 bars.
-E6_D = ("D3", "F#3", "A3", "C#4", "E4", "G#4")
-E6_EB = ("Eb3", "G3", "Bb3", "D4", "A4")
-E7 = [("D3", 0, 2), ("A3", 2, 2), ("E4", 4, 2), ("B4", 6, 1), ("F#5", 7, 1), ("C#6", 8, 1), ("G#6", 9, 2)]
+E6_D = ("D3", "F3", "A3", "C4", "E4")                 # Dm9 (v5; was Dmaj9#11)
+E6_EB = ("Bb2", "D3", "F3", "A3", "C4")               # Bbmaj9 (v5; was Ebmaj7#11 - the name kept for the tide's code)
+E7 = [("D3", 0, 2), ("A3", 2, 2), ("E4", 4, 2), ("A4", 6, 1), ("D5", 7, 1), ("E5", 8, 1), ("A5", 9, 2)]
+E7_JET = [("D3", 0, 2), ("A3", 2, 2), ("E4", 4, 2), ("F#4", 6, 1), ("A4", 7, 1), ("D5", 8, 1), ("F#5", 9, 2)]
 E7_CYCLE = 2.75
 JET_NOTES = []
 TIDE_WOBBLE = [0, 1, 0, -1, 1, 0, -1, 0, 1, 0, -0.5, 0.5, 0, 0.5, 0, 0]
@@ -165,7 +175,7 @@ def write_tide_and_jet():
         beat += c
     # the jet: the column fired at bar 97 and held - and again at the jet's return after the breakdown
     for bar, ln, v in ((JET, 16.0, 0.82), (BREAK[1] + 1, 8.0, 0.72)):
-        for nm, s, _ in E7:                        # explicit notes: the column's voices overlap and HOLD together
+        for nm, s, _ in E7_JET:                    # explicit notes: the column's voices overlap and HOLD together
             JET_NOTES.append({"at": b0(bar) + s * 0.25, "len": ln - s * 0.25, "pitch": nm, "vel": v})
     for bar in range(JET + 4, HORIZON, 4):
         if in_break(bar) or bar == BREAK[1] + 1:
@@ -200,7 +210,7 @@ def write_stretto():
     while beat < JB - 0.01:
         bar = int(beat // BPB) + 1
         v = 48 + min(30, bar // 3)
-        part("lights").add(beat, 5.0, chord(E4[k % 4]), v)
+        part("lights").add(beat, 5.0, chord(E4m[k % 4]), v)
         beat += 5.0; k += 1
     # E1 on the chip pulse
     beat = phase_start("E1", ENTRY["E1"])
@@ -250,15 +260,16 @@ def write_jet():
     for bar in range(JET, HORIZON):
         t = b0(bar)
         k = (bar - JET) % 4
-        part("lights").add(t, 4.0, chord(E4[k], bright=True), 64 if in_break(bar) else 90)
-        part("sub").add(t, 3.75, name_of(midi(E4[k][0]) - 12 if midi(E4[k][0]) >= 33 else midi(E4[k][0])), 70 if in_break(bar) else 92)
+        part("lights").add(t, 4.0, chord(E4M[k]), 64 if in_break(bar) else 90)
+        part("sub").add(t, 3.75, name_of(midi(E4M[k][0]) - 12 if midi(E4M[k][0]) >= 33 else midi(E4M[k][0])), 70 if in_break(bar) else 92)
         if in_break(bar):
             continue                                       # the breakdown: lights, sub and the choir only
-        part("bass").add(t, 1.5, name_of(midi(E4[k][0]) + 12), 104)
-        part("bass").add(t + 2.5, 1.0, name_of(midi(E4[k][1]) + 12), 88)
+        part("bass").add(t, 1.5, name_of(midi(E4M[k][0]) + 12), 104)
+        part("bass").add(t + 2.5, 1.0, name_of(midi(E4M[k][1]) + 12), 88)
         # E1 re-barred into the bar (x 0.8), bright, on the pulse lead - except where the choir sings
-        for n, on, ln in E1:
-            part("e1").add(t + on * 0.8, ln * 0.8, name_of(brighten(midi(n)) + 12), 62)
+        if (bar - JET) % 2 == 0:                  # v5 THE HOOK: E1 stated plainly, augmented to two bars, every two
+            for n, on, ln in E1:                  # bars, loud - the album's tune heard clearly and often after the jet
+                part("hook").add(t + on * 1.6, ln * 1.6, name_of(midi(n) + 12), 100)
         # the groove: half time at 150 (75 felt)
         part("kick").add(t, 0.5, "k", 112)
         part("kick").add(t + 2.5, 0.5, "k", 92)
@@ -279,15 +290,20 @@ def write_jet():
     while beat < b0(HORIZON) - 0.01:
         if not in_break(int(beat // BPB) + 1):
             for n, step, v in E2:
-                part("e2").add(beat + step * 0.25, 0.25, name_of(brighten(midi(n)) + 12), v - 24)
+                at = beat + step * 0.25
+                on_bb = (int(at // BPB) + 1 - JET) % 4 == 1          # v5: over the lights' Bbmaj9 keep F natural
+                m = midi(n) if on_bb else brighten(midi(n))
+                part("e2").add(at, 0.25, name_of(m + 12), v - 24)
         beat += 1.75
 
 
 def sung(at, take, transpose=0, vel_scale=1.0):
     out = []
     for n in take["notes"]:
+        pm = int(float(n['pitch'][1:]))
+        pm -= 1 if pm % 12 == 8 else 0                          # v5: the choir's G# is G, as in E5
         d = {"at": round(at + n["at"], 4), "len": n["len"], "ph": n["ph"],
-             "pitch": f"m{int(float(n['pitch'][1:])) + transpose}", "vel": round(n["vel"] * vel_scale, 3)}
+             "pitch": f"m{pm + transpose}", "vel": round(n["vel"] * vel_scale, 3)}
         if n.get("expr_path"):
             d["expr_path"] = n["expr_path"]
         out.append(d)
@@ -325,12 +341,12 @@ def write_horizon():
     a, z = HORIZON, BARS
     part("hold").add(b0(a), b0(z + 1) - b0(a) - 2, "D3,A3,D4,F#4", 80)
     part("hsub").add(b0(a), b0(z + 1) - b0(a) - 2, "D1", 84)
-    echo("e7", [(nm, s * 0.25, ln * 0.25) for nm, s, ln in E7], a, 2, -1, 84)
-    echo("e5", [(n, s * 0.25, 0.5) for n, s in E5], a + 3, 2, -2, 78)
-    echo("e1", E1, a + 6, 3, -3, 72)
-    echo("e2", [(n, st * 0.25, 0.25) for n, st, v in E2], a + 11, 4, -4, 66)
+    echo("e7", [(nm, s * 0.25, ln * 0.25) for nm, s, ln in E7_JET], a, 2, 0, 84)     # v5: at pitch - slower,
+    echo("e5", [(n, s * 0.25, 0.5) for n, s in E5], a + 3, 2, 0, 78)                   # quieter, darker; the
+    echo("e1", E1, a + 6, 3, 0, 72)                                                    # pitch sink waits for
+    echo("e2", [(n, st * 0.25, 0.25) for n, st, v in E2], a + 11, 4, 0, 66)            # the light alone (161)
     for i, k in enumerate((0, 1)):
-        notes = [name_of(brighten(midi(n)) - 5) for n in E4[k]]
+        notes = [name_of(midi(n)) for n in E4M[k]]
         part("lights").add(b0(a + 14) + i * 10, 10.0, ",".join(notes), 60 - i * 6)
 
 
@@ -349,7 +365,7 @@ def horizon_line():
 
 def horizon_lane(drop):
     """Redshift: 0 until the horizon, then sinking to `drop` semitones by the end."""
-    return [["0b", 0.0], [f"{b0(HORIZON):g}b", 0.0], [f"{b0(BARS + 1):g}b", drop]]
+    return [["0b", 0.0], [f"{b0(SINK):g}b", 0.0], [f"{b0(BARS + 1):g}b", drop]]
 
 
 VOICE8 = {"about": "t8's choir lead: bright and open - a smaller tract, more air, quick vibrato",
@@ -406,7 +422,7 @@ def main():
             tr("kick", "machine-kit", gain="-8dB"),
             tr("snare", "machine-kit", gain="0dB", sends={"room": "-10dB"}),
             tr("hat", "nes-noise-hat", gain="-12dB", pan=0.25),
-            tr("crash", "machine-kit", gain="-10dB", pan=-0.2),
+            tr("crash", "machine-kit", gain="2dB", pan=-0.2),
             tr("riser", "fx-revcym", gain="-12dB"),
             tr("impact", "fx-impact", gain="-10dB"),
             {"name": "choir", "patch": VOICE8, "gain": "-7dB", "sends": {"hall": "-7dB", "dly": "-16dB"},
@@ -420,6 +436,7 @@ def main():
             tr("e6", "organ", gain="-24dB", pan=-0.3, sends={"hall": "-8dB"}, fx=["lp cutoff=3500"]),
             tr("e7", "brass-synth", gain="-11dB", pan=0.15, sends={"dly": "-12dB", "hall": "-10dB"}),
             {"name": "jet", "patch": "supersaw", "gain": "-8dB", "sends": {"hall": "-6dB"}, "notes": JET_NOTES},
+            tr("hook", "nes-pulse-lead", gain="-4dB", pan=0.1, sends={"dly": "-14dB", "hall": "-12dB"}),   # v5
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=0.8s mix=1 predelay=6ms", "hp cutoff=200"]},
                   "hall": {"fx": ["reverb kind=hall decay=4s mix=1 predelay=24ms", "hp cutoff=180"]},
