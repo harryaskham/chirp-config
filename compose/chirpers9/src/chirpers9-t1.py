@@ -77,6 +77,7 @@ HATG = os.environ.get("C9T1_HATG", "-8")   # WHOLE ROUND: THE PULSE YOU CAN HEAR
 LANDING = os.environ.get("C9T1_LANDING", "2")   # SECTION w2 (0:36-1:13, A's arrival: flagged 'level jump; new groove', never focused): THE HOOK FIRST - at A the whistle's plain E1 used to land inside the band's arrival (the bass, the shekere and the warm fifth all came in on the same beat). Now the hook is stated over the scatter and the pedal alone, and the band drops in after it (value: bars), so A arrives on the seed's tune, not on a level jump
 LASTHOOK = os.environ.get("C9T1_LASTHOOK", "300,320x2")   # SECTION w7 (3:27-3:59, the lock's end into the fall: flagged static): THE HOOK, ONCE MORE - after the crest the whistle (the hook's instrument) never came back, and the lock just repeated. Now it states E1 plainly once more as the lock exhales ('beat'), and with 'beat,beatx2' it carries on into the fall, playing E1 at half speed with the scattered voices, so the hook itself is handed into the t1 -> t2 overlap
 FIRSTBREATH = os.environ.get("C9T1_FIRSTBREATH", "0.35")   # SECTION w1 (0:00-0:36, the album's first seconds: flagged static): THE ALBUM BREATHES FIRST - the voice accretes from a breath in t1 to full lines in t8, but t1's breath only came at the crest. Now the album opens on it: before the whistle's first E1, the far choir breathes a soft 'haa' on D (mostly air at this velocity), and the seed answers it (value: velocity)
+BREATHALL = os.environ.get("C9T1_BREATHALL", "thresholds")   # WHOLE ROUND (together pinned, 8083e37e): THE CHOIR BREATHES AS ONE - the far little choir's breathy recipe only ever reached its lead singer (wM's 'together' bug), so the 'ah' was one breath and two plain voices; now all three singers breathe together, and the held notes bloom with per-note vibrato ('1'). With 'thresholds' the choir also breathes at each threshold the seed crosses: just before A and just before the build, so the album's first voice marks every stage of the seed forming
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -385,7 +386,12 @@ def breath():
               {"at": TC - 2.0, "len": 1.0, "ph": "AA1", "pitch": "D4", "vel": 0.7},
               {"at": TC - 1.0, "len": 2.5, "ph": "AA1", "pitch": "A4", "vel": 0.75},
               {"at": ST["outro"] + 8 * BAR - 1.0, "len": 3.0, "ph": "AA1", "pitch": "D4", "vel": 0.45}]
-        return {"name": "breath", "patch": {"extends": f"{BREATHP or 'voice-legato'} {BREATHX}"} if BREATHX else (BREATHP or "voice-legato"), "gain": "-10dB" if BREATH == "sung" else f"{BREATH}dB", "pan": -0.15,
+        if "thresholds" in BREATHALL:
+            ns += [{"at": ST["A"] - 2.5, "len": 2.0, "ph": "HH AA1", "pitch": "D4", "vel": 0.3},
+                   {"at": ST["build"] - 2.5, "len": 2.0, "ph": "HH AA1", "pitch": "A4", "vel": 0.35}]
+            ns.sort(key=lambda n: n["at"])
+        bx = BREATHX + (" synth.layers.0.together=true synth.lfo.vib.per_note=true" if BREATHALL else "")
+        return {"name": "breath", "patch": {"extends": f"{BREATHP or 'voice-legato'} {bx}"} if bx else (BREATHP or "voice-legato"), "gain": "-10dB" if BREATH == "sung" else f"{BREATH}dB", "pan": -0.15,
                 "fx": ["hp cutoff=150"], "sends": {"space": "-3dB"}, "notes": ns}
     src = json.load(open(os.path.join(HERE, "chirpers9-t1-ah.json")))["tracks"][0]["notes"]
     ns = []
