@@ -65,6 +65,7 @@ BREATH = os.environ.get("C9T1_BREATH", "-16")   # WHOLE ROUND (the voice is pinn
 BREATHP = os.environ.get("C9T1_BREATHP", "voice-backing")   # PALETTE (voice batch 2 pinned): the breath's voice - voice-legato becomes 'voice-backing' (soft, breathy, three singers under the band: the seed's first breath as a far little choir) or 'voice-near' (close, young, breathy)
 SEEDEP = os.environ.get("C9T1_SEEDEP", "music-box")   # PALETTE: the seed's E (its loudest scattered voice, on the 5-beat cycle) leaves the Game Boy wave pad, which also plays t1's pad, for a plucked voice of its own: 'koto' (bright, twangy, in tune) or 'music-box'; value 'patch' or 'patch@gaindB'
 DECAY = os.environ.get("C9T1_DECAY", "0.3")   # WHOLE ROUND: THE ARC SETTLES - t1 is the calm one with one small crest, but after the crest it held its peak level through the whole lock and only fell at the outro (the body before the t1 -> t2 seam sat ~8 dB over t2's). Now, from four bars after the crest, everything eases down by DECAY (a velocity fraction) across the lock, and the fall carries on from there: the seed forms, rings, and settles into t2
+DEEP = os.environ.get("C9T1_DEEP", "partial@-18")   # WHOLE ROUND: THE DEEP - t1 had no sub: its lowest band (38 Hz) sat 10 dB under the album's and 30 dB under t2's after the crossfade. A D pedal at D1 (37 Hz, the seed's home) now sounds under everything from A to the end, a pure sine swelling with the arc (growing into the crest, settling with the lock); value 'patch' or 'patch@gaindB'
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -184,6 +185,20 @@ def firstlight():
         out.append({"name": "pedal", "patch": CANTUS or "cello", "gain": "-14dB", "pan": -0.05, "sends": {"space": "-6dB"},
                     "notes": [note(16.0, "D2", 24.0, 0.3), note(40.0, "D2", 24.0, 0.45)]})
     return out
+
+
+def deep():
+    dp, _, dg = DEEP.partition("@")
+    ns, t = [], ST["A"]
+    while t < TOTAL - 2:
+        ln = min(8 * BAR, TOTAL - 2 - t)
+        if t < TC:
+            v = 0.45 + 0.4 * (t - ST["A"]) / (TC - ST["A"])
+        else:
+            v = 0.85 - 0.35 * (t - TC) / (TOTAL - TC)
+        ns.append(note(t, "D1", ln, v))
+        t += 8 * BAR
+    return {"name": "deep", "patch": dp, "gain": f"{dg or -14}dB", "pan": 0.0, "notes": ns}
 
 
 def cantus():
@@ -341,7 +356,7 @@ def breath():
 
 
 def song():
-    tracks = [*fragments(), *unison(), *([hook()] if HOOK else []), *(firstlight() if FIRSTLIGHT else []), *([cantus()] if CANTUS else []), pad(), warmth(), bass(), hats(), kick(), air(), breath()]
+    tracks = [*fragments(), *unison(), *([deep()] if DEEP else []), *([hook()] if HOOK else []), *(firstlight() if FIRSTLIGHT else []), *([cantus()] if CANTUS else []), pad(), warmth(), bass(), hats(), kick(), air(), breath()]
     if DECAY:
         d, d0, d1 = float(DECAY), TC + 4 * BAR, ST["outro"]
         for tr in tracks:
