@@ -15,6 +15,7 @@ coming home on D. The first full statement of the combined theme. The last 16 ba
 E2 and E3 are carried as they are posted in compose/chirpers9/motifs.md (E3 here first as the storm's residue).
 Writes songs/chirpers9-t4.yaml (or T4_OUT). Original music.
 """
+import math
 import json
 import os
 
@@ -451,8 +452,9 @@ def sung_notes(at_beat, takes, transpose=0):
             ln = n["len"]
             if i + 1 < len(ns) and ns[i + 1]["at"] - n["at"] - ln < 0.5:
                 ln = ns[i + 1]["at"] - n["at"]             # v7: legato inside a line - touching notes, one breath (join)
+            swell = 0.86 + 0.14 * math.sin(math.pi * i / max(1, len(ns) - 1))      # v18: the phrase breathes
             d = {"at": round(t + n["at"], 4), "len": round(ln, 4), "ph": n["ph"],
-                 "pitch": f"m{midi_of(n['pitch']) + transpose}", "vel": n["vel"]}
+                 "pitch": f"m{midi_of(n['pitch']) + transpose}", "vel": round(n["vel"] * swell, 3)}
             if n.get("expr_path"):
                 d["expr_path"] = n["expr_path"]
             out.append(d)
@@ -475,10 +477,20 @@ def midi_of(p):
 # curves, entering late as a singer's does) and S-shaped slides (glide_smooth). The lead is warm and slow-vibrato'd;
 # the duet a third above is lighter, breathes less and wavers quicker. The hand-made noise breath (v7) stays as the
 # band's breath around the singer's own (retiring it cost the crest's edges: structure on seed 0 83.9 -> 79.9).
+# v18 (ROUND TYPE: whole song): THE BREATHING SINGER. The voice now runs through the whole song (hums in B, lines at
+# the crest, hums in the relief, the kept notes of the fall), so making her more human moves every section: her BREATH
+# follows her loudness (my own patch had replaced the voice's velocity-linked breath and effort with flat values) -
+# soft hums come out airy and close, full sung lines toned and pressed - and every sung line BREATHES as a phrase, a
+# gentle swell into its middle easing off at its end, where the takes' notes were flat. The duet likewise.
+def BREATHES(base):
+    return {"value": base, "mod": [{"src": "vel", "amount": -0.34}]}
+
+
+EFFORT = {"value": 0.3, "mod": [{"src": "vel", "amount": 0.45}]}
 VOICE = {"about": "t4's voice: a warm, close, human singer - slightly larger tract, soft breath, covered vowels; "
                   "joined lines, a real breath before each, a wandering vibrato (v10)",
          "play": {"mono": True, "glide": "110ms", "glide_smooth": True},
-         "synth": {"layers": [{"type": "voice", "tract": 1.02, "breath": 0.12, "formant_bw": 1.6, "ph_soft": 0.35,
+         "synth": {"layers": [{"type": "voice", "tract": 1.02, "breath": BREATHES(0.42), "effort": EFFORT, "formant_bw": 1.6, "ph_soft": 0.35,
                                "consonant_level": "-4dB", "pulse_rate": 5, "join": True, "inhale": 0.4,
                                "even": 1.0}],
                    "lfo": {"vib": {"wave": "sine", "rate": "5.2hz", "delay": "300ms", "fade": "500ms",
@@ -487,7 +499,7 @@ VOICE = {"about": "t4's voice: a warm, close, human singer - slightly larger tra
                    "amp": {"a": "40ms", "d": "0s", "s": 1, "r": "250ms"}}}
 VOICE2 = {"about": "t4's second singer (v7): lighter and a little brighter, a third above in the duet; joined (v10)",
           "play": {"mono": True, "glide": "90ms", "glide_smooth": True},
-          "synth": {"layers": [{"type": "voice", "tract": 0.95, "breath": 0.16, "formant_bw": 1.4, "ph_soft": 0.35,
+          "synth": {"layers": [{"type": "voice", "tract": 0.95, "breath": BREATHES(0.46), "effort": EFFORT, "formant_bw": 1.4, "ph_soft": 0.35,
                                 "consonant_level": "-6dB", "pulse_rate": 5, "join": True, "inhale": 0.3}],
                     "lfo": {"vib": {"wave": "sine", "rate": "5.6hz", "delay": "250ms", "fade": "400ms",
                                     "retrig": True, "wander": 0.6}},
