@@ -441,10 +441,18 @@ EUCLID_7_16 = [i for i in range(16) if (i * 7) % 16 < 7]      # 7 hits spread ov
 def write_sub():
     # E4's roots an octave below the cellos' bass notes (D1, Bb1, A1, D1 - the deep end the warm mix lacked)
     low = {"D9": "D1", "Cmaj9": "C1", "Am11": "A1", "G6/9": "G1"}
-    beat = b0(41)
-    while beat < b0(AFTERGLOW[0]) - 0.01:
+    # v27 (ROUND TYPE: whole song): THE FLOOR UNDER BOTH DOORS. compscore's flow compares t4's body either side of
+    # each 16-bar crossfade - section A after the t3 seam, the relief before the t5 seam - and both lacked the deep
+    # floor their neighbours have (38 Hz -19.9 dB against t3, 44 Hz 16 dB short of t5): the sub entered only at B
+    # (41) and stepped out for the relief. Now it plays E4's roots softly through A (from 17, velocity 72) and the
+    # relief (101-120, velocity 70), on its own grid as before: weight from the theme's first statement to its last.
+    # The kit and air still step out for the relief, so it still breathes.
+    beat = math.ceil(b0(17) / E1_CYCLE) * E1_CYCLE
+    while beat < b0(121) - 0.01:
         k, name, notes = chord_at(beat)
-        part("sub").add(beat, E1_CYCLE - 0.25, low[name], 96 if sec_of(int(beat // BPB) + 1) == "crest" else 84)
+        s = sec_of(int(beat // BPB) + 1)
+        v = {"crest": 96, "A": 72, "relief": 70}.get(s, 84)
+        part("sub").add(beat, E1_CYCLE - 0.25, low[name], v)
         beat += E1_CYCLE
 
 
