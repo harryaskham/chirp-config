@@ -462,6 +462,8 @@ def build():
                fx=[{'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 600, 'mod': [{'src': 'auto.shut', 'amount': 3.5}]}}],
                sends={'hall': '-8dB'}),
             tr('sub', 'sub', '-9dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '220ms', 'curve': 0.6}]),
+            # (tried in v15: moog-seq for the staple NES bass - the sections blurred into each other, structure 100 -> 84,
+            # spectrum 98 -> 94; the chip bass's dry edge is what tells the sections apart)
             tr('bass', 'nes-triangle-bass', '-6dB', fx=['lp cutoff=2400']),
             tr('kit', '909', '-6dB', sends={'hall': '-20dB'},
                auto={'glitch': {'points': [['0b', 0.0], [f"{(CREST + 8) * 4.0 - 0.1:.1f}b", 0.0], [f"{(CREST + 8) * 4.0:.1f}b", 0.35],
@@ -493,8 +495,9 @@ def build():
             {'name': 'choir', 'patch': {'extends': 'voice-backing synth.layers.0.harmony=[7]',
                                         'synth': CH['tracks'][0]['patch'].get('synth', {})},
              'notes': chnotes, 'gain': '-15dB', 'pan': 0.0, 'sends': {'hall': '-8dB'}},
-            {'name': 'sung', 'patch': {'extends': 'voice-legato synth.layers.0.tract=0.86 synth.layers.0.breath.value=0.35 synth.layers.0.ring=0.15',
-                                       'synth': SU['tracks'][0]['patch'].get('synth', {})},
+            # (v15) and the sung line is wM's voice-near - close, young, breathy, dry, even vowels - made for this track,
+            # in place of voice-legato pushed toward it
+            {'name': 'sung', 'patch': SU['tracks'][0]['patch'],
              'notes': snotes, 'gain': '-11dB', 'pan': 0.05, 'sends': {'echo': '-16dB', 'hall': '-12dB'}},
         ]}
     return song

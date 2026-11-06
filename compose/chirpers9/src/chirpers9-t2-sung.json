@@ -206,7 +206,7 @@
         }
       ],
       "patch": {
-        "extends": "voice-legato",
+        "extends": "voice-near",
         "synth": {
           "pitch": {
             "mod": [
