@@ -243,6 +243,11 @@ STOP = (b0(CREST), b0(86))                            # stop-time under the firs
                                                       # retrograde lines that come home
 
 
+# v9 (ROUND TYPE: palette): TWO SWAPS onto patches no other Accretion track uses - the canon (E1 answering itself a
+# fourth below) moves from a kalimba (shared) to a NYLON guitar, warm fingerpicked strings beside the handpan; and
+# E3's inverted undertow (and its octave in the rise) moves from vibes (shared) to a PEDAL STEEL, notes swelling in and
+# gliding between pitches - D D D | F# F# B | E E A E as a slow, singing slide.
+
 # v8 (ROUND TYPE: section, the rise 65-80, ~35 s; rewritten): THE GATHERING. The hook rests here, so the rise is
 # made of TIME and TEXTURE (Harry: complexity goes there): soft kicks on E2's seven-sixteenth cycle (phased like the
 # harp) pull a second pulse against the 4/4 snare and grow toward the crest; the harp's E2 comes forward as the
@@ -446,7 +451,7 @@ def main():
                fx=[{"type": "filter", "kind": "peak", "cutoff": 220, "q": 0.9, "gain": "-6dB"}]),
             tr("felt", "piano-muted", gain="-6dB", pan=0.25, sends={"room": "-8dB"}),
             tr("seed", "handpan", gain="-5dB", pan=-0.2, sends={"hall": "-10dB"}),
-            tr("canon", "kalimba", gain="-17dB", pan=0.35, sends={"hall": "-8dB"}),
+            tr("canon", "nylon", gain="-17dB", pan=0.35, sends={"hall": "-8dB"}),
             tr("bass", "upright-bass", gain="-9dB",
                fx=[{"type": "filter", "kind": "peak", "cutoff": 250, "q": 1.0, "gain": "-4dB"}]),
             tr("sub", SUB, gain="-19dB"),
@@ -458,11 +463,11 @@ def main():
             {"name": "voice", "patch": VOICE, "gain": "-8dB", "pan": 0.0,
              "sends": {"hall": "-9dB", "dly": "-16dB"}, "notes": voice},
             tr("e2", "harp", gain="-17dB", pan=0.4, sends={"hall": "-10dB", "dly": "-16dB"}),     # v2: listed last
-            tr("e3", "vibes", gain="-16dB", pan=-0.35, sends={"hall": "-10dB"}),
+            tr("e3", "pedal-steel", gain="-11dB", pan=-0.35, sends={"hall": "-10dB"}),
             {"name": "duet", "patch": VOICE2, "gain": "-12dB", "pan": 0.18, "sends": {"hall": "-8dB"}, "notes": duet},
             {"name": "breath", "patch": BREATH_AIR, "gain": "2dB", "pan": 0.0, "sends": {"room": "-12dB"},
              "notes": breaths},
-            tr("e3hi", "vibes", gain="-18dB", pan=0.35, sends={"hall": "-8dB"}),     # v8: E3 an octave up in the rise
+            tr("e3hi", "pedal-steel", gain="-15dB", pan=0.35, sends={"hall": "-8dB"}),     # v8: E3 an octave up in the rise
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=0.8s mix=1 predelay=6ms", "hp cutoff=200"]},
                   "hall": {"fx": ["reverb kind=hall decay=3.2s mix=1 predelay=20ms", "hp cutoff=180"]},
