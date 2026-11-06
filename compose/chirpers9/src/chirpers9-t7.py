@@ -191,6 +191,13 @@ R14 = os.environ.get("T7_R14", "wheel") != "none"
 # second statement (bar 135) harmonised a THIRD above in the mode (wM's harmony_key, now pinned: [2] in D
 # Mixolydian) instead of a fixed fifth - sweeter, every note in key. T7_R15=none reproduces v14.
 R15 = os.environ.get("T7_R15", "bow") != "none"
+# round 16 (palette): T7_R16=brass (default) - THE HOOK GOES BRASS. t7 no longer shares a staple with any other track,
+# so the palette move is the part that matters most: the hook (E1 stated plainly - in E-flat minor through the storm,
+# bars 17/49/73, and in D Mixolydian at the crest) was the song's own two-saw lead. It moves to horn-section (tenor sax
+# and trumpet in tight unison, breath on the attack, a little detune between the players; no other Accretion track has
+# brass) an octave down, into the horns' warm middle: a brass riff over a drum-and-bass crest, the seed as a fanfare.
+# T7_R16=none reproduces v15.
+R16 = os.environ.get("T7_R16", "brass") != "none"
 BOW_LINE = [(128, 69, 7.6), (130, 67, 7.6), (132, 66, 7.6), (134, 64, 7.8), (136, 62, 7.5)]
 HEAD_WHEEL = [(0, (51, 55, 58, 62)), (4, (48, 51, 55, 58, 62)), (8, (44, 51, 55, 58, 60)), (12, (46, 51, 53, 58)),
               (14, (46, 50, 53, 56))]
@@ -767,8 +774,10 @@ def main():
                                         "filters": ["lp cutoff=3200 q=0.7"],
                                         "amp": {"a": "8ms", "d": "220ms", "s": 0.75, "r": "180ms"}},
                               "play": {"mono": True, "glide": "25ms"}}
-        tracks.append({"name": "hook", "patch": "a7-hook", "gain": "-9dB", "pan": 0.05,
-                       "fx": ["delay time=3/8 mix=0.18 feedback=0.3"], "sends": {"space": "-8dB"},
+        if R16:                                                # an octave down, into the horns' middle
+            hook.ev = [(e[0], e[1], mtok(int(float(e[2][1:])) - 12), e[3], e[4]) for e in hook.ev]
+        tracks.append({"name": "hook", "patch": "horn-section" if R16 else "a7-hook", "gain": "-1dB" if R16 else "-9dB",
+                       "pan": 0.05, "fx": ["delay time=3/8 mix=0.18 feedback=0.3"], "sends": {"space": "-8dB"},
                        "score": hook.score()})
     if R7:
         adj = {"bass": -4.5, "sub": -3.0, "tide": -4.0, "kick": -2.0, "e1a": 8.0, "e1b": 6.0, "e1c": 7.0, "e4": 10.0,
