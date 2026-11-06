@@ -167,6 +167,15 @@ R11 = os.environ.get("T7_R11", "drop") != "none"
 # own tracks. T7_R12=none reproduces v11.
 R12 = os.environ.get("T7_R12", "answer") != "none"
 SUNG5_BARS = (52, 60)
+# round 13 (WHOLE): T7_R13=sung (default) - ONE SINGER THROUGH THE ORBIT. The track's words are one line, begun in
+# the storm and finished at the crest - but the finish was a vocoder (an effect). Now the storm's own singer finishes
+# it: at the tidal lock (bars 131 and 135) she sings "every corner comes sooner" in D Mixolydian, on E1 (D A C G E)
+# and a cadence home (D E D) - the storm's minor fragment answered whole in the major; the second time doubled a fifth
+# above (harmony +7: A E G D B, every note in the mode). The vocoder steps out. And every sung part gets wM's even
+# vowels (the storm singer, its fifth, the three-part choir), so no 'ee' or 'oo' sinks under an 'ah'. T7_R13=none
+# reproduces v12.
+R13 = os.environ.get("T7_R13", "sung") != "none"
+SUNGC_BARS = (130, 134)
 W5_PROG = [(39, (51, 54, 58, 65)), (35, (47, 51, 54, 58)), (42, (54, 58, 61, 68)), (37, (49, 53, 56, 63))]
 E7_V2 = [("D3", 2), ("A3", 2), ("E4", 2), ("B4", 2), ("F#5", 3)]
 EB_MAJ7 = (51, 55, 58, 62)
@@ -671,14 +680,30 @@ def main():
             k = name[-1]
             p = f"a7-choir{k}"
             patches[p] = {"extends": f"voice-legato synth.layers.0.tract={CHOIR_TRACT[k]} synth.layers.0.breath=0.25 "
-                                     "synth.layers.0.ring=0.35",
+                                     "synth.layers.0.ring=0.35" + (" synth.layers.0.even=1" if R13 else ""),
                           "synth": {"pitch": {"mod": [{"amount": 0.01, "src": "expr.f0"}], "value": 0}}}
         tracks.append({"name": f"v{name}", "patch": p, "gain": tr.get("gain", "0dB"), "pan": tr.get("pan", 0.0),
                        "fx": ["chorus", "delay time=1/4 mix=0.15 feedback=0.25"], "sends": {"space": "-6dB"},
                        "notes": notes})
-    if R2:
+    if R2 and not R13:
         tracks.append({"name": "vocoder", "patch": "a7-vocoder-voice", "gain": "3dB", "pan": 0.0, "fx": vfx,
                        "sends": {"space": "-8dB"}, "notes": vnotes})
+    if R13:                                                   # the singer finishes the line at the tidal lock
+        cs = json.load(open(os.path.join(HERE, "t7", "sung_crest.json")))["tracks"][0]
+        base = ("voice-legato synth.layers.0.tract=1.06 synth.layers.0.ring=0.4 synth.layers.0.breath=0.2 "
+                "synth.layers.0.even=1")
+        patches["a7-sungc"] = dict(cs["patch"], extends=base)
+        patches["a7-sungc5"] = dict(cs["patch"], extends=base + " synth.layers.0.harmony=[7]")
+        for name, bar, patch in (("sungc", SUNGC_BARS[0], "a7-sungc"), ("sungc5", SUNGC_BARS[1], "a7-sungc5")):
+            nn = []
+            for n in cs["notes"]:
+                d = {"at": round(bar * 4.0 - 0.25 + n["at"], 4), "len": n["len"], "ph": n["ph"], "pitch": n["pitch"],
+                     "vel": n["vel"]}
+                if n.get("expr_path"):
+                    d["expr_path"] = n["expr_path"]
+                nn.append(d)
+            tracks.append({"name": name, "patch": patch, "gain": "1dB", "pan": 0.0,
+                           "fx": ["delay time=3/8 mix=0.16 feedback=0.3"], "sends": {"space": "-7dB"}, "notes": nn})
     if R6:
         for tr in tracks:
             if tr["name"] in ("e1a", "e1aw"):
@@ -756,7 +781,7 @@ def main():
         tracks.append(dict(spec["snare"], name="roll", score=T["roll"].score()))
         src = json.load(open(os.path.join(HERE, "t7", "sung.json")))["tracks"][0]
         patches["a7-sung"] = dict(src["patch"], extends="voice-legato synth.layers.0.tract=1.06 synth.layers.0.ring=0.4 "
-                                                        "synth.layers.0.breath=0.2")
+                                                        "synth.layers.0.breath=0.2" + (" synth.layers.0.even=1" if R13 else ""))
         notes = []
         for bar in SUNG7_BARS:
             for n in src["notes"]:
