@@ -317,6 +317,14 @@ def write_asks():
 
 
 # ---------------------------------------------------------------- the jet (locked 4/4, major)
+# v20 (ROUND TYPE: whole song): THE HOOK FLIES ABOVE THE SINGERS. compscore --bands: t8 ran +7.6 dB hot at 749 Hz -
+# the singers' band, in the song whose voice sings full lines. Counting fundamentals: the jet's flute hook (E1 an
+# octave up, D5 A5 C6 G5 E5, velocity 100 every two bars, the loudest melodic part) put 77% of its weight in D5-C6;
+# the choir's lead 6%. The hook and its thirds now fly another octave up (D6-C7, 1.2-2.1 kHz) - the light of the jet,
+# over the choir - and both flutes come down 4 dB (a high flute reads louder). The horizon's goodbye stays at pitch.
+HOOK_UP = 24                              # was 12
+
+
 def write_jet():
     part("impact").add(JB, 4.0, "C3", 120)
     part("impact").add(b0(BREAK[1] + 1), 4.0, "C3", 108)           # v11: the jet fires again
@@ -333,9 +341,9 @@ def write_jet():
         # E1 re-barred into the bar (x 0.8), bright, on the pulse lead - except where the choir sings
         if (bar - JET) % 2 == 0:                  # v5 THE HOOK: E1 stated plainly, augmented to two bars, every two
             for n, on, ln in E1:                  # bars, loud - the album's tune heard clearly and often after the jet
-                part("hook").add(t + on * 1.6, ln * 1.6, name_of(midi(n) + 12), 100)
+                part("hook").add(t + on * 1.6, ln * 1.6, name_of(midi(n) + HOOK_UP), 100)
                 if bar > BREAK[1]:                # v16: after the break the hook is sung back in thirds
-                    part("hook3").add(t + on * 1.6, ln * 1.6, name_of(third_below(midi(n) + 12)), 86)
+                    part("hook3").add(t + on * 1.6, ln * 1.6, name_of(third_below(midi(n) + HOOK_UP)), 86)
         # the groove: half time at 150 (75 felt)
         part("kick").add(t, 0.5, "k", 112)
         part("kick").add(t + 2.5, 0.5, "k", 92)
@@ -598,11 +606,11 @@ def main():
                auto={"orb": {"points": orbit_lane("e6")}}),
             tr("e7", "brass-synth", gain="-11dB", pan=0.15, sends={"dly": "-12dB", "hall": "-10dB"}),
             {"name": "jet", "patch": "supersaw", "gain": "-8dB", "sends": {"hall": "-6dB"}, "notes": JET_NOTES},
-            tr("hook", "flute", gain="-2dB", pan=0.1, sends={"dly": "-14dB", "hall": "-12dB"}),   # v5
+            tr("hook", "flute", gain="-6dB", pan=0.1, sends={"dly": "-14dB", "hall": "-12dB"}),   # v5
             {"name": "solo", "patch": SOLO8, "gain": "-7dB", "sends": {"hall": "-5dB", "dly": "-16dB"},   # v12 (last)
              "notes": solo, "auto": {"rs": {"points": horizon_lane(REDSHIFT)}}},
             tr("ask", "flute", gain="-9dB", pan=-0.15, sends={"hall": "-6dB", "dly": "-12dB"}),   # v14
-            tr("hook3", "flute", gain="-7dB", pan=-0.2, sends={"dly": "-14dB", "hall": "-10dB"}),  # v16
+            tr("hook3", "flute", gain="-11dB", pan=-0.2, sends={"dly": "-14dB", "hall": "-10dB"}),  # v16
             tr("lift", SUB8, gain="-22dB"),                                 # v18 (last): the sub's octave you can hear
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=0.8s mix=1 predelay=6ms", "hp cutoff=200"]},
