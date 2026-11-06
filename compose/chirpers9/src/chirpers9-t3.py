@@ -57,6 +57,13 @@ R5 = os.environ.get("T3_R5", "cool") != "none"
 # 17), the eyewall (41) and after the eye (67), so the storm's fragments are heard against the tune.
 # T3_R6=none reproduces v5.
 R6 = os.environ.get("T3_R6", "tonal") != "none"
+# round 7 (section, w8 = bars 85-96, the lock arriving): T3_R7=sung (default) - THE HOOK IS SUNG. Harry: hooks want a
+# voice that sings tunes cleanly. At the lock a legato singing voice (wM's voice-legato, unused on the album) sings
+# "nothing here is late" ON E1 - five syllables, five notes, D A C G E in the seed's own rhythm - at bars 91 and 95,
+# alone: the E1 lead steps out of those bars and answers in the bars after (call and response); the pvoc robot keeps
+# only its later echoes (101, 109). T3_R7=none reproduces v6.
+R7 = os.environ.get("T3_R7", "sung") != "none"
+SUNG_BARS = (90, 94)
 CLEAR = []      # R4: the bar-82 statement, spoken clearly (the voice clears as the arithmetic does)
 CREST = 88                      # the bar every cycle lands on
 CREST16 = CREST * 16            # ... in sixteenths
@@ -423,7 +430,7 @@ def build():
     if R4:
         CLEAR.extend(n for n in whisper if 82 * 4.0 <= n["at"] < 84 * 4.0)
         whisper[:] = [n for n in whisper if not (82 * 4.0 <= n["at"] < 84 * 4.0)]
-    for bar in (92, 100, 108):
+    for bar in ((100, 108) if R7 else (92, 100, 108)):
         put(robot, bar * 4.0, None)
     if R4:
         hits = {}
@@ -443,6 +450,10 @@ def build():
         steps = ["D5", "E5" if R6 else "Eb5", "F5", "G5", "A5", "Bb5", "C6"]  # (R4 count)
         for bar in range(72, 86):
             T["tick"].add(bar * 4.0, 0.9, mtok(midi(steps[(bar - 72) // 2])), 84 + 2 * (bar - 72) + (12 if bar in hits else 0))
+    if R7:                                                  # the voice sings E1 alone in its bars; the lead answers
+        for bar in SUNG_BARS:
+            T["e1"].ev = [e for e in T["e1"].ev if not (bar * 4.0 <= e[0] < bar * 4.0 + 4.0)]
+            T["e1hi"].ev = [e for e in T["e1hi"].ev if not (bar * 4.0 <= e[0] < bar * 4.0 + 4.0)]
     if R6:                                                  # the hook, plainly: E1 upright, two cycles, doubled
         for bar in (16, 40, 66):
             a0 = bar * 4.0
@@ -584,6 +595,27 @@ def main():
         tracks.append({"name": "tick", "patch": "a3-glass", "gain": "-10dB", "pan": -0.2,
                        "fx": ["delay time=1/4 mix=0.2 feedback=0.4"], "sends": {"space": "-6dB"},
                        "score": T["tick"].score()})
+    if R7:
+        src = json.load(open(os.path.join(HERE, "t3", "sung.json")))["tracks"][0]
+        # voice-legato (join/inhale/wander/glide_smooth) needs a newer engine than the groove pin: until it is pinned,
+        # the built-in singing voice with a mono glide carries the line (same notes, same phonemes)
+        patches["a3-sung"] = dict(src["patch"], extends="voice play.glide=90ms play.mono=true")
+        notes = []
+        for bar in SUNG_BARS:
+            for n in src["notes"]:
+                d = {"at": round(bar * 4.0 - 0.25 + n["at"], 4), "len": n["len"], "ph": n["ph"], "pitch": n["pitch"],
+                     "vel": n["vel"]}
+                if n.get("expr_path"):
+                    d["expr_path"] = n["expr_path"]
+                notes.append(d)
+        # the lock's groove was buried under the undertow (presence, bars 89-96: bass -0.2 dB vs the mix, the 909 snare
+        # -26, hats -34, percussion -42): the bass steps back and the kit comes up, so the reward is a groove you hear
+        for tr in tracks:
+            g = {"bass": -3.5, "snare": 9.0, "hats": 8.0, "perc": 8.0}.get(tr["name"])
+            if g is not None:
+                tr["gain"] = f"{float(tr['gain'].replace('dB', '')) + g:g}dB"
+        tracks.append({"name": "sung", "patch": "a3-sung", "gain": "0dB", "pan": 0.0,
+                       "fx": ["delay time=3/8 mix=0.14 feedback=0.25"], "sends": {"space": "-7dB"}, "notes": notes})
     master = {"fx": [{"type": "eq", "bands": ["hp cutoff=25", "peak cutoff=100 gain=3dB q=1.0",
                                               "peak cutoff=320 gain=-2dB q=0.8",
                                               "highshelf cutoff=8000 gain=2dB"]},
