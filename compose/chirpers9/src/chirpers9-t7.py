@@ -253,6 +253,14 @@ R21 = os.environ.get("T7_R21", "reply") != "none"
 # T7_R22=none reproduces v21.
 R22 = os.environ.get("T7_R22", "gesture") != "none"
 REPLY_BARS = (34, 42)
+# round 23 (section, w4 = bars 49-64, the collision's first half, flagged 'static, little new vs w3'): T7_R23=impact
+# (default) - THE COLLISION LANDS. The collision arrived as more of the approach. (1) Bar 49 hits: one long 808 drop on
+# E-flat (the orbit's floor, once). (2) The brass that carries the hook turns section: short stabs on the "and" of 2
+# and 4 (Gb3 Bb3 Eb4 - the E-flat minor triad, common to both of the tide's chords, Ebm(add9) and Cbmaj7) through
+# bars 49-52 and 55-60, stepping out while the singer sings (53-54) and before the half-time (61-64).
+# Own tracks. T7_R23=none reproduces v22.
+R23 = os.environ.get("T7_R23", "impact") != "none"
+STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
 BOW_LINE = [(128, 69, 7.6), (130, 67, 7.6), (132, 66, 7.6), (134, 64, 7.8), (136, 62, 7.5)]
 HEAD_WHEEL = [(0, (51, 55, 58, 62)), (4, (48, 51, 55, 58, 62)), (8, (44, 51, 55, 58, 60)), (12, (46, 51, 53, 58)),
@@ -953,6 +961,15 @@ def main():
         spec = {tr["name"]: tr for tr in tracks}
         for new, old in (("tide7", "tide"), ("bass7", "bass"), ("e4w7", "e4")):
             tracks.append(dict(spec[old], name=new, score=T[new].score()))
+    if R23:
+        spec = {tr["name"]: tr for tr in tracks}
+        stabs, boom = Track("stabs"), Track("boom")
+        for bar in STAB_BARS:
+            for off, v in ((1.5, 84), (3.5, 78)):
+                stabs.add(bar * 4.0 + off, 0.3, ",".join(mtok(m) for m in (54, 58, 63)), v)
+        boom.add(48 * 4.0, 6.0, mtok(27), 104)
+        tracks.append(dict(spec["hook"], name="stabs", gain="-3dB", score=stabs.score()))
+        tracks.append({"name": "boom", "patch": "808", "gain": "-6dB", "score": boom.score()})
     if R21:
         spec = {tr["name"]: tr for tr in tracks}
         reply, hornsa = Track("reply"), Track("hornsa")
