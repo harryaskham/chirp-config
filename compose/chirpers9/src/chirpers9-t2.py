@@ -82,6 +82,12 @@ def chord(bar):
         # (v8, w4) the build CLIMBS instead of circling: the bass rises D -> F -> G -> A under Dm9 | Fmaj9 | G6/9 | A7sus4,
         # and A7sus4 holds for the last six bars - the dominant the crest's D minor resolves
         return {36: (0, [3, 7, 10, 14]), 38: (3, [4, 7, 11, 14]), 40: (5, [4, 7, 9, 14])}.get(bar - bar % 2, (7, [5, 7, 10, 14]))
+    if 72 <= bar < 80:
+        # (v11, section w7: 'little new vs w6' - the break circled the crest's chords to its end) THE BREAK CLIMBS OUT:
+        # its last eight bars rise C -> F -> G -> A under Cmaj9 | Fmaj9 | G6/9 | A7sus4 (all in D Dorian), the build's
+        # climb remembered a step lower; the sung line lands on G6/9, which holds every note it sings but C (the sus4
+        # passing), and A7sus4 hands the drift its Dm9
+        return {72: (-2, [4, 7, 11, 14]), 74: (3, [4, 7, 11, 14]), 76: (5, [4, 7, 9, 14])}.get(bar - bar % 2, (7, [5, 7, 10, 14]))
     return PROG[(bar // 2) % len(PROG)]
 
 
@@ -206,9 +212,15 @@ def build():
             continue
         kicks = {'gather': [0, 2.5], 'build': [0, 1.0, 2.5, 3.0], 'crest': [0, 1.0, 2.0, 3.0, 3.5],
                  'drift': [0, 0.75, 2.5, 3.0], 'fall': [0] if i_ < 8 else []}[s_]   # (v4) the fall: a heartbeat, then nothing
+        # (v11) the drums come back at HALF speed: the drift's first four bars are half-time (kick on 1 and the and of
+        # 3, one snare on 3, the hats' three-beat cycle over it), and the drift's own groove arrives at bar 85
+        half_ = s_ == 'drift' and i_ < 4
+        if half_:
+            kicks = [0, 2.5]
+            P['kit'].append((b0 + 2.0, 's', 0.25, 110))
         for k_ in kicks:
             P['kit'].append((b0 + k_, 'k', 0.25, 118 if k_ == 0 else 100))
-        if s_ in ('build', 'crest', 'drift'):
+        if s_ in ('build', 'crest', 'drift') and not half_:
             P['kit'].append((b0 + 1.0, 's' if s_ != 'crest' else 'cp', 0.25, 104))
             P['kit'].append((b0 + 3.0, 's' if s_ != 'crest' else 'cp', 0.25, 108))
             if s_ == 'drift' and rng.random() < 0.35:
