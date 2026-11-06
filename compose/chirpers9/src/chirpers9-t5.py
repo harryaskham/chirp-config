@@ -56,8 +56,13 @@ E4 = [  # E4 'four lights', voiced close around middle C
     ["A1", "A2", "C3", "G3", "D4", "E4"],
     ["D2", "D3", "G3", "A3", "C4", "E4"],
 ]
+E4V2 = os.environ.get("C9T5_E4V2", "1")   # WHOLE ROUND: E4 v2 (chirper-three, motifs.md): D9 | Cmaj9 | Am11 | G6/9, all D mixolydian - t5's lights, floor, quick bass and 808 move with it, so t4, t5 and t6 share one harmony and nothing borrowed rubs
+SUNG = os.environ.get("C9T5_SUNG", "1")   # WHOLE ROUND (the voice engine is pinned: voice-legato, joined, breathing): THE VOICE SINGS - the robot (pvoc) gives way to a sung line on voice-legato: 'near-er' on A G, and the line 'near-er the mid-dle hums' on E5 v2's notes A G A E A D, joined in one breath and resolving to D
 if TONAL:
     E4[1] = ["Bb1", "Bb2", "D3", "F3", "A3", "C4"]
+if E4V2:
+    E4 = [["D2", "D3", "F#3", "A3", "C4", "E4"], ["C2", "C3", "E3", "G3", "B3", "D4"],
+          ["A1", "A2", "C3", "G3", "D4", "E4"], ["G1", "G2", "B2", "E3", "A3", "D4"]]
 E4_LEN = 10.0                                 # beats per chord (t4: 5)
 CRESTGAP = os.environ.get("C9T5_CRESTGAP", "8")   # SECTION (w5, the build into the crest: flagged static; the crest was a level line, -12.1 dB either side): THE PULL BEFORE THE MEETING - for the last CRESTGAP beats before the crest the drums, the quick bass and the floor drop out and every heat filter is sucked shut, only the orbit's trill and E1's stretto left spinning; then every cycle lands on the shared downbeat at once: the filters snap open past where they were, and the drum machine and a crash hit together
 SPIN = os.environ.get("C9T5_SPIN", "384:448:full")   # SECTION (w7, 3:20-3:52, C's second half: flagged static, little new vs w6; presence: the drums 13 dB under the mix, followable 7% of the time): THE DISK SPINS UP - a second 909 swells in over E2's seven: ride eighths, a backbeat on 2 and 4 (and with 'full', four on the floor), straight time against the seven-sixteenth cell, the first hint of t6's storm; it falls away as the outro's tide begins. Value 'A:B' or 'A:B:full' = beats
@@ -332,10 +337,15 @@ def voice():
     crest, once more, stretched thin, in the outro."""
     src = json.load(open(os.path.join(HERE, "chirpers9-t5-nearer.json")))["tracks"][0]["notes"]
     ns = []
+    if SUNG:
+        src = [{"at": 0.0, "len": 0.5, "ph": "N IH1", "pitch": "A4"}, {"at": 0.5, "len": 1.25, "ph": "R ER0", "pitch": "G4"}]
     for at, vel in ((ST["build"] + 4 * BAR, 0.6), (ST["build"] + 12 * BAR, 0.7), (TC + 1, 0.85), (TC + 9, 0.8),
                     (TC + 17, 0.8), (ST["outro"] + 6 * BAR, 0.55)):
         for n in src:
             ns.append(dict(n, at=round(at + n["at"], 4), vel=vel))
+    if SUNG:
+        return {"name": "nearer", "patch": "voice-legato", "gain": "-9dB", "pan": -0.1,
+                "fx": ["hp cutoff=150"], "sends": {"room": "-7dB"}, "notes": ns}
     return {"name": "nearer", "patch": "voice-speech", "gain": "-8dB", "pan": -0.1,
             "fx": [{"type": "pvoc", "mode": "robot", "pitch": "C4",
                     "tune": {"value": 0, "mod": [{"src": "track.orbit.key", "amount": 12}]}},
@@ -345,10 +355,17 @@ def voice():
 
 def voxline():
     src = json.load(open(os.path.join(HERE, "chirpers9-t5-hums.json")))["tracks"][0]["notes"]
+    if SUNG:
+        src = [{"at": 0.0, "len": 0.5, "ph": "N IH1", "pitch": "A4"}, {"at": 0.5, "len": 0.5, "ph": "R ER0", "pitch": "G4"},
+               {"at": 1.0, "len": 1.0, "ph": "DH AH0", "pitch": "A4"}, {"at": 2.0, "len": 1.0, "ph": "M IH1", "pitch": "E5"},
+               {"at": 3.0, "len": 1.0, "ph": "D AH0 L", "pitch": "A4"}, {"at": 4.0, "len": 2.25, "ph": "HH AH1 M Z", "pitch": "D5"}]
     ns = []
     for i, at in enumerate(float(x) for x in VOXLINE.split(",")):
         for n in src:
             ns.append(dict(n, at=round(at + n["at"], 4), vel=(0.75, 0.85, 0.7, 0.6)[i % 4]))
+    if SUNG:
+        return {"name": "hums", "patch": "voice-legato", "gain": "-9dB", "pan": 0.1,
+                "fx": ["hp cutoff=150"], "sends": {"room": "-7dB"}, "notes": ns}
     return {"name": "hums", "patch": "voice-speech", "gain": "-8dB", "pan": 0.1,
             "fx": [{"type": "pvoc", "mode": "robot", "pitch": "C4",
                     "tune": {"value": 0, "mod": [{"src": "track.orbit.key", "amount": 12}]}},

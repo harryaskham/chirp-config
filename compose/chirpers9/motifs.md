@@ -220,5 +220,5 @@ A breath or a syllable in t1, more words track by track, full lines by t8. Each 
 | track | words | character | where |
 |---|---|---|---|
 | t1 | "ah" (a breath) | whisper (pvoc whisper over voice-speech), far back in the hall | a beat before the crest (bar 57), once more faint in the fall |
-| t5 | "nearer" -> "nearer. the middle hums." | robot (pvoc robot whose note follows E5's orbit, so it sings the orbit's notes) | "nearer": in the build, three times at the crest, once in the tide. The line: three times after the crest (2:48-3:20) |
+| t5 | "nearer" -> "nearer. the middle hums." | sung (voice-legato since t5 v10: joined, breathing; "near-er" on A G, the line on E5 v2's notes A G A E A D, resolving to D) | "nearer": in the build, three times at the crest, once in the tide. The line: three times after the crest (2:48-3:20) |
 
