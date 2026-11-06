@@ -63,6 +63,7 @@ CATCHUP = os.environ.get("C9T1_CATCHUP", "288:320")   # SECTION (w7, 3:19-3:51, 
 SEEDUP = os.environ.get("C9T1_SEEDUP", "")   # WHOLE ROUND: THE SEED IN FRONT - the five voices that carry E1 (t1's subject, and the album's hook) sat 12-22 dB under their own bed after the crest; they come up across the song (dB, e.g. '4') and the triangle bass, the loudest part, steps back 3 dB
 BREATH = os.environ.get("C9T1_BREATH", "-16")   # WHOLE ROUND (the voice is pinned: voice-legato, with a real inhale): THE FIRST BREATH - the whispered 'ah' becomes a breath taken and a sung 'ah' on E1's first two notes, D rising to A, joined in one breath, a beat before the crest (and a faint D in the fall): the album's voice is born on the seed ('sung')
 BREATHP = os.environ.get("C9T1_BREATHP", "voice-backing")   # PALETTE (voice batch 2 pinned): the breath's voice - voice-legato becomes 'voice-backing' (soft, breathy, three singers under the band: the seed's first breath as a far little choir) or 'voice-near' (close, young, breathy)
+SEEDEP = os.environ.get("C9T1_SEEDEP", "music-box")   # PALETTE: the seed's E (its loudest scattered voice, on the 5-beat cycle) leaves the Game Boy wave pad, which also plays t1's pad, for a plucked voice of its own: 'koto' (bright, twangy, in tune) or 'music-box'; value 'patch' or 'patch@gaindB'
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -78,6 +79,9 @@ def fragments():
     """Each voice repeats its note on its own period, phased to land on TC + its offset in the cell."""
     tracks = []
     for i, (name, patch, pan, per, entry, gain) in enumerate(FRAG):
+        if SEEDEP and name == "seed-e":
+            patch, _, g2 = SEEDEP.partition("@")
+            gain = f"{g2}dB" if g2 else gain
         ns = []
         # before the crest: going backwards from TC + off in steps of the voice's own period
         t = TC + E1_OFF[i] - per
