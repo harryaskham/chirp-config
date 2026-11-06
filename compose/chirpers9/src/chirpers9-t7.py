@@ -266,6 +266,16 @@ R23 = os.environ.get("T7_R23", "impact") != "none"
 # percussion pop and key click, a Leslie; no other Accretion track has an organ): soul-jazz stabs that sit with the
 # horns, the same notes and rhythm. Same track gains (the patches differ by 1 dB). T7_R24=none reproduces v23.
 R24 = os.environ.get("T7_R24", "organ") != "none"
+# round 25 (whole): T7_R25=polish (default) - THE ORCHESTRA WITHOUT THE STATIC. Since v16 the song has grown brass,
+# a horn choir, an erhu, an organ and a singer who threads every stage - and through the storm and the spiral all of
+# it still ran into a 7-bit, 12 kHz bit-crusher (the grit lane, on the kit, the reese, the lights, the hook's family):
+# harsh damage under an orchestra. (1) The crusher retires (grit lane to zero); the stutter (the glitch lane, a time
+# texture) stays as it was. (2) Every singer's vibrato is per note (wM, pinned 58ee9ba3): quick notes plain, held
+# ones bloom, a little earlier for this tempo (delay 180 ms, fade 300 ms). (3) THE TUTTI: at the crest's last climb
+# (bars 146-147, the hook's two statements before the choir's last "each lap") the horn choir leaves its chords and
+# plays E1 itself an octave under the brass, and the erhu plays it an octave over - the whole orchestra on the seed,
+# once, at the album's hardest crest. Old horn chords there silenced (velocity 1). T7_R25=none reproduces v24.
+R25 = os.environ.get("T7_R25", "polish") != "none"
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
 BOW_LINE = [(128, 69, 7.6), (130, 67, 7.6), (132, 66, 7.6), (134, 64, 7.8), (136, 62, 7.5)]
@@ -691,6 +701,8 @@ def main():
     if R7:
         glitch = [[p, round(v * 0.6, 3)] for p, v in glitch]
         grit = [[p, round(v * 0.5, 3)] for p, v in grit]
+    if R25:                                                                  # the crusher retires
+        grit = [[p, 0.0] for p, v in grit]
     lanes = {"glitch": {"points": glitch}, "grit": {"points": grit}}
     tracks = [
         {"name": "kick", "patch": "dusty-kit", "gain": "0dB", "fx": storm(), "auto": lanes, "score": T["kick"].score()},
@@ -872,7 +884,8 @@ def main():
                     continue
                 at = bar * 4.0
                 for ch, ln in HORN_CHORDS:
-                    horns.add(at, ln * 0.96, ",".join(mtok(m) for m in ch), 84 if ln == 4.0 else 76)
+                    v = 1 if (R25 and 144 <= bar < 148) else (84 if ln == 4.0 else 76)
+                    horns.add(at, ln * 0.96, ",".join(mtok(m) for m in ch), v)
                     at += ln
             tracks.append({"name": "horns", "patch": "horn", "gain": "-8dB", "pan": -0.1,
                            "sends": {"space": "-5dB"}, "score": horns.score()})
@@ -996,6 +1009,22 @@ def main():
             if k.startswith("a7-sung") or k.startswith("a7-choir"):
                 pt["extends"] = pt["extends"] + (" play.glide_overshoot=0.05" if k.startswith("a7-choir")
                                                  else " play.glide_overshoot=0.08")
+    if R25 and R17:                                         # the tutti: E1 on horns (8vb) and erhu (8va) with the brass
+        tut_h, tut_b = Track("tutti"), Track("tuttib")
+        for at0 in (580.0, 585.0):
+            at = at0
+            for nt, ln in E1:
+                tut_h.add(at, ln * 0.94, mtok(midi(nt) - 12), 96)
+                tut_b.add(at, ln * 0.96, mtok(midi(nt) + 12), 94)
+                at += ln
+        tracks.append({"name": "tutti", "patch": "horn", "gain": "-2dB", "pan": -0.1, "sends": {"space": "-5dB"},
+                       "score": tut_h.score()})
+        tracks.append({"name": "tuttib", "patch": "erhu", "gain": "-6dB", "pan": -0.15,
+                       "fx": ["delay time=3/8 mix=0.12 feedback=0.25"], "sends": {"space": "-6dB"}, "score": tut_b.score()})
+    if R25:
+        for k, pt in patches.items():
+            if k.startswith("a7-sung") or k.startswith("a7-choir"):
+                pt["extends"] = pt["extends"] + " synth.lfo.vib.per_note=true synth.lfo.vib.delay=180ms synth.lfo.vib.fade=300ms"
     if R24:
         for tr in tracks:
             if tr.get("patch") == "cz-pad":
