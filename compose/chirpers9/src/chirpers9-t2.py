@@ -156,6 +156,16 @@ def build():
     for key_ in ('e2body', 'e2m'):
         P[key_].sort(key=lambda e_: e_[0])
 
+    # (v17, section w7: 'little new vs w6' - the break's two halves shared one texture) THE ROOM CLEARS FOR THE VOICE:
+    # for the break's last eight bars - the climb out, C F G A - E2's debris stops for the first time since bar 7: no
+    # chip-metal, no log drum, no glints; only the climbing pad, the lifted bass and the bells' retrograde canon, and
+    # under the sung line a soft backing choir holds 'ooh' on D4 with a third below in D Dorian (B3; wM's
+    # voice-backing with harmony_key) - D and B sit in both G6/9 and A7sus4 - breathing once between the two chords.
+    # The debris comes back with the drums at bar 81, at half speed: the return is an event now
+    cl0_, cl1_ = 72 * 4.0, 80 * 4.0
+    for key_ in ('e2m', 'e2body', 'dust'):
+        P[key_] = [e_ for e_ in P[key_] if not (cl0_ - 1e-6 <= e_[0] < cl1_ - 1e-6)]
+
     # ---- the bass: E2's pitches in AUGMENTATION (seven eighths), from 'gather'; locks to the bar at the crest ----
     t = (CREST - 28) * 4.0                   # bar 20: 7 eighths = 3.5 beats; 28 bars = 32 cycles -> lands on bar 48
     while t < fall0 + 32.0 - 1e-6:
@@ -291,7 +301,10 @@ def build():
             # the in-seam keeps t1's floor: the same NES triangle holding each root, long, under the lensed E1
             P['bass'].append((bar * 4.0, m(KEY + root_ + (12 if root_ < -3 else 0)), 7.6, 70 + 2 * i_))
         if s_ != 'in' or i_ >= 8:
-            P['sub'].append((bar * 4.0, m(KEY - 12 + root_ + (12 if root_ < -3 else 0)), 7.8, 96))
+            # (v17) agreed with chirper-zero: t1's tail has a D1 sine pedal under the whole overlap, so in the in-seam
+            # the sub holds D1 - the same note - whatever the chords do (C1 against D1 would beat at 4 Hz)
+            rs_ = 0 if s_ == 'in' else root_
+            P['sub'].append((bar * 4.0, m(KEY - 12 + rs_ + (12 if rs_ < -3 else 0)), 7.8, 96))
 
     # ---- (v3) the fall: a Shepard-Risset tone on D, falling an octave every four seconds and never arriving - the long
     # way in made audible, growing as the cell stretches and sinks, held into the seam with t3; kept low (-20 dB):
@@ -314,6 +327,8 @@ def build():
     # voice-legato made close and young (a smaller tract, more breath and a little ring: wM's approximation of the
     # coming voice-near). The voice accretes inside the track as across the album: whispered twice, then sung
     SU = json.load(open(os.path.join(HERE, 'chirpers9-t2-sung.json')))
+    OOH = json.load(open(os.path.join(HERE, 'chirpers9-t2-ooh.json')))
+    oohn = [dict(OOH['tracks'][0]['notes'][0], at=round(b_ * 4.0, 4), len=7.3) for b_ in (76, 78)]
     snotes = [dict(n_, at=round((SEC['break'] + 12) * 4.0 + n_['at'], 4)) for n_ in SU['tracks'][0]['notes']]
 
     # ---- lanes ----
@@ -513,6 +528,8 @@ def build():
              'notes': chnotes, 'gain': '-15dB', 'pan': 0.0, 'sends': {'hall': '-8dB'}},
             # (v15) and the sung line is wM's voice-near - close, young, breathy, dry, even vowels - made for this track,
             # in place of voice-legato pushed toward it
+            {'name': 'ooh', 'patch': dict(OOH['tracks'][0]['patch'], extends='voice-backing synth.layers.0.harmony=[-2] synth.layers.0.harmony_key=D:dorian'),
+             'notes': oohn, 'gain': '-17dB', 'pan': 0.0, 'sends': {'hall': '-8dB'}},
             {'name': 'sung', 'patch': SU['tracks'][0]['patch'],
              'notes': snotes, 'gain': '-11dB', 'pan': 0.05, 'sends': {'echo': '-16dB', 'hall': '-12dB'}},
         ]}
