@@ -41,6 +41,14 @@ R3 = os.environ.get("T3_R3", "ring") != "none"
 # at 74 and 81 - lands an alignment hit (crash, kick, a shard chord), the double ones after an eighth of held breath.
 # Bar 88 is where all of them line up at once. T3_R4=none reproduces v3.
 R4 = os.environ.get("T3_R4", "align") != "none"
+# round 5 (section, w10 = bars 109-120, the crest cooling into the outfall; the mix-window out-seam had +32 dB at
+# 10-15 kHz against t4's body): T3_R5=cool (default) - THE CREST COOLS TO ITS CORE. The top drops away layer by layer
+# (hats to eighths at 109, quarters at 110, the octave lead out at 110, and in the last two bars before the crossfade
+# the snare, hats, percussion, chip voices, arps and shards all gone) until only kick, undertow, floor, the clean E1
+# lead and the robot's last line remain over the dust pad swelling in Dm(add9); and a glass line plays E1 in
+# RETROGRADE, slowing - x2 (bars 109-110), then x4 an octave down (111-114) - a melody falling out of the lock.
+# T3_R5=none reproduces v4.
+R5 = os.environ.get("T3_R5", "cool") != "none"
 CLEAR = []      # R4: the bar-82 statement, spoken clearly (the voice clears as the arithmetic does)
 CREST = 88                      # the bar every cycle lands on
 CREST16 = CREST * 16            # ... in sixteenths
@@ -406,9 +414,27 @@ def build():
             T["perc"].add(b0, 1.0, "c", 96 if len(who) == 1 else 116)
             T["kick"].add(b0, 0.25, "k", 112 if len(who) == 1 else 124)
             T["shard"].add(b0, 0.5, ",".join(mtok(m + 12) for m in E3[0][0]), 92 if len(who) == 1 else 112)
-        steps = ["D5", "Eb5", "F5", "G5", "A5", "Bb5", "C6"]
+        steps = ["D5", "Eb5", "F5", "G5", "A5", "Bb5", "C6"]  # (R4 count)
         for bar in range(72, 86):
             T["tick"].add(bar * 4.0, 0.9, mtok(midi(steps[(bar - 72) // 2])), 84 + 2 * (bar - 72) + (12 if bar in hits else 0))
+    if R5:
+        a, b, c = 108 * 4.0, 110 * 4.0, 112 * 4.0
+        T["hats"].ev = [e for e in T["hats"].ev if not (a <= e[0] < c)]
+        for bar, step, v in ((108, 0.5, 66), (109, 1.0, 56)):
+            for k in range(int(4 / step)):
+                T["hats"].add(bar * 4.0 + k * step, 0.1, "h", v - 3 * k)
+        T["e1hi"].ev = [e for e in T["e1hi"].ev if not (109 * 4.0 <= e[0] < c)]
+        for k in ("snare", "perc", "e2", "chipsn", "chiphat", "arp0", "arp1", "arp2", "shard", "floor", "sub"):
+            T[k].ev = [e for e in T[k].ev if not (b <= e[0] < c)]
+        T["dust"].add(a, 16.0 - 0.2, ",".join(mtok(m) for m in E3[0][0]), 72)
+        retro = list(reversed(E1))
+        at = a
+        for n, ln in retro:
+            T["glass"].add(at, ln * 2 * 0.95, mtok(midi(n) + 12), 84)
+            at += ln * 2
+        for n, ln in retro:
+            T["glass"].add(at, ln * 4 * 0.95, mtok(midi(n)), 76)
+            at += ln * 4
     return T, whisper, robot
 
 
@@ -502,7 +528,7 @@ def main():
                 tr["score"] = T["snare"].score()
         tracks.append({"name": "skin", "patch": "ks-drum", "gain": "-5dB", "pan": -0.05, "fx": storm_fx(), "auto": lanes(),
                        "score": storm.score()})
-    if R2 or R4:
+    if R2 or R4 or R5:
         patches["a3-glass"] = {"about": "chirper-two: the crest's glass - a sine phase-modulated at 3.5:1, the index pinged "
                                         "on each attack and settling to a faint shimmer; an octave partial; no low end",
                                "synth": {"layers": [{"name": "g", "ratio": 3.5, "audible": False},
@@ -512,7 +538,7 @@ def main():
                                          "env": {"ping": {"a": "0.5ms", "d": "250ms", "s": 0.05, "r": "100ms"}},
                                          "filters": ["hp cutoff=300", "lp cutoff=8000 q=0.6"],
                                          "amp": {"a": "2ms", "d": "600ms", "s": 0.45, "r": "400ms"}}}
-    if R2:
+    if R2 or R5:
         tracks.append({"name": "glass", "patch": "a3-glass", "gain": "-8dB", "pan": 0.25,
                        "fx": ["delay time=3/8 mix=0.2 feedback=0.35"], "sends": {"space": "-6dB"},
                        "score": T["glass"].score()})
