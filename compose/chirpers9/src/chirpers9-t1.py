@@ -78,6 +78,7 @@ LANDING = os.environ.get("C9T1_LANDING", "2")   # SECTION w2 (0:36-1:13, A's arr
 LASTHOOK = os.environ.get("C9T1_LASTHOOK", "300,320x2")   # SECTION w7 (3:27-3:59, the lock's end into the fall: flagged static): THE HOOK, ONCE MORE - after the crest the whistle (the hook's instrument) never came back, and the lock just repeated. Now it states E1 plainly once more as the lock exhales ('beat'), and with 'beat,beatx2' it carries on into the fall, playing E1 at half speed with the scattered voices, so the hook itself is handed into the t1 -> t2 overlap
 FIRSTBREATH = os.environ.get("C9T1_FIRSTBREATH", "0.35")   # SECTION w1 (0:00-0:36, the album's first seconds: flagged static): THE ALBUM BREATHES FIRST - the voice accretes from a breath in t1 to full lines in t8, but t1's breath only came at the crest. Now the album opens on it: before the whistle's first E1, the far choir breathes a soft 'haa' on D (mostly air at this velocity), and the seed answers it (value: velocity)
 BREATHALL = os.environ.get("C9T1_BREATHALL", "thresholds")   # WHOLE ROUND (together pinned, 8083e37e): THE CHOIR BREATHES AS ONE - the far little choir's breathy recipe only ever reached its lead singer (wM's 'together' bug), so the 'ah' was one breath and two plain voices; now all three singers breathe together, and the held notes bloom with per-note vibrato ('1'). With 'thresholds' the choir also breathes at each threshold the seed crosses: just before A and just before the build, so the album's first voice marks every stage of the seed forming
+WARMP = os.environ.get("C9T1_WARMP", "hammond-b3@-20")   # PALETTE: the warm fifth under the chip pad (D3 A3, from A on) leaves the Juno for a Hammond ('patch' or 'patch@gaindB'): its 16-foot drawbar sounds the fifth an octave down too, filling t1's thinnest band (97 Hz, -9 dB under the album) between the triangle bass and the D1 pedal - a church-quiet organ under the seed
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -307,7 +308,8 @@ def warmth():
         for p in ("D3", "A3"):
             ns.append(note(t, p, ln, 0.6))
         t += 4 * BAR
-    return {"name": "warmth", "patch": "juno-pad", "gain": "-17dB", "pan": 0.0,
+    wp, _, wg = WARMP.partition("@")
+    return {"name": "warmth", "patch": wp or "juno-pad", "gain": f"{wg or -17}dB", "pan": 0.0,
             "fx": [{"type": "filter", "kind": "lp", "q": 0.5,
                     "cutoff": {"value": 900, "mod": [{"src": "auto.open", "amount": 1.5}]}}],
             "auto": {"open": {"points": [["0b", 0], [f"{ST['A']}b", 0.2], [f"{TC}b", 1], [f"{ST['outro']}b", 0.7], [f"{TOTAL}b", -0.8]]}},
