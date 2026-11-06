@@ -285,6 +285,14 @@ R25 = os.environ.get("T7_R25", "polish") != "none"
 # into the crest's first chord (C#4 -> D4). Bass, pad, organ and sub move with them (new tracks); the old pitched
 # parts there are silenced (velocity 1) or cut at bar 117. The drums and the riser keep going. T7_R26=none reproduces v25.
 R26 = os.environ.get("T7_R26", "turn") != "none"
+# round 27 (whole): T7_R27=air (default) - AIR. The song has grown an orchestra but its top had gone dull (spectrum's
+# worst band 14.8 kHz -8 dB; the seam from t6 -11.5 dB there; the crusher's fizz left in v25), and the dusty break has
+# no shimmer of its own. (1) A SHAKER (the kit's own sh) runs 16ths under the storm and the spiral wherever the hats
+# play - quiet, accented on the "e" and "a" - the D&B drive the storm lacked. (2) The crest gets a RIDE (modal-ride):
+# quarter-note bell-bow with an off-beat lift through bars 121-152, so the crest opens as well as gets louder.
+# (3) Every choir and harmony part sings TOGETHER (wM, pinned 8083e37e): the harmony singers follow the lead's breath,
+# effort and vowel instead of a plain default voice. (4) The master's air shelf +1 dB. T7_R27=none reproduces v26.
+R27 = os.environ.get("T7_R27", "air") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -686,6 +694,19 @@ def build():
                 T["e4w8"].add(bar * 4.0 + off, 0.35, ",".join(mtok(m + 12) for m in ch[1:]), 82 if off == 1.5 else 74)
         for b0, b1, s in ((116, 118, 27), (118, 120, 33)):
             T["sub8"].add(b0 * 4.0, (b1 - b0) * 4.0 - 0.1, mtok(s), 70)
+    if R27:                                                                   # air: shaker under storm/spiral, ride on the crest
+        r27 = random.Random(27)
+        hat_bars = {int(e[0] // 4) for e in T["hats"].ev if e[3] > 1}
+        T["shaker"], T["ride"] = Track("shaker"), Track("ride")
+        for bar in sorted(hat_bars):
+            if 16 <= bar < 80 or 88 <= bar < 116:
+                for s in range(16):
+                    v = (58 if s % 4 in (1, 3) else 44) + r27.randint(0, 8) + (bar - 16) // 8
+                    T["shaker"].add(bar * 4.0 + s / 4.0, 0.12, "sh", v)
+            elif 120 <= bar < 152:
+                for s in range(0, 16, 2):
+                    v = (84 if s % 4 == 0 else 62) + r27.randint(0, 6)
+                    T["ride"].add(bar * 4.0 + s / 4.0, 1.6, "m62", v)
     return T
 
 
@@ -1066,6 +1087,14 @@ def main():
                        "score": tut_h.score()})
         tracks.append({"name": "tuttib", "patch": "erhu", "gain": "-6dB", "pan": -0.15,
                        "fx": ["delay time=3/8 mix=0.12 feedback=0.25"], "sends": {"space": "-6dB"}, "score": tut_b.score()})
+    if R27:                                                 # air: the new tracks, choirs together, the air shelf
+        tracks.append({"name": "shaker", "patch": "dusty-kit", "gain": "0dB", "pan": 0.3, "score": T["shaker"].score()})
+        tracks.append({"name": "ride", "patch": "modal-ride", "gain": "-31dB", "pan": -0.3, "sends": {"space": "-12dB"},
+                       "score": T["ride"].score()})
+        for k, pt in patches.items():
+            if (k.startswith("a7-sung") or k.startswith("a7-choir")) and ("harmony" in pt["extends"] or "singers" in pt["extends"]
+                                                                          or "choir" in pt["extends"] or "backing" in pt["extends"]):
+                pt["extends"] = pt["extends"] + " synth.layers.0.together=true"
     if R25:
         for k, pt in patches.items():
             if k.startswith("a7-sung") or k.startswith("a7-choir"):
@@ -1086,7 +1115,7 @@ def main():
                 tr["patch"] = "a7-erhu"
     master = {"fx": [{"type": "eq", "bands": ["hp cutoff=25", "lowshelf cutoff=120 gain=5dB", "peak cutoff=160 gain=-2.5dB q=1.2",
                                               "peak cutoff=320 gain=-2dB q=0.8", "peak cutoff=1400 gain=-2.5dB q=0.7",
-                                              "highshelf cutoff=8000 gain=1dB"]},
+                                              "highshelf cutoff=8000 gain=" + ("2dB" if R27 else "1dB")]},
                      "glue threshold=-18dB ratio=2 attack=10ms release=150ms makeup=1dB",
                      {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.dyn", "amount": 1}]}},
                      {"type": "filter", "kind": "lp", "q": 0.707,
