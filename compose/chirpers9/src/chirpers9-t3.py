@@ -220,6 +220,16 @@ R26 = os.environ.get("T3_R26", "arc") != "none"
 # the singer's hook an octave above (bars 91, 95 and 109) - the line that surfaced in the storm now sings with her.
 # Own track. T3_R27=none reproduces v26.
 R27 = os.environ.get("T3_R27", "flute") != "none"
+# round 28 (palette): T3_R28=move (default) - THE FLUTE IS THE STORM'S VOICE. v27's dizi came in at bar 41 as a
+# stranger (recurrence 96 -> 90: one window unlike any other). But the storm already had a voice for E1's top line:
+# boc-lead's statements at bars 17, 41 and 65 (the infall's end, the build, the eye's approach). Those three move to
+# the dizi, an octave down in its own register (the one at 41 is already the dizi's own), so the flute is heard from
+# bar 17 and returns each time the storm gathers; boc-lead keeps its line over the crest. T3_R28=voice also makes every
+# stacked voice sing TOGETHER (wM, pinned 8083e37e) and =together does only that - both cost recurrence (-0.4: the
+# breathier, softer stacks), so they stay off. T3_R28=none reproduces v27.
+R28 = os.environ.get("T3_R28", "move") != "none"
+R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
+R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
 R21_DROPS = os.environ.get("T3_R21", "open") == "lift"
 R21_OPEN = os.environ.get("T3_R21", "open") == "open"          # let go of the third (no F#): t4 brings it
@@ -758,6 +768,13 @@ def build():
         for n, ln in retro:
             T["glass"].add(at, ln * 4 * 0.95, mtok(midi(n)), 76)
             at += ln * 4
+    if R28_MOVE and R27:                                    # the storm's E1 statements move from boc-lead to the dizi
+        moved = [e for e in T["e1hi"].ev if e[0] < 88 * 4.0 and e[3] > 1]
+        T["e1hi"].ev = [(e[0], e[1], e[2], 1, e[4]) if (e[0] < 88 * 4.0 and e[3] > 1) else e for e in T["e1hi"].ev]
+        T["_dizi"] = Track("_dizi")
+        for e in moved:
+            if not (40 * 4.0 <= e[0] < 48 * 4.0):           # bar 41 is the dizi's own (v27)
+                T["_dizi"].add(e[0], e[1], mtok(int(e[2][1:]) - 12), min(110, e[3] + 10))
     return T, whisper, robot
 
 
@@ -1113,11 +1130,18 @@ def main():
             for j, (m, ln) in enumerate(((74, 0.5), (81, 0.75), (84, 0.25), (79, 1.0), (76, 1.0))):
                 dz.add(at, ln * (0.95 if j < 4 else 1.4), mtok(m), 76 + 3 * k + (6 if j == 0 else 0))
                 at += ln
+        if "_dizi" in T:                                    # R28: the storm's own E1 statements (bars 17, 41, 65)
+            for e in T["_dizi"].ev:
+                dz.add(e[0], e[1], e[2], e[3])
         for bar in (90, 94, 108):                           # ...and sings with her at the crest (8va)
             for off, m, ln in ((0.0, 74, 0.49), (0.5, 81, 0.74), (1.245, 84, 0.25), (1.5, 79, 0.99), (2.5, 76, 1.27)):
                 dz.add(bar * 4.0 + off, ln, mtok(m), 84 if off == 0.0 else 80)
         tracks.append({"name": "dizi", "patch": "dizi", "gain": "-7dB", "pan": -0.2,
                        "fx": ["delay time=3/8 mix=0.15 feedback=0.3"], "sends": {"space": "-8dB"}, "score": dz.score()})
+    if R28 and R28_TOG:                                     # every stacked voice sings together
+        for k in ("a3-duet", "a3-hum3", "a3-doo3", "a3-back"):
+            if k in patches:
+                patches[k]["extends"] = patches[k]["extends"] + " synth.layers.0.together=true"
     if R25:                                                 # held notes bloom; the crest's phrases scoop and fall
         for k in list(patches):
             pt = patches[k]
