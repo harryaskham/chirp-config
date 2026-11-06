@@ -47,6 +47,7 @@ ORBITLEAD = os.environ.get("C9T5_ORBITLEAD", "128:192:low")   # SECTION (w3, 1:0
 CRESTE1 = os.environ.get("C9T5_CRESTE1", "rhodes")   # SECTION (w5, 2:15-2:48, the build's end and the crest; presence at the crest: the voice and the 808 loudest, E1's two voices 16-17 dB under and followable a fifth of the time): E1 SINGS ON THE CREST - for the first four cycles after the meeting the seed is heard plainly: 'rhodes' adds the Rhodes (the one that sang E5 in A) on E1 in octaves with the seed voices, 'lift' brings the two seed voices forward instead (x1.4)
 WEIGHT = os.environ.get("C9T5_WEIGHT", "2")   # SECTION (w4, 1:42-2:15, A's end into the build - never focused; the 808's arrival was a quiet swap of one bass for another): THE WEIGHT ARRIVES - for the last WEIGHT bars of A the quick bass and the drums step out (the orbit, E1's stretto and the lights carry on), and the 808 lands on the build's downbeat on D, its first two bars full - the inner disk's gravity as an event
 VOICEP = os.environ.get("C9T5_VOICEP", "near,harm")   # WHOLE ROUND (voice batch 2 pinned): THE NEAR VOICE - t5 is the disk 'closer and hotter', so its singer is voice-near (close, young, breathy, even vowels) where t1's is a far little choir; 'harm' adds a harmony a fourth below on the line after the crest (A G A E A D over E D E B E A, all in D mixolydian), the line's one moment of two voices
+OUTLINE = os.environ.get("C9T5_OUTLINE", "x1")   # SECTION (w8, 3:52-4:18, the outro = the t5 -> t6 overlap; never focused): THE LINE STRETCHES - the outro's single 'near-er' becomes the whole sung line once more, 'near-er the mid-dle hums', stretched to half speed like E5 in the tide ('x2'), or twice at its own speed ('x1'): the hook as the inner disk lets go into t6, resolving to D
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -336,6 +337,21 @@ def creste1():
     return {"name": "crest-e1", "patch": "rhodes", "gain": "-12dB", "pan": 0.1, "sends": {"room": "-9dB"}, "notes": ns}
 
 
+def outline():
+    line = [("N IH1", "A4", 0.0, 0.5), ("R ER0", "G4", 0.5, 0.5), ("DH AH0", "A4", 1.0, 1.0), ("M IH1", "E5", 2.0, 1.0),
+            ("D AH0 L", "A4", 3.0, 1.0), ("HH AH1 M Z", "D5", 4.0, 2.25)]
+    ns = []
+    if OUTLINE == "x2":
+        for ph, p, at, ln in line:
+            ns.append({"at": ST["outro"] + 4 * BAR + 2 * at, "len": 2 * ln, "ph": ph, "pitch": p, "vel": 0.6})
+    else:
+        for k, s0 in enumerate((ST["outro"] + 4 * BAR, ST["outro"] + 8 * BAR)):
+            for ph, p, at, ln in line:
+                ns.append({"at": s0 + at, "len": ln, "ph": ph, "pitch": p, "vel": 0.62 - 0.12 * k})
+    return {"name": "hums-out", "patch": "voice-near", "gain": "-9dB", "pan": 0.05,
+            "fx": ["hp cutoff=150"], "sends": {"room": "-5dB"}, "notes": ns}
+
+
 def air():
     if TONALAIR == "shimmer":
         return {"name": "air", "patch": "drone", "gain": "-22dB", "pan": 0.0,
@@ -352,7 +368,7 @@ def voice():
     if SUNG:
         src = [{"at": 0.0, "len": 0.5, "ph": "N IH1", "pitch": "A4"}, {"at": 0.5, "len": 1.25, "ph": "R ER0", "pitch": "G4"}]
     for at, vel in ((ST["build"] + 4 * BAR, 0.6), (ST["build"] + 12 * BAR, 0.7), (TC + 1, 0.85), (TC + 9, 0.8),
-                    (TC + 17, 0.8), (ST["outro"] + 6 * BAR, 0.55)):
+                    (TC + 17, 0.8), *(() if OUTLINE else ((ST["outro"] + 6 * BAR, 0.55),))):
         for n in src:
             ns.append(dict(n, at=round(at + n["at"], 4), vel=vel))
     if SUNG:
@@ -396,6 +412,8 @@ def song():
         tracks.append(orbitlead())
     if CRESTE1 == "rhodes":
         tracks.append(creste1())
+    if OUTLINE:
+        tracks.append(outline())
     if CRESTGAP and CRESTHIT:
         tracks.append({"name": "crest", "patch": "modal-crash", "gain": f"{CRESTHIT}dB", "pan": 0.0,
                        "sends": {"room": "-6dB"}, "notes": [note(TC, "C4", 8, 0.9)]})
