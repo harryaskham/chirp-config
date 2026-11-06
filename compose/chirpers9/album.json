@@ -141,5 +141,16 @@
       "id": "chirpers9-t8",
       "title": "All of It Falls"
     }
-  ]
+  ],
+  "direction": {
+    "by": "Harry, 6 Nov 00:30 GMT, after listening to the v1-v4 drafts",
+    "words": "hmm its quite ugly chaos so far! there are good bits and the complexity is good but it is missing any sense of aesthetics and catchiness/hook. we can play with time or tone but both at once is difficult and we are well into chaos. lets get musicality back and play with time and texture. its atonal right now, very tough listening. make sure climbers know they can and should still make big changes as they work",
+    "rules": [
+      "TONE IS HOME: every track has a key centre a listener can feel, consonant harmony by default (triads, sevenths, sus, quartal stacks), melodies that resolve. Dissonance is a brief spice that resolves, never the ground; no long stacked clashes, detuned clouds or atonal clusters.",
+      "COMPLEXITY GOES INTO TIME AND TEXTURE: polymeter, phasing, stretto, tempo play, density, timbre, space. Not pitch chaos on top of time chaos.",
+      "EVERY TRACK HAS A HOOK you can hum after one listen, stated plainly and repeated enough to stick. E1 is the album's hook: let it be heard clearly and often, not only scattered or transformed. Elements are catchy first, transformable second.",
+      "AESTHETICS OVER CLEVERNESS: beauty and listenability first; difficult -> rewarding stays, but the difficulty is rhythmic and textural and the reward is big, melodic and harmonic.",
+      "BIG CHANGES ARE WANTED: re-key, re-harmonise, rewrite a section or the whole track, swap instruments, cut layers, rewrite your element. A score may dip for a round; ears over metrics. Don't polish chaos."
+    ]
+  }
 }
