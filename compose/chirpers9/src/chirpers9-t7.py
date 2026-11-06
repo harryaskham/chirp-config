@@ -293,6 +293,13 @@ R26 = os.environ.get("T7_R26", "turn") != "none"
 # (3) Every choir and harmony part sings TOGETHER (wM, pinned 8083e37e): the harmony singers follow the lead's breath,
 # effort and vowel instead of a plain default voice. (4) The master's air shelf +1 dB. T7_R27=none reproduces v26.
 R27 = os.environ.get("T7_R27", "air") != "none"
+# round 28 (palette): T7_R28=timp (default) - TIMPANI. The song has grown an orchestra - brass, a horn choir, an erhu,
+# an organ, a ride - but its impacts were still an 808 (the album's staple: t3, t5, t7). A new patch, a7-timp: a
+# kettle drum on the modal layer (a membrane struck off-centre, long ring) over a sine fundamental, so it sings a
+# pitch, with a felt-mallet thump. It marks the song's four arrivals: a roll on E-flat into the collision (bar 48,
+# replacing the 808), a roll on A - D's dominant - through the key's turn and the crest landing on D (bar 120),
+# the tutti's two hits on D (bars 146-147), and the plunge (bar 153). T7_R28=none reproduces v27.
+R28 = os.environ.get("T7_R28", "timp") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -1052,7 +1059,7 @@ def main():
         for bar in STAB_BARS:
             for off, v in ((1.5, 84), (3.5, 78)):
                 stabs.add(bar * 4.0 + off, 0.3, ",".join(mtok(m) for m in (54, 58, 63)), v)
-        boom.add(48 * 4.0, 6.0, mtok(27), 104)
+        boom.add(48 * 4.0, 6.0, mtok(27), 1 if R28 else 104)       # R28: the timpani take the impact
         tracks.append(dict(spec["hook"], name="stabs", gain="-3dB", score=stabs.score()))
         tracks.append({"name": "boom", "patch": "808", "gain": "-6dB", "score": boom.score()})
     if R21:
@@ -1087,6 +1094,38 @@ def main():
                        "score": tut_h.score()})
         tracks.append({"name": "tuttib", "patch": "erhu", "gain": "-6dB", "pan": -0.15,
                        "fx": ["delay time=3/8 mix=0.12 feedback=0.25"], "sends": {"space": "-6dB"}, "score": tut_b.score()})
+    if R28:                                                 # timpani: the four arrivals
+        patches["a7-timp"] = {
+            "about": "chirper-two: a kettle drum - a membrane struck off-centre with a long ring, over a sine fundamental "
+                     "so it sings its pitch, and a felt-mallet thump; rolls are fast restrikes",
+            "synth": {"layers": [
+                {"name": "head", "type": "modal", "modes": "membrane",
+                 "strike": {"value": 0.72, "mod": [{"src": "rand", "amount": 0.05}]},
+                 "bright": {"value": 0.3, "mod": [{"src": "vel", "amount": 0.35}]},
+                 "decay": "3s", "damp": 0.25, "tilt": -4, "sharp": 40, "vary": 0.2},
+                {"wave": "sine", "level": "-4dB"},
+                {"name": "mallet", "type": "noise", "level": {"value": "-66dB", "mod": [{"src": "env.att", "amount": 44},
+                                                                                          {"src": "vel", "amount": 6}]}}],
+                "env": {"att": {"a": "0.2ms", "d": "12ms", "s": 0}},
+                "filters": ["hp cutoff=28", "lp cutoff=5k"],
+                "amp": {"a": "1ms", "d": "3s", "s": 0, "r": "400ms", "curve": 3}},
+            "play": {"vel_sens": 0.6}}
+        tp = Track("timp")
+
+        def roll(b0, b1, m, v0, v1):
+            n = int(round((b1 - b0) * 8))
+            for i in range(n):
+                tp.add(b0 + i * 0.125, 0.4, mtok(m), int(v0 + (v1 - v0) * i / max(1, n - 1)))
+
+        roll(47 * 4.0, 48 * 4.0, 39, 40, 100)               # into the collision: E-flat
+        tp.add(48 * 4.0, 4.0, mtok(39), 122)
+        roll(119 * 4.0, 120 * 4.0, 45, 36, 104)             # the turn: A, D's dominant
+        tp.add(120 * 4.0, 4.0, mtok(38), 124)               # the crest lands on D
+        for at in (580.0, 585.0):                            # the tutti
+            tp.add(at, 3.0, mtok(38), 112)
+        tp.add(152 * 4.0, 4.0, mtok(38), 118)                # the plunge
+        tracks.append({"name": "timp", "patch": "a7-timp", "gain": "-11dB", "pan": -0.1, "sends": {"space": "-6dB"},
+                       "score": tp.score()})
     if R27:                                                 # air: the new tracks, choirs together, the air shelf
         tracks.append({"name": "shaker", "patch": "dusty-kit", "gain": "0dB", "pan": 0.3, "score": T["shaker"].score()})
         tracks.append({"name": "ride", "patch": "modal-ride", "gain": "-31dB", "pan": -0.3, "sends": {"space": "-12dB"},
