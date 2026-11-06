@@ -248,13 +248,19 @@ def build():
         at = fall0 + k_ * 8.0
         P['infall'].append((at, m(KEY), 7.9 if k_ < 7 else 7.5, 30 + 6 * k_))
 
-    # ---- the voice: a whisper, close and dry, seven syllables - once at the crest's end, twice in the drift ----
+    # ---- the voice: a whisper, close and dry, seven syllables - at the crest's end and in the break ----
     VO = json.load(open(os.path.join(HERE, 'chirpers9-t2-voice.json')))
     vtr = VO['tracks'][0]
     vnotes = []
-    for b_ in (CREST + 12, SEC['break'] + 4, SEC['break'] + 12):
+    for b_ in (CREST + 12, SEC['break'] + 4):
         for n_ in vtr['notes']:
             vnotes.append(dict(n_, at=round(b_ * 4.0 + n_['at'] * 94.0 / 110.0, 4), len=round(n_['len'] * 94.0 / 110.0, 4)))
+    # (v10, palette) THE WHISPER FINDS ITS TUNE: the third time, at the end of the break, the same seven syllables
+    # are SUNG - 'nearer each time it comes round' on E1 the right way up (D A C G E, E, D) - on wM's joined, breathing
+    # voice-legato made close and young (a smaller tract, more breath and a little ring: wM's approximation of the
+    # coming voice-near). The voice accretes inside the track as across the album: whispered twice, then sung
+    SU = json.load(open(os.path.join(HERE, 'chirpers9-t2-sung.json')))
+    snotes = [dict(n_, at=round((SEC['break'] + 12) * 4.0 + n_['at'], 4)) for n_ in SU['tracks'][0]['notes']]
 
     # ---- lanes ----
     # Kuramoto coupling: loose in 'in', tightening through 'gather' to lock at the crest, loosening in the drift
@@ -439,6 +445,9 @@ def build():
             tr('e1c', 'risset-bell', '-14dB', pan=-0.35, sends={'hall': '-8dB'}),
             dict({k: v for k, v in vtr.items() if k != 'notes'}, name='voice', notes=vnotes, gain='-8dB', pan=0.05,
                  sends={'echo': '-14dB', 'hall': '-16dB'}),
+            {'name': 'sung', 'patch': {'extends': 'voice-legato synth.layers.0.tract=0.86 synth.layers.0.breath.value=0.35 synth.layers.0.ring=0.15',
+                                       'synth': SU['tracks'][0]['patch'].get('synth', {})},
+             'notes': snotes, 'gain': '-11dB', 'pan': 0.05, 'sends': {'echo': '-16dB', 'hall': '-12dB'}},
         ]}
     return song
 
