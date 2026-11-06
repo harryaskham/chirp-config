@@ -148,7 +148,7 @@ def write_lights():
         s = sec_of(bar)
         v = vel[s] + (min(14, (bar - 65) * 1) if s == "rise" else 0)
         if s == "fall":
-            v = max(30, vel["fall"] - (bar - 121) * 2)
+            v = max(24, vel["fall"] - 6 - (bar - 121) * 2)
         k, name, notes = chord_at(beat)
         if s == "fall":
             notes = E4[0][1]                      # v6: the fall holds the first light alone (the lens mirrored; no
@@ -191,6 +191,21 @@ def hums():
                 out.append({"at": round(beat + on, 4), "len": ln + (0.75 if last else 0.0), "ph": "UW1",
                             "pitch": f"m{midi_of(n)}", "vel": 0.5 if on else 0.56})
         beat += E1_CYCLE
+    # v17 (ROUND TYPE: section, the fall 121-136, ~34 s; rewritten): WHAT FALLS IS KEPT. The t4 -> t5 seam sagged
+    # 12.7 dB (t4's tail began at -12.3 dB, t5's head sits near -23, and the residue SWELLED as the orbit closed): now
+    # the fall is a real diminuendo - the handpan from 58 down three a cycle, the residue fading, the lights lower. And
+    # as the handpan's E1 disassembles (one note fewer every two cycles: E, then G, then C, then A, until only D is
+    # left), the singer hums each note as it falls away - once, softly, held a little: the voice keeps what the orbit
+    # loses, and between them the handpan and the voice still make E1, until the lone D is left for t5's D9.
+    beat, cyc, prevk = b0(121), 0, 5
+    while beat < b0(BARS + 1) - 0.01:
+        k = max(1, 5 - cyc // 2)
+        if k < prevk:
+            n, on, ln = E1[k]
+            out.append({"at": round(beat + on, 4), "len": ln + 1.5, "ph": "UW1", "pitch": f"m{midi_of(n)}", "vel": 0.42})
+        prevk = k
+        beat += E1_CYCLE
+        cyc += 1
     return out
 
 
@@ -227,13 +242,13 @@ def write_seed():
     beat, cyc = b0(121), 0
     while beat < b0(BARS + 1) - 0.01:
         k = max(1, 5 - cyc // 2)
-        v = 66 - min(16, cyc * 2)
+        v = 58 - min(26, cyc * 3)                    # v17: a real diminuendo into t5's quiet head (was 66 - 2/cycle)
         for n, on, ln in E1[:k]:
             part("seed").add(beat + on, ln, n, v + (4 if on == 0 else 0))
         beat += E1_CYCLE
         cyc += 1
     for i, bar in enumerate(range(121, BARS + 1, 4)):
-        part("residue").add(b0(bar), 4 * BPB, head(("D3", "A3", "E4", "F#4")), 46 + 2 * i)
+        part("residue").add(b0(bar), 4 * BPB, head(("D3", "A3", "E4", "F#4")), 46 - 3 * i)   # v17: fades (was swelling)
 
 
 def write_bass():
