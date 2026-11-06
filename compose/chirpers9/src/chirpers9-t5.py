@@ -55,6 +55,7 @@ BREATHE = os.environ.get("C9T5_BREATHE", "118,115")   # WHOLE ROUND: TIME BREATH
 SINGE1 = os.environ.get("C9T5_SINGE1", "398,418")   # SECTION w7 (C's last bars, flagged static: nothing melodic new after the crest): THE SEED SUNG - the near singer sings E1 itself (D A C G E, at half speed so it can be sung) to 'clo-ser and clo-ser', answering 'near-er the mid-dle hums' before the farewell. Value 'beat,beat,...[:harm]' (harm = a third above in the key)
 OVERSHOOT = os.environ.get("C9T5_OVERSHOOT", "0.08")   # WHOLE ROUND (glide_overshoot pinned, 59a832d1): THE SINGER, NOT A PLAYBACK - t5 is the one near singer, and every line she sings (the chorus in A, the crest line in thirds, the sung E1, the farewell) landed dead on each note. Now each note change swings a little past the new note and settles, as a real singer's pitch does (Saitou's damped spring): a share of the interval, so leaps lift more than steps
 SPINUP = os.environ.get("C9T5_SPINUP", "64:96")   # SECTION w2 (A's arrival, flagged 'level jump; new groove', never focused): THE ORBIT SPINS UP - the orbit used to arrive at full speed the moment A landed. Now it arrives stretched x2 (as it leaves, in the tide) under the plain E1, and snaps into its sixteenths when the drum machine's E2 comes in; the song's two ends mirror. Value 'from:to' beats
+CALLRESP = os.environ.get("C9T5_CALLRESP", "gap,sing")   # SECTION w3 (1:08-1:41, the Rhodes' E5 under the chorus: flagged static): CALL AND RESPONSE - the Rhodes used to play straight through the singer's chorus lines; now it rests while she sings and answers in the gaps ('gap'), and her chorus lines in A scoop into their first note and fall off their last ('sing': play.scoop=1 play.fall=2, pinned e986de70)
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -464,6 +465,15 @@ def song():
             if pt == "voice-near" or (isinstance(pt, dict) and str(pt.get("extends", "")).startswith("voice-near")):
                 base = pt if isinstance(pt, str) else pt["extends"]
                 tr["patch"] = {"extends": f"{base} play.glide_overshoot={OVERSHOOT}"}
+    if CALLRESP:
+        lines = [float(x) for x in VOXA.split(",")] if VOXA else []
+        for tr in tracks:
+            if "gap" in CALLRESP and tr["name"] == "orbit-lead":
+                tr["notes"] = [n for n in tr["notes"] if not any(s0 - 0.25 <= n["at"] < s0 + 6.5 for s0 in lines)]
+            if "sing" in CALLRESP and tr["name"] == "hums-a":
+                pt = tr["patch"]
+                base = pt if isinstance(pt, str) else pt["extends"]
+                tr["patch"] = {"extends": f"{base} play.scoop=1 play.fall=2"}
     if CRESTGAP and CRESTHIT:
         tracks.append({"name": "crest", "patch": "modal-crash", "gain": f"{CRESTHIT}dB", "pan": 0.0,
                        "sends": {"room": "-6dB"}, "notes": [note(TC, "C4", 8, 0.9)]})
