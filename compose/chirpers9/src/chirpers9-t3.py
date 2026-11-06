@@ -171,6 +171,17 @@ R20 = os.environ.get("T3_R20", "doo") != "none"
 # side + the rain's D9 drops) and =third (F# only) made our outro D major, which no longer answers the D-minor intro:
 # recurrence 96 -> 87 on s11. open: s11 96.71, flow 71.7 -> 74.3 (the out seam reads better).
 R21 = os.environ.get("T3_R21", "open") != "none"
+# round 22 (palette): T3_R22=breath (default: (2) only; =grit adds (1)) - A FLOOR YOU CAN HEAR, SINGERS WHO BREATHE. (1) The undertow's floor (E3
+# an octave down under the reese) was the album staple `sub` - a clean sine five tracks share, which a laptop or a phone
+# drops entirely. It moves to sub-saturated (chirper-three's post-dubstep sub: a sine with a triangle and a little saw
+# driven through tape, low-passed at 2 kHz so its harmonics carry the line; unused on Accretion): the storm's floor
+# keeps its weight and you can now hear it MOVE (D - Bb - C) on small speakers. (2) wM's glide overshoot (pinned
+# 59a832d1) on every joined singer: the small singer and the duet 0.07, the backing singers 0.05 - each note change
+# swings a little past and settles, instead of landing dead on the pitch. T3_R22=none reproduces v21.
+# DEFAULT IS breath (the overshoot only). =grit adds the sub-saturated floor: even at -25 dB it cost recurrence
+# (s0 89.7 -> 87.6, s11 -> 86.0; the floor's harmonics make the storm's sections read less alike) - kept as an option.
+R22 = os.environ.get("T3_R22", "breath") != "none"
+R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
 R21_DROPS = os.environ.get("T3_R21", "open") == "lift"
 R21_OPEN = os.environ.get("T3_R21", "open") == "open"          # let go of the third (no F#): t4 brings it
 DOO = {0: 62, 2: 69, 3: 65, 5: 60}
@@ -1010,6 +1021,16 @@ def main():
         for tr in tracks:
             if tr["name"] in ("bass", "floor"):
                 tr["gain"] = f"{float(tr['gain'].replace('dB', '')) + 2.0:g}dB"
+    if R22:
+        patches["a3-back"] = {"extends": "voice-backing play.glide_overshoot=0.05"}
+        for tr in tracks:
+            if tr["name"] == "floor" and R22_FLOOR:
+                tr.update(patch="sub-saturated", gain=f"{float(tr['gain'].replace('dB', '')) - 17.0:g}dB")
+            elif tr.get("patch") == "voice-backing":
+                tr["patch"] = "a3-back"
+        for k in ("a3-sung", "a3-duet"):
+            if k in patches:
+                patches[k] = dict(patches[k], extends=patches[k]["extends"] + " play.glide_overshoot=0.07")
     master = {"fx": [{"type": "eq", "bands": ["hp cutoff=25", "peak cutoff=100 gain=3dB q=1.0",
                                               "peak cutoff=320 gain=-2dB q=0.8",
                                               "highshelf cutoff=8000 gain=2dB"]},
