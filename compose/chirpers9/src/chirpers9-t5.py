@@ -49,6 +49,7 @@ WEIGHT = os.environ.get("C9T5_WEIGHT", "2")   # SECTION (w4, 1:42-2:15, A's end 
 VOICEP = os.environ.get("C9T5_VOICEP", "near,harm")   # WHOLE ROUND (voice batch 2 pinned): THE NEAR VOICE - t5 is the disk 'closer and hotter', so its singer is voice-near (close, young, breathy, even vowels) where t1's is a far little choir; 'harm' adds a harmony a fourth below on the line after the crest (A G A E A D over E D E B E A, all in D mixolydian), the line's one moment of two voices
 OUTLINE = os.environ.get("C9T5_OUTLINE", "x1")   # SECTION (w8, 3:52-4:18, the outro = the t5 -> t6 overlap; never focused): THE LINE STRETCHES - the outro's single 'near-er' becomes the whole sung line once more, 'near-er the mid-dle hums', stretched to half speed like E5 in the tide ('x2'), or twice at its own speed ('x1'): the hook as the inner disk lets go into t6, resolving to D
 VOXA = os.environ.get("C9T5_VOXA", "110,140,170")   # WHOLE ROUND: THE LINE IS A CHORUS - the sung line 'near-er the mid-dle hums' first came only after the crest; now the voice sings it in A too (comma-separated beats), over the Rhodes' E5, so by the crest it is a tune you already know: the song's chorus, heard early, returned to at the crest and the end (Harry: hooks stated plainly and repeated enough to stick)
+KEYHARM = os.environ.get("C9T5_KEYHARM", "1")   # WHOLE ROUND (harmony in a key is pinned): THE LINE IN THIRDS - the chorus is heard plain three times in A; at the crest its harmony becomes a third above IN THE KEY (D mixolydian: A G A E A D over C B C G C F#), sweeter than the fixed fourth below; with 'out' the farewell in the tide is sung in thirds too, ending on D with F# above it (the D major the album resolves to)
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -349,7 +350,7 @@ def outline():
         for k, s0 in enumerate((ST["outro"] + 4 * BAR, ST["outro"] + 8 * BAR)):
             for ph, p, at, ln in line:
                 ns.append({"at": s0 + at, "len": ln, "ph": ph, "pitch": p, "vel": 0.62 - 0.12 * k})
-    return {"name": "hums-out", "patch": "voice-near", "gain": "-9dB", "pan": 0.05,
+    return {"name": "hums-out", "patch": {"extends": "voice-near synth.layers.0.harmony=[2] synth.layers.0.harmony_key=D:mixolydian"} if "out" in KEYHARM else "voice-near", "gain": "-9dB", "pan": 0.05,
             "fx": ["hp cutoff=150"], "sends": {"room": "-5dB"}, "notes": ns}
 
 
@@ -393,7 +394,7 @@ def voxline():
         for n in src:
             ns.append(dict(n, at=round(at + n["at"], 4), vel=(0.75, 0.85, 0.7, 0.6)[i % 4]))
     if SUNG:
-        return {"name": "hums", "patch": ({"extends": "voice-near synth.layers.0.harmony=[-5]"} if "harm" in VOICEP else "voice-near") if VOICEP else "voice-legato", "gain": "-9dB", "pan": 0.1,
+        return {"name": "hums", "patch": ({"extends": "voice-near synth.layers.0.harmony=[2] synth.layers.0.harmony_key=D:mixolydian"} if KEYHARM else {"extends": "voice-near synth.layers.0.harmony=[-5]"} if "harm" in VOICEP else "voice-near") if VOICEP else "voice-legato", "gain": "-9dB", "pan": 0.1,
                 "fx": ["hp cutoff=150"], "sends": {"room": "-7dB"}, "notes": ns}
     return {"name": "hums", "patch": "voice-speech", "gain": "-8dB", "pan": 0.1,
             "fx": [{"type": "pvoc", "mode": "robot", "pitch": "C4",
