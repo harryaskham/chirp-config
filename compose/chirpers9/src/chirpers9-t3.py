@@ -89,6 +89,16 @@ SUNG2_BARS, HUM_BARS = (100, 108), (24, 32)
 # inherit, with the F that t4 lifts to F#; (3) the singer's last trace - the E1 hum ("oo") at HALF SPEED, far off,
 # from bar 119: the tune handed to t4's handpan, which assembles E1 from its downbeat. T3_R11=none reproduces v10.
 R11 = os.environ.get("T3_R11", "handover") != "none"
+# round 12 (WHOLE): T3_R12=voices (default) - THE VOICE GATHERS COMPANY. wM's second voice batch is pinned (even
+# vowels, singers: N, harmony): (1) t3's singer moves onto voice-near (wM's own close young voice: even vowels, so the
+# 'ee' of 'everything' and the 'oo' of the hum no longer sink under the 'ah's) - the lead, the front hum and the last
+# hum; (2) NEW: backing voices (voice-backing - three soft breathy singers on each line, even, little ring) sing the
+# lock's harmony under the crest from bar 97 to 112 on 'ah', in two diatonic lines that follow Dm | Bb | C | Dm two
+# beats a chord - F5 F5 E5 F5 over A4 Bb4 G4 A4 (sixths and a fifth) - 9-11 dB under the lead: the reward gets
+# voices, and the crest gets the 600-900 Hz warmth t4's body has (the out-seam's worst band was 877 Hz, -17 dB);
+# (3) the eye (bars 63-66) holds its breath on the same backing singers - an open D-A 'oo', four bars, very soft.
+# T3_R12=none reproduces v11.
+R12 = os.environ.get("T3_R12", "voices") != "none"
 # round 8 (section, w5 = bars 49-60, the eyewall's first half, flagged 'little new'): T3_R8=seven (default) - TIME,
 # NOT NOISE. The storm's random Euclid drums give way for 12 bars to ONE groove in sevens: E2's cell (hits 0 2 3 5 of
 # 7 sixteenths) as kick / hat / snare / hat, cycling across the bar line - a cross-rhythm you can follow - and over it
@@ -681,6 +691,8 @@ def main():
         if R10:
             patches["a3-sung"] = dict(src["patch"], extends="voice-legato synth.layers.0.tract=0.86 "
                                                             "synth.layers.0.breath=0.35 synth.layers.0.ring=0.15")
+        if R12:
+            patches["a3-sung"] = dict(src["patch"], extends="voice-near")
 
         def place(srcn, bars, scale=1.0):
             out = []
@@ -709,6 +721,23 @@ def main():
                        "fx": ["delay time=3/8 mix=0.14 feedback=0.25"], "sends": {"space": "-7dB"}, "notes": notes})
         if R10:
             tracks[-1].update({"fx": ["delay time=3/8 mix=0.1 feedback=0.2"], "sends": {"space": "-11dB"}})
+    if R12:
+        hi, lo = [], []
+        for bar in range(96, 112, 2):
+            for j, (h, l) in enumerate(((77, 69), (77, 70), (76, 67), (77, 69))):
+                at = bar * 4.0 + j * 2.0
+                ln = 1.75 if j == 3 else 2.0                      # touching inside the two bars, a breath at the end
+                v = 0.62 + 0.04 * ((bar - 96) // 4)
+                hi.append({"at": at, "len": ln, "ph": "AA1", "pitch": mtok(h), "vel": round(v, 3)})
+                lo.append({"at": at, "len": ln, "ph": "AA1", "pitch": mtok(l), "vel": round(v - 0.04, 3)})
+        for b0 in range(EYE[0], EYE[1], 2):                            # the eye: an open D-A 'oo', held
+            hi.append({"at": b0 * 4.0, "len": 7.5, "ph": "UW1", "pitch": mtok(74), "vel": 0.45})
+            lo.append({"at": b0 * 4.0, "len": 7.5, "ph": "UW1", "pitch": mtok(69), "vel": 0.42})
+        # their breath was a 10-15 kHz hiss over the crest (+24..28 dB over t4's body): darkened to the vowel
+        tracks.append({"name": "backhi", "patch": "voice-backing", "gain": "-11dB", "pan": 0.35, "fx": ["lp cutoff=4500"],
+                       "sends": {"space": "-6dB"}, "notes": hi})
+        tracks.append({"name": "backlo", "patch": "voice-backing", "gain": "-13dB", "pan": -0.35, "fx": ["lp cutoff=4500"],
+                       "sends": {"space": "-6dB"}, "notes": lo})
     if R11:
         patches["a3-residue"] = {"about": "chirper-two: the storm's residue for t4 - two triangles a few cents apart and "
                                           "an octave sine, slow in, mids only (600-1300 Hz), a little chorus",
