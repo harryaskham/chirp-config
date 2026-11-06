@@ -99,6 +99,13 @@ R11 = os.environ.get("T3_R11", "handover") != "none"
 # (3) the eye (bars 63-66) holds its breath on the same backing singers - an open D-A 'oo', four bars, very soft.
 # T3_R12=none reproduces v11.
 R12 = os.environ.get("T3_R12", "voices") != "none"
+# round 13 (WHOLE): T3_R13=clean (default) - THE STORM IN TUNE, WITH ITS WEIGHT. Harry's "ugly chaos" in t3 lives in
+# the storm's damage lanes: a 6-bit crush whose mix climbed to 0.6 on the bass and the arps through the eyewall,
+# and a stutter firing on 42% of slices. Both eased (crush x0.4: at most 0.24 - grit you feel, not a broken radio;
+# stutter x0.6) so the storm's complexity is its cycles and its tune, not its damage; and with the crush off the
+# undertow, the bass and its floor come up 2 dB each (the album envelope had 44-97 Hz 8-12 dB light). T3_R13=none
+# reproduces v12.
+R13 = os.environ.get("T3_R13", "clean") != "none"
 # round 8 (section, w5 = bars 49-60, the eyewall's first half, flagged 'little new'): T3_R8=seven (default) - TIME,
 # NOT NOISE. The storm's random Euclid drums give way for 12 bars to ONE groove in sevens: E2's cell (hits 0 2 3 5 of
 # 7 sixteenths) as kick / hat / snare / hat, cycling across the bar line - a cross-rhythm you can follow - and over it
@@ -557,6 +564,9 @@ def main():
     fall = [["0b", 0.0], ["448b", 0.0], ["512b", -7.0]]
     close = [["0b", 0.0], ["448b", 0.0], ["512b", -2.0]]
     stop = [["0b", 0.0], ["223.99b", 0.0], ["224b", 1.0], ["225b", 1.0], ["225.01b", 0.0]]
+    if R13:
+        stut = [[p_, round(v * 0.6, 3)] for p_, v in stut]
+        grit = [[p_, round(v * 0.4, 3)] for p_, v in grit]
 
     def storm_fx(extra=()):
         return [{"type": "stutter", "slice": "1/16", "repeats": 3,
@@ -760,6 +770,10 @@ def main():
                 last.append(d)
             tracks.append({"name": "humlast", "patch": "a3-sung", "gain": "-9dB", "pan": 0.2,
                            "fx": ["delay time=3/8 mix=0.35 feedback=0.45"], "sends": {"space": "0dB"}, "notes": last})
+    if R13:
+        for tr in tracks:
+            if tr["name"] in ("bass", "floor"):
+                tr["gain"] = f"{float(tr['gain'].replace('dB', '')) + 2.0:g}dB"
     master = {"fx": [{"type": "eq", "bands": ["hp cutoff=25", "peak cutoff=100 gain=3dB q=1.0",
                                               "peak cutoff=320 gain=-2dB q=0.8",
                                               "highshelf cutoff=8000 gain=2dB"]},
