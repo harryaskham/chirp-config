@@ -50,6 +50,7 @@ VOICEP = os.environ.get("C9T5_VOICEP", "near,harm")   # WHOLE ROUND (voice batch
 OUTLINE = os.environ.get("C9T5_OUTLINE", "x1")   # SECTION (w8, 3:52-4:18, the outro = the t5 -> t6 overlap; never focused): THE LINE STRETCHES - the outro's single 'near-er' becomes the whole sung line once more, 'near-er the mid-dle hums', stretched to half speed like E5 in the tide ('x2'), or twice at its own speed ('x1'): the hook as the inner disk lets go into t6, resolving to D
 VOXA = os.environ.get("C9T5_VOXA", "110,140,170")   # WHOLE ROUND: THE LINE IS A CHORUS - the sung line 'near-er the mid-dle hums' first came only after the crest; now the voice sings it in A too (comma-separated beats), over the Rhodes' E5, so by the crest it is a tune you already know: the song's chorus, heard early, returned to at the crest and the end (Harry: hooks stated plainly and repeated enough to stick)
 KEYHARM = os.environ.get("C9T5_KEYHARM", "1")   # WHOLE ROUND (harmony in a key is pinned): THE LINE IN THIRDS - the chorus is heard plain three times in A; at the crest its harmony becomes a third above IN THE KEY (D mixolydian: A G A E A D over C B C G C F#), sweeter than the fixed fourth below; with 'out' the farewell in the tide is sung in thirds too, ending on D with F# above it (the D major the album resolves to)
+ARC = os.environ.get("C9T5_ARC", "0.2")   # WHOLE ROUND: THE ARC AFTER THE CREST - from four bars after the crest to the outro, the instruments (not the voices, not the spin) ease by ARC (a velocity fraction: + settles, - heats toward t6's storm)
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -425,6 +426,15 @@ def song():
                 vns.append({"at": s0 + at, "len": ln, "ph": ph, "pitch": p_, "vel": 0.6 + 0.05 * k})
         tracks.append({"name": "hums-a", "patch": "voice-near", "gain": "-10dB", "pan": -0.05,
                        "fx": ["hp cutoff=150"], "sends": {"room": "-6dB"}, "notes": vns})
+    if ARC:
+        d, d0, d1 = float(ARC), TC + 4 * BAR, ST["outro"]
+        for tr in tracks:
+            if tr["name"].startswith(("hums", "nearer", "spin")):
+                continue
+            for n in tr["notes"]:
+                if n["at"] >= d0:
+                    f = 1 - d * min(1.0, (n["at"] - d0) / (d1 - d0))
+                    n["vel"] = round(max(0.05, min(1.0, n["vel"] * f)), 3)
     if CRESTGAP and CRESTHIT:
         tracks.append({"name": "crest", "patch": "modal-crash", "gain": f"{CRESTHIT}dB", "pan": 0.0,
                        "sends": {"room": "-6dB"}, "notes": [note(TC, "C4", 8, 0.9)]})
