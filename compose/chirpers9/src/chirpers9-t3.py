@@ -64,6 +64,14 @@ R6 = os.environ.get("T3_R6", "tonal") != "none"
 # only its later echoes (101, 109). T3_R7=none reproduces v6.
 R7 = os.environ.get("T3_R7", "sung") != "none"
 SUNG_BARS = (90, 94)
+# round 9 (palette): T3_R9=tight (default) - A PLAYED KIT AND HANDS. (1) The 909 (an album staple: t2, t3, t5) gives way
+# on every drum track to tight-kit - dry, close-miked, damped kick, tight snare, crisp rimshot and sidestick (the
+# Smile / GoGo Penguin kit; no other Accretion track has it): the storm sounds played, not programmed (kh -> k, the
+# clap -> sidestick). (2) A new part on congas (no other track has hand drums): E2's cell (hits 0 2 3 5 of seven:
+# tumba / open / slap / muted, its D A F C as low-high-mid-low) cycling in sevens through the front (bars 25-40) and
+# the eyewall's end (61-72), then at the lock it takes ONE MORE SIXTEENTH - the seven becomes eight - and sits on the
+# bar through the crest. T3_R9=none reproduces v8.
+R9 = os.environ.get("T3_R9", "tight") != "none"
 # round 8 (section, w5 = bars 49-60, the eyewall's first half, flagged 'little new'): T3_R8=seven (default) - TIME,
 # NOT NOISE. The storm's random Euclid drums give way for 12 bars to ONE groove in sevens: E2's cell (hits 0 2 3 5 of
 # 7 sixteenths) as kick / hat / snare / hat, cycling across the bar line - a cross-rhythm you can follow - and over it
@@ -620,6 +628,29 @@ def main():
         tracks.append({"name": "tick", "patch": "a3-glass", "gain": "-10dB", "pan": -0.2,
                        "fx": ["delay time=1/4 mix=0.2 feedback=0.4"], "sends": {"space": "-6dB"},
                        "score": T["tick"].score()})
+    if R9:
+        import re
+        for tr in tracks:
+            if tr.get("patch") == "909":
+                tr["patch"] = "tight-kit"
+                tr["score"] = re.sub(r"(?<![a-z])cp/", "ss/", re.sub(r"(?<![a-z])kh/", "k/", tr["score"]))
+        hand = Track("hand")
+        cell = ((0, "lo", 82), (2, "o", 70), (3, "sl", 88), (5, "mu", 62))
+        for lo, hi, period in ((24, 40, 7), (60, 72, 7), (72, 112, 8)):
+            for c in range(lo * 16, hi * 16, period):
+                for pos, head, vel in cell:
+                    if c + pos < hi * 16:
+                        hand.add((c + pos) / 4.0, 0.25, head, vel - (6 if lo == 72 and hi == 112 and c >= 88 * 16 else 0))
+        # the tight kick is damped (no boom): a tuned 808 thump on D1 under every kick gives the storm back its floor,
+        # on the home note
+        ksub = Track("ksub")
+        for k in ("kick", "kick7"):
+            for e in (T[k].ev if k in T else []):
+                if e[3] > 1:
+                    ksub.add(e[0], 0.3, "D1", e[3])
+        tracks.append({"name": "ksub", "patch": "808-short", "gain": "-4dB", "score": ksub.score()})
+        tracks.append({"name": "hand", "patch": "congas", "gain": "-7dB", "pan": 0.3, "sends": {"space": "-12dB"},
+                       "score": hand.score()})
     if R8:
         spec = {tr["name"]: tr for tr in tracks}
         for new, old in (("kick7", "kick"), ("hats7", "hats"), ("snare7", "skin"), ("glass7", "glass")):
