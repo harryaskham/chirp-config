@@ -304,8 +304,10 @@ def build():
         if s_ == 'fall' and i_ >= 14:
             continue
         P['pad'].append((bar * 4.0, ','.join(m(KEY + 12 + root_ + v) for v in voic), 7.9, 70))
-        if s_ == 'in':
+        if s_ == 'in' and i_ >= 8:
             # the in-seam keeps t1's floor: the same NES triangle holding each root, long, under the lensed E1
+            # (v21, agreed with chirper-zero: from bar 9 only - t1's own NES triangle holds D2 until then, and two of
+            # them on one note half a cycle apart cancelled each other in the crossfade)
             P['bass'].append((bar * 4.0, m(KEY + root_ + (12 if root_ < -3 else 0)), 7.6, 70 + 2 * i_))
         if s_ != 'in' or i_ >= 8:
             # (v17) agreed with chirper-zero: t1's tail has a D1 sine pedal under the whole overlap, so in the in-seam
@@ -455,6 +457,18 @@ def build():
                 P['hook'].append((at, m(KEY + 24 + semi), ln * 0.97, 100 if k == 0 else 88))
             at += ln
         t_ += 5.0
+    # (v21, whole song) THE CREST GETS ITS WORDS: t2's line - 'nearer each time it comes round', E1's own notes -
+    # was sung only once, alone, at the end of the break. Now it is the crest's chorus too: where E1 first turns the
+    # right way up and the light comes on (D Mixolydian, v18), the near voice sings it WITH the ondes (the same
+    # notes, the same octave), with a third above that the key gives (F# A C E B G over D A C G E: harmony_key, D
+    # Mixolydian, so the F# of the lit crest is in the harmony too), the first and third time the ondes plays it;
+    # the second time the ondes answers alone. Then the whispers remember it, and at the end of the break the voice
+    # finds it again, alone, softer: chorus -> memory -> the tune found
+    CS = json.load(open(os.path.join(HERE, 'chirpers9-t2-sung.json')))
+    csnotes = []
+    for b_ in (CREST * 4.0, CREST * 4.0 + 10.0):
+        for n_ in CS['tracks'][0]['notes']:
+            csnotes.append(dict(n_, at=round(b_ + n_['at'] - 0.25, 4)))
     P['e1p'] = [e_ for e_ in P['e1p'] if not (h0 - 1e-6 <= e_[0] < h1 - 1e-6)]
     t_ = h0
     while t_ < h1 - 1e-6:
@@ -571,6 +585,8 @@ def build():
             # in place of voice-legato pushed toward it
             {'name': 'ooh', 'patch': dict(OOH['tracks'][0]['patch'], extends='voice-backing synth.layers.0.harmony=[-2] synth.layers.0.harmony_key=D:dorian'),
              'notes': oohn, 'gain': '-17dB', 'pan': 0.0, 'sends': {'hall': '-8dB'}},
+            {'name': 'crestsung', 'patch': dict(dict(CS['tracks'][0]['patch'], extends='voice-near synth.layers.0.harmony=[2] synth.layers.0.harmony_key=D:mixolydian'), play={'glide_overshoot': 0.06}),
+             'notes': csnotes, 'gain': '-9dB', 'pan': 0.0, 'sends': {'echo': '-18dB', 'hall': '-12dB'}},
             {'name': 'sung', 'patch': SU['tracks'][0]['patch'],
              'notes': snotes, 'gain': '-11dB', 'pan': 0.05, 'sends': {'echo': '-16dB', 'hall': '-12dB'}},
         ]}
