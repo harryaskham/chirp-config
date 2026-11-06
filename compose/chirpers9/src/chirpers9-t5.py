@@ -42,6 +42,7 @@ E1_LEN = [0.5, 0.75, 0.25, 1.0, 1.5]
 E1_MIDI = [62, 69, 72, 67, 64]               # D4 A4 C5 G4 E4
 E5 = [(0, 69), (1, 68), (2, 69), (4, 76), (6, 69), (7, 68), (8, 69), (10, 74)]   # sixteenth, MIDI
 TONAL = os.environ.get("C9T5_TONAL", "1")   # WHOLE ROUND (Harry, 00:30: 'quite ugly chaos ... atonal, very tough listening; get musicality back and play with time and texture'): TONE IS HOME - E5 v2 drops its G# for G (A G A . E . A G A . D ., a hummable ostinato in D, the time idea kept whole), E4's second light becomes Bbmaj9 (no E against the Bb), and the GENDYN air (a noise cloud, buried anyway) is cut. D mixolydian with a borrowed bVI: every clash gone, the complexity left in the time (the 3-beat orbit, E2's seven, E1's stretto, the converging cycles)
+SEAMHEAD = os.environ.get("C9T5_SEAMHEAD", "hold,assemble")   # SECTION (w1, 0:00-0:34, the head = the t4 -> t5 overlap; flagged static; chirper-three 01:20: t4's fall holds D9 with F#, so my head's move to Bbmaj9 at bar 9 rubbed F against F#): THE ORBIT ASSEMBLES AS THE SEED DISASSEMBLES - the head's light holds D9 for all 16 bars ('hold'), and ('assemble') E5 builds itself hit by hit, one more every two cycles (A, then E, D, the A's, the G neighbours last), while t4's handpan E1 loses one note every two cycles down to its lone D: the two elements cross in the overlap, and E5 is whole as A begins
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -111,9 +112,18 @@ def orbit():
     """E5 on the NES pulse: quiet in the head, sixteenths in A, tightening in the build (the half-orbits become a trill
     for the last 8 bars), whole at the crest, stretched x2 in the outro."""
     ns = []
+    order = [0, 4, 10, 6, 2, 8, 1, 7]
+    k0 = None
     for c in cyc(ST["head"] + 4 * BAR, END["build"] - 8 * BAR, 3.0):
         v = ramp(c, ST["head"], END["build"], 0.3, 0.75)
+        if "assemble" in SEAMHEAD and c < ST["A"]:
+            k0 = c if k0 is None else k0
+            have = set(order[:1 + int((c - k0) // 6)])
+        else:
+            have = None
         for s, p in E5:
+            if have is not None and s not in have:
+                continue
             ns.append(note(c + s / 4, p, 0.22, v * (1.0 if s in (4, 10) else 0.8)))
     for c in cyc(END["build"] - 8 * BAR, ST["C"], 1.5):          # the trill: E5 diminished x2
         for s, p in E5:
@@ -171,7 +181,7 @@ def lights():
     of t4's tail), then the four-chord cycle every 40 beats."""
     ns = []
     for i, t in enumerate((0.0, 4 * BAR * 2)):
-        for p in E4[i % 2][1:]:
+        for p in E4[0 if SEAMHEAD else i % 2][1:]:
             ns.append(note(t, p, 8 * BAR, 0.55))
     for c in cyc(ST["A"], TOTAL - 4 * BAR, 4 * E4_LEN):
         for i, ch in enumerate(E4):
