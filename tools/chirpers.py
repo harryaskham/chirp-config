@@ -441,15 +441,30 @@ def seam_table(album_id, root=None):
     out = {}
     if os.path.exists(p):
         head = None
-        for ln in open(p):
-            cells = [c.strip() for c in ln.strip().strip("|").split("|")]
+        with open(p) as f:
+            lines = f.readlines()
+        for i, ln in enumerate(lines, 1):
+            # GFM: '\|' is a literal pipe inside a cell; a bare '|' always splits (chirper-two's t6>t7 row, 6 Nov)
+            cells = [c.strip().replace("\\|", "|") for c in re.split(r"(?<!\\)\|", ln.strip().strip("|"))]
             if len(cells) > 2 and cells[0].lower() == "seam":
                 head = [c.lower() for c in cells]
                 continue
             m = re.match(r"t(\d+)\s*->\s*t(\d+)", cells[0]) if cells else None
             if m and head:
+                if len(cells) != len(head):
+                    _warn_once(f"chirpers: {p}:{i}: seam {cells[0]} has {len(cells)} cells but the header has "
+                               f"{len(head)}, so its columns are shifted (a '|' inside a cell? write \\| or '/')")
                 out[(int(m.group(1)), int(m.group(2)))] = dict(zip(head, cells))
     return out
+
+
+_WARNED = set()
+
+
+def _warn_once(msg):
+    if msg not in _WARNED:
+        _WARNED.add(msg)
+        print(msg, file=sys.stderr)
 
 
 def _col(row, prefix):
