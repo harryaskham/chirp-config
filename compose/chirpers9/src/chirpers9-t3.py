@@ -159,6 +159,20 @@ R19 = os.environ.get("T3_R19", "arrive") != "none"
 # the last four bars (57-60) a second singer joins a third above in the key (harmony_key D minor). Own tracks.
 # T3_R20=none reproduces v19.
 R20 = os.environ.get("T3_R20", "doo") != "none"
+# round 21 (section, w11 = bars 121-128, the outfall into t4, flagged 'level jump'): T3_R21=open (default; =lift and
+# =third are the options described here) - THE THIRD LIFTS ON BOTH SIDES. At t4's bar 9 (our 121) chirper-three's pedal steel bends the storm's minor third up,
+# F -> F#, into E4's first light (D9) - but our residue and the held Dm(add9) kept singing F under it for the last
+# eight bars: a minor third against a major one, right where the album turns warm. Now (1) the residue pad's F5
+# lets go at bar 121 and an F#5 swells in over its four-second attack (the bend, on our side), and the held chord's
+# F becomes F#; (2) the rain comes back for its last drops, once a bar, fading: E2's cell with the lifted third -
+# D5 A4 F#5 C5, which are exactly the tones of t4's D9 - the storm's rain handing over to t4's first light.
+# T3_R21=none reproduces v20.
+# DEFAULT IS open: the storm LETS GO of its third at bar 121 (F out, no F#) and t4 brings the F#. =lift (F# on our
+# side + the rain's D9 drops) and =third (F# only) made our outro D major, which no longer answers the D-minor intro:
+# recurrence 96 -> 87 on s11. open: s11 96.71, flow 71.7 -> 74.3 (the out seam reads better).
+R21 = os.environ.get("T3_R21", "open") != "none"
+R21_DROPS = os.environ.get("T3_R21", "open") == "lift"
+R21_OPEN = os.environ.get("T3_R21", "open") == "open"          # let go of the third (no F#): t4 brings it
 DOO = {0: 62, 2: 69, 3: 65, 5: 60}
 PULL = (80, 84)
 CALL_BAR, FILL = 96, ((2.5, 74), (2.75, 72), (3.0, 69), (3.25, 67), (3.5, 65), (3.75, 62))
@@ -625,6 +639,17 @@ def build():
             for n, ln in E1:
                 T["glass7"].add(at, ln * 2 * 0.95, mtok(midi(n) + 12), 86)
                 at += ln * 2
+    if R21:                                                 # w11: the held chord's third lifts with t4 at bar 121
+        T["dust"].ev = [(e[0], e[1], ",".join(p for p in e[2].split(",") if not (p.startswith("m") and
+                                              int(float(p[1:])) % 12 == 5)) if R21_OPEN else
+                         ",".join(mtok(int(float(p[1:])) + 1) if p.startswith("m") and
+                                  int(float(p[1:])) % 12 == 5 else p for p in e[2].split(",")), e[3], e[4])
+                        if e[0] >= 120 * 4.0 and isinstance(e[2], str) else e for e in T["dust"].ev]
+        if "rain" in T and R21_DROPS:
+            for bar in range(120, 128):
+                for pos, m in RAIN_CELL:
+                    T["rain"].add(bar * 4.0 + pos / 4.0, 0.4, mtok(78 if m == 77 else m),
+                                  max(30, 74 - 6 * (bar - 120)) + (6 if pos == 0 else 0))
     if R18 and R8:                                          # w7: the old seven pulls once more (bars 81-84)
         lo, hi = PULL[0] * 4.0, PULL[1] * 4.0
         for k in ("kick", "snare", "hats"):
@@ -943,7 +968,12 @@ def main():
                                            "filters": ["hp cutoff=320", "lp cutoff=3200 q=0.4"],
                                            "amp": {"a": "4s", "d": "1s", "s": 0.9, "r": "4s"}}}
         res = Track("residue")
-        res.add(112 * 4.0, 16 * 4.0 - 0.2, ",".join(mtok(m) for m in (74, 77, 81, 88)), 78)
+        if R21:                                             # its third lets go at 121 and F# swells in (t4's bend)
+            res.add(112 * 4.0, 16 * 4.0 - 0.2, ",".join(mtok(m) for m in (74, 81, 88)), 78)
+            res.add(112 * 4.0, 8 * 4.0 - 0.2, mtok(77), 78)
+            res.add(120 * 4.0, 8 * 4.0 - 0.2, mtok(78), 1 if R21_OPEN else 74)
+        else:
+            res.add(112 * 4.0, 16 * 4.0 - 0.2, ",".join(mtok(m) for m in (74, 77, 81, 88)), 78)
         tracks.append({"name": "residue", "patch": "a3-residue", "gain": "-16dB", "pan": 0.0, "fx": ["chorus mix=0.3"],
                        "sends": {"space": "-6dB"}, "score": res.score()})
         if R10 and R7:
