@@ -107,6 +107,21 @@ if R5:
 E3_CREST = [("D2", 0.75), ("D2", 0.75), ("D3", 0.5), ("C2", 0.5), ("C2", 0.75), ("G1", 0.75), ("G1", 0.75),
             ("G1", 0.75), ("D2", 0.5), ("G2", 1.0)]
 E7_CREST = [("C3", 2), ("G3", 2), ("D4", 2), ("A4", 1), ("E5", 1), ("B5", 1), ("F#6", 2)]
+# round 6 (palette + the agreed seams): T7_R6=harmonic (default). PALETTE: the E1 stretto's bells were inharmonic
+# (vosim-bell, modal-bell: partials off the key - part of what Harry heard as atonal) -> dx-epiano (DX7 E.Piano 1, an
+# FM tine at 14:1, harmonic) for the x1 voice and scanned-mallet (a struck tone on a scanned ring that mellows, read
+# at pitch) for the x2-stretched voice; both unused on the album. And three agreed moves: E7 v2 (five rising fifths,
+# D A E B F# on 2 2 2 2 3 sixteenths - holds as a consonant D6/9, tops on the third); the head lands on Ebmaj7 (Eb G Bb
+# D, no #11) over t6's B-flat tail - V -> I, the album's one modulation at a seam; and the crest's tide IS E6 v3
+# (chirper-one: D(add9) | C(add9)/D, I and bVII of D Mixolydian, its 8-beat split moving 4+4 .. 7+1 .. 1+7).
+# T7_R6=none reproduces v5.
+R6 = os.environ.get("T7_R6", "harmonic") != "none"
+E7_V2 = [("D3", 2), ("A3", 2), ("E4", 2), ("B4", 2), ("F#5", 3)]
+EB_MAJ7 = (51, 55, 58, 62)
+E6V3_D, E6V3_C = (50, 57, 62, 64, 66), (50, 55, 60, 62, 64)                  # D(add9) | C(add9)/D
+if R6:
+    E7 = E7_V2
+    E7_CREST = E7_V2
 CREST_CHORDS = [((62, 66, 69, 76), 2.0), ((60, 64, 67, 74), 2.0), ((59, 62, 67, 69), 4.0)]   # D(add9) | C(add9) | G(add9)
 
 
@@ -296,7 +311,12 @@ def build():
                 ch = STORM_I if b % 2 == 0 else STORM_VI
             T["tide"].add(at, 0.9, ",".join(mtok(m) for m in ch), 66 if sec == "collision" else 72)
     T["tide"].add(80 * 4.0, 32.0 - 0.2, ",".join(mtok(m) for m in (STORM_I if R5 else E6_Y)), 80)  # the slack: frozen
-    for bar in range(CREST, 152, 2):
+    for i, bar in enumerate(range(CREST, 152, 2)):
+        if R6:                                                               # E6 v3: D | C/D, the split moving
+            split = [4, 5, 6, 7, 4, 3, 2, 1][i % 8]
+            T["tide"].add(bar * 4.0, split - 0.1, ",".join(mtok(m) for m in E6V3_D), 70)
+            T["tide"].add(bar * 4.0 + split, 8 - split - 0.1, ",".join(mtok(m) for m in E6V3_C), 66)
+            continue
         T["tide"].add(bar * 4.0, 7.8, ",".join(mtok(m) for m in E6_X), 70)        # resolved: D only
 
     # ---- the bytebeat underneath the collision: one held note per bar lets the formula unfold -----------------------
@@ -334,8 +354,8 @@ def build():
             T["ghost"].add((c + h) / 4.0, 0.12, "rs" if h == 0 else "sn", v - 40)
 
     # ---- the infall: t6's Eb taken up, its tide lensed; the outfall thins to the E --------------------------------
-    T["tide"].add(0.0, 32.0 - 0.2, ",".join(mtok(m) for m in E6_Y), 70)
-    T["tide"].add(32.0, 32.0 - 0.2, ",".join(mtok(m) for m in E6_Y), 74)
+    T["tide"].add(0.0, 32.0 - 0.2, ",".join(mtok(m) for m in (EB_MAJ7 if R6 else E6_Y)), 70)
+    T["tide"].add(32.0, 32.0 - 0.2, ",".join(mtok(m) for m in (EB_MAJ7 if R6 else E6_Y)), 74)
     for c in cycle_starts(7, 4 * 16, 16 * 16):
         for h, (_, v) in E2_HITS.items():
             if rng.random() < 0.55:
@@ -539,6 +559,19 @@ def main():
     if R2:
         tracks.append({"name": "vocoder", "patch": "a7-vocoder-voice", "gain": "3dB", "pan": 0.0, "fx": vfx,
                        "sends": {"space": "-8dB"}, "notes": vnotes})
+    if R6:
+        for tr in tracks:
+            if tr["name"] in ("e1a", "e1aw"):
+                tr["patch"] = "dx-epiano"
+            if tr["name"] in ("e1c", "e1cw"):
+                tr["patch"] = "scanned-mallet"
+        # the tail keeps the modal bell (from the plunge on: its hum carries the seam's 60-100 Hz, and its E is the handover)
+        tail = Track("e1ctail")
+        tail.ev = [e for e in T["e1c"].ev if e[0] >= 152 * 4.0]
+        T["e1c"].ev = [e for e in T["e1c"].ev if e[0] < 152 * 4.0]
+        spec = {tr["name"]: tr for tr in tracks}
+        spec["e1c"]["score"] = T["e1c"].score()
+        tracks.append(dict(spec["e1c"], name="e1ctail", patch="modal-bell", score=tail.score()))
     if R5:
         hook = Track("hook")
         rests = [(124 * 4.0, 124 * 4.0 + 6), (128 * 4.0, 136 * 4.0), (140 * 4.0, 140 * 4.0 + 6), (148 * 4.0, 148 * 4.0 + 6)]
