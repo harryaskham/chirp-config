@@ -492,6 +492,18 @@ def build():
     # ondes answering alone between - with its third above now in D Dorian (the drift is Dorian again: F, C, E, B, G
     # over D A C G E), each time a little louder, the last landing on the fall. The voice's arc is now: chorus at the
     # crest -> whispered memory -> found alone at the end of the break -> the last chorus, home
+    # (v26, whole song) A VERSE BEFORE THE CHORUS: Harry loved the crest's words; but nobody sang until 2:06. Now the
+    # near voice sings a verse in the gather, alone (no harmony: the chorus keeps that), on E2's own notes - the
+    # debris's D A F C - 'all that falls / falls a little nearer', twice (bars 21-22 and 25-26), so the crest's
+    # 'nearer each time it comes round' answers it: verse -> chorus, the song shape Harry's ear wants under the process
+    V1 = json.load(open(os.path.join(HERE, 'chirpers9-t2-verse1.json')))
+    V2 = json.load(open(os.path.join(HERE, 'chirpers9-t2-verse2.json')))
+    vsnotes = []
+    for b_ in (80.0, 96.0):
+        for n_ in V1['tracks'][0]['notes']:
+            vsnotes.append(dict(n_, at=round(b_ + n_['at'] - 0.25, 4)))
+        for n_ in V2['tracks'][0]['notes']:
+            vsnotes.append(dict(n_, at=round(b_ + 4.0 + n_['at'] - 0.25, 4)))
     dsnotes = []
     for k_, b_ in enumerate((346.0, 356.0, 366.0, 376.0)):
         for n_ in CS['tracks'][0]['notes']:
@@ -632,6 +644,8 @@ def build():
              'notes': oohn, 'gain': '-17dB', 'pan': 0.0, 'sends': {'hall': '-8dB'}},
             {'name': 'oohin', 'patch': dict(dict(OOH['tracks'][0]['patch'], extends='voice-backing synth.layers.0.harmony=[4] synth.layers.0.harmony_key=D:dorian'), play={'scoop': 1}),
              'notes': oohin, 'gain': '-15dB', 'pan': 0.0, 'sends': {'hall': '-7dB'}},
+            {'name': 'verse', 'patch': dict(V1['tracks'][0]['patch'], play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
+             'notes': vsnotes, 'gain': '-13dB', 'pan': -0.05, 'sends': {'echo': '-16dB', 'hall': '-12dB'}},
             {'name': 'driftsung', 'patch': dict(dict(CS['tracks'][0]['patch'], extends='voice-near synth.layers.0.harmony=[2] synth.layers.0.harmony_key=D:dorian'), play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
              'notes': dsnotes, 'gain': '-9dB', 'pan': 0.0, 'sends': {'echo': '-18dB', 'hall': '-12dB'}},
             {'name': 'crestsung', 'patch': dict(dict(CS['tracks'][0]['patch'], extends='voice-near synth.layers.0.harmony=[2] synth.layers.0.harmony_key=D:mixolydian'), play={'glide_overshoot': 0.06}),
