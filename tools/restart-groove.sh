@@ -79,7 +79,10 @@ fi
 # Claim the sink: any other chirp stream on it refuses (naming the groove) unless --takeover, so stray playback
 # can't double Harry's audio. Guarded: older binaries reject the flag.
 excl=(); "$C" --help 2>/dev/null | grep -q -- --exclusive && excl=(--exclusive)
-launch chirp-groove "PULSE_LATENCY_MSEC=${CHIRP_PULSE_LATENCY_MSEC:-2000} exec env -u PULSE_SERVER $(printf '%q ' "$C" --loop "${excl[@]}" --id groove -o "$out" "${src_args[@]}")> $(printf '%q' "${TMPDIR:-/tmp}/chirp-groove.log") 2>&1 < /dev/null"
+# Render pool: 4 threads, not one per core. Every dependency level of every chunk waits for its slowest worker, so on a
+# busy 24-core host a 24-worker pool spins and stalls (wM, 6 Nov: t6 40 s of audio in 21-34 s wall / 66-70 s CPU at 24
+# threads vs 14-16 s / 20-22 s at 4, md5-identical; the hand-over underrun bursts). CHIRP_GROOVE_THREADS overrides.
+launch chirp-groove "PULSE_LATENCY_MSEC=${CHIRP_PULSE_LATENCY_MSEC:-2000} RAYON_NUM_THREADS=${CHIRP_GROOVE_THREADS:-4} exec env -u PULSE_SERVER $(printf '%q ' "$C" --loop "${excl[@]}" --id groove -o "$out" "${src_args[@]}")> $(printf '%q' "${TMPDIR:-/tmp}/chirp-groove.log") 2>&1 < /dev/null"
 sleep 1.2
 if [ -n "${2:-}" ]; then "$C" live set --id groove --when bar --xfade 150ms "tracks.arrangement.score=$2" | tail -1; fi
 # the evolver only drives live-suite; any other song (a benchmark reproduction) plays as written
