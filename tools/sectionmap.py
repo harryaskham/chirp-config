@@ -15,6 +15,11 @@ song improvements might miss the smaller changes that make a song feel handcraft
 Windows are whole bars on the song's own tempo map (beats, so they stay put when the audio changes), about WINDOW
 seconds each; a short last window joins the one before. Without --wav the song is rendered with the groove's pin
 (seed 0, idle CPU priority). The numbers are a flashlight for where to look, not a score to climb.
+
+Reading the flags: "static" and "little new vs wN" are relative to the song's own quartiles, so about a quarter of
+every song's windows carry them, however good it is. "little new vs wN" only says the window continues the one before.
+A sung return (the chorus or hook coming back, a crest's later lines) is MEANT to repeat; hear it before rewriting.
+chirper-three, t4 v24 (6 Nov): rewriting a flagged chorus return cost recurrence 96.2 -> 91.7 and the round was refused.
 """
 import argparse
 import json
