@@ -344,6 +344,33 @@ def build():
         if s_ in ('squeeze', 'cross', 'surge', 'torn') and rng.random() < 0.5:
             P['hats'].append((b0 + 3.5, 'g', 0.2, 50))
 
+    # (v23, section w2: the pull 'little new vs w1' - the kit and the sequencer arrived whole at bar 23, halfway through
+    # it) THE PULL GATHERS THE BAND: E2's cell is assembled one hit at a time across the pull, on its own seven-
+    # sixteenth grid from the pull's first bar: bars 17-20 the kick alone (every seven sixteenths, drifting against
+    # the bar - the undertow you feel before you hear a groove), 21-24 the rim joins (and the sequencer's root
+    # pulse), 25-28 the snare (and the sequencer's whole cell), 29-32 the whole cell - so the groove the rest of the
+    # song rides on is BUILT in front of the listener, the way the tide builds the chord
+    pl_a, pl_b = SEC['pull'] * 4.0, (SEC['pull'] + 16) * 4.0
+    P['kit'] = [e_ for e_ in P['kit'] if not (pl_a - 1e-6 <= e_[0] < pl_b - 1e-6)]
+    P['acid'] = [e_ for e_ in P['acid'] if not (pl_a - 1e-6 <= e_[0] < pl_b - 1e-6)]
+    t = e2_start - 1.75 * int((e2_start - pl_a) // 1.75)
+    while t < pl_b - 1e-6:
+        i_ = int(t // 4) - SEC['pull']
+        hits_ = (0,) if i_ < 4 else ((0, 5) if i_ < 8 else ((0, 3, 5) if i_ < 12 else (0, 2, 3, 5)))
+        seq_ = () if i_ < 4 else ((0,) if i_ < 8 else (0, 2, 3, 5))
+        for st, pc, v in ((0, 'k', 116), (2, 'rs', 70), (3, 's', 104), (5, 'rs', 64)):
+            at = t + st * 0.25
+            if at >= pl_b - 1e-6:
+                continue
+            if st in hits_:
+                P['kit'].append((at, pc, 0.2, v - (10 if i_ < 4 else 0)))
+            if st in seq_:
+                rt = tide_root(at)
+                pm_ = E2_ON.get(rt, E2_PITCH)
+                P['acid'].append((at, m(KEY + rt + pm_[st] + (12 if rt + pm_[st] < 0 else 0)), 0.22 if st != 3 else 0.4, 110 if st == 0 else 84))
+        t += 1.75
+    P['kit'].sort(key=lambda e_: e_[0]); P['acid'].sort(key=lambda e_: e_[0])
+
     # (v19, section w4: the squeeze's first half 'static' - the cell of seven ran on as in the tide) THE SQUEEZE
     # SQUEEZES: for the squeeze's first eight bars E2's cell - on the kit and on the sequencer - loses its rests:
     # seven sixteenths a turn become six (bars 49-52), then five (53-56, the last hit falling away), so the cell
