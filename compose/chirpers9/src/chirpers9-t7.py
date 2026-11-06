@@ -183,6 +183,15 @@ SUNGC_BARS = (130, 134)
 # storm's E-flat minor resolves (bar 17: D -> Eb, the leading tone). The Eb1 floor stays as a pedal. Old holds
 # silenced (velocity 1), the progression on its own track. T7_R14=none reproduces v13.
 R14 = os.environ.get("T7_R14", "wheel") != "none"
+# round 15 (section, w9 = bars 129-144, the tidal lock - flagged 'static, little new vs w8'): T7_R15=bow (default) -
+# A BOWED VOICE AGAINST THE SINGER. (1) NEW: an erhu (a bowed two-string fiddle - a singing tone, bow hair, long
+# portamento; no other Accretion track has it) answers the singer in the half-time lock: one long bowed note a
+# phrase, A4 - G4 - F#4 - E4, sliding home to D4 at the rebuild - falling while she rises (contrary motion); then in the
+# rebuild it takes E1 itself, stretched x2 (D4 A4 C5 G4 E4), and holds A4 up through the snare rush. (2) The singer's
+# second statement (bar 135) harmonised a THIRD above in the mode (wM's harmony_key, now pinned: [2] in D
+# Mixolydian) instead of a fixed fifth - sweeter, every note in key. T7_R15=none reproduces v14.
+R15 = os.environ.get("T7_R15", "bow") != "none"
+BOW_LINE = [(128, 69, 7.6), (130, 67, 7.6), (132, 66, 7.6), (134, 64, 7.8), (136, 62, 7.5)]
 HEAD_WHEEL = [(0, (51, 55, 58, 62)), (4, (48, 51, 55, 58, 62)), (8, (44, 51, 55, 58, 60)), (12, (46, 51, 53, 58)),
               (14, (46, 50, 53, 56))]
 W5_PROG = [(39, (51, 54, 58, 65)), (35, (47, 51, 54, 58)), (42, (54, 58, 61, 68)), (37, (49, 53, 56, 63))]
@@ -708,7 +717,8 @@ def main():
         base = ("voice-legato synth.layers.0.tract=1.06 synth.layers.0.ring=0.4 synth.layers.0.breath=0.2 "
                 "synth.layers.0.even=1")
         patches["a7-sungc"] = dict(cs["patch"], extends=base)
-        patches["a7-sungc5"] = dict(cs["patch"], extends=base + " synth.layers.0.harmony=[7]")
+        patches["a7-sungc5"] = dict(cs["patch"], extends=base + (" synth.layers.0.harmony=[2] synth.layers.0.harmony_key=D:mixolydian"
+                                                                  if R15 else " synth.layers.0.harmony=[7]"))
         for name, bar, patch in (("sungc", SUNGC_BARS[0], "a7-sungc"), ("sungc5", SUNGC_BARS[1], "a7-sungc5")):
             nn = []
             for n in cs["notes"]:
@@ -770,6 +780,19 @@ def main():
     if R14:
         spec = {tr["name"]: tr for tr in tracks}
         tracks.append(dict(spec["tide"], name="tide1", score=T["tide1"].score()))
+    if R15:
+        bow = Track("bow")
+        for bar, m, ln in BOW_LINE:
+            bow.add(bar * 4.0, ln, mtok(m), 84 + (bar - 128))
+        at = 138 * 4.0
+        for _ in range(2):                                                    # E1 stretched x2, twice
+            for nt, ln in E1:
+                if at < 141 * 4.0:
+                    bow.add(at, ln * 2 * 0.97, mtok(midi(nt)), 90)
+                at += ln * 2
+        bow.add(141 * 4.0, 12.0 - 0.3, mtok(69), 98)                          # A4 up through the rush
+        tracks.append({"name": "bow", "patch": "erhu", "gain": "-6dB", "pan": -0.15,
+                       "fx": ["delay time=3/8 mix=0.12 feedback=0.25"], "sends": {"space": "-6dB"}, "score": bow.score()})
     if R12:
         spec = {tr["name"]: tr for tr in tracks}
         for new, old in (("kickh", "kick"), ("snareh", "snare"), ("hatsh", "hats")):
