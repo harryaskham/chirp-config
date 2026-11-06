@@ -106,6 +106,20 @@ R12 = os.environ.get("T3_R12", "voices") != "none"
 # undertow, the bass and its floor come up 2 dB each (the album envelope had 44-97 Hz 8-12 dB light). T3_R13=none
 # reproduces v12.
 R13 = os.environ.get("T3_R13", "clean") != "none"
+# round 14 (palette): T3_R14=boc (default; =air adds the shaker) - A WARM HIGH VOICE (AND, OPTIONALLY, SOME AIR). (1) The E1 line two octaves up (e1hi, the
+# hook's top double from the crest on) was a ring-modulated pulse at -21 dB - presence -25 at the crest, unheard.
+# It moves to boc-lead (a detuned saw + sine pair drifting in pitch, low-passed, chorused, tape-worn: the
+# hauntological lead; no other Accretion track has it) at -12 dB: the seed's top line sung by a wobbly, nostalgic
+# synth over the crest. (2) NEW PART - air: tight-kit's shaker in sixteenths through the front and the eyewall (bars
+# 17-40 - the front; in the eyewall too it cost recurrence 2.4), accented on E2's seven-cycle (hits 0 2 3 5 of seven, like the congas below it). The
+# storm's top end had been the crush's aliasing (v13 eased it; the front fell 14 dB under t2's body at 9 kHz) - now
+# it is a played texture. (A tambourine on two and four over the crest brightened the out-seam body against t4:
+# cut.) T3_R14=none reproduces v13.
+# DEFAULT IS boc: the shaker (T3_R14=air) helped the in-seam flow +1.9 but cost recurrence 1.9 (s0) / 5.8 (s11) -
+# the storm's sections stopped returning to each other - so it is kept only as an option.
+R14 = os.environ.get("T3_R14", "boc") != "none"
+R14_AIR = os.environ.get("T3_R14", "boc") in ("air", "shaker")
+R14_BOC = os.environ.get("T3_R14", "boc") in ("air", "boc")
 # round 8 (section, w5 = bars 49-60, the eyewall's first half, flagged 'little new'): T3_R8=seven (default) - TIME,
 # NOT NOISE. The storm's random Euclid drums give way for 12 bars to ONE groove in sevens: E2's cell (hits 0 2 3 5 of
 # 7 sixteenths) as kick / hat / snare / hat, cycling across the bar line - a cross-rhythm you can follow - and over it
@@ -770,6 +784,22 @@ def main():
                 last.append(d)
             tracks.append({"name": "humlast", "patch": "a3-sung", "gain": "-9dB", "pan": 0.2,
                            "fx": ["delay time=3/8 mix=0.35 feedback=0.45"], "sends": {"space": "0dB"}, "notes": last})
+    if R14:
+        for tr in tracks:
+            if tr["name"] == "e1hi" and R14_BOC:
+                tr["patch"], tr["gain"] = "boc-lead", "-6dB"
+                tr.get("auto", {}).pop("ring", None)
+        air = Track("air")
+        for bar in (range(16, 40) if R14_AIR else ()):
+            if EYE[0] <= bar < EYE[1]:
+                continue
+            for s in range(16):
+                g = bar * 16 + s
+                acc = (g % 7) in (0, 2, 3, 5)
+                air.add(g / 4.0, 0.1, "shk", 72 if acc else 44)
+        if R14_AIR:
+            tracks.append({"name": "air", "patch": "tight-kit", "gain": "-5dB", "pan": 0.25, "sends": {"space": "-12dB"},
+                       "score": air.score()})
     if R13:
         for tr in tracks:
             if tr["name"] in ("bass", "floor"):
