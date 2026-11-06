@@ -181,6 +181,14 @@ R21 = os.environ.get("T3_R21", "open") != "none"
 # DEFAULT IS breath (the overshoot only). =grit adds the sub-saturated floor: even at -25 dB it cost recurrence
 # (s0 89.7 -> 87.6, s11 -> 86.0; the floor's harmonics make the storm's sections read less alike) - kept as an option.
 R22 = os.environ.get("T3_R22", "breath") != "none"
+# round 23 (section, w3 = bars 25-36, the front's middle, flagged 'static'): T3_R23=gather (default) - THE FRONT
+# GATHERS. Changing what is there rather than adding (the front's recurrence breaks under new rhythmic layers, v16):
+# (1) the distant hum of E1 ("oo", bars 25 and 33) is now SUNG - wM's scoop rises into each phrase and its fall lets
+# it go (scoop 1, fall 2, a3-hum); (2) the second hum (33) is a duet, a third above in the key (harmony_key D minor);
+# (3) for bars 33-36 the three arpeggiators climb an octave, so the front brightens and gathers toward the plain hook
+# at bar 41 instead of idling. The old hum notes stay (velocity) so later notes keep their randomness.
+# T3_R23=none reproduces v22.
+R23 = os.environ.get("T3_R23", "gather") != "none"
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
 R21_DROPS = os.environ.get("T3_R21", "open") == "lift"
 R21_OPEN = os.environ.get("T3_R21", "open") == "open"          # let go of the third (no F#): t4 brings it
@@ -650,6 +658,11 @@ def build():
             for n, ln in E1:
                 T["glass7"].add(at, ln * 2 * 0.95, mtok(midi(n) + 12), 86)
                 at += ln * 2
+    if R23:                                                 # w3: the arps climb an octave for bars 33-36
+        for k in ("arp0", "arp1", "arp2"):
+            T[k].ev = [(e[0], e[1], ",".join(mtok(int(float(p[1:])) + 12) if p.startswith("m") else p
+                                              for p in e[2].split(",")), e[3], e[4])
+                       if 32 * 4.0 <= e[0] < 36 * 4.0 and isinstance(e[2], str) else e for e in T[k].ev]
     if R21:                                                 # w11: the held chord's third lifts with t4 at bar 121
         T["dust"].ev = [(e[0], e[1], ",".join(p for p in e[2].split(",") if not (p.startswith("m") and
                                               int(float(p[1:])) % 12 == 5)) if R21_OPEN else
@@ -1031,6 +1044,19 @@ def main():
         for k in ("a3-sung", "a3-duet"):
             if k in patches:
                 patches[k] = dict(patches[k], extends=patches[k]["extends"] + " play.glide_overshoot=0.07")
+    if R23 and "a3-sung" in patches:                        # w3: the hum sung (scoop/fall), the second a duet
+        base = patches["a3-sung"]["extends"]
+        patches["a3-hum"] = dict(patches["a3-sung"], extends=base + " play.scoop=1 play.fall=2")
+        patches["a3-hum3"] = dict(patches["a3-sung"], extends=base + " synth.layers.0.harmony=[2] "
+                                                                     "synth.layers.0.harmony_key=D:minor play.scoop=1 play.fall=2")
+        for tr in tracks:
+            if tr["name"] == "hum":
+                cut = HUM_BARS[1] * 4.0 - 0.5
+                second = [dict(n) for n in tr["notes"] if n["at"] >= cut]
+                tr["notes"] = [dict(n, vel=0.001) if n["at"] >= cut else n for n in tr["notes"]]
+                tr["patch"] = "a3-hum"
+                tracks.append(dict(tr, name="hum3", patch="a3-hum3", notes=second))
+                break
     master = {"fx": [{"type": "eq", "bands": ["hp cutoff=25", "peak cutoff=100 gain=3dB q=1.0",
                                               "peak cutoff=320 gain=-2dB q=0.8",
                                               "highshelf cutoff=8000 gain=2dB"]},
