@@ -127,6 +127,22 @@ R14 = os.environ.get("T3_R14", "boc") != "none"
 # over F, its G E over C. T3_R15=none reproduces v14.
 R15 = os.environ.get("T3_R15", "open") != "none"
 OPEN_BARS = (100, 108)
+# round 16 (section, w3 = bars 25-36, the front's middle, flagged 'static', never focused): T3_R16=rainonly (default;
+# =rain adds the held breath) -
+# RAIN ON THE GLASS, AND A HELD BREATH. (1) NEW: a nylon string (ks-nylon - wM's Karplus-Strong pluck; no other
+# Accretion track has it) plays E2 in its own pitches - D5 A4 F5 C5 on hits 0 2 3 5 of seven sixteenths, cycling
+# across the bar line with the congas below it (the hands' cell gets its notes), swelling over the twelve bars, a
+# 3/16 echo behind it like rain on a window. (2) The storm holds its breath: the last two beats of bar 32 drop the
+# kit and the undertow - only the rain, the hum and the pads - and the storm lands again with the hum's second "oo"
+# at bar 33. The rain returns at the lock's assembly (bars 73-88) in EIGHTS, like the congas (the seven takes one more
+# sixteenth): the front's texture comes back as the storm's arithmetic resolving. Old notes silenced (velocity 1), the
+# rain on its own track. T3_R16=none reproduces v15.
+# DEFAULT IS rainonly: the held breath (=rain or =breath) cut recurrence 96.4 -> 91 (the 2-beat stop splits the front
+# into a section of its own that never returns) - kept as an option.
+R16 = os.environ.get("T3_R16", "rainonly") != "none"
+R16_RAIN = os.environ.get("T3_R16", "rainonly") in ("rain", "rainonly")
+R16_BREATH = os.environ.get("T3_R16", "rainonly") in ("rain", "breath")
+RAIN_CELL = ((0, 74), (2, 69), (3, 77), (5, 72))                       # E2: D A F C, up an octave+
 R14_AIR = os.environ.get("T3_R14", "boc") in ("air", "shaker")
 R14_BOC = os.environ.get("T3_R14", "boc") in ("air", "boc")
 # round 8 (section, w5 = bars 49-60, the eyewall's first half, flagged 'little new'): T3_R8=seven (default) - TIME,
@@ -521,6 +537,22 @@ def build():
         steps = ["D5", "E5" if R6 else "Eb5", "F5", "G5", "A5", "Bb5", "C6"]  # (R4 count)
         for bar in range(72, 86):
             T["tick"].add(bar * 4.0, 0.9, mtok(midi(steps[(bar - 72) // 2])), 84 + 2 * (bar - 72) + (12 if bar in hits else 0))
+    if R16:                                                 # w3: rain, and a held breath before bar 33
+        T["rain"] = Track("rain")
+        for c in (range(24 * 16, 36 * 16, 7) if R16_RAIN else ()):
+            for pos, m in RAIN_CELL:
+                g = c + pos
+                if g < 36 * 16:
+                    T["rain"].add(g / 4.0, 0.4, mtok(m), 58 + int(30 * (g - 24 * 16) / (12 * 16)) + (6 if pos == 0 else 0))
+        # ... and it returns where the cycles lock (bars 73-88): like the congas, the seven takes one more sixteenth
+        # and the rain falls on the bar - the front's texture comes back as part of the arithmetic, not a one-off
+        for c in (range(72 * 16, 88 * 16, 8) if R16_RAIN else ()):
+            for pos, m in RAIN_CELL:
+                T["rain"].add((c + pos) / 4.0, 0.4, mtok(m), 66 + int(16 * (c - 72 * 16) / (16 * 16)) + (6 if pos == 0 else 0))
+        lo, hi = (31 * 4.0 + 2.0, 32 * 4.0) if R16_BREATH else (0.0, 0.0)
+        for k in ("kick", "snare", "hats", "perc", "chipsn", "chiphat", "bass", "floor", "sub"):
+            if k in T:
+                T[k].ev = [(e[0], e[1], e[2], 1, e[4]) if lo <= e[0] < hi else e for e in T[k].ev]
     if R15:                                                 # the crest's answer: Dm | Bb | F | C
         lo, hi = OPEN_BARS[0] * 4.0, OPEN_BARS[1] * 4.0
 
@@ -813,6 +845,9 @@ def main():
                 last.append(d)
             tracks.append({"name": "humlast", "patch": "a3-sung", "gain": "-9dB", "pan": 0.2,
                            "fx": ["delay time=3/8 mix=0.35 feedback=0.45"], "sends": {"space": "0dB"}, "notes": last})
+    if R16 and R16_RAIN:
+        tracks.append({"name": "rain", "patch": "ks-nylon", "gain": "-14dB", "pan": -0.3,
+                       "fx": ["delay time=3/16 mix=0.25 feedback=0.35"], "sends": {"space": "-8dB"}, "score": T["rain"].score()})
     if R14:
         for tr in tracks:
             if tr["name"] == "e1hi" and R14_BOC:
