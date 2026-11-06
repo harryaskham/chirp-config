@@ -177,7 +177,9 @@ def build():
             for (root, voic), ln, at in ((pair_[0], x, t), (pair_[1], 8 - x, t + x)):
                 if ln <= 0:
                     continue
-                P['tide'].append((at, ','.join(m(KEY + 12 + root + v) for v in voic), ln - 0.05, 74 if root == 0 else 80))
+                # (v14) and the tide's chord gets a low fifth under it (A2 under D, G2 under C, F2 under B-flat): the
+                # warmth at 100-130 Hz compscore found missing (its one spectrum fault, 114 Hz, -14 dB)
+                P['tide'].append((at, ','.join([m(KEY + root + 7)] + [m(KEY + 12 + root + v) for v in voic]), ln - 0.05, 74 if root == 0 else 80))
                 # the sub holds the D pedal under D and C; under B-flat it moves
                 P['sub'].append((at, m(KEY - 12 + (root + 12 if root == -4 else 0)), ln - 0.05, 92))
                 # (v6) and a second, warmer floor an octave up follows the chord's own root - D2, C2, B-flat 1 - so the
@@ -336,6 +338,17 @@ def build():
     for b_, g_ in ((6, 1.0), (10, 0.8)):
         for n_ in AN['tracks'][0]['notes']:
             snotes.append(dict(n_, at=round(b_ * 4.0 + n_['at'], 4), vel=round(n_['vel'] * g_, 3)))
+    # (v14, whole song) THE CHORUS: the words were sung only before the crest. Now, at the crest itself (the
+    # convergence, lifted a tone into E), a CHOIR sings them with the whistle - both times the hook is stated there
+    # (bars 65 and 73) - the line on E1 lifted (E B D A F#, E), with a third above in E Mixolydian (wM's harmony_key:
+    # the third the key has, note by note - G#, D, F#, C#, A), five singers, modest detune, doubled by the low
+    # whistle playing the same tune. The hook with its words becomes the song's chorus: answered in the in-seam,
+    # spoken in the tide, sung before the crest, sung by everyone at the crest, a last word at the out-seam
+    CHO = json.load(open(os.path.join(HERE, 'chirpers9-t6-chorus.json')))
+    cnotes = []
+    for b_ in (SEC['crest'], SEC['crest'] + 8):
+        for n_ in CHO['tracks'][0]['notes']:
+            cnotes.append(dict(n_, at=round(b_ * 4.0 + n_['at'] - 0.245, 4)))
     # (v12) and the old voice has the last word: alone, over the ebb, it sings the second half of its line once more
     # - 'the far side lets it go' - timed so 'go' (D3, held) lands on the bar where B-flat stands alone: D is B-flat's
     # third, and when t7's Eb major 7 arrives over it, its seventh
@@ -454,9 +467,12 @@ def build():
             tr('e5b', 'kora', '-11dB', pan=0.35, sends={'hall': '-16dB'}, fx=[{'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}]),
             dict({k: v for k, v in vtr.items() if k != 'notes'}, name='voice', notes=vnotes, gain='-6dB', pan=-0.05,
                  sends={'hall': '-14dB'}),
+            {'name': 'chorus', 'patch': dict(CHO['tracks'][0]['patch'], extends='voice-choir synth.layers.0.harmony=[2] synth.layers.0.harmony_key=E:mixolydian'),
+             'notes': cnotes, 'gain': '-9dB', 'pan': 0.0, 'sends': {'hall': '-9dB'}},
             {'name': 'sung', 'patch': SU['tracks'][0]['patch'],
              'notes': sorted(snotes, key=lambda n_: n_['at']), 'gain': '-7dB', 'pan': 0.0, 'sends': {'hall': '-12dB', 'echo': '-22dB'}},
-            {'name': 'sung2', 'patch': dict(SU['tracks'][0]['patch'], extends='voice-old synth.layers.0.harmony=[-5]'),
+            # (v14) the second pass's company now sings a THIRD below in D Mixolydian (harmony_key), not a fixed fourth
+            {'name': 'sung2', 'patch': dict(SU['tracks'][0]['patch'], extends='voice-old synth.layers.0.harmony=[-2] synth.layers.0.harmony_key=D:mixolydian'),
              'notes': snotes2, 'gain': '-8dB', 'pan': 0.0, 'sends': {'hall': '-12dB', 'echo': '-22dB'}},
         ]}
     return song
