@@ -361,13 +361,20 @@ def build():
     # level range compscore's variety reads, and what a listener hears as 'always the same weight'). Now an energy
     # lane on the master shapes the song: the in-seam and the gather low and gathering, the build climbing, the crest
     # on top, the break FALLING AWAY (4 dB under the crest's neighbours), the drift rising back, the fall sinking out
-    EN = {'in': (-3.0, -2.5), 'gather': (-2.5, -1.0), 'build': (-1.0, 1.0), 'crest': (1.5, 1.0), 'break': (-4.0, -3.0),
+    # (v20, agreed with chirper-zero: t1's body is the louder side of our seam, 8.7 dB over the gather) the gather
+    # lifted 2.5 dB - t1 takes the end of its lock down ~2 dB to meet it
+    EN = {'in': (-3.0, -1.5), 'gather': (0.0, 1.0), 'build': (-1.0, 1.0), 'crest': (1.5, 1.0), 'break': (-4.0, -3.0),
           'drift': (-1.5, 0.5), 'fall': (0.0, -3.0)}
     energy_pts = []
     for b_ in range(NBARS):
         s_, i_ = sec_of(b_)
         a_, z_ = EN[s_]
         energy_pts.append([f'{b_ * 4.0:.1f}b', round(a_ + (z_ - a_) * i_ / 15.0, 2)])
+    # (v20, section w4: the build 'static, little new vs w3' - one texture climbing for twelve bars) THE DARK BEFORE
+    # THE LIGHT: at bar 37, where the bass starts its climb, the whole band drops behind a low-pass (about 3 kHz) and
+    # then opens, bar by bar, to full brightness exactly as the crest arrives - so the crest's change of mode (v18,
+    # D Dorian -> D Mixolydian, 'the light comes on') is prepared by twelve bars of the light being held back
+    open_pts = [['0b', 1.0], [f'{36 * 4.0 - 0.05:.2f}b', 1.0], [f'{36 * 4.0:.1f}b', 0.4], [f'{CREST * 4.0:.1f}b', 1.0]]
     tempo = [{'at': '0b', 'bpm': 90.0}, {'at': f'{SEC["gather"] * 4.0:.1f}b', 'bpm': 90.0},
              {'at': f'{fall0:.1f}b', 'bpm': 98.0, 'ramp': True}]
 
@@ -519,7 +526,8 @@ def build():
         'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=28', 'peak cutoff=300 q=0.8 gain=-2dB', 'highshelf cutoff=7000 gain=2dB', 'highshelf cutoff=11000 gain=3dB']},
                           {'type': 'compressor', 'threshold': '-18dB', 'ratio': 2.0, 'attack': '20ms', 'release': '160ms', 'makeup': '1dB'},
                           {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.E', 'amount': 1}]}},
-                          'limiter ceiling=-1dB'], 'auto': {'E': {'points': energy_pts}}},
+                          {'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 1200, 'mod': [{'src': 'auto.open', 'amount': 4.0}]}},
+                          'limiter ceiling=-1dB'], 'auto': {'E': {'points': energy_pts}, 'open': {'points': open_pts}}},
         'tracks': [
             tr('pad', PAD, '-15dB', auto={'lock': {'points': lock_pts}, 'shut': {'points': shut_pts}},
                fx=[{'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 600, 'mod': [{'src': 'auto.shut', 'amount': 3.5}]}}],
