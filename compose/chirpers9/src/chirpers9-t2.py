@@ -357,6 +357,17 @@ def build():
     # E1's lens in the in-seam: opening from dark
     lens_pts = [['0b', 0.0], ['32.0b', 1.0]]
 
+    # (v19, whole song) DYNAMICS, AIR AND A LIGHTER FLOOR: every section of t2 sat within 3 dB of every other (the
+    # level range compscore's variety reads, and what a listener hears as 'always the same weight'). Now an energy
+    # lane on the master shapes the song: the in-seam and the gather low and gathering, the build climbing, the crest
+    # on top, the break FALLING AWAY (4 dB under the crest's neighbours), the drift rising back, the fall sinking out
+    EN = {'in': (-3.0, -2.5), 'gather': (-2.5, -1.0), 'build': (-1.0, 1.0), 'crest': (1.5, 1.0), 'break': (-4.0, -3.0),
+          'drift': (-1.5, 0.5), 'fall': (0.0, -3.0)}
+    energy_pts = []
+    for b_ in range(NBARS):
+        s_, i_ = sec_of(b_)
+        a_, z_ = EN[s_]
+        energy_pts.append([f'{b_ * 4.0:.1f}b', round(a_ + (z_ - a_) * i_ / 15.0, 2)])
     tempo = [{'at': '0b', 'bpm': 90.0}, {'at': f'{SEC["gather"] * 4.0:.1f}b', 'bpm': 90.0},
              {'at': f'{fall0:.1f}b', 'bpm': 98.0, 'ramp': True}]
 
@@ -503,14 +514,18 @@ def build():
         'buses': {'hall': {'fx': ['reverb kind=hall decay=3.8s mix=1 mono_below=200', 'hp cutoff=220'], 'returns': []},
                   'echo': {'fx': [{'type': 'delay', 'time': '3/16', 'feedback': 0.42, 'mix': 1, 'ping_pong': True},
                                   'lp cutoff=5000', 'hp cutoff=300'], 'returns': []}},
-        'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=28', 'peak cutoff=300 q=0.8 gain=-2dB', 'highshelf cutoff=7000 gain=2dB']},
+        # (v19) and air: t2 measured 20 dB darker than t1 at 15 kHz and 14 dB darker than t3 at 9 kHz - a second,
+        # higher shelf opens the top so the song breathes like its neighbours
+        'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=28', 'peak cutoff=300 q=0.8 gain=-2dB', 'highshelf cutoff=7000 gain=2dB', 'highshelf cutoff=11000 gain=3dB']},
                           {'type': 'compressor', 'threshold': '-18dB', 'ratio': 2.0, 'attack': '20ms', 'release': '160ms', 'makeup': '1dB'},
-                          'limiter ceiling=-1dB']},
+                          {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.E', 'amount': 1}]}},
+                          'limiter ceiling=-1dB'], 'auto': {'E': {'points': energy_pts}}},
         'tracks': [
             tr('pad', PAD, '-15dB', auto={'lock': {'points': lock_pts}, 'shut': {'points': shut_pts}},
                fx=[{'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 600, 'mod': [{'src': 'auto.shut', 'amount': 3.5}]}}],
                sends={'hall': '-8dB'}),
-            tr('sub', 'sub', '-9dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '220ms', 'curve': 0.6}]),
+            # (v19) the D1 sub 4 dB down: the t1 -> t2 mix seam read t2 28 dB over t1's body at 38 Hz
+            tr('sub', 'sub', '-13dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '220ms', 'curve': 0.6}]),
             # (tried in v15: moog-seq for the staple NES bass - the sections blurred into each other, structure 100 -> 84,
             # spectrum 98 -> 94; the chip bass's dry edge is what tells the sections apart)
             tr('bass', 'nes-triangle-bass', '-6dB', fx=['lp cutoff=2400']),
