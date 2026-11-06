@@ -56,6 +56,7 @@ SINGE1 = os.environ.get("C9T5_SINGE1", "398,418")   # SECTION w7 (C's last bars,
 OVERSHOOT = os.environ.get("C9T5_OVERSHOOT", "0.08")   # WHOLE ROUND (glide_overshoot pinned, 59a832d1): THE SINGER, NOT A PLAYBACK - t5 is the one near singer, and every line she sings (the chorus in A, the crest line in thirds, the sung E1, the farewell) landed dead on each note. Now each note change swings a little past the new note and settles, as a real singer's pitch does (Saitou's damped spring): a share of the interval, so leaps lift more than steps
 SPINUP = os.environ.get("C9T5_SPINUP", "64:96")   # SECTION w2 (A's arrival, flagged 'level jump; new groove', never focused): THE ORBIT SPINS UP - the orbit used to arrive at full speed the moment A landed. Now it arrives stretched x2 (as it leaves, in the tide) under the plain E1, and snaps into its sixteenths when the drum machine's E2 comes in; the song's two ends mirror. Value 'from:to' beats
 CALLRESP = os.environ.get("C9T5_CALLRESP", "gap,sing")   # SECTION w3 (1:08-1:41, the Rhodes' E5 under the chorus: flagged static): CALL AND RESPONSE - the Rhodes used to play straight through the singer's chorus lines; now it rests while she sings and answers in the gaps ('gap'), and her chorus lines in A scoop into their first note and fall off their last ('sing': play.scoop=1 play.fall=2, pinned e986de70)
+ASCENT = os.environ.get("C9T5_ASCENT", "hold")   # SECTION w5 (2:15-2:47, the build into the crest: flagged 'little new vs w4'): THE CALLS CLIMB - 'near-er' was called on the same two notes (A G) all the way into the crest. Now each call steps up the scale (A G, then B A, then C B), and with 'hold' the singer holds 'near...' on D5 alone through the pull, over E5's trill, landing on the crest's downbeat; her calls scoop in and fall off
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -388,6 +389,16 @@ def voice():
                     (TC + 17, 0.8), *(() if OUTLINE else ((ST["outro"] + 6 * BAR, 0.55),))):
         for n in src:
             ns.append(dict(n, at=round(at + n["at"], 4), vel=vel))
+    if SUNG and ASCENT:
+        b = ST["build"] + 12 * BAR
+        for k, (p1, p2) in enumerate((("B4", "A4"), ("C5", "B4"))):
+            at = b + (k + 1) * 2 * BAR
+            ns += [{"at": at, "len": 0.5, "ph": "N IH1", "pitch": p1, "vel": 0.72 + 0.05 * k},
+                   {"at": at + 0.5, "len": 1.25, "ph": "R ER0", "pitch": p2, "vel": 0.72 + 0.05 * k}]
+        if "hold" in ASCENT:
+            g = float(CRESTGAP or 8)
+            ns.append({"at": TC - g, "len": g - 0.25, "ph": "N IH1 R", "pitch": "D5", "vel": 0.85})
+        ns.sort(key=lambda n: n["at"])
     if SUNG:
         return {"name": "nearer", "patch": "voice-near" if VOICEP else "voice-legato", "gain": "-9dB", "pan": -0.1,
                 "fx": ["hp cutoff=150"], "sends": {"room": "-7dB"}, "notes": ns}
@@ -465,6 +476,12 @@ def song():
             if pt == "voice-near" or (isinstance(pt, dict) and str(pt.get("extends", "")).startswith("voice-near")):
                 base = pt if isinstance(pt, str) else pt["extends"]
                 tr["patch"] = {"extends": f"{base} play.glide_overshoot={OVERSHOOT}"}
+    if ASCENT:
+        for tr in tracks:
+            if tr["name"] == "nearer":
+                pt = tr["patch"]
+                base = pt if isinstance(pt, str) else pt["extends"]
+                tr["patch"] = {"extends": f"{base} play.scoop=1 play.fall=2"}
     if CALLRESP:
         lines = [float(x) for x in VOXA.split(",")] if VOXA else []
         for tr in tracks:
