@@ -165,7 +165,7 @@ def write_felt():
         pos = int(round((beat % E1_CYCLE) / 0.5))           # 0..9 within the chord
         seq = list(notes[1:]) + list(reversed(notes[2:-1]))
         n = seq[pos % len(seq)]
-        n = n[:-1] + str(int(n[-1]) + 1)                    # an octave up, out of the cellos' way
+        n = n[:-1] + str(int(n[-1]) + 2)                    # v13: two octaves up - the glock rings above the band
         v = 44 + (8 if pos == 0 else 0) + (10 if sec_of(bar) == "crest" else 0)
         part("felt").add(beat, 0.5, n, v)
 
@@ -175,6 +175,10 @@ def write_felt():
 # cycles (a verse before words) - at the crest it finds the words, and in the relief it hums the hook again after the
 # last lines (hum -> words -> hum). E1's notes touch, so each hum is one joined breath; 'even' keeps the held 'oo' level
 # with the band. The duet a third above comes down 3 dB (it sat only 4 dB under the lead).
+# v13 (ROUND TYPE: palette): the FELT PIANO (piano-muted - a dark, mid instrument; the song's spectrum ran +9 dB hot
+# at 750-877 Hz and 10-17 dB short above 7 kHz) becomes a GLOCKENSPIEL (unused on the album): the same E4 broken into
+# eighths an octave up, now a pure ringing ping above the band - the four lights glittering - 10 dB lower so the
+# constant eighths glitter rather than glare (presence in B about -15).
 def hums():
     out = []
     beat = 0.0
@@ -494,7 +498,7 @@ def main():
                fx=["lp cutoff=2200"]),
             tr("lights", "cellos", gain="-12dB", sends={"hall": "-8dB"},
                fx=[{"type": "filter", "kind": "peak", "cutoff": 220, "q": 0.9, "gain": "-6dB"}]),
-            tr("felt", "piano-muted", gain="-6dB", pan=0.25, sends={"room": "-8dB"}),
+            tr("felt", "glock", gain="-18dB", pan=0.25, sends={"room": "-8dB"}),   # v13 palette: the felt piano -> glockenspiel
             tr("seed", "handpan", gain="-5dB", pan=-0.2, sends={"hall": "-10dB"}),
             tr("canon", "nylon", gain="-17dB", pan=0.35, sends={"hall": "-8dB"}),
             tr("bass", "upright-bass", gain="-9dB",
