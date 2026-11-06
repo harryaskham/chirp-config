@@ -29,6 +29,12 @@ JB = (JET - 1) * BPB          # beat 384: every cycle lands here
 HORIZON = 141
 SINK = 161                    # v5: the light sinks only once the echoes are gone (light and 'ah' sink together)
 BREAK = (121, 128)            # the breakdown inside the jet: the lens returns (lights and choir), then the jet again
+# v11 (ROUND TYPE: section, the break and the jet's return 121-140, ~32 s; rewritten): TIME DILATION. Near a horizon
+# time slows - so the break does: the tempo sinks 150 -> 116 across bars 121-124 and holds while the choir sings 'we
+# were the far side' and 'and it was ours', stretched with it; then the SLINGSHOT - an accelerando 116 -> 150 over bars
+# 127-128 with a riser climbing over it - and the jet fires again at 129 on an impact, the crash and the hook.
+# Complexity in time, the tone left at home.
+DILATED = 116
 
 
 def in_break(bar):
@@ -262,11 +268,13 @@ def write_stretto():
             if i % 3 == 0:
                 part("hat").add(b0(bar) + i * 0.25, 0.25, "C7", 50 + (bar - 65))
     part("riser").add(b0(JET - 4), 16.0, "C4", 100)
+    part("riser").add(b0(BREAK[1] - 1), 8.0, "C4", 92)              # v11: the slingshot out of the dilated break
 
 
 # ---------------------------------------------------------------- the jet (locked 4/4, major)
 def write_jet():
     part("impact").add(JB, 4.0, "C3", 120)
+    part("impact").add(b0(BREAK[1] + 1), 4.0, "C3", 108)           # v11: the jet fires again
     for bar in range(JET, HORIZON):
         t = b0(bar)
         k = (bar - JET) % 4
@@ -433,7 +441,12 @@ def main():
     lead, fifth, low = choir()
     lead += horizon_line()
     lead += [{"at": b0(HORIZON + 16), "len": b0(BARS + 1) - b0(HORIZON + 16) - 4, "pitch": "D4", "vel": 0.6}]   # the held 'ah'
-    tempo = [{"at": "0b", "bpm": SEAM_IN}, {"at": f"{b0(HORIZON):g}b", "bpm": SEAM_IN},
+    tempo = [{"at": "0b", "bpm": SEAM_IN},
+             {"at": f"{b0(BREAK[0]):g}b", "bpm": SEAM_IN},                        # v11: time dilation in the
+             {"at": f"{b0(BREAK[0] + 4):g}b", "bpm": DILATED, "ramp": True},      # break, then the slingshot
+             {"at": f"{b0(BREAK[1] - 1):g}b", "bpm": DILATED},
+             {"at": f"{b0(BREAK[1] + 1):g}b", "bpm": SEAM_IN, "ramp": True},
+             {"at": f"{b0(HORIZON):g}b", "bpm": SEAM_IN},
              {"at": f"{b0(BARS + 1):g}b", "bpm": 90, "ramp": True}]
     cl = [["0b", 0.0], [f"{b0(HORIZON):g}b", 0.0], [f"{b0(BARS + 1):g}b", 1.0]]
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)

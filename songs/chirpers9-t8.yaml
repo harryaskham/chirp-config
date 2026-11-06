@@ -6,6 +6,24 @@
    "bpm": 150
   },
   {
+   "at": "480b",
+   "bpm": 150
+  },
+  {
+   "at": "496b",
+   "bpm": 116,
+   "ramp": true
+  },
+  {
+   "at": "504b",
+   "bpm": 116
+  },
+  {
+   "at": "512b",
+   "bpm": 150,
+   "ramp": true
+  },
+  {
    "at": "560b",
    "bpm": 150
   },
@@ -276,13 +294,13 @@
   {
    "name": "riser",
    "patch": "fx-revcym",
-   "score": "R/368b C4/16b@100 R/320b",
+   "score": "R/368b C4/16b@100 R/120b C4/8b@92 R/192b",
    "gain": "-12dB"
   },
   {
    "name": "impact",
    "patch": "fx-impact",
-   "score": "R/384b C3/4b@120 R/316b",
+   "score": "R/384b C3/4b@120 R/124b C3/4b@108 R/188b",
    "gain": "-10dB"
   },
   {
