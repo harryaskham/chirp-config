@@ -308,10 +308,14 @@ def write_jet():
 
 def sung(at, take, transpose=0, vel_scale=1.0):
     out = []
-    for n in take["notes"]:
+    ns = take["notes"]
+    for i, n in enumerate(ns):
         pm = int(float(n['pitch'][1:]))
         pm -= 1 if pm % 12 == 8 else 0                          # v5: the choir's G# is G, as in E5
-        d = {"at": round(at + n["at"], 4), "len": n["len"], "ph": n["ph"],
+        ln = n["len"]
+        if i + 1 < len(ns) and ns[i + 1]["at"] - n["at"] - ln < 0.5:
+            ln = ns[i + 1]["at"] - n["at"]                      # v9: legato inside a phrase (join makes it one breath)
+        d = {"at": round(at + n["at"], 4), "len": round(ln, 4), "ph": n["ph"],
              "pitch": f"m{pm + transpose}", "vel": round(n["vel"] * vel_scale, 3)}
         if n.get("expr_path"):
             d["expr_path"] = n["expr_path"]
@@ -377,9 +381,15 @@ def horizon_lane(drop):
     return [["0b", 0.0], [f"{b0(SINK):g}b", 0.0], [f"{b0(BARS + 1):g}b", drop]]
 
 
-VOICE8 = {"about": "t8's choir lead: bright and open - a smaller tract, more air, quick vibrato",
-          "play": {"mono": True, "glide": "30ms"},
-          "synth": {"layers": [{"type": "voice", "tract": 0.92, "breath": 0.18, "ph_soft": 0.2, "pulse_rate": 5}],
+# v9 (ROUND TYPE: section, the jet's choir 97-112; the voice engine is pinned - 8ebc9a86): the choir sings on the new
+# voice engine - JOIN (each phrase's touching notes one breath: the formants glide from syllable to syllable, so the
+# words are heard), INHALE (a breath in the rest before each phrase - the vacuum bar before the jet becomes the choir
+# breathing in, and the jet lands on its first word) and S-shaped slides (glide_smooth). Lines legato inside a phrase;
+# E5's rests in 'round and round...' stay, as quick breaths.
+VOICE8 = {"about": "t8's choir lead: bright and open - a smaller tract, more air; joined phrases, a breath before each",
+          "play": {"mono": True, "glide": "90ms", "glide_smooth": True},
+          "synth": {"layers": [{"type": "voice", "tract": 0.92, "breath": 0.18, "ph_soft": 0.2, "pulse_rate": 5,
+                                "join": True, "inhale": 0.45, "inhale_time": "350ms"}],
                     "pitch": {"value": 0, "mod": [{"src": "expr.f0", "amount": 0.01}, {"src": "auto.rs", "amount": 1}]},
                     "amp": {"a": "30ms", "d": "0s", "s": 1, "r": "300ms"}}}
 SUB8 = {"about": "t8's sub: a sine under the lights' roots", "synth": {"layers": [{"wave": "sine"}],
