@@ -570,6 +570,29 @@ SUNG_HOOK = range(73, 77)                 # E1 cycles (5 beats each): bars 92.25
 HANDS_HOOK = range(77, 80)                # bars 97.25 - 101, into the relief's own seed and canon
 
 
+# v25 (ROUND TYPE: section, the crest's full-band half 86-96, ~22 s in the window 81-96; rewritten): THE THEME,
+# COMBINED. chirpers.py sections read the crest as 'little new' against the rise - and measured, the crest was the
+# rise with a voice on top: E2 (the harp) at -19.7 and E3 (the steel) at -20.3 under the singer, so 'the first full
+# statement of the combined theme' was heard as E1 and E4 only; and the kit was quieter than in the rise (kick -14.8
+# vs -9.5). Now, when the band returns at 86, E2 and E3 come forward 6 dB on a gain lane - the harp's sparkle above
+# her (D6 A6 F#6 C6) and the steel's slide below her - so all four elements are heard around the voice at once, and
+# the kit plays its fullest (+20 velocity): the cycles converge audibly at the crest. The held breath (81-85) is as
+# it was.
+CREST_FX = "gain gain=0dB+auto.cr*1"
+CREST_FULL = (86, 97)
+
+
+def crest_lane():
+    a, z = b0(CREST_FULL[0]), b0(CREST_FULL[1])
+    return [["0b", 0.0], [f"{a - 0.5:g}b", 0.0], [f"{a:g}b", 6.0], [f"{z - 1:g}b", 6.0], [f"{z:g}b", 0.0]]
+
+
+def crest_kit():
+    a, z = b0(CREST_FULL[0]), b0(CREST_FULL[1])
+    for n in ("kick", "snare"):
+        P[n].ev = [(s, ln, h, min(127, v + 20)) if a <= s < z else (s, ln, h, v) for s, ln, h, v in P[n].ev]
+
+
 def crest_hook():
     voice, duet = [], []
     for j, c in enumerate(SUNG_HOOK):
@@ -604,6 +627,7 @@ def main():
     gather_a()
     gather()
     hold_breath()
+    crest_kit()
     hook_v, hook_d, hook_b = crest_hook()                           # v19: the hook, sung back (91-100)
     voice = sorted(sung_notes(b0(CREST), TAKES) + sung_notes(b0(101), TAKES[2:]) + hums() + hook_v,
                    key=lambda d: d["at"])
@@ -643,8 +667,10 @@ def main():
             tr("ride", "modal-ride", gain="-24dB", pan=-0.25, sends={"room": "-12dB"}),   # v15 palette (was brush-kit rd)
             {"name": "voice", "patch": VOICE, "gain": "-8dB", "pan": 0.0,
              "sends": {"hall": "-9dB", "dly": "-16dB"}, "notes": voice},
-            tr("e2", "harp", gain="-17dB", pan=0.4, sends={"hall": "-10dB", "dly": "-16dB"}),     # v2: listed last
-            tr("e3", "pedal-steel", gain="-11dB", pan=-0.35, sends={"hall": "-10dB"}),
+            tr("e2", "harp", gain="-17dB", pan=0.4, sends={"hall": "-10dB", "dly": "-16dB"},     # v2: listed last
+               fx=[CREST_FX], auto={"cr": {"points": crest_lane()}}),                         # v25
+            tr("e3", "pedal-steel", gain="-11dB", pan=-0.35, sends={"hall": "-10dB"},
+               fx=[CREST_FX], auto={"cr": {"points": crest_lane()}}),
             {"name": "duet", "patch": VOICE2, "gain": "-15dB", "pan": 0.18, "sends": {"hall": "-8dB"}, "notes": duet},
             {"name": "breath", "patch": BREATH_AIR, "gain": "2dB", "pan": 0.0, "sends": {"room": "-12dB"},
              "notes": breaths},
