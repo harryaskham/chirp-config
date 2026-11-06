@@ -106,7 +106,7 @@ def test_palette_reads_library_bases_and_patch_makeup():
 
 
 def test_gain_matching_and_the_residual_floor():
-    # a whole-song gain change is matched away; one reworked window cannot pull the gain (the median)
+    # a whole-song gain change is matched away; one reworked window cannot pull the gain (the least-touched window)
     sr = 1000
     rng = np.random.default_rng(1)
     old = rng.standard_normal(10 * sr)
@@ -124,6 +124,30 @@ def test_gain_matching_and_the_residual_floor():
     floor, cut = SM.residual_floor(moved)
     assert floor == -28.4 and cut == -18.4
     assert [i for i, c in enumerate(moved) if c["residual_db"] > cut] == [3]
+
+
+def test_gain_matching_survives_edits_in_most_windows():
+    # chirper-zero's t5 overshoot (6 Nov): a pitch edit decorrelated 6 of 8 windows, each window's least-squares gain
+    # shrank, and the median put the untouched w1 at -13.5 dB. The least-touched window carries the true gain.
+    sr = 1000
+    rng = np.random.default_rng(2)
+    old = rng.standard_normal(8 * sr)
+    new = old * 0.99988                                        # the loudness normalisation's reaction
+    for w in range(2, 8):                                       # windows 3-8 edited: half-decorrelated
+        a, b = w * sr, (w + 1) * sr
+        new[a:b] = 0.5 * new[a:b] + 0.5 * rng.standard_normal(sr)
+    spans = [(i, i + 1) for i in range(8)]
+    g = SM.match_gain(new, old, spans, sr)
+    assert abs(g - 0.99988) < 1e-9
+    assert SM.residual_db(new, old * g, 0, 1, sr) < -60       # w1 reads as untouched again
+    # nothing close enough to anchor on: no gain match at all
+    assert SM.match_gain(rng.standard_normal(8 * sr), old, spans, sr) == 1.0
+    # the 'changed' line stays at -40 while an audible window is untouched; silent windows (-99) never anchor
+    cmp_ = [{"residual_db": r} for r in (-76.0, -75.5, -15.0, -12.0, -9.0, -14.0, -11.0, -13.0)]
+    assert SM.residual_floor(cmp_, [-20.0] * 8) == (-13.5, -40.0)
+    assert SM.residual_floor(cmp_) == (-13.5, -3.5)                    # without levels: the old whole-song reading
+    moved = [{"residual_db": r} for r in (-99.0, -29.4, -28.4, -28.5, -3.1, -25.0, -29.1)]
+    assert SM.residual_floor(moved, [-90.0] + [-20.0] * 6) == (-28.5, -18.5)   # silent w1 is no anchor
 
 
 def _clicks(times, sr=48000, dur=None):

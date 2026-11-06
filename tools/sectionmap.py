@@ -171,19 +171,25 @@ def semitones(x, sr, hop_s=0.1, ref=None, info=None):
 
 
 def match_gain(xn, xo, spans, sr):
-    """The gain that best maps the OLD render onto the NEW one: the median over windows (SPANS, [t_a, t_b] s) of each
-    window's least-squares gain, so one reworked window cannot pull it. Renders are loudness-normalised, so new energy
-    in one window turns the whole song down a little (chirper-three, t11 v21: ~0.3 dB put every untouched window at
-    -25 dB residual)."""
-    gs = []
+    """The gain that best maps the OLD render onto the NEW one, taken from the window the edit touched least (the
+    highest correlation between old and new), so reworked windows cannot pull it. Renders are loudness-normalised, so
+    new energy in one window turns the whole song down a little (chirper-three, t11 v21: ~0.3 dB put every untouched
+    window at -25 dB residual). A median of per-window gains failed when most windows changed: an edit that moves a
+    line's pitch decorrelates it, which shrinks a window's least-squares gain (chirper-zero, t5 overshoot: -2.05 dB
+    instead of -0.001, so an untouched w1 read -13.5 dB). No window above 0.99 correlation: no gain match."""
+    best = None
     for ta, tb in spans:
         a, b = int(ta * sr), int(tb * sr)
         n, o = xn[a:b].astype(np.float64), xo[a:b].astype(np.float64)
         k = min(len(n), len(o))
-        oo = float((o[:k] ** 2).sum())
-        if k and oo > 1e-9:
-            gs.append(float((n[:k] * o[:k]).sum()) / oo)
-    return float(np.median(gs)) if gs else 1.0
+        n, o = n[:k], o[:k]
+        nn, oo = float((n ** 2).sum()), float((o ** 2).sum())
+        if k and nn > 1e-9 and oo > 1e-9:
+            no = float((n * o).sum())
+            rho = no / np.sqrt(nn * oo)
+            if best is None or rho > best[0]:
+                best = (rho, no / oo)
+    return best[1] if best and best[0] > 0.99 else 1.0
 
 
 def seq_of(S, times, clock, ba, bb, ta, tb):
@@ -320,15 +326,26 @@ def residual_db(xn, xo, ta, tb, sr):
     return round(max(-99.0, 10 * np.log10(e / (float((n ** 2).sum()) + 1e-20) + 1e-20)), 1)
 
 
-def residual_floor(cmp_):
+def residual_floor(cmp_, levels=None):
     """(the median window residual, the level above which a window counts as changed): -40 dB, or 10 dB over the
     floor when the whole song moved (chirper-three, t11 v21: the mastering gain into the master compressors moved
-    0.37 dB and put every window near -29 dB)."""
+    0.37 dB and put every window near -29 dB). With LEVELS (each window's level in dB), a song in which some audible
+    window still reads untouched (<= -45 dB) did not move as a whole, however many windows were edited: the line stays
+    at -40 (chirper-zero, t5 overshoot: 6 of 8 windows edited put the median at -15, which would have hidden them).
+    Silent windows read -99 whatever happened, so they never count as untouched."""
     rs = [c["residual_db"] for c in cmp_ if c.get("residual_db") is not None]
     if not rs:
         return -99.0, -40.0
     floor = float(np.median(rs))
+    if levels is not None and anchored(cmp_, levels):
+        return round(floor, 1), -40.0
     return round(floor, 1), round(max(-40.0, floor + 10.0), 1)
+
+
+def anchored(cmp_, levels, quiet_db=-60.0):
+    """Whether an audible window (level above QUIET_DB) still reads untouched (residual <= -45 dB)."""
+    return any(c.get("residual_db") is not None and c["residual_db"] <= -45.0 and lv is not None and lv > quiet_db
+               for c, lv in zip(cmp_, levels))
 
 
 def compare(new, old, xn=None, xo=None, sr=None):
@@ -445,7 +462,8 @@ def main(argv=None):
             old = old[:len(rows)]
             cmp_ = compare(rows, old, xn, xo, L.SR)
             gain_db = round(20 * np.log10(max(g, 1e-9)), 2)
-            floor, cut = residual_floor(cmp_)
+            levels = [r["level"] for r in rows]
+            floor, cut = residual_floor(cmp_, levels)
             if a.json:
                 print(json.dumps({"id": a.id, "gain_db": gain_db, "floor_db": floor, "changed_above_db": cut,
                                   "compare": cmp_}))
@@ -453,7 +471,13 @@ def main(argv=None):
             print(f"{a.id}: {os.path.basename(wav)} against {os.path.basename(a.against)} (per window, the old render "
                   f"matched by {gain_db:+.2f} dB first; residual: the energy "
                   f"of new - old against new, about -60 untouched, -20 clearly changed; melody: note-sequence change)")
-            if floor > -45:
+            if floor > -45 and anchored(cmp_, levels):
+                k = sum(1 for c in cmp_ if c["residual_db"] > cut)
+                print(f"  most windows changed ({k} of {len(cmp_)} above {cut:.1f} dB), but an audible window still reads "
+                      f"untouched, so these are edits, not a whole-song shift (the gain is anchored on the least-touched "
+                      f"window). Pitch edits (overshoot, scoop, fall) decorrelate the waveform and overstate residuals: "
+                      f"read the melody column and listen.")
+            elif floor > -45:
                 print(f"  every window moved (median residual {floor:.1f} dB): a whole-song shift, most often the mastering "
                       f"gain into the master's compressors moving because the edit changed the song's loudness, not edits "
                       f"there. '<' marks windows above {cut:.1f} dB, well clear of that floor.")
