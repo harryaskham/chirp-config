@@ -203,6 +203,14 @@ R24 = os.environ.get("T3_R24", "counts") != "none"
 # humlast), the duet, the hums and the backing singers. And the crest's singers get the scoop and fall the hums took
 # in v23 (scoop 1, fall 2; the backing "ah"s a softer 0.5 / 1). The quick "doo"s stay plain. T3_R25=none reproduces v24.
 R25 = os.environ.get("T3_R25", "bloom") != "none"
+# round 26 (whole): T3_R26=arc (default) - THE CREST IS THE TOP. The section map read the lock (bars 73-84) as the
+# loudest part of the song (-10.9 LUFS) and the crest that it unlocks (89-108) quieter (-11.7): the storm's reward
+# arrived smaller than the struggle. (1) The master's dynamics lane is redrawn as one arc: the storm build (41-62)
+# and the lock (67-86) sit 1.5 dB lower, the eye (63-66) breathes deeper (-4.5), the break before the crest drops
+# further - and the crest (89-112) is untouched, so after mastering it is the loudest thing in the song. (2) The
+# crusher retires (as in t7 v25): the grit lane, a 6-bit 9 kHz crush on the kit and the bass through the storm, goes
+# to zero; the stutter (time texture) stays. T3_R26=none reproduces v25.
+R26 = os.environ.get("T3_R26", "arc") != "none"
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
 R21_DROPS = os.environ.get("T3_R21", "open") == "lift"
 R21_OPEN = os.environ.get("T3_R21", "open") == "open"          # let go of the third (no F#): t4 brings it
@@ -759,6 +767,11 @@ def main():
     if R13:
         stut = [[p_, round(v * 0.6, 3)] for p_, v in stut]
         grit = [[p_, round(v * 0.4, 3)] for p_, v in grit]
+    if R26:                                                 # one arc up to the crest; the crusher retires
+        dyn = [["0b", -5.0], ["64b", -2.5], ["159.99b", -2.5], ["160b", -2.0], ["247.99b", -1.5], ["248b", -4.5],
+               ["263.99b", -4.0], ["264b", -1.5], ["343.99b", -1.5], ["344b", -3.5], ["351.99b", -3.0], ["352b", 1.0],
+               ["448b", 0.5], ["512b", -3.0]]
+        grit = [[p_, 0.0] for p_, v in grit]
 
     def storm_fx(extra=()):
         return [{"type": "stutter", "slice": "1/16", "repeats": 3,
