@@ -127,6 +127,16 @@ R14 = os.environ.get("T3_R14", "boc") != "none"
 # over F, its G E over C. T3_R15=none reproduces v14.
 R15 = os.environ.get("T3_R15", "open") != "none"
 OPEN_BARS = (100, 108)
+# round 17 (section, w9 = bars 97-108, the crest's second half, flagged 'static, little new vs w8'): T3_R17=duet
+# (default) - CALL AND ANSWER, IN THIRDS. (1) The hook comes back a third time at bar 97 ("nothing here is late"), so
+# the crest is a call and an answer, not one line and a groove; the lead steps out of that bar as it does for the first
+# two. (2) The call and the answer at bar 101 ("everything comes round") are sung as a DUET: the same small voice with
+# a second singer a third above IN THE KEY (wM's harmony_key, D minor: [2] - D/F, A/C, C/E, G/Bb, E/G; every note in
+# key). The solo answer at 101 drops to a whisper of itself (velocity) so later notes keep their randomness. (3) The
+# skin (ks-drum) falls into the answer: six sixteenths D4 C4 A3 G3 F3 D3 at the end of bar 100. T3_R17=none
+# reproduces v16.
+R17 = os.environ.get("T3_R17", "duet") != "none"
+CALL_BAR, FILL = 96, ((2.5, 74), (2.75, 72), (3.0, 69), (3.25, 67), (3.5, 65), (3.75, 62))
 # round 16 (section, w3 = bars 25-36, the front's middle, flagged 'static', never focused): T3_R16=rainonly (default;
 # =rain adds the held breath) -
 # RAIN ON THE GLASS, AND A HELD BREATH. (1) NEW: a nylon string (ks-nylon - wM's Karplus-Strong pluck; no other
@@ -590,6 +600,12 @@ def build():
             for n, ln in E1:
                 T["glass7"].add(at, ln * 2 * 0.95, mtok(midi(n) + 12), 86)
                 at += ln * 2
+    if R17:                                                 # the call at bar 97: the lead steps out; the fill
+        for k in ("e1", "e1hi"):
+            T[k].ev = [(e[0], e[1], e[2], 1, e[4]) if CALL_BAR * 4.0 <= e[0] < CALL_BAR * 4.0 + 4.0 else e for e in T[k].ev]
+        T["fill"] = Track("fill")
+        for st, m in FILL:
+            T["fill"].add(99 * 4.0 + st, 0.25, mtok(m), 72 + int(40 * (st - 2.5)))
     if R7:                                                  # the voice sings E1 alone in its bars; the lead answers
         for bar in SUNG_BARS:
             T["e1"].ev = [e for e in T["e1"].ev if not (bar * 4.0 <= e[0] < bar * 4.0 + 4.0)]
@@ -804,6 +820,20 @@ def main():
                        "fx": ["delay time=3/8 mix=0.14 feedback=0.25"], "sends": {"space": "-7dB"}, "notes": notes})
         if R10:
             tracks[-1].update({"fx": ["delay time=3/8 mix=0.1 feedback=0.2"], "sends": {"space": "-11dB"}})
+    if R17:
+        dsrc = json.load(open(os.path.join(HERE, "t3", "sung.json")))["tracks"][0]
+        patches["a3-duet"] = dict(dsrc["patch"], extends="voice-near synth.layers.0.harmony=[2] "
+                                                          "synth.layers.0.harmony_key=D:minor")
+        duet = place(dsrc["notes"], (CALL_BAR,))
+        duet += place(json.load(open(os.path.join(HERE, "t3", "sung2.json")))["tracks"][0]["notes"], (SUNG2_BARS[0],))
+        for tr in tracks:
+            if tr["name"] == "sung":
+                a0, a1 = SUNG2_BARS[0] * 4.0 - 0.25, SUNG2_BARS[0] * 4.0 + 8.0
+                tr["notes"] = [dict(n, vel=0.001) if a0 <= n["at"] < a1 else n for n in tr["notes"]]
+                tracks.append(dict(tr, name="duet", patch="a3-duet", notes=duet))
+                break
+        spec = {tr["name"]: tr for tr in tracks}
+        tracks.append(dict(spec["skin"], name="fill", score=T["fill"].score()))
     if R12:
         hi, lo = [], []
         for bar in range(96, 112, 2):
