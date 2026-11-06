@@ -486,6 +486,16 @@ def build():
     for b_ in (CREST * 4.0, CREST * 4.0 + 10.0):
         for n_ in CS['tracks'][0]['notes']:
             csnotes.append(dict(n_, at=round(b_ + n_['at'] - 0.25, 4)))
+    # (v24, whole song) THE LAST CHORUS: Harry, 6 Nov 18:05, at the crest's words: 'woah this track is sick'. So the
+    # line comes back to end the song: in the drift, where the ondes plays E1 plainly over the returning drums (bars
+    # 85-96), the near voice sings 'nearer each time it comes round' with it four times - every other statement, the
+    # ondes answering alone between - with its third above now in D Dorian (the drift is Dorian again: F, C, E, B, G
+    # over D A C G E), each time a little louder, the last landing on the fall. The voice's arc is now: chorus at the
+    # crest -> whispered memory -> found alone at the end of the break -> the last chorus, home
+    dsnotes = []
+    for k_, b_ in enumerate((346.0, 356.0, 366.0, 376.0)):
+        for n_ in CS['tracks'][0]['notes']:
+            dsnotes.append(dict(n_, at=round(b_ + n_['at'] - 0.25, 4), vel=round(min(1.0, n_.get('vel', 0.8) * (0.82 + 0.06 * k_)), 3)))
     P['e1p'] = [e_ for e_ in P['e1p'] if not (h0 - 1e-6 <= e_[0] < h1 - 1e-6)]
     t_ = h0
     while t_ < h1 - 1e-6:
@@ -604,6 +614,8 @@ def build():
              'notes': oohn, 'gain': '-17dB', 'pan': 0.0, 'sends': {'hall': '-8dB'}},
             {'name': 'oohin', 'patch': dict(dict(OOH['tracks'][0]['patch'], extends='voice-backing synth.layers.0.harmony=[4] synth.layers.0.harmony_key=D:dorian'), play={'scoop': 1}),
              'notes': oohin, 'gain': '-15dB', 'pan': 0.0, 'sends': {'hall': '-7dB'}},
+            {'name': 'driftsung', 'patch': dict(dict(CS['tracks'][0]['patch'], extends='voice-near synth.layers.0.harmony=[2] synth.layers.0.harmony_key=D:dorian'), play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
+             'notes': dsnotes, 'gain': '-9dB', 'pan': 0.0, 'sends': {'echo': '-18dB', 'hall': '-12dB'}},
             {'name': 'crestsung', 'patch': dict(dict(CS['tracks'][0]['patch'], extends='voice-near synth.layers.0.harmony=[2] synth.layers.0.harmony_key=D:mixolydian'), play={'glide_overshoot': 0.06}),
              'notes': csnotes, 'gain': '-9dB', 'pan': 0.0, 'sends': {'echo': '-18dB', 'hall': '-12dB'}},
             {'name': 'sung', 'patch': SU['tracks'][0]['patch'],
