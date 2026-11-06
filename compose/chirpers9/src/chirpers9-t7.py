@@ -207,6 +207,16 @@ R16 = os.environ.get("T7_R16", "brass") != "none"
 # T7_R17=none reproduces v16.
 R17 = os.environ.get("T7_R17", "horns") != "none"
 HORN_CHORDS = [((57, 62, 66, 69), 2.0), ((55, 60, 64, 67), 2.0), ((55, 59, 62, 67), 4.0)]
+# round 18 (whole): T7_R18=thread (default) - THE SINGER THREADS THE SONG. The voice sang in the approach (bars 33/41),
+# the collision (53/61), the slack's choir (83-87) and the crest (125-150) - and then not at all for the 36 bars of
+# the spiral (88-124), the build she should be leading. (1) She sings "every corner" in the spiral: alone at bar 105,
+# then at 113 with a second singer a THIRD ABOVE IN THE KEY (harmony_key, E-flat minor: Eb/Gb, Bb/Db, Db/F, Ab/Cb,
+# F/Ab), the line climbing into the crest. (2) Her harmonised statements in the collision (53/61) move from a fixed
+# fifth below to the same keyed third above - sweeter, every note in key. So the hook is SUNG at every stage of the
+# orbit, and the harmony is always a third in the mode (E-flat minor in the storm, D Mixolydian at the crest, v15).
+# T7_R18=none reproduces v17.
+R18 = os.environ.get("T7_R18", "thread") != "none"
+SPIRAL_SUNG = (104, 112)
 BOW_LINE = [(128, 69, 7.6), (130, 67, 7.6), (132, 66, 7.6), (134, 64, 7.8), (136, 62, 7.5)]
 HEAD_WHEEL = [(0, (51, 55, 58, 62)), (4, (48, 51, 55, 58, 62)), (8, (44, 51, 55, 58, 60)), (12, (46, 51, 53, 58)),
               (14, (46, 50, 53, 56))]
@@ -830,7 +840,9 @@ def main():
             src5 = json.load(open(os.path.join(HERE, "t7", "sung.json")))["tracks"][0]
             patches["a7-sung5"] = dict(src5["patch"], extends="voice-legato synth.layers.0.tract=1.06 "
                                                              "synth.layers.0.ring=0.4 synth.layers.0.breath=0.2 "
-                                                             "synth.layers.0.even=1 synth.layers.0.harmony=[-7]")
+                                                             "synth.layers.0.even=1 " + (
+                                                                 "synth.layers.0.harmony=[2] synth.layers.0.harmony_key=Eb:minor"
+                                                                 if R18 else "synth.layers.0.harmony=[-7]"))
             n5 = []
             for bar in SUNG5_BARS:
                 for n in src5["notes"]:
@@ -862,6 +874,19 @@ def main():
                 notes.append(d)
         tracks.append({"name": "sung", "patch": "a7-sung", "gain": "0dB", "pan": 0.0,
                        "fx": ["delay time=3/8 mix=0.12 feedback=0.25"], "sends": {"space": "-8dB"}, "notes": notes})
+        if R18:                                            # the spiral: alone at 105, a keyed third above at 113
+            patches["a7-sung3"] = dict(patches["a7-sung"], extends=patches["a7-sung"]["extends"] +
+                                       " synth.layers.0.harmony=[2] synth.layers.0.harmony_key=Eb:minor")
+            for name, patch, bar in (("sungs", "a7-sung", SPIRAL_SUNG[0]), ("sungs3", "a7-sung3", SPIRAL_SUNG[1])):
+                ns = []
+                for n in src["notes"]:
+                    d = {"at": round(bar * 4.0 - 0.25 + n["at"], 4), "len": n["len"], "ph": n["ph"],
+                         "pitch": n["pitch"], "vel": n["vel"]}
+                    if n.get("expr_path"):
+                        d["expr_path"] = n["expr_path"]
+                    ns.append(d)
+                tracks.append({"name": name, "patch": patch, "gain": "0dB", "pan": 0.0,
+                               "fx": ["delay time=3/8 mix=0.14 feedback=0.3"], "sends": {"space": "-7dB"}, "notes": ns})
     if R8:
         spec = {tr["name"]: tr for tr in tracks}
         for new, old in (("tide5", "tide"), ("bass5", "bass"), ("e4w5", "e4")):
