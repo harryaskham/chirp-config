@@ -189,8 +189,9 @@ def hums():
         if cyc % 2 == 0 and ((sec_of(bar) == "B" and beat >= b0(45)) or (beat >= b0(108) and beat + 5 <= b0(121))):
             for i, (n, on, ln) in enumerate(E1):
                 last = i == len(E1) - 1
+                fuller = beat >= ANSWER_FROM - 1e-6                        # v26: alone over the lights, a little fuller
                 out.append({"at": round(beat + on, 4), "len": ln + (0.75 if last else 0.0), "ph": "UW1",
-                            "pitch": f"m{midi_of(n)}", "vel": 0.5 if on else 0.56})
+                            "pitch": f"m{midi_of(n)}", "vel": (0.6 if on else 0.66) if fuller else (0.5 if on else 0.56)})
         beat += E1_CYCLE
     # v17 (ROUND TYPE: section, the fall 121-136, ~34 s; rewritten): WHAT FALLS IS KEPT. The t4 -> t5 seam sagged
     # 12.7 dB (t4's tail began at -12.3 dB, t5's head sits near -23, and the residue SWELLED as the orbit closed): now
@@ -210,6 +211,22 @@ def hums():
     return out
 
 
+# v26 (ROUND TYPE: section, the relief's second half 108.5-120, ~26 s; rewritten): SHE HUMS, THE HANDS ANSWER. The
+# relief was the handpan's E1 every cycle over the lights, the singer humming E1 on alternate cycles IN UNISON with
+# it - a doubling that blurred both, and nothing moved for 26 seconds. Now, from her first hum in the relief, the
+# handpan falls silent on her cycles (the hook hers alone over the lights, her hum a little fuller) and on the cycles
+# between it ANSWERS with E1 in retrograde - the same rhythm, the pitches reversed (E G C A D), each answer ending on
+# D, home: the crest's retrograde lines 'come home' the same way. It sets up the fall, where the voice keeps the
+# notes the hands let go.
+ANSWER_FROM = 430.0                         # her first hum in the relief (bar 108.5)
+
+
+def hums_at(beat):
+    """True on the cycles the singer hums E1 in the relief (as hums() places them)."""
+    cyc = int(round(beat / E1_CYCLE))
+    return cyc % 2 == 0 and beat >= b0(108) and beat + 5 <= b0(121)
+
+
 def write_seed():
     # E1 ASSEMBLES ITSELF: from the downbeat, one note more every two cycles, then whole; later in other shapes
     cyc = 0
@@ -223,6 +240,11 @@ def write_seed():
             beat += E1_CYCLE; cyc += 1
             continue                                         # the voice carries it at the crest
         cell = E1[:k] if s in ("lens", "A") else E1
+        if s == "relief" and beat >= ANSWER_FROM - 1e-6:            # v26: she hums, the hands answer
+            if hums_at(beat):
+                cell = []                                            # her cycle: the hook is hers alone
+            else:
+                cell = [(n, on, ln) for (n, _, _), (_, on, ln) in zip(E1[::-1], E1)]   # E1 backwards: home on D
         for n, on, ln in cell:
             v = 70 if on == 0 else 60
             if s == "relief":
