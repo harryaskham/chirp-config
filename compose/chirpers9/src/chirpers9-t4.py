@@ -401,6 +401,11 @@ def write_combined():
         beat += 7.0
 
 
+# v23 (ROUND TYPE: palette): ONE SWAP. The sine sub - the album's most-shared patch (five songs) - becomes
+# SUB-SATURATED (a sine with a triangle and a little saw driven together, low-passed at 2 kHz): t4's floor plays E4's
+# roots at D1 C1 A1 G1 (33-55 Hz), mostly below what laptop speakers and many headphones reproduce; the saturated
+# sub's own harmonics (66-165 Hz) carry the same line there, so the warm floor is heard on both (Harry). At -20 dB
+# (was -19) it measures 1-2 dB under the sine, which was the loudest part in B (-4.9).
 SUB = {"about": "t4's sub: a sine under E4's roots, a breath of drive", "synth": {"layers": [{"wave": "sine"}],
        "amp": {"a": "15ms", "d": "0s", "s": 1, "r": "200ms"}}, "fx": ["drive drive=0.12"]}
 EUCLID_7_16 = [i for i in range(16) if (i * 7) % 16 < 7]      # 7 hits spread over 16 sixteenths
@@ -630,7 +635,7 @@ def main():
             tr("canon", "nylon", gain="-17dB", pan=0.35, sends={"hall": "-8dB"}),
             tr("bass", "upright-bass", gain="-9dB",
                fx=[{"type": "filter", "kind": "peak", "cutoff": 250, "q": 1.0, "gain": "-4dB"}]),
-            tr("sub", SUB, gain="-19dB"),
+            tr("sub", "sub-saturated", gain="-20dB"),                     # v23: the floor you can hear
             tr("air", "djembe", gain="4dB", pan=0.3, sends={"room": "-14dB"}),   # v4 palette: a hand shaker
             tr("kick", "brush-kit", gain="-8dB"),
             tr("snare", "brush-kit", gain="-4dB", pan=0.05, sends={"room": "-10dB"}),
