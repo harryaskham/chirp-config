@@ -6,7 +6,7 @@ snapshot, not re-rendered), a track-by-track player, NOTES at timestamps that go
 best-effort 480p preview videos.
 
   listen.py cut ALBUM [--label TEXT]                 cut a snapshot (renders changed tracks at nice 15)
-  listen.py video ALBUM [SNAP] [--ids 1,8]           480p previews for a snapshot's tracks (slow: run in an idle unit)
+  listen.py video ALBUM [SNAP] [--ids 1,8] [--look accretion]   480p previews (~1.3x real time each: an idle unit)
   listen.py serve [--host H] [--port 8791]           the app (notes notify the owner through caco)
   listen.py notes ALBUM [--track N] [--open]         read Harry's notes (composers)
   listen.py reply ALBUM NOTE_ID TEXT [--done]        answer a note; it shows under the note in the app
@@ -228,8 +228,9 @@ def cut(album_id, label="", render=default_render, canonical=default_canonical, 
     return snap
 
 
-def videos(album_id, sid=None, ids=None, log=print):
-    """480p previews (854x480, 24 fps, crf 30, the song's own look, else 'accretion'); one track at a time."""
+def videos(album_id, sid=None, ids=None, look=None, log=print):
+    """480p previews (854x480, 24 fps, crf 30; LOOK, else the song's own programme or the engine default); one track
+    at a time, at nice 19 (about 1.3x real time on pocket4 under load)."""
     snaps = snapshots(album_id)
     snap = next((s for s in snaps if s["id"] == sid), None) if sid else (snaps or [None])[-1]
     if not snap:
@@ -247,11 +248,8 @@ def videos(album_id, sid=None, ids=None, log=print):
         out = os.path.join(d, f".{stem}.tmp.mp4")
         t0 = time.time()
         cmd = ["nice", "-n", "19", pin, "video", "-f", song, "--seed", "0", "--size", "854x480", "--fps", "24",
-               "--crf", "30", "-o", out]
+               "--crf", "30"] + (["--look", look] if look else []) + ["-o", out]
         r = subprocess.run(cmd, capture_output=True, text=True, cwd=os.path.dirname(song))
-        if r.returncode:                                       # no look in the song: the album's built-in look
-            r = subprocess.run(cmd[:-2] + ["--look", "accretion", "-o", out], capture_output=True, text=True,
-                               cwd=os.path.dirname(song))
         if r.returncode or not os.path.exists(out):
             log(f"{t['id']}: video failed: {r.stderr.strip()[-200:]}")
             continue
@@ -401,6 +399,7 @@ def main(argv=None):
     p.add_argument("album")
     p.add_argument("snap", nargs="?")
     p.add_argument("--ids")
+    p.add_argument("--look")
     p = sub.add_parser("serve")
     p.add_argument("--host", default="127.0.0.1")
     p.add_argument("--port", type=int, default=8791)
@@ -419,7 +418,7 @@ def main(argv=None):
     if a.cmd == "cut":
         cut(a.album, a.label)
     elif a.cmd == "video":
-        videos(a.album, a.snap, {int(x) for x in a.ids.split(",")} if a.ids else None)
+        videos(a.album, a.snap, {int(x) for x in a.ids.split(",")} if a.ids else None, a.look)
     elif a.cmd == "serve":
         serve(a.host, a.port)
     elif a.cmd == "notes":
