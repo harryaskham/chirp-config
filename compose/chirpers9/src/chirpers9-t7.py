@@ -198,6 +198,15 @@ R15 = os.environ.get("T7_R15", "bow") != "none"
 # brass) an octave down, into the horns' warm middle: a brass riff over a drum-and-bass crest, the seed as a fanfare.
 # T7_R16=none reproduces v15.
 R16 = os.environ.get("T7_R16", "brass") != "none"
+# round 17 (palette): T7_R17=horns (default) - A HORN CHOIR UNDER THE BRASS. The crest's chords (E3 v2 at the crest:
+# D | C | G) lived only on the tide (saws + noise) and E4's mallet lights. NEW: French horns (horn - warm, round, dark,
+# a soft swelling attack; no other Accretion track has them) swell on every chord through the crest, in the horns'
+# middle - A3 D4 F#4 A4 | G3 C4 E4 G4 | G3 B3 D4 G4, smooth voice-leading, the top voice falling F# E D (E8's three
+# notes turned round, a glance at t8) - under v16's brass hook, so the reward sounds like an orchestra arriving. They
+# rest in the tidal lock (bars 129-136: the singer and the erhu) and come back with the rebuild.
+# T7_R17=none reproduces v16.
+R17 = os.environ.get("T7_R17", "horns") != "none"
+HORN_CHORDS = [((57, 62, 66, 69), 2.0), ((55, 60, 64, 67), 2.0), ((55, 59, 62, 67), 4.0)]
 BOW_LINE = [(128, 69, 7.6), (130, 67, 7.6), (132, 66, 7.6), (134, 64, 7.8), (136, 62, 7.5)]
 HEAD_WHEEL = [(0, (51, 55, 58, 62)), (4, (48, 51, 55, 58, 62)), (8, (44, 51, 55, 58, 60)), (12, (46, 51, 53, 58)),
               (14, (46, 50, 53, 56))]
@@ -774,6 +783,17 @@ def main():
                                         "filters": ["lp cutoff=3200 q=0.7"],
                                         "amp": {"a": "8ms", "d": "220ms", "s": 0.75, "r": "180ms"}},
                               "play": {"mono": True, "glide": "25ms"}}
+        if R17:
+            horns = Track("horns")
+            for bar in range(CREST, 152, 2):
+                if 128 <= bar < 136:
+                    continue
+                at = bar * 4.0
+                for ch, ln in HORN_CHORDS:
+                    horns.add(at, ln * 0.96, ",".join(mtok(m) for m in ch), 84 if ln == 4.0 else 76)
+                    at += ln
+            tracks.append({"name": "horns", "patch": "horn", "gain": "-8dB", "pan": -0.1,
+                           "sends": {"space": "-5dB"}, "score": horns.score()})
         if R16:                                                # an octave down, into the horns' middle
             hook.ev = [(e[0], e[1], mtok(int(float(e[2][1:])) - 12), e[3], e[4]) for e in hook.ev]
         tracks.append({"name": "hook", "patch": "horn-section" if R16 else "a7-hook", "gain": "-1dB" if R16 else "-9dB",
