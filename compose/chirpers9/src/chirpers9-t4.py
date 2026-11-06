@@ -378,6 +378,11 @@ def write_sub():
 # The shaker stays a whisper through A (first hit only): with its full euclid A sounded like B and the two sections
 # blurred (85.30 / 85.89, recurrence 99 -> 60) - B keeps the full euclid as its own.
 A_GATHER = (25, 33)
+# v15 (ROUND TYPE: palette): the RIDE (the brush kit's, buried ~20 dB under the mix) becomes a MODAL RIDE (modal-ride,
+# unused on the album): a dense plate struck on the bow with a long shimmering decay, pitched on the song's D. Three
+# rounds showed t4's missing air above 7 kHz would not come from pitched parts (glock, ganza): a cymbal's wash is
+# where air lives. Same part - three strokes a bar through the crest and the relief.
+RIDE = "D4"
 
 
 def gather_a():
@@ -410,9 +415,9 @@ def write_drums():
         for e in range(8):
             part("hat").add(t + e * 0.5, 0.25, "h", 52 if e % 2 else 40)
         if s in ("crest", "relief"):
-            part("ride").add(t, 1.0, "rd", 64)
-            part("ride").add(t + 1.5, 1.0, "rd", 52)
-            part("ride").add(t + 3, 1.0, "rd", 56)
+            part("ride").add(t, 1.0, RIDE, 64)
+            part("ride").add(t + 1.5, 1.0, RIDE, 52)
+            part("ride").add(t + 3, 1.0, RIDE, 56)
     part("snare").add(b0(CREST), 2.0, "sw", 100)                 # the swish at the crest
 
 
@@ -527,7 +532,7 @@ def main():
             tr("kick", "brush-kit", gain="-8dB"),
             tr("snare", "brush-kit", gain="-4dB", pan=0.05, sends={"room": "-10dB"}),
             tr("hat", "brush-kit", gain="-2dB", pan=0.2),
-            tr("ride", "brush-kit", gain="-5dB", pan=-0.25),
+            tr("ride", "modal-ride", gain="-24dB", pan=-0.25, sends={"room": "-12dB"}),   # v15 palette (was brush-kit rd)
             {"name": "voice", "patch": VOICE, "gain": "-8dB", "pan": 0.0,
              "sends": {"hall": "-9dB", "dly": "-16dB"}, "notes": voice},
             tr("e2", "harp", gain="-17dB", pan=0.4, sends={"hall": "-10dB", "dly": "-16dB"}),     # v2: listed last

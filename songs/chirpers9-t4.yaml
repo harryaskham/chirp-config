@@ -155,10 +155,13 @@
   },
   {
    "name": "ride",
-   "patch": "brush-kit",
-   "score": "R/320b rd/1b@64 R/19b rd/1b@64 R/0.5b rd/1b@52 R/0.5b rd/1b@56 rd/1b@64 R/0.5b rd/1b@52 R/0.5b rd/1b@56 rd/1b@64 R/0.5b rd/1b@52 R/0.5b rd/1b@56 rd/1b@64 R/0.5b rd/1b@52 R/0.5b rd/1b@56 rd/1b@64 R/0.5b rd/1b@52 R/0.5b rd/1b@56 rd/1b@64 R/0.5b rd/1b@52 R/0.5b rd/1b@56 rd/1b@64 R/0.5b rd/1b@52 R/0.5b rd/1b@56 rd/1b@64 R/0.5b rd/1b@52 R/0.5b rd/1b@56 rd/1b@64 R/0.5b rd/1b@52 R/0.5b rd/1b@56 rd/1b@64 R/0.5b rd/1b@52 R/0.5b rd/1b@56 rd/1b@64 R/0.5b rd/1b@52 R/0.5b rd/1b@56 rd/1b@64 R/0.5b rd/1b@52 R/0.5b rd/1b@56 rd/1b@64 R/0.5b rd/1b@52 R/0.5b rd/1b@56 rd/1b@64 R/0.5b rd/1b@52 R/0.5b rd/1b@56 rd/1b@64 R/0.5b rd/1b@52 R/0.5b rd/1b@56 R/144b",
-   "gain": "-5dB",
-   "pan": -0.25
+   "patch": "modal-ride",
+   "score": "R/320b D4/1b@64 R/19b D4/1b@64 R/0.5b D4/1b@52 R/0.5b D4/1b@56 D4/1b@64 R/0.5b D4/1b@52 R/0.5b D4/1b@56 D4/1b@64 R/0.5b D4/1b@52 R/0.5b D4/1b@56 D4/1b@64 R/0.5b D4/1b@52 R/0.5b D4/1b@56 D4/1b@64 R/0.5b D4/1b@52 R/0.5b D4/1b@56 D4/1b@64 R/0.5b D4/1b@52 R/0.5b D4/1b@56 D4/1b@64 R/0.5b D4/1b@52 R/0.5b D4/1b@56 D4/1b@64 R/0.5b D4/1b@52 R/0.5b D4/1b@56 D4/1b@64 R/0.5b D4/1b@52 R/0.5b D4/1b@56 D4/1b@64 R/0.5b D4/1b@52 R/0.5b D4/1b@56 D4/1b@64 R/0.5b D4/1b@52 R/0.5b D4/1b@56 D4/1b@64 R/0.5b D4/1b@52 R/0.5b D4/1b@56 D4/1b@64 R/0.5b D4/1b@52 R/0.5b D4/1b@56 D4/1b@64 R/0.5b D4/1b@52 R/0.5b D4/1b@56 D4/1b@64 R/0.5b D4/1b@52 R/0.5b D4/1b@56 R/144b",
+   "gain": "-24dB",
+   "pan": -0.25,
+   "sends": {
+    "room": "-12dB"
+   }
   },
   {
    "name": "voice",
