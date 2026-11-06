@@ -260,6 +260,12 @@ REPLY_BARS = (34, 42)
 # bars 49-52 and 55-60, stepping out while the singer sings (53-54) and before the half-time (61-64).
 # Own tracks. T7_R23=none reproduces v22.
 R23 = os.environ.get("T7_R23", "impact") != "none"
+# round 24 (palette): T7_R24=organ (default) - THE LIGHTS ON A HAMMOND. E4's four lights (the chord stabs in the
+# storm, the collision's i-VI-III-VII, the spiral's lament and the crest) were a Casio CZ pad - a thin digital chord
+# among the brass, the horn choir, the erhu and the voices this song has grown. They move to hammond-b3 (drawbars, a
+# percussion pop and key click, a Leslie; no other Accretion track has an organ): soul-jazz stabs that sit with the
+# horns, the same notes and rhythm. Same track gains (the patches differ by 1 dB). T7_R24=none reproduces v23.
+R24 = os.environ.get("T7_R24", "organ") != "none"
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
 BOW_LINE = [(128, 69, 7.6), (130, 67, 7.6), (132, 66, 7.6), (134, 64, 7.8), (136, 62, 7.5)]
@@ -990,6 +996,10 @@ def main():
             if k.startswith("a7-sung") or k.startswith("a7-choir"):
                 pt["extends"] = pt["extends"] + (" play.glide_overshoot=0.05" if k.startswith("a7-choir")
                                                  else " play.glide_overshoot=0.08")
+    if R24:
+        for tr in tracks:
+            if tr.get("patch") == "cz-pad":
+                tr["patch"] = "hammond-b3"
     if R22:
         for k, pt in patches.items():
             if k.startswith("a7-sung"):
