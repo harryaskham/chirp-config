@@ -176,6 +176,15 @@ SUNG5_BARS = (52, 60)
 # reproduces v12.
 R13 = os.environ.get("T7_R13", "sung") != "none"
 SUNGC_BARS = (130, 134)
+# round 14 (section, w1 = bars 1-16, the infall over t6's tail, flagged 'static'): T7_R14=wheel (default) - THE HEAD
+# TURNS. For sixteen bars the infall held one Ebmaj7 on the tide. Now the tide walks I - vi - IV - V in E-flat, four
+# bars a chord - Ebmaj7 | Cm9 | Abmaj9 | Bbsus4 -> Bb7 - every chord consonant over t6's B-flat tail and its held D
+# (chirper-one's old voice: the 7th, the 9th, the #11, the 3rd), and the last bar's Bb7 is the dominant that the
+# storm's E-flat minor resolves (bar 17: D -> Eb, the leading tone). The Eb1 floor stays as a pedal. Old holds
+# silenced (velocity 1), the progression on its own track. T7_R14=none reproduces v13.
+R14 = os.environ.get("T7_R14", "wheel") != "none"
+HEAD_WHEEL = [(0, (51, 55, 58, 62)), (4, (48, 51, 55, 58, 62)), (8, (44, 51, 55, 58, 60)), (12, (46, 51, 53, 58)),
+              (14, (46, 50, 53, 56))]
 W5_PROG = [(39, (51, 54, 58, 65)), (35, (47, 51, 54, 58)), (42, (54, 58, 61, 68)), (37, (49, 53, 56, 63))]
 E7_V2 = [("D3", 2), ("A3", 2), ("E4", 2), ("B4", 2), ("F#5", 3)]
 EB_MAJ7 = (51, 55, 58, 62)
@@ -469,6 +478,12 @@ def build():
     for bar in range(160, 172):
         for s in range(0, 16, 4):
             T["hats"].add(bar * 4.0 + s / 4, 0.1, "h", 54 - (bar - 160) * 2)
+    if R14:                                                                   # w1: the head turns
+        T["tide"].ev = [(e[0], e[1], e[2], 1, e[4]) if e[0] < 16 * 4.0 else e for e in T["tide"].ev]
+        T["tide1"] = Track("tide1")
+        for k, (bar, ch) in enumerate(HEAD_WHEEL):
+            end = HEAD_WHEEL[k + 1][0] if k + 1 < len(HEAD_WHEEL) else 16
+            T["tide1"].add(bar * 4.0, (end - bar) * 4.0 - 0.2, ",".join(mtok(m) for m in ch), 70 + 2 * k)
     if R12:                                                                   # w4: half time before the turn
         lo, hi = 60 * 4.0, 64 * 4.0
         for k in ("kick", "snare", "ghost", "hats", "perc"):
@@ -752,6 +767,9 @@ def main():
             if tr["name"] in adj:
                 tr["gain"] = f"{float(tr['gain'].replace('dB', '')) + adj[tr['name']]:g}dB"
         tracks[:] = [tr for tr in tracks if tr["name"] != "byte"]
+    if R14:
+        spec = {tr["name"]: tr for tr in tracks}
+        tracks.append(dict(spec["tide"], name="tide1", score=T["tide1"].score()))
     if R12:
         spec = {tr["name"]: tr for tr in tracks}
         for new, old in (("kickh", "kick"), ("snareh", "snare"), ("hatsh", "hats")):
