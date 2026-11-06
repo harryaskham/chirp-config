@@ -376,6 +376,24 @@ def horizon_line():
     return out
 
 
+# v10 (ROUND TYPE: whole song): THE ORBIT. Harry heard 'ugly chaos' - seven elements at once for 80 bars. Now the
+# stretto ACCRETES the way the album does: each element enters in a spotlight for twelve bars, then sinks into orbit
+# (-5 dB on a gain lane) as the next one arrives, so the newest is always the one heard - while E1, the hook, never
+# recedes (and sits 2 dB further forward). From bar 92 every orbit swings back in, and at the jet all of it is there at
+# full: the cycles converge at the crest.
+ORBIT_IN = {"e2": (29, 41, -5.0), "e3": (41, 53, -5.0), "e5": (53, 65, -5.0), "e6": (65, 81, -4.0)}
+
+
+def orbit_lane(name):
+    """0 dB in the element's spotlight, sinking into orbit as the next enters, swinging back in before the jet."""
+    _, nxt, depth = ORBIT_IN[name]
+    return [["0b", 0.0], [f"{b0(nxt):g}b", 0.0], [f"{b0(nxt + 4):g}b", depth],
+            [f"{b0(92):g}b", depth], [f"{b0(VACUUM):g}b", 0.0]]
+
+
+ORBIT_FX = "gain gain=0dB+auto.orb*1"
+
+
 def horizon_lane(drop):
     """Redshift: 0 until the horizon, then sinking to `drop` semitones by the end."""
     return [["0b", 0.0], [f"{b0(SINK):g}b", 0.0], [f"{b0(BARS + 1):g}b", drop]]
@@ -431,10 +449,13 @@ def main():
         "tracks": [
             tr("lights", "strings", gain="-14dB", sends={"hall": "-8dB"},
                fx=[{"type": "filter", "kind": "peak", "cutoff": 230, "q": 0.9, "gain": "-5dB"}]),
-            tr("e1", "nes-pulse-lead", gain="-12dB", pan=-0.25, sends={"dly": "-12dB"}),
-            tr("e2", "modal-glock", gain="-16dB", pan=0.35, sends={"dly": "-14dB"}),
-            tr("e3", "strings-synth", gain="-16dB", pan=-0.1, sends={"hall": "-8dB"}, fx=["lp cutoff=1800"]),
-            tr("e5", "marimba", gain="-13dB", pan=0.2, sends={"room": "-10dB"}),
+            tr("e1", "nes-pulse-lead", gain="-10dB", pan=-0.25, sends={"dly": "-12dB"}),
+            tr("e2", "modal-glock", gain="-16dB", pan=0.35, sends={"dly": "-14dB"},
+               fx=[ORBIT_FX], auto={"orb": {"points": orbit_lane("e2")}}),
+            tr("e3", "strings-synth", gain="-16dB", pan=-0.1, sends={"hall": "-8dB"}, fx=["lp cutoff=1800", ORBIT_FX],
+               auto={"orb": {"points": orbit_lane("e3")}}),
+            tr("e5", "marimba", gain="-13dB", pan=0.2, sends={"room": "-10dB"},
+               fx=[ORBIT_FX], auto={"orb": {"points": orbit_lane("e5")}}),
             tr("bass", "nes-triangle-bass", gain="-6dB"),
             tr("sub", SUB8, gain="-12dB"),
             tr("hsub", HSUB, gain="-13dB", auto={"rs": {"points": horizon_lane(-5.0)}}),
@@ -452,7 +473,8 @@ def main():
              "auto": {"rs": {"points": horizon_lane(-5.0)}}},
             tr("hold", HOLD, gain="-18dB", sends={"hall": "-4dB"},
                auto={"rs": {"points": horizon_lane(-5.0)}, "cl": {"points": cl}}),
-            tr("e6", "organ", gain="-24dB", pan=-0.3, sends={"hall": "-8dB"}, fx=["lp cutoff=3500"]),
+            tr("e6", "organ", gain="-24dB", pan=-0.3, sends={"hall": "-8dB"}, fx=["lp cutoff=3500", ORBIT_FX],
+               auto={"orb": {"points": orbit_lane("e6")}}),
             tr("e7", "brass-synth", gain="-11dB", pan=0.15, sends={"dly": "-12dB", "hall": "-10dB"}),
             {"name": "jet", "patch": "supersaw", "gain": "-8dB", "sends": {"hall": "-6dB"}, "notes": JET_NOTES},
             tr("hook", "flute", gain="-2dB", pan=0.1, sends={"dly": "-14dB", "hall": "-12dB"}),   # v5
