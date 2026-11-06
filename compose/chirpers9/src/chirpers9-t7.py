@@ -124,6 +124,14 @@ R6 = os.environ.get("T7_R6", "harmonic") != "none"
 # the E1 bells +6..8, E4 +10, E5 +4, hats +10, ghosts +6; (3) the bytebeat cut (inaudible noise); (4) the
 # stutter/crush lanes eased (glitch x0.6, grit x0.5): texture, not damage. T7_R7=none reproduces v6.
 R7 = os.environ.get("T7_R7", "clear") != "none"
+# round 8 (section, w5 = bars 65-80, the collision's second half, flagged 'static, little new'): T7_R8=open (default)
+# - THE STORM OPENS INTO A PROGRESSION. For 32+ bars the storm's harmony had flickered Ebm|Cb a beat at a time; here it
+# walks i - VI - III - VII (Ebm(add9) | Cbmaj7 | Gb(add9) | Db(add9), two bars each, twice): the tide pulses the
+# chords (quarters, then eighths in the second pass - the pull quickening), the reese drives roots in eighths with
+# octave kicks, and the pad stabs answer on the offbeats. E1 (Eb Bb Db Ab F) sits as colour over every chord. Old
+# parts are silenced (velocity 1), not deleted, so later events keep their randomness. T7_R8=none reproduces v7.
+R8 = os.environ.get("T7_R8", "open") != "none"
+W5_PROG = [(39, (51, 54, 58, 65)), (35, (47, 51, 54, 58)), (42, (54, 58, 61, 68)), (37, (49, 53, 56, 63))]
 E7_V2 = [("D3", 2), ("A3", 2), ("E4", 2), ("B4", 2), ("F#5", 3)]
 EB_MAJ7 = (51, 55, 58, 62)
 E6V3_D, E6V3_C = (50, 57, 62, 64, 66), (50, 55, 60, 62, 64)                  # D(add9) | C(add9)/D
@@ -412,6 +420,23 @@ def build():
     for bar in range(160, 172):
         for s in range(0, 16, 4):
             T["hats"].add(bar * 4.0 + s / 4, 0.1, "h", 54 - (bar - 160) * 2)
+    if R8:                                                                    # w5: i - VI - III - VII, twice
+        lo, hi = 64 * 4.0, 80 * 4.0
+        for k in ("tide", "bass", "e4"):
+            T[k].ev = [(e[0], e[1], e[2], 1, e[4]) if lo <= e[0] < hi else e for e in T[k].ev]
+        for k in ("tide5", "bass5", "e4w5"):
+            T[k] = Track(k)
+        for bar in range(64, 80):
+            root, ch = W5_PROG[((bar - 64) // 2) % 4]
+            second = bar >= 72
+            step = 0.5 if second else 1.0
+            for i in range(int(4 / step)):
+                T["tide5"].add(bar * 4.0 + i * step, step * 0.9, ",".join(mtok(m) for m in ch), (70 if i % 2 == 0 else 60) if second else 68)
+            for i in range(8):
+                m = root + (12 if i in (2, 6) else 0) + (7 if i == 7 else 0)
+                T["bass5"].add(bar * 4.0 + i * 0.5, 0.42, mtok(m), 108 if i % 4 == 0 else 94)
+            for off in (1.5, 3.5):
+                T["e4w5"].add(bar * 4.0 + off, 0.35, ",".join(mtok(m + 12) for m in ch[1:]), 84 if off == 1.5 else 76)
     return T
 
 
@@ -617,6 +642,10 @@ def main():
             if tr["name"] in adj:
                 tr["gain"] = f"{float(tr['gain'].replace('dB', '')) + adj[tr['name']]:g}dB"
         tracks[:] = [tr for tr in tracks if tr["name"] != "byte"]
+    if R8:
+        spec = {tr["name"]: tr for tr in tracks}
+        for new, old in (("tide5", "tide"), ("bass5", "bass"), ("e4w5", "e4")):
+            tracks.append(dict(spec[old], name=new, score=T[new].score()))
     master = {"fx": [{"type": "eq", "bands": ["hp cutoff=25", "lowshelf cutoff=120 gain=5dB", "peak cutoff=160 gain=-2.5dB q=1.2",
                                               "peak cutoff=320 gain=-2dB q=0.8", "peak cutoff=1400 gain=-2.5dB q=0.7",
                                               "highshelf cutoff=8000 gain=1dB"]},
