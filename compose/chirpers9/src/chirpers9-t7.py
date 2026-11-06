@@ -141,6 +141,15 @@ R8 = os.environ.get("T7_R8", "open") != "none"
 # collision lands with an open hat and clap. T7_R9=none reproduces v8.
 R9 = os.environ.get("T7_R9", "sung") != "none"
 SUNG7_BARS = (32, 40)
+# round 10 (palette): T7_R10=legato (default) - THE CHOIR SINGS, THE SEAM SWELLS. (1) The choir that sings "each lap a
+# little shorter" (collision fragments, the slack, the crest: six parts, three of them on voice-speech, an album
+# staple) moves to wM's voice-legato - joined syllables, an inhale before each phrase, wandering vibrato - with one
+# tract per part so it sounds like three singers, not one copied (D 1.08, F#/Gb 1.0, A/Bb 0.94; breath 0.25, ring
+# 0.35). Same notes, same words: sung now, not spoken in tune. (2) The E4 held under the t8 seam (a sine on 'sub',
+# the album's commonest patch) becomes ambient-swell - the clean guitar faded in by the volume knob into a long
+# wash - restruck every two bars from 167: the handover note breathes. T7_R10=none reproduces v9.
+R10 = os.environ.get("T7_R10", "legato") != "none"
+CHOIR_TRACT = {"0": 1.08, "1": 1.0, "2": 0.94}
 W5_PROG = [(39, (51, 54, 58, 65)), (35, (47, 51, 54, 58)), (42, (54, 58, 61, 68)), (37, (49, 53, 56, 63))]
 E7_V2 = [("D3", 2), ("A3", 2), ("E4", 2), ("B4", 2), ("F#5", 3)]
 EB_MAJ7 = (51, 55, 58, 62)
@@ -272,7 +281,11 @@ def build():
     for nt, ln in E1:
         T["e1c"].add(at, ln * 4 * 0.95 if nt != "E4" else (TOTAL - at - 0.25), mtok(midi(nt) - 12 + 12), 78)
         at += ln * 4
-    T["hold"].add(166 * 4.0, (TOTAL - 166 * 4.0) - 0.25, "m64", 66)           # E4 under the seam
+    if R10:                                                                   # E4 under the seam, swelling
+        for bar in range(166, 176, 2):
+            T["hold"].add(bar * 4.0, 8.0 - 0.25, "m64", 70 - (bar - 166) * 2)
+    else:
+        T["hold"].add(166 * 4.0, (TOTAL - 166 * 4.0) - 0.25, "m64", 66)       # E4 under the seam
     T["tide"].add(164 * 4.0, (TOTAL - 164 * 4.0) - 0.25, "m50,m57,m64", 74)    # D A E, open: no third - t8 brings it
 
     # ---- E3, the undertow, squeezed x2 on the reese (3.5 beats), barred at the crest (4 beats) --------------------
@@ -524,7 +537,7 @@ def main():
          "score": T["e1b"].score()},
         {"name": "e1c", "patch": "modal-bell", "gain": "-13dB", "pan": 0.0, "sends": {"space": "-6dB"},
          "score": T["e1c"].score()},
-        {"name": "hold", "patch": "sub", "gain": "-8dB", "score": T["hold"].score()},
+        {"name": "hold", "patch": "ambient-swell" if R10 else "sub", "gain": "-8dB", "score": T["hold"].score()},
         {"name": "e4", "patch": "cz-pad", "gain": "-16dB", "fx": storm(), "auto": lanes, "sends": {"space": "-10dB"},
          "score": T["e4"].score()},
         {"name": "e5", "patch": "a7-gb", "gain": "-17dB", "pan": -0.4, "score": T["e5"].score()},
@@ -615,6 +628,12 @@ def main():
         if not isinstance(p, str):
             patches["a7-voice"] = p
             p = "a7-voice"
+        if R10:
+            k = name[-1]
+            p = f"a7-choir{k}"
+            patches[p] = {"extends": f"voice-legato synth.layers.0.tract={CHOIR_TRACT[k]} synth.layers.0.breath=0.25 "
+                                     "synth.layers.0.ring=0.35",
+                          "synth": {"pitch": {"mod": [{"amount": 0.01, "src": "expr.f0"}], "value": 0}}}
         tracks.append({"name": f"v{name}", "patch": p, "gain": tr.get("gain", "0dB"), "pan": tr.get("pan", 0.0),
                        "fx": ["chorus", "delay time=1/4 mix=0.15 feedback=0.25"], "sends": {"space": "-6dB"},
                        "notes": notes})
