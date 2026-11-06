@@ -219,6 +219,20 @@ def carve(names, a_bar, z_bar):
 # (flute there too cost the t7 seam: flow 94-96 -> 84-88 - its breath noise lands right in the seam's measured body).
 
 # ---------------------------------------------------------------- the stretto (before the jet)
+# v24 (ROUND TYPE: section, the approach 81-96, ~26 s; rewritten): THE ORBITS TIGHTEN. chirpers.py sections had the
+# stretto's last window 'static' - the approach to the jet turning at one speed. Matter spiralling into the horizon
+# orbits faster, so from bar 89 every melodic and rhythmic cell DOUBLES its speed - E1 on the chip turns in 2.5 beats,
+# E2's pluck and the bass pedal in three and a half sixteenths, E5's marimba in a beat and a half - and still lands
+# on the jet's downbeat (each loop switches on its own cycle boundary, so half cycles divide the distance exactly).
+# The harmony keeps its pace (the lights, E3's progression) and E7's columns stand still in their spotlight: the
+# fixed axis the orbits spin around. Pitch untouched (Harry: complexity in time).
+SPIRAL = 89
+
+
+def spiral(beat):
+    return 0.5 if beat >= b0(SPIRAL) - 1e-6 else 1.0
+
+
 def write_stretto():
     # E4: the lights catch the fall, phased from beat 4 so a turn lands on the jet
     beat = phase_start("E4", 1)
@@ -232,15 +246,17 @@ def write_stretto():
     beat = phase_start("E1", ENTRY["E1"])
     while beat < JB - 0.01:
         bar = int(beat // BPB) + 1
+        f = spiral(beat)
         for n, on, ln in E1:
-            part("e1").add(beat + on, ln, n, 66 + min(24, (bar - 17) // 3))
-        beat += 5.0
+            part("e1").add(beat + on * f, ln * f, n, 66 + min(24, (bar - 17) // 3))
+        beat += 5.0 * f
     # E2: the seven-sixteenth cell, pitched, on a pluck
     beat = phase_start("E2", ENTRY["E2"])
     while beat < JB - 0.01:
+        f = spiral(beat)
         for n, step, v in E2:
-            part("e2").add(beat + step * 0.25, 0.25, n, v - 20)
-        beat += 1.75
+            part("e2").add(beat + step * 0.25 * f, 0.25 * f, n, v - 20)
+        beat += 1.75 * f
     # E3: t3's progression on 2+2+3, a dark pad
     beat = phase_start("E3", ENTRY["E3"])
     while beat < JB - 0.01:
@@ -252,16 +268,18 @@ def write_stretto():
     # E5: the inner orbit, marimba
     beat = phase_start("E5", ENTRY["E5"])
     while beat < JB - 0.01:
+        f = spiral(beat)
         for n, s in E5:
-            part("e5").add(beat + s * 0.25, 0.25, n, 70 if s == 0 else 56)
-        beat += 3.0
+            part("e5").add(beat + s * 0.25 * f, 0.25 * f, n, 70 if s == 0 else 56)
+        beat += 3.0 * f
     # the D pedal everything shares (the triangle bass), in E2's rhythm, from 33
     beat = phase_start("E2", 33)
     while beat < JB - 0.01:
+        f = spiral(beat)
         for n, step, v in E2[:2]:
             if not (E3_LIGHT[0] <= beat + step * 0.25 < E3_LIGHT[1]):      # v13: E3's spotlight takes the bass
-                part("bass").add(beat + step * 0.25, 0.25, "D2", v - 10)
-        beat += 1.75
+                part("bass").add(beat + step * 0.25 * f, 0.25 * f, "D2", v - 10)
+        beat += 1.75 * f
     # v13: in E3's spotlight the bass is E3's own bass line - its roots, long, on E3's seven-beat cycle
     beat = phase_start("E3", ENTRY["E3"])
     while beat < E3_LIGHT[1] - 0.01:
