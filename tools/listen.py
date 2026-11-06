@@ -190,7 +190,7 @@ def cut(album_id, label="", render=default_render, canonical=default_canonical, 
         old = prev_by.get(n)
         entry = {"n": n, "id": cid, "title": t.get("title") or cid, "owner": c.get("owner"),
                  "version": best.get("version"), "score": best.get("score"), "judged": bool(best.get("judged")),
-                 "note": ((kept[-1].get("note") or "") if kept else "")[:900], "sha": sha}
+                 "note": ((kept[-1].get("note") or "") if kept else "")[:4000], "sha": sha}
         olddir = os.path.join(base, prev["id"]) if prev else None
         if old and old.get("sha") == sha and os.path.exists(os.path.join(olddir, f"{stem}.mp3")):
             for ext in ("mp3", "mp4", "web"):
@@ -219,7 +219,8 @@ def cut(album_id, label="", render=default_render, canonical=default_canonical, 
             changed += 1
             log(f"{cid}: {entry['version']} rendered in {time.time() - t0:.0f} s")
         tracks.append(entry)
-    snap = {"id": sid, "album": album_id, "title": album.get("title", album_id), "at": now_iso(), "label": label,
+    snap = {"id": sid, "album": album_id, "title": album.get("album") or album.get("title") or album_id, "at": now_iso(),
+            "label": label,
             "pin": os.path.basename(pin), "prev": (prev or {}).get("id"), "changed": changed, "tracks": tracks}
     with open(os.path.join(tmp, "snapshot.json"), "w") as f:
         json.dump(snap, f, indent=1, ensure_ascii=False)
