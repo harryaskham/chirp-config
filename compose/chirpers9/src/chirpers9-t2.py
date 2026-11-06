@@ -215,6 +215,9 @@ def build():
         # (v11) the drums come back at HALF speed: the drift's first four bars are half-time (kick on 1 and the and of
         # 3, one snare on 3, the hats' three-beat cycle over it), and the drift's own groove arrives at bar 85
         half_ = s_ == 'drift' and i_ < 4
+        if s_ == 'drift' and i_ >= 8:
+            rng.random()                       # keep the random stream (ghost snares) where it was
+            continue
         if half_:
             kicks = [0, 2.5]
             P['kit'].append((b0 + 2.0, 's', 0.25, 110))
@@ -227,6 +230,16 @@ def build():
                 P['kit'].append((b0 + 3.75, 's', 0.12, 64))
         if s_ == 'crest' and i_ == 0:
             P['kit'].append((b0, 'c', 2.0, 120))
+    # (v13, section w8: the drift's second half 'static') THE DRUMS FALL INTO THE ORBIT: for the drift's last eight
+    # bars the kit stops playing the bar and plays E2's cell of seven sixteenths - kick on its first and fourth hits,
+    # a clap on its sixth - so the backbeat slides round the bar, 1.75 beats a turn, against the three-beat hats and
+    # under the ondes' plain E1: the groove itself caught by the debris just before the fall pulls everything in
+    t_ = (SEC['drift'] + 8) * 4.0
+    while t_ < fall0 - 1e-6:
+        for off_, pc_, v_ in ((0.0, 'k', 116), (0.75, 'k', 98), (1.25, 'cp', 104)):
+            if t_ + off_ < fall0 - 1e-6:
+                P['kit'].append((t_ + off_, pc_, 0.25, v_))
+        t_ += 1.75
     # hats in a THREE-beat cycle (12 sixteenths, x.xx.x.xx.x. ), from bar 18
     H3 = [0, 2, 3, 5, 7, 8, 10]
     t = H3_START * 4.0
