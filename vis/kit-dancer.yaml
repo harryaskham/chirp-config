@@ -1,0 +1,5 @@
+about: "Prefab (3D, use in a group): a dancer moved by the beat and the level, glowing warm. Params: phase (beats ahead), energy (how hard it dances), warmth (its glow's power)."
+params: {phase: 0, energy: 1, warmth: 0.8}
+layers:
+  - {type: figure, rig: human, motion: dance, palette: sunset, spread: 0.8, scale: 0.4, y: -0.42, phase: param.phase, energy: "param.energy*(1 + audio.level*1.5)", shadow: 0.6, ground: -0.6, light: 0.35, ambient: 0.05, rim: 0.8}
+  - {type: light, color: "#ffb36b", y: 0.0, power: "param.warmth + audio.level*1.5", reach: 0.35}

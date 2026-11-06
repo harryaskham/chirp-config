@@ -1,0 +1,6 @@
+about: "Prefab (3D, use in a group): a black hole with a lensed accretion disk of falling matter. The far half of the disk (and everything drawn before the group) is bent round the shadow; the near half crosses in front. Params: radius (the disk's), mass (the Einstein radius), glow, count (motes per half)."
+params: {radius: 2.4, mass: 0.78, glow: 0.35, count: 14000}
+layers:
+  - {type: motes, mode: infall, side: behind, count: param.count, radius: param.radius, life: 9, spin: 1.6, flat: 0.96, size: "0.007 + audio.level*0.003", glow: "param.glow + audio.level*0.5", twinkle: 0.3, spread: 0.6, palette: ember}
+  - {type: lens, radius: "param.mass + audio.low*0.05", hole: 0.42, redshift: 0.45, ring: 0.5}
+  - {type: motes, mode: infall, side: front, count: param.count, radius: param.radius, life: 9, spin: 1.6, flat: 0.96, size: "0.007 + audio.level*0.003", glow: "param.glow + audio.level*0.5", twinkle: 0.3, spread: 0.6, palette: ember}

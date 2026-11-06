@@ -1,0 +1,4 @@
+about: "Prefab (3D, use in a group): a bare tree swaying with the bass. Params: phase, sway."
+params: {phase: 0, sway: 1}
+layers:
+  - {type: figure, rig: tree, motion: sway, color: "#4a3a2c", y: -0.62, scale: 1.4, energy: "param.sway*(1 + audio.low*2)", phase: param.phase, light: 0.6, ambient: 0.2, rim: 0.4, shadow: 0.4, ground: -0.6}

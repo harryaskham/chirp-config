@@ -1,0 +1,5 @@
+about: "Prefab (3D, use in a group): a planet that breathes with the bass, its core a light. Params: size, core (the core light's power), bumps (surface relief)."
+params: {size: 0.42, core: 1.0, bumps: 0.04}
+layers:
+  - {type: mesh, shape: sphere, detail: 56, palette: elements, scale: param.size, displace: "param.bumps*sin(vtx.u*10 + time.t)*sin(vtx.v*7) + audio.low*0.08", ry: "time.t*0.03", colour: height, spread: 0.7, light: 0.45, ambient: 0.05, rim: 0.9, spec: 0.4, shine: 30, shadow: 0.7, ground: -0.6, soft: 1.5}
+  - {type: light, color: "#ff8a3c", power: "param.core + audio.low*3", reach: 1.4}

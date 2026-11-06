@@ -1,0 +1,6 @@
+about: "Prefab (3D, use in a group): a lantern-bearer walking on the beat, carrying a lantern whose light reaches the whole world. Params: phase (beats ahead), lantern (light power), hats (how much the lantern flickers on the hats)."
+params: {phase: 0, lantern: 1.6, hats: 1.2}
+layers:
+  - {type: figure, rig: human, motion: walk, color: "#d8cfc2", scale: 0.4, y: -0.42, phase: param.phase, shadow: 0.6, ground: -0.6, light: 0.3, ambient: 0.06, rim: 0.6}
+  - {type: light, color: "#7fe8ff", x: 0.13, y: -0.12, z: -0.06, power: "param.lantern + track.hats.hit*param.hats", reach: 0.32}
+  - {type: mesh, shape: sphere, detail: 12, color: "#c8f8ff", x: 0.13, y: -0.12, z: -0.06, scale: "0.022 + track.hats.hit*0.006", light: 0, ambient: 0, emit: 2.2, rim: 0}

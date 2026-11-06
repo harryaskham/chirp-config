@@ -1,0 +1,4 @@
+about: "Prefab (3D, use in a group): a dark glossy sea that swells with the bass, at y -0.62. Params: swell, light, size (the waves keep their size and spacing whatever the sea's size)."
+params: {swell: 1, light: 0.2, size: 4}
+layers:
+  - {type: mesh, shape: plane, detail: 110, y: -0.62, scale: param.size, palette: ocean, displace: "param.swell*4/param.size*(0.025*sin(vtx.x*2.75*param.size + time.t)*cos(vtx.z*2.25*param.size - time.t*0.7) + audio.low*0.03*sin(vtx.x*1.25*param.size + vtx.z*param.size + time.t*2))", light: param.light, ambient: 0.03, rim: 0.2, spec: 0.8, shine: 40, colour: height, spread: 0.4}
