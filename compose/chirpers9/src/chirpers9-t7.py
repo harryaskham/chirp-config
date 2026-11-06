@@ -228,6 +228,16 @@ SPIRAL_SUNG = (104, 112)
 # and spectrum 94.9 -> 94.2 (the wood's mids thicken both seam bodies) - kept as an option.
 R19 = os.environ.get("T7_R19", "breath") != "none"
 R19_WOOD = os.environ.get("T7_R19", "breath") == "wood"
+# round 20 (section, w7 = bars 97-112, the spiral, flagged 'static'): T7_R20=lament (default) - THE SPIRAL TURNS.
+# The spiral sat on one chord (E-flat minor) for 32 bars: the elements came in one by one, but nothing moved under them.
+# Now from bar 101 the harmony spirals DOWN, four bars a chord, the old lament: Db(add9) - Cbmaj7 - Bb7sus4, and home
+# to E-flat minor at bar 113, where the singer's duet lands (the turn resolves exactly where she returns home). The
+# tide keeps v4's squeeze (one beat, a half at 105, a quarter at 109) on the new chords; the reese walks the roots;
+# E4's lights (105) take the chord tones; the E-flat floor holds underneath as a pedal. E1's bells and E5's orbit sit
+# in all three chords; the jet's C and G flatten to Cb and Gb for the Cbmaj7 bars. Old notes silenced (velocity 1),
+# the new parts on their own tracks. T7_R20=none reproduces v19.
+R20 = os.environ.get("T7_R20", "lament") != "none"
+SPIRAL_PROG = [(100, 37, (49, 53, 56, 63)), (104, 35, (47, 51, 54, 58)), (108, 34, (51, 53, 56, 58))]
 BOW_LINE = [(128, 69, 7.6), (130, 67, 7.6), (132, 66, 7.6), (134, 64, 7.8), (136, 62, 7.5)]
 HEAD_WHEEL = [(0, (51, 55, 58, 62)), (4, (48, 51, 55, 58, 62)), (8, (44, 51, 55, 58, 60)), (12, (46, 51, 53, 58)),
               (14, (46, 50, 53, 56))]
@@ -585,6 +595,27 @@ def build():
                 T["bass5"].add(bar * 4.0 + i * 0.5, 0.42, mtok(m), 108 if i % 4 == 0 else 94)
             for off in (1.5, 3.5):
                 T["e4w5"].add(bar * 4.0 + off, 0.35, ",".join(mtok(m + 12) for m in ch[1:]), 84 if off == 1.5 else 76)
+    if R20:                                                                   # w7: the spiral turns (bars 101-112)
+        lo, hi = 100 * 4.0, 112 * 4.0
+        for k in ("tide", "bass", "e4"):
+            T[k].ev = [(e[0], e[1], e[2], 1, e[4]) if lo <= e[0] < hi else e for e in T[k].ev]
+        for k in ("jet", "jethi"):                                            # Cbmaj7 bars: C -> Cb, G -> Gb
+            T[k].ev = [(e[0], e[1], mtok(int(float(e[2][1:])) - 1), e[3], e[4])
+                       if 104 * 4.0 <= e[0] < 108 * 4.0 and e[2].startswith("m") and int(float(e[2][1:])) % 12 in (0, 7)
+                       else e for e in T[k].ev]
+        for k in ("tide7", "bass7", "e4w7"):
+            T[k] = Track(k)
+        for bar in range(100, 112):
+            root, ch = [(r, c) for b0, r, c in SPIRAL_PROG if b0 <= bar][-1]
+            step = 1.0 if bar < 104 else 0.5 if bar < 108 else 0.25
+            for i in range(int(4 / step)):
+                T["tide7"].add(bar * 4.0 + i * step, step * 0.9, ",".join(mtok(m) for m in ch), 66 if i % 2 == 0 else 58)
+            for i in range(8):
+                m = root + (12 if i in (2, 6) else 0)
+                T["bass7"].add(bar * 4.0 + i * 0.5, 0.42, mtok(m), 98 if i % 4 == 0 else 86)
+            if bar >= 104:
+                for off in (1.5, 3.5):
+                    T["e4w7"].add(bar * 4.0 + off, 0.35, ",".join(mtok(m + 12) for m in ch[1:]), 82 if off == 1.5 else 74)
     return T
 
 
@@ -901,6 +932,10 @@ def main():
     if R8:
         spec = {tr["name"]: tr for tr in tracks}
         for new, old in (("tide5", "tide"), ("bass5", "bass"), ("e4w5", "e4")):
+            tracks.append(dict(spec[old], name=new, score=T[new].score()))
+    if R20:
+        spec = {tr["name"]: tr for tr in tracks}
+        for new, old in (("tide7", "tide"), ("bass7", "bass"), ("e4w7", "e4")):
             tracks.append(dict(spec[old], name=new, score=T[new].score()))
     if R19:
         for tr in tracks:
