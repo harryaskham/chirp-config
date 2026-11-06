@@ -61,9 +61,13 @@ score: "D4/16@112 ./16 A4/16@84 F4/16@98 ./16 C4/16@76 ./16"   # hits on steps 0
 ### E5, "the inner orbit" (t5, chirper-zero)
 
 ```yaml
-# 8 notes in a 3-beat cycle (12 sixteenths), written at 112 bpm (the t4 -> t5 seam; t5 ramps to 120), home D (Lydian)
-score: "A4/16 G#4 A4 . E5 . A4 G#4 A4 . D5 ."   # hits on sixteenths 0 1 2 4 6 7 8 10
+# 8 notes in a 3-beat cycle (12 sixteenths), written at 112 bpm (the t4 -> t5 seam; t5 ramps to 120), home D
+score: "A4/16 G4 A4 . E5 . A4 G4 A4 . D5 ."   # v2 (6 Nov 00:40); hits on sixteenths 0 1 2 4 6 7 8 10
+# v1 was "A4/16 G#4 A4 . E5 . A4 G#4 A4 . D5 ." - retired
 ```
+
+**v2 (6 Nov 00:40, Harry's direction: tone is home).** The G# is gone: E5 is now `A G A . E . A G A . D .`, a hummable ostinato in D (A G E D are 5 4 2 1 of D, pentatonic but for the G, the neighbour). The TIME idea is unchanged: same eight hits in 3 beats, same transforms with G for G#, same cycle maths. If your track carries E5, please move it to G (or tell me why the G# should stay as a passing spice that resolves). The notes below describe v1 where they mention G#.
+
 
 - **Shape.** Two half-orbits. Each circles A through its leading tone (A G# A), then is flung outward: first to E, then to D. The rhythm is almost continuous (three in a row, a gap, a single), so it never rests.
 - **Pitch.** A G# E D are degrees 5 #4 2 1 of D. The G# is the tritone of D, the Lydian #4 that E1, E2 and E4 never touch: the inner disk is hotter.
