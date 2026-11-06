@@ -1,0 +1,80 @@
+<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>chirpers - listen</title>
+<style>
+:root{--bg:#0b0d12;--panel:#12151d;--line:#262b38;--amber:#e8c27a;--hi:#ffd58a;--dim:#8f98aa;--note:#7fd1c3}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--amber);font:14px/1.4 system-ui,sans-serif}
+header{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid var(--line)}
+h1{font-size:16px;margin:0;color:var(--hi)}select,button,textarea{background:var(--panel);color:var(--amber);
+border:1px solid var(--line);border-radius:5px;font:inherit}select,button{padding:4px 8px}button{cursor:pointer}
+button:hover{border-color:var(--amber)}main{display:grid;grid-template-columns:minmax(220px,300px) 1fr;min-height:calc(100vh - 50px)}
+@media(max-width:760px){main{grid-template-columns:1fr}}
+#tracks{border-right:1px solid var(--line);overflow:auto}.tr{padding:7px 12px;border-bottom:1px solid var(--line);cursor:pointer}
+.tr:hover{background:#151a25}.tr.on{background:#1b2130;border-left:3px solid var(--hi)}.tr .m,.m{color:var(--dim);font-size:12px}
+.badge{background:#203a36;color:var(--note);border-radius:9px;padding:0 6px;font-size:11px;margin-left:4px}
+.new{color:#9fe3a0;font-size:11px;margin-left:4px}#pane{padding:12px 16px;min-width:0}
+audio,video{width:100%;max-width:960px;display:block;background:#000;border-radius:4px}
+#bar{position:relative;height:18px;max-width:960px;margin:4px 0 10px;background:var(--panel);border-radius:3px;cursor:pointer}
+#bar .pos{position:absolute;top:0;bottom:0;width:2px;background:var(--hi)}#bar .mk{position:absolute;top:2px;width:8px;
+height:14px;margin-left:-4px;background:var(--note);border-radius:2px}#bar .mk.old{opacity:.35}
+#noteRow{display:flex;gap:8px;max-width:960px;align-items:flex-start}#noteText{flex:1;min-height:38px;padding:6px}
+.note{border-left:2px solid var(--note);padding:4px 10px;margin:8px 0;max-width:960px}.note.done{opacity:.55}
+.note .t{color:var(--note);cursor:pointer;font-weight:600}.note .x{float:right;color:var(--dim);cursor:pointer}
+.reply{margin:3px 0 0 14px;color:#cdd3df}.compnote{white-space:pre-wrap;color:#cdd3df;max-width:960px;font-size:13px}
+a{color:var(--hi)}kbd{border:1px solid var(--line);border-radius:3px;padding:0 4px;font-size:11px;color:var(--dim)}
+</style>
+<header><h1 id=title>chirpers</h1><select id=snap title="snapshot"></select><span id=snapinfo class=m></span>
+<label class=m><input type=checkbox id=cont checked> play on</label>
+<span class=m><kbd>space</kbd> play <kbd>N</kbd> note <kbd>&larr;</kbd><kbd>&rarr;</kbd> 5 s <kbd>J</kbd><kbd>K</kbd> track</span></header>
+<main><div id=tracks></div><div id=pane></div></main>
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const mmss=t=>`${Math.floor(t/60)}:${String(Math.floor(t%60)).padStart(2,"0")}`;
+let A,D,S,N,media,noteT=null;
+const q=()=>Object.fromEntries(new URLSearchParams(location.hash.slice(1)));
+async function load(){const albums=await (await fetch("api/albums")).json();A=q().a||albums[albums.length-1];
+ D=await (await fetch("api/"+A)).json();const sel=$("#snap");
+ sel.innerHTML=D.snapshots.slice().reverse().map((s,i)=>`<option value="${s.id}">${i?"":"latest: "}${s.id}${s.label?" - "+esc(s.label):""} (${s.changed} new)</option>`).join("");
+ const h=q();S=D.snapshots.find(s=>s.id===h.s)||D.snapshots[D.snapshots.length-1];sel.value=S.id;
+ $("#title").textContent="chirpers - "+S.title;pick(+h.n||S.tracks[0].n,+h.t||0,false);}
+function notesFor(n){return D.notes.filter(x=>x.n===n);}
+function tracks(){$("#tracks").innerHTML=S.tracks.map(t=>{const c=notesFor(t.n).filter(x=>!x.done).length;
+ return `<div class="tr${t.n===N?" on":""}" data-n=${t.n}><b>${t.n}. ${esc(t.title)}</b>${c?`<span class=badge>${c}</span>`:""}${t.changed&&S.prev?"<span class=new>new</span>":""}
+ <div class=m>${esc(t.version)} &middot; ${t.score??""}${t.judged?" (judged)":""} &middot; ${mmss(t.dur||0)} &middot; ${esc(t.owner||"")}</div></div>`}).join("");
+ document.querySelectorAll(".tr").forEach(e=>e.onclick=()=>pick(+e.dataset.n,0,true));}
+function pick(n,t,play){N=n;const tr=S.tracks.find(x=>x.n===n)||S.tracks[0];N=tr.n;tracks();
+ const src=`media/${A}/${S.id}/t${String(N).padStart(2,"0")}.${tr.video?"mp4":"mp3"}`;
+ $("#pane").innerHTML=`<h2 style="margin:0 0 6px">${N}. ${esc(tr.title)} <span class=m>${esc(tr.version)} &middot; ${tr.score??""} &middot; rendered ${esc((tr.rendered||"").slice(0,16).replace("T"," "))} on ${esc(tr.pin||"")}</span></h2>
+ ${tr.video?`<video id=med controls preload=metadata src="${src}"></video>`:`<audio id=med controls preload=metadata src="${src}"></audio>`}
+ <div id=bar></div>
+ <div id=noteRow><textarea id=noteText placeholder="Note at the playhead (N). Enter saves, Shift+Enter for a new line."></textarea><button id=save>Note at 0:00</button></div>
+ <p class=m><a href="web/${A}/${S.id}/${N}" target=_blank>open live in chirp web &#8599;</a> (rendered and drawn in your browser) &middot; <a href="${src}" download>download</a></p>
+ <div id=nl></div><h3 class=m style="margin-top:18px">composer's note on this version</h3><div class=compnote>${esc(tr.note)}</div>`;
+ media=$("#med");media.addEventListener("loadedmetadata",()=>{if(t)media.currentTime=t;if(play)media.play();bar();},{once:true});
+ media.addEventListener("timeupdate",()=>{bar(true);if(noteT===null)$("#save").textContent="Note at "+mmss(media.currentTime);});
+ media.addEventListener("ended",()=>{if($("#cont").checked){const i=S.tracks.findIndex(x=>x.n===N);if(S.tracks[i+1])pick(S.tracks[i+1].n,0,true);}});
+ $("#bar").onclick=e=>{const r=e.currentTarget.getBoundingClientRect();media.currentTime=(e.clientX-r.left)/r.width*(media.duration||tr.dur);};
+ $("#noteText").onfocus=()=>{if(noteT===null){noteT=media.currentTime;$("#save").textContent="Note at "+mmss(noteT);}};
+ $("#noteText").onkeydown=e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();save();}if(e.key==="Escape"){noteT=null;e.target.blur();}};
+ $("#save").onclick=save;notesList();history.replaceState(null,"",`#a=${A}&s=${S.id}&n=${N}`);}
+function bar(posOnly){const b=$("#bar");if(!b||!media)return;const dur=media.duration||(S.tracks.find(x=>x.n===N)||{}).dur||1;
+ if(!posOnly){const tr=S.tracks.find(x=>x.n===N);b.innerHTML=notesFor(N).map(x=>`<div class="mk${x.version===tr.version?"":" old"}" title="${esc(mmss(x.t)+" "+x.text)}" style="left:${x.t/dur*100}%"></div>`).join("")+"<div class=pos></div>";}
+ const p=b.querySelector(".pos");if(p)p.style.left=(media.currentTime/dur*100)+"%";}
+function notesList(){const tr=S.tracks.find(x=>x.n===N);const ns=notesFor(N).slice().reverse();
+ $("#nl").innerHTML=ns.length?ns.map(x=>`<div class="note${x.done?" done":""}"><span class=x data-id=${x.id} title="delete">&times;</span>
+ <span class=t data-s=${x.snap} data-t=${x.t}>${mmss(x.t)}</span> <span class=m>${esc(x.version)}${x.version===tr.version?"":" (earlier version)"} &middot; ${esc(x.at.slice(5,16).replace("T"," "))}${x.done?" &middot; done":""}</span><div>${esc(x.text)}</div>
+ ${x.replies.map(r=>`<div class=reply>&rarr; <b>${esc(r.by)}</b>: ${esc(r.text)}</div>`).join("")}</div>`).join(""):"<p class=m>No notes on this track yet.</p>";
+ document.querySelectorAll(".note .t").forEach(e=>e.onclick=()=>{if(e.dataset.s===S.id){media.currentTime=+e.dataset.t;media.play();}else{S=D.snapshots.find(s=>s.id===e.dataset.s)||S;$("#snap").value=S.id;pick(N,+e.dataset.t,true);}});
+ document.querySelectorAll(".note .x").forEach(e=>e.onclick=async()=>{if(!confirm("Delete this note?"))return;await fetch(`api/${A}/notes/${e.dataset.id}/delete`,{method:"POST",body:"{}"});await refresh();});
+ bar();}
+async function refresh(){const d=await (await fetch("api/"+A)).json();D.notes=d.notes;tracks();notesList();}
+async function save(){const text=$("#noteText").value.trim();if(!text)return;const t=noteT??media.currentTime;
+ const r=await fetch(`api/${A}/notes`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({snap:S.id,n:N,t,text})});
+ if(r.ok){$("#noteText").value="";noteT=null;$("#noteText").blur();await refresh();$("#snapinfo").textContent="note sent to the composer";setTimeout(()=>$("#snapinfo").textContent="",3000);}}
+$("#snap").onchange=e=>{S=D.snapshots.find(s=>s.id===e.target.value);pick(N,0,false);};
+document.addEventListener("keydown",e=>{if(e.target.tagName==="TEXTAREA"||!media)return;
+ if(e.key===" "){e.preventDefault();media.paused?media.play():media.pause();}
+ else if(e.key==="n"||e.key==="N"){e.preventDefault();noteT=media.currentTime;$("#save").textContent="Note at "+mmss(noteT);$("#noteText").focus();}
+ else if(e.key==="ArrowLeft")media.currentTime=Math.max(0,media.currentTime-5);else if(e.key==="ArrowRight")media.currentTime+=5;
+ else if(e.key==="j"||e.key==="k"){const i=S.tracks.findIndex(x=>x.n===N)+(e.key==="j"?1:-1);if(S.tracks[i])pick(S.tracks[i].n,0,true);}});
+load();
+</script>
