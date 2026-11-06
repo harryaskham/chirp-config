@@ -59,6 +59,7 @@ CALLRESP = os.environ.get("C9T5_CALLRESP", "gap,sing")   # SECTION w3 (1:08-1:41
 ASCENT = os.environ.get("C9T5_ASCENT", "hold")   # SECTION w5 (2:15-2:47, the build into the crest: flagged 'little new vs w4'): THE CALLS CLIMB - 'near-er' was called on the same two notes (A G) all the way into the crest. Now each call steps up the scale (A G, then B A, then C B), and with 'hold' the singer holds 'near...' on D5 alone through the pull, over E5's trill, landing on the crest's downbeat; her calls scoop in and fall off
 SUBP = os.environ.get("C9T5_SUBP", "")   # PALETTE: the low end the build lands on was the 808 (an album staple: t3, t5, t7). It moves to a saturated sub ('patch' or 'patch@gaindB'): a sine with a triangle and a little saw driven into it, so the inner disk's floor glows and is heard on small speakers (the hotter disk)
 PERNOTE = os.environ.get("C9T5_PERNOTE", "1")   # PALETTE (per-note vibrato pinned, 58ee9ba3): THE SINGER'S VIBRATO BLOOMS PER NOTE - on her joined lines the vibrato used to count from each phrase's first note and wobble through the quick notes after it; now quick notes stay plain and each held note blooms on its own (synth.lfo.vib.per_note=true), as a singer's does
+EQ1400 = os.environ.get("C9T5_EQ1400", "orbit+seed-hi+seed-lo:-6")   # PALETTE: THE CHIP CHANNELS STOP SHOUTING - the NES pulse orbit (and the chip/pluck seeds) piled up +10 dB at 1.4 kHz, the song's worst band; swapping their instruments only moved the pile-up lower. Their tone is carved instead: a peak cut at 1.4 kHz ('track+track:dB'), so the circling stays bright on top but loses its nasal honk
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -490,6 +491,11 @@ def song():
             base = pt if isinstance(pt, str) else (pt or {}).get("extends", "")
             if str(base).startswith("voice-near"):
                 tr["patch"] = {"extends": f"{base} synth.lfo.vib.per_note=true"}
+    if EQ1400:
+        names, _, g = EQ1400.partition(":")
+        for tr in tracks:
+            if tr["name"] in names.split("+"):
+                tr["fx"] = list(tr.get("fx", [])) + [f"peak cutoff=1400 gain={g}dB q=1.0"]
     if CALLRESP:
         lines = [float(x) for x in VOXA.split(",")] if VOXA else []
         for tr in tracks:
