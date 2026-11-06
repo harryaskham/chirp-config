@@ -217,6 +217,17 @@ HORN_CHORDS = [((57, 62, 66, 69), 2.0), ((55, 60, 64, 67), 2.0), ((55, 59, 62, 6
 # T7_R18=none reproduces v17.
 R18 = os.environ.get("T7_R18", "thread") != "none"
 SPIRAL_SUNG = (104, 112)
+# round 19 (palette): T7_R19=breath (default; =wood adds (1)) - WOOD AND BREATH. (1) E1's middle bell was the Game Boy wave channel
+# (a7-gb), a chip beside the brass hook, the horn choir, the erhu and the voices this song has grown. It moves to
+# modal-marimba (a rosewood bar on the modal layer, hard yarn; no other Accretion track has it): E1 in warm wood
+# between the e-piano and the scanned mallet. E5's orbit keeps the chip - the inner orbit's one digital sparkle.
+# (2) Every singer gets wM's glide overshoot (pinned 59a832d1; play.glide_overshoot): on each note change the pitch
+# swings a little past the new note and settles, as a real singer's does, instead of landing dead on it - 0.08 on the
+# soloists and their harmonies, 0.05 on the choir. T7_R19=none reproduces v18.
+# DEFAULT IS breath (the overshoot alone). =wood adds the marimba E1 bell: even at -14 dB it cost flow 99.5 -> 93.3
+# and spectrum 94.9 -> 94.2 (the wood's mids thicken both seam bodies) - kept as an option.
+R19 = os.environ.get("T7_R19", "breath") != "none"
+R19_WOOD = os.environ.get("T7_R19", "breath") == "wood"
 BOW_LINE = [(128, 69, 7.6), (130, 67, 7.6), (132, 66, 7.6), (134, 64, 7.8), (136, 62, 7.5)]
 HEAD_WHEEL = [(0, (51, 55, 58, 62)), (4, (48, 51, 55, 58, 62)), (8, (44, 51, 55, 58, 60)), (12, (46, 51, 53, 58)),
               (14, (46, 50, 53, 56))]
@@ -891,6 +902,14 @@ def main():
         spec = {tr["name"]: tr for tr in tracks}
         for new, old in (("tide5", "tide"), ("bass5", "bass"), ("e4w5", "e4")):
             tracks.append(dict(spec[old], name=new, score=T[new].score()))
+    if R19:
+        for tr in tracks:
+            if R19_WOOD and tr["name"] in ("e1b", "e1bw"):
+                tr.update(patch="modal-marimba", gain={"e1b": "-14dB", "e1bw": "-11dB"}[tr["name"]])
+        for k, pt in patches.items():
+            if k.startswith("a7-sung") or k.startswith("a7-choir"):
+                pt["extends"] = pt["extends"] + (" play.glide_overshoot=0.05" if k.startswith("a7-choir")
+                                                 else " play.glide_overshoot=0.08")
     master = {"fx": [{"type": "eq", "bands": ["hp cutoff=25", "lowshelf cutoff=120 gain=5dB", "peak cutoff=160 gain=-2.5dB q=1.2",
                                               "peak cutoff=320 gain=-2dB q=0.8", "peak cutoff=1400 gain=-2.5dB q=0.7",
                                               "highshelf cutoff=8000 gain=1dB"]},
