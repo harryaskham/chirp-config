@@ -114,8 +114,10 @@ E4 = [("D2", "A2", "F#3", "C4", "E4"), ("Bb1", "F2", "D3", "A3", "C4", "E4"), ("
       ("D2", "A2", "C3", "G3", "B3", "E4")]
 E5 = [("A4", 0), ("G4", 1), ("A4", 2), ("E5", 4), ("A4", 6), ("G4", 7), ("A4", 8), ("D5", 10)]            # 3 beats
 E4m = [("D2", "A2", "F3", "C4", "E4"), ("Bb1", "F2", "D3", "A3"), ("A1", "E2", "C3", "G3"), ("D2", "A2", "D3", "E3", "A3")]
-E4M = [("D2", "A2", "F#3", "C4", "E4"), ("Bb1", "F2", "D3", "A3", "C4"), ("A1", "E2", "C3", "G3", "D4"),
-       ("D2", "A2", "D3", "E3", "A3")]
+# v6 (ROUND TYPE: section, the jet 97-112, rewritten onto the album's settled D MIXOLYDIAN, E1's own scale): after
+# the jet E4 is E4 v2 - D9 | Cmaj9 | Am11 | G6/9, the bass walking D C A G and home (no borrowed Bb/F any more).
+E4M = [("D2", "A2", "F#3", "C4", "E4"), ("C2", "G2", "E3", "B3", "D4"), ("A1", "E2", "C3", "G3", "B3", "D4"),
+       ("G1", "D2", "B2", "E3", "A3")]
 CYCLE = {"E1": 5.0, "E2": 1.75, "E3": 7.0, "E4": 20.0, "E5": 3.0}
 ENTRY = {"E4": 1, "E1": 17, "E2": 29, "E3": 41, "E5": 53}          # the stretto's entries (bars)
 
@@ -144,8 +146,11 @@ def chord(notes, bright=False):
 #   lands E8 over it. After the jet the column is re-barred into the lock (11 sixteenths + 5 rest) every 4 bars.
 E6_D = ("D3", "F3", "A3", "C4", "E4")                 # Dm9 (v5; was Dmaj9#11)
 E6_EB = ("Bb2", "D3", "F3", "A3", "C4")               # Bbmaj9 (v5; was Ebmaj7#11 - the name kept for the tide's code)
-E7 = [("D3", 0, 2), ("A3", 2, 2), ("E4", 4, 2), ("A4", 6, 1), ("D5", 7, 1), ("E5", 8, 1), ("A5", 9, 2)]
-E7_JET = [("D3", 0, 2), ("A3", 2, 2), ("E4", 4, 2), ("F#4", 6, 1), ("A4", 7, 1), ("D5", 8, 1), ("F#5", 9, 2)]
+# v6: E7 v2 (chirper-two): five rising fifths on 2 2 2 2 3 sixteenths (still 11). In the stretto the column keeps
+# minor-safe pitches (D A E A E); at the jet it is v2 exactly - D3 A3 E4 B4 F#5 - held as a consonant D6/9 that tops
+# on F#: the B and the F# (E8's third) arrive with the jet.
+E7 = [("D3", 0, 2), ("A3", 2, 2), ("E4", 4, 2), ("A4", 6, 2), ("E5", 8, 3)]
+E7_JET = [("D3", 0, 2), ("A3", 2, 2), ("E4", 4, 2), ("B4", 6, 2), ("F#5", 8, 3)]
 E7_CYCLE = 2.75
 JET_NOTES = []
 TIDE_WOBBLE = [0, 1, 0, -1, 1, 0, -1, 0, 1, 0, -0.5, 0.5, 0, 0.5, 0, 0]
@@ -180,8 +185,8 @@ def write_tide_and_jet():
     for bar in range(JET + 4, HORIZON, 4):
         if in_break(bar) or bar == BREAK[1] + 1:
             continue
-        for nm, s, ln in E7:
-            part("e7").add(b0(bar) + s * 0.25, ln * 0.25 + (0.25 if nm == "G#6" else 0), nm, 96)
+        for nm, s, ln in E7_JET:                   # v6: after the jet the re-barred columns are E7 v2 itself
+            part("e7").add(b0(bar) + s * 0.25, ln * 0.25, nm, 96)
 
 
 LULL = (57, 64)               # v2: a false calm in the stretto - E2, the pedal and E1 step out; E3 and E5 alone
@@ -291,8 +296,7 @@ def write_jet():
         if not in_break(int(beat // BPB) + 1):
             for n, step, v in E2:
                 at = beat + step * 0.25
-                on_bb = (int(at // BPB) + 1 - JET) % 4 == 1          # v5: over the lights' Bbmaj9 keep F natural
-                m = midi(n) if on_bb else brighten(midi(n))
+                m = brighten(midi(n))                                # v6: no Bb chord left to dodge
                 part("e2").add(at, 0.25, name_of(m + 12), v - 24)
         beat += 1.75
 
