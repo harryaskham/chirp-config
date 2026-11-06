@@ -327,6 +327,15 @@ def build():
     for k_, b_ in enumerate((SEC['crest'] - 8, SEC['crest'] - 4)):
         for n_ in SU['tracks'][0]['notes']:
             (snotes if k_ == 0 else snotes2).append(dict(n_, at=round(b_ * 4.0 + n_['at'], 4)))
+    # (v13, section w1: the in-seam 'static') THE ANSWER: t5 ends with its young voice singing 'nearer the middle
+    # hums' twice inside our overlap (chirper-zero's voice-near, at t6's bars 5 and 9). Now t6's old voice - a
+    # different person - ANSWERS each one in the gap after it: 'the tide comes in', low, A G E D, landing on D as the
+    # tide's D chord holds (bars 7 and 11), the second softer. Two voices across the seam, a call and its answer; and
+    # the line names what the in-seam does (the tide arriving, D alone -> D/C)
+    AN = json.load(open(os.path.join(HERE, 'chirpers9-t6-answer.json')))
+    for b_, g_ in ((6, 1.0), (10, 0.8)):
+        for n_ in AN['tracks'][0]['notes']:
+            snotes.append(dict(n_, at=round(b_ * 4.0 + n_['at'], 4), vel=round(n_['vel'] * g_, 3)))
     # (v12) and the old voice has the last word: alone, over the ebb, it sings the second half of its line once more
     # - 'the far side lets it go' - timed so 'go' (D3, held) lands on the bar where B-flat stands alone: D is B-flat's
     # third, and when t7's Eb major 7 arrives over it, its seventh
@@ -446,7 +455,7 @@ def build():
             dict({k: v for k, v in vtr.items() if k != 'notes'}, name='voice', notes=vnotes, gain='-6dB', pan=-0.05,
                  sends={'hall': '-14dB'}),
             {'name': 'sung', 'patch': SU['tracks'][0]['patch'],
-             'notes': snotes, 'gain': '-7dB', 'pan': 0.0, 'sends': {'hall': '-12dB', 'echo': '-22dB'}},
+             'notes': sorted(snotes, key=lambda n_: n_['at']), 'gain': '-7dB', 'pan': 0.0, 'sends': {'hall': '-12dB', 'echo': '-22dB'}},
             {'name': 'sung2', 'patch': dict(SU['tracks'][0]['patch'], extends='voice-old synth.layers.0.harmony=[-5]'),
              'notes': snotes2, 'gain': '-8dB', 'pan': 0.0, 'sends': {'hall': '-12dB', 'echo': '-22dB'}},
         ]}
