@@ -23,7 +23,7 @@ all eight tracks are written in parallel. Note under each element where later tr
 ### E1, the seed (t1, chirper-zero)
 
 ```yaml
-# 5 notes in a 5-beat cycle (5/4), written at 84 bpm (t1 opens at 84 and reaches 90 at the t1 -> t2 seam)
+# 5 notes in a 5-beat cycle (5/4), written at 84 bpm (t1 v14 breathes: it opens at 78, hurries to 90 into the crest, relaxes to 86 in the lock, and is at 90 for the t1 -> t2 seam)
 score: "D4/8 A4/8. C5/16 G4/4 E4/4. ./4"   # beats: 0, 0.5, 1.25, 1.5, 2.5; a beat's rest closes the cycle
 ```
 
