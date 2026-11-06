@@ -150,6 +150,14 @@ SUNG7_BARS = (32, 40)
 # wash - restruck every two bars from 167: the handover note breathes. T7_R10=none reproduces v9.
 R10 = os.environ.get("T7_R10", "legato") != "none"
 CHOIR_TRACT = {"0": 1.08, "1": 1.0, "2": 0.94}
+# round 11 (section, w2 = bars 17-32, the approach's first half, flagged 'level jump'): T7_R11=drop (default) - THE
+# STORM ARRIVES IN TWO STEPS, NOT ONE SLAM. At bar 17 the whole storm (Eb1 floor, reese, break) used to land at once
+# (+10 dB over the infall, and the Eb1 floor 28 dB over t6's body). Now bars 17-24 have no floor: the reese carries
+# the undertow with a high-passed octave-up double (thin, nasal, wound tight) on top, the break and the E-flat-minor
+# hook carrying; bar 24 empties its kick under a one-bar riser; and at bar 25 the Eb1 floor DROPS in - the first real
+# weight of the track arrives as an event. (Silencing the reese too left 71-83 Hz 17 dB under t6: kept.) Old notes
+# are silenced (velocity 1), new parts on their own tracks. T7_R11=none reproduces v10.
+R11 = os.environ.get("T7_R11", "drop") != "none"
 W5_PROG = [(39, (51, 54, 58, 65)), (35, (47, 51, 54, 58)), (42, (54, 58, 61, 68)), (37, (49, 53, 56, 63))]
 E7_V2 = [("D3", 2), ("A3", 2), ("E4", 2), ("B4", 2), ("F#5", 3)]
 EB_MAJ7 = (51, 55, 58, 62)
@@ -443,6 +451,16 @@ def build():
     for bar in range(160, 172):
         for s in range(0, 16, 4):
             T["hats"].add(bar * 4.0 + s / 4, 0.1, "h", 54 - (bar - 160) * 2)
+    if R11:                                                                   # w2: the storm in two steps
+        lo, hi = 16 * 4.0, 24 * 4.0
+        T["bassup"], T["drop"] = Track("bassup"), Track("drop")
+        for e in T["bass"].ev:
+            if lo <= e[0] < hi:
+                T["bassup"].add(e[0], e[1], mtok(int(float(e[2][1:])) + 12), e[3] - 12)
+        for k in ("sub",):
+            T[k].ev = [(e[0], e[1], e[2], 1, e[4]) if lo <= e[0] < hi else e for e in T[k].ev]
+        T["kick"].ev = [(e[0], e[1], e[2], 1, e[4]) if 23 * 4.0 <= e[0] < hi else e for e in T["kick"].ev]
+        T["drop"].add(22 * 4.0, 8.0, "C4", 90)
     if R9:                                                                    # w3: a way into the collision
         T["kick"].ev = [(e[0], e[1], e[2], 1, e[4]) if 47 * 4.0 <= e[0] < 48 * 4.0 else e for e in T["kick"].ev]
         T["roll"] = Track("roll")
@@ -688,6 +706,11 @@ def main():
             if tr["name"] in adj:
                 tr["gain"] = f"{float(tr['gain'].replace('dB', '')) + adj[tr['name']]:g}dB"
         tracks[:] = [tr for tr in tracks if tr["name"] != "byte"]
+    if R11:
+        spec = {tr["name"]: tr for tr in tracks}
+        tracks.append(dict(spec["bass"], name="bassup", fx=list(spec["bass"].get("fx", [])) + ["hp cutoff=170"],
+                           score=T["bassup"].score()))
+        tracks.append(dict(spec["riser"], name="drop", score=T["drop"].score()))
     if R9:
         spec = {tr["name"]: tr for tr in tracks}
         tracks.append(dict(spec["snare"], name="roll", score=T["roll"].score()))
