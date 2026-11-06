@@ -85,6 +85,30 @@ E6_X, E6_Y = (50, 54, 57, 61, 64, 68), (51, 55, 58, 62, 69)                     
 E7 = [("D3", 2), ("A3", 2), ("E4", 2), ("B4", 1), ("F#5", 1), ("C#6", 1), ("G#6", 2)]          # THE JET: 11 sixteenths
 E7_LEN16 = 11
 
+# round 5 (Harry, 6 Nov 00:30: "ugly chaos ... atonal ... missing aesthetics and catchiness/hook ... get musicality back
+# and play with time and texture"): T7_R5=tonal (default) - TONE IS HOME. The storm (bars 17-120) is E-flat MINOR, all
+# consonant: E3 v2 (D | Bb | C, no Neapolitan ground), E4's lights as plain sevenths and sus chords, E5 with G (not G#)
+# in the storm, E6's tide squeezed between i and VI (Ebm(add9) | Cbmaj7, common tones Eb Gb Bb) instead of the Eb|D
+# clash, the jet only its consonant first four notes (Eb Bb F C) until the crest. At bar 120 ONE clean modulation down
+# a semitone into D MAJOR - E4's lights in major (D9, Bbmaj9, Am7, Dadd9), the tide resolved to Dmaj9 (no G#), the
+# vocoder's carrier Dmaj9 - and THE HOOK: E1 stated plainly, upright, on a singing lead through the crest.
+# T7_R5=none reproduces v4.
+R5 = os.environ.get("T7_R5", "tonal") != "none"
+STORM_I, STORM_VI = (51, 54, 58, 65), (47, 51, 54, 58)                     # Ebm(add9) | Cbmaj7 (B D# F# A#)
+E5_STORM = [(p, "G4" if nt == "G#4" else nt) for p, nt in E5]
+if R5:
+    E3_RIFF = [("D2", 0.75), ("D2", 0.75), ("D3", 0.5), ("Bb1", 0.5), ("Bb1", 0.75), ("F2", 0.75), ("C2", 0.75),
+               ("C2", 0.75), ("G2", 0.5), ("C3", 1.0)]                                       # E3 v2: D | Bb | C
+    E4_MIN = [(38, 45, 53, 60, 64), (34, 41, 45, 50, 57, 60), (33, 40, 48, 55, 60, 64), (38, 45, 48, 55, 57, 62)]
+    E4_MAJ = [(38, 45, 54, 60, 64), (34, 41, 50, 57, 60, 65), (33, 40, 48, 55, 60, 64), (38, 45, 50, 54, 57, 64)]
+    E6_X = (50, 57, 64)                                                                      # open D-A-E at the crest
+# the crest is D MIXOLYDIAN (E1's own mode: D A C G E): E3 locks as I | bVII | IV, the jet's column starts a tone lower
+# (C G D A E B F#, the same collection), E5 takes G natural, E4's lights follow E3's chords (one harmonic rhythm)
+E3_CREST = [("D2", 0.75), ("D2", 0.75), ("D3", 0.5), ("C2", 0.5), ("C2", 0.75), ("G1", 0.75), ("G1", 0.75),
+            ("G1", 0.75), ("D2", 0.5), ("G2", 1.0)]
+E7_CREST = [("C3", 2), ("G3", 2), ("D4", 2), ("A4", 1), ("E5", 1), ("B5", 1), ("F#6", 2)]
+CREST_CHORDS = [((62, 66, 69, 76), 2.0), ((60, 64, 67, 74), 2.0), ((59, 62, 67, 69), 4.0)]   # D(add9) | C(add9) | G(add9)
+
 
 class Track:
     def __init__(self, name):
@@ -173,11 +197,13 @@ def build():
             n = rng.choice([2, 3, 3, 4]) if rng.random() < 0.55 else 0
         elif sec == "spiral":
             n = min(7, 3 + (bar - 88) // 8 + rng.randint(0, 1))
+            if R5:
+                n = min(n, 4)
         elif sec in ("crest", "plunge"):
             n = 7
         else:
             n = 0
-        for i, (nt, l16) in enumerate(E7[:n]):
+        for i, (nt, l16) in enumerate((E7_CREST if R5 and at >= CREST * 4 else E7)[:n]):
             m = midi(nt) + shift(at)
             T["jet"].add(at, l16 / 4 * 0.9, mtok(m), 84 + 4 * i)
             if sec == "crest":
@@ -219,7 +245,7 @@ def build():
             at += ln / 2
     for bar in range(CREST, 152):
         at = bar * 4.0
-        for j, (nt, ln) in enumerate(E3_RIFF):
+        for j, (nt, ln) in enumerate(E3_CREST if R5 else E3_RIFF):
             l2 = (ln + (1.0 if j == len(E3_RIFF) - 1 else 0)) / 2
             T["bass"].add(at, l2 * 0.88, mtok(midi(nt)), 110 if ln >= 0.75 else 96)
             at += l2
@@ -232,23 +258,30 @@ def build():
         at = c / 4.0
         for k in range(4):
             sec = sec_of(int(at // 4))
-            if sec not in ("slack", "infall"):
+            if sec not in ("slack", "infall") and not (R5 and at >= CREST * 4):
                 ch = (E4_MIN if at < CREST * 4 else E4_MAJ)[k]
                 s = shift(at)
                 for off in ((0, 0.75, 1.5) if sec in ("collision", "spiral") else (0, 1.5)):
                     if off < 2.5:
                         T["e4"].add(at + off, 0.35, ",".join(mtok(m + 12 + s) for m in ch[1:]), 86 if off == 0 else 70)
             at += 2.5
+    if R5:                                                                   # the crest: E4's lights on E3's chords
+        for bar in range(CREST, 152, 2):
+            at = bar * 4.0
+            for ch, ln in CREST_CHORDS:
+                for off in (0.0, 1.5) if ln == 2.0 else (0.0, 1.5, 2.5):
+                    T["e4"].add(at + off, 0.35, ",".join(mtok(m) for m in ch), 88 if off == 0 else 72)
+                at += ln
 
     # ---- E5, the inner orbit: squeezed x2 into a trill (6 sixteenths) in the storm, itself from the crest -------
     for c in cycle_starts(6, 16 * 16, CREST16):
         at = c / 4.0
         if sec_of(int(at // 4)) in ("slack", "approach") and int(at // 4) < 32:
             continue
-        for pos, nt in E5:
+        for pos, nt in (E5_STORM if R5 else E5):
             T["e5"].add(at + pos / 8.0, 0.11, mtok(midi(nt) + shift(at)), 70 + (10 if pos == 0 else 0))
     for c in cycle_starts(12, CREST16, 152 * 16):
-        for pos, nt in E5:
+        for pos, nt in (E5_STORM if R5 else E5):
             T["e5"].add(c / 4.0 + pos / 4.0, 0.2, mtok(midi(nt)), 76 + (10 if pos == 0 else 0))
 
     # ---- E6, the tide squeezed to a one-beat pull (Eb | D) in the storm; frozen on Eb in the slack; D at the crest -
@@ -259,8 +292,10 @@ def build():
             if sec == "slack":
                 continue
             ch = E6_Y if b % 2 == 0 else E6_X
+            if R5:
+                ch = STORM_I if b % 2 == 0 else STORM_VI
             T["tide"].add(at, 0.9, ",".join(mtok(m) for m in ch), 66 if sec == "collision" else 72)
-    T["tide"].add(80 * 4.0, 32.0 - 0.2, ",".join(mtok(m) for m in E6_Y), 80)      # the slack: frozen on Eb
+    T["tide"].add(80 * 4.0, 32.0 - 0.2, ",".join(mtok(m) for m in (STORM_I if R5 else E6_Y)), 80)  # the slack: frozen
     for bar in range(CREST, 152, 2):
         T["tide"].add(bar * 4.0, 7.8, ",".join(mtok(m) for m in E6_X), 70)        # resolved: D only
 
@@ -336,7 +371,7 @@ def build():
         T["perc"].add(hi, 0.5, "oh", 112)
         for k in ("jet", "jethi"):                                         # the jet falls (retrograde) for 8 bars
             T[k].ev = [e for e in T[k].ev if not (lo <= e[0] < mid)]
-        retro = list(reversed(E7))
+        retro = list(reversed(E7_CREST if R5 else E7))
         for c in cycle_starts(E7_LEN16, W9[0] * 16, 136 * 16):
             at = c / 4.0
             if at < lo:
@@ -468,6 +503,8 @@ def main():
             nw = dict(spec[k], name=k + "w", gain=f"{db(spec[k]['gain']) + boost:g}dB", score=w.score())
             tracks.append(nw)
         X, Y = ",".join(mtok(m) for m in E6_X), ",".join(mtok(m) for m in E6_Y)
+        if R5:
+            X, Y = ",".join(mtok(m) for m in STORM_VI), ",".join(mtok(m) for m in STORM_I)
         T["tide"].ev = [e if not (lo <= e[0] < 104 * 4.0) else (e[0], e[1], e[2], int(e[3] * 0.7), e[4])
                         for e in T["tide"].ev if not (104 * 4.0 <= e[0] < hi)]
         for bar in range(104, 112):
@@ -486,7 +523,7 @@ def main():
                 if n.get("expr_path"):
                     d["expr_path"] = n["expr_path"]
                 vnotes.append(d)
-        vfx = [dict(cv["fx"][0], notes="D2,A2,E3,G#3,C#4", mix=0.62), "lp cutoff=5000", "chorus mix=0.25",
+        vfx = [dict(cv["fx"][0], notes="D2,A2,E3,A3,D4" if R5 else "D2,A2,E3,G#3,C#4", mix=0.62), "lp cutoff=5000", "chorus mix=0.25",
                "delay time=3/8 mix=0.2 feedback=0.3"]
         patches["a7-vocoder-voice"] = cv["patch"]
     for name, tr, notes in voice_tracks():
@@ -502,6 +539,26 @@ def main():
     if R2:
         tracks.append({"name": "vocoder", "patch": "a7-vocoder-voice", "gain": "3dB", "pan": 0.0, "fx": vfx,
                        "sends": {"space": "-8dB"}, "notes": vnotes})
+    if R5:
+        hook = Track("hook")
+        rests = [(124 * 4.0, 124 * 4.0 + 6), (128 * 4.0, 136 * 4.0), (140 * 4.0, 140 * 4.0 + 6), (148 * 4.0, 148 * 4.0 + 6)]
+        for c in cycle_starts(20, CREST16, 152 * 16):
+            at = c / 4.0
+            if at < CREST * 4 or any(a <= at < b for a, b in rests):
+                continue
+            for nt, ln in E1:
+                hook.add(at, ln * 0.92, mtok(midi(nt) + 12), 92 if nt == "D4" else 84)
+                at += ln
+        patches["a7-hook"] = {"about": "chirper-two: the crest's hook - two saws 8 cents apart over a quiet square, a "
+                                       "gentle low-pass, mono with a short glide: a plain singing lead for E1, stated upright",
+                              "synth": {"layers": [{"wave": "saw", "detune": -4}, {"wave": "saw", "detune": 4},
+                                                   {"wave": "square", "level": "-10dB"}],
+                                        "filters": ["lp cutoff=3200 q=0.7"],
+                                        "amp": {"a": "8ms", "d": "220ms", "s": 0.75, "r": "180ms"}},
+                              "play": {"mono": True, "glide": "25ms"}}
+        tracks.append({"name": "hook", "patch": "a7-hook", "gain": "-9dB", "pan": 0.05,
+                       "fx": ["delay time=3/8 mix=0.18 feedback=0.3"], "sends": {"space": "-8dB"},
+                       "score": hook.score()})
     master = {"fx": [{"type": "eq", "bands": ["hp cutoff=25", "lowshelf cutoff=120 gain=5dB", "peak cutoff=160 gain=-2.5dB q=1.2",
                                               "peak cutoff=320 gain=-2dB q=0.8", "peak cutoff=1400 gain=-2.5dB q=0.7",
                                               "highshelf cutoff=8000 gain=1dB"]},
