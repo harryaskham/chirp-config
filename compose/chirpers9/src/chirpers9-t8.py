@@ -325,6 +325,7 @@ def write_jet():
         k = (bar - JET) % 4
         part("lights").add(t, 4.0, chord(E4M[k]), 64 if in_break(bar) else 90)
         part("sub").add(t, 3.75, name_of(midi(E4M[k][0]) - 12 if midi(E4M[k][0]) >= 33 else midi(E4M[k][0])), 70 if in_break(bar) else 92)
+        part("lift").add(t, 3.75, name_of(midi(E4M[k][0])), 70 if in_break(bar) else 92)   # v18: the roots at pitch
         if in_break(bar):
             continue                                       # the breakdown: lights, sub and the choir only
         part("bass").add(t, 1.5, name_of(midi(E4M[k][0]) + 12), 104)
@@ -409,6 +410,7 @@ def write_horizon():
     a, z = HORIZON, BARS
     part("hold").add(b0(a), b0(z + 1) - b0(a) - 2, "D3,A3,D4,F#4", 80)
     part("hsub").add(b0(a), b0(z + 1) - b0(a) - 2, "D1", 84)
+    part("lift").add(b0(a), b0(z + 1) - b0(a) - 2, "D2", 84)                  # v18: the floor you can hear
     echo("e7", [(nm, s * 0.25, ln * 0.25) for nm, s, ln in E7_JET], a, 2, 0, 84)     # v5: at pitch - slower,
     echo("e5", [(n, s * 0.25, 0.5) for n, s in E5], a + 3, 2, 0, 78)                   # quieter, darker; the
     echo("hook", E1, a + 6, 3, 0, 78)            # v16: the hook's goodbye, on its own flute   # pitch sink waits for
@@ -465,6 +467,12 @@ ORBIT_FX = "gain gain=0dB+auto.orb*1"
 # underneath, the floor the light falls toward (it used to sink to A0 under everything). Also: E3's bass roots in its
 # spotlight softer (vel 92 -> 76; they were the loudest thing there, -2.1).
 REDSHIFT = -12.0
+# v18 (ROUND TYPE: whole song): WEIGHT YOU CAN HEAR. compscore --bands: t8 was 7-9 dB short of the album at 61-114 Hz
+# while its sub sat an octave lower, on A0 C1 D1 G1 (27-49 Hz) through the jet and D1 (37 Hz) under the horizon -
+# mostly below what headphones and laptop speakers reproduce (Harry: every trick must work on both). Now the jet's
+# sub keeps its deep octave and a new sine (lift) doubles it an octave up - E4 v2's roots at pitch (G1 A1 C2 D2, 49-73
+# Hz) and D2 under the horizon: the weight of the jet is heard everywhere, and the light that falls an octave lands on
+# D2 with it. (Moving the sub up instead emptied 38-44 Hz - spectrum 93.8 -> 83.9: the album wants both octaves.)
 
 
 def horizon_lane(drop):
@@ -581,7 +589,8 @@ def main():
             {"name": "solo", "patch": SOLO8, "gain": "-7dB", "sends": {"hall": "-5dB", "dly": "-16dB"},   # v12 (last)
              "notes": solo, "auto": {"rs": {"points": horizon_lane(REDSHIFT)}}},
             tr("ask", "flute", gain="-9dB", pan=-0.15, sends={"hall": "-6dB", "dly": "-12dB"}),   # v14
-            tr("hook3", "flute", gain="-7dB", pan=-0.2, sends={"dly": "-14dB", "hall": "-10dB"}),  # v16 (last)
+            tr("hook3", "flute", gain="-7dB", pan=-0.2, sends={"dly": "-14dB", "hall": "-10dB"}),  # v16
+            tr("lift", SUB8, gain="-22dB"),                                 # v18 (last): the sub's octave you can hear
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=0.8s mix=1 predelay=6ms", "hp cutoff=200"]},
                   "hall": {"fx": ["reverb kind=hall decay=4s mix=1 predelay=24ms", "hp cutoff=180"]},
