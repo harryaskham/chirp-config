@@ -316,6 +316,23 @@ def write_asks():
         part("ask").add(b0(bar) + 1.5, 2.25 if bar != VACUUM else 2.4, "F5", v + 4)
 
 
+# v22 (ROUND TYPE: section, the jet's first half 101-120, ~32 s; rewritten): THE JET ACCELERATES. chirpers.py
+# sections had this window 'static' - the least motion in the song - the climax running twenty bars on one half-time
+# groove under block chords. The pitch stays home (Harry: complexity in time and texture); the drums now change gear
+# on the crashes that already mark 105 and 113: half time to 104, full time 105-112 (kick 1, 3 and the and of 4; snare
+# 2 and 4), four on the floor 113-119 with sixteenth hats and a ghost before each bar line, and in bar 120 a sixteenth
+# snare roll rising 50 -> 106 that throws the jet into the break's sudden quiet and its time dilation (121).
+GEAR_FULL, GEAR_FLOOR = 105, 113
+
+
+def jet_gear(bar):
+    if bar < GEAR_FULL or bar >= BREAK[0]:
+        return 0
+    if bar < GEAR_FLOOR:
+        return 1
+    return 2 if bar < BREAK[0] - 1 else 3
+
+
 # ---------------------------------------------------------------- the jet (locked 4/4, major)
 # v20 (ROUND TYPE: whole song): THE HOOK FLIES ABOVE THE SINGERS. compscore --bands: t8 ran +7.6 dB hot at 749 Hz -
 # the singers' band, in the song whose voice sings full lines. Counting fundamentals: the jet's flute hook (E1 an
@@ -344,12 +361,34 @@ def write_jet():
                 part("hook").add(t + on * 1.6, ln * 1.6, name_of(midi(n) + HOOK_UP), 100)
                 if bar > BREAK[1]:                # v16: after the break the hook is sung back in thirds
                     part("hook3").add(t + on * 1.6, ln * 1.6, name_of(third_below(midi(n) + HOOK_UP)), 86)
-        # the groove: half time at 150 (75 felt)
-        part("kick").add(t, 0.5, "k", 112)
-        part("kick").add(t + 2.5, 0.5, "k", 92)
-        part("snare").add(t + 2, 0.5, "s", 104)
-        for e in range(8):
-            part("hat").add(t + e * 0.5, 0.25, "C7" if e % 2 else "F6", 64 if e % 2 else 52)
+        # the groove: half time at 150 (75 felt) - v22: then it accelerates into the break (GEARS)
+        gear = jet_gear(bar)
+        if gear == 0:
+            part("kick").add(t, 0.5, "k", 112)
+            part("kick").add(t + 2.5, 0.5, "k", 92)
+            part("snare").add(t + 2, 0.5, "s", 104)
+        elif gear == 1:                                    # full time
+            for at, v in ((0, 112), (2, 100), (3.5, 80)):
+                part("kick").add(t + at, 0.5, "k", v)
+            for at, v in ((1, 100), (3, 104)):
+                part("snare").add(t + at, 0.5, "s", v)
+        elif gear == 2:                                    # four on the floor, a ghost before the bar line
+            for at, v in ((0, 108), (1, 92), (2, 104), (3, 92)):
+                part("kick").add(t + at, 0.5, "k", v)
+            for at, v in ((1, 104), (3, 104), (3.75, 50)):
+                part("snare").add(t + at, 0.25 if at % 1 else 0.5, "s", v)
+        else:                                              # bar 120: the roll into the break
+            part("kick").add(t, 0.5, "k", 110)
+            part("kick").add(t + 2, 0.5, "k", 100)
+            part("snare").add(t + 1, 0.5, "s", 100)
+            for i in range(8):
+                part("snare").add(t + 2 + i * 0.25, 0.25, "s", 50 + i * 8)
+        if gear >= 2:
+            for e in range(16):
+                part("hat").add(t + e * 0.25, 0.125, "C7" if e % 2 else "F6", (64, 40, 52, 40)[e % 4])
+        else:
+            for e in range(8):
+                part("hat").add(t + e * 0.5, 0.25, "C7" if e % 2 else "F6", 64 if e % 2 else 52)
         if bar % 8 == JET % 8:
             part("crash").add(t, 4.0, "cy", 96)
     # E5 continues across the lock in its own 3 (polymeter kept, now consonant)
