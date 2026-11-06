@@ -39,19 +39,31 @@ CREST = SEC['crest']
 
 # E1 (chirper-zero): D A C G E in 5/4 - (semitones above D, beats; None = rest)
 E1 = [(0, 0.5), (7, 0.75), (10, 0.25), (5, 1.0), (2, 1.5), (None, 1.0)]
+# (v5, Harry 6 Nov: 'tone is home') E1 in t6 is LYDIAN, the inner disk's heat: its C and G raised to C# and G# (D A C#
+# G# E), so it sits inside the tide's chords and E5's G# instead of rubbing against them; E1's own C and G come back
+# only in the out-seam, over B-flat, where they are consonant again (the seed cooling as it crosses into t7)
+E1L = [(0, 0.5), (7, 0.75), (11, 0.25), (6, 1.0), (2, 1.5), (None, 1.0)]
 # E2 (t2): seven sixteenths, hits 0 2 3 5, pitches D A F C (here re-pitched on the tide's roots)
 E2_STEPS = [0, 2, 3, 5]
-E2_PITCH = {0: 0, 2: 7, 3: 3, 5: -2}
+E2_PITCH = {0: 0, 2: 7, 3: 4, 5: -1}          # (v5) D A F# C#: the cell in D Lydian
+E2_ON = {0: E2_PITCH, 2: {0: 0, 2: 7, 3: 4, 5: -2}, -4: {0: 0, 2: 7, 3: 4, 5: 2}}   # on E: E B G# D; on Bb: Bb F D C
 # E5 (chirper-zero): A G# A . E . A G# A . D . - a 3-beat ostinato (sixteenths; None = rest), MIDI pitches
 E5 = [69, 68, 69, None, 76, None, 69, 68, 69, None, 74, None]
 # E4 (chirper-three): four lights, one chord per E1 cycle: D9, Bbmaj13#11, Am11, D9sus (MIDI voicings)
-E4 = [[50, 57, 66, 72, 76], [46, 53, 62, 69, 72, 76], [45, 52, 60, 67, 71, 74], [50, 57, 60, 67, 71, 76]]
+# (v5) re-harmonised into D Lydian, the same rhythm (one chord per E1 cycle): Dmaj9 | E/D | Bm9 | A(add9)
+E4 = [[50, 57, 61, 64, 66], [50, 56, 59, 64, 66], [59, 54, 57, 61, 62, 66], [57, 61, 64, 69, 71]]
 # E6: the tide - X = Dmaj9#11, Y = Ebmaj7#11 (semitones above KEY + 12)
-TIDE_X = (0, [0, 4, 7, 11, 14, 18])
-TIDE_Y = (1, [0, 4, 7, 11, 18])
+# (v5) E6 v2: the tide is now I and II of D Lydian - Dmaj9 and E over a D pedal (no semitone clash); in the out-seam
+# Y becomes B-flat (D in common), the V of t7's E-flat, and the tide ebbs out onto it
+TIDE_X = (0, [0, 4, 7, 11, 14])
+TIDE_Y = (2, [0, 4, 7, 14])
+TIDE_Z = (-4, [0, 4, 7, 14])
+# (v5) THE LIFT: the crest goes up a whole tone, into E - the four lights, both E1 layers meeting, the hook, E5 and
+# the 303 all lifted - the payoff as a key change; the tear's look back at the crest stays home in D
+LIFT = {'crest': 2}
 # X's share of each 8-beat cycle, per section (the tide moving)
 SPLIT = {'in': [4, 4], 'pull': [5, 5, 6, 6], 'tide': [6, 5, 4, 3, 2, 3, 4, 5], 'squeeze': [7, 1, 7, 1, 6, 2, 6, 2],
-         'cross': [3, 3, 2, 2], 'surge': [2, 6, 2, 6], 'torn': [1, 1, 1, 1], 'out': [0]}
+         'cross': [3, 3, 2, 2], 'surge': [2, 6, 2, 6], 'torn': [1, 1, 1, 1], 'out': [4, 3, 2, 1, 0, 0, 0, 0]}
 # the two E1 layers' speed factors per section (1 = E1's own 5 beats)
 FAR = {'pull': 3.2, 'tide': 2.4, 'squeeze': 1.6, 'crest': 1.0, 'cross': 0.8, 'surge': 0.4, 'torn': 0.2, 'out': 0.2}
 NEAR = {'in': 0.25, 'pull': 0.4, 'tide': 0.6, 'squeeze': 0.8, 'crest': 1.0, 'cross': 1.6, 'surge': 2.4, 'torn': 3.2, 'out': 6.4}
@@ -84,7 +96,7 @@ def sec_of(bar):
 def build():
     rng = random.Random(SEED)
     total = NBARS * 4.0
-    P = {k: [] for k in ('far', 'near', 'tide', 'acid', 'e5', 'kit', 'hats', 'lights', 'sub', 'farbass', 'e5b')}
+    P = {k: [] for k in ('far', 'near', 'tide', 'acid', 'e5', 'kit', 'hats', 'lights', 'sub', 'farbass', 'e5b', 'hook')}
 
     # ---- E1 in two layers moving in opposite directions in time; each section restarts the cell on its downbeat ----
     def e1_layer(key, speeds, octave, vel0):
@@ -93,11 +105,11 @@ def build():
             t = t0
             while t < t1 - 1e-6:
                 at = t
-                for k, (semi, ln) in enumerate(E1):
+                for k, (semi, ln) in enumerate(E1 if nm_ == 'out' else E1L):
                     d = ln * f
                     if semi is not None and at < t1 - 1e-6:
-                        acc = 12 if k == 0 else (8 if semi == 10 else 0)
-                        P[key].append((at, m(KEY + octave + semi), min(d * 0.92, t1 - at), vel0 + acc))
+                        acc = 12 if k == 0 else (8 if semi in (10, 11) else 0)
+                        P[key].append((at, m(KEY + octave + semi + LIFT.get(nm_, 0)), min(d * 0.92, t1 - at), vel0 + acc))
                     at += d
                 t += 5.0 * f
     e1_layer('far', FAR, 12, 84)               # D3: the cello, the far side
@@ -109,7 +121,21 @@ def build():
     # returns and its range, 85 against 92; in the out-seam its blur on E1's notes over the frozen Eb is the tear's
     # last gasp)
     P['farbass'] = [(a_, m(float(p_[1:]) - 12), d_, v_) for a_, p_, d_, v_ in P['far']]
+    # (v5, Harry: 'quite ugly chaos') the Duffing bass's chaos is gone: the far side's weight is now a fretless bass,
+    # singing each note open - the same doubling, in tune (a tamer Duffing, strain halved, scored lower and still growled)
     e1_layer('near', NEAR, 36, 78)             # D5: the marimba, the near side
+    # (v5) THE HOOK, PLAINLY: E1 (Lydian) at its own speed on a low whistle, twice through, at the head of the pull,
+    # the tide, the crest and the cross and again eight bars into each - the album's tune, stated so it
+    # sticks, while the two layers stretch and squeeze it underneath
+    for nm_ in ('pull', 'tide', 'crest', 'cross'):
+        for off_ in (0, 8):
+            t = (SEC[nm_] + off_) * 4.0
+            for rep_ in range(2):
+                at = t + rep_ * 5.0
+                for k, (semi, ln) in enumerate(E1L):
+                    if semi is not None:
+                        P['hook'].append((at, m(KEY + 36 + semi + LIFT.get(nm_, 0)), ln * 0.95, 96 if k == 0 else 84))
+                    at += ln
 
     # ---- E6, the tide: X and Y alternating in 8-beat cycles, the split moving; E4's four lights at the crest ----
     for nm_, n_ in FORM:
@@ -119,19 +145,20 @@ def build():
         for c in range(n_ // 2):
             t = (SEC[nm_] + 2 * c) * 4.0
             x = sp[c % len(sp)]
-            for (root, voic), ln, at in ((TIDE_X, x, t), (TIDE_Y, 8 - x, t + x)):
+            for (root, voic), ln, at in ((TIDE_X, x, t), (TIDE_Z if nm_ == 'out' else TIDE_Y, 8 - x, t + x)):
                 if ln <= 0:
                     continue
                 P['tide'].append((at, ','.join(m(KEY + 12 + root + v) for v in voic), ln - 0.05, 74 if root == 0 else 80))
-                P['sub'].append((at, m(KEY - 12 + root), ln - 0.05, 92))
+                # the sub holds the D pedal under I and II (E over D: the Lydian sound); under B-flat it moves
+                P['sub'].append((at, m(KEY - 12 + (root + 12 if root < 0 else 0)), ln - 0.05, 92))
     for c in range(16 * 4 // 5 + 1):
         at = CREST * 4.0 + c * 5.0
         if at >= (CREST + 16) * 4.0 - 1e-6:
             break
         ch = E4[c % 4]
         ln = min(5.0, (CREST + 16) * 4.0 - at) - 0.05
-        P['lights'].append((at, ','.join(m(n) for n in ch), ln, 88))
-        P['sub'].append((at, m(ch[0] - 12 if ch[0] >= 48 else ch[0]), ln, 96))
+        P['lights'].append((at, ','.join(m(n + 2) for n in ch), ln, 88))
+        P['sub'].append((at, m((ch[0] - 12 if ch[0] >= 48 else ch[0]) + 2), ln, 96))
 
     # ---- the 303: E2's cell on the tide's roots, seven sixteenths against the bar, from 'pull'; locked at the crest ----
     def root_at(at):
@@ -159,7 +186,8 @@ def build():
                     at = bar * 4.0 + half + st * 0.25
                     c = int((at - CREST * 4.0) // 5.0) % 4
                     rt = E4[c][0] - 12 - KEY
-                    P['acid'].append((at, m(KEY + rt + E2_PITCH[st] + (12 if rt + E2_PITCH[st] < 0 else 0)), 0.22, 112 if st == 0 else 92))
+                    pm_ = {9: {0: 0, 2: 7, 3: 3, 5: -2}, 7: {0: 0, 2: 7, 3: 4, 5: -1}}.get(rt, E2_PITCH)   # B: B F# D A; A: A E C# G#
+                    P['acid'].append((at, m(KEY + 2 + rt + pm_[st] + (12 if rt + pm_[st] < 0 else 0)), 0.22, 112 if st == 0 else 92))
             t = (bar + 1) * 4.0
             if sec_of(int(t // 4))[0] != 'crest':
                 # re-enter the cycle of seven on its own phase after the crest
@@ -173,7 +201,8 @@ def build():
             at = t + st * 0.25
             rt = tide_root(at)
             acc = '^acc' if st == 0 else ''
-            P['acid'].append((at, m(KEY + rt + E2_PITCH[st] + (12 if rt + E2_PITCH[st] < 0 else 0)), 0.22 if st != 3 else 0.4, (110 if st == 0 else 84) + (8 if s_ in ('surge', 'torn') else 0)))
+            pm_ = E2_ON.get(rt, E2_PITCH)
+            P['acid'].append((at, m(KEY + rt + pm_[st] + (12 if rt + pm_[st] < 0 else 0)), 0.22 if st != 3 else 0.4, (110 if st == 0 else 84) + (8 if s_ in ('surge', 'torn') else 0)))
         t += 1.75
 
     # ---- E5, the inner orbit (steel pan): received stretched x2 in the in-seam, squeezed back to x1 by bar 9 ----
@@ -193,7 +222,7 @@ def build():
         for k, p_ in enumerate(seq):
             at = t + k * 0.25
             if p_ is not None and at < SEC['out'] * 4.0:
-                P['e5'].append((at, m(p_ + (12 if s_ == 'surge' else 0)), 0.2, (92 if k in (0, 6) else 72) + (10 if s_ == 'crest' else 0)))
+                P['e5'].append((at, m(p_ + (12 if s_ == 'surge' else 0) + LIFT.get(s_, 0)), 0.2, (92 if k in (0, 6) else 72) + (10 if s_ == 'crest' else 0)))
         t += 3.0
     # (v4) THE INNER ORBIT, HEARD: E5 was on a pluck patch 35 dB under the mix (tools/presence.py: BURIED) - t5's
     # element, carried, and inaudible. Now it is the song's hook on a steel pan (bright, its octave blooming after the
@@ -314,7 +343,7 @@ def build():
     for b_ in range(NBARS):
         s_, i_ = sec_of(b_)
         a_, z_ = STRAIN[s_]
-        strain_pts.append([f'{b_ * 4.0:.1f}b', round(a_ + (z_ - a_) * i_ / 15.0, 3)])
+        strain_pts.append([f'{b_ * 4.0:.1f}b', round(0.5 * (a_ + (z_ - a_) * i_ / 15.0), 3)])
     FARBASS = {'extends': 'duffing-bass',
                'synth': {'layers': [{'type': 'chaos', 'chaos': {'system': 'duffing', 'axis': 'x',
                                      'amount': {'value': 0, 'mod': [{'src': 'auto.strain', 'amount': 1.0}]}}}]}}
@@ -335,12 +364,13 @@ def build():
         'tracks': [
             tr('tide', 'harmonium', '-9dB', sends={'hall': '-10dB'}),
             tr('lights', 'harmonium', '-10dB', sends={'hall': '-8dB'}),
-            tr('sub', 'sub', '-12dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '200ms', 'curve': 0.6}]),
+            tr('sub', 'sub', '-10dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '200ms', 'curve': 0.6}]),
             tr('acid', 'acid', '-10dB', fx=['hp cutoff=50'], sends={'echo': '-20dB'}),
             tr('kit', 'prog-kit', '-6dB', sends={'hall': '-20dB'}),
             tr('hats', 'prog-kit', '-7dB', pan=0.2, fx=[{'type': 'eq', 'bands': ['highshelf cutoff=8000 gain=5dB']}]),
             tr('far', 'cello', '-8dB', pan=-0.25, sends={'hall': '-12dB'}),
-            tr('farbass', FARBASS, '-9dB', pan=-0.1, auto={'strain': {'points': strain_pts}}, fx=['lp cutoff=1400', 'hp cutoff=35']),
+            tr('farbass', 'fretless', '-6dB', pan=-0.1, fx=['lp cutoff=1800', 'hp cutoff=35']),
+            tr('hook', 'low-whistle', '-9dB', pan=0.05, sends={'hall': '-12dB', 'echo': '-18dB'}),
             tr('near', 'modal-marimba', '-11dB', pan=0.3, auto={'shut': {'points': shut_pts}},
                fx=[{'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 700, 'mod': [{'src': 'auto.shut', 'amount': 4.0}]}}],
                sends={'echo': '-14dB', 'hall': '-14dB'}),
