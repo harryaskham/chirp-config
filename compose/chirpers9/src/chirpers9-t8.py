@@ -459,10 +459,16 @@ VOICE8 = {"about": "t8's choir lead: bright and open - a smaller tract, more air
 # the others with their own size, level, entry and drift; detune kept modest, 0.12 st, so it stays in tune - Harry's
 # direction) and every vowel even - while the horizon's last line ('and it was ours', at half speed, sinking on the
 # redshift lane) is sung by ONE voice alone on its own track: the many become one as the light leaves.
-def choir_patch(singers, tract=0.92):
+def choir_patch(singers, tract=0.92, third=False):
     pt = json.loads(json.dumps(VOICE8))
     pt["about"] = f"t8's choir part: {singers} singers on one line, even vowels, joined, a breath before each phrase"
     pt["synth"]["layers"][0].update({"singers": singers, "spread": 0.7, "detune": 0.12, "even": 1.0, "tract": tract})
+    if third:
+        # v15 (ROUND TYPE: palette - an engine feature the album had not used: harmony in a key, pin 8e25c1a9): the
+        # lead's line is sung again a THIRD above IN THE KEY (D Mixolydian, the jet's E4 v2 - D9 Cmaj9 Am11 G6/9),
+        # note by note - so the jet's choir is a full, consonant triad (root, third, fifth) over the octave below,
+        # where it was open fifths. Harry: harmony in key, thirds and sixths. The horizon's last line stays one voice.
+        pt["synth"]["layers"][0].update({"harmony": [2], "harmony_key": "D mixolydian"})
     return pt
 
 
@@ -530,11 +536,11 @@ def main():
             tr("crash", "machine-kit", gain="2dB", pan=-0.2),
             tr("riser", "fx-revcym", gain="-12dB"),
             tr("impact", "fx-impact", gain="-10dB"),
-            {"name": "choir", "patch": choir_patch(4), "gain": "-7dB", "sends": {"hall": "-7dB", "dly": "-16dB"},
+            {"name": "choir", "patch": choir_patch(4, third=True), "gain": "-7dB", "sends": {"hall": "-7dB", "dly": "-16dB"},
              "notes": lead, "auto": {"rs": {"points": horizon_lane(-5.0)}}},
-            {"name": "choir5", "patch": choir_patch(3), "gain": "-15dB", "pan": 0.3, "sends": {"hall": "-6dB"}, "notes": fifth,
+            {"name": "choir5", "patch": choir_patch(3), "gain": "-13dB", "pan": 0.3, "sends": {"hall": "-6dB"}, "notes": fifth,
              "auto": {"rs": {"points": horizon_lane(-5.0)}}},
-            {"name": "choir8", "patch": choir_patch(3, tract=1.0), "gain": "-14dB", "pan": -0.3, "sends": {"hall": "-6dB"}, "notes": low,
+            {"name": "choir8", "patch": choir_patch(3, tract=1.0), "gain": "-12dB", "pan": -0.3, "sends": {"hall": "-6dB"}, "notes": low,
              "auto": {"rs": {"points": horizon_lane(-5.0)}}},
             tr("hold", HOLD, gain="-18dB", sends={"hall": "-4dB"},
                auto={"rs": {"points": horizon_lane(-5.0)}, "cl": {"points": cl}}),

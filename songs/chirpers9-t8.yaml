@@ -326,7 +326,11 @@
        "singers": 4,
        "spread": 0.7,
        "detune": 0.12,
-       "even": 1.0
+       "even": 1.0,
+       "harmony": [
+        2
+       ],
+       "harmony_key": "D mixolydian"
       }
      ],
      "pitch": {
@@ -2288,7 +2292,7 @@
      }
     }
    },
-   "gain": "-15dB",
+   "gain": "-13dB",
    "pan": 0.3,
    "sends": {
     "hall": "-6dB"
@@ -4220,7 +4224,7 @@
      }
     }
    },
-   "gain": "-14dB",
+   "gain": "-12dB",
    "pan": -0.3,
    "sends": {
     "hall": "-6dB"
