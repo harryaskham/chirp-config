@@ -1,4 +1,4 @@
-about: "Prefab (3D, use in a group): a dark glossy sea that swells with the bass, at y -0.62. Params: swell, light, size (the waves keep their size and spacing whatever the sea's size)."
-params: {swell: 0.45, light: 0.2, size: 4}
+about: "Prefab (3D, use in a group): a dark glossy sea that swells with the bass, at y -0.62. Params: swell, light, size (waves in world units: they keep their size and spacing whatever the sea's size; three swells crossing at angles, and the bass)."
+params: {swell: 1, light: 0.2, size: 4}
 layers:
-  - {type: mesh, shape: plane, detail: 110, y: -0.62, scale: param.size, palette: ocean, displace: "param.swell*4/param.size*(0.025*sin(vtx.x*2.75*param.size + time.t)*cos(vtx.z*2.25*param.size - time.t*0.7) + audio.low*0.03*sin(vtx.x*1.25*param.size + vtx.z*param.size + time.t*2))", light: param.light, ambient: 0.03, rim: 0.2, spec: 0.8, shine: 40, colour: height, spread: 0.4}
+  - {type: mesh, shape: plane, detail: 110, y: -0.62, scale: param.size, palette: ocean, displace: "param.swell*0.12/param.size*(0.5*sin(vtx.x*param.size*1.7 + vtx.z*param.size*0.6 - time.t*1.1) + 0.3*sin(0 - vtx.x*param.size*0.8 + vtx.z*param.size*2.3 - time.t*1.4) + 0.2*sin(vtx.x*param.size*3.1 - vtx.z*param.size*1.9 - time.t*2.0) + audio.low*0.4*sin(vtx.x*param.size*0.9 + vtx.z*param.size*1.2 - time.t*2.5))", light: param.light, ambient: 0.03, rim: 0.2, spec: 0.8, shine: 40, colour: height, spread: 0.4}
