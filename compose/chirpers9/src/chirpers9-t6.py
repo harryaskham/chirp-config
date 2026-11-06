@@ -121,6 +121,12 @@ def build():
                     at += d
                 t += 5.0 * f
     e1_layer('far', FAR, 12, 84)               # D3: the cello, the far side
+    # (v12, section w9: the out-seam 'static, little new vs the tear' - the far side's x0.2 trill ran on from the
+    # tear) THE FAR SIDE LETS IT GO: at the out-seam the cello stops trilling and holds ONE note, its D, for eight bars
+    # (with the fretless under it), then lets go entirely; the ebb (D -> C -> B-flat) and the near side's slow
+    # closing marimba carry the seam on their own into t7
+    out0_ = SEC['out'] * 4.0
+    P['far'] = [e_ for e_ in P['far'] if e_[0] < out0_ - 1e-6] + [(out0_, m(KEY + 12), 31.5, 78)]
     # (v3) THE FAR SIDE IS THE WEIGHT: the far side doubled an octave down (D2) on a Duffing bass - a driven
     # oscillator that walks into chaos as a 'strain' lane rises, so the far side of the body is what the tide
     # tears: clean in the in-seam, groaning in the squeeze, locked and clean again at the crest (the convergence),
@@ -321,6 +327,13 @@ def build():
     for k_, b_ in enumerate((SEC['crest'] - 8, SEC['crest'] - 4)):
         for n_ in SU['tracks'][0]['notes']:
             (snotes if k_ == 0 else snotes2).append(dict(n_, at=round(b_ * 4.0 + n_['at'], 4)))
+    # (v12) and the old voice has the last word: alone, over the ebb, it sings the second half of its line once more
+    # - 'the far side lets it go' - timed so 'go' (D3, held) lands on the bar where B-flat stands alone: D is B-flat's
+    # third, and when t7's Eb major 7 arrives over it, its seventh
+    go_ = [n_ for n_ in SU['tracks'][0]['notes'] if n_['at'] >= 5.0]
+    sh_ = (SEC['out'] + 12) * 4.0 - go_[-1]['at']
+    for n_ in go_:
+        snotes.append(dict(n_, at=round(sh_ + n_['at'], 4), len=(3.2 if n_ is go_[-1] else n_['len'])))
     sq0, sq1 = (SEC['crest'] - 8) * 4.0, SEC['crest'] * 4.0
     P['kit'] = [e_ for e_ in P['kit'] if not (sq0 - 1e-6 <= e_[0] < sq1 - 1e-6 and e_[1] == 's')]
 
