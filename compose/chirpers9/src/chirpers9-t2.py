@@ -303,14 +303,21 @@ def build():
     # fast (Kepler again: the nearest orbit is the quickest) - E2's cell in diminution (seven 32nds), E1 and its
     # stretto at double speed, the kit's micro-edits switched on - and bar 61 lands back in the lock for the voice
     st0, sp0, sp1 = (CREST + 4) * 4.0, (CREST + 8) * 4.0, (CREST + 12) * 4.0
-    for semi_off, t_ in ((-7, st0 + 1.0),):     # (v7) the stretto answers on D, a fifth below the pulse's A (was a fifth above: an F# against the F)
-        while t_ < sp0 - 1e-6:
-            at = t_
-            for semi, ln in E1:
-                if semi is not None and at < sp0:
-                    P['e1c'].append((at, m(KEY + 31 + semi_off + semi), ln * 0.9, 80))
-                at += ln
-            t_ += 5.0
+    # (v12, section w5: the crest 'static, little new vs the build' - one groove for twelve bars) THE CREST BREATHES IN:
+    # bars 53-56 drop to HALF TIME (kick on 1 and the and of 3, one clap on 3; the three-beat hats keep turning) and
+    # in the space a soft choir (wM's voice-backing: three breathy singers, even vowels, under the band) sings E1 the
+    # right way up, slowed to eight beats, on 'ah', with the line again a fifth above (harmony [7]: A E G D B, all in
+    # the mode) - twice; the bell stretto and the pulse step aside for it. Then bars 57-60 spin at double speed as
+    # before: lock, breathe, spin - the crest is three different times now, not one
+    CH = json.load(open(os.path.join(HERE, 'chirpers9-t2-choir.json')))
+    chnotes = []
+    for rep_ in range(2):
+        for n_ in CH['tracks'][0]['notes']:
+            chnotes.append(dict(n_, at=round(st0 + rep_ * 8.0 + (n_['at'] - 0.25) * 1.6, 4), len=round(n_['len'] * 1.6, 4)))
+    P['e1p'] = [e_ for e_ in P['e1p'] if not (st0 - 1e-6 <= e_[0] < sp0 - 1e-6)]
+    P['kit'] = [e_ for e_ in P['kit'] if not (st0 - 1e-6 <= e_[0] < sp0 - 1e-6)]
+    for b_ in range(CREST + 4, CREST + 8):
+        P['kit'] += [(b_ * 4.0, 'k', 0.25, 118), (b_ * 4.0 + 2.5, 'k', 0.25, 100), (b_ * 4.0 + 2.0, 'cp', 0.25, 108)]
     for key_ in ('e2m', 'e2body', 'e1p'):
         P[key_] = [e_ for e_ in P[key_] if not (sp0 - 1e-6 <= e_[0] < sp1 - 1e-6)]
     t_ = sp0
@@ -457,6 +464,9 @@ def build():
             tr('e1c', 'risset-bell', '-14dB', pan=-0.35, sends={'hall': '-8dB'}),
             dict({k: v for k, v in vtr.items() if k != 'notes'}, name='voice', notes=vnotes, gain='-8dB', pan=0.05,
                  sends={'echo': '-14dB', 'hall': '-16dB'}),
+            {'name': 'choir', 'patch': {'extends': 'voice-backing synth.layers.0.harmony=[7]',
+                                        'synth': CH['tracks'][0]['patch'].get('synth', {})},
+             'notes': chnotes, 'gain': '-15dB', 'pan': 0.0, 'sends': {'hall': '-8dB'}},
             {'name': 'sung', 'patch': {'extends': 'voice-legato synth.layers.0.tract=0.86 synth.layers.0.breath.value=0.35 synth.layers.0.ring=0.15',
                                        'synth': SU['tracks'][0]['patch'].get('synth', {})},
              'notes': snotes, 'gain': '-11dB', 'pan': 0.05, 'sends': {'echo': '-16dB', 'hall': '-12dB'}},
