@@ -330,6 +330,28 @@ def build():
         if s_ in ('squeeze', 'cross', 'surge', 'torn') and rng.random() < 0.5:
             P['hats'].append((b0 + 3.5, 'g', 0.2, 50))
 
+    # (v19, section w4: the squeeze's first half 'static' - the cell of seven ran on as in the tide) THE SQUEEZE
+    # SQUEEZES: for the squeeze's first eight bars E2's cell - on the kit and on the sequencer - loses its rests:
+    # seven sixteenths a turn become six (bars 49-52), then five (53-56, the last hit falling away), so the cell
+    # tightens against the bar like a spring being wound; then the clearing where the old voice sings, and the crest
+    # releases it (re-barred into eight)
+    sq_a, sq_m, sq_b = SEC['squeeze'] * 4.0, SEC['squeeze'] * 4.0 + 16.0, SEC['squeeze'] * 4.0 + 32.0
+    P['kit'] = [e_ for e_ in P['kit'] if not (sq_a - 1e-6 <= e_[0] < sq_b - 1e-6)]
+    P['acid'] = [e_ for e_ in P['acid'] if not (sq_a - 1e-6 <= e_[0] < sq_b - 1e-6)]
+    t = sq_a
+    while t < sq_b - 1e-6:
+        L_ = 1.5 if t < sq_m - 1e-6 else 1.25
+        for st, pc, v in ((0, 'k', 116), (2, 'rs', 70), (3, 's', 104), (5, 'rs', 64)):
+            at = t + st * 0.25
+            if st * 0.25 >= L_ - 1e-6 or at >= sq_b - 1e-6:
+                continue
+            P['kit'].append((at, pc, 0.2, v + (6 if L_ < 1.4 and st == 0 else 0)))
+            rt = tide_root(at)
+            pm_ = E2_ON.get(rt, E2_PITCH)
+            P['acid'].append((at, m(KEY + rt + pm_[st] + (12 if rt + pm_[st] < 0 else 0)), 0.22 if st != 3 else 0.4, 110 if st == 0 else 84))
+        t += L_
+    P['kit'].sort(key=lambda e_: e_[0]); P['acid'].sort(key=lambda e_: e_[0])
+
     # ---- the voice: an older, lower voice, spoken, twice ----
     VO = json.load(open(os.path.join(HERE, 'chirpers9-t6-voice.json')))
     vtr = VO['tracks'][0]
