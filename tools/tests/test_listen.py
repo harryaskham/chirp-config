@@ -92,7 +92,24 @@ class Snapshots(unittest.TestCase):
         self.assertEqual(seen, ["SNAPSHOT TEXT"])
         self.assertTrue(os.path.exists(os.path.join(d, "t01.mp4")))
         self.assertTrue(L.snapshots("chirpers9")[-1]["tracks"][0]["video"])
-        self.assertFalse([f for f in os.listdir(os.path.join(L.ROOT, "songs")) if f.startswith(".listen-")])
+        self.assertFalse([f for f in os.listdir(os.path.join(L.ROOT, "songs")) if f.startswith(f".listen-{os.getpid()}")])
+
+
+class Committed(unittest.TestCase):
+    def test_cut_snapshots_the_committed_song_not_the_working_file(self):
+        L.DATA = tempfile.mkdtemp()
+        seen = []
+
+        def render(pin, song, out):
+            seen.append((os.path.basename(song), open(song, "rb").read()))
+            fake_render(pin, song, out)
+        snap = L.cut("chirpers9", "", render=render, canonical=lambda p, s: '{"tempo":1}', log=lambda *x: None)
+        head = L.committed_text("songs/chirpers9-t1.yaml")
+        self.assertTrue(seen[0][0].startswith(".listen-"))      # a temporary copy beside its includes
+        self.assertEqual(seen[0][1], head)
+        d = os.path.join(L.DATA, "chirpers9", "snapshots", snap["id"])
+        self.assertEqual(open(os.path.join(d, "t01.song"), "rb").read(), head)
+        self.assertFalse([f for f in os.listdir(os.path.join(L.ROOT, "songs")) if f.startswith(f".listen-{os.getpid()}")])
 
 
 class Server(unittest.TestCase):

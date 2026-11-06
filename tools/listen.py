@@ -22,7 +22,6 @@ import http.server
 import json
 import os
 import re
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -147,6 +146,16 @@ def read_text(p):
         return f.read()
 
 
+def committed_text(rel):
+    """A song's committed text (git HEAD), so a snapshot never catches a composer's uncommitted experiment; the
+    working file when it is not tracked."""
+    r = subprocess.run(["git", "show", f"HEAD:{rel}"], cwd=ROOT, capture_output=True)
+    if r.returncode == 0 and r.stdout:
+        return r.stdout
+    with open(os.path.join(ROOT, rel), "rb") as f:
+        return f.read()
+
+
 def default_render(pin, song, wav_out):
     sys.path.insert(0, HERE)
     import chirpers as CH
@@ -181,12 +190,13 @@ def cut(album_id, label="", render=default_render, canonical=default_canonical, 
     for t in album["tracks"]:
         n, cid = t["n"], t["id"]
         c = next((c for c in reg["climbs"] if c["id"] == cid), None)
-        song = os.path.join(ROOT, (c or {}).get("song") or f"songs/{cid}.yaml")
-        if not c or not os.path.exists(song):
+        rel = (c or {}).get("song") or f"songs/{cid}.yaml"
+        if not c or not os.path.exists(os.path.join(ROOT, rel)):
             continue
         best = c.get("best") or {}
         kept = [h for h in C.history(cid) if h.get("kept") and h.get("version")]
-        sha = sha_file(song)
+        text = committed_text(rel)
+        sha = hashlib.sha256(text).hexdigest()[:16]
         stem = f"t{n:02d}"
         old = prev_by.get(n)
         entry = {"n": n, "id": cid, "title": t.get("title") or cid, "owner": c.get("owner"),
@@ -203,7 +213,16 @@ def cut(album_id, label="", render=default_render, canonical=default_canonical, 
         else:
             wav = os.path.join(tmp, f"{stem}.wav")
             t0 = time.time()
-            err = render(pin, song, wav)
+            with open(os.path.join(tmp, f"{stem}.song"), "wb") as f:
+                f.write(text)
+            song = os.path.join(ROOT, os.path.dirname(rel), f".listen-{os.getpid()}-{cid}.yaml")   # beside its includes
+            with open(song, "wb") as f:
+                f.write(text)
+            try:
+                err = render(pin, song, wav)
+                canon = canonical(pin, song) if not err else None
+            finally:
+                os.unlink(song)
             if err or not os.path.exists(wav):
                 log(f"{cid}: render failed: {err}")
                 continue
@@ -212,8 +231,6 @@ def cut(album_id, label="", render=default_render, canonical=default_canonical, 
             subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-y", "-i", wav, "-codec:a", "libmp3lame", "-q:a", "2",
                             os.path.join(tmp, f"{stem}.mp3")], check=True)
             os.unlink(wav)
-            shutil.copy(song, os.path.join(tmp, f"{stem}.song"))
-            canon = canonical(pin, song)
             if canon:
                 with open(os.path.join(tmp, f"{stem}.web"), "w") as f:
                     f.write(share_hash(canon))
