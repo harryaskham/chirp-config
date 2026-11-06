@@ -131,6 +131,16 @@ R7 = os.environ.get("T7_R7", "clear") != "none"
 # octave kicks, and the pad stabs answer on the offbeats. E1 (Eb Bb Db Ab F) sits as colour over every chord. Old
 # parts are silenced (velocity 1), not deleted, so later events keep their randomness. T7_R8=none reproduces v7.
 R8 = os.environ.get("T7_R8", "open") != "none"
+# round 9 (section, w3 = bars 33-48, the approach's second half, flagged 'static, little new vs w2'): T7_R9=sung
+# (default) - THE STORM GETS A SINGER, AND A WAY IN. (1) wM's legato voice (voice-legato, now in the groove pin), made
+# larger and more projected than t3's small near voice (tract 1.06, ring 0.4), sings "every corner" ON E1 in E-flat
+# minor (Eb Bb Db Ab F - five syllables, five notes) at bars 33 and 41, alone: the hook lead's bar-33 statement steps
+# aside. The words come back whole at the crest ("every corner comes sooner", the vocoder): the line is sung half
+# here and finished in the orbit. (2) The approach no longer just stops at the collision: a snare roll thickens
+# from bar 45 (eighths, sixteenths, then 32nds), bar 48 turns to a snare-and-tom fill with the kick out, and the
+# collision lands with an open hat and clap. T7_R9=none reproduces v8.
+R9 = os.environ.get("T7_R9", "sung") != "none"
+SUNG7_BARS = (32, 40)
 W5_PROG = [(39, (51, 54, 58, 65)), (35, (47, 51, 54, 58)), (42, (54, 58, 61, 68)), (37, (49, 53, 56, 63))]
 E7_V2 = [("D3", 2), ("A3", 2), ("E4", 2), ("B4", 2), ("F#5", 3)]
 EB_MAJ7 = (51, 55, 58, 62)
@@ -420,6 +430,22 @@ def build():
     for bar in range(160, 172):
         for s in range(0, 16, 4):
             T["hats"].add(bar * 4.0 + s / 4, 0.1, "h", 54 - (bar - 160) * 2)
+    if R9:                                                                    # w3: a way into the collision
+        T["kick"].ev = [(e[0], e[1], e[2], 1, e[4]) if 47 * 4.0 <= e[0] < 48 * 4.0 else e for e in T["kick"].ev]
+        T["roll"] = Track("roll")
+        for bar, step in ((44, 0.5), (45, 0.5), (46, 0.25)):
+            n = int(4 / step)
+            for i in range(n):
+                prog = ((bar - 44) * 4 + i * step) / 12.0
+                T["roll"].add(bar * 4.0 + i * step, step * 0.8, "s", 46 + 46 * prog)
+        for i in range(16):                                                   # bar 48: snare and tom, crescendo
+            at = 47 * 4.0 + i * 0.25
+            head = "t" if i % 4 in (2, 3) and i < 12 else "s"
+            T["roll"].add(at, 0.2, head, 92 + i)
+            if i >= 12:
+                T["roll"].add(at + 0.125, 0.1, "s", 96 + i)
+        T["roll"].add(48 * 4.0, 1.0, "oh", 112)
+        T["roll"].add(48 * 4.0, 0.25, "cp", 110)
     if R8:                                                                    # w5: i - VI - III - VII, twice
         lo, hi = 64 * 4.0, 80 * 4.0
         for k in ("tide", "bass", "e4"):
@@ -623,7 +649,8 @@ def main():
                 at = bar * 4.0
                 for _ in range(2):
                     for nt, ln in E1:
-                        hook.add(at, ln * 0.92, mtok(midi(nt) + 13), 90 if nt == "D4" else 82)
+                        v = 1 if (R9 and bar in SUNG7_BARS) else (90 if nt == "D4" else 82)
+                        hook.add(at, ln * 0.92, mtok(midi(nt) + 13), v)
                         at += ln
         patches["a7-hook"] = {"about": "chirper-two: the crest's hook - two saws 8 cents apart over a quiet square, a "
                                        "gentle low-pass, mono with a short glide: a plain singing lead for E1, stated upright",
@@ -642,6 +669,22 @@ def main():
             if tr["name"] in adj:
                 tr["gain"] = f"{float(tr['gain'].replace('dB', '')) + adj[tr['name']]:g}dB"
         tracks[:] = [tr for tr in tracks if tr["name"] != "byte"]
+    if R9:
+        spec = {tr["name"]: tr for tr in tracks}
+        tracks.append(dict(spec["snare"], name="roll", score=T["roll"].score()))
+        src = json.load(open(os.path.join(HERE, "t7", "sung.json")))["tracks"][0]
+        patches["a7-sung"] = dict(src["patch"], extends="voice-legato synth.layers.0.tract=1.06 synth.layers.0.ring=0.4 "
+                                                        "synth.layers.0.breath=0.2")
+        notes = []
+        for bar in SUNG7_BARS:
+            for n in src["notes"]:
+                d = {"at": round(bar * 4.0 - 0.25 + n["at"], 4), "len": n["len"], "ph": n["ph"], "pitch": n["pitch"],
+                     "vel": n["vel"]}
+                if n.get("expr_path"):
+                    d["expr_path"] = n["expr_path"]
+                notes.append(d)
+        tracks.append({"name": "sung", "patch": "a7-sung", "gain": "0dB", "pan": 0.0,
+                       "fx": ["delay time=3/8 mix=0.12 feedback=0.25"], "sends": {"space": "-8dB"}, "notes": notes})
     if R8:
         spec = {tr["name"]: tr for tr in tracks}
         for new, old in (("tide5", "tide"), ("bass5", "bass"), ("e4w5", "e4")):
