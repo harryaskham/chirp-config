@@ -196,6 +196,13 @@ R23 = os.environ.get("T3_R23", "gather") != "none"
 # crest, a third above in the key from the start (a3-doo3); and the rain (ks-nylon) doubles it an octave up. Both
 # are the song's own material returning, transformed. Own tracks / appended events. T3_R24=none reproduces v23.
 R24 = os.environ.get("T3_R24", "counts") != "none"
+# round 25 (palette): T3_R25=bloom (default) - HELD NOTES BLOOM. wM's per-note vibrato (pinned 58ee9ba3; first use on
+# Accretion; I asked for it for this song's last "oo"): on a joined line the vibrato's delay and fade restart with every
+# note, so quick notes stay plain and only HELD notes bloom (~280 ms in) - before, the wobble counted from the phrase's
+# first note and ran through every quick note after it. On every sung voice: the small singer (call, answer, hook,
+# humlast), the duet, the hums and the backing singers. And the crest's singers get the scoop and fall the hums took
+# in v23 (scoop 1, fall 2; the backing "ah"s a softer 0.5 / 1). The quick "doo"s stay plain. T3_R25=none reproduces v24.
+R25 = os.environ.get("T3_R25", "bloom") != "none"
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
 R21_DROPS = os.environ.get("T3_R21", "open") == "lift"
 R21_OPEN = os.environ.get("T3_R21", "open") == "open"          # let go of the third (no F#): t4 brings it
@@ -1077,6 +1084,15 @@ def main():
                 tr["patch"] = "a3-hum"
                 tracks.append(dict(tr, name="hum3", patch="a3-hum3", notes=second))
                 break
+    if R25:                                                 # held notes bloom; the crest's phrases scoop and fall
+        for k in list(patches):
+            pt = patches[k]
+            if k in ("a3-sung", "a3-duet"):
+                pt["extends"] = pt["extends"] + " synth.lfo.vib.per_note=true play.scoop=1 play.fall=2"
+            elif k.startswith("a3-hum"):
+                pt["extends"] = pt["extends"] + " synth.lfo.vib.per_note=true"
+            elif k == "a3-back":
+                pt["extends"] = pt["extends"] + " synth.lfo.vib.per_note=true play.scoop=0.5 play.fall=1"
     master = {"fx": [{"type": "eq", "bands": ["hp cutoff=25", "peak cutoff=100 gain=3dB q=1.0",
                                               "peak cutoff=320 gain=-2dB q=0.8",
                                               "highshelf cutoff=8000 gain=2dB"]},
