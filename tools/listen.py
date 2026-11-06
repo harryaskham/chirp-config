@@ -22,6 +22,7 @@ import http.server
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -193,7 +194,7 @@ def cut(album_id, label="", render=default_render, canonical=default_canonical, 
                  "note": ((kept[-1].get("note") or "") if kept else "")[:4000], "sha": sha}
         olddir = os.path.join(base, prev["id"]) if prev else None
         if old and old.get("sha") == sha and os.path.exists(os.path.join(olddir, f"{stem}.mp3")):
-            for ext in ("mp3", "mp4", "web"):
+            for ext in ("mp3", "mp4", "web", "song"):
                 src = os.path.join(olddir, f"{stem}.{ext}")
                 if os.path.exists(src):
                     os.link(src, os.path.join(tmp, f"{stem}.{ext}"))
@@ -211,6 +212,7 @@ def cut(album_id, label="", render=default_render, canonical=default_canonical, 
             subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-y", "-i", wav, "-codec:a", "libmp3lame", "-q:a", "2",
                             os.path.join(tmp, f"{stem}.mp3")], check=True)
             os.unlink(wav)
+            shutil.copy(song, os.path.join(tmp, f"{stem}.song"))
             canon = canonical(pin, song)
             if canon:
                 with open(os.path.join(tmp, f"{stem}.web"), "w") as f:
@@ -229,7 +231,26 @@ def cut(album_id, label="", render=default_render, canonical=default_canonical, 
     return snap
 
 
-def videos(album_id, sid=None, ids=None, look=None, log=print):
+def snapshot_song(d, t):
+    """The song text this snapshot rendered: its tNN.song copy, else (snapshots cut before copies were kept) the
+    version in git whose sha256 matches, else None."""
+    p = os.path.join(d, f"t{t['n']:02d}.song")
+    if os.path.exists(p):
+        return read_text(p)
+    rel = f"songs/{t['id']}.yaml"
+    cur = os.path.join(ROOT, rel)
+    if os.path.exists(cur) and sha_file(cur) == t["sha"]:
+        return read_text(cur)
+    hs = subprocess.run(["git", "log", "--format=%H", "-n", "200", "--", rel], cwd=ROOT, capture_output=True,
+                        text=True).stdout.split()
+    for h in hs:
+        b = subprocess.run(["git", "show", f"{h}:{rel}"], cwd=ROOT, capture_output=True).stdout
+        if b and hashlib.sha256(b).hexdigest()[:16] == t["sha"]:
+            return b.decode()
+    return None
+
+
+def videos(album_id, sid=None, ids=None, look=None, log=print, run=subprocess.run):
     """480p previews (854x480, 24 fps, crf 30; LOOK, else the song's own programme or the engine default); one track
     at a time, at nice 19 (about 1.3x real time on pocket4 under load)."""
     snaps = snapshots(album_id)
@@ -242,15 +263,21 @@ def videos(album_id, sid=None, ids=None, look=None, log=print):
         stem = f"t{t['n']:02d}"
         if (ids and t["n"] not in ids) or os.path.exists(os.path.join(d, f"{stem}.mp4")):
             continue
-        song = os.path.join(ROOT, "songs", f"{t['id']}.yaml")
-        if not os.path.exists(song) or sha_file(song) != t["sha"]:
-            log(f"{t['id']}: song file moved on since this snapshot; skipped")
+        text = snapshot_song(d, t)
+        if text is None:
+            log(f"{t['id']}: this snapshot's song text is not recoverable; skipped")
             continue
+        song = os.path.join(ROOT, "songs", f".listen-{os.getpid()}-{t['id']}.yaml")   # beside its includes
+        with open(song, "w") as f:
+            f.write(text)
         out = os.path.join(d, f".{stem}.tmp.mp4")
         t0 = time.time()
         cmd = ["nice", "-n", "19", pin, "video", "-f", song, "--seed", "0", "--size", "854x480", "--fps", "24",
                "--crf", "30"] + (["--look", look] if look else []) + ["-o", out]
-        r = subprocess.run(cmd, capture_output=True, text=True, cwd=os.path.dirname(song))
+        try:
+            r = run(cmd, capture_output=True, text=True, cwd=os.path.dirname(song))
+        finally:
+            os.unlink(song)
         if r.returncode or not os.path.exists(out):
             log(f"{t['id']}: video failed: {r.stderr.strip()[-200:]}")
             continue

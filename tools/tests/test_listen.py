@@ -75,6 +75,24 @@ class Snapshots(unittest.TestCase):
         p = lambda s: os.path.join(self.d, "chirpers9", "snapshots", s, "t01.mp3")   # noqa: E731
         self.assertEqual(os.stat(p(a["id"])).st_ino, os.stat(p(b["id"])).st_ino)
         self.assertEqual([s["id"] for s in L.snapshots("chirpers9")], [a["id"], b["id"]])
+        self.assertEqual(os.stat(p(a["id"])[:-3] + "song").st_ino, os.stat(p(b["id"])[:-3] + "song").st_ino)
+
+    def test_video_renders_the_snapshots_own_song_text(self):
+        a = L.cut("chirpers9", "", render=fake_render, canonical=lambda p, s: '{"tempo":1}', log=lambda *x: None)
+        d = os.path.join(self.d, "chirpers9", "snapshots", a["id"])
+        with open(os.path.join(d, "t01.song"), "w") as f:
+            f.write("SNAPSHOT TEXT")                          # differs from songs/ now: the copy must win
+        seen = []
+
+        def run(cmd, **kw):
+            seen.append(open(cmd[cmd.index("-f") + 1]).read())
+            open(cmd[-1], "wb").write(b"mp4")
+            return type("R", (), {"returncode": 0, "stderr": ""})()
+        L.videos("chirpers9", a["id"], {1}, "accretion", log=lambda *x: None, run=run)
+        self.assertEqual(seen, ["SNAPSHOT TEXT"])
+        self.assertTrue(os.path.exists(os.path.join(d, "t01.mp4")))
+        self.assertTrue(L.snapshots("chirpers9")[-1]["tracks"][0]["video"])
+        self.assertFalse([f for f in os.listdir(os.path.join(L.ROOT, "songs")) if f.startswith(".listen-")])
 
 
 class Server(unittest.TestCase):
