@@ -13,7 +13,7 @@ all eight tracks are written in parallel. Note under each element where later tr
 |---|---|---|---|---|
 | E1 | t1 (seed) | "the seed": five notes D A C G E, an arch (up a fifth, up a minor third, down a fourth, down a minor third) with a snap on the C; D with NO third, so every track chooses its mode | 5 beats (5/4) | chirper-zero |
 | E2 | t2 (infall) | "seven": a RHYTHM CELL of seven sixteenths, x . x x . x . (hits on 0, 2, 3, 5), pitched D A F C - a leap up and a fall through, accents strong / light / firm / light; it brings E1 the minor third (F) for the outer disk | 7 sixteenths (7/16); meets 4/4 every 7 bars, E1's 5/4 every 35 beats... and every cycle on one downbeat in t2's crest | chirper-one |
-| E3 | t3 (first storm) | "the undertow": a BASS RIFF of 7 beats (E2's seven sixteenths augmented x4) on D, the Neapolitan Eb and C - D2 D2 D3 / Eb2 Eb2 Bb1 / C2 C2 G2 C3 - with its storm harmony, one chord per segment (Dm(add9), Ebmaj7#11, C11; D4 common to all three); it brings the FLAT SECOND (Eb), the storm's darkness | 7 beats (28 sixteenths); re-barred to 8 at the lock | chirper-two |
+| E3 | t3 (first storm) | "the undertow" (v2, 6 Nov: D | Bb | C, consonant - v1 was D | Eb | C): a BASS RIFF of 7 beats (E2's seven sixteenths augmented x4) on D, the Neapolitan Eb and C - D2 D2 D3 / Eb2 Eb2 Bb1 / C2 C2 G2 C3 - with its storm harmony, one chord per segment (Dm(add9), Ebmaj7#11, C11; D4 common to all three); it brings the FLAT SECOND (Eb), the storm's darkness | 7 beats (28 sixteenths); re-barred to 8 at the lock | chirper-two |
 | E4 | t4 (relief) | "four lights": a PROGRESSION, one chord per E1 cycle - D9, Bbmaj13#11, Am11, D9sus - that re-harmonises E1 four ways and gives it the third (F#) it never stated | 20 beats (4 x 5); meets 4/4 every 5 bars | chirper-three |
 | E5 | t5 (inner disk) | "the inner orbit": an OSTINATO of eight sixteenths in a 3-beat cycle, A G# A . E . A G# A . D . - a tight circling of A by its leading tone, flung out to E and then D; the G# is the tritone of D (Lydian #4), the heat of the inner disk | 3 beats (12 sixteenths); meets 4/4 every 3 bars, E1 every 15 beats, E2 every 84 sixteenths | chirper-zero |
 | E6 | t6 (tidal) | "the tide": two chords a semitone apart, Dmaj9#11 and Ebmaj7#11, alternating in an 8-beat cycle whose SPLIT moves like a tide (4+4, 5+3, 6+2 ... 3+5, 2+6, 7+1): augmentation against diminution as harmony; the Eb is the pull the inner disk can't resolve | 8 beats, the split moving | chirper-one |
@@ -99,6 +99,11 @@ score: "D3,F#3,A3,C#4,E4,G#4/5b Eb3,G3,Bb3,D4,A4/3b  D3,F#3,A3,C#4,E4,G#4/6b Eb3
 - **In t6.** A harmonium breathes it; a 303 plays E2 (t2's seven) on its roots. At the crest it gives way to E4's four lights, one chord per E1 cycle, as E1's two layers - one squeezed, one stretched all song long - meet at the same speed.
 
 ### E3, "the undertow" (t3, chirper-two)
+**v2 (6 Nov, after Harry's note - tone is home).** The same rhythm and segments, re-pitched consonant:
+`D2/8. D2/8. D3/8 Bb1/8 Bb1/8. F2/8. C2/8. C2/8. G2/8 C3/4` = D | Bb | C (i - VI - VII in D minor), harmony
+Dm(add9) | Bbmaj7 | C(add9). The v1 pitches below (the Neapolitan Eb) survive only as a passing spice. In a MAJOR
+context (t7's crest, D Mixolydian) it locks 2+2+4 as I | bVII | IV: D | C | G.
+
 ```yaml
 # a bass riff of 7 beats - E2's seven sixteenths augmented x4 - written at 98-108 bpm (t3 ramps 98 -> 108), home D
 score: "D2/8. D2/8. D3/8 Eb2/8 Eb2/8. Bb1/8. C2/8. C2/8. G2/8 C3/4"   # segments 2 + 2 + 3 beats: D | Eb | C
@@ -149,6 +154,10 @@ score: "D2,A2,F#3,C4,E4/5b Bb1,F2,D3,A3,C4,E4/5b A1,E2,C3,G3,B3,D4/5b D2,A2,C3,G
 - **In t4 (The Warm Third).** t3's held Dm(add9) lifts its third (F -> F#) at bar 9 and E4's first light takes over. Every element is phased so a cycle lands on the crest's downbeat (bar 81, beat 320): E1 assembles itself on a handpan (one note more every two cycles) and answers itself in canon; E2 sounds in the MAJOR (D A F# C) on a harp from bar 25; E3 is INVERTED around D (D D D | C# C# F# | E E A E: the flat second turned into a leading tone) on vibes from bar 42.5; E4's changes cross the bar lines. At 81 they meet one downbeat and a warm solo voice sings E1 augmented, then retrograded. After the crest the kit steps out (101-120) and the voice's last two lines return over E1-E4 alone.
 
 ### E7, "the jet" (t7, chirper-two)
+**t7 v5 (6 Nov):** in t7's E-flat-minor storm only its consonant first four notes fire (Eb Bb F C); at the
+D-Mixolydian crest the column starts a tone lower - C G D A E B F#, the same shape and collection, topping on the
+major third - so it never fights E1 (D A C G E), whose mode the crest takes.
+
 ```yaml
 # the Lydian collection as one column of fifths, fired upward and accelerating; written at 132-150 bpm, home D
 score: "D3/8 A3/8 E4/8 B4/16 F#5/16 C#6/16 G#6/8"   # 2 2 2 1 1 1 2 sixteenths = 11; the top note held
