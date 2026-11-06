@@ -399,11 +399,24 @@ def choir():
 # at 152, two of E4's lights x2 five down at 155 - while the held light sinks on its lane beneath; the choir's last
 # line ('and it was ours') returns at half speed on the same lane at 150, and the held 'ah' takes over from 157.
 # (E8 stays sung once, at the jet.)
-def echo(name, cell, bar, factor, transpose, vel):
-    """cell: [(note, onset beats, length beats)] - placed at `bar`, augmented by `factor`, transposed."""
-    for n, on, ln in cell:
+def echo(name, cell, bar, factor, transpose, vel, hold_to=None):
+    """cell: [(note, onset beats, length beats)] - placed at `bar`, augmented by `factor`, transposed. With hold_to,
+    the last note leaves an AFTERIMAGE: the same pitch held on, softer, until that beat (v19)."""
+    for i, (n, on, ln) in enumerate(cell):
         m = brighten(midi(n)) + transpose
         part(name).add(b0(bar) + on * factor, ln * factor, name_of(m), vel)
+        end = b0(bar) + (on + ln) * factor
+        if hold_to is not None and i == len(cell) - 1 and end < hold_to:
+            part(name).add(end, hold_to - end, name_of(m), vel - 24)
+
+
+# v19 (ROUND TYPE: section, the horizon's last images 141-160, ~30 s as the tempo slows; rewritten): THE LIGHT HOLDS
+# EVERY IMAGE. The last images came one after another - E7's brass, E5's marimba, E1 on the flute, E2's glock, two of
+# E4's lights - a list. Now each sustained image leaves an AFTERIMAGE: E7's top F#5 (brass) and the hook's last E (flute)
+# hold on, softer, as the later images arrive, so they accumulate with the lights into one chord - and at bar 160 they
+# all release together, leaving the held light alone for a bar before it sinks home (161). The album's last
+# convergence is a crest of afterimages, mirroring the jet. All in D mixolydian.
+CONVERGE = b0(SINK - 1)
 
 
 def write_horizon():
@@ -411,9 +424,9 @@ def write_horizon():
     part("hold").add(b0(a), b0(z + 1) - b0(a) - 2, "D3,A3,D4,F#4", 80)
     part("hsub").add(b0(a), b0(z + 1) - b0(a) - 2, "D1", 84)
     part("lift").add(b0(a), b0(z + 1) - b0(a) - 2, "D2", 84)                  # v18: the floor you can hear
-    echo("e7", [(nm, s * 0.25, ln * 0.25) for nm, s, ln in E7_JET], a, 2, 0, 84)     # v5: at pitch - slower,
+    echo("e7", [(nm, s * 0.25, ln * 0.25) for nm, s, ln in E7_JET], a, 2, 0, 84, CONVERGE)  # v5: at pitch - slower,
     echo("e5", [(n, s * 0.25, 0.5) for n, s in E5], a + 3, 2, 0, 78)                   # quieter, darker; the
-    echo("hook", E1, a + 6, 3, 0, 78)            # v16: the hook's goodbye, on its own flute   # pitch sink waits for
+    echo("hook", E1, a + 6, 3, 0, 78, CONVERGE)  # v16: the hook's goodbye, on its own flute   # pitch sink waits for
     echo("e2", [(n, st * 0.25, 0.25) for n, st, v in E2], a + 11, 4, 0, 66)            # the light alone (161)
     for i, k in enumerate((0, 1)):
         notes = [name_of(midi(n)) for n in E4M[k]]
