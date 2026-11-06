@@ -49,6 +49,14 @@ R4 = os.environ.get("T3_R4", "align") != "none"
 # RETROGRADE, slowing - x2 (bars 109-110), then x4 an octave down (111-114) - a melody falling out of the lock.
 # T3_R5=none reproduces v4.
 R5 = os.environ.get("T3_R5", "cool") != "none"
+# round 6 (Harry, 6 Nov 00:30: "ugly chaos ... atonal ... missing aesthetics and catchiness/hook ... play with time
+# and texture"): T3_R6=tonal (default) - TONE IS HOME. E3 v2: the undertow on D | Bb | C (i - VI - VII), harmony
+# Dm(add9) | Bbmaj7 | C(add9), no Neapolitan ground; the tracker arps walk those chords' own consonant intervals; the
+# ring lead's modulator at 2:1 (harmonic sidebands, in tune) instead of 1.414; the alignment count climbs D Aeolian
+# (E, not Eb); and THE HOOK - E1 stated plainly, upright and doubled, for two cycles at the top of the front (bar
+# 17), the eyewall (41) and after the eye (67), so the storm's fragments are heard against the tune.
+# T3_R6=none reproduces v5.
+R6 = os.environ.get("T3_R6", "tonal") != "none"
 CLEAR = []      # R4: the bar-82 statement, spoken clearly (the voice clears as the arithmetic does)
 CREST = 88                      # the bar every cycle lands on
 CREST16 = CREST * 16            # ... in sixteenths
@@ -73,6 +81,21 @@ E3 = [((50, 57, 64, 65), 2.0),            # Dm(add9):      D3 A3 E4 F4
       ((51, 58, 62, 67, 69), 2.0),        # Ebmaj7(#11):   Eb3 Bb3 D4 G4 A4   (the Neapolitan, lydian)
       ((48, 58, 62, 65), 3.0)]            # C11 (Bb/C):    C3 Bb3 D4 F4
 E3_LOCKED = [2.0, 2.0, 4.0]               # re-barred at the lock: 2+2+4 = two bars (the riff's last C held a beat)
+if R6:                                    # E3 v2: D | Bb | C, consonant
+    E3_RIFF = [("D2", 0.75), ("D2", 0.75), ("D3", 0.5), ("Bb1", 0.5), ("Bb1", 0.75), ("F2", 0.75), ("C2", 0.75),
+               ("C2", 0.75), ("G2", 0.5), ("C3", 1.0)]
+    E3 = [((50, 57, 64, 65), 2.0),        # Dm(add9):  D3 A3 E4 F4
+          ((46, 53, 57, 62, 65), 2.0),    # Bbmaj7:    Bb2 F3 A3 D4 F4
+          ((48, 55, 62, 64), 3.0)]        # C(add9):   C3 G3 D4 E4
+# the lock under R6 resolves HOME every two bars (D minor, not C): harmony Dm | Bb | C | Dm (2+2+2+2) and the riff's
+# held last beat becomes C -> D
+LOCK_SEQ = [(0, 2.0), (1, 2.0), (2, 2.0), (0, 2.0)]
+
+
+def lock_riff():
+    if R6:
+        return E3_RIFF[:-1] + [("C3", 0.5), ("D3", 1.5)]
+    return E3_RIFF[:-1] + [(E3_RIFF[-1][0], E3_RIFF[-1][1] + 1.0)]
 NOTE = {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}
 
 
@@ -171,6 +194,8 @@ PATCHES = {
                              "amp": {"a": "1ms", "d": "120ms", "s": 0.55, "r": "40ms"}}},
 }
 ARP_STEPS = {0: [0, 7, 14, 15, 19], 1: [0, 7, 11, 16, 18], 2: [0, 10, 14, 17, 22]}   # chord intervals over each root
+if R6:
+    ARP_STEPS = {0: [0, 7, 14, 15, 19], 1: [0, 7, 11, 16, 19], 2: [0, 7, 14, 16, 19]}  # m(add9) | maj7 | add9
 
 
 def arp_patch(steps):
@@ -226,14 +251,15 @@ def build():
     # the floor under it: a sine an octave below the riff's long notes, the storm's and the crest's 30-80 Hz
     for c in cycle_starts(E3_LEN16, 16 * 16, 112 * 16):
         at = c / 4.0
-        for n, ln in (E3_RIFF if at < CREST * 4 else E3_RIFF[:-1] + [(E3_RIFF[-1][0], E3_RIFF[-1][1] + 1.0)]):
+        for n, ln in (E3_RIFF if at < CREST * 4 else lock_riff()):
             if ln >= 0.75 and 64 <= at < 112 * 4 and not (EYE[0] * 4 <= at < EYE[1] * 4 or BREAK[0] * 4 <= at < BREAK[1] * 4):
                 T["floor"].add(at, ln * 0.9, mtok(midi(n) - 12 if midi(n) >= 36 else midi(n)), 90)
             at += ln
     # the lock and after: re-barred 2+2+4, steady
     for bar in range(CREST, 112, 2):
         at = bar * 4.0
-        for k, ((ch, _), beats) in enumerate(zip(E3, E3_LOCKED)):
+        for k, beats in (LOCK_SEQ if R6 else list(enumerate(E3_LOCKED))):
+            ch = E3[k][0]
             T["shard"].add(at, 0.22, ",".join(mtok(m) for m in ch), 96)
             T["shard"].add(at + 0.75, 0.22, ",".join(mtok(m) for m in ch), 78)
             if beats > 2:
@@ -243,8 +269,8 @@ def build():
             T["sub"].add(at, beats - 0.1, mtok(ch[0] - 24), 70)
             at += beats
         at = bar * 4.0
-        for j, (n, ln) in enumerate(E3_RIFF):                  # the riff, re-barred: its last C held a beat more
-            ln2 = ln + (1.0 if j == len(E3_RIFF) - 1 else 0)
+        for j, (n, ln) in enumerate(lock_riff()):              # the riff, re-barred: its last C held a beat more
+            ln2 = ln
             T["bass"].add(at, ln2 * 0.88, mtok(midi(n)), 112 if ln >= 0.75 else 98)
             at += ln2
     # the outfall: E3 augmented again, falling into t4; the D4 common tone held over the seam
@@ -358,7 +384,7 @@ def build():
     # ---- round 2: the crest's middle (w9, bars 96-108) - a crab canon, a ride, a fill and a held breath -----------
     if R2:
         r2 = random.Random(31)
-        lock = E3_RIFF[:-1] + [(E3_RIFF[-1][0], E3_RIFF[-1][1] + 1.0)]          # 2+2+4, 8 beats
+        lock = lock_riff()                                                       # 8 beats
         crab = list(reversed(lock))
         for cyc, bar in enumerate(range(96, 108, 2)):
             at = bar * 4.0
@@ -414,9 +440,19 @@ def build():
             T["perc"].add(b0, 1.0, "c", 96 if len(who) == 1 else 116)
             T["kick"].add(b0, 0.25, "k", 112 if len(who) == 1 else 124)
             T["shard"].add(b0, 0.5, ",".join(mtok(m + 12) for m in E3[0][0]), 92 if len(who) == 1 else 112)
-        steps = ["D5", "Eb5", "F5", "G5", "A5", "Bb5", "C6"]  # (R4 count)
+        steps = ["D5", "E5" if R6 else "Eb5", "F5", "G5", "A5", "Bb5", "C6"]  # (R4 count)
         for bar in range(72, 86):
             T["tick"].add(bar * 4.0, 0.9, mtok(midi(steps[(bar - 72) // 2])), 84 + 2 * (bar - 72) + (12 if bar in hits else 0))
+    if R6:                                                  # the hook, plainly: E1 upright, two cycles, doubled
+        for bar in (16, 40, 66):
+            a0 = bar * 4.0
+            T["e1"].ev = [e for e in T["e1"].ev if not (a0 <= e[0] < a0 + 10.0)]
+            at = a0
+            for _ in range(2):
+                for n, ln in E1:
+                    T["e1"].add(at, ln * 0.92, mtok(midi(n) + 12), 102)
+                    T["e1hi"].add(at, ln * 0.92, mtok(midi(n) + 24), 74)
+                    at += ln
     if R5:
         a, b, c = 108 * 4.0, 110 * 4.0, 112 * 4.0
         T["hats"].ev = [e for e in T["hats"].ev if not (a <= e[0] < c)]
@@ -507,7 +543,7 @@ def main():
         patches["a3-ring"] = {"about": "chirper-two: the storm's lead - a saw ring-modulated by a sine at 1.414:1 (layer ringmod), "
                                        "an inharmonic, metallic edge whose ring mix rides an auto lane (`ring`: 0 = storm, "
                                        "1 = clean), over a quiet square an octave down",
-                              "synth": {"layers": [{"name": "m", "wave": "sine", "ratio": 1.414, "audible": False},
+                              "synth": {"layers": [{"name": "m", "wave": "sine", "ratio": 2.0 if R6 else 1.414, "audible": False},
                                                    {"wave": "saw", "ringmod": {"from": "m", "mix": {"value": 0.85, "mod": [
                                                        {"src": "auto.ring", "amount": -0.75}]}}},
                                                    {"wave": "square", "ratio": 0.5, "level": "-16dB"}],
