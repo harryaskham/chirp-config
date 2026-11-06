@@ -252,10 +252,39 @@ def write_seed():
         part("residue").add(b0(bar), 4 * BPB, head(("D3", "A3", "E4", "F#4")), 46 - 3 * i)   # v17: fades (was swelling)
 
 
+# v21 (ROUND TYPE: section, B's second half 49-64, ~35 s; rewritten): TWO VOICES TALKING. chirpers.py sections had
+# this window 'static' (the least motion of any full window) and the rise after it 'little new' against it: B ran
+# 24 bars on one texture. Now, from bar 49, the duet hums E1 back a third above on the cycles the singer leaves empty
+# - the two voices trade the hook, call and answer - and the bass walks: five quarters through each chord's tones and
+# a step into the next root (D F# A F# D | C E G E B | A C E C A | G B D E C - all in D mixolydian), so the harmony
+# moves under them.
+B2 = (49, 65)
+WALK = {"D9": ("D2", "F#2", "A2", "F#2", "D2"), "Cmaj9": ("C2", "E2", "G2", "E2", "B1"),
+        "Am11": ("A1", "C2", "E2", "C2", "A1"), "G6/9": ("G1", "B1", "D2", "E2", "C2")}
+
+
+def b2_duet():
+    out = []
+    beat = math.ceil(b0(B2[0]) / E1_CYCLE) * E1_CYCLE          # on E1's own grid (the singer's hums are on the even cycles)
+    while beat < b0(B2[1]) - 0.01:
+        if int(round(beat / E1_CYCLE)) % 2 == 1:
+            for i, (n, on, ln) in enumerate(E1):
+                last = i == len(E1) - 1
+                out.append({"at": round(beat + on, 4), "len": ln + (0.75 if last else 0.0), "ph": "UW1",
+                            "pitch": f"m{third_above(midi_of(n))}", "vel": 0.62 if on else 0.66})
+        beat += E1_CYCLE
+    return out
+
+
 def write_bass():
     beat = b0(17)
     while beat < b0(129) - 0.01:
         k, name, notes = chord_at(beat)
+        if b0(B2[0]) <= beat < b0(B2[1]):
+            for i, (n, v) in enumerate(zip(WALK[name], (88, 76, 80, 72, 70))):
+                part("bass").add(beat + i, 1.0, n, v)
+            beat += E1_CYCLE
+            continue
         root = notes[0]
         fifth = notes[1]
         part("bass").add(beat, 2.0, root, 92)
@@ -567,7 +596,7 @@ def main():
     voice = sorted(sung_notes(b0(CREST), TAKES) + sung_notes(b0(101), TAKES[2:]) + hums() + hook_v,
                    key=lambda d: d["at"])
     duet = [dict(n, pitch=f"m{third_above(midi_of(n['pitch']))}", vel=round(n["vel"] * 0.8, 3))
-            for n in sung_notes(b0(CREST) + 20, TAKES[2:]) + sung_notes(b0(101), TAKES[2:])] + hook_d   # v7: lines 3-4 at
+            for n in sung_notes(b0(CREST) + 20, TAKES[2:]) + sung_notes(b0(101), TAKES[2:])] + hook_d + b2_duet()   # v7: lines 3-4 at
                                                                   # 86-90 and their return in the afterglow (101-105)
     duet.sort(key=lambda d: d["at"])
     breaths = [{"at": b0(CREST) - 0.85, "len": 0.85, "pitch": "C4", "vel": 0.55},
