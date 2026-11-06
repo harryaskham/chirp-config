@@ -74,6 +74,7 @@ EXHALE = os.environ.get("C9T1_EXHALE", "0.25")   # with DEEPOUT: the lock exhale
 BASSOUT = os.environ.get("C9T1_BASSOUT", "")   # the t1 -> t2 seam: t1's NES-triangle D2 and t2's (the same patch, the same note) cancelled each other in the crossfade (overlap bars 7-8: the sub band -32 dB, the whole mix -23 dB, against -16 for either alone). Now t1's bass hands over: full for overlap bars 1-4, half for 5-8, then t2's bass has the low end alone
 BREATHX = os.environ.get("C9T1_BREATHX", "synth.layers.0.breath.value=0.85 synth.layers.0.breath.mod.0.amount=-0.7 synth.amp.a=600ms synth.amp.r=1200ms")   # PALETTE: the breath becomes breath - the far choir's 'ah' was tone at every level; with wM's recipe its breath rises as it softens, so the 'ah' before the crest is a voice and the faint one in the fall is mostly air (the voice the album grows from, still only a breath). Value: extra patch params appended to BREATHP
 HATG = os.environ.get("C9T1_HATG", "-8")   # WHOLE ROUND: THE PULSE YOU CAN HEAR - t1's time is a process (the shekere ticks a 5-in-16 Euclid in A, quickens to 7-in-16 in the build, then plays E1's own rhythm with a clave on each cycle from the crest), but it sat buried (-29 dB under the mix), so the song's rhythm was a texture nobody hears. Brought up (dB) so the process is heard all the way through, and it fills t1's thin top (7.9 kHz was the worst band)
+LANDING = os.environ.get("C9T1_LANDING", "2")   # SECTION w2 (0:36-1:13, A's arrival: flagged 'level jump; new groove', never focused): THE HOOK FIRST - at A the whistle's plain E1 used to land inside the band's arrival (the bass, the shekere and the warm fifth all came in on the same beat). Now the hook is stated over the scatter and the pedal alone, and the band drops in after it (value: bars), so A arrives on the seed's tune, not on a level jump
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -383,6 +384,18 @@ def breath():
 
 def song():
     tracks = [*fragments(), *unison(), *([deep()] if DEEP else []), *([tease()] if TEASE else []), *([hook()] if HOOK else []), *(firstlight() if FIRSTLIGHT else []), *([cantus()] if CANTUS else []), pad(), warmth(), bass(), hats(), kick(), air(), breath()]
+    if LANDING:
+        L = ST["A"] + float(LANDING) * BAR
+        for tr in tracks:
+            if tr["name"] in ("bass", "hats", "warmth"):
+                out = []
+                for n in tr["notes"]:
+                    if ST["A"] <= n["at"] < L:
+                        if n["at"] + n["len"] > L + 0.5:
+                            out.append(dict(n, at=L, len=round(n["at"] + n["len"] - L, 3)))
+                    else:
+                        out.append(n)
+                tr["notes"] = out
     if DECAY:
         d, d0, d1 = float(DECAY), TC + 4 * BAR, ST["outro"]
         for tr in tracks:
