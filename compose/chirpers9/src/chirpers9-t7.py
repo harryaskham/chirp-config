@@ -238,6 +238,15 @@ R19_WOOD = os.environ.get("T7_R19", "breath") == "wood"
 # the new parts on their own tracks. T7_R20=none reproduces v19.
 R20 = os.environ.get("T7_R20", "lament") != "none"
 SPIRAL_PROG = [(100, 37, (49, 53, 56, 63)), (104, 35, (47, 51, 54, 58)), (108, 34, (51, 53, 56, 58))]
+# round 21 (section, w3 = bars 33-48, the approach, flagged 'static'): T7_R21=reply (default) - THE BRASS ANSWERS
+# HER. The storm singer sings "every corner" at bars 33 and 41, and then the groove just carries on. Now the brass
+# (the hook's horn-section, an octave down since v16) answers each line two bars later - a falling reply in E-flat
+# minor that comes home to the tonic: Ab4 Bb4 Db5 Bb4 Ab4 F4 Eb4 - over a soft French-horn E-flat minor held for the
+# two bars (the crest's horn choir, glimpsed once early). A call and response where there was one voice and a loop.
+# Own tracks. T7_R21=none reproduces v20.
+R21 = os.environ.get("T7_R21", "reply") != "none"
+REPLY_BARS = (34, 42)
+REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
 BOW_LINE = [(128, 69, 7.6), (130, 67, 7.6), (132, 66, 7.6), (134, 64, 7.8), (136, 62, 7.5)]
 HEAD_WHEEL = [(0, (51, 55, 58, 62)), (4, (48, 51, 55, 58, 62)), (8, (44, 51, 55, 58, 60)), (12, (46, 51, 53, 58)),
               (14, (46, 50, 53, 56))]
@@ -937,6 +946,18 @@ def main():
         spec = {tr["name"]: tr for tr in tracks}
         for new, old in (("tide7", "tide"), ("bass7", "bass"), ("e4w7", "e4")):
             tracks.append(dict(spec[old], name=new, score=T[new].score()))
+    if R21:
+        spec = {tr["name"]: tr for tr in tracks}
+        reply, hornsa = Track("reply"), Track("hornsa")
+        for bar in REPLY_BARS:
+            at = bar * 4.0
+            for m, ln in REPLY:
+                reply.add(at, ln * 0.94, mtok(m), 92 if m == 63 else 84)
+                at += ln
+            hornsa.add(bar * 4.0, 7.6, ",".join(mtok(m) for m in (51, 54, 58, 63)), 70)
+        tracks.append(dict(spec["hook"], name="reply", score=reply.score()))
+        tracks.append({"name": "hornsa", "patch": "horn", "gain": "-12dB", "pan": -0.1,
+                       "sends": {"space": "-5dB"}, "score": hornsa.score()})
     if R19:
         for tr in tracks:
             if R19_WOOD and tr["name"] in ("e1b", "e1bw"):
