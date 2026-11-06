@@ -124,6 +124,20 @@ def write_lens():
     part("residue").add(b0(LIFT), 4 * BPB, head(lifted), 50)
     # the first light: D9 alone, swelling in from the lift to the end of the lens
     part("lights").add(b0(LIFT), b0(17) - b0(LIFT), head(E4[0][1]), 52)
+    # v11 (ROUND TYPE: section, the lens 1-16; rewritten): THE WARM THIRD, BENT. (1) The floor - agreed with
+    # chirper-two for the t3 seam: the sine holds t3's low D (D1) through the residue, rises an octave with the
+    # chord at the lift, and fades out by bar 24, so the low end steps down across the seam instead of falling off it.
+    # (2) The lift made audible: a pedal steel sings A4 - F4 and BENDS the minor third up to the major (F -> F#4, a
+    # slow 700 ms glide) at the lift, the album's turn from minor to major and the song's title, then settles E4 - D4
+    # as E1's full statement begins.
+    for bar, note, v in ((1, "D1", 38), (5, "D1", 34)):
+        part("sub").add(b0(bar), 4 * BPB - 0.05, note, v)
+    for bar, v in ((LIFT, 36), (13, 30), (17, 24), (21, 18)):
+        part("sub").add(b0(bar), 4 * BPB - 0.05, "D2", v)
+    line = ((5, 2, "A4", 70), (7, 2, "F4", 74), (LIFT, 4, "F#4", 80), (13, 2, "E4", 70), (15, 2, "D4", 66))
+    for i, (bar, bars, note, v) in enumerate(line):
+        tie = 0.1 if i + 1 < len(line) else -0.25                # touching notes glide (the steel is mono legato)
+        part("steel").add(b0(bar), bars * BPB + tie, note, v)
 
 
 def write_lights():
@@ -478,6 +492,8 @@ def main():
             {"name": "breath", "patch": BREATH_AIR, "gain": "2dB", "pan": 0.0, "sends": {"room": "-12dB"},
              "notes": breaths},
             tr("e3hi", "pedal-steel", gain="-15dB", pan=0.35, sends={"hall": "-8dB"}),     # v8: E3 an octave up in the rise
+            tr("steel", {"extends": "pedal-steel play.glide=700ms"}, gain="-13dB", pan=0.15,
+               sends={"hall": "-6dB"}),                              # v11: the lens's bent third (last: event_stable)
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=0.8s mix=1 predelay=6ms", "hp cutoff=200"]},
                   "hall": {"fx": ["reverb kind=hall decay=3.2s mix=1 predelay=20ms", "hp cutoff=180"]},
