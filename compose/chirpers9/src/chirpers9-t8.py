@@ -268,7 +268,7 @@ def write_stretto():
         on = 0.0
         for notes, ln in E3:
             if E3_LIGHT[0] <= beat + on < E3_LIGHT[1]:
-                part("bass").add(beat + on, ln - 0.1, name_of(midi(notes[0]) - 12), 92)
+                part("bass").add(beat + on, ln - 0.1, name_of(midi(notes[0]) - 12), 76)   # v17: softer (was 92)
             on += ln
         beat += 7.0
     # the drums gather: noise snare and hat on E5's 3 against the bar, from 65
@@ -459,6 +459,14 @@ def orbit_lane(name):
 ORBIT_FX = "gain gain=0dB+auto.orb*1"
 
 
+# v17 (ROUND TYPE: whole song): HOME AT THE END. The horizon's held light sank 5 semitones on the redshift lane, so
+# the record's last chord was A major - the dominant, away from home (Harry: tone is home). Now the light redshifts a
+# full OCTAVE and lands on D again, an octave down: it falls all the way and arrives home - and the sub stays on D1
+# underneath, the floor the light falls toward (it used to sink to A0 under everything). Also: E3's bass roots in its
+# spotlight softer (vel 92 -> 76; they were the loudest thing there, -2.1).
+REDSHIFT = -12.0
+
+
 def horizon_lane(drop):
     """Redshift: 0 until the horizon, then sinking to `drop` semitones by the end."""
     return [["0b", 0.0], [f"{b0(SINK):g}b", 0.0], [f"{b0(BARS + 1):g}b", drop]]
@@ -550,7 +558,7 @@ def main():
                fx=[ORBIT_FX], auto={"orb": {"points": orbit_lane("e5")}}),
             tr("bass", "nes-triangle-bass", gain="-6dB"),
             tr("sub", SUB8, gain="-12dB"),
-            tr("hsub", HSUB, gain="-13dB", auto={"rs": {"points": horizon_lane(-5.0)}}),
+            tr("hsub", HSUB, gain="-13dB", auto={"rs": {"points": horizon_lane(0.0)}}),     # v17: the floor stays home
             tr("kick", "machine-kit", gain="-8dB"),
             tr("snare", "machine-kit", gain="0dB", sends={"room": "-10dB"}),
             tr("hat", "nes-noise-hat", gain="-12dB", pan=0.25),
@@ -558,20 +566,20 @@ def main():
             tr("riser", "fx-revcym", gain="-12dB"),
             tr("impact", "fx-impact", gain="-10dB"),
             {"name": "choir", "patch": choir_patch(4, third=True), "gain": "-7dB", "sends": {"hall": "-7dB", "dly": "-16dB"},
-             "notes": lead, "auto": {"rs": {"points": horizon_lane(-5.0)}}},
+             "notes": lead, "auto": {"rs": {"points": horizon_lane(REDSHIFT)}}},
             {"name": "choir5", "patch": choir_patch(3), "gain": "-13dB", "pan": 0.3, "sends": {"hall": "-6dB"}, "notes": fifth,
-             "auto": {"rs": {"points": horizon_lane(-5.0)}}},
+             "auto": {"rs": {"points": horizon_lane(REDSHIFT)}}},
             {"name": "choir8", "patch": choir_patch(3, tract=1.0), "gain": "-12dB", "pan": -0.3, "sends": {"hall": "-6dB"}, "notes": low,
-             "auto": {"rs": {"points": horizon_lane(-5.0)}}},
+             "auto": {"rs": {"points": horizon_lane(REDSHIFT)}}},
             tr("hold", HOLD, gain="-18dB", sends={"hall": "-4dB"},
-               auto={"rs": {"points": horizon_lane(-5.0)}, "cl": {"points": cl}}),
+               auto={"rs": {"points": horizon_lane(REDSHIFT)}, "cl": {"points": cl}}),
             tr("e6", "organ", gain="-24dB", pan=-0.3, sends={"hall": "-8dB"}, fx=["lp cutoff=3500", ORBIT_FX],
                auto={"orb": {"points": orbit_lane("e6")}}),
             tr("e7", "brass-synth", gain="-11dB", pan=0.15, sends={"dly": "-12dB", "hall": "-10dB"}),
             {"name": "jet", "patch": "supersaw", "gain": "-8dB", "sends": {"hall": "-6dB"}, "notes": JET_NOTES},
             tr("hook", "flute", gain="-2dB", pan=0.1, sends={"dly": "-14dB", "hall": "-12dB"}),   # v5
             {"name": "solo", "patch": SOLO8, "gain": "-7dB", "sends": {"hall": "-5dB", "dly": "-16dB"},   # v12 (last)
-             "notes": solo, "auto": {"rs": {"points": horizon_lane(-5.0)}}},
+             "notes": solo, "auto": {"rs": {"points": horizon_lane(REDSHIFT)}}},
             tr("ask", "flute", gain="-9dB", pan=-0.15, sends={"hall": "-6dB", "dly": "-12dB"}),   # v14
             tr("hook3", "flute", gain="-7dB", pan=-0.2, sends={"dly": "-14dB", "hall": "-10dB"}),  # v16 (last)
         ],
