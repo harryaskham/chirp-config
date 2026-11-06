@@ -289,6 +289,25 @@ def write_stretto():
 # stretto; only in the vacuum does it touch E7's top E for a beat before the jet resolves it.
 ASKS = (28, 40, 52, 64, 80, VACUUM)
 
+# v16 (ROUND TYPE: whole song): THE HOOK'S LIFE. The hook was heard often but never grew: E1 on the chip in the
+# stretto, then the flute's plain statement every two bars through both jets, the same way about twenty times, then
+# an echo on the chip at the horizon. Now it has a life across the song: born on the chip in the stretto, found by
+# the flute at the jet (where the choir sings it into E8), SUNG BACK IN THIRDS after the dilated break - a second
+# flute a diatonic third below, in D mixolydian, so the tune grows into harmony for the second jet - and at the
+# horizon its last statement is the flute's, three times slower: the hook's own voice saying goodbye.
+MIXO = [0, 2, 4, 5, 7, 9, 10]              # D mixolydian, semitones above D
+
+
+def third_below(m):
+    """The diatonic third below m in D mixolydian (m in the scale; off-scale notes drop four semitones)."""
+    pc = (m - 62) % 12
+    if pc not in MIXO:
+        return m - 4
+    i = MIXO.index(pc)
+    j = i - 2
+    oct_shift = -12 if j < 0 else 0
+    return m - pc + MIXO[j % 7] + oct_shift
+
 
 def write_asks():
     for i, bar in enumerate(ASKS):
@@ -314,6 +333,8 @@ def write_jet():
         if (bar - JET) % 2 == 0:                  # v5 THE HOOK: E1 stated plainly, augmented to two bars, every two
             for n, on, ln in E1:                  # bars, loud - the album's tune heard clearly and often after the jet
                 part("hook").add(t + on * 1.6, ln * 1.6, name_of(midi(n) + 12), 100)
+                if bar > BREAK[1]:                # v16: after the break the hook is sung back in thirds
+                    part("hook3").add(t + on * 1.6, ln * 1.6, name_of(third_below(midi(n) + 12)), 86)
         # the groove: half time at 150 (75 felt)
         part("kick").add(t, 0.5, "k", 112)
         part("kick").add(t + 2.5, 0.5, "k", 92)
@@ -390,7 +411,7 @@ def write_horizon():
     part("hsub").add(b0(a), b0(z + 1) - b0(a) - 2, "D1", 84)
     echo("e7", [(nm, s * 0.25, ln * 0.25) for nm, s, ln in E7_JET], a, 2, 0, 84)     # v5: at pitch - slower,
     echo("e5", [(n, s * 0.25, 0.5) for n, s in E5], a + 3, 2, 0, 78)                   # quieter, darker; the
-    echo("e1", E1, a + 6, 3, 0, 72)                                                    # pitch sink waits for
+    echo("hook", E1, a + 6, 3, 0, 78)            # v16: the hook's goodbye, on its own flute   # pitch sink waits for
     echo("e2", [(n, st * 0.25, 0.25) for n, st, v in E2], a + 11, 4, 0, 66)            # the light alone (161)
     for i, k in enumerate((0, 1)):
         notes = [name_of(midi(n)) for n in E4M[k]]
@@ -551,7 +572,8 @@ def main():
             tr("hook", "flute", gain="-2dB", pan=0.1, sends={"dly": "-14dB", "hall": "-12dB"}),   # v5
             {"name": "solo", "patch": SOLO8, "gain": "-7dB", "sends": {"hall": "-5dB", "dly": "-16dB"},   # v12 (last)
              "notes": solo, "auto": {"rs": {"points": horizon_lane(-5.0)}}},
-            tr("ask", "flute", gain="-9dB", pan=-0.15, sends={"hall": "-6dB", "dly": "-12dB"}),   # v14 (last)
+            tr("ask", "flute", gain="-9dB", pan=-0.15, sends={"hall": "-6dB", "dly": "-12dB"}),   # v14
+            tr("hook3", "flute", gain="-7dB", pan=-0.2, sends={"dly": "-14dB", "hall": "-10dB"}),  # v16 (last)
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=0.8s mix=1 predelay=6ms", "hp cutoff=200"]},
                   "hall": {"fx": ["reverb kind=hall decay=4s mix=1 predelay=24ms", "hp cutoff=180"]},
