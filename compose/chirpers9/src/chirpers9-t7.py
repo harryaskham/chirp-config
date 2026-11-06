@@ -116,6 +116,14 @@ E7_CREST = [("C3", 2), ("G3", 2), ("D4", 2), ("A4", 1), ("E5", 1), ("B5", 1), ("
 # (chirper-one: D(add9) | C(add9)/D, I and bVII of D Mixolydian, its 8-beat split moving 4+4 .. 7+1 .. 1+7).
 # T7_R6=none reproduces v5.
 R6 = os.environ.get("T7_R6", "harmonic") != "none"
+# round 7 (WHOLE): T7_R7=clear (default) - THE STORM YOU CAN HEAR INTO. presence.py over the collision (bars 49-80)
+# found a wall of low end - bass -1 dB vs the mix, kick -5, floor -7, tide -8 - with every element under it buried:
+# the E1 bells -26..-30, E4 -32, the hats -32, E2's ghosts -28, the bytebeat -43. So: (1) the HOOK in the storm: E1
+# stated plainly in E-FLAT MINOR on the crest's own hook lead, two cycles at bars 17, 33, 49 and 73 - the same tune
+# the crest will sing in D major, heard first in the dark; (2) the mix: reese -4.5 dB, floor -3, tide -4, kick -2;
+# the E1 bells +6..8, E4 +10, E5 +4, hats +10, ghosts +6; (3) the bytebeat cut (inaudible noise); (4) the
+# stutter/crush lanes eased (glitch x0.6, grit x0.5): texture, not damage. T7_R7=none reproduces v6.
+R7 = os.environ.get("T7_R7", "clear") != "none"
 E7_V2 = [("D3", 2), ("A3", 2), ("E4", 2), ("B4", 2), ("F#5", 3)]
 EB_MAJ7 = (51, 55, 58, 62)
 E6V3_D, E6V3_C = (50, 57, 62, 64, 66), (50, 55, 60, 62, 64)                  # D(add9) | C(add9)/D
@@ -446,6 +454,9 @@ def main():
                  "chance": {"value": 0, "mod": [{"src": "auto.glitch", "amount": 1}]}},
                 {"type": "crush", "bits": 7, "rate": "12kHz", "mix": {"value": 0, "mod": [{"src": "auto.grit", "amount": 1}]}}] + list(extra)
 
+    if R7:
+        glitch = [[p, round(v * 0.6, 3)] for p, v in glitch]
+        grit = [[p, round(v * 0.5, 3)] for p, v in grit]
     lanes = {"glitch": {"points": glitch}, "grit": {"points": grit}}
     tracks = [
         {"name": "kick", "patch": "dusty-kit", "gain": "0dB", "fx": storm(), "auto": lanes, "score": T["kick"].score()},
@@ -582,6 +593,13 @@ def main():
             for nt, ln in E1:
                 hook.add(at, ln * 0.92, mtok(midi(nt) + 12), 92 if nt == "D4" else 84)
                 at += ln
+        if R7:                                              # the hook in the storm: E1 in E-flat minor, plainly
+            for bar in (16, 32, 48, 72):
+                at = bar * 4.0
+                for _ in range(2):
+                    for nt, ln in E1:
+                        hook.add(at, ln * 0.92, mtok(midi(nt) + 13), 90 if nt == "D4" else 82)
+                        at += ln
         patches["a7-hook"] = {"about": "chirper-two: the crest's hook - two saws 8 cents apart over a quiet square, a "
                                        "gentle low-pass, mono with a short glide: a plain singing lead for E1, stated upright",
                               "synth": {"layers": [{"wave": "saw", "detune": -4}, {"wave": "saw", "detune": 4},
@@ -592,6 +610,13 @@ def main():
         tracks.append({"name": "hook", "patch": "a7-hook", "gain": "-9dB", "pan": 0.05,
                        "fx": ["delay time=3/8 mix=0.18 feedback=0.3"], "sends": {"space": "-8dB"},
                        "score": hook.score()})
+    if R7:
+        adj = {"bass": -4.5, "sub": -3.0, "tide": -4.0, "kick": -2.0, "e1a": 8.0, "e1b": 6.0, "e1c": 7.0, "e4": 10.0,
+               "hats": 10.0, "ghost": 6.0, "e5": 4.0}
+        for tr in tracks:
+            if tr["name"] in adj:
+                tr["gain"] = f"{float(tr['gain'].replace('dB', '')) + adj[tr['name']]:g}dB"
+        tracks[:] = [tr for tr in tracks if tr["name"] != "byte"]
     master = {"fx": [{"type": "eq", "bands": ["hp cutoff=25", "lowshelf cutoff=120 gain=5dB", "peak cutoff=160 gain=-2.5dB q=1.2",
                                               "peak cutoff=320 gain=-2dB q=0.8", "peak cutoff=1400 gain=-2.5dB q=0.7",
                                               "highshelf cutoff=8000 gain=1dB"]},
