@@ -57,6 +57,8 @@ OVERSHOOT = os.environ.get("C9T5_OVERSHOOT", "0.08")   # WHOLE ROUND (glide_over
 SPINUP = os.environ.get("C9T5_SPINUP", "64:96")   # SECTION w2 (A's arrival, flagged 'level jump; new groove', never focused): THE ORBIT SPINS UP - the orbit used to arrive at full speed the moment A landed. Now it arrives stretched x2 (as it leaves, in the tide) under the plain E1, and snaps into its sixteenths when the drum machine's E2 comes in; the song's two ends mirror. Value 'from:to' beats
 CALLRESP = os.environ.get("C9T5_CALLRESP", "gap,sing")   # SECTION w3 (1:08-1:41, the Rhodes' E5 under the chorus: flagged static): CALL AND RESPONSE - the Rhodes used to play straight through the singer's chorus lines; now it rests while she sings and answers in the gaps ('gap'), and her chorus lines in A scoop into their first note and fall off their last ('sing': play.scoop=1 play.fall=2, pinned e986de70)
 ASCENT = os.environ.get("C9T5_ASCENT", "hold")   # SECTION w5 (2:15-2:47, the build into the crest: flagged 'little new vs w4'): THE CALLS CLIMB - 'near-er' was called on the same two notes (A G) all the way into the crest. Now each call steps up the scale (A G, then B A, then C B), and with 'hold' the singer holds 'near...' on D5 alone through the pull, over E5's trill, landing on the crest's downbeat; her calls scoop in and fall off
+SUBP = os.environ.get("C9T5_SUBP", "")   # PALETTE: the low end the build lands on was the 808 (an album staple: t3, t5, t7). It moves to a saturated sub ('patch' or 'patch@gaindB'): a sine with a triangle and a little saw driven into it, so the inner disk's floor glows and is heard on small speakers (the hotter disk)
+PERNOTE = os.environ.get("C9T5_PERNOTE", "1")   # PALETTE (per-note vibrato pinned, 58ee9ba3): THE SINGER'S VIBRATO BLOOMS PER NOTE - on her joined lines the vibrato used to count from each phrase's first note and wobble through the quick notes after it; now quick notes stay plain and each held note blooms on its own (synth.lfo.vib.per_note=true), as a singer's does
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -255,7 +257,7 @@ def bass():
             e8.append(note(b0, E4[int(((b0 - TC) % (4 * E4_LEN)) // E4_LEN)][0], 2.0, 1.0))
             e8.sort(key=lambda n: n["at"])
         return [{"name": "bass", "patch": "cz-bass", "gain": "-12dB", "pan": 0.0, "notes": gapped(cz)},
-                {"name": "bass808", "patch": "808", "gain": f"{BASS808}dB", "pan": 0.0, "notes": gapped(e8)}]
+                {"name": "bass808", "patch": SUBP.partition("@")[0] or "808", "gain": f"{SUBP.partition('@')[2] or BASS808}dB", "pan": 0.0, "notes": gapped(e8)}]
     if BASS808:
         ns = [dict(n, len=1.2 if n["vel"] >= 0.8 else 0.9) for n in ns]
         return {"name": "bass", "patch": "808", "gain": f"{BASS808}dB", "pan": 0.0, "notes": gapped(ns)}
@@ -482,6 +484,12 @@ def song():
                 pt = tr["patch"]
                 base = pt if isinstance(pt, str) else pt["extends"]
                 tr["patch"] = {"extends": f"{base} play.scoop=1 play.fall=2"}
+    if PERNOTE:
+        for tr in tracks:
+            pt = tr.get("patch")
+            base = pt if isinstance(pt, str) else (pt or {}).get("extends", "")
+            if str(base).startswith("voice-near"):
+                tr["patch"] = {"extends": f"{base} synth.lfo.vib.per_note=true"}
     if CALLRESP:
         lines = [float(x) for x in VOXA.split(",")] if VOXA else []
         for tr in tracks:
