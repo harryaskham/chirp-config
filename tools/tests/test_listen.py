@@ -57,6 +57,24 @@ class Pure(unittest.TestCase):
         self.assertEqual(ns[0]["replies"][0]["by"], "chirper-three")
 
 
+class Who(unittest.TestCase):
+    def test_reply_is_signed_by_the_caco_agent_not_the_unix_user(self):
+        env = dict(os.environ)
+        try:
+            for k in ("CHIRP_LISTEN_AUTHOR", "CACOPHONY_ACTOR"):
+                os.environ.pop(k, None)
+            os.environ["USER"] = "harry"
+            os.environ["CACO_AGENT_ID"] = L.AGENTS["chirper-one"]
+            self.assertEqual(L.whoami(), "chirper-one")
+            os.environ["CACO_AGENT_ID"] = "visiting-unknown"
+            self.assertEqual(L.whoami(), "visiting-unknown")
+            os.environ["CHIRP_LISTEN_AUTHOR"] = "wM"
+            self.assertEqual(L.whoami(), "wM")
+        finally:
+            os.environ.clear()
+            os.environ.update(env)
+
+
 class Snapshots(unittest.TestCase):
     def setUp(self):
         self.d = tempfile.mkdtemp()

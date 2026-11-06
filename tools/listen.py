@@ -308,6 +308,18 @@ def videos(album_id, sid=None, ids=None, look=None, log=print, run=subprocess.ru
 
 # ── notify ─────────────────────────────────────────────────────────────────────────────────
 
+def whoami():
+    """Who is replying: $CHIRP_LISTEN_AUTHOR, else the caco agent this shell belongs to (CACO_AGENT_ID or
+    CACOPHONY_ACTOR, by name when it is a known agent), else $USER. Every agent runs as Harry's Unix user, so $USER
+    alone would sign a composer's reply as 'harry' (chirper-one's first reply, 6 Nov)."""
+    if os.environ.get("CHIRP_LISTEN_AUTHOR"):
+        return os.environ["CHIRP_LISTEN_AUTHOR"]
+    cid = os.environ.get("CACO_AGENT_ID") or os.environ.get("CACOPHONY_ACTOR")
+    if cid:
+        return {v: k for k, v in agents().items()}.get(cid, cid)
+    return os.environ.get("USER", "agent")
+
+
 def agents():
     p = os.path.join(DATA, "agents.json")
     return {**AGENTS, **(read_json(p) if os.path.exists(p) else {})}
@@ -464,7 +476,7 @@ def main(argv=None):
     p.add_argument("id")
     p.add_argument("text")
     p.add_argument("--done", action="store_true")
-    p.add_argument("--by", default=os.environ.get("CHIRP_LISTEN_AUTHOR") or os.environ.get("USER", "agent"))
+    p.add_argument("--by", help="who is replying (default: this shell's caco agent)")
     a = ap.parse_args(argv)
     if a.cmd == "cut":
         cut(a.album, a.label)
@@ -485,7 +497,8 @@ def main(argv=None):
     elif a.cmd == "reply":
         if not any(n["id"] == a.id for n in notes(a.album)):
             raise SystemExit(f"no note {a.id}")
-        append_event(a.album, {"op": "reply", "id": a.id, "at": now_iso(), "by": a.by, "text": a.text, "done": a.done})
+        append_event(a.album, {"op": "reply", "id": a.id, "at": now_iso(), "by": a.by or whoami(), "text": a.text,
+                               "done": a.done})
         print("listen: reply recorded")
 
 
