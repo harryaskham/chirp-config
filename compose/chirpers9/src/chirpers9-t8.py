@@ -207,6 +207,11 @@ def carve(names, a_bar, z_bar):
 # E3 +2, E5 +1, E7 +7 (re-barred columns vel 96), the jet column +7, snare +10, hats +5, crash +4. And chirper-one's
 # overshoot: the tide's last two cycles are 7+1 then 8+0 - the last Eb a single beat, a final tug before it lets go.
 
+# v7 (ROUND TYPE: palette): THE HOOK's voice - the chip pulse lead (nes-pulse-lead, an album staple, three songs) -
+# becomes a physical FLUTE (unused on the album): after the jet E1 is stated plainly by a breathing, clearly pitched
+# instrument in the register above the choir (D5-C6) rather than inside it. The stretto's E1 stays on the chip pulse
+# (flute there too cost the t7 seam: flow 94-96 -> 84-88 - its breath noise lands right in the seam's measured body).
+
 # ---------------------------------------------------------------- the stretto (before the jet)
 def write_stretto():
     # E4: the lights catch the fall, phased from beat 4 so a turn lands on the jet
@@ -440,7 +445,7 @@ def main():
             tr("e6", "organ", gain="-24dB", pan=-0.3, sends={"hall": "-8dB"}, fx=["lp cutoff=3500"]),
             tr("e7", "brass-synth", gain="-11dB", pan=0.15, sends={"dly": "-12dB", "hall": "-10dB"}),
             {"name": "jet", "patch": "supersaw", "gain": "-8dB", "sends": {"hall": "-6dB"}, "notes": JET_NOTES},
-            tr("hook", "nes-pulse-lead", gain="-4dB", pan=0.1, sends={"dly": "-14dB", "hall": "-12dB"}),   # v5
+            tr("hook", "flute", gain="-2dB", pan=0.1, sends={"dly": "-14dB", "hall": "-12dB"}),   # v5
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=0.8s mix=1 predelay=6ms", "hp cutoff=200"]},
                   "hall": {"fx": ["reverb kind=hall decay=4s mix=1 predelay=24ms", "hp cutoff=180"]},
