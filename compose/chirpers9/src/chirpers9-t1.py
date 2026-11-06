@@ -73,6 +73,7 @@ DEEPOUT = os.environ.get("C9T1_DEEPOUT", "1")   # WHOLE ROUND (with chirper-one,
 EXHALE = os.environ.get("C9T1_EXHALE", "0.25")   # with DEEPOUT: the lock exhales over its last four bars (a further velocity fraction) before the fall begins, so the handover into t2's quieter gather starts lower
 BASSOUT = os.environ.get("C9T1_BASSOUT", "")   # the t1 -> t2 seam: t1's NES-triangle D2 and t2's (the same patch, the same note) cancelled each other in the crossfade (overlap bars 7-8: the sub band -32 dB, the whole mix -23 dB, against -16 for either alone). Now t1's bass hands over: full for overlap bars 1-4, half for 5-8, then t2's bass has the low end alone
 BREATHX = os.environ.get("C9T1_BREATHX", "synth.layers.0.breath.value=0.85 synth.layers.0.breath.mod.0.amount=-0.7 synth.amp.a=600ms synth.amp.r=1200ms")   # PALETTE: the breath becomes breath - the far choir's 'ah' was tone at every level; with wM's recipe its breath rises as it softens, so the 'ah' before the crest is a voice and the faint one in the fall is mostly air (the voice the album grows from, still only a breath). Value: extra patch params appended to BREATHP
+HATG = os.environ.get("C9T1_HATG", "-8")   # WHOLE ROUND: THE PULSE YOU CAN HEAR - t1's time is a process (the shekere ticks a 5-in-16 Euclid in A, quickens to 7-in-16 in the build, then plays E1's own rhythm with a clave on each cycle from the crest), but it sat buried (-29 dB under the mix), so the song's rhythm was a texture nobody hears. Brought up (dB) so the process is heard all the way through, and it fills t1's thin top (7.9 kHz was the worst band)
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -344,7 +345,7 @@ def hats():
             ns.append(note(t, "cl", 0.25, 0.5))
             t += E1_CYC
         ns.sort(key=lambda n: (n["at"], n["pitch"]))
-        return {"name": "hats", "patch": "afro-perc", "gain": "-17dB", "pan": 0.35, "sends": {"space": "-10dB"}, "notes": ns}
+        return {"name": "hats", "patch": "afro-perc", "gain": f"{HATG or -17}dB", "pan": 0.35, "sends": {"space": "-10dB"}, "notes": ns}
     return {"name": "hats", "patch": "nes-noise-hat", "gain": "-19dB", "pan": 0.35, "sends": {"space": "-12dB"}, "notes": ns}
 
 
