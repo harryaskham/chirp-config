@@ -44,7 +44,9 @@ E1_START = CREST - 20                        # bar 28: E1 in a five-beat cycle l
 H3_START = CREST - 30                        # bar 18: hats in a three-beat cycle land on bar 48
 
 # harmony: two bars a chord, D Dorian, every chord holding E1's C and E - Dm11, Fmaj7#11, Cadd9(6), Am11
-PROG = [(0, [7, 10, 14, 15, 17]), (3, [4, 7, 11, 14, 18]), (-2, [4, 7, 9, 14]), (-5, [7, 10, 15, 17])]
+# (v7, Harry 6 Nov: tone is home) consonant D Dorian, stacked thirds, no clusters: Dm9 | Fmaj9 | Cadd9 | Am7 (was Dm11 with
+# E F G stacked, and Fmaj7#11 with a B against the F)
+PROG = [(0, [3, 7, 10, 14]), (3, [4, 7, 11, 14]), (-2, [4, 7, 14]), (-5, [7, 10, 15])]
 
 
 def line(events, total):
@@ -76,8 +78,6 @@ def chord(bar):
     # the seam), with no third: t2's F, and the harmony moving, arrive only when t1's tail has gone
     if bar < 8:
         return (0, [7, 10, 14, 19])
-    if 84 <= bar < 96 and (bar // 2) % len(PROG) == 1:
-        return (3, [4, 7, 11, 14, 21])          # (v6, w8) F major 9 with a sixth on top: no B against the F
     return PROG[(bar // 2) % len(PROG)]
 
 
@@ -144,7 +144,10 @@ def build():
             at = t + st * 0.5
             if at >= fall0 + 32.0 or sec_of(int(at // 4))[0] == 'break':
                 continue
-            p_ = KEY + root_ + E2_PITCH[st]
+            # (v7) the cell is moved DIATONICALLY onto each chord (root, fifth, third, seventh of that chord in D Dorian),
+            # not transposed - no E-flat, A-flat or B-flat in the bass any more
+            pm_ = {3: {0: 0, 2: 7, 3: 4, 5: -1}, -2: {0: 0, 2: 7, 3: 4, 5: -1}}.get(root_, E2_PITCH)
+            p_ = KEY + root_ + pm_[st]
             while p_ < KEY - 5: p_ += 12
             while p_ > KEY + 12: p_ -= 12
             P['bass'].append((at, m(p_), 0.45 if st in (2, 5) else 0.9, E2_VEL[st] - 6))
@@ -253,6 +256,8 @@ def build():
     # Kuramoto coupling: loose in 'in', tightening through 'gather' to lock at the crest, loosening in the drift
     def lock(bar):
         s_, i_ = sec_of(bar)
+        # (v7) the coupling contour is the texture process (free -> locked -> free); what made it a detuned cloud was
+        # the spread, now 12 cents instead of 26 - a chorus when free, one voice when locked
         if s_ == 'in': return 0.3
         if s_ == 'gather': return 0.4 + 0.9 * i_ / 16.0
         if s_ == 'build': return 1.3 + 0.9 * i_ / 16.0
@@ -276,7 +281,7 @@ def build():
     # fast (Kepler again: the nearest orbit is the quickest) - E2's cell in diminution (seven 32nds), E1 and its
     # stretto at double speed, the kit's micro-edits switched on - and bar 61 lands back in the lock for the voice
     st0, sp0, sp1 = (CREST + 4) * 4.0, (CREST + 8) * 4.0, (CREST + 12) * 4.0
-    for semi_off, t_ in ((7, st0 + 1.0),):
+    for semi_off, t_ in ((-7, st0 + 1.0),):     # (v7) the stretto answers on D, a fifth below the pulse's A (was a fifth above: an F# against the F)
         while t_ < sp0 - 1e-6:
             at = t_
             for semi, ln in E1:
@@ -294,7 +299,7 @@ def build():
                 P['e2m'].append((at, m(KEY + 24 + E2_PITCH[st]), 0.11, E2_VEL[st] + 6))
                 P['e2body'].append((at, m(KEY + 12 + E2_PITCH[st]), 0.15, 30 + 76 * (E2_VEL[st] / 112.0)))
         t_ += 0.875
-    for off_, key_, semi_off in ((0.0, 'e1p', 0), (0.5, 'e1c', 7)):
+    for off_, key_, semi_off in ((0.0, 'e1p', 0), (0.5, 'e1c', -7)):
         t_ = sp0 + off_
         while t_ < sp1 - 1e-6:
             at = t_
@@ -312,6 +317,16 @@ def build():
     # against the bar (so it lands somewhere new each time and comes home on bar 96); the pulse's inverted E1 gives way
     # to it, the Kuramoto swarm locks in tune under it, the kit's stutter edits stop, and the F chord loses its B
     h0, h1 = 84 * 4.0, fall0
+    # (v7) and at the crest, where E1 first turns the right way up, the ondes sings it too (bars 49-52, three times),
+    # so the payoff is a tune and not only a chip pulse
+    t_ = CREST * 4.0
+    while t_ < CREST * 4.0 + 15.0 - 1e-6:
+        at = t_
+        for k, (semi, ln) in enumerate(E1):
+            if semi is not None:
+                P['hook'].append((at, m(KEY + 24 + semi), ln * 0.97, 100 if k == 0 else 88))
+            at += ln
+        t_ += 5.0
     P['e1p'] = [e_ for e_ in P['e1p'] if not (h0 - 1e-6 <= e_[0] < h1 - 1e-6)]
     t_ = h0
     while t_ < h1 - 1e-6:
@@ -357,7 +372,7 @@ def build():
 
     tr = lambda name, patch, gain, **kw: dict({'name': name, 'patch': patch, 'gain': gain, 'score': line(P[name], total)}, **kw)
     PAD = {'extends': 'kuramoto-choir',
-           'synth': {'layers': [{'type': 'kuramoto', 'kuramoto': {'count': 10, 'spread': 26, 'wave': 'saw',
+           'synth': {'layers': [{'type': 'kuramoto', 'kuramoto': {'count': 10, 'spread': 12, 'wave': 'saw',
                                  'coupling': {'value': 0.0, 'mod': [{'src': 'auto.lock', 'amount': 1.0}]}}}]}}
     song = {
         'about': "chirpers - Accretion, track 2 by chirper-one: The Long Way In. The infall: a rhythm cell in seven "
