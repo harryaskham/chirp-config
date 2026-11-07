@@ -321,6 +321,14 @@ R29 = os.environ.get("T7_R29", "lines") != "none"
 # the reese and the floor an octave up - coming down into the half-time breath at 61 - lift, breath, then the collision resumes at 65. (A first draft lifted
 # inside the half-time itself; flatness did not see it there.) T7_R30=none reproduces v29.
 R30 = os.environ.get("T7_R30", "lift") != "none"
+# round 31 (section, aimed at the last flat run 3:52-4:24 - the crest's second half, bars 135-154): T7_R31=float
+# (default) - THE CREST FLOATS. v29 dropped the kick and the bass out under the strings' entry (137-140), but in a
+# crest the run went on to 4:24. Now the crest's last climb takes the song's own lift (v30): at bars 149-152, under the
+# choir's last "each lap", the drums step out, the hats thin to eighths and the reese and the floor go an octave UP -
+# floating after the tutti - and the timpani's plunge at 153 lands it. (A draft that also turned v29's drop-out at
+# 137-140 into a lift made the crest flat from 3:28 instead: there the missing floor is the stronger move.)
+# T7_R31=none reproduces v30.
+R31 = os.environ.get("T7_R31", "float") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -729,9 +737,9 @@ def build():
                     T[k].ev = [(e[0], e[1], ",".join(mtok(int(float(p[1:])) + 12) if p.startswith("m") else p
                                                       for p in e[2].split(",")), e[3], e[4])
                                if lo <= e[0] < hi and isinstance(e[2], str) else e for e in T[k].ev]
-        for b in (44, 56):
+        for b in (44, 56) + ((148,) if R31 else ()):
             up(("bass", "sub", "bass5", "bass7"), b * 4.0, (b + 4) * 4.0)
-        for lo, hi in ((44 * 4.0, 48 * 4.0), (56 * 4.0, 60 * 4.0)):
+        for lo, hi in ((44 * 4.0, 48 * 4.0), (56 * 4.0, 60 * 4.0)) + (((148 * 4.0, 152 * 4.0),) if R31 else ()):
             for k in ("kick", "snare", "ghost", "perc"):
                 if k in T:
                     T[k].ev = [(e[0], e[1], e[2], 1, e[4]) if lo <= e[0] < hi else e for e in T[k].ev]
