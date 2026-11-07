@@ -745,6 +745,23 @@ def reed_answers():
         part("clar").add(s, max(ln, min(nxt - s, ln + 1.5)), h, min(96, v + 2))
 
 
+# v36 (ROUND TYPE: whole song): THE ARC. Measured (8 s loudness over the whole song): t4's shape never showed in its
+# level - from 0:40 to 4:16 nearly everything sat within 0.4-2 dB of the peak, the crest no louder than A, and the
+# RELIEF (4:08) the loudest moment of all; the master compressor and the loudness target ironed the arc flat. Now one
+# proportional gain lane across every track shapes it - each section keeps its colour (the scorer compares shape, not
+# level: t8 v33's lesson) - A and B sit back, the rise climbs into the crest, the crest is the top, and the relief
+# settles back as relief should, the fall following it down. Lane values are about twice what is heard (the master
+# compressor gives back about half).
+ARC = [(1, -3.0), (65, -3.0), (81, 0.0), (101, 0.0), (105, -6.0), (BARS + 1, -6.0)]   # the lens with A and B
+
+
+def arc(song):
+    pts = [[f"{b0(bar):g}b", db] for bar, db in ARC]
+    for tr_ in song["tracks"]:
+        tr_["fx"] = list(tr_.get("fx") or []) + ["gain gain=0dB+auto.ar*1"]
+        tr_["auto"] = dict(tr_.get("auto") or {}, ar={"points": pts})
+
+
 def crest_kit():
     a, z = b0(CREST_FULL[0]), b0(CREST_FULL[1])
     for n in ("kick", "snare"):
@@ -955,6 +972,7 @@ def main():
                           {"type": "compressor", "threshold": "-14dB", "ratio": 3, "attack": "8ms",
                            "release": "120ms", "makeup": "0dB"}]},
     }
+    arc(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} crest {CREST} voice notes {len(voice)}")
