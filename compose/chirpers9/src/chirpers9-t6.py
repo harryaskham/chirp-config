@@ -688,12 +688,39 @@ def build():
                 rr_ = tide_root(at_)
                 P['root'].append((at_, m(KEY + rr_ + iv_), 0.22 if st_ != 0 else 0.4, v_))
         t_ += 1.75
+    # (v40, whole song: eco's as-heard reading, 11:01 - t6's one remaining run is 2:48-3:36, the cross's second half
+    # into the surge, one dense floor for 48 s; 'cut or swap between phrases rather than layering') THE SURGE CHANGES
+    # GEAR: its first eight bars are now the LOW GEAR - the drums in half-time (a kick on 1, the snare on 3, a kick
+    # pushing the and of 3, the hats in eighths) and the bass holding each root a half-bar at a time, long, under the
+    # three-speed canon - and at bar 105, with the fill, the HIGH GEAR: the cell, the sixteenths and the bass driving
+    # root-and-octave eighths, under the converging canon and the choir. The same sixteen bars, swapped halfway
     t_ = SEC['surge'] * 4.0
+    hg_ = (SEC['surge'] + 8) * 4.0
+    while t_ < hg_ - 1e-6:
+        rr_ = tide_root(t_)
+        P['root'].append((t_, m(KEY + rr_), 1.9, 92))
+        t_ += 2.0
     while t_ < su1_ - 1e-6:
         rr_ = tide_root(t_)
         k_ = int(round((t_ - SEC['surge'] * 4.0) * 2))
         P['root'].append((t_, m(KEY + rr_ + (12 if k_ % 2 else 0)), 0.4, 96 if k_ % 4 == 0 else 78))
         t_ += 0.5
+    P['kit'] = [e_ for e_ in P['kit'] if not (SEC['surge'] * 4.0 - 1e-6 <= e_[0] < hg_ - 1e-6)]
+    for b_ in range(SEC['surge'], SEC['surge'] + 8):
+        for off_, pc_, v_ in ((0.0, 'k', 120), (2.0, 's', 114), (2.75, 'k', 96), (3.75, 'rs', 62)):
+            P['kit'].append((b_ * 4.0 + off_, pc_, 0.25, v_))
+    P['hats'] = [e_ for e_ in P['hats'] if not (SEC['surge'] * 4.0 - 1e-6 <= e_[0] < hg_ - 1e-6 and abs(e_[0] * 2 - round(e_[0] * 2)) > 1e-6)]
+    P['kit'].sort(key=lambda e_: e_[0])
+    # and the low gear SWAPS its colour too: the tide's harmonium and the lights step out for those eight bars, so the
+    # three-speed canon (the trombone, the whistle, the marimba) and the kora are heard bare over the half-time floor;
+    # the harmonium swells back in with the high gear. Before it, the cross's second half (bars 89-96, B-flat and C)
+    # opens its hats - the off-beats open, the brightest the kit gets - so the cross ends bright and the surge
+    # begins dark and bare
+    P['tide'] = [e_ for e_ in P['tide'] if not (SEC['surge'] * 4.0 - 1e-6 <= e_[0] < hg_ - 1e-6)]
+    P['tide'] = [(e_[0], e_[1], min(e_[2], SEC['surge'] * 4.0 - e_[0]), *e_[3:]) if e_[0] < SEC['surge'] * 4.0 < e_[0] + e_[2] else e_ for e_ in P['tide']]
+    P['lights'] = [e_ for e_ in P['lights'] if not (SEC['surge'] * 4.0 - 1e-6 <= e_[0] < hg_ - 1e-6)]
+    cx_ = (SEC['cross'] + 8) * 4.0
+    P['hats'] = [((e_[0], 'oh') + tuple(e_[2:])) if (cx_ - 1e-6 <= e_[0] < SEC['surge'] * 4.0 - 1e-6 and abs((e_[0] % 1.0) - 0.5) < 1e-6 and e_[1] == 'h') else e_ for e_ in P['hats']]
     P['root'].sort(key=lambda e_: e_[0])
 
     # (v30, whole song) THE DRUMMER BREATHES AT THE PHRASE ENDS: Harry, 6 Nov 23:55 ('subtle variation so it doesnt get
