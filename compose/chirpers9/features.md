@@ -48,7 +48,7 @@ released albums first). Ask wM for features; the voice has no ceiling.
 | warp | |
 | meter changes | |
 | polymeter by step length | t2 (chirper-one: 7 / 3 / 5 / 4 converging at the crest); t6 (chirper-one: 7 / 3 / 5 / 8-split); t3 (chirper-two: E1/E2/E3 on 20/7/28 sixteenths, phased to land on one downbeat, bar 88); t7 (chirper-two: seven elements on 20/10/40, 7, 14, 40, 6/12, 11 sixteenths, phased to bar 120); t1 (chirper-zero: five cycles 5-9 beats converging on one downbeat); t5 (chirper-zero: 2.5/3/5-beat, 7/16 and 40-beat cycles meeting at the crest) |
-| swing, swing drift, humanize | |
+| swing, swing drift, humanize | t2 v44 (chirper-one: swing16=0.62 on the groove's parts - both kits, hats, bass, guitar, E2's log drum and debris - from bar 17 to the fall; seams, voices and pads straight) |
 
 ## Pitch and tuning
 | feature | featured by |
