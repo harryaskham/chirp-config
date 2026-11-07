@@ -468,6 +468,13 @@ R47 = os.environ.get("T7_R47", "clav") != "none"
 # lane: the snare +7 dB (a backbeat you hear), the jet +9 (its fragments spark: it tries to fire, and fires whole at
 # the crest), the stabs +5. Levels only; the notes were always there. T7_R48=none reproduces v47.
 R48 = os.environ.get("T7_R48", "collide") != "none"
+# round 49 (section, w5 = bars 65-80, "little new vs w4"; the collision's second half): T7_R49=stop (default) - THE
+# COLLISION STOPS DEAD. For 32 bars the collision ran one groove and no event broke it. Now in its middle, bars
+# 69-70, the band plays STOP-TIME: everything hits together on the downbeat and on the "and" of two - kick, reese,
+# floor, tide, the byte, E4's off-beat chords, E1 and E5 where they land there - each cut to a stab, and between the
+# hits silence: no hats, no ghosts, no shaker, nothing ringing; then bar 71 slams the groove back in. Two impacts,
+# twice: a collision you hear. No note is added or moved; the others let go. T7_R49=none reproduces v48.
+R49 = os.environ.get("T7_R49", "stop") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -939,6 +946,20 @@ def build():
                     T[k].ev = [(e[0], e[1], e[2], 1, e[4]) if lo <= e[0] < hi else
                                (e[0], max(0.03, round(lo - e[0] - 0.05, 4)), e[2], e[3], e[4]) if e[0] < lo < e[0] + e[1]
                                else e for e in T[k].ev]
+    if R49:                                                 # w5: the collision stops dead (bars 69-70, stop-time)
+        lo, hi, keep = 68 * 4.0, 70 * 4.0, (272.0, 273.5, 276.0, 277.5)
+        sil = ("ghost", "shaker", "perc", "ghostw", "hatsw")
+
+        def stop(k, e):
+            if lo <= e[0] < hi:
+                if k not in sil and any(abs(e[0] - p) < 1e-3 for p in keep):
+                    return (e[0], min(e[1], 0.4), e[2], e[3], e[4])
+                return (e[0], e[1], e[2], 1, e[4])
+            if e[0] < lo < e[0] + e[1] and e[3] > 1:
+                return (e[0], max(0.03, round(lo - e[0] - 0.05, 4)), e[2], e[3], e[4])
+            return e
+        for k in T:
+            T[k].ev = [stop(k, e) for e in T[k].ev]
     return T
 
 
