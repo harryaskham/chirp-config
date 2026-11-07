@@ -405,6 +405,14 @@ R49 = os.environ.get("T3_R49", "warm") != "none"
 # resolves as the next note comes - and the last "round" lands alone, two bars before t4 arrives. The voice accretes
 # again, in the words' own shape. T3_R50=none reproduces v49.
 R50 = os.environ.get("T3_R50", "round") != "none"
+# round 51 (section, w5 = bars 49-60, the eyewall in sevens; focused least recently): T3_R51=pan (default) - THE HOOK
+# IN SEVENS. The eyewall's groove counts sevens (E2's cell, 7 sixteenths a cycle) and E1 - eight notes long, 3.5
+# beats - is exactly two of its cycles, yet there the hook was buried (ring -28 dB, the glass's stretched E1 -14.5,
+# farfisa -22). Now a steel pan (the album's first: bright, singing, its octave blooming after the strike) plays E1
+# at its own speed, an octave over the counting voices, locked to the sevens: E1, then E1 backwards (E G C A D, home
+# to D), then two cycles' rest, four times - forward and back, a playground tune riding the storm's cross-rhythm,
+# into the lift at 57. T3_R51=none reproduces v50.
+R51 = os.environ.get("T3_R51", "pan") != "none"
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -1419,6 +1427,17 @@ def main():
             tracks.append({"name": "bassr2", "patch": "a3-round", "gain": f"{g_b:g}dB", "score": T["_round2"].score()})
     if R40 and "_partc" in T:                               # the storm crashes back at bar 105
         tracks.append({"name": "partc", "patch": "tight-kit", "gain": "-4dB", "pan": 0.15, "score": T["_partc"].score()})
+    if R51:                                                 # w5: the hook in sevens, on a steel pan (bars 49-60)
+        stl = Track("steel")
+        rhythm = [(0.0, 0.5), (0.5, 0.75), (1.25, 0.25), (1.5, 1.0), (2.5, 1.0)]
+        fwd, back = (74, 81, 84, 79, 76), (76, 79, 84, 81, 74)
+        for k in range(4):
+            for j, line in enumerate((fwd, back)):
+                at0 = 192.0 + 14.0 * k + 3.5 * j
+                for (o, ln), m in zip(rhythm, line):
+                    stl.add(at0 + o, ln - 0.05, mtok(m), 96 if o == 0 else 86)
+        tracks.append({"name": "steel", "patch": "steel-pan", "gain": "0dB", "pan": 0.3,
+                       "sends": {"space": "-10dB"}, "score": stl.score()})
     if R45:                                                 # w9: a melodica answers the singers with E1
         mel = Track("melod")
         e1 = [(0.0, 62, 0.5), (0.5, 69, 0.75), (1.25, 72, 0.25), (1.5, 67, 1.0), (2.5, 64, 1.0)]
