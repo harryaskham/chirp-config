@@ -95,6 +95,7 @@ HUMSIGH = os.environ.get("C9T1_HUMSIGH", "sigh,reprise")   # WHOLE (wM's hum): T
 KICKP = os.environ.get("C9T1_KICKP", "bodhran:b@-10")   # PALETTE: the lock's pulse (every two beats from the crest) leaves the 808 (the inner disk's drum: t5 and t6 are built on 808s and 909s) for a hand drum ('patch:piece[@gaindB]'): 'bodhran:b' (the frame drum's deep boom with its pitch drop) or 'cajon:cb' (the box's centre hit): the outer disk's pulse played by hand
 BREATHDROP = os.environ.get("C9T1_BREATHDROP", "floor,seeds")   # SECTION w4 (1:48-2:22, A's last phrase into the build: 'little new vs w3'): THE FLOOR DROPS FOR THE BREATH - the two bars before the build (184-192) lose the shaker and the walking bass ('floor'), and with 'seeds' the five scattered voices too, so the choir's mm-haa before the build is heard over the pad and the cello alone; everything comes back on the build's downbeat. t5 makes the same move before its build, where its singer quotes this breath (t5 v36)
 MIRRORTURN = os.environ.get("C9T1_MIRRORTURN", "turns")   # SECTION w7 (3:27-3:59, the lock before the exhale: flagged static): THE MIRROR ANSWERS - after the crest the glock plays E1 an octave up and the ks-harp plays it upside down, together, every cycle; in the lock's last eight bars (288-320) ('turns') they take turns, a statement each: the glock, then the harp's inversion answering, then the glock (a half-cycle 'hocket' was tried: the harp already sits three beats behind, so it collided)
+SPARKLE = os.environ.get("C9T1_SPARKLE", "5")   # WHOLE (the spectrum's worst band was 7.9 kHz, -8.5: t1 was dull up top): THE DUST CATCHES THE LIGHT - a high shelf (+dB above 6 kHz) on the five scattered voices, the glock cell and the shaker: the seed's grains glint (v40: 5; tried with it, rejected: the ks-harp's inversion up an octave, around D4 - spectrum -1.4, the low harp is load-bearing)
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -511,6 +512,10 @@ def song():
         ns = [note(a0 + c * E1_CYC + o, f"m{mm}", ln, 0.5 if c == 0 else 0.45)
               for c in range(2) for o, ln, mm in zip(E1_OFF, E1_LEN, mids)]
         tracks.append({"name": "answer", "patch": patch, "gain": gain, "pan": pan, "sends": {"space": "-9dB"}, "notes": ns})
+    if SPARKLE:
+        for tr in tracks:
+            if tr["name"] in ("seed-d", "seed-a", "seed-c", "seed-g", "seed-e", "cell", "hats"):
+                tr["fx"] = list(tr.get("fx", [])) + [f"highshelf cutoff=6000 gain={SPARKLE}dB"]
     if MIRRORTURN:
         m0, m1 = 288, ST["outro"]
         def statements(tr, first):
