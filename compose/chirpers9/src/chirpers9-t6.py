@@ -819,6 +819,20 @@ def build():
                                      'amount': {'value': 0, 'mod': [{'src': 'auto.strain', 'amount': 1.0}]}}}]}}
     tr = lambda name, patch, gain, **kw: dict({'name': name, 'patch': patch, 'gain': gain, 'score': line(P[name], total)}, **kw)
     P['glass'] = [e_ for e_ in P['lights'] if SEC['crest'] * 4.0 - 1e-6 <= e_[0] < SEC['cross'] * 4.0 - 1e-6]
+    # (v47, section w3: the tide 'little new vs w2' - the pull's wave ran straight on into it, the same drummer on
+    # the same rims) THE TIDE ON HANDS: while the tide is in - the song's lowest, quietest water - the drummer puts the
+    # sticks down and plays the E2 cell on a CAJON (the library's cajon, which no Accretion track uses): the rim hits
+    # become slaps on the box's edge, the on-beat ones its deep centre, the ghosts finger ghosts, the snares palmas -
+    # the same rhythm, hand-played, wood and skin; the kit's own sixteenth fill at bar 44 grabs the sticks back and
+    # the crash brings the kit in for the tide's last four bars and the squeeze
+    cj0_, cj1_ = SEC['tide'] * 4.0, (SEC['tide'] + 12) * 4.0 - 2.0
+    CJ = {'rs': 'cs', 'g': 'cg', 's': 'pa', 'k': 'cb'}
+    P['cajon'] = []
+    for e_ in P['kit']:
+        if cj0_ - 1e-6 <= e_[0] < cj1_ - 1e-6 and e_[1] in CJ:
+            pc_ = 'cb' if (e_[1] == 'rs' and abs(e_[0] - round(e_[0])) < 1e-6) else CJ[e_[1]]
+            P['cajon'].append((e_[0], pc_) + tuple(e_[2:]))
+    P['kit'] = [e_ for e_ in P['kit'] if not (cj0_ - 1e-6 <= e_[0] < cj1_ - 1e-6 and e_[1] in CJ)]
     P['lights'] = [e_ for e_ in P['lights'] if not (SEC['crest'] * 4.0 - 1e-6 <= e_[0] < SEC['cross'] * 4.0 - 1e-6)]
     song = {
         'about': "chirpers - Accretion, track 6 by chirper-one: Spring Tide. Tidal forces: E1 in two layers, one squeezed "
@@ -868,6 +882,7 @@ def build():
             # murmurs under the hook instead of shouting over it; the track keeps its name for the lanes that read it
             tr('acid', 'moog-seq', '-12dB', fx=['hp cutoff=50', 'lp cutoff=3000', {'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}], sends={'echo': '-20dB'}),
             tr('kit', 'prog-kit', '-6dB', sends={'hall': '-20dB'}),
+            tr('cajon', 'cajon', '-12dB', pan=0.1, sends={'hall': '-16dB'}),
             tr('hats', 'prog-kit', '-7dB', pan=0.2, fx=[{'type': 'eq', 'bands': ['highshelf cutoff=8000 gain=5dB']}]),
             # (v34, palette: the cello was an album staple - t1, t5 and t6) THE FAR SIDE IS A TROMBONE: E1 stretched on
             # the far side is now played by the library's trombone (warm, round, mono and legato, the slide gliding
