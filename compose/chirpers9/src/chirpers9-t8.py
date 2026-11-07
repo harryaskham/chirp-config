@@ -35,6 +35,13 @@ BREAK = (121, 128)            # the breakdown inside the jet: the lens returns (
 # 127-128 with a riser climbing over it - and the jet fires again at 129 on an impact, the crash and the hook.
 # Complexity in time, the tone left at home.
 DILATED = 116
+# v42 (ROUND TYPE: whole song): TIME FALLS IN. t8's time already told the far half of the story - dilating through
+# the break and slowing to 90 as the horizon redshifts. Now it tells the near half: an accretion disk spins faster as
+# it falls inward, so after t7's overlap (held flat at 150) the stretto ACCELERATES with its tightening orbits, 150 to
+# 158 by the vacuum; in the vacuum bar time FREEZES at the threshold (a ritardando to 120 across bar 96 - the riser
+# stretched, the choir's breath held); and the jet fires at the speed the fall has gained (158, and the slingshot
+# after the break returns to it), before the horizon slows it all to 90.
+INFALL, VAC_BPM = 158, 120
 
 
 def in_break(bar):
@@ -916,12 +923,15 @@ def main():
     lead += far_choir()                                           # v38: the answer forms far away
     solo = age_her(sorted(opening_voice() + sung_asks() + horizon_line(), key=lambda d: d["at"]))   # v36: she asks                      # v12: the last line, one voice alone (v21: and the first)
     lead += [{"at": b0(HORIZON + 16), "len": b0(BARS + 1) - b0(HORIZON + 16) - 4, "pitch": "D4", "vel": 0.6}]   # the held 'ah'
-    tempo = [{"at": "0b", "bpm": SEAM_IN},
-             {"at": f"{b0(BREAK[0]):g}b", "bpm": SEAM_IN},                        # v11: time dilation in the
+    tempo = [{"at": "0b", "bpm": SEAM_IN}, {"at": f"{b0(17):g}b", "bpm": SEAM_IN},    # v42: t7's overlap held flat
+             {"at": f"{b0(VACUUM):g}b", "bpm": INFALL, "ramp": True},             # v42: the orbits quicken inward
+             {"at": f"{b0(JET) - 0.25:g}b", "bpm": VAC_BPM, "ramp": True},        # v42: time freezes at the threshold
+             {"at": f"{b0(JET):g}b", "bpm": INFALL},                              # v42: the jet fires at that speed
+             {"at": f"{b0(BREAK[0]):g}b", "bpm": INFALL},                         # v11: time dilation in the
              {"at": f"{b0(BREAK[0] + 4):g}b", "bpm": DILATED, "ramp": True},      # break, then the slingshot
              {"at": f"{b0(BREAK[1] - 1):g}b", "bpm": DILATED},
-             {"at": f"{b0(BREAK[1] + 1):g}b", "bpm": SEAM_IN, "ramp": True},
-             {"at": f"{b0(HORIZON):g}b", "bpm": SEAM_IN},
+             {"at": f"{b0(BREAK[1] + 1):g}b", "bpm": INFALL, "ramp": True},
+             {"at": f"{b0(HORIZON):g}b", "bpm": INFALL},
              {"at": f"{b0(BARS + 1):g}b", "bpm": 90, "ramp": True}]
     cl = [["0b", 0.0], [f"{b0(HORIZON):g}b", 0.0], [f"{b0(BARS + 1):g}b", 1.0]]
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
