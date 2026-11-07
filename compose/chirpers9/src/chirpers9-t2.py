@@ -593,6 +593,8 @@ def build():
             at += ln
         t_ += 5.0
     P['e1c'] = [(a_, p_, d_, v_ - 14 if h0 <= a_ < h1 else v_) for a_, p_, d_, v_ in P['e1c']]
+    P['e1v'] = [e_ for e_ in P['e1c'] if e_[0] < fall0 - 1e-6]
+    P['e1c'] = [e_ for e_ in P['e1c'] if e_[0] >= fall0 - 1e-6]
 
     # ---- (v4) THE SPIRAL: the infall as a place. E2's debris orbits the listener - wide and slow at first, then
     # closer and faster (Kepler: the nearer, the quicker round), until at the crest it sits dead centre, locked; it
@@ -826,6 +828,13 @@ def build():
             tr('gtrarp', 'cutting-guitar', '-6dB', pan=0.3, sends={'echo': '-8dB', 'hall': '-12dB'}),
             tr('gtr', 'cutting-guitar', '-5dB', pan=-0.35, sends={'hall': '-18dB'}),
             tr('e1p', 'wurli', '-6dB', pan=0.2, sends={'echo': '-14dB', 'hall': '-14dB'}),
+            # (v39, palette: Risset's bell played E1 twice over - the in-seam's lensed tune and the drift's retrograde
+            # canon - one colour for two jobs) THE MEMORY ON VIBES: from the break to the end of the drift the
+            # retrograde canon of E1 (augmented x2, against the wurli) is now a VIBRAPHONE - chirper-two's modal-vibes,
+            # soft mallet, long ring, no Accretion track using it - warm wood-and-metal under the far choir and the
+            # floating guitar instead of a second set of bells; Risset's bell keeps the in-seam (t1's tune arriving)
+            # and the fall (its octave-up bells into t3's head, as agreed at the seam)
+            tr('e1v', 'modal-vibes', '-16dB', pan=-0.35, sends={'hall': '-10dB', 'echo': '-20dB'}),
             tr('e1c', 'risset-bell', '-14dB', pan=-0.35, sends={'hall': '-8dB'}),
             # (v27) the whisper's track is now the far choir's echo, 'farchoir' (below)
             {'name': 'farchoir', 'patch': dict(SU['tracks'][0]['patch'], extends='voice-backing synth.layers.0.together=true synth.layers.0.breath.value=0.55 synth.lfo.vib.per_note=true',
