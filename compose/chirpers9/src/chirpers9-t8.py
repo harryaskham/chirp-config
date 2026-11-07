@@ -314,6 +314,30 @@ def age_her(notes):
     return notes
 
 
+# v43 (ROUND TYPE: whole song - wM's closed-mouth HUM, pinned e3da830a): THE MOUTH OPENS. One arc of the mouth
+# across the song. Her first sound (the opening line under t7's tail) is HUMMED, mouth shut; her six questions
+# through the stretto open a step each time (hum 1.0, 0.8, 0.6, 0.4, 0.2, 0 - the question finding its voice), the
+# last one open just as the choir sings the answer at the jet; the jet's choir sings wide open; and at the horizon
+# the held 'ah' CLOSES back into a hum as it redshifts away (from the sink, 161, to its end) - the light closing,
+# with the pitch falling, the tempo slowing and her voice grown old.
+ASK_HUM_LIFT = 0.5
+
+
+def closing_choir(patch):
+    patch["synth"]["layers"][0].update({"hum": "auto.hm", "hum_at": "m"})
+    return patch
+
+
+def closing_lane():
+    return [["0b", 0.0], [f"{b0(SINK):g}b", 0.0], [f"{b0(BARS + 1) - 4:g}b", 1.0]]
+
+
+def hummed(notes):
+    for n in notes:
+        n["expr"] = dict(n.get("expr") or {}, hum=1.0)
+    return notes
+
+
 def mute_until_the_jet():
     P["bass"].ev = [(s, ln, h + "^pm" if s < b0(JET) - 1e-6 and "^" not in h else h, v) for s, ln, h, v in P["bass"].ev]
 
@@ -476,9 +500,11 @@ def sung_asks():
     for i, bar in enumerate(ASKS):
         k = i / (len(ASKS) - 1)
         reg, v = round(0.3 + 0.4 * k, 3), round(0.34 + 0.16 * k, 3)       # placed where the flute sat
-        out.append({"at": float(b0(bar)), "len": 1.5, "ph": "UW1", "pitch": "E5", "vel": v, "expr": {"reg": reg}})
+        hum = round(1.0 - k, 3)                                            # v43: closed at first, open by the jet
+        v = round(min(1.0, v + ASK_HUM_LIFT * hum), 3)                    # a high closed hum loses ~15 dB (measured)
+        out.append({"at": float(b0(bar)), "len": 1.5, "ph": "UW1", "pitch": "E5", "vel": v, "expr": {"reg": reg, "hum": hum}})
         out.append({"at": float(b0(bar) + 1.5), "len": 2.25 if bar != VACUUM else 2.4, "ph": "UW1", "pitch": "F5",
-                    "vel": round(v + 0.03, 3), "expr": {"reg": reg}})
+                    "vel": round(v + 0.03, 3), "expr": {"reg": reg, "hum": hum}})
     return out
 
 
@@ -881,6 +907,7 @@ SOLO8["about"] = "t8's last voice: the choir's lead alone, even vowels - the hor
 SOLO8["synth"]["layers"][0]["even"] = 1.0
 SOLO8["synth"]["layers"][0]["register"] = "expr.reg"                 # v30: chest -> head voice across the last line
 SOLO8["synth"]["layers"][0]["age"] = "expr.age"                      # v40: she grows old across the song (age_her)
+SOLO8["synth"]["layers"][0].update({"hum": "expr.hum", "hum_at": "m"})   # v43: THE MOUTH OPENS (see below)
 SOLO8["synth"]["lfo"]["vib"].update({"rate": "5.0hz", "delay": "280ms"})
 SOLO8["synth"]["pitch"]["mod"][-1]["amount"] = 0.2
 # v23 (ROUND TYPE: whole song): THE VOICES LET GO. t8's voices span the song - the solo voice opens it (her question,
@@ -921,7 +948,7 @@ def main():
     full_throttle()
     lead, fifth, low = choir()
     lead += far_choir()                                           # v38: the answer forms far away
-    solo = age_her(sorted(opening_voice() + sung_asks() + horizon_line(), key=lambda d: d["at"]))   # v36: she asks                      # v12: the last line, one voice alone (v21: and the first)
+    solo = age_her(sorted(hummed(opening_voice()) + sung_asks() + horizon_line(), key=lambda d: d["at"]))   # v36: she asks                      # v12: the last line, one voice alone (v21: and the first)
     lead += [{"at": b0(HORIZON + 16), "len": b0(BARS + 1) - b0(HORIZON + 16) - 4, "pitch": "D4", "vel": 0.6}]   # the held 'ah'
     tempo = [{"at": "0b", "bpm": SEAM_IN}, {"at": f"{b0(17):g}b", "bpm": SEAM_IN},    # v42: t7's overlap held flat
              {"at": f"{b0(VACUUM):g}b", "bpm": INFALL, "ramp": True},             # v42: the orbits quicken inward
@@ -966,8 +993,8 @@ def main():
             tr("crash", "machine-kit", gain="2dB", pan=-0.2),
             tr("riser", "fx-revcym", gain="-12dB"),
             tr("impact", "fx-impact", gain="-10dB"),
-            {"name": "choir", "patch": choir_patch(4, third=True), "gain": "-7dB", "sends": {"hall": "-7dB", "dly": "-16dB"},
-             "notes": lead, "auto": {"rs": {"points": horizon_lane(REDSHIFT)}}},
+            {"name": "choir", "patch": closing_choir(choir_patch(4, third=True)), "gain": "-7dB", "sends": {"hall": "-7dB", "dly": "-16dB"},
+             "notes": lead, "auto": {"rs": {"points": horizon_lane(REDSHIFT)}, "hm": {"points": closing_lane()}}},
             {"name": "choir5", "patch": choir_patch(3), "gain": "-13dB", "pan": 0.3, "sends": {"hall": "-6dB"}, "notes": fifth,
              "auto": {"rs": {"points": horizon_lane(REDSHIFT)}}},
             {"name": "choir8", "patch": choir_patch(3, tract=1.0), "gain": "-12dB", "pan": -0.3, "sends": {"hall": "-6dB"}, "notes": low,
