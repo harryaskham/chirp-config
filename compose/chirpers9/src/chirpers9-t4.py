@@ -591,6 +591,14 @@ VOICE = {"about": "t4's voice: a warm, close, human singer - slightly larger tra
                                    "retrig": True, "wander": 0.7}},
                    "pitch": {"value": 0, "mod": [{"src": "expr.f0", "amount": 0.01}, {"src": "lfo.vib", "amount": 0.2}]},
                    "amp": {"a": "40ms", "d": "0s", "s": 1, "r": "250ms"}}}
+# v37 (ROUND TYPE: whole song): A LIVED-IN VOICE. 'The voice at its most human so far' - and the most human thing
+# about a voice is its imperfection. wM's AGE (pinned 44372fb9) gives her some of it, 0.45 (0.3 measured too faint to hear: HNR -1 dB):
+# the folds leak a little air and close softly, the period and level waver a little from cycle to cycle, and a slow
+# 4.5-6.5 Hz tremor, whose rate wanders, rides under her own vibrato. Her first closed-mouth hum (hum1) is the same
+# singer and keeps it. The DUET stays young (age 0): two voices of different ages, singing the same tune a third
+# apart - a warm, weathered lead and a lighter, cleaner second. A different voice from t8's bright choir and its
+# young solo.
+VOICE["synth"]["layers"][0]["age"] = 0.45
 VOICE2 = {"about": "t4's second singer (v7): lighter and a little brighter, a third above in the duet; joined (v10)",
           "play": {"mono": True, "glide": "90ms", "glide_smooth": True, "scoop": 1.0, "fall": 1.5,
                    "glide_overshoot": 0.05},

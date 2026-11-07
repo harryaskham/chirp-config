@@ -576,7 +576,8 @@
        "pulse_rate": 5,
        "join": true,
        "inhale": 0.4,
-       "even": 1.0
+       "even": 1.0,
+       "age": 0.45
       }
      ],
      "lfo": {
@@ -4336,7 +4337,8 @@
        "pulse_rate": 5,
        "join": true,
        "inhale": 0.4,
-       "even": 1.0
+       "even": 1.0,
+       "age": 0.45
       }
      ],
      "lfo": {
