@@ -361,11 +361,25 @@ def third_below(m):
     return m - pc + MIXO[j % 7] + oct_shift
 
 
+# v36 (ROUND TYPE: palette - the question gets its singer): THE QUESTION IS SUNG. The minor shadow of the arrival,
+# E F, was asked six times through the stretto by a flute (28, 40, 52, 64, 80 and alone in the vacuum, 96) - the
+# same flute as the hook. The solo voice asks it at the very start (E, then E F E); now she asks it every time: the
+# flute's E5 F5 on an 'oo', a little louder and a little further into head voice each time (register 0.3 -> 0.7),
+# the last question alone in the vacuum - and the choir answers it at the jet with the arrival, E F# D. One voice
+# asks, many answer. (The ask track stays, silent, so the track order does not move.)
 def write_asks():
+    return
+
+
+def sung_asks():
+    out = []
     for i, bar in enumerate(ASKS):
-        v = 64 + i * 7
-        part("ask").add(b0(bar), 1.5, "E5", v)
-        part("ask").add(b0(bar) + 1.5, 2.25 if bar != VACUUM else 2.4, "F5", v + 4)
+        k = i / (len(ASKS) - 1)
+        reg, v = round(0.3 + 0.4 * k, 3), round(0.34 + 0.16 * k, 3)       # placed where the flute sat
+        out.append({"at": float(b0(bar)), "len": 1.5, "ph": "UW1", "pitch": "E5", "vel": v, "expr": {"reg": reg}})
+        out.append({"at": float(b0(bar) + 1.5), "len": 2.25 if bar != VACUUM else 2.4, "ph": "UW1", "pitch": "F5",
+                    "vel": round(v + 0.03, 3), "expr": {"reg": reg}})
+    return out
 
 
 # v22 (ROUND TYPE: section, the jet's first half 101-120, ~32 s; rewritten): THE JET ACCELERATES. chirpers.py
@@ -803,7 +817,7 @@ def main():
     stretto_turns()
     mute_until_the_jet()
     lead, fifth, low = choir()
-    solo = opening_voice() + horizon_line()                      # v12: the last line, one voice alone (v21: and the first)
+    solo = sorted(opening_voice() + sung_asks() + horizon_line(), key=lambda d: d["at"])   # v36: she asks                      # v12: the last line, one voice alone (v21: and the first)
     lead += [{"at": b0(HORIZON + 16), "len": b0(BARS + 1) - b0(HORIZON + 16) - 4, "pitch": "D4", "vel": 0.6}]   # the held 'ah'
     tempo = [{"at": "0b", "bpm": SEAM_IN},
              {"at": f"{b0(BREAK[0]):g}b", "bpm": SEAM_IN},                        # v11: time dilation in the
