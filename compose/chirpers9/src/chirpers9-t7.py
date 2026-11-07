@@ -460,6 +460,14 @@ R46 = os.environ.get("T7_R46", "orbit") != "none"
 # 10.7 dB short then - and cost 0.39.) The section variants (collision offbeats, spiral) are doubled too.
 # T7_R47=none reproduces v46.
 R47 = os.environ.get("T7_R47", "clav") != "none"
+# round 48 (section, w4 = bars 49-64, "static, little new vs w3"; the collision): T7_R48=collide (default) - THE
+# COLLISION HEARD. The collision (bars 49-80) is where t7's pieces first crash together, but in it only the floor and
+# the kick could be heard (presence: bass -2.8, sub -3.2, kick -6.7 vs the mix) - the break's backbeat snare sat at
+# -20.5, the jet's two- and three-note fragments (E7 trying to fire) at -17.9, the brass stabs on the off-beats at
+# -16.4, all masked: a kick-and-bass groove. Now for the collision's 32 bars those three step forward together on one
+# lane: the snare +7 dB (a backbeat you hear), the jet +9 (its fragments spark: it tries to fire, and fires whole at
+# the crest), the stabs +5. Levels only; the notes were always there. T7_R48=none reproduces v47.
+R48 = os.environ.get("T7_R48", "collide") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -1465,6 +1473,14 @@ def main():
         for tr in tracks:
             if tr["name"] == "bow":
                 tr["patch"] = "a7-erhu"
+    if R48:                                                 # w4: the collision heard (bars 49-80)
+        coll = [["0b", 0.0], ["191.75b", 0.0], ["192b", 1.0], ["319.75b", 1.0], ["320b", 0.0]]
+        amt = {"snare": 7.0, "jet": 9.0, "stabs": 5.0}
+        for tr in tracks:
+            if tr.get("name") in amt:
+                tr["fx"] = list(tr.get("fx", [])) + [{"type": "gain", "gain": {"value": "0dB", "mod": [
+                    {"src": "auto.coll", "amount": amt[tr["name"]]}]}}]
+                tr["auto"] = dict(tr.get("auto", {}), coll={"points": coll})
     if R47:                                                 # palette: E4's comping on a clavinet
         for tr in list(tracks):                             # the organ keeps its body (its 16' drawbar is t7's
             if tr.get("name") in ("e4", "e4w", "e4w5", "e4w7", "e4w8") and tr.get("patch") == "hammond-b3":   # 97 Hz)
