@@ -94,6 +94,7 @@ HUMSEED = os.environ.get("C9T1_HUMSEED", "open")   # SECTION w1 (0:00-0:36, the 
 HUMSIGH = os.environ.get("C9T1_HUMSIGH", "sigh,reprise")   # WHOLE (wM's hum): THE BREATHS BEGIN AS HUMS - since v35 the far choir hums before it ever opens its mouth (w1); now every breath it takes at a threshold (before A, before the build, the crest, the fall) begins as a hum on the same note, two beats with closed lips, and opens into the 'haa': mm-haa, a sigh. 'sigh'; 'sigh,reprise': and after the fall's breath the choir hums the slow E1 once more, lips closed, as t1 hands over (the hum that opened the album closes t1)
 KICKP = os.environ.get("C9T1_KICKP", "bodhran:b@-10")   # PALETTE: the lock's pulse (every two beats from the crest) leaves the 808 (the inner disk's drum: t5 and t6 are built on 808s and 909s) for a hand drum ('patch:piece[@gaindB]'): 'bodhran:b' (the frame drum's deep boom with its pitch drop) or 'cajon:cb' (the box's centre hit): the outer disk's pulse played by hand
 BREATHDROP = os.environ.get("C9T1_BREATHDROP", "floor,seeds")   # SECTION w4 (1:48-2:22, A's last phrase into the build: 'little new vs w3'): THE FLOOR DROPS FOR THE BREATH - the two bars before the build (184-192) lose the shaker and the walking bass ('floor'), and with 'seeds' the five scattered voices too, so the choir's mm-haa before the build is heard over the pad and the cello alone; everything comes back on the build's downbeat. t5 makes the same move before its build, where its singer quotes this breath (t5 v36)
+MIRRORTURN = os.environ.get("C9T1_MIRRORTURN", "turns")   # SECTION w7 (3:27-3:59, the lock before the exhale: flagged static): THE MIRROR ANSWERS - after the crest the glock plays E1 an octave up and the ks-harp plays it upside down, together, every cycle; in the lock's last eight bars (288-320) ('turns') they take turns, a statement each: the glock, then the harp's inversion answering, then the glock (a half-cycle 'hocket' was tried: the harp already sits three beats behind, so it collided)
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -510,6 +511,24 @@ def song():
         ns = [note(a0 + c * E1_CYC + o, f"m{mm}", ln, 0.5 if c == 0 else 0.45)
               for c in range(2) for o, ln, mm in zip(E1_OFF, E1_LEN, mids)]
         tracks.append({"name": "answer", "patch": patch, "gain": gain, "pan": pan, "sends": {"space": "-9dB"}, "notes": ns})
+    if MIRRORTURN:
+        m0, m1 = 288, ST["outro"]
+        def statements(tr, first):
+            out, cur = [], None
+            for n in sorted(tr["notes"], key=lambda n: n["at"]):
+                if m0 <= n["at"] < m1:
+                    if n["pitch"] == first or cur is None:
+                        cur = []
+                        out.append(cur)
+                    cur.append(n)
+            return out
+        trs = {tr["name"]: tr for tr in tracks}
+        if "cell" in trs and "inverse" in trs:
+            cs = statements(trs["cell"], "m74")
+            iv = statements(trs["inverse"], "m50")
+            drop = {id(n) for k, st in enumerate(cs) if k % 2 == 1 for n in st} | {id(n) for k, st in enumerate(iv) if k % 2 == 0 for n in st}
+            for nm in ("cell", "inverse"):
+                trs[nm]["notes"] = [n for n in trs[nm]["notes"] if id(n) not in drop]
     if BREATHDROP:
         cut = {"hats", "bass"} | ({"seed-d", "seed-a", "seed-c", "seed-g", "seed-e"} if "seeds" in BREATHDROP else set())
         b1 = ST["build"]
