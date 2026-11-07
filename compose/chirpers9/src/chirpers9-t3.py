@@ -317,6 +317,13 @@ R38 = os.environ.get("T3_R38", "gust") != "none"
 # rewarding, in the feet. (Draft: swing on the whole song - s0 -0.02 but flatness 36% -> 39%, the storm smoothed.)
 # T3_R39=none reproduces v38.
 R39 = os.environ.get("T3_R39", "swing") != "none"
+# round 40 (section, w9 = bars 97-108 - the crest's answer, flagged static): T3_R40=parts (default) - THE STORM PARTS
+# FOR THE ANSWER. The crest's middle ran everything at once for 25 s - shards, glass, perc, kit, arps, both basses, the
+# duet's answer and the doos - so the answer ("everything comes round") was sung into a wall. Now for bars 101-104,
+# the first half of the answer, the shards, the glass and the perc step out: the duet sings over the round bass, the
+# kick, the backing voices, the doos and the rain - and at bar 105 the storm crashes back in under the second half.
+# T3_R40=none reproduces v39.
+R40 = os.environ.get("T3_R40", "parts") != "none"
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -871,6 +878,13 @@ def build():
                 T[k].ev = [(e[0], e[1], ",".join(mtok(int(float(p[1:])) + 12) if p.startswith("m") else p
                                                   for p in e[2].split(",")), e[3], e[4])
                            if b * 4.0 <= e[0] < (b + 4) * 4.0 and isinstance(e[2], str) else e for e in T[k].ev]
+    if R40:                                                 # w9: the storm parts for the answer (bars 101-104)
+        for k in ("shard", "glass", "perc"):
+            T[k].ev = [(e[0], e[1], e[2], 1, e[4]) if 100 * 4.0 <= e[0] < 104 * 4.0 else
+                       (e[0], max(0.03, round(100 * 4.0 - e[0] - 0.05, 4)), e[2], e[3], e[4]) if e[0] < 100 * 4.0 < e[0] + e[1]
+                       else e for e in T[k].ev]
+        T["_partc"] = Track("partc")
+        T["_partc"].add(104 * 4.0, 2.0, "c", 116)
     if R38:                                                 # w2: the first gust (bars 23-24 breathe, a fill, a crash)
         T["kick"].ev = [(e[0], e[1], e[2], 1, e[4]) if 88.0 <= e[0] < 96.0 and not any(abs(e[0] - x) < 0.03 for x in (90.0, 92.0))
                         else e for e in T["kick"].ev]
@@ -1288,6 +1302,8 @@ def main():
         spec_b = next(tr for tr in tracks if tr["name"] == "bass")
         g_b = float(spec_b["gain"].replace("dB", "")) - 2.0
         tracks.append({"name": "bassr", "patch": "a3-round", "gain": f"{g_b:g}dB", "score": T["_round"].score()})
+    if R40 and "_partc" in T:                               # the storm crashes back at bar 105
+        tracks.append({"name": "partc", "patch": "tight-kit", "gain": "-4dB", "pan": 0.15, "score": T["_partc"].score()})
     if R38 and "_gust" in T:                                # the first gust's fill and crash
         tracks.append({"name": "gust", "patch": "ks-drum", "gain": "-4dB", "pan": 0.1, "sends": {"space": "-10dB"},
                        "score": T["_gust"].score()})
