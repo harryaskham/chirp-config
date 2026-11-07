@@ -450,6 +450,13 @@ def build():
             dnear.append(dict(n_, at=round(b_ * 4.0 + n_['at'], 4), pitch=f"m{int(str(n_['pitch'])[1:]) + 12}"))
         for n_ in L2_:
             snotes.append(dict(n_, at=round(b_ * 4.0 + n_['at'], 4)))
+    # (v37, section w3: the tide 'little new vs w2' - the tide section sounded like the pull again) THE TIDE SINGS
+    # HIGH: after the duet, over the tide's second half (bars 41-47, Am7 and G swinging), the young near voice floats a
+    # wordless 'ooh' far above everything in FALSETTO (wM's register=1: head voice, rounder, softer) - E5 held, then
+    # stepping down D C B A to G, one long note a bar, like a wave coming in high and drawing back - a descant the pull
+    # never had, quiet, in the hall
+    DS = json.load(open(os.path.join(HERE, 'chirpers9-t6-descant.json')))
+    dsnotes = [dict(n_, at=round((SEC['tide'] + 8) * 4.0 + n_['at'] - 0.25, 4)) for n_ in DS['tracks'][0]['notes']]
     # (v13, section w1: the in-seam 'static') THE ANSWER: t5 ends with its young voice singing 'nearer the middle
     # hums' twice inside our overlap (chirper-zero's voice-near, at t6's bars 5 and 9). Now t6's old voice - a
     # different person - ANSWERS each one in the gap after it: 'the tide comes in', low, A G E D, landing on D as the
@@ -798,6 +805,9 @@ def build():
                sends={'echo': '-14dB', 'hall': '-14dB'}),
             tr('e5', 'steel-pan', '-10dB', pan=-0.15, sends={'echo': '-16dB', 'hall': '-18dB'}, fx=[{'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}]),
             tr('e5b', 'kora', '-11dB', pan=0.35, sends={'hall': '-16dB'}, fx=[{'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}]),
+            {'name': 'descant', 'patch': dict(DS['tracks'][0]['patch'], extends='voice-near synth.layers.0.register=1 synth.lfo.vib.per_note=true',
+                                              play={'glide_overshoot': 0.04, 'scoop': 1}),
+             'notes': dsnotes, 'gain': '-14dB', 'pan': 0.1, 'sends': {'hall': '-7dB', 'echo': '-18dB'}},
             # (v26) the spoken voice's track is now the duet's near singer
             {'name': 'duetnear', 'patch': dict(SU['tracks'][0]['patch'], extends='voice-near synth.lfo.vib.per_note=true',
                                                play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
