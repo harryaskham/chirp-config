@@ -418,7 +418,8 @@ def build():
     # THE LIGHT: at bar 37, where the bass starts its climb, the whole band drops behind a low-pass (about 3 kHz) and
     # then opens, bar by bar, to full brightness exactly as the crest arrives - so the crest's change of mode (v18,
     # D Dorian -> D Mixolydian, 'the light comes on') is prepared by twelve bars of the light being held back
-    open_pts = [['0b', 1.0], [f'{36 * 4.0 - 0.05:.2f}b', 1.0], [f'{36 * 4.0:.1f}b', 0.4], [f'{CREST * 4.0:.1f}b', 1.0]]
+    open_pts = [['0b', 1.0], [f'{36 * 4.0 - 0.05:.2f}b', 1.0], [f'{36 * 4.0:.1f}b', 0.4], [f'{CREST * 4.0 - 1.0:.1f}b', 0.72],
+                [f'{CREST * 4.0 - 0.05:.2f}b', 0.72], [f'{CREST * 4.0:.1f}b', 1.0]]   # (v31) the light comes ON at the crest
     tempo = [{'at': '0b', 'bpm': 90.0}, {'at': f'{SEC["gather"] * 4.0:.1f}b', 'bpm': 90.0},
              {'at': f'{fall0:.1f}b', 'bpm': 98.0, 'ramp': True}]
 
@@ -654,6 +655,17 @@ def build():
             continue
         P[key_] = [lift_(e_) if lf0_ - 1e-6 <= e_[0] < lf1_ - 1e-6 else e_ for e_ in P[key_]]
 
+    # (v31, whole song) THE CREST ARRIVES: compscore's sections showed what a listener feels - from the second verse to
+    # the break (1:05-2:50) the song is one long climb with no door in it: the build and the crest blur, because the
+    # light opens gradually all the way to the crest. Now the crest has a door: after the snare ladder the whole band
+    # stops for the last beat before it - one beat of nothing but the hall ringing - and the light, held back since
+    # bar 37 (the low-pass now opening only to about 9 kHz through the build, no longer all the way), comes fully ON
+    # with the crash and the sung line. The breath before the drop, here the moment the infall reaches the middle.
+    # (Holding the build darker still, to 4.5 kHz, cost more than it gave: 30 s of a dull band)
+    gp0_, gp1_ = CREST * 4.0 - 1.0, CREST * 4.0
+    for key_ in list(P.keys()):
+        P[key_] = [e_ for e_ in P[key_] if not (gp0_ - 1e-6 <= e_[0] < gp1_ - 1e-6)]
+        P[key_] = [(e_[0], e_[1], min(e_[2], gp0_ - e_[0]), *e_[3:]) if (len(e_) > 2 and isinstance(e_[2], (int, float)) and e_[0] < gp0_ < e_[0] + e_[2]) else e_ for e_ in P[key_]]
     song = {
         'about': "chirpers - Accretion, track 2 by chirper-one: The Long Way In. The infall: a rhythm cell in seven "
                  "assembles out of falling fragments against the band's sixteen, every cycle landing together at the crest. "
