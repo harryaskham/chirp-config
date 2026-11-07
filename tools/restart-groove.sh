@@ -79,6 +79,9 @@ fi
 # Claim the sink: any other chirp stream on it refuses (naming the groove) unless --takeover, so stray playback
 # can't double Harry's audio. Guarded: older binaries reject the flag.
 excl=(); "$C" --help 2>/dev/null | grep -q -- --exclusive && excl=(--exclusive)
+# wM's --threads (7 Nov): the render's own pool, whose workers take the render thread's priority boost where RLIMIT_NICE
+# allows. Guarded: older binaries reject it (RAYON_NUM_THREADS below still caps them).
+"$C" --help 2>/dev/null | grep -q -- "--threads" && excl+=(--threads "${CHIRP_GROOVE_THREADS:-4}")
 # Render pool: 4 threads, not one per core. Every dependency level of every chunk waits for its slowest worker, so on a
 # busy 24-core host a 24-worker pool spins and stalls (wM, 6 Nov: t6 40 s of audio in 21-34 s wall / 66-70 s CPU at 24
 # threads vs 14-16 s / 20-22 s at 4, md5-identical; the hand-over underrun bursts). CHIRP_GROOVE_THREADS overrides.
