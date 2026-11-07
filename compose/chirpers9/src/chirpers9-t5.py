@@ -76,6 +76,7 @@ BREATHQ = os.environ.get("C9T5_BREATHQ", "-9")   # SECTION w4 (1:41-2:15, A's en
 CRESTANS = os.environ.get("C9T5_CRESTANS", "dx")   # SECTION w6 (2:47-3:20, the line after the crest: little new vs w5): THE CHORUS RETURNS WITH ITS ANSWER - in A the Rhodes answered her chorus in its gaps (CALLRESP); after the crest her line comes back three times, growing a choir, but nothing answered it. Now each statement is answered: two cycles of E5, an octave down, in the gap before the next ('rhodes', the A answer's own voice, or 'dx': the crest's glassy E1 piano)
 E1ALONE = os.environ.get("C9T5_E1ALONE", "808")   # SECTION w7 (3:20-3:53, the end of C: 'static, little new vs w6'): SHE SINGS E1 ALONE - her second sung E1 (418) loses the floor for two bars: the drums and the spin (and with '808' the 808) stop at 416 and come back with the lights' chord at 424, so the seed's line is heard over the orbit and the chords alone before the outro (a cut, not a layer: eco 11:01). Value 'kit' or '808'
 SWAPP = os.environ.get("C9T5_SWAPP", "seed-lo=mandolin")   # PALETTE (v39): voices change hands ('track=patch[@gaindB]', comma-separated): the seed's low voice (seed-lo, the E1 stretto an octave under the chip lead) leaves the plain pluck lead for t1's mandolin (t1 v33's G), so the mirror plays the seed's line on the seed's own strings. Tried and rejected: the air (the held D-A drone) on kuramoto-choir or gendy-drone (spectrum -8..-13: the plain drone's low mids are load-bearing), the lights on juno-pad (variety -10)
+HUMWORD = os.environ.get("C9T5_HUMWORD", "close:ng")   # WHOLE (wM's hum, pin e3da830a): THE MIDDLE HUMS - her line is 'near-er the mid-dle hums', and now the word does what it says: every sung 'hums' (A's chorus, the crest choir's three statements, the farewell) opens on 'huh' and then the lips close and the voice hums on 'mm' (synth.layers.0.hum bound per note), the choir humming with her. 'close': the hum held a beat longer than the word was; 'short': the word's own length; ':ng' / ':m' where the mouth closes (v40: close:ng, the brighter hum; close:m 98.178/98.043, darker, spectrum -0.4)
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -689,6 +690,22 @@ def song():
             if cz:
                 tracks.append({"name": "sub", "patch": "sub", "gain": f"{opts['sub']}dB", "pan": 0.0,
                                "notes": [dict(n, len=max(n["len"], 0.45)) for n in cz[0]["notes"]]})
+    if HUMWORD:
+        hw, _, hat = HUMWORD.partition(":")
+        for tr in tracks:
+            if not tr["name"].startswith("hums") or not any(n.get("ph") == "HH AH1 M Z" for n in tr["notes"]):
+                continue
+            pt = tr["patch"] if isinstance(tr["patch"], dict) else {"extends": tr["patch"]}
+            tr["patch"] = dict(pt, extends=pt["extends"] + f" synth.layers.0.hum=expr.hum synth.layers.0.hum_at={hat or 'm'}")
+            out = []
+            for n in tr["notes"]:
+                if n.get("ph") == "HH AH1 M Z":
+                    out.append(dict(n, len=0.75, ph="HH AH1", expr={"hum": 0.0}))
+                    out.append(dict(n, at=round(n["at"] + 0.75, 4), len=round(n["len"] - 0.75 + (1.0 if hw == "close" else 0.0), 4),
+                                    ph="AH1", vel=round(min(1.0, n["vel"] * 1.4), 3), expr={"hum": 1.0}))
+                else:
+                    out.append(dict(n, expr={"hum": 0.0}))
+            tr["notes"] = out
     if VOXREG:
         for tr in tracks:
             pt = tr.get("patch")
