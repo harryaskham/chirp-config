@@ -67,6 +67,8 @@ VOXREG = os.environ.get("C9T5_VOXREG", "A4")   # PALETTE (register pinned, 0c5d2
 PHRASES = os.environ.get("C9T5_PHRASES", "fill,hats,loud")   # WHOLE (Harry 23:55: 'lots of contiguous music with very little change' - subtle variation every 8-16 bars, not schizo): THE GROOVE SPEAKS IN PHRASES - A, the build and C are cut into 8-bar phrases. 'fill': the last beat of each phrase is a quiet 909 snare run (two beats and a soft crash after, at a section's end); 'hats': every other phrase the hats thin to eighths and the next comes back in sixteenths; 'orbit': the orbit (E5) takes a breath, resting the last bar of every 16
 WARMTH = os.environ.get("C9T5_WARMTH", "top:-6,sub:-14")   # WHOLE: CLOSER MEANS WARMER - t5 was the album's brightest track by far (10-15 kHz +14..+17 dB against both neighbours' bodies, the worst bands at both seams) and had no sub under A (44 Hz -20 against t4). 'top:dB' puts a high shelf at 9 kHz on the drum machine (hats, ride) so the sizzle stops; 'sub:dB' doubles A's CZ bass with a sine sub an octave-true underneath, so the floor is felt from A (the 808 still arrives at the build)
 TURN = os.environ.get("C9T5_TURN", "close,lift")   # WHOLE (Harry 23:55: subtle variation every 8-16 bars; eco: 'a re-voiced chord, a register shift'): THE LIGHTS TURN - the CZ pad played E4's four chords in one close voicing for the whole song; now each pass of the cycle (10 bars) it turns to the next voicing in the list: 'close' (as before), 'drop' (the third leaves the bottom and sings on top), 'lift' (the root stays, everything above rises an octave: open and airy). Same chords, same key; the crest's pass is 'close', home
+HUSH = os.environ.get("C9T5_HUSH", "")   # SECTION w3 (1:08-1:41, A's second half: flagged static, and the one 32 s flat run in the album as heard, 1:10-1:42): SHE SINGS OVER A HUSH - for four bars under her second chorus line ('A:B' beats) the machine steps back: 'deep' rests the drums, both E1 seeds and the orbit, leaving her, the Rhodes' answers, the pad and the bass; 'light' keeps the orbit and the kick. Everything comes back for the last phrase of A
+SHADOW = os.environ.get("C9T5_SHADOW", "128:192:-14")   # SECTION w3 (1:08-1:41, A's second half: flagged static): THE SEED'S SHADOW CROSSES OVER - t1's slow cello cantus (E1 at a quarter speed, D A C G E, an octave down) comes back in t5 under her chorus, the mirror of the outer disk, swelling in and out across the window ('A:B:gaindB'), so the second half of A has a long line moving under the machine
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -598,6 +600,26 @@ def song():
                 rests = [(ST[sec] + 16 * BAR * (k + 1) - BAR, ST[sec] + 16 * BAR * (k + 1)) for sec in ("A", "build", "C")
                          for k in range(4) if ST[sec] + 16 * BAR * (k + 1) <= END[sec]]
                 tr["notes"] = [n for n in tr["notes"] if not any(a <= n["at"] < b for a, b in rests)]
+    if SHADOW:
+        sa, sb, sg = SHADOW.split(":")
+        sa, sb = float(sa), float(sb)
+        offs, lens, mids = [0, 2, 5, 6, 10], [2, 3, 1, 4, 6], [50, 57, 60, 55, 52]
+        ns, c = [], sa
+        while c < sb:
+            for o, ln, mm in zip(offs, lens, mids):
+                t = c + o
+                if t < sb:
+                    x = (t - sa) / (sb - sa)
+                    ns.append(note(t, f"m{mm}", min(ln, sb - t) - 0.1, 0.45 + 0.35 * min(x / 0.3, 1.0, (1 - x) / 0.3)))
+            c += 20
+        tracks.append({"name": "shadow", "patch": "cello", "gain": f"{sg}dB", "pan": -0.2, "sends": {"room": "-8dB"}, "notes": ns})
+    if HUSH:
+        ha, hb, kind = HUSH.split(":")
+        ha, hb = float(ha), float(hb)
+        out = {"drums", "seed-hi", "seed-lo"} | ({"orbit"} if kind == "deep" else set())
+        for tr in tracks:
+            if tr["name"] in out:
+                tr["notes"] = [n for n in tr["notes"] if not (ha <= n["at"] < hb and not (kind == "light" and n["pitch"] == "k"))]
     if WARMTH:
         opts = dict(x.split(":") for x in WARMTH.split(","))
         for tr in tracks:

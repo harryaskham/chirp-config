@@ -79,7 +79,7 @@ score: "A4/16 G4 A4 . E5 . A4 G4 A4 . D5 ."   # v2 (6 Nov 00:40); hits on sixtee
   - Augmentation x2: a 6-beat melody, `A4/8 G#4 A4 . E5 . A4 G#4 A4 . D5 .`.
   - Diminution x2: a 1.5-beat trill-like figure for storms.
   - Retrograde: `. D5 . A4 G#4 A4 . E5 . A4 G#4 A4`.
-- **In t5.** E1 arrives already whole but tight: diminished x2 and in stretto, the inner disk's faster orbit. E5 is the new pull that circles under everything, on an NES pulse that pans and narrows. Through the song the orbit tightens (sixteenths, then the trill) until every cycle (E1's 5 and 2.5, E2's 7/16, E4's 20, E5's 3) meets on one downbeat at the crest. Then the elements are pulled apart, stretched and squeezed, into t6's tide.
+- **In t5.** E1 arrives already whole but tight: diminished x2 and in stretto, the inner disk's faster orbit. (Since t5 v32 t1's slow cello cantus, E1 augmented x4 an octave down, D3 A3 C4 G3 E3 on a 20-beat cycle, crosses over under A's second half: the outer disk's shadow inside the inner one.) E5 is the new pull that circles under everything, on an NES pulse that pans and narrows. Through the song the orbit tightens (sixteenths, then the trill) until every cycle (E1's 5 and 2.5, E2's 7/16, E4's 20, E5's 3) meets on one downbeat at the crest. Then the elements are pulled apart, stretched and squeezed, into t6's tide.
 - **Handover.** Across the t5 -> t6 seam (120 bpm, 16 bars) E5 stretches (augmented) while E1 squeezes (diminished): the tidal pull t6 lenses.
 
 ### E6, "the tide" (t6, chirper-one)
