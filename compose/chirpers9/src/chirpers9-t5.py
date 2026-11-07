@@ -80,6 +80,7 @@ HUMWORD = os.environ.get("C9T5_HUMWORD", "close:ng")   # WHOLE (wM's hum, pin e3
 FLOORWALK = os.environ.get("C9T5_FLOORWALK", "all")   # WHOLE (t1 v29's BASSWALK mirrored; the spectrum's worst band was 97 Hz, -8): THE FLOOR WALKS THE SEED - the analog floor held one long root per chord (D3 C3 A2 G2); now under every chord it walks E1 twice as slow (D2 A2 C3 G2 E2 in 8 beats of the chord's 10), the same five notes under all four chords (they are all in the key), so the seed is in the bass as well as on top. 'all' (from A) or 'C' (from the crest on)
 FAREAGE = os.environ.get("C9T5_FAREAGE", "0.6")   # SECTION w8 (3:53-4:19, the outro = the t5 -> t6 overlap: her farewell): SHE GROWS OLD AS SHE LEAVES - t5's near singer is young; t6 (chirper-one) begins with an old voice. Now her farewell ages note by note (wM's age, bound per note), from her own young voice to a shaking one by her last 'hums' (value = the last note's age), so the voice that leaves the inner disk hands over to the old voice of t6
 DRIFT = os.environ.get("C9T5_DRIFT", "0.97@-18")   # WHOLE (Harry: complexity in time and texture, the harmony at home): THE ORBIT COMES APART - every cycle met on one downbeat at the crest; after it the elements are pulled apart. Now, from two bars after the crest to the outro, a second orbit (the same NES pulse, panned the other way, quieter) plays E5 a little slow ('ratio[@gaindB]', e.g. 0.98) and slips behind the first, through a whole lap, Reich's phasing: the meeting undone in time while the notes stay the same
+UNDERTOW = os.environ.get("C9T5_UNDERTOW", "build,C")   # WHOLE (ACCRETION: track N carries E1..E(N-1); t5 carried E1, E2, E4 and E5 but never E3): THE UNDERTOW - t3's E3 (seven beats: D D D' | Bb Bb F | C C G C', v2) in the major, as t7's crest locks it (D | C | G: D D D' | C C G | G G D G'), on a marimba in the low middle, phased so a cycle lands on the crest's downbeat with every other cycle. 'build' (from the build to the crest) or 'build,C' (on through C to the outro) [@gaindB]
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -637,6 +638,22 @@ def song():
         for tr in tracks:
             if tr["name"] in cut:
                 tr["notes"] = [n for n in tr["notes"] if not 416 <= n["at"] < 424]
+    if UNDERTOW:
+        uw, _, ug = UNDERTOW.partition("@")
+        E3M = [(0.0, 0.75, "D3"), (0.75, 0.75, "D3"), (1.5, 0.5, "D4"), (2.0, 0.5, "C3"), (2.5, 0.75, "C3"), (3.25, 0.75, "G3"),
+               (4.0, 0.75, "G2"), (4.75, 0.75, "G2"), (5.5, 0.5, "D3"), (6.0, 1.0, "G3")]
+        u0 = ST["build"]
+        u1 = ST["outro"] if "C" in uw.split(",") else TC
+        c = TC - 7 * int((TC - u0) // 7)
+        ns = []
+        while c < u1:
+            for j, (o, ln, pt) in enumerate(E3M):
+                if c + o < u1:
+                    ns.append(note(c + o, pt, ln * 0.9, (0.7 if j in (0, 3, 6) else 0.5) * (0.85 if c >= TC else 1.0)))
+            c += 7
+        if c - 7 < TC <= c and u1 == TC:
+            ns.append(note(TC, "D3", 2.0, 0.8))
+        tracks.append({"name": "undertow", "patch": "marimba", "gain": f"{ug or -16}dB", "pan": 0.3, "sends": {"room": "-10dB"}, "notes": ns})
     if DRIFT:
         dr, _, dg = DRIFT.partition("@")
         dr = float(dr)
