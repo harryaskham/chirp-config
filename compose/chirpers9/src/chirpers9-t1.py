@@ -86,6 +86,7 @@ PHRASES = os.environ.get("C9T1_PHRASES", "rotate,breath,intro,halfkick")   # WHO
 STRIP = os.environ.get("C9T1_STRIP", "256:288")   # SECTION (w6, 2:54-3:27, the lock after the crest: the least recently worked window, everything playing E1 at once): THE SEED ALONE - for the lock's second phrase ('A:B' beats) the five scattered voices step out (':bare' also rests the glock cell and the shekere), and over the cello, the pad, the organ, the bass and the half-time kick the whistle plays E1 twice, plainly, the seed heard on its own once the voices have made it; at B everything comes back, locked
 BOUNCE = os.environ.get("C9T1_BOUNCE", "0.72:short")   # SECTION (w5, 2:22-2:54, the build into the crest: little new vs A, the least recently worked window): THE VOICES FALL TOGETHER - in the build each of the five scattered voices stops keeping its own time and repeats its note faster and faster, like a dropped ball bouncing to rest, each joining in turn (kalimba first, music box last) and all landing on their places in E1 at the crest: the convergence the album is about, heard as it happens. Value = the bounce ratio (each gap this fraction of the last); 'R:short' starts later and stops before the fastest repeats
 BASSWALK = os.environ.get("C9T1_BASSWALK", "144:192:x4")   # SECTION (w4, 1:48-2:22, A's second half: little new vs w3; the bass had sat on D and A for all 32 bars of A): THE FLOOR WALKS THE SEED - for these bars the triangle bass leaves its D-A drone and walks E1 itself, D A C G E, slow ('A:B:x4': at the cello cantus's quarter speed, an octave under it, phased like it to meet the crest; 'x2' at half speed), over the D pedal: the harmony moves for the first time, inside the key, and the seed is in the bass before the build
+TURN = os.environ.get("C9T1_TURN", "lift")   # WHOLE (Harry 23:55: subtle variation every 8-16 bars; t5 v31's turning chords gave t5 +0.1): THE STACK TURNS - the quartal pad (E1's notes stacked, growing section by section) held one voicing for each section; now every other 8-bar phrase from A to the outro it turns (each section opens home, so the crest lands on the home voicing): 'lift' raises everything above the bottom D an octave (open, airy), 'drop' brings the top note down an octave (close, warm). Same notes, same key; the colour of the stack moves under the scattered voices
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -427,6 +428,28 @@ def song():
                             out.append(dict(n, at=L, len=round(n["at"] + n["len"] - L, 3)))
                     else:
                         out.append(n)
+                tr["notes"] = out
+    if TURN:
+        nm = {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}
+        def mid(p):
+            return int(p[1:]) if p.startswith("m") else 12 * (int(p[-1]) + 1) + nm[p[0]] + (1 if "#" in p else 0)
+        for tr in tracks:
+            if tr["name"] == "pad":
+                by = {}
+                for n in tr["notes"]:
+                    by.setdefault(n["at"], []).append(n)
+                out = []
+                for at, grp in sorted(by.items()):
+                    s0 = max(ST[x] for x in ("A", "build", "B") if ST[x] <= at) if at >= ST["A"] else ST["A"]
+                    k = int((at - s0) // (8 * BAR))
+                    if ST["A"] <= at < ST["outro"] and k % 2 == 1 and len(grp) > 1:
+                        ms = sorted(mid(n["pitch"]) for n in grp)
+                        if TURN == "lift":
+                            new = [ms[0]] + [x + 12 for x in ms[1:]]
+                        else:
+                            new = ms[:-1] + [ms[-1] - 12]
+                        grp = [dict(g, pitch=f"m{x}") for g, x in zip(sorted(grp, key=lambda n: mid(n["pitch"])), new)]
+                    out += grp
                 tr["notes"] = out
     if BASSWALK:
         wa, wb, wm = BASSWALK.split(":")
