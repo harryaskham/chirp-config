@@ -556,6 +556,18 @@ def build():
         P['hats'].append((tr0 + q * 0.25, 'h^r=2', 0.25, 70 if q % 4 == 0 else 52))
     for q in range(int((tr_end - void1) / 0.25)):
         P['hats'].append((void1 + q * 0.25, 'h' if q % 8 != 6 else 'oh', 0.2, 80 if q % 4 == 0 else 56))
+    # (v35, section w8: eco's as-heard reading - 3:09-4:05 still one flat run; sung lines over a dense, steady floor
+    # don't register, a change in the floor does) THE FLOOR TEARS AWAY: as the duet is torn furthest apart (bars
+    # 117-120, the near voice racing, the old one dragging) the floor goes - the analog bass, the fretless and the sequencer; only the sine sub's pedal is left under it
+    # (with the sub gone too, and for all eight bars, the low end emptied for 15 s: spectrum 83 -> 78; eight bars
+    # without the sub, 81) - and the torn voices, the stretched
+    # kit, the 32nd hats, the harmonium and the far side's brass blur hang over almost nothing; the stopped tape
+    # and the void follow, and the floor comes back with the band and the last chorus (bar 122): the drop and the
+    # return the tear was always about
+    fd0_ = tr0 + 16.0
+    for key_ in ('root', 'farbass', 'acid'):
+        P[key_] = [e_ for e_ in P[key_] if not (fd0_ - 1e-6 <= e_[0] < void1 - 1e-6)]
+        P[key_] = [(e_[0], e_[1], min(e_[2], fd0_ - e_[0]), *e_[3:]) if e_[0] < fd0_ < e_[0] + e_[2] else e_ for e_ in P[key_]]
     # the void: one bar where only the cello blur (and the stopped tape's tail) remains
     for key in ('kit', 'hats', 'acid', 'e5', 'near', 'tide', 'sub'):
         P[key] = [e_ for e_ in P[key] if not (void0 + 1.0 - 1e-6 <= e_[0] < void1 - 1e-6)]
