@@ -93,7 +93,8 @@ class Part:
                 continue
             if s - pos > 1e-5:
                 toks.append(f"R/{s - pos:.5g}b")
-            toks.append(f"{head}/{ln:.5g}b@{vel}")
+            name, _, arts = head.partition("^")                         # v31: articulations go after @vel
+            toks.append(f"{name}/{ln:.5g}b@{vel}" + (f"^{arts}" if arts else ""))
             pos = s + ln
         if total - pos > 1e-5:
             toks.append(f"R/{total - pos:.5g}b")
@@ -206,6 +207,15 @@ VACUUM = JET - 1              # v2: the bar before the jet - everything stops bu
 # end of 80 brings everything back; 81-88, as E7's brass columns arrive, the chip hook LIFTS AN OCTAVE - until the
 # spiral (89) takes over. Pitch classes unchanged.
 T_DROP, T_LIFT = (73, 80), (81, 88)
+
+
+# v31 (ROUND TYPE: palette - swap an album staple): THE BASS OPENS AT THE JET. The bass was nes-triangle-bass, a staple
+# t1 and t2 share; now it is a PICKED ELECTRIC BASS (bass-pick-di: a round-wound string, pick click, fret buzz on hard
+# hits - no Accretion track uses it), and it carries its own arc: through the stretto every note is PALM-MUTED (expr.pm
+# - shorter, darker, a knock of body: the D pedal's pulses and E3's line held down), and at the jet the hand lifts and
+# the string rings open under the supersaw - the bass, too, resolves into the jet. Same notes, same rhythm.
+def mute_until_the_jet():
+    P["bass"].ev = [(s, ln, h + "^pm" if s < b0(JET) - 1e-6 and "^" not in h else h, v) for s, ln, h, v in P["bass"].ev]
 
 
 def stretto_turns():
@@ -710,6 +720,7 @@ def main():
     carve(["e1", "e2", "bass"], *LULL)
     carve(["lights", "e1", "e2", "e3", "e5", "e6", "bass", "kick", "hat"], VACUUM, VACUUM)
     stretto_turns()
+    mute_until_the_jet()
     lead, fifth, low = choir()
     solo = opening_voice() + horizon_line()                      # v12: the last line, one voice alone (v21: and the first)
     lead += [{"at": b0(HORIZON + 16), "len": b0(BARS + 1) - b0(HORIZON + 16) - 4, "pitch": "D4", "vel": 0.6}]   # the held 'ah'
@@ -743,7 +754,8 @@ def main():
                auto={"orb": {"points": orbit_lane("e3")}}),
             tr("e5", "marimba", gain="-13dB", pan=0.2, sends={"room": "-10dB"},
                fx=[ORBIT_FX], auto={"orb": {"points": orbit_lane("e5")}}),
-            tr("bass", "nes-triangle-bass", gain="-6dB"),
+            tr("bass", "bass-pick-di", gain="1dB", fx=["lowshelf cutoff=110 gain=10dB", "lp cutoff=1500", "gain gain=0dB+auto.bm*1"],
+               auto={"bm": {"points": [["0b", -4.5], [f"{b0(JET):g}b", -4.5], [f"{b0(JET) + 0.01:g}b", 0.0]]}}),
             tr("sub", "sub-saturated", gain="-12dB"),                       # v28: the staple sine -> saturated
             tr("hsub", HSUB, gain="-13dB", auto={"rs": {"points": horizon_lane(0.0)}}),     # v17: the floor stays home
             tr("kick", "machine-kit", gain="-8dB"),
