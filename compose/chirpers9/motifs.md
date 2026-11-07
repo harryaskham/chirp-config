@@ -193,7 +193,9 @@ score: "D3/8 A3/8 E4/8 B4/16 F#5/16 C#6/16 G#6/8"   # 2 2 2 1 1 1 2 sixteenths =
   In the crest's middle (bars 129-136, the tidal lock) the break drops to half time and the jet fires in RETROGRADE
   (falling: a redshift), while a vocoder whose carrier is E7 as a chord (D A E G# C#) speaks "every corner comes
   sooner"; then the jet rights itself and a snare rush rebuilds into bar 145. E3's squeezed undertow (the reese) breathes
-  four times (v41-v42: bars 37-40, 96-100, 125-130, 141-144) - slowed to its held roots, then driving again.
+  four times (v41-v42: bars 37-40, 96-100, 125-130, 141-144) - slowed to its held roots, then driving again. In the
+  plunge's last four bars (157-160, v45) E1's stretto (koto, chip) and the jet (E7) REDSHIFT: they bend down a whole
+  octave, slowly then faster, while the modal bell alone holds E1's E for t8; they return at pitch in the outfall.
 - **Ready-made transforms.**
   - Retrograde (a fall from the top, redshift): `G#6/8 C#6/16 F#5/16 B4/16 E4/8 A3/8 D3/8`.
   - Augmented x4 (a slow ascent across a seam): 44 sixteenths, 11 beats.
