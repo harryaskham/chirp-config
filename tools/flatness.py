@@ -11,8 +11,8 @@ but we should add subtle variation so it doesnt get boring".
 
 --mix (7 Nov, chirper-two: t3's "flat" head is the t2 overlap): a song's head plays under the previous song's tail on
 the album, so measuring tracks alone can call an overlap head flat when what the listener hears is moving. In --mix,
-each track's figures cover its own span of the mix (from its entry to the next track's entry). Blocks align to the
-mix, not the track, so a run can shift by a block (8 s) against the per-track view: read both as a flashlight.
+each track's figures cover its own span of the mix (from its entry to the next track's entry), with blocks aligned to
+the track's entry, as in the per-track view.
 
 The song is cut into BLOCK-second blocks; each block is summarised by its 16-band log spectrum (shape, level removed),
 its chroma and its level; "change" is the distance from one block to the next. A change below THRESHOLD is flat.
@@ -145,21 +145,19 @@ def album_mix(snap_dir):
 
 
 def mix_report(snap_dir, block=8, threshold=THRESHOLD):
-    """Per track: flat % of the block changes inside its own span of the mix, and flat runs of 32 s or more clipped to
-    that span, in the track's own time."""
+    """Per track: flat % and flat runs of 32 s or more over its own span of the mix (its entry to the next track's
+    entry), with blocks aligned to the track's own entry - so the block phase matches the single-track view and a short
+    move (a 7 s drop-out) is caught the same way (chirper-one's t6, 7 Nov: mix-aligned blocks straddled it)."""
     x, spans = album_mix(snap_dir)
-    ch = changes(features(x), block)
-    flat = ch < threshold
-    _, _, runs_all = runs(ch, block, threshold, min_s=1)
-    res = []
+    res, flat_all = [], []
     for n, title, a, b in spans:
-        idx = [i for i in range(len(ch)) if a <= (i + 1) * block < b]
-        pct = 100.0 * float(np.mean([flat[i] for i in idx])) if idx else 0.0
-        mine = [(max(ra, a) - a, min(rb, b) - a) for ra, rb in runs_all if rb > a and ra < b]
-        mine = [(round(u), round(v)) for u, v in mine if v - u >= 32]
-        res.append({"n": n, "title": title, "start_s": round(a, 1), "flat_pct": round(pct, 1),
-                    "longest_s": max([v - u for u, v in mine], default=0), "runs": mine})
-    allpct = 100.0 * float(flat.mean()) if len(flat) else 0.0
+        seg = x[int(a * SR):int(b * SR)]
+        ch = changes(features(seg), block)
+        pct, best, found = runs(ch, block, threshold)
+        flat_all.extend(list(ch < threshold))
+        res.append({"n": n, "title": title, "start_s": round(a, 1), "flat_pct": round(pct, 1), "longest_s": best,
+                    "runs": [(int(u), int(v)) for u, v in found]})
+    allpct = 100.0 * float(np.mean(flat_all)) if flat_all else 0.0
     return {"album_flat_pct": round(allpct, 1), "tracks": res}
 
 
