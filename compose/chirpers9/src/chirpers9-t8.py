@@ -864,6 +864,26 @@ def disk_pan(place):
     return {"value": place, "mod": [{"src": "auto.pn", "amount": 1.0}]}
 
 
+# v49 (ROUND TYPE: section, the spiral 89-96 into the jet, ~13 s - with 81-88 the stillest block left, 2:08 at
+# 0.37; rewritten): STRETCHED THIN. The approach was one loud band (kick, E1, bass, E7, the lights at -6 to -10)
+# whose doubled speed at 89 (v24) the ear hears as the same wall. Near a horizon tidal forces stretch whatever falls
+# in, so now the spiral STRETCHES THIN: over its eight bars a high-pass rises under the floor of the band - bass,
+# sub, kick, the lights, E3 and E6 - from 10 Hz to 226 Hz (4.5 octaves, even per octave), the low end draining
+# away while the orbits quicken and close on the centre (v48), until only the bright cells are left spinning; and
+# the jet's downbeat slams the whole floor back. (10 Hz is transparent to everything else: at 20 Hz it shaved ~1 dB
+# off the jet's A0.)
+STRETCH = (89, 96)
+STRETCH_OCT = 4.5
+STRETCH_FX = "hp cutoff=10+auto.sp*1"
+
+
+def stretch_lane():
+    a, z = b0(STRETCH[0]), b0(STRETCH[1] + 1)
+    mid = (a + z) / 2                                             # the drain comes late: an octave by the half
+    return [["0b", 0.0], [f"{a:g}b", 0.0], [f"{mid:g}b", 1.0], [f"{z - 1:g}b", STRETCH_OCT], [f"{z - 0.01:g}b", STRETCH_OCT],
+            [f"{z:g}b", 0.0]]
+
+
 # v17 (ROUND TYPE: whole song): HOME AT THE END. The horizon's held light sank 5 semitones on the redshift lane, so
 # the record's last chord was A major - the dominant, away from home (Harry: tone is home). Now the light redshifts a
 # full OCTAVE and lands on D again, an octave down: it falls all the way and arrives home - and the sub stays on D1
@@ -1079,21 +1099,22 @@ def main():
         "event_stable": True,
         "tracks": [
             tr("lights", "strings", gain="-14dB", sends={"hall": "-8dB"},
-               fx=[{"type": "filter", "kind": "peak", "cutoff": 230, "q": 0.9, "gain": "-5dB"}]),
+               fx=[{"type": "filter", "kind": "peak", "cutoff": 230, "q": 0.9, "gain": "-5dB"}, STRETCH_FX],
+               auto={"sp": {"points": stretch_lane()}}),
             tr("e1", "nes-pulse-lead", gain="-10dB", pan={"value": -0.25, "mod": [{"src": "auto.pn", "amount": 0.6}]},
                sends={"dly": "-12dB"}, fx=[FAR_FX], auto=disk_auto("e1", orbit_pan(ENTRY["E1"], 5.0, 1.0), 0.6)),   # v25, v48
             tr("e2", "modal-glock", gain="-16dB", pan={"value": 0.35, "mod": [{"src": "auto.pn", "amount": 0.6}]},
                sends={"dly": "-14dB"}, fx=[ORBIT_FX, FAR_FX],
                auto={"orb": {"points": orbit_lane("e2")}, **disk_auto("e2", orbit_pan(ENTRY["E2"], 7.0, -1.0), 0.6)}),   # v25, v48
-            tr("e3", "strings-synth", gain="-16dB", pan=disk_pan(-0.1), sends={"hall": "-8dB"}, fx=["lp cutoff=1800", ORBIT_FX, FAR_FX],
-               auto={"orb": {"points": orbit_lane("e3")}, **disk_auto("e3")}),
+            tr("e3", "strings-synth", gain="-16dB", pan=disk_pan(-0.1), sends={"hall": "-8dB"}, fx=["lp cutoff=1800", ORBIT_FX, FAR_FX, STRETCH_FX],
+               auto={"orb": {"points": orbit_lane("e3")}, **disk_auto("e3"), "sp": {"points": stretch_lane()}}),
             tr("e5", E5_PATCH, gain=E5_GAIN, pan=disk_pan(0.2), sends={"room": "-10dB"},
                fx=[ORBIT_FX, FAR_FX], auto={"orb": {"points": orbit_lane("e5")}, **disk_auto("e5")}),
-            tr("bass", "bass-pick-di", gain="1dB", fx=["lowshelf cutoff=110 gain=10dB", "lp cutoff=1500", "gain gain=0dB+auto.bm*1"],
-               auto={"bm": {"points": [["0b", -4.5], [f"{b0(JET):g}b", -4.5], [f"{b0(JET) + 0.01:g}b", 0.0]]}}),
-            tr("sub", "sub-saturated", gain="-12dB"),                       # v28: the staple sine -> saturated
+            tr("bass", "bass-pick-di", gain="1dB", fx=["lowshelf cutoff=110 gain=10dB", "lp cutoff=1500", "gain gain=0dB+auto.bm*1", STRETCH_FX],
+               auto={"bm": {"points": [["0b", -4.5], [f"{b0(JET):g}b", -4.5], [f"{b0(JET) + 0.01:g}b", 0.0]]}, "sp": {"points": stretch_lane()}}),
+            tr("sub", "sub-saturated", gain="-12dB", fx=[STRETCH_FX], auto={"sp": {"points": stretch_lane()}}),                       # v28: the staple sine -> saturated
             tr("hsub", HSUB, gain="-13dB", auto={"rs": {"points": horizon_lane(0.0)}}),     # v17: the floor stays home
-            tr("kick", "machine-kit", gain="-8dB"),
+            tr("kick", "machine-kit", gain="-8dB", fx=[STRETCH_FX], auto={"sp": {"points": stretch_lane()}}),
             tr("snare", "machine-kit", gain="0dB", sends={"room": "-10dB"}),
             tr("hat", "nes-noise-hat", gain="-12dB", pan=0.25),
             tr("crash", "machine-kit", gain="2dB", pan=-0.2),
@@ -1107,8 +1128,8 @@ def main():
              "auto": {"rs": {"points": horizon_lane(REDSHIFT)}}},
             tr("hold", HOLD, gain="-18dB", sends={"hall": "-4dB"},
                auto={"rs": {"points": horizon_lane(REDSHIFT)}, "cl": {"points": cl}}),
-            tr("e6", "organ", gain="-24dB", pan=disk_pan(-0.3), sends={"hall": "-8dB"}, fx=["lp cutoff=3500", ORBIT_FX, FAR_FX],
-               auto={"orb": {"points": orbit_lane("e6")}, **disk_auto("e6")}),
+            tr("e6", "organ", gain="-24dB", pan=disk_pan(-0.3), sends={"hall": "-8dB"}, fx=["lp cutoff=3500", ORBIT_FX, FAR_FX, STRETCH_FX],
+               auto={"orb": {"points": orbit_lane("e6")}, **disk_auto("e6"), "sp": {"points": stretch_lane()}}),
             tr("e7", "brass-synth", gain="-11dB", pan=0.15, sends={"dly": "-12dB", "hall": "-10dB"}),
             {"name": "jet", "patch": JET_SWARM, "gain": "-9dB", "sends": {"hall": "-6dB"}, "notes": JET_NOTES,
              "auto": {"cp": {"points": swarm_lane()}}},                                     # v34: the swarm locks
