@@ -762,7 +762,12 @@ def build():
             tr('acid', 'moog-seq', '-12dB', fx=['hp cutoff=50', 'lp cutoff=3000', {'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}], sends={'echo': '-20dB'}),
             tr('kit', 'prog-kit', '-6dB', sends={'hall': '-20dB'}),
             tr('hats', 'prog-kit', '-7dB', pan=0.2, fx=[{'type': 'eq', 'bands': ['highshelf cutoff=8000 gain=5dB']}]),
-            tr('far', 'cello', '-8dB', pan=-0.25, sends={'hall': '-12dB'}, fx=[{'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}]),
+            # (v34, palette: the cello was an album staple - t1, t5 and t6) THE FAR SIDE IS A TROMBONE: E1 stretched on
+            # the far side is now played by the library's trombone (warm, round, mono and legato, the slide gliding
+            # between notes): the far side's long tones slide into each other, 'lets it go' heard in the instrument,
+            # and as the far side speeds up through the cross, the surge and the tear its legato smears into a brass
+            # blur; no other Accretion track has a trombone (t7 answers with a muted trumpet)
+            tr('far', 'trombone', '-8dB', pan=-0.25, sends={'hall': '-12dB'}, fx=[{'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}]),
             # (v10) the chord-root sub up 5 dB: compscore's one spectrum fault was a hole at 61 Hz, where the C root sits
             # (v22, palette) THE FLOOR GETS A VOICE: the moving floor under the tide (D2 -> C2 -> G1, the chords' own
             # roots) was a second sine sub - felt, not heard, and the album's most shared patch. Now it is an analog
