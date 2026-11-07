@@ -64,6 +64,7 @@ TOGETHER = os.environ.get("C9T5_TOGETHER", "1")   # PALETTE (together pinned, 80
 CRESTE1P = os.environ.get("C9T5_CRESTE1P", "dx-epiano")   # PALETTE: E1 in octaves after the crest moves off the Rhodes the orbit's E5 line also uses ('patch' or 'patch@gaindB'), so the album's seed gets its own colour at the meeting
 CRESTCHOIR = os.environ.get("C9T5_CRESTCHOIR", "accrete")   # SECTION w6 (2:47-3:20, the crest line, sung three times the same): THE CHOIR ACCRETES - the line after the crest ('near-er the mid-dle hums') came three times with the same third above. Now the first is her alone, the second adds the third above in the key, the third adds an octave below as well ('accrete'), so the voice grows inside the window the way the album grows track by track; every statement scoops in and falls off ('sing' alone: the gestures only)
 VOXREG = os.environ.get("C9T5_VOXREG", "A4")   # PALETTE (register pinned, 0c5d29c5): SHE LIGHTENS AT THE TOP - the close singer sang every note in chest voice, so the 'near-er' climb to D5 and the E5 peaks of the line pushed like the low notes. Now her voice has a break (passaggio, a pitch): above it a rising line turns to head voice over four semitones, rounder and airier, the way a young singer's voice flips. The harmony parts flip on their own pitch
+PHRASES = os.environ.get("C9T5_PHRASES", "fill,hats,loud")   # WHOLE (Harry 23:55: 'lots of contiguous music with very little change' - subtle variation every 8-16 bars, not schizo): THE GROOVE SPEAKS IN PHRASES - A, the build and C are cut into 8-bar phrases. 'fill': the last beat of each phrase is a quiet 909 snare run (two beats and a soft crash after, at a section's end); 'hats': every other phrase the hats thin to eighths and the next comes back in sixteenths; 'orbit': the orbit (E5) takes a breath, resting the last bar of every 16
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -313,6 +314,41 @@ def drums():
     if CRESTGAP:
         ns = [n for n in ns if n["at"] != TC] + [note(TC, "k", 0.5, 1.0), note(TC, "cp", 0.5, 0.95)]
         ns.sort(key=lambda n: n["at"])
+    if PHRASES:
+        bars_on = {int(n["at"] // BAR) for n in ns if n["pitch"] == "h"}
+        adds, keep = [], []
+        ends = []
+        for sec in ("A", "build", "C"):
+            a, e = ST[sec], END[sec]
+            k, t = 0, ST[sec]
+            while t < e:
+                pe = min(t + 8 * BAR, e)
+                ends.append((t, pe, pe == e, k))
+                t, k = pe, k + 1
+        def phrase(at):
+            for t, pe, last, k in ends:
+                if t <= at < pe:
+                    return t, pe, last, k
+            return None
+        for n in ns:
+            ph = phrase(n["at"])
+            if ph and n["pitch"] == "h":
+                t, pe, last, k = ph
+                if "fill" in PHRASES and pe - (2 if last else 1) <= n["at"] < pe:
+                    continue
+                if "hats" in PHRASES and k % 2 == 1 and (n["at"] * 2) % 1 != 0:
+                    continue
+            keep.append(n)
+        if "fill" in PHRASES:
+            for t, pe, last, k in ends:
+                if int((pe - 1) // BAR) not in bars_on:
+                    continue
+                nb = 8 if last else 4
+                for j in range(nb):
+                    adds.append(note(pe - nb / 4 + j / 4, "s", 0.25, round((0.45 + 0.5 * j / (nb - 1)) if "loud" in PHRASES else (0.25 + 0.45 * j / (nb - 1)), 3)))
+                if last and pe < b0:
+                    adds.append(note(pe, "c", 1.0, 0.35))
+        ns = sorted(keep + adds, key=lambda n: (n["at"], n["pitch"]))
     return {"name": "drums", "patch": "909", "gain": "-11dB", "pan": 0.0, "sends": {"room": "-14dB"},
             "fx": [{"type": "filter", "kind": "hp", "q": 0.7, "cutoff": {"value": 60, "mod": [{"src": "auto.tide", "amount": 3.0}]}}],
             "auto": {"tide": {"points": [["0b", 0], [f"{ST['outro']}b", 0], [f"{b0}b", 1]]}},
@@ -540,6 +576,12 @@ def song():
     if CRESTGAP and CRESTHIT:
         tracks.append({"name": "crest", "patch": "modal-crash", "gain": f"{CRESTHIT}dB", "pan": 0.0,
                        "sends": {"room": "-6dB"}, "notes": [note(TC, "C4", 8, 0.9)]})
+    if "orbit" in PHRASES:
+        for tr in tracks:
+            if tr["name"] == "orbit":
+                rests = [(ST[sec] + 16 * BAR * (k + 1) - BAR, ST[sec] + 16 * BAR * (k + 1)) for sec in ("A", "build", "C")
+                         for k in range(4) if ST[sec] + 16 * BAR * (k + 1) <= END[sec]]
+                tr["notes"] = [n for n in tr["notes"] if not any(a <= n["at"] < b for a, b in rests)]
     if VOXREG:
         for tr in tracks:
             pt = tr.get("patch")
