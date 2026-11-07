@@ -884,7 +884,12 @@ def build():
             # only the lead (the other voices had sung a plain default voice under him). per_note vibrato: the vibrato
             # starts again on each note - quick notes plain, each held note blooming on its own - so the line's long
             # words ('time', 'go', 'in') bloom and the quick ones stop wobbling
-            {'name': 'chorus', 'patch': dict(dict(CHO['tracks'][0]['patch'], extends='voice-choir synth.layers.0.harmony=[2] synth.layers.0.harmony_key=E:mixolydian synth.layers.0.together=true synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
+            # (v44, palette: wM's part_size, pinned 14:43) THE CHORUSES GET THEIR BASSES: the crest's chorus (in E) and
+            # the last chorus after the void (in D) sang the line with a third above; now a part an octave below the
+            # line joins them, sung by voices 15% larger (part_size 1: formants 13% lower - basses, not the same
+            # singers pitched down), the third above by slightly smaller voices: the surge's big-men floor (v39) at
+            # both choruses, so all three sung peaks stand on the same low voices
+            {'name': 'chorus', 'patch': dict(dict(CHO['tracks'][0]['patch'], extends='voice-choir synth.layers.0.harmony=[-7,2] synth.layers.0.harmony_key=E:mixolydian synth.layers.0.part_size=1 synth.layers.0.together=true synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
              'notes': cnotes, 'gain': '-9dB', 'pan': 0.0, 'sends': {'hall': '-9dB'}},
             # (v39) and the surge's choir gets REAL BASSES: its octave below was the same five singers transposed down
             # (small people singing low, harmony [-7]); now the low octave is its own choir with a larger tract (wM:
@@ -893,7 +898,7 @@ def build():
              'notes': sgnotes, 'gain': '-9dB', 'pan': 0.0, 'sends': {'hall': '-9dB'}},
             {'name': 'surgelow', 'patch': dict(dict(SG['tracks'][0]['patch'], extends='voice-choir synth.layers.0.tract=1.25 synth.layers.0.together=true synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.04, 'scoop': 1}),
              'notes': [dict(n_, pitch=f"m{int(str(n_['pitch'])[1:]) - 12}") for n_ in sgnotes], 'gain': '-10dB', 'pan': 0.0, 'sends': {'hall': '-10dB'}},
-            {'name': 'chorus2', 'patch': dict(dict(CHD['tracks'][0]['patch'], extends='voice-choir synth.layers.0.harmony=[2] synth.layers.0.harmony_key=D:mixolydian synth.layers.0.together=true synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
+            {'name': 'chorus2', 'patch': dict(dict(CHD['tracks'][0]['patch'], extends='voice-choir synth.layers.0.harmony=[-7,2] synth.layers.0.harmony_key=D:mixolydian synth.layers.0.part_size=1 synth.layers.0.together=true synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
              'notes': c2notes, 'gain': '-9dB', 'pan': 0.0, 'sends': {'hall': '-9dB'}},
             # (v18) wM's singer's glide (glide_overshoot, pinned 14:27) on every sung line: on each leap the old voice and
             # the choir swing a little past the note and settle, as singers do, instead of landing dead on it (0.06: subtle)
