@@ -615,6 +615,38 @@ def build():
         t_ += 4.5
     P['e5b'].sort(key=lambda e_: e_[0])
 
+    # (v30, whole song) THE DRUMMER BREATHES AT THE PHRASE ENDS: Harry, 6 Nov 23:55 ('subtle variation so it doesnt get
+    # boring'); eco: the bar-level moves - a fill, a one-bar drop-out, a turnaround - are what he means, heard even
+    # where flatness.py can't see them. The last bar of every eight in the pull, the tide, the cross and the surge now
+    # does one of two things in turn: a FILL (the cell's beat 4 replaced by prog-kit snare sixteenths, rising) or a
+    # TURNAROUND (an open hat and a rim flam on the and of 4, the analog bass stepping to the next chord's fifth).
+    # (A third, a one-bar kick DROP, made compscore hear new section boundaries - structure 95 -> 93: one move too
+    # many.) The squeeze, the crest, the tear and the seams keep the moves they already have
+    ph_ = 0
+    for bar_ in range(SEC['pull'], SEC['torn']):
+        s_, i_ = sec_of(bar_)
+        if i_ % 8 != 7 or s_ not in ('pull', 'tide', 'cross', 'surge') or bar_ == SEC['tide'] + 11:
+            continue
+        b0_, b1_ = bar_ * 4.0, (bar_ + 1) * 4.0
+        kind_ = 0 if ph_ % 2 == 0 else 2
+        ph_ += 1
+        if kind_ == 0:
+            P['kit'] = [e_ for e_ in P['kit'] if not (b0_ + 3.0 - 1e-6 <= e_[0] < b1_ - 1e-6)]
+            for q_ in range(4):
+                P['kit'].append((b0_ + 3.0 + q_ * 0.25, 's', 0.1, 72 + 12 * q_))
+        elif kind_ == 1:
+            P['kit'] = [e_ for e_ in P['kit'] if not (b0_ - 1e-6 <= e_[0] < b1_ - 1e-6 and e_[1] == 'k')]
+            P['kit'].append((b1_, 'c', 2.0, 100))
+        else:
+            P['hats'].append((b0_ + 3.5, 'oh', 0.3, 78))
+            P['kit'].append((b0_ + 3.5, 'rs', 0.1, 70))
+            P['kit'].append((b0_ + 3.56, 'rs', 0.1, 88))
+            rn_ = tide_root(b1_ + 0.01)
+            P['root'] = [(e_[0], e_[1], min(e_[2], b0_ + 3.5 - e_[0]), *e_[3:]) if e_[0] < b0_ + 3.5 < e_[0] + e_[2] else e_ for e_ in P['root']]
+            P['root'].append((b0_ + 3.5, m(KEY + rn_ - 5), 0.45, 88))
+    for key_ in ('kit', 'hats', 'root'):
+        P[key_].sort(key=lambda e_: e_[0])
+
     stop_pts = [['0b', 0.0], [f'{void0:.2f}b', 0.0], [f'{void0 + 0.9:.2f}b', 1.0], [f'{void0 + 0.98:.2f}b', 1.0], [f'{void0 + 1.0:.2f}b', 0.0]]
 
     tempo = [{'at': '0b', 'bpm': 120.0}, {'at': f'{SEC["pull"] * 4.0:.1f}b', 'bpm': 120.0},
