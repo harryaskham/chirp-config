@@ -519,6 +519,15 @@ def build():
     # rising, falling home to G) - and sings it again over C and Am7 (bars 61-64) as the light turns Dorian for the
     # break, both times with its keyed third above. A chorus of two lines, call and answer, instead of one line and a
     # vamp
+    # (v34, section w4: the build 'static, little new vs w3' - twelve bars of the climb with no voice between the
+    # second verse and the crest) THE PRE-CHORUS: the song now has verse -> pre-chorus -> chorus. As the bass climbs
+    # D -> F -> G -> A under the dark filter, the near voice sings what the build does - Kepler: 'the nearer, the
+    # faster' (A A G A C A over F, then a step up, B B A B D B over G), and over the long A7sus4 'round and round and
+    # round' climbing to E5, held into the snare ladder - her top notes (D5, E5) flipping into head voice (wM's
+    # passaggio at C5, so the climb lightens instead of pushing); then the beat of silence, and the chorus drops
+    # back down to her D4: 'nearer each time it comes round'
+    PC = json.load(open(os.path.join(HERE, 'chirpers9-t2-prech.json')))
+    pcnotes = [dict(n_, at=round(38 * 4.0 + n_['at'] - 0.245, 4)) for n_ in PC['tracks'][0]['notes']]
     CB = json.load(open(os.path.join(HERE, 'chirpers9-t2-crestb.json')))
     cbnotes = []
     for b_, g_ in (((CREST + 8) * 4.0, 1.0), ((CREST + 12) * 4.0, 0.9)):
@@ -780,6 +789,8 @@ def build():
              'notes': [dict(n_, pitch=f"m{int(str(n_['pitch'])[1:]) + 2}") for n_ in dsnotes2], 'gain': '-8dB', 'pan': 0.0, 'sends': {'echo': '-18dB', 'hall': '-12dB'}},
             {'name': 'crestsung', 'patch': dict(dict(CS['tracks'][0]['patch'], extends='voice-near synth.layers.0.harmony=[2] synth.layers.0.harmony_key=D:mixolydian synth.layers.0.together=true synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.06}),
              'notes': csnotes, 'gain': '-9dB', 'pan': 0.0, 'sends': {'echo': '-18dB', 'hall': '-12dB'}},
+            {'name': 'prech', 'patch': dict(dict(PC['tracks'][0]['patch'], extends='voice-near synth.layers.0.passaggio=C5 synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.06, 'scoop': 1}),
+             'notes': pcnotes, 'gain': '-10dB', 'pan': 0.0, 'sends': {'echo': '-16dB', 'hall': '-12dB'}},
             {'name': 'crestb', 'patch': dict(dict(CB['tracks'][0]['patch'], extends='voice-near synth.layers.0.harmony=[2] synth.layers.0.harmony_key=D:mixolydian synth.layers.0.together=true synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.06, 'scoop': 1}),
              'notes': cbnotes, 'gain': '-9dB', 'pan': 0.0, 'sends': {'echo': '-18dB', 'hall': '-12dB'}},
             {'name': 'sung', 'patch': dict(SU['tracks'][0]['patch'], extends='voice-near synth.lfo.vib.per_note=true'),
