@@ -359,6 +359,25 @@ def hummed(notes):
     return notes
 
 
+# v46 (ROUND TYPE: section, the jet's middle 104-113, ~16 s - its stillest stretch now, 2:40-2:56; rewritten): THE
+# HOOK SUNG BACK. Under the choir's two lines ('We were the far side' at 105, 'And it was ours' at 109) the flute
+# carried E1 two octaves up every two bars, the same over both. Now the hook changes hands for the second line (t4's
+# lesson: a contrast of touch and register): 109-112 the flute rests and the FOF SOPRANO sings the hook an octave
+# lower, in a soprano's range (D5-C6) - a sung descant over 'And it was ours' - and the flute takes it back at 113
+# with the four-on-the-floor. The soprano otherwise sings only after the break (v35): this is her first word.
+HOOK_SUNG = (109, 112)
+
+
+def hook_sung_back():
+    lo, hi = b0(HOOK_SUNG[0]), b0(HOOK_SUNG[1] + 1)
+    inside = lambda s: lo - 1e-6 <= s < hi - 1e-6
+    taken = [e for e in P["hook"].ev if inside(e[0])]
+    P["hook"].ev = [e for e in P["hook"].ev if not inside(e[0])]
+    for s, ln, h, v in taken:
+        m = int(h[1:]) if h.startswith("m") else midi(h)
+        part("hook3").add(s, ln, name_of(m - 12), min(100, v - 10))
+
+
 def mute_until_the_jet():
     P["bass"].ev = [(s, ln, h + "^pm" if s < b0(JET) - 1e-6 and "^" not in h else h, v) for s, ln, h, v in P["bass"].ev]
 
@@ -967,6 +986,7 @@ def main():
     mute_until_the_jet()
     e7_tightens()
     full_throttle()
+    hook_sung_back()
     lead, fifth, low = choir()
     far = far_choir()                                             # v38: the answer forms far away (v45: own track)
     solo = age_her(sorted(hummed(opening_voice()) + sung_asks() + horizon_line(), key=lambda d: d["at"]))   # v36: she asks                      # v12: the last line, one voice alone (v21: and the first)
