@@ -1,0 +1,9 @@
+about: "Prefab (3D, use in a group): a tentacle rising from its base (the group's place), one tapered tube along a path that sways in a travelling wave and curls at the tip; it lashes on cue (spring of the envelope's age) and its suckers glow with the level. Params: length, thick, sway (how far it swings), curl (how much the tip coils), phase (its own timing), hue (along the palette)."
+params: {length: 1.4, thick: 0.08, sway: 0.25, curl: 0.35, phase: 0, hue: 0.6}
+palette: ocean
+env:
+  lash: {on: track.snare}
+vars:
+  amp: {value: "param.sway*(1 + 0.8*spring(env.lash.age, 2.5, 3))"}
+layers:
+  - {type: mesh, shape: path, scale: 1, detail: 40, pos: param.hue, path: ["var.amp*sin(vtx.u*0.7 - time.t*0.3 + param.phase)*vtx.u + param.curl*pow(vtx.u, 3)*cos(time.t*0.2 + param.phase)", "param.length*vtx.u - param.curl*pow(vtx.u, 4)*0.5", "var.amp*0.6*cos(vtx.u*0.6 - time.t*0.25 + param.phase)*vtx.u + param.curl*pow(vtx.u, 3)*sin(time.t*0.2 + param.phase)"], radius: "param.thick*(1 - 0.92*vtx.u)", displace: "0.006*step(0.6, sin(vtx.v*8))*step(0.5, sin(vtx.u*28))", colour: v, spread: 0.3, light: 1, ambient: 0.1, rim: 0.9, spec: 1.4, shine: 40, emit: "audio.level*0.4"}
