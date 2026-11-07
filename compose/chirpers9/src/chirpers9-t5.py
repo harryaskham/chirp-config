@@ -72,6 +72,7 @@ SHADOW = os.environ.get("C9T5_SHADOW", "128:192:-14")   # SECTION w3 (1:08-1:41,
 MIRROR = os.environ.get("C9T5_MIRROR", "384:432")   # SECTION w7 (3:20-3:53, C's second half: little new vs w6): THE ORBIT TURNS INSIDE OUT - t5 is t1's mirror, and here the orbit mirrors itself: E5 inverted in the key around its A (A B A . D . A B A . E ., the flings falling an octave-ish down where they leapt up), over the spin ('A:B' beats; ':alt' alternates the orbit and its mirror cycle by cycle, call and answer); back to E5 itself for the outro and the t5 -> t6 seam
 KICKIN = os.environ.get("C9T5_KICKIN", "0.6")   # SECTION w2 (0:34-1:08, A's first half: flagged level jump; the t4 -> t5 seam measures t5's body here, 4 dB under t4's): A ARRIVES WITH A PULSE - E2's kick (its cycle of seven sixteenths) starts at A instead of eight bars in, soft and alone (value = velocity), so the plain seed and the orbit land on a heartbeat; the rim, clap and hats still join eight bars later
 CRESTDROP = os.environ.get("C9T5_CRESTDROP", "-10")   # SECTION w5 (2:15-2:47, the build and the pull into the crest; Harry's brief: difficult -> rewarding, every cycle meeting on one downbeat): THE MEETING LANDS DEEP - on the crest's downbeat a sine D1 blooms for two bars under the crash (value = its gain in dB), so the moment everything meets is felt in the chest; ':bloom' also plays the D9 light full and long on that downbeat
+BREATHQ = os.environ.get("C9T5_BREATHQ", "-9")   # SECTION w4 (1:41-2:15, A's end, the four-bar drop and the build's start): SHE BREATHES THE SEED'S BREATH - in the drop before the build, where the drums and the quick bass stop, the near singer breathes t1's 'ah' (D rising to A, E1's first two notes, the album's first voice): the outer disk's breath quoted by the inner disk's singer, then the build lands (value = gain dB)
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -632,6 +633,12 @@ def song():
         for tr in tracks:
             if tr["name"] in out:
                 tr["notes"] = [n for n in tr["notes"] if not (ha <= n["at"] < hb and not (kind == "light" and n["pitch"] == "k"))]
+    if BREATHQ:
+        b0 = ST[BASSFROM]
+        tracks.append({"name": "breath-quote", "patch": {"extends": "voice-near synth.layers.0.breath.value=0.85 synth.layers.0.breath.mod.0.amount=-0.7 synth.amp.a=600ms synth.amp.r=1200ms synth.layers.0.register=0.6"},
+                       "gain": f"{BREATHQ}dB", "pan": -0.1, "sends": {"room": "-6dB"},
+                       "notes": [{"at": b0 - 7.0, "len": 2.5, "ph": "HH AA1", "pitch": "D4", "vel": 0.45},
+                                 {"at": b0 - 4.5, "len": 3.5, "ph": "AA1", "pitch": "A4", "vel": 0.55}]})
     if CRESTDROP:
         cg, _, copt = CRESTDROP.partition(":")
         tracks.append({"name": "crest-drop", "patch": "sub", "gain": f"{cg}dB", "pan": 0.0, "notes": [note(TC, "D1", 8.0, 1.0)]})
