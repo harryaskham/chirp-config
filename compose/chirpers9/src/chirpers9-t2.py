@@ -701,6 +701,32 @@ def build():
             acc_ = q_ in (6, 14)
             P['gtr'].append((bar_ * 4.0 + q_ * 0.25, ch_, 0.18, (84 if acc_ else 66) + (8 if s_ == 'crest' else 0)))
     P['gtr'] = [e_ for e_ in P['gtr'] if not (91.0 * 4.0 - 1e-6 <= e_[0] < 94.0 * 4.0 - 1e-6)]
+    # (v38, section w6: 2:37-3:07, the break's first twelve bars - pad, bass, debris, the bells' retrograde and the
+    # far choir, nothing in time above the debris) THE GUITAR FLOATS: the guitar that comped through the build and
+    # the crest doesn't leave for the break - it stops comping and rings out each chord as a slow broken chord, up
+    # and back down in eighths (four notes up, two down), soft, through a long ping-pong echo, so every note trails
+    # behind it like the debris does: the band's rhythm instrument turned into weather. Twelve bars, then it thins
+    # (every other bar) as the break climbs out, and stops where the drums come back
+    P['gtrarp'] = []
+    prev_ = 64.0
+    for bar_ in range(SEC['break'], SEC['break'] + 16):
+        rt_, iv_ = chord(bar_)
+        pcs_ = sorted({(KEY + rt_ + v_) % 12 for v_ in [0] + list(iv_)})
+        best_ = None
+        for lo_ in range(52, 62):
+            vo_ = sorted(lo_ + ((pc_ - lo_) % 12) for pc_ in pcs_)
+            vo_ = [n_ for n_ in vo_ if n_ <= 76][:4]
+            c_ = sum(vo_) / len(vo_)
+            if best_ is None or abs(c_ - prev_) < abs(best_[0] - prev_):
+                best_ = (c_, vo_)
+        prev_ = best_[0]
+        vo_ = best_[1]
+        seq_ = vo_ + vo_[-2:0:-1]
+        if bar_ - SEC['break'] >= 12 and (bar_ - SEC['break']) % 2 == 1:
+            continue
+        for q_ in range(8):
+            n_ = seq_[q_ % len(seq_)]
+            P['gtrarp'].append((bar_ * 4.0 + q_ * 0.5, m(n_), 0.45, (70 if q_ == 0 else 56) - (6 if bar_ - SEC['break'] >= 12 else 0)))
 
     # (v25, section w8: the drift 'static' - one groove under the last chorus to the end) THE FLOOR FALLS AWAY FOR THE
     # THIRD TIME: at the last chorus's third statement (bars 92-94) the band drops out - no kit, no hats, no debris,
@@ -797,6 +823,7 @@ def build():
             # (an album staple, three tracks) 13 dB down - the song's through-line, barely there. Now it is a Wurlitzer,
             # reedy and warm, up front: the tune you follow upside down until the crest turns it over (and the ondes
             # sings it the right way up)
+            tr('gtrarp', 'cutting-guitar', '-6dB', pan=0.3, sends={'echo': '-8dB', 'hall': '-12dB'}),
             tr('gtr', 'cutting-guitar', '-5dB', pan=-0.35, sends={'hall': '-18dB'}),
             tr('e1p', 'wurli', '-6dB', pan=0.2, sends={'echo': '-14dB', 'hall': '-14dB'}),
             tr('e1c', 'risset-bell', '-14dB', pan=-0.35, sends={'hall': '-8dB'}),
