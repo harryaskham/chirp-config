@@ -587,6 +587,16 @@ def build():
     # the void: one bar where only the cello blur (and the stopped tape's tail) remains
     for key in ('kit', 'hats', 'acid', 'e5', 'near', 'tide', 'sub'):
         P[key] = [e_ for e_ in P[key] if not (void0 + 1.0 - 1e-6 <= e_[0] < void1 - 1e-6)]
+    # (v45, section w8: the tear still read 'static' - the surge's whole band ran on under the torn duet, the
+    # harmonium the loudest bed) THE TEAR CLEARS THE ROOM: on the tear's downbeat the steel pan, the marimba, the
+    # sequencer and the whistle are ripped out with it - what is left is the tide's harmonium, the two voices being
+    # pulled apart (the near one racing up, the old one slowing), the stretched drummer and its 32nd hats, the
+    # trombone (the far side) and the floor; four bars on the floor tears away too, then the tape stops, and only
+    # then does the whole band snap back for the last chorus. Fullest (the surge) -> bare -> barer -> nothing ->
+    # everything. (The tide out too scored 97.59/96.82: seed 11 split into 17 sections)
+    for key in ('e5', 'near', 'acid', 'hook', 'e5b'):
+        P[key] = [e_ for e_ in P[key] if not (tr0 + 0.5 - 1e-6 <= e_[0] < void1 - 1e-6)]
+        P[key] = [(e_[0], e_[1], min(e_[2], tr0 + 0.5 - e_[0]), *e_[3:]) if e_[0] < tr0 + 0.5 < e_[0] + e_[2] else e_ for e_ in P[key]]
 
     # (tried in v18's round: each section leaving one colour out - the pan in the tide, the hats in the squeeze, more in
     # a bolder version - recurrence collapsed 100 -> 42..71: t6's sections are heard as returns BECAUSE they share
