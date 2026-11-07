@@ -830,6 +830,22 @@ def build():
                'synth': {'layers': [{'type': 'chaos', 'chaos': {'system': 'duffing', 'axis': 'x',
                                      'amount': {'value': 0, 'mod': [{'src': 'auto.strain', 'amount': 1.0}]}}}]}}
     tr = lambda name, patch, gain, **kw: dict({'name': name, 'patch': patch, 'gain': gain, 'score': line(P[name], total)}, **kw)
+    # (v50, section w9: the out-seam 'static, little new vs w8' - the last chorus's locked groove ran on, sixteenth
+    # hats and the 303 at full speed, through the whole overlap into t7's drumless head) TIME DILATES AT THE EDGE: as
+    # the near side's filter closes (its redshift), the band's own time slows with it - four bars in, the drummer's
+    # E2 cell drops to HALF SPEED (the same pattern, every hit twice as far apart), the hats fall from sixteenths to
+    # eighths and, for the last eight bars, to quarters; two bars later the sequencer stops; the old voice's last
+    # word, the trombone's slide to B-flat and the ebb are untouched. The song does not stop: it slows, the way
+    # anything falling past the edge seems to, and hands t7 a pulse it can start from
+    od0_ = SEC['out'] * 4.0
+    hk_ = [e_ for e_ in P['kit'] if od0_ - 1e-6 <= e_[0] < od0_ + 24.0 - 1e-6]
+    P['kit'] = [e_ for e_ in P['kit'] if not (e_[0] >= od0_ + 16.0 - 1e-6)]
+    P['kit'] += [(od0_ + 16.0 + (e_[0] - od0_) * 2.0, e_[1], e_[2] * 2.0, int(e_[3] * 0.9)) + tuple(e_[4:]) for e_ in hk_]
+    P['kit'].sort(key=lambda e_: e_[0])
+    P['hats'] = [e_ for e_ in P['hats'] if not (
+        (od0_ + 16.0 - 1e-6 <= e_[0] < od0_ + 32.0 - 1e-6 and abs(e_[0] * 2 - round(e_[0] * 2)) > 1e-6) or
+        (e_[0] >= od0_ + 32.0 - 1e-6 and abs(e_[0] - round(e_[0])) > 1e-6))]
+    P['acid'] = [e_ for e_ in P['acid'] if e_[0] < od0_ + 24.0 - 1e-6]
     P['glass'] = [e_ for e_ in P['lights'] if SEC['crest'] * 4.0 - 1e-6 <= e_[0] < SEC['cross'] * 4.0 - 1e-6]
     # (v47, section w3: the tide 'little new vs w2' - the pull's wave ran straight on into it, the same drummer on
     # the same rims) THE TIDE ON HANDS: while the tide is in - the song's lowest, quietest water - the drummer puts the
