@@ -16,6 +16,7 @@ mallets and glass for the five notes, a shimmer drone for the disk's air, and on
 
 Writes songs/chirpers9-t1.yaml (or $C9T1_OUT).
 """
+import math
 import json
 import os
 
@@ -84,6 +85,7 @@ HOOKJOIN = os.environ.get("C9T1_HOOKJOIN", "-16")   # PALETTE (Harry 23:55: subt
 PHRASES = os.environ.get("C9T1_PHRASES", "rotate,breath,intro,halfkick")   # WHOLE (Harry 23:55: 'lots of contiguous music with very little change' - subtle variation every 8-16 bars, not schizo): THE SEED'S PULSE MOVES IN PHRASES - 'rotate': A's 5-in-16 shekere Euclid turns three sixteenths every 8 bars (the same rhythm, its accents walking round the bar: a process move); 'breath': the hats and kick rest on the last beat of every 8-bar phrase in A, the build and B (the last before the crest is a held breath); 'intro': a soft clave ticks E1's 5-beat cycle from intro bar 9 and stops at A, so the whistle lands alone, and the pad's open fifth opens up an octave (D3 A3 D4) at bar 9 and deepens (A2 D3 A3) at bar 13; 'halfkick': in B's second phrase the kick goes to every 4 beats, then back
 STRIP = os.environ.get("C9T1_STRIP", "256:288")   # SECTION (w6, 2:54-3:27, the lock after the crest: the least recently worked window, everything playing E1 at once): THE SEED ALONE - for the lock's second phrase ('A:B' beats) the five scattered voices step out (':bare' also rests the glock cell and the shekere), and over the cello, the pad, the organ, the bass and the half-time kick the whistle plays E1 twice, plainly, the seed heard on its own once the voices have made it; at B everything comes back, locked
 BOUNCE = os.environ.get("C9T1_BOUNCE", "0.72:short")   # SECTION (w5, 2:22-2:54, the build into the crest: little new vs A, the least recently worked window): THE VOICES FALL TOGETHER - in the build each of the five scattered voices stops keeping its own time and repeats its note faster and faster, like a dropped ball bouncing to rest, each joining in turn (kalimba first, music box last) and all landing on their places in E1 at the crest: the convergence the album is about, heard as it happens. Value = the bounce ratio (each gap this fraction of the last); 'R:short' starts later and stops before the fastest repeats
+BASSWALK = os.environ.get("C9T1_BASSWALK", "144:192:x4")   # SECTION (w4, 1:48-2:22, A's second half: little new vs w3; the bass had sat on D and A for all 32 bars of A): THE FLOOR WALKS THE SEED - for these bars the triangle bass leaves its D-A drone and walks E1 itself, D A C G E, slow ('A:B:x4': at the cello cantus's quarter speed, an octave under it, phased like it to meet the crest; 'x2' at half speed), over the D pedal: the harmony moves for the first time, inside the key, and the seed is in the bass before the build
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -426,6 +428,24 @@ def song():
                     else:
                         out.append(n)
                 tr["notes"] = out
+    if BASSWALK:
+        wa, wb, wm = BASSWALK.split(":")
+        wa, wb, mul = float(wa), float(wb), float(wm[1:])
+        bmidi = [38, 33, 36, 31, 40]   # D2 A1 C2 G1 E2
+        for tr in tracks:
+            if tr["name"] == "bass":
+                keep = [n for n in tr["notes"] if not (wa <= n["at"] < wb)]
+                keep = [dict(n, len=min(n["len"], wa - n["at"] - 0.25)) if n["at"] < wa < n["at"] + n["len"] else n for n in keep]
+                L = E1_CYC * mul
+                c = TC - L * math.ceil((TC - wa) / L)
+                ns = []
+                while c < wb:
+                    for o, ln, mm in zip(E1_OFF, E1_LEN, bmidi):
+                        t = c + o * mul
+                        if wa <= t < wb:
+                            ns.append(note(t, f"m{mm}", min(ln * mul, wb - t) - 0.25, 0.7))
+                    c += L
+                tr["notes"] = sorted(keep + ns, key=lambda n: n["at"])
     if BOUNCE:
         r, _, short = BOUNCE.partition(":")
         r, L0, dmin = float(r), (12 if short else 16), (0.3 if short else 0.2)
