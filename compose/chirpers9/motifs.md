@@ -101,7 +101,7 @@ score: "D3,F#3,A3,C#4,E4,G#4/5b Eb3,G3,Bb3,D4,A4/3b  D3,F#3,A3,C#4,E4,G#4/6b Eb3
   - Stretched: a 32-beat cycle, each chord a long held breath.
   - Frozen: stop on Y (Eb) - the unresolved pull (t6 hands it to t7 this way).
   - As a bass line alone: D and Eb, the split's rhythm on one note pair.
-- **In t6.** A harmonium breathes it; a 303 plays E2 (t2's seven) on its roots. At the crest it gives way to E4's four lights, one chord per E1 cycle, as E1's two layers - one squeezed, one stretched all song long - meet at the same speed.
+- **In t6.** A harmonium breathes it; a 303 plays E2 (t2's seven) on its roots. At the crest it gives way to E4's four lights, one chord per E1 cycle, as E1's two layers - one squeezed, one stretched all song long - meet at the same speed. (Since t6 v52 the crest's second chorus is the one place the album's drummer leaves E2's seven for a plain four on the floor - the convergence landing - before the cross falls back into the seven.)
 
 ### E3, "the undertow" (t3, chirper-two)
 **v2 (6 Nov, after Harry's note - tone is home).** The same rhythm and segments, re-pitched consonant:
